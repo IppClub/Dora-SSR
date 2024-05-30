@@ -127,7 +127,7 @@ function createTypescriptProgram(rootFileName: string, content: string): ts.Prog
 					}
 				}
 			}
-			if (Info.path.isAbsolute(fileName)) {
+			if (Info.path.isAbsolute(fileName) && rootFileName !== fileName) {
 				const relativePath = Info.path.relative(currentDirectory, fileName);
 				if (!relativePath.startsWith('..')) {
 					const ext = Info.path.extname(relativePath);

@@ -1,3 +1,4 @@
+-- @preview-file on
 _ENV = Dora
 import "UI.Control.Basic.Ruler"
 import "UI.Control.Basic.CircleButton"

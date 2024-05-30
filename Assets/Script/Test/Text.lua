@@ -7,61 +7,61 @@ local tostring = _G.tostring -- 1
 local Vec2 = Dora.Vec2 -- 1
 local Size = Dora.Size -- 1
 local Label = Dora.Label -- 1
-local LineRect = require("UI.View.Shape.LineRect") -- 2
-local ScrollArea = require("UI.Control.Basic.ScrollArea") -- 3
-local viewWidth, viewHeight -- 5
-do -- 5
-	local _obj_0 = View.size -- 5
-	viewWidth, viewHeight = _obj_0.width, _obj_0.height -- 5
-end -- 5
-local width, height = viewWidth - 200, viewHeight - 20 -- 7
-local fontSize = math.floor(20 * App.devicePixelRatio) -- 9
-local root = AlignNode() -- 11
-do -- 12
-	local _obj_0 = View.size -- 12
-	width, height = _obj_0.width, _obj_0.height -- 12
-end -- 12
-root:css("width: " .. tostring(width) .. "; height: " .. tostring(height)) -- 13
-root:gslot("AppSizeChanged", function() -- 14
-	do -- 15
-		local _obj_0 = View.size -- 15
-		width, height = _obj_0.width, _obj_0.height -- 15
-	end -- 15
-	return root:css("width: " .. tostring(width) .. "; height: " .. tostring(height)) -- 16
-end) -- 14
-root:addChild((function() -- 17
-	local _with_0 = ScrollArea({ -- 18
-		width = width, -- 18
-		height = height, -- 19
-		paddingX = 0, -- 20
-		paddingY = 50, -- 21
-		viewWidth = height, -- 22
-		viewHeight = height -- 23
-	}) -- 17
-	_with_0.border = LineRect({ -- 25
-		width = width, -- 25
-		height = height, -- 25
-		color = 0xffffffff -- 25
-	}) -- 25
-	_with_0.area:addChild(_with_0.border) -- 26
-	root:slot("AlignLayout", function(w, h) -- 27
-		_with_0.position = Vec2(w / 2, h / 2) -- 28
-		w = w - 200 -- 29
-		h = h - 20 -- 30
-		_with_0.view.children.first.textWidth = w - fontSize -- 31
-		_with_0:adjustSizeWithAlign("Auto", 10, Size(w, h)) -- 32
-		_with_0.area:removeChild(_with_0.border) -- 33
-		_with_0.border = LineRect({ -- 34
-			width = w, -- 34
-			height = h, -- 34
-			color = 0xffffffff -- 34
-		}) -- 34
-		return _with_0.area:addChild(_with_0.border) -- 35
-	end) -- 27
-	_with_0.view:addChild((function() -- 36
-		local _with_1 = Label("sarasa-mono-sc-regular", fontSize) -- 36
-		_with_1.alignment = "Left" -- 37
-		_with_1.textWidth = width - fontSize -- 38
+local LineRect = require("UI.View.Shape.LineRect") -- 3
+local ScrollArea = require("UI.Control.Basic.ScrollArea") -- 4
+local viewWidth, viewHeight -- 6
+do -- 6
+	local _obj_0 = View.size -- 6
+	viewWidth, viewHeight = _obj_0.width, _obj_0.height -- 6
+end -- 6
+local width, height = viewWidth - 200, viewHeight - 20 -- 8
+local fontSize = math.floor(20 * App.devicePixelRatio) -- 10
+local root = AlignNode() -- 12
+do -- 13
+	local _obj_0 = View.size -- 13
+	width, height = _obj_0.width, _obj_0.height -- 13
+end -- 13
+root:css("width: " .. tostring(width) .. "; height: " .. tostring(height)) -- 14
+root:gslot("AppSizeChanged", function() -- 15
+	do -- 16
+		local _obj_0 = View.size -- 16
+		width, height = _obj_0.width, _obj_0.height -- 16
+	end -- 16
+	return root:css("width: " .. tostring(width) .. "; height: " .. tostring(height)) -- 17
+end) -- 15
+root:addChild((function() -- 18
+	local _with_0 = ScrollArea({ -- 19
+		width = width, -- 19
+		height = height, -- 20
+		paddingX = 0, -- 21
+		paddingY = 50, -- 22
+		viewWidth = height, -- 23
+		viewHeight = height -- 24
+	}) -- 18
+	_with_0.border = LineRect({ -- 26
+		width = width, -- 26
+		height = height, -- 26
+		color = 0xffffffff -- 26
+	}) -- 26
+	_with_0.area:addChild(_with_0.border) -- 27
+	root:slot("AlignLayout", function(w, h) -- 28
+		_with_0.position = Vec2(w / 2, h / 2) -- 29
+		w = w - 200 -- 30
+		h = h - 20 -- 31
+		_with_0.view.children.first.textWidth = w - fontSize -- 32
+		_with_0:adjustSizeWithAlign("Auto", 10, Size(w, h)) -- 33
+		_with_0.area:removeChild(_with_0.border) -- 34
+		_with_0.border = LineRect({ -- 35
+			width = w, -- 35
+			height = h, -- 35
+			color = 0xffffffff -- 35
+		}) -- 35
+		return _with_0.area:addChild(_with_0.border) -- 36
+	end) -- 28
+	_with_0.view:addChild((function() -- 37
+		local _with_1 = Label("sarasa-mono-sc-regular", fontSize) -- 37
+		_with_1.alignment = "Left" -- 38
+		_with_1.textWidth = width - fontSize -- 39
 		_with_1.text = [[# 贡献指南
 
 &emsp;&emsp;非常感谢您对Dora SSR的兴趣和支持！我们欢迎任何人为这个项目做出贡献。以下是一些建议和指南，以帮助您开始参与项目的贡献。
@@ -139,10 +139,10 @@ root:addChild((function() -- 17
 
 ------
 
-&emsp;&emsp;希望这个贡献指南能帮助您开始参与Dora SSR项目。再次感谢您的支持，期待您的贡献！]] -- 39
-		return _with_1 -- 36
-	end)()) -- 36
-	_with_0:adjustSizeWithAlign() -- 117
-	return _with_0 -- 17
-end)()) -- 17
-return root -- 11
+&emsp;&emsp;希望这个贡献指南能帮助您开始参与Dora SSR项目。再次感谢您的支持，期待您的贡献！]] -- 40
+		return _with_1 -- 37
+	end)()) -- 37
+	_with_0:adjustSizeWithAlign() -- 118
+	return _with_0 -- 18
+end)()) -- 18
+return root -- 12

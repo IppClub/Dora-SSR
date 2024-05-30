@@ -1,4 +1,4 @@
-// @preview-file off
+// @preview-file on
 import { React, toNode } from 'DoraX';
 import { Data, PlatformWorld, Unit, UnitAction } from 'Platformer';
 import { App, Body, BodyMoveType, Color, Color3, Dictionary, GSlot, Rect, Size, Vec2, View, loop, once, sleep, Array, Observer, EntityEvent, Sprite, Spawn, Ease, Y, Slot, tolua, Scale, Opacity, Content, Group, Entity, Component, Director, Keyboard, KeyName, TypeName } from 'Dora';

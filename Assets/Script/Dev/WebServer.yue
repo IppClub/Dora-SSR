@@ -15,15 +15,21 @@ HttpServer.wwwPath = Path Content.writablePath, ".www"
 from "Utils" import LintYueGlobals
 
 getProjectDirFromFile = (file) ->
-	:writablePath = Content
-	return nil if writablePath ~= file\sub 1, #writablePath
-	current = Path\getRelative file, writablePath
+	:writablePath, :assetPath = Content
+	parent, current = if writablePath == file\sub 1, #writablePath
+		writablePath, Path\getRelative file, writablePath
+	elseif assetPath == file\sub 1, #assetPath
+		dir = Path assetPath, "Script"
+		dir, Path\getRelative file, dir
+	else
+		nil, nil
+	return nil unless current
 	repeat
 		current = Path\getPath current
 		break if current == ""
-		for f in *Content\getFiles Path writablePath, current
+		for f in *Content\getFiles Path parent, current
 			if Path\getName(f)\lower! == "init"
-				return Path writablePath, current, Path\getPath f
+				return Path parent, current, Path\getPath f
 	until false
 	nil
 
@@ -706,14 +712,13 @@ HttpServer\post "/assets", ->
 					a.title < b.title
 				else
 					a.dir
-		title = Path\getFilename path
-		if title == ""
+		if root
 			children
 		else
 			{
 				key: path
 				dir: true
-				:title
+				title: Path\getFilename path
 				:children
 			}
 	zh = App.locale\match("^zh")?

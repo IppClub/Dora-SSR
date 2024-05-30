@@ -3,431 +3,431 @@ local ____lualib = require("lualib_bundle") -- 1
 local __TS__Class = ____lualib.__TS__Class -- 1
 local ____exports = {} -- 1
 local Warn, visitBTree -- 1
-local ____DoraX = require("DoraX") -- 1
-local React = ____DoraX.React -- 1
-local P = require("Platformer") -- 2
-function Warn(msg) -- 179
-    print("[Dora Warning] " .. msg) -- 180
-end -- 180
-function visitBTree(treeStack, node) -- 285
-    if type(node) ~= "table" then -- 285
-        return false -- 287
-    end -- 287
-    repeat -- 287
-        local ____switch57 = node.name -- 287
-        local ____cond57 = ____switch57 == "BTSelector" -- 287
-        if ____cond57 then -- 287
-            do -- 287
-                local props = node.data -- 291
-                local children = props.children -- 292
-                if children and #children > 0 then -- 292
-                    local stack = {} -- 294
-                    do -- 294
-                        local i = 0 -- 295
-                        while i < #children do -- 295
-                            if not visitBTree(stack, children[i + 1].props) then -- 295
-                                Warn("unsupported BehaviorTree node with name " .. tostring(children[i + 1].props.name)) -- 297
-                            end -- 297
-                            i = i + 1 -- 295
-                        end -- 295
-                    end -- 295
-                    if #stack > 0 then -- 295
-                        treeStack[#treeStack + 1] = P.Behavior.Sel(stack) -- 301
-                    end -- 301
-                end -- 301
-                break -- 304
-            end -- 304
-        end -- 304
-        ____cond57 = ____cond57 or ____switch57 == "BTSequence" -- 304
-        if ____cond57 then -- 304
-            do -- 304
-                local props = node.data -- 307
-                local children = props.children -- 308
-                if children and #children > 0 then -- 308
-                    local stack = {} -- 310
-                    do -- 310
-                        local i = 0 -- 311
-                        while i < #children do -- 311
-                            if not visitBTree(stack, children[i + 1].props) then -- 311
-                                Warn("unsupported BehaviorTree node with name " .. tostring(children[i + 1].props.name)) -- 313
-                            end -- 313
-                            i = i + 1 -- 311
-                        end -- 311
-                    end -- 311
-                    if #stack > 0 then -- 311
-                        treeStack[#treeStack + 1] = P.Behavior.Seq(stack) -- 317
-                    end -- 317
-                end -- 317
-                break -- 320
-            end -- 320
-        end -- 320
-        ____cond57 = ____cond57 or ____switch57 == "BTCondition" -- 320
-        if ____cond57 then -- 320
-            do -- 320
-                local props = node.data -- 323
-                treeStack[#treeStack + 1] = P.Behavior.Con(props.desc, props.onCheck) -- 324
-                break -- 325
-            end -- 325
-        end -- 325
-        ____cond57 = ____cond57 or ____switch57 == "BTMatch" -- 325
-        if ____cond57 then -- 325
-            do -- 325
-                local props = node.data -- 328
-                local children = props.children -- 329
-                if children and #children > 0 then -- 329
-                    local stack = {} -- 331
-                    do -- 331
-                        local i = 0 -- 332
-                        while i < #children do -- 332
-                            if not visitBTree(stack, children[i + 1].props) then -- 332
-                                Warn("unsupported BehaviorTree node with name " .. tostring(children[i + 1].props.name)) -- 334
-                            end -- 334
-                            i = i + 1 -- 332
-                        end -- 332
-                    end -- 332
-                    if #stack > 0 then -- 332
-                        treeStack[#treeStack + 1] = P.Behavior.Seq({ -- 338
-                            P.Behavior.Con(props.desc, props.onCheck), -- 340
-                            table.unpack(stack) -- 340
-                        }) -- 340
-                        break -- 343
-                    end -- 343
-                end -- 343
-                treeStack[#treeStack + 1] = P.Behavior.Con(props.desc, props.onCheck) -- 346
-                break -- 347
-            end -- 347
-        end -- 347
-        ____cond57 = ____cond57 or ____switch57 == "BTAction" -- 347
-        if ____cond57 then -- 347
-            do -- 347
-                local props = node.data -- 350
-                treeStack[#treeStack + 1] = P.Behavior.Act(props.name) -- 351
-                break -- 352
-            end -- 352
-        end -- 352
-        ____cond57 = ____cond57 or ____switch57 == "BTCommand" -- 352
-        if ____cond57 then -- 352
-            do -- 352
-                local props = node.data -- 355
-                treeStack[#treeStack + 1] = P.Behavior.Command(props.name) -- 356
-                break -- 357
-            end -- 357
-        end -- 357
-        ____cond57 = ____cond57 or ____switch57 == "BTWait" -- 357
-        if ____cond57 then -- 357
-            do -- 357
-                local props = node.data -- 360
-                treeStack[#treeStack + 1] = P.Behavior.Wait(props.time) -- 361
-                break -- 362
-            end -- 362
-        end -- 362
-        ____cond57 = ____cond57 or ____switch57 == "BTCountdown" -- 362
-        if ____cond57 then -- 362
-            do -- 362
-                local props = node.data -- 365
-                local children = props.children -- 366
-                if children and #children >= 1 then -- 366
-                    local stack = {} -- 368
-                    if visitBTree(stack, children[1].props) then -- 368
-                        treeStack[#treeStack + 1] = P.Behavior.Countdown(props.time, stack[1]) -- 370
-                    else -- 370
-                        Warn("expects only one BehaviorTree child for BehaviorTree.Countdown") -- 372
-                    end -- 372
-                else -- 372
-                    Warn("expects only one BehaviorTree child for BehaviorTree.Countdown") -- 375
-                end -- 375
-                break -- 377
-            end -- 377
-        end -- 377
-        ____cond57 = ____cond57 or ____switch57 == "BTTimeout" -- 377
-        if ____cond57 then -- 377
-            do -- 377
-                local props = node.data -- 380
-                local children = props.children -- 381
-                if children and #children >= 1 then -- 381
-                    local stack = {} -- 383
-                    if visitBTree(stack, children[1].props) then -- 383
-                        treeStack[#treeStack + 1] = P.Behavior.Timeout(props.time, stack[1]) -- 385
-                    else -- 385
-                        Warn("expects only one BehaviorTree child for BehaviorTree.Timeout") -- 387
-                    end -- 387
-                else -- 387
-                    Warn("expects only one BehaviorTree child for BehaviorTree.Timeout") -- 390
-                end -- 390
-                break -- 392
-            end -- 392
-        end -- 392
-        ____cond57 = ____cond57 or ____switch57 == "BTRepeat" -- 392
-        if ____cond57 then -- 392
-            do -- 392
-                local props = node.data -- 395
-                local children = props.children -- 396
-                if children and #children >= 1 then -- 396
-                    local stack = {} -- 398
-                    if visitBTree(stack, children[1].props) then -- 398
-                        if props.times ~= nil then -- 398
-                            treeStack[#treeStack + 1] = P.Behavior.Repeat(props.times, stack[1]) -- 401
-                        else -- 401
-                            treeStack[#treeStack + 1] = P.Behavior.Repeat(stack[1]) -- 403
-                        end -- 403
-                    else -- 403
-                        Warn("expects only one BehaviorTree child for BehaviorTree.Repeat") -- 406
-                    end -- 406
-                else -- 406
-                    Warn("expects only one BehaviorTree child for BehaviorTree.Repeat") -- 409
-                end -- 409
-                break -- 411
-            end -- 411
-        end -- 411
-        ____cond57 = ____cond57 or ____switch57 == "BTRetry" -- 411
-        if ____cond57 then -- 411
-            do -- 411
-                local props = node.data -- 414
-                local children = props.children -- 415
-                if children and #children >= 1 then -- 415
-                    local stack = {} -- 417
-                    if visitBTree(stack, children[1].props) then -- 417
-                        if props.times ~= nil then -- 417
-                            treeStack[#treeStack + 1] = P.Behavior.Retry(props.times, stack[1]) -- 420
-                        else -- 420
-                            treeStack[#treeStack + 1] = P.Behavior.Retry(stack[1]) -- 422
-                        end -- 422
-                    else -- 422
-                        Warn("expects only one BehaviorTree child for BehaviorTree.Retry") -- 425
-                    end -- 425
-                else -- 425
-                    Warn("expects only one BehaviorTree child for BehaviorTree.Retry") -- 428
-                end -- 428
-                break -- 430
-            end -- 430
-        end -- 430
-        do -- 430
-            return false -- 433
-        end -- 433
-    until true -- 433
-    return true -- 435
-end -- 435
-____exports.BehaviorTree = {} -- 435
-local BehaviorTree = ____exports.BehaviorTree -- 435
-do -- 435
-    BehaviorTree.Leaf = __TS__Class() -- 4
-    local Leaf = BehaviorTree.Leaf -- 4
-    Leaf.name = "Leaf" -- 19
-    function Leaf.prototype.____constructor(self) -- 20
-    end -- 20
-    function BehaviorTree.Selector(self, props) -- 30
-        return React:createElement("custom-element", {name = "BTSelector", data = props}) -- 31
-    end -- 30
-    function BehaviorTree.Sequence(self, props) -- 34
-        return React:createElement("custom-element", {name = "BTSequence", data = props}) -- 35
-    end -- 34
-    function BehaviorTree.Condition(self, props) -- 43
-        return React:createElement("custom-element", {name = "BTCondition", data = props}) -- 44
-    end -- 43
-    function BehaviorTree.Match(self, props) -- 53
-        return React:createElement("custom-element", {name = "BTMatch", data = props}) -- 54
-    end -- 53
-    function BehaviorTree.Action(self, props) -- 61
-        return React:createElement("custom-element", {name = "BTAction", data = props}) -- 62
+local ____DoraX = require("DoraX") -- 9
+local React = ____DoraX.React -- 9
+local P = require("Platformer") -- 10
+function Warn(msg) -- 187
+    print("[Dora Warning] " .. msg) -- 188
+end -- 188
+function visitBTree(treeStack, node) -- 293
+    if type(node) ~= "table" then -- 293
+        return false -- 295
+    end -- 295
+    repeat -- 295
+        local ____switch57 = node.name -- 295
+        local ____cond57 = ____switch57 == "BTSelector" -- 295
+        if ____cond57 then -- 295
+            do -- 295
+                local props = node.data -- 299
+                local children = props.children -- 300
+                if children and #children > 0 then -- 300
+                    local stack = {} -- 302
+                    do -- 302
+                        local i = 0 -- 303
+                        while i < #children do -- 303
+                            if not visitBTree(stack, children[i + 1].props) then -- 303
+                                Warn("unsupported BehaviorTree node with name " .. tostring(children[i + 1].props.name)) -- 305
+                            end -- 305
+                            i = i + 1 -- 303
+                        end -- 303
+                    end -- 303
+                    if #stack > 0 then -- 303
+                        treeStack[#treeStack + 1] = P.Behavior.Sel(stack) -- 309
+                    end -- 309
+                end -- 309
+                break -- 312
+            end -- 312
+        end -- 312
+        ____cond57 = ____cond57 or ____switch57 == "BTSequence" -- 312
+        if ____cond57 then -- 312
+            do -- 312
+                local props = node.data -- 315
+                local children = props.children -- 316
+                if children and #children > 0 then -- 316
+                    local stack = {} -- 318
+                    do -- 318
+                        local i = 0 -- 319
+                        while i < #children do -- 319
+                            if not visitBTree(stack, children[i + 1].props) then -- 319
+                                Warn("unsupported BehaviorTree node with name " .. tostring(children[i + 1].props.name)) -- 321
+                            end -- 321
+                            i = i + 1 -- 319
+                        end -- 319
+                    end -- 319
+                    if #stack > 0 then -- 319
+                        treeStack[#treeStack + 1] = P.Behavior.Seq(stack) -- 325
+                    end -- 325
+                end -- 325
+                break -- 328
+            end -- 328
+        end -- 328
+        ____cond57 = ____cond57 or ____switch57 == "BTCondition" -- 328
+        if ____cond57 then -- 328
+            do -- 328
+                local props = node.data -- 331
+                treeStack[#treeStack + 1] = P.Behavior.Con(props.desc, props.onCheck) -- 332
+                break -- 333
+            end -- 333
+        end -- 333
+        ____cond57 = ____cond57 or ____switch57 == "BTMatch" -- 333
+        if ____cond57 then -- 333
+            do -- 333
+                local props = node.data -- 336
+                local children = props.children -- 337
+                if children and #children > 0 then -- 337
+                    local stack = {} -- 339
+                    do -- 339
+                        local i = 0 -- 340
+                        while i < #children do -- 340
+                            if not visitBTree(stack, children[i + 1].props) then -- 340
+                                Warn("unsupported BehaviorTree node with name " .. tostring(children[i + 1].props.name)) -- 342
+                            end -- 342
+                            i = i + 1 -- 340
+                        end -- 340
+                    end -- 340
+                    if #stack > 0 then -- 340
+                        treeStack[#treeStack + 1] = P.Behavior.Seq({ -- 346
+                            P.Behavior.Con(props.desc, props.onCheck), -- 348
+                            table.unpack(stack) -- 348
+                        }) -- 348
+                        break -- 351
+                    end -- 351
+                end -- 351
+                treeStack[#treeStack + 1] = P.Behavior.Con(props.desc, props.onCheck) -- 354
+                break -- 355
+            end -- 355
+        end -- 355
+        ____cond57 = ____cond57 or ____switch57 == "BTAction" -- 355
+        if ____cond57 then -- 355
+            do -- 355
+                local props = node.data -- 358
+                treeStack[#treeStack + 1] = P.Behavior.Act(props.name) -- 359
+                break -- 360
+            end -- 360
+        end -- 360
+        ____cond57 = ____cond57 or ____switch57 == "BTCommand" -- 360
+        if ____cond57 then -- 360
+            do -- 360
+                local props = node.data -- 363
+                treeStack[#treeStack + 1] = P.Behavior.Command(props.name) -- 364
+                break -- 365
+            end -- 365
+        end -- 365
+        ____cond57 = ____cond57 or ____switch57 == "BTWait" -- 365
+        if ____cond57 then -- 365
+            do -- 365
+                local props = node.data -- 368
+                treeStack[#treeStack + 1] = P.Behavior.Wait(props.time) -- 369
+                break -- 370
+            end -- 370
+        end -- 370
+        ____cond57 = ____cond57 or ____switch57 == "BTCountdown" -- 370
+        if ____cond57 then -- 370
+            do -- 370
+                local props = node.data -- 373
+                local children = props.children -- 374
+                if children and #children >= 1 then -- 374
+                    local stack = {} -- 376
+                    if visitBTree(stack, children[1].props) then -- 376
+                        treeStack[#treeStack + 1] = P.Behavior.Countdown(props.time, stack[1]) -- 378
+                    else -- 378
+                        Warn("expects only one BehaviorTree child for BehaviorTree.Countdown") -- 380
+                    end -- 380
+                else -- 380
+                    Warn("expects only one BehaviorTree child for BehaviorTree.Countdown") -- 383
+                end -- 383
+                break -- 385
+            end -- 385
+        end -- 385
+        ____cond57 = ____cond57 or ____switch57 == "BTTimeout" -- 385
+        if ____cond57 then -- 385
+            do -- 385
+                local props = node.data -- 388
+                local children = props.children -- 389
+                if children and #children >= 1 then -- 389
+                    local stack = {} -- 391
+                    if visitBTree(stack, children[1].props) then -- 391
+                        treeStack[#treeStack + 1] = P.Behavior.Timeout(props.time, stack[1]) -- 393
+                    else -- 393
+                        Warn("expects only one BehaviorTree child for BehaviorTree.Timeout") -- 395
+                    end -- 395
+                else -- 395
+                    Warn("expects only one BehaviorTree child for BehaviorTree.Timeout") -- 398
+                end -- 398
+                break -- 400
+            end -- 400
+        end -- 400
+        ____cond57 = ____cond57 or ____switch57 == "BTRepeat" -- 400
+        if ____cond57 then -- 400
+            do -- 400
+                local props = node.data -- 403
+                local children = props.children -- 404
+                if children and #children >= 1 then -- 404
+                    local stack = {} -- 406
+                    if visitBTree(stack, children[1].props) then -- 406
+                        if props.times ~= nil then -- 406
+                            treeStack[#treeStack + 1] = P.Behavior.Repeat(props.times, stack[1]) -- 409
+                        else -- 409
+                            treeStack[#treeStack + 1] = P.Behavior.Repeat(stack[1]) -- 411
+                        end -- 411
+                    else -- 411
+                        Warn("expects only one BehaviorTree child for BehaviorTree.Repeat") -- 414
+                    end -- 414
+                else -- 414
+                    Warn("expects only one BehaviorTree child for BehaviorTree.Repeat") -- 417
+                end -- 417
+                break -- 419
+            end -- 419
+        end -- 419
+        ____cond57 = ____cond57 or ____switch57 == "BTRetry" -- 419
+        if ____cond57 then -- 419
+            do -- 419
+                local props = node.data -- 422
+                local children = props.children -- 423
+                if children and #children >= 1 then -- 423
+                    local stack = {} -- 425
+                    if visitBTree(stack, children[1].props) then -- 425
+                        if props.times ~= nil then -- 425
+                            treeStack[#treeStack + 1] = P.Behavior.Retry(props.times, stack[1]) -- 428
+                        else -- 428
+                            treeStack[#treeStack + 1] = P.Behavior.Retry(stack[1]) -- 430
+                        end -- 430
+                    else -- 430
+                        Warn("expects only one BehaviorTree child for BehaviorTree.Retry") -- 433
+                    end -- 433
+                else -- 433
+                    Warn("expects only one BehaviorTree child for BehaviorTree.Retry") -- 436
+                end -- 436
+                break -- 438
+            end -- 438
+        end -- 438
+        do -- 438
+            return false -- 441
+        end -- 441
+    until true -- 441
+    return true -- 443
+end -- 443
+____exports.BehaviorTree = {} -- 443
+local BehaviorTree = ____exports.BehaviorTree -- 443
+do -- 443
+    BehaviorTree.Leaf = __TS__Class() -- 12
+    local Leaf = BehaviorTree.Leaf -- 12
+    Leaf.name = "Leaf" -- 27
+    function Leaf.prototype.____constructor(self) -- 28
+    end -- 28
+    function BehaviorTree.Selector(self, props) -- 38
+        return React:createElement("custom-element", {name = "BTSelector", data = props}) -- 39
+    end -- 38
+    function BehaviorTree.Sequence(self, props) -- 42
+        return React:createElement("custom-element", {name = "BTSequence", data = props}) -- 43
+    end -- 42
+    function BehaviorTree.Condition(self, props) -- 51
+        return React:createElement("custom-element", {name = "BTCondition", data = props}) -- 52
+    end -- 51
+    function BehaviorTree.Match(self, props) -- 61
+        return React:createElement("custom-element", {name = "BTMatch", data = props}) -- 62
     end -- 61
-    function BehaviorTree.Command(self, props) -- 65
-        return React:createElement("custom-element", {name = "BTCommand", data = props}) -- 66
-    end -- 65
-    function BehaviorTree.Wait(self, props) -- 73
-        return React:createElement("custom-element", {name = "BTWait", data = props}) -- 74
+    function BehaviorTree.Action(self, props) -- 69
+        return React:createElement("custom-element", {name = "BTAction", data = props}) -- 70
+    end -- 69
+    function BehaviorTree.Command(self, props) -- 73
+        return React:createElement("custom-element", {name = "BTCommand", data = props}) -- 74
     end -- 73
-    function BehaviorTree.Countdown(self, props) -- 82
-        return React:createElement("custom-element", {name = "BTCountdown", data = props}) -- 83
-    end -- 82
-    function BehaviorTree.Timeout(self, props) -- 86
-        return React:createElement("custom-element", {name = "BTTimeout", data = props}) -- 87
-    end -- 86
-    function BehaviorTree.Repeat(self, props) -- 95
-        return React:createElement("custom-element", {name = "BTRepeat", data = props}) -- 96
-    end -- 95
-    function BehaviorTree.Retry(self, props) -- 99
-        return React:createElement("custom-element", {name = "BTRetry", data = props}) -- 100
-    end -- 99
-end -- 99
-____exports.DecisionTree = {} -- 99
-local DecisionTree = ____exports.DecisionTree -- 99
-do -- 99
-    DecisionTree.Leaf = __TS__Class() -- 104
-    local Leaf = DecisionTree.Leaf -- 104
-    Leaf.name = "Leaf" -- 116
-    function Leaf.prototype.____constructor(self) -- 117
-    end -- 117
-    function DecisionTree.Selector(self, props) -- 127
-        return React:createElement("custom-element", {name = "DTSelector", data = props}) -- 128
-    end -- 127
-    function DecisionTree.Sequence(self, props) -- 131
-        return React:createElement("custom-element", {name = "DTSequence", data = props}) -- 132
-    end -- 131
-    function DecisionTree.Condition(self, props) -- 140
-        return React:createElement("custom-element", {name = "DTCondition", data = props}) -- 141
-    end -- 140
-    function DecisionTree.Match(self, props) -- 150
-        return React:createElement("custom-element", {name = "DTMatch", data = props}) -- 151
-    end -- 150
-    function DecisionTree.Action(self, props) -- 158
-        return React:createElement("custom-element", {name = "DTAction", data = props}) -- 159
+    function BehaviorTree.Wait(self, props) -- 81
+        return React:createElement("custom-element", {name = "BTWait", data = props}) -- 82
+    end -- 81
+    function BehaviorTree.Countdown(self, props) -- 90
+        return React:createElement("custom-element", {name = "BTCountdown", data = props}) -- 91
+    end -- 90
+    function BehaviorTree.Timeout(self, props) -- 94
+        return React:createElement("custom-element", {name = "BTTimeout", data = props}) -- 95
+    end -- 94
+    function BehaviorTree.Repeat(self, props) -- 103
+        return React:createElement("custom-element", {name = "BTRepeat", data = props}) -- 104
+    end -- 103
+    function BehaviorTree.Retry(self, props) -- 107
+        return React:createElement("custom-element", {name = "BTRetry", data = props}) -- 108
+    end -- 107
+end -- 107
+____exports.DecisionTree = {} -- 107
+local DecisionTree = ____exports.DecisionTree -- 107
+do -- 107
+    DecisionTree.Leaf = __TS__Class() -- 112
+    local Leaf = DecisionTree.Leaf -- 112
+    Leaf.name = "Leaf" -- 124
+    function Leaf.prototype.____constructor(self) -- 125
+    end -- 125
+    function DecisionTree.Selector(self, props) -- 135
+        return React:createElement("custom-element", {name = "DTSelector", data = props}) -- 136
+    end -- 135
+    function DecisionTree.Sequence(self, props) -- 139
+        return React:createElement("custom-element", {name = "DTSequence", data = props}) -- 140
+    end -- 139
+    function DecisionTree.Condition(self, props) -- 148
+        return React:createElement("custom-element", {name = "DTCondition", data = props}) -- 149
+    end -- 148
+    function DecisionTree.Match(self, props) -- 158
+        return React:createElement("custom-element", {name = "DTMatch", data = props}) -- 159
     end -- 158
-    function DecisionTree.Accept(self) -- 162
-        return React:createElement("custom-element", {name = "DTAccept", data = nil}) -- 163
-    end -- 162
-    function DecisionTree.Reject(self) -- 166
-        return React:createElement("custom-element", {name = "DTReject", data = nil}) -- 167
+    function DecisionTree.Action(self, props) -- 166
+        return React:createElement("custom-element", {name = "DTAction", data = props}) -- 167
     end -- 166
-    function DecisionTree.Behavior(self, props) -- 174
-        return React:createElement("custom-element", {name = "DTBehavior", data = props}) -- 175
+    function DecisionTree.Accept(self) -- 170
+        return React:createElement("custom-element", {name = "DTAccept", data = nil}) -- 171
+    end -- 170
+    function DecisionTree.Reject(self) -- 174
+        return React:createElement("custom-element", {name = "DTReject", data = nil}) -- 175
     end -- 174
-end -- 174
-local function visitDTree(treeStack, node) -- 183
-    if type(node) ~= "table" then -- 183
-        return false -- 185
-    end -- 185
-    repeat -- 185
-        local ____switch28 = node.name -- 185
-        local ____cond28 = ____switch28 == "DTSelector" -- 185
-        if ____cond28 then -- 185
-            do -- 185
-                local props = node.data -- 189
-                local children = props.children -- 190
-                if children and #children > 0 then -- 190
-                    local stack = {} -- 192
-                    do -- 192
-                        local i = 0 -- 193
-                        while i < #children do -- 193
-                            if not visitDTree(stack, children[i + 1].props) then -- 193
-                                Warn("unsupported DecisionTree node with name " .. tostring(children[i + 1].props.name)) -- 195
-                            end -- 195
-                            i = i + 1 -- 193
-                        end -- 193
-                    end -- 193
-                    if #stack > 0 then -- 193
-                        treeStack[#treeStack + 1] = P.Decision.Sel(stack) -- 199
-                    end -- 199
-                end -- 199
-                break -- 202
-            end -- 202
-        end -- 202
-        ____cond28 = ____cond28 or ____switch28 == "DTSequence" -- 202
-        if ____cond28 then -- 202
-            do -- 202
-                local props = node.data -- 205
-                local children = props.children -- 206
-                if children and #children > 0 then -- 206
-                    local stack = {} -- 208
-                    do -- 208
-                        local i = 0 -- 209
-                        while i < #children do -- 209
-                            if not visitDTree(stack, children[i + 1].props) then -- 209
-                                Warn("unsupported DecisionTree node with name " .. tostring(children[i + 1].props.name)) -- 211
-                            end -- 211
-                            i = i + 1 -- 209
-                        end -- 209
-                    end -- 209
-                    if #stack > 0 then -- 209
-                        treeStack[#treeStack + 1] = P.Decision.Seq(stack) -- 215
-                    end -- 215
-                end -- 215
-                break -- 218
-            end -- 218
-        end -- 218
-        ____cond28 = ____cond28 or ____switch28 == "DTCondition" -- 218
-        if ____cond28 then -- 218
-            do -- 218
-                local props = node.data -- 221
-                treeStack[#treeStack + 1] = P.Decision.Con(props.desc, props.onCheck) -- 222
-                break -- 223
-            end -- 223
-        end -- 223
-        ____cond28 = ____cond28 or ____switch28 == "DTMatch" -- 223
-        if ____cond28 then -- 223
-            do -- 223
-                local props = node.data -- 226
-                local children = props.children -- 227
-                if children and #children > 0 then -- 227
-                    local stack = {} -- 229
-                    do -- 229
-                        local i = 0 -- 230
-                        while i < #children do -- 230
-                            if not visitDTree(stack, children[i + 1].props) then -- 230
-                                Warn("unsupported DecisionTree node with name " .. tostring(children[i + 1].props.name)) -- 232
-                            end -- 232
-                            i = i + 1 -- 230
-                        end -- 230
-                    end -- 230
-                    if #stack > 0 then -- 230
-                        treeStack[#treeStack + 1] = P.Decision.Seq({ -- 236
-                            P.Decision.Con(props.desc, props.onCheck), -- 238
-                            table.unpack(stack) -- 238
-                        }) -- 238
-                        break -- 241
-                    end -- 241
-                end -- 241
-                treeStack[#treeStack + 1] = P.Decision.Con(props.desc, props.onCheck) -- 244
-                break -- 245
-            end -- 245
-        end -- 245
-        ____cond28 = ____cond28 or ____switch28 == "DTAction" -- 245
-        if ____cond28 then -- 245
-            do -- 245
-                local props = node.data -- 248
-                if type(props.name) == "string" then -- 248
-                    treeStack[#treeStack + 1] = P.Decision.Act(props.name) -- 250
-                else -- 250
-                    treeStack[#treeStack + 1] = P.Decision.Act(props.name) -- 252
-                end -- 252
-                break -- 254
-            end -- 254
-        end -- 254
-        ____cond28 = ____cond28 or ____switch28 == "DTAccept" -- 254
-        if ____cond28 then -- 254
-            do -- 254
-                treeStack[#treeStack + 1] = P.Decision.Accept() -- 257
-                break -- 258
-            end -- 258
-        end -- 258
-        ____cond28 = ____cond28 or ____switch28 == "DTReject" -- 258
-        if ____cond28 then -- 258
-            do -- 258
-                treeStack[#treeStack + 1] = P.Decision.Reject() -- 261
+    function DecisionTree.Behavior(self, props) -- 182
+        return React:createElement("custom-element", {name = "DTBehavior", data = props}) -- 183
+    end -- 182
+end -- 182
+local function visitDTree(treeStack, node) -- 191
+    if type(node) ~= "table" then -- 191
+        return false -- 193
+    end -- 193
+    repeat -- 193
+        local ____switch28 = node.name -- 193
+        local ____cond28 = ____switch28 == "DTSelector" -- 193
+        if ____cond28 then -- 193
+            do -- 193
+                local props = node.data -- 197
+                local children = props.children -- 198
+                if children and #children > 0 then -- 198
+                    local stack = {} -- 200
+                    do -- 200
+                        local i = 0 -- 201
+                        while i < #children do -- 201
+                            if not visitDTree(stack, children[i + 1].props) then -- 201
+                                Warn("unsupported DecisionTree node with name " .. tostring(children[i + 1].props.name)) -- 203
+                            end -- 203
+                            i = i + 1 -- 201
+                        end -- 201
+                    end -- 201
+                    if #stack > 0 then -- 201
+                        treeStack[#treeStack + 1] = P.Decision.Sel(stack) -- 207
+                    end -- 207
+                end -- 207
+                break -- 210
+            end -- 210
+        end -- 210
+        ____cond28 = ____cond28 or ____switch28 == "DTSequence" -- 210
+        if ____cond28 then -- 210
+            do -- 210
+                local props = node.data -- 213
+                local children = props.children -- 214
+                if children and #children > 0 then -- 214
+                    local stack = {} -- 216
+                    do -- 216
+                        local i = 0 -- 217
+                        while i < #children do -- 217
+                            if not visitDTree(stack, children[i + 1].props) then -- 217
+                                Warn("unsupported DecisionTree node with name " .. tostring(children[i + 1].props.name)) -- 219
+                            end -- 219
+                            i = i + 1 -- 217
+                        end -- 217
+                    end -- 217
+                    if #stack > 0 then -- 217
+                        treeStack[#treeStack + 1] = P.Decision.Seq(stack) -- 223
+                    end -- 223
+                end -- 223
+                break -- 226
+            end -- 226
+        end -- 226
+        ____cond28 = ____cond28 or ____switch28 == "DTCondition" -- 226
+        if ____cond28 then -- 226
+            do -- 226
+                local props = node.data -- 229
+                treeStack[#treeStack + 1] = P.Decision.Con(props.desc, props.onCheck) -- 230
+                break -- 231
+            end -- 231
+        end -- 231
+        ____cond28 = ____cond28 or ____switch28 == "DTMatch" -- 231
+        if ____cond28 then -- 231
+            do -- 231
+                local props = node.data -- 234
+                local children = props.children -- 235
+                if children and #children > 0 then -- 235
+                    local stack = {} -- 237
+                    do -- 237
+                        local i = 0 -- 238
+                        while i < #children do -- 238
+                            if not visitDTree(stack, children[i + 1].props) then -- 238
+                                Warn("unsupported DecisionTree node with name " .. tostring(children[i + 1].props.name)) -- 240
+                            end -- 240
+                            i = i + 1 -- 238
+                        end -- 238
+                    end -- 238
+                    if #stack > 0 then -- 238
+                        treeStack[#treeStack + 1] = P.Decision.Seq({ -- 244
+                            P.Decision.Con(props.desc, props.onCheck), -- 246
+                            table.unpack(stack) -- 246
+                        }) -- 246
+                        break -- 249
+                    end -- 249
+                end -- 249
+                treeStack[#treeStack + 1] = P.Decision.Con(props.desc, props.onCheck) -- 252
+                break -- 253
+            end -- 253
+        end -- 253
+        ____cond28 = ____cond28 or ____switch28 == "DTAction" -- 253
+        if ____cond28 then -- 253
+            do -- 253
+                local props = node.data -- 256
+                if type(props.name) == "string" then -- 256
+                    treeStack[#treeStack + 1] = P.Decision.Act(props.name) -- 258
+                else -- 258
+                    treeStack[#treeStack + 1] = P.Decision.Act(props.name) -- 260
+                end -- 260
                 break -- 262
             end -- 262
         end -- 262
-        ____cond28 = ____cond28 or ____switch28 == "DTBehavior" -- 262
+        ____cond28 = ____cond28 or ____switch28 == "DTAccept" -- 262
         if ____cond28 then -- 262
             do -- 262
-                local props = node.data -- 265
-                local children = props.children -- 266
-                if children and #children >= 1 then -- 266
-                    local stack = {} -- 268
-                    if visitBTree(stack, children[1].props) then -- 268
-                        treeStack[#treeStack + 1] = P.Decision.Behave(props.name, stack[1]) -- 270
-                    else -- 270
-                        Warn("expects only one BehaviorTree child for DecisionTree.Behavior") -- 272
-                    end -- 272
-                else -- 272
-                    Warn("expects only one BehaviorTree child for DecisionTree.Behavior") -- 275
-                end -- 275
-                break -- 277
-            end -- 277
-        end -- 277
-        do -- 277
-            return false -- 280
-        end -- 280
-    until true -- 280
-    return true -- 282
-end -- 183
-function ____exports.toAI(node) -- 438
-    if type(node) ~= "table" then -- 438
-        return nil -- 440
-    end -- 440
-    local treeStack = {} -- 442
-    if visitDTree(treeStack, node.props) and #treeStack > 0 then -- 442
-        return treeStack[1] -- 444
-    end -- 444
-    return nil -- 446
-end -- 438
-return ____exports -- 438
+                treeStack[#treeStack + 1] = P.Decision.Accept() -- 265
+                break -- 266
+            end -- 266
+        end -- 266
+        ____cond28 = ____cond28 or ____switch28 == "DTReject" -- 266
+        if ____cond28 then -- 266
+            do -- 266
+                treeStack[#treeStack + 1] = P.Decision.Reject() -- 269
+                break -- 270
+            end -- 270
+        end -- 270
+        ____cond28 = ____cond28 or ____switch28 == "DTBehavior" -- 270
+        if ____cond28 then -- 270
+            do -- 270
+                local props = node.data -- 273
+                local children = props.children -- 274
+                if children and #children >= 1 then -- 274
+                    local stack = {} -- 276
+                    if visitBTree(stack, children[1].props) then -- 276
+                        treeStack[#treeStack + 1] = P.Decision.Behave(props.name, stack[1]) -- 278
+                    else -- 278
+                        Warn("expects only one BehaviorTree child for DecisionTree.Behavior") -- 280
+                    end -- 280
+                else -- 280
+                    Warn("expects only one BehaviorTree child for DecisionTree.Behavior") -- 283
+                end -- 283
+                break -- 285
+            end -- 285
+        end -- 285
+        do -- 285
+            return false -- 288
+        end -- 288
+    until true -- 288
+    return true -- 290
+end -- 191
+function ____exports.toAI(node) -- 446
+    if type(node) ~= "table" then -- 446
+        return nil -- 448
+    end -- 448
+    local treeStack = {} -- 450
+    if visitDTree(treeStack, node.props) and #treeStack > 0 then -- 450
+        return treeStack[1] -- 452
+    end -- 452
+    return nil -- 454
+end -- 446
+return ____exports -- 446

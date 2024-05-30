@@ -1,4 +1,4 @@
-// @preview-file off
+// @preview-file on
 import { SetCond, WindowFlag } from "ImGui";
 import * as ImGui from 'ImGui';
 import { App, Director, Ease, Model, Node, Sprite, TypeName, Vec2, cycle, once, threadLoop, tolua } from "Dora";

@@ -1,3 +1,4 @@
+-- @preview-file on
 _ENV = Dora
 LineRect = require "UI.View.Shape.LineRect"
 FixedLabel = require "UI.Control.Basic.FixedLabel"

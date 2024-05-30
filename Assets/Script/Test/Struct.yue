@@ -1,3 +1,4 @@
+-- @preview-file on
 import "Utils" as :Struct
 
 -- 定义Struct

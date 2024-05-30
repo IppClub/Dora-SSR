@@ -1,4 +1,4 @@
-// @preview-file off
+// @preview-file on
 import {ArrayEvent, RecordEvent, Struct, StructEvent} from 'Utils';
 
 // create struct definitions

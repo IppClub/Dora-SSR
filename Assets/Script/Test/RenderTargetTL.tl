@@ -1,3 +1,4 @@
+-- @preview-file on
 local Node <const> = require("Node")
 local Spine <const> = require("Spine")
 local Sequence <const> = require("Sequence")
@@ -10,7 +11,6 @@ local Sprite <const> = require("Sprite")
 local Line <const> = require("Line")
 local Vec2 <const> = require("Vec2")
 local threadLoop <const> = require("threadLoop")
-local Action <const> = require("Action")
 
 local root = Node()
 

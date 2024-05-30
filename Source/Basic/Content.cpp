@@ -62,6 +62,12 @@ std::string Content::getAndroidAssetName(String fullPath) const {
 
 Content::~Content() { }
 
+static void trimTrailingSlashes(std::string& str) {
+	while (!str.empty() && (str.back() == '\\' || str.back() == '/')) {
+		str.pop_back();
+	}
+}
+
 void Content::init(int argc, const char* const argv[]) {
 	for (int i = 0; i < argc; i++) {
 		if (argv[i] == "--asset"sv && i + 1 < argc) {
@@ -73,6 +79,7 @@ void Content::init(int argc, const char* const argv[]) {
 			}
 			if (fs::exists(fullPath, err)) {
 				_assetPath = fullPath;
+				trimTrailingSlashes(_assetPath);
 			} else {
 				Error("got invalid asset path \"{}\"", assetPath);
 			}
@@ -720,10 +727,12 @@ Content::Content()
 	: _thread(SharedAsyncThread.newThread()) {
 	_apkFilter = "assets/"s;
 	_assetPath = SharedApplication.getAPKPath() + '/' + _apkFilter;
+	trimTrailingSlashes(_assetPath);
 	_apkFile = New<ZipFile>(SharedApplication.getAPKPath(), _apkFilter);
 
 	char* prefPath = SDL_GetPrefPath(DORA_DEFAULT_ORG_NAME, DORA_DEFAULT_APP_NAME);
 	_writablePath = prefPath;
+	trimTrailingSlashes(_writablePath);
 	SDL_free(prefPath);
 }
 
@@ -855,9 +864,11 @@ bool Content::isAbsolutePath(String strPath) {
 Content::Content()
 	: _thread(SharedAsyncThread.newThread()) {
 	_assetPath = fs::current_path().string();
+	trimTrailingSlashes(_assetPath);
 
 	char* prefPath = SDL_GetPrefPath(DORA_DEFAULT_ORG_NAME, DORA_DEFAULT_APP_NAME);
 	_writablePath = prefPath;
+	trimTrailingSlashes(_writablePath);
 	SDL_free(prefPath);
 }
 
@@ -876,10 +887,12 @@ Content::Content()
 	: _thread(SharedAsyncThread.newThread()) {
 	char* currentPath = SDL_GetBasePath();
 	_assetPath = currentPath;
+	trimTrailingSlashes(_assetPath);
 	SDL_free(currentPath);
 
 	char* prefPath = SDL_GetPrefPath(DORA_DEFAULT_ORG_NAME, DORA_DEFAULT_APP_NAME);
 	_writablePath = prefPath;
+	trimTrailingSlashes(_writablePath);
 	SDL_free(prefPath);
 }
 #endif // BX_PLATFORM_OSX || BX_PLATFORM_IOS

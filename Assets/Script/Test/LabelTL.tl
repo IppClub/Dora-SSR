@@ -1,3 +1,4 @@
+-- @preview-file on
 local threadLoop <const> = require("threadLoop")
 local Node <const> = require("Node")
 local Label <const> = require("Label")

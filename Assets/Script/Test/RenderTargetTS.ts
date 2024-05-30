@@ -1,4 +1,4 @@
-// @preview-file off
+// @preview-file on
 import { WindowFlag, SetCond } from "ImGui";
 import * as ImGui from "ImGui";
 import { App, Color, Event, Line, Node, RenderTarget, Sequence, Slot, Spine, Sprite, Vec2, X, threadLoop } from "Dora";

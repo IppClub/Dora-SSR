@@ -1,3 +1,4 @@
+-- @preview-file on
 local Model <const> = require("Model")
 local threadLoop <const> = require("threadLoop")
 

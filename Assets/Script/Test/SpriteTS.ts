@@ -1,4 +1,4 @@
-// @preview-file off
+// @preview-file on
 import { WindowFlag, SetCond, ColorEditFlag } from "ImGui";
 import * as ImGui from "ImGui";
 import { App, Size, Slot, Sprite, Vec2, threadLoop } from "Dora";
