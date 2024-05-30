@@ -755,7 +755,12 @@ HttpServer\post "/assets", ->
 						else
 							.children = [child for child in *.children when child.title ~= "Dora"]
 					if engineDev
-						visitAssets Path Content.assetPath, "Script", "Dev"
+						with visitAssets Path Content.assetPath, "Script", "Dev"
+							.children[] = {
+								key: Path Content.assetPath, "Script", "init.yue"
+								dir: false
+								title: "init.yue"
+							}
 				]
 			}
 			...visitAssets Content.writablePath, true

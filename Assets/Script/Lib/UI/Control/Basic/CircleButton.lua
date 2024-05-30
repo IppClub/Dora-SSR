@@ -6,7 +6,7 @@ local property = Dora.property -- 1
 local _module_0 = nil -- 1
 local CircleButton = require("UI.View.Control.Basic.CircleButton") -- 10
 _module_0 = Class(CircleButton, { -- 17
-	__init = function(self, args) -- 17
+	__init = function(self) -- 17
 		if self.label then -- 18
 			self._text = self.label.text -- 18
 		end -- 18
