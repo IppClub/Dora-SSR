@@ -307,10 +307,11 @@ export default function PersistentDrawerLeft() {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
-	const assetPath = treeData.at(0)?.key ?? "";
+	const writablePath = treeData.at(0)?.key ?? "";
+	const assetPath = treeData.at(0)?.children?.at(0)?.key ?? "";
 
 	useEffect(() => {
-		if (assetPath === "") return;
+		if (writablePath === "") return;
 		Service.editingInfo().then((res: {success: boolean, editingInfo?: string}) => {
 			if (res.success && res.editingInfo) {
 				const editingInfo: Service.EditingInfo = JSON.parse(res.editingInfo);
@@ -343,7 +344,7 @@ export default function PersistentDrawerLeft() {
 			}
 		});
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [assetPath]);
+	}, [writablePath]);
 
 	if (modified !== null) {
 		setModified(null);
@@ -367,14 +368,14 @@ export default function PersistentDrawerLeft() {
 
 	const checkFileReadonly = useCallback((key: string, withPrompt: boolean) => {
 		if (Info.engineDev) return false;
-		if (!key.startsWith(assetPath)) {
+		if (!key.startsWith(writablePath)) {
 			if (withPrompt) {
 				addAlert(t("alert.builtin"), "info");
 			}
 			return true;
 		}
 		return false;
-	}, [assetPath, t]);
+	}, [writablePath, t]);
 
 	const handleDrawerOpen = () => {
 		setDrawerOpen(!drawerOpen);
@@ -1165,6 +1166,10 @@ export default function PersistentDrawerLeft() {
 				const rootNode = treeData.at(0);
 				if (rootNode === undefined) break;
 				const {key, title} = data;
+				if (path.relative(rootNode.key, key).startsWith("..")) {
+					addAlert(t("alert.downloadFailed"), "error");
+					break;
+				}
 				const downloadFile = (filename: string) => {
 					const assetPath = path.relative(rootNode.key, filename).replace("\\", "/");
 					const x = new XMLHttpRequest();
@@ -1921,13 +1926,15 @@ export default function PersistentDrawerLeft() {
 		const rootNode = treeData.at(0);
 		if (rootNode !== undefined) {
 			const filterOptions: FilterOption[] = [];
+			const {engineDev} = Info;
 			const visitNode = (node: TreeDataType) => {
 				if (!node.dir) {
-					if (node.key.startsWith(rootNode.key)) {
+					const isWritableFile = node.key.startsWith(writablePath);
+					if (engineDev || isWritableFile) {
 						filterOptions.push({
 							title: node.title,
 							key: node.key,
-							path: node.key.substring(rootNode.key.length),
+							path: node.key.substring(isWritableFile ? writablePath.length + 1 : assetPath.length + 1),
 						});
 					}
 				}
@@ -2354,7 +2361,7 @@ export default function PersistentDrawerLeft() {
 								} else if (file.uploading) {
 									const rootNode = treeData.at(0);
 									if (rootNode === undefined) return null;
-									let target = path.relative(assetPath, file.key);
+									let target = path.relative(writablePath, file.key);
 									if (target.startsWith("..")) {
 										target = path.relative(parentPath, file.key);
 										target = path.join(t("tree.builtin"), target);

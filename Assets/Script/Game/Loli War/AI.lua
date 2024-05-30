@@ -1,4 +1,4 @@
--- [yue]: Script/Game/Loli War/AI.yue
+-- [yue]: AI.yue
 local _module_0 = Dora.Platformer -- 1
 local Data = _module_0.Data -- 1
 local Group = Dora.Group -- 1
@@ -18,7 +18,7 @@ local heroes = Group({ -- 19
 	"hero" -- 19
 }) -- 19
 local gameEndWait = Seq({ -- 22
-	Con("game end", function(self) -- 22
+	Con("game end", function() -- 22
 		return (Store.winner ~= nil) -- 22
 	end), -- 22
 	Sel({ -- 24
@@ -144,7 +144,7 @@ Store["HeroAI"] = Sel({ -- 87
 		Act("turn") -- 121
 	}), -- 118
 	Seq({ -- 124
-		Con("wanna jump", function(self) -- 124
+		Con("wanna jump", function() -- 124
 			return App.rand % 20 == 0 -- 124
 		end), -- 124
 		Act("jump") -- 125

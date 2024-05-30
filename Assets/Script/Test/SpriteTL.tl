@@ -1,3 +1,4 @@
+-- @preview-file on
 local Sprite = require("Sprite")
 local type Touch = require("TouchType")
 

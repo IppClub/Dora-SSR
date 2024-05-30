@@ -1,3 +1,4 @@
+-- @preview-file on
 _ENV = Dora
 import "UI.View.Shape.LineRect"
 import "UI.Control.Basic.ScrollArea"

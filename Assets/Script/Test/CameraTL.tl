@@ -1,3 +1,4 @@
+-- @preview-file on
 local Director <const> = require("Director")
 local Node <const> = require("Node")
 local Model <const> = require("Model")

@@ -1,4 +1,3 @@
--- @preview-file on
 _ENV = Dora
 
 const gravity = Vec2 0, -10

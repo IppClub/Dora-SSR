@@ -1,3 +1,4 @@
+-- @preview-file on
 _ENV = Dora
 import "UI.View.Shape.LineRect"
 import "UI.View.Shape.SolidRect"
@@ -54,7 +55,7 @@ TextInput = Class ((args) ->
 			if not .imeAttached
 				\attachIME!
 				updateIMEPos!
-		.updateDisplayText = (text) =>
+		.updateDisplayText = (_self, text) ->
 			textDisplay = text
 			label.text = text
 

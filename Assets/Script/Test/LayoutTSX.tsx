@@ -1,4 +1,4 @@
-// @preview-file off
+// @preview-file on
 import { React, toNode } from 'DoraX';
 import { App, Vec2, threadLoop, Node } from 'Dora';
 import { SetCond, WindowFlag } from 'ImGui';

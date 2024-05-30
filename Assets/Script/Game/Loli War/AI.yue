@@ -11,7 +11,7 @@ _ENV = Dora(
 	Dora.Platformer.Decision
 )
 
-store:Store = Data
+store: Store = Data
 {
 	:MaxBunnies
 } = Store
@@ -19,7 +19,7 @@ store:Store = Data
 heroes = Group ["hero",]
 
 gameEndWait = Seq [
-	Con "game end", => Store.winner?
+	Con "game end", -> Store.winner?
 	Sel [
 		Seq [
 			Con "need wait", => @onSurface and not @isDoing "wait"
@@ -121,7 +121,7 @@ Store["HeroAI"] = Sel [
 		Act "turn"
 	]
 	Seq [
-		Con "wanna jump", => App.rand % 20 == 0
+		Con "wanna jump", -> App.rand % 20 == 0
 		Act "jump"
 	]
 	Seq [

@@ -1,3 +1,4 @@
+-- @preview-file on
 local Node <const> = require("Node")
 local Vec2 <const> = require("Vec2")
 local Sprite <const> = require("Sprite")
