@@ -14,7 +14,7 @@ import "UI.View.Control.Basic.CircleButton"
 -- [params]
 -- text, x, y, radius, fontName=NotoSansHans-Regular, fontSize=18
 export default Class CircleButton,
-	__init: (args) =>
+	__init: =>
 		@_text = @label.text if @label
 		@slot "TapFilter", (touch) ->
 			touch.enabled = false unless touch.first

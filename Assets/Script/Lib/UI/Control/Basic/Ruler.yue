@@ -11,7 +11,7 @@ import "UI.View.Control.Basic.Ruler"
 import "Utils" as :Round
 
 export default Class Ruler,
-	__init:(args)=>
+	__init: (args) =>
 		{:y, :width, :height, :fontName, :fontSize, :fixed} = args
 		viewSize = View.size
 		halfW = width / 2
@@ -42,7 +42,7 @@ export default Class Ruler,
 				labels[pos] = label
 				table.insert labelList, label
 
-		moveLabel = (label, pos)->
+		moveLabel = (label, pos) ->
 			labels[tonumber label.tag] = nil
 			labels[pos] = with label
 				.text = string.format "%.0f", pos / 100 * indent
@@ -57,7 +57,7 @@ export default Class Ruler,
 			left = center - len
 			insertPos = 1
 			for i = left, right
-				pos = i*100
+				pos = i * 100
 				if labels[pos]
 					break
 				else
@@ -108,18 +108,18 @@ export default Class Ruler,
 				count += 1
 			@intervalNode\set vs, Color 0xffffffff
 
-		updateIntervalTextScale = (scale)->
-			@intervalNode\eachChild (child)->
+		updateIntervalTextScale = (scale) ->
+			@intervalNode\eachChild (child) ->
 				child.scaleX = scale
 
-		@makeScale = (scale)=>
+		@makeScale = (scale) =>
 			scale = math.min scale, 5
 			@intervalNode.scaleX = scale
 			-- unscale interval text --
 			updateIntervalTextScale 1 / scale
 			updateLabels!
 
-		@makeScaleTo = (scale)=>
+		@makeScaleTo = (scale) =>
 			with @intervalNode
 				\perform ScaleX 0.5, @intervalNode.scaleX, scale, Ease.OutQuad
 				-- manually update and unscale interval text --
@@ -140,14 +140,14 @@ export default Class Ruler,
 						newVal = @getValue! + delta.y * indent / 10
 						@setValue _min < _max and math.min(math.max(_min, newVal), _max) or newVal
 
-		@setIndent = (ind)=>
+		@setIndent = (ind) =>
 			indent = ind
 			for i, label in pairs labels
 				label.text = string.format "%.0f", ind * i / 100
 		@getIndent = => indent
 
 		@lastValue = nil
-		@setValue = (v)=>
+		@setValue = (v) =>
 			_value = v
 			val = _min < _max and math.min(math.max(_value, _min), _max) or _value
 			val = @isFixed and Round(val / (indent / 10)) * (indent / 10) or val
@@ -162,13 +162,13 @@ export default Class Ruler,
 		@getValue = => _value
 		@getPos = => _value * 10 * interval / indent
 
-		@setLimit = (min,max)=>
+		@setLimit = (min, max) =>
 			_max = max
 			_min = min
 
 		time = 0
 		startPos = 0
-		updateReset = (deltaTime)->
+		updateReset = (deltaTime) ->
 			return if _min >= _max
 			scale = @intervalNode.scaleX
 			time = time + deltaTime
@@ -193,12 +193,12 @@ export default Class Ruler,
 
 		_v = 0
 		_s = 0
-		updateSpeed = (deltaTime)->
+		updateSpeed = (deltaTime) ->
 			return if _s == 0
 			_v = _s / deltaTime
 			_s = 0
 
-		updatePos = (deltaTime)->
+		updatePos = (deltaTime) ->
 			val = viewSize.height * 2
 			a = _v > 0 and -val or val
 			yR = _v > 0
@@ -221,7 +221,7 @@ export default Class Ruler,
 			_v = 0
 			@schedule updateSpeed
 
-		@slot "TapMoved", (touch)->
+		@slot "TapMoved", (touch) ->
 			deltaX = touch.delta.x
 			v = _value - deltaX * indent / (interval * 10)
 			padding = 0.5 * indent
@@ -241,7 +241,7 @@ export default Class Ruler,
 			elseif _v ~= 0
 				@schedule updatePos
 
-	show: (default, min, max, ind, callback)=>
+	show: (default, min, max, ind, callback) =>
 		@setLimit min, max
 		@setIndent ind
 		@slot("Changed")\set callback
