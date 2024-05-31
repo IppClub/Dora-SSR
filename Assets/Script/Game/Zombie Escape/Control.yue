@@ -7,7 +7,6 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. ]]
 
 _ENV = Dora Dora.Platformer
-import "UI.Control.Basic.AlignNode"
 import "UI.Control.Basic.CircleButton"
 
 store: Store = Data
@@ -17,58 +16,68 @@ playerGroup = Group ["player",]
 updatePlayerControl = (key, flag) ->
 	if player := playerGroup\find => @unit.tag == Store.controlPlayer
 		player.unit.data[key] = flag
-uiScale = App.devicePixelRatio
 
-with AlignNode isRoot: true
+with AlignNode true
+	\css 'flex-direction: column-reverse'
 	.visible = false
 	\addChild with AlignNode!
-		.hAlign = "Left"
-		.vAlign = "Bottom"
-		\addChild with Menu!
-			\addChild with CircleButton {
-					text: "Left"
-					x: 20 * uiScale
-					y: 60 * uiScale
-					radius: 30 * uiScale
-					fontSize: math.floor 18 * uiScale
-				}
+		\css "
+			width: auto;
+			height: 60;
+			margin-bottom: 10;
+			margin-left: 10;
+			margin-right: 10;
+			flex-direction: row;
+			justify-content: space-between
+		"
+		\addChild with AlignNode!
+			\css 'height: 60; width: 0'
+			\addChild with Menu!
 				.anchor = Vec2.zero
-				\slot "TapBegan", -> updatePlayerControl "keyLeft", true
-				\slot "TapEnded", -> updatePlayerControl "keyLeft", false
-			\addChild with CircleButton {
-					text: "Right"
-					x: 90 * uiScale
-					y: 60 * uiScale
-					radius: 30 * uiScale
-					fontSize: math.floor 18 * uiScale
-				}
-				.anchor = Vec2.zero
-				\slot "TapBegan", -> updatePlayerControl "keyRight", true
-				\slot "TapEnded", -> updatePlayerControl "keyRight", false
-	\addChild with AlignNode!
-		.hAlign = "Right"
-		.vAlign = "Bottom"
-		\addChild with Menu!
-			\addChild with CircleButton {
-					text: "Jump"
-					x: -80 * uiScale
-					y: 60 * uiScale
-					radius: 30 * uiScale
-					fontSize: math.floor 18 * uiScale
-				}
-				.anchor = Vec2.zero
-				\slot "TapBegan", -> updatePlayerControl "keyUp", true
-				\slot "TapEnded", -> updatePlayerControl "keyUp", false
-			\addChild with CircleButton {
-					text: "Shoot"
-					x: -150 * uiScale
-					y: 60 * uiScale
-					radius: 30 * uiScale
-					fontSize: math.floor 18 * uiScale
-				}
-				.anchor = Vec2.zero
-				\slot "TapBegan", -> updatePlayerControl "keyShoot", true
-				\slot "TapEnded", -> updatePlayerControl "keyShoot", false
+				.size = Size 130, 60
+				\addChild with CircleButton {
+						text: "Left"
+						radius: 60
+						fontSize: math.floor 36
+					}
+					.scaleX = .scaleY = 0.5
+					.anchor = Vec2.zero
+					\slot "TapBegan", -> updatePlayerControl "keyLeft", true
+					\slot "TapEnded", -> updatePlayerControl "keyLeft", false
+				\addChild with CircleButton {
+						text: "Right"
+						x: 70
+						radius: 60
+						fontSize: math.floor 36
+					}
+					.scaleX = .scaleY = 0.5
+					.anchor = Vec2.zero
+					\slot "TapBegan", -> updatePlayerControl "keyRight", true
+					\slot "TapEnded", -> updatePlayerControl "keyRight", false
+		\addChild with AlignNode!
+			\css 'height: 60; width: 0'
+			\addChild with Menu!
+				.anchor = Vec2 1, 0
+				.size = Size 130, 60
+				\addChild with CircleButton {
+						text: "Jump"
+						radius: 60
+						fontSize: math.floor 36
+					}
+					.scaleX = .scaleY = 0.5
+					.anchor = Vec2.zero
+					\slot "TapBegan", -> updatePlayerControl "keyUp", true
+					\slot "TapEnded", -> updatePlayerControl "keyUp", false
+				\addChild with CircleButton {
+						text: "Shoot"
+						x: 70
+						radius: 60
+						fontSize: math.floor 36
+					}
+					.scaleX = .scaleY = 0.5
+					.anchor = Vec2.zero
+					\slot "TapBegan", -> updatePlayerControl "keyShoot", true
+					\slot "TapEnded", -> updatePlayerControl "keyShoot", false
 	\addTo with Director.ui
 		.renderGroup = true
 

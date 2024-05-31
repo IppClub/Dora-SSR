@@ -1,18 +1,14 @@
 <Dora>
-	<Import Module="UI.Control.Basic.AlignNode"/>
 	<Import Module="UI.View.Button"/>
 
-	<AlignNode Name="pad" HAlign="Right" VAlign="Top" AlignOffset="{ Vec2(20,20) }">
-		<Menu Name="menu" AnchorX="1" AnchorY="1" Width="52" Height="52" ScaleX="2" ScaleY="2">
-			<Button ImageUp="{ 'esc_up' }" ImageDown="{ 'esc_down' }" Width="52" Height="52">
-				<Slot Name="Tapped">
-					<Lua>
-						pad:emit("Tapped")
-						Audio:play("Audio/choose.wav")
-					</Lua>
-				</Slot>
-			</Button>
-		</Menu>
-	</AlignNode>
+	<Menu Name="menu" AnchorX="1" AnchorY="1" Width="52" Height="52">
+		<Button ImageUp="{ 'esc_up' }" ImageDown="{ 'esc_down' }" Width="52" Height="52">
+			<Slot Name="Tapped">
+				<Lua>
+					Audio:play("Audio/choose.wav")
+				</Lua>
+			</Slot>
+		</Button>
+	</Menu>
 </Dora>
 

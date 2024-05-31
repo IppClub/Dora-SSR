@@ -13,7 +13,6 @@ _ENV = Dora(
 	Dora.Platformer
 	Dora.Platformer.Decision
 )
-import "UI.Control.Basic.AlignNode"
 import "UI.Control.Basic.CircleButton"
 import "Utils" as :Set
 store: Store = Data
@@ -813,86 +812,90 @@ WaitForSignal = (text, duration) ->
 GameScore = 20
 
 uiScale = App.devicePixelRatio
-Director.ui\addChild with AlignNode isRoot: true
+Director.ui\addChild with AlignNode true
+	\css 'flex-direction: row'
 	\addChild with AlignNode!
-		.size = Size 0, 0
-		.hAlign = "Left"
-		.vAlign = "Top"
-		offset = Vec2(360, 80) * (uiScale / 2)
-		.alignOffset = offset
-		\gslot "AddScore", (value) ->
-			return if value < 0 and GameScore == 0
-			\addChild with Label "sarasa-mono-sc-regular", 64
-				.color = themeColor
-				.text = string.format "#{value > 0 and '+' or ''}%d", value
-				\runAction Sequence(
-					Spawn(
-						Scale 0.5, 0.3, 1, Ease.OutBack
-						Opacity 0.5, 0, 1
+		\css 'width: 30%'
+		\addChild with AlignNode!
+			\css 'margin-left: 160; margin-top: 40; width: 0; height: 1'
+			.scaleX = .scaleY = 1 / uiScale
+			\gslot "AddScore", (value) ->
+				return if value < 0 and GameScore == 0
+				\addChild with Label "sarasa-mono-sc-regular", 64
+					.color = themeColor
+					.text = string.format "#{value > 0 and '+' or ''}%d", value
+					\runAction Sequence(
+						Spawn(
+							Scale 0.5, 0.3, 1, Ease.OutBack
+							Opacity 0.5, 0, 1
+						)
+						Delay 0.5
+						Spawn(
+							Scale 0.3, 1, 1.5, Ease.OutQuad
+							Opacity 0.3, 1, 0, Ease.OutQuad
+						)
+						Event "End"
 					)
-					Delay 0.5
-					Spawn(
-						Scale 0.3, 1, 1.5, Ease.OutQuad
-						Opacity 0.3, 1, 0, Ease.OutQuad
-					)
-					Event "End"
-				)
-				\slot "End", -> \removeFromParent!
-			GameScore = math.max 0, GameScore + value
-			if GameScore == 0
-				\schedule once ->
-					Audio\play "Audio/game_over.wav"
-					WaitForSignal "FOREVER LOST!", 3
-					emit "GameLost"
+					\slot "End", -> \removeFromParent!
+				GameScore = math.max 0, GameScore + value
+				if GameScore == 0
+					\schedule once ->
+						Audio\play "Audio/game_over.wav"
+						WaitForSignal "FOREVER LOST!", 3
+						emit "GameLost"
 	\addChild with AlignNode!
-		.size = Size 0, 0
-		.hAlign = "Center"
-		.vAlign = "Center"
-		.alignOffset = Vec2 0, -300 * (uiScale / 2)
-		\addChild with CircleButton {
-				text: "STRIKE\nBACK"
-				radius: 80
-				fontName: "sarasa-mono-sc-regular"
-				fontSize: 48
-			}
-			.visible = false
-			.touchEnabled = false
-			\gslot "GameLost", ->
-				.visible = true
-				.touchEnabled = true
-			\slot "Tapped", ->
+		\css 'width: 40%; flex-direction: row; justify-content: center; align-items: center'
+		\addChild with AlignNode!
+			\css 'height: 1; width: 0; margin-top: 200; margin-right: 80'
+			\addChild with CircleButton {
+					text: "FIGHT"
+					radius: 80
+					fontName: "sarasa-mono-sc-regular"
+					fontSize: 48
+				}
+				.scaleX = .scaleY = 1 / uiScale
+				\slot "Tapped", ->
+					return if GameScore <= 0
+					GamePaused = false
+					\schedule once ->
+						emit "Fight"
+						Audio\play "Audio/choose.wav"
+						WaitForSignal "FIGHT!", 1
+		\addChild with AlignNode!
+			\css 'height: 1; width: 0; margin-top: 200'
+			\addChild with CircleButton {
+					text: "STRIKE\nBACK"
+					radius: 80
+					fontName: "sarasa-mono-sc-regular"
+					fontSize: 48
+				}
+				.scaleX = .scaleY = 1 / uiScale
+				.visible = false
 				.touchEnabled = false
-				Audio\play "Audio/v_att.wav"
-				\schedule once ->
-					sleep 0.5
-					.visible = false
-					emit "AddScore", 20
+				\gslot "GameLost", ->
+					.visible = true
+					.touchEnabled = true
+				\slot "Tapped", ->
+					.touchEnabled = false
+					Audio\play "Audio/v_att.wav"
+					\schedule once ->
+						sleep 0.5
+						.visible = false
+						emit "AddScore", 20
+						emit "Start"
+		\addChild with AlignNode!
+			\css 'height: 1; width: 0; margin-top: 200; margin-left: 80'
+			\addChild with CircleButton {
+					text: "ANOTHER\nWAY"
+					radius: 80
+					fontName: "sarasa-mono-sc-regular"
+					fontSize: 48
+				}
+				.scaleX = .scaleY = 1 / uiScale
+				\slot "Tapped", ->
+					Audio\play "Audio/switch.wav"
+					emit "AddScore", -5
 					emit "Start"
-		\addChild with CircleButton {
-				text: "FIGHT"
-				x: -200
-				radius: 80
-				fontName: "sarasa-mono-sc-regular"
-				fontSize: 48
-			}
-			\slot "Tapped", ->
-				return if GameScore <= 0
-				GamePaused = false
-				\schedule once ->
-					emit "Fight"
-					Audio\play "Audio/choose.wav"
-					WaitForSignal "FIGHT!", 1
-		\addChild with CircleButton {
-				text: "ANOTHER\nWAY"
-				x: 200
-				radius: 80
-				fontName: "sarasa-mono-sc-regular"
-				fontSize: 48
-			}
-			\slot "Tapped", ->
-				Audio\play "Audio/switch.wav"
-				emit "AddScore", -5
-				emit "Start"
 		\gslot "Lost", ->
 			\schedule once ->
 				emit "AddScore", -(10 + math.floor(GameScore / 20) * 5)
@@ -961,7 +964,7 @@ Director.ui\addChild with AlignNode isRoot: true
 				time = 2
 				cycle time, (dt) ->
 					:width, :height = App.visualSize
-					SetNextWindowPos Vec2 width / 2 - 150, height / 2 + 30
+					SetNextWindowPos Vec2 width / 2 - 150, height / 2
 					SetNextWindowSize Vec2(300, 50), "FirstUseEver"
 					Begin "CountDown", ["NoResize", "NoSavedSettings", "NoTitleBar","NoMove"], ->
 						ProgressBar 1.0 - dt, Vec2(-1, 30), string.format "%.2fs", (1 - dt) * time
@@ -1017,4 +1020,3 @@ Director.ui\addChild with AlignNode isRoot: true
 						Text "bash"
 
 emit "Start"
-

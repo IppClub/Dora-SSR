@@ -1,47 +1,42 @@
 <Dora>
-	<Import Module="UI.Control.Basic.AlignNode"/>
 	<Import Module="UI.Control.ButtonGlow"/>
 
-	<AlignNode VAlign="{ 'Center' }" HAlign="{ 'Center' }">
-		<Node ScaleX="{2 * App.devicePixelRatio}" ScaleY="{2 * App.devicePixelRatio}">
-			<Node Name="node" TouchEnabled="True" SwallowTouches="True" Ref="True">
-				<Sprite File="Model/misc.clip|startboard">
-					<Action>
-						<Sequence Name="scaleOut">
-							<Spawn>
-								<Scale Time="1" Start="1" Stop="0.3" Ease="InBack"/>
-								<Opacity Time="1" Start="1" Stop="0"/>
-							</Spawn>
-							<Event Type="PanelHide"/>
-						</Sequence>
-					</Action>
-					<ButtonGlow Name="fButton" Normal="{ 'weaponf' }" Glow="{ 'weaponfl' }" X="{ $W/3-30 }" Y="{ $Y }" Width="118" Height="167" Ref="True">
-						<Slot Name="Tapped" Target="node" Perform="scaleOut"/>
-					</ButtonGlow>
-					<ButtonGlow Name="vButton" Normal="{ 'weaponv' }" Glow="{ 'weaponvl' }" X="{ $X }" Y="{ $Y }" Width="82" Height="68" Ref="True">
-						<Slot Name="Tapped" Target="node" Perform="scaleOut"/>
-					</ButtonGlow>
-					<ButtonGlow Name="dButton" Normal="{ 'weapond' }" Glow="{ 'weapondl' }" X="{ $R-$W/3+30 }" Y="{ $Y }" Width="57" Height="97" Ref="True">
-						<Slot Name="Tapped" Target="node" Perform="scaleOut"/>
-					</ButtonGlow>
-				</Sprite>
-			</Node>
-		</Node>
-		<Action>
-			<Scale Name="scaleIn" Time="1" Start="0" Stop="1" Ease="OutBack"/>
-			<Sequence Name="fadeIn" Def="True">
-				<Hide/>
-				<Delay Time="1"/>
-				<Show/>
-				<Opacity Time="0.5" Start="0" Stop="1"/>
-			</Sequence>
-		</Action>
-		<Slot Name="Enter" Target="node" Perform="scaleIn">
-			<Lua>
-				fButton:perform(fadeIn)
-				vButton:perform(fadeIn)
-				dButton:perform(fadeIn)
-			</Lua>
-		</Slot>
-	</AlignNode>
+	<Node TouchEnabled="True" SwallowTouches="True">
+		<Sprite File="Model/misc.clip|startboard" Name="node" Ref="True">
+			<Action>
+				<Sequence Name="scaleOut">
+					<Spawn>
+						<Scale Time="1" Start="1" Stop="0.3" Ease="InBack"/>
+						<Opacity Time="1" Start="1" Stop="0"/>
+					</Spawn>
+					<Event Type="PanelHide"/>
+				</Sequence>
+			</Action>
+			<ButtonGlow Name="fButton" Normal="{ 'weaponf' }" Glow="{ 'weaponfl' }" X="{ $W/3-30 }" Y="{ $Y }" Width="118" Height="167" Ref="True">
+				<Slot Name="Tapped" Target="node" Perform="scaleOut"/>
+			</ButtonGlow>
+			<ButtonGlow Name="vButton" Normal="{ 'weaponv' }" Glow="{ 'weaponvl' }" X="{ $X }" Y="{ $Y }" Width="82" Height="68" Ref="True">
+				<Slot Name="Tapped" Target="node" Perform="scaleOut"/>
+			</ButtonGlow>
+			<ButtonGlow Name="dButton" Normal="{ 'weapond' }" Glow="{ 'weapondl' }" X="{ $R-$W/3+30 }" Y="{ $Y }" Width="57" Height="97" Ref="True">
+				<Slot Name="Tapped" Target="node" Perform="scaleOut"/>
+			</ButtonGlow>
+			<Action>
+				<Scale Name="scaleIn" Time="1" Start="0" Stop="1" Ease="OutBack"/>
+				<Sequence Name="fadeIn" Def="True">
+					<Hide/>
+					<Delay Time="1"/>
+					<Show/>
+					<Opacity Time="0.5" Start="0" Stop="1"/>
+				</Sequence>
+			</Action>
+			<Slot Name="Enter" Target="node" Perform="scaleIn">
+				<Lua>
+					fButton:perform(fadeIn)
+					vButton:perform(fadeIn)
+					dButton:perform(fadeIn)
+				</Lua>
+			</Slot>
+		</Sprite>
+	</Node>
 </Dora>
