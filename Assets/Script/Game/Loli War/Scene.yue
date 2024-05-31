@@ -109,7 +109,7 @@ GameWorld = Class PlatformWorld,
 				\addChild sp
 				\addTo readme
 
-	buildCastles: =>
+	buildCastles: (_self) ->
 		Block = (block, group, look, x, y) ->
 			Entity
 				block: "Block#{block}"
@@ -185,7 +185,7 @@ GameWorld = Class PlatformWorld,
 		emit "BlockValue", GroupPlayer, playerBlockHP
 		emit "BlockValue", GroupEnemy, enemyBlockHP
 
-	buildSwitches: =>
+	buildSwitches: (_self) ->
 		Switch = (switchType, group, look, x, y) ->
 			Entity
 				switch: switchType
@@ -198,7 +198,7 @@ GameWorld = Class PlatformWorld,
 		Switch "Switch", GroupEnemy, "normal", 3331, 1004 - 923
 		Switch "SwitchG", GroupEnemy, "gold", 3977, 1004 - 923
 
-	addBunnySwither: (group) =>
+	addBunnySwither: (_self, group) ->
 		switchGExist = false
 		switchNExist = false
 		bunnySwitchers = Group ["bunny", "targetSwitch"]

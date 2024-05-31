@@ -1,4 +1,4 @@
--- [yue]: Script/Game/Zombie Escape/Debug.yue
+-- [yue]: Debug.yue
 local _module_1 = Dora.Platformer -- 1
 local Data = _module_1.Data -- 1
 local Group = Dora.Group -- 1
@@ -280,7 +280,7 @@ do -- 174
 		"player", -- 174
 		"stared" -- 174
 	}) -- 174
-	_with_0:watch(function(self, _group, unit) -- 175
+	_with_0:watch(function(_entity, _group, unit) -- 175
 		unit:addChild(Star({ -- 177
 			y = 100, -- 177
 			size = 18, -- 178
@@ -296,7 +296,7 @@ local _with_0 = Observer("Add", { -- 185
 	"unit", -- 185
 	"player" -- 185
 }) -- 185
-_with_0:watch(function(self, unit) -- 186
+_with_0:watch(function(_entity, unit) -- 186
 	unit.receivingDecisionTrace = true -- 186
 	return false -- 186
 end) -- 186

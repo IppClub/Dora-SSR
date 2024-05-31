@@ -13,6 +13,7 @@ local thread = require("thread")
 local record DoraConfig
 	embed Struct.Type
 	loadAsync: function(self: DoraConfig)
+	load: function(self: DoraConfig)
 end
 
 return function(schema: string, ...: string): DoraConfig

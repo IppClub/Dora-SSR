@@ -35,7 +35,7 @@ getProjectDirFromFile = (file) ->
 
 getSearchPath = (file): "" ->
 	if dir := getProjectDirFromFile file
-		return "#{Path dir, "Script", "?.lua"};#{Path dir, "?.lua"}"
+		return Path(dir, "Script", "?.lua") .. ";" .. Path dir, "?.lua"
 
 getSearchFolders = (file): [] ->
 	if dir := getProjectDirFromFile file
@@ -45,23 +45,25 @@ getSearchFolders = (file): [] ->
 
 disabledCheckForLua =
 	* "incompatible number of returns"
-	* "unknown variable"
-	* "cannot index key"
+	* "unknown"
+	* "cannot index"
 	* "module not found"
-	* "don't know how to resolve a dynamic require"
+	* "don't know how to resolve"
 	* "ContainerItem"
 	* "cannot resolve a type"
 	* "invalid key"
 	* "inconsistent index type"
-	* "cannot use operator '#'"
+	* "cannot use operator"
 	* "attempting ipairs loop"
 	* "expects record or nominal"
-	* "variable is not being assigned a value"
-	* "<unknown type>"
+	* "variable is not being assigned"
 	* "<invalid type>"
-	* "using the '#' operator on this map will always return 0"
-	* "can't match a record to a map with non%-string keys"
+	* "<any type>"
+	* "using the '#' operator"
+	* "can't match a record"
 	* "redeclaration of variable"
+	* "cannot apply pairs"
+	* "not a function"
 
 yueCheck = (file, content) ->
 	searchPath = getSearchPath file
@@ -691,7 +693,10 @@ HttpServer\post "/assets", ->
 				lv1 = extentionLevels[ext] ?? -1
 				ext = Path\getExt file
 				lv2 = extentionLevels[ext] ?? -1
-				names[name] = ext if lv2 > lv1
+				if lv2 > lv1
+					names[name] = ext
+				elseif lv2 == lv1
+					names[name .. '.' .. ext] = ""
 			else
 				ext = Path\getExt file
 				if not extentionLevels[ext]

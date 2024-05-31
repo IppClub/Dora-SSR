@@ -1,4 +1,4 @@
--- [yue]: Script/Game/Loli War/Action.yue
+-- [yue]: Action.yue
 local _module_0 = Dora.Platformer -- 1
 local Data = _module_0.Data -- 1
 local UnitAction = _module_0.UnitAction -- 1
@@ -190,7 +190,7 @@ UnitAction:add("strike", { -- 129
 	reaction = 3, -- 130
 	recovery = 0, -- 131
 	queued = true, -- 132
-	available = function(self) -- 133
+	available = function() -- 133
 		return true -- 133
 	end, -- 133
 	create = function(self) -- 134
@@ -221,7 +221,7 @@ UnitAction:add("villyAttack", { -- 149
 	reaction = 10, -- 150
 	recovery = 0.1, -- 151
 	queued = true, -- 152
-	available = function(self) -- 153
+	available = function() -- 153
 		return true -- 153
 	end, -- 153
 	create = function(self) -- 154

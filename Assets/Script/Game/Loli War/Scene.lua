@@ -1,4 +1,4 @@
--- [yue]: Script/Game/Loli War/Scene.yue
+-- [yue]: Scene.yue
 local _module_0 = Dora.Platformer -- 1
 local Data = _module_0.Data -- 1
 local Class = Dora.Class -- 1
@@ -202,7 +202,7 @@ local GameWorld = Class(PlatformWorld, { -- 28
 			_with_0:addTo(readme) -- 110
 		end -- 110
 	end, -- 64
-	buildCastles = function(self) -- 112
+	buildCastles = function(_self) -- 112
 		local Block -- 113
 		Block = function(block, group, look, x, y) -- 113
 			return Entity({ -- 115
@@ -279,7 +279,7 @@ local GameWorld = Class(PlatformWorld, { -- 28
 		emit("BlockValue", GroupPlayer, playerBlockHP) -- 185
 		return emit("BlockValue", GroupEnemy, enemyBlockHP) -- 186
 	end, -- 112
-	buildSwitches = function(self) -- 188
+	buildSwitches = function(_self) -- 188
 		local Switch -- 189
 		Switch = function(switchType, group, look, x, y) -- 189
 			return Entity({ -- 191
@@ -295,7 +295,7 @@ local GameWorld = Class(PlatformWorld, { -- 28
 		Switch("Switch", GroupEnemy, "normal", 3331, 1004 - 923) -- 198
 		return Switch("SwitchG", GroupEnemy, "gold", 3977, 1004 - 923) -- 199
 	end, -- 188
-	addBunnySwither = function(self, group) -- 201
+	addBunnySwither = function(_self, group) -- 201
 		local switchGExist = false -- 202
 		local switchNExist = false -- 203
 		local bunnySwitchers = Group({ -- 204

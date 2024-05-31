@@ -8,7 +8,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 _ENV = Dora Dora.ImGui
 const {:Content, :Path} = Dora
-const {:type} = _G
+const type = type
 
 App.idled = true
 

@@ -1,4 +1,4 @@
--- [yue]: Script/Game/AI Fighter/init.yue
+-- [yue]: init.yue
 local _module_1 = Dora.Platformer -- 1
 local Data = _module_1.Data -- 1
 local Vec2 = Dora.Vec2 -- 1
@@ -1279,542 +1279,541 @@ Director.ui:addChild((function() -- 844
 					return -- 930
 				end -- 930
 				for i = 1, #characters do -- 931
-					local char = characters[i] -- 932
-					Entity({ -- 934
-						unitDef = "fighter", -- 934
-						charSet = i, -- 935
-						order = PlayerLayer, -- 936
-						position = Vec2(-600 + (i - 1) * 200, 400), -- 937
-						group = PlayerGroup, -- 938
-						faceRight = true, -- 939
-						decisionTree = "AI_Learned", -- 940
-						player = true -- 941
-					}) -- 933
-				end -- 941
-				Entity({ -- 943
-					unitDef = "boss", -- 943
-					order = EnemyLayer, -- 944
-					position = Vec2(400, 400), -- 945
-					group = EnemyGroup, -- 946
-					faceRight = false, -- 947
-					boss = true -- 948
-				}) -- 942
-				emit("ShowSetting", false) -- 949
-				return emit("ShowFight", true) -- 950
+					Entity({ -- 933
+						unitDef = "fighter", -- 933
+						charSet = i, -- 934
+						order = PlayerLayer, -- 935
+						position = Vec2(-600 + (i - 1) * 200, 400), -- 936
+						group = PlayerGroup, -- 937
+						faceRight = true, -- 938
+						decisionTree = "AI_Learned", -- 939
+						player = true -- 940
+					}) -- 932
+				end -- 940
+				Entity({ -- 942
+					unitDef = "boss", -- 942
+					order = EnemyLayer, -- 943
+					position = Vec2(400, 400), -- 944
+					group = EnemyGroup, -- 945
+					faceRight = false, -- 946
+					boss = true -- 947
+				}) -- 941
+				emit("ShowSetting", false) -- 948
+				return emit("ShowFight", true) -- 949
 			end) -- 929
 			return _with_2 -- 916
 		end)()) -- 916
 		return _with_1 -- 898
 	end)()) -- 898
-	local _exp_0 = App.platform -- 951
-	if "iOS" == _exp_0 or "Android" == _exp_0 then -- 952
-		_with_0:addChild((function() -- 953
-			local _with_1 = AlignNode() -- 953
-			_with_1.hAlign = "Left" -- 954
-			_with_1.vAlign = "Bottom" -- 955
-			_with_1.visible = false -- 956
-			_with_1:gslot("ShowTraining", function(show) -- 957
-				_with_1.visible = show -- 957
-			end) -- 957
-			_with_1:addChild((function() -- 958
-				local _with_2 = Menu() -- 958
-				_with_2:addChild((function() -- 959
-					local _with_3 = CircleButton({ -- 960
-						text = "左", -- 960
-						x = 20 * uiScale, -- 961
-						y = 90 * uiScale, -- 962
-						radius = 30 * uiScale, -- 963
-						fontSize = math.floor(18 * uiScale) -- 964
-					}) -- 959
-					_with_3.anchor = Vec2.zero -- 966
-					_with_3:slot("TapBegan", function() -- 967
-						return updatePlayerControl("keyLeft", true) -- 967
+	local _exp_0 = App.platform -- 950
+	if "iOS" == _exp_0 or "Android" == _exp_0 then -- 951
+		_with_0:addChild((function() -- 952
+			local _with_1 = AlignNode() -- 952
+			_with_1.hAlign = "Left" -- 953
+			_with_1.vAlign = "Bottom" -- 954
+			_with_1.visible = false -- 955
+			_with_1:gslot("ShowTraining", function(show) -- 956
+				_with_1.visible = show -- 956
+			end) -- 956
+			_with_1:addChild((function() -- 957
+				local _with_2 = Menu() -- 957
+				_with_2:addChild((function() -- 958
+					local _with_3 = CircleButton({ -- 959
+						text = "左", -- 959
+						x = 20 * uiScale, -- 960
+						y = 90 * uiScale, -- 961
+						radius = 30 * uiScale, -- 962
+						fontSize = math.floor(18 * uiScale) -- 963
+					}) -- 958
+					_with_3.anchor = Vec2.zero -- 965
+					_with_3:slot("TapBegan", function() -- 966
+						return updatePlayerControl("keyLeft", true) -- 966
+					end) -- 966
+					_with_3:slot("TapEnded", function() -- 967
+						return updatePlayerControl("keyLeft", false) -- 967
 					end) -- 967
-					_with_3:slot("TapEnded", function() -- 968
-						return updatePlayerControl("keyLeft", false) -- 968
-					end) -- 968
-					return _with_3 -- 959
-				end)()) -- 959
-				_with_2:addChild((function() -- 969
-					local _with_3 = CircleButton({ -- 970
-						text = "右", -- 970
-						x = 90 * uiScale, -- 971
-						y = 90 * uiScale, -- 972
-						radius = 30 * uiScale, -- 973
-						fontSize = math.floor(18 * uiScale) -- 974
-					}) -- 969
-					_with_3.anchor = Vec2.zero -- 976
-					_with_3:slot("TapBegan", function() -- 977
-						return updatePlayerControl("keyRight", true) -- 977
+					return _with_3 -- 958
+				end)()) -- 958
+				_with_2:addChild((function() -- 968
+					local _with_3 = CircleButton({ -- 969
+						text = "右", -- 969
+						x = 90 * uiScale, -- 970
+						y = 90 * uiScale, -- 971
+						radius = 30 * uiScale, -- 972
+						fontSize = math.floor(18 * uiScale) -- 973
+					}) -- 968
+					_with_3.anchor = Vec2.zero -- 975
+					_with_3:slot("TapBegan", function() -- 976
+						return updatePlayerControl("keyRight", true) -- 976
+					end) -- 976
+					_with_3:slot("TapEnded", function() -- 977
+						return updatePlayerControl("keyRight", false) -- 977
 					end) -- 977
-					_with_3:slot("TapEnded", function() -- 978
-						return updatePlayerControl("keyRight", false) -- 978
-					end) -- 978
-					return _with_3 -- 969
-				end)()) -- 969
-				return _with_2 -- 958
-			end)()) -- 958
-			return _with_1 -- 953
-		end)()) -- 953
-		_with_0:addChild((function() -- 979
-			local _with_1 = AlignNode() -- 979
-			_with_1.hAlign = "Right" -- 980
-			_with_1.vAlign = "Bottom" -- 981
-			_with_1.visible = false -- 982
-			_with_1:gslot("ShowTraining", function(show) -- 983
-				_with_1.visible = show -- 983
-			end) -- 983
-			_with_1:addChild((function() -- 984
-				local _with_2 = Menu() -- 984
-				_with_2:addChild((function() -- 985
-					local _with_3 = CircleButton({ -- 986
-						text = "闪", -- 986
-						x = -80 * uiScale, -- 987
-						y = 160 * uiScale, -- 988
-						radius = 30 * uiScale, -- 989
-						fontSize = math.floor(18 * uiScale) -- 990
-					}) -- 985
-					_with_3.anchor = Vec2.zero -- 992
-					_with_3:slot("TapBegan", function() -- 993
-						return updatePlayerControl("keyE", true) -- 993
+					return _with_3 -- 968
+				end)()) -- 968
+				return _with_2 -- 957
+			end)()) -- 957
+			return _with_1 -- 952
+		end)()) -- 952
+		_with_0:addChild((function() -- 978
+			local _with_1 = AlignNode() -- 978
+			_with_1.hAlign = "Right" -- 979
+			_with_1.vAlign = "Bottom" -- 980
+			_with_1.visible = false -- 981
+			_with_1:gslot("ShowTraining", function(show) -- 982
+				_with_1.visible = show -- 982
+			end) -- 982
+			_with_1:addChild((function() -- 983
+				local _with_2 = Menu() -- 983
+				_with_2:addChild((function() -- 984
+					local _with_3 = CircleButton({ -- 985
+						text = "闪", -- 985
+						x = -80 * uiScale, -- 986
+						y = 160 * uiScale, -- 987
+						radius = 30 * uiScale, -- 988
+						fontSize = math.floor(18 * uiScale) -- 989
+					}) -- 984
+					_with_3.anchor = Vec2.zero -- 991
+					_with_3:slot("TapBegan", function() -- 992
+						return updatePlayerControl("keyE", true) -- 992
+					end) -- 992
+					_with_3:slot("TapEnded", function() -- 993
+						return updatePlayerControl("keyE", false) -- 993
 					end) -- 993
-					_with_3:slot("TapEnded", function() -- 994
-						return updatePlayerControl("keyE", false) -- 994
-					end) -- 994
-					return _with_3 -- 985
-				end)()) -- 985
-				_with_2:addChild((function() -- 995
-					local _with_3 = CircleButton({ -- 996
-						text = "跳", -- 996
-						x = -80 * uiScale, -- 997
-						y = 90 * uiScale, -- 998
-						radius = 30 * uiScale, -- 999
-						fontSize = math.floor(18 * uiScale) -- 1000
-					}) -- 995
-					_with_3.anchor = Vec2.zero -- 1002
-					_with_3:slot("TapBegan", function() -- 1003
-						return updatePlayerControl("keyUp", true) -- 1003
+					return _with_3 -- 984
+				end)()) -- 984
+				_with_2:addChild((function() -- 994
+					local _with_3 = CircleButton({ -- 995
+						text = "跳", -- 995
+						x = -80 * uiScale, -- 996
+						y = 90 * uiScale, -- 997
+						radius = 30 * uiScale, -- 998
+						fontSize = math.floor(18 * uiScale) -- 999
+					}) -- 994
+					_with_3.anchor = Vec2.zero -- 1001
+					_with_3:slot("TapBegan", function() -- 1002
+						return updatePlayerControl("keyUp", true) -- 1002
+					end) -- 1002
+					_with_3:slot("TapEnded", function() -- 1003
+						return updatePlayerControl("keyUp", false) -- 1003
 					end) -- 1003
-					_with_3:slot("TapEnded", function() -- 1004
-						return updatePlayerControl("keyUp", false) -- 1004
-					end) -- 1004
-					return _with_3 -- 995
-				end)()) -- 995
-				_with_2:addChild((function() -- 1005
-					local _with_3 = CircleButton({ -- 1006
-						text = "打", -- 1006
-						x = -150 * uiScale, -- 1007
-						y = 90 * uiScale, -- 1008
-						radius = 30 * uiScale, -- 1009
-						fontSize = math.floor(18 * uiScale) -- 1010
-					}) -- 1005
-					_with_3.anchor = Vec2.zero -- 1012
-					_with_3:slot("TapBegan", function() -- 1013
-						return updatePlayerControl("keyF", true) -- 1013
+					return _with_3 -- 994
+				end)()) -- 994
+				_with_2:addChild((function() -- 1004
+					local _with_3 = CircleButton({ -- 1005
+						text = "打", -- 1005
+						x = -150 * uiScale, -- 1006
+						y = 90 * uiScale, -- 1007
+						radius = 30 * uiScale, -- 1008
+						fontSize = math.floor(18 * uiScale) -- 1009
+					}) -- 1004
+					_with_3.anchor = Vec2.zero -- 1011
+					_with_3:slot("TapBegan", function() -- 1012
+						return updatePlayerControl("keyF", true) -- 1012
+					end) -- 1012
+					_with_3:slot("TapEnded", function() -- 1013
+						return updatePlayerControl("keyF", false) -- 1013
 					end) -- 1013
-					_with_3:slot("TapEnded", function() -- 1014
-						return updatePlayerControl("keyF", false) -- 1014
-					end) -- 1014
-					return _with_3 -- 1005
-				end)()) -- 1005
-				return _with_2 -- 984
-			end)()) -- 984
-			return _with_1 -- 979
-		end)()) -- 979
-	elseif "macOS" == _exp_0 or "Windows" == _exp_0 or "Linux" == _exp_0 then -- 1015
-		local _with_1 = Node() -- 1016
-		_with_1:schedule(function() -- 1017
-			updatePlayerControl("keyLeft", Keyboard:isKeyPressed("A")) -- 1018
-			updatePlayerControl("keyRight", Keyboard:isKeyPressed("D")) -- 1019
-			updatePlayerControl("keyUp", Keyboard:isKeyPressed("K")) -- 1020
-			updatePlayerControl("keyF", Keyboard:isKeyPressed("J")) -- 1021
-			return updatePlayerControl("keyE", Keyboard:isKeyPressed("E")) -- 1022
-		end) -- 1017
-	end -- 1022
+					return _with_3 -- 1004
+				end)()) -- 1004
+				return _with_2 -- 983
+			end)()) -- 983
+			return _with_1 -- 978
+		end)()) -- 978
+	elseif "macOS" == _exp_0 or "Windows" == _exp_0 or "Linux" == _exp_0 then -- 1014
+		local _with_1 = Node() -- 1015
+		_with_1:schedule(function() -- 1016
+			updatePlayerControl("keyLeft", Keyboard:isKeyPressed("A")) -- 1017
+			updatePlayerControl("keyRight", Keyboard:isKeyPressed("D")) -- 1018
+			updatePlayerControl("keyUp", Keyboard:isKeyPressed("K")) -- 1019
+			updatePlayerControl("keyF", Keyboard:isKeyPressed("J")) -- 1020
+			return updatePlayerControl("keyE", Keyboard:isKeyPressed("E")) -- 1021
+		end) -- 1016
+	end -- 1021
 	return _with_0 -- 844
 end)()) -- 844
-do -- 1024
-	local _with_0 = Node() -- 1024
-	_with_0:schedule(function() -- 1025
-		local width, height -- 1026
-		do -- 1026
-			local _obj_0 = App.visualSize -- 1026
-			width, height = _obj_0.width, _obj_0.height -- 1026
+do -- 1023
+	local _with_0 = Node() -- 1023
+	_with_0:schedule(function() -- 1024
+		local width, height -- 1025
+		do -- 1025
+			local _obj_0 = App.visualSize -- 1025
+			width, height = _obj_0.width, _obj_0.height -- 1025
+		end -- 1025
+		for _index_0 = 1, #fighterPanels do -- 1026
+			local panel = fighterPanels[_index_0] -- 1026
+			panel() -- 1026
 		end -- 1026
-		for _index_0 = 1, #fighterPanels do -- 1027
-			local panel = fighterPanels[_index_0] -- 1027
-			panel() -- 1027
-		end -- 1027
-	end) -- 1025
-end -- 1024
-local rangeAttackEnd -- 1029
-rangeAttackEnd = function(name, playable) -- 1029
-	if name == "range" then -- 1030
-		return playable.parent:stop() -- 1030
-	end -- 1030
-end -- 1029
-UnitAction:add("range", { -- 1033
-	priority = 3, -- 1033
-	reaction = 10, -- 1034
-	recovery = 0.1, -- 1035
-	queued = true, -- 1036
-	available = function() -- 1037
-		return true -- 1037
-	end, -- 1037
-	create = function(self) -- 1038
-		local attackSpeed, targetAllow, attackPower, damageType, attackBase, attackBonus, attackFactor -- 1039
-		do -- 1039
-			local _obj_0 = self.entity -- 1044
-			attackSpeed, targetAllow, attackPower, damageType, attackBase, attackBonus, attackFactor = _obj_0.attackSpeed, _obj_0.targetAllow, _obj_0.attackPower, _obj_0.damageType, _obj_0.attackBase, _obj_0.attackBonus, _obj_0.attackFactor -- 1039
+	end) -- 1024
+end -- 1023
+local rangeAttackEnd -- 1028
+rangeAttackEnd = function(name, playable) -- 1028
+	if name == "range" then -- 1029
+		return playable.parent:stop() -- 1029
+	end -- 1029
+end -- 1028
+UnitAction:add("range", { -- 1032
+	priority = 3, -- 1032
+	reaction = 10, -- 1033
+	recovery = 0.1, -- 1034
+	queued = true, -- 1035
+	available = function() -- 1036
+		return true -- 1036
+	end, -- 1036
+	create = function(self) -- 1037
+		local attackSpeed, targetAllow, attackPower, damageType, attackBase, attackBonus, attackFactor -- 1038
+		do -- 1038
+			local _obj_0 = self.entity -- 1043
+			attackSpeed, targetAllow, attackPower, damageType, attackBase, attackBonus, attackFactor = _obj_0.attackSpeed, _obj_0.targetAllow, _obj_0.attackPower, _obj_0.damageType, _obj_0.attackBase, _obj_0.attackBonus, _obj_0.attackFactor -- 1038
+		end -- 1043
+		do -- 1044
+			local _with_0 = self.playable -- 1044
+			_with_0.speed = attackSpeed -- 1045
+			_with_0:play("range") -- 1046
+			_with_0:slot("AnimationEnd", rangeAttackEnd) -- 1047
 		end -- 1044
-		do -- 1045
-			local _with_0 = self.playable -- 1045
-			_with_0.speed = attackSpeed -- 1046
-			_with_0:play("range") -- 1047
-			_with_0:slot("AnimationEnd", rangeAttackEnd) -- 1048
-		end -- 1045
-		return once(function(self) -- 1049
-			local bulletDef = Store[self.unitDef.bulletType] -- 1050
-			local onAttack -- 1051
-			onAttack = function() -- 1051
-				local _with_0 = Bullet(bulletDef, self) -- 1052
-				_with_0.targetAllow = targetAllow -- 1053
-				_with_0:slot("HitTarget", function(bullet, target, pos) -- 1054
-					do -- 1055
-						local _with_1 = target.data -- 1055
-						_with_1.hitPoint = pos -- 1056
-						_with_1.hitPower = attackPower -- 1057
-						_with_1.hitFromRight = bullet.velocityX < 0 -- 1058
-					end -- 1055
-					local entity = target.entity -- 1059
-					local factor = Data:getDamageFactor(damageType, entity.defenceType) -- 1060
-					local damage = (attackBase + attackBonus) * (attackFactor + factor) -- 1061
-					entity.hp = entity.hp - damage -- 1062
-					bullet.hitStop = true -- 1063
-				end) -- 1054
-				_with_0:addTo(self.world, self.order) -- 1064
-				return _with_0 -- 1052
-			end -- 1051
-			sleep(0.5 * 28.0 / 30.0 / attackSpeed) -- 1065
-			onAttack() -- 1066
-			while true do -- 1067
-				sleep() -- 1067
-			end -- 1067
-		end) -- 1067
-	end, -- 1038
-	stop = function(self) -- 1068
-		return self.playable:slot("AnimationEnd"):remove(rangeAttackEnd) -- 1069
-	end -- 1068
-}) -- 1032
-local BigArrow -- 1071
-do -- 1071
-	local _with_0 = BulletDef() -- 1071
-	_with_0.tag = "" -- 1072
-	_with_0.endEffect = "" -- 1073
-	_with_0.lifeTime = 5 -- 1074
-	_with_0.damageRadius = 0 -- 1075
-	_with_0.highSpeedFix = false -- 1076
-	_with_0.gravity = Vec2(0, -10) -- 1077
-	_with_0.face = Face("Model/patreon.clip|item_arrow", Vec2(-100, 0), 2) -- 1078
-	_with_0:setAsCircle(10) -- 1079
-	_with_0:setVelocity(25, 800) -- 1080
-	BigArrow = _with_0 -- 1071
-end -- 1071
-UnitAction:add("multiArrow", { -- 1083
-	priority = 3, -- 1083
-	reaction = 10, -- 1084
-	recovery = 0.1, -- 1085
-	queued = true, -- 1086
-	available = function() -- 1087
-		return true -- 1087
-	end, -- 1087
-	create = function(self) -- 1088
-		local attackSpeed, targetAllow, attackPower, damageType, attackBase, attackBonus, attackFactor -- 1089
-		do -- 1089
-			local _obj_0 = self.entity -- 1094
-			attackSpeed, targetAllow, attackPower, damageType, attackBase, attackBonus, attackFactor = _obj_0.attackSpeed, _obj_0.targetAllow, _obj_0.attackPower, _obj_0.damageType, _obj_0.attackBase, _obj_0.attackBonus, _obj_0.attackFactor -- 1089
+		return once(function(self) -- 1048
+			local bulletDef = Store[self.unitDef.bulletType] -- 1049
+			local onAttack -- 1050
+			onAttack = function() -- 1050
+				local _with_0 = Bullet(bulletDef, self) -- 1051
+				_with_0.targetAllow = targetAllow -- 1052
+				_with_0:slot("HitTarget", function(bullet, target, pos) -- 1053
+					do -- 1054
+						local _with_1 = target.data -- 1054
+						_with_1.hitPoint = pos -- 1055
+						_with_1.hitPower = attackPower -- 1056
+						_with_1.hitFromRight = bullet.velocityX < 0 -- 1057
+					end -- 1054
+					local entity = target.entity -- 1058
+					local factor = Data:getDamageFactor(damageType, entity.defenceType) -- 1059
+					local damage = (attackBase + attackBonus) * (attackFactor + factor) -- 1060
+					entity.hp = entity.hp - damage -- 1061
+					bullet.hitStop = true -- 1062
+				end) -- 1053
+				_with_0:addTo(self.world, self.order) -- 1063
+				return _with_0 -- 1051
+			end -- 1050
+			sleep(0.5 * 28.0 / 30.0 / attackSpeed) -- 1064
+			onAttack() -- 1065
+			while true do -- 1066
+				sleep() -- 1066
+			end -- 1066
+		end) -- 1066
+	end, -- 1037
+	stop = function(self) -- 1067
+		return self.playable:slot("AnimationEnd"):remove(rangeAttackEnd) -- 1068
+	end -- 1067
+}) -- 1031
+local BigArrow -- 1070
+do -- 1070
+	local _with_0 = BulletDef() -- 1070
+	_with_0.tag = "" -- 1071
+	_with_0.endEffect = "" -- 1072
+	_with_0.lifeTime = 5 -- 1073
+	_with_0.damageRadius = 0 -- 1074
+	_with_0.highSpeedFix = false -- 1075
+	_with_0.gravity = Vec2(0, -10) -- 1076
+	_with_0.face = Face("Model/patreon.clip|item_arrow", Vec2(-100, 0), 2) -- 1077
+	_with_0:setAsCircle(10) -- 1078
+	_with_0:setVelocity(25, 800) -- 1079
+	BigArrow = _with_0 -- 1070
+end -- 1070
+UnitAction:add("multiArrow", { -- 1082
+	priority = 3, -- 1082
+	reaction = 10, -- 1083
+	recovery = 0.1, -- 1084
+	queued = true, -- 1085
+	available = function() -- 1086
+		return true -- 1086
+	end, -- 1086
+	create = function(self) -- 1087
+		local attackSpeed, targetAllow, attackPower, damageType, attackBase, attackBonus, attackFactor -- 1088
+		do -- 1088
+			local _obj_0 = self.entity -- 1093
+			attackSpeed, targetAllow, attackPower, damageType, attackBase, attackBonus, attackFactor = _obj_0.attackSpeed, _obj_0.targetAllow, _obj_0.attackPower, _obj_0.damageType, _obj_0.attackBase, _obj_0.attackBonus, _obj_0.attackFactor -- 1088
+		end -- 1093
+		do -- 1094
+			local _with_0 = self.playable -- 1094
+			_with_0.speed = attackSpeed -- 1095
+			_with_0:play("range") -- 1096
+			_with_0:slot("AnimationEnd", rangeAttackEnd) -- 1097
 		end -- 1094
-		do -- 1095
-			local _with_0 = self.playable -- 1095
-			_with_0.speed = attackSpeed -- 1096
-			_with_0:play("range") -- 1097
-			_with_0:slot("AnimationEnd", rangeAttackEnd) -- 1098
-		end -- 1095
-		return once(function(self) -- 1099
-			local onAttack -- 1100
-			onAttack = function(angle, speed) -- 1100
-				BigArrow:setVelocity(angle, speed) -- 1101
-				local _with_0 = Bullet(BigArrow, self) -- 1102
-				_with_0.targetAllow = targetAllow -- 1103
-				_with_0:slot("HitTarget", function(bullet, target, pos) -- 1104
-					do -- 1105
-						local _with_1 = target.data -- 1105
-						_with_1.hitPoint = pos -- 1106
-						_with_1.hitPower = attackPower -- 1107
-						_with_1.hitFromRight = bullet.velocityX < 0 -- 1108
-					end -- 1105
-					local entity = target.entity -- 1109
-					local factor = Data:getDamageFactor(damageType, entity.defenceType) -- 1110
-					local damage = (attackBase + attackBonus) * (attackFactor + factor) -- 1111
-					entity.hp = entity.hp - damage -- 1112
-					bullet.hitStop = true -- 1113
-				end) -- 1104
-				_with_0:addTo(self.world, self.order) -- 1114
-				return _with_0 -- 1102
-			end -- 1100
-			sleep(30.0 / 60.0 / attackSpeed) -- 1115
-			onAttack(30, 1100) -- 1116
-			onAttack(10, 1000) -- 1117
-			onAttack(-10, 900) -- 1118
-			onAttack(-30, 800) -- 1119
-			onAttack(-50, 700) -- 1120
-			while true do -- 1121
-				sleep() -- 1121
-			end -- 1121
-		end) -- 1121
-	end, -- 1088
-	stop = function(self) -- 1122
-		return self.playable:slot("AnimationEnd"):remove(rangeAttackEnd) -- 1123
-	end -- 1122
-}) -- 1082
-UnitAction:add("fallOff", { -- 1126
-	priority = 1, -- 1126
-	reaction = 1, -- 1127
-	recovery = 0, -- 1128
-	available = function(self) -- 1129
-		return not self.onSurface -- 1129
-	end, -- 1129
-	create = function(self) -- 1130
-		if self.velocityY <= 0 then -- 1131
-			self.data.fallDown = true -- 1132
-			local _with_0 = self.playable -- 1133
-			_with_0.speed = 2.5 -- 1134
-			_with_0:play("idle") -- 1135
-		else -- 1136
-			self.data.fallDown = false -- 1136
-		end -- 1131
-		return function(self) -- 1137
-			if self.onSurface then -- 1138
-				return true -- 1138
+		return once(function(self) -- 1098
+			local onAttack -- 1099
+			onAttack = function(angle, speed) -- 1099
+				BigArrow:setVelocity(angle, speed) -- 1100
+				local _with_0 = Bullet(BigArrow, self) -- 1101
+				_with_0.targetAllow = targetAllow -- 1102
+				_with_0:slot("HitTarget", function(bullet, target, pos) -- 1103
+					do -- 1104
+						local _with_1 = target.data -- 1104
+						_with_1.hitPoint = pos -- 1105
+						_with_1.hitPower = attackPower -- 1106
+						_with_1.hitFromRight = bullet.velocityX < 0 -- 1107
+					end -- 1104
+					local entity = target.entity -- 1108
+					local factor = Data:getDamageFactor(damageType, entity.defenceType) -- 1109
+					local damage = (attackBase + attackBonus) * (attackFactor + factor) -- 1110
+					entity.hp = entity.hp - damage -- 1111
+					bullet.hitStop = true -- 1112
+				end) -- 1103
+				_with_0:addTo(self.world, self.order) -- 1113
+				return _with_0 -- 1101
+			end -- 1099
+			sleep(30.0 / 60.0 / attackSpeed) -- 1114
+			onAttack(30, 1100) -- 1115
+			onAttack(10, 1000) -- 1116
+			onAttack(-10, 900) -- 1117
+			onAttack(-30, 800) -- 1118
+			onAttack(-50, 700) -- 1119
+			while true do -- 1120
+				sleep() -- 1120
+			end -- 1120
+		end) -- 1120
+	end, -- 1087
+	stop = function(self) -- 1121
+		return self.playable:slot("AnimationEnd"):remove(rangeAttackEnd) -- 1122
+	end -- 1121
+}) -- 1081
+UnitAction:add("fallOff", { -- 1125
+	priority = 1, -- 1125
+	reaction = 1, -- 1126
+	recovery = 0, -- 1127
+	available = function(self) -- 1128
+		return not self.onSurface -- 1128
+	end, -- 1128
+	create = function(self) -- 1129
+		if self.velocityY <= 0 then -- 1130
+			self.data.fallDown = true -- 1131
+			local _with_0 = self.playable -- 1132
+			_with_0.speed = 2.5 -- 1133
+			_with_0:play("idle") -- 1134
+		else -- 1135
+			self.data.fallDown = false -- 1135
+		end -- 1130
+		return function(self) -- 1136
+			if self.onSurface then -- 1137
+				return true -- 1137
+			end -- 1137
+			if not self.data.fallDown and self.velocityY <= 0 then -- 1138
+				self.data.fallDown = true -- 1139
+				local _with_0 = self.playable -- 1140
+				_with_0.speed = 2.5 -- 1141
+				_with_0:play("idle") -- 1142
 			end -- 1138
-			if not self.data.fallDown and self.velocityY <= 0 then -- 1139
-				self.data.fallDown = true -- 1140
-				local _with_0 = self.playable -- 1141
-				_with_0.speed = 2.5 -- 1142
-				_with_0:play("idle") -- 1143
-			end -- 1139
-			return false -- 1144
-		end -- 1144
-	end -- 1130
-}) -- 1125
-UnitAction:add("evade", { -- 1147
-	priority = 10, -- 1147
-	reaction = 10, -- 1148
-	recovery = 0, -- 1149
-	queued = true, -- 1150
-	available = function() -- 1151
-		return true -- 1151
-	end, -- 1151
-	create = function(self) -- 1152
-		do -- 1153
-			local _with_0 = self.playable -- 1153
-			_with_0.speed = 1.0 -- 1154
-			_with_0.recovery = 0.0 -- 1155
-			_with_0:play("bevade") -- 1156
-		end -- 1153
-		return once(function(self) -- 1157
-			local group = self.group -- 1158
-			self.group = Data.groupHide -- 1159
-			local dir = self.faceRight and -1 or 1 -- 1160
-			cycle(0.2, function() -- 1161
-				self.velocityX = 800 * dir -- 1161
-			end) -- 1161
-			self.group = group -- 1162
-			do -- 1163
-				local _with_0 = self.playable -- 1163
-				_with_0.speed = 1.0 -- 1164
-				_with_0:play("idle") -- 1165
-			end -- 1163
-			sleep(1) -- 1166
-			return true -- 1167
-		end) -- 1167
-	end -- 1152
-}) -- 1146
-local spearAttackEnd -- 1169
-spearAttackEnd = function(name, playable) -- 1169
-	if name == "spear" then -- 1170
-		return playable.parent:stop() -- 1170
-	end -- 1170
-end -- 1169
-UnitAction:add("spearAttack", { -- 1173
-	priority = 3, -- 1173
-	reaction = 10, -- 1174
-	recovery = 0.1, -- 1175
-	queued = true, -- 1176
-	available = function() -- 1177
-		return true -- 1177
-	end, -- 1177
-	create = function(self) -- 1178
-		local attackSpeed, attackPower, damageType, attackBase, attackBonus, attackFactor -- 1179
-		do -- 1179
-			local _obj_0 = self.entity -- 1183
-			attackSpeed, attackPower, damageType, attackBase, attackBonus, attackFactor = _obj_0.attackSpeed, _obj_0.attackPower, _obj_0.damageType, _obj_0.attackBase, _obj_0.attackBonus, _obj_0.attackFactor -- 1179
+			return false -- 1143
+		end -- 1143
+	end -- 1129
+}) -- 1124
+UnitAction:add("evade", { -- 1146
+	priority = 10, -- 1146
+	reaction = 10, -- 1147
+	recovery = 0, -- 1148
+	queued = true, -- 1149
+	available = function() -- 1150
+		return true -- 1150
+	end, -- 1150
+	create = function(self) -- 1151
+		do -- 1152
+			local _with_0 = self.playable -- 1152
+			_with_0.speed = 1.0 -- 1153
+			_with_0.recovery = 0.0 -- 1154
+			_with_0:play("bevade") -- 1155
+		end -- 1152
+		return once(function(self) -- 1156
+			local group = self.group -- 1157
+			self.group = Data.groupHide -- 1158
+			local dir = self.faceRight and -1 or 1 -- 1159
+			cycle(0.2, function() -- 1160
+				self.velocityX = 800 * dir -- 1160
+			end) -- 1160
+			self.group = group -- 1161
+			do -- 1162
+				local _with_0 = self.playable -- 1162
+				_with_0.speed = 1.0 -- 1163
+				_with_0:play("idle") -- 1164
+			end -- 1162
+			sleep(1) -- 1165
+			return true -- 1166
+		end) -- 1166
+	end -- 1151
+}) -- 1145
+local spearAttackEnd -- 1168
+spearAttackEnd = function(name, playable) -- 1168
+	if name == "spear" then -- 1169
+		return playable.parent:stop() -- 1169
+	end -- 1169
+end -- 1168
+UnitAction:add("spearAttack", { -- 1172
+	priority = 3, -- 1172
+	reaction = 10, -- 1173
+	recovery = 0.1, -- 1174
+	queued = true, -- 1175
+	available = function() -- 1176
+		return true -- 1176
+	end, -- 1176
+	create = function(self) -- 1177
+		local attackSpeed, attackPower, damageType, attackBase, attackBonus, attackFactor -- 1178
+		do -- 1178
+			local _obj_0 = self.entity -- 1182
+			attackSpeed, attackPower, damageType, attackBase, attackBonus, attackFactor = _obj_0.attackSpeed, _obj_0.attackPower, _obj_0.damageType, _obj_0.attackBase, _obj_0.attackBonus, _obj_0.attackFactor -- 1178
+		end -- 1182
+		do -- 1183
+			local _with_0 = self.playable -- 1183
+			_with_0.speed = attackSpeed -- 1184
+			_with_0.recovery = 0.2 -- 1185
+			_with_0:play("spear") -- 1186
+			_with_0:slot("AnimationEnd", spearAttackEnd) -- 1187
 		end -- 1183
-		do -- 1184
-			local _with_0 = self.playable -- 1184
-			_with_0.speed = attackSpeed -- 1185
-			_with_0.recovery = 0.2 -- 1186
-			_with_0:play("spear") -- 1187
-			_with_0:slot("AnimationEnd", spearAttackEnd) -- 1188
-		end -- 1184
-		return once(function(self) -- 1189
-			sleep(50.0 / 60.0) -- 1190
-			local dir = self.faceRight and 0 or -900 -- 1191
-			local origin = self.position - Vec2(0, 205) + Vec2(dir, 0) -- 1192
-			local size -- 1193
-			size = Size(900, 40) -- 1193
-			world:query(Rect(origin, size), function(body) -- 1194
-				local entity = body.entity -- 1195
-				if entity and Data:isEnemy(body, self) then -- 1196
-					do -- 1197
-						local _with_0 = body.data -- 1197
-						_with_0.hitPoint = body.position -- 1198
-						_with_0.hitPower = attackPower -- 1199
-						_with_0.hitFromRight = not self.faceRight -- 1200
-					end -- 1197
-					local factor = Data:getDamageFactor(damageType, entity.defenceType) -- 1201
-					local damage = (attackBase + attackBonus) * (attackFactor + factor) -- 1202
-					entity.hp = entity.hp - damage -- 1203
-				end -- 1196
-				return false -- 1204
-			end) -- 1194
-			while true do -- 1205
-				sleep() -- 1205
-			end -- 1205
-		end) -- 1205
-	end, -- 1178
-	stop = function(self) -- 1206
-		return self.playable:slot("AnimationEnd"):remove(spearAttackEnd) -- 1207
-	end -- 1206
-}) -- 1172
-local mutables = { -- 1210
-	"hp", -- 1210
-	"moveSpeed", -- 1211
-	"move", -- 1212
-	"jump", -- 1213
-	"targetAllow", -- 1214
-	"attackBase", -- 1215
-	"attackPower", -- 1216
-	"attackSpeed", -- 1217
-	"damageType", -- 1218
-	"attackBonus", -- 1219
-	"attackFactor", -- 1220
-	"attackTarget", -- 1221
-	"defenceType" -- 1222
-} -- 1209
-do -- 1225
-	local _with_0 = Observer("Add", { -- 1225
-		"unitDef", -- 1225
-		"position", -- 1225
-		"order", -- 1225
-		"group", -- 1225
-		"faceRight" -- 1225
-	}) -- 1225
-	_with_0:watch(function(self, unitDef, position, order, group) -- 1226
-		local player, faceRight, charSet, decisionTree = self.player, self.faceRight, self.charSet, self.decisionTree -- 1227
-		world = Store.world -- 1228
-		local func = UnitDefFuncs[unitDef] -- 1229
-		local def = func() -- 1230
-		for _index_0 = 1, #mutables do -- 1231
-			local var = mutables[_index_0] -- 1231
-			self[var] = def[var] -- 1232
+		return once(function(self) -- 1188
+			sleep(50.0 / 60.0) -- 1189
+			local dir = self.faceRight and 0 or -900 -- 1190
+			local origin = self.position - Vec2(0, 205) + Vec2(dir, 0) -- 1191
+			local size -- 1192
+			size = Size(900, 40) -- 1192
+			world:query(Rect(origin, size), function(body) -- 1193
+				local entity = body.entity -- 1194
+				if entity and Data:isEnemy(body, self) then -- 1195
+					do -- 1196
+						local _with_0 = body.data -- 1196
+						_with_0.hitPoint = body.position -- 1197
+						_with_0.hitPower = attackPower -- 1198
+						_with_0.hitFromRight = not self.faceRight -- 1199
+					end -- 1196
+					local factor = Data:getDamageFactor(damageType, entity.defenceType) -- 1200
+					local damage = (attackBase + attackBonus) * (attackFactor + factor) -- 1201
+					entity.hp = entity.hp - damage -- 1202
+				end -- 1195
+				return false -- 1203
+			end) -- 1193
+			while true do -- 1204
+				sleep() -- 1204
+			end -- 1204
+		end) -- 1204
+	end, -- 1177
+	stop = function(self) -- 1205
+		return self.playable:slot("AnimationEnd"):remove(spearAttackEnd) -- 1206
+	end -- 1205
+}) -- 1171
+local mutables = { -- 1209
+	"hp", -- 1209
+	"moveSpeed", -- 1210
+	"move", -- 1211
+	"jump", -- 1212
+	"targetAllow", -- 1213
+	"attackBase", -- 1214
+	"attackPower", -- 1215
+	"attackSpeed", -- 1216
+	"damageType", -- 1217
+	"attackBonus", -- 1218
+	"attackFactor", -- 1219
+	"attackTarget", -- 1220
+	"defenceType" -- 1221
+} -- 1208
+do -- 1224
+	local _with_0 = Observer("Add", { -- 1224
+		"unitDef", -- 1224
+		"position", -- 1224
+		"order", -- 1224
+		"group", -- 1224
+		"faceRight" -- 1224
+	}) -- 1224
+	_with_0:watch(function(self, unitDef, position, order, group) -- 1225
+		local player, faceRight, charSet, decisionTree = self.player, self.faceRight, self.charSet, self.decisionTree -- 1226
+		world = Store.world -- 1227
+		local func = UnitDefFuncs[unitDef] -- 1228
+		local def = func() -- 1229
+		for _index_0 = 1, #mutables do -- 1230
+			local var = mutables[_index_0] -- 1230
+			self[var] = def[var] -- 1231
+		end -- 1231
+		if charSet then -- 1232
+			local set = characters[charSet] -- 1233
+			local actions = def.actions -- 1234
+			local actionSet -- 1235
+			do -- 1235
+				local _tbl_0 = { } -- 1235
+				for _index_0 = 1, #actions do -- 1235
+					local a = actions[_index_0] -- 1235
+					_tbl_0[a] = true -- 1235
+				end -- 1235
+				actionSet = _tbl_0 -- 1235
+			end -- 1235
+			for _index_0 = 1, #itemSlots do -- 1236
+				local slot = itemSlots[_index_0] -- 1236
+				local item = set[slot] -- 1237
+				if not item then -- 1238
+					goto _continue_0 -- 1238
+				end -- 1238
+				local skill = itemSettings[item].skill -- 1239
+				if skill and not actionSet[skill] then -- 1240
+					actions:add(skill) -- 1241
+				end -- 1240
+				local attackRange = itemSettings[item].attackRange -- 1242
+				if attackRange then -- 1243
+					def.attackRange = attackRange -- 1243
+				end -- 1243
+				::_continue_0:: -- 1237
+			end -- 1243
 		end -- 1232
-		if charSet then -- 1233
-			local set = characters[charSet] -- 1234
-			local actions = def.actions -- 1235
-			local actionSet -- 1236
-			do -- 1236
-				local _tbl_0 = { } -- 1236
-				for _index_0 = 1, #actions do -- 1236
-					local a = actions[_index_0] -- 1236
-					_tbl_0[a] = true -- 1236
-				end -- 1236
-				actionSet = _tbl_0 -- 1236
-			end -- 1236
-			for _index_0 = 1, #itemSlots do -- 1237
-				local slot = itemSlots[_index_0] -- 1237
-				local item = set[slot] -- 1238
-				if not item then -- 1239
-					goto _continue_0 -- 1239
-				end -- 1239
-				local skill = itemSettings[item].skill -- 1240
-				if skill and not actionSet[skill] then -- 1241
-					actions:add(skill) -- 1242
-				end -- 1241
-				local attackRange = itemSettings[item].attackRange -- 1243
-				if attackRange then -- 1244
-					def.attackRange = attackRange -- 1244
-				end -- 1244
-				::_continue_0:: -- 1238
-			end -- 1244
-		end -- 1233
-		if decisionTree then -- 1245
-			def.decisionTree = decisionTree -- 1245
+		if decisionTree then -- 1244
+			def.decisionTree = decisionTree -- 1244
+		end -- 1244
+		local unit -- 1245
+		do -- 1245
+			local _with_1 = Unit(def, world, self, position) -- 1245
+			_with_1.group = group -- 1246
+			_with_1.order = order -- 1247
+			_with_1.faceRight = faceRight -- 1248
+			_with_1:addTo(world) -- 1249
+			unit = _with_1 -- 1245
 		end -- 1245
-		local unit -- 1246
-		do -- 1246
-			local _with_1 = Unit(def, world, self, position) -- 1246
-			_with_1.group = group -- 1247
-			_with_1.order = order -- 1248
-			_with_1.faceRight = faceRight -- 1249
-			_with_1:addTo(world) -- 1250
-			unit = _with_1 -- 1246
-		end -- 1246
-		if charSet then -- 1251
-			updateModel(unit.playable, characters[charSet]) -- 1251
+		if charSet then -- 1250
+			updateModel(unit.playable, characters[charSet]) -- 1250
+		end -- 1250
+		if player then -- 1251
+			world.camera.followTarget = unit -- 1252
 		end -- 1251
-		if player then -- 1252
-			world.camera.followTarget = unit -- 1253
-		end -- 1252
-		return false -- 1253
-	end) -- 1226
-end -- 1225
-local _with_0 = Observer("Change", { -- 1255
-	"hp", -- 1255
-	"unit" -- 1255
-}) -- 1255
-_with_0:watch(function(self, hp, unit) -- 1256
-	local boss = self.boss -- 1257
-	local lastHp = self.oldValues.hp -- 1258
-	if hp < lastHp then -- 1259
-		if not boss and unit:isDoing("hit") then -- 1260
-			unit:start("cancel") -- 1260
+		return false -- 1252
+	end) -- 1225
+end -- 1224
+local _with_0 = Observer("Change", { -- 1254
+	"hp", -- 1254
+	"unit" -- 1254
+}) -- 1254
+_with_0:watch(function(self, hp, unit) -- 1255
+	local boss = self.boss -- 1256
+	local lastHp = self.oldValues.hp -- 1257
+	if hp < lastHp then -- 1258
+		if not boss and unit:isDoing("hit") then -- 1259
+			unit:start("cancel") -- 1259
+		end -- 1259
+		if boss then -- 1260
+			local _with_1 = Visual("Particle/bloodp.par") -- 1261
+			_with_1.position = unit.data.hitPoint -- 1262
+			_with_1:addTo(world, unit.order) -- 1263
+			_with_1:autoRemove() -- 1264
+			_with_1:start() -- 1265
 		end -- 1260
-		if boss then -- 1261
-			local _with_1 = Visual("Particle/bloodp.par") -- 1262
-			_with_1.position = unit.data.hitPoint -- 1263
-			_with_1:addTo(world, unit.order) -- 1264
-			_with_1:autoRemove() -- 1265
-			_with_1:start() -- 1266
-		end -- 1261
-		if hp > 0 then -- 1267
-			unit:start("hit") -- 1268
-		else -- 1270
-			unit:start("hit") -- 1270
-			unit:start("fall") -- 1271
-			unit.group = Data.groupHide -- 1272
-			if self.player then -- 1273
-				playerGroup:each(function(p) -- 1274
-					if p and p.unit and p.hp > 0 then -- 1275
-						world.camera.followTarget = p.unit -- 1276
-						return true -- 1277
-					else -- 1278
-						return false -- 1278
-					end -- 1275
-				end) -- 1274
-			end -- 1273
-		end -- 1267
-	end -- 1259
-	return false -- 1278
-end) -- 1256
-return _with_0 -- 1255
+		if hp > 0 then -- 1266
+			unit:start("hit") -- 1267
+		else -- 1269
+			unit:start("hit") -- 1269
+			unit:start("fall") -- 1270
+			unit.group = Data.groupHide -- 1271
+			if self.player then -- 1272
+				playerGroup:each(function(p) -- 1273
+					if p and p.unit and p.hp > 0 then -- 1274
+						world.camera.followTarget = p.unit -- 1275
+						return true -- 1276
+					else -- 1277
+						return false -- 1277
+					end -- 1274
+				end) -- 1273
+			end -- 1272
+		end -- 1266
+	end -- 1258
+	return false -- 1277
+end) -- 1255
+return _with_0 -- 1254
