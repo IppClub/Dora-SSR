@@ -13,7 +13,6 @@ _ENV = Dora(
 	Dora.Platformer
 	Dora.Platformer.Decision
 )
-import "UI.Control.Basic.AlignNode"
 import "UI.Control.Basic.CircleButton"
 store: Store = Data
 
@@ -707,8 +706,6 @@ world = with PlatformWorld!
 	\gslot "AppSizeChanged", ->
 		zoom = View.size.width / DesignWidth
 		.camera.zoom = zoom
-		with Director.ui
-			.scaleX = .scaleY = zoom
 Store["world"] = world
 
 terrainDef = with BodyDef!
@@ -839,178 +836,184 @@ for i = 1, #characters
 playerGroup = Group ["player","unit"]
 updatePlayerControl = (key,flag) -> playerGroup\each => @unit.data[key] = flag
 
-uiScale = App.devicePixelRatio
-
-Director.ui\addChild with AlignNode isRoot:true
+Director.ui\addChild with AlignNode true
+	\css 'flex-direction: column'
 	\schedule ->
-		:width,:height = App.visualSize
-		SetNextWindowPos Vec2(10,10), "FirstUseEver"
-		SetNextWindowSize Vec2(350,160), "FirstUseEver"
-		Begin "AI军团", ["NoResize","NoSavedSettings"], ->
+		:width, :height = App.visualSize
+		SetNextWindowPos Vec2(10, 10), "FirstUseEver"
+		SetNextWindowSize Vec2(350, 160), "FirstUseEver"
+		Begin "AI军团", ["NoResize", "NoSavedSettings"], ->
 			isPC = switch App.platform
-				when "macOS","Windows","Linux" then true
+				when "macOS", "Windows", "Linux" then true
 				else false
 			TextWrapped "点击你的学员部队配备装备，并亲自进行战斗方法的训练，最后带领部队挑战敌人。\n学员战斗AI通过玩家操作自动学习生成。#{isPC and '训练操作按键：向左A，向右D，闪避E，攻击J，跳跃K' or ''}"
 	\addChild with AlignNode!
-		.size = Size 0,0
-		.hAlign = "Center"
-		.vAlign = "Center"
-		.alignOffset = Vec2 0, 32
-		.visible = false
-		\gslot "ShowTraining",(show) ->
-			.visible = show
-			if show
-				\addChild with CircleButton {
-						text:"训练\n结束！"
-						y:-300
-						radius:80
-						fontName:"sarasa-mono-sc-regular"
-						fontSize:48
-					}
-					\slot "Tapped", ->
-						emit "ShowTraining", false
-						Group(["player",])\each (e) ->
-							if e.charSet
-								emit "TrainAI", e.charSet
-								e.unit\removeFromParent!
-						Group(["boss",])\each (e) ->
-							e.unit\removeFromParent!
-						emit "ShowSetting", true
-			else
-				\removeAllChildren!
-		\gslot "ShowFight",(show) ->
-			.visible = show
-			if show
-				\addChild with CircleButton {
-						text:"离开\n战斗"
-						y:-300
-						radius:80
-						fontName:"sarasa-mono-sc-regular"
-						fontSize:48
-					}
-					\slot "Tapped", ->
-						Group(["unitDef",])\each (e) ->
-							e.unit?\removeFromParent!
-						emit "ShowSetting", true
-						thread -> emit "ShowFight", false
-			else
-				\removeAllChildren!
+		\css "height: 30%"
 	\addChild with AlignNode!
-		.size = Size 0,0
-		.hAlign = "Center"
-		.vAlign = "Center"
-		.alignOffset = Vec2 0, 32
-		\gslot "ShowSetting",(show) -> .visible = show
-		\addChild with Model "Model/bossp.model"
-			.x = 500
-			.y = 100
-			.fliped = true
-			.speed = 0.8
-			.scaleX,.scaleY = 2,2
-			.recovery = 0.2
-			\play "idle", true
-		for i = 1, #fighterFigures
-			fighter = fighterFigures[i]
-			\addChild with fighter
-				.x = -500 + (i - 1) * 200
-		\addChild with CircleButton {
-				text:"开战！"
-				y:-300
-				radius:80
-				fontName:"sarasa-mono-sc-regular"
-				fontSize:48
-			}
-			showItems = (show) ->
-				for fighter in *fighterFigures
-					fighter.touchEnabled = not show
-				.visible = not show
-			\gslot "ShowFight", showItems
-			\gslot "ShowTraining", showItems
-			\slot "Tapped", ->
-				return if not .visible
-				for i = 1, #characters
-					Entity
-						unitDef: "fighter"
-						charSet: i
-						order: PlayerLayer
-						position: Vec2 -600 + (i - 1) * 200, 400
-						group: PlayerGroup
-						faceRight: true
-						decisionTree: "AI_Learned"
-						player: true
-				Entity
-					unitDef: "boss"
-					order: EnemyLayer
-					position: Vec2 400,400
-					group: EnemyGroup
-					faceRight: false
-					boss: true
-				emit "ShowSetting", false
-				emit "ShowFight", true
+		\css "height: 40%; align-items: center; justify-content: center"
+		\addChild with AlignNode!
+			\css 'height: 1; width: 0'
+			\addChild with Node!
+				.visible = false
+				.scaleX = .scaleY = 0.5
+				\gslot "ShowTraining", (show) ->
+					.visible = show
+					if show
+						\addChild with CircleButton {
+								text:"训练\n结束！"
+								y: -150
+								radius: 80
+								fontName: "sarasa-mono-sc-regular"
+								fontSize: 48
+							}
+							\slot "Tapped", ->
+								emit "ShowTraining", false
+								Group(["player",])\each (e) ->
+									if e.charSet
+										emit "TrainAI", e.charSet
+										e.unit\removeFromParent!
+								Group(["boss",])\each (e) ->
+									e.unit\removeFromParent!
+								emit "ShowSetting", true
+					else
+						\removeAllChildren!
+				\gslot "ShowFight",(show) ->
+					.visible = show
+					if show
+						\addChild with CircleButton {
+								text:"离开\n战斗"
+								y: -150
+								radius: 80
+								fontName: "sarasa-mono-sc-regular"
+								fontSize: 48
+							}
+							\slot "Tapped", ->
+								Group(["unitDef",])\each (e) ->
+									e.unit?\removeFromParent!
+								emit "ShowSetting", true
+								thread -> emit "ShowFight", false
+					else
+						\removeAllChildren!
+			\addChild with Node!
+				\gslot "ShowSetting", (show) -> .visible = show
+				.scaleX = .scaleY = 0.5
+				\addChild with Model "Model/bossp.model"
+					.x = 500
+					.y = 100
+					.fliped = true
+					.speed = 0.8
+					.recovery = 0.2
+					.scaleX = .scaleY = 2
+					\play "idle", true
+				for i = 1, #fighterFigures
+					fighter = fighterFigures[i]
+					\addChild with fighter
+						.x = -500 + (i - 1) * 200
+				\addChild with CircleButton {
+						text: "开战！"
+						y: -150
+						radius: 80
+						fontName: "sarasa-mono-sc-regular"
+						fontSize: 48
+					}
+					showItems = (show) ->
+						for fighter in *fighterFigures
+							fighter.touchEnabled = not show
+						.visible = not show
+					\gslot "ShowFight", showItems
+					\gslot "ShowTraining", showItems
+					\slot "Tapped", ->
+						return if not .visible
+						for i = 1, #characters
+							Entity
+								unitDef: "fighter"
+								charSet: i
+								order: PlayerLayer
+								position: Vec2 -600 + (i - 1) * 200, 400
+								group: PlayerGroup
+								faceRight: true
+								decisionTree: "AI_Learned"
+								player: true
+						Entity
+							unitDef: "boss"
+							order: EnemyLayer
+							position: Vec2 400, 400
+							group: EnemyGroup
+							faceRight: false
+							boss: true
+						emit "ShowSetting", false
+						emit "ShowFight", true
 	switch App.platform
-		when "iOS","Android"
+		when "iOS", "Android"
 			\addChild with AlignNode!
-				.hAlign = "Left"
-				.vAlign = "Bottom"
-				.visible = false
-				\gslot "ShowTraining",(show) -> .visible = show
-				\addChild with Menu!
-					\addChild with CircleButton {
-							text: "左"
-							x: 20*uiScale
-							y: 90*uiScale
-							radius: 30*uiScale
-							fontSize: math.floor 18*uiScale
-						}
+				\css "
+					width: auto;
+					height: 30%;
+					padding-bottom: 10;
+					margin-left: 10;
+					margin-right: 10;
+					flex-direction: row;
+					justify-content: space-between
+				"
+				\gslot "ShowTraining", (show) -> .visible = show
+				\addChild with AlignNode!
+					\css 'height: 100%; width: 0'
+					\addChild with Menu!
 						.anchor = Vec2.zero
-						\slot "TapBegan", -> updatePlayerControl "keyLeft",true
-						\slot "TapEnded", -> updatePlayerControl "keyLeft",false
-					\addChild with CircleButton {
-							text: "右"
-							x: 90*uiScale
-							y: 90*uiScale
-							radius: 30*uiScale
-							fontSize: math.floor 18*uiScale
-						}
-						.anchor = Vec2.zero
-						\slot "TapBegan", -> updatePlayerControl "keyRight",true
-						\slot "TapEnded", -> updatePlayerControl "keyRight",false
-			\addChild with AlignNode!
-				.hAlign = "Right"
-				.vAlign = "Bottom"
-				.visible = false
-				\gslot "ShowTraining",(show) -> .visible = show
-				\addChild with Menu!
-					\addChild with CircleButton {
-							text: "闪"
-							x: -80*uiScale
-							y: 160*uiScale
-							radius: 30*uiScale
-							fontSize: math.floor 18*uiScale
-						}
-						.anchor = Vec2.zero
-						\slot "TapBegan", -> updatePlayerControl "keyE",true
-						\slot "TapEnded", -> updatePlayerControl "keyE",false
-					\addChild with CircleButton {
-							text: "跳"
-							x: -80*uiScale
-							y: 90*uiScale
-							radius: 30*uiScale
-							fontSize: math.floor 18*uiScale
-						}
-						.anchor = Vec2.zero
-						\slot "TapBegan", -> updatePlayerControl "keyUp",true
-						\slot "TapEnded", -> updatePlayerControl "keyUp",false
-					\addChild with CircleButton {
-							text: "打"
-							x: -150*uiScale
-							y: 90*uiScale
-							radius: 30*uiScale
-							fontSize: math.floor 18*uiScale
-						}
-						.anchor = Vec2.zero
-						\slot "TapBegan", -> updatePlayerControl "keyF",true
-						\slot "TapEnded", -> updatePlayerControl "keyF",false
+						.size = Size 130, 60
+						\addChild with CircleButton {
+								text: "左"
+								radius: 60
+								fontSize: math.floor 36
+							}
+							.scaleX = .scaleY = 0.5
+							.anchor = Vec2.zero
+							\slot "TapBegan", -> updatePlayerControl "keyLeft",true
+							\slot "TapEnded", -> updatePlayerControl "keyLeft",false
+						\addChild with CircleButton {
+								text: "右"
+								x: 70
+								radius: 60
+								fontSize: math.floor 36
+							}
+							.scaleX = .scaleY = 0.5
+							.anchor = Vec2.zero
+							\slot "TapBegan", -> updatePlayerControl "keyRight",true
+							\slot "TapEnded", -> updatePlayerControl "keyRight",false
+				\addChild with AlignNode!
+					\css 'height: 100%; width: 0'
+					\addChild with Menu!
+						.anchor = Vec2 1, 0
+						.size = Size 200, 60
+						\addChild with CircleButton {
+								text: "闪"
+								radius: 60
+								fontSize: math.floor 36
+							}
+							.scaleX = .scaleY = 0.5
+							.anchor = Vec2.zero
+							\slot "TapBegan", -> updatePlayerControl "keyE",true
+							\slot "TapEnded", -> updatePlayerControl "keyE",false
+						\addChild with CircleButton {
+								text: "跳"
+								x: 70
+								radius: 60
+								fontSize: math.floor 36
+							}
+							.scaleX = .scaleY = 0.5
+							.anchor = Vec2.zero
+							\slot "TapBegan", -> updatePlayerControl "keyUp",true
+							\slot "TapEnded", -> updatePlayerControl "keyUp",false
+						\addChild with CircleButton {
+								text: "打"
+								x: 140
+								radius: 60
+								fontSize: math.floor 36
+							}
+							.scaleX = .scaleY = 0.5
+							.anchor = Vec2.zero
+							\slot "TapBegan", -> updatePlayerControl "keyF",true
+							\slot "TapEnded", -> updatePlayerControl "keyF",false
 		when "macOS","Windows","Linux"
 			with Node!
 				\schedule ->

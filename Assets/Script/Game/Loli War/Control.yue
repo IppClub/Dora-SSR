@@ -8,7 +8,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 _ENV = Dora Dora.Platformer
 import "UI.Control.HPWheel"
-import "UI.Control.Basic.AlignNode"
 import "UI.View.LeftTouchPad"
 import "UI.View.RightTouchPad"
 import "UI.View.RestartPad"
@@ -21,35 +20,58 @@ playerGroup = Group ["hero", "unit"]
 updatePlayerControl = (key, flag) ->
 	playerGroup\each => @unit.data[key] = flag if @group == GroupPlayer
 
-with root = AlignNode isRoot: true
-	\addChild HPWheel!
-	switch App.platform
-		when "iOS", "Android"
-			\addChild with LeftTouchPad!
-				\slot "KeyLeftUp", -> updatePlayerControl "keyLeft", false
-				\slot "KeyLeftDown", -> updatePlayerControl "keyLeft", true
-				\slot "KeyRightUp", -> updatePlayerControl "keyRight", false
-				\slot "KeyRightDown", -> updatePlayerControl "keyRight", true
-			\addChild with RightTouchPad!
-				\slot "KeyFUp", -> updatePlayerControl "keyF", false
-				\slot "KeyFDown", -> updatePlayerControl "keyF", true
-				\slot "KeyUpUp", -> updatePlayerControl "keyUp", false
-				\slot "KeyUpDown", -> updatePlayerControl "keyUp", true
-		when "macOS", "Windows", "Linux"
-			\addChild with Node!
-				\schedule ->
-					updatePlayerControl "keyLeft", Keyboard\isKeyPressed "A"
-					updatePlayerControl "keyRight", Keyboard\isKeyPressed "D"
-					updatePlayerControl "keyUp", Keyboard\isKeyPressed "K"
-					updatePlayerControl "keyF", Keyboard\isKeyPressed "J"
+with root = AlignNode true
+	\css 'flex-direction: column; justify-content: space-between'
+	\addChild with AlignNode!
+		\css 'width: 10; height: 10; margin-top: 75; margin-left: 75'
+		\addChild HPWheel!
+	\addChild with AlignNode!
+		\css 'margin-bottom: 10; height: 104; flex-direction: row; justify-content: space-between'
+		switch App.platform
+			when "iOS", "Android"
+				\addChild with AlignNode!
+					\css 'height: 104; width: 0'
+					\addChild with LeftTouchPad!
+						\slot "KeyLeftUp", -> updatePlayerControl "keyLeft", false
+						\slot "KeyLeftDown", -> updatePlayerControl "keyLeft", true
+						\slot "KeyRightUp", -> updatePlayerControl "keyRight", false
+						\slot "KeyRightDown", -> updatePlayerControl "keyRight", true
+				\addChild with AlignNode!
+					\css 'height: 104; width: 0'
+					\addChild with RightTouchPad!
+						\slot "KeyFUp", -> updatePlayerControl "keyF", false
+						\slot "KeyFDown", -> updatePlayerControl "keyF", true
+						\slot "KeyUpUp", -> updatePlayerControl "keyUp", false
+						\slot "KeyUpDown", -> updatePlayerControl "keyUp", true
+			when "macOS", "Windows", "Linux"
+				\addChild with Node!
+					\schedule ->
+						updatePlayerControl "keyLeft", Keyboard\isKeyPressed "A"
+						updatePlayerControl "keyRight", Keyboard\isKeyPressed "D"
+						updatePlayerControl "keyUp", Keyboard\isKeyPressed "K"
+						updatePlayerControl "keyF", Keyboard\isKeyPressed "J"
+	.controllerEnabled = true
+	updateButton = (id, buttonName, down) ->
+		return unless id == 0
+		switch buttonName
+			when 'dpleft' then updatePlayerControl "keyLeft", down
+			when 'dpright' then updatePlayerControl "keyRight", down
+			when 'b' then updatePlayerControl "keyUp", down
+			when 'a' then updatePlayerControl "keyF", down
+	\slot "ButtonDown", (id, buttonName) -> updateButton id, buttonName, true
+	\slot "ButtonUp", (id, buttonName) -> updateButton id, buttonName, false
 	showStartPanel = ->
-		root\addChild with StartPanel!
-			\slot "AlignLayout", (w) ->
-				w *= 0.6
-				width = 210 * 2 * App.devicePixelRatio
-				.scaleX = .scaleY = w / width if w < width
-		root\alignLayout!
+		Director.ui\addChild with AlignNode true
+			\css 'align-items: center; justify-content: center'
+			\addChild with align = AlignNode!
+				\css 'width: 80%; height: 80%'
+				\addChild with StartPanel!
+					align\slot "AlignLayout", (w, h) ->
+						.position = Vec2 w / 2, h / 2
+						.scaleX = .scaleY = math.min w / .node.width, h / .node.height
 	\addChild with RestartPad!
+		root\slot "AlignLayout", (w, h) ->
+			.position = Vec2 w - 10, h - 10
 		\slot "Tapped", ->
 			Store.winner = -1
 			showStartPanel!
