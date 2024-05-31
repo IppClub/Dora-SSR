@@ -22,7 +22,7 @@ local record Buffer
 
 	-- 使用字符串设置缓冲区的内容。
 	-- @param str (string) 缓冲区的新内容。
-	setString: function(str: string)
+	setString: function(self: Buffer, str: string)
 end
 
 -- 用于创建缓冲区对象的类。

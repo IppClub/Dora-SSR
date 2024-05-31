@@ -179,33 +179,34 @@ GamePaused = true
 
 -- background
 
-size,grid = 1500,150
+do
+	const size, grid = 1500, 150
 
-background = -> with DrawNode!
-	.depthWrite = true
-	\drawPolygon [
-		Vec2 -size,size
-		Vec2 size,size
-		Vec2 size,-size
-		Vec2 -size,-size
-	], Color 0xff888888
-	\addChild with Line!
+	background = -> with DrawNode!
 		.depthWrite = true
-		.z = -10
-		for i = -size/grid,size/grid
-			\add [
-				Vec2 i*grid,size
-				Vec2 i*grid,-size
-			], Color 0xff000000
-			\add [
-				Vec2 -size,i*grid
-				Vec2 size,i*grid
-			], Color 0xff000000
+		\drawPolygon [
+			Vec2 -size,size
+			Vec2 size,size
+			Vec2 size,-size
+			Vec2 -size,-size
+		], Color 0xff888888
+		\addChild with Line!
+			.depthWrite = true
+			.z = -10
+			for i = -size/grid,size/grid
+				\add [
+					Vec2 i*grid,size
+					Vec2 i*grid,-size
+				], Color 0xff000000
+				\add [
+					Vec2 -size,i*grid
+					Vec2 size,i*grid
+				], Color 0xff000000
 
-with background!
-	.z = 600
-with background!
-	.angleX = 45
+	with background!
+		.z = 600
+	with background!
+		.angleX = 45
 
 -- Scene
 
@@ -226,7 +227,7 @@ world = with PlatformWorld!
 		origin = Vec2.zero
 		locs = [origin,]
 		unitGroup\each => table.insert locs, @unit.position
-		dist = 0
+		dist = 0.0
 		for loc in *locs
 			dist = math.max(dist, loc\distance origin)
 		const DesignWidth = 1250
@@ -259,7 +260,7 @@ UnitAction\add "range",
 	reaction: 10
 	recovery: 0.1
 	queued: true
-	available: => true
+	available: -> true
 	create: =>
 		{
 			:attackSpeed, :targetAllow
@@ -311,7 +312,7 @@ UnitAction\add "multiArrow",
 	reaction: 10
 	recovery: 0.1
 	queued: true
-	available: => true
+	available: -> true
 	create: =>
 		{
 			:attackSpeed, :targetAllow
@@ -363,7 +364,7 @@ UnitAction\add "fallOff",
 				.speed = 2.5
 				\play "idle"
 		else @data.fallDown = false
-		(action) =>
+		=>
 			return true if @onSurface
 			if not @data.fallDown and @velocityY <= 0
 				@data.fallDown = true
@@ -377,7 +378,7 @@ UnitAction\add "evade",
 	reaction: 10
 	recovery: 0
 	queued: true
-	available: => true
+	available: -> true
 	create: =>
 		with @playable
 			.speed = 1.0
@@ -401,7 +402,7 @@ UnitAction\add "rush",
 	reaction: 10
 	recovery: 0
 	queued: true
-	available: => true
+	available: -> true
 	create: =>
 		with @playable
 			.speed = 1.0
@@ -428,7 +429,7 @@ UnitAction\add "spearAttack",
 	reaction: 10
 	recovery: 0.1
 	queued: true
-	available: => true
+	available: -> true
 	create: =>
 		{
 			:attackSpeed, :attackPower
@@ -645,7 +646,7 @@ Store["AI_Common"] = Sel [
 			false
 		Sel [
 			Seq [
-				Con "attack", => App.rand % 10 == 0
+				Con "attack", -> App.rand % 10 == 0
 				Sel [
 					Act "meleeAttack"
 					Act "range"
@@ -717,15 +718,15 @@ Store["AI_Boss"] = Sel [
 			false
 		Sel [
 			Seq [
-				Con "melee attack", => App.rand % 40 == 0
+				Con "melee attack", -> App.rand % 40 == 0
 				Act "meleeAttack"
 			]
 			Seq [
-				Con "multi Arrow", => App.rand % 40 == 0
+				Con "multi Arrow", -> App.rand % 40 == 0
 				Act "multiArrow"
 			]
 			Seq [
-				Con "spear attack", => App.rand % 40 == 0
+				Con "spear attack", -> App.rand % 40 == 0
 				Act "spearAttack"
 			]
 			Act "idle"
@@ -785,7 +786,7 @@ with Observer "Change", ["hp", "unit"]
 				unit\start "hit"
 				unit\start "fall"
 				unit.group = Data.groupHide
-				unit\schedule once =>
+				unit\schedule once ->
 					sleep 3
 					unit\removeFromParent!
 					if not Group(["unit",])\each => @group == PlayerGroup
@@ -814,10 +815,11 @@ GameScore = 20
 uiScale = App.devicePixelRatio
 Director.ui\addChild with AlignNode isRoot: true
 	\addChild with AlignNode!
-		.size = Size 0,0
+		.size = Size 0, 0
 		.hAlign = "Left"
 		.vAlign = "Top"
-		.alignOffset = Vec2(360, 80) * (uiScale / 2)
+		offset = Vec2(360, 80) * (uiScale / 2)
+		.alignOffset = offset
 		\gslot "AddScore", (value) ->
 			return if value < 0 and GameScore == 0
 			\addChild with Label "sarasa-mono-sc-regular", 64

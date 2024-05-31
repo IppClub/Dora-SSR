@@ -1,4 +1,4 @@
--- [yue]: Script/Game/Loli War/Logic.yue
+-- [yue]: Logic.yue
 local _module_0 = Dora.Platformer -- 1
 local Data = _module_0.Data -- 1
 local Group = Dora.Group -- 1
@@ -40,7 +40,7 @@ do -- 29
 	local _with_0 = Observer("Add", { -- 29
 		"world" -- 29
 	}) -- 29
-	_with_0:watch(function(self, world) -- 30
+	_with_0:watch(function(_entity, world) -- 30
 		do -- 32
 			local _with_1 = world.camera -- 32
 			_with_1.followRatio = Vec2(0.03, 0.03) -- 33
@@ -273,7 +273,7 @@ do -- 138
 						_with_2.y = 140 -- 158
 						local scaleOut = Action(Spawn(Opacity(0.3, 0, 1), Scale(0.3, 0, 1, Ease.OutQuad))) -- 159
 						_with_2:runAction(scaleOut) -- 163
-						_with_2:slot("ActionEnd", function(self) -- 164
+						_with_2:slot("ActionEnd", function() -- 164
 							return _with_2:runAction(floating) -- 164
 						end) -- 164
 						_with_2:addTo(self) -- 165
@@ -340,7 +340,7 @@ do -- 191
 		"layer", -- 191
 		"position" -- 191
 	}) -- 191
-	_with_0:watch(function(self, poke, group, layer, position) -- 192
+	_with_0:watch(function(_entity, poke, group, layer, position) -- 192
 		local world = Store.world -- 193
 		local pokeDef -- 194
 		do -- 194
@@ -390,7 +390,7 @@ do -- 191
 				while 50 < math.abs(_with_1.velocityX) do -- 223
 					sleep(0.1) -- 224
 				end -- 224
-				for i = 1, 6 do -- 225
+				for _ = 1, 6 do -- 225
 					Audio:play("Audio/di.wav") -- 226
 					normal.visible = not normal.visible -- 227
 					glow.visible = not glow.visible -- 228
@@ -624,7 +624,7 @@ local _with_0 = Observer("Change", { -- 366
 	"blocks", -- 366
 	"group" -- 366
 }) -- 366
-_with_0:watch(function(self, blocks, group) -- 367
+_with_0:watch(function(_entity, blocks, group) -- 367
 	local world = Store.world -- 368
 	if not world.playing then -- 369
 		return false -- 369

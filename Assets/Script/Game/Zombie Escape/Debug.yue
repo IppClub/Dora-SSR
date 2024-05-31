@@ -172,7 +172,7 @@ world\schedule ->
 			Text table.concat decisions, "\n"
 
 with Observer "Add", {"group", "unit", "player", "stared"}
-	\watch (_group, unit): false =>
+	\watch (_entity, _group, unit): false ->
 		unit\addChild Star {
 			y: 100
 			size: 18
@@ -183,4 +183,4 @@ with Observer "Add", {"group", "unit", "player", "stared"}
 		}
 
 with Observer "Add", ["unit", "player"]
-	\watch (unit): false => unit.receivingDecisionTrace = true
+	\watch (_entity, unit): false -> unit.receivingDecisionTrace = true

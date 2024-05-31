@@ -77,8 +77,7 @@ do -- 10
 	local _obj_0 = Dora -- 10
 	Content, Path = _obj_0.Content, _obj_0.Path -- 10
 end -- 10
-local type -- 11
-type = _G.type -- 11
+local type <const> = type -- 11
 App.idled = true -- 13
 local moduleCache = { } -- 15
 local oldRequire = _G.require -- 16

@@ -22,7 +22,7 @@ local record Buffer
 
 	-- Setting the contents of the buffer with a string.
 	-- @param str (string) The new contents of the buffer.
-	setString: function(str: string)
+	setString: function(self: Buffer, str: string)
 end
 
 -- A class for creating Buffer object.

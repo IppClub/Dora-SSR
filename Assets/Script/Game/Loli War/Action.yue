@@ -130,7 +130,7 @@ UnitAction\add "strike",
 	reaction: 3
 	recovery: 0
 	queued: true
-	available: => true
+	available: -> true
 	create: =>
 		with @playable
 			.speed = 1
@@ -150,7 +150,7 @@ UnitAction\add "villyAttack",
 	reaction: 10
 	recovery: 0.1
 	queued: true
-	available: => true
+	available: -> true
 	create: =>
 		{
 			:attackSpeed

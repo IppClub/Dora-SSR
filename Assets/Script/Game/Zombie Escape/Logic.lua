@@ -1,4 +1,4 @@
--- [yue]: Script/Game/Zombie Escape/Logic.yue
+-- [yue]: Logic.yue
 local _module_0 = Dora.Platformer -- 1
 local Data = _module_0.Data -- 1
 local Observer = Dora.Observer -- 1
@@ -161,7 +161,7 @@ do -- 97
 		"hp", -- 97
 		"zombie" -- 97
 	}) -- 97
-	_with_0:watch(function(self, hp) -- 98
+	_with_0:watch(function(_entity, hp) -- 98
 		if hp <= 0 then -- 99
 			Store.zombieKilled = Store.zombieKilled + 1 -- 99
 		end -- 99
@@ -174,7 +174,7 @@ local zombieGroup = Group({ -- 101
 return threadLoop(function() -- 102
 	local ZombieLayer, ZombieGroup, MaxZombies, ZombieWaveDelay, world = Store.ZombieLayer, Store.ZombieGroup, Store.MaxZombies, Store.ZombieWaveDelay, Store.world -- 103
 	if zombieGroup.count < MaxZombies then -- 110
-		for i = zombieGroup.count + 1, MaxZombies do -- 111
+		for _ = zombieGroup.count + 1, MaxZombies do -- 111
 			local available = false -- 112
 			local pos = Vec2.zero -- 113
 			while not available do -- 114

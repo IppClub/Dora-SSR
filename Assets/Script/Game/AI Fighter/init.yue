@@ -929,7 +929,6 @@ Director.ui\addChild with AlignNode isRoot:true
 			\slot "Tapped", ->
 				return if not .visible
 				for i = 1, #characters
-					char = characters[i]
 					Entity
 						unitDef: "fighter"
 						charSet: i

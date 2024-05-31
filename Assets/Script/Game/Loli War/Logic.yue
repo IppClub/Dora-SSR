@@ -27,7 +27,7 @@ store: Store = Data
 
 heroes = Group ["hero",]
 with Observer "Add", ["world",]
-	\watch (world): false =>
+	\watch (_entity, world): false ->
 		Store.world = with world
 			with .camera
 				.followRatio = Vec2 0.03, 0.03
@@ -161,7 +161,7 @@ with Observer "Add", ["switch", "group", "layer", "look", "position"]
 								Scale 0.3, 0, 1, Ease.OutQuad
 							)
 							\runAction scaleOut
-							\slot "ActionEnd", => \runAction floating
+							\slot "ActionEnd", -> \runAction floating
 							\addTo @
 					@data.atSwitch = unit
 			\slot "BodyLeave", (sensorTag) =>
@@ -189,7 +189,7 @@ with Observer "Add", ["block", "group", "layer", "look", "position"]
 			\addTo world
 
 with Observer "Add", ["poke", "group", "layer", "position"]
-	\watch (poke, group, layer, position): false =>
+	\watch (_entity, poke, group, layer, position): false ->
 		:world = Store
 		pokeDef = with BodyDef!
 			.linearAcceleration = Vec2 0, -10
@@ -222,7 +222,7 @@ with Observer "Add", ["poke", "group", "layer", "position"]
 			\schedule once ->
 				while 50 < math.abs .velocityX
 					sleep 0.1
-				for i = 1, 6
+				for _ = 1, 6
 					Audio\play "Audio/di.wav"
 					normal.visible = not normal.visible
 					glow.visible = not glow.visible
@@ -364,7 +364,7 @@ with Observer "Change", ["hp", "hero"]
 		emit "HPChange", @group, math.max(hp, 0) - lastHp
 
 with Observer "Change", ["blocks", "group"]
-	\watch (blocks, group): false =>
+	\watch (_entity, blocks, group): false ->
 		:world = Store
 		return false unless world.playing
 		if blocks == 0
