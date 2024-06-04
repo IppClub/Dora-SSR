@@ -16,6 +16,7 @@ local CircleButton <const> = require("UI.Control.Basic.CircleButton")
 local App <const> = require("App")
 local Group <const> = require("Group")
 local Menu <const> = require("Menu")
+local AlignNode <const> = require("AlignNode")
 local Keyboard <const> = require("Keyboard")
 local Loader <const> = require("Script.Loader")
 local Sprite <const> = require("Sprite")
@@ -44,55 +45,61 @@ local function updatePlayerControl(key: string, flag: boolean, vpad: boolean)
 end
 ```
 
-&emsp;&emsp;然后，我们创建了一个UI的根节点`alignNode`，并将其添加到[Director.ui](/docs/api/Class/Director#ui)中。这个节点是所有其他UI节点的父节点。
+&emsp;&emsp;然后，我们创建了一个UI的根节点`ui`，并将其添加到[Director.ui](/docs/api/Class/Director#ui)中。这个节点是所有其他UI节点的父节点。
 
 ```tl title="Script/UI.tl"
--- 获取设备的DPI缩放值使UI在各种设备上的显示大小一致
-local uiScale = App.devicePixelRatio
-local alignNode = AlignNode{
-	isRoot = true,
-	inUI = true
-}
-Director.ui:addChild(alignNode)
+-- 创建一个使用 Flex 布局的布局根节点
+local ui = AlignNode(true)
+ui:css('flex-direction: column-reverse')
+ui:addTo(Director.ui)
+
+-- 创建虚拟按键区域的布局节点
+local bottomAlign = AlignNode()
+bottomAlign:css([[
+	height: 80;
+	justify-content: space-between;
+	padding: 0, 20, 20;
+	flex-direction: row
+]]);
+bottomAlign:addTo(ui)
 ```
 
-&emsp;&emsp;接着，我们创建了一个左对齐的节点`leftAlign`，并将其添加到`alignNode`中。然后，我们在`leftAlign`中创建了一个菜单`leftMenu`，用于放置屏幕左边的操作按钮。然后同样创建一个右对齐的菜单用于放置屏幕右边的操作按钮。
+&emsp;&emsp;接着，我们创建了一个左对齐的节点`leftAlign`，并将其添加到`bottomAlign`中。然后，我们在`leftAlign`中创建了一个菜单`leftMenu`，用于放置屏幕左边的操作按钮。然后同样创建一个右对齐的菜单用于放置屏幕右边的操作按钮。
 
 ```tl title="Script/UI.tl"
 -- 创建左对齐的菜单
-local leftAlign = AlignNode{
-	hAlign = "Left",
-	vAlign = "Bottom"
-}
-alignNode:addChild(leftAlign)
+local leftAlign = AlignNode()
+leftAlign:css('width: 130; height: 60')
+leftAlign:addTo(bottomAlign)
 
 local leftMenu = Menu()
-leftAlign:addChild(leftMenu)
+leftMenu.size = Size(250, 120)
+leftMenu.anchor = Vec2.zero
+leftMenu.scaleX = 0.5
+leftMenu.scaleY = 0.5
+leftMenu:addTo(leftAlign)
 
 -- 创建右对齐的菜单
-local rightAlign = AlignNode {
-	hAlign = "Right",
-	vAlign = "Bottom"
-}
-alignNode:addChild(rightAlign)
+local rightAlign = AlignNode()
+rightAlign:css('width: 60; height: 60')
+rightAlign:addTo(bottomAlign)
 
 local rightMenu = Menu()
-rightAlign:addChild(rightMenu)
-
--- 做一下初始化的节点对齐
-alignNode:alignLayout()
+rightMenu.size = Size(120, 120)
+rightMenu.anchor = Vec2.zero
+rightMenu.scaleX = 0.5
+rightMenu.scaleY = 0.5
+rightMenu:addTo(rightAlign)
 ```
 
 &emsp;&emsp;在`leftMenu`中，我们创建了三个圆形按钮：`leftButton`、`rightButton`和`jumpButton`。这三个按钮分别用于控制玩家的左移、右移和跳跃操作。每个按钮都有一个[TapBegan](/docs/api/Node%20Event/Node#tapbegan)事件和一个[TapEnded](/docs/api/Node%20Event/Node#tapended)事件，分别在按钮被按下和按钮被释放时触发。
 
 ```tl title="Script/UI.tl"
 -- 创建左移按钮
-local leftButton = CircleButton{
+local leftButton = CircleButton {
 	text = "左(a)",
-	x = 20 * uiScale,
-	y = 60 * uiScale,
-	radius = 30 * uiScale,
-	fontSize = math.floor(18 * uiScale)
+	radius = 60,
+	fontSize = 36
 }
 leftButton.anchor = Vec2.zero
 leftButton:slot("TapBegan", function()
@@ -101,15 +108,14 @@ end)
 leftButton:slot("TapEnded", function()
 	updatePlayerControl("keyLeft", false, true)
 end)
-leftMenu:addChild(leftButton)
+leftButton:addTo(leftMenu)
 
 -- 创建右移按钮
-local rightButton = CircleButton{
+local rightButton = CircleButton {
 	text = "右(d)",
-	x = 90 * uiScale,
-	y = 60 * uiScale,
-	radius = 30 * uiScale,
-	fontSize = math.floor(18 * uiScale)
+	x = 130,
+	radius = 60,
+	fontSize = 36
 }
 rightButton.anchor = Vec2.zero
 rightButton:slot("TapBegan", function()
@@ -118,15 +124,13 @@ end)
 rightButton:slot("TapEnded", function()
 	updatePlayerControl("keyRight", false, true)
 end)
-leftMenu:addChild(rightButton)
+rightButton:addTo(leftMenu)
 
 -- 创建跳跃按钮
 local jumpButton = CircleButton {
 	text = "跳(j)",
-	x = -80 * uiScale,
-	y = 60 * uiScale,
-	radius = 30 * uiScale,
-	fontSize = math.floor(18 * uiScale)
+	radius = 60,
+	fontSize = 36
 }
 jumpButton.anchor = Vec2.zero
 jumpButton:slot("TapBegan", function()
@@ -135,7 +139,7 @@ end)
 jumpButton:slot("TapEnded", function()
 	updatePlayerControl("keyJump", false, true)
 end)
-rightMenu:addChild(jumpButton)
+jumpButton:addTo(rightMenu)
 ```
 
 &emsp;&emsp;接下来，我们使用ImGui创建了一个背包窗口。在这个窗口中，我们可以看到玩家的背包中的所有物品，以及每个物品的数量和描述。当玩家点击一个物品时，这个物品的数量就会减少1，同时在玩家的角色上生成一个对应的精灵。
@@ -174,15 +178,17 @@ Director.ui:schedule(function(): boolean
 				if ImGui.ImageButton("item" .. tostring(item.no), item.icon, Vec2(50, 50)) then
 					item.num = item.num - 1
 					local sprite = Sprite(item.icon)
-					sprite.scaleX = 0.5
-					sprite.scaleY = 0.5
-					sprite:perform(Spawn(
-						Opacity(1, 1, 0),
-						Y(1, 150, 250)
-					))
-					local player = playerGroup:find(function(): boolean return true end)
-					local unit = player.unit as UnitType
-					unit:addChild(sprite)
+					if not sprite is nil then
+						sprite.scaleX = 0.5
+						sprite.scaleY = 0.5
+						sprite:perform(Spawn(
+							Opacity(1, 1, 0),
+							Y(1, 150, 250)
+						))
+						local player = playerGroup:find(function(): boolean return true end)
+						local unit = player.unit as UnitType
+						unit:addChild(sprite)
+					end
 				end
 
 				-- 当指针在道具按钮上悬浮时进行处理

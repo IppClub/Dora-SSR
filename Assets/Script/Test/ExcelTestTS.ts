@@ -353,6 +353,7 @@ function updatePlayerControl(this: void, key: string, flag: boolean, vpad: boole
 
 const ui = AlignNode(true);
 ui.css('flex-direction: column-reverse');
+ui.controllerEnabled = true;
 ui.slot(Slot.ButtonDown, (id, buttonName) => {
 	if (id !== 0) return;
 	switch (buttonName) {

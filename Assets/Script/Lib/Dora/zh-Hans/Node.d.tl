@@ -5,7 +5,6 @@ local Color = require("Color").Type
 local Color3 = require("Color3").Type
 local Scheduler = require("Scheduler").Type
 local Array = require("Array").Type
-local Rect = require("Rect").Type
 local Dictionary = require("Dictionary").Type
 local Action = require("Action").Type
 local ActionDef = require("Action").Def
