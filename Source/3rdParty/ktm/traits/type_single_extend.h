@@ -57,9 +57,9 @@ struct single_extends<template_list<>, Child>
     using fater_type = empty_child<Child>;
 };
 
-template <template<class F, class C> class Father, 
-          template<class F, class C> class... Fathers,
-          class Child>
+template<template<class F, class C> class Father, 
+         template<class F, class C> class... Fathers,
+         class Child>
 struct single_extends<template_list<Father, Fathers...>, Child>  
 {
     using fater_type = Father<typename single_extends<template_list<Fathers...>, Child>::fater_type, Child>;

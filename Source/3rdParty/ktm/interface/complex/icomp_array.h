@@ -8,12 +8,13 @@
 #ifndef _KTM_I_COMP_ARRAY_H_
 #define _KTM_I_COMP_ARRAY_H_
 
+#include <array>
 #include "../../setup.h"
 #include "../../type/comp_fwd.h"
-#include <array>
 
 namespace ktm
 {
+
 template<class Father, class Child>
 struct icomp_array;
 
@@ -23,6 +24,7 @@ struct icomp_array<Father, comp<T>> : Father
     using Father::Father;
     using array_type = std::array<T, 2>;
 };
+
 }
 
 #endif

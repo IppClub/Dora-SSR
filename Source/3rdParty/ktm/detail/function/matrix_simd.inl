@@ -21,9 +21,9 @@ struct ktm::detail::matrix_implement::transpose<2, 2, float>
     static KTM_INLINE RetM call(const M& m) noexcept
     {
         RetM ret;
-        skv::fv4& ret_ref = reinterpret_cast<skv::fv4&>(ret);
-        const skv::fv4& m_ref = reinterpret_cast<const skv::fv4&>(m);
-        ret_ref = _shuffo128_f32(m_ref, 3, 1, 2, 0);
+        skv::fv4 tmp = _load128_f32(&m[0][0]);
+        tmp = _shuffo128_f32(tmp, 3, 1, 2, 0);
+        _store128_f32(&ret[0][0], tmp);
         return ret;
     }
 };

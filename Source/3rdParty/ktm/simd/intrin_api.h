@@ -15,6 +15,8 @@
 
 #if KTM_SIMD_ENABLE(KTM_SIMD_NEON)
 
+#define _load64_f32(p) ::intrin::load64_f32(p)
+#define _store64_f32(p, a) ::intrin::store64_f32(p, a)
 #define _dup64_f32(a) ::intrin::dup64_f32(a)
 #define _dupzero64_f32() ::intrin::dupzero64_f32()
 #define _set64_f32(a, b) ::intrin::set64_f32(a, b)
@@ -110,6 +112,8 @@
 
 #if KTM_SIMD_ENABLE(KTM_SIMD_NEON | KTM_SIMD_SSE | KTM_SIMD_WASM)
 
+#define _load128_f32(p) ::intrin::load128_f32(p)
+#define _store128_f32(p, a) ::intrin::store128_f32(p, a)
 #define _dup128_f32(a) ::intrin::dup128_f32(a)
 #define _dupzero128_f32() ::intrin::dupzero128_f32()
 #define _set128_f32(a, b, c, d) ::intrin::set128_f32(a, b, c, d)

@@ -40,7 +40,7 @@ struct ktm::detail::comp_calc_implement::mul<float>
     static KTM_INLINE C call(const C& x, const C& y) noexcept
     {
         C ret;
-        ret.vector.st = fc_mul_fc(x.vector.st, y.vector.st);
+        ret.st = fc_mul_fc(x.st, y.st);
         return ret;
     }
 };
@@ -51,7 +51,7 @@ struct ktm::detail::comp_calc_implement::mul_to_self<float>
     using C = comp<float>;
     static KTM_INLINE void call(C& x, const C& y) noexcept
     {
-        x.vector.st = fc_mul_fc(x.vector.st, y.vector.st);
+        x.st = fc_mul_fc(x.st, y.st);
     }
 };
 
@@ -63,7 +63,7 @@ struct ktm::detail::comp_calc_implement::act<float>
     {   
         vec<2, float> ret;
         constexpr union { unsigned int i; float f; } mask { 0x80000000 };
-        skv::fv2 ci = _xor64_f32(c.vector.st, _set64_f32(0.f, mask.f));
+        skv::fv2 ci = _xor64_f32(c.st, _set64_f32(0.f, mask.f));
         ret.st = fc_mul_fc(ci, v.st);
         return ret; 
     }

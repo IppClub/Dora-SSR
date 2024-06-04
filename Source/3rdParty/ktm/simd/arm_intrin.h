@@ -85,6 +85,16 @@ KTM_FUNC float32x2_t cast64_f32_s32(int32x2_t a) noexcept
   	return vreinterpret_f32_s32(a);
 }
 
+KTM_FUNC float32x2_t load64_f32(const float* p) noexcept
+{
+  	return vld1_f32(p);
+}
+
+KTM_FUNC void store64_f32(float* p, float32x2_t a) noexcept
+{
+  	vst1_f32(p, a);
+}
+
 KTM_FUNC float32x2_t dup64_f32(float a) noexcept
 {
   	return vdup_n_f32(a);
@@ -272,6 +282,16 @@ KTM_FUNC int32x4_t cast128_s32_f32(float32x4_t a) noexcept
 KTM_FUNC float32x4_t cast128_f32_s32(int32x4_t a) noexcept
 {
   	return vreinterpretq_f32_s32(a);
+}
+
+KTM_FUNC float32x4_t load128_f32(const float* p) noexcept
+{
+  	return vld1q_f32(p);
+}
+
+KTM_FUNC void store128_f32(float* p, float32x4_t a) noexcept
+{
+  	vst1q_f32(p, a);
 }
 
 KTM_FUNC float32x4_t dup128_f32(float a) noexcept

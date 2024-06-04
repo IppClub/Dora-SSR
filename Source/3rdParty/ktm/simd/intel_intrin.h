@@ -21,6 +21,16 @@ KTM_FUNC float cast128to32_f32(__m128 a) noexcept
   	return _mm_cvtss_f32(a);
 }
 
+KTM_FUNC __m128 load128_f32(const float* p) noexcept
+{
+  	return _mm_loadu_ps(p);
+}
+
+KTM_FUNC void store128_f32(float* p, __m128 a) noexcept
+{
+  	_mm_storeu_ps(p, a);
+}
+
 KTM_FUNC __m128 dup128_f32(float a) noexcept
 {
   	return _mm_set1_ps(a);

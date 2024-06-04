@@ -22,7 +22,11 @@
 #define KTM_SIMD_ENABLE(flags) (KTM_SIMD_SUPPORT & (flags))
 
 #if defined(KTM_COMPILER_MSVC)
-	#if defined(_M_AMD64) || defined(_M_X64) || _M_IX86_FP == 2
+	#if defined(__AVX__)
+		#ifndef __SSE4_2__
+			#define __SSE4_2__
+		#endif
+	#elif defined(_M_AMD64) || defined(_M_X64) || _M_IX86_FP == 2
 		#ifndef __SSE2__
 			#define __SSE2__
 		#endif

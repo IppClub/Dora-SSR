@@ -16,6 +16,7 @@
 
 namespace ktm
 {
+
 template<class Father, class Child>
 struct icomp_calc;
 
@@ -24,35 +25,47 @@ struct icomp_calc<Father, comp<T>> : Father
 {
     using Father::Father;
 
+    KTM_INLINE vec<2, T>& operator*() noexcept
+    {
+        return reinterpret_cast<vec<2, T>&>(*this);
+    }
+
+    KTM_INLINE const vec<2, T>& operator*() const noexcept
+    {
+        return reinterpret_cast<const vec<2, T>&>(*this);
+    }
+
     KTM_INLINE comp<T> operator+(const comp<T>& y) const noexcept
     {
         comp<T> ret;
-        ret.vector = detail::vec_calc_implement::add<2, T>::call(reinterpret_cast<const vec<2, T>&>(*this), y.vector);
+        *ret = detail::vec_calc_implement::add<2, T>::call(**this, *y);
         return ret;
     }
 
     KTM_INLINE comp<T>& operator+=(const comp<T>& y) noexcept
     {
-        detail::vec_calc_implement::add_to_self<2, T>::call(reinterpret_cast<vec<2, T>&>(*this), y.vector);
+        detail::vec_calc_implement::add_to_self<2, T>::call(**this, *y);
         return reinterpret_cast<comp<T>&>(*this);
     }
 
     KTM_INLINE comp<T> operator-(const comp<T>& y) const noexcept
     {
         comp<T> ret;
-        ret.vector = detail::vec_calc_implement::minus<2, T>::call(reinterpret_cast<const vec<2, T>&>(*this), y.vector);
+        *ret = detail::vec_calc_implement::minus<2, T>::call(**this, *y);
         return ret;
     }
 
     KTM_INLINE comp<T>& operator-=(const comp<T>& y) noexcept
     {
-        detail::vec_calc_implement::minus_to_self<2, T>::call(reinterpret_cast<vec<2, T>&>(*this), y.vector);
+        detail::vec_calc_implement::minus_to_self<2, T>::call(**this, *y);
         return reinterpret_cast<comp<T>&>(*this);
     }
 
     KTM_INLINE comp<T> operator-() const noexcept
     {
-        return detail::vec_calc_implement::opposite<2, T>::call(reinterpret_cast<const vec<2, T>&>(*this));
+        comp<T> ret;
+        *ret = detail::vec_calc_implement::opposite<2, T>::call(**this);
+        return ret;
     }
 
     KTM_INLINE comp<T> operator*(const comp<T>& y) const noexcept
@@ -75,7 +88,7 @@ struct icomp_calc<Father, comp<T>> : Father
     KTM_INLINE comp<T> operator*(T scalar) const noexcept
     {
         comp<T> ret;
-        ret.vector = detail::vec_calc_implement::mul_scalar<2, T>::call(reinterpret_cast<const vec<2, T>&>(*this), scalar);
+        *ret = detail::vec_calc_implement::mul_scalar<2, T>::call(**this, scalar);
         return ret;
     }
 
@@ -86,10 +99,11 @@ struct icomp_calc<Father, comp<T>> : Father
 
     KTM_INLINE comp<T>& operator*=(T scalar) noexcept
     {
-        detail::vec_calc_implement::mul_scalar_to_self<2, T>::call(reinterpret_cast<vec<2, T>&>(*this), scalar);
+        detail::vec_calc_implement::mul_scalar_to_self<2, T>::call(**this, scalar);
         return reinterpret_cast<comp<T>&>(*this);
     }
 };
+
 }
 
 #endif

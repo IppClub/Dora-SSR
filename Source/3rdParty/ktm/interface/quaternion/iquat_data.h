@@ -12,11 +12,13 @@
 #include "../../type/vec_fwd.h"
 #include "../../type/quat_fwd.h"
 #include "../../type/mat_fwd.h"
-#include "../../function/arithmetic.h"
+#include "../../detail/vector/vec_data_fwd.h"
+#include "../../function/trigonometric.h"
 #include "../../function/geometric.h"
 
 namespace ktm
 {
+
 template<class Father, class Child>
 struct iquat_data;
 
@@ -26,11 +28,11 @@ struct iquat_data<Father, quat<T>> : Father
     using Father::Father;
     union
     {
-        struct { vec<4, T> vector; };
         struct { T i, j, k, r; };
+        typename detail::vec_data_implement::vec_storage<4, T>::type st;
     };
-    constexpr iquat_data(T x, T y, T z, T w) noexcept : i(x), j(y), k(z), r(w) { }
-    iquat_data(const vec<4, T>& vec) noexcept : vector(vec) { }
+    constexpr explicit iquat_data(T x, T y, T z, T w) noexcept : i(x), j(y), k(z), r(w) { }
+    explicit iquat_data(const vec<4, T>& vec) noexcept : i(vec.x), j(vec.y), k(vec.z), r(vec.w) { }
 
     KTM_INLINE T real() const noexcept { return r; }
     KTM_INLINE vec<3, T> imag() const noexcept { return vec<3, T>(i, j, k); } 
@@ -44,7 +46,7 @@ struct iquat_data<Father, quat<T>> : Father
     }
     KTM_INLINE mat<4, 4, T> matrix4x4() const noexcept 
     {
-        mat<4, 4, T> ret = { };
+        mat<4, 4, T> ret { };
         matrix(reinterpret_cast<mat<3, 3, T>&>(ret));
         ret[3][3] = one<T>;
         return ret;
@@ -66,6 +68,7 @@ private:
         m[2][2] = one<T> - (yy2 + xx2);
     }
 };
+
 }
 
 #endif

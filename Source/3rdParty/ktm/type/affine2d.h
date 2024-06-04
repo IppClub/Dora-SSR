@@ -12,7 +12,6 @@
 #include "comp.h"
 #include "../function/trigonometric.h"
 #include "../function/matrix.h"
-#include "../function/matrix_equation.h"
 
 namespace ktm
 {

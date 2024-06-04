@@ -9,7 +9,6 @@
 #define _KTM_MATRIX_TRANSFORM_3D_FWD_H_
 
 #include "../../setup.h"
-#include "../../type/basic.h"
 #include "../../type/vec_fwd.h"
 #include "../../type/mat_fwd.h"
 
@@ -20,7 +19,7 @@ namespace detail
 namespace matrix_transform3d_implement
 {
 
-template <typename T>
+template<typename T>
 KTM_NOINLINE std::enable_if_t<std::is_floating_point_v<T>, mat<4, 4, T>> rotate3d_normal(
     T sin_theta, T cos_theta, const vec<3, T>& normal, const vec<3, T>* normal_start_ptr = nullptr) noexcept;
     

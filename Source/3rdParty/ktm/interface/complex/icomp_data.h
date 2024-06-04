@@ -12,11 +12,12 @@
 #include "../../type/vec_fwd.h"
 #include "../../type/comp_fwd.h"
 #include "../../type/mat_fwd.h"
-#include "../../function/arithmetic.h"
+#include "../../detail/vector/vec_data_fwd.h"
 #include "../../function/trigonometric.h"
 
 namespace ktm
 {
+    
 template<class Father, class Child>
 struct icomp_data;
 
@@ -26,11 +27,11 @@ struct icomp_data<Father, comp<T>> : Father
     using Father::Father;
     union
     {
-        struct { vec<2, T> vector; };
         struct { T i, r; };
+        typename detail::vec_data_implement::vec_storage<2, T>::type st;
     };
-    constexpr icomp_data(T x, T y) noexcept : i(x), r(y) { }
-    icomp_data(const vec<2, T> vec) noexcept : vector(vec) { }
+    constexpr explicit icomp_data(T x, T y) noexcept : i(x), r(y) { }
+    explicit icomp_data(const vec<2, T> vec) noexcept : i(vec.x), r(vec.y) { }
 
     KTM_INLINE T real() const noexcept { return r; }
     KTM_INLINE T imag() const noexcept { return i; } 
@@ -44,6 +45,7 @@ struct icomp_data<Father, comp<T>> : Father
         return mat<3, 3, T>(vec<3, T>(r, i, zero<T>), vec<3, T>(-i, r, zero<T>), vec<3, T>(zero<T>, zero<T>, one<T>));
     }
 };
+
 }
 
 #endif
