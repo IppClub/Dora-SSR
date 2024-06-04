@@ -42,7 +42,7 @@ struct ktm::detail::comp_calc_implement::act
     using C = comp<T>;
     static KTM_INLINE vec<2, T> call(const C& c, const vec<2,T>& v) noexcept
     {   
-        return vec<2, T>(c[1] * v[0] - c[0] * v[1] , ktm::dot(c.vector, v));
+        return vec<2, T>(c[1] * v[0] - c[0] * v[1] , ktm::dot(*c, v));
     }
 };
 

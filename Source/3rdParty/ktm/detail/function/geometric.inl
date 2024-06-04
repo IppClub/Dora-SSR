@@ -11,6 +11,7 @@
 #include "geometric_fwd.h"
 #include "../../type/basic.h"
 #include "../../type/vec_fwd.h"
+#include "../../function/exponential.h"
 #include "../../function/common.h"
 
 template<size_t N, typename T, typename Void>

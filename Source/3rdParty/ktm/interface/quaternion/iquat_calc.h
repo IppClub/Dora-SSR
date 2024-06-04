@@ -16,6 +16,7 @@
 
 namespace ktm
 {
+    
 template<class Father, class Child>
 struct iquat_calc;
 
@@ -24,34 +25,46 @@ struct iquat_calc<Father, quat<T>> : Father
 {
     using Father::Father;
 
+    KTM_INLINE vec<4, T>& operator*() noexcept
+    {
+        return reinterpret_cast<vec<4, T>&>(*this);
+    }
+
+    KTM_INLINE const vec<4, T>& operator*() const noexcept
+    {
+        return reinterpret_cast<const vec<4, T>&>(*this);
+    }
+
     KTM_INLINE quat<T> operator+(const quat<T>& y) const noexcept
     {
         quat<T> ret;
-        ret.vector = detail::vec_calc_implement::add<4, T>::call(reinterpret_cast<const vec<4, T>&>(*this), y.vector);
+        *ret = detail::vec_calc_implement::add<4, T>::call(**this, *y);
         return ret;
     }
 
     KTM_INLINE quat<T>& operator+=(const quat<T>& y) noexcept
     {
-        detail::vec_calc_implement::add_to_self<4, T>::call(reinterpret_cast<vec<4, T>&>(*this), y.vector);
+        detail::vec_calc_implement::add_to_self<4, T>::call(**this, *y);
         return reinterpret_cast<quat<T>&>(*this);
     }
 
     KTM_INLINE quat<T> operator-(const quat<T>& y) const noexcept
     {
         quat<T> ret;
-        ret.vector = detail::vec_calc_implement::minus<4, T>::call(reinterpret_cast<const vec<4, T>&>(*this), y.vector);
+        *ret = detail::vec_calc_implement::minus<4, T>::call(**this, *y);
         return ret;
     }
 
     KTM_INLINE quat<T> operator-() const noexcept
     {
-        return detail::vec_calc_implement::opposite<4, T>::call(reinterpret_cast<const vec<4, T>&>(*this));
+        quat<T> ret;
+        *ret = detail::vec_calc_implement::opposite<4, T>::call(**this);
+        return ret;
     }
 
     KTM_INLINE quat<T>& operator-=(const quat<T>& y) noexcept
     {
-        detail::vec_calc_implement::minus_to_self<4, T>::call(reinterpret_cast<vec<4, T>&>(*this), y.vector);
+        detail::vec_calc_implement::minus_to_self<4, T>::call(**this, *y);
         return reinterpret_cast<quat<T>&>(*this);
     }
 
@@ -75,7 +88,7 @@ struct iquat_calc<Father, quat<T>> : Father
     KTM_INLINE quat<T> operator*(T scalar) const noexcept
     {
         quat<T> ret;
-        ret.vector = detail::vec_calc_implement::mul_scalar<4, T>::call(reinterpret_cast<const vec<4, T>&>(*this), scalar);
+        *ret = detail::vec_calc_implement::mul_scalar<4, T>::call(**this, scalar);
         return ret;
     }
 
@@ -86,7 +99,7 @@ struct iquat_calc<Father, quat<T>> : Father
 
     KTM_INLINE quat<T>& operator*=(T scalar) noexcept
     {
-        detail::vec_calc_implement::mul_scalar_to_self<4, T>::call(reinterpret_cast<vec<4, T>&>(*this), scalar);
+        detail::vec_calc_implement::mul_scalar_to_self<4, T>::call(**this, scalar);
         return reinterpret_cast<quat<T>&>(*this);
     }
 };

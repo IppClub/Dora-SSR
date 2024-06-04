@@ -11,9 +11,9 @@
 #include "../setup.h"
 #include "../type/quat.h"
 #include "../traits/type_traits_math.h"
-#include "epsilon.h"
 #include "exponential.h"
 #include "trigonometric.h"
+#include "compare.h"
 #include "geometric.h"
 
 namespace ktm
@@ -28,33 +28,34 @@ KTM_INLINE std::enable_if_t<is_quaternion_v<Q>, Q> conjugate(const Q& q) noexcep
 template<class Q>
 KTM_INLINE std::enable_if_t<is_quaternion_v<Q>, Q> inverse(const Q& q) noexcept
 {
-    return Q(conjugate(q).vector / length_squared(q.vector));
+    Q conjugate_q = conjugate(q);
+    return Q((*conjugate_q) * recip(length_squared(*q)));
 }
 
 template<class Q>
-KTM_INLINE std::enable_if_t<is_quaternion_v<Q>, Q> lerp(const Q& x, const Q& y, quat_traits_base_t<Q> t) noexcept
+KTM_INLINE std::enable_if_t<is_quaternion_v<Q>, Q> lerp(const Q& p, const Q& q, quat_traits_base_t<Q> t) noexcept
 {
-    return Q(lerp(x.vector, y.vector, t));
+    return Q(lerp(*p, *q, t));
 }
 
 template<class Q>
 KTM_INLINE std::enable_if_t<is_quaternion_v<Q>, quat_traits_base_t<Q>> dot(const Q& p, const Q& q) noexcept
 {
-    return dot(p.vector, q.vector);
+    return dot(*p, *q);
 }
 
 template<class Q>
 KTM_INLINE std::enable_if_t<is_quaternion_v<Q>, quat_traits_base_t<Q>> length(const Q& q) noexcept
 {
-    return length(q.vector);
+    return length(*q);
 }
 
 template<class Q>
 KTM_INLINE std::enable_if_t<is_quaternion_v<Q>, Q> normalize(const Q& q) noexcept
 {
     using T = quat_traits_base_t<Q>;
-    T ls = length_squared(q.vector);
-    return ls == zero<T> ? Q(zero<T>, zero<T>, zero<T>, one<T>) : Q(q.vector * rsqrt(ls));
+    T ls = length_squared(*q);
+    return ls == zero<T> ? Q(zero<T>, zero<T>, zero<T>, one<T>) : Q((*q) * rsqrt(ls));
 }
 
 template<class Q>
@@ -63,7 +64,7 @@ KTM_NOINLINE std::enable_if_t<is_quaternion_v<Q>, Q> exp(const Q& q) noexcept
     using T = quat_traits_base_t<Q>;
     vec<3, T> q_imag = q.imag();
     T angle = length(q_imag);
-    if (equal_zero(angle)) 
+    if(equal_zero(angle)) 
         return Q(zero<T>, zero<T>, zero<T>, exp(q.real()));
     vec<3, T> axis = normalize(q_imag);
     Q unit = Q::real_imag(cos(angle), sin(angle) * axis);
@@ -74,9 +75,9 @@ template<class Q>
 KTM_NOINLINE std::enable_if_t<is_quaternion_v<Q>, Q> log(const Q& q) noexcept
 {
     using T = quat_traits_base_t<Q>;
-    T real = log(length_squared(q.vector)) / static_cast<T>(2);
+    T real = log(length_squared(*q)) / static_cast<T>(2);
     vec<3, T> q_imag = q.imag();
-    if (equal_zero(q_imag)) 
+    if(equal_zero(q_imag)) 
         return Q(zero<T>, zero<T>, zero<T>, real);
     vec<3, T> imag = acos(q.real() / length(q)) * normalize(q_imag);
     return Q::real_imag(real, imag);
@@ -87,15 +88,15 @@ KTM_NOINLINE std::enable_if_t<is_quaternion_v<Q>, Q> slerp_internal(const Q& x, 
 {
     using T = quat_traits_base_t<Q>;
     T s = one<T> - t;
-    T a = static_cast<T>(2) * atan2(length(x.vector - y.vector), length(x.vector + y.vector)); // angel
+    T a = static_cast<T>(2) * atan2(length(x - y), length(x + y)); // angel
     T r = one<T> / sinc(a);
-    return normalize(Q(sinc(s * a) * r * s * x.vector + sinc(t * a) * r * t * y.vector));
+    return normalize(Q(sinc(s * a) * r * s * (*x) + sinc(t * a) * r * t * (*y)));
 }
 
 template<class Q>
 KTM_NOINLINE std::enable_if_t<is_quaternion_v<Q>, Q> slerp(const Q& x, const Q& y, quat_traits_base_t<Q> t) noexcept
 {
-    if (dot(x, y) >= 0)
+    if(dot(x, y) >= 0)
         return slerp_internal(x, y, t);
     return slerp_internal(x, -y, t);
 }
@@ -103,7 +104,7 @@ KTM_NOINLINE std::enable_if_t<is_quaternion_v<Q>, Q> slerp(const Q& x, const Q& 
 template<class Q>
 KTM_NOINLINE std::enable_if_t<is_quaternion_v<Q>, Q> slerp_longest(const Q& x, const Q& y, quat_traits_base_t<Q> t) noexcept
 {
-    if (dot(x, y) >= 0)
+    if(dot(x, y) >= 0)
         return slerp_internal(x, -y, t);
     return slerp_internal(x, y, t);
 }

@@ -77,24 +77,6 @@ KTM_INLINE std::enable_if_t<is_vector_v<V> && is_floating_point_base_v<V>, V> ro
 }
 
 template<class V>
-KTM_INLINE std::enable_if_t<is_vector_v<V> && is_floating_point_base_v<V>, V> sqrt(const V& x) noexcept
-{
-    return detail::common_implement::sqrt<vec_traits_len<V>, vec_traits_base_t<V>>::call(x);
-}
-
-template<class V>
-KTM_INLINE std::enable_if_t<is_vector_v<V> && is_floating_point_base_v<V>, V> rsqrt(const V& x) noexcept
-{
-    return detail::common_implement::rsqrt<vec_traits_len<V>, vec_traits_base_t<V>>::call(x);
-}
-
-template<class V>
-KTM_INLINE std::enable_if_t<is_vector_v<V> && is_floating_point_base_v<V>, V> recip(const V& x) noexcept
-{
-    return detail::common_implement::recip<vec_traits_len<V>, vec_traits_base_t<V>>::call(x);
-}
-
-template<class V>
 KTM_INLINE std::enable_if_t<is_vector_v<V> && is_floating_point_base_v<V>, V> fract(const V& x) noexcept
 {
     return detail::common_implement::fract<vec_traits_len<V>, vec_traits_base_t<V>>::call(x);
@@ -128,6 +110,24 @@ template<class V>
 KTM_INLINE std::enable_if_t<is_vector_v<V> && is_floating_point_base_v<V>, V> smoothstep(const V& edge0, const V& edge1, const V& x) noexcept
 {
     return detail::common_implement::smoothstep<vec_traits_len<V>, vec_traits_base_t<V>>::call(edge0, edge1, x);
+}
+
+template<class V>
+KTM_INLINE std::enable_if_t<is_vector_v<V> && is_floating_point_base_v<V>, V> sqrt(const V& x) noexcept
+{
+    return detail::common_implement::sqrt<vec_traits_len<V>, vec_traits_base_t<V>>::call(x);
+}
+
+template<class V>
+KTM_INLINE std::enable_if_t<is_vector_v<V> && is_floating_point_base_v<V>, V> rsqrt(const V& x) noexcept
+{
+    return detail::common_implement::rsqrt<vec_traits_len<V>, vec_traits_base_t<V>>::call(x);
+}
+
+template<class V>
+KTM_INLINE std::enable_if_t<is_vector_v<V> && is_floating_point_base_v<V>, V> recip(const V& x) noexcept
+{
+    return detail::common_implement::recip<vec_traits_len<V>, vec_traits_base_t<V>>::call(x);
 }
 
 namespace fast

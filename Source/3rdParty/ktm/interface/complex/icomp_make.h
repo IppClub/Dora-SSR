@@ -16,6 +16,7 @@
 
 namespace ktm
 {
+
 template<class Father, class Child>
 struct icomp_make;
 
@@ -26,7 +27,8 @@ struct icomp_make<Father, comp<T>> : Father
 
     static KTM_INLINE comp<T> identity() noexcept
     {
-        return comp<T>(zero<T>, one<T>);
+        static comp<T> iden = comp<T>(zero<T>, one<T>);
+        return iden;
     }
 
     static KTM_INLINE comp<T> real_imag(T real, T imag) noexcept
@@ -54,6 +56,7 @@ struct icomp_make<Father, comp<T>> : Father
         return comp<T>(matrix[0].yx()); 
     }
 };
+
 }
 
 #endif

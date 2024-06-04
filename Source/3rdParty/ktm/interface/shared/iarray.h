@@ -8,9 +8,10 @@
 #ifndef _KTM_I_ARRAY_H_
 #define _KTM_I_ARRAY_H_
 
-#include "../../setup.h"
 #include <array>
+#include <cstring>
 #include <iostream>
+#include "../../setup.h"
 
 namespace ktm
 {
@@ -21,10 +22,34 @@ struct iarray : Father
     using Father::Father;
     using typename Father::array_type;
 
+#if defined(KTM_DEFAULT_CONSTRUCT_INIT)
+    KTM_FUNC iarray() noexcept { fill(typename array_type::value_type { }); }
+#endif
+    KTM_FUNC iarray(std::initializer_list<typename array_type::value_type> li) noexcept
+    {
+        const size_t offset = li.size() < size() ? li.size() : size();
+        std::copy(li.begin(), li.begin() + offset, begin());
+#if defined(KTM_DEFAULT_CONSTRUCT_INIT)
+        std::fill(begin() + offset, end(), typename array_type::value_type { });
+#endif
+    };
+    KTM_FUNC iarray(const iarray& copy) noexcept { std::memcpy(data(), copy.data(), sizeof(array_type)); }
+    KTM_FUNC iarray(iarray&& copy) noexcept { std::memmove(data(), copy.data(), sizeof(array_type)); };
+    KTM_FUNC iarray& operator=(const iarray& copy) noexcept { std::memcpy(data(), copy.data(), sizeof(array_type)); return *this; }
+    KTM_FUNC iarray& operator=(iarray&& copy) noexcept { std::memmove(data(), copy.data(), sizeof(array_type)); return *this; }
+
     template<size_t Index> 
-    KTM_FUNC typename array_type::value_type get() const noexcept { static_assert(Index < size()); return reinterpret_cast<typename array_type::const_pointer>(this)[Index]; }
+    KTM_FUNC typename array_type::value_type get() const noexcept 
+    { 
+        static_assert(Index < size());
+        return reinterpret_cast<typename array_type::const_pointer>(this)[Index]; 
+    }
     template<size_t Index> 
-    KTM_FUNC void set(typename array_type::const_reference v) noexcept { static_assert(Index < size()); reinterpret_cast<typename array_type::pointer>(this)[Index] = v; }
+    KTM_FUNC void set(typename array_type::const_reference v) noexcept 
+    { 
+        static_assert(Index < size());
+        reinterpret_cast<typename array_type::pointer>(this)[Index] = v; 
+    }
 
     KTM_FUNC array_type& to_array() noexcept { return reinterpret_cast<array_type&>(*this); }
     KTM_FUNC const array_type& to_array() const noexcept { return reinterpret_cast<const array_type&>(*this); }
@@ -47,9 +72,9 @@ struct iarray : Father
     KTM_FUNC typename array_type::const_reverse_iterator crbegin() const noexcept { return rbegin(); }
     KTM_FUNC typename array_type::const_reverse_iterator crend() const noexcept { return rend(); }
 
-    constexpr size_t size() const noexcept { return to_array().size(); }
-    constexpr size_t max_size() const noexcept { return to_array().max_size(); }
-    constexpr bool empty() const noexcept { return false; }
+    constexpr KTM_FUNC size_t size() const noexcept { return to_array().size(); }
+    constexpr KTM_FUNC size_t max_size() const noexcept { return to_array().max_size(); }
+    constexpr KTM_FUNC bool empty() const noexcept { return false; }
 
     KTM_FUNC typename array_type::reference at(size_t i) { return to_array().at(i); }
     KTM_FUNC typename array_type::const_reference at(size_t i) const { return to_array().at(i); }
@@ -87,7 +112,7 @@ struct iarray : Father
     }
 
 };
-}
 
+}
 
 #endif

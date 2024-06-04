@@ -115,6 +115,33 @@ struct ktm::detail::matrix_implement::determinant<4, T>
     }
 };
 
+template<size_t N, typename T, typename Void>
+struct ktm::detail::matrix_implement::determinant
+{
+    using M = mat<N, N, T>;
+    static KTM_NOINLINE T call(const M& m) noexcept
+    {
+        T det = zero<T>;
+        for(int i = 0; i < N; ++i) 
+        {
+            mat<N - 1, N - 1, T> sub_matrix;
+            for(int col = 1; col < N; ++col) 
+            {
+                for(int row = 0, sub_row = 0; row < N; ++row) 
+                {
+                    if(row == i) 
+                        continue;
+                    sub_matrix[col - 1][sub_row] = m[col][row];
+                    ++sub_row;
+                }
+            }
+            T sub_det = m[0][i] * determinant<N - 1, T>::call(sub_matrix);
+            det += i & 0x1 ? -sub_det : sub_det;
+        }
+        return det;
+    }
+};
+
 template<typename T>
 struct ktm::detail::matrix_implement::inverse<2, T>
 {
@@ -209,6 +236,42 @@ struct ktm::detail::matrix_implement::inverse<4, T>
             one_over_det * (m[0][0] * m[1][1] * m[2][2] - m[0][0] * m[1][2] * m[2][1] - m[1][0] * m[0][1] * m[2][2] +
                             m[1][0] * m[0][2] * m[2][1] + m[2][0] * m[0][1] * m[1][2] - m[2][0] * m[0][2] * m[1][1]);
         return ret;
+    }
+};
+
+template<size_t N, typename T, typename Void>
+struct ktm::detail::matrix_implement::inverse
+{
+    using M = mat<N, N, T>;
+    static KTM_NOINLINE M call(const M& m) noexcept
+    {
+        M left = m;
+        M right = M::from_eye();
+
+        for(int i = 0; i < N; ++i) 
+        {
+            T one_over_diag = recip(left[i][i]);
+            for(int j = 0; j < N; ++j)
+            {
+                if(i != j)
+                {
+                    T factor = left[i][j] * one_over_diag;
+                    for(int k = 0; k < N; ++k)
+                    {
+                        if(k >= i)
+                            left[k][j] = left[k][j] - factor * left[k][i];
+                        right[k][j] = right[k][j] - factor * right[k][i];
+                    }
+                }
+            }
+            for(int k = 0; k < N; ++k)
+            {
+                if(k >= i)
+                    left[k][i] *= one_over_diag;
+                right[k][i] *= one_over_diag;
+            }
+        }
+        return right;
     }
 };
 

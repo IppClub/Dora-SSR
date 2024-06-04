@@ -15,7 +15,6 @@ namespace ktm
 {
 namespace detail
 {
-
 namespace matrix_implement
 {
 

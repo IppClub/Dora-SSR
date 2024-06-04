@@ -11,9 +11,9 @@
 #include <utility>
 #include "common_fwd.h"
 #include "../../setup.h"
-#include "../../type/basic.h"
 #include "../../type/vec_fwd.h"
 #include "../../function/arithmetic.h"
+#include "../../function/exponential.h"
 
 template<size_t N, typename T, typename Void>
 struct ktm::detail::common_implement::reduce_add
@@ -204,60 +204,6 @@ private:
 };
 
 template<size_t N, typename T, typename Void>
-struct ktm::detail::common_implement::sqrt
-{
-    using V = vec<N, T>;
-    static KTM_INLINE V call(const V& x) noexcept
-    {
-        return call(x, std::make_index_sequence<N>());
-    }
-private:
-    template<size_t ...Ns>
-    static KTM_INLINE V call(const V& x, std::index_sequence<Ns...>) noexcept
-    {
-        V ret;
-        ((ret[Ns] = ktm::sqrt(x[Ns])), ...);
-        return ret;
-    }
-};
-
-template<size_t N, typename T, typename Void>
-struct ktm::detail::common_implement::rsqrt
-{
-    using V = vec<N, T>;
-    static KTM_INLINE V call(const V& x) noexcept
-    {
-        return call(x, std::make_index_sequence<N>());
-    }
-private:
-    template<size_t ...Ns>
-    static KTM_INLINE V call(const V& x, std::index_sequence<Ns...>) noexcept
-    {
-        V ret;
-        ((ret[Ns] = ktm::rsqrt(x[Ns])), ...);
-        return ret;
-    }
-};
-
-template<size_t N, typename T, typename Void>
-struct ktm::detail::common_implement::recip
-{
-    using V = vec<N, T>;
-    static KTM_INLINE V call(const V& x) noexcept
-    {
-        return call(x, std::make_index_sequence<N>());
-    }
-private:
-    template<size_t ...Ns>
-    static KTM_INLINE V call(const V& x, std::index_sequence<Ns...>) noexcept
-    {
-        V ret;
-        ((ret[Ns] = ktm::recip(x[Ns])), ...);
-        return ret;
-    }
-};
-
-template<size_t N, typename T, typename Void>
 struct ktm::detail::common_implement::fract
 {
     using V = vec<N, T>;
@@ -361,6 +307,60 @@ private:
     {
         V ret;
         ((ret[Ns] = ktm::smoothstep(edge0[Ns], edge1[Ns], x[Ns])), ...);
+        return ret;
+    }
+};
+
+template<size_t N, typename T, typename Void>
+struct ktm::detail::common_implement::sqrt
+{
+    using V = vec<N, T>;
+    static KTM_INLINE V call(const V& x) noexcept
+    {
+        return call(x, std::make_index_sequence<N>());
+    }
+private:
+    template<size_t ...Ns>
+    static KTM_INLINE V call(const V& x, std::index_sequence<Ns...>) noexcept
+    {
+        V ret;
+        ((ret[Ns] = ktm::sqrt(x[Ns])), ...);
+        return ret;
+    }
+};
+
+template<size_t N, typename T, typename Void>
+struct ktm::detail::common_implement::rsqrt
+{
+    using V = vec<N, T>;
+    static KTM_INLINE V call(const V& x) noexcept
+    {
+        return call(x, std::make_index_sequence<N>());
+    }
+private:
+    template<size_t ...Ns>
+    static KTM_INLINE V call(const V& x, std::index_sequence<Ns...>) noexcept
+    {
+        V ret;
+        ((ret[Ns] = ktm::rsqrt(x[Ns])), ...);
+        return ret;
+    }
+};
+
+template<size_t N, typename T, typename Void>
+struct ktm::detail::common_implement::recip
+{
+    using V = vec<N, T>;
+    static KTM_INLINE V call(const V& x) noexcept
+    {
+        return call(x, std::make_index_sequence<N>());
+    }
+private:
+    template<size_t ...Ns>
+    static KTM_INLINE V call(const V& x, std::index_sequence<Ns...>) noexcept
+    {
+        V ret;
+        ((ret[Ns] = ktm::recip(x[Ns])), ...);
         return ret;
     }
 };

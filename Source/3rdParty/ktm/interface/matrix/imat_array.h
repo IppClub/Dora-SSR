@@ -15,6 +15,7 @@
 
 namespace ktm
 {
+
 template<class Father, class Child>
 struct imat_array;
 
@@ -24,6 +25,7 @@ struct imat_array<Father, mat<Row, Col, T>> : Father
     using Father::Father;
     using array_type = std::array<vec<Col, T>, Row>;
 };
+
 }
 
 #endif

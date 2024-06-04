@@ -15,6 +15,7 @@
 
 namespace ktm
 {
+
 template<class Father, class Child>
 struct imat_calc;
 
@@ -54,6 +55,7 @@ struct imat_calc<Father, mat<Row, Col, T>> : Father
         return detail::mat_opt_implement::opposite<Row, Col, T>::call(reinterpret_cast<const mat<Row, Col, T>&>(*this));  
     }
 };
+
 }
 
 #endif

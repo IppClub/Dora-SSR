@@ -31,7 +31,7 @@
 
 // debug state
 #ifndef NDEBUG
-	#define KTM_DEBUG_ENABLE
+	#define KTM_DEFAULT_CONSTRUCT_INIT
 #endif
 
 // function Function config
