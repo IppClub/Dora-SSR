@@ -24,9 +24,7 @@ with AlignNode true
 		\css "
 			width: auto;
 			height: 60;
-			margin-bottom: 10;
-			margin-left: 10;
-			margin-right: 10;
+			margin: 0, 20, 40;
 			flex-direction: row;
 			justify-content: space-between
 		"

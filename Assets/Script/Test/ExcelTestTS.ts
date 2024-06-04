@@ -374,9 +374,9 @@ ui.addTo(Director.ui);
 
 const bottomAlign = AlignNode();
 bottomAlign.css(`
-	height: 80;
+	height: 60;
 	justify-content: space-between;
-	padding: 0, 20, 20;
+	margin: 0, 20, 40;
 	flex-direction: row
 `);
 bottomAlign.addTo(ui);

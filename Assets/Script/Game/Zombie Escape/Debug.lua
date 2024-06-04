@@ -39,7 +39,7 @@ local playerChoice = 1 -- 22
 local controlChoice -- 23
 do -- 23
 	local _exp_0 = App.platform -- 23
-	if "iOS" == _exp_0 or "Android" == _exp_0 then -- 24
+	if "iOS" == _exp_0 or "Android" == _exp_0 or "macOS" == _exp_0 then -- 24
 		controlChoice = 0 -- 24
 	else -- 25
 		controlChoice = 1 -- 25
