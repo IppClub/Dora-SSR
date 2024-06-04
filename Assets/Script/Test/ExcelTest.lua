@@ -377,6 +377,7 @@ local AlignNode <const> = require("AlignNode")
 local Menu <const> = require("Menu")
 local Keyboard <const> = require("Keyboard")
 
+
 local keyboardEnabled = true
 
 local playerGroup = Group({ "player" })
@@ -390,7 +391,28 @@ local function updatePlayerControl(key, flag, vpad)
 end
 
 local ui = AlignNode(true)
-ui:css('flex-direction: column-reverse');
+ui:css('flex-direction: column-reverse')
+ui.controllerEnabled = true
+ui:slot("ButtonDown", function(controllerId, buttonName)
+	if controllerId ~= 0 then return end
+	if buttonName == "dpleft" then
+		updatePlayerControl("keyLeft", true, true)
+	elseif buttonName == "dpright" then
+		updatePlayerControl("keyRight", true, true)
+	elseif buttonName == "b" then
+		updatePlayerControl("keyJump", true, true)
+	end
+end)
+ui:slot("ButtonUp", function(controllerId, buttonName)
+	if controllerId ~= 0 then return end
+	if buttonName == "dpleft" then
+		updatePlayerControl("keyLeft", false, true)
+	elseif buttonName == "dpright" then
+		updatePlayerControl("keyRight", false, true)
+	elseif buttonName == "b" then
+		updatePlayerControl("keyJump", false, true)
+	end
+end)
 ui:addTo(Director.ui)
 
 local bottomAlign = AlignNode()
@@ -411,7 +433,7 @@ leftMenu.size = Size(250, 120)
 leftMenu.anchor = Vec2.zero
 leftMenu.scaleX = 0.5
 leftMenu.scaleY = 0.5
-leftAlign:addChild(leftMenu)
+leftMenu:addTo(leftAlign)
 
 local leftButton = CircleButton({
 	text = "左(a)",

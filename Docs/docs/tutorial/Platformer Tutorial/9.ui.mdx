@@ -15,6 +15,7 @@ local AlignNode <const> = require("UI.Control.Basic.AlignNode")
 local CircleButton <const> = require("UI.Control.Basic.CircleButton")
 local App <const> = require("App")
 local Group <const> = require("Group")
+local AlignNode <const> = require("AlignNode")
 local Menu <const> = require("Menu")
 local Keyboard <const> = require("Keyboard")
 local Loader <const> = require("Script.Loader")
@@ -44,55 +45,61 @@ local function updatePlayerControl(key: string, flag: boolean, vpad: boolean)
 end
 ```
 
-Then, we create a root node for the UI called `alignNode` and add it to [Director.ui](/docs/api/Class/Director#ui). This node serves as the parent node for all other UI nodes.
+Then, we create a root node for the UI called `ui` and add it to [Director.ui](/docs/api/Class/Director#ui). This node serves as the parent node for all other UI nodes.
 
 ```tl title="Script/UI.tl"
--- Get the DPI scaling value of the device to ensure consistent display size of UI on different devices
-local uiScale = App.devicePixelRatio
-local alignNode = AlignNode{
-	isRoot = true,
-	inUI = true
-}
-Director.ui:addChild(alignNode)
+-- Create a root alignment node using flex layout
+local ui = AlignNode(true)
+ui:css('flex-direction: column-reverse')
+ui:addTo(Director.ui)
+
+-- Setup virtual keypad area layout
+local bottomAlign = AlignNode()
+bottomAlign:css([[
+	height: 80;
+	justify-content: space-between;
+	padding: 0, 20, 20;
+	flex-direction: row
+]]);
+bottomAlign:addTo(ui)
 ```
 
-Next, we created a left-aligned node called `leftAlign` and added it to `alignNode`. Then, within `leftAlign`, we created a menu called `leftMenu` to house the action buttons on the left side of the screen. Similarly, we created a right-aligned menu for placing the action buttons on the right side of the screen.
+Next, we created a left-aligned node called `leftAlign` and added it to `bottomAlign`. Then, within `leftAlign`, we created a menu called `leftMenu` to house the action buttons on the left side of the screen. Similarly, we created a right-aligned menu for placing the action buttons on the right side of the screen.
 
 ```tl title="Script/UI.tl"
 -- Create a left-aligned menu
-local leftAlign = AlignNode{
-	hAlign = "Left",
-	vAlign = "Bottom"
-}
-alignNode:addChild(leftAlign)
+local leftAlign = AlignNode()
+leftAlign:css('width: 130; height: 60')
+leftAlign:addTo(bottomAlign)
 
 local leftMenu = Menu()
-leftAlign:addChild(leftMenu)
+leftMenu.size = Size(250, 120)
+leftMenu.anchor = Vec2.zero
+leftMenu.scaleX = 0.5
+leftMenu.scaleY = 0.5
+leftMenu:addTo(leftAlign)
 
 -- Create a right-aligned menu
-local rightAlign = AlignNode {
-	hAlign = "Right",
-	vAlign = "Bottom"
-}
-alignNode:addChild(rightAlign)
+local rightAlign = AlignNode()
+rightAlign:css('width: 60; height: 60')
+rightAlign:addTo(bottomAlign)
 
 local rightMenu = Menu()
-rightAlign:addChild(rightMenu)
-
--- Perform initial node alignment
-alignNode:alignLayout()
+rightMenu.size = Size(120, 120)
+rightMenu.anchor = Vec2.zero
+rightMenu.scaleX = 0.5
+rightMenu.scaleY = 0.5
+rightMenu:addTo(rightAlign)
 ```
 
 Inside `leftMenu`, we create three circular buttons: `leftButton`, `rightButton`, and `jumpButton`. These buttons are used to control the player's left movement, right movement, and jumping actions, respectively. Each button has a [TapBegan](/docs/api/Node%20Event/Node#tapbegan) event and a [TapEnded](/docs/api/Node%20Event/Node#tapended) event, which are triggered when the button is pressed and released, respectively.
 
 ```tl title="Script/UI.tl"
 -- Create the left movement button
-local leftButton = CircleButton{
-	text = "左(a)",
-	x = 20 * uiScale,
-	y = 60 * uiScale,
-	radius = 30 * uiScale,
-	fontSize = math.floor(18 * uiScale)
+local leftButton = CircleButton {
+	text = "Left(a)",
+	radius = 60,
+	fontSize = 36
 }
 leftButton.anchor = Vec2.zero
 leftButton:slot("TapBegan", function()
@@ -101,15 +108,14 @@ end)
 leftButton:slot("TapEnded", function()
 	updatePlayerControl("keyLeft", false, true)
 end)
-leftMenu:addChild(leftButton)
+leftButton:addTo(leftMenu)
 
 -- Create the right movement button
-local rightButton = CircleButton{
-	text = "右(d)",
-	x = 90 * uiScale,
-	y = 60 * uiScale,
-	radius = 30 * uiScale,
-	fontSize = math.floor(18 * uiScale)
+local rightButton = CircleButton {
+	text = "Right(d)",
+	x = 130,
+	radius = 60,
+	fontSize = 36
 }
 rightButton.anchor = Vec2.zero
 rightButton:slot("TapBegan", function()
@@ -118,15 +124,13 @@ end)
 rightButton:slot("TapEnded", function()
 	updatePlayerControl("keyRight", false, true)
 end)
-leftMenu:addChild(rightButton)
+rightButton:addTo(leftMenu)
 
 -- Create the jump button
-local jumpButton = CircleButton{
-	text = "跳(j)",
-	x = 160 * uiScale,
-	y = 60 * uiScale,
-	radius = 30 * uiScale,
-	fontSize = math.floor(18 * uiScale)
+local jumpButton = CircleButton {
+	text = "Jump(j)",
+	radius = 60,
+	fontSize = 36
 }
 jumpButton.anchor = Vec2.zero
 jumpButton:slot("TapBegan", function()
@@ -135,7 +139,7 @@ end)
 jumpButton:slot("TapEnded", function()
 	updatePlayerControl("keyJump", false, true)
 end)
-leftMenu:addChild(jumpButton)
+jumpButton:addTo(rightMenu)
 ```
 
 Next, we use ImGui to create an inventory window. In this window, we can see all the items in the player's inventory, along with the quantity and description of each item. When a player clicks on an item, its quantity decreases by 1, and a corresponding sprite is generated on the player's character.
@@ -157,12 +161,12 @@ Director.ui:schedule(function(): boolean
 	ImGui.SetNextWindowPos(Vec2(size.width - 10, 10), "Always", Vec2(1, 0))
 	ImGui.SetNextWindowSize(Vec2(100, 300), "FirstUseEver")
 	ImGui.Begin("BackPack", windowFlags, function()
-		if ImGui.Button("重新加载Excel") then
+		if ImGui.Button("Reload Excel") then
 			Loader.loadExcel()
 		end
 		ImGui.Separator()
 		ImGui.Dummy(Vec2(100, 10))
-		ImGui.Text("背包")
+		ImGui.Text("Back Pack")
 		ImGui.Separator()
 		ImGui.Columns(3, false)
 
@@ -173,28 +177,28 @@ Director.ui:schedule(function(): boolean
 				-- Handle when an item button is pressed
 				if ImGui.ImageButton("item" .. tostring(item.no), item.icon, Vec2(50, 50)) then
 					item.num = item.num - 1
-					local sprite =
-
-		Sprite(item.icon)
-					sprite.scaleX = 0.5
-					sprite.scaleY = 0.5
-					sprite:perform(Spawn(
-						Opacity(1, 1, 0),
-						Y(1, 150, 250)
-					))
-					local player = playerGroup:find(function(): boolean return true end)
-					local unit = player.unit as UnitType
-					unit:addChild(sprite)
+					local sprite = Sprite(item.icon)
+					if not sprite is nil then
+						sprite.scaleX = 0.5
+						sprite.scaleY = 0.5
+						sprite:perform(Spawn(
+							Opacity(1, 1, 0),
+							Y(1, 150, 250)
+						))
+						local player = playerGroup:find(function(): boolean return true end)
+						local unit = player.unit as UnitType
+						unit:addChild(sprite)
+					end
 				end
 
 				-- Handle when the pointer hovers over an item button
 				if ImGui.IsItemHovered() then
 					ImGui.BeginTooltip(function()
 						ImGui.Text(item.name)
-						ImGui.TextColored(themeColor, "数量：")
+						ImGui.TextColored(themeColor, "Amount：")
 						ImGui.SameLine()
 						ImGui.Text(tostring(item.num))
-						ImGui.TextColored(themeColor, "描述：")
+						ImGui.TextColored(themeColor, "Desc：")
 						ImGui.SameLine()
 						ImGui.Text(tostring(item.desc))
 					end)
