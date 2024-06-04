@@ -802,7 +802,7 @@ allClear = function() -- 466
 	Entity:clear() -- 478
 	Platformer.Data:clear() -- 479
 	Platformer.UnitAction:clear() -- 480
-	Audio:stopStream(0.2) -- 481
+	Audio:stopStream(0.5) -- 481
 	Struct:clear() -- 482
 	View.postEffect = nil -- 483
 	View.scale = scaleContent and screenScale or 1 -- 484

@@ -478,7 +478,7 @@ export allClear = ->
 	Entity\clear!
 	Platformer.Data\clear!
 	Platformer.UnitAction\clear!
-	Audio\stopStream 0.2
+	Audio\stopStream 0.5
 	Struct\clear!
 	View.postEffect = nil
 	View.scale = scaleContent and screenScale or 1
