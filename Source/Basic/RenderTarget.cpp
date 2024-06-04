@@ -119,7 +119,7 @@ void RenderTarget::renderAfterClear(Node* target, bool clear, Color color, float
 						tmpVP = _camera->getView();
 					else
 						Matrix::mulMtx(tmpVP, SharedView.getProjection(), _camera->getView());
-					Matrix::mulMtx(viewProj, tmpVP, revertY);
+					Matrix::mulMtx(viewProj, revertY, tmpVP);
 				} else {
 					bx::mtxOrtho(viewProj, 0, s_cast<float>(_textureWidth), s_cast<float>(_textureHeight), 0, -1000.0f, 1000.0f, 0, bgfx::getCaps()->homogeneousDepth);
 				}
