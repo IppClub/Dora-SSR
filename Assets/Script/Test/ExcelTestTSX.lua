@@ -487,7 +487,7 @@ local ui = toNode(React:createElement( -- 362
     }, -- 372
     React:createElement( -- 372
         "align-node", -- 372
-        {style = {height = 80, justifyContent = "space-between", padding = {0, 20, 20}, flexDirection = "row"}}, -- 372
+        {style = {height = 60, justifyContent = "space-between", margin = {0, 20, 40}, flexDirection = "row"}}, -- 372
         React:createElement( -- 372
             "align-node", -- 372
             {style = {width = 130, height = 60}}, -- 372

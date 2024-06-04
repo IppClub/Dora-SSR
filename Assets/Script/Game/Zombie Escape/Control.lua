@@ -31,118 +31,118 @@ do -- 20
 	_with_0.visible = false -- 22
 	_with_0:addChild((function() -- 23
 		local _with_1 = AlignNode() -- 23
-		_with_1:css("\n			width: auto;\n			height: 60;\n			margin-bottom: 10;\n			margin-left: 10;\n			margin-right: 10;\n			flex-direction: row;\n			justify-content: space-between\n		") -- 24
-		_with_1:addChild((function() -- 33
-			local _with_2 = AlignNode() -- 33
-			_with_2:css('height: 60; width: 0') -- 34
-			_with_2:addChild((function() -- 35
-				local _with_3 = Menu() -- 35
-				_with_3.anchor = Vec2.zero -- 36
-				_with_3.size = Size(130, 60) -- 37
-				_with_3:addChild((function() -- 38
-					local _with_4 = CircleButton({ -- 39
-						text = "Left", -- 39
-						radius = 60, -- 40
-						fontSize = math.floor(36) -- 41
-					}) -- 38
-					_with_4.scaleX = 0.5 -- 43
-					_with_4.scaleY = 0.5 -- 43
-					_with_4.anchor = Vec2.zero -- 44
-					_with_4:slot("TapBegan", function() -- 45
-						return updatePlayerControl("keyLeft", true) -- 45
-					end) -- 45
-					_with_4:slot("TapEnded", function() -- 46
-						return updatePlayerControl("keyLeft", false) -- 46
-					end) -- 46
-					return _with_4 -- 38
-				end)()) -- 38
-				_with_3:addChild((function() -- 47
-					local _with_4 = CircleButton({ -- 48
-						text = "Right", -- 48
-						x = 70, -- 49
-						radius = 60, -- 50
-						fontSize = math.floor(36) -- 51
-					}) -- 47
-					_with_4.scaleX = 0.5 -- 53
-					_with_4.scaleY = 0.5 -- 53
-					_with_4.anchor = Vec2.zero -- 54
-					_with_4:slot("TapBegan", function() -- 55
-						return updatePlayerControl("keyRight", true) -- 55
-					end) -- 55
-					_with_4:slot("TapEnded", function() -- 56
-						return updatePlayerControl("keyRight", false) -- 56
-					end) -- 56
-					return _with_4 -- 47
-				end)()) -- 47
-				return _with_3 -- 35
-			end)()) -- 35
-			return _with_2 -- 33
-		end)()) -- 33
-		_with_1:addChild((function() -- 57
-			local _with_2 = AlignNode() -- 57
-			_with_2:css('height: 60; width: 0') -- 58
-			_with_2:addChild((function() -- 59
-				local _with_3 = Menu() -- 59
-				_with_3.anchor = Vec2(1, 0) -- 60
-				_with_3.size = Size(130, 60) -- 61
-				_with_3:addChild((function() -- 62
-					local _with_4 = CircleButton({ -- 63
-						text = "Jump", -- 63
-						radius = 60, -- 64
-						fontSize = math.floor(36) -- 65
-					}) -- 62
-					_with_4.scaleX = 0.5 -- 67
-					_with_4.scaleY = 0.5 -- 67
-					_with_4.anchor = Vec2.zero -- 68
-					_with_4:slot("TapBegan", function() -- 69
-						return updatePlayerControl("keyUp", true) -- 69
-					end) -- 69
-					_with_4:slot("TapEnded", function() -- 70
-						return updatePlayerControl("keyUp", false) -- 70
-					end) -- 70
-					return _with_4 -- 62
-				end)()) -- 62
-				_with_3:addChild((function() -- 71
-					local _with_4 = CircleButton({ -- 72
-						text = "Shoot", -- 72
-						x = 70, -- 73
-						radius = 60, -- 74
-						fontSize = math.floor(36) -- 75
-					}) -- 71
-					_with_4.scaleX = 0.5 -- 77
-					_with_4.scaleY = 0.5 -- 77
-					_with_4.anchor = Vec2.zero -- 78
-					_with_4:slot("TapBegan", function() -- 79
-						return updatePlayerControl("keyShoot", true) -- 79
-					end) -- 79
-					_with_4:slot("TapEnded", function() -- 80
-						return updatePlayerControl("keyShoot", false) -- 80
-					end) -- 80
-					return _with_4 -- 71
-				end)()) -- 71
-				return _with_3 -- 59
-			end)()) -- 59
-			return _with_2 -- 57
-		end)()) -- 57
+		_with_1:css("\n			width: auto;\n			height: 60;\n			margin: 0, 20, 40;\n			flex-direction: row;\n			justify-content: space-between\n		") -- 24
+		_with_1:addChild((function() -- 31
+			local _with_2 = AlignNode() -- 31
+			_with_2:css('height: 60; width: 0') -- 32
+			_with_2:addChild((function() -- 33
+				local _with_3 = Menu() -- 33
+				_with_3.anchor = Vec2.zero -- 34
+				_with_3.size = Size(130, 60) -- 35
+				_with_3:addChild((function() -- 36
+					local _with_4 = CircleButton({ -- 37
+						text = "Left", -- 37
+						radius = 60, -- 38
+						fontSize = math.floor(36) -- 39
+					}) -- 36
+					_with_4.scaleX = 0.5 -- 41
+					_with_4.scaleY = 0.5 -- 41
+					_with_4.anchor = Vec2.zero -- 42
+					_with_4:slot("TapBegan", function() -- 43
+						return updatePlayerControl("keyLeft", true) -- 43
+					end) -- 43
+					_with_4:slot("TapEnded", function() -- 44
+						return updatePlayerControl("keyLeft", false) -- 44
+					end) -- 44
+					return _with_4 -- 36
+				end)()) -- 36
+				_with_3:addChild((function() -- 45
+					local _with_4 = CircleButton({ -- 46
+						text = "Right", -- 46
+						x = 70, -- 47
+						radius = 60, -- 48
+						fontSize = math.floor(36) -- 49
+					}) -- 45
+					_with_4.scaleX = 0.5 -- 51
+					_with_4.scaleY = 0.5 -- 51
+					_with_4.anchor = Vec2.zero -- 52
+					_with_4:slot("TapBegan", function() -- 53
+						return updatePlayerControl("keyRight", true) -- 53
+					end) -- 53
+					_with_4:slot("TapEnded", function() -- 54
+						return updatePlayerControl("keyRight", false) -- 54
+					end) -- 54
+					return _with_4 -- 45
+				end)()) -- 45
+				return _with_3 -- 33
+			end)()) -- 33
+			return _with_2 -- 31
+		end)()) -- 31
+		_with_1:addChild((function() -- 55
+			local _with_2 = AlignNode() -- 55
+			_with_2:css('height: 60; width: 0') -- 56
+			_with_2:addChild((function() -- 57
+				local _with_3 = Menu() -- 57
+				_with_3.anchor = Vec2(1, 0) -- 58
+				_with_3.size = Size(130, 60) -- 59
+				_with_3:addChild((function() -- 60
+					local _with_4 = CircleButton({ -- 61
+						text = "Jump", -- 61
+						radius = 60, -- 62
+						fontSize = math.floor(36) -- 63
+					}) -- 60
+					_with_4.scaleX = 0.5 -- 65
+					_with_4.scaleY = 0.5 -- 65
+					_with_4.anchor = Vec2.zero -- 66
+					_with_4:slot("TapBegan", function() -- 67
+						return updatePlayerControl("keyUp", true) -- 67
+					end) -- 67
+					_with_4:slot("TapEnded", function() -- 68
+						return updatePlayerControl("keyUp", false) -- 68
+					end) -- 68
+					return _with_4 -- 60
+				end)()) -- 60
+				_with_3:addChild((function() -- 69
+					local _with_4 = CircleButton({ -- 70
+						text = "Shoot", -- 70
+						x = 70, -- 71
+						radius = 60, -- 72
+						fontSize = math.floor(36) -- 73
+					}) -- 69
+					_with_4.scaleX = 0.5 -- 75
+					_with_4.scaleY = 0.5 -- 75
+					_with_4.anchor = Vec2.zero -- 76
+					_with_4:slot("TapBegan", function() -- 77
+						return updatePlayerControl("keyShoot", true) -- 77
+					end) -- 77
+					_with_4:slot("TapEnded", function() -- 78
+						return updatePlayerControl("keyShoot", false) -- 78
+					end) -- 78
+					return _with_4 -- 69
+				end)()) -- 69
+				return _with_3 -- 57
+			end)()) -- 57
+			return _with_2 -- 55
+		end)()) -- 55
 		return _with_1 -- 23
 	end)()) -- 23
-	_with_0:addTo((function() -- 81
-		local _with_1 = Director.ui -- 81
-		_with_1.renderGroup = true -- 82
-		return _with_1 -- 81
-	end)()) -- 81
+	_with_0:addTo((function() -- 79
+		local _with_1 = Director.ui -- 79
+		_with_1.renderGroup = true -- 80
+		return _with_1 -- 79
+	end)()) -- 79
 end -- 20
-Store.keyboardEnabled = false -- 84
-local keyboardControl -- 85
-keyboardControl = function() -- 85
-	if not Store.keyboardEnabled then -- 86
-		return -- 86
-	end -- 86
-	updatePlayerControl("keyLeft", Keyboard:isKeyPressed("A")) -- 87
-	updatePlayerControl("keyRight", Keyboard:isKeyPressed("D")) -- 88
-	updatePlayerControl("keyUp", Keyboard:isKeyPressed("K")) -- 89
-	return updatePlayerControl("keyShoot", Keyboard:isKeyPressed("J")) -- 90
-end -- 85
-local _with_0 = Node() -- 92
-_with_0:schedule(keyboardControl) -- 93
-return _with_0 -- 92
+Store.keyboardEnabled = false -- 82
+local keyboardControl -- 83
+keyboardControl = function() -- 83
+	if not Store.keyboardEnabled then -- 84
+		return -- 84
+	end -- 84
+	updatePlayerControl("keyLeft", Keyboard:isKeyPressed("A")) -- 85
+	updatePlayerControl("keyRight", Keyboard:isKeyPressed("D")) -- 86
+	updatePlayerControl("keyUp", Keyboard:isKeyPressed("K")) -- 87
+	return updatePlayerControl("keyShoot", Keyboard:isKeyPressed("J")) -- 88
+end -- 83
+local _with_0 = Node() -- 90
+_with_0:schedule(keyboardControl) -- 91
+return _with_0 -- 90

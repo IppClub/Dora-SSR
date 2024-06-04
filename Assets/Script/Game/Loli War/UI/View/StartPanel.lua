@@ -6,6 +6,8 @@ local node1 = Node() -- 4
 node1.touchEnabled = true -- 4
 node1.swallowTouches = true -- 4
 local node = Sprite("Model/misc.clip|startboard") -- 5
+node.scaleX = 0 -- 5
+node.scaleY = 0 -- 5
 node1:addChild(node) -- 5
 node1.node = node -- 5
 local scaleOut = Action(Sequence(Spawn(Scale(1,1,0.3,Ease.InBack),Opacity(1,1,0)),Event("PanelHide"))) -- 7

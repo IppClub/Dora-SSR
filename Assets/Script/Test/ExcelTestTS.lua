@@ -487,7 +487,7 @@ ui:slot( -- 365
 ) -- 365
 ui:addTo(Director.ui) -- 373
 local bottomAlign = AlignNode() -- 375
-bottomAlign:css("\n\theight: 80;\n\tjustify-content: space-between;\n\tpadding: 0, 20, 20;\n\tflex-direction: row\n") -- 376
+bottomAlign:css("\n\theight: 60;\n\tjustify-content: space-between;\n\tmargin: 0, 20, 40;\n\tflex-direction: row\n") -- 376
 bottomAlign:addTo(ui) -- 382
 local leftAlign = AlignNode() -- 384
 leftAlign:css("width: 130; height: 60") -- 385

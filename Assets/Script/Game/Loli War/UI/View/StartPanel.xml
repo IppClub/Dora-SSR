@@ -2,7 +2,7 @@
 	<Import Module="UI.Control.ButtonGlow"/>
 
 	<Node TouchEnabled="True" SwallowTouches="True">
-		<Sprite File="Model/misc.clip|startboard" Name="node" Ref="True">
+		<Sprite File="Model/misc.clip|startboard" Name="node" ScaleX="0" ScaleY="0" Ref="True">
 			<Action>
 				<Sequence Name="scaleOut">
 					<Spawn>

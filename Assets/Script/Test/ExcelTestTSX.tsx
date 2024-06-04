@@ -377,7 +377,7 @@ const ui = toNode(
 				case ButtonName.b: updatePlayerControl("keyJump", false, true); break;
 			}
 		}}>
-		<align-node style={{height: 80, justifyContent: 'space-between', padding: [0, 20, 20], flexDirection: 'row'}}>
+		<align-node style={{height: 60, justifyContent: 'space-between', margin: [0, 20, 40], flexDirection: 'row'}}>
 			<align-node style={{width: 130, height: 60}}>
 				<menu width={250} height={120} anchorX={0} anchorY={0} scaleX={0.5} scaleY={0.5}>
 					<CircleButton

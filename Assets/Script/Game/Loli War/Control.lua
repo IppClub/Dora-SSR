@@ -32,13 +32,13 @@ local root = AlignNode(true) -- 23
 root:css('flex-direction: column; justify-content: space-between') -- 24
 root:addChild((function() -- 25
 	local _with_0 = AlignNode() -- 25
-	_with_0:css('width: 10; height: 10; margin-top: 75; margin-left: 75') -- 26
+	_with_0:css('width: 10; height: 10; margin-top: 50; margin-left: 60') -- 26
 	_with_0:addChild(HPWheel()) -- 27
 	return _with_0 -- 25
 end)()) -- 25
 root:addChild((function() -- 28
 	local _with_0 = AlignNode() -- 28
-	_with_0:css('margin-bottom: 10; height: 104; flex-direction: row; justify-content: space-between') -- 29
+	_with_0:css('margin: 0, 10, 40; height: 104; flex-direction: row; justify-content: space-between') -- 29
 	local _exp_0 = App.platform -- 30
 	if "iOS" == _exp_0 or "Android" == _exp_0 then -- 31
 		_with_0:addChild((function() -- 32

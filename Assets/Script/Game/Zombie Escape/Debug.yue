@@ -21,7 +21,7 @@ zombieGroup = Group ["zombie", "unit"]
 userControl = false
 playerChoice = 1
 controlChoice = switch App.platform
-	when "iOS", "Android" then 0
+	when "iOS", "Android", "macOS" then 0
 	else 1
 camZoom = world.camera.zoom
 decisions = []

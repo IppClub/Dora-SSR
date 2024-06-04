@@ -3,6 +3,8 @@ local Digit = require("UI.Control.Digit") -- 2
 return function(args) -- 1
 local _ENV = Dora(args) -- 1
 local node1 = Node() -- 4
+node1.scaleX = 0.75 -- 4
+node1.scaleY = 0.75 -- 4
 local hpShow = Playable("model:Model/hpshow") -- 5
 hpShow.scaleX = 2 -- 5
 hpShow.scaleY = 2 -- 5
