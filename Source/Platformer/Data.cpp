@@ -48,6 +48,7 @@ void Data::apply(PhysicsWorld* world) {
 		world->setShouldContact(Hide, p, false);
 		world->setShouldContact(p, p, false);
 	}
+	world->setShouldContact(Hide, Hide, false);
 	world->setShouldContact(Hide, PSensor, false);
 	world->setShouldContact(Hide, SenseAll, false);
 	world->setShouldContact(Hide, Terrain, true);
