@@ -11,6 +11,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Audio/Sound.h"
 
 #include "Basic/Application.h"
+#include "Basic/Director.h"
 #include "Basic/Content.h"
 #include "Basic/Scheduler.h"
 #include "Cache/SoundCache.h"
@@ -157,6 +158,9 @@ void Audio::stopStream(float fadeTime) {
 		if (_currentVoice && _soloud->isValidVoiceHandle(_currentVoice)) {
 			_soloud->fadeVolume(_currentVoice, 0.0f, fadeTime);
 			_soloud->scheduleStop(_currentVoice, fadeTime);
+			SharedDirector.getSystemScheduler()->schedule(once([fadeTime, stream = _currentStream]() -> Job {
+				co_sleep(fadeTime);
+			}));
 		}
 	} else if (_currentStream) {
 		if (auto stream = _currentStream->getStream()) {

@@ -372,8 +372,8 @@ local function loadExcel()
 end
 
 local ImGui <const> = require("ImGui")
-local AlignNode <const> = require("UI.Control.Basic.AlignNode")
 local CircleButton <const> = require("UI.Control.Basic.CircleButton")
+local AlignNode <const> = require("AlignNode")
 local Menu <const> = require("Menu")
 local Keyboard <const> = require("Keyboard")
 
@@ -389,28 +389,34 @@ local function updatePlayerControl(key: string, flag: boolean, vpad: boolean)
 	end)
 end
 
-local uiScale = App.devicePixelRatio
-local alignNode = AlignNode {
-	isRoot = true,
-	inUI = true
-}
-Director.ui:addChild(alignNode)
+local ui = AlignNode(true)
+ui:css('flex-direction: column-reverse');
+ui:addTo(Director.ui)
 
-local leftAlign = AlignNode {
-	hAlign = "Left",
-	vAlign = "Bottom"
-}
-alignNode:addChild(leftAlign)
+local bottomAlign = AlignNode()
+bottomAlign:css([[
+	height: 80;
+	justify-content: space-between;
+	padding: 0, 20, 20;
+	flex-direction: row
+]]);
+bottomAlign:addTo(ui)
+
+local leftAlign = AlignNode()
+leftAlign:css('width: 130; height: 60')
+leftAlign:addTo(bottomAlign)
 
 local leftMenu = Menu()
+leftMenu.size = Size(250, 120)
+leftMenu.anchor = Vec2.zero
+leftMenu.scaleX = 0.5
+leftMenu.scaleY = 0.5
 leftAlign:addChild(leftMenu)
 
 local leftButton = CircleButton {
 	text = "左(a)",
-	x = 20 * uiScale,
-	y = 60 * uiScale,
-	radius = 30 * uiScale,
-	fontSize = math.floor(18 * uiScale)
+	radius = 60,
+	fontSize = 36
 }
 leftButton.anchor = Vec2.zero
 leftButton:slot("TapBegan", function()
@@ -419,14 +425,13 @@ end)
 leftButton:slot("TapEnded", function()
 	updatePlayerControl("keyLeft", false, true)
 end)
-leftMenu:addChild(leftButton)
+leftButton:addTo(leftMenu)
 
 local rightButton = CircleButton {
 	text = "右(d)",
-	x = 90 * uiScale,
-	y = 60 * uiScale,
-	radius = 30 * uiScale,
-	fontSize = math.floor(18 * uiScale)
+	x = 130,
+	radius = 60,
+	fontSize = 36
 }
 rightButton.anchor = Vec2.zero
 rightButton:slot("TapBegan", function()
@@ -435,23 +440,23 @@ end)
 rightButton:slot("TapEnded", function()
 	updatePlayerControl("keyRight", false, true)
 end)
-leftMenu:addChild(rightButton)
+rightButton:addTo(leftMenu)
 
-local rightAlign = AlignNode {
-	hAlign = "Right",
-	vAlign = "Bottom"
-}
-alignNode:addChild(rightAlign)
+local rightAlign = AlignNode()
+rightAlign:css('width: 60; height: 60')
+rightAlign:addTo(bottomAlign)
 
 local rightMenu = Menu()
-rightAlign:addChild(rightMenu)
+rightMenu.size = Size(120, 120)
+rightMenu.anchor = Vec2.zero
+rightMenu.scaleX = 0.5
+rightMenu.scaleY = 0.5
+rightMenu:addTo(rightAlign)
 
 local jumpButton = CircleButton {
 	text = "跳(j)",
-	x = -80 * uiScale,
-	y = 60 * uiScale,
-	radius = 30 * uiScale,
-	fontSize = math.floor(18 * uiScale)
+	radius = 60,
+	fontSize = 36
 }
 jumpButton.anchor = Vec2.zero
 jumpButton:slot("TapBegan", function()
@@ -460,11 +465,9 @@ end)
 jumpButton:slot("TapEnded", function()
 	updatePlayerControl("keyJump", false, true)
 end)
-rightMenu:addChild(jumpButton)
+jumpButton:addTo(rightMenu)
 
-alignNode:alignLayout()
-
-alignNode:schedule(function(): boolean
+ui:schedule(function(): boolean
 	local keyA = Keyboard:isKeyPressed "A"
 	local keyD = Keyboard:isKeyPressed "D"
 	local keyJ = Keyboard:isKeyPressed "J"

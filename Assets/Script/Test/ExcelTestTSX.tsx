@@ -1,7 +1,7 @@
 // @preview-file on
 import { React, toNode } from 'DoraX';
 import { Data, PlatformWorld, Unit, UnitAction } from 'Platformer';
-import { App, Body, BodyMoveType, Color, Color3, Dictionary, GSlot, Rect, Size, Vec2, View, loop, once, sleep, Array, Observer, EntityEvent, Sprite, Spawn, Ease, Y, Slot, tolua, Scale, Opacity, Content, Group, Entity, Component, Director, Keyboard, KeyName, TypeName } from 'Dora';
+import { App, Body, BodyMoveType, Color, Color3, Dictionary, GSlot, Rect, Size, Vec2, View, loop, once, sleep, Array, Observer, EntityEvent, Sprite, Spawn, Ease, Y, Slot, tolua, Scale, Opacity, Content, Group, Entity, Component, Director, Keyboard, KeyName, TypeName, ButtonName } from 'Dora';
 import { DecisionTree, toAI } from 'PlatformerX';
 
 const TerrainLayer = 0;
@@ -330,9 +330,7 @@ function loadExcel(this: void) {
 	}
 }
 
-import * as AlignNodeCreate from "UI/Control/Basic/AlignNode";
 import * as CircleButtonCreate from "UI/Control/Basic/CircleButton";
-import { HAlignMode, VAlignMode, AlignNode } from 'UI/Control/Basic/AlignNode';
 import { SetCond, WindowFlag } from 'ImGui';
 import * as ImGui from 'ImGui';
 
@@ -349,24 +347,6 @@ function updatePlayerControl(this: void, key: string, flag: boolean, vpad: boole
 	})
 }
 
-const uiScale = App.devicePixelRatio;
-
-interface AlignNodeProps extends JSX.Node {
-	root?: boolean;
-	ui?: boolean;
-	hAlign?: HAlignMode;
-	vAlign?: VAlignMode;
-}
-
-function AlignNode(props: AlignNodeProps) {
-	return <custom-node onCreate={() => AlignNodeCreate({
-		isRoot: props.root,
-		inUI: props.ui,
-		hAlign: props.hAlign,
-		vAlign: props.vAlign
-	})} {...props}/>;
-}
-
 interface CircleButtonProps extends JSX.Node {
 	text: string;
 }
@@ -374,44 +354,60 @@ interface CircleButtonProps extends JSX.Node {
 function CircleButton(props: CircleButtonProps) {
 	return <custom-node onCreate={() => CircleButtonCreate({
 		text: props.text,
-		radius: 30 * uiScale,
-		fontSize: math.floor(18 * uiScale)
+		radius: 60,
+		fontSize: 36
 	})} {...props}/>
 }
 
 const ui = toNode(
-	<AlignNode root ui>
-		<AlignNode hAlign={HAlignMode.Left} vAlign={VAlignMode.Bottom}>
-			<menu>
-				<CircleButton
-					text={"Left\n(a)"} x={20 * uiScale} y={60 * uiScale} anchorX={0} anchorY={0}
-					onTapBegan={() => updatePlayerControl("keyLeft", true, true)}
-					onTapEnded={() => updatePlayerControl("keyLeft", false, true)}
-				/>
-				<CircleButton
-					text={"Right\n(a)"} x={90 * uiScale} y={60 * uiScale} anchorX={0} anchorY={0}
-					onTapBegan={() => updatePlayerControl("keyRight", true, true)}
-					onTapEnded={() => updatePlayerControl("keyRight", false, true)}
-				/>
-			</menu>
-		</AlignNode>
-		<AlignNode hAlign={HAlignMode.Right} vAlign={VAlignMode.Bottom}>
-			<menu>
-				<CircleButton
-					text={"Jump\n(j)"} x={-80 * uiScale} y={60 * uiScale} anchorX={0} anchorY={0}
-					onTapBegan={() => updatePlayerControl("keyJump", true, true)}
-					onTapEnded={() => updatePlayerControl("keyJump", false, true)}
-				/>
-			</menu>
-		</AlignNode>
-	</AlignNode>
+	<align-node windowRoot style={{flexDirection: 'column-reverse'}}
+		onButtonDown={(id, buttonName) => {
+			if (id !== 0) return;
+			switch (buttonName) {
+				case ButtonName.dpleft: updatePlayerControl("keyLeft", true, true); break;
+				case ButtonName.dpright: updatePlayerControl("keyRight", true, true); break;
+				case ButtonName.b: updatePlayerControl("keyJump", true, true); break;
+			}
+		}}
+		onButtonUp={(id, buttonName) => {
+			if (id !== 0) return;
+			switch (buttonName) {
+				case ButtonName.dpleft: updatePlayerControl("keyLeft", false, true); break;
+				case ButtonName.dpright: updatePlayerControl("keyRight", false, true); break;
+				case ButtonName.b: updatePlayerControl("keyJump", false, true); break;
+			}
+		}}>
+		<align-node style={{height: 80, justifyContent: 'space-between', padding: [0, 20, 20], flexDirection: 'row'}}>
+			<align-node style={{width: 130, height: 60}}>
+				<menu width={250} height={120} anchorX={0} anchorY={0} scaleX={0.5} scaleY={0.5}>
+					<CircleButton
+						text={"Left\n(a)"} anchorX={0} anchorY={0}
+						onTapBegan={() => updatePlayerControl("keyLeft", true, true)}
+						onTapEnded={() => updatePlayerControl("keyLeft", false, true)}
+					/>
+					<CircleButton
+						text={"Right\n(a)"} x={130} anchorX={0} anchorY={0}
+						onTapBegan={() => updatePlayerControl("keyRight", true, true)}
+						onTapEnded={() => updatePlayerControl("keyRight", false, true)}
+					/>
+				</menu>
+			</align-node>
+			<align-node style={{width: 60, height: 60}}>
+				<menu width={120} height={120} anchorX={0} anchorY={0} scaleX={0.5} scaleY={0.5}>
+					<CircleButton
+						text={"Jump\n(j)"} anchorX={0} anchorY={0}
+						onTapBegan={() => updatePlayerControl("keyJump", true, true)}
+						onTapEnded={() => updatePlayerControl("keyJump", false, true)}
+					/>
+				</menu>
+			</align-node>
+		</align-node>
+	</align-node>
 );
 
 if (ui) {
-	const alignNode = ui as AlignNode.Type;
-	alignNode.addTo(Director.ui);
-	alignNode.alignLayout();
-	alignNode.schedule(() => {
+	ui.addTo(Director.ui);
+	ui.schedule(() => {
 		const keyA = Keyboard.isKeyPressed(KeyName.A);
 		const keyD = Keyboard.isKeyPressed(KeyName.D);
 		const keyJ = Keyboard.isKeyPressed(KeyName.J);

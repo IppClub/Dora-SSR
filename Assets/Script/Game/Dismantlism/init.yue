@@ -16,14 +16,12 @@ Content\insertSearchPath 1, scriptPath
 
 import "BodyEx"
 import "UI.View.Shape.SolidRect"
-import "UI.Control.Basic.AlignNode"
 import "Utils" as :Struct, :Set
 
 root = with Node!
 	\slot "Cleanup", -> Audio\stopStream 0.2
 ui = with Node!
-	.x = -100
-	.y = -50
+	.scaleX = .scaleY = 0.4
 	\addChild Sprite "Model/duality.clip|stat"
 score = 0
 scoreTxt = with Label "sarasa-mono-sc-regular", 40
@@ -41,18 +39,19 @@ world = with PhysicsWorld!
 isSpace = true
 switchScene = nil
 
+center = nil
 spaceBack = nil
 dailyBack = nil
-center = AlignNode hAlign: "Center", vAlign: "Center"
-with AlignNode isRoot: true, inUI: false
+Director.ui\addChild with AlignNode true
+	\css "flex-direction: column"
 	\slot "AlignLayout", (w, h) ->
 		worldScale = w / 2970
 		root.scaleX = worldScale
 		root.scaleY = worldScale
-		ui.scaleX = worldScale
-		ui.scaleY = worldScale
+		center.position = Vec2 w / 2, h / 2
 		spaceBack\removeFromParent! if spaceBack
 		spaceBack = with Node!
+			.position = Vec2 w / 2, h / 2
 			.visible = isSpace
 			.order = -1
 			\addChild with Grid "Model/duality.clip|space", 1, 1
@@ -72,8 +71,10 @@ with AlignNode isRoot: true, inUI: false
 						.y = 3000 - (y - 1) * 1000
 				\perform X 10, 0, -1000 * worldScale
 				\slot "ActionEnd", -> \perform X 10, 0, -1000 * worldScale
+		\addChild spaceBack
 		dailyBack\removeFromParent! if dailyBack
 		dailyBack = with Grid "Model/duality.clip|day", 1, 1
+			.position = Vec2 w / 2, h / 2
 			.visible = not isSpace
 			.order = -1
 			\moveUV 1, 1, Vec2 1, 1
@@ -82,15 +83,23 @@ with AlignNode isRoot: true, inUI: false
 			\moveUV 2, 2, Vec2 -1, -1
 			.scaleX = w / 8
 			.scaleY = h / 1078
-	\addChild with AlignNode hAlign: "Center", vAlign: "Bottom"
-		\addChild root
-	\addChild with AlignNode hAlign: "Right", vAlign: "Top"
-		\addChild ui
-	\addChild with center
+		\addChild dailyBack
+	\addChild with AlignNode!
+		.order = 1
+		\css "height: 30%; flex-direction: row-reverse"
+		\addChild with AlignNode!
+			\css "height: 25; margin-right: 45"
+			\addChild ui
+	\addChild with center = AlignNode!
+		.order = 2
+		\css "height: 40%"
 		\addChild with Node!
 			.touchEnabled = true
 			.swallowTouches = true
-			\addChild Sprite "Model/duality.clip|dismantlism"
+			\addChild with banner = Sprite "Model/duality.clip|dismantlism"
+				center\slot "AlignLayout", (w, h) ->
+					.position = Vec2 w / 2, h / 2
+					.scaleX = .scaleY = 0.9 * math.min w / banner.width, h / banner.height
 			\perform Sequence(
 				Delay 1
 				Spawn(
@@ -102,8 +111,12 @@ with AlignNode isRoot: true, inUI: false
 			\slot "Start", ->
 				isSpace = false
 				switchScene!
+				center\slot "AlignLayout", nil
 				\removeFromParent!
-	\alignLayout!
+	\addChild with AlignNode!
+		\css "height: 30%"
+		\addChild root
+		\slot "AlignLayout", (w) -> root.x = w / 2
 
 moveJoint = nil
 movingBody = nil
@@ -154,18 +167,19 @@ dailyItems = Set
 spaceBodies = []
 dailyBodies = []
 
-switchScene = ->
+switchScene = (init) ->
 	if isSpace
-		Audio\playStream "Audio/Dismantlism Space.ogg", true, 0.2
-		dailyBack\perform Sequence(
-			Show!
-			Opacity 0.5, 1, 0
-			Hide!
-		)
-		spaceBack\perform Sequence(
-			Show!
-			Opacity 0.5, 0, 1
-		)
+		Audio\playStream "Audio/Dismantlism Space.ogg", true
+		unless init
+			dailyBack\perform Sequence(
+				Show!
+				Opacity 0.5, 1, 0
+				Hide!
+			)
+			spaceBack\perform Sequence(
+				Show!
+				Opacity 0.5, 0, 1
+			)
 		for body in *dailyBodies
 			with body.children[1]
 				if .actionCount == 0
@@ -182,16 +196,17 @@ switchScene = ->
 						Scale 0.5, 0, 1, Ease.OutBack
 					)
 	else
-		Audio\playStream "Audio/Dismantlism Daily.ogg", true, 0.2
-		spaceBack\perform Sequence(
-			Show!
-			Opacity 0.5, 1, 0
-			Hide!
-		)
-		dailyBack\perform Sequence(
-			Show!
-			Opacity 0.5, 0, 1
-		)
+		Audio\playStream "Audio/Dismantlism Daily.ogg", true
+		unless init
+			spaceBack\perform Sequence(
+				Show!
+				Opacity 0.5, 1, 0
+				Hide!
+			)
+			dailyBack\perform Sequence(
+				Show!
+				Opacity 0.5, 0, 1
+			)
 		for body in *spaceBodies
 			with body.children[1]
 				if .actionCount == 0
@@ -326,7 +341,7 @@ buildScene = ->
 										\slot "End", -> restartScene!
 
 buildScene!
-switchScene!
+switchScene true
 
 restartScene = ->
 	score = 0

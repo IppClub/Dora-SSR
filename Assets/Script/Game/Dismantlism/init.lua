@@ -1,4 +1,4 @@
--- [yue]: Script/Game/Dismantlism/init.yue
+-- [yue]: init.yue
 local Path = Dora.Path -- 1
 local Content = Dora.Content -- 1
 local Node = Dora.Node -- 1
@@ -7,9 +7,12 @@ local Sprite = Dora.Sprite -- 1
 local Label = Dora.Label -- 1
 local Color3 = Dora.Color3 -- 1
 local PhysicsWorld = Dora.PhysicsWorld -- 1
-local Grid = Dora.Grid -- 1
+local Director = Dora.Director -- 1
+local AlignNode = Dora.AlignNode -- 1
 local Vec2 = Dora.Vec2 -- 1
+local Grid = Dora.Grid -- 1
 local X = Dora.X -- 1
+local math = _G.math -- 1
 local Sequence = Dora.Sequence -- 1
 local Delay = Dora.Delay -- 1
 local Spawn = Dora.Spawn -- 1
@@ -33,418 +36,441 @@ end -- 14
 Content:insertSearchPath(1, scriptPath) -- 15
 local BodyEx = require("BodyEx") -- 17
 local SolidRect = require("UI.View.Shape.SolidRect") -- 18
-local AlignNode = require("UI.Control.Basic.AlignNode") -- 19
-local Struct, Set -- 20
-do -- 20
-	local _obj_0 = require("Utils") -- 20
-	Struct, Set = _obj_0.Struct, _obj_0.Set -- 20
-end -- 20
-local root -- 22
-do -- 22
-	local _with_0 = Node() -- 22
-	_with_0:slot("Cleanup", function() -- 23
-		return Audio:stopStream(0.2) -- 23
-	end) -- 23
-	root = _with_0 -- 22
-end -- 22
-local ui -- 24
-do -- 24
-	local _with_0 = Node() -- 24
-	_with_0.x = -100 -- 25
-	_with_0.y = -50 -- 26
-	_with_0:addChild(Sprite("Model/duality.clip|stat")) -- 27
-	ui = _with_0 -- 24
-end -- 24
-local score = 0 -- 28
-local scoreTxt -- 29
-do -- 29
-	local _with_0 = Label("sarasa-mono-sc-regular", 40) -- 29
-	_with_0.textAlign = "Center" -- 30
-	_with_0.color3 = Color3(0x0) -- 31
-	_with_0.text = "0" -- 32
-	_with_0:addTo(ui) -- 33
-	scoreTxt = _with_0 -- 29
-end -- 29
-local world -- 35
-do -- 35
-	local _with_0 = PhysicsWorld() -- 35
-	_with_0.y = 405 -- 36
-	_with_0:setShouldContact(0, 0, true) -- 37
-	_with_0:setShouldContact(0, 1, false) -- 38
-	_with_0:addTo(root) -- 39
-	world = _with_0 -- 35
-end -- 35
-local isSpace = true -- 41
-local switchScene = nil -- 42
-local spaceBack = nil -- 44
-local dailyBack = nil -- 45
-local center = AlignNode({ -- 46
-	hAlign = "Center", -- 46
-	vAlign = "Center" -- 46
-}) -- 46
-local _anon_func_0 = function(Grid, Vec2, _with_1, h, w) -- 64
-	local _with_0 = Grid("Model/duality.clip|space", 1, 1) -- 58
-	_with_0:moveUV(1, 1, Vec2(1, 1)) -- 59
-	_with_0:moveUV(2, 1, Vec2(-1, 1)) -- 60
-	_with_0:moveUV(1, 2, Vec2(1, -1)) -- 61
-	_with_0:moveUV(2, 2, Vec2(-1, -1)) -- 62
-	_with_0.scaleX = w / 8 -- 63
-	_with_0.scaleY = h / 1078 -- 64
-	return _with_0 -- 58
-end -- 58
-local _anon_func_1 = function(Sprite, _with_2, x, y) -- 72
-	local _with_0 = Sprite("Model/duality.clip|stary") -- 69
-	_with_0.anchorX = 0 -- 70
-	_with_0.x = -3000 + (x - 1) * 1000 -- 71
-	_with_0.y = 3000 - (y - 1) * 1000 -- 72
-	return _with_0 -- 69
-end -- 69
-do -- 47
-	local _with_0 = AlignNode({ -- 47
-		isRoot = true, -- 47
-		inUI = false -- 47
-	}) -- 47
-	_with_0:slot("AlignLayout", function(w, h) -- 48
-		local worldScale = w / 2970 -- 49
-		root.scaleX = worldScale -- 50
-		root.scaleY = worldScale -- 51
-		ui.scaleX = worldScale -- 52
-		ui.scaleY = worldScale -- 53
-		if spaceBack then -- 54
-			spaceBack:removeFromParent() -- 54
-		end -- 54
-		do -- 55
-			local _with_1 = Node() -- 55
-			_with_1.visible = isSpace -- 56
-			_with_1.order = -1 -- 57
-			_with_1:addChild(_anon_func_0(Grid, Vec2, _with_1, h, w)) -- 58
-			_with_1:addChild((function() -- 65
-				local _with_2 = Node() -- 65
-				_with_2.scaleX = worldScale -- 66
-				_with_2.scaleY = worldScale -- 67
-				for y = 1, 8 do -- 68
-					for x = 1, 8 do -- 68
-						_with_2:addChild(_anon_func_1(Sprite, _with_2, x, y)) -- 69
-					end -- 72
-				end -- 72
-				_with_2:perform(X(10, 0, -1000 * worldScale)) -- 73
-				_with_2:slot("ActionEnd", function() -- 74
-					return _with_2:perform(X(10, 0, -1000 * worldScale)) -- 74
-				end) -- 74
-				return _with_2 -- 65
-			end)()) -- 65
-			spaceBack = _with_1 -- 55
-		end -- 55
+local Struct, Set -- 19
+do -- 19
+	local _obj_0 = require("Utils") -- 19
+	Struct, Set = _obj_0.Struct, _obj_0.Set -- 19
+end -- 19
+local root -- 21
+do -- 21
+	local _with_0 = Node() -- 21
+	_with_0:slot("Cleanup", function() -- 22
+		return Audio:stopStream(0.2) -- 22
+	end) -- 22
+	root = _with_0 -- 21
+end -- 21
+local ui -- 23
+do -- 23
+	local _with_0 = Node() -- 23
+	_with_0.scaleX = 0.4 -- 24
+	_with_0.scaleY = 0.4 -- 24
+	_with_0:addChild(Sprite("Model/duality.clip|stat")) -- 25
+	ui = _with_0 -- 23
+end -- 23
+local score = 0 -- 26
+local scoreTxt -- 27
+do -- 27
+	local _with_0 = Label("sarasa-mono-sc-regular", 40) -- 27
+	_with_0.textAlign = "Center" -- 28
+	_with_0.color3 = Color3(0x0) -- 29
+	_with_0.text = "0" -- 30
+	_with_0:addTo(ui) -- 31
+	scoreTxt = _with_0 -- 27
+end -- 27
+local world -- 33
+do -- 33
+	local _with_0 = PhysicsWorld() -- 33
+	_with_0.y = 405 -- 34
+	_with_0:setShouldContact(0, 0, true) -- 35
+	_with_0:setShouldContact(0, 1, false) -- 36
+	_with_0:addTo(root) -- 37
+	world = _with_0 -- 33
+end -- 33
+local isSpace = true -- 39
+local switchScene = nil -- 40
+local center = nil -- 42
+local spaceBack = nil -- 43
+local dailyBack = nil -- 44
+local _anon_func_0 = function(Grid, Vec2, _with_1, h, w) -- 63
+	local _with_0 = Grid("Model/duality.clip|space", 1, 1) -- 57
+	_with_0:moveUV(1, 1, Vec2(1, 1)) -- 58
+	_with_0:moveUV(2, 1, Vec2(-1, 1)) -- 59
+	_with_0:moveUV(1, 2, Vec2(1, -1)) -- 60
+	_with_0:moveUV(2, 2, Vec2(-1, -1)) -- 61
+	_with_0.scaleX = w / 8 -- 62
+	_with_0.scaleY = h / 1078 -- 63
+	return _with_0 -- 57
+end -- 57
+local _anon_func_1 = function(Sprite, _with_2, x, y) -- 71
+	local _with_0 = Sprite("Model/duality.clip|stary") -- 68
+	_with_0.anchorX = 0 -- 69
+	_with_0.x = -3000 + (x - 1) * 1000 -- 70
+	_with_0.y = 3000 - (y - 1) * 1000 -- 71
+	return _with_0 -- 68
+end -- 68
+Director.ui:addChild((function() -- 45
+	local _with_0 = AlignNode(true) -- 45
+	_with_0:css("flex-direction: column") -- 46
+	_with_0:slot("AlignLayout", function(w, h) -- 47
+		local worldScale = w / 2970 -- 48
+		root.scaleX = worldScale -- 49
+		root.scaleY = worldScale -- 50
+		center.position = Vec2(w / 2, h / 2) -- 51
+		if spaceBack then -- 52
+			spaceBack:removeFromParent() -- 52
+		end -- 52
+		do -- 53
+			local _with_1 = Node() -- 53
+			_with_1.position = Vec2(w / 2, h / 2) -- 54
+			_with_1.visible = isSpace -- 55
+			_with_1.order = -1 -- 56
+			_with_1:addChild(_anon_func_0(Grid, Vec2, _with_1, h, w)) -- 57
+			_with_1:addChild((function() -- 64
+				local _with_2 = Node() -- 64
+				_with_2.scaleX = worldScale -- 65
+				_with_2.scaleY = worldScale -- 66
+				for y = 1, 8 do -- 67
+					for x = 1, 8 do -- 67
+						_with_2:addChild(_anon_func_1(Sprite, _with_2, x, y)) -- 68
+					end -- 71
+				end -- 71
+				_with_2:perform(X(10, 0, -1000 * worldScale)) -- 72
+				_with_2:slot("ActionEnd", function() -- 73
+					return _with_2:perform(X(10, 0, -1000 * worldScale)) -- 73
+				end) -- 73
+				return _with_2 -- 64
+			end)()) -- 64
+			spaceBack = _with_1 -- 53
+		end -- 53
+		_with_0:addChild(spaceBack) -- 74
 		if dailyBack then -- 75
 			dailyBack:removeFromParent() -- 75
 		end -- 75
-		local _with_1 = Grid("Model/duality.clip|day", 1, 1) -- 76
-		_with_1.visible = not isSpace -- 77
-		_with_1.order = -1 -- 78
-		_with_1:moveUV(1, 1, Vec2(1, 1)) -- 79
-		_with_1:moveUV(2, 1, Vec2(-1, 1)) -- 80
-		_with_1:moveUV(1, 2, Vec2(1, -1)) -- 81
-		_with_1:moveUV(2, 2, Vec2(-1, -1)) -- 82
-		_with_1.scaleX = w / 8 -- 83
-		_with_1.scaleY = h / 1078 -- 84
-		dailyBack = _with_1 -- 76
-	end) -- 48
-	_with_0:addChild((function() -- 85
-		local _with_1 = AlignNode({ -- 85
-			hAlign = "Center", -- 85
-			vAlign = "Bottom" -- 85
-		}) -- 85
-		_with_1:addChild(root) -- 86
-		return _with_1 -- 85
-	end)()) -- 85
+		do -- 76
+			local _with_1 = Grid("Model/duality.clip|day", 1, 1) -- 76
+			_with_1.position = Vec2(w / 2, h / 2) -- 77
+			_with_1.visible = not isSpace -- 78
+			_with_1.order = -1 -- 79
+			_with_1:moveUV(1, 1, Vec2(1, 1)) -- 80
+			_with_1:moveUV(2, 1, Vec2(-1, 1)) -- 81
+			_with_1:moveUV(1, 2, Vec2(1, -1)) -- 82
+			_with_1:moveUV(2, 2, Vec2(-1, -1)) -- 83
+			_with_1.scaleX = w / 8 -- 84
+			_with_1.scaleY = h / 1078 -- 85
+			dailyBack = _with_1 -- 76
+		end -- 76
+		return _with_0:addChild(dailyBack) -- 86
+	end) -- 47
 	_with_0:addChild((function() -- 87
-		local _with_1 = AlignNode({ -- 87
-			hAlign = "Right", -- 87
-			vAlign = "Top" -- 87
-		}) -- 87
-		_with_1:addChild(ui) -- 88
+		local _with_1 = AlignNode() -- 87
+		_with_1.order = 1 -- 88
+		_with_1:css("height: 30%; flex-direction: row-reverse") -- 89
+		_with_1:addChild((function() -- 90
+			local _with_2 = AlignNode() -- 90
+			_with_2:css("height: 25; margin-right: 45") -- 91
+			_with_2:addChild(ui) -- 92
+			return _with_2 -- 90
+		end)()) -- 90
 		return _with_1 -- 87
 	end)()) -- 87
-	_with_0:addChild((function() -- 89
-		center:addChild((function() -- 90
-			local _with_1 = Node() -- 90
-			_with_1.touchEnabled = true -- 91
-			_with_1.swallowTouches = true -- 92
-			_with_1:addChild(Sprite("Model/duality.clip|dismantlism")) -- 93
-			_with_1:perform(Sequence(Delay(1), Spawn(Opacity(1, 1, 0, Ease.OutQuad), Y(1, 0, 100, Ease.InQuad)), Event("Start"))) -- 94
-			_with_1:slot("Start", function() -- 102
-				isSpace = false -- 103
-				switchScene() -- 104
-				return _with_1:removeFromParent() -- 105
-			end) -- 102
-			return _with_1 -- 90
-		end)()) -- 90
-		return center -- 89
-	end)()) -- 89
-	_with_0:alignLayout() -- 106
-end -- 47
-local moveJoint = nil -- 108
-local movingBody = nil -- 109
-do -- 110
-	local _with_0 = Node() -- 110
-	_with_0.touchEnabled = true -- 111
-	_with_0:slot("TapBegan", function(touch) -- 112
-		local worldPos = _with_0:convertToWorldSpace(touch.location) -- 113
-		local pos = world:convertToNodeSpace(worldPos) -- 114
-		return world:query(Rect(pos - Vec2(1, 1), Size(2, 2)), function(body) -- 115
-			if body.tag ~= "" and body.tag ~= (isSpace and "space" or "daily") then -- 116
-				return false -- 116
-			end -- 116
-			if moveJoint then -- 117
-				moveJoint:destroy() -- 117
-			end -- 117
-			moveJoint = Joint:move(true, body, pos, 400) -- 118
-			movingBody = body -- 119
-			return true -- 120
-		end) -- 120
-	end) -- 112
-	_with_0:slot("TapMoved", function(touch) -- 121
-		if moveJoint then -- 122
-			local worldPos = _with_0:convertToWorldSpace(touch.location) -- 123
-			local pos = world:convertToNodeSpace(worldPos) -- 124
-			moveJoint.position = pos -- 125
-		end -- 122
-	end) -- 121
-	_with_0:slot("TapEnded", function() -- 126
-		if moveJoint then -- 127
-			moveJoint:destroy() -- 128
-			moveJoint = nil -- 129
-			movingBody = nil -- 130
-		end -- 127
-	end) -- 126
-end -- 110
-local scene = require("scene") -- 132
-Struct.Body("name", "file", "position", "angle") -- 133
-Struct:load(scene) -- 134
-local spaceItems = Set({ -- 137
-	"rocket", -- 137
-	"satlite", -- 138
-	"spacestation", -- 139
-	"star1", -- 140
-	"star2", -- 141
-	"ufo", -- 142
-	"get" -- 143
-}) -- 136
-local dailyItems = Set({ -- 146
-	"baseball", -- 146
-	"burger", -- 147
-	"donut", -- 148
-	"fish", -- 149
-	"radio", -- 150
-	"tv", -- 151
-	"pizza" -- 152
-}) -- 145
-local spaceBodies = { } -- 154
-local dailyBodies = { } -- 155
-switchScene = function() -- 157
-	if isSpace then -- 158
-		Audio:playStream("Audio/Dismantlism Space.ogg", true, 0.2) -- 159
-		dailyBack:perform(Sequence(Show(), Opacity(0.5, 1, 0), Hide())) -- 160
-		spaceBack:perform(Sequence(Show(), Opacity(0.5, 0, 1))) -- 165
-		for _index_0 = 1, #dailyBodies do -- 169
-			local body = dailyBodies[_index_0] -- 169
-			local _with_0 = body.children[1] -- 170
-			if _with_0.actionCount == 0 then -- 171
-				_with_0:perform(Sequence(Show(), Scale(0.5, 1, 0, Ease.OutBack), Hide())) -- 172
-			end -- 171
-		end -- 176
-		for _index_0 = 1, #spaceBodies do -- 177
-			local body = spaceBodies[_index_0] -- 177
-			local _with_0 = body.children[1] -- 178
-			if _with_0.actionCount == 0 then -- 179
-				_with_0:perform(Sequence(Show(), Scale(0.5, 0, 1, Ease.OutBack))) -- 180
-			end -- 179
-		end -- 183
-	else -- 185
-		Audio:playStream("Audio/Dismantlism Daily.ogg", true, 0.2) -- 185
-		spaceBack:perform(Sequence(Show(), Opacity(0.5, 1, 0), Hide())) -- 186
-		dailyBack:perform(Sequence(Show(), Opacity(0.5, 0, 1))) -- 191
-		for _index_0 = 1, #spaceBodies do -- 195
-			local body = spaceBodies[_index_0] -- 195
-			local _with_0 = body.children[1] -- 196
-			if _with_0.actionCount == 0 then -- 197
-				_with_0:perform(Sequence(Show(), Scale(0.5, 1, 0, Ease.OutBack), Hide())) -- 198
-			end -- 197
-		end -- 202
-		for _index_0 = 1, #dailyBodies do -- 203
-			local body = dailyBodies[_index_0] -- 203
-			local _with_0 = body.children[1] -- 204
-			if _with_0.actionCount == 0 then -- 205
-				_with_0:perform(Sequence(Show(), Scale(0.5, 0, 1, Ease.OutBack))) -- 206
-			end -- 205
-		end -- 209
-	end -- 158
-end -- 157
-local restartScene = nil -- 211
-local gameEnded = false -- 212
-local _anon_func_2 = function(Color, Label, _with_0) -- 243
-	local _with_1 = Label("sarasa-mono-sc-regular", 80) -- 240
-	_with_1.textAlign = "Center" -- 241
-	_with_1.color = Color(0x66ffffff) -- 242
-	_with_1.text = "Drag It\nHere" -- 243
-	return _with_1 -- 240
-end -- 240
-local _anon_func_3 = function(Delay, Ease, Event, Node, Opacity, Scale, Sequence, Spawn, Sprite, _with_1, body) -- 278
-	local _with_0 = Node() -- 265
-	_with_0:addChild(Sprite("Model/duality.clip|window")) -- 266
-	_with_0:addChild(Sprite("Model/duality.clip|credits1")) -- 267
-	_with_0.position = body.position -- 268
-	_with_0:perform(Sequence(Spawn(Scale(0.5, 0, 1, Ease.OutBack), Opacity(0.5, 0, 1)), Delay(3), Scale(0.5, 1, 0, Ease.InBack), Event("End"))) -- 269
-	_with_0:slot("End", function() -- 278
-		return _with_0:removeFromParent() -- 278
-	end) -- 278
-	return _with_0 -- 265
-end -- 265
-local buildScene -- 213
-buildScene = function() -- 213
-	for i = 1, scene:count() do -- 214
-		local name, file, position, angle -- 215
-		do -- 215
-			local _obj_0 = scene:get(i) -- 220
-			name, file, position, angle = _obj_0.name, _obj_0.file, _obj_0.position, _obj_0.angle -- 215
-			if position == nil then -- 218
-				position = Vec2.zero -- 218
-			end -- 218
-			if angle == nil then -- 219
-				angle = 0 -- 219
-			end -- 219
-		end -- 220
-		local node = BodyEx(require(Path("Physics", file)), world, position, angle) -- 221
-		world:addChild(node) -- 222
-		if spaceItems[file] then -- 223
-			node.data:each(function(self) -- 224
-				self.tag = "space" -- 225
-				self.children[1].tag = file -- 226
-				spaceBodies[#spaceBodies + 1] = self -- 227
-			end) -- 224
-		elseif dailyItems[file] then -- 228
-			node.data:each(function(self) -- 229
-				self.tag = "daily" -- 230
-				self.children[1].tag = file -- 231
-				dailyBodies[#dailyBodies + 1] = self -- 232
-			end) -- 229
-		else -- 234
-			node.data:each(function(self) -- 234
-				if self.children and #self.children > 0 then -- 235
-					self.children[1].tag = file -- 235
-				end -- 235
-			end) -- 234
-		end -- 223
-		if "removearea" == file then -- 237
-			local _with_0 = node.data.rect -- 238
-			_with_0:addChild(SolidRect({ -- 239
-				x = -200, -- 239
-				y = -200, -- 239
-				width = 400, -- 239
-				height = 400, -- 239
-				color = 0x66000000 -- 239
-			})) -- 239
-			_with_0:addChild(_anon_func_2(Color, Label, _with_0)) -- 240
-			_with_0:slot("BodyEnter", function(body) -- 244
-				if body.tag ~= "" and body.tag ~= (isSpace and "space" or "daily") then -- 245
-					return -- 245
-				end -- 245
-				if body.group == 1 then -- 246
-					return -- 246
-				end -- 246
-				body.group = 1 -- 247
-				local _with_1 = body.children[1] -- 248
-				_with_1:perform(Sequence(Spawn(Opacity(0.5, 1, 0), Scale(0.5, 1, 1.5, Ease.OutBack)), Event("Destroy"))) -- 249
-				_with_1:slot("Destroy", function() -- 253
-					do -- 254
-						local _exp_0 = _with_1.tag -- 254
-						if "star2" == _exp_0 or "pizza" == _exp_0 then -- 255
-							score = score + 10 -- 256
-							isSpace = not isSpace -- 257
-							switchScene() -- 258
-						elseif "quit" == _exp_0 then -- 259
-							App:shutdown() -- 260
-						elseif "get" == _exp_0 or "fish" == _exp_0 then -- 261
-							score = score + 100 -- 262
-						elseif "credit" == _exp_0 then -- 263
-							score = score + 50 -- 264
-							world:addChild(_anon_func_3(Delay, Ease, Event, Node, Opacity, Scale, Sequence, Spawn, Sprite, _with_1, body)) -- 265
-						else -- 280
-							score = score + 10 -- 280
-						end -- 280
-					end -- 280
-					scoreTxt.text = tostring(score) -- 281
-					if score > 600 then -- 282
-						gameEnded = true -- 283
-						center:addChild((function() -- 284
-							local _with_2 = Node() -- 284
-							_with_2:addChild(Sprite("Model/duality.clip|window")) -- 285
-							_with_2:addChild(Sprite("Model/duality.clip|win")) -- 286
-							_with_2:perform(Sequence(Spawn(Scale(0.5, 0, 1, Ease.OutBack), Opacity(0.5, 0, 1)), Delay(3), Scale(0.5, 1, 0, Ease.InBack), Event("End"))) -- 287
-							_with_2:slot("End", function() -- 296
-								_with_2:removeFromParent() -- 297
-								return restartScene() -- 298
-							end) -- 296
-							return _with_2 -- 284
-						end)()) -- 284
-					end -- 282
-					if movingBody == body and moveJoint then -- 299
-						moveJoint:destroy() -- 300
-						moveJoint = nil -- 301
-						movingBody = nil -- 302
-					end -- 299
-					return body:removeFromParent() -- 303
-				end) -- 253
-				return _with_1 -- 248
+	_with_0:addChild((function() -- 93
+		center = AlignNode() -- 93
+		center.order = 2 -- 94
+		center:css("height: 40%") -- 95
+		center:addChild((function() -- 96
+			local _with_1 = Node() -- 96
+			_with_1.touchEnabled = true -- 97
+			_with_1.swallowTouches = true -- 98
+			_with_1:addChild((function() -- 99
+				local banner = Sprite("Model/duality.clip|dismantlism") -- 99
+				center:slot("AlignLayout", function(w, h) -- 100
+					banner.position = Vec2(w / 2, h / 2) -- 101
+					do -- 102
+						local _tmp_0 = 0.9 * math.min(w / banner.width, h / banner.height) -- 102
+						banner.scaleX = _tmp_0 -- 102
+						banner.scaleY = _tmp_0 -- 102
+					end -- 102
+				end) -- 100
+				return banner -- 99
+			end)()) -- 99
+			_with_1:perform(Sequence(Delay(1), Spawn(Opacity(1, 1, 0, Ease.OutQuad), Y(1, 0, 100, Ease.InQuad)), Event("Start"))) -- 103
+			_with_1:slot("Start", function() -- 111
+				isSpace = false -- 112
+				switchScene() -- 113
+				center:slot("AlignLayout", nil) -- 114
+				return _with_1:removeFromParent() -- 115
+			end) -- 111
+			return _with_1 -- 96
+		end)()) -- 96
+		return center -- 93
+	end)()) -- 93
+	_with_0:addChild((function() -- 116
+		local _with_1 = AlignNode() -- 116
+		_with_1:css("height: 30%") -- 117
+		_with_1:addChild(root) -- 118
+		_with_1:slot("AlignLayout", function(w) -- 119
+			root.x = w / 2 -- 119
+		end) -- 119
+		return _with_1 -- 116
+	end)()) -- 116
+	return _with_0 -- 45
+end)()) -- 45
+local moveJoint = nil -- 121
+local movingBody = nil -- 122
+do -- 123
+	local _with_0 = Node() -- 123
+	_with_0.touchEnabled = true -- 124
+	_with_0:slot("TapBegan", function(touch) -- 125
+		local worldPos = _with_0:convertToWorldSpace(touch.location) -- 126
+		local pos = world:convertToNodeSpace(worldPos) -- 127
+		return world:query(Rect(pos - Vec2(1, 1), Size(2, 2)), function(body) -- 128
+			if body.tag ~= "" and body.tag ~= (isSpace and "space" or "daily") then -- 129
+				return false -- 129
+			end -- 129
+			if moveJoint then -- 130
+				moveJoint:destroy() -- 130
+			end -- 130
+			moveJoint = Joint:move(true, body, pos, 400) -- 131
+			movingBody = body -- 132
+			return true -- 133
+		end) -- 133
+	end) -- 125
+	_with_0:slot("TapMoved", function(touch) -- 134
+		if moveJoint then -- 135
+			local worldPos = _with_0:convertToWorldSpace(touch.location) -- 136
+			local pos = world:convertToNodeSpace(worldPos) -- 137
+			moveJoint.position = pos -- 138
+		end -- 135
+	end) -- 134
+	_with_0:slot("TapEnded", function() -- 139
+		if moveJoint then -- 140
+			moveJoint:destroy() -- 141
+			moveJoint = nil -- 142
+			movingBody = nil -- 143
+		end -- 140
+	end) -- 139
+end -- 123
+local scene = require("scene") -- 145
+Struct.Body("name", "file", "position", "angle") -- 146
+Struct:load(scene) -- 147
+local spaceItems = Set({ -- 150
+	"rocket", -- 150
+	"satlite", -- 151
+	"spacestation", -- 152
+	"star1", -- 153
+	"star2", -- 154
+	"ufo", -- 155
+	"get" -- 156
+}) -- 149
+local dailyItems = Set({ -- 159
+	"baseball", -- 159
+	"burger", -- 160
+	"donut", -- 161
+	"fish", -- 162
+	"radio", -- 163
+	"tv", -- 164
+	"pizza" -- 165
+}) -- 158
+local spaceBodies = { } -- 167
+local dailyBodies = { } -- 168
+switchScene = function(init) -- 170
+	if isSpace then -- 171
+		Audio:playStream("Audio/Dismantlism Space.ogg", true) -- 172
+		if not init then -- 173
+			dailyBack:perform(Sequence(Show(), Opacity(0.5, 1, 0), Hide())) -- 174
+			spaceBack:perform(Sequence(Show(), Opacity(0.5, 0, 1))) -- 179
+		end -- 173
+		for _index_0 = 1, #dailyBodies do -- 183
+			local body = dailyBodies[_index_0] -- 183
+			local _with_0 = body.children[1] -- 184
+			if _with_0.actionCount == 0 then -- 185
+				_with_0:perform(Sequence(Show(), Scale(0.5, 1, 0, Ease.OutBack), Hide())) -- 186
+			end -- 185
+		end -- 190
+		for _index_0 = 1, #spaceBodies do -- 191
+			local body = spaceBodies[_index_0] -- 191
+			local _with_0 = body.children[1] -- 192
+			if _with_0.actionCount == 0 then -- 193
+				_with_0:perform(Sequence(Show(), Scale(0.5, 0, 1, Ease.OutBack))) -- 194
+			end -- 193
+		end -- 197
+	else -- 199
+		Audio:playStream("Audio/Dismantlism Daily.ogg", true) -- 199
+		if not init then -- 200
+			spaceBack:perform(Sequence(Show(), Opacity(0.5, 1, 0), Hide())) -- 201
+			dailyBack:perform(Sequence(Show(), Opacity(0.5, 0, 1))) -- 206
+		end -- 200
+		for _index_0 = 1, #spaceBodies do -- 210
+			local body = spaceBodies[_index_0] -- 210
+			local _with_0 = body.children[1] -- 211
+			if _with_0.actionCount == 0 then -- 212
+				_with_0:perform(Sequence(Show(), Scale(0.5, 1, 0, Ease.OutBack), Hide())) -- 213
+			end -- 212
+		end -- 217
+		for _index_0 = 1, #dailyBodies do -- 218
+			local body = dailyBodies[_index_0] -- 218
+			local _with_0 = body.children[1] -- 219
+			if _with_0.actionCount == 0 then -- 220
+				_with_0:perform(Sequence(Show(), Scale(0.5, 0, 1, Ease.OutBack))) -- 221
+			end -- 220
+		end -- 224
+	end -- 171
+end -- 170
+local restartScene = nil -- 226
+local gameEnded = false -- 227
+local _anon_func_2 = function(Color, Label, _with_0) -- 258
+	local _with_1 = Label("sarasa-mono-sc-regular", 80) -- 255
+	_with_1.textAlign = "Center" -- 256
+	_with_1.color = Color(0x66ffffff) -- 257
+	_with_1.text = "Drag It\nHere" -- 258
+	return _with_1 -- 255
+end -- 255
+local _anon_func_3 = function(Delay, Ease, Event, Node, Opacity, Scale, Sequence, Spawn, Sprite, _with_1, body) -- 293
+	local _with_0 = Node() -- 280
+	_with_0:addChild(Sprite("Model/duality.clip|window")) -- 281
+	_with_0:addChild(Sprite("Model/duality.clip|credits1")) -- 282
+	_with_0.position = body.position -- 283
+	_with_0:perform(Sequence(Spawn(Scale(0.5, 0, 1, Ease.OutBack), Opacity(0.5, 0, 1)), Delay(3), Scale(0.5, 1, 0, Ease.InBack), Event("End"))) -- 284
+	_with_0:slot("End", function() -- 293
+		return _with_0:removeFromParent() -- 293
+	end) -- 293
+	return _with_0 -- 280
+end -- 280
+local buildScene -- 228
+buildScene = function() -- 228
+	for i = 1, scene:count() do -- 229
+		local name, file, position, angle -- 230
+		do -- 230
+			local _obj_0 = scene:get(i) -- 235
+			name, file, position, angle = _obj_0.name, _obj_0.file, _obj_0.position, _obj_0.angle -- 230
+			if position == nil then -- 233
+				position = Vec2.zero -- 233
+			end -- 233
+			if angle == nil then -- 234
+				angle = 0 -- 234
+			end -- 234
+		end -- 235
+		local node = BodyEx(require(Path("Physics", file)), world, position, angle) -- 236
+		world:addChild(node) -- 237
+		if spaceItems[file] then -- 238
+			node.data:each(function(self) -- 239
+				self.tag = "space" -- 240
+				self.children[1].tag = file -- 241
+				spaceBodies[#spaceBodies + 1] = self -- 242
+			end) -- 239
+		elseif dailyItems[file] then -- 243
+			node.data:each(function(self) -- 244
+				self.tag = "daily" -- 245
+				self.children[1].tag = file -- 246
+				dailyBodies[#dailyBodies + 1] = self -- 247
 			end) -- 244
-		elseif "safearea" == file then -- 304
-			local _with_0 = node.data.rect -- 305
-			_with_0:slot("BodyEnter", function(body) -- 306
-				if body == movingBody then -- 307
-					return -- 307
-				end -- 307
-				local tag = body.children[1].tag -- 308
-				if (name == "safe1" and tag == "get") or (name == "safe2" and tag == "fish") then -- 309
-					if not gameEnded then -- 311
-						gameEnded = true -- 312
-						return world:addChild((function() -- 313
-							local _with_1 = Node() -- 313
-							_with_1:addChild(Sprite("Model/duality.clip|window")) -- 314
-							_with_1:addChild(Sprite("Model/duality.clip|lose")) -- 315
-							_with_1.position = body.position -- 316
-							_with_1:perform(Sequence(Spawn(Scale(0.5, 0, 1, Ease.OutBack), Opacity(0.5, 0, 1)), Delay(2), Scale(0.5, 1, 0, Ease.InBack), Event("End"))) -- 317
-							_with_1:slot("End", function() -- 326
-								return restartScene() -- 326
-							end) -- 326
-							return _with_1 -- 313
-						end)()) -- 326
-					end -- 311
-				end -- 309
-			end) -- 306
-		end -- 326
-	end -- 326
-end -- 213
-buildScene() -- 328
-switchScene() -- 329
-restartScene = function() -- 331
-	score = 0 -- 332
-	scoreTxt.text = "0" -- 333
-	isSpace = false -- 334
-	gameEnded = false -- 335
-	if moveJoint then -- 336
-		moveJoint:destroy() -- 337
-		moveJoint = nil -- 338
-		movingBody = nil -- 339
-	end -- 336
-	world:removeFromParent() -- 340
-	do -- 341
-		local _with_0 = PhysicsWorld() -- 341
-		_with_0.y = 405 -- 342
-		_with_0:setShouldContact(0, 0, true) -- 343
-		_with_0:setShouldContact(0, 1, false) -- 344
-		_with_0:addTo(root) -- 345
-		world = _with_0 -- 341
+		else -- 249
+			node.data:each(function(self) -- 249
+				if self.children and #self.children > 0 then -- 250
+					self.children[1].tag = file -- 250
+				end -- 250
+			end) -- 249
+		end -- 238
+		if "removearea" == file then -- 252
+			local _with_0 = node.data.rect -- 253
+			_with_0:addChild(SolidRect({ -- 254
+				x = -200, -- 254
+				y = -200, -- 254
+				width = 400, -- 254
+				height = 400, -- 254
+				color = 0x66000000 -- 254
+			})) -- 254
+			_with_0:addChild(_anon_func_2(Color, Label, _with_0)) -- 255
+			_with_0:slot("BodyEnter", function(body) -- 259
+				if body.tag ~= "" and body.tag ~= (isSpace and "space" or "daily") then -- 260
+					return -- 260
+				end -- 260
+				if body.group == 1 then -- 261
+					return -- 261
+				end -- 261
+				body.group = 1 -- 262
+				local _with_1 = body.children[1] -- 263
+				_with_1:perform(Sequence(Spawn(Opacity(0.5, 1, 0), Scale(0.5, 1, 1.5, Ease.OutBack)), Event("Destroy"))) -- 264
+				_with_1:slot("Destroy", function() -- 268
+					do -- 269
+						local _exp_0 = _with_1.tag -- 269
+						if "star2" == _exp_0 or "pizza" == _exp_0 then -- 270
+							score = score + 10 -- 271
+							isSpace = not isSpace -- 272
+							switchScene() -- 273
+						elseif "quit" == _exp_0 then -- 274
+							App:shutdown() -- 275
+						elseif "get" == _exp_0 or "fish" == _exp_0 then -- 276
+							score = score + 100 -- 277
+						elseif "credit" == _exp_0 then -- 278
+							score = score + 50 -- 279
+							world:addChild(_anon_func_3(Delay, Ease, Event, Node, Opacity, Scale, Sequence, Spawn, Sprite, _with_1, body)) -- 280
+						else -- 295
+							score = score + 10 -- 295
+						end -- 295
+					end -- 295
+					scoreTxt.text = tostring(score) -- 296
+					if score > 600 then -- 297
+						gameEnded = true -- 298
+						center:addChild((function() -- 299
+							local _with_2 = Node() -- 299
+							_with_2:addChild(Sprite("Model/duality.clip|window")) -- 300
+							_with_2:addChild(Sprite("Model/duality.clip|win")) -- 301
+							_with_2:perform(Sequence(Spawn(Scale(0.5, 0, 1, Ease.OutBack), Opacity(0.5, 0, 1)), Delay(3), Scale(0.5, 1, 0, Ease.InBack), Event("End"))) -- 302
+							_with_2:slot("End", function() -- 311
+								_with_2:removeFromParent() -- 312
+								return restartScene() -- 313
+							end) -- 311
+							return _with_2 -- 299
+						end)()) -- 299
+					end -- 297
+					if movingBody == body and moveJoint then -- 314
+						moveJoint:destroy() -- 315
+						moveJoint = nil -- 316
+						movingBody = nil -- 317
+					end -- 314
+					return body:removeFromParent() -- 318
+				end) -- 268
+				return _with_1 -- 263
+			end) -- 259
+		elseif "safearea" == file then -- 319
+			local _with_0 = node.data.rect -- 320
+			_with_0:slot("BodyEnter", function(body) -- 321
+				if body == movingBody then -- 322
+					return -- 322
+				end -- 322
+				local tag = body.children[1].tag -- 323
+				if (name == "safe1" and tag == "get") or (name == "safe2" and tag == "fish") then -- 324
+					if not gameEnded then -- 326
+						gameEnded = true -- 327
+						return world:addChild((function() -- 328
+							local _with_1 = Node() -- 328
+							_with_1:addChild(Sprite("Model/duality.clip|window")) -- 329
+							_with_1:addChild(Sprite("Model/duality.clip|lose")) -- 330
+							_with_1.position = body.position -- 331
+							_with_1:perform(Sequence(Spawn(Scale(0.5, 0, 1, Ease.OutBack), Opacity(0.5, 0, 1)), Delay(2), Scale(0.5, 1, 0, Ease.InBack), Event("End"))) -- 332
+							_with_1:slot("End", function() -- 341
+								return restartScene() -- 341
+							end) -- 341
+							return _with_1 -- 328
+						end)()) -- 341
+					end -- 326
+				end -- 324
+			end) -- 321
+		end -- 341
 	end -- 341
-	buildScene() -- 346
-	return switchScene() -- 347
-end -- 331
+end -- 228
+buildScene() -- 343
+switchScene(true) -- 344
+restartScene = function() -- 346
+	score = 0 -- 347
+	scoreTxt.text = "0" -- 348
+	isSpace = false -- 349
+	gameEnded = false -- 350
+	if moveJoint then -- 351
+		moveJoint:destroy() -- 352
+		moveJoint = nil -- 353
+		movingBody = nil -- 354
+	end -- 351
+	world:removeFromParent() -- 355
+	do -- 356
+		local _with_0 = PhysicsWorld() -- 356
+		_with_0.y = 405 -- 357
+		_with_0:setShouldContact(0, 0, true) -- 358
+		_with_0:setShouldContact(0, 1, false) -- 359
+		_with_0:addTo(root) -- 360
+		world = _with_0 -- 356
+	end -- 356
+	buildScene() -- 361
+	return switchScene() -- 362
+end -- 346

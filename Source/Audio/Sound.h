@@ -71,7 +71,7 @@ private:
 	uint32_t _currentVoice;
 	Ref<SoundStream> _currentStream;
 	SoLoud::Soloud* _soloud;
-	SINGLETON_REF(Audio, Application);
+	SINGLETON_REF(Audio, Director);
 };
 
 #define SharedAudio \

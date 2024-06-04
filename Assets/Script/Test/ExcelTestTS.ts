@@ -1,6 +1,6 @@
 // @preview-file on
 import { Data, Decision, PlatformWorld, Unit, UnitAction } from 'Platformer';
-import { App, Body, BodyDef, BodyMoveType, Color, Dictionary, GSlot, Rect, Size, Vec2, View, loop, once, sleep, Array, Observer, EntityEvent, Sprite, Spawn, AngleY, Sequence, Ease, Y, Slot, tolua, Scale, Opacity, Content, Group, Entity, Component, Director, Menu, Keyboard, KeyName, TypeName } from 'Dora';
+import { App, Body, BodyDef, BodyMoveType, Color, Dictionary, GSlot, Rect, Size, Vec2, View, loop, once, sleep, Array, Observer, EntityEvent, Sprite, Spawn, AngleY, Sequence, Ease, Y, Slot, tolua, Scale, Opacity, Content, Group, Entity, Component, Director, Menu, Keyboard, KeyName, TypeName, AlignNode, ButtonName } from 'Dora';
 import * as Rectangle from 'UI/View/Shape/Rectangle';
 
 const TerrainLayer = 0;
@@ -334,9 +334,7 @@ function loadExcel(this: void) {
 	}
 }
 
-import * as AlignNode from "UI/Control/Basic/AlignNode";
 import * as CircleButton from "UI/Control/Basic/CircleButton";
-import { HAlignMode, VAlignMode } from 'UI/Control/Basic/AlignNode';
 import { SetCond, WindowFlag } from 'ImGui';
 import * as ImGui from 'ImGui';
 
@@ -353,28 +351,49 @@ function updatePlayerControl(this: void, key: string, flag: boolean, vpad: boole
 	})
 }
 
-const uiScale = App.devicePixelRatio;
-const alignNode = AlignNode({
-	isRoot: true,
-	inUI: true
+const ui = AlignNode(true);
+ui.css('flex-direction: column-reverse');
+ui.slot(Slot.ButtonDown, (id, buttonName) => {
+	if (id !== 0) return;
+	switch (buttonName) {
+		case ButtonName.dpleft: updatePlayerControl("keyLeft", true, true); break;
+		case ButtonName.dpright: updatePlayerControl("keyRight", true, true); break;
+		case ButtonName.b: updatePlayerControl("keyJump", true, true); break;
+	}
 });
-Director.ui.addChild(alignNode);
+ui.slot(Slot.ButtonUp, (id, buttonName) => {
+	if (id !== 0) return;
+	switch (buttonName) {
+		case ButtonName.dpleft: updatePlayerControl("keyLeft", false, true); break;
+		case ButtonName.dpright: updatePlayerControl("keyRight", false, true); break;
+		case ButtonName.b: updatePlayerControl("keyJump", false, true); break;
+	}
+});
+ui.addTo(Director.ui);
 
-const leftAlign = AlignNode({
-	hAlign: HAlignMode.Left,
-	vAlign: VAlignMode.Bottom
-});
-alignNode.addChild(leftAlign);
+const bottomAlign = AlignNode();
+bottomAlign.css(`
+	height: 80;
+	justify-content: space-between;
+	padding: 0, 20, 20;
+	flex-direction: row
+`);
+bottomAlign.addTo(ui);
+
+const leftAlign = AlignNode();
+leftAlign.css('width: 130; height: 60');
+leftAlign.addTo(bottomAlign);
 
 const leftMenu = Menu();
-leftAlign.addChild(leftMenu);
+leftMenu.size = Size(250, 120);
+leftMenu.anchor = Vec2.zero;
+leftMenu.scaleX = leftMenu.scaleY = 0.5;
+leftMenu.addTo(leftAlign);
 
 const leftButton = CircleButton({
 	text: "左(a)",
-	x: 20 * uiScale,
-	y: 60 * uiScale,
-	radius: 30 * uiScale,
-	fontSize: math.floor(18 * uiScale)
+	radius: 60,
+	fontSize: 36
 });
 leftButton.anchor = Vec2.zero;
 leftButton.slot(Slot.TapBegan, () => {
@@ -383,14 +402,13 @@ leftButton.slot(Slot.TapBegan, () => {
 leftButton.slot(Slot.TapEnded, () => {
 	updatePlayerControl("keyLeft", false, true);
 });
-leftMenu.addChild(leftButton);
+leftButton.addTo(leftMenu);
 
 const rightButton = CircleButton({
 	text: "右(d)",
-	x: 90 * uiScale,
-	y: 60 * uiScale,
-	radius: 30 * uiScale,
-	fontSize: math.floor(18 * uiScale)
+	x: 130,
+	radius: 60,
+	fontSize: 36
 });
 rightButton.anchor = Vec2.zero;
 rightButton.slot(Slot.TapBegan, () => {
@@ -399,23 +417,22 @@ rightButton.slot(Slot.TapBegan, () => {
 rightButton.slot(Slot.TapEnded, () => {
 	updatePlayerControl("keyRight", false, true);
 });
-leftMenu.addChild(rightButton);
+rightButton.addTo(leftMenu);
 
-const rightAlign = AlignNode({
-	hAlign: HAlignMode.Right,
-	vAlign: VAlignMode.Bottom
-});
-alignNode.addChild(rightAlign);
+const rightAlign = AlignNode();
+rightAlign.css('width: 60; height: 60');
+rightAlign.addTo(bottomAlign);
 
 const rightMenu = Menu();
+rightMenu.size = Size(120, 120);
+rightMenu.anchor = Vec2.zero;
+rightMenu.scaleX = rightMenu.scaleY = 0.5;
 rightAlign.addChild(rightMenu);
 
 const jumpButton = CircleButton({
 	text: "跳(j)",
-	x: -80 * uiScale,
-	y: 60 * uiScale,
-	radius: 30 * uiScale,
-	fontSize: math.floor(18 * uiScale)
+	radius: 60,
+	fontSize: 36
 });
 jumpButton.anchor = Vec2.zero;
 jumpButton.slot(Slot.TapBegan, () => {
@@ -424,11 +441,9 @@ jumpButton.slot(Slot.TapBegan, () => {
 jumpButton.slot(Slot.TapEnded, () => {
 	updatePlayerControl("keyJump", false, true);
 });
-rightMenu.addChild(jumpButton);
+jumpButton.addTo(rightMenu);
 
-alignNode.alignLayout();
-
-alignNode.schedule(() => {
+ui.schedule(() => {
 	const keyA = Keyboard.isKeyPressed(KeyName.A);
 	const keyD = Keyboard.isKeyPressed(KeyName.D);
 	const keyJ = Keyboard.isKeyPressed(KeyName.J);
