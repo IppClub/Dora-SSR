@@ -553,9 +553,10 @@ HttpServer\post "/new", (req): success: false ->
 			parent = Path\getPath path
 			files = Content\getFiles parent
 			name = Path\getName(path)\lower!
-			for file in *files
-				if name == Path\getName(file)\lower!
-					return success: false
+			if "d" ~= Path\getExt name
+				for file in *files
+					if name == Path\getName(file)\lower!
+						return success: false
 			if "" == Path\getExt path
 				if Content\mkdir path
 					return success: true
@@ -584,9 +585,10 @@ HttpServer\post "/rename", (req): success: false ->
 			parent = Path\getPath new
 			files = Content\getFiles parent
 			name = Path\getName(new)\lower!
-			for file in *files
-				if name == Path\getName(file)\lower!
-					return success: false
+			if "d" ~= Path\getExt name
+				for file in *files
+					if name == Path\getName(file)\lower!
+						return success: false
 			if Content\move old, new
 				newParent = Path\getPath new
 				parent = Path\getPath old
