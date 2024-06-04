@@ -410,19 +410,14 @@ void ParticleNode::addQuad(const Particle& particle, float scale, float angleX, 
 	if (angleX || angleY) {
 		Matrix rotate;
 		bx::mtxRotateXY(rotate, -bx::toRad(angleX), -bx::toRad(angleY));
-		Matrix transform;
-		Matrix::mulMtx(transform, SharedDirector.getViewProjection(), rotate);
-		Matrix::mulVec4(&quad.rb.x, transform, &quadPos.rb.x);
-		Matrix::mulVec4(&quad.lb.x, transform, &quadPos.lb.x);
-		Matrix::mulVec4(&quad.lt.x, transform, &quadPos.lt.x);
-		Matrix::mulVec4(&quad.rt.x, transform, &quadPos.rt.x);
-	} else {
-		const Matrix& transform = SharedDirector.getViewProjection();
-		Matrix::mulVec4(&quad.rb.x, transform, &quadPos.rb.x);
-		Matrix::mulVec4(&quad.lb.x, transform, &quadPos.lb.x);
-		Matrix::mulVec4(&quad.lt.x, transform, &quadPos.lt.x);
-		Matrix::mulVec4(&quad.rt.x, transform, &quadPos.rt.x);
+		SpriteQuad::Position newPos;
+		Matrix::mulVec4(&newPos.rb.x, rotate, &quadPos.rb.x);
+		Matrix::mulVec4(&newPos.lb.x, rotate, &quadPos.lb.x);
+		Matrix::mulVec4(&newPos.lt.x, rotate, &quadPos.lt.x);
+		Matrix::mulVec4(&newPos.rt.x, rotate, &quadPos.rt.x);
+		quadPos = newPos;
 	}
+	_quadPositons.push_back(quadPos);
 	_quads.push_back(quad);
 }
 
@@ -458,6 +453,7 @@ void ParticleNode::visit() {
 	scaleY = std::abs(scaleY);
 	float scale = Vec2{scaleX, scaleY}.length() / std::sqrt(2.0f);
 
+	_quadPositons.clear();
 	_quads.clear();
 	int index = 0;
 	while (index < s_cast<int>(_particles.size())) {
@@ -543,11 +539,12 @@ void ParticleNode::render() {
 	}
 
 	if (SharedDirector.isFrustumCulling()) {
-		auto [minX, maxX] = std::minmax({_quads[0].lt.x, _quads[0].lb.x, _quads[0].rt.x, _quads[0].rb.x});
-		auto [minY, maxY] = std::minmax({_quads[0].lt.y, _quads[0].lb.y, _quads[0].rt.y, _quads[0].rb.y});
-		auto [minZ, maxZ] = std::minmax({_quads[0].lt.z, _quads[0].lb.z, _quads[0].rt.z, _quads[0].rb.z});
-		for (size_t i = 1; i < _quads.size(); i++) {
-			const auto& quad = _quads[i];
+		const auto& firstQuad = _quadPositons[0];
+		auto [minX, maxX] = std::minmax({firstQuad.lt.x, firstQuad.lb.x, firstQuad.rt.x, firstQuad.rb.x});
+		auto [minY, maxY] = std::minmax({firstQuad.lt.y, firstQuad.lb.y, firstQuad.rt.y, firstQuad.rb.y});
+		auto [minZ, maxZ] = std::minmax({firstQuad.lt.z, firstQuad.lb.z, firstQuad.rt.z, firstQuad.rb.z});
+		for (size_t i = 1; i < _quadPositons.size(); i++) {
+			const auto& quad = _quadPositons[i];
 			std::tie(minX, maxX) = std::minmax({minX, maxX, quad.lt.x, quad.lb.x, quad.rt.x, quad.rb.x});
 			std::tie(minY, maxY) = std::minmax({minY, maxY, quad.lt.y, quad.lb.y, quad.rt.y, quad.rb.y});
 			std::tie(minZ, maxZ) = std::minmax({minZ, maxZ, quad.lt.z, quad.lb.z, quad.rt.z, quad.rb.z});
@@ -559,6 +556,16 @@ void ParticleNode::render() {
 		if (!SharedDirector.isInFrustum(aabb)) {
 			return;
 		}
+	}
+
+	const auto& transform = SharedDirector.getViewProjection();
+	for (size_t i = 0; i < _quads.size(); i++) {
+		auto& pos = _quadPositons[i];
+		auto& quad = _quads[i];
+		Matrix::mulVec4(&quad.lb.x, transform, &pos.lb.x);
+		Matrix::mulVec4(&quad.rb.x, transform, &pos.rb.x);
+		Matrix::mulVec4(&quad.lt.x, transform, &pos.lt.x);
+		Matrix::mulVec4(&quad.rt.x, transform, &pos.rt.x);
 	}
 
 	BlendFunc blendFunc{_particleDef->blendFuncSource, _particleDef->blendFuncDestination};

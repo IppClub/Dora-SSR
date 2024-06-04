@@ -134,6 +134,7 @@ private:
 	uint64_t _renderState;
 	Ref<ParticleDef> _particleDef;
 	std::vector<SpriteQuad> _quads;
+	std::vector<SpriteQuad::Position> _quadPositons;
 	std::vector<Particle> _particles;
 	enum: Flag::ValueType {
 		Active = Node::UserFlag,
