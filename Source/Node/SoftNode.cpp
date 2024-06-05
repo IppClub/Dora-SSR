@@ -25,6 +25,7 @@ SoftNode::SoftNode(float minX, float maxX, float minY, float maxY, float step)
 	, _step(step) { }
 
 bool SoftNode::init() {
+	if (!Node::init()) return false;
 	_world = New<Soft::World>(Vec2{640 / PhysicsWorld::scaleFactor, 480 / PhysicsWorld::scaleFactor}, Vec2{0, 10});
 	_originMaterial = New<Soft::Material>();
 	_originMaterial->mass = 0;

@@ -99,9 +99,7 @@ void PlatformWorld::swapLayer(int orderA, int orderB) {
 }
 
 bool PlatformWorld::init() {
-	if (!PhysicsWorld::init()) {
-		return false;
-	}
+	if (!PhysicsWorld::init()) return false;
 	_camera = PlatformCamera::create("Platformer"_slice);
 	_camera->moved += std::make_pair(this, &PlatformWorld::onCameraMoved);
 	_camera->reset += std::make_pair(this, &PlatformWorld::onCameraReset);

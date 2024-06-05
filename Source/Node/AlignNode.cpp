@@ -258,6 +258,7 @@ AlignNode::AlignNode(bool isWindowRoot) {
 }
 
 bool AlignNode::init() {
+	if (!Node::init()) return false;
 	_yogaNode = YGNodeNewWithConfig(getConfig());
 	YGNodeSetContext(_yogaNode, this);
 	if (getWidth() > 0.0f) {
