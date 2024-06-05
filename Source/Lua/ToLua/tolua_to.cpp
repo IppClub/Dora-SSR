@@ -82,14 +82,6 @@ const char* tolua_tofieldstring(lua_State* L, int lo, int index, const char* def
 	return v;
 }
 
-void* tolua_tofielduserdata(lua_State* L, int lo, int index, void* def) {
-	lua_pushnumber(L, index);
-	lua_gettable(L, lo);
-	void* v = lua_isnil(L, -1) ? def : lua_touserdata(L, -1);
-	lua_pop(L, 1);
-	return v;
-}
-
 void* tolua_tofieldusertype(lua_State* L, int lo, int index, void* def) {
 	lua_pushnumber(L, index);
 	lua_gettable(L, lo);

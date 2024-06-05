@@ -54,6 +54,7 @@ end
 _push_functions = _push_functions or {}
 _collect_functions = _collect_functions or {}
 _to_functions = _to_functions or {}
+_is_functions = _is_functions or {}
 
 local objects = {
 	"Object",
@@ -118,7 +119,9 @@ local objects = {
 	"Platformer::PlatformWorld"
 }
 _push_object_func_name = "tolua_pushobject"
+_is_object_func_name = "tolua_isobject"
 for i = 1, #objects do
+	_is_functions[objects[i]] = _is_object_func_name
 	_push_functions[objects[i]] = _push_object_func_name
 	_collect_functions[objects[i]] = "tolua_collect_object"
 end
