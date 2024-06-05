@@ -38,7 +38,7 @@ public:
 	PROPERTY_READONLY_CLASS(uint32_t, StorageSize);
 	PROPERTY_READONLY_CLASS(uint32_t, Count);
 	virtual ~Texture2D();
-	CREATE_FUNC(Texture2D);
+	CREATE_FUNC_NOT_NULL(Texture2D);
 
 protected:
 	Texture2D(bgfx::TextureHandle handle, const bgfx::TextureInfo& info, uint64_t flags);

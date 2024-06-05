@@ -1408,7 +1408,7 @@ public:
 			return true;
 		});
 	}
-	CREATE_FUNC(ProjectNode);
+	CREATE_FUNC_NOT_NULL(ProjectNode);
 
 protected:
 	ProjectNode(const Vec2& nodePoint, const std::function<void(const Vec2&)>& convertHandler)

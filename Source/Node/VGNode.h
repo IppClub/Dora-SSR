@@ -20,7 +20,7 @@ public:
 	virtual bool init() override;
 	virtual void cleanup() override;
 	void render(const std::function<void()>& func);
-	CREATE_FUNC(VGNode);
+	CREATE_FUNC_NOT_NULL(VGNode);
 
 protected:
 	VGNode(float width, float height, float scale = 1.0f, int edgeAA = 1);

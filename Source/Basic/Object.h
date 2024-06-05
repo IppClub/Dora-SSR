@@ -46,6 +46,28 @@ public:
 	static void incLuaRefCount();
 	static void decLuaRefCount();
 
+	template <class T, class... Args>
+	static T* create(Args&&... args) {
+		static_assert(std::is_base_of<Object, T>::value, "T must be a subclass of Object");
+		T* item = new T(std::forward<Args>(args)...);
+		if (item && item->init()) {
+			item->autorelease();
+		} else if (item->getRefCount() == 0) {
+			delete item;
+			item = nullptr;
+		} else {
+			item = nullptr;
+		}
+		return item;
+	}
+
+	template <class T, class... Args>
+	static T* createNotNull(Args&&... args) {
+		T* item = Object::create<T>(std::forward<Args>(args)...);
+		AssertUnless(item, "failed to create an instance.");
+		return item;
+	}
+
 protected:
 	Object();
 

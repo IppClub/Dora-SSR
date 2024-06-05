@@ -18,7 +18,7 @@ class Menu : public Node {
 public:
 	PROPERTY_BOOL(Enabled);
 	virtual bool init() override;
-	CREATE_FUNC(Menu);
+	CREATE_FUNC_NOT_NULL(Menu);
 
 protected:
 	Menu();

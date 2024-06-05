@@ -32,7 +32,7 @@ NS_DORA_BEGIN
 class EffekEff : public Object {
 public:
 	Effekseer::EffectRef effect;
-	CREATE_FUNC(EffekEff);
+	CREATE_FUNC_NOT_NULL(EffekEff);
 
 protected:
 	EffekEff() { }

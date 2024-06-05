@@ -17,7 +17,7 @@ public:
 	virtual ~LuaHandler();
 	bool equals(LuaHandler* other) const;
 	int get() const;
-	CREATE_FUNC(LuaHandler);
+	CREATE_FUNC_NOT_NULL(LuaHandler);
 
 protected:
 	LuaHandler(int handler);

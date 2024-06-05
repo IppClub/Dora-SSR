@@ -20,7 +20,7 @@ class SoftNode : public Node {
 public:
 	virtual bool init() override;
 	virtual bool update(double deltaTime) override;
-	CREATE_FUNC(SoftNode);
+	CREATE_FUNC_NOT_NULL(SoftNode);
 
 protected:
 	SoftNode(float minX, float maxX, float minY, float maxY, float step);

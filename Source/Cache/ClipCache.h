@@ -30,7 +30,7 @@ public:
 	/** Get a sprite instance with an name. */
 	Sprite* toSprite(String name);
 	std::string toXml();
-	CREATE_FUNC(ClipDef);
+	CREATE_FUNC_NOT_NULL(ClipDef);
 
 protected:
 	ClipDef();

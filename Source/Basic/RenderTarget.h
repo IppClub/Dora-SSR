@@ -31,7 +31,7 @@ public:
 	void renderWithClear(Node* target, Color color, float depth = 1.0f, uint8_t stencil = 0);
 	void saveAsync(String filename, const std::function<void(bool)>& callback);
 	static RenderTarget* getCurrent();
-	CREATE_FUNC(RenderTarget);
+	CREATE_FUNC_NULLABLE(RenderTarget);
 
 protected:
 	RenderTarget(uint16_t width, uint16_t height, bgfx::TextureFormat::Enum format = bgfx::TextureFormat::RGBA8);

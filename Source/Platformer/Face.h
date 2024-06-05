@@ -55,7 +55,7 @@ public:
 		 Frame    "loli.frame", "loli.png::60,60,5,0.8" or "loli.clip|0::60,60,5,0.8"
 		 Particle "loli.par"
 	*/
-	CREATE_FUNC(Face);
+	CREATE_FUNC_NOT_NULL(Face);
 
 private:
 	Face(String file, const Vec2& point, float scale, float angle);

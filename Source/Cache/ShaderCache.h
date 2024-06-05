@@ -14,7 +14,7 @@ class Shader : public Object {
 public:
 	PROPERTY_READONLY(bgfx::ShaderHandle, Handle);
 	virtual ~Shader();
-	CREATE_FUNC(Shader);
+	CREATE_FUNC_NOT_NULL(Shader);
 
 protected:
 	Shader(bgfx::ShaderHandle handle);

@@ -1113,7 +1113,7 @@ namespace Platformer {
 class WasmActionUpdate : public Object {
 public:
 	std::function<bool(Unit*, UnitAction*, float)> update;
-	CREATE_FUNC(WasmActionUpdate);
+	CREATE_FUNC_NOT_NULL(WasmActionUpdate);
 
 protected:
 	explicit WasmActionUpdate(std::function<bool(Unit*, UnitAction*, float)>&& update)

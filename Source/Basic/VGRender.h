@@ -121,10 +121,10 @@ public:
 	PROPERTY_READONLY(NVGcontext*, Context);
 	PROPERTY_READONLY(NVGLUframebuffer*, Framebuffer);
 	virtual ~VGTexture();
-	CREATE_FUNC(VGTexture);
+	CREATE_FUNC_NOT_NULL(VGTexture);
 
 protected:
-	VGTexture(NVGcontext* context, NVGLUframebuffer* framebuffer, const bgfx::TextureInfo& info, uint64_t flags);
+	VGTexture(NotNull<NVGcontext, 1> context, NotNull<NVGLUframebuffer, 2> framebuffer, const bgfx::TextureInfo& info, uint64_t flags);
 	NVGLUframebuffer* _framebuffer;
 	NVGcontext* _context;
 };

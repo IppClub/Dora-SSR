@@ -25,7 +25,7 @@ public:
 	virtual ~SoundFile();
 	PROPERTY_READONLY_CALL(SoLoud::Wav*, Wav);
 	virtual bool init() override;
-	CREATE_FUNC(SoundFile);
+	CREATE_FUNC_NULLABLE(SoundFile);
 
 protected:
 	SoundFile(OwnArray<uint8_t>&& data, size_t size);
@@ -42,7 +42,7 @@ public:
 	virtual ~SoundStream();
 	PROPERTY_READONLY_CALL(SoLoud::WavStream*, Stream);
 	virtual bool init() override;
-	CREATE_FUNC(SoundStream);
+	CREATE_FUNC_NULLABLE(SoundStream);
 
 protected:
 	SoundStream(OwnArray<uint8_t>&& data, size_t size);

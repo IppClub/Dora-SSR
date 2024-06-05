@@ -24,7 +24,7 @@ public:
 	FixtureDef(const pd::Shape& shape)
 		: shape(shape) { }
 	pd::Shape shape;
-	CREATE_FUNC(FixtureDef);
+	CREATE_FUNC_NOT_NULL(FixtureDef);
 	DORA_TYPE_OVERRIDE(FixtureDef);
 };
 
@@ -189,7 +189,7 @@ public:
 	std::list<FixtureConf>& getFixtureConfs();
 	void clearFixtures();
 
-	CREATE_FUNC(BodyDef);
+	CREATE_FUNC_NOT_NULL(BodyDef);
 
 protected:
 	BodyDef();

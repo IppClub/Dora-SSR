@@ -94,7 +94,7 @@ public:
 	void unscheduleFixed(FixedScheduledItem* item);
 	void unschedule(Action* action);
 	bool update(double deltaTime);
-	CREATE_FUNC(Scheduler);
+	CREATE_FUNC_NOT_NULL(Scheduler);
 
 protected:
 	Scheduler();
@@ -130,7 +130,7 @@ protected:
 class SystemTimer : public SystemTimerBase {
 public:
 	void start(float duration, const std::function<void()>& callback);
-	CREATE_FUNC(SystemTimer);
+	CREATE_FUNC_NOT_NULL(SystemTimer);
 
 protected:
 	SystemTimer()

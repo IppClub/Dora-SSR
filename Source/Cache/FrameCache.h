@@ -22,7 +22,7 @@ public:
 	std::string clipStr;
 	float duration;
 	OwnVector<Rect> rects;
-	CREATE_FUNC(FrameActionDef);
+	CREATE_FUNC_NOT_NULL(FrameActionDef);
 
 protected:
 	FrameActionDef()

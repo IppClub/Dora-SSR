@@ -20,10 +20,10 @@ class SkeletonData : public Object {
 public:
 	PROPERTY_READONLY(spine::SkeletonData*, Skel);
 	PROPERTY_READONLY(Atlas*, Atlas);
-	CREATE_FUNC(SkeletonData);
+	CREATE_FUNC_NOT_NULL(SkeletonData);
 
 protected:
-	SkeletonData(spine::SkeletonData* skeletonData, Atlas* atlas);
+	SkeletonData(NotNull<spine::SkeletonData, 1> skeletonData, NotNull<Atlas, 2> atlas);
 
 private:
 	Ref<Atlas> _atlas;

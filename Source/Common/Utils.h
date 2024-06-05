@@ -140,8 +140,7 @@ public: \
 	if (!(cond)) break
 #define BLOCK_END \
 	} \
-	while (false) \
-		;
+	while (false);
 
 /** @brief Compiler compact macros */
 #define DORA_UNUSED [[maybe_unused]]
@@ -170,27 +169,58 @@ typedef Slice String;
 		MyItem();
 		MyItem(int value);
 		virtual bool init() override;
-		CREATE_FUNC(MyItem);
+		CREATE_FUNC_NULLABLE(MyItem);
  };
 
  // Use the create functions
  auto itemA = MyItem::create();
  auto itemB = MyItem::create(998);
  */
-#define CREATE_FUNC(type) \
+#define CREATE_FUNC_NULLABLE(type) \
 	template <class... Args> \
-	static type* create(Args&&... args) { \
-		type* item = new type(std::forward<Args>(args)...); \
-		if (item && item->init()) { \
-			item->autorelease(); \
-		} else if (item->getRefCount() == 0) { \
-			delete item; \
-			item = nullptr; \
-		} else { \
-			item = nullptr; \
-		} \
-		return item; \
+	static inline type* create(Args&&... args) { \
+		return Object::create<type>(std::forward<Args>(args)...); \
+	} \
+	friend class Object
+
+#define CREATE_FUNC_NOT_NULL(type) \
+	template <class... Args> \
+	static inline type* create(Args&&... args) { \
+		return Object::createNotNull<type>(std::forward<Args>(args)...); \
+	} \
+	friend class Object
+
+template <typename T, int pos>
+class NotNull {
+public:
+	NotNull(T* ptr)
+		: _ptr(ptr) {
+		if (!_ptr) {
+			if constexpr (pos == 0) {
+				throw std::runtime_error("unexpected null pointer passed.");
+			} else {
+				throw std::runtime_error("unexpected null pointer for argument "s + std::to_string(pos));
+			}
+		}
 	}
+
+	NotNull(std::nullptr_t) = delete;
+
+	inline T* operator->() const {
+		return _ptr;
+	}
+
+	inline operator T*() const {
+		return _ptr;
+	}
+
+	inline T* get() const {
+		return _ptr;
+	}
+
+private:
+	T* _ptr;
+};
 
 /** @brief Helper function to iterate a std::tuple.
  @example Use it as below.

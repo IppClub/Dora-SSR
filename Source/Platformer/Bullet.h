@@ -35,13 +35,13 @@ public:
 	TargetAllow targetAllow;
 	BulletHandler hitTarget;
 	void destroy();
-	CREATE_FUNC(Bullet);
+	CREATE_FUNC_NOT_NULL(Bullet);
 	struct Def {
 		static const Slice BulletKey;
 	};
 
 protected:
-	Bullet(BulletDef* def, Unit* unit);
+	Bullet(NotNull<BulletDef, 1> def, NotNull<Unit, 2> unit);
 	virtual void updatePhysics() override;
 
 private:

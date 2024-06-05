@@ -28,7 +28,7 @@ public:
 	void set(String name, const Matrix& var);
 	Value* get(String name) const;
 	bgfx::ProgramHandle apply();
-	CREATE_FUNC(Pass);
+	CREATE_FUNC_NULLABLE(Pass);
 
 protected:
 	Pass(Shader* vertShader, Shader* fragShader);
@@ -41,7 +41,7 @@ private:
 		PROPERTY_READONLY(Value*, Value);
 		virtual ~Uniform();
 		void apply();
-		CREATE_FUNC(Uniform);
+		CREATE_FUNC_NOT_NULL(Uniform);
 
 	protected:
 		Uniform(bgfx::UniformHandle handle, Own<Value>&& value);
@@ -64,7 +64,7 @@ public:
 	void add(Pass* pass);
 	Pass* get(size_t index) const;
 	void clear();
-	CREATE_FUNC(Effect);
+	CREATE_FUNC_NOT_NULL(Effect);
 
 protected:
 	Effect();
@@ -80,7 +80,7 @@ class SpriteEffect : public Effect {
 public:
 	virtual ~SpriteEffect();
 	PROPERTY_READONLY(bgfx::UniformHandle, Sampler);
-	CREATE_FUNC(SpriteEffect);
+	CREATE_FUNC_NOT_NULL(SpriteEffect);
 
 protected:
 	SpriteEffect();

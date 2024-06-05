@@ -38,7 +38,7 @@ protected:
 class SelNode : public BaseNode {
 public:
 	virtual bool doAction(Unit* self) override;
-	CREATE_FUNC(SelNode);
+	CREATE_FUNC_NOT_NULL(SelNode);
 
 protected:
 	SelNode() { }
@@ -47,7 +47,7 @@ protected:
 class SeqNode : public BaseNode {
 public:
 	virtual bool doAction(Unit* self) override;
-	CREATE_FUNC(SeqNode);
+	CREATE_FUNC_NOT_NULL(SeqNode);
 
 protected:
 	SeqNode() { }
@@ -56,7 +56,7 @@ protected:
 class ConNode : public Leaf {
 public:
 	virtual bool doAction(Unit* self) override;
-	CREATE_FUNC(ConNode);
+	CREATE_FUNC_NOT_NULL(ConNode);
 
 protected:
 	ConNode(String name, const std::function<bool(Unit*)>& handler);
@@ -69,7 +69,7 @@ private:
 class ActNode : public Leaf {
 public:
 	virtual bool doAction(Unit* self) override;
-	CREATE_FUNC(ActNode);
+	CREATE_FUNC_NOT_NULL(ActNode);
 
 protected:
 	ActNode(String actionName);
@@ -81,7 +81,7 @@ private:
 class DynamicActNode : public Leaf {
 public:
 	virtual bool doAction(Unit* self) override;
-	CREATE_FUNC(DynamicActNode);
+	CREATE_FUNC_NOT_NULL(DynamicActNode);
 
 protected:
 	DynamicActNode(const std::function<std::string(Unit*)>& handler);
@@ -94,7 +94,7 @@ private:
 class AcceptNode : public Leaf {
 public:
 	virtual bool doAction(Unit* self) override;
-	CREATE_FUNC(AcceptNode);
+	CREATE_FUNC_NOT_NULL(AcceptNode);
 
 protected:
 	AcceptNode() { }
@@ -103,7 +103,7 @@ protected:
 class RejectNode : public Leaf {
 public:
 	virtual bool doAction(Unit* self) override;
-	CREATE_FUNC(RejectNode);
+	CREATE_FUNC_NOT_NULL(RejectNode);
 
 protected:
 	RejectNode() { }
@@ -112,10 +112,10 @@ protected:
 class BehaviorNode : public Leaf {
 public:
 	virtual bool doAction(Unit* self) override;
-	CREATE_FUNC(BehaviorNode);
+	CREATE_FUNC_NOT_NULL(BehaviorNode);
 
 protected:
-	BehaviorNode(String name, Behavior::Leaf* root);
+	BehaviorNode(String name, NotNull<Behavior::Leaf, 2> root);
 
 private:
 	Ref<Behavior::Leaf> _root;
@@ -131,7 +131,7 @@ Leaf* Act(String actionName);
 Leaf* Act(const std::function<std::string(Unit*)>& handler);
 Leaf* Accept();
 Leaf* Reject();
-Leaf* Behave(String name, Behavior::Leaf* root);
+Leaf* Behave(String name, NotNull<Behavior::Leaf, 2> root);
 
 NS_DECISION_END
 
@@ -188,7 +188,7 @@ protected:
 class SeqNode : public BaseNode {
 public:
 	virtual Status tick(Blackboard* board) override;
-	CREATE_FUNC(SeqNode);
+	CREATE_FUNC_NOT_NULL(SeqNode);
 
 protected:
 	SeqNode() { }
@@ -197,7 +197,7 @@ protected:
 class SelNode : public BaseNode {
 public:
 	virtual Status tick(Blackboard* board) override;
-	CREATE_FUNC(SelNode);
+	CREATE_FUNC_NOT_NULL(SelNode);
 
 protected:
 	SelNode() { }
@@ -206,7 +206,7 @@ protected:
 class ConNode : public Leaf {
 public:
 	virtual Status tick(Blackboard* board) override;
-	CREATE_FUNC(ConNode);
+	CREATE_FUNC_NOT_NULL(ConNode);
 
 protected:
 	ConNode(String name, const std::function<bool(Blackboard*)>& handler);
@@ -219,7 +219,7 @@ private:
 class ActNode : public Leaf {
 public:
 	virtual Status tick(Blackboard* board) override;
-	CREATE_FUNC(ActNode);
+	CREATE_FUNC_NOT_NULL(ActNode);
 
 protected:
 	ActNode(String actionName);
@@ -231,7 +231,7 @@ private:
 class CommandNode : public Leaf {
 public:
 	virtual Status tick(Blackboard* board) override;
-	CREATE_FUNC(CommandNode);
+	CREATE_FUNC_NOT_NULL(CommandNode);
 
 protected:
 	CommandNode(String actionName);
@@ -243,10 +243,10 @@ private:
 class CountdownNode : public Leaf {
 public:
 	virtual Status tick(Blackboard* board) override;
-	CREATE_FUNC(CountdownNode);
+	CREATE_FUNC_NOT_NULL(CountdownNode);
 
 protected:
-	CountdownNode(double time, Leaf* node);
+	CountdownNode(double time, NotNull<Leaf, 2> node);
 
 private:
 	double _time;
@@ -256,10 +256,10 @@ private:
 class TimeoutNode : public Leaf {
 public:
 	virtual Status tick(Blackboard* board) override;
-	CREATE_FUNC(TimeoutNode);
+	CREATE_FUNC_NOT_NULL(TimeoutNode);
 
 protected:
-	TimeoutNode(double time, Leaf* node);
+	TimeoutNode(double time, NotNull<Leaf, 2> node);
 
 private:
 	double _time;
@@ -269,7 +269,7 @@ private:
 class WaitNode : public Leaf {
 public:
 	virtual Status tick(Blackboard* board) override;
-	CREATE_FUNC(WaitNode);
+	CREATE_FUNC_NOT_NULL(WaitNode);
 
 protected:
 	WaitNode(double duration);
@@ -282,17 +282,17 @@ class RepeatInfo : public Object {
 public:
 	int count = 0;
 	Own<Blackboard> boardCache;
-	CREATE_FUNC(RepeatInfo);
+	CREATE_FUNC_NOT_NULL(RepeatInfo);
 };
 
 class RepeatNode : public Leaf {
 public:
 	virtual Status tick(Blackboard* board) override;
-	CREATE_FUNC(RepeatNode);
+	CREATE_FUNC_NOT_NULL(RepeatNode);
 
 protected:
-	RepeatNode(int times, Leaf* node);
-	RepeatNode(Leaf* node);
+	RepeatNode(int times, NotNull<Leaf, 2> node);
+	RepeatNode(NotNull<Leaf, 1> node);
 
 private:
 	int _times;
@@ -302,11 +302,11 @@ private:
 class RetryNode : public Leaf {
 public:
 	virtual Status tick(Blackboard* board) override;
-	CREATE_FUNC(RetryNode);
+	CREATE_FUNC_NOT_NULL(RetryNode);
 
 protected:
-	RetryNode(int times, Leaf* node);
-	RetryNode(Leaf* node);
+	RetryNode(int times, NotNull<Leaf, 2> node);
+	RetryNode(NotNull<Leaf, 1> node);
 
 private:
 	int _times;
@@ -319,14 +319,14 @@ Leaf* Seq(Leaf* nodes[], int count);
 Leaf* Seq(const std::vector<Leaf*>& nodes);
 Leaf* Con(String name, const std::function<bool(Blackboard*)>& handler);
 Leaf* Act(String actionName);
-Leaf* Countdown(double time, Leaf* node);
-Leaf* Timeout(double time, Leaf* node);
+Leaf* Countdown(double time, NotNull<Leaf, 2> node);
+Leaf* Timeout(double time, NotNull<Leaf, 2> node);
 Leaf* Command(String actionName);
 Leaf* Wait(double duration);
-Leaf* Repeat(int times, Leaf* node);
-Leaf* Repeat(Leaf* node);
-Leaf* Retry(int times, Leaf* node);
-Leaf* Retry(Leaf* node);
+Leaf* Repeat(int times, NotNull<Leaf, 2> node);
+Leaf* Repeat(NotNull<Leaf, 1> node);
+Leaf* Retry(int times, NotNull<Leaf, 2> node);
+Leaf* Retry(NotNull<Leaf, 1> node);
 
 NS_BEHAVIOR_END
 

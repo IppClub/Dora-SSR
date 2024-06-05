@@ -69,6 +69,7 @@ private:
 	std::vector<Own<Value>> _components;
 	std::vector<Own<Value>> _oldComs;
 	friend class EntityPool;
+	friend class Object;
 	DORA_TYPE_OVERRIDE(Entity);
 };
 
@@ -105,6 +106,7 @@ protected:
 private:
 	std::unordered_set<WRef<Entity>, WRefEntityHasher> _entities;
 	std::vector<int> _components;
+	friend class Object;
 	DORA_TYPE_OVERRIDE(EntityGroup);
 };
 
@@ -132,6 +134,7 @@ private:
 	int _eventType;
 	std::unordered_set<WRef<Entity>, WRefEntityHasher> _entities;
 	std::vector<int> _components;
+	friend class Object;
 	DORA_TYPE_OVERRIDE(EntityObserver);
 };
 

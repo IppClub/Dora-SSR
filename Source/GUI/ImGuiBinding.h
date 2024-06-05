@@ -25,7 +25,7 @@ public:
 	uint32_t size() const;
 	void setString(String str);
 	Slice toString();
-	CREATE_FUNC(Buffer);
+	CREATE_FUNC_NOT_NULL(Buffer);
 
 protected:
 	Buffer(uint32_t size = 0);

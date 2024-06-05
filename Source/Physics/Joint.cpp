@@ -39,8 +39,12 @@ void Joint::destroy() {
 	}
 }
 
-Joint* Joint::create(JointDef* def, Dictionary* itemDict) {
+Joint* Joint::create(NotNull<JointDef, 1> def, NotNull<Dictionary, 2> itemDict) {
 	return def->toJoint(itemDict);
+}
+
+Joint* Joint::create() {
+	return Object::createNotNull<Joint>();
 }
 
 Joint* Joint::distance(

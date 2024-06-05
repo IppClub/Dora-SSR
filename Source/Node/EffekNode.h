@@ -26,7 +26,7 @@ public:
 	virtual void cleanup() override;
 	int play(String filename, const Vec2& pos = Vec2::zero, float z = 0.0f);
 	void stop(int handle);
-	CREATE_FUNC(EffekNode);
+	CREATE_FUNC_NOT_NULL(EffekNode);
 
 protected:
 	EffekNode() { }

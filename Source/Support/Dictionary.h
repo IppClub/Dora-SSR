@@ -50,7 +50,7 @@ public:
 		return false;
 	}
 
-	CREATE_FUNC(Dictionary);
+	CREATE_FUNC_NOT_NULL(Dictionary);
 
 private:
 	StringMap<Own<Value>> _dict;

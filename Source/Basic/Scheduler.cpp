@@ -35,7 +35,7 @@ public:
 		: FuncWrapperBase(func)
 		, item(this) { }
 	ScheduledItemWrapper<FuncWrapperBase> item;
-	CREATE_FUNC(FuncWrapper)
+	CREATE_FUNC_NOT_NULL(FuncWrapper);
 	DORA_TYPE_OVERRIDE(FuncWrapper);
 };
 

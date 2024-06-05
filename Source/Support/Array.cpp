@@ -14,7 +14,7 @@ NS_DORA_BEGIN
 
 Array::Array() { }
 
-Array::Array(Array* other)
+Array::Array(NotNull<Array, 1> other)
 	: _data(other->_data.size()) {
 	for (size_t i = 0; i < other->_data.size(); i++) {
 		_data[i] = other->_data[i]->clone();

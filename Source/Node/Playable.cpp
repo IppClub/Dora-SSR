@@ -54,11 +54,14 @@ const std::string& Playable::getLook() const {
 }
 
 Playable* Playable::create(String filename) {
-	if (filename.empty()) return Model::dummy();
+	if (filename.empty()) {
+		Error("playable str must not be empty");
+		return nullptr;
+	}
 	auto tokens = filename.split(":"_slice);
 	if (tokens.size() != 2) {
 		Error("playable str must be of format [label]:[filename], got \"{}\"", filename.toString());
-		return Model::dummy();
+		return nullptr;
 	}
 	switch (Switch::hash(tokens.front())) {
 		case "model"_hash: return Model::create(tokens.back());

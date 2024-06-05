@@ -71,8 +71,11 @@ Pass::~Pass() {
 
 bool Pass::init() {
 	if (!Object::init()) return false;
-	_program = bgfx::createProgram(_vertShader->getHandle(), _fragShader->getHandle());
-	return bgfx::isValid(_program);
+	if (_vertShader && _fragShader) {
+		_program = bgfx::createProgram(_vertShader->getHandle(), _fragShader->getHandle());
+		return bgfx::isValid(_program);
+	}
+	return false;
 }
 
 void Pass::setGrabPass(bool var) {
@@ -137,11 +140,15 @@ Value* Pass::get(String name) const {
 Effect::Effect() { }
 
 Effect::Effect(Shader* vertShader, Shader* fragShader) {
-	_passes.push_back(Pass::create(vertShader, fragShader));
+	if (auto pass = Pass::create(vertShader, fragShader)) {
+		_passes.push_back(pass);
+	}
 }
 
 Effect::Effect(String vertShader, String fragShader) {
-	_passes.push_back(Pass::create(vertShader, fragShader));
+	if (auto pass = Pass::create(vertShader, fragShader)) {
+		_passes.push_back(pass);
+	}
 }
 
 const RefVector<Pass>& Effect::getPasses() const {

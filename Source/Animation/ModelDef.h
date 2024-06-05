@@ -95,7 +95,7 @@ public:
 	std::vector<std::string> getAnimationNames() const;
 	std::string getTextureFile() const;
 	std::string toXml();
-	static ModelDef* create();
+	CREATE_FUNC_NOT_NULL(ModelDef);
 
 private:
 	void setRoot(Own<SpriteDef>&& root);

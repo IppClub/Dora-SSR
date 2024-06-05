@@ -76,7 +76,7 @@ public:
 	virtual void render() override;
 	virtual const Matrix& getWorld() override;
 	static Sprite* from(String clipStr);
-	CREATE_FUNC(Sprite);
+	CREATE_FUNC_NOT_NULL(Sprite);
 
 protected:
 	Sprite();

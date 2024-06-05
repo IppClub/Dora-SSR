@@ -61,7 +61,7 @@ public:
 	void drawPolygon(const Vec2* verts, uint32_t count, Color fillColor, float borderWidth = 0.0f, Color borderColor = Color());
 	void drawVertices(const std::vector<VertexColor>& verts);
 	void clear();
-	CREATE_FUNC(DrawNode);
+	CREATE_FUNC_NOT_NULL(DrawNode);
 
 protected:
 	DrawNode();
@@ -139,7 +139,7 @@ public:
 	void set(const std::vector<Vec2>& verts, Color color);
 	void set(const Vec2* verts, uint32_t size, Color color);
 	void clear();
-	CREATE_FUNC(Line);
+	CREATE_FUNC_NOT_NULL(Line);
 
 protected:
 	Line();

@@ -36,7 +36,7 @@ public:
 
 protected:
 	SVGDef() { }
-	CREATE_FUNC(SVGDef);
+	CREATE_FUNC_NOT_NULL(SVGDef);
 
 private:
 	float _width = 0.0f;

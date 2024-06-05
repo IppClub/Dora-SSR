@@ -315,7 +315,7 @@ public:
 	void pause();
 	void resume();
 	void updateTo(float elapsed, bool reversed = false);
-	CREATE_FUNC(Action);
+	CREATE_FUNC_NOT_NULL(Action);
 
 protected:
 	Action(Own<ActionDuration>&& actionDuration);

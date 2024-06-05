@@ -70,7 +70,7 @@ public:
 	Rect textureRect;
 	std::string toXml() const;
 	static ParticleDef* fire();
-	CREATE_FUNC(ParticleDef);
+	CREATE_FUNC_NOT_NULL(ParticleDef);
 
 protected:
 	ParticleDef();
@@ -114,7 +114,7 @@ public:
 	virtual void render() override;
 	void start();
 	void stop();
-	CREATE_FUNC(ParticleNode);
+	CREATE_FUNC_NULLABLE(ParticleNode);
 
 protected:
 	ParticleNode(ParticleDef* def);

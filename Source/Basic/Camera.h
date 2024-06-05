@@ -41,7 +41,7 @@ public:
 	void setTarget(const Vec3& position);
 	virtual const Vec3& getUp() override;
 	virtual const Matrix& getView() override;
-	CREATE_FUNC(CameraBasic);
+	CREATE_FUNC_NOT_NULL(CameraBasic);
 
 protected:
 	CameraBasic(String name);
@@ -60,7 +60,7 @@ public:
 	void setPosition(const Vec2& position);
 	virtual const Vec3& getUp() override;
 	virtual const Matrix& getView() override;
-	CREATE_FUNC(Camera2D);
+	CREATE_FUNC_NOT_NULL(Camera2D);
 
 protected:
 	Camera2D(String name);
@@ -78,7 +78,7 @@ public:
 	void setPosition(const Vec2& position);
 	virtual const Matrix& getView() override;
 	virtual bool hasProjection() const override;
-	CREATE_FUNC(CameraOtho);
+	CREATE_FUNC_NOT_NULL(CameraOtho);
 
 protected:
 	CameraOtho(String name);
@@ -93,7 +93,7 @@ class CameraUI : public Camera {
 public:
 	virtual const Matrix& getView() override;
 	virtual bool hasProjection() const override;
-	CREATE_FUNC(CameraUI);
+	CREATE_FUNC_NOT_NULL(CameraUI);
 
 protected:
 	CameraUI(String name);
@@ -107,7 +107,7 @@ class CameraUI3D : public Camera {
 public:
 	virtual const Matrix& getView() override;
 	virtual bool hasProjection() const override;
-	CREATE_FUNC(CameraUI3D);
+	CREATE_FUNC_NOT_NULL(CameraUI3D);
 
 protected:
 	CameraUI3D(String name);

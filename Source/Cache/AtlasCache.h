@@ -17,10 +17,10 @@ NS_DORA_BEGIN
 class Atlas : public Object {
 public:
 	spine::Atlas* get() const;
-	CREATE_FUNC(Atlas);
+	CREATE_FUNC_NOT_NULL(Atlas);
 
 protected:
-	Atlas(spine::Atlas* atlas);
+	Atlas(Own<spine::Atlas>&& atlas);
 
 private:
 	Own<spine::Atlas> _atlas;

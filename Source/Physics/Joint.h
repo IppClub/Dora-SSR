@@ -116,8 +116,8 @@ public:
 	pr::JointID getPrJoint();
 	PhysicsWorld* getPhysicsWorld();
 	void destroy();
-	static Joint* create(JointDef* def, Dictionary* itemDict);
-	CREATE_FUNC(Joint);
+	static Joint* create(NotNull<JointDef, 1> def, NotNull<Dictionary, 2> itemDict);
+	static Joint* create();
 
 protected:
 	Joint()
@@ -127,13 +127,14 @@ protected:
 	WRef<PhysicsWorld> _world;
 	pr::JointID _joint;
 	friend class DestructionListener;
+	friend class Object;
 	DORA_TYPE_OVERRIDE(Joint);
 };
 
 class MoveJoint : public Joint {
 public:
 	PROPERTY_CREF(Vec2, Position);
-	CREATE_FUNC(MoveJoint);
+	CREATE_FUNC_NOT_NULL(MoveJoint);
 
 protected:
 	MoveJoint()
@@ -150,7 +151,7 @@ public:
 	PROPERTY(float, Speed);
 	PROPERTY_BOOL(Enabled);
 	void reversePower();
-	CREATE_FUNC(MotorJoint);
+	CREATE_FUNC_NOT_NULL(MotorJoint);
 	DORA_TYPE_OVERRIDE(MotorJoint);
 };
 

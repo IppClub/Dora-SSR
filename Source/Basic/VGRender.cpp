@@ -896,7 +896,7 @@ void RenderDoraSSR(NVGcontext* context) {
 	nvgFill(context);
 }
 
-VGTexture::VGTexture(NVGcontext* context, NVGLUframebuffer* framebuffer, const bgfx::TextureInfo& info, uint64_t flags)
+VGTexture::VGTexture(NotNull<NVGcontext, 1> context, NotNull<NVGLUframebuffer, 2> framebuffer, const bgfx::TextureInfo& info, uint64_t flags)
 	: Texture2D({s_cast<uint16_t>(framebuffer->image)}, info, flags)
 	, _framebuffer(framebuffer)
 	, _context(context) { }

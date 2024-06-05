@@ -344,12 +344,7 @@ Entity* Entity::create() {
 		usedIndices.insert(entity->getIndex());
 		return entity;
 	}
-	Entity* entity = new Entity(s_cast<int>(entities.size()));
-	if (!entity->init()) {
-		delete entity;
-		return nullptr;
-	}
-	entity->autorelease();
+	Entity* entity = Object::createNotNull<Entity>(s_cast<int>(entities.size()));
 	entities.push_back(entity);
 	usedIndices.insert(entity->getIndex());
 	return entity;
@@ -476,12 +471,7 @@ EntityGroup* EntityGroup::create(const std::vector<std::string>& components) {
 	if (it != groups.end()) {
 		return it->second;
 	}
-	EntityGroup* entityGroup = new EntityGroup(components);
-	if (!entityGroup->init()) {
-		delete entityGroup;
-		return nullptr;
-	}
-	entityGroup->autorelease();
+	EntityGroup* entityGroup = Object::createNotNull<EntityGroup>(components);
 	groups[name] = entityGroup;
 	return entityGroup;
 }
@@ -626,12 +616,7 @@ EntityObserver* EntityObserver::create(int option, const std::vector<std::string
 	if (it != observers.end()) {
 		return it->second;
 	}
-	EntityObserver* entityObserver = new EntityObserver(option, components);
-	if (!entityObserver->init()) {
-		delete entityObserver;
-		return nullptr;
-	}
-	entityObserver->autorelease();
+	EntityObserver* entityObserver = Object::createNotNull<EntityObserver>(option, components);
 	observers[name] = entityObserver;
 	return entityObserver;
 }

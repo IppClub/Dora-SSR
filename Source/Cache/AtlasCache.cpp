@@ -42,8 +42,8 @@ static SpineTextureLoader* getTextureLoader() {
 	return &loader;
 }
 
-Atlas::Atlas(spine::Atlas* atlas)
-	: _atlas(atlas) { }
+Atlas::Atlas(Own<spine::Atlas>&& atlas)
+	: _atlas(std::move(atlas)) { }
 
 spine::Atlas* Atlas::get() const {
 	return _atlas.get();
@@ -55,7 +55,7 @@ Atlas* AtlasCache::load(String filename) {
 	if (it != _atlas.end()) {
 		return it->second;
 	}
-	Atlas* atlas = Atlas::create(new spine::Atlas(fullPath.c_str(), getTextureLoader()));
+	Atlas* atlas = Atlas::create(New<spine::Atlas>(fullPath.c_str(), getTextureLoader()));
 	if (atlas->get()) {
 		_atlas[fullPath] = atlas;
 		return atlas;
@@ -79,7 +79,7 @@ void AtlasCache::loadAsync(String filename, const std::function<void(Atlas*)>& h
 			handler(nullptr);
 			return;
 		}
-		auto atlas = Atlas::create(new spine::Atlas(
+		auto atlas = Atlas::create(New<spine::Atlas>(
 			r_cast<const char*>(data.begin()),
 			s_cast<int>(data.size()), dir.c_str(),
 			getTextureLoader(), false));
