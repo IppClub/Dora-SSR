@@ -1144,7 +1144,7 @@ Director.ui:addChild((function() -- 815
 						return -- 858
 					end -- 858
 					GamePaused = false -- 859
-					return _with_3:schedule(once(function() -- 860
+					return _with_3.parent:schedule(once(function() -- 860
 						emit("Fight") -- 861
 						Audio:play("Audio/choose.wav") -- 862
 						return WaitForSignal("FIGHT!", 1) -- 863
@@ -1170,11 +1170,11 @@ Director.ui:addChild((function() -- 815
 					_with_3.scaleY = _tmp_0 -- 872
 				end -- 872
 				_with_3.visible = false -- 873
-				_with_3.touchEnabled = false -- 874
-				_with_3:gslot("GameLost", function() -- 875
-					_with_3.visible = true -- 876
+				_with_3:gslot("GameLost", function() -- 874
+					_with_3.visible = true -- 875
+					_with_3.parent.visible = true -- 876
 					_with_3.touchEnabled = true -- 877
-				end) -- 875
+				end) -- 874
 				_with_3:slot("Tapped", function() -- 878
 					_with_3.touchEnabled = false -- 879
 					Audio:play("Audio/v_att.wav") -- 880
@@ -1206,193 +1206,195 @@ Director.ui:addChild((function() -- 815
 				end -- 894
 				_with_3:slot("Tapped", function() -- 895
 					Audio:play("Audio/switch.wav") -- 896
-					emit("AddScore", -5) -- 897
-					return emit("Start") -- 898
+					if GameScore <= 5 then -- 897
+						local _with_4 = _with_3.parent.parent -- 898
+						_with_4:eachChild(function(self) -- 899
+							self.visible = false -- 899
+						end) -- 899
+						_with_4:unschedule() -- 900
+					end -- 897
+					emit("AddScore", -5) -- 901
+					return emit("Start") -- 902
 				end) -- 895
 				return _with_3 -- 888
 			end)()) -- 888
 			return _with_2 -- 886
 		end)()) -- 886
-		_with_1:gslot("Lost", function() -- 899
-			return _with_1:schedule(once(function() -- 900
-				emit("AddScore", -(10 + math.floor(GameScore / 20) * 5)) -- 901
-				if GameScore == 0 then -- 902
-					return -- 902
-				end -- 902
-				Audio:play("Audio/hero_fall.wav") -- 903
-				WaitForSignal("LOST!", 1.5) -- 904
-				return emit("Start") -- 905
-			end)) -- 905
-		end) -- 899
-		_with_1:gslot("Win", function() -- 906
-			return _with_1:schedule(once(function() -- 907
-				local score = 5 * Group({ -- 908
-					"player" -- 908
-				}).count -- 908
-				emit("AddScore", score) -- 909
-				Audio:play("Audio/hero_win.wav") -- 910
-				WaitForSignal("WIN!", 1.5) -- 911
-				return emit("Start") -- 912
-			end)) -- 912
-		end) -- 906
-		_with_1:gslot("Wasted", function() -- 913
-			_with_1:eachChild(function(self) -- 914
-				self.visible = false -- 915
-				self.touchEnabled = false -- 916
-			end) -- 914
-			return emit("AddScore", -20) -- 917
-		end) -- 913
-		_with_1:gslot("Fight", function() -- 918
-			_with_1:eachChild(function(self) -- 919
-				self.visible = false -- 920
-				self.touchEnabled = false -- 921
-			end) -- 919
-			return _with_1:unschedule() -- 922
-		end) -- 918
-		_with_1:gslot("Start", function() -- 923
-			if GameScore == 0 then -- 924
-				return -- 924
-			end -- 924
-			GamePaused = true -- 925
-			_with_1:eachChild(function(self) -- 926
-				if self.text ~= "STRIKE\nBACK" then -- 927
-					self.touchEnabled = true -- 928
-					self.visible = true -- 929
-				end -- 927
-			end) -- 926
-			Group({ -- 930
-				"unit" -- 930
-			}):each(function(self) -- 930
-				return self.unit:removeFromParent() -- 930
-			end) -- 930
-			local unitCount -- 931
-			if GameScore < 40 then -- 931
-				unitCount = 1 + math.min(2, math.floor(math.max(0, GameScore - 20) / 5)) -- 932
-			else -- 934
-				unitCount = 3 + math.min(3, math.floor(GameScore / 35)) -- 934
-			end -- 931
-			if math.random(1, 100) == 1 then -- 935
-				Entity({ -- 937
-					position = Vec2(-200, 100), -- 937
-					order = PlayerLayer, -- 938
-					group = PlayerGroup, -- 939
-					boss = true, -- 940
-					faceRight = true -- 941
-				}) -- 936
-			else -- 943
-				for i = 1, unitCount do -- 943
-					Entity({ -- 945
-						position = Vec2(-100 * i, 100), -- 945
-						order = PlayerLayer, -- 946
-						group = PlayerGroup, -- 947
-						faceRight = true -- 948
-					}) -- 944
-				end -- 948
-			end -- 935
-			if math.random(1, 100) == 1 then -- 949
-				Entity({ -- 951
-					position = Vec2(200, 100), -- 951
-					order = EnemyLayer, -- 952
-					group = EnemyGroup, -- 953
-					boss = true, -- 954
-					faceRight = false -- 955
-				}) -- 950
-			else -- 957
-				for i = 1, unitCount do -- 957
-					Entity({ -- 959
-						position = Vec2(100 * i, 100), -- 959
-						order = EnemyLayer, -- 960
-						group = EnemyGroup, -- 961
-						faceRight = false -- 962
-					}) -- 958
-				end -- 962
-			end -- 949
-			return _with_1:schedule(once(function() -- 963
-				local time = 2 -- 964
-				cycle(time, function(dt) -- 965
-					local width, height -- 966
-					do -- 966
-						local _obj_0 = App.visualSize -- 966
-						width, height = _obj_0.width, _obj_0.height -- 966
-					end -- 966
-					SetNextWindowPos(Vec2(width / 2 - 150, height / 2)) -- 967
-					SetNextWindowSize(Vec2(300, 50), "FirstUseEver") -- 968
-					return Begin("CountDown", { -- 969
-						"NoResize", -- 969
-						"NoSavedSettings", -- 969
-						"NoTitleBar", -- 969
-						"NoMove" -- 969
-					}, function() -- 969
-						return ProgressBar(1.0 - dt, Vec2(-1, 30), string.format("%.2fs", (1 - dt) * time)) -- 970
-					end) -- 970
-				end) -- 965
-				emit("Wasted") -- 971
-				if GameScore == 0 then -- 972
-					return -- 972
-				end -- 972
-				Audio:play("Audio/choose.wav") -- 973
-				WaitForSignal("WASTED!", 1.5) -- 974
-				return emit("Start") -- 975
-			end)) -- 975
-		end) -- 923
-		_with_1:addChild((function() -- 976
-			local _with_2 = Node() -- 976
-			_with_2:schedule(function() -- 977
-				SetNextWindowPos(Vec2(20, 20)) -- 978
-				SetNextWindowSize(Vec2(120, 280), "FirstUseEver") -- 979
-				return PushStyleVar("ItemSpacing", Vec2.zero, function() -- 980
-					return Begin("Stats", { -- 981
-						"NoResize", -- 981
-						"NoSavedSettings", -- 981
-						"NoTitleBar", -- 981
-						"NoMove" -- 981
-					}, function() -- 981
-						Text("VALUE: " .. tostring(GameScore)) -- 982
-						Image("Model/patreon.clip|character_handGreen", Vec2(30, 30)) -- 983
+		_with_1:gslot("Lost", function() -- 903
+			return _with_1:schedule(once(function() -- 904
+				emit("AddScore", -(10 + math.floor(GameScore / 20) * 5)) -- 905
+				if GameScore == 0 then -- 906
+					return -- 906
+				end -- 906
+				Audio:play("Audio/hero_fall.wav") -- 907
+				WaitForSignal("LOST!", 1.5) -- 908
+				return emit("Start") -- 909
+			end)) -- 909
+		end) -- 903
+		_with_1:gslot("Win", function() -- 910
+			return _with_1:schedule(once(function() -- 911
+				local score = 5 * Group({ -- 912
+					"player" -- 912
+				}).count -- 912
+				emit("AddScore", score) -- 913
+				Audio:play("Audio/hero_win.wav") -- 914
+				WaitForSignal("WIN!", 1.5) -- 915
+				return emit("Start") -- 916
+			end)) -- 916
+		end) -- 910
+		_with_1:gslot("Wasted", function() -- 917
+			_with_1:eachChild(function(self) -- 918
+				self.visible = false -- 919
+			end) -- 918
+			return emit("AddScore", -20) -- 920
+		end) -- 917
+		_with_1:gslot("Fight", function() -- 921
+			_with_1:eachChild(function(self) -- 922
+				self.visible = false -- 922
+			end) -- 922
+			return _with_1:unschedule() -- 923
+		end) -- 921
+		_with_1:gslot("Start", function() -- 924
+			if GameScore == 0 then -- 925
+				return -- 925
+			end -- 925
+			GamePaused = true -- 926
+			_with_1:eachChild(function(self) -- 927
+				self.visible = true -- 927
+			end) -- 927
+			Group({ -- 928
+				"unit" -- 928
+			}):each(function(self) -- 928
+				return self.unit:removeFromParent() -- 928
+			end) -- 928
+			local unitCount -- 929
+			if GameScore < 40 then -- 929
+				unitCount = 1 + math.min(2, math.floor(math.max(0, GameScore - 20) / 5)) -- 930
+			else -- 932
+				unitCount = 3 + math.min(3, math.floor(GameScore / 35)) -- 932
+			end -- 929
+			if math.random(1, 100) == 1 then -- 933
+				Entity({ -- 935
+					position = Vec2(-200, 100), -- 935
+					order = PlayerLayer, -- 936
+					group = PlayerGroup, -- 937
+					boss = true, -- 938
+					faceRight = true -- 939
+				}) -- 934
+			else -- 941
+				for i = 1, unitCount do -- 941
+					Entity({ -- 943
+						position = Vec2(-100 * i, 100), -- 943
+						order = PlayerLayer, -- 944
+						group = PlayerGroup, -- 945
+						faceRight = true -- 946
+					}) -- 942
+				end -- 946
+			end -- 933
+			if math.random(1, 100) == 1 then -- 947
+				Entity({ -- 949
+					position = Vec2(200, 100), -- 949
+					order = EnemyLayer, -- 950
+					group = EnemyGroup, -- 951
+					boss = true, -- 952
+					faceRight = false -- 953
+				}) -- 948
+			else -- 955
+				for i = 1, unitCount do -- 955
+					Entity({ -- 957
+						position = Vec2(100 * i, 100), -- 957
+						order = EnemyLayer, -- 958
+						group = EnemyGroup, -- 959
+						faceRight = false -- 960
+					}) -- 956
+				end -- 960
+			end -- 947
+			return _with_1:schedule(once(function() -- 961
+				local time = 2 -- 962
+				cycle(time, function(dt) -- 963
+					local width, height -- 964
+					do -- 964
+						local _obj_0 = App.visualSize -- 964
+						width, height = _obj_0.width, _obj_0.height -- 964
+					end -- 964
+					SetNextWindowPos(Vec2(width / 2 - 150, height / 2)) -- 965
+					SetNextWindowSize(Vec2(300, 50), "FirstUseEver") -- 966
+					return Begin("CountDown", { -- 967
+						"NoResize", -- 967
+						"NoSavedSettings", -- 967
+						"NoTitleBar", -- 967
+						"NoMove" -- 967
+					}, function() -- 967
+						return ProgressBar(1.0 - dt, Vec2(-1, 30), string.format("%.2fs", (1 - dt) * time)) -- 968
+					end) -- 968
+				end) -- 963
+				emit("Wasted") -- 969
+				if GameScore == 0 then -- 970
+					return -- 970
+				end -- 970
+				Audio:play("Audio/choose.wav") -- 971
+				WaitForSignal("WASTED!", 1.5) -- 972
+				return emit("Start") -- 973
+			end)) -- 973
+		end) -- 924
+		_with_1:addChild((function() -- 974
+			local _with_2 = Node() -- 974
+			_with_2:schedule(function() -- 975
+				SetNextWindowPos(Vec2(20, 20)) -- 976
+				SetNextWindowSize(Vec2(120, 280), "FirstUseEver") -- 977
+				return PushStyleVar("ItemSpacing", Vec2.zero, function() -- 978
+					return Begin("Stats", { -- 979
+						"NoResize", -- 979
+						"NoSavedSettings", -- 979
+						"NoTitleBar", -- 979
+						"NoMove" -- 979
+					}, function() -- 979
+						Text("VALUE: " .. tostring(GameScore)) -- 980
+						Image("Model/patreon.clip|character_handGreen", Vec2(30, 30)) -- 981
+						SameLine() -- 982
+						Text("->") -- 983
 						SameLine() -- 984
-						Text("->") -- 985
+						Image("Model/patreon.clip|character_handRed", Vec2(30, 30)) -- 985
 						SameLine() -- 986
-						Image("Model/patreon.clip|character_handRed", Vec2(30, 30)) -- 987
-						SameLine() -- 988
-						Text("x3") -- 989
-						Image("Model/patreon.clip|character_handRed", Vec2(30, 30)) -- 990
+						Text("x3") -- 987
+						Image("Model/patreon.clip|character_handRed", Vec2(30, 30)) -- 988
+						SameLine() -- 989
+						Text("->") -- 990
 						SameLine() -- 991
-						Text("->") -- 992
+						Image("Model/patreon.clip|character_handYellow", Vec2(30, 30)) -- 992
 						SameLine() -- 993
-						Image("Model/patreon.clip|character_handYellow", Vec2(30, 30)) -- 994
-						SameLine() -- 995
-						Text("x3") -- 996
-						Image("Model/patreon.clip|character_handYellow", Vec2(30, 30)) -- 997
+						Text("x3") -- 994
+						Image("Model/patreon.clip|character_handYellow", Vec2(30, 30)) -- 995
+						SameLine() -- 996
+						Text("->") -- 997
 						SameLine() -- 998
-						Text("->") -- 999
+						Image("Model/patreon.clip|character_handGreen", Vec2(30, 30)) -- 999
 						SameLine() -- 1000
-						Image("Model/patreon.clip|character_handGreen", Vec2(30, 30)) -- 1001
-						SameLine() -- 1002
-						Text("x3") -- 1003
-						Image("Model/patreon.clip|item_bow", Vec2(30, 30)) -- 1004
+						Text("x3") -- 1001
+						Image("Model/patreon.clip|item_bow", Vec2(30, 30)) -- 1002
+						SameLine() -- 1003
+						Text(">") -- 1004
 						SameLine() -- 1005
-						Text(">") -- 1006
-						SameLine() -- 1007
-						Image("Model/patreon.clip|item_sword", Vec2(30, 30)) -- 1008
-						Image("Model/patreon.clip|item_hatTop", Vec2(30, 30)) -- 1009
-						SameLine() -- 1010
-						Text("dodge") -- 1011
-						Image("Model/patreon.clip|item_helmet", Vec2(30, 30)) -- 1012
-						SameLine() -- 1013
-						Text("rush") -- 1014
-						Image("Model/patreon.clip|item_rod", Vec2(30, 30)) -- 1015
-						SameLine() -- 1016
-						Text("knock") -- 1017
-						Image("Model/patreon.clip|tile_heart", Vec2(30, 30)) -- 1018
-						SameLine() -- 1019
-						return Text("bash") -- 1020
-					end) -- 1020
-				end) -- 1020
-			end) -- 977
-			return _with_2 -- 976
-		end)()) -- 976
+						Image("Model/patreon.clip|item_sword", Vec2(30, 30)) -- 1006
+						Image("Model/patreon.clip|item_hatTop", Vec2(30, 30)) -- 1007
+						SameLine() -- 1008
+						Text("dodge") -- 1009
+						Image("Model/patreon.clip|item_helmet", Vec2(30, 30)) -- 1010
+						SameLine() -- 1011
+						Text("rush") -- 1012
+						Image("Model/patreon.clip|item_rod", Vec2(30, 30)) -- 1013
+						SameLine() -- 1014
+						Text("knock") -- 1015
+						Image("Model/patreon.clip|tile_heart", Vec2(30, 30)) -- 1016
+						SameLine() -- 1017
+						return Text("bash") -- 1018
+					end) -- 1018
+				end) -- 1018
+			end) -- 975
+			return _with_2 -- 974
+		end)()) -- 974
 		return _with_1 -- 846
 	end)()) -- 846
 	return _with_0 -- 815
 end)()) -- 815
-return emit("Start") -- 1022
+return emit("Start") -- 1020
