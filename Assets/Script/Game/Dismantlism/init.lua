@@ -27,7 +27,6 @@ local Show = Dora.Show -- 1
 local Hide = Dora.Hide -- 1
 local Scale = Dora.Scale -- 1
 local Color = Dora.Color -- 1
-local App = Dora.App -- 1
 local tostring = _G.tostring -- 1
 local scriptPath = Path:getScriptPath(...) -- 13
 if not scriptPath then -- 14
@@ -389,7 +388,6 @@ buildScene = function() -- 228
 							isSpace = not isSpace -- 272
 							switchScene() -- 273
 						elseif "quit" == _exp_0 then -- 274
-							App:shutdown() -- 275
 						elseif "get" == _exp_0 or "fish" == _exp_0 then -- 276
 							score = score + 100 -- 277
 						elseif "credit" == _exp_0 then -- 278

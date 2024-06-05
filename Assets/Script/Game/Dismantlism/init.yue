@@ -272,7 +272,7 @@ buildScene = ->
 										isSpace = not isSpace
 										switchScene!
 									when "quit"
-										App\shutdown!
+										-- App\shutdown!
 									when "get", "fish"
 										score += 100
 									when "credit"
