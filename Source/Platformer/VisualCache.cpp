@@ -174,7 +174,10 @@ ParticleVisual::ParticleVisual(String filename)
 
 bool ParticleVisual::init() {
 	if (!Visual::init()) return false;
-	if (!_particle) return false;
+	if (!_particle) {
+		setAsManaged();
+		return false;
+	}
 	addChild(_particle);
 	return true;
 }
@@ -241,7 +244,10 @@ SpriteVisual::SpriteVisual(String filename)
 
 bool SpriteVisual::init() {
 	if (!Visual::init()) return false;
-	if (!_sprite || !_action) return false;
+	if (!_sprite || !_action) {
+		setAsManaged();
+		return false;
+	}
 	addChild(_sprite);
 	return true;
 }

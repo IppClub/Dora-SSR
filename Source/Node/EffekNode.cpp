@@ -124,8 +124,9 @@ static void m44to43(const Matrix& m44, Effekseer::Matrix43& m43) {
 }
 
 bool EffekNode::init() {
+	if (!Node::init()) return false;
 	scheduleUpdate();
-	return Node::init();
+	return true;
 }
 
 bool EffekNode::update(double deltaTime) {

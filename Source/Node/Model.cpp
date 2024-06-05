@@ -51,7 +51,7 @@ Model::Model(String filename)
 		Path::getExt(filename.toString()).empty() ? filename.toString() + ".model"s : filename.toString())) { }
 
 bool Model::init() {
-	if (!Node::init()) return false;
+	if (!Playable::init()) return false;
 	if (!_modelDef) {
 		setAsManaged();
 		return false;

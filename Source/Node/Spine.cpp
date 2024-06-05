@@ -78,7 +78,7 @@ Spine::Spine(String skelFile, String atlasFile)
 	, _listener(this) { }
 
 bool Spine::init() {
-	if (!Node::init()) return false;
+	if (!Playable::init()) return false;
 	if (!_skeletonData) {
 		setAsManaged();
 		return false;
