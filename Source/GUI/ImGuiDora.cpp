@@ -1213,7 +1213,7 @@ bool ImGuiDora::init() {
 	io.SetPlatformImeDataFn = SetPlatformImeDataFn;
 	io.ClipboardUserData = nullptr;
 
-	_iniFilePath = SharedContent.getWritablePath() + "imgui.ini";
+	_iniFilePath = Path::concat({SharedContent.getWritablePath(), "imgui.ini"sv});
 	io.IniFilename = _iniFilePath.c_str();
 
 	_sampler = bgfx::createUniform("s_texColor", bgfx::UniformType::Sampler);
@@ -1471,8 +1471,7 @@ void ImGuiDora::handleEvent(const SDL_Event& event) {
 			Size winSize = SharedApplication.getWinSize();
 			ImGui::GetIO().AddMousePosEvent(
 				s_cast<float>(event.motion.x) * visualSize.width / winSize.width,
-				s_cast<float>(event.motion.y) * visualSize.height / winSize.height
-			);
+				s_cast<float>(event.motion.y) * visualSize.height / winSize.height);
 			break;
 		}
 		case SDL_KEYDOWN:
