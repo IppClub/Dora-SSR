@@ -857,7 +857,7 @@ Director.ui\addChild with AlignNode true
 				\slot "Tapped", ->
 					return if GameScore <= 0
 					GamePaused = false
-					\schedule once ->
+					.parent\schedule once ->
 						emit "Fight"
 						Audio\play "Audio/choose.wav"
 						WaitForSignal "FIGHT!", 1
@@ -871,9 +871,9 @@ Director.ui\addChild with AlignNode true
 				}
 				.scaleX = .scaleY = 1 / uiScale
 				.visible = false
-				.touchEnabled = false
 				\gslot "GameLost", ->
 					.visible = true
+					.parent.visible = true
 					.touchEnabled = true
 				\slot "Tapped", ->
 					.touchEnabled = false
@@ -894,6 +894,10 @@ Director.ui\addChild with AlignNode true
 				.scaleX = .scaleY = 1 / uiScale
 				\slot "Tapped", ->
 					Audio\play "Audio/switch.wav"
+					if GameScore <= 5
+						with .parent.parent
+							\eachChild => @visible = false
+							\unschedule!
 					emit "AddScore", -5
 					emit "Start"
 		\gslot "Lost", ->
@@ -913,20 +917,14 @@ Director.ui\addChild with AlignNode true
 		\gslot "Wasted", ->
 			\eachChild =>
 				@visible = false
-				@touchEnabled = false
 			emit "AddScore", -20
 		\gslot "Fight", ->
-			\eachChild =>
-				@visible = false
-				@touchEnabled = false
+			\eachChild => @visible = false
 			\unschedule!
 		\gslot "Start", ->
 			return if GameScore == 0
 			GamePaused = true
-			\eachChild =>
-				if @text ~= "STRIKE\nBACK"
-					@touchEnabled = true
-					@visible = true
+			\eachChild => @visible = true
 			Group(["unit",])\each => @unit\removeFromParent!
 			unitCount = if GameScore < 40
 				1 + math.min 2, math.floor math.max(0, GameScore - 20) / 5

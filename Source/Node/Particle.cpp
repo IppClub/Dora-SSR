@@ -359,19 +359,14 @@ void ParticleNode::stop() {
 void ParticleNode::addQuad(const Particle& particle, float scale, float angleX, float angleY) {
 	const Vec3& pos = particle.pos;
 	SpriteQuad quad = {
-		{0, 0, 0, 0, _texRight, _texBottom},
-		{0, 0, 0, 0, _texLeft, _texBottom},
-		{0, 0, 0, 0, _texLeft, _texTop},
-		{0, 0, 0, 0, _texRight, _texTop}};
+		{0, 0, 0, 1, _texRight, _texBottom},
+		{0, 0, 0, 1, _texLeft, _texBottom},
+		{0, 0, 0, 1, _texLeft, _texTop},
+		{0, 0, 0, 1, _texRight, _texTop}};
 	quad.rb.abgr = Color(particle.color).toABGR();
 	quad.lb.abgr = Color(particle.color).toABGR();
 	quad.lt.abgr = Color(particle.color).toABGR();
 	quad.rt.abgr = Color(particle.color).toABGR();
-	SpriteQuad::Position quadPos = {
-		{0, 0, 0, 1},
-		{0, 0, 0, 1},
-		{0, 0, 0, 1},
-		{0, 0, 0, 1}};
 	float halfSize = particle.size * 0.5f * scale;
 	if (particle.rotation) {
 		float x1 = -halfSize;
@@ -389,35 +384,36 @@ void ParticleNode::addQuad(const Particle& particle, float scale, float angleX, 
 		float cy = x2 * sr + y2 * cr;
 		float dx = x1 * cr - y2 * sr;
 		float dy = x1 * sr + y2 * cr;
-		quadPos.rb.x = pos.x + bx;
-		quadPos.rb.y = pos.y + by;
-		quadPos.lb.x = pos.x + ax;
-		quadPos.lb.y = pos.y + ay;
-		quadPos.lt.x = pos.x + dx;
-		quadPos.lt.y = pos.y + dy;
-		quadPos.rt.x = pos.x + cx;
-		quadPos.rt.y = pos.y + cy;
+		quad.rb.x = pos.x + bx;
+		quad.rb.y = pos.y + by;
+		quad.lb.x = pos.x + ax;
+		quad.lb.y = pos.y + ay;
+		quad.lt.x = pos.x + dx;
+		quad.lt.y = pos.y + dy;
+		quad.rt.x = pos.x + cx;
+		quad.rt.y = pos.y + cy;
 	} else {
-		quadPos.rb.x = pos.x + halfSize;
-		quadPos.rb.y = pos.y - halfSize;
-		quadPos.lb.x = pos.x - halfSize;
-		quadPos.lb.y = pos.y - halfSize;
-		quadPos.lt.x = pos.x - halfSize;
-		quadPos.lt.y = pos.y + halfSize;
-		quadPos.rt.x = pos.x + halfSize;
-		quadPos.rt.y = pos.y + halfSize;
+		quad.rb.x = pos.x + halfSize;
+		quad.rb.y = pos.y - halfSize;
+		quad.lb.x = pos.x - halfSize;
+		quad.lb.y = pos.y - halfSize;
+		quad.lt.x = pos.x - halfSize;
+		quad.lt.y = pos.y + halfSize;
+		quad.rt.x = pos.x + halfSize;
+		quad.rt.y = pos.y + halfSize;
 	}
 	if (angleX || angleY) {
 		Matrix rotate;
 		bx::mtxRotateXY(rotate, -bx::toRad(angleX), -bx::toRad(angleY));
-		SpriteQuad::Position newPos;
-		Matrix::mulVec4(&newPos.rb.x, rotate, &quadPos.rb.x);
-		Matrix::mulVec4(&newPos.lb.x, rotate, &quadPos.lb.x);
-		Matrix::mulVec4(&newPos.lt.x, rotate, &quadPos.lt.x);
-		Matrix::mulVec4(&newPos.rt.x, rotate, &quadPos.rt.x);
-		quadPos = newPos;
+		Vec4 v4 = *r_cast<Vec4*>(&quad.rb.x);
+		Matrix::mulVec4(&quad.rb.x, rotate, v4);
+		v4 = *r_cast<Vec4*>(&quad.lb.x);
+		Matrix::mulVec4(&quad.lb.x, rotate, v4);
+		v4 = *r_cast<Vec4*>(&quad.lt.x);
+		Matrix::mulVec4(&quad.lt.x, rotate, v4);
+		v4 = *r_cast<Vec4*>(&quad.rt.x);
+		Matrix::mulVec4(&quad.rt.x, rotate, v4);
 	}
-	_quadPositons.push_back(quadPos);
 	_quads.push_back(quad);
 }
 
@@ -453,7 +449,6 @@ void ParticleNode::visit() {
 	scaleY = std::abs(scaleY);
 	float scale = Vec2{scaleX, scaleY}.length() / std::sqrt(2.0f);
 
-	_quadPositons.clear();
 	_quads.clear();
 	int index = 0;
 	while (index < s_cast<int>(_particles.size())) {
@@ -539,12 +534,12 @@ void ParticleNode::render() {
 	}
 
 	if (SharedDirector.isFrustumCulling()) {
-		const auto& firstQuad = _quadPositons[0];
+		const auto& firstQuad = _quads[0];
 		auto [minX, maxX] = std::minmax({firstQuad.lt.x, firstQuad.lb.x, firstQuad.rt.x, firstQuad.rb.x});
 		auto [minY, maxY] = std::minmax({firstQuad.lt.y, firstQuad.lb.y, firstQuad.rt.y, firstQuad.rb.y});
 		auto [minZ, maxZ] = std::minmax({firstQuad.lt.z, firstQuad.lb.z, firstQuad.rt.z, firstQuad.rb.z});
-		for (size_t i = 1; i < _quadPositons.size(); i++) {
-			const auto& quad = _quadPositons[i];
+		for (size_t i = 1; i < _quads.size(); i++) {
+			const auto& quad = _quads[i];
 			std::tie(minX, maxX) = std::minmax({minX, maxX, quad.lt.x, quad.lb.x, quad.rt.x, quad.rb.x});
 			std::tie(minY, maxY) = std::minmax({minY, maxY, quad.lt.y, quad.lb.y, quad.rt.y, quad.rb.y});
 			std::tie(minZ, maxZ) = std::minmax({minZ, maxZ, quad.lt.z, quad.lb.z, quad.rt.z, quad.rb.z});
@@ -560,12 +555,15 @@ void ParticleNode::render() {
 
 	const auto& transform = SharedDirector.getViewProjection();
 	for (size_t i = 0; i < _quads.size(); i++) {
-		auto& pos = _quadPositons[i];
 		auto& quad = _quads[i];
-		Matrix::mulVec4(&quad.lb.x, transform, &pos.lb.x);
-		Matrix::mulVec4(&quad.rb.x, transform, &pos.rb.x);
-		Matrix::mulVec4(&quad.lt.x, transform, &pos.lt.x);
-		Matrix::mulVec4(&quad.rt.x, transform, &pos.rt.x);
+		Vec4 v4 = *r_cast<Vec4*>(&quad.lb.x);
+		Matrix::mulVec4(&quad.lb.x, transform, v4);
+		v4 = *r_cast<Vec4*>(&quad.rb.x);
+		Matrix::mulVec4(&quad.rb.x, transform, v4);
+		v4 = *r_cast<Vec4*>(&quad.lt.x);
+		Matrix::mulVec4(&quad.lt.x, transform, v4);
+		v4 = *r_cast<Vec4*>(&quad.rt.x);
+		Matrix::mulVec4(&quad.rt.x, transform, v4);
 	}
 
 	BlendFunc blendFunc{_particleDef->blendFuncSource, _particleDef->blendFuncDestination};
