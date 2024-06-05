@@ -1543,8 +1543,16 @@ int Array_create(lua_State* L) {
 	{
 		if (tolua_isusertype(L, 2, "Array"_slice, 0, &tolua_err) && tolua_isnoobj(L, 3, &tolua_err)) {
 			Array* other = r_cast<Array*>(tolua_tousertype(L, 2, 0));
+#ifndef TOLUA_RELEASE
+			try {
+#endif
 			Array* tolua_ret = Array::create(other);
 			tolua_pushobject(L, tolua_ret);
+#ifndef TOLUA_RELEASE
+			} catch (std::runtime_error& e) {
+				luaL_error(L, e.what());
+			}
+#endif
 			return 1;
 		} else if (tolua_istable(L, 2, 0, &tolua_err) && tolua_isnoobj(L, 3, &tolua_err)) {
 			int tolua_len = s_cast<int>(lua_rawlen(L, 2));

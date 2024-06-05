@@ -607,16 +607,7 @@ DragonBone* DragonBone::create(String boneStr) {
 }
 
 DragonBone* DragonBone::create() {
-	DragonBone* item = new DragonBone();
-	if (item && item->init()) {
-		item->autorelease();
-	} else if (item->getRefCount() == 0) {
-		delete item;
-		item = nullptr;
-	} else {
-		item = nullptr;
-	}
-	return item;
+	return Object::createNotNull<DragonBone>();
 }
 
 NS_DORA_END

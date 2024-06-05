@@ -16,18 +16,17 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DORA_BEGIN
 
-Body::Body(BodyDef* bodyDef, PhysicsWorld* world, const Vec2& pos, float rot)
+Body::Body(NotNull<BodyDef, 1> bodyDef, NotNull<PhysicsWorld, 2> world, const Vec2& pos, float rot)
 	: _prBody(pr::InvalidBodyID)
 	, _bodyDef(bodyDef)
 	, _pWorld(world)
 	, _group(0) {
-	AssertIf(world == nullptr, "init Body with invalid PhysicsWorld.");
 	bodyDef->getConf()->UseLocation(PhysicsWorld::prVal(pos + bodyDef->offset));
 	bodyDef->getConf()->UseAngle(-bx::toRad(rot + bodyDef->angleOffset));
 }
 
 Body::~Body() {
-	if (_prBody != pr::InvalidBodyID) {
+	if (_pWorld && pr::IsValid(_prBody)) {
 		pd::Destroy(_pWorld->getPrWorld(), _prBody);
 		_pWorld->setBodyData(_prBody, nullptr);
 		_prBody = pr::InvalidBodyID;
@@ -60,25 +59,32 @@ bool Body::init() {
 
 void Body::onEnter() {
 	Node::onEnter();
-	pd::SetEnabled(_pWorld->getPrWorld(), _prBody, true);
+	if (_pWorld) {
+		pd::SetEnabled(_pWorld->getPrWorld(), _prBody, true);
+	}
 }
 
 void Body::onExit() {
 	Node::onExit();
-	pd::SetEnabled(_pWorld->getPrWorld(), _prBody, false); // Set enable false to trigger sensor`s body leave event.
+	if (_pWorld) {
+		// Set enable false to trigger sensor`s body leave event.
+		pd::SetEnabled(_pWorld->getPrWorld(), _prBody, false);
+	}
 }
 
 void Body::cleanup() {
 	if (_flags.isOff(Node::Cleanup)) {
 		Node::cleanup();
-		if (_prBody != pr::InvalidBodyID) {
+		if (_pWorld && pr::IsValid(_prBody)) {
 			pd::Destroy(_pWorld->getPrWorld(), _prBody);
 			_pWorld->setBodyData(_prBody, nullptr);
 			_prBody = pr::InvalidBodyID;
 		}
 		if (_sensors) {
 			ARRAY_START(Sensor, sensor, _sensors) {
-				_pWorld->setFixtureData(sensor->getFixture(), nullptr);
+				if (_pWorld) {
+					_pWorld->setFixtureData(sensor->getFixture(), nullptr);
+				}
 				sensor->bodyEnter.Clear();
 				sensor->bodyLeave.Clear();
 				sensor->setEnabled(false);
@@ -120,9 +126,10 @@ bool Body::removeSensorByTag(int tag) {
 }
 
 bool Body::removeSensor(Sensor* sensor) {
-	auto& world = _pWorld->getPrWorld();
+	AssertUnless(_pWorld, "got invalid world.");
 	auto sensorRef = Value::alloc(sensor);
 	if (_sensors && sensor && _sensors->remove(sensorRef.get())) {
+		auto& world = _pWorld->getPrWorld();
 		pd::Destroy(world, sensor->getFixture());
 		_pWorld->setFixtureData(sensor->getFixture(), nullptr);
 		return true;
@@ -131,6 +138,7 @@ bool Body::removeSensor(Sensor* sensor) {
 }
 
 void Body::setVelocity(float x, float y) {
+	AssertUnless(_pWorld, "got invalid world.");
 	auto& world = _pWorld->getPrWorld();
 	pd::SetVelocity(world, _prBody, pr::LinearVelocity2{PhysicsWorld::prVal(x), PhysicsWorld::prVal(y)});
 }
@@ -140,36 +148,43 @@ void Body::setVelocity(const Vec2& velocity) {
 }
 
 Vec2 Body::getVelocity() const {
+	AssertUnless(_pWorld, "got invalid world.");
 	auto& world = _pWorld->getPrWorld();
 	return PhysicsWorld::Val(pd::GetVelocity(world, _prBody).linear);
 }
 
 void Body::setAngularRate(float var) {
+	AssertUnless(_pWorld, "got invalid world.");
 	auto& world = _pWorld->getPrWorld();
 	pd::SetVelocity(world, _prBody, -bx::toRad(var));
 }
 
 float Body::getAngularRate() const {
+	AssertUnless(_pWorld, "got invalid world.");
 	auto& world = _pWorld->getPrWorld();
 	return -bx::toDeg(pd::GetAngularVelocity(world, _prBody));
 }
 
 void Body::setLinearDamping(float var) {
+	AssertUnless(_pWorld, "got invalid world.");
 	auto& world = _pWorld->getPrWorld();
 	pd::SetLinearDamping(world, _prBody, var);
 }
 
 float Body::getLinearDamping() const {
+	AssertUnless(_pWorld, "got invalid world.");
 	auto& world = _pWorld->getPrWorld();
 	return pd::GetLinearDamping(world, _prBody);
 }
 
 void Body::setAngularDamping(float var) {
+	AssertUnless(_pWorld, "got invalid world.");
 	auto& world = _pWorld->getPrWorld();
 	pd::SetAngularDamping(world, _prBody, var);
 }
 
 float Body::getAngularDamping() const {
+	AssertUnless(_pWorld, "got invalid world.");
 	auto& world = _pWorld->getPrWorld();
 	return pd::GetAngularDamping(world, _prBody);
 }
@@ -183,12 +198,14 @@ Object* Body::getOwner() const {
 }
 
 float Body::getMass() const {
+	AssertUnless(_pWorld, "got invalid world.");
 	auto& world = _pWorld->getPrWorld();
 	return 1.0f / pd::GetInvMass(world, _prBody);
 }
 
 void Body::setGroup(uint8_t group) {
 	AssertIf(group >= PhysicsWorld::TotalGroups, "Body group should be less than {}.", s_cast<int>(PhysicsWorld::TotalGroups));
+	AssertUnless(_pWorld, "got invalid world.");
 	_group = group;
 	auto& world = _pWorld->getPrWorld();
 	const auto& filter = _pWorld->getFilter(group);
@@ -202,16 +219,19 @@ uint8_t Body::getGroup() const {
 }
 
 void Body::applyLinearImpulse(const Vec2& impulse, const Vec2& pos) {
+	AssertUnless(_pWorld, "got invalid world.");
 	auto& world = _pWorld->getPrWorld();
 	pd::ApplyLinearImpulse(world, _prBody, PhysicsWorld::prVal(impulse), PhysicsWorld::prVal(pos));
 }
 
 void Body::applyAngularImpulse(float impulse) {
+	AssertUnless(_pWorld, "got invalid world.");
 	auto& world = _pWorld->getPrWorld();
 	pd::ApplyAngularImpulse(world, _prBody, PhysicsWorld::prVal(impulse));
 }
 
 pr::ShapeID Body::attachFixture(const pd::Shape& shape) {
+	AssertUnless(_pWorld, "got invalid world.");
 	auto& world = _pWorld->getPrWorld();
 	pr::ShapeID fixture = pd::CreateShape(
 		world,
@@ -230,6 +250,7 @@ pr::ShapeID Body::attach(FixtureDef* fixtureDef) {
 }
 
 Sensor* Body::attachSensor(int tag, pd::Shape& shape) {
+	AssertUnless(_pWorld, "got invalid world.");
 	pd::SetSensor(shape, true);
 	pd::SetFilter(shape, _pWorld->getFilter(_group));
 	auto& world = _pWorld->getPrWorld();
@@ -253,29 +274,34 @@ bool Body::isSensor() const {
 }
 
 void Body::setVelocityX(float x) {
+	AssertUnless(_pWorld, "got invalid world.");
 	auto& world = _pWorld->getPrWorld();
 	auto v = pd::GetVelocity(world, _prBody).linear;
 	pd::SetVelocity(world, _prBody, pr::LinearVelocity2{PhysicsWorld::prVal(x), v[1]});
 }
 
 float Body::getVelocityX() const {
+	AssertUnless(_pWorld, "got invalid world.");
 	auto& world = _pWorld->getPrWorld();
 	return PhysicsWorld::Val(pd::GetVelocity(world, _prBody).linear[0]);
 }
 
 void Body::setVelocityY(float y) {
+	AssertUnless(_pWorld, "got invalid world.");
 	auto& world = _pWorld->getPrWorld();
 	auto v = pd::GetVelocity(world, _prBody).linear;
 	pd::SetVelocity(world, _prBody, pr::LinearVelocity2{v[0], PhysicsWorld::prVal(y)});
 }
 
 float Body::getVelocityY() const {
+	AssertUnless(_pWorld, "got invalid world.");
 	auto& world = _pWorld->getPrWorld();
 	return PhysicsWorld::Val(pd::GetVelocity(world, _prBody).linear[1]);
 }
 
 void Body::setPosition(const Vec2& var) {
 	if (var != Node::getPosition()) {
+		AssertUnless(_pWorld, "got invalid world.");
 		Node::setPosition(var);
 		auto& world = _pWorld->getPrWorld();
 		pd::SetTransform(world, _prBody, PhysicsWorld::prVal(var), pd::GetAngle(world, _prBody));
@@ -284,6 +310,7 @@ void Body::setPosition(const Vec2& var) {
 
 void Body::setAngle(float var) {
 	if (var != Node::getAngle()) {
+		AssertUnless(_pWorld, "got invalid world.");
 		Node::setAngle(var);
 		auto& world = _pWorld->getPrWorld();
 		pd::SetTransform(world, _prBody, pd::GetLocation(world, _prBody), -bx::toRad(var));
@@ -315,6 +342,7 @@ void Body::onContactEnd(Body* other, const Vec2& point, const Vec2& normal) {
 }
 
 void Body::updatePhysics() {
+	AssertUnless(_pWorld, "got invalid world.");
 	auto& world = _pWorld->getPrWorld();
 	if (pd::IsAwake(world, _prBody)) {
 		Vec2 pos = PhysicsWorld::Val(pd::GetLocation(world, _prBody));

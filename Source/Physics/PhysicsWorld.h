@@ -72,7 +72,7 @@ public:
 	 */
 	static float scaleFactor;
 	enum { TotalGroups = sizeof(pr::Filter::bits_type) * 8 };
-	CREATE_FUNC(PhysicsWorld);
+	CREATE_FUNC_NOT_NULL(PhysicsWorld);
 
 protected:
 	PhysicsWorld();

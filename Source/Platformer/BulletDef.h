@@ -32,7 +32,7 @@ public:
 	std::string endEffect;
 	void setAsCircle(float radius);
 	BodyDef* getBodyDef() const;
-	CREATE_FUNC(BulletDef);
+	CREATE_FUNC_NOT_NULL(BulletDef);
 
 protected:
 	BulletDef();

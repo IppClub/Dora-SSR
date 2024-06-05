@@ -34,7 +34,7 @@ public:
 	virtual const Matrix& getView() override;
 	CameraMoveHandler moved;
 	CameraResetHandler reset;
-	CREATE_FUNC(PlatformCamera);
+	CREATE_FUNC_NOT_NULL(PlatformCamera);
 
 protected:
 	PlatformCamera(String name);

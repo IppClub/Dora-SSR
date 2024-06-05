@@ -25,7 +25,7 @@ public:
 	virtual bool init() override;
 	void clearHandler();
 	void handle(Event* e);
-	CREATE_FUNC(Listener);
+	CREATE_FUNC_NOT_NULL(Listener);
 
 protected:
 	Listener(const std::string& name, const EventHandler& handler);

@@ -49,7 +49,7 @@ public:
 	PROPERTY_READONLY_CREF(Vec2, WorldLocation);
 	PROPERTY_READONLY_CREF(Vec2, WorldPreLocation);
 	PROPERTY_READONLY_CLASS(uint32_t, Source);
-	CREATE_FUNC(Touch);
+	CREATE_FUNC_NOT_NULL(Touch);
 
 protected:
 	Touch(int id);

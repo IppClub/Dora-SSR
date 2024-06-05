@@ -47,10 +47,10 @@ public:
 	 */
 	SensorEventHandler bodyLeave;
 
-	CREATE_FUNC(Sensor);
+	CREATE_FUNC_NOT_NULL(Sensor);
 
 protected:
-	Sensor(Body* owner, int tag, pr::ShapeID fixture);
+	Sensor(NotNull<Body, 1> owner, int tag, pr::ShapeID fixture);
 	int _tag;
 	Body* _owner;
 	pr::ShapeID _fixture;

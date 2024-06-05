@@ -180,7 +180,7 @@ bool BehaviorNode::doAction(Unit* self) {
 	return true;
 }
 
-BehaviorNode::BehaviorNode(String name, Behavior::Leaf* root)
+BehaviorNode::BehaviorNode(String name, NotNull<Behavior::Leaf, 2> root)
 	: _root(root)
 	, _name(name) { }
 
@@ -236,7 +236,7 @@ Leaf* Reject() {
 	return RejectNode::create();
 }
 
-Leaf* Behave(String name, Behavior::Leaf* root) {
+Leaf* Behave(String name, NotNull<Behavior::Leaf, 2> root) {
 	return BehaviorNode::create(name, root);
 }
 
@@ -475,7 +475,7 @@ Status CountdownNode::tick(Blackboard* board) {
 	}
 }
 
-CountdownNode::CountdownNode(double time, Leaf* node)
+CountdownNode::CountdownNode(double time, NotNull<Leaf, 2> node)
 	: _time(time)
 	, _node(node) { }
 
@@ -503,7 +503,7 @@ Status TimeoutNode::tick(Blackboard* board) {
 	}
 }
 
-TimeoutNode::TimeoutNode(double time, Leaf* node)
+TimeoutNode::TimeoutNode(double time, NotNull<Leaf, 2> node)
 	: _time(time)
 	, _node(node) { }
 
@@ -561,11 +561,11 @@ Status RepeatNode::tick(Blackboard* board) {
 	return Status::Failure;
 }
 
-RepeatNode::RepeatNode(Leaf* node)
+RepeatNode::RepeatNode(NotNull<Leaf, 1> node)
 	: _times(0)
 	, _node(node) { }
 
-RepeatNode::RepeatNode(int times, Leaf* node)
+RepeatNode::RepeatNode(int times, NotNull<Leaf, 2> node)
 	: _times(times)
 	, _node(node) { }
 
@@ -600,11 +600,11 @@ Status RetryNode::tick(Blackboard* board) {
 	return Status::Failure;
 }
 
-RetryNode::RetryNode(Leaf* node)
+RetryNode::RetryNode(NotNull<Leaf, 1> node)
 	: _times(0)
 	, _node(node) { }
 
-RetryNode::RetryNode(int times, Leaf* node)
+RetryNode::RetryNode(int times, NotNull<Leaf, 2> node)
 	: _times(times)
 	, _node(node) { }
 
@@ -652,11 +652,11 @@ Leaf* Command(String actionName) {
 	return CommandNode::create(actionName);
 }
 
-Leaf* Countdown(double time, Leaf* node) {
+Leaf* Countdown(double time, NotNull<Leaf, 2> node) {
 	return CountdownNode::create(time, node);
 }
 
-Leaf* Timeout(double time, Leaf* node) {
+Leaf* Timeout(double time, NotNull<Leaf, 2> node) {
 	return TimeoutNode::create(time, node);
 }
 
@@ -664,19 +664,19 @@ Leaf* Wait(double duration) {
 	return WaitNode::create(duration);
 }
 
-Leaf* Repeat(int times, Leaf* node) {
+Leaf* Repeat(int times, NotNull<Leaf, 2> node) {
 	return RepeatNode::create(times, node);
 }
 
-Leaf* Repeat(Leaf* node) {
+Leaf* Repeat(NotNull<Leaf, 1> node) {
 	return RepeatNode::create(node);
 }
 
-Leaf* Retry(int times, Leaf* node) {
+Leaf* Retry(int times, NotNull<Leaf, 2> node) {
 	return RetryNode::create(times, node);
 }
 
-Leaf* Retry(Leaf* node) {
+Leaf* Retry(NotNull<Leaf, 1> node) {
 	return RetryNode::create(node);
 }
 

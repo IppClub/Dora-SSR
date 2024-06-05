@@ -241,12 +241,6 @@ StringMap<Vec2>& ModelDef::getKeyPoints() {
 	return _keys;
 }
 
-ModelDef* ModelDef::create() {
-	ModelDef* modelDef = new ModelDef();
-	modelDef->autorelease();
-	return modelDef;
-}
-
 const Size& ModelDef::getSize() const {
 	return _size;
 }

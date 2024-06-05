@@ -16,7 +16,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DORA_BEGIN
 
-SkeletonData::SkeletonData(spine::SkeletonData* skeletonData, Atlas* atlas)
+SkeletonData::SkeletonData(NotNull<spine::SkeletonData, 1> skeletonData, NotNull<Atlas, 2> atlas)
 	: _atlas(atlas)
 	, _skeletonData(skeletonData) { }
 
@@ -151,7 +151,7 @@ void SkeletonCache::loadAsync(String skelFile, String atlasFile, const std::func
 					spine::SkeletonData* skelData = nullptr;
 					result->get(skelData);
 					if (skelData) {
-						SkeletonData* data = SkeletonData::create(skelData, at);
+						SkeletonData* data = SkeletonData::create(skelData, at.get());
 						_skeletons[cacheKey] = data;
 						handler(data);
 						return;

@@ -95,11 +95,11 @@ public:
 		static const Slice DecisionTree;
 		static const Slice DefaultFaceRight;
 	};
-	CREATE_FUNC(Unit);
+	CREATE_FUNC_NOT_NULL(Unit);
 
 protected:
-	Unit(Dictionary* unitDef, PhysicsWorld* physicsWorld, Entity* entity, const Vec2& pos, float rot);
-	Unit(String defName, String worldName, Entity* entity, const Vec2& pos, float rot);
+	Unit(NotNull<Dictionary, 1> unitDef, NotNull<PhysicsWorld, 2> physicsWorld, NotNull<Entity, 3> entity, const Vec2& pos, float rot);
+	Unit(String defName, String worldName, NotNull<Entity, 3> entity, const Vec2& pos, float rot);
 
 private:
 	BodyDef* getBodyDef(Dictionary* def) const;

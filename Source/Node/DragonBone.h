@@ -20,7 +20,7 @@ class DBSlotNode : public Node {
 public:
 	virtual void render() override;
 	virtual const Matrix& getWorld() override;
-	CREATE_FUNC(DBSlotNode);
+	CREATE_FUNC_NOT_NULL(DBSlotNode);
 
 protected:
 	DBSlotNode();
@@ -131,6 +131,7 @@ private:
 		HitTest = Node::UserFlag << 1,
 	};
 	friend class DragonBoneCache;
+	friend class Object;
 	DORA_TYPE_OVERRIDE(DragonBone);
 };
 

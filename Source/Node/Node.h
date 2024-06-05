@@ -154,7 +154,7 @@ public:
 
 	void setAsManaged();
 
-	CREATE_FUNC(Node);
+	CREATE_FUNC_NOT_NULL(Node);
 
 public:
 	template <class... Args>
@@ -260,7 +260,7 @@ public:
 		void grab(Node* target);
 		void visit();
 		virtual void cleanup() override;
-		CREATE_FUNC(Grabber);
+		CREATE_FUNC_NOT_NULL(Grabber);
 
 	private:
 		struct RenderPair {

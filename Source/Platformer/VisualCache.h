@@ -37,7 +37,7 @@ public:
 	virtual Visual* autoRemove() override;
 	virtual bool init() override;
 	ParticleNode* getParticle() const;
-	CREATE_FUNC(ParticleVisual);
+	CREATE_FUNC_NULLABLE(ParticleVisual);
 
 protected:
 	ParticleVisual(String filename);
@@ -54,7 +54,7 @@ public:
 	virtual Visual* autoRemove() override;
 	virtual bool init() override;
 	Sprite* getSprite() const;
-	CREATE_FUNC(SpriteVisual);
+	CREATE_FUNC_NULLABLE(SpriteVisual);
 
 protected:
 	SpriteVisual(String filename);

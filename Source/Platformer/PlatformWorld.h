@@ -35,7 +35,7 @@ public:
 	void removeAllLayers();
 	void onCameraMoved(float deltaX, float deltaY);
 	void onCameraReset();
-	CREATE_FUNC(PlatformWorld);
+	CREATE_FUNC_NOT_NULL(PlatformWorld);
 
 protected:
 	virtual void sortAllChildren() override;
@@ -43,7 +43,7 @@ protected:
 	public:
 		Vec2 ratio;
 		PROPERTY_CREF(Vec2, Offset);
-		CREATE_FUNC(Layer);
+		CREATE_FUNC_NOT_NULL(Layer);
 
 	protected:
 		Layer()

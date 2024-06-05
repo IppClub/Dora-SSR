@@ -41,7 +41,7 @@ public:
 	bool setBoneRotation(String name, float rotation);
 	std::string containsPoint(float x, float y);
 	std::string intersectsSegment(float x1, float y1, float x2, float y2);
-	CREATE_FUNC(Spine);
+	CREATE_FUNC_NULLABLE(Spine);
 
 protected:
 	Spine(String skelFile, String atlasFile);

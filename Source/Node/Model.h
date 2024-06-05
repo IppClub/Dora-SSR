@@ -132,7 +132,7 @@ public:
 	virtual bool init() override;
 	virtual void cleanup() override;
 	static Model* dummy();
-	CREATE_FUNC(Model);
+	CREATE_FUNC_NULLABLE(Model);
 
 protected:
 	Model(ModelDef* def);

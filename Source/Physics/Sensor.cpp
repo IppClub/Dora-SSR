@@ -16,7 +16,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DORA_BEGIN
 
-Sensor::Sensor(Body* owner, int tag, pr::ShapeID fixture)
+Sensor::Sensor(NotNull<Body, 1> owner, int tag, pr::ShapeID fixture)
 	: _owner(owner)
 	, _tag(tag)
 	, _fixture(fixture)

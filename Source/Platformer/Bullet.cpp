@@ -28,7 +28,7 @@ NS_DORA_PLATFORMER_BEGIN
 
 const Slice Bullet::Def::BulletKey = "bullet"_slice;
 
-Bullet::Bullet(BulletDef* bulletDef, Unit* unit)
+Bullet::Bullet(NotNull<BulletDef, 1> bulletDef, NotNull<Unit, 2> unit)
 	: Body(bulletDef->getBodyDef(), unit->getPhysicsWorld())
 	, _bulletDef(bulletDef)
 	, _emitter(unit)

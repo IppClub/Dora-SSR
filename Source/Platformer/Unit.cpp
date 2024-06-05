@@ -92,7 +92,7 @@ BodyDef* Unit::getBodyDef(Dictionary* def) const {
 	return bodyDef;
 }
 
-Unit::Unit(Dictionary* unitDef, PhysicsWorld* physicsWorld, Entity* entity, const Vec2& pos, float rot)
+Unit::Unit(NotNull<Dictionary, 1> unitDef, NotNull<PhysicsWorld, 2> physicsWorld, NotNull<Entity, 3> entity, const Vec2& pos, float rot)
 	: Body(getBodyDef(unitDef), physicsWorld, pos, rot)
 	, _playable(nullptr)
 	, _groundSensor(nullptr)
@@ -108,7 +108,7 @@ static inline Value* assertNotNull(Value* value) {
 	return value;
 }
 
-Unit::Unit(String defName, String worldName, Entity* entity, const Vec2& pos, float rot)
+Unit::Unit(String defName, String worldName, NotNull<Entity, 3> entity, const Vec2& pos, float rot)
 	: Unit(
 		assertNotNull(SharedData.getStore()->get(defName).get())->to<Dictionary>(),
 		assertNotNull(SharedData.getStore()->get(worldName).get())->to<PhysicsWorld>(),

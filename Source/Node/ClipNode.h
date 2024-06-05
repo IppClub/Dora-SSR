@@ -24,7 +24,7 @@ public:
 	virtual void onExit() override;
 	virtual void cleanup() override;
 	virtual void visit() override;
-	CREATE_FUNC(ClipNode);
+	CREATE_FUNC_NOT_NULL(ClipNode);
 
 protected:
 	ClipNode(Node* stencil = nullptr);

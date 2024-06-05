@@ -63,17 +63,17 @@ public:
 	Sensor* attachSensor(int tag, FixtureDef* fixtureDef);
 	bool isSensor() const;
 	void onContactFilter(const ContactFilterHandler& handler);
-	CREATE_FUNC(Body);
+	CREATE_FUNC_NOT_NULL(Body);
 
 protected:
-	Body(BodyDef* bodyDef, PhysicsWorld* world, const Vec2& pos = Vec2::zero, float rot = 0);
+	Body(NotNull<BodyDef, 1> bodyDef, NotNull<PhysicsWorld, 2> world, const Vec2& pos = Vec2::zero, float rot = 0);
 	pr::ShapeID attachFixture(const pd::Shape& shape);
 	Sensor* attachSensor(int tag, pd::Shape& shape);
 	virtual void updatePhysics();
 	pr::BodyID _prBody; // weak reference
-	PhysicsWorld* _pWorld;
+	WRef<PhysicsWorld> _pWorld;
 	uint8_t _group;
-	enum: Flag::ValueType {
+	enum : Flag::ValueType {
 		ReceivingContact = UserFlag,
 		EmittingEvent = UserFlag << 1,
 		BodyUserFlag = UserFlag << 2

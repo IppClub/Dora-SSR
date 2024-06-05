@@ -174,6 +174,7 @@ ParticleVisual::ParticleVisual(String filename)
 
 bool ParticleVisual::init() {
 	if (!Visual::init()) return false;
+	if (!_particle) return false;
 	addChild(_particle);
 	return true;
 }
@@ -213,30 +214,34 @@ Visual* SpriteVisual::autoRemove() {
 }
 
 SpriteVisual::SpriteVisual(String filename)
-	: _isAutoRemoved(false) {
-	WRef<SpriteVisual> self(this);
-	FrameActionDef* frameActionDef = SharedFrameCache.loadFrame(filename);
-	_sprite = Sprite::create(
-		SharedTextureCache.load(frameActionDef->clipStr),
-		*frameActionDef->rects[0]);
-	Action* action = Action::create(FrameAction::alloc(frameActionDef));
-	_sprite->slot("ActionEnd"_slice, [self, action](Event* event) {
-		Action* eventAction = nullptr;
-		Node* target = nullptr;
-		if (event->get(eventAction, target) && action == eventAction) {
-			if (self) {
-				self->_sprite->setVisible(false);
-				if (self->_isAutoRemoved) {
-					self->removeFromParent(true);
+	: _isAutoRemoved(false)
+	, _sprite(nullptr)
+	, _action(nullptr) {
+	if (FrameActionDef* frameActionDef = SharedFrameCache.loadFrame(filename)) {
+		if (Texture2D* tex = SharedTextureCache.load(frameActionDef->clipStr)) {
+			_sprite = Sprite::create(tex, *frameActionDef->rects[0]);
+			Action* action = Action::create(FrameAction::alloc(frameActionDef));
+			WRef<SpriteVisual> self{this};
+			_sprite->slot("ActionEnd"_slice, [self, action](Event* event) {
+				Action* eventAction = nullptr;
+				Node* target = nullptr;
+				if (event->get(eventAction, target) && action == eventAction) {
+					if (self) {
+						self->_sprite->setVisible(false);
+						if (self->_isAutoRemoved) {
+							self->removeFromParent(true);
+						}
+					}
 				}
-			}
+			});
+			_action = action;
 		}
-	});
-	_action = action;
+	}
 }
 
 bool SpriteVisual::init() {
 	if (!Visual::init()) return false;
+	if (!_sprite || !_action) return false;
 	addChild(_sprite);
 	return true;
 }
@@ -266,11 +271,7 @@ public:
 		_isAutoRemoved = true;
 		return this;
 	}
-	static DummyVisual* create() {
-		DummyVisual* visual = new DummyVisual();
-		visual->autorelease();
-		return visual;
-	}
+	CREATE_FUNC_NOT_NULL(DummyVisual);
 
 private:
 	bool _isAutoRemoved;

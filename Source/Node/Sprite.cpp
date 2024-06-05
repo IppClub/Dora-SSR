@@ -124,6 +124,7 @@ uint32_t Sprite::getSamplerFlags() const {
 }
 
 uint64_t Sprite::getTextureFlags() const {
+	if (!_texture) return UINT32_MAX;
 	uint64_t textureFlags = _texture->getFlags();
 	if (_filter == TextureFilter::None && _uwrap == TextureWrap::None && _vwrap == TextureWrap::None) {
 		return UINT32_MAX;

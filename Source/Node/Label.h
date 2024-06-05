@@ -18,7 +18,7 @@ NS_DORA_BEGIN
 class TrueTypeFile : public Object {
 public:
 	PROPERTY_READONLY(bgfx::TrueTypeHandle, Handle);
-	CREATE_FUNC(TrueTypeFile);
+	CREATE_FUNC_NOT_NULL(TrueTypeFile);
 	virtual ~TrueTypeFile();
 
 protected:
@@ -33,11 +33,11 @@ public:
 	PROPERTY_READONLY(bgfx::FontHandle, Handle);
 	PROPERTY_READONLY_CREF(bgfx::FontInfo, Info);
 	PROPERTY_READONLY(TrueTypeFile*, File);
-	CREATE_FUNC(Font);
+	CREATE_FUNC_NOT_NULL(Font);
 	virtual ~Font();
 
 protected:
-	Font(TrueTypeFile* file, bgfx::FontHandle handle);
+	Font(NotNull<TrueTypeFile, 1> file, bgfx::FontHandle handle);
 
 private:
 	bgfx::FontHandle _handle;
@@ -115,7 +115,7 @@ public:
 	virtual void render() override;
 	virtual const Matrix& getWorld() override;
 	static const float AutomaticWidth;
-	CREATE_FUNC(Label);
+	CREATE_FUNC_NULLABLE(Label);
 
 protected:
 	Label(String fontStr);

@@ -77,7 +77,10 @@ Shader* ShaderCache::load(String filename) {
 		}
 		bgfx::RendererType::Enum type = bgfx::getRendererType();
 		bgfx::ShaderHandle handle = bgfx::createEmbeddedShader(DoraShaders, type, items.back().c_str());
-		AssertUnless(bgfx::isValid(handle), "failed to load builtin shader named: \"{}\".", items.back().toString());
+		if (!bgfx::isValid(handle)) {
+			Error("failed to load builtin shader named: \"{}\".", items.back().toString());
+			return nullptr;
+		}
 		Shader* shader = Shader::create(handle);
 		_shaders[filenameStr] = shader;
 		return shader;
@@ -91,14 +94,20 @@ Shader* ShaderCache::load(String filename) {
 			shaderFile = SharedContent.getFullPath(path);
 		}
 	}
-	AssertIf(shaderFile.empty(), "shader file \"{}\" not exist.", filenameStr);
+	if (shaderFile.empty()) {
+		Error("shader file \"{}\" not exist.", filenameStr);
+		return nullptr;
+	}
 	auto it = _shaders.find(shaderFile);
 	if (it != _shaders.end()) {
 		return it->second;
 	}
 	const bgfx::Memory* mem = SharedContent.loadBX(shaderFile);
 	bgfx::ShaderHandle handle = bgfx::createShader(mem);
-	AssertUnless(bgfx::isValid(handle), "failed to load shader \"{}\".", shaderFile);
+	if (!bgfx::isValid(handle)) {
+		Error("failed to load shader \"{}\".", shaderFile);
+		return nullptr;
+	}
 	Shader* shader = Shader::create(handle);
 	_shaders[shaderFile] = shader;
 	return shader;

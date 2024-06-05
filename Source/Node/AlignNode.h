@@ -23,7 +23,7 @@ public:
 	virtual void removeChild(Node* child, bool cleanup = true) override;
 	virtual void cleanup() override;
 	void css(String css);
-	CREATE_FUNC(AlignNode);
+	CREATE_FUNC_NOT_NULL(AlignNode);
 
 protected:
 	AlignNode(bool isWindowRoot = false);

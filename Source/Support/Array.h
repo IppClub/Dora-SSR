@@ -42,7 +42,7 @@ public:
 	bool fastRemoveAt(size_t index);
 	const std::vector<Own<Value>>& data() const;
 	std::vector<Own<Value>>& data();
-	CREATE_FUNC(Array);
+	CREATE_FUNC_NOT_NULL(Array);
 
 public:
 	template <class Func>
@@ -59,7 +59,7 @@ public:
 
 protected:
 	Array();
-	Array(Array* other);
+	Array(NotNull<Array, 1> other);
 	Array(size_t capacity);
 
 private:

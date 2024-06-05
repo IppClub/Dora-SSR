@@ -43,7 +43,7 @@ bgfx::FontHandle Font::getHandle() const {
 	return _handle;
 }
 
-Font::Font(TrueTypeFile* file, bgfx::FontHandle handle)
+Font::Font(NotNull<TrueTypeFile, 1> file, bgfx::FontHandle handle)
 	: _file(file)
 	, _handle(handle) { }
 
@@ -179,12 +179,15 @@ Font* FontCache::load(String fontName, uint32_t fontSize) {
 		auto fileIt = _fontFiles.find(fontFile);
 		if (fileIt != _fontFiles.end()) {
 			bgfx::FontHandle fontHandle = SharedFontManager.createFontByPixelSize(fileIt->second->getHandle(), fontSize);
-			Font* font = Font::create(fileIt->second, fontHandle);
+			Font* font = Font::create(fileIt->second.get(), fontHandle);
 			_fonts[fontFaceName] = font;
 			return font;
 		} else {
 			auto data = SharedContent.load(fontFile);
-			AssertUnless(data.first, "failed to load font \"{}\".", fontNameStr);
+			if (!data.first) {
+				Error("failed to load font \"{}\".", fontNameStr);
+				return nullptr;
+			}
 			bgfx::TrueTypeHandle trueTypeHandle = SharedFontManager.createTtf(data.first.get(), s_cast<uint32_t>(data.second));
 			TrueTypeFile* file = TrueTypeFile::create(trueTypeHandle);
 			_fontFiles[fontFile] = file;
@@ -229,7 +232,7 @@ void FontCache::loadAync(String fontName, uint32_t fontSize, const std::function
 		auto fileIt = _fontFiles.find(fontFile);
 		if (fileIt != _fontFiles.end()) {
 			bgfx::FontHandle fontHandle = SharedFontManager.createFontByPixelSize(fileIt->second->getHandle(), fontSize);
-			Font* font = Font::create(fileIt->second, fontHandle);
+			Font* font = Font::create(fileIt->second.get(), fontHandle);
 			_fonts[fontFaceName] = font;
 			callback(font);
 		} else {
