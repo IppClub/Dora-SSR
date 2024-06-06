@@ -119,8 +119,8 @@ void PlatformWorld::onExit() {
 
 void PlatformWorld::cleanup() {
 	if (_flags.isOff(Node::Cleanup)) {
-		Node::cleanup();
 		_camera = nullptr;
+		PhysicsWorld::cleanup();
 	}
 }
 

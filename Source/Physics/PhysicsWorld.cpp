@@ -172,6 +172,14 @@ void PhysicsWorld::render() {
 
 void PhysicsWorld::cleanup() {
 	if (_flags.isOff(Node::Cleanup)) {
+		RefVector<Body> bodies;
+		for (pr::BodyID b : pd::GetBodies(*_world)) {
+			Body* body = _bodyData[b.get()];
+			if (body) bodies.push_back(body);
+		}
+		for (Body* b : bodies) {
+			b->clearPhysics();
+		}
 		for (auto& pair : _sensorEnters) {
 			pair.release();
 		}

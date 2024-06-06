@@ -82,6 +82,7 @@ protected:
 	void onBodyLeave(Body* other, int sensorTag);
 	void onContactStart(Body* other, const Vec2& point, const Vec2& normal);
 	void onContactEnd(Body* other, const Vec2& point, const Vec2& normal);
+	void clearPhysics();
 
 private:
 	Ref<BodyDef> _bodyDef;

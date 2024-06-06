@@ -26,18 +26,7 @@ Body::Body(NotNull<BodyDef, 1> bodyDef, NotNull<PhysicsWorld, 2> world, const Ve
 }
 
 Body::~Body() {
-	if (_pWorld && _pWorld->getPrWorld() && pr::IsValid(_prBody)) {
-		pd::Destroy(*_pWorld->getPrWorld(), _prBody);
-		_pWorld->setBodyData(_prBody, nullptr);
-		_prBody = pr::InvalidBodyID;
-	}
-	ARRAY_START(Sensor, sensor, _sensors) {
-		sensor->bodyEnter.Clear();
-		sensor->bodyLeave.Clear();
-	}
-	ARRAY_END
-	contactStart.Clear();
-	contactEnd.Clear();
+	clearPhysics();
 }
 
 bool Body::init() {
@@ -76,28 +65,33 @@ void Body::onExit() {
 	}
 }
 
+void Body::clearPhysics() {
+	if (_pWorld && _pWorld->getPrWorld() && pr::IsValid(_prBody)) {
+		pd::Destroy(*_pWorld->getPrWorld(), _prBody);
+		_pWorld->setBodyData(_prBody, nullptr);
+		_prBody = pr::InvalidBodyID;
+	}
+	if (_sensors) {
+		ARRAY_START(Sensor, sensor, _sensors) {
+			if (_pWorld) {
+				_pWorld->setFixtureData(sensor->getFixture(), nullptr);
+			}
+			sensor->bodyEnter.Clear();
+			sensor->bodyLeave.Clear();
+			sensor->setEnabled(false);
+			sensor->getSensedBodies()->clear();
+		}
+		ARRAY_END
+		_sensors->clear();
+		_sensors = nullptr;
+	}
+	contactStart.Clear();
+	contactEnd.Clear();
+}
+
 void Body::cleanup() {
 	if (_flags.isOff(Node::Cleanup)) {
-		if (_pWorld && _pWorld->getPrWorld() && pr::IsValid(_prBody)) {
-			pd::Destroy(*_pWorld->getPrWorld(), _prBody);
-			_pWorld->setBodyData(_prBody, nullptr);
-			_prBody = pr::InvalidBodyID;
-		}
-		if (_sensors) {
-			ARRAY_START(Sensor, sensor, _sensors) {
-				if (_pWorld) {
-					_pWorld->setFixtureData(sensor->getFixture(), nullptr);
-				}
-				sensor->bodyEnter.Clear();
-				sensor->bodyLeave.Clear();
-				sensor->setEnabled(false);
-				sensor->getSensedBodies()->clear();
-			}
-			ARRAY_END
-			_sensors->clear();
-		}
-		contactStart.Clear();
-		contactEnd.Clear();
+		clearPhysics();
 		Node::cleanup();
 	}
 }
