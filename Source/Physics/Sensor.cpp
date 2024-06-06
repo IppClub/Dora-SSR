@@ -80,11 +80,13 @@ int Sensor::getTag() const noexcept {
 }
 
 void Sensor::setGroup(int var) {
+	AssertUnless(_owner, "got invalid owner for sensor.");
 	auto world = _owner->getPhysicsWorld();
 	pd::SetFilterData(world->getPrWorld(), _fixture, world->getFilter(var));
 }
 
-int Sensor::getGroup() const noexcept {
+int Sensor::getGroup() const {
+	AssertUnless(_owner, "got invalid owner for sensor.");
 	auto world = _owner->getPhysicsWorld();
 	return pd::GetFilterData(world->getPrWorld(), _fixture).groupIndex;
 }
