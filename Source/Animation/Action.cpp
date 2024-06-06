@@ -506,19 +506,19 @@ void Action::updateTo(float elapsed, bool reversed) {
 	_reversed = oldReversed;
 }
 
-float Action::getDuration() const {
+float Action::getDuration() const noexcept {
 	return _action->getDuration();
 }
 
-float Action::getElapsed() const {
+float Action::getElapsed() const noexcept {
 	return _elapsed;
 }
 
-bool Action::isPaused() const {
+bool Action::isPaused() const noexcept {
 	return _paused;
 }
 
-bool Action::isRunning() const {
+bool Action::isRunning() const noexcept {
 	return _order != Action::InvalidOrder;
 }
 
@@ -526,7 +526,7 @@ void Action::setReversed(bool var) {
 	_reversed = var;
 }
 
-bool Action::isReversed() const {
+bool Action::isReversed() const noexcept {
 	return _reversed;
 }
 
@@ -534,7 +534,7 @@ void Action::setSpeed(float var) {
 	_speed = var;
 }
 
-float Action::getSpeed() const {
+float Action::getSpeed() const noexcept {
 	return _speed;
 }
 

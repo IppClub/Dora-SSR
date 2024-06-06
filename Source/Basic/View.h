@@ -30,8 +30,8 @@ public:
 	PROPERTY(SpriteEffect*, PostEffect);
 	PROPERTY_BOOL(VSync);
 	PROPERTY_READONLY_BOOL(PostProcessNeeded);
-	PROPERTY_READONLY(bgfx::ViewId, Id);
-	PROPERTY_READONLY_CREF(std::string, Name);
+	PROPERTY_READONLY_EXCEPT(bgfx::ViewId, Id);
+	PROPERTY_READONLY_CREF_EXCEPT(std::string, Name);
 	void clear();
 	void reset();
 

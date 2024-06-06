@@ -530,7 +530,7 @@ ImGuiDora::ImGuiDora()
 	_useChinese = Slice(SharedApplication.getLocale()).left(2) == "zh";
 }
 
-ImGuiDora::ImGuiTouchHandler* ImGuiDora::getTouchHandler() const {
+ImGuiDora::ImGuiTouchHandler* ImGuiDora::getTouchHandler() const noexcept {
 	return _touchHandler.get();
 }
 
@@ -1145,7 +1145,7 @@ static void SetPlatformImeDataFn(ImGuiViewport*, ImGuiPlatformImeData* data) {
 	ImGuiDora::setImePositionHint(s_cast<int>(data->InputPos.x), s_cast<int>(data->InputPos.y + data->InputLineHeight));
 }
 
-bool ImGuiDora::isFontLoaded() const {
+bool ImGuiDora::isFontLoaded() const noexcept {
 	return _fontLoaded;
 }
 

@@ -164,7 +164,7 @@ public:
 Entity::Entity(int index)
 	: _index(index) { }
 
-int Entity::getIndex() const {
+int Entity::getIndex() const noexcept {
 	return _index;
 }
 
@@ -373,15 +373,15 @@ EntityGroup::~EntityGroup() {
 	}
 }
 
-const std::vector<int>& EntityGroup::getComponents() const {
+const std::vector<int>& EntityGroup::getComponents() const noexcept {
 	return _components;
 }
 
-int EntityGroup::getCount() const {
+int EntityGroup::getCount() const noexcept {
 	return s_cast<int>(_entities.size());
 }
 
-Entity* EntityGroup::getFirst() const {
+Entity* EntityGroup::getFirst() const noexcept {
 	if (_entities.empty()) {
 		return nullptr;
 	}
@@ -487,7 +487,7 @@ EntityGroup* EntityGroup::create(Slice components[], int count) {
 
 /* EntityObserver */
 
-const std::vector<int>& EntityObserver::getComponents() const {
+const std::vector<int>& EntityObserver::getComponents() const noexcept {
 	return _components;
 }
 
@@ -600,7 +600,7 @@ void EntityObserver::clear() {
 	_entities.clear();
 }
 
-int EntityObserver::getEventType() const {
+int EntityObserver::getEventType() const noexcept {
 	return _eventType;
 }
 

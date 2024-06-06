@@ -363,7 +363,7 @@ void MoveJoint::setPosition(const Vec2& targetPos) {
 	pd::SetTarget(_world->getPrWorld(), _joint, PhysicsWorld::prVal(targetPos));
 }
 
-const Vec2& MoveJoint::getPosition() const {
+const Vec2& MoveJoint::getPosition() const noexcept {
 	return _position;
 }
 
@@ -372,7 +372,7 @@ void MotorJoint::setEnabled(bool var) {
 	pd::EnableMotor(_world->getPrWorld(), _joint, var);
 }
 
-bool MotorJoint::isEnabled() const {
+bool MotorJoint::isEnabled() const noexcept {
 	if (_joint == pr::InvalidJointID) return false;
 	return pd::IsMotorEnabled(_world->getPrWorld(), _joint);
 }
@@ -386,7 +386,7 @@ void MotorJoint::setForce(float var) {
 	pd::SetJoint(world, _joint, joint);
 }
 
-float MotorJoint::getForce() const {
+float MotorJoint::getForce() const noexcept {
 	if (_joint == pr::InvalidJointID) return 0.0f;
 	auto& world = _world->getPrWorld();
 	return pd::GetMaxMotorForce(pd::GetJoint(world, _joint));
@@ -397,7 +397,7 @@ void MotorJoint::setSpeed(float var) {
 	pd::SetMotorSpeed(_world->getPrWorld(), _joint, var);
 }
 
-float MotorJoint::getSpeed() const {
+float MotorJoint::getSpeed() const noexcept {
 	if (_joint == pr::InvalidJointID) return 0.0f;
 	return pd::GetMotorSpeed(_world->getPrWorld(), _joint);
 }

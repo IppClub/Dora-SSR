@@ -31,7 +31,7 @@ private:
 class Font : public Object {
 public:
 	PROPERTY_READONLY(bgfx::FontHandle, Handle);
-	PROPERTY_READONLY_CREF(bgfx::FontInfo, Info);
+	PROPERTY_READONLY_CREF_EXCEPT(bgfx::FontInfo, Info);
 	PROPERTY_READONLY(TrueTypeFile*, File);
 	CREATE_FUNC_NOT_NULL(Font);
 	virtual ~Font();

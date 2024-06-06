@@ -65,7 +65,7 @@ void Sprite::setEffect(SpriteEffect* var) {
 	_effect = var ? var : SharedSpriteRenderer.getDefaultEffect();
 }
 
-SpriteEffect* Sprite::getEffect() const {
+SpriteEffect* Sprite::getEffect() const noexcept {
 	return _effect;
 }
 
@@ -74,7 +74,7 @@ void Sprite::setTextureRect(const Rect& var) {
 	updateVertTexCoord();
 }
 
-const Rect& Sprite::getTextureRect() const {
+const Rect& Sprite::getTextureRect() const noexcept {
 	return _textureRect;
 }
 
@@ -83,7 +83,7 @@ void Sprite::setTexture(Texture2D* var) {
 	updateVertTexCoord();
 }
 
-Texture2D* Sprite::getTexture() const {
+Texture2D* Sprite::getTexture() const noexcept {
 	return _texture;
 }
 
@@ -91,7 +91,7 @@ void Sprite::setAlphaRef(float var) {
 	_alphaRef = s_cast<uint8_t>(255.0f * Math::clamp(var, 0.0f, 1.0f));
 }
 
-float Sprite::getAlphaRef() const {
+float Sprite::getAlphaRef() const noexcept {
 	return _alphaRef / 255.0f;
 }
 
@@ -99,7 +99,7 @@ void Sprite::setBlendFunc(const BlendFunc& var) {
 	_blendFunc = var;
 }
 
-const BlendFunc& Sprite::getBlendFunc() const {
+const BlendFunc& Sprite::getBlendFunc() const noexcept {
 	return _blendFunc;
 }
 
@@ -107,23 +107,23 @@ void Sprite::setDepthWrite(bool var) {
 	_flags.set(Sprite::DepthWrite, var);
 }
 
-bool Sprite::isDepthWrite() const {
+bool Sprite::isDepthWrite() const noexcept {
 	return _flags.isOn(Sprite::DepthWrite);
 }
 
-uint64_t Sprite::getRenderState() const {
+uint64_t Sprite::getRenderState() const noexcept {
 	return _renderState;
 }
 
-const SpriteQuad& Sprite::getQuad() const {
+const SpriteQuad& Sprite::getQuad() const noexcept {
 	return _quad;
 }
 
-uint32_t Sprite::getSamplerFlags() const {
+uint32_t Sprite::getSamplerFlags() const noexcept {
 	return getTextureFlags() & UINT32_MAX;
 }
 
-uint64_t Sprite::getTextureFlags() const {
+uint64_t Sprite::getTextureFlags() const noexcept {
 	if (!_texture) return UINT32_MAX;
 	uint64_t textureFlags = _texture->getFlags();
 	if (_filter == TextureFilter::None && _uwrap == TextureWrap::None && _vwrap == TextureWrap::None) {
@@ -178,7 +178,7 @@ void Sprite::setFilter(TextureFilter var) {
 	_filter = var;
 }
 
-TextureFilter Sprite::getFilter() const {
+TextureFilter Sprite::getFilter() const noexcept {
 	return _filter;
 }
 
@@ -186,7 +186,7 @@ void Sprite::setUWrap(TextureWrap var) {
 	_uwrap = var;
 }
 
-TextureWrap Sprite::getUWrap() const {
+TextureWrap Sprite::getUWrap() const noexcept {
 	return _uwrap;
 }
 
@@ -194,7 +194,7 @@ void Sprite::setVWrap(TextureWrap var) {
 	_vwrap = var;
 }
 
-TextureWrap Sprite::getVWrap() const {
+TextureWrap Sprite::getVWrap() const noexcept {
 	return _vwrap;
 }
 
@@ -319,15 +319,15 @@ SpriteRenderer::SpriteRenderer()
 	, _defaultEffect(SpriteEffect::create("builtin:vs_sprite"_slice, "builtin:fs_sprite"_slice))
 	, _alphaTestEffect(SpriteEffect::create("builtin:vs_sprite"_slice, "builtin:fs_spritealphatest"_slice)) { }
 
-const SpriteRenderer::IndexType* SpriteRenderer::getIndices() const {
+const SpriteRenderer::IndexType* SpriteRenderer::getIndices() const noexcept {
 	return _spriteIndices;
 }
 
-SpriteEffect* SpriteRenderer::getDefaultEffect() const {
+SpriteEffect* SpriteRenderer::getDefaultEffect() const noexcept {
 	return _defaultEffect;
 }
 
-SpriteEffect* SpriteRenderer::getAlphaTestEffect() const {
+SpriteEffect* SpriteRenderer::getAlphaTestEffect() const noexcept {
 	return _alphaTestEffect;
 }
 

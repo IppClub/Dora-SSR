@@ -26,7 +26,7 @@ Camera::Camera(String name)
 	, _target{0, 0, 1}
 	, _up{0, 1, 0} { }
 
-const std::string& Camera::getName() const {
+const std::string& Camera::getName() const noexcept {
 	return _name;
 }
 
@@ -62,7 +62,7 @@ void CameraBasic::setRotation(float var) {
 	_transformDirty = true;
 }
 
-float CameraBasic::getRotation() const {
+float CameraBasic::getRotation() const noexcept {
 	return _rotation;
 }
 
@@ -128,7 +128,7 @@ void Camera2D::setRotation(float var) {
 	_transformDirty = true;
 }
 
-float Camera2D::getRotation() const {
+float Camera2D::getRotation() const noexcept {
 	return _rotation;
 }
 
@@ -136,7 +136,7 @@ void Camera2D::setZoom(float var) {
 	_zoom = var;
 }
 
-float Camera2D::getZoom() const {
+float Camera2D::getZoom() const noexcept {
 	return _zoom;
 }
 

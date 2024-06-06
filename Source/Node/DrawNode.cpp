@@ -31,7 +31,7 @@ void DrawNode::setBlendFunc(const BlendFunc& var) {
 	_blendFunc = var;
 }
 
-const BlendFunc& DrawNode::getBlendFunc() const {
+const BlendFunc& DrawNode::getBlendFunc() const noexcept {
 	return _blendFunc;
 }
 
@@ -39,19 +39,19 @@ void DrawNode::setDepthWrite(bool var) {
 	_flags.set(DrawNode::DepthWrite, var);
 }
 
-bool DrawNode::isDepthWrite() const {
+bool DrawNode::isDepthWrite() const noexcept {
 	return _flags.isOn(DrawNode::DepthWrite);
 }
 
-uint64_t DrawNode::getRenderState() const {
+uint64_t DrawNode::getRenderState() const noexcept {
 	return _renderState;
 }
 
-const std::vector<DrawVertex>& DrawNode::getVertices() const {
+const std::vector<DrawVertex>& DrawNode::getVertices() const noexcept {
 	return _vertices;
 }
 
-const std::vector<uint16_t>& DrawNode::getIndices() const {
+const std::vector<uint16_t>& DrawNode::getIndices() const noexcept {
 	return _indices;
 }
 
@@ -346,7 +346,7 @@ DrawRenderer::DrawRenderer()
 	: _defaultPass(Pass::create("builtin:vs_draw"_slice, "builtin:fs_draw"_slice))
 	, _lastState(BGFX_STATE_NONE) { }
 
-Pass* DrawRenderer::getDefaultPass() const {
+Pass* DrawRenderer::getDefaultPass() const noexcept {
 	return _defaultPass;
 }
 
@@ -435,7 +435,7 @@ void Line::setBlendFunc(BlendFunc var) {
 	_blendFunc = var;
 }
 
-BlendFunc Line::getBlendFunc() const {
+BlendFunc Line::getBlendFunc() const noexcept {
 	return _blendFunc;
 }
 
@@ -443,15 +443,15 @@ void Line::setDepthWrite(bool var) {
 	_flags.set(Line::DepthWrite, var);
 }
 
-bool Line::isDepthWrite() const {
+bool Line::isDepthWrite() const noexcept {
 	return _flags.isOn(Line::DepthWrite);
 }
 
-uint64_t Line::getRenderState() const {
+uint64_t Line::getRenderState() const noexcept {
 	return _renderState;
 }
 
-const std::vector<PosColorVertex>& Line::getVertices() const {
+const std::vector<PosColorVertex>& Line::getVertices() const noexcept {
 	return _vertices;
 }
 
@@ -590,7 +590,7 @@ LineRenderer::LineRenderer()
 	: _defaultPass(Pass::create("builtin:vs_poscolor"_slice, "builtin:fs_poscolor"_slice))
 	, _lastState(BGFX_STATE_NONE) { }
 
-Pass* LineRenderer::getDefaultPass() const {
+Pass* LineRenderer::getDefaultPass() const noexcept {
 	return _defaultPass;
 }
 

@@ -70,7 +70,7 @@ void Node::setOrder(int var) {
 	}
 }
 
-int Node::getOrder() const {
+int Node::getOrder() const noexcept {
 	return _order;
 }
 
@@ -79,7 +79,7 @@ void Node::setAngle(float var) {
 	markDirty();
 }
 
-float Node::getAngle() const {
+float Node::getAngle() const noexcept {
 	return _angle;
 }
 
@@ -88,7 +88,7 @@ void Node::setAngleX(float var) {
 	markDirty();
 }
 
-float Node::getAngleX() const {
+float Node::getAngleX() const noexcept {
 	return _angleX;
 }
 
@@ -97,7 +97,7 @@ void Node::setAngleY(float var) {
 	markDirty();
 }
 
-float Node::getAngleY() const {
+float Node::getAngleY() const noexcept {
 	return _angleY;
 }
 
@@ -106,7 +106,7 @@ void Node::setScaleX(float var) {
 	markDirty();
 }
 
-float Node::getScaleX() const {
+float Node::getScaleX() const noexcept {
 	return _scaleX;
 }
 
@@ -115,7 +115,7 @@ void Node::setScaleY(float var) {
 	markDirty();
 }
 
-float Node::getScaleY() const {
+float Node::getScaleY() const noexcept {
 	return _scaleY;
 }
 
@@ -124,7 +124,7 @@ void Node::setX(float var) {
 	markDirty();
 }
 
-float Node::getX() const {
+float Node::getX() const noexcept {
 	return _position.x;
 }
 
@@ -133,7 +133,7 @@ void Node::setY(float var) {
 	markDirty();
 }
 
-float Node::getY() const {
+float Node::getY() const noexcept {
 	return _position.y;
 }
 
@@ -142,7 +142,7 @@ void Node::setZ(float var) {
 	markDirty();
 }
 
-float Node::getZ() const {
+float Node::getZ() const noexcept {
 	return _positionZ;
 }
 
@@ -151,7 +151,7 @@ void Node::setPosition(const Vec2& var) {
 	markDirty();
 }
 
-const Vec2& Node::getPosition() const {
+const Vec2& Node::getPosition() const noexcept {
 	return _position;
 }
 
@@ -160,7 +160,7 @@ void Node::setSkewX(float var) {
 	markDirty();
 }
 
-float Node::getSkewX() const {
+float Node::getSkewX() const noexcept {
 	return _skewX;
 }
 
@@ -169,7 +169,7 @@ void Node::setSkewY(float var) {
 	markDirty();
 }
 
-float Node::getSkewY() const {
+float Node::getSkewY() const noexcept {
 	return _skewY;
 }
 
@@ -177,7 +177,7 @@ void Node::setVisible(bool var) {
 	_flags.set(Node::Visible, var);
 }
 
-bool Node::isVisible() const {
+bool Node::isVisible() const noexcept {
 	return _flags.isOn(Node::Visible);
 }
 
@@ -185,7 +185,7 @@ void Node::setSelfVisible(bool var) {
 	_flags.set(Node::SelfVisible, var);
 }
 
-bool Node::isSelfVisible() const {
+bool Node::isSelfVisible() const noexcept {
 	return _flags.isOn(Node::SelfVisible);
 }
 
@@ -193,7 +193,7 @@ void Node::setChildrenVisible(bool var) {
 	_flags.set(Node::ChildrenVisible, var);
 }
 
-bool Node::isChildrenVisible() const {
+bool Node::isChildrenVisible() const noexcept {
 	return _flags.isOn(Node::ChildrenVisible);
 }
 
@@ -203,11 +203,11 @@ void Node::setAnchor(const Vec2& var) {
 	markDirty();
 }
 
-const Vec2& Node::getAnchor() const {
+const Vec2& Node::getAnchor() const noexcept {
 	return _anchor;
 }
 
-const Vec2& Node::getAnchorPoint() const {
+const Vec2& Node::getAnchorPoint() const noexcept {
 	return _anchorPoint;
 }
 
@@ -217,7 +217,7 @@ void Node::setWidth(float var) {
 	markDirty();
 }
 
-float Node::getWidth() const {
+float Node::getWidth() const noexcept {
 	return _size.width;
 }
 
@@ -227,7 +227,7 @@ void Node::setHeight(float var) {
 	markDirty();
 }
 
-float Node::getHeight() const {
+float Node::getHeight() const noexcept {
 	return _size.height;
 }
 
@@ -237,7 +237,7 @@ void Node::setSize(const Size& var) {
 	markDirty();
 }
 
-const Size& Node::getSize() const {
+const Size& Node::getSize() const noexcept {
 	return _size;
 }
 
@@ -245,7 +245,7 @@ void Node::setTag(String tag) {
 	_tag = tag.toString();
 }
 
-const std::string& Node::getTag() const {
+const std::string& Node::getTag() const noexcept {
 	return _tag;
 }
 
@@ -254,11 +254,11 @@ void Node::setOpacity(float var) {
 	updateRealOpacity();
 }
 
-float Node::getOpacity() const {
+float Node::getOpacity() const noexcept {
 	return _color.getOpacity();
 }
 
-float Node::getRealOpacity() const {
+float Node::getRealOpacity() const noexcept {
 	return _realColor.getOpacity();
 }
 
@@ -268,7 +268,7 @@ void Node::setColor(Color var) {
 	updateRealOpacity();
 }
 
-Color Node::getColor() const {
+Color Node::getColor() const noexcept {
 	return _color;
 }
 
@@ -277,11 +277,11 @@ void Node::setColor3(Color3 var) {
 	updateRealColor3();
 }
 
-Color3 Node::getColor3() const {
+Color3 Node::getColor3() const noexcept {
 	return _color.toColor3();
 }
 
-Color Node::getRealColor() const {
+Color Node::getRealColor() const noexcept {
 	return _realColor;
 }
 
@@ -290,7 +290,7 @@ void Node::setPassOpacity(bool var) {
 	setOpacity(_color.getOpacity());
 }
 
-bool Node::isPassOpacity() const {
+bool Node::isPassOpacity() const noexcept {
 	return _flags.isOn(Node::PassOpacity);
 }
 
@@ -299,7 +299,7 @@ void Node::setPassColor3(bool var) {
 	setColor3(_color.toColor3());
 }
 
-bool Node::isPassColor3() const {
+bool Node::isPassColor3() const noexcept {
 	return _flags.isOn(Node::PassColor3);
 }
 
@@ -308,7 +308,7 @@ void Node::setTransformTarget(Node* var) {
 	_flags.setOn(Node::WorldDirty);
 }
 
-Node* Node::getTransformTarget() const {
+Node* Node::getTransformTarget() const noexcept {
 	return _transformTarget;
 }
 
@@ -330,7 +330,7 @@ void Node::setScheduler(Scheduler* var) {
 	_scheduler = var;
 }
 
-Scheduler* Node::getScheduler() const {
+Scheduler* Node::getScheduler() const noexcept {
 	return _scheduler;
 }
 
@@ -341,11 +341,11 @@ Dictionary* Node::getUserData() {
 	return _userData;
 }
 
-Node* Node::getParent() const {
+Node* Node::getParent() const noexcept {
 	return _parent;
 }
 
-Node* Node::getTargetParent() const {
+Node* Node::getTargetParent() const noexcept {
 	return _transformTarget ? _transformTarget : _parent;
 }
 
@@ -353,7 +353,7 @@ void Node::setRenderOrder(int var) {
 	_renderOrder = var;
 }
 
-int Node::getRenderOrder() const {
+int Node::getRenderOrder() const noexcept {
 	return _renderOrder;
 }
 
@@ -361,11 +361,11 @@ void Node::setRenderGroup(bool var) {
 	_flags.set(Node::RenderGrouped, var);
 }
 
-bool Node::isRenderGroup() const {
+bool Node::isRenderGroup() const noexcept {
 	return _flags.isOn(Node::RenderGrouped);
 }
 
-uint32_t Node::getNodeCount() const {
+uint32_t Node::getNodeCount() const noexcept {
 	uint32_t count = 1;
 	ARRAY_START(Node, child, _children) {
 		count += child->getNodeCount();
@@ -422,11 +422,11 @@ Array* Node::getChildren() {
 	return _children;
 }
 
-bool Node::hasChildren() const {
+bool Node::hasChildren() const noexcept {
 	return _children && !_children->isEmpty();
 }
 
-bool Node::isRunning() const {
+bool Node::isRunning() const noexcept {
 	return _flags.isOn(Node::Running);
 }
 
@@ -645,11 +645,11 @@ Vec3 Node::convertToWorldSpace3(const Vec3& nodePoint) {
 	return point;
 }
 
-bool Node::isScheduled() const {
+bool Node::isScheduled() const noexcept {
 	return _updateItem && _updateItem->hasFunc();
 }
 
-bool Node::isUnManaged() const {
+bool Node::isUnManaged() const noexcept {
 	return _flags.isOn(Node::UnManaged) && _flags.isOff(Node::Cleanup) && _flags.isOff(Node::InWaitingList);
 }
 
@@ -662,7 +662,7 @@ void Node::setTouchEnabled(bool var) {
 	_flags.set(Node::TouchEnabled, var);
 }
 
-bool Node::isTouchEnabled() const {
+bool Node::isTouchEnabled() const noexcept {
 	return _flags.isOn(Node::TouchEnabled);
 }
 
@@ -673,7 +673,7 @@ void Node::setSwallowTouches(bool var) {
 	}
 }
 
-bool Node::isSwallowTouches() const {
+bool Node::isSwallowTouches() const noexcept {
 	return _flags.isOn(Node::SwallowTouches);
 }
 
@@ -684,11 +684,11 @@ void Node::setSwallowMouseWheel(bool var) {
 	}
 }
 
-bool Node::isSwallowMouseWheel() const {
+bool Node::isSwallowMouseWheel() const noexcept {
 	return _flags.isOn(Node::SwallowMouseWheel);
 }
 
-TouchHandler* Node::getTouchHandler() const {
+TouchHandler* Node::getTouchHandler() const noexcept {
 	return _touchHandler.get();
 }
 
@@ -727,11 +727,11 @@ void Node::unschedule() {
 	}
 }
 
-bool Node::isUpdating() const {
+bool Node::isUpdating() const noexcept {
 	return _flags.isOn(Node::Updating);
 }
 
-bool Node::isFixedUpdating() const {
+bool Node::isFixedUpdating() const noexcept {
 	return _flags.isOn(Node::FixedUpdating);
 }
 
@@ -1048,7 +1048,7 @@ RefVector<Listener> Node::gslot(String name) {
 	return RefVector<Listener>();
 }
 
-void Node::markDirty() {
+void Node::markDirty() noexcept {
 	_flags.setOn(Node::TransformDirty);
 	_flags.setOn(Node::WorldDirty);
 }
@@ -1099,7 +1099,7 @@ void Node::updateRealOpacity() {
 	}
 }
 
-int Node::getActionCount() const {
+int Node::getActionCount() const noexcept {
 	int count = 0;
 	for (Action* action = _action; action; action = action->_next) {
 		count++;
@@ -1331,7 +1331,7 @@ void Node::setKeyboardEnabled(bool var) {
 	}
 }
 
-bool Node::isKeyboardEnabled() const {
+bool Node::isKeyboardEnabled() const noexcept {
 	return _flags.isOn(Node::KeyboardEnabled);
 }
 
@@ -1345,7 +1345,7 @@ void Node::setControllerEnabled(bool var) {
 	}
 }
 
-bool Node::isControllerEnabled() const {
+bool Node::isControllerEnabled() const noexcept {
 	return _flags.isOn(Node::ControllerEnabled);
 }
 
@@ -1431,11 +1431,11 @@ Node::Grabber::Grabber(const Size& size, uint32_t gridX, uint32_t gridY)
 	_grid->setAsManaged();
 }
 
-uint32_t Node::Grabber::getGridX() const {
+uint32_t Node::Grabber::getGridX() const noexcept {
 	return _grid->getGridX();
 }
 
-uint32_t Node::Grabber::getGridY() const {
+uint32_t Node::Grabber::getGridY() const noexcept {
 	return _grid->getGridY();
 }
 
@@ -1443,7 +1443,7 @@ void Node::Grabber::setClearColor(Color var) {
 	_clearColor = var;
 }
 
-Color Node::Grabber::getClearColor() const {
+Color Node::Grabber::getClearColor() const noexcept {
 	return _clearColor;
 }
 
@@ -1451,7 +1451,7 @@ void Node::Grabber::setCamera(Camera* var) {
 	_camera = var;
 }
 
-Camera* Node::Grabber::getCamera() const {
+Camera* Node::Grabber::getCamera() const noexcept {
 	return _camera;
 }
 
@@ -1459,7 +1459,7 @@ void Node::Grabber::setBlendFunc(const BlendFunc& var) {
 	_blendFunc = var;
 }
 
-const BlendFunc& Node::Grabber::getBlendFunc() const {
+const BlendFunc& Node::Grabber::getBlendFunc() const noexcept {
 	return _blendFunc;
 }
 
@@ -1467,7 +1467,7 @@ void Node::Grabber::setEffect(SpriteEffect* var) {
 	_effect = var;
 }
 
-SpriteEffect* Node::Grabber::getEffect() const {
+SpriteEffect* Node::Grabber::getEffect() const noexcept {
 	return _effect;
 }
 
@@ -1623,7 +1623,7 @@ Slot::Slot(const EventHandler& handler)
 
 Slot::Slot() { }
 
-const EventHandler& Slot::getHandler() const {
+const EventHandler& Slot::getHandler() const noexcept {
 	return _handler;
 }
 
@@ -1870,7 +1870,7 @@ void Node::setShowDebug(bool var) {
 	_flags.set(Node::ShowDebug, var);
 }
 
-bool Node::isShowDebug() const {
+bool Node::isShowDebug() const noexcept {
 	return _flags.isOn(Node::ShowDebug);
 }
 

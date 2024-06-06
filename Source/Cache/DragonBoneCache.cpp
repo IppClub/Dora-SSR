@@ -32,7 +32,7 @@ void DBTextureAtlasData::setTexture(Texture2D* var) {
 	_texture = var;
 }
 
-Texture2D* DBTextureAtlasData::getTexture() const {
+Texture2D* DBTextureAtlasData::getTexture() const noexcept {
 	return _texture;
 }
 

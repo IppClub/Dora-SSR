@@ -835,15 +835,15 @@ class Body : public Node
 {
 	tolua_readonly tolua_property__common PhysicsWorld* physicsWorld @ world;
 	tolua_readonly tolua_property__common BodyDef* bodyDef;
-	tolua_readonly tolua_property__common float mass;
+	tolua_except tolua_readonly tolua_property__common float mass;
 	tolua_readonly tolua_property__bool bool sensor;
-	tolua_property__common float velocityX;
-	tolua_property__common float velocityY;
-	tolua_property__common Vec2 velocity;
-	tolua_property__common float angularRate;
+	tolua_except tolua_property__common float velocityX;
+	tolua_except tolua_property__common float velocityY;
+	tolua_except tolua_property__common Vec2 velocity;
+	tolua_except tolua_property__common float angularRate;
 	tolua_property__common uint8_t group;
-	tolua_property__common float linearDamping;
-	tolua_property__common float angularDamping;
+	tolua_except tolua_property__common float linearDamping;
+	tolua_except tolua_property__common float angularDamping;
 	tolua_property__common Object* owner;
 	tolua_property__bool bool receivingContact;
 	void applyLinearImpulse(Vec2 impulse, Vec2 pos);

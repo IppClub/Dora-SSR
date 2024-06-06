@@ -20,11 +20,11 @@ SkeletonData::SkeletonData(NotNull<spine::SkeletonData, 1> skeletonData, NotNull
 	: _atlas(atlas)
 	, _skeletonData(skeletonData) { }
 
-spine::SkeletonData* SkeletonData::getSkel() const {
+spine::SkeletonData* SkeletonData::getSkel() const noexcept {
 	return _skeletonData.get();
 }
 
-Atlas* SkeletonData::getAtlas() const {
+Atlas* SkeletonData::getAtlas() const noexcept {
 	return _atlas;
 }
 

@@ -14,11 +14,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DORA_BEGIN
 
-int Dictionary::getCount() const {
+int Dictionary::getCount() const noexcept {
 	return s_cast<int>(_dict.size());
 }
 
-std::vector<Slice> Dictionary::getKeys() const {
+std::vector<Slice> Dictionary::getKeys() const noexcept {
 	std::vector<Slice> keys;
 	keys.reserve(_dict.size());
 	for (const auto& item : _dict) {

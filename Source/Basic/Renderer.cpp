@@ -31,11 +31,11 @@ void RendererManager::setCurrent(Renderer* var) {
 	_currentRenderer = var;
 }
 
-Renderer* RendererManager::getCurrent() const {
+Renderer* RendererManager::getCurrent() const noexcept {
 	return _currentRenderer;
 }
 
-uint32_t RendererManager::getCurrentStencilState() const {
+uint32_t RendererManager::getCurrentStencilState() const noexcept {
 	return _stencilStates.empty() ? BGFX_STENCIL_NONE : _stencilStates.top();
 }
 
@@ -54,7 +54,7 @@ void RendererManager::popStencilState() {
 	_stencilStates.pop();
 }
 
-bool RendererManager::isGrouping() const {
+bool RendererManager::isGrouping() const noexcept {
 	return !_renderGroups.empty();
 }
 

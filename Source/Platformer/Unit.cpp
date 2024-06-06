@@ -159,7 +159,7 @@ void Unit::onEnter() {
 	}
 }
 
-Dictionary* Unit::getUnitDef() const {
+Dictionary* Unit::getUnitDef() const noexcept {
 	return _unitDef;
 }
 
@@ -174,7 +174,7 @@ void Unit::setFaceRight(bool var) {
 	}
 }
 
-bool Unit::isFaceRight() const {
+bool Unit::isFaceRight() const noexcept {
 	return _flags.isOn(Unit::FaceRight);
 }
 
@@ -182,7 +182,7 @@ void Unit::setReceivingDecisionTrace(bool var) {
 	_flags.set(Unit::ReceivingDecisionTrace, var);
 }
 
-bool Unit::isReceivingDecisionTrace() const {
+bool Unit::isReceivingDecisionTrace() const noexcept {
 	return _flags.isOn(Unit::ReceivingDecisionTrace);
 }
 
@@ -199,7 +199,7 @@ void Unit::setPlayable(Playable* playable) {
 	}
 }
 
-Playable* Unit::getPlayable() const {
+Playable* Unit::getPlayable() const noexcept {
 	return _playable;
 }
 
@@ -265,15 +265,15 @@ void Unit::setGroup(uint8_t group) {
 	}
 }
 
-float Unit::getWidth() const {
+float Unit::getWidth() const noexcept {
 	return _size.width;
 }
 
-float Unit::getHeight() const {
+float Unit::getHeight() const noexcept {
 	return _size.height;
 }
 
-Entity* Unit::getEntity() const {
+Entity* Unit::getEntity() const noexcept {
 	return _entity;
 }
 
@@ -384,27 +384,27 @@ void Unit::setAttackRange(const Size& var) {
 	}
 }
 
-const Size& Unit::getAttackRange() const {
+const Size& Unit::getAttackRange() const noexcept {
 	return _attackRange;
 }
 
-float Unit::getDetectDistance() const {
+float Unit::getDetectDistance() const noexcept {
 	return _detectDistance;
 }
 
-Sensor* Unit::getGroundSensor() const {
+Sensor* Unit::getGroundSensor() const noexcept {
 	return _groundSensor;
 }
 
-Sensor* Unit::getDetectSensor() const {
+Sensor* Unit::getDetectSensor() const noexcept {
 	return _detectSensor;
 }
 
-Sensor* Unit::getAttackSensor() const {
+Sensor* Unit::getAttackSensor() const noexcept {
 	return _attackSensor;
 }
 
-UnitAction* Unit::getCurrentAction() const {
+UnitAction* Unit::getCurrentAction() const noexcept {
 	return _currentAction;
 }
 
@@ -419,11 +419,11 @@ void Unit::setDecisionTreeName(String name) {
 	}
 }
 
-const std::string& Unit::getDecisionTreeName() const {
+const std::string& Unit::getDecisionTreeName() const noexcept {
 	return _decisionTreeName;
 }
 
-Decision::Leaf* Unit::getDecisionTree() const {
+Decision::Leaf* Unit::getDecisionTree() const noexcept {
 	return _decisionTree;
 }
 
@@ -436,7 +436,7 @@ void Unit::setBehaviorTree(Behavior::Leaf* var) {
 	}
 }
 
-Behavior::Leaf* Unit::getBehaviorTree() const {
+Behavior::Leaf* Unit::getBehaviorTree() const noexcept {
 	return _behaviorTree;
 }
 

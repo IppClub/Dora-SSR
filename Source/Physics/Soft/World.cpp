@@ -13,15 +13,15 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 NS_DORA_BEGIN
 NS_BEGIN(Soft)
 
-const std::vector<Own<Particle>>& World::getParticles() const {
+const std::vector<Own<Particle>>& World::getParticles() const noexcept {
 	return _particles;
 }
 
-const std::vector<Own<Constraint>>& World::getConstraints() const {
+const std::vector<Own<Constraint>>& World::getConstraints() const noexcept {
 	return _constraints;
 }
 
-const Vec2& World::getSize() const {
+const Vec2& World::getSize() const noexcept {
 	return _size;
 }
 

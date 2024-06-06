@@ -41,11 +41,11 @@ RenderTarget::~RenderTarget() {
 	}
 }
 
-uint16_t RenderTarget::getWidth() const {
+uint16_t RenderTarget::getWidth() const noexcept {
 	return _textureWidth;
 }
 
-uint16_t RenderTarget::getHeight() const {
+uint16_t RenderTarget::getHeight() const noexcept {
 	return _textureHeight;
 }
 
@@ -53,15 +53,15 @@ void RenderTarget::setCamera(Camera* camera) {
 	_camera = camera;
 }
 
-Camera* RenderTarget::getCamera() const {
+Camera* RenderTarget::getCamera() const noexcept {
 	return _camera;
 }
 
-Texture2D* RenderTarget::getTexture() const {
+Texture2D* RenderTarget::getTexture() const noexcept {
 	return _texture;
 }
 
-Texture2D* RenderTarget::getDepthTexture() const {
+Texture2D* RenderTarget::getDepthTexture() const noexcept {
 	return _depthTexture;
 }
 

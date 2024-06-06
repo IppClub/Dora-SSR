@@ -94,7 +94,7 @@ void Color::setOpacity(float var) {
 	a = s_cast<uint8_t>(std::round(Math::clamp(var, 0.0f, 1.0f) * 255.0f));
 }
 
-float Color::getOpacity() const {
+float Color::getOpacity() const noexcept {
 	return a / 255.0f;
 }
 

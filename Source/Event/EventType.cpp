@@ -18,7 +18,7 @@ NS_DORA_BEGIN
 EventType::EventType(const std::string& name)
 	: _name(name) { }
 
-const std::string& EventType::getName() const {
+const std::string& EventType::getName() const noexcept {
 	return _name;
 }
 
@@ -49,7 +49,7 @@ void EventType::handle(Event* event) {
 	EventType::handle(event, s_cast<int>(_listeners.size()) - 1);
 }
 
-bool EventType::isEmpty() const {
+bool EventType::isEmpty() const noexcept {
 	return _listeners.empty();
 }
 

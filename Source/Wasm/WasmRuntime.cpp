@@ -1702,7 +1702,7 @@ Scheduler* WasmRuntime::getPostScheduler() {
 	return _postScheduler;
 }
 
-uint32_t WasmRuntime::getMemorySize() const {
+uint32_t WasmRuntime::getMemorySize() const noexcept {
 	if (_wasm.first) {
 		return _runtime->get_memory_size() + _wasm.second + DORA_WASM_STACK_SIZE;
 	}

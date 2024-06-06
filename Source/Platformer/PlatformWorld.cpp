@@ -27,7 +27,7 @@ void PlatformWorld::Layer::setOffset(const Vec2& offset) {
 	_offset = offset;
 }
 
-const Vec2& PlatformWorld::Layer::getOffset() const {
+const Vec2& PlatformWorld::Layer::getOffset() const noexcept {
 	return _offset;
 }
 
@@ -151,7 +151,7 @@ void PlatformWorld::moveChild(Node* child, int newOrder) {
 	}
 }
 
-PlatformCamera* PlatformWorld::getCamera() const {
+PlatformCamera* PlatformWorld::getCamera() const noexcept {
 	return _camera;
 }
 

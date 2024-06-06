@@ -183,7 +183,7 @@ Node* Model::getSlot(String name) {
 	return nullptr;
 }
 
-bool Model::isPlaying() const {
+bool Model::isPlaying() const noexcept {
 	return _isPlaying;
 }
 
@@ -254,7 +254,7 @@ ModelDef* Model::getModelDef() const {
 	return _modelDef;
 }
 
-bool Model::isPaused() const {
+bool Model::isPaused() const noexcept {
 	return _isPaused;
 }
 
@@ -290,7 +290,7 @@ void Model::setReversed(bool var) {
 	}
 }
 
-bool Model::isReversed() const {
+bool Model::isReversed() const noexcept {
 	return _reversed;
 }
 
@@ -309,7 +309,7 @@ void Model::setRecovery(float var) {
 	Playable::setRecovery(var);
 }
 
-float Model::getDuration() const {
+float Model::getDuration() const noexcept {
 	if (_currentAnimation != Animation::None && !_animationGroups[_currentAnimation]->animations.empty()) {
 		return _animationGroups[_currentAnimation]->animations[0]->getDuration();
 	}
@@ -448,7 +448,7 @@ void Animation::stop() {
 	_node->stopAction(_action);
 }
 
-Node* Animation::getNode() const {
+Node* Animation::getNode() const noexcept {
 	return _node;
 }
 
@@ -456,7 +456,7 @@ void Animation::setAction(Action* action) {
 	_action = action;
 }
 
-Action* Animation::getAction() const {
+Action* Animation::getAction() const noexcept {
 	return _action;
 }
 
@@ -472,7 +472,7 @@ void Animation::setSpeed(float speed) {
 	_action->setSpeed(speed);
 }
 
-float Animation::getSpeed() const {
+float Animation::getSpeed() const noexcept {
 	return _action->getSpeed();
 }
 
@@ -480,7 +480,7 @@ void Animation::setReversed(bool var) {
 	_action->setReversed(var);
 }
 
-bool Animation::isReversed() const {
+bool Animation::isReversed() const noexcept {
 	return _action->isReversed();
 }
 
@@ -488,11 +488,11 @@ void Animation::updateTo(float elapsed, bool reversed) {
 	_action->updateTo(elapsed, reversed);
 }
 
-float Animation::getDuration() const {
+float Animation::getDuration() const noexcept {
 	return _action->getDuration();
 }
 
-float Animation::getElapsed() const {
+float Animation::getElapsed() const noexcept {
 	return _action->getElapsed();
 }
 

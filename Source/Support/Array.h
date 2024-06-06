@@ -17,9 +17,9 @@ class Array : public Object {
 public:
 	Array(const Array&) = delete;
 	PROPERTY_READONLY(size_t, Count);
-	PROPERTY_READONLY_CREF(Own<Value>, Last);
-	PROPERTY_READONLY_CREF(Own<Value>, First);
-	PROPERTY_READONLY_CREF(Own<Value>, RandomObject);
+	PROPERTY_READONLY_CREF_EXCEPT(Own<Value>, Last);
+	PROPERTY_READONLY_CREF_EXCEPT(Own<Value>, First);
+	PROPERTY_READONLY_CREF_EXCEPT(Own<Value>, RandomObject);
 	PROPERTY_READONLY_BOOL(Empty);
 	bool contains(NotNull<Value, 1> value) const;
 	void add(Own<Value>&& value);

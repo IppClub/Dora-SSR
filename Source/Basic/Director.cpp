@@ -56,7 +56,7 @@ void Director::setScheduler(Scheduler* scheduler) {
 	_scheduler = scheduler ? scheduler : Scheduler::create();
 }
 
-Scheduler* Director::getScheduler() const {
+Scheduler* Director::getScheduler() const noexcept {
 	return _scheduler;
 }
 
@@ -109,15 +109,15 @@ void Director::setClearColor(Color var) {
 	_clearColor = var;
 }
 
-Color Director::getClearColor() const {
+Color Director::getClearColor() const noexcept {
 	return _clearColor;
 }
 
-Scheduler* Director::getSystemScheduler() const {
+Scheduler* Director::getSystemScheduler() const noexcept {
 	return _systemScheduler;
 }
 
-Scheduler* Director::getPostScheduler() const {
+Scheduler* Director::getPostScheduler() const noexcept {
 	return _postScheduler;
 }
 
@@ -167,7 +167,7 @@ Camera* Director::getCurrentCamera() {
 	return _camStack->getLast()->to<Camera>();
 }
 
-const Matrix& Director::getViewProjection() const {
+const Matrix& Director::getViewProjection() const noexcept {
 	return _viewProjs.top()->matrix;
 }
 
@@ -507,7 +507,7 @@ bool Director::isInFrustum(const AABB& aabb) const {
 	return _viewProjs.top()->frustum.intersect(aabb);
 }
 
-bool Director::isFrustumCulling() const {
+bool Director::isFrustumCulling() const noexcept {
 	return _frustumCulling;
 }
 

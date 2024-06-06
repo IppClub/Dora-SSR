@@ -106,7 +106,7 @@ void View::pop() {
 	popInsertionMode();
 }
 
-Size View::getSize() const {
+Size View::getSize() const noexcept {
 	return _size;
 }
 
@@ -121,7 +121,7 @@ void View::setScale(float var) {
 	Event::send("AppSizeChanged"_slice);
 }
 
-float View::getScale() const {
+float View::getScale() const noexcept {
 	return _scale;
 }
 
@@ -140,19 +140,19 @@ void View::setVSync(bool var) {
 	}
 }
 
-bool View::isVSync() const {
+bool View::isVSync() const noexcept {
 	return (_flag & BGFX_RESET_VSYNC) != 0;
 }
 
-bool View::isPostProcessNeeded() const {
+bool View::isPostProcessNeeded() const noexcept {
 	return _scale != 1.0f || _effect != nullptr || EffekNode::getRunningNodes() > 0;
 }
 
-float View::getStandardDistance() const {
+float View::getStandardDistance() const noexcept {
 	return _size.height * 0.5f / std::tan(bx::toRad(_fieldOfView) * 0.5f);
 }
 
-float View::getAspectRatio() const {
+float View::getAspectRatio() const noexcept {
 	return _size.width / _size.height;
 }
 
@@ -161,7 +161,7 @@ void View::setNearPlaneDistance(float var) {
 	updateProjection();
 }
 
-float View::getNearPlaneDistance() const {
+float View::getNearPlaneDistance() const noexcept {
 	return _nearPlaneDistance;
 }
 
@@ -170,7 +170,7 @@ void View::setFarPlaneDistance(float var) {
 	updateProjection();
 }
 
-float View::getFarPlaneDistance() const {
+float View::getFarPlaneDistance() const noexcept {
 	return _farPlaneDistance;
 }
 
@@ -179,7 +179,7 @@ void View::setFieldOfView(float var) {
 	updateProjection();
 }
 
-float View::getFieldOfView() const {
+float View::getFieldOfView() const noexcept {
 	return _fieldOfView;
 }
 
@@ -194,7 +194,7 @@ void View::updateProjection() {
 	SharedDirector.markDirty();
 }
 
-const Matrix& View::getProjection() const {
+const Matrix& View::getProjection() const noexcept {
 	return _projection;
 }
 
@@ -202,7 +202,7 @@ void View::setPostEffect(SpriteEffect* var) {
 	_effect = var;
 }
 
-SpriteEffect* View::getPostEffect() const {
+SpriteEffect* View::getPostEffect() const noexcept {
 	return _effect;
 }
 

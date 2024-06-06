@@ -37,35 +37,35 @@ void Touch::setEnabled(bool var) {
 	_flags.set(Touch::Enabled, var);
 }
 
-bool Touch::isEnabled() const {
+bool Touch::isEnabled() const noexcept {
 	return _flags.isOn(Touch::Enabled);
 }
 
-bool Touch::isFirst() const {
+bool Touch::isFirst() const noexcept {
 	return _flags.isOn(Touch::IsFirst);
 }
 
-int Touch::getId() const {
+int Touch::getId() const noexcept {
 	return _id;
 }
 
-Vec2 Touch::getDelta() const {
+Vec2 Touch::getDelta() const noexcept {
 	return _worldLocation - _worldPreLocation;
 }
 
-const Vec2& Touch::getLocation() const {
+const Vec2& Touch::getLocation() const noexcept {
 	return _location;
 }
 
-const Vec2& Touch::getPreLocation() const {
+const Vec2& Touch::getPreLocation() const noexcept {
 	return _preLocation;
 }
 
-const Vec2& Touch::getWorldLocation() const {
+const Vec2& Touch::getWorldLocation() const noexcept {
 	return _worldLocation;
 }
 
-const Vec2& Touch::getWorldPreLocation() const {
+const Vec2& Touch::getWorldPreLocation() const noexcept {
 	return _worldPreLocation;
 }
 
@@ -85,7 +85,7 @@ void TouchHandler::setSwallowTouches(bool var) {
 	_swallowTouches = var;
 }
 
-bool TouchHandler::isSwallowTouches() const {
+bool TouchHandler::isSwallowTouches() const noexcept {
 	return _swallowTouches;
 }
 
@@ -93,7 +93,7 @@ void TouchHandler::setSwallowMouseWheel(bool var) {
 	_swallowMouseWheel = var;
 }
 
-bool TouchHandler::isSwallowMouseWheel() const {
+bool TouchHandler::isSwallowMouseWheel() const noexcept {
 	return _swallowMouseWheel;
 }
 
@@ -400,7 +400,7 @@ UITouchHandler::~UITouchHandler() {
 	SharedApplication.eventHandler -= std::make_pair(this, &UITouchHandler::handleEvent);
 }
 
-bool UITouchHandler::isTouchSwallowed() const {
+bool UITouchHandler::isTouchSwallowed() const noexcept {
 	return _touchSwallowed;
 }
 
@@ -408,7 +408,7 @@ void UITouchHandler::setTouchSwallowed(bool value) {
 	_touchSwallowed = value;
 }
 
-bool UITouchHandler::isWheelSwallowed() const {
+bool UITouchHandler::isWheelSwallowed() const noexcept {
 	return _wheelSwallowed;
 }
 
@@ -416,23 +416,23 @@ void UITouchHandler::setWheelSwallowed(bool value) {
 	_wheelSwallowed = value;
 }
 
-const Vec2& UITouchHandler::getMousePos() const {
+const Vec2& UITouchHandler::getMousePos() const noexcept {
 	return _mousePos;
 }
 
-float UITouchHandler::getMouseWheel() const {
+float UITouchHandler::getMouseWheel() const noexcept {
 	return _mouseWheel;
 }
 
-bool UITouchHandler::isLeftButtonPressed() const {
+bool UITouchHandler::isLeftButtonPressed() const noexcept {
 	return _leftButtonPressed;
 }
 
-bool UITouchHandler::isRightButtonPressed() const {
+bool UITouchHandler::isRightButtonPressed() const noexcept {
 	return _rightButtonPressed;
 }
 
-bool UITouchHandler::isMiddleButtonPressed() const {
+bool UITouchHandler::isMiddleButtonPressed() const noexcept {
 	return _middleButtonPressed;
 }
 

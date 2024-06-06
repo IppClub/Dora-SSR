@@ -804,11 +804,11 @@ static int dora_ubox(lua_State* L) {
 	return 1;
 }
 
-lua_State* LuaEngine::getState() const {
+lua_State* LuaEngine::getState() const noexcept {
 	return L;
 }
 
-int LuaEngine::getMemoryCount() const {
+int LuaEngine::getMemoryCount() const noexcept {
 	int k = lua_gc(L, LUA_GCCOUNT);
 	int b = lua_gc(L, LUA_GCCOUNTB);
 	int memLua = (k * 1024 + b);

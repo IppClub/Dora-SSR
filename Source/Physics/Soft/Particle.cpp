@@ -17,11 +17,11 @@ NS_BEGIN(Soft)
 
 Material Particle::defaultMaterial;
 
-const Vec2& Particle::getPosition() const {
+const Vec2& Particle::getPosition() const noexcept {
 	return _position;
 }
 
-Material* Particle::getMaterial() const {
+Material* Particle::getMaterial() const noexcept {
 	return _material;
 }
 

@@ -26,7 +26,7 @@ Shader::~Shader() {
 	}
 }
 
-bgfx::ShaderHandle Shader::getHandle() const {
+bgfx::ShaderHandle Shader::getHandle() const noexcept {
 	return _handle;
 }
 

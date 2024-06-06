@@ -263,14 +263,14 @@ HttpServer::~HttpServer() {
 	stop();
 }
 
-int HttpServer::getWSConnectionCount() const {
+int HttpServer::getWSConnectionCount() const noexcept {
 	if (_webSocketServer) {
 		return _webSocketServer->getConnectionCount();
 	}
 	return 0;
 }
 
-std::string HttpServer::getLocalIP() const {
+std::string HttpServer::getLocalIP() const noexcept {
 	return get_local_ip();
 }
 
@@ -278,7 +278,7 @@ void HttpServer::setWWWPath(String var) {
 	_wwwPath = var.toString();
 }
 
-const std::string& HttpServer::getWWWPath() const {
+const std::string& HttpServer::getWWWPath() const noexcept {
 	return _wwwPath;
 }
 
@@ -517,7 +517,7 @@ HttpClient::~HttpClient() {
 	stop();
 }
 
-bool HttpClient::isStopped() const {
+bool HttpClient::isStopped() const noexcept {
 	return _stopped;
 }
 

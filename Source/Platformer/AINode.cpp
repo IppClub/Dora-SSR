@@ -249,7 +249,7 @@ NS_BEHAVIOR_BEGIN
 Blackboard::Blackboard(Unit* owner)
 	: _owner(owner) { }
 
-Unit* Blackboard::getOwner() const {
+Unit* Blackboard::getOwner() const noexcept {
 	return _owner;
 }
 
@@ -257,7 +257,7 @@ void Blackboard::setDeltaTime(double var) {
 	_deltaTime = var;
 }
 
-double Blackboard::getDeltaTime() const {
+double Blackboard::getDeltaTime() const noexcept {
 	return _deltaTime;
 }
 

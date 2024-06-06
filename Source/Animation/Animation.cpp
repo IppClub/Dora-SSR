@@ -365,7 +365,7 @@ void FrameAnimationDef::setFile(String filename) {
 	_def = SharedFrameCache.loadFrame(filename);
 }
 
-const std::string& FrameAnimationDef::getFile() const {
+const std::string& FrameAnimationDef::getFile() const noexcept {
 	return _file;
 }
 

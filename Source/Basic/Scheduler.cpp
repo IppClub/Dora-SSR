@@ -59,7 +59,7 @@ void Scheduler::setFixedFPS(int var) {
 	_fixedFPS = var;
 }
 
-int Scheduler::getFixedFPS() const {
+int Scheduler::getFixedFPS() const noexcept {
 	return _fixedFPS;
 }
 
@@ -67,11 +67,11 @@ void Scheduler::setTimeScale(float value) {
 	_timeScale = std::max(0.0f, value);
 }
 
-float Scheduler::getTimeScale() const {
+float Scheduler::getTimeScale() const noexcept {
 	return _timeScale;
 }
 
-double Scheduler::getDeltaTime() const {
+double Scheduler::getDeltaTime() const noexcept {
 	return _deltaTime;
 }
 
@@ -214,7 +214,7 @@ SystemTimerBase::SystemTimerBase()
 	: _time(0)
 	, _duration(0) { }
 
-bool SystemTimerBase::isRunning() const {
+bool SystemTimerBase::isRunning() const noexcept {
 	return _time < _duration;
 }
 
