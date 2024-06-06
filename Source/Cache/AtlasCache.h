@@ -27,7 +27,7 @@ private:
 	DORA_TYPE_OVERRIDE(Atlas)
 };
 
-class AtlasCache {
+class AtlasCache : public NonCopyable {
 public:
 	Atlas* load(String filename);
 	void loadAsync(String filename, const std::function<void(Atlas*)>& handler);

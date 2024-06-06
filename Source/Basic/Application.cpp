@@ -679,7 +679,7 @@ extern "C" int main(int argc, char* argv[]) {
 
 NS_DORA_BEGIN
 
-class Console {
+class Console : public NonCopyable {
 public:
 	~Console() {
 		system("pause");

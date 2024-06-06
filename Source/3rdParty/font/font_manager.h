@@ -137,6 +137,10 @@ public:
 
 	float getKerning(FontHandle _handle, CodePoint _codeLeft, CodePoint _codeRight);
 
+protected:
+	FontManager(const FontManager&) = delete;
+	void operator=(const FontManager&) = delete;
+
 private:
 	struct CachedFont;
 	struct CachedFile {

@@ -14,7 +14,7 @@ NS_DORA_BEGIN
 
 class Async;
 
-class Content {
+class Content : public NonCopyable {
 public:
 	PROPERTY_READONLY_CREF(std::string, AssetPath);
 	PROPERTY_READONLY_CREF(std::string, WritablePath);

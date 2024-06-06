@@ -14,7 +14,7 @@ NS_DORA_BEGIN
 
 class SoundFile;
 
-class SoundCache {
+class SoundCache : public NonCopyable {
 public:
 	SoundFile* update(String name, SoundFile* soundFile);
 	SoundFile* get(String filename);

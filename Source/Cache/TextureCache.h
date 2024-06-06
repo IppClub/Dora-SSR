@@ -52,7 +52,7 @@ private:
 	DORA_TYPE_OVERRIDE(Texture2D);
 };
 
-class TextureCache {
+class TextureCache : public NonCopyable {
 public:
 	virtual ~TextureCache() { }
 	Texture2D* update(String name, Texture2D* texture);

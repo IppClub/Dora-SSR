@@ -60,6 +60,11 @@ public:
 	static void addName(String name);
 	static void destroy(String name);
 	static std::string getRefTree();
+
+protected:
+	Life() = default;
+	Life(const Life&) = delete;
+	void operator=(const Life&) = delete;
 };
 
 template <class T>
@@ -114,6 +119,10 @@ public:
 			Life::addDependency(name, dependency);
 		}
 	}
+
+protected:
+	Singleton(const Singleton&) = delete;
+	void operator=(const Singleton&) = delete;
 
 private:
 	static std::string _name;

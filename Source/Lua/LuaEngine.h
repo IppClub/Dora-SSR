@@ -25,7 +25,7 @@ class Blackboard;
 } // namespace Behavior
 } // namespace Platformer
 
-class LuaEngine {
+class LuaEngine : public NonCopyable {
 public:
 	virtual ~LuaEngine();
 	PROPERTY_READONLY(lua_State*, State);

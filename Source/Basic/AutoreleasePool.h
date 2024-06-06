@@ -10,7 +10,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DORA_BEGIN
 
-class PoolManager {
+class PoolManager : public NonCopyable {
 public:
 	virtual ~PoolManager();
 	void push();

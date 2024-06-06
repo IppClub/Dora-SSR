@@ -43,7 +43,7 @@ private:
 	Ref<Texture2D> _texture;
 };
 
-class DragonBoneCache : public db::BaseFactory {
+class DragonBoneCache : public db::BaseFactory, public NonCopyable {
 public:
 	std::pair<db::DragonBonesData*, std::string> load(String boneStr);
 	std::pair<db::DragonBonesData*, std::string> load(String boneFile, String atlasFile);

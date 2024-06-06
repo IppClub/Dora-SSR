@@ -18,7 +18,7 @@ NS_DORA_PLATFORMER_BEGIN
 
 class Unit;
 
-class Data {
+class Data : public NonCopyable {
 public:
 	PROPERTY_READONLY(uint8_t, GroupFirstPlayer);
 	PROPERTY_READONLY(uint8_t, GroupLastPlayer);

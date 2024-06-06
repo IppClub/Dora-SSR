@@ -18,7 +18,7 @@ class Event;
 
 typedef Acf::Delegate<void(Event*)> KeyboardHandler;
 
-class Keyboard {
+class Keyboard : public NonCopyable {
 public:
 	virtual ~Keyboard();
 	bool init();

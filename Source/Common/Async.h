@@ -17,7 +17,7 @@ NS_DORA_BEGIN
 
 /** @brief get a worker runs in another thread and returns a result,
  get a finisher receives the result and runs in main thread. */
-class Async {
+class Async : public NonCopyable {
 	typedef std::pair<std::function<Own<Values>()>, std::function<void(Own<Values>)>> Package;
 
 public:
@@ -43,7 +43,7 @@ private:
 	EventQueue _finisherEvent;
 };
 
-class AsyncThread {
+class AsyncThread : public NonCopyable {
 public:
 	AsyncThread();
 	Async& getProcess(int index);

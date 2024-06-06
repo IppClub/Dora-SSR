@@ -31,7 +31,7 @@ private:
 	DORA_TYPE_OVERRIDE(SkeletonData)
 };
 
-class SkeletonCache {
+class SkeletonCache : public NonCopyable {
 public:
 	SkeletonData* load(String spineStr);
 	SkeletonData* load(String skelFile, String atlasFile);

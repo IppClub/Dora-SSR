@@ -14,7 +14,7 @@ NS_DORA_BEGIN
 
 class XmlDelegator;
 
-class XmlLoader {
+class XmlLoader : public NonCopyable {
 public:
 	virtual ~XmlLoader();
 	struct XmlError {

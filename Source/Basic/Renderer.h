@@ -14,12 +14,12 @@ NS_DORA_BEGIN
 
 class Node;
 
-class Renderer {
+class Renderer : public NonCopyable {
 public:
 	virtual void render();
 };
 
-class RendererManager {
+class RendererManager : public NonCopyable {
 public:
 	PROPERTY(Renderer*, Current);
 	PROPERTY_READONLY(uint32_t, CurrentStencilState);

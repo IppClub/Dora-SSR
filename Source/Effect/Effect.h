@@ -92,7 +92,4 @@ private:
 	DORA_TYPE_OVERRIDE(SpriteEffect);
 };
 
-#define SharedDefaultEffect \
-	Dora::Singleton<Dora::DefaultEffect>::shared()
-
 NS_DORA_END

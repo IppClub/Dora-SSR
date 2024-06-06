@@ -198,6 +198,12 @@ typedef Slice String;
 	} \
 	friend class Object
 
+/**
+ @brief Helper class to do null check for pointer.
+ @example Use it as below.
+
+ void func(NotNull<MyClass, 1> arg1, NotNull<MyClass, 2> arg2) { ... }
+ */
 template <typename T, int pos>
 class NotNull {
 public:
@@ -228,6 +234,20 @@ public:
 
 private:
 	T* _ptr;
+};
+
+/**
+ @brief Helper class to declare a non-copyable class.
+ @example Use it as below.
+
+ class MyClass : public NonCopyable { ... };
+ */
+class NonCopyable {
+protected:
+	NonCopyable() = default;
+	~NonCopyable() = default;
+	NonCopyable(const NonCopyable&) = delete;
+	void operator=(const NonCopyable&) = delete;
 };
 
 /** @brief Helper function to iterate a std::tuple.
