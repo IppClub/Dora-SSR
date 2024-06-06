@@ -107,13 +107,13 @@ bool PlatformWorld::init() {
 }
 
 void PlatformWorld::onEnter() {
-	SharedDirector.pushCamera(_camera);
+	SharedDirector.pushCamera(_camera.get());
 	SharedData.apply(this);
 	Node::onEnter();
 }
 
 void PlatformWorld::onExit() {
-	SharedDirector.removeCamera(_camera);
+	SharedDirector.removeCamera(_camera.get());
 	Node::onExit();
 }
 

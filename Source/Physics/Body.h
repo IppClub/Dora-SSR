@@ -59,8 +59,8 @@ public:
 	Sensor* getSensorByTag(int tag);
 	bool removeSensorByTag(int tag);
 	bool removeSensor(Sensor* sensor);
-	pr::ShapeID attach(FixtureDef* fixtureDef);
-	Sensor* attachSensor(int tag, FixtureDef* fixtureDef);
+	pr::ShapeID attach(NotNull<FixtureDef, 1> fixtureDef);
+	Sensor* attachSensor(int tag, NotNull<FixtureDef, 2> fixtureDef);
 	bool isSensor() const;
 	void onContactFilter(const ContactFilterHandler& handler);
 	CREATE_FUNC_NOT_NULL(Body);

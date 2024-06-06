@@ -61,7 +61,7 @@ private:
 class Effect : public Object {
 public:
 	PROPERTY_CREF(RefVector<Pass>, Passes);
-	void add(Pass* pass);
+	void add(NotNull<Pass, 1> pass);
 	Pass* get(size_t index) const;
 	void clear();
 	CREATE_FUNC_NOT_NULL(Effect);

@@ -1293,7 +1293,15 @@ int Array_getFirst(lua_State* L) {
 	if (self->isEmpty()) {
 		tolua_error(L, "'Array' indexing out of bound", nullptr);
 	}
-	self->getFirst()->pushToLua(L);
+#ifndef TOLUA_RELEASE
+	try {
+#endif
+		self->getFirst()->pushToLua(L);
+#ifndef TOLUA_RELEASE
+	} catch (std::runtime_error& e) {
+		luaL_error(L, e.what());
+	}
+#endif
 	return 1;
 }
 
@@ -1305,7 +1313,15 @@ int Array_getLast(lua_State* L) {
 	if (self->isEmpty()) {
 		tolua_error(L, "'Array' indexing out of bound", nullptr);
 	}
-	self->getLast()->pushToLua(L);
+#ifndef TOLUA_RELEASE
+	try {
+#endif
+		self->getLast()->pushToLua(L);
+#ifndef TOLUA_RELEASE
+	} catch (std::runtime_error& e) {
+		luaL_error(L, e.what());
+	}
+#endif
 	return 1;
 }
 
@@ -1317,7 +1333,15 @@ int Array_getRandomObject(lua_State* L) {
 	if (self->isEmpty()) {
 		tolua_error(L, "'Array' indexing out of bound", nullptr);
 	}
-	self->getRandomObject()->pushToLua(L);
+#ifndef TOLUA_RELEASE
+	try {
+#endif
+		self->getRandomObject()->pushToLua(L);
+#ifndef TOLUA_RELEASE
+	} catch (std::runtime_error& e) {
+		luaL_error(L, e.what());
+	}
+#endif
 	return 1;
 }
 
@@ -1335,9 +1359,17 @@ int Array_index(lua_State* L) {
 		if (!self) tolua_error(L, "invalid 'self' in function 'Array_index'", nullptr);
 #endif
 		auto value = Dora_getValue(L, 2);
-		lua_Integer index = s_cast<lua_Integer>(self->index(value.get()) + 1);
-		lua_pushinteger(L, index);
-		return 1;
+#ifndef TOLUA_RELEASE
+		try {
+#endif
+			lua_Integer index = s_cast<lua_Integer>(self->index(value.get()) + 1);
+			lua_pushinteger(L, index);
+			return 1;
+#ifndef TOLUA_RELEASE
+		} catch (std::runtime_error& e) {
+			luaL_error(L, e.what());
+		}
+#endif
 	}
 #ifndef TOLUA_RELEASE
 tolua_lerror:
@@ -1423,6 +1455,7 @@ int Array_insert(lua_State* L) {
 			tolua_error(L, "'Array' indexing out of bound", nullptr);
 		}
 		auto value = Dora_getValue(L, 3);
+		if (!value) tolua_error(L, "expecting value to insert, got nil", nullptr);
 		self->insert(index, std::move(value));
 		return 0;
 	}
@@ -1447,6 +1480,7 @@ int Array_fastRemove(lua_State* L) {
 		if (!self) tolua_error(L, "invalid 'self' in function 'Array_fastRemove'", nullptr);
 #endif
 		auto value = Dora_getValue(L, 2);
+		if (!value) tolua_error(L, "expecting value to remove, got nil", nullptr);
 		bool result = self->fastRemove(value.get());
 		lua_pushboolean(L, result ? 1 : 0);
 		return 1;
@@ -1472,6 +1506,7 @@ int Array_add(lua_State* L) {
 		if (!self) tolua_error(L, "invalid 'self' in function 'Array_add'", nullptr);
 #endif
 		auto value = Dora_getValue(L, 2);
+		if (!value) tolua_error(L, "expecting value to add, got nil", nullptr);
 		self->add(std::move(value));
 		return 0;
 	}
@@ -1496,6 +1531,7 @@ int Array_contains(lua_State* L) {
 		if (!self) tolua_error(L, "invalid 'self' in function 'Array_contains'", nullptr);
 #endif
 		auto value = Dora_getValue(L, 2);
+		if (!value) tolua_error(L, "expecting value to search, got nil", nullptr);
 		lua_pushboolean(L, self->contains(value.get()) ? 1 : 0);
 		return 1;
 	}
@@ -1519,6 +1555,10 @@ int Array_removeLast(lua_State* L) {
 #ifndef TOLUA_RELEASE
 		if (!self) tolua_error(L, "invalid 'self' in function 'Array_removeLast'", nullptr);
 #endif
+		if (self->isEmpty()) {
+			lua_pushnil(L);
+			return 1;
+		}
 		auto value = self->removeLast();
 		if (value)
 			value->pushToLua(L);

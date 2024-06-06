@@ -240,7 +240,7 @@ pr::ShapeID Body::attachFixture(const pd::Shape& shape) {
 	return fixture;
 }
 
-pr::ShapeID Body::attach(FixtureDef* fixtureDef) {
+pr::ShapeID Body::attach(NotNull<FixtureDef, 1> fixtureDef) {
 	pr::ShapeID fixture = Body::attachFixture(fixtureDef->shape);
 	/* cleanup temp vertices */
 	if (pd::GetType(fixtureDef->shape) == pr::GetTypeID<pd::ChainShapeConf>()) {
@@ -265,7 +265,7 @@ Sensor* Body::attachSensor(int tag, pd::Shape& shape) {
 	return sensor;
 }
 
-Sensor* Body::attachSensor(int tag, FixtureDef* fixtureDef) {
+Sensor* Body::attachSensor(int tag, NotNull<FixtureDef, 2> fixtureDef) {
 	return Body::attachSensor(tag, fixtureDef->shape);
 }
 

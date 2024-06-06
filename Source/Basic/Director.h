@@ -45,9 +45,9 @@ public:
 	void doRender();
 	void handleSDLEvent(const SDL_Event& event);
 
-	void pushCamera(Camera* camera);
+	void pushCamera(NotNull<Camera, 1> camera);
 	void popCamera();
-	bool removeCamera(Camera* camera);
+	bool removeCamera(NotNull<Camera, 1> camera);
 	void clearCamera();
 
 	void markDirty();

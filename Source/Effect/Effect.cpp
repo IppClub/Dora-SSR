@@ -155,7 +155,7 @@ const RefVector<Pass>& Effect::getPasses() const {
 	return _passes;
 }
 
-void Effect::add(Pass* pass) {
+void Effect::add(NotNull<Pass, 1> pass) {
 	_passes.push_back(pass);
 }
 

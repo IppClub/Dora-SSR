@@ -121,11 +121,11 @@ Scheduler* Director::getPostScheduler() const {
 	return _postScheduler;
 }
 
-void Director::pushCamera(Camera* var) {
+void Director::pushCamera(NotNull<Camera, 1> var) {
 	Camera* lastCamera = getCurrentCamera();
 	lastCamera->Updated -= std::make_pair(this, &Director::markDirty);
 	var->Updated += std::make_pair(this, &Director::markDirty);
-	_camStack->add(Value::alloc(var));
+	_camStack->add(Value::alloc(var.get()));
 	markDirty();
 }
 
@@ -140,13 +140,13 @@ void Director::popCamera() {
 	markDirty();
 }
 
-bool Director::removeCamera(Camera* camera) {
+bool Director::removeCamera(NotNull<Camera, 1> camera) {
 	Camera* lastCamera = getCurrentCamera();
 	if (camera == lastCamera) {
 		popCamera();
 		return true;
 	} else {
-		auto cam = Value::alloc(camera);
+		auto cam = Value::alloc(camera.get());
 		return _camStack->remove(cam.get());
 	}
 }

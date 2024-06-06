@@ -86,10 +86,10 @@ public:
 	PROPERTY(float, TimeScale);
 	PROPERTY(int, FixedFPS);
 	PROPERTY_READONLY(double, DeltaTime);
-	void schedule(ScheduledItem* item);
-	void scheduleFixed(FixedScheduledItem* item);
+	void schedule(NotNull<ScheduledItem, 1> item);
+	void scheduleFixed(NotNull<FixedScheduledItem, 1> item);
 	void schedule(const std::function<bool(double)>& handler);
-	void schedule(Action* action);
+	void schedule(NotNull<Action, 1> action);
 	void unschedule(ScheduledItem* item);
 	void unscheduleFixed(FixedScheduledItem* item);
 	void unschedule(Action* action);
