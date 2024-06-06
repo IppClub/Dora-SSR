@@ -23,13 +23,13 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 NS_DORA_BEGIN
 
 void PhysicsWorld::SensorPair::retain() {
-	sensor->getOwner()->retain();
+	owner->retain();
 	sensor->retain();
 	body->retain();
 }
 
 void PhysicsWorld::SensorPair::release() {
-	sensor->getOwner()->release();
+	owner->release();
 	sensor->release();
 	body->release();
 }
@@ -68,15 +68,15 @@ void PhysicsWorld::setupBeginContact() {
 		}
 		if (pd::IsSensor(world, fixtureA)) {
 			Sensor* sensor = _fixtureData[fixtureA.get()];
-			if (sensor && sensor->isEnabled() && !pd::IsSensor(world, fixtureB)) {
-				SensorPair pair{sensor, bodyB};
+			if (sensor && sensor->isEnabled() && !pd::IsSensor(world, fixtureB) && sensor->getOwner()) {
+				SensorPair pair{sensor->getOwner(), sensor, bodyB};
 				pair.retain();
 				_sensorEnters.push_back(pair);
 			}
 		} else if (pd::IsSensor(world, fixtureB)) {
 			Sensor* sensor = _fixtureData[fixtureB.get()];
-			if (sensor && sensor->isEnabled()) {
-				SensorPair pair{sensor, bodyA};
+			if (sensor && sensor->isEnabled() && sensor->getOwner()) {
+				SensorPair pair{sensor->getOwner(), sensor, bodyA};
 				pair.retain();
 				_sensorEnters.push_back(pair);
 			}
@@ -117,15 +117,15 @@ void PhysicsWorld::setupEndContact() {
 		Body* bodyB = _bodyData[pd::GetBodyB(world, contact).get()];
 		if (pd::IsSensor(world, fixtureA)) {
 			Sensor* sensor = _fixtureData[fixtureA.get()];
-			if (sensor && bodyB && sensor->isEnabled() && !pd::IsSensor(world, fixtureB)) {
-				SensorPair pair{sensor, bodyB};
+			if (sensor && bodyB && sensor->isEnabled() && !pd::IsSensor(world, fixtureB) && sensor->getOwner()) {
+				SensorPair pair{sensor->getOwner(), sensor, bodyB};
 				pair.retain();
 				_sensorLeaves.push_back(pair);
 			}
 		} else if (pd::IsSensor(world, fixtureB)) {
 			Sensor* sensor = _fixtureData[fixtureB.get()];
-			if (sensor && bodyA && sensor->isEnabled()) {
-				SensorPair pair{sensor, bodyA};
+			if (sensor && bodyA && sensor->isEnabled() && sensor->getOwner()) {
+				SensorPair pair{sensor->getOwner(), sensor, bodyA};
 				pair.retain();
 				_sensorLeaves.push_back(pair);
 			}

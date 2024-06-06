@@ -107,6 +107,7 @@ private:
 	pr::StepConf _stepConf;
 
 	struct SensorPair {
+		Body* owner;
 		Sensor* sensor;
 		Body* body;
 		void retain();
