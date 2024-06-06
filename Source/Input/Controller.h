@@ -16,7 +16,7 @@ class Event;
 
 typedef Acf::Delegate<void(Event*)> ControllerHandler;
 
-class Controller {
+class Controller : public NonCopyable {
 public:
 	virtual ~Controller();
 	bool initInRender();

@@ -22,7 +22,7 @@ private:
 	int _refCount;
 };
 
-class Object {
+class Object : public NonCopyable {
 public:
 	PROPERTY_READONLY(uint32_t, Id);
 	PROPERTY_READONLY_CALL(uint32_t, LuaRef);

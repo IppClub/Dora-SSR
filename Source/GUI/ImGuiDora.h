@@ -21,7 +21,7 @@ class Texture2D;
 class Pass;
 class ConsolePanel;
 
-class ImGuiDora {
+class ImGuiDora : public NonCopyable {
 public:
 	PROPERTY_BOOL(FontLoaded);
 	virtual ~ImGuiDora();

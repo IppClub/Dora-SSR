@@ -46,7 +46,7 @@ private:
 class Texture2D;
 class EffekInstance;
 
-class EffekManager {
+class EffekManager : public NonCopyable {
 public:
 	EffekManager();
 	virtual ~EffekManager();

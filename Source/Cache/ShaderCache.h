@@ -23,7 +23,7 @@ private:
 	bgfx::ShaderHandle _handle;
 };
 
-class ShaderCache {
+class ShaderCache : public NonCopyable {
 public:
 	virtual ~ShaderCache() { }
 	void update(String name, Shader* shader);

@@ -119,7 +119,7 @@ private:
 	Vec2 _mousePos;
 };
 
-class TouchDispatcher {
+class TouchDispatcher : public NonCopyable {
 public:
 	void add(const SDL_Event& event);
 	void add(const std::weak_ptr<TouchHandler>& handler);

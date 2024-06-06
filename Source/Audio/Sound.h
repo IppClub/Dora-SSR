@@ -54,7 +54,7 @@ private:
 	DORA_TYPE_OVERRIDE(SoundStream);
 };
 
-class Audio {
+class Audio : public NonCopyable {
 public:
 	PROPERTY_READONLY_CALL(SoLoud::Soloud*, SoLoud);
 	virtual ~Audio();

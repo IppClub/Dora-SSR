@@ -85,7 +85,7 @@ private:
  There are two types of visuals, particle and frame animation which is a sequence of image changes in a row.
  The particle file ends with ".par" and the frame animation file ends with ".frame".
 */
-class VisualCache : public rapidxml::xml_sax2_handler {
+class VisualCache : public rapidxml::xml_sax2_handler, public NonCopyable {
 public:
 	~VisualCache();
 	/** Load an visual item file into memory. */

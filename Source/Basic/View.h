@@ -14,7 +14,7 @@ NS_DORA_BEGIN
 
 class SpriteEffect;
 
-class View {
+class View : public NonCopyable {
 public:
 	enum {
 		MaxViews = 256

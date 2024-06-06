@@ -19,7 +19,7 @@ NS_DORA_BEGIN
 
 typedef Acf::Delegate<void(Entity*)> EntityEventHandler;
 
-class EntityPool {
+class EntityPool : public NonCopyable {
 public:
 	EntityPool() {
 		SharedDirector.getPostScheduler()->schedule([this](double deltaTime) {

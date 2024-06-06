@@ -44,7 +44,7 @@ private:
 	std::deque<dora_val_t> _stack;
 };
 
-class WasmRuntime {
+class WasmRuntime : public NonCopyable {
 public:
 	PROPERTY_READONLY_CALL(Scheduler*, PostScheduler);
 	PROPERTY_READONLY_CALL(Scheduler*, Scheduler);

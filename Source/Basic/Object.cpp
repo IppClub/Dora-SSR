@@ -15,7 +15,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DORA_BEGIN
 
-class ObjectBase {
+class ObjectBase : public NonCopyable {
 public:
 	ObjectBase()
 		: maxIdCount(0)

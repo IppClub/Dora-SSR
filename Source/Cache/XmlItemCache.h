@@ -15,7 +15,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 NS_DORA_BEGIN
 
 template <class T>
-class XmlParser {
+class XmlParser : public NonCopyable {
 public:
 	XmlParser(rapidxml::xml_sax2_handler* handler, T* item)
 		: _parser(handler)
@@ -37,7 +37,7 @@ protected:
  T is the class to store every parsed xml file.
 */
 template <class T>
-class XmlItemCache {
+class XmlItemCache : public NonCopyable {
 public:
 	virtual ~XmlItemCache() { }
 	/** Load a new xml file or get its data for cache. */

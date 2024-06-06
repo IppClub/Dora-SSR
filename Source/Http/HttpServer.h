@@ -14,7 +14,7 @@ class WebSocketServer;
 class Async;
 class Listener;
 
-class HttpServer {
+class HttpServer : public NonCopyable {
 public:
 	virtual ~HttpServer();
 	PROPERTY_STRING(WWWPath);
@@ -82,7 +82,7 @@ private:
 #define SharedHttpServer \
 	Dora::Singleton<Dora::HttpServer>::shared()
 
-class HttpClient {
+class HttpClient : public NonCopyable {
 public:
 	PROPERTY_BOOL(Stopped);
 	virtual ~HttpClient();

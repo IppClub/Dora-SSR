@@ -18,7 +18,7 @@ NS_DORA_PLATFORMER_BEGIN
 class Unit;
 
 NS_DECISION_BEGIN
-class AI {
+class AI : public NonCopyable {
 public:
 	PROPERTY_READONLY_CALL(std::vector<Slice>&, DecisionNodes);
 	bool runDecisionTree(Unit* unit);

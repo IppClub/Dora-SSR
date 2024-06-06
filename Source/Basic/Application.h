@@ -24,7 +24,7 @@ NS_DORA_BEGIN
 typedef Acf::Delegate<void(const SDL_Event&)> SDLEventHandler;
 typedef Acf::Delegate<void()> QuitHandler;
 
-class Application {
+class Application : public NonCopyable {
 public:
 	virtual ~Application() { }
 	PROPERTY_READONLY(uint32_t, Frame);
@@ -126,7 +126,7 @@ private:
 #define SharedApplication \
 	Dora::Singleton<Dora::Application>::shared()
 
-class BGFXDora {
+class BGFXDora : public NonCopyable {
 public:
 	bool init(const bgfx::PlatformData& data);
 	virtual ~BGFXDora();

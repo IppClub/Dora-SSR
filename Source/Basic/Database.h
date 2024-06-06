@@ -19,7 +19,7 @@ NS_DORA_BEGIN
 class Value;
 class Async;
 
-class DB {
+class DB : public NonCopyable {
 public:
 	typedef std::variant<int64_t, double, std::string, bool> Col;
 	PROPERTY_READONLY(Async*, Thread);

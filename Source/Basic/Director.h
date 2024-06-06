@@ -24,7 +24,7 @@ class Camera;
 class RenderTarget;
 class UITouchHandler;
 
-class Director {
+class Director : public NonCopyable {
 public:
 	virtual ~Director();
 	PROPERTY(Scheduler*, Scheduler);
