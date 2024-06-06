@@ -1149,11 +1149,11 @@ do -- 682
                     end -- 713
                 until true -- 713
             end -- 713
-            if alignNode.onLayout then -- 713
-                node:slot("AlignLayout", alignNode.onLayout) -- 717
-            end -- 717
-            local styleStr = table.concat(items, ";") -- 719
-            node:css(styleStr) -- 720
+            local styleStr = table.concat(items, ";") -- 716
+            node:css(styleStr) -- 717
+        end -- 717
+        if alignNode.onLayout then -- 717
+            node:slot("AlignLayout", alignNode.onLayout) -- 720
         end -- 720
         local cnode = getNode(enode, node, handleAlignNode) -- 722
         return cnode -- 723

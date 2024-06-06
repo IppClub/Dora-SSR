@@ -713,11 +713,11 @@ let getAlignNode: (this: void, enode: React.Element) => Dora.AlignNode.Type;
 						break;
 				}
 			}
-			if (alignNode.onLayout) {
-				node.slot(Dora.Slot.AlignLayout, alignNode.onLayout);
-			}
 			const styleStr = table.concat(items, ';');
 			node.css(styleStr);
+		}
+		if (alignNode.onLayout) {
+			node.slot(Dora.Slot.AlignLayout, alignNode.onLayout);
 		}
 		const cnode = getNode(enode, node, handleAlignNode);
 		return cnode as Dora.AlignNode.Type;
