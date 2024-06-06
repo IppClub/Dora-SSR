@@ -400,8 +400,8 @@ void Spine::render() {
 				_clipper->clipTriangles(&vertices[0].x, triangles, 6, &vertices[0].u, sizeof(vertices[0]) / sizeof(float));
 				auto& verts = _clipper->getClippedVertices();
 				auto vertSize = verts.size() / 2;
-				bool isCulled = false;
-				if (SharedDirector.isFrustumCulling()) {
+				bool isCulled = verts.size() == 0;
+				if (!isCulled && SharedDirector.isFrustumCulling()) {
 					float minX = verts[0];
 					float minY = verts[1];
 					float maxX = verts[0];
@@ -435,8 +435,8 @@ void Spine::render() {
 						_effect, texture, renderState);
 				}
 			} else {
-				bool isCulled = false;
-				if (SharedDirector.isFrustumCulling()) {
+				bool isCulled = vertices.empty();
+				if (!isCulled && SharedDirector.isFrustumCulling()) {
 					auto [minX, maxX] = std::minmax_element(vertices.begin(), vertices.end(), [](const auto& a, const auto& b) {
 						return a.x < b.x;
 					});
@@ -482,8 +482,8 @@ void Spine::render() {
 				_clipper->clipTriangles(&vertices[0].x, meshIndices.buffer(), meshIndices.size(), &vertices[0].u, sizeof(vertices[0]) / sizeof(float));
 				auto& verts = _clipper->getClippedVertices();
 				auto vertSize = _clipper->getClippedVertices().size() / 2;
-				bool isCulled = false;
-				if (SharedDirector.isFrustumCulling()) {
+				bool isCulled = verts.size() == 0;
+				if (!isCulled && SharedDirector.isFrustumCulling()) {
 					float minX = verts[0];
 					float minY = verts[1];
 					float maxX = verts[0];
