@@ -238,7 +238,6 @@ bool Unit::update(double deltaTime) {
 
 void Unit::cleanup() {
 	if (_flags.isOff(Node::Cleanup)) {
-		Body::cleanup();
 		if (_entity) {
 			_entity->destroy();
 			_entity = nullptr;
@@ -247,6 +246,7 @@ void Unit::cleanup() {
 		_decisionTree = nullptr;
 		_unitDef = nullptr;
 		_actions.clear();
+		Body::cleanup();
 	}
 }
 
