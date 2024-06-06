@@ -33,7 +33,7 @@ public:
 	PROPERTY_READONLY(Body*, Owner);
 	PROPERTY_READONLY(pr::ShapeID, Fixture);
 	PROPERTY_READONLY(Array*, SensedBodies);
-	PROPERTY(int, Group);
+	PROPERTY_EXCEPT(int, Group);
 	bool isSensed() const;
 	bool contains(Body* body);
 	/**
@@ -52,7 +52,7 @@ public:
 protected:
 	Sensor(NotNull<Body, 1> owner, int tag, pr::ShapeID fixture);
 	int _tag;
-	Body* _owner;
+	WRef<Body> _owner;
 	pr::ShapeID _fixture;
 
 private:
