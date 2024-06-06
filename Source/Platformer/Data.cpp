@@ -157,11 +157,13 @@ float Data::getDamageFactor(uint16_t damageType, uint16_t defenceType) const {
 }
 
 bool Data::isPlayer(Body* body) {
+	if (!body) return false;
 	int16_t index = body->getGroup();
 	return FP <= index && index <= LP;
 }
 
 bool Data::isTerrain(Body* body) {
+	if (!body) return false;
 	return body->getGroup() == Data::getGroupTerrain();
 }
 

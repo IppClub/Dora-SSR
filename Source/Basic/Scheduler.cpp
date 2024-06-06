@@ -75,13 +75,13 @@ double Scheduler::getDeltaTime() const {
 	return _deltaTime;
 }
 
-void Scheduler::schedule(ScheduledItem* item) {
+void Scheduler::schedule(NotNull<ScheduledItem, 1> item) {
 	AssertIf(item->iter, "target item is already scheduled");
 	item->target->retain();
 	item->iter = _updateList.emplace(_updateList.end(), item);
 }
 
-void Scheduler::scheduleFixed(FixedScheduledItem* item) {
+void Scheduler::scheduleFixed(NotNull<FixedScheduledItem, 1> item) {
 	AssertIf(item->iter, "target item is already scheduled");
 	item->target->retain();
 	item->iter = _fixedUpdateList.emplace(_fixedUpdateList.end(), item);
@@ -94,7 +94,7 @@ void Scheduler::schedule(const std::function<bool(double)>& handler) {
 }
 
 void Scheduler::unschedule(ScheduledItem* item) {
-	if (item->iter) {
+	if (item && item->iter) {
 		_updateList.erase(item->iter.value());
 		item->target->release();
 		item->iter = std::nullopt;
@@ -102,17 +102,17 @@ void Scheduler::unschedule(ScheduledItem* item) {
 }
 
 void Scheduler::unscheduleFixed(FixedScheduledItem* item) {
-	if (item->iter) {
+	if (item && item->iter) {
 		_fixedUpdateList.erase(item->iter.value());
 		item->target->release();
 		item->iter = std::nullopt;
 	}
 }
 
-void Scheduler::schedule(Action* action) {
-	if (action && action->_target && !action->isRunning()) {
+void Scheduler::schedule(NotNull<Action, 1> action) {
+	if (action->_target && !action->isRunning()) {
 		action->_order = s_cast<int>(_actionList->getCount());
-		_actionList->add(Value::alloc(action));
+		_actionList->add(Value::alloc(action.get()));
 		if (action->updateProgress() && !action->_looped) {
 			Ref<Action> actionRef(action);
 			Ref<Node> targetRef(action->_target);

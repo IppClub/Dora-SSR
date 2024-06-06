@@ -47,7 +47,7 @@ bool Array::isEmpty() const {
 	return _data.empty();
 }
 
-bool Array::contains(Value* value) const {
+bool Array::contains(NotNull<Value, 1> value) const {
 	return std::find_if(_data.begin(), _data.end(), [&](const Own<Value>& val) {
 		return value->equals(val.get());
 	}) != _data.end();
@@ -57,13 +57,13 @@ void Array::add(Own<Value>&& value) {
 	_data.push_back(std::move(value));
 }
 
-void Array::addRange(Array* other) {
+void Array::addRange(NotNull<Array, 1> other) {
 	for (const auto& item : other->_data) {
 		_data.push_back(item->clone());
 	}
 }
 
-void Array::removeFrom(Array* other) {
+void Array::removeFrom(NotNull<Array, 1> other) {
 	for (const auto& it : other->_data) {
 		Array::remove(it.get());
 	}
@@ -75,7 +75,7 @@ Own<Value> Array::removeLast() {
 	return value;
 }
 
-bool Array::remove(Value* value) {
+bool Array::remove(NotNull<Value, 1> value) {
 	auto it = std::remove_if(_data.begin(), _data.end(), [&](Own<Value>& item) {
 		return item->equals(value);
 	});
@@ -88,7 +88,7 @@ void Array::clear() {
 	_data.clear();
 }
 
-bool Array::fastRemove(Value* value) {
+bool Array::fastRemove(NotNull<Value, 1> value) {
 	size_t ind = index(value);
 	if (ind < _data.size()) {
 		_data.at(ind) = std::move(_data.back());
@@ -98,8 +98,8 @@ bool Array::fastRemove(Value* value) {
 	return false;
 }
 
-void Array::swap(Value* objectA, Value* objectB) {
-	std::swap(_data[index(objectA)], _data[index(objectB)]);
+void Array::swap(NotNull<Value, 1> objectA, NotNull<Value, 2> objectB) {
+	std::swap(_data[index(objectA)], _data[index(objectB.get())]);
 }
 
 void Array::swap(size_t indexA, size_t indexB) {
@@ -114,7 +114,7 @@ void Array::shrink() {
 	_data.shrink_to_fit();
 }
 
-int Array::index(Value* value) {
+int Array::index(NotNull<Value, 1> value) {
 	auto it = std::find_if(_data.begin(), _data.end(), [&](const Own<Value>& val) {
 		return value->equals(val.get());
 	});
