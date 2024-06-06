@@ -158,6 +158,13 @@ function classVariable:supcode()
 		output("#endif\n")
 	end
 
+	local except = string.find(self.mod, "tolua_except")
+	if except then
+		output("#ifndef TOLUA_RELEASE\n")
+		output("  try {\n")
+		output("#endif\n")
+	end
+
 	local is_function = self.type:match("^tolua_function.*$") ~= nil or self.type == "tolua_handler"
 	-- return value
 	local t, ct = isbasic(self.type)
@@ -206,6 +213,12 @@ function classVariable:supcode()
 				output(" ", push_func, "(tolua_S,(void*)" .. ref .. value .. ',"', t, '");')
 			end
 		end
+	end
+
+	if except then
+		output("#ifndef TOLUA_RELEASE\n")
+		output("  } catch (std::runtime_error& e) { luaL_error(tolua_S,e.what()); }\n")
+		output("#endif\n")
 	end
 
 	output(" return 1;")

@@ -101,11 +101,11 @@ void Object::autorelease() {
 	SharedPoolManager.addObject(this);
 }
 
-bool Object::isSingleReferenced() const {
+bool Object::isSingleReferenced() const noexcept {
 	return _refCount == 1;
 }
 
-uint32_t Object::getRefCount() const {
+uint32_t Object::getRefCount() const noexcept {
 	return _refCount;
 }
 
@@ -113,7 +113,7 @@ void Object::cleanup() {
 	if (_weak) _weak->target = nullptr;
 }
 
-uint32_t Object::getId() const {
+uint32_t Object::getId() const noexcept {
 	return _id;
 }
 
@@ -163,7 +163,7 @@ uint32_t Object::getLuaRef() {
 	return _luaRef;
 }
 
-bool Object::isLuaReferenced() const {
+bool Object::isLuaReferenced() const noexcept {
 	return _luaRef != 0;
 }
 

@@ -53,7 +53,7 @@ void PlatformCamera::setRotation(float var) {
 	_transformDirty = true;
 }
 
-float PlatformCamera::getRotation() const {
+float PlatformCamera::getRotation() const noexcept {
 	return _rotation;
 }
 
@@ -66,7 +66,7 @@ void PlatformCamera::setZoom(float var) {
 	setPosition(pos);
 }
 
-float PlatformCamera::getZoom() const {
+float PlatformCamera::getZoom() const noexcept {
 	return _zoom;
 }
 
@@ -122,7 +122,7 @@ void PlatformCamera::setBoundary(const Rect& var) {
 	PlatformCamera::setPosition(_position);
 }
 
-const Rect& PlatformCamera::getBoundary() const {
+const Rect& PlatformCamera::getBoundary() const noexcept {
 	return _boundary;
 }
 
@@ -130,7 +130,7 @@ void PlatformCamera::setFollowRatio(const Vec2& var) {
 	_ratio = var;
 }
 
-const Vec2& PlatformCamera::getFollowRatio() const {
+const Vec2& PlatformCamera::getFollowRatio() const noexcept {
 	return _ratio;
 }
 
@@ -138,7 +138,7 @@ void PlatformCamera::setFollowOffset(const Vec2& var) {
 	_offset = var;
 }
 
-const Vec2& PlatformCamera::getFollowOffset() const {
+const Vec2& PlatformCamera::getFollowOffset() const noexcept {
 	return _offset;
 }
 
@@ -146,7 +146,7 @@ void PlatformCamera::setFollowTarget(Node* target) {
 	_followTarget = target;
 }
 
-Node* PlatformCamera::getFollowTarget() const {
+Node* PlatformCamera::getFollowTarget() const noexcept {
 	return _followTarget;
 }
 

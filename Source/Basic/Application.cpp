@@ -99,7 +99,7 @@ Application::Application()
 #endif
 }
 
-const std::string& Application::getLocale() const {
+const std::string& Application::getLocale() const noexcept {
 	return _locale;
 }
 
@@ -108,15 +108,15 @@ void Application::setLocale(String var) {
 	Event::send("AppLocale"_slice, _locale);
 }
 
-Size Application::getBufferSize() const {
+Size Application::getBufferSize() const noexcept {
 	return Size{s_cast<float>(_bufferWidth), s_cast<float>(_bufferHeight)};
 }
 
-Size Application::getVisualSize() const {
+Size Application::getVisualSize() const noexcept {
 	return Size{s_cast<float>(_visualWidth), s_cast<float>(_visualHeight)};
 }
 
-float Application::getDevicePixelRatio() const {
+float Application::getDevicePixelRatio() const noexcept {
 	return s_cast<float>(_bufferWidth) / _visualWidth;
 }
 
@@ -125,7 +125,7 @@ void Application::setThemeColor(Color var) {
 	Event::send("AppTheme"_slice, _themeColor.toARGB());
 }
 
-Color Application::getThemeColor() const {
+Color Application::getThemeColor() const noexcept {
 	return _themeColor;
 }
 
@@ -134,7 +134,7 @@ void Application::setSeed(uint32_t var) {
 	_randomEngine.seed(var);
 }
 
-uint32_t Application::getSeed() const {
+uint32_t Application::getSeed() const noexcept {
 	return _seed;
 }
 
@@ -142,11 +142,11 @@ uint32_t Application::getRand() {
 	return _randomEngine();
 }
 
-uint32_t Application::getRandMin() const {
+uint32_t Application::getRandMin() const noexcept {
 	return std::mt19937::min();
 }
 
-uint32_t Application::getRandMax() const {
+uint32_t Application::getRandMax() const noexcept {
 	return std::mt19937::max();
 }
 
@@ -154,11 +154,11 @@ void Application::setTargetFPS(uint32_t var) {
 	_targetFPS = var;
 }
 
-uint32_t Application::getTargetFPS() const {
+uint32_t Application::getTargetFPS() const noexcept {
 	return _targetFPS;
 }
 
-uint32_t Application::getMaxFPS() const {
+uint32_t Application::getMaxFPS() const noexcept {
 	return _maxFPS;
 }
 
@@ -166,7 +166,7 @@ void Application::setIdled(bool var) {
 	_idled = var;
 }
 
-bool Application::isIdled() const {
+bool Application::isIdled() const noexcept {
 	return _idled;
 }
 
@@ -174,7 +174,7 @@ void Application::setFPSLimited(bool var) {
 	_fpsLimited = var;
 }
 
-bool Application::isFPSLimited() const {
+bool Application::isFPSLimited() const noexcept {
 	return _fpsLimited;
 }
 
@@ -198,7 +198,7 @@ void Application::setWinSize(Size var) {
 	}
 }
 
-Size Application::getWinSize() const {
+Size Application::getWinSize() const noexcept {
 	return Size{s_cast<float>(_winWidth), s_cast<float>(_winHeight)};
 }
 
@@ -212,23 +212,23 @@ void Application::setWinPosition(const Vec2& var) {
 	});
 }
 
-const Vec2& Application::getWinPosition() const {
+const Vec2& Application::getWinPosition() const noexcept {
 	return _winPosition;
 }
 
-uint32_t Application::getFrame() const {
+uint32_t Application::getFrame() const noexcept {
 	return _frame;
 }
 
-SDL_Window* Application::getSDLWindow() const {
+SDL_Window* Application::getSDLWindow() const noexcept {
 	return _sdlWindow;
 }
 
-bool Application::isRenderRunning() const {
+bool Application::isRenderRunning() const noexcept {
 	return _renderRunning;
 }
 
-bool Application::isLogicRunning() const {
+bool Application::isLogicRunning() const noexcept {
 	return _logicRunning;
 }
 
@@ -419,45 +419,45 @@ const std::string& Application::getAPKPath() const {
 }
 #endif // BX_PLATFORM_ANDROID
 
-double Application::getElapsedTime() const {
+double Application::getElapsedTime() const noexcept {
 	double currentTime = getCurrentTime();
 	return std::max(currentTime - _lastTime, 0.0);
 }
 
-double Application::getCurrentTime() const {
+double Application::getCurrentTime() const noexcept {
 	return bx::getHPCounter() / _frequency;
 }
 
-double Application::getRunningTime() const {
+double Application::getRunningTime() const noexcept {
 	return getCurrentTime() - _startTime;
 }
 
-double Application::getLastTime() const {
+double Application::getLastTime() const noexcept {
 	return _lastTime;
 }
 
-double Application::getDeltaTime() const {
+double Application::getDeltaTime() const noexcept {
 	return _deltaTime;
 }
 
-double Application::getCPUTime() const {
+double Application::getCPUTime() const noexcept {
 	return _cpuTime;
 }
 
-double Application::getGPUTime() const {
+double Application::getGPUTime() const noexcept {
 	const bgfx::Stats* stats = bgfx::getStats();
 	return std::abs(double(stats->gpuTimeEnd) - double(stats->gpuTimeBegin)) / double(stats->gpuTimerFreq);
 }
 
-double Application::getLogicTime() const {
+double Application::getLogicTime() const noexcept {
 	return _logicTime;
 }
 
-double Application::getRenderTime() const {
+double Application::getRenderTime() const noexcept {
 	return _renderTime;
 }
 
-double Application::getTotalTime() const {
+double Application::getTotalTime() const noexcept {
 	return _totalTime;
 }
 
@@ -594,7 +594,7 @@ int Application::mainLogic(bx::Thread* thread, void* userData) {
 	}
 }
 
-const Slice Application::getPlatform() const {
+const Slice Application::getPlatform() const noexcept {
 #if BX_PLATFORM_WINDOWS
 	return "Windows"_slice;
 #elif BX_PLATFORM_ANDROID
@@ -610,11 +610,11 @@ const Slice Application::getPlatform() const {
 #endif
 }
 
-const Slice Application::getVersion() const {
+const Slice Application::getVersion() const noexcept {
 	return DORA_VERSION;
 }
 
-bool Application::isDebugging() const {
+bool Application::isDebugging() const noexcept {
 #if DEBUG
 	return true;
 #else
@@ -622,7 +622,7 @@ bool Application::isDebugging() const {
 #endif
 }
 
-std::thread::id Application::getLogicThread() const {
+std::thread::id Application::getLogicThread() const noexcept {
 	return _logicThreadID;
 }
 
@@ -723,7 +723,7 @@ int CALLBACK WinMain(
 #include "wasm3.h"
 #include "yuescript/yue_compiler.h"
 
-std::string Dora::Application::getDeps() const {
+std::string Dora::Application::getDeps() const noexcept {
 	return fmt::format(
 		"- SDL2 {}.{}.{}\n"
 		"- bgfx {}\n"

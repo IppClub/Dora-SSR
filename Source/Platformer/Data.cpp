@@ -118,27 +118,27 @@ bool Data::getShouldContact(uint8_t groupA, uint8_t groupB) const {
 	return it != _contactMap.end() ? it->second : false;
 }
 
-uint8_t Data::getGroupFirstPlayer() const {
+uint8_t Data::getGroupFirstPlayer() const noexcept {
 	return FP;
 }
 
-uint8_t Data::getGroupLastPlayer() const {
+uint8_t Data::getGroupLastPlayer() const noexcept {
 	return LP;
 }
 
-uint8_t Data::getGroupDetectPlayer() const {
+uint8_t Data::getGroupDetectPlayer() const noexcept {
 	return PSensor;
 }
 
-uint8_t Data::getGroupTerrain() const {
+uint8_t Data::getGroupTerrain() const noexcept {
 	return Terrain;
 }
 
-uint8_t Data::getGroupDetection() const {
+uint8_t Data::getGroupDetection() const noexcept {
 	return SenseAll;
 }
 
-uint8_t Data::getGroupHide() const {
+uint8_t Data::getGroupHide() const noexcept {
 	return Hide;
 }
 
@@ -167,7 +167,7 @@ bool Data::isTerrain(Body* body) {
 	return body->getGroup() == Data::getGroupTerrain();
 }
 
-Dictionary* Data::getStore() const {
+Dictionary* Data::getStore() const noexcept {
 	return _store;
 }
 

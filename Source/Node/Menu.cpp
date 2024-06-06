@@ -30,7 +30,7 @@ void Menu::setEnabled(bool var) {
 	_enabled = var;
 }
 
-bool Menu::isEnabled() const {
+bool Menu::isEnabled() const noexcept {
 	return _enabled;
 }
 

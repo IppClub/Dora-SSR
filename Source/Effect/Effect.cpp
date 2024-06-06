@@ -26,11 +26,11 @@ Pass::Uniform::Uniform(bgfx::UniformHandle handle, Own<Value>&& value)
 	: _handle(handle)
 	, _value(std::move(value)) { }
 
-bgfx::UniformHandle Pass::Uniform::getHandle() const {
+bgfx::UniformHandle Pass::Uniform::getHandle() const noexcept {
 	return _handle;
 }
 
-Value* Pass::Uniform::getValue() const {
+Value* Pass::Uniform::getValue() const noexcept {
 	return _value.get();
 }
 
@@ -82,7 +82,7 @@ void Pass::setGrabPass(bool var) {
 	_grabPass = var;
 }
 
-bool Pass::isGrabPass() const {
+bool Pass::isGrabPass() const noexcept {
 	return _grabPass;
 }
 
@@ -151,7 +151,7 @@ Effect::Effect(String vertShader, String fragShader) {
 	}
 }
 
-const RefVector<Pass>& Effect::getPasses() const {
+const RefVector<Pass>& Effect::getPasses() const noexcept {
 	return _passes;
 }
 
@@ -187,7 +187,7 @@ SpriteEffect::~SpriteEffect() {
 	}
 }
 
-bgfx::UniformHandle SpriteEffect::getSampler() const {
+bgfx::UniformHandle SpriteEffect::getSampler() const noexcept {
 	return _sampler;
 }
 

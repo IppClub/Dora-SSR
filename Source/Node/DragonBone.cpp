@@ -86,7 +86,7 @@ const Matrix& DBSlotNode::getWorld() {
 
 /* DBSlot */
 
-float DBSlot::getTextureScale() const {
+float DBSlot::getTextureScale() const noexcept {
 	return _textureScale;
 }
 
@@ -431,7 +431,7 @@ db::Animation* DragonBone::DBArmatureProxy::getAnimation() const {
 	return _armature->getAnimation();
 }
 
-DragonBone* DragonBone::DBArmatureProxy::getParent() const {
+DragonBone* DragonBone::DBArmatureProxy::getParent() const noexcept {
 	return _parent;
 }
 
@@ -453,7 +453,7 @@ void DragonBone::setDepthWrite(bool var) {
 	_flags.set(DragonBone::DepthWrite, var);
 }
 
-bool DragonBone::isDepthWrite() const {
+bool DragonBone::isDepthWrite() const noexcept {
 	return _flags.isOn(DragonBone::DepthWrite);
 }
 
@@ -461,7 +461,7 @@ void DragonBone::setHitTestEnabled(bool var) {
 	_flags.set(DragonBone::HitTest, var);
 }
 
-bool DragonBone::isHitTestEnabled() const {
+bool DragonBone::isHitTestEnabled() const noexcept {
 	return _flags.isOn(DragonBone::HitTest);
 }
 
@@ -481,7 +481,7 @@ void DragonBone::setShowDebug(bool var) {
 	Node::setShowDebug(var);
 }
 
-DragonBone::DBArmatureProxy* DragonBone::getArmatureProxy() const {
+DragonBone::DBArmatureProxy* DragonBone::getArmatureProxy() const noexcept {
 	return _armatureProxy.get();
 }
 

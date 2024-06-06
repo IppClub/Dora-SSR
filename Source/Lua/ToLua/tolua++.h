@@ -192,6 +192,10 @@ Slice tolua_tofieldslice(lua_State* L, int lo, int index, const char* def);
 #define tolua_owned
 #endif
 
+#ifndef tolua_except
+#define tolua_except
+#endif
+
 #ifndef Mtolua_typeid
 #define Mtolua_typeid(L, type, name) tolua_typeid(L, LuaType<type>(), name)
 #endif

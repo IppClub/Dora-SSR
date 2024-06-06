@@ -53,7 +53,7 @@ DB::DB()
 
 DB::~DB() { }
 
-Async* DB::getThread() const {
+Async* DB::getThread() const noexcept {
 	return _thread;
 }
 

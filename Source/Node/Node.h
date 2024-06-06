@@ -139,7 +139,7 @@ public:
 	void getLocalWorld(Matrix& localWorld);
 	virtual const Matrix& getWorld();
 
-	void markDirty();
+	void markDirty() noexcept;
 
 	void emit(Event* event);
 

@@ -47,11 +47,11 @@ bool Grid::init() {
 	return true;
 }
 
-uint32_t Grid::getGridX() const {
+uint32_t Grid::getGridX() const noexcept {
 	return _gridX;
 }
 
-uint32_t Grid::getGridY() const {
+uint32_t Grid::getGridY() const noexcept {
 	return _gridY;
 }
 
@@ -67,7 +67,7 @@ void Grid::setTexture(Texture2D* var) {
 	}
 }
 
-Texture2D* Grid::getTexture() const {
+Texture2D* Grid::getTexture() const noexcept {
 	return _texture;
 }
 
@@ -78,7 +78,7 @@ void Grid::setTextureRect(const Rect& var) {
 	}
 }
 
-const Rect& Grid::getTextureRect() const {
+const Rect& Grid::getTextureRect() const noexcept {
 	return _textureRect;
 }
 
@@ -86,7 +86,7 @@ void Grid::setEffect(SpriteEffect* var) {
 	_effect = var ? var : SharedSpriteRenderer.getDefaultEffect();
 }
 
-SpriteEffect* Grid::getEffect() const {
+SpriteEffect* Grid::getEffect() const noexcept {
 	return _effect;
 }
 
@@ -94,7 +94,7 @@ void Grid::setBlendFunc(const BlendFunc& var) {
 	_blendFunc = var;
 }
 
-const BlendFunc& Grid::getBlendFunc() const {
+const BlendFunc& Grid::getBlendFunc() const noexcept {
 	return _blendFunc;
 }
 
@@ -102,7 +102,7 @@ void Grid::setDepthWrite(bool var) {
 	_flags.set(Grid::DepthWrite, var);
 }
 
-bool Grid::isDepthWrite() const {
+bool Grid::isDepthWrite() const noexcept {
 	return _flags.isOn(Grid::DepthWrite);
 }
 

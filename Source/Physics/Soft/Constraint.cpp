@@ -15,11 +15,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 NS_DORA_BEGIN
 NS_BEGIN(Soft)
 
-Particle* Constraint::getNodeA() const {
+Particle* Constraint::getNodeA() const noexcept {
 	return _node1;
 }
 
-Particle* Constraint::getNodeB() const {
+Particle* Constraint::getNodeB() const noexcept {
 	return _node2;
 }
 

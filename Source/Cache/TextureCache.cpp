@@ -45,30 +45,30 @@ uint32_t Texture2D::getStorageSize() {
 	return _storageSize;
 }
 
-bgfx::TextureHandle Texture2D::getHandle() const {
+bgfx::TextureHandle Texture2D::getHandle() const noexcept {
 	return _handle;
 }
 
-int Texture2D::getWidth() const {
+int Texture2D::getWidth() const noexcept {
 	return s_cast<int>(_info.width);
 }
 
-int Texture2D::getHeight() const {
+int Texture2D::getHeight() const noexcept {
 	return s_cast<int>(_info.height);
 }
 
-const bgfx::TextureInfo& Texture2D::getInfo() const {
+const bgfx::TextureInfo& Texture2D::getInfo() const noexcept {
 	return _info;
 }
 
-TextureFilter Texture2D::getFilter() const {
+TextureFilter Texture2D::getFilter() const noexcept {
 	if ((_flags & (BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT)) != 0) {
 		return TextureFilter::Point;
 	}
 	return TextureFilter::Anisotropic;
 }
 
-TextureWrap Texture2D::getUWrap() const {
+TextureWrap Texture2D::getUWrap() const noexcept {
 	if ((_flags & BGFX_SAMPLER_U_CLAMP) != 0) {
 		return TextureWrap::Clamp;
 	} else if ((_flags & BGFX_SAMPLER_U_BORDER) != 0) {
@@ -77,7 +77,7 @@ TextureWrap Texture2D::getUWrap() const {
 	return TextureWrap::Mirror;
 }
 
-TextureWrap Texture2D::getVWrap() const {
+TextureWrap Texture2D::getVWrap() const noexcept {
 	if ((_flags & BGFX_SAMPLER_V_CLAMP) != 0) {
 		return TextureWrap::Clamp;
 	} else if ((_flags & BGFX_SAMPLER_V_BORDER) != 0) {
@@ -86,7 +86,7 @@ TextureWrap Texture2D::getVWrap() const {
 	return TextureWrap::Mirror;
 }
 
-uint64_t Texture2D::getFlags() const {
+uint64_t Texture2D::getFlags() const noexcept {
 	return _flags;
 }
 

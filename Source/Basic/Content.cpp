@@ -87,7 +87,7 @@ void Content::init(int argc, const char* const argv[]) {
 	}
 }
 
-Async* Content::getThread() const {
+Async* Content::getThread() const noexcept {
 	return _thread;
 }
 
@@ -221,11 +221,11 @@ bool Content::visitDir(String path, const std::function<bool(String, String)>& f
 	return visit(path);
 }
 
-const std::string& Content::getAssetPath() const {
+const std::string& Content::getAssetPath() const noexcept {
 	return _assetPath;
 }
 
-const std::string& Content::getWritablePath() const {
+const std::string& Content::getWritablePath() const noexcept {
 	return _writablePath;
 }
 
@@ -400,7 +400,7 @@ void Content::setSearchPaths(const std::vector<std::string>& searchPaths) {
 	}
 }
 
-const std::vector<std::string>& Content::getSearchPaths() const {
+const std::vector<std::string>& Content::getSearchPaths() const noexcept {
 	return _searchPaths;
 }
 

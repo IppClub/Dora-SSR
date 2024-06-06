@@ -247,11 +247,11 @@ bool ParticleNode::init() {
 	return true;
 }
 
-bool ParticleNode::isActive() const {
+bool ParticleNode::isActive() const noexcept {
 	return _flags.isOn(ParticleNode::Active);
 }
 
-Texture2D* ParticleNode::getTexture() const {
+Texture2D* ParticleNode::getTexture() const noexcept {
 	return _texture;
 }
 
@@ -259,7 +259,7 @@ void ParticleNode::setDepthWrite(bool var) {
 	_flags.set(ParticleNode::DepthWrite, var);
 }
 
-bool ParticleNode::isDepthWrite() const {
+bool ParticleNode::isDepthWrite() const noexcept {
 	return _flags.isOn(ParticleNode::DepthWrite);
 }
 

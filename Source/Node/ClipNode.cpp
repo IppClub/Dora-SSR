@@ -48,7 +48,7 @@ void ClipNode::setStencil(Node* var) {
 	}
 }
 
-Node* ClipNode::getStencil() const {
+Node* ClipNode::getStencil() const noexcept {
 	return _stencil;
 }
 
@@ -57,7 +57,7 @@ void ClipNode::setAlphaThreshold(float var) {
 	setupAlphaTest();
 }
 
-float ClipNode::getAlphaThreshold() const {
+float ClipNode::getAlphaThreshold() const noexcept {
 	return _alphaThreshold;
 }
 
@@ -65,7 +65,7 @@ void ClipNode::setInverted(bool var) {
 	_flags.set(ClipNode::Inverted, var);
 }
 
-bool ClipNode::isInverted() const {
+bool ClipNode::isInverted() const noexcept {
 	return _flags.isOn(ClipNode::Inverted);
 }
 

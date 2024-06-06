@@ -92,7 +92,7 @@ bool Bullet::update(double deltaTime) {
 	return Body::update(deltaTime);
 }
 
-Unit* Bullet::getEmitter() const {
+Unit* Bullet::getEmitter() const noexcept {
 	return _emitter;
 }
 
@@ -100,7 +100,7 @@ void Bullet::setFaceRight(bool var) {
 	_flags.set(Bullet::FaceRight, var);
 }
 
-bool Bullet::isFaceRight() const {
+bool Bullet::isFaceRight() const noexcept {
 	return _flags.isOn(Bullet::FaceRight);
 }
 
@@ -108,7 +108,7 @@ void Bullet::setHitStop(bool var) {
 	_flags.set(Bullet::HitStop, var);
 }
 
-bool Bullet::isHitStop() const {
+bool Bullet::isHitStop() const noexcept {
 	return _flags.isOn(Bullet::HitStop);
 }
 
@@ -116,7 +116,7 @@ void Bullet::setTargetAllow(uint32_t var) {
 	targetAllow = TargetAllow(var);
 }
 
-uint32_t Bullet::getTargetAllow() const {
+uint32_t Bullet::getTargetAllow() const noexcept {
 	return targetAllow.toValue();
 }
 
@@ -171,7 +171,7 @@ void Bullet::setFace(Node* var) {
 	});
 }
 
-Node* Bullet::getFace() const {
+Node* Bullet::getFace() const noexcept {
 	return _face;
 }
 

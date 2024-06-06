@@ -51,23 +51,23 @@ UnitAction::~UnitAction() {
 	_owner = nullptr;
 }
 
-const std::string& UnitAction::getName() const {
+const std::string& UnitAction::getName() const noexcept {
 	return _name;
 }
 
-int UnitAction::getPriority() const {
+int UnitAction::getPriority() const noexcept {
 	return _priority;
 }
 
-bool UnitAction::isDoing() const {
+bool UnitAction::isDoing() const noexcept {
 	return _doing;
 }
 
-bool UnitAction::isQueued() const {
+bool UnitAction::isQueued() const noexcept {
 	return _queued;
 }
 
-Unit* UnitAction::getOwner() const {
+Unit* UnitAction::getOwner() const noexcept {
 	return _owner;
 }
 
@@ -75,11 +75,11 @@ bool UnitAction::isAvailable() {
 	return true;
 }
 
-float UnitAction::getElapsedTime() const {
+float UnitAction::getElapsedTime() const noexcept {
 	return _elapsedTime;
 }
 
-Behavior::Status UnitAction::getStatus() const {
+Behavior::Status UnitAction::getStatus() const noexcept {
 	return _status;
 }
 

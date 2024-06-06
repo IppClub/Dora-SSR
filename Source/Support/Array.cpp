@@ -24,7 +24,7 @@ Array::Array(NotNull<Array, 1> other)
 Array::Array(size_t capacity)
 	: _data(capacity) { }
 
-size_t Array::getCount() const {
+size_t Array::getCount() const noexcept {
 	return _data.size();
 }
 
@@ -43,7 +43,7 @@ const Own<Value>& Array::getRandomObject() const {
 	return _data[std::rand() % _data.size()];
 }
 
-bool Array::isEmpty() const {
+bool Array::isEmpty() const noexcept {
 	return _data.empty();
 }
 

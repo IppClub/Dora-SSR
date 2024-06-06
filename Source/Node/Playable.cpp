@@ -25,7 +25,7 @@ void Playable::setFliped(bool var) {
 	_fliped = var;
 }
 
-bool Playable::isFliped() const {
+bool Playable::isFliped() const noexcept {
 	return _fliped;
 }
 
@@ -33,7 +33,7 @@ void Playable::setSpeed(float var) {
 	_speed = var;
 }
 
-float Playable::getSpeed() const {
+float Playable::getSpeed() const noexcept {
 	return _speed;
 }
 
@@ -41,7 +41,7 @@ void Playable::setRecovery(float var) {
 	_recoveryTime = var;
 }
 
-float Playable::getRecovery() const {
+float Playable::getRecovery() const noexcept {
 	return _recoveryTime;
 }
 
@@ -49,7 +49,7 @@ void Playable::setLook(String var) {
 	_lookName = var.toString();
 }
 
-const std::string& Playable::getLook() const {
+const std::string& Playable::getLook() const noexcept {
 	return _lookName;
 }
 

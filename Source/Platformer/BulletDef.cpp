@@ -41,7 +41,7 @@ void BulletDef::setVelocity(const Vec2& velocity) {
 	_velocity = velocity;
 }
 
-const Vec2& BulletDef::getVelocity() const {
+const Vec2& BulletDef::getVelocity() const noexcept {
 	return _velocity;
 }
 
@@ -57,7 +57,7 @@ void BulletDef::setGravity(Vec2 var) {
 	_bodyDef->setLinearAcceleration(var);
 }
 
-Vec2 BulletDef::getGravity() const {
+Vec2 BulletDef::getGravity() const noexcept {
 	return _bodyDef->getLinearAcceleration();
 }
 
@@ -70,7 +70,7 @@ void BulletDef::setFace(Face* var) {
 	_face = var;
 }
 
-Face* BulletDef::getFace() const {
+Face* BulletDef::getFace() const noexcept {
 	return _face;
 }
 

@@ -15,6 +15,13 @@ NS_DORA_BEGIN
 /** @brief Helper macros to define setters and getters */
 #define PROPERTY(varType, funName) \
 public: \
+	varType get##funName() const noexcept; \
+\
+public: \
+	void set##funName(varType var)
+
+#define PROPERTY_EXCEPT(varType, funName) \
+public: \
 	varType get##funName() const; \
 \
 public: \
@@ -22,7 +29,7 @@ public: \
 
 #define PROPERTY_CREF(varType, funName) \
 public: \
-	const varType& get##funName() const; \
+	const varType& get##funName() const noexcept; \
 \
 public: \
 	void set##funName(const varType& var)
@@ -34,36 +41,37 @@ public: \
 public: \
 	static void set##funName(varType var)
 
-#define PROPERTY(varType, funName) \
-public: \
-	varType get##funName() const; \
-\
-public: \
-	void set##funName(varType var)
-
 #define PROPERTY_VIRTUAL(varType, funName) \
 public: \
-	varType get##funName() const; \
+	varType get##funName() const noexcept; \
 \
 public: \
 	virtual void set##funName(varType var)
 
 #define PROPERTY_VIRTUAL_CREF(varType, funName) \
 public: \
-	const varType& get##funName() const; \
+	const varType& get##funName() const noexcept; \
 \
 public: \
 	virtual void set##funName(const varType& var)
 
 #define PROPERTY_READONLY_VIRTUAL(varType, funName) \
 public: \
-	virtual varType get##funName() const
+	virtual varType get##funName() const noexcept
 
 #define PROPERTY_READONLY(varType, funName) \
+public: \
+	varType get##funName() const noexcept
+
+#define PROPERTY_READONLY_EXCEPT(varType, funName) \
 public: \
 	varType get##funName() const
 
 #define PROPERTY_READONLY_CREF(varType, funName) \
+public: \
+	const varType& get##funName() const noexcept
+
+#define PROPERTY_READONLY_CREF_EXCEPT(varType, funName) \
 public: \
 	const varType& get##funName() const
 
@@ -73,11 +81,11 @@ public: \
 
 #define PROPERTY_READONLY_BOOL(funName) \
 public: \
-	bool is##funName() const
+	bool is##funName() const noexcept
 
 #define PROPERTY_READONLY_HAS(funName) \
 public: \
-	bool has##funName() const
+	bool has##funName() const noexcept
 
 #define PROPERTY_READONLY_CLASS(varType, funName) \
 public: \
@@ -89,35 +97,35 @@ public: \
 
 #define PROPERTY_BOOL(funName) \
 public: \
-	bool is##funName() const; \
+	bool is##funName() const noexcept; \
 \
 public: \
 	void set##funName(bool var)
 
 #define PROPERTY_VIRTUAL_BOOL(funName) \
 public: \
-	bool is##funName() const; \
+	bool is##funName() const noexcept; \
 \
 public: \
 	void virtual set##funName(bool var)
 
 #define PROPERTY_OVERRIDE_BOOL(funName) \
 public: \
-	bool is##funName() const; \
+	bool is##funName() const noexcept; \
 \
 public: \
 	void virtual set##funName(bool var) override
 
 #define PROPERTY_STRING(funName) \
 public: \
-	const std::string& get##funName() const; \
+	const std::string& get##funName() const noexcept; \
 \
 public: \
 	void set##funName(String var)
 
 #define PROPERTY_VIRTUAL_STRING(funName) \
 public: \
-	const std::string& get##funName() const; \
+	const std::string& get##funName() const noexcept; \
 \
 public: \
 	virtual void set##funName(String var)

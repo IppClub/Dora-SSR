@@ -12,19 +12,19 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DORA_BEGIN
 
-const SVGDef::GradientMap& SVGDef::getGradients() const {
+const SVGDef::GradientMap& SVGDef::getGradients() const noexcept {
 	return _gradients;
 }
 
-const SVGDef::CommandList& SVGDef::getCommands() const {
+const SVGDef::CommandList& SVGDef::getCommands() const noexcept {
 	return _commands;
 }
 
-float SVGDef::getWidth() const {
+float SVGDef::getWidth() const noexcept {
 	return _width;
 }
 
-float SVGDef::getHeight() const {
+float SVGDef::getHeight() const noexcept {
 	return _height;
 }
 

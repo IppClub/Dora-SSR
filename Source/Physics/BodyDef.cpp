@@ -391,7 +391,7 @@ void BodyDef::setLinearDamping(float var) {
 	_conf.UseLinearDamping(var);
 }
 
-float BodyDef::getLinearDamping() const {
+float BodyDef::getLinearDamping() const noexcept {
 	return _conf.linearDamping;
 }
 
@@ -399,7 +399,7 @@ void BodyDef::setAngularDamping(float var) {
 	_conf.UseAngularDamping(var);
 }
 
-float BodyDef::getAngularDamping() const {
+float BodyDef::getAngularDamping() const noexcept {
 	return _conf.angularDamping;
 }
 
@@ -407,7 +407,7 @@ void BodyDef::setLinearAcceleration(Vec2 var) {
 	_conf.UseLinearAcceleration(pr::LinearAcceleration2{var.x, var.y});
 }
 
-Vec2 BodyDef::getLinearAcceleration() const {
+Vec2 BodyDef::getLinearAcceleration() const noexcept {
 	return {_conf.linearAcceleration[0], _conf.linearAcceleration[1]};
 }
 
@@ -415,7 +415,7 @@ void BodyDef::setFixedRotation(bool var) {
 	_conf.UseFixedRotation(var);
 }
 
-bool BodyDef::isFixedRotation() const {
+bool BodyDef::isFixedRotation() const noexcept {
 	return _conf.fixedRotation;
 }
 
@@ -423,7 +423,7 @@ void BodyDef::setBullet(bool var) {
 	_conf.UseBullet(var);
 }
 
-bool BodyDef::isBullet() const {
+bool BodyDef::isBullet() const noexcept {
 	return _conf.bullet;
 }
 
@@ -431,7 +431,7 @@ void BodyDef::setType(pr::BodyType var) {
 	_conf.Use(var);
 }
 
-pr::BodyType BodyDef::getType() const {
+pr::BodyType BodyDef::getType() const noexcept {
 	return _conf.type;
 }
 

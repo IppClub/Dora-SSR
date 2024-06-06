@@ -117,7 +117,7 @@ void Spine::setDepthWrite(bool var) {
 	_flags.set(Spine::DepthWrite, var);
 }
 
-bool Spine::isDepthWrite() const {
+bool Spine::isDepthWrite() const noexcept {
 	return _flags.isOn(Spine::DepthWrite);
 }
 
@@ -125,7 +125,7 @@ void Spine::setHitTestEnabled(bool var) {
 	_flags.set(Spine::HitTest, var);
 }
 
-bool Spine::isHitTestEnabled() const {
+bool Spine::isHitTestEnabled() const noexcept {
 	return _flags.isOn(Spine::HitTest);
 }
 

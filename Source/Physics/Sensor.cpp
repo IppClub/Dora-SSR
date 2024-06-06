@@ -60,7 +60,7 @@ void Sensor::clear() {
 	_sensedBodies->clear();
 }
 
-Array* Sensor::getSensedBodies() const {
+Array* Sensor::getSensedBodies() const noexcept {
 	return _sensedBodies;
 }
 
@@ -71,11 +71,11 @@ void Sensor::setEnabled(bool enable) {
 	}
 }
 
-bool Sensor::isEnabled() const {
+bool Sensor::isEnabled() const noexcept {
 	return _enabled;
 }
 
-int Sensor::getTag() const {
+int Sensor::getTag() const noexcept {
 	return _tag;
 }
 
@@ -84,16 +84,16 @@ void Sensor::setGroup(int var) {
 	pd::SetFilterData(world->getPrWorld(), _fixture, world->getFilter(var));
 }
 
-int Sensor::getGroup() const {
+int Sensor::getGroup() const noexcept {
 	auto world = _owner->getPhysicsWorld();
 	return pd::GetFilterData(world->getPrWorld(), _fixture).groupIndex;
 }
 
-Body* Sensor::getOwner() const {
+Body* Sensor::getOwner() const noexcept {
 	return _owner;
 }
 
-pr::ShapeID Sensor::getFixture() const {
+pr::ShapeID Sensor::getFixture() const noexcept {
 	return _fixture;
 }
 

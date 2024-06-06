@@ -23,7 +23,7 @@ NS_DORA_BEGIN
 
 /* TrueTypeFont */
 
-bgfx::TrueTypeHandle TrueTypeFile::getHandle() const {
+bgfx::TrueTypeHandle TrueTypeFile::getHandle() const noexcept {
 	return _handle;
 }
 
@@ -39,7 +39,7 @@ TrueTypeFile::~TrueTypeFile() {
 
 /* Font */
 
-bgfx::FontHandle Font::getHandle() const {
+bgfx::FontHandle Font::getHandle() const noexcept {
 	return _handle;
 }
 
@@ -58,7 +58,7 @@ const bgfx::FontInfo& Font::getInfo() const {
 	return SharedFontManager.getFontInfo(_handle);
 }
 
-TrueTypeFile* Font::getFile() const {
+TrueTypeFile* Font::getFile() const noexcept {
 	return _file;
 }
 
@@ -71,7 +71,7 @@ FontCache::~FontCache() {
 	unload();
 }
 
-SpriteEffect* FontCache::getDefaultEffect() const {
+SpriteEffect* FontCache::getDefaultEffect() const noexcept {
 	return _defaultEffect;
 }
 
@@ -332,7 +332,7 @@ void Label::setTextWidth(float var) {
 	}
 }
 
-float Label::getTextWidth() const {
+float Label::getTextWidth() const noexcept {
 	return _textWidth;
 }
 
@@ -343,7 +343,7 @@ void Label::setSpacing(float var) {
 	}
 }
 
-float Label::getSpacing() const {
+float Label::getSpacing() const noexcept {
 	return _spacing;
 }
 
@@ -354,7 +354,7 @@ void Label::setLineGap(float var) {
 	}
 }
 
-float Label::getLineGap() const {
+float Label::getLineGap() const noexcept {
 	return _lineGap;
 }
 
@@ -365,7 +365,7 @@ void Label::setAlignment(TextAlign var) {
 	}
 }
 
-TextAlign Label::getAlignment() const {
+TextAlign Label::getAlignment() const noexcept {
 	return _alignment;
 }
 
@@ -374,7 +374,7 @@ void Label::setText(String var) {
 	updateLabel();
 }
 
-const std::string& Label::getText() const {
+const std::string& Label::getText() const noexcept {
 	return _textUTF8;
 }
 
@@ -387,7 +387,7 @@ void Label::setBlendFunc(const BlendFunc& var) {
 	}
 }
 
-const BlendFunc& Label::getBlendFunc() const {
+const BlendFunc& Label::getBlendFunc() const noexcept {
 	return _blendFunc;
 }
 
@@ -400,7 +400,7 @@ void Label::setEffect(SpriteEffect* var) {
 	}
 }
 
-SpriteEffect* Label::getEffect() const {
+SpriteEffect* Label::getEffect() const noexcept {
 	return _effect;
 }
 
@@ -408,7 +408,7 @@ void Label::setDepthWrite(bool var) {
 	_flags.set(Label::DepthWrite, var);
 }
 
-bool Label::isDepthWrite() const {
+bool Label::isDepthWrite() const noexcept {
 	return _flags.isOn(Label::DepthWrite);
 }
 
@@ -416,7 +416,7 @@ void Label::setAlphaRef(float var) {
 	_alphaRef = s_cast<uint8_t>(255.0f * Math::clamp(var, 0.0f, 1.0f));
 }
 
-float Label::getAlphaRef() const {
+float Label::getAlphaRef() const noexcept {
 	return _alphaRef / 255.0f;
 }
 
@@ -447,7 +447,7 @@ void Label::setBatched(bool var) {
 	}
 }
 
-bool Label::isBatched() const {
+bool Label::isBatched() const noexcept {
 	return _flags.isOn(Label::TextBatched);
 }
 

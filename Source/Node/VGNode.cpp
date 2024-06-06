@@ -23,7 +23,7 @@ VGNode::VGNode(float width, float height, float scale, int edgeAA)
 	, _frameScale(scale)
 	, _edgeAA(edgeAA) { }
 
-Sprite* VGNode::getSurface() const {
+Sprite* VGNode::getSurface() const noexcept {
 	return _surface;
 }
 

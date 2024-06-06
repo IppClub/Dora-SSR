@@ -28,7 +28,7 @@ void Listener::setEnabled(bool enable) {
 	}
 }
 
-bool Listener::isEnabled() const {
+bool Listener::isEnabled() const noexcept {
 	return _enabled;
 }
 
@@ -36,7 +36,7 @@ void Listener::setHandler(const EventHandler& handler) {
 	_handler = handler;
 }
 
-const EventHandler& Listener::getHandler() const {
+const EventHandler& Listener::getHandler() const noexcept {
 	return _handler;
 }
 
@@ -55,7 +55,7 @@ Listener::Listener(const std::string& name, const EventHandler& handler)
 	, _handler(handler)
 	, _enabled(false) { }
 
-const std::string& Listener::getName() const {
+const std::string& Listener::getName() const noexcept {
 	return _name;
 }
 

@@ -210,7 +210,7 @@ void Rect::set(float x, float y, float width, float height) {
 	size.height = height;
 }
 
-float Rect::getX() const {
+float Rect::getX() const noexcept {
 	return origin.x;
 }
 
@@ -218,7 +218,7 @@ void Rect::setX(float x) {
 	origin.x = x;
 }
 
-float Rect::getY() const {
+float Rect::getY() const noexcept {
 	return origin.y;
 }
 
@@ -226,7 +226,7 @@ void Rect::setY(float y) {
 	origin.y = y;
 }
 
-float Rect::getWidth() const {
+float Rect::getWidth() const noexcept {
 	return size.width;
 }
 
@@ -234,7 +234,7 @@ void Rect::setWidth(float width) {
 	size.width = width;
 }
 
-float Rect::getHeight() const {
+float Rect::getHeight() const noexcept {
 	return size.height;
 }
 
@@ -250,7 +250,7 @@ bool Rect::operator!=(const Rect& rect) const {
 	return origin != rect.origin || size != rect.size;
 }
 
-float Rect::getRight() const {
+float Rect::getRight() const noexcept {
 	return origin.x + size.width;
 }
 
@@ -258,7 +258,7 @@ void Rect::setRight(float right) {
 	size.width = right - getLeft();
 }
 
-float Rect::getCenterX() const {
+float Rect::getCenterX() const noexcept {
 	return origin.x + size.width * 0.5f;
 }
 
@@ -266,7 +266,7 @@ void Rect::setCenterX(float centerX) {
 	origin.x = centerX - size.width * 0.5f;
 }
 
-float Rect::getLeft() const {
+float Rect::getLeft() const noexcept {
 	return origin.x;
 }
 
@@ -276,7 +276,7 @@ void Rect::setLeft(float left) {
 	size.width = right - left;
 }
 
-float Rect::getTop() const {
+float Rect::getTop() const noexcept {
 	return origin.y + size.height;
 }
 
@@ -284,7 +284,7 @@ void Rect::setTop(float top) {
 	size.height = top - getBottom();
 }
 
-float Rect::getCenterY() const {
+float Rect::getCenterY() const noexcept {
 	return origin.y + size.height * 0.5f;
 }
 
@@ -292,7 +292,7 @@ void Rect::setCenterY(float centerY) {
 	origin.y = centerY - size.height * 0.5f;
 }
 
-float Rect::getBottom() const {
+float Rect::getBottom() const noexcept {
 	return origin.y;
 }
 

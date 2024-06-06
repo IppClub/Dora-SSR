@@ -16,7 +16,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DORA_BEGIN
 
-DrawNode* DebugDraw::getRenderer() const {
+DrawNode* DebugDraw::getRenderer() const noexcept {
 	return _drawNode;
 }
 

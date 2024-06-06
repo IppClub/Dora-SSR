@@ -98,15 +98,15 @@ void Body::cleanup() {
 	}
 }
 
-BodyDef* Body::getBodyDef() const {
+BodyDef* Body::getBodyDef() const noexcept {
 	return _bodyDef;
 }
 
-PhysicsWorld* Body::getPhysicsWorld() const {
+PhysicsWorld* Body::getPhysicsWorld() const noexcept {
 	return _pWorld;
 }
 
-pr::BodyID Body::getPrBody() const {
+pr::BodyID Body::getPrBody() const noexcept {
 	return _prBody;
 }
 
@@ -193,7 +193,7 @@ void Body::setOwner(Object* owner) {
 	_owner = owner;
 }
 
-Object* Body::getOwner() const {
+Object* Body::getOwner() const noexcept {
 	return _owner;
 }
 
@@ -214,7 +214,7 @@ void Body::setGroup(uint8_t group) {
 	}
 }
 
-uint8_t Body::getGroup() const {
+uint8_t Body::getGroup() const noexcept {
 	return _group;
 }
 
@@ -321,7 +321,7 @@ void Body::setReceivingContact(bool var) {
 	_flags.set(Body::ReceivingContact, var);
 }
 
-bool Body::isReceivingContact() const {
+bool Body::isReceivingContact() const noexcept {
 	return _flags.isOn(Body::ReceivingContact);
 }
 

@@ -913,11 +913,11 @@ VGTexture::~VGTexture() {
 	}
 }
 
-NVGcontext* VGTexture::getContext() const {
+NVGcontext* VGTexture::getContext() const noexcept {
 	return _context;
 }
 
-NVGLUframebuffer* VGTexture::getFramebuffer() const {
+NVGLUframebuffer* VGTexture::getFramebuffer() const noexcept {
 	return _framebuffer;
 }
 
