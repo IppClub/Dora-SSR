@@ -414,7 +414,7 @@ void Application::updateWindowSize() {
 #endif // BX_PLATFORM_ANDROID || BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS || BX_PLATFORM_LINUX
 
 #if BX_PLATFORM_ANDROID
-const std::string& Application::getAPKPath() const {
+const std::string& Application::getAPKPath() const noexcept {
 	return g_androidAPKPath;
 }
 #endif // BX_PLATFORM_ANDROID
