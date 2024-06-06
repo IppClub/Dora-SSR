@@ -28,13 +28,14 @@ public:
 	/**
 	 Set sensor enable to false to stop detection.
 	 */
+	PROPERTY(int, Group);
 	PROPERTY_BOOL(Enabled);
 	PROPERTY_READONLY(int, Tag);
 	PROPERTY_READONLY(Body*, Owner);
 	PROPERTY_READONLY(pr::ShapeID, Fixture);
 	PROPERTY_READONLY(Array*, SensedBodies);
-	PROPERTY_EXCEPT(int, Group);
-	bool isSensed() const;
+	PROPERTY_READONLY_BOOL(Sensed);
+
 	bool contains(Body* body);
 	/**
 	 Set the callback function which is called every time

@@ -219,7 +219,10 @@ static void Draw(DebugDraw* drawer, const pd::World& world, pr::JointID joint) {
 void DebugDraw::DrawWorld(PhysicsWorld* pworld) {
 	_drawNode->clear();
 	_line->clear();
-	auto& world = pworld->getPrWorld();
+	if (!pworld->getPrWorld()) {
+		return;
+	}
+	auto& world = *pworld->getPrWorld();
 	for (auto body : pd::GetBodies(world)) {
 		if (DebugDraw::IsVisible(pworld->getBodyData(body))) {
 			Draw(this, world, body);

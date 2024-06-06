@@ -238,23 +238,25 @@ void Jump::run() {
 	playable->slot("AnimationEnd"_slice, std::make_pair(this, &Jump::onAnimationEnd));
 	_owner->setVelocityY(jump);
 	Sensor* sensor = _owner->getGroundSensor();
-	auto& world = _owner->getPhysicsWorld()->getPrWorld();
-	pr::BodyID self = _owner->getPrBody();
-	pr::BodyID target = sensor->getSensedBodies()->get(0)->to<Body>()->getPrBody();
-	const auto shapeA = pd::GetShape(world, *pr::begin(pd::GetShapes(world, self)));
-	const auto shapeB = pd::GetShape(world, *pr::begin(pd::GetShapes(world, target)));
-	const auto proxyA = pd::GetChild(shapeA, 0);
-	const auto proxyB = pd::GetChild(shapeB, 0);
-	const auto transformA = pd::GetTransformation(world, self);
-	const auto transformB = pd::GetTransformation(world, target);
-	pd::DistanceOutput output = Distance(proxyA, transformA, proxyB, transformB);
-	const auto witnessPoints = pd::GetWitnessPoints(output.simplex);
-	const auto velocity = pd::GetVelocity(world, self).linear;
-	auto invMass = pd::GetInvMass(world, self);
-	pd::ApplyLinearImpulse(world, target,
-		pr::Vec2{-velocity[0] / invMass,
-			-velocity[1] / invMass},
-		std::get<1>(witnessPoints));
+	if (_owner->getPhysicsWorld()) {
+		auto& world = *_owner->getPhysicsWorld()->getPrWorld();
+		pr::BodyID self = _owner->getPrBody();
+		pr::BodyID target = sensor->getSensedBodies()->get(0)->to<Body>()->getPrBody();
+		const auto shapeA = pd::GetShape(world, *pr::begin(pd::GetShapes(world, self)));
+		const auto shapeB = pd::GetShape(world, *pr::begin(pd::GetShapes(world, target)));
+		const auto proxyA = pd::GetChild(shapeA, 0);
+		const auto proxyB = pd::GetChild(shapeB, 0);
+		const auto transformA = pd::GetTransformation(world, self);
+		const auto transformB = pd::GetTransformation(world, target);
+		pd::DistanceOutput output = Distance(proxyA, transformA, proxyB, transformB);
+		const auto witnessPoints = pd::GetWitnessPoints(output.simplex);
+		const auto velocity = pd::GetVelocity(world, self).linear;
+		auto invMass = pd::GetInvMass(world, self);
+		pd::ApplyLinearImpulse(world, target,
+			pr::Vec2{-velocity[0] / invMass,
+				-velocity[1] / invMass},
+			std::get<1>(witnessPoints));
+	}
 	UnitAction::run();
 }
 
@@ -380,20 +382,22 @@ Vec2 Attack::getHitPoint(Body* self, Body* target, const pd::Shape& selfShape) {
 	float distance = -1;
 	auto selfB = self->getPrBody();
 	auto targetB = target->getPrBody();
-	auto& world = target->getPhysicsWorld()->getPrWorld();
-	const auto transformA = pd::GetTransformation(world, selfB);
-	for (pr::ShapeID f : pd::GetShapes(world, targetB)) {
-		if (!pd::IsSensor(world, f)) {
-			const auto proxyA = pd::GetChild(selfShape, 0);
-			const auto shapeB = pd::GetShape(world, f);
-			const auto proxyB = pd::GetChild(shapeB, 0);
-			const auto transformB = pd::GetTransformation(world, targetB);
-			pd::DistanceOutput output = Distance(proxyA, transformA, proxyB, transformB);
-			const auto witnessPoints = pd::GetWitnessPoints(output.simplex);
-			const auto outputDistance = pr::GetMagnitude(std::get<0>(witnessPoints) - std::get<1>(witnessPoints));
-			if (distance == -1 || distance > outputDistance) {
-				distance = outputDistance;
-				hitPoint = PhysicsWorld::Val(std::get<1>(witnessPoints));
+	if (target->getPhysicsWorld() && target->getPhysicsWorld()->getPrWorld()) {
+		auto& world = *target->getPhysicsWorld()->getPrWorld();
+		const auto transformA = pd::GetTransformation(world, selfB);
+		for (pr::ShapeID f : pd::GetShapes(world, targetB)) {
+			if (!pd::IsSensor(world, f)) {
+				const auto proxyA = pd::GetChild(selfShape, 0);
+				const auto shapeB = pd::GetShape(world, f);
+				const auto proxyB = pd::GetChild(shapeB, 0);
+				const auto transformB = pd::GetTransformation(world, targetB);
+				pd::DistanceOutput output = Distance(proxyA, transformA, proxyB, transformB);
+				const auto witnessPoints = pd::GetWitnessPoints(output.simplex);
+				const auto outputDistance = pr::GetMagnitude(std::get<0>(witnessPoints) - std::get<1>(witnessPoints));
+				if (distance == -1 || distance > outputDistance) {
+					distance = outputDistance;
+					hitPoint = PhysicsWorld::Val(std::get<1>(witnessPoints));
+				}
 			}
 		}
 	}

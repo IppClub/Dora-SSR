@@ -24,7 +24,7 @@ class DebugDraw;
 class PhysicsWorld : public Node {
 public:
 	virtual ~PhysicsWorld();
-	PROPERTY_READONLY_REF(pd::World, PrWorld);
+	PROPERTY_READONLY(pd::World*, PrWorld);
 
 	/**
 	 Iterations affect PlayRho`s CPU cost greatly.
@@ -38,6 +38,7 @@ public:
 	virtual bool fixedUpdate(double deltaTime) override;
 	virtual bool update(double deltaTime) override;
 	virtual void render() override;
+	virtual void cleanup() override;
 	virtual void setShowDebug(bool var) override;
 
 	void setFixtureData(pr::ShapeID fixture, Sensor* sensor);
@@ -102,7 +103,7 @@ protected:
 
 private:
 	pr::Filter _filters[TotalGroups];
-	pd::World _world;
+	Own<pd::World> _world;
 	pr::StepConf _stepConf;
 
 	struct SensorPair {

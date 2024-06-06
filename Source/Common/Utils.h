@@ -211,9 +211,9 @@ public:
 		: _ptr(ptr) {
 		if (!_ptr) {
 			if constexpr (pos == 0) {
-				throw std::runtime_error("unexpected null pointer passed.");
+				throw std::runtime_error("unexpected null pointer.");
 			} else {
-				throw std::runtime_error("unexpected null pointer for argument "s + std::to_string(pos));
+				throw std::runtime_error("argument "s + std::to_string(pos) + " is unexpected null pointer."s);
 			}
 		}
 	}

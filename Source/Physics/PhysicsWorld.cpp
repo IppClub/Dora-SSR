@@ -46,8 +46,7 @@ void PhysicsWorld::ContactPair::release() {
 
 float PhysicsWorld::scaleFactor = 100.0f;
 
-PhysicsWorld::PhysicsWorld()
-	: _world{} {
+PhysicsWorld::PhysicsWorld() {
 	_stepConf.regVelocityIters = 1;
 	_stepConf.regPositionIters = 1;
 	static_assert(sizeof(decltype(pr::Filter::categoryBits)) == 4, "filter category should be 32 bits");
@@ -55,46 +54,26 @@ PhysicsWorld::PhysicsWorld()
 	static_assert(sizeof(decltype(pr::Filter::groupIndex)) == 1, "filter group index should be 8 bits");
 }
 
-PhysicsWorld::~PhysicsWorld() {
-	RefVector<Body> bodies;
-	for (pr::BodyID b : pd::GetBodies(_world)) {
-		Body* body = _bodyData[b.get()];
-		if (body) bodies.push_back(body);
-	}
-	for (Body* b : bodies) {
-		b->cleanup();
-	}
-	for (auto& pair : _sensorEnters) {
-		pair.release();
-	}
-	for (auto& pair : _sensorLeaves) {
-		pair.release();
-	}
-	for (auto& pair : _contactStarts) {
-		pair.release();
-	}
-	for (auto& pair : _contactEnds) {
-		pair.release();
-	}
-}
+PhysicsWorld::~PhysicsWorld() { }
 
 void PhysicsWorld::setupBeginContact() {
-	pd::SetBeginContactListener(_world, [this](pr::ContactID contact) {
-		pr::ShapeID fixtureA = pd::GetShapeA(_world, contact);
-		pr::ShapeID fixtureB = pd::GetShapeB(_world, contact);
-		Body* bodyA = _bodyData[pd::GetBodyA(_world, contact).get()];
-		Body* bodyB = _bodyData[pd::GetBodyB(_world, contact).get()];
+	pd::SetBeginContactListener(*_world, [this](pr::ContactID contact) {
+		auto& world = *_world;
+		pr::ShapeID fixtureA = pd::GetShapeA(world, contact);
+		pr::ShapeID fixtureB = pd::GetShapeB(world, contact);
+		Body* bodyA = _bodyData[pd::GetBodyA(world, contact).get()];
+		Body* bodyB = _bodyData[pd::GetBodyB(world, contact).get()];
 		if (!bodyA || !bodyB) {
 			return;
 		}
-		if (pd::IsSensor(_world, fixtureA)) {
+		if (pd::IsSensor(world, fixtureA)) {
 			Sensor* sensor = _fixtureData[fixtureA.get()];
-			if (sensor && sensor->isEnabled() && !pd::IsSensor(_world, fixtureB)) {
+			if (sensor && sensor->isEnabled() && !pd::IsSensor(world, fixtureB)) {
 				SensorPair pair{sensor, bodyB};
 				pair.retain();
 				_sensorEnters.push_back(pair);
 			}
-		} else if (pd::IsSensor(_world, fixtureB)) {
+		} else if (pd::IsSensor(world, fixtureB)) {
 			Sensor* sensor = _fixtureData[fixtureB.get()];
 			if (sensor && sensor->isEnabled()) {
 				SensorPair pair{sensor, bodyA};
@@ -103,7 +82,7 @@ void PhysicsWorld::setupBeginContact() {
 			}
 		} else {
 			if (bodyA->isReceivingContact() || bodyB->isReceivingContact()) {
-				pd::WorldManifold worldManifold = pd::GetWorldManifold(_world, contact);
+				pd::WorldManifold worldManifold = pd::GetWorldManifold(world, contact);
 				Vec2 point = PhysicsWorld::Val(worldManifold.GetPoint(0));
 				pd::UnitVec normal = worldManifold.GetNormal();
 				if (bodyA->isReceivingContact()) {
@@ -118,31 +97,32 @@ void PhysicsWorld::setupBeginContact() {
 				}
 			}
 			if (bodyA->filterContact && !bodyA->filterContact(bodyB)) {
-				pd::UnsetEnabled(_world, contact);
+				pd::UnsetEnabled(world, contact);
 			} else if (bodyB->filterContact && !bodyB->filterContact(bodyA)) {
-				pd::UnsetEnabled(_world, contact);
+				pd::UnsetEnabled(world, contact);
 			}
 		}
 	});
 }
 
 void PhysicsWorld::setupEndContact() {
-	pd::SetEndContactListener(_world, [this](pr::ContactID contact) {
-		if (!pd::IsEnabled(_world, contact)) {
+	pd::SetEndContactListener(*_world, [this](pr::ContactID contact) {
+		auto& world = *_world;
+		if (!pd::IsEnabled(world, contact)) {
 			return;
 		}
-		pr::ShapeID fixtureA = pd::GetShapeA(_world, contact);
-		pr::ShapeID fixtureB = pd::GetShapeB(_world, contact);
-		Body* bodyA = _bodyData[pd::GetBodyA(_world, contact).get()];
-		Body* bodyB = _bodyData[pd::GetBodyB(_world, contact).get()];
-		if (pd::IsSensor(_world, fixtureA)) {
+		pr::ShapeID fixtureA = pd::GetShapeA(world, contact);
+		pr::ShapeID fixtureB = pd::GetShapeB(world, contact);
+		Body* bodyA = _bodyData[pd::GetBodyA(world, contact).get()];
+		Body* bodyB = _bodyData[pd::GetBodyB(world, contact).get()];
+		if (pd::IsSensor(world, fixtureA)) {
 			Sensor* sensor = _fixtureData[fixtureA.get()];
-			if (sensor && bodyB && sensor->isEnabled() && !pd::IsSensor(_world, fixtureB)) {
+			if (sensor && bodyB && sensor->isEnabled() && !pd::IsSensor(world, fixtureB)) {
 				SensorPair pair{sensor, bodyB};
 				pair.retain();
 				_sensorLeaves.push_back(pair);
 			}
-		} else if (pd::IsSensor(_world, fixtureB)) {
+		} else if (pd::IsSensor(world, fixtureB)) {
 			Sensor* sensor = _fixtureData[fixtureB.get()];
 			if (sensor && bodyA && sensor->isEnabled()) {
 				SensorPair pair{sensor, bodyA};
@@ -150,7 +130,7 @@ void PhysicsWorld::setupEndContact() {
 				_sensorLeaves.push_back(pair);
 			}
 		} else if ((bodyA && bodyB) && (bodyA->isReceivingContact() || bodyB->isReceivingContact())) {
-			pd::WorldManifold worldManifold = pd::GetWorldManifold(_world, contact);
+			pd::WorldManifold worldManifold = pd::GetWorldManifold(world, contact);
 			Vec2 point = PhysicsWorld::Val(worldManifold.GetPoint(0));
 			if (bodyA->isReceivingContact()) {
 				pd::UnitVec normal = worldManifold.GetNormal();
@@ -170,6 +150,7 @@ void PhysicsWorld::setupEndContact() {
 
 bool PhysicsWorld::init() {
 	if (!Node::init()) return false;
+	_world = New<pd::World>();
 	setupBeginContact();
 	setupEndContact();
 	for (int i = 0; i < TotalGroups; i++) {
@@ -189,8 +170,27 @@ void PhysicsWorld::render() {
 	Node::render();
 }
 
-pd::World& PhysicsWorld::getPrWorld() {
-	return _world;
+void PhysicsWorld::cleanup() {
+	if (_flags.isOff(Node::Cleanup)) {
+		for (auto& pair : _sensorEnters) {
+			pair.release();
+		}
+		for (auto& pair : _sensorLeaves) {
+			pair.release();
+		}
+		for (auto& pair : _contactStarts) {
+			pair.release();
+		}
+		for (auto& pair : _contactEnds) {
+			pair.release();
+		}
+		_world = nullptr;
+		Node::cleanup();
+	}
+}
+
+pd::World* PhysicsWorld::getPrWorld() const noexcept {
+	return _world.get();
 }
 
 void PhysicsWorld::setShowDebug(bool var) {
@@ -216,14 +216,16 @@ void PhysicsWorld::setIterations(int velocityIter, int positionIter) {
 }
 
 void PhysicsWorld::doUpdate(double deltaTime) {
+	if (!_world) return;
+	auto& world = *_world;
 	{
 		PROFILE("Physics"_slice);
 		_stepConf.deltaTime = s_cast<pr::Time>(deltaTime);
-		_stepConf.dtRatio = _stepConf.deltaTime * pd::GetInvDeltaTime(_world);
-		pd::Step(_world, _stepConf);
-		const auto& bodies = pd::GetBodies(_world);
+		_stepConf.dtRatio = _stepConf.deltaTime * pd::GetInvDeltaTime(world);
+		pd::Step(world, _stepConf);
+		const auto& bodies = pd::GetBodies(world);
 		for (pr::BodyID b : bodies) {
-			if (pd::IsEnabled(_world, b)) {
+			if (pd::IsEnabled(world, b)) {
 				Body* body = _bodyData[b.get()];
 				body->updatePhysics();
 			}
@@ -280,6 +282,8 @@ Joint* PhysicsWorld::getJointData(pr::JointID joint) const {
 }
 
 bool PhysicsWorld::query(const Rect& rect, const std::function<bool(Body*)>& callback) {
+	AssertUnless(_world, "accessing invalid physics world.");
+	auto& world = *_world;
 	pd::AABB aabb{
 		pd::AABB::Location{
 			prVal(rect.getLeft()),
@@ -295,13 +299,13 @@ bool PhysicsWorld::query(const Rect& rect, const std::function<bool(Body*)>& cal
 		pd::PolygonShapeConf{
 			prVal(rect.size.width),
 			prVal(rect.size.height)}};
-	pd::Query(pd::GetTree(_world), aabb, [&](pr::BodyID bodyID, pr::ShapeID shapeID, const pr::ChildCounter) {
+	pd::Query(pd::GetTree(world), aabb, [&](pr::BodyID bodyID, pr::ShapeID shapeID, const pr::ChildCounter) {
 		BLOCK_START {
-			BREAK_IF(pd::IsSensor(_world, shapeID));
-			const auto shapeType = pd::GetType(_world, shapeID);
+			BREAK_IF(pd::IsSensor(world, shapeID));
+			const auto shapeType = pd::GetType(world, shapeID);
 			bool isCommonShape = shapeType != pr::GetTypeID<pd::ChainShapeConf>() && shapeType != pr::GetTypeID<pd::EdgeShapeConf>();
-			const auto shape = pd::GetShape(_world, shapeID);
-			BREAK_IF(isCommonShape && !pd::TestOverlap(pd::GetChild(testShape, 0), transform, pd::GetChild(shape, 0), pd::GetTransformation(_world, bodyID)));
+			const auto shape = pd::GetShape(world, shapeID);
+			BREAK_IF(isCommonShape && !pd::TestOverlap(pd::GetChild(testShape, 0), transform, pd::GetChild(shape, 0), pd::GetTransformation(world, bodyID)));
 			Body* body = _bodyData[bodyID.get()];
 			std::vector<Body*>& results = isCommonShape ? _queryResultsOfCommonShapes : _queryResultsOfChainsAndEdges;
 			if (body && (results.empty() || results.back() != body)) {
@@ -330,9 +334,11 @@ bool PhysicsWorld::query(const Rect& rect, const std::function<bool(Body*)>& cal
 }
 
 bool PhysicsWorld::raycast(const Vec2& start, const Vec2& end, bool closest, const std::function<bool(Body*, const Vec2&, const Vec2&)>& callback) {
+	AssertUnless(_world, "accessing invalid physics world.");
+	auto& world = *_world;
 	pd::RayCastInput input{prVal(start), prVal(end), pr::Real{1}};
 	bool result = false;
-	pd::RayCast(_world, input, [&](pr::BodyID body, pr::ShapeID fixture, pr::ChildCounter child, pr::Length2 point, pd::UnitVec normal) {
+	pd::RayCast(world, input, [&](pr::BodyID body, pr::ShapeID fixture, pr::ChildCounter child, pr::Length2 point, pd::UnitVec normal) {
 		Body* node = _bodyData[body.get()];
 		if (!node) return pr::RayCastOpcode::ResetRay;
 		_rayCastResult.body = node;
@@ -362,6 +368,8 @@ bool PhysicsWorld::raycast(const Vec2& start, const Vec2& end, bool closest, con
 
 void PhysicsWorld::setShouldContact(uint8_t groupA, uint8_t groupB, bool contact) {
 	AssertIf(groupA >= TotalGroups || groupB >= TotalGroups, "Body group should be less than {}.", s_cast<int>(TotalGroups));
+	AssertUnless(_world, "accessing invalid physics world.");
+	auto& world = *_world;
 	pr::Filter& filterA = _filters[groupA];
 	pr::Filter& filterB = _filters[groupB];
 	if (contact) {
@@ -371,13 +379,13 @@ void PhysicsWorld::setShouldContact(uint8_t groupA, uint8_t groupB, bool contact
 		filterA.maskBits &= (~filterB.categoryBits);
 		filterB.maskBits &= (~filterA.categoryBits);
 	}
-	for (pr::BodyID body : pd::GetBodies(_world)) {
-		for (pr::ShapeID f : pd::GetShapes(_world, body)) {
-			int groupIndex = pd::GetFilterData(_world, f).groupIndex;
+	for (pr::BodyID body : pd::GetBodies(world)) {
+		for (pr::ShapeID f : pd::GetShapes(world, body)) {
+			int groupIndex = pd::GetFilterData(world, f).groupIndex;
 			if (groupIndex == groupA) {
-				pd::SetFilterData(_world, f, _filters[groupA]);
+				pd::SetFilterData(world, f, _filters[groupA]);
 			} else if (groupIndex == groupB) {
-				pd::SetFilterData(_world, f, _filters[groupB]);
+				pd::SetFilterData(world, f, _filters[groupB]);
 			}
 		}
 	}
