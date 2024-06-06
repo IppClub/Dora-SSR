@@ -21,7 +21,6 @@ Body::Body(NotNull<BodyDef, 1> bodyDef, NotNull<PhysicsWorld, 2> world, const Ve
 	, _bodyDef(bodyDef)
 	, _pWorld(world)
 	, _group(0) {
-	AssertUnless(_pWorld && _pWorld->getPrWorld(), "used invalid physics world to create body.");
 	bodyDef->getConf()->UseLocation(PhysicsWorld::prVal(pos + bodyDef->offset));
 	bodyDef->getConf()->UseAngle(-bx::toRad(rot + bodyDef->angleOffset));
 }
@@ -43,6 +42,10 @@ Body::~Body() {
 
 bool Body::init() {
 	if (!Node::init()) return false;
+	if (!_pWorld || !_pWorld->getPrWorld()) {
+		setAsManaged();
+		return false;
+	}
 	_prBody = pd::CreateBody(*_pWorld->getPrWorld(), *_bodyDef->getConf());
 	_pWorld->setBodyData(_prBody, this);
 	Node::setPosition(PhysicsWorld::Val(pd::GetLocation(*_bodyDef->getConf())));
