@@ -84,7 +84,6 @@ int tolua_isnumberarray(lua_State* L, int lo, int dim, int def, tolua_Error* err
 int tolua_isintegerarray(lua_State* L, int lo, int dim, int def, tolua_Error* err);
 int tolua_isstringarray(lua_State* L, int lo, int dim, int def, tolua_Error* err);
 int tolua_istablearray(lua_State* L, int lo, int dim, int def, tolua_Error* err);
-int tolua_isuserdataarray(lua_State* L, int lo, int dim, int def, tolua_Error* err);
 int tolua_isusertypearray(lua_State* L, int lo, String type, int dim, int def, tolua_Error* err);
 
 void tolua_open(lua_State* L);

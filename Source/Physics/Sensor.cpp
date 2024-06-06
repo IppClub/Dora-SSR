@@ -80,15 +80,22 @@ int Sensor::getTag() const noexcept {
 }
 
 void Sensor::setGroup(int var) {
-	AssertUnless(_owner, "got invalid owner for sensor.");
-	auto world = _owner->getPhysicsWorld();
-	pd::SetFilterData(world->getPrWorld(), _fixture, world->getFilter(var));
+	if (_owner) {
+		auto world = _owner->getPhysicsWorld();
+		if (world && world->getPrWorld()) {
+			pd::SetFilterData(*world->getPrWorld(), _fixture, world->getFilter(var));
+		}
+	}
 }
 
-int Sensor::getGroup() const {
-	AssertUnless(_owner, "got invalid owner for sensor.");
-	auto world = _owner->getPhysicsWorld();
-	return pd::GetFilterData(world->getPrWorld(), _fixture).groupIndex;
+int Sensor::getGroup() const noexcept {
+	if (_owner) {
+		auto world = _owner->getPhysicsWorld();
+		if (world && world->getPrWorld()) {
+			return pd::GetFilterData(*world->getPrWorld(), _fixture).groupIndex;
+		}
+	}
+	return -1;
 }
 
 Body* Sensor::getOwner() const noexcept {
@@ -99,7 +106,7 @@ pr::ShapeID Sensor::getFixture() const noexcept {
 	return _fixture;
 }
 
-bool Sensor::isSensed() const {
+bool Sensor::isSensed() const noexcept {
 	return _sensedBodies->getCount() > 0;
 }
 

@@ -252,7 +252,10 @@ void Unit::cleanup() {
 
 void Unit::setGroup(uint8_t group) {
 	_group = group;
-	auto& world = _pWorld->getPrWorld();
+	if (!_pWorld || !_pWorld->getPrWorld()) {
+		return;
+	}
+	auto& world = *_pWorld->getPrWorld();
 	for (pr::ShapeID f : pd::GetShapes(world, _prBody)) {
 		if (pd::IsSensor(world, f)) {
 			if (Sensor* sensor = _pWorld->getFixtureData(f)) {

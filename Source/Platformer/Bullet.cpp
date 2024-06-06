@@ -69,7 +69,10 @@ bool Bullet::init() {
 }
 
 void Bullet::updatePhysics() {
-	auto& world = _pWorld->getPrWorld();
+	if (!_pWorld || !_pWorld->getPrWorld()) {
+		return;
+	}
+	auto& world = *_pWorld->getPrWorld();
 	if (pd::IsAwake(world, _prBody)) {
 		const pr::Vec2& pos = pd::GetLocation(world, _prBody);
 		/* Here only Node::setPosition(const Vec2& var) work for modify Node`s position.
