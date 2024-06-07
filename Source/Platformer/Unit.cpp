@@ -244,7 +244,16 @@ void Unit::cleanup() {
 		}
 		_currentAction = nullptr;
 		_decisionTree = nullptr;
+		_behaviorTree = nullptr;
+		_blackboard = nullptr;
 		_unitDef = nullptr;
+		_playable = nullptr;
+		_groundSensor = nullptr;
+		_detectSensor = nullptr;
+		_attackSensor = nullptr;
+		for (const auto& action : _actions) {
+			action.second->destroy();
+		}
 		_actions.clear();
 		Body::cleanup();
 	}

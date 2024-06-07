@@ -1665,15 +1665,16 @@ bool LuaEngine::executeFunction(int handler, int paramCount) {
 }
 
 void LuaEngine::executeReturn(LuaHandler*& luaHandler, int handler, int paramCount) {
-	int top = lua_gettop(L);
+	int top = lua_gettop(L) - paramCount;
+	DEFER(lua_settop(L, top));
 	if (LuaEngine::invoke(L, handler, paramCount, 1)) {
 		int funcRef = tolua_ref_function(L, -1);
-		if (funcRef) {
+		if (funcRef > 0) {
 			luaHandler = LuaHandler::create(funcRef);
-		} else
+		} else {
 			Error("Lua callback should return another function.");
+		}
 	}
-	lua_settop(L, top);
 }
 
 bool LuaEngine::isInLua() {
@@ -1700,13 +1701,12 @@ bool LuaEngine::call(lua_State* L, int paramCount, int returnCount) {
 			lua_insert(L, traceIndex); // traceback func args...
 
 			++_callFromLua;
-			int error = lua_pcall(L, paramCount, returnCount, traceIndex); // traceback error ret
+			int error = lua_pcall(L, paramCount, returnCount, traceIndex); // traceback result
 			--_callFromLua;
 
-			lua_remove(L, traceIndex);
+			lua_remove(L, traceIndex); // result
 
-			if (error) // traceback error
-			{
+			if (error) {
 				return false;
 			}
 			break;
@@ -1722,14 +1722,16 @@ bool LuaEngine::call(lua_State* L, int paramCount, int returnCount) {
 			if (res != LUA_OK && res != LUA_YIELD) {
 				dora_trace_back(co);
 				return false;
-			} else
+			} else {
 				lua_xmove(co, L, nres);
+			}
 			break;
 		}
-		default:
+		default: {
 			Error("[Lua] value at stack [{}] is not function or thread in LuaEngine::call", functionIndex);
 			lua_pop(L, paramCount + 1); // remove function and arguments
 			return false;
+		}
 	}
 #else
 	int type = lua_type(L, functionIndex);
@@ -1786,7 +1788,7 @@ bool LuaEngine::invoke(lua_State* L, int handler, int numArgs, int numRets) {
 		Slice name = tolua_typename(L, -1);
 		Error("[Lua] function refid '{}' referenced \"{}\" instead of lua function or thread.", handler, name.toString());
 		lua_pop(L, 2 + numArgs);
-		return 1;
+		return false;
 	}
 	if (numArgs > 0) lua_insert(L, -(numArgs + 1)); // func args...
 	return LuaEngine::call(L, numArgs, numRets);

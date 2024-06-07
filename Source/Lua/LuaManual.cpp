@@ -3071,6 +3071,15 @@ void LuaUnitAction::stop() {
 	UnitAction::stop();
 }
 
+void LuaUnitAction::destroy() {
+	_update = nullptr;
+	_available = nullptr;
+	_create = nullptr;
+	_update = nullptr;
+	_stop = nullptr;
+	UnitAction::destroy();
+}
+
 void LuaUnitAction_add(
 	String name, int priority, float reaction, float recovery, bool queued,
 	LuaFunction<bool> available,

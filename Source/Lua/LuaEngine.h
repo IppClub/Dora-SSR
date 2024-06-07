@@ -73,7 +73,6 @@ public:
 	bool executeScriptFile(String filename);
 	bool executeModule(String module);
 	bool executeFunction(int handler, int paramCount = 0);
-	Node* executeReturnNode(int handler);
 
 	void pop(int count = 1);
 
@@ -190,18 +189,20 @@ public:
 
 	template <typename T>
 	typename std::enable_if_t<!std::is_base_of_v<Object, T>> executeReturn(T& value, int handler, int paramCount) {
+		int top = lua_gettop(L) - paramCount;
+		DEFER(lua_settop(L, top));
 		LuaEngine::invoke(L, handler, paramCount, 1);
 		to(value, -1);
-		LuaEngine::pop();
 	}
 
 	template <typename T>
 	typename std::enable_if_t<std::is_base_of_v<Object, T>> executeReturn(T*& value, int handler, int paramCount) {
+		int top = lua_gettop(L) - paramCount;
+		DEFER(lua_settop(L, top));
 		LuaEngine::invoke(L, handler, paramCount, 1);
 		Object* obj = nullptr;
 		LuaEngine::to(obj, -1);
 		value = dynamic_cast<T*>(obj);
-		LuaEngine::pop();
 	}
 
 	bool scriptHandlerEqual(int handlerA, int handlerB);

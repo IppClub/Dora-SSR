@@ -18,14 +18,21 @@ NS_DORA_BEGIN
 
 LuaHandler::LuaHandler(int handler)
 	: _handler(handler) {
-	AssertIf(handler == 0, "invalid lua handler.");
 }
 
 LuaHandler::~LuaHandler() {
 	if (!Dora::Singleton<LuaEngine>::isDisposed()) {
 		SharedLuaEngine.removeScriptHandler(_handler);
+	} else {
+		Warn("lua handler {} leaks.", _handler);
 	}
-	// else Warn("lua handler {} leaks.", _handler);
+}
+
+bool LuaHandler::init() {
+	if (_handler <= 0) {
+		return false;
+	}
+	return Object::init();
 }
 
 bool LuaHandler::equals(LuaHandler* other) const {
