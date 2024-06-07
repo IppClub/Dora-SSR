@@ -66,12 +66,12 @@ Next, we use Observers to listen for changes in entities. Sometimes, you need to
 
 ```yue
 with Observer "Add", ["scene",]
-	\watch (_entity, scene)->
+	\watch (_entity, scene): false ->
 		Director.entry\addChild with scene
 			.touchEnabled = true
-			\slot "TapEnded", (touch)->
+			\slot "TapEnded", (touch) ->
 				:location = touch
-				positionGroup\each (entity)->
+				positionGroup\each (entity) ->
 					entity.target = location
 ```
 
@@ -84,7 +84,7 @@ with Observer "Add", ["scene",]
 Inside the `watch` method of the Observer object, we define a callback function `(_entity, scene)->`. This callback function is triggered when an entity addition event occurs. The first parameter represents the entity object that triggered the event, followed by the parameters corresponding to the monitored components.
 
 ```yue
-\watch (_entity, scene)->
+\watch (_entity, scene): false ->
 ```
 
 Within the callback function, we perform a series of operations. First,we use `Director.entry` to add the `scene` to the game scene.
@@ -102,7 +102,7 @@ Next, we set the `touchEnabled` property of the `scene` to `true` to enable touc
 Then, we add an event handling function for the "TapEnded" event to the `scene`. This function will be called when the touch event ends.
 
 ```yue
-\slot "TapEnded", (touch)->
+\slot "TapEnded", (touch) ->
 ```
 
 Inside the event handling function, we assign the location of the touch to the `location` variable using `:location = touch`.
@@ -114,7 +114,7 @@ Inside the event handling function, we assign the location of the touch to the `
 Finally, we use `positionGroup\each (entity)->` to iterate over all entities in the `positionGroup` and set the `target` property of each entity to the `location`.
 
 ```yue
-positionGroup\each (entity)->
+positionGroup\each (entity) ->
 	entity.target = location
 ```
 
@@ -124,7 +124,7 @@ Next, we create additional observers to handle other types of entity changes, su
 
 ```yue
 with Observer "Add", ["image",]
-	\watch (image)=> sceneGroup\each (e)->
+	\watch (image): false => sceneGroup\each (e) ->
 		with @sprite = Sprite image
 			\addTo e.scene
 			\runAction Scale 0.5, 0, 0.5, Ease.OutBack
@@ -138,7 +138,7 @@ Then, we create an entity group with the components "position", "direction", "sp
 
 ```yue
 with Group ["position", "direction", "speed", "target"]
-	\watch (entity, position, direction, speed, target)=>
+	\watch (entity, position, direction, speed, target): false ->
 		return if target == position
 		dir = target - position
 		dir = dir\normalize!
@@ -159,7 +159,7 @@ with Group ["position", "direction", "speed", "target"]
 Then, we use the `watch` method of the entity group to iterate over all entities in the group every frame and execute the defined callback function to handle the components on each entity.
 
 ```yue
-\watch (entity, position, direction, speed, target)=>
+\watch (entity, position, direction, speed, target): false ->
 ```
 
 Inside the callback function, we start with some conditional checks. We use `return if target == position` to check if the target position is the same as the current position. If they are the same, we return and skip the update operations.
@@ -207,7 +207,7 @@ After completing the data calculation and update, we also need to update the dat
 
 ```yue
 with Observer "AddOrChange", ["position", "direction", "sprite"]
-	\watch (position, direction, sprite)=>
+	\watch (position, direction, sprite): false =>
 		-- Update the display position of the image
 		sprite.position = position
 		lastDirection = @oldValues.direction or sprite.angle
