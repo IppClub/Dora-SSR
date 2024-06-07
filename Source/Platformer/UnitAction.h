@@ -8,8 +8,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
-#include "playrho/d2/Shape.hpp"
 #include "Support/Geometry.h"
+#include "playrho/d2/Shape.hpp"
 
 NS_DORA_BEGIN
 class Model;
@@ -58,6 +58,7 @@ public:
 	virtual void run();
 	virtual void update(float dt);
 	virtual void stop();
+	virtual void destroy() { }
 	static Own<UnitAction> alloc(String name, Unit* unit);
 	static void add(String name, Own<UnitActionDef>&& actionDef);
 	static void clear();

@@ -289,6 +289,7 @@ public:
 	virtual void run() override;
 	virtual void update(float dt) override;
 	virtual void stop() override;
+	virtual void destroy() override;
 
 private:
 	std::function<bool(Unit*, UnitAction*)> _available;

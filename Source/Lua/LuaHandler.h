@@ -15,6 +15,7 @@ NS_DORA_BEGIN
 class LuaHandler : public Object {
 public:
 	virtual ~LuaHandler();
+	virtual bool init() override;
 	bool equals(LuaHandler* other) const;
 	int get() const;
 	CREATE_FUNC_NOT_NULL(LuaHandler);
