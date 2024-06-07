@@ -66,12 +66,12 @@ positionGroup = Group ["position",]
 
 ```yue
 with Observer "Add", ["scene",]
-	\watch (_entity, scene)->
+	\watch (_entity, scene): false ->
 		Director.entry\addChild with scene
 			.touchEnabled = true
-			\slot "TapEnded", (touch)->
+			\slot "TapEnded", (touch) ->
 				:location = touch
-				positionGroup\each (entity)->
+				positionGroup\each (entity) ->
 					entity.target = location
 ```
 
@@ -84,7 +84,7 @@ with Observer "Add", ["scene",]
 &emsp;&emsp;接下来，在观察器对象的 `watch` 方法中，定义了一个回调函数 `(_entity, scene)->`。这个回调函数在实体添加事件发生时被触发。它接收的第一个参数为触发事件的实体对象，后面的参数与监测的组件列表相对应。
 
 ```yue
-\watch (_entity, scene)->
+\watch (_entity, scene) ->
 ```
 
 &emsp;&emsp;在回调函数内部，我们执行了一系列操作。首先，通过 `Director.entry` 将 `scene` 添加到游戏场景中。
@@ -102,7 +102,7 @@ Director.entry\addChild with scene
 &emsp;&emsp;然后，我们给 `scene` 添加了一个 "TapEnded" 的事件处理函数，当触摸结束事件发生时，这个处理函数会被调用。
 
 ```yue
-\slot "TapEnded", (touch)->
+\slot "TapEnded", (touch) ->
 ```
 
 &emsp;&emsp;在事件处理函数内部，我们通过 `:location = touch` 将触摸点的位置赋值给 `location` 变量。
@@ -114,7 +114,7 @@ Director.entry\addChild with scene
 &emsp;&emsp;最后，通过 `positionGroup\each (entity)->` 遍历了 `positionGroup` 实体组中的所有实体，并为每个实体设置了 `target` 属性为 触摸点的位置`location`。
 
 ```yue
-positionGroup\each (entity)->
+positionGroup\each (entity) ->
 	entity.target = location
 ```
 
@@ -124,7 +124,7 @@ positionGroup\each (entity)->
 
 ```yue
 with Observer "Add", ["image",]
-	\watch (image)=> sceneGroup\each (e)->
+	\watch (image): false => sceneGroup\each (e) ->
 		with @sprite = Sprite image
 			\addTo e.scene
 			\runAction Scale 0.5, 0, 0.5, Ease.OutBack
@@ -138,7 +138,7 @@ with Observer "Remove", ["sprite",]
 
 ```yue
 with Group ["position", "direction", "speed", "target"]
-	\watch (entity, position, direction, speed, target)->
+	\watch (entity, position, direction, speed, target): false ->
 		return if target == position
 		dir = target - position
 		dir = dir\normalize!
@@ -159,7 +159,7 @@ with Group ["position", "direction", "speed", "target"]
 &emsp;&emsp;然后，我们使用了实体组的 `watch` 方法来每帧遍历所有组内的实体，执行我们定义的回调函数来处理实体上的组件。
 
 ```yue
-\watch (position, direction, speed, target)=>
+\watch (entity, position, direction, speed, target): false ->
 ```
 
 &emsp;&emsp;在回调函数内部，我们首先进行了一些条件判断。通过 `return if target == position` 判断实体的目标位置和当前位置是否相等，如果相等则直接返回，不进行后续的更新操作。
@@ -207,7 +207,7 @@ entity.direction = angle
 
 ```yue
 with Observer "AddOrChange", ["position", "direction", "sprite"]
-	\watch (position, direction, sprite)=>
+	\watch (position, direction, sprite): false =>
 		-- 更新图片的显示位置
 		sprite.position = position
 		lastDirection = @oldValues.direction or sprite.angle
@@ -325,15 +325,15 @@ end)
 
 &emsp;&emsp;这样，当有新的实体添加了 "scene" 组件时，该观察器会触发并执行以上操作，并将场景节点添加到游戏中，并完成一系列的初始化操作。
 
-&emsp;&emsp;接下来，我们还要再创建一些观察器，分别处理其它 "Add" 和 "Remove" 类型的实体变化，并指定要监测的组件为`sprite`。
+&emsp;&emsp;接下来，我们还要再创建一些观察器，分别处理其它 "Add" 和 "Remove" 类型的实体变化，并指定要监测的组件为`image`和`sprite`。
 
 ```tl
-Observer("Add", {"sprite"}):watch(function(entity: Entity.Type, image: string)
+Observer("Add", {"image"}):watch(function(entity: Entity.Type, image: string)
 	sceneGroup:each(function(e: Entity.Type): boolean
 		local scene = e.scene as Node.Type
 		local sprite = Sprite(image)
-		sprite:addTo(scene)
 		sprite:runAction(Scale(0.5, 0, 0.5, Ease.OutBack))
+		sprite:addTo(scene)
 		entity.sprite = sprite
 		return true
 	end)
