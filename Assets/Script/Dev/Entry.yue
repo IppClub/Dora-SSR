@@ -440,28 +440,7 @@ currentEntry = nil
 footerWindow = nil
 entryWindow = nil
 
-setupEventHandlers = ->
-	with Director.postNode
-		\gslot "AppTheme", (argb) ->
-			config.themeColor = argb
-		\gslot "AppLocale", (locale) ->
-			config.locale = locale
-			updateLocale!
-			teal.clear true
-		\gslot "AppWSClose", ->
-			if HttpServer.wsConnectionCount == 0
-				updateEntries!
-		switch App.platform when "Linux", "Windows", "macOS"
-			\gslot "AppSizeChanged", ->
-				:width, :height = App.winSize
-				config.winWidth = width
-				config.winHeight = height
-			\gslot "AppFullScreen", (fullScreen) ->
-				config.fullScreen = fullScreen and 1 or 0
-			\gslot "AppMoved", ->
-				x: config.winX, y: config.winY = App.winPosition
-
-setupEventHandlers!
+setupEventHandlers = nil
 
 export allClear = ->
 	for routine in *Routine
@@ -493,6 +472,30 @@ export allClear = ->
 	Content.searchPaths = searchPaths
 	App.idled = true
 	Wasm\clear!
+
+setupEventHandlers = ->
+	with Director.postNode
+		\gslot "AppQuit", allClear
+		\gslot "AppTheme", (argb) ->
+			config.themeColor = argb
+		\gslot "AppLocale", (locale) ->
+			config.locale = locale
+			updateLocale!
+			teal.clear true
+		\gslot "AppWSClose", ->
+			if HttpServer.wsConnectionCount == 0
+				updateEntries!
+		switch App.platform when "Linux", "Windows", "macOS"
+			\gslot "AppSizeChanged", ->
+				:width, :height = App.winSize
+				config.winWidth = width
+				config.winHeight = height
+			\gslot "AppFullScreen", (fullScreen) ->
+				config.fullScreen = fullScreen and 1 or 0
+			\gslot "AppMoved", ->
+				x: config.winX, y: config.winY = App.winPosition
+
+setupEventHandlers!
 
 export stop = ->
 	return false if isInEntry
@@ -645,7 +648,9 @@ footerWindow = threadLoop ->
 	zh = useChinese and isChineseSupported
 	if HttpServer.wsConnectionCount > 0
 		return
-	App\shutdown! if Keyboard\isKeyDown "Escape"
+	if Keyboard\isKeyDown "Escape"
+		allClear!
+		App\shutdown!
 	do
 		ctrl = Keyboard\isKeyPressed "LCtrl"
 		if ctrl and Keyboard\isKeyDown "Q"
