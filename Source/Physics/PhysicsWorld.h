@@ -83,6 +83,7 @@ private:
 	void setupEndContact();
 	void setupPreSolve();
 	void solveContacts();
+	void clearPhysics();
 	std::vector<Body*> _queryResultsOfCommonShapes;
 	std::vector<Body*> _queryResultsOfChainsAndEdges;
 

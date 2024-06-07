@@ -54,7 +54,9 @@ PhysicsWorld::PhysicsWorld() {
 	static_assert(sizeof(decltype(pr::Filter::groupIndex)) == 1, "filter group index should be 8 bits");
 }
 
-PhysicsWorld::~PhysicsWorld() { }
+PhysicsWorld::~PhysicsWorld() {
+	clearPhysics();
+}
 
 void PhysicsWorld::setupBeginContact() {
 	pd::SetBeginContactListener(*_world, [this](pr::ContactID contact) {
@@ -170,8 +172,8 @@ void PhysicsWorld::render() {
 	Node::render();
 }
 
-void PhysicsWorld::cleanup() {
-	if (_flags.isOff(Node::Cleanup)) {
+void PhysicsWorld::clearPhysics() {
+	if (_world) {
 		RefVector<Body> bodies;
 		for (pr::BodyID b : pd::GetBodies(*_world)) {
 			Body* body = _bodyData[b.get()];
@@ -193,6 +195,12 @@ void PhysicsWorld::cleanup() {
 			pair.release();
 		}
 		_world = nullptr;
+	}
+}
+
+void PhysicsWorld::cleanup() {
+	if (_flags.isOff(Node::Cleanup)) {
+		clearPhysics();
 		Node::cleanup();
 	}
 }
