@@ -390,12 +390,12 @@ AffineTransform& AffineTransform::invert() {
 	return *this;
 }
 
-void AffineTransform::toMatrix(float* m) const {
+void AffineTransform::toMatrix(Matrix& m) const {
 	// | m[0] m[4] m[8]   m[12] |       | m11 m21 m31 m41 |       | a c 0 tx |
 	// | m[1] m[5] m[9]   m[13] |       | m12 m22 m32 m42 |       | b d 0 ty |
 	// | m[2] m[6] m[10]  m[14] | =>    | m13 m23 m33 m43 | =>    | 0 0 1  0 |
 	// | m[3] m[7] m[11]  m[15] |       | m14 m24 m34 m44 |       | 0 0 0  1 |
-	ktm::fmat4x4& mat = *r_cast<ktm::fmat4x4*>(m);
+	ktm::fmat4x4& mat = r_cast<ktm::fmat4x4&>(m);
 	*r_cast<const ktm::faffine2d*>(this) >> mat;
 }
 
@@ -409,22 +409,29 @@ const Matrix Matrix::Indentity = {
 	0, 0, 1, 0,
 	0, 0, 0, 1};
 
-void Matrix::mulVec4(float* result, const float* matrix, const float* vec4) {
-	const ktm::fmat4x4& mat = *r_cast<const ktm::fmat4x4*>(matrix);
-	const ktm::fvec4& v4 = *r_cast<const ktm::fvec4*>(vec4);
-	ktm::fvec4& output = *r_cast<ktm::fvec4*>(result);
+void Matrix::mulVec4(float* result, const Matrix& matrix, const Vec4& vec4) {
+	auto mat = r_cast<const ktm::fmat4x4&>(matrix);
+	auto v4 = r_cast<const ktm::fvec4&>(vec4);
+	ktm::fvec4 output = mat * v4;
+	std::memcpy(result, &output.x, sizeof(float) * 4);
+}
+
+void Matrix::mulVec4(Vec4& result, const Matrix& matrix, const Vec4& vec4) {
+	auto mat = r_cast<const ktm::fmat4x4&>(matrix);
+	auto v4 = r_cast<const ktm::fvec4&>(vec4);
+	ktm::fvec4& output = r_cast<ktm::fvec4&>(result);
 	output = mat * v4;
 }
 
-void Matrix::mulMtx(float* result, const float* left, const float* right) {
-	const ktm::fmat4x4& lMat = *r_cast<const ktm::fmat4x4*>(left);
-	const ktm::fmat4x4& rMat = *r_cast<const ktm::fmat4x4*>(right);
-	ktm::fmat4x4& output = *r_cast<ktm::fmat4x4*>(result);
+void Matrix::mulMtx(Matrix& result, const Matrix& left, const Matrix& right) {
+	auto lMat = r_cast<const ktm::fmat4x4&>(left);
+	auto rMat = r_cast<const ktm::fmat4x4&>(right);
+	ktm::fmat4x4& output = r_cast<ktm::fmat4x4&>(result);
 	output = lMat * rMat;
 }
 
-void Matrix::mulAABB(AABB& result, const float* matrix, const AABB& right) {
-	const ktm::fmat4x4& mat = *r_cast<const ktm::fmat4x4*>(matrix);
+void Matrix::mulAABB(AABB& result, const Matrix& matrix, const AABB& right) {
+	auto mat = r_cast<const ktm::fmat4x4&>(matrix);
 
 	ktm::fvec4 corners[8] = {
 		{right.min.x, right.min.y, right.min.z, 1.0f},
@@ -449,8 +456,8 @@ void Matrix::mulAABB(AABB& result, const float* matrix, const AABB& right) {
 	}
 }
 
-void Matrix::mulAABB(AABB& result, const float* matrix, float spriteWidth, float spriteHeight) {
-	const ktm::fmat4x4& mat = *r_cast<const ktm::fmat4x4*>(matrix);
+void Matrix::mulAABB(AABB& result, const Matrix& matrix, float spriteWidth, float spriteHeight) {
+	auto mat = r_cast<const ktm::fmat4x4&>(matrix);
 
 	ktm::fvec4 corners[4] = {
 		{0, 0, 0, 1.0f},
@@ -471,8 +478,8 @@ void Matrix::mulAABB(AABB& result, const float* matrix, float spriteWidth, float
 	}
 }
 
-void Matrix::toFrustum(Frustum& result, const float* matrix) {
-	const ktm::fmat4x4& viewProjMatrix = *r_cast<const ktm::fmat4x4*>(matrix);
+void Matrix::toFrustum(Frustum& result, const Matrix& matrix) {
+	auto viewProjMatrix = r_cast<const ktm::fmat4x4&>(matrix);
 
 	// Left plane
 	result.planes[0].normal.x = viewProjMatrix[0][3] + viewProjMatrix[0][0];

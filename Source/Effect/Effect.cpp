@@ -36,11 +36,12 @@ Value* Pass::Uniform::getValue() const noexcept {
 
 void Pass::Uniform::apply() {
 	if (auto value = _value->asVal<float>()) {
-		bgfx::setUniform(_handle, Vec4{*value});
+		Vec4 v4{*value, 0, 0, 0};
+		bgfx::setUniform(_handle, &v4.x);
 	} else if (auto value = _value->asVal<Vec4>()) {
-		bgfx::setUniform(_handle, *value);
+		bgfx::setUniform(_handle, &value->x);
 	} else if (auto value = _value->asVal<Matrix>()) {
-		bgfx::setUniform(_handle, *value);
+		bgfx::setUniform(_handle, value->m);
 	}
 }
 

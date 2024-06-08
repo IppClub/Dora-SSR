@@ -52,7 +52,7 @@ Node::Node(bool unManaged)
 	, _scheduler(SharedDirector.getScheduler())
 	, _parent(nullptr)
 	, _touchHandler(nullptr) {
-	bx::mtxIdentity(_world);
+	bx::mtxIdentity(_world.m);
 	if (unManaged) {
 		_flags.setOn(Node::UnManaged);
 		SharedDirector.addUnManagedNode(this);
@@ -611,14 +611,14 @@ Node* Node::getChildByTag(String tag) {
 
 Vec2 Node::convertToNodeSpace(const Vec2& worldPoint) {
 	Matrix invWorld;
-	bx::mtxInverse(invWorld, getWorld());
+	bx::mtxInverse(invWorld.m, getWorld().m);
 	Vec3 point;
-	point = Vec3::from(bx::mul(bx::Vec3{worldPoint.x, worldPoint.y, 0.0f}, invWorld));
+	point = Vec3::from(bx::mul(bx::Vec3{worldPoint.x, worldPoint.y, 0.0f}, invWorld.m));
 	return point.toVec2();
 }
 
 Vec2 Node::convertToWorldSpace(const Vec2& nodePoint) {
-	Vec3 point = Vec3::from(bx::mul(bx::Vec3{nodePoint.x, nodePoint.y, 0.0f}, getWorld()));
+	Vec3 point = Vec3::from(bx::mul(bx::Vec3{nodePoint.x, nodePoint.y, 0.0f}, getWorld().m));
 	return point.toVec2();
 }
 
@@ -636,12 +636,12 @@ Vec2 Node::convertToNodeSpace(const Vec2& worldPoint, float& zInOut) {
 
 Vec3 Node::convertToNodeSpace3(const Vec3& worldPoint) {
 	Matrix invWorld;
-	bx::mtxInverse(invWorld, getWorld());
-	return Vec3::from(bx::mul(worldPoint, invWorld));
+	bx::mtxInverse(invWorld.m, getWorld().m);
+	return Vec3::from(bx::mul(worldPoint, invWorld.m));
 }
 
 Vec3 Node::convertToWorldSpace3(const Vec3& nodePoint) {
-	Vec3 point = Vec3::from(bx::mul(nodePoint, getWorld()));
+	Vec3 point = Vec3::from(bx::mul(nodePoint, getWorld().m));
 	return point;
 }
 
@@ -875,7 +875,7 @@ void Node::render() {
 			{0, 0, 0, 0, anchorColor},
 			{0, 0, 0, 0, anchorColor}};
 		for (size_t i = 0; i < 8; i++) {
-			Matrix::mulVec4(&verts[i].x, transform, &positions[i].x);
+			Matrix::mulVec4(&verts[i].x, transform, positions[i]);
 		}
 		SharedRendererManager.setCurrent(SharedLineRenderer.getTarget());
 		SharedLineRenderer.pushRect(verts);
@@ -934,13 +934,13 @@ void Node::getLocalWorld(Matrix& localWorld) {
 
 				/* rotateXY */
 				Matrix mtxRot;
-				bx::mtxRotateXY(mtxRot, -bx::toRad(_angleX), -bx::toRad(_angleY));
+				bx::mtxRotateXY(mtxRot.m, -bx::toRad(_angleX), -bx::toRad(_angleY));
 				Matrix::mulMtx(mtxRoted, mtxBase, mtxRot);
 			}
 
 			/* translateAnchorXY */
 			Matrix mtxAnchor;
-			bx::mtxTranslate(mtxAnchor, -_anchorPoint.x, -_anchorPoint.y, 0.0f);
+			bx::mtxTranslate(mtxAnchor.m, -_anchorPoint.x, -_anchorPoint.y, 0.0f);
 			Matrix::mulMtx(localWorld, mtxRoted, mtxAnchor);
 		} else {
 			Matrix mtxBase;
@@ -951,7 +951,7 @@ void Node::getLocalWorld(Matrix& localWorld) {
 
 			/* rotateXY */
 			Matrix mtxRot;
-			bx::mtxRotateXY(mtxRot, -bx::toRad(_angleX), -bx::toRad(_angleY));
+			bx::mtxRotateXY(mtxRot.m, -bx::toRad(_angleX), -bx::toRad(_angleY));
 			Matrix::mulMtx(localWorld, mtxBase, mtxRot);
 		}
 	} else {
@@ -1361,28 +1361,28 @@ void Node::detachIME() {
 }
 
 static bool project(float objx, float objy, float objz,
-	const float model[16], const float proj[16],
+	const Matrix& model, const Matrix& proj,
 	const float viewport[4],
 	float* winx, float* winy, float* winz) {
 	/* matrice de transformation */
-	float in[4], out[4];
+	Vec4 in, out;
 	/* initilise la matrice et le vecteur a transformer */
-	in[0] = objx;
-	in[1] = objy;
-	in[2] = objz;
-	in[3] = 1.0;
+	in.x = objx;
+	in.y = objy;
+	in.z = objz;
+	in.w = 1.0;
 	Matrix::mulVec4(out, model, in);
 	Matrix::mulVec4(in, proj, out);
 	/* d’ou le resultat normalise entre -1 et 1 */
-	if (in[3] == 0.0) return false;
-	in[0] /= in[3];
-	in[1] /= in[3];
-	in[2] /= in[3];
+	if (in.z == 0.0) return false;
+	in.x /= in.w;
+	in.y /= in.w;
+	in.z /= in.w;
 	/* en coordonnees ecran */
-	*winx = viewport[0] + (1.0f + in[0]) * viewport[2] / 2.0f;
-	*winy = viewport[1] + (1.0f + in[1]) * viewport[3] / 2.0f;
+	*winx = viewport[0] + (1.0f + in.x) * viewport[2] / 2.0f;
+	*winy = viewport[1] + (1.0f + in.y) * viewport[3] / 2.0f;
 	/* entre 0 et 1 suivant z */
-	*winz = (1.0f + in[2]) / 2.0f;
+	*winz = (1.0f + in.z) / 2.0f;
 	return true;
 }
 

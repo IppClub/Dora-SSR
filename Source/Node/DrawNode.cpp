@@ -114,7 +114,7 @@ void DrawNode::render() {
 		Matrix transform;
 		Matrix::mulMtx(transform, SharedDirector.getViewProjection(), _world);
 		for (size_t i = 0; i < _vertices.size(); i++) {
-			Matrix::mulVec4(&_vertices[i].x, transform, &_posColors[i].pos.x);
+			Matrix::mulVec4(&_vertices[i].x, transform, _posColors[i].pos);
 		}
 	}
 
@@ -569,7 +569,7 @@ void Line::render() {
 		Matrix transform;
 		Matrix::mulMtx(transform, SharedDirector.getViewProjection(), _world);
 		for (size_t i = 0; i < _vertices.size(); i++) {
-			Matrix::mulVec4(&_vertices[i].x, transform, &_posColors[i].pos.x);
+			Matrix::mulVec4(&_vertices[i].x, transform, _posColors[i].pos);
 		}
 	}
 

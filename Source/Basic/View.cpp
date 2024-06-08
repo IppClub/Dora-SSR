@@ -185,7 +185,7 @@ float View::getFieldOfView() const noexcept {
 
 void View::updateProjection() {
 	bx::mtxProj(
-		_projection,
+		_projection.m,
 		_fieldOfView,
 		getAspectRatio(),
 		_nearPlaneDistance,

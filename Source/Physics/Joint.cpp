@@ -52,7 +52,7 @@ Joint* Joint::distance(
 	Body* bodyA, Body* bodyB,
 	const Vec2& anchorA, const Vec2& anchorB,
 	float frequency, float damping) {
-	if (bodyA->getWorld() != bodyB->getWorld()) {
+	if (bodyA->getPhysicsWorld() != bodyB->getPhysicsWorld()) {
 		return nullptr;
 	}
 	pr::BodyID bA = bodyA->getPrBody();
@@ -85,7 +85,7 @@ Joint* Joint::friction(
 	const Vec2& worldAnchor,
 	float maxForce,
 	float maxTorque) {
-	if (bodyA->getWorld() != bodyB->getWorld()) {
+	if (bodyA->getPhysicsWorld() != bodyB->getPhysicsWorld()) {
 		return nullptr;
 	}
 	pr::BodyID bA = bodyA->getPrBody();
@@ -140,7 +140,7 @@ Joint* Joint::spring(
 	float maxForce,
 	float maxTorque,
 	float correctionFactor) {
-	if (bodyA->getWorld() != bodyB->getWorld()) {
+	if (bodyA->getPhysicsWorld() != bodyB->getPhysicsWorld()) {
 		return nullptr;
 	}
 	pr::BodyID bA = bodyA->getPrBody();
@@ -235,7 +235,7 @@ Joint* Joint::pulley(
 	const Vec2& groundAnchorA,
 	const Vec2& groundAnchorB,
 	float ratio) {
-	if (bodyA->getWorld() != bodyB->getWorld()) {
+	if (bodyA->getPhysicsWorld() != bodyB->getPhysicsWorld()) {
 		return nullptr;
 	}
 	pr::BodyID bA = bodyA->getPrBody();
@@ -268,7 +268,7 @@ MotorJoint* Joint::revolute(
 	float upperAngle,
 	float maxMotorTorque,
 	float motorSpeed) {
-	if (bodyA->getWorld() != bodyB->getWorld()) {
+	if (bodyA->getPhysicsWorld() != bodyB->getPhysicsWorld()) {
 		return nullptr;
 	}
 	pr::BodyID bA = bodyA->getPrBody();
@@ -303,7 +303,7 @@ Joint* Joint::rope(
 	const Vec2& anchorA,
 	const Vec2& anchorB,
 	float maxLength) {
-	if (bodyA->getWorld() != bodyB->getWorld()) {
+	if (bodyA->getPhysicsWorld() != bodyB->getPhysicsWorld()) {
 		return nullptr;
 	}
 	pr::BodyID bA = bodyA->getPrBody();

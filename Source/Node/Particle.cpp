@@ -404,7 +404,7 @@ void ParticleNode::addQuad(const Particle& particle, float scale, float angleX, 
 	}
 	if (angleX || angleY) {
 		Matrix rotate;
-		bx::mtxRotateXY(rotate, -bx::toRad(angleX), -bx::toRad(angleY));
+		bx::mtxRotateXY(rotate.m, -bx::toRad(angleX), -bx::toRad(angleY));
 		Vec4 v4 = *r_cast<Vec4*>(&quad.rb.x);
 		Matrix::mulVec4(&quad.rb.x, rotate, v4);
 		v4 = *r_cast<Vec4*>(&quad.lb.x);

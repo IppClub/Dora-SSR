@@ -321,12 +321,12 @@ void Director::doRender() {
 					bgfx::setViewClear(viewId, BGFX_CLEAR_DEPTH | BGFX_CLEAR_STENCIL);
 					Size viewSize = SharedView.getSize();
 					Matrix ortho;
-					bx::mtxOrtho(ortho,
+					bx::mtxOrtho(ortho.m,
 						0, viewSize.width, 0, viewSize.height,
 						-1000.0f, 1000.0f, 0,
 						bgfx::getCaps()->homogeneousDepth);
 					pushViewProjection(ortho, [&]() {
-						bgfx::setViewTransform(viewId, nullptr, getViewProjection());
+						bgfx::setViewTransform(viewId, nullptr, getViewProjection().m);
 						_root->visit();
 						SharedRendererManager.flush();
 					});
@@ -337,14 +337,14 @@ void Director::doRender() {
 				}
 				/* post node */
 				if (_postNode) {
-					bgfx::setViewTransform(viewId, nullptr, getViewProjection());
+					bgfx::setViewTransform(viewId, nullptr, getViewProjection().m);
 					_postNode->visit();
 					SharedRendererManager.flush();
 				}
 				/* ui 3D node */
 				if (_ui3D) {
 					pushViewProjection(_ui3DCamera->getView(), [&]() {
-						bgfx::setViewTransform(viewId, nullptr, getViewProjection());
+						bgfx::setViewTransform(viewId, nullptr, getViewProjection().m);
 						_ui3D->visit();
 						SharedRendererManager.flush();
 					});
@@ -352,7 +352,7 @@ void Director::doRender() {
 				/* ui node */
 				if (_ui) {
 					pushViewProjection(_uiCamera->getView(), [&]() {
-						bgfx::setViewTransform(viewId, nullptr, getViewProjection());
+						bgfx::setViewTransform(viewId, nullptr, getViewProjection().m);
 						_ui->visit();
 						SharedRendererManager.flush();
 					});
@@ -368,7 +368,7 @@ void Director::doRender() {
 				bgfx::setViewClear(viewId,
 					BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH | BGFX_CLEAR_STENCIL,
 					_clearColor.toRGBA());
-				bgfx::setViewTransform(viewId, nullptr, getViewProjection());
+				bgfx::setViewTransform(viewId, nullptr, getViewProjection().m);
 				/* scene tree */
 				if (_root) _root->visit();
 				/* post node */
@@ -380,7 +380,7 @@ void Director::doRender() {
 				SharedView.pushBack("UI3D"_slice, [&]() {
 					bgfx::ViewId viewId = SharedView.getId();
 					pushViewProjection(_ui3DCamera->getView(), [&]() {
-						bgfx::setViewTransform(viewId, nullptr, getViewProjection());
+						bgfx::setViewTransform(viewId, nullptr, getViewProjection().m);
 						_ui3D->visit();
 						SharedRendererManager.flush();
 					});
@@ -393,7 +393,7 @@ void Director::doRender() {
 					/* ui node */
 					if (_ui) {
 						pushViewProjection(_uiCamera->getView(), [&]() {
-							bgfx::setViewTransform(viewId, nullptr, getViewProjection());
+							bgfx::setViewTransform(viewId, nullptr, getViewProjection().m);
 							_ui->visit();
 							SharedRendererManager.flush();
 						});

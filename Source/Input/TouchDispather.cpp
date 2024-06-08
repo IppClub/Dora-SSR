@@ -161,22 +161,22 @@ void NodeTouchHandler::collect(SDL_FingerID fingerId) {
 	}
 }
 
-static int unProject(float winx, float winy, float winz, const float* invTransform, const float* viewport, float* objectCoordinate) {
-	float in[4], out[4];
+static int unProject(float winx, float winy, float winz, const Matrix& invTransform, const float viewport[4], Vec3& objectCoordinate) {
+	Vec4 in, out;
 	// Transformation of normalized coordinates between -1 and 1
-	in[0] = (winx - viewport[0]) / viewport[2] * 2.0f - 1.0f;
-	in[1] = (winy - viewport[1]) / viewport[3] * 2.0f - 1.0f;
-	in[2] = 2.0f * winz - 1.0f;
-	in[3] = 1.0f;
+	in.x = (winx - viewport[0]) / viewport[2] * 2.0f - 1.0f;
+	in.y = (winy - viewport[1]) / viewport[3] * 2.0f - 1.0f;
+	in.z = 2.0f * winz - 1.0f;
+	in.w = 1.0f;
 	// Objects coordinates
 	Matrix::mulVec4(out, invTransform, in);
-	if (out[3] == 0.0f) {
+	if (out.w == 0.0f) {
 		return 0;
 	}
-	out[3] = 1.0f / out[3];
-	objectCoordinate[0] = out[0] * out[3];
-	objectCoordinate[1] = out[1] * out[3];
-	objectCoordinate[2] = out[2] * out[3];
+	out.w = 1.0f / out.w;
+	objectCoordinate.x = out.x * out.w;
+	objectCoordinate.y = out.y * out.w;
+	objectCoordinate.z = out.z * out.w;
 	return 1;
 }
 
@@ -188,17 +188,17 @@ Vec2 NodeTouchHandler::getPos(const Vec3& winPos) {
 	{
 		Matrix MVP;
 		Matrix::mulMtx(MVP, SharedDirector.getViewProjection(), _target->getWorld());
-		bx::mtxInverse(invMVP, MVP);
+		bx::mtxInverse(invMVP.m, MVP.m);
 	}
 	bx::Plane plane(bx::InitNone);
 	bx::calcPlane(plane, bx::Vec3{0, 0, 0}, bx::Vec3{1, 0, 0}, bx::Vec3{0, 1, 0});
 
-	Vec3 posTarget{pos[0], pos[1], 1.0f};
+	Vec3 posTarget{pos.x, pos.y, 1.0f};
 	float viewPort[4]{0, 0, viewSize.width, viewSize.height};
 
 	Vec3 origin, target;
-	unProject(pos[0], pos[1], pos[2], invMVP, viewPort, origin);
-	unProject(posTarget[0], posTarget[1], posTarget[2], invMVP, viewPort, target);
+	unProject(pos.x, pos.y, pos.z, invMVP, viewPort, origin);
+	unProject(posTarget.x, posTarget.y, posTarget.z, invMVP, viewPort, target);
 
 	bx::Vec3 dir = bx::sub(target, origin);
 	bx::Vec3 dirNorm = bx::normalize(dir);

@@ -94,6 +94,8 @@ struct Rect {
 	static const Rect zero;
 };
 
+class Matrix;
+
 struct alignas(16) AffineTransform {
 	float a, b, c, d;
 	float tx, ty;
@@ -105,7 +107,7 @@ struct alignas(16) AffineTransform {
 	AffineTransform& scale(float sx, float sy);
 	AffineTransform& concat(const AffineTransform& t2);
 	AffineTransform& invert();
-	void toMatrix(float* matrix) const;
+	void toMatrix(Matrix& matrix) const;
 	static AffineTransform Indentity;
 };
 
@@ -113,17 +115,12 @@ struct Vec3 {
 	float x;
 	float y;
 	float z;
+	bool operator==(const Vec3& other) const = default;
 	inline operator const bx::Vec3() const {
 		return *r_cast<const bx::Vec3*>(&x);
 	}
 	inline operator bx::Vec3() {
 		return *r_cast<bx::Vec3*>(&x);
-	}
-	inline operator float*() {
-		return &x;
-	}
-	inline operator const float*() const {
-		return &x;
 	}
 	inline Vec2 toVec2() const {
 		return Vec2{x, y};
@@ -141,12 +138,7 @@ struct alignas(16) Vec4 {
 	float y;
 	float z;
 	float w;
-	inline operator float*() {
-		return &x;
-	}
-	inline operator const float*() const {
-		return &x;
-	}
+	bool operator==(const Vec4& other) const = default;
 	inline Vec3 toVec3() const {
 		return Vec3{x, y, z};
 	}
@@ -172,17 +164,13 @@ struct Frustum {
 
 struct alignas(32) Matrix {
 	float m[16];
-	inline operator float*() {
-		return m;
-	}
-	inline operator const float*() const {
-		return m;
-	}
-	static void mulVec4(float* result, const float* matrix, const float* vec4);
-	static void mulMtx(float* result, const float* left, const float* right);
-	static void mulAABB(AABB& result, const float* matrix, const AABB& right);
-	static void mulAABB(AABB& result, const float* matrix, float spriteWidth, float spriteHeight);
-	static void toFrustum(Frustum& result, const float* matrix);
+	bool operator==(const Matrix& other) const = default;
+	static void mulVec4(float* result, const Matrix& matrix, const Vec4& vec4);
+	static void mulVec4(Vec4& result, const Matrix& matrix, const Vec4& vec4);
+	static void mulMtx(Matrix& result, const Matrix& left, const Matrix& right);
+	static void mulAABB(AABB& result, const Matrix& matrix, const AABB& right);
+	static void mulAABB(AABB& result, const Matrix& matrix, float spriteWidth, float spriteHeight);
+	static void toFrustum(Frustum& result, const Matrix& matrix);
 	static const Matrix Indentity;
 };
 
