@@ -94,7 +94,7 @@ struct Rect {
 	static const Rect zero;
 };
 
-struct AffineTransform {
+struct alignas(16) AffineTransform {
 	float a, b, c, d;
 	float tx, ty;
 	Vec2 applyPoint(const Vec2& point) const;
@@ -136,7 +136,7 @@ struct Vec3 {
 	}
 };
 
-struct Vec4 {
+struct alignas(16) Vec4 {
 	float x;
 	float y;
 	float z;
@@ -170,13 +170,13 @@ struct Frustum {
 	bool intersect(const AABB& aabb) const;
 };
 
-struct Matrix {
+struct alignas(32) Matrix {
 	float m[16];
 	inline operator float*() {
-		return &m[0];
+		return m;
 	}
 	inline operator const float*() const {
-		return &m[0];
+		return m;
 	}
 	static void mulVec4(float* result, const float* matrix, const float* vec4);
 	static void mulMtx(float* result, const float* left, const float* right);

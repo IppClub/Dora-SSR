@@ -330,6 +330,9 @@ bool Rect::intersectsRect(const Rect& rect) const {
 }
 
 // AffineTransform
+
+static_assert(alignof(AffineTransform) >= alignof(ktm::faffine2d), "alignof(AffineTransform) should be greater equal than alignof(ktm::faffine2d).");
+
 AffineTransform AffineTransform::Indentity = {1.0, 0.0, 0.0, 1.0, 0.0, 0.0};
 
 Vec2 AffineTransform::applyPoint(const Vec2& point) const {
@@ -395,6 +398,10 @@ void AffineTransform::toMatrix(float* m) const {
 	ktm::fmat4x4& mat = *r_cast<ktm::fmat4x4*>(m);
 	*r_cast<const ktm::faffine2d*>(this) >> mat;
 }
+
+static_assert(alignof(Matrix) >= alignof(ktm::fmat4x4), "alignof(Matrix) should be greater equal than alignof(ktm::fmat4x4).");
+
+static_assert(alignof(Vec4) >= alignof(ktm::fvec4), "alignof(Vec4) should be greater equal than alignof(ktm::fvec4).");
 
 const Matrix Matrix::Indentity = {
 	1, 0, 0, 0,
