@@ -453,8 +453,8 @@ void Spine::render() {
 				if (!isCulled) {
 					for (size_t j = 0, l = 0; j < 4; j++, l += 2) {
 						SpriteVertex& vertex = vertices[j];
-						SpriteVertex oldVert = vertex;
-						Matrix::mulVec4(&vertex.x, transform, &oldVert.x);
+						Vec4 oldVert{vertex.x, vertex.y, vertex.z, vertex.w};
+						Matrix::mulVec4(&vertex.x, transform, oldVert);
 						vertex.abgr = abgr;
 						vertex.u = region->getUVs()[l];
 						vertex.v = region->getUVs()[l + 1];
@@ -535,8 +535,8 @@ void Spine::render() {
 				if (!isCulled) {
 					for (size_t j = 0, l = 0; j < numVertices; j++, l += 2) {
 						SpriteVertex& vertex = vertices[j];
-						SpriteVertex oldVert = vertex;
-						Matrix::mulVec4(&vertex.x, transform, &oldVert.x);
+						Vec4 oldVert{vertex.x, vertex.y, vertex.z, vertex.w};
+						Matrix::mulVec4(&vertex.x, transform, oldVert);
 						vertex.abgr = abgr;
 						vertex.u = mesh->getUVs()[l];
 						vertex.v = mesh->getUVs()[l + 1];

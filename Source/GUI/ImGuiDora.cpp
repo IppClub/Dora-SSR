@@ -1028,7 +1028,7 @@ void ImGuiDora::showStats(bool* pOpen, const std::function<void()>& extra) {
 			} else {
 				ImGui::TextUnformatted(isDebugging ? "true" : "false");
 			}
-			if (ImGui::ColorEdit3(useChinese ? r_cast<const char*>(u8"主题色") : "Theme Color", themeColor, ImGuiColorEditFlags_DisplayHex)) {
+			if (ImGui::ColorEdit3(useChinese ? r_cast<const char*>(u8"主题色") : "Theme Color", &themeColor.x, ImGuiColorEditFlags_DisplayHex)) {
 				SharedApplication.setThemeColor(Color(themeColor));
 			}
 			static const char* languages[] = {

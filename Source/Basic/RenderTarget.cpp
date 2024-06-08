@@ -114,14 +114,14 @@ void RenderTarget::renderAfterClear(Node* target, bool clear, Color color, float
 				if (_camera) {
 					Matrix tmpVP;
 					Matrix revertY;
-					bx::mtxScale(revertY, 1.0f, -1.0f, 1.0f);
+					bx::mtxScale(revertY.m, 1.0f, -1.0f, 1.0f);
 					if (_camera->hasProjection())
 						tmpVP = _camera->getView();
 					else
 						Matrix::mulMtx(tmpVP, SharedView.getProjection(), _camera->getView());
 					Matrix::mulMtx(viewProj, revertY, tmpVP);
 				} else {
-					bx::mtxOrtho(viewProj, 0, s_cast<float>(_textureWidth), s_cast<float>(_textureHeight), 0, -1000.0f, 1000.0f, 0, bgfx::getCaps()->homogeneousDepth);
+					bx::mtxOrtho(viewProj.m, 0, s_cast<float>(_textureWidth), s_cast<float>(_textureHeight), 0, -1000.0f, 1000.0f, 0, bgfx::getCaps()->homogeneousDepth);
 				}
 				break;
 			}
@@ -132,13 +132,13 @@ void RenderTarget::renderAfterClear(Node* target, bool clear, Color color, float
 					else
 						Matrix::mulMtx(viewProj, SharedView.getProjection(), _camera->getView());
 				} else {
-					bx::mtxOrtho(viewProj, 0, s_cast<float>(_textureWidth), 0, s_cast<float>(_textureHeight), -1000.0f, 1000.0f, 0, bgfx::getCaps()->homogeneousDepth);
+					bx::mtxOrtho(viewProj.m, 0, s_cast<float>(_textureWidth), 0, s_cast<float>(_textureHeight), -1000.0f, 1000.0f, 0, bgfx::getCaps()->homogeneousDepth);
 				}
 				break;
 			}
 		}
 		SharedDirector.pushViewProjection(viewProj, [&]() {
-			bgfx::setViewTransform(viewId, nullptr, viewProj);
+			bgfx::setViewTransform(viewId, nullptr, viewProj.m);
 			_applyingStack.push(this);
 			renderOnly(target);
 			_applyingStack.pop();

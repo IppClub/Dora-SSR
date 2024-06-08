@@ -87,7 +87,7 @@ void CameraBasic::updateView() {
 		bx::Vec3 dest = bx::sub(_target, _position);
 		float distance = bx::length(dest);
 		if (distance == 0.0f) {
-			bx::mtxIdentity(_view);
+			bx::mtxIdentity(_view.m);
 		} else {
 			float rotateX = std::asin(dest.y / distance);
 			float rotateY = 0.0f;
@@ -95,10 +95,10 @@ void CameraBasic::updateView() {
 				rotateY = -std::atan(dest.z / dest.x);
 			}
 			Matrix transform;
-			bx::mtxRotateZYX(transform, rotateX, rotateY, -bx::toRad(_rotation));
-			bx::Vec3 up = bx::mul(bx::Vec3{0, 1.0f, 0}, transform);
+			bx::mtxRotateZYX(transform.m, rotateX, rotateY, -bx::toRad(_rotation));
+			bx::Vec3 up = bx::mul(bx::Vec3{0, 1.0f, 0}, transform.m);
 			_up = Vec3::from(bx::normalize(up));
-			bx::mtxLookAt(_view, _position, _target, _up);
+			bx::mtxLookAt(_view.m, _position, _target, _up);
 		}
 		Updated();
 	}
@@ -159,10 +159,10 @@ void Camera2D::updateView() {
 	if (_transformDirty) {
 		_transformDirty = false;
 		Matrix rotateZ;
-		bx::mtxRotateZ(rotateZ, -bx::toRad(_rotation));
-		bx::Vec3 up = bx::mul(bx::Vec3{0, 1.0f, 0}, rotateZ);
+		bx::mtxRotateZ(rotateZ.m, -bx::toRad(_rotation));
+		bx::Vec3 up = bx::mul(bx::Vec3{0, 1.0f, 0}, rotateZ.m);
 		_up = Vec3::from(bx::normalize(up));
-		bx::mtxLookAt(_view, _position, _target, _up);
+		bx::mtxLookAt(_view.m, _position, _target, _up);
 		Updated();
 	}
 }
@@ -189,11 +189,11 @@ const Matrix& CameraOtho::getView() {
 		_transformDirty = false;
 		Size viewSize = SharedView.getSize();
 		Matrix view;
-		bx::mtxOrtho(view, 0, viewSize.width, 0, viewSize.height, -1000.0f, 1000.0f, 0, bgfx::getCaps()->homogeneousDepth);
+		bx::mtxOrtho(view.m, 0, viewSize.width, 0, viewSize.height, -1000.0f, 1000.0f, 0, bgfx::getCaps()->homogeneousDepth);
 		if (_position.toVec2() != Vec2::zero) {
 			Matrix move;
 			Matrix temp = view;
-			bx::mtxTranslate(move, _position.x, _position.y, 0);
+			bx::mtxTranslate(move.m, _position.x, _position.y, 0);
 			Matrix::mulMtx(view, temp, move);
 		}
 		_view = view;
@@ -219,9 +219,9 @@ const Matrix& CameraUI::getView() {
 		_position.x = size.width / 2;
 		_position.y = size.height / 2;
 		Matrix move;
-		bx::mtxTranslate(move, _position.x, _position.y, 0);
+		bx::mtxTranslate(move.m, _position.x, _position.y, 0);
 		Matrix tmp;
-		bx::mtxOrtho(tmp, 0, size.width, 0, size.height, -1000.0f, 1000.0f, 0,
+		bx::mtxOrtho(tmp.m, 0, size.width, 0, size.height, -1000.0f, 1000.0f, 0,
 			bgfx::getCaps()->homogeneousDepth);
 		Matrix::mulMtx(_view, tmp, move);
 		Updated();
@@ -249,10 +249,10 @@ const Matrix& CameraUI3D::getView() {
 		const float farPlaneDistance = 10000.0f;
 		_position.z = -size.height * 0.5f / std::tan(bx::toRad(fieldOfView) * 0.5f);
 		Matrix view;
-		bx::mtxLookAt(view, _position, _target, _up);
+		bx::mtxLookAt(view.m, _position, _target, _up);
 		Matrix projection;
 		bx::mtxProj(
-			projection,
+			projection.m,
 			fieldOfView,
 			aspectRatio,
 			nearPlaneDistance,

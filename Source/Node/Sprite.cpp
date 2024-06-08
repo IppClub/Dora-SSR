@@ -287,10 +287,10 @@ void Sprite::render() {
 		_flags.setOff(Sprite::VertexPosDirty);
 		Matrix transform;
 		Matrix::mulMtx(transform, SharedDirector.getViewProjection(), _world);
-		Matrix::mulVec4(&_quad.rb.x, transform, &_quadPos.rb.x);
-		Matrix::mulVec4(&_quad.lb.x, transform, &_quadPos.lb.x);
-		Matrix::mulVec4(&_quad.lt.x, transform, &_quadPos.lt.x);
-		Matrix::mulVec4(&_quad.rt.x, transform, &_quadPos.rt.x);
+		Matrix::mulVec4(&_quad.rb.x, transform, _quadPos.rb);
+		Matrix::mulVec4(&_quad.lb.x, transform, _quadPos.lb);
+		Matrix::mulVec4(&_quad.lt.x, transform, _quadPos.lt);
+		Matrix::mulVec4(&_quad.rt.x, transform, _quadPos.rt);
 	}
 
 	_renderState = (BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | BGFX_STATE_ALPHA_REF(_alphaRef) | BGFX_STATE_MSAA | _blendFunc.toValue());

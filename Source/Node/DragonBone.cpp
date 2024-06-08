@@ -56,7 +56,7 @@ void DBSlotNode::render() {
 	Matrix transform;
 	Matrix::mulMtx(transform, SharedDirector.getViewProjection(), _matrix);
 	for (size_t i = 0; i < _points.size(); i++) {
-		Matrix::mulVec4(&_vertices[i].x, transform, &_points[i].x);
+		Matrix::mulVec4(&_vertices[i].x, transform, _points[i]);
 	}
 
 	auto parent = s_cast<DragonBone*>(getParent());

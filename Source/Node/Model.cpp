@@ -430,7 +430,7 @@ Vec2 Model::getKeyPoint(String name) const {
 	}
 	if (auto node = getNodeByName(name)) {
 		auto target = node->convertToWorldSpace(Vec2::zero);
-		Vec3 origin = Vec3::from(bx::mul(bx::Vec3{0.0f, 0.0f, 0.0f}, _world));
+		Vec3 origin = Vec3::from(bx::mul(bx::Vec3{0.0f, 0.0f, 0.0f}, _world.m));
 		return target - origin.toVec2();
 	}
 	return Vec2::zero;

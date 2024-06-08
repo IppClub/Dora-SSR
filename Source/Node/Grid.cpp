@@ -246,7 +246,7 @@ void Grid::render() {
 		Matrix transform;
 		Matrix::mulMtx(transform, SharedDirector.getViewProjection(), _world);
 		for (size_t i = 0; i < _points.size(); i++) {
-			Matrix::mulVec4(&_vertices[i].x, transform, &_points[i].position.x);
+			Matrix::mulVec4(&_vertices[i].x, transform, _points[i].position);
 		}
 	}
 

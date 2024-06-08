@@ -823,14 +823,14 @@ bool VSliderInt(const char* label, const Vec2& size, int* v, int v_min, int v_ma
 
 bool ColorEdit3(const char* label, Color3* color3, Slice* colorEditFlags, int colorEditFlagCount) {
 	Vec3 vec3 = color3->toVec3();
-	bool changed = ImGui::ColorEdit3(label, vec3, ColorEditFlags(colorEditFlags, colorEditFlagCount));
+	bool changed = ImGui::ColorEdit3(label, &vec3.x, ColorEditFlags(colorEditFlags, colorEditFlagCount));
 	*color3 = vec3;
 	return changed;
 }
 
 bool ColorEdit4(const char* label, Color* color, Slice* colorEditFlags, int colorEditFlagCount) {
 	Vec4 vec4 = color->toVec4();
-	bool changed = ImGui::ColorEdit4(label, vec4, ColorEditFlags(colorEditFlags, colorEditFlagCount));
+	bool changed = ImGui::ColorEdit4(label, &vec4.x, ColorEditFlags(colorEditFlags, colorEditFlagCount));
 	*color = vec4;
 	return changed;
 }
@@ -1407,7 +1407,7 @@ bool ColorEdit3(
 	CallStack* stack,
 	uint32_t colorEditFlags) {
 	auto color3 = Color3{s_cast<uint32_t>(std::get<int64_t>(stack->pop()))}.toVec3();
-	bool changed = ImGui::ColorEdit3(label.c_str(), color3, colorEditFlags);
+	bool changed = ImGui::ColorEdit3(label.c_str(), &color3.x, colorEditFlags);
 	stack->push(s_cast<int64_t>(Color3(color3).toRGB()));
 	return changed;
 }
@@ -1417,7 +1417,7 @@ bool ColorEdit4(
 	CallStack* stack,
 	uint32_t colorEditFlags) {
 	auto color = Color{s_cast<uint32_t>(std::get<int64_t>(stack->pop()))}.toVec4();
-	bool changed = ImGui::ColorEdit4(label.c_str(), color, colorEditFlags);
+	bool changed = ImGui::ColorEdit4(label.c_str(), &color.x, colorEditFlags);
 	stack->push(s_cast<int64_t>(Color(color).toARGB()));
 	return changed;
 }
