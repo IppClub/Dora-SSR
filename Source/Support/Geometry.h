@@ -94,7 +94,7 @@ struct Rect {
 	static const Rect zero;
 };
 
-class Matrix;
+struct Matrix;
 
 struct alignas(16) AffineTransform {
 	float a, b, c, d;

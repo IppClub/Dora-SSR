@@ -37,6 +37,7 @@ THE OPEN SOURCE SOFTWARE IN THIS PRODUCT IS DISTRIBUTED IN THE HOPE THAT IT WILL
 - [Yard](https://sourceforge.net/projects/yard-parser): [Public Domain](https://sourceforge.net/projects/yard-parser)
 - [Yuescript](https://github.com/pigpigyyy/Yuescript): [MIT License](Source/3rdParty/yuescript/LICENSE)
 - [richgel999/miniz](https://github.com/richgel999/miniz): [MIT License](Source/3rdParty/Zip/LICENSE-miniz)
+- [zlib](https://www.zlib.net): [zlib License](Source/3rdParty/Zip/zlib/LICENSE)
 - [concurrentqueue](https://github.com/cameron314/concurrentqueue): [BSD-2 License](Source/3rdParty/Other/LICENSE-concurrentqueue)
 - [utf8](http://bjoern.hoehrmann.de/utf-8/decoder/dfa): [MIT License](http://bjoern.hoehrmann.de/utf-8/decoder/dfa)
 - [septbr/xlsxtext](https://github.com/septbr/xlsxtext): [MIT License](Source/3rdParty/Other/LICENSE-xlsxtext)

@@ -226,9 +226,6 @@
     <Filter Include="3rdParty\playrho\detail">
       <UniqueIdentifier>{e7437292-101d-41c1-bbef-7c426fbc0365}</UniqueIdentifier>
     </Filter>
-    <Filter Include="3rdParty\zlib">
-      <UniqueIdentifier>{df4b410f-b909-4d7a-b7b8-7f7d2643ca81}</UniqueIdentifier>
-    </Filter>
     <Filter Include="3rdParty\yoga">
       <UniqueIdentifier>{584d53c5-9bd1-41e1-bfd7-4a4500917b9d}</UniqueIdentifier>
     </Filter>
@@ -318,6 +315,9 @@
     </Filter>
     <Filter Include="3rdParty\Effekseer\3rdParty\stb_effekseer">
       <UniqueIdentifier>{65f9d15f-a845-4914-a3d9-a67e55466575}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\Zip\zlib">
+      <UniqueIdentifier>{df4b410f-b909-4d7a-b7b8-7f7d2643ca81}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -1359,48 +1359,6 @@
     <ClCompile Include="..\..\..\Source\Lua\Xml\DoraTag.cpp">
       <Filter>Lua\Xml</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\zlib\adler32.c">
-      <Filter>3rdParty\zlib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\zlib\compress.c">
-      <Filter>3rdParty\zlib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\zlib\crc32.c">
-      <Filter>3rdParty\zlib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\zlib\deflate.c">
-      <Filter>3rdParty\zlib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\zlib\gzclose.c">
-      <Filter>3rdParty\zlib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\zlib\gzlib.c">
-      <Filter>3rdParty\zlib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\zlib\gzread.c">
-      <Filter>3rdParty\zlib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\zlib\gzwrite.c">
-      <Filter>3rdParty\zlib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\zlib\inffast.c">
-      <Filter>3rdParty\zlib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\zlib\inflate.c">
-      <Filter>3rdParty\zlib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\zlib\inftrees.c">
-      <Filter>3rdParty\zlib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\zlib\trees.c">
-      <Filter>3rdParty\zlib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\zlib\uncompr.c">
-      <Filter>3rdParty\zlib</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\zlib\zutil.c">
-      <Filter>3rdParty\zlib</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\yoga\YGConfig.cpp">
       <Filter>3rdParty\yoga</Filter>
     </ClCompile>
@@ -1889,6 +1847,48 @@
     </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\spine\VertexAttachment.cpp">
       <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Zip\zlib\adler32.c">
+      <Filter>3rdParty\Zip\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Zip\zlib\compress.c">
+      <Filter>3rdParty\Zip\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Zip\zlib\crc32.c">
+      <Filter>3rdParty\Zip\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Zip\zlib\deflate.c">
+      <Filter>3rdParty\Zip\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Zip\zlib\gzclose.c">
+      <Filter>3rdParty\Zip\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Zip\zlib\gzlib.c">
+      <Filter>3rdParty\Zip\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Zip\zlib\gzread.c">
+      <Filter>3rdParty\Zip\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Zip\zlib\gzwrite.c">
+      <Filter>3rdParty\Zip\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Zip\zlib\inffast.c">
+      <Filter>3rdParty\Zip\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Zip\zlib\inflate.c">
+      <Filter>3rdParty\Zip\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Zip\zlib\inftrees.c">
+      <Filter>3rdParty\Zip\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Zip\zlib\trees.c">
+      <Filter>3rdParty\Zip\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Zip\zlib\uncompr.c">
+      <Filter>3rdParty\Zip\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Zip\zlib\zutil.c">
+      <Filter>3rdParty\Zip\zlib</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -3273,39 +3273,6 @@
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\ShapeFunction.hpp">
       <Filter>3rdParty\playrho</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\zlib\crc32.h">
-      <Filter>3rdParty\zlib</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\zlib\deflate.h">
-      <Filter>3rdParty\zlib</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\zlib\gzguts.h">
-      <Filter>3rdParty\zlib</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\zlib\inffast.h">
-      <Filter>3rdParty\zlib</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\zlib\inffixed.h">
-      <Filter>3rdParty\zlib</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\zlib\inflate.h">
-      <Filter>3rdParty\zlib</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\zlib\inftrees.h">
-      <Filter>3rdParty\zlib</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\zlib\trees.h">
-      <Filter>3rdParty\zlib</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\zlib\zconf.h">
-      <Filter>3rdParty\zlib</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\zlib\zlib.h">
-      <Filter>3rdParty\zlib</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\zlib\zutil.h">
-      <Filter>3rdParty\zlib</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\yoga\YGConfig.h">
       <Filter>3rdParty\yoga</Filter>
     </ClInclude>
@@ -4196,6 +4163,39 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\fmt\xchar.h">
       <Filter>3rdParty\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Zip\zlib\crc32.h">
+      <Filter>3rdParty\Zip\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Zip\zlib\deflate.h">
+      <Filter>3rdParty\Zip\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Zip\zlib\gzguts.h">
+      <Filter>3rdParty\Zip\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Zip\zlib\inffast.h">
+      <Filter>3rdParty\Zip\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Zip\zlib\inffixed.h">
+      <Filter>3rdParty\Zip\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Zip\zlib\inflate.h">
+      <Filter>3rdParty\Zip\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Zip\zlib\inftrees.h">
+      <Filter>3rdParty\Zip\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Zip\zlib\trees.h">
+      <Filter>3rdParty\Zip\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Zip\zlib\zconf.h">
+      <Filter>3rdParty\Zip\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Zip\zlib\zlib.h">
+      <Filter>3rdParty\Zip\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Zip\zlib\zutil.h">
+      <Filter>3rdParty\Zip\zlib</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
