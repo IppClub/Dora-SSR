@@ -24,7 +24,7 @@ include_directories(
 	../../Source/3rdParty/dragonBones
 	../../Source/3rdParty/wasm3
 	../../Source/3rdParty/asio
-	../../Source/3rdParty/zlib
+	../../Source/3rdParty/Zip/zlib
 	../../Source/3rdParty/Effekseer
 )
 
@@ -478,20 +478,20 @@ add_executable(dora-ssr
 	../../Source/3rdParty/playrho/d2/DistanceConf.cpp
 	../../Source/3rdParty/playrho/d2/PointStates.cpp
 	../../Source/3rdParty/playrho/d2/part/Compositor.cpp
-	../../Source/3rdParty/zlib/inflate.c
-	../../Source/3rdParty/zlib/compress.c
-	../../Source/3rdParty/zlib/deflate.c
-	../../Source/3rdParty/zlib/gzread.c
-	../../Source/3rdParty/zlib/crc32.c
-	../../Source/3rdParty/zlib/zutil.c
-	../../Source/3rdParty/zlib/gzlib.c
-	../../Source/3rdParty/zlib/inftrees.c
-	../../Source/3rdParty/zlib/uncompr.c
-	../../Source/3rdParty/zlib/gzwrite.c
-	../../Source/3rdParty/zlib/trees.c
-	../../Source/3rdParty/zlib/gzclose.c
-	../../Source/3rdParty/zlib/inffast.c
-	../../Source/3rdParty/zlib/adler32.c
+	../../Source/3rdParty/Zip/zlib/inflate.c
+	../../Source/3rdParty/Zip/zlib/compress.c
+	../../Source/3rdParty/Zip/zlib/deflate.c
+	../../Source/3rdParty/Zip/zlib/gzread.c
+	../../Source/3rdParty/Zip/zlib/crc32.c
+	../../Source/3rdParty/Zip/zlib/zutil.c
+	../../Source/3rdParty/Zip/zlib/gzlib.c
+	../../Source/3rdParty/Zip/zlib/inftrees.c
+	../../Source/3rdParty/Zip/zlib/uncompr.c
+	../../Source/3rdParty/Zip/zlib/gzwrite.c
+	../../Source/3rdParty/Zip/zlib/trees.c
+	../../Source/3rdParty/Zip/zlib/gzclose.c
+	../../Source/3rdParty/Zip/zlib/inffast.c
+	../../Source/3rdParty/Zip/zlib/adler32.c
 	../../Source/3rdParty/yoga/YGNodeStyle.cpp
 	../../Source/3rdParty/yoga/YGPixelGrid.cpp
 	../../Source/3rdParty/yoga/YGEnums.cpp
