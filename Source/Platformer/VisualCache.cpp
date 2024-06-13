@@ -123,16 +123,16 @@ const std::string& VisualCache::getFileByName(String name) {
 	return Slice::Empty;
 }
 
-void VisualCache::xmlSAX2Text(const char* s, size_t len) { }
+void VisualCache::xmlSAX2Text(std::string_view text) { }
 
-void VisualCache::xmlSAX2StartElement(const char* name, size_t len, const std::vector<AttrSlice>& attrs) {
+void VisualCache::xmlSAX2StartElement(std::string_view name, const std::vector<std::string_view>& attrs) {
 	switch (Xml::Visual::Element(name[0])) {
 		case Xml::Visual::Element::Dorothy:
 			break;
 		case Xml::Visual::Element::Visual: {
 			std::string name, file;
-			for (int i = 0; attrs[i].first != nullptr; i++) {
-				switch (Xml::Visual::Visual(attrs[i].first[0])) {
+			for (int i = 0; !attrs[i].empty(); i++) {
+				switch (Xml::Visual::Visual(attrs[i][0])) {
 					case Xml::Visual::Visual::Name:
 						name = Slice(attrs[++i]).toString();
 						break;
@@ -146,7 +146,7 @@ void VisualCache::xmlSAX2StartElement(const char* name, size_t len, const std::v
 	}
 }
 
-void VisualCache::xmlSAX2EndElement(const char* name, size_t len) { }
+void VisualCache::xmlSAX2EndElement(std::string_view name) { }
 
 // ParticleVisual
 

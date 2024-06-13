@@ -143,10 +143,7 @@
 		3C2F9C8A1E7B114B00B98D39 /* ModelDef.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C2F9C881E7B114B00B98D39 /* ModelDef.cpp */; };
 		3C2F9C8E1E7B132600B98D39 /* ClipCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C2F9C8C1E7B132600B98D39 /* ClipCache.cpp */; };
 		3C3598321E1254D600E62C16 /* Async.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C3598301E1254D600E62C16 /* Async.cpp */; };
-		3C3A5E1124D9A3D000E59288 /* Particle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C3A5E0F24D9A3CF00E59288 /* Particle.cpp */; };
-		3C3A5E1424D9BBBF00E59288 /* Constraint.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C3A5E1324D9BBBF00E59288 /* Constraint.cpp */; };
-		3C3A5E1A24DA4BB900E59288 /* World.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C3A5E1824DA4BB900E59288 /* World.cpp */; };
-		3C3A5E1D24DA5E1700E59288 /* SoftNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C3A5E1C24DA5E1700E59288 /* SoftNode.cpp */; };
+		3C361E1C2C1A94A50079B68B /* TMX in Resources */ = {isa = PBXBuildFile; fileRef = 3C361E1B2C1A94A50079B68B /* TMX */; };
 		3C40555020FD92CC0057B0E4 /* Face.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C40554F20FD92CC0057B0E4 /* Face.cpp */; };
 		3C40555320FD93AA0057B0E4 /* Define.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C40555220FD93A90057B0E4 /* Define.cpp */; };
 		3C40555920FD95710057B0E4 /* BulletDef.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C40555520FD95710057B0E4 /* BulletDef.cpp */; };
@@ -467,6 +464,19 @@
 		3CC15D992C17E2A7004763E7 /* trees.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CC15D852C17E2A7004763E7 /* trees.c */; };
 		3CC15D9A2C17E2A7004763E7 /* uncompr.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CC15D872C17E2A7004763E7 /* uncompr.c */; };
 		3CC15D9B2C17E2A7004763E7 /* zutil.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CC15D8A2C17E2A7004763E7 /* zutil.c */; };
+		3CC15DF62C1944DC004763E7 /* TileNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CC15DF42C1944DB004763E7 /* TileNode.cpp */; };
+		3CC15E242C199049004763E7 /* LayerGroup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CC15E062C199048004763E7 /* LayerGroup.cpp */; };
+		3CC15E252C199049004763E7 /* Property.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CC15E072C199048004763E7 /* Property.cpp */; };
+		3CC15E262C199049004763E7 /* pugixml.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CC15E0B2C199048004763E7 /* pugixml.cpp */; };
+		3CC15E282C199049004763E7 /* Tileset.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CC15E112C199048004763E7 /* Tileset.cpp */; };
+		3CC15E292C199049004763E7 /* FreeFuncs.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CC15E122C199048004763E7 /* FreeFuncs.cpp */; };
+		3CC15E2A2C199049004763E7 /* ImageLayer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CC15E162C199048004763E7 /* ImageLayer.cpp */; };
+		3CC15E2B2C199049004763E7 /* ObjectGroup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CC15E192C199048004763E7 /* ObjectGroup.cpp */; };
+		3CC15E2C2C199049004763E7 /* ObjectTypes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CC15E1B2C199048004763E7 /* ObjectTypes.cpp */; };
+		3CC15E2D2C199049004763E7 /* TileLayer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CC15E1E2C199049004763E7 /* TileLayer.cpp */; };
+		3CC15E2E2C199049004763E7 /* Map.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CC15E222C199049004763E7 /* Map.cpp */; };
+		3CC15E2F2C199049004763E7 /* Object.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CC15E232C199049004763E7 /* Object.cpp */; };
+		3CC15E322C19A1D0004763E7 /* TMXCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CC15E312C19A1D0004763E7 /* TMXCache.cpp */; };
 		3CC54EA21E03CA6C00462FD7 /* Slice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CC54EA01E03CA6C00462FD7 /* Slice.cpp */; };
 		3CC7945D2579F9B000042394 /* parser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CC794512579F9AF00042394 /* parser.cpp */; };
 		3CC7945E2579F9B000042394 /* ast.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CC794522579F9AF00042394 /* ast.cpp */; };
@@ -916,14 +926,7 @@
 		3C31CB9D1E02293E00A8079D /* Debug.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Debug.h; path = ../../../Source/Common/Debug.h; sourceTree = "<group>"; };
 		3C3598301E1254D600E62C16 /* Async.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Async.cpp; path = ../../../Source/Common/Async.cpp; sourceTree = "<group>"; };
 		3C3598311E1254D600E62C16 /* Async.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Async.h; path = ../../../Source/Common/Async.h; sourceTree = "<group>"; };
-		3C3A5E0F24D9A3CF00E59288 /* Particle.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Particle.cpp; path = ../../../Source/Physics/Soft/Particle.cpp; sourceTree = "<group>"; };
-		3C3A5E1024D9A3D000E59288 /* Particle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Particle.h; path = ../../../Source/Physics/Soft/Particle.h; sourceTree = "<group>"; };
-		3C3A5E1224D9BBBE00E59288 /* Constraint.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Constraint.h; path = ../../../Source/Physics/Soft/Constraint.h; sourceTree = "<group>"; };
-		3C3A5E1324D9BBBF00E59288 /* Constraint.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Constraint.cpp; path = ../../../Source/Physics/Soft/Constraint.cpp; sourceTree = "<group>"; };
-		3C3A5E1824DA4BB900E59288 /* World.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = World.cpp; path = ../../../Source/Physics/Soft/World.cpp; sourceTree = "<group>"; };
-		3C3A5E1924DA4BB900E59288 /* World.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = World.h; path = ../../../Source/Physics/Soft/World.h; sourceTree = "<group>"; };
-		3C3A5E1B24DA5E1700E59288 /* SoftNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SoftNode.h; path = ../../../Source/Node/SoftNode.h; sourceTree = "<group>"; };
-		3C3A5E1C24DA5E1700E59288 /* SoftNode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SoftNode.cpp; path = ../../../Source/Node/SoftNode.cpp; sourceTree = "<group>"; };
+		3C361E1B2C1A94A50079B68B /* TMX */ = {isa = PBXFileReference; lastKnownFileType = folder; path = TMX; sourceTree = "<group>"; };
 		3C40554E20FD92CB0057B0E4 /* Face.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Face.h; path = ../../../Source/Platformer/Face.h; sourceTree = "<group>"; };
 		3C40554F20FD92CC0057B0E4 /* Face.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Face.cpp; path = ../../../Source/Platformer/Face.cpp; sourceTree = "<group>"; };
 		3C40555120FD93A90057B0E4 /* Define.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Define.h; path = ../../../Source/Platformer/Define.h; sourceTree = "<group>"; };
@@ -1702,6 +1705,38 @@
 		3CC15D892C17E2A7004763E7 /* zlib.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = zlib.h; sourceTree = "<group>"; };
 		3CC15D8A2C17E2A7004763E7 /* zutil.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = zutil.c; sourceTree = "<group>"; };
 		3CC15D8B2C17E2A7004763E7 /* zutil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = zutil.h; sourceTree = "<group>"; };
+		3CC15DF42C1944DB004763E7 /* TileNode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TileNode.cpp; path = ../../../Source/Node/TileNode.cpp; sourceTree = "<group>"; };
+		3CC15DF52C1944DC004763E7 /* TileNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TileNode.h; path = ../../../Source/Node/TileNode.h; sourceTree = "<group>"; };
+		3CC15E062C199048004763E7 /* LayerGroup.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LayerGroup.cpp; path = ../../../Source/3rdParty/tmxlite/LayerGroup.cpp; sourceTree = "<group>"; };
+		3CC15E072C199048004763E7 /* Property.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Property.cpp; path = ../../../Source/3rdParty/tmxlite/Property.cpp; sourceTree = "<group>"; };
+		3CC15E082C199048004763E7 /* Android.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Android.hpp; sourceTree = "<group>"; };
+		3CC15E092C199048004763E7 /* Log.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Log.hpp; sourceTree = "<group>"; };
+		3CC15E0A2C199048004763E7 /* pugiconfig.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = pugiconfig.hpp; sourceTree = "<group>"; };
+		3CC15E0B2C199048004763E7 /* pugixml.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pugixml.cpp; sourceTree = "<group>"; };
+		3CC15E0C2C199048004763E7 /* pugixml.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = pugixml.hpp; sourceTree = "<group>"; };
+		3CC15E0F2C199048004763E7 /* LayerGroup.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = LayerGroup.hpp; path = ../../../Source/3rdParty/tmxlite/LayerGroup.hpp; sourceTree = "<group>"; };
+		3CC15E102C199048004763E7 /* ObjectTypes.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = ObjectTypes.hpp; path = ../../../Source/3rdParty/tmxlite/ObjectTypes.hpp; sourceTree = "<group>"; };
+		3CC15E112C199048004763E7 /* Tileset.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Tileset.cpp; path = ../../../Source/3rdParty/tmxlite/Tileset.cpp; sourceTree = "<group>"; };
+		3CC15E122C199048004763E7 /* FreeFuncs.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = FreeFuncs.cpp; path = ../../../Source/3rdParty/tmxlite/FreeFuncs.cpp; sourceTree = "<group>"; };
+		3CC15E132C199048004763E7 /* FreeFuncs.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = FreeFuncs.hpp; path = ../../../Source/3rdParty/tmxlite/FreeFuncs.hpp; sourceTree = "<group>"; };
+		3CC15E142C199048004763E7 /* ImageLayer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = ImageLayer.hpp; path = ../../../Source/3rdParty/tmxlite/ImageLayer.hpp; sourceTree = "<group>"; };
+		3CC15E152C199048004763E7 /* Map.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Map.hpp; path = ../../../Source/3rdParty/tmxlite/Map.hpp; sourceTree = "<group>"; };
+		3CC15E162C199048004763E7 /* ImageLayer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ImageLayer.cpp; path = ../../../Source/3rdParty/tmxlite/ImageLayer.cpp; sourceTree = "<group>"; };
+		3CC15E172C199048004763E7 /* Config.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Config.hpp; path = ../../../Source/3rdParty/tmxlite/Config.hpp; sourceTree = "<group>"; };
+		3CC15E182C199048004763E7 /* Object.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Object.hpp; path = ../../../Source/3rdParty/tmxlite/Object.hpp; sourceTree = "<group>"; };
+		3CC15E192C199048004763E7 /* ObjectGroup.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ObjectGroup.cpp; path = ../../../Source/3rdParty/tmxlite/ObjectGroup.cpp; sourceTree = "<group>"; };
+		3CC15E1A2C199048004763E7 /* ObjectGroup.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = ObjectGroup.hpp; path = ../../../Source/3rdParty/tmxlite/ObjectGroup.hpp; sourceTree = "<group>"; };
+		3CC15E1B2C199048004763E7 /* ObjectTypes.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ObjectTypes.cpp; path = ../../../Source/3rdParty/tmxlite/ObjectTypes.cpp; sourceTree = "<group>"; };
+		3CC15E1C2C199048004763E7 /* Property.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Property.hpp; path = ../../../Source/3rdParty/tmxlite/Property.hpp; sourceTree = "<group>"; };
+		3CC15E1D2C199049004763E7 /* Layer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Layer.hpp; path = ../../../Source/3rdParty/tmxlite/Layer.hpp; sourceTree = "<group>"; };
+		3CC15E1E2C199049004763E7 /* TileLayer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TileLayer.cpp; path = ../../../Source/3rdParty/tmxlite/TileLayer.cpp; sourceTree = "<group>"; };
+		3CC15E1F2C199049004763E7 /* Tileset.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Tileset.hpp; path = ../../../Source/3rdParty/tmxlite/Tileset.hpp; sourceTree = "<group>"; };
+		3CC15E202C199049004763E7 /* TileLayer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = TileLayer.hpp; path = ../../../Source/3rdParty/tmxlite/TileLayer.hpp; sourceTree = "<group>"; };
+		3CC15E212C199049004763E7 /* Types.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Types.hpp; path = ../../../Source/3rdParty/tmxlite/Types.hpp; sourceTree = "<group>"; };
+		3CC15E222C199049004763E7 /* Map.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Map.cpp; path = ../../../Source/3rdParty/tmxlite/Map.cpp; sourceTree = "<group>"; };
+		3CC15E232C199049004763E7 /* Object.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Object.cpp; path = ../../../Source/3rdParty/tmxlite/Object.cpp; sourceTree = "<group>"; };
+		3CC15E302C19A1CF004763E7 /* TMXCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TMXCache.h; path = ../../../Source/Cache/TMXCache.h; sourceTree = "<group>"; };
+		3CC15E312C19A1D0004763E7 /* TMXCache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TMXCache.cpp; path = ../../../Source/Cache/TMXCache.cpp; sourceTree = "<group>"; };
 		3CC54E5F1E039E2800462FD7 /* AcfDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AcfDelegate.h; path = ../../../Source/3rdParty/Other/AcfDelegate.h; sourceTree = "<group>"; };
 		3CC54EA01E03CA6C00462FD7 /* Slice.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Slice.cpp; path = ../../../Source/3rdParty/silly/Slice.cpp; sourceTree = "<group>"; };
 		3CC54EA11E03CA6C00462FD7 /* Slice.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Slice.h; path = ../../../Source/3rdParty/silly/Slice.h; sourceTree = "<group>"; };
@@ -1970,6 +2005,7 @@
 			children = (
 				3CE994632AFA43680073A973 /* gamecontrollerdb.txt */,
 				3CA780A02AEB82B100B7BADA /* LICENSES */,
+				3C361E1B2C1A94A50079B68B /* TMX */,
 				3C60DE122A2069CE007D7865 /* Doc */,
 				3CA8DF0C2A0CE6FD0022CC90 /* www */,
 				3C0C774A27573F350030BDCD /* Data */,
@@ -2667,6 +2703,7 @@
 		3C291D371E0264510098C860 /* 3rdParty */ = {
 			isa = PBXGroup;
 			children = (
+				3CC15E052C19902A004763E7 /* tmxlite */,
 				3C0FB33A2BEEF0230098E88D /* Effekseer */,
 				3C53E9362BE8CF1100039640 /* yoga */,
 				3C5399E92998BACF00E9125C /* colib */,
@@ -3562,22 +3599,11 @@
 			name = Support;
 			sourceTree = "<group>";
 		};
-		3CB9ED9E24D412C10082989F /* Soft */ = {
-			isa = PBXGroup;
-			children = (
-				3C3A5E1824DA4BB900E59288 /* World.cpp */,
-				3C3A5E1924DA4BB900E59288 /* World.h */,
-				3C3A5E1324D9BBBF00E59288 /* Constraint.cpp */,
-				3C3A5E1224D9BBBE00E59288 /* Constraint.h */,
-				3C3A5E0F24D9A3CF00E59288 /* Particle.cpp */,
-				3C3A5E1024D9A3D000E59288 /* Particle.h */,
-			);
-			name = Soft;
-			sourceTree = "<group>";
-		};
 		3CC0986B1E2630D5006F4B76 /* Cache */ = {
 			isa = PBXGroup;
 			children = (
+				3CC15E312C19A1D0004763E7 /* TMXCache.cpp */,
+				3CC15E302C19A1CF004763E7 /* TMXCache.h */,
 				3C47CF1028A356B40011F3E1 /* Cache.cpp */,
 				3C47CF0F28A356B30011F3E1 /* Cache.h */,
 				3CFEBDA1268DB403006D9974 /* DragonBoneCache.cpp */,
@@ -3638,6 +3664,50 @@
 			);
 			name = zlib;
 			path = ../../../Source/3rdParty/Zip/zlib;
+			sourceTree = "<group>";
+		};
+		3CC15E052C19902A004763E7 /* tmxlite */ = {
+			isa = PBXGroup;
+			children = (
+				3CC15E172C199048004763E7 /* Config.hpp */,
+				3CC15E0E2C199048004763E7 /* detail */,
+				3CC15E122C199048004763E7 /* FreeFuncs.cpp */,
+				3CC15E132C199048004763E7 /* FreeFuncs.hpp */,
+				3CC15E162C199048004763E7 /* ImageLayer.cpp */,
+				3CC15E142C199048004763E7 /* ImageLayer.hpp */,
+				3CC15E1D2C199049004763E7 /* Layer.hpp */,
+				3CC15E062C199048004763E7 /* LayerGroup.cpp */,
+				3CC15E0F2C199048004763E7 /* LayerGroup.hpp */,
+				3CC15E222C199049004763E7 /* Map.cpp */,
+				3CC15E152C199048004763E7 /* Map.hpp */,
+				3CC15E232C199049004763E7 /* Object.cpp */,
+				3CC15E182C199048004763E7 /* Object.hpp */,
+				3CC15E192C199048004763E7 /* ObjectGroup.cpp */,
+				3CC15E1A2C199048004763E7 /* ObjectGroup.hpp */,
+				3CC15E1B2C199048004763E7 /* ObjectTypes.cpp */,
+				3CC15E102C199048004763E7 /* ObjectTypes.hpp */,
+				3CC15E072C199048004763E7 /* Property.cpp */,
+				3CC15E1C2C199048004763E7 /* Property.hpp */,
+				3CC15E1E2C199049004763E7 /* TileLayer.cpp */,
+				3CC15E202C199049004763E7 /* TileLayer.hpp */,
+				3CC15E112C199048004763E7 /* Tileset.cpp */,
+				3CC15E1F2C199049004763E7 /* Tileset.hpp */,
+				3CC15E212C199049004763E7 /* Types.hpp */,
+			);
+			name = tmxlite;
+			sourceTree = "<group>";
+		};
+		3CC15E0E2C199048004763E7 /* detail */ = {
+			isa = PBXGroup;
+			children = (
+				3CC15E082C199048004763E7 /* Android.hpp */,
+				3CC15E092C199048004763E7 /* Log.hpp */,
+				3CC15E0A2C199048004763E7 /* pugiconfig.hpp */,
+				3CC15E0B2C199048004763E7 /* pugixml.cpp */,
+				3CC15E0C2C199048004763E7 /* pugixml.hpp */,
+			);
+			name = detail;
+			path = ../../../Source/3rdParty/tmxlite/detail;
 			sourceTree = "<group>";
 		};
 		3CC54E5E1E039E1300462FD7 /* Other */ = {
@@ -3752,6 +3822,8 @@
 		3CCBBA381E14B50B00C0416B /* Node */ = {
 			isa = PBXGroup;
 			children = (
+				3CC15DF42C1944DB004763E7 /* TileNode.cpp */,
+				3CC15DF52C1944DC004763E7 /* TileNode.h */,
 				3C0FB5842BEEFCF60098E88D /* EffekNode.cpp */,
 				3C0FB5832BEEFCF60098E88D /* EffekNode.h */,
 				3C53E94A2BE9C77D00039640 /* AlignNode.cpp */,
@@ -3764,8 +3836,6 @@
 				3CC05B631E71229A00F2BA1B /* DrawNode.h */,
 				3C28C09E2771D846007FC76E /* Grid.cpp */,
 				3C28C09D2771D846007FC76E /* Grid.h */,
-				3C3A5E1C24DA5E1700E59288 /* SoftNode.cpp */,
-				3C3A5E1B24DA5E1700E59288 /* SoftNode.h */,
 				3C65B5B41EC010CA0039DA1D /* Menu.cpp */,
 				3C65B5B51EC010CA0039DA1D /* Menu.h */,
 				3C0044E91E6682A000369672 /* Particle.cpp */,
@@ -3836,7 +3906,6 @@
 		3CE9D7C31E7FC073003AAECB /* Physics */ = {
 			isa = PBXGroup;
 			children = (
-				3CB9ED9E24D412C10082989F /* Soft */,
 				3CE9D7FE1E7FF7A7003AAECB /* DebugDraw.cpp */,
 				3CE9D7FF1E7FF7A7003AAECB /* DebugDraw.h */,
 				3CE9D7E81E7FC2A6003AAECB /* Body.cpp */,
@@ -4233,6 +4302,7 @@
 				3CA8DF0D2A0CE6FD0022CC90 /* www in Resources */,
 				3CBC784F24CE7528003C9E83 /* Particle in Resources */,
 				3C0C774B27573F350030BDCD /* Data in Resources */,
+				3C361E1C2C1A94A50079B68B /* TMX in Resources */,
 				3CA780A12AEB82B100B7BADA /* LICENSES in Resources */,
 				3CBC784C24CE7528003C9E83 /* Audio in Resources */,
 				3CFEBDAB268EFC62006D9974 /* DragonBones in Resources */,
@@ -4310,6 +4380,7 @@
 				3CFEBD74268DA6E4006D9974 /* BaseTimelineState.cpp in Sources */,
 				3CFEA125285B857B002D106F /* m3_api_libc.c in Sources */,
 				3C0FB56E2BEEF20D0098E88D /* Effekseer.EffectNodeSprite.cpp in Sources */,
+				3CC15E2D2C199049004763E7 /* TileLayer.cpp in Sources */,
 				3CC15D912C17E2A7004763E7 /* gzclose.c in Sources */,
 				3C46E8612614227300DC9D4F /* Object.cpp in Sources */,
 				3C0FB55D2BEEF20D0098E88D /* Rotation.cpp in Sources */,
@@ -4360,7 +4431,6 @@
 				3C6E7F0E272A30E700E9F115 /* soloud_flangerfilter.cpp in Sources */,
 				3C4B3C3C2C06CCA000D778FC /* SkeletonBinary.cpp in Sources */,
 				3CE9D7F61E7FC2A6003AAECB /* Joint.cpp in Sources */,
-				3C3A5E1424D9BBBF00E59288 /* Constraint.cpp in Sources */,
 				3C0FB54A2BEEF20D0098E88D /* Effekseer.MaterialCompiler.cpp in Sources */,
 				3CFEB83E268DA64B006D9974 /* DataParser.cpp in Sources */,
 				3C0FB47D2BEEF0DA0098E88D /* VertexBuffer.cpp in Sources */,
@@ -4372,6 +4442,7 @@
 				3C1D40EC2702FC8A00202534 /* TealCompiler.cpp in Sources */,
 				3CE9D7F71E7FC2A6003AAECB /* JointDef.cpp in Sources */,
 				3CFEA120285B857B002D106F /* m3_bind.c in Sources */,
+				3CC15E2F2C199049004763E7 /* Object.cpp in Sources */,
 				3C0FB5682BEEF20D0098E88D /* Effekseer.Effect.cpp in Sources */,
 				3CC15D962C17E2A7004763E7 /* inflate.c in Sources */,
 				3C1A3B02272A850F003A2829 /* linit.c in Sources */,
@@ -4410,6 +4481,7 @@
 				3C4B3C012C06CCA000D778FC /* SkeletonJson.cpp in Sources */,
 				3CA77F0B2AE665C100B7BADA /* PrismaticJointConf.cpp in Sources */,
 				3C2F9C8E1E7B132600B98D39 /* ClipCache.cpp in Sources */,
+				3CC15E282C199049004763E7 /* Tileset.cpp in Sources */,
 				3C3598321E1254D600E62C16 /* Async.cpp in Sources */,
 				3C49FFE920EF609700E775D7 /* nanovg_bgfx.cpp in Sources */,
 				3CFEB82D268DA599006D9974 /* DragonBone.cpp in Sources */,
@@ -4433,6 +4505,7 @@
 				3C4B3C252C06CCA000D778FC /* AnimationState.cpp in Sources */,
 				3CB487171E16398700D51749 /* tolua_push.cpp in Sources */,
 				3CA77ED72AE665C100B7BADA /* MovementConf.cpp in Sources */,
+				3CC15E292C199049004763E7 /* FreeFuncs.cpp in Sources */,
 				3CFEBD68268DA6D5006D9974 /* Armature.cpp in Sources */,
 				3C4B3C092C06CCA000D778FC /* TransformConstraint.cpp in Sources */,
 				3C4B3C062C06CCA000D778FC /* PathConstraintSpacingTimeline.cpp in Sources */,
@@ -4454,6 +4527,7 @@
 				3C6E7F13272A30E700E9F115 /* soloud_fft_lut.cpp in Sources */,
 				3C1A3AF5272A850F003A2829 /* lctype.c in Sources */,
 				3C5399E82994E97400E9125C /* HttpServer.cpp in Sources */,
+				3CC15E252C199049004763E7 /* Property.cpp in Sources */,
 				3C53E93C2BE8CF1100039640 /* PixelGrid.cpp in Sources */,
 				3CFEA122285B857B002D106F /* m3_info.c in Sources */,
 				3C0FB5642BEEF20D0098E88D /* Effekseer.Color.cpp in Sources */,
@@ -4488,6 +4562,7 @@
 				3C0FB57C2BEEF20D0098E88D /* Effekseer.RectF.cpp in Sources */,
 				3CA77EE52AE665C100B7BADA /* MultiShapeConf.cpp in Sources */,
 				3CE3555F1E1B3F7200268A19 /* LuaHandler.cpp in Sources */,
+				3CC15E262C199049004763E7 /* pugixml.cpp in Sources */,
 				3C020DCC1E75476600307E4F /* Action.cpp in Sources */,
 				3CA77EE32AE665C100B7BADA /* Simplex.cpp in Sources */,
 				3C0FB5592BEEF20D0098E88D /* Easing.cpp in Sources */,
@@ -4535,7 +4610,6 @@
 				3CC7945E2579F9B000042394 /* ast.cpp in Sources */,
 				3C4B3C052C06CCA000D778FC /* BoneData.cpp in Sources */,
 				3C46E85F2614227300DC9D4F /* Renderer.cpp in Sources */,
-				3C3A5E1A24DA4BB900E59288 /* World.cpp in Sources */,
 				3CFEB86A268DA670006D9974 /* Point.cpp in Sources */,
 				3C4B3C242C06CCA000D778FC /* AtlasAttachmentLoader.cpp in Sources */,
 				3C4B3C0F2C06CCA000D778FC /* Event.cpp in Sources */,
@@ -4543,10 +4617,12 @@
 				3CA77ED62AE665C100B7BADA /* DynamicMemory.cpp in Sources */,
 				3CFEB85A268DA65C006D9974 /* SkinData.cpp in Sources */,
 				3CF09EF71E581AAD009E8C6F /* Singleton.cpp in Sources */,
+				3CC15E322C19A1D0004763E7 /* TMXCache.cpp in Sources */,
 				3C0FB5692BEEF20D0098E88D /* Effekseer.EffectNode.cpp in Sources */,
 				3C0FB55F2BEEF20D0098E88D /* Mat44f.cpp in Sources */,
 				3C57A3A21E0A05AD002141DF /* EventType.cpp in Sources */,
 				3C6E7F3F272A30E700E9F115 /* soloud_monotone.cpp in Sources */,
+				3CC15E2B2C199049004763E7 /* ObjectGroup.cpp in Sources */,
 				3C2F9C871E7AE8CA00B98D39 /* Animation.cpp in Sources */,
 				3C1A3AF4272A850F003A2829 /* ldo.c in Sources */,
 				3CA77F1C2AE665C100B7BADA /* Contact.cpp in Sources */,
@@ -4556,7 +4632,6 @@
 				3CFEB86D268DA67F006D9974 /* BaseFactory.cpp in Sources */,
 				3C4B3C1E2C06CCA000D778FC /* Log.cpp in Sources */,
 				3CC794612579F9B000042394 /* yue_compiler.cpp in Sources */,
-				3C3A5E1D24DA5E1700E59288 /* SoftNode.cpp in Sources */,
 				3C1984782100656800B6F370 /* PlatformWorld.cpp in Sources */,
 				3C0FB4792BEEF0DA0098E88D /* EffekseerRenderer.TrackRendererBase.cpp in Sources */,
 				3C6E7F1A272A30E700E9F115 /* soloud_fft.cpp in Sources */,
@@ -4570,6 +4645,7 @@
 				3C0FB57D2BEEF20D0098E88D /* Effekseer.Resource.cpp in Sources */,
 				3C6E7F18272A30E700E9F115 /* soloud.cpp in Sources */,
 				3CA77F142AE665C100B7BADA /* DistanceConf.cpp in Sources */,
+				3CC15E2C2C199049004763E7 /* ObjectTypes.cpp in Sources */,
 				3C0FB4732BEEF0DA0098E88D /* EffekseerRenderer.Renderer.cpp in Sources */,
 				3CD328311E4B0B530036906C /* ImGuiDora.cpp in Sources */,
 				3C853F8128E2DC0F0012C0D0 /* Test.cpp in Sources */,
@@ -4635,10 +4711,12 @@
 				3CFEA127285B857B002D106F /* m3_function.c in Sources */,
 				3C1A3AF2272A850F003A2829 /* lzio.c in Sources */,
 				3C4B3C272C06CCA000D778FC /* Slot.cpp in Sources */,
+				3CC15E2A2C199049004763E7 /* ImageLayer.cpp in Sources */,
 				3CA77F1B2AE665C100B7BADA /* ToiConf.cpp in Sources */,
 				3C46E83426140A8F00DC9D4F /* Savepoint.cpp in Sources */,
 				3CC15D972C17E2A7004763E7 /* inftrees.c in Sources */,
 				3C0FB5792BEEF20D0098E88D /* Effekseer.Matrix43.cpp in Sources */,
+				3CC15DF62C1944DC004763E7 /* TileNode.cpp in Sources */,
 				3C47CF1128A356B40011F3E1 /* Cache.cpp in Sources */,
 				3C6E7F15272A30E700E9F115 /* soloud_bus.cpp in Sources */,
 				3CFEBD66268DA6D5006D9974 /* Constraint.cpp in Sources */,
@@ -4662,7 +4740,6 @@
 				3CFEA11C285B857B002D106F /* m3_code.c in Sources */,
 				3CC15D8D2C17E2A7004763E7 /* adler32.c in Sources */,
 				3C0FB5742BEEF20D0098E88D /* Effekseer.InstanceGlobal.cpp in Sources */,
-				3C3A5E1124D9A3D000E59288 /* Particle.cpp in Sources */,
 				3CA77EE92AE665C100B7BADA /* SeparationScenario.cpp in Sources */,
 				3CA77ED82AE665C100B7BADA /* StackAllocator.cpp in Sources */,
 				3C1A3AFF272A850F003A2829 /* loadlib.c in Sources */,
@@ -4733,6 +4810,7 @@
 				3C6E7F36272A30E700E9F115 /* klatt.cpp in Sources */,
 				3C4B3C382C06CCA000D778FC /* Attachment.cpp in Sources */,
 				3CA77EFD2AE665C100B7BADA /* WeldJointConf.cpp in Sources */,
+				3CC15E2E2C199049004763E7 /* Map.cpp in Sources */,
 				3CDA2E1324C20DDD009B0AA5 /* ML.cpp in Sources */,
 				3C0FB5622BEEF20D0098E88D /* VectorField.cpp in Sources */,
 				3CA77F0F2AE665C100B7BADA /* VelocityConstraint.cpp in Sources */,
@@ -4793,6 +4871,7 @@
 				3CFEB861268DA65C006D9974 /* ConstraintData.cpp in Sources */,
 				3CA77F0D2AE665C100B7BADA /* Compositor.cpp in Sources */,
 				3CFEB858268DA65C006D9974 /* CanvasData.cpp in Sources */,
+				3CC15E242C199049004763E7 /* LayerGroup.cpp in Sources */,
 				3CFEA11E285B857B002D106F /* m3_api_uvwasi.c in Sources */,
 				3C0FB5732BEEF20D0098E88D /* Effekseer.InstanceContainer.cpp in Sources */,
 				3C6E7F08272A30E700E9F115 /* soloud_bassboostfilter.cpp in Sources */,

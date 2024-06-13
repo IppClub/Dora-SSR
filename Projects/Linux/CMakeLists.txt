@@ -83,6 +83,7 @@ add_executable(dora-ssr
 	../../Source/Cache/SoundCache.cpp
 	../../Source/Cache/FrameCache.cpp
 	../../Source/Cache/SVGCache.cpp
+	../../Source/Cache/TMXCache.cpp
 	../../Source/Input/Controller.cpp
 	../../Source/Input/Keyboard.cpp
 	../../Source/Input/TouchDispather.cpp
@@ -144,13 +145,13 @@ add_executable(dora-ssr
 	../../Source/Node/Node.cpp
 	../../Source/Node/Label.cpp
 	../../Source/Node/ClipNode.cpp
-	../../Source/Node/SoftNode.cpp
 	../../Source/Node/Model.cpp
 	../../Source/Node/Playable.cpp
 	../../Source/Node/DragonBone.cpp
 	../../Source/Node/DrawNode.cpp
 	../../Source/Node/AlignNode.cpp
 	../../Source/Node/EffekNode.cpp
+	../../Source/Node/TileNode.cpp
 	../../Source/Event/EventType.cpp
 	../../Source/Event/EventQueue.cpp
 	../../Source/Event/Listener.cpp
@@ -308,9 +309,6 @@ add_executable(dora-ssr
 	../../Source/3rdParty/font/font_manager.cpp
 	../../Source/3rdParty/nanovg/nanovg.cpp
 	../../Source/3rdParty/nanovg/nanovg_bgfx.cpp
-	../../Source/Physics/Soft/Particle.cpp
-	../../Source/Physics/Soft/Constraint.cpp
-	../../Source/Physics/Soft/World.cpp
 	../../Source/3rdParty/dragonBones/core/BaseObject.cpp
 	../../Source/3rdParty/dragonBones/core/DragonBones.cpp
 	../../Source/3rdParty/dragonBones/armature/Bone.cpp
@@ -587,6 +585,17 @@ add_executable(dora-ssr
 	../../Source/3rdParty/Effekseer/Effekseer/Material/Effekseer.MaterialFile.cpp
 	../../Source/3rdParty/Effekseer/Effekseer/Material/Effekseer.MaterialCompiler.cpp
 	../../Source/3rdParty/Effekseer/Effekseer/Material/Effekseer.CompiledMaterial.cpp
+	../../Source/3rdParty/tmxlite/LayerGroup.cpp
+	../../Source/3rdParty/tmxlite/Tileset.cpp
+	../../Source/3rdParty/tmxlite/Property.cpp
+	../../Source/3rdParty/tmxlite/Object.cpp
+	../../Source/3rdParty/tmxlite/ObjectGroup.cpp
+	../../Source/3rdParty/tmxlite/FreeFuncs.cpp
+	../../Source/3rdParty/tmxlite/ObjectTypes.cpp
+	../../Source/3rdParty/tmxlite/TileLayer.cpp
+	../../Source/3rdParty/tmxlite/Map.cpp
+	../../Source/3rdParty/tmxlite/ImageLayer.cpp
+	../../Source/3rdParty/tmxlite/detail/pugixml.cpp
 )
 
 target_link_libraries(dora-ssr z dl pthread rt ${SDL2_LIBRARIES} BGFX-lib BIMGDE-lib BIMG-lib BX-lib GL X11 OpenSSL::SSL OpenSSL::Crypto)

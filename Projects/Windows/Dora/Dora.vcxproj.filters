@@ -319,6 +319,12 @@
     <Filter Include="3rdParty\Zip\zlib">
       <UniqueIdentifier>{df4b410f-b909-4d7a-b7b8-7f7d2643ca81}</UniqueIdentifier>
     </Filter>
+    <Filter Include="3rdParty\tmxlite">
+      <UniqueIdentifier>{a571dc06-baac-443b-b542-5da34cc42b42}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\tmxlite\detail">
+      <UniqueIdentifier>{32935fa4-7213-48cb-a5ad-e6502fa83992}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\Source\3rdParty\silly\Slice.cpp">
@@ -1889,6 +1895,45 @@
     </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\Zip\zlib\zutil.c">
       <Filter>3rdParty\Zip\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tmxlite\FreeFuncs.cpp">
+      <Filter>3rdParty\tmxlite</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tmxlite\ImageLayer.cpp">
+      <Filter>3rdParty\tmxlite</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tmxlite\LayerGroup.cpp">
+      <Filter>3rdParty\tmxlite</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tmxlite\Map.cpp">
+      <Filter>3rdParty\tmxlite</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tmxlite\Object.cpp">
+      <Filter>3rdParty\tmxlite</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tmxlite\ObjectGroup.cpp">
+      <Filter>3rdParty\tmxlite</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tmxlite\ObjectTypes.cpp">
+      <Filter>3rdParty\tmxlite</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tmxlite\Property.cpp">
+      <Filter>3rdParty\tmxlite</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tmxlite\TileLayer.cpp">
+      <Filter>3rdParty\tmxlite</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tmxlite\Tileset.cpp">
+      <Filter>3rdParty\tmxlite</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tmxlite\detail\pugixml.cpp">
+      <Filter>3rdParty\tmxlite\detail</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Cache\TMXCache.cpp">
+      <Filter>Cache</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Node\TileNode.cpp">
+      <Filter>Node</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -4196,6 +4241,63 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\Zip\zlib\zutil.h">
       <Filter>3rdParty\Zip\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\tmxlite\Config.hpp">
+      <Filter>3rdParty\tmxlite</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\tmxlite\FreeFuncs.hpp">
+      <Filter>3rdParty\tmxlite</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\tmxlite\ImageLayer.hpp">
+      <Filter>3rdParty\tmxlite</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\tmxlite\Layer.hpp">
+      <Filter>3rdParty\tmxlite</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\tmxlite\LayerGroup.hpp">
+      <Filter>3rdParty\tmxlite</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\tmxlite\Map.hpp">
+      <Filter>3rdParty\tmxlite</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\tmxlite\Object.hpp">
+      <Filter>3rdParty\tmxlite</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\tmxlite\ObjectGroup.hpp">
+      <Filter>3rdParty\tmxlite</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\tmxlite\ObjectTypes.hpp">
+      <Filter>3rdParty\tmxlite</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\tmxlite\Property.hpp">
+      <Filter>3rdParty\tmxlite</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\tmxlite\TileLayer.hpp">
+      <Filter>3rdParty\tmxlite</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\tmxlite\Tileset.hpp">
+      <Filter>3rdParty\tmxlite</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\tmxlite\Types.hpp">
+      <Filter>3rdParty\tmxlite</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\tmxlite\detail\Android.hpp">
+      <Filter>3rdParty\tmxlite\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\tmxlite\detail\Log.hpp">
+      <Filter>3rdParty\tmxlite\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\tmxlite\detail\pugiconfig.hpp">
+      <Filter>3rdParty\tmxlite\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\tmxlite\detail\pugixml.hpp">
+      <Filter>3rdParty\tmxlite\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Cache\TMXCache.h">
+      <Filter>Cache</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Node\TileNode.h">
+      <Filter>Node</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

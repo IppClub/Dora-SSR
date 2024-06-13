@@ -6,47 +6,49 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-#include "Const/Header.h"
+#pragma once
 
-#include "Physics/Soft/Constraint.h"
-
-#include "Physics/Soft/Particle.h"
+#include "Node/Sprite.h"
 
 NS_DORA_BEGIN
-NS_BEGIN(Soft)
 
-Particle* Constraint::getNodeA() const noexcept {
-	return _node1;
-}
+struct TileInfo {
+	std::string textureFile;
+	Rect textureRect;
+};
 
-Particle* Constraint::getNodeB() const noexcept {
-	return _node2;
-}
+class TileNode : public Node {
+public:
+	struct TileQuad {
+		Ref<Texture2D> texture;
+		std::vector<SpriteQuad::Position> positions;
+		std::vector<SpriteQuad> quads;
+	};
+	PROPERTY(SpriteEffect*, Effect);
+	PROPERTY_CREF(BlendFunc, BlendFunc);
+	PROPERTY_BOOL(DepthWrite);
+	PROPERTY(TextureFilter, Filter);
+	virtual void render() override;
+	virtual const Matrix& getWorld() override;
+	static TileNode* create(String tmxFile);
+	static TileNode* create(String tmxFile, String layerName);
+	static TileNode* create(String tmxFile, const std::vector<std::string>& layerNames);
+	static TileNode* create(String tmxFile, Slice layerNames[], int count);
 
-Constraint::Constraint(Particle* p1, Particle* p2, float s, std::optional<float> d)
-	: _node1(p1)
-	, _node2(p2)
-	, _stiff(s) {
-	if (d) {
-		_target = d.value();
-	} else {
-		_target = std::sqrt(std::pow(p2->getPosition().x - p1->getPosition().x, 2) + std::pow(p2->getPosition().y - p1->getPosition().y, 2));
-	}
-}
+protected:
+	TileNode();
 
-void Constraint::Relax() {
-	Vec2 D = _node2->getPosition() - _node1->getPosition();
-	Vec2 F = Vec2::normalize(D) * (0.5f * _stiff * (D.length() - _target));
-	if (F == Vec2::zero) return;
-	if (_node1->getMaterial()->mass > 0 && _node2->getMaterial()->mass == 0) {
-		_node1->ApplyImpulse(F * 2.0f);
-	} else if (_node1->getMaterial()->mass == 0 && _node2->getMaterial()->mass > 0) {
-		_node2->ApplyImpulse(-F * 2.0f);
-	} else {
-		_node1->ApplyImpulse(F);
-		_node2->ApplyImpulse(-F);
-	}
-}
+private:
+	Ref<SpriteEffect> _effect;
+	BlendFunc _blendFunc;
+	TextureFilter _filter;
+	std::list<TileQuad> _tileQuads;
+	enum : Flag::ValueType {
+		VertexPosDirty = Node::UserFlag,
+		DepthWrite = Node::UserFlag << 1,
+	};
+	friend class Object;
+	DORA_TYPE_OVERRIDE(TileNode);
+};
 
-NS_END(Soft)
 NS_DORA_END

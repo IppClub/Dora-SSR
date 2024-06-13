@@ -57,6 +57,8 @@ THE OPEN SOURCE SOFTWARE IN THIS PRODUCT IS DISTRIBUTED IN THE HOPE THAT IT WILL
 - [Effekseer](https://github.com/effekseer/Effekseer): [MIT License](Source/3rdParty/Effekseer/LICENSE)
 - [efkbgfx](https://github.com/cloudwu/efkbgfx): [MIT License](Source/3rdParty/Effekseer/LICENSE-efkbgfx)
 - [ktm](https://github.com/YGXXD/ktm): [MIT License](Source/3rdParty/ktm/LICENSE)
+- [pugixml](https://github.com/zeux/pugixml): [MIT License](Source/3rdParty/tmxlite/detail/LICENSE-pugixml)
+- [tmxlite](https://github.com/fallahn/tmxlite): [zlib License](Source/3rdParty/tmxlite/LICENSE)
 
 
 

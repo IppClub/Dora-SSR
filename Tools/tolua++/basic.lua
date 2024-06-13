@@ -107,6 +107,7 @@ local objects = {
 	"SVGDef",
 	"AlignNode",
 	"EffekNode",
+	"TileNode",
 	"Platformer::Unit",
 	"Platformer::Face",
 	"Platformer::PlatformCamera",

@@ -1441,6 +1441,50 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tmxlite\detail\pugixml.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tmxlite\FreeFuncs.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tmxlite\ImageLayer.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tmxlite\LayerGroup.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tmxlite\Map.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tmxlite\Object.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tmxlite\ObjectGroup.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tmxlite\ObjectTypes.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tmxlite\Property.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tmxlite\TileLayer.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tmxlite\Tileset.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\wasm3\m3_api_libc.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
@@ -1693,6 +1737,7 @@
     <ClCompile Include="..\..\..\Source\Cache\SoundCache.cpp" />
     <ClCompile Include="..\..\..\Source\Cache\SVGCache.cpp" />
     <ClCompile Include="..\..\..\Source\Cache\TextureCache.cpp" />
+    <ClCompile Include="..\..\..\Source\Cache\TMXCache.cpp" />
     <ClCompile Include="..\..\..\Source\Common\Async.cpp" />
     <ClCompile Include="..\..\..\Source\Common\Debug.cpp" />
     <ClCompile Include="..\..\..\Source\Common\MemoryPool.cpp" />
@@ -1743,6 +1788,7 @@
     <ClCompile Include="..\..\..\Source\Node\Playable.cpp" />
     <ClCompile Include="..\..\..\Source\Node\Spine.cpp" />
     <ClCompile Include="..\..\..\Source\Node\Sprite.cpp" />
+    <ClCompile Include="..\..\..\Source\Node\TileNode.cpp" />
     <ClCompile Include="..\..\..\Source\Node\VGNode.cpp" />
     <ClCompile Include="..\..\..\Source\Physics\Body.cpp" />
     <ClCompile Include="..\..\..\Source\Physics\BodyDef.cpp" />
@@ -2350,6 +2396,23 @@
     <ClInclude Include="..\..\..\Source\3rdParty\stb\stb_truetype.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\tinyxml2\SAXParser.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\tinyxml2\tinyxml2.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\tmxlite\Config.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\tmxlite\detail\Android.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\tmxlite\detail\Log.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\tmxlite\detail\pugiconfig.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\tmxlite\detail\pugixml.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\tmxlite\FreeFuncs.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\tmxlite\ImageLayer.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\tmxlite\Layer.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\tmxlite\LayerGroup.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\tmxlite\Map.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\tmxlite\Object.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\tmxlite\ObjectGroup.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\tmxlite\ObjectTypes.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\tmxlite\Property.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\tmxlite\TileLayer.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\tmxlite\Tileset.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\tmxlite\Types.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\wasm3\extra\coremark_minimal.wasm.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\wasm3\extra\fib32.wasm.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\wasm3\extra\fib32_tail.wasm.h" />
@@ -2475,6 +2538,7 @@
     <ClInclude Include="..\..\..\Source\Cache\SoundCache.h" />
     <ClInclude Include="..\..\..\Source\Cache\SVGCache.h" />
     <ClInclude Include="..\..\..\Source\Cache\TextureCache.h" />
+    <ClInclude Include="..\..\..\Source\Cache\TMXCache.h" />
     <ClInclude Include="..\..\..\Source\Cache\XmlItemCache.h" />
     <ClInclude Include="..\..\..\Source\Common\Async.h" />
     <ClInclude Include="..\..\..\Source\Common\Debug.h" />
@@ -2524,6 +2588,7 @@
     <ClInclude Include="..\..\..\Source\Node\Playable.h" />
     <ClInclude Include="..\..\..\Source\Node\Spine.h" />
     <ClInclude Include="..\..\..\Source\Node\Sprite.h" />
+    <ClInclude Include="..\..\..\Source\Node\TileNode.h" />
     <ClInclude Include="..\..\..\Source\Node\VGNode.h" />
     <ClInclude Include="..\..\..\Source\Physics\Body.h" />
     <ClInclude Include="..\..\..\Source\Physics\BodyDef.h" />

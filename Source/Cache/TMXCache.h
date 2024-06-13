@@ -8,35 +8,44 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
-#include "Node/Node.h"
-#include "Physics/Soft/Particle.h"
-#include "Physics/Soft/World.h"
+#include "Basic/Object.h"
+#include "Cache/XmlItemCache.h"
+#include "Common/Singleton.h"
+
+#include "tmxlite/Map.hpp"
 
 NS_DORA_BEGIN
 
-class Line;
-
-class SoftNode : public Node {
+class TMXDef : public Object {
 public:
-	virtual bool init() override;
-	virtual bool update(double deltaTime) override;
-	CREATE_FUNC_NOT_NULL(SoftNode);
+	PROPERTY_READONLY_CREF(tmx::Map, Map);
+	CREATE_FUNC_NOT_NULL(TMXDef);
+
+	bool load(String filename);
+	void loadAsync(String filename, const std::function<void(bool)>& callback);
 
 protected:
-	SoftNode(float minX, float maxX, float minY, float maxY, float step);
+	TMXDef() { }
+
+	tmx::Map _map;
+};
+
+class TMXCache : public NonCopyable {
+public:
+	TMXDef* load(String filename);
+	void loadAsync(String filename, const std::function<void(TMXDef*)>& callback);
+	void removeUnused();
+	bool unload(String filename);
+	bool unload();
+protected:
+	TMXCache() { }
 
 private:
-	float _minX;
-	float _maxX;
-	float _minY;
-	float _maxY;
-	int _step;
-	Vec2 _size;
-	Own<Soft::World> _world;
-	Own<Soft::Material> _originMaterial;
-	Ref<Line> _line;
-	std::vector<std::vector<Soft::Particle*>> _nodes;
-	DORA_TYPE_OVERRIDE(SoftNode);
+	StringMap<Ref<TMXDef>> _maps;
+	SINGLETON_REF(TMXCache, Director, Content);
 };
+
+#define SharedTMXCache \
+	Dora::Singleton<Dora::TMXCache>::shared()
 
 NS_DORA_END

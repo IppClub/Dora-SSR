@@ -1,0 +1,90 @@
+import "@site/src/languages/highlight";
+
+# TileNode Class
+
+**Description:**
+
+&emsp;&emsp;A class used for creating `TileNode` object.
+
+**Usage:**
+```tl
+local TileNode = require("TileNode")
+local tileNode = TileNode("TMX/platform.tmx")
+```
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;A metamethod for creating TileNode object that will render the tile layers.
+
+**Signature:**
+```tl
+metamethod __call: function(self: TileNodeClass, tmxFile: string): TileNode | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| tmxFile | string | The TMX file for the tilemap.Can be files created with Tiled Map Editor (http://www.mapeditor.org).And the TMX file should be in the format of XML. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| TileNode | A new instance of the TileNode class. If the tilemap file is not found, it will return nil. |
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;A metamethod for creating TileNode object that will render the tile layers.
+
+**Signature:**
+```tl
+metamethod __call: function(self: TileNodeClass, tmxFile: string, layerName: string): TileNode | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| tmxFile | string | The TMX file for the tilemap. |
+| layerName | string | The name of the layer in the TMX file.Can be files created with Tiled Map Editor (http://www.mapeditor.org).And the TMX file should be in the format of XML. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| TileNode | A new instance of the TileNode class. If the tilemap file is not found, it will return nil. |
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;A metamethod for creating TileNode object that will render the tile layers.
+
+**Signature:**
+```tl
+metamethod __call: function(self: TileNodeClass, tmxFile: string, layerNames: {string}): TileNode | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| tmxFile | string | The TMX file for the tilemap. |
+| layerNames | \{string} | The names of the layers in the TMX file.Can be files created with Tiled Map Editor (http://www.mapeditor.org).And the TMX file should be in the format of XML. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| TileNode | A new instance of the TileNode class. If the tilemap file is not found, it will return nil. |

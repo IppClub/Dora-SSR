@@ -91,6 +91,7 @@ add_library(main SHARED
 	src/main/cpp/Cache/SoundCache.cpp
 	src/main/cpp/Cache/FrameCache.cpp
 	src/main/cpp/Cache/SVGCache.cpp
+	src/main/cpp/Cache/TMXCache.cpp
 	src/main/cpp/Input/Controller.cpp
 	src/main/cpp/Input/Keyboard.cpp
 	src/main/cpp/Input/TouchDispather.cpp
@@ -152,13 +153,13 @@ add_library(main SHARED
 	src/main/cpp/Node/Node.cpp
 	src/main/cpp/Node/Label.cpp
 	src/main/cpp/Node/ClipNode.cpp
-	src/main/cpp/Node/SoftNode.cpp
 	src/main/cpp/Node/Model.cpp
 	src/main/cpp/Node/Playable.cpp
 	src/main/cpp/Node/DragonBone.cpp
 	src/main/cpp/Node/DrawNode.cpp
 	src/main/cpp/Node/AlignNode.cpp
 	src/main/cpp/Node/EffekNode.cpp
+	src/main/cpp/Node/TileNode.cpp
 	src/main/cpp/Event/EventType.cpp
 	src/main/cpp/Event/EventQueue.cpp
 	src/main/cpp/Event/Listener.cpp
@@ -316,9 +317,6 @@ add_library(main SHARED
 	src/main/cpp/3rdParty/font/font_manager.cpp
 	src/main/cpp/3rdParty/nanovg/nanovg.cpp
 	src/main/cpp/3rdParty/nanovg/nanovg_bgfx.cpp
-	src/main/cpp/Physics/Soft/Particle.cpp
-	src/main/cpp/Physics/Soft/Constraint.cpp
-	src/main/cpp/Physics/Soft/World.cpp
 	src/main/cpp/3rdParty/dragonBones/core/BaseObject.cpp
 	src/main/cpp/3rdParty/dragonBones/core/DragonBones.cpp
 	src/main/cpp/3rdParty/dragonBones/armature/Bone.cpp
@@ -595,6 +593,17 @@ add_library(main SHARED
 	src/main/cpp/3rdParty/Effekseer/Effekseer/Material/Effekseer.MaterialFile.cpp
 	src/main/cpp/3rdParty/Effekseer/Effekseer/Material/Effekseer.MaterialCompiler.cpp
 	src/main/cpp/3rdParty/Effekseer/Effekseer/Material/Effekseer.CompiledMaterial.cpp
+	src/main/cpp/3rdParty/tmxlite/LayerGroup.cpp
+	src/main/cpp/3rdParty/tmxlite/Tileset.cpp
+	src/main/cpp/3rdParty/tmxlite/Property.cpp
+	src/main/cpp/3rdParty/tmxlite/Object.cpp
+	src/main/cpp/3rdParty/tmxlite/ObjectGroup.cpp
+	src/main/cpp/3rdParty/tmxlite/FreeFuncs.cpp
+	src/main/cpp/3rdParty/tmxlite/ObjectTypes.cpp
+	src/main/cpp/3rdParty/tmxlite/TileLayer.cpp
+	src/main/cpp/3rdParty/tmxlite/Map.cpp
+	src/main/cpp/3rdParty/tmxlite/ImageLayer.cpp
+	src/main/cpp/3rdParty/tmxlite/detail/pugixml.cpp
 )
 
 target_link_libraries(main android log EGL z GLESv1_CM GLESv2 SDL2-lib BGFX-lib BIMGDE-lib BIMG-lib BX-lib CRYPTO-lib SSL-lib)

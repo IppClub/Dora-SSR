@@ -302,6 +302,11 @@ const sidebars = {
 						},
 						{
 							type: 'doc',
+							label: 'TileNode',
+							id: 'api/Class/TileNode',
+						},
+						{
+							type: 'doc',
 							label: 'SVG',
 							id: 'api/Class/SVG',
 						},
@@ -810,6 +815,7 @@ const sidebars = {
 						"api/Class Object/Node",
 						"api/Class Object/AlignNode",
 						"api/Class Object/EffekNode",
+						"api/Class Object/TileNode",
 						"api/Class Object/Model",
 						"api/Class Object/Menu",
 						"api/Class Object/Line",

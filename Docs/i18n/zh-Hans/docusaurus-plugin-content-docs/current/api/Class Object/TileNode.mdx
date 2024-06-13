@@ -1,0 +1,90 @@
+import "@site/src/languages/highlight";
+
+# TileNode的类对象
+
+**描述：**
+
+&emsp;&emsp;用于创建 `TileNode` 对象的类。
+
+**用法示例：**
+```tl
+local TileNode = require("TileNode")
+local tileNode = TileNode("TMX/platform.tmx")
+```
+
+## __call
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;用于创建瓦片地图渲染对象 TileNode 的方法。
+
+**签名：**
+```tl
+metamethod __call: function(self: TileNodeClass, tmxFile: string): TileNode | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| tmxFile | string | 瓦片地图的 TMX 文件。可以是使用 Tiled Map Editor (http://www.mapeditor.org) 创建的文件。进行加载的 TMX 文件必须是 XML 格式。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| TileNode | 返回 TileNode 类的一个新实例。如果加载瓦片地图文件失败，将返回 nil。 |
+
+## __call
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;用于创建瓦片地图渲染对象 TileNode 的方法。
+
+**签名：**
+```tl
+metamethod __call: function(self: TileNodeClass, tmxFile: string, layerName: string): TileNode | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| tmxFile | string | 瓦片地图的 TMX 文件。 |
+| layerName | string | TMX 文件中的地图层的名称。可以是使用 Tiled Map Editor (http://www.mapeditor.org) 创建的文件。进行加载的 TMX 文件必须是 XML 格式。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| TileNode | 返回 TileNode 类的一个新实例。如果加载瓦片地图文件失败，将返回 nil。 |
+
+## __call
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;用于创建瓦片地图渲染对象 TileNode 的方法。
+
+**签名：**
+```tl
+metamethod __call: function(self: TileNodeClass, tmxFile: string, layerNames: {string}): TileNode | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| tmxFile | string | 瓦片地图的 TMX 文件。 |
+| layerNames | \{string} | TMX 文件中的地图层的名称数组。可以是使用 Tiled Map Editor (http://www.mapeditor.org) 创建的文件。进行加载的 TMX 文件必须是 XML 格式。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| TileNode | 返回 TileNode 类的一个新实例。如果加载瓦片地图文件失败，将返回 nil。 |

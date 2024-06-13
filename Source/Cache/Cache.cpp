@@ -22,6 +22,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Cache/SkeletonCache.h"
 #include "Cache/SoundCache.h"
 #include "Cache/TextureCache.h"
+#include "Cache/TMXCache.h"
 #include "Node/Label.h"
 #include "Node/Particle.h"
 
@@ -71,6 +72,8 @@ bool Cache::load(String filename) {
 			case "mp3"_hash:
 			case "flac"_hash:
 				return SharedSoundCache.load(filename) != nullptr;
+			case "tmx"_hash:
+				return SharedTMXCache.load(filename) != nullptr;
 			default: {
 				Error("failed to load unsupported resource \"{}\".", filename.toString());
 				return false;
@@ -158,6 +161,11 @@ void Cache::loadAsync(String filename, const std::function<void()>& callback) {
 					callback();
 				});
 				break;
+			case "tmx"_hash:
+				return SharedTMXCache.loadAsync(filename, [callback](TMXDef*) {
+					callback();
+				});
+				break;
 			default:
 				Error("resource is not supported: \"{}\".", filename.toString());
 				break;
@@ -231,6 +239,8 @@ bool Cache::unload(String name) {
 			case "mp3"_hash:
 			case "flac"_hash:
 				return SharedSoundCache.unload(name);
+			case "tmx"_hash:
+				return SharedTMXCache.unload(name);
 			default:
 				Warn("failed to unload resource \"{}\".", name.toString());
 				break;
@@ -257,6 +267,8 @@ bool Cache::unload(String name) {
 				return SharedSoundCache.unload();
 			case "Spine"_hash:
 				return SharedAtlasCache.unload() && SharedSkeletonCache.unload();
+			case "TMX"_hash:
+				return SharedTMXCache.unload();
 			default: {
 				Warn("failed to unload resources \"{}\".", name.toString());
 				break;
@@ -279,6 +291,7 @@ void Cache::unload() {
 	SharedSkeletonCache.unload();
 	SharedAtlasCache.unload();
 	SharedDragonBoneCache.removeUnused();
+	SharedTMXCache.unload();
 }
 
 void Cache::removeUnused() {
@@ -294,6 +307,7 @@ void Cache::removeUnused() {
 	SharedSVGCache.removeUnused();
 	SharedFontCache.removeUnused();
 	SharedSoundCache.removeUnused();
+	SharedTMXCache.removeUnused();
 }
 
 void Cache::removeUnused(String name) {
@@ -331,6 +345,9 @@ void Cache::removeUnused(String name) {
 			break;
 		case "Sound"_hash:
 			SharedSoundCache.removeUnused();
+			break;
+		case "TMX"_hash:
+			SharedTMXCache.removeUnused();
 			break;
 		default:
 			Error("failed to remove unused cache type \"{}\".", name.toString());

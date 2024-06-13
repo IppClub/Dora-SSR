@@ -61,9 +61,9 @@ private:
 				  {'A', 7}, {'C', 6}, {'H', 1}, {'L', 2},
 				  {'M', 2}, {'Q', 4}, {'S', 4}, {'T', 2},
 				  {'V', 1}, {'Z', 0}} { }
-		virtual void xmlSAX2StartElement(const char* name, size_t len, const std::vector<AttrSlice>& attrs) override;
-		virtual void xmlSAX2EndElement(const char* name, size_t len) override;
-		virtual void xmlSAX2Text(const char* s, size_t len) override;
+		virtual void xmlSAX2StartElement(std::string_view name, const std::vector<std::string_view>& attrs) override;
+		virtual void xmlSAX2EndElement(std::string_view name) override;
+		virtual void xmlSAX2Text(std::string_view text) override;
 
 	private:
 		struct LinearGradient {
@@ -73,7 +73,7 @@ private:
 			std::vector<std::pair<float, Color>> stops;
 		} _currentLinearGradient;
 		std::unordered_map<char, int> _params;
-		std::stack<std::vector<AttrSlice>> _attrStack;
+		std::stack<std::vector<std::string_view>> _attrStack;
 	};
 
 private:
