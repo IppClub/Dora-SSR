@@ -4213,6 +4213,63 @@ const effekNodeClass: EffekNodeClass;
 export {effekNodeClass as EffekNode};
 
 /**
+ * 用于在游戏场景树层次结构中渲染瓦片地图的类。
+ */
+class TileNode extends Node {
+	private constructor();
+
+	/**
+	 * 渲染瓦片地图时是否应向深度缓冲区写入（默认为 false）。
+	 */
+	depthWrite: boolean;
+
+	/**
+	 * 瓦片地图的渲染混合函数。
+	 */
+	blendFunc: BlendFunc;
+
+	/**
+	 * 瓦片地图的着色器效果。
+	 */
+	effect: SpriteEffect;
+}
+
+export namespace TileNode {
+	export type Type = TileNode;
+}
+
+/**
+ * 用于创建 `TileNode` 对象的类。
+ */
+interface TileNodeClass {
+	/**
+	 * A method for creating a TileNode object for rendering tile maps.
+	 * @param tmxFile The TMX file of the tile map. Must be created with Tiled Map Editor (http://www.mapeditor.org) and in XML format.
+	 * @returns A new instance of the TileNode class. Returns null if loading the tile map file fails.
+	 */
+	(this: void, tmxFile: string): TileNode | null;
+
+	/**
+	 * A method for creating a TileNode object for rendering tile maps, specifying a layer name.
+	 * @param tmxFile The TMX file of the tile map.
+	 * @param layerName The name of the map layer in the TMX file. Must be created with Tiled Map Editor (http://www.mapeditor.org) and in XML format.
+	 * @returns A new instance of the TileNode class. Returns null if loading the tile map file fails.
+	 */
+	(this: void, tmxFile: string, layerName: string): TileNode | null;
+
+	/**
+	 * A method for creating a TileNode object for rendering tile maps, specifying multiple layer names.
+	 * @param tmxFile The TMX file of the tile map.
+	 * @param layerNames An array of names of the map layers in the TMX file. Must be created with Tiled Map Editor (http://www.mapeditor.org) and in XML format.
+	 * @returns A new instance of the TileNode class. Returns null if loading the tile map file fails.
+	 */
+	(this: void, tmxFile: string, layerNames: string[]): TileNode | null;
+}
+
+const tileNodeClass: TileNodeClass;
+export {tileNodeClass as TileNode};
+
+/**
  * 发送具有特定名称和参数的全局事件，传递给所有由`node.gslot()`函数注册的事件监听器。
  * @param eventName 要发出的事件的名称。
  * @param args 要传递给全局事件监听器的数据。

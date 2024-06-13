@@ -90,7 +90,7 @@ static void get(String value, Color& color) {
 }
 
 #define ATTR_START \
-	for (int i = 0; attrs[i].first != nullptr; i++) { \
+	for (int i = 0; !attrs[i].empty(); i++) { \
 		Slice k = attrs[i]; \
 		Slice v = attrs[++i]; \
 		switch (Switch::hash(k)) {
@@ -103,7 +103,7 @@ std::shared_ptr<XmlParser<SVGDef>> SVGCache::prepareParser(String filename) {
 	return std::shared_ptr<XmlParser<SVGDef>>(new Parser(SVGDef::create()));
 }
 
-void SVGCache::Parser::xmlSAX2Text(const char* s, size_t len) { }
+void SVGCache::Parser::xmlSAX2Text(std::string_view text) { }
 
 static int getLineCap(String value) {
 	switch (Switch::hash(value)) {
@@ -297,7 +297,7 @@ static bool getTransform(std::optional<nvg::Transform>& transform, Slice v) {
 	return false;
 }
 
-void SVGCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const std::vector<AttrSlice>& selfAttrs) {
+void SVGCache::Parser::xmlSAX2StartElement(std::string_view name, const std::vector<std::string_view>& selfAttrs) {
 	auto def = getItem();
 	auto attrs = selfAttrs;
 	if (!_attrStack.empty()) {
@@ -358,7 +358,7 @@ void SVGCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const s
 		}
 		case "g"_hash: {
 			auto& attrGroup = _attrStack.emplace();
-			for (int i = 0; attrs[i].first != nullptr; i++) {
+			for (int i = 0; !attrs[i].empty(); i++) {
 				attrGroup.push_back(attrs[i]);
 			}
 			break;
@@ -392,7 +392,7 @@ void SVGCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const s
 			case "id"_hash: _currentLinearGradient.id = v.toString(); break;
 			case "gradientTransform"_hash: {
 				if (!getTransform(_currentLinearGradient.transform, v)) {
-					throw rapidxml::parse_error("transform is not supported", r_cast<void*>(c_cast<char*>(name)));
+					throw rapidxml::parse_error("transform is not supported", r_cast<void*>(c_cast<char*>(name.data())));
 				}
 				break;
 			}
@@ -421,7 +421,7 @@ void SVGCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const s
 				for (const auto& p : v.split(" "_slice)) {
 					auto tokens = p.split(","_slice);
 					if (tokens.size() != 2) {
-						throw rapidxml::parse_error("<polygon> points format is invalid", r_cast<void*>(c_cast<char*>(name)));
+						throw rapidxml::parse_error("<polygon> points format is invalid", r_cast<void*>(c_cast<char*>(name.data())));
 					}
 					float x = tokens.front().toFloat();
 					float y = tokens.back().toFloat();
@@ -456,7 +456,7 @@ void SVGCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const s
 			case "height"_hash: data.height = v.toFloat(); break;
 			case "transform"_hash: {
 				if (!getTransform(data.transform, v)) {
-					throw rapidxml::parse_error("transform is not supported", r_cast<void*>(c_cast<char*>(name)));
+					throw rapidxml::parse_error("transform is not supported", r_cast<void*>(c_cast<char*>(name.data())));
 				}
 				break;
 			}
@@ -495,12 +495,12 @@ void SVGCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const s
 						} else
 							throw rapidxml::parse_error(
 								fmt::format("Path command {} should not take parameters: {}", command.value(), parameters.size()).c_str(),
-								r_cast<void*>(c_cast<char*>(name)));
+								r_cast<void*>(c_cast<char*>(name.data())));
 					} else {
 						if (parameters.size() % parameterCount != 0) {
 							throw rapidxml::parse_error(
 								fmt::format("Path command {} should take {} parameters instead of {}", command.value(), parameterCount, parameters.size()).c_str(),
-								r_cast<void*>(c_cast<char*>(name)));
+								r_cast<void*>(c_cast<char*>(name.data())));
 						}
 						while (!parameters.empty()) {
 							std::vector<float> args;
@@ -519,7 +519,7 @@ void SVGCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const s
 						case 't':
 							throw rapidxml::parse_error(
 								fmt::format("Path command {} is not implemeneted", command.value()).c_str(),
-								r_cast<void*>(c_cast<char*>(name)));
+								r_cast<void*>(c_cast<char*>(name.data())));
 							break;
 						case 'c':
 						case 'h':
@@ -730,7 +730,7 @@ void SVGCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const s
 	}
 }
 
-void SVGCache::Parser::xmlSAX2EndElement(const char* name, size_t len) {
+void SVGCache::Parser::xmlSAX2EndElement(std::string_view name) {
 	switch (Switch::hash(name)) {
 		case "g"_hash: {
 			_attrStack.pop();
@@ -738,7 +738,7 @@ void SVGCache::Parser::xmlSAX2EndElement(const char* name, size_t len) {
 		}
 		case "lineargradient"_hash: {
 			if (_currentLinearGradient.stops.size() > 2) {
-				throw rapidxml::parse_error("<linearGradient> currently only supports two stops", r_cast<void*>(c_cast<char*>(name)));
+				throw rapidxml::parse_error("<linearGradient> currently only supports two stops", r_cast<void*>(c_cast<char*>(name.data())));
 			}
 			LinearGradientData data;
 			for (const auto& stop : _currentLinearGradient.stops) {

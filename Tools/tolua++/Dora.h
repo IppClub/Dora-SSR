@@ -696,6 +696,16 @@ class EffekNode : public Node
 	static EffekNode* create();
 };
 
+class TileNode : public Node
+{
+	tolua_property__bool bool depthWrite;
+	tolua_property__common BlendFunc blendFunc;
+	tolua_property__common SpriteEffect* effect;
+	static TileNode* create(String tmxFile);
+	static TileNode* create(String tmxFile, String layerName);
+	static TileNode* create(String tmxFile, Slice layerNames[tolua_len]);
+};
+
 class PhysicsWorld : public Node
 {
 	bool query(Rect rect, tolua_function_bool handler);

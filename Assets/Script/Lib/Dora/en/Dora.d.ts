@@ -1814,6 +1814,10 @@ class Touch extends Object {
 	readonly worldLocation: Vec2;
 }
 
+export namespace Touch {
+	export type Type = Touch;
+}
+
 /**
  * A class for the Camera object in the game engine.
  */
@@ -4206,6 +4210,61 @@ export namespace EffekNode {
 
 const effekNodeClass: EffekNodeClass;
 export {effekNodeClass as EffekNode};
+
+/** The TileNode class to render Tilemaps from TMX file in game scene tree hierarchy. */
+class TileNode extends Node {
+	private constructor();
+
+	/**
+	 * Whether the depth buffer should be written to when rendering the tilemap (default is false).
+	 */
+	depthWrite: boolean;
+
+	/**
+	 * The blend function for the tilemap.
+	 */
+	blendFunc: BlendFunc;
+
+	/**
+	 * The tilemap shader effect.
+	 */
+	effect: SpriteEffect;
+}
+
+export namespace TileNode {
+	export type Type = TileNode;
+}
+
+/**
+ * A class used for creating `TileNode` object.
+ */
+interface TileNodeClass {
+	/**
+	 * Creates a TileNode object that will render all the tile layers.
+	 * @param tmxFile The TMX file for the tilemap. Can be files created with Tiled Map Editor (http://www.mapeditor.org). The TMX file should be in XML format.
+	 * @returns A new instance of the TileNode class. If the tilemap file is not found, it will return null.
+	 */
+	(this: void, tmxFile: string): TileNode | null;
+
+	/**
+	 * Creates a TileNode object that will render the specific tile layer.
+	 * @param tmxFile The TMX file for the tilemap.
+	 * @param layerName The name of the layer in the TMX file. Can be files created with Tiled Map Editor (http://www.mapeditor.org). The TMX file should be in XML format.
+	 * @returns A new instance of the TileNode class. If the tilemap file is not found, it will return null.
+	 */
+	(this: void, tmxFile: string, layerName: string): TileNode | null;
+
+	/**
+	 * Creates a TileNode object that will render the specific tile layers.
+	 * @param tmxFile The TMX file for the tilemap.
+	 * @param layerNames The names of the layers in the TMX file. Can be files created with Tiled Map Editor (http://www.mapeditor.org). The TMX file should be in XML format.
+	 * @returns A new instance of the TileNode class. If the tilemap file is not found, it will return null.
+	 */
+	(this: void, tmxFile: string, layerNames: string[]): TileNode | null;
+}
+
+const tileNodeClass: TileNodeClass;
+export {tileNodeClass as TileNode};
 
 /**
  * Emits a global event with the given name and arguments to all listeners registered by `node.gslot()` function.

@@ -41,11 +41,11 @@ void ModelCache::Parser::getPosFromStr(String str, float& x, float& y) {
 	y = (++it)->toFloat();
 }
 
-void ModelCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const std::vector<AttrSlice>& attrs) {
+void ModelCache::Parser::xmlSAX2StartElement(std::string_view name, const std::vector<std::string_view>& attrs) {
 	switch (Xml::Model::Element(name[0])) {
 		case Xml::Model::Element::Dorothy: {
-			for (int i = 0; attrs[i].first != nullptr; i++) {
-				switch (Xml::Model::Dorothy(attrs[i].first[0])) {
+			for (int i = 0; !attrs[i].empty(); i++) {
+				switch (Xml::Model::Dorothy(attrs[i][0])) {
 					case Xml::Model::Dorothy::File: {
 						Slice file(attrs[++i]);
 						std::string localFile = Path::concat({_path, file});
@@ -61,13 +61,13 @@ void ModelCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const
 		}
 		case Xml::Model::Element::Sprite: {
 			SpriteDef* spriteDef = new SpriteDef();
-			for (int i = 0; attrs[i].first != nullptr; i++) {
-				switch (Xml::Model::Sprite(attrs[i].first[0])) {
+			for (int i = 0; !attrs[i].empty(); i++) {
+				switch (Xml::Model::Sprite(attrs[i][0])) {
 					case Xml::Model::Sprite::Key:
 						getPosFromStr(attrs[++i], spriteDef->anchorX, spriteDef->anchorY);
 						break;
 					case Xml::Model::Sprite::Opacity:
-						spriteDef->opacity = s_cast<float>(std::atof(attrs[++i].first));
+						spriteDef->opacity = s_cast<float>(std::atof(attrs[++i].data()));
 						break;
 					case Xml::Model::Sprite::Position:
 						getPosFromStr(attrs[++i], spriteDef->x, spriteDef->y);
@@ -76,7 +76,7 @@ void ModelCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const
 						getPosFromStr(attrs[++i], spriteDef->scaleX, spriteDef->scaleY);
 						break;
 					case Xml::Model::Sprite::Rotation:
-						spriteDef->rotation = s_cast<float>(std::atof(attrs[++i].first));
+						spriteDef->rotation = s_cast<float>(std::atof(attrs[++i].data()));
 						break;
 					case Xml::Model::Sprite::Skew:
 						getPosFromStr(attrs[++i], spriteDef->skewX, spriteDef->skewY);
@@ -88,7 +88,7 @@ void ModelCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const
 						spriteDef->clip = Slice(attrs[++i]).toString();
 						break;
 					case Xml::Model::Sprite::Front:
-						spriteDef->front = std::atoi(attrs[++i].first) != 0;
+						spriteDef->front = std::atoi(attrs[++i].data()) != 0;
 						break;
 				}
 			}
@@ -105,8 +105,8 @@ void ModelCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const
 			Slice skew;
 			Slice opacity;
 			Slice visible;
-			for (int i = 0; attrs[i].first != nullptr; i++) {
-				switch (Xml::Model::KeyFrame(attrs[i].first[0])) {
+			for (int i = 0; !attrs[i].empty(); i++) {
+				switch (Xml::Model::KeyFrame(attrs[i][0])) {
 					case Xml::Model::KeyFrame::Duration:
 						duration = attrs[++i];
 						break;
@@ -129,19 +129,19 @@ void ModelCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const
 						visible = attrs[++i];
 						break;
 					case Xml::Model::KeyFrame::EasePos:
-						keyFrameDef->easePos = Ease::Enum(std::atoi(attrs[++i].first));
+						keyFrameDef->easePos = Ease::Enum(std::atoi(attrs[++i].data()));
 						break;
 					case Xml::Model::KeyFrame::EaseScale:
-						keyFrameDef->easeScale = Ease::Enum(std::atoi(attrs[++i].first));
+						keyFrameDef->easeScale = Ease::Enum(std::atoi(attrs[++i].data()));
 						break;
 					case Xml::Model::KeyFrame::EaseSkew:
-						keyFrameDef->easeSkew = Ease::Enum(std::atoi(attrs[++i].first));
+						keyFrameDef->easeSkew = Ease::Enum(std::atoi(attrs[++i].data()));
 						break;
 					case Xml::Model::KeyFrame::EaseRotate:
-						keyFrameDef->easeRotation = Ease::Enum(std::atoi(attrs[++i].first));
+						keyFrameDef->easeRotation = Ease::Enum(std::atoi(attrs[++i].data()));
 						break;
 					case Xml::Model::KeyFrame::EaseOpacity:
-						keyFrameDef->easeOpacity = Ease::Enum(std::atoi(attrs[++i].first));
+						keyFrameDef->easeOpacity = Ease::Enum(std::atoi(attrs[++i].data()));
 						break;
 					case Xml::Model::KeyFrame::Event:
 						keyFrameDef->event = Slice(attrs[++i]).toString();
@@ -193,8 +193,8 @@ void ModelCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const
 		}
 		case Xml::Model::Element::FrameAnimation: {
 			FrameAnimationDef* frameAnimationDef = new FrameAnimationDef();
-			for (int i = 0; attrs[i].first != nullptr; i++) {
-				switch (Xml::Model::FrameAnimation(attrs[i].first[0])) {
+			for (int i = 0; !attrs[i].empty(); i++) {
+				switch (Xml::Model::FrameAnimation(attrs[i][0])) {
 					case Xml::Model::FrameAnimation::File: {
 						Slice file(attrs[++i]);
 						std::string localFile = Path::concat({_path, file});
@@ -202,7 +202,7 @@ void ModelCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const
 						break;
 					}
 					case Xml::Model::FrameAnimation::Delay:
-						frameAnimationDef->delay = s_cast<float>(std::atof(attrs[++i].first));
+						frameAnimationDef->delay = s_cast<float>(std::atof(attrs[++i].data()));
 						break;
 				}
 			}
@@ -211,8 +211,8 @@ void ModelCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const
 			break;
 		}
 		case Xml::Model::Element::Look: {
-			for (int i = 0; attrs[i].first != nullptr; i++) {
-				switch (Xml::Model::Look(attrs[i].first[0])) {
+			for (int i = 0; !attrs[i].empty(); i++) {
+				switch (Xml::Model::Look(attrs[i][0])) {
 					case Xml::Model::Look::Name: {
 						SpriteDef* nodeDef = _nodeStack.top().get();
 						Slice attr(attrs[++i]);
@@ -228,10 +228,10 @@ void ModelCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const
 		case Xml::Model::Element::AnimationName: {
 			int index = 0;
 			Slice name;
-			for (int i = 0; attrs[i].first != nullptr; i++) {
-				switch (Xml::Model::AnimationName(attrs[i].first[0])) {
+			for (int i = 0; !attrs[i].empty(); i++) {
+				switch (Xml::Model::AnimationName(attrs[i][0])) {
 					case Xml::Model::AnimationName::Index:
-						index = std::atoi(attrs[++i].first);
+						index = std::atoi(attrs[++i].data());
 						break;
 					case Xml::Model::AnimationName::Name:
 						name = attrs[++i];
@@ -244,10 +244,10 @@ void ModelCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const
 		case Xml::Model::Element::LookName: {
 			int index = 0;
 			Slice name;
-			for (int i = 0; attrs[i].first != nullptr; i++) {
-				switch (Xml::Model::LookName(attrs[i].first[0])) {
+			for (int i = 0; !attrs[i].empty(); i++) {
+				switch (Xml::Model::LookName(attrs[i][0])) {
 					case Xml::Model::LookName::Index:
-						index = std::atoi(attrs[++i].first);
+						index = std::atoi(attrs[++i].data());
 						break;
 					case Xml::Model::LookName::Name:
 						name = attrs[++i];
@@ -260,8 +260,8 @@ void ModelCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const
 		case Xml::Model::Element::KeyPoint: {
 			Slice key;
 			Vec2 keyPoint{};
-			for (int i = 0; attrs[i].first != nullptr; i++) {
-				switch (Xml::Model::KeyPoint(attrs[i].first[0])) {
+			for (int i = 0; !attrs[i].empty(); i++) {
+				switch (Xml::Model::KeyPoint(attrs[i][0])) {
 					case Xml::Model::KeyPoint::Key:
 						key = attrs[++i];
 						break;
@@ -278,7 +278,7 @@ void ModelCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const
 	}
 }
 
-void ModelCache::Parser::xmlSAX2EndElement(const char* name, size_t len) {
+void ModelCache::Parser::xmlSAX2EndElement(std::string_view name) {
 	switch (Xml::Model::Element(name[0])) {
 		case Xml::Model::Element::Sprite: {
 			Own<SpriteDef> nodeDef = std::move(_nodeStack.top());
@@ -301,6 +301,6 @@ void ModelCache::Parser::xmlSAX2EndElement(const char* name, size_t len) {
 	}
 }
 
-void ModelCache::Parser::xmlSAX2Text(const char* s, size_t len) { }
+void ModelCache::Parser::xmlSAX2Text(std::string_view text) { }
 
 NS_DORA_END

@@ -20,32 +20,32 @@ std::shared_ptr<XmlParser<ParticleDef>> ParticleCache::prepareParser(String file
 	return std::shared_ptr<XmlParser<ParticleDef>>(new Parser(ParticleDef::create()));
 }
 
-void ParticleCache::Parser::xmlSAX2Text(const char* s, size_t len) { }
+void ParticleCache::Parser::xmlSAX2Text(std::string_view text) { }
 
-void ParticleCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const std::vector<AttrSlice>& attrs) {
+void ParticleCache::Parser::xmlSAX2StartElement(std::string_view name, const std::vector<std::string_view>& attrs) {
 	if (Xml::Particle(name[0]) != Xml::Particle::Dorothy && attrs.size() <= 1) {
-		throw rapidxml::parse_error("invalid particle file", r_cast<void*>(c_cast<char*>(name)));
+		throw rapidxml::parse_error("invalid particle file", r_cast<void*>(c_cast<char*>(name.data())));
 	}
 	switch (Xml::Particle(name[0])) {
 		case Xml::Particle::Dorothy:
 			break;
 		case Xml::Particle::Angle:
-			_item->angle = s_cast<float>(std::atof(attrs[1].first));
+			_item->angle = s_cast<float>(std::atof(attrs[1].data()));
 			break;
 		case Xml::Particle::AngleVariance:
-			_item->angleVariance = s_cast<float>(std::atof(attrs[1].first));
+			_item->angleVariance = s_cast<float>(std::atof(attrs[1].data()));
 			break;
 		case Xml::Particle::BlendFuncDestination:
-			_item->blendFuncDestination = s_cast<uint32_t>(std::atoi(attrs[1].first));
+			_item->blendFuncDestination = s_cast<uint32_t>(std::atoi(attrs[1].data()));
 			break;
 		case Xml::Particle::BlendFuncSource:
-			_item->blendFuncSource = s_cast<uint32_t>(std::atoi(attrs[1].first));
+			_item->blendFuncSource = s_cast<uint32_t>(std::atoi(attrs[1].data()));
 			break;
 		case Xml::Particle::Duration:
-			_item->duration = s_cast<float>(std::atof(attrs[1].first));
+			_item->duration = s_cast<float>(std::atof(attrs[1].data()));
 			break;
 		case Xml::Particle::EmissionRate:
-			_item->emissionRate = s_cast<float>(std::atof(attrs[1].first));
+			_item->emissionRate = s_cast<float>(std::atof(attrs[1].data()));
 			break;
 		case Xml::Particle::FinishColor:
 			get(attrs[1], _item->finishColor);
@@ -54,31 +54,31 @@ void ParticleCache::Parser::xmlSAX2StartElement(const char* name, size_t len, co
 			get(attrs[1], _item->finishColorVariance);
 			break;
 		case Xml::Particle::RotationStart:
-			_item->rotationStart = s_cast<float>(std::atof(attrs[1].first));
+			_item->rotationStart = s_cast<float>(std::atof(attrs[1].data()));
 			break;
 		case Xml::Particle::RotationStartVariance:
-			_item->rotationStartVariance = s_cast<float>(std::atof(attrs[1].first));
+			_item->rotationStartVariance = s_cast<float>(std::atof(attrs[1].data()));
 			break;
 		case Xml::Particle::RotationEnd:
-			_item->rotationEnd = s_cast<float>(std::atof(attrs[1].first));
+			_item->rotationEnd = s_cast<float>(std::atof(attrs[1].data()));
 			break;
 		case Xml::Particle::RotationEndVariance:
-			_item->rotationEndVariance = s_cast<float>(std::atof(attrs[1].first));
+			_item->rotationEndVariance = s_cast<float>(std::atof(attrs[1].data()));
 			break;
 		case Xml::Particle::FinishParticleSize:
-			_item->finishParticleSize = s_cast<float>(std::atof(attrs[1].first));
+			_item->finishParticleSize = s_cast<float>(std::atof(attrs[1].data()));
 			break;
 		case Xml::Particle::FinishParticleSizeVariance:
-			_item->finishParticleSizeVariance = s_cast<float>(std::atof(attrs[1].first));
+			_item->finishParticleSizeVariance = s_cast<float>(std::atof(attrs[1].data()));
 			break;
 		case Xml::Particle::MaxParticles:
-			_item->maxParticles = s_cast<uint32_t>(std::atoi(attrs[1].first));
+			_item->maxParticles = s_cast<uint32_t>(std::atoi(attrs[1].data()));
 			break;
 		case Xml::Particle::ParticleLifespan:
-			_item->particleLifespan = s_cast<float>(std::atof(attrs[1].first));
+			_item->particleLifespan = s_cast<float>(std::atof(attrs[1].data()));
 			break;
 		case Xml::Particle::ParticleLifespanVariance:
-			_item->particleLifespanVariance = s_cast<float>(std::atof(attrs[1].first));
+			_item->particleLifespanVariance = s_cast<float>(std::atof(attrs[1].data()));
 			break;
 		case Xml::Particle::StartPosition:
 			get(attrs[1], _item->startPosition);
@@ -93,10 +93,10 @@ void ParticleCache::Parser::xmlSAX2StartElement(const char* name, size_t len, co
 			get(attrs[1], _item->startColorVariance);
 			break;
 		case Xml::Particle::StartParticleSize:
-			_item->startParticleSize = s_cast<float>(std::atof(attrs[1].first));
+			_item->startParticleSize = s_cast<float>(std::atof(attrs[1].data()));
 			break;
 		case Xml::Particle::StartParticleSizeVariance:
-			_item->startParticleSizeVariance = s_cast<float>(std::atof(attrs[1].first));
+			_item->startParticleSizeVariance = s_cast<float>(std::atof(attrs[1].data()));
 			break;
 		case Xml::Particle::TextureName:
 			_item->textureName = Slice(attrs[1]).toString();
@@ -105,54 +105,54 @@ void ParticleCache::Parser::xmlSAX2StartElement(const char* name, size_t len, co
 			get(attrs[1], _item->textureRect);
 			break;
 		case Xml::Particle::EmitterMode:
-			_item->emitterMode = EmitterMode(s_cast<int>(std::atoi(attrs[1].first)));
+			_item->emitterMode = EmitterMode(s_cast<int>(std::atoi(attrs[1].data())));
 			break;
 		case Xml::Particle::RotationIsDir:
-			_item->mode.gravity.rotationIsDir = s_cast<int>(std::atoi(attrs[1].first)) != 0;
+			_item->mode.gravity.rotationIsDir = s_cast<int>(std::atoi(attrs[1].data())) != 0;
 			break;
 		case Xml::Particle::Gravity:
 			get(attrs[1], _item->mode.gravity.gravity);
 			break;
 		case Xml::Particle::Speed:
-			_item->mode.gravity.speed = s_cast<float>(std::atoi(attrs[1].first));
+			_item->mode.gravity.speed = s_cast<float>(std::atoi(attrs[1].data()));
 			break;
 		case Xml::Particle::SpeedVariance:
-			_item->mode.gravity.speedVariance = s_cast<float>(std::atoi(attrs[1].first));
+			_item->mode.gravity.speedVariance = s_cast<float>(std::atoi(attrs[1].data()));
 			break;
 		case Xml::Particle::RadialAcceleration:
-			_item->mode.gravity.radialAcceleration = s_cast<float>(std::atoi(attrs[1].first));
+			_item->mode.gravity.radialAcceleration = s_cast<float>(std::atoi(attrs[1].data()));
 			break;
 		case Xml::Particle::RadialAccelVariance:
-			_item->mode.gravity.radialAccelVariance = s_cast<float>(std::atoi(attrs[1].first));
+			_item->mode.gravity.radialAccelVariance = s_cast<float>(std::atoi(attrs[1].data()));
 			break;
 		case Xml::Particle::TangentialAcceleration:
-			_item->mode.gravity.tangentialAcceleration = s_cast<float>(std::atoi(attrs[1].first));
+			_item->mode.gravity.tangentialAcceleration = s_cast<float>(std::atoi(attrs[1].data()));
 			break;
 		case Xml::Particle::TangentialAccelVariance:
-			_item->mode.gravity.tangentialAccelVariance = s_cast<float>(std::atoi(attrs[1].first));
+			_item->mode.gravity.tangentialAccelVariance = s_cast<float>(std::atoi(attrs[1].data()));
 			break;
 		case Xml::Particle::StartRadius:
-			_item->mode.radius.startRadius = s_cast<float>(std::atoi(attrs[1].first));
+			_item->mode.radius.startRadius = s_cast<float>(std::atoi(attrs[1].data()));
 			break;
 		case Xml::Particle::StartRadiusVariance:
-			_item->mode.radius.startRadiusVariance = s_cast<float>(std::atoi(attrs[1].first));
+			_item->mode.radius.startRadiusVariance = s_cast<float>(std::atoi(attrs[1].data()));
 			break;
 		case Xml::Particle::FinishRadius:
-			_item->mode.radius.finishRadius = s_cast<float>(std::atoi(attrs[1].first));
+			_item->mode.radius.finishRadius = s_cast<float>(std::atoi(attrs[1].data()));
 			break;
 		case Xml::Particle::FinishRadiusVariance:
-			_item->mode.radius.finishRadiusVariance = s_cast<float>(std::atoi(attrs[1].first));
+			_item->mode.radius.finishRadiusVariance = s_cast<float>(std::atoi(attrs[1].data()));
 			break;
 		case Xml::Particle::RotatePerSecond:
-			_item->mode.radius.rotatePerSecond = s_cast<float>(std::atoi(attrs[1].first));
+			_item->mode.radius.rotatePerSecond = s_cast<float>(std::atoi(attrs[1].data()));
 			break;
 		case Xml::Particle::RotatePerSecondVariance:
-			_item->mode.radius.rotatePerSecondVariance = s_cast<float>(std::atoi(attrs[1].first));
+			_item->mode.radius.rotatePerSecondVariance = s_cast<float>(std::atoi(attrs[1].data()));
 			break;
 	}
 }
 
-void ParticleCache::Parser::xmlSAX2EndElement(const char* name, size_t len) { }
+void ParticleCache::Parser::xmlSAX2EndElement(std::string_view name) { }
 
 void ParticleCache::Parser::get(String value, Vec4& vec) {
 	auto tokens = value.split(",");

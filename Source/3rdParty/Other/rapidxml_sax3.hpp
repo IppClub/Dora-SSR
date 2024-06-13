@@ -9,6 +9,7 @@
 #include <cassert>
 #include <vector>
 #include <utility>
+#include <string_view>
 
 // On MSVC, disable "conditional expression is constant" warning (level 4). 
 // This warning is almost impossible to avoid with certain types of templated code
@@ -319,23 +320,22 @@ namespace rapidxml
     class xml_sax2_handler : public xml_sax3_handler
     {
     public:
-        typedef std::pair<const char*,size_t> AttrSlice;
 
         xml_sax2_handler() { elementAttrs.reserve(64); }
 
         /**
         * @remark: The parameter 'name' without null terminator charactor
         */
-        virtual void xmlSAX2StartElement(const char *name, size_t, const std::vector<AttrSlice>& atts) = 0;
+        virtual void xmlSAX2StartElement(std::string_view name, const std::vector<std::string_view>& atts) = 0;
 
         /**
         * @remark: The parameter 'name' has null terminator charactor
         */
-        virtual void xmlSAX2EndElement(const char *name, size_t) = 0;
+        virtual void xmlSAX2EndElement(std::string_view name) = 0;
         /**
         * @remark: The parameter 's' has null terminator charactor
         */
-        virtual void xmlSAX2Text(const char *s, size_t) = 0;
+        virtual void xmlSAX2Text(std::string_view text) = 0;
 
 
         /// Implement SAX3 interfaces:
@@ -349,8 +349,8 @@ namespace rapidxml
             const char* name, size_t nameSize,
             const char* value, size_t valueSize) final
         {
-            elementAttrs.push_back(std::make_pair(name, nameSize));
-            elementAttrs.push_back(std::make_pair(value, valueSize));
+            elementAttrs.push_back({name, nameSize});
+            elementAttrs.push_back({value, valueSize});
         }
 
         void xmlSAX3EndAttr() final
@@ -358,8 +358,8 @@ namespace rapidxml
             auto chTemp = elementName.first[elementName.second];
             elementName.first[elementName.second] = '\0';
 
-            elementAttrs.push_back(std::make_pair(nullptr, 0));
-            xmlSAX2StartElement(elementName.first, elementName.second, elementAttrs);
+            elementAttrs.push_back({});
+            xmlSAX2StartElement({elementName.first, elementName.second}, elementAttrs);
             elementAttrs.clear();
 
             elementName.first[elementName.second] = chTemp;
@@ -367,17 +367,17 @@ namespace rapidxml
 
         virtual void xmlSAX3EndElement(const char *name, size_t len) final
         {
-            xmlSAX2EndElement(name, len);
+            xmlSAX2EndElement({name, len});
         }
 
         virtual void xmlSAX3Text(const char *s, size_t len) final
         {
-            xmlSAX2Text(s, len);
+            xmlSAX2Text({s, len});
         }
 
     private:
         tok_string elementName;
-        std::vector<AttrSlice> elementAttrs;
+        std::vector<std::string_view> elementAttrs;
     };
 
     //! This class represents root of the DOM hierarchy. 

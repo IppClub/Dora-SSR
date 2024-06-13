@@ -28,7 +28,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Input/TouchDispather.h"
 #include "Node/EffekNode.h"
 #include "Node/Node.h"
-#include "Node/Sprite.h"
 
 #include "bx/timer.h"
 

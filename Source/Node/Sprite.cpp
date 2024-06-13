@@ -391,7 +391,7 @@ void SpriteRenderer::push(Sprite* sprite) {
 	}
 }
 
-void SpriteRenderer::push(SpriteVertex* verts, size_t size,
+void SpriteRenderer::push(const SpriteVertex* verts, size_t size,
 	SpriteEffect* effect, Texture2D* texture, uint64_t state, uint32_t flags) {
 	AssertUnless(size % 4 == 0, "invalid sprite vertices size.");
 	if (effect != _lastEffect
@@ -423,7 +423,7 @@ void SpriteRenderer::push(SpriteVertex* verts, size_t size,
 }
 
 void SpriteRenderer::push(
-	SpriteVertex* verts, size_t vsize,
+	const SpriteVertex* verts, size_t vsize,
 	IndexType* inds, size_t isize,
 	SpriteEffect* effect, Texture2D* texture,
 	uint64_t state, uint32_t flags) {

@@ -62,13 +62,13 @@ std::shared_ptr<XmlParser<FrameActionDef>> FrameCache::prepareParser(String file
 	return std::shared_ptr<XmlParser<FrameActionDef>>(new Parser(FrameActionDef::create(), Path::getPath(filename.toString())));
 }
 
-void FrameCache::Parser::xmlSAX2Text(const char* s, size_t len) { }
+void FrameCache::Parser::xmlSAX2Text(std::string_view text) { }
 
-void FrameCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const std::vector<AttrSlice>& attrs) {
+void FrameCache::Parser::xmlSAX2StartElement(std::string_view name, const std::vector<std::string_view>& attrs) {
 	switch (Xml::Frame::Element(name[0])) {
 		case Xml::Frame::Element::Dorothy: {
-			for (int i = 0; attrs[i].first != nullptr; i++) {
-				switch (Xml::Frame::Dorothy(attrs[i].first[0])) {
+			for (int i = 0; !attrs[i].empty(); i++) {
+				switch (Xml::Frame::Dorothy(attrs[i][0])) {
 					case Xml::Frame::Dorothy::File: {
 						Slice file(attrs[++i]);
 						std::string localFile = Path::concat({_path, file});
@@ -76,15 +76,15 @@ void FrameCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const
 						break;
 					}
 					case Xml::Frame::Dorothy::Duration:
-						_item->duration = s_cast<float>(std::atof(attrs[++i].first));
+						_item->duration = s_cast<float>(std::atof(attrs[++i].data()));
 						break;
 				}
 			}
 			break;
 		}
 		case Xml::Frame::Element::Clip: {
-			for (int i = 0; attrs[i].first != nullptr; i++) {
-				switch (Xml::Frame::Clip(attrs[i].first[0])) {
+			for (int i = 0; !attrs[i].empty(); i++) {
+				switch (Xml::Frame::Clip(attrs[i][0])) {
 					case Xml::Frame::Clip::Rect: {
 						Slice attr(attrs[++i]);
 						auto tokens = attr.split(",");
@@ -104,6 +104,6 @@ void FrameCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const
 	}
 }
 
-void FrameCache::Parser::xmlSAX2EndElement(const char* name, size_t len) { }
+void FrameCache::Parser::xmlSAX2EndElement(std::string_view name) { }
 
 NS_DORA_END

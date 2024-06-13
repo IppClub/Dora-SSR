@@ -113,13 +113,13 @@ std::shared_ptr<XmlParser<ClipDef>> ClipCache::prepareParser(String filename) {
 	return std::shared_ptr<XmlParser<ClipDef>>(new Parser(ClipDef::create(), Path::getPath(filename.toString())));
 }
 
-void ClipCache::Parser::xmlSAX2Text(const char* s, size_t len) { }
+void ClipCache::Parser::xmlSAX2Text(std::string_view text) { }
 
-void ClipCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const std::vector<AttrSlice>& attrs) {
+void ClipCache::Parser::xmlSAX2StartElement(std::string_view name, const std::vector<std::string_view>& attrs) {
 	switch (Xml::Clip::Element(name[0])) {
 		case Xml::Clip::Element::Dorothy: {
-			for (int i = 0; attrs[i].first != nullptr; i++) {
-				switch (Xml::Clip::Dorothy(attrs[i].first[0])) {
+			for (int i = 0; !attrs[i].empty(); i++) {
+				switch (Xml::Clip::Dorothy(attrs[i][0])) {
 					case Xml::Clip::Dorothy::File:
 						_item->textureFile = Path::concat({_path, attrs[++i]});
 						break;
@@ -129,8 +129,8 @@ void ClipCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const 
 		}
 		case Xml::Clip::Element::Clip: {
 			Slice name;
-			for (int i = 0; attrs[i].first != nullptr; i++) {
-				switch (Xml::Clip::Clip(attrs[i].first[0])) {
+			for (int i = 0; !attrs[i].empty(); i++) {
+				switch (Xml::Clip::Clip(attrs[i][0])) {
 					case Xml::Clip::Clip::Name: {
 						name = attrs[++i];
 						break;
@@ -154,6 +154,6 @@ void ClipCache::Parser::xmlSAX2StartElement(const char* name, size_t len, const 
 	}
 }
 
-void ClipCache::Parser::xmlSAX2EndElement(const char* name, size_t len) { }
+void ClipCache::Parser::xmlSAX2EndElement(std::string_view name) { }
 
 NS_DORA_END

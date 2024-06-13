@@ -294,6 +294,34 @@
 		3C329DDC2B39D896002BC023 /* DoraTag.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C329DDA2B39D896002BC023 /* DoraTag.cpp */; };
 		3C33A3CA2A3AF3C300E60A14 /* YarnCompiler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C33A3C92A3AF3C300E60A14 /* YarnCompiler.cpp */; };
 		3C33A3CB2A3AF3C300E60A14 /* YarnCompiler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C33A3C92A3AF3C300E60A14 /* YarnCompiler.cpp */; };
+		3C361E3D2C1AFF400079B68B /* TileLayer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C361E202C1AFF3F0079B68B /* TileLayer.cpp */; };
+		3C361E3E2C1AFF400079B68B /* TileLayer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C361E202C1AFF3F0079B68B /* TileLayer.cpp */; };
+		3C361E412C1AFF400079B68B /* ObjectGroup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C361E232C1AFF3F0079B68B /* ObjectGroup.cpp */; };
+		3C361E422C1AFF400079B68B /* ObjectGroup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C361E232C1AFF3F0079B68B /* ObjectGroup.cpp */; };
+		3C361E432C1AFF400079B68B /* LayerGroup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C361E252C1AFF3F0079B68B /* LayerGroup.cpp */; };
+		3C361E442C1AFF400079B68B /* LayerGroup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C361E252C1AFF3F0079B68B /* LayerGroup.cpp */; };
+		3C361E452C1AFF400079B68B /* Property.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C361E272C1AFF3F0079B68B /* Property.cpp */; };
+		3C361E462C1AFF400079B68B /* Property.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C361E272C1AFF3F0079B68B /* Property.cpp */; };
+		3C361E472C1AFF400079B68B /* ObjectTypes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C361E292C1AFF400079B68B /* ObjectTypes.cpp */; };
+		3C361E482C1AFF400079B68B /* ObjectTypes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C361E292C1AFF400079B68B /* ObjectTypes.cpp */; };
+		3C361E492C1AFF400079B68B /* ImageLayer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C361E2A2C1AFF400079B68B /* ImageLayer.cpp */; };
+		3C361E4A2C1AFF400079B68B /* ImageLayer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C361E2A2C1AFF400079B68B /* ImageLayer.cpp */; };
+		3C361E4B2C1AFF400079B68B /* Object.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C361E2C2C1AFF400079B68B /* Object.cpp */; };
+		3C361E4C2C1AFF400079B68B /* Object.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C361E2C2C1AFF400079B68B /* Object.cpp */; };
+		3C361E4D2C1AFF400079B68B /* Tileset.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C361E302C1AFF400079B68B /* Tileset.cpp */; };
+		3C361E4E2C1AFF400079B68B /* Tileset.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C361E302C1AFF400079B68B /* Tileset.cpp */; };
+		3C361E4F2C1AFF400079B68B /* Map.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C361E312C1AFF400079B68B /* Map.cpp */; };
+		3C361E502C1AFF400079B68B /* Map.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C361E312C1AFF400079B68B /* Map.cpp */; };
+		3C361E512C1AFF400079B68B /* FreeFuncs.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C361E352C1AFF400079B68B /* FreeFuncs.cpp */; };
+		3C361E522C1AFF400079B68B /* FreeFuncs.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C361E352C1AFF400079B68B /* FreeFuncs.cpp */; };
+		3C361E532C1AFF400079B68B /* pugixml.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C361E392C1AFF400079B68B /* pugixml.cpp */; };
+		3C361E542C1AFF400079B68B /* pugixml.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C361E392C1AFF400079B68B /* pugixml.cpp */; };
+		3C361E592C1AFFA50079B68B /* TileNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C361E572C1AFFA50079B68B /* TileNode.cpp */; };
+		3C361E5A2C1AFFA50079B68B /* TileNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C361E572C1AFFA50079B68B /* TileNode.cpp */; };
+		3C361E5D2C1AFFC60079B68B /* TMXCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C361E5C2C1AFFC60079B68B /* TMXCache.cpp */; };
+		3C361E5E2C1AFFC60079B68B /* TMXCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C361E5C2C1AFFC60079B68B /* TMXCache.cpp */; };
+		3C361E732C1B47F50079B68B /* TMX in Resources */ = {isa = PBXBuildFile; fileRef = 3C361E722C1B47F50079B68B /* TMX */; };
+		3C361E742C1B47F50079B68B /* TMX in Resources */ = {isa = PBXBuildFile; fileRef = 3C361E722C1B47F50079B68B /* TMX */; };
 		3C41D60321490BE6003FDDFE /* imgui.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C41D5FB21490BE5003FDDFE /* imgui.cpp */; };
 		3C41D60421490BE6003FDDFE /* imgui_draw.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C41D5FC21490BE5003FDDFE /* imgui_draw.cpp */; };
 		3C41D60521490BE6003FDDFE /* imgui_widgets.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C41D5FF21490BE5003FDDFE /* imgui_widgets.cpp */; };
@@ -1546,6 +1574,39 @@
 		3C329DDD2B39D8AC002BC023 /* Dora.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Dora.h; path = ../../../Source/Dora.h; sourceTree = "<group>"; };
 		3C33A3C82A3AF3C300E60A14 /* YarnCompiler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = YarnCompiler.h; path = ../../../Source/Lua/Yarn/YarnCompiler.h; sourceTree = "<group>"; };
 		3C33A3C92A3AF3C300E60A14 /* YarnCompiler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = YarnCompiler.cpp; path = ../../../Source/Lua/Yarn/YarnCompiler.cpp; sourceTree = "<group>"; };
+		3C361E1E2C1AFF3F0079B68B /* TileLayer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = TileLayer.hpp; path = ../../../Source/3rdParty/tmxlite/TileLayer.hpp; sourceTree = "<group>"; };
+		3C361E1F2C1AFF3F0079B68B /* Tileset.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Tileset.hpp; path = ../../../Source/3rdParty/tmxlite/Tileset.hpp; sourceTree = "<group>"; };
+		3C361E202C1AFF3F0079B68B /* TileLayer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TileLayer.cpp; path = ../../../Source/3rdParty/tmxlite/TileLayer.cpp; sourceTree = "<group>"; };
+		3C361E212C1AFF3F0079B68B /* Types.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Types.hpp; path = ../../../Source/3rdParty/tmxlite/Types.hpp; sourceTree = "<group>"; };
+		3C361E232C1AFF3F0079B68B /* ObjectGroup.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ObjectGroup.cpp; path = ../../../Source/3rdParty/tmxlite/ObjectGroup.cpp; sourceTree = "<group>"; };
+		3C361E242C1AFF3F0079B68B /* ObjectTypes.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = ObjectTypes.hpp; path = ../../../Source/3rdParty/tmxlite/ObjectTypes.hpp; sourceTree = "<group>"; };
+		3C361E252C1AFF3F0079B68B /* LayerGroup.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = LayerGroup.cpp; path = ../../../Source/3rdParty/tmxlite/LayerGroup.cpp; sourceTree = "<group>"; };
+		3C361E262C1AFF3F0079B68B /* Map.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Map.hpp; path = ../../../Source/3rdParty/tmxlite/Map.hpp; sourceTree = "<group>"; };
+		3C361E272C1AFF3F0079B68B /* Property.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Property.cpp; path = ../../../Source/3rdParty/tmxlite/Property.cpp; sourceTree = "<group>"; };
+		3C361E282C1AFF400079B68B /* Layer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Layer.hpp; path = ../../../Source/3rdParty/tmxlite/Layer.hpp; sourceTree = "<group>"; };
+		3C361E292C1AFF400079B68B /* ObjectTypes.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ObjectTypes.cpp; path = ../../../Source/3rdParty/tmxlite/ObjectTypes.cpp; sourceTree = "<group>"; };
+		3C361E2A2C1AFF400079B68B /* ImageLayer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ImageLayer.cpp; path = ../../../Source/3rdParty/tmxlite/ImageLayer.cpp; sourceTree = "<group>"; };
+		3C361E2B2C1AFF400079B68B /* FreeFuncs.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = FreeFuncs.hpp; path = ../../../Source/3rdParty/tmxlite/FreeFuncs.hpp; sourceTree = "<group>"; };
+		3C361E2C2C1AFF400079B68B /* Object.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Object.cpp; path = ../../../Source/3rdParty/tmxlite/Object.cpp; sourceTree = "<group>"; };
+		3C361E2D2C1AFF400079B68B /* LayerGroup.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = LayerGroup.hpp; path = ../../../Source/3rdParty/tmxlite/LayerGroup.hpp; sourceTree = "<group>"; };
+		3C361E2E2C1AFF400079B68B /* ImageLayer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = ImageLayer.hpp; path = ../../../Source/3rdParty/tmxlite/ImageLayer.hpp; sourceTree = "<group>"; };
+		3C361E2F2C1AFF400079B68B /* Property.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Property.hpp; path = ../../../Source/3rdParty/tmxlite/Property.hpp; sourceTree = "<group>"; };
+		3C361E302C1AFF400079B68B /* Tileset.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Tileset.cpp; path = ../../../Source/3rdParty/tmxlite/Tileset.cpp; sourceTree = "<group>"; };
+		3C361E312C1AFF400079B68B /* Map.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Map.cpp; path = ../../../Source/3rdParty/tmxlite/Map.cpp; sourceTree = "<group>"; };
+		3C361E322C1AFF400079B68B /* Object.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Object.hpp; path = ../../../Source/3rdParty/tmxlite/Object.hpp; sourceTree = "<group>"; };
+		3C361E332C1AFF400079B68B /* ObjectGroup.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = ObjectGroup.hpp; path = ../../../Source/3rdParty/tmxlite/ObjectGroup.hpp; sourceTree = "<group>"; };
+		3C361E342C1AFF400079B68B /* Config.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Config.hpp; path = ../../../Source/3rdParty/tmxlite/Config.hpp; sourceTree = "<group>"; };
+		3C361E352C1AFF400079B68B /* FreeFuncs.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = FreeFuncs.cpp; path = ../../../Source/3rdParty/tmxlite/FreeFuncs.cpp; sourceTree = "<group>"; };
+		3C361E362C1AFF400079B68B /* Android.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Android.hpp; sourceTree = "<group>"; };
+		3C361E372C1AFF400079B68B /* Log.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Log.hpp; sourceTree = "<group>"; };
+		3C361E382C1AFF400079B68B /* pugiconfig.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = pugiconfig.hpp; sourceTree = "<group>"; };
+		3C361E392C1AFF400079B68B /* pugixml.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pugixml.cpp; sourceTree = "<group>"; };
+		3C361E3A2C1AFF400079B68B /* pugixml.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = pugixml.hpp; sourceTree = "<group>"; };
+		3C361E572C1AFFA50079B68B /* TileNode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TileNode.cpp; path = ../../../Source/Node/TileNode.cpp; sourceTree = "<group>"; };
+		3C361E582C1AFFA50079B68B /* TileNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TileNode.h; path = ../../../Source/Node/TileNode.h; sourceTree = "<group>"; };
+		3C361E5B2C1AFFC60079B68B /* TMXCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TMXCache.h; path = ../../../Source/Cache/TMXCache.h; sourceTree = "<group>"; };
+		3C361E5C2C1AFFC60079B68B /* TMXCache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TMXCache.cpp; path = ../../../Source/Cache/TMXCache.cpp; sourceTree = "<group>"; };
+		3C361E722C1B47F50079B68B /* TMX */ = {isa = PBXFileReference; lastKnownFileType = folder; name = TMX; path = ../../Assets/TMX; sourceTree = "<group>"; };
 		3C41D5FB21490BE5003FDDFE /* imgui.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = imgui.cpp; path = ../../../Source/3rdParty/imgui/imgui.cpp; sourceTree = "<group>"; };
 		3C41D5FC21490BE5003FDDFE /* imgui_draw.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = imgui_draw.cpp; path = ../../../Source/3rdParty/imgui/imgui_draw.cpp; sourceTree = "<group>"; };
 		3C41D5FD21490BE5003FDDFE /* imconfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = imconfig.h; path = ../../../Source/3rdParty/imgui/imconfig.h; sourceTree = "<group>"; };
@@ -2960,6 +3021,8 @@
 		3C1038511E15103600D37A60 /* Node */ = {
 			isa = PBXGroup;
 			children = (
+				3C361E572C1AFFA50079B68B /* TileNode.cpp */,
+				3C361E582C1AFFA50079B68B /* TileNode.h */,
 				3C0FB7222BF197690098E88D /* EffekNode.cpp */,
 				3C0FB7212BF197690098E88D /* EffekNode.h */,
 				3C53EA412BEB456700039640 /* AlignNode.cpp */,
@@ -3209,6 +3272,7 @@
 			children = (
 				3CE994692AFB26820073A973 /* gamecontrollerdb.txt */,
 				3CA780A22AEB88B600B7BADA /* LICENSES */,
+				3C361E722C1B47F50079B68B /* TMX */,
 				3C60DE142A2069FE007D7865 /* Doc */,
 				3CA8DF0E2A0CE83D0022CC90 /* www */,
 				3C0C775B275744690030BDCD /* Data */,
@@ -3446,6 +3510,50 @@
 				3C33A3C82A3AF3C300E60A14 /* YarnCompiler.h */,
 			);
 			name = Yarn;
+			sourceTree = "<group>";
+		};
+		3C361E1D2C1AFF190079B68B /* tmxlite */ = {
+			isa = PBXGroup;
+			children = (
+				3C361E342C1AFF400079B68B /* Config.hpp */,
+				3C361E3C2C1AFF400079B68B /* detail */,
+				3C361E352C1AFF400079B68B /* FreeFuncs.cpp */,
+				3C361E2B2C1AFF400079B68B /* FreeFuncs.hpp */,
+				3C361E2A2C1AFF400079B68B /* ImageLayer.cpp */,
+				3C361E2E2C1AFF400079B68B /* ImageLayer.hpp */,
+				3C361E282C1AFF400079B68B /* Layer.hpp */,
+				3C361E252C1AFF3F0079B68B /* LayerGroup.cpp */,
+				3C361E2D2C1AFF400079B68B /* LayerGroup.hpp */,
+				3C361E312C1AFF400079B68B /* Map.cpp */,
+				3C361E262C1AFF3F0079B68B /* Map.hpp */,
+				3C361E2C2C1AFF400079B68B /* Object.cpp */,
+				3C361E322C1AFF400079B68B /* Object.hpp */,
+				3C361E232C1AFF3F0079B68B /* ObjectGroup.cpp */,
+				3C361E332C1AFF400079B68B /* ObjectGroup.hpp */,
+				3C361E292C1AFF400079B68B /* ObjectTypes.cpp */,
+				3C361E242C1AFF3F0079B68B /* ObjectTypes.hpp */,
+				3C361E272C1AFF3F0079B68B /* Property.cpp */,
+				3C361E2F2C1AFF400079B68B /* Property.hpp */,
+				3C361E202C1AFF3F0079B68B /* TileLayer.cpp */,
+				3C361E1E2C1AFF3F0079B68B /* TileLayer.hpp */,
+				3C361E302C1AFF400079B68B /* Tileset.cpp */,
+				3C361E1F2C1AFF3F0079B68B /* Tileset.hpp */,
+				3C361E212C1AFF3F0079B68B /* Types.hpp */,
+			);
+			name = tmxlite;
+			sourceTree = "<group>";
+		};
+		3C361E3C2C1AFF400079B68B /* detail */ = {
+			isa = PBXGroup;
+			children = (
+				3C361E362C1AFF400079B68B /* Android.hpp */,
+				3C361E372C1AFF400079B68B /* Log.hpp */,
+				3C361E382C1AFF400079B68B /* pugiconfig.hpp */,
+				3C361E392C1AFF400079B68B /* pugixml.cpp */,
+				3C361E3A2C1AFF400079B68B /* pugixml.hpp */,
+			);
+			name = detail;
+			path = ../../../Source/3rdParty/tmxlite/detail;
 			sourceTree = "<group>";
 		};
 		3C41D60721490CCD003FDDFE /* nanovg */ = {
@@ -3692,6 +3800,8 @@
 		3C6D37221E27D9BE008C92E8 /* Cache */ = {
 			isa = PBXGroup;
 			children = (
+				3C361E5C2C1AFFC60079B68B /* TMXCache.cpp */,
+				3C361E5B2C1AFFC60079B68B /* TMXCache.h */,
 				3C47CF1228A38C910011F3E1 /* Cache.cpp */,
 				3C47CF1328A38C910011F3E1 /* Cache.h */,
 				3C20F3E2248F774600BBA830 /* AtlasCache.cpp */,
@@ -4237,6 +4347,7 @@
 		3CB410221E05B08B00A8804D /* 3rdParty */ = {
 			isa = PBXGroup;
 			children = (
+				3C361E1D2C1AFF190079B68B /* tmxlite */,
 				3C0FB6802BF1970C0098E88D /* Effekseer */,
 				3C53E9C92BEB440A00039640 /* yoga */,
 				3C5399F22998DECB00E9125C /* colib */,
@@ -4854,6 +4965,7 @@
 				3CFEBE4426930B91006D9974 /* DragonBones in Resources */,
 				3CA8DF102A0CE83D0022CC90 /* www in Resources */,
 				3CBE0F0826087F7B003F4F45 /* Font in Resources */,
+				3C361E742C1B47F50079B68B /* TMX in Resources */,
 				3CBE0F0926087F7B003F4F45 /* Script in Resources */,
 				3CBE0F0B26087F7B003F4F45 /* Particle in Resources */,
 				3CA780A42AEB88B600B7BADA /* LICENSES in Resources */,
@@ -4877,6 +4989,7 @@
 				3CFEBE4326930B91006D9974 /* DragonBones in Resources */,
 				3CA8DF0F2A0CE83D0022CC90 /* www in Resources */,
 				3C030CFB24CAE6580074786E /* Font in Resources */,
+				3C361E732C1B47F50079B68B /* TMX in Resources */,
 				3C030CF824CAE6580074786E /* Script in Resources */,
 				3C030CFC24CAE6580074786E /* Particle in Resources */,
 				3CA780A32AEB88B600B7BADA /* LICENSES in Resources */,
@@ -4942,6 +5055,7 @@
 				3C0FB6B02BF1970C0098E88D /* Mat43f.cpp in Sources */,
 				3CFEA16F285B873B002D106F /* m3_api_wasi.c in Sources */,
 				3C6E8036272A404A00E9F115 /* soloud_fft.cpp in Sources */,
+				3C361E3E2C1AFF400079B68B /* TileLayer.cpp in Sources */,
 				3C0FB6D22BF1970C0098E88D /* Effekseer.EffectNodeTrack.cpp in Sources */,
 				3C53EA432BEB456700039640 /* AlignNode.cpp in Sources */,
 				3C0FB7082BF1970C0098E88D /* EffekseerRenderer.RenderStateBase.cpp in Sources */,
@@ -5001,6 +5115,7 @@
 				3C1A3C09272A8820003A2829 /* lutf8lib.c in Sources */,
 				3CA780212AE66FB000B7BADA /* UnitVec.cpp in Sources */,
 				3CC15DCA2C17E3F8004763E7 /* inflate.c in Sources */,
+				3C361E442C1AFF400079B68B /* LayerGroup.cpp in Sources */,
 				3C0FB6902BF1970C0098E88D /* PointCacheGenerator.cpp in Sources */,
 				3C1A3BE7272A8820003A2829 /* lfunc.c in Sources */,
 				3C0FB6FE2BF1970C0098E88D /* EffekseerRenderer.GpuParticles.cpp in Sources */,
@@ -5017,6 +5132,7 @@
 				3C4B3D9A2C06DDE000D778FC /* RotateTimeline.cpp in Sources */,
 				3CA7803F2AE66FB000B7BADA /* WheelJointConf.cpp in Sources */,
 				3C0FB7042BF1970C0098E88D /* EffekseerRenderer.Renderer_Impl.cpp in Sources */,
+				3C361E422C1AFF400079B68B /* ObjectGroup.cpp in Sources */,
 				3C1A3BDD272A8820003A2829 /* lbaselib.c in Sources */,
 				3C1A3BF7272A8820003A2829 /* lvm.c in Sources */,
 				3C1A3BF1272A8820003A2829 /* loslib.c in Sources */,
@@ -5029,6 +5145,7 @@
 				3C0FB71A2BF1970C0098E88D /* VertexBuffer.cpp in Sources */,
 				3C6E8048272A404A00E9F115 /* soloud_core_3d.cpp in Sources */,
 				3C6E801C272A404A00E9F115 /* soloud_noise.cpp in Sources */,
+				3C361E5E2C1AFFC60079B68B /* TMXCache.cpp in Sources */,
 				3C1A3C01272A8820003A2829 /* ltable.c in Sources */,
 				3CC15DC82C17E3F8004763E7 /* inffast.c in Sources */,
 				3CA7802F2AE66FB000B7BADA /* RopeJointConf.cpp in Sources */,
@@ -5073,6 +5190,7 @@
 				3CFEBE1A26930AA1006D9974 /* Animation.cpp in Sources */,
 				3C6E8030272A404A00E9F115 /* soloud_file.cpp in Sources */,
 				3CFEBE1B26930AA1006D9974 /* AnimationState.cpp in Sources */,
+				3C361E462C1AFF400079B68B /* Property.cpp in Sources */,
 				3CC15DC42C17E3F8004763E7 /* gzread.c in Sources */,
 				3C4B3DCE2C06DDE000D778FC /* PhysicsConstraintData.cpp in Sources */,
 				3C4B3DC62C06DDE000D778FC /* Attachment.cpp in Sources */,
@@ -5085,6 +5203,7 @@
 				3C4B3DBA2C06DDE000D778FC /* PathConstraint.cpp in Sources */,
 				3CFEBE2026930AA1006D9974 /* Bone.cpp in Sources */,
 				3C4B3DDC2C06DDE000D778FC /* MeshAttachment.cpp in Sources */,
+				3C361E522C1AFF400079B68B /* FreeFuncs.cpp in Sources */,
 				3C53E9E72BEB442300039640 /* YGEnums.cpp in Sources */,
 				3CFEBE2126930AA1006D9974 /* Constraint.cpp in Sources */,
 				3CA780892AE66FB000B7BADA /* StepConf.cpp in Sources */,
@@ -5105,6 +5224,7 @@
 				3C0FB6EA2BF1970C0098E88D /* Effekseer.Random.cpp in Sources */,
 				3C1A3BD1272A8820003A2829 /* ldebug.c in Sources */,
 				3C6E7FD2272A404900E9F115 /* soloud_bassboostfilter.cpp in Sources */,
+				3C361E4A2C1AFF400079B68B /* ImageLayer.cpp in Sources */,
 				3CFEBE2726930AA1006D9974 /* EventObject.cpp in Sources */,
 				3CFEBE2826930AA1006D9974 /* BaseFactory.cpp in Sources */,
 				3C0FB6942BF1970C0098E88D /* SplineGenerator.cpp in Sources */,
@@ -5164,6 +5284,7 @@
 				3CA7800F2AE66FB000B7BADA /* Joint.cpp in Sources */,
 				3CBFB70F2643782A006348C8 /* implot_items.cpp in Sources */,
 				3CBFB7102643782A006348C8 /* implot.cpp in Sources */,
+				3C361E542C1AFF400079B68B /* pugixml.cpp in Sources */,
 				3CA7806F2AE66FB000B7BADA /* DistanceConf.cpp in Sources */,
 				3C4B3D5C2C06DDE000D778FC /* Slot.cpp in Sources */,
 				3CAA2D3C26156099004443A6 /* Database.cpp in Sources */,
@@ -5193,6 +5314,7 @@
 				3C6E803E272A404A00E9F115 /* soloud_queue.cpp in Sources */,
 				3CBE0DF926087F7B003F4F45 /* Sprite.cpp in Sources */,
 				3C1A3BE1272A8820003A2829 /* lgc.c in Sources */,
+				3C361E482C1AFF400079B68B /* ObjectTypes.cpp in Sources */,
 				3C6E7FD8272A404900E9F115 /* soloud_robotizefilter.cpp in Sources */,
 				3C0FB7102BF1970C0098E88D /* EffekseerRenderer.TGATextureLoader.cpp in Sources */,
 				3CBE0DFD26087F7B003F4F45 /* BulletDef.cpp in Sources */,
@@ -5275,6 +5397,7 @@
 				3C4B3D862C06DDE000D778FC /* AtlasAttachmentLoader.cpp in Sources */,
 				3C53EA032BEB44C100039640 /* event.cpp in Sources */,
 				3CA780932AE66FB000B7BADA /* MovementConf.cpp in Sources */,
+				3C361E5A2C1AFFA50079B68B /* TileNode.cpp in Sources */,
 				3CA7807F2AE66FB000B7BADA /* Math.cpp in Sources */,
 				3CA780812AE66FB000B7BADA /* ToiConf.cpp in Sources */,
 				3CBE0E3326087F7B003F4F45 /* tolua_is.cpp in Sources */,
@@ -5306,6 +5429,7 @@
 				3C0FB6A82BF1970C0098E88D /* Effekseer.Parameters.cpp in Sources */,
 				3CBE0E4926087F7B003F4F45 /* DebugDraw.cpp in Sources */,
 				3C1A3BD9272A8820003A2829 /* ldump.c in Sources */,
+				3C361E502C1AFF400079B68B /* Map.cpp in Sources */,
 				3C33A3CB2A3AF3C300E60A14 /* YarnCompiler.cpp in Sources */,
 				3C0FB6D42BF1970C0098E88D /* Effekseer.FCurves.cpp in Sources */,
 				3CBE0E4B26087F7B003F4F45 /* View.cpp in Sources */,
@@ -5409,6 +5533,7 @@
 				3CBE0EB726087F7B003F4F45 /* Label.cpp in Sources */,
 				3CBE0EBC26087F7B003F4F45 /* ClipNode.cpp in Sources */,
 				3CBE0EBD26087F7B003F4F45 /* VisualCache.cpp in Sources */,
+				3C361E4C2C1AFF400079B68B /* Object.cpp in Sources */,
 				3CBE0EBE26087F7B003F4F45 /* Sound.cpp in Sources */,
 				3C329DDC2B39D896002BC023 /* DoraTag.cpp in Sources */,
 				3CBE0EC426087F7B003F4F45 /* SoundCache.cpp in Sources */,
@@ -5421,6 +5546,7 @@
 				3CA780232AE66FB000B7BADA /* BodyConf.cpp in Sources */,
 				3CBE0ECA26087F7B003F4F45 /* yuescript.cpp in Sources */,
 				3C4B3D922C06DDE000D778FC /* ColorTimeline.cpp in Sources */,
+				3C361E4E2C1AFF400079B68B /* Tileset.cpp in Sources */,
 				3CA7806B2AE66FB000B7BADA /* MassData.cpp in Sources */,
 				3C4B3DDE2C06DDE000D778FC /* InheritTimeline.cpp in Sources */,
 				3CBE0ECD26087F7B003F4F45 /* ShaderCache.cpp in Sources */,
@@ -5473,6 +5599,7 @@
 				3C0FB6AF2BF1970C0098E88D /* Mat43f.cpp in Sources */,
 				3C6E8049272A404A00E9F115 /* soloud_misc.cpp in Sources */,
 				3C131FFC21011BB60087154A /* BulletDef.cpp in Sources */,
+				3C361E3D2C1AFF400079B68B /* TileLayer.cpp in Sources */,
 				3C0FB6D12BF1970C0098E88D /* Effekseer.EffectNodeTrack.cpp in Sources */,
 				3C53EA422BEB456700039640 /* AlignNode.cpp in Sources */,
 				3C0FB7072BF1970C0098E88D /* EffekseerRenderer.RenderStateBase.cpp in Sources */,
@@ -5532,6 +5659,7 @@
 				3C4B3DA92C06DDE000D778FC /* Timeline.cpp in Sources */,
 				3C0FB6B12BF1970C0098E88D /* Mat44f.cpp in Sources */,
 				3CC15DC92C17E3F8004763E7 /* inflate.c in Sources */,
+				3C361E432C1AFF400079B68B /* LayerGroup.cpp in Sources */,
 				3C883B1321E338F500BFD758 /* Object.cpp in Sources */,
 				3C25B871257A7F8B002DD8E1 /* yue_compiler.cpp in Sources */,
 				3CA780202AE66FB000B7BADA /* UnitVec.cpp in Sources */,
@@ -5548,6 +5676,7 @@
 				3C4B3D992C06DDE000D778FC /* RotateTimeline.cpp in Sources */,
 				3C8CD74C27268AE70045B362 /* RenderTarget.cpp in Sources */,
 				3C6E8009272A404900E9F115 /* resonator.cpp in Sources */,
+				3C361E412C1AFF400079B68B /* ObjectGroup.cpp in Sources */,
 				3CFEBDD4269309D5006D9974 /* Slot.cpp in Sources */,
 				3CA780642AE66FB000B7BADA /* VelocityConstraint.cpp in Sources */,
 				3CFEA15E285B873B002D106F /* m3_function.c in Sources */,
@@ -5560,6 +5689,7 @@
 				3C0FB7032BF1970C0098E88D /* EffekseerRenderer.Renderer_Impl.cpp in Sources */,
 				3C8805721E5ED18F00B52D4B /* atlas.cpp in Sources */,
 				3C6577481ECC2C9D00C5FB09 /* Keyboard.cpp in Sources */,
+				3C361E5D2C1AFFC60079B68B /* TMXCache.cpp in Sources */,
 				3CFEBE1726930A3A006D9974 /* DataParser.cpp in Sources */,
 				3CC15DC72C17E3F8004763E7 /* inffast.c in Sources */,
 				3CE9509D20F33DA9002FFC18 /* stb.cpp in Sources */,
@@ -5604,6 +5734,7 @@
 				3C20F3E6248F774600BBA830 /* AtlasCache.cpp in Sources */,
 				3C6E800B272A404900E9F115 /* klatt.cpp in Sources */,
 				3C6E8031272A404A00E9F115 /* soloud.cpp in Sources */,
+				3C361E452C1AFF400079B68B /* Property.cpp in Sources */,
 				3CC15DC32C17E3F8004763E7 /* gzread.c in Sources */,
 				3C4B3DCD2C06DDE000D778FC /* PhysicsConstraintData.cpp in Sources */,
 				3C4B3DC52C06DDE000D778FC /* Attachment.cpp in Sources */,
@@ -5616,6 +5747,7 @@
 				3C4B3DB92C06DDE000D778FC /* PathConstraint.cpp in Sources */,
 				3C0FB6C12BF1970C0098E88D /* Effekseer.DefaultFile.cpp in Sources */,
 				3C4B3DDB2C06DDE000D778FC /* MeshAttachment.cpp in Sources */,
+				3C361E512C1AFF400079B68B /* FreeFuncs.cpp in Sources */,
 				3CB410291E05B0C500A8804D /* Slice.cpp in Sources */,
 				3C4BC6661E17F1B500292200 /* tolua_is.cpp in Sources */,
 				3CB7307C1E80343E006DFA18 /* Joint.cpp in Sources */,
@@ -5636,6 +5768,7 @@
 				3C1A3BDC272A8820003A2829 /* lbaselib.c in Sources */,
 				3C41D60621490BE6003FDDFE /* imgui_demo.cpp in Sources */,
 				3C92DEC41FFE1CFA003AF655 /* Entity.cpp in Sources */,
+				3C361E492C1AFF400079B68B /* ImageLayer.cpp in Sources */,
 				3C10706A1E13A2D800EB8C7A /* Async.cpp in Sources */,
 				3C0FB6B92BF1970C0098E88D /* VectorFieldLoader.cpp in Sources */,
 				3CA780942AE66FB000B7BADA /* StackAllocator.cpp in Sources */,
@@ -5695,6 +5828,7 @@
 				3C53E9DA2BEB442300039640 /* YGPixelGrid.cpp in Sources */,
 				3CE355621E1B7A6300268A19 /* LuaHandler.cpp in Sources */,
 				3C6E7FF3272A404900E9F115 /* dr_impl.cpp in Sources */,
+				3C361E532C1AFF400079B68B /* pugixml.cpp in Sources */,
 				3CA780862AE66FB000B7BADA /* DynamicMemory.cpp in Sources */,
 				3C4B3D5B2C06DDE000D778FC /* Slot.cpp in Sources */,
 				3C0FB70B2BF1970C0098E88D /* EffekseerRenderer.RingRendererBase.cpp in Sources */,
@@ -5724,6 +5858,7 @@
 				3C4B3D6D2C06DDE000D778FC /* Skin.cpp in Sources */,
 				3C13200521011BB60087154A /* AI.cpp in Sources */,
 				3CA780362AE66FB000B7BADA /* TimeOfImpact.cpp in Sources */,
+				3C361E472C1AFF400079B68B /* ObjectTypes.cpp in Sources */,
 				3C6E8023272A404A00E9F115 /* soloud_openmpt.cpp in Sources */,
 				3C0FB6B32BF1970C0098E88D /* Utils.cpp in Sources */,
 				3CA1B7F61EC16ED300BC58FF /* tinyxml2.cpp in Sources */,
@@ -5806,6 +5941,7 @@
 				3C030CCB24CAC2BA0074786E /* Playable.cpp in Sources */,
 				3C4B3D852C06DDE000D778FC /* AtlasAttachmentLoader.cpp in Sources */,
 				3C6E8043272A404A00E9F115 /* soloud_thread.cpp in Sources */,
+				3C361E592C1AFFA50079B68B /* TileNode.cpp in Sources */,
 				3CA7808E2AE66FB000B7BADA /* Island.cpp in Sources */,
 				3CE534761E5A9BD500F017AE /* Singleton.cpp in Sources */,
 				3C53EA022BEB44C100039640 /* event.cpp in Sources */,
@@ -5837,6 +5973,7 @@
 				3C0AD7CA1E0CE9990033AD59 /* LuaBinding.cpp in Sources */,
 				3CA7808A2AE66FB000B7BADA /* StepStats.cpp in Sources */,
 				3C1A3BFC272A8820003A2829 /* linit.c in Sources */,
+				3C361E4F2C1AFF400079B68B /* Map.cpp in Sources */,
 				3C0FB6892BF1970C0098E88D /* Effekseer.MaterialFile.cpp in Sources */,
 				3C0FB6A72BF1970C0098E88D /* Effekseer.Parameters.cpp in Sources */,
 				3CFEBE0E26930A26006D9974 /* DragonBonesData.cpp in Sources */,
@@ -5940,6 +6077,7 @@
 				3CAA2D1926155DB3004443A6 /* Exception.cpp in Sources */,
 				3C883B1621E338F500BFD758 /* AutoreleasePool.cpp in Sources */,
 				3C1A3C06272A8820003A2829 /* ltm.c in Sources */,
+				3C361E4B2C1AFF400079B68B /* Object.cpp in Sources */,
 				3CFEBDD3269309D5006D9974 /* Constraint.cpp in Sources */,
 				3C329DDB2B39D896002BC023 /* DoraTag.cpp in Sources */,
 				3C131FFF21011BB60087154A /* AINode.cpp in Sources */,
@@ -5952,6 +6090,7 @@
 				3CA780222AE66FB000B7BADA /* BodyConf.cpp in Sources */,
 				3CFEBDDD269309E6006D9974 /* DragonBones.cpp in Sources */,
 				3C4B3D912C06DDE000D778FC /* ColorTimeline.cpp in Sources */,
+				3C361E4D2C1AFF400079B68B /* Tileset.cpp in Sources */,
 				3CA7806A2AE66FB000B7BADA /* MassData.cpp in Sources */,
 				3C4B3DDD2C06DDE000D778FC /* InheritTimeline.cpp in Sources */,
 				3CFEBE0D26930A26006D9974 /* SkinData.cpp in Sources */,

@@ -117,9 +117,9 @@ public:
 	virtual ~SpriteRenderer() { }
 	virtual void render() override;
 	void push(Sprite* sprite);
-	void push(SpriteVertex* verts, size_t size,
+	void push(const SpriteVertex* verts, size_t size,
 		SpriteEffect* effect, Texture2D* texture, uint64_t state, uint32_t flags = UINT32_MAX);
-	void push(SpriteVertex* verts, size_t vsize, IndexType* inds, size_t isize,
+	void push(const SpriteVertex* verts, size_t vsize, IndexType* inds, size_t isize,
 		SpriteEffect* effect, Texture2D* texture, uint64_t state, uint32_t flags = UINT32_MAX);
 
 protected:
