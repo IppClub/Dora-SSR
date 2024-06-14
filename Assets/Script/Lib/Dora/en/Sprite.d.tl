@@ -60,6 +60,7 @@ end
 -- local sprite = Sprite("Image/file.png")
 local record SpriteClass
 	type Type = Sprite
+	type TextureFilter = Sprite.TextureFilter
 
 	-- A metamethod for creating Sprite object.
 	-- @param clipStr (string) The string containing format for loading a texture file.

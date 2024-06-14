@@ -52,9 +52,11 @@ static bool addTiles(std::list<TileNode::TileQuad>& tileQuads, const tmx::Map& m
 		if (!texture) {
 			return false;
 		}
+		const auto paddingU = 0.5f / texture->getWidth();
+		const auto paddingV = 0.5f / texture->getHeight();
 
-		auto& tileQuad = tileQuads.emplace_back();
-		tileQuad.texture = texture;
+		TileNode::TileQuad* tileQuad = &tileQuads.emplace_back();
+		tileQuad->texture = texture;
 
 		const tmx::Vector2u texSize{
 			s_cast<unsigned int>(texture->getWidth()),
@@ -82,20 +84,26 @@ static bool addTiles(std::list<TileNode::TileQuad>& tileQuads, const tmx::Map& m
 				const float tilePosX = s_cast<float>(x) * mapTileSize.x + offset.x;
 				const float tilePosY = (totalRows - 1 - s_cast<float>(y)) * mapTileSize.y - offset.y;
 
-				tileQuad.quads.push_back(
-					{.rb = {0, 0, 0, 1, u + uNorm, v + vNorm, vertColor},
-						.lb = {0, 0, 0, 1, u, v + vNorm, vertColor},
-						.lt = {0, 0, 0, 1, u, v, vertColor},
-						.rt = {0, 0, 0, 1, u + uNorm, v, vertColor}});
+				const size_t MaxQuadsToSplit = 50;
+				if (tileQuad->quads.size() >= MaxQuadsToSplit) {
+					tileQuad = &tileQuads.emplace_back();
+					tileQuad->texture = texture;
+				}
 
-				tileQuad.positions.push_back(
+				tileQuad->quads.push_back(
+					{.rb = {0, 0, 0, 1, u + uNorm - paddingU, v + vNorm - paddingV, vertColor},
+						.lb = {0, 0, 0, 1, u + paddingU, v + vNorm - paddingV, vertColor},
+						.lt = {0, 0, 0, 1, u + paddingU, v + paddingV, vertColor},
+						.rt = {0, 0, 0, 1, u + uNorm - paddingU, v + paddingV, vertColor}});
+
+				tileQuad->positions.push_back(
 					{.rb = {tilePosX + mapTileSize.x, tilePosY, 0, 1},
 						.lb = {tilePosX, tilePosY, 0, 1},
-						.lt = {tilePosX, tilePosY + mapTileSize.y, 0, 1},
-						.rt = {tilePosX + mapTileSize.x, tilePosY + mapTileSize.y, 0, 1}});
+						.lt = {tilePosX, tilePosY + mapTileSize.y + 2, 0, 1},
+						.rt = {tilePosX + mapTileSize.x + 2, tilePosY + mapTileSize.y + 2, 0, 1}});
 			}
 		}
-		if (tileQuad.quads.empty()) {
+		if (tileQuad->quads.empty()) {
 			tileQuads.pop_back();
 		}
 	}
@@ -253,6 +261,13 @@ void TileNode::render() {
 		return;
 	}
 
+	if (_flags.isOn(TileNode::VertexPosDirty)) {
+		_flags.setOff(TileNode::VertexPosDirty);
+		for (auto& tileQuad : _tileQuads) {
+			tileQuad.vertexPosDirty = true;
+		}
+	}
+
 	std::vector<TileQuad*> tileQuads;
 	tileQuads.reserve(_tileQuads.size());
 	if (SharedDirector.isFrustumCulling()) {
@@ -288,11 +303,15 @@ void TileNode::render() {
 		return;
 	}
 
-	if (_flags.isOn(TileNode::VertexPosDirty)) {
-		_flags.setOff(TileNode::VertexPosDirty);
-		Matrix transform;
-		Matrix::mulMtx(transform, SharedDirector.getViewProjection(), _world);
-		for (auto tileQuad : tileQuads) {
+	Matrix transform;
+	bool transformInit = false;
+	for (auto tileQuad : tileQuads) {
+		if (tileQuad->vertexPosDirty) {
+			tileQuad->vertexPosDirty = false;
+			if (!transformInit) {
+				transformInit = true;
+				Matrix::mulMtx(transform, SharedDirector.getViewProjection(), _world);
+			}
 			for (auto i = 0u; i < tileQuad->quads.size(); ++i) {
 				auto& quad = tileQuad->quads[i];
 				auto& pos = tileQuad->positions[i];
@@ -306,7 +325,7 @@ void TileNode::render() {
 
 	uint64_t renderState = (BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | BGFX_STATE_MSAA | _blendFunc.toValue());
 
-	uint32_t flags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP;
+	uint32_t flags = BGFX_SAMPLER_U_MIRROR | BGFX_SAMPLER_V_MIRROR;
 
 	switch (_filter) {
 		case TextureFilter::Point:

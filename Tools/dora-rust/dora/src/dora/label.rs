@@ -20,8 +20,8 @@ extern "C" {
 	fn label_get_line_gap(slf: i64) -> f32;
 	fn label_set_text(slf: i64, var: i64);
 	fn label_get_text(slf: i64) -> i64;
-	fn label_set_blend_func(slf: i64, var: i64);
-	fn label_get_blend_func(slf: i64) -> i64;
+	fn label__set_blend_func(slf: i64, func: i64);
+	fn label__get_blend_func(slf: i64) -> i64;
 	fn label_set_depth_write(slf: i64, var: i32);
 	fn label_is_depth_write(slf: i64) -> i32;
 	fn label_set_batched(slf: i64, var: i32);
@@ -102,13 +102,11 @@ impl Label {
 	pub fn get_text(&self) -> String {
 		return unsafe { crate::dora::to_string(label_get_text(self.raw())) };
 	}
-	/// Sets the blend function used to render the text.
-	pub fn set_blend_func(&mut self, var: u64) {
-		unsafe { label_set_blend_func(self.raw(), var as i64) };
+	pub(crate) fn _set_blend_func(&mut self, func: u64) {
+		unsafe { label__set_blend_func(self.raw(), func as i64); }
 	}
-	/// Gets the blend function used to render the text.
-	pub fn get_blend_func(&self) -> u64 {
-		return unsafe { label_get_blend_func(self.raw()) as u64 };
+	pub(crate) fn _get_blend_func(&self) -> u64 {
+		unsafe { return label__get_blend_func(self.raw()) as u64; }
 	}
 	/// Sets whether depth writing is enabled. (Default is false)
 	pub fn set_depth_write(&mut self, var: bool) {

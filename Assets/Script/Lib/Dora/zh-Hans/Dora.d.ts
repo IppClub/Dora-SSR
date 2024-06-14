@@ -4232,6 +4232,11 @@ class TileNode extends Node {
 	 * 瓦片地图的着色器效果。
 	 */
 	effect: SpriteEffect;
+
+	/**
+	 * 瓦片地图的纹理过滤模式。
+	 */
+	filter: TextureFilter;
 }
 
 export namespace TileNode {
@@ -4623,6 +4628,7 @@ export const enum CacheResourceType {
 	Shader = "Shader",
 	Font = "Font",
 	Sound = "Sound",
+	TMX = "TMX",
 }
 
 /**
@@ -4639,6 +4645,7 @@ export const enum CacheResourceTypeSafeUnload {
 	Font = "Font",
 	Sound = "Sound",
 	Spine = "Spine",
+	TMX = "TMX",
 }
 
 /**

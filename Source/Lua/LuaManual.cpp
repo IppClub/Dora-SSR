@@ -597,6 +597,38 @@ int Sprite_SetTextureFilter(lua_State* L) {
 	return 0;
 }
 
+/* TileNode */
+int TileNode_GetTextureFilter(lua_State* L) {
+	TileNode* self = r_cast<TileNode*>(tolua_tousertype(L, 1, 0));
+#ifndef TOLUA_RELEASE
+	if (!self) tolua_error(L, "invalid 'self' in accessing variable 'Sprite_GetTextureFilter'", nullptr);
+#endif
+	switch (self->getFilter()) {
+		case TextureFilter::None: tolua_pushslice(L, "None"_slice);
+		case TextureFilter::Point: tolua_pushslice(L, "Point"_slice);
+		case TextureFilter::Anisotropic: tolua_pushslice(L, "Anisotropic"_slice);
+		default: tolua_pushslice(L, "None"_slice);
+	}
+	return 1;
+}
+
+int TileNode_SetTextureFilter(lua_State* L) {
+	TileNode* self = r_cast<TileNode*>(tolua_tousertype(L, 1, 0));
+#ifndef TOLUA_RELEASE
+	if (!self) tolua_error(L, "invalid 'self' in accessing variable 'Sprite_SetTextureFilter'", nullptr);
+#endif
+	auto value = GetString(L, 2);
+	switch (Switch::hash(value)) {
+		case "None"_hash: self->setFilter(TextureFilter::None); break;
+		case "Point"_hash: self->setFilter(TextureFilter::Point); break;
+		case "Anisotropic"_hash: self->setFilter(TextureFilter::Anisotropic); break;
+		default:
+			luaL_error(L, fmt::format("Texture filter \"{}\" is invalid, only \"None\", \"Point\", \"Anisotropic\" are allowed.", value.toString()).c_str());
+			break;
+	}
+	return 0;
+}
+
 /* Label */
 
 int Label_GetTextAlign(lua_State* L) {

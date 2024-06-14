@@ -114,7 +114,7 @@ function NewFileDialog(props: NewFileDialogProps) {
 				fileTypes.map((fileType) => (
 					<Grid key={fileType.name} xs={1} item>
 						<ListItem>
-							<ListItemButton sx={{height:"80px"}}
+							<ListItemButton sx={{height:"90px"}}
 								onClick={() => handleListItemClick(fileType.name)}
 								key={fileType.name}
 							>

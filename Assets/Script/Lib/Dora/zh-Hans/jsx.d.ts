@@ -904,6 +904,48 @@ class Effek {
 	onEnd?(): void;
 }
 
+class TileNode extends Node {
+	ref?: Ref<Dora.TileNode.Type>;
+
+	/**
+	 * 用于加载瓦片地图的 TMX 文件。
+	 * 可以是使用 Tiled Map Editor (http://www.mapeditor.org) 创建的文件。
+	 * 进行加载的 TMX 文件必须是 XML 格式。
+	 */
+	file: string;
+
+	/**
+	 * 要从瓦片地图文件中加载的地图层的名称数组。为空时则默认加载所有的瓦片层到当前节点。
+	 */
+	layers?: string[];
+
+	/**
+	 * 渲染瓦片地图时是否应向深度缓冲区写入（默认为 false）。
+	 */
+	depthWrite?: boolean;
+
+	/**
+	 * 瓦片地图的渲染混合函数。
+	 */
+	blendFunc?: Dora.BlendFunc.Type;
+
+	/**
+	 * 瓦片地图的着色器特效。
+	 */
+	effect?: Dora.SpriteEffect.Type;
+
+	/**
+	 * 瓦片地图的纹理过滤模式。
+	 */
+	filter?: Dora.TextureFilter;
+
+	/**
+	 * Triggers when this node element is instantialized.
+	 * @param self The node element that was instantialized.
+	 */
+	onMount?(this: void, self: Dora.TileNode.Type): void;
+}
+
 class Action {
 	ref?: Ref<Dora.ActionDef.Type>;
 	children: any[] | any;
@@ -1879,6 +1921,10 @@ interface IntrinsicElements {
 	 * 用于创建一个Effekseer节点的标签。
 	 */
 	'effek-node': EffekNode;
+	/**
+	 * 用于创建一个瓦片地图节点的标签。
+	 */
+	'tile-node': TileNode;
 	/**
 	 * 用于播放Effekseer特效的标签。必须放在<effek-node>下才能生效。
 	 */

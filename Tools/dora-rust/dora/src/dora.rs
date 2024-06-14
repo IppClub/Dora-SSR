@@ -91,6 +91,8 @@ pub use align_node::AlignNode;
 mod effek_node;
 pub use effek_node::EffekNode;
 mod physics_world;
+pub use tile_node::TileNode;
+mod tile_node;
 pub use physics_world::{IPhysicsWorld, PhysicsWorld};
 mod fixture_def;
 pub use fixture_def::FixtureDef;
@@ -182,6 +184,7 @@ static OBJECT_MAP: Lazy<Vec<fn(i64) -> Option<Box<dyn IObject>>>> = Lazy::new(||
 		DragonBone::type_info(),
 		AlignNode::type_info(),
 		EffekNode::type_info(),
+		TileNode::type_info(),
 		PhysicsWorld::type_info(),
 		FixtureDef::type_info(),
 		BodyDef::type_info(),
@@ -2087,6 +2090,7 @@ extern "C" {
 }
 
 #[repr(i32)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub enum EntityEvent {
 	Add = 1,
 	Change = 2,
@@ -2136,6 +2140,7 @@ impl Node {
 
 // Sprite
 #[repr(i32)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub enum TextureWrap {
 	None = 0,
 	Mirror = 1,
@@ -2144,15 +2149,141 @@ pub enum TextureWrap {
 }
 
 #[repr(i32)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub enum TextureFilter {
 	None = 0,
 	Point = 1,
 	Anisotropic = 2,
 }
 
+#[repr(u64)]
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub enum BFunc {
+	Zero = 0x0000000000001000,
+	One = 0x0000000000002000,
+	SrcColor = 0x0000000000003000,
+	InvSrcColor = 0x0000000000004000,
+	SrcAlpha = 0x0000000000005000,
+	InvSrcAlpha = 0x0000000000006000,
+	DstAlpha = 0x0000000000007000,
+	InvDstAlpha = 0x0000000000008000,
+	DstColor = 0x0000000000009000,
+	InvDstColor = 0x000000000000a000
+}
+
+pub struct BlendFunc {
+	value: u64
+}
+
+impl BlendFunc {
+	pub fn new_seperate(src_rgb: BFunc, dst_rgb: BFunc, src_alpha: BFunc, dst_alpha: BFunc) -> Self {
+		BlendFunc {
+			value: (src_rgb as u64 | (dst_rgb as u64) << 4 | src_alpha as u64 | (dst_alpha as u64) << 4) << 8
+		}
+	}
+	pub fn new(src: BFunc, dst: BFunc) -> Self {
+		BlendFunc::new_seperate(src, dst, src, dst)
+	}
+	pub (crate) fn to_value(&self) -> u64 {
+		self.value
+	}
+}
+
+impl Sprite {
+	/// Sets the blend function for the sprite.
+	pub fn set_blend_func(&mut self, blend_func: BlendFunc) {
+		self._set_blend_func(blend_func.to_value());
+	}
+	/// Gets the blend function for the sprite.
+	pub fn get_blend_func(&self) -> BlendFunc {
+		BlendFunc {
+			value: self._get_blend_func()
+		}
+	}
+}
+
+impl Grid {
+	/// Sets the blend function for the grid.
+	pub fn set_blend_func(&mut self, blend_func: BlendFunc) {
+		self._set_blend_func(blend_func.to_value());
+	}
+	/// Gets the blend function for the grid.
+	pub fn get_blend_func(&self) -> BlendFunc {
+		BlendFunc {
+			value: self._get_blend_func()
+		}
+	}
+}
+
+impl Label {
+	/// Sets the blend function for the label.
+	pub fn set_blend_func(&mut self, blend_func: BlendFunc) {
+		self._set_blend_func(blend_func.to_value());
+	}
+	/// Gets the blend function for the label.
+	pub fn get_blend_func(&self) -> BlendFunc {
+		BlendFunc {
+			value: self._get_blend_func()
+		}
+	}
+}
+
+impl DrawNode {
+	/// Sets the blend function used to draw the shape.
+	pub fn set_blend_func(&mut self, blend_func: BlendFunc) {
+		self._set_blend_func(blend_func.to_value());
+	}
+	/// Gets the blend function used to draw the shape.
+	pub fn get_blend_func(&self) -> BlendFunc {
+		BlendFunc {
+			value: self._get_blend_func()
+		}
+	}
+}
+
+impl Line {
+	/// Sets the blend function used for rendering the line.
+	pub fn set_blend_func(&mut self, blend_func: BlendFunc) {
+		self._set_blend_func(blend_func.to_value());
+	}
+	/// Gets the blend function used for rendering the line.
+	pub fn get_blend_func(&self) -> BlendFunc {
+		BlendFunc {
+			value: self._get_blend_func()
+		}
+	}
+}
+
+impl TileNode {
+	/// Sets the blend function for the tilemap.
+	pub fn set_blend_func(&mut self, blend_func: BlendFunc) {
+		self._set_blend_func(blend_func.to_value());
+	}
+	/// Gets the blend function for the tilemap.
+	pub fn get_blend_func(&self) -> BlendFunc {
+		BlendFunc {
+			value: self._get_blend_func()
+		}
+	}
+}
+
+impl Grabber {
+	/// Sets the blend function applied to the texture.
+	pub fn set_blend_func(&mut self, blend_func: BlendFunc) {
+		self._set_blend_func(blend_func.to_value());
+	}
+	/// Gets the blend function applied to the texture.
+	pub fn get_blend_func(&self) -> BlendFunc {
+		BlendFunc {
+			value: self._get_blend_func()
+		}
+	}
+}
+
 // Ease
 
 #[repr(i32)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub enum EaseType {
 	Linear = 0,
 	InQuad = 1,
@@ -2198,6 +2329,7 @@ pub enum EaseType {
 }
 
 #[repr(i32)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Property {
 	X = 0,
 	Y = 1,
@@ -2219,6 +2351,7 @@ pub enum Property {
 // Label
 
 #[repr(i32)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub enum TextAlign {
 	Left = 0,
 	Center = 1,
@@ -2227,6 +2360,7 @@ pub enum TextAlign {
 
 // BodyDef
 
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub enum BodyType {
 	Dynamic = 0,
 	Static = 1,
@@ -2259,6 +2393,7 @@ impl BodyDef {
 
 // Keyboard
 
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub enum KeyName {
 	Return,
 	Escape,
@@ -2518,6 +2653,7 @@ impl Keyboard {
 
 // Controller
 
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub enum AxisName {
 	LeftX,
 	LeftY,
@@ -2540,6 +2676,7 @@ impl AsRef<str> for AxisName {
 	}
 }
 
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub enum ButtonName {
 	A,
 	B,
@@ -2810,6 +2947,7 @@ pub enum ImGuiSelectableFlag {
 	AllowOverlap = 1 << 4
 }
 
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub enum ImGuiCol {
 	Text,
 	TextDisabled,
@@ -2899,6 +3037,7 @@ impl ImGuiColorEditFlag {
 	pub const DEFAULT_OPTIONS: BitFlags<Self> = make_bitflags!(Self::{Uint8 | DisplayRGB | InputRGB | PickerHueBar});
 }
 
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub enum ImGuiCond {
 	Always = 1 << 0,
 	Once = 1 << 1,
@@ -2979,6 +3118,7 @@ pub enum ImGuiTableColumnFlag {
 	IsHovered = 1 << 27
 }
 
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub enum ImGuiPopupButton {
 	MouseButtonLeft = 0,
 	MouseButtonRight = 1,
@@ -3000,6 +3140,7 @@ impl ImGuiPopupFlag {
 	pub const ANY_POPUP: BitFlags<Self> = make_bitflags!(Self::{AnyPopupId | AnyPopupLevel});
 }
 
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub enum ImGuiStyleVar {
 	Alpha = 0,
 	DisabledAlpha = 1,
@@ -3021,6 +3162,7 @@ pub enum ImGuiStyleVar {
 	SeparatorTextBorderSize = 26,
 }
 
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub enum ImGuiStyleVec2 {
 	WindowPadding = 2,
 	WindowMinSize = 5,

@@ -60,6 +60,7 @@ end
 -- local sprite = Sprite("Image/file.png")
 local record SpriteClass
 	type Type = Sprite
+	type TextureFilter = Sprite.TextureFilter
 
 	-- 用于创建新的图元对象的元方法。
 	-- @param clipStr (string) 包含要加载的纹理文件名的字符串。

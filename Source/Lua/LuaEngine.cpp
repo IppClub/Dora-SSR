@@ -953,6 +953,12 @@ LuaEngine::LuaEngine()
 		}
 		tolua_endmodule(L);
 
+		tolua_beginmodule(L, "TileNode");
+		{
+			tolua_variable(L, "filter", TileNode_GetTextureFilter, TileNode_SetTextureFilter);
+		}
+		tolua_endmodule(L);
+
 		tolua_beginmodule(L, "Label");
 		{
 			tolua_variable(L, "alignment", Label_GetTextAlign, Label_SetTextAlign);

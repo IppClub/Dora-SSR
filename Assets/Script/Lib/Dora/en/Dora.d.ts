@@ -4229,6 +4229,11 @@ class TileNode extends Node {
 	 * The tilemap shader effect.
 	 */
 	effect: SpriteEffect;
+
+	/**
+	 * The texture filtering mode for the tilemap.
+	 */
+	filter: TextureFilter;
 }
 
 export namespace TileNode {
@@ -4621,6 +4626,7 @@ export const enum CacheResourceType {
 	Shader = "Shader",
 	Font = "Font",
 	Sound = "Sound",
+	TMX = "TMX",
 }
 
 /**
@@ -4637,6 +4643,7 @@ export const enum CacheResourceTypeSafeUnload {
 	Font = "Font",
 	Sound = "Sound",
 	Spine = "Spine",
+	TMX = "TMX",
 }
 
 /**

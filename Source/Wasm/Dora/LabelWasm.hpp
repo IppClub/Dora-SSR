@@ -45,10 +45,10 @@ static void label_set_text(int64_t self, int64_t var) {
 static int64_t label_get_text(int64_t self) {
 	return str_retain(r_cast<Label*>(self)->getText());
 }
-static void label_set_blend_func(int64_t self, int64_t var) {
-	r_cast<Label*>(self)->setBlendFunc(BlendFunc(s_cast<uint64_t>(var)));
+static void label__set_blend_func(int64_t self, int64_t func) {
+	r_cast<Label*>(self)->setBlendFunc(BlendFunc(s_cast<uint64_t>(func)));
 }
-static int64_t label_get_blend_func(int64_t self) {
+static int64_t label__get_blend_func(int64_t self) {
 	return s_cast<int64_t>(r_cast<Label*>(self)->getBlendFunc().toValue());
 }
 static void label_set_depth_write(int64_t self, int32_t var) {
@@ -95,8 +95,8 @@ static void linkLabel(wasm3::module3& mod) {
 	mod.link_optional("*", "label_get_line_gap", label_get_line_gap);
 	mod.link_optional("*", "label_set_text", label_set_text);
 	mod.link_optional("*", "label_get_text", label_get_text);
-	mod.link_optional("*", "label_set_blend_func", label_set_blend_func);
-	mod.link_optional("*", "label_get_blend_func", label_get_blend_func);
+	mod.link_optional("*", "label__set_blend_func", label__set_blend_func);
+	mod.link_optional("*", "label__get_blend_func", label__get_blend_func);
 	mod.link_optional("*", "label_set_depth_write", label_set_depth_write);
 	mod.link_optional("*", "label_is_depth_write", label_is_depth_write);
 	mod.link_optional("*", "label_set_batched", label_set_batched);
