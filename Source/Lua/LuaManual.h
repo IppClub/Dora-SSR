@@ -86,6 +86,10 @@ int Sprite_SetVWrap(lua_State* L);
 int Sprite_GetTextureFilter(lua_State* L);
 int Sprite_SetTextureFilter(lua_State* L);
 
+/* TileNode */
+int TileNode_GetTextureFilter(lua_State* L);
+int TileNode_SetTextureFilter(lua_State* L);
+
 /* Grid */
 inline void Grid_setPos(Grid* self, uint32_t x, uint32_t y, Vec2 pos, float z) { self->setPos(x - 1, y - 1, pos, z); }
 inline Vec2 Grid_getPos(Grid* self, uint32_t x, uint32_t y) { return self->getPos(x - 1, y - 1); }

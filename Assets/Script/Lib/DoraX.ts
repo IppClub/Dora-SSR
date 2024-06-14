@@ -728,6 +728,29 @@ function getEffekNode(this: void, enode: React.Element): Dora.EffekNode.Type {
 	return getNode(enode, Dora.EffekNode()) as Dora.EffekNode.Type;
 }
 
+let getTileNode: (this: void, enode: React.Element) => Dora.TileNode.Type | null;
+{
+	function handleTileNodeAttribute(this: void, cnode: Dora.TileNode.Type, _enode: React.Element, k: any, v: any) {
+		switch (k as keyof JSX.TileNode) {
+			case 'file': case 'layers': return true;
+			case 'depthWrite': cnode.depthWrite = v; return true;
+			case 'blendFunc': cnode.blendFunc = v; return true;
+			case 'effect': cnode.effect = v; return true;
+			case 'filter': cnode.filter = v; return true;
+		}
+		return false;
+	}
+	getTileNode = (enode: React.Element) => {
+		const tn = enode.props as JSX.TileNode;
+		const node = tn.layers ? Dora.TileNode(tn.file, tn.layers) : Dora.TileNode(tn.file);
+		if (node !== null) {
+			const cnode = getNode(enode, node, handleTileNodeAttribute);
+			return cnode as Dora.TileNode.Type;
+		}
+		return null;
+	};
+}
+
 function addChild(this: void, nodeStack: Dora.Node.Type[], cnode: Dora.Node.Type, enode: React.Element) {
 	if (nodeStack.length > 0) {
 		const last = nodeStack[nodeStack.length - 1];
@@ -1312,6 +1335,12 @@ const elementMap: ElementMap = {
 			} else {
 				Warn(`tag <${enode.type}> must be placed under a <effek-node> to take effect`);
 			}
+		}
+	},
+	'tile-node': (nodeStack: Dora.Node.Type[], enode: React.Element, parent?: React.Element) => {
+		const cnode = getTileNode(enode);
+		if (cnode !== null) {
+			addChild(nodeStack, cnode, enode);
 		}
 	},
 }

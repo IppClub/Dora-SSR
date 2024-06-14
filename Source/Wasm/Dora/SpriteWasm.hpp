@@ -30,10 +30,10 @@ static int64_t sprite_get_texture_rect(int64_t self) {
 static int64_t sprite_get_texture(int64_t self) {
 	return from_object(r_cast<Sprite*>(self)->getTexture());
 }
-static void sprite_set_blend_func(int64_t self, int64_t var) {
-	r_cast<Sprite*>(self)->setBlendFunc(BlendFunc(s_cast<uint64_t>(var)));
+static void sprite__set_blend_func(int64_t self, int64_t func) {
+	r_cast<Sprite*>(self)->setBlendFunc(BlendFunc(s_cast<uint64_t>(func)));
 }
-static int64_t sprite_get_blend_func(int64_t self) {
+static int64_t sprite__get_blend_func(int64_t self) {
 	return s_cast<int64_t>(r_cast<Sprite*>(self)->getBlendFunc().toValue());
 }
 static void sprite_set_effect(int64_t self, int64_t var) {
@@ -84,8 +84,8 @@ static void linkSprite(wasm3::module3& mod) {
 	mod.link_optional("*", "sprite_set_texture_rect", sprite_set_texture_rect);
 	mod.link_optional("*", "sprite_get_texture_rect", sprite_get_texture_rect);
 	mod.link_optional("*", "sprite_get_texture", sprite_get_texture);
-	mod.link_optional("*", "sprite_set_blend_func", sprite_set_blend_func);
-	mod.link_optional("*", "sprite_get_blend_func", sprite_get_blend_func);
+	mod.link_optional("*", "sprite__set_blend_func", sprite__set_blend_func);
+	mod.link_optional("*", "sprite__get_blend_func", sprite__get_blend_func);
 	mod.link_optional("*", "sprite_set_effect", sprite_set_effect);
 	mod.link_optional("*", "sprite_get_effect", sprite_get_effect);
 	mod.link_optional("*", "sprite_set_uwrap", sprite_set_uwrap);

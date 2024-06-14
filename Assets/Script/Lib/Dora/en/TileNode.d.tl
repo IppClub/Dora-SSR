@@ -1,6 +1,7 @@
 local SpriteEffect = require("SpriteEffect").Type
 local BlendFunc = require("BlendFunc").Type
 local Node = require("Node").Type
+local TextureFilter = require("Sprite").TextureFilter
 
 -- The TileNode class to render Tilemaps from TMX file in game scene tree hierarchy.
 local record TileNode
@@ -16,6 +17,9 @@ local record TileNode
 
 	-- The tilemap shader effect.
 	effect: SpriteEffect
+
+	-- The texture filtering mode for the tilemap.
+	filter: TextureFilter
 end
 
 -- A class used for creating `TileNode` object.
@@ -34,7 +38,7 @@ local record TileNodeClass
 
 	-- A metamethod for creating TileNode object that will render the tile layers.
 	-- @param tmxFile (string) The TMX file for the tilemap.
-	-- @param layerName (string) The name of the layer in the TMX file.
+	-- @param layerName (string) The name of the layer to load from the tilemap file.
 	-- Can be files created with Tiled Map Editor (http://www.mapeditor.org).
 	-- And the TMX file should be in the format of XML.
 	-- @return (TileNode) A new instance of the TileNode class. If the tilemap file is not found, it will return nil.
@@ -42,7 +46,7 @@ local record TileNodeClass
 
 	-- A metamethod for creating TileNode object that will render the tile layers.
 	-- @param tmxFile (string) The TMX file for the tilemap.
-	-- @param layerNames ({string}) The names of the layers in the TMX file.
+	-- @param layerNames ({string}) The names of the layers to load from the tilemap file.
 	-- Can be files created with Tiled Map Editor (http://www.mapeditor.org).
 	-- And the TMX file should be in the format of XML.
 	-- @return (TileNode) A new instance of the TileNode class. If the tilemap file is not found, it will return nil.

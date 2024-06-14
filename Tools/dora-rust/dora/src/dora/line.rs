@@ -10,8 +10,8 @@ extern "C" {
 	fn line_type() -> i32;
 	fn line_set_depth_write(slf: i64, var: i32);
 	fn line_is_depth_write(slf: i64) -> i32;
-	fn line_set_blend_func(slf: i64, var: i64);
-	fn line_get_blend_func(slf: i64) -> i64;
+	fn line__set_blend_func(slf: i64, func: i64);
+	fn line__get_blend_func(slf: i64) -> i64;
 	fn line_add(slf: i64, verts: i64, color: i32);
 	fn line_set(slf: i64, verts: i64, color: i32);
 	fn line_clear(slf: i64);
@@ -41,13 +41,11 @@ impl Line {
 	pub fn is_depth_write(&self) -> bool {
 		return unsafe { line_is_depth_write(self.raw()) != 0 };
 	}
-	/// Sets blend function used for rendering the line.
-	pub fn set_blend_func(&mut self, var: u64) {
-		unsafe { line_set_blend_func(self.raw(), var as i64) };
+	pub(crate) fn _set_blend_func(&mut self, func: u64) {
+		unsafe { line__set_blend_func(self.raw(), func as i64); }
 	}
-	/// Gets blend function used for rendering the line.
-	pub fn get_blend_func(&self) -> u64 {
-		return unsafe { line_get_blend_func(self.raw()) as u64 };
+	pub(crate) fn _get_blend_func(&self) -> u64 {
+		unsafe { return line__get_blend_func(self.raw()) as u64; }
 	}
 	/// Adds vertices to the line.
 	///

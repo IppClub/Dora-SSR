@@ -21,10 +21,10 @@ static void grabber_set_effect(int64_t self, int64_t var) {
 static int64_t grabber_get_effect(int64_t self) {
 	return from_object(r_cast<Grabber*>(self)->getEffect());
 }
-static void grabber_set_blend_func(int64_t self, int64_t var) {
-	r_cast<Grabber*>(self)->setBlendFunc(BlendFunc(s_cast<uint64_t>(var)));
+static void grabber__set_blend_func(int64_t self, int64_t func) {
+	r_cast<Grabber*>(self)->setBlendFunc(BlendFunc(s_cast<uint64_t>(func)));
 }
-static int64_t grabber_get_blend_func(int64_t self) {
+static int64_t grabber__get_blend_func(int64_t self) {
 	return s_cast<int64_t>(r_cast<Grabber*>(self)->getBlendFunc().toValue());
 }
 static void grabber_set_clear_color(int64_t self, int32_t var) {
@@ -54,8 +54,8 @@ static void linkGrabber(wasm3::module3& mod) {
 	mod.link_optional("*", "grabber_get_camera", grabber_get_camera);
 	mod.link_optional("*", "grabber_set_effect", grabber_set_effect);
 	mod.link_optional("*", "grabber_get_effect", grabber_get_effect);
-	mod.link_optional("*", "grabber_set_blend_func", grabber_set_blend_func);
-	mod.link_optional("*", "grabber_get_blend_func", grabber_get_blend_func);
+	mod.link_optional("*", "grabber__set_blend_func", grabber__set_blend_func);
+	mod.link_optional("*", "grabber__get_blend_func", grabber__get_blend_func);
 	mod.link_optional("*", "grabber_set_clear_color", grabber_set_clear_color);
 	mod.link_optional("*", "grabber_get_clear_color", grabber_get_clear_color);
 	mod.link_optional("*", "grabber_set_pos", grabber_set_pos);

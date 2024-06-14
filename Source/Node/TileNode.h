@@ -20,6 +20,7 @@ struct TileInfo {
 class TileNode : public Node {
 public:
 	struct TileQuad {
+		bool vertexPosDirty = true;
 		Ref<Texture2D> texture;
 		std::vector<SpriteQuad::Position> positions;
 		std::vector<SpriteQuad> quads;

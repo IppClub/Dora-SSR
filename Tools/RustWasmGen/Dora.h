@@ -1036,8 +1036,8 @@ object class Grabber
 	optional common Camera* camera;
 	/// the sprite effect applied to the texture.
 	optional common SpriteEffect* effect;
-	/// the blend function applied to the texture.
-	common BlendFunc blendFunc;
+	void setBlendFunc @ _setBlendFunc(BlendFunc func);
+	BlendFunc getBlendFunc @ _getBlendFunc() const;
 	/// the clear color used to clear the texture.
 	common Color clearColor;
 	/// Sets the position of a vertex in the grabber grid.
@@ -1533,8 +1533,8 @@ object class Sprite : public INode
 	common Rect textureRect;
 	/// the texture for the sprite.
 	optional readonly common Texture2D* texture;
-	/// the blend function for the sprite.
-	common BlendFunc blendFunc;
+	void setBlendFunc @ _setBlendFunc(BlendFunc func);
+	BlendFunc getBlendFunc @ _getBlendFunc() const;
 	/// the sprite shader effect.
 	common SpriteEffect* effect;
 	/// the texture wrapping mode for the U (horizontal) axis.
@@ -1593,8 +1593,8 @@ object class Grid : public INode
 	readonly common uint32_t gridY;
 	/// whether depth writes are enabled.
 	boolean bool depthWrite;
-	/// the blending function used for the grid.
-	common BlendFunc blendFunc;
+	void setBlendFunc @ _setBlendFunc(BlendFunc func);
+	BlendFunc getBlendFunc @ _getBlendFunc() const;
 	/// the sprite effect applied to the grid.
 	/// Default is `SpriteEffect::new("builtin:vs_sprite", "builtin:fs_sprite")`.
 	common SpriteEffect* effect;
@@ -1752,8 +1752,8 @@ object class Label : public INode
 	common float lineGap;
 	/// the text to be rendered.
 	common string text;
-	/// the blend function used to render the text.
-	common BlendFunc blendFunc;
+	void setBlendFunc @ _setBlendFunc(BlendFunc func);
+	BlendFunc getBlendFunc @ _getBlendFunc() const;
 	/// whether depth writing is enabled. (Default is false)
 	boolean bool depthWrite;
 	/// whether the label is using batched rendering.
@@ -1865,8 +1865,8 @@ object class DrawNode : public INode
 {
 	/// whether to write to the depth buffer when drawing (default is false).
 	boolean bool depthWrite;
-	/// the blend function used to draw the shape.
-	common BlendFunc blendFunc;
+	void setBlendFunc @ _setBlendFunc(BlendFunc func);
+	BlendFunc getBlendFunc @ _getBlendFunc() const;
 	/// Draws a dot at a specified position with a specified radius and color.
 	///
 	/// # Arguments
@@ -1914,8 +1914,8 @@ object class Line : public INode
 {
 	/// whether the depth should be written. (Default is false)
 	boolean bool depthWrite;
-	/// blend function used for rendering the line.
-	common BlendFunc blendFunc;
+	void setBlendFunc @ _setBlendFunc(BlendFunc func);
+	BlendFunc getBlendFunc @ _getBlendFunc() const;
 	/// Adds vertices to the line.
 	///
 	/// # Arguments
@@ -2377,6 +2377,51 @@ object class EffekNode : public INode
 	///
 	/// * `EffekNode` - A new EffekNode object.
 	static EffekNode* create();
+};
+
+/// The TileNode class to render Tilemaps from TMX file in game scene tree hierarchy.
+object class TileNode : public INode
+{
+	/// whether the depth buffer should be written to when rendering the tilemap.
+	boolean bool depthWrite;
+	void setBlendFunc @ _setBlendFunc(BlendFunc func);
+	BlendFunc getBlendFunc @ _getBlendFunc() const;
+	/// the tilemap shader effect.
+	common SpriteEffect* effect;
+	/// the texture filtering mode for the tilemap.
+	common TextureFilter filter;
+	/// Creates a `TileNode` object that will render the tile layers from a TMX file.
+	///
+	/// # Arguments
+	///
+	/// * `tmxFile` - The TMX file for the tilemap. This should be a file created with the Tiled Map Editor (http://www.mapeditor.org) and must be in XML format.
+	///
+	/// # Returns
+	///
+	/// Returns a new instance of the `TileNode` class. If the tilemap file is not found, it will return `None`.
+	static optional TileNode* create(string tmxFile);
+	/// Creates a `TileNode` object that will render the specified tile layer from a TMX file.
+	///
+	/// # Arguments
+	///
+	/// * `tmxFile` - The TMX file for the tilemap. This should be a file created with the Tiled Map Editor (http://www.mapeditor.org) and must be in XML format.
+	/// * `layerName` - The name of the layer in the TMX file.
+	///
+	/// # Returns
+	///
+	/// Returns a new instance of the `TileNode` class. If the tilemap file is not found, it will return `None`.
+	static optional TileNode* create @ createWithLayer(string tmxFile, string layerName);
+	/// Creates a `TileNode` object that will render the specified tile layers from a TMX file.
+	///
+	/// # Arguments
+	///
+	/// * `tmxFile` - The TMX file for the tilemap. This should be a file created with the Tiled Map Editor (http://www.mapeditor.org) and must be in XML format.
+	/// * `layerNames` - A vector of names of the layers in the TMX file.
+	///
+	/// # Returns
+	///
+	/// Returns a new instance of the `TileNode` class. If the tilemap file is not found, it will return `None`.
+	static optional TileNode* create @ createWithLayers(string tmxFile, VecStr layerNames);
 };
 
 /// A struct that represents a physics world in the game.

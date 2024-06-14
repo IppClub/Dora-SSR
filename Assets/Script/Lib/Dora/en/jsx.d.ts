@@ -907,6 +907,49 @@ class Effek {
 	onEnd?(): void;
 }
 
+class TileNode extends Node {
+	ref?: Ref<Dora.TileNode.Type>;
+
+	/**
+	 * The TMX file for the tilemap.
+	 * Can be files created with Tiled Map Editor (http://www.mapeditor.org).
+	 * And the TMX file should be in the format of XML.
+	 */
+	file: string;
+
+	/**
+	 * The names of the layers to load from the tilemap file.
+	 * Will load all the tile layers when the layer names are not offered.
+	 */
+	layers?: string[];
+
+	/**
+	 * Whether the depth buffer should be written to when rendering the tilemap (default is false).
+	 */
+	depthWrite?: boolean;
+
+	/**
+	 * The blend function for the tilemap.
+	 */
+	blendFunc?: Dora.BlendFunc.Type;
+
+	/**
+	 * The sprite shader effect.
+	 */
+	effect?: Dora.SpriteEffect.Type;
+
+	/**
+	 * The texture filtering mode for the tilemap.
+	 */
+	filter?: Dora.TextureFilter;
+
+	/**
+	 * Triggers when this node element is instantialized.
+	 * @param self The node element that was instantialized.
+	 */
+	onMount?(this: void, self: Dora.TileNode.Type): void;
+}
+
 class Action {
 	ref?: Ref<Dora.ActionDef.Type>;
 	children: any[] | any;
@@ -1885,6 +1928,10 @@ interface IntrinsicElements {
 	 * A class for creating a Effekseer node.
 	 */
 	'effek-node': EffekNode;
+	/**
+	 * A class for creating a tilemap node.
+	 */
+	'tile-node': TileNode;
 	/**
 	 * A class for playing a Effekseer effect. Must be placed under <effek-node> to take effect.
 	 */

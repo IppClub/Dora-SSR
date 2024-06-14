@@ -100,7 +100,7 @@ i18n
 						lua: "lightweight, high-level, multi-paradigm language",
 						yuescript: "expressive, extremely concise language",
 						teal: "a typed dialect of Lua",
-						typescript: "a strongly typed programming language, with better coding experience",
+						typescript: "a strongly typed language with better coding experience",
 						xml: "write game node trees in XML format",
 						markdown: "do some documentation",
 						folder: "create a file folder",
