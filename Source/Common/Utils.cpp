@@ -97,7 +97,7 @@ std::string Path::concat(const std::list<Slice>& paths) {
 			path /= it->toString();
 		}
 	}
-	return path.string();
+	return path.lexically_normal().string();
 }
 
 std::string Path::getExt(String path) {

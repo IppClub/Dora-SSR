@@ -61,6 +61,9 @@ René Nyffenegger rene.nyffenegger@adp-gmbh.ch
 #include <functional>
 #include <algorithm>
 
+#include "Const/Header.h"
+#include "Common/Utils.h"
+
 namespace tmx
 {
     //using inline here just to supress unused warnings on gcc
@@ -164,63 +167,12 @@ namespace tmx
     }
 
     static inline std::string resolveFilePath(std::string path, const std::string& workingDir)
-    {      
-        static const std::string match("../");
-        std::size_t result = path.find(match);
-        std::size_t count = 0;
-        while (result != std::string::npos)
-        {
-            count++;
-            path = path.substr(result + match.size());
-            result = path.find(match);
-        }
-
-        if (workingDir.empty()) return path;
-
-        std::string outPath = workingDir;
-        for (auto i = 0u; i < count; ++i)
-        {
-            result = outPath.find_last_of('/');
-            if (result != std::string::npos)
-            {
-                outPath = outPath.substr(0, result);
-            }
-        }
-// this does only work on windows       
-#ifndef __ANDROID__
-        return outPath + '/' + path;
-#endif
-
-// todo: make resolveFilePath work with subfolders on 
-// android - currently only the root folder is working
-
-#ifdef __ANDROID__
-        return path;
-#endif
+    {
+        return Dora::Path::concat({workingDir, path});
     }
 
     static inline std::string getFilePath(const std::string& path)
     {
-        //TODO this doesn't actually check that there is a file at the
-        //end of the path, or that it's even a valid path...
-
-        static auto searchFunc = [](const char separator, const std::string& path)->std::string
-        {
-            std::size_t i = path.rfind(separator, path.length());
-            if (i != std::string::npos)
-            {
-                return(path.substr(0, i + 1));
-            }
-
-            return "";
-        };
-
-
-#ifdef _WIN32 //try windows formatted paths first
-        std::string retVal = searchFunc('\\', path);
-        if (!retVal.empty()) return retVal;
-#endif
-
-        return searchFunc('/', path);
+        return Dora::Path::getPath(path);
     }
 } //namespacec tmx
