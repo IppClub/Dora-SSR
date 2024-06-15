@@ -99,8 +99,8 @@ static bool addTiles(std::list<TileNode::TileQuad>& tileQuads, const tmx::Map& m
 				tileQuad->positions.push_back(
 					{.rb = {tilePosX + mapTileSize.x, tilePosY, 0, 1},
 						.lb = {tilePosX, tilePosY, 0, 1},
-						.lt = {tilePosX, tilePosY + mapTileSize.y + 2, 0, 1},
-						.rt = {tilePosX + mapTileSize.x + 2, tilePosY + mapTileSize.y + 2, 0, 1}});
+						.lt = {tilePosX, tilePosY + mapTileSize.y, 0, 1},
+						.rt = {tilePosX + mapTileSize.x, tilePosY + mapTileSize.y, 0, 1}});
 			}
 		}
 		if (tileQuad->quads.empty()) {
