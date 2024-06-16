@@ -2390,6 +2390,16 @@ object class TileNode : public INode
 	common SpriteEffect* effect;
 	/// the texture filtering mode for the tilemap.
 	common TextureFilter filter;
+	/// Get the layer data by name from the tilemap.
+	///
+	/// # Arguments
+	///
+	/// * `layerName` - The name of the layer in the TMX file.
+	///
+	/// # Returns
+	///
+	/// * `Dictionary` - The layer data as a dictionary object.
+	optional Dictionary* getLayer(string layerName) const;
 	/// Creates a `TileNode` object that will render the tile layers from a TMX file.
 	///
 	/// # Arguments

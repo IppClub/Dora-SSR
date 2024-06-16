@@ -14,9 +14,13 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Cache/TMXCache.h"
 #include "Cache/TextureCache.h"
 #include "Effect/Effect.h"
+#include "Support/Dictionary.h"
+#include "Support/Array.h"
 
 #include "tmxlite/ImageLayer.hpp"
+#include "tmxlite/LayerGroup.hpp"
 #include "tmxlite/TileLayer.hpp"
+#include "tmxlite/ObjectGroup.hpp"
 
 NS_DORA_BEGIN
 
@@ -101,6 +105,29 @@ static bool addTiles(std::list<TileNode::TileQuad>& tileQuads, const tmx::Map& m
 						.lb = {tilePosX, tilePosY, 0, 1},
 						.lt = {tilePosX, tilePosY + mapTileSize.y, 0, 1},
 						.rt = {tilePosX + mapTileSize.x, tilePosY + mapTileSize.y, 0, 1}});
+
+				if (tile.flipFlags) {
+					auto& quad = tileQuad->quads.back();
+					bool dflip = (tile.flipFlags & tmx::TileLayer::Diagonal) != 0;
+					if (dflip) {
+						std::swap(quad.lb.u, quad.rt.u);
+						std::swap(quad.lb.v, quad.rt.v);
+					}
+					bool hflip = (tile.flipFlags & tmx::TileLayer::Horizontal) != 0;
+					if (hflip) {
+						std::swap(quad.lb.u, quad.rb.u);
+						std::swap(quad.lb.v, quad.rb.v);
+						std::swap(quad.lt.u, quad.rt.u);
+						std::swap(quad.lt.v, quad.rt.v);
+					}
+					bool vflip = (tile.flipFlags & tmx::TileLayer::Vertical) != 0;
+					if (vflip) {
+						std::swap(quad.lb.v, quad.lt.v);
+						std::swap(quad.lb.u, quad.lt.u);
+						std::swap(quad.rb.v, quad.rt.v);
+						std::swap(quad.rb.u, quad.rt.u);
+					}
+				}
 			}
 		}
 		if (tileQuad->quads.empty()) {
@@ -112,8 +139,20 @@ static bool addTiles(std::list<TileNode::TileQuad>& tileQuads, const tmx::Map& m
 
 static bool addLayer(std::list<TileNode::TileQuad>& tileQuads, const tmx::Map& map, tmx::Layer* target) {
 	if (!target) return false;
-	if (target->getType() != tmx::Layer::Type::Tile) {
-		return false;
+	switch (target->getType()) {
+		case tmx::Layer::Type::Group: {
+			auto& layer = target->getLayerAs<tmx::LayerGroup>();
+			for (const auto& l : layer.getLayers()) {
+				if (!addLayer(tileQuads, map, l.get())) {
+					return false;
+				}
+			}
+			return true;
+		}
+		case tmx::Layer::Type::Tile:
+			break;
+		default:
+			return false;
 	}
 	auto& layer = target->getLayerAs<tmx::TileLayer>();
 	const auto offset = layer.getOffset();
@@ -122,18 +161,18 @@ static bool addLayer(std::list<TileNode::TileQuad>& tileQuads, const tmx::Map& m
 	const auto tc = target->getTintColour();
 	const auto vertColor = Color{tc.r, tc.g, tc.b, tc.a}.toABGR();
 
-	const auto& tileIDs = layer.getTiles();
-	if (!tileIDs.empty()) {
-		if (!addTiles(tileQuads, map, tileIDs, mapSize, offset, mapSize.y, vertColor)) {
-			return false;
-		}
-	} else {
+	if (map.isInfinite()) {
 		const auto mapTileSize = map.getTileSize();
 		const auto tileSize = tmx::Vector2i{s_cast<int>(mapTileSize.x), s_cast<int>(mapTileSize.y)};
 		for (const auto& chunk : layer.getChunks()) {
 			if (!addTiles(tileQuads, map, chunk.tiles, {s_cast<unsigned int>(chunk.size.x), s_cast<unsigned int>(chunk.size.y)}, offset + chunk.position * tileSize, mapSize.y, vertColor)) {
 				return false;
 			}
+		}
+	} else {
+		const auto& tileIDs = layer.getTiles();
+		if (!addTiles(tileQuads, map, tileIDs, mapSize, offset, mapSize.y, vertColor)) {
+			return false;
 		}
 	}
 	return true;
@@ -159,6 +198,7 @@ TileNode* TileNode::create(String tmxFile, String layerName) {
 			tileNode->cleanup();
 			return nullptr;
 		}
+		tileNode->_tmxDef = tmxDef;
 		return tileNode;
 	}
 	return nullptr;
@@ -178,6 +218,7 @@ TileNode* TileNode::create(String tmxFile) {
 				return nullptr;
 			}
 		}
+		tileNode->_tmxDef = tmxDef;
 		return tileNode;
 	}
 	return nullptr;
@@ -202,6 +243,7 @@ TileNode* TileNode::create(String tmxFile, const std::vector<std::string>& layer
 				return nullptr;
 			}
 		}
+		tileNode->_tmxDef = tmxDef;
 		return tileNode;
 	}
 	return nullptr;
@@ -227,6 +269,7 @@ TileNode* TileNode::create(String tmxFile, Slice layerNames[], int count) {
 				return nullptr;
 			}
 		}
+		tileNode->_tmxDef = tmxDef;
 		return tileNode;
 	}
 	return nullptr;
@@ -347,6 +390,210 @@ void TileNode::render() {
 		SharedSpriteRenderer.push(tileQuad->quads.front(), tileQuad->quads.size() * 4, _effect, tileQuad->texture, renderState, flags);
 	}
 	Node::render();
+}
+
+static Own<Value> getProperties(const std::vector<tmx::Property>& props, const tmx::Map& map) {
+	Dictionary* properties = Dictionary::create();
+	for (const auto& prop : props) {
+		switch (prop.getType()) {
+			case tmx::Property::Type::Boolean:
+				properties->set(prop.getName(), Value::alloc(prop.getBoolValue()));
+				break;
+			case tmx::Property::Type::Float:
+				properties->set(prop.getName(), Value::alloc(prop.getFloatValue()));
+				break;
+			case tmx::Property::Type::Int:
+				properties->set(prop.getName(), Value::alloc(prop.getIntValue()));
+				break;
+			case tmx::Property::Type::String:
+				properties->set(prop.getName(), Value::alloc(prop.getStringValue()));
+				break;
+			case tmx::Property::Type::Colour: {
+				auto colour = prop.getColourValue();
+				properties->set(prop.getName(), Value::alloc(Color{colour.r, colour.g, colour.b, colour.a}.toARGB()));
+				break;
+			}
+			case tmx::Property::Type::File:
+				properties->set(prop.getName(), Value::alloc(Path::concat({map.getWorkingDirectory(), prop.getFileValue()})));
+				break;
+			case tmx::Property::Type::Object:
+				properties->set(prop.getName(), Value::alloc(prop.getObjectValue()));
+				break;
+			case tmx::Property::Type::Class:
+				properties->set(prop.getName(), getProperties(prop.getClassValue(), map));
+				break;
+			case tmx::Property::Type::Undef:
+				break;
+		}
+	}
+	return Value::alloc(properties);
+}
+
+static Dictionary* getLayerDict(tmx::Layer* target, const tmx::Map& map) {
+	Dictionary* data = Dictionary::create();
+	data->set("name"sv, Value::alloc(target->getName()));
+	data->set("class"sv, Value::alloc(target->getClass()));
+	data->set("opacity"sv, Value::alloc(target->getOpacity()));
+	data->set("visible"sv, Value::alloc(target->getVisible()));
+	{
+		auto tc = target->getTintColour();
+		data->set("tintColor"sv, Value::alloc(Color{tc.r, tc.g, tc.b, tc.a}.toARGB()));
+	}
+	data->set("size"sv, Value::alloc(Size{s_cast<float>(target->getSize().x), s_cast<float>(target->getSize().y)}));
+	data->set("offset"sv, Value::alloc(Vec2{s_cast<float>(target->getOffset().x), s_cast<float>(target->getOffset().y)}));
+	data->set("parallaxFactor"sv, Value::alloc(Vec2{s_cast<float>(target->getParallaxFactor().x), s_cast<float>(target->getParallaxFactor().y)}));
+	if (!target->getProperties().empty()) {
+		data->set("properties"sv, getProperties(target->getProperties(), map));
+	}
+	switch (target->getType()) {
+		case tmx::Layer::Type::Tile: {
+			data->set("type"sv, Value::alloc("Tile"sv));
+			const auto& layer = target->getLayerAs<tmx::TileLayer>();
+			if (map.isInfinite()) {
+				Array* chunks = Array::create();
+				for (const auto& c : layer.getChunks()) {
+					Dictionary* chunkData = Dictionary::create();
+					chunkData->set("size"sv, Value::alloc(Size{s_cast<float>(c.size.x), s_cast<float>(c.size.y)}));
+					chunkData->set("position"sv, Value::alloc(Size{s_cast<float>(c.position.x), s_cast<float>(c.position.y)}));
+					Array* tiles = Array::create(c.tiles.size());
+					for (const auto& t : c.tiles) {
+						tiles->add(Value::alloc(t.ID));
+					}
+					chunkData->set("tiles"sv, Value::alloc(tiles));
+					chunks->add(Value::alloc(chunkData));
+				}
+				data->set("chunks", Value::alloc(chunks));
+			} else {
+				Array* tiles = Array::create(layer.getTiles().size());
+				for (const auto& t : layer.getTiles()) {
+					tiles->add(Value::alloc(t.ID));
+				}
+				data->set("tiles", Value::alloc(tiles));
+			}
+			break;
+		}
+		case tmx::Layer::Type::Object:{
+			data->set("type"sv, Value::alloc("Object"sv));
+			const auto& layer = target->getLayerAs<tmx::ObjectGroup>();
+			switch (layer.getDrawOrder()) {
+				case tmx::ObjectGroup::DrawOrder::Index:
+					data->set("drawOrder", Value::alloc("Index"sv));
+					break;
+				case tmx::ObjectGroup::DrawOrder::TopDown:
+					data->set("drawOrder", Value::alloc("TopDown"sv));
+					break;
+			}
+			auto c = layer.getColour();
+			data->set("color"sv, Value::alloc(Color{c.r, c.g, c.b, c.a}.toARGB()));
+			Array* objects = Array::create(layer.getObjects().size());
+			for (const auto& object : layer.getObjects()) {
+				Dictionary* obj = Dictionary::create();
+				obj->set("name"sv, Value::alloc(object.getName()));
+				obj->set("uid"sv, Value::alloc(object.getUID()));
+				obj->set("class"sv, Value::alloc(object.getClass()));
+				obj->set("size"sv, Value::alloc(Size{object.getAABB().width, object.getAABB().height}));
+				obj->set("position"sv, Value::alloc(Vec2{s_cast<float>(object.getPosition().x), s_cast<float>(object.getPosition().y)}));
+				obj->set("rotation"sv, Value::alloc(-object.getRotation()));
+				if (object.getTileID() > 0) {
+					obj->set("tile"sv, Value::alloc(object.getTileID()));
+				}
+				if (!object.getTilesetName().empty()) {
+					obj->set("tileSet"sv, Value::alloc(object.getTilesetName()));
+				}
+				if (object.getFlipFlags() > 0) {
+					if ((object.getFlipFlags() & tmx::TileLayer::Horizontal) != 0) {
+						obj->set("horizontalFlip"sv, Value::alloc(true));
+					}
+					if ((object.getFlipFlags() & tmx::TileLayer::Vertical) != 0) {
+						obj->set("verticalFlip"sv, Value::alloc(true));
+					}
+					if ((object.getFlipFlags() & tmx::TileLayer::Diagonal) != 0) {
+						obj->set("diagonalFlip"sv, Value::alloc(true));
+					}
+				}
+				obj->set("visible"sv, Value::alloc(object.visible()));
+				switch (object.getShape()) {
+					case tmx::Object::Shape::Rectangle:
+						obj->set("shape"sv, Value::alloc("Rectangle"sv));
+						break;
+					case tmx::Object::Shape::Ellipse:
+						obj->set("shape"sv, Value::alloc("Ellipse"sv));
+						break;
+					case tmx::Object::Shape::Point:
+						obj->set("shape"sv, Value::alloc("Point"sv));
+						break;
+					case tmx::Object::Shape::Polygon:
+						obj->set("shape"sv, Value::alloc("Polygon"sv));
+						break;
+					case tmx::Object::Shape::Polyline:
+						obj->set("shape"sv, Value::alloc("Polyline"sv));
+						break;
+					case tmx::Object::Shape::Text:
+						obj->set("shape"sv, Value::alloc("Text"sv));
+						obj->set("text"sv, Value::alloc(object.getText().content));
+						break;
+				}
+				if (!object.getPoints().empty()) {
+					Array* points = Array::create(object.getPoints().size());
+					for (const auto& p : object.getPoints()) {
+						points->add(Value::alloc(Vec2{p.x, p.y}));
+					}
+					obj->set("points"sv, Value::alloc(points));
+				}
+				if (!object.getProperties().empty()) {
+					obj->set("properties"sv, getProperties(object.getProperties(), map));
+				}
+				objects->add(Value::alloc(obj));
+			}
+			data->set("objects"sv, Value::alloc(objects));
+			break;
+		}
+		case tmx::Layer::Type::Image: {
+			data->set("type"sv, Value::alloc("Image"sv));
+			const auto& layer = target->getLayerAs<tmx::ImageLayer>();
+			if (layer.hasTransparency()) {
+				auto tc = layer.getTransparencyColour();
+				data->set("transparencyColor"sv, Value::alloc(Color{tc.r, tc.g, tc.b, tc.a}.toARGB()));
+			}
+			data->set("imagePath"sv, Value::alloc(Path::concat({map.getWorkingDirectory(), layer.getImagePath()})));
+			data->set("imageSize"sv, Value::alloc(Size{s_cast<float>(layer.getImageSize().x), s_cast<float>(layer.getImageSize().y)}));
+			if (layer.hasRepeatX()) {
+				data->set("repeatX"sv, Value::alloc(true));
+			}
+			if (layer.hasRepeatY()) {
+				data->set("repeatY"sv, Value::alloc(true));
+			}
+			break;
+		}
+		case tmx::Layer::Type::Group: {
+			data->set("type"sv, Value::alloc("Group"sv));
+			const auto& layer = target->getLayerAs<tmx::LayerGroup>();
+			if (!layer.getLayers().empty()) {
+				Array* layers = Array::create(layer.getLayers().size());
+				for (const auto& layer : layer.getLayers()) {
+					layers->add(Value::alloc(getLayerDict(layer.get(), map)));
+				}
+				data->set("layers"sv, Value::alloc(layers));
+			}
+			break;
+		}
+	}
+	return data;
+}
+
+Dictionary* TileNode::getLayer(String layerName) const {
+	const auto& map = _tmxDef->getMap();
+	tmx::Layer* target = nullptr;
+	for (const auto& layer : map.getLayers()) {
+		if (layerName == layer->getName()) {
+			target = layer.get();
+			break;
+		}
+	}
+	if (!target) {
+		return nullptr;
+	}
+	return getLayerDict(target, map);
 }
 
 NS_DORA_END

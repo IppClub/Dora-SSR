@@ -16,6 +16,7 @@ extern "C" {
 	fn tilenode_get_effect(slf: i64) -> i64;
 	fn tilenode_set_filter(slf: i64, var: i32);
 	fn tilenode_get_filter(slf: i64) -> i32;
+	fn tilenode_get_layer(slf: i64, layer_name: i64) -> i64;
 	fn tilenode_new(tmx_file: i64) -> i64;
 	fn tilenode_with_with_layer(tmx_file: i64, layer_name: i64) -> i64;
 	fn tilenode_with_with_layers(tmx_file: i64, layer_names: i64) -> i64;
@@ -64,6 +65,18 @@ impl TileNode {
 	/// Gets the texture filtering mode for the tilemap.
 	pub fn get_filter(&self) -> crate::dora::TextureFilter {
 		return unsafe { core::mem::transmute(tilenode_get_filter(self.raw())) };
+	}
+	/// Get the layer data by name from the tilemap.
+	///
+	/// # Arguments
+	///
+	/// * `layerName` - The name of the layer in the TMX file.
+	///
+	/// # Returns
+	///
+	/// * `Dictionary` - The layer data as a dictionary object.
+	pub fn get_layer(&self, layer_name: &str) -> Option<crate::dora::Dictionary> {
+		unsafe { return crate::dora::Dictionary::from(tilenode_get_layer(self.raw(), crate::dora::from_string(layer_name))); }
 	}
 	/// Creates a `TileNode` object that will render the tile layers from a TMX file.
 	///

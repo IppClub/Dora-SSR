@@ -4234,6 +4234,13 @@ class TileNode extends Node {
 	 * The texture filtering mode for the tilemap.
 	 */
 	filter: TextureFilter;
+
+	/**
+	 * Get the layer data by name from the tilemap.
+	 * @param layerName The name of the layer to get.
+	 * @returns The layer data as a dictionary.
+	 */
+	getLayer(layerName: string): Dictionary | null;
 }
 
 export namespace TileNode {

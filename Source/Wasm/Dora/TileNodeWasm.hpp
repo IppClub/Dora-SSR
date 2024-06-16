@@ -33,6 +33,9 @@ static void tilenode_set_filter(int64_t self, int32_t var) {
 static int32_t tilenode_get_filter(int64_t self) {
 	return s_cast<int32_t>(r_cast<TileNode*>(self)->getFilter());
 }
+static int64_t tilenode_get_layer(int64_t self, int64_t layer_name) {
+	return from_object(r_cast<TileNode*>(self)->getLayer(*str_from(layer_name)));
+}
 static int64_t tilenode_new(int64_t tmx_file) {
 	return from_object(TileNode::create(*str_from(tmx_file)));
 }
@@ -52,6 +55,7 @@ static void linkTileNode(wasm3::module3& mod) {
 	mod.link_optional("*", "tilenode_get_effect", tilenode_get_effect);
 	mod.link_optional("*", "tilenode_set_filter", tilenode_set_filter);
 	mod.link_optional("*", "tilenode_get_filter", tilenode_get_filter);
+	mod.link_optional("*", "tilenode_get_layer", tilenode_get_layer);
 	mod.link_optional("*", "tilenode_new", tilenode_new);
 	mod.link_optional("*", "tilenode_with_with_layer", tilenode_with_with_layer);
 	mod.link_optional("*", "tilenode_with_with_layers", tilenode_with_with_layers);
