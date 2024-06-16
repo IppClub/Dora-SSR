@@ -61,3 +61,28 @@ effect: SpriteEffect
 ```tl
 filter: TextureFilter
 ```
+
+## getLayer
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;从瓦片地图中按名称获取图层数据。
+
+**签名：**
+```tl
+getLayer: function(self: TileNode, layerName: string): Dictionary | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| layerName | string | 要从瓦片地图中获取的图层的名称。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Dictionary | 作为字典的图层数据。如果未找到图层，则返回 nil。 |
