@@ -21,8 +21,9 @@ Array::Array(NotNull<Array, 1> other)
 	}
 }
 
-Array::Array(size_t capacity)
-	: _data(capacity) { }
+Array::Array(size_t capacity) {
+	_data.reserve(capacity);
+}
 
 size_t Array::getCount() const noexcept {
 	return _data.size();

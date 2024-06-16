@@ -4237,6 +4237,13 @@ class TileNode extends Node {
 	 * 瓦片地图的纹理过滤模式。
 	 */
 	filter: TextureFilter;
+
+	/**
+	 * 从瓦片地图中按名称获取图层数据。
+	 * @param layerName 要获取的图层的名称。
+	 * @returns 包含图层数据的字典对象。
+	 */
+	getLayer(layerName: string): Dictionary | null;
 }
 
 export namespace TileNode {

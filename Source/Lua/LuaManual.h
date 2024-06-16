@@ -174,7 +174,6 @@ int DragonBone_containsPoint(lua_State* L);
 int DragonBone_intersectsSegment(lua_State* L);
 
 /* BodyDef */
-
 int BodyDef_GetType(lua_State* L);
 int BodyDef_SetType(lua_State* L);
 

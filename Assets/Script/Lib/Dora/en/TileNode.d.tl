@@ -2,6 +2,7 @@ local SpriteEffect = require("SpriteEffect").Type
 local BlendFunc = require("BlendFunc").Type
 local Node = require("Node").Type
 local TextureFilter = require("Sprite").TextureFilter
+local Dictionary = require("Dictionary").Type
 
 -- The TileNode class to render Tilemaps from TMX file in game scene tree hierarchy.
 local record TileNode
@@ -20,6 +21,11 @@ local record TileNode
 
 	-- The texture filtering mode for the tilemap.
 	filter: TextureFilter
+
+	-- Get the layer data by name from the tilemap.
+	-- @param layerName (string) The name of the layer to get from the tilemap.
+	-- @return (Dictionary) The layer data as a dictionary. If the layer is not found, it will return nil.
+	getLayer: function(self: TileNode, layerName: string): Dictionary | nil
 end
 
 -- A class used for creating `TileNode` object.

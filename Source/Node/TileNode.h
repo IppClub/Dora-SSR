@@ -12,6 +12,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DORA_BEGIN
 
+class TMXDef;
+
 struct TileInfo {
 	std::string textureFile;
 	Rect textureRect;
@@ -31,6 +33,7 @@ public:
 	PROPERTY(TextureFilter, Filter);
 	virtual void render() override;
 	virtual const Matrix& getWorld() override;
+	Dictionary* getLayer(String layerName) const;
 	static TileNode* create(String tmxFile);
 	static TileNode* create(String tmxFile, String layerName);
 	static TileNode* create(String tmxFile, const std::vector<std::string>& layerNames);
@@ -43,6 +46,7 @@ private:
 	Ref<SpriteEffect> _effect;
 	BlendFunc _blendFunc;
 	TextureFilter _filter;
+	Ref<TMXDef> _tmxDef;
 	std::list<TileQuad> _tileQuads;
 	enum : Flag::ValueType {
 		VertexPosDirty = Node::UserFlag,
