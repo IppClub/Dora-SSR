@@ -1634,7 +1634,7 @@ int Array_create(lua_State* L) {
 				lua_gettable(L, 2);
 				auto value = Dora_getValue(L, -1);
 				if (!value) luaL_error(L, "got nil from table index %d, value expected", i + 1);
-				tolua_ret->set(i, std::move(value));
+				tolua_ret->add(std::move(value));
 				lua_pop(L, 1);
 			}
 			tolua_pushobject(L, tolua_ret);

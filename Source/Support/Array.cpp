@@ -17,7 +17,7 @@ Array::Array() { }
 Array::Array(NotNull<Array, 1> other)
 	: _data(other->_data.size()) {
 	for (size_t i = 0; i < other->_data.size(); i++) {
-		_data[i] = other->_data[i]->clone();
+		_data.push_back(other->_data[i]->clone());
 	}
 }
 
@@ -126,11 +126,7 @@ int Array::index(NotNull<Value, 1> value) {
 }
 
 void Array::set(size_t index, Own<Value>&& value) {
-	if (value) {
-		_data[index] = std::move(value);
-	} else {
-		_data[index] = nullptr;
-	}
+    _data[index] = std::move(value);
 }
 
 Own<Value>& Array::get(size_t index) {
