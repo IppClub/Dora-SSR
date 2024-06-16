@@ -61,3 +61,28 @@ effect: SpriteEffect
 ```tl
 filter: TextureFilter
 ```
+
+## getLayer
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Get the layer data by name from the tilemap.
+
+**Signature:**
+```tl
+getLayer: function(self: TileNode, layerName: string): Dictionary | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| layerName | string | The name of the layer to get from the tilemap. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Dictionary | The layer data as a dictionary. If the layer is not found, it will return nil. |
