@@ -23,7 +23,8 @@
 - Supports asynchronous operation of SQLite for real-time query and managing large game configuration data.
 - Supports reading Excel spreadsheet data and synchronizing it to SQLite tables.
 - Provides the function of adaptive Flex layout for game scenes through CSS.
-- Support the functions of Effekseer game effects system.
+- Supports the functions of [Effekseer](https://effekseer.github.io/en) game effects system.
+- Supports the [Tiled Map Editor](http://www.mapeditor.org) TMX map file parsing and rendering.
 - Supports the Yarn Spinner language, making it easy to write complex game story systems.
 - Built-in machine learning algorithm framework for innovative gameplay.
 - Provides vector graphics rendering API, which can directly render SVG format files without CSS.

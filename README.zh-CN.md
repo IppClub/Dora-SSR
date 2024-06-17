@@ -46,7 +46,8 @@
 |数据库|支持异步操作 SQLite，进行大量游戏配置数据的实时查询和写入。|
 |Excel|支持 Excel 表格数据读取，支持同步到 SQLite 库表。|
 |CSS 布局|提供游戏场景通过 CSS 进行自适应的 Flex 布局的功能。|
-|特效系统|支持 Effekseer 特效系统的功能。|
+|特效系统|支持 [Effekseer](https://effekseer.github.io/en) 特效系统的功能。|
+|瓦片地图|支持 [Tiled Map Editor](http://www.mapeditor.org) 制作的 TMX 地图文件的解析和渲染。|
 |机器学习|内置用于创新游戏玩法的机器学习算法框架。|
 | Yarn Spinner | 支持 Yarn Spinner 语言，便于编写复杂的游戏故事系统。         |
 | 矢量图形 | 提供矢量图形渲染 API，可直接渲染无 CSS 的 SVG 格式文件。     |
