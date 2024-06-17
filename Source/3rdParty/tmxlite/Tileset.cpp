@@ -383,7 +383,7 @@ void Tileset::parseTileNode(const pugi::xml_node& node, Map* map)
     }
     
     //by default we set the tile's values as in an Image tileset
-    tile.imagePath = m_imagePath;
+    //tile.imagePath = m_imagePath;
     tile.imageSize = m_tileSize;
 
     if (m_columnCount != 0) 
@@ -459,7 +459,7 @@ void Tileset::createMissingTile(std::uint32_t ID)
     }
 
     Tile& tile = newTile(ID);
-    tile.imagePath = m_imagePath;
+    //tile.imagePath = m_imagePath;
     tile.imageSize = m_tileSize;
 
     std::uint32_t rowIndex = ID % m_columnCount;

@@ -27,11 +27,27 @@ public:
 		std::vector<SpriteQuad::Position> positions;
 		std::vector<SpriteQuad> quads;
 	};
+	struct AnimatedTile {
+		TileQuad* tileQuad;
+		int tileIndex;
+		uint8_t flipFlags;
+		int animationIndex;
+	};
+	struct Animation {
+		float duration;
+		float totalTime;
+		const void* currentTile;
+		const void* tileInfo;
+		const void* tileSet;
+		Ref<Texture2D> texture;
+		float u1, v1, u2, v2, paddingU, paddingV;
+	};
 	PROPERTY(SpriteEffect*, Effect);
 	PROPERTY_CREF(BlendFunc, BlendFunc);
 	PROPERTY_BOOL(DepthWrite);
 	PROPERTY(TextureFilter, Filter);
 	virtual void render() override;
+	virtual bool update(double deltaTime) override;
 	virtual const Matrix& getWorld() override;
 	Dictionary* getLayer(String layerName) const;
 	static TileNode* create(String tmxFile);
@@ -52,6 +68,8 @@ private:
 		VertexPosDirty = Node::UserFlag,
 		DepthWrite = Node::UserFlag << 1,
 	};
+	std::vector<AnimatedTile> _animatedTiles;
+	std::vector<Animation> _animations;
 	friend class Object;
 	DORA_TYPE_OVERRIDE(TileNode);
 };
