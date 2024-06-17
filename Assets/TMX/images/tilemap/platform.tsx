@@ -7,6 +7,13 @@
   <property name="string property" value="shoes"/>
  </properties>
  <image source="tileset.png" trans="ff00ff" width="384" height="448"/>
+ <tile id="41">
+  <animation>
+   <frame tileid="20" duration="100"/>
+   <frame tileid="19" duration="100"/>
+   <frame tileid="18" duration="100"/>
+  </animation>
+ </tile>
  <wangsets>
   <wangset name="地形" type="corner" tile="-1">
    <wangcolor name="brown" color="#ff0000" tile="-1" probability="1"/>
