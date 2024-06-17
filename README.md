@@ -44,7 +44,8 @@ The Open Atom Foundation is a non-profit organization dedicated to supporting an
 |Database|Supports asynchronous operation of SQLite for real-time query and managing large game configuration data.|
 |Excel|Supports reading Excel spreadsheet data and synchronizing it to SQLite tables.|
 |CSS Layout|Provides the function of adaptive Flex layout for game scenes through CSS.|
-|Effect System|Support the functions of Effekseer game effects system.|
+|Effect System|Support the functions of [Effekseer](https://effekseer.github.io/en) game effects system.|
+|Tilemap|Supports the [Tiled Map Editor](http://www.mapeditor.org) TMX map file parsing and rendering.|
 |Yarn Spinner|Supports the Yarn Spinner language, making it easy to write complex game story systems.|
 |ML|Built-in machine learning algorithm framework for innovative gameplay.|
 |Vector Graphics|Provides vector graphics rendering API, which can directly render SVG format files without CSS.|
