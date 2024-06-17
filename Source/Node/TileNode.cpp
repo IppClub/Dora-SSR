@@ -14,13 +14,13 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Cache/TMXCache.h"
 #include "Cache/TextureCache.h"
 #include "Effect/Effect.h"
-#include "Support/Dictionary.h"
 #include "Support/Array.h"
+#include "Support/Dictionary.h"
 
 #include "tmxlite/ImageLayer.hpp"
 #include "tmxlite/LayerGroup.hpp"
-#include "tmxlite/TileLayer.hpp"
 #include "tmxlite/ObjectGroup.hpp"
+#include "tmxlite/TileLayer.hpp"
 
 NS_DORA_BEGIN
 
@@ -46,12 +46,20 @@ const BlendFunc& TileNode::getBlendFunc() const noexcept {
 	return _blendFunc;
 }
 
-static bool addTiles(std::list<TileNode::TileQuad>& tileQuads, const tmx::Map& map, const std::vector<tmx::TileLayer::Tile>& tileIDs, const tmx::Vector2u& mapSize, const tmx::Vector2i& offset, int totalRows, const uint32_t vertColor) {
+static bool addTiles(
+	std::list<TileNode::TileQuad>& tileQuads,
+	const tmx::Map& map,
+	const std::vector<tmx::TileLayer::Tile>& tileIDs,
+	const tmx::Vector2u& mapSize,
+	const tmx::Vector2i& offset,
+	int totalRows,
+	const uint32_t vertColor,
+	std::vector<TileNode::AnimatedTile>& animatedTiles,
+	std::vector<TileNode::Animation>& animations) {
 	const auto& tileSets = map.getTilesets();
 	const auto mapTileSize = map.getTileSize();
 	for (auto i = 0u; i < tileSets.size(); ++i) {
 		const auto& ts = tileSets[i];
-		const auto tileSetSize = ts.getTileSize();
 		auto texture = SharedTextureCache.load(ts.getImagePath());
 		if (!texture) {
 			return false;
@@ -66,24 +74,23 @@ static bool addTiles(std::list<TileNode::TileQuad>& tileQuads, const tmx::Map& m
 			s_cast<unsigned int>(texture->getWidth()),
 			s_cast<unsigned int>(texture->getHeight())};
 
-		const auto tileCountX = texSize.x / tileSetSize.x;
-
-		const float uNorm = s_cast<float>(tileSetSize.x) / texSize.x;
-		const float vNorm = s_cast<float>(tileSetSize.y) / texSize.y;
-
 		for (auto y = 0u; y < mapSize.y; ++y) {
 			for (auto x = 0u; x < mapSize.x; ++x) {
 				const auto idx = y * mapSize.x + x;
 				if (idx >= tileIDs.size()) break;
 				const auto& tile = tileIDs[idx];
-				if (tile.ID < ts.getFirstGID() || tileIDs[idx].ID >= (ts.getFirstGID() + ts.getTileCount())) {
+				const auto* tileInfo = ts.getTile(tile.ID);
+				if (!tileInfo) {
 					continue;
 				}
-				auto idIndex = tile.ID - ts.getFirstGID();
-				float u = s_cast<float>(idIndex % tileCountX);
-				float v = s_cast<float>(idIndex / tileCountX);
-				u = u * tileSetSize.x / texSize.x;
-				v = v * tileSetSize.y / texSize.y;
+				if (!tileInfo->imagePath.empty()) {
+					Warn("TMX file with embedded image is not supported.");
+					return false;
+				}
+				float u1 = s_cast<float>(tileInfo->imagePosition.x) / texture->getWidth();
+				float v1 = s_cast<float>(tileInfo->imagePosition.y) / texture->getHeight();
+				float u2 = s_cast<float>(tileInfo->imagePosition.x + tileInfo->imageSize.x) / texture->getWidth();
+				float v2 = s_cast<float>(tileInfo->imagePosition.y + tileInfo->imageSize.y) / texture->getHeight();
 
 				const float tilePosX = s_cast<float>(x) * mapTileSize.x + offset.x;
 				const float tilePosY = (totalRows - 1 - s_cast<float>(y)) * mapTileSize.y - offset.y;
@@ -95,10 +102,39 @@ static bool addTiles(std::list<TileNode::TileQuad>& tileQuads, const tmx::Map& m
 				}
 
 				tileQuad->quads.push_back(
-					{.rb = {0, 0, 0, 1, u + uNorm - paddingU, v + vNorm - paddingV, vertColor},
-						.lb = {0, 0, 0, 1, u + paddingU, v + vNorm - paddingV, vertColor},
-						.lt = {0, 0, 0, 1, u + paddingU, v + paddingV, vertColor},
-						.rt = {0, 0, 0, 1, u + uNorm - paddingU, v + paddingV, vertColor}});
+					{.rb = {0, 0, 0, 1, u2 - paddingU, v2 - paddingV, vertColor},
+						.lb = {0, 0, 0, 1, u1 + paddingU, v2 - paddingV, vertColor},
+						.lt = {0, 0, 0, 1, u1 + paddingU, v1 + paddingV, vertColor},
+						.rt = {0, 0, 0, 1, u2 - paddingU, v1 + paddingV, vertColor}});
+
+				if (!tileInfo->animation.frames.empty()) {
+					animatedTiles.push_back({.tileQuad = tileQuad,
+						.tileIndex = s_cast<int>(tileQuad->quads.size() - 1),
+						.flipFlags = tile.flipFlags});
+					auto it = std::find_if(animations.begin(), animations.end(), [=](const auto& anim) {
+						return anim.tileInfo == tileInfo;
+					});
+					if (it == animations.end()) {
+						animatedTiles.back().animationIndex = s_cast<int>(animations.size());
+						float totalTime = std::accumulate(tileInfo->animation.frames.begin(), tileInfo->animation.frames.end(), 0.0f, [](float sum, const auto& frame) {
+							return sum + frame.duration / 1000.0f;
+						});
+						animations.push_back({.duration = 0.0f,
+							.totalTime = totalTime,
+							.currentTile = r_cast<const void*>(tileInfo),
+							.tileInfo = r_cast<const void*>(tileInfo),
+							.tileSet = r_cast<const void*>(&ts),
+							.texture = MakeRef(texture),
+							.u1 = u1,
+							.v1 = v1,
+							.u2 = u2,
+							.v2 = v2,
+							.paddingU = paddingU,
+							.paddingV = paddingV});
+					} else {
+						animatedTiles.back().animationIndex = s_cast<int>(std::distance(animations.begin(), it));
+					}
+				}
 
 				tileQuad->positions.push_back(
 					{.rb = {tilePosX + mapTileSize.x, tilePosY, 0, 1},
@@ -137,13 +173,21 @@ static bool addTiles(std::list<TileNode::TileQuad>& tileQuads, const tmx::Map& m
 	return true;
 }
 
-static bool addLayer(std::list<TileNode::TileQuad>& tileQuads, const tmx::Map& map, tmx::Layer* target) {
+static bool addLayer(
+	std::list<TileNode::TileQuad>& tileQuads,
+	const tmx::Map& map,
+	tmx::Layer* target,
+	std::vector<TileNode::AnimatedTile>& animatedTiles,
+	std::vector<TileNode::Animation>& animations) {
 	if (!target) return false;
 	switch (target->getType()) {
 		case tmx::Layer::Type::Group: {
 			auto& layer = target->getLayerAs<tmx::LayerGroup>();
-			for (const auto& l : layer.getLayers()) {
-				if (!addLayer(tileQuads, map, l.get())) {
+			for (const auto& lyr : layer.getLayers()) {
+				if (lyr->getType() != tmx::Layer::Type::Tile && lyr->getType() != tmx::Layer::Type::Group) {
+					continue;
+				}
+				if (!addLayer(tileQuads, map, lyr.get(), animatedTiles, animations)) {
 					return false;
 				}
 			}
@@ -165,13 +209,28 @@ static bool addLayer(std::list<TileNode::TileQuad>& tileQuads, const tmx::Map& m
 		const auto mapTileSize = map.getTileSize();
 		const auto tileSize = tmx::Vector2i{s_cast<int>(mapTileSize.x), s_cast<int>(mapTileSize.y)};
 		for (const auto& chunk : layer.getChunks()) {
-			if (!addTiles(tileQuads, map, chunk.tiles, {s_cast<unsigned int>(chunk.size.x), s_cast<unsigned int>(chunk.size.y)}, offset + chunk.position * tileSize, mapSize.y, vertColor)) {
+			if (!addTiles(
+					tileQuads,
+					map,
+					chunk.tiles,
+					{s_cast<unsigned int>(chunk.size.x), s_cast<unsigned int>(chunk.size.y)},
+					offset + chunk.position * tileSize,
+					mapSize.y,
+					vertColor,
+					animatedTiles,
+					animations)) {
 				return false;
 			}
 		}
 	} else {
 		const auto& tileIDs = layer.getTiles();
-		if (!addTiles(tileQuads, map, tileIDs, mapSize, offset, mapSize.y, vertColor)) {
+		if (!addTiles(
+				tileQuads,
+				map,
+				tileIDs,
+				mapSize,
+				offset,
+				mapSize.y, vertColor, animatedTiles, animations)) {
 			return false;
 		}
 	}
@@ -193,7 +252,7 @@ TileNode* TileNode::create(String tmxFile, String layerName) {
 			return nullptr;
 		}
 		auto tileNode = Object::createNotNull<TileNode>();
-		if (!addLayer(tileNode->_tileQuads, map, target)) {
+		if (!addLayer(tileNode->_tileQuads, map, target, tileNode->_animatedTiles, tileNode->_animations)) {
 			Warn("failed to create TMX layer named \"{}\".", layerName.toString());
 			tileNode->cleanup();
 			return nullptr;
@@ -209,16 +268,19 @@ TileNode* TileNode::create(String tmxFile) {
 		const auto& map = tmxDef->getMap();
 		auto tileNode = Object::createNotNull<TileNode>();
 		for (const auto& layer : map.getLayers()) {
-			if (layer->getType() != tmx::Layer::Type::Tile) {
+			if (layer->getType() != tmx::Layer::Type::Tile && layer->getType() != tmx::Layer::Type::Group) {
 				continue;
 			}
-			if (!addLayer(tileNode->_tileQuads, map, layer.get())) {
+			if (!addLayer(tileNode->_tileQuads, map, layer.get(), tileNode->_animatedTiles, tileNode->_animations)) {
 				Warn("failed to create TMX layer named \"{}\".", layer->getName());
 				tileNode->cleanup();
 				return nullptr;
 			}
 		}
 		tileNode->_tmxDef = tmxDef;
+		if (!tileNode->_animatedTiles.empty()) {
+			tileNode->scheduleUpdate();
+		}
 		return tileNode;
 	}
 	return nullptr;
@@ -237,13 +299,16 @@ TileNode* TileNode::create(String tmxFile, const std::vector<std::string>& layer
 				tileNode->cleanup();
 				return nullptr;
 			}
-			if (!addLayer(tileNode->_tileQuads, map, it->get())) {
+			if (!addLayer(tileNode->_tileQuads, map, it->get(), tileNode->_animatedTiles, tileNode->_animations)) {
 				Warn("failed to create TMX layer named \"{}\".", layerName);
 				tileNode->cleanup();
 				return nullptr;
 			}
 		}
 		tileNode->_tmxDef = tmxDef;
+		if (!tileNode->_animatedTiles.empty()) {
+			tileNode->scheduleUpdate();
+		}
 		return tileNode;
 	}
 	return nullptr;
@@ -263,13 +328,16 @@ TileNode* TileNode::create(String tmxFile, Slice layerNames[], int count) {
 				tileNode->cleanup();
 				return nullptr;
 			}
-			if (!addLayer(tileNode->_tileQuads, map, it->get())) {
+			if (!addLayer(tileNode->_tileQuads, map, it->get(), tileNode->_animatedTiles, tileNode->_animations)) {
 				Warn("failed to create TMX layer named \"{}\".", layerName.toString());
 				tileNode->cleanup();
 				return nullptr;
 			}
 		}
 		tileNode->_tmxDef = tmxDef;
+		if (!tileNode->_animatedTiles.empty()) {
+			tileNode->scheduleUpdate();
+		}
 		return tileNode;
 	}
 	return nullptr;
@@ -392,6 +460,56 @@ void TileNode::render() {
 	Node::render();
 }
 
+bool TileNode::update(double deltaTime) {
+	if (isUpdating()) {
+		bool tileUpdated = false;
+		for (auto& animation : _animations) {
+			const auto* ts = r_cast<const tmx::Tileset*>(animation.tileSet);
+			;
+			animation.duration += deltaTime;
+			if (animation.duration > animation.totalTime) {
+				animation.duration -= animation.totalTime;
+			}
+			auto tileInfo = r_cast<const tmx::Tileset::Tile*>(animation.tileInfo);
+			float time = 0.0f;
+			const tmx::Tileset::Tile* currentTile = nullptr;
+			for (const auto& frame : tileInfo->animation.frames) {
+				time += frame.duration / 1000.0f;
+				if (time >= animation.duration) {
+					currentTile = ts->getTile(frame.tileID);
+					break;
+				}
+			}
+			if (currentTile && currentTile != animation.currentTile) {
+				animation.currentTile = currentTile;
+				Texture2D* texture = animation.texture;
+				animation.u1 = s_cast<float>(currentTile->imagePosition.x) / texture->getWidth();
+				animation.v1 = s_cast<float>(currentTile->imagePosition.y) / texture->getHeight();
+				animation.u2 = s_cast<float>(currentTile->imagePosition.x + currentTile->imageSize.x) / texture->getWidth();
+				animation.v2 = s_cast<float>(currentTile->imagePosition.y + currentTile->imageSize.y) / texture->getHeight();
+				animation.paddingU = 0.5f / texture->getWidth();
+				animation.paddingV = 0.5f / texture->getHeight();
+				tileUpdated = true;
+			}
+		}
+		if (tileUpdated) {
+			for (auto& animTile : _animatedTiles) {
+				const auto& animation = _animations[animTile.animationIndex];
+				auto& quad = animTile.tileQuad->quads[animTile.tileIndex];
+				quad.rb.u = animation.u2 - animation.paddingU;
+				quad.rb.v = animation.v2 - animation.paddingV;
+				quad.lb.u = animation.u1 + animation.paddingU;
+				quad.lb.v = animation.v2 - animation.paddingV;
+				quad.lt.u = animation.u1 + animation.paddingU;
+				quad.lt.v = animation.v1 + animation.paddingV;
+				quad.rt.u = animation.u2 - animation.paddingU;
+				quad.rt.v = animation.v1 + animation.paddingV;
+			}
+		}
+	}
+	return Node::update(deltaTime);
+}
+
 static Own<Value> getProperties(const std::vector<tmx::Property>& props, const tmx::Map& map) {
 	Dictionary* properties = Dictionary::create();
 	for (const auto& prop : props) {
@@ -472,7 +590,7 @@ static Dictionary* getLayerDict(tmx::Layer* target, const tmx::Map& map) {
 			}
 			break;
 		}
-		case tmx::Layer::Type::Object:{
+		case tmx::Layer::Type::Object: {
 			data->set("type"sv, Value::alloc("Object"sv));
 			const auto& layer = target->getLayerAs<tmx::ObjectGroup>();
 			switch (layer.getDrawOrder()) {
