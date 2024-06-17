@@ -465,7 +465,6 @@ bool TileNode::update(double deltaTime) {
 		bool tileUpdated = false;
 		for (auto& animation : _animations) {
 			const auto* ts = r_cast<const tmx::Tileset*>(animation.tileSet);
-			;
 			animation.duration += deltaTime;
 			if (animation.duration > animation.totalTime) {
 				animation.duration -= animation.totalTime;
