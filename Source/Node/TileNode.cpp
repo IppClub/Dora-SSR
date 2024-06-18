@@ -70,10 +70,6 @@ static bool addTiles(
 		TileNode::TileQuad* tileQuad = &tileQuads.emplace_back();
 		tileQuad->texture = texture;
 
-		const tmx::Vector2u texSize{
-			s_cast<unsigned int>(texture->getWidth()),
-			s_cast<unsigned int>(texture->getHeight())};
-
 		for (auto y = 0u; y < mapSize.y; ++y) {
 			for (auto x = 0u; x < mapSize.x; ++x) {
 				const auto idx = y * mapSize.x + x;
