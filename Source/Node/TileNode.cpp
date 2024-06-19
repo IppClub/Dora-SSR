@@ -499,6 +499,27 @@ bool TileNode::update(double deltaTime) {
 				quad.lt.v = animation.v1 + animation.paddingV;
 				quad.rt.u = animation.u2 - animation.paddingU;
 				quad.rt.v = animation.v1 + animation.paddingV;
+				if (animTile.flipFlags) {
+					bool dflip = (animTile.flipFlags & tmx::TileLayer::Diagonal) != 0;
+					if (dflip) {
+						std::swap(quad.lb.u, quad.rt.u);
+						std::swap(quad.lb.v, quad.rt.v);
+					}
+					bool hflip = (animTile.flipFlags & tmx::TileLayer::Horizontal) != 0;
+					if (hflip) {
+						std::swap(quad.lb.u, quad.rb.u);
+						std::swap(quad.lb.v, quad.rb.v);
+						std::swap(quad.lt.u, quad.rt.u);
+						std::swap(quad.lt.v, quad.rt.v);
+					}
+					bool vflip = (animTile.flipFlags & tmx::TileLayer::Vertical) != 0;
+					if (vflip) {
+						std::swap(quad.lb.v, quad.lt.v);
+						std::swap(quad.lb.u, quad.lt.u);
+						std::swap(quad.rb.v, quad.rt.v);
+						std::swap(quad.rb.u, quad.rt.u);
+					}
+				}
 			}
 		}
 	}
