@@ -348,5 +348,117 @@
   "theme.docs.DocCard.categoryDescription.plurals": {
     "message": "{count} 个项目",
     "description": "The default description for a category card in the generated index about how many items this category includes"
+  },
+  "engine_feature_title_code_editor": {
+    "message": "强大的代码编辑器",
+    "description": "The engine feature title Powerful Code Editor in front page"
+  },
+  "engine_feature_description_code_editor": {
+    "message": "Dora SSR 的 Web IDE 提供了多种编程语言和文件类型的支持，具备语法高亮、自动补全和文档跳转等功能，让开发更加高效和便捷。",
+    "description": "The engine feature description Powerful Code Editor in front page"
+  },
+  "engine_feature_title_yarn_spinner_editor": {
+    "message": "直观的剧本编辑器",
+    "description": "The engine feature description Intuitive Yarn Spinner Script Editor in front page"
+  },
+  "engine_feature_description_yarn_spinner_editor": {
+    "message": "集成的 Yarn Spinner 剧本编辑器提供了直观的故事编写工具，通过可视化节点图和简单标签实现复杂的剧情设计和管理。",
+    "description": "The engine feature description Intuitive Yarn Spinner Script Editor"
+  },
+  "engine_feature_title_visual_script_editor": {
+    "message": "易于上手的可视化脚本编辑器",
+    "description": "The engine feature title Visual Script Editor for Beginners in front page"
+  },
+  "engine_feature_description_visual_script_editor": {
+    "message": "适合编程初学者的 Visual Script 编辑器，通过图形化编程方式降低编程门槛，培养逻辑思维和问题解决能力。",
+    "description": "The engine feature description Visual Script Editor for Beginners in front page"
+  },
+  "engine_feature_title_skeletal_animation": {
+    "message": "对骨骼动画的支持",
+    "description": "The engine feature title Skeletal Animation Support in front page"
+  },
+  "engine_feature_description_skeletal_animation": {
+	"message": "内置 2D 骨骼动画的支持包括 Spine2D、DragonBones 以及一套自己实现的2D骨骼动画系统。集成了 Spine2D 预览功能，可以切换预览皮肤和进行动画播放。",
+    "description": "The engine feature description Skeletal Animation Support in front page"
+  },
+  "engine_feature_title_tiled_map": {
+    "message": "支持瓦片地图渲染",
+    "description": "The engine feature title Tiled Map Rendering Support in front page"
+  },
+  "engine_feature_description_tiled_map": {
+    "message": "Dora SSR 支持由 Tiled Map Editor 制作的瓦片地图。通过简单的配置和加载，开发者可以在引擎中轻松渲染复杂的瓦片地图，实现丰富的游戏场景设计和精确的地形展示。",
+    "description": "The engine feature description Tiled Map Rendering Support in front page"
+  },
+  "engine_feature_platformer_game_support": {
+    "message": "支持平台游戏开发",
+    "description": "The engine feature title Platformer Game Support in front page"
+  },
+  "engine_feature_description_platformer_game_support": {
+    "message": "Dora SSR 提供专门为平台游戏开发设计的功能模块，包括物理引擎、碰撞检测和动画系统等，使开发者能够轻松创建流畅且富有表现力的平台游戏。",
+    "description": "The engine feature description Platformer Game Support in front page"
+  },
+  "engine_feature_ml_and_ai_framework": {
+    "message": "内置机器学习和 AI 开发框架",
+    "description": "The engine feature title Built-in ML and AI Framework in front page"
+  },
+  "engine_feature_description_ml_and_ai_framework": {
+    "message": "Dora SSR 提供内置的机器学习算法框架和 AI 开发框架，帮助开发者在游戏中轻松实现智能化行为和高级数据处理，使游戏更加智能和互动。",
+    "description": "The engine feature description Built-in ML and AI Framework in front page"
+  },
+  "engine_feature_open_art_assets_and_game_ip": {
+    "message": "开放美术素材和游戏 IP",
+    "description": "The engine feature title Open Art Assets and Game IP in front page"
+  },
+  "engine_feature_description_open_art_assets_and_game_ip": {
+    "message": "Dora SSR 提供可用于制作自己游戏的开放美术素材和游戏 IP——《灵数奇缘》。开发者可以自由使用这些资源进行创作，快速构建出色的游戏体验。",
+    "description": "The engine feature description Open Art Assets and Game IP in front page"
+  },
+  "engine_feature_lua_scripting_support": {
+    "message": "Lua 脚本支持",
+    "description": "The engine feature title Lua Scripting Support in front page"
+  },
+  "engine_feature_description_lua_scripting_support": {
+    "message": "Dora SSR 提供升级的 Lua 绑定，支持继承和扩展底层 C++ 对象。",
+    "description": "The engine feature description Lua Scripting Support in front page"
+  },
+  "engine_feature_yuescript_scripting_support": {
+    "message": "YueScript 脚本支持",
+    "description": "The engine feature title YueScript Scripting Support in front page"
+  },
+  "engine_feature_description_yuescript_scripting_support": {
+    "message": "Dora SSR 支持使用 YueScript 语言，一门强表达力且简洁的 Lua 方言，作为脚本语言开发游戏。",
+    "description": "The engine feature description YueScript Scripting Support in front page"
+  },
+  "engine_feature_teal_scripting_support": {
+    "message": "Teal 脚本支持",
+    "description": "The engine feature title Teal Scripting Support in front page"
+  },
+  "engine_feature_description_teal_scripting_support": {
+    "message": "Dora SSR 支持使用 Teal 语言，一门编译到 Lua 的静态类型语言，作为脚本语言开发游戏。",
+    "description": "The engine feature description Teal Scripting Support in front page"
+  },
+  "engine_feature_typescript_scripting_support": {
+    "message": "TypeScript 脚本支持",
+    "description": "The engine feature title TypeScript Scripting Support in front page"
+  },
+  "engine_feature_description_typescript_scripting_support": {
+    "message": "Dora SSR 支持 TypeScript 作为脚本开发语言，这是一种 JavaScript 的静态类型超集，增加了强大的类型检查功能，并允许在脚本中嵌入类似 XML/HTML 的 TSX 文本，提升了代码的可靠性和编写体验。",
+    "description": "The engine feature description TypeScript Scripting Support in front page"
+  },
+  "engine_feature_rust_scripting_support": {
+    "message": "Rust 脚本支持",
+    "description": "The engine feature title Rust Scripting Support in front page"
+  },
+  "engine_feature_description_rust_scripting_support": {
+    "message": "Dora SSR 支持 Rust 作为脚本开发语言，运行在内置的 WASM 绑定和 VM 上，提供高性能和安全性的编程体验，适用于对性能要求高的游戏开发场景。",
+    "description": "The engine feature description Rust Scripting Support in front page"
+  },
+  "promotion_section_title": {
+    "message": "为什么选择 Dora SSR 引擎？",
+    "description": "The promotion section title in front page"
+  },
+  "feature_section_title": {
+    "message": "部分引擎功能特性",
+    "description": "The feature section title in front page"
   }
 }

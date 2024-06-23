@@ -1,12 +1,86 @@
+:root {
+	--feature-card-bg: #fff;
+	--feature-card-bg-dark: #2d2d2d;
+	--feature-card-shadow: rgba(0, 0, 0, 0.1);
+	--feature-card-shadow-dark: rgba(255, 255, 255, 0.1);
+	--feature-card-title-color: #333;
+	--feature-card-title-color-dark: #fff;
+	--feature-card-description-color: #555;
+	--feature-card-description-color-dark: #ddd;
+}
+
+[data-theme='dark'] {
+	--feature-card-bg: var(--feature-card-bg-dark);
+	--feature-card-shadow: var(--feature-card-shadow-dark);
+	--feature-card-title-color: var(--feature-card-title-color-dark);
+	--feature-card-description-color: var(--feature-card-description-color-dark);
+}
+
 .features {
-  display: flex;
-  align-items: center;
-  padding: 2rem 0;
-  width: 100%;
+	padding: 4rem 0;
+}
+
+.featureCard {
+	background-color: var(--feature-card-bg);
+	border-radius: 8px;
+	box-shadow: 0 2px 4px var(--feature-card-shadow);
+	padding: 1.5rem;
+	transition: transform 0.2s ease-in-out;
+	display: flex;
+	flex-direction: column;
+	justify-content: start;
+	height: 100%; /* 确保卡片占满整个列的高度 */
+}
+
+.featureCard:hover {
+	transform: translateY(-5px);
+}
+
+.featureImgContainer {
+	width: 100%;
+	height: 150px; /* 固定图片容器的高度 */
+	display: flex;
+	justify-content: center;
+	align-items: center;
 }
 
 .featureImg {
-  height: 90%;
-  width: 90%;
-  max-width: 500px;
+	height: 90%;
+	width: 90%;
+	max-width: 500px;
+}
+
+.featureImgFixed {
+	width: 100%;
+	height: 220px;
+	margin-bottom: 1rem;
+	object-fit: contain;
+}
+
+.featureCard h3 {
+	color: var(--feature-card-title-color);
+	margin: 1rem 0;
+}
+
+.featureCard p {
+	color: var(--feature-card-description-color);
+	flex-grow: 1; /* 使段落占满剩余的垂直空间 */
+}
+
+.text--center {
+	text-align: center;
+}
+
+.featureSection {
+	margin-bottom: 2rem;
+	padding-bottom: 2rem;
+	border-bottom: 1px solid #eaeaea;
+}
+
+.featureSection:last-of-type {
+	border-bottom: none;
+}
+
+.featureSection h2 {
+	margin-bottom: 1.5rem;
 }

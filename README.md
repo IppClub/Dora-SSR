@@ -52,33 +52,33 @@ The Open Atom Foundation is a non-profit organization dedicated to supporting an
 |ImGui|Built-in ImGui, easy to create debugging tools and UI interface.|
 |Audio|Supports FLAC, OGG, MP3 and WAV multi-format audio playback.|
 |True Type|Supports True Type font rendering and basic typesetting.|
-|L·S·D|Provides open art resources and game IPs that can be used to create your own games - ["Luv Sense Digital"](https://luv-sense-digital.readthedocs.io).<br><br><div align='center'><img src='Assets/Image/LSD.jpg' alt='LSD' width='300px'/></div>|
+|L·S·D|Provides open art resources and game IPs that can be used to create your own games - ["Luv Sense Digital"](https://luv-sense-digital.readthedocs.io).<br><br><div align='center'><img src='Docs/static/img/LSD.jpg' alt='LSD' width='300px'/></div>|
 
 <br>
 
 ## Example Projects
 
-- [Sample Project - Loli War](https://github.com/ippclub/Dora-SSR/tree/main/Assets/Script/Game/Loli%20War)
+- [Sample Project - Loli War](Assets/Script/Game/Loli%20War)
 
-<div align='center'><img src='Assets/Image/LoliWar.gif' alt='Loli War' width='400px'/></div>
-
-<br>
-
-- [Sample Project - Zombie Escape](https://github.com/ippclub/Dora-SSR/tree/main/Assets/Script/Game/Zombie%20Escape)
-
-<div align='center'><img src='Assets/Image/ZombieEscape.png' alt='Zombie Escape' width='800px'/></div>
+<div align='center'><img src='Docs/static/img/LoliWar.gif' alt='Loli War' width='400px'/></div>
 
 <br>
 
-- [Example Project - Dismentalism](https://github.com/ippclub/Dora-SSR/tree/main/Assets/Script/Game/Dismantlism)
+- [Sample Project - Zombie Escape](Assets/Script/Game/Zombie%20Escape)
 
-<div align='center'><img src='Assets/Image/Dismentalism.png' alt='Dismentalism' width='800px'/></div>
+<div align='center'><img src='Docs/static/img/ZombieEscape.png' alt='Zombie Escape' width='800px'/></div>
 
 <br>
 
-- [Example Project - Luv Sense Digital](https://e.coding.net/project-lsd/lsd/game.git)
+- [Example Project - Dismentalism](Assets/Script/Game/Dismantlism)
 
-<div align='center'><img src='Assets/Image/LuvSenseDigital.png' alt='Luv Sense Digital' width='800px'/></div>
+<div align='center'><img src='Docs/static/img/Dismentalism.png' alt='Dismentalism' width='800px'/></div>
+
+<br>
+
+- [Example Project - Luv Sense Digital](https://github.com/IppClub/LSD)
+
+<div align='center'><img src='Docs/static/img/LuvSenseDigital.png' alt='Luv Sense Digital' width='800px'/></div>
 
 <br>
 
@@ -137,7 +137,7 @@ The Open Atom Foundation is a non-profit organization dedicated to supporting an
 
 - Engine project development
 
-  For the installation and configuration of Dora SSR project development, see [Official Documents](https://Dora-ssr.net/docs/tutorial/dev-configuration) for details.
+  For the installation and configuration of Dora SSR project development, see [Official Documents](https://dora-ssr.net/docs/tutorial/dev-configuration) for details.
 
 <br>
 
