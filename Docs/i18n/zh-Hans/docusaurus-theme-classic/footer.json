@@ -28,15 +28,15 @@
     "description": "The label of footer link with label=GitHub linking to https://github.com/ippclub/Dora-SSR"
   },
   "copyright": {
-    "message": "Copyright © 2023 Dora SSR, Inc. Built with Docusaurus.",
+    "message": "Copyright © 2024 Dora SSR, Inc. Built with Docusaurus.",
     "description": "The footer copyright"
   },
   "link.item.label.API Reference": {
-    "message": "API参考手册",
+    "message": "API 参考手册",
     "description": "The label of footer link with label=API Reference linking to /docs/api/intro"
   },
   "link.item.label.QQ Group: 512620381": {
-    "message": "QQ群：512620381",
+    "message": "QQ 群：512620381",
     "description": "The label of footer link with label=QQ Group: 512620381 linking to https://qm.qq.com/cgi-bin/qm/qr?k=7siAhjlLaSMGLHIbNctO-9AJQ0bn0G7i&jump_from=webapi&authKey=Kb6tXlvcJ2LgyTzHQzKwkMxdsQ7sjERXMJ3g10t6b+716pdKClnXqC9bAfrFUEWa"
   }
 }
