@@ -24,6 +24,7 @@
 	--ifm-code-font-size: 100%;
 	--ifm-line-height-base: 1.65;
 	--docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+	--navbar-bg: #ffffff1a;
 }
 
 .table-of-contents__left-border {
@@ -41,7 +42,7 @@
 .navbar {
 	-webkit-backdrop-filter: blur(10px);
 	backdrop-filter: blur(10px);
-	background-color: #ffffff1a
+	background-color: var(--navbar-bg);
 }
 
 .footer {
@@ -58,4 +59,5 @@
 	--ifm-color-primary-lighter: #e1b000;
 	--ifm-color-primary-lightest: #fac03d;
 	--docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+	--navbar-bg: #0000003a;
 }

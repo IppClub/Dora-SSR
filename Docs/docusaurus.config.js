@@ -296,7 +296,7 @@ const config = {
 						},
 						{
 							label: 'GitHub',
-							href: 'https://github.com/pigpigyyy/Dora-SSR',
+							href: 'https://github.com/ippclub/Dora-SSR',
 						},
 					],
 				},

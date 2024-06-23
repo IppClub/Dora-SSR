@@ -54,33 +54,33 @@
 | ImGui | 内置 ImGui，便于创建调试工具和 UI 界面。                     |
 | 音频 | 支持 FLAC、OGG、MP3 和 WAV 多格式音频播放。                  |
 | True Type | 支持 True Type 字体的渲染和基础排版。                        |
-| L·S·D | 提供可用于制作自己游戏的开放美术素材和游戏 IP —— [《灵数奇缘》](https://luv-sense-digital.readthedocs.io)。 <br><br><div align='center'><img src='Assets/Image/LSD.jpg' alt='LSD' width='400px'/></div>|
+| L·S·D | 提供可用于制作自己游戏的开放美术素材和游戏 IP —— [《灵数奇缘》](https://luv-sense-digital.readthedocs.io)。 <br><br><div align='center'><img src='Docs/static/img/LSD.jpg' alt='LSD' width='400px'/></div> |
 
 <br>
 
 ## 示例项目
 
-- [示例项目 - Loli War](https://github.com/ippclub/Dora-SSR/tree/main/Assets/Script/Game/Loli%20War)
+- [示例项目 - Loli War](Assets/Script/Game/Loli%20War)
 
-<div align='center'><img src='Assets/Image/LoliWar.gif' alt='Loli War' width='400px'/></div>
-
-<br>
-
-- [示例项目 - Zombie Escape](https://github.com/ippclub/Dora-SSR/tree/main/Assets/Script/Game/Zombie%20Escape)
-
-<div align='center'><img src='Assets/Image/ZombieEscape.png' alt='Zombie Escape' width='800px'/></div>
+<div align='center'><img src='Docs/static/img/LoliWar.gif' alt='Loli War' width='400px'/></div>
 
 <br>
 
-- [示例项目 - Dismentalism](https://github.com/ippclub/Dora-SSR/tree/main/Assets/Script/Game/Dismantlism)
+- [示例项目 - Zombie Escape](Assets/Script/Game/Zombie%20Escape)
 
-<div align='center'><img src='Assets/Image/Dismentalism.png' alt='Dismentalism' width='800px'/></div>
+<div align='center'><img src='Docs/static/img/ZombieEscape.png' alt='Zombie Escape' width='800px'/></div>
 
 <br>
 
-- [示例项目 - Luv Sense Digital](https://e.coding.net/project-lsd/lsd/game.git)
+- [示例项目 - Dismentalism](Assets/Script/Game/Dismantlism)
 
-<div align='center'><img src='Assets/Image/LuvSenseDigital.png' alt='Luv Sense Digital' width='800px'/></div>
+<div align='center'><img src='Docs/static/img/Dismentalism.png' alt='Dismentalism' width='800px'/></div>
+
+<br>
+
+- [示例项目 - Luv Sense Digital](https://github.com/IppClub/LSD)
+
+<div align='center'><img src='Docs/static/img/LuvSenseDigital.png' alt='Luv Sense Digital' width='800px'/></div>
 
 <br>
 

@@ -598,5 +598,9 @@
   "sidebar.apiSidebar.doc.Opacity": {
     "message": "Opacity",
     "description": "The label for the doc item Opacity in sidebar apiSidebar, linking to the doc api/Module/Opacity"
+  },
+  "sidebar.apiSidebar.doc.TileNode": {
+    "message": "TileNode",
+    "description": "The label for the doc item TileNode in sidebar apiSidebar, linking to the doc api/Class/TileNode"
   }
 }
