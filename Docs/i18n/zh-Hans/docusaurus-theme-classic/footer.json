@@ -28,7 +28,7 @@
     "description": "The label of footer link with label=GitHub linking to https://github.com/ippclub/Dora-SSR"
   },
   "copyright": {
-    "message": "Copyright © 2024 Dora SSR, Inc. Built with Docusaurus.",
+    "message": "版权所有 © 2024 Dora SSR 社区。用 Docusaurus 搭建。",
     "description": "The footer copyright"
   },
   "link.item.label.API Reference": {
