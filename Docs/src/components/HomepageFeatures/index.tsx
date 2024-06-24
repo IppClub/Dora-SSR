@@ -220,12 +220,29 @@ const EngineFeatureList: FeatureItem[] = [
 	{
 		title: (
 			<Translate
+				id='engine_feature_title_cross_platform_game_dev_support'
+				description='The engine feature title Cross-Platform Game Dev Support in front page'>
+				Cross-Platform Game Dev Support
+			</Translate>
+		),
+		image: <img src={require('@site/static/img/dev-everywhere.jpg').default} alt='Cross-Platform Game Dev Support' className={styles.featureImgFixed}/>,
+		description: (
+			<Translate
+				id='engine_feature_description_cross_platform_game_dev_support'
+				description='The engine feature description Cross-Platform Game Dev Support in front page'>
+				Dora SSR supports direct game development on mobile phones, open-source handhelds, and other devices across Windows, Linux, iOS, macOS, and Android, enabling developers to create games anytime, anywhere.
+			</Translate>
+		),
+	},
+	{
+		title: (
+			<Translate
 				id='engine_feature_lua_scripting_support'
 				description='The engine feature title Lua Scripting Support in front page'>
 				Lua Scripting Support
 			</Translate>
 		),
-		image: <img src={require('@site/static/img/lua.png').default} alt='Lua Scripting Support' className={styles.featureImgFixed}/>,
+		image: <img src={require('@site/static/img/lua.png').default} alt='Lua Scripting Support' className={styles.featureImgFixed} style={{padding: 20}}/>,
 		description: (
 			<Translate
 				id='engine_feature_description_lua_scripting_support'
