@@ -3,6 +3,8 @@
 
 import { themes } from 'prism-react-renderer';
 
+const github = true;
+
 const darkCodeTheme = {
 	plain: {
 		color: '#D4D4D4',
@@ -173,10 +175,10 @@ const config = {
 	favicon: 'img/favicon.ico',
 
 	// Set the production url of your site here
-	url: 'https://dora-ssr.net', // 'https://ippclub.atomgit.net',
+	url: github ? 'https://dora-ssr.net' : 'https://ippclub.atomgit.net',
 	// Set the /<baseUrl>/ pathname under which your site is served
 	// For GitHub pages deployment, it is often '/<projectName>/'
-	baseUrl: '/', // '/Dora-SSR/',
+	baseUrl: github ? '/' : '/Dora-SSR/',
 
 	// GitHub pages deployment config.
 	// If you aren't using GitHub pages, you don't need these.
@@ -203,8 +205,9 @@ const config = {
 					sidebarPath: require.resolve('./sidebars.js'),
 					// Please change this to your repo.
 					// Remove this to remove the "edit this page" links.
-					editUrl:
-						'https://github.com/ippclub/Dora-SSR/tree/main/Docs', // 'https://atomgit.com/ippclub/Dora-SSR/blob/main/Docs',
+					editUrl: github ?
+						'https://github.com/ippclub/Dora-SSR/tree/main/Docs' :
+						'https://atomgit.com/ippclub/Dora-SSR/blob/main/Docs',
 					// sidebarCollapsed: false,
 					showLastUpdateAuthor: true,
 					showLastUpdateTime: true,
@@ -213,8 +216,9 @@ const config = {
 					showReadingTime: true,
 					// Please change this to your repo.
 					// Remove this to remove the "edit this page" links.
-					editUrl:
-						'https://github.com/ippclub/Dora-SSR/tree/main/Docs', // 'https://atomgit.com/ippclub/Dora-SSR/blob/main/Docs',
+					editUrl: github ?
+						'https://github.com/ippclub/Dora-SSR/tree/main/Docs' :
+						'https://atomgit.com/ippclub/Dora-SSR/blob/main/Docs',
 				},
 				theme: {
 					customCss: require.resolve('./src/css/custom.css'),
@@ -252,8 +256,10 @@ const config = {
 				},
 				{to: '/blog', label: 'Blog', position: 'left'},
 				{
-					href: 'https://github.com/ippclub/Dora-SSR', // 'https://atomgit.com/ippclub/Dora-SSR',
-					label: 'GitHub', // 'AtomGit',
+					href: github ?
+						'https://github.com/ippclub/Dora-SSR' :
+						'https://atomgit.com/ippclub/Dora-SSR',
+					label:  github ? 'GitHub' : 'AtomGit',
 					position: 'right',
 				},
 			],
@@ -295,8 +301,10 @@ const config = {
 							to: '/blog',
 						},
 						{
-							label: 'GitHub', // 'AtomGit',
-							href: 'https://github.com/ippclub/Dora-SSR', // 'https://atomgit.com/ippclub/Dora-SSR',
+							label:  github ? 'GitHub' : 'AtomGit',
+							href:  github ?
+								'https://github.com/ippclub/Dora-SSR' :
+								'https://atomgit.com/ippclub/Dora-SSR',
 						},
 					],
 				},

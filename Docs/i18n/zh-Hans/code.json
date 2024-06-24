@@ -378,7 +378,7 @@
     "description": "The engine feature title Skeletal Animation Support in front page"
   },
   "engine_feature_description_skeletal_animation": {
-	"message": "内置 2D 骨骼动画的支持包括 Spine2D、DragonBones 以及一套自己实现的2D骨骼动画系统。集成了 Spine2D 预览功能，可以切换预览皮肤和进行动画播放。",
+    "message": "内置 2D 骨骼动画的支持包括 Spine2D、DragonBones 以及一套自己实现的2D骨骼动画系统。集成了 Spine2D 预览功能，可以切换预览皮肤和进行动画播放。",
     "description": "The engine feature description Skeletal Animation Support in front page"
   },
   "engine_feature_title_tiled_map": {
@@ -460,5 +460,13 @@
   "feature_section_title": {
     "message": "部分引擎功能特性",
     "description": "The feature section title in front page"
+  },
+  "engine_feature_title_cross_platform_game_dev_support": {
+    "message": "跨平台游戏开发支持",
+    "description": "The engine feature title Cross-Platform Game Dev Support in front page"
+  },
+  "engine_feature_description_cross_platform_game_dev_support": {
+    "message": "Dora SSR 支持在手机、开源掌机等设备上直接进行游戏开发，兼容 Windows、Linux、iOS、macOS 和 Android 等多平台，使开发者能够随时随地进行创作。",
+    "description": "The engine feature description Cross-Platform Game Dev Support in front page"
   }
 }
