@@ -121,16 +121,17 @@ public:
 		StringMap<double> timeCosts;
 		StringMap<double> updateCosts;
 		struct LoaderCost {
-			int id;
-			int level;
-			std::string module;
+			int order;
+			int depth;
+			std::string moduleName;
 			double time;
-			std::string levelStr;
+			std::string depthStr;
 			std::string timeStr;
 		};
 		double loaderTotalTime;
 		std::deque<LoaderCost> loaderCosts;
 		Ref<Listener> loaderCostListener;
+		bool loaderCostDirty = false;
 
 		void init();
 		void update(double deltaTime);

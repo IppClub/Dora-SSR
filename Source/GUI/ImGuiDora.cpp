@@ -761,7 +761,11 @@ void ImGuiDora::showStats(bool* pOpen, const std::function<void()>& extra) {
 			ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"当前帧数：") : "Current FPS:");
 			itemHovered = ImGui::IsItemHovered();
 			ImGui::SameLine();
-			ImGui::Text("%.1f", 1000.0f / info->lastAvgDeltaTime);
+			if (info->lastAvgDeltaTime > 0) {
+				ImGui::Text("%.1f", 1000.0f / info->lastAvgDeltaTime);
+			} else {
+				ImGui::Text("-");
+			}
 			itemHovered |= ImGui::IsItemHovered();
 			if (itemHovered) HelpMarker(useChinese ? u8"最近一秒内过去的游戏帧数"sv : "the passd frames in the last second"_slice);
 			ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"平均CPU耗时：") : "AVG CPU:");
@@ -874,11 +878,11 @@ void ImGuiDora::showStats(bool* pOpen, const std::function<void()>& extra) {
 								bool ascending = spec.SortDirection == ImGuiSortDirection_Ascending;
 								switch (spec.ColumnIndex) {
 									case 0:
-										if (itemA.id == itemB.id) continue;
+										if (itemA.order == itemB.order) continue;
 										if (ascending) {
-											return itemA.id < itemB.id;
+											return itemA.order < itemB.order;
 										} else {
-											return itemA.id > itemB.id;
+											return itemA.order > itemB.order;
 										}
 									case 1:
 										if (itemA.time == itemB.time) continue;
@@ -888,11 +892,11 @@ void ImGuiDora::showStats(bool* pOpen, const std::function<void()>& extra) {
 											return itemA.time > itemB.time;
 										}
 									case 2:
-										if (itemA.level == itemB.level) continue;
+										if (itemA.depth == itemB.depth) continue;
 										if (ascending) {
-											return itemA.level < itemB.level;
+											return itemA.depth < itemB.depth;
 										} else {
-											return itemA.level > itemB.level;
+											return itemA.depth > itemB.depth;
 										}
 								}
 							}
@@ -906,10 +910,10 @@ void ImGuiDora::showStats(bool* pOpen, const std::function<void()>& extra) {
 				while (clipper.Step())
 					for (int row = clipper.DisplayStart; row < clipper.DisplayEnd; row++) {
 						const auto& item = info->loaderCosts[row];
-						ImGui::PushID(item.id);
+						ImGui::PushID(item.order);
 						ImGui::TableNextRow();
 						ImGui::TableNextColumn();
-						ImGui::Text("%d", item.id);
+						ImGui::Text("%d", item.order);
 						ImGui::TableNextColumn();
 						if (item.time > 1.0 / targetFPS) {
 							ImGui::PushStyleColor(ImGuiCol_Text, themeColor);
@@ -919,9 +923,9 @@ void ImGuiDora::showStats(bool* pOpen, const std::function<void()>& extra) {
 							ImGui::TextUnformatted(&item.timeStr.front(), &item.timeStr.back() + 1);
 						}
 						ImGui::TableNextColumn();
-						ImGui::TextUnformatted(&item.levelStr.front(), &item.levelStr.back() + 1);
+						ImGui::TextUnformatted(&item.depthStr.front(), &item.depthStr.back() + 1);
 						ImGui::TableNextColumn();
-						ImGui::TextUnformatted(&item.module.front(), &item.module.back() + 1);
+						ImGui::TextUnformatted(&item.moduleName.front(), &item.moduleName.back() + 1);
 						ImGui::PopID();
 					}
 				ImGui::EndTable();

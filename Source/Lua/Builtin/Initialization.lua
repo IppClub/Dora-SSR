@@ -74,7 +74,7 @@ do
 			Profiler.level = Profiler.level + 1
 			local _ <close> = setmetatable({}, {
 				__close = function()
-					if type(loaded) ~= "string" then
+					if loaded ~= nil and type(loaded) ~= "string" then
 						local deltaTime = App.elapsedTime - lastTime
 						Dora.emit(EventName, "Loader", name .. " [Compile]", Profiler.level, deltaTime)
 					end
@@ -101,14 +101,19 @@ do
 		end
 		local lastTime = App.elapsedTime
 		Profiler.level = Profiler.level + 1
+		local passed = false
 		local _ <close> = setmetatable({}, {
 			__close = function()
-				local deltaTime = App.elapsedTime - lastTime
-				Dora.emit(EventName, "Loader", name, Profiler.level, deltaTime)
+				if passed then
+					local deltaTime = App.elapsedTime - lastTime
+					Dora.emit(EventName, "Loader", name, Profiler.level, deltaTime)
+				end
 				Profiler.level = Profiler.level - 1
 			end
 		})
-		return require(name)
+		result = require(name)
+		passed = true
+		return result
 	end
 end
 

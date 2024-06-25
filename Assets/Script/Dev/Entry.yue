@@ -507,6 +507,7 @@ export stop = ->
 export enterEntryAsync = (entry) ->
 	isInEntry = false
 	App.idled = false
+	emit Profiler.EventName, "ClearLoader"
 	currentEntry = entry
 	[name, file] = entry
 	if cppTestSet[entry]

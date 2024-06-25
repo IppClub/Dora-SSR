@@ -34,6 +34,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "SDL.h"
 
+#include "rapidjson/stringbuffer.h"
+#include "rapidjson/writer.h"
+
 NS_DORA_BEGIN
 
 Director::Director()
@@ -637,15 +640,30 @@ Director::ProfilerInfo* Director::getProfilerInfo() {
 void Director::ProfilerInfo::init() {
 	loaderCostListener = Listener::create(Profiler::EventName, [&](Event* e) {
 		std::string name;
+		if (e->getArgsCount() == 1) {
+			if (e->get(name) && name == "ClearLoader"sv) {
+				loaderCosts.clear();
+				loaderTotalTime = 0;
+				return;
+			}
+		}
 		std::string msg;
 		int level = 0;
 		double cost = 0;
-		e->get(name, msg, level, cost);
+		if (!e->get(name, msg, level, cost)) {
+			return;
+		}
 		if (name == "Loader"_slice) {
 			const auto& assetPath = SharedContent.getAssetPath();
 			auto relative = Path::getRelative(msg, assetPath);
 			if (!relative.empty() && !relative.starts_with(".."sv)) {
 				msg = Path::concat({"assets"_slice, relative});
+			} else {
+				const auto& writablePath = SharedContent.getWritablePath();
+				auto relative = Path::getRelative(msg, writablePath);
+				if (!relative.empty() && !relative.starts_with(".."sv)) {
+					msg = relative;
+				}
 			}
 			if (level == 0) loaderTotalTime += cost;
 			loaderCosts.push_front({s_cast<int>(loaderCosts.size()),
@@ -654,6 +672,7 @@ void Director::ProfilerInfo::init() {
 				cost,
 				std::string(level, ' ') + std::to_string(level),
 				fmt::format("{:.2f} ms", cost * 1000.0)});
+			loaderCostDirty = true;
 		}
 		if (level == 0 && !timeCosts.insert({name, cost}).second) {
 			timeCosts[name] += cost;
@@ -747,6 +766,121 @@ void Director::ProfilerInfo::update(double deltaTime) {
 
 		elapsedTime = 0.0;
 		frames = 0;
+
+		if (Event::hasListener("AppWSSend"sv)) {
+			rapidjson::StringBuffer buf;
+			rapidjson::Writer<rapidjson::StringBuffer> writer(buf);
+			writer.SetMaxDecimalPlaces(2);
+			writer.StartObject();
+			writer.Key("name");
+			writer.String("Profiler");
+			writer.Key("info");
+			writer.StartObject();
+			writer.Key("renderer");
+			writer.String(renderer);
+			writer.Key("multiThreaded");
+			writer.Bool(multiThreaded);
+			{
+				auto size = SharedView.getSize();
+				writer.Key("backBufferX");
+				writer.Int(s_cast<int>(size.width));
+				writer.Key("backBufferY");
+				writer.Int(s_cast<int>(size.height));
+			}
+			writer.Key("drawCall");
+			writer.Int(s_cast<int>(bgfx::getStats()->numDraw));
+			writer.Key("tri");
+			writer.Int(s_cast<int>(bgfx::getStats()->numPrims[bgfx::Topology::TriStrip] + bgfx::getStats()->numPrims[bgfx::Topology::TriList]));
+			writer.Key("line");
+			writer.Int(s_cast<int>(bgfx::getStats()->numPrims[bgfx::Topology::LineStrip] + bgfx::getStats()->numPrims[bgfx::Topology::LineList]));
+			{
+				auto size = SharedApplication.getVisualSize();
+				writer.Key("visualSizeX");
+				writer.Int(s_cast<int>(size.width));
+				writer.Key("visualSizeY");
+				writer.Int(s_cast<int>(size.height));
+			}
+			writer.Key("vSync");
+			writer.Bool(SharedView.isVSync());
+			writer.Key("fpsLimited");
+			writer.Bool(SharedApplication.isFPSLimited());
+			writer.Key("targetFPS");
+			writer.Int(SharedApplication.getTargetFPS());
+			writer.Key("maxTargetFPS");
+			writer.Int(SharedApplication.getMaxFPS());
+			writer.Key("fixedFPS");
+			writer.Int(SharedDirector.getScheduler()->getFixedFPS());
+			writer.Key("currentFPS");
+			writer.Double(lastAvgDeltaTime > 0 ? 1000.0 / lastAvgDeltaTime : 0);
+			writer.Key("avgCPU");
+			writer.Double(lastAvgCPUTime);
+			writer.Key("avgGPU");
+			writer.Double(lastAvgGPUTime);
+			writer.Key("cpuTimePeeks");
+			writer.StartArray();
+			for (auto v : cpuValues) {
+				writer.Double(v);
+			}
+			writer.EndArray();
+			writer.Key("gpuTimePeeks");
+			writer.StartArray();
+			for (auto v : gpuValues) {
+				writer.Double(v);
+			}
+			writer.EndArray();
+			writer.Key("deltaTimePeeks");
+			writer.StartArray();
+			for (auto v : dtValues) {
+				writer.Double(v);
+			}
+			writer.EndArray();
+			writer.Key("updateCosts");
+			writer.StartArray();
+			for (const auto& v : updateCosts) {
+				writer.StartObject();
+				writer.Key("name");
+				writer.String(v.first.c_str(), v.first.size());
+				writer.Key("value");
+				writer.Double(v.second);
+				writer.EndObject();
+			}
+			writer.EndArray();
+			writer.Key("cppObject");
+			writer.Int(lastMaxCppObjects);
+			writer.Key("luaObject");
+			writer.Int(lastMaxLuaObjects);
+			writer.Key("luaCallback");
+			writer.Int(lastMaxCallbacks);
+			writer.Key("memoryPool");
+			writer.Int(lastMemPoolSize);
+			writer.Key("luaMemory");
+			writer.Int(lastMemLua);
+			writer.Key("wasmMemory");
+			writer.Int(lastMemWASM);
+			writer.Key("textureMemory");
+			writer.Int(Texture2D::getStorageSize());
+			if (loaderCostDirty) {
+				loaderCostDirty = false;
+				writer.Key("loaderCosts");
+				writer.StartArray();
+				for (const auto& item : loaderCosts) {
+					writer.StartObject();
+					writer.Key("order");
+					writer.Int(item.order);
+					writer.Key("time");
+					writer.Double(item.time);
+					writer.Key("depth");
+					writer.Int(item.depth);
+					writer.Key("moduleName");
+					writer.String(item.moduleName.c_str(), item.moduleName.size());
+					writer.EndObject();
+				}
+				writer.EndArray();
+			}
+			writer.EndObject();
+			writer.EndObject();
+			Event::send("AppWSSend"sv, std::string{buf.GetString(), buf.GetLength()});
+		}
 	}
 }
 

@@ -43,9 +43,11 @@ public:
 	inline String getName() const { return _name; }
 	virtual int pushArgsToLua() { return 0; }
 	virtual void pushArgsToWasm(CallStack*) { }
+	virtual int getArgsCount() const { return 0; }
 
 public:
 	static Listener* addListener(String name, const EventHandler& handler);
+	static bool hasListener(String name);
 	static void clear();
 
 	template <class... Args>
@@ -62,6 +64,9 @@ public:
 	 */
 	template <class... Args>
 	bool get(Args&... args);
+
+	template <class... Args>
+	bool tryGet(Args&... args);
 
 protected:
 	static void reg(Listener* listener);
@@ -115,6 +120,19 @@ struct WasmArgsPusher {
 	}
 };
 
+template<typename... Args>
+struct ArgCount;
+
+template<typename T, typename... Args>
+struct ArgCount<T, Args...> {
+	static const int value = 1 + ArgCount<Args...>::value;
+};
+
+template<>
+struct ArgCount<> {
+	static const int value = 0;
+};
+
 template <class... Fields>
 class EventArgs : public Event {
 public:
@@ -127,6 +145,9 @@ public:
 	virtual void pushArgsToWasm(CallStack* stack) override {
 		Tuple::foreach (arguments, WasmArgsPusher{stack});
 	}
+	virtual int getArgsCount() const override {
+		return ArgCount<Fields...>::value;
+	}
 	std::tuple<Fields...> arguments;
 	DORA_TYPE_OVERRIDE(EventArgs<Fields...>);
 };
@@ -136,7 +157,7 @@ public:
 	LuaEventArgs(String name, int paramCount);
 	virtual int pushArgsToLua() override;
 	virtual void pushArgsToWasm(CallStack* stack) override;
-	int getParamCount() const;
+	virtual int getArgsCount() const override;
 	static void send(String name, int paramCount);
 
 private:
@@ -149,6 +170,7 @@ public:
 	WasmEventArgs(String name, CallStack* stack);
 	virtual int pushArgsToLua() override;
 	virtual void pushArgsToWasm(CallStack* stack) override;
+	virtual int getArgsCount() const override;
 	const std::vector<dora_val_t>& values() const;
 	static void send(String name, CallStack* stack);
 
@@ -208,7 +230,7 @@ template <class... Args>
 bool Event::get(Args&... args) {
 	if (auto event = DoraAs<LuaEventArgs>(this)) {
 		lua_State* L = SharedLuaEngine.getState();
-		int i = lua_gettop(L) - event->getParamCount();
+		int i = lua_gettop(L) - event->getArgsCount();
 		if (!logicAnd({SharedLuaEngine.to(args, ++i)...})) {
 			Error("lua event \"{}\" argument type mismatch.", getName().toString());
 			return false;
