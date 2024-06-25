@@ -21,6 +21,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/View.h"
 #include "Effect/Effect.h"
 #include "Entity/Entity.h"
+#include "Event/Listener.h"
 #include "GUI/ImGuiDora.h"
 #include "Http/HttpServer.h"
 #include "Input/Controller.h"
@@ -180,6 +181,7 @@ static void registerTouchHandler(Node* target) {
 }
 
 bool Director::init() {
+	_profilerInfo.init();
 	SharedView.reset();
 	if (!SharedImGui.init()) {
 		Error("failed to initialize ImGui.");
@@ -225,6 +227,8 @@ void Director::doLogic() {
 	}
 
 	double deltaTime = SharedApplication.getDeltaTime();
+
+	_profilerInfo.update(deltaTime);
 
 	/* update system logic */
 	_systemScheduler->update(deltaTime);
@@ -624,6 +628,131 @@ void Director::handleSDLEvent(const SDL_Event& event) {
 		default:
 			break;
 	}
+}
+
+Director::ProfilerInfo* Director::getProfilerInfo() {
+	return &_profilerInfo;
+}
+
+void Director::ProfilerInfo::init() {
+	loaderCostListener = Listener::create(Profiler::EventName, [&](Event* e) {
+		std::string name;
+		std::string msg;
+		int level = 0;
+		double cost = 0;
+		e->get(name, msg, level, cost);
+		if (name == "Loader"_slice) {
+			const auto& assetPath = SharedContent.getAssetPath();
+			auto relative = Path::getRelative(msg, assetPath);
+			if (!relative.empty() && !relative.starts_with(".."sv)) {
+				msg = Path::concat({"assets"_slice, relative});
+			}
+			if (level == 0) loaderTotalTime += cost;
+			loaderCosts.push_front({s_cast<int>(loaderCosts.size()),
+				level,
+				msg + '\t',
+				cost,
+				std::string(level, ' ') + std::to_string(level),
+				fmt::format("{:.2f} ms", cost * 1000.0)});
+		}
+		if (level == 0 && !timeCosts.insert({name, cost}).second) {
+			timeCosts[name] += cost;
+		}
+	});
+	const char* rendererNames[] = {
+		"Noop", //!< No rendering.
+		"Agc", //!< AGC
+		"Direct3D11", //!< Direct3D 11.0
+		"Direct3D12", //!< Direct3D 12.0
+		"Gnm", //!< GNM
+		"Metal", //!< Metal
+		"Nvn", //!< NVN
+		"OpenGLES", //!< OpenGL ES 2.0+
+		"OpenGL", //!< OpenGL 2.1+
+		"Vulkan", //!< Vulkan
+	};
+	renderer = rendererNames[bgfx::getCaps()->rendererType];
+	multiThreaded = (bgfx::getCaps()->supported & BGFX_CAPS_RENDERER_MULTITHREADED) != 0;
+}
+
+void Director::ProfilerInfo::update(double deltaTime) {
+	frames++;
+	elapsedTime += deltaTime;
+
+	cpuTime += SharedApplication.getCPUTime();
+	gpuTime += SharedApplication.getGPUTime();
+
+	maxCppObjects = std::max(maxCppObjects, Object::getCount());
+	maxLuaObjects = std::max(maxLuaObjects, Object::getLuaRefCount());
+	maxCallbacks = std::max(maxCallbacks, Object::getLuaCallbackCount());
+
+	memPoolSize = std::max(MemoryPool::getTotalCapacity(), memPoolSize);
+	memLua = std::max(SharedLuaEngine.getMemoryCount(), memLua);
+	if (Singleton<WasmRuntime>::isInitialized()) {
+		memWASM = std::max(s_cast<int>(SharedWasmRuntime.getMemorySize()), memWASM);
+	}
+
+	maxCPU = std::max(maxCPU, SharedApplication.getCPUTime());
+	maxGPU = std::max(maxGPU, SharedApplication.getGPUTime());
+	maxDelta = std::max(maxDelta, deltaTime);
+	targetTime = 1000.0 / std::max(SharedApplication.getTargetFPS(), 1u);
+	logicTime += SharedApplication.getLogicTime();
+	renderTime += SharedApplication.getRenderTime();
+
+	if (elapsedTime >= 1.0) {
+		lastAvgCPUTime = 1000.0 * cpuTime / frames;
+		lastAvgGPUTime = 1000.0 * gpuTime / frames;
+		lastAvgDeltaTime = 1000.0 * elapsedTime / frames;
+		cpuTime = gpuTime = 0.0;
+
+		lastMaxCppObjects = maxCppObjects;
+		lastMaxLuaObjects = maxLuaObjects;
+		lastMaxCallbacks = maxCallbacks;
+		maxCppObjects = maxLuaObjects = maxCallbacks = 0;
+
+		lastMemPoolSize = memPoolSize;
+		lastMemLua = memLua;
+		lastMemWASM = memWASM;
+		memPoolSize = memLua = memWASM = 0;
+
+		cpuValues.push_back(maxCPU * 1000.0);
+		gpuValues.push_back(maxGPU * 1000.0);
+		dtValues.push_back(maxDelta * 1000.0);
+		maxCPU = maxGPU = maxDelta = 0;
+
+		if (cpuValues.size() > PlotCount + 1) cpuValues.erase(cpuValues.begin());
+		if (gpuValues.size() > PlotCount + 1) gpuValues.erase(gpuValues.begin());
+		if (dtValues.size() > PlotCount + 1)
+			dtValues.erase(dtValues.begin());
+		else
+			seconds.push_back(dtValues.size() - 1);
+		yLimit = 0;
+		for (auto v : cpuValues)
+			if (v > yLimit) yLimit = v;
+		for (auto v : gpuValues)
+			if (v > yLimit) yLimit = v;
+		for (auto v : dtValues)
+			if (v > yLimit) yLimit = v;
+		updateCosts.clear();
+
+		double time = 0;
+		for (const auto& item : timeCosts) {
+			time += item.second;
+			updateCosts[item.first] = std::max(0.0, item.second * 1000.0 / frames);
+		}
+		timeCosts.clear();
+		updateCosts["Logic"s] = std::max(0.0, (logicTime - time) * 1000.0 / frames);
+		updateCosts["Render"s] = std::max(0.0, renderTime * 1000.0 / frames);
+		logicTime = renderTime = 0;
+
+		elapsedTime = 0.0;
+		frames = 0;
+	}
+}
+
+void Director::ProfilerInfo::clearLoaderInfo() {
+	loaderCosts.clear();
+	loaderTotalTime = 0;
 }
 
 NS_DORA_END

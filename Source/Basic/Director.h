@@ -23,10 +23,12 @@ class Sprite;
 class Camera;
 class RenderTarget;
 class UITouchHandler;
+class Listener;
 
 class Director : public NonCopyable {
 public:
 	virtual ~Director();
+	struct ProfilerInfo;
 	PROPERTY(Scheduler*, Scheduler);
 	PROPERTY(Color, ClearColor);
 	PROPERTY_READONLY_CALL(Node*, UI);
@@ -35,6 +37,7 @@ public:
 	PROPERTY_READONLY_CALL(Node*, PostNode);
 	PROPERTY_READONLY_CALL(UITouchHandler*, UITouchHandler);
 	PROPERTY_READONLY_CALL(Camera*, CurrentCamera);
+	PROPERTY_READONLY_CALL(ProfilerInfo*, ProfilerInfo);
 	PROPERTY_READONLY(Camera*, PrevCamera);
 	PROPERTY_READONLY(Scheduler*, SystemScheduler);
 	PROPERTY_READONLY(Scheduler*, PostScheduler);
@@ -74,6 +77,66 @@ protected:
 	void pushViewProjection(const Matrix& viewProj);
 	void popViewProjection();
 
+public:
+	struct ProfilerInfo {
+		const char* renderer = nullptr;
+		bool multiThreaded = false;
+		uint32_t frames = 0;
+		double elapsedTime = 0;
+
+		double cpuTime = 0;
+		double gpuTime = 0;
+		double lastAvgCPUTime = 0;
+		double lastAvgGPUTime = 0;
+		double lastAvgDeltaTime = 0;
+
+		double logicTime = 0;
+		double renderTime = 0;
+		int memPoolSize = 0;
+		int memLua = 0;
+		int memWASM = 0;
+		int lastMemPoolSize = 0;
+		int lastMemLua = 0;
+		int lastMemWASM = 0;
+
+		const int PlotCount = 30;
+		double maxCPU = 0;
+		double maxGPU = 0;
+		double maxDelta = 0;
+		double yLimit = 0;
+		std::vector<double> cpuValues;
+		std::vector<double> gpuValues;
+		std::vector<double> dtValues;
+		std::vector<double> seconds;
+
+		uint32_t maxCppObjects = 0;
+		uint32_t maxLuaObjects = 0;
+		uint32_t maxCallbacks = 0;
+		uint32_t lastMaxCppObjects = 0;
+		uint32_t lastMaxLuaObjects = 0;
+		uint32_t lastMaxCallbacks = 0;
+
+		double targetTime = 0;
+
+		StringMap<double> timeCosts;
+		StringMap<double> updateCosts;
+		struct LoaderCost {
+			int id;
+			int level;
+			std::string module;
+			double time;
+			std::string levelStr;
+			std::string timeStr;
+		};
+		double loaderTotalTime;
+		std::deque<LoaderCost> loaderCosts;
+		Ref<Listener> loaderCostListener;
+
+		void init();
+		void update(double deltaTime);
+		void clearLoaderInfo();
+	};
+
 private:
 	bool _nvgDirty;
 	bool _paused;
@@ -92,6 +155,7 @@ private:
 	Ref<Scheduler> _scheduler;
 	Ref<Scheduler> _postScheduler;
 	RefVector<Node> _unManagedNodes;
+	ProfilerInfo _profilerInfo;
 	std::vector<WRef<Node>> _waitingList;
 	Own<UITouchHandler> _uiTouchHandler;
 	struct ViewProject {
