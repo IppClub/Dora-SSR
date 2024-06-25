@@ -74,6 +74,10 @@ Listener* Event::addListener(String name, const EventHandler& handler) {
 	return listener;
 }
 
+bool Event::hasListener(String name) {
+	return _eventMap.contains(name);
+}
+
 LuaEventArgs::LuaEventArgs(String name, int paramCount)
 	: Event(name)
 	, _paramCount(paramCount) { }
@@ -126,7 +130,7 @@ void LuaEventArgs::pushArgsToWasm(CallStack* stack) {
 	}
 }
 
-int LuaEventArgs::getParamCount() const {
+int LuaEventArgs::getArgsCount() const {
 	return _paramCount;
 }
 
@@ -152,6 +156,10 @@ void WasmEventArgs::pushArgsToWasm(CallStack* stack) {
 	for (const auto& value : _values) {
 		stack->push_v(value);
 	}
+}
+
+int WasmEventArgs::getArgsCount() const {
+	return s_cast<int>(_values.size());
 }
 
 bool WasmEventArgs::to(bool& value, int index) {
