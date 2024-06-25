@@ -92,6 +92,7 @@ Async* Content::getThread() const noexcept {
 }
 
 std::pair<OwnArray<uint8_t>, size_t> Content::load(String filename) {
+	PROFILE("FileIO"_slice);
 	_thread->pause();
 	int64_t size = 0;
 	uint8_t* data = Content::loadUnsafe(filename, size);
@@ -100,6 +101,7 @@ std::pair<OwnArray<uint8_t>, size_t> Content::load(String filename) {
 }
 
 const bgfx::Memory* Content::loadBX(String filename) {
+	PROFILE("FileIO"_slice);
 	_thread->pause();
 	int64_t size = 0;
 	uint8_t* data = Content::loadUnsafe(filename, size);
@@ -108,6 +110,7 @@ const bgfx::Memory* Content::loadBX(String filename) {
 }
 
 bool Content::copy(String src, String dst) {
+	PROFILE("FileIO"_slice);
 	_thread->pause();
 	bool result = Content::copyUnsafe(src, dst);
 	_thread->resume();
@@ -122,6 +125,7 @@ bool Content::move(String src, String dst) {
 }
 
 bool Content::save(String filename, String content) {
+	PROFILE("FileIO"_slice);
 	auto fullPathAndPackage = Content::getFullPathAndPackage(filename);
 	if (fullPathAndPackage.zipFile) {
 		Error("can not save file \"{}\" to a zip package", filename.toString());
@@ -137,6 +141,7 @@ bool Content::save(String filename, String content) {
 }
 
 bool Content::save(String filename, uint8_t* content, int64_t size) {
+	PROFILE("FileIO"_slice);
 	auto fullPathAndPackage = Content::getFullPathAndPackage(filename);
 	if (fullPathAndPackage.zipFile) {
 		Error("can not save file \"{}\" to a zip package", filename.toString());
@@ -712,6 +717,7 @@ std::list<std::string> Content::getDirEntries(String path, bool isFolder) {
 }
 
 uint8_t* Content::loadInMainUnsafe(String filename, int64_t& size) {
+	PROFILE("FileIO"_slice);
 	_thread->pause();
 	uint8_t* data = Content::loadUnsafe(filename, size);
 	_thread->resume();
