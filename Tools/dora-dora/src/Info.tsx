@@ -13,6 +13,7 @@ interface BasicInfo {
 	locale: string;
 	platform: string;
 	engineDev: boolean;
+	webProfiler: boolean;
 };
 
 export default {} as BasicInfo;

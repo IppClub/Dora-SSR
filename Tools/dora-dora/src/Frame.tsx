@@ -21,6 +21,7 @@ import Info from './Info';
 export namespace Color {
 	export const Background = '#3a3a3a';
 	export const BackgroundSecondary = '#2a2a2a';
+	export const BackgroundDark = '#1a1a1a';
 
 	export const Primary = '#ccc';
 	export const Secondary = '#ccca';

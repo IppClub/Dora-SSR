@@ -767,7 +767,7 @@ void Director::ProfilerInfo::update(double deltaTime) {
 		elapsedTime = 0.0;
 		frames = 0;
 
-		if (Event::hasListener("AppWSSend"sv)) {
+		if (profilerSending && Event::hasListener("AppWSSend"sv)) {
 			rapidjson::StringBuffer buf;
 			rapidjson::Writer<rapidjson::StringBuffer> writer(buf);
 			writer.SetMaxDecimalPlaces(2);
@@ -816,6 +816,8 @@ void Director::ProfilerInfo::update(double deltaTime) {
 			writer.Double(lastAvgCPUTime);
 			writer.Key("avgGPU");
 			writer.Double(lastAvgGPUTime);
+			writer.Key("plotCount");
+			writer.Int(PlotCount);
 			writer.Key("cpuTimePeeks");
 			writer.StartArray();
 			for (auto v : cpuValues) {
@@ -868,7 +870,7 @@ void Director::ProfilerInfo::update(double deltaTime) {
 					writer.Key("order");
 					writer.Int(item.order);
 					writer.Key("time");
-					writer.Double(item.time);
+					writer.Double(item.time * 1000);
 					writer.Key("depth");
 					writer.Int(item.depth);
 					writer.Key("moduleName");
@@ -887,6 +889,14 @@ void Director::ProfilerInfo::update(double deltaTime) {
 void Director::ProfilerInfo::clearLoaderInfo() {
 	loaderCosts.clear();
 	loaderTotalTime = 0;
+}
+
+void Director::setProfilerSending(bool var) {
+	_profilerInfo.profilerSending = var;
+}
+
+bool Director::isProfilerSending() const noexcept {
+	return _profilerInfo.profilerSending;
 }
 
 NS_DORA_END

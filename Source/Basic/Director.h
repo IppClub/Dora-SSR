@@ -43,6 +43,7 @@ public:
 	PROPERTY_READONLY(Scheduler*, PostScheduler);
 	PROPERTY_READONLY(const Matrix&, ViewProjection);
 	PROPERTY_BOOL(FrustumCulling);
+	PROPERTY_BOOL(ProfilerSending);
 	bool init();
 	void doLogic();
 	void doRender();
@@ -132,6 +133,7 @@ public:
 		std::deque<LoaderCost> loaderCosts;
 		Ref<Listener> loaderCostListener;
 		bool loaderCostDirty = false;
+		bool profilerSending = false;
 
 		void init();
 		void update(double deltaTime);

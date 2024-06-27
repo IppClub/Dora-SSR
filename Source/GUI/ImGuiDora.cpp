@@ -833,7 +833,7 @@ void ImGuiDora::showStats(bool* pOpen, const std::function<void()>& extra) {
 			ImGui::SameLine();
 			ImGui::Text("%.2f mb", Texture2D::getStorageSize() / 1024.0f / 1024.0f);
 			itemHovered |= ImGui::IsItemHovered();
-			if (itemHovered) HelpMarker(useChinese ? u8"引擎已加载的纹理占用的内存大小"sv : "the memory footprint used by loaded textures"_slice);
+			if (itemHovered) HelpMarker(useChinese ? u8"引擎已创建或加载的纹理占用的内存大小"sv : "the memory footprint used by created or loaded textures"_slice);
 		}
 		if (ImGui::CollapsingHeader(useChinese ? r_cast<const char*>(u8"加载脚本") : "Loader")) {
 			if (ImGui::Button(useChinese ? r_cast<const char*>(u8"清除") : "Clear")) {

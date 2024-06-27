@@ -36,13 +36,13 @@ import { useTranslation } from 'react-i18next';
 import { Image } from 'antd';
 import YarnEditor, { YarnEditorData } from './YarnEditor';
 import CodeWire, { CodeWireData } from './CodeWire';
-import LogView from './LogView';
 import { AutoTypings } from './3rdParty/monaco-editor-auto-typings';
 import { TbSwitchVertical } from "react-icons/tb";
 import './Editor';
 
 const SpinePlayer = React.lazy(() => import('./SpinePlayer'));
 const Markdown = React.lazy(() => import('./Markdown'));
+const LogView = React.lazy(() => import('./LogView'));
 
 const { path } = Info;
 
@@ -2039,7 +2039,7 @@ export default function PersistentDrawerLeft() {
 					}
 				</DialogContent>
 			</Dialog>
-			<LogView openName={openLog === null ? null : openLog.title} height={winSize.height * 0.7} onClose={onCloseLog}/>
+			<LogView openName={openLog === null ? null : openLog.title} height={winSize.height * 0.9} onClose={onCloseLog}/>
 			<Dialog
 				maxWidth="lg"
 				open={popupInfo !== null}

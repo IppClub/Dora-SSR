@@ -540,12 +540,14 @@ HttpServer\post "/list", (req): success: false ->
 
 HttpServer\post "/info", ->
 	import "Script.Dev.Entry"
+	webProfiler = Entry.getConfig!.webProfiler > 0
 	engineDev = Entry.getEngineDev!
 	return
 		platform: App.platform
 		locale: App.locale
 		version: App.version
 		:engineDev
+		:webProfiler
 
 HttpServer\post "/new", (req): success: false ->
 	switch req when {body: {:path, :content}}

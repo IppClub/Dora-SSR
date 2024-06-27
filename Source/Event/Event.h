@@ -65,9 +65,6 @@ public:
 	template <class... Args>
 	bool get(Args&... args);
 
-	template <class... Args>
-	bool tryGet(Args&... args);
-
 protected:
 	static void reg(Listener* listener);
 	static void unreg(Listener* listener);
