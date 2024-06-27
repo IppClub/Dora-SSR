@@ -1,60 +1,52 @@
-// To parse this data:
-//
-// import { Convert, ProfilerInfo } from "./file";
-//
-// const profilerInfo = Convert.toProfilerInfo(json);
+/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 export interface ProfilerInfo {
-	readonly renderer: string;
-	readonly multiThreaded: boolean;
-	readonly backBufferX: number;
-	readonly backBufferY: number;
-	readonly drawCall: number;
-	readonly tri: number;
-	readonly line: number;
-	readonly visualSizeX: number;
-	readonly visualSizeY: number;
-	readonly vSync: boolean;
-	readonly fpsLimited: boolean;
-	readonly targetFPS: number;
-	readonly maxTargetFPS: number;
-	readonly fixedFPS: number;
-	readonly currentFPS: number;
-	readonly avgCPU: number;
-	readonly avgGPU: number;
-	readonly cpuTimePeeks: number[];
-	readonly gpuTimePeeks: number[];
-	readonly deltaTimePeeks: number[];
-	readonly updateCosts: UpdateCost[];
-	readonly cppObject: number;
-	readonly luaObject: number;
-	readonly luaCallback: number;
-	readonly memoryPool: number;
-	readonly luaMemory: number;
-	readonly wasmMemory: number;
-	readonly textureMemory: number;
-	readonly loaderCosts?: LoaderCost[];
+	renderer: string;
+	multiThreaded: boolean;
+	backBufferX: number;
+	backBufferY: number;
+	drawCall: number;
+	tri: number;
+	line: number;
+	visualSizeX: number;
+	visualSizeY: number;
+	vSync: boolean;
+	fpsLimited: boolean;
+	targetFPS: number;
+	maxTargetFPS: number;
+	fixedFPS: number;
+	currentFPS: number;
+	avgCPU: number;
+	avgGPU: number;
+	plotCount: number;
+	cpuTimePeeks: number[];
+	gpuTimePeeks: number[];
+	deltaTimePeeks: number[];
+	updateCosts: UpdateCost[];
+	cppObject: number;
+	luaObject: number;
+	luaCallback: number;
+	memoryPool: number;
+	luaMemory: number;
+	wasmMemory: number;
+	textureMemory: number;
+	loaderCosts?: LoaderCost[];
 }
 
 export interface LoaderCost {
-	readonly order: number;
-	readonly time: number;
-	readonly depth: number;
-	readonly moduleName: string;
+	order: number;
+	time: number;
+	depth: number;
+	moduleName: string;
 }
 
 export interface UpdateCost {
-	readonly name: string;
-	readonly value: number;
-}
-
-// Converts JSON strings to/from your types
-export class Convert {
-	public static toProfilerInfo(json: string): ProfilerInfo {
-		return JSON.parse(json);
-	}
-
-	public static profilerInfoToJson(value: ProfilerInfo): string {
-		return JSON.stringify(value);
-	}
+	name: string;
+	value: number;
 }

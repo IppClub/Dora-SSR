@@ -273,6 +273,7 @@ class Director
 	tolua_readonly tolua_property__common Scheduler* postScheduler;
 	tolua_readonly tolua_property__common Camera* currentCamera;
 	tolua_property__bool bool frustumCulling;
+	tolua_property__bool bool profilerSending;
 	void pushCamera(Camera* camera);
 	void popCamera();
 	bool removeCamera(Camera* camera);

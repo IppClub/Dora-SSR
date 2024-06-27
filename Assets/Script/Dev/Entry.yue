@@ -57,6 +57,7 @@ config = Config(
 	"showFooter"
 	"filter"
 	"engineDev"
+	"webProfiler"
 )
 config\load!
 if config.fpsLimited?
@@ -141,6 +142,9 @@ if config.engineDev?
 	engineDev = config.engineDev > 0
 else
 	config.engineDev = engineDev and 1 or 0
+
+if config.webProfiler == nil
+	config.webProfiler = 1
 
 export.getConfig = -> config
 export.getEngineDev = ->
@@ -788,6 +792,8 @@ entryWindow = threadLoop ->
 		config.vsync = View.vsync and 1 or 0
 	if Director.scheduler.fixedFPS ~= config.fixedFPS
 		config.fixedFPS = Director.scheduler.fixedFPS
+	if Director.profilerSending ~= (config.webProfiler == 1)
+		config.webProfiler = Director.profilerSending and 1 or 0
 	return unless showEntry
 	return unless isInEntry
 	zh = useChinese and isChineseSupported

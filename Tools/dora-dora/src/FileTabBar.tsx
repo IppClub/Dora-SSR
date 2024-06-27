@@ -44,11 +44,11 @@ export interface FileTabBarProps {
 interface StyledTabsProps {
 	children?: React.ReactNode;
 	value: number | false;
-	scrollButtons: boolean;
-	onChange: (event: React.SyntheticEvent, newValue: number) => void;
+	scrollButtons?: boolean;
+	onChange?: (event: React.SyntheticEvent, newValue: number) => void;
 }
 
-const StyledTabs = styled((props: StyledTabsProps) => (
+export const StyledTabs = styled((props: StyledTabsProps) => (
 	<Tabs
 		variant='scrollable'
 		selectionFollowsFocus
@@ -70,12 +70,12 @@ const StyledTabs = styled((props: StyledTabsProps) => (
 
 interface StyledTabProps {
 	label: string;
-	tooltip: string;
-	status: TabStatus;
-	onContextMenu: (event: React.MouseEvent) => void;
+	tooltip?: string;
+	status?: TabStatus;
+	onContextMenu?: (event: React.MouseEvent) => void;
 }
 
-const StyledTab = styled((props: StyledTabProps) => (
+export const StyledTab = styled((props: StyledTabProps) => (
 	<Tooltip arrow title={props.tooltip}>
 		<Tab disableRipple {...props}/>
 	</Tooltip>

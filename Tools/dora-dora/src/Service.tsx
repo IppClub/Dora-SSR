@@ -9,6 +9,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 import EventEmitter from "events";
 import type { TreeDataType } from "./FileTree";
 import type { AlertColor } from '@mui/material';
+import { ProfilerInfo } from "./ProfilerInfo";
 
 let webSocket: WebSocket;
 const eventEmitter = new EventEmitter();
@@ -27,6 +28,7 @@ const wsOpenEvent = "Open";
 const wsCloseEvent = "Close";
 const logEventName = "Log";
 const alertEventName = "Alert";
+const profilerEventName = "Profiler";
 
 let logText = "";
 
@@ -50,6 +52,14 @@ export const addLogListener = (listener: (newItem: string, allText: string) => v
 
 export const removeLogListener = (listener: (newItem: string, allText: string) => void) => {
 	eventEmitter.removeListener(logEventName, listener);
+};
+
+export const addProfilerListener = (listener: (info: ProfilerInfo) => void) => {
+	eventEmitter.on(profilerEventName, listener);
+};
+
+export const removeProfilerListener = (listener: (info: ProfilerInfo) => void) => {
+	eventEmitter.removeListener(profilerEventName, listener);
 };
 
 export const addWSOpenListener = (listener: () => void) => {
@@ -76,11 +86,20 @@ export function openWebSocket() {
 		webSocket.onmessage = function(evt: MessageEvent<string>) {
 			const result = JSON.parse(evt.data);
 			if (result !== null && result.name !== undefined) {
-				if (result.name === logEventName) {
-					logText += result.text as string;
-					eventEmitter.emit(result.name, result.text, logText);
-				} else {
-					eventEmitter.emit(result.name, result);
+				switch (result.name) {
+					case logEventName: {
+						logText += result.text as string;
+						eventEmitter.emit(result.name, result.text, logText);
+						break;
+					}
+					case profilerEventName: {
+						eventEmitter.emit(result.name, result.info);
+						break;
+					}
+					default: {
+						eventEmitter.emit(result.name, result);
+						break;
+					}
 				}
 			}
 		};
@@ -233,6 +252,7 @@ export interface InfoResponse {
 	locale: string;
 	version: string;
 	engineDev: boolean;
+	webProfiler: boolean;
 }
 export const info = () => {
 	return post<InfoResponse>("/info");
