@@ -1782,3 +1782,38 @@ interface WeakMapConstructor {
 interface WeakSetConstructor {
 	readonly [Symbol.species]: WeakSetConstructor;
 }
+
+/////////////////////////////
+/// esnext.collection
+/////////////////////////////
+
+interface Set<T> {
+	/**
+	 * @returns 返回一个新的 Set，包含此 Set 中所有的元素以及参数中所有的元素。
+	 */
+	union<U>(other: ReadonlySet<U>): Set<T | U>;
+	/**
+	 * @returns 返回一个新的 Set，包含同时存在于此 Set 和参数中的所有元素。
+	 */
+	intersection<U>(other: ReadonlySet<U>): Set<T & U>;
+	/**
+	 * @returns 返回一个新的 Set，包含此 Set 中所有不在参数中的元素。
+	 */
+	difference<U>(other: ReadonlySet<U>): Set<T>;
+	/**
+	 * @returns 返回一个新的 Set，包含存在于此 Set 或参数中的所有元素，但不包含同时存在于两者中的元素。
+	 */
+	symmetricDifference<U>(other: ReadonlySet<U>): Set<T | U>;
+	/**
+	 * @returns 返回一个布尔值，指示此 Set 中的所有元素是否也都在参数中。
+	 */
+	isSubsetOf(other: ReadonlySet<unknown>): boolean;
+	/**
+	 * @returns 返回一个布尔值，指示参数中的所有元素是否也都在此 Set 中。
+	 */
+	isSupersetOf(other: ReadonlySet<unknown>): boolean;
+	/**
+	 * @returns 返回一个布尔值，指示此 Set 是否与参数没有共同的元素。
+	 */
+	isDisjointFrom(other: ReadonlySet<unknown>): boolean;
+}
