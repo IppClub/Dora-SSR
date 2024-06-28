@@ -446,7 +446,10 @@ double Application::getCPUTime() const noexcept {
 
 double Application::getGPUTime() const noexcept {
 	const bgfx::Stats* stats = bgfx::getStats();
-	return std::abs(double(stats->gpuTimeEnd) - double(stats->gpuTimeBegin)) / double(stats->gpuTimerFreq);
+	if (stats->gpuTimeEnd < stats->gpuTimeBegin) {
+		return 0;
+	}
+	return s_cast<double>(stats->gpuTimeEnd - stats->gpuTimeBegin) / s_cast<double>(stats->gpuTimerFreq);
 }
 
 double Application::getLogicTime() const noexcept {
