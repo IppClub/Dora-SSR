@@ -17,6 +17,7 @@ class Value;
 class Node;
 class LuaHandler;
 class Async;
+class Listener;
 
 namespace Platformer {
 class UnitAction;
@@ -228,6 +229,7 @@ protected:
 	LuaEngine();
 	static int _callFromLua;
 	lua_State* L;
+	Ref<Listener> _commandListener;
 	SINGLETON_REF(LuaEngine, AsyncThread);
 };
 

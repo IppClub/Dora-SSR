@@ -31,6 +31,38 @@ NS_DORA_BEGIN
 
 int LuaEngine::_callFromLua = 0;
 
+static void pushYue(lua_State* L, String name) {
+	lua_getglobal(L, "package"); // package
+	lua_getfield(L, -1, "loaded"); // package loaded
+	lua_getfield(L, -1, "yue"); // package loaded yue
+	lua_pushlstring(L, name.begin(), name.size()); // package loaded yue name
+	lua_gettable(L, -2); // loaded[name], package loaded yue item
+	lua_insert(L, -4); // item package loaded yue
+	lua_pop(L, 3); // item
+}
+
+static void pushOptions(lua_State* L, int lineOffset) {
+	lua_newtable(L);
+	lua_pushliteral(L, "lint_global");
+	lua_pushboolean(L, 0);
+	lua_rawset(L, -3);
+	lua_pushliteral(L, "implicit_return_root");
+	lua_pushboolean(L, 1);
+	lua_rawset(L, -3);
+	lua_pushliteral(L, "reserve_line_number");
+	lua_pushboolean(L, 1);
+	lua_rawset(L, -3);
+	lua_pushliteral(L, "space_over_tab");
+	lua_pushboolean(L, 0);
+	lua_rawset(L, -3);
+	lua_pushliteral(L, "same_module");
+	lua_pushboolean(L, 1);
+	lua_rawset(L, -3);
+	lua_pushliteral(L, "line_offset");
+	lua_pushinteger(L, lineOffset);
+	lua_rawset(L, -3);
+}
+
 static int dora_print(lua_State* L) {
 	int nargs = lua_gettop(L);
 	lua_getglobal(L, "tostring");
@@ -1078,6 +1110,65 @@ LuaEngine::LuaEngine()
 	tolua_LuaCode_open(L);
 
 	lua_settop(L, 0); // clear stack
+
+	_commandListener = Listener::create("AppCommand"s, [this](Event* event) {
+		std::string codes;
+		if (event->get(codes)) {
+			LogPrintInThread(codes + '\n');
+			codes.insert(0,
+				"rawset Dora, '_REPL', <index>: Dora unless Dora._REPL\n"
+				"_ENV = Dora._REPL\n"
+				"global *\n"s);
+			lua_State* L = SharedLuaEngine.getState();
+			int top = lua_gettop(L);
+			DEFER(lua_settop(L, top));
+			pushYue(L, "loadstring"_slice);
+			lua_pushlstring(L, codes.c_str(), codes.size());
+			lua_pushliteral(L, "=(repl)");
+			pushOptions(L, -3);
+			BLOCK_START
+			if (lua_pcall(L, 3, 2, 0) != 0) {
+				LogPrint("{}\n", lua_tostring(L, -1));
+				break;
+			}
+			if (lua_isnil(L, -2) != 0) {
+				std::string err = lua_tostring(L, -1);
+				auto modName = "(repl):"_slice;
+				if (err.substr(0, modName.size()) == modName) {
+					err = err.substr(modName.size());
+				}
+				auto pos = err.find(':');
+				if (pos != std::string::npos) {
+					int lineNum = std::stoi(err.substr(0, pos));
+					err = std::to_string(lineNum - 1) + err.substr(pos);
+				}
+				LogPrint("{}\n", err);
+				break;
+			}
+			lua_pop(L, 1);
+			pushYue(L, "pcall"_slice);
+			lua_insert(L, -2);
+			int last = lua_gettop(L) - 2;
+			if (lua_pcall(L, 1, LUA_MULTRET, 0) != 0) {
+				LogPrint("{}\n", lua_tostring(L, -1));
+				break;
+			}
+			int cur = lua_gettop(L);
+			int retCount = cur - last;
+			bool success = lua_toboolean(L, -retCount) != 0;
+			if (success) {
+				if (retCount > 1) {
+					for (int i = 1; i < retCount; ++i) {
+						LogPrint("{}\n", luaL_tolstring(L, -retCount + i, nullptr));
+						lua_pop(L, 1);
+					}
+				}
+			} else {
+				LogPrint("{}\n", lua_tostring(L, -1));
+			}
+			BLOCK_END
+		}
+	});
 }
 
 LuaEngine::~LuaEngine() {
