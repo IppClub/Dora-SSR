@@ -143,7 +143,9 @@ if config.engineDev?
 else
 	config.engineDev = engineDev and 1 or 0
 
-if config.webProfiler == nil
+if config.webProfiler?
+	Director.profilerSending = config.webProfiler > 0
+else
 	config.webProfiler = 1
 
 export.getConfig = -> config
