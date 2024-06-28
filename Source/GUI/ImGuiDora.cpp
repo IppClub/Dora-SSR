@@ -462,7 +462,7 @@ ImGuiDora::ImGuiDora()
 	, _backSpaceIgnore(false)
 	, _mousePressed{false, false, false}
 	, _mouseWheel{0.0f, 0.0f}
-	, _console(nullptr)
+	, _console(New<ConsolePanel>())
 	, _defaultFonts(New<ImFontAtlas>())
 	, _fonts(New<ImFontAtlas>())
 	, _showPlot(false)
@@ -1021,9 +1021,6 @@ void ImGuiDora::showStats(bool* pOpen, const std::function<void()>& extra) {
 
 void ImGuiDora::showConsole(bool* pOpen) {
 	bool useChinese = _useChinese && _isChineseSupported;
-	if (!_console) {
-		_console = New<ConsolePanel>();
-	}
 	_console->Draw(useChinese ? r_cast<const char*>(u8"Dora 控制台###DoraConsole") : "Dora Console###DoraConsole", useChinese, pOpen);
 }
 
