@@ -386,16 +386,15 @@ const LogView = memo((props: LogViewProps) => {
 				children: (profilerInfo.textureMemory / 1024 / 1024).toFixed(2) + ' MB',
 			},
 		];
-		const {plotCount} = profilerInfo;
 		lineConfig = {
 			data: baseLine.map((_, index) => {
-				return {time: plotCount - index, value: 1000 / profilerInfo.targetFPS, category: 'Base'};
+				return {time: baseLine.length - index, value: 1000 / profilerInfo.targetFPS, category: 'Base'};
 			}).concat(profilerInfo.cpuTimePeeks.map((value, index) => {
-				return {time: plotCount - index, value: value, category: 'CPU'};
+				return {time: profilerInfo.cpuTimePeeks.length - index, value: value, category: 'CPU'};
 			})).concat(profilerInfo.gpuTimePeeks.map((value, index) => {
-				return {time: plotCount - index, value: value, category: 'GPU'};
+				return {time: profilerInfo.gpuTimePeeks.length - index, value: value, category: 'GPU'};
 			})).concat(profilerInfo.deltaTimePeeks.map((value, index) => {
-				return {time: plotCount - index, value: value, category: 'Delta'};
+				return {time: profilerInfo.deltaTimePeeks.length - index, value: value, category: 'Delta'};
 			})),
 			xField: 'time',
 			yField: 'value',
