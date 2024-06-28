@@ -152,17 +152,17 @@ const EngineFeatureList: FeatureItem[] = [
 	{
 		title: (
 			<Translate
-				id='engine_feature_title_tiled_map'
-				description='The engine feature title Tiled Map Rendering Support in front page'>
-				Tiled Map Rendering Support
+				id='engine_feature_profiling_and_debugging_tools'
+				description='The engine feature title Profiling and Debugging Tools in front page'>
+				Profiling and Debugging Tools
 			</Translate>
 		),
-		image: <img src={require('@site/static/img/showcase5.jpg').default} alt='Tiled Map Rendering Support' className={styles.featureImgFixed}/>,
+		image: <img src={require('@site/static/img/showcase6.jpg').default} alt='Profiling and Debugging Tools' className={styles.featureImgFixed}/>,
 		description: (
 			<Translate
-				id='engine_feature_description_tiled_map'
-				description='The engine feature description Tiled Map Rendering Support in front page'>
-				Dora SSR supports tile maps created with Tiled Map Editor. With simple loading functions, developers can easily render complex tile maps in the engine.
+				id='engine_feature_description_profiling_and_debugging_tools'
+				description='The engine feature description Profiling and Debugging Tools in front page'>
+				The Dora SSR offers performance analysis and debugging tools, allowing developers to monitor CPU and GPU usage in real-time, analyze memory consumption, and meticulously track script execution times, aiding in game performance optimization.
 			</Translate>
 		),
 	},
@@ -180,6 +180,23 @@ const EngineFeatureList: FeatureItem[] = [
 				id='engine_feature_description_platformer_game_support'
 				description='The engine feature description Platformer Game Support in front page'>
 				Dora SSR offers dedicated modules for platformer game development, including physics engine, collision detection, and action systems to easily create smooth and expressive platformer games.
+			</Translate>
+		),
+	},
+	{
+		title: (
+			<Translate
+				id='engine_feature_title_tiled_map'
+				description='The engine feature title Tiled Map Rendering Support in front page'>
+				Tiled Map Rendering Support
+			</Translate>
+		),
+		image: <img src={require('@site/static/img/showcase5.jpg').default} alt='Tiled Map Rendering Support' className={styles.featureImgFixed}/>,
+		description: (
+			<Translate
+				id='engine_feature_description_tiled_map'
+				description='The engine feature description Tiled Map Rendering Support in front page'>
+				Dora SSR supports tile maps created with Tiled Map Editor. With simple loading functions, developers can easily render complex tile maps in the engine.
 			</Translate>
 		),
 	},

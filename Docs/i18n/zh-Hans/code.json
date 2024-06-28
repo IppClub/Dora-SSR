@@ -468,5 +468,13 @@
   "engine_feature_description_cross_platform_game_dev_support": {
     "message": "Dora SSR 支持在手机、开源掌机等设备上直接进行游戏开发，兼容 Windows、Linux、iOS、macOS 和 Android 等多平台，使开发者能够随时随地进行创作。",
     "description": "The engine feature description Cross-Platform Game Dev Support in front page"
+  },
+  "engine_feature_profiling_and_debugging_tools": {
+    "message": "实用的性能分析与调试工具",
+    "description": "The engine feature title Profiling and Debugging Tools in front page"
+  },
+  "engine_feature_description_profiling_and_debugging_tools": {
+    "message": "Dora SSR Web IDE 提供了实用的性能分析和调试工具，允许开发者实时监控 CPU 和 GPU 的使用情况，分析内存占用，并细致地跟踪脚本执行时间和各个模块的性能瓶颈，帮助优化游戏性能。",
+    "description": "The engine feature description Profiling and Debugging Tools in front page"
   }
 }
