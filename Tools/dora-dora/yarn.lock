@@ -3232,11 +3232,6 @@
     "@typescript-eslint/types" "5.62.0"
     eslint-visitor-keys "^3.3.0"
 
-"@typescript-to-lua/language-extensions@1.19.0":
-  version "1.19.0"
-  resolved "https://registry.npmmirror.com/@typescript-to-lua/language-extensions/-/language-extensions-1.19.0.tgz#e7535ed343bed68580dd96e1a8101a1dbb2dc771"
-  integrity sha512-Os5wOKwviTD4LeqI29N0btYOjokSJ97iCf45EOjIABlb5IwNQy7AE/AqZJobRw3ywHH8+KzJUMkEirWPzh2tUA==
-
 "@ungap/structured-clone@^1.0.0", "@ungap/structured-clone@^1.2.0":
   version "1.2.0"
   resolved "https://registry.npmmirror.com/@ungap/structured-clone/-/structured-clone-1.2.0.tgz#756641adb587851b5ccb3e095daf27ae581c8406"
@@ -5221,7 +5216,7 @@ encodeurl@~1.0.2:
   resolved "https://registry.npmmirror.com/encodeurl/-/encodeurl-1.0.2.tgz#ad3ff4c86ec2d029322f5a02c3a9a606c95b3f59"
   integrity sha512-TPJXq8JqFaVYm2CWmPvnP2Iyo4ZSM7/QKcSmuMLDObfpH5fi7RUGmd/rTDf+rut/saiDiQEeVTNgAmJEdAOx0w==
 
-enhanced-resolve@^5.17.0, enhanced-resolve@^5.8.2:
+enhanced-resolve@^5.17.0:
   version "5.17.0"
   resolved "https://registry.npmmirror.com/enhanced-resolve/-/enhanced-resolve-5.17.0.tgz#d037603789dd9555b89aaec7eb78845c49089bc5"
   integrity sha512-dwDPwZL0dmye8Txp2gzFmA6sxALaSvdRDjPH0viLcKrtlOL3tw62nWWweVD1SdILDTJrbrL6tdWVN58Wo6U3eA==
@@ -10431,7 +10426,7 @@ resolve.exports@^2.0.0:
   resolved "https://registry.npmmirror.com/resolve.exports/-/resolve.exports-2.0.2.tgz#f8c934b8e6a13f539e38b7098e2e36134f01e800"
   integrity sha512-X2UW6Nw3n/aMgDVy+0rSqgHlv39WZAlZrXCdnbyEiKm17DSqHX4MmQMaST3FbeWR5FTuRcUwYAziZajji0Y7mg==
 
-resolve@^1.1.7, resolve@^1.14.2, resolve@^1.15.1, resolve@^1.19.0, resolve@^1.20.0, resolve@^1.22.1, resolve@^1.22.2, resolve@^1.22.4, resolve@~1.22.6:
+resolve@^1.1.7, resolve@^1.14.2, resolve@^1.19.0, resolve@^1.20.0, resolve@^1.22.1, resolve@^1.22.2, resolve@^1.22.4, resolve@~1.22.6:
   version "1.22.8"
   resolved "https://registry.npmmirror.com/resolve/-/resolve-1.22.8.tgz#b6c87a9f2aa06dfab52e3d70ac8cde321fa5a48d"
   integrity sha512-oKWePCxqpd6FlLvGV1VU0x7bkPmmCNolxzjMf4NczoDnQcIWrAF+cPtZn5i6n+RfD2d9i0tzpKnG6Yk168yIyw==
@@ -11522,17 +11517,6 @@ typed-array-length@^1.0.6:
     has-proto "^1.0.3"
     is-typed-array "^1.1.13"
     possible-typed-array-names "^1.0.0"
-
-typescript-to-lua@^1.26.0:
-  version "1.26.0"
-  resolved "https://registry.npmmirror.com/typescript-to-lua/-/typescript-to-lua-1.26.0.tgz#bb032105ba007c4b97c239e9372160664a15487e"
-  integrity sha512-Eg8VytMyHzFmlaB0EyZG+jMyAW1McxP/WMuz2NuCLYwJc73zlQzm62d3RK+3qeU5ivnvFqrDuR7+61gvsuGcsA==
-  dependencies:
-    "@typescript-to-lua/language-extensions" "1.19.0"
-    enhanced-resolve "^5.8.2"
-    picomatch "^2.3.1"
-    resolve "^1.15.1"
-    source-map "^0.7.3"
 
 typescript@5.5.2:
   version "5.5.2"
