@@ -821,8 +821,11 @@ entryWindow = threadLoop ->
 		Begin "Web IDE", displayWindowFlags, ->
 			Separator!
 			TextColored themeColor, "#{zh and '网页' or 'Web'} IDE"
-			url = webStatus?.url ?? zh and '不可用' or 'not available'
-			TextColored descColor, url
+			if url := webStatus?.url
+				if Button url
+					App\openURL url
+			else
+				TextColored descColor, zh and '不可用' or 'not available'
 			Separator!
 
 	width = math.min MaxWidth, fullWidth

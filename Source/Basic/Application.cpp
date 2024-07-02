@@ -665,6 +665,14 @@ void Application::setupSdlWindow() {
 }
 #endif // BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS || BX_PLATFORM_ANDROID || BX_PLATFORM_LINUX
 
+void Application::openURL(String url) {
+	invokeInRender([url = url.toString()]() {
+		if (SDL_OpenURL(url.c_str()) != 0) {
+			Error("failed to open url due to: {}", SDL_GetError());
+		}
+	});
+}
+
 NS_DORA_END
 
 // Entry functions needed by SDL2
