@@ -124,6 +124,7 @@ class Application
 	tolua_property__common Vec2 winPosition;
 	tolua_property__bool bool fPSLimited @ fpsLimited;
 	tolua_property__bool bool idled;
+	void openURL(String url);
 	void shutdown();
 	static tolua_outside Application* Application_shared @ create();
 };
