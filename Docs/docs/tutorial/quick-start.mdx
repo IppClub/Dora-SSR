@@ -120,7 +120,7 @@ local Ease <const> = require("Ease")
 local sprite = Sprite("Image/logo.png")
 
 -- create the root node of the game scene tree
-local root = Node!
+local root = Node()
 
 -- mount the sprite to the root node
 root:addChild(sprite)
@@ -148,25 +148,27 @@ local Move <const> = require("Move")
 local Ease <const> = require("Ease")
 local type Touch = require("TouchType")
 
+-- create the root node of the game scene tree
+local root = Node()
+
 -- create a sprite
 local sprite = Sprite("Image/logo.png")
 
--- create the root node of the game scene tree
-local root = Node!
+if not sprite is nil then
+	-- mount the sprite to the root node
+	root:addChild(sprite)
 
--- mount the sprite to the root node
-root:addChild(sprite)
-
--- receive and process click events to move the sprite
-root.touchEnabled = true
-root:slot("TapBegan", function(touch: Touch)
-	sprite:perform(Move(
-		1, -- duration in seconds
-		sprite.position, -- start position
-		touch.location, -- end position
-		Ease.OutBack -- easing function
-	))
-end)
+	-- receive and process click events to move the sprite
+	root.touchEnabled = true
+	root:slot("TapBegan", function(touch: Touch)
+		sprite:perform(Move(
+			1, -- duration in seconds
+			sprite.position, -- start position
+			touch.location, -- end position
+			Ease.OutBack -- easing function
+		))
+	end)
+end
 ```
 
 </TabItem>
@@ -176,27 +178,29 @@ end)
 // import modules
 import {Ease, Move, Node, Slot, Sprite} from 'Dora';
 
-// create a sprite
-const sprite = Sprite("Image/logo.png");
-
 // create the root node of the game scene tree
 const root = Node();
 
-// mount the sprite to the root node
-root.addChild(sprite);
+// create a sprite
+const sprite = Sprite("Image/logo.png");
 
-// receive and process click events to move the sprite
-root.touchEnabled = true;
-root.slot(Slot.TapBegan, touch => {
-	sprite.perform(
-		Move(
-			1, // duration in seconds
-			sprite.position, // start position
-			touch.location, // end position
-			Ease.OutBack // easing function
-		)
-	);
-});
+if (sprite) {
+	// mount the sprite to the root node
+	root.addChild(sprite);
+
+	// receive and process click events to move the sprite
+	root.touchEnabled = true;
+	root.slot(Slot.TapBegan, touch => {
+		sprite.perform(
+			Move(
+				1, // duration in seconds
+				sprite.position, // start position
+				touch.location, // end position
+				Ease.OutBack // easing function
+			)
+		);
+	});
+}
 ```
 
 </TabItem>
