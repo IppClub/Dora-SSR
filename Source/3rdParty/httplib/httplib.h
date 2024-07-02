@@ -159,6 +159,7 @@ using ssize_t = long;
 #include <io.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
+#include <ip2string.h>
 
 #ifndef WSA_FLAG_NO_HANDLE_INHERIT
 #define WSA_FLAG_NO_HANDLE_INHERIT 0x80
