@@ -153,25 +153,27 @@ local Move <const> = require("Move")
 local Ease <const> = require("Ease")
 local type Touch = require("TouchType")
 
--- 创建图片精灵
-local sprite = Sprite("Image/logo.png")
-
 -- 创建游戏场景树根节点
 local root = Node()
 
--- 挂载图片精灵到游戏场景树根节点
-root:addChild(sprite)
+-- 创建图片精灵
+local sprite = Sprite("Image/logo.png")
 
--- 接收并处理点击事件移动图片精灵
-root.touchEnabled = true
-root:slot("TapBegan", function(touch: Touch)
-	sprite:perform(Move(
-		1, -- 持续时间，单位为秒
-		sprite.position, -- 开始位置
-		touch.location, -- 结束位置
-		Ease.OutBack -- 缓动函数
-	))
-end)
+if not sprite is nil then
+	-- 挂载图片精灵到游戏场景树根节点
+	root:addChild(sprite)
+
+	-- 接收并处理点击事件移动图片精灵
+	root.touchEnabled = true
+	root:slot("TapBegan", function(touch: Touch)
+		sprite:perform(Move(
+			1, -- 持续时间，单位为秒
+			sprite.position, -- 开始位置
+			touch.location, -- 结束位置
+			Ease.OutBack -- 缓动函数
+		))
+	end)
+end
 ```
 
 </TabItem>
@@ -181,27 +183,29 @@ end)
 // 导入功能模块
 import {Ease, Move, Node, Slot, Sprite} from 'Dora';
 
-// 创建图片精灵
-const sprite = Sprite("Image/logo.png");
-
 // 创建游戏场景树根节点
 const root = Node();
 
-// 挂载图片精灵到游戏场景树根节点
-root.addChild(sprite);
+// 创建图片精灵
+const sprite = Sprite("Image/logo.png");
 
-// 接收并处理点击事件移动图片精灵
-root.touchEnabled = true;
-root.slot(Slot.TapBegan, touch => {
-	sprite.perform(
-		Move(
-			1, // 持续时间，单位为秒
-			sprite.position, // 开始位置
-			touch.location, // 结束位置
-			Ease.OutBack // 缓动函数
-		)
-	);
-});
+if (sprite) {
+	// 挂载图片精灵到游戏场景树根节点
+	root.addChild(sprite);
+
+	// 接收并处理点击事件移动图片精灵
+	root.touchEnabled = true;
+	root.slot(Slot.TapBegan, touch => {
+		sprite.perform(
+			Move(
+				1, // 持续时间，单位为秒
+				sprite.position, // 开始位置
+				touch.location, // 结束位置
+				Ease.OutBack // 缓动函数
+			)
+		);
+	});
+}
 ```
 
 </TabItem>
