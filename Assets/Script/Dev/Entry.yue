@@ -82,7 +82,9 @@ else
 
 showEntry = true
 
+isDesktop = false
 if App.platform in ["Linux", "Windows", "macOS"]
+	isDesktop = true
 	if config.fullScreen? and config.fullScreen == 1
 		App.winSize = Size.zero
 	elseif config.winWidth? and config.winHeight?
@@ -828,11 +830,14 @@ entryWindow = threadLoop ->
 			Separator!
 			TextColored themeColor, "#{zh and '网页' or 'Web'} IDE"
 			if url := webStatus?.url
-				if urlClicked
-					BeginDisabled -> Button url
-				elseif Button url
-					urlClicked = once -> sleep 5
-					App\openURL url
+				if isDesktop
+					if urlClicked
+						BeginDisabled -> Button url
+					elseif Button url
+						urlClicked = once -> sleep 5
+						App\openURL url
+				else
+					TextColored descColor, url
 			else
 				TextColored descColor, zh and '不可用' or 'not available'
 			Separator!
