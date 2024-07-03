@@ -94,7 +94,6 @@ interface Modified {
 const editorBackground = <div style={{width: '100%', height: '100%', backgroundColor:'#1a1a1a'}}/>;
 
 const Editor = memo((props: {
-	hidden: boolean,
 	width: number, height: number,
 	language: string,
 	fileKey: string,
@@ -104,7 +103,6 @@ const Editor = memo((props: {
 	onValidate: (markers: monaco.editor.IMarker[], key: string) => void,
 }) => {
 	const {
-		hidden,
 		width,
 		height,
 		language,
@@ -117,7 +115,7 @@ const Editor = memo((props: {
 	const doValidate = useCallback((markers: monaco.editor.IMarker[]) => {
 		onValidate(markers, fileKey);
 	}, [onValidate, fileKey]);
-	return <div hidden={hidden}>
+	return (
 		<MonacoEditor
 			width={width}
 			height={height}
@@ -145,8 +143,7 @@ const Editor = memo((props: {
 				tabSize: 2,
 				definitionLinkOpensInPeek: true,
 			}}
-		/>
-	</div>;
+		/>);
 });
 
 export default function PersistentDrawerLeft() {
@@ -289,19 +286,19 @@ export default function PersistentDrawerLeft() {
 		});
 		Service.openWebSocket();
 		monaco.languages.typescript.typescriptDefaults.setExtraLibs([]);
-		Service.read({path: "es6-subset.d.ts"}).then(res => {
-			if (res.content !== undefined) {
-				monaco.languages.typescript.typescriptDefaults.addExtraLib(res.content, "es6-subset.d.ts");
+		Promise.all([
+			Service.read({path: "es6-subset.d.ts"}),
+			Service.read({path: "lua.d.ts"}),
+			Service.read({path: "Dora.d.ts"}),
+		]).then(([es6, lua, dora]) => {
+			if (es6.content !== undefined) {
+				monaco.languages.typescript.typescriptDefaults.addExtraLib(es6.content, "es6-subset.d.ts");
 			}
-		});
-		Service.read({path: "lua.d.ts"}).then(res => {
-			if (res.content !== undefined) {
-				monaco.languages.typescript.typescriptDefaults.addExtraLib(res.content, "lua.d.ts");
+			if (lua.content !== undefined) {
+				monaco.languages.typescript.typescriptDefaults.addExtraLib(lua.content, "lua.d.ts");
 			}
-		});
-		Service.read({path: "Dora.d.ts"}).then(res => {
-			if (res.content !== undefined) {
-				monaco.languages.typescript.typescriptDefaults.addExtraLib(res.content, "Dora.d.ts");
+			if (dora.content !== undefined) {
+				monaco.languages.typescript.typescriptDefaults.addExtraLib(dora.content, "Dora.d.ts");
 			}
 		});
 		// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -386,6 +383,13 @@ export default function PersistentDrawerLeft() {
 	};
 
 	const switchTab = useCallback((newValue: number | null, fileToFocus?: EditingFile) => {
+		if (tabIndex !== null) {
+			files[tabIndex]?.editor?.updateOptions({
+				stickyScroll: {
+					enabled: false,
+				}
+			});
+		}
 		setTabIndex(newValue);
 		if (newValue === null) return;
 		if (fileToFocus !== undefined) {
@@ -423,9 +427,14 @@ export default function PersistentDrawerLeft() {
 				}
 				return prev;
 			});
+			const {editor} = fileToFocus;
 			setTimeout(() => {
-				const {editor} = fileToFocus;
 				if (editor !== undefined) {
+					editor.updateOptions({
+						stickyScroll: {
+							enabled: true,
+						}
+					});
 					editor.focus();
 					const model = editor.getModel();
 					if (model === null) return;
@@ -450,7 +459,7 @@ export default function PersistentDrawerLeft() {
 				fileToFocus.yarnData?.warpToFocusedNode();
 			}, 100);
 		}
-	}, [expandedKeys, checkFileReadonly]);
+	}, [expandedKeys, checkFileReadonly, tabIndex, files]);
 
 	const tabBarOnChange = useCallback((newValue: number) => {
 		switchTab(newValue, files[newValue]);
@@ -2339,18 +2348,13 @@ export default function PersistentDrawerLeft() {
 							})()}
 							{(() => {
 								if (language) {
-									let width = 0;
-									if (tabIndex === index) {
-										width = winSize.width;
-									}
 									if (file.key === undefined) {
 										return null;
 									}
 									return <Editor
 										key={file.key}
-										hidden={markdown && !file.mdEditing}
 										fileKey={file.key}
-										width={width}
+										width={winSize.width}
 										height={winSize.height}
 										language={language}
 										onMount={file.onMount}

@@ -64,6 +64,8 @@ local SetNextWindowBgAlpha = _module_0.SetNextWindowBgAlpha -- 1
 local Dummy = _module_0.Dummy -- 1
 local ShowStats = _module_0.ShowStats -- 1
 local ShowConsole = _module_0.ShowConsole -- 1
+local coroutine = _G.coroutine -- 1
+local once = Dora.once -- 1
 local SetNextItemWidth = _module_0.SetNextItemWidth -- 1
 local InputText = _module_0.InputText -- 1
 local Columns = _module_0.Columns -- 1
@@ -1269,424 +1271,439 @@ local exampleOpen = false -- 779
 local testOpen = false -- 780
 local filterText = nil -- 781
 local anyEntryMatched = false -- 782
-local match -- 783
-match = function(name) -- 783
-	local res = not filterText or name:lower():match(filterText) -- 784
-	if res then -- 785
-		anyEntryMatched = true -- 785
-	end -- 785
-	return res -- 786
-end -- 783
-entryWindow = threadLoop(function() -- 788
-	if App.fpsLimited ~= (config.fpsLimited == 1) then -- 789
-		config.fpsLimited = App.fpsLimited and 1 or 0 -- 790
-	end -- 789
-	if App.targetFPS ~= config.targetFPS then -- 791
-		config.targetFPS = App.targetFPS -- 792
-	end -- 791
-	if View.vsync ~= (config.vsync == 1) then -- 793
-		config.vsync = View.vsync and 1 or 0 -- 794
-	end -- 793
-	if Director.scheduler.fixedFPS ~= config.fixedFPS then -- 795
-		config.fixedFPS = Director.scheduler.fixedFPS -- 796
-	end -- 795
-	if Director.profilerSending ~= (config.webProfiler == 1) then -- 797
-		config.webProfiler = Director.profilerSending and 1 or 0 -- 798
-	end -- 797
-	if not showEntry then -- 799
-		return -- 799
-	end -- 799
-	if not isInEntry then -- 800
-		return -- 800
+local urlClicked = nil -- 783
+local match -- 784
+match = function(name) -- 784
+	local res = not filterText or name:lower():match(filterText) -- 785
+	if res then -- 786
+		anyEntryMatched = true -- 786
+	end -- 786
+	return res -- 787
+end -- 784
+entryWindow = threadLoop(function() -- 789
+	if App.fpsLimited ~= (config.fpsLimited == 1) then -- 790
+		config.fpsLimited = App.fpsLimited and 1 or 0 -- 791
+	end -- 790
+	if App.targetFPS ~= config.targetFPS then -- 792
+		config.targetFPS = App.targetFPS -- 793
+	end -- 792
+	if View.vsync ~= (config.vsync == 1) then -- 794
+		config.vsync = View.vsync and 1 or 0 -- 795
+	end -- 794
+	if Director.scheduler.fixedFPS ~= config.fixedFPS then -- 796
+		config.fixedFPS = Director.scheduler.fixedFPS -- 797
+	end -- 796
+	if Director.profilerSending ~= (config.webProfiler == 1) then -- 798
+		config.webProfiler = Director.profilerSending and 1 or 0 -- 799
+	end -- 798
+	if urlClicked then -- 800
+		local _, result = coroutine.resume(urlClicked) -- 801
+		if result then -- 802
+			coroutine.close(urlClicked) -- 803
+			urlClicked = nil -- 804
+		end -- 802
 	end -- 800
-	local zh = useChinese and isChineseSupported -- 801
-	if HttpServer.wsConnectionCount > 0 then -- 802
-		local themeColor = App.themeColor -- 803
-		local width, height -- 804
-		do -- 804
-			local _obj_0 = App.visualSize -- 804
-			width, height = _obj_0.width, _obj_0.height -- 804
-		end -- 804
-		SetNextWindowBgAlpha(0.5) -- 805
-		SetNextWindowPos(Vec2(width / 2, height / 2), "Always", Vec2(0.5, 0.5)) -- 806
-		Begin("Web IDE Connected", displayWindowFlags, function() -- 807
-			Separator() -- 808
-			TextColored(themeColor, tostring(zh and '网页 IDE 已连接 ……' or 'Web IDE connected ...')) -- 809
-			local slogon = zh and 'Dora 启动！' or 'Dora Start!' -- 810
-			TextColored(descColor, slogon) -- 811
-			return Separator() -- 812
-		end) -- 807
-		return -- 813
-	end -- 802
-	local themeColor = App.themeColor -- 815
-	local fullWidth, height -- 816
-	do -- 816
-		local _obj_0 = App.visualSize -- 816
-		fullWidth, height = _obj_0.width, _obj_0.height -- 816
-	end -- 816
-	SetNextWindowBgAlpha(0.85) -- 818
-	SetNextWindowPos(Vec2(fullWidth - 30, height - 130), "Always", Vec2(1, 0)) -- 819
-	PushStyleVar("WindowPadding", Vec2(10, 5), function() -- 820
-		return Begin("Web IDE", displayWindowFlags, function() -- 821
-			Separator() -- 822
-			TextColored(themeColor, tostring(zh and '网页' or 'Web') .. " IDE") -- 823
-			do -- 824
-				local url -- 824
-				if webStatus ~= nil then -- 824
-					url = webStatus.url -- 824
-				end -- 824
-				if url then -- 824
-					if Button(url) then -- 825
-						App:openURL(url) -- 826
-					end -- 825
-				else -- 828
-					TextColored(descColor, zh and '不可用' or 'not available') -- 828
-				end -- 824
-			end -- 824
-			return Separator() -- 829
-		end) -- 829
-	end) -- 820
-	local width = math.min(MaxWidth, fullWidth) -- 831
-	local paddingX = math.max(10, fullWidth / 2 - width / 2 - 10) -- 832
-	local maxColumns = math.max(math.floor(width / 200), 1) -- 833
-	SetNextWindowPos(Vec2.zero) -- 834
-	SetNextWindowBgAlpha(0) -- 835
-	PushStyleVar("WindowPadding", Vec2(10, 0), function() -- 836
-		return Begin("Dora Dev", displayWindowFlags, function() -- 837
-			Dummy(Vec2(fullWidth - 20, 0)) -- 838
-			TextColored(themeColor, "DORA SSR " .. tostring(zh and '开发' or 'DEV')) -- 839
-			SameLine() -- 840
-			if fullWidth >= 320 then -- 841
-				Dummy(Vec2(fullWidth - 320, 0)) -- 842
-				SameLine() -- 843
-				SetNextItemWidth(-50) -- 844
-				if InputText(zh and '筛选' or 'Filter', filterBuf, { -- 845
-					"AutoSelectAll" -- 845
-				}) then -- 845
-					config.filter = filterBuf:toString() -- 846
-				end -- 845
-			end -- 841
-			Separator() -- 847
-			return Dummy(Vec2(fullWidth - 20, 0)) -- 848
-		end) -- 848
-	end) -- 836
-	anyEntryMatched = false -- 850
-	SetNextWindowPos(Vec2(0, 50)) -- 851
-	SetNextWindowSize(Vec2(fullWidth, height - 100)) -- 852
-	return PushStyleColor("WindowBg", transparant, function() -- 853
-		return PushStyleVar("WindowPadding", Vec2(paddingX, 10), function() -- 853
-			return Begin("Content", windowFlags, function() -- 854
-				filterText = filterBuf:toString():match("[^%%%.%[]+") -- 855
-				if filterText then -- 856
-					filterText = filterText:lower() -- 856
-				end -- 856
-				if #gamesInDev > 0 then -- 857
-					for _index_0 = 1, #gamesInDev do -- 858
-						local game = gamesInDev[_index_0] -- 858
-						local gameName, fileName, examples, tests, bannerFile, bannerTex = game[1], game[2], game[3], game[4], game[5], game[6] -- 859
-						local showSep = false -- 860
-						if match(gameName) then -- 861
-							Columns(1, false) -- 862
-							TextColored(themeColor, zh and "项目：" or "Project:") -- 863
-							SameLine() -- 864
-							Text(gameName) -- 865
-							Separator() -- 866
-							if bannerFile then -- 867
-								local texWidth, texHeight = bannerTex.width, bannerTex.height -- 868
-								local displayWidth = (fullWidth / 2 - paddingX) * 2 - 35 -- 869
-								local sizing <const> = 0.8 -- 870
-								texHeight = displayWidth * sizing * texHeight / texWidth -- 871
-								texWidth = displayWidth * sizing -- 872
-								local padding = displayWidth * (1 - sizing) / 2 - 10 -- 873
-								Dummy(Vec2(padding, 0)) -- 874
-								SameLine() -- 875
-								PushID(fileName, function() -- 876
-									if ImageButton(gameName, bannerFile, Vec2(texWidth, texHeight)) then -- 877
-										return enterDemoEntry(game) -- 878
-									end -- 877
-								end) -- 876
-							else -- 880
-								PushID(fileName, function() -- 880
-									if Button(zh and "开始运行" or "Game Start", Vec2(-1, 40)) then -- 881
-										return enterDemoEntry(game) -- 882
-									end -- 881
-								end) -- 880
-							end -- 867
-							NextColumn() -- 883
-							showSep = true -- 884
-						end -- 861
-						if #examples > 0 then -- 885
-							local showExample = false -- 886
-							for _index_1 = 1, #examples do -- 887
-								local example = examples[_index_1] -- 887
-								if match(example[1]) then -- 888
-									showExample = true -- 889
-									break -- 890
-								end -- 888
-							end -- 890
-							if showExample then -- 891
-								Columns(1, false) -- 892
-								TextColored(themeColor, zh and "示例：" or "Example:") -- 893
-								SameLine() -- 894
-								Text(gameName) -- 895
-								PushStyleVar("ItemSpacing", Vec2(20, 10), function() -- 896
-									Columns(maxColumns, false) -- 897
-									for _index_1 = 1, #examples do -- 898
-										local example = examples[_index_1] -- 898
-										if not match(example[1]) then -- 899
-											goto _continue_0 -- 899
-										end -- 899
-										PushID(tostring(gameName) .. " " .. tostring(example[1]) .. " example", function() -- 900
-											if Button(example[1], Vec2(-1, 40)) then -- 901
-												enterDemoEntry(example) -- 902
-											end -- 901
-											return NextColumn() -- 903
-										end) -- 900
-										showSep = true -- 904
-										::_continue_0:: -- 899
-									end -- 904
-								end) -- 896
-							end -- 891
-						end -- 885
-						if #tests > 0 then -- 905
-							local showTest = false -- 906
-							for _index_1 = 1, #tests do -- 907
-								local test = tests[_index_1] -- 907
-								if match(test[1]) then -- 908
-									showTest = true -- 909
-									break -- 910
-								end -- 908
-							end -- 910
-							if showTest then -- 911
-								Columns(1, false) -- 912
-								TextColored(themeColor, zh and "测试：" or "Test:") -- 913
-								SameLine() -- 914
-								Text(gameName) -- 915
-								PushStyleVar("ItemSpacing", Vec2(20, 10), function() -- 916
-									Columns(maxColumns, false) -- 917
-									for _index_1 = 1, #tests do -- 918
-										local test = tests[_index_1] -- 918
-										if not match(test[1]) then -- 919
-											goto _continue_0 -- 919
-										end -- 919
-										PushID(tostring(gameName) .. " " .. tostring(test[1]) .. " test", function() -- 920
-											if Button(test[1], Vec2(-1, 40)) then -- 921
-												enterDemoEntry(test) -- 922
-											end -- 921
-											return NextColumn() -- 923
-										end) -- 920
-										showSep = true -- 924
-										::_continue_0:: -- 919
-									end -- 924
-								end) -- 916
-							end -- 911
-						end -- 905
-						if showSep then -- 925
-							Columns(1, false) -- 926
-							Separator() -- 927
-						end -- 925
-					end -- 927
-				end -- 857
-				if #games > 0 or #doraExamples > 0 or #doraTests > 0 then -- 928
-					local showGame = false -- 929
-					for _index_0 = 1, #games do -- 930
-						local _des_0 = games[_index_0] -- 930
-						local name = _des_0[1] -- 930
-						if match(name) then -- 931
-							showGame = true -- 931
-						end -- 931
-					end -- 931
-					local showExample = false -- 932
-					for _index_0 = 1, #doraExamples do -- 933
-						local _des_0 = doraExamples[_index_0] -- 933
-						local name = _des_0[1] -- 933
-						if match(name) then -- 934
-							showExample = true -- 934
+	if not showEntry then -- 805
+		return -- 805
+	end -- 805
+	if not isInEntry then -- 806
+		return -- 806
+	end -- 806
+	local zh = useChinese and isChineseSupported -- 807
+	if HttpServer.wsConnectionCount > 0 then -- 808
+		local themeColor = App.themeColor -- 809
+		local width, height -- 810
+		do -- 810
+			local _obj_0 = App.visualSize -- 810
+			width, height = _obj_0.width, _obj_0.height -- 810
+		end -- 810
+		SetNextWindowBgAlpha(0.5) -- 811
+		SetNextWindowPos(Vec2(width / 2, height / 2), "Always", Vec2(0.5, 0.5)) -- 812
+		Begin("Web IDE Connected", displayWindowFlags, function() -- 813
+			Separator() -- 814
+			TextColored(themeColor, tostring(zh and '网页 IDE 已连接 ……' or 'Web IDE connected ...')) -- 815
+			local slogon = zh and 'Dora 启动！' or 'Dora Start!' -- 816
+			TextColored(descColor, slogon) -- 817
+			return Separator() -- 818
+		end) -- 813
+		return -- 819
+	end -- 808
+	local themeColor = App.themeColor -- 821
+	local fullWidth, height -- 822
+	do -- 822
+		local _obj_0 = App.visualSize -- 822
+		fullWidth, height = _obj_0.width, _obj_0.height -- 822
+	end -- 822
+	SetNextWindowBgAlpha(0.85) -- 824
+	SetNextWindowPos(Vec2(fullWidth - 30, height - 130), "Always", Vec2(1, 0)) -- 825
+	PushStyleVar("WindowPadding", Vec2(10, 5), function() -- 826
+		return Begin("Web IDE", displayWindowFlags, function() -- 827
+			Separator() -- 828
+			TextColored(themeColor, tostring(zh and '网页' or 'Web') .. " IDE") -- 829
+			do -- 830
+				local url -- 830
+				if webStatus ~= nil then -- 830
+					url = webStatus.url -- 830
+				end -- 830
+				if url then -- 830
+					if urlClicked then -- 831
+						BeginDisabled(function() -- 832
+							return Button(url) -- 832
+						end) -- 832
+					elseif Button(url) then -- 833
+						urlClicked = once(function() -- 834
+							return sleep(5) -- 834
+						end) -- 834
+						App:openURL(url) -- 835
+					end -- 831
+				else -- 837
+					TextColored(descColor, zh and '不可用' or 'not available') -- 837
+				end -- 830
+			end -- 830
+			return Separator() -- 838
+		end) -- 838
+	end) -- 826
+	local width = math.min(MaxWidth, fullWidth) -- 840
+	local paddingX = math.max(10, fullWidth / 2 - width / 2 - 10) -- 841
+	local maxColumns = math.max(math.floor(width / 200), 1) -- 842
+	SetNextWindowPos(Vec2.zero) -- 843
+	SetNextWindowBgAlpha(0) -- 844
+	PushStyleVar("WindowPadding", Vec2(10, 0), function() -- 845
+		return Begin("Dora Dev", displayWindowFlags, function() -- 846
+			Dummy(Vec2(fullWidth - 20, 0)) -- 847
+			TextColored(themeColor, "DORA SSR " .. tostring(zh and '开发' or 'DEV')) -- 848
+			SameLine() -- 849
+			if fullWidth >= 320 then -- 850
+				Dummy(Vec2(fullWidth - 320, 0)) -- 851
+				SameLine() -- 852
+				SetNextItemWidth(-50) -- 853
+				if InputText(zh and '筛选' or 'Filter', filterBuf, { -- 854
+					"AutoSelectAll" -- 854
+				}) then -- 854
+					config.filter = filterBuf:toString() -- 855
+				end -- 854
+			end -- 850
+			Separator() -- 856
+			return Dummy(Vec2(fullWidth - 20, 0)) -- 857
+		end) -- 857
+	end) -- 845
+	anyEntryMatched = false -- 859
+	SetNextWindowPos(Vec2(0, 50)) -- 860
+	SetNextWindowSize(Vec2(fullWidth, height - 100)) -- 861
+	return PushStyleColor("WindowBg", transparant, function() -- 862
+		return PushStyleVar("WindowPadding", Vec2(paddingX, 10), function() -- 862
+			return Begin("Content", windowFlags, function() -- 863
+				filterText = filterBuf:toString():match("[^%%%.%[]+") -- 864
+				if filterText then -- 865
+					filterText = filterText:lower() -- 865
+				end -- 865
+				if #gamesInDev > 0 then -- 866
+					for _index_0 = 1, #gamesInDev do -- 867
+						local game = gamesInDev[_index_0] -- 867
+						local gameName, fileName, examples, tests, bannerFile, bannerTex = game[1], game[2], game[3], game[4], game[5], game[6] -- 868
+						local showSep = false -- 869
+						if match(gameName) then -- 870
+							Columns(1, false) -- 871
+							TextColored(themeColor, zh and "项目：" or "Project:") -- 872
+							SameLine() -- 873
+							Text(gameName) -- 874
+							Separator() -- 875
+							if bannerFile then -- 876
+								local texWidth, texHeight = bannerTex.width, bannerTex.height -- 877
+								local displayWidth = (fullWidth / 2 - paddingX) * 2 - 35 -- 878
+								local sizing <const> = 0.8 -- 879
+								texHeight = displayWidth * sizing * texHeight / texWidth -- 880
+								texWidth = displayWidth * sizing -- 881
+								local padding = displayWidth * (1 - sizing) / 2 - 10 -- 882
+								Dummy(Vec2(padding, 0)) -- 883
+								SameLine() -- 884
+								PushID(fileName, function() -- 885
+									if ImageButton(gameName, bannerFile, Vec2(texWidth, texHeight)) then -- 886
+										return enterDemoEntry(game) -- 887
+									end -- 886
+								end) -- 885
+							else -- 889
+								PushID(fileName, function() -- 889
+									if Button(zh and "开始运行" or "Game Start", Vec2(-1, 40)) then -- 890
+										return enterDemoEntry(game) -- 891
+									end -- 890
+								end) -- 889
+							end -- 876
+							NextColumn() -- 892
+							showSep = true -- 893
+						end -- 870
+						if #examples > 0 then -- 894
+							local showExample = false -- 895
+							for _index_1 = 1, #examples do -- 896
+								local example = examples[_index_1] -- 896
+								if match(example[1]) then -- 897
+									showExample = true -- 898
+									break -- 899
+								end -- 897
+							end -- 899
+							if showExample then -- 900
+								Columns(1, false) -- 901
+								TextColored(themeColor, zh and "示例：" or "Example:") -- 902
+								SameLine() -- 903
+								Text(gameName) -- 904
+								PushStyleVar("ItemSpacing", Vec2(20, 10), function() -- 905
+									Columns(maxColumns, false) -- 906
+									for _index_1 = 1, #examples do -- 907
+										local example = examples[_index_1] -- 907
+										if not match(example[1]) then -- 908
+											goto _continue_0 -- 908
+										end -- 908
+										PushID(tostring(gameName) .. " " .. tostring(example[1]) .. " example", function() -- 909
+											if Button(example[1], Vec2(-1, 40)) then -- 910
+												enterDemoEntry(example) -- 911
+											end -- 910
+											return NextColumn() -- 912
+										end) -- 909
+										showSep = true -- 913
+										::_continue_0:: -- 908
+									end -- 913
+								end) -- 905
+							end -- 900
+						end -- 894
+						if #tests > 0 then -- 914
+							local showTest = false -- 915
+							for _index_1 = 1, #tests do -- 916
+								local test = tests[_index_1] -- 916
+								if match(test[1]) then -- 917
+									showTest = true -- 918
+									break -- 919
+								end -- 917
+							end -- 919
+							if showTest then -- 920
+								Columns(1, false) -- 921
+								TextColored(themeColor, zh and "测试：" or "Test:") -- 922
+								SameLine() -- 923
+								Text(gameName) -- 924
+								PushStyleVar("ItemSpacing", Vec2(20, 10), function() -- 925
+									Columns(maxColumns, false) -- 926
+									for _index_1 = 1, #tests do -- 927
+										local test = tests[_index_1] -- 927
+										if not match(test[1]) then -- 928
+											goto _continue_0 -- 928
+										end -- 928
+										PushID(tostring(gameName) .. " " .. tostring(test[1]) .. " test", function() -- 929
+											if Button(test[1], Vec2(-1, 40)) then -- 930
+												enterDemoEntry(test) -- 931
+											end -- 930
+											return NextColumn() -- 932
+										end) -- 929
+										showSep = true -- 933
+										::_continue_0:: -- 928
+									end -- 933
+								end) -- 925
+							end -- 920
+						end -- 914
+						if showSep then -- 934
+							Columns(1, false) -- 935
+							Separator() -- 936
 						end -- 934
-					end -- 934
-					local showTest = false -- 935
-					for _index_0 = 1, #doraTests do -- 936
-						local _des_0 = doraTests[_index_0] -- 936
-						local name = _des_0[1] -- 936
-						if match(name) then -- 937
-							showTest = true -- 937
-						end -- 937
-					end -- 937
-					for _index_0 = 1, #cppTests do -- 938
-						local _des_0 = cppTests[_index_0] -- 938
-						local name = _des_0[1] -- 938
-						if match(name) then -- 939
-							showTest = true -- 939
-						end -- 939
-					end -- 939
-					if not (showGame or showExample or showTest) then -- 940
-						goto endEntry -- 940
+					end -- 936
+				end -- 866
+				if #games > 0 or #doraExamples > 0 or #doraTests > 0 then -- 937
+					local showGame = false -- 938
+					for _index_0 = 1, #games do -- 939
+						local _des_0 = games[_index_0] -- 939
+						local name = _des_0[1] -- 939
+						if match(name) then -- 940
+							showGame = true -- 940
+						end -- 940
 					end -- 940
-					Columns(1, false) -- 941
-					TextColored(themeColor, "Dora SSR:") -- 942
-					SameLine() -- 943
-					Text(zh and "开发示例" or "Development Showcase") -- 944
-					Separator() -- 945
-					local demoViewWith <const> = 400 -- 946
-					if #games > 0 and showGame then -- 947
-						local opened -- 948
-						if (filterText ~= nil) then -- 948
-							opened = showGame -- 948
-						else -- 948
-							opened = false -- 948
+					local showExample = false -- 941
+					for _index_0 = 1, #doraExamples do -- 942
+						local _des_0 = doraExamples[_index_0] -- 942
+						local name = _des_0[1] -- 942
+						if match(name) then -- 943
+							showExample = true -- 943
+						end -- 943
+					end -- 943
+					local showTest = false -- 944
+					for _index_0 = 1, #doraTests do -- 945
+						local _des_0 = doraTests[_index_0] -- 945
+						local name = _des_0[1] -- 945
+						if match(name) then -- 946
+							showTest = true -- 946
+						end -- 946
+					end -- 946
+					for _index_0 = 1, #cppTests do -- 947
+						local _des_0 = cppTests[_index_0] -- 947
+						local name = _des_0[1] -- 947
+						if match(name) then -- 948
+							showTest = true -- 948
 						end -- 948
-						SetNextItemOpen(gameOpen) -- 949
-						TreeNode(zh and "游戏演示" or "Game Demo", function() -- 950
-							local columns = math.max(math.floor(width / demoViewWith), 1) -- 951
-							Columns(columns, false) -- 952
-							for _index_0 = 1, #games do -- 953
-								local game = games[_index_0] -- 953
-								if not match(game[1]) then -- 954
-									goto _continue_0 -- 954
-								end -- 954
-								local gameName, fileName, bannerFile, bannerTex = game[1], game[2], game[5], game[6] -- 955
-								if columns > 1 then -- 956
-									if bannerFile then -- 957
-										local texWidth, texHeight = bannerTex.width, bannerTex.height -- 958
-										local displayWidth <const> = demoViewWith - 40 -- 959
-										texHeight = displayWidth * texHeight / texWidth -- 960
-										texWidth = displayWidth -- 961
-										Text(gameName) -- 962
-										PushID(fileName, function() -- 963
-											if ImageButton(gameName, bannerFile, Vec2(texWidth, texHeight)) then -- 964
-												return enterDemoEntry(game) -- 965
-											end -- 964
-										end) -- 963
-									else -- 967
-										PushID(fileName, function() -- 967
-											if Button(gameName, Vec2(-1, 40)) then -- 968
-												return enterDemoEntry(game) -- 969
-											end -- 968
-										end) -- 967
-									end -- 957
-								else -- 971
-									if bannerFile then -- 971
-										local texWidth, texHeight = bannerTex.width, bannerTex.height -- 972
-										local displayWidth = (fullWidth / 2 - paddingX) * 2 - 35 -- 973
-										local sizing = 0.8 -- 974
-										texHeight = displayWidth * sizing * texHeight / texWidth -- 975
-										texWidth = displayWidth * sizing -- 976
-										if texWidth > 500 then -- 977
-											sizing = 0.6 -- 978
-											texHeight = displayWidth * sizing * texHeight / texWidth -- 979
-											texWidth = displayWidth * sizing -- 980
-										end -- 977
-										local padding = displayWidth * (1 - sizing) / 2 - 10 -- 981
-										Dummy(Vec2(padding, 0)) -- 982
-										SameLine() -- 983
-										Text(gameName) -- 984
-										Dummy(Vec2(padding, 0)) -- 985
-										SameLine() -- 986
-										PushID(fileName, function() -- 987
-											if ImageButton(gameName, bannerFile, Vec2(texWidth, texHeight)) then -- 988
-												return enterDemoEntry(game) -- 989
-											end -- 988
-										end) -- 987
-									else -- 991
-										PushID(fileName, function() -- 991
-											if Button(gameName, Vec2(-1, 40)) then -- 992
-												return enterDemoEntry(game) -- 993
-											end -- 992
-										end) -- 991
-									end -- 971
-								end -- 956
-								NextColumn() -- 994
-								::_continue_0:: -- 954
-							end -- 994
-							Columns(1, false) -- 995
-							opened = true -- 996
-						end) -- 950
-						gameOpen = opened -- 997
-					end -- 947
-					if #doraExamples > 0 and showExample then -- 998
-						local opened -- 999
-						if (filterText ~= nil) then -- 999
-							opened = showExample -- 999
-						else -- 999
-							opened = false -- 999
-						end -- 999
-						SetNextItemOpen(exampleOpen) -- 1000
-						TreeNode(zh and "引擎示例" or "Engine Example", function() -- 1001
-							return PushStyleVar("ItemSpacing", Vec2(20, 10), function() -- 1002
-								Columns(maxColumns, false) -- 1003
-								for _index_0 = 1, #doraExamples do -- 1004
-									local example = doraExamples[_index_0] -- 1004
-									if not match(example[1]) then -- 1005
-										goto _continue_0 -- 1005
-									end -- 1005
-									if Button(example[1], Vec2(-1, 40)) then -- 1006
-										enterDemoEntry(example) -- 1007
-									end -- 1006
-									NextColumn() -- 1008
-									::_continue_0:: -- 1005
-								end -- 1008
-								Columns(1, false) -- 1009
-								opened = true -- 1010
-							end) -- 1002
-						end) -- 1001
-						exampleOpen = opened -- 1011
-					end -- 998
-					if (#doraTests > 0 or #cppTests > 0) and showTest then -- 1012
-						local opened -- 1013
-						if (filterText ~= nil) then -- 1013
-							opened = showTest -- 1013
-						else -- 1013
-							opened = false -- 1013
-						end -- 1013
-						SetNextItemOpen(testOpen) -- 1014
-						TreeNode(zh and "引擎测试" or "Engine Test", function() -- 1015
-							return PushStyleVar("ItemSpacing", Vec2(20, 10), function() -- 1016
-								Columns(maxColumns, false) -- 1017
-								for _index_0 = 1, #doraTests do -- 1018
-									local test = doraTests[_index_0] -- 1018
-									if not match(test[1]) then -- 1019
-										goto _continue_0 -- 1019
-									end -- 1019
-									if Button(test[1], Vec2(-1, 40)) then -- 1020
-										enterDemoEntry(test) -- 1021
-									end -- 1020
-									NextColumn() -- 1022
-									::_continue_0:: -- 1019
-								end -- 1022
-								for _index_0 = 1, #cppTests do -- 1023
-									local test = cppTests[_index_0] -- 1023
-									if not match(test[1]) then -- 1024
-										goto _continue_1 -- 1024
-									end -- 1024
-									if Button(test[1], Vec2(-1, 40)) then -- 1025
-										enterDemoEntry(test) -- 1026
-									end -- 1025
-									NextColumn() -- 1027
-									::_continue_1:: -- 1024
-								end -- 1027
-								opened = true -- 1028
-							end) -- 1016
-						end) -- 1015
-						testOpen = opened -- 1029
-					end -- 1012
-				end -- 928
-				::endEntry:: -- 1030
-				if not anyEntryMatched then -- 1031
-					SetNextWindowBgAlpha(0) -- 1032
-					SetNextWindowPos(Vec2(fullWidth / 2, height / 2), "Always", Vec2(0.5, 0.5)) -- 1033
-					Begin("Entries Not Found", displayWindowFlags, function() -- 1034
-						Separator() -- 1035
-						TextColored(themeColor, zh and "多萝西：" or "Dora:") -- 1036
-						TextColored(descColor, zh and '别担心，改变一些咒语，我们会找到新的冒险～' or 'Don\'t worry, more magic words and we\'ll find a new adventure!') -- 1037
-						return Separator() -- 1038
-					end) -- 1034
-				end -- 1031
-				Columns(1, false) -- 1039
-				Dummy(Vec2(100, 80)) -- 1040
-				return ScrollWhenDraggingOnVoid() -- 1041
-			end) -- 1041
-		end) -- 1041
-	end) -- 1041
-end) -- 788
-webStatus = require("Script.Dev.WebServer") -- 1043
-return _module_0 -- 1043
+					end -- 948
+					if not (showGame or showExample or showTest) then -- 949
+						goto endEntry -- 949
+					end -- 949
+					Columns(1, false) -- 950
+					TextColored(themeColor, "Dora SSR:") -- 951
+					SameLine() -- 952
+					Text(zh and "开发示例" or "Development Showcase") -- 953
+					Separator() -- 954
+					local demoViewWith <const> = 400 -- 955
+					if #games > 0 and showGame then -- 956
+						local opened -- 957
+						if (filterText ~= nil) then -- 957
+							opened = showGame -- 957
+						else -- 957
+							opened = false -- 957
+						end -- 957
+						SetNextItemOpen(gameOpen) -- 958
+						TreeNode(zh and "游戏演示" or "Game Demo", function() -- 959
+							local columns = math.max(math.floor(width / demoViewWith), 1) -- 960
+							Columns(columns, false) -- 961
+							for _index_0 = 1, #games do -- 962
+								local game = games[_index_0] -- 962
+								if not match(game[1]) then -- 963
+									goto _continue_0 -- 963
+								end -- 963
+								local gameName, fileName, bannerFile, bannerTex = game[1], game[2], game[5], game[6] -- 964
+								if columns > 1 then -- 965
+									if bannerFile then -- 966
+										local texWidth, texHeight = bannerTex.width, bannerTex.height -- 967
+										local displayWidth <const> = demoViewWith - 40 -- 968
+										texHeight = displayWidth * texHeight / texWidth -- 969
+										texWidth = displayWidth -- 970
+										Text(gameName) -- 971
+										PushID(fileName, function() -- 972
+											if ImageButton(gameName, bannerFile, Vec2(texWidth, texHeight)) then -- 973
+												return enterDemoEntry(game) -- 974
+											end -- 973
+										end) -- 972
+									else -- 976
+										PushID(fileName, function() -- 976
+											if Button(gameName, Vec2(-1, 40)) then -- 977
+												return enterDemoEntry(game) -- 978
+											end -- 977
+										end) -- 976
+									end -- 966
+								else -- 980
+									if bannerFile then -- 980
+										local texWidth, texHeight = bannerTex.width, bannerTex.height -- 981
+										local displayWidth = (fullWidth / 2 - paddingX) * 2 - 35 -- 982
+										local sizing = 0.8 -- 983
+										texHeight = displayWidth * sizing * texHeight / texWidth -- 984
+										texWidth = displayWidth * sizing -- 985
+										if texWidth > 500 then -- 986
+											sizing = 0.6 -- 987
+											texHeight = displayWidth * sizing * texHeight / texWidth -- 988
+											texWidth = displayWidth * sizing -- 989
+										end -- 986
+										local padding = displayWidth * (1 - sizing) / 2 - 10 -- 990
+										Dummy(Vec2(padding, 0)) -- 991
+										SameLine() -- 992
+										Text(gameName) -- 993
+										Dummy(Vec2(padding, 0)) -- 994
+										SameLine() -- 995
+										PushID(fileName, function() -- 996
+											if ImageButton(gameName, bannerFile, Vec2(texWidth, texHeight)) then -- 997
+												return enterDemoEntry(game) -- 998
+											end -- 997
+										end) -- 996
+									else -- 1000
+										PushID(fileName, function() -- 1000
+											if Button(gameName, Vec2(-1, 40)) then -- 1001
+												return enterDemoEntry(game) -- 1002
+											end -- 1001
+										end) -- 1000
+									end -- 980
+								end -- 965
+								NextColumn() -- 1003
+								::_continue_0:: -- 963
+							end -- 1003
+							Columns(1, false) -- 1004
+							opened = true -- 1005
+						end) -- 959
+						gameOpen = opened -- 1006
+					end -- 956
+					if #doraExamples > 0 and showExample then -- 1007
+						local opened -- 1008
+						if (filterText ~= nil) then -- 1008
+							opened = showExample -- 1008
+						else -- 1008
+							opened = false -- 1008
+						end -- 1008
+						SetNextItemOpen(exampleOpen) -- 1009
+						TreeNode(zh and "引擎示例" or "Engine Example", function() -- 1010
+							return PushStyleVar("ItemSpacing", Vec2(20, 10), function() -- 1011
+								Columns(maxColumns, false) -- 1012
+								for _index_0 = 1, #doraExamples do -- 1013
+									local example = doraExamples[_index_0] -- 1013
+									if not match(example[1]) then -- 1014
+										goto _continue_0 -- 1014
+									end -- 1014
+									if Button(example[1], Vec2(-1, 40)) then -- 1015
+										enterDemoEntry(example) -- 1016
+									end -- 1015
+									NextColumn() -- 1017
+									::_continue_0:: -- 1014
+								end -- 1017
+								Columns(1, false) -- 1018
+								opened = true -- 1019
+							end) -- 1011
+						end) -- 1010
+						exampleOpen = opened -- 1020
+					end -- 1007
+					if (#doraTests > 0 or #cppTests > 0) and showTest then -- 1021
+						local opened -- 1022
+						if (filterText ~= nil) then -- 1022
+							opened = showTest -- 1022
+						else -- 1022
+							opened = false -- 1022
+						end -- 1022
+						SetNextItemOpen(testOpen) -- 1023
+						TreeNode(zh and "引擎测试" or "Engine Test", function() -- 1024
+							return PushStyleVar("ItemSpacing", Vec2(20, 10), function() -- 1025
+								Columns(maxColumns, false) -- 1026
+								for _index_0 = 1, #doraTests do -- 1027
+									local test = doraTests[_index_0] -- 1027
+									if not match(test[1]) then -- 1028
+										goto _continue_0 -- 1028
+									end -- 1028
+									if Button(test[1], Vec2(-1, 40)) then -- 1029
+										enterDemoEntry(test) -- 1030
+									end -- 1029
+									NextColumn() -- 1031
+									::_continue_0:: -- 1028
+								end -- 1031
+								for _index_0 = 1, #cppTests do -- 1032
+									local test = cppTests[_index_0] -- 1032
+									if not match(test[1]) then -- 1033
+										goto _continue_1 -- 1033
+									end -- 1033
+									if Button(test[1], Vec2(-1, 40)) then -- 1034
+										enterDemoEntry(test) -- 1035
+									end -- 1034
+									NextColumn() -- 1036
+									::_continue_1:: -- 1033
+								end -- 1036
+								opened = true -- 1037
+							end) -- 1025
+						end) -- 1024
+						testOpen = opened -- 1038
+					end -- 1021
+				end -- 937
+				::endEntry:: -- 1039
+				if not anyEntryMatched then -- 1040
+					SetNextWindowBgAlpha(0) -- 1041
+					SetNextWindowPos(Vec2(fullWidth / 2, height / 2), "Always", Vec2(0.5, 0.5)) -- 1042
+					Begin("Entries Not Found", displayWindowFlags, function() -- 1043
+						Separator() -- 1044
+						TextColored(themeColor, zh and "多萝西：" or "Dora:") -- 1045
+						TextColored(descColor, zh and '别担心，改变一些咒语，我们会找到新的冒险～' or 'Don\'t worry, more magic words and we\'ll find a new adventure!') -- 1046
+						return Separator() -- 1047
+					end) -- 1043
+				end -- 1040
+				Columns(1, false) -- 1048
+				Dummy(Vec2(100, 80)) -- 1049
+				return ScrollWhenDraggingOnVoid() -- 1050
+			end) -- 1050
+		end) -- 1050
+	end) -- 1050
+end) -- 789
+webStatus = require("Script.Dev.WebServer") -- 1052
+return _module_0 -- 1052
