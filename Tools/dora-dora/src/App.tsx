@@ -427,8 +427,8 @@ export default function PersistentDrawerLeft() {
 				}
 				return prev;
 			});
-			const {editor} = fileToFocus;
 			setTimeout(() => {
+				const {editor} = fileToFocus;
 				if (editor !== undefined) {
 					editor.updateOptions({
 						stickyScroll: {
@@ -441,7 +441,7 @@ export default function PersistentDrawerLeft() {
 					if (fileToFocus.position) {
 						const position = fileToFocus.position;
 						editor.setPosition(position);
-						editor.revealPositionInCenter(position);
+						editor.revealPositionInCenterIfOutsideViewport(position);
 						fileToFocus.position = undefined;
 						setFiles(prev => [...prev]);
 					}
@@ -703,7 +703,7 @@ export default function PersistentDrawerLeft() {
 				setTimeout(() => {
 					editor.focus();
 					editor.setPosition(position);
-					editor.revealPositionInCenter(position);
+					editor.revealPositionInCenterIfOutsideViewport(position);
 				}, 100);
 			}
 		}
@@ -1968,11 +1968,11 @@ export default function PersistentDrawerLeft() {
 			index: tabIndex ?? 0,
 			files: files.map(f => {
 				const {key, title, mdEditing, editor, readOnly} = f;
-				let position: monaco.Position | null = null;
-				if (editor !== undefined) {
-					position = editor.getPosition();
+				let {position} = f;
+				if (position === undefined && editor !== undefined) {
+					position = editor.getPosition() ?? undefined;
 				}
-				return {key, title, mdEditing, position: position ? position : undefined, readOnly};
+				return {key, title, mdEditing, position: position, readOnly};
 			})
 		};
 		Service.editingInfo({
