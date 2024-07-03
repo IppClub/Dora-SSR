@@ -33,7 +33,7 @@ const App = React.lazy(() => Service.info().then((res) => {
 		return "en";
 	};
 	i18n.changeLanguage(locale.match(/^zh/) ? "zh" : "en");
-	return import('./App')
+	return import('./App');
 }).catch(() => import('./App')));
 
 const root = ReactDOM.createRoot(

@@ -780,6 +780,7 @@ exampleOpen = false
 testOpen = false
 filterText = nil
 anyEntryMatched = false
+urlClicked = nil
 match = (name) ->
 	res = not filterText or name\lower!\match filterText
 	anyEntryMatched = true if res
@@ -796,6 +797,11 @@ entryWindow = threadLoop ->
 		config.fixedFPS = Director.scheduler.fixedFPS
 	if Director.profilerSending ~= (config.webProfiler == 1)
 		config.webProfiler = Director.profilerSending and 1 or 0
+	if urlClicked
+		_, result = coroutine.resume urlClicked
+		if result
+			coroutine.close urlClicked
+			urlClicked = nil
 	return unless showEntry
 	return unless isInEntry
 	zh = useChinese and isChineseSupported
@@ -822,7 +828,10 @@ entryWindow = threadLoop ->
 			Separator!
 			TextColored themeColor, "#{zh and '网页' or 'Web'} IDE"
 			if url := webStatus?.url
-				if Button url
+				if urlClicked
+					BeginDisabled -> Button url
+				elseif Button url
+					urlClicked = once -> sleep 5
 					App\openURL url
 			else
 				TextColored descColor, zh and '不可用' or 'not available'
