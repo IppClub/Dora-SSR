@@ -23,7 +23,7 @@ NS_DORA_BEGIN
 int tolua_fast_isa(lua_State* L, int mt_indexa, int mt_indexb) {
 	int result = 1;
 	if (!lua_rawequal(L, mt_indexa, mt_indexb)) {
-		lua_rawgeti(L, mt_indexa, MT_SUPER); // super
+		lua_rawgeti(L, mt_indexa, s_cast<int>(tolua_mt::Super)); // super
 		lua_pushvalue(L, mt_indexb); // super mtb
 		lua_rawget(L, LUA_REGISTRYINDEX); // super typeb
 		lua_rawget(L, -2); // super[typeb], super flag
@@ -124,7 +124,7 @@ int tolua_istype(lua_State* L, int lo, String type) {
 		else {
 			/* check if it is a specialized class */
 			lua_getmetatable(L, lo); // mt
-			lua_rawgeti(L, -1, MT_SUPER); // mt tb
+			lua_rawgeti(L, -1, s_cast<int>(tolua_mt::Super)); // mt tb
 			if (lua_istable(L, -1)) {
 				tolua_pushslice(L, type); // mt tb type
 				lua_rawget(L, -2); // tb[type], mt tb flag

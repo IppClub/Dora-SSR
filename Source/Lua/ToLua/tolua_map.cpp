@@ -23,28 +23,40 @@ NS_DORA_BEGIN
  * Create and register new metatable
  */
 static int tolua_newmetatable(lua_State* L, const char* name) {
-	int r = luaL_newmetatable(L, name);
-	if (r) {
-		lua_pushvalue(L, -1);
-		lua_pushstring(L, name);
-		lua_rawset(L, LUA_REGISTRYINDEX); // reg[mt] = type_name
-		tolua_classevents(L); // set meta events
+	if (luaL_getmetatable(L, name) != LUA_TNIL) { /* name already in use? */
+		return 0; /* leave previous value on top, but return 0 */
 	}
 	lua_pop(L, 1);
-	return r;
+	const int count = s_cast<int>(tolua_mt::MaxCount);
+	lua_createtable(L, count, 2); /* create metatable */
+	for (int i = 0; i < count; ++i) {
+		lua_pushboolean(L, 0);
+		lua_rawseti(L, -2, i + 1);
+	}
+	lua_pushstring(L, name);
+	lua_setfield(L, -2, "__name"); /* metatable.__name = tname */
+	lua_pushvalue(L, -1);
+	lua_setfield(L, LUA_REGISTRYINDEX, name);  /* registry.name = metatable */
+	lua_pushvalue(L, -1);
+	lua_pushstring(L, name);
+	lua_rawset(L, LUA_REGISTRYINDEX); // reg[mt] = type_name
+	tolua_classevents(L); // set meta events
+	lua_pop(L, 1);
+	return 1;
 }
 
 /* Map super classes
  * It sets 'name' as being also a 'base', mapping all super classes of 'base' in 'name'
  */
 static void mapsuper(lua_State* L, const char* name, const char* base) {
+	const int SuperIndex = s_cast<int>(tolua_mt::Super);
 	luaL_getmetatable(L, name); // mt
-	lua_rawgeti(L, -1, MT_SUPER); // mt super
-	if (lua_isnil(L, -1)) {
+	lua_rawgeti(L, -1, SuperIndex); // mt super
+	if (!lua_toboolean(L, -1)) {
 		lua_pop(L, 1); // mt
 		lua_newtable(L); // mt tb
 		lua_pushvalue(L, -1); // mt tb tb
-		lua_rawseti(L, -3, MT_SUPER); // mt[MT_SUPER] = tb, mt tb
+		lua_rawseti(L, -3, SuperIndex); // mt[MT_SUPER] = tb, mt tb
 	}
 	if (base && *base) {
 		lua_pushstring(L, base); // mt tb base
@@ -53,7 +65,7 @@ static void mapsuper(lua_State* L, const char* name, const char* base) {
 
 		/* set all super class of base as super class of name */
 		luaL_getmetatable(L, base); // mt tb basemt
-		lua_rawgeti(L, -1, MT_SUPER); // mt tb basemt basetb
+		lua_rawgeti(L, -1, SuperIndex); // mt tb basemt basetb
 
 		if (lua_istable(L, -1)) {
 			/* traverse basetb */
@@ -101,7 +113,7 @@ static int tolua_bnd_type(lua_State* L) {
 
 static int fast_is(lua_State* L, int self_idx, int name_idx) {
 	int result;
-	lua_rawgeti(L, self_idx, MT_SUPER); // tb
+	lua_rawgeti(L, self_idx, s_cast<int>(tolua_mt::Super)); // tb
 	lua_pushvalue(L, name_idx); // tb name
 	lua_rawget(L, -2); // tb[name], tb flag
 	result = lua_toboolean(L, -1);
@@ -288,12 +300,12 @@ static void push_collector(lua_State* L, lua_CFunction col) {
 	/* mt */
 	if (!col) return;
 	lua_pushcfunction(L, col); // mt cfunc
-	lua_rawseti(L, -2, MT_DEL); // mt[MT_DEL] = cfunc, mt
+	lua_rawseti(L, -2, s_cast<int>(tolua_mt::Del)); // mt[MT_DEL] = cfunc, mt
 }
 
 static void mapself(lua_State* L, const char* name) {
 	luaL_getmetatable(L, name); // mt
-	lua_rawgeti(L, -1, MT_SUPER); // mt super
+	lua_rawgeti(L, -1, s_cast<int>(tolua_mt::Super)); // mt super
 	lua_pushstring(L, name); // mt tb name
 	lua_pushboolean(L, 1); // mt tb name true
 	lua_rawset(L, -3); // tb[name] = true, mt tb
@@ -330,9 +342,9 @@ void tolua_function(lua_State* L, const char* name, lua_CFunction func) {
 	lua_rawset(L, -3);
 }
 
-void tolua_call(lua_State* L, int index, lua_CFunction func) {
+void tolua_call(lua_State* L, tolua_mt index, lua_CFunction func) {
 	lua_pushcfunction(L, func);
-	lua_rawseti(L, -2, index);
+	lua_rawseti(L, -2, s_cast<int>(index));
 }
 
 /* Map constant number
@@ -365,17 +377,19 @@ static int tolua_set_readonly(lua_State* L) {
  * It assigns a variable into the current module(or class)
  */
 void tolua_variable(lua_State* L, const char* name, lua_CFunction get, lua_CFunction set) {
+	const int GetIndex = s_cast<int>(tolua_mt::Get);
+	const int SetIndex = s_cast<int>(tolua_mt::Set);
 #ifndef TOLUA_RELEASE
 	if (!set) set = tolua_set_readonly;
 #endif
 	/* get func */
-	lua_rawgeti(L, -1, MT_GET);
+	lua_rawgeti(L, -1, GetIndex);
 	if (!lua_istable(L, -1)) {
 		/* create .get table, leaving it at the top */
 		lua_pop(L, 1);
 		lua_newtable(L);
 		lua_pushvalue(L, -1);
-		lua_rawseti(L, -3, MT_GET);
+		lua_rawseti(L, -3, GetIndex);
 	}
 	lua_pushstring(L, name);
 	lua_pushcfunction(L, get);
@@ -384,13 +398,13 @@ void tolua_variable(lua_State* L, const char* name, lua_CFunction get, lua_CFunc
 
 	/* set func */
 	if (set) {
-		lua_rawgeti(L, -1, MT_SET);
+		lua_rawgeti(L, -1, SetIndex);
 		if (!lua_istable(L, -1)) {
 			/* create .set table, leaving it at the top */
 			lua_pop(L, 1);
 			lua_newtable(L);
 			lua_pushvalue(L, -1);
-			lua_rawseti(L, -3, MT_SET);
+			lua_rawseti(L, -3, SetIndex);
 		}
 		lua_pushstring(L, name);
 		lua_pushcfunction(L, set);

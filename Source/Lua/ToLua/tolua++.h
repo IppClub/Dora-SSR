@@ -29,18 +29,31 @@ NS_DORA_BEGIN
 #define TOLUA_PROTECTED_DESTRUCTOR
 #define TOLUA_PROPERTY_TYPE(p)
 
-#define MT_DEL 1
-#define MT_CALL 2
-#define MT_SUPER 3
-#define MT_GET 4
-#define MT_SET 5
-#define MT_EQ 6
-#define MT_ADD 7
-#define MT_SUB 8
-#define MT_MUL 9
-#define MT_DIV 10
-#define MT_LT 11
-#define MT_LE 12
+enum class tolua_mt {
+	Del = 1,
+	Call = 2,
+	Super = 3,
+	Get = 4,
+	Set = 5,
+	Eq = 6,
+	Add = 7,
+	Sub = 8,
+	Mul = 9,
+	Div = 10,
+	Lt = 11,
+	Le = 12,
+	MaxCount = 12,
+};
+
+#define MT_Del tolua_mt::Del
+#define MT_CALL tolua_mt::Call
+#define MT_EQ tolua_mt::Eq
+#define MT_ADD tolua_mt::Add
+#define MT_SUB tolua_mt::Sub
+#define MT_MUL tolua_mt::Mul
+#define MT_DIV tolua_mt::Div
+#define MT_LT tolua_mt::Lt
+#define MT_LE tolua_mt::Le
 
 #define TOLUA_REG_INDEX_UBOX LUA_RIDX_LAST + 1
 #define TOLUA_REG_INDEX_CALLBACK LUA_RIDX_LAST + 2
@@ -97,7 +110,7 @@ void tolua_endmodule(lua_State* L);
 void tolua_module(lua_State* L, const char* name, int hasvar);
 void tolua_cclass(lua_State* L, const char* name, const char* lname, const char* base, lua_CFunction col);
 void tolua_function(lua_State* L, const char* name, lua_CFunction func);
-void tolua_call(lua_State* L, int index, lua_CFunction func);
+void tolua_call(lua_State* L, tolua_mt index, lua_CFunction func);
 void tolua_constant(lua_State* L, const char* name, lua_Integer value);
 void tolua_string(lua_State* L, const char* str);
 void tolua_variable(lua_State* L, const char* name, lua_CFunction get, lua_CFunction set);
