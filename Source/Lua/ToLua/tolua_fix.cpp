@@ -82,7 +82,7 @@ void tolua_typeid(lua_State* L, int typeId, const char* className) {
 int tolua_isobject(lua_State* L, int lo) {
 	if (lua_isuserdata(L, lo)) {
 		lua_getmetatable(L, lo); // mt
-		lua_rawgeti(L, -1, MT_SUPER); // mt super
+		lua_rawgeti(L, -1, s_cast<int>(tolua_mt::Super)); // mt super
 		lua_rawgeti(L, LUA_REGISTRYINDEX, LuaType<Object>()); // mt super objmt
 		lua_rawget(L, LUA_REGISTRYINDEX); // reg[objmt], mt super "Object"
 		lua_rawget(L, -2); // super["Object"], mt super flag
