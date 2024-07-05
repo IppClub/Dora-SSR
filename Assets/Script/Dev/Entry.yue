@@ -58,6 +58,7 @@ config = Config(
 	"filter"
 	"engineDev"
 	"webProfiler"
+	"drawerWidth"
 )
 config\load!
 if config.fpsLimited?
@@ -150,6 +151,9 @@ if config.webProfiler?
 else
 	config.webProfiler = 1
 	Director.profilerSending = true
+
+unless config.drawerWidth?
+	config.drawerWidth = 200
 
 export.getConfig = -> config
 export.getEngineDev = ->

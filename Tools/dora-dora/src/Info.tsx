@@ -14,6 +14,7 @@ interface BasicInfo {
 	platform: string;
 	engineDev: boolean;
 	webProfiler: boolean;
+	drawerWidth: number;
 };
 
 export default {} as BasicInfo;

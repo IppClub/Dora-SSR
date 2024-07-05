@@ -28,7 +28,7 @@ import DoraUpload from './Upload';
 import { TransitionGroup } from 'react-transition-group';
 import * as monaco from 'monaco-editor';
 import * as Service from './Service';
-import { AppBar, DrawerHeader, drawerWidth, Entry, Main, PlayControl, PlayControlMode, StyledStack, Color } from './Frame';
+import { AppBar, DrawerHeader, Entry, Main, PlayControl, PlayControlMode, StyledStack, Color } from './Frame';
 import { MacScrollbar } from 'mac-scrollbar';
 import 'mac-scrollbar/dist/mac-scrollbar.css';
 import FileFilter, { FilterOption } from './FileFilter';
@@ -98,6 +98,7 @@ const Editor = memo((props: {
 	language: string,
 	fileKey: string,
 	readOnly: boolean,
+	minimap: boolean,
 	onMount: (editor: monaco.editor.IStandaloneCodeEditor) => void,
 	onModified: (key: string, content: string) => void,
 	onValidate: (markers: monaco.editor.IMarker[], key: string) => void,
@@ -108,6 +109,7 @@ const Editor = memo((props: {
 		language,
 		fileKey,
 		readOnly,
+		minimap,
 		onMount,
 		onModified,
 		onValidate
@@ -141,10 +143,66 @@ const Editor = memo((props: {
 				insertSpaces: false,
 				renderWhitespace: 'all',
 				tabSize: 2,
+				minimap: {
+					enabled: minimap,
+				},
 				definitionLinkOpensInPeek: true,
 			}}
 		/>);
 });
+
+interface UseResizeProps {
+	minWidth: number;
+	defaultWidth?: number;
+};
+
+const useResize = ({minWidth, defaultWidth}: UseResizeProps) => {
+	defaultWidth ??= minWidth;
+	const [isResizing, setIsResizing] = useState(false);
+	const [width, setWidth] = useState(defaultWidth);
+	const [target, setTarget] = useState<HTMLDivElement | null>(null);
+
+	const enableResize = useCallback((e: React.PointerEvent) => {
+		if (!isResizing) {
+			e.preventDefault();
+			setTarget(e.target as HTMLDivElement);
+			(e.target as HTMLDivElement).setPointerCapture(e.pointerId);
+			setIsResizing(true);
+		}
+	}, [isResizing]);
+
+	const disableResize = useCallback((e: PointerEvent) => {
+		if (isResizing) {
+			setIsResizing(false);
+			target?.releasePointerCapture(e.pointerId);
+			setTarget(null);
+			Service.command({code: `require('Script.Dev.Entry').getConfig().drawerWidth = ${width}`, log: false});
+		}
+	}, [isResizing, target, width]);
+
+	const resize = useCallback((e: PointerEvent) => {
+		if (isResizing) {
+			e.preventDefault();
+			const newWidth = e.clientX - resizeHandleWidth;
+			if (newWidth >= minWidth) {
+				setWidth(newWidth);
+			}
+		}
+	}, [minWidth, isResizing]);
+
+	useEffect(() => {
+		document.addEventListener('pointermove', resize);
+		document.addEventListener('pointerup', disableResize);
+
+		return () => {
+			document.removeEventListener('pointermove', resize);
+			document.removeEventListener('pointerup', disableResize);
+		}
+	}, [disableResize, resize]);
+	return { width, enableResize, isResizing };
+};
+
+const resizeHandleWidth = 4;
 
 export default function PersistentDrawerLeft() {
 	const {t} = useTranslation();
@@ -194,11 +252,13 @@ export default function PersistentDrawerLeft() {
 
 	const [openFilter, setOpenFilter] = useState(false);
 	const [filterOptions, setFilterOptions] = useState<FilterOption[] | null>(null);
-
+	const {width: drawerWidth, enableResize, isResizing} = useResize({minWidth: 200, defaultWidth: Info.drawerWidth});
 	const [winSize, setWinSize] = useState({
-		width: window.innerWidth - (drawerOpen ? drawerWidth : 0),
-		height: window.innerHeight - 64
+		width: window.innerWidth,
+		height: window.innerHeight
 	});
+	const editorWidth = winSize.width - (drawerOpen ? drawerWidth : 0);
+	const editorHeight = winSize.height - 64;
 
 	const [openLog, setOpenLog] = useState<{title: string, stopOnClose: boolean} | null>(null);
 
@@ -269,8 +329,8 @@ export default function PersistentDrawerLeft() {
 		window.addEventListener("resize", () => {
 			setDrawerOpen(open => {
 				setWinSize({
-					width: window.innerWidth - (open ? drawerWidth : 0),
-					height: window.innerHeight - 64
+					width: window.innerWidth,
+					height: window.innerHeight
 				});
 				return open;
 			});
@@ -376,10 +436,6 @@ export default function PersistentDrawerLeft() {
 
 	const handleDrawerOpen = () => {
 		setDrawerOpen(!drawerOpen);
-		setWinSize({
-			width: window.innerWidth - (!drawerOpen ? drawerWidth : 0),
-			height: window.innerHeight - 64
-		});
 	};
 
 	const switchTab = useCallback((newValue: number | null, fileToFocus?: EditingFile) => {
@@ -427,8 +483,18 @@ export default function PersistentDrawerLeft() {
 				}
 				return prev;
 			});
+		}
+	}, [expandedKeys, tabIndex, files]);
+
+	const tabBarOnChange = useCallback((newValue: number) => {
+		switchTab(newValue, files[newValue]);
+	}, [switchTab, files]);
+
+	useEffect(() => {
+		if (tabIndex !== null) {
+			const file = files[tabIndex];
+			const {editor} = file;
 			setTimeout(() => {
-				const {editor} = fileToFocus;
 				if (editor !== undefined) {
 					editor.updateOptions({
 						stickyScroll: {
@@ -438,17 +504,17 @@ export default function PersistentDrawerLeft() {
 					editor.focus();
 					const model = editor.getModel();
 					if (model === null) return;
-					if (fileToFocus.position) {
-						const position = fileToFocus.position;
+					if (file.position) {
+						const position = file.position;
 						editor.setPosition(position);
 						editor.revealPositionInCenterIfOutsideViewport(position);
-						fileToFocus.position = undefined;
+						file.position = undefined;
 						setFiles(prev => [...prev]);
 					}
-					if (!checkFileReadonly(fileToFocus.key, false) && !fileToFocus.readOnly) {
-						checkFile(fileToFocus, fileToFocus.contentModified ?? fileToFocus.content, model);
+					if (!checkFileReadonly(file.key, false) && !file.readOnly) {
+						checkFile(file, file.contentModified ?? file.content, model);
 					}
-					const ext = path.extname(fileToFocus.key).toLowerCase();
+					const ext = path.extname(file.key).toLowerCase();
 					if (ext === ".ts" || ext === ".tsx") {
 						import('./TranspileTS').then(({revalidateModel}) => {
 							revalidateModel(model);
@@ -456,14 +522,10 @@ export default function PersistentDrawerLeft() {
 					}
 					return;
 				}
-				fileToFocus.yarnData?.warpToFocusedNode();
 			}, 100);
+			file.yarnData?.warpToFocusedNode();
 		}
-	}, [expandedKeys, checkFileReadonly, tabIndex, files]);
-
-	const tabBarOnChange = useCallback((newValue: number) => {
-		switchTab(newValue, files[newValue]);
-	}, [switchTab, files]);
+	}, [tabIndex, files, checkFileReadonly]);
 
 	const onEditorDidMount = useCallback((file: EditingFile) => async (editor: monaco.editor.IStandaloneCodeEditor) => {
 		file.editor = editor;
@@ -2048,7 +2110,7 @@ export default function PersistentDrawerLeft() {
 					}
 				</DialogContent>
 			</Dialog>
-			<LogView openName={openLog === null ? null : openLog.title} height={winSize.height * 0.9} onClose={onCloseLog}/>
+			<LogView openName={openLog === null ? null : openLog.title} height={editorHeight * 0.9} onClose={onCloseLog}/>
 			<Dialog
 				maxWidth="lg"
 				open={popupInfo !== null}
@@ -2175,6 +2237,8 @@ export default function PersistentDrawerLeft() {
 				<AppBar
 					position="fixed"
 					open={drawerOpen}
+					drawerWidth={drawerWidth}
+					isResizing={isResizing}
 				>
 					<Toolbar style={{
 						backgroundColor: Color.BackgroundSecondary,
@@ -2211,25 +2275,39 @@ export default function PersistentDrawerLeft() {
 					anchor="left"
 					open={drawerOpen}
 				>
-					<img
-						src={logo}
-						alt="logo"
-						width="100%"
-						height="180px"
+						<img
+							src={logo}
+							alt="logo"
+							width="100%"
+							height="180px"
+							style={{
+								padding: "20px",
+								textAlign: "center"
+							}}
+						/>
+						<Divider style={{backgroundColor: '#0004'}}/>
+						<FileTree
+							selectedKeys={selectedKeys}
+							expandedKeys={expandedKeys}
+							treeData={treeData}
+							onMenuClick={onTreeMenuClick}
+							onSelect={onSelect}
+							onExpand={onExpand}
+							onDrop={onDrop}
+						/>
+					<div
 						style={{
-							padding: "20px",
-							textAlign: "center"
+							position: 'absolute',
+							width: resizeHandleWidth,
+							zIndex: 1000,
+							top: 0,
+							right: 0,
+							bottom: 0,
+							cursor: 'col-resize',
+							backgroundColor: isResizing ? Color.Theme + '88' : 'transparent',
+							transition: 'background-color 0.3s',
 						}}
-					/>
-					<Divider style={{backgroundColor: '#0004'}}/>
-					<FileTree
-						selectedKeys={selectedKeys}
-						expandedKeys={expandedKeys}
-						treeData={treeData}
-						onMenuClick={onTreeMenuClick}
-						onSelect={onSelect}
-						onExpand={onExpand}
-						onDrop={onDrop}
+						onPointerDown={enableResize}
 					/>
 				</Drawer>
 				<>{
@@ -2265,14 +2343,15 @@ export default function PersistentDrawerLeft() {
 							open={drawerOpen}
 							key={file.key}
 							hidden={tabIndex !== index}
+							drawerWidth={drawerWidth}
 						>
 							<DrawerHeader/>
 							{yarn ?
 								<YarnEditor
 									title={file.key}
 									defaultValue={file.content}
-									width={winSize.width}
-									height={winSize.height}
+									width={editorWidth}
+									height={editorHeight}
 									onLoad={(data) => {
 										file.yarnData = data;
 									}}
@@ -2289,8 +2368,8 @@ export default function PersistentDrawerLeft() {
 									key={file.key}
 									title={file.key}
 									defaultValue={file.content}
-									width={winSize.width}
-									height={winSize.height}
+									width={editorWidth}
+									height={editorHeight}
 									onLoad={(data) => {
 										file.codeWireData = data;
 									}}
@@ -2303,7 +2382,7 @@ export default function PersistentDrawerLeft() {
 								/> : null
 							}
 							{markdown ?
-								<MacScrollbar skin='dark' hidden={file.mdEditing} style={{height: winSize.height}}>
+								<MacScrollbar skin='dark' hidden={file.mdEditing} style={{height: editorHeight}}>
 									<Markdown
 										fileKey={file.key}
 										path={Service.addr("/" + path.relative(parentPath, path.dirname(file.key)).replace("\\", "/"))}
@@ -2313,7 +2392,7 @@ export default function PersistentDrawerLeft() {
 								</MacScrollbar> : null
 							}
 							{image ?
-								<MacScrollbar skin='dark' style={{height: winSize.height}}>
+								<MacScrollbar skin='dark' style={{height: editorHeight}}>
 									<Container maxWidth="lg">
 										<DrawerHeader/>
 										<Image src={
@@ -2330,7 +2409,7 @@ export default function PersistentDrawerLeft() {
 									const coms = path.parse(skelFile);
 									const atlasFile = path.join(coms.dir, coms.name + ".atlas");
 									return (
-										<MacScrollbar skin='dark' style={{height: winSize.height}}>
+										<MacScrollbar skin='dark' style={{height: editorHeight}}>
 											<Container maxWidth="lg">
 												<DrawerHeader/>
 												<Suspense fallback={<div/>}>
@@ -2354,9 +2433,10 @@ export default function PersistentDrawerLeft() {
 									return <Editor
 										key={file.key}
 										fileKey={file.key}
-										width={winSize.width}
-										height={winSize.height}
+										width={editorWidth}
+										height={editorHeight}
 										language={language}
+										minimap={!isResizing}
 										onMount={file.onMount}
 										onModified={onModified}
 										onValidate={onValidate}
@@ -2374,7 +2454,7 @@ export default function PersistentDrawerLeft() {
 										target = path.join(t("tree.assets"), target);
 									}
 									return (
-										<MacScrollbar key={file.key} skin='dark' style={{height: winSize.height}}>
+										<MacScrollbar key={file.key} skin='dark' style={{height: editorHeight}}>
 											<DrawerHeader/>
 											<DoraUpload onUploaded={onUploaded} title={target + path.sep} path={file.key}/>
 										</MacScrollbar>
@@ -2386,8 +2466,8 @@ export default function PersistentDrawerLeft() {
 					})
 				}
 				</>
-				<PlayControl width={winSize.width} onClick={onPlayControlClick}/>
-				<StyledStack open={drawerOpen}>
+				<PlayControl width={editorWidth} onClick={onPlayControlClick}/>
+				<StyledStack open={drawerOpen} drawerWidth={drawerWidth}>
 					<TransitionGroup>
 						{alerts.map((item) => (
 							<Collapse key={item.key}>

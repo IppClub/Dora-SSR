@@ -63,11 +63,10 @@ export const Entry = (prop: EntryProp) => {
 	return <ThemeProvider theme={theme} children={prop.children}/>
 };
 
-export const drawerWidth = 240;
-
-export const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })<{
+export const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' && prop !== 'drawerWidth' })<{
 	open?: boolean;
-}>(({ theme, open }) => ({
+	drawerWidth: number;
+}>(({ theme, open, drawerWidth }) => ({
 	flexGrow: 1,
 	padding: theme.spacing(0),
 	transition: theme.transitions.create('margin', {
@@ -84,9 +83,10 @@ export const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open
 	}),
 }));
 
-export const StyledStack = styled(Stack, { shouldForwardProp: (prop) => prop !== 'open' })<{
+export const StyledStack = styled(Stack, { shouldForwardProp: (prop) => prop !== 'open' && prop !== 'drawerWidth' })<{
 	open?: boolean;
-}>(({ theme, open }) => ({
+	drawerWidth: number;
+}>(({ theme, open, drawerWidth }) => ({
 	zIndex: 999,
 	width: '350px',
 	bottom: 5,
@@ -109,20 +109,22 @@ export const StyledStack = styled(Stack, { shouldForwardProp: (prop) => prop !==
 
 export interface AppBarProps extends MuiAppBarProps {
 	open?: boolean;
+	drawerWidth: number;
+	isResizing: boolean;
 }
 
 export const AppBar = styled(MuiAppBar, {
-	shouldForwardProp: (prop) => prop !== 'open',
-})<AppBarProps>(({ theme, open }) => ({
+	shouldForwardProp: (prop) => prop !== 'open' && prop !== 'drawerWidth' && prop !== 'isResizing',
+})<AppBarProps>(({ theme, open, drawerWidth, isResizing }) => ({
 	zIndex: 2,
-	transition: theme.transitions.create(['margin', 'width'], {
+	transition: isResizing ? undefined : theme.transitions.create(['width'], {
 		easing: theme.transitions.easing.sharp,
 		duration: theme.transitions.duration.leavingScreen,
 	}),
 	...(open && {
 		width: `calc(100% - ${drawerWidth}px)`,
 		marginLeft: `${drawerWidth}px`,
-		transition: theme.transitions.create(['margin', 'width'], {
+		transition: isResizing ? undefined : theme.transitions.create(['width'], {
 			easing: theme.transitions.easing.easeOut,
 			duration: theme.transitions.duration.enteringScreen,
 		}),

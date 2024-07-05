@@ -540,7 +540,8 @@ HttpServer\post "/list", (req): success: false ->
 
 HttpServer\post "/info", ->
 	import "Script.Dev.Entry"
-	webProfiler = Entry.getConfig!.webProfiler > 0
+	:webProfiler, :drawerWidth = Entry.getConfig!
+	webProfiler = webProfiler > 0
 	engineDev = Entry.getEngineDev!
 	return
 		platform: App.platform
@@ -548,6 +549,7 @@ HttpServer\post "/info", ->
 		version: App.version
 		:engineDev
 		:webProfiler
+		:drawerWidth
 
 HttpServer\post "/new", (req): success: false ->
 	switch req when {body: {:path, :content}}
@@ -831,8 +833,8 @@ HttpServer\post "/editingInfo", (req) ->
 		success: true, editingInfo: config.editingInfo
 
 HttpServer\post "/command", (req): success: false ->
-	switch req when {body: {:code}}
-		emit "AppCommand", code
+	switch req when {body: {:code, :log}}
+		emit "AppCommand", code, log
 		return success: true
 
 HttpServer\post "/exist", (req): success: false ->

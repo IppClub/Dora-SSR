@@ -1113,8 +1113,9 @@ LuaEngine::LuaEngine()
 
 	_commandListener = Listener::create("AppCommand"s, [this](Event* event) {
 		std::string codes;
-		if (event->get(codes)) {
-			LogPrintInThread(codes + '\n');
+		bool log = false;
+		if (event->get(codes, log)) {
+			if (log) LogPrintInThread(codes + '\n');
 			codes.insert(0,
 				"rawset Dora, '_REPL', <index>: Dora unless Dora._REPL\n"
 				"_ENV = Dora._REPL\n"
@@ -1157,7 +1158,7 @@ LuaEngine::LuaEngine()
 			int retCount = cur - last;
 			bool success = lua_toboolean(L, -retCount) != 0;
 			if (success) {
-				if (retCount > 1) {
+				if (log && retCount > 1) {
 					for (int i = 1; i < retCount; ++i) {
 						LogPrint("{}\n", luaL_tolstring(L, -retCount + i, nullptr));
 						lua_pop(L, 1);
