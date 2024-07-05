@@ -11,11 +11,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Node/ClipNode.h"
 
 #include "Basic/Application.h"
-#include "Basic/Renderer.h"
-#include "Basic/View.h"
 #include "Cache/ShaderCache.h"
 #include "Effect/Effect.h"
 #include "Node/Sprite.h"
+#include "Render/Renderer.h"
+#include "Render/View.h"
 
 NS_DORA_BEGIN
 

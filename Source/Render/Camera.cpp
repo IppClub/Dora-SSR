@@ -8,12 +8,12 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Const/Header.h"
 
-#include "Basic/Camera.h"
+#include "Render/Camera.h"
 
 #include "Basic/Application.h"
 #include "Basic/Director.h"
-#include "Basic/View.h"
 #include "Node/Node.h"
+#include "Render/View.h"
 
 NS_DORA_BEGIN
 

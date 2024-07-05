@@ -149,6 +149,7 @@ if config.webProfiler?
 	Director.profilerSending = config.webProfiler > 0
 else
 	config.webProfiler = 1
+	Director.profilerSending = true
 
 export.getConfig = -> config
 export.getEngineDev = ->

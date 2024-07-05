@@ -12,9 +12,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Basic/Application.h"
 #include "Basic/Director.h"
-#include "Basic/View.h"
 #include "Cache/ShaderCache.h"
 #include "Effect/Effect.h"
+#include "Render/View.h"
 
 NS_DORA_BEGIN
 

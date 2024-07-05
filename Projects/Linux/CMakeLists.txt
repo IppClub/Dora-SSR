@@ -90,16 +90,11 @@ add_executable(dora-ssr
 	../../Source/Entity/Entity.cpp
 	../../Source/Basic/Director.cpp
 	../../Source/Basic/AutoreleasePool.cpp
-	../../Source/Basic/VGRender.cpp
-	../../Source/Basic/Camera.cpp
 	../../Source/Basic/Object.cpp
-	../../Source/Basic/RenderTarget.cpp
-	../../Source/Basic/View.cpp
 	../../Source/Basic/Scheduler.cpp
 	../../Source/Basic/Database.cpp
 	../../Source/Basic/Content.cpp
 	../../Source/Basic/Application.cpp
-	../../Source/Basic/Renderer.cpp
 	../../Source/Effect/Effect.cpp
 	../../Source/Animation/ModelDef.cpp
 	../../Source/Animation/Animation.cpp
@@ -128,6 +123,11 @@ add_executable(dora-ssr
 	../../Source/ML/ML.cpp
 	../../Source/GUI/ImGuiDora.cpp
 	../../Source/GUI/ImGuiBinding.cpp
+	../../Source/Render/Camera.cpp
+	../../Source/Render/RenderTarget.cpp
+	../../Source/Render/Renderer.cpp
+	../../Source/Render/VGRender.cpp
+	../../Source/Render/View.cpp
 	../../Source/Shader/Builtin.cpp
 	../../Source/Physics/Joint.cpp
 	../../Source/Physics/BodyDef.cpp

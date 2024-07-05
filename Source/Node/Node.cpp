@@ -12,12 +12,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Animation/Action.h"
 #include "Basic/Application.h"
-#include "Basic/Camera.h"
 #include "Basic/Director.h"
-#include "Basic/RenderTarget.h"
-#include "Basic/Renderer.h"
 #include "Basic/Scheduler.h"
-#include "Basic/View.h"
 #include "Effect/Effect.h"
 #include "Event/Listener.h"
 #include "Input/Controller.h"
@@ -26,6 +22,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Node/DrawNode.h"
 #include "Node/Grid.h"
 #include "Node/Sprite.h"
+#include "Render/Camera.h"
+#include "Render/RenderTarget.h"
+#include "Render/Renderer.h"
+#include "Render/View.h"
 #include "Support/Dictionary.h"
 
 NS_DORA_BEGIN

@@ -325,6 +325,9 @@
     <Filter Include="3rdParty\tmxlite\detail">
       <UniqueIdentifier>{32935fa4-7213-48cb-a5ad-e6502fa83992}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Render">
+      <UniqueIdentifier>{ce2b8137-61bd-4efb-8cf9-01a03ac12dec}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\Source\3rdParty\silly\Slice.cpp">
@@ -411,17 +414,11 @@
     <ClCompile Include="..\..\..\Source\Node\Sprite.cpp">
       <Filter>Node</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\Basic\View.cpp">
-      <Filter>Basic</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\Source\Cache\TextureCache.cpp">
       <Filter>Cache</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\lodepng\lodepng.cpp">
       <Filter>3rdParty\lodepng</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\Basic\Camera.cpp">
-      <Filter>Basic</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\Source\Cache\ShaderCache.cpp">
       <Filter>Cache</Filter>
@@ -458,9 +455,6 @@
     </ClCompile>
     <ClCompile Include="..\..\..\Source\Node\Particle.cpp">
       <Filter>Node</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\Basic\Renderer.cpp">
-      <Filter>Basic</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\Source\Node\ClipNode.cpp">
       <Filter>Node</Filter>
@@ -605,9 +599,6 @@
     </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\imgui\imgui_widgets.cpp">
       <Filter>3rdParty\imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\Basic\VGRender.cpp">
-      <Filter>Basic</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\Source\Node\VGNode.cpp">
       <Filter>Node</Filter>
@@ -794,9 +785,6 @@
     </ClCompile>
     <ClCompile Include="..\..\..\Source\Lua\TealCompiler.cpp">
       <Filter>Lua</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\Basic\RenderTarget.cpp">
-      <Filter>Basic</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\sqlite\sqlite3.c">
       <Filter>3rdParty\sqlite</Filter>
@@ -1935,6 +1923,21 @@
     <ClCompile Include="..\..\..\Source\Node\TileNode.cpp">
       <Filter>Node</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\Source\Render\Camera.cpp">
+      <Filter>Render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Render\Renderer.cpp">
+      <Filter>Render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Render\RenderTarget.cpp">
+      <Filter>Render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Render\VGRender.cpp">
+      <Filter>Render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Render\View.cpp">
+      <Filter>Render</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\Source\3rdParty\silly\Slice.h">
@@ -2024,17 +2027,11 @@
     <ClInclude Include="..\..\..\Source\Node\Sprite.h">
       <Filter>Node</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\Source\Basic\View.h">
-      <Filter>Basic</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\Source\Cache\TextureCache.h">
       <Filter>Cache</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\lodepng\lodepng.h">
       <Filter>3rdParty\lodepng</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\Basic\Camera.h">
-      <Filter>Basic</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Cache\ShaderCache.h">
       <Filter>Cache</Filter>
@@ -2068,9 +2065,6 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Node\Particle.h">
       <Filter>Node</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\Basic\Renderer.h">
-      <Filter>Basic</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Node\ClipNode.h">
       <Filter>Node</Filter>
@@ -2239,9 +2233,6 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\imgui\imstb_textedit.h">
       <Filter>3rdParty\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\Basic\VGRender.h">
-      <Filter>Basic</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Node\VGNode.h">
       <Filter>Node</Filter>
@@ -2488,9 +2479,6 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Node\DragonBone.h">
       <Filter>Node</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\Basic\RenderTarget.h">
-      <Filter>Basic</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\sqlite\sqlite3.h">
       <Filter>3rdParty\sqlite</Filter>
@@ -4298,6 +4286,21 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Node\TileNode.h">
       <Filter>Node</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Render\Camera.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Render\Renderer.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Render\RenderTarget.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Render\VGRender.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Render\View.h">
+      <Filter>Render</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

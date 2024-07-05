@@ -8,9 +8,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
-#include "Basic/Renderer.h"
 #include "Cache/TextureCache.h"
 #include "Node/Node.h"
+#include "Render/Renderer.h"
 
 NS_DORA_BEGIN
 
@@ -100,7 +100,7 @@ private:
 	SpriteQuad _quad;
 	BlendFunc _blendFunc;
 	uint64_t _renderState;
-	enum: Flag::ValueType {
+	enum : Flag::ValueType {
 		VertexColorDirty = Node::UserFlag,
 		VertexPosDirty = Node::UserFlag << 1,
 		DepthWrite = Node::UserFlag << 2,

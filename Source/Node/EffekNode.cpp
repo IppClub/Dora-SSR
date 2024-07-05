@@ -11,14 +11,14 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Node/EffekNode.h"
 
 #include "Basic/Application.h"
-#include "Basic/Camera.h"
 #include "Basic/Content.h"
 #include "Basic/Director.h"
-#include "Basic/RenderTarget.h"
-#include "Basic/Renderer.h"
-#include "Basic/View.h"
 #include "Cache/TextureCache.h"
 #include "Common/Async.h"
+#include "Render/Camera.h"
+#include "Render/RenderTarget.h"
+#include "Render/Renderer.h"
+#include "Render/View.h"
 #include "Shader/Builtin.h"
 
 #include "bgfxrenderer.h"

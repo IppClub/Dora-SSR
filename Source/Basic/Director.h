@@ -100,7 +100,7 @@ public:
 		int lastMemLua = 0;
 		int lastMemWASM = 0;
 
-		const int PlotCount = 30;
+		const unsigned PlotCount = 30;
 		double maxCPU = 0;
 		double maxGPU = 0;
 		double maxDelta = 0;
