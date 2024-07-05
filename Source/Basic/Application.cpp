@@ -14,10 +14,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/Content.h"
 #include "Basic/Director.h"
 #include "Basic/Scheduler.h"
-#include "Basic/View.h"
 #include "Common/Async.h"
 #include "Input/Controller.h"
 #include "Physics/PhysicsWorld.h"
+#include "Render/View.h"
 
 #include "Other/utf8.h"
 
@@ -364,8 +364,7 @@ int Application::run(int argc, const char* const argv[]) {
 	}
 
 	// wait for render process to stop
-	while (bgfx::RenderFrame::NoContext != bgfx::renderFrame())
-		;
+	while (bgfx::RenderFrame::NoContext != bgfx::renderFrame());
 	_logicThread.shutdown();
 
 	SDL_DestroyWindow(_sdlWindow);

@@ -9,9 +9,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #pragma once
 
 #include "Basic/Object.h"
-#include "Basic/VGRender.h"
 #include "Cache/XmlItemCache.h"
 #include "Common/Singleton.h"
+#include "Render/VGRender.h"
 #include "Support/Common.h"
 #include "Support/Geometry.h"
 

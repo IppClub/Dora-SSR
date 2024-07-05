@@ -98,16 +98,11 @@ add_library(main SHARED
 	src/main/cpp/Entity/Entity.cpp
 	src/main/cpp/Basic/Director.cpp
 	src/main/cpp/Basic/AutoreleasePool.cpp
-	src/main/cpp/Basic/VGRender.cpp
-	src/main/cpp/Basic/Camera.cpp
 	src/main/cpp/Basic/Object.cpp
-	src/main/cpp/Basic/RenderTarget.cpp
-	src/main/cpp/Basic/View.cpp
 	src/main/cpp/Basic/Scheduler.cpp
 	src/main/cpp/Basic/Database.cpp
 	src/main/cpp/Basic/Content.cpp
 	src/main/cpp/Basic/Application.cpp
-	src/main/cpp/Basic/Renderer.cpp
 	src/main/cpp/Effect/Effect.cpp
 	src/main/cpp/Animation/ModelDef.cpp
 	src/main/cpp/Animation/Animation.cpp
@@ -136,6 +131,11 @@ add_library(main SHARED
 	src/main/cpp/ML/ML.cpp
 	src/main/cpp/GUI/ImGuiDora.cpp
 	src/main/cpp/GUI/ImGuiBinding.cpp
+	src/main/cpp/Render/Camera.cpp
+	src/main/cpp/Render/RenderTarget.cpp
+	src/main/cpp/Render/Renderer.cpp
+	src/main/cpp/Render/VGRender.cpp
+	src/main/cpp/Render/View.cpp
 	src/main/cpp/Shader/Builtin.cpp
 	src/main/cpp/Physics/Joint.cpp
 	src/main/cpp/Physics/BodyDef.cpp

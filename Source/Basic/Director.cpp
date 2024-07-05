@@ -12,13 +12,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Audio/Sound.h"
 #include "Basic/Application.h"
-#include "Basic/Camera.h"
 #include "Basic/Content.h"
-#include "Basic/RenderTarget.h"
-#include "Basic/Renderer.h"
 #include "Basic/Scheduler.h"
-#include "Basic/VGRender.h"
-#include "Basic/View.h"
 #include "Effect/Effect.h"
 #include "Entity/Entity.h"
 #include "Event/Listener.h"
@@ -29,6 +24,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Input/TouchDispather.h"
 #include "Node/EffekNode.h"
 #include "Node/Node.h"
+#include "Render/Camera.h"
+#include "Render/RenderTarget.h"
+#include "Render/Renderer.h"
+#include "Render/VGRender.h"
+#include "Render/View.h"
 
 #include "bx/timer.h"
 

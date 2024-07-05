@@ -662,13 +662,7 @@
 		3C883B1721E338F500BFD758 /* Application.mm in Sources */ = {isa = PBXBuildFile; fileRef = 3C883B0421E338F300BFD758 /* Application.mm */; };
 		3C883B1821E338F500BFD758 /* Application.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C883B0521E338F300BFD758 /* Application.cpp */; };
 		3C883B1921E338F500BFD758 /* Scheduler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C883B0721E338F300BFD758 /* Scheduler.cpp */; };
-		3C883B1A21E338F500BFD758 /* Camera.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C883B0A21E338F400BFD758 /* Camera.cpp */; };
-		3C883B1B21E338F500BFD758 /* Renderer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C883B0B21E338F400BFD758 /* Renderer.cpp */; };
 		3C883B1C21E338F500BFD758 /* Director.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C883B0D21E338F400BFD758 /* Director.cpp */; };
-		3C883B1D21E338F500BFD758 /* VGRender.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C883B1121E338F500BFD758 /* VGRender.cpp */; };
-		3C883B1E21E338F500BFD758 /* View.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C883B1221E338F500BFD758 /* View.cpp */; };
-		3C8CD74C27268AE70045B362 /* RenderTarget.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C8CD74A27268AE70045B362 /* RenderTarget.cpp */; };
-		3C8CD74D27268B2D0045B362 /* RenderTarget.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C8CD74A27268AE70045B362 /* RenderTarget.cpp */; };
 		3C92DEC41FFE1CFA003AF655 /* Entity.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C92DEC21FFE1CFA003AF655 /* Entity.cpp */; };
 		3C9CCD0A2689D7670086757D /* os.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C9CCD062689D7670086757D /* os.cpp */; };
 		3CA1B7EF1EC16E9F00BC58FF /* LuaFromXml.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA1B7ED1EC16E9F00BC58FF /* LuaFromXml.cpp */; };
@@ -676,6 +670,16 @@
 		3CA1B7F61EC16ED300BC58FF /* tinyxml2.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA1B7F31EC16ED300BC58FF /* tinyxml2.cpp */; };
 		3CA31651299234DE007879C4 /* soloud_duckfilter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA31650299234DE007879C4 /* soloud_duckfilter.cpp */; };
 		3CA31652299234DF007879C4 /* soloud_duckfilter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA31650299234DE007879C4 /* soloud_duckfilter.cpp */; };
+		3CA3E5072C37A69600CDEC2D /* RenderTarget.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA3E4FF2C37A69600CDEC2D /* RenderTarget.cpp */; };
+		3CA3E5082C37A69600CDEC2D /* RenderTarget.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA3E4FF2C37A69600CDEC2D /* RenderTarget.cpp */; };
+		3CA3E5092C37A69600CDEC2D /* Camera.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA3E5002C37A69600CDEC2D /* Camera.cpp */; };
+		3CA3E50A2C37A69600CDEC2D /* Camera.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA3E5002C37A69600CDEC2D /* Camera.cpp */; };
+		3CA3E50B2C37A69600CDEC2D /* Renderer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA3E5012C37A69600CDEC2D /* Renderer.cpp */; };
+		3CA3E50C2C37A69600CDEC2D /* Renderer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA3E5012C37A69600CDEC2D /* Renderer.cpp */; };
+		3CA3E50D2C37A69600CDEC2D /* View.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA3E5042C37A69600CDEC2D /* View.cpp */; };
+		3CA3E50E2C37A69600CDEC2D /* View.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA3E5042C37A69600CDEC2D /* View.cpp */; };
+		3CA3E50F2C37A69600CDEC2D /* VGRender.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA3E5052C37A69600CDEC2D /* VGRender.cpp */; };
+		3CA3E5102C37A69600CDEC2D /* VGRender.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA3E5052C37A69600CDEC2D /* VGRender.cpp */; };
 		3CA780042AE66FB000B7BADA /* RayCastOutput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA77F242AE66FAD00B7BADA /* RayCastOutput.cpp */; };
 		3CA780052AE66FB000B7BADA /* RayCastOutput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA77F242AE66FAD00B7BADA /* RayCastOutput.cpp */; };
 		3CA780062AE66FB000B7BADA /* EdgeShapeConf.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA77F292AE66FAD00B7BADA /* EdgeShapeConf.cpp */; };
@@ -868,7 +872,6 @@
 		3CBE0E1626087F7B003F4F45 /* Keyboard.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C6577461ECC2C9D00C5FB09 /* Keyboard.cpp */; };
 		3CBE0E1726087F7B003F4F45 /* stb.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CE9509B20F33DA9002FFC18 /* stb.cpp */; };
 		3CBE0E1826087F7B003F4F45 /* imgui_tables.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB2115B25C63C3900CEA033 /* imgui_tables.cpp */; };
-		3CBE0E1A26087F7B003F4F45 /* VGRender.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C883B1121E338F500BFD758 /* VGRender.cpp */; };
 		3CBE0E1B26087F7B003F4F45 /* Sensor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB730751E80343E006DFA18 /* Sensor.cpp */; };
 		3CBE0E1D26087F7B003F4F45 /* Utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CCEDD481E1D589500F32295 /* Utils.cpp */; };
 		3CBE0E1F26087F7B003F4F45 /* Body.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB7306B1E80343E006DFA18 /* Body.cpp */; };
@@ -892,7 +895,6 @@
 		3CBE0E4426087F7B003F4F45 /* Async.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C1070681E13A2D800EB8C7A /* Async.cpp */; };
 		3CBE0E4626087F7B003F4F45 /* ModelDef.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5972FC1E7F74CB00BFD00F /* ModelDef.cpp */; };
 		3CBE0E4926087F7B003F4F45 /* DebugDraw.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB7306F1E80343E006DFA18 /* DebugDraw.cpp */; };
-		3CBE0E4B26087F7B003F4F45 /* View.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C883B1221E338F500BFD758 /* View.cpp */; };
 		3CBE0E5026087F7B003F4F45 /* imgui_widgets.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C41D5FF21490BE5003FDDFE /* imgui_widgets.cpp */; };
 		3CBE0E5126087F7B003F4F45 /* SAXParser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA1B7F11EC16ED300BC58FF /* SAXParser.cpp */; };
 		3CBE0E5326087F7B003F4F45 /* Geometry.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C4BC6551E17F17100292200 /* Geometry.cpp */; };
@@ -930,7 +932,6 @@
 		3CBE0E9D26087F7B003F4F45 /* LuaBinding.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0AD7C11E0CE9990033AD59 /* LuaBinding.cpp */; };
 		3CBE0EA026087F7B003F4F45 /* ast.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C25B867257A7F8A002DD8E1 /* ast.cpp */; };
 		3CBE0EA226087F7B003F4F45 /* nanovg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C41D60821490CFB003FDDFE /* nanovg.cpp */; };
-		3CBE0EA526087F7B003F4F45 /* Camera.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C883B0A21E338F400BFD758 /* Camera.cpp */; };
 		3CBE0EA726087F7B003F4F45 /* Content.mm in Sources */ = {isa = PBXBuildFile; fileRef = 3C883B0121E338F300BFD758 /* Content.mm */; };
 		3CBE0EA826087F7B003F4F45 /* Value.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C814F5C259C75CF0009DEC9 /* Value.cpp */; };
 		3CBE0EA926087F7B003F4F45 /* LuaManual.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0AD7C81E0CE9990033AD59 /* LuaManual.cpp */; };
@@ -943,7 +944,6 @@
 		3CBE0EB326087F7B003F4F45 /* DrawNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C030CC224CAC2B90074786E /* DrawNode.cpp */; };
 		3CBE0EB426087F7B003F4F45 /* Spine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C030CBA24CAC2B80074786E /* Spine.cpp */; };
 		3CBE0EB526087F7B003F4F45 /* Define.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C131FEA21011BB50087154A /* Define.cpp */; };
-		3CBE0EB626087F7B003F4F45 /* Renderer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C883B0B21E338F400BFD758 /* Renderer.cpp */; };
 		3CBE0EB726087F7B003F4F45 /* Label.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C030CB224CAC2B80074786E /* Label.cpp */; };
 		3CBE0EBC26087F7B003F4F45 /* ClipNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C030CB924CAC2B80074786E /* ClipNode.cpp */; };
 		3CBE0EBD26087F7B003F4F45 /* VisualCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C131FF221011BB50087154A /* VisualCache.cpp */; };
@@ -2025,9 +2025,7 @@
 		3C8805701E5ED18F00B52D4B /* atlas.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = atlas.cpp; path = ../../../Source/3rdParty/Other/atlas.cpp; sourceTree = "<group>"; };
 		3C8805711E5ED18F00B52D4B /* atlas.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = atlas.h; path = ../../../Source/3rdParty/Other/atlas.h; sourceTree = "<group>"; };
 		3C883AFD21E338F200BFD758 /* Object.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Object.cpp; path = ../../../Source/Basic/Object.cpp; sourceTree = "<group>"; };
-		3C883AFE21E338F300BFD758 /* Camera.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Camera.h; path = ../../../Source/Basic/Camera.h; sourceTree = "<group>"; };
 		3C883AFF21E338F300BFD758 /* Content.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Content.cpp; path = ../../../Source/Basic/Content.cpp; sourceTree = "<group>"; };
-		3C883B0021E338F300BFD758 /* View.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = View.h; path = ../../../Source/Basic/View.h; sourceTree = "<group>"; };
 		3C883B0121E338F300BFD758 /* Content.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = Content.mm; path = ../../../Source/Basic/Content.mm; sourceTree = "<group>"; };
 		3C883B0221E338F300BFD758 /* AutoreleasePool.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = AutoreleasePool.cpp; path = ../../../Source/Basic/AutoreleasePool.cpp; sourceTree = "<group>"; };
 		3C883B0321E338F300BFD758 /* Director.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Director.h; path = ../../../Source/Basic/Director.h; sourceTree = "<group>"; };
@@ -2037,17 +2035,9 @@
 		3C883B0721E338F300BFD758 /* Scheduler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Scheduler.cpp; path = ../../../Source/Basic/Scheduler.cpp; sourceTree = "<group>"; };
 		3C883B0821E338F400BFD758 /* AutoreleasePool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AutoreleasePool.h; path = ../../../Source/Basic/AutoreleasePool.h; sourceTree = "<group>"; };
 		3C883B0921E338F400BFD758 /* Application.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Application.h; path = ../../../Source/Basic/Application.h; sourceTree = "<group>"; };
-		3C883B0A21E338F400BFD758 /* Camera.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Camera.cpp; path = ../../../Source/Basic/Camera.cpp; sourceTree = "<group>"; };
-		3C883B0B21E338F400BFD758 /* Renderer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Renderer.cpp; path = ../../../Source/Basic/Renderer.cpp; sourceTree = "<group>"; };
-		3C883B0C21E338F400BFD758 /* Renderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Renderer.h; path = ../../../Source/Basic/Renderer.h; sourceTree = "<group>"; };
 		3C883B0D21E338F400BFD758 /* Director.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Director.cpp; path = ../../../Source/Basic/Director.cpp; sourceTree = "<group>"; };
 		3C883B0E21E338F400BFD758 /* Object.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Object.h; path = ../../../Source/Basic/Object.h; sourceTree = "<group>"; };
 		3C883B0F21E338F400BFD758 /* Scheduler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Scheduler.h; path = ../../../Source/Basic/Scheduler.h; sourceTree = "<group>"; };
-		3C883B1021E338F500BFD758 /* VGRender.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = VGRender.h; path = ../../../Source/Basic/VGRender.h; sourceTree = "<group>"; };
-		3C883B1121E338F500BFD758 /* VGRender.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = VGRender.cpp; path = ../../../Source/Basic/VGRender.cpp; sourceTree = "<group>"; };
-		3C883B1221E338F500BFD758 /* View.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = View.cpp; path = ../../../Source/Basic/View.cpp; sourceTree = "<group>"; };
-		3C8CD74A27268AE70045B362 /* RenderTarget.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = RenderTarget.cpp; path = ../../../Source/Basic/RenderTarget.cpp; sourceTree = "<group>"; };
-		3C8CD74B27268AE70045B362 /* RenderTarget.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RenderTarget.h; path = ../../../Source/Basic/RenderTarget.h; sourceTree = "<group>"; };
 		3C92DEC21FFE1CFA003AF655 /* Entity.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Entity.cpp; path = ../../../Source/Entity/Entity.cpp; sourceTree = "<group>"; };
 		3C92DEC31FFE1CFA003AF655 /* Entity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Entity.h; path = ../../../Source/Entity/Entity.h; sourceTree = "<group>"; };
 		3C9CCD062689D7670086757D /* os.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = os.cpp; path = ../../../Source/3rdParty/fmt/os.cpp; sourceTree = "<group>"; };
@@ -2062,6 +2052,16 @@
 		3CA1B7F41EC16ED300BC58FF /* tinyxml2.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = tinyxml2.h; path = ../../../Source/3rdParty/tinyxml2/tinyxml2.h; sourceTree = "<group>"; };
 		3CA3164C29923466007879C4 /* soloud_duckfilter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = soloud_duckfilter.h; path = ../../../Source/3rdParty/soloud/soloud_duckfilter.h; sourceTree = "<group>"; };
 		3CA31650299234DE007879C4 /* soloud_duckfilter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = soloud_duckfilter.cpp; sourceTree = "<group>"; };
+		3CA3E4FD2C37A69600CDEC2D /* Renderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Renderer.h; path = ../../../Source/Render/Renderer.h; sourceTree = "<group>"; };
+		3CA3E4FE2C37A69600CDEC2D /* View.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = View.h; path = ../../../Source/Render/View.h; sourceTree = "<group>"; };
+		3CA3E4FF2C37A69600CDEC2D /* RenderTarget.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = RenderTarget.cpp; path = ../../../Source/Render/RenderTarget.cpp; sourceTree = "<group>"; };
+		3CA3E5002C37A69600CDEC2D /* Camera.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Camera.cpp; path = ../../../Source/Render/Camera.cpp; sourceTree = "<group>"; };
+		3CA3E5012C37A69600CDEC2D /* Renderer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Renderer.cpp; path = ../../../Source/Render/Renderer.cpp; sourceTree = "<group>"; };
+		3CA3E5022C37A69600CDEC2D /* RenderTarget.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RenderTarget.h; path = ../../../Source/Render/RenderTarget.h; sourceTree = "<group>"; };
+		3CA3E5032C37A69600CDEC2D /* VGRender.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = VGRender.h; path = ../../../Source/Render/VGRender.h; sourceTree = "<group>"; };
+		3CA3E5042C37A69600CDEC2D /* View.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = View.cpp; path = ../../../Source/Render/View.cpp; sourceTree = "<group>"; };
+		3CA3E5052C37A69600CDEC2D /* VGRender.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = VGRender.cpp; path = ../../../Source/Render/VGRender.cpp; sourceTree = "<group>"; };
+		3CA3E5062C37A69600CDEC2D /* Camera.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Camera.h; path = ../../../Source/Render/Camera.h; sourceTree = "<group>"; };
 		3CA77F212AE66FAD00B7BADA /* RayCastInput.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = RayCastInput.hpp; sourceTree = "<group>"; };
 		3CA77F222AE66FAD00B7BADA /* RevoluteJointConf.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = RevoluteJointConf.hpp; sourceTree = "<group>"; };
 		3CA77F232AE66FAD00B7BADA /* WorldMisc.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = WorldMisc.hpp; sourceTree = "<group>"; };
@@ -3296,8 +3296,6 @@
 				3C883B0921E338F400BFD758 /* Application.h */,
 				3C883B0221E338F300BFD758 /* AutoreleasePool.cpp */,
 				3C883B0821E338F400BFD758 /* AutoreleasePool.h */,
-				3C883B0A21E338F400BFD758 /* Camera.cpp */,
-				3C883AFE21E338F300BFD758 /* Camera.h */,
 				3C883AFF21E338F300BFD758 /* Content.cpp */,
 				3C883B0621E338F300BFD758 /* Content.h */,
 				3C883B0121E338F300BFD758 /* Content.mm */,
@@ -3307,16 +3305,8 @@
 				3C883B0321E338F300BFD758 /* Director.h */,
 				3C883AFD21E338F200BFD758 /* Object.cpp */,
 				3C883B0E21E338F400BFD758 /* Object.h */,
-				3C883B0B21E338F400BFD758 /* Renderer.cpp */,
-				3C883B0C21E338F400BFD758 /* Renderer.h */,
-				3C8CD74A27268AE70045B362 /* RenderTarget.cpp */,
-				3C8CD74B27268AE70045B362 /* RenderTarget.h */,
 				3C883B0721E338F300BFD758 /* Scheduler.cpp */,
 				3C883B0F21E338F400BFD758 /* Scheduler.h */,
-				3C883B1121E338F500BFD758 /* VGRender.cpp */,
-				3C883B1021E338F500BFD758 /* VGRender.h */,
-				3C883B1221E338F500BFD758 /* View.cpp */,
-				3C883B0021E338F300BFD758 /* View.h */,
 			);
 			name = Basic;
 			sourceTree = "<group>";
@@ -4140,6 +4130,23 @@
 			name = tinyxml2;
 			sourceTree = "<group>";
 		};
+		3CA3E4FC2C37A67800CDEC2D /* Render */ = {
+			isa = PBXGroup;
+			children = (
+				3CA3E5002C37A69600CDEC2D /* Camera.cpp */,
+				3CA3E5062C37A69600CDEC2D /* Camera.h */,
+				3CA3E5012C37A69600CDEC2D /* Renderer.cpp */,
+				3CA3E4FD2C37A69600CDEC2D /* Renderer.h */,
+				3CA3E4FF2C37A69600CDEC2D /* RenderTarget.cpp */,
+				3CA3E5022C37A69600CDEC2D /* RenderTarget.h */,
+				3CA3E5052C37A69600CDEC2D /* VGRender.cpp */,
+				3CA3E5032C37A69600CDEC2D /* VGRender.h */,
+				3CA3E5042C37A69600CDEC2D /* View.cpp */,
+				3CA3E4FE2C37A69600CDEC2D /* View.h */,
+			);
+			name = Render;
+			sourceTree = "<group>";
+		};
 		3CA77F202AE66FAD00B7BADA /* d2 */ = {
 			isa = PBXGroup;
 			children = (
@@ -4517,6 +4524,7 @@
 				3C1038511E15103600D37A60 /* Node */,
 				3CB7306A1E803417006DFA18 /* Physics */,
 				3C131FDB21011B910087154A /* Platformer */,
+				3CA3E4FC2C37A67800CDEC2D /* Render */,
 				3CE9509E20F33DB6002FFC18 /* Shader */,
 				3C4BC6541E17F15C00292200 /* Support */,
 				3C853F8628E3ED760012C0D0 /* Test */,
@@ -5049,7 +5057,6 @@
 				3C4B3D5A2C06DDE000D778FC /* Log.cpp in Sources */,
 				3CA780132AE66FB000B7BADA /* WorldJoint.cpp in Sources */,
 				3C0C77562757437E0030BDCD /* ZipUtils.cpp in Sources */,
-				3C8CD74D27268B2D0045B362 /* RenderTarget.cpp in Sources */,
 				3CFFEC72292F1A7000BC6DA1 /* ImGuiBinding.cpp in Sources */,
 				3C1D40FD2703004300202534 /* TealCompiler.cpp in Sources */,
 				3C0FB6B02BF1970C0098E88D /* Mat43f.cpp in Sources */,
@@ -5059,6 +5066,7 @@
 				3C0FB6D22BF1970C0098E88D /* Effekseer.EffectNodeTrack.cpp in Sources */,
 				3C53EA432BEB456700039640 /* AlignNode.cpp in Sources */,
 				3C0FB7082BF1970C0098E88D /* EffekseerRenderer.RenderStateBase.cpp in Sources */,
+				3CA3E5102C37A69600CDEC2D /* VGRender.cpp in Sources */,
 				3C6E8012272A404A00E9F115 /* soloud_speech.cpp in Sources */,
 				3C0FB6CC2BF1970C0098E88D /* Effekseer.EffectNodeRing.cpp in Sources */,
 				3C53EA3F2BEB451A00039640 /* AbsoluteLayout.cpp in Sources */,
@@ -5144,6 +5152,7 @@
 				3C53EA392BEB451A00039640 /* PixelGrid.cpp in Sources */,
 				3C0FB71A2BF1970C0098E88D /* VertexBuffer.cpp in Sources */,
 				3C6E8048272A404A00E9F115 /* soloud_core_3d.cpp in Sources */,
+				3CA3E50E2C37A69600CDEC2D /* View.cpp in Sources */,
 				3C6E801C272A404A00E9F115 /* soloud_noise.cpp in Sources */,
 				3C361E5E2C1AFFC60079B68B /* TMXCache.cpp in Sources */,
 				3C1A3C01272A8820003A2829 /* ltable.c in Sources */,
@@ -5230,6 +5239,7 @@
 				3C0FB6942BF1970C0098E88D /* SplineGenerator.cpp in Sources */,
 				3C4B3D602C06DDE000D778FC /* SkeletonClipping.cpp in Sources */,
 				3CC15DC02C17E3F8004763E7 /* gzclose.c in Sources */,
+				3CA3E5082C37A69600CDEC2D /* RenderTarget.cpp in Sources */,
 				3C53EA222BEB450000039640 /* Config.cpp in Sources */,
 				3C0FB6E62BF1970C0098E88D /* Effekseer.Matrix43.cpp in Sources */,
 				3CFEBE2926930AA1006D9974 /* Point.cpp in Sources */,
@@ -5370,7 +5380,6 @@
 				3C0FB6DE2BF1970C0098E88D /* Effekseer.InstanceGroup.cpp in Sources */,
 				3CBE0E1826087F7B003F4F45 /* imgui_tables.cpp in Sources */,
 				3C6E7FF0272A404900E9F115 /* stb_vorbis.c in Sources */,
-				3CBE0E1A26087F7B003F4F45 /* VGRender.cpp in Sources */,
 				3C0FB6AE2BF1970C0098E88D /* Rotation.cpp in Sources */,
 				3CBE0E1B26087F7B003F4F45 /* Sensor.cpp in Sources */,
 				3CBE0E1D26087F7B003F4F45 /* Utils.cpp in Sources */,
@@ -5378,6 +5387,7 @@
 				3C0FB6F62BF1970C0098E88D /* Effekseer.Vector3D.cpp in Sources */,
 				3CA780472AE66FB000B7BADA /* Shape.cpp in Sources */,
 				3CBE0E2126087F7B003F4F45 /* Model.cpp in Sources */,
+				3CA3E50A2C37A69600CDEC2D /* Camera.cpp in Sources */,
 				3C4B3DC82C06DDE000D778FC /* SkeletonData.cpp in Sources */,
 				3CBE0E2226087F7B003F4F45 /* tolua_event.cpp in Sources */,
 				3C1A3C0B272A8820003A2829 /* ldo.c in Sources */,
@@ -5432,7 +5442,6 @@
 				3C361E502C1AFF400079B68B /* Map.cpp in Sources */,
 				3C33A3CB2A3AF3C300E60A14 /* YarnCompiler.cpp in Sources */,
 				3C0FB6D42BF1970C0098E88D /* Effekseer.FCurves.cpp in Sources */,
-				3CBE0E4B26087F7B003F4F45 /* View.cpp in Sources */,
 				3CBE0E5026087F7B003F4F45 /* imgui_widgets.cpp in Sources */,
 				3CA780612AE66FB000B7BADA /* Compositor.cpp in Sources */,
 				3CA780672AE66FB000B7BADA /* DistanceJointConf.cpp in Sources */,
@@ -5505,7 +5514,6 @@
 				3C53EA3D2BEB451A00039640 /* Cache.cpp in Sources */,
 				3CBE0EA226087F7B003F4F45 /* nanovg.cpp in Sources */,
 				3C4B3D622C06DDE000D778FC /* DeformTimeline.cpp in Sources */,
-				3CBE0EA526087F7B003F4F45 /* Camera.cpp in Sources */,
 				3CA780092AE66FB000B7BADA /* Manifold.cpp in Sources */,
 				3CBE0EA726087F7B003F4F45 /* Content.mm in Sources */,
 				3CBE0EA826087F7B003F4F45 /* Value.cpp in Sources */,
@@ -5529,7 +5537,6 @@
 				3CBE0EB426087F7B003F4F45 /* Spine.cpp in Sources */,
 				3CBE0EB526087F7B003F4F45 /* Define.cpp in Sources */,
 				3C4B3DD22C06DDE000D778FC /* AnimationState.cpp in Sources */,
-				3CBE0EB626087F7B003F4F45 /* Renderer.cpp in Sources */,
 				3CBE0EB726087F7B003F4F45 /* Label.cpp in Sources */,
 				3CBE0EBC26087F7B003F4F45 /* ClipNode.cpp in Sources */,
 				3CBE0EBD26087F7B003F4F45 /* VisualCache.cpp in Sources */,
@@ -5577,6 +5584,7 @@
 				3C6E7FE0272A404900E9F115 /* soloud_freeverbfilter.cpp in Sources */,
 				3CA7800D2AE66FB000B7BADA /* Simplex.cpp in Sources */,
 				3C53E9E52BEB442300039640 /* YGNodeLayout.cpp in Sources */,
+				3CA3E50C2C37A69600CDEC2D /* Renderer.cpp in Sources */,
 				3C0FB7182BF1970C0098E88D /* TextureLoader.cpp in Sources */,
 				3C0FB6882BF1970C0098E88D /* Effekseer.MaterialCompiler.cpp in Sources */,
 				3C6E7FDC272A404900E9F115 /* soloud_lofifilter.cpp in Sources */,
@@ -5602,6 +5610,7 @@
 				3C361E3D2C1AFF400079B68B /* TileLayer.cpp in Sources */,
 				3C0FB6D12BF1970C0098E88D /* Effekseer.EffectNodeTrack.cpp in Sources */,
 				3C53EA422BEB456700039640 /* AlignNode.cpp in Sources */,
+				3CA3E50F2C37A69600CDEC2D /* VGRender.cpp in Sources */,
 				3C0FB7072BF1970C0098E88D /* EffekseerRenderer.RenderStateBase.cpp in Sources */,
 				3CFEA170285B873B002D106F /* m3_parse.c in Sources */,
 				3C0FB6CB2BF1970C0098E88D /* Effekseer.EffectNodeRing.cpp in Sources */,
@@ -5674,7 +5683,6 @@
 				3C0FB6F72BF1970C0098E88D /* Effekseer.WorkerThread.cpp in Sources */,
 				3CFEBE0726930A26006D9974 /* DisplayData.cpp in Sources */,
 				3C4B3D992C06DDE000D778FC /* RotateTimeline.cpp in Sources */,
-				3C8CD74C27268AE70045B362 /* RenderTarget.cpp in Sources */,
 				3C6E8009272A404900E9F115 /* resonator.cpp in Sources */,
 				3C361E412C1AFF400079B68B /* ObjectGroup.cpp in Sources */,
 				3CFEBDD4269309D5006D9974 /* Slot.cpp in Sources */,
@@ -5688,6 +5696,7 @@
 				3CA7803E2AE66FB000B7BADA /* WheelJointConf.cpp in Sources */,
 				3C0FB7032BF1970C0098E88D /* EffekseerRenderer.Renderer_Impl.cpp in Sources */,
 				3C8805721E5ED18F00B52D4B /* atlas.cpp in Sources */,
+				3CA3E50D2C37A69600CDEC2D /* View.cpp in Sources */,
 				3C6577481ECC2C9D00C5FB09 /* Keyboard.cpp in Sources */,
 				3C361E5D2C1AFFC60079B68B /* TMXCache.cpp in Sources */,
 				3CFEBE1726930A3A006D9974 /* DataParser.cpp in Sources */,
@@ -5703,7 +5712,6 @@
 				3CA7802E2AE66FB000B7BADA /* RopeJointConf.cpp in Sources */,
 				3C4B3D9D2C06DDE000D778FC /* PhysicsConstraint.cpp in Sources */,
 				3C1A3BE8272A8820003A2829 /* lmathlib.c in Sources */,
-				3C883B1D21E338F500BFD758 /* VGRender.cpp in Sources */,
 				3CB7307E1E80343E006DFA18 /* Sensor.cpp in Sources */,
 				3CA780842AE66FB000B7BADA /* ToiOutput.cpp in Sources */,
 				3C6E7FD5272A404900E9F115 /* soloud_fftfilter.cpp in Sources */,
@@ -5775,6 +5783,7 @@
 				3C4B3D5F2C06DDE000D778FC /* SkeletonClipping.cpp in Sources */,
 				3CC15DBF2C17E3F8004763E7 /* gzclose.c in Sources */,
 				3C5973001E7F74CB00BFD00F /* ModelDef.cpp in Sources */,
+				3CA3E5072C37A69600CDEC2D /* RenderTarget.cpp in Sources */,
 				3C0FB6812BF1970C0098E88D /* ForceFields.cpp in Sources */,
 				3CFEBE1626930A3A006D9974 /* BinaryDataParser.cpp in Sources */,
 				3CA780062AE66FB000B7BADA /* EdgeShapeConf.cpp in Sources */,
@@ -5782,7 +5791,6 @@
 				3C4B3DC92C06DDE000D778FC /* MathUtil.cpp in Sources */,
 				3C4B3DBD2C06DDE000D778FC /* LinkedMesh.cpp in Sources */,
 				3CB7307B1E80343E006DFA18 /* DebugDraw.cpp in Sources */,
-				3C883B1E21E338F500BFD758 /* View.cpp in Sources */,
 				3C41D60521490BE6003FDDFE /* imgui_widgets.cpp in Sources */,
 				3C1A3BF6272A8820003A2829 /* lvm.c in Sources */,
 				3C0FB6932BF1970C0098E88D /* SplineGenerator.cpp in Sources */,
@@ -5923,6 +5931,7 @@
 				3C0FB6AD2BF1970C0098E88D /* Rotation.cpp in Sources */,
 				3C25B874257A7F8B002DD8E1 /* parser.cpp in Sources */,
 				3C5972FE1E7F74CB00BFD00F /* Animation.cpp in Sources */,
+				3CA3E5092C37A69600CDEC2D /* Camera.cpp in Sources */,
 				3C4B3DC72C06DDE000D778FC /* SkeletonData.cpp in Sources */,
 				3C6E8007272A404900E9F115 /* tts.cpp in Sources */,
 				3C0FB6F52BF1970C0098E88D /* Effekseer.Vector3D.cpp in Sources */,
@@ -5989,7 +5998,6 @@
 				3C0FB6F12BF1970C0098E88D /* Effekseer.Setting.cpp in Sources */,
 				3C9CCD0A2689D7670086757D /* os.cpp in Sources */,
 				3C53EA362BEB451A00039640 /* CalculateLayout.cpp in Sources */,
-				3C883B1A21E338F500BFD758 /* Camera.cpp in Sources */,
 				3C883B1521E338F500BFD758 /* Content.mm in Sources */,
 				3C6E7FEF272A404900E9F115 /* stb_vorbis.c in Sources */,
 				3C814F5D259C75CF0009DEC9 /* Value.cpp in Sources */,
@@ -6027,7 +6035,6 @@
 				3C4B3D6B2C06DDE000D778FC /* ShearTimeline.cpp in Sources */,
 				3C131FFE21011BB60087154A /* Define.cpp in Sources */,
 				3C1A3BD8272A8820003A2829 /* ldump.c in Sources */,
-				3C883B1B21E338F500BFD758 /* Renderer.cpp in Sources */,
 				3C1A3BCE272A8820003A2829 /* lundump.c in Sources */,
 				3C0FB6A92BF1970C0098E88D /* GpuParticlesParameter.cpp in Sources */,
 				3C853F8A28E3ED8A0012C0D0 /* Test.cpp in Sources */,
@@ -6121,6 +6128,7 @@
 				3C6E7FDF272A404900E9F115 /* soloud_freeverbfilter.cpp in Sources */,
 				3CA7800C2AE66FB000B7BADA /* Simplex.cpp in Sources */,
 				3C53E9E42BEB442300039640 /* YGNodeLayout.cpp in Sources */,
+				3CA3E50B2C37A69600CDEC2D /* Renderer.cpp in Sources */,
 				3C0FB7172BF1970C0098E88D /* TextureLoader.cpp in Sources */,
 				3C0FB6872BF1970C0098E88D /* Effekseer.MaterialCompiler.cpp in Sources */,
 				3C6E7FDB272A404900E9F115 /* soloud_lofifilter.cpp in Sources */,

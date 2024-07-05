@@ -14,7 +14,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/Content.h"
 #include "Basic/Director.h"
 #include "Basic/Scheduler.h"
-#include "Basic/View.h"
 #include "Cache/ShaderCache.h"
 #include "Cache/TextureCache.h"
 #include "Effect/Effect.h"
@@ -22,6 +21,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Event/Listener.h"
 #include "Input/Keyboard.h"
 #include "Lua/LuaEngine.h"
+#include "Render/View.h"
 #include "Wasm/WasmRuntime.h"
 
 #include "Other/utf8.h"

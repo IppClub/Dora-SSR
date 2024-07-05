@@ -8,9 +8,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
-#include "Basic/Renderer.h"
 #include "Common/Singleton.h"
 #include "Node/Node.h"
+#include "Render/Renderer.h"
 
 NS_DORA_BEGIN
 
@@ -79,7 +79,7 @@ private:
 	std::vector<DrawVertex> _vertices;
 	std::vector<PosColor> _posColors;
 	std::vector<uint16_t> _indices;
-	enum: Flag::ValueType {
+	enum : Flag::ValueType {
 		VertexColorDirty = Node::UserFlag,
 		VertexPosDirty = Node::UserFlag << 1,
 		DepthWrite = Node::UserFlag << 2,
@@ -157,7 +157,7 @@ private:
 	BlendFunc _blendFunc;
 	std::vector<PosColor> _posColors;
 	std::vector<PosColorVertex> _vertices;
-	enum: Flag::ValueType {
+	enum : Flag::ValueType {
 		VertexColorDirty = Node::UserFlag,
 		VertexPosDirty = Node::UserFlag << 1,
 		DepthWrite = Node::UserFlag << 2,
