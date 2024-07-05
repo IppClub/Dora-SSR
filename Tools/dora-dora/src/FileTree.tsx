@@ -194,6 +194,7 @@ export default memo(function FileTree(props: FileTreeProps) {
 			style={{
 				color: Color.Primary,
 				fontSize: '14px',
+				width: 'calc(100% - 4px)',
 				height: '100%',
 			}}
 		>

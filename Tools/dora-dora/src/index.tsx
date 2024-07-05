@@ -23,6 +23,7 @@ const App = React.lazy(() => Service.info().then((res) => {
 	Info.version = res.version;
 	Info.engineDev = res.engineDev;
 	Info.webProfiler = res.webProfiler;
+	Info.drawerWidth = res.drawerWidth;
 
 	Path.setPath(Info.path);
 

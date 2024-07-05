@@ -242,7 +242,7 @@ public:
 			std::string codes = _buf.data();
 			_buf.fill('\0');
 			_history.push_back(codes);
-			Event::send("AppCommand"sv, codes);
+			Event::send("AppCommand"sv, codes, true);
 			_scrollToBottom = true;
 			reclaimFocus = true;
 		}

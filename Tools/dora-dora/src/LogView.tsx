@@ -125,7 +125,7 @@ const LogView = memo((props: LogViewProps) => {
 			});
 			setHistoryIndex(history.length >= maxHistoryLength ? maxHistoryLength : history.length + 1);
 			setCommand("");
-			Service.command({code: command}).then().catch((err) => {
+			Service.command({code: command, log: true}).then().catch((err) => {
 				console.error(err);
 			});
 		}
@@ -152,7 +152,7 @@ const LogView = memo((props: LogViewProps) => {
 
 	const onToggleProfiler = () => {
 		setToggleProfiler(!toggleProfiler);
-		Service.command({code: `Director.profilerSending = ${toggleProfiler ? 'false' : 'true'}`}).then().catch((err) => {
+		Service.command({code: `Director.profilerSending = ${toggleProfiler ? 'false' : 'true'}`, log: false}).then().catch((err) => {
 			console.error(err);
 		});
 	};
@@ -160,7 +160,7 @@ const LogView = memo((props: LogViewProps) => {
 	const onTargetFPSChange = (e: RadioChangeEvent) => {
 		if (profilerInfo !== null) {
 			profilerInfo.targetFPS = e.target.value;
-			Service.command({code: `App.targetFPS = ${profilerInfo.targetFPS}`}).then(() => {
+			Service.command({code: `App.targetFPS = ${profilerInfo.targetFPS}`, log: false}).then(() => {
 				setProfilerInfo({...profilerInfo});
 			}).catch((err) => {
 				console.error(err);
@@ -171,7 +171,7 @@ const LogView = memo((props: LogViewProps) => {
 	const onFixedFPSChange = (e: RadioChangeEvent) => {
 		if (profilerInfo !== null) {
 			profilerInfo.fixedFPS = e.target.value;
-			Service.command({code: `Director.scheduler.fixedFPS = ${profilerInfo.fixedFPS}`}).then(() => {
+			Service.command({code: `Director.scheduler.fixedFPS = ${profilerInfo.fixedFPS}`, log: false}).then(() => {
 				setProfilerInfo({...profilerInfo});
 			}).catch((err) => {
 				console.error(err);
@@ -182,7 +182,7 @@ const LogView = memo((props: LogViewProps) => {
 	const onVSyncChange = (e: CheckboxChangeEvent) => {
 		if (profilerInfo !== null) {
 			profilerInfo.vSync = e.target.checked;
-			Service.command({code: `View.vsync = ${profilerInfo.vSync ? 'true' : 'false'}`}).then(() => {
+			Service.command({code: `View.vsync = ${profilerInfo.vSync ? 'true' : 'false'}`, log: false}).then(() => {
 				setProfilerInfo({...profilerInfo});
 			}).catch((err) => {
 				console.error(err);
@@ -193,7 +193,7 @@ const LogView = memo((props: LogViewProps) => {
 	const onFPSLimitedChange = (e: CheckboxChangeEvent) => {
 		if (profilerInfo !== null) {
 			profilerInfo.fpsLimited = e.target.checked;
-			Service.command({code: `App.fpsLimited = ${profilerInfo.fpsLimited ? 'true' : 'false'}`}).then(() => {
+			Service.command({code: `App.fpsLimited = ${profilerInfo.fpsLimited ? 'true' : 'false'}`, log: false}).then(() => {
 				setProfilerInfo({...profilerInfo});
 			}).catch((err) => {
 				console.error(err);

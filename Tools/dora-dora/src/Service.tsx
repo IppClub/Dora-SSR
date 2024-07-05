@@ -253,6 +253,7 @@ export interface InfoResponse {
 	version: string;
 	engineDev: boolean;
 	webProfiler: boolean;
+	drawerWidth: number;
 }
 export const info = () => {
 	return post<InfoResponse>("/info");
@@ -419,6 +420,7 @@ export const editingInfo = (req?: EditingInfoRequest) => {
 
 export interface CommandRequest {
 	code: string;
+	log: boolean;
 };
 export interface CommandResponse {
 	success: boolean;
