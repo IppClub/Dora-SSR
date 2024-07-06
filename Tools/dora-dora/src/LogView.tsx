@@ -151,8 +151,9 @@ const LogView = memo((props: LogViewProps) => {
 	};
 
 	const onToggleProfiler = () => {
-		setToggleProfiler(!toggleProfiler);
-		Service.command({code: `Director.profilerSending = ${toggleProfiler ? 'false' : 'true'}`, log: false}).then().catch((err) => {
+		Service.command({code: `Director.profilerSending = ${toggleProfiler ? 'false' : 'true'}`, log: false}).then(() => {
+			setToggleProfiler(!toggleProfiler);
+		}).catch((err) => {
 			console.error(err);
 		});
 	};
