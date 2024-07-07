@@ -504,10 +504,9 @@ export default function PersistentDrawerLeft() {
 		switchTab(newValue, files[newValue]);
 	}, [switchTab, files]);
 
-	const currentFile = tabIndex ? files[tabIndex] : null;
-
+	const currentFile = tabIndex !== null ? files.at(tabIndex) : undefined;
 	useEffect(() => {
-		if (currentFile !== null) {
+		if (currentFile !== undefined) {
 			const {editor} = currentFile;
 			if (editor === undefined) {
 				return;
@@ -518,8 +517,6 @@ export default function PersistentDrawerLeft() {
 				}
 			});
 			editor.focus();
-			const model = editor.getModel();
-			if (model === null) return;
 			if (currentFile.position) {
 				const {position} = currentFile;
 				editor.setPosition(position);
@@ -527,6 +524,8 @@ export default function PersistentDrawerLeft() {
 				currentFile.position = undefined;
 				setFiles(prev => [...prev]);
 			}
+			const model = editor.getModel();
+			if (model === null) return;
 			if (!checkFileReadonly(currentFile.key, false) && !currentFile.readOnly) {
 				checkFile(currentFile, currentFile.contentModified ?? currentFile.content, model);
 			}
@@ -2024,7 +2023,7 @@ export default function PersistentDrawerLeft() {
 				if (position === undefined && editor !== undefined) {
 					position = editor.getPosition() ?? undefined;
 				}
-				return {key, title, mdEditing, position: position, readOnly};
+				return {key, title, mdEditing, position, readOnly};
 			})
 		};
 		Service.editingInfo({
