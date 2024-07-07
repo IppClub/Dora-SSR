@@ -13,7 +13,7 @@ import { Color } from './Frame';
 
 export interface FilterOption {
 	title: string;
-	key: string;
+	fileKey: string;
 	path: string;
 }
 
@@ -40,7 +40,7 @@ const FileFilter = (props: FileFilterProps) => {
 		disableListWrap
 		filterOptions={filterOptions}
 		options={props.options}
-		getOptionLabel={(option) => option.key}
+		getOptionLabel={(option) => option.fileKey}
 		renderInput={(params) => <TextField
 			autoFocus
 			sx={{
@@ -51,8 +51,10 @@ const FileFilter = (props: FileFilterProps) => {
 				}
 			}} {...params} label={t("popup.goToFile")}/>}
 		renderOption={(props, option) => {
+			delete props.key;
+			const newProps: Omit<typeof props, "key"> = {...props};
 			return (
-				<li {...props}>
+				<li key={option.fileKey} {...newProps}>
 					{option.title}&emsp;&emsp;
 					<p style={{textAlign: 'right', color: Color.TextSecondary, fontSize: '12px'}}>{option.path}</p>
 				</li>

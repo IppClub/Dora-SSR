@@ -96,18 +96,18 @@ const editorBackground = <div style={{width: '100%', height: '100%', backgroundC
 const Editor = memo((props: {
 	width: number, height: number,
 	language: string,
-	fileKey: string,
+	editingFile: EditingFile,
 	readOnly: boolean,
 	minimap: boolean,
 	onMount: (editor: monaco.editor.IStandaloneCodeEditor) => void,
-	onModified: (key: string, content: string) => void,
+	onModified: (editingFile: EditingFile, content: string, lastChange?: monaco.editor.IModelContentChange) => void,
 	onValidate: (markers: monaco.editor.IMarker[], key: string) => void,
 }) => {
 	const {
 		width,
 		height,
 		language,
-		fileKey,
+		editingFile,
 		readOnly,
 		minimap,
 		onMount,
@@ -115,8 +115,12 @@ const Editor = memo((props: {
 		onValidate
 	} = props;
 	const doValidate = useCallback((markers: monaco.editor.IMarker[]) => {
-		onValidate(markers, fileKey);
-	}, [onValidate, fileKey]);
+		onValidate(markers, editingFile.key);
+	}, [onValidate, editingFile.key]);
+	const onChange = useCallback((content: string | undefined, ev: monaco.editor.IModelContentChangedEvent) => {
+		if (content === undefined) return;
+		onModified(editingFile, content, ev.changes.at(-1));
+	}, [onModified, editingFile]);
 	return (
 		<MonacoEditor
 			width={width}
@@ -126,12 +130,9 @@ const Editor = memo((props: {
 			onMount={onMount}
 			keepCurrentModel
 			loading={editorBackground}
-			onChange={(content: string | undefined) => {
-				if (content === undefined) return;
-				onModified(fileKey, content);
-			}}
+			onChange={onChange}
 			onValidate={language === "typescript" ? doValidate : undefined}
-			path={monaco.Uri.file(fileKey).toString()}
+			path={monaco.Uri.file(editingFile.key).toString()}
 			options={{
 				readOnly,
 				wordWrap: 'on',
@@ -247,7 +248,6 @@ export default function PersistentDrawerLeft() {
 		title: string,
 		row: number,
 		col: number,
-		mdEditing?: boolean,
 	}| null>(null);
 
 	const [openFilter, setOpenFilter] = useState(false);
@@ -419,10 +419,6 @@ export default function PersistentDrawerLeft() {
 
 	contentModified = files.find(file => file.contentModified !== null) !== undefined;
 
-	const onModified = useCallback((key: string, content: string) => {
-		setModified({key, content});
-	}, []);
-
 	const checkFileReadonly = useCallback((key: string, withPrompt: boolean) => {
 		if (Info.engineDev) return false;
 		if (!key.startsWith(writablePath)) {
@@ -433,6 +429,24 @@ export default function PersistentDrawerLeft() {
 		}
 		return false;
 	}, [writablePath, t]);
+
+	const onModified = useCallback((editingFile: EditingFile, content: string, lastChange?: monaco.editor.IModelContentChange) => {
+		setModified({key: editingFile.key, content});
+		const editor = editingFile.editor;
+		if (editor === undefined) return;
+		const model = editor.getModel();
+		if (model === null) return;
+		if (!checkFileReadonly(editingFile.key, false) && !editingFile.readOnly) {
+			lastEditorActionTime = Date.now();
+			new Promise((resolve) => {
+				setTimeout(resolve, 500);
+			}).then(() => {
+				if (Date.now() - lastEditorActionTime >= 500) {
+					checkFile(editingFile, content, model, lastChange);
+				}
+			});
+		}
+	}, [checkFileReadonly]);
 
 	const handleDrawerOpen = () => {
 		setDrawerOpen(!drawerOpen);
@@ -490,42 +504,41 @@ export default function PersistentDrawerLeft() {
 		switchTab(newValue, files[newValue]);
 	}, [switchTab, files]);
 
+	const currentFile = tabIndex ? files[tabIndex] : null;
+
 	useEffect(() => {
-		if (tabIndex !== null) {
-			const file = files[tabIndex];
-			const {editor} = file;
-			setTimeout(() => {
-				if (editor !== undefined) {
-					editor.updateOptions({
-						stickyScroll: {
-							enabled: true,
-						}
-					});
-					editor.focus();
-					const model = editor.getModel();
-					if (model === null) return;
-					if (file.position) {
-						const position = file.position;
-						editor.setPosition(position);
-						editor.revealPositionInCenterIfOutsideViewport(position);
-						file.position = undefined;
-						setFiles(prev => [...prev]);
-					}
-					if (!checkFileReadonly(file.key, false) && !file.readOnly) {
-						checkFile(file, file.contentModified ?? file.content, model);
-					}
-					const ext = path.extname(file.key).toLowerCase();
-					if (ext === ".ts" || ext === ".tsx") {
-						import('./TranspileTS').then(({revalidateModel}) => {
-							revalidateModel(model);
-						});
-					}
-					return;
+		if (currentFile !== null) {
+			const {editor} = currentFile;
+			if (editor === undefined) {
+				return;
+			}
+			editor.updateOptions({
+				stickyScroll: {
+					enabled: true,
 				}
-			}, 100);
-			file.yarnData?.warpToFocusedNode();
+			});
+			editor.focus();
+			const model = editor.getModel();
+			if (model === null) return;
+			if (currentFile.position) {
+				const {position} = currentFile;
+				editor.setPosition(position);
+				editor.revealPositionInCenterIfOutsideViewport(position);
+				currentFile.position = undefined;
+				setFiles(prev => [...prev]);
+			}
+			if (!checkFileReadonly(currentFile.key, false) && !currentFile.readOnly) {
+				checkFile(currentFile, currentFile.contentModified ?? currentFile.content, model);
+			}
+			const ext = path.extname(currentFile.key).toLowerCase();
+			if (ext === ".ts" || ext === ".tsx") {
+				import('./TranspileTS').then(({revalidateModel}) => {
+					revalidateModel(model);
+				});
+			}
+			currentFile.yarnData?.warpToFocusedNode();
 		}
-	}, [tabIndex, files, checkFileReadonly]);
+	}, [currentFile, currentFile?.editor, checkFileReadonly]);
 
 	const onEditorDidMount = useCallback((file: EditingFile) => async (editor: monaco.editor.IStandaloneCodeEditor) => {
 		file.editor = editor;
@@ -624,20 +637,6 @@ export default function PersistentDrawerLeft() {
 		const model = editor.getModel();
 		if (model) {
 			model.setValue(file.content);
-			if (!checkFileReadonly(file.key, false) && !file.readOnly) {
-				model.onDidChangeContent((e) => {
-					lastEditorActionTime = Date.now();
-					const modified = model.getValue();
-					const lastChange = e.changes.at(-1);
-					new Promise((resolve) => {
-						setTimeout(resolve, 500);
-					}).then(() => {
-						if (Date.now() - lastEditorActionTime >= 500) {
-							checkFile(file, modified, model, lastChange);
-						}
-					});
-				});
-			}
 		}
 		if (ext === "tsx" || ext === "ts") {
 			if (ext === "tsx") {
@@ -668,7 +667,7 @@ export default function PersistentDrawerLeft() {
 				}
 			});
 		}
-	}, [t, checkFileReadonly]);
+	}, [t]);
 
 	const openFile = useCallback((key: string, title: string) => {
 		return new Promise<EditingFile>((resolve, reject) => {
@@ -749,7 +748,7 @@ export default function PersistentDrawerLeft() {
 		});
 	}, [checkFileReadonly, onEditorDidMount, t]);
 
-	const openFileInTab = useCallback((key: string, title: string, position?: monaco.IPosition, mdEditing?: boolean, readOnly? :boolean) => {
+	const openFileInTab = useCallback((key: string, title: string, position?: monaco.IPosition, readOnly? :boolean) => {
 		let index: number | null = null;
 		const file = files.find((file, i) => {
 			if (path.relative(file.key, key) === "") {
@@ -758,21 +757,10 @@ export default function PersistentDrawerLeft() {
 			}
 			return false;
 		});
-		if (file) {
-			file.mdEditing = mdEditing;
-			if (file.editor && position) {
-				const editor = file.editor;
-				setTimeout(() => {
-					editor.focus();
-					editor.setPosition(position);
-					editor.revealPositionInCenterIfOutsideViewport(position);
-				}, 100);
-			}
-		}
 		if (index === null) {
 			openFile(key, title).then((newFile) => {
-				newFile.mdEditing = mdEditing;
 				newFile.readOnly = readOnly;
+				newFile.position = position;
 				setFiles(files => {
 					const newFiles = [...files, newFile];
 					const lastIndex = newFiles.length - 1;
@@ -785,13 +773,15 @@ export default function PersistentDrawerLeft() {
 		}
 	}, [switchTab, files, openFile]);
 
-	if (jumpToFile !== null) {
-		setJumpToFile(null);
-		openFileInTab(jumpToFile.key, jumpToFile.title, {
-			lineNumber: jumpToFile.row,
-			column: jumpToFile.col
-		}, jumpToFile.mdEditing);
-	}
+	useEffect(() => {
+		if (jumpToFile !== null) {
+			openFileInTab(jumpToFile.key, jumpToFile.title, {
+				lineNumber: jumpToFile.row,
+				column: jumpToFile.col
+			});
+			setJumpToFile(null);
+		}
+	}, [jumpToFile, openFileInTab]);
 
 	const onSelect = useCallback((nodes: TreeDataType[]) => {
 		setSelectedKeys(nodes.map(n => n.key));
@@ -1333,7 +1323,7 @@ export default function PersistentDrawerLeft() {
 				const luaFile = path.join(dir, name + ".lua");
 				Service.read({path: luaFile}).then((res) => {
 					if (res.success && res.content !== undefined) {
-						openFileInTab(luaFile, name + ".lua", undefined, undefined, true);
+						openFileInTab(luaFile, name + ".lua", undefined, true);
 					} else {
 						addAlert(t("alert.failedCompile", {title: name + ".lua"}), "warning");
 					}
@@ -2004,7 +1994,7 @@ export default function PersistentDrawerLeft() {
 					if (engineDev || isWritableFile) {
 						filterOptions.push({
 							title: node.title,
-							key: node.key,
+							fileKey: node.key,
 							path: node.key.substring(isWritableFile ? writablePath.length + 1 : assetPath.length + 1),
 						});
 					}
@@ -2095,7 +2085,7 @@ export default function PersistentDrawerLeft() {
 		if (value === null) {
 			return;
 		}
-		openFileInTab(value.key, value.title);
+		openFileInTab(value.fileKey, value.title);
 	}, [setFilterOptions, openFileInTab]);
 
 	return (
@@ -2432,7 +2422,7 @@ export default function PersistentDrawerLeft() {
 									}
 									return <Editor
 										key={file.key}
-										fileKey={file.key}
+										editingFile={file}
 										width={editorWidth}
 										height={editorHeight}
 										language={language}
