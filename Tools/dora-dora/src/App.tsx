@@ -511,18 +511,20 @@ export default function PersistentDrawerLeft() {
 			if (editor === undefined) {
 				return;
 			}
+			editor.focus();
 			editor.updateOptions({
 				stickyScroll: {
 					enabled: true,
 				}
 			});
-			editor.focus();
 			if (currentFile.position) {
 				const {position} = currentFile;
-				editor.setPosition(position);
-				editor.revealPositionInCenterIfOutsideViewport(position);
 				currentFile.position = undefined;
 				setFiles(prev => [...prev]);
+				setTimeout(() => {
+					editor.setPosition(position);
+					editor.revealPositionInCenter(position);
+				}, 100);
 			}
 			const model = editor.getModel();
 			if (model === null) return;
@@ -541,9 +543,6 @@ export default function PersistentDrawerLeft() {
 
 	const onEditorDidMount = useCallback((file: EditingFile) => async (editor: monaco.editor.IStandaloneCodeEditor) => {
 		file.editor = editor;
-		if (file.position !== undefined) {
-			editor.setPosition(file.position);
-		}
 		setFiles(prev => [...prev]);
 		let inferLang: "lua" | "tl" | "yue" | null = null;
 		const ext = path.extname(file.key).toLowerCase().substring(1);
