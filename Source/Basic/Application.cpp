@@ -30,6 +30,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <thread>
 
 #define DORA_VERSION "1.5.5"_slice
+#define DORA_REVISION "3"_slice
 
 #if BX_PLATFORM_ANDROID
 #include <jni.h>
@@ -613,7 +614,8 @@ const Slice Application::getPlatform() const noexcept {
 }
 
 const Slice Application::getVersion() const noexcept {
-	return DORA_VERSION;
+	static std::string versionStr = DORA_VERSION.toString() + '.' + DORA_REVISION;
+	return versionStr;
 }
 
 bool Application::isDebugging() const noexcept {
