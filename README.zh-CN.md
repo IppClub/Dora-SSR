@@ -12,7 +12,7 @@
 
 ----
 
-&emsp;&emsp;Dora SSR是一个用于多种设备上快速开发2D游戏的游戏引擎。它内置易用的开发工具链，支持在手机、开源掌机等设备上直接进行游戏开发。
+&emsp;&emsp;Dora SSR 是一个用于多种设备上快速开发2D游戏的游戏引擎。它内置易用的开发工具链，支持在手机、开源掌机等设备上直接进行游戏开发。
 
 <div align='center'><img src='Docs/static/img/3.png' alt='Playground' width='650px'/></div>
 
@@ -28,11 +28,12 @@
 
 ## 主要特点
 
-| 功能     | 描述                                                 |
-| -------- | ---------------------------------------------------- |
-| 树形节点 | 基于树形节点结构管理游戏场景。                       |
-| 2D 平台游戏 | 基础的 2D 平台游戏功能，包括游戏逻辑和 AI 开发框架。 |
-| ECS | 易用的 ECS 模块，便于游戏实体管理。                  |
+|功能|描述|
+|-|-|
+|跨平台支持|支持在 Linux、Android、Windows、iOS 和 macOS 上本地运行。|
+|树形节点|基于树形节点结构管理游戏场景。|
+|2D 平台游戏| 基础的 2D 平台游戏功能，包括游戏逻辑和 AI 开发框架。|
+|ECS|易用的 ECS 模块，便于游戏实体管理。|
 |异步处理|异步处理的文件读写、资源加载等操作。|
 |Lua|升级的 Lua 绑定，支持继承和扩展底层 C++ 对象。|
 |YueScript|支持 YueScript 语言，强表达力且简洁的 Lua 方言。|
@@ -49,12 +50,12 @@
 |特效系统|支持 [Effekseer](https://effekseer.github.io/en) 特效系统的功能。|
 |瓦片地图|支持 [Tiled Map Editor](http://www.mapeditor.org) 制作的 TMX 地图文件的解析和渲染。|
 |机器学习|内置用于创新游戏玩法的机器学习算法框架。|
-| Yarn Spinner | 支持 Yarn Spinner 语言，便于编写复杂的游戏故事系统。         |
-| 矢量图形 | 提供矢量图形渲染 API，可直接渲染无 CSS 的 SVG 格式文件。     |
-| ImGui | 内置 ImGui，便于创建调试工具和 UI 界面。                     |
-| 音频 | 支持 FLAC、OGG、MP3 和 WAV 多格式音频播放。                  |
-| True Type | 支持 True Type 字体的渲染和基础排版。                        |
-| L·S·D | 提供可用于制作自己游戏的开放美术素材和游戏 IP —— [《灵数奇缘》](https://luv-sense-digital.readthedocs.io)。 <br><br><div align='center'><img src='Docs/static/img/LSD.jpg' alt='LSD' width='400px'/></div> |
+|Yarn Spinner|支持 Yarn Spinner 语言，便于编写复杂的游戏故事系统。|
+|矢量图形|提供矢量图形渲染 API，可直接渲染无 CSS 的 SVG 格式文件。|
+|ImGui|内置 ImGui，便于创建调试工具和 UI 界面。|
+|音频|支持 FLAC、OGG、MP3 和 WAV 多格式音频播放。|
+|True Type| 支持 True Type 字体的渲染和基础排版。|
+|L·S·D|提供可用于制作自己游戏的开放美术素材和游戏 IP —— [《灵数奇缘》](https://luv-sense-digital.readthedocs.io)。<br><br><div align='center'><img src='Docs/static/img/LSD.jpg' alt='LSD' width='400px'/></div>|
 
 <br>
 
@@ -87,67 +88,52 @@
 ## 安装配置
 
 - 快速上手
-
-  - Android
-    - 1、在游戏的运行终端下载并安装[APK](https://github.com/ippclub/Dora-SSR/releases/latest)包。
-
-    - 2、运行软件，通过局域网内的PC（平板或其他开发设备）的浏览器访问软件显示的服务器地址。
-
-    - 3、开始游戏开发。
-
-  - Windows、macOS
-    - 1、下载并运行[软件](https://github.com/ippclub/Dora-SSR/releases/latest)。
-      - 在macOS上也可以通过 Homebrew 进行软件安装。
-          ```sh
-          brew tap ippclub/dora-ssr
-          brew install --cask dora-ssr
-          ```
-
-    - 2、运行软件，通过浏览器访问软件显示的服务器地址。
-
-    - 3、开始游戏开发。
-    
-  - Linux
-    - 1、安装软件：
-      
-       - Ubuntu Jammy
-         ```sh
-         sudo add-apt-repository ppa:ippclub/dora-ssr
-         sudo apt update
-         sudo apt install dora-ssr
-         ```
-
-       - Debian Bookworm
-         ```sh
-         sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 9C7705BF
-         sudo add-apt-repository -S "deb https://ppa.launchpadcontent.net/ippclub/dora-ssr/ubuntu jammy main"
-         sudo apt update
-         sudo apt install dora-ssr
-         ```
-
-    - 2、运行软件，通过浏览器访问软件显示的服务器地址。
-    
-    - 3、开始游戏开发。
+	- Android
+		- 1、在游戏的运行终端下载并安装[APK](https://github.com/ippclub/Dora-SSR/releases/latest)包。
+		- 2、运行软件，通过局域网内的PC（平板或其他开发设备）的浏览器访问软件显示的服务器地址。
+		- 3、开始游戏开发。
+	- Windows、macOS
+		- 1、下载并运行[软件](https://github.com/ippclub/Dora-SSR/releases/latest)。
+			- 对于 Windows 用户，请确保您已安装 Visual Studio 2022 的 X86 Visual C++ 可再发行组件包（包含 MSVC 编译的程序所需运行时的 vc_redist.x86 补丁），以运行此应用程序。您可以从[微软网站](https://learn.microsoft.com/zh-cn/cpp/windows/latest-supported-vc-redist?view=msvc-170)下载。
+			- 在 macOS 上也可以通过 Homebrew 进行软件安装。
+				```sh
+				brew tap ippclub/dora-ssr
+				brew install --cask dora-ssr
+				```
+		- 2、运行软件，通过浏览器访问软件显示的服务器地址。
+		- 3、开始游戏开发。
+	- Linux
+		- 1、安装软件：
+			- Ubuntu Jammy
+				```sh
+				sudo add-apt-repository ppa:ippclub/dora-ssr
+				sudo apt update
+				sudo apt install dora-ssr
+				```
+			- Debian Bookworm
+				```sh
+				sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 9C7705BF
+				sudo add-apt-repository -S "deb https://ppa.launchpadcontent.net/ippclub/dora-ssr/ubuntu jammy main"
+				sudo apt update
+				sudo apt install dora-ssr
+				```
+		- 2、运行软件，通过浏览器访问软件显示的服务器地址。
+		- 3、开始游戏开发。
 
 - 引擎项目开发
 
-  进行Dora SSR项目开发的安装配置，详见[官方文档](https://dora-ssr.net/zh-Hans/docs/tutorial/dev-configuration)。
+&emsp;&emsp;进行 Dora SSR 项目开发的安装配置，详见[官方文档](https://dora-ssr.net/zh-Hans/docs/tutorial/dev-configuration)。
 
 <br>
 
 ## 快速入门
 
 1. 第一步：创建一个新项目
-
-   - 在浏览器中，打开Dora Dora编辑器左侧游戏资源树的右键菜单。
-
-   - 点击菜单项`New`，选择新建文件夹。
-
+	- 在浏览器中，打开 Dora Dora 编辑器左侧游戏资源树的右键菜单。
+	- 点击菜单项 `New`，选择新建文件夹。
 2. 第二步：编写游戏代码
-
-   - 在项目文件夹下新建游戏入口代码文件，选择 Lua  (Yuescript, Teal, Typescript 或 TSX) 语言命名为`init`。
-
-   - 编写Hello World代码：
+	- 在项目文件夹下新建游戏入口代码文件，选择 Lua  (YueScript, Teal, TypeScript 或 TSX) 语言命名为`init`。
+	- 编写 Hello World 代码：
 
 - **Lua**
 ```lua
@@ -193,7 +179,7 @@ end
 ```
 - **Yuescript**
 
-  有关 Dora SSR 所支持的 Yuescript 这门小众语言的故事在[这里](https://dora-ssr.net/zh-Hans/blog/2024/4/17/a-moon-script-tale)。
+&emsp;&emsp;有关 Dora SSR 所支持的 Yuescript 这门小众语言的故事在[这里](https://dora-ssr.net/zh-Hans/blog/2024/4/17/a-moon-script-tale)。
 ```moonscript
 _ENV = Dora
 
@@ -208,7 +194,7 @@ with Sprite "Image/logo.png"
        Scale 0.5, 0.5, 1, Ease. OutBack
      )
 ```
-- **Typescript**
+- **TypeScript**
 ```typescript
 import {Sprite, Ease, Scale, Sequence, once, sleep} from 'Dora';
 
@@ -229,7 +215,7 @@ if (sprite) {
 ```
 - **TSX**
 
-  使用 TSX 语言来创建 Dora SSR 的游戏场景是一个比较容易上手的选择。新手教程可以参见[这里](https://dora-ssr.net/zh-Hans/blog/2024/4/25/tsx-dev-intro)。
+&emsp;&emsp;使用 TSX 语言来创建 Dora SSR 的游戏场景是一个比较容易上手的选择。新手教程可以参见[这里](https://dora-ssr.net/zh-Hans/blog/2024/4/25/tsx-dev-intro)。
 ```tsx
 import {React, toNode, useRef} from 'DoraX';
 import {ActionDef, Ease, Sprite, once, sleep} from 'Dora';
@@ -265,7 +251,7 @@ toNode(
 ```
 - **Rust**
 
-  也支持使用 Rust 语言来编写游戏代码，编译为 WASM 文件，命名为 `init.wasm` 再上传到引擎中加载运行。详情见[这里](https://dora-ssr.net/zh-Hans/blog/2024/4/15/rusty-game-dev)。
+&emsp;&emsp;Dora SSR 也支持使用 Rust 语言来编写游戏代码，编译为 WASM 文件，命名为 `init.wasm` 再上传到引擎中加载运行。详情见[这里](https://dora-ssr.net/zh-Hans/blog/2024/4/15/rusty-game-dev)。
 ```rust
 use dora_ssr::*;
 
@@ -291,16 +277,13 @@ fn main () {
 
 3. 第三步：运行游戏
 
-   点击编辑器右下角`🎮`图标，然后点击菜单项`Run`。或者按下组合键`Ctrl + r`。
+&emsp;&emsp;点击编辑器右下角`🎮`图标，然后点击菜单项`Run`。或者按下组合键`Ctrl + r`。
 
 4. 第四步：发布游戏
+	- 通过编辑器左侧游戏资源树，打开刚才新建的项目文件夹的右键菜单，点击`Download`选项。
+	- 等待浏览器弹出已打包项目文件的下载提示。
 
-   - 通过编辑器左侧游戏资源树，打开刚才新建的项目文件夹的右键菜单，点击`Download`选项。
-
-   - 等待浏览器弹出已打包项目文件的下载提示。
-
-
-更详细的教程，请查看[官方文档](https://dora-ssr.net/zh-Hans/docs/tutorial/quick-start)。
+&emsp;&emsp;更详细的教程，请查看[官方文档](https://dora-ssr.net/zh-Hans/docs/tutorial/quick-start)。
 
 <br>
 
@@ -320,10 +303,10 @@ fn main () {
 
 ## 贡献
 
-欢迎参与Dora SSR的开发和维护。请查看[贡献指南](CONTRIBUTING.zh-CN.md)了解如何提交Issue和Pull Request。
+&emsp;&emsp;欢迎参与Dora SSR的开发和维护。请查看[贡献指南](CONTRIBUTING.zh-CN.md)了解如何提交Issue和Pull Request。
 
 <br>
 
 ## 许可证
 
-Dora SSR使用[MIT许可证](LICENSE)。原为Dorothy SSR项目，项目名称现处于更名程序中。
+&emsp;&emsp;Dora SSR使用[MIT许可证](LICENSE)。原为Dorothy SSR项目，项目名称现处于更名程序中。
