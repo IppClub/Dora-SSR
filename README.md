@@ -128,10 +128,10 @@ For the installation and configuration of Dora SSR project development, see [Off
 
 ## Quick Start
 
-1. Step 1: Create a new project
+1. Step One: Create a new project
 	- In the browser, open the right-click menu of the game resource tree on the left side of the Dora Dora editor.
 	- Click on the menu item `New` and choose to create a new folder.
-2. Step 2: Write game code
+2. Step Two: Write game code
 	- Create a new game entry code file of Lua (YueScript, Teal, TypeScript or TSX) under the project folder, named `init`.
 	- Write Hello World code:
 
@@ -285,11 +285,11 @@ fn main () {
 }
 ```
 
-3. Step 3: Run the game
+3. Step Three: Run the game
 
 	Click the `🎮` icon in the lower right corner of the editor, then click the menu item `Run`. Or press the key combination `Ctrl + r`.
 
-4. Step 4: Publish the game
+4. Step Four: Publish the game
 	- Open the right-click menu of the project folder just created through the game resource tree on the left side of the editor and click the `Download` option.
 	- Wait for the browser to pop up a download prompt for the packaged project file.
 
