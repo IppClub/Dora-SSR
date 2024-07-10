@@ -35,20 +35,16 @@ interface RectShapeProps {
 }
 
 function RectShape(props: RectShapeProps) {
-	const hw = props.width / 2;
-	const hh = props.height / 2;
 	const x = props.x ?? 0;
 	const y = props.y ?? 0;
 	const color = Color3(props.color);
 	const fillColor = Color(color, 0x66).toARGB();
 	const borderColor = Color(color, 0xff).toARGB();
-	return <polygon-shape
-		verts={[
-			Vec2(-hw + x, hh + y),
-			Vec2(hw + x, hh + y),
-			Vec2(hw + x, -hh + y),
-			Vec2(-hw + x, -hh + y)
-		]}
+	return <rect-shape
+		centerX={x}
+		centerY={y}
+		width={props.width}
+		height={props.height}
 		fillColor={fillColor}
 		borderColor={borderColor}
 		borderWidth={1}
