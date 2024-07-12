@@ -331,14 +331,14 @@ static void savelineinfo (FuncState *fs, Proto *f, int line) {
   int pc = fs->pc - 1;  /* last instruction coded */
   if (abs(linedif) >= LIMLINEDIFF || fs->iwthabs++ >= MAXIWTHABS) {
     luaM_growvector(fs->ls->L, f->abslineinfo, fs->nabslineinfo,
-                    f->sizeabslineinfo, AbsLineInfo, MAX_INT, "lines");
+                    f->sizeabslineinfo, AbsLineInfo, INT_MAX, "lines");
     f->abslineinfo[fs->nabslineinfo].pc = pc;
     f->abslineinfo[fs->nabslineinfo++].line = line;
     linedif = ABSLINEINFO;  /* signal that there is absolute information */
     fs->iwthabs = 1;  /* restart counter */
   }
   luaM_growvector(fs->ls->L, f->lineinfo, pc, f->sizelineinfo, ls_byte,
-                  MAX_INT, "opcodes");
+                  INT_MAX, "opcodes");
   f->lineinfo[pc] = linedif;
   fs->previousline = line;  /* last line saved */
 }
@@ -383,7 +383,7 @@ int luaK_code (FuncState *fs, Instruction i) {
   Proto *f = fs->f;
   /* put new instruction in code array */
   luaM_growvector(fs->ls->L, f->code, fs->pc, f->sizecode, Instruction,
-                  MAX_INT, "opcodes");
+                  INT_MAX, "opcodes");
   f->code[fs->pc++] = i;
   savelineinfo(fs, f, fs->ls->lastline);
   return fs->pc - 1;  /* index of new instruction */
@@ -776,7 +776,8 @@ void luaK_dischargevars (FuncState *fs, expdesc *e) {
       break;
     }
     case VLOCAL: {  /* already in a register */
-      e->u.info = e->u.var.ridx;
+      int temp = e->u.var.ridx;
+      e->u.info = temp;  /* (can't do a direct assignment; values overlap) */
       e->k = VNONRELOC;  /* becomes a non-relocatable value */
       break;
     }
@@ -1283,8 +1284,9 @@ void luaK_indexed (FuncState *fs, expdesc *t, expdesc *k) {
   if (t->k == VUPVAL && !isKstr(fs, k))  /* upvalue indexed by non 'Kstr'? */
     luaK_exp2anyreg(fs, t);  /* put it in a register */
   if (t->k == VUPVAL) {
+    int temp = t->u.info;  /* upvalue index */
     lua_assert(isKstr(fs, k));
-    t->u.ind.t = t->u.info;  /* upvalue index */
+    t->u.ind.t = temp;  /* (can't do a direct assignment; values overlap) */
     t->u.ind.idx = k->u.info;  /* literal short string */
     t->k = VINDEXUP;
   }

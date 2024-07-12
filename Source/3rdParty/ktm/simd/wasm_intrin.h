@@ -8,8 +8,8 @@
 #ifndef _KTM_WASM_INTRIN_H_
 #define _KTM_WASM_INTRIN_H_
 
-#include "arch_def.h"
 #include <cstddef>
+#include "arch_def.h"
 
 namespace intrin 
 {
@@ -21,12 +21,12 @@ KTM_FUNC float cast128to32_f32(v128_t a) noexcept
   	return wasm_f32x4_extract_lane(a, 0);
 }
 
-KTM_FUNC v128_t load128_f32(const float* p) noexcept
+KTM_FUNC v128_t load128_f32(const void* p) noexcept
 {
   	return wasm_v128_load(p);
 }
 
-KTM_FUNC void store128_f32(float* p, v128_t a) noexcept
+KTM_FUNC void store128_f32(void* p, v128_t a) noexcept
 {
   	wasm_v128_store(p, a);
 }

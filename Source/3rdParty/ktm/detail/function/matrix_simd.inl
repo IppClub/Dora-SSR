@@ -334,13 +334,13 @@ struct ktm::detail::matrix_implement::inverse<4, float>
         skv::fv4 i_tmp_1 = _shufft128_f32(inv_2, inv_3, 0, 0, 0, 0);
         skv::fv4 i_row_0 = _shufft128_f32(i_tmp_0, i_tmp_1, 3, 1, 3, 1);
         skv::fv4 i_dot = skv::dot_fv4(c_0, i_row_0);
-        skv::fv4 one_over_det = _reciph128_f32(i_dot);
+        skv::fv4 recip_det = _reciph128_f32(i_dot);
         
         M ret;
-        ret[0].st = _mul128_f32(inv_0, one_over_det);
-        ret[1].st = _mul128_f32(inv_1, one_over_det);
-        ret[2].st = _mul128_f32(inv_2, one_over_det);
-        ret[3].st = _mul128_f32(inv_3, one_over_det);
+        ret[0].st = _mul128_f32(inv_0, recip_det);
+        ret[1].st = _mul128_f32(inv_1, recip_det);
+        ret[2].st = _mul128_f32(inv_2, recip_det);
+        ret[3].st = _mul128_f32(inv_3, recip_det);
         return ret;
     }
 };

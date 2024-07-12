@@ -25,10 +25,10 @@ struct affine2d
         struct { T a, b, c, d, tx, ty; };
     };
 
-    affine2d() noexcept : a(one<T>), b(zero<T>), c(zero<T>), d(one<T>), tx(zero<T>), ty(zero<T>) { }
-    affine2d(const mat<2, 2, T>& matrix) noexcept : m(matrix[0], matrix[1], vec<2, T>()) { }
-    affine2d(const mat<3, 3, T>& matrix) noexcept : m(matrix[0].xy(), matrix[1].xy(), matrix[2].xy()) { }
-    affine2d(const mat<4, 4, T>& matrix) noexcept : m(matrix[0].xy(), matrix[1].xy(), matrix[3].xy()) { }
+    KTM_FUNC affine2d() noexcept : a(one<T>), b(zero<T>), c(zero<T>), d(one<T>), tx(zero<T>), ty(zero<T>) { }
+    KTM_FUNC affine2d(const mat<2, 2, T>& matrix) noexcept : m(matrix[0], matrix[1], vec<2, T>()) { }
+    KTM_FUNC affine2d(const mat<3, 3, T>& matrix) noexcept : m(matrix[0].xy(), matrix[1].xy(), matrix[2].xy()) { }
+    KTM_FUNC affine2d(const mat<4, 4, T>& matrix) noexcept : m(matrix[0].xy(), matrix[1].xy(), matrix[3].xy()) { }
 
     KTM_INLINE affine2d& translate(T x, T y) noexcept
     {

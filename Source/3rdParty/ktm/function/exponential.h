@@ -57,6 +57,12 @@ KTM_INLINE std::enable_if_t<std::is_floating_point_v<T>, T> recip(T x) noexcept
 }
 
 template<typename T>
+KTM_INLINE std::enable_if_t<std::is_floating_point_v<T>, T> cbrt(T x) noexcept
+{
+    return std::cbrt(x);
+}
+
+template<typename T>
 KTM_INLINE std::enable_if_t<std::is_floating_point_v<T>, T> pow(T x, T y) noexcept
 {
     return std::pow(x, y);

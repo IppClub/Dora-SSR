@@ -25,7 +25,7 @@ KTM_INLINE std::enable_if_t<std::is_floating_point_v<T>, T> radians(T degrees) n
 template<typename T>
 KTM_INLINE std::enable_if_t<std::is_floating_point_v<T>, T> degrees(T radians) noexcept
 {
-    constexpr T radians_to_degrees = static_cast<T>(180) * one_over_pi<T>;
+    constexpr T radians_to_degrees = static_cast<T>(180) * recip_pi<T>;
     return radians * radians_to_degrees;
 }
 

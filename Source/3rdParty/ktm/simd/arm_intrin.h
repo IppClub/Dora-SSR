@@ -8,8 +8,8 @@
 #ifndef _KTM_ARM_INTRIN_H_
 #define _KTM_ARM_INTRIN_H_
 
-#include "arch_def.h"
 #include <cstddef>
+#include "arch_def.h"
 
 namespace intrin 
 {
@@ -85,14 +85,14 @@ KTM_FUNC float32x2_t cast64_f32_s32(int32x2_t a) noexcept
   	return vreinterpret_f32_s32(a);
 }
 
-KTM_FUNC float32x2_t load64_f32(const float* p) noexcept
+KTM_FUNC float32x2_t load64_f32(const void* p) noexcept
 {
-  	return vld1_f32(p);
+  	return vld1_f32(reinterpret_cast<const float*>(p));
 }
 
-KTM_FUNC void store64_f32(float* p, float32x2_t a) noexcept
+KTM_FUNC void store64_f32(void* p, float32x2_t a) noexcept
 {
-  	vst1_f32(p, a);
+  	vst1_f32(reinterpret_cast<float*>(p), a);
 }
 
 KTM_FUNC float32x2_t dup64_f32(float a) noexcept
@@ -284,14 +284,14 @@ KTM_FUNC float32x4_t cast128_f32_s32(int32x4_t a) noexcept
   	return vreinterpretq_f32_s32(a);
 }
 
-KTM_FUNC float32x4_t load128_f32(const float* p) noexcept
+KTM_FUNC float32x4_t load128_f32(const void* p) noexcept
 {
-  	return vld1q_f32(p);
+  	return vld1q_f32(reinterpret_cast<const float*>(p));
 }
 
-KTM_FUNC void store128_f32(float* p, float32x4_t a) noexcept
+KTM_FUNC void store128_f32(void* p, float32x4_t a) noexcept
 {
-  	vst1q_f32(p, a);
+  	vst1q_f32(reinterpret_cast<float*>(p), a);
 }
 
 KTM_FUNC float32x4_t dup128_f32(float a) noexcept

@@ -36,7 +36,13 @@ template<typename T>
 inline constexpr std::enable_if_t<std::is_floating_point_v<T>, T> half_pi = static_cast<T>(0.5) * pi<T>;
 
 template<typename T>
-inline constexpr std::enable_if_t<std::is_floating_point_v<T>, T> one_over_pi = one<T> / pi<T>;
+inline constexpr std::enable_if_t<std::is_floating_point_v<T>, T> recip_pi = one<T> / pi<T>;
+
+template<typename T>
+inline constexpr std::enable_if_t<std::is_floating_point_v<T>, T> sqrt_tow = static_cast<T>(1.41421356237309504880168872420969807856967187537695);
+
+template<typename T>
+inline constexpr std::enable_if_t<std::is_floating_point_v<T>, T> rsqrt_tow = one<T> / sqrt_tow<T>;
 
 }
 

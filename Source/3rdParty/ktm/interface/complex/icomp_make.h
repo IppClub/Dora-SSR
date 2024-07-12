@@ -27,8 +27,7 @@ struct icomp_make<Father, comp<T>> : Father
 
     static KTM_INLINE comp<T> identity() noexcept
     {
-        static comp<T> iden = comp<T>(zero<T>, one<T>);
-        return iden;
+        return comp<T>(zero<T>, one<T>);
     }
 
     static KTM_INLINE comp<T> real_imag(T real, T imag) noexcept

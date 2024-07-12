@@ -30,8 +30,7 @@ struct iquat_make<Father, quat<T>> : Father
 
     static KTM_INLINE quat<T> identity() noexcept
     {
-        static quat<T> iden = quat<T>(zero<T>, zero<T>, zero<T>, one<T>);
-        return iden;
+        return quat<T>(zero<T>, zero<T>, zero<T>, one<T>);
     }
 
     static KTM_INLINE quat<T> real_imag(T real, const vec<3, T>& imag) noexcept

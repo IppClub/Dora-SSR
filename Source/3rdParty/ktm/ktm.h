@@ -8,6 +8,8 @@
 #ifndef _KTM_H_
 #define _KTM_H_
 
+#include "ktm_operator.h"
+
 #include "type/basic.h"
 #include "type_vec.h"
 #include "type_mat.h"
@@ -21,6 +23,7 @@
 #include "function/common.h"
 #include "function/geometric.h"
 #include "function/compare.h"
+#include "function/random.h"
 #include "function/matrix.h"
 #include "function/matrix_decompose.h"
 #include "function/matrix_transform2d.h"
