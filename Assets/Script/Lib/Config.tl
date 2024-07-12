@@ -52,6 +52,8 @@ return function(schema: string, ...: string): DoraConfig
 					str = v
 				elseif v is boolean then
 					bool = v and 1 or 0
+				else
+					print("expecting config value named \"" .. k .. '" to be string | number | boolean, got ' .. type(v))
 				end
 				iValues[#iValues + 1] = {k, num, str, bool}
 			end
@@ -67,6 +69,8 @@ return function(schema: string, ...: string): DoraConfig
 					str = v
 				elseif v is boolean then
 					bool = v and 1 or 0
+				else
+					print("expecting config value named \"" .. k .. '" to be string | number | boolean, got ' .. type(v))
 				end
 				uValues[#uValues + 1] = {num, str, bool, k}
 			end
@@ -127,7 +131,7 @@ return function(schema: string, ...: string): DoraConfig
 					oldValues[key] = value
 					self[key] = value
 				else
-					local value: number | string = rows[i][2] or rows[i][3]
+					local value: number | string = rows[i][2] or rows[i][3] or nil
 					oldValues[key] = value
 					self[key] = value
 				end
