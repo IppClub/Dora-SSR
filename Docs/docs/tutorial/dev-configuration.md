@@ -10,7 +10,7 @@ sidebar_position: 6
 git clone https://github.com/ippclub/Dora-SSR.git
 ```
 
-## 2. Game Engine Development
+## 2. Game Engine Runtime Development
 
 ### Windows
 
@@ -144,16 +144,49 @@ git clone https://github.com/ippclub/Dora-SSR.git
    ../Projects/Linux/build/dora-ssr
    ```
 
-## 3. Dora Dora Editor Development
+## 3. Web IDE Development
 
 1. Compile and run the Dora SSR engine.
 2. Install the latest version of **Node.js**.
 3. Initialize the project and enter the Dora Dora editor development mode.
    ```sh
+   # macOS
    cd Tools/YarnEditor && yarn && yarn build
    rm -rf ../dora-dora/public/yarn-editor
    mv dist ../dora-dora/public/yarn-editor
-   cd ../../Tools/dora-dora
-   yarn
+   cd ../dora-dora && yarn
    yarn start
+   ```
+   ```sh
+   # Linux
+   cd Tools/YarnEditor && yarn && yarn build-linux
+   rm -rf ../dora-dora/public/yarn-editor
+   mv dist ../dora-dora/public/yarn-editor
+   cd ../dora-dora && yarn
+   yarn start
+   ```
+   ```sh
+   # Windows
+   cd Tools\YarnEditor && yarn && yarn build-win
+   rmdir /Q /S ..\dora-dora\public\yarn-editor
+   move dist ..\dora-dora\public\yarn-editor
+   cd ..\dora-dora && yarn install --network-timeout 1000000
+   yarn start
+   ```
+   Alternatively, you can generate the Web IDE release files, copy them to the project's `Assets/www` directory, and then start the Dora SSR engine to test the full project functionality.
+   ```sh
+   # macOS, Linux
+   # Ensure the previous steps of compiling and copying YarnEditor are completed
+   cd Tools/dora-dora
+   yarn build
+   rm -rf ../../Assets/www
+   mv build ../../Assets/www
+   ```
+   ```sh
+   # Windows
+   # Ensure the previous steps of compiling and copying YarnEditor are completed
+   cd Tools\dora-dora
+   yarn build
+   rmdir /Q /S ..\..\Assets\www
+   move build ..\..\Assets\www
    ```
