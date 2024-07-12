@@ -403,6 +403,8 @@ static_assert(alignof(Matrix) >= alignof(ktm::fmat4x4), "alignof(Matrix) should 
 
 static_assert(alignof(Vec4) >= alignof(ktm::fvec4), "alignof(Vec4) should be greater equal than alignof(ktm::fvec4).");
 
+static_assert(alignof(Vec3) >= alignof(ktm::fvec3), "alignof(Vec3) should be greater equal than alignof(ktm::fvec3).");
+
 const Matrix Matrix::Indentity = {
 	1, 0, 0, 0,
 	0, 1, 0, 0,

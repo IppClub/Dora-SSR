@@ -3619,6 +3619,7 @@ value struct DBParams
 
 value struct DBRecord
 {
+	readonly boolean bool valid;
 	bool read(Array* record);
 };
 

@@ -126,6 +126,10 @@ void Controller::clearChanges() {
 	for (const auto& device : _deviceMap) {
 		for (auto& button : device.second->buttonMap) {
 			button.second.oldState = button.second.newState;
+			if (button.second.newState) {
+				EventArgs<int, Slice> buttonPressed("ButtonPressed"_slice, device.first, button.first);
+				handler(&buttonPressed);
+			}
 		}
 	}
 }

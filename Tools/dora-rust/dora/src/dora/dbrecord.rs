@@ -8,6 +8,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 	fn dbrecord_release(raw: i64);
+	fn dbrecord_is_valid(slf: i64) -> i32;
 	fn dbrecord_read(slf: i64, record: i64) -> i32;
 }
 use crate::dora::IObject;
@@ -21,6 +22,9 @@ impl DBRecord {
 	}
 	pub(crate) fn from(raw: i64) -> DBRecord {
 		DBRecord { raw: raw }
+	}
+	pub fn is_valid(&self) -> bool {
+		return unsafe { dbrecord_is_valid(self.raw()) != 0 };
 	}
 	pub fn read(&mut self, record: &crate::dora::Array) -> bool {
 		unsafe { return dbrecord_read(self.raw(), record.raw()) != 0; }

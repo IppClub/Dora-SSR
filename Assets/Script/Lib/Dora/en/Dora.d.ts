@@ -2351,6 +2351,7 @@ const enum NodeEvent {
 	TextEditing = "TextEditing",
 	ButtonDown = "ButtonDown",
 	ButtonUp = "ButtonUp",
+	ButtonPressed = "ButtonPressed",
 	Axis = "Axis",
 	AnimationEnd = "AnimationEnd",
 	BodyEnter = "BodyEnter",
@@ -2504,6 +2505,14 @@ interface NodeEventHandlerMap {
 	 * @param buttonName The name of the button that was released.
 	*/
 	ButtonUp(this: void, controllerId: number, buttonName: ButtonName): void;
+
+	/**
+	 * The ButtonPressed slot is triggered when a game controller button is being pressed.
+	 * Triggers after setting `node.controllerEnabled = true`.
+	 * @param controllerId The controller id, incrementing from 0 when multiple controllers connected.
+	 * @param buttonName The name of the button that was pressed.
+	*/
+	ButtonPressed(this: void, controllerId: number, buttonName: ButtonName): void;
 
 	/**
 	 * The Axis slot is triggered when a game controller axis changed.
@@ -3464,17 +3473,17 @@ interface DB {
 	 * @param sql The SQL statement to execute.
 	 * @param args [optional] A list of values to substitute into the SQL statement.
 	 * @param withColumn [optional] Whether to include column names in the result (default false).
-	 * @returns A list of rows returned by the query.
+	 * @returns A list of rows returned by the query, or null if the query failed.
 	 */
-	query(sql: string, args?: DBRow, withColumn?: boolean): DBRow[];
+	query(sql: string, args?: DBRow, withColumn?: boolean): DBRow[] | null;
 
 	/**
 	 * Executes an SQL query and returns the results as a list of rows.
 	 * @param sql The SQL statement to execute.
 	 * @param withColumn [optional] Whether to include column names in the result (default false).
-	 * @returns A list of rows returned by the query.
+	 * @returns A list of rows returned by the query, or null if the query failed.
 	 */
-	query(sql: string, withColumn?: boolean): DBRow[];
+	query(sql: string, withColumn?: boolean): DBRow[] | null;
 
 	/**
 	 * Inserts a row of data into a table within a transaction.
@@ -3487,7 +3496,7 @@ interface DB {
 	/**
 	 * Executes an SQL statement and returns the number of rows affected.
 	 * @param sql The SQL statement to execute.
-	 * @returns The number of rows affected by the statement.
+	 * @returns The number of rows affected by the statement, or -1 if the statement failed.
 	 */
 	exec(sql: string): number;
 
@@ -3495,7 +3504,7 @@ interface DB {
 	 * Executes an SQL statement and returns the number of rows affected.
 	 * @param sql The SQL statement to execute.
 	 * @param values A list of values to substitute into the SQL statement.
-	 * @returns The number of rows affected by the statement.
+	 * @returns The number of rows affected by the statement, or -1 if the statement failed.
 	 */
 	exec(sql: string, values: DBRow): number;
 
@@ -3503,7 +3512,7 @@ interface DB {
 	 * Executes an SQL statement with list of values and returns the number of rows affected within a transaction.
 	 * @param sql The SQL statement to execute.
 	 * @param values A list of lists of values to substitute into the SQL statement.
-	 * @returns The number of rows affected by the statement.
+	 * @returns The number of rows affected by the statement, or -1 if the statement failed.
 	 */
 	exec(sql: string, values: DBRow[]): number;
 
@@ -3538,30 +3547,30 @@ interface DB {
 	 * @param sql The SQL statement to execute.
 	 * @param args [optional] A list of values to substitute into the SQL statement.
 	 * @param withColumn [optional] Whether to include column names in the result (default false).
-	 * @returns A list of rows returned by the query.
+	 * @returns A list of rows returned by the query, or null if the query failed.
 	 */
-	queryAsync(sql: string, args?: DBRow, withColumn?: boolean): DBRow[];
+	queryAsync(sql: string, args?: DBRow, withColumn?: boolean): DBRow[] | null;
 
 	/**
 	 * Executes an SQL query asynchronously and returns the results as a list of rows.
 	 * @param sql The SQL statement to execute.
 	 * @param withColumn [optional] Whether to include column names in the result (default false).
-	 * @returns A list of rows returned by the query.
+	 * @returns A list of rows returned by the query, or null if the query failed.
 	 */
-	queryAsync(sql: string, withColumn?: boolean): DBRow[];
+	queryAsync(sql: string, withColumn?: boolean): DBRow[] | null;
 
 	/**
 	 * Executes an SQL statement with a list of values within a transaction asynchronously and returns the number of rows affected.
 	 * @param sql The SQL statement to execute.
 	 * @param values A list of values to substitute into the SQL statement.
-	 * @returns The number of rows affected by the statement.
+	 * @returns The number of rows affected by the statement, or -1 if the statement failed.
 	 */
 	execAsync(sql: string, values: DBRow[]): number;
 
 	/**
 	 * Executes an SQL statement asynchronously and returns the number of rows affected.
 	 * @param sql The SQL statement to execute.
-	 * @returns The number of rows affected by the statement.
+	 * @returns The number of rows affected by the statement, or -1 if the statement failed.
 	 */
 	execAsync(sql: string): number;
 }
