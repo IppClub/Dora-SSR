@@ -57,7 +57,7 @@ git clone https://github.com/ippclub/Dora-SSR.git
 
 ### Linux
 
-#### Ubuntu
+#### Ubuntu, Debian
 
 1. 手动生成 Lua 绑定。
    ```sh
@@ -70,7 +70,7 @@ git clone https://github.com/ippclub/Dora-SSR.git
 
 2. 安装依赖包。
    ```sh
-   sudo apt-get install -y libsdl2-dev libgl1-mesa-dev x11proto-core-dev libx11-dev
+   sudo apt-get install -y libsdl2-dev libgl1-mesa-dev libssl-dev
    ```
 
 3. 运行编译脚本。
@@ -98,6 +98,9 @@ git clone https://github.com/ippclub/Dora-SSR.git
    ```sh
    cd Assets
    ../Projects/Linux/build/dora-ssr
+
+   # 或者用命令行参数指定资源目录
+   Projects/Linux/build/dora-ssr --asset Assets
    ```
 
 #### ArchLinux
@@ -105,7 +108,7 @@ git clone https://github.com/ippclub/Dora-SSR.git
 1. 安装依赖包。
 
    ```sh
-   sudo pacman -S lua51 luarocks sdl2 gcc make cmake --needed
+   sudo pacman -S lua51 luarocks sdl2 openssl gcc make cmake --needed
    # 因为lua的版本必须是5.1,你需要使用lua5.1而不是最新的lua
    # 最简单的方法是用ln创建一个软链接
    sudo ln -s /usr/bin/lua5.1 /usr/local/bin/lua
@@ -144,6 +147,9 @@ git clone https://github.com/ippclub/Dora-SSR.git
    ```sh
    cd Assets
    ../Projects/Linux/build/dora-ssr
+
+   # 或者用命令行参数指定资源目录
+   Projects/Linux/build/dora-ssr --asset Assets
    ```
 
 ## 三、进行 Web IDE 的开发和运行
