@@ -40,6 +40,9 @@ local record Director
 	-- The flag to enable or disable frustum culling.
 	frustumCulling: boolean
 
+	-- The flag to enable or disable sending collected statistics via built-in Web Socket server. For Web IDE use only.
+	webProfiler: boolean
+
 	-- Adds a new camera to Director's camera stack and sets it to the current camera.
 	-- @param camera (Camera) The camera to add.
 	pushCamera: function(self: Director, camera: Camera)

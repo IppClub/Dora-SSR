@@ -107,6 +107,10 @@ local record App
 	-- @return (boolean) 测试是否成功运行。
 	runTest: function(self: App, name: string): boolean
 
+	-- 在系统默认的浏览器中打开指定的URL地址。
+	-- @param url (string) 要打开的URL地址。
+	openURL: function(self: App, url: string)
+
 	-- 关闭游戏引擎。
 	-- 该函数在Android和iOS平台不会生效，以遵循移动平台上应用程序规范。
 	shutdown: function(self: App)

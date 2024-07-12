@@ -1703,7 +1703,7 @@ entryWindow = threadLoop(function() -- 796
 					SetNextWindowPos(Vec2(fullWidth / 2, height / 2), "Always", Vec2(0.5, 0.5)) -- 1052
 					Begin("Entries Not Found", displayWindowFlags, function() -- 1053
 						Separator() -- 1054
-						TextColored(themeColor, zh and "多萝西：" or "Dora:") -- 1055
+						TextColored(themeColor, zh and "多萝：" or "Dora:") -- 1055
 						TextColored(descColor, zh and '别担心，改变一些咒语，我们会找到新的冒险～' or 'Don\'t worry, more magic words and we\'ll find a new adventure!') -- 1056
 						return Separator() -- 1057
 					end) -- 1053
