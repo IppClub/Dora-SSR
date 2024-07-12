@@ -896,7 +896,7 @@ export default function PersistentDrawerLeft() {
 		addAlert(t("alert.runFailed", {title}), "info");
 	}, [files, tabIndex, t, selectedNode]);
 
-	const saveFileInTab = useCallback((file: EditingFile) => {
+	const saveFileInTab = useCallback((file: EditingFile, preview: boolean) => {
 		return new Promise<EditingFile[]>((resolve, reject) => {
 			const saveFile = (extraFile?: EditingFile) => {
 				if (file.contentModified !== null) {
@@ -937,9 +937,9 @@ export default function PersistentDrawerLeft() {
 							}
 							switch (ext) {
 								case ".ts": case ".tsx": case ".lua": case ".tl": case ".yue": case ".xml": {
-									if (contentModified.search(/@preview-file on\b/) >= 0) {
+									if (preview && contentModified.search(/@preview-file on\b/) >= 0) {
 										onPlayControlRun("Run This", true);
-									} else if (contentModified.search(/@preview-project on\b/) >= 0) {
+									} else if (preview && contentModified.search(/@preview-project on\b/) >= 0) {
 										onPlayControlRun("Run", true);
 									}
 									break;
@@ -1051,7 +1051,7 @@ export default function PersistentDrawerLeft() {
 	const saveAllTabs = useCallback((): Promise<boolean> => {
 		const filesToSave = files.filter(file => file.contentModified !== null);
 		return Promise.all(filesToSave.map(file => {
-			return saveFileInTab(file);
+			return saveFileInTab(file, false);
 		})).then((filesChanged) => {
 			const flatFilesChanged = filesChanged.flat();
 			setFiles(prev => prev.map(file => {
@@ -1890,7 +1890,7 @@ export default function PersistentDrawerLeft() {
 	const saveCurrentTab = useCallback(async () => {
 		if (tabIndex === null) return;
 		const file = files[tabIndex];
-		const filesChanged = await saveFileInTab(file);
+		const filesChanged = await saveFileInTab(file, true);
 		setFiles(prev => prev.map(f => {
 			const changed = filesChanged.find(c => c.key === f.key);
 			return changed !== undefined ? changed : f;
