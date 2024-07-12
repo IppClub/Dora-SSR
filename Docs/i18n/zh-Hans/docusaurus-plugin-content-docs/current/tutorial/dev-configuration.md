@@ -10,7 +10,7 @@ sidebar_position: 6
 git clone https://github.com/ippclub/Dora-SSR.git
 ```
 
-## 二、进行游戏引擎的开发配置
+## 二、进行游戏引擎运行时开发的配置
 
 ### Windows
 
@@ -67,10 +67,12 @@ git clone https://github.com/ippclub/Dora-SSR.git
    cd Tools/tolua++
    lua tolua++.lua
    ```
+
 2. 安装依赖包。
    ```sh
    sudo apt-get install -y libsdl2-dev libgl1-mesa-dev x11proto-core-dev libx11-dev
    ```
+
 3. 运行编译脚本。
 
    - 进行首次编译
@@ -144,16 +146,49 @@ git clone https://github.com/ippclub/Dora-SSR.git
    ../Projects/Linux/build/dora-ssr
    ```
 
-## 三、进行 Dora Dora 编辑器的开发
+## 三、进行 Web IDE 的开发和运行
 
 1. 编译并运行 Dora SSR 引擎。
 2. 安装最新版的 **Node.js**。
 3. 初始化项目并进入 Dora Dora 编辑器开发模式。
    ```sh
+   # macOS
    cd Tools/YarnEditor && yarn && yarn build
    rm -rf ../dora-dora/public/yarn-editor
    mv dist ../dora-dora/public/yarn-editor
-   cd ../../Tools/dora-dora
-   yarn
+   cd ../dora-dora && yarn
    yarn start
+   ```
+   ```sh
+   # Linux
+   cd Tools/YarnEditor && yarn && yarn build-linux
+   rm -rf ../dora-dora/public/yarn-editor
+   mv dist ../dora-dora/public/yarn-editor
+   cd ../dora-dora && yarn
+   yarn start
+   ```
+   ```sh
+   # Windows
+   cd Tools\YarnEditor && yarn && yarn build-win
+   rmdir /Q /S ..\dora-dora\public\yarn-editor
+   move dist ..\dora-dora\public\yarn-editor
+   cd ..\dora-dora && yarn install --network-timeout 1000000
+   yarn start
+   ```
+   &emsp;&emsp;或者你可以将 Web IDE 发布文件进行生成后，复制到项目的 `Assets/www` 下面，然后再启动 Dora SSR 引擎，进行完整项目功能的测试使用。
+   ```sh
+   # macOS, Linux
+   # 确保之前步骤里的 YarnEditor 的编译和文件复制已完成
+   cd Tools/dora-dora
+   yarn build
+   rm -rf ../../Assets/www
+   mv build ../../Assets/www
+   ```
+   ```sh
+   # Windows
+   # 确保之前步骤里的 YarnEditor 的编译和文件复制已完成
+   cd Tools\dora-dora
+   yarn build
+   rmdir /Q /S ..\..\Assets\www
+   move build ..\..\Assets\www
    ```
