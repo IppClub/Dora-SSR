@@ -390,6 +390,27 @@ Triggers after setting `node.controllerEnabled = true`.
 | controllerId | integer | The controller id, incrementing from 0 when multiple controllers connected. |
 | buttonName | Keyboard.KeyName | The name of the button that was released. |
 
+## ButtonPressed
+
+**Type:** Node Event.
+
+**Description:**
+
+&emsp;&emsp;The ButtonPressed slot is triggered when a game controller button is being pressed down.
+Triggers after setting `node.controllerEnabled = true`.
+
+**Signature:**
+```tl
+["ButtonPressed"]: function(controllerId: integer, buttonName: Controller.ButtonName)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| controllerId | integer | The controller id, incrementing from 0 when multiple controllers connected. |
+| buttonName | Keyboard.KeyName | The name of the button that was pressed. |
+
 ## Axis
 
 **Type:** Node Event.

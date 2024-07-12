@@ -138,7 +138,7 @@ query: function(
 		sql: string,
 		args: Row,
 		withColumn?: boolean --[[false]]
-	): {Row}
+	): {Row} | nil
 ```
 
 **参数：**
@@ -153,7 +153,7 @@ query: function(
 
 | 返回类型 | 描述 |
 | --- | --- |
-| \{Row} | 查询返回的Lua表。 |
+| \{Row} \| nil | 查询返回的Lua表，如果查询失败则返回nil。 |
 
 ## query
 
@@ -169,7 +169,7 @@ query: function(
 		self: DB,
 		sql: string,
 		withColumn?: boolean --[[false]]
-	): {Row}
+	): {Row} | nil
 ```
 
 **参数：**
@@ -183,7 +183,7 @@ query: function(
 
 | 返回类型 | 描述 |
 | --- | --- |
-| \{Row} | 查询返回的Lua表。 |
+| \{Row} \| nil | 查询返回的Lua表，如果查询失败则返回nil。 |
 
 ## insert
 
@@ -234,7 +234,7 @@ exec: function(self: DB, sql: string): integer
 
 | 返回类型 | 描述 |
 | --- | --- |
-| integer | 语句执行影响的行数。 |
+| integer | 语句执行影响的行数，如果语句执行失败则返回-1。 |
 
 ## exec
 
@@ -260,7 +260,7 @@ exec: function(self: DB, sql: string, values: Row): integer
 
 | 返回类型 | 描述 |
 | --- | --- |
-| integer | 语句执行影响的行数。 |
+| integer | 语句执行影响的行数，如果语句执行失败则返回-1。 |
 
 ## exec
 
@@ -286,7 +286,7 @@ exec: function(self: DB, sql: string, values: {Row}): integer
 
 | 返回类型 | 描述 |
 | --- | --- |
-| integer | 语句执行影响的行数。 |
+| integer | 语句执行影响的行数，如果语句执行失败则返回-1。 |
 
 ## insertAsync
 
@@ -383,7 +383,7 @@ queryAsync: function(
 		sql: string,
 		args: Row,
 		withColumn?: boolean --[[false]]
-	): {Row}
+	): {Row} | nil
 ```
 
 **参数：**
@@ -398,7 +398,7 @@ queryAsync: function(
 
 | 返回类型 | 描述 |
 | --- | --- |
-| \{Row} | 查询返回的Lua表。 |
+| \{Row} \| nil | 查询返回的Lua表，如果查询失败则返回nil。 |
 
 ## queryAsync
 
@@ -414,7 +414,7 @@ queryAsync: function(
 		self: DB,
 		sql: string,
 		withColumn?: boolean --[[false]]
-	): {Row}
+	): {Row} | nil
 ```
 
 **参数：**
@@ -428,7 +428,7 @@ queryAsync: function(
 
 | 返回类型 | 描述 |
 | --- | --- |
-| \{Row} | 查询返回的Lua表。 |
+| \{Row} \| nil | 查询返回的Lua表，如果查询失败则返回nil。 |
 
 ## execAsync
 
@@ -454,7 +454,7 @@ execAsync: function(self: DB, sql: string, values: {Row}): integer
 
 | 返回类型 | 描述 |
 | --- | --- |
-| integer | 语句执行影响的行数。 |
+| integer | 语句执行影响的行数，如果语句执行失败则返回-1。 |
 
 ## execAsync
 
@@ -479,4 +479,4 @@ execAsync: function(self: DB, sql: string): integer
 
 | 返回类型 | 描述 |
 | --- | --- |
-| integer | 语句执行影响的行数。 |
+| integer | 语句执行影响的行数，如果语句执行失败则返回-1。 |

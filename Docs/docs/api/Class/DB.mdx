@@ -169,7 +169,7 @@ query: function(
 		self: DB,
 		sql: string,
 		withColumn?: boolean --[[false]]
-	): {Row}
+	): {Row} | nil
 ```
 
 **Parameters:**
@@ -183,7 +183,7 @@ query: function(
 
 | Return Type | Description |
 | --- | --- |
-| \{Row} | A list of rows returned by the query. |
+| \{Row} \| nil | A list of rows returned by the query, or nil if the query failed. |
 
 ## insert
 
@@ -234,7 +234,7 @@ exec: function(self: DB, sql: string): integer
 
 | Return Type | Description |
 | --- | --- |
-| integer | The number of rows affected by the statement. |
+| integer | The number of rows affected by the statement, returns -1 if the statement failed. |
 
 ## exec
 
@@ -260,7 +260,7 @@ exec: function(self: DB, sql: string, values: Row): integer
 
 | Return Type | Description |
 | --- | --- |
-| integer | The number of rows affected by the statement. |
+| integer | The number of rows affected by the statement, returns -1 if the statement failed. |
 
 ## exec
 
@@ -286,7 +286,7 @@ exec: function(self: DB, sql: string, values: {Row}): integer
 
 | Return Type | Description |
 | --- | --- |
-| integer | the number of rows affected by the statement. |
+| integer | the number of rows affected by the statement, returns -1 if the statement failed. |
 
 ## insertAsync
 
@@ -383,7 +383,7 @@ queryAsync: function(
 		sql: string,
 		args: Row,
 		withColumn?: boolean --[[false]]
-	): {Row}
+	): {Row} | nil
 ```
 
 **Parameters:**
@@ -398,7 +398,7 @@ queryAsync: function(
 
 | Return Type | Description |
 | --- | --- |
-| \{Row} | A list of rows returned by the query. |
+| \{Row} \| nil | A list of rows returned by the query, or nil if the query failed. |
 
 ## queryAsync
 
@@ -414,7 +414,7 @@ queryAsync: function(
 		self: DB,
 		sql: string,
 		withColumn?: boolean --[[false]]
-	): {Row}
+	): {Row} | nil
 ```
 
 **Parameters:**
@@ -428,7 +428,7 @@ queryAsync: function(
 
 | Return Type | Description |
 | --- | --- |
-| \{Row} | A list of rows returned by the query. |
+| \{Row} \| nil | A list of rows returned by the query, or nil if the query failed. |
 
 ## execAsync
 
@@ -454,7 +454,7 @@ execAsync: function(self: DB, sql: string, values: {Row}): integer
 
 | Return Type | Description |
 | --- | --- |
-| integer | The number of rows affected by the statement. |
+| integer | The number of rows affected by the statement, returns -1 if the statement failed. |
 
 ## execAsync
 
@@ -479,4 +479,4 @@ execAsync: function(self: DB, sql: string): integer
 
 | Return Type | Description |
 | --- | --- |
-| integer | the number of rows affected by the statement. |
+| integer | the number of rows affected by the statement, returns -1 if the statement failed. |
