@@ -3649,7 +3649,7 @@ class Director {
 	/**
 	 * 是否通过内置的 Web Socket 服务器发送收集的性能统计信息。只对 Web IDE 有用.
 	*/
-	webProfiler: boolean;
+	profilerSending: boolean;
 
 	/**
 	 * 向Director的摄像机堆栈添加新摄像机，并将其设置为当前摄像机。

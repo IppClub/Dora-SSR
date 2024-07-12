@@ -41,7 +41,7 @@ local record Director
 	frustumCulling: boolean
 
 	-- The flag to enable or disable sending collected statistics via built-in Web Socket server. For Web IDE use only.
-	webProfiler: boolean
+	profilerSending: boolean
 
 	-- Adds a new camera to Director's camera stack and sets it to the current camera.
 	-- @param camera (Camera) The camera to add.
