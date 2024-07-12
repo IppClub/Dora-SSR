@@ -31,19 +31,29 @@ struct iquat_data<Father, quat<T>> : Father
         struct { T i, j, k, r; };
         typename detail::vec_data_implement::vec_storage<4, T>::type st;
     };
-    constexpr explicit iquat_data(T x, T y, T z, T w) noexcept : i(x), j(y), k(z), r(w) { }
-    explicit iquat_data(const vec<4, T>& vec) noexcept : i(vec.x), j(vec.y), k(vec.z), r(vec.w) { }
 
-    KTM_INLINE T real() const noexcept { return r; }
-    KTM_INLINE vec<3, T> imag() const noexcept { return vec<3, T>(i, j, k); } 
-    KTM_INLINE T angle() const noexcept { return static_cast<T>(2) * atan2(length(imag()), real()); }
-    KTM_INLINE vec<3, T> axis() const noexcept { return normalize(imag()); }
+    KTM_FUNC constexpr iquat_data() noexcept : st{} { }
+    KTM_FUNC iquat_data(const iquat_data& copy) : st(copy.st) { }
+    KTM_FUNC iquat_data(iquat_data&& copy) : st(copy.st) { }
+    KTM_FUNC iquat_data& operator=(const iquat_data& copy) { st = copy.st; return *this; };
+    KTM_FUNC iquat_data& operator=(iquat_data&& copy) { st = copy.st; return *this; };
+    KTM_FUNC iquat_data(T x, T y, T z, T w) noexcept : i(x), j(y), k(z), r(w) { }
+    KTM_FUNC explicit iquat_data(const vec<4, T>& vec) noexcept : i(vec.x), j(vec.y), k(vec.z), r(vec.w) { }
+
+    KTM_FUNC T real() const noexcept { return r; }
+    KTM_FUNC vec<3, T> imag() const noexcept { return vec<3, T>(i, j, k); } 
+    KTM_FUNC T angle() const noexcept { return static_cast<T>(2) * atan2(length(imag()), real()); }
+    KTM_FUNC vec<3, T> axis() const noexcept { return normalize(imag()); }
+    KTM_FUNC vec<4, T>& operator*() noexcept { return reinterpret_cast<vec<4, T>&>(st); }
+    KTM_FUNC const vec<4, T>& operator*() const noexcept { return reinterpret_cast<const vec<4, T>&>(st); }
+
     KTM_INLINE mat<3, 3, T> matrix3x3() const noexcept 
     {
         mat<3, 3, T> ret;
         matrix(ret);
         return ret;
     }
+    
     KTM_INLINE mat<4, 4, T> matrix4x4() const noexcept 
     {
         mat<4, 4, T> ret { };

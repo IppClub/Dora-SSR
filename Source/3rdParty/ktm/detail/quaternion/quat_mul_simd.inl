@@ -5,10 +5,10 @@
 //  Created by 有个小小杜
 //
 
-#ifndef _KTM_QUAT_CALC_SIMD_INL_
-#define _KTM_QUAT_CALC_SIMD_INL_
+#ifndef _KTM_QUAT_MUL_SIMD_INL_
+#define _KTM_QUAT_MUL_SIMD_INL_
 
-#include "quat_calc_fwd.h"
+#include "quat_mul_fwd.h"
 #include "../../simd/skv.h"
 
 #if KTM_SIMD_ENABLE(KTM_SIMD_NEON | KTM_SIMD_SSE | KTM_SIMD_WASM)
@@ -16,6 +16,8 @@
 namespace ktm
 {
 namespace detail
+{
+namespace quat_mul_implement
 {
 
 KTM_FUNC skv::fv4 fv3_mul_fq(skv::fv4 v, skv::fv4 q) noexcept
@@ -45,42 +47,21 @@ KTM_FUNC skv::fv4 fq_mul_fq(skv::fv4 x, skv::fv4 y) noexcept
 
 }
 }
+}
 
 template<>
-struct ktm::detail::quat_calc_implement::mul<float>
+KTM_INLINE void ktm::detail::quat_mul_implement::mul<float>(quat<float>& out, const quat<float>& x, const quat<float>& y) noexcept
 {
-    using Q = quat<float>;
-    static KTM_INLINE Q call(const Q& x, const Q& y) noexcept
-    {
-        Q ret;
-        ret.st = fq_mul_fq(x.st, y.st);
-        return ret;
-    }
-};
+    out.st = fq_mul_fq(x.st, y.st);
+} 
 
 template<>
-struct ktm::detail::quat_calc_implement::mul_to_self<float>
+KTM_INLINE void ktm::detail::quat_mul_implement::act<float>(vec<3, float>& out, const quat<float>& q, const vec<3, float>& v) noexcept
 {
-    using Q = quat<float>;
-    static KTM_INLINE void call(Q& x, const Q& y) noexcept
-    {
-        x.st = fq_mul_fq(x.st, y.st);
-    }
-};
-
-template<>
-struct ktm::detail::quat_calc_implement::act<float>
-{
-    using Q = quat<float>;
-    static KTM_INLINE vec<3, float> call(const Q& q, const vec<3, float>& v) noexcept
-    {
-        vec<3, float> ret;
-        constexpr union { unsigned int i; float f; } mask { 0x80000000 };
-        skv::fv4 qi = _xor128_f32(q.st, _set128_f32(0.f, mask.f, mask.f, mask.f));
-        ret.st = fq_mul_fq(q.st, fv3_mul_fq(v.st, qi));
-        return ret;
-    }
-};
+    constexpr union { unsigned int i; float f; } mask { 0x80000000 };
+    skv::fv4 qi = _xor128_f32(q.st, _set128_f32(0.f, mask.f, mask.f, mask.f));
+    out.st = fq_mul_fq(q.st, fv3_mul_fq(v.st, qi));
+}
 
 #endif // KTM_SIMD_ENABLE(KTM_SIMD_NEON | KTM_SIMD_SSE | KTM_SIMD_WASM)
 

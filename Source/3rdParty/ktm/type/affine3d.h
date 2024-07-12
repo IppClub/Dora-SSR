@@ -17,23 +17,15 @@
 namespace ktm
 {
 
-template<typename T> 
+template<typename T, typename = std::enable_if_t<std::is_floating_point_v<T>>> 
 struct affine3d
 {
     mat<4, 3, T> m;
 
-    affine3d() noexcept : m(vec<3, T>(one<T>, zero<T>, zero<T>),
-                            vec<3, T>(zero<T>, one<T>, zero<T>),
-                            vec<3, T>(zero<T>, zero<T>, one<T>),
-                            vec<3, T>()) { }
-    affine3d(const mat<3, 3, T>& matrix) noexcept : m(matrix[0],
-                                                      matrix[1],
-                                                      matrix[2],
-                                                      vec<3, T>()) { }
-    affine3d(const mat<4, 4, T>& matrix) noexcept : m(matrix[0].xyz(),
-                                                      matrix[1].xyz(),
-                                                      matrix[2].xyz(),
-                                                      matrix[3].xyz()) { }
+    KTM_FUNC affine3d() noexcept : m(vec<3, T>(one<T>, zero<T>, zero<T>), vec<3, T>(zero<T>, one<T>, zero<T>),
+                                     vec<3, T>(zero<T>, zero<T>, one<T>), vec<3, T>()) { }
+    KTM_FUNC affine3d(const mat<3, 3, T>& matrix) noexcept : m(matrix[0], matrix[1], matrix[2], vec<3, T>()) { }
+    KTM_FUNC affine3d(const mat<4, 4, T>& matrix) noexcept : m(matrix[0].xyz(), matrix[1].xyz(), matrix[2].xyz(), matrix[3].xyz()) { }
     
 
     KTM_INLINE affine3d& translate(T x, T y, T z) noexcept

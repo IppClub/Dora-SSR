@@ -5,11 +5,11 @@
 //  Created by 有个小小杜
 //
 
-#ifndef _KTM_VEC_CALC_FWD_INL_ 
-#define _KTM_VEC_CALC_FWD_INL_
+#ifndef _KTM_VEC_CALC_FWD_H_ 
+#define _KTM_VEC_CALC_FWD_H_
 
-#include <cstddef>
-#include <type_traits>
+#include "../../type/vec_fwd.h"
+#include "../../setup.h"
 
 namespace ktm
 {
@@ -17,57 +17,39 @@ namespace detail
 {
 namespace vec_calc_implement
 {
-    
-template<size_t N, typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-struct add;
 
-template<size_t N, typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-struct add_to_self;
+template<typename T>
+KTM_INLINE void add(vec<3, T>& out, const vec<3, T>& x, const vec<3, T>& y) noexcept;
 
-template<size_t N, typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-struct minus;
+template<typename T>
+KTM_INLINE void sub(vec<3, T>& out, const vec<3, T>& x, const vec<3, T>& y) noexcept;
 
-template<size_t N, typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-struct minus_to_self; 
+template<typename T>
+KTM_INLINE void neg(vec<3, T>& out, const vec<3, T>& x) noexcept;
 
-template<size_t N, typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-struct mul;
+template<typename T>
+KTM_INLINE void mul(vec<3, T>& out, const vec<3, T>& x, const vec<3, T>& y) noexcept;
 
-template<size_t N, typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-struct mul_to_self;
+template<typename T>
+KTM_INLINE void div(vec<3, T>& out, const vec<3, T>& x, const vec<3, T>& y) noexcept;
 
-template<size_t N, typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-struct div;
+template<typename T>
+KTM_INLINE void madd(vec<3, T>& out, const vec<3, T>& x, const vec<3, T>& y, const vec<3, T>& z) noexcept;
 
-template<size_t N, typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-struct div_to_self; 
+template<typename T>
+KTM_INLINE void add_scalar(vec<3, T>& out, const vec<3, T>& x, T scalar) noexcept;
 
-template<size_t N, typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-struct opposite;
+template<typename T>
+KTM_INLINE void sub_scalar(vec<3, T>& out, const vec<3, T>& x, T scalar) noexcept;
 
-template<size_t N, typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-struct add_scalar;
+template<typename T>
+KTM_INLINE void mul_scalar(vec<3, T>& out, const vec<3, T>& x, T scalar) noexcept;
 
-template<size_t N, typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-struct add_scalar_to_self;  
+template<typename T>
+KTM_INLINE void div_scalar(vec<3, T>& out, const vec<3, T>& x, T scalar) noexcept;
 
-template<size_t N, typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-struct minus_scalar;
-
-template<size_t N, typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-struct minus_scalar_to_self;  
-
-template<size_t N, typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-struct mul_scalar;
-
-template<size_t N, typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-struct mul_scalar_to_self;  
-
-template<size_t N, typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-struct div_scalar;
-
-template<size_t N, typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-struct div_scalar_to_self;
+template<typename T>
+KTM_INLINE void madd_scalar(vec<3, T>& out, const vec<3, T>& x, const vec<3, T>& y, T scalar) noexcept;
 
 }
 }

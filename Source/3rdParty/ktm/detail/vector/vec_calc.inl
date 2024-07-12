@@ -8,306 +8,101 @@
 #ifndef _KTM_VEC_CALC_INL_
 #define _KTM_VEC_CALC_INL_
 
-#include <utility>
 #include "vec_calc_fwd.h"
-#include "../../setup.h"
 #include "../../type/basic.h"
 #include "../../type/vec_fwd.h"
 
-template<size_t N, typename T, typename Void>
-struct ktm::detail::vec_calc_implement::add
+template<typename T>
+KTM_INLINE void ktm::detail::vec_calc_implement::add(vec<3, T>& out, const vec<3, T>& x, const vec<3, T>& y) noexcept
 {
-    using V = vec<N, T>;
-    static KTM_INLINE V call(const V& x, const V& y) noexcept
-    {
-        return call(x, y, std::make_index_sequence<N>());
-    }
-private:
-    template<size_t ...Ns>
-    static KTM_INLINE V call(const V& x, const V& y, std::index_sequence<Ns...>) noexcept
-    {
-        V ret;
-        ((ret[Ns] = x[Ns] + y[Ns]), ...);
-        return ret;
-    }
-};
+    out.x = x.x + y.x;
+    out.y = x.y + y.y;
+    out.z = x.z + y.z;
+}
 
-template<size_t N, typename T, typename Void>
-struct ktm::detail::vec_calc_implement::add_to_self
+template<typename T>
+KTM_INLINE void ktm::detail::vec_calc_implement::sub(vec<3, T>& out, const vec<3, T>& x, const vec<3, T>& y) noexcept
 {
-    using V = vec<N, T>;
-    static KTM_INLINE void call(V& x, const V& y) noexcept
-    {
-        call(x, y, std::make_index_sequence<N>());
-    }
-private:
-    template<size_t ...Ns>
-    static KTM_INLINE void call(V& x, const V& y, std::index_sequence<Ns...>) noexcept
-    {
-        ((x[Ns] += y[Ns]), ...);
-    }
-};
+    out.x = x.x - y.x;
+    out.y = x.y - y.y;
+    out.z = x.z - y.z;
+}
 
-template<size_t N, typename T, typename Void>
-struct ktm::detail::vec_calc_implement::minus
+template<typename T>
+KTM_INLINE void ktm::detail::vec_calc_implement::neg(vec<3, T>& out, const vec<3, T>& x) noexcept
 {
-    using V = vec<N, T>;
-    static KTM_INLINE V call(const V& x, const V& y) noexcept
-    {
-        return call(x, y, std::make_index_sequence<N>());
-    }
-private:
-    template<size_t ...Ns>
-    static KTM_INLINE V call(const V& x, const V& y, std::index_sequence<Ns...>) noexcept
-    {
-        V ret;
-        ((ret[Ns] = x[Ns] - y[Ns]), ...);
-        return ret;
-    }
-};
+    out.x = -x.x;
+    out.y = -x.y;
+    out.z = -x.z;
+}
 
-template<size_t N, typename T, typename Void>
-struct ktm::detail::vec_calc_implement::minus_to_self
+template<typename T>
+KTM_INLINE void ktm::detail::vec_calc_implement::mul(vec<3, T>& out, const vec<3, T>& x, const vec<3, T>& y) noexcept
 {
-    using V = vec<N, T>;
-    static KTM_INLINE void call(V& x, const V& y) noexcept
-    {
-        call(x, y, std::make_index_sequence<N>());
-    }
-private:
-    template<size_t ...Ns>
-    static KTM_INLINE void call(V& x, const V& y, std::index_sequence<Ns...>) noexcept
-    {
-        ((x[Ns] -= y[Ns]), ...);
-    }
-};
+    out.x = x.x * y.x;
+    out.y = x.y * y.y;
+    out.z = x.z * y.z;
+}
 
-template<size_t N, typename T, typename Void>
-struct ktm::detail::vec_calc_implement::mul
+template<typename T>
+KTM_INLINE void ktm::detail::vec_calc_implement::madd(vec<3, T>& out, const vec<3, T>& x, const vec<3, T>& y, const vec<3, T>& z) noexcept
 {
-    using V = vec<N, T>;
-    static KTM_INLINE V call(const V& x, const V& y) noexcept
-    {
-        return call(x, y, std::make_index_sequence<N>());
-    }
-private:
-    template<size_t ...Ns>
-    static KTM_INLINE V call(const V& x, const V& y, std::index_sequence<Ns...>) noexcept
-    {
-        V ret;
-        ((ret[Ns] = x[Ns] * y[Ns]), ...);
-        return ret;
-    }
-};
+    out.x = ktm_operator_madd(x.x, y.x, z.x);
+    out.y = ktm_operator_madd(x.y, y.y, z.y);
+    out.z = ktm_operator_madd(x.z, y.z, z.z); 
+}
 
-template<size_t N, typename T, typename Void>
-struct ktm::detail::vec_calc_implement::mul_to_self
+template<typename T>
+KTM_INLINE void ktm::detail::vec_calc_implement::div(vec<3, T>& out, const vec<3, T>& x, const vec<3, T>& y) noexcept
 {
-    using V = vec<N, T>;
-    static KTM_INLINE void call(V& x, const V& y) noexcept
-    {
-        call(x, y, std::make_index_sequence<N>());
-    }
-private:
-    template<size_t ...Ns>
-    static KTM_INLINE void call(V& x, const V& y, std::index_sequence<Ns...>) noexcept
-    {
-        ((x[Ns] *= y[Ns]), ...);
-    }
-};
+    out.x = x.x / y.x;
+    out.y = x.y / y.y;
+    out.z = x.z / y.z; 
+}
 
-template<size_t N, typename T, typename Void>
-struct ktm::detail::vec_calc_implement::div
+template<typename T>
+KTM_INLINE void ktm::detail::vec_calc_implement::add_scalar(vec<3, T>& out, const vec<3, T>& x, T scalar) noexcept
 {
-    using V = vec<N, T>;
-    static KTM_INLINE V call(const V& x, const V& y) noexcept
-    {
-        return call(x, y, std::make_index_sequence<N>());
-    }
-private:
-    template<size_t ...Ns>
-    static KTM_INLINE V call(const V& x, const V& y, std::index_sequence<Ns...>) noexcept
-    {
-        V ret;
-        ((ret[Ns] = x[Ns] / y[Ns]), ...);
-        return ret;
-    }
-};
+    out.x = x.x + scalar;
+    out.y = x.y + scalar;
+    out.z = x.z + scalar;
+}
 
-template<size_t N, typename T, typename Void>
-struct ktm::detail::vec_calc_implement::div_to_self
+template<typename T>
+KTM_INLINE void ktm::detail::vec_calc_implement::sub_scalar(vec<3, T>& out, const vec<3, T>& x, T scalar) noexcept
 {
-    using V = vec<N, T>;
-    static KTM_INLINE void call(V& x, const V& y) noexcept
-    {
-        call(x, y, std::make_index_sequence<N>());
-    }
-private:
-    template<size_t ...Ns>
-    static KTM_INLINE void call(V& x, const V& y, std::index_sequence<Ns...>) noexcept
-    {
-        ((x[Ns] /= y[Ns]), ...);
-    }
-};
+    out.x = x.x - scalar;
+    out.y = x.y - scalar;
+    out.z = x.z - scalar;
+}
 
-template<size_t N, typename T, typename Void>
-struct ktm::detail::vec_calc_implement::opposite
+template<typename T>
+KTM_INLINE void ktm::detail::vec_calc_implement::mul_scalar(vec<3, T>& out, const vec<3, T>& x, T scalar) noexcept
 {
-    using V = vec<N, T>;
-    static KTM_INLINE V call(const V& x) noexcept
-    {
-        return call(x, std::make_index_sequence<N>());
-    }
-private:
-    template<size_t ...Ns>
-    static KTM_INLINE V call(const V& x, std::index_sequence<Ns...>) noexcept
-    {
-        V ret;
-        ((ret[Ns] = -x[Ns]), ...);
-        return ret;
-    }
-};
+    out.x = x.x * scalar;
+    out.y = x.y * scalar;
+    out.z = x.z * scalar;
+}
 
-template<size_t N, typename T, typename Void>
-struct ktm::detail::vec_calc_implement::add_scalar
+template<typename T>
+KTM_INLINE void ktm::detail::vec_calc_implement::div_scalar(vec<3, T>& out, const vec<3, T>& x, T scalar) noexcept
 {
-    using V = vec<N, T>;
-    static KTM_INLINE V call(const V& x, T scalar) noexcept
+    if constexpr(std::is_floating_point_v<T>)
+        mul(out, x, one<T> / scalar);
+    else
     {
-        return call(x, scalar, std::make_index_sequence<N>());
+        out.x = x.x / scalar;
+        out.y = x.y / scalar;
+        out.z = x.z / scalar;
     }
-private:
-    template<size_t ...Ns>
-    static KTM_INLINE V call(const V& x, T scalar, std::index_sequence<Ns...>) noexcept
-    {
-        V ret;
-        ((ret[Ns] = x[Ns] + scalar), ...);
-        return ret;
-    }
-};
+}
 
-template<size_t N, typename T, typename Void>
-struct ktm::detail::vec_calc_implement::add_scalar_to_self
+template<typename T>
+KTM_INLINE void ktm::detail::vec_calc_implement::madd_scalar(vec<3, T>& out, const vec<3, T>& x, const vec<3, T>& y, T scalar) noexcept
 {
-    using V = vec<N, T>;
-    static KTM_INLINE void call(V& x, T scalar) noexcept
-    {
-        call(x, scalar, std::make_index_sequence<N>());
-    }
-private:
-    template<size_t ...Ns>
-    static KTM_INLINE void call(V& x, T scalar, std::index_sequence<Ns...>) noexcept
-    {
-        ((x[Ns] += scalar), ...);
-    }
-};
-
-template<size_t N, typename T, typename Void>
-struct ktm::detail::vec_calc_implement::minus_scalar
-{
-    using V = vec<N, T>;
-    static KTM_INLINE V call(const V& x, T scalar) noexcept
-    {
-        return call(x, scalar, std::make_index_sequence<N>());
-    }
-private:
-    template<size_t ...Ns>
-    static KTM_INLINE V call(const V& x, T scalar, std::index_sequence<Ns...>) noexcept
-    {
-        V ret;
-        ((ret[Ns] = x[Ns] - scalar), ...);
-        return ret;
-    }
-};
-
-template<size_t N, typename T, typename Void>
-struct ktm::detail::vec_calc_implement::minus_scalar_to_self
-{
-    using V = vec<N, T>;
-    static KTM_INLINE void call(V& x, T scalar) noexcept
-    {
-        call(x, scalar, std::make_index_sequence<N>());
-    }
-private:
-    template<size_t ...Ns>
-    static KTM_INLINE void call(V& x, T scalar, std::index_sequence<Ns...>) noexcept
-    {
-        ((x[Ns] -= scalar), ...);
-    }
-};
-
-template<size_t N, typename T, typename Void>
-struct ktm::detail::vec_calc_implement::mul_scalar
-{
-    using V = vec<N, T>;
-    static KTM_INLINE V call(const V& x, T scalar) noexcept
-    {
-        return call(x, scalar, std::make_index_sequence<N>());
-    }
-private:
-    template<size_t ...Ns>
-    static KTM_INLINE V call(const V& x, T scalar, std::index_sequence<Ns...>) noexcept
-    {
-        V ret;
-        ((ret[Ns] = x[Ns] * scalar), ...);
-        return ret;
-    }
-};
-
-template<size_t N, typename T, typename Void>
-struct ktm::detail::vec_calc_implement::mul_scalar_to_self
-{
-    using V = vec<N, T>;
-    static KTM_INLINE void call(V& x, T scalar) noexcept
-    {
-        call(x, scalar, std::make_index_sequence<N>());
-    }
-private:
-    template<size_t ...Ns>
-    static KTM_INLINE void call(V& x, T scalar, std::index_sequence<Ns...>) noexcept
-    {
-        ((x[Ns] *= scalar), ...);
-    }
-};
-
-template<size_t N, typename T, typename Void>
-struct ktm::detail::vec_calc_implement::div_scalar
-{
-    using V = vec<N, T>;
-    static KTM_INLINE V call(const V& x, T scalar) noexcept
-    {   
-        if constexpr(std::is_floating_point_v<T>)
-            return mul_scalar<N, T>::call(x, one<T> / scalar);
-        else 
-            return call(x, scalar, std::make_index_sequence<N>());
-    }
-private:
-    template<size_t ...Ns>
-    static KTM_INLINE V call(const V& x, T scalar, std::index_sequence<Ns...>) noexcept
-    {
-        V ret;
-        ((ret[Ns] = x[Ns] / scalar), ...);
-        return ret;
-    }
-};
-
-template<size_t N, typename T, typename Void>
-struct ktm::detail::vec_calc_implement::div_scalar_to_self
-{
-    using V = vec<N, T>;
-    static KTM_INLINE void call(V& x, T scalar) noexcept
-    {
-        if constexpr(std::is_floating_point_v<T>)
-            mul_scalar_to_self<N, T>::call(x, one<T> / scalar);
-        else 
-            call(x, scalar, std::make_index_sequence<N>());
-    }
-private:
-    template<size_t ...Ns>
-    static KTM_INLINE void call(V& x, T scalar, std::index_sequence<Ns...>) noexcept
-    {
-        ((x[Ns] /= scalar), ...);
-    }
-};
+    out.x = ktm_operator_madd(x.x, y.x, scalar);
+    out.y = ktm_operator_madd(x.y, y.y, scalar);
+    out.z = ktm_operator_madd(x.z, y.z, scalar); 
+}
 
 #endif

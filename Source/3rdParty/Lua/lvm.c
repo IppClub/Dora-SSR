@@ -18,6 +18,7 @@
 
 #include "lua.h"
 
+#include "lapi.h"
 #include "ldebug.h"
 #include "ldo.h"
 #include "lfunc.h"
@@ -1122,6 +1123,14 @@ void luaV_finishOp (lua_State *L) {
 */
 #define halfProtect(exp)  (savestate(L,ci), (exp))
 
+/*
+** macro executed during Lua functions at points where the
+** function can yield.
+*/
+#if !defined(luai_threadyield)
+#define luai_threadyield(L)	{lua_unlock(L); lua_lock(L);}
+#endif
+
 /* 'c' is the limit of live values in the stack */
 #define checkGC(L,c)  \
 	{ luaC_condGC(L, (savepc(L), L->top.p = (c)), \
@@ -1857,7 +1866,7 @@ void luaV_execute (lua_State *L, CallInfo *ci) {
           luaH_resizearray(L, h, last);  /* preallocate it at once */
         for (; n > 0; n--) {
           TValue *val = s2v(ra + n);
-          obj2arr(h, last, val);
+          obj2arr(h, last - 1, val);
           last--;
           luaC_barrierback(L, obj2gco(h), val);
         }

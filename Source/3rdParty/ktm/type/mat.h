@@ -9,18 +9,21 @@
 #define _KTM_MAT_H_
 
 #include "vec.h"
-#include "../traits/type_single_extend.h"
-#include "../interface/shared/iarray.h"
+#include "../traits/type_single_extends.h"
+#include "../interface/shared/iarray_util.h"
+#include "../interface/shared/iarray_calc.h"
+#include "../interface/shared/iarray_io.h"
 #include "../interface/matrix/imat_data.h"
 #include "../interface/matrix/imat_make.h"
 #include "../interface/matrix/imat_array.h"
-#include "../interface/matrix/imat_calc.h"
+#include "../interface/matrix/imat_mul.h"
 
 namespace ktm
 {
 
 template<class Child>
-using mat_father_type = single_extends_t<template_list<iarray, imat_data, imat_make, imat_array, imat_calc>, Child>;
+using mat_father_type = single_extends_t<Child, imat_data, imat_make, imat_array, imat_mul, 
+    iarray_io, iarray_madd_scalar, iarray_mul_scalar, iarray_add, iarray_util>;
 
 template<size_t Row, size_t Col, typename T>
 struct mat<Row, Col, T> : mat_father_type<mat<Row, Col, T>>
@@ -31,7 +34,6 @@ struct mat<Row, Col, T> : mat_father_type<mat<Row, Col, T>>
 
 }
 
-#include "../detail/matrix/mat_calc.inl"
-#include "../detail/matrix/mat_calc_simd.inl"
+#include "../detail/matrix/mat_mul.inl"
 
 #endif

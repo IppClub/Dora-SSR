@@ -21,6 +21,19 @@ namespace ktm
 {
 
 template<class M>
+struct reduce_component;
+
+template<size_t N, typename T>
+struct reduce_component<mat<N, N, T>> : std::tuple<mat<N, N, T>, mat<N, N, T>>
+{
+    using type = std::tuple<mat<N, N, T>, mat<N, N, T>>;
+    using type::type;
+
+    KTM_MATRIX_COMPONENT_ELEMENT(transform, 0)
+    KTM_MATRIX_COMPONENT_ELEMENT(reduce, 1)
+};
+
+template<class M>
 struct lu_component;
 
 template<size_t N, typename T>
@@ -47,25 +60,25 @@ struct qr_component<mat<N, N, T>> : std::tuple<mat<N, N, T>, mat<N, N, T>>
 };
 
 template<class M>
-struct eigen_component;
+struct edv_component;
 
 template<size_t N, typename T>
-struct eigen_component<mat<N, N, T>> : std::tuple<vec<N, T>, mat<N, N, T>>
+struct edv_component<mat<N, N, T>> : std::tuple<mat<N, N, T>, vec<N, T>>
 {
-    using type = std::tuple<vec<N, T>, mat<N, N, T>>;
+    using type = std::tuple<mat<N, N, T>, vec<N, T>>;
     using type::type;
 
-    KTM_MATRIX_COMPONENT_ELEMENT(value, 0)
-    KTM_MATRIX_COMPONENT_ELEMENT(vector, 1)
+    KTM_MATRIX_COMPONENT_ELEMENT(vector, 0)
+    KTM_MATRIX_COMPONENT_ELEMENT(value, 1)
 };
 
 template<class M>
 struct svd_component;
 
 template<size_t Row, size_t Col, typename T>
-struct svd_component<mat<Row, Col, T>> : std::tuple<mat<Col, Col, T>, mat<Row, Col, T>, mat<Row, Row, T>>
+struct svd_component<mat<Row, Col, T>> : std::tuple<mat<Col, Col, T>, vec<Row < Col ? Row : Col, T>, mat<Row, Row, T>>
 {
-    using type = std::tuple<mat<Col, Col, T>, mat<Row, Col, T>, mat<Row, Row, T>>;
+    using type = std::tuple<mat<Col, Col, T>, vec<Row < Col ? Row : Col, T>, mat<Row, Row, T>>;
     using type::type;
 
     KTM_MATRIX_COMPONENT_ELEMENT(u, 0)

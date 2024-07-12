@@ -8,8 +8,8 @@
 #ifndef _KTM_INTEL_INTRIN_H_
 #define _KTM_INTEL_INTRIN_H_
 
-#include "arch_def.h"
 #include <cstddef>
+#include "arch_def.h"
 
 namespace intrin 
 {
@@ -21,14 +21,14 @@ KTM_FUNC float cast128to32_f32(__m128 a) noexcept
   	return _mm_cvtss_f32(a);
 }
 
-KTM_FUNC __m128 load128_f32(const float* p) noexcept
+KTM_FUNC __m128 load128_f32(const void* p) noexcept
 {
-  	return _mm_loadu_ps(p);
+  	return _mm_loadu_ps(reinterpret_cast<const float*>(p));
 }
 
-KTM_FUNC void store128_f32(float* p, __m128 a) noexcept
+KTM_FUNC void store128_f32(void* p, __m128 a) noexcept
 {
-  	_mm_storeu_ps(p, a);
+  	_mm_storeu_ps(reinterpret_cast<float*>(p), a);
 }
 
 KTM_FUNC __m128 dup128_f32(float a) noexcept

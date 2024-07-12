@@ -168,21 +168,6 @@ LUALIB_API void (luaL_requiref) (lua_State *L, const char *modname,
 #define luaL_pushfail(L)	lua_pushnil(L)
 
 
-/*
-** Internal assertions for in-house debugging
-*/
-#if !defined(lua_assert)
-
-#if defined LUAI_ASSERT
-  #include <assert.h>
-  #define lua_assert(c)		assert(c)
-#else
-  #define lua_assert(c)		((void)0)
-#endif
-
-#endif
-
-
 
 /*
 ** {======================================================
@@ -250,30 +235,6 @@ typedef struct luaL_Stream {
 } luaL_Stream;
 
 /* }====================================================== */
-
-/*
-** {==================================================================
-** "Abstraction Layer" for basic report of messages and errors
-** ===================================================================
-*/
-
-/* print a string */
-#if !defined(lua_writestring)
-#define lua_writestring(s,l)   fwrite((s), sizeof(char), (l), stdout)
-#endif
-
-/* print a newline and flush the output */
-#if !defined(lua_writeline)
-#define lua_writeline()        (lua_writestring("\n", 1), fflush(stdout))
-#endif
-
-/* print an error message */
-#if !defined(lua_writestringerror)
-#define lua_writestringerror(s,p) \
-        (fprintf(stderr, (s), (p)), fflush(stderr))
-#endif
-
-/* }================================================================== */
 
 
 /*

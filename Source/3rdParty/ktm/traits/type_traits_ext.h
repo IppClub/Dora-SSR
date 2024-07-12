@@ -8,11 +8,15 @@
 #ifndef _STD_TYPE_TRAITS_EXT_H_
 #define _STD_TYPE_TRAITS_EXT_H_
 
-#include <type_traits>
 #include <cstddef>
+#include <type_traits>
 
 namespace std
 {
+
+// extract type from referenc and const
+template<typename T>
+using extract_type_t = std::remove_const_t<std::remove_reference_t<T>>;
 
 // select the type, if true select the former, otherwise select the latter
 template<bool E, typename TT, typename FT>
