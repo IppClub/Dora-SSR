@@ -1218,6 +1218,8 @@ struct DBRecord {
 		records.pop_front();
 		return true;
 	}
+	bool isValid() { return valid; }
+	bool valid = false;
 	std::deque<std::vector<DB::Col>> records;
 };
 struct DBQuery {
@@ -1264,7 +1266,12 @@ static DBRecord db_do_query(String sql, bool withColumns) {
 	std::vector<Own<Value>> args;
 	auto result = SharedDB.query(sql, args, withColumns);
 	DBRecord record;
-	record.records = std::move(result);
+	if (result) {
+		record.records = std::move(*result);
+		record.valid = true;
+	} else {
+		record.valid = false;
+	}
 	return record;
 }
 static DBRecord db_do_query_with_params(String sql, Array* param, bool withColumns) {
@@ -1274,7 +1281,12 @@ static DBRecord db_do_query_with_params(String sql, Array* param, bool withColum
 	}
 	auto result = SharedDB.query(sql, args, withColumns);
 	DBRecord record;
-	record.records = std::move(result);
+	if (result) {
+		record.records = std::move(*result);
+		record.valid = true;
+	} else {
+		record.valid = false;
+	}
 	return record;
 }
 static void db_do_insert(String tableName, const DBParams& params) {
@@ -1288,9 +1300,14 @@ static void db_do_query_with_params_async(String sql, Array* param, bool withCol
 	for (size_t i = 0; i < param->getCount(); ++i) {
 		args.emplace_back(param->get(i)->clone());
 	}
-	SharedDB.queryAsync(sql, std::move(args), withColumns, [callback](std::deque<std::vector<DB::Col>>& result) {
+	SharedDB.queryAsync(sql, std::move(args), withColumns, [callback](std::optional<DB::Rows>& result) {
 		DBRecord record;
-		record.records = std::move(result);
+		if (result) {
+			record.records = std::move(*result);
+			record.valid = true;
+		} else {
+			record.valid = false;
+		}
 		callback(record);
 	});
 }

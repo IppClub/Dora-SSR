@@ -33,23 +33,23 @@ local record DB
 	-- @param sql (string) 要执行的SQL语句。
 	-- @param args (Row) [可选] 要插入到SQL语句中的参数列表。
 	-- @param withColumn (boolean) [可选] 是否在查询结果中包含列名（默认为false）。
-	-- @return ({Row}) 查询返回的Lua表。
+	-- @return ({Row} | nil) 查询返回的Lua表，如果查询失败则返回nil。
 	query: function(
 		self: DB,
 		sql: string,
 		args: Row,
 		withColumn?: boolean --[[false]]
-	): {Row}
+	): {Row} | nil
 
 	-- 执行SQL查询并将结果作为Lua表返回。
 	-- @param sql (string) 要执行的SQL语句。
 	-- @param withColumn (boolean) [可选] 是否在查询结果中包含列名（默认为false）。
-	-- @return ({Row}) 查询返回的Lua表。
+	-- @return ({Row} | nil) 查询返回的Lua表，如果查询失败则返回nil。
 	query: function(
 		self: DB,
 		sql: string,
 		withColumn?: boolean --[[false]]
-	): {Row}
+	): {Row} | nil
 
 	-- 将数据行插入数据表中，插入动作会在一个事务中执行。
 	-- @param tableName (string) 要插入的表名。
@@ -59,19 +59,19 @@ local record DB
 
 	-- 执行SQL语句并返回受影响的行数。
 	-- @param sql (string) 要执行的SQL语句。
-	-- @return (integer) 语句执行影响的行数。
+	-- @return (integer) 语句执行影响的行数，如果语句执行失败则返回-1。
 	exec: function(self: DB, sql: string): integer
 
 	-- 执行SQL语句并返回受影响的行数
 	-- @param sql (string) 要执行的SQL语句。
 	-- @param values (Row) 要插入到SQL语句中的参数。
-	-- @return (integer) 语句执行影响的行数。
+	-- @return (integer) 语句执行影响的行数，如果语句执行失败则返回-1。
 	exec: function(self: DB, sql: string, values: Row): integer
 
 	-- 在一个事务中以不同的参数多次执行SQL语句并返回受影响的行数。
 	-- @param sql (string) 要执行的SQL语句。
 	-- @param values ({Row}) 要插入到SQL语句中的参数列表。
-	-- @return (integer) 语句执行影响的行数。
+	-- @return (integer) 语句执行影响的行数，如果语句执行失败则返回-1。
 	exec: function(self: DB, sql: string, values: {Row}): integer
 
 	-- 在一个事务中异步将数据行插入数据表中。
@@ -98,33 +98,33 @@ local record DB
 	-- @param sql (string) 要执行的SQL语句。
 	-- @param args (Row) [可选] 要插入到SQL语句中的参数。
 	-- @param withColumn (boolean) [可选] 是否在查询结果中包含列名（默认为false）。
-	-- @return ({Row}) 查询返回的Lua表。
+	-- @return ({Row} | nil) 查询返回的Lua表，如果查询失败则返回nil。
 	queryAsync: function(
 		self: DB,
 		sql: string,
 		args: Row,
 		withColumn?: boolean --[[false]]
-	): {Row}
+	): {Row} | nil
 
 	-- 异步执行SQL查询并将结果作为Lua表返回。
 	-- @param sql (string) 要执行的SQL语句。
 	-- @param withColumn (boolean) [可选] 是否在查询结果中包含列名（默认为false）。
-	-- @return ({Row}) 查询返回的Lua表。
+	-- @return ({Row} | nil) 查询返回的Lua表，如果查询失败则返回nil。
 	queryAsync: function(
 		self: DB,
 		sql: string,
 		withColumn?: boolean --[[false]]
-	): {Row}
+	): {Row} | nil
 
 	-- 以不同的参数多次异步执行同一条SQL语句并返回受影响的行数。
 	-- @param sql (string) 要执行的SQL语句。
 	-- @param values ({Row}) 要插入到SQL语句中的参数列表。
-	-- @return (integer) 语句执行影响的行数。
+	-- @return (integer) 语句执行影响的行数，如果语句执行失败则返回-1。
 	execAsync: function(self: DB, sql: string, values: {Row}): integer
 
 	-- 异步执行SQL语句并返回受影响的行数。
 	-- @param sql (string) 要执行的SQL语句。
-	-- @return (integer) 语句执行影响的行数。
+	-- @return (integer) 语句执行影响的行数，如果语句执行失败则返回-1。
 	execAsync: function(self: DB, sql: string): integer
 end
 

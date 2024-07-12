@@ -111,7 +111,7 @@ struct alignas(16) AffineTransform {
 	static AffineTransform Indentity;
 };
 
-struct Vec3 {
+struct alignas(16) Vec3 {
 	float x;
 	float y;
 	float z;

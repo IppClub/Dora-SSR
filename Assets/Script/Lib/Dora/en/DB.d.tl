@@ -44,12 +44,12 @@ local record DB
 	-- Executes an SQL query and returns the results as a list of rows.
 	-- @param sql (string) The SQL statement to execute
 	-- @param withColumn (boolean) [optional] Whether to include column names in the result (default false).
-	-- @return ({Row}) A list of rows returned by the query.
+	-- @return ({Row} | nil) A list of rows returned by the query, or nil if the query failed.
 	query: function(
 		self: DB,
 		sql: string,
 		withColumn?: boolean --[[false]]
-	): {Row}
+	): {Row} | nil
 
 	-- Inserts a row of data into a table within a transaction.
 	-- @param tableName (string) The name of the table to insert into.
@@ -59,19 +59,19 @@ local record DB
 
 	-- Executes an SQL statement and returns the number of rows affected.
 	-- @param sql (string) The SQL statement to execute.
-	-- @return (integer) The number of rows affected by the statement.
+	-- @return (integer) The number of rows affected by the statement, returns -1 if the statement failed.
 	exec: function(self: DB, sql: string): integer
 
 	-- Executes an SQL statement and returns the number of rows affected.
 	-- @param sql (string) The SQL statement to execute.
 	-- @param values (Row) A list of values to substitute into the SQL statement.
-	-- @return (integer) The number of rows affected by the statement.
+	-- @return (integer) The number of rows affected by the statement, returns -1 if the statement failed.
 	exec: function(self: DB, sql: string, values: Row): integer
 
 	-- Executes an SQL statement with list of values and returns the number of rows affected within a transaction.
 	-- @param sql (string) The SQL statement to execute.
 	-- @param values ({Row}) A list of lists of values to substitute into the SQL statement.
-	-- @return (integer) the number of rows affected by the statement.
+	-- @return (integer) the number of rows affected by the statement, returns -1 if the statement failed.
 	exec: function(self: DB, sql: string, values: {Row}): integer
 
 	-- Inserts a row of data into a table within a transaction asynchronously.
@@ -98,33 +98,33 @@ local record DB
 	-- @param sql (string) The SQL statement to execute.
 	-- @param args (Row) [optional] A list of values to substitute into the SQL statement.
 	-- @param withColumn (boolean) [optional] Whether to include column names in the result (default false).
-	-- @return ({Row}) A list of rows returned by the query.
+	-- @return ({Row} | nil) A list of rows returned by the query, or nil if the query failed.
 	queryAsync: function(
 		self: DB,
 		sql: string,
 		args: Row,
 		withColumn?: boolean --[[false]]
-	): {Row}
+	): {Row} | nil
 
 	-- Executes an SQL query asynchronously and returns the results as a list of rows.
 	-- @param sql (string) The SQL statement to execute.
 	-- @param withColumn (boolean) [optional] Whether to include column names in the result (default false).
-	-- @return ({Row}) A list of rows returned by the query.
+	-- @return ({Row} | nil) A list of rows returned by the query, or nil if the query failed.
 	queryAsync: function(
 		self: DB,
 		sql: string,
 		withColumn?: boolean --[[false]]
-	): {Row}
+	): {Row} | nil
 
 	-- Executes an SQL statement with a list of values within a transaction asynchronously and returns the number of rows affected.
 	-- @param sql (string) The SQL statement to execute.
 	-- @param values ({Row}) A list of values to substitute into the SQL statement.
-	-- @return (integer) The number of rows affected by the statement.
+	-- @return (integer) The number of rows affected by the statement, returns -1 if the statement failed.
 	execAsync: function(self: DB, sql: string, values: {Row}): integer
 
 	-- Executes an SQL statement asynchronously and returns the number of rows affected.
 	-- @param sql (string) The SQL statement to execute.
-	-- @return (integer) the number of rows affected by the statement.
+	-- @return (integer) the number of rows affected by the statement, returns -1 if the statement failed.
 	execAsync: function(self: DB, sql: string): integer
 end
 

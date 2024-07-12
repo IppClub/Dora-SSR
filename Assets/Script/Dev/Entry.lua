@@ -129,9 +129,9 @@ local Config = require("Config") -- 40
 local config = Config("", "fpsLimited", "targetFPS", "fixedFPS", "vsync", "fullScreen", "winX", "winY", "winWidth", "winHeight", "themeColor", "locale", "editingInfo", "showStats", "showConsole", "showFooter", "filter", "engineDev", "webProfiler", "drawerWidth") -- 41
 config:load() -- 63
 if (config.fpsLimited ~= nil) then -- 64
-	App.fpsLimited = config.fpsLimited == 1 -- 65
+	App.fpsLimited = config.fpsLimited -- 65
 else -- 67
-	config.fpsLimited = App.fpsLimited and 1 or 0 -- 67
+	config.fpsLimited = App.fpsLimited -- 67
 end -- 64
 if (config.targetFPS ~= nil) then -- 69
 	App.targetFPS = config.targetFPS -- 70
@@ -139,9 +139,9 @@ else -- 72
 	config.targetFPS = App.targetFPS -- 72
 end -- 69
 if (config.vsync ~= nil) then -- 74
-	View.vsync = config.vsync == 1 -- 75
+	View.vsync = config.vsync -- 75
 else -- 77
-	config.vsync = View.vsync and 1 or 0 -- 77
+	config.vsync = View.vsync -- 77
 end -- 74
 if (config.fixedFPS ~= nil) then -- 79
 	Director.scheduler.fixedFPS = config.fixedFPS -- 80
@@ -196,21 +196,21 @@ if not (config.locale ~= nil) then -- 116
 end -- 116
 local showStats = false -- 119
 if (config.showStats ~= nil) then -- 120
-	showStats = config.showStats > 0 -- 121
+	showStats = config.showStats -- 121
 else -- 123
-	config.showStats = showStats and 1 or 0 -- 123
+	config.showStats = showStats -- 123
 end -- 120
 local showConsole = true -- 125
 if (config.showConsole ~= nil) then -- 126
-	showConsole = config.showConsole > 0 -- 127
+	showConsole = config.showConsole -- 127
 else -- 129
-	config.showConsole = showConsole and 1 or 0 -- 129
+	config.showConsole = showConsole -- 129
 end -- 126
 local showFooter = true -- 131
 if (config.showFooter ~= nil) then -- 132
-	showFooter = config.showFooter > 0 -- 133
+	showFooter = config.showFooter -- 133
 else -- 135
-	config.showFooter = showFooter and 1 or 0 -- 135
+	config.showFooter = showFooter -- 135
 end -- 132
 local filterBuf = Buffer(20) -- 137
 if (config.filter ~= nil) then -- 138
@@ -220,14 +220,14 @@ else -- 141
 end -- 138
 local engineDev = false -- 143
 if (config.engineDev ~= nil) then -- 144
-	engineDev = config.engineDev > 0 -- 145
+	engineDev = config.engineDev -- 145
 else -- 147
-	config.engineDev = engineDev and 1 or 0 -- 147
+	config.engineDev = engineDev -- 147
 end -- 144
 if (config.webProfiler ~= nil) then -- 149
-	Director.profilerSending = config.webProfiler > 0 -- 150
+	Director.profilerSending = config.webProfiler -- 150
 else -- 152
-	config.webProfiler = 1 -- 152
+	config.webProfiler = true -- 152
 	Director.profilerSending = true -- 153
 end -- 149
 if not (config.drawerWidth ~= nil) then -- 155
@@ -240,7 +240,7 @@ _module_0.getEngineDev = function() -- 159
 	if not App.debugging then -- 160
 		return false -- 160
 	end -- 160
-	return config.engineDev > 0 -- 161
+	return config.engineDev -- 161
 end -- 159
 local Set, Struct, LintYueGlobals, GSplit -- 163
 do -- 163
@@ -829,7 +829,7 @@ setupEventHandlers = function() -- 489
 			config.winHeight = height -- 505
 		end) -- 502
 		_with_0:gslot("AppFullScreen", function(fullScreen) -- 506
-			config.fullScreen = fullScreen and 1 or 0 -- 507
+			config.fullScreen = fullScreen -- 507
 		end) -- 506
 		_with_0:gslot("AppMoved", function() -- 508
 			local _obj_0 = App.winPosition -- 509
@@ -1066,7 +1066,7 @@ extraOperations = function() -- 605
 		local changed -- 649
 		changed, engineDev = Checkbox(zh and '引擎开发模式' or 'Engine Dev Mode', engineDev) -- 649
 		if changed then -- 649
-			config.engineDev = engineDev and 1 or 0 -- 650
+			config.engineDev = engineDev -- 650
 		end -- 649
 	end) -- 634
 end -- 605
@@ -1118,8 +1118,8 @@ footerWindow = threadLoop(function() -- 661
 				showStats = true -- 675
 			end -- 675
 			showFooter = true -- 676
-			config.showFooter = showFooter and 1 or 0 -- 677
-			config.showStats = showStats and 1 or 0 -- 678
+			config.showFooter = showFooter -- 677
+			config.showStats = showStats -- 678
 		end -- 674
 		if ctrl and Keyboard:isKeyDown(".") then -- 679
 			if showFooter then -- 680
@@ -1128,12 +1128,12 @@ footerWindow = threadLoop(function() -- 661
 				showConsole = true -- 680
 			end -- 680
 			showFooter = true -- 681
-			config.showFooter = showFooter and 1 or 0 -- 682
-			config.showConsole = showConsole and 1 or 0 -- 683
+			config.showFooter = showFooter -- 682
+			config.showConsole = showConsole -- 683
 		end -- 679
 		if ctrl and Keyboard:isKeyDown("/") then -- 684
 			showFooter = not showFooter -- 685
-			config.showFooter = showFooter and 1 or 0 -- 686
+			config.showFooter = showFooter -- 686
 		end -- 684
 		local left = ctrl and Keyboard:isKeyDown("Left") -- 687
 		local right = ctrl and Keyboard:isKeyDown("Right") -- 688
@@ -1174,7 +1174,7 @@ footerWindow = threadLoop(function() -- 661
 				local changed -- 714
 				changed, showFooter = Checkbox("##dev", showFooter) -- 714
 				if changed then -- 714
-					config.showFooter = showFooter and 1 or 0 -- 715
+					config.showFooter = showFooter -- 715
 				end -- 714
 			end -- 713
 		end) -- 715
@@ -1199,7 +1199,7 @@ footerWindow = threadLoop(function() -- 661
 				local changed -- 732
 				changed, showStats = Checkbox(zh and "状态" or "Stats", showStats) -- 732
 				if changed then -- 732
-					config.showStats = showStats and 1 or 0 -- 733
+					config.showStats = showStats -- 733
 				end -- 732
 			end -- 732
 			SameLine() -- 734
@@ -1207,7 +1207,7 @@ footerWindow = threadLoop(function() -- 661
 				local changed -- 735
 				changed, showConsole = Checkbox(zh and "控制台" or "Log", showConsole) -- 735
 				if changed then -- 735
-					config.showConsole = showConsole and 1 or 0 -- 736
+					config.showConsole = showConsole -- 736
 				end -- 735
 			end -- 735
 			if not isInEntry then -- 737
@@ -1248,12 +1248,12 @@ footerWindow = threadLoop(function() -- 661
 				if showStats then -- 762
 					SetNextWindowPos(Vec2(10, 50), "FirstUseEver") -- 763
 					showStats = ShowStats(showStats, extraOperations) -- 764
-					config.showStats = showStats and 1 or 0 -- 765
+					config.showStats = showStats -- 765
 				end -- 762
 				if showConsole then -- 766
 					SetNextWindowPos(Vec2(width - 425, height - 375), "FirstUseEver") -- 767
 					showConsole = ShowConsole(showConsole) -- 768
-					config.showConsole = showConsole and 1 or 0 -- 769
+					config.showConsole = showConsole -- 769
 				end -- 766
 			end) -- 769
 		end) -- 769
@@ -1287,20 +1287,20 @@ match = function(name) -- 791
 	return res -- 794
 end -- 791
 entryWindow = threadLoop(function() -- 796
-	if App.fpsLimited ~= (config.fpsLimited == 1) then -- 797
-		config.fpsLimited = App.fpsLimited and 1 or 0 -- 798
+	if App.fpsLimited ~= config.fpsLimited then -- 797
+		config.fpsLimited = App.fpsLimited -- 798
 	end -- 797
 	if App.targetFPS ~= config.targetFPS then -- 799
 		config.targetFPS = App.targetFPS -- 800
 	end -- 799
-	if View.vsync ~= (config.vsync == 1) then -- 801
-		config.vsync = View.vsync and 1 or 0 -- 802
+	if View.vsync ~= config.vsync then -- 801
+		config.vsync = View.vsync -- 802
 	end -- 801
 	if Director.scheduler.fixedFPS ~= config.fixedFPS then -- 803
 		config.fixedFPS = Director.scheduler.fixedFPS -- 804
 	end -- 803
-	if Director.profilerSending ~= (config.webProfiler == 1) then -- 805
-		config.webProfiler = Director.profilerSending and 1 or 0 -- 806
+	if Director.profilerSending ~= config.webProfiler then -- 805
+		config.webProfiler = Director.profilerSending -- 806
 	end -- 805
 	if urlClicked then -- 807
 		local _, result = coroutine.resume(urlClicked) -- 808

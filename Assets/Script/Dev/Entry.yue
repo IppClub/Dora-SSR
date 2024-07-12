@@ -62,9 +62,9 @@ config = Config(
 )
 config\load!
 if config.fpsLimited?
-	App.fpsLimited = config.fpsLimited == 1
+	App.fpsLimited = config.fpsLimited
 else
-	config.fpsLimited = App.fpsLimited and 1 or 0
+	config.fpsLimited = App.fpsLimited
 
 if config.targetFPS?
 	App.targetFPS = config.targetFPS
@@ -72,9 +72,9 @@ else
 	config.targetFPS = App.targetFPS
 
 if config.vsync?
-	View.vsync = config.vsync == 1
+	View.vsync = config.vsync
 else
-	config.vsync = View.vsync and 1 or 0
+	config.vsync = View.vsync
 
 if config.fixedFPS?
 	Director.scheduler.fixedFPS = config.fixedFPS
@@ -118,21 +118,21 @@ if not config.locale?
 
 showStats = false
 if config.showStats?
-	showStats = config.showStats > 0
+	showStats = config.showStats
 else
-	config.showStats = showStats and 1 or 0
+	config.showStats = showStats
 
 showConsole = true
 if config.showConsole?
-	showConsole = config.showConsole > 0
+	showConsole = config.showConsole
 else
-	config.showConsole = showConsole and 1 or 0
+	config.showConsole = showConsole
 
 showFooter = true
 if config.showFooter?
-	showFooter = config.showFooter > 0
+	showFooter = config.showFooter
 else
-	config.showFooter = showFooter and 1 or 0
+	config.showFooter = showFooter
 
 filterBuf = Buffer 20
 if config.filter?
@@ -142,14 +142,14 @@ else
 
 engineDev = false
 if config.engineDev?
-	engineDev = config.engineDev > 0
+	engineDev = config.engineDev
 else
-	config.engineDev = engineDev and 1 or 0
+	config.engineDev = engineDev
 
 if config.webProfiler?
-	Director.profilerSending = config.webProfiler > 0
+	Director.profilerSending = config.webProfiler
 else
-	config.webProfiler = 1
+	config.webProfiler = true
 	Director.profilerSending = true
 
 unless config.drawerWidth?
@@ -158,7 +158,7 @@ unless config.drawerWidth?
 export.getConfig = -> config
 export.getEngineDev = ->
 	return false unless App.debugging
-	config.engineDev > 0
+	config.engineDev
 
 from "Utils" import Set, Struct, LintYueGlobals, GSplit
 options: {extension: yueext} = yue
@@ -504,7 +504,7 @@ setupEventHandlers = ->
 				config.winWidth = width
 				config.winHeight = height
 			\gslot "AppFullScreen", (fullScreen) ->
-				config.fullScreen = fullScreen and 1 or 0
+				config.fullScreen = fullScreen
 			\gslot "AppMoved", ->
 				x: config.winX, y: config.winY = App.winPosition
 
@@ -647,7 +647,7 @@ extraOperations = ->
 	if changed, scaleContent := Checkbox string.format("%.1fx #{zh and '屏幕缩放' or 'Screen'}", screenScale), scaleContent
 		View.scale = scaleContent and screenScale or 1
 	if changed, engineDev := Checkbox zh and '引擎开发模式' or 'Engine Dev Mode', engineDev
-		config.engineDev = engineDev and 1 or 0
+		config.engineDev = engineDev
 
 transparant = Color 0x0
 windowFlags =
@@ -674,16 +674,16 @@ footerWindow = threadLoop ->
 		if ctrl and Keyboard\isKeyDown ","
 			showStats = if showFooter then not showStats else true
 			showFooter = true
-			config.showFooter = showFooter and 1 or 0
-			config.showStats = showStats and 1 or 0
+			config.showFooter = showFooter
+			config.showStats = showStats
 		if ctrl and Keyboard\isKeyDown "."
 			showConsole = if showFooter then not showConsole else true
 			showFooter = true
-			config.showFooter = showFooter and 1 or 0
-			config.showConsole = showConsole and 1 or 0
+			config.showFooter = showFooter
+			config.showConsole = showConsole
 		if ctrl and Keyboard\isKeyDown "/"
 			showFooter = not showFooter
-			config.showFooter = showFooter and 1 or 0
+			config.showFooter = showFooter
 		left = ctrl and Keyboard\isKeyDown "Left"
 		right = ctrl and Keyboard\isKeyDown "Right"
 		currentIndex = nil
@@ -712,7 +712,7 @@ footerWindow = threadLoop ->
 	PushStyleColor "WindowBg", transparant, -> Begin "Show", windowFlags, ->
 		if isInEntry or width >= 540
 			if changed, showFooter := Checkbox "##dev", showFooter
-				config.showFooter = showFooter and 1 or 0
+				config.showFooter = showFooter
 
 	if isInEntry and
 		not waitForWebStart and
@@ -730,10 +730,10 @@ footerWindow = threadLoop ->
 	PushStyleVar "WindowPadding", Vec2(10, 0), -> Begin "Footer", windowFlags, ->
 		Dummy Vec2 width - 20, 0
 		if changed, showStats := Checkbox zh and "状态" or "Stats", showStats
-			config.showStats = showStats and 1 or 0
+			config.showStats = showStats
 		SameLine!
 		if changed, showConsole := Checkbox zh and "控制台" or "Log", showConsole
-			config.showConsole = showConsole and 1 or 0
+			config.showConsole = showConsole
 		unless isInEntry
 			SameLine!
 			if Button zh and "主页" or "Home", Vec2 70, 30
@@ -762,11 +762,11 @@ footerWindow = threadLoop ->
 			if showStats
 				SetNextWindowPos Vec2(10, 50), "FirstUseEver"
 				showStats = ShowStats showStats, extraOperations
-				config.showStats = showStats and 1 or 0
+				config.showStats = showStats
 			if showConsole
 				SetNextWindowPos Vec2(width - 425, height - 375), "FirstUseEver"
 				showConsole = ShowConsole showConsole
-				config.showConsole = showConsole and 1 or 0
+				config.showConsole = showConsole
 
 const MaxWidth = 800
 
@@ -794,16 +794,16 @@ match = (name) ->
 	res
 
 entryWindow = threadLoop ->
-	if App.fpsLimited ~= (config.fpsLimited == 1)
-		config.fpsLimited = App.fpsLimited and 1 or 0
+	if App.fpsLimited ~= config.fpsLimited
+		config.fpsLimited = App.fpsLimited
 	if App.targetFPS ~= config.targetFPS
 		config.targetFPS = App.targetFPS
-	if View.vsync ~= (config.vsync == 1)
-		config.vsync = View.vsync and 1 or 0
+	if View.vsync ~= config.vsync
+		config.vsync = View.vsync
 	if Director.scheduler.fixedFPS ~= config.fixedFPS
 		config.fixedFPS = Director.scheduler.fixedFPS
-	if Director.profilerSending ~= (config.webProfiler == 1)
-		config.webProfiler = Director.profilerSending and 1 or 0
+	if Director.profilerSending ~= config.webProfiler
+		config.webProfiler = Director.profilerSending
 	if urlClicked
 		_, result = coroutine.resume urlClicked
 		if result

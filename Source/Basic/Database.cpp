@@ -76,7 +76,7 @@ bool DB::exist(String tableName, String schema) const {
 }
 
 int DB::exec(String sql) {
-	int rowChanged = 0;
+	int rowChanged = -1;
 	_thread->pause();
 	try {
 		rowChanged = execUnsafe(_database.get(), sql);
@@ -88,7 +88,7 @@ int DB::exec(String sql) {
 }
 
 int DB::exec(String sql, const std::vector<Own<Value>>& args) {
-	int rowChanged = 0;
+	int rowChanged = -1;
 	_thread->pause();
 	try {
 		rowChanged = execUnsafe(_database.get(), sql, args);
@@ -100,7 +100,7 @@ int DB::exec(String sql, const std::vector<Own<Value>>& args) {
 }
 
 int DB::exec(String sql, const std::deque<std::vector<Own<Value>>>& rows) {
-	int rowChanged = 0;
+	int rowChanged = -1;
 	_thread->pause();
 	transaction([&](SQLite::Database* db) {
 		rowChanged = execUnsafe(db, sql, rows);
@@ -173,15 +173,20 @@ static void bindValues(SQLite::Statement& query, const std::vector<Own<Value>>& 
 	}
 }
 
-std::deque<std::vector<DB::Col>> DB::query(String sql, const std::vector<Own<Value>>& args, bool withColumns) {
+std::optional<DB::Rows> DB::query(String sql, const std::vector<Own<Value>>& args, bool withColumns) {
 	_thread->pause();
-	auto result = DB::queryUnsafe(sql, args, withColumns);
-	_thread->resume();
-	return result;
+	DEFER(_thread->resume());
+	try {
+		auto result = DB::queryUnsafe(sql, args, withColumns);
+		return result;
+	} catch (std::exception& e) {
+		Error("failed to execute DB query: {}", e.what());
+		return std::nullopt;
+	}
 }
 
-std::deque<std::vector<DB::Col>> DB::queryUnsafe(String sql, const std::vector<Own<Value>>& args, bool withColumns) {
-	std::deque<std::vector<DB::Col>> result;
+DB::Rows DB::queryUnsafe(String sql, const std::vector<Own<Value>>& args, bool withColumns) {
+	Rows result;
 	SQLite::Statement statement(*_database, sql.toString());
 	bindValues(statement, args);
 	bool columnCollected = false;
@@ -253,7 +258,7 @@ int DB::execUnsafe(SQLite::Database* db, String sql, const std::deque<std::vecto
 	return rowChanged;
 }
 
-void DB::queryAsync(String sql, std::vector<Own<Value>>&& args, bool withColumns, const std::function<void(std::deque<std::vector<DB::Col>>&)>& callback) {
+void DB::queryAsync(String sql, std::vector<Own<Value>>&& args, bool withColumns, const std::function<void(std::optional<Rows>&)>& callback) {
 	std::string sqlStr(sql.toString());
 	auto argsPtr = std::make_shared<std::vector<Own<Value>>>(std::move(args));
 	_thread->run(
@@ -263,13 +268,17 @@ void DB::queryAsync(String sql, std::vector<Own<Value>>&& args, bool withColumns
 				return Values::alloc(std::move(result));
 			} catch (std::exception& e) {
 				Error("failed to execute DB query: {}", e.what());
-				return Values::alloc(std::deque<std::vector<Own<Value>>>());
+				return Own<Values>{};
 			}
 		},
 		[callback](Own<Values> values) {
-			std::deque<std::vector<DB::Col>> result;
-			values->get(result);
-			callback(result);
+			std::optional<Rows> opt;
+			if (values) {
+				Rows result;
+				values->get(result);
+				opt = std::move(result);
+			}
+			callback(opt);
 		});
 }
 

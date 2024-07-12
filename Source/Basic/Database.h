@@ -22,6 +22,7 @@ class Async;
 class DB : public NonCopyable {
 public:
 	typedef std::variant<int64_t, double, std::string, bool> Col;
+	typedef std::deque<std::vector<Col>> Rows;
 	PROPERTY_READONLY(Async*, Thread);
 	virtual ~DB();
 	bool exist(String tableName, String schema = Slice::Empty) const;
@@ -29,8 +30,8 @@ public:
 	int exec(String sql, const std::vector<Own<Value>>& args);
 	int exec(String sql, const std::deque<std::vector<Own<Value>>>& rows);
 	bool insert(String tableName, const std::deque<std::vector<Own<Value>>>& rows);
-	std::deque<std::vector<Col>> query(String sql, const std::vector<Own<Value>>& args, bool withColumns = false);
-	void queryAsync(String sql, std::vector<Own<Value>>&& args, bool withColumns, const std::function<void(std::deque<std::vector<Col>>& result)>& callback);
+	std::optional<Rows> query(String sql, const std::vector<Own<Value>>& args, bool withColumns = false);
+	void queryAsync(String sql, std::vector<Own<Value>>&& args, bool withColumns, const std::function<void(std::optional<Rows>& result)>& callback);
 	void insertAsync(String tableName, std::deque<std::vector<Own<Value>>>&& rows, const std::function<void(bool)>& callback);
 	void execAsync(String sql, std::vector<Own<Value>>&& args, const std::function<void(int)>& callback);
 	void execAsync(String sql, std::deque<std::vector<Own<Value>>>&& rows, const std::function<void(int)>& callback);
@@ -41,7 +42,7 @@ public:
 	bool transaction(const std::function<void(SQLite::Database*)>& func);
 	bool transactionUnsafe(const std::function<void(SQLite::Database*)>& func);
 	void transactionAsync(const std::function<void(SQLite::Database*)>& func, const std::function<void(bool)>& callback);
-	std::deque<std::vector<Col>> queryUnsafe(String sql, const std::vector<Own<Value>>& args, bool withColumns = false);
+	Rows queryUnsafe(String sql, const std::vector<Own<Value>>& args, bool withColumns = false);
 	static void insertUnsafe(SQLite::Database* db, String tableName, const std::deque<std::vector<Own<Value>>>& values);
 	static int execUnsafe(SQLite::Database* db, String sql);
 	static int execUnsafe(SQLite::Database* db, String sql, const std::vector<Own<Value>>& args);

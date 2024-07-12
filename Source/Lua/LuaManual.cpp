@@ -2275,16 +2275,20 @@ int DB_query(lua_State* L) {
 		try {
 #endif
 			auto result = self->query(sql, args, withColumns);
-			lua_createtable(L, s_cast<int>(result.size()), 0);
-			int i = 0;
-			for (const auto& row : result) {
-				lua_createtable(L, s_cast<int>(row.size()), 0);
-				int j = 0;
-				for (const auto& col : row) {
-					DB_colToLua(L, col);
-					lua_rawseti(L, -2, ++j);
+			if (result) {
+				lua_createtable(L, s_cast<int>((*result).size()), 0);
+				int i = 0;
+				for (const auto& row : *result) {
+					lua_createtable(L, s_cast<int>(row.size()), 0);
+					int j = 0;
+					for (const auto& col : row) {
+						DB_colToLua(L, col);
+						lua_rawseti(L, -2, ++j);
+					}
+					lua_rawseti(L, -2, ++i);
 				}
-				lua_rawseti(L, -2, ++i);
+			} else {
+				lua_pushnil(L);
 			}
 			return 1;
 #ifndef TOLUA_RELEASE
@@ -2456,20 +2460,24 @@ int DB_queryAsync(lua_State* L) {
 			withColumns = tolua_toboolean(L, 5, 0);
 		} else
 			withColumns = tolua_toboolean(L, 4, 0);
-		self->queryAsync(sql, std::move(args), withColumns, [handler](const std::deque<std::vector<DB::Col>>& result) {
+		self->queryAsync(sql, std::move(args), withColumns, [handler](const std::optional<DB::Rows>& result) {
 			lua_State* L = SharedLuaEngine.getState();
 			int top = lua_gettop(L);
 			DEFER(lua_settop(L, top));
-			lua_createtable(L, s_cast<int>(result.size()), 0);
-			int i = 0;
-			for (const auto& row : result) {
-				lua_createtable(L, s_cast<int>(row.size()), 0);
-				int j = 0;
-				for (const auto& col : row) {
-					DB_colToLua(L, col);
-					lua_rawseti(L, -2, ++j);
+			if (result) {
+				lua_createtable(L, s_cast<int>((*result).size()), 0);
+				int i = 0;
+				for (const auto& row : *result) {
+					lua_createtable(L, s_cast<int>(row.size()), 0);
+					int j = 0;
+					for (const auto& col : row) {
+						DB_colToLua(L, col);
+						lua_rawseti(L, -2, ++j);
+					}
+					lua_rawseti(L, -2, ++i);
 				}
-				lua_rawseti(L, -2, ++i);
+			} else {
+				lua_pushnil(L);
 			}
 			SharedLuaEngine.executeFunction(handler->get(), 1);
 		});

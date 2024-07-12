@@ -541,7 +541,6 @@ HttpServer\post "/list", (req): success: false ->
 HttpServer\post "/info", ->
 	import "Script.Dev.Entry"
 	:webProfiler, :drawerWidth = Entry.getConfig!
-	webProfiler = webProfiler > 0
 	engineDev = Entry.getEngineDev!
 	return
 		platform: App.platform

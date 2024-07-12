@@ -2348,6 +2348,7 @@ const enum NodeEvent {
 	TextEditing = "TextEditing",
 	ButtonDown = "ButtonDown",
 	ButtonUp = "ButtonUp",
+	ButtonPressed = "ButtonPressed",
 	Axis = "Axis",
 	AnimationEnd = "AnimationEnd",
 	BodyEnter = "BodyEnter",
@@ -2501,6 +2502,14 @@ interface NodeEventHandlerMap {
 	 * @param buttonName 被释放的按钮名称。
 	*/
 	ButtonUp(this: void, controllerId: number, buttonName: ButtonName): void;
+
+	/**
+	 * 当游戏控制器按钮被持续按下时触发ButtonPressed事件。
+	 * 在设置`node.controllerEnabled = true`之后触发。
+	 * @param controllerId 控制器ID，当有多个控制器连接时从0开始递增。
+	 * @param buttonName 被按下的按钮名称。
+	*/
+	ButtonPressed(this: void, controllerId: number, buttonName: ButtonName): void;
 
 	/**
 	 * 当游戏控制器轴发生变化时触发Axis事件。
@@ -3464,17 +3473,17 @@ interface DB {
 	 * @param sql 要执行的SQL语句。
 	 * @param args [可选] 要替换到SQL语句中的值列表。
 	 * @param withColumn [可选] 是否在结果中包含列名（默认为false）。
-	 * @returns 查询返回的行列表。
+	 * @returns 查询返回的行列表，如果执行失败，则返回null。
 	 */
-	query(sql: string, args?: DBRow, withColumn?: boolean): DBRow[];
+	query(sql: string, args?: DBRow, withColumn?: boolean): DBRow[] | null;
 
 	/**
 	 * 执行SQL查询并将结果返回为行列表。
 	 * @param sql 要执行的SQL语句。
 	 * @param withColumn [可选] 是否在结果中包含列名（默认为false）。
-	 * @returns 查询返回的行列表。
+	 * @returns 查询返回的行列表，如果执行失败，则返回null。
 	 */
-	query(sql: string, withColumn?: boolean): DBRow[];
+	query(sql: string, withColumn?: boolean): DBRow[] | null;
 
 	/**
 	 * 在一个事务中将数据行插入到表中。
@@ -3487,7 +3496,7 @@ interface DB {
 	/**
 	 * 执行SQL语句并返回受影响的行数。
 	 * @param sql 要执行的SQL语句。
-	 * @returns 语句影响的行数。
+	 * @returns 语句影响的行数，如果执行失败，则返回-1。
 	 */
 	exec(sql: string): number;
 
@@ -3495,7 +3504,7 @@ interface DB {
 	 * 执行SQL语句并返回受影响的行数。
 	 * @param sql 要执行的SQL语句。
 	 * @param values 要替换到SQL语句中的值列表。
-	 * @returns 语句影响的行数。
+	 * @returns 语句影响的行数，如果执行失败，则返回-1。
 	 */
 	exec(sql: string, values: DBRow): number;
 
@@ -3503,7 +3512,7 @@ interface DB {
 	 * 在一个事务中执行SQL语句并返回受影响的行数。
 	 * @param sql 要执行的SQL语句。
 	 * @param values 要替换到SQL语句中的值列表。
-	 * @returns 语句影响的行数。
+	 * @returns 语句影响的行数，如果执行失败，则返回-1。
 	 */
 	exec(sql: string, values: DBRow[]): number;
 
@@ -3538,30 +3547,30 @@ interface DB {
 	 * @param sql 要执行的SQL语句。
 	 * @param args [可选] 要替换到SQL语句中的值列表。
 	 * @param withColumn [可选] 是否在结果中包含列名（默认为false）。
-	 * @returns 查询返回的行列表。
+	 * @returns 查询返回的行列表，如果执行失败，则返回null。
 	 */
-	queryAsync(sql: string, args?: DBRow, withColumn?: boolean): DBRow[];
+	queryAsync(sql: string, args?: DBRow, withColumn?: boolean): DBRow[] | null;
 
 	/**
 	 * 异步地执行SQL查询并将结果返回为行列表。
 	 * @param sql 要执行的SQL语句。
 	 * @param withColumn [可选] 是否在结果中包含列名（默认为false）。
-	 * @returns 查询返回的行列表。
+	 * @returns 查询返回的行列表，如果执行失败，则返回null。
 	 */
-	queryAsync(sql: string, withColumn?: boolean): DBRow[];
+	queryAsync(sql: string, withColumn?: boolean): DBRow[] | null;
 
 	/**
 	 * 异步地在一个事务中执行SQL语句并返回受影响的行数。
 	 * @param sql 要执行的SQL语句。
 	 * @param values 要替换到SQL语句中的值列表。
-	 * @returns 语句影响的行数。
+	 * @returns 语句影响的行数，如果执行失败，则返回-1。
 	 */
 	execAsync(sql: string, values: DBRow[]): number;
 
 	/**
 	 * 异步地执行SQL语句并返回受影响的行数。
 	 * @param sql 要执行的SQL语句。
-	 * @returns 语句影响的行数。
+	 * @returns 语句影响的行数，如果执行失败，则返回-1。
 	 */
 	execAsync(sql: string): number;
 }
