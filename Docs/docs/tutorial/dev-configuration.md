@@ -57,7 +57,7 @@ git clone https://github.com/ippclub/Dora-SSR.git
 
 ### Linux
 
-#### Ubuntu
+#### Ubuntu, Debian
 
 1. Manually generate Lua bindings.
    ```sh
@@ -69,7 +69,7 @@ git clone https://github.com/ippclub/Dora-SSR.git
    ```
 2. Install dependent packages.
    ```sh
-   sudo apt-get install -y libsdl2-dev libgl1-mesa-dev x11proto-core-dev libx11-dev
+   sudo apt-get install -y libsdl2-dev libgl1-mesa-dev libssl-dev
    ```
 3. Run the compile scripts.
 
@@ -96,6 +96,9 @@ git clone https://github.com/ippclub/Dora-SSR.git
    ```sh
    cd Assets
    ../Projects/Linux/build/dora-ssr
+
+   # Or specify the resource directory with command line arguments
+   Projects/Linux/build/dora-ssr --asset Assets
    ```
 
 #### ArchLinux
@@ -103,7 +106,7 @@ git clone https://github.com/ippclub/Dora-SSR.git
 1. Install dependent packages.
 
    ```sh
-   sudo pacman -S lua51 luarocks sdl2 gcc make cmake --needed
+   sudo pacman -S lua51 luarocks sdl2 openssl gcc make cmake --needed
    # Because the lua version must be 5.1,you need to use lua 5.1 instead of the newest version of lua
    # The easiest way is using 'ln' to create a soft link
    sudo ln -s /usr/bin/lua5.1 /usr/local/bin/lua
@@ -142,6 +145,9 @@ git clone https://github.com/ippclub/Dora-SSR.git
    ```sh
    cd Assets
    ../Projects/Linux/build/dora-ssr
+
+   # Or specify the resource directory with command line arguments
+   Projects/Linux/build/dora-ssr --asset Assets
    ```
 
 ## 3. Web IDE Development
