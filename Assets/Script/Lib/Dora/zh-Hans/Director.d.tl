@@ -40,6 +40,9 @@ local record Director
 	-- 是否启用视锥体裁剪。
 	frustumCulling: boolean
 
+	-- 是否通过内置的 Web Socket 服务器发送收集的性能统计信息。只对 Web IDE 有用.
+	webProfiler: boolean
+
 	-- 添加新相机到相机堆栈中，并设置为当前应用的相机。
 	-- @param camera (Camera) 要添加的相机。
 	pushCamera: function(self: Director, camera: Camera)

@@ -659,6 +659,12 @@ interface App {
 	runTest(name: string): boolean;
 
 	/**
+	 * A function that opens a URL in the system default browser.
+	 * @param url The URL to open.
+	 */
+	openURL(url: string): void;
+
+	/**
 	 * A function that shuts down the game engine.
 	 * It is not working and acts as a dummy function for platform Android and iOS to follow the specification of how mobile platform applications should operate.
 	 */
@@ -3639,6 +3645,11 @@ class Director {
 	 * Whether to enable frustum culling.
 	 */
 	frustumCulling: boolean;
+
+	/**
+	 * The flag to enable or disable sending collected statistics via built-in Web Socket server. For Web IDE use only.
+	 */
+	webProfiler: boolean;
 
 	/**
 	 * Adds a new camera to Director's camera stack and sets it to the current camera.

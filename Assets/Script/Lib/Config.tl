@@ -132,6 +132,9 @@ return function(schema: string, ...: string): DoraConfig
 					self[key] = value
 				else
 					local value: number | string = rows[i][2] or rows[i][3] or nil
+					if value == nil then
+						DB:exec("delete from " .. tableName .. " where name = ?", {key})
+					end
 					oldValues[key] = value
 					self[key] = value
 				end

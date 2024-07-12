@@ -106,6 +106,10 @@ local record App
 	-- @return (boolean) Whether the test ran successfully.
 	runTest: function(self: App, name: string): boolean
 
+	-- A function that opens a URL in the system default browser.
+	-- @param url (string) The URL to open.
+	openURL: function(self: App, url: string)
+
 	-- A function that shuts down the game engine.
 	-- It is not working and acts as a dummy function for platform Android and iOS to follow the specification of how mobile platform applications should operate.
 	shutdown: function(self: App)
