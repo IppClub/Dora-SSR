@@ -390,6 +390,27 @@ end)
 | controllerId | integer | 控制器ID，当有多个控制器连接时从0开始递增。 |
 | buttonName | Keyboard.KeyName | 被释放的按钮名称。 |
 
+## ButtonPressed
+
+**类型：** 节点事件。
+
+**描述：**
+
+&emsp;&emsp;当游戏控制器按钮被持续按下时触发ButtonPressed事件。
+在设置`node.controllerEnabled = true`之后触发。
+
+**签名：**
+```tl
+["ButtonPressed"]: function(controllerId: integer, buttonName: Controller.ButtonName)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| controllerId | integer | 控制器ID，当有多个控制器连接时从0开始递增。 |
+| buttonName | Keyboard.KeyName | 被按下的按钮名称。 |
+
 ## Axis
 
 **类型：** 节点事件。
