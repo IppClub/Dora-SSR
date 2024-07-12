@@ -13,7 +13,7 @@
 - Easy-to-use ECS module for game entity management.
 - Asynchronous processing of file read and write, resource loading and other operations.
 - Upgraded Lua binding with support for inheriting and extending low-level C++ objects.
-- Supports Yuescript language, strong expressive and concise Lua dialect.
+- Supports YueScript language, strong expressive and concise Lua dialect.
 - Supports for the Teal language, a statically typed dialect for Lua.
 - Supports TypeScript, a statically typed superset of JavaScript that adds powerful type checking.
 - Supports TSX, allows embedding XML/HTML-like text within scripts, used with TypeScript.

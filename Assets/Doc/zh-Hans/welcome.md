@@ -13,7 +13,7 @@ Dora SSR 引擎的功能丰富，主要特性包括：
 - 易用的 ECS 模块，便于游戏实体管理。
 - 异步处理的文件读写、资源加载等操作。
 - 升级的 Lua 绑定，支持继承和扩展底层 C++ 对象。
-- 支持 Yuescript 语言，强表达力且简洁的 Lua 方言。
+- 支持 YueScript 语言，强表达力且简洁的 Lua 方言。
 - 支持 Teal 语言，编译到 Lua 的静态类型语言。
 - 支持 TypeScript 语言，一门静态类型的 JavaScript 语言的超集，添加了强大的类型检查功能。
 - 支持 TSX，允许在脚本中嵌入类似 XML/HTML 的文本，与 TypeScript 一起使用。
