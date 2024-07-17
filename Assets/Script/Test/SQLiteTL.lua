@@ -36,11 +36,13 @@ thread(function()
 	print("query async...")
 	local items = DB:queryAsync("SELECT value FROM test WHERE value NOT LIKE 'hello%' ORDER BY value ASC")
 	local rows = {}
-	count = 1
-	for i = 1, #items do
-		local item = items[i]
-		rows[count] = item[1]
-		count = count + 1
+	if not (items == nil) then
+		count = 1
+		for i = 1, #items do
+			local item = items[i]
+			rows[count] = item[1]
+			count = count + 1
+		end
 	end
 	p(rows)
 end)

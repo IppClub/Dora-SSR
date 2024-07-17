@@ -35,9 +35,11 @@ thread(() => {
 	print("query async...");
 	const items = DB.queryAsync("SELECT value FROM test WHERE value NOT LIKE 'hello%' ORDER BY value ASC");
 	const rows = [];
-	for (let i = 0; i < items.length; i++) {
-		const item = items[i];
-		rows.push(item[0]);
+	if (items) {
+		for (let i = 0; i < items.length; i++) {
+			const item = items[i];
+			rows.push(item[0]);
+		}
 	}
 	p(rows);
 	return false;

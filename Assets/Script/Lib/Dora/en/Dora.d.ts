@@ -1569,7 +1569,7 @@ export {routine as Routine};
  * @param routine A function to execute as a coroutine.
  * @returns A handle to the coroutine that was created.
  */
-export function thread(this: void, routine: (this: void) => boolean): Job;
+export function thread(this: void, routine: (this: void) => void): Job;
 
 /**
  * Create a new coroutine from a function that runs repeatedly.

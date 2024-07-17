@@ -171,68 +171,67 @@ advance = function(____, option) -- 97
     scroll:adjustSizeWithAlign("Auto", 10) -- 130
     thread(function() -- 131
         scroll:scrollToPosY(label.y - label.height / 2) -- 132
-        return true -- 133
     end) -- 131
 end -- 97
-advance(nil) -- 137
-local testFiles = {testFile} -- 139
-local files = {testFile} -- 140
-for ____, file in ipairs(Content:getAllFiles(Content.writablePath)) do -- 141
-    do -- 141
-        if "yarn" ~= Path:getExt(file) then -- 141
-            goto __continue28 -- 143
-        end -- 143
-        testFiles[#testFiles + 1] = Path(Content.writablePath, file) -- 145
-        files[#files + 1] = Path:getFilename(file) -- 146
-    end -- 146
-    ::__continue28:: -- 146
-end -- 146
-local currentFile = 1 -- 149
-local windowFlags = { -- 150
-    "NoDecoration", -- 151
-    "NoSavedSettings", -- 152
-    "NoFocusOnAppearing", -- 153
-    "NoNav", -- 154
-    "NoMove" -- 155
-} -- 155
-threadLoop(function() -- 157
-    local ____App_visualSize_7 = App.visualSize -- 158
-    local width = ____App_visualSize_7.width -- 158
-    ImGui.SetNextWindowPos( -- 159
-        Vec2(width - 10, 10), -- 159
-        "Always", -- 159
-        Vec2(1, 0) -- 159
+advance(nil) -- 136
+local testFiles = {testFile} -- 138
+local files = {testFile} -- 139
+for ____, file in ipairs(Content:getAllFiles(Content.writablePath)) do -- 140
+    do -- 140
+        if "yarn" ~= Path:getExt(file) then -- 140
+            goto __continue28 -- 142
+        end -- 142
+        testFiles[#testFiles + 1] = Path(Content.writablePath, file) -- 144
+        files[#files + 1] = Path:getFilename(file) -- 145
+    end -- 145
+    ::__continue28:: -- 145
+end -- 145
+local currentFile = 1 -- 148
+local windowFlags = { -- 149
+    "NoDecoration", -- 150
+    "NoSavedSettings", -- 151
+    "NoFocusOnAppearing", -- 152
+    "NoNav", -- 153
+    "NoMove" -- 154
+} -- 154
+threadLoop(function() -- 156
+    local ____App_visualSize_7 = App.visualSize -- 157
+    local width = ____App_visualSize_7.width -- 157
+    ImGui.SetNextWindowPos( -- 158
+        Vec2(width - 10, 10), -- 158
+        "Always", -- 158
+        Vec2(1, 0) -- 158
+    ) -- 158
+    ImGui.SetNextWindowSize( -- 159
+        Vec2(200, 0), -- 159
+        "Always" -- 159
     ) -- 159
-    ImGui.SetNextWindowSize( -- 160
-        Vec2(200, 0), -- 160
-        "Always" -- 160
+    ImGui.Begin( -- 160
+        "Yarn Test", -- 160
+        windowFlags, -- 160
+        function() -- 160
+            ImGui.Text("Yarn Tester (Typescript)") -- 161
+            ImGui.Separator() -- 162
+            local changed = false -- 163
+            changed, currentFile = ImGui.Combo("File", currentFile, files) -- 164
+            if changed then -- 164
+                runner = YarnRunner( -- 166
+                    testFiles[currentFile + 1], -- 166
+                    "Start", -- 166
+                    {}, -- 166
+                    commands, -- 166
+                    true -- 166
+                ) -- 166
+                texts = {} -- 167
+                advance(nil) -- 168
+            end -- 168
+            ImGui.Text("Variables") -- 170
+            ImGui.Separator() -- 171
+            for k, v in pairs(runner.state) do -- 172
+                ImGui.Text((k .. ": ") .. tostring(v)) -- 173
+            end -- 173
+        end -- 160
     ) -- 160
-    ImGui.Begin( -- 161
-        "Yarn Test", -- 161
-        windowFlags, -- 161
-        function() -- 161
-            ImGui.Text("Yarn Tester (Typescript)") -- 162
-            ImGui.Separator() -- 163
-            local changed = false -- 164
-            changed, currentFile = ImGui.Combo("File", currentFile, files) -- 165
-            if changed then -- 165
-                runner = YarnRunner( -- 167
-                    testFiles[currentFile + 1], -- 167
-                    "Start", -- 167
-                    {}, -- 167
-                    commands, -- 167
-                    true -- 167
-                ) -- 167
-                texts = {} -- 168
-                advance(nil) -- 169
-            end -- 169
-            ImGui.Text("Variables") -- 171
-            ImGui.Separator() -- 172
-            for k, v in pairs(runner.state) do -- 173
-                ImGui.Text((k .. ": ") .. tostring(v)) -- 174
-            end -- 174
-        end -- 161
-    ) -- 161
-    return false -- 177
-end) -- 157
-return ____exports -- 157
+    return false -- 176
+end) -- 156
+return ____exports -- 156

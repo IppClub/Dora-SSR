@@ -80,7 +80,7 @@ return function(schema: string, ...: string): DoraConfig
 				dValues[#dValues + 1] = {deleteValues[i]}
 			end
 			deleteValues = {}
-			thread(function(): boolean
+			thread(function()
 				if #iValues > 0 then
 					DB:insertAsync(tableName, iValues)
 				end

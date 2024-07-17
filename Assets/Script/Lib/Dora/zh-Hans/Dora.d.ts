@@ -1567,7 +1567,7 @@ export {routine as Routine};
  * @param routine 作为协程执行的函数。
  * @returns 创建的协程作业对象。
  */
-export function thread(this: void, routine: (this: void) => boolean): Job;
+export function thread(this: void, routine: (this: void) => void): Job;
 
 /**
  * 从函数创建新的协程，该函数会反复运行。

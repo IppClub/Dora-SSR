@@ -96,9 +96,9 @@ git clone https://github.com/ippclub/Dora-SSR.git
    ```sh
    cd Assets
    ../Projects/Linux/build/dora-ssr
-
+   
    # Or specify the resource directory with command line arguments
-   Projects/Linux/build/dora-ssr --asset Assets
+   ./Projects/Linux/build/dora-ssr --asset Assets
    ```
 
 #### ArchLinux
@@ -145,9 +145,9 @@ git clone https://github.com/ippclub/Dora-SSR.git
    ```sh
    cd Assets
    ../Projects/Linux/build/dora-ssr
-
+   
    # Or specify the resource directory with command line arguments
-   Projects/Linux/build/dora-ssr --asset Assets
+   ./Projects/Linux/build/dora-ssr --asset Assets
    ```
 
 ## 3. Web IDE Development
