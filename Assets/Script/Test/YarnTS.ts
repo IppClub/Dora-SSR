@@ -130,7 +130,6 @@ const advance = (option?: number) => {
 	scroll.adjustSizeWithAlign(AlignMode.Auto, 10);
 	thread(() => {
 		scroll.scrollToPosY(label.y - label.height / 2);
-		return true;
 	});
 };
 

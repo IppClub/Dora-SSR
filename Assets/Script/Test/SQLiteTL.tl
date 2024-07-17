@@ -24,7 +24,7 @@ p(DB:query("SELECT * FROM test", true))
 print("row changed:", DB:exec("DELETE FROM test WHERE id > 1"))
 print("row changed:", DB:exec("UPDATE test SET value = ? WHERE id = 1", {"hello world!"}))
 
-thread(function(): boolean
+thread(function()
 	print("insert async")
 	local data = {}
 	local count = 1
@@ -36,11 +36,13 @@ thread(function(): boolean
 	print("query async...")
 	local items = DB:queryAsync("SELECT value FROM test WHERE value NOT LIKE 'hello%' ORDER BY value ASC")
 	local rows = {}
-	count = 1
-	for i = 1, #items do
-		local item = items[i]
-		rows[count] = item[1]
-		count = count + 1
+	if not items is nil then
+		count = 1
+		for i = 1, #items do
+			local item = items[i]
+			rows[count] = item[1]
+			count = count + 1
+		end
 	end
 	p(rows)
 end)

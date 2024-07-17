@@ -100,7 +100,7 @@ git clone https://github.com/ippclub/Dora-SSR.git
    ../Projects/Linux/build/dora-ssr
 
    # 或者用命令行参数指定资源目录
-   Projects/Linux/build/dora-ssr --asset Assets
+   ./Projects/Linux/build/dora-ssr --asset Assets
    ```
 
 #### ArchLinux
@@ -149,7 +149,7 @@ git clone https://github.com/ippclub/Dora-SSR.git
    ../Projects/Linux/build/dora-ssr
 
    # 或者用命令行参数指定资源目录
-   Projects/Linux/build/dora-ssr --asset Assets
+   ./Projects/Linux/build/dora-ssr --asset Assets
    ```
 
 ## 三、进行 Web IDE 的开发和运行

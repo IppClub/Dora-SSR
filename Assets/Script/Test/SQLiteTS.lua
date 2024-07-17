@@ -30,47 +30,49 @@ thread(function() -- 28
     print("query async...") -- 35
     local items = DB:queryAsync("SELECT value FROM test WHERE value NOT LIKE 'hello%' ORDER BY value ASC") -- 36
     local rows = {} -- 37
-    do -- 37
-        local i = 0 -- 38
-        while i < #items do -- 38
-            local item = items[i + 1] -- 39
-            rows[#rows + 1] = item[1] -- 40
-            i = i + 1 -- 38
-        end -- 38
-    end -- 38
-    p(rows) -- 42
-    return false -- 43
+    if items then -- 37
+        do -- 37
+            local i = 0 -- 39
+            while i < #items do -- 39
+                local item = items[i + 1] -- 40
+                rows[#rows + 1] = item[1] -- 41
+                i = i + 1 -- 39
+            end -- 39
+        end -- 39
+    end -- 39
+    p(rows) -- 44
+    return false -- 45
 end) -- 28
-print("OK") -- 46
-local windowFlags = { -- 48
-    "NoDecoration", -- 49
-    "AlwaysAutoResize", -- 50
-    "NoSavedSettings", -- 51
-    "NoFocusOnAppearing", -- 52
-    "NoNav", -- 53
-    "NoMove" -- 54
-} -- 54
-threadLoop(function() -- 56
-    local size = App.visualSize -- 57
-    ImGui.SetNextWindowBgAlpha(0.35) -- 58
-    ImGui.SetNextWindowPos( -- 59
-        Vec2(size.width - 10, 10), -- 59
-        "Always", -- 59
-        Vec2(1, 0) -- 59
-    ) -- 59
-    ImGui.SetNextWindowSize( -- 60
-        Vec2(240, 0), -- 60
-        "FirstUseEver" -- 60
-    ) -- 60
-    ImGui.Begin( -- 61
-        "SQLite", -- 61
-        windowFlags, -- 61
-        function() -- 61
-            ImGui.Text("SQLite (Typescript)") -- 62
-            ImGui.Separator() -- 63
-            ImGui.TextWrapped("Doing database operations in synchronous and asynchronous ways") -- 64
-        end -- 61
+print("OK") -- 48
+local windowFlags = { -- 50
+    "NoDecoration", -- 51
+    "AlwaysAutoResize", -- 52
+    "NoSavedSettings", -- 53
+    "NoFocusOnAppearing", -- 54
+    "NoNav", -- 55
+    "NoMove" -- 56
+} -- 56
+threadLoop(function() -- 58
+    local size = App.visualSize -- 59
+    ImGui.SetNextWindowBgAlpha(0.35) -- 60
+    ImGui.SetNextWindowPos( -- 61
+        Vec2(size.width - 10, 10), -- 61
+        "Always", -- 61
+        Vec2(1, 0) -- 61
     ) -- 61
-    return false -- 66
-end) -- 56
-return ____exports -- 56
+    ImGui.SetNextWindowSize( -- 62
+        Vec2(240, 0), -- 62
+        "FirstUseEver" -- 62
+    ) -- 62
+    ImGui.Begin( -- 63
+        "SQLite", -- 63
+        windowFlags, -- 63
+        function() -- 63
+            ImGui.Text("SQLite (Typescript)") -- 64
+            ImGui.Separator() -- 65
+            ImGui.TextWrapped("Doing database operations in synchronous and asynchronous ways") -- 66
+        end -- 63
+    ) -- 63
+    return false -- 68
+end) -- 58
+return ____exports -- 58
