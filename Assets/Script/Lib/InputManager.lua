@@ -10,6 +10,7 @@ local __TS__ObjectAssign = ____lualib.__TS__ObjectAssign -- 1
 local ____exports = {} -- 1
 local ____DoraX = require("DoraX") -- 1
 local React = ____DoraX.React -- 1
+local toNode = ____DoraX.toNode -- 1
 local useRef = ____DoraX.useRef -- 1
 local ____Dora = require("Dora") -- 2
 local Node = ____Dora.Node -- 2
@@ -1148,34 +1149,34 @@ function InputManager.prototype.____constructor(self, contexts) -- 1167
         ) -- 1169
     ) -- 1169
     self.contextStack = {} -- 1179
-    if self.contextMap:has("Default") then -- 1179
-        self:pushContext({"Default"}) -- 1181
-    end -- 1181
-    self.manager:schedule(function(deltaTime) -- 1183
-        if #self.contextStack > 0 then -- 1183
-            local lastNames = self.contextStack[#self.contextStack] -- 1185
-            for ____, name in ipairs(lastNames) do -- 1186
-                do -- 1186
-                    local actions = self.contextMap:get(name) -- 1187
-                    if actions == nil then -- 1187
-                        goto __continue298 -- 1189
-                    end -- 1189
-                    for ____, action in ipairs(actions) do -- 1191
-                        if action.trigger.onUpdate then -- 1191
-                            action.trigger:onUpdate(deltaTime) -- 1193
-                        end -- 1193
-                    end -- 1193
-                end -- 1193
-                ::__continue298:: -- 1193
-            end -- 1193
-        end -- 1193
-        return false -- 1198
-    end) -- 1183
+    self.manager:schedule(function(deltaTime) -- 1180
+        if #self.contextStack > 0 then -- 1180
+            local lastNames = self.contextStack[#self.contextStack] -- 1182
+            for ____, name in ipairs(lastNames) do -- 1183
+                do -- 1183
+                    local actions = self.contextMap:get(name) -- 1184
+                    if actions == nil then -- 1184
+                        goto __continue297 -- 1186
+                    end -- 1186
+                    for ____, action in ipairs(actions) do -- 1188
+                        if action.trigger.onUpdate then -- 1188
+                            action.trigger:onUpdate(deltaTime) -- 1190
+                        end -- 1190
+                    end -- 1190
+                end -- 1190
+                ::__continue297:: -- 1190
+            end -- 1190
+        end -- 1190
+        return false -- 1195
+    end) -- 1180
 end -- 1167
-function InputManager.prototype.getNode(self) -- 1202
-    return self.manager -- 1203
-end -- 1202
-function InputManager.prototype.pushContext(self, contextNames) -- 1206
+function InputManager.prototype.getNode(self) -- 1199
+    return self.manager -- 1200
+end -- 1199
+function InputManager.prototype.pushContext(self, contextNames) -- 1203
+    if type(contextNames) == "string" then -- 1203
+        contextNames = {contextNames} -- 1205
+    end -- 1205
     local exist = true -- 1207
     for ____, name in ipairs(contextNames) do -- 1208
         if exist then -- 1208
@@ -1217,7 +1218,7 @@ function InputManager.prototype.pushContext(self, contextNames) -- 1206
         end -- 1234
         return true -- 1237
     end -- 1237
-end -- 1206
+end -- 1203
 function InputManager.prototype.popContext(self) -- 1241
     if #self.contextStack == 0 then -- 1241
         return false -- 1243
@@ -1268,658 +1269,819 @@ end -- 1283
 function InputManager.prototype.emitAxis(self, axisName, value, controllerId) -- 1287
     self.manager:emit("Axis", controllerId or 0, axisName, value) -- 1288
 end -- 1287
-function ____exports.CreateInputManager(contexts) -- 1292
-    return __TS__New(InputManager, contexts) -- 1293
-end -- 1292
-function ____exports.DPad(self, props) -- 1305
-    local ____props_2 = props -- 1312
-    local width = ____props_2.width -- 1312
-    if width == nil then -- 1312
-        width = 40 -- 1307
-    end -- 1307
-    local height = ____props_2.height -- 1307
-    if height == nil then -- 1307
-        height = 40 -- 1308
-    end -- 1308
-    local offset = ____props_2.offset -- 1308
-    if offset == nil then -- 1308
-        offset = 5 -- 1309
-    end -- 1309
-    local color = ____props_2.color -- 1309
-    if color == nil then -- 1309
-        color = 4294967295 -- 1310
-    end -- 1310
-    local primaryOpacity = ____props_2.primaryOpacity -- 1310
-    if primaryOpacity == nil then -- 1310
-        primaryOpacity = 0.3 -- 1311
-    end -- 1311
-    local halfSize = height + width / 2 + offset -- 1313
-    local dOffset = height / 2 + width / 2 + offset -- 1314
-    local function DPadButton(self, props) -- 1316
-        local hw = width / 2 -- 1317
-        local drawNode = useRef() -- 1318
-        return React:createElement( -- 1319
-            "node", -- 1319
-            __TS__ObjectAssign( -- 1319
-                {}, -- 1319
-                props, -- 1320
-                { -- 1320
-                    width = width, -- 1320
-                    height = height, -- 1320
-                    onTapBegan = function() -- 1320
-                        if drawNode.current then -- 1320
-                            drawNode.current.opacity = 1 -- 1323
-                        end -- 1323
-                    end, -- 1321
-                    onTapEnded = function() -- 1321
-                        if drawNode.current then -- 1321
-                            drawNode.current.opacity = primaryOpacity -- 1328
-                        end -- 1328
-                    end -- 1326
-                } -- 1326
-            ), -- 1326
-            React:createElement( -- 1326
-                "draw-node", -- 1326
-                {ref = drawNode, y = -hw, x = hw, opacity = primaryOpacity}, -- 1326
-                React:createElement( -- 1326
-                    "polygon-shape", -- 1326
-                    { -- 1326
-                        verts = { -- 1326
-                            Vec2(-hw, hw + height), -- 1334
-                            Vec2(hw, hw + height), -- 1335
-                            Vec2(hw, hw), -- 1336
-                            Vec2.zero, -- 1337
-                            Vec2(-hw, hw) -- 1338
-                        }, -- 1338
-                        fillColor = color -- 1338
-                    } -- 1338
-                ) -- 1338
-            ) -- 1338
-        ) -- 1338
+function InputManager.prototype.destroy(self) -- 1291
+    self:getNode():removeFromParent() -- 1292
+    self.contextStack = {} -- 1293
+end -- 1291
+function ____exports.CreateInputManager(contexts) -- 1297
+    return __TS__New(InputManager, contexts) -- 1298
+end -- 1297
+function ____exports.DPad(self, props) -- 1310
+    local ____props_2 = props -- 1317
+    local width = ____props_2.width -- 1317
+    if width == nil then -- 1317
+        width = 40 -- 1312
+    end -- 1312
+    local height = ____props_2.height -- 1312
+    if height == nil then -- 1312
+        height = 40 -- 1313
+    end -- 1313
+    local offset = ____props_2.offset -- 1313
+    if offset == nil then -- 1313
+        offset = 5 -- 1314
+    end -- 1314
+    local color = ____props_2.color -- 1314
+    if color == nil then -- 1314
+        color = 4294967295 -- 1315
+    end -- 1315
+    local primaryOpacity = ____props_2.primaryOpacity -- 1315
+    if primaryOpacity == nil then -- 1315
+        primaryOpacity = 0.3 -- 1316
     end -- 1316
-    local function onMount(buttonName) -- 1345
-        return function(node) -- 1346
-            node:slot( -- 1347
-                "TapBegan", -- 1347
-                function() return props.inputManager:emitButtonDown(buttonName) end -- 1347
-            ) -- 1347
-            node:slot( -- 1348
-                "TapEnded", -- 1348
-                function() return props.inputManager:emitButtonUp(buttonName) end -- 1348
-            ) -- 1348
-        end -- 1346
-    end -- 1345
-    return React:createElement( -- 1352
-        "align-node", -- 1352
-        {style = {width = halfSize * 2, height = halfSize * 2}}, -- 1352
-        React:createElement( -- 1352
-            "menu", -- 1352
-            {x = halfSize, y = halfSize, width = halfSize * 2, height = halfSize * 2}, -- 1352
-            React:createElement( -- 1352
-                DPadButton, -- 1355
-                { -- 1355
-                    x = halfSize, -- 1355
-                    y = dOffset + halfSize, -- 1355
-                    onMount = onMount("dpup") -- 1355
-                } -- 1355
-            ), -- 1355
-            React:createElement( -- 1355
-                DPadButton, -- 1356
-                { -- 1356
-                    x = halfSize, -- 1356
-                    y = -dOffset + halfSize, -- 1356
-                    angle = 180, -- 1356
-                    onMount = onMount("dpdown") -- 1356
-                } -- 1356
-            ), -- 1356
-            React:createElement( -- 1356
-                DPadButton, -- 1357
-                { -- 1357
-                    x = dOffset + halfSize, -- 1357
-                    y = halfSize, -- 1357
-                    angle = 90, -- 1357
-                    onMount = onMount("dpright") -- 1357
-                } -- 1357
-            ), -- 1357
+    local halfSize = height + width / 2 + offset -- 1318
+    local dOffset = height / 2 + width / 2 + offset -- 1319
+    local function DPadButton(self, props) -- 1321
+        local hw = width / 2 -- 1322
+        local drawNode = useRef() -- 1323
+        return React:createElement( -- 1324
+            "node", -- 1324
+            __TS__ObjectAssign( -- 1324
+                {}, -- 1324
+                props, -- 1325
+                { -- 1325
+                    width = width, -- 1325
+                    height = height, -- 1325
+                    onTapBegan = function() -- 1325
+                        if drawNode.current then -- 1325
+                            drawNode.current.opacity = 1 -- 1328
+                        end -- 1328
+                    end, -- 1326
+                    onTapEnded = function() -- 1326
+                        if drawNode.current then -- 1326
+                            drawNode.current.opacity = primaryOpacity -- 1333
+                        end -- 1333
+                    end -- 1331
+                } -- 1331
+            ), -- 1331
+            React:createElement( -- 1331
+                "draw-node", -- 1331
+                {ref = drawNode, y = -hw, x = hw, opacity = primaryOpacity}, -- 1331
+                React:createElement( -- 1331
+                    "polygon-shape", -- 1331
+                    { -- 1331
+                        verts = { -- 1331
+                            Vec2(-hw, hw + height), -- 1339
+                            Vec2(hw, hw + height), -- 1340
+                            Vec2(hw, hw), -- 1341
+                            Vec2.zero, -- 1342
+                            Vec2(-hw, hw) -- 1343
+                        }, -- 1343
+                        fillColor = color -- 1343
+                    } -- 1343
+                ) -- 1343
+            ) -- 1343
+        ) -- 1343
+    end -- 1321
+    local function onMount(buttonName) -- 1350
+        return function(node) -- 1351
+            node:slot( -- 1352
+                "TapBegan", -- 1352
+                function() return props.inputManager:emitButtonDown(buttonName) end -- 1352
+            ) -- 1352
+            node:slot( -- 1353
+                "TapEnded", -- 1353
+                function() return props.inputManager:emitButtonUp(buttonName) end -- 1353
+            ) -- 1353
+        end -- 1351
+    end -- 1350
+    return React:createElement( -- 1357
+        "align-node", -- 1357
+        {style = {width = halfSize * 2, height = halfSize * 2}}, -- 1357
+        React:createElement( -- 1357
+            "menu", -- 1357
+            {x = halfSize, y = halfSize, width = halfSize * 2, height = halfSize * 2}, -- 1357
             React:createElement( -- 1357
-                DPadButton, -- 1358
-                { -- 1358
-                    x = -dOffset + halfSize, -- 1358
-                    y = halfSize, -- 1358
-                    angle = -90, -- 1358
-                    onMount = onMount("dpleft") -- 1358
-                } -- 1358
-            ) -- 1358
-        ) -- 1358
-    ) -- 1358
-end -- 1305
-function ____exports.JoyStick(self, props) -- 1374
-    local hat = useRef() -- 1375
-    local ____props_3 = props -- 1383
-    local moveSize = ____props_3.moveSize -- 1383
-    if moveSize == nil then -- 1383
-        moveSize = 70 -- 1377
-    end -- 1377
-    local hatSize = ____props_3.hatSize -- 1377
-    if hatSize == nil then -- 1377
-        hatSize = 40 -- 1378
-    end -- 1378
-    local stickType = ____props_3.stickType -- 1378
-    if stickType == nil then -- 1378
-        stickType = "Left" -- 1379
-    end -- 1379
-    local color = ____props_3.color -- 1379
-    if color == nil then -- 1379
-        color = 4294967295 -- 1380
-    end -- 1380
-    local primaryOpacity = ____props_3.primaryOpacity -- 1380
-    if primaryOpacity == nil then -- 1380
-        primaryOpacity = 0.3 -- 1381
-    end -- 1381
-    local secondaryOpacity = ____props_3.secondaryOpacity -- 1381
-    if secondaryOpacity == nil then -- 1381
-        secondaryOpacity = 0.1 -- 1382
-    end -- 1382
-    local visualBound = math.max(moveSize - hatSize, 0) -- 1384
-    local function updatePosition(node, location) -- 1386
-        if location.length > visualBound then -- 1386
-            node.position = location:normalize():mul(visualBound) -- 1388
-        else -- 1388
-            node.position = location -- 1390
-        end -- 1390
-        repeat -- 1390
-            local ____switch354 = stickType -- 1390
-            local ____cond354 = ____switch354 == "Left" -- 1390
-            if ____cond354 then -- 1390
-                props.inputManager:emitAxis("leftx", node.x / visualBound) -- 1394
-                props.inputManager:emitAxis("lefty", node.y / visualBound) -- 1395
-                break -- 1396
-            end -- 1396
-            ____cond354 = ____cond354 or ____switch354 == "Right" -- 1396
-            if ____cond354 then -- 1396
-                props.inputManager:emitAxis("rightx", node.x / visualBound) -- 1398
-                props.inputManager:emitAxis("righty", node.y / visualBound) -- 1399
-                break -- 1400
-            end -- 1400
-        until true -- 1400
+                DPadButton, -- 1360
+                { -- 1360
+                    x = halfSize, -- 1360
+                    y = dOffset + halfSize, -- 1360
+                    onMount = onMount("dpup") -- 1360
+                } -- 1360
+            ), -- 1360
+            React:createElement( -- 1360
+                DPadButton, -- 1361
+                { -- 1361
+                    x = halfSize, -- 1361
+                    y = -dOffset + halfSize, -- 1361
+                    angle = 180, -- 1361
+                    onMount = onMount("dpdown") -- 1361
+                } -- 1361
+            ), -- 1361
+            React:createElement( -- 1361
+                DPadButton, -- 1362
+                { -- 1362
+                    x = dOffset + halfSize, -- 1362
+                    y = halfSize, -- 1362
+                    angle = 90, -- 1362
+                    onMount = onMount("dpright") -- 1362
+                } -- 1362
+            ), -- 1362
+            React:createElement( -- 1362
+                DPadButton, -- 1363
+                { -- 1363
+                    x = -dOffset + halfSize, -- 1363
+                    y = halfSize, -- 1363
+                    angle = -90, -- 1363
+                    onMount = onMount("dpleft") -- 1363
+                } -- 1363
+            ) -- 1363
+        ) -- 1363
+    ) -- 1363
+end -- 1310
+local function Button(self, props) -- 1380
+    local ____props_3 = props -- 1388
+    local x = ____props_3.x -- 1388
+    local y = ____props_3.y -- 1388
+    local onMount = ____props_3.onMount -- 1388
+    local text = ____props_3.text -- 1388
+    local fontName = ____props_3.fontName -- 1388
+    if fontName == nil then -- 1388
+        fontName = "sarasa-mono-sc-regular" -- 1384
+    end -- 1384
+    local buttonSize = ____props_3.buttonSize -- 1384
+    local color = ____props_3.color -- 1384
+    if color == nil then -- 1384
+        color = 4294967295 -- 1386
     end -- 1386
-    return React:createElement( -- 1404
-        "align-node", -- 1404
-        {style = {width = moveSize * 2, height = moveSize * 2}}, -- 1404
-        React:createElement( -- 1404
-            "node", -- 1404
-            { -- 1404
-                x = moveSize, -- 1404
-                y = moveSize, -- 1404
-                onTapFilter = function(touch) -- 1404
-                    local ____touch_4 = touch -- 1408
-                    local location = ____touch_4.location -- 1408
-                    if location.length > moveSize then -- 1408
-                        touch.enabled = false -- 1410
-                    end -- 1410
-                end, -- 1407
-                onTapBegan = function(touch) -- 1407
-                    if hat.current then -- 1407
-                        hat.current.opacity = 1 -- 1415
-                        updatePosition(hat.current, touch.location) -- 1416
-                    end -- 1416
-                end, -- 1413
-                onTapMoved = function(touch) -- 1413
-                    if hat.current then -- 1413
-                        hat.current.opacity = 1 -- 1421
-                        updatePosition(hat.current, touch.location) -- 1422
-                    end -- 1422
-                end, -- 1419
-                onTapped = function() -- 1419
-                    if hat.current then -- 1419
-                        hat.current.opacity = primaryOpacity -- 1427
-                        updatePosition(hat.current, Vec2.zero) -- 1428
-                    end -- 1428
-                end -- 1425
-            }, -- 1425
-            React:createElement( -- 1425
-                "draw-node", -- 1425
-                {opacity = secondaryOpacity}, -- 1425
-                React:createElement("dot-shape", {radius = moveSize, color = color}) -- 1425
-            ), -- 1425
-            React:createElement( -- 1425
-                "draw-node", -- 1425
-                {ref = hat, opacity = primaryOpacity}, -- 1425
-                React:createElement("dot-shape", {radius = hatSize, color = color}) -- 1425
-            ) -- 1425
-        ) -- 1425
-    ) -- 1425
-end -- 1374
-function ____exports.ButtonPad(self, props) -- 1452
-    local ____props_5 = props -- 1459
-    local buttonSize = ____props_5.buttonSize -- 1459
-    if buttonSize == nil then -- 1459
-        buttonSize = 30 -- 1454
-    end -- 1454
-    local buttonPadding = ____props_5.buttonPadding -- 1454
-    if buttonPadding == nil then -- 1454
-        buttonPadding = 10 -- 1455
-    end -- 1455
-    local fontName = ____props_5.fontName -- 1455
-    if fontName == nil then -- 1455
-        fontName = "sarasa-mono-sc-regular" -- 1456
-    end -- 1456
-    local color = ____props_5.color -- 1456
-    if color == nil then -- 1456
-        color = 4294967295 -- 1457
-    end -- 1457
-    local primaryOpacity = ____props_5.primaryOpacity -- 1457
-    if primaryOpacity == nil then -- 1457
-        primaryOpacity = 0.3 -- 1458
-    end -- 1458
-    local function Button(self, props) -- 1460
-        local drawNode = useRef() -- 1461
-        return React:createElement( -- 1462
-            "node", -- 1462
-            __TS__ObjectAssign( -- 1462
-                {}, -- 1462
-                props, -- 1463
-                { -- 1463
-                    width = buttonSize * 2, -- 1463
-                    height = buttonSize * 2, -- 1463
-                    onTapBegan = function() -- 1463
-                        if drawNode.current then -- 1463
-                            drawNode.current.opacity = 1 -- 1466
-                        end -- 1466
-                    end, -- 1464
-                    onTapEnded = function() -- 1464
-                        if drawNode.current then -- 1464
-                            drawNode.current.opacity = primaryOpacity -- 1471
-                        end -- 1471
-                    end -- 1469
-                } -- 1469
-            ), -- 1469
-            React:createElement( -- 1469
-                "draw-node", -- 1469
-                {ref = drawNode, x = buttonSize, y = buttonSize, opacity = primaryOpacity}, -- 1469
-                React:createElement("dot-shape", {radius = buttonSize, color = color}) -- 1469
-            ), -- 1469
-            React:createElement("label", { -- 1469
-                x = buttonSize, -- 1469
-                y = buttonSize, -- 1469
-                scaleX = 0.5, -- 1469
-                scaleY = 0.5, -- 1469
-                color3 = color, -- 1469
-                opacity = primaryOpacity + 0.2, -- 1469
-                fontName = fontName, -- 1469
-                fontSize = buttonSize * 2 -- 1469
-            }, props.text) -- 1469
-        ) -- 1469
-    end -- 1460
-    local width = buttonSize * 5 + buttonPadding * 3 / 2 -- 1483
-    local height = buttonSize * 4 + buttonPadding -- 1484
-    local function onMount(buttonName) -- 1485
-        return function(node) -- 1486
-            node:slot( -- 1487
-                "TapBegan", -- 1487
-                function() return props.inputManager:emitButtonDown(buttonName) end -- 1487
-            ) -- 1487
-            node:slot( -- 1488
-                "TapEnded", -- 1488
-                function() return props.inputManager:emitButtonUp(buttonName) end -- 1488
-            ) -- 1488
-        end -- 1486
-    end -- 1485
-    return React:createElement( -- 1491
-        "align-node", -- 1491
-        {style = {width = width, height = height}}, -- 1491
-        React:createElement( -- 1491
-            "node", -- 1491
-            {x = (buttonSize + buttonPadding / 2) / 2 + width / 2, y = buttonSize + buttonPadding / 2 + height / 2}, -- 1491
-            React:createElement( -- 1491
-                Button, -- 1497
-                { -- 1497
-                    text = "B", -- 1497
-                    x = -buttonSize * 2 - buttonPadding, -- 1497
-                    onMount = onMount("b") -- 1497
-                } -- 1497
-            ), -- 1497
-            React:createElement( -- 1497
-                Button, -- 1501
-                { -- 1501
-                    text = "Y", -- 1501
-                    onMount = onMount("y") -- 1501
-                } -- 1501
-            ), -- 1501
-            React:createElement( -- 1501
-                Button, -- 1502
-                { -- 1502
-                    text = "A", -- 1502
-                    x = -buttonSize - buttonPadding / 2, -- 1502
-                    y = -buttonSize * 2 - buttonPadding, -- 1502
-                    onMount = onMount("a") -- 1502
-                } -- 1502
-            ), -- 1502
-            React:createElement( -- 1502
-                Button, -- 1507
-                { -- 1507
-                    text = "X", -- 1507
-                    x = buttonSize + buttonPadding / 2, -- 1507
-                    y = -buttonSize * 2 - buttonPadding, -- 1507
-                    onMount = onMount("x") -- 1507
-                } -- 1507
-            ) -- 1507
-        ) -- 1507
-    ) -- 1507
-end -- 1452
-function ____exports.ControlPad(self, props) -- 1525
-    local ____props_6 = props -- 1531
-    local buttonSize = ____props_6.buttonSize -- 1531
-    if buttonSize == nil then -- 1531
-        buttonSize = 35 -- 1527
+    local primaryOpacity = ____props_3.primaryOpacity -- 1386
+    if primaryOpacity == nil then -- 1386
+        primaryOpacity = 0.3 -- 1387
+    end -- 1387
+    local drawNode = useRef() -- 1389
+    return React:createElement( -- 1390
+        "node", -- 1390
+        { -- 1390
+            x = x, -- 1390
+            y = y, -- 1390
+            onMount = onMount, -- 1390
+            width = buttonSize * 2, -- 1390
+            height = buttonSize * 2, -- 1390
+            onTapBegan = function() -- 1390
+                if drawNode.current then -- 1390
+                    drawNode.current.opacity = 1 -- 1394
+                end -- 1394
+            end, -- 1392
+            onTapEnded = function() -- 1392
+                if drawNode.current then -- 1392
+                    drawNode.current.opacity = primaryOpacity -- 1399
+                end -- 1399
+            end -- 1397
+        }, -- 1397
+        React:createElement( -- 1397
+            "draw-node", -- 1397
+            {ref = drawNode, x = buttonSize, y = buttonSize, opacity = primaryOpacity}, -- 1397
+            React:createElement("dot-shape", {radius = buttonSize, color = color}) -- 1397
+        ), -- 1397
+        React:createElement("label", { -- 1397
+            x = buttonSize, -- 1397
+            y = buttonSize, -- 1397
+            scaleX = 0.5, -- 1397
+            scaleY = 0.5, -- 1397
+            color3 = color, -- 1397
+            opacity = primaryOpacity + 0.2, -- 1397
+            fontName = fontName, -- 1397
+            fontSize = buttonSize * 2 -- 1397
+        }, text) -- 1397
+    ) -- 1397
+end -- 1380
+function ____exports.JoyStick(self, props) -- 1425
+    local hat = useRef() -- 1426
+    local ____props_4 = props -- 1436
+    local moveSize = ____props_4.moveSize -- 1436
+    if moveSize == nil then -- 1436
+        moveSize = 70 -- 1428
+    end -- 1428
+    local hatSize = ____props_4.hatSize -- 1428
+    if hatSize == nil then -- 1428
+        hatSize = 40 -- 1429
+    end -- 1429
+    local stickType = ____props_4.stickType -- 1429
+    if stickType == nil then -- 1429
+        stickType = "Left" -- 1430
+    end -- 1430
+    local color = ____props_4.color -- 1430
+    if color == nil then -- 1430
+        color = 4294967295 -- 1431
+    end -- 1431
+    local primaryOpacity = ____props_4.primaryOpacity -- 1431
+    if primaryOpacity == nil then -- 1431
+        primaryOpacity = 0.3 -- 1432
+    end -- 1432
+    local secondaryOpacity = ____props_4.secondaryOpacity -- 1432
+    if secondaryOpacity == nil then -- 1432
+        secondaryOpacity = 0.1 -- 1433
+    end -- 1433
+    local fontName = ____props_4.fontName -- 1433
+    if fontName == nil then -- 1433
+        fontName = "sarasa-mono-sc-regular" -- 1434
+    end -- 1434
+    local buttonSize = ____props_4.buttonSize -- 1434
+    if buttonSize == nil then -- 1434
+        buttonSize = 20 -- 1435
+    end -- 1435
+    local visualBound = math.max(moveSize - hatSize, 0) -- 1437
+    local stickButton = stickType == "Left" and "leftstick" or "rightstick" -- 1438
+    local function updatePosition(node, location) -- 1440
+        if location.length > visualBound then -- 1440
+            node.position = location:normalize():mul(visualBound) -- 1442
+        else -- 1442
+            node.position = location -- 1444
+        end -- 1444
+        repeat -- 1444
+            local ____switch360 = stickType -- 1444
+            local ____cond360 = ____switch360 == "Left" -- 1444
+            if ____cond360 then -- 1444
+                props.inputManager:emitAxis("leftx", node.x / visualBound) -- 1448
+                props.inputManager:emitAxis("lefty", node.y / visualBound) -- 1449
+                break -- 1450
+            end -- 1450
+            ____cond360 = ____cond360 or ____switch360 == "Right" -- 1450
+            if ____cond360 then -- 1450
+                props.inputManager:emitAxis("rightx", node.x / visualBound) -- 1452
+                props.inputManager:emitAxis("righty", node.y / visualBound) -- 1453
+                break -- 1454
+            end -- 1454
+        until true -- 1454
+    end -- 1440
+    local ____React_9 = React -- 1440
+    local ____React_createElement_10 = React.createElement -- 1440
+    local ____temp_7 = {style = {width = moveSize * 2, height = moveSize * 2}} -- 1440
+    local ____temp_8 = React:createElement( -- 1440
+        "node", -- 1440
+        { -- 1440
+            x = moveSize, -- 1440
+            y = moveSize, -- 1440
+            onTapFilter = function(touch) -- 1440
+                local ____touch_5 = touch -- 1462
+                local location = ____touch_5.location -- 1462
+                if location.length > moveSize then -- 1462
+                    touch.enabled = false -- 1464
+                end -- 1464
+            end, -- 1461
+            onTapBegan = function(touch) -- 1461
+                if hat.current then -- 1461
+                    hat.current.opacity = 1 -- 1469
+                    updatePosition(hat.current, touch.location) -- 1470
+                end -- 1470
+            end, -- 1467
+            onTapMoved = function(touch) -- 1467
+                if hat.current then -- 1467
+                    hat.current.opacity = 1 -- 1475
+                    updatePosition(hat.current, touch.location) -- 1476
+                end -- 1476
+            end, -- 1473
+            onTapped = function() -- 1473
+                if hat.current then -- 1473
+                    hat.current.opacity = primaryOpacity -- 1481
+                    updatePosition(hat.current, Vec2.zero) -- 1482
+                end -- 1482
+            end -- 1479
+        }, -- 1479
+        React:createElement( -- 1479
+            "draw-node", -- 1479
+            {opacity = secondaryOpacity}, -- 1479
+            React:createElement("dot-shape", {radius = moveSize, color = color}) -- 1479
+        ), -- 1479
+        React:createElement( -- 1479
+            "draw-node", -- 1479
+            {ref = hat, opacity = primaryOpacity}, -- 1479
+            React:createElement("dot-shape", {radius = hatSize, color = color}) -- 1479
+        ) -- 1479
+    ) -- 1479
+    local ____props_noStickButton_6 -- 1493
+    if props.noStickButton then -- 1493
+        ____props_noStickButton_6 = nil -- 1493
+    else -- 1493
+        ____props_noStickButton_6 = React:createElement( -- 1493
+            Button, -- 1494
+            { -- 1494
+                buttonSize = buttonSize, -- 1494
+                x = moveSize, -- 1494
+                y = moveSize * 2 + buttonSize / 2 + 20, -- 1494
+                text = stickType == "Left" and "LS" or "RS", -- 1494
+                fontName = fontName, -- 1494
+                color = color, -- 1494
+                primaryOpacity = primaryOpacity, -- 1494
+                onMount = function(node) -- 1494
+                    node:slot( -- 1503
+                        "TapBegan", -- 1503
+                        function() return props.inputManager:emitButtonDown(stickButton) end -- 1503
+                    ) -- 1503
+                    node:slot( -- 1504
+                        "TapEnded", -- 1504
+                        function() return props.inputManager:emitButtonUp(stickButton) end -- 1504
+                    ) -- 1504
+                end -- 1502
+            } -- 1502
+        ) -- 1502
+    end -- 1502
+    return ____React_createElement_10( -- 1458
+        ____React_9, -- 1458
+        "align-node", -- 1458
+        ____temp_7, -- 1458
+        ____temp_8, -- 1458
+        ____props_noStickButton_6 -- 1458
+    ) -- 1458
+end -- 1425
+function ____exports.ButtonPad(self, props) -- 1521
+    local ____props_11 = props -- 1528
+    local buttonSize = ____props_11.buttonSize -- 1528
+    if buttonSize == nil then -- 1528
+        buttonSize = 30 -- 1523
+    end -- 1523
+    local buttonPadding = ____props_11.buttonPadding -- 1523
+    if buttonPadding == nil then -- 1523
+        buttonPadding = 10 -- 1524
+    end -- 1524
+    local fontName = ____props_11.fontName -- 1524
+    if fontName == nil then -- 1524
+        fontName = "sarasa-mono-sc-regular" -- 1525
+    end -- 1525
+    local color = ____props_11.color -- 1525
+    if color == nil then -- 1525
+        color = 4294967295 -- 1526
+    end -- 1526
+    local primaryOpacity = ____props_11.primaryOpacity -- 1526
+    if primaryOpacity == nil then -- 1526
+        primaryOpacity = 0.3 -- 1527
     end -- 1527
-    local fontName = ____props_6.fontName -- 1527
-    if fontName == nil then -- 1527
-        fontName = "sarasa-mono-sc-regular" -- 1528
-    end -- 1528
-    local color = ____props_6.color -- 1528
-    if color == nil then -- 1528
-        color = 4294967295 -- 1529
-    end -- 1529
-    local primaryOpacity = ____props_6.primaryOpacity -- 1529
-    if primaryOpacity == nil then -- 1529
-        primaryOpacity = 0.3 -- 1530
-    end -- 1530
-    local function Button(self, props) -- 1532
-        local drawNode = useRef() -- 1533
-        return React:createElement( -- 1534
-            "node", -- 1534
-            __TS__ObjectAssign( -- 1534
-                {}, -- 1534
-                props, -- 1535
-                { -- 1535
-                    width = buttonSize * 2, -- 1535
-                    height = buttonSize, -- 1535
-                    onTapBegan = function() -- 1535
-                        if drawNode.current then -- 1535
-                            drawNode.current.opacity = 1 -- 1538
-                        end -- 1538
-                    end, -- 1536
-                    onTapEnded = function() -- 1536
-                        if drawNode.current then -- 1536
-                            drawNode.current.opacity = primaryOpacity -- 1543
-                        end -- 1543
-                    end -- 1541
-                } -- 1541
-            ), -- 1541
-            React:createElement( -- 1541
-                "draw-node", -- 1541
-                {ref = drawNode, x = buttonSize, y = buttonSize / 2, opacity = primaryOpacity}, -- 1541
-                React:createElement("rect-shape", {width = buttonSize * 2, height = buttonSize, fillColor = color}) -- 1541
-            ), -- 1541
-            React:createElement( -- 1541
-                "label", -- 1541
-                { -- 1541
-                    x = buttonSize, -- 1541
-                    y = buttonSize / 2, -- 1541
-                    scaleX = 0.5, -- 1541
-                    scaleY = 0.5, -- 1541
-                    fontName = fontName, -- 1541
-                    fontSize = math.floor(buttonSize * 1.5), -- 1541
-                    color3 = color, -- 1541
-                    opacity = primaryOpacity + 0.2 -- 1541
-                }, -- 1541
-                props.text -- 1552
-            ) -- 1552
-        ) -- 1552
-    end -- 1532
-    local function onMount(buttonName) -- 1556
-        return function(node) -- 1557
-            node:slot( -- 1558
-                "TapBegan", -- 1558
-                function() return props.inputManager:emitButtonDown(buttonName) end -- 1558
-            ) -- 1558
-            node:slot( -- 1559
-                "TapEnded", -- 1559
-                function() return props.inputManager:emitButtonUp(buttonName) end -- 1559
-            ) -- 1559
-        end -- 1557
-    end -- 1556
-    return React:createElement( -- 1562
-        "align-node", -- 1562
-        {style = {minWidth = buttonSize * 4 + 20, justifyContent = "space-between", flexDirection = "row"}}, -- 1562
-        React:createElement( -- 1562
-            "align-node", -- 1562
-            {style = {width = buttonSize * 2, height = buttonSize}}, -- 1562
-            React:createElement( -- 1562
-                Button, -- 1565
-                { -- 1565
-                    text = "Start", -- 1565
-                    x = buttonSize, -- 1565
-                    y = buttonSize / 2, -- 1565
-                    onMount = onMount("start") -- 1565
-                } -- 1565
-            ) -- 1565
-        ), -- 1565
-        React:createElement( -- 1565
-            "align-node", -- 1565
-            {style = {width = buttonSize * 2, height = buttonSize}}, -- 1565
-            React:createElement( -- 1565
-                Button, -- 1571
-                { -- 1571
-                    text = "Back", -- 1571
-                    x = buttonSize, -- 1571
-                    y = buttonSize / 2, -- 1571
-                    onMount = onMount("back") -- 1571
-                } -- 1571
-            ) -- 1571
-        ) -- 1571
-    ) -- 1571
-end -- 1525
-function ____exports.TriggerPad(self, props) -- 1588
-    local ____props_7 = props -- 1594
-    local buttonSize = ____props_7.buttonSize -- 1594
-    if buttonSize == nil then -- 1594
-        buttonSize = 35 -- 1590
-    end -- 1590
-    local fontName = ____props_7.fontName -- 1590
-    if fontName == nil then -- 1590
-        fontName = "sarasa-mono-sc-regular" -- 1591
-    end -- 1591
-    local color = ____props_7.color -- 1591
-    if color == nil then -- 1591
-        color = 4294967295 -- 1592
-    end -- 1592
-    local primaryOpacity = ____props_7.primaryOpacity -- 1592
-    if primaryOpacity == nil then -- 1592
-        primaryOpacity = 0.3 -- 1593
-    end -- 1593
-    local function Button(self, props) -- 1595
-        local drawNode = useRef() -- 1596
-        return React:createElement( -- 1597
-            "node", -- 1597
-            __TS__ObjectAssign( -- 1597
-                {}, -- 1597
-                props, -- 1598
-                { -- 1598
-                    width = buttonSize * 2, -- 1598
-                    height = buttonSize, -- 1598
-                    onTapBegan = function() -- 1598
-                        if drawNode.current then -- 1598
-                            drawNode.current.opacity = 1 -- 1601
-                        end -- 1601
-                    end, -- 1599
-                    onTapEnded = function() -- 1599
-                        if drawNode.current then -- 1599
-                            drawNode.current.opacity = primaryOpacity -- 1606
-                        end -- 1606
-                    end -- 1604
-                } -- 1604
-            ), -- 1604
-            React:createElement( -- 1604
-                "draw-node", -- 1604
-                {ref = drawNode, x = buttonSize, y = buttonSize / 2, opacity = primaryOpacity}, -- 1604
-                React:createElement("rect-shape", {width = buttonSize * 2, height = buttonSize, fillColor = color}) -- 1604
-            ), -- 1604
-            React:createElement( -- 1604
-                "label", -- 1604
-                { -- 1604
-                    x = buttonSize, -- 1604
-                    y = buttonSize / 2, -- 1604
-                    scaleX = 0.5, -- 1604
-                    scaleY = 0.5, -- 1604
-                    fontName = fontName, -- 1604
-                    fontSize = math.floor(buttonSize * 1.5), -- 1604
-                    color3 = color, -- 1604
-                    opacity = primaryOpacity + 0.2 -- 1604
-                }, -- 1604
-                props.text -- 1614
+    local width = buttonSize * 5 + buttonPadding * 3 / 2 -- 1529
+    local height = buttonSize * 4 + buttonPadding -- 1530
+    local function onMount(buttonName) -- 1531
+        return function(node) -- 1532
+            node:slot( -- 1533
+                "TapBegan", -- 1533
+                function() return props.inputManager:emitButtonDown(buttonName) end -- 1533
+            ) -- 1533
+            node:slot( -- 1534
+                "TapEnded", -- 1534
+                function() return props.inputManager:emitButtonUp(buttonName) end -- 1534
+            ) -- 1534
+        end -- 1532
+    end -- 1531
+    return React:createElement( -- 1537
+        "align-node", -- 1537
+        {style = {width = width, height = height}}, -- 1537
+        React:createElement( -- 1537
+            "node", -- 1537
+            {x = (buttonSize + buttonPadding / 2) / 2 + width / 2, y = buttonSize + buttonPadding / 2 + height / 2}, -- 1537
+            React:createElement( -- 1537
+                Button, -- 1543
+                { -- 1543
+                    text = "B", -- 1543
+                    fontName = fontName, -- 1543
+                    color = color, -- 1543
+                    primaryOpacity = primaryOpacity, -- 1543
+                    buttonSize = buttonSize, -- 1543
+                    x = -buttonSize * 2 - buttonPadding, -- 1543
+                    onMount = onMount("b") -- 1543
+                } -- 1543
+            ), -- 1543
+            React:createElement( -- 1543
+                Button, -- 1549
+                { -- 1549
+                    text = "Y", -- 1549
+                    fontName = fontName, -- 1549
+                    color = color, -- 1549
+                    primaryOpacity = primaryOpacity, -- 1549
+                    buttonSize = buttonSize, -- 1549
+                    onMount = onMount("y") -- 1549
+                } -- 1549
+            ), -- 1549
+            React:createElement( -- 1549
+                Button, -- 1553
+                { -- 1553
+                    text = "A", -- 1553
+                    fontName = fontName, -- 1553
+                    color = color, -- 1553
+                    primaryOpacity = primaryOpacity, -- 1553
+                    buttonSize = buttonSize, -- 1553
+                    x = -buttonSize - buttonPadding / 2, -- 1553
+                    y = -buttonSize * 2 - buttonPadding, -- 1553
+                    onMount = onMount("a") -- 1553
+                } -- 1553
+            ), -- 1553
+            React:createElement( -- 1553
+                Button, -- 1560
+                { -- 1560
+                    text = "X", -- 1560
+                    fontName = fontName, -- 1560
+                    color = color, -- 1560
+                    primaryOpacity = primaryOpacity, -- 1560
+                    buttonSize = buttonSize, -- 1560
+                    x = buttonSize + buttonPadding / 2, -- 1560
+                    y = -buttonSize * 2 - buttonPadding, -- 1560
+                    onMount = onMount("x") -- 1560
+                } -- 1560
+            ) -- 1560
+        ) -- 1560
+    ) -- 1560
+end -- 1521
+function ____exports.ControlPad(self, props) -- 1580
+    local ____props_12 = props -- 1586
+    local buttonSize = ____props_12.buttonSize -- 1586
+    if buttonSize == nil then -- 1586
+        buttonSize = 35 -- 1582
+    end -- 1582
+    local fontName = ____props_12.fontName -- 1582
+    if fontName == nil then -- 1582
+        fontName = "sarasa-mono-sc-regular" -- 1583
+    end -- 1583
+    local color = ____props_12.color -- 1583
+    if color == nil then -- 1583
+        color = 4294967295 -- 1584
+    end -- 1584
+    local primaryOpacity = ____props_12.primaryOpacity -- 1584
+    if primaryOpacity == nil then -- 1584
+        primaryOpacity = 0.3 -- 1585
+    end -- 1585
+    local function Button(self, props) -- 1587
+        local drawNode = useRef() -- 1588
+        return React:createElement( -- 1589
+            "node", -- 1589
+            __TS__ObjectAssign( -- 1589
+                {}, -- 1589
+                props, -- 1590
+                { -- 1590
+                    width = buttonSize * 2, -- 1590
+                    height = buttonSize, -- 1590
+                    onTapBegan = function() -- 1590
+                        if drawNode.current then -- 1590
+                            drawNode.current.opacity = 1 -- 1593
+                        end -- 1593
+                    end, -- 1591
+                    onTapEnded = function() -- 1591
+                        if drawNode.current then -- 1591
+                            drawNode.current.opacity = primaryOpacity -- 1598
+                        end -- 1598
+                    end -- 1596
+                } -- 1596
+            ), -- 1596
+            React:createElement( -- 1596
+                "draw-node", -- 1596
+                {ref = drawNode, x = buttonSize, y = buttonSize / 2, opacity = primaryOpacity}, -- 1596
+                React:createElement("rect-shape", {width = buttonSize * 2, height = buttonSize, fillColor = color}) -- 1596
+            ), -- 1596
+            React:createElement( -- 1596
+                "label", -- 1596
+                { -- 1596
+                    x = buttonSize, -- 1596
+                    y = buttonSize / 2, -- 1596
+                    scaleX = 0.5, -- 1596
+                    scaleY = 0.5, -- 1596
+                    fontName = fontName, -- 1596
+                    fontSize = math.floor(buttonSize * 1.5), -- 1596
+                    color3 = color, -- 1596
+                    opacity = primaryOpacity + 0.2 -- 1596
+                }, -- 1596
+                props.text -- 1607
+            ) -- 1607
+        ) -- 1607
+    end -- 1587
+    local function onMount(buttonName) -- 1611
+        return function(node) -- 1612
+            node:slot( -- 1613
+                "TapBegan", -- 1613
+                function() return props.inputManager:emitButtonDown(buttonName) end -- 1613
+            ) -- 1613
+            node:slot( -- 1614
+                "TapEnded", -- 1614
+                function() return props.inputManager:emitButtonUp(buttonName) end -- 1614
             ) -- 1614
-        ) -- 1614
-    end -- 1595
-    local function onMount(axisName) -- 1618
-        return function(node) -- 1619
-            node:slot( -- 1620
-                "TapBegan", -- 1620
-                function() return props.inputManager:emitAxis(axisName, 1, 0) end -- 1620
+        end -- 1612
+    end -- 1611
+    return React:createElement( -- 1617
+        "align-node", -- 1617
+        {style = {minWidth = buttonSize * 4 + 20, justifyContent = "space-between", flexDirection = "row"}}, -- 1617
+        React:createElement( -- 1617
+            "align-node", -- 1617
+            {style = {width = buttonSize * 2, height = buttonSize}}, -- 1617
+            React:createElement( -- 1617
+                Button, -- 1620
+                { -- 1620
+                    text = "Start", -- 1620
+                    x = buttonSize, -- 1620
+                    y = buttonSize / 2, -- 1620
+                    onMount = onMount("start") -- 1620
+                } -- 1620
             ) -- 1620
-            node:slot( -- 1621
-                "TapEnded", -- 1621
-                function() return props.inputManager:emitAxis(axisName, 0, 0) end -- 1621
-            ) -- 1621
-        end -- 1619
-    end -- 1618
-    return React:createElement( -- 1624
-        "align-node", -- 1624
-        {style = {minWidth = buttonSize * 4 + 20, justifyContent = "space-between", flexDirection = "row"}}, -- 1624
-        React:createElement( -- 1624
-            "align-node", -- 1624
-            {style = {width = buttonSize * 2, height = buttonSize}}, -- 1624
-            React:createElement( -- 1624
-                Button, -- 1627
-                { -- 1627
-                    text = "LT", -- 1627
-                    x = buttonSize, -- 1627
-                    y = buttonSize / 2, -- 1627
-                    onMount = onMount("lefttrigger") -- 1627
-                } -- 1627
-            ) -- 1627
-        ), -- 1627
-        React:createElement( -- 1627
-            "align-node", -- 1627
-            {style = {width = buttonSize * 2, height = buttonSize}}, -- 1627
-            React:createElement( -- 1627
-                Button, -- 1633
-                { -- 1633
-                    text = "RT", -- 1633
-                    x = buttonSize, -- 1633
-                    y = buttonSize / 2, -- 1633
-                    onMount = onMount("righttrigger") -- 1633
-                } -- 1633
-            ) -- 1633
-        ) -- 1633
-    ) -- 1633
-end -- 1588
-function ____exports.GamePad(self, props) -- 1655
-    local ____props_8 = props -- 1656
-    local color = ____props_8.color -- 1656
-    local primaryOpacity = ____props_8.primaryOpacity -- 1656
-    local secondaryOpacity = ____props_8.secondaryOpacity -- 1656
-    local inputManager = ____props_8.inputManager -- 1656
-    local ____React_27 = React -- 1656
-    local ____React_createElement_28 = React.createElement -- 1656
-    local ____temp_25 = {style = {flexDirection = "column-reverse"}, windowRoot = true} -- 1656
-    local ____React_21 = React -- 1656
-    local ____React_createElement_22 = React.createElement -- 1656
-    local ____temp_19 = {style = {margin = 20, justifyContent = "space-between", flexDirection = "row", alignItems = "flex-end"}} -- 1656
-    local ____React_12 = React -- 1656
-    local ____React_createElement_13 = React.createElement -- 1656
-    local ____temp_11 = {style = {justifyContent = "space-between", flexDirection = "row", alignItems = "flex-end"}} -- 1656
-    local ____props_noDPad_9 -- 1670
-    if props.noDPad then -- 1670
-        ____props_noDPad_9 = nil -- 1670
-    else -- 1670
-        ____props_noDPad_9 = React:createElement(____exports.DPad, {color = color, primaryOpacity = primaryOpacity, inputManager = inputManager}) -- 1670
-    end -- 1670
-    local ____props_noLeftStick_10 -- 1677
-    if props.noLeftStick then -- 1677
-        ____props_noLeftStick_10 = nil -- 1677
-    else -- 1677
-        ____props_noLeftStick_10 = React:createElement( -- 1677
-            React.Fragment, -- 1677
-            nil, -- 1677
-            React:createElement("align-node", {style = {width = 10}}), -- 1677
-            React:createElement(____exports.JoyStick, { -- 1677
-                stickType = "Left", -- 1677
-                color = color, -- 1677
-                primaryOpacity = primaryOpacity, -- 1677
-                secondaryOpacity = secondaryOpacity, -- 1677
-                inputManager = inputManager -- 1677
-            }) -- 1677
-        ) -- 1677
-    end -- 1677
-    local ____React_createElement_13_result_20 = ____React_createElement_13( -- 1677
-        ____React_12, -- 1677
-        "align-node", -- 1677
-        ____temp_11, -- 1677
-        ____props_noDPad_9, -- 1677
-        ____props_noLeftStick_10 -- 1677
-    ) -- 1677
-    local ____React_17 = React -- 1677
-    local ____React_createElement_18 = React.createElement -- 1677
-    local ____temp_16 = {style = {justifyContent = "space-between", flexDirection = "row", alignItems = "flex-end"}} -- 1677
-    local ____props_noRightStick_14 -- 1693
-    if props.noRightStick then -- 1693
-        ____props_noRightStick_14 = nil -- 1693
-    else -- 1693
-        ____props_noRightStick_14 = React:createElement( -- 1693
-            React.Fragment, -- 1693
-            nil, -- 1693
-            React:createElement(____exports.JoyStick, {stickType = "Right", color = color, primaryOpacity = primaryOpacity, inputManager = inputManager}), -- 1693
-            React:createElement("align-node", {style = {width = 10}}) -- 1693
-        ) -- 1693
-    end -- 1693
-    local ____props_noButtonPad_15 -- 1702
-    if props.noButtonPad then -- 1702
-        ____props_noButtonPad_15 = nil -- 1702
-    else -- 1702
-        ____props_noButtonPad_15 = React:createElement(____exports.ButtonPad, {color = color, primaryOpacity = primaryOpacity, inputManager = inputManager}) -- 1702
-    end -- 1702
-    local ____React_createElement_22_result_26 = ____React_createElement_22( -- 1702
-        ____React_21, -- 1702
-        "align-node", -- 1702
-        ____temp_19, -- 1702
-        ____React_createElement_13_result_20, -- 1702
-        ____React_createElement_18( -- 1702
-            ____React_17, -- 1702
-            "align-node", -- 1702
-            ____temp_16, -- 1702
-            ____props_noRightStick_14, -- 1702
-            ____props_noButtonPad_15 -- 1702
-        ) -- 1702
-    ) -- 1702
-    local ____props_noTriggerPad_23 -- 1711
-    if props.noTriggerPad then -- 1711
-        ____props_noTriggerPad_23 = nil -- 1711
-    else -- 1711
-        ____props_noTriggerPad_23 = React:createElement( -- 1711
-            "align-node", -- 1711
-            {style = {paddingLeft = 20, paddingRight = 20, paddingTop = 20}}, -- 1711
-            React:createElement(____exports.TriggerPad, {color = color, primaryOpacity = primaryOpacity, inputManager = inputManager}) -- 1711
-        ) -- 1711
-    end -- 1711
-    local ____props_noControlPad_24 -- 1720
-    if props.noControlPad then -- 1720
-        ____props_noControlPad_24 = nil -- 1720
-    else -- 1720
-        ____props_noControlPad_24 = React:createElement( -- 1720
-            "align-node", -- 1720
-            {style = {paddingLeft = 20, paddingRight = 20}}, -- 1720
-            React:createElement(____exports.ControlPad, {color = color, primaryOpacity = primaryOpacity, inputManager = inputManager}) -- 1720
-        ) -- 1720
-    end -- 1720
-    return ____React_createElement_28( -- 1657
-        ____React_27, -- 1657
-        "align-node", -- 1657
-        ____temp_25, -- 1657
-        ____React_createElement_22_result_26, -- 1657
-        ____props_noTriggerPad_23, -- 1657
-        ____props_noControlPad_24 -- 1657
-    ) -- 1657
-end -- 1655
-return ____exports -- 1655
+        ), -- 1620
+        React:createElement( -- 1620
+            "align-node", -- 1620
+            {style = {width = buttonSize * 2, height = buttonSize}}, -- 1620
+            React:createElement( -- 1620
+                Button, -- 1626
+                { -- 1626
+                    text = "Back", -- 1626
+                    x = buttonSize, -- 1626
+                    y = buttonSize / 2, -- 1626
+                    onMount = onMount("back") -- 1626
+                } -- 1626
+            ) -- 1626
+        ) -- 1626
+    ) -- 1626
+end -- 1580
+function ____exports.CreateControlPad(props) -- 1635
+    return toNode(React:createElement( -- 1636
+        ____exports.ControlPad, -- 1636
+        __TS__ObjectAssign({}, props) -- 1636
+    )) -- 1636
+end -- 1635
+function ____exports.TriggerPad(self, props) -- 1650
+    local ____props_13 = props -- 1656
+    local buttonSize = ____props_13.buttonSize -- 1656
+    if buttonSize == nil then -- 1656
+        buttonSize = 35 -- 1652
+    end -- 1652
+    local fontName = ____props_13.fontName -- 1652
+    if fontName == nil then -- 1652
+        fontName = "sarasa-mono-sc-regular" -- 1653
+    end -- 1653
+    local color = ____props_13.color -- 1653
+    if color == nil then -- 1653
+        color = 4294967295 -- 1654
+    end -- 1654
+    local primaryOpacity = ____props_13.primaryOpacity -- 1654
+    if primaryOpacity == nil then -- 1654
+        primaryOpacity = 0.3 -- 1655
+    end -- 1655
+    local function Button(self, props) -- 1657
+        local drawNode = useRef() -- 1658
+        return React:createElement( -- 1659
+            "node", -- 1659
+            __TS__ObjectAssign( -- 1659
+                {}, -- 1659
+                props, -- 1660
+                { -- 1660
+                    width = buttonSize * 2, -- 1660
+                    height = buttonSize, -- 1660
+                    onTapBegan = function() -- 1660
+                        if drawNode.current then -- 1660
+                            drawNode.current.opacity = 1 -- 1663
+                        end -- 1663
+                    end, -- 1661
+                    onTapEnded = function() -- 1661
+                        if drawNode.current then -- 1661
+                            drawNode.current.opacity = primaryOpacity -- 1668
+                        end -- 1668
+                    end -- 1666
+                } -- 1666
+            ), -- 1666
+            React:createElement( -- 1666
+                "draw-node", -- 1666
+                {ref = drawNode, x = buttonSize, y = buttonSize / 2, opacity = primaryOpacity}, -- 1666
+                React:createElement("rect-shape", {width = buttonSize * 2, height = buttonSize, fillColor = color}) -- 1666
+            ), -- 1666
+            React:createElement( -- 1666
+                "label", -- 1666
+                { -- 1666
+                    x = buttonSize, -- 1666
+                    y = buttonSize / 2, -- 1666
+                    scaleX = 0.5, -- 1666
+                    scaleY = 0.5, -- 1666
+                    fontName = fontName, -- 1666
+                    fontSize = math.floor(buttonSize * 1.5), -- 1666
+                    color3 = color, -- 1666
+                    opacity = primaryOpacity + 0.2 -- 1666
+                }, -- 1666
+                props.text -- 1676
+            ) -- 1676
+        ) -- 1676
+    end -- 1657
+    local function onMountAxis(axisName) -- 1680
+        return function(node) -- 1681
+            node:slot( -- 1682
+                "TapBegan", -- 1682
+                function() return props.inputManager:emitAxis(axisName, 1, 0) end -- 1682
+            ) -- 1682
+            node:slot( -- 1683
+                "TapEnded", -- 1683
+                function() return props.inputManager:emitAxis(axisName, 0, 0) end -- 1683
+            ) -- 1683
+        end -- 1681
+    end -- 1680
+    local function onMountButton(buttonName) -- 1686
+        return function(node) -- 1687
+            node:slot( -- 1688
+                "TapBegan", -- 1688
+                function() return props.inputManager:emitButtonDown(buttonName, 0) end -- 1688
+            ) -- 1688
+            node:slot( -- 1689
+                "TapEnded", -- 1689
+                function() return props.inputManager:emitButtonUp(buttonName, 0) end -- 1689
+            ) -- 1689
+        end -- 1687
+    end -- 1686
+    local ____React_25 = React -- 1686
+    local ____React_createElement_26 = React.createElement -- 1686
+    local ____temp_23 = {style = {minWidth = buttonSize * 4 + 20, justifyContent = "space-between", flexDirection = "row"}} -- 1686
+    local ____React_17 = React -- 1686
+    local ____React_createElement_18 = React.createElement -- 1686
+    local ____temp_15 = {style = {width = buttonSize * 4 + 10, height = buttonSize}} -- 1686
+    local ____temp_16 = React:createElement( -- 1686
+        Button, -- 1695
+        { -- 1695
+            text = "LT", -- 1695
+            x = buttonSize, -- 1695
+            y = buttonSize / 2, -- 1695
+            onMount = onMountAxis("lefttrigger") -- 1695
+        } -- 1695
+    ) -- 1695
+    local ____props_noShoulder_14 -- 1699
+    if props.noShoulder then -- 1699
+        ____props_noShoulder_14 = nil -- 1699
+    else -- 1699
+        ____props_noShoulder_14 = React:createElement( -- 1699
+            Button, -- 1700
+            { -- 1700
+                text = "LB", -- 1700
+                x = buttonSize * 3 + 10, -- 1700
+                y = buttonSize / 2, -- 1700
+                onMount = onMountButton("leftshoulder") -- 1700
+            } -- 1700
+        ) -- 1700
+    end -- 1700
+    local ____React_createElement_18_result_24 = ____React_createElement_18( -- 1700
+        ____React_17, -- 1700
+        "align-node", -- 1700
+        ____temp_15, -- 1700
+        ____temp_16, -- 1700
+        ____props_noShoulder_14 -- 1700
+    ) -- 1700
+    local ____React_21 = React -- 1700
+    local ____React_createElement_22 = React.createElement -- 1700
+    local ____temp_20 = {style = {width = buttonSize * 4 + 10, height = buttonSize}} -- 1700
+    local ____props_noShoulder_19 -- 1707
+    if props.noShoulder then -- 1707
+        ____props_noShoulder_19 = nil -- 1707
+    else -- 1707
+        ____props_noShoulder_19 = React:createElement( -- 1707
+            Button, -- 1708
+            { -- 1708
+                text = "RB", -- 1708
+                x = buttonSize, -- 1708
+                y = buttonSize / 2, -- 1708
+                onMount = onMountButton("rightshoulder") -- 1708
+            } -- 1708
+        ) -- 1708
+    end -- 1708
+    return ____React_createElement_26( -- 1692
+        ____React_25, -- 1692
+        "align-node", -- 1692
+        ____temp_23, -- 1692
+        ____React_createElement_18_result_24, -- 1692
+        ____React_createElement_22( -- 1692
+            ____React_21, -- 1692
+            "align-node", -- 1692
+            ____temp_20, -- 1692
+            ____props_noShoulder_19, -- 1692
+            React:createElement( -- 1692
+                Button, -- 1713
+                { -- 1713
+                    text = "RT", -- 1713
+                    x = buttonSize * 3 + 10, -- 1713
+                    y = buttonSize / 2, -- 1713
+                    onMount = onMountAxis("righttrigger") -- 1713
+                } -- 1713
+            ) -- 1713
+        ) -- 1713
+    ) -- 1713
+end -- 1650
+function ____exports.CreateTriggerPad(props) -- 1722
+    return toNode(React:createElement( -- 1723
+        ____exports.TriggerPad, -- 1723
+        __TS__ObjectAssign({}, props) -- 1723
+    )) -- 1723
+end -- 1722
+function ____exports.GamePad(self, props) -- 1743
+    local ____props_27 = props -- 1744
+    local color = ____props_27.color -- 1744
+    local primaryOpacity = ____props_27.primaryOpacity -- 1744
+    local secondaryOpacity = ____props_27.secondaryOpacity -- 1744
+    local inputManager = ____props_27.inputManager -- 1744
+    local ____React_46 = React -- 1744
+    local ____React_createElement_47 = React.createElement -- 1744
+    local ____temp_44 = {style = {flexDirection = "column-reverse"}, windowRoot = true} -- 1744
+    local ____React_40 = React -- 1744
+    local ____React_createElement_41 = React.createElement -- 1744
+    local ____temp_38 = {style = {margin = 20, justifyContent = "space-between", flexDirection = "row", alignItems = "flex-end"}} -- 1744
+    local ____React_31 = React -- 1744
+    local ____React_createElement_32 = React.createElement -- 1744
+    local ____temp_30 = {style = {justifyContent = "space-between", flexDirection = "row", alignItems = "flex-end"}} -- 1744
+    local ____props_noDPad_28 -- 1758
+    if props.noDPad then -- 1758
+        ____props_noDPad_28 = nil -- 1758
+    else -- 1758
+        ____props_noDPad_28 = React:createElement(____exports.DPad, {color = color, primaryOpacity = primaryOpacity, inputManager = inputManager}) -- 1758
+    end -- 1758
+    local ____props_noLeftStick_29 -- 1765
+    if props.noLeftStick then -- 1765
+        ____props_noLeftStick_29 = nil -- 1765
+    else -- 1765
+        ____props_noLeftStick_29 = React:createElement( -- 1765
+            React.Fragment, -- 1765
+            nil, -- 1765
+            React:createElement("align-node", {style = {width = 10}}), -- 1765
+            React:createElement(____exports.JoyStick, { -- 1765
+                stickType = "Left", -- 1765
+                color = color, -- 1765
+                primaryOpacity = primaryOpacity, -- 1765
+                secondaryOpacity = secondaryOpacity, -- 1765
+                inputManager = inputManager, -- 1765
+                noStickButton = props.noStickButton -- 1765
+            }) -- 1765
+        ) -- 1765
+    end -- 1765
+    local ____React_createElement_32_result_39 = ____React_createElement_32( -- 1765
+        ____React_31, -- 1765
+        "align-node", -- 1765
+        ____temp_30, -- 1765
+        ____props_noDPad_28, -- 1765
+        ____props_noLeftStick_29 -- 1765
+    ) -- 1765
+    local ____React_36 = React -- 1765
+    local ____React_createElement_37 = React.createElement -- 1765
+    local ____temp_35 = {style = {justifyContent = "space-between", flexDirection = "row", alignItems = "flex-end"}} -- 1765
+    local ____props_noRightStick_33 -- 1782
+    if props.noRightStick then -- 1782
+        ____props_noRightStick_33 = nil -- 1782
+    else -- 1782
+        ____props_noRightStick_33 = React:createElement( -- 1782
+            React.Fragment, -- 1782
+            nil, -- 1782
+            React:createElement(____exports.JoyStick, { -- 1782
+                stickType = "Right", -- 1782
+                color = color, -- 1782
+                primaryOpacity = primaryOpacity, -- 1782
+                secondaryOpacity = secondaryOpacity, -- 1782
+                inputManager = inputManager, -- 1782
+                noStickButton = props.noStickButton -- 1782
+            }), -- 1782
+            React:createElement("align-node", {style = {width = 10}}) -- 1782
+        ) -- 1782
+    end -- 1782
+    local ____props_noButtonPad_34 -- 1793
+    if props.noButtonPad then -- 1793
+        ____props_noButtonPad_34 = nil -- 1793
+    else -- 1793
+        ____props_noButtonPad_34 = React:createElement(____exports.ButtonPad, {color = color, primaryOpacity = primaryOpacity, inputManager = inputManager}) -- 1793
+    end -- 1793
+    local ____React_createElement_41_result_45 = ____React_createElement_41( -- 1793
+        ____React_40, -- 1793
+        "align-node", -- 1793
+        ____temp_38, -- 1793
+        ____React_createElement_32_result_39, -- 1793
+        ____React_createElement_37( -- 1793
+            ____React_36, -- 1793
+            "align-node", -- 1793
+            ____temp_35, -- 1793
+            ____props_noRightStick_33, -- 1793
+            ____props_noButtonPad_34 -- 1793
+        ) -- 1793
+    ) -- 1793
+    local ____props_noTriggerPad_42 -- 1802
+    if props.noTriggerPad then -- 1802
+        ____props_noTriggerPad_42 = nil -- 1802
+    else -- 1802
+        ____props_noTriggerPad_42 = React:createElement( -- 1802
+            "align-node", -- 1802
+            {style = {paddingLeft = 20, paddingRight = 20, paddingTop = 20}}, -- 1802
+            React:createElement(____exports.TriggerPad, {color = color, noShoulder = props.noShoulder, primaryOpacity = primaryOpacity, inputManager = inputManager}) -- 1802
+        ) -- 1802
+    end -- 1802
+    local ____props_noControlPad_43 -- 1812
+    if props.noControlPad then -- 1812
+        ____props_noControlPad_43 = nil -- 1812
+    else -- 1812
+        ____props_noControlPad_43 = React:createElement( -- 1812
+            "align-node", -- 1812
+            {style = {paddingLeft = 20, paddingRight = 20}}, -- 1812
+            React:createElement(____exports.ControlPad, {color = color, primaryOpacity = primaryOpacity, inputManager = inputManager}) -- 1812
+        ) -- 1812
+    end -- 1812
+    return ____React_createElement_47( -- 1745
+        ____React_46, -- 1745
+        "align-node", -- 1745
+        ____temp_44, -- 1745
+        ____React_createElement_41_result_45, -- 1745
+        ____props_noTriggerPad_42, -- 1745
+        ____props_noControlPad_43 -- 1745
+    ) -- 1745
+end -- 1743
+function ____exports.CreateGamePad(props) -- 1825
+    return toNode(React:createElement( -- 1826
+        ____exports.GamePad, -- 1826
+        __TS__ObjectAssign({}, props) -- 1826
+    )) -- 1826
+end -- 1825
+return ____exports -- 1825

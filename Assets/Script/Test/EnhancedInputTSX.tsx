@@ -6,35 +6,31 @@ import { SetCond, WindowFlag } from 'ImGui';
 import { GamePad, CreateInputManager, Trigger, TriggerState } from 'InputManager';
 
 const inputManager = CreateInputManager([
-	{
-		name: "Default",
-		actions: [
-			{name: "Confirm", trigger:
-				Trigger.Selector([
-					Trigger.ButtonHold(ButtonName.a, 1),
-					Trigger.KeyHold(KeyName.Return, 1),
-				])
-			},
-			{name: "MoveDown", trigger:
-				Trigger.Selector([
-					Trigger.ButtonPressed(ButtonName.dpdown),
-					Trigger.KeyPressed(KeyName.S)
-				])
-			},
-		]
-	},
-	{
-		name: "Test",
-		actions: [
-			{name: "Confirm", trigger: 
-				Trigger.Selector([
-					Trigger.ButtonHold(ButtonName.x, 0.5),
-					Trigger.KeyHold(KeyName.LCtrl, 0.5),
-				])
-			},
-		]
-	},
+	{name: "Default", actions: [
+		{name: "Confirm", trigger:
+			Trigger.Selector([
+				Trigger.ButtonHold(ButtonName.a, 1),
+				Trigger.KeyHold(KeyName.Return, 1),
+			])
+		},
+		{name: "MoveDown", trigger:
+			Trigger.Selector([
+				Trigger.ButtonPressed(ButtonName.dpdown),
+				Trigger.KeyPressed(KeyName.S)
+			])
+		},
+	]},
+	{name: "Test", actions: [
+		{name: "Confirm", trigger: 
+			Trigger.Selector([
+				Trigger.ButtonHold(ButtonName.x, 0.3),
+				Trigger.KeyHold(KeyName.LCtrl, 0.3),
+			])
+		},
+	]},
 ]);
+
+inputManager.pushContext("Default");
 
 toNode(
 	<GamePad inputManager={inputManager}/>
@@ -42,7 +38,7 @@ toNode(
 
 let holdTime = 0;
 const node = Node();
-node.gslot("Input.Confirm", (state: TriggerState, progress: number, value: any) => {
+node.gslot("Input.Confirm", (state: TriggerState, progress: number) => {
 	if (state === TriggerState.Completed) {
 		holdTime = 1;
 	} else if (state === TriggerState.Ongoing) {
@@ -55,11 +51,18 @@ node.gslot("Input.MoveDown", (state: TriggerState, progress: number, value: any)
 		print(state, progress, value);
 	}
 });
+
+const countDownFlags = [
+	WindowFlag.NoResize,
+	WindowFlag.NoSavedSettings,
+	WindowFlag.NoTitleBar,
+	WindowFlag.NoMove
+];
 node.schedule(loop(() => {
 	const {width, height} = App.visualSize;
-	ImGui.SetNextWindowPos(Vec2(width / 2 - 150, height / 2 - 50));
+	ImGui.SetNextWindowPos(Vec2(width / 2 - 160, height / 2 - 50));
 	ImGui.SetNextWindowSize(Vec2(300, 50), SetCond.FirstUseEver);
-	ImGui.Begin("CountDown", [WindowFlag.NoResize, WindowFlag.NoSavedSettings, WindowFlag.NoTitleBar,WindowFlag.NoMove], () => {
+	ImGui.Begin("CountDown", countDownFlags, () => {
 		ImGui.ProgressBar(holdTime, Vec2(-1, 30));
 	});
 	return false;
@@ -89,7 +92,7 @@ threadLoop(() => {
 			if (checked) {
 				inputManager.popContext();
 			} else {
-				inputManager.pushContext(["Test"]);
+				inputManager.pushContext("Test");
 			}
 			checked = result;
 		}

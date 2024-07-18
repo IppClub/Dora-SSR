@@ -1,4 +1,4 @@
-import { React, useRef } from 'DoraX';
+import { React, toNode, useRef } from 'DoraX';
 import { AxisName, ButtonName, DrawNode, KeyName, Node, Slot, Vec2, emit } from 'Dora';
 
 export const enum TriggerState {
@@ -1177,9 +1177,6 @@ class InputManager {
 			return [ctx.name, ctx.actions];
 		}));
 		this.contextStack = [];
-		if (this.contextMap.has("Default")) {
-			this.pushContext(["Default"]);
-		}
 		this.manager.schedule((deltaTime) => {
 			if (this.contextStack.length > 0) {
 				const lastNames = this.contextStack[this.contextStack.length - 1];
@@ -1203,7 +1200,10 @@ class InputManager {
 		return this.manager;
 	}
 
-	pushContext(contextNames: string[]): boolean {
+	pushContext(contextNames: string | string[]): boolean {
+		if (typeof contextNames === 'string') {
+			contextNames = [contextNames];
+		}
 		let exist = true;
 		for (let name of contextNames) {
 			exist &&= this.contextMap.has(name);
@@ -1287,6 +1287,11 @@ class InputManager {
 	emitAxis(axisName: AxisName, value: number, controllerId?: number) {
 		this.manager.emit(Slot.Axis, controllerId ?? 0, axisName, value);
 	}
+
+	destroy() {
+		this.getNode().removeFromParent();
+		this.contextStack = [];
+	}
 }
 
 export function CreateInputManager(this: void, contexts: InputContext[]) {
@@ -1361,14 +1366,60 @@ export function DPad(props: DPadProps) {
 	);
 }
 
+interface ButtonProps {
+	x?: number;
+	y?: number;
+	onMount?: (this: void, node: Node.Type) => void;
+	text: string;
+	fontName?: string;
+	buttonSize: number;
+	color?: number;
+	primaryOpacity?: number;
+}
+
+function Button(props: ButtonProps) {
+	const {
+		x, y, onMount,
+		text,
+		fontName = 'sarasa-mono-sc-regular',
+		buttonSize,
+		color = 0xffffffff,
+		primaryOpacity = 0.3
+	} = props;
+	const drawNode = useRef<DrawNode.Type>();
+	return (
+		<node x={x} y={y} onMount={onMount} width={buttonSize * 2} height={buttonSize * 2}
+			onTapBegan={() => {
+				if (drawNode.current) {
+					drawNode.current.opacity = 1;
+				}
+			}}
+			onTapEnded={() => {
+				if (drawNode.current) {
+					drawNode.current.opacity = primaryOpacity;
+				}
+			}}
+		>
+			<draw-node ref={drawNode} x={buttonSize} y={buttonSize} opacity={primaryOpacity}>
+				<dot-shape radius={buttonSize} color={color}/>
+			</draw-node>
+			<label x={buttonSize} y={buttonSize} scaleX={0.5} scaleY={0.5} color3={color} opacity={primaryOpacity + 0.2}
+				fontName={fontName} fontSize={buttonSize * 2}>{text}</label>
+		</node>
+	);
+}
+
 export interface JoyStickProps {
 	stickType?: JoyStickType;
 	moveSize?: number;
 	hatSize?: number;
+	fontName?: string;
+	buttonSize?: number;
 	inputManager: InputManager;
 	color?: number;
 	primaryOpacity?: number;
 	secondaryOpacity?: number;
+	noStickButton?: boolean;
 }
 
 export function JoyStick(props: JoyStickProps) {
@@ -1380,8 +1431,11 @@ export function JoyStick(props: JoyStickProps) {
 		color = 0xffffffff,
 		primaryOpacity = 0.3,
 		secondaryOpacity = 0.1,
+		fontName = 'sarasa-mono-sc-regular',
+		buttonSize = 20,
 	} = props;
 	const visualBound = math.max(moveSize - hatSize, 0);
+	const stickButton = stickType === JoyStickType.Left ? ButtonName.leftstick : ButtonName.rightstick;
 
 	function updatePosition(this: void, node: DrawNode.Type, location: Vec2.Type) {
 		if (location.length > visualBound) {
@@ -1436,6 +1490,21 @@ export function JoyStick(props: JoyStickProps) {
 					<dot-shape radius={hatSize} color={color}/>
 				</draw-node>
 			</node>
+			{props.noStickButton ? null :
+				<Button
+					buttonSize={buttonSize}
+					x={moveSize}
+					y={moveSize * 2 + buttonSize / 2 + 20}
+					text={stickType === JoyStickType.Left? "LS" : "RS"}
+					fontName={fontName}
+					color={color}
+					primaryOpacity={primaryOpacity}
+					onMount={(node) => {
+						node.slot(Slot.TapBegan, () => props.inputManager.emitButtonDown(stickButton));
+						node.slot(Slot.TapEnded, () => props.inputManager.emitButtonUp(stickButton));
+					}}
+				/>
+			}
 		</align-node>
 	);
 }
@@ -1457,29 +1526,6 @@ export function ButtonPad(props: ButtonPadProps) {
 		color = 0xffffffff,
 		primaryOpacity = 0.3,
 	} = props;
-	function Button(props: JSX.Node & {text: string}) {
-		const drawNode = useRef<DrawNode.Type>();
-		return (
-			<node {...props} width={buttonSize * 2} height={buttonSize * 2}
-				onTapBegan={() => {
-					if (drawNode.current) {
-						drawNode.current.opacity = 1;
-					}
-				}}
-				onTapEnded={() => {
-					if (drawNode.current) {
-						drawNode.current.opacity = primaryOpacity;
-					}
-				}}
-			>
-				<draw-node ref={drawNode} x={buttonSize} y={buttonSize} opacity={primaryOpacity}>
-					<dot-shape radius={buttonSize} color={color}/>
-				</draw-node>
-				<label x={buttonSize} y={buttonSize} scaleX={0.5} scaleY={0.5} color3={color} opacity={primaryOpacity + 0.2}
-					fontName={fontName} fontSize={buttonSize * 2}>{props.text}</label>
-			</node>
-		);
-	}
 	const width = buttonSize * 5 + buttonPadding * 3 / 2;
 	const height = buttonSize * 4 + buttonPadding;
 	function onMount(this: void, buttonName: ButtonName) {
@@ -1494,17 +1540,26 @@ export function ButtonPad(props: ButtonPadProps) {
 				x={(buttonSize + buttonPadding / 2) / 2 + width / 2}
 				y={buttonSize + buttonPadding / 2 + height / 2}
 			>
-				<Button text='B'
+				<Button text='B' fontName={fontName}
+					color={color} primaryOpacity={primaryOpacity}
+					buttonSize={buttonSize}
 					x={-buttonSize * 2 - buttonPadding}
 					onMount={onMount(ButtonName.b)}
 				/>
-				<Button text='Y' onMount={onMount(ButtonName.y)}/>
-				<Button text='A'
+				<Button text='Y' fontName={fontName}
+					color={color} primaryOpacity={primaryOpacity}
+					buttonSize={buttonSize}
+					onMount={onMount(ButtonName.y)}/>
+				<Button text='A' fontName={fontName}
+					color={color} primaryOpacity={primaryOpacity}
+					buttonSize={buttonSize}
 					x={-buttonSize - buttonPadding / 2}
 					y={-buttonSize * 2 - buttonPadding}
 					onMount={onMount(ButtonName.a)}
 				/>
-				<Button text='X'
+				<Button text='X' fontName={fontName}
+					color={color} primaryOpacity={primaryOpacity}
+					buttonSize={buttonSize}
 					x={buttonSize + buttonPadding / 2}
 					y={-buttonSize * 2 - buttonPadding}
 					onMount={onMount(ButtonName.x)}
@@ -1577,12 +1632,19 @@ export function ControlPad(props: ControlPadProps) {
 	);
 }
 
+export function CreateControlPad(this: void, props: ControlPadProps): Node.Type {
+	return toNode(
+		<ControlPad {...props}/>
+	) as Node.Type;
+}
+
 export interface TriggerPadProps {
 	buttonSize?: number;
 	fontName?: string;
 	inputManager: InputManager;
 	color?: number;
 	primaryOpacity?: number;
+	noShoulder?: boolean;
 }
 
 export function TriggerPad(props: TriggerPadProps) {
@@ -1615,44 +1677,70 @@ export function TriggerPad(props: TriggerPadProps) {
 			</node>
 		);
 	}
-	function onMount(this: void, axisName: AxisName) {
+	function onMountAxis(this: void, axisName: AxisName) {
 		return function(this: void, node: Node.Type) {
 			node.slot(Slot.TapBegan, () => props.inputManager.emitAxis(axisName, 1, 0));
 			node.slot(Slot.TapEnded, () => props.inputManager.emitAxis(axisName, 0, 0));
 		};
 	}
+	function onMountButton(this: void, buttonName: ButtonName) {
+		return function(this: void, node: Node.Type) {
+			node.slot(Slot.TapBegan, () => props.inputManager.emitButtonDown(buttonName, 0));
+			node.slot(Slot.TapEnded, () => props.inputManager.emitButtonUp(buttonName, 0));
+		};
+	}
 	return (
 		<align-node style={{minWidth: buttonSize * 4 + 20, justifyContent: 'space-between', flexDirection: 'row'}}>
-			<align-node style={{width: buttonSize * 2, height: buttonSize}}>
+			<align-node style={{width: buttonSize * 4 + 10, height: buttonSize}}>
 				<Button text='LT'
 					x={buttonSize} y={buttonSize / 2}
-					onMount={onMount(AxisName.lefttrigger)}
+					onMount={onMountAxis(AxisName.lefttrigger)}
 				/>
+				{props.noShoulder ? null :
+					<Button text='LB'
+						x={buttonSize * 3 + 10} y={buttonSize / 2}
+						onMount={onMountButton(ButtonName.leftshoulder)}
+					/>
+				}
 			</align-node>
-			<align-node style={{width: buttonSize * 2, height: buttonSize}}>
+			<align-node style={{width: buttonSize * 4 + 10, height: buttonSize}}>
+				{props.noShoulder ? null :
+					<Button text='RB'
+						x={buttonSize} y={buttonSize / 2}
+						onMount={onMountButton(ButtonName.rightshoulder)}
+					/>
+				}
 				<Button text='RT'
-					x={buttonSize} y={buttonSize / 2}
-					onMount={onMount(AxisName.righttrigger)}
+					x={buttonSize * 3 + 10} y={buttonSize / 2}
+					onMount={onMountAxis(AxisName.righttrigger)}
 				/>
 			</align-node>
 		</align-node>
 	);
 }
 
-export interface GamePadProp {
+export function CreateTriggerPad(this: void, props: TriggerPadProps): Node.Type {
+	return toNode(
+		<TriggerPad {...props}/>
+	) as Node.Type;
+}
+
+export interface GamePadProps {
 	noDPad?: boolean;
 	noLeftStick?: boolean;
 	noRightStick?: boolean;
 	noButtonPad?: boolean;
 	noTriggerPad?: boolean;
 	noControlPad?: boolean;
+	noShoulder?: boolean;
+	noStickButton?: boolean;
 	color?: number;
 	primaryOpacity?: number;
 	secondaryOpacity?: number;
 	inputManager: InputManager;
 }
 
-export function GamePad(props: GamePadProp) {
+export function GamePad(props: GamePadProps) {
 	const {color, primaryOpacity, secondaryOpacity, inputManager} = props;
 	return (
 		<align-node style={{flexDirection: 'column-reverse'}} windowRoot>
@@ -1682,6 +1770,7 @@ export function GamePad(props: GamePadProp) {
 							primaryOpacity={primaryOpacity}
 							secondaryOpacity={secondaryOpacity}
 							inputManager={inputManager}
+							noStickButton={props.noStickButton}
 						/>
 					</>}
 				</align-node>
@@ -1695,7 +1784,9 @@ export function GamePad(props: GamePadProp) {
 							stickType={JoyStickType.Right}
 							color={color}
 							primaryOpacity={primaryOpacity}
+							secondaryOpacity={secondaryOpacity}
 							inputManager={inputManager}
+							noStickButton={props.noStickButton}
 						/>
 						<align-node style={{width: 10}}/>
 					</>}
@@ -1712,6 +1803,7 @@ export function GamePad(props: GamePadProp) {
 				<align-node style={{paddingLeft: 20, paddingRight: 20, paddingTop: 20}}>
 					<TriggerPad
 						color={color}
+						noShoulder={props.noShoulder}
 						primaryOpacity={primaryOpacity}
 						inputManager={inputManager}
 					/>
@@ -1728,4 +1820,10 @@ export function GamePad(props: GamePadProp) {
 			}
 		</align-node>
 	);
+}
+
+export function CreateGamePad(this: void, props: GamePadProps): Node.Type {
+	return toNode(
+		<GamePad {...props}/>
+	) as Node.Type;
 }
