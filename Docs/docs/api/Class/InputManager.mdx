@@ -1,0 +1,184 @@
+import "@site/src/languages/highlight";
+
+# InputManager
+
+**Description:**
+
+&emsp;&emsp;`InputManager` is a record that manages input contexts and actions.
+
+**Class Object:** [InputManager Class](/docs/api/Class%20Object/InputManager).
+
+## getNode
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the current input node. The input node is used to receive input events. It will be added to `Director.entry` automatically.
+
+**Signature:**
+```tl
+getNode: function(self: InputManager): Node.Type
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Node | The input node. |
+
+## pushContext
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Adds an input context to the context stack. Temporarily disables the previous context, then activates the actions in the new context.
+
+**Signature:**
+```tl
+pushContext: function(self: InputManager, contextNames: string | {string}): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| contextNames | string | \{string} | The name of the context or a list of context names. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | Whether the context is successfully pushed. |
+
+## popContext
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Removes the current input context from the context stack. Activates the previous context.
+
+**Signature:**
+```tl
+popContext: function(self: InputManager): boolean
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | Whether the context is successfully popped. |
+
+## emitKeyDown
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Emits a key down event for input simulation.
+
+**Signature:**
+```tl
+emitKeyDown: function(self: InputManager, keyName: KeyName)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| keyName | KeyName | The name of the key. |
+
+## emitKeyUp
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Emits a key up event for input simulation.
+
+**Signature:**
+```tl
+emitKeyUp: function(self: InputManager, keyName: KeyName)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| keyName | KeyName | The name of the key. |
+
+## emitButtonDown
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Emits a button down event for input simulation.
+
+**Signature:**
+```tl
+emitButtonDown: function(self: InputManager, buttonName: ButtonName, controllerId?: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| buttonName | ButtonName | The name of the button. |
+| controllerId | number | [optional] The ID of the gamepad controller. Default is 0. |
+
+## emitButtonUp
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Emits a button up event for input simulation.
+
+**Signature:**
+```tl
+emitButtonUp: function(self: InputManager, buttonName: ButtonName, controllerId?: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| buttonName | ButtonName | The name of the button. |
+| controllerId | number | [optional] The ID of the gamepad controller. Default is 0. |
+
+## emitAxis
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Emits an axis event for input simulation.
+
+**Signature:**
+```tl
+emitAxis: function(self: InputManager, axisName: AxisName, value: number, controllerId?: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| axisName | AxisName | The name of the axis. |
+| value | number | The value of the axis, ranging from -1 to 1. |
+| controllerId | number | [optional] The ID of the gamepad controller. Default is 0. |
+
+## destroy
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Destroys the input manager and clears input event listeners.
+
+**Signature:**
+```tl
+destroy: function(self: InputManager)
+```

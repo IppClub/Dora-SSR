@@ -88,6 +88,26 @@ const sidebars = {
 					items: [
 						{
 							type: 'doc',
+							label: 'Trigger',
+							id: 'api/Class/InputManager/Trigger',
+						},
+						{
+							type: 'doc',
+							label: 'InputAction',
+							id: 'api/Class/InputManager/InputAction',
+						},
+						{
+							type: 'doc',
+							label: 'InputContext',
+							id: 'api/Class/InputManager/InputContext',
+						},
+						{
+							type: 'doc',
+							label: 'InputManager',
+							id: 'api/Class/InputManager',
+						},
+						{
+							type: 'doc',
 							label: 'Keyboard',
 							id: 'api/Class/Keyboard',
 						},
@@ -841,6 +861,7 @@ const sidebars = {
 						"api/Class Object/BlendFunc",
 						"api/Class Object/Array",
 						"api/Class Object/Action",
+						"api/Class Object/InputManager",
 					]
 				},
 				{
@@ -851,6 +872,18 @@ const sidebars = {
 						"api/Module/Log",
 						"api/Module/Dora",
 						"api/Module/Array",
+						{
+							type: 'category',
+							label: 'GamePad',
+							items: [
+								"api/Class/InputManager/TriggerPadProps",
+								"api/Class/InputManager/ControlPadProps",
+								"api/Class/InputManager/DPadProps",
+								"api/Class/InputManager/ButtonPadProps",
+								"api/Class/InputManager/JoyStickProps",
+								"api/Class/InputManager/GamePadProps",
+							]
+						},
 					]
 				},
 			]
