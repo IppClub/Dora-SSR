@@ -1,0 +1,227 @@
+import "@site/src/languages/highlight";
+
+# InputManager的类对象
+
+**描述：**
+
+&emsp;&emsp;输入管理器模块类。
+
+## InputManager.JoyStickType
+
+**类型：** 枚举。
+
+**描述：**
+
+&emsp;&emsp;摇杆类型的枚举。
+
+**签名：**
+```tl
+enum JoyStickType
+	"Left"
+	"Right"
+end
+```
+
+## InputManager.TriggerState
+
+**类型：** 枚举。
+
+**描述：**
+
+&emsp;&emsp;触发器状态的枚举。
+
+**签名：**
+```tl
+enum TriggerState
+
+	-- 无状态：当前暂未获得输入状态。
+	"None"
+
+	-- 已开始：发生了开始触发器求值的某个事件。例如，"按住"触发器的第一次按键将调用一次"已开始"状态。
+	"Started"
+
+	-- 进行中：触发器仍在进行处理。例如，当用户按下按钮时，在达到指定持续时间之前，"按住"动作处于进行中状态。根据触发器，此事件将在收到输入值之后在对动作求值时，每次更新触发一次。
+	"Ongoing"
+
+	-- 已完成：触发器求值过程已完成。
+	"Completed"
+
+	-- 已取消：触发已取消。例如，在"按住"动作还没触发之前，用户就松开了按钮。
+	"Canceled"
+end
+```
+
+## CreateInputManager
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;使用指定的输入上下文创建输入管理器。
+
+**签名：**
+```tl
+CreateInputManager: function(contexts: {InputContext}): InputManager
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| contexts | \{InputContext} | 要创建的一组输入上下文。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| InputManager | 输入管理器。 |
+
+## CreateDPad
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个虚拟方向键（D-pad）的UI节点。
+
+**签名：**
+```tl
+CreateDPad: function(props: DPadProps): Node.Type
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| props | DPadProps | D-pad的属性。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Node | D-pad节点。 |
+
+## CreateJoyStick
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个虚拟摇杆的UI节点（L、LS 或是 R、RS）。
+
+**签名：**
+```tl
+CreateJoyStick: function(props: JoyStickProps): Node.Type
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| props | JoyStickProps | 操纵杆的属性。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Node | 操纵杆节点。 |
+
+## CreateButtonPad
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个虚拟按钮盘的UI节点（A、B、X、Y）。
+
+**签名：**
+```tl
+CreateButtonPad: function(props: ButtonPadProps): Node.Type
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| props | ButtonPadProps | 按钮盘的属性。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Node | 按钮盘节点。 |
+
+## CreateControlPad
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个虚拟控制盘（开始和返回按钮）的UI节点。
+
+**签名：**
+```tl
+CreateControlPad: function(props: ControlPadProps): Node.Type
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| props | ControlPadProps | 控制盘的属性。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Node | 控制盘节点。 |
+
+## CreateTriggerPad
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个虚拟触发器盘的UI节点（LB、LT、RB、RT）。
+
+**签名：**
+```tl
+CreateTriggerPad: function(props: TriggerPadProps): Node.Type
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| props | TriggerPadProps | 触发器盘的属性。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Node | 触发器盘节点。 |
+
+## CreateGamePad
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个虚拟游戏手柄的UI节点。
+
+**签名：**
+```tl
+CreateGamePad: function(props: GamePadProps): Node.Type
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| props | GamePadProps | 游戏手柄的属性。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Node | 游戏手柄节点。 |

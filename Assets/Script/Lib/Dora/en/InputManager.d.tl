@@ -168,13 +168,21 @@ local record InputManagerClass
 
 	-- A record that defines an input action with a name and a trigger.
 	record InputAction
+
+		-- The name of the input action.
 		name: string
+
+		-- The trigger of the input action.
 		trigger: Trigger
 	end
 
 	-- A record that defines a context for input actions.
 	record InputContext
+
+		-- The name of the input context.
 		name: string
+
+		-- The input actions of the input context.
 		actions: {InputAction}
 	end
 
@@ -285,10 +293,20 @@ local record InputManagerClass
 
 	-- The virtual control pad properties.
 	record ControlPadProps
+
+		-- The size of the button. [optional]
 		buttonSize: number
+
+		-- The font name of the control pad. [optional]
 		fontName: string
+
+		-- The input manager for the control pad. [required]
 		inputManager: InputManager
+
+		-- The color of the control pad. [optional]
 		color: number
+
+		-- The primary opacity of the control pad. [optional]
 		primaryOpacity: number
 	end
 
@@ -299,11 +317,23 @@ local record InputManagerClass
 
 	-- The virtual trigger pad properties.
 	record TriggerPadProps
+
+		-- The size of the button. [optional]
 		buttonSize: number
+
+		-- The padding of the buttons. [optional]
 		fontName: string
+
+		-- The font name of the trigger pad. [optional]
 		inputManager: InputManager
+
+		-- The color of the trigger pad. [optional]
 		color: number
+
+		-- The primary opacity of the trigger pad. [optional]
 		primaryOpacity: number
+
+		-- Whether to hide the shoulder buttons (LB, RB). [optional]
 		noShoulder: boolean
 	end
 

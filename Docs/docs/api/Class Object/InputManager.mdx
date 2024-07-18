@@ -1,0 +1,227 @@
+import "@site/src/languages/highlight";
+
+# InputManager Class
+
+**Description:**
+
+&emsp;&emsp;The input manager class.
+
+## InputManager.JoyStickType
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;The enumeration defining the joystick types.
+
+**Signature:**
+```tl
+enum JoyStickType
+	"Left"
+	"Right"
+end
+```
+
+## InputManager.TriggerState
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;The trigger state enumeration.
+
+**Signature:**
+```tl
+enum TriggerState
+
+	-- Currently no input state has been acquired.
+	"None"
+
+	-- An event that initiates the evaluation of the trigger has occurred. For example, the first press in a "hold" trigger will call the "Started" state once.
+	"Started"
+
+	-- The trigger is still being processed. For example, when a button is pressed, before reaching the specified duration, the "hold" action is in an ongoing state. Depending on the trigger, this event will trigger every time it updates during the evaluation of the action after receiving an input value.
+	"Ongoing"
+
+	-- The evaluation process of the trigger has been completed.
+	"Completed"
+
+	-- The trigger has been canceled. For example, the user releases the button before the "hold" action is triggered.
+	"Canceled"
+end
+```
+
+## CreateInputManager
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates an input manager with the specified input contexts.
+
+**Signature:**
+```tl
+CreateInputManager: function(contexts: {InputContext}): InputManager
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| contexts | \{InputContext} | The input contexts to be created. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| InputManager | The input manager. |
+
+## CreateDPad
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a virtual directional pad (D-pad) for input.
+
+**Signature:**
+```tl
+CreateDPad: function(props: DPadProps): Node.Type
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| props | DPadProps | The properties of the D-pad. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Node | The D-pad node. |
+
+## CreateJoyStick
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a virtual joystick (L, LS or R, RS) for input.
+
+**Signature:**
+```tl
+CreateJoyStick: function(props: JoyStickProps): Node.Type
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| props | JoyStickProps | The properties of the joystick. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Node | The joystick node. |
+
+## CreateButtonPad
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a virtual button pad (A, B, X, Y) for input.
+
+**Signature:**
+```tl
+CreateButtonPad: function(props: ButtonPadProps): Node.Type
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| props | ButtonPadProps | The properties of the button pad. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Node | The button pad node. |
+
+## CreateControlPad
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a virtual control pad (Start and Back buttons) for input.
+
+**Signature:**
+```tl
+CreateControlPad: function(props: ControlPadProps): Node.Type
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| props | ControlPadProps | The properties of the control pad. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Node | The control pad node. |
+
+## CreateTriggerPad
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a virtual trigger pad (LB, LT, RB, RT) for input.
+
+**Signature:**
+```tl
+CreateTriggerPad: function(props: TriggerPadProps): Node.Type
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| props | TriggerPadProps | The properties of the trigger pad. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Node | The trigger pad node. |
+
+## CreateGamePad
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Creates a virtual gamepad for input.
+
+**Signature:**
+```tl
+CreateGamePad: function(props: GamePadProps): Node.Type
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| props | GamePadProps | The properties of the gamepad. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Node | The gamepad node. |

@@ -1,0 +1,184 @@
+import "@site/src/languages/highlight";
+
+# InputManager
+
+**描述：**
+
+&emsp;&emsp;`InputManager` 是一个用于管理输入上下文和动作的类。
+
+**类对象：**[InputManager Class](/docs/api/Class%20Object/InputManager)。
+
+## getNode
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;获取当前输入系统使用的场景节点。该节点用于接收输入事件。它在创建后，如果没有被添加到指定的父节点，会在稍后被自动添加到 `Director.entry` 中。
+
+**签名：**
+```tl
+getNode: function(self: InputManager): Node.Type
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Node | 输入系统的场景节点。 |
+
+## pushContext
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将指定名称的上下文添加到上下文栈中。会暂时禁用之前生效的上下文，然后激活新上下文中会触发的动作和事件。
+
+**签名：**
+```tl
+pushContext: function(self: InputManager, contextNames: string | {string}): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| contextNames | string | \{string} | 单个上下文的名称或是上下文名称的数组。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 上下文是否成功添加和生效。 |
+
+## popContext
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;从上下文栈中移除并停止当前栈顶在生效的上下文。然后激活前一组上下文。
+
+**签名：**
+```tl
+popContext: function(self: InputManager): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 栈顶上下文是否成功移除。 |
+
+## emitKeyDown
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;发送按键按下事件到输入系统以模拟输入。
+
+**签名：**
+```tl
+emitKeyDown: function(self: InputManager, keyName: KeyName)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| keyName | KeyName | 键的名称。 |
+
+## emitKeyUp
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;发送按键释放事件到输入系统以模拟输入。
+
+**签名：**
+```tl
+emitKeyUp: function(self: InputManager, keyName: KeyName)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| keyName | KeyName | 键的名称。 |
+
+## emitButtonDown
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;发送按键按住事件到输入系统以模拟输入。
+
+**签名：**
+```tl
+emitButtonDown: function(self: InputManager, buttonName: ButtonName, controllerId?: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| buttonName | ButtonName | 按钮的名称。 |
+| controllerId | number | [可选] 游戏手柄控制器的ID。默认为0。 |
+
+## emitButtonUp
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;发送按键释放事件到输入系统以模拟输入。
+
+**签名：**
+```tl
+emitButtonUp: function(self: InputManager, buttonName: ButtonName, controllerId?: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| buttonName | ButtonName | 按钮的名称。 |
+| controllerId | number | [optional] 游戏手柄控制器的ID。默认为0。 |
+
+## emitAxis
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;发送摇杆变动的事件到输入系统以模拟输入。
+
+**签名：**
+```tl
+emitAxis: function(self: InputManager, axisName: AxisName, value: number, controllerId?: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| axisName | AxisName | 轴的名称。 |
+| value | number | 轴的值，取值范围为-1到1。 |
+| controllerId | number | [optional] 游戏手柄控制器的ID。默认为0。 |
+
+## destroy
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;销毁输入管理器并清除在生效的输入事件监听器。
+
+**签名：**
+```tl
+destroy: function(self: InputManager)
+```

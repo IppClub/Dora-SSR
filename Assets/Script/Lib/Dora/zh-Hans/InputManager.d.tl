@@ -168,13 +168,21 @@ local record InputManagerClass
 
 	-- 输入动作的记录，定义了一个带有名称和对应触发器的输入动作。
 	record InputAction
+
+		-- 动作的名称。
 		name: string
+
+		-- 动作的触发器。
 		trigger: Trigger
 	end
 
 	-- 输入上下文的记录，定义了包含一组输入动作的上下文。
 	record InputContext
+
+		-- 上下文的名称。
 		name: string
+
+		-- 上下文包含的输入动作。
 		actions: {InputAction}
 	end
 
