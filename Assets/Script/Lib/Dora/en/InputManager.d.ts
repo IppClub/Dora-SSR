@@ -61,6 +61,13 @@ export namespace Trigger {
 	 */
 	export function KeyTimed(this: void, keyName: KeyName, timeWindow: number): Trigger;
 	/**
+	 * Create a trigger that triggers when a specific key is double pressed within a specified time window.
+	 * @param key The key to be checked.
+	 * @param threshold The time window in seconds. Default is 0.3.
+	 * @returns The trigger object.
+	 */
+	export function KeyDoubleDown(key: KeyName, threshold?: number): Trigger;
+	/**
 	 * Create a trigger that triggers when all of the specified gamepad buttons are pressed down.
 	 * @param combineButtons The gamepad button or combined buttons to be checked.
 	 * @param controllerId The ID of the gamepad controller. Default is 0.
@@ -97,6 +104,14 @@ export namespace Trigger {
 	 * @returns The trigger object.
 	 */
 	export function ButtonTimed(this: void, buttonName: ButtonName, timeWindow: number, controllerId?: number): Trigger;
+	/**
+	 * Create a trigger that triggers when a specific gamepad button is double pressed within a specified time window.
+	 * @param button The gamepad button to be checked.
+	 * @param threshold The time window in seconds. Default is 0.3.
+	 * @param controllerId The ID of the gamepad controller. Default is 0.
+	 * @returns The trigger object.
+	 */
+	export function ButtonDoubleDown(button: ButtonName, threshold?: number, controllerId?: number): Trigger;
 	/**
 	 * Create a trigger that triggers based on joystick movement.
 	 * @param joyStickType The type of joystick to be checked.
@@ -223,163 +238,6 @@ export class InputManager {
  * @returns The input manager.
  */
 export function CreateInputManager(this: void, contexts: InputContext[]): InputManager;
-
-/*
-	-- The virtual directional pad (D-pad) properties.
-	record DPadProps
-
-		-- The button width of the D-pad. [optional]
-		width: number
-
-		-- The button height of the D-pad. [optional]
-		height: number
-
-		-- The button padding of the D-pad. [optional]
-		offset: number
-
-		-- The input manager for the D-pad. [required]
-		inputManager: InputManager
-	end
-
-	-- Creates a virtual directional pad (D-pad) for input.
-	-- @param props (DPadProps) The properties of the D-pad.
-	-- @return (Node) The D-pad node.
-	CreateDPad: function(props: DPadProps): Node.Type
-
-	-- The virtual joystick properties.
-	record JoyStickProps
-
-		-- The type of joystick. [required]
-		stickType: JoyStickType
-
-		-- The size of the joystick. [optional]
-		moveSize: number
-
-		-- The size of the hat. [optional]
-		hatSize: number
-
-		-- The font name of the joystick. [optional]
-		fontName: string
-
-		-- The stick button size of the joystick. [optional]
-		buttonSize: number
-
-		-- The input manager for the joystick. [required]
-		inputManager: InputManager
-
-		-- The color of the joystick. [optional]
-		color: number
-
-		-- The primary opacity of the joystick. [optional]
-		primaryOpacity: number
-
-		-- The secondary opacity of the joystick. [optional]
-		secondaryOpacity: number
-
-		-- Whether to hide the stick button. [optional]
-		noStickButton: boolean
-	end
-
-	-- Creates a virtual joystick (L, LS or R, RS) for input.
-	-- @param props (JoyStickProps) The properties of the joystick.
-	-- @return (Node) The joystick node.
-	CreateJoyStick: function(props: JoyStickProps): Node.Type
-
-	-- The virtual button pad properties.
-	record ButtonPadProps
-
-		-- The size of the button. [optional]
-		buttonSize: number
-
-		-- The padding of the buttons. [optional]
-		buttonPadding: number
-
-		-- The font name of the button pad. [optional]
-		fontName: string
-
-		-- The input manager for the button pad. [required]
-		inputManager: InputManager
-	end
-
-	-- Creates a virtual button pad (A, B, X, Y) for input.
-	-- @param props (ButtonPadProps) The properties of the button pad.
-	-- @return (Node) The button pad node.
-	CreateButtonPad: function(props: ButtonPadProps): Node.Type
-
-	-- The virtual control pad properties.
-	record ControlPadProps
-		buttonSize: number
-		fontName: string
-		inputManager: InputManager
-		color: number
-		primaryOpacity: number
-	end
-
-	-- Creates a virtual control pad (Start and Back buttons) for input.
-	-- @param props (ControlPadProps) The properties of the control pad.
-	-- @return (Node) The control pad node.
-	CreateControlPad: function(props: ControlPadProps): Node.Type
-
-	-- The virtual trigger pad properties.
-	record TriggerPadProps
-		buttonSize: number
-		fontName: string
-		inputManager: InputManager
-		color: number
-		primaryOpacity: number
-		noShoulder: boolean
-	end
-
-	-- Creates a virtual trigger pad (LB, LT, RB, RT) for input.
-	-- @param props (TriggerPadProps) The properties of the trigger pad.
-	-- @return (Node) The trigger pad node.
-	CreateTriggerPad: function(props: TriggerPadProps): Node.Type
-
-	-- The virtual gamepad properties.
-	record GamePadProps
-
-		-- Whether to hide the directional pad (D-pad). [optional]
-		noDPad: boolean
-
-		-- Whether to hide the left stick. [optional]
-		noLeftStick: boolean
-
-		-- Whether to hide the right stick. [optional]
-		noRightStick: boolean
-
-		-- Whether to hide the button pad (A, B, X, Y). [optional]
-		noButtonPad: boolean
-
-		-- Whether to hide the trigger pad (LB, LT, RB, RT). [optional]
-		noTriggerPad: boolean
-
-		-- Whether to hide the control pad (Start and Back buttons). [optional]
-		noControlPad: boolean
-
-		-- Whether to hide the shoulder buttons (LB, RB). [optional]
-		noShoulder: boolean
-
-		-- Whether to hide the trigger buttons (LS, RS). [optional]
-		noStickButton: boolean
-
-		-- The color of the gamepad. [optional]
-		color: number
-
-		-- The primary opacity of the gamepad. [optional]
-		primaryOpacity: number
-
-		-- The secondary opacity of the gamepad. [optional]
-		secondaryOpacity: number
-
-		-- The input manager for the gamepad. [required]
-		inputManager: InputManager
-	end
-
-	-- Creates a virtual gamepad for input.
-	-- @param props (GamePadProps) The properties of the gamepad.
-	-- @return (Node) The gamepad node.
-	CreateGamePad: function(props: GamePadProps): Node.Type
-*/
 
 /// The virtual directional pad (D-pad) properties.
 export interface DPadProps {

@@ -133,6 +133,32 @@ KeyTimed: function(keyName: KeyName, timeWindow: number): Trigger
 | --- | --- |
 | Trigger | The trigger object. |
 
+## KeyDoubleDown
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Create a trigger that triggers when a specific key is double-pressed within a specified time window.
+
+**Signature:**
+```tl
+KeyDoubleDown: function(key: KeyName, threshold?: number): Trigger
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| key | KeyName | The key to be checked. |
+| threshold | number | [optional] The time window in seconds. Default is 0.3. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Trigger | The trigger object. |
+
 ## ButtonDown
 
 **Type:** Function.
@@ -237,6 +263,27 @@ ButtonHold: function(buttonName: ButtonName, holdTime: number, controllerId?: nu
 | Return Type | Description |
 | --- | --- |
 | Trigger | The trigger object. |
+
+## ButtonDoubleDown
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Create a trigger that triggers when a specific gamepad button is double-pressed within a specified time window.
+
+**Signature:**
+```tl
+ButtonDoubleDown: function(button: ButtonName, threshold?: number, controllerId?: number): Trigger
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| button | ButtonName | The gamepad button to be checked. |
+| threshold | number | [optional] The time window in seconds. Default is 0.3. |
+| controllerId | number | [optional] The ID of the gamepad controller. Default is 0. |
 
 ## ButtonTimed
 

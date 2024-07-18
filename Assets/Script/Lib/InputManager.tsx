@@ -290,6 +290,69 @@ class KeyHoldTrigger extends Trigger {
 	}
 }
 
+class KeyDoubleDownTrigger extends Trigger {
+	private key: KeyName;
+	private threshold: number;
+	private time: number;
+	private onKeyDown: (this: void, keyName: KeyName) => void;
+
+	constructor(key: KeyName, threshold: number) {
+		super();
+		this.key = key;
+		this.threshold = threshold;
+		this.time = 0;
+		this.onKeyDown = (keyName: KeyName) => {
+			if (this.key === keyName) {
+				if (this.state === TriggerState.None) {
+					this.time = 0;
+					this.state = TriggerState.Started;
+					this.progress = 0;
+					if (this.onChange) {
+						this.onChange();
+					}
+				} else {
+					this.state = TriggerState.Completed;
+					if (this.onChange) {
+						this.onChange();
+					}
+					this.state = TriggerState.None;
+				}
+			}
+		};
+	}
+	start(manager: Node.Type) {
+		manager.keyboardEnabled = true;
+		manager.slot(Slot.KeyDown, this.onKeyDown);
+		this.state = TriggerState.None;
+		this.progress = 0;
+	}
+	onUpdate(deltaTime: number) {
+		switch (this.state) {
+			case TriggerState.Started:
+			case TriggerState.Ongoing:
+				break;
+			default:
+				return;
+		}
+		this.time += deltaTime;
+		if (this.time >= this.threshold) {
+			this.state = TriggerState.None;
+			this.progress = 1;
+		} else {
+			this.state = TriggerState.Ongoing;
+			this.progress = math.min(this.time / this.threshold, 1);
+		}
+		if (this.onChange) {
+			this.onChange();
+		}
+	}
+	stop(manager: Node.Type) {
+		manager.slot(Slot.KeyDown).remove(this.onKeyDown);
+		this.state = TriggerState.None;
+		this.progress = 0;
+	}
+}
+
 class KeyTimedTrigger extends Trigger {
 	private key: KeyName;
 	private timeWindow: number;
@@ -734,6 +797,74 @@ class ButtonTimedTrigger extends Trigger {
 	}
 }
 
+class ButtonDoubleDownTrigger extends Trigger {
+	private controllerId: number;
+	private button: ButtonName;
+	private threshold: number;
+	private time: number;
+	private onButtonDown: (this: void, controllerId: number, buttonName: ButtonName) => void;
+
+	constructor(button: ButtonName, threshold: number, controllerId: number) {
+		super();
+		this.controllerId = controllerId;
+		this.button = button;
+		this.threshold = threshold;
+		this.time = 0;
+		this.onButtonDown = (controllerId: number, buttonName: ButtonName) => {
+			if (this.controllerId !== controllerId) {
+				return;
+			}
+			if (this.button === buttonName) {
+				if (this.state === TriggerState.None) {
+					this.time = 0;
+					this.state = TriggerState.Started;
+					this.progress = 0;
+					if (this.onChange) {
+						this.onChange();
+					}
+				} else {
+					this.state = TriggerState.Completed;
+					if (this.onChange) {
+						this.onChange();
+					}
+					this.state = TriggerState.None;
+				}
+			}
+		};
+	}
+	start(manager: Node.Type) {
+		manager.controllerEnabled = true;
+		manager.slot(Slot.ButtonDown, this.onButtonDown);
+		this.state = TriggerState.None;
+		this.progress = 0;
+	}
+	onUpdate(deltaTime: number) {
+		switch (this.state) {
+			case TriggerState.Started:
+			case TriggerState.Ongoing:
+				break;
+			default:
+				return;
+		}
+		this.time += deltaTime;
+		if (this.time >= this.threshold) {
+			this.state = TriggerState.None;
+			this.progress = 1;
+		} else {
+			this.state = TriggerState.Ongoing;
+			this.progress = math.min(this.time / this.threshold, 1);
+		}
+		if (this.onChange) {
+			this.onChange();
+		}
+	}
+	stop(manager: Node.Type) {
+		manager.slot(Slot.ButtonDown).remove(this.onButtonDown);
+		this.state = TriggerState.None;
+		this.progress = 0;
+	}
+}
+
 export const enum JoyStickType {
 	Left = "Left",
 	Right = "Right",
@@ -1102,6 +1233,9 @@ export namespace Trigger {
 	export function KeyTimed(this: void, keyName: KeyName, timeWindow: number) {
 		return new KeyTimedTrigger(keyName, timeWindow);
 	}
+	export function KeyDoubleDown(key: KeyName, threshold?: number) {
+		return new KeyDoubleDownTrigger(key, threshold ?? 0.3);
+	}
 	export function ButtonDown(this: void, combineButtons: ButtonName | ButtonName[], controllerId?: number) {
 		if (typeof combineButtons === 'string') {
 			combineButtons = [combineButtons];
@@ -1125,6 +1259,9 @@ export namespace Trigger {
 	}
 	export function ButtonTimed(this: void, buttonName: ButtonName, timeWindow: number, controllerId?: number) {
 		return new ButtonTimedTrigger(buttonName, timeWindow, controllerId ?? 0);
+	}
+	export function ButtonDoubleDown(button: ButtonName, threshold?: number, controllerId?: number) {
+		return new ButtonDoubleDownTrigger(button, threshold ?? 0.3, controllerId ?? 0);
 	}
 	export function JoyStick(this: void, joyStickType: JoyStickType, controllerId?: number) {
 		return new JoyStickTrigger(joyStickType, controllerId ?? 0);

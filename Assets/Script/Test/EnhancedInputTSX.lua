@@ -29,7 +29,7 @@ local inputManager = CreateInputManager({ -- 8
                 name = "MoveDown", -- 16
                 trigger = Trigger.Selector({ -- 16
                     Trigger.ButtonPressed("dpdown"), -- 18
-                    Trigger.KeyPressed("S") -- 19
+                    Trigger:KeyDoubleDown("S") -- 19
                 }) -- 19
             } -- 19
         } -- 19

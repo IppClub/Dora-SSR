@@ -277,1811 +277,1943 @@ function KeyHoldTrigger.prototype.stop(self, manager) -- 285
     self.state = "None" -- 288
     self.progress = 0 -- 289
 end -- 285
-local KeyTimedTrigger = __TS__Class() -- 293
-KeyTimedTrigger.name = "KeyTimedTrigger" -- 293
-__TS__ClassExtends(KeyTimedTrigger, ____exports.Trigger) -- 293
-function KeyTimedTrigger.prototype.____constructor(self, key, timeWindow) -- 299
-    KeyTimedTrigger.____super.prototype.____constructor(self) -- 300
+local KeyDoubleDownTrigger = __TS__Class() -- 293
+KeyDoubleDownTrigger.name = "KeyDoubleDownTrigger" -- 293
+__TS__ClassExtends(KeyDoubleDownTrigger, ____exports.Trigger) -- 293
+function KeyDoubleDownTrigger.prototype.____constructor(self, key, threshold) -- 299
+    KeyDoubleDownTrigger.____super.prototype.____constructor(self) -- 300
     self.key = key -- 301
-    self.timeWindow = timeWindow -- 302
+    self.threshold = threshold -- 302
     self.time = 0 -- 303
     self.onKeyDown = function(keyName) -- 304
-        repeat -- 304
-            local ____switch65 = self.state -- 304
-            local ____cond65 = ____switch65 == "Started" or ____switch65 == "Ongoing" or ____switch65 == "Completed" -- 304
-            if ____cond65 then -- 304
-                break -- 309
-            end -- 309
-            do -- 309
-                return -- 311
-            end -- 311
-        until true -- 311
-        if self.key == keyName and self.time <= self.timeWindow then -- 311
-            self.state = "Completed" -- 314
-            self.value = self.time -- 315
-            if self.onChange then -- 315
-                self:onChange() -- 317
-            end -- 317
-        end -- 317
+        if self.key == keyName then -- 304
+            if self.state == "None" then -- 304
+                self.time = 0 -- 307
+                self.state = "Started" -- 308
+                self.progress = 0 -- 309
+                if self.onChange then -- 309
+                    self:onChange() -- 311
+                end -- 311
+            else -- 311
+                self.state = "Completed" -- 314
+                if self.onChange then -- 314
+                    self:onChange() -- 316
+                end -- 316
+                self.state = "None" -- 318
+            end -- 318
+        end -- 318
     end -- 304
 end -- 299
-function KeyTimedTrigger.prototype.start(self, manager) -- 322
-    manager.keyboardEnabled = true -- 323
-    manager:slot("KeyDown", self.onKeyDown) -- 324
-    self.state = "Started" -- 325
-    self.progress = 0 -- 326
-    self.value = false -- 327
-    if self.onChange then -- 327
-        self:onChange() -- 329
-    end -- 329
-end -- 322
-function KeyTimedTrigger.prototype.onUpdate(self, deltaTime) -- 332
-    repeat -- 332
-        local ____switch71 = self.state -- 332
-        local ____cond71 = ____switch71 == "Started" or ____switch71 == "Ongoing" or ____switch71 == "Completed" -- 332
-        if ____cond71 then -- 332
-            break -- 337
-        end -- 337
-        do -- 337
-            return -- 339
-        end -- 339
-    until true -- 339
-    self.time = self.time + deltaTime -- 341
-    if self.time >= self.timeWindow then -- 341
-        if self.state == "Completed" then -- 341
-            self.state = "None" -- 344
-            self.progress = 0 -- 345
-        else -- 345
-            self.state = "Canceled" -- 347
-            self.progress = 1 -- 348
-        end -- 348
-    else -- 348
-        self.state = "Ongoing" -- 351
-        self.progress = math.min(self.time / self.timeWindow, 1) -- 352
-    end -- 352
-    if self.onChange then -- 352
-        self:onChange() -- 355
-    end -- 355
-end -- 332
-function KeyTimedTrigger.prototype.stop(self, manager) -- 358
-    manager:slot("KeyDown"):remove(self.onKeyDown) -- 359
-    self.state = "None" -- 360
-    self.value = false -- 361
-    self.progress = 0 -- 362
-end -- 358
-local ButtonDownTrigger = __TS__Class() -- 366
-ButtonDownTrigger.name = "ButtonDownTrigger" -- 366
-__TS__ClassExtends(ButtonDownTrigger, ____exports.Trigger) -- 366
-function ButtonDownTrigger.prototype.____constructor(self, buttons, controllerId) -- 373
-    ButtonDownTrigger.____super.prototype.____constructor(self) -- 374
-    self.controllerId = controllerId -- 375
-    self.buttons = buttons -- 376
-    self.buttonStates = {} -- 377
-    self.onButtonDown = function(controllerId, buttonName) -- 378
-        if self.state == "Completed" then -- 378
-            return -- 380
+function KeyDoubleDownTrigger.prototype.start(self, manager) -- 323
+    manager.keyboardEnabled = true -- 324
+    manager:slot("KeyDown", self.onKeyDown) -- 325
+    self.state = "None" -- 326
+    self.progress = 0 -- 327
+end -- 323
+function KeyDoubleDownTrigger.prototype.onUpdate(self, deltaTime) -- 329
+    repeat -- 329
+        local ____switch72 = self.state -- 329
+        local ____cond72 = ____switch72 == "Started" or ____switch72 == "Ongoing" -- 329
+        if ____cond72 then -- 329
+            break -- 333
+        end -- 333
+        do -- 333
+            return -- 335
+        end -- 335
+    until true -- 335
+    self.time = self.time + deltaTime -- 337
+    if self.time >= self.threshold then -- 337
+        self.state = "None" -- 339
+        self.progress = 1 -- 340
+    else -- 340
+        self.state = "Ongoing" -- 342
+        self.progress = math.min(self.time / self.threshold, 1) -- 343
+    end -- 343
+    if self.onChange then -- 343
+        self:onChange() -- 346
+    end -- 346
+end -- 329
+function KeyDoubleDownTrigger.prototype.stop(self, manager) -- 349
+    manager:slot("KeyDown"):remove(self.onKeyDown) -- 350
+    self.state = "None" -- 351
+    self.progress = 0 -- 352
+end -- 349
+local KeyTimedTrigger = __TS__Class() -- 356
+KeyTimedTrigger.name = "KeyTimedTrigger" -- 356
+__TS__ClassExtends(KeyTimedTrigger, ____exports.Trigger) -- 356
+function KeyTimedTrigger.prototype.____constructor(self, key, timeWindow) -- 362
+    KeyTimedTrigger.____super.prototype.____constructor(self) -- 363
+    self.key = key -- 364
+    self.timeWindow = timeWindow -- 365
+    self.time = 0 -- 366
+    self.onKeyDown = function(keyName) -- 367
+        repeat -- 367
+            local ____switch79 = self.state -- 367
+            local ____cond79 = ____switch79 == "Started" or ____switch79 == "Ongoing" or ____switch79 == "Completed" -- 367
+            if ____cond79 then -- 367
+                break -- 372
+            end -- 372
+            do -- 372
+                return -- 374
+            end -- 374
+        until true -- 374
+        if self.key == keyName and self.time <= self.timeWindow then -- 374
+            self.state = "Completed" -- 377
+            self.value = self.time -- 378
+            if self.onChange then -- 378
+                self:onChange() -- 380
+            end -- 380
         end -- 380
-        if self.controllerId ~= controllerId then -- 380
-            return -- 383
-        end -- 383
-        if not (self.buttonStates[buttonName] ~= nil) then -- 383
-            return -- 386
-        end -- 386
-        local oldState = true -- 388
-        for ____, state in pairs(self.buttonStates) do -- 389
-            if oldState then -- 389
-                oldState = state -- 390
-            end -- 390
-        end -- 390
-        self.buttonStates[buttonName] = true -- 392
-        if not oldState then -- 392
-            local newState = true -- 394
-            for ____, state in pairs(self.buttonStates) do -- 395
-                if newState then -- 395
-                    newState = state -- 396
-                end -- 396
-            end -- 396
-            if newState then -- 396
-                self.state = "Completed" -- 399
-                self.progress = 1 -- 400
-                if self.onChange then -- 400
-                    self:onChange() -- 402
-                end -- 402
-                self.progress = 0 -- 404
-                self.state = "None" -- 405
-            end -- 405
-        end -- 405
-    end -- 378
-    self.onButtonUp = function(controllerId, buttonName) -- 409
-        if self.state == "Completed" then -- 409
-            return -- 411
+    end -- 367
+end -- 362
+function KeyTimedTrigger.prototype.start(self, manager) -- 385
+    manager.keyboardEnabled = true -- 386
+    manager:slot("KeyDown", self.onKeyDown) -- 387
+    self.state = "Started" -- 388
+    self.progress = 0 -- 389
+    self.value = false -- 390
+    if self.onChange then -- 390
+        self:onChange() -- 392
+    end -- 392
+end -- 385
+function KeyTimedTrigger.prototype.onUpdate(self, deltaTime) -- 395
+    repeat -- 395
+        local ____switch85 = self.state -- 395
+        local ____cond85 = ____switch85 == "Started" or ____switch85 == "Ongoing" or ____switch85 == "Completed" -- 395
+        if ____cond85 then -- 395
+            break -- 400
+        end -- 400
+        do -- 400
+            return -- 402
+        end -- 402
+    until true -- 402
+    self.time = self.time + deltaTime -- 404
+    if self.time >= self.timeWindow then -- 404
+        if self.state == "Completed" then -- 404
+            self.state = "None" -- 407
+            self.progress = 0 -- 408
+        else -- 408
+            self.state = "Canceled" -- 410
+            self.progress = 1 -- 411
         end -- 411
-        if self.controllerId ~= controllerId then -- 411
-            return -- 414
-        end -- 414
-        if not (self.buttonStates[buttonName] ~= nil) then -- 414
-            return -- 417
-        end -- 417
-        self.buttonStates[buttonName] = false -- 419
-    end -- 409
-end -- 373
-function ButtonDownTrigger.prototype.start(self, manager) -- 422
-    manager.controllerEnabled = true -- 423
-    for ____, k in ipairs(self.buttons) do -- 424
-        self.buttonStates[k] = false -- 425
-    end -- 425
-    manager:slot("ButtonDown", self.onButtonDown) -- 427
-    manager:slot("ButtonUp", self.onButtonUp) -- 428
-    self.state = "None" -- 429
-    self.progress = 0 -- 430
-end -- 422
-function ButtonDownTrigger.prototype.stop(self, manager) -- 432
-    manager:slot("ButtonDown"):remove(self.onButtonDown) -- 433
-    manager:slot("ButtonUp"):remove(self.onButtonUp) -- 434
-    self.state = "None" -- 435
-    self.progress = 0 -- 436
-    self.value = false -- 437
-end -- 432
-local ButtonUpTrigger = __TS__Class() -- 441
-ButtonUpTrigger.name = "ButtonUpTrigger" -- 441
-__TS__ClassExtends(ButtonUpTrigger, ____exports.Trigger) -- 441
-function ButtonUpTrigger.prototype.____constructor(self, buttons, controllerId) -- 448
-    ButtonUpTrigger.____super.prototype.____constructor(self) -- 449
-    self.controllerId = controllerId -- 450
-    self.buttons = buttons -- 451
-    self.buttonStates = {} -- 452
-    self.onButtonDown = function(controllerId, buttonName) -- 453
-        if self.state == "Completed" then -- 453
-            return -- 455
-        end -- 455
-        if self.controllerId ~= controllerId then -- 455
-            return -- 458
-        end -- 458
-        if not (self.buttonStates[buttonName] ~= nil) then -- 458
-            return -- 461
-        end -- 461
-        self.buttonStates[buttonName] = true -- 463
-    end -- 453
-    self.onButtonUp = function(controllerId, buttonName) -- 465
-        if self.state == "Completed" then -- 465
-            return -- 467
-        end -- 467
-        if self.controllerId ~= controllerId then -- 467
-            return -- 470
-        end -- 470
-        if not (self.buttonStates[buttonName] ~= nil) then -- 470
-            return -- 473
-        end -- 473
-        local oldState = true -- 475
-        for ____, state in pairs(self.buttonStates) do -- 476
-            if oldState then -- 476
-                oldState = state -- 477
-            end -- 477
+    else -- 411
+        self.state = "Ongoing" -- 414
+        self.progress = math.min(self.time / self.timeWindow, 1) -- 415
+    end -- 415
+    if self.onChange then -- 415
+        self:onChange() -- 418
+    end -- 418
+end -- 395
+function KeyTimedTrigger.prototype.stop(self, manager) -- 421
+    manager:slot("KeyDown"):remove(self.onKeyDown) -- 422
+    self.state = "None" -- 423
+    self.value = false -- 424
+    self.progress = 0 -- 425
+end -- 421
+local ButtonDownTrigger = __TS__Class() -- 429
+ButtonDownTrigger.name = "ButtonDownTrigger" -- 429
+__TS__ClassExtends(ButtonDownTrigger, ____exports.Trigger) -- 429
+function ButtonDownTrigger.prototype.____constructor(self, buttons, controllerId) -- 436
+    ButtonDownTrigger.____super.prototype.____constructor(self) -- 437
+    self.controllerId = controllerId -- 438
+    self.buttons = buttons -- 439
+    self.buttonStates = {} -- 440
+    self.onButtonDown = function(controllerId, buttonName) -- 441
+        if self.state == "Completed" then -- 441
+            return -- 443
+        end -- 443
+        if self.controllerId ~= controllerId then -- 443
+            return -- 446
+        end -- 446
+        if not (self.buttonStates[buttonName] ~= nil) then -- 446
+            return -- 449
+        end -- 449
+        local oldState = true -- 451
+        for ____, state in pairs(self.buttonStates) do -- 452
+            if oldState then -- 452
+                oldState = state -- 453
+            end -- 453
+        end -- 453
+        self.buttonStates[buttonName] = true -- 455
+        if not oldState then -- 455
+            local newState = true -- 457
+            for ____, state in pairs(self.buttonStates) do -- 458
+                if newState then -- 458
+                    newState = state -- 459
+                end -- 459
+            end -- 459
+            if newState then -- 459
+                self.state = "Completed" -- 462
+                self.progress = 1 -- 463
+                if self.onChange then -- 463
+                    self:onChange() -- 465
+                end -- 465
+                self.progress = 0 -- 467
+                self.state = "None" -- 468
+            end -- 468
+        end -- 468
+    end -- 441
+    self.onButtonUp = function(controllerId, buttonName) -- 472
+        if self.state == "Completed" then -- 472
+            return -- 474
+        end -- 474
+        if self.controllerId ~= controllerId then -- 474
+            return -- 477
         end -- 477
-        self.buttonStates[buttonName] = false -- 479
-        if oldState then -- 479
-            self.state = "Completed" -- 481
-            self.progress = 1 -- 482
-            if self.onChange then -- 482
-                self:onChange() -- 484
-            end -- 484
-            self.progress = 0 -- 486
-            self.state = "None" -- 487
-        end -- 487
-    end -- 465
-end -- 448
-function ButtonUpTrigger.prototype.start(self, manager) -- 491
-    manager.controllerEnabled = true -- 492
-    for ____, k in ipairs(self.buttons) do -- 493
-        self.buttonStates[k] = false -- 494
-    end -- 494
-    manager:slot("ButtonDown", self.onButtonDown) -- 496
-    manager:slot("ButtonUp", self.onButtonUp) -- 497
+        if not (self.buttonStates[buttonName] ~= nil) then -- 477
+            return -- 480
+        end -- 480
+        self.buttonStates[buttonName] = false -- 482
+    end -- 472
+end -- 436
+function ButtonDownTrigger.prototype.start(self, manager) -- 485
+    manager.controllerEnabled = true -- 486
+    for ____, k in ipairs(self.buttons) do -- 487
+        self.buttonStates[k] = false -- 488
+    end -- 488
+    manager:slot("ButtonDown", self.onButtonDown) -- 490
+    manager:slot("ButtonUp", self.onButtonUp) -- 491
+    self.state = "None" -- 492
+    self.progress = 0 -- 493
+end -- 485
+function ButtonDownTrigger.prototype.stop(self, manager) -- 495
+    manager:slot("ButtonDown"):remove(self.onButtonDown) -- 496
+    manager:slot("ButtonUp"):remove(self.onButtonUp) -- 497
     self.state = "None" -- 498
     self.progress = 0 -- 499
-end -- 491
-function ButtonUpTrigger.prototype.stop(self, manager) -- 501
-    manager:slot("ButtonDown"):remove(self.onButtonDown) -- 502
-    manager:slot("ButtonUp"):remove(self.onButtonUp) -- 503
-    self.state = "None" -- 504
-    self.progress = 0 -- 505
-end -- 501
-local ButtonPressedTrigger = __TS__Class() -- 509
-ButtonPressedTrigger.name = "ButtonPressedTrigger" -- 509
-__TS__ClassExtends(ButtonPressedTrigger, ____exports.Trigger) -- 509
-function ButtonPressedTrigger.prototype.____constructor(self, buttons, controllerId) -- 516
-    ButtonPressedTrigger.____super.prototype.____constructor(self) -- 517
-    self.controllerId = controllerId -- 518
-    self.buttons = buttons -- 519
-    self.buttonStates = {} -- 520
-    self.onButtonDown = function(controllerId, buttonName) -- 521
-        if self.controllerId ~= controllerId then -- 521
-            return -- 523
-        end -- 523
-        if not (self.buttonStates[buttonName] ~= nil) then -- 523
-            return -- 526
-        end -- 526
-        self.buttonStates[buttonName] = true -- 528
-    end -- 521
-    self.onButtonUp = function(controllerId, buttonName) -- 530
+    self.value = false -- 500
+end -- 495
+local ButtonUpTrigger = __TS__Class() -- 504
+ButtonUpTrigger.name = "ButtonUpTrigger" -- 504
+__TS__ClassExtends(ButtonUpTrigger, ____exports.Trigger) -- 504
+function ButtonUpTrigger.prototype.____constructor(self, buttons, controllerId) -- 511
+    ButtonUpTrigger.____super.prototype.____constructor(self) -- 512
+    self.controllerId = controllerId -- 513
+    self.buttons = buttons -- 514
+    self.buttonStates = {} -- 515
+    self.onButtonDown = function(controllerId, buttonName) -- 516
+        if self.state == "Completed" then -- 516
+            return -- 518
+        end -- 518
+        if self.controllerId ~= controllerId then -- 518
+            return -- 521
+        end -- 521
+        if not (self.buttonStates[buttonName] ~= nil) then -- 521
+            return -- 524
+        end -- 524
+        self.buttonStates[buttonName] = true -- 526
+    end -- 516
+    self.onButtonUp = function(controllerId, buttonName) -- 528
+        if self.state == "Completed" then -- 528
+            return -- 530
+        end -- 530
         if self.controllerId ~= controllerId then -- 530
-            return -- 532
-        end -- 532
-        if not (self.buttonStates[buttonName] ~= nil) then -- 532
-            return -- 535
-        end -- 535
-        self.buttonStates[buttonName] = false -- 537
-    end -- 530
-end -- 516
-function ButtonPressedTrigger.prototype.onUpdate(self, _) -- 540
-    local allDown = true -- 541
-    for ____, down in pairs(self.buttonStates) do -- 542
-        if allDown then -- 542
-            allDown = down -- 543
-        end -- 543
-    end -- 543
-    if allDown then -- 543
-        self.state = "Completed" -- 546
-        self.progress = 1 -- 547
-        if self.onChange then -- 547
-            self:onChange() -- 549
-        end -- 549
-        self.progress = 0 -- 551
-        self.state = "None" -- 552
-    end -- 552
-end -- 540
-function ButtonPressedTrigger.prototype.start(self, manager) -- 555
-    manager.controllerEnabled = true -- 556
-    for ____, k in ipairs(self.buttons) do -- 557
-        self.buttonStates[k] = false -- 558
-    end -- 558
-    manager:slot("ButtonDown", self.onButtonDown) -- 560
-    manager:slot("ButtonUp", self.onButtonUp) -- 561
-    self.state = "None" -- 562
-    self.progress = 0 -- 563
-end -- 555
-function ButtonPressedTrigger.prototype.stop(self, manager) -- 565
-    manager:slot("ButtonDown"):remove(self.onButtonDown) -- 566
-    manager:slot("ButtonUp"):remove(self.onButtonUp) -- 567
-    self.state = "None" -- 568
-    self.progress = 0 -- 569
-end -- 565
-local ButtonHoldTrigger = __TS__Class() -- 573
-ButtonHoldTrigger.name = "ButtonHoldTrigger" -- 573
-__TS__ClassExtends(ButtonHoldTrigger, ____exports.Trigger) -- 573
-function ButtonHoldTrigger.prototype.____constructor(self, button, holdTime, controllerId) -- 581
-    ButtonHoldTrigger.____super.prototype.____constructor(self) -- 582
-    self.controllerId = controllerId -- 583
-    self.button = button -- 584
-    self.holdTime = holdTime -- 585
-    self.time = 0 -- 586
-    self.onButtonDown = function(controllerId, buttonName) -- 587
-        if self.controllerId ~= controllerId then -- 587
+            return -- 533
+        end -- 533
+        if not (self.buttonStates[buttonName] ~= nil) then -- 533
+            return -- 536
+        end -- 536
+        local oldState = true -- 538
+        for ____, state in pairs(self.buttonStates) do -- 539
+            if oldState then -- 539
+                oldState = state -- 540
+            end -- 540
+        end -- 540
+        self.buttonStates[buttonName] = false -- 542
+        if oldState then -- 542
+            self.state = "Completed" -- 544
+            self.progress = 1 -- 545
+            if self.onChange then -- 545
+                self:onChange() -- 547
+            end -- 547
+            self.progress = 0 -- 549
+            self.state = "None" -- 550
+        end -- 550
+    end -- 528
+end -- 511
+function ButtonUpTrigger.prototype.start(self, manager) -- 554
+    manager.controllerEnabled = true -- 555
+    for ____, k in ipairs(self.buttons) do -- 556
+        self.buttonStates[k] = false -- 557
+    end -- 557
+    manager:slot("ButtonDown", self.onButtonDown) -- 559
+    manager:slot("ButtonUp", self.onButtonUp) -- 560
+    self.state = "None" -- 561
+    self.progress = 0 -- 562
+end -- 554
+function ButtonUpTrigger.prototype.stop(self, manager) -- 564
+    manager:slot("ButtonDown"):remove(self.onButtonDown) -- 565
+    manager:slot("ButtonUp"):remove(self.onButtonUp) -- 566
+    self.state = "None" -- 567
+    self.progress = 0 -- 568
+end -- 564
+local ButtonPressedTrigger = __TS__Class() -- 572
+ButtonPressedTrigger.name = "ButtonPressedTrigger" -- 572
+__TS__ClassExtends(ButtonPressedTrigger, ____exports.Trigger) -- 572
+function ButtonPressedTrigger.prototype.____constructor(self, buttons, controllerId) -- 579
+    ButtonPressedTrigger.____super.prototype.____constructor(self) -- 580
+    self.controllerId = controllerId -- 581
+    self.buttons = buttons -- 582
+    self.buttonStates = {} -- 583
+    self.onButtonDown = function(controllerId, buttonName) -- 584
+        if self.controllerId ~= controllerId then -- 584
+            return -- 586
+        end -- 586
+        if not (self.buttonStates[buttonName] ~= nil) then -- 586
             return -- 589
         end -- 589
-        if self.button == buttonName then -- 589
-            self.time = 0 -- 592
-            self.state = "Started" -- 593
-            self.progress = 0 -- 594
-            if self.onChange then -- 594
-                self:onChange() -- 596
-            end -- 596
-        end -- 596
-    end -- 587
-    self.onButtonUp = function(controllerId, buttonName) -- 600
-        if self.controllerId ~= controllerId then -- 600
-            return -- 602
-        end -- 602
-        repeat -- 602
-            local ____switch134 = self.state -- 602
-            local ____cond134 = ____switch134 == "Started" or ____switch134 == "Ongoing" or ____switch134 == "Completed" -- 602
-            if ____cond134 then -- 602
-                break -- 608
-            end -- 608
-            do -- 608
-                return -- 610
-            end -- 610
-        until true -- 610
-        if self.button == buttonName then -- 610
-            if self.state == "Completed" then -- 610
-                self.state = "None" -- 614
-            else -- 614
-                self.state = "Canceled" -- 616
-            end -- 616
-            self.progress = 0 -- 618
-            if self.onChange then -- 618
-                self:onChange() -- 620
-            end -- 620
-        end -- 620
-    end -- 600
-end -- 581
-function ButtonHoldTrigger.prototype.start(self, manager) -- 625
-    manager.controllerEnabled = true -- 626
-    manager:slot("ButtonDown", self.onButtonDown) -- 627
-    manager:slot("ButtonUp", self.onButtonUp) -- 628
-    self.state = "None" -- 629
-    self.progress = 0 -- 630
-end -- 625
-function ButtonHoldTrigger.prototype.onUpdate(self, deltaTime) -- 632
-    repeat -- 632
-        local ____switch141 = self.state -- 632
-        local ____cond141 = ____switch141 == "Started" or ____switch141 == "Ongoing" -- 632
-        if ____cond141 then -- 632
-            break -- 636
-        end -- 636
-        do -- 636
-            return -- 638
-        end -- 638
-    until true -- 638
-    self.time = self.time + deltaTime -- 640
-    if self.time >= self.holdTime then -- 640
-        self.state = "Completed" -- 642
-        self.progress = 1 -- 643
-    else -- 643
-        self.state = "Ongoing" -- 645
-        self.progress = math.min(self.time / self.holdTime, 1) -- 646
-    end -- 646
-    if self.onChange then -- 646
-        self:onChange() -- 649
-    end -- 649
-end -- 632
-function ButtonHoldTrigger.prototype.stop(self, manager) -- 652
-    manager:slot("ButtonDown"):remove(self.onButtonDown) -- 653
-    manager:slot("ButtonUp"):remove(self.onButtonUp) -- 654
-    self.state = "None" -- 655
-    self.progress = 0 -- 656
-end -- 652
-local ButtonTimedTrigger = __TS__Class() -- 660
-ButtonTimedTrigger.name = "ButtonTimedTrigger" -- 660
-__TS__ClassExtends(ButtonTimedTrigger, ____exports.Trigger) -- 660
-function ButtonTimedTrigger.prototype.____constructor(self, button, timeWindow, controllerId) -- 667
-    ButtonTimedTrigger.____super.prototype.____constructor(self) -- 668
-    self.controllerId = controllerId -- 669
-    self.button = button -- 670
-    self.timeWindow = timeWindow -- 671
-    self.time = 0 -- 672
-    self.onButtonDown = function(controllerId, buttonName) -- 673
-        if self.controllerId ~= controllerId then -- 673
-            return -- 675
-        end -- 675
-        repeat -- 675
-            local ____switch149 = self.state -- 675
-            local ____cond149 = ____switch149 == "Started" or ____switch149 == "Ongoing" or ____switch149 == "Completed" -- 675
-            if ____cond149 then -- 675
-                break -- 681
-            end -- 681
-            do -- 681
-                return -- 683
+        self.buttonStates[buttonName] = true -- 591
+    end -- 584
+    self.onButtonUp = function(controllerId, buttonName) -- 593
+        if self.controllerId ~= controllerId then -- 593
+            return -- 595
+        end -- 595
+        if not (self.buttonStates[buttonName] ~= nil) then -- 595
+            return -- 598
+        end -- 598
+        self.buttonStates[buttonName] = false -- 600
+    end -- 593
+end -- 579
+function ButtonPressedTrigger.prototype.onUpdate(self, _) -- 603
+    local allDown = true -- 604
+    for ____, down in pairs(self.buttonStates) do -- 605
+        if allDown then -- 605
+            allDown = down -- 606
+        end -- 606
+    end -- 606
+    if allDown then -- 606
+        self.state = "Completed" -- 609
+        self.progress = 1 -- 610
+        if self.onChange then -- 610
+            self:onChange() -- 612
+        end -- 612
+        self.progress = 0 -- 614
+        self.state = "None" -- 615
+    end -- 615
+end -- 603
+function ButtonPressedTrigger.prototype.start(self, manager) -- 618
+    manager.controllerEnabled = true -- 619
+    for ____, k in ipairs(self.buttons) do -- 620
+        self.buttonStates[k] = false -- 621
+    end -- 621
+    manager:slot("ButtonDown", self.onButtonDown) -- 623
+    manager:slot("ButtonUp", self.onButtonUp) -- 624
+    self.state = "None" -- 625
+    self.progress = 0 -- 626
+end -- 618
+function ButtonPressedTrigger.prototype.stop(self, manager) -- 628
+    manager:slot("ButtonDown"):remove(self.onButtonDown) -- 629
+    manager:slot("ButtonUp"):remove(self.onButtonUp) -- 630
+    self.state = "None" -- 631
+    self.progress = 0 -- 632
+end -- 628
+local ButtonHoldTrigger = __TS__Class() -- 636
+ButtonHoldTrigger.name = "ButtonHoldTrigger" -- 636
+__TS__ClassExtends(ButtonHoldTrigger, ____exports.Trigger) -- 636
+function ButtonHoldTrigger.prototype.____constructor(self, button, holdTime, controllerId) -- 644
+    ButtonHoldTrigger.____super.prototype.____constructor(self) -- 645
+    self.controllerId = controllerId -- 646
+    self.button = button -- 647
+    self.holdTime = holdTime -- 648
+    self.time = 0 -- 649
+    self.onButtonDown = function(controllerId, buttonName) -- 650
+        if self.controllerId ~= controllerId then -- 650
+            return -- 652
+        end -- 652
+        if self.button == buttonName then -- 652
+            self.time = 0 -- 655
+            self.state = "Started" -- 656
+            self.progress = 0 -- 657
+            if self.onChange then -- 657
+                self:onChange() -- 659
+            end -- 659
+        end -- 659
+    end -- 650
+    self.onButtonUp = function(controllerId, buttonName) -- 663
+        if self.controllerId ~= controllerId then -- 663
+            return -- 665
+        end -- 665
+        repeat -- 665
+            local ____switch148 = self.state -- 665
+            local ____cond148 = ____switch148 == "Started" or ____switch148 == "Ongoing" or ____switch148 == "Completed" -- 665
+            if ____cond148 then -- 665
+                break -- 671
+            end -- 671
+            do -- 671
+                return -- 673
+            end -- 673
+        until true -- 673
+        if self.button == buttonName then -- 673
+            if self.state == "Completed" then -- 673
+                self.state = "None" -- 677
+            else -- 677
+                self.state = "Canceled" -- 679
+            end -- 679
+            self.progress = 0 -- 681
+            if self.onChange then -- 681
+                self:onChange() -- 683
             end -- 683
-        until true -- 683
-        if self.button == buttonName and self.time <= self.timeWindow then -- 683
-            self.state = "Completed" -- 686
-            self.value = self.time -- 687
-            if self.onChange then -- 687
-                self:onChange() -- 689
-            end -- 689
-        end -- 689
-    end -- 673
-end -- 667
-function ButtonTimedTrigger.prototype.start(self, manager) -- 694
-    manager.controllerEnabled = true -- 695
-    manager:slot("ButtonDown", self.onButtonDown) -- 696
-    self.state = "Started" -- 697
-    self.progress = 0 -- 698
-    self.value = false -- 699
-    if self.onChange then -- 699
-        self:onChange() -- 701
-    end -- 701
-end -- 694
-function ButtonTimedTrigger.prototype.onUpdate(self, deltaTime) -- 704
-    repeat -- 704
-        local ____switch155 = self.state -- 704
-        local ____cond155 = ____switch155 == "Started" or ____switch155 == "Ongoing" or ____switch155 == "Completed" -- 704
-        if ____cond155 then -- 704
-            break -- 709
-        end -- 709
-        do -- 709
-            return -- 711
-        end -- 711
-    until true -- 711
-    self.time = self.time + deltaTime -- 713
-    if self.time >= self.timeWindow then -- 713
-        if self.state == "Completed" then -- 713
-            self.state = "None" -- 716
-            self.progress = 0 -- 717
-        else -- 717
-            self.state = "Canceled" -- 719
-            self.progress = 1 -- 720
-        end -- 720
-    else -- 720
-        self.state = "Ongoing" -- 723
-        self.progress = math.min(self.time / self.timeWindow, 1) -- 724
-    end -- 724
-    if self.onChange then -- 724
-        self:onChange() -- 727
-    end -- 727
-end -- 704
-function ButtonTimedTrigger.prototype.stop(self, manager) -- 730
-    manager:slot("ButtonDown"):remove(self.onButtonDown) -- 731
-    self.state = "None" -- 732
-    self.progress = 0 -- 733
+        end -- 683
+    end -- 663
+end -- 644
+function ButtonHoldTrigger.prototype.start(self, manager) -- 688
+    manager.controllerEnabled = true -- 689
+    manager:slot("ButtonDown", self.onButtonDown) -- 690
+    manager:slot("ButtonUp", self.onButtonUp) -- 691
+    self.state = "None" -- 692
+    self.progress = 0 -- 693
+end -- 688
+function ButtonHoldTrigger.prototype.onUpdate(self, deltaTime) -- 695
+    repeat -- 695
+        local ____switch155 = self.state -- 695
+        local ____cond155 = ____switch155 == "Started" or ____switch155 == "Ongoing" -- 695
+        if ____cond155 then -- 695
+            break -- 699
+        end -- 699
+        do -- 699
+            return -- 701
+        end -- 701
+    until true -- 701
+    self.time = self.time + deltaTime -- 703
+    if self.time >= self.holdTime then -- 703
+        self.state = "Completed" -- 705
+        self.progress = 1 -- 706
+    else -- 706
+        self.state = "Ongoing" -- 708
+        self.progress = math.min(self.time / self.holdTime, 1) -- 709
+    end -- 709
+    if self.onChange then -- 709
+        self:onChange() -- 712
+    end -- 712
+end -- 695
+function ButtonHoldTrigger.prototype.stop(self, manager) -- 715
+    manager:slot("ButtonDown"):remove(self.onButtonDown) -- 716
+    manager:slot("ButtonUp"):remove(self.onButtonUp) -- 717
+    self.state = "None" -- 718
+    self.progress = 0 -- 719
+end -- 715
+local ButtonTimedTrigger = __TS__Class() -- 723
+ButtonTimedTrigger.name = "ButtonTimedTrigger" -- 723
+__TS__ClassExtends(ButtonTimedTrigger, ____exports.Trigger) -- 723
+function ButtonTimedTrigger.prototype.____constructor(self, button, timeWindow, controllerId) -- 730
+    ButtonTimedTrigger.____super.prototype.____constructor(self) -- 731
+    self.controllerId = controllerId -- 732
+    self.button = button -- 733
+    self.timeWindow = timeWindow -- 734
+    self.time = 0 -- 735
+    self.onButtonDown = function(controllerId, buttonName) -- 736
+        if self.controllerId ~= controllerId then -- 736
+            return -- 738
+        end -- 738
+        repeat -- 738
+            local ____switch163 = self.state -- 738
+            local ____cond163 = ____switch163 == "Started" or ____switch163 == "Ongoing" or ____switch163 == "Completed" -- 738
+            if ____cond163 then -- 738
+                break -- 744
+            end -- 744
+            do -- 744
+                return -- 746
+            end -- 746
+        until true -- 746
+        if self.button == buttonName and self.time <= self.timeWindow then -- 746
+            self.state = "Completed" -- 749
+            self.value = self.time -- 750
+            if self.onChange then -- 750
+                self:onChange() -- 752
+            end -- 752
+        end -- 752
+    end -- 736
 end -- 730
-local JoyStickTrigger = __TS__Class() -- 742
-JoyStickTrigger.name = "JoyStickTrigger" -- 742
-__TS__ClassExtends(JoyStickTrigger, ____exports.Trigger) -- 742
-function JoyStickTrigger.prototype.____constructor(self, joyStickType, controllerId) -- 748
-    JoyStickTrigger.____super.prototype.____constructor(self) -- 749
-    self.joyStickType = joyStickType -- 750
-    self.controllerId = controllerId -- 751
-    self.axis = Vec2.zero -- 752
-    self.onAxis = function(controllerId, axisName, value) -- 753
-        if self.controllerId ~= controllerId then -- 753
-            return -- 755
-        end -- 755
-        repeat -- 755
-            local ____switch165 = self.joyStickType -- 755
-            local ____cond165 = ____switch165 == "Left" -- 755
-            if ____cond165 then -- 755
-                do -- 755
-                    repeat -- 755
-                        local ____switch167 = axisName -- 755
-                        local ____cond167 = ____switch167 == "leftx" -- 755
-                        if ____cond167 then -- 755
-                            self.axis = Vec2(value, self.axis.y) -- 761
-                            break -- 762
-                        end -- 762
-                        ____cond167 = ____cond167 or ____switch167 == "lefty" -- 762
-                        if ____cond167 then -- 762
-                            self.axis = Vec2(self.axis.x, value) -- 764
-                            break -- 765
-                        end -- 765
-                    until true -- 765
-                    break -- 767
-                end -- 767
-            end -- 767
-            ____cond165 = ____cond165 or ____switch165 == "Right" -- 767
-            if ____cond165 then -- 767
-                do -- 767
-                    repeat -- 767
-                        local ____switch169 = axisName -- 767
-                        local ____cond169 = ____switch169 == "rightx" -- 767
-                        if ____cond169 then -- 767
-                            self.axis = Vec2(value, self.axis.y) -- 772
-                            break -- 773
-                        end -- 773
-                        ____cond169 = ____cond169 or ____switch169 == "righty" -- 773
-                        if ____cond169 then -- 773
-                            self.axis = Vec2(self.axis.x, value) -- 775
-                            break -- 776
-                        end -- 776
-                    until true -- 776
-                    break -- 778
-                end -- 778
-            end -- 778
-        until true -- 778
-        self.value = self.axis -- 781
-        if self:filterAxis() then -- 781
-            self.state = "Completed" -- 783
-        else -- 783
-            self.state = "None" -- 785
-        end -- 785
-        if self.onChange then -- 785
-            self:onChange() -- 788
-        end -- 788
-    end -- 753
-end -- 748
-function JoyStickTrigger.prototype.filterAxis(self) -- 792
-    return true -- 793
-end -- 792
-function JoyStickTrigger.prototype.start(self, manager) -- 795
-    self.state = "None" -- 796
-    self.value = Vec2.zero -- 797
-    manager:slot("Axis", self.onAxis) -- 798
-end -- 795
-function JoyStickTrigger.prototype.stop(self, manager) -- 800
-    self.state = "None" -- 801
-    self.value = Vec2.zero -- 802
-    manager:slot("Axis"):remove(self.onAxis) -- 803
-end -- 800
-local JoyStickThresholdTrigger = __TS__Class() -- 807
-JoyStickThresholdTrigger.name = "JoyStickThresholdTrigger" -- 807
-__TS__ClassExtends(JoyStickThresholdTrigger, JoyStickTrigger) -- 807
-function JoyStickThresholdTrigger.prototype.____constructor(self, joyStickType, threshold, controllerId) -- 810
-    JoyStickTrigger.prototype.____constructor(self, joyStickType, controllerId) -- 811
-    self.threshold = threshold -- 812
-end -- 810
-function JoyStickThresholdTrigger.prototype.filterAxis(self) -- 814
-    return self.axis.length > self.threshold -- 815
-end -- 814
-local JoyStickDirectionalTrigger = __TS__Class() -- 819
-JoyStickDirectionalTrigger.name = "JoyStickDirectionalTrigger" -- 819
-__TS__ClassExtends(JoyStickDirectionalTrigger, JoyStickTrigger) -- 819
-function JoyStickDirectionalTrigger.prototype.____constructor(self, joyStickType, angle, tolerance, controllerId) -- 823
-    JoyStickTrigger.prototype.____constructor(self, joyStickType, controllerId) -- 824
-    self.direction = angle -- 825
-    self.tolerance = tolerance -- 826
-end -- 823
-function JoyStickDirectionalTrigger.prototype.filterAxis(self) -- 828
-    local currentAngle = -math.deg(math.atan(self.axis.y, self.axis.x)) -- 829
-    return math.abs(currentAngle - self.direction) <= self.tolerance -- 830
-end -- 828
-local JoyStickRangeTrigger = __TS__Class() -- 834
-JoyStickRangeTrigger.name = "JoyStickRangeTrigger" -- 834
-__TS__ClassExtends(JoyStickRangeTrigger, JoyStickTrigger) -- 834
-function JoyStickRangeTrigger.prototype.____constructor(self, joyStickType, minRange, maxRange, controllerId) -- 838
-    JoyStickTrigger.prototype.____constructor(self, joyStickType, controllerId) -- 839
-    self.minRange = math.min(minRange, maxRange) -- 840
-    self.maxRange = math.max(minRange, maxRange) -- 841
-end -- 838
-function JoyStickRangeTrigger.prototype.filterAxis(self) -- 843
-    local magnitude = self.axis.length -- 844
-    return magnitude >= self.minRange and magnitude <= self.maxRange -- 845
-end -- 843
-local SequenceTrigger = __TS__Class() -- 849
-SequenceTrigger.name = "SequenceTrigger" -- 849
-__TS__ClassExtends(SequenceTrigger, ____exports.Trigger) -- 849
-function SequenceTrigger.prototype.____constructor(self, triggers) -- 852
-    SequenceTrigger.____super.prototype.____constructor(self) -- 853
-    self.triggers = triggers -- 854
-    local ____self = self -- 855
-    local function onStateChanged() -- 856
-        ____self:onStateChanged() -- 857
-    end -- 856
-    for ____, trigger in ipairs(triggers) do -- 859
-        trigger.onChange = onStateChanged -- 860
-    end -- 860
-end -- 852
-function SequenceTrigger.prototype.onStateChanged(self) -- 863
-    local completed = true -- 864
-    for ____, trigger in ipairs(self.triggers) do -- 865
-        if trigger.state ~= "Completed" then -- 865
-            completed = false -- 867
-            break -- 868
-        end -- 868
-    end -- 868
-    if completed then -- 868
-        self.state = "Completed" -- 872
-        local newValue = {} -- 873
-        for ____, trigger in ipairs(self.triggers) do -- 874
-            if type(trigger.value) == "table" then -- 874
-                if type(trigger.value) == "userdata" then -- 874
-                    newValue[#newValue + 1] = trigger.value -- 877
-                else -- 877
-                    newValue = __TS__ArrayConcat(newValue, trigger.value) -- 879
-                end -- 879
-            else -- 879
-                newValue[#newValue + 1] = trigger.value -- 882
-            end -- 882
-        end -- 882
-        self.value = newValue -- 885
-        self.progress = 1 -- 886
-        if self.onChange then -- 886
-            self:onChange() -- 888
-        end -- 888
-        return -- 890
-    end -- 890
-    local onGoing = false -- 892
-    local minProgress = -1 -- 893
-    for ____, trigger in ipairs(self.triggers) do -- 894
-        if trigger.state == "Ongoing" then -- 894
-            minProgress = minProgress < 0 and trigger.progress or math.min(minProgress, trigger.progress) -- 896
-            onGoing = true -- 897
-        end -- 897
-    end -- 897
-    if onGoing then -- 897
-        self.state = "Ongoing" -- 901
-        self.progress = minProgress -- 902
-        if self.onChange then -- 902
-            self:onChange() -- 904
-        end -- 904
-        return -- 906
-    end -- 906
-    for ____, trigger in ipairs(self.triggers) do -- 908
-        if trigger.state == "Started" then -- 908
-            self.state = "Started" -- 910
-            self.progress = 0 -- 911
-            if self.onChange then -- 911
-                self:onChange() -- 913
-            end -- 913
-            return -- 915
-        end -- 915
-    end -- 915
-    local canceled = false -- 918
-    for ____, trigger in ipairs(self.triggers) do -- 919
-        if trigger.state == "Canceled" then -- 919
-            canceled = true -- 921
-            break -- 922
-        end -- 922
-    end -- 922
-    if canceled then -- 922
-        self.state = "Canceled" -- 926
-        self.progress = 0 -- 927
-        if self.onChange then -- 927
-            self:onChange() -- 929
-        end -- 929
-        return -- 931
-    end -- 931
-    self.state = "None" -- 933
-    self.progress = 0 -- 934
-    if self.onChange then -- 934
-        self:onChange() -- 936
-    end -- 936
-end -- 863
-function SequenceTrigger.prototype.start(self, manager) -- 939
-    for ____, trigger in ipairs(self.triggers) do -- 940
-        trigger:start(manager) -- 941
-    end -- 941
-end -- 939
-function SequenceTrigger.prototype.onUpdate(self, deltaTime) -- 944
-    for ____, trigger in ipairs(self.triggers) do -- 945
-        if trigger.onUpdate then -- 945
-            trigger:onUpdate(deltaTime) -- 947
-        end -- 947
-    end -- 947
-end -- 944
-function SequenceTrigger.prototype.stop(self, manager) -- 951
-    for ____, trigger in ipairs(self.triggers) do -- 952
-        trigger:stop(manager) -- 953
-    end -- 953
-end -- 951
-local SelectorTrigger = __TS__Class() -- 958
-SelectorTrigger.name = "SelectorTrigger" -- 958
-__TS__ClassExtends(SelectorTrigger, ____exports.Trigger) -- 958
-function SelectorTrigger.prototype.____constructor(self, triggers) -- 961
-    SelectorTrigger.____super.prototype.____constructor(self) -- 962
-    self.triggers = triggers -- 963
-    local ____self = self -- 964
-    local function onStateChanged() -- 965
-        ____self:onStateChanged() -- 966
-    end -- 965
-    for ____, trigger in ipairs(triggers) do -- 968
-        trigger.onChange = onStateChanged -- 969
-    end -- 969
-end -- 961
-function SelectorTrigger.prototype.onStateChanged(self) -- 972
-    for ____, trigger in ipairs(self.triggers) do -- 973
-        if trigger.state == "Completed" then -- 973
-            self.state = "Completed" -- 975
-            self.progress = trigger.progress -- 976
-            self.value = trigger.value -- 977
-            if self.onChange then -- 977
-                self:onChange() -- 979
-            end -- 979
-            return -- 981
-        end -- 981
-    end -- 981
-    local onGoing = false -- 984
-    local maxProgress = 0 -- 985
-    for ____, trigger in ipairs(self.triggers) do -- 986
-        if trigger.state == "Ongoing" then -- 986
-            maxProgress = math.max(maxProgress, trigger.progress) -- 988
-            onGoing = true -- 989
-        end -- 989
-    end -- 989
-    if onGoing then -- 989
-        self.state = "Ongoing" -- 993
-        self.progress = maxProgress -- 994
-        if self.onChange then -- 994
-            self:onChange() -- 996
-        end -- 996
-        return -- 998
-    end -- 998
-    for ____, trigger in ipairs(self.triggers) do -- 1000
-        if trigger.state == "Started" then -- 1000
-            self.state = "Started" -- 1002
-            self.progress = 0 -- 1003
-            if self.onChange then -- 1003
-                self:onChange() -- 1005
-            end -- 1005
-            return -- 1007
-        end -- 1007
-    end -- 1007
-    local canceled = false -- 1010
-    for ____, trigger in ipairs(self.triggers) do -- 1011
-        if trigger.state == "Canceled" then -- 1011
-            canceled = true -- 1013
-            break -- 1014
-        end -- 1014
-    end -- 1014
-    if canceled then -- 1014
-        self.state = "Canceled" -- 1018
-        self.progress = 0 -- 1019
-        if self.onChange then -- 1019
-            self:onChange() -- 1021
-        end -- 1021
+function ButtonTimedTrigger.prototype.start(self, manager) -- 757
+    manager.controllerEnabled = true -- 758
+    manager:slot("ButtonDown", self.onButtonDown) -- 759
+    self.state = "Started" -- 760
+    self.progress = 0 -- 761
+    self.value = false -- 762
+    if self.onChange then -- 762
+        self:onChange() -- 764
+    end -- 764
+end -- 757
+function ButtonTimedTrigger.prototype.onUpdate(self, deltaTime) -- 767
+    repeat -- 767
+        local ____switch169 = self.state -- 767
+        local ____cond169 = ____switch169 == "Started" or ____switch169 == "Ongoing" or ____switch169 == "Completed" -- 767
+        if ____cond169 then -- 767
+            break -- 772
+        end -- 772
+        do -- 772
+            return -- 774
+        end -- 774
+    until true -- 774
+    self.time = self.time + deltaTime -- 776
+    if self.time >= self.timeWindow then -- 776
+        if self.state == "Completed" then -- 776
+            self.state = "None" -- 779
+            self.progress = 0 -- 780
+        else -- 780
+            self.state = "Canceled" -- 782
+            self.progress = 1 -- 783
+        end -- 783
+    else -- 783
+        self.state = "Ongoing" -- 786
+        self.progress = math.min(self.time / self.timeWindow, 1) -- 787
+    end -- 787
+    if self.onChange then -- 787
+        self:onChange() -- 790
+    end -- 790
+end -- 767
+function ButtonTimedTrigger.prototype.stop(self, manager) -- 793
+    manager:slot("ButtonDown"):remove(self.onButtonDown) -- 794
+    self.state = "None" -- 795
+    self.progress = 0 -- 796
+end -- 793
+local ButtonDoubleDownTrigger = __TS__Class() -- 800
+ButtonDoubleDownTrigger.name = "ButtonDoubleDownTrigger" -- 800
+__TS__ClassExtends(ButtonDoubleDownTrigger, ____exports.Trigger) -- 800
+function ButtonDoubleDownTrigger.prototype.____constructor(self, button, threshold, controllerId) -- 807
+    ButtonDoubleDownTrigger.____super.prototype.____constructor(self) -- 808
+    self.controllerId = controllerId -- 809
+    self.button = button -- 810
+    self.threshold = threshold -- 811
+    self.time = 0 -- 812
+    self.onButtonDown = function(controllerId, buttonName) -- 813
+        if self.controllerId ~= controllerId then -- 813
+            return -- 815
+        end -- 815
+        if self.button == buttonName then -- 815
+            if self.state == "None" then -- 815
+                self.time = 0 -- 819
+                self.state = "Started" -- 820
+                self.progress = 0 -- 821
+                if self.onChange then -- 821
+                    self:onChange() -- 823
+                end -- 823
+            else -- 823
+                self.state = "Completed" -- 826
+                if self.onChange then -- 826
+                    self:onChange() -- 828
+                end -- 828
+                self.state = "None" -- 830
+            end -- 830
+        end -- 830
+    end -- 813
+end -- 807
+function ButtonDoubleDownTrigger.prototype.start(self, manager) -- 835
+    manager.controllerEnabled = true -- 836
+    manager:slot("ButtonDown", self.onButtonDown) -- 837
+    self.state = "None" -- 838
+    self.progress = 0 -- 839
+end -- 835
+function ButtonDoubleDownTrigger.prototype.onUpdate(self, deltaTime) -- 841
+    repeat -- 841
+        local ____switch186 = self.state -- 841
+        local ____cond186 = ____switch186 == "Started" or ____switch186 == "Ongoing" -- 841
+        if ____cond186 then -- 841
+            break -- 845
+        end -- 845
+        do -- 845
+            return -- 847
+        end -- 847
+    until true -- 847
+    self.time = self.time + deltaTime -- 849
+    if self.time >= self.threshold then -- 849
+        self.state = "None" -- 851
+        self.progress = 1 -- 852
+    else -- 852
+        self.state = "Ongoing" -- 854
+        self.progress = math.min(self.time / self.threshold, 1) -- 855
+    end -- 855
+    if self.onChange then -- 855
+        self:onChange() -- 858
+    end -- 858
+end -- 841
+function ButtonDoubleDownTrigger.prototype.stop(self, manager) -- 861
+    manager:slot("ButtonDown"):remove(self.onButtonDown) -- 862
+    self.state = "None" -- 863
+    self.progress = 0 -- 864
+end -- 861
+local JoyStickTrigger = __TS__Class() -- 873
+JoyStickTrigger.name = "JoyStickTrigger" -- 873
+__TS__ClassExtends(JoyStickTrigger, ____exports.Trigger) -- 873
+function JoyStickTrigger.prototype.____constructor(self, joyStickType, controllerId) -- 879
+    JoyStickTrigger.____super.prototype.____constructor(self) -- 880
+    self.joyStickType = joyStickType -- 881
+    self.controllerId = controllerId -- 882
+    self.axis = Vec2.zero -- 883
+    self.onAxis = function(controllerId, axisName, value) -- 884
+        if self.controllerId ~= controllerId then -- 884
+            return -- 886
+        end -- 886
+        repeat -- 886
+            local ____switch194 = self.joyStickType -- 886
+            local ____cond194 = ____switch194 == "Left" -- 886
+            if ____cond194 then -- 886
+                do -- 886
+                    repeat -- 886
+                        local ____switch196 = axisName -- 886
+                        local ____cond196 = ____switch196 == "leftx" -- 886
+                        if ____cond196 then -- 886
+                            self.axis = Vec2(value, self.axis.y) -- 892
+                            break -- 893
+                        end -- 893
+                        ____cond196 = ____cond196 or ____switch196 == "lefty" -- 893
+                        if ____cond196 then -- 893
+                            self.axis = Vec2(self.axis.x, value) -- 895
+                            break -- 896
+                        end -- 896
+                    until true -- 896
+                    break -- 898
+                end -- 898
+            end -- 898
+            ____cond194 = ____cond194 or ____switch194 == "Right" -- 898
+            if ____cond194 then -- 898
+                do -- 898
+                    repeat -- 898
+                        local ____switch198 = axisName -- 898
+                        local ____cond198 = ____switch198 == "rightx" -- 898
+                        if ____cond198 then -- 898
+                            self.axis = Vec2(value, self.axis.y) -- 903
+                            break -- 904
+                        end -- 904
+                        ____cond198 = ____cond198 or ____switch198 == "righty" -- 904
+                        if ____cond198 then -- 904
+                            self.axis = Vec2(self.axis.x, value) -- 906
+                            break -- 907
+                        end -- 907
+                    until true -- 907
+                    break -- 909
+                end -- 909
+            end -- 909
+        until true -- 909
+        self.value = self.axis -- 912
+        if self:filterAxis() then -- 912
+            self.state = "Completed" -- 914
+        else -- 914
+            self.state = "None" -- 916
+        end -- 916
+        if self.onChange then -- 916
+            self:onChange() -- 919
+        end -- 919
+    end -- 884
+end -- 879
+function JoyStickTrigger.prototype.filterAxis(self) -- 923
+    return true -- 924
+end -- 923
+function JoyStickTrigger.prototype.start(self, manager) -- 926
+    self.state = "None" -- 927
+    self.value = Vec2.zero -- 928
+    manager:slot("Axis", self.onAxis) -- 929
+end -- 926
+function JoyStickTrigger.prototype.stop(self, manager) -- 931
+    self.state = "None" -- 932
+    self.value = Vec2.zero -- 933
+    manager:slot("Axis"):remove(self.onAxis) -- 934
+end -- 931
+local JoyStickThresholdTrigger = __TS__Class() -- 938
+JoyStickThresholdTrigger.name = "JoyStickThresholdTrigger" -- 938
+__TS__ClassExtends(JoyStickThresholdTrigger, JoyStickTrigger) -- 938
+function JoyStickThresholdTrigger.prototype.____constructor(self, joyStickType, threshold, controllerId) -- 941
+    JoyStickTrigger.prototype.____constructor(self, joyStickType, controllerId) -- 942
+    self.threshold = threshold -- 943
+end -- 941
+function JoyStickThresholdTrigger.prototype.filterAxis(self) -- 945
+    return self.axis.length > self.threshold -- 946
+end -- 945
+local JoyStickDirectionalTrigger = __TS__Class() -- 950
+JoyStickDirectionalTrigger.name = "JoyStickDirectionalTrigger" -- 950
+__TS__ClassExtends(JoyStickDirectionalTrigger, JoyStickTrigger) -- 950
+function JoyStickDirectionalTrigger.prototype.____constructor(self, joyStickType, angle, tolerance, controllerId) -- 954
+    JoyStickTrigger.prototype.____constructor(self, joyStickType, controllerId) -- 955
+    self.direction = angle -- 956
+    self.tolerance = tolerance -- 957
+end -- 954
+function JoyStickDirectionalTrigger.prototype.filterAxis(self) -- 959
+    local currentAngle = -math.deg(math.atan(self.axis.y, self.axis.x)) -- 960
+    return math.abs(currentAngle - self.direction) <= self.tolerance -- 961
+end -- 959
+local JoyStickRangeTrigger = __TS__Class() -- 965
+JoyStickRangeTrigger.name = "JoyStickRangeTrigger" -- 965
+__TS__ClassExtends(JoyStickRangeTrigger, JoyStickTrigger) -- 965
+function JoyStickRangeTrigger.prototype.____constructor(self, joyStickType, minRange, maxRange, controllerId) -- 969
+    JoyStickTrigger.prototype.____constructor(self, joyStickType, controllerId) -- 970
+    self.minRange = math.min(minRange, maxRange) -- 971
+    self.maxRange = math.max(minRange, maxRange) -- 972
+end -- 969
+function JoyStickRangeTrigger.prototype.filterAxis(self) -- 974
+    local magnitude = self.axis.length -- 975
+    return magnitude >= self.minRange and magnitude <= self.maxRange -- 976
+end -- 974
+local SequenceTrigger = __TS__Class() -- 980
+SequenceTrigger.name = "SequenceTrigger" -- 980
+__TS__ClassExtends(SequenceTrigger, ____exports.Trigger) -- 980
+function SequenceTrigger.prototype.____constructor(self, triggers) -- 983
+    SequenceTrigger.____super.prototype.____constructor(self) -- 984
+    self.triggers = triggers -- 985
+    local ____self = self -- 986
+    local function onStateChanged() -- 987
+        ____self:onStateChanged() -- 988
+    end -- 987
+    for ____, trigger in ipairs(triggers) do -- 990
+        trigger.onChange = onStateChanged -- 991
+    end -- 991
+end -- 983
+function SequenceTrigger.prototype.onStateChanged(self) -- 994
+    local completed = true -- 995
+    for ____, trigger in ipairs(self.triggers) do -- 996
+        if trigger.state ~= "Completed" then -- 996
+            completed = false -- 998
+            break -- 999
+        end -- 999
+    end -- 999
+    if completed then -- 999
+        self.state = "Completed" -- 1003
+        local newValue = {} -- 1004
+        for ____, trigger in ipairs(self.triggers) do -- 1005
+            if type(trigger.value) == "table" then -- 1005
+                if type(trigger.value) == "userdata" then -- 1005
+                    newValue[#newValue + 1] = trigger.value -- 1008
+                else -- 1008
+                    newValue = __TS__ArrayConcat(newValue, trigger.value) -- 1010
+                end -- 1010
+            else -- 1010
+                newValue[#newValue + 1] = trigger.value -- 1013
+            end -- 1013
+        end -- 1013
+        self.value = newValue -- 1016
+        self.progress = 1 -- 1017
+        if self.onChange then -- 1017
+            self:onChange() -- 1019
+        end -- 1019
+        return -- 1021
     end -- 1021
-end -- 972
-function SelectorTrigger.prototype.start(self, manager) -- 1025
-    for ____, trigger in ipairs(self.triggers) do -- 1026
-        trigger:start(manager) -- 1027
-    end -- 1027
-end -- 1025
-function SelectorTrigger.prototype.onUpdate(self, deltaTime) -- 1030
-    for ____, trigger in ipairs(self.triggers) do -- 1031
-        if trigger.onUpdate then -- 1031
-            trigger:onUpdate(deltaTime) -- 1033
-        end -- 1033
-    end -- 1033
-end -- 1030
-function SelectorTrigger.prototype.stop(self, manager) -- 1037
-    for ____, trigger in ipairs(self.triggers) do -- 1038
-        trigger:stop(manager) -- 1039
-    end -- 1039
-end -- 1037
-local BlockTrigger = __TS__Class() -- 1044
-BlockTrigger.name = "BlockTrigger" -- 1044
-__TS__ClassExtends(BlockTrigger, ____exports.Trigger) -- 1044
-function BlockTrigger.prototype.____constructor(self, trigger) -- 1047
-    BlockTrigger.____super.prototype.____constructor(self) -- 1048
-    self.trigger = trigger -- 1049
-    local ____self = self -- 1050
-    trigger.onChange = function() -- 1051
-        ____self:onStateChanged() -- 1052
-    end -- 1051
-end -- 1047
-function BlockTrigger.prototype.onStateChanged(self) -- 1055
-    if self.trigger.state == "Completed" then -- 1055
+    local onGoing = false -- 1023
+    local minProgress = -1 -- 1024
+    for ____, trigger in ipairs(self.triggers) do -- 1025
+        if trigger.state == "Ongoing" then -- 1025
+            minProgress = minProgress < 0 and trigger.progress or math.min(minProgress, trigger.progress) -- 1027
+            onGoing = true -- 1028
+        end -- 1028
+    end -- 1028
+    if onGoing then -- 1028
+        self.state = "Ongoing" -- 1032
+        self.progress = minProgress -- 1033
+        if self.onChange then -- 1033
+            self:onChange() -- 1035
+        end -- 1035
+        return -- 1037
+    end -- 1037
+    for ____, trigger in ipairs(self.triggers) do -- 1039
+        if trigger.state == "Started" then -- 1039
+            self.state = "Started" -- 1041
+            self.progress = 0 -- 1042
+            if self.onChange then -- 1042
+                self:onChange() -- 1044
+            end -- 1044
+            return -- 1046
+        end -- 1046
+    end -- 1046
+    local canceled = false -- 1049
+    for ____, trigger in ipairs(self.triggers) do -- 1050
+        if trigger.state == "Canceled" then -- 1050
+            canceled = true -- 1052
+            break -- 1053
+        end -- 1053
+    end -- 1053
+    if canceled then -- 1053
         self.state = "Canceled" -- 1057
-    else -- 1057
-        self.state = "Completed" -- 1059
-    end -- 1059
-    if self.onChange then -- 1059
-        self:onChange() -- 1062
+        self.progress = 0 -- 1058
+        if self.onChange then -- 1058
+            self:onChange() -- 1060
+        end -- 1060
+        return -- 1062
     end -- 1062
-end -- 1055
-function BlockTrigger.prototype.start(self, manager) -- 1065
-    self.state = "Completed" -- 1066
-    self.trigger:start(manager) -- 1067
-end -- 1065
-function BlockTrigger.prototype.onUpdate(self, deltaTime) -- 1069
-    if self.trigger.onUpdate then -- 1069
-        self.trigger:onUpdate(deltaTime) -- 1071
-    end -- 1071
-end -- 1069
-function BlockTrigger.prototype.stop(self, manager) -- 1074
-    self.state = "Completed" -- 1075
-    self.trigger:stop(manager) -- 1076
-end -- 1074
-do -- 1074
-    function Trigger.KeyDown(combineKeys) -- 1081
-        if type(combineKeys) == "string" then -- 1081
-            combineKeys = {combineKeys} -- 1083
-        end -- 1083
-        return __TS__New(KeyDownTrigger, combineKeys) -- 1085
-    end -- 1081
-    function Trigger.KeyUp(combineKeys) -- 1087
-        if type(combineKeys) == "string" then -- 1087
-            combineKeys = {combineKeys} -- 1089
-        end -- 1089
-        return __TS__New(KeyUpTrigger, combineKeys) -- 1091
-    end -- 1087
-    function Trigger.KeyPressed(combineKeys) -- 1093
-        if type(combineKeys) == "string" then -- 1093
-            combineKeys = {combineKeys} -- 1095
-        end -- 1095
-        return __TS__New(KeyPressedTrigger, combineKeys) -- 1097
-    end -- 1093
-    function Trigger.KeyHold(keyName, holdTime) -- 1099
-        return __TS__New(KeyHoldTrigger, keyName, holdTime) -- 1100
-    end -- 1099
-    function Trigger.KeyTimed(keyName, timeWindow) -- 1102
-        return __TS__New(KeyTimedTrigger, keyName, timeWindow) -- 1103
-    end -- 1102
-    function Trigger.ButtonDown(combineButtons, controllerId) -- 1105
-        if type(combineButtons) == "string" then -- 1105
-            combineButtons = {combineButtons} -- 1107
-        end -- 1107
-        return __TS__New(ButtonDownTrigger, combineButtons, controllerId or 0) -- 1109
-    end -- 1105
-    function Trigger.ButtonUp(combineButtons, controllerId) -- 1111
-        if type(combineButtons) == "string" then -- 1111
-            combineButtons = {combineButtons} -- 1113
-        end -- 1113
-        return __TS__New(ButtonUpTrigger, combineButtons, controllerId or 0) -- 1115
-    end -- 1111
-    function Trigger.ButtonPressed(combineButtons, controllerId) -- 1117
-        if type(combineButtons) == "string" then -- 1117
-            combineButtons = {combineButtons} -- 1119
-        end -- 1119
-        return __TS__New(ButtonPressedTrigger, combineButtons, controllerId or 0) -- 1121
-    end -- 1117
-    function Trigger.ButtonHold(buttonName, holdTime, controllerId) -- 1123
-        return __TS__New(ButtonHoldTrigger, buttonName, holdTime, controllerId or 0) -- 1124
-    end -- 1123
-    function Trigger.ButtonTimed(buttonName, timeWindow, controllerId) -- 1126
-        return __TS__New(ButtonTimedTrigger, buttonName, timeWindow, controllerId or 0) -- 1127
-    end -- 1126
-    function Trigger.JoyStick(joyStickType, controllerId) -- 1129
-        return __TS__New(JoyStickTrigger, joyStickType, controllerId or 0) -- 1130
+    self.state = "None" -- 1064
+    self.progress = 0 -- 1065
+    if self.onChange then -- 1065
+        self:onChange() -- 1067
+    end -- 1067
+end -- 994
+function SequenceTrigger.prototype.start(self, manager) -- 1070
+    for ____, trigger in ipairs(self.triggers) do -- 1071
+        trigger:start(manager) -- 1072
+    end -- 1072
+end -- 1070
+function SequenceTrigger.prototype.onUpdate(self, deltaTime) -- 1075
+    for ____, trigger in ipairs(self.triggers) do -- 1076
+        if trigger.onUpdate then -- 1076
+            trigger:onUpdate(deltaTime) -- 1078
+        end -- 1078
+    end -- 1078
+end -- 1075
+function SequenceTrigger.prototype.stop(self, manager) -- 1082
+    for ____, trigger in ipairs(self.triggers) do -- 1083
+        trigger:stop(manager) -- 1084
+    end -- 1084
+end -- 1082
+local SelectorTrigger = __TS__Class() -- 1089
+SelectorTrigger.name = "SelectorTrigger" -- 1089
+__TS__ClassExtends(SelectorTrigger, ____exports.Trigger) -- 1089
+function SelectorTrigger.prototype.____constructor(self, triggers) -- 1092
+    SelectorTrigger.____super.prototype.____constructor(self) -- 1093
+    self.triggers = triggers -- 1094
+    local ____self = self -- 1095
+    local function onStateChanged() -- 1096
+        ____self:onStateChanged() -- 1097
+    end -- 1096
+    for ____, trigger in ipairs(triggers) do -- 1099
+        trigger.onChange = onStateChanged -- 1100
+    end -- 1100
+end -- 1092
+function SelectorTrigger.prototype.onStateChanged(self) -- 1103
+    for ____, trigger in ipairs(self.triggers) do -- 1104
+        if trigger.state == "Completed" then -- 1104
+            self.state = "Completed" -- 1106
+            self.progress = trigger.progress -- 1107
+            self.value = trigger.value -- 1108
+            if self.onChange then -- 1108
+                self:onChange() -- 1110
+            end -- 1110
+            return -- 1112
+        end -- 1112
+    end -- 1112
+    local onGoing = false -- 1115
+    local maxProgress = 0 -- 1116
+    for ____, trigger in ipairs(self.triggers) do -- 1117
+        if trigger.state == "Ongoing" then -- 1117
+            maxProgress = math.max(maxProgress, trigger.progress) -- 1119
+            onGoing = true -- 1120
+        end -- 1120
+    end -- 1120
+    if onGoing then -- 1120
+        self.state = "Ongoing" -- 1124
+        self.progress = maxProgress -- 1125
+        if self.onChange then -- 1125
+            self:onChange() -- 1127
+        end -- 1127
+        return -- 1129
     end -- 1129
-    function Trigger.JoyStickThreshold(joyStickType, threshold, controllerId) -- 1132
-        return __TS__New(JoyStickThresholdTrigger, joyStickType, threshold, controllerId or 0) -- 1133
-    end -- 1132
-    function Trigger.JoyStickDirectional(joyStickType, angle, tolerance, controllerId) -- 1135
-        return __TS__New( -- 1136
-            JoyStickDirectionalTrigger, -- 1136
-            joyStickType, -- 1136
-            angle, -- 1136
-            tolerance, -- 1136
-            controllerId or 0 -- 1136
-        ) -- 1136
-    end -- 1135
-    function Trigger.JoyStickRange(joyStickType, minRange, maxRange, controllerId) -- 1138
-        return __TS__New( -- 1139
-            JoyStickRangeTrigger, -- 1139
-            joyStickType, -- 1139
-            minRange, -- 1139
-            maxRange, -- 1139
-            controllerId or 0 -- 1139
-        ) -- 1139
+    for ____, trigger in ipairs(self.triggers) do -- 1131
+        if trigger.state == "Started" then -- 1131
+            self.state = "Started" -- 1133
+            self.progress = 0 -- 1134
+            if self.onChange then -- 1134
+                self:onChange() -- 1136
+            end -- 1136
+            return -- 1138
+        end -- 1138
     end -- 1138
-    function Trigger.Sequence(triggers) -- 1141
-        return __TS__New(SequenceTrigger, triggers) -- 1142
-    end -- 1141
-    function Trigger.Selector(triggers) -- 1144
-        return __TS__New(SelectorTrigger, triggers) -- 1145
-    end -- 1144
-    function Trigger.Block(trigger) -- 1147
-        return __TS__New(BlockTrigger, trigger) -- 1148
-    end -- 1147
-end -- 1147
-local InputManager = __TS__Class() -- 1162
-InputManager.name = "InputManager" -- 1162
-function InputManager.prototype.____constructor(self, contexts) -- 1167
-    self.manager = Node() -- 1168
-    self.contextMap = __TS__New( -- 1169
-        Map, -- 1169
-        __TS__ArrayMap( -- 1169
-            contexts, -- 1169
-            function(____, ctx) -- 1169
-                for ____, action in ipairs(ctx.actions) do -- 1170
-                    local eventName = "Input." .. action.name -- 1171
-                    action.trigger.onChange = function() -- 1172
-                        local ____action_trigger_0 = action.trigger -- 1173
-                        local state = ____action_trigger_0.state -- 1173
-                        local progress = ____action_trigger_0.progress -- 1173
-                        local value = ____action_trigger_0.value -- 1173
-                        emit(eventName, state, progress, value) -- 1174
-                    end -- 1172
-                end -- 1172
-                return {ctx.name, ctx.actions} -- 1177
-            end -- 1169
-        ) -- 1169
-    ) -- 1169
-    self.contextStack = {} -- 1179
-    self.manager:schedule(function(deltaTime) -- 1180
-        if #self.contextStack > 0 then -- 1180
-            local lastNames = self.contextStack[#self.contextStack] -- 1182
-            for ____, name in ipairs(lastNames) do -- 1183
-                do -- 1183
-                    local actions = self.contextMap:get(name) -- 1184
-                    if actions == nil then -- 1184
-                        goto __continue297 -- 1186
-                    end -- 1186
-                    for ____, action in ipairs(actions) do -- 1188
-                        if action.trigger.onUpdate then -- 1188
-                            action.trigger:onUpdate(deltaTime) -- 1190
-                        end -- 1190
-                    end -- 1190
-                end -- 1190
-                ::__continue297:: -- 1190
-            end -- 1190
-        end -- 1190
-        return false -- 1195
-    end) -- 1180
-end -- 1167
-function InputManager.prototype.getNode(self) -- 1199
-    return self.manager -- 1200
-end -- 1199
-function InputManager.prototype.pushContext(self, contextNames) -- 1203
-    if type(contextNames) == "string" then -- 1203
-        contextNames = {contextNames} -- 1205
-    end -- 1205
-    local exist = true -- 1207
-    for ____, name in ipairs(contextNames) do -- 1208
-        if exist then -- 1208
-            exist = self.contextMap:has(name) -- 1209
-        end -- 1209
-    end -- 1209
-    if not exist then -- 1209
-        print("[Dora Error] got non-existed context name from " .. table.concat(contextNames, ", ")) -- 1212
-        return false -- 1213
-    else -- 1213
-        if #self.contextStack > 0 then -- 1213
-            local lastNames = self.contextStack[#self.contextStack] -- 1216
-            for ____, name in ipairs(lastNames) do -- 1217
-                do -- 1217
-                    local actions = self.contextMap:get(name) -- 1218
-                    if actions == nil then -- 1218
-                        goto __continue311 -- 1220
-                    end -- 1220
-                    for ____, action in ipairs(actions) do -- 1222
-                        action.trigger:stop(self.manager) -- 1223
-                    end -- 1223
-                end -- 1223
-                ::__continue311:: -- 1223
-            end -- 1223
-        end -- 1223
-        local ____self_contextStack_1 = self.contextStack -- 1223
-        ____self_contextStack_1[#____self_contextStack_1 + 1] = contextNames -- 1227
-        for ____, name in ipairs(contextNames) do -- 1228
-            do -- 1228
-                local actions = self.contextMap:get(name) -- 1229
-                if actions == nil then -- 1229
-                    goto __continue316 -- 1231
-                end -- 1231
-                for ____, action in ipairs(actions) do -- 1233
-                    action.trigger:start(self.manager) -- 1234
-                end -- 1234
-            end -- 1234
-            ::__continue316:: -- 1234
-        end -- 1234
-        return true -- 1237
-    end -- 1237
-end -- 1203
-function InputManager.prototype.popContext(self) -- 1241
-    if #self.contextStack == 0 then -- 1241
-        return false -- 1243
-    end -- 1243
-    local lastNames = self.contextStack[#self.contextStack] -- 1245
-    for ____, name in ipairs(lastNames) do -- 1246
-        do -- 1246
-            local actions = self.contextMap:get(name) -- 1247
-            if actions == nil then -- 1247
-                goto __continue323 -- 1249
-            end -- 1249
-            for ____, action in ipairs(actions) do -- 1251
-                action.trigger:stop(self.manager) -- 1252
-            end -- 1252
-        end -- 1252
-        ::__continue323:: -- 1252
-    end -- 1252
-    table.remove(self.contextStack) -- 1255
-    if #self.contextStack > 0 then -- 1255
-        local lastNames = self.contextStack[#self.contextStack] -- 1257
-        for ____, name in ipairs(lastNames) do -- 1258
-            do -- 1258
-                local actions = self.contextMap:get(name) -- 1259
-                if actions == nil then -- 1259
-                    goto __continue329 -- 1261
-                end -- 1261
-                for ____, action in ipairs(actions) do -- 1263
-                    action.trigger:start(self.manager) -- 1264
-                end -- 1264
-            end -- 1264
-            ::__continue329:: -- 1264
-        end -- 1264
-    end -- 1264
-    return true -- 1268
-end -- 1241
-function InputManager.prototype.emitKeyDown(self, keyName) -- 1271
-    self.manager:emit("KeyDown", keyName) -- 1272
-end -- 1271
-function InputManager.prototype.emitKeyUp(self, keyName) -- 1275
-    self.manager:emit("KeyUp", keyName) -- 1276
-end -- 1275
-function InputManager.prototype.emitButtonDown(self, buttonName, controllerId) -- 1279
-    self.manager:emit("ButtonDown", controllerId or 0, buttonName) -- 1280
-end -- 1279
-function InputManager.prototype.emitButtonUp(self, buttonName, controllerId) -- 1283
-    self.manager:emit("ButtonUp", controllerId or 0, buttonName) -- 1284
-end -- 1283
-function InputManager.prototype.emitAxis(self, axisName, value, controllerId) -- 1287
-    self.manager:emit("Axis", controllerId or 0, axisName, value) -- 1288
-end -- 1287
-function InputManager.prototype.destroy(self) -- 1291
-    self:getNode():removeFromParent() -- 1292
-    self.contextStack = {} -- 1293
-end -- 1291
-function ____exports.CreateInputManager(contexts) -- 1297
-    return __TS__New(InputManager, contexts) -- 1298
-end -- 1297
-function ____exports.DPad(self, props) -- 1310
-    local ____props_2 = props -- 1317
-    local width = ____props_2.width -- 1317
-    if width == nil then -- 1317
-        width = 40 -- 1312
-    end -- 1312
-    local height = ____props_2.height -- 1312
-    if height == nil then -- 1312
-        height = 40 -- 1313
-    end -- 1313
-    local offset = ____props_2.offset -- 1313
-    if offset == nil then -- 1313
-        offset = 5 -- 1314
-    end -- 1314
-    local color = ____props_2.color -- 1314
-    if color == nil then -- 1314
-        color = 4294967295 -- 1315
-    end -- 1315
-    local primaryOpacity = ____props_2.primaryOpacity -- 1315
-    if primaryOpacity == nil then -- 1315
-        primaryOpacity = 0.3 -- 1316
-    end -- 1316
-    local halfSize = height + width / 2 + offset -- 1318
-    local dOffset = height / 2 + width / 2 + offset -- 1319
-    local function DPadButton(self, props) -- 1321
-        local hw = width / 2 -- 1322
-        local drawNode = useRef() -- 1323
-        return React:createElement( -- 1324
-            "node", -- 1324
-            __TS__ObjectAssign( -- 1324
-                {}, -- 1324
-                props, -- 1325
-                { -- 1325
-                    width = width, -- 1325
-                    height = height, -- 1325
-                    onTapBegan = function() -- 1325
-                        if drawNode.current then -- 1325
-                            drawNode.current.opacity = 1 -- 1328
-                        end -- 1328
-                    end, -- 1326
-                    onTapEnded = function() -- 1326
-                        if drawNode.current then -- 1326
-                            drawNode.current.opacity = primaryOpacity -- 1333
-                        end -- 1333
-                    end -- 1331
-                } -- 1331
-            ), -- 1331
-            React:createElement( -- 1331
-                "draw-node", -- 1331
-                {ref = drawNode, y = -hw, x = hw, opacity = primaryOpacity}, -- 1331
-                React:createElement( -- 1331
-                    "polygon-shape", -- 1331
-                    { -- 1331
-                        verts = { -- 1331
-                            Vec2(-hw, hw + height), -- 1339
-                            Vec2(hw, hw + height), -- 1340
-                            Vec2(hw, hw), -- 1341
-                            Vec2.zero, -- 1342
-                            Vec2(-hw, hw) -- 1343
-                        }, -- 1343
-                        fillColor = color -- 1343
-                    } -- 1343
-                ) -- 1343
-            ) -- 1343
-        ) -- 1343
-    end -- 1321
-    local function onMount(buttonName) -- 1350
-        return function(node) -- 1351
-            node:slot( -- 1352
-                "TapBegan", -- 1352
-                function() return props.inputManager:emitButtonDown(buttonName) end -- 1352
-            ) -- 1352
-            node:slot( -- 1353
-                "TapEnded", -- 1353
-                function() return props.inputManager:emitButtonUp(buttonName) end -- 1353
-            ) -- 1353
-        end -- 1351
-    end -- 1350
-    return React:createElement( -- 1357
-        "align-node", -- 1357
-        {style = {width = halfSize * 2, height = halfSize * 2}}, -- 1357
-        React:createElement( -- 1357
-            "menu", -- 1357
-            {x = halfSize, y = halfSize, width = halfSize * 2, height = halfSize * 2}, -- 1357
-            React:createElement( -- 1357
-                DPadButton, -- 1360
-                { -- 1360
-                    x = halfSize, -- 1360
-                    y = dOffset + halfSize, -- 1360
-                    onMount = onMount("dpup") -- 1360
-                } -- 1360
-            ), -- 1360
-            React:createElement( -- 1360
-                DPadButton, -- 1361
-                { -- 1361
-                    x = halfSize, -- 1361
-                    y = -dOffset + halfSize, -- 1361
-                    angle = 180, -- 1361
-                    onMount = onMount("dpdown") -- 1361
-                } -- 1361
-            ), -- 1361
-            React:createElement( -- 1361
-                DPadButton, -- 1362
-                { -- 1362
-                    x = dOffset + halfSize, -- 1362
-                    y = halfSize, -- 1362
-                    angle = 90, -- 1362
-                    onMount = onMount("dpright") -- 1362
-                } -- 1362
-            ), -- 1362
-            React:createElement( -- 1362
-                DPadButton, -- 1363
-                { -- 1363
-                    x = -dOffset + halfSize, -- 1363
-                    y = halfSize, -- 1363
-                    angle = -90, -- 1363
-                    onMount = onMount("dpleft") -- 1363
-                } -- 1363
-            ) -- 1363
-        ) -- 1363
-    ) -- 1363
-end -- 1310
-local function Button(self, props) -- 1380
-    local ____props_3 = props -- 1388
-    local x = ____props_3.x -- 1388
-    local y = ____props_3.y -- 1388
-    local onMount = ____props_3.onMount -- 1388
-    local text = ____props_3.text -- 1388
-    local fontName = ____props_3.fontName -- 1388
-    if fontName == nil then -- 1388
-        fontName = "sarasa-mono-sc-regular" -- 1384
-    end -- 1384
-    local buttonSize = ____props_3.buttonSize -- 1384
-    local color = ____props_3.color -- 1384
-    if color == nil then -- 1384
-        color = 4294967295 -- 1386
-    end -- 1386
-    local primaryOpacity = ____props_3.primaryOpacity -- 1386
-    if primaryOpacity == nil then -- 1386
-        primaryOpacity = 0.3 -- 1387
-    end -- 1387
-    local drawNode = useRef() -- 1389
-    return React:createElement( -- 1390
-        "node", -- 1390
-        { -- 1390
-            x = x, -- 1390
-            y = y, -- 1390
-            onMount = onMount, -- 1390
-            width = buttonSize * 2, -- 1390
-            height = buttonSize * 2, -- 1390
-            onTapBegan = function() -- 1390
-                if drawNode.current then -- 1390
-                    drawNode.current.opacity = 1 -- 1394
-                end -- 1394
-            end, -- 1392
-            onTapEnded = function() -- 1392
-                if drawNode.current then -- 1392
-                    drawNode.current.opacity = primaryOpacity -- 1399
-                end -- 1399
-            end -- 1397
-        }, -- 1397
-        React:createElement( -- 1397
-            "draw-node", -- 1397
-            {ref = drawNode, x = buttonSize, y = buttonSize, opacity = primaryOpacity}, -- 1397
-            React:createElement("dot-shape", {radius = buttonSize, color = color}) -- 1397
-        ), -- 1397
-        React:createElement("label", { -- 1397
-            x = buttonSize, -- 1397
-            y = buttonSize, -- 1397
-            scaleX = 0.5, -- 1397
-            scaleY = 0.5, -- 1397
-            color3 = color, -- 1397
-            opacity = primaryOpacity + 0.2, -- 1397
-            fontName = fontName, -- 1397
-            fontSize = buttonSize * 2 -- 1397
-        }, text) -- 1397
-    ) -- 1397
-end -- 1380
-function ____exports.JoyStick(self, props) -- 1425
-    local hat = useRef() -- 1426
-    local ____props_4 = props -- 1436
-    local moveSize = ____props_4.moveSize -- 1436
-    if moveSize == nil then -- 1436
-        moveSize = 70 -- 1428
-    end -- 1428
-    local hatSize = ____props_4.hatSize -- 1428
-    if hatSize == nil then -- 1428
-        hatSize = 40 -- 1429
-    end -- 1429
-    local stickType = ____props_4.stickType -- 1429
-    if stickType == nil then -- 1429
-        stickType = "Left" -- 1430
-    end -- 1430
-    local color = ____props_4.color -- 1430
-    if color == nil then -- 1430
-        color = 4294967295 -- 1431
-    end -- 1431
-    local primaryOpacity = ____props_4.primaryOpacity -- 1431
-    if primaryOpacity == nil then -- 1431
-        primaryOpacity = 0.3 -- 1432
-    end -- 1432
-    local secondaryOpacity = ____props_4.secondaryOpacity -- 1432
-    if secondaryOpacity == nil then -- 1432
-        secondaryOpacity = 0.1 -- 1433
-    end -- 1433
-    local fontName = ____props_4.fontName -- 1433
-    if fontName == nil then -- 1433
-        fontName = "sarasa-mono-sc-regular" -- 1434
-    end -- 1434
-    local buttonSize = ____props_4.buttonSize -- 1434
-    if buttonSize == nil then -- 1434
-        buttonSize = 20 -- 1435
-    end -- 1435
-    local visualBound = math.max(moveSize - hatSize, 0) -- 1437
-    local stickButton = stickType == "Left" and "leftstick" or "rightstick" -- 1438
-    local function updatePosition(node, location) -- 1440
-        if location.length > visualBound then -- 1440
-            node.position = location:normalize():mul(visualBound) -- 1442
-        else -- 1442
-            node.position = location -- 1444
-        end -- 1444
-        repeat -- 1444
-            local ____switch360 = stickType -- 1444
-            local ____cond360 = ____switch360 == "Left" -- 1444
-            if ____cond360 then -- 1444
-                props.inputManager:emitAxis("leftx", node.x / visualBound) -- 1448
-                props.inputManager:emitAxis("lefty", node.y / visualBound) -- 1449
-                break -- 1450
-            end -- 1450
-            ____cond360 = ____cond360 or ____switch360 == "Right" -- 1450
-            if ____cond360 then -- 1450
-                props.inputManager:emitAxis("rightx", node.x / visualBound) -- 1452
-                props.inputManager:emitAxis("righty", node.y / visualBound) -- 1453
-                break -- 1454
-            end -- 1454
-        until true -- 1454
-    end -- 1440
-    local ____React_9 = React -- 1440
-    local ____React_createElement_10 = React.createElement -- 1440
-    local ____temp_7 = {style = {width = moveSize * 2, height = moveSize * 2}} -- 1440
-    local ____temp_8 = React:createElement( -- 1440
-        "node", -- 1440
-        { -- 1440
-            x = moveSize, -- 1440
-            y = moveSize, -- 1440
-            onTapFilter = function(touch) -- 1440
-                local ____touch_5 = touch -- 1462
-                local location = ____touch_5.location -- 1462
-                if location.length > moveSize then -- 1462
-                    touch.enabled = false -- 1464
-                end -- 1464
-            end, -- 1461
-            onTapBegan = function(touch) -- 1461
-                if hat.current then -- 1461
-                    hat.current.opacity = 1 -- 1469
-                    updatePosition(hat.current, touch.location) -- 1470
-                end -- 1470
-            end, -- 1467
-            onTapMoved = function(touch) -- 1467
-                if hat.current then -- 1467
-                    hat.current.opacity = 1 -- 1475
-                    updatePosition(hat.current, touch.location) -- 1476
-                end -- 1476
-            end, -- 1473
-            onTapped = function() -- 1473
-                if hat.current then -- 1473
-                    hat.current.opacity = primaryOpacity -- 1481
-                    updatePosition(hat.current, Vec2.zero) -- 1482
-                end -- 1482
-            end -- 1479
-        }, -- 1479
-        React:createElement( -- 1479
-            "draw-node", -- 1479
-            {opacity = secondaryOpacity}, -- 1479
-            React:createElement("dot-shape", {radius = moveSize, color = color}) -- 1479
-        ), -- 1479
-        React:createElement( -- 1479
-            "draw-node", -- 1479
-            {ref = hat, opacity = primaryOpacity}, -- 1479
-            React:createElement("dot-shape", {radius = hatSize, color = color}) -- 1479
-        ) -- 1479
-    ) -- 1479
-    local ____props_noStickButton_6 -- 1493
-    if props.noStickButton then -- 1493
-        ____props_noStickButton_6 = nil -- 1493
-    else -- 1493
-        ____props_noStickButton_6 = React:createElement( -- 1493
-            Button, -- 1494
-            { -- 1494
-                buttonSize = buttonSize, -- 1494
-                x = moveSize, -- 1494
-                y = moveSize * 2 + buttonSize / 2 + 20, -- 1494
-                text = stickType == "Left" and "LS" or "RS", -- 1494
-                fontName = fontName, -- 1494
-                color = color, -- 1494
-                primaryOpacity = primaryOpacity, -- 1494
-                onMount = function(node) -- 1494
-                    node:slot( -- 1503
-                        "TapBegan", -- 1503
-                        function() return props.inputManager:emitButtonDown(stickButton) end -- 1503
-                    ) -- 1503
-                    node:slot( -- 1504
-                        "TapEnded", -- 1504
-                        function() return props.inputManager:emitButtonUp(stickButton) end -- 1504
-                    ) -- 1504
-                end -- 1502
-            } -- 1502
-        ) -- 1502
-    end -- 1502
-    return ____React_createElement_10( -- 1458
-        ____React_9, -- 1458
-        "align-node", -- 1458
-        ____temp_7, -- 1458
-        ____temp_8, -- 1458
-        ____props_noStickButton_6 -- 1458
-    ) -- 1458
-end -- 1425
-function ____exports.ButtonPad(self, props) -- 1521
-    local ____props_11 = props -- 1528
-    local buttonSize = ____props_11.buttonSize -- 1528
-    if buttonSize == nil then -- 1528
-        buttonSize = 30 -- 1523
+    local canceled = false -- 1141
+    for ____, trigger in ipairs(self.triggers) do -- 1142
+        if trigger.state == "Canceled" then -- 1142
+            canceled = true -- 1144
+            break -- 1145
+        end -- 1145
+    end -- 1145
+    if canceled then -- 1145
+        self.state = "Canceled" -- 1149
+        self.progress = 0 -- 1150
+        if self.onChange then -- 1150
+            self:onChange() -- 1152
+        end -- 1152
+    end -- 1152
+end -- 1103
+function SelectorTrigger.prototype.start(self, manager) -- 1156
+    for ____, trigger in ipairs(self.triggers) do -- 1157
+        trigger:start(manager) -- 1158
+    end -- 1158
+end -- 1156
+function SelectorTrigger.prototype.onUpdate(self, deltaTime) -- 1161
+    for ____, trigger in ipairs(self.triggers) do -- 1162
+        if trigger.onUpdate then -- 1162
+            trigger:onUpdate(deltaTime) -- 1164
+        end -- 1164
+    end -- 1164
+end -- 1161
+function SelectorTrigger.prototype.stop(self, manager) -- 1168
+    for ____, trigger in ipairs(self.triggers) do -- 1169
+        trigger:stop(manager) -- 1170
+    end -- 1170
+end -- 1168
+local BlockTrigger = __TS__Class() -- 1175
+BlockTrigger.name = "BlockTrigger" -- 1175
+__TS__ClassExtends(BlockTrigger, ____exports.Trigger) -- 1175
+function BlockTrigger.prototype.____constructor(self, trigger) -- 1178
+    BlockTrigger.____super.prototype.____constructor(self) -- 1179
+    self.trigger = trigger -- 1180
+    local ____self = self -- 1181
+    trigger.onChange = function() -- 1182
+        ____self:onStateChanged() -- 1183
+    end -- 1182
+end -- 1178
+function BlockTrigger.prototype.onStateChanged(self) -- 1186
+    if self.trigger.state == "Completed" then -- 1186
+        self.state = "Canceled" -- 1188
+    else -- 1188
+        self.state = "Completed" -- 1190
+    end -- 1190
+    if self.onChange then -- 1190
+        self:onChange() -- 1193
+    end -- 1193
+end -- 1186
+function BlockTrigger.prototype.start(self, manager) -- 1196
+    self.state = "Completed" -- 1197
+    self.trigger:start(manager) -- 1198
+end -- 1196
+function BlockTrigger.prototype.onUpdate(self, deltaTime) -- 1200
+    if self.trigger.onUpdate then -- 1200
+        self.trigger:onUpdate(deltaTime) -- 1202
+    end -- 1202
+end -- 1200
+function BlockTrigger.prototype.stop(self, manager) -- 1205
+    self.state = "Completed" -- 1206
+    self.trigger:stop(manager) -- 1207
+end -- 1205
+do -- 1205
+    function Trigger.KeyDown(combineKeys) -- 1212
+        if type(combineKeys) == "string" then -- 1212
+            combineKeys = {combineKeys} -- 1214
+        end -- 1214
+        return __TS__New(KeyDownTrigger, combineKeys) -- 1216
+    end -- 1212
+    function Trigger.KeyUp(combineKeys) -- 1218
+        if type(combineKeys) == "string" then -- 1218
+            combineKeys = {combineKeys} -- 1220
+        end -- 1220
+        return __TS__New(KeyUpTrigger, combineKeys) -- 1222
+    end -- 1218
+    function Trigger.KeyPressed(combineKeys) -- 1224
+        if type(combineKeys) == "string" then -- 1224
+            combineKeys = {combineKeys} -- 1226
+        end -- 1226
+        return __TS__New(KeyPressedTrigger, combineKeys) -- 1228
+    end -- 1224
+    function Trigger.KeyHold(keyName, holdTime) -- 1230
+        return __TS__New(KeyHoldTrigger, keyName, holdTime) -- 1231
+    end -- 1230
+    function Trigger.KeyTimed(keyName, timeWindow) -- 1233
+        return __TS__New(KeyTimedTrigger, keyName, timeWindow) -- 1234
+    end -- 1233
+    function Trigger.KeyDoubleDown(self, key, threshold) -- 1236
+        return __TS__New(KeyDoubleDownTrigger, key, threshold or 0.3) -- 1237
+    end -- 1236
+    function Trigger.ButtonDown(combineButtons, controllerId) -- 1239
+        if type(combineButtons) == "string" then -- 1239
+            combineButtons = {combineButtons} -- 1241
+        end -- 1241
+        return __TS__New(ButtonDownTrigger, combineButtons, controllerId or 0) -- 1243
+    end -- 1239
+    function Trigger.ButtonUp(combineButtons, controllerId) -- 1245
+        if type(combineButtons) == "string" then -- 1245
+            combineButtons = {combineButtons} -- 1247
+        end -- 1247
+        return __TS__New(ButtonUpTrigger, combineButtons, controllerId or 0) -- 1249
+    end -- 1245
+    function Trigger.ButtonPressed(combineButtons, controllerId) -- 1251
+        if type(combineButtons) == "string" then -- 1251
+            combineButtons = {combineButtons} -- 1253
+        end -- 1253
+        return __TS__New(ButtonPressedTrigger, combineButtons, controllerId or 0) -- 1255
+    end -- 1251
+    function Trigger.ButtonHold(buttonName, holdTime, controllerId) -- 1257
+        return __TS__New(ButtonHoldTrigger, buttonName, holdTime, controllerId or 0) -- 1258
+    end -- 1257
+    function Trigger.ButtonTimed(buttonName, timeWindow, controllerId) -- 1260
+        return __TS__New(ButtonTimedTrigger, buttonName, timeWindow, controllerId or 0) -- 1261
+    end -- 1260
+    function Trigger.ButtonDoubleDown(self, button, threshold, controllerId) -- 1263
+        return __TS__New(ButtonDoubleDownTrigger, button, threshold or 0.3, controllerId or 0) -- 1264
+    end -- 1263
+    function Trigger.JoyStick(joyStickType, controllerId) -- 1266
+        return __TS__New(JoyStickTrigger, joyStickType, controllerId or 0) -- 1267
+    end -- 1266
+    function Trigger.JoyStickThreshold(joyStickType, threshold, controllerId) -- 1269
+        return __TS__New(JoyStickThresholdTrigger, joyStickType, threshold, controllerId or 0) -- 1270
+    end -- 1269
+    function Trigger.JoyStickDirectional(joyStickType, angle, tolerance, controllerId) -- 1272
+        return __TS__New( -- 1273
+            JoyStickDirectionalTrigger, -- 1273
+            joyStickType, -- 1273
+            angle, -- 1273
+            tolerance, -- 1273
+            controllerId or 0 -- 1273
+        ) -- 1273
+    end -- 1272
+    function Trigger.JoyStickRange(joyStickType, minRange, maxRange, controllerId) -- 1275
+        return __TS__New( -- 1276
+            JoyStickRangeTrigger, -- 1276
+            joyStickType, -- 1276
+            minRange, -- 1276
+            maxRange, -- 1276
+            controllerId or 0 -- 1276
+        ) -- 1276
+    end -- 1275
+    function Trigger.Sequence(triggers) -- 1278
+        return __TS__New(SequenceTrigger, triggers) -- 1279
+    end -- 1278
+    function Trigger.Selector(triggers) -- 1281
+        return __TS__New(SelectorTrigger, triggers) -- 1282
+    end -- 1281
+    function Trigger.Block(trigger) -- 1284
+        return __TS__New(BlockTrigger, trigger) -- 1285
+    end -- 1284
+end -- 1284
+local InputManager = __TS__Class() -- 1299
+InputManager.name = "InputManager" -- 1299
+function InputManager.prototype.____constructor(self, contexts) -- 1304
+    self.manager = Node() -- 1305
+    self.contextMap = __TS__New( -- 1306
+        Map, -- 1306
+        __TS__ArrayMap( -- 1306
+            contexts, -- 1306
+            function(____, ctx) -- 1306
+                for ____, action in ipairs(ctx.actions) do -- 1307
+                    local eventName = "Input." .. action.name -- 1308
+                    action.trigger.onChange = function() -- 1309
+                        local ____action_trigger_0 = action.trigger -- 1310
+                        local state = ____action_trigger_0.state -- 1310
+                        local progress = ____action_trigger_0.progress -- 1310
+                        local value = ____action_trigger_0.value -- 1310
+                        emit(eventName, state, progress, value) -- 1311
+                    end -- 1309
+                end -- 1309
+                return {ctx.name, ctx.actions} -- 1314
+            end -- 1306
+        ) -- 1306
+    ) -- 1306
+    self.contextStack = {} -- 1316
+    self.manager:schedule(function(deltaTime) -- 1317
+        if #self.contextStack > 0 then -- 1317
+            local lastNames = self.contextStack[#self.contextStack] -- 1319
+            for ____, name in ipairs(lastNames) do -- 1320
+                do -- 1320
+                    local actions = self.contextMap:get(name) -- 1321
+                    if actions == nil then -- 1321
+                        goto __continue328 -- 1323
+                    end -- 1323
+                    for ____, action in ipairs(actions) do -- 1325
+                        if action.trigger.onUpdate then -- 1325
+                            action.trigger:onUpdate(deltaTime) -- 1327
+                        end -- 1327
+                    end -- 1327
+                end -- 1327
+                ::__continue328:: -- 1327
+            end -- 1327
+        end -- 1327
+        return false -- 1332
+    end) -- 1317
+end -- 1304
+function InputManager.prototype.getNode(self) -- 1336
+    return self.manager -- 1337
+end -- 1336
+function InputManager.prototype.pushContext(self, contextNames) -- 1340
+    if type(contextNames) == "string" then -- 1340
+        contextNames = {contextNames} -- 1342
+    end -- 1342
+    local exist = true -- 1344
+    for ____, name in ipairs(contextNames) do -- 1345
+        if exist then -- 1345
+            exist = self.contextMap:has(name) -- 1346
+        end -- 1346
+    end -- 1346
+    if not exist then -- 1346
+        print("[Dora Error] got non-existed context name from " .. table.concat(contextNames, ", ")) -- 1349
+        return false -- 1350
+    else -- 1350
+        if #self.contextStack > 0 then -- 1350
+            local lastNames = self.contextStack[#self.contextStack] -- 1353
+            for ____, name in ipairs(lastNames) do -- 1354
+                do -- 1354
+                    local actions = self.contextMap:get(name) -- 1355
+                    if actions == nil then -- 1355
+                        goto __continue342 -- 1357
+                    end -- 1357
+                    for ____, action in ipairs(actions) do -- 1359
+                        action.trigger:stop(self.manager) -- 1360
+                    end -- 1360
+                end -- 1360
+                ::__continue342:: -- 1360
+            end -- 1360
+        end -- 1360
+        local ____self_contextStack_1 = self.contextStack -- 1360
+        ____self_contextStack_1[#____self_contextStack_1 + 1] = contextNames -- 1364
+        for ____, name in ipairs(contextNames) do -- 1365
+            do -- 1365
+                local actions = self.contextMap:get(name) -- 1366
+                if actions == nil then -- 1366
+                    goto __continue347 -- 1368
+                end -- 1368
+                for ____, action in ipairs(actions) do -- 1370
+                    action.trigger:start(self.manager) -- 1371
+                end -- 1371
+            end -- 1371
+            ::__continue347:: -- 1371
+        end -- 1371
+        return true -- 1374
+    end -- 1374
+end -- 1340
+function InputManager.prototype.popContext(self) -- 1378
+    if #self.contextStack == 0 then -- 1378
+        return false -- 1380
+    end -- 1380
+    local lastNames = self.contextStack[#self.contextStack] -- 1382
+    for ____, name in ipairs(lastNames) do -- 1383
+        do -- 1383
+            local actions = self.contextMap:get(name) -- 1384
+            if actions == nil then -- 1384
+                goto __continue354 -- 1386
+            end -- 1386
+            for ____, action in ipairs(actions) do -- 1388
+                action.trigger:stop(self.manager) -- 1389
+            end -- 1389
+        end -- 1389
+        ::__continue354:: -- 1389
+    end -- 1389
+    table.remove(self.contextStack) -- 1392
+    if #self.contextStack > 0 then -- 1392
+        local lastNames = self.contextStack[#self.contextStack] -- 1394
+        for ____, name in ipairs(lastNames) do -- 1395
+            do -- 1395
+                local actions = self.contextMap:get(name) -- 1396
+                if actions == nil then -- 1396
+                    goto __continue360 -- 1398
+                end -- 1398
+                for ____, action in ipairs(actions) do -- 1400
+                    action.trigger:start(self.manager) -- 1401
+                end -- 1401
+            end -- 1401
+            ::__continue360:: -- 1401
+        end -- 1401
+    end -- 1401
+    return true -- 1405
+end -- 1378
+function InputManager.prototype.emitKeyDown(self, keyName) -- 1408
+    self.manager:emit("KeyDown", keyName) -- 1409
+end -- 1408
+function InputManager.prototype.emitKeyUp(self, keyName) -- 1412
+    self.manager:emit("KeyUp", keyName) -- 1413
+end -- 1412
+function InputManager.prototype.emitButtonDown(self, buttonName, controllerId) -- 1416
+    self.manager:emit("ButtonDown", controllerId or 0, buttonName) -- 1417
+end -- 1416
+function InputManager.prototype.emitButtonUp(self, buttonName, controllerId) -- 1420
+    self.manager:emit("ButtonUp", controllerId or 0, buttonName) -- 1421
+end -- 1420
+function InputManager.prototype.emitAxis(self, axisName, value, controllerId) -- 1424
+    self.manager:emit("Axis", controllerId or 0, axisName, value) -- 1425
+end -- 1424
+function InputManager.prototype.destroy(self) -- 1428
+    self:getNode():removeFromParent() -- 1429
+    self.contextStack = {} -- 1430
+end -- 1428
+function ____exports.CreateInputManager(contexts) -- 1434
+    return __TS__New(InputManager, contexts) -- 1435
+end -- 1434
+function ____exports.DPad(self, props) -- 1447
+    local ____props_2 = props -- 1454
+    local width = ____props_2.width -- 1454
+    if width == nil then -- 1454
+        width = 40 -- 1449
+    end -- 1449
+    local height = ____props_2.height -- 1449
+    if height == nil then -- 1449
+        height = 40 -- 1450
+    end -- 1450
+    local offset = ____props_2.offset -- 1450
+    if offset == nil then -- 1450
+        offset = 5 -- 1451
+    end -- 1451
+    local color = ____props_2.color -- 1451
+    if color == nil then -- 1451
+        color = 4294967295 -- 1452
+    end -- 1452
+    local primaryOpacity = ____props_2.primaryOpacity -- 1452
+    if primaryOpacity == nil then -- 1452
+        primaryOpacity = 0.3 -- 1453
+    end -- 1453
+    local halfSize = height + width / 2 + offset -- 1455
+    local dOffset = height / 2 + width / 2 + offset -- 1456
+    local function DPadButton(self, props) -- 1458
+        local hw = width / 2 -- 1459
+        local drawNode = useRef() -- 1460
+        return React:createElement( -- 1461
+            "node", -- 1461
+            __TS__ObjectAssign( -- 1461
+                {}, -- 1461
+                props, -- 1462
+                { -- 1462
+                    width = width, -- 1462
+                    height = height, -- 1462
+                    onTapBegan = function() -- 1462
+                        if drawNode.current then -- 1462
+                            drawNode.current.opacity = 1 -- 1465
+                        end -- 1465
+                    end, -- 1463
+                    onTapEnded = function() -- 1463
+                        if drawNode.current then -- 1463
+                            drawNode.current.opacity = primaryOpacity -- 1470
+                        end -- 1470
+                    end -- 1468
+                } -- 1468
+            ), -- 1468
+            React:createElement( -- 1468
+                "draw-node", -- 1468
+                {ref = drawNode, y = -hw, x = hw, opacity = primaryOpacity}, -- 1468
+                React:createElement( -- 1468
+                    "polygon-shape", -- 1468
+                    { -- 1468
+                        verts = { -- 1468
+                            Vec2(-hw, hw + height), -- 1476
+                            Vec2(hw, hw + height), -- 1477
+                            Vec2(hw, hw), -- 1478
+                            Vec2.zero, -- 1479
+                            Vec2(-hw, hw) -- 1480
+                        }, -- 1480
+                        fillColor = color -- 1480
+                    } -- 1480
+                ) -- 1480
+            ) -- 1480
+        ) -- 1480
+    end -- 1458
+    local function onMount(buttonName) -- 1487
+        return function(node) -- 1488
+            node:slot( -- 1489
+                "TapBegan", -- 1489
+                function() return props.inputManager:emitButtonDown(buttonName) end -- 1489
+            ) -- 1489
+            node:slot( -- 1490
+                "TapEnded", -- 1490
+                function() return props.inputManager:emitButtonUp(buttonName) end -- 1490
+            ) -- 1490
+        end -- 1488
+    end -- 1487
+    return React:createElement( -- 1494
+        "align-node", -- 1494
+        {style = {width = halfSize * 2, height = halfSize * 2}}, -- 1494
+        React:createElement( -- 1494
+            "menu", -- 1494
+            {x = halfSize, y = halfSize, width = halfSize * 2, height = halfSize * 2}, -- 1494
+            React:createElement( -- 1494
+                DPadButton, -- 1497
+                { -- 1497
+                    x = halfSize, -- 1497
+                    y = dOffset + halfSize, -- 1497
+                    onMount = onMount("dpup") -- 1497
+                } -- 1497
+            ), -- 1497
+            React:createElement( -- 1497
+                DPadButton, -- 1498
+                { -- 1498
+                    x = halfSize, -- 1498
+                    y = -dOffset + halfSize, -- 1498
+                    angle = 180, -- 1498
+                    onMount = onMount("dpdown") -- 1498
+                } -- 1498
+            ), -- 1498
+            React:createElement( -- 1498
+                DPadButton, -- 1499
+                { -- 1499
+                    x = dOffset + halfSize, -- 1499
+                    y = halfSize, -- 1499
+                    angle = 90, -- 1499
+                    onMount = onMount("dpright") -- 1499
+                } -- 1499
+            ), -- 1499
+            React:createElement( -- 1499
+                DPadButton, -- 1500
+                { -- 1500
+                    x = -dOffset + halfSize, -- 1500
+                    y = halfSize, -- 1500
+                    angle = -90, -- 1500
+                    onMount = onMount("dpleft") -- 1500
+                } -- 1500
+            ) -- 1500
+        ) -- 1500
+    ) -- 1500
+end -- 1447
+local function Button(self, props) -- 1517
+    local ____props_3 = props -- 1525
+    local x = ____props_3.x -- 1525
+    local y = ____props_3.y -- 1525
+    local onMount = ____props_3.onMount -- 1525
+    local text = ____props_3.text -- 1525
+    local fontName = ____props_3.fontName -- 1525
+    if fontName == nil then -- 1525
+        fontName = "sarasa-mono-sc-regular" -- 1521
+    end -- 1521
+    local buttonSize = ____props_3.buttonSize -- 1521
+    local color = ____props_3.color -- 1521
+    if color == nil then -- 1521
+        color = 4294967295 -- 1523
     end -- 1523
-    local buttonPadding = ____props_11.buttonPadding -- 1523
-    if buttonPadding == nil then -- 1523
-        buttonPadding = 10 -- 1524
+    local primaryOpacity = ____props_3.primaryOpacity -- 1523
+    if primaryOpacity == nil then -- 1523
+        primaryOpacity = 0.3 -- 1524
     end -- 1524
-    local fontName = ____props_11.fontName -- 1524
-    if fontName == nil then -- 1524
-        fontName = "sarasa-mono-sc-regular" -- 1525
-    end -- 1525
-    local color = ____props_11.color -- 1525
-    if color == nil then -- 1525
-        color = 4294967295 -- 1526
-    end -- 1526
-    local primaryOpacity = ____props_11.primaryOpacity -- 1526
-    if primaryOpacity == nil then -- 1526
-        primaryOpacity = 0.3 -- 1527
-    end -- 1527
-    local width = buttonSize * 5 + buttonPadding * 3 / 2 -- 1529
-    local height = buttonSize * 4 + buttonPadding -- 1530
-    local function onMount(buttonName) -- 1531
-        return function(node) -- 1532
-            node:slot( -- 1533
-                "TapBegan", -- 1533
-                function() return props.inputManager:emitButtonDown(buttonName) end -- 1533
-            ) -- 1533
-            node:slot( -- 1534
-                "TapEnded", -- 1534
-                function() return props.inputManager:emitButtonUp(buttonName) end -- 1534
-            ) -- 1534
-        end -- 1532
-    end -- 1531
-    return React:createElement( -- 1537
-        "align-node", -- 1537
-        {style = {width = width, height = height}}, -- 1537
-        React:createElement( -- 1537
-            "node", -- 1537
-            {x = (buttonSize + buttonPadding / 2) / 2 + width / 2, y = buttonSize + buttonPadding / 2 + height / 2}, -- 1537
-            React:createElement( -- 1537
-                Button, -- 1543
-                { -- 1543
-                    text = "B", -- 1543
-                    fontName = fontName, -- 1543
-                    color = color, -- 1543
-                    primaryOpacity = primaryOpacity, -- 1543
-                    buttonSize = buttonSize, -- 1543
-                    x = -buttonSize * 2 - buttonPadding, -- 1543
-                    onMount = onMount("b") -- 1543
-                } -- 1543
-            ), -- 1543
-            React:createElement( -- 1543
-                Button, -- 1549
-                { -- 1549
-                    text = "Y", -- 1549
-                    fontName = fontName, -- 1549
-                    color = color, -- 1549
-                    primaryOpacity = primaryOpacity, -- 1549
-                    buttonSize = buttonSize, -- 1549
-                    onMount = onMount("y") -- 1549
-                } -- 1549
-            ), -- 1549
-            React:createElement( -- 1549
-                Button, -- 1553
-                { -- 1553
-                    text = "A", -- 1553
-                    fontName = fontName, -- 1553
-                    color = color, -- 1553
-                    primaryOpacity = primaryOpacity, -- 1553
-                    buttonSize = buttonSize, -- 1553
-                    x = -buttonSize - buttonPadding / 2, -- 1553
-                    y = -buttonSize * 2 - buttonPadding, -- 1553
-                    onMount = onMount("a") -- 1553
-                } -- 1553
-            ), -- 1553
-            React:createElement( -- 1553
-                Button, -- 1560
-                { -- 1560
-                    text = "X", -- 1560
-                    fontName = fontName, -- 1560
-                    color = color, -- 1560
-                    primaryOpacity = primaryOpacity, -- 1560
-                    buttonSize = buttonSize, -- 1560
-                    x = buttonSize + buttonPadding / 2, -- 1560
-                    y = -buttonSize * 2 - buttonPadding, -- 1560
-                    onMount = onMount("x") -- 1560
-                } -- 1560
-            ) -- 1560
-        ) -- 1560
-    ) -- 1560
-end -- 1521
-function ____exports.ControlPad(self, props) -- 1580
-    local ____props_12 = props -- 1586
-    local buttonSize = ____props_12.buttonSize -- 1586
-    if buttonSize == nil then -- 1586
-        buttonSize = 35 -- 1582
-    end -- 1582
-    local fontName = ____props_12.fontName -- 1582
-    if fontName == nil then -- 1582
-        fontName = "sarasa-mono-sc-regular" -- 1583
-    end -- 1583
-    local color = ____props_12.color -- 1583
-    if color == nil then -- 1583
-        color = 4294967295 -- 1584
-    end -- 1584
-    local primaryOpacity = ____props_12.primaryOpacity -- 1584
-    if primaryOpacity == nil then -- 1584
-        primaryOpacity = 0.3 -- 1585
-    end -- 1585
-    local function Button(self, props) -- 1587
-        local drawNode = useRef() -- 1588
-        return React:createElement( -- 1589
-            "node", -- 1589
-            __TS__ObjectAssign( -- 1589
-                {}, -- 1589
-                props, -- 1590
-                { -- 1590
-                    width = buttonSize * 2, -- 1590
-                    height = buttonSize, -- 1590
-                    onTapBegan = function() -- 1590
-                        if drawNode.current then -- 1590
-                            drawNode.current.opacity = 1 -- 1593
-                        end -- 1593
-                    end, -- 1591
-                    onTapEnded = function() -- 1591
-                        if drawNode.current then -- 1591
-                            drawNode.current.opacity = primaryOpacity -- 1598
-                        end -- 1598
-                    end -- 1596
-                } -- 1596
-            ), -- 1596
-            React:createElement( -- 1596
-                "draw-node", -- 1596
-                {ref = drawNode, x = buttonSize, y = buttonSize / 2, opacity = primaryOpacity}, -- 1596
-                React:createElement("rect-shape", {width = buttonSize * 2, height = buttonSize, fillColor = color}) -- 1596
-            ), -- 1596
-            React:createElement( -- 1596
-                "label", -- 1596
-                { -- 1596
-                    x = buttonSize, -- 1596
-                    y = buttonSize / 2, -- 1596
-                    scaleX = 0.5, -- 1596
-                    scaleY = 0.5, -- 1596
-                    fontName = fontName, -- 1596
-                    fontSize = math.floor(buttonSize * 1.5), -- 1596
-                    color3 = color, -- 1596
-                    opacity = primaryOpacity + 0.2 -- 1596
-                }, -- 1596
-                props.text -- 1607
-            ) -- 1607
-        ) -- 1607
-    end -- 1587
-    local function onMount(buttonName) -- 1611
-        return function(node) -- 1612
-            node:slot( -- 1613
-                "TapBegan", -- 1613
-                function() return props.inputManager:emitButtonDown(buttonName) end -- 1613
-            ) -- 1613
-            node:slot( -- 1614
-                "TapEnded", -- 1614
-                function() return props.inputManager:emitButtonUp(buttonName) end -- 1614
-            ) -- 1614
-        end -- 1612
-    end -- 1611
-    return React:createElement( -- 1617
-        "align-node", -- 1617
-        {style = {minWidth = buttonSize * 4 + 20, justifyContent = "space-between", flexDirection = "row"}}, -- 1617
-        React:createElement( -- 1617
-            "align-node", -- 1617
-            {style = {width = buttonSize * 2, height = buttonSize}}, -- 1617
-            React:createElement( -- 1617
-                Button, -- 1620
-                { -- 1620
-                    text = "Start", -- 1620
-                    x = buttonSize, -- 1620
-                    y = buttonSize / 2, -- 1620
-                    onMount = onMount("start") -- 1620
-                } -- 1620
-            ) -- 1620
-        ), -- 1620
-        React:createElement( -- 1620
-            "align-node", -- 1620
-            {style = {width = buttonSize * 2, height = buttonSize}}, -- 1620
-            React:createElement( -- 1620
-                Button, -- 1626
-                { -- 1626
-                    text = "Back", -- 1626
-                    x = buttonSize, -- 1626
-                    y = buttonSize / 2, -- 1626
-                    onMount = onMount("back") -- 1626
-                } -- 1626
-            ) -- 1626
-        ) -- 1626
-    ) -- 1626
-end -- 1580
-function ____exports.CreateControlPad(props) -- 1635
-    return toNode(React:createElement( -- 1636
-        ____exports.ControlPad, -- 1636
-        __TS__ObjectAssign({}, props) -- 1636
-    )) -- 1636
-end -- 1635
-function ____exports.TriggerPad(self, props) -- 1650
-    local ____props_13 = props -- 1656
-    local buttonSize = ____props_13.buttonSize -- 1656
-    if buttonSize == nil then -- 1656
-        buttonSize = 35 -- 1652
-    end -- 1652
-    local fontName = ____props_13.fontName -- 1652
-    if fontName == nil then -- 1652
-        fontName = "sarasa-mono-sc-regular" -- 1653
-    end -- 1653
-    local color = ____props_13.color -- 1653
-    if color == nil then -- 1653
-        color = 4294967295 -- 1654
-    end -- 1654
-    local primaryOpacity = ____props_13.primaryOpacity -- 1654
-    if primaryOpacity == nil then -- 1654
-        primaryOpacity = 0.3 -- 1655
-    end -- 1655
-    local function Button(self, props) -- 1657
-        local drawNode = useRef() -- 1658
-        return React:createElement( -- 1659
-            "node", -- 1659
-            __TS__ObjectAssign( -- 1659
-                {}, -- 1659
-                props, -- 1660
-                { -- 1660
-                    width = buttonSize * 2, -- 1660
-                    height = buttonSize, -- 1660
-                    onTapBegan = function() -- 1660
-                        if drawNode.current then -- 1660
-                            drawNode.current.opacity = 1 -- 1663
-                        end -- 1663
-                    end, -- 1661
-                    onTapEnded = function() -- 1661
-                        if drawNode.current then -- 1661
-                            drawNode.current.opacity = primaryOpacity -- 1668
-                        end -- 1668
-                    end -- 1666
-                } -- 1666
-            ), -- 1666
-            React:createElement( -- 1666
-                "draw-node", -- 1666
-                {ref = drawNode, x = buttonSize, y = buttonSize / 2, opacity = primaryOpacity}, -- 1666
-                React:createElement("rect-shape", {width = buttonSize * 2, height = buttonSize, fillColor = color}) -- 1666
-            ), -- 1666
-            React:createElement( -- 1666
-                "label", -- 1666
-                { -- 1666
-                    x = buttonSize, -- 1666
-                    y = buttonSize / 2, -- 1666
-                    scaleX = 0.5, -- 1666
-                    scaleY = 0.5, -- 1666
-                    fontName = fontName, -- 1666
-                    fontSize = math.floor(buttonSize * 1.5), -- 1666
-                    color3 = color, -- 1666
-                    opacity = primaryOpacity + 0.2 -- 1666
-                }, -- 1666
-                props.text -- 1676
-            ) -- 1676
-        ) -- 1676
-    end -- 1657
-    local function onMountAxis(axisName) -- 1680
-        return function(node) -- 1681
-            node:slot( -- 1682
-                "TapBegan", -- 1682
-                function() return props.inputManager:emitAxis(axisName, 1, 0) end -- 1682
-            ) -- 1682
-            node:slot( -- 1683
-                "TapEnded", -- 1683
-                function() return props.inputManager:emitAxis(axisName, 0, 0) end -- 1683
-            ) -- 1683
-        end -- 1681
-    end -- 1680
-    local function onMountButton(buttonName) -- 1686
-        return function(node) -- 1687
-            node:slot( -- 1688
-                "TapBegan", -- 1688
-                function() return props.inputManager:emitButtonDown(buttonName, 0) end -- 1688
-            ) -- 1688
-            node:slot( -- 1689
-                "TapEnded", -- 1689
-                function() return props.inputManager:emitButtonUp(buttonName, 0) end -- 1689
-            ) -- 1689
-        end -- 1687
-    end -- 1686
-    local ____React_25 = React -- 1686
-    local ____React_createElement_26 = React.createElement -- 1686
-    local ____temp_23 = {style = {minWidth = buttonSize * 4 + 20, justifyContent = "space-between", flexDirection = "row"}} -- 1686
-    local ____React_17 = React -- 1686
-    local ____React_createElement_18 = React.createElement -- 1686
-    local ____temp_15 = {style = {width = buttonSize * 4 + 10, height = buttonSize}} -- 1686
-    local ____temp_16 = React:createElement( -- 1686
-        Button, -- 1695
-        { -- 1695
-            text = "LT", -- 1695
-            x = buttonSize, -- 1695
-            y = buttonSize / 2, -- 1695
-            onMount = onMountAxis("lefttrigger") -- 1695
-        } -- 1695
-    ) -- 1695
-    local ____props_noShoulder_14 -- 1699
-    if props.noShoulder then -- 1699
-        ____props_noShoulder_14 = nil -- 1699
-    else -- 1699
-        ____props_noShoulder_14 = React:createElement( -- 1699
-            Button, -- 1700
-            { -- 1700
-                text = "LB", -- 1700
-                x = buttonSize * 3 + 10, -- 1700
-                y = buttonSize / 2, -- 1700
-                onMount = onMountButton("leftshoulder") -- 1700
-            } -- 1700
-        ) -- 1700
-    end -- 1700
-    local ____React_createElement_18_result_24 = ____React_createElement_18( -- 1700
-        ____React_17, -- 1700
-        "align-node", -- 1700
-        ____temp_15, -- 1700
-        ____temp_16, -- 1700
-        ____props_noShoulder_14 -- 1700
-    ) -- 1700
-    local ____React_21 = React -- 1700
-    local ____React_createElement_22 = React.createElement -- 1700
-    local ____temp_20 = {style = {width = buttonSize * 4 + 10, height = buttonSize}} -- 1700
-    local ____props_noShoulder_19 -- 1707
-    if props.noShoulder then -- 1707
-        ____props_noShoulder_19 = nil -- 1707
-    else -- 1707
-        ____props_noShoulder_19 = React:createElement( -- 1707
-            Button, -- 1708
-            { -- 1708
-                text = "RB", -- 1708
-                x = buttonSize, -- 1708
-                y = buttonSize / 2, -- 1708
-                onMount = onMountButton("rightshoulder") -- 1708
-            } -- 1708
-        ) -- 1708
-    end -- 1708
-    return ____React_createElement_26( -- 1692
-        ____React_25, -- 1692
-        "align-node", -- 1692
-        ____temp_23, -- 1692
-        ____React_createElement_18_result_24, -- 1692
-        ____React_createElement_22( -- 1692
-            ____React_21, -- 1692
-            "align-node", -- 1692
-            ____temp_20, -- 1692
-            ____props_noShoulder_19, -- 1692
-            React:createElement( -- 1692
-                Button, -- 1713
-                { -- 1713
-                    text = "RT", -- 1713
-                    x = buttonSize * 3 + 10, -- 1713
-                    y = buttonSize / 2, -- 1713
-                    onMount = onMountAxis("righttrigger") -- 1713
-                } -- 1713
-            ) -- 1713
-        ) -- 1713
-    ) -- 1713
-end -- 1650
-function ____exports.CreateTriggerPad(props) -- 1722
-    return toNode(React:createElement( -- 1723
-        ____exports.TriggerPad, -- 1723
-        __TS__ObjectAssign({}, props) -- 1723
-    )) -- 1723
-end -- 1722
-function ____exports.GamePad(self, props) -- 1743
-    local ____props_27 = props -- 1744
-    local color = ____props_27.color -- 1744
-    local primaryOpacity = ____props_27.primaryOpacity -- 1744
-    local secondaryOpacity = ____props_27.secondaryOpacity -- 1744
-    local inputManager = ____props_27.inputManager -- 1744
-    local ____React_46 = React -- 1744
-    local ____React_createElement_47 = React.createElement -- 1744
-    local ____temp_44 = {style = {flexDirection = "column-reverse"}, windowRoot = true} -- 1744
-    local ____React_40 = React -- 1744
-    local ____React_createElement_41 = React.createElement -- 1744
-    local ____temp_38 = {style = {margin = 20, justifyContent = "space-between", flexDirection = "row", alignItems = "flex-end"}} -- 1744
-    local ____React_31 = React -- 1744
-    local ____React_createElement_32 = React.createElement -- 1744
-    local ____temp_30 = {style = {justifyContent = "space-between", flexDirection = "row", alignItems = "flex-end"}} -- 1744
-    local ____props_noDPad_28 -- 1758
-    if props.noDPad then -- 1758
-        ____props_noDPad_28 = nil -- 1758
-    else -- 1758
-        ____props_noDPad_28 = React:createElement(____exports.DPad, {color = color, primaryOpacity = primaryOpacity, inputManager = inputManager}) -- 1758
-    end -- 1758
-    local ____props_noLeftStick_29 -- 1765
-    if props.noLeftStick then -- 1765
-        ____props_noLeftStick_29 = nil -- 1765
-    else -- 1765
-        ____props_noLeftStick_29 = React:createElement( -- 1765
-            React.Fragment, -- 1765
-            nil, -- 1765
-            React:createElement("align-node", {style = {width = 10}}), -- 1765
-            React:createElement(____exports.JoyStick, { -- 1765
-                stickType = "Left", -- 1765
-                color = color, -- 1765
-                primaryOpacity = primaryOpacity, -- 1765
-                secondaryOpacity = secondaryOpacity, -- 1765
-                inputManager = inputManager, -- 1765
-                noStickButton = props.noStickButton -- 1765
-            }) -- 1765
-        ) -- 1765
-    end -- 1765
-    local ____React_createElement_32_result_39 = ____React_createElement_32( -- 1765
-        ____React_31, -- 1765
-        "align-node", -- 1765
-        ____temp_30, -- 1765
-        ____props_noDPad_28, -- 1765
-        ____props_noLeftStick_29 -- 1765
-    ) -- 1765
-    local ____React_36 = React -- 1765
-    local ____React_createElement_37 = React.createElement -- 1765
-    local ____temp_35 = {style = {justifyContent = "space-between", flexDirection = "row", alignItems = "flex-end"}} -- 1765
-    local ____props_noRightStick_33 -- 1782
-    if props.noRightStick then -- 1782
-        ____props_noRightStick_33 = nil -- 1782
-    else -- 1782
-        ____props_noRightStick_33 = React:createElement( -- 1782
-            React.Fragment, -- 1782
-            nil, -- 1782
-            React:createElement(____exports.JoyStick, { -- 1782
-                stickType = "Right", -- 1782
-                color = color, -- 1782
-                primaryOpacity = primaryOpacity, -- 1782
-                secondaryOpacity = secondaryOpacity, -- 1782
-                inputManager = inputManager, -- 1782
-                noStickButton = props.noStickButton -- 1782
-            }), -- 1782
-            React:createElement("align-node", {style = {width = 10}}) -- 1782
-        ) -- 1782
-    end -- 1782
-    local ____props_noButtonPad_34 -- 1793
-    if props.noButtonPad then -- 1793
-        ____props_noButtonPad_34 = nil -- 1793
-    else -- 1793
-        ____props_noButtonPad_34 = React:createElement(____exports.ButtonPad, {color = color, primaryOpacity = primaryOpacity, inputManager = inputManager}) -- 1793
-    end -- 1793
-    local ____React_createElement_41_result_45 = ____React_createElement_41( -- 1793
-        ____React_40, -- 1793
-        "align-node", -- 1793
-        ____temp_38, -- 1793
-        ____React_createElement_32_result_39, -- 1793
-        ____React_createElement_37( -- 1793
-            ____React_36, -- 1793
-            "align-node", -- 1793
-            ____temp_35, -- 1793
-            ____props_noRightStick_33, -- 1793
-            ____props_noButtonPad_34 -- 1793
-        ) -- 1793
-    ) -- 1793
-    local ____props_noTriggerPad_42 -- 1802
-    if props.noTriggerPad then -- 1802
-        ____props_noTriggerPad_42 = nil -- 1802
-    else -- 1802
-        ____props_noTriggerPad_42 = React:createElement( -- 1802
-            "align-node", -- 1802
-            {style = {paddingLeft = 20, paddingRight = 20, paddingTop = 20}}, -- 1802
-            React:createElement(____exports.TriggerPad, {color = color, noShoulder = props.noShoulder, primaryOpacity = primaryOpacity, inputManager = inputManager}) -- 1802
-        ) -- 1802
-    end -- 1802
-    local ____props_noControlPad_43 -- 1812
-    if props.noControlPad then -- 1812
-        ____props_noControlPad_43 = nil -- 1812
-    else -- 1812
-        ____props_noControlPad_43 = React:createElement( -- 1812
-            "align-node", -- 1812
-            {style = {paddingLeft = 20, paddingRight = 20}}, -- 1812
-            React:createElement(____exports.ControlPad, {color = color, primaryOpacity = primaryOpacity, inputManager = inputManager}) -- 1812
-        ) -- 1812
-    end -- 1812
-    return ____React_createElement_47( -- 1745
-        ____React_46, -- 1745
-        "align-node", -- 1745
-        ____temp_44, -- 1745
-        ____React_createElement_41_result_45, -- 1745
-        ____props_noTriggerPad_42, -- 1745
-        ____props_noControlPad_43 -- 1745
-    ) -- 1745
-end -- 1743
-function ____exports.CreateGamePad(props) -- 1825
-    return toNode(React:createElement( -- 1826
-        ____exports.GamePad, -- 1826
-        __TS__ObjectAssign({}, props) -- 1826
-    )) -- 1826
-end -- 1825
-return ____exports -- 1825
+    local drawNode = useRef() -- 1526
+    return React:createElement( -- 1527
+        "node", -- 1527
+        { -- 1527
+            x = x, -- 1527
+            y = y, -- 1527
+            onMount = onMount, -- 1527
+            width = buttonSize * 2, -- 1527
+            height = buttonSize * 2, -- 1527
+            onTapBegan = function() -- 1527
+                if drawNode.current then -- 1527
+                    drawNode.current.opacity = 1 -- 1531
+                end -- 1531
+            end, -- 1529
+            onTapEnded = function() -- 1529
+                if drawNode.current then -- 1529
+                    drawNode.current.opacity = primaryOpacity -- 1536
+                end -- 1536
+            end -- 1534
+        }, -- 1534
+        React:createElement( -- 1534
+            "draw-node", -- 1534
+            {ref = drawNode, x = buttonSize, y = buttonSize, opacity = primaryOpacity}, -- 1534
+            React:createElement("dot-shape", {radius = buttonSize, color = color}) -- 1534
+        ), -- 1534
+        React:createElement("label", { -- 1534
+            x = buttonSize, -- 1534
+            y = buttonSize, -- 1534
+            scaleX = 0.5, -- 1534
+            scaleY = 0.5, -- 1534
+            color3 = color, -- 1534
+            opacity = primaryOpacity + 0.2, -- 1534
+            fontName = fontName, -- 1534
+            fontSize = buttonSize * 2 -- 1534
+        }, text) -- 1534
+    ) -- 1534
+end -- 1517
+function ____exports.JoyStick(self, props) -- 1562
+    local hat = useRef() -- 1563
+    local ____props_4 = props -- 1573
+    local moveSize = ____props_4.moveSize -- 1573
+    if moveSize == nil then -- 1573
+        moveSize = 70 -- 1565
+    end -- 1565
+    local hatSize = ____props_4.hatSize -- 1565
+    if hatSize == nil then -- 1565
+        hatSize = 40 -- 1566
+    end -- 1566
+    local stickType = ____props_4.stickType -- 1566
+    if stickType == nil then -- 1566
+        stickType = "Left" -- 1567
+    end -- 1567
+    local color = ____props_4.color -- 1567
+    if color == nil then -- 1567
+        color = 4294967295 -- 1568
+    end -- 1568
+    local primaryOpacity = ____props_4.primaryOpacity -- 1568
+    if primaryOpacity == nil then -- 1568
+        primaryOpacity = 0.3 -- 1569
+    end -- 1569
+    local secondaryOpacity = ____props_4.secondaryOpacity -- 1569
+    if secondaryOpacity == nil then -- 1569
+        secondaryOpacity = 0.1 -- 1570
+    end -- 1570
+    local fontName = ____props_4.fontName -- 1570
+    if fontName == nil then -- 1570
+        fontName = "sarasa-mono-sc-regular" -- 1571
+    end -- 1571
+    local buttonSize = ____props_4.buttonSize -- 1571
+    if buttonSize == nil then -- 1571
+        buttonSize = 20 -- 1572
+    end -- 1572
+    local visualBound = math.max(moveSize - hatSize, 0) -- 1574
+    local stickButton = stickType == "Left" and "leftstick" or "rightstick" -- 1575
+    local function updatePosition(node, location) -- 1577
+        if location.length > visualBound then -- 1577
+            node.position = location:normalize():mul(visualBound) -- 1579
+        else -- 1579
+            node.position = location -- 1581
+        end -- 1581
+        repeat -- 1581
+            local ____switch391 = stickType -- 1581
+            local ____cond391 = ____switch391 == "Left" -- 1581
+            if ____cond391 then -- 1581
+                props.inputManager:emitAxis("leftx", node.x / visualBound) -- 1585
+                props.inputManager:emitAxis("lefty", node.y / visualBound) -- 1586
+                break -- 1587
+            end -- 1587
+            ____cond391 = ____cond391 or ____switch391 == "Right" -- 1587
+            if ____cond391 then -- 1587
+                props.inputManager:emitAxis("rightx", node.x / visualBound) -- 1589
+                props.inputManager:emitAxis("righty", node.y / visualBound) -- 1590
+                break -- 1591
+            end -- 1591
+        until true -- 1591
+    end -- 1577
+    local ____React_9 = React -- 1577
+    local ____React_createElement_10 = React.createElement -- 1577
+    local ____temp_7 = {style = {width = moveSize * 2, height = moveSize * 2}} -- 1577
+    local ____temp_8 = React:createElement( -- 1577
+        "node", -- 1577
+        { -- 1577
+            x = moveSize, -- 1577
+            y = moveSize, -- 1577
+            onTapFilter = function(touch) -- 1577
+                local ____touch_5 = touch -- 1599
+                local location = ____touch_5.location -- 1599
+                if location.length > moveSize then -- 1599
+                    touch.enabled = false -- 1601
+                end -- 1601
+            end, -- 1598
+            onTapBegan = function(touch) -- 1598
+                if hat.current then -- 1598
+                    hat.current.opacity = 1 -- 1606
+                    updatePosition(hat.current, touch.location) -- 1607
+                end -- 1607
+            end, -- 1604
+            onTapMoved = function(touch) -- 1604
+                if hat.current then -- 1604
+                    hat.current.opacity = 1 -- 1612
+                    updatePosition(hat.current, touch.location) -- 1613
+                end -- 1613
+            end, -- 1610
+            onTapped = function() -- 1610
+                if hat.current then -- 1610
+                    hat.current.opacity = primaryOpacity -- 1618
+                    updatePosition(hat.current, Vec2.zero) -- 1619
+                end -- 1619
+            end -- 1616
+        }, -- 1616
+        React:createElement( -- 1616
+            "draw-node", -- 1616
+            {opacity = secondaryOpacity}, -- 1616
+            React:createElement("dot-shape", {radius = moveSize, color = color}) -- 1616
+        ), -- 1616
+        React:createElement( -- 1616
+            "draw-node", -- 1616
+            {ref = hat, opacity = primaryOpacity}, -- 1616
+            React:createElement("dot-shape", {radius = hatSize, color = color}) -- 1616
+        ) -- 1616
+    ) -- 1616
+    local ____props_noStickButton_6 -- 1630
+    if props.noStickButton then -- 1630
+        ____props_noStickButton_6 = nil -- 1630
+    else -- 1630
+        ____props_noStickButton_6 = React:createElement( -- 1630
+            Button, -- 1631
+            { -- 1631
+                buttonSize = buttonSize, -- 1631
+                x = moveSize, -- 1631
+                y = moveSize * 2 + buttonSize / 2 + 20, -- 1631
+                text = stickType == "Left" and "LS" or "RS", -- 1631
+                fontName = fontName, -- 1631
+                color = color, -- 1631
+                primaryOpacity = primaryOpacity, -- 1631
+                onMount = function(node) -- 1631
+                    node:slot( -- 1640
+                        "TapBegan", -- 1640
+                        function() return props.inputManager:emitButtonDown(stickButton) end -- 1640
+                    ) -- 1640
+                    node:slot( -- 1641
+                        "TapEnded", -- 1641
+                        function() return props.inputManager:emitButtonUp(stickButton) end -- 1641
+                    ) -- 1641
+                end -- 1639
+            } -- 1639
+        ) -- 1639
+    end -- 1639
+    return ____React_createElement_10( -- 1595
+        ____React_9, -- 1595
+        "align-node", -- 1595
+        ____temp_7, -- 1595
+        ____temp_8, -- 1595
+        ____props_noStickButton_6 -- 1595
+    ) -- 1595
+end -- 1562
+function ____exports.ButtonPad(self, props) -- 1658
+    local ____props_11 = props -- 1665
+    local buttonSize = ____props_11.buttonSize -- 1665
+    if buttonSize == nil then -- 1665
+        buttonSize = 30 -- 1660
+    end -- 1660
+    local buttonPadding = ____props_11.buttonPadding -- 1660
+    if buttonPadding == nil then -- 1660
+        buttonPadding = 10 -- 1661
+    end -- 1661
+    local fontName = ____props_11.fontName -- 1661
+    if fontName == nil then -- 1661
+        fontName = "sarasa-mono-sc-regular" -- 1662
+    end -- 1662
+    local color = ____props_11.color -- 1662
+    if color == nil then -- 1662
+        color = 4294967295 -- 1663
+    end -- 1663
+    local primaryOpacity = ____props_11.primaryOpacity -- 1663
+    if primaryOpacity == nil then -- 1663
+        primaryOpacity = 0.3 -- 1664
+    end -- 1664
+    local width = buttonSize * 5 + buttonPadding * 3 / 2 -- 1666
+    local height = buttonSize * 4 + buttonPadding -- 1667
+    local function onMount(buttonName) -- 1668
+        return function(node) -- 1669
+            node:slot( -- 1670
+                "TapBegan", -- 1670
+                function() return props.inputManager:emitButtonDown(buttonName) end -- 1670
+            ) -- 1670
+            node:slot( -- 1671
+                "TapEnded", -- 1671
+                function() return props.inputManager:emitButtonUp(buttonName) end -- 1671
+            ) -- 1671
+        end -- 1669
+    end -- 1668
+    return React:createElement( -- 1674
+        "align-node", -- 1674
+        {style = {width = width, height = height}}, -- 1674
+        React:createElement( -- 1674
+            "node", -- 1674
+            {x = (buttonSize + buttonPadding / 2) / 2 + width / 2, y = buttonSize + buttonPadding / 2 + height / 2}, -- 1674
+            React:createElement( -- 1674
+                Button, -- 1680
+                { -- 1680
+                    text = "B", -- 1680
+                    fontName = fontName, -- 1680
+                    color = color, -- 1680
+                    primaryOpacity = primaryOpacity, -- 1680
+                    buttonSize = buttonSize, -- 1680
+                    x = -buttonSize * 2 - buttonPadding, -- 1680
+                    onMount = onMount("b") -- 1680
+                } -- 1680
+            ), -- 1680
+            React:createElement( -- 1680
+                Button, -- 1686
+                { -- 1686
+                    text = "Y", -- 1686
+                    fontName = fontName, -- 1686
+                    color = color, -- 1686
+                    primaryOpacity = primaryOpacity, -- 1686
+                    buttonSize = buttonSize, -- 1686
+                    onMount = onMount("y") -- 1686
+                } -- 1686
+            ), -- 1686
+            React:createElement( -- 1686
+                Button, -- 1690
+                { -- 1690
+                    text = "A", -- 1690
+                    fontName = fontName, -- 1690
+                    color = color, -- 1690
+                    primaryOpacity = primaryOpacity, -- 1690
+                    buttonSize = buttonSize, -- 1690
+                    x = -buttonSize - buttonPadding / 2, -- 1690
+                    y = -buttonSize * 2 - buttonPadding, -- 1690
+                    onMount = onMount("a") -- 1690
+                } -- 1690
+            ), -- 1690
+            React:createElement( -- 1690
+                Button, -- 1697
+                { -- 1697
+                    text = "X", -- 1697
+                    fontName = fontName, -- 1697
+                    color = color, -- 1697
+                    primaryOpacity = primaryOpacity, -- 1697
+                    buttonSize = buttonSize, -- 1697
+                    x = buttonSize + buttonPadding / 2, -- 1697
+                    y = -buttonSize * 2 - buttonPadding, -- 1697
+                    onMount = onMount("x") -- 1697
+                } -- 1697
+            ) -- 1697
+        ) -- 1697
+    ) -- 1697
+end -- 1658
+function ____exports.ControlPad(self, props) -- 1717
+    local ____props_12 = props -- 1723
+    local buttonSize = ____props_12.buttonSize -- 1723
+    if buttonSize == nil then -- 1723
+        buttonSize = 35 -- 1719
+    end -- 1719
+    local fontName = ____props_12.fontName -- 1719
+    if fontName == nil then -- 1719
+        fontName = "sarasa-mono-sc-regular" -- 1720
+    end -- 1720
+    local color = ____props_12.color -- 1720
+    if color == nil then -- 1720
+        color = 4294967295 -- 1721
+    end -- 1721
+    local primaryOpacity = ____props_12.primaryOpacity -- 1721
+    if primaryOpacity == nil then -- 1721
+        primaryOpacity = 0.3 -- 1722
+    end -- 1722
+    local function Button(self, props) -- 1724
+        local drawNode = useRef() -- 1725
+        return React:createElement( -- 1726
+            "node", -- 1726
+            __TS__ObjectAssign( -- 1726
+                {}, -- 1726
+                props, -- 1727
+                { -- 1727
+                    width = buttonSize * 2, -- 1727
+                    height = buttonSize, -- 1727
+                    onTapBegan = function() -- 1727
+                        if drawNode.current then -- 1727
+                            drawNode.current.opacity = 1 -- 1730
+                        end -- 1730
+                    end, -- 1728
+                    onTapEnded = function() -- 1728
+                        if drawNode.current then -- 1728
+                            drawNode.current.opacity = primaryOpacity -- 1735
+                        end -- 1735
+                    end -- 1733
+                } -- 1733
+            ), -- 1733
+            React:createElement( -- 1733
+                "draw-node", -- 1733
+                {ref = drawNode, x = buttonSize, y = buttonSize / 2, opacity = primaryOpacity}, -- 1733
+                React:createElement("rect-shape", {width = buttonSize * 2, height = buttonSize, fillColor = color}) -- 1733
+            ), -- 1733
+            React:createElement( -- 1733
+                "label", -- 1733
+                { -- 1733
+                    x = buttonSize, -- 1733
+                    y = buttonSize / 2, -- 1733
+                    scaleX = 0.5, -- 1733
+                    scaleY = 0.5, -- 1733
+                    fontName = fontName, -- 1733
+                    fontSize = math.floor(buttonSize * 1.5), -- 1733
+                    color3 = color, -- 1733
+                    opacity = primaryOpacity + 0.2 -- 1733
+                }, -- 1733
+                props.text -- 1744
+            ) -- 1744
+        ) -- 1744
+    end -- 1724
+    local function onMount(buttonName) -- 1748
+        return function(node) -- 1749
+            node:slot( -- 1750
+                "TapBegan", -- 1750
+                function() return props.inputManager:emitButtonDown(buttonName) end -- 1750
+            ) -- 1750
+            node:slot( -- 1751
+                "TapEnded", -- 1751
+                function() return props.inputManager:emitButtonUp(buttonName) end -- 1751
+            ) -- 1751
+        end -- 1749
+    end -- 1748
+    return React:createElement( -- 1754
+        "align-node", -- 1754
+        {style = {minWidth = buttonSize * 4 + 20, justifyContent = "space-between", flexDirection = "row"}}, -- 1754
+        React:createElement( -- 1754
+            "align-node", -- 1754
+            {style = {width = buttonSize * 2, height = buttonSize}}, -- 1754
+            React:createElement( -- 1754
+                Button, -- 1757
+                { -- 1757
+                    text = "Start", -- 1757
+                    x = buttonSize, -- 1757
+                    y = buttonSize / 2, -- 1757
+                    onMount = onMount("start") -- 1757
+                } -- 1757
+            ) -- 1757
+        ), -- 1757
+        React:createElement( -- 1757
+            "align-node", -- 1757
+            {style = {width = buttonSize * 2, height = buttonSize}}, -- 1757
+            React:createElement( -- 1757
+                Button, -- 1763
+                { -- 1763
+                    text = "Back", -- 1763
+                    x = buttonSize, -- 1763
+                    y = buttonSize / 2, -- 1763
+                    onMount = onMount("back") -- 1763
+                } -- 1763
+            ) -- 1763
+        ) -- 1763
+    ) -- 1763
+end -- 1717
+function ____exports.CreateControlPad(props) -- 1772
+    return toNode(React:createElement( -- 1773
+        ____exports.ControlPad, -- 1773
+        __TS__ObjectAssign({}, props) -- 1773
+    )) -- 1773
+end -- 1772
+function ____exports.TriggerPad(self, props) -- 1787
+    local ____props_13 = props -- 1793
+    local buttonSize = ____props_13.buttonSize -- 1793
+    if buttonSize == nil then -- 1793
+        buttonSize = 35 -- 1789
+    end -- 1789
+    local fontName = ____props_13.fontName -- 1789
+    if fontName == nil then -- 1789
+        fontName = "sarasa-mono-sc-regular" -- 1790
+    end -- 1790
+    local color = ____props_13.color -- 1790
+    if color == nil then -- 1790
+        color = 4294967295 -- 1791
+    end -- 1791
+    local primaryOpacity = ____props_13.primaryOpacity -- 1791
+    if primaryOpacity == nil then -- 1791
+        primaryOpacity = 0.3 -- 1792
+    end -- 1792
+    local function Button(self, props) -- 1794
+        local drawNode = useRef() -- 1795
+        return React:createElement( -- 1796
+            "node", -- 1796
+            __TS__ObjectAssign( -- 1796
+                {}, -- 1796
+                props, -- 1797
+                { -- 1797
+                    width = buttonSize * 2, -- 1797
+                    height = buttonSize, -- 1797
+                    onTapBegan = function() -- 1797
+                        if drawNode.current then -- 1797
+                            drawNode.current.opacity = 1 -- 1800
+                        end -- 1800
+                    end, -- 1798
+                    onTapEnded = function() -- 1798
+                        if drawNode.current then -- 1798
+                            drawNode.current.opacity = primaryOpacity -- 1805
+                        end -- 1805
+                    end -- 1803
+                } -- 1803
+            ), -- 1803
+            React:createElement( -- 1803
+                "draw-node", -- 1803
+                {ref = drawNode, x = buttonSize, y = buttonSize / 2, opacity = primaryOpacity}, -- 1803
+                React:createElement("rect-shape", {width = buttonSize * 2, height = buttonSize, fillColor = color}) -- 1803
+            ), -- 1803
+            React:createElement( -- 1803
+                "label", -- 1803
+                { -- 1803
+                    x = buttonSize, -- 1803
+                    y = buttonSize / 2, -- 1803
+                    scaleX = 0.5, -- 1803
+                    scaleY = 0.5, -- 1803
+                    fontName = fontName, -- 1803
+                    fontSize = math.floor(buttonSize * 1.5), -- 1803
+                    color3 = color, -- 1803
+                    opacity = primaryOpacity + 0.2 -- 1803
+                }, -- 1803
+                props.text -- 1813
+            ) -- 1813
+        ) -- 1813
+    end -- 1794
+    local function onMountAxis(axisName) -- 1817
+        return function(node) -- 1818
+            node:slot( -- 1819
+                "TapBegan", -- 1819
+                function() return props.inputManager:emitAxis(axisName, 1, 0) end -- 1819
+            ) -- 1819
+            node:slot( -- 1820
+                "TapEnded", -- 1820
+                function() return props.inputManager:emitAxis(axisName, 0, 0) end -- 1820
+            ) -- 1820
+        end -- 1818
+    end -- 1817
+    local function onMountButton(buttonName) -- 1823
+        return function(node) -- 1824
+            node:slot( -- 1825
+                "TapBegan", -- 1825
+                function() return props.inputManager:emitButtonDown(buttonName, 0) end -- 1825
+            ) -- 1825
+            node:slot( -- 1826
+                "TapEnded", -- 1826
+                function() return props.inputManager:emitButtonUp(buttonName, 0) end -- 1826
+            ) -- 1826
+        end -- 1824
+    end -- 1823
+    local ____React_25 = React -- 1823
+    local ____React_createElement_26 = React.createElement -- 1823
+    local ____temp_23 = {style = {minWidth = buttonSize * 4 + 20, justifyContent = "space-between", flexDirection = "row"}} -- 1823
+    local ____React_17 = React -- 1823
+    local ____React_createElement_18 = React.createElement -- 1823
+    local ____temp_15 = {style = {width = buttonSize * 4 + 10, height = buttonSize}} -- 1823
+    local ____temp_16 = React:createElement( -- 1823
+        Button, -- 1832
+        { -- 1832
+            text = "LT", -- 1832
+            x = buttonSize, -- 1832
+            y = buttonSize / 2, -- 1832
+            onMount = onMountAxis("lefttrigger") -- 1832
+        } -- 1832
+    ) -- 1832
+    local ____props_noShoulder_14 -- 1836
+    if props.noShoulder then -- 1836
+        ____props_noShoulder_14 = nil -- 1836
+    else -- 1836
+        ____props_noShoulder_14 = React:createElement( -- 1836
+            Button, -- 1837
+            { -- 1837
+                text = "LB", -- 1837
+                x = buttonSize * 3 + 10, -- 1837
+                y = buttonSize / 2, -- 1837
+                onMount = onMountButton("leftshoulder") -- 1837
+            } -- 1837
+        ) -- 1837
+    end -- 1837
+    local ____React_createElement_18_result_24 = ____React_createElement_18( -- 1837
+        ____React_17, -- 1837
+        "align-node", -- 1837
+        ____temp_15, -- 1837
+        ____temp_16, -- 1837
+        ____props_noShoulder_14 -- 1837
+    ) -- 1837
+    local ____React_21 = React -- 1837
+    local ____React_createElement_22 = React.createElement -- 1837
+    local ____temp_20 = {style = {width = buttonSize * 4 + 10, height = buttonSize}} -- 1837
+    local ____props_noShoulder_19 -- 1844
+    if props.noShoulder then -- 1844
+        ____props_noShoulder_19 = nil -- 1844
+    else -- 1844
+        ____props_noShoulder_19 = React:createElement( -- 1844
+            Button, -- 1845
+            { -- 1845
+                text = "RB", -- 1845
+                x = buttonSize, -- 1845
+                y = buttonSize / 2, -- 1845
+                onMount = onMountButton("rightshoulder") -- 1845
+            } -- 1845
+        ) -- 1845
+    end -- 1845
+    return ____React_createElement_26( -- 1829
+        ____React_25, -- 1829
+        "align-node", -- 1829
+        ____temp_23, -- 1829
+        ____React_createElement_18_result_24, -- 1829
+        ____React_createElement_22( -- 1829
+            ____React_21, -- 1829
+            "align-node", -- 1829
+            ____temp_20, -- 1829
+            ____props_noShoulder_19, -- 1829
+            React:createElement( -- 1829
+                Button, -- 1850
+                { -- 1850
+                    text = "RT", -- 1850
+                    x = buttonSize * 3 + 10, -- 1850
+                    y = buttonSize / 2, -- 1850
+                    onMount = onMountAxis("righttrigger") -- 1850
+                } -- 1850
+            ) -- 1850
+        ) -- 1850
+    ) -- 1850
+end -- 1787
+function ____exports.CreateTriggerPad(props) -- 1859
+    return toNode(React:createElement( -- 1860
+        ____exports.TriggerPad, -- 1860
+        __TS__ObjectAssign({}, props) -- 1860
+    )) -- 1860
+end -- 1859
+function ____exports.GamePad(self, props) -- 1880
+    local ____props_27 = props -- 1881
+    local color = ____props_27.color -- 1881
+    local primaryOpacity = ____props_27.primaryOpacity -- 1881
+    local secondaryOpacity = ____props_27.secondaryOpacity -- 1881
+    local inputManager = ____props_27.inputManager -- 1881
+    local ____React_46 = React -- 1881
+    local ____React_createElement_47 = React.createElement -- 1881
+    local ____temp_44 = {style = {flexDirection = "column-reverse"}, windowRoot = true} -- 1881
+    local ____React_40 = React -- 1881
+    local ____React_createElement_41 = React.createElement -- 1881
+    local ____temp_38 = {style = {margin = 20, justifyContent = "space-between", flexDirection = "row", alignItems = "flex-end"}} -- 1881
+    local ____React_31 = React -- 1881
+    local ____React_createElement_32 = React.createElement -- 1881
+    local ____temp_30 = {style = {justifyContent = "space-between", flexDirection = "row", alignItems = "flex-end"}} -- 1881
+    local ____props_noDPad_28 -- 1895
+    if props.noDPad then -- 1895
+        ____props_noDPad_28 = nil -- 1895
+    else -- 1895
+        ____props_noDPad_28 = React:createElement(____exports.DPad, {color = color, primaryOpacity = primaryOpacity, inputManager = inputManager}) -- 1895
+    end -- 1895
+    local ____props_noLeftStick_29 -- 1902
+    if props.noLeftStick then -- 1902
+        ____props_noLeftStick_29 = nil -- 1902
+    else -- 1902
+        ____props_noLeftStick_29 = React:createElement( -- 1902
+            React.Fragment, -- 1902
+            nil, -- 1902
+            React:createElement("align-node", {style = {width = 10}}), -- 1902
+            React:createElement(____exports.JoyStick, { -- 1902
+                stickType = "Left", -- 1902
+                color = color, -- 1902
+                primaryOpacity = primaryOpacity, -- 1902
+                secondaryOpacity = secondaryOpacity, -- 1902
+                inputManager = inputManager, -- 1902
+                noStickButton = props.noStickButton -- 1902
+            }) -- 1902
+        ) -- 1902
+    end -- 1902
+    local ____React_createElement_32_result_39 = ____React_createElement_32( -- 1902
+        ____React_31, -- 1902
+        "align-node", -- 1902
+        ____temp_30, -- 1902
+        ____props_noDPad_28, -- 1902
+        ____props_noLeftStick_29 -- 1902
+    ) -- 1902
+    local ____React_36 = React -- 1902
+    local ____React_createElement_37 = React.createElement -- 1902
+    local ____temp_35 = {style = {justifyContent = "space-between", flexDirection = "row", alignItems = "flex-end"}} -- 1902
+    local ____props_noRightStick_33 -- 1919
+    if props.noRightStick then -- 1919
+        ____props_noRightStick_33 = nil -- 1919
+    else -- 1919
+        ____props_noRightStick_33 = React:createElement( -- 1919
+            React.Fragment, -- 1919
+            nil, -- 1919
+            React:createElement(____exports.JoyStick, { -- 1919
+                stickType = "Right", -- 1919
+                color = color, -- 1919
+                primaryOpacity = primaryOpacity, -- 1919
+                secondaryOpacity = secondaryOpacity, -- 1919
+                inputManager = inputManager, -- 1919
+                noStickButton = props.noStickButton -- 1919
+            }), -- 1919
+            React:createElement("align-node", {style = {width = 10}}) -- 1919
+        ) -- 1919
+    end -- 1919
+    local ____props_noButtonPad_34 -- 1930
+    if props.noButtonPad then -- 1930
+        ____props_noButtonPad_34 = nil -- 1930
+    else -- 1930
+        ____props_noButtonPad_34 = React:createElement(____exports.ButtonPad, {color = color, primaryOpacity = primaryOpacity, inputManager = inputManager}) -- 1930
+    end -- 1930
+    local ____React_createElement_41_result_45 = ____React_createElement_41( -- 1930
+        ____React_40, -- 1930
+        "align-node", -- 1930
+        ____temp_38, -- 1930
+        ____React_createElement_32_result_39, -- 1930
+        ____React_createElement_37( -- 1930
+            ____React_36, -- 1930
+            "align-node", -- 1930
+            ____temp_35, -- 1930
+            ____props_noRightStick_33, -- 1930
+            ____props_noButtonPad_34 -- 1930
+        ) -- 1930
+    ) -- 1930
+    local ____props_noTriggerPad_42 -- 1939
+    if props.noTriggerPad then -- 1939
+        ____props_noTriggerPad_42 = nil -- 1939
+    else -- 1939
+        ____props_noTriggerPad_42 = React:createElement( -- 1939
+            "align-node", -- 1939
+            {style = {paddingLeft = 20, paddingRight = 20, paddingTop = 20}}, -- 1939
+            React:createElement(____exports.TriggerPad, {color = color, noShoulder = props.noShoulder, primaryOpacity = primaryOpacity, inputManager = inputManager}) -- 1939
+        ) -- 1939
+    end -- 1939
+    local ____props_noControlPad_43 -- 1949
+    if props.noControlPad then -- 1949
+        ____props_noControlPad_43 = nil -- 1949
+    else -- 1949
+        ____props_noControlPad_43 = React:createElement( -- 1949
+            "align-node", -- 1949
+            {style = {paddingLeft = 20, paddingRight = 20}}, -- 1949
+            React:createElement(____exports.ControlPad, {color = color, primaryOpacity = primaryOpacity, inputManager = inputManager}) -- 1949
+        ) -- 1949
+    end -- 1949
+    return ____React_createElement_47( -- 1882
+        ____React_46, -- 1882
+        "align-node", -- 1882
+        ____temp_44, -- 1882
+        ____React_createElement_41_result_45, -- 1882
+        ____props_noTriggerPad_42, -- 1882
+        ____props_noControlPad_43 -- 1882
+    ) -- 1882
+end -- 1880
+function ____exports.CreateGamePad(props) -- 1962
+    return toNode(React:createElement( -- 1963
+        ____exports.GamePad, -- 1963
+        __TS__ObjectAssign({}, props) -- 1963
+    )) -- 1963
+end -- 1962
+return ____exports -- 1962
