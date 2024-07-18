@@ -2718,7 +2718,7 @@ local function parse_nested_type(ps, i, def, typename, parse_body)
 	end
 
 	local nt = new_node(ps.tokens, i - 2, "newtype")
-	nt.newtype = new_type(ps, i, "typetype")
+	nt.newtype = new_type(ps, i - 1, "typetype")
 	local rdef = new_type(ps, i, typename)
 	local iok = parse_body(ps, i, rdef, nt, v.tk)
 	if iok then

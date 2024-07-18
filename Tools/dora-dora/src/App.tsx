@@ -768,6 +768,10 @@ export default function PersistentDrawerLeft() {
 			}).catch(() => {});
 		} else {
 			switchTab(index, file);
+			if (file && position) {
+				file.position = position;
+				setFiles([...files]);
+			}
 		}
 	}, [switchTab, files, openFile]);
 
