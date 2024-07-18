@@ -61,6 +61,13 @@ export namespace Trigger {
 	 */
 	export function KeyTimed(this: void, keyName: KeyName, timeWindow: number): Trigger;
 	/**
+	 * 创建一个触发器，当特定键被按下两次时触发。
+	 * @param key 要检查的键。
+	 * @param threshold 两次按下之间的时间阈值，以秒为单位, 默认为0.3。
+	 * @returns 触发器对象。
+	 */
+	export function KeyDoubleDown(key: KeyName, threshold?: number): Trigger;
+	/**
 	 * 创建一个触发器，当所有指定的游戏手柄按钮被按下时触发。
 	 * @param combineButtons 要检查的游戏手柄按钮或组合按钮。
 	 * @param controllerId 游戏手柄控制器的ID。默认为0。
@@ -97,6 +104,14 @@ export namespace Trigger {
 	 * @returns 触发器对象。
 	 */
 	export function ButtonTimed(this: void, buttonName: ButtonName, timeWindow: number, controllerId?: number): Trigger;
+	/**
+	 * 创建一个触发器，当特定的游戏手柄按钮被按下两次时触发。
+	 * @param button 要检查的游戏手柄按钮。
+	 * @param threshold 两次按下之间的时间阈值，以秒为单位, 默认为0.3。
+	 * @param controllerId 游戏手柄控制器的ID。默认为0。
+	 * @returns 触发器对象。
+	 */
+	export function ButtonDoubleDown(button: ButtonName, threshold?: number, controllerId?: number): Trigger;
 	/**
 	 * 创建一个触发器，当特定的游戏手柄轴被移动时触发。
 	 * @param joyStickType 要检查的操纵杆类型。

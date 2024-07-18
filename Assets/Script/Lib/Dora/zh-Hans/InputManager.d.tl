@@ -89,6 +89,12 @@ local record InputManagerClass
 		-- @return (Trigger) 触发器对象。
 		KeyTimed: function(keyName: KeyName, timeWindow: number): Trigger
 
+		-- 创建一个触发器，当特定键被双击时触发。
+		-- @param key (KeyName) 要检查的键。
+		-- @param threshold (number) [可选] 双击的时间阈值，以秒为单位。默认为0.3。
+		-- @return (Trigger) 触发器对象。
+		KeyDoubleDown: function(key: KeyName, threshold?: number): Trigger
+
 		-- 创建一个触发器，当所有指定的游戏手柄按钮被按下时触发。
 		-- @param combineButtons (ButtonName | {ButtonName}) 要检查的游戏手柄按钮或组合按钮。
 		-- @param controllerId (number) [可选] 游戏手柄控制器的ID。默认为0。
@@ -120,6 +126,13 @@ local record InputManagerClass
 		-- @param controllerId (number) [可选] 游戏手柄控制器的ID。默认为0。
 		-- @return (Trigger) 触发器对象。
 		ButtonTimed: function(buttonName: ButtonName, timeWindow: number, controllerId?: number): Trigger
+
+		-- 创建一个触发器，当特定的游戏手柄按钮被双击时触发。
+		-- @param button (ButtonName) 要检查的游戏手柄按钮。
+		-- @param threshold (number) [可选] 双击的时间阈值，以秒为单位。默认为0.3。
+		-- @param controllerId (number) [可选] 游戏手柄控制器的ID。默认为0。
+		-- @return (Trigger) 触发器对象。
+		ButtonDoubleDown: function(button: ButtonName, threshold?: number, controllerId?: number): Trigger
 
 		-- 创建一个触发器，当特定的游戏手柄轴被移动时触发。
 		-- @param joyStickType (JoyStickType) 要检查的操纵杆类型。

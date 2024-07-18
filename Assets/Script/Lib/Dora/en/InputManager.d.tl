@@ -89,6 +89,12 @@ local record InputManagerClass
 		-- @return (Trigger) The trigger object.
 		KeyTimed: function(keyName: KeyName, timeWindow: number): Trigger
 
+		-- Create a trigger that triggers when a specific key is double-pressed within a specified time window.
+		-- @param key (KeyName) The key to be checked.
+		-- @param threshold (number) [optional] The time window in seconds. Default is 0.3.
+		-- @return (Trigger) The trigger object.
+		KeyDoubleDown: function(key: KeyName, threshold?: number): Trigger
+
 		-- Create a trigger that triggers when all of the specified gamepad buttons are pressed down.
 		-- @param combineButtons (ButtonName | {ButtonName}) The gamepad button or combined buttons to be checked.
 		-- @param controllerId (number) [optional] The ID of the gamepad controller. Default is 0.
@@ -113,6 +119,12 @@ local record InputManagerClass
 		-- @param controllerId (number) [optional] The ID of the gamepad controller. Default is 0.
 		-- @return (Trigger) The trigger object.
 		ButtonHold: function(buttonName: ButtonName, holdTime: number, controllerId?: number): Trigger
+
+		-- Create a trigger that triggers when a specific gamepad button is double-pressed within a specified time window.
+		-- @param button (ButtonName) The gamepad button to be checked.
+		-- @param threshold (number) [optional] The time window in seconds. Default is 0.3.
+		-- @param controllerId (number) [optional] The ID of the gamepad controller. Default is 0.
+		ButtonDoubleDown: function(button: ButtonName, threshold?: number, controllerId?: number): Trigger
 
 		-- Create a trigger that triggers when a specific gamepad button is pressed within a specified time window.
 		-- @param buttonName (ButtonName) The gamepad button to be checked.
