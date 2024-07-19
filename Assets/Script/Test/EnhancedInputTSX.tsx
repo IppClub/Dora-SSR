@@ -3,13 +3,44 @@ import { React, toNode } from 'DoraX';
 import { App, ButtonName, KeyName, Node, Vec2, loop, threadLoop } from 'Dora';
 import * as ImGui from "ImGui";
 import { SetCond, WindowFlag } from 'ImGui';
-import { GamePad, CreateInputManager, Trigger, TriggerState } from 'InputManager';
+import { GamePad, CreateManager, Trigger, TriggerState, InputContext } from 'InputManager';
 
-const inputManager = CreateInputManager([
+const enum QTE {
+	None = "None",
+	Phase1 = "Phase1",
+	Phase2 = "Phase2",
+	Phase3 = "Phase3"
+}
+
+function QTEContext(this: void, contextName: QTE, keyName: KeyName, buttonName: ButtonName, timeWindow: number): InputContext {
+	return {name: contextName,
+		actions: [{
+			name: "QTE", trigger:
+			Trigger.Sequence([
+				Trigger.Selector([
+					Trigger.Selector([
+						Trigger.KeyPressed(keyName),
+						Trigger.Block(Trigger.AnyKeyPressed()),
+					]),
+					Trigger.Selector([
+						Trigger.ButtonPressed(buttonName),
+						Trigger.Block(Trigger.AnyButtonPressed()),
+					]),
+				]),
+				Trigger.Selector([
+					Trigger.KeyTimed(keyName, timeWindow),
+					Trigger.ButtonTimed(buttonName, timeWindow),
+				]),
+			])
+		}]
+	};
+}
+
+const inputManager = CreateManager([
 	{name: "Default", actions: [
 		{name: "Confirm", trigger:
 			Trigger.Selector([
-				Trigger.ButtonHold(ButtonName.a, 1),
+				Trigger.ButtonHold(ButtonName.y, 1),
 				Trigger.KeyHold(KeyName.Return, 1),
 			])
 		},
@@ -28,6 +59,9 @@ const inputManager = CreateInputManager([
 			])
 		},
 	]},
+	QTEContext(QTE.Phase1, KeyName.J, ButtonName.a, 3),
+	QTEContext(QTE.Phase2, KeyName.K, ButtonName.b, 2),
+	QTEContext(QTE.Phase3, KeyName.L, ButtonName.x, 1)
 ]);
 
 inputManager.pushContext("Default");
@@ -35,6 +69,9 @@ inputManager.pushContext("Default");
 toNode(
 	<GamePad inputManager={inputManager}/>
 );
+
+let phase = QTE.None;
+let text = "";
 
 let holdTime = 0;
 const node = Node();
@@ -52,17 +89,87 @@ node.gslot("Input.MoveDown", (state: TriggerState, progress: number, value: any)
 	}
 });
 
+node.gslot("Input.QTE", (state: TriggerState, progress: number, value: any) => {
+	switch (phase) {
+		case QTE.Phase1:
+			switch (state) {
+				case TriggerState.Canceled:
+					phase = QTE.None;
+					inputManager.popContext();
+					text = "Failed!";
+					holdTime = progress;
+					break;
+				case TriggerState.Completed:
+					phase = QTE.Phase2;
+					inputManager.pushContext(QTE.Phase2);
+					text = "Button B or Key K"
+					break;
+				case TriggerState.Ongoing:
+					holdTime = progress;
+					break;
+			}
+			break;
+		case QTE.Phase2:
+			switch (state) {
+				case TriggerState.Canceled:
+					phase = QTE.None;
+					inputManager.popContext(2);
+					text = "Failed!";
+					holdTime = progress;
+					break;
+				case TriggerState.Completed:
+					phase = QTE.Phase3;
+					inputManager.pushContext(QTE.Phase3);
+					text = "Button X or Key L"
+					break;
+				case TriggerState.Ongoing:
+					holdTime = progress;
+					break;
+			}
+			break;
+		case QTE.Phase3:
+			switch (state) {
+				case TriggerState.Canceled:
+				case TriggerState.Completed:
+					phase = QTE.None;
+					inputManager.popContext(3);
+					text = state === TriggerState.Completed ? "Success!" : "Failed!";
+					holdTime = progress;
+					break;
+				case TriggerState.Ongoing:
+					holdTime = progress;
+					break;
+			}
+			break;
+	}
+});
+
+function QTEButton(this: void) {
+	if (ImGui.Button("Start QTE")) {
+		phase = QTE.Phase1;
+		text = "Button A or Key J"
+		inputManager.pushContext(QTE.Phase1);
+	}
+}
 const countDownFlags = [
 	WindowFlag.NoResize,
 	WindowFlag.NoSavedSettings,
 	WindowFlag.NoTitleBar,
-	WindowFlag.NoMove
+	WindowFlag.NoMove,
+	WindowFlag.AlwaysAutoResize,
 ];
 node.schedule(loop(() => {
 	const {width, height} = App.visualSize;
-	ImGui.SetNextWindowPos(Vec2(width / 2 - 160, height / 2 - 50));
-	ImGui.SetNextWindowSize(Vec2(300, 50), SetCond.FirstUseEver);
+	ImGui.SetNextWindowPos(Vec2(width / 2 - 160, height / 2 - 100));
+	ImGui.SetNextWindowSize(Vec2(300, 100), SetCond.Always);
 	ImGui.Begin("CountDown", countDownFlags, () => {
+		if (phase === QTE.None) {
+			QTEButton();
+		} else {
+			ImGui.BeginDisabled(QTEButton);
+		}
+		ImGui.SameLine();
+		ImGui.Text(text);
 		ImGui.ProgressBar(holdTime, Vec2(-1, 30));
 	});
 	return false;
@@ -87,14 +194,16 @@ threadLoop(() => {
 		ImGui.Text("Enhanced Input (TSX)");
 		ImGui.Separator();
 		ImGui.TextWrapped("Change input context to alter input mapping");
-		let [changed, result] = ImGui.Checkbox("X to Confirm (not A)", checked);
-		if (changed) {
-			if (checked) {
-				inputManager.popContext();
-			} else {
-				inputManager.pushContext("Test");
+		if (phase === QTE.None) {
+			let [changed, result] = ImGui.Checkbox("hold X to Confirm (instead Y)", checked);
+			if (changed) {
+				if (checked) {
+					inputManager.popContext();
+				} else {
+					inputManager.pushContext("Test");
+				}
+				checked = result;
 			}
-			checked = result;
 		}
 	});
 	return false;

@@ -66,7 +66,12 @@ export namespace Trigger {
 	 * @param threshold The time window in seconds. Default is 0.3.
 	 * @returns The trigger object.
 	 */
-	export function KeyDoubleDown(key: KeyName, threshold?: number): Trigger;
+	export function KeyDoubleDown(this: void, key: KeyName, threshold?: number): Trigger;
+	/**
+	 * Create a trigger that triggers when any key is being pressed down.
+	 * @returns The trigger object.
+	 */
+	export function AnyKeyPressed(this: void): Trigger;
 	/**
 	 * Create a trigger that triggers when all of the specified gamepad buttons are pressed down.
 	 * @param combineButtons The gamepad button or combined buttons to be checked.
@@ -111,7 +116,13 @@ export namespace Trigger {
 	 * @param controllerId The ID of the gamepad controller. Default is 0.
 	 * @returns The trigger object.
 	 */
-	export function ButtonDoubleDown(button: ButtonName, threshold?: number, controllerId?: number): Trigger;
+	export function ButtonDoubleDown(this: void, button: ButtonName, threshold?: number, controllerId?: number): Trigger;
+	/**
+	 * Create a trigger that triggers when any gamepad button is being pressed down.
+	 * @param controllerId The ID of the gamepad controller. Default is 0.
+	 * @returns The trigger object.
+	 */
+	export function AnyButtonPressed(this: void, controllerId?: number): Trigger;
 	/**
 	 * Create a trigger that triggers based on joystick movement.
 	 * @param joyStickType The type of joystick to be checked.
@@ -177,7 +188,32 @@ export interface InputContext {
 	actions: InputAction[];
 }
 
-/// A class that manages input contexts and actions.
+/**
+ * `InputManager` is a class for managing input contexts and actions. Input events can be listened for and handled by creating input contexts and actions, and then adding them to the input manager. Specific combinations of input contexts can be activated and deactivated by calling the `pushContext` and `popContext` methods. When an event is triggered, input events can be handled by registering global input event listeners.
+ * @usage
+ * import { CreateManager, Trigger } from "InputManager";
+ * const inputManager = CreateManager([
+ * 	{
+ * 		name: "context1",
+ * 		actions: [
+ * 			{
+ * 				name: "action1",
+ * 				trigger: Trigger.KeyDown(KeyName.W)
+ * 			},
+ * 		]
+ * 	},
+ * ]);
+ * // activate context1
+ * inputManager.pushContext("context1");
+ * // add prefix "Input." to the listened action name
+ * node.gslot("Input.action1", () => {
+ * 	print("action1 triggered");
+ * });
+ * // remove context1 from the context stack
+ * inputManager.popContext();
+ * // destroy the input manager
+ * inputManager.destroy();
+ */
 export class InputManager {
 	private constructor(contexts: InputContext[]);
 	/**
@@ -194,9 +230,10 @@ export class InputManager {
 	pushContext(contextNames: string | string[]): boolean;
 	/**
 	 * Removes the current input context from the context stack. Activates the previous context.
+	 * @param count The number of contexts to be popped. Default is 1.
 	 * @returns Whether the context is successfully popped.
 	 */
-	popContext(): boolean;
+	popContext(count?: number): boolean;
 	/**
 	 * Emits a key down event for input simulation.
 	 * @param keyName The name of the key.
@@ -237,7 +274,7 @@ export class InputManager {
  * @param contexts The input contexts to be created.
  * @returns The input manager.
  */
-export function CreateInputManager(this: void, contexts: InputContext[]): InputManager;
+export function CreateManager(this: void, contexts: InputContext[]): InputManager;
 
 /// The virtual directional pad (D-pad) properties.
 export interface DPadProps {

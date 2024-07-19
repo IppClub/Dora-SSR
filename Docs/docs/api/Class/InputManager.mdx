@@ -4,9 +4,34 @@ import "@site/src/languages/highlight";
 
 **Description:**
 
-&emsp;&emsp;`InputManager` is a record that manages input contexts and actions.
+&emsp;&emsp;`InputManager` is a class for managing input contexts and actions. Input events can be listened for and handled by creating input contexts and actions, and then adding them to the input manager. Specific combinations of input contexts can be activated and deactivated by calling the `pushContext` and `popContext` methods. When an event is triggered, input events can be handled by registering global input event listeners.
 
 **Class Object:** [InputManager Class](/docs/api/Class%20Object/InputManager).
+
+**Usage:**
+```tl
+local InputManager = require("InputManager")
+local inputManager = InputManager.CreateManager({
+	{
+		name = "context1",
+		actions = {
+			{
+				name = "action1",
+				trigger = Trigger.KeyDown(KeyName.W)
+			},
+		}
+	},
+})
+-- activate context1
+inputManager:pushContext("context1")
+-- add prefix "Input." to the listened action name
+node:gslot("Input.action1", function()
+	print("action1 triggered")
+end)
+-- remove context1 from the context stack
+inputManager:popContext()
+inputManager:destroy()
+```
 
 ## getNode
 
@@ -62,8 +87,14 @@ pushContext: function(self: InputManager, contextNames: string | {string}): bool
 
 **Signature:**
 ```tl
-popContext: function(self: InputManager): boolean
+popContext: function(self: InputManager, count?: number): boolean
 ```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| count | number | [optional] The number of contexts to be popped. Default is 1. |
 
 **Returns:**
 

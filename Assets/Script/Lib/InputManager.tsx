@@ -2,15 +2,10 @@ import { React, toNode, useRef } from 'DoraX';
 import { AxisName, ButtonName, DrawNode, KeyName, Node, Slot, Vec2, emit } from 'Dora';
 
 export const enum TriggerState {
-	/// 无状态：当前暂未获得输入状态。
 	None = "None",
-	/// 已开始：发生了开始触发器求值的某个事件。例如，"双击"触发器的第一次按键将调用一次"已开始"状态。
 	Started = "Started",
-	/// 进行中：触发器仍在进行处理。例如，当用户按下按钮时，在达到指定持续时间之前，"按住"动作处于进行中状态。根据触发器，此事件将在收到输入值之后在对动作求值时，每次更新触发一次。
 	Ongoing = "Ongoing",
-	/// 已完成：触发器求值过程已完成。
 	Completed = "Completed",
-	/// 已取消：触发已取消。例如，在"按住"动作还没触发之前，用户就松开了按钮。
 	Canceled = "Canceled",
 }
 
@@ -40,9 +35,6 @@ class KeyDownTrigger extends Trigger {
 		this.keys = keys;
 		this.keyStates = new LuaTable;
 		this.onKeyDown = (keyName: KeyName) => {
-			if (this.state === TriggerState.Completed) {
-				return;
-			}
 			if (!this.keyStates.has(keyName)) {
 				return;
 			}
@@ -58,19 +50,14 @@ class KeyDownTrigger extends Trigger {
 				}
 				if (newState) {
 					this.state = TriggerState.Completed;
-					this.progress = 1;
 					if (this.onChange) {
 						this.onChange();
 					}
-					this.progress = 0;
 					this.state = TriggerState.None;
 				}
 			}
 		};
 		this.onKeyUp = (keyName: KeyName) => {
-			if (this.state === TriggerState.Completed) {
-				return;
-			}
 			if (!this.keyStates.has(keyName)) {
 				return;
 			}
@@ -85,13 +72,11 @@ class KeyDownTrigger extends Trigger {
 		manager.slot(Slot.KeyDown, this.onKeyDown);
 		manager.slot(Slot.KeyUp, this.onKeyUp);
 		this.state = TriggerState.None;
-		this.progress = 0;
 	}
 	stop(manager: Node.Type) {
 		manager.slot(Slot.KeyDown).remove(this.onKeyDown);
 		manager.slot(Slot.KeyUp).remove(this.onKeyUp);
 		this.state = TriggerState.None;
-		this.progress = 0;
 	}
 }
 
@@ -106,18 +91,12 @@ class KeyUpTrigger extends Trigger {
 		this.keys = keys;
 		this.keyStates = new LuaTable;
 		this.onKeyDown = (keyName: KeyName) => {
-			if (this.state === TriggerState.Completed) {
-				return;
-			}
 			if (!this.keyStates.has(keyName)) {
 				return;
 			}
 			this.keyStates.set(keyName, true);
 		};
 		this.onKeyUp = (keyName: KeyName) => {
-			if (this.state === TriggerState.Completed) {
-				return;
-			}
 			if (!this.keyStates.has(keyName)) {
 				return;
 			}
@@ -128,11 +107,9 @@ class KeyUpTrigger extends Trigger {
 			this.keyStates.set(keyName, false);
 			if (oldState) {
 					this.state = TriggerState.Completed;
-					this.progress = 1;
 					if (this.onChange) {
 						this.onChange();
 					}
-					this.progress = 0;
 					this.state = TriggerState.None;
 			}
 		};
@@ -145,13 +122,11 @@ class KeyUpTrigger extends Trigger {
 		manager.slot(Slot.KeyDown, this.onKeyDown);
 		manager.slot(Slot.KeyUp, this.onKeyUp);
 		this.state = TriggerState.None;
-		this.progress = 0;
 	}
 	stop(manager: Node.Type) {
 		manager.slot(Slot.KeyDown).remove(this.onKeyDown);
 		manager.slot(Slot.KeyUp).remove(this.onKeyUp);
 		this.state = TriggerState.None;
-		this.progress = 0;
 	}
 }
 
@@ -170,27 +145,33 @@ class KeyPressedTrigger extends Trigger {
 				return;
 			}
 			this.keyStates.set(keyName, true);
+			let allDown = true;
+			for (let [, down] of this.keyStates) {
+				allDown &&= down;
+			}
+			if (allDown) {
+				this.state = TriggerState.Completed;
+			}
 		};
 		this.onKeyUp = (keyName: KeyName) => {
 			if (!this.keyStates.has(keyName)) {
 				return;
 			}
 			this.keyStates.set(keyName, false);
+			let allDown = true;
+			for (let [, down] of this.keyStates) {
+				allDown &&= down;
+			}
+			if (!allDown) {
+				this.state = TriggerState.None;
+			}
 		};
 	}
 	onUpdate(_: number) {
-		let allDown = true;
-		for (let [, down] of this.keyStates) {
-			allDown &&= down;
-		}
-		if (allDown) {
-			this.state = TriggerState.Completed;
-			this.progress = 1;
+		if (this.state === TriggerState.Completed) {
 			if (this.onChange) {
 				this.onChange();
 			}
-			this.progress = 0;
-			this.state = TriggerState.None;
 		}
 	}
 	start(manager: Node.Type) {
@@ -201,13 +182,11 @@ class KeyPressedTrigger extends Trigger {
 		manager.slot(Slot.KeyDown, this.onKeyDown);
 		manager.slot(Slot.KeyUp, this.onKeyUp);
 		this.state = TriggerState.None;
-		this.progress = 0;
 	}
 	stop(manager: Node.Type) {
 		manager.slot(Slot.KeyDown).remove(this.onKeyDown);
 		manager.slot(Slot.KeyUp).remove(this.onKeyUp);
 		this.state = TriggerState.None;
-		this.progress = 0;
 	}
 }
 
@@ -290,6 +269,80 @@ class KeyHoldTrigger extends Trigger {
 	}
 }
 
+class KeyTimedTrigger extends Trigger {
+	private key: KeyName;
+	private timeWindow: number;
+	private time: number;
+	private onKeyDown: (this: void, keyName: KeyName) => void;
+
+	constructor(key: KeyName, timeWindow: number) {
+		super();
+		this.key = key;
+		this.timeWindow = timeWindow;
+		this.time = 0;
+		this.onKeyDown = (keyName: KeyName) => {
+			switch (this.state) {
+				case TriggerState.Started:
+				case TriggerState.Ongoing:
+				case TriggerState.Completed:
+					break;
+				default:
+					return;
+			}
+			if (this.key === keyName && this.time <= this.timeWindow) {
+				this.state = TriggerState.Completed;
+				this.value = this.time;
+				if (this.onChange) {
+					this.onChange();
+				}
+			}
+		};
+	}
+	start(manager: Node.Type) {
+		manager.keyboardEnabled = true;
+		manager.slot(Slot.KeyDown, this.onKeyDown);
+		this.state = TriggerState.Started;
+		this.time = 0;
+		this.progress = 0;
+		this.value = false;
+		if (this.onChange) {
+			this.onChange();
+		}
+	}
+	onUpdate(deltaTime: number) {
+		switch (this.state) {
+			case TriggerState.Started:
+			case TriggerState.Ongoing:
+			case TriggerState.Completed:
+				break;
+			default:
+				return;
+		}
+		this.time += deltaTime;
+		if (this.time >= this.timeWindow) {
+			if (this.state === TriggerState.Completed) {
+				this.state = TriggerState.None;
+				this.progress = 0;
+			} else {
+				this.state = TriggerState.Canceled;
+				this.progress = 1;
+			}
+		} else {
+			this.state = TriggerState.Ongoing;
+			this.progress = math.min(this.time / this.timeWindow, 1);
+		}
+		if (this.onChange) {
+			this.onChange();
+		}
+	}
+	stop(manager: Node.Type) {
+		manager.slot(Slot.KeyDown).remove(this.onKeyDown);
+		this.state = TriggerState.None;
+		this.value = false;
+		this.progress = 0;
+	}
+}
+
 class KeyDoubleDownTrigger extends Trigger {
 	private key: KeyName;
 	private threshold: number;
@@ -353,76 +406,47 @@ class KeyDoubleDownTrigger extends Trigger {
 	}
 }
 
-class KeyTimedTrigger extends Trigger {
-	private key: KeyName;
-	private timeWindow: number;
-	private time: number;
+class AnyKeyPressedTrigger extends Trigger {
 	private onKeyDown: (this: void, keyName: KeyName) => void;
+	private onKeyUp: (this: void, keyName: KeyName) => void;
+	private keyStates: LuaTable<KeyName, boolean>;
 
-	constructor(key: KeyName, timeWindow: number) {
+	constructor() {
 		super();
-		this.key = key;
-		this.timeWindow = timeWindow;
-		this.time = 0;
+		this.keyStates = new LuaTable;
 		this.onKeyDown = (keyName: KeyName) => {
-			switch (this.state) {
-				case TriggerState.Started:
-				case TriggerState.Ongoing:
-				case TriggerState.Completed:
-					break;
-				default:
-					return;
+			this.keyStates.set(keyName, true);
+			this.state = TriggerState.Completed;
+		};
+		this.onKeyUp = (keyName: KeyName) => {
+			this.keyStates.set(keyName, false);
+			let down = false;
+			for (let [, state] of this.keyStates) {
+				down ||= state;
 			}
-			if (this.key === keyName && this.time <= this.timeWindow) {
-				this.state = TriggerState.Completed;
-				this.value = this.time;
-				if (this.onChange) {
-					this.onChange();
-				}
+			if (!down) {
+				this.state = TriggerState.None;
 			}
 		};
+	}
+	onUpdate(_: number) {
+		if (this.state === TriggerState.Completed) {
+			if (this.onChange) {
+				this.onChange();
+			}
+		}
 	}
 	start(manager: Node.Type) {
 		manager.keyboardEnabled = true;
 		manager.slot(Slot.KeyDown, this.onKeyDown);
-		this.state = TriggerState.Started;
-		this.progress = 0;
-		this.value = false;
-		if (this.onChange) {
-			this.onChange();
-		}
-	}
-	onUpdate(deltaTime: number) {
-		switch (this.state) {
-			case TriggerState.Started:
-			case TriggerState.Ongoing:
-			case TriggerState.Completed:
-				break;
-			default:
-				return;
-		}
-		this.time += deltaTime;
-		if (this.time >= this.timeWindow) {
-			if (this.state === TriggerState.Completed) {
-				this.state = TriggerState.None;
-				this.progress = 0;
-			} else {
-				this.state = TriggerState.Canceled;
-				this.progress = 1;
-			}
-		} else {
-			this.state = TriggerState.Ongoing;
-			this.progress = math.min(this.time / this.timeWindow, 1);
-		}
-		if (this.onChange) {
-			this.onChange();
-		}
+		manager.slot(Slot.KeyUp, this.onKeyUp);
+		this.state = TriggerState.None;
 	}
 	stop(manager: Node.Type) {
 		manager.slot(Slot.KeyDown).remove(this.onKeyDown);
+		manager.slot(Slot.KeyUp, this.onKeyUp);
 		this.state = TriggerState.None;
-		this.value = false;
-		this.progress = 0;
+		this.keyStates = new LuaTable;
 	}
 }
 
@@ -439,9 +463,6 @@ class ButtonDownTrigger extends Trigger {
 		this.buttons = buttons;
 		this.buttonStates = new LuaTable;
 		this.onButtonDown = (controllerId: number, buttonName: ButtonName) => {
-			if (this.state === TriggerState.Completed) {
-				return;
-			}
 			if (this.controllerId !== controllerId) {
 				return;
 			}
@@ -460,11 +481,9 @@ class ButtonDownTrigger extends Trigger {
 				}
 				if (newState) {
 					this.state = TriggerState.Completed;
-					this.progress = 1;
 					if (this.onChange) {
 						this.onChange();
 					}
-					this.progress = 0;
 					this.state = TriggerState.None;
 				}
 			}
@@ -490,13 +509,11 @@ class ButtonDownTrigger extends Trigger {
 		manager.slot(Slot.ButtonDown, this.onButtonDown);
 		manager.slot(Slot.ButtonUp, this.onButtonUp);
 		this.state = TriggerState.None;
-		this.progress = 0;
 	}
 	stop(manager: Node.Type) {
 		manager.slot(Slot.ButtonDown).remove(this.onButtonDown);
 		manager.slot(Slot.ButtonUp).remove(this.onButtonUp);
 		this.state = TriggerState.None;
-		this.progress = 0;
 		this.value = false;
 	}
 }
@@ -514,9 +531,6 @@ class ButtonUpTrigger extends Trigger {
 		this.buttons = buttons;
 		this.buttonStates = new LuaTable;
 		this.onButtonDown = (controllerId: number, buttonName: ButtonName) => {
-			if (this.state === TriggerState.Completed) {
-				return;
-			}
 			if (this.controllerId !== controllerId) {
 				return;
 			}
@@ -526,9 +540,6 @@ class ButtonUpTrigger extends Trigger {
 			this.buttonStates.set(buttonName, true);
 		};
 		this.onButtonUp = (controllerId: number, buttonName: ButtonName) => {
-			if (this.state === TriggerState.Completed) {
-				return;
-			}
 			if (this.controllerId !== controllerId) {
 				return;
 			}
@@ -542,11 +553,9 @@ class ButtonUpTrigger extends Trigger {
 			this.buttonStates.set(buttonName, false);
 			if (oldState) {
 					this.state = TriggerState.Completed;
-					this.progress = 1;
 					if (this.onChange) {
 						this.onChange();
 					}
-					this.progress = 0;
 					this.state = TriggerState.None;
 			}
 		};
@@ -559,13 +568,11 @@ class ButtonUpTrigger extends Trigger {
 		manager.slot(Slot.ButtonDown, this.onButtonDown);
 		manager.slot(Slot.ButtonUp, this.onButtonUp);
 		this.state = TriggerState.None;
-		this.progress = 0;
 	}
 	stop(manager: Node.Type) {
 		manager.slot(Slot.ButtonDown).remove(this.onButtonDown);
 		manager.slot(Slot.ButtonUp).remove(this.onButtonUp);
 		this.state = TriggerState.None;
-		this.progress = 0;
 	}
 }
 
@@ -589,6 +596,13 @@ class ButtonPressedTrigger extends Trigger {
 				return;
 			}
 			this.buttonStates.set(buttonName, true);
+			let allDown = true;
+			for (let [, down] of this.buttonStates) {
+				allDown &&= down;
+			}
+			if (allDown) {
+				this.state = TriggerState.Completed;
+			}
 		};
 		this.onButtonUp = (controllerId: number, buttonName: ButtonName) => {
 			if (this.controllerId !== controllerId) {
@@ -598,6 +612,7 @@ class ButtonPressedTrigger extends Trigger {
 				return;
 			}
 			this.buttonStates.set(buttonName, false);
+			this.state = TriggerState.None;
 		};
 	}
 	onUpdate(_: number) {
@@ -607,11 +622,9 @@ class ButtonPressedTrigger extends Trigger {
 		}
 		if (allDown) {
 			this.state = TriggerState.Completed;
-			this.progress = 1;
 			if (this.onChange) {
 				this.onChange();
 			}
-			this.progress = 0;
 			this.state = TriggerState.None;
 		}
 	}
@@ -623,13 +636,11 @@ class ButtonPressedTrigger extends Trigger {
 		manager.slot(Slot.ButtonDown, this.onButtonDown);
 		manager.slot(Slot.ButtonUp, this.onButtonUp);
 		this.state = TriggerState.None;
-		this.progress = 0;
 	}
 	stop(manager: Node.Type) {
 		manager.slot(Slot.ButtonDown).remove(this.onButtonDown);
 		manager.slot(Slot.ButtonUp).remove(this.onButtonUp);
 		this.state = TriggerState.None;
-		this.progress = 0;
 	}
 }
 
@@ -759,6 +770,7 @@ class ButtonTimedTrigger extends Trigger {
 		manager.slot(Slot.ButtonDown, this.onButtonDown);
 		this.state = TriggerState.Started;
 		this.progress = 0;
+		this.time = 0;
 		this.value = false;
 		if (this.onChange) {
 			this.onChange();
@@ -862,6 +874,58 @@ class ButtonDoubleDownTrigger extends Trigger {
 		manager.slot(Slot.ButtonDown).remove(this.onButtonDown);
 		this.state = TriggerState.None;
 		this.progress = 0;
+	}
+}
+
+class AnyButtonPressedTrigger extends Trigger {
+	private controllerId: number;
+	private onButtonDown: (this: void, controllerId: number, buttonName: ButtonName) => void;
+	private onButtonUp: (this: void, controllerId: number, buttonName: ButtonName) => void;
+	private buttonStates: LuaTable<ButtonName, boolean>;
+
+	constructor(controllerId: number) {
+		super();
+		this.controllerId = controllerId;
+		this.buttonStates = new LuaTable;
+		this.onButtonDown = (controllerId: number, buttonName: ButtonName) => {
+			if (this.controllerId !== controllerId) {
+				return;
+			}
+			this.buttonStates.set(buttonName, true);
+			this.state = TriggerState.Completed;
+		};
+		this.onButtonUp = (controllerId: number, buttonName: ButtonName) => {
+			if (this.controllerId !== controllerId) {
+				return;
+			}
+			this.buttonStates.set(buttonName, false);
+			let down = false;
+			for (let [, state] of this.buttonStates) {
+				down ||= state;
+			}
+			if (!down) {
+				this.state = TriggerState.None;
+			}
+		};
+	}
+	onUpdate(_: number) {
+		if (this.state === TriggerState.Completed) {
+			if (this.onChange) {
+				this.onChange();
+			}
+		}
+	}
+	start(manager: Node.Type) {
+		manager.keyboardEnabled = true;
+		manager.slot(Slot.ButtonDown, this.onButtonDown);
+		manager.slot(Slot.ButtonUp, this.onButtonUp);
+		this.state = TriggerState.None;
+	}
+	stop(manager: Node.Type) {
+		manager.slot(Slot.ButtonDown).remove(this.onButtonDown);
+		manager.slot(Slot.ButtonUp, this.onButtonUp);
+		this.state = TriggerState.None;
+		this.buttonStates = new LuaTable;
 	}
 }
 
@@ -1014,7 +1078,21 @@ class SequenceTrigger extends Trigger {
 				}
 			}
 			this.value = newValue;
-			this.progress = 1;
+			if (this.onChange) {
+				this.onChange();
+			}
+			return;
+		}
+		let canceled = false;
+		for (let trigger of this.triggers) {
+			this.progress = math.max(trigger.progress, this.progress);
+			if (trigger.state === TriggerState.Canceled) {
+				canceled = true;
+				break;
+			}
+		}
+		if (canceled) {
+			this.state = TriggerState.Canceled;
 			if (this.onChange) {
 				this.onChange();
 			}
@@ -1046,23 +1124,7 @@ class SequenceTrigger extends Trigger {
 				return;
 			}
 		}
-		let canceled = false;
-		for (let trigger of this.triggers) {
-			if (trigger.state === TriggerState.Canceled) {
-				canceled = true;
-				break;
-			}
-		}
-		if (canceled) {
-			this.state = TriggerState.Canceled;
-			this.progress = 0;
-			if (this.onChange) {
-				this.onChange();
-			}
-			return;
-		}
 		this.state = TriggerState.None;
-		this.progress = 0;
 		if (this.onChange) {
 			this.onChange();
 		}
@@ -1071,6 +1133,9 @@ class SequenceTrigger extends Trigger {
 		for (let trigger of this.triggers) {
 			trigger.start(manager);
 		}
+		this.state = TriggerState.None;
+		this.progress = 0;
+		this.value = false;
 	}
 	onUpdate(deltaTime: number) {
 		for (let trigger of this.triggers) {
@@ -1083,6 +1148,9 @@ class SequenceTrigger extends Trigger {
 		for (let trigger of this.triggers) {
 			trigger.stop(manager);
 		}
+		this.state = TriggerState.None;
+		this.progress = 0;
+		this.value = false;
 	}
 }
 
@@ -1140,6 +1208,7 @@ class SelectorTrigger extends Trigger {
 		}
 		let canceled = false;
 		for (let trigger of this.triggers) {
+			this.progress = math.max(trigger.progress, this.progress);
 			if (trigger.state === TriggerState.Canceled) {
 				canceled = true;
 				break;
@@ -1147,7 +1216,6 @@ class SelectorTrigger extends Trigger {
 		}
 		if (canceled) {
 			this.state = TriggerState.Canceled;
-			this.progress = 0;
 			if (this.onChange) {
 				this.onChange();
 			}
@@ -1157,6 +1225,9 @@ class SelectorTrigger extends Trigger {
 		for (let trigger of this.triggers) {
 			trigger.start(manager);
 		}
+		this.state = TriggerState.None;
+		this.progress = 0;
+		this.value = false;
 	}
 	onUpdate(deltaTime: number) {
 		for (let trigger of this.triggers) {
@@ -1169,6 +1240,9 @@ class SelectorTrigger extends Trigger {
 		for (let trigger of this.triggers) {
 			trigger.stop(manager);
 		}
+		this.state = TriggerState.None;
+		this.progress = 0;
+		this.value = false;
 	}
 }
 
@@ -1192,6 +1266,7 @@ class BlockTrigger extends Trigger {
 		if (this.onChange) {
 			this.onChange();
 		}
+		this.state = TriggerState.Completed;
 	}
 	start(manager: Node.Type) {
 		this.state = TriggerState.Completed;
@@ -1236,6 +1311,9 @@ export namespace Trigger {
 	export function KeyDoubleDown(key: KeyName, threshold?: number) {
 		return new KeyDoubleDownTrigger(key, threshold ?? 0.3);
 	}
+	export function AnyKeyPressed() {
+		return new AnyKeyPressedTrigger();
+	}
 	export function ButtonDown(this: void, combineButtons: ButtonName | ButtonName[], controllerId?: number) {
 		if (typeof combineButtons === 'string') {
 			combineButtons = [combineButtons];
@@ -1262,6 +1340,9 @@ export namespace Trigger {
 	}
 	export function ButtonDoubleDown(button: ButtonName, threshold?: number, controllerId?: number) {
 		return new ButtonDoubleDownTrigger(button, threshold ?? 0.3, controllerId ?? 0);
+	}
+	export function AnyButtonPressed(controllerId?: number) {
+		return new AnyButtonPressedTrigger(controllerId ?? 0);
 	}
 	export function JoyStick(this: void, joyStickType: JoyStickType, controllerId?: number) {
 		return new JoyStickTrigger(joyStickType, controllerId ?? 0);
@@ -1375,22 +1456,12 @@ class InputManager {
 		}
 	}
 
-	popContext(): boolean {
-		if (this.contextStack.length === 0) {
+	popContext(count?: number): boolean {
+		count ??= 1;
+		if (this.contextStack.length < count) {
 			return false;
 		}
-		const lastNames = this.contextStack[this.contextStack.length - 1];
-		for (let name of lastNames) {
-			const actions = this.contextMap.get(name);
-			if (actions === undefined) {
-				continue;
-			}
-			for (let action of actions) {
-				action.trigger.stop(this.manager);
-			}
-		}
-		this.contextStack.pop();
-		if (this.contextStack.length > 0) {
+		for (let i of $range(1, count)) {
 			const lastNames = this.contextStack[this.contextStack.length - 1];
 			for (let name of lastNames) {
 				const actions = this.contextMap.get(name);
@@ -1398,7 +1469,20 @@ class InputManager {
 					continue;
 				}
 				for (let action of actions) {
-					action.trigger.start(this.manager);
+					action.trigger.stop(this.manager);
+				}
+			}
+			this.contextStack.pop();
+			if (this.contextStack.length > 0) {
+				const lastNames = this.contextStack[this.contextStack.length - 1];
+				for (let name of lastNames) {
+					const actions = this.contextMap.get(name);
+					if (actions === undefined) {
+						continue;
+					}
+					for (let action of actions) {
+						action.trigger.start(this.manager);
+					}
 				}
 			}
 		}
@@ -1431,7 +1515,7 @@ class InputManager {
 	}
 }
 
-export function CreateInputManager(this: void, contexts: InputContext[]) {
+export function CreateManager(this: void, contexts: InputContext[]): InputManager {
 	return new InputManager(contexts);
 }
 

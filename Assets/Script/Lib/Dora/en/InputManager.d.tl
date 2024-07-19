@@ -6,7 +6,29 @@ local type KeyName = Keyboard.KeyName;
 local type ButtonName = Controller.ButtonName;
 local type AxisName = Controller.AxisName;
 
--- `InputManager` is a record that manages input contexts and actions.
+-- `InputManager` is a class for managing input contexts and actions. Input events can be listened for and handled by creating input contexts and actions, and then adding them to the input manager. Specific combinations of input contexts can be activated and deactivated by calling the `pushContext` and `popContext` methods. When an event is triggered, input events can be handled by registering global input event listeners.
+-- @usage
+-- local InputManager = require("InputManager")
+-- local inputManager = InputManager.CreateManager({
+-- 	{
+-- 		name = "context1",
+-- 		actions = {
+-- 			{
+-- 				name = "action1",
+-- 				trigger = Trigger.KeyDown(KeyName.W)
+-- 			},
+-- 		}
+-- 	},
+-- })
+-- -- activate context1
+-- inputManager:pushContext("context1")
+-- -- add prefix "Input." to the listened action name
+-- node:gslot("Input.action1", function()
+-- 	print("action1 triggered")
+-- end)
+-- -- remove context1 from the context stack
+-- inputManager:popContext()
+-- inputManager:destroy()
 local record InputManager
 
 	-- Gets the current input node. The input node is used to receive input events. It will be added to `Director.entry` automatically.
@@ -19,8 +41,9 @@ local record InputManager
 	pushContext: function(self: InputManager, contextNames: string | {string}): boolean
 
 	-- Removes the current input context from the context stack. Activates the previous context.
+	-- @param count (number) [optional] The number of contexts to be popped. Default is 1.
 	-- @return (boolean) Whether the context is successfully popped.
-	popContext: function(self: InputManager): boolean
+	popContext: function(self: InputManager, count?: number): boolean
 
 	-- Emits a key down event for input simulation.
 	-- @param keyName (KeyName) The name of the key.
@@ -95,6 +118,10 @@ local record InputManagerClass
 		-- @return (Trigger) The trigger object.
 		KeyDoubleDown: function(key: KeyName, threshold?: number): Trigger
 
+		-- Create a trigger that triggers when any key is being pressed down.
+		-- @return (Trigger) The trigger object.
+		AnyKeyPressed: function(): Trigger
+
 		-- Create a trigger that triggers when all of the specified gamepad buttons are pressed down.
 		-- @param combineButtons (ButtonName | {ButtonName}) The gamepad button or combined buttons to be checked.
 		-- @param controllerId (number) [optional] The ID of the gamepad controller. Default is 0.
@@ -120,18 +147,23 @@ local record InputManagerClass
 		-- @return (Trigger) The trigger object.
 		ButtonHold: function(buttonName: ButtonName, holdTime: number, controllerId?: number): Trigger
 
-		-- Create a trigger that triggers when a specific gamepad button is double-pressed within a specified time window.
-		-- @param button (ButtonName) The gamepad button to be checked.
-		-- @param threshold (number) [optional] The time window in seconds. Default is 0.3.
-		-- @param controllerId (number) [optional] The ID of the gamepad controller. Default is 0.
-		ButtonDoubleDown: function(button: ButtonName, threshold?: number, controllerId?: number): Trigger
-
 		-- Create a trigger that triggers when a specific gamepad button is pressed within a specified time window.
 		-- @param buttonName (ButtonName) The gamepad button to be checked.
 		-- @param timeWindow (number) The time window in seconds.
 		-- @param controllerId (number) [optional] The ID of the gamepad controller. Default is 0.
 		-- @return (Trigger) The trigger object.
 		ButtonTimed: function(buttonName: ButtonName, timeWindow: number, controllerId?: number): Trigger
+
+		-- Create a trigger that triggers when a specific gamepad button is double-pressed within a specified time window.
+		-- @param button (ButtonName) The gamepad button to be checked.
+		-- @param threshold (number) [optional] The time window in seconds. Default is 0.3.
+		-- @param controllerId (number) [optional] The ID of the gamepad controller. Default is 0.
+		ButtonDoubleDown: function(button: ButtonName, threshold?: number, controllerId?: number): Trigger
+
+		-- Create a trigger that triggers when any gamepad button is being pressed down.
+		-- @param controllerId (number) [optional] The ID of the gamepad controller. Default is 0.
+		-- @return (Trigger) The trigger object.
+		AnyButtonPressed: function(controllerId?: number): Trigger
 
 		-- Create a trigger that triggers based on joystick movement.
 		-- @param joyStickType (JoyStickType) The type of joystick to be checked.
@@ -220,7 +252,7 @@ local record InputManagerClass
 	-- Creates an input manager with the specified input contexts.
 	-- @param contexts ({InputContext}) The input contexts to be created.
 	-- @return (InputManager) The input manager.
-	CreateInputManager: function(contexts: {InputContext}): InputManager
+	CreateManager: function(contexts: {InputContext}): InputManager
 
 	-- The virtual directional pad (D-pad) properties.
 	record DPadProps

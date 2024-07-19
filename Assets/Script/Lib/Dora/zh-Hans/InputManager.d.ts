@@ -66,7 +66,12 @@ export namespace Trigger {
 	 * @param threshold 两次按下之间的时间阈值，以秒为单位, 默认为0.3。
 	 * @returns 触发器对象。
 	 */
-	export function KeyDoubleDown(key: KeyName, threshold?: number): Trigger;
+	export function KeyDoubleDown(this: void, key: KeyName, threshold?: number): Trigger;
+	/**
+	 * 创建一个触发器，当任意键被持续按下时触发。
+	 * @returns 触发器对象。
+	 */
+	export function AnyKeyPressed(this: void): Trigger;
 	/**
 	 * 创建一个触发器，当所有指定的游戏手柄按钮被按下时触发。
 	 * @param combineButtons 要检查的游戏手柄按钮或组合按钮。
@@ -111,7 +116,13 @@ export namespace Trigger {
 	 * @param controllerId 游戏手柄控制器的ID。默认为0。
 	 * @returns 触发器对象。
 	 */
-	export function ButtonDoubleDown(button: ButtonName, threshold?: number, controllerId?: number): Trigger;
+	export function ButtonDoubleDown(this: void, button: ButtonName, threshold?: number, controllerId?: number): Trigger;
+	/**
+	 * 创建一个触发器，当任意游戏手柄按钮被持续按下时触发。
+	 * @param controllerId 游戏手柄控制器的ID。默认为0。
+	 * @returns 触发器对象。
+	 */
+	export function AnyButtonPressed(this: void, controllerId?: number): Trigger;
 	/**
 	 * 创建一个触发器，当特定的游戏手柄轴被移动时触发。
 	 * @param joyStickType 要检查的操纵杆类型。
@@ -177,7 +188,32 @@ export interface InputContext {
 	actions: InputAction[];
 }
 
-/// 一个用于管理输入上下文和动作的类。
+/**
+ * `InputManager` 是一个用于管理输入上下文和动作的类。可以通过创建输入上下文和动作，然后将它们添加到输入管理器中，来实现输入事件的监听和处理。可以通过调用 `pushContext` 和 `popContext` 方法来激活和停用特定组合的输入上下文。在触发事件时，可以通过注册全局输入事件监听器来处理输入事件。
+ * @usage
+ * import { CreateManager, Trigger } from "InputManager";
+ * const inputManager = CreateManager([
+ * 	{
+ * 		name: "context1",
+ * 		actions: [
+ * 			{
+ * 				name: "action1",
+ * 				trigger: Trigger.KeyDown(KeyName.W)
+ * 			},
+ * 		]
+ * 	},
+ * ]);
+ * // 激活上下文 context1
+ * inputManager.pushContext("context1");
+ * // 要监听的输入事件名需要加上 `Input.` 前缀
+ * node.gslot("Input.action1", () => {
+ * 	print("action1 triggered");
+ * });
+ * // 从上下文栈中删除 context1
+ * inputManager.popContext();
+ * // 销毁输入管理器
+ * inputManager.destroy();
+ */
 export class InputManager {
 	private constructor(contexts: InputContext[]);
 	/**
@@ -193,9 +229,10 @@ export class InputManager {
 	pushContext(contextNames: string | string[]): boolean;
 	/**
 	 * 从上下文栈中移除并停止当前栈顶在生效的上下文。然后激活前一组上下文。
+	 * @param count 要移除的上下文数量。默认为1。
 	 * @returns 栈顶上下文是否成功移除。
 	 */
-	popContext(): boolean;
+	popContext(count?: number): boolean;
 	/**
 	 * 发送按键按下事件到输入系统以模拟输入。
 	 * @param keyName 键的名称。
@@ -236,7 +273,7 @@ export class InputManager {
  * @param contexts 要创建的一组输入上下文。
  * @returns 输入管理器。
  */
-export function CreateInputManager(this: void, contexts: InputContext[]): InputManager;
+export function CreateManager(this: void, contexts: InputContext[]): InputManager;
 
 /// 虚拟方向键（D-pad）的属性。
 export interface DPadProps {
