@@ -159,6 +159,25 @@ KeyDoubleDown: function(key: KeyName, threshold?: number): Trigger
 | --- | --- |
 | Trigger | 触发器对象。 |
 
+## AnyKeyPressed
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个触发器，当任何键被持续按下时触发。
+
+**签名：**
+```tl
+AnyKeyPressed: function(): Trigger
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Trigger | 触发器对象。 |
+
 ## ButtonDown
 
 **类型：** 函数。
@@ -310,6 +329,31 @@ ButtonDoubleDown: function(button: ButtonName, threshold?: number, controllerId?
 | --- | --- | --- |
 | button | ButtonName | 要检查的游戏手柄按钮。 |
 | threshold | number | [可选] 双击的时间阈值，以秒为单位。默认为0.3。 |
+| controllerId | number | [可选] 游戏手柄控制器的ID。默认为0。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Trigger | 触发器对象。 |
+
+## AnyButtonPressed
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;创建一个触发器，当任何游戏手柄按钮被持续按下时触发。
+
+**签名：**
+```tl
+AnyButtonPressed: function(controllerId?: number): Trigger
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
 | controllerId | number | [可选] 游戏手柄控制器的ID。默认为0。 |
 
 **返回值：**

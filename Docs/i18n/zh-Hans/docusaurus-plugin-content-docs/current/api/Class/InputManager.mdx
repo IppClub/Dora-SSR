@@ -4,9 +4,35 @@ import "@site/src/languages/highlight";
 
 **描述：**
 
-&emsp;&emsp;`InputManager` 是一个用于管理输入上下文和动作的类。
+&emsp;&emsp;`InputManager` 是一个用于管理输入上下文和动作的类。可以通过创建输入上下文和动作，然后将它们添加到输入管理器中，来实现输入事件的监听和处理。可以通过调用 `pushContext` 和 `popContext` 方法来激活和停用特定组合的输入上下文。在触发事件时，可以通过注册全局输入事件监听器来处理输入事件。
 
 **类对象：**[InputManager Class](/docs/api/Class%20Object/InputManager)。
+
+**用法示例：**
+```tl
+local InputManager = require("InputManager")
+local inputManager = InputManager.CreateManager({
+	{
+		name = "context1",
+		actions = {
+			{
+				name = "action1",
+				trigger = Trigger.KeyDown(KeyName.W)
+			},
+		}
+	},
+})
+-- 激活上下文 context1
+inputManager:pushContext("context1")
+-- 要监听的输入事件名需要加上 `Input.` 前缀
+node:gslot("Input.action1", function()
+	print("action1 triggered")
+end)
+-- 从上下文栈中删除 context1
+inputManager:popContext()
+-- 销毁输入管理器
+inputManager:destroy()
+```
 
 ## getNode
 
@@ -62,8 +88,14 @@ pushContext: function(self: InputManager, contextNames: string | {string}): bool
 
 **签名：**
 ```tl
-popContext: function(self: InputManager): boolean
+popContext: function(self: InputManager, count?: number): boolean
 ```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| count | number | [可选] 要移除的上下文数量。默认为1。 |
 
 **返回值：**
 

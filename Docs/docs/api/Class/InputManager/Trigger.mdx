@@ -159,6 +159,25 @@ KeyDoubleDown: function(key: KeyName, threshold?: number): Trigger
 | --- | --- |
 | Trigger | The trigger object. |
 
+## AnyKeyPressed
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Create a trigger that triggers when any key is being pressed down.
+
+**Signature:**
+```tl
+AnyKeyPressed: function(): Trigger
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Trigger | The trigger object. |
+
 ## ButtonDown
 
 **Type:** Function.
@@ -264,6 +283,33 @@ ButtonHold: function(buttonName: ButtonName, holdTime: number, controllerId?: nu
 | --- | --- |
 | Trigger | The trigger object. |
 
+## ButtonTimed
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Create a trigger that triggers when a specific gamepad button is pressed within a specified time window.
+
+**Signature:**
+```tl
+ButtonTimed: function(buttonName: ButtonName, timeWindow: number, controllerId?: number): Trigger
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| buttonName | ButtonName | The gamepad button to be checked. |
+| timeWindow | number | The time window in seconds. |
+| controllerId | number | [optional] The ID of the gamepad controller. Default is 0. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Trigger | The trigger object. |
+
 ## ButtonDoubleDown
 
 **Type:** Function.
@@ -285,25 +331,23 @@ ButtonDoubleDown: function(button: ButtonName, threshold?: number, controllerId?
 | threshold | number | [optional] The time window in seconds. Default is 0.3. |
 | controllerId | number | [optional] The ID of the gamepad controller. Default is 0. |
 
-## ButtonTimed
+## AnyButtonPressed
 
 **Type:** Function.
 
 **Description:**
 
-&emsp;&emsp;Create a trigger that triggers when a specific gamepad button is pressed within a specified time window.
+&emsp;&emsp;Create a trigger that triggers when any gamepad button is being pressed down.
 
 **Signature:**
 ```tl
-ButtonTimed: function(buttonName: ButtonName, timeWindow: number, controllerId?: number): Trigger
+AnyButtonPressed: function(controllerId?: number): Trigger
 ```
 
 **Parameters:**
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| buttonName | ButtonName | The gamepad button to be checked. |
-| timeWindow | number | The time window in seconds. |
 | controllerId | number | [optional] The ID of the gamepad controller. Default is 0. |
 
 **Returns:**

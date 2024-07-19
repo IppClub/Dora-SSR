@@ -6,7 +6,30 @@ local type KeyName = Keyboard.KeyName;
 local type ButtonName = Controller.ButtonName;
 local type AxisName = Controller.AxisName;
 
--- `InputManager` 是一个用于管理输入上下文和动作的类。
+-- `InputManager` 是一个用于管理输入上下文和动作的类。可以通过创建输入上下文和动作，然后将它们添加到输入管理器中，来实现输入事件的监听和处理。可以通过调用 `pushContext` 和 `popContext` 方法来激活和停用特定组合的输入上下文。在触发事件时，可以通过注册全局输入事件监听器来处理输入事件。
+-- @usage
+-- local InputManager = require("InputManager")
+-- local inputManager = InputManager.CreateManager({
+-- 	{
+-- 		name = "context1",
+-- 		actions = {
+-- 			{
+-- 				name = "action1",
+-- 				trigger = Trigger.KeyDown(KeyName.W)
+-- 			},
+-- 		}
+-- 	},
+-- })
+-- -- 激活上下文 context1
+-- inputManager:pushContext("context1")
+-- -- 要监听的输入事件名需要加上 `Input.` 前缀
+-- node:gslot("Input.action1", function()
+-- 	print("action1 triggered")
+-- end)
+-- -- 从上下文栈中删除 context1
+-- inputManager:popContext()
+-- -- 销毁输入管理器
+-- inputManager:destroy()
 local record InputManager
 
 	-- 获取当前输入系统使用的场景节点。该节点用于接收输入事件。它在创建后，如果没有被添加到指定的父节点，会在稍后被自动添加到 `Director.entry` 中。
@@ -19,8 +42,9 @@ local record InputManager
 	pushContext: function(self: InputManager, contextNames: string | {string}): boolean
 
 	-- 从上下文栈中移除并停止当前栈顶在生效的上下文。然后激活前一组上下文。
+	-- @param count (number) [可选] 要移除的上下文数量。默认为1。
 	-- @return (boolean) 栈顶上下文是否成功移除。
-	popContext: function(self: InputManager): boolean
+	popContext: function(self: InputManager, count?: number): boolean
 
 	-- 发送按键按下事件到输入系统以模拟输入。
 	-- @param keyName (KeyName) 键的名称。
@@ -95,6 +119,10 @@ local record InputManagerClass
 		-- @return (Trigger) 触发器对象。
 		KeyDoubleDown: function(key: KeyName, threshold?: number): Trigger
 
+		-- 创建一个触发器，当任何键被持续按下时触发。
+		-- @return (Trigger) 触发器对象。
+		AnyKeyPressed: function(): Trigger
+
 		-- 创建一个触发器，当所有指定的游戏手柄按钮被按下时触发。
 		-- @param combineButtons (ButtonName | {ButtonName}) 要检查的游戏手柄按钮或组合按钮。
 		-- @param controllerId (number) [可选] 游戏手柄控制器的ID。默认为0。
@@ -133,6 +161,11 @@ local record InputManagerClass
 		-- @param controllerId (number) [可选] 游戏手柄控制器的ID。默认为0。
 		-- @return (Trigger) 触发器对象。
 		ButtonDoubleDown: function(button: ButtonName, threshold?: number, controllerId?: number): Trigger
+
+		-- 创建一个触发器，当任何游戏手柄按钮被持续按下时触发。
+		-- @param controllerId (number) [可选] 游戏手柄控制器的ID。默认为0。
+		-- @return (Trigger) 触发器对象。
+		AnyButtonPressed: function(controllerId?: number): Trigger
 
 		-- 创建一个触发器，当特定的游戏手柄轴被移动时触发。
 		-- @param joyStickType (JoyStickType) 要检查的操纵杆类型。
@@ -221,7 +254,7 @@ local record InputManagerClass
 	-- 使用指定的输入上下文创建输入管理器。
 	-- @param contexts ({InputContext}) 要创建的一组输入上下文。
 	-- @return (InputManager) 输入管理器。
-	CreateInputManager: function(contexts: {InputContext}): InputManager
+	CreateManager: function(contexts: {InputContext}): InputManager
 
 	-- 虚拟方向键（D-pad）的属性。
 	record DPadProps
