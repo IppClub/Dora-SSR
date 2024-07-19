@@ -29,7 +29,6 @@ class Unit;
 class UnitAction;
 class Bullet;
 class Visual;
-typedef Acf::Delegate<void(Unit* source, Unit* target, float damage)> DamageHandler;
 
 class UnitActionDef {
 public:

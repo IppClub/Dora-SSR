@@ -13,7 +13,7 @@ NS_DORA_BEGIN
 class Event;
 class EventType;
 
-typedef Acf::Delegate<void(Event* event)> EventHandler;
+typedef std::function<void(Event*)> EventHandler;
 
 /** @brief Use event listener to handle event. */
 class Listener : public Object {

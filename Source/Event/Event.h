@@ -16,7 +16,7 @@ NS_DORA_BEGIN
 class Listener;
 class EventType;
 class Event;
-typedef Acf::Delegate<void(Event* event)> EventHandler;
+typedef std::function<void(Event*)> EventHandler;
 
 /** @brief This event system is designed to be used in a single threaded
  environment and is associated with event, event type and event listener.

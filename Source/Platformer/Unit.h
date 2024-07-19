@@ -32,7 +32,7 @@ class Leaf;
 class Blackboard;
 } // namespace Behavior
 
-typedef Acf::Delegate<void(UnitAction* action)> UnitActionHandler;
+typedef std::function<void(UnitAction* action)> UnitActionHandler;
 
 class Unit : public Body {
 	typedef StringMap<Own<UnitAction>> ActionMap;
