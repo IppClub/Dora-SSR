@@ -14,7 +14,7 @@ NS_DORA_BEGIN
 class Dictionary;
 class Entity;
 
-typedef Acf::Delegate<bool(Entity*)> EntityHandler;
+typedef std::function<bool(Entity*)> EntityHandler;
 
 class Entity : public Object {
 public:

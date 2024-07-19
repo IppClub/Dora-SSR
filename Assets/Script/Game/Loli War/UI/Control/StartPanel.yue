@@ -21,6 +21,8 @@ export default Class StartPanel,
 					when @fButton then "Flandre"
 					when @vButton then "Villy"
 					when @dButton then "Dorothy"
+		@slot "Enter", -> emit "InputManager.Select", true
+		@slot "Exit", -> emit "InputManager.Select", false
 		@node\schedule ->
 			width: bw, height: bh = App.bufferSize
 			width: vw = App.visualSize
@@ -33,3 +35,6 @@ export default Class StartPanel,
 				else
 					button\stopGlow!
 		@node\slot "PanelHide", -> @removeFromParent!
+		@node\gslot "Input.Flandre", -> @fButton\emit "Tapped" if @fButton.touchEnabled
+		@node\gslot "Input.Dorothy", -> @dButton\emit "Tapped" if @dButton.touchEnabled
+		@node\gslot "Input.Villy", -> @vButton\emit "Tapped" if @vButton.touchEnabled

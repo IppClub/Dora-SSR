@@ -92,7 +92,7 @@ public:
 	static_assert(sizeof(NextId) == sizeof(uint64_t), "invalid updated entity id size");
 	std::stack<Ref<Entity>> availableEntities;
 	RefVector<Entity> entities;
-	std::vector<Acf::Delegate<bool()>> triggers;
+	std::vector<std::function<bool()>> triggers;
 	std::unordered_set<int> usedIndices;
 	StringMap<int> comIndices;
 	std::unordered_set<WRef<Entity>, WRefEntityHasher> updatedEntities;

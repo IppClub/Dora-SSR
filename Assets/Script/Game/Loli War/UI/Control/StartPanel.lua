@@ -1,4 +1,4 @@
--- [yue]: Script/Game/Loli War/UI/Control/StartPanel.yue
+-- [yue]: UI/Control/StartPanel.yue
 local Class = Dora.Class -- 1
 local Audio = Dora.Audio -- 1
 local emit = Dora.emit -- 1
@@ -36,27 +36,48 @@ _module_0 = Class(StartPanel, { -- 13
 				return emit("PlayerSelect", _anon_func_0(button, self)) -- 23
 			end) -- 16
 		end -- 23
-		self.node:schedule(function() -- 24
-			local bw, bh -- 25
-			do -- 25
-				local _obj_0 = App.bufferSize -- 25
-				bw, bh = _obj_0.width, _obj_0.height -- 25
-			end -- 25
-			local vw = App.visualSize.width -- 26
-			local pos = nvg.TouchPos() * (bw / vw) -- 27
-			pos = Vec2(pos.x - bw / 2, bh / 2 - pos.y) -- 28
-			for _, button in ipairs(buttons) do -- 29
-				local localPos = button:convertToNodeSpace(pos) -- 30
-				if Rect(Vec2.zero, button.size):containsPoint(localPos) then -- 31
-					button:glow() -- 32
-				else -- 34
-					button:stopGlow() -- 34
-				end -- 31
-			end -- 34
+		self:slot("Enter", function() -- 24
+			return emit("InputManager.Select", true) -- 24
 		end) -- 24
-		return self.node:slot("PanelHide", function() -- 35
-			return self:removeFromParent() -- 35
-		end) -- 35
+		self:slot("Exit", function() -- 25
+			return emit("InputManager.Select", false) -- 25
+		end) -- 25
+		self.node:schedule(function() -- 26
+			local bw, bh -- 27
+			do -- 27
+				local _obj_0 = App.bufferSize -- 27
+				bw, bh = _obj_0.width, _obj_0.height -- 27
+			end -- 27
+			local vw = App.visualSize.width -- 28
+			local pos = nvg.TouchPos() * (bw / vw) -- 29
+			pos = Vec2(pos.x - bw / 2, bh / 2 - pos.y) -- 30
+			for _, button in ipairs(buttons) do -- 31
+				local localPos = button:convertToNodeSpace(pos) -- 32
+				if Rect(Vec2.zero, button.size):containsPoint(localPos) then -- 33
+					button:glow() -- 34
+				else -- 36
+					button:stopGlow() -- 36
+				end -- 33
+			end -- 36
+		end) -- 26
+		self.node:slot("PanelHide", function() -- 37
+			return self:removeFromParent() -- 37
+		end) -- 37
+		self.node:gslot("Input.Flandre", function() -- 38
+			if self.fButton.touchEnabled then -- 38
+				return self.fButton:emit("Tapped") -- 38
+			end -- 38
+		end) -- 38
+		self.node:gslot("Input.Dorothy", function() -- 39
+			if self.dButton.touchEnabled then -- 39
+				return self.dButton:emit("Tapped") -- 39
+			end -- 39
+		end) -- 39
+		return self.node:gslot("Input.Villy", function() -- 40
+			if self.vButton.touchEnabled then -- 40
+				return self.vButton:emit("Tapped") -- 40
+			end -- 40
+		end) -- 40
 	end -- 13
 }) -- 12
-return _module_0 -- 35
+return _module_0 -- 40

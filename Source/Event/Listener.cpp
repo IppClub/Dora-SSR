@@ -41,7 +41,7 @@ const EventHandler& Listener::getHandler() const noexcept {
 }
 
 void Listener::clearHandler() {
-	_handler.Clear();
+	_handler = nullptr;
 }
 
 void Listener::handle(Event* e) {

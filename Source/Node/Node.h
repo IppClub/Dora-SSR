@@ -32,7 +32,7 @@ class Sprite;
 class Camera;
 class Grid;
 
-typedef Acf::Delegate<void(Event* event)> EventHandler;
+typedef Acf::Delegate<void(Event* event)> NodeEventHandler;
 
 class Node : public Object {
 public:
@@ -144,7 +144,8 @@ public:
 	void emit(Event* event);
 
 	Slot* slot(String name);
-	Slot* slot(String name, const EventHandler& handler);
+	template <class Functor>
+	Slot* slot(String name, const Functor& handler);
 	void slot(String name, std::nullptr_t);
 
 	Listener* gslot(String name, const EventHandler& handler);
@@ -365,31 +366,50 @@ protected:
 
 class Slot {
 public:
-	PROPERTY_READONLY_CREF(EventHandler, Handler);
-	void add(const EventHandler& handler);
-	void set(const EventHandler& handler);
-	void remove(const EventHandler& handler);
+	PROPERTY_READONLY_CREF(NodeEventHandler, Handler);
 	void clear();
 	void handle(Event* event);
-	static Own<Slot> alloc(const EventHandler& handler);
 	static Own<Slot> alloc();
 
+	template <class Functor>
+	static Own<Slot> alloc(const Functor& handler) {
+		auto slot = alloc();
+		slot->add(handler);
+		return slot;
+	}
+	template <class Functor>
+	void add(const Functor& handler) {
+		_handler += handler;
+	}
+	template <class Functor>
+	void set(const Functor& handler) {
+		_handler = handler;
+	}
+	template <class Functor>
+	void remove(const Functor& handler) {
+		_handler -= handler;
+	}
+
 protected:
-	Slot(const EventHandler& handler);
 	Slot();
 
 private:
-	EventHandler _handler;
+	NodeEventHandler _handler;
 	DORA_TYPE(Slot);
 };
+
+template <class Functor>
+Slot* Node::slot(String name, const Functor& handler) {
+	auto slt = slot(name);
+	slt->add(handler);
+	return slt;
+}
 
 class Signal {
 public:
 	~Signal();
 	Slot* addSlot(String name);
-	Slot* addSlot(String name, const EventHandler& handler);
 	Listener* addGSlot(String name, const EventHandler& handler);
-	void removeSlot(String name, const EventHandler& handler);
 	void removeGSlot(Listener* gslot);
 	void removeSlots(String name);
 	void removeGSlots(String name);
