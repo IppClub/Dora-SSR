@@ -157,26 +157,26 @@ git clone https://github.com/ippclub/Dora-SSR.git
 3. Initialize the project and enter the Dora Dora editor development mode.
    ```sh
    # macOS
-   cd Tools/YarnEditor && yarn && yarn build
-   rm -rf ../dora-dora/public/yarn-editor
-   mv dist ../dora-dora/public/yarn-editor
-   cd ../dora-dora && yarn
+   cd Tools/dora-dora/3rdParty/YarnEditor && yarn && yarn build
+   rm -rf ../../public/yarn-editor
+   mv dist ../../public/yarn-editor
+   cd ../.. && yarn
    yarn start
    ```
    ```sh
    # Linux
-   cd Tools/YarnEditor && yarn && yarn build-linux
-   rm -rf ../dora-dora/public/yarn-editor
-   mv dist ../dora-dora/public/yarn-editor
-   cd ../dora-dora && yarn
+   cd Tools/dora-dora/3rdParty/YarnEditor && yarn && yarn build-linux
+   rm -rf ../../public/yarn-editor
+   mv dist ../../public/yarn-editor
+   cd ../.. && yarn
    yarn start
    ```
    ```sh
    # Windows
-   cd Tools\YarnEditor && yarn && yarn build-win
-   rmdir /Q /S ..\dora-dora\public\yarn-editor
-   move dist ..\dora-dora\public\yarn-editor
-   cd ..\dora-dora && yarn install --network-timeout 1000000
+   cd Tools\dora-dora\3rdParty\YarnEditor && yarn && yarn build-win
+   rmdir /Q /S ..\..\public\yarn-editor
+   move dist ..\..\public\yarn-editor
+   cd ..\.. && yarn install --network-timeout 1000000
    yarn start
    ```
    Alternatively, you can generate the Web IDE release files, copy them to the project's `Assets/www` directory, and then start the Dora SSR engine to test the full project functionality.

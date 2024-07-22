@@ -98,7 +98,7 @@ git clone https://github.com/ippclub/Dora-SSR.git
    ```sh
    cd Assets
    ../Projects/Linux/build/dora-ssr
-
+   
    # 或者用命令行参数指定资源目录
    ./Projects/Linux/build/dora-ssr --asset Assets
    ```
@@ -147,7 +147,7 @@ git clone https://github.com/ippclub/Dora-SSR.git
    ```sh
    cd Assets
    ../Projects/Linux/build/dora-ssr
-
+   
    # 或者用命令行参数指定资源目录
    ./Projects/Linux/build/dora-ssr --asset Assets
    ```
@@ -159,26 +159,26 @@ git clone https://github.com/ippclub/Dora-SSR.git
 3. 初始化项目并进入 Dora Dora 编辑器开发模式。
    ```sh
    # macOS
-   cd Tools/YarnEditor && yarn && yarn build
-   rm -rf ../dora-dora/public/yarn-editor
-   mv dist ../dora-dora/public/yarn-editor
-   cd ../dora-dora && yarn
+   cd Tools/dora-dora/3rdParty/YarnEditor && yarn && yarn build
+   rm -rf ../../public/yarn-editor
+   mv dist ../../public/yarn-editor
+   cd ../.. && yarn
    yarn start
    ```
    ```sh
    # Linux
-   cd Tools/YarnEditor && yarn && yarn build-linux
-   rm -rf ../dora-dora/public/yarn-editor
-   mv dist ../dora-dora/public/yarn-editor
-   cd ../dora-dora && yarn
+   cd Tools/dora-dora/3rdParty/YarnEditor && yarn && yarn build-linux
+   rm -rf ../../public/yarn-editor
+   mv dist ../../public/yarn-editor
+   cd ../.. && yarn
    yarn start
    ```
    ```sh
    # Windows
-   cd Tools\YarnEditor && yarn && yarn build-win
-   rmdir /Q /S ..\dora-dora\public\yarn-editor
-   move dist ..\dora-dora\public\yarn-editor
-   cd ..\dora-dora && yarn install --network-timeout 1000000
+   cd Tools\dora-dora\3rdParty\YarnEditor && yarn && yarn build-win
+   rmdir /Q /S ..\..\public\yarn-editor
+   move dist ..\..\public\yarn-editor
+   cd ..\.. && yarn install --network-timeout 1000000
    yarn start
    ```
    &emsp;&emsp;或者你可以将 Web IDE 发布文件进行生成后，复制到项目的 `Assets/www` 下面，然后再启动 Dora SSR 引擎，进行完整项目功能的测试使用。
