@@ -4,3 +4,4 @@ Tools/dora-dora/3rdParty/** linguist-vendored
 Tools/dora-dora/public/code-wire/** linguist-vendored
 Projects/Android/Dora/app/src/main/java/org/libsdl/** linguist-vendored
 *.h linguist-language=cpp
+*.sc linguist-language=glsl
