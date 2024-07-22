@@ -1,32 +1,32 @@
 import { React } from 'DoraX';
 import { AxisName, ButtonName, KeyName, Node } from 'Dora';
 
-/// 触发器状态的枚举。
+/** 触发器状态的枚举。 */
 export const enum TriggerState {
-	/// 无状态：当前暂未获得输入状态。
+	/** 无状态：当前暂未获得输入状态。 */
 	None = "None",
-	/// 已开始：发生了开始触发器求值的某个事件。例如，"按住"触发器的第一次按键将调用一次"已开始"状态。
+	/** 已开始：发生了开始触发器求值的某个事件。例如，"按住"触发器的第一次按键将调用一次"已开始"状态。 */
 	Started = "Started",
-	/// 进行中：触发器仍在进行处理。例如，当用户按下按钮时，在达到指定持续时间之前，"按住"动作处于进行中状态。根据触发器，此事件将在收到输入值之后在对动作求值时，每次更新触发一次。
+	/** 进行中：触发器仍在进行处理。例如，当用户按下按钮时，在达到指定持续时间之前，"按住"动作处于进行中状态。根据触发器，此事件将在收到输入值之后在对动作求值时，每次更新触发一次。 */
 	Ongoing = "Ongoing",
-	/// 已完成：触发器求值过程已完成。
+	/** 已完成：触发器求值过程已完成。 */
 	Completed = "Completed",
-	/// 已取消：触发已取消。例如，在"按住"动作还没触发之前，用户就松开了按钮。
+	/** 已取消：触发已取消。例如，在"按住"动作还没触发之前，用户就松开了按钮。 */
 	Canceled = "Canceled",
 }
 
-/// 输入触发器类，可以是键盘键、游戏手柄按钮和摇杆各种输入的触发器。
+/** 输入触发器类，可以是键盘键、游戏手柄按钮和摇杆各种输入的触发器。 */
 export abstract class Trigger {
 	private constructor();
 }
 
-/// 摇杆类型的枚举。
+/** 摇杆类型的枚举。 */
 export const enum JoyStickType {
 	Left = "Left",
 	Right = "Right",
 }
 
-/// 输入触发器的管理模块，用于创建键盘键、游戏手柄按钮和摇杆的各种输入触发器。
+/** 输入触发器的管理模块，用于创建键盘键、游戏手柄按钮和摇杆的各种输入触发器。 */
 export namespace Trigger {
 	/**
 	 * 创建一个触发器，当所有指定的键被按下时触发。
@@ -176,13 +176,13 @@ export namespace Trigger {
 	export function Block(this: void, trigger: Trigger): Trigger;
 }
 
-/// 输入动作，定义了一个带有名称和对应触发器的输入动作。
+/** 输入动作，定义了一个带有名称和对应触发器的输入动作。 */
 export interface InputAction {
 	name: string;
 	trigger: Trigger;
 }
 
-/// 输入上下文，定义了包含一组输入动作的上下文。
+/** 输入上下文，定义了包含一组输入动作的上下文。 */
 export interface InputContext {
 	name: string;
 	actions: InputAction[];
@@ -275,19 +275,19 @@ export class InputManager {
  */
 export function CreateManager(this: void, contexts: InputContext[]): InputManager;
 
-/// 虚拟方向键（D-pad）的属性。
+/** 虚拟方向键（D-pad）的属性。 */
 export interface DPadProps {
-	/// D-pad的按钮宽度。[可选]
+	/** D-pad的按钮宽度。[可选] */
 	width?: number;
-	/// D-pad的按钮高度。[可选]
+	/** D-pad的按钮高度。[可选] */
 	height?: number;
-	/// D-pad的按钮间距。[可选]
+	/** D-pad的按钮间距。[可选] */
 	offset?: number;
-	/// D-pad的输入管理器。[必需]
+	/** D-pad的输入管理器。[必需] */
 	inputManager: InputManager;
 }
 
-/// 虚拟方向键（D-pad）的TSX组件。
+/** 虚拟方向键（D-pad）的TSX组件。 */
 export function DPad(props: DPadProps): React.Element;
 
 /**
@@ -297,31 +297,31 @@ export function DPad(props: DPadProps): React.Element;
  */
 export function CreateDPad(this: void, props: DPadProps): Node.Type;
 
-/// 虚拟操纵杆UI的属性。
+/** 虚拟操纵杆UI的属性。 */
 export interface JoyStickProps {
-	/// 操纵杆的类型。[必需]
+	/** 操纵杆的类型。[必需] */
 	stickType?: JoyStickType;
-	/// 操纵杆的移动大小。[可选]
+	/** 操纵杆的移动大小。[可选] */
 	moveSize?: number;
-	/// 帽子的大小。[可选]
+	/** 帽子的大小。[可选] */
 	hatSize?: number;
-	/// 操纵杆的字体名称。[可选]
+	/** 操纵杆的字体名称。[可选] */
 	fontName?: string;
-	/// 操纵杆按钮的大小。[可选]
+	/** 操纵杆按钮的大小。[可选] */
 	buttonSize?: number;
-	/// 操纵杆的输入管理器。[必需]
+	/** 操纵杆的输入管理器。[必需] */
 	inputManager: InputManager;
-	/// 操纵杆的颜色。[可选]
+	/** 操纵杆的颜色。[可选] */
 	color?: number;
-	/// 操纵杆的主要透明度。[可选]
+	/** 操纵杆的主要透明度。[可选] */
 	primaryOpacity?: number;
-	/// 操纵杆的次要透明度。[可选]
+	/** 操纵杆的次要透明度。[可选] */
 	secondaryOpacity?: number;
-	/// 是否隐藏操纵杆按钮。[可选]
+	/** 是否隐藏操纵杆按钮。[可选] */
 	noStickButton?: boolean;
 }
 
-/// 虚拟操纵杆UI（L、LS 或是 R、RS）的TSX组件。
+/** 虚拟操纵杆UI（L、LS 或是 R、RS）的TSX组件。 */
 export function JoyStick(props: JoyStickProps): React.Element;
 
 /**
@@ -331,19 +331,19 @@ export function JoyStick(props: JoyStickProps): React.Element;
  */
 export function CreateJoyStick(this: void, props: JoyStickProps): Node.Type;
 
-/// 虚拟按钮盘UI的属性。
+/** 虚拟按钮盘UI的属性。 */
 export interface ButtonPadProps {
-	/// 按钮的大小。[可选]
+	/** 按钮的大小。[可选] */
 	buttonSize?: number;
-	/// 按钮的间距。[可选]
+	/** 按钮的间距。[可选] */
 	buttonPadding?: number;
-	/// 按钮盘的字体名称。[可选]
+	/** 按钮盘的字体名称。[可选] */
 	fontName?: string;
-	/// 按钮盘的输入管理器。[必需]
+	/** 按钮盘的输入管理器。[必需] */
 	inputManager: InputManager;
 }
 
-/// 虚拟按钮盘UI（A、B、X、Y）的TSX组件。
+/** 虚拟按钮盘UI（A、B、X、Y）的TSX组件。 */
 export function ButtonPad(props: ButtonPadProps): React.Element;
 
 /**
@@ -353,21 +353,21 @@ export function ButtonPad(props: ButtonPadProps): React.Element;
  */
 export function CreateButtonPad(this: void, props: ButtonPadProps): Node.Type;
 
-/// 虚拟控制盘UI的属性。
+/** 虚拟控制盘UI的属性。 */
 export interface ControlPadProps {
-	/// 按钮的大小。[可选]
+	/** 按钮的大小。[可选] */
 	buttonSize?: number;
-	/// 按钮盘的字体名称。[可选]
+	/** 按钮盘的字体名称。[可选] */
 	fontName?: string;
-	/// 按钮盘的输入管理器。[必需]
+	/** 按钮盘的输入管理器。[必需] */
 	inputManager: InputManager;
-	/// 控制盘的颜色。[可选]
+	/** 控制盘的颜色。[可选] */
 	color?: number;
-	/// 控制盘的主要透明度。[可选]
+	/** 控制盘的主要透明度。[可选] */
 	primaryOpacity?: number;
 }
 
-/// 虚拟控制盘UI（开始和返回按钮）的TSX组件。
+/** 虚拟控制盘UI（开始和返回按钮）的TSX组件。 */
 export function ControlPad(props: ControlPadProps): React.Element;
 
 /**
@@ -377,23 +377,23 @@ export function ControlPad(props: ControlPadProps): React.Element;
  */
 export function CreateControlPad(this: void, props: ControlPadProps): Node.Type
 
-/// 虚拟触发器按钮UI的属性。
+/** 虚拟触发器按钮UI的属性。 */
 export interface TriggerPadProps {
-	/// 按钮的大小。[可选]
+	/** 按钮的大小。[可选] */
 	buttonSize?: number;
-	/// 按钮盘的字体名称。[可选]
+	/** 按钮盘的字体名称。[可选] */
 	fontName?: string;
-	/// 按钮盘的输入管理器。[必需]
+	/** 按钮盘的输入管理器。[必需] */
 	inputManager: InputManager;
-	/// 触发器的颜色。[可选]
+	/** 触发器的颜色。[可选] */
 	color?: number;
-	/// 触发器的主要透明度。[可选]
+	/** 触发器的主要透明度。[可选] */
 	primaryOpacity?: number;
-	/// 是否隐藏肩部按钮（LB、RB）。[可选]
+	/** 是否隐藏肩部按钮（LB、RB）。[可选] */
 	noShoulder?: boolean;
 }
 
-/// 虚拟触发器按钮UI（LB、LT、RB、RT）的TSX组件。
+/** 虚拟触发器按钮UI（LB、LT、RB、RT）的TSX组件。 */
 export function TriggerPad(props: TriggerPadProps): React.Element;
 
 /**
@@ -403,35 +403,35 @@ export function TriggerPad(props: TriggerPadProps): React.Element;
  */
 export function CreateTriggerPad(this: void, props: TriggerPadProps): Node.Type;
 
-/// 虚拟游戏手柄UI的属性。
+/** 虚拟游戏手柄UI的属性。 */
 export interface GamePadProps {
-	/// 是否隐藏方向键盘（D-pad）。[可选]
+	/** 是否隐藏方向键盘（D-pad）。[可选] */
 	noDPad?: boolean;
-	/// 是否隐藏左摇杆（L、LS）。[可选]
+	/** 是否隐藏左摇杆（L、LS）。[可选] */
 	noLeftStick?: boolean;
-	/// 是否隐藏右摇杆（R、RS）。[可选]
+	/** 是否隐藏右摇杆（R、RS）。[可选] */
 	noRightStick?: boolean;
-	/// 是否隐藏按钮盘（A、B、X、Y）。[可选]
+	/** 是否隐藏按钮盘（A、B、X、Y）。[可选] */
 	noButtonPad?: boolean;
-	/// 是否隐藏触发器盘（LB、LT、RB、RT）。[可选]
+	/** 是否隐藏触发器盘（LB、LT、RB、RT）。[可选] */
 	noTriggerPad?: boolean;
-	/// 是否隐藏控制盘（开始和返回按钮）。[可选]
+	/** 是否隐藏控制盘（开始和返回按钮）。[可选] */
 	noControlPad?: boolean;
-	/// 是否隐藏肩部按钮（LB、RB）。[可选]
+	/** 是否隐藏肩部按钮（LB、RB）。[可选] */
 	noShoulder?: boolean;
-	/// 是否隐藏摇杆按钮（LS、RS）。[可选]
+	/** 是否隐藏摇杆按钮（LS、RS）。[可选] */
 	noStickButton?: boolean;
-	/// 游戏手柄的颜色。[可选]
+	/** 游戏手柄的颜色。[可选] */
 	color?: number;
-	/// 游戏手柄的主要透明度。[可选]
+	/** 游戏手柄的主要透明度。[可选] */
 	primaryOpacity?: number;
-	/// 游戏手柄的次要透明度。[可选]
+	/** 游戏手柄的次要透明度。[可选] */
 	secondaryOpacity?: number;
-	/// 游戏手柄的输入管理器。[必需]
+	/** 游戏手柄的输入管理器。[必需] */
 	inputManager: InputManager;
 }
 
-/// 虚拟游戏手柄UI的TSX组件。
+/** 虚拟游戏手柄UI的TSX组件。 */
 export function GamePad(props: GamePadProps): React.Element;
 
 /**

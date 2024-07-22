@@ -567,7 +567,7 @@ interface App {
 	/** An enumerated type representing the platform the game engine is running on. */
 	readonly platform: PlatformType;
 
-	/** The version string of the game engine. Should be in format of "v0.0.0". */
+	/** The version string of the game engine. Should be in format of "v0.0.0.0". */
 	readonly version: string;
 
 	/** The time in seconds since the last frame update. */

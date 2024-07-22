@@ -568,7 +568,7 @@ interface App {
 
 	/**
 	 * 游戏引擎的版本字符串。
-	 * 格式为“v0.0.0”。
+	 * 格式为“v0.0.0.0”。
 	*/
 	readonly version: string;
 
