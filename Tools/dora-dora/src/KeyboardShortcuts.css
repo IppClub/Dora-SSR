@@ -1,0 +1,47 @@
+/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+.container {
+	display: flex;
+	flex-direction: row;
+	align-items: flex-start;
+	justify-content: center;
+	color: #eee8;
+	padding-left: 20px;
+}
+
+.list {
+	list-style-type: none;
+	padding: 0;
+	margin: 0;
+}
+
+.list-item {
+	padding: 0 40px 0 40px;
+	margin: 20px 0;
+	display: flex;
+	align-items: center;
+}
+
+.description {
+	flex-grow: 1;
+	margin-right: 20px;
+}
+
+.keys {
+	display: flex;
+}
+
+.key {
+	background-color: #2a2a2a;
+	border-radius: 5px;
+	padding: 5px 10px;
+	margin-left: 5px;
+	font-weight: bold;
+	font-size: 14px;
+}

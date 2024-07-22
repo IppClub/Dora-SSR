@@ -39,10 +39,13 @@ import CodeWire, { CodeWireData } from './CodeWire';
 import { AutoTypings } from './3rdParty/monaco-editor-auto-typings';
 import { TbSwitchVertical } from "react-icons/tb";
 import './Editor';
+import KeyboardShortcuts from './KeyboardShortcuts';
 
 const SpinePlayer = React.lazy(() => import('./SpinePlayer'));
 const Markdown = React.lazy(() => import('./Markdown'));
 const LogView = React.lazy(() => import('./LogView'));
+
+const apple = navigator.platform.indexOf("Mac") === 0 || navigator.platform === "iPhone" || navigator.platform === "iPad";
 
 const { path } = Info;
 
@@ -323,6 +326,14 @@ export default function PersistentDrawerLeft() {
 						setKeyEvent(event);
 						break;
 					}
+					default: {
+						const index = Number.parseInt(event.key);
+						if (!Number.isNaN(index) && index >= 1 && index <= 9) {
+							event.preventDefault();
+							setKeyEvent(event);
+						}
+						break;
+					}
 				}
 			}
 		}, false);
@@ -601,7 +612,7 @@ export default function PersistentDrawerLeft() {
 					});
 				},
 			});
-			const readOnly = editor.getOptions().get(monaco.editor.EditorOption.readOnly);
+			const readOnly = file.readOnly || checkFileReadonly(file.key, false);
 			if (!readOnly && (lang === "tl" || lang === "lua")) {
 				editor.addAction({
 					id: "dora-action-require",
@@ -665,7 +676,7 @@ export default function PersistentDrawerLeft() {
 				}
 			});
 		}
-	}, [t]);
+	}, [t, checkFileReadonly]);
 
 	const openFile = useCallback((key: string, title: string) => {
 		return new Promise<EditingFile>((resolve, reject) => {
@@ -1966,7 +1977,18 @@ export default function PersistentDrawerLeft() {
 					break;
 				}
 				case '.': {
-					onPlayControlClick("View Log");
+					if (openLog !== null) {
+						setOpenLog(null);
+					} else {
+						onPlayControlClick("View Log");
+					}
+					break;
+				}
+				default: {
+					const index = Number.parseInt(event.key);
+					if (!Number.isNaN(index) && index >= 1 && index <= 9 && index <= files.length) {
+						switchTab(index - 1);
+					}
 					break;
 				}
 			}
@@ -2458,6 +2480,21 @@ export default function PersistentDrawerLeft() {
 					})
 				}
 				</>
+				{files.length > 0 ? null :
+					<KeyboardShortcuts shortcuts={[
+						{ description: t("menu.modKey"), keys: apple ? ['⌃', '⌥', '⌘'] : ['Ctrl', 'Alt', 'Win'] },
+						{ description: t("menu.goToFile"), keys: ['Mod', 'P'] },
+						{ description: t("menu.switchTab"), keys: ['Mod', 'Number'] },
+						{ description: t("menu.new"), keys: ['Mod', (apple ? '⇧' : 'Shift'), 'N'] },
+						{ description: t("menu.delete"), keys: ['Mod', (apple ? '⇧' : 'Shift'), 'D'] },
+						{ description: t("menu.save"), keys: ['Mod', 'S']},
+						{ description: t("menu.saveAll"), keys: ['Mod', (apple ? '⇧' : 'Shift'), 'S']},
+						{ description: t("menu.viewLog"), keys: ['Mod', '.'] },
+						{ description: t("menu.stop"), keys: ['Mod', 'Q'] },
+						{ description: t("menu.runThis"), keys: ['Mod', (apple ? '⇧' : 'Shift'), 'R'] },
+						{ description: t("menu.run"), keys: ['Mod', 'R'] },
+					]}/>
+				}
 				<PlayControl width={editorWidth} onClick={onPlayControlClick}/>
 				<StyledStack open={drawerOpen} drawerWidth={drawerWidth}>
 					<TransitionGroup>
