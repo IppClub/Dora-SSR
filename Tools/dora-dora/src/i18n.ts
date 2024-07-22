@@ -130,6 +130,8 @@ i18n
 						viewLog: "View Log",
 						viewCompiled: "View {{lang}}",
 						copyPath: "Copy Path",
+						modKey: "Mod Key Using",
+						switchTab: "Switch Tab",
 					},
 					log: {
 						wait: "Wait for logging messages ...",
@@ -310,6 +312,8 @@ i18n
 						viewLog: "查看日志",
 						viewCompiled: "查看 {{lang}}",
 						copyPath: "复制路径",
+						modKey: "Mod 键使用",
+						switchTab: "切换标签",
 					},
 					log: {
 						wait: "接收日志消息中……",

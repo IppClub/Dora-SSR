@@ -189,8 +189,7 @@ threadLoop(function(): boolean
 		ImGui.Separator()
 		ImGui.TextWrapped("Change input context to alter input mapping")
 		if phase == "None" then
-			local changed, result = false, false
-			changed, result = ImGui.Checkbox("hold X to Confirm (instead Y)", checked)
+			local changed, result = ImGui.Checkbox("hold X to confirm (instead Y)", checked)
 			if changed then
 				if checked then
 					inputManager:popContext()
