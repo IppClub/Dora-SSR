@@ -35,7 +35,7 @@ local record App
 	const platform: Platform
 
 	-- The version string of the game engine.
-	-- Should be in format of "v0.0.0".
+	-- Should be in format of "v0.0.0.0".
 	const version: string
 
 	-- The dependencies of the game engine.

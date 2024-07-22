@@ -34,7 +34,7 @@ local record App
 	const platform: Platform
 
 	-- 游戏引擎的版本字符串。
-	-- 格式为“v0.0.0”。
+	-- 格式为“v0.0.0.0”。
 	const version: string
 
 	-- 游戏引擎的第三方依赖库的版本信息。

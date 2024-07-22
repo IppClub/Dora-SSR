@@ -1,32 +1,32 @@
 import { React } from 'DoraX';
 import { AxisName, ButtonName, KeyName, Node } from 'Dora';
 
-/// The enumeration defining the trigger states.
+/** The enumeration defining the trigger states. */
 export const enum TriggerState {
-	/// Currently no input state has been acquired.
+	/** Currently no input state has been acquired. */
 	None = "None",
-	/// An event that initiates the evaluation of the trigger has occurred. For example, the first press in a "hold" trigger will call the "Started" state once.
+	/** An event that initiates the evaluation of the trigger has occurred. For example, the first press in a "hold" trigger will call the "Started" state once. */
 	Started = "Started",
-	/// The trigger is still being processed. For example, when a button is pressed, before reaching the specified duration, the "hold" action is in an ongoing state. Depending on the trigger, this event will trigger every time it updates during the evaluation of the action after receiving an input value.
+	/** The trigger is still being processed. For example, when a button is pressed, before reaching the specified duration, the "hold" action is in an ongoing state. Depending on the trigger, this event will trigger every time it updates during the evaluation of the action after receiving an input value. */
 	Ongoing = "Ongoing",
-	/// The evaluation process of the trigger has been completed.
+	/** The evaluation process of the trigger has been completed. */
 	Completed = "Completed",
-	/// The trigger has been canceled. For example, the user releases the button before the "hold" action is triggered.
+	/** The trigger has been canceled. For example, the user releases the button before the "hold" action is triggered. */
 	Canceled = "Canceled",
 }
 
-/// A class that defines various input triggers for keyboard keys, gamepad buttons, and joysticks.
+/** A class that defines various input triggers for keyboard keys, gamepad buttons, and joysticks. */
 export abstract class Trigger {
 	private constructor();
 }
 
-/// The enumeration defining the joystick types.
+/** The enumeration defining the joystick types. */
 export const enum JoyStickType {
 	Left = "Left",
 	Right = "Right",
 }
 
-/// A module for creating various input triggers for keyboard keys, gamepad buttons, and joysticks.
+/** A module for creating various input triggers for keyboard keys, gamepad buttons, and joysticks. */
 export namespace Trigger {
 	/**
 	 * Create a trigger that triggers when all of the specified keys are pressed down.
@@ -176,13 +176,13 @@ export namespace Trigger {
 	export function Block(this: void, trigger: Trigger): Trigger;
 }
 
-/// An interface that defines an input action with a name and a trigger.
+/** An interface that defines an input action with a name and a trigger. */
 export interface InputAction {
 	name: string;
 	trigger: Trigger;
 }
 
-/// An interface that defines a context for input actions.
+/** An interface that defines a context for input actions. */
 export interface InputContext {
 	name: string;
 	actions: InputAction[];
@@ -276,19 +276,19 @@ export class InputManager {
  */
 export function CreateManager(this: void, contexts: InputContext[]): InputManager;
 
-/// The virtual directional pad (D-pad) properties.
+/** The virtual directional pad (D-pad) properties. */
 export interface DPadProps {
-	/// The button width of the D-pad. [optional]
+	/** The button width of the D-pad. [optional] */
 	width?: number;
-	/// The button height of the D-pad. [optional]
+	/** The button height of the D-pad. [optional] */
 	height?: number;
-	/// The button padding of the D-pad. [optional]
+	/** The button padding of the D-pad. [optional] */
 	offset?: number;
-	/// The input manager for the D-pad. [required]
+	/** The input manager for the D-pad. [required] */
 	inputManager: InputManager;
 }
 
-/// A virtual directional pad (D-pad) TSX element for input.
+/** A virtual directional pad (D-pad) TSX element for input. */
 export function DPad(props: DPadProps): React.Element;
 
 /**
@@ -298,31 +298,31 @@ export function DPad(props: DPadProps): React.Element;
  */
 export function CreateDPad(this: void, props: DPadProps): Node.Type;
 
-/// The virtual joystick properties.
+/** The virtual joystick properties. */
 export interface JoyStickProps {
-	/// The type of joystick. [required]
+	/** The type of joystick. [required] */
 	stickType?: JoyStickType;
-	/// The size of the joystick. [optional]
+	/** The size of the joystick. [optional] */
 	moveSize?: number;
-	/// The size of the hat. [optional]
+	/** The size of the hat. [optional] */
 	hatSize?: number;
-	/// The font name of the joystick. [optional]
+	/** The font name of the joystick. [optional] */
 	fontName?: string;
-	/// The stick button size of the joystick. [optional]
+	/** The stick button size of the joystick. [optional] */
 	buttonSize?: number;
-	/// The input manager for the joystick. [required]
+	/** The input manager for the joystick. [required] */
 	inputManager: InputManager;
-	/// The color of the joystick. [optional]
+	/** The color of the joystick. [optional] */
 	color?: number;
-	/// The primary opacity of the joystick. [optional]
+	/** The primary opacity of the joystick. [optional] */
 	primaryOpacity?: number;
-	/// The secondary opacity of the joystick. [optional]
+	/** The secondary opacity of the joystick. [optional] */
 	secondaryOpacity?: number;
-	/// Whether to hide the stick button. [optional]
+	/** Whether to hide the stick button. [optional] */
 	noStickButton?: boolean;
 }
 
-/// A virtual joystick (L, LS or R, RS) TSX element for input.
+/** A virtual joystick (L, LS or R, RS) TSX element for input. */
 export function JoyStick(props: JoyStickProps): React.Element;
 
 /**
@@ -332,19 +332,19 @@ export function JoyStick(props: JoyStickProps): React.Element;
  */
 export function CreateJoyStick(this: void, props: JoyStickProps): Node.Type;
 
-/// The virtual button pad properties.
+/** The virtual button pad properties. */
 export interface ButtonPadProps {
-	/// The size of the button. [optional]
+	/** The size of the button. [optional] */
 	buttonSize?: number;
-	/// The padding of the buttons. [optional]
+	/** The padding of the buttons. [optional] */
 	buttonPadding?: number;
-	/// The font name of the button pad. [optional]
+	/** The font name of the button pad. [optional] */
 	fontName?: string;
-	/// The input manager for the button pad. [required]
+	/** The input manager for the button pad. [required] */
 	inputManager: InputManager;
 }
 
-/// A virtual button pad (A, B, X, Y) TSX element for input.
+/** A virtual button pad (A, B, X, Y) TSX element for input. */
 export function ButtonPad(props: ButtonPadProps): React.Element;
 
 /**
@@ -354,21 +354,21 @@ export function ButtonPad(props: ButtonPadProps): React.Element;
  */
 export function CreateButtonPad(this: void, props: ButtonPadProps): Node.Type;
 
-/// The virtual control pad properties.
+/** The virtual control pad properties. */
 export interface ControlPadProps {
-	/// The button size of the control pad. [optional]
+	/** The button size of the control pad. [optional] */
 	buttonSize?: number;
-	/// The font name of the control pad. [optional]
+	/** The font name of the control pad. [optional] */
 	fontName?: string;
-	/// The input manager for the control pad. [required]
+	/** The input manager for the control pad. [required] */
 	inputManager: InputManager;
-	/// The color of the control pad. [optional]
+	/** The color of the control pad. [optional] */
 	color?: number;
-	/// The primary opacity of the control pad. [optional]
+	/** The primary opacity of the control pad. [optional] */
 	primaryOpacity?: number;
 }
 
-/// A virtual control pad (Start and Back buttons) TSX element for input.
+/** A virtual control pad (Start and Back buttons) TSX element for input. */
 export function ControlPad(props: ControlPadProps): React.Element;
 
 /**
@@ -378,23 +378,23 @@ export function ControlPad(props: ControlPadProps): React.Element;
  */
 export function CreateControlPad(this: void, props: ControlPadProps): Node.Type
 
-/// The virtual trigger pad properties.
+/** The virtual trigger pad properties. */
 export interface TriggerPadProps {
-	/// The button size of the trigger pad. [optional]
+	/** The button size of the trigger pad. [optional] */
 	buttonSize?: number;
-	/// The font name of the trigger pad. [optional]
+	/** The font name of the trigger pad. [optional] */
 	fontName?: string;
-	/// The input manager for the trigger pad. [required]
+	/** The input manager for the trigger pad. [required] */
 	inputManager: InputManager;
-	/// The color of the trigger pad. [optional]
+	/** The color of the trigger pad. [optional] */
 	color?: number;
-	/// The primary opacity of the trigger pad. [optional]
+	/** The primary opacity of the trigger pad. [optional] */
 	primaryOpacity?: number;
-	/// Whether to hide the shoulder buttons (LB, RB). [optional]
+	/** Whether to hide the shoulder buttons (LB, RB). [optional] */
 	noShoulder?: boolean;
 }
 
-/// A virtual trigger pad (LB, LT, RB, RT) TSX element for input.
+/** A virtual trigger pad (LB, LT, RB, RT) TSX element for input. */
 export function TriggerPad(props: TriggerPadProps): React.Element;
 
 /**
@@ -404,35 +404,35 @@ export function TriggerPad(props: TriggerPadProps): React.Element;
  */
 export function CreateTriggerPad(this: void, props: TriggerPadProps): Node.Type;
 
-/// The virtual gamepad properties.
+/** The virtual gamepad properties. */
 export interface GamePadProps {
-	/// Whether to hide the directional pad (D-pad). [optional]
+	/** Whether to hide the directional pad (D-pad). [optional] */
 	noDPad?: boolean;
-	/// Whether to hide the left stick (L, LS). [optional]
+	/** Whether to hide the left stick (L, LS). [optional] */
 	noLeftStick?: boolean;
-	/// Whether to hide the right stick (R, RS). [optional]
+	/** Whether to hide the right stick (R, RS). [optional] */
 	noRightStick?: boolean;
-	/// Whether to hide the button pad (A, B, X, Y). [optional]
+	/** Whether to hide the button pad (A, B, X, Y). [optional] */
 	noButtonPad?: boolean;
-	/// Whether to hide the trigger pad (LB, LT, RB, RT). [optional]
+	/** Whether to hide the trigger pad (LB, LT, RB, RT). [optional] */
 	noTriggerPad?: boolean;
-	/// Whether to hide the control pad (Start and Back buttons). [optional]
+	/** Whether to hide the control pad (Start and Back buttons). [optional] */
 	noControlPad?: boolean;
-	/// Whether to hide the shoulder buttons (LB, RB). [optional]
+	/** Whether to hide the shoulder buttons (LB, RB). [optional] */
 	noShoulder?: boolean;
-	/// Whether to hide the trigger buttons (LS, RS). [optional]
+	/** Whether to hide the trigger buttons (LS, RS). [optional] */
 	noStickButton?: boolean;
-	/// The color of the gamepad. [optional]
+	/** The color of the gamepad. [optional] */
 	color?: number;
-	/// The primary opacity of the gamepad. [optional]
+	/** The primary opacity of the gamepad. [optional] */
 	primaryOpacity?: number;
-	/// The secondary opacity of the gamepad. [optional]
+	/** The secondary opacity of the gamepad. [optional] */
 	secondaryOpacity?: number;
-	/// The input manager for the gamepad. [required]
+	/** The input manager for the gamepad. [required] */
 	inputManager: InputManager;
 }
 
-/// A virtual gamepad TSX element for input.
+/** A virtual gamepad TSX element for input. */
 export function GamePad(props: GamePadProps): React.Element;
 
 /**
