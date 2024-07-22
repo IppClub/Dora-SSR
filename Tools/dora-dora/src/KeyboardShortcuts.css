@@ -30,6 +30,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 .description {
 	flex-grow: 1;
+	font-size: 14px;
 	margin-right: 20px;
 }
 
