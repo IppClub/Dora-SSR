@@ -34,7 +34,7 @@ jobs:
           mkdir www
           move yarn-editor www
           7z a ..\..\dora-ssr-windows-x86.7z www\yarn-editor
-          cd ..\..
+          cd ..\..\..\..
           (cd Assets && 7z a ..\dora-ssr-windows-x86.7z Audio && cd ..)
           (cd Assets && 7z a ..\dora-ssr-windows-x86.7z Data && cd ..)
           (cd Assets && 7z a ..\dora-ssr-windows-x86.7z Doc && cd ..)
