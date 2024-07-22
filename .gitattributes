@@ -1,3 +1,3 @@
 Source/3rdParty/** linguist-vendored
 Site/** linguist-vendored
-*.bin.h linguist-language=cpp
+*.h linguist-language=cpp
