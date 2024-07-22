@@ -148,13 +148,14 @@ local countDownFlags = {
 	"NoSavedSettings",
 	"NoTitleBar",
 	"NoMove",
+	"AlwaysAutoResize",
 }
 node:schedule(loop(function()
 	local visualSize = App.visualSize
 	local width = visualSize.width
 	local height = visualSize.height
 	ImGui.SetNextWindowPos(Vec2(width / 2 - 160, height / 2 - 100))
-	ImGui.SetNextWindowSize(Vec2(300, 50), "FirstUseEver")
+	ImGui.SetNextWindowSize(Vec2(300, 100), "Always")
 	ImGui.Begin("CountDown", countDownFlags, function()
 		if phase == "None" then
 			QTEButton()
@@ -163,7 +164,7 @@ node:schedule(loop(function()
 		end
 		ImGui.SameLine()
 		ImGui.Text(text)
-		ImGui.ProgressBar(holdTime, Vec2(-1, 30));
+		ImGui.ProgressBar(holdTime, Vec2(-1, 30))
 	end)
 	return false
 end))

@@ -89,7 +89,7 @@ node.gslot("Input.MoveDown", (state: TriggerState, progress: number, value: any)
 	}
 });
 
-node.gslot("Input.QTE", (state: TriggerState, progress: number, value: any) => {
+node.gslot("Input.QTE", (state: TriggerState, progress: number) => {
 	switch (phase) {
 		case QTE.Phase1:
 			switch (state) {

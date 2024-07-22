@@ -98,7 +98,7 @@ node:gslot( -- 86
 ) -- 86
 node:gslot( -- 92
     "Input.QTE", -- 92
-    function(state, progress, value) -- 92
+    function(state, progress) -- 92
         repeat -- 92
             local ____switch9 = phase -- 92
             local ____cond9 = ____switch9 == "Phase1" -- 92
