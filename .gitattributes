@@ -1,3 +1,5 @@
 Source/3rdParty/** linguist-vendored
 Site/** linguist-vendored
+Tools/dora-dora/3rdParty/** linguist-vendored
+Tools/dora-dora/public/code-wire/** linguist-vendored
 *.h linguist-language=cpp
