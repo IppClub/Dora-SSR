@@ -45,8 +45,6 @@ const SpinePlayer = React.lazy(() => import('./SpinePlayer'));
 const Markdown = React.lazy(() => import('./Markdown'));
 const LogView = React.lazy(() => import('./LogView'));
 
-const apple = navigator.platform.indexOf("Mac") === 0 || navigator.platform === "iPhone" || navigator.platform === "iPad";
-
 const { path } = Info;
 
 loader.config({ monaco });
@@ -2481,19 +2479,7 @@ export default function PersistentDrawerLeft() {
 				}
 				</>
 				{files.length > 0 ? null :
-					<KeyboardShortcuts shortcuts={[
-						{ description: t("menu.modKey"), keys: apple ? ['⌃', '⌥', '⌘'] : ['Ctrl', 'Alt', 'Win'] },
-						{ description: t("menu.goToFile"), keys: ['Mod', 'P'] },
-						{ description: t("menu.switchTab"), keys: ['Mod', 'Number'] },
-						{ description: t("menu.new"), keys: ['Mod', (apple ? '⇧' : 'Shift'), 'N'] },
-						{ description: t("menu.delete"), keys: ['Mod', (apple ? '⇧' : 'Shift'), 'D'] },
-						{ description: t("menu.save"), keys: ['Mod', 'S']},
-						{ description: t("menu.saveAll"), keys: ['Mod', (apple ? '⇧' : 'Shift'), 'S']},
-						{ description: t("menu.viewLog"), keys: ['Mod', '.'] },
-						{ description: t("menu.stop"), keys: ['Mod', 'Q'] },
-						{ description: t("menu.runThis"), keys: ['Mod', (apple ? '⇧' : 'Shift'), 'R'] },
-						{ description: t("menu.run"), keys: ['Mod', 'R'] },
-					]}/>
+					<KeyboardShortcuts/>
 				}
 				<PlayControl width={editorWidth} onClick={onPlayControlClick}/>
 				<StyledStack open={drawerOpen} drawerWidth={drawerWidth}>
