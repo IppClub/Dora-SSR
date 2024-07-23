@@ -1573,7 +1573,7 @@ export function thread(this: void, routine: (this: void) => void): Job;
 
 /**
  * Create a new coroutine from a function that runs repeatedly.
- * @param routine A function to execute repeatedly as a coroutine.
+ * @param routine A function to execute repeatedly as a coroutine. The function should return false to continue running, or true to stop.
  * @returns A handle to the coroutine that was created.
  */
 export function threadLoop(this: void, routine: (this: void) => boolean): Job;

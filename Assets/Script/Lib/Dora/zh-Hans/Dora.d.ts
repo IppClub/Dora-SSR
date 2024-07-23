@@ -1571,7 +1571,7 @@ export function thread(this: void, routine: (this: void) => void): Job;
 
 /**
  * 从函数创建新的协程，该函数会反复运行。
- * @param routine 作为协程反复执行的函数。
+ * @param routine 作为协程反复执行的函数。函数可以返回 false 以继续运行，或返回 true 以停止。
  * @returns 创建的协程作业对象。
  */
 export function threadLoop(this: void, routine: (this: void) => boolean): Job;
