@@ -686,7 +686,7 @@ const sidebars = {
 			items: [
 				{
 					type: 'doc',
-					label: 'Behavior',
+					label: 'Routine',
 					id: 'api/Class/Routine',
 				},
 				{
