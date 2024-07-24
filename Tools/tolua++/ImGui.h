@@ -169,10 +169,8 @@ namespace ImGui
 	float CalcItemWidth();
 	void PushTextWrapPos(float wrap_pos_x = 0.0f);
 	void PopTextWrapPos();
-	void PushTabStop(bool v);
-	void PopTabStop();
-	void PushButtonRepeat(bool repeat);
-	void PopButtonRepeat();
+	void Binding::PushItemFlag @ PushItemFlag(String options[tolua_len], bool enabled);
+	void PopItemFlag();
 
 	void Separator();
 	void SeparatorText(CString text);
@@ -217,6 +215,8 @@ namespace ImGui
 	ImGuiID GetID(CString str_id);
 
 	void Bullet @ BulletItem();
+	bool TextLink(CString label);
+	void TextLinkOpenURL(CString label, CString url = nullptr);
 	bool Button(CString label, Vec2 size = Vec2::zero);
 	bool SmallButton(CString label);
 	bool InvisibleButton(CString str_id, Vec2 size);

@@ -46,11 +46,12 @@ export const enum StyleColor {
 	ResizeGrip = "ResizeGrip",
 	ResizeGripHovered = "ResizeGripHovered",
 	ResizeGripActive = "ResizeGripActive",
-	Tab = "Tab",
 	TabHovered = "TabHovered",
-	TabActive = "TabActive",
-	TabUnfocused = "TabUnfocused",
-	TabUnfocusedActive = "TabUnfocusedActive",
+	Tab = "Tab",
+	TabSelected = "TabSelected",
+	TabDimmed = "TabDimmed",
+	TabDimmedSelected = "TabDimmedSelected",
+	TabDimmedSelectedOverline = "TabDimmedSelectedOverline",
 	PlotLines = "PlotLines",
 	PlotLinesHovered = "PlotLinesHovered",
 	PlotHistogram = "PlotHistogram",
@@ -61,6 +62,7 @@ export const enum StyleColor {
 	TableRowBg = "TableRowBg",
 	TableRowBgAlt = "TableRowBgAlt",
 	TextSelectedBg = "TextSelectedBg",
+	TextLink = "TextLink",
 	DragDropTarget = "DragDropTarget",
 	NavHighlight = "NavHighlight",
 	NavWindowingHighlight = "NavWindowingHighlight",
@@ -182,25 +184,27 @@ export const enum InputTextFlag {
 	None = "",
 	CharsDecimal = "CharsDecimal",
 	CharsHexadecimal = "CharsHexadecimal",
+	CharsScientific = "CharsScientific",
 	CharsUppercase = "CharsUppercase",
 	CharsNoBlank = "CharsNoBlank",
-	AutoSelectAll = "AutoSelectAll",
+	AllowTabInput = "AllowTabInput",
 	EnterReturnsTrue = "EnterReturnsTrue",
+	EscapeClearsAll = "EscapeClearsAll",
+	CtrlEnterForNewLine = "CtrlEnterForNewLine",
+	ReadOnly = "ReadOnly",
+	Password = "Password",
+	AlwaysOverwrite = "AlwaysOverwrite",
+	AutoSelectAll = "AutoSelectAll",
+	ParseEmptyRefVal = "ParseEmptyRefVal",
+	DisplayEmptyRefVal = "DisplayEmptyRefVal",
+	NoHorizontalScroll = "NoHorizontalScroll",
+	NoUndoRedo = "NoUndoRedo",
 	CallbackCompletion = "CallbackCompletion",
 	CallbackHistory = "CallbackHistory",
 	CallbackAlways = "CallbackAlways",
 	CallbackCharFilter = "CallbackCharFilter",
-	AllowTabInput = "AllowTabInput",
-	CtrlEnterForNewLine = "CtrlEnterForNewLine",
-	NoHorizontalScroll = "NoHorizontalScroll",
-	AlwaysOverwrite = "AlwaysOverwrite",
-	ReadOnly = "ReadOnly",
-	Password = "Password",
-	NoUndoRedo = "NoUndoRedo",
-	CharsScientific = "CharsScientific",
 	CallbackResize = "CallbackResize",
-	CallbackEdit = "CallbackEdit",
-	EscapeClearsAll = "EscapeClearsAll"
+	CallbackEdit = "CallbackEdit"
 }
 
 export const enum TreeNodeFlag {
@@ -225,7 +229,7 @@ export const enum TreeNodeFlag {
 
 export const enum SelectableFlag {
 	None = "",
-	DontClosePopups = "DontClosePopups",
+	NoAutoClosePopups = "NoAutoClosePopups",
 	SpanAllColumns = "SpanAllColumns",
 	AllowDoubleClick = "AllowDoubleClick",
 	Disabled = "Disabled",
@@ -318,6 +322,15 @@ export const enum PopupFlag {
 	AnyPopupId = "AnyPopupId",
 	AnyPopupLevel = "AnyPopupLevel",
 	AnyPopup = "AnyPopup"
+}
+
+export const enum ItemFlags {
+	None = "",
+	NoTabStop = "NoTabStop",
+	NoNav = "NoNav",
+	NoNavDefaultFocus = "NoNavDefaultFocus",
+	ButtonRepeat = "ButtonRepeat",
+	AutoClosePopups = "AutoClosePopups"
 }
 
 export const enum GlyphRange {
@@ -466,6 +479,7 @@ export function PushTextWrapPos(this: void, wrap_pos_x: number, inside: (this: v
 export function PushTextWrapPos(this: void, inside: (this: void) => void): void; // Default: 0.0
 export function PushAllowKeyboardFocus(this: void, v: boolean, inside: (this: void) => void): void;
 export function PushButtonRepeat(this: void, repeated: boolean, inside: (this: void) => void): void;
+export function PushItemFlag(flags: ItemFlags[], enabled: boolean, inside: (this: void) => void): void;
 
 export function ShowDemoWindow(this: void): void;
 export function GetContentRegionMax(this: void): Vec2;
@@ -534,6 +548,8 @@ export function PushID(this: void, int_id: number, inside: (this: void) => void)
 export function GetID(this: void, str_id: string): number;
 
 export function BulletItem(this: void): void;
+export function TextLink(label: string): boolean;
+export function TextLinkOpenURL(label: string, url?: string): void;
 export function Button(this: void, label: string, size?: Vec2): boolean;
 export function SmallButton(this: void, label: string): boolean;
 export function InvisibleButton(this: void, str_id: string, size: Vec2): boolean;
