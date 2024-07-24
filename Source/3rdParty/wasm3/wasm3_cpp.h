@@ -215,7 +215,7 @@ namespace wasm3 {
          */
         function find_function(const char *name);
 
-        const char* get_error_message() const;
+        std::string get_error_message() const;
 
         uint32_t get_memory_size() const;
 
@@ -392,7 +392,7 @@ namespace wasm3 {
         return function(m_runtime, name);
     }
 
-    inline const char* runtime::get_error_message() const {
+    inline std::string runtime::get_error_message() const {
         M3ErrorInfo info;
         m3_GetErrorInfo(m_runtime.get(), &info);
         return info.message;

@@ -508,8 +508,8 @@ void ShowStats(const std::function<void()>& extra) {
 	SharedImGui.showStats(nullptr, extra);
 }
 
-void ShowConsole(bool* pOpen) {
-	SharedImGui.showConsole(pOpen);
+void ShowConsole(bool* pOpen, bool initOnly) {
+	SharedImGui.showConsole(pOpen, initOnly);
 }
 
 void ShowConsole() {

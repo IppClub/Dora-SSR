@@ -63,6 +63,7 @@ protected:
 	WasmRuntime();
 
 private:
+	bool _loading;
 	Own<wasm3::environment> _env;
 	Own<wasm3::runtime> _runtime;
 	Own<wasm3::function> _callFunc;

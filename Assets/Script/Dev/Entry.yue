@@ -11,6 +11,7 @@ const {:Content, :Path} = Dora
 const type = type
 
 App.idled = true
+ShowConsole false, true
 
 moduleCache = []
 oldRequire = _G.require

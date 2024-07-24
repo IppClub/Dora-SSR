@@ -751,6 +751,14 @@ fn push_function(func: Box<dyn FnMut()>) -> i32 {
 }
 
 #[no_mangle]
+pub extern fn dora_wasm_version() -> i32 {
+	const MAJOR: &str = env!("CARGO_PKG_VERSION_MAJOR");
+	const MINOR: &str = env!("CARGO_PKG_VERSION_MINOR");
+	const PATCH: &str = env!("CARGO_PKG_VERSION_PATCH");
+	(MAJOR.parse::<i32>().unwrap() << 16) | (MINOR.parse::<i32>().unwrap() << 8) | PATCH.parse::<i32>().unwrap()
+}
+
+#[no_mangle]
 pub extern fn call_function(func_id: i32) {
 	unsafe { FUNC_MAP[func_id as usize](); }
 }
