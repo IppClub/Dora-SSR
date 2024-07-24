@@ -326,7 +326,7 @@ local record ImGui
 	ShowStats: function(extra?: function())
 	ShowStats: function(open: boolean, extra?: function()): boolean
 	ShowConsole: function()
-	ShowConsole: function(open: boolean): boolean
+	ShowConsole: function(open: boolean, initOnly?: boolean): boolean
 	Begin: function(
 		name: string,
 		windowsFlags: {WindowFlag},

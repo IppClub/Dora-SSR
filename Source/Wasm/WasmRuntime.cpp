@@ -17,6 +17,14 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DORA_BEGIN
 
+#define DoraVersion(major, minor, patch) ((major) << 16 | (minor) << 8 | (patch))
+
+static const int doraWASMVersion = DoraVersion(0, 3, 3);
+
+static std::string VersionToStr(int version) {
+	return std::to_string((version & 0x00ff0000) >> 16) + '.' + std::to_string((version & 0x0000ff00) >> 8) + '.' + std::to_string(version & 0x000000ff);
+}
+
 union LightWasmValue {
 	Vec2 vec2;
 	Size size;
@@ -1322,6 +1330,7 @@ static void db_do_exec_async(String sql, DBParams& params, const std::function<v
 
 #include "Dora/ActionDefWasm.hpp"
 #include "Dora/ActionWasm.hpp"
+#include "Dora/AlignNodeWasm.hpp"
 #include "Dora/ApplicationWasm.hpp"
 #include "Dora/ArrayWasm.hpp"
 #include "Dora/AudioWasm.hpp"
@@ -1334,8 +1343,6 @@ static void db_do_exec_async(String sql, DBParams& params, const std::function<v
 #include "Dora/CameraOthoWasm.hpp"
 #include "Dora/CameraWasm.hpp"
 #include "Dora/ClipNodeWasm.hpp"
-#include "Dora/WorkBookWasm.hpp"
-#include "Dora/WorkSheetWasm.hpp"
 #include "Dora/ContentWasm.hpp"
 #include "Dora/DBParamsWasm.hpp"
 #include "Dora/DBQueryWasm.hpp"
@@ -1344,12 +1351,10 @@ static void db_do_exec_async(String sql, DBParams& params, const std::function<v
 #include "Dora/DictionaryWasm.hpp"
 #include "Dora/DirectorWasm.hpp"
 #include "Dora/DragonBoneWasm.hpp"
-#include "Dora/AlignNodeWasm.hpp"
-#include "Dora/EffekNodeWasm.hpp"
-#include "Dora/TileNodeWasm.hpp"
 #include "Dora/DrawNodeWasm.hpp"
 #include "Dora/EaseWasm.hpp"
 #include "Dora/EffectWasm.hpp"
+#include "Dora/EffekNodeWasm.hpp"
 #include "Dora/EntityGroupWasm.hpp"
 #include "Dora/EntityObserverWasm.hpp"
 #include "Dora/EntityWasm.hpp"
@@ -1397,9 +1402,12 @@ static void db_do_exec_async(String sql, DBParams& params, const std::function<v
 #include "Dora/SpriteEffectWasm.hpp"
 #include "Dora/SpriteWasm.hpp"
 #include "Dora/Texture2DWasm.hpp"
+#include "Dora/TileNodeWasm.hpp"
 #include "Dora/TouchWasm.hpp"
 #include "Dora/VertexColorWasm.hpp"
 #include "Dora/ViewWasm.hpp"
+#include "Dora/WorkBookWasm.hpp"
+#include "Dora/WorkSheetWasm.hpp"
 
 static void linkAutoModule(wasm3::module3& mod) {
 	linkArray(mod);
@@ -1607,7 +1615,8 @@ static void linkDoraModule(wasm3::module3& mod) {
 
 int WasmRuntime::_callFromWasm = 0;
 
-WasmRuntime::WasmRuntime() {
+WasmRuntime::WasmRuntime()
+	: _loading(false) {
 	_env = New<wasm3::environment>();
 	_runtime = New<wasm3::runtime>(_env->new_runtime(DORA_WASM_STACK_SIZE));
 }
@@ -1615,13 +1624,17 @@ WasmRuntime::WasmRuntime() {
 WasmRuntime::~WasmRuntime() { }
 
 bool WasmRuntime::executeMainFile(String filename) {
-	if (_wasm.first) {
-		Warn("only one wasm module can be executed.");
+	if (_wasm.first || _loading) {
+		Warn("only one WASM module can be executed");
 		return false;
 	}
 	try {
+		_loading = true;
 		_callFromWasm++;
-		DEFER(_callFromWasm--);
+		DEFER({
+			_callFromWasm--;
+			_loading = false;
+		});
 		PROFILE("Loader"_slice, filename);
 		{
 			PROFILE("Loader"_slice, filename.toString() + " [Load]"s);
@@ -1630,6 +1643,15 @@ bool WasmRuntime::executeMainFile(String filename) {
 			_runtime->load(mod);
 			mod.link_default();
 			linkDoraModule(mod);
+			auto versionFunc = New<wasm3::function>(_runtime->find_function("dora_wasm_version"));
+			auto version = versionFunc->call<int32_t>();
+			if (doraWASMVersion != version) {
+				_env = New<wasm3::environment>();
+				_runtime = New<wasm3::runtime>(_env->new_runtime(DORA_WASM_STACK_SIZE));
+				_wasm = {nullptr, 0};
+				Error("expecting dora WASM version {}, got {}", VersionToStr(doraWASMVersion), VersionToStr(version));
+				return false;
+			}
 			_callFunc = New<wasm3::function>(_runtime->find_function("call_function"));
 			_derefFunc = New<wasm3::function>(_runtime->find_function("deref_function"));
 		}
@@ -1638,44 +1660,61 @@ bool WasmRuntime::executeMainFile(String filename) {
 		mainFn.call_argv();
 		return true;
 	} catch (std::runtime_error& e) {
-		Error("failed to load wasm module: {}, due to: {}{}", filename.toString(), e.what(), _runtime->get_error_message() == Slice::Empty ? ""s : ": "s + _runtime->get_error_message());
+		auto message = _runtime->get_error_message();
+		Error("failed to load wasm module: {}, due to: {}{}", filename.toString(), e.what(), message == Slice::Empty ? ""s : ": "s + message);
+		WasmRuntime::clear();
 		return false;
 	}
 }
 
 void WasmRuntime::executeMainFileAsync(String filename, const std::function<void(bool)>& handler) {
-	if (_wasm.first) {
+	if (_wasm.first || _loading) {
 		Warn("only one wasm module can be executed, clear the current module before executing another");
 		return;
 	}
+	_loading = true;
 	auto file = filename.toString();
 	SharedContent.loadAsyncData(filename, [file, handler, this](OwnArray<uint8_t>&& data, size_t size) {
 		if (!data) {
-			Error("failed to load wasm file \"{}\".", file);
 			handler(false);
+			_loading = false;
+			Error("failed to load wasm file \"{}\".", file);
 			return;
 		}
 		_wasm = {std::move(data), size};
 		SharedAsyncThread.run(
-			[file, this] {
+			[file, this, doraVer = doraWASMVersion] {
 				try {
 					auto mod = New<wasm3::module3>(_env->parse_module(_wasm.first.get(), _wasm.second));
 					_runtime->load(*mod);
 					mod->link_default();
 					linkDoraModule(*mod);
+					auto versionFunc = New<wasm3::function>(_runtime->find_function("dora_wasm_version"));
+					auto version = versionFunc->call<int32_t>();
+					if (doraVer != version) {
+						Error("expecting dora WASM version {}, got {}", VersionToStr(doraVer), VersionToStr(version));
+						_env = New<wasm3::environment>();
+						_runtime = New<wasm3::runtime>(_env->new_runtime(DORA_WASM_STACK_SIZE));
+						_wasm = {nullptr, 0};
+						return Values::alloc(Own<wasm3::module3>(), Own<wasm3::function>());
+					}
 					_callFunc = New<wasm3::function>(_runtime->find_function("call_function"));
 					_derefFunc = New<wasm3::function>(_runtime->find_function("deref_function"));
 					auto mainFn = New<wasm3::function>(_runtime->find_function("_start"));
 					return Values::alloc(std::move(mod), std::move(mainFn));
 				} catch (std::runtime_error& e) {
-					Error("failed to load wasm module: {}, due to: {}{}", file, e.what(), _runtime->get_error_message() == Slice::Empty ? Slice::Empty : ": "s + _runtime->get_error_message());
+					auto message = _runtime->get_error_message();
+					Error("failed to load wasm module: {}, due to: {}{}", file, e.what(), message == Slice::Empty ? ""s : ": "s + message);
 					return Values::alloc(Own<wasm3::module3>(), Own<wasm3::function>());
 				}
 			},
 			[file, handler, this](Own<Values> values) {
 				try {
 					_callFromWasm++;
-					DEFER(_callFromWasm--);
+					DEFER({
+						_callFromWasm--;
+						_loading = false;
+					});
 					PROFILE("Loader"_slice, file);
 					Own<wasm3::module3> mod;
 					Own<wasm3::function> mainFn;

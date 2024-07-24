@@ -17,7 +17,7 @@ namespace ImGui
 	bool Binding::IsFontLoaded @ IsFontLoaded();
 	void Binding::ShowStats @ ShowStats(bool* pOpen, tolua_function_void handler = nullptr);
 	void Binding::ShowStats @ ShowStats(tolua_function_void handler = nullptr);
-	void Binding::ShowConsole @ ShowConsole(bool* pOpen);
+	void Binding::ShowConsole @ ShowConsole(bool* pOpen, bool initOnly = false);
 	void Binding::ShowConsole @ ShowConsole();
 	bool Binding::Begin @ Begin(CString name);
 	bool Binding::Begin @ Begin(CString name, String windowsFlags[tolua_len]);

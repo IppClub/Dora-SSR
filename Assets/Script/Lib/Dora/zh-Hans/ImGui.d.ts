@@ -349,7 +349,7 @@ export function IsFontLoaded(this: void): boolean;
 export function ShowStats(this: void, extra?: (this: void) => void): void;
 export function ShowStats(this: void, open: boolean, extra?: (this: void) => void): boolean;
 export function ShowConsole(this: void): void;
-export function ShowConsole(this: void, open: boolean): boolean;
+export function ShowConsole(this: void, open: boolean, initOnly?: boolean): boolean;
 export function Begin(this: void, name: string, windowsFlags: WindowFlag[], inside: (this: void) => void): void;
 export function Begin(this: void, name: string, inside: (this: void) => void): void;
 export function Begin(this: void, name: string, p_open: boolean, windowsFlags: WindowFlag[], inside: (this: void) => void): boolean;
