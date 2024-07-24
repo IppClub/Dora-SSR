@@ -335,17 +335,11 @@ static void imgui__push_text_wrap_pos(float wrap_pos_x) {
 static void imgui__pop_text_wrap_pos() {
 	ImGui::PopTextWrapPos();
 }
-static void imgui__push_tab_stop(int32_t v) {
-	ImGui::PushTabStop(v != 0);
+static void imgui__push_item_flag(int32_t flag, int32_t enabled) {
+	ImGui::PushItemFlag(s_cast<uint32_t>(flag), enabled != 0);
 }
-static void imgui__pop_tab_stop() {
-	ImGui::PopTabStop();
-}
-static void imgui__push_button_repeat(int32_t repeat) {
-	ImGui::PushButtonRepeat(repeat != 0);
-}
-static void imgui__pop_button_repeat() {
-	ImGui::PopButtonRepeat();
+static void imgui__pop_item_flag() {
+	ImGui::PopItemFlag();
 }
 static void imgui_separator() {
 	ImGui::Separator();
@@ -445,6 +439,12 @@ static void imgui_table_headers_row() {
 }
 static void imgui_bullet_item() {
 	ImGui::Bullet();
+}
+static int32_t imgui_text_link(int64_t label) {
+	return ImGui::Binding::TextLink(*str_from(label)) ? 1 : 0;
+}
+static void imgui_text_link_open_url(int64_t label, int64_t url) {
+	ImGui::Binding::TextLinkOpenURL(*str_from(label), *str_from(url));
 }
 static void imgui_set_window_focus(int64_t name) {
 	ImGui::Binding::SetWindowFocus(*str_from(name));
@@ -749,10 +749,8 @@ static void linkImGui(wasm3::module3& mod) {
 	mod.link_optional("*", "imgui_calc_item_width", imgui_calc_item_width);
 	mod.link_optional("*", "imgui__push_text_wrap_pos", imgui__push_text_wrap_pos);
 	mod.link_optional("*", "imgui__pop_text_wrap_pos", imgui__pop_text_wrap_pos);
-	mod.link_optional("*", "imgui__push_tab_stop", imgui__push_tab_stop);
-	mod.link_optional("*", "imgui__pop_tab_stop", imgui__pop_tab_stop);
-	mod.link_optional("*", "imgui__push_button_repeat", imgui__push_button_repeat);
-	mod.link_optional("*", "imgui__pop_button_repeat", imgui__pop_button_repeat);
+	mod.link_optional("*", "imgui__push_item_flag", imgui__push_item_flag);
+	mod.link_optional("*", "imgui__pop_item_flag", imgui__pop_item_flag);
 	mod.link_optional("*", "imgui_separator", imgui_separator);
 	mod.link_optional("*", "imgui_same_line", imgui_same_line);
 	mod.link_optional("*", "imgui_new_line", imgui_new_line);
@@ -786,6 +784,8 @@ static void linkImGui(wasm3::module3& mod) {
 	mod.link_optional("*", "imgui_table_setup_scroll_freeze", imgui_table_setup_scroll_freeze);
 	mod.link_optional("*", "imgui_table_headers_row", imgui_table_headers_row);
 	mod.link_optional("*", "imgui_bullet_item", imgui_bullet_item);
+	mod.link_optional("*", "imgui_text_link", imgui_text_link);
+	mod.link_optional("*", "imgui_text_link_open_url", imgui_text_link_open_url);
 	mod.link_optional("*", "imgui_set_window_focus", imgui_set_window_focus);
 	mod.link_optional("*", "imgui_separator_text", imgui_separator_text);
 	mod.link_optional("*", "imgui_table_header", imgui_table_header);

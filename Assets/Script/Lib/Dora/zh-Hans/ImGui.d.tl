@@ -36,11 +36,12 @@ local record ImGui
 		"ResizeGrip"
 		"ResizeGripHovered"
 		"ResizeGripActive"
-		"Tab"
 		"TabHovered"
-		"TabActive"
-		"TabUnfocused"
-		"TabUnfocusedActive"
+		"Tab"
+		"TabSelected"
+		"TabDimmed"
+		"TabDimmedSelected"
+		"TabDimmedSelectedOverline"
 		"PlotLines"
 		"PlotLinesHovered"
 		"PlotHistogram"
@@ -51,6 +52,7 @@ local record ImGui
 		"TableRowBg"
 		"TableRowBgAlt"
 		"TextSelectedBg"
+		"TextLink"
 		"DragDropTarget"
 		"NavHighlight"
 		"NavWindowingHighlight"
@@ -163,25 +165,27 @@ local record ImGui
 		""
 		"CharsDecimal"
 		"CharsHexadecimal"
+		"CharsScientific"
 		"CharsUppercase"
 		"CharsNoBlank"
-		"AutoSelectAll"
+		"AllowTabInput"
 		"EnterReturnsTrue"
+		"EscapeClearsAll"
+		"CtrlEnterForNewLine"
+		"ReadOnly"
+		"Password"
+		"AlwaysOverwrite"
+		"AutoSelectAll"
+		"ParseEmptyRefVal"
+		"DisplayEmptyRefVal"
+		"NoHorizontalScroll"
+		"NoUndoRedo"
 		"CallbackCompletion"
 		"CallbackHistory"
 		"CallbackAlways"
 		"CallbackCharFilter"
-		"AllowTabInput"
-		"CtrlEnterForNewLine"
-		"NoHorizontalScroll"
-		"AlwaysOverwrite"
-		"ReadOnly"
-		"Password"
-		"NoUndoRedo"
-		"CharsScientific"
 		"CallbackResize"
 		"CallbackEdit"
-		"EscapeClearsAll"
 	end
 	enum TreeNodeFlag
 		""
@@ -204,7 +208,7 @@ local record ImGui
 	end
 	enum SelectableFlag
 		""
-		"DontClosePopups"
+		"NoAutoClosePopups"
 		"SpanAllColumns"
 		"AllowDoubleClick"
 		"Disabled"
@@ -293,6 +297,14 @@ local record ImGui
 		"AnyPopupId"
 		"AnyPopupLevel"
 		"AnyPopup"
+	end
+	enum ItemFlags
+		""
+		"NoTabStop"
+		"NoNav"
+		"NoNavDefaultFocus"
+		"ButtonRepeat"
+		"AutoClosePopups"
 	end
 	enum GlyphRange
 		"Default"
@@ -764,7 +776,7 @@ local record ImGui
 	PushTextWrapPos: function(wrap_pos_x: number --[[0.0]], inside: function())
 	PushTextWrapPos: function(inside: function())
 	PushAllowKeyboardFocus: function(v: boolean, inside: function())
-	PushButtonRepeat: function(repeated: boolean, inside: function())
+	PushItemFlag: function(flags: {ItemFlags}, enabled: boolean, inside: function())
 
 	Separator: function()
 	SeparatorText: function(text: string)
@@ -809,6 +821,8 @@ local record ImGui
 	GetID: function(str_id: string): integer
 
 	BulletItem: function()
+	TextLink: function(label: string): boolean
+	TextLinkOpenURL: function(label: string, url?: string)
 	Button: function(
 		label: string,
 		size?: Vec2 --[[Vec2.zero]]

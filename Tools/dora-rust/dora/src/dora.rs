@@ -1512,6 +1512,36 @@ impl Slot {
 	/// }));
 	/// ```
 	pub const BUTTON_UP: &'static str = "ButtonUp";
+	/// The ButtonPressed slot is triggered when a game controller button is being pressed.
+	/// Triggers after setting `node.set_controller_enabled(true)`.
+	/// This slot is triggered every frame while the button is being pressed.
+	///
+	/// # Callback Arguments
+	///
+	/// * controllerId: i32 - The controller id, incrementing from 0 when multiple controllers connected.
+	/// * buttonName: String - The name of the button that is being pressed.
+	///
+	/// # Callback Example
+	///
+	/// ```
+	/// node.set_controller_enabled(true);
+	/// node.slot(Slot::BUTTON_PRESSED, Box::new(|stack| {
+	/// 	let (
+	/// 		controllerId,
+	/// 		buttonName
+	/// 	) = match (
+	/// 		stack.pop_i32(),
+	/// 		stack.pop_str()
+	/// 	) {
+	/// 		(Some(controllerId), Some(buttonName)) => (controllerId, buttonName),
+	/// 		_ => return,
+	/// 	};
+	/// 	if controllerId == 0 && buttonName == ButtonName::DPUp.as_ref() {
+	/// 		p!("DPad up button pressed!");
+	/// 	}
+	/// }));
+	/// ```
+	pub const BUTTON_PRESSED: &'static str = "ButtonPressed";
 	/// The Axis slot is triggered when a game controller axis changed.
 	/// Triggers after setting `node.set_controller_enabled(true)`.
 	///
@@ -2890,25 +2920,27 @@ pub enum ImGuiChildFlag {
 pub enum ImGuiInputTextFlag {
 	CharsDecimal = 1 << 0,
 	CharsHexadecimal = 1 << 1,
-	CharsUppercase = 1 << 2,
-	CharsNoBlank = 1 << 3,
-	AutoSelectAll = 1 << 4,
-	EnterReturnsTrue = 1 << 5,
-	CallbackCompletion = 1 << 6,
-	CallbackHistory = 1 << 7,
-	CallbackAlways = 1 << 8,
-	CallbackCharFilter = 1 << 9,
-	AllowTabInput = 1 << 10,
-	CtrlEnterForNewLine = 1 << 11,
-	NoHorizontalScroll = 1 << 12,
-	AlwaysOverwrite = 1 << 13,
-	ReadOnly = 1 << 14,
-	Password = 1 << 15,
+	CharsScientific = 1 << 2,
+	CharsUppercase = 1 << 3,
+	CharsNoBlank = 1 << 4,
+	AllowTabInput = 1 << 5,
+	EnterReturnsTrue = 1 << 6,
+	EscapeClearsAll = 1 << 7,
+	CtrlEnterForNewLine = 1 << 8,
+	ReadOnly = 1 << 9,
+	Password = 1 << 10,
+	AlwaysOverwrite = 1 << 11,
+	AutoSelectAll = 1 << 12,
+	ParseEmptyRefVal = 1 << 13,
+	DisplayEmptyRefVal = 1 << 14,
+	NoHorizontalScroll = 1 << 15,
 	NoUndoRedo = 1 << 16,
-	CharsScientific = 1 << 17,
-	CallbackResize = 1 << 18,
-	CallbackEdit = 1 << 19,
-	EscapeClearsAll = 1 << 20
+	CallbackCompletion = 1 << 17,
+	CallbackHistory = 1 << 18,
+	CallbackAlways = 1 << 19,
+	CallbackCharFilter = 1 << 20,
+	CallbackResize = 1 << 21,
+	CallbackEdit = 1 << 22
 }
 
 #[bitflags]
@@ -2982,11 +3014,13 @@ pub enum ImGuiCol {
 	ResizeGrip,
 	ResizeGripHovered,
 	ResizeGripActive,
-	Tab,
 	TabHovered,
-	TabActive,
-	TabUnfocused,
-	TabUnfocusedActive,
+	Tab,
+	TabSelected,
+	TabSelectedOverline,
+	TabDimmed,
+	TabDimmedSelected,
+	TabDimmedSelectedOverline,
 	PlotLines,
 	PlotLinesHovered,
 	PlotHistogram,
@@ -2996,6 +3030,7 @@ pub enum ImGuiCol {
 	TableBorderLight,
 	TableRowBg,
 	TableRowBgAlt,
+	TextLink,
 	TextSelectedBg,
 	DragDropTarget,
 	NavHighlight,
@@ -3175,6 +3210,17 @@ pub enum ImGuiStyleVec2 {
 	SelectableTextAlign = 25,
 	SeparatorTextAlign = 27,
 	SeparatorTextPadding = 28
+}
+
+#[bitflags]
+#[repr(u32)]
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub enum ImGuiItemFlags {
+	NoTabStop = 1 << 0,
+	NoNav = 1 << 1,
+	NoNavDefaultFocus = 1 << 2,
+	ButtonRepeat = 1 << 3,
+	AutoClosePopups = 1 << 4
 }
 
 #[bitflags]
@@ -3697,15 +3743,10 @@ impl ImGui {
 		inside();
 		ImGui::_pop_text_wrap_pos();
 	}
-	pub fn push_tab_stop<C>(v: bool, inside: C) where C: FnOnce() {
-		ImGui::_push_tab_stop(v);
+	pub fn push_item_flag<C>(flags: BitFlags<ImGuiItemFlags>, v: bool, inside: C) where C: FnOnce() {
+		ImGui::_push_item_flag(flags.bits() as i32, v);
 		inside();
-		ImGui::_pop_tab_stop();
-	}
-	pub fn push_button_repeat<C>(repeat: bool, inside: C) where C: FnOnce() {
-		ImGui::_push_button_repeat(repeat);
-		inside();
-		ImGui::_pop_button_repeat();
+		ImGui::_pop_item_flag();
 	}
 	pub fn push_id<C>(str_id: &str, inside: C) where C: FnOnce() {
 		ImGui::_push_id(str_id);

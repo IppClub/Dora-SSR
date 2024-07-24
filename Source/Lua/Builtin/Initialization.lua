@@ -952,8 +952,8 @@ do
 	ImGui.PopTextWrapPos = nil
 	ImGui.PushAllowKeyboardFocus = pairCallC(ImGui.PushAllowKeyboardFocus, ImGui.PopAllowKeyboardFocus)
 	ImGui.PopAllowKeyboardFocus = nil
-	ImGui.PushButtonRepeat = pairCallC(ImGui.PushButtonRepeat, ImGui.PopButtonRepeat)
-	ImGui.PopButtonRepeat = nil
+	ImGui.PushItemFlag = pairCallC(ImGui.PushItemFlag, ImGui.PopItemFlag)
+	ImGui.PopItemFlag = nil
 	ImGui.PushID = pairCallC(ImGui.PushID, ImGui.PopID)
 	ImGui.PopID = nil
 	local TreePop = ImGui.TreePop

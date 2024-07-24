@@ -330,11 +330,12 @@ static void DoraSetupTheme(Color color) {
 	colors[ImGuiCol_ResizeGrip] = ImVec4(0.77f, 0.77f, 0.77f, 0.04f);
 	colors[ImGuiCol_ResizeGripHovered] = MED(0.78f);
 	colors[ImGuiCol_ResizeGripActive] = MED(1.00f);
-	colors[ImGuiCol_Tab] = MED(0.80f);
 	colors[ImGuiCol_TabHovered] = HI(0.90f);
-	colors[ImGuiCol_TabActive] = HI(0.90f);
-	colors[ImGuiCol_TabUnfocused] = MED(0.80f);
-	colors[ImGuiCol_TabUnfocusedActive] = HI(0.90f);
+	colors[ImGuiCol_Tab] = MED(0.80f);
+	colors[ImGuiCol_TabSelected] = HI(0.90f);
+	colors[ImGuiCol_TabDimmed] = MED(0.80f);
+	colors[ImGuiCol_TabDimmedSelected] = HI(0.90f);
+	colors[ImGuiCol_TabDimmedSelectedOverline] = HI(1.00f);
 	colors[ImGuiCol_PlotLines] = TEXT(0.63f);
 	colors[ImGuiCol_PlotLinesHovered] = MED(1.00f);
 	colors[ImGuiCol_PlotHistogram] = TEXT(0.63f);
@@ -345,6 +346,7 @@ static void DoraSetupTheme(Color color) {
 	colors[ImGuiCol_TableRowBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
 	colors[ImGuiCol_TableRowBgAlt] = ImVec4(1.00f, 1.00f, 1.00f, 0.06f);
 	colors[ImGuiCol_TextSelectedBg] = MED(0.43f);
+	colors[ImGuiCol_TextLink] = colors[ImGuiCol_HeaderActive];
 	colors[ImGuiCol_DragDropTarget] = ImVec4(1.00f, 1.00f, 0.00f, 0.90f);
 	colors[ImGuiCol_NavHighlight] = HI(1.00f);
 	colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.00f, 1.00f, 1.00f, 0.70f);
@@ -932,7 +934,7 @@ void ImGuiDora::showConsole(bool* pOpen) {
 	_console->Draw(useChinese ? r_cast<const char*>(u8"Dora 控制台###DoraConsole") : "Dora Console###DoraConsole", useChinese, pOpen);
 }
 
-static void SetPlatformImeDataFn(ImGuiViewport*, ImGuiPlatformImeData* data) {
+static void PlatformSetImeDataFn(ImGuiContext*, ImGuiViewport*, ImGuiPlatformImeData* data) {
 	ImGuiDora::setImePositionHint(s_cast<int>(data->InputPos.x), s_cast<int>(data->InputPos.y + data->InputLineHeight));
 }
 
@@ -1001,7 +1003,7 @@ bool ImGuiDora::init() {
 
 	io.SetClipboardTextFn = ImGuiDora::setClipboardText;
 	io.GetClipboardTextFn = ImGuiDora::getClipboardText;
-	io.SetPlatformImeDataFn = SetPlatformImeDataFn;
+	io.PlatformSetImeDataFn = PlatformSetImeDataFn;
 	io.ClipboardUserData = nullptr;
 
 	_iniFilePath = Path::concat({SharedContent.getWritablePath(), "imgui.ini"sv});

@@ -114,10 +114,8 @@ extern "C" {
 	fn imgui_calc_item_width() -> f32;
 	fn imgui__push_text_wrap_pos(wrap_pos_x: f32);
 	fn imgui__pop_text_wrap_pos();
-	fn imgui__push_tab_stop(v: i32);
-	fn imgui__pop_tab_stop();
-	fn imgui__push_button_repeat(repeat: i32);
-	fn imgui__pop_button_repeat();
+	fn imgui__push_item_flag(flag: i32, enabled: i32);
+	fn imgui__pop_item_flag();
 	fn imgui_separator();
 	fn imgui_same_line(pos_x: f32, spacing_w: f32);
 	fn imgui_new_line();
@@ -151,6 +149,8 @@ extern "C" {
 	fn imgui_table_setup_scroll_freeze(cols: i32, rows: i32);
 	fn imgui_table_headers_row();
 	fn imgui_bullet_item();
+	fn imgui_text_link(label: i64) -> i32;
+	fn imgui_text_link_open_url(label: i64, url: i64);
 	fn imgui_set_window_focus(name: i64);
 	fn imgui_separator_text(text: i64);
 	fn imgui_table_header(label: i64);
@@ -546,17 +546,11 @@ impl ImGui {
 	pub(crate) fn _pop_text_wrap_pos() {
 		unsafe { imgui__pop_text_wrap_pos(); }
 	}
-	pub(crate) fn _push_tab_stop(v: bool) {
-		unsafe { imgui__push_tab_stop(if v { 1 } else { 0 }); }
+	pub(crate) fn _push_item_flag(flag: i32, enabled: bool) {
+		unsafe { imgui__push_item_flag(flag, if enabled { 1 } else { 0 }); }
 	}
-	pub(crate) fn _pop_tab_stop() {
-		unsafe { imgui__pop_tab_stop(); }
-	}
-	pub(crate) fn _push_button_repeat(repeat: bool) {
-		unsafe { imgui__push_button_repeat(if repeat { 1 } else { 0 }); }
-	}
-	pub(crate) fn _pop_button_repeat() {
-		unsafe { imgui__pop_button_repeat(); }
+	pub(crate) fn _pop_item_flag() {
+		unsafe { imgui__pop_item_flag(); }
 	}
 	pub fn separator() {
 		unsafe { imgui_separator(); }
@@ -656,6 +650,12 @@ impl ImGui {
 	}
 	pub fn bullet_item() {
 		unsafe { imgui_bullet_item(); }
+	}
+	pub fn text_link(label: &str) -> bool {
+		unsafe { return imgui_text_link(crate::dora::from_string(label)) != 0; }
+	}
+	pub fn text_link_open_url(label: &str, url: &str) {
+		unsafe { imgui_text_link_open_url(crate::dora::from_string(label), crate::dora::from_string(url)); }
 	}
 	pub fn set_window_focus(name: &str) {
 		unsafe { imgui_set_window_focus(crate::dora::from_string(name)); }

@@ -159,26 +159,28 @@ static ImGuiInputTextFlags_ getInputTextFlag(String flag) {
 	switch (Switch::hash(flag)) {
 		case "CharsDecimal"_hash: return ImGuiInputTextFlags_CharsDecimal;
 		case "CharsHexadecimal"_hash: return ImGuiInputTextFlags_CharsHexadecimal;
+		case "CharsScientific"_hash: return ImGuiInputTextFlags_CharsScientific;
 		case "CharsUppercase"_hash: return ImGuiInputTextFlags_CharsUppercase;
 		case "CharsNoBlank"_hash: return ImGuiInputTextFlags_CharsNoBlank;
-		case "AutoSelectAll"_hash: return ImGuiInputTextFlags_AutoSelectAll;
+		case "AllowTabInput"_hash: return ImGuiInputTextFlags_AllowTabInput;
 		case "EnterReturnsTrue"_hash: return ImGuiInputTextFlags_EnterReturnsTrue;
+		case "EscapeClearsAll"_hash: return ImGuiInputTextFlags_EscapeClearsAll;
+		case "CtrlEnterForNewLine"_hash: return ImGuiInputTextFlags_CtrlEnterForNewLine;
+		case "ReadOnly"_hash: return ImGuiInputTextFlags_ReadOnly;
+		case "Password"_hash: return ImGuiInputTextFlags_Password;
+		case "AlwaysOverwrite"_hash: return ImGuiInputTextFlags_AlwaysOverwrite;
+		case "AutoSelectAll"_hash: return ImGuiInputTextFlags_AutoSelectAll;
+		case "ParseEmptyRefVal"_hash: return ImGuiInputTextFlags_ParseEmptyRefVal;
+		case "DisplayEmptyRefVal"_hash: return ImGuiInputTextFlags_DisplayEmptyRefVal;
+		case "NoHorizontalScroll"_hash: return ImGuiInputTextFlags_NoHorizontalScroll;
+		case "NoUndoRedo"_hash: return ImGuiInputTextFlags_NoUndoRedo;
 		case "CallbackCompletion"_hash: return ImGuiInputTextFlags_CallbackCompletion;
 		case "CallbackHistory"_hash: return ImGuiInputTextFlags_CallbackHistory;
 		case "CallbackAlways"_hash: return ImGuiInputTextFlags_CallbackAlways;
 		case "CallbackCharFilter"_hash: return ImGuiInputTextFlags_CallbackCharFilter;
-		case "AllowTabInput"_hash: return ImGuiInputTextFlags_AllowTabInput;
-		case "CtrlEnterForNewLine"_hash: return ImGuiInputTextFlags_CtrlEnterForNewLine;
-		case "NoHorizontalScroll"_hash: return ImGuiInputTextFlags_NoHorizontalScroll;
-		case "AlwaysOverwrite"_hash: return ImGuiInputTextFlags_AlwaysOverwrite;
-		case "ReadOnly"_hash: return ImGuiInputTextFlags_ReadOnly;
-		case "Password"_hash: return ImGuiInputTextFlags_Password;
-		case "NoUndoRedo"_hash: return ImGuiInputTextFlags_NoUndoRedo;
-		case "CharsScientific"_hash: return ImGuiInputTextFlags_CharsScientific;
 		case "CallbackResize"_hash: return ImGuiInputTextFlags_CallbackResize;
 		case "CallbackEdit"_hash: return ImGuiInputTextFlags_CallbackEdit;
-		case "EscapeClearsAll"_hash: return ImGuiInputTextFlags_EscapeClearsAll;
-		case ""_hash: return ImGuiInputTextFlags_(0);
+		case ""_hash: return ImGuiInputTextFlags_None;
 		default:
 			Issue("ImGui input text flag named \"{}\" is invalid.", flag.toString());
 			return ImGuiInputTextFlags_(0);
@@ -228,7 +230,7 @@ static uint32_t TreeNodeFlags(Slice* flags, int count) {
 
 static ImGuiSelectableFlags_ getSelectableFlag(String flag) {
 	switch (Switch::hash(flag)) {
-		case "DontClosePopups"_hash: return ImGuiSelectableFlags_DontClosePopups;
+		case "NoAutoClosePopups"_hash: return ImGuiSelectableFlags_NoAutoClosePopups;
 		case "SpanAllColumns"_hash: return ImGuiSelectableFlags_SpanAllColumns;
 		case "AllowDoubleClick"_hash: return ImGuiSelectableFlags_AllowDoubleClick;
 		case "Disabled"_hash: return ImGuiSelectableFlags_Disabled;
@@ -284,9 +286,10 @@ static uint32_t ColorIndex(String col) {
 		case "ResizeGripActive"_hash: return ImGuiCol_ResizeGripActive;
 		case "Tab"_hash: return ImGuiCol_Tab;
 		case "TabHovered"_hash: return ImGuiCol_TabHovered;
-		case "TabActive"_hash: return ImGuiCol_TabActive;
-		case "TabUnfocused"_hash: return ImGuiCol_TabUnfocused;
-		case "TabUnfocusedActive"_hash: return ImGuiCol_TabUnfocusedActive;
+		case "TabSelected"_hash: return ImGuiCol_TabSelected;
+		case "TabDimmed"_hash: return ImGuiCol_TabDimmed;
+		case "TabDimmedSelected"_hash: return ImGuiCol_TabDimmedSelected;
+		case "TabDimmedSelectedOverline"_hash: return ImGuiCol_TabDimmedSelectedOverline;
 		case "PlotLines"_hash: return ImGuiCol_PlotLines;
 		case "PlotLinesHovered"_hash: return ImGuiCol_PlotLinesHovered;
 		case "PlotHistogram"_hash: return ImGuiCol_PlotHistogram;
@@ -1512,6 +1515,28 @@ bool SliderAngle(String label, CallStack* stack, float v_degrees_min, float v_de
 	bool changed = ImGui::SliderAngle(label.c_str(), &v_rad, v_degrees_min, v_degrees_max);
 	stack->push(s_cast<double>(v_rad));
 	return changed;
+}
+
+static ImGuiItemFlags_ getItemFlag(String flag) {
+	switch (Switch::hash(flag)) {
+		case ""_hash: return ImGuiItemFlags_None;
+		case "NoTabStop"_hash: return ImGuiItemFlags_NoTabStop;
+		case "NoNav"_hash: return ImGuiItemFlags_NoNav;
+		case "NoNavDefaultFocus"_hash: return ImGuiItemFlags_NoNavDefaultFocus;
+		case "ButtonRepeat"_hash: return ImGuiItemFlags_ButtonRepeat;
+		case "AutoClosePopups"_hash: return ImGuiItemFlags_AutoClosePopups;
+		default:
+			Issue("ImGui item flag named \"{}\" is invalid.", flag.toString());
+			return ImGuiItemFlags_None;
+	}
+}
+
+void PushItemFlag(Slice* options, int optionCount, bool enabled) {
+	uint32_t flags = 0;
+	for (int i = 0; i < optionCount; i++) {
+		flags |= getItemFlag(options[i]);
+	}
+	ImGui::PushItemFlag(s_cast<int>(flags), enabled);
 }
 
 NS_END(ImGui::Binding)

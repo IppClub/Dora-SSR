@@ -753,6 +753,8 @@ bool ListBox(String label, CallStack* stack, const std::vector<std::string>& ite
 
 bool SliderAngle(String label, CallStack* stack, float v_degrees_min, float v_degrees_max);
 
+void PushItemFlag(Slice* options, int optionCount, bool enabled);
+
 inline void TreePush(String str_id) { ImGui::TreePush(str_id.c_str()); }
 inline bool BeginListBox(String label, Vec2 size) { return ImGui::BeginListBox(label.c_str(), size); }
 inline void Value(String prefix, bool b) { ImGui::Value(prefix.c_str(), b); }
@@ -760,5 +762,8 @@ inline bool BeginMenu(String label, bool enabled) { return ImGui::BeginMenu(labe
 inline bool MenuItem(String label, String shortcut, bool selected, bool enabled) { return ImGui::MenuItem(label.c_str(), shortcut.c_str(), selected, enabled); }
 inline void OpenPopup(String str_id) { ImGui::OpenPopup(str_id.c_str()); }
 inline bool BeginPopup(String str_id) { return ImGui::BeginPopup(str_id.c_str()); }
+
+inline bool TextLink(String label) { return ImGui::TextLink(label.c_str()); }
+inline void TextLinkOpenURL(String label, String url) { ImGui::TextLinkOpenURL(label.c_str(), url.c_str()); }
 
 NS_END(ImGui::Binding)
