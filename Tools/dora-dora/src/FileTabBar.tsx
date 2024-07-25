@@ -149,12 +149,12 @@ export default memo(function FileTabBar(props: FileTabBarProps) {
 				aria-label="styled tabs"
 			>
 				{
-					items.map((item) =>
+					items.map((item, index) =>
 						<StyledTab
 							onContextMenu={onContextMenu}
 							key={item.key}
 							tooltip={item.key}
-							label={item.contentModified !== null ? '*' + item.title : item.title}
+							label={(index < 9 ? index + 1 + '.' : '') + (item.contentModified !== null ? '*' + item.title : item.title)}
 							status={item.status}
 						/>
 					)
