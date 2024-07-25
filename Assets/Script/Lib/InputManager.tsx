@@ -1761,11 +1761,11 @@ export function ButtonPad(props: ButtonPadProps) {
 				x={(buttonSize + buttonPadding / 2) / 2 + width / 2}
 				y={buttonSize + buttonPadding / 2 + height / 2}
 			>
-				<Button text='B' fontName={fontName}
+				<Button text='X' fontName={fontName}
 					color={color} primaryOpacity={primaryOpacity}
 					buttonSize={buttonSize}
 					x={-buttonSize * 2 - buttonPadding}
-					onMount={onMount(ButtonName.b)}
+					onMount={onMount(ButtonName.x)}
 				/>
 				<Button text='Y' fontName={fontName}
 					color={color} primaryOpacity={primaryOpacity}
@@ -1778,12 +1778,12 @@ export function ButtonPad(props: ButtonPadProps) {
 					y={-buttonSize * 2 - buttonPadding}
 					onMount={onMount(ButtonName.a)}
 				/>
-				<Button text='X' fontName={fontName}
+				<Button text='B' fontName={fontName}
 					color={color} primaryOpacity={primaryOpacity}
 					buttonSize={buttonSize}
 					x={buttonSize + buttonPadding / 2}
 					y={-buttonSize * 2 - buttonPadding}
-					onMount={onMount(ButtonName.x)}
+					onMount={onMount(ButtonName.b)}
 				/>
 			</node>
 		</align-node>

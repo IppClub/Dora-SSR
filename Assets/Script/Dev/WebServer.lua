@@ -1024,7 +1024,7 @@ HttpServer:postSchedule("/complete", function(req) -- 385
 				until true -- 448
 				if "tl" == lang or "lua" == lang then -- 449
 					local suggestions = teal.completeAsync(content, line, row, searchPath) -- 450
-					if not line:match("[%.:][%w_]+[%.:]?$") and not line:match("[%w_]+[%.:]$") then -- 451
+					if not line:match("[%.:]$") then -- 451
 						local checkSet -- 452
 						do -- 452
 							local _tbl_0 = { } -- 452
