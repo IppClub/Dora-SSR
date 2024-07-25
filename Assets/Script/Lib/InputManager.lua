@@ -1860,13 +1860,13 @@ function ____exports.ButtonPad(self, props) -- 1742
             React:createElement( -- 1758
                 Button, -- 1764
                 { -- 1764
-                    text = "B", -- 1764
+                    text = "X", -- 1764
                     fontName = fontName, -- 1764
                     color = color, -- 1764
                     primaryOpacity = primaryOpacity, -- 1764
                     buttonSize = buttonSize, -- 1764
                     x = -buttonSize * 2 - buttonPadding, -- 1764
-                    onMount = onMount("b") -- 1764
+                    onMount = onMount("x") -- 1764
                 } -- 1764
             ), -- 1764
             React:createElement( -- 1764
@@ -1896,14 +1896,14 @@ function ____exports.ButtonPad(self, props) -- 1742
             React:createElement( -- 1774
                 Button, -- 1781
                 { -- 1781
-                    text = "X", -- 1781
+                    text = "B", -- 1781
                     fontName = fontName, -- 1781
                     color = color, -- 1781
                     primaryOpacity = primaryOpacity, -- 1781
                     buttonSize = buttonSize, -- 1781
                     x = buttonSize + buttonPadding / 2, -- 1781
                     y = -buttonSize * 2 - buttonPadding, -- 1781
-                    onMount = onMount("x") -- 1781
+                    onMount = onMount("b") -- 1781
                 } -- 1781
             ) -- 1781
         ) -- 1781

@@ -96,7 +96,7 @@ local inputManager = InputManager.CreateManager({ -- 20
 			{ -- 74
 				name = "AttackUp", -- 74
 				trigger = Trigger.Selector({ -- 76
-					Trigger.ButtonUp("b"), -- 76
+					Trigger.ButtonUp("x"), -- 76
 					Trigger.KeyUp("J") -- 77
 				}) -- 75
 			}, -- 74

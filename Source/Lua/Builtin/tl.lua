@@ -143,6 +143,7 @@ local tl = {PrettyPrintOptions = {}, TypeCheckOptions = {}, Env = {}, Symbol = {
 
 
 
+
 tl.version = function()
 	return VERSION
 end
@@ -10286,6 +10287,7 @@ function tl.get_types(result, trenv)
 			table.insert(args, mark_array({ get_typenum(fnarg), nil }))
 		end
 		ti.args = mark_array(args)
+		ti.is_method = rt.is_method
 		local rets = {}
 		for _, fnarg in ipairs(rt.rets) do
 			table.insert(rets, mark_array({ get_typenum(fnarg), nil }))
@@ -10836,10 +10838,12 @@ end
 
 local function get_resolving_text(line)
 	local lineLen = #line
-	line = line:gsub("%(.-%)", "")
+	line = line:gsub("%s*%(.-%)%s*", "")
+	line = line:gsub("%s*{.-}%s*", "")
 	while lineLen > #line do
 		lineLen = #line
-		line = line:gsub("%(.-%)", "")
+		line = line:gsub("%s*%(.-%)%s*", "")
+		line = line:gsub("%s*{.-}%s*", "")
 	end
 	local resolve = line:match("[%w_%.:]+$")
 	return resolve
@@ -10913,19 +10917,13 @@ tl.dora_complete = function(codes, line, row, search_path)
 		if #chains == 0 then
 			for k, v in pairs(symbols) do
 				local t = type_report.types[v]
-				local itemType = t.args ~= nil and "function" or "variable"
-				if itemType == "variable" and t.str:match("^polymorphic") then
-					itemType = "function"
-				end
+				local itemType = (t.args ~= nil or t.types) and "function" or "variable"
 				res[#res + 1] = {k, t.str, itemType}
 			end
 			if type_report.globals then
 				for k, v in pairs(type_report.globals) do
 					local t = type_report.types[v]
-					local itemType = t.args ~= nil and "function" or "variable"
-					if itemType == "variable" and t.str:match("^polymorphic") then
-						itemType = "function"
-					end
+					local itemType = (t.args ~= nil or t.types) and "function" or "variable"
 					res[#res + 1] = {k, t.str, itemType}
 				end
 			end
@@ -10949,6 +10947,14 @@ tl.dora_complete = function(codes, line, row, search_path)
 				end
 			end
 			if current_type then
+				if line:match("[%)}]%s*[%.:]$") then
+					if current_type.meta_fields then
+						local id = current_type.meta_fields["__call"]
+						if id then
+							current_type = get_real_type(type_report, id)
+						end
+					end
+				end
 				local fields = current_type.fields
 				if not fields then
 					if current_type.types then
@@ -10968,12 +10974,36 @@ tl.dora_complete = function(codes, line, row, search_path)
 				if fields then
 					for k, v in pairs(fields) do
 						local t = type_report.types[v]
-						if (t.args == nil and not t.str:match("^polymorphic")) and lastChar == ":" then
-							goto continue
-						end
-						local itemType = t.args ~= nil and "method" or "field"
-						if itemType == "field" and t.str:match("^polymorphic") then
-							itemType = "method"
+						local itemType = t.args ~= nil and t.is_method and "method" or "field"
+						if lastChar == ":" then
+							if itemType == "field" and t.types then
+								for i = 1, #t.types do
+									local rt = type_report.types[t.types[i]]
+									if rt and rt.args and rt.is_method then
+										itemType = "method"
+									end
+								end
+								if itemType ~= "method" then
+									goto continue
+								end
+							elseif itemType ~= "method" then
+								goto continue
+							end
+						else
+							if itemType == "field" and t.types then
+								itemType = "method"
+								for i = 1, #t.types do
+									local rt = type_report.types[t.types[i]]
+									if rt and rt.args and not rt.is_method then
+										itemType = "field"
+									end
+								end
+								if itemType ~= "field" then
+									goto continue
+								end
+							elseif itemType ~= "field" then
+								goto continue
+							end
 						end
 						res[#res + 1] = {k, t.str, itemType}
 						::continue::
