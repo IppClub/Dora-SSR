@@ -163,7 +163,7 @@ threadLoop(() => {
 		let changed = false;
 		[changed, currentFile] = ImGui.Combo("File", currentFile, files);
 		if (changed) {
-			runner = YarnRunner(testFiles[currentFile], "Start", {}, commands, true);
+			runner = YarnRunner(testFiles[currentFile - 1], "Start", {}, commands, true);
 			texts = [];
 			advance();
 		}
