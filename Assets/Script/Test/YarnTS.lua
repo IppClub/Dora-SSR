@@ -216,7 +216,7 @@ threadLoop(function() -- 156
             changed, currentFile = ImGui.Combo("File", currentFile, files) -- 164
             if changed then -- 164
                 runner = YarnRunner( -- 166
-                    testFiles[currentFile + 1], -- 166
+                    testFiles[currentFile], -- 166
                     "Start", -- 166
                     {}, -- 166
                     commands, -- 166
