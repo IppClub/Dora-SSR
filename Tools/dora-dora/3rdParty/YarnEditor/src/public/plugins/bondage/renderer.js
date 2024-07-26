@@ -12,11 +12,9 @@ export var yarnRender = function(app) {
 	this.commandsPassedLog = commandsPassedLog;
 	let commandPassed = '';
 	this.commandPassed = commandPassed;
-	let finished = true;
-	this.finished = finished;
+	this.finished = false;
 
 	this.visitedChapters = []; // to keep track of all visited start chapters
-	this.self = this;
 	this.vnChoiceSelectionCursor = '>';
 	this.startTimeWait;
 	this.vnSelectedChoice = -1;
@@ -50,7 +48,7 @@ export var yarnRender = function(app) {
 		this.choices[this.storyChapter].push(optionText);
 		this.emiter.emit('choiceMade', optionText);
 		this.advanceRunner(this.vnSelectedChoice);
-		self.goToNext();
+		this.goToNext();
 		this.changeText();
 		vnChoices = undefined;
 		this.vnSelectedChoice = -1;
@@ -59,6 +57,9 @@ export var yarnRender = function(app) {
 	this.vnUpdateChoice = (direction = 0) => {
 		// direction: -1 or 1
 		if (this.vnSelectedChoice < 0) {
+			return;
+		}
+		if (!vnResult.options) {
 			return;
 		}
 		let attemptChoice = this.vnSelectedChoice + direction;
@@ -90,15 +91,18 @@ export var yarnRender = function(app) {
 			vnChoices.appendChild(btn);
 		});
 		emiter.emit('choiceUpdated', this.vnSelectedChoice);
-		self.updateVNHud();
+		this.updateVNHud();
 	};
 
 	this.advance = () => {
 		if (vnResult && vnResult.constructor.name !== 'OptionsResult') {
 			this.advanceRunner();
-			self.goToNext();
+			this.goToNext();
 		}
 		this.changeText();
+		if (vnResult && vnResult.isDialogueEnd) {
+			this.finished = true;
+		}
 	};
 
 	// this function is triggered on key press/release
@@ -106,10 +110,6 @@ export var yarnRender = function(app) {
 		if (this.pause) {
 			this.pause = false;
 			if (!vnResult) return;
-		}
-		if (this.isFinishedParsing(vnResult)) {
-			emiter.emit('finished');
-			return;
 		}
 		if (vnResult.constructor.name === 'TextResult') {
 			emiter.emit('textResult', vnResult.text);
@@ -125,11 +125,17 @@ export var yarnRender = function(app) {
 		}
 	};
 
-	self.goToNext = () => {
+	this.goToNext = () => {
 		if (!this.runner) return;
 		vnResult = this.runner.currentResult;
+		if (!vnResult) return;
 		if (vnResult && vnResult.markup) {
 			let text = vnResult.text;
+			if (text === "" && vnResult.markup.length > 0 && vnResult.markup[0].name === "separator") {
+				this.advanceRunner();
+				this.goToNext();
+				return;
+			}
 			for (let i = vnResult.markup.length - 1; i >= 0; i--) {
 				const item = vnResult.markup[i];
 				const {position = 0, length = 0} = item;
@@ -166,26 +172,12 @@ export var yarnRender = function(app) {
 			}
 			vnResult.text = text;
 		}
-		if (!this.isFinishedParsing(vnResult)) {
-			if (vnResult.constructor.name === 'TextResult') {
-				if (vnResult.metadata && this.node.title !== vnResult.metadata.title) {
-					this.node = self.jsonCopy(vnResult.metadata);
-					this.visitedNodes.push(vnResult.metadata.title);
-					this.emiter.emit('startedNode', this.node);
-				}
+		if (vnResult.constructor.name === 'TextResult') {
+			if (vnResult.metadata && this.node.title !== vnResult.metadata.title) {
+				this.node = this.jsonCopy(vnResult.metadata);
+				this.visitedNodes.push(vnResult.metadata.title);
+				this.emiter.emit('startedNode', this.node);
 			}
-		}
-	};
-
-	this.isFinishedParsing = nextNode => {
-		if (nextNode === undefined || vnResult === null) {
-			if (!finished) {
-				finished = true;
-			}
-			finished = true;
-			return finished;
-		} else {
-			return false;
 		}
 	};
 
@@ -195,7 +187,7 @@ export var yarnRender = function(app) {
 	};
 
 	// trigger this only on text update
-	self.updateVNHud = () => {
+	this.updateVNHud = () => {
 		if (vnChoices !== undefined) {
 			document.getElementById(htmIDtoAttachYarnTo).innerHTML = '';
 			document.getElementById(htmIDtoAttachYarnTo).appendChild(vnChoices);
@@ -294,7 +286,6 @@ export var yarnRender = function(app) {
 		});
 
 		emiter.on('finished', function() {
-			finished = true;
 			emiter.removeAllListeners();
 		});
 
@@ -303,6 +294,10 @@ export var yarnRender = function(app) {
 		} else if ('nodes' in yarnDataObject) {
 			this.jsonData = yarnDataObject.nodes;
 		} else return;
+
+		for (let node of this.jsonData) {
+			node.body = node.body.replace(/\n\s*\n/g, "\n//\n").replace("<<endif>>", "<<endif>>[separator][/separator]");
+		}
 
 		const variables = new Map();
 		playtestVariables.forEach(function(variable) {
@@ -330,7 +325,7 @@ export var yarnRender = function(app) {
 	};
 
 	this.loadYarnChapter = (storyChapter, variables) => {
-		finished = false;
+		this.finished = false;
 		this.vnSelectedChoice = -1;
 		this.storyChapter = storyChapter;
 		this.choices[this.storyChapter] = [];
@@ -354,8 +349,11 @@ export var yarnRender = function(app) {
 			this.pause = true;
 			emiter.emit('errorResult', 'string' === typeof err ? err : err.message);
 		}
-		self.goToNext();
+		this.goToNext();
 		this.changeText();
+		if (vnResult && vnResult.isDialogueEnd) {
+			this.finished = true;
+		}
 	};
 
 	// external function to check if a choice was made
@@ -382,7 +380,7 @@ export var yarnRender = function(app) {
 	};
 
 	// we need this to make copies instead of references
-	self.jsonCopy = src => {
+	this.jsonCopy = src => {
 		return JSON.parse(JSON.stringify(src));
 	};
 };
