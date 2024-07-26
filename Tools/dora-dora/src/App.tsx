@@ -518,6 +518,7 @@ export default function PersistentDrawerLeft() {
 		if (currentFile !== undefined) {
 			const {editor} = currentFile;
 			if (editor === undefined) {
+				currentFile.yarnData?.warpToFocusedNode();
 				return;
 			}
 			editor.focus();
@@ -546,7 +547,6 @@ export default function PersistentDrawerLeft() {
 					revalidateModel(model);
 				});
 			}
-			currentFile.yarnData?.warpToFocusedNode();
 		}
 	}, [currentFile, currentFile?.editor, checkFileReadonly]);
 
