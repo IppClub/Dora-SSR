@@ -25,7 +25,7 @@ struct icomp_array<Father, comp<T>> : Father
     using array_type = std::array<T, 2>;
 private:
     template<class F, class C>
-    friend class iarray_util;
+    friend struct iarray_util;
 
     KTM_FUNC array_type& to_array_impl() noexcept
     {
