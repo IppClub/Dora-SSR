@@ -12,7 +12,7 @@ export var yarnRender = function(app) {
 	this.commandsPassedLog = commandsPassedLog;
 	let commandPassed = '';
 	this.commandPassed = commandPassed;
-	this.finished = false;
+	this.finished = true;
 
 	this.visitedChapters = []; // to keep track of all visited start chapters
 	this.vnChoiceSelectionCursor = '>';
@@ -41,7 +41,7 @@ export var yarnRender = function(app) {
 
 	this.vnSelectChoice = () => {
 		let endTimeWait = new Date().getTime();
-		if (endTimeWait - this.startTimeWait < 1000) {
+		if (endTimeWait - this.startTimeWait < 100) {
 			return;
 		} // we need to wait for user to see the questions
 		const optionText = vnResult.options[this.vnSelectedChoice].text;
@@ -50,6 +50,9 @@ export var yarnRender = function(app) {
 		this.advanceRunner(this.vnSelectedChoice);
 		this.goToNext();
 		this.changeText();
+		if (vnResult && vnResult.isDialogueEnd) {
+			this.finished = true;
+		}
 		vnChoices = undefined;
 		this.vnSelectedChoice = -1;
 	};

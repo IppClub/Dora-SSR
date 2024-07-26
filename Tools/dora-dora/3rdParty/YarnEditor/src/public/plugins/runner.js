@@ -7,7 +7,6 @@ export var Runner = function({
 		onYarnEditorOpen,
 		onYarnInPreviewMode,
 		onYarnSavedNode,
-		onKeyUp,
 		onKeyDown,
 		onLoad,
 		getPluginStore,
@@ -80,10 +79,16 @@ export var Runner = function({
 		}
 	};
 
-	onKeyUp(e => {
-		if (!app.editing() || self.previewStory.finished) return;
+	onKeyDown(e => {
+		if (!app.editing() || !app.isEditorInPlayMode()) return;
 		switch (e.keyCode) {
 			case app.input.keys.Z:
+				e.preventDefault();
+				if (self.previewStory.finished) {
+					self.togglePlayMode(false);
+					self.gotoLastPlayNode();
+					return;
+				}
 				if (self.previewStory.vnSelectedChoice != -1) {
 					self.previewStory.vnSelectChoice();
 				} else {
@@ -91,24 +96,16 @@ export var Runner = function({
 				}
 				break;
 			case app.input.keys.Up:
+				e.preventDefault();
 				if (self.previewStory.vnSelectedChoice != -1) {
 					self.previewStory.vnUpdateChoice(-1);
 				}
 				break;
 			case app.input.keys.Down:
+				e.preventDefault();
 				if (self.previewStory.vnSelectedChoice != -1) {
 					self.previewStory.vnUpdateChoice(1);
 				}
-				break;
-		}
-	});
-
-	onKeyDown(e => {
-		if (!app.editing() || self.previewStory.finished) return;
-		switch (e.keyCode) {
-			case app.input.keys.Up:
-			case app.input.keys.Down:
-				e.preventDefault();
 				break;
 		}
 	});
