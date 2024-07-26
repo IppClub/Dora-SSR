@@ -94,6 +94,9 @@ export var Runner = function({
 				} else {
 					self.previewStory.advance();
 				}
+				if (self.previewStory.paused) {
+					self.previewStory.finished = true;
+				}
 				break;
 			case app.input.keys.Up:
 				e.preventDefault();
@@ -124,7 +127,7 @@ export var Runner = function({
 		};
 
 		this.advanceStoryPlayMode = function() {
-			if (!self.previewStory.finished) {
+			if (!self.previewStory.finished && !self.previewStory.paused) {
 				self.previewStory.advance();
 			} else {
 				self.togglePlayMode(false);

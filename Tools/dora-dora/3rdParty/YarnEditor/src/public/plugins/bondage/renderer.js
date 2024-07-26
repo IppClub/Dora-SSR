@@ -22,7 +22,7 @@ export var yarnRender = function(app) {
 	this.choices = {}; // all choices from all start chapters
 	this.jsonData = null;
 	this.runner = null;
-	this.pause = false;
+	this.paused = false;
 
 	let vnChoices,
 		vnResult,
@@ -34,7 +34,7 @@ export var yarnRender = function(app) {
 			this.runner.advance(choice);
 		} catch (err) {
 			vnResult = null;
-			this.pause = true;
+			this.paused = true;
 			emiter.emit('errorResult', err.message);
 		}
 	};
@@ -50,7 +50,7 @@ export var yarnRender = function(app) {
 		this.advanceRunner(this.vnSelectedChoice);
 		this.goToNext();
 		this.changeText();
-		if (vnResult && vnResult.isDialogueEnd) {
+		if (vnResult && vnResult.text === undefined && vnResult.isDialogueEnd && !this.paused) {
 			this.finished = true;
 		}
 		vnChoices = undefined;
@@ -103,16 +103,18 @@ export var yarnRender = function(app) {
 			this.goToNext();
 		}
 		this.changeText();
-		if (vnResult && vnResult.isDialogueEnd) {
+		if (vnResult && vnResult.text === undefined && vnResult.isDialogueEnd && !this.paused) {
+			this.finished = true;
+		}
+		if (this.paused) {
 			this.finished = true;
 		}
 	};
 
 	// this function is triggered on key press/release
 	this.changeText = () => {
-		if (this.pause) {
-			this.pause = false;
-			if (!vnResult) return;
+		if (this.paused) {
+			return;
 		}
 		if (vnResult.constructor.name === 'TextResult') {
 			emiter.emit('textResult', vnResult.text);
@@ -137,6 +139,9 @@ export var yarnRender = function(app) {
 			if (text === "" && vnResult.markup.length > 0 && vnResult.markup[0].name === "separator") {
 				this.advanceRunner();
 				this.goToNext();
+				if (vnResult && vnResult.text === undefined && vnResult.isDialogueEnd && !this.paused) {
+					this.emiter.emit('finished');
+				}
 				return;
 			}
 			for (let i = vnResult.markup.length - 1; i >= 0; i--) {
@@ -333,7 +338,7 @@ export var yarnRender = function(app) {
 		this.storyChapter = storyChapter;
 		this.choices[this.storyChapter] = [];
 		this.visitedChapters.push(storyChapter);
-		this.pause = false;
+		this.paused = false;
 		this.runner = null;
 		vnResult = null;
 		try {
@@ -343,18 +348,18 @@ export var yarnRender = function(app) {
 				variableStorage: variables,
 				handleCommand: (result) => {
 					vnResult = result;
-					this.pause = true;
+					this.paused = true;
 					emiter.emit('commandCall', result.command);
 				},
 			});
 		} catch (err) {
 			vnResult = null;
-			this.pause = true;
+			this.paused = true;
 			emiter.emit('errorResult', 'string' === typeof err ? err : err.message);
 		}
 		this.goToNext();
 		this.changeText();
-		if (vnResult && vnResult.isDialogueEnd) {
+		if (vnResult && vnResult.text === undefined && vnResult.isDialogueEnd && !this.paused) {
 			this.finished = true;
 		}
 	};
