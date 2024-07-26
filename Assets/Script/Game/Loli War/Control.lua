@@ -89,14 +89,14 @@ local inputManager = InputManager.CreateManager({ -- 20
 			{ -- 69
 				name = "JumpUp", -- 69
 				trigger = Trigger.Selector({ -- 71
-					Trigger.ButtonUp("a"), -- 71
+					Trigger.ButtonUp("b"), -- 71
 					Trigger.KeyUp("K") -- 72
 				}) -- 70
 			}, -- 69
 			{ -- 74
 				name = "AttackUp", -- 74
 				trigger = Trigger.Selector({ -- 76
-					Trigger.ButtonUp("x"), -- 76
+					Trigger.ButtonUp("a"), -- 76
 					Trigger.KeyUp("J") -- 77
 				}) -- 75
 			}, -- 74
