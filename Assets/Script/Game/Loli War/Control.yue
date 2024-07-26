@@ -68,12 +68,12 @@ inputManager = InputManager.CreateManager
 				]
 			* name: "JumpUp"
 				trigger: Trigger.Selector [
-					Trigger.ButtonUp "a"
+					Trigger.ButtonUp "b"
 					Trigger.KeyUp "K"
 				]
 			* name: "AttackUp"
 				trigger: Trigger.Selector [
-					Trigger.ButtonUp "x"
+					Trigger.ButtonUp "a"
 					Trigger.KeyUp "J"
 				]
 			* name: "Restart"
