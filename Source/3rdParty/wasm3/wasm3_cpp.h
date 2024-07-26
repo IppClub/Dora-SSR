@@ -361,7 +361,21 @@ namespace wasm3 {
                 detail::check_error(res);
                 return ret; 
             }
-        }
+		}
+		
+        template <typename Ret = void>
+		Ret call() {
+			M3Result res = m3_Call(m_func, 0, nullptr);
+			detail::check_error(res);
+
+			if constexpr (!std::is_void<Ret>::value) {
+				Ret ret;
+				const void* ret_ptrs[] = {&ret};
+				res = m3_GetResults(m_func, 1, ret_ptrs);
+				detail::check_error(res);
+				return ret;
+			}
+		}
 
     protected:
         friend class runtime;
