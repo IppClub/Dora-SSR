@@ -16,71 +16,41 @@ import "InputManager"
 
 :Trigger = InputManager
 
+KeyBtnDown = (name, buttonName, keyName) ->
+	return
+		:name
+		trigger: Trigger.Selector [
+			Trigger.ButtonDown buttonName
+			Trigger.KeyDown keyName
+		]
+
+KeyBtnDownUp = (name, buttonName, keyName) ->
+	return
+		* name: "#{name}Down"
+			trigger: Trigger.Selector [
+				Trigger.ButtonDown buttonName
+				Trigger.KeyDown keyName
+			]
+		* name: "#{name}Up"
+			trigger: Trigger.Selector [
+				Trigger.ButtonUp buttonName
+				Trigger.KeyUp keyName
+			]
+
 inputManager = InputManager.CreateManager
 	* name: "Select"
 		actions:
-			* name: "Flandre"
-				trigger: Trigger.Selector [
-					Trigger.ButtonDown "dpleft"
-					Trigger.KeyDown "A"
-				]
-			* name: "Villy"
-				trigger: Trigger.Selector [
-					Trigger.ButtonDown "dpdown"
-					Trigger.KeyDown "S"
-				]
-			* name: "Dorothy"
-				trigger: Trigger.Selector [
-					Trigger.ButtonDown "dpright"
-					Trigger.KeyDown "D"
-				]
+			* KeyBtnDown "Flandre", "dpleft", "A"
+			* KeyBtnDown "Villy", "dpdown", "S"
+			* KeyBtnDown "Dorothy", "dpright", "D"
 	* name: "Control"
-		actions:
-			* name: "LeftDown"
-				trigger: Trigger.Selector [
-					Trigger.ButtonDown "dpleft"
-					Trigger.KeyDown "A"
-				]
-			* name: "RightDown"
-				trigger: Trigger.Selector [
-					Trigger.ButtonDown "dpright"
-					Trigger.KeyDown "D"
-				]
-			* name: "JumpDown"
-				trigger: Trigger.Selector [
-					Trigger.ButtonDown "a"
-					Trigger.KeyDown "K"
-				]
-			* name: "AttackDown"
-				trigger: Trigger.Selector [
-					Trigger.ButtonDown "b"
-					Trigger.KeyDown "J"
-				]
-			* name: "LeftUp"
-				trigger: Trigger.Selector [
-					Trigger.ButtonUp "dpleft"
-					Trigger.KeyUp "A"
-				]
-			* name: "RightUp"
-				trigger: Trigger.Selector [
-					Trigger.ButtonUp "dpright"
-					Trigger.KeyUp "D"
-				]
-			* name: "JumpUp"
-				trigger: Trigger.Selector [
-					Trigger.ButtonUp "b"
-					Trigger.KeyUp "K"
-				]
-			* name: "AttackUp"
-				trigger: Trigger.Selector [
-					Trigger.ButtonUp "a"
-					Trigger.KeyUp "J"
-				]
-			* name: "Restart"
-				trigger: Trigger.Selector [
-					Trigger.ButtonDown "back"
-					Trigger.KeyDown "Q"
-				]
+		actions: [
+			KeyBtnDown "Restart", "back", "Q"
+			...KeyBtnDownUp "Left", "dpleft", "A"
+			...KeyBtnDownUp "Right", "dpright", "D"
+			...KeyBtnDownUp "Jump", "a", "K"
+			...KeyBtnDownUp "Attack", "b", "J"
+		]
 
 inputManager\pushContext "Control"
 
