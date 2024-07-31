@@ -10,10 +10,7 @@
 #ifndef BX_MACROS_H_HEADER_GUARD
 #define BX_MACROS_H_HEADER_GUARD
 
-///
-#define BX_VA_ARGS_PASS(...) (__VA_ARGS__)
-
-#define BX_VA_ARGS_COUNT(...) BX_VA_ARGS_COUNT_ BX_VA_ARGS_PASS(__VA_ARGS__, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0)
+#define BX_VA_ARGS_COUNT(...) BX_VA_ARGS_COUNT_(__VA_ARGS__, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0)
 #define BX_VA_ARGS_COUNT_(_a1, _a2, _a3, _a4, _a5, _a6, _a7, _a8, _a9, _a10, _a11, _a12, _a13, _a14, _a15, _a16, _last, ...) _last
 
 ///
@@ -62,18 +59,13 @@
 #	define BX_UNREACHABLE __builtin_unreachable()
 #	define BX_NO_VTABLE
 #	define BX_PRINTF_ARGS(_format, _args) __attribute__( (format(__printf__, _format, _args) ) )
-
-#	if BX_CLANG_HAS_FEATURE(cxx_thread_local) \
-	|| (!BX_PLATFORM_OSX && (BX_COMPILER_GCC >= 40200) ) \
-	|| (BX_COMPILER_GCC >= 40500)
-#		define BX_THREAD_LOCAL __thread
-#	endif // BX_COMPILER_GCC
-
+#	define BX_THREAD_LOCAL __thread
 #	define BX_ATTRIBUTE(_x) __attribute__( (_x) )
 
 #	if BX_CRT_MSVC
 #		define __stdcall
 #	endif // BX_CRT_MSVC
+
 #elif BX_COMPILER_MSVC
 #	define BX_ASSUME(_condition) __assume(_condition)
 #	define BX_ALIGN_DECL(_align, _decl) __declspec(align(_align) ) _decl
@@ -143,7 +135,7 @@
 #	define BX_PRAGMA_DIAGNOSTIC_IGNORED_CLANG(_x)
 #endif // BX_COMPILER_CLANG
 
-#if BX_COMPILER_GCC && BX_COMPILER_GCC >= 40600
+#if BX_COMPILER_GCC
 #	define BX_PRAGMA_DIAGNOSTIC_PUSH_GCC_()       _Pragma("GCC diagnostic push")
 #	define BX_PRAGMA_DIAGNOSTIC_POP_GCC_()        _Pragma("GCC diagnostic pop")
 #	define BX_PRAGMA_DIAGNOSTIC_IGNORED_GCC(_x)   _Pragma(BX_STRINGIZE(GCC diagnostic ignored _x) )
@@ -205,14 +197,13 @@
 #define BX_CLASS_2(_class, _a1, _a2) BX_CLASS_1(_class, _a1); BX_CLASS_1(_class, _a2)
 #define BX_CLASS_3(_class, _a1, _a2, _a3) BX_CLASS_2(_class, _a1, _a2); BX_CLASS_1(_class, _a3)
 #define BX_CLASS_4(_class, _a1, _a2, _a3, _a4) BX_CLASS_3(_class, _a1, _a2, _a3); BX_CLASS_1(_class, _a4)
-
 #define BX_CLASS(_class, ...) BX_MACRO_DISPATCHER(BX_CLASS_, __VA_ARGS__)(_class, __VA_ARGS__)
 
 #ifndef BX_ASSERT
 #	if BX_CONFIG_DEBUG
 #		define BX_ASSERT _BX_ASSERT
 #	else
-#		define BX_ASSERT(_condition, ...) BX_NOOP()
+#		define BX_ASSERT(...) BX_NOOP()
 #	endif // BX_CONFIG_DEBUG
 #endif // BX_ASSERT
 
@@ -244,7 +235,7 @@
 #	if BX_CONFIG_DEBUG
 #		define BX_WARN _BX_WARN
 #	else
-#		define BX_WARN(_condition, ...) BX_NOOP()
+#		define BX_WARN(...) BX_NOOP()
 #	endif // BX_CONFIG_DEBUG
 #endif // BX_ASSERT
 
@@ -269,7 +260,7 @@
 #define _BX_ASSERT(_condition, _format, ...)                                                                   \
 	BX_MACRO_BLOCK_BEGIN                                                                                       \
 		if (!BX_IGNORE_C4127(_condition)                                                                       \
-		&&  bx::assertFunction(bx::Location::current(), "ASSERT " #_condition " -> " _format, ##__VA_ARGS__) ) \
+		&&  bx::assertFunction(bx::Location::current(), "ASSERT %s -> " _format, #_condition, ##__VA_ARGS__) ) \
 		{                                                                                                      \
 			bx::debugBreak();                                                                                  \
 		}                                                                                                      \
@@ -278,7 +269,7 @@
 #define _BX_ASSERT_LOC(_location, _condition, _format, ...)                                       \
 	BX_MACRO_BLOCK_BEGIN                                                                          \
 		if  (!BX_IGNORE_C4127(_condition)                                                         \
-		&&   bx::assertFunction(_location, "ASSERT " #_condition " -> " _format, ##__VA_ARGS__) ) \
+		&&   bx::assertFunction(_location, "ASSERT %s -> " _format, #_condition, ##__VA_ARGS__) ) \
 		{                                                                                         \
 			bx::debugBreak();                                                                     \
 		}                                                                                         \

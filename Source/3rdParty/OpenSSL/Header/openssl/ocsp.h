@@ -59,10 +59,10 @@
 
 # ifndef OPENSSL_NO_OCSP
 
-# include "openssl/x509.h"
-# include "openssl/x509v3.h"
-# include "openssl/safestack.h"
-# include "openssl/ocsperr.h"
+#  include "openssl/x509.h"
+#  include "openssl/x509v3.h"
+#  include "openssl/safestack.h"
+#  include "openssl/ocsperr.h"
 
 #  ifdef __cplusplus
 extern "C" {

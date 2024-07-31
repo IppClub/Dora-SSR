@@ -25,7 +25,7 @@
 #  define HEADER_SRP_H
 # endif
 
-# include "openssl/opensslconf.h"
+#include "openssl/opensslconf.h"
 
 #ifndef OPENSSL_NO_SRP
 # include <stdio.h>
