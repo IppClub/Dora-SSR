@@ -1938,6 +1938,9 @@
     <ClCompile Include="..\..\..\Source\Render\View.cpp">
       <Filter>Render</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\SkeletonRenderer.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\Source\3rdParty\silly\Slice.h">
@@ -4301,6 +4304,12 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Render\View.h">
       <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\BlockAllocator.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\SkeletonRenderer.h">
+      <Filter>3rdParty\spine</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -294,6 +294,8 @@
 		3C329DDC2B39D896002BC023 /* DoraTag.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C329DDA2B39D896002BC023 /* DoraTag.cpp */; };
 		3C33A3CA2A3AF3C300E60A14 /* YarnCompiler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C33A3C92A3AF3C300E60A14 /* YarnCompiler.cpp */; };
 		3C33A3CB2A3AF3C300E60A14 /* YarnCompiler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C33A3C92A3AF3C300E60A14 /* YarnCompiler.cpp */; };
+		3C33DF422C5A904A00CB9E00 /* SkeletonRenderer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C33DF402C5A904A00CB9E00 /* SkeletonRenderer.cpp */; };
+		3C33DF432C5A904A00CB9E00 /* SkeletonRenderer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C33DF402C5A904A00CB9E00 /* SkeletonRenderer.cpp */; };
 		3C361E3D2C1AFF400079B68B /* TileLayer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C361E202C1AFF3F0079B68B /* TileLayer.cpp */; };
 		3C361E3E2C1AFF400079B68B /* TileLayer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C361E202C1AFF3F0079B68B /* TileLayer.cpp */; };
 		3C361E412C1AFF400079B68B /* ObjectGroup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C361E232C1AFF3F0079B68B /* ObjectGroup.cpp */; };
@@ -1574,6 +1576,9 @@
 		3C329DDD2B39D8AC002BC023 /* Dora.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Dora.h; path = ../../../Source/Dora.h; sourceTree = "<group>"; };
 		3C33A3C82A3AF3C300E60A14 /* YarnCompiler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = YarnCompiler.h; path = ../../../Source/Lua/Yarn/YarnCompiler.h; sourceTree = "<group>"; };
 		3C33A3C92A3AF3C300E60A14 /* YarnCompiler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = YarnCompiler.cpp; path = ../../../Source/Lua/Yarn/YarnCompiler.cpp; sourceTree = "<group>"; };
+		3C33DF402C5A904A00CB9E00 /* SkeletonRenderer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SkeletonRenderer.cpp; path = ../../../Source/3rdParty/spine/SkeletonRenderer.cpp; sourceTree = "<group>"; };
+		3C33DF412C5A904A00CB9E00 /* SkeletonRenderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SkeletonRenderer.h; path = ../../../Source/3rdParty/spine/SkeletonRenderer.h; sourceTree = "<group>"; };
+		3C33DF442C5A907600CB9E00 /* BlockAllocator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = BlockAllocator.h; path = ../../../Source/3rdParty/spine/BlockAllocator.h; sourceTree = "<group>"; };
 		3C361E1E2C1AFF3F0079B68B /* TileLayer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = TileLayer.hpp; path = ../../../Source/3rdParty/tmxlite/TileLayer.hpp; sourceTree = "<group>"; };
 		3C361E1F2C1AFF3F0079B68B /* Tileset.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Tileset.hpp; path = ../../../Source/3rdParty/tmxlite/Tileset.hpp; sourceTree = "<group>"; };
 		3C361E202C1AFF3F0079B68B /* TileLayer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TileLayer.cpp; path = ../../../Source/3rdParty/tmxlite/TileLayer.cpp; sourceTree = "<group>"; };
@@ -3314,6 +3319,9 @@
 		3C20F2D5248F76CC00BBA830 /* spine */ = {
 			isa = PBXGroup;
 			children = (
+				3C33DF442C5A907600CB9E00 /* BlockAllocator.h */,
+				3C33DF402C5A904A00CB9E00 /* SkeletonRenderer.cpp */,
+				3C33DF412C5A904A00CB9E00 /* SkeletonRenderer.h */,
 				3C4B3CEB2C06DDDA00D778FC /* Animation.cpp */,
 				3C4B3D512C06DDDF00D778FC /* Animation.h */,
 				3C4B3D382C06DDDE00D778FC /* AnimationState.cpp */,
@@ -5186,6 +5194,7 @@
 				3C4B3DC22C06DDE000D778FC /* IkConstraintData.cpp in Sources */,
 				3C1A3C03272A8820003A2829 /* lparser.c in Sources */,
 				3C6E7FFA272A404900E9F115 /* chipplayer.cpp in Sources */,
+				3C33DF432C5A904A00CB9E00 /* SkeletonRenderer.cpp in Sources */,
 				3C1A3BEF272A8820003A2829 /* ldblib.c in Sources */,
 				3C6E8018272A404A00E9F115 /* sid.cpp in Sources */,
 				3CFEBE4026930B36006D9974 /* DragonBoneCache.cpp in Sources */,
@@ -5730,6 +5739,7 @@
 				3CA780762AE66FB000B7BADA /* StatsResource.cpp in Sources */,
 				3C5399F62998DEF800E9125C /* ljson.c in Sources */,
 				3C4BC6681E17F1B500292200 /* tolua_push.cpp in Sources */,
+				3C33DF422C5A904A00CB9E00 /* SkeletonRenderer.cpp in Sources */,
 				3CD3284A1E4C431B0036906C /* TouchDispather.cpp in Sources */,
 				3C0FB6EF2BF1970C0098E88D /* Effekseer.ResourceManager.cpp in Sources */,
 				3CA7807C2AE66FB000B7BADA /* ConstraintSolverConf.cpp in Sources */,

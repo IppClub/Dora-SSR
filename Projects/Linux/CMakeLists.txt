@@ -179,6 +179,7 @@ add_executable(dora-ssr
 	../../Source/3rdParty/silly/Slice.cpp
 	../../Source/3rdParty/spine/Attachment.cpp
 	../../Source/3rdParty/spine/Skeleton.cpp
+	../../Source/3rdParty/spine/SkeletonRenderer.cpp
 	../../Source/3rdParty/spine/TranslateTimeline.cpp
 	../../Source/3rdParty/spine/Extension.cpp
 	../../Source/3rdParty/spine/Updatable.cpp

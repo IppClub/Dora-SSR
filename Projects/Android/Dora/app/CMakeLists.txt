@@ -187,6 +187,7 @@ add_library(main SHARED
 	src/main/cpp/3rdParty/silly/Slice.cpp
 	src/main/cpp/3rdParty/spine/Attachment.cpp
 	src/main/cpp/3rdParty/spine/Skeleton.cpp
+	src/main/cpp/3rdParty/spine/SkeletonRenderer.cpp
 	src/main/cpp/3rdParty/spine/TranslateTimeline.cpp
 	src/main/cpp/3rdParty/spine/Extension.cpp
 	src/main/cpp/3rdParty/spine/Updatable.cpp

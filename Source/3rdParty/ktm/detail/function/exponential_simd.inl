@@ -1,6 +1,6 @@
 //  MIfloat License
 //
-//  Copyright (c) 2024 有个小小杜
+//  Copyright (c) 2023-2024 有个小小杜
 //
 //  Created by 有个小小杜
 //

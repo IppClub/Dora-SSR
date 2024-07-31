@@ -8,7 +8,10 @@
 #ifndef FMT_STD_H_
 #define FMT_STD_H_
 
-#ifndef FMT_IMPORT_STD
+#include "format.h"
+#include "ostream.h"
+
+#ifndef FMT_MODULE
 #  include <atomic>
 #  include <bitset>
 #  include <complex>
@@ -20,17 +23,8 @@
 #  include <typeinfo>
 #  include <utility>
 #  include <vector>
-#endif
 
-#include "format.h"
-#include "ostream.h"
-
-#if FMT_HAS_INCLUDE(<version>)
-#  include <version>
-#endif
-
-#ifndef FMT_IMPORT_STD
-// Checking FMT_CPLUSPLUS for warning suppression in MSVC.
+// Check FMT_CPLUSPLUS to suppress a bogus warning in MSVC.
 #  if FMT_CPLUSPLUS >= 201703L
 #    if FMT_HAS_INCLUDE(<filesystem>)
 #      include <filesystem>
@@ -42,14 +36,18 @@
 #      include <optional>
 #    endif
 #  endif
-
-#  if FMT_HAS_INCLUDE(<expected>) && FMT_CPLUSPLUS > 202002L
-#    include <expected>
-#  endif
-
+// Use > instead of >= in the version check because <source_location> may be
+// available after C++17 but before C++20 is marked as implemented.
 #  if FMT_CPLUSPLUS > 201703L && FMT_HAS_INCLUDE(<source_location>)
 #    include <source_location>
 #  endif
+#  if FMT_CPLUSPLUS > 202002L && FMT_HAS_INCLUDE(<expected>)
+#    include <expected>
+#  endif
+#endif  // FMT_MODULE
+
+#if FMT_HAS_INCLUDE(<version>)
+#  include <version>
 #endif
 
 // GCC 4 does not support FMT_HAS_INCLUDE.
@@ -131,7 +129,9 @@ template <typename Char> struct formatter<std::filesystem::path, Char> {
     it = detail::parse_align(it, end, specs_);
     if (it == end) return it;
 
-    it = detail::parse_dynamic_spec(it, end, specs_.width, width_ref_, ctx);
+    Char c = *it;
+    if ((c >= '0' && c <= '9') || c == '{')
+      it = detail::parse_dynamic_spec(it, end, specs_.width, width_ref_, ctx);
     if (it != end && *it == '?') {
       debug_ = true;
       ++it;
@@ -160,6 +160,22 @@ template <typename Char> struct formatter<std::filesystem::path, Char> {
                          specs);
   }
 };
+
+class path : public std::filesystem::path {
+ public:
+  auto display_string() const -> std::string {
+    const std::filesystem::path& base = *this;
+    return fmt::format(FMT_STRING("{}"), base);
+  }
+  auto system_string() const -> std::string { return string(); }
+
+  auto generic_display_string() const -> std::string {
+    const std::filesystem::path& base = *this;
+    return fmt::format(FMT_STRING("{:g}"), base);
+  }
+  auto generic_system_string() const -> std::string { return generic_string(); }
+};
+
 FMT_END_NAMESPACE
 #endif  // FMT_CPP_LIB_FILESYSTEM
 
@@ -277,7 +293,7 @@ struct formatter<std::expected<T, E>, Char,
 
     if (value.has_value()) {
       out = detail::write<Char>(out, "expected(");
-      out = detail::write_escaped_alternative<Char>(out, value.value());
+      out = detail::write_escaped_alternative<Char>(out, *value);
     } else {
       out = detail::write<Char>(out, "unexpected(");
       out = detail::write_escaped_alternative<Char>(out, value.error());
@@ -617,33 +633,67 @@ struct formatter<std::atomic_flag, Char> : formatter<bool, Char> {
 #endif  // __cpp_lib_atomic_flag_test
 
 FMT_EXPORT
-template <typename F, typename Char>
-struct formatter<std::complex<F>, Char> : nested_formatter<F, Char> {
+template <typename T, typename Char> struct formatter<std::complex<T>, Char> {
  private:
-  // Functor because C++11 doesn't support generic lambdas.
-  struct writer {
-    const formatter<std::complex<F>, Char>* f;
-    const std::complex<F>& c;
+  detail::dynamic_format_specs<Char> specs_;
 
-    template <typename OutputIt>
-    FMT_CONSTEXPR auto operator()(OutputIt out) -> OutputIt {
-      if (c.real() != 0) {
-        auto format_full = detail::string_literal<Char, '(', '{', '}', '+', '{',
-                                                  '}', 'i', ')'>{};
-        return fmt::format_to(out, basic_string_view<Char>(format_full),
-                              f->nested(c.real()), f->nested(c.imag()));
-      }
-      auto format_imag = detail::string_literal<Char, '{', '}', 'i'>{};
-      return fmt::format_to(out, basic_string_view<Char>(format_imag),
-                            f->nested(c.imag()));
+  template <typename FormatContext, typename OutputIt>
+  FMT_CONSTEXPR auto do_format(const std::complex<T>& c,
+                               detail::dynamic_format_specs<Char>& specs,
+                               FormatContext& ctx, OutputIt out) const
+      -> OutputIt {
+    if (c.real() != 0) {
+      *out++ = Char('(');
+      out = detail::write<Char>(out, c.real(), specs, ctx.locale());
+      specs.sign = sign::plus;
+      out = detail::write<Char>(out, c.imag(), specs, ctx.locale());
+      if (!detail::isfinite(c.imag())) *out++ = Char(' ');
+      *out++ = Char('i');
+      *out++ = Char(')');
+      return out;
     }
-  };
+    out = detail::write<Char>(out, c.imag(), specs, ctx.locale());
+    if (!detail::isfinite(c.imag())) *out++ = Char(' ');
+    *out++ = Char('i');
+    return out;
+  }
 
  public:
+  FMT_CONSTEXPR auto parse(basic_format_parse_context<Char>& ctx)
+      -> decltype(ctx.begin()) {
+    if (ctx.begin() == ctx.end() || *ctx.begin() == '}') return ctx.begin();
+    return parse_format_specs(ctx.begin(), ctx.end(), specs_, ctx,
+                              detail::type_constant<T, Char>::value);
+  }
+
   template <typename FormatContext>
-  auto format(const std::complex<F>& c, FormatContext& ctx) const
+  auto format(const std::complex<T>& c, FormatContext& ctx) const
       -> decltype(ctx.out()) {
-    return this->write_padded(ctx, writer{this, c});
+    auto specs = specs_;
+    if (specs.width_ref.kind != detail::arg_id_kind::none ||
+        specs.precision_ref.kind != detail::arg_id_kind::none) {
+      detail::handle_dynamic_spec<detail::width_checker>(specs.width,
+                                                         specs.width_ref, ctx);
+      detail::handle_dynamic_spec<detail::precision_checker>(
+          specs.precision, specs.precision_ref, ctx);
+    }
+
+    if (specs.width == 0) return do_format(c, specs, ctx, ctx.out());
+    auto buf = basic_memory_buffer<Char>();
+
+    auto outer_specs = format_specs();
+    outer_specs.width = specs.width;
+    outer_specs.fill = specs.fill;
+    outer_specs.align = specs.align;
+
+    specs.width = 0;
+    specs.fill = {};
+    specs.align = align::none;
+
+    do_format(c, specs, ctx, basic_appender<Char>(buf));
+    return detail::write<Char>(ctx.out(),
+                               basic_string_view<Char>(buf.data(), buf.size()),
+                               outer_specs);
   }
 };
 

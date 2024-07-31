@@ -734,6 +734,7 @@ int CALLBACK WinMain(
 #include "sqlite3.h"
 #include "wasm3.h"
 #include "yuescript/yue_compiler.h"
+#include "spine/Version.h"
 
 std::string Dora::Application::getDeps() const noexcept {
 	return fmt::format(
@@ -745,7 +746,7 @@ std::string Dora::Application::getDeps() const noexcept {
 		"- PlayRho {}.{}.{}\n"
 		"- soloud {}\n"
 		"- DragonBones 5.6.3\n"
-		"- Spine 4.1.4\n"
+		"- Spine {}\n"
 		"- ImGui {}\n"
 		"- ImPlot {}\n"
 		"- sqlite3 {}\n"
@@ -760,6 +761,7 @@ std::string Dora::Application::getDeps() const noexcept {
 		SharedLuaEngine.getTealVersion(),
 		PLAYRHO_VERSION_MAJOR, PLAYRHO_VERSION_MINOR, PLAYRHO_VERSION_PATCH,
 		SOLOUD_VERSION,
+		SPINE_VERSION_STRING,
 		IMGUI_VERSION,
 		IMPLOT_VERSION,
 		SQLITE_VERSION,
