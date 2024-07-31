@@ -142,6 +142,7 @@
 		3C2F9C871E7AE8CA00B98D39 /* Animation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C2F9C851E7AE8CA00B98D39 /* Animation.cpp */; };
 		3C2F9C8A1E7B114B00B98D39 /* ModelDef.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C2F9C881E7B114B00B98D39 /* ModelDef.cpp */; };
 		3C2F9C8E1E7B132600B98D39 /* ClipCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C2F9C8C1E7B132600B98D39 /* ClipCache.cpp */; };
+		3C33DF3F2C5A8C4800CB9E00 /* SkeletonRenderer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C33DF3D2C5A8C4800CB9E00 /* SkeletonRenderer.cpp */; };
 		3C3598321E1254D600E62C16 /* Async.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C3598301E1254D600E62C16 /* Async.cpp */; };
 		3C361E1C2C1A94A50079B68B /* TMX in Resources */ = {isa = PBXBuildFile; fileRef = 3C361E1B2C1A94A50079B68B /* TMX */; };
 		3C40555020FD92CC0057B0E4 /* Face.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C40554F20FD92CC0057B0E4 /* Face.cpp */; };
@@ -924,6 +925,9 @@
 		3C2F9C8C1E7B132600B98D39 /* ClipCache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ClipCache.cpp; path = ../../../Source/Cache/ClipCache.cpp; sourceTree = "<group>"; };
 		3C2F9C8D1E7B132600B98D39 /* ClipCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ClipCache.h; path = ../../../Source/Cache/ClipCache.h; sourceTree = "<group>"; };
 		3C31CB9D1E02293E00A8079D /* Debug.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Debug.h; path = ../../../Source/Common/Debug.h; sourceTree = "<group>"; };
+		3C33DF3C2C5A8C4800CB9E00 /* BlockAllocator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = BlockAllocator.h; path = ../../../Source/3rdParty/spine/BlockAllocator.h; sourceTree = "<group>"; };
+		3C33DF3D2C5A8C4800CB9E00 /* SkeletonRenderer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SkeletonRenderer.cpp; path = ../../../Source/3rdParty/spine/SkeletonRenderer.cpp; sourceTree = "<group>"; };
+		3C33DF3E2C5A8C4800CB9E00 /* SkeletonRenderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SkeletonRenderer.h; path = ../../../Source/3rdParty/spine/SkeletonRenderer.h; sourceTree = "<group>"; };
 		3C3598301E1254D600E62C16 /* Async.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Async.cpp; path = ../../../Source/Common/Async.cpp; sourceTree = "<group>"; };
 		3C3598311E1254D600E62C16 /* Async.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Async.h; path = ../../../Source/Common/Async.h; sourceTree = "<group>"; };
 		3C361E1B2C1A94A50079B68B /* TMX */ = {isa = PBXFileReference; lastKnownFileType = folder; path = TMX; sourceTree = "<group>"; };
@@ -2051,6 +2055,9 @@
 		3C0D30482456662D009C592B /* spine */ = {
 			isa = PBXGroup;
 			children = (
+				3C33DF3C2C5A8C4800CB9E00 /* BlockAllocator.h */,
+				3C33DF3D2C5A8C4800CB9E00 /* SkeletonRenderer.cpp */,
+				3C33DF3E2C5A8C4800CB9E00 /* SkeletonRenderer.h */,
 				3C4B3B862C06CC9B00D778FC /* Animation.cpp */,
 				3C4B3B822C06CC9B00D778FC /* Animation.h */,
 				3C4B3BC22C06CC9E00D778FC /* AnimationState.cpp */,
@@ -4488,6 +4495,7 @@
 				3C41D5FA2148AD02003FDDFE /* imgui_demo.cpp in Sources */,
 				3C6E7F2B272A30E700E9F115 /* soloud_wav.cpp in Sources */,
 				3C1A3AFD272A850F003A2829 /* liolib.c in Sources */,
+				3C33DF3F2C5A8C4800CB9E00 /* SkeletonRenderer.cpp in Sources */,
 				3C4B3C012C06CCA000D778FC /* SkeletonJson.cpp in Sources */,
 				3CA77F0B2AE665C100B7BADA /* PrismaticJointConf.cpp in Sources */,
 				3C2F9C8E1E7B132600B98D39 /* ClipCache.cpp in Sources */,

@@ -1,6 +1,6 @@
 //  MIT License
 //
-//  Copyright (c) 2023 有个小小杜
+//  Copyright (c) 2023-2024 有个小小杜
 //
 //  Created by 有个小小杜
 //
@@ -27,7 +27,7 @@ struct ivec_calc<Father, vec<3, T>> : Father
     using Father::child_ptr;
 private:
     template<class F, class C>
-    friend struct iarray_add;
+    friend class iarray_add;
 
     KTM_INLINE vec<3, T> add_impl(const vec<3, T>& y) const noexcept
     {
@@ -63,7 +63,7 @@ private:
     }
     
     template<class F, class C>
-    friend struct iarray_mul;
+    friend class iarray_mul;
 
     KTM_INLINE vec<3, T> mul_impl(const vec<3, T>& y) const noexcept
     {
@@ -92,7 +92,7 @@ private:
     }
 
     template<class F, class C>
-    friend struct iarray_madd;
+    friend class iarray_madd;
 
     KTM_INLINE vec<3, T> madd_impl(const vec<3, T>& y, const vec<3, T>& z) const noexcept
     {
@@ -108,7 +108,7 @@ private:
     }
 
     template<class F, class C>
-    friend struct iarray_add_scalar;
+    friend class iarray_add_scalar;
 
     KTM_INLINE vec<3, T> add_scalar_impl(T scalar) const noexcept
     {
@@ -137,7 +137,7 @@ private:
     }
 
     template<class F, class C>
-    friend struct iarray_mul_scalar;
+    friend class iarray_mul_scalar;
 
     KTM_INLINE vec<3, T> mul_scalar_impl(T scalar) const noexcept
     {
@@ -166,7 +166,7 @@ private:
     }
 
     template<class F, class C>
-    friend struct iarray_madd_scalar;
+    friend class iarray_madd_scalar;
 
     KTM_INLINE vec<3, T> madd_scalar_impl(const vec<3, T>& y, T scalar) const noexcept
     {

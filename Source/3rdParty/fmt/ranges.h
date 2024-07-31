@@ -8,9 +8,10 @@
 #ifndef FMT_RANGES_H_
 #define FMT_RANGES_H_
 
-#ifndef FMT_IMPORT_STD
+#ifndef FMT_MODULE
 #  include <initializer_list>
 #  include <iterator>
+#  include <string>
 #  include <tuple>
 #  include <type_traits>
 #  include <utility>
@@ -489,7 +490,7 @@ struct range_formatter<
     auto out = ctx.out();
     auto it = detail::range_begin(range);
     auto end = detail::range_end(range);
-    if (is_debug) return write_debug_string(out, it, end);
+    if (is_debug) return write_debug_string(out, std::move(it), end);
 
     out = detail::copy<Char>(opening_bracket_, out);
     int i = 0;
@@ -516,9 +517,11 @@ template <typename R, typename Char>
 struct formatter<
     R, Char,
     enable_if_t<conjunction<
-        bool_constant<range_format_kind<R, Char>::value !=
-                          range_format::disabled &&
-                      range_format_kind<R, Char>::value != range_format::map>
+        bool_constant<
+            range_format_kind<R, Char>::value != range_format::disabled &&
+            range_format_kind<R, Char>::value != range_format::map &&
+            range_format_kind<R, Char>::value != range_format::string &&
+            range_format_kind<R, Char>::value != range_format::debug_string>
 // Workaround a bug in MSVC 2015 and earlier.
 #if !FMT_MSC_VERSION || FMT_MSC_VERSION >= 1910
         ,
@@ -530,6 +533,8 @@ struct formatter<
   range_formatter<detail::uncvref_type<range_type>, Char> range_formatter_;
 
  public:
+  using nonlocking = void;
+
   FMT_CONSTEXPR formatter() {
     if (detail::const_check(range_format_kind<R, Char>::value !=
                             range_format::set))
@@ -607,6 +612,46 @@ struct formatter<
   }
 };
 
+// A (debug_)string formatter.
+template <typename R, typename Char>
+struct formatter<
+    R, Char,
+    enable_if_t<range_format_kind<R, Char>::value == range_format::string ||
+                range_format_kind<R, Char>::value ==
+                    range_format::debug_string>> {
+ private:
+  using range_type = detail::maybe_const_range<R>;
+  using string_type =
+      conditional_t<std::is_constructible<
+                        detail::std_string_view<Char>,
+                        decltype(detail::range_begin(std::declval<R>())),
+                        decltype(detail::range_end(std::declval<R>()))>::value,
+                    detail::std_string_view<Char>, std::basic_string<Char>>;
+
+  formatter<string_type, Char> underlying_;
+
+ public:
+  template <typename ParseContext>
+  FMT_CONSTEXPR auto parse(ParseContext& ctx) -> decltype(ctx.begin()) {
+    return underlying_.parse(ctx);
+  }
+
+  template <typename FormatContext>
+  auto format(range_type& range, FormatContext& ctx) const
+      -> decltype(ctx.out()) {
+    auto out = ctx.out();
+    if (detail::const_check(range_format_kind<R, Char>::value ==
+                            range_format::debug_string))
+      *out++ = '"';
+    out = underlying_.format(
+        string_type{detail::range_begin(range), detail::range_end(range)}, ctx);
+    if (detail::const_check(range_format_kind<R, Char>::value ==
+                            range_format::debug_string))
+      *out++ = '"';
+    return out;
+  }
+};
+
 template <typename It, typename Sentinel, typename Char = char>
 struct join_view : detail::view {
   It begin;
@@ -658,30 +703,26 @@ struct formatter<join_view<It, Sentinel, Char>, Char> {
   }
 };
 
-/**
-  Returns a view that formats the iterator range `[begin, end)` with elements
-  separated by `sep`.
- */
+/// Returns a view that formats the iterator range `[begin, end)` with elements
+/// separated by `sep`.
 template <typename It, typename Sentinel>
 auto join(It begin, Sentinel end, string_view sep) -> join_view<It, Sentinel> {
   return {std::move(begin), end, sep};
 }
 
 /**
-  \rst
-  Returns a view that formats `range` with elements separated by `sep`.
-
-  **Example**::
-
-    std::vector<int> v = {1, 2, 3};
-    fmt::print("{}", fmt::join(v, ", "));
-    // Output: "1, 2, 3"
-
-  ``fmt::join`` applies passed format specifiers to the range elements::
-
-    fmt::print("{:02}", fmt::join(v, ", "));
-    // Output: "01, 02, 03"
-  \endrst
+ * Returns a view that formats `range` with elements separated by `sep`.
+ *
+ * **Example**:
+ *
+ *     auto v = std::vector<int>{1, 2, 3};
+ *     fmt::print("{}", fmt::join(v, ", "));
+ *     // Output: 1, 2, 3
+ *
+ * `fmt::join` applies passed format specifiers to the range elements:
+ *
+ *     fmt::print("{:02}", fmt::join(v, ", "));
+ *     // Output: 01, 02, 03
  */
 template <typename Range>
 auto join(Range&& r, string_view sep)
@@ -806,15 +847,13 @@ struct formatter<
 FMT_BEGIN_EXPORT
 
 /**
-  \rst
-  Returns an object that formats `tuple` with elements separated by `sep`.
-
-  **Example**::
-
-    std::tuple<int, char> t = {1, 'a'};
-    fmt::print("{}", fmt::join(t, ", "));
-    // Output: "1, a"
-  \endrst
+ * Returns an object that formats `std::tuple` with elements separated by `sep`.
+ *
+ * **Example**:
+ *
+ *     auto t = std::tuple<int, char>{1, 'a'};
+ *     fmt::print("{}", fmt::join(t, ", "));
+ *     // Output: 1, a
  */
 template <typename... T>
 FMT_CONSTEXPR auto join(const std::tuple<T...>& tuple, string_view sep)
@@ -823,15 +862,13 @@ FMT_CONSTEXPR auto join(const std::tuple<T...>& tuple, string_view sep)
 }
 
 /**
-  \rst
-  Returns an object that formats `initializer_list` with elements separated by
-  `sep`.
-
-  **Example**::
-
-    fmt::print("{}", fmt::join({1, 2, 3}, ", "));
-    // Output: "1, 2, 3"
-  \endrst
+ * Returns an object that formats `std::initializer_list` with elements
+ * separated by `sep`.
+ *
+ * **Example**:
+ *
+ *     fmt::print("{}", fmt::join({1, 2, 3}, ", "));
+ *     // Output: "1, 2, 3"
  */
 template <typename T>
 auto join(std::initializer_list<T> list, string_view sep)

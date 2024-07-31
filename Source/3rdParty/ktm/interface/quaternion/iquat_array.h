@@ -1,6 +1,6 @@
 //  MIT License
 //
-//  Copyright (c) 2023 有个小小杜
+//  Copyright (c) 2023-2024 有个小小杜
 //
 //  Created by 有个小小杜
 //
@@ -25,7 +25,7 @@ struct iquat_array<Father, quat<T>> : Father
     using array_type = std::array<T, 4>;
 private:
     template<class F, class C>
-    friend struct iarray_util;
+    friend class iarray_util;
 
     KTM_FUNC array_type& to_array_impl() noexcept
     {

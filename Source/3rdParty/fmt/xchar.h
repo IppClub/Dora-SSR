@@ -8,16 +8,15 @@
 #ifndef FMT_XCHAR_H_
 #define FMT_XCHAR_H_
 
-#ifndef FMT_IMPORT_STD
-#  include <cwchar>
-#endif
-
 #include "color.h"
 #include "format.h"
 #include "ranges.h"
 
-#if !defined(FMT_STATIC_THOUSANDS_SEPARATOR) && !defined(FMT_IMPORT_STD)
-#  include <locale>
+#ifndef FMT_MODULE
+#  include <cwchar>
+#  if !defined(FMT_STATIC_THOUSANDS_SEPARATOR)
+#    include <locale>
+#  endif
 #endif
 
 FMT_BEGIN_NAMESPACE
@@ -313,9 +312,7 @@ FMT_DEPRECATED void print(const text_style& ts, wformat_string<T...> fmt,
   return print(stdout, ts, fmt, args...);
 }
 
-/**
-  Converts *value* to ``std::wstring`` using the default format for type *T*.
- */
+/// Converts `value` to `std::wstring` using the default format for type `T`.
 template <typename T> inline auto to_wstring(const T& value) -> std::wstring {
   return format(FMT_STRING(L"{}"), value);
 }

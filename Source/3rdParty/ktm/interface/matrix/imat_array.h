@@ -1,6 +1,6 @@
 //  MIT License
 //
-//  Copyright (c) 2023 有个小小杜
+//  Copyright (c) 2023-2024 有个小小杜
 //
 //  Created by 有个小小杜
 //
@@ -26,7 +26,7 @@ struct imat_array<Father, mat<Row, Col, T>> : Father
     using array_type = std::array<vec<Col, T>, Row>;
 private:
     template<class F, class C>
-    friend struct iarray_util;
+    friend class iarray_util;
 
     KTM_FUNC array_type& to_array_impl() noexcept
     {
