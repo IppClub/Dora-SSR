@@ -481,10 +481,7 @@ export function PushAllowKeyboardFocus(this: void, v: boolean, inside: (this: vo
 export function PushItemFlag(flags: ItemFlags[], enabled: boolean, inside: (this: void) => void): void;
 
 export function ShowDemoWindow(this: void): void;
-export function GetContentRegionMax(this: void): Vec2;
 export function GetContentRegionAvail(this: void): Vec2;
-export function GetWindowContentRegionMin(this: void): Vec2;
-export function GetWindowContentRegionMax(this: void): Vec2;
 export function GetWindowContentRegionWidth(this: void): number;
 export function GetWindowPos(this: void): Vec2;
 export function GetWindowSize(this: void): Vec2;

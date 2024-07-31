@@ -245,17 +245,8 @@ static void imgui_set_next_window_bg_alpha(float alpha) {
 static void imgui_show_demo_window() {
 	ImGui::ShowDemoWindow();
 }
-static int64_t imgui_get_content_region_max() {
-	return vec2_retain(ImGui::GetContentRegionMax());
-}
 static int64_t imgui_get_content_region_avail() {
 	return vec2_retain(ImGui::GetContentRegionAvail());
-}
-static int64_t imgui_get_window_content_region_min() {
-	return vec2_retain(ImGui::GetWindowContentRegionMin());
-}
-static int64_t imgui_get_window_content_region_max() {
-	return vec2_retain(ImGui::GetWindowContentRegionMax());
 }
 static int64_t imgui_get_window_pos() {
 	return vec2_retain(ImGui::GetWindowPos());
@@ -719,10 +710,7 @@ static void linkImGui(wasm3::module3& mod) {
 	mod.link_optional("*", "imgui__set_next_window_pos_opts", imgui__set_next_window_pos_opts);
 	mod.link_optional("*", "imgui_set_next_window_bg_alpha", imgui_set_next_window_bg_alpha);
 	mod.link_optional("*", "imgui_show_demo_window", imgui_show_demo_window);
-	mod.link_optional("*", "imgui_get_content_region_max", imgui_get_content_region_max);
 	mod.link_optional("*", "imgui_get_content_region_avail", imgui_get_content_region_avail);
-	mod.link_optional("*", "imgui_get_window_content_region_min", imgui_get_window_content_region_min);
-	mod.link_optional("*", "imgui_get_window_content_region_max", imgui_get_window_content_region_max);
 	mod.link_optional("*", "imgui_get_window_pos", imgui_get_window_pos);
 	mod.link_optional("*", "imgui_get_window_size", imgui_get_window_size);
 	mod.link_optional("*", "imgui_get_window_width", imgui_get_window_width);

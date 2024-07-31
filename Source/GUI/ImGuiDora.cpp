@@ -333,6 +333,7 @@ static void DoraSetupTheme(Color color) {
 	colors[ImGuiCol_TabHovered] = HI(0.90f);
 	colors[ImGuiCol_Tab] = MED(0.80f);
 	colors[ImGuiCol_TabSelected] = HI(0.90f);
+	colors[ImGuiCol_TabSelectedOverline] = colors[ImGuiCol_HeaderActive];
 	colors[ImGuiCol_TabDimmed] = MED(0.80f);
 	colors[ImGuiCol_TabDimmedSelected] = HI(0.90f);
 	colors[ImGuiCol_TabDimmedSelectedOverline] = HI(1.00f);
