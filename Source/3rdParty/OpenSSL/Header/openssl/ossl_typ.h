@@ -11,6 +11,6 @@
  * The original <openssl/ossl_typ.h> was renamed to <openssl/types.h>
  *
  * This header file only exists for compatibility reasons with older
- * applications which # include "openssl/ossl_typ.h".
+ * applications which #include "openssl/ossl_typ.h".
  */
 # include "openssl/types.h"
