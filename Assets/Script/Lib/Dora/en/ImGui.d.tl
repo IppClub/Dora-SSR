@@ -742,10 +742,7 @@ local record ImGui
 	): boolean, integer
 
 	ShowDemoWindow: function()
-	GetContentRegionMax: function(): Vec2
 	GetContentRegionAvail: function(): Vec2
-	GetWindowContentRegionMin: function(): Vec2
-	GetWindowContentRegionMax: function(): Vec2
 	GetWindowContentRegionWidth: function(): number
 	GetWindowPos: function(): Vec2
 	GetWindowSize: function(): Vec2

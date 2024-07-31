@@ -84,10 +84,7 @@ extern "C" {
 	fn imgui__set_next_window_pos_opts(pos: i64, set_cond: i32, pivot: i64);
 	fn imgui_set_next_window_bg_alpha(alpha: f32);
 	fn imgui_show_demo_window();
-	fn imgui_get_content_region_max() -> i64;
 	fn imgui_get_content_region_avail() -> i64;
-	fn imgui_get_window_content_region_min() -> i64;
-	fn imgui_get_window_content_region_max() -> i64;
 	fn imgui_get_window_pos() -> i64;
 	fn imgui_get_window_size() -> i64;
 	fn imgui_get_window_width() -> f32;
@@ -456,17 +453,8 @@ impl ImGui {
 	pub fn show_demo_window() {
 		unsafe { imgui_show_demo_window(); }
 	}
-	pub fn get_content_region_max() -> crate::dora::Vec2 {
-		unsafe { return crate::dora::Vec2::from(imgui_get_content_region_max()); }
-	}
 	pub fn get_content_region_avail() -> crate::dora::Vec2 {
 		unsafe { return crate::dora::Vec2::from(imgui_get_content_region_avail()); }
-	}
-	pub fn get_window_content_region_min() -> crate::dora::Vec2 {
-		unsafe { return crate::dora::Vec2::from(imgui_get_window_content_region_min()); }
-	}
-	pub fn get_window_content_region_max() -> crate::dora::Vec2 {
-		unsafe { return crate::dora::Vec2::from(imgui_get_window_content_region_max()); }
 	}
 	pub fn get_window_pos() -> crate::dora::Vec2 {
 		unsafe { return crate::dora::Vec2::from(imgui_get_window_pos()); }

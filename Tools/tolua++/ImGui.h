@@ -136,10 +136,7 @@ namespace ImGui
 	void ShowDemoWindow();
 	void End();
 	void EndChild();
-	Vec2 GetContentRegionMax();
 	Vec2 GetContentRegionAvail();
-	Vec2 GetWindowContentRegionMin();
-	Vec2 GetWindowContentRegionMax();
 	Vec2 GetWindowPos();
 	Vec2 GetWindowSize();
 	float GetWindowWidth();
