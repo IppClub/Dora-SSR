@@ -3139,6 +3139,9 @@ class Buffer extends Object {
 	/** The size of the buffer. */
 	readonly size: number;
 
+	/** Getting or setting the text stored in the buffer. */
+	text: string;
+
 	/**
 	 * Changing the size of the buffer.
 	 * @param size The new size of the buffer.
@@ -3147,18 +3150,6 @@ class Buffer extends Object {
 
 	/** Setting all bytes in the buffer to zero. */
 	zeroMemory(): void;
-
-	/**
-	 * Converting the buffer to a string.
-	 * @returns The buffer contents as a string.
-	 */
-	toString(): string;
-
-	/**
-	 * Setting the contents of the buffer with a string.
-	 * @param str The new contents of the buffer.
-	 */
-	setString(str: string): void;
 }
 
 export namespace Buffer {
@@ -5918,6 +5909,13 @@ export namespace Sprite {
  * A class used for creating `Sprite` object.
  */
 interface SpriteClass {
+	/**
+	 * Gets the clip names and rectangles from the clip file.
+	 * @param clipFile The clip file name to load, should end with ".clip".
+	 * @returns A table containing the clip names and rectangles.
+	 */
+	getClips(clipFile: string): LuaTable<string, Rect> | null;
+
 	/**
 	 * A method for creating Sprite object.
 	 * @param clipStr The string containing format for loading a texture file.

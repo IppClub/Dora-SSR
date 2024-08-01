@@ -319,6 +319,7 @@ export const deleteFile = (req: DeleteRequest) => {
 export interface NewRequest {
 	path: string;
 	content: string;
+	folder: boolean;
 }
 export interface NewResponse {
 	success: boolean;
@@ -397,6 +398,7 @@ export interface EditingInfo {
 	files: {
 		key: string,
 		title: string,
+		folder: boolean,
 		mdEditing?: boolean,
 		position?: {
 			lineNumber: number,

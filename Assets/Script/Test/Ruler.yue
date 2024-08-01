@@ -4,12 +4,8 @@ import "UI.Control.Basic.Ruler"
 import "UI.Control.Basic.CircleButton"
 
 ruler = Ruler {
-	x: 0
-	y: 0
 	width: 600
 	height: 150
-	fontName: "sarasa-mono-sc-regular"
-	fontSize: 30
 }
 
 with CircleButton {

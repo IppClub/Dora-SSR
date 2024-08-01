@@ -118,134 +118,134 @@ local commands = setmetatable({ }, { -- 54
 		end -- 56
 	end -- 54
 }) -- 54
-local runner = YarnRunner("tutorial.yarn", "Start", { }, commands, true) -- 58
-local advance -- 60
-local setButtons -- 62
-setButtons = function(options) -- 62
-	menu:removeAllChildren() -- 63
-	local buttons -- 64
-	if options ~= nil then -- 64
-		buttons = options -- 64
-	else -- 64
-		buttons = 1 -- 64
-	end -- 64
-	menu.size = Size(140 * buttons, 140) -- 66
-	for i = 1, buttons do -- 67
-		menu:addChild((function() -- 68
-			local _with_0 = CircleButton({ -- 69
-				text = options and tostring(i) or "Next", -- 69
-				radius = 60, -- 70
-				fontSize = 40 -- 71
-			}) -- 68
-			_with_0:slot("Tapped", function() -- 73
-				if options then -- 74
-					return advance(i) -- 75
-				else -- 77
-					return advance() -- 77
-				end -- 74
-			end) -- 73
-			return _with_0 -- 68
-		end)()) -- 68
-	end -- 77
-	menu:alignItems() -- 78
-	return menu -- 65
-end -- 62
-advance = function(option) -- 80
-	local action, result = runner:advance(option) -- 81
-	if "Text" == action then -- 82
-		local charName = "" -- 83
-		if result.marks then -- 84
-			local _list_0 = result.marks -- 85
-			for _index_0 = 1, #_list_0 do -- 85
-				local mark = _list_0[_index_0] -- 85
-				local _type_0 = type(mark) -- 86
-				local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 86
-				if _tab_0 then -- 86
-					local attr = mark.name -- 86
-					local name -- 86
-					do -- 86
-						local _obj_0 = mark.attrs -- 86
-						local _type_1 = type(_obj_0) -- 86
-						if "table" == _type_1 or "userdata" == _type_1 then -- 86
-							name = _obj_0.name -- 86
-						end -- 87
-					end -- 87
-					if attr ~= nil and name ~= nil then -- 86
-						if attr == "char" then -- 87
-							charName = tostring(name) .. ": " -- 87
-						end -- 87
-					end -- 86
-				end -- 87
-			end -- 87
-		end -- 84
-		texts[#texts + 1] = charName .. result.text -- 88
-		if result.optionsFollowed then -- 89
-			advance() -- 90
-		else -- 92
-			setButtons() -- 92
-		end -- 89
-	elseif "Option" == action then -- 93
-		for i, op in ipairs(result) do -- 94
-			texts[#texts + 1] = "[" .. tostring(i) .. "]: " .. tostring(op.text) -- 95
-		end -- 95
-		setButtons(#result) -- 96
-	elseif "Command" == action then -- 97
-		texts[#texts + 1] = result -- 98
-		setButtons() -- 99
-	else -- 101
-		menu:removeAllChildren() -- 101
-		texts[#texts + 1] = result -- 102
-	end -- 102
-	label.text = table.concat(texts, "\n") -- 103
-	scroll:adjustSizeWithAlign("Auto", 10) -- 104
-	return thread(function() -- 105
-		return scroll:scrollToPosY(label.y - label.height / 2) -- 105
-	end) -- 105
-end -- 80
-advance() -- 107
-local testFiles = { -- 109
-	"tutorial.yarn" -- 109
-} -- 109
-local files = { -- 110
-	"tutorial.yarn" -- 110
-} -- 110
-local _list_0 = Content:getAllFiles(Content.writablePath) -- 111
-for _index_0 = 1, #_list_0 do -- 111
-	local file = _list_0[_index_0] -- 111
-	if "yarn" ~= Path:getExt(file) then -- 112
-		goto _continue_0 -- 112
-	end -- 112
-	testFiles[#testFiles + 1] = Path(Content.writablePath, file) -- 113
-	files[#files + 1] = Path:getFilename(file) -- 114
-	::_continue_0:: -- 112
-end -- 114
-local currentFile = 1 -- 116
-local windowFlags = { -- 118
-	"NoDecoration", -- 118
-	"NoSavedSettings", -- 119
-	"NoFocusOnAppearing", -- 120
-	"NoNav", -- 121
-	"NoMove" -- 122
-} -- 117
-return threadLoop(function() -- 123
-	local width -- 124
-	width = App.visualSize.width -- 124
-	SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0)) -- 125
-	SetNextWindowSize(Vec2(200, 0), "Always") -- 126
-	return Begin("Yarn Test", windowFlags, function() -- 127
-		Text("Yarn Tester (Yuescript)") -- 128
-		Separator() -- 129
-		local changed -- 130
-		changed, currentFile = Combo("File", currentFile, files) -- 130
-		if changed then -- 131
-			runner = YarnRunner(testFiles[currentFile], "Start", { }, commands, true) -- 132
-			texts = { } -- 133
-			advance() -- 134
-		end -- 131
-		Text("Variables") -- 135
-		Separator() -- 136
-		for k, v in pairs(runner.state) do -- 137
-			Text(tostring(k) .. ": " .. tostring(v)) -- 138
-		end -- 138
-	end) -- 138
-end) -- 138
+local testFiles = { -- 58
+	Path(Content.assetPath, "Script", "Test", "tutorial.yarn") -- 58
+} -- 58
+local files = { -- 59
+	"Test/tutorial.yarn" -- 59
+} -- 59
+local runner = YarnRunner(testFiles[1], "Start", { }, commands, true) -- 61
+local advance -- 63
+local setButtons -- 65
+setButtons = function(options) -- 65
+	menu:removeAllChildren() -- 66
+	local buttons -- 67
+	if options ~= nil then -- 67
+		buttons = options -- 67
+	else -- 67
+		buttons = 1 -- 67
+	end -- 67
+	menu.size = Size(140 * buttons, 140) -- 69
+	for i = 1, buttons do -- 70
+		menu:addChild((function() -- 71
+			local _with_0 = CircleButton({ -- 72
+				text = options and tostring(i) or "Next", -- 72
+				radius = 60, -- 73
+				fontSize = 40 -- 74
+			}) -- 71
+			_with_0:slot("Tapped", function() -- 76
+				if options then -- 77
+					return advance(i) -- 78
+				else -- 80
+					return advance() -- 80
+				end -- 77
+			end) -- 76
+			return _with_0 -- 71
+		end)()) -- 71
+	end -- 80
+	menu:alignItems() -- 81
+	return menu -- 68
+end -- 65
+advance = function(option) -- 83
+	local action, result = runner:advance(option) -- 84
+	if "Text" == action then -- 85
+		local charName = "" -- 86
+		if result.marks then -- 87
+			local _list_0 = result.marks -- 88
+			for _index_0 = 1, #_list_0 do -- 88
+				local mark = _list_0[_index_0] -- 88
+				local _type_0 = type(mark) -- 89
+				local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 89
+				if _tab_0 then -- 89
+					local attr = mark.name -- 89
+					local name -- 89
+					do -- 89
+						local _obj_0 = mark.attrs -- 89
+						local _type_1 = type(_obj_0) -- 89
+						if "table" == _type_1 or "userdata" == _type_1 then -- 89
+							name = _obj_0.name -- 89
+						end -- 90
+					end -- 90
+					if attr ~= nil and name ~= nil then -- 89
+						if attr == "char" then -- 90
+							charName = tostring(name) .. ": " -- 90
+						end -- 90
+					end -- 89
+				end -- 90
+			end -- 90
+		end -- 87
+		texts[#texts + 1] = charName .. result.text -- 91
+		if result.optionsFollowed then -- 92
+			advance() -- 93
+		else -- 95
+			setButtons() -- 95
+		end -- 92
+	elseif "Option" == action then -- 96
+		for i, op in ipairs(result) do -- 97
+			texts[#texts + 1] = "[" .. tostring(i) .. "]: " .. tostring(op.text) -- 98
+		end -- 98
+		setButtons(#result) -- 99
+	elseif "Command" == action then -- 100
+		texts[#texts + 1] = result -- 101
+		setButtons() -- 102
+	else -- 104
+		menu:removeAllChildren() -- 104
+		texts[#texts + 1] = result -- 105
+	end -- 105
+	label.text = table.concat(texts, "\n") -- 106
+	scroll:adjustSizeWithAlign("Auto", 10) -- 107
+	return thread(function() -- 108
+		return scroll:scrollToPosY(label.y - label.height / 2) -- 108
+	end) -- 108
+end -- 83
+advance() -- 110
+local _list_0 = Content:getAllFiles(Content.writablePath) -- 112
+for _index_0 = 1, #_list_0 do -- 112
+	local file = _list_0[_index_0] -- 112
+	if "yarn" ~= Path:getExt(file) then -- 113
+		goto _continue_0 -- 113
+	end -- 113
+	testFiles[#testFiles + 1] = Path(Content.writablePath, file) -- 114
+	files[#files + 1] = Path:getFilename(file) -- 115
+	::_continue_0:: -- 113
+end -- 115
+local currentFile = 1 -- 117
+local windowFlags = { -- 119
+	"NoDecoration", -- 119
+	"NoSavedSettings", -- 120
+	"NoFocusOnAppearing", -- 121
+	"NoNav", -- 122
+	"NoMove" -- 123
+} -- 118
+return threadLoop(function() -- 124
+	local width -- 125
+	width = App.visualSize.width -- 125
+	SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0)) -- 126
+	SetNextWindowSize(Vec2(200, 0), "Always") -- 127
+	return Begin("Yarn Test", windowFlags, function() -- 128
+		Text("Yarn Tester (Yuescript)") -- 129
+		Separator() -- 130
+		local changed -- 131
+		changed, currentFile = Combo("File", currentFile, files) -- 131
+		if changed then -- 132
+			runner = YarnRunner(testFiles[currentFile], "Start", { }, commands, true) -- 133
+			texts = { } -- 134
+			advance() -- 135
+		end -- 132
+		Text("Variables") -- 136
+		Separator() -- 137
+		for k, v in pairs(runner.state) do -- 138
+			Text(tostring(k) .. ": " .. tostring(v)) -- 139
+		end -- 139
+	end) -- 139
+end) -- 139

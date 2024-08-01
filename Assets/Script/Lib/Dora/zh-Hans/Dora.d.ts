@@ -3139,6 +3139,9 @@ class Buffer extends Object {
 	/** 缓冲区的大小。 */
 	readonly size: number;
 
+	/** 设置或获取缓冲区存储的文本。 */
+	text: string;
+
 	/**
 	 * 更改缓冲区的大小。
 	 * @param size 缓冲区的新大小。
@@ -3147,18 +3150,6 @@ class Buffer extends Object {
 
 	/** 将缓冲区中的所有字节设置为零。 */
 	zeroMemory(): void;
-
-	/**
-	 * 将缓冲区转换为字符串。
-	 * @returns 缓冲区内容作为字符串。
-	 */
-	toString(): string;
-
-	/**
-	 * 使用字符串设置缓冲区的内容。
-	 * @param str 缓冲区的新内容。
-	 */
-	setString(str: string): void;
 }
 
 export namespace Buffer {
@@ -5922,6 +5913,13 @@ export namespace Sprite {
  * 用于创建 `Sprite` 对象的类。
  */
 interface SpriteClass {
+	/**
+	 * 从图集切片文件中获取切片名称和矩形区域。
+	 * @param clipFile 要加载的图集切片文件，文件后缀名必须是".clip"。
+	 * @returns 包含切片名称和矩形区域的表。
+	 */
+	getClips(clipFile: string): LuaTable<string, Rect> | null;
+
 	/**
 	 * 创建 Sprite 对象的构造函数。
 	 * @param clipStr 包含加载纹理文件格式的字符串。

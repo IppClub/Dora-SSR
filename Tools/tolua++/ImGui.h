@@ -6,8 +6,7 @@ class Buffer : public Object
 	void resize(uint32_t size);
 	void zeroMemory();
 	tolua_readonly tolua_property__qt uint32_t size;
-	void setString(String str);
-	Slice toString();
+	tolua_property__common string text;
 	static Buffer* create(uint32_t size = 0);
 };
 

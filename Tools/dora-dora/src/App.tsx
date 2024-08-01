@@ -75,7 +75,7 @@ interface EditingFile {
 	title: string;
 	content: string;
 	contentModified: string | null;
-	uploading: boolean;
+	folder: boolean;
 	onMount: (editor: monaco.editor.IStandaloneCodeEditor) => void;
 	editor?: monaco.editor.IStandaloneCodeEditor;
 	position?: monaco.IPosition;
@@ -245,10 +245,10 @@ export default function PersistentDrawerLeft() {
 		} | null>(null);
 
 	const [jumpToFile, setJumpToFile] = useState<{
-		key: string,
-		title: string,
-		row: number,
-		col: number,
+		key: string;
+		title: string;
+		row: number;
+		col: number;
 	}| null>(null);
 
 	const [openFilter, setOpenFilter] = useState(false);
@@ -383,7 +383,7 @@ export default function PersistentDrawerLeft() {
 				const editingInfo: Service.EditingInfo = JSON.parse(res.editingInfo);
 				const targetIndex = editingInfo.index;
 				Promise.all(editingInfo.files.map((file, i) => {
-					return openFile(file.key, file.title).then((newFile) => {
+					return openFile(file.key, file.title, file.folder).then((newFile) => {
 						newFile.position = file.position;
 						newFile.mdEditing = file.mdEditing;
 						newFile.readOnly = file.readOnly;
@@ -676,28 +676,28 @@ export default function PersistentDrawerLeft() {
 		}
 	}, [t, checkFileReadonly]);
 
-	const openFile = useCallback((key: string, title: string) => {
+	const openFile = useCallback((key: string, title: string, folder: boolean) => {
 		return new Promise<EditingFile>((resolve, reject) => {
+			if (folder) {
+				if (checkFileReadonly(key, true)) {
+					reject("file readonly");
+					return;
+				}
+				const newFile: EditingFile = {
+					key,
+					title,
+					folder: true,
+					content: "",
+					contentModified: null,
+					status: "normal",
+					onMount: () => {}
+				};
+				newFile.onMount = onEditorDidMount(newFile);
+				resolve(newFile);
+				return;
+			}
 			const ext = path.extname(title).toLowerCase();
 			switch (ext) {
-				case "": {
-					if (checkFileReadonly(key, true)) {
-						reject("file readonly");
-						break;
-					}
-					const newFile: EditingFile = {
-						key,
-						title,
-						content: "",
-						contentModified: null,
-						uploading: true,
-						status: "normal",
-						onMount: () => {}
-					};
-					newFile.onMount = onEditorDidMount(newFile);
-					resolve(newFile);
-					break;
-				}
 				case ".png":
 				case ".jpg":
 				case ".skel": {
@@ -706,7 +706,7 @@ export default function PersistentDrawerLeft() {
 						title,
 						content: "",
 						contentModified: null,
-						uploading: false,
+						folder: false,
 						status: "normal",
 						onMount: () => {},
 					};
@@ -731,7 +731,7 @@ export default function PersistentDrawerLeft() {
 								title,
 								content,
 								contentModified: null,
-								uploading: false,
+								folder: false,
 								status: "normal",
 								onMount: () => {},
 							};
@@ -755,7 +755,7 @@ export default function PersistentDrawerLeft() {
 		});
 	}, [checkFileReadonly, onEditorDidMount, t]);
 
-	const openFileInTab = useCallback((key: string, title: string, position?: monaco.IPosition, readOnly? :boolean) => {
+	const openFileInTab = useCallback((key: string, title: string, folder: boolean, position?: monaco.IPosition, readOnly? :boolean) => {
 		let index: number | null = null;
 		const file = files.find((file, i) => {
 			if (path.relative(file.key, key) === "") {
@@ -765,7 +765,7 @@ export default function PersistentDrawerLeft() {
 			return false;
 		});
 		if (index === null) {
-			openFile(key, title).then((newFile) => {
+			openFile(key, title, folder).then((newFile) => {
 				newFile.readOnly = readOnly;
 				newFile.position = position;
 				setFiles(files => {
@@ -786,7 +786,7 @@ export default function PersistentDrawerLeft() {
 
 	useEffect(() => {
 		if (jumpToFile !== null) {
-			openFileInTab(jumpToFile.key, jumpToFile.title, {
+			openFileInTab(jumpToFile.key, jumpToFile.title, false, {
 				lineNumber: jumpToFile.row,
 				column: jumpToFile.col
 			});
@@ -803,7 +803,7 @@ export default function PersistentDrawerLeft() {
 		const {key, title, dir} = nodes[0];
 		setSelectedNode(nodes[0]);
 		if (dir || path.extname(title) !== "") {
-			openFileInTab(key, title);
+			openFileInTab(key, title, dir);
 		}
 	}, [openFileInTab]);
 
@@ -846,7 +846,7 @@ export default function PersistentDrawerLeft() {
 			if (file !== undefined) {
 				key = file.key;
 				title = file.title;
-				dir = file.uploading;
+				dir = file.folder;
 				if (path.extname(title).toLowerCase() === ".md") {
 					file.mdEditing = false;
 					setFiles([...files]);
@@ -1292,8 +1292,8 @@ export default function PersistentDrawerLeft() {
 					break;
 				}
 				if (data !== undefined) {
-					const extname = path.extname(data.title);
-					const name = path.basename(data.title, extname);
+					const extname = data.dir ? "" : path.extname(data.title);
+					const name = data.dir ? data.title : path.basename(data.title, extname);
 					const ext = extname.toLowerCase();
 					setFileInfo({
 						title: "file.rename",
@@ -1334,7 +1334,7 @@ export default function PersistentDrawerLeft() {
 				const luaFile = path.join(dir, name + ".lua");
 				Service.read({path: luaFile}).then((res) => {
 					if (res.success && res.content !== undefined) {
-						openFileInTab(luaFile, name + ".lua", undefined, true);
+						openFileInTab(luaFile, name + ".lua", false, undefined, true);
 					} else {
 						addAlert(t("alert.failedCompile", {title: name + ".lua"}), "warning");
 					}
@@ -1502,7 +1502,8 @@ export default function PersistentDrawerLeft() {
 					default:
 						break;
 				}
-				Service.newFile({path: newFile, content}).then((res) => {
+				const folder = target.dir;
+				Service.newFile({path: newFile, content, folder}).then((res) => {
 					if (!res.success) {
 						addAlert(t("alert.newFailed"), "error");
 						return;
@@ -1512,7 +1513,7 @@ export default function PersistentDrawerLeft() {
 					const newNode: TreeDataType = {
 						key: newFile,
 						title: newName,
-						dir: ext === "",
+						dir: folder,
 					};
 					const visitData = (node: TreeDataType) => {
 						if (node.key === target.key) return "find";
@@ -1560,25 +1561,23 @@ export default function PersistentDrawerLeft() {
 					setTreeData([rootNode]);
 					setSelectedKeys([newFile]);
 					setSelectedNode(newNode);
-					if (ext !== '') {
-						const index = files.length;
-						if (ext === ".md") {
-							files[index].mdEditing = true;
-						}
-						const newItem: EditingFile = {
-							key: newFile,
-							title: newName,
-							position,
-							content,
-							contentModified: null,
-							uploading: false,
-							status: "normal",
-							onMount: () => {},
-						};
-						newItem.onMount = onEditorDidMount(newItem);
-						setFiles([...files, newItem]);
-						switchTab(index, newItem);
+					const index = files.length;
+					if (ext === ".md") {
+						files[index].mdEditing = true;
 					}
+					const newItem: EditingFile = {
+						key: newFile,
+						title: newName,
+						folder,
+						position,
+						content,
+						contentModified: null,
+						status: "normal",
+						onMount: () => {},
+					};
+					newItem.onMount = onEditorDidMount(newItem);
+					setFiles([...files, newItem]);
+					switchTab(index, newItem);
 				}).catch(() => {
 					addAlert(t("alert.newFailed"), "error");
 				});
@@ -1607,7 +1606,7 @@ export default function PersistentDrawerLeft() {
 					affected.some(x => {
 						if (x[0] === f.key) {
 							f.key = x[1];
-							if (f.uploading) {
+							if (f.folder) {
 								f.title = path.basename(f.key);
 							}
 							if (f.contentModified !== null) {
@@ -2001,7 +2000,7 @@ export default function PersistentDrawerLeft() {
 	const onJumpLink = useCallback((link: string, fromFile: string) => {
 		const key = path.join(path.dirname(fromFile), ...link.split("[\\/]"));
 		const title = path.basename(key);
-		openFileInTab(key, title);
+		openFileInTab(key, title, false);
 	}, [openFileInTab]);
 
 	if (openFilter) {
@@ -2042,11 +2041,11 @@ export default function PersistentDrawerLeft() {
 			index: tabIndex ?? 0,
 			files: files.map(f => {
 				const {key, title, mdEditing, editor, readOnly} = f;
-				let {position} = f;
+				let {position, folder = false} = f;
 				if (position === undefined && editor !== undefined) {
 					position = editor.getPosition() ?? undefined;
 				}
-				return {key, title, mdEditing, position, readOnly};
+				return {key, title, mdEditing, position, readOnly, folder};
 			})
 		};
 		Service.editingInfo({
@@ -2107,7 +2106,7 @@ export default function PersistentDrawerLeft() {
 		if (value === null) {
 			return;
 		}
-		openFileInTab(value.fileKey, value.title);
+		openFileInTab(value.fileKey, value.title, false);
 	}, [setFilterOptions, openFileInTab]);
 
 	return (
@@ -2454,7 +2453,7 @@ export default function PersistentDrawerLeft() {
 										onValidate={onValidate}
 										readOnly={readOnly}
 									/>;
-								} else if (file.uploading) {
+								} else if (file.folder) {
 									const rootNode = treeData.at(0);
 									if (rootNode === undefined) return null;
 									let target = path.relative(writablePath, file.key);

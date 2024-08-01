@@ -55,7 +55,10 @@ commands = <index>: (_self, name) -> (...) ->
 	msg = "[command]: " .. name .. " " .. table.concat [tostring select i, ... for i = 1, select '#', ...], ", "
 	coroutine.yield "Command", msg
 
-runner = YarnRunner "tutorial.yarn", "Start", {}, commands, true
+testFiles = [Path(Content.assetPath, "Script", "Test", "tutorial.yarn"),]
+files = ["Test/tutorial.yarn",]
+
+runner = YarnRunner testFiles[1], "Start", {}, commands, true
 
 local advance
 
@@ -106,8 +109,6 @@ advance = (option) ->
 
 advance!
 
-testFiles = ["tutorial.yarn",]
-files = ["tutorial.yarn",]
 for file in *Content\getAllFiles Content.writablePath
 	continue if "yarn" ~= Path\getExt file
 	testFiles[] = Path Content.writablePath, file

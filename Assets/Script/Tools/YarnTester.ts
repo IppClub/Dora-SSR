@@ -136,7 +136,7 @@ const advance = (option?: number) => {
 advance();
 
 const testFiles = [testFile];
-const files = [testFile];
+const files = ["Test/tutorial.yarn"];
 for (let file of Content.getAllFiles(Content.writablePath)) {
 	if ("yarn" !== Path.getExt(file)) {
 		continue;
@@ -158,7 +158,7 @@ threadLoop(() => {
 	ImGui.SetNextWindowPos(Vec2(width - 10, 10), SetCond.Always, Vec2(1, 0));
 	ImGui.SetNextWindowSize(Vec2(200, 0), SetCond.Always);
 	ImGui.Begin("Yarn Test", windowFlags, () => {
-		ImGui.Text("Yarn Tester (Typescript)");
+		ImGui.Text("Yarn Tester");
 		ImGui.Separator();
 		let changed = false;
 		[changed, currentFile] = ImGui.Combo("File", currentFile, files);

@@ -8,11 +8,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 	fn buffer_type() -> i32;
+	fn buffer_set_text(slf: i64, var: i64);
+	fn buffer_get_text(slf: i64) -> i64;
 	fn buffer_resize(slf: i64, size: i32);
 	fn buffer_zero_memory(slf: i64);
-	fn buffer_size(slf: i64) -> i32;
-	fn buffer_set_string(slf: i64, str: i64);
-	fn buffer_to_string(slf: i64) -> i64;
+	fn buffer_get_size(slf: i64) -> i32;
 }
 use crate::dora::IObject;
 pub struct Buffer { raw: i64 }
@@ -26,19 +26,19 @@ impl Buffer {
 			}
 		})
 	}
+	pub fn set_text(&mut self, var: &str) {
+		unsafe { buffer_set_text(self.raw(), crate::dora::from_string(var)) };
+	}
+	pub fn get_text(&self) -> String {
+		return unsafe { crate::dora::to_string(buffer_get_text(self.raw())) };
+	}
 	pub fn resize(&mut self, size: i32) {
 		unsafe { buffer_resize(self.raw(), size); }
 	}
 	pub fn zero_memory(&mut self) {
 		unsafe { buffer_zero_memory(self.raw()); }
 	}
-	pub fn size(&self) -> i32 {
-		unsafe { return buffer_size(self.raw()); }
-	}
-	pub fn set_string(&mut self, str: &str) {
-		unsafe { buffer_set_string(self.raw(), crate::dora::from_string(str)); }
-	}
-	pub fn to_string(&mut self) -> String {
-		unsafe { return crate::dora::to_string(buffer_to_string(self.raw())); }
+	pub fn get_size(&self) -> i32 {
+		unsafe { return buffer_get_size(self.raw()); }
 	}
 }

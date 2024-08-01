@@ -43,14 +43,14 @@ uint32_t Buffer::size() const {
 	return s_cast<uint32_t>(_data.size());
 }
 
-void Buffer::setString(String str) {
+void Buffer::setText(String str) {
 	if (_data.empty()) return;
 	size_t length = std::min(_data.size() - 1, str.size());
 	std::memcpy(_data.data(), str.begin(), length);
 	_data[length] = '\0';
 }
 
-Slice Buffer::toString() {
+Slice Buffer::getText() {
 	size_t size = 0;
 	for (auto ch : _data) {
 		if (ch == '\0') {

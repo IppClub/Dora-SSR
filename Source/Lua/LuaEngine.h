@@ -93,20 +93,24 @@ public:
 	}
 
 	template <typename T>
-	typename std::enable_if<std::is_same_v<T, bool>>::type push(T value) {
+	typename std::enable_if_t<std::is_same_v<T, bool>> push(T value) {
 		lua_pushboolean(L, value ? 1 : 0);
 	}
 
 	template <typename T>
-	typename std::enable_if<
-		std::is_same_v<T, Platformer::UnitAction> || std::is_same_v<T, Platformer::Behavior::Blackboard>>::type
+	typename std::enable_if_t<
+		std::is_same_v<T, Platformer::UnitAction>
+		|| std::is_same_v<T, Platformer::Behavior::Blackboard>>
 	push(T* value) {
 		tolua_pushusertype(L, value, LuaType<T>());
 	}
 
 	template <typename T>
-	typename std::enable_if<
-		std::is_same_v<T, Size> || std::is_same_v<T, Vec4> || std::is_same_v<T, Matrix>>::type
+	typename std::enable_if_t<
+		std::is_same_v<T, Size>
+		|| std::is_same_v<T, Vec4>
+		|| std::is_same_v<T, Rect>
+		|| std::is_same_v<T, Matrix>>
 	push(const T& value) {
 		tolua_pushusertype(L, new T(value), LuaType<T>());
 	}
@@ -131,25 +135,29 @@ public:
 	}
 
 	template <typename T>
-	static typename std::enable_if<!std::is_base_of_v<Object, T>>::type push(lua_State* L, T* t) {
+	static typename std::enable_if_t<!std::is_base_of_v<Object, T>> push(lua_State* L, T* t) {
 		tolua_pushusertype(L, t, LuaType<T>());
 	}
 
 	template <typename T>
-	static typename std::enable_if<std::is_same_v<T, bool>>::type push(lua_State* L, T value) {
+	static typename std::enable_if_t<std::is_same_v<T, bool>> push(lua_State* L, T value) {
 		lua_pushboolean(L, value ? 1 : 0);
 	}
 
 	template <typename T>
-	static typename std::enable_if<
-		std::is_same_v<T, Size> || std::is_same_v<T, Vec4> || std::is_same_v<T, Matrix>>::type
+	static typename std::enable_if_t<
+		std::is_same_v<T, Size>
+		|| std::is_same_v<T, Vec4>
+		|| std::is_same_v<T, Rect>
+		|| std::is_same_v<T, Matrix>>
 	push(lua_State* L, const T& value) {
 		tolua_pushusertype(L, new T(value), LuaType<T>());
 	}
 
 	template <typename T>
-	static typename std::enable_if<
-		std::is_same_v<T, Platformer::UnitAction> || std::is_same_v<T, Platformer::Behavior::Blackboard>>::type
+	static typename std::enable_if_t<
+		std::is_same_v<T, Platformer::UnitAction>
+		|| std::is_same_v<T, Platformer::Behavior::Blackboard>>
 	push(lua_State* L, T* value) {
 		tolua_pushusertype(L, value, LuaType<T>());
 	}
@@ -214,6 +222,7 @@ public:
 	static bool invoke(lua_State* L, int handler, int numArgs, int numRets); // returns success or failure
 
 	static bool isInLua();
+
 private:
 	struct TealState {
 		lua_State* L;

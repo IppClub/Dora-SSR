@@ -551,20 +551,26 @@ HttpServer\post "/info", ->
 		:drawerWidth
 
 HttpServer\post "/new", (req): success: false ->
-	switch req when {body: {:path, :content}}
+	switch req when {body: {:path, :content, :folder}}
 		if not Content\exist path
 			parent = Path\getPath path
 			files = Content\getFiles parent
-			name = Path\getName(path)\lower!
-			if "d" ~= Path\getExt name
+			if folder
+				name = Path\getFilename(path)\lower!
 				for file in *files
-					if name == Path\getName(file)\lower!
+					if name == Path\getFilename(file)\lower!
 						return success: false
-			if "" == Path\getExt path
 				if Content\mkdir path
 					return success: true
-			elseif Content\save path, content
-				return success: true
+			else
+				name = Path\getName(path)\lower!
+				for file in *files
+					if name == Path\getName(file)\lower!
+						if ("d" == Path\getExt name) and (Path\getExt(file) ~= Path\getExt path)
+							continue
+						return success: false
+				if Content\save path, content
+					return success: true
 
 HttpServer\post "/delete", (req): success: false ->
 	switch req when {body: {:path}}
@@ -587,10 +593,17 @@ HttpServer\post "/rename", (req): success: false ->
 		if Content\exist(old) and not Content\exist new
 			parent = Path\getPath new
 			files = Content\getFiles parent
-			name = Path\getName(new)\lower!
-			if "d" ~= Path\getExt name
+			if Content\isdir old
+				name = Path\getFilename(new)\lower!
+				for file in *files
+					if name == Path\getFilename(file)\lower!
+						return success: false
+			else
+				name = Path\getName(new)\lower!
 				for file in *files
 					if name == Path\getName(file)\lower!
+						if ("d" == Path\getExt name) and (Path\getExt(file) ~= Path\getExt new)
+							continue
 						return success: false
 			if Content\move old, new
 				newParent = Path\getPath new
@@ -750,6 +763,8 @@ HttpServer\post "/assets", ->
 						.title = zh and "代码示例" or "Example"
 					with visitAssets Path Content.assetPath, "Script", "Game"
 						.title = zh and "游戏演示" or "Demo Game"
+					with visitAssets Path Content.assetPath, "Script", "Tools"
+						.title = zh and "开发工具" or "Tools"
 					with visitAssets Path Content.assetPath, "Script", "Test"
 						.title = zh and "功能测试" or "Test"
 					visitAssets Path Content.assetPath, "Image"
