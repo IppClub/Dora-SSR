@@ -371,7 +371,7 @@ export function SetWindowPos(this: void, name: string, pos: Vec2, setCond?: SetC
 export function SetWindowSize(this: void, name: string, size: Vec2, setCond?: SetCond): void;
 export function SetWindowCollapsed(this: void, name: string, collapsed: boolean, setCond?: SetCond): void;
 export function SetColorEditOptions(this: void, colorEditFlags: ColorEditFlag[]): void;
-export function InputTextMultiline(this: void, label: string, buffer: Buffer, inputTextFlags?: InputTextFlag): boolean;
+export function InputText(this: void, label: string, buffer: Buffer, inputTextFlags?: InputTextFlag[]): boolean;
 export function InputTextMultiline(this: void, label: string, buffer: Buffer, size?: Vec2, inputTextFlags?: InputTextFlag): boolean;
 export function TreeNodeEx(this: void, label: string, treeNodeFlags: TreeNodeFlag, inside: (this: void) => void): boolean;
 export function TreeNodeEx(this: void, label: string, inside: (this: void) => void): boolean;

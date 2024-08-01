@@ -1,9 +1,9 @@
 local Node = require("Node").Type
 local record Param
-	text: string
+	text: string -- required
 	x: number
 	y: number
-	radius: number
+	radius: number -- required
 	fontName: string
 	fontSize: number
 end

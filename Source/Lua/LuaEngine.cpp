@@ -982,6 +982,7 @@ LuaEngine::LuaEngine()
 			tolua_variable(L, "uwrap", Sprite_GetUWrap, Sprite_SetUWrap);
 			tolua_variable(L, "vwrap", Sprite_GetVWrap, Sprite_SetVWrap);
 			tolua_variable(L, "filter", Sprite_GetTextureFilter, Sprite_SetTextureFilter);
+			tolua_function(L, "getClips", Sprite_GetClips);
 		}
 		tolua_endmodule(L);
 

@@ -1,4 +1,4 @@
--- [ts]: YarnTS.ts
+-- [ts]: YarnTester.ts
 local ____exports = {} -- 1
 local advance -- 1
 local CircleButton = require("UI.Control.Basic.CircleButton") -- 2
@@ -175,7 +175,7 @@ advance = function(____, option) -- 97
 end -- 97
 advance(nil) -- 136
 local testFiles = {testFile} -- 138
-local files = {testFile} -- 139
+local files = {"Test/tutorial.yarn"} -- 139
 for ____, file in ipairs(Content:getAllFiles(Content.writablePath)) do -- 140
     do -- 140
         if "yarn" ~= Path:getExt(file) then -- 140
@@ -210,7 +210,7 @@ threadLoop(function() -- 156
         "Yarn Test", -- 160
         windowFlags, -- 160
         function() -- 160
-            ImGui.Text("Yarn Tester (Typescript)") -- 161
+            ImGui.Text("Yarn Tester") -- 161
             ImGui.Separator() -- 162
             local changed = false -- 163
             changed, currentFile = ImGui.Combo("File", currentFile, files) -- 164

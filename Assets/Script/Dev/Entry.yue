@@ -137,7 +137,7 @@ else
 
 filterBuf = Buffer 20
 if config.filter?
-	filterBuf\setString config.filter
+	filterBuf.text = config.filter
 else
 	config.filter = ""
 
@@ -863,7 +863,7 @@ entryWindow = threadLoop ->
 				SameLine!
 				SetNextItemWidth -50
 				if InputText zh and '筛选' or 'Filter', filterBuf, ["AutoSelectAll",]
-					config.filter = filterBuf\toString!
+					config.filter = filterBuf.text
 			Separator!
 			Dummy Vec2 fullWidth - 20, 0
 
@@ -872,7 +872,7 @@ entryWindow = threadLoop ->
 	SetNextWindowSize Vec2 fullWidth, height - 100
 	PushStyleColor "WindowBg", transparant, -> PushStyleVar "WindowPadding", Vec2(paddingX, 10), ->
 		Begin "Content", windowFlags, ->
-			filterText = filterBuf\toString!\match "[^%%%.%[]+"
+			filterText = filterBuf.text\match "[^%%%.%[]+"
 			filterText = filterText\lower! if filterText
 			if #gamesInDev > 0
 				for game in *gamesInDev

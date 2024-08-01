@@ -4790,11 +4790,10 @@ singleton class Data
 }
 
 object class Buffer {
+	common string text;
 	void resize(uint32_t size);
 	void zeroMemory();
-	uint32_t size() const;
-	void setString(string str);
-	string toString();
+	uint32_t size @ get_size() const;
 };
 
 singleton struct ImGui {

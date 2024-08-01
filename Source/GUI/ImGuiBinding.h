@@ -23,8 +23,8 @@ public:
 	void zeroMemory();
 	char* get();
 	uint32_t size() const;
-	void setString(String str);
-	Slice toString();
+	void setText(String str);
+	Slice getText();
 	CREATE_FUNC_NOT_NULL(Buffer);
 
 protected:

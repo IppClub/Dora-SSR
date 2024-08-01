@@ -62,6 +62,11 @@ local record SpriteClass
 	type Type = Sprite
 	type TextureFilter = Sprite.TextureFilter
 
+	-- Gets the clip names and rectangles from the clip file.
+	-- @param clipFile (string) The clip file name to load, should end with ".clip".
+	-- @return ({string, Rect} | nil) A table containing the clip names and rectangles.
+	getClips: function(self: SpriteClass, clipFile: string): {string, Rect} | nil
+
 	-- A metamethod for creating Sprite object.
 	-- @param clipStr (string) The string containing format for loading a texture file.
 	-- Can be "Image/file.png" and "Image/items.clip|itemA". Supports image file format: jpg, png, dds, pvr, ktx.

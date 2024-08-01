@@ -9,20 +9,15 @@ local record Buffer
 	-- The size of the buffer.
 	const size: integer
 
+	-- Getting or setting the text stored in the buffer.
+	text: string
+
 	-- Changing the size of the buffer.
 	-- @param size (integer) The new size of the buffer.
 	resize: function(self: Buffer, size: integer)
 
 	-- Setting all bytes in the buffer to zero.
 	zeroMemory: function(self: Buffer)
-
-	-- Converting the buffer to a string.
-	-- @return (string) The buffer contents as a string.
-	toString: function(self: Buffer): string
-
-	-- Setting the contents of the buffer with a string.
-	-- @param str (string) The new contents of the buffer.
-	setString: function(self: Buffer, str: string)
 end
 
 -- A class for creating Buffer object.

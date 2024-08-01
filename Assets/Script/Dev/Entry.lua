@@ -215,7 +215,7 @@ else -- 136
 end -- 133
 local filterBuf = Buffer(20) -- 138
 if (config.filter ~= nil) then -- 139
-	filterBuf:setString(config.filter) -- 140
+	filterBuf.text = config.filter -- 140
 else -- 142
 	config.filter = "" -- 142
 end -- 139
@@ -1391,7 +1391,7 @@ entryWindow = threadLoop(function() -- 797
 				if InputText(zh and '筛选' or 'Filter', filterBuf, { -- 865
 					"AutoSelectAll" -- 865
 				}) then -- 865
-					config.filter = filterBuf:toString() -- 866
+					config.filter = filterBuf.text -- 866
 				end -- 865
 			end -- 861
 			Separator() -- 867
@@ -1404,7 +1404,7 @@ entryWindow = threadLoop(function() -- 797
 	return PushStyleColor("WindowBg", transparant, function() -- 873
 		return PushStyleVar("WindowPadding", Vec2(paddingX, 10), function() -- 873
 			return Begin("Content", windowFlags, function() -- 874
-				filterText = filterBuf:toString():match("[^%%%.%[]+") -- 875
+				filterText = filterBuf.text:match("[^%%%.%[]+") -- 875
 				if filterText then -- 876
 					filterText = filterText:lower() -- 876
 				end -- 876

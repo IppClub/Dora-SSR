@@ -12,13 +12,21 @@ import "Utils" as :Round
 
 export default Class Ruler,
 	__init: (args) =>
-		{:y, :width, :height, :fontName, :fontSize, :fixed} = args
+		{
+			:y = 0
+			:width
+			:height
+			:fontName = "sarasa-mono-sc-regular"
+			:fontSize = 30
+			:fixed = false
+		} = args
 		viewSize = View.size
 		halfW = width / 2
 		halfH = height / 2
 		interval = 10
 		indent = 100
 		fontSize ??= 12
+		fontSize = math.floor fontSize
 		vsCache = {}
 		@endPosY = y
 		@isFixed = fixed ?? true
@@ -29,7 +37,7 @@ export default Class Ruler,
 		do
 			posX = @intervalNode.anchor.x * width
 			center = Round posX / 100
-			len = Round (posX + halfW)/ 100 - center
+			len = Round (posX + halfW) / 100 - center
 			len = 1 + math.max (center - Round (posX - halfW) / 100), len
 			for i = center - len, center + len
 				pos = i * 100
@@ -140,17 +148,17 @@ export default Class Ruler,
 						newVal = @getValue! + delta.y * indent / 10
 						@setValue _min < _max and math.min(math.max(_min, newVal), _max) or newVal
 
-		@setIndent = (ind) =>
+		@setIndent = (_self, ind) ->
 			indent = ind
 			for i, label in pairs labels
 				label.text = string.format "%.0f", ind * i / 100
-		@getIndent = => indent
+		@getIndent = (_self) -> indent
 
 		@lastValue = nil
 		@setValue = (v) =>
 			_value = v
 			val = _min < _max and math.min(math.max(_value, _min), _max) or _value
-			val = @isFixed and Round(val / (indent / 10)) * (indent / 10) or val
+			val = @isFixed and Round(val / (indent / 10)) * math.floor(indent / 10) or val
 			val = 0 if val == -0
 			if @lastValue ~= val
 				@lastValue = val
@@ -159,10 +167,10 @@ export default Class Ruler,
 			@intervalNode.anchor = Vec2 posX / width, 0
 			updateLabels!
 
-		@getValue = => _value
-		@getPos = => _value * 10 * interval / indent
+		@getValue = (_self) -> _value
+		@getPos = (_self) -> _value * 10 * interval / indent
 
-		@setLimit = (min, max) =>
+		@setLimit = (_self, min, max) ->
 			_max = max
 			_min = min
 
@@ -213,7 +221,7 @@ export default Class Ruler,
 				if isReseting! then startReset!
 				else @unschedule!
 
-		@slot "TapFilter", (touch)->
+		@slot "TapFilter", (touch) ->
 			touch.enabled = false unless touch.first
 
 		@slot "TapBegan", ->
@@ -231,7 +239,7 @@ export default Class Ruler,
 					d = (v - _max) * 3 / padding
 				elseif v < _min
 					d = (_min - v) * 3 / padding
-				v = _value + (v - _value)/(d < 1 and 1 or d * d)
+				v = _value + (v - _value) / (d < 1 and 1 or d * d)
 			@setValue (v - _value) / @intervalNode.scaleX + _value
 			_s += deltaX
 
@@ -240,6 +248,9 @@ export default Class Ruler,
 				startReset!
 			elseif _v ~= 0
 				@schedule updatePos
+	
+	value: property => @getValue!,
+		(v) => @setValue v
 
 	show: (default, min, max, ind, callback) =>
 		@setLimit min, max

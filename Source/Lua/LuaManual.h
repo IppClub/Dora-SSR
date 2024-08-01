@@ -85,6 +85,7 @@ int Sprite_GetVWrap(lua_State* L);
 int Sprite_SetVWrap(lua_State* L);
 int Sprite_GetTextureFilter(lua_State* L);
 int Sprite_SetTextureFilter(lua_State* L);
+int Sprite_GetClips(lua_State* L);
 
 /* TileNode */
 int TileNode_GetTextureFilter(lua_State* L);
