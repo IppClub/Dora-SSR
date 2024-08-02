@@ -69,7 +69,6 @@ private:
 	bool _backSpaceIgnore;
 	bool _mouseVisible;
 	bool _mousePressed[3];
-	bool _rejectAllEvents;
 	Vec2 _mouseWheel;
 	int _lastCursor;
 	Ref<Texture2D> _fontTexture;

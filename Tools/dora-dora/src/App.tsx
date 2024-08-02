@@ -2009,10 +2009,17 @@ export default function PersistentDrawerLeft() {
 		if (rootNode !== undefined) {
 			const filterOptions: FilterOption[] = [];
 			const {engineDev} = Info;
+			const toolPath = path.join(assetPath, "Script", "Tools");
 			const visitNode = (node: TreeDataType) => {
 				if (!node.dir) {
 					const isWritableFile = node.key.startsWith(writablePath);
-					if (engineDev || isWritableFile) {
+					let isToolFile = node.key.startsWith(toolPath);
+					if (isToolFile) {
+						if (path.dirname(node.key) !== toolPath) {
+							isToolFile = false;
+						}
+					}
+					if (engineDev || isWritableFile || isToolFile) {
 						filterOptions.push({
 							title: node.title,
 							fileKey: node.key,

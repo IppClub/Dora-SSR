@@ -1,10 +1,26 @@
+/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
 // @preview-file on
+
 import { React, toNode, useRef } from 'DoraX';
 import { App, BlendFunc, BlendOp, Buffer, Cache, Color, Content, Label, Line, Node, Opacity, Path, RenderTarget, Sprite, TextureFilter, TypeName, Vec2, View, thread, threadLoop, tolua } from 'Dora';
 import { InputTextFlag, SetCond, WindowFlag } from "ImGui";
 import * as ImGui from 'ImGui';
+import * as nvg from "nvg";
 import Packer, { Block } from './TexturePacker/Packer';
 import * as Ruler from 'UI/Control/Basic/Ruler';
+
+let zh = false;
+{
+	const [res] = string.match(App.locale, "^zh");
+	zh = res !== null && ImGui.IsFontLoaded();
+}
 
 function getAllClipFolders(this: void) {
 	const folders: string[] = [];
@@ -33,7 +49,8 @@ let scaledSize = 1;
 const ruler = Ruler({y: -150 * pixelRatio, width: pixelRatio * 300, height: 75 * pixelRatio, fontSize: 15 * pixelRatio});
 ruler.order = 2;
 
-let filterMode = 1;
+let anisotropic = true;
+let clipHover = "-";
 
 if (clipFolders.length > 0) {
 	displayClips(clipFolders[0]);
@@ -53,6 +70,7 @@ function displayClips(this: void, folder: string) {
 	}
 	scaledSize = 1;
 	ruler.value = 1;
+	clipHover = "-";
 	currentFolder = folder;
 	const name = Path.getName(folder);
 	const path = Path.getPath(folder);
@@ -63,7 +81,7 @@ function displayClips(this: void, folder: string) {
 		Cache.load(clipFile);
 		const sprite = Sprite(clipFile);
 		if (sprite) {
-			sprite.filter = filterMode === 1 ? TextureFilter.Anisotropic : TextureFilter.Point;
+			sprite.filter = anisotropic ? TextureFilter.Anisotropic : TextureFilter.Point;
 			const frame = Line([
 				Vec2.zero,
 				Vec2(sprite.width, 0),
@@ -85,19 +103,35 @@ function displayClips(this: void, folder: string) {
 			}
 			frame.scaleY = -1;
 			frame.y = sprite.height;
+			if (rects) {
+				frame.schedule(() => {
+					const {width: bw, height: bh} = App.bufferSize;
+					const {width: vw} = App.visualSize;
+					let pos = nvg.TouchPos().mul(bw / vw);
+					pos = Vec2(pos.x - bw / 2, bh / 2 - pos.y);
+					const localPos = frame.convertToNodeSpace(pos);
+					clipHover = "-";
+					for (let [name, rc] of rects) {
+						if (rc.containsPoint(localPos)) {
+							clipHover = name;
+						}
+					}
+					return false;
+				});
+			}
 			currentDisplay = sprite;
 		} else {
-			currentDisplay = getLabel("Failed to load clip file.");
+			currentDisplay = getLabel(zh ? "加载 .clip 文件失败。" : "Failed to load .clip file.");
 		}
-		Cache.unload(clipFile);
 	} else {
-		currentDisplay = getLabel("Needs generating.");
+		currentDisplay = getLabel(zh ? "未生成文件。" : "Needs generating.");
 	}
 }
 
 function generateClips(this: void, folder: string) {
 	scaledSize = 1;
 	ruler.value = 1;
+	clipHover = "-";
 	const padding = 2;
 	const blocks: Block[] = [];
 	const blendFunc = BlendFunc(BlendOp.One, BlendOp.Zero);
@@ -123,7 +157,7 @@ function generateClips(this: void, folder: string) {
 	}
 	currentDisplay?.removeFromParent();
 	if (blocks.length === 0) {
-		currentDisplay = getLabel("No content.");
+		currentDisplay = getLabel(zh ? "没有文件。" : "No content.");
 		return;
 	}
 	const packer = Packer();
@@ -166,6 +200,7 @@ function generateClips(this: void, folder: string) {
 	const target = RenderTarget(math.tointeger(width), math.tointeger(height));
 	target.renderWithClear(node, Color(0x0));
 	node.visible = false;
+	node.removeAllChildren();
 	node.cleanup();
 
 	const outputName = Path.getName(folder);
@@ -185,7 +220,7 @@ function generateClips(this: void, folder: string) {
 	});
 
 	const displaySprite = Sprite(target.texture);
-	displaySprite.filter = filterMode === 1 ? TextureFilter.Anisotropic : TextureFilter.Point;
+	displaySprite.filter = anisotropic ? TextureFilter.Anisotropic : TextureFilter.Point;
 	displaySprite.addChild(frame);
 	displaySprite.runAction(Opacity(0.3, 0, 1));
 	currentDisplay = displaySprite;
@@ -227,20 +262,33 @@ const windowFlags = [
 	WindowFlag.NoSavedSettings,
 	WindowFlag.NoFocusOnAppearing,
 	WindowFlag.NoNav,
-	WindowFlag.NoMove
+	WindowFlag.NoMove,
+	WindowFlag.NoScrollWithMouse
 ];
 const inputTextFlags = [InputTextFlag.AutoSelectAll];
 let filteredNames = clipNames;
 let filteredFolders = clipFolders;
 let scaleChecked = false;
+const themeColor = App.themeColor;
 threadLoop(() => {
 	const {width} = App.visualSize;
 	ImGui.SetNextWindowPos(Vec2(width - 10, 10), SetCond.Always, Vec2(1, 0));
-	ImGui.SetNextWindowSize(Vec2(200, 0), SetCond.Always);
+	ImGui.SetNextWindowSize(Vec2(230, 0), SetCond.Always);
 	ImGui.Begin("Texture Packer", windowFlags, () => {
-		ImGui.Text("Texture Packer");
+		ImGui.Text(zh ? "纹理打包工具" : "Texture Packer");
+		ImGui.SameLine();
+		ImGui.TextDisabled("(?)");
+		if (ImGui.IsItemHovered()) {
+			ImGui.BeginTooltip(() => {
+				ImGui.PushTextWrapPos(300, () => {
+					ImGui.Text(zh ? "将图像文件（png、jpg、ktx、pvr）放入一个以 '.clips' 结尾的文件夹中，然后重新加载纹理打包工具以找到该文件夹并创建一个打包图像文件。打包后的图像将保存为 '.png' 文件，并生成一个对应的描述文件，保存为 '.clip' 文件。例如，'items.clips' 会变成 'items.png' 和 'items.clip'。" : "Place image files (png, jpg, ktx, pvr) in a folder named with a '.clips' suffix. Reload the texture packer to locate the folder and create a packed image file. The packed image will be saved as a '.png' file, and a corresponding description file will be saved as a '.clip' file. For example, 'items.clips' becomes 'items.png' and 'items.clip'.");
+				});
+			});
+		}
 		ImGui.Separator();
-		if (ImGui.InputText('Filter', filterBuf, inputTextFlags)) {
+		ImGui.InputText('##FilterInput', filterBuf, inputTextFlags);
+		ImGui.SameLine();
+		if (ImGui.Button(zh ? "筛选" : "Filter")) {
 			const filterText = filterBuf.text;
 			if (filterText === "") {
 				filteredNames = clipNames;
@@ -267,34 +315,35 @@ threadLoop(() => {
 		}
 		if (filteredNames.length > 0) {
 			let changed = false;
-			[changed, current] = ImGui.Combo("File", current, filteredNames);
+			[changed, current] = ImGui.Combo(zh ? "文件" : "File", current, filteredNames);
 			if (changed) {
 				displayClips(filteredFolders[current - 1]);
 			}
-			if (ImGui.Button("Generate")) {
+			if (ImGui.Button(zh ? "生成切片图集" : "Generate Clip")) {
 				generateClips(filteredFolders[current - 1]);
 			}
 		}
 		ImGui.Separator();
-		ImGui.Text("Display");
-		let changed = false;
-		[changed, filterMode] = ImGui.RadioButton("Anisotropic", filterMode, 1);
-		if (changed) {
-			const sprite = tolua.cast(currentDisplay, TypeName.Sprite);
-			if (sprite) {
-				sprite.filter = filterMode === 1 ? TextureFilter.Anisotropic : TextureFilter.Point;
-			}
+		ImGui.Text(zh ? "预览" : "Preview");
+		const sprite = tolua.cast(currentDisplay, TypeName.Sprite);
+		if (sprite) {
+			ImGui.TextColored(themeColor, zh ? "尺寸：" : "Size:");
+			ImGui.SameLine();
+			ImGui.Text(`${math.tointeger(sprite.width)} x ${math.tointeger(sprite.height)}`);
+			ImGui.TextColored(themeColor, zh ? "切片名称：" : "Clip Name:");
+			ImGui.SameLine();
+			ImGui.Text(clipHover);
 		}
-		[changed, filterMode] = ImGui.RadioButton("Point", filterMode, 2);
+		let changed = false;
+		[changed, anisotropic] = ImGui.Checkbox(zh ? "各向异性过滤" : "Anisotropic", anisotropic);
 		if (changed) {
-			const sprite = tolua.cast(currentDisplay, TypeName.Sprite);
 			if (sprite) {
-				sprite.filter = filterMode === 1 ? TextureFilter.Anisotropic : TextureFilter.Point;
+				sprite.filter = anisotropic ? TextureFilter.Anisotropic : TextureFilter.Point;
 			}
 		}
 		ImGui.Separator();
 		changed = false;
-		[changed, scaleChecked] = ImGui.Checkbox("Scale Helper", scaleChecked);
+		[changed, scaleChecked] = ImGui.Checkbox(zh ? "缩放工具" : "Scale Helper", scaleChecked);
 		if (changed) {
 			if (scaleChecked) {
 				ruler.show(scaledSize, 0.5, 5.0, 1, (value) => {

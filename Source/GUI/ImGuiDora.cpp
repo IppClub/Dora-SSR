@@ -363,7 +363,6 @@ ImGuiDora::ImGuiDora()
 	, _useChinese(false)
 	, _isLoadingFont(false)
 	, _fontLoaded(false)
-	, _rejectAllEvents(false)
 	, _textInputing(false)
 	, _mouseVisible(true)
 	, _lastCursor(0)
@@ -1402,30 +1401,10 @@ bool ImGuiDora::ImGuiTouchHandler::handle(const SDL_Event& event) {
 	switch (event.type) {
 		case SDL_MOUSEBUTTONDOWN:
 		case SDL_FINGERDOWN:
-			if (ImGui::IsAnyItemHovered()
-				|| ImGui::IsAnyItemActive()
-				|| ImGui::IsAnyItemFocused()
-				|| ImGui::IsPopupOpen(nullptr, ImGuiPopupFlags_AnyPopupId | ImGuiPopupFlags_AnyPopupLevel)) {
-				_owner->_rejectAllEvents = true;
-			}
-			break;
-		case SDL_MOUSEBUTTONUP:
-			if (_owner->_rejectAllEvents) {
-				_owner->_rejectAllEvents = false;
-			}
-			break;
-		default:
-			break;
-	}
-	switch (event.type) {
-		case SDL_MOUSEBUTTONDOWN:
-		case SDL_FINGERDOWN:
 		case SDL_MULTIGESTURE:
-			return _owner->_rejectAllEvents;
 		case SDL_MOUSEWHEEL:
 			return ImGui::IsAnyItemHovered()
-				|| ImGui::IsAnyItemActive()
-				|| ImGui::IsAnyItemFocused()
+				|| ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow)
 				|| ImGui::IsPopupOpen(nullptr, ImGuiPopupFlags_AnyPopupId | ImGuiPopupFlags_AnyPopupLevel);
 	}
 	return false;
