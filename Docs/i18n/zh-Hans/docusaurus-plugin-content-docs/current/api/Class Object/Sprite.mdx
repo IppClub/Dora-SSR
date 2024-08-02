@@ -12,6 +12,31 @@ local Sprite = require("Sprite")
 local sprite = Sprite("Image/file.png")
 ```
 
+## getClips
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;从图集切片文件中获取切片名称和矩形区域。
+
+**签名：**
+```tl
+getClips: function(self: SpriteClass, clipFile: string): {string, Rect} | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| clipFile | string | 要加载的图集切片文件，文件后缀名必须是".clip"。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| \{string, Rect} \| nil | 包含切片名称和矩形区域的表。 |
+
 ## __call
 
 **类型：** 元方法。

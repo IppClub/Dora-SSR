@@ -12,6 +12,31 @@ local Sprite = require("Sprite")
 local sprite = Sprite("Image/file.png")
 ```
 
+## getClips
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the clip names and rectangles from the clip file.
+
+**Signature:**
+```tl
+getClips: function(self: SpriteClass, clipFile: string): {string, Rect} | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| clipFile | string | The clip file name to load, should end with ".clip". |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| \{string, Rect} \| nil | A table containing the clip names and rectangles. |
+
 ## __call
 
 **Type:** Metamethod.

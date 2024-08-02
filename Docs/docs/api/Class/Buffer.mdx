@@ -23,6 +23,19 @@ import "@site/src/languages/highlight";
 const size: integer
 ```
 
+## text
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Getting or setting the text stored in the buffer.
+
+**Signature:**
+```tl
+text: string
+```
+
 ## resize
 
 **Type:** Function.
@@ -54,41 +67,3 @@ resize: function(self: Buffer, size: integer)
 ```tl
 zeroMemory: function(self: Buffer)
 ```
-
-## toString
-
-**Type:** Function.
-
-**Description:**
-
-&emsp;&emsp;Converting the buffer to a string.
-
-**Signature:**
-```tl
-toString: function(self: Buffer): string
-```
-
-**Returns:**
-
-| Return Type | Description |
-| --- | --- |
-| string | The buffer contents as a string. |
-
-## setString
-
-**Type:** Function.
-
-**Description:**
-
-&emsp;&emsp;Setting the contents of the buffer with a string.
-
-**Signature:**
-```tl
-setString: function(self: Buffer, str: string)
-```
-
-**Parameters:**
-
-| Parameter | Type | Description |
-| --- | --- | --- |
-| str | string | The new contents of the buffer. |
