@@ -171,15 +171,19 @@ unless isChineseSupported
 
 building = false
 
-getAllFiles = (path, exts) ->
+getAllFiles = (path, exts, recursive = true) ->
 	filters = Set exts
-	return for file in *Content\getAllFiles path
+	files = if recursive
+		Content\getAllFiles path
+	else
+		Content\getFiles path
+	return for file in *files
 		continue if not filters[Path\getExt file]
 		file
 
-getFileEntries = (path) ->
+getFileEntries = (path, recursive = true) ->
 	entries = {}
-	for file in *getAllFiles path, ["lua", "xml", yueext, "tl"]
+	for file in *getAllFiles path, ["lua", "xml", yueext, "tl"], recursive
 		entryName = Path\getName file
 		entryAdded = false
 		for [ename,] in *entries
@@ -237,7 +241,7 @@ getProjectEntries = (path) ->
 	entries
 
 local gamesInDev, games
-local doraExamples, doraTests
+local doraTools, doraExamples, doraTests
 local cppTests, cppTestSet
 local allEntries
 
@@ -245,6 +249,7 @@ updateEntries = ->
 	gamesInDev = getProjectEntries Content.writablePath
 	games = getProjectEntries Path Content.assetPath, "Script"
 
+	doraTools = getFileEntries Path(Content.assetPath, "Script", "Tools"), false
 	doraExamples = getFileEntries Path Content.assetPath, "Script", "Example"
 	doraTests = getFileEntries Path Content.assetPath, "Script", "Test"
 
@@ -949,6 +954,9 @@ entryWindow = threadLoop ->
 				showGame = false
 				for [name,] in *games
 					showGame = true if match name
+				showTool = false
+				for [name,] in *doraExamples
+					showTool = true if match name
 				showExample = false
 				for [name,] in *doraExamples
 					showExample = true if match name
@@ -957,7 +965,7 @@ entryWindow = threadLoop ->
 					showTest = true if match name
 				for [name,] in *cppTests
 					showTest = true if match name
-				goto endEntry unless showGame or showExample or showTest
+				goto endEntry unless showGame or showTool or showExample or showTest
 				Columns 1, false
 				TextColored themeColor, "Dora SSR:"
 				SameLine!
@@ -1015,6 +1023,20 @@ entryWindow = threadLoop ->
 						Columns 1, false
 						opened = true
 					gameOpen = opened
+				if #doraTools > 0 and showTool
+					opened = if filterText? then showTool else false
+					SetNextItemOpen exampleOpen
+					TreeNode zh and "引擎工具" or "Engine Tools", ->
+						<- PushStyleVar "ItemSpacing", Vec2 20, 10
+						Columns maxColumns, false
+						for example in *doraTools
+							continue unless match example[1]
+							if Button example[1], Vec2 -1, 40
+								enterDemoEntry example
+							NextColumn!
+						Columns 1, false
+						opened = true
+					exampleOpen = opened
 				if #doraExamples > 0 and showExample
 					opened = if filterText? then showExample else false
 					SetNextItemOpen exampleOpen

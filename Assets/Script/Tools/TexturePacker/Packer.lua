@@ -1,104 +1,104 @@
 -- [ts]: Packer.ts
 local ____exports = {} -- 1
-local function CreatePacker() -- 31
-    local packer = { -- 32
-        fit = function(self, blocks) -- 33
-            table.sort( -- 34
-                blocks, -- 34
-                function(a, b) -- 34
-                    return math.max(a.w, a.h) > math.max(b.w, b.h) -- 35
-                end -- 34
-            ) -- 34
-            local len = #blocks -- 37
-            local w = len > 0 and blocks[1].w or 0 -- 38
-            local h = len > 0 and blocks[1].h or 0 -- 39
-            self.root = {x = 0, y = 0, w = w, h = h} -- 40
-            for ____, block in ipairs(blocks) do -- 41
-                local node = self:findNode(self.root, block.w, block.h) -- 42
-                if node then -- 42
-                    block.fit = self:splitNode(node, block.w, block.h) -- 44
-                else -- 44
-                    block.fit = self:growNode(block.w, block.h) -- 46
-                end -- 46
-            end -- 46
-        end, -- 33
-        findNode = function(self, node, w, h) -- 51
-            if node.used then -- 51
-                return node.right and self:findNode(node.right, w, h) or node.down and self:findNode(node.down, w, h) -- 53
-            elseif w <= node.w and h <= node.h then -- 53
-                return node -- 56
-            else -- 56
-                return nil -- 58
-            end -- 58
-        end, -- 51
-        splitNode = function(self, node, w, h) -- 62
-            node.used = true -- 63
-            node.down = {x = node.x, y = node.y + h, w = node.w, h = node.h - h} -- 64
-            node.right = {x = node.x + w, y = node.y, w = node.w - w, h = h} -- 70
-            return node -- 76
-        end, -- 62
-        growNode = function(self, w, h) -- 79
-            if self.root == nil then -- 79
-                return nil -- 80
-            end -- 80
-            local canGrowDown = w <= self.root.w -- 81
-            local canGrowRight = h <= self.root.h -- 82
-            local shouldGrowRight = canGrowRight and self.root.h >= self.root.w + w -- 83
-            local shouldGrowDown = canGrowDown and self.root.w >= self.root.h + h -- 84
-            if shouldGrowRight then -- 84
-                return self:growRight(w, h) -- 86
-            elseif shouldGrowDown then -- 86
-                return self:growDown(w, h) -- 88
-            elseif canGrowRight then -- 88
-                return self:growRight(w, h) -- 90
-            elseif canGrowDown then -- 90
-                return self:growDown(w, h) -- 92
-            else -- 92
-                return nil -- 94
-            end -- 94
-        end, -- 79
-        growRight = function(self, w, h) -- 98
-            if self.root == nil then -- 98
-                return nil -- 99
-            end -- 99
-            self.root = { -- 100
-                used = true, -- 101
-                x = 0, -- 102
-                y = 0, -- 103
-                w = self.root.w + w, -- 104
-                h = self.root.h, -- 105
-                down = self.root, -- 106
-                right = {x = self.root.w, y = 0, w = w, h = self.root.h} -- 107
-            } -- 107
-            local node = self:findNode(self.root, w, h) -- 114
-            if node then -- 114
-                return self:splitNode(node, w, h) -- 116
-            else -- 116
-                return nil -- 118
-            end -- 118
-        end, -- 98
-        growDown = function(self, w, h) -- 122
-            if self.root == nil then -- 122
-                return nil -- 123
-            end -- 123
-            self.root = { -- 124
-                used = true, -- 125
-                x = 0, -- 126
-                y = 0, -- 127
-                w = self.root.w, -- 128
-                h = self.root.h + h, -- 129
-                down = {x = 0, y = self.root.h, w = self.root.w, h = h}, -- 130
-                right = self.root -- 136
-            } -- 136
-            local node = self:findNode(self.root, w, h) -- 138
-            if node then -- 138
-                return self:splitNode(node, w, h) -- 140
-            else -- 140
-                return nil -- 142
-            end -- 142
-        end -- 122
-    } -- 122
-    return packer -- 146
-end -- 31
-____exports.default = CreatePacker -- 149
-return ____exports -- 149
+local function CreatePacker() -- 39
+    local packer = { -- 40
+        fit = function(self, blocks) -- 41
+            table.sort( -- 42
+                blocks, -- 42
+                function(a, b) -- 42
+                    return math.max(a.w, a.h) > math.max(b.w, b.h) -- 43
+                end -- 42
+            ) -- 42
+            local len = #blocks -- 45
+            local w = len > 0 and blocks[1].w or 0 -- 46
+            local h = len > 0 and blocks[1].h or 0 -- 47
+            self.root = {x = 0, y = 0, w = w, h = h} -- 48
+            for ____, block in ipairs(blocks) do -- 49
+                local node = self:findNode(self.root, block.w, block.h) -- 50
+                if node then -- 50
+                    block.fit = self:splitNode(node, block.w, block.h) -- 52
+                else -- 52
+                    block.fit = self:growNode(block.w, block.h) -- 54
+                end -- 54
+            end -- 54
+        end, -- 41
+        findNode = function(self, node, w, h) -- 59
+            if node.used then -- 59
+                return node.right and self:findNode(node.right, w, h) or node.down and self:findNode(node.down, w, h) -- 61
+            elseif w <= node.w and h <= node.h then -- 61
+                return node -- 64
+            else -- 64
+                return nil -- 66
+            end -- 66
+        end, -- 59
+        splitNode = function(self, node, w, h) -- 70
+            node.used = true -- 71
+            node.down = {x = node.x, y = node.y + h, w = node.w, h = node.h - h} -- 72
+            node.right = {x = node.x + w, y = node.y, w = node.w - w, h = h} -- 78
+            return node -- 84
+        end, -- 70
+        growNode = function(self, w, h) -- 87
+            if self.root == nil then -- 87
+                return nil -- 88
+            end -- 88
+            local canGrowDown = w <= self.root.w -- 89
+            local canGrowRight = h <= self.root.h -- 90
+            local shouldGrowRight = canGrowRight and self.root.h >= self.root.w + w -- 91
+            local shouldGrowDown = canGrowDown and self.root.w >= self.root.h + h -- 92
+            if shouldGrowRight then -- 92
+                return self:growRight(w, h) -- 94
+            elseif shouldGrowDown then -- 94
+                return self:growDown(w, h) -- 96
+            elseif canGrowRight then -- 96
+                return self:growRight(w, h) -- 98
+            elseif canGrowDown then -- 98
+                return self:growDown(w, h) -- 100
+            else -- 100
+                return nil -- 102
+            end -- 102
+        end, -- 87
+        growRight = function(self, w, h) -- 106
+            if self.root == nil then -- 106
+                return nil -- 107
+            end -- 107
+            self.root = { -- 108
+                used = true, -- 109
+                x = 0, -- 110
+                y = 0, -- 111
+                w = self.root.w + w, -- 112
+                h = self.root.h, -- 113
+                down = self.root, -- 114
+                right = {x = self.root.w, y = 0, w = w, h = self.root.h} -- 115
+            } -- 115
+            local node = self:findNode(self.root, w, h) -- 122
+            if node then -- 122
+                return self:splitNode(node, w, h) -- 124
+            else -- 124
+                return nil -- 126
+            end -- 126
+        end, -- 106
+        growDown = function(self, w, h) -- 130
+            if self.root == nil then -- 130
+                return nil -- 131
+            end -- 131
+            self.root = { -- 132
+                used = true, -- 133
+                x = 0, -- 134
+                y = 0, -- 135
+                w = self.root.w, -- 136
+                h = self.root.h + h, -- 137
+                down = {x = 0, y = self.root.h, w = self.root.w, h = h}, -- 138
+                right = self.root -- 144
+            } -- 144
+            local node = self:findNode(self.root, w, h) -- 146
+            if node then -- 146
+                return self:splitNode(node, w, h) -- 148
+            else -- 148
+                return nil -- 150
+            end -- 150
+        end -- 130
+    } -- 130
+    return packer -- 154
+end -- 39
+____exports.default = CreatePacker -- 157
+return ____exports -- 157

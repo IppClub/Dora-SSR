@@ -1,12 +1,27 @@
+/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
 // @preview-file on
+
 import * as CircleButton from "UI/Control/Basic/CircleButton";
 import * as ScrollArea from "UI/Control/Basic/ScrollArea";
 import { AlignMode } from "UI/Control/Basic/ScrollArea";
 import * as LineRect from 'UI/View/Shape/LineRect';
 import * as YarnRunner from "YarnRunner";
-import { AlignNode, App, Content, GSlot, Label, Menu, Path, Size, Slot, TextAlign, TypeName, Vec2, View, thread, threadLoop, tolua } from "Dora";
-import { SetCond, WindowFlag } from "ImGui";
+import { AlignNode, App, Buffer, Content, GSlot, Label, Menu, Path, Size, Slot, TextAlign, TypeName, Vec2, View, thread, threadLoop, tolua } from "Dora";
+import { InputTextFlag, SetCond, WindowFlag } from "ImGui";
 import * as ImGui from 'ImGui';
+
+let zh = false;
+{
+	const [res] = string.match(App.locale, "^zh");
+	zh = res !== null && ImGui.IsFontLoaded();
+}
 
 const testFile = Path(Content.assetPath, "Script", "Test", "tutorial.yarn");
 
@@ -135,17 +150,21 @@ const advance = (option?: number) => {
 
 advance();
 
-const testFiles = [testFile];
-const files = ["Test/tutorial.yarn"];
+const testFilePaths = [testFile];
+const testFileNames = ["Test/tutorial.yarn"];
 for (let file of Content.getAllFiles(Content.writablePath)) {
 	if ("yarn" !== Path.getExt(file)) {
 		continue;
 	}
-	testFiles.push(Path(Content.writablePath, file));
-	files.push(Path.getFilename(file));
+	testFilePaths.push(Path(Content.writablePath, file));
+	testFileNames.push(Path.getFilename(file));
 }
 
+let filteredPaths = testFilePaths;
+let filteredNames = testFileNames;
+
 let currentFile = 1;
+const filterBuf = Buffer(20);
 const windowFlags = [
 	WindowFlag.NoDecoration,
 	WindowFlag.NoSavedSettings,
@@ -153,21 +172,51 @@ const windowFlags = [
 	WindowFlag.NoNav,
 	WindowFlag.NoMove
 ];
+const inputTextFlags = [InputTextFlag.AutoSelectAll];
 threadLoop(() => {
 	const {width} = App.visualSize;
 	ImGui.SetNextWindowPos(Vec2(width - 10, 10), SetCond.Always, Vec2(1, 0));
-	ImGui.SetNextWindowSize(Vec2(200, 0), SetCond.Always);
-	ImGui.Begin("Yarn Test", windowFlags, () => {
-		ImGui.Text("Yarn Tester");
+	ImGui.SetNextWindowSize(Vec2(230, 0), SetCond.Always);
+	ImGui.Begin("Yarn Tester", windowFlags, () => {
+		ImGui.Text(zh ? "Yarn 测试工具" : "Yarn Tester");
+		ImGui.SameLine();
+		ImGui.TextDisabled("(?)");
+		if (ImGui.IsItemHovered()) {
+			ImGui.BeginTooltip(() => {
+				ImGui.PushTextWrapPos(300, () => {
+					ImGui.Text(zh ? "重新加载 Yarn 测试工具，以检测任何新添加的以 '.yarn' 结尾的 Yarn Spinner 文件。" : "Reload Yarn Tester to detect any newly added Yarn Spinner files with a '.yarn' extension.");
+				});
+			});
+		}
 		ImGui.Separator();
+		ImGui.InputText("##FilterInput", filterBuf, inputTextFlags);
+		ImGui.SameLine();
+		if (ImGui.Button(zh ? "筛选" : "Filter")) {
+			const filterText = filterBuf.text.toLowerCase();
+			const filtered = testFileNames.map((n, i) => [n, testFilePaths[i]]).filter((it, i) => {
+				const [matched] = string.match(it[0].toLowerCase(), filterText);
+				if (matched !== undefined) {
+					return true;
+				}
+				return false;
+			});
+			filteredNames = filtered.map(f => f[0]);
+			filteredPaths = filtered.map(f => f[1]);
+			currentFile = 1;
+			if (filteredPaths.length > 0) {
+				runner = YarnRunner(filteredPaths[currentFile - 1], "Start", {}, commands, true);
+				texts = [];
+				advance();
+			}
+		}
 		let changed = false;
-		[changed, currentFile] = ImGui.Combo("File", currentFile, files);
+		[changed, currentFile] = ImGui.Combo(zh ? "文件" : "File", currentFile, filteredNames);
 		if (changed) {
-			runner = YarnRunner(testFiles[currentFile - 1], "Start", {}, commands, true);
+			runner = YarnRunner(filteredPaths[currentFile - 1], "Start", {}, commands, true);
 			texts = [];
 			advance();
 		}
-		ImGui.Text("Variables");
+		ImGui.Text(zh ? "变量" : "Variables");
 		ImGui.Separator();
 		for (let [k, v] of pairs(runner.state)) {
 			ImGui.Text(`${k}: ${v}`);
