@@ -87,7 +87,7 @@ showEntry = true
 isDesktop = false
 if App.platform in ["Linux", "Windows", "macOS"]
 	isDesktop = true
-	if config.fullScreen? and config.fullScreen == 1
+	if config.fullScreen? and config.fullScreen
 		App.winSize = Size.zero
 	elseif config.winWidth? and config.winHeight?
 		size = Size config.winWidth, config.winHeight
