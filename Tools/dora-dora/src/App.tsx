@@ -253,7 +253,7 @@ export default function PersistentDrawerLeft() {
 
 	const [openFilter, setOpenFilter] = useState(false);
 	const [filterOptions, setFilterOptions] = useState<FilterOption[] | null>(null);
-	const {width: drawerWidth, enableResize, isResizing} = useResize({minWidth: 200, defaultWidth: Info.drawerWidth});
+	const {width: drawerWidth, enableResize, isResizing} = useResize({minWidth: 150, defaultWidth: Info.drawerWidth});
 	const [winSize, setWinSize] = useState({
 		width: window.innerWidth,
 		height: window.innerHeight

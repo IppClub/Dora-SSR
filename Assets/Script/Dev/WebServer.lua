@@ -1691,18 +1691,18 @@ local _anon_func_5 = function(Content, Path, visitAssets, zh) -- 761
 	return _with_0 -- 760
 end -- 760
 local _anon_func_6 = function(Content, Path, visitAssets, zh) -- 763
-	local _with_0 = visitAssets(Path(Content.assetPath, "Script", "Example")) -- 762
-	_with_0.title = zh and "代码示例" or "Example" -- 763
+	local _with_0 = visitAssets(Path(Content.assetPath, "Script", "Tools")) -- 762
+	_with_0.title = zh and "开发工具" or "Tools" -- 763
 	return _with_0 -- 762
 end -- 762
 local _anon_func_7 = function(Content, Path, visitAssets, zh) -- 765
-	local _with_0 = visitAssets(Path(Content.assetPath, "Script", "Game")) -- 764
-	_with_0.title = zh and "游戏演示" or "Demo Game" -- 765
+	local _with_0 = visitAssets(Path(Content.assetPath, "Script", "Example")) -- 764
+	_with_0.title = zh and "代码示例" or "Example" -- 765
 	return _with_0 -- 764
 end -- 764
 local _anon_func_8 = function(Content, Path, visitAssets, zh) -- 767
-	local _with_0 = visitAssets(Path(Content.assetPath, "Script", "Tools")) -- 766
-	_with_0.title = zh and "开发工具" or "Tools" -- 767
+	local _with_0 = visitAssets(Path(Content.assetPath, "Script", "Game")) -- 766
+	_with_0.title = zh and "游戏演示" or "Demo Game" -- 767
 	return _with_0 -- 766
 end -- 766
 local _anon_func_9 = function(Content, Path, visitAssets, zh) -- 769
