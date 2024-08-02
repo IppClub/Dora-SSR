@@ -15,7 +15,7 @@ threadLoop: function(routine: function(): boolean): Routine.Job
 
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
-| routine | function | 要进行重复执行的函数。 |
+| routine | function | 要进行重复执行的函数。函数可以返回 false 以继续运行，或返回 true 以停止。 |
 
 **返回值：**
 

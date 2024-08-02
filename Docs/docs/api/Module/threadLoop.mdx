@@ -15,7 +15,7 @@ threadLoop: function(routine: function(): boolean): Routine.Job
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| routine | function | A function to execute repeatedly as a coroutine. |
+| routine | function | A function to execute repeatedly as a coroutine. The function should return false to continue running, or true to stop. |
 
 **Returns:**
 
