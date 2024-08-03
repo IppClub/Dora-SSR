@@ -1365,7 +1365,7 @@ entryWindow = threadLoop(function() -- 802
 					url = webStatus.url -- 843
 				end -- 843
 				if url then -- 843
-					if isDesktop then -- 844
+					if isDesktop and not config.fullScreen then -- 844
 						if urlClicked then -- 845
 							BeginDisabled(function() -- 846
 								return Button(url) -- 846
