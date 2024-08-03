@@ -156,7 +156,7 @@ if (function() -- 88
 	return "Linux" == _val_0 or "Windows" == _val_0 or "macOS" == _val_0 -- 88
 end)() then -- 88
 	isDesktop = true -- 89
-	if (config.fullScreen ~= nil) and config.fullScreen then -- 90
+	if config.fullScreen then -- 90
 		App.winSize = Size.zero -- 91
 	elseif (config.winWidth ~= nil) and (config.winHeight ~= nil) then -- 92
 		local size = Size(config.winWidth, config.winHeight) -- 93
