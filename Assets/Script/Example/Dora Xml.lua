@@ -22,23 +22,23 @@ do -- 26
 	print("[Xml Codes]\n\n" .. tostring(xmlCodes) .. "\n[Compiled Lua Codes]\n\n" .. tostring(luaCodes)) -- 31
 	local windowFlags = { -- 33
 		"NoDecoration", -- 33
-		"AlwaysAutoResize", -- 34
-		"NoSavedSettings", -- 35
-		"NoFocusOnAppearing", -- 36
-		"NoNav", -- 37
-		"NoMove" -- 38
-	} -- 32
-	root:schedule(function() -- 39
-		local width = App.visualSize.width -- 40
-		ImGui.SetNextWindowBgAlpha(0.35) -- 41
-		ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0)) -- 42
-		ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver") -- 43
-		return ImGui.Begin("Dora Xml", windowFlags, function() -- 44
-			ImGui.Text("Dora Xml (Xml)") -- 45
-			ImGui.Separator() -- 46
-			return ImGui.TextWrapped("View related codes in log window!") -- 47
-		end) -- 47
-	end) -- 39
-end -- 47
+		"AlwaysAutoResize", -- 33
+		"NoSavedSettings", -- 33
+		"NoFocusOnAppearing", -- 33
+		"NoNav", -- 33
+		"NoMove" -- 33
+	} -- 33
+	root:schedule(function() -- 41
+		local width = App.visualSize.width -- 42
+		ImGui.SetNextWindowBgAlpha(0.35) -- 43
+		ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0)) -- 44
+		ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver") -- 45
+		return ImGui.Begin("Dora Xml", windowFlags, function() -- 46
+			ImGui.Text("Dora Xml (Xml)") -- 47
+			ImGui.Separator() -- 48
+			return ImGui.TextWrapped("View related codes in log window!") -- 49
+		end) -- 49
+	end) -- 41
+end -- 49
 return root -- 27
 end

@@ -107,35 +107,35 @@ local inverted = true -- 65
 local withAlphaThreshold = true -- 66
 local windowFlags = { -- 68
 	"NoDecoration", -- 68
-	"AlwaysAutoResize", -- 69
-	"NoSavedSettings", -- 70
-	"NoFocusOnAppearing", -- 71
-	"NoNav", -- 72
-	"NoMove" -- 73
-} -- 67
-return threadLoop(function() -- 74
-	local width -- 75
-	width = App.visualSize.width -- 75
-	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0)) -- 76
-	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver") -- 77
-	return ImGui.Begin("Clip Node", windowFlags, function() -- 78
-		ImGui.Text("Clip Node (Yuescript)") -- 79
-		ImGui.Separator() -- 80
-		ImGui.TextWrapped("Render children nodes with mask!") -- 81
-		do -- 82
-			local changed -- 82
-			changed, inverted = ImGui.Checkbox("Inverted", inverted) -- 82
-			if changed then -- 82
-				clipNodeA.inverted = inverted -- 83
-				clipNodeB.inverted = inverted -- 84
-				frame.visible = not inverted -- 85
-			end -- 82
-		end -- 82
-		local changed -- 86
-		changed, withAlphaThreshold = ImGui.Checkbox("With alphaThreshold", withAlphaThreshold) -- 86
-		if changed then -- 86
-			exampleB.visible = withAlphaThreshold -- 87
-			exampleA.visible = not withAlphaThreshold -- 88
-		end -- 86
-	end) -- 88
-end) -- 88
+	"AlwaysAutoResize", -- 68
+	"NoSavedSettings", -- 68
+	"NoFocusOnAppearing", -- 68
+	"NoNav", -- 68
+	"NoMove" -- 68
+} -- 68
+return threadLoop(function() -- 76
+	local width -- 77
+	width = App.visualSize.width -- 77
+	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0)) -- 78
+	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver") -- 79
+	return ImGui.Begin("Clip Node", windowFlags, function() -- 80
+		ImGui.Text("Clip Node (Yuescript)") -- 81
+		ImGui.Separator() -- 82
+		ImGui.TextWrapped("Render children nodes with mask!") -- 83
+		do -- 84
+			local changed -- 84
+			changed, inverted = ImGui.Checkbox("Inverted", inverted) -- 84
+			if changed then -- 84
+				clipNodeA.inverted = inverted -- 85
+				clipNodeB.inverted = inverted -- 86
+				frame.visible = not inverted -- 87
+			end -- 84
+		end -- 84
+		local changed -- 88
+		changed, withAlphaThreshold = ImGui.Checkbox("With alphaThreshold", withAlphaThreshold) -- 88
+		if changed then -- 88
+			exampleB.visible = withAlphaThreshold -- 89
+			exampleA.visible = not withAlphaThreshold -- 90
+		end -- 88
+	end) -- 90
+end) -- 90

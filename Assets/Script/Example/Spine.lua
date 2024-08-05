@@ -3,15 +3,15 @@ local Spine = Dora.Spine -- 1
 local p = _G.p -- 1
 local print = _G.print -- 1
 local tostring = _G.tostring -- 1
-local Event = Dora.Event -- 1
-local Delay = Dora.Delay -- 1
+local Opacity = Dora.Opacity -- 1
 local Vec2 = Dora.Vec2 -- 1
 local Spawn = Dora.Spawn -- 1
-local Opacity = Dora.Opacity -- 1
 local Label = Dora.Label -- 1
 local Ease = Dora.Ease -- 1
+local Event = Dora.Event -- 1
 local App = Dora.App -- 1
 local Sequence = Dora.Sequence -- 1
+local Delay = Dora.Delay -- 1
 local Scale = Dora.Scale -- 1
 local threadLoop = Dora.threadLoop -- 1
 local ImGui = Dora.ImGui -- 1
@@ -54,27 +54,27 @@ do -- 10
 end -- 10
 local windowFlags = { -- 34
 	"NoDecoration", -- 34
-	"AlwaysAutoResize", -- 35
-	"NoSavedSettings", -- 36
-	"NoFocusOnAppearing", -- 37
-	"NoNav", -- 38
-	"NoMove" -- 39
-} -- 33
-local showDebug = spine.showDebug -- 40
-return threadLoop(function() -- 41
-	local width -- 42
-	width = App.visualSize.width -- 42
-	ImGui.SetNextWindowBgAlpha(0.35) -- 43
-	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0)) -- 44
-	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver") -- 45
-	return ImGui.Begin("Spine", windowFlags, function() -- 46
-		ImGui.Text("Spine (Yuescript)") -- 47
-		ImGui.Separator() -- 48
-		ImGui.TextWrapped("Basic usage to create spine! Tap it for a hit test.") -- 49
-		local changed -- 50
-		changed, showDebug = ImGui.Checkbox("BoundingBox", showDebug) -- 50
-		if changed then -- 50
-			spine.showDebug = showDebug -- 51
-		end -- 50
-	end) -- 51
-end) -- 51
+	"AlwaysAutoResize", -- 34
+	"NoSavedSettings", -- 34
+	"NoFocusOnAppearing", -- 34
+	"NoNav", -- 34
+	"NoMove" -- 34
+} -- 34
+local showDebug = spine.showDebug -- 42
+return threadLoop(function() -- 43
+	local width -- 44
+	width = App.visualSize.width -- 44
+	ImGui.SetNextWindowBgAlpha(0.35) -- 45
+	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0)) -- 46
+	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver") -- 47
+	return ImGui.Begin("Spine", windowFlags, function() -- 48
+		ImGui.Text("Spine (Yuescript)") -- 49
+		ImGui.Separator() -- 50
+		ImGui.TextWrapped("Basic usage to create spine! Tap it for a hit test.") -- 51
+		local changed -- 52
+		changed, showDebug = ImGui.Checkbox("BoundingBox", showDebug) -- 52
+		if changed then -- 52
+			spine.showDebug = showDebug -- 53
+		end -- 52
+	end) -- 53
+end) -- 53

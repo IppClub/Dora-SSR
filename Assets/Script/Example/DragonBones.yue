@@ -32,13 +32,15 @@ bone = with DragonBone boneStr
 
 -- example codes ends here, some test ui below --
 
-windowFlags =
-	* "NoDecoration"
-	* "AlwaysAutoResize"
-	* "NoSavedSettings"
-	* "NoFocusOnAppearing"
-	* "NoNav"
-	* "NoMove"
+import "ImGuiEnum" as {:$WindowFlag}
+windowFlags = $WindowFlag(
+	NoDecoration
+	AlwaysAutoResize
+	NoSavedSettings
+	NoFocusOnAppearing
+	NoNav
+	NoMove
+)
 :showDebug = bone
 threadLoop ->
 	const :width = App.visualSize

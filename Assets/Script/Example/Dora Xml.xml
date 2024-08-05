@@ -29,13 +29,15 @@
 			xmlCodes = Content\load selfPath
 			luaCodes = xml.tolua xmlCodes
 			print "[Xml Codes]\n\n#{xmlCodes}\n[Compiled Lua Codes]\n\n#{luaCodes}"
-			windowFlags =
-				* "NoDecoration"
-				* "AlwaysAutoResize"
-				* "NoSavedSettings"
-				* "NoFocusOnAppearing"
-				* "NoNav"
-				* "NoMove"
+			import "ImGuiEnum" as {:$WindowFlag}
+			windowFlags = $WindowFlag(
+				NoDecoration
+				AlwaysAutoResize
+				NoSavedSettings
+				NoFocusOnAppearing
+				NoNav
+				NoMove
+			)
 			root\schedule ->
 				:width = App.visualSize
 				ImGui.SetNextWindowBgAlpha 0.35

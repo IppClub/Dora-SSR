@@ -62,21 +62,21 @@ threadLoop(function() -- 42
 end) -- 42
 local windowFlags = { -- 50
 	"NoDecoration", -- 50
-	"AlwaysAutoResize", -- 51
-	"NoSavedSettings", -- 52
-	"NoFocusOnAppearing", -- 53
-	"NoNav", -- 54
-	"NoMove" -- 55
-} -- 49
-return threadLoop(function() -- 56
-	local width -- 57
-	width = App.visualSize.width -- 57
-	ImGui.SetNextWindowBgAlpha(0.35) -- 58
-	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0)) -- 59
-	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver") -- 60
-	return ImGui.Begin("Vector Graphic Rendering", windowFlags, function() -- 61
-		ImGui.Text("Vector Graphic Rendering (Yuescript)") -- 62
-		ImGui.Separator() -- 63
-		return ImGui.TextWrapped("Use nanoVG lib to do vector graphic rendering, render to a texture or do instant render!") -- 64
-	end) -- 64
-end) -- 64
+	"AlwaysAutoResize", -- 50
+	"NoSavedSettings", -- 50
+	"NoFocusOnAppearing", -- 50
+	"NoNav", -- 50
+	"NoMove" -- 50
+} -- 50
+return threadLoop(function() -- 58
+	local width -- 59
+	width = App.visualSize.width -- 59
+	ImGui.SetNextWindowBgAlpha(0.35) -- 60
+	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0)) -- 61
+	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver") -- 62
+	return ImGui.Begin("Vector Graphic Rendering", windowFlags, function() -- 63
+		ImGui.Text("Vector Graphic Rendering (Yuescript)") -- 64
+		ImGui.Separator() -- 65
+		return ImGui.TextWrapped("Use nanoVG lib to do vector graphic rendering, render to a texture or do instant render!") -- 66
+	end) -- 66
+end) -- 66

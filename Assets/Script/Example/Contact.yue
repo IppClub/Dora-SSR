@@ -46,13 +46,15 @@ disk = with Body diskDef, world, Vec2 100, 200
 
 -- example codes ends here, some test ui below --
 
-windowFlags =
-	* "NoDecoration"
-	* "AlwaysAutoResize"
-	* "NoSavedSettings"
-	* "NoFocusOnAppearing"
-	* "NoNav"
-	* "NoMove"
+import "ImGuiEnum" as {:$WindowFlag}
+windowFlags = $WindowFlag(
+	NoDecoration
+	AlwaysAutoResize
+	NoSavedSettings
+	NoFocusOnAppearing
+	NoNav
+	NoMove
+)
 :receivingContact = disk
 threadLoop ->
 	const :width = App.visualSize

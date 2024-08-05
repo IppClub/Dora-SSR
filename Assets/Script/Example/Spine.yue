@@ -30,13 +30,15 @@ spine = with Spine spineStr
 
 -- example codes ends here, some test ui below --
 
-windowFlags =
-	* "NoDecoration"
-	* "AlwaysAutoResize"
-	* "NoSavedSettings"
-	* "NoFocusOnAppearing"
-	* "NoNav"
-	* "NoMove"
+import "ImGuiEnum" as {:$WindowFlag}
+windowFlags = $WindowFlag(
+	NoDecoration
+	AlwaysAutoResize
+	NoSavedSettings
+	NoFocusOnAppearing
+	NoNav
+	NoMove
+)
 :showDebug = spine
 threadLoop ->
 	const :width = App.visualSize

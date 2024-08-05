@@ -3,16 +3,16 @@ local DragonBone = Dora.DragonBone -- 1
 local p = _G.p -- 1
 local print = _G.print -- 1
 local tostring = _G.tostring -- 1
-local Vec2 = Dora.Vec2 -- 1
+local Delay = Dora.Delay -- 1
+local Sequence = Dora.Sequence -- 1
+local Scale = Dora.Scale -- 1
+local App = Dora.App -- 1
 local Label = Dora.Label -- 1
+local Vec2 = Dora.Vec2 -- 1
 local Spawn = Dora.Spawn -- 1
 local Ease = Dora.Ease -- 1
 local Event = Dora.Event -- 1
 local Opacity = Dora.Opacity -- 1
-local Delay = Dora.Delay -- 1
-local App = Dora.App -- 1
-local Scale = Dora.Scale -- 1
-local Sequence = Dora.Sequence -- 1
 local threadLoop = Dora.threadLoop -- 1
 local ImGui = Dora.ImGui -- 1
 local boneStr = "DragonBones/NewDragon" -- 3
@@ -56,27 +56,27 @@ do -- 10
 end -- 10
 local windowFlags = { -- 36
 	"NoDecoration", -- 36
-	"AlwaysAutoResize", -- 37
-	"NoSavedSettings", -- 38
-	"NoFocusOnAppearing", -- 39
-	"NoNav", -- 40
-	"NoMove" -- 41
-} -- 35
-local showDebug = bone.showDebug -- 42
-return threadLoop(function() -- 43
-	local width -- 44
-	width = App.visualSize.width -- 44
-	ImGui.SetNextWindowBgAlpha(0.35) -- 45
-	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0)) -- 46
-	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver") -- 47
-	return ImGui.Begin("DragonBones", windowFlags, function() -- 48
-		ImGui.Text("DragonBones (Yuescript)") -- 49
-		ImGui.Separator() -- 50
-		ImGui.TextWrapped("Basic usage to create dragonBones! Tap it for a hit test.") -- 51
-		local changed -- 52
-		changed, showDebug = ImGui.Checkbox("BoundingBox", showDebug) -- 52
-		if changed then -- 52
-			bone.showDebug = showDebug -- 53
-		end -- 52
-	end) -- 53
-end) -- 53
+	"AlwaysAutoResize", -- 36
+	"NoSavedSettings", -- 36
+	"NoFocusOnAppearing", -- 36
+	"NoNav", -- 36
+	"NoMove" -- 36
+} -- 36
+local showDebug = bone.showDebug -- 44
+return threadLoop(function() -- 45
+	local width -- 46
+	width = App.visualSize.width -- 46
+	ImGui.SetNextWindowBgAlpha(0.35) -- 47
+	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0)) -- 48
+	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver") -- 49
+	return ImGui.Begin("DragonBones", windowFlags, function() -- 50
+		ImGui.Text("DragonBones (Yuescript)") -- 51
+		ImGui.Separator() -- 52
+		ImGui.TextWrapped("Basic usage to create dragonBones! Tap it for a hit test.") -- 53
+		local changed -- 54
+		changed, showDebug = ImGui.Checkbox("BoundingBox", showDebug) -- 54
+		if changed then -- 54
+			bone.showDebug = showDebug -- 55
+		end -- 54
+	end) -- 55
+end) -- 55

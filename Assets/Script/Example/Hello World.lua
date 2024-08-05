@@ -28,21 +28,21 @@ do -- 3
 end -- 3
 local windowFlags = { -- 16
 	"NoDecoration", -- 16
-	"AlwaysAutoResize", -- 17
-	"NoSavedSettings", -- 18
-	"NoFocusOnAppearing", -- 19
-	"NoNav", -- 20
-	"NoMove" -- 21
-} -- 15
-return threadLoop(function() -- 22
-	local width -- 23
-	width = App.visualSize.width -- 23
-	ImGui.SetNextWindowBgAlpha(0.35) -- 24
-	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0)) -- 25
-	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver") -- 26
-	return ImGui.Begin("Hello World", windowFlags, function() -- 27
-		ImGui.Text("Hello World (Yuescript)") -- 28
-		ImGui.Separator() -- 29
-		return ImGui.TextWrapped("Basic Dora schedule and signal function usage. Written in Yuescript. View outputs in log window!") -- 30
-	end) -- 30
-end) -- 30
+	"AlwaysAutoResize", -- 16
+	"NoSavedSettings", -- 16
+	"NoFocusOnAppearing", -- 16
+	"NoNav", -- 16
+	"NoMove" -- 16
+} -- 16
+return threadLoop(function() -- 24
+	local width -- 25
+	width = App.visualSize.width -- 25
+	ImGui.SetNextWindowBgAlpha(0.35) -- 26
+	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0)) -- 27
+	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver") -- 28
+	return ImGui.Begin("Hello World", windowFlags, function() -- 29
+		ImGui.Text("Hello World (Yuescript)") -- 30
+		ImGui.Separator() -- 31
+		return ImGui.TextWrapped("Basic Dora schedule and signal function usage. Written in Yuescript. View outputs in log window!") -- 32
+	end) -- 32
+end) -- 32

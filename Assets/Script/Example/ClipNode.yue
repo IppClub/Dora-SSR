@@ -64,13 +64,15 @@ exampleB = with Node!
 
 inverted = true
 withAlphaThreshold = true
-windowFlags =
-	* "NoDecoration"
-	* "AlwaysAutoResize"
-	* "NoSavedSettings"
-	* "NoFocusOnAppearing"
-	* "NoNav"
-	* "NoMove"
+import "ImGuiEnum" as {:$WindowFlag}
+windowFlags = $WindowFlag(
+	NoDecoration
+	AlwaysAutoResize
+	NoSavedSettings
+	NoFocusOnAppearing
+	NoNav
+	NoMove
+)
 threadLoop ->
 	const :width = App.visualSize
 	ImGui.SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1, 0

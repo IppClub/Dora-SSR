@@ -645,6 +645,7 @@ compileFileAsync = (inputFile, sourceCodes): nil ->
 			return unless codes
 			success, result = LintYueGlobals codes, globals
 			return unless success
+			return nil if codes == ""
 			codes = codes\gsub "%s*local%s*_ENV%s*=%s*Dora%([^%)]-%)[^\n\r]+[\n\r%s]*", "\n"
 			codes = codes\gsub "%s*local%s*_ENV%s*=%s*Dora[^%w_$][^\n\r]+[\n\r%s]*", "\n"
 			codes = codes\gsub "^\n*", ""

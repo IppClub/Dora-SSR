@@ -1737,7 +1737,7 @@ std::string XmlDelegator::compileYueCodes(const char* codes) {
 	config.lineOffset = currentLine - 2;
 	config.reserveLineNumber = true;
 	config.implicitReturnRoot = false;
-	auto result = yue::YueCompiler{}.compile(fmt::format("do{}{}", nl(), codes), config);
+	auto result = yue::YueCompiler{nullptr, dora_open_threaded_compiler}.compile(fmt::format("do{}{}", nl(), codes), config);
 	if (result.codes.empty() && result.error) {
 		int line = result.error.value().line;
 		std::string message = std::move(result.error.value().msg);

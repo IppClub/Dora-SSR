@@ -7,6 +7,7 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. ]]
 
 _ENV = Dora Dora.ImGui
+import "ImGuiEnum" as {:$WindowFlag, :$SetCond}
 const {:Content, :Path} = Dora
 const type = type
 
@@ -624,8 +625,8 @@ extraOperations = ->
 				ossLicenseOpen = true
 		if ossLicenseOpen
 			visualSize: {:width, :height}, :themeColor = App
-			SetNextWindowPosCenter "Appearing", Vec2 0.5, 0.5
-			SetNextWindowSize Vec2(math.min(width * 0.8, 750), height * 0.8), "Appearing"
+			SetNextWindowPosCenter $SetCond(Appearing), Vec2 0.5, 0.5
+			SetNextWindowSize Vec2(math.min(width * 0.8, 750), height * 0.8), $SetCond Appearing
 			PushStyleVar "WindowPadding", Vec2(20, 10), -> ossLicenseOpen = Begin(
 				zh and '开源协议' or 'OSS Licenses'
 				ossLicenseOpen
@@ -656,13 +657,14 @@ extraOperations = ->
 		config.engineDev = engineDev
 
 transparant = Color 0x0
-windowFlags =
-	* "NoTitleBar"
-	* "NoResize"
-	* "NoMove"
-	* "NoCollapse"
-	* "NoSavedSettings"
-	* "NoBringToFrontOnFocus"
+windowFlags = $WindowFlag(
+	NoTitleBar
+	NoResize
+	NoMove
+	NoCollapse
+	NoSavedSettings
+	NoBringToFrontOnFocus
+)
 initFooter = true
 footerWindow = threadLoop ->
 	zh = useChinese and isChineseSupported
@@ -766,29 +768,31 @@ footerWindow = threadLoop ->
 				reloadCurrentEntry!
 		PushStyleVar "WindowPadding", Vec2(10, 10), ->
 			if showStats
-				SetNextWindowPos Vec2(10, 50), "FirstUseEver"
+				SetNextWindowPos Vec2(10, 50), $SetCond FirstUseEver
 				showStats = ShowStats showStats, extraOperations
 				config.showStats = showStats
 			if showConsole
-				SetNextWindowPos Vec2(width - 425, height - 375), "FirstUseEver"
+				SetNextWindowPos Vec2(width - 425, height - 375), $SetCond FirstUseEver
 				showConsole = ShowConsole showConsole
 				config.showConsole = showConsole
 
 const MaxWidth = 800
 
-displayWindowFlags =
-	* "NoDecoration"
-	* "NoSavedSettings"
-	* "NoFocusOnAppearing"
-	* "NoNav"
-	* "NoMove"
-	* "NoScrollWithMouse"
-	* "AlwaysAutoResize"
-	* "NoBringToFrontOnFocus"
+displayWindowFlags = $WindowFlag(
+	NoDecoration
+	NoSavedSettings
+	NoFocusOnAppearing
+	NoNav
+	NoMove
+	NoScrollWithMouse
+	AlwaysAutoResize
+	NoBringToFrontOnFocus
+)
 
 webStatus = nil
 descColor = Color 0xffa1a1a1
 gameOpen = #gamesInDev == 0
+toolOpen = false
 exampleOpen = false
 testOpen = false
 filterText = nil
@@ -822,7 +826,7 @@ entryWindow = threadLoop ->
 		:themeColor = App
 		:width, :height = App.visualSize
 		SetNextWindowBgAlpha 0.5
-		SetNextWindowPos Vec2(width / 2, height / 2), "Always", Vec2 0.5, 0.5
+		SetNextWindowPos Vec2(width / 2, height / 2), $SetCond(Always), Vec2 0.5, 0.5
 		Begin "Web IDE Connected", displayWindowFlags, ->
 			Separator!
 			TextColored themeColor, "#{zh and '网页 IDE 已连接 ……' or 'Web IDE connected ...'}"
@@ -835,7 +839,7 @@ entryWindow = threadLoop ->
 	width: fullWidth, :height = App.visualSize
 
 	SetNextWindowBgAlpha 0.85
-	SetNextWindowPos Vec2(fullWidth - 30, height - 130), "Always", Vec2 1, 0
+	SetNextWindowPos Vec2(fullWidth - 30, height - 130), $SetCond(Always), Vec2 1, 0
 	PushStyleVar "WindowPadding", Vec2(10, 5), ->
 		Begin "Web IDE", displayWindowFlags, ->
 			Separator!
@@ -1025,7 +1029,7 @@ entryWindow = threadLoop ->
 					gameOpen = opened
 				if #doraTools > 0 and showTool
 					opened = if filterText? then showTool else false
-					SetNextItemOpen exampleOpen
+					SetNextItemOpen toolOpen
 					TreeNode zh and "引擎工具" or "Engine Tools", ->
 						<- PushStyleVar "ItemSpacing", Vec2 20, 10
 						Columns maxColumns, false
@@ -1036,7 +1040,7 @@ entryWindow = threadLoop ->
 							NextColumn!
 						Columns 1, false
 						opened = true
-					exampleOpen = opened
+					toolOpen = opened
 				if #doraExamples > 0 and showExample
 					opened = if filterText? then showExample else false
 					SetNextItemOpen exampleOpen
@@ -1072,7 +1076,7 @@ entryWindow = threadLoop ->
 			::endEntry::
 			unless anyEntryMatched
 				SetNextWindowBgAlpha 0
-				SetNextWindowPos Vec2(fullWidth / 2, height / 2), "Always", Vec2 0.5, 0.5
+				SetNextWindowPos Vec2(fullWidth / 2, height / 2), $SetCond(Always), Vec2 0.5, 0.5
 				Begin "Entries Not Found", displayWindowFlags, ->
 					Separator!
 					TextColored themeColor, zh and "多萝：" or "Dora:"
