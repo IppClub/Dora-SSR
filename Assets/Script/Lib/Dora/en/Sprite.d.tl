@@ -64,8 +64,8 @@ local record SpriteClass
 
 	-- Gets the clip names and rectangles from the clip file.
 	-- @param clipFile (string) The clip file name to load, should end with ".clip".
-	-- @return ({string, Rect} | nil) A table containing the clip names and rectangles.
-	getClips: function(self: SpriteClass, clipFile: string): {string, Rect} | nil
+	-- @return ({string: Rect} | nil) A table containing the clip names and rectangles.
+	getClips: function(self: SpriteClass, clipFile: string): {string: Rect} | nil
 
 	-- A metamethod for creating Sprite object.
 	-- @param clipStr (string) The string containing format for loading a texture file.

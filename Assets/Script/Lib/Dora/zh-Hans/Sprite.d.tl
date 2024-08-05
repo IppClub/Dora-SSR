@@ -64,8 +64,8 @@ local record SpriteClass
 
 	-- 从图集切片文件中获取切片名称和矩形区域。
 	-- @param clipFile (string) 要加载的图集切片文件，文件后缀名必须是".clip"。
-	-- @return ({string, Rect} | nil) 包含切片名称和矩形区域的表。
-	getClips: function(self: SpriteClass, clipFile: string): {string, Rect} | nil
+	-- @return ({string: Rect} | nil) 包含切片名称和矩形区域的表。
+	getClips: function(self: SpriteClass, clipFile: string): {string: Rect} | nil
 
 	-- 用于创建新的图元对象的元方法。
 	-- @param clipStr (string) 包含要加载的纹理文件名的字符串。
