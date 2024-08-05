@@ -113,21 +113,21 @@ do -- 20
 end -- 20
 local windowFlags = { -- 72
 	"NoDecoration", -- 72
-	"AlwaysAutoResize", -- 73
-	"NoSavedSettings", -- 74
-	"NoFocusOnAppearing", -- 75
-	"NoNav", -- 76
-	"NoMove" -- 77
-} -- 71
-return threadLoop(function() -- 78
-	local width -- 79
-	width = App.visualSize.width -- 79
-	ImGui.SetNextWindowBgAlpha(0.35) -- 80
-	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0)) -- 81
-	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver") -- 82
-	return ImGui.Begin("Draw Node", windowFlags, function() -- 83
-		ImGui.Text("Draw Node (Yuescript)") -- 84
-		ImGui.Separator() -- 85
-		return ImGui.TextWrapped("Draw shapes and lines!") -- 86
-	end) -- 86
-end) -- 86
+	"AlwaysAutoResize", -- 72
+	"NoSavedSettings", -- 72
+	"NoFocusOnAppearing", -- 72
+	"NoNav", -- 72
+	"NoMove" -- 72
+} -- 72
+return threadLoop(function() -- 80
+	local width -- 81
+	width = App.visualSize.width -- 81
+	ImGui.SetNextWindowBgAlpha(0.35) -- 82
+	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0)) -- 83
+	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver") -- 84
+	return ImGui.Begin("Draw Node", windowFlags, function() -- 85
+		ImGui.Text("Draw Node (Yuescript)") -- 86
+		ImGui.Separator() -- 87
+		return ImGui.TextWrapped("Draw shapes and lines!") -- 88
+	end) -- 88
+end) -- 88

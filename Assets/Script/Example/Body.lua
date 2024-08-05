@@ -66,21 +66,21 @@ do -- 30
 end -- 30
 local windowFlags = { -- 51
 	"NoDecoration", -- 51
-	"AlwaysAutoResize", -- 52
-	"NoSavedSettings", -- 53
-	"NoFocusOnAppearing", -- 54
-	"NoNav", -- 55
-	"NoMove" -- 56
-} -- 50
-return threadLoop(function() -- 57
-	local width -- 58
-	width = App.visualSize.width -- 58
-	ImGui.SetNextWindowBgAlpha(0.35) -- 59
-	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0)) -- 60
-	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver") -- 61
-	return ImGui.Begin("Body", windowFlags, function() -- 62
-		ImGui.Text("Body (Yuescript)") -- 63
-		ImGui.Separator() -- 64
-		return ImGui.TextWrapped("Basic usage to create physics bodies!") -- 65
-	end) -- 65
-end) -- 65
+	"AlwaysAutoResize", -- 51
+	"NoSavedSettings", -- 51
+	"NoFocusOnAppearing", -- 51
+	"NoNav", -- 51
+	"NoMove" -- 51
+} -- 51
+return threadLoop(function() -- 59
+	local width -- 60
+	width = App.visualSize.width -- 60
+	ImGui.SetNextWindowBgAlpha(0.35) -- 61
+	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0)) -- 62
+	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver") -- 63
+	return ImGui.Begin("Body", windowFlags, function() -- 64
+		ImGui.Text("Body (Yuescript)") -- 65
+		ImGui.Separator() -- 66
+		return ImGui.TextWrapped("Basic usage to create physics bodies!") -- 67
+	end) -- 67
+end) -- 67

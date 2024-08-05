@@ -244,7 +244,8 @@ records = [
 	["C","C","C","C","C","C","C","C","C","C"]
 ]
 decisionStr = nil
-windowFlags = ["NoResize","NoSavedSettings"]
+import "ImGuiEnum" as {:$WindowFlag}
+windowFlags = $WindowFlag(NoResize, NoSavedSettings)
 threadLoop ->
 	:width,:height = App.visualSize
 	SetNextWindowPos Vec2(width/2-300,height/2-300), "FirstUseEver"

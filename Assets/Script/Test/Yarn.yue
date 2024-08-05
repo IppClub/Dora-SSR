@@ -115,12 +115,14 @@ for file in *Content\getAllFiles Content.writablePath
 	files[] = Path\getFilename file
 
 currentFile = 1
-windowFlags =
-	* "NoDecoration"
-	* "NoSavedSettings"
-	* "NoFocusOnAppearing"
-	* "NoNav"
-	* "NoMove"
+import "ImGuiEnum" as {:$WindowFlag}
+windowFlags = $WindowFlag(
+	NoDecoration
+	NoSavedSettings
+	NoFocusOnAppearing
+	NoNav
+	NoMove
+)
 threadLoop ->
 	const :width = App.visualSize
 	SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1, 0

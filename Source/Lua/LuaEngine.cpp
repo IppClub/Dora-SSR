@@ -623,7 +623,7 @@ static int dora_load_base(lua_State* L) {
 	return 0;
 }
 
-static void dora_open_threaded_compiler(void* state) {
+void dora_open_threaded_compiler(void* state) {
 	lua_State* L = s_cast<lua_State*>(state);
 	dora_load_base(L);
 	luaL_requiref(L, "yue", luaopen_yue, 0); // yue

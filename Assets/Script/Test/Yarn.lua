@@ -222,30 +222,30 @@ end -- 115
 local currentFile = 1 -- 117
 local windowFlags = { -- 119
 	"NoDecoration", -- 119
-	"NoSavedSettings", -- 120
-	"NoFocusOnAppearing", -- 121
-	"NoNav", -- 122
-	"NoMove" -- 123
-} -- 118
-return threadLoop(function() -- 124
-	local width -- 125
-	width = App.visualSize.width -- 125
-	SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0)) -- 126
-	SetNextWindowSize(Vec2(200, 0), "Always") -- 127
-	return Begin("Yarn Test", windowFlags, function() -- 128
-		Text("Yarn Tester (Yuescript)") -- 129
-		Separator() -- 130
-		local changed -- 131
-		changed, currentFile = Combo("File", currentFile, files) -- 131
-		if changed then -- 132
-			runner = YarnRunner(testFiles[currentFile], "Start", { }, commands, true) -- 133
-			texts = { } -- 134
-			advance() -- 135
-		end -- 132
-		Text("Variables") -- 136
-		Separator() -- 137
-		for k, v in pairs(runner.state) do -- 138
-			Text(tostring(k) .. ": " .. tostring(v)) -- 139
-		end -- 139
-	end) -- 139
-end) -- 139
+	"NoSavedSettings", -- 119
+	"NoFocusOnAppearing", -- 119
+	"NoNav", -- 119
+	"NoMove" -- 119
+} -- 119
+return threadLoop(function() -- 126
+	local width -- 127
+	width = App.visualSize.width -- 127
+	SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0)) -- 128
+	SetNextWindowSize(Vec2(200, 0), "Always") -- 129
+	return Begin("Yarn Test", windowFlags, function() -- 130
+		Text("Yarn Tester (Yuescript)") -- 131
+		Separator() -- 132
+		local changed -- 133
+		changed, currentFile = Combo("File", currentFile, files) -- 133
+		if changed then -- 134
+			runner = YarnRunner(testFiles[currentFile], "Start", { }, commands, true) -- 135
+			texts = { } -- 136
+			advance() -- 137
+		end -- 134
+		Text("Variables") -- 138
+		Separator() -- 139
+		for k, v in pairs(runner.state) do -- 140
+			Text(tostring(k) .. ": " .. tostring(v)) -- 141
+		end -- 141
+	end) -- 141
+end) -- 141

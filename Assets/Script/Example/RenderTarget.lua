@@ -56,21 +56,21 @@ do -- 21
 end -- 21
 local windowFlags = { -- 40
 	"NoDecoration", -- 40
-	"AlwaysAutoResize", -- 41
-	"NoSavedSettings", -- 42
-	"NoFocusOnAppearing", -- 43
-	"NoNav", -- 44
-	"NoMove" -- 45
-} -- 39
-return threadLoop(function() -- 46
-	local width -- 47
-	width = App.visualSize.width -- 47
-	ImGui.SetNextWindowBgAlpha(0.35) -- 48
-	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0)) -- 49
-	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver") -- 50
-	return ImGui.Begin("Render Target", windowFlags, function() -- 51
-		ImGui.Text("Render Target (Yuescript)") -- 52
-		ImGui.Separator() -- 53
-		return ImGui.TextWrapped("Use render target node as a mirror!") -- 54
-	end) -- 54
-end) -- 54
+	"AlwaysAutoResize", -- 40
+	"NoSavedSettings", -- 40
+	"NoFocusOnAppearing", -- 40
+	"NoNav", -- 40
+	"NoMove" -- 40
+} -- 40
+return threadLoop(function() -- 48
+	local width -- 49
+	width = App.visualSize.width -- 49
+	ImGui.SetNextWindowBgAlpha(0.35) -- 50
+	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0)) -- 51
+	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver") -- 52
+	return ImGui.Begin("Render Target", windowFlags, function() -- 53
+		ImGui.Text("Render Target (Yuescript)") -- 54
+		ImGui.Separator() -- 55
+		return ImGui.TextWrapped("Use render target node as a mirror!") -- 56
+	end) -- 56
+end) -- 56

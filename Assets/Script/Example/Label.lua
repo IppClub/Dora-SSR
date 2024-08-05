@@ -29,21 +29,21 @@ do -- 14
 end -- 14
 local windowFlags = { -- 27
 	"NoDecoration", -- 27
-	"AlwaysAutoResize", -- 28
-	"NoSavedSettings", -- 29
-	"NoFocusOnAppearing", -- 30
-	"NoNav", -- 31
-	"NoMove" -- 32
-} -- 26
-return threadLoop(function() -- 33
-	local width -- 34
-	width = App.visualSize.width -- 34
-	ImGui.SetNextWindowBgAlpha(0.35) -- 35
-	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0)) -- 36
-	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver") -- 37
-	return ImGui.Begin("Label", windowFlags, function() -- 38
-		ImGui.Text("Label (Yuescript)") -- 39
-		ImGui.Separator() -- 40
-		return ImGui.TextWrapped("Render labels with unbatched and batched methods!") -- 41
-	end) -- 41
-end) -- 41
+	"AlwaysAutoResize", -- 27
+	"NoSavedSettings", -- 27
+	"NoFocusOnAppearing", -- 27
+	"NoNav", -- 27
+	"NoMove" -- 27
+} -- 27
+return threadLoop(function() -- 35
+	local width -- 36
+	width = App.visualSize.width -- 36
+	ImGui.SetNextWindowBgAlpha(0.35) -- 37
+	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0)) -- 38
+	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver") -- 39
+	return ImGui.Begin("Label", windowFlags, function() -- 40
+		ImGui.Text("Label (Yuescript)") -- 41
+		ImGui.Separator() -- 42
+		return ImGui.TextWrapped("Render labels with unbatched and batched methods!") -- 43
+	end) -- 43
+end) -- 43

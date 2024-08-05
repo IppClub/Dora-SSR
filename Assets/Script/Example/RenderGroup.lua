@@ -3,9 +3,9 @@ local Class = Dora.Class -- 1
 local Node = Dora.Node -- 1
 local Vec2 = Dora.Vec2 -- 1
 local Sprite = Dora.Sprite -- 1
-local DrawNode = Dora.DrawNode -- 1
-local App = Dora.App -- 1
 local Color = Dora.Color -- 1
+local App = Dora.App -- 1
+local DrawNode = Dora.DrawNode -- 1
 local Line = Dora.Line -- 1
 local Angle = Dora.Angle -- 1
 local Size = Dora.Size -- 1
@@ -67,26 +67,26 @@ end -- 36
 local renderGroup = currentEntry.renderGroup -- 44
 local windowFlags = { -- 46
 	"NoDecoration", -- 46
-	"AlwaysAutoResize", -- 47
-	"NoSavedSettings", -- 48
-	"NoFocusOnAppearing", -- 49
-	"NoNav", -- 50
-	"NoMove" -- 51
-} -- 45
-return threadLoop(function() -- 52
-	local width -- 53
-	width = App.visualSize.width -- 53
-	ImGui.SetNextWindowBgAlpha(0.35) -- 54
-	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0)) -- 55
-	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver") -- 56
-	return ImGui.Begin("Render Group", windowFlags, function() -- 57
-		ImGui.Text("Render Group (Yuescript)") -- 58
-		ImGui.Separator() -- 59
-		ImGui.TextWrapped("When render group is enabled, the nodes in the sub render tree will be grouped by \"renderOrder\" property, and get rendered in ascending order!\nNotice the draw call changes in stats window.") -- 60
-		local changed -- 61
-		changed, renderGroup = ImGui.Checkbox("Grouped", renderGroup) -- 61
-		if changed then -- 61
-			currentEntry.renderGroup = renderGroup -- 62
-		end -- 61
-	end) -- 62
-end) -- 62
+	"AlwaysAutoResize", -- 46
+	"NoSavedSettings", -- 46
+	"NoFocusOnAppearing", -- 46
+	"NoNav", -- 46
+	"NoMove" -- 46
+} -- 46
+return threadLoop(function() -- 54
+	local width -- 55
+	width = App.visualSize.width -- 55
+	ImGui.SetNextWindowBgAlpha(0.35) -- 56
+	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0)) -- 57
+	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver") -- 58
+	return ImGui.Begin("Render Group", windowFlags, function() -- 59
+		ImGui.Text("Render Group (Yuescript)") -- 60
+		ImGui.Separator() -- 61
+		ImGui.TextWrapped("When render group is enabled, the nodes in the sub render tree will be grouped by \"renderOrder\" property, and get rendered in ascending order!\nNotice the draw call changes in stats window.") -- 62
+		local changed -- 63
+		changed, renderGroup = ImGui.Checkbox("Grouped", renderGroup) -- 63
+		if changed then -- 63
+			currentEntry.renderGroup = renderGroup -- 64
+		end -- 63
+	end) -- 64
+end) -- 64

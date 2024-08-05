@@ -1502,7 +1502,7 @@ export default function PersistentDrawerLeft() {
 					default:
 						break;
 				}
-				const folder = target.dir;
+				const folder = fileInfo.title === "file.newFolder";
 				Service.newFile({path: newFile, content, folder}).then((res) => {
 					if (!res.success) {
 						addAlert(t("alert.newFailed"), "error");
@@ -2330,7 +2330,7 @@ export default function PersistentDrawerLeft() {
 				</Drawer>
 				<>{
 					files.map((file, index) => {
-						const ext = path.extname(file.title);
+						const ext = file.folder ? "" : path.extname(file.title);
 						let language: "lua" | "tl" | "yue" | "typescript" | "xml" | "markdown" | null = null;
 						let image = false;
 						let spine = false;

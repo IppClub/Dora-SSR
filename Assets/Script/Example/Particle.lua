@@ -341,33 +341,34 @@ local work = coroutine.wrap(function() -- 116
 		end -- 119
 	end -- 125
 end) -- 116
-local _anon_func_1 = function(Data, pairs, toString, tostring) -- 135
-	local _accum_0 = { } -- 135
-	local _len_0 = 1 -- 135
-	for k, v in pairs(Data) do -- 135
-		_accum_0[_len_0] = "<" .. tostring(v[1]) .. " A=\"" .. tostring(toString(v[3])) .. "\"/>" -- 135
-		_len_0 = _len_0 + 1 -- 135
-	end -- 135
-	return _accum_0 -- 135
-end -- 135
-return threadLoop(function() -- 127
-	local width, height -- 128
-	do -- 128
-		local _obj_0 = App.visualSize -- 128
-		width, height = _obj_0.width, _obj_0.height -- 128
-	end -- 128
-	SetNextWindowPos(Vec2(width - 400, 10), "FirstUseEver") -- 129
-	SetNextWindowSize(Vec2(390, height - 80), "FirstUseEver") -- 130
-	Begin("Particle", { -- 131
-		"NoResize", -- 131
-		"NoSavedSettings" -- 131
-	}, function() -- 131
-		for k in pairs(Data) do -- 132
-			Item(k) -- 133
-		end -- 133
-		if Button("Export") then -- 134
-			return print("<A>" .. table.concat(_anon_func_1(Data, pairs, toString, tostring)) .. "</A>") -- 135
-		end -- 134
-	end) -- 131
-	return work() -- 136
-end) -- 136
+local windowFlags = { -- 128
+	"NoResize", -- 128
+	"NoSavedSettings" -- 128
+} -- 128
+local _anon_func_1 = function(Data, pairs, toString, tostring) -- 137
+	local _accum_0 = { } -- 137
+	local _len_0 = 1 -- 137
+	for k, v in pairs(Data) do -- 137
+		_accum_0[_len_0] = "<" .. tostring(v[1]) .. " A=\"" .. tostring(toString(v[3])) .. "\"/>" -- 137
+		_len_0 = _len_0 + 1 -- 137
+	end -- 137
+	return _accum_0 -- 137
+end -- 137
+return threadLoop(function() -- 129
+	local width, height -- 130
+	do -- 130
+		local _obj_0 = App.visualSize -- 130
+		width, height = _obj_0.width, _obj_0.height -- 130
+	end -- 130
+	SetNextWindowPos(Vec2(width - 400, 10), "FirstUseEver") -- 131
+	SetNextWindowSize(Vec2(390, height - 80), "FirstUseEver") -- 132
+	Begin("Particle", windowFlags, function() -- 133
+		for k in pairs(Data) do -- 134
+			Item(k) -- 135
+		end -- 135
+		if Button("Export") then -- 136
+			return print("<A>" .. table.concat(_anon_func_1(Data, pairs, toString, tostring)) .. "</A>") -- 137
+		end -- 136
+	end) -- 133
+	return work() -- 138
+end) -- 138

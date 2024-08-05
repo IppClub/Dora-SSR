@@ -53,20 +53,20 @@ do -- 3
 end -- 3
 local windowFlags = { -- 27
 	"NoDecoration", -- 27
-	"AlwaysAutoResize", -- 28
-	"NoSavedSettings", -- 29
-	"NoFocusOnAppearing", -- 30
-	"NoNav", -- 31
-	"NoMove" -- 32
-} -- 26
-return threadLoop(function() -- 33
-	local width -- 34
-	width = App.visualSize.width -- 34
-	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0)) -- 35
-	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver") -- 36
-	return ImGui.Begin("Camera", windowFlags, function() -- 37
-		ImGui.Text("Camera (Yuescript)") -- 38
-		ImGui.Separator() -- 39
-		return ImGui.TextWrapped("View camera motions, use 3D camera as default!") -- 40
-	end) -- 40
-end) -- 40
+	"AlwaysAutoResize", -- 27
+	"NoSavedSettings", -- 27
+	"NoFocusOnAppearing", -- 27
+	"NoNav", -- 27
+	"NoMove" -- 27
+} -- 27
+return threadLoop(function() -- 35
+	local width -- 36
+	width = App.visualSize.width -- 36
+	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0)) -- 37
+	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver") -- 38
+	return ImGui.Begin("Camera", windowFlags, function() -- 39
+		ImGui.Text("Camera (Yuescript)") -- 40
+		ImGui.Separator() -- 41
+		return ImGui.TextWrapped("View camera motions, use 3D camera as default!") -- 42
+	end) -- 42
+end) -- 42

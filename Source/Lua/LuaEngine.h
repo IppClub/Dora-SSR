@@ -245,4 +245,6 @@ protected:
 #define SharedLuaEngine \
 	Dora::Singleton<Dora::LuaEngine>::shared()
 
+void dora_open_threaded_compiler(void* state);
+
 NS_DORA_END

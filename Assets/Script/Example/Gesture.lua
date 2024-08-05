@@ -27,21 +27,21 @@ do -- 10
 end -- 10
 local windowFlags = { -- 26
 	"NoDecoration", -- 26
-	"AlwaysAutoResize", -- 27
-	"NoSavedSettings", -- 28
-	"NoFocusOnAppearing", -- 29
-	"NoNav", -- 30
-	"NoMove" -- 31
-} -- 25
-return threadLoop(function() -- 32
-	local width -- 33
-	width = App.visualSize.width -- 33
-	ImGui.SetNextWindowBgAlpha(0.35) -- 34
-	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0)) -- 35
-	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver") -- 36
-	return ImGui.Begin("Gesture", windowFlags, function() -- 37
-		ImGui.Text("Gesture (Yuescript)") -- 38
-		ImGui.Separator() -- 39
-		return ImGui.TextWrapped("Interact with multi-touches!") -- 40
-	end) -- 40
-end) -- 40
+	"AlwaysAutoResize", -- 26
+	"NoSavedSettings", -- 26
+	"NoFocusOnAppearing", -- 26
+	"NoNav", -- 26
+	"NoMove" -- 26
+} -- 26
+return threadLoop(function() -- 34
+	local width -- 35
+	width = App.visualSize.width -- 35
+	ImGui.SetNextWindowBgAlpha(0.35) -- 36
+	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0)) -- 37
+	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver") -- 38
+	return ImGui.Begin("Gesture", windowFlags, function() -- 39
+		ImGui.Text("Gesture (Yuescript)") -- 40
+		ImGui.Separator() -- 41
+		return ImGui.TextWrapped("Interact with multi-touches!") -- 42
+	end) -- 42
+end) -- 42

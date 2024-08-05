@@ -83,28 +83,28 @@ do -- 39
 end -- 39
 local windowFlags = { -- 50
 	"NoDecoration", -- 50
-	"AlwaysAutoResize", -- 51
-	"NoSavedSettings", -- 52
-	"NoFocusOnAppearing", -- 53
-	"NoNav", -- 54
-	"NoMove" -- 55
-} -- 49
-local receivingContact = disk.receivingContact -- 56
-return threadLoop(function() -- 57
-	local width -- 58
-	width = App.visualSize.width -- 58
-	ImGui.SetNextWindowBgAlpha(0.35) -- 59
-	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0)) -- 60
-	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver") -- 61
-	return ImGui.Begin("Contact", windowFlags, function() -- 62
-		ImGui.Text("Contact (Yuescript)") -- 63
-		ImGui.Separator() -- 64
-		ImGui.TextWrapped("Receive events when physics bodies contact.") -- 65
-		local changed -- 66
-		changed, receivingContact = ImGui.Checkbox("Receiving Contact", receivingContact) -- 66
-		if changed then -- 66
-			disk.receivingContact = receivingContact -- 67
-			label.text = "" -- 68
-		end -- 66
-	end) -- 68
-end) -- 68
+	"AlwaysAutoResize", -- 50
+	"NoSavedSettings", -- 50
+	"NoFocusOnAppearing", -- 50
+	"NoNav", -- 50
+	"NoMove" -- 50
+} -- 50
+local receivingContact = disk.receivingContact -- 58
+return threadLoop(function() -- 59
+	local width -- 60
+	width = App.visualSize.width -- 60
+	ImGui.SetNextWindowBgAlpha(0.35) -- 61
+	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0)) -- 62
+	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver") -- 63
+	return ImGui.Begin("Contact", windowFlags, function() -- 64
+		ImGui.Text("Contact (Yuescript)") -- 65
+		ImGui.Separator() -- 66
+		ImGui.TextWrapped("Receive events when physics bodies contact.") -- 67
+		local changed -- 68
+		changed, receivingContact = ImGui.Checkbox("Receiving Contact", receivingContact) -- 68
+		if changed then -- 68
+			disk.receivingContact = receivingContact -- 69
+			label.text = "" -- 70
+		end -- 68
+	end) -- 70
+end) -- 70

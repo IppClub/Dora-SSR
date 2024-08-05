@@ -126,45 +126,45 @@ Entity({ -- 56
 }) -- 55
 local windowFlags = { -- 64
 	"NoDecoration", -- 64
-	"AlwaysAutoResize", -- 65
-	"NoSavedSettings", -- 66
-	"NoFocusOnAppearing", -- 67
-	"NoNav", -- 68
-	"NoMove" -- 69
-} -- 63
-return threadLoop(function() -- 70
-	local width -- 71
-	width = App.visualSize.width -- 71
-	ImGui.SetNextWindowBgAlpha(0.35) -- 72
-	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0)) -- 73
-	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver") -- 74
-	return ImGui.Begin("ECS System", windowFlags, function() -- 75
-		ImGui.Text("ECS System (Yuescript)") -- 76
-		ImGui.Separator() -- 77
-		ImGui.TextWrapped("Tap any place to move entities.") -- 78
-		if ImGui.Button("Create Random Entity") then -- 79
-			Entity({ -- 81
-				image = "Image/logo.png", -- 81
-				position = Vec2(6 * math.random(1, 100), 6 * math.random(1, 100)), -- 82
-				direction = 1.0 * math.random(0, 360), -- 83
-				speed = 1.0 * math.random(1, 20) -- 84
-			}) -- 80
-		end -- 79
-		if ImGui.Button("Destroy An Entity") then -- 85
-			return Group({ -- 86
-				"sprite", -- 86
-				"position" -- 86
-			}):each(function(entity) -- 86
-				entity.position = nil -- 87
-				do -- 88
-					local _with_0 = entity.sprite -- 88
-					_with_0:runAction(Sequence(Scale(0.5, 0.5, 0, Ease.InBack), Event("Destroy"))) -- 89
-					_with_0:slot("Destroy", function() -- 90
-						return entity:destroy() -- 90
-					end) -- 90
-				end -- 88
-				return true -- 91
-			end) -- 91
-		end -- 85
-	end) -- 91
-end) -- 91
+	"AlwaysAutoResize", -- 64
+	"NoSavedSettings", -- 64
+	"NoFocusOnAppearing", -- 64
+	"NoNav", -- 64
+	"NoMove" -- 64
+} -- 64
+return threadLoop(function() -- 72
+	local width -- 73
+	width = App.visualSize.width -- 73
+	ImGui.SetNextWindowBgAlpha(0.35) -- 74
+	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0)) -- 75
+	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver") -- 76
+	return ImGui.Begin("ECS System", windowFlags, function() -- 77
+		ImGui.Text("ECS System (Yuescript)") -- 78
+		ImGui.Separator() -- 79
+		ImGui.TextWrapped("Tap any place to move entities.") -- 80
+		if ImGui.Button("Create Random Entity") then -- 81
+			Entity({ -- 83
+				image = "Image/logo.png", -- 83
+				position = Vec2(6 * math.random(1, 100), 6 * math.random(1, 100)), -- 84
+				direction = 1.0 * math.random(0, 360), -- 85
+				speed = 1.0 * math.random(1, 20) -- 86
+			}) -- 82
+		end -- 81
+		if ImGui.Button("Destroy An Entity") then -- 87
+			return Group({ -- 88
+				"sprite", -- 88
+				"position" -- 88
+			}):each(function(entity) -- 88
+				entity.position = nil -- 89
+				do -- 90
+					local _with_0 = entity.sprite -- 90
+					_with_0:runAction(Sequence(Scale(0.5, 0.5, 0, Ease.InBack), Event("Destroy"))) -- 91
+					_with_0:slot("Destroy", function() -- 92
+						return entity:destroy() -- 92
+					end) -- 92
+				end -- 90
+				return true -- 93
+			end) -- 93
+		end -- 87
+	end) -- 93
+end) -- 93

@@ -32,13 +32,15 @@ with Node!
 
 -- example codes ends here, some test ui below --
 
-windowFlags =
-	* "NoDecoration"
-	* "AlwaysAutoResize"
-	* "NoSavedSettings"
-	* "NoFocusOnAppearing"
-	* "NoNav"
-	* "NoMove"
+import "ImGuiEnum" as {:$WindowFlag}
+windowFlags = $WindowFlag(
+	NoDecoration
+	AlwaysAutoResize
+	NoSavedSettings
+	NoFocusOnAppearing
+	NoNav
+	NoMove
+)
 threadLoop ->
 	const :width = App.visualSize
 	ImGui.SetNextWindowBgAlpha 0.35
