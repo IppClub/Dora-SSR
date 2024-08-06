@@ -271,6 +271,7 @@ bool AlignNode::init() {
 }
 
 void AlignNode::addChild(Node* child, int order, String tag) {
+	AssertUnless(_yogaNode, "Yoga node is destroyed");
 	if (auto alignChild = DoraAs<AlignNode>(child)) {
 		if (!YGNodeGetParent(alignChild->_yogaNode)) {
 			YGNodeInsertChild(_yogaNode, alignChild->_yogaNode, YGNodeGetChildCount(_yogaNode));
@@ -280,6 +281,7 @@ void AlignNode::addChild(Node* child, int order, String tag) {
 }
 
 void AlignNode::removeChild(Node* child, bool cleanup) {
+	AssertUnless(_yogaNode, "Yoga node is destroyed");
 	if (auto alignChild = DoraAs<AlignNode>(child)) {
 		YGNodeRemoveChild(_yogaNode, alignChild->_yogaNode);
 	}
@@ -294,6 +296,7 @@ void AlignNode::cleanup() {
 }
 
 void AlignNode::alignLayout() {
+	AssertUnless(_yogaNode, "Yoga node is destroyed");
 	if (!YGNodeGetHasNewLayout(_yogaNode)) {
 		return;
 	}
@@ -322,6 +325,7 @@ void AlignNode::alignLayout() {
 }
 
 void AlignNode::visit() {
+	AssertUnless(_yogaNode, "Yoga node is destroyed");
 	if (YGNodeIsDirty(_yogaNode)) {
 		YGNodeCalculateLayout(_yogaNode, YGUndefined, YGUndefined, YGDirectionLTR);
 	}
@@ -330,6 +334,7 @@ void AlignNode::visit() {
 }
 
 void AlignNode::css(String css) {
+	AssertUnless(_yogaNode, "Yoga node is destroyed");
 	auto styles = parseCssStyle(css.toView());
 	for (const auto& [key, value] : styles) {
 		switch (Switch::hash(key)) {

@@ -546,7 +546,7 @@ namespace
 		struct GLNVGcontext* gl = (struct GLNVGcontext*)_userPtr;
 		gl->view[0] = width;
 		gl->view[1] = height;
-		bgfx::setViewRect(gl->viewId, 0, 0, width * devicePixelRatio, height * devicePixelRatio);
+		// bgfx::setViewRect(gl->viewId, 0, 0, width * devicePixelRatio, height * devicePixelRatio);
 	}
 
 	static void fan(uint32_t _start, uint32_t _count)
