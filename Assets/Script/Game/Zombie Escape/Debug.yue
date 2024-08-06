@@ -171,7 +171,7 @@ world\schedule ->
 		Begin "Decision Trace (#{lastDecisionTree})", {"NoSavedSettings"}, ->
 			Text table.concat decisions, "\n"
 
-with Observer "Add", {"group", "unit", "player", "stared"}
+with Observer "Add", ["group", "unit", "player", "stared"]
 	\watch (_entity, _group, unit): false ->
 		unit\addChild Star {
 			y: 100
