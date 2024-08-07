@@ -1,0 +1,55 @@
+import "@site/src/languages/highlight";
+
+# VGNode
+
+**描述：**
+
+&emsp;&emsp;用于渲染矢量图形的节点。
+
+**类对象：**[VGNode Class](/docs/api/Class%20Object/VGNode)。
+
+**继承自：**[Node](/docs/api/Class/Node)。
+
+## surface
+
+**类型：** 只读成员变量。
+
+**描述：**
+
+&emsp;&emsp;用于显示包含矢量图形的帧缓冲纹理的图元表面。
+你可以通过调用 `vgNode.surface.texture` 来获取表面的纹理。
+
+**签名：**
+```tl
+const surface: Sprite
+```
+
+## render
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;用于渲染矢量图形的函数。
+
+**签名：**
+```tl
+render: function(self: VGNode, func: function())
+```
+
+**用法示例：**
+```tl
+vgNode:render(function()
+	nvg.BeginPath()
+	nvg.Rect(0, 0, 100, 100)
+	nvg.ClosePath()
+	nvg.FillColor(Color(255, 0, 0, 255))
+	nvg.Fill()
+end)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| func | function | 用于渲染矢量图形的闭包函数。你可以在这个闭包函数中执行渲染操作。 |

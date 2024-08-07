@@ -1,24 +1,9 @@
-local Vec2 = require("Vec2").Type
 local Rect = require("Rect").Type
 local Size = require("Size").Type
 local Color = require("Color").Type
 local VGPaint = require("VGPaint").Type
 local Texture2D = require("Texture2D").Type
-local record Transform
-	indentity: function(self: Transform)
-	translate: function(self: Transform, tx: number, ty: number)
-	scale: function(self: Transform, sx: number, sy: number)
-	rotate: function(self: Transform, a: number)
-	skewX: function(self: Transform, a: number)
-	skewY: function(self: Transform, a: number)
-	multiply: function(self: Transform, src: Transform)
-	inverseFrom: function(self: Transform, src: Transform): boolean
-	applyPoint: function(self: Transform, src: Vec2): Vec2
-end
-local record TransformClass
-	type Type = Transform
-	metamethod __call: function(self: TransformClass): Transform
-end
+local Node = require("Node").Type
 local record nvg
 	enum LineCapMode
 		"Butt"
@@ -40,10 +25,12 @@ local record nvg
 		"CW"
 		"CCW"
 	end
-	enum TextAlignMode
+	enum TextHAlign
 		"Left"
 		"Center"
 		"Right"
+	end
+	enum TextVAlign
 		"Top"
 		"Middle"
 		"Bottom"
@@ -57,12 +44,6 @@ local record nvg
 		"Premultiplied"
 		"Nearest"
 	end
-	Transform: TransformClass
-	TouchPos: function(): Vec2
-	LeftButtonPressed: function(): boolean
-	RightButtonPressed: function(): boolean
-	MiddleButtonPressed: function(): boolean
-	MouseWheel: function(): number
 	Save: function()
 	Restore: function()
 	Reset: function()
@@ -82,8 +63,7 @@ local record nvg
 	LineJoin: function(join: LineJoinMode)
 	GlobalAlpha: function(alpha: number)
 	ResetTransform: function()
-	ApplyTransform: function(t: Transform)
-	CurrentTransform: function(t: Transform)
+	ApplyTransform: function(node: Node)
 	Translate: function(x: number, y: number)
 	Rotate: function(angle: number)
 	SkewX: function(angle: number)
@@ -91,10 +71,10 @@ local record nvg
 	Scale: function(x: number, y: number)
 	ImageSize: function(image: integer): Size
 	DeleteImage: function(image: integer)
-	NVGpaLinearGradient: function(sx: number, sy: number, ex: number, ey: number, icol: Color, ocol: Color): VGPaint
-	NVGpaBoxGradient: function(x: number, y: number, w: number, h: number, r: number, f: number, icol: Color, ocol: Color): VGPaint
-	NVGpaRadialGradient: function(cx: number, cy: number, inr: number, outr: number, icol: Color, ocol: Color): VGPaint
-	NVGpaImagePattern: function(ox: number, oy: number, ex: number, ey: number, angle: number, image: integer, alpha: number): VGPaint
+	LinearGradient: function(sx: number, sy: number, ex: number, ey: number, icol: Color, ocol: Color): VGPaint
+	BoxGradient: function(x: number, y: number, w: number, h: number, r: number, f: number, icol: Color, ocol: Color): VGPaint
+	RadialGradient: function(cx: number, cy: number, inr: number, outr: number, icol: Color, ocol: Color): VGPaint
+	ImagePattern: function(ox: number, oy: number, ex: number, ey: number, angle: number, image: integer, alpha: number): VGPaint
 	Scissor: function(x: number, y: number, w: number, h: number)
 	IntersectScissor: function(x: number, y: number, w: number, h: number)
 	ResetScissor: function()
@@ -121,7 +101,7 @@ local record nvg
 	FontBlur: function(blur: number)
 	TextLetterSpacing: function(spacing: number)
 	TextLineHeight: function(lineHeight: number)
-	TextAlign: function(align: TextAlignMode)
+	TextAlign: function(hAlign: TextHAlign, vAlign: TextVAlign)
 	FontFaceId: function(font: integer)
 	FontFace: function(font: string)
 	DoraSSR: function()

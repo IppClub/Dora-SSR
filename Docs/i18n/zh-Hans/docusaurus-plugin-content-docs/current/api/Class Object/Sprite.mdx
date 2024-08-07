@@ -22,7 +22,7 @@ local sprite = Sprite("Image/file.png")
 
 **签名：**
 ```tl
-getClips: function(self: SpriteClass, clipFile: string): {string, Rect} | nil
+getClips: function(self: SpriteClass, clipFile: string): {string: Rect} | nil
 ```
 
 **参数：**
@@ -35,7 +35,7 @@ getClips: function(self: SpriteClass, clipFile: string): {string, Rect} | nil
 
 | 返回类型 | 描述 |
 | --- | --- |
-| \{string, Rect} \| nil | 包含切片名称和矩形区域的表。 |
+| \{string: Rect} \| nil | 包含切片名称和矩形区域的表。 |
 
 ## __call
 

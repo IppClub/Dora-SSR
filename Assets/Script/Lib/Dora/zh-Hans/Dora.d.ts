@@ -2202,6 +2202,42 @@ const keyboard: Keyboard;
 export {keyboard as Keyboard};
 
 /**
+ * 用于处理鼠标输入的单例类接口。
+ */
+interface Mouse {
+	/**
+	 * 鼠标在可视窗口中的位置。
+	 * 可以通过使用 `Mouse.position.mul(App.devicePixelRatio)` 来获取游戏世界中的坐标。
+	 * 然后再使用 `node.convertToNodeSpace()` 来将世界坐标转换为节点的本地坐标。
+	 * @example
+	 * ```
+	 * const worldPos = Mouse.position.mul(App.devicePixelRatio);
+	 * const nodePos = node.convertToNodeSpace(worldPos);
+	 * ```
+	 */
+	readonly position: Vec2
+	/**
+	 * 鼠标左键是否正在被按下。
+	 */
+	readonly leftButtonPressed: boolean
+	/**
+	 * 鼠标右键是否正在被按下。
+	 */
+	readonly rightButtonPressed: boolean
+	/**
+	 * 鼠标中键是否正在被按下。
+	 */
+	readonly middleButtonPressed: boolean
+	/**
+	 * 鼠标滚轮的滚动值。
+	 */
+	readonly wheel: number
+}
+
+const mouse: Mouse;
+export {mouse as Mouse};
+
+/**
  * 用于定义控制器轴名称的枚举。
  */
 export const enum AxisName {
@@ -6522,9 +6558,31 @@ interface SVGClass {
 const svgClass: SVGClass;
 export {svgClass as SVG};
 
+/**
+ * 用于渲染矢量图形的节点。
+ */
 class VGNode extends Node {
 	private constructor();
+
+	/**
+	 * 用于显示包含矢量图形的帧缓冲纹理的图元表面。
+	 * 你可以通过调用 `vgNode.surface.texture` 来获取表面的纹理。
+	 */
 	surface: Sprite;
+
+	/**
+	 * 用于渲染矢量图形的函数。
+	 * @param func 用于渲染矢量图形的闭包函数。
+	 * 你可以在这个闭包函数中执行渲染操作。
+	 * @usage
+	 * vgNode.render(() => {
+	 * 	nvg.BeginPath();
+	 * 	nvg.Rect(0, 0, 100, 100);
+	 * 	nvg.ClosePath();
+	 * 	nvg.FillColor(Color(255, 0, 0, 255));
+	 * 	nvg.Fill();
+	 * });
+	 */
 	render(func: (this: void) => void): void;
 }
 
@@ -6532,13 +6590,27 @@ export namespace VGNode {
 	export type Type = VGNode;
 }
 
+/**
+ * 用于创建 VGNode 对象的类。
+ */
 interface VGNodeClass {
+	/**
+	 * 使用指定的宽度和高度创建新的 VGNode 对象。
+	 * @param width VGNode 节点包含的帧缓冲纹理的宽度。
+	 * @param height VGNode 节点包含的帧缓冲纹理的高度。
+	 * @param scale [可选] VGNode 对象的缩放比例（默认为1.0）。
+	 * @param edgeAA [可选] VGNode 对象的边缘抗锯齿值（默认为1.0）。
+	 * @returns 创建的 VGNode 对象。
+	 */
 	(this: void, width: number, height: number, scale?: number, edgeAA?: number): VGNode;
 }
 
 const vgNodeClass: VGNodeClass;
 export {vgNodeClass as VGNode};
 
+/**
+ * 用于访问当前应用渲染视图设置的类。
+ */
 class View {
 	private constructor();
 

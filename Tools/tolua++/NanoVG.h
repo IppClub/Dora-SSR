@@ -5,25 +5,6 @@ struct NVGpaint @ VGPaint
 
 namespace nvg
 {
-	struct Transform
-	{
-		Transform();
-		~Transform();
-		void indentity();
-		void translate(float tx, float ty);
-		void scale(float sx, float sy);
-		void rotate(float a);
-		void skewX(float a);
-		void skewY(float a);
-		void multiply(Transform src);
-		bool inverseFrom(Transform src);
-		Vec2 applyPoint(Vec2 src);
-	};
-	Vec2 TouchPos();
-	bool LeftButtonPressed();
-	bool RightButtonPressed();
-	bool MiddleButtonPressed();
-	float MouseWheel();
 	void Save();
 	void Restore();
 	void Reset();
@@ -44,8 +25,7 @@ namespace nvg
 	void LineJoin(String join);
 	void GlobalAlpha(float alpha);
 	void ResetTransform();
-	void ApplyTransform(Transform t);
-	void CurrentTransform(Transform t);
+	void ApplyTransform(Node* node);
 	void Translate(float x, float y);
 	void Rotate(float angle);
 	void SkewX(float angle);
@@ -83,7 +63,7 @@ namespace nvg
 	void FontBlur(float blur);
 	void TextLetterSpacing(float spacing);
 	void TextLineHeight(float lineHeight);
-	void TextAlign(String align);
+	void TextAlign(String hAlign, String vAlign);
 	void FontFaceId(int font);
 	void FontFace(String font);
 	void DoraSSR();

@@ -61,6 +61,10 @@ fn main() {
 					all_clear();
 					tests::layout::test();
 				}
+				if ImGui::button("VG Button", &button_size) {
+					all_clear();
+					tests::vg_button::test();
+				}
 			});
 			co.waiter().await;
 		}

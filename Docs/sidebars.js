@@ -113,6 +113,11 @@ const sidebars = {
 						},
 						{
 							type: 'doc',
+							label: 'Mouse',
+							id: 'api/Class/Mouse',
+						},
+						{
+							type: 'doc',
 							label: 'Controller',
 							id: 'api/Class/Controller',
 						},
@@ -324,6 +329,11 @@ const sidebars = {
 							type: 'doc',
 							label: 'TileNode',
 							id: 'api/Class/TileNode',
+						},
+						{
+							type: 'doc',
+							label: 'VGNode',
+							id: 'api/Class/VGNode',
 						},
 						{
 							type: 'doc',
@@ -807,6 +817,7 @@ const sidebars = {
 						"api/Class Object/Vec2",
 						"api/Class Object/Touch",
 						"api/Class Object/Texture2D",
+						"api/Class Object/VGNode",
 						"api/Class Object/SVG",
 						"api/Class Object/SpriteEffect",
 						"api/Class Object/Sprite",

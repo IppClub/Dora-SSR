@@ -209,6 +209,16 @@ basicTypes =
 		* (name)-> "crate::dora::Rect::from(#{name})"
 		* -> error "unsupported"
 		* -> error "unsupported"
+	NVGpaint:
+		* "i64"
+		* (name)-> "*r_cast<NVGpaint*>(#{name})"
+		* (name)-> "r_cast<int64_t>(new NVGpaint{#{name}})"
+		* "&crate::dora::VGPaint"
+		* "crate::dora::VGPaint"
+		* (name)-> "#{name}.raw()"
+		* (name)-> "crate::dora::VGPaint::from(#{name})"
+		* -> error "unsupported"
+		* -> error "unsupported"
 	DBParams:
 		* "i64"
 		* (name)-> "*r_cast<DBParams*>(#{name})"

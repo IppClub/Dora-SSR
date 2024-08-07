@@ -8,11 +8,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 // @preview-file on
 
-import { React, toNode, useRef } from 'DoraX';
-import { App, BlendFunc, BlendOp, Buffer, Cache, Color, Content, Label, Line, Node, Opacity, Path, RenderTarget, Sprite, TextureFilter, TypeName, Vec2, View, thread, threadLoop, tolua } from 'Dora';
+import { React, toNode } from 'DoraX';
+import { App, BlendFunc, BlendOp, Buffer, Cache, Color, Content, Label, Line, Node, Opacity, Path, RenderTarget, Sprite, TextureFilter, TypeName, Vec2, thread, threadLoop, tolua, Mouse } from 'Dora';
 import { InputTextFlag, SetCond, WindowFlag } from "ImGui";
 import * as ImGui from 'ImGui';
-import * as nvg from "nvg";
 import Packer, { Block } from './TexturePacker/Packer';
 import * as Ruler from 'UI/Control/Basic/Ruler';
 
@@ -107,7 +106,7 @@ function displayClips(this: void, folder: string) {
 				frame.schedule(() => {
 					const {width: bw, height: bh} = App.bufferSize;
 					const {width: vw} = App.visualSize;
-					let pos = nvg.TouchPos().mul(bw / vw);
+					let pos = Mouse.position.mul(bw / vw);
 					pos = Vec2(pos.x - bw / 2, bh / 2 - pos.y);
 					const localPos = frame.convertToNodeSpace(pos);
 					clipHover = "-";

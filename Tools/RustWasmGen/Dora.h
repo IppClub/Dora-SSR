@@ -3570,8 +3570,35 @@ singleton class Audio
 /// An interface for handling keyboard inputs.
 singleton class Keyboard
 {
+	/// Checks whether a key is currently pressed.
+	///
+	/// # Arguments
+	///
+	/// * `name` - The name of the key to check.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `true` if the key is pressed, `false` otherwise.
 	bool isKeyDown @ _is_key_down(string name);
+	/// Checks whether a key is currently released.
+	///
+	/// # Arguments
+	///
+	/// * `name` - The name of the key to check.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `true` if the key is released, `false` otherwise.
 	bool isKeyUp @ _is_key_up(string name);
+	/// Checks whether a key is currently being pressed.
+	///
+	/// # Arguments
+	///
+	/// * `name` - The name of the key to check.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `true` if the key is being pressed, `false` otherwise.
 	bool isKeyPressed @ _is_key_pressed(string name);
 	/// Updates the input method editor (IME) position hint.
 	///
@@ -3581,12 +3608,75 @@ singleton class Keyboard
 	void updateIMEPosHint @ update_ime_pos_hint(Vec2 winPos);
 };
 
+/// An interface for handling mouse inputs.
+singleton class Mouse {
+	/// The position of the mouse in the visible window.
+	/// You can use `Mouse::get_position() * App::get_device_pixel_ratio()` to get the coordinate in the game world.
+	/// Then use `node.convertToNodeSpace()` to convert the world coordinate to the local coordinate of the node.
+	///
+	/// # Example
+	///
+	/// ```
+	/// let worldPos = Mouse::get_position() * App::get_device_pixel_ratio();
+	/// let nodePos = node.convert_to_node_space(&worldPos);
+	/// ```
+	static Vec2 getPosition();
+	/// Whether the left mouse button is currently being pressed.
+	static bool isLeftButtonPressed();
+	/// Whether the right mouse button is currently being pressed.
+	static bool isRightButtonPressed();
+	/// Whether the middle mouse button is currently being pressed.
+	static bool isMiddleButtonPressed();
+	/// Gets the mouse wheel value.
+	static float getWheel();
+};
+
 /// An interface for handling game controller inputs.
 singleton class Controller
 {
+	/// Checks whether a button on the controller is currently pressed.
+	///
+	/// # Arguments
+	///
+	/// * `controller_id` - The ID of the controller to check. Starts from 0.
+	/// * `name` - The name of the button to check.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `true` if the button is pressed, `false` otherwise.
 	bool isButtonDown @ _is_button_down(int controllerId, string name);
+	/// Checks whether a button on the controller is currently released.
+	///
+	/// # Arguments
+	///
+	/// * `controller_id` - The ID of the controller to check. Starts from 0.
+	/// * `name` - The name of the button to check.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `true` if the button is released, `false` otherwise.
 	bool isButtonUp @ _is_button_up(int controllerId, string name);
+	/// Checks whether a button on the controller is currently being pressed.
+	///
+	/// # Arguments
+	///
+	/// * `controller_id` - The ID of the controller to check. Starts from 0.
+	/// * `name` - The name of the button to check.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `true` if the button is being pressed, `false` otherwise.
 	bool isButtonPressed @ _is_button_pressed(int controllerId, string name);
+	/// Gets the value of an axis on the controller.
+	///
+	/// # Arguments
+	///
+	/// * `controller_id` - The ID of the controller to check. Starts from 0.
+	/// * `name` - The name of the axis to check.
+	///
+	/// # Returns
+	///
+	/// * `f32` - The value of the axis. The value is between -1.0 and 1.0.
 	float getAxis @ _get_axis(int controllerId, string name);
 };
 
@@ -5274,3 +5364,108 @@ static Vec2 GetMouseDragDelta(int button, float lock_threshold);
 static void ResetMouseDragDelta(int button);
 };
 
+value struct NVGpaint @ VGPaint { };
+
+singleton struct nvg @ Nvg
+{
+	static void Save();
+	static void Restore();
+	static void Reset();
+	static int CreateImage @ _createImage(int w, int h, string filename, int imageFlags);
+	static int CreateFont(string name);
+	static float TextBounds(float x, float y, string text, Rect bounds);
+	static Rect TextBoxBounds(float x, float y, float breakRowWidth, string text);
+	static float Text(float x, float y, string text);
+	static void TextBox(float x, float y, float breakRowWidth, string text);
+	static void StrokeColor(Color color);
+	static void StrokePaint(NVGpaint paint);
+	static void FillColor(Color color);
+	static void FillPaint(NVGpaint paint);
+	static void MiterLimit(float limit);
+	static void StrokeWidth(float size);
+	static void LineCap @ _lineCap(int cap);
+	static void LineJoin @ _lineJoin(int join);
+	static void GlobalAlpha(float alpha);
+	static void ResetTransform();
+	static void ApplyTransform(Node* node);
+	static void Translate(float x, float y);
+	static void Rotate(float angle);
+	static void SkewX(float angle);
+	static void SkewY(float angle);
+	static void Scale(float x, float y);
+	static Size ImageSize(int image);
+	static void DeleteImage(int image);
+	static NVGpaint LinearGradient(float sx, float sy, float ex, float ey, Color icol, Color ocol);
+	static NVGpaint BoxGradient(float x, float y, float w, float h, float r, float f, Color icol, Color ocol);
+	static NVGpaint RadialGradient(float cx, float cy, float inr, float outr, Color icol, Color ocol);
+	static NVGpaint ImagePattern(float ox, float oy, float ex, float ey, float angle, int image, float alpha);
+	static void Scissor(float x, float y, float w, float h);
+	static void IntersectScissor(float x, float y, float w, float h);
+	static void ResetScissor();
+	static void BeginPath();
+	static void MoveTo(float x, float y);
+	static void LineTo(float x, float y);
+	static void BezierTo(float c1x, float c1y, float c2x, float c2y, float x, float y);
+	static void QuadTo(float cx, float cy, float x, float y);
+	static void ArcTo(float x1, float y1, float x2, float y2, float radius);
+	static void ClosePath();
+	static void PathWinding @ _pathWinding(int dir);
+	static void Arc @ _arc(float cx, float cy, float r, float a0, float a1, int dir);
+	static void Rectangle @ Rect(float x, float y, float w, float h);
+	static void RoundedRect(float x, float y, float w, float h, float r);
+	static void RoundedRectVarying(float x, float y, float w, float h, float radTopLeft, float radTopRight, float radBottomRight, float radBottomLeft);
+	static void Ellipse(float cx, float cy, float rx, float ry);
+	static void Circle(float cx, float cy, float r);
+	static void Fill();
+	static void Stroke();
+	static int FindFont(string name);
+	static int AddFallbackFontId(int baseFont, int fallbackFont);
+	static int AddFallbackFont(string baseFont, string fallbackFont);
+	static void FontSize(float size);
+	static void FontBlur(float blur);
+	static void TextLetterSpacing(float spacing);
+	static void TextLineHeight(float lineHeight);
+	static void TextAlign @ _textAlign(int hAlign, int vAlign);
+	static void FontFaceId(int font);
+	static void FontFace(string font);
+	static void DoraSSR @ dora_ssr();
+	static Texture2D* GetDoraSSR @ get_dora_ssr(float scale);
+};
+
+/// A node for rendering vector graphics.
+object class VGNode : public INode {
+	/// The surface of the node for displaying frame buffer texture that contains vector graphics.
+	/// You can get the texture of the surface by calling `vgNode.get_surface().get_texture()`.
+	readonly common Sprite* surface;
+	/// The function for rendering vector graphics.
+	///
+	/// # Arguments
+	///
+	/// * `func` - The closure function for rendering vector graphics. You can do the rendering operations inside this closure.
+	///
+	/// # Example
+	///
+	/// ```
+	/// vgNode.render(|| {
+	/// 	Nvg::begin_path();
+	/// 	Nvg::move_to(100.0, 100.0);
+	/// 	Nvg::line_to(200.0, 200.0);
+	/// 	Nvg::close_path();
+	/// 	Nvg::stroke();
+	/// });
+	/// ```
+	void render(function<void()> func);
+	/// Creates a new VGNode object with the specified width and height.
+	///
+	/// # Arguments
+	///
+	/// * `width` - The width of the node's frame buffer texture.
+	/// * `height` - The height of the node's frame buffer texture.
+	/// * `scale` - The scale factor of the VGNode.
+	/// * `edge_aa` - The edge anti-aliasing factor of the VGNode.
+	///
+	/// # Returns
+	///
+	/// * The newly created VGNode object.
+	static VGNode* create(float width, float height, float scale, int edge_aa);
+};

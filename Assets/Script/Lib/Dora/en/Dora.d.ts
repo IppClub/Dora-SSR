@@ -2205,6 +2205,42 @@ const keyboard: Keyboard;
 export {keyboard as Keyboard};
 
 /**
+ * An interface for handling mouse inputs.
+ */
+interface Mouse {
+	/**
+	 * The position of the mouse in the visible window.
+	 * You can use `Mouse.position.mul(App.devicePixelRatio)` to get the coordinate in the game world.
+	 * Then use `node.convertToNodeSpace()` to convert the world coordinate to the local coordinate of the node.
+	 * @example
+	 * ```
+	 * const worldPos = Mouse.position.mul(App.devicePixelRatio);
+	 * const nodePos = node.convertToNodeSpace(worldPos);
+	 * ```
+	 */
+	readonly position: Vec2
+	/**
+	 * Whether the left mouse button is being pressed down.
+	 */
+	readonly leftButtonPressed: boolean
+	/**
+	 * Whether the right mouse button is being pressed down.
+	 */
+	readonly rightButtonPressed: boolean
+	/**
+	 * Whether the middle mouse button is being pressed down.
+	 */
+	readonly middleButtonPressed: boolean
+	/**
+	 * Gets the mouse wheel value.
+	 */
+	readonly wheel: number
+}
+
+const mouse: Mouse;
+export {mouse as Mouse};
+
+/**
  * Enumeration for defining the controller axis names.
  */
 export const enum AxisName {
@@ -6520,9 +6556,31 @@ interface SVGClass {
 const svgClass: SVGClass;
 export {svgClass as SVG};
 
+/**
+ * A node for rendering vector graphics.
+ */
 class VGNode extends Node {
 	private constructor();
+
+	/**
+	 * The surface of the node for displaying frame buffer texture that contains vector graphics.
+	 * You can get the texture of the surface by calling `vgNode.surface.texture`.
+	 */
 	surface: Sprite;
+
+	/**
+	 * The function for rendering vector graphics.
+	 * @param func The closure function for rendering vector graphics.
+	 * You can do the rendering operations inside this closure.
+	 * @usage
+	 * vgNode.render(() => {
+	 * 	nvg.BeginPath();
+	 * 	nvg.Rect(0, 0, 100, 100);
+	 * 	nvg.ClosePath();
+	 * 	nvg.FillColor(Color(255, 0, 0, 255));
+	 * 	nvg.Fill();
+	 * });
+	 */
 	render(func: (this: void) => void): void;
 }
 
@@ -6530,13 +6588,27 @@ export namespace VGNode {
 	export type Type = VGNode;
 }
 
+/**
+ * A class for creating VGNode objects.
+ */
 interface VGNodeClass {
+	/**
+	 * Creates a new VGNode object with the specified width and height.
+	 * @param width The width of the node's frame buffer texture.
+	 * @param height The height of the node's frame buffer texture.
+	 * @param scale The scale factor of the VGNode.
+	 * @param edgeAA The edge anti-aliasing factor of the VGNode.
+	 * @returns The created VGNode object.
+	 */
 	(this: void, width: number, height: number, scale?: number, edgeAA?: number): VGNode;
 }
 
 const vgNodeClass: VGNodeClass;
 export {vgNodeClass as VGNode};
 
+/**
+ * An interface that provides access to the 3D graphic view.
+ */
 class View {
 	private constructor();
 
