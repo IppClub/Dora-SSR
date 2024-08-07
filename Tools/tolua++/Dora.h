@@ -1102,6 +1102,15 @@ class Keyboard
 	static tolua_outside Keyboard* Keyboard_shared @ create();
 };
 
+class Mouse
+{
+	static tolua_readonly tolua_property__common Vec2 position;
+	static tolua_readonly tolua_property__bool bool leftButtonPressed;
+	static tolua_readonly tolua_property__bool bool rightButtonPressed;
+	static tolua_readonly tolua_property__bool bool middleButtonPressed;
+	static tolua_readonly tolua_property__common float wheel;
+};
+
 class Controller
 {
 	bool isButtonDown(int controllerId, String name);

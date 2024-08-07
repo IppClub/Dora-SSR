@@ -1,0 +1,35 @@
+import "@site/src/languages/highlight";
+
+# VGNode Class
+
+**Description:**
+
+&emsp;&emsp;The class for creating VGNode instances.
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;The constructor function for creating a VGNode instance.
+
+**Signature:**
+```tl
+metamethod __call: function(
+		self: VGNodeClass,
+		width: number,
+		height: number,
+		scale?: number --[[1.0]],
+		edgeAA?: integer --[[1]]
+	): VGNode
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| width | number | The width of the node's frame buffer texture. |
+| height | number | The height of the node's frame buffer texture. |
+| scale | number | The scale of the node. Default is 1.0. |
+| edgeAA | integer | The edge anti-aliasing factor. Default is 1. |

@@ -15,12 +15,39 @@ extern "C" {
 /// An interface for handling keyboard inputs.
 pub struct Keyboard { }
 impl Keyboard {
+	/// Checks whether a key is currently pressed.
+	///
+	/// # Arguments
+	///
+	/// * `name` - The name of the key to check.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `true` if the key is pressed, `false` otherwise.
 	pub(crate) fn _is_key_down(name: &str) -> bool {
 		unsafe { return keyboard__is_key_down(crate::dora::from_string(name)) != 0; }
 	}
+	/// Checks whether a key is currently released.
+	///
+	/// # Arguments
+	///
+	/// * `name` - The name of the key to check.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `true` if the key is released, `false` otherwise.
 	pub(crate) fn _is_key_up(name: &str) -> bool {
 		unsafe { return keyboard__is_key_up(crate::dora::from_string(name)) != 0; }
 	}
+	/// Checks whether a key is currently being pressed.
+	///
+	/// # Arguments
+	///
+	/// * `name` - The name of the key to check.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `true` if the key is being pressed, `false` otherwise.
 	pub(crate) fn _is_key_pressed(name: &str) -> bool {
 		unsafe { return keyboard__is_key_pressed(crate::dora::from_string(name)) != 0; }
 	}

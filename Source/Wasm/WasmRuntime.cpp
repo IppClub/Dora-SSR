@@ -19,7 +19,7 @@ NS_DORA_BEGIN
 
 #define DoraVersion(major, minor, patch) ((major) << 16 | (minor) << 8 | (patch))
 
-static const int doraWASMVersion = DoraVersion(0, 3, 4);
+static const int doraWASMVersion = DoraVersion(0, 4, 0);
 
 static std::string VersionToStr(int version) {
 	return std::to_string((version & 0x00ff0000) >> 16) + '.' + std::to_string((version & 0x0000ff00) >> 8) + '.' + std::to_string(version & 0x000000ff);
@@ -1366,6 +1366,7 @@ static void db_do_exec_async(String sql, DBParams& params, const std::function<v
 #include "Dora/JointDefWasm.hpp"
 #include "Dora/JointWasm.hpp"
 #include "Dora/KeyboardWasm.hpp"
+#include "Dora/MouseWasm.hpp"
 #include "Dora/LabelWasm.hpp"
 #include "Dora/LineWasm.hpp"
 #include "Dora/MLQLearnerWasm.hpp"
@@ -1408,6 +1409,9 @@ static void db_do_exec_async(String sql, DBParams& params, const std::function<v
 #include "Dora/ViewWasm.hpp"
 #include "Dora/WorkBookWasm.hpp"
 #include "Dora/WorkSheetWasm.hpp"
+#include "Dora/NVGpaintWasm.hpp"
+#include "Dora/VGNodeWasm.hpp"
+#include "Dora/nvgWasm.hpp"
 
 static void linkAutoModule(wasm3::module3& mod) {
 	linkArray(mod);
@@ -1465,6 +1469,7 @@ static void linkAutoModule(wasm3::module3& mod) {
 	linkCache(mod);
 	linkAudio(mod);
 	linkKeyboard(mod);
+	linkMouse(mod);
 	linkSVGDef(mod);
 	linkDBQuery(mod);
 	linkDBParams(mod);
@@ -1490,6 +1495,9 @@ static void linkAutoModule(wasm3::module3& mod) {
 	linkPlatformerData(mod);
 	linkBuffer(mod);
 	linkImGui(mod);
+	linkNVGpaint(mod);
+	linknvg(mod);
+	linkVGNode(mod);
 }
 
 static void linkDoraModule(wasm3::module3& mod) {

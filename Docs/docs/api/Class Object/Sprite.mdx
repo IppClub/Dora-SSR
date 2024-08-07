@@ -22,7 +22,7 @@ local sprite = Sprite("Image/file.png")
 
 **Signature:**
 ```tl
-getClips: function(self: SpriteClass, clipFile: string): {string, Rect} | nil
+getClips: function(self: SpriteClass, clipFile: string): {string: Rect} | nil
 ```
 
 **Parameters:**
@@ -35,7 +35,7 @@ getClips: function(self: SpriteClass, clipFile: string): {string, Rect} | nil
 
 | Return Type | Description |
 | --- | --- |
-| \{string, Rect} \| nil | A table containing the clip names and rectangles. |
+| \{string: Rect} \| nil | A table containing the clip names and rectangles. |
 
 ## __call
 

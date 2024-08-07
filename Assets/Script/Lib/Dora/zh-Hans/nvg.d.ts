@@ -7,7 +7,8 @@ import {
 	Rect,
 	VGPaint,
 	Size,
-	Texture2D
+	Texture2D,
+	Node
 } from "Dora";
 
 type Vec2 = Vec2.Type;
@@ -16,28 +17,6 @@ type Rect = Rect.Type;
 type VGPaint = VGPaint.Type;
 type Size = Size.Type;
 type Texture2D = Texture2D.Type;
-
-class Transform {
-	private constructor();
-	identity(): void;
-	translate(tx: number, ty: number): void;
-	scale(sx: number, sy: number): void;
-	rotate(a: number): void;
-	skewX(a: number): void;
-	skewY(a: number): void;
-	multiply(src: Transform): void;
-	inverseFrom(src: Transform): boolean;
-	applyPoint(src: Vec2): Vec2;
-}
-
-export type {Transform as TransformType};
-
-interface TransformClass {
-	(this: void): Transform;
-}
-
-const transformClass: TransformClass;
-export {transformClass as Transform};
 
 export const enum LineCapMode {
 	Butt = "Butt",
@@ -63,10 +42,13 @@ export const enum ArcDir {
 	CCW = "CCW",
 }
 
-export const enum TextAlignMode {
+export const enum TextHAlign {
 	Left = "Left",
 	Center = "Center",
 	Right = "Right",
+}
+
+export const enum TextVAlign {
 	Top = "Top",
 	Middle = "Middle",
 	Bottom = "Bottom",
@@ -82,11 +64,6 @@ export const enum ImageFlag {
 	Nearest = "Nearest",
 }
 
-export function TouchPos(this: void): Vec2;
-export function LeftButtonPressed(this: void): boolean;
-export function RightButtonPressed(this: void): boolean;
-export function MiddleButtonPressed(this: void): boolean;
-export function MouseWheel(this: void): number;
 export function Save(this: void): void;
 export function Restore(this: void): void;
 export function Reset(this: void): void;
@@ -106,8 +83,7 @@ export function LineCap(this: void, cap: LineCapMode): void;
 export function LineJoin(this: void, join: LineJoinMode): void;
 export function GlobalAlpha(this: void, alpha: number): void;
 export function ResetTransform(this: void): void;
-export function ApplyTransform(this: void, t: Transform): void;
-export function CurrentTransform(this: void, t: Transform): void;
+export function ApplyTransform(this: void, node: Node.Type): void;
 export function Translate(this: void, x: number, y: number): void;
 export function Rotate(this: void, angle: number): void;
 export function SkewX(this: void, angle: number): void;
@@ -115,7 +91,7 @@ export function SkewY(this: void, angle: number): void;
 export function Scale(this: void, x: number, y: number): void;
 export function ImageSize(this: void, image: number): Size;
 export function DeleteImage(this: void, image: number): void;
-export function NVGpaLinearGradient(
+export function LinearGradient(
 	this: void,
 	sx: number,
 	sy: number,
@@ -124,7 +100,7 @@ export function NVGpaLinearGradient(
 	icol: Color,
 	ocol: Color
 ): VGPaint;
-export function NVGpaBoxGradient(
+export function BoxGradient(
 	this: void,
 	x: number,
 	y: number,
@@ -135,7 +111,7 @@ export function NVGpaBoxGradient(
 	icol: Color,
 	ocol: Color
 ): VGPaint;
-export function NVGpaRadialGradient(
+export function RadialGradient(
 	this: void,
 	cx: number,
 	cy: number,
@@ -144,7 +120,7 @@ export function NVGpaRadialGradient(
 	icol: Color,
 	ocol: Color
 ): VGPaint;
-export function NVGpaImagePattern(
+export function ImagePattern(
 	this: void,
 	ox: number,
 	oy: number,
@@ -191,7 +167,7 @@ export function FontSize(this: void, size: number): void;
 export function FontBlur(this: void, blur: number): void;
 export function TextLetterSpacing(this: void, spacing: number): void;
 export function TextLineHeight(this: void, lineHeight: number): void;
-export function TextAlign(this: void, align: TextAlignMode): void;
+export function TextAlign(this: void, hAlign: TextHAlign, vAlign: TextVAlign): void;
 export function FontFaceId(this: void, font: number): void;
 export function FontFace(this: void, font: string): void;
 export function DoraSSR(this: void): void;

@@ -10,11 +10,14 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Cache/TextureCache.h"
 #include "Support/Common.h"
+
 #include "nanovg/nanovg.h"
 
 struct NVGLUframebuffer;
 
 NS_DORA_BEGIN
+
+class Node;
 
 inline NVGcolor nvgColor(Color color) {
 	return nvgRGBA(color.r, color.g, color.b, color.a);
@@ -39,15 +42,11 @@ struct nvg {
 			return p;
 		}
 	};
-	static Vec2 TouchPos();
-	static bool LeftButtonPressed();
-	static bool RightButtonPressed();
-	static bool MiddleButtonPressed();
-	static float MouseWheel();
 	static void Save();
 	static void Restore();
 	static void Reset();
 	static int CreateImage(int w, int h, String filename, Slice* imageFlags = nullptr, int flagCount = 0);
+	static int CreateImage(int w, int h, String filename, int imageFlags);
 	static int CreateFont(String name);
 	static float TextBounds(float x, float y, String text, Dora::Rect& bounds);
 	static Rect TextBoxBounds(float x, float y, float breakRowWidth, String text);
@@ -60,10 +59,13 @@ struct nvg {
 	static void MiterLimit(float limit);
 	static void StrokeWidth(float size);
 	static void LineCap(String cap = nullptr);
+	static void LineCap(int cap);
 	static void LineJoin(String join = nullptr);
+	static void LineJoin(int join);
 	static void GlobalAlpha(float alpha);
 	static void ResetTransform();
 	static void ApplyTransform(const Transform& t);
+	static void ApplyTransform(NotNull<Node, 1> node);
 	static void CurrentTransform(Transform& t);
 	static void Translate(float x, float y);
 	static void Rotate(float angle);
@@ -87,7 +89,9 @@ struct nvg {
 	static void ArcTo(float x1, float y1, float x2, float y2, float radius);
 	static void ClosePath();
 	static void PathWinding(String dir);
+	static void PathWinding(int dir);
 	static void Arc(float cx, float cy, float r, float a0, float a1, String dir = nullptr);
+	static void Arc(float cx, float cy, float r, float a0, float a1, int dir);
 	static void Rectangle(float x, float y, float w, float h);
 	static void RoundedRect(float x, float y, float w, float h, float r);
 	static void RoundedRectVarying(float x, float y, float w, float h, float radTopLeft, float radTopRight, float radBottomRight, float radBottomLeft);
@@ -102,7 +106,8 @@ struct nvg {
 	static void FontBlur(float blur);
 	static void TextLetterSpacing(float spacing);
 	static void TextLineHeight(float lineHeight);
-	static void TextAlign(String align);
+	static void TextAlign(String hAlign, String vAlign);
+	static void TextAlign(int hAlign, int vAlign);
 	static void FontFaceId(int font);
 	static void FontFace(String font);
 	static void BindContext(NVGcontext* context);

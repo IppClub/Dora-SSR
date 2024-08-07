@@ -1,0 +1,55 @@
+import "@site/src/languages/highlight";
+
+# VGNode
+
+**Description:**
+
+&emsp;&emsp;A node for rendering vector graphics.
+
+**Class Object:** [VGNode Class](/docs/api/Class%20Object/VGNode).
+
+**Inherits from:** [Node](/docs/api/Class/Node).
+
+## surface
+
+**Type:** Readonly Field.
+
+**Description:**
+
+&emsp;&emsp;The surface of the node for displaying frame buffer texture that contains vector graphics.
+You can get the texture of the surface by calling `vgNode.surface.texture`.
+
+**Signature:**
+```tl
+const surface: Sprite
+```
+
+## render
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;The function for rendering vector graphics.
+
+**Signature:**
+```tl
+render: function(self: VGNode, func: function())
+```
+
+**Usage:**
+```tl
+vgNode:render(function()
+	nvg.BeginPath()
+	nvg.Rect(0, 0, 100, 100)
+	nvg.ClosePath()
+	nvg.FillColor(Color(255, 0, 0, 255))
+	nvg.Fill()
+end)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| func | function | The closure function for rendering vector graphics.You can do the rendering operations inside this closure. |

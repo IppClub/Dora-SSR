@@ -41,6 +41,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Http/HttpServer.h"
 #include "Input/Controller.h"
 #include "Input/Keyboard.h"
+#include "Input/Mouse.h"
 #include "Input/TouchDispather.h"
 #include "Lua/LuaEngine.h"
 #include "Lua/LuaHandler.h"

@@ -10,37 +10,19 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Render/VGRender.h"
 
+#include "Basic/Application.h"
 #include "Basic/Content.h"
 #include "Basic/Director.h"
-#include "Input/TouchDispather.h"
+#include "Node/Node.h"
 #include "Render/View.h"
 #include "Support/Common.h"
+
 #include "bimg/decode.h"
 #include "nanovg/nanovg_bgfx.h"
 
 NS_DORA_BEGIN
 
 NVGcontext* nvg::_currentContext = nullptr;
-
-Vec2 nvg::TouchPos() {
-	return SharedDirector.getUITouchHandler()->getMousePos();
-}
-
-bool nvg::LeftButtonPressed() {
-	return SharedDirector.getUITouchHandler()->isLeftButtonPressed();
-}
-
-bool nvg::RightButtonPressed() {
-	return SharedDirector.getUITouchHandler()->isRightButtonPressed();
-}
-
-bool nvg::MiddleButtonPressed() {
-	return SharedDirector.getUITouchHandler()->isMiddleButtonPressed();
-}
-
-float nvg::MouseWheel() {
-	return SharedDirector.getUITouchHandler()->getMouseWheel();
-}
 
 void nvg::Save() {
 	nvgSave(Context());
@@ -73,6 +55,15 @@ int nvg::CreateImage(int w, int h, String filename, Slice* imageFlags, int flagC
 	bx::DefaultAllocator allocator;
 	bimg::ImageContainer* imageContainer = bimg::imageParse(&allocator, data.first.get(), s_cast<uint32_t>(data.second), bimg::TextureFormat::RGBA8);
 	int result = nvgCreateImageRGBA(Context(), w, h, s_cast<int>(flags), r_cast<uint8_t*>(imageContainer->m_data));
+	bimg::imageFree(imageContainer);
+	return result;
+}
+
+int nvg::CreateImage(int w, int h, String filename, int imageFlags) {
+	auto data = SharedContent.load(filename);
+	bx::DefaultAllocator allocator;
+	bimg::ImageContainer* imageContainer = bimg::imageParse(&allocator, data.first.get(), s_cast<uint32_t>(data.second), bimg::TextureFormat::RGBA8);
+	int result = nvgCreateImageRGBA(Context(), w, h, imageFlags, r_cast<uint8_t*>(imageContainer->m_data));
 	bimg::imageFree(imageContainer);
 	return result;
 }
@@ -163,6 +154,10 @@ void nvg::LineCap(String cap) {
 	nvgLineCap(Context(), value);
 }
 
+void nvg::LineCap(int cap) {
+	nvgLineCap(Context(), cap);
+}
+
 void nvg::LineJoin(String join) {
 	int value = NVG_MITER;
 	switch (Switch::hash(join)) {
@@ -175,6 +170,10 @@ void nvg::LineJoin(String join) {
 			break;
 	}
 	nvgLineJoin(Context(), value);
+}
+
+void nvg::LineJoin(int join) {
+	nvgLineJoin(Context(), join);
 }
 
 void nvg::GlobalAlpha(float alpha) {
@@ -191,6 +190,18 @@ void nvg::CurrentTransform(Transform& t) {
 
 void nvg::ApplyTransform(const Transform& t) {
 	nvgTransform(Context(), t.t[0], t.t[1], t.t[2], t.t[3], t.t[4], t.t[5]);
+}
+
+void nvg::ApplyTransform(NotNull<Node, 1> node) {
+	auto size = SharedApplication.getVisualSize();
+	auto scale = SharedApplication.getDevicePixelRatio() / SharedView.getScale();
+	auto transform = AffineTransform::Indentity;
+	transform.translate(size.width / 2, size.height / 2);
+	transform.scale(1.0f / scale, -1.0f / scale);
+	const auto& world = node->getWorld();
+	transform.concat({world.m[0], world.m[1], world.m[4], world.m[5], world.m[12], world.m[13]});
+	nvgResetTransform(Context());
+	nvgTransform(Context(), transform.a, transform.b, transform.c, transform.d, transform.tx, transform.ty);
 }
 
 void nvg::Translate(float x, float y) {
@@ -294,6 +305,10 @@ void nvg::PathWinding(String dir) {
 	nvgPathWinding(Context(), value);
 }
 
+void nvg::PathWinding(int dir) {
+	nvgPathWinding(Context(), dir);
+}
+
 void nvg::Arc(float cx, float cy, float r, float a0, float a1, String dir) {
 	int value = NVG_CCW;
 	switch (Switch::hash(dir)) {
@@ -305,6 +320,10 @@ void nvg::Arc(float cx, float cy, float r, float a0, float a1, String dir) {
 			break;
 	}
 	nvgArc(Context(), cx, cy, r, a0, a1, value);
+}
+
+void nvg::Arc(float cx, float cy, float r, float a0, float a1, int dir) {
+	nvgArc(Context(), cx, cy, r, a0, a1, dir);
 }
 
 void nvg::Rectangle(float x, float y, float w, float h) {
@@ -363,21 +382,30 @@ void nvg::TextLineHeight(float lineHeight) {
 	nvgTextLineHeight(Context(), lineHeight);
 }
 
-void nvg::TextAlign(String align) {
-	int value = NVG_ALIGN_LEFT;
-	switch (Switch::hash(align)) {
-		case "Left"_hash: value = NVG_ALIGN_LEFT; break;
-		case "Center"_hash: value = NVG_ALIGN_CENTER; break;
-		case "Right"_hash: value = NVG_ALIGN_RIGHT; break;
-		case "Top"_hash: value = NVG_ALIGN_TOP; break;
-		case "Middle"_hash: value = NVG_ALIGN_MIDDLE; break;
-		case "Bottom"_hash: value = NVG_ALIGN_BOTTOM; break;
-		case "Baseline"_hash: value = NVG_ALIGN_BASELINE; break;
+void nvg::TextAlign(String hAlign, String vAlign) {
+	int flags = 0;
+	switch (Switch::hash(hAlign)) {
+		case "Left"_hash: flags |= NVG_ALIGN_LEFT; break;
+		case "Center"_hash: flags |= NVG_ALIGN_CENTER; break;
+		case "Right"_hash: flags |= NVG_ALIGN_RIGHT; break;
 		default:
-			Error("nvg::TextAlign param must be one of: Left, Center, Right, Top, Middle, Bottom, Baseline.");
+			Error("nvg::TextAlign horizental param must be one of: Left, Center, Right.");
 			break;
 	}
-	nvgTextAlign(Context(), value);
+	switch (Switch::hash(vAlign)) {
+		case "Top"_hash: flags |= NVG_ALIGN_TOP; break;
+		case "Middle"_hash: flags |= NVG_ALIGN_MIDDLE; break;
+		case "Bottom"_hash: flags |= NVG_ALIGN_BOTTOM; break;
+		case "Baseline"_hash: flags |= NVG_ALIGN_BASELINE; break;
+		default:
+			Error("nvg::TextAlign vertical param must be one of: Top, Middle, Bottom, Baseline.");
+			break;
+	}
+	nvgTextAlign(Context(), flags);
+}
+
+void nvg::TextAlign(int hAlign, int vAlign) {
+	nvgTextAlign(Context(), hAlign | vAlign);
 }
 
 void nvg::FontFaceId(int font) {

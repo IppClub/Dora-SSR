@@ -116,6 +116,8 @@ mod audio;
 pub use audio::Audio;
 mod keyboard;
 pub use keyboard::Keyboard;
+mod mouse;
+pub use mouse::Mouse;
 mod controller;
 pub use controller::Controller;
 mod svg;
@@ -145,6 +147,12 @@ mod buffer;
 pub use buffer::Buffer;
 mod im_gui;
 pub use im_gui::ImGui;
+mod vgpaint;
+pub use vgpaint::VGPaint;
+mod nvg;
+pub use nvg::Nvg;
+mod vgnode;
+pub use vgnode::VGNode;
 
 fn none_type(_: i64) -> Option<Box<dyn IObject>> {
 	panic!("'none_type' should not be called!");
@@ -207,6 +215,7 @@ static OBJECT_MAP: Lazy<Vec<fn(i64) -> Option<Box<dyn IObject>>>> = Lazy::new(||
 		platformer::PlatformCamera::type_info(),
 		platformer::PlatformWorld::type_info(),
 		Buffer::type_info(),
+		VGNode::type_info(),
 	];
 	for pair in type_funcs.iter() {
 		let t = pair.0 as usize;
@@ -3765,6 +3774,106 @@ impl ImGui {
 		ImGui::_push_clip_rect(clip_rect_min, clip_rect_max, intersect_with_current_clip_rect);
 		inside();
 		ImGui::_pop_clip_rect();
+	}
+}
+
+
+#[bitflags]
+#[repr(u32)]
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub enum NvgImageFlag {
+	/// Generate mipmaps during creation of the image.
+	GenerateMipmaps = 1 << 0,
+	/// Repeat image in X direction.
+	RepeatX = 1 << 1,
+	/// Repeat image in Y direction.
+	RepeatY = 1 << 2,
+	/// Flips (inverses) image in Y direction when rendered.
+	FlipY = 1 << 3,
+	/// Image data has premultiplied alpha.
+	Premultiplied = 1 << 4,
+	/// Image interpolation is Nearest instead Linear
+	Nearest = 1 << 5,
+}
+
+#[repr(i32)]
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub enum NvgLineCap {
+	Butt = 0,
+	Round = 1,
+	Square = 2,
+}
+
+#[repr(i32)]
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub enum NvgLineJoin {
+	Round = 1,
+	Bevel = 3,
+	Miter = 4,
+}
+
+#[repr(i32)]
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub enum NvgWinding {
+	/// Winding for solid shapes
+	CCW = 1,
+	/// Winding for holes
+	CW = 2,
+}
+impl NvgWinding {
+	pub const SOLID: NvgWinding = NvgWinding::CCW;
+	pub const HOLE: NvgWinding = NvgWinding::CW;
+}
+
+#[repr(i32)]
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub enum NvgArcDir {
+	CCW = 1,
+	CW = 2,
+}
+
+#[repr(i32)]
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub enum NvgHAlign {
+	/// Default, align text horizontally to left.
+	Left = 1 << 0,
+	/// Align text horizontally to center.
+	Center = 1 << 1,
+	/// Align text horizontally to right.
+	Right = 1 << 2,
+}
+
+#[repr(i32)]
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub enum NvgVAlign {
+	/// Align text vertically to top.
+	Top = 1 << 3,
+	/// Align text vertically to middle.
+	Middle = 1 << 4,
+	/// Align text vertically to bottom.
+	Bottom = 1 << 5,
+	/// Default, align text vertically to baseline.
+	BaseLine	= 1 << 6,
+}
+
+impl Nvg {
+	pub fn create_image(w: i32, h: i32, filename: &str, image_flags: BitFlags<NvgImageFlag>) -> i32 {
+		Nvg::_create_image(w, h, filename, image_flags.bits() as i32)
+	}
+	pub fn line_cap(cap: NvgLineCap) {
+		Nvg::_line_cap(cap as i32);
+	}
+	pub fn line_join(join: NvgLineJoin) {
+		Nvg::_line_join(join as i32);
+	}
+	pub fn path_winding(winding: NvgWinding) {
+		Nvg::_path_winding(winding as i32);
+	}
+	pub fn arc(x: f32, y: f32, r: f32, a0: f32, a1: f32, dir: NvgArcDir) {
+		Nvg::_arc(x, y, r, a0, a1, dir as i32);
+	}
+	pub fn text_align(h_align: NvgHAlign, v_align: NvgVAlign) {
+		Nvg::_text_align(h_align as i32, v_align as i32);
 	}
 }
 

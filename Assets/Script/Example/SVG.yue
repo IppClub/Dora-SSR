@@ -1,7 +1,35 @@
 _ENV = Dora
 
 svg = SVG "Image/Dora.svg"
+const size = 1133
 
 threadLoop ->
-	nvg.Scale 0.5, 0.5
+	:width, :height = App.visualSize
+	nvg.Translate width / 2, height / 2
+	nvg.Scale 1, -1
+
+	scale = height * 0.8 / size
+	nvg.Scale scale, -scale
+	nvg.Translate -size / 2, -size / 2
 	svg\render!
+
+-- example codes ends here, some test ui below --
+
+import "ImGuiEnum" as {:$WindowFlag}
+windowFlags = $WindowFlag(
+	NoDecoration
+	AlwaysAutoResize
+	NoSavedSettings
+	NoFocusOnAppearing
+	NoNav
+	NoMove
+)
+threadLoop ->
+	const :width = App.visualSize
+	ImGui.SetNextWindowBgAlpha 0.35
+	ImGui.SetNextWindowPos Vec2(width - 10, 10), "Always", Vec2 1, 0
+	ImGui.SetNextWindowSize Vec2(240, 0), "FirstUseEver"
+	ImGui.Begin "SVG Render", windowFlags, ->
+		ImGui.Text "SVG Render (Yuescript)"
+		ImGui.Separator!
+		ImGui.TextWrapped "Load and render an SVG file. Only support the SVG file preprocessed by the picosvg tool."

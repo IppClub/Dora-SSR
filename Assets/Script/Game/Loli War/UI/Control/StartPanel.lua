@@ -3,7 +3,7 @@ local Class = Dora.Class -- 1
 local Audio = Dora.Audio -- 1
 local emit = Dora.emit -- 1
 local App = Dora.App -- 1
-local nvg = Dora.nvg -- 1
+local Mouse = Dora.Mouse -- 1
 local Vec2 = Dora.Vec2 -- 1
 local ipairs = _G.ipairs -- 1
 local Rect = Dora.Rect -- 1
@@ -49,7 +49,7 @@ _module_0 = Class(StartPanel, { -- 13
 				bw, bh = _obj_0.width, _obj_0.height -- 27
 			end -- 27
 			local vw = App.visualSize.width -- 28
-			local pos = nvg.TouchPos() * (bw / vw) -- 29
+			local pos = Mouse.position * (bw / vw) -- 29
 			pos = Vec2(pos.x - bw / 2, bh / 2 - pos.y) -- 30
 			for _, button in ipairs(buttons) do -- 31
 				local localPos = button:convertToNodeSpace(pos) -- 32

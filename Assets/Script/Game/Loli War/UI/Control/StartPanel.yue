@@ -26,7 +26,7 @@ export default Class StartPanel,
 		@node\schedule ->
 			width: bw, height: bh = App.bufferSize
 			width: vw = App.visualSize
-			pos = nvg.TouchPos! * (bw / vw)
+			pos = Mouse.position * (bw / vw)
 			pos = Vec2 pos.x - bw / 2, bh / 2 - pos.y
 			for _, button in ipairs buttons
 				localPos = button\convertToNodeSpace pos

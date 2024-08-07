@@ -1,0 +1,35 @@
+import "@site/src/languages/highlight";
+
+# VGNode的类对象
+
+**描述：**
+
+&emsp;&emsp;用于创建 VGNode 实例的类。
+
+## __call
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;创建一个新的 VGNode 实例。
+
+**签名：**
+```tl
+metamethod __call: function(
+		self: VGNodeClass,
+		width: number,
+		height: number,
+		scale?: number --[[1.0]],
+		edgeAA?: integer --[[1]]
+	): VGNode
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| width | number | 节点包含的帧缓冲纹理的宽度。 |
+| height | number | 节点包含的帧缓冲纹理的高度。 |
+| scale | number | 节点的缩放比例。默认为 1.0。 |
+| edgeAA | integer | 边缘抗锯齿系数。默认为 1。 |

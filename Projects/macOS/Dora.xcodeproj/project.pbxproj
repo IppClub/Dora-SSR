@@ -272,6 +272,7 @@
 		3C57A3A11E0A05AD002141DF /* Event.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C57A39B1E0A05AD002141DF /* Event.cpp */; };
 		3C57A3A21E0A05AD002141DF /* EventType.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C57A39D1E0A05AD002141DF /* EventType.cpp */; };
 		3C57A3A31E0A05AD002141DF /* Listener.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C57A39F1E0A05AD002141DF /* Listener.cpp */; };
+		3C5ABC842C6365BD00ABBB2F /* Mouse.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5ABC832C6365BD00ABBB2F /* Mouse.cpp */; };
 		3C5AE08E1FFC737100CB95EB /* Entity.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5AE08A1FFC737100CB95EB /* Entity.cpp */; };
 		3C5B33D52A496F0F0080049B /* yue_ast.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5B33D42A496F0F0080049B /* yue_ast.cpp */; };
 		3C60DE132A2069CE007D7865 /* Doc in Resources */ = {isa = PBXBuildFile; fileRef = 3C60DE122A2069CE007D7865 /* Doc */; };
@@ -1248,6 +1249,8 @@
 		3C57A39E1E0A05AD002141DF /* EventType.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EventType.h; path = ../../../Source/Event/EventType.h; sourceTree = "<group>"; };
 		3C57A39F1E0A05AD002141DF /* Listener.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Listener.cpp; path = ../../../Source/Event/Listener.cpp; sourceTree = "<group>"; };
 		3C57A3A01E0A05AD002141DF /* Listener.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Listener.h; path = ../../../Source/Event/Listener.h; sourceTree = "<group>"; };
+		3C5ABC822C6365BC00ABBB2F /* Mouse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Mouse.h; path = ../../Source/Input/Mouse.h; sourceTree = "<group>"; };
+		3C5ABC832C6365BD00ABBB2F /* Mouse.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Mouse.cpp; path = ../../Source/Input/Mouse.cpp; sourceTree = "<group>"; };
 		3C5AE0871FFC737100CB95EB /* Entity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Entity.h; path = ../../../Source/Entity/Entity.h; sourceTree = "<group>"; };
 		3C5AE08A1FFC737100CB95EB /* Entity.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Entity.cpp; path = ../../../Source/Entity/Entity.cpp; sourceTree = "<group>"; };
 		3C5B33D42A496F0F0080049B /* yue_ast.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = yue_ast.cpp; path = ../../../Source/3rdParty/yuescript/yue_ast.cpp; sourceTree = "<group>"; };
@@ -2041,6 +2044,8 @@
 		3C05BCA11E35948200CC6986 /* Input */ = {
 			isa = PBXGroup;
 			children = (
+				3C5ABC832C6365BD00ABBB2F /* Mouse.cpp */,
+				3C5ABC822C6365BC00ABBB2F /* Mouse.h */,
 				3CE994612AFA32F70073A973 /* Controller.cpp */,
 				3CE994602AFA32F70073A973 /* Controller.h */,
 				3CEA71B21ECB8ECA00EFFD63 /* Keyboard.cpp */,
@@ -4442,6 +4447,7 @@
 				3C0FB5852BEEFCF60098E88D /* EffekNode.cpp in Sources */,
 				3C1A3B0A272A850F003A2829 /* lmathlib.c in Sources */,
 				3CA77EF92AE665C100B7BADA /* GearJointConf.cpp in Sources */,
+				3C5ABC842C6365BD00ABBB2F /* Mouse.cpp in Sources */,
 				3C53E93D2BE8CF1100039640 /* Config.cpp in Sources */,
 				3C0EBE361E2E1D840066450A /* ShaderCache.cpp in Sources */,
 				3CA77EFE2AE665C100B7BADA /* WorldShape.cpp in Sources */,

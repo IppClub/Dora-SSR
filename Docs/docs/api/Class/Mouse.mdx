@@ -1,0 +1,74 @@
+import "@site/src/languages/highlight";
+
+# Mouse
+
+**Description:**
+
+&emsp;&emsp;An interface for handling mouse inputs.
+
+## position
+
+**Type:** Readonly Field.
+
+**Description:**
+
+&emsp;&emsp;The position of the mouse in the visible window.
+You can use `Mouse.position * App.devicePixelRatio` to get the coordinate in the game world.
+Then use `node:convertToNodeSpace()` to convert the world coordinate to the local coordinate of the node.
+
+**Signature:**
+```tl
+const position: Vec2
+```
+
+## leftButtonPressed
+
+**Type:** Readonly Field.
+
+**Description:**
+
+&emsp;&emsp;Whether the left mouse button is being pressed down.
+
+**Signature:**
+```tl
+const leftButtonPressed: boolean
+```
+
+## rightButtonPressed
+
+**Type:** Readonly Field.
+
+**Description:**
+
+&emsp;&emsp;Whether the right mouse button is being pressed down.
+
+**Signature:**
+```tl
+const rightButtonPressed: boolean
+```
+
+## middleButtonPressed
+
+**Type:** Readonly Field.
+
+**Description:**
+
+&emsp;&emsp;Whether the middle mouse button is being pressed down.
+
+**Signature:**
+```tl
+const middleButtonPressed: boolean
+```
+
+## wheel
+
+**Type:** Readonly Field.
+
+**Description:**
+
+&emsp;&emsp;The mouse wheel value.
+
+**Signature:**
+```tl
+const wheel: number
+```
