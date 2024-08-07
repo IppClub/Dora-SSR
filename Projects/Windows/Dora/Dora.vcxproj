@@ -1755,6 +1755,7 @@
     <ClCompile Include="..\..\..\Source\GUI\ImGuiDora.cpp" />
     <ClCompile Include="..\..\..\Source\Input\Controller.cpp" />
     <ClCompile Include="..\..\..\Source\Input\Keyboard.cpp" />
+    <ClCompile Include="..\..\..\Source\Input\Mouse.cpp" />
     <ClCompile Include="..\..\..\Source\Input\TouchDispather.cpp" />
     <ClCompile Include="..\..\..\Source\Lua\LuaBinding.cpp" />
     <ClCompile Include="..\..\..\Source\Lua\LuaCode.cpp" />
@@ -2562,6 +2563,7 @@
     <ClInclude Include="..\..\..\Source\GUI\ImGuiDora.h" />
     <ClInclude Include="..\..\..\Source\Input\Controller.h" />
     <ClInclude Include="..\..\..\Source\Input\Keyboard.h" />
+    <ClInclude Include="..\..\..\Source\Input\Mouse.h" />
     <ClInclude Include="..\..\..\Source\Input\TouchDispather.h" />
     <ClInclude Include="..\..\..\Source\Lua\LuaBinding.h" />
     <ClInclude Include="..\..\..\Source\Lua\LuaEngine.h" />

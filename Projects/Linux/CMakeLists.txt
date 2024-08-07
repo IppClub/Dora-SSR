@@ -86,6 +86,7 @@ add_executable(dora-ssr
 	../../Source/Cache/TMXCache.cpp
 	../../Source/Input/Controller.cpp
 	../../Source/Input/Keyboard.cpp
+	../../Source/Input/Mouse.cpp
 	../../Source/Input/TouchDispather.cpp
 	../../Source/Entity/Entity.cpp
 	../../Source/Basic/Director.cpp
