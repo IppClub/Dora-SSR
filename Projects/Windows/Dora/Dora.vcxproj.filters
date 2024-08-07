@@ -1941,6 +1941,9 @@
     <ClCompile Include="..\..\..\Source\3rdParty\spine\SkeletonRenderer.cpp">
       <Filter>3rdParty\spine</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\Source\Input\Mouse.cpp">
+      <Filter>Input</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\Source\3rdParty\silly\Slice.h">
@@ -4310,6 +4313,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\spine\SkeletonRenderer.h">
       <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Input\Mouse.h">
+      <Filter>Input</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

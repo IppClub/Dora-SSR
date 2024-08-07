@@ -94,6 +94,7 @@ add_library(main SHARED
 	src/main/cpp/Cache/TMXCache.cpp
 	src/main/cpp/Input/Controller.cpp
 	src/main/cpp/Input/Keyboard.cpp
+	src/main/cpp/Input/Mouse.cpp
 	src/main/cpp/Input/TouchDispather.cpp
 	src/main/cpp/Entity/Entity.cpp
 	src/main/cpp/Basic/Director.cpp
