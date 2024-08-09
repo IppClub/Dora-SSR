@@ -23,7 +23,7 @@ with Label "sarasa-mono-sc-regular", 30
 
 -- example codes ends here, some test ui below --
 
-import "ImGuiEnum" as {:$WindowFlag}
+import "ImGuiEnum" as :$WindowFlag
 windowFlags = $WindowFlag(
 	NoDecoration
 	AlwaysAutoResize

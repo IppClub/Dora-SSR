@@ -29,7 +29,7 @@
 			xmlCodes = Content\load selfPath
 			luaCodes = xml.tolua xmlCodes
 			print "[Xml Codes]\n\n#{xmlCodes}\n[Compiled Lua Codes]\n\n#{luaCodes}"
-			import "ImGuiEnum" as {:$WindowFlag}
+			import "ImGuiEnum" as :$WindowFlag
 			windowFlags = $WindowFlag(
 				NoDecoration
 				AlwaysAutoResize

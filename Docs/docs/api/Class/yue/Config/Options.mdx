@@ -1,0 +1,78 @@
+import "@site/src/languages/highlight";
+
+# Options
+
+**Description:**
+
+&emsp;&emsp;The extra compiler options definition.
+
+## target
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The target Lua version for the compilation.
+
+**Signature:**
+```tl
+target: LuaTarget
+```
+
+## path
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The extra module search path.
+
+**Signature:**
+```tl
+path: string
+```
+
+## __newindex
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;The setter metamethod for the Options record.
+
+**Signature:**
+```tl
+metamethod __newindex: function(self: Options, key: string, value: string)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| key | string | The key. |
+| value | string | The value. |
+
+## __index
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;The getter metamethod for the Options record.
+
+**Signature:**
+```tl
+metamethod __index: function(self: Options, key: string): string
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| key | string | The key. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | The value. |

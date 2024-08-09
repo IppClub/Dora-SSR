@@ -1,0 +1,117 @@
+import "@site/src/languages/highlight";
+
+# Config
+
+**描述：**
+
+&emsp;&emsp;编译器编译选项。
+
+## lint_global
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;编译器是否应该收集代码中出现的全局变量。
+
+**签名：**
+```tl
+lint_global: boolean
+```
+
+## implicit_return_root
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;编译器是否应该对根层级的代码块进行隐式的表达式返回。
+
+**签名：**
+```tl
+implicit_return_root: boolean
+```
+
+## reserve_line_number
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;编译器是否应该在编译后的代码中保留原始行号。
+
+**签名：**
+```tl
+reserve_line_number: boolean
+```
+
+## space_over_tab
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;编译器是否应该在编译后的代码中使用空格字符而不是制表符字符。
+
+**签名：**
+```tl
+space_over_tab: boolean
+```
+
+## same_module
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;编译器是否应该将要编译的代码视为当前正在编译的模块。仅供编译器内部使用。
+
+**签名：**
+```tl
+same_module: boolean
+```
+
+## line_offset
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;编译器错误消息是否应该包含行号偏移量。仅供编译器内部使用。
+
+**签名：**
+```tl
+line_offset: integer
+```
+
+## yue.Config.LuaTarget
+
+**类型：** 枚举。
+
+**描述：**
+
+&emsp;&emsp;目标 Lua 版本枚举。
+
+**签名：**
+```tl
+enum LuaTarget
+	"5.1"
+	"5.2"
+	"5.3"
+	"5.4"
+	"5.5"
+end
+```
+
+## options
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;要传递给编译函数的额外选项。
+
+**签名：**
+```tl
+options: Options
+```

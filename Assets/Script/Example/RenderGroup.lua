@@ -58,7 +58,7 @@ do -- 36
 	local _with_0 = Node() -- 36
 	_with_0.renderGroup = true -- 37
 	_with_0.size = Size(750, 750) -- 38
-	for i = 1, 16 do -- 39
+	for _ = 1, 16 do -- 39
 		_with_0:addChild(Item()) -- 39
 	end -- 39
 	_with_0:alignItems() -- 40

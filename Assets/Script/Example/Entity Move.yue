@@ -60,7 +60,7 @@ Entity
 
 -- example codes ends here, some test ui below --
 
-import "ImGuiEnum" as {:$WindowFlag}
+import "ImGuiEnum" as :$WindowFlag
 windowFlags = $WindowFlag(
 	NoDecoration
 	AlwaysAutoResize

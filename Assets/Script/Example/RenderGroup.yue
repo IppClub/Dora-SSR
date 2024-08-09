@@ -36,13 +36,13 @@ Item = Class Node,
 currentEntry = with Node!
 	.renderGroup = true
 	.size = Size 750,750
-	\addChild Item! for i = 1, 16
+	\addChild Item! for _ = 1, 16
 	\alignItems!
 
 -- example codes ends here, some test ui below --
 
 :renderGroup = currentEntry
-import "ImGuiEnum" as {:$WindowFlag}
+import "ImGuiEnum" as :$WindowFlag
 windowFlags = $WindowFlag(
 	NoDecoration
 	AlwaysAutoResize

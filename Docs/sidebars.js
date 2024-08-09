@@ -808,6 +808,27 @@ const sidebars = {
 						"api/Class/Ease/EaseFunc",
 						"api/Class/ContainerItem",
 						"api/Class/Buffer",
+						{
+							type: 'category',
+							label: 'Yuescript',
+							items: [
+								{
+									type: 'doc',
+									label: 'yue',
+									id: 'api/Class/yue',
+								},
+								{
+									type: 'doc',
+									label: 'Config',
+									id: 'api/Class/yue/Config',
+								},
+								{
+									type: 'doc',
+									label: 'Options',
+									id: 'api/Class/yue/Config/Options',
+								},
+							],
+						},
 					]
 				},
 				{
