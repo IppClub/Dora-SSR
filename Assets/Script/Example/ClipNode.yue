@@ -64,7 +64,7 @@ exampleB = with Node!
 
 inverted = true
 withAlphaThreshold = true
-import "ImGuiEnum" as {:$WindowFlag}
+import "ImGuiEnum" as :$WindowFlag
 windowFlags = $WindowFlag(
 	NoDecoration
 	AlwaysAutoResize

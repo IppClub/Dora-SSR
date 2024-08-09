@@ -13,8 +13,8 @@ with Node!
 
 -- example codes ends here, test ui codes below --
 
-import "ImGuiEnum" as {:$WindowFlag}
-windowFlags = $WindowFlag(NoResize, NoSavedSettings)
+import "ImGuiEnum" as :$WindowFlag
+windowFlags = $WindowFlag NoResize, NoSavedSettings
 threadLoop ->
 	const :width = App.visualSize
 	ImGui.SetNextWindowPos Vec2(width - 10, 10), "FirstUseEver", Vec2 1,0

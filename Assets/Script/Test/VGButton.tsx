@@ -3,14 +3,20 @@ import { React, toNode } from 'DoraX';
 import { Color, Node, Size } from 'Dora';
 import * as nvg from 'nvg';
 
-function Button(props: {children: any; onClick: () => void}) {
+interface ButtonProps {
+	text: string;
+	onClick: () => void
+	children: any;
+}
+
+const Button = (props: ButtonProps) => {
+	const fontId = nvg.CreateFont("sarasa-mono-sc-regular");
 	const light = nvg.LinearGradient(0, 80, 0, 0, Color(0xffffffff), Color(0xff00ffff));
 	const dark = nvg.LinearGradient(0, 80, 0, 0, Color(0xffffffff), Color(0xfffbc400));
 	let paint = light;
 	const onCreate = () => {
 		const node = Node();
 		node.size = Size(100, 100);
-		const fontId = nvg.CreateFont("sarasa-mono-sc-regular");
 		node.schedule(() => {
 			nvg.ApplyTransform(node);
 			nvg.BeginPath();
@@ -25,7 +31,7 @@ function Button(props: {children: any; onClick: () => void}) {
 			nvg.FontSize(32);
 			nvg.FillColor(Color(0xff000000));
 			nvg.Scale(1, -1);
-			nvg.Text(50, -30, "OK");
+			nvg.Text(50, -30, props.text);
 			return false;
 		});
 		return node;
@@ -42,7 +48,7 @@ function Button(props: {children: any; onClick: () => void}) {
 }
 
 toNode(
-	<Button onClick={() => print("Clicked")}>
+	<Button text='OK' onClick={() => print("Clicked")}>
 		<sequence>
 			<move-x time={1} start={0} stop={200}/>
 			<angle time={1} start={0} stop={360}/>

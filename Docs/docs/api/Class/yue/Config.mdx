@@ -1,0 +1,117 @@
+import "@site/src/languages/highlight";
+
+# Config
+
+**Description:**
+
+&emsp;&emsp;The compiler compile options.
+
+## lint_global
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Whether the compiler should collect the global variables appearing in the code.
+
+**Signature:**
+```tl
+lint_global: boolean
+```
+
+## implicit_return_root
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Whether the compiler should do an implicit return for the root code block.
+
+**Signature:**
+```tl
+implicit_return_root: boolean
+```
+
+## reserve_line_number
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Whether the compiler should reserve the original line number in the compiled code.
+
+**Signature:**
+```tl
+reserve_line_number: boolean
+```
+
+## space_over_tab
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Whether the compiler should use the space character instead of the tab character in the compiled code.
+
+**Signature:**
+```tl
+space_over_tab: boolean
+```
+
+## same_module
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Whether the compiler should treat the code to be compiled as the same currently being compiled module. For internal use only.
+
+**Signature:**
+```tl
+same_module: boolean
+```
+
+## line_offset
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Whether the compiler error message should include the line number offset. For internal use only.
+
+**Signature:**
+```tl
+line_offset: integer
+```
+
+## yue.Config.LuaTarget
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;The target Lua version enumeration.
+
+**Signature:**
+```tl
+enum LuaTarget
+	"5.1"
+	"5.2"
+	"5.3"
+	"5.4"
+	"5.5"
+end
+```
+
+## options
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The extra options to be passed to the compilation function.
+
+**Signature:**
+```tl
+options: Options
+```

@@ -29,7 +29,7 @@ extern "C" {
 } // extern "C"
 
 // name of table stored in lua registry
-#define YUE_MODULE "__yue_modules__"
+#define YUE_MODULES "__yue_modules__"
 
 #if LUA_VERSION_NUM > 501
 #ifndef LUA_COMPAT_5_1
@@ -55,6 +55,7 @@ namespace yue {
 	code; \
 })
 #define DEFER(code) _DEFER(code, __LINE__)
+
 #define YUEE(msg, node) throw CompileError( \
 	"[File] "s + __FILE__ \
 		+ ",\n[Func] "s + __FUNCTION__ \
@@ -75,7 +76,7 @@ static std::unordered_set<std::string> Metamethods = {
 	"close"s // Lua 5.4
 };
 
-const std::string_view version = "0.23.9"sv;
+const std::string_view version = "0.24.0"sv;
 const std::string_view extension = "yue"sv;
 
 class CompileError : public std::logic_error {
@@ -136,8 +137,8 @@ public:
 		_sameModule = true;
 		int top = lua_gettop(L);
 		DEFER(lua_settop(L, top));
-		lua_pushliteral(L, YUE_MODULE); // YUE_MODULE
-		lua_rawget(L, LUA_REGISTRYINDEX); // reg[YUE_MODULE], tb
+		lua_pushliteral(L, YUE_MODULES); // YUE_MODULES
+		lua_rawget(L, LUA_REGISTRYINDEX); // reg[YUE_MODULES], tb
 		BREAK_IF(lua_istable(L, -1) == 0);
 		int idx = static_cast<int>(lua_objlen(L, -1)); // idx = #tb, tb
 		BREAK_IF(idx == 0);
@@ -351,8 +352,8 @@ public:
 			if (!_sameModule) {
 				int top = lua_gettop(L);
 				DEFER(lua_settop(L, top));
-				lua_pushliteral(L, YUE_MODULE); // YUE_MODULE
-				lua_rawget(L, LUA_REGISTRYINDEX); // reg[YUE_MODULE], tb
+				lua_pushliteral(L, YUE_MODULES); // YUE_MODULES
+				lua_rawget(L, LUA_REGISTRYINDEX); // reg[YUE_MODULES], tb
 				int idx = static_cast<int>(lua_objlen(L, -1));
 				lua_pushnil(L); // tb nil
 				lua_rawseti(L, -2, idx); // tb[idx] = nil, tb
@@ -370,7 +371,7 @@ private:
 	std::function<void(void*)> _luaOpen;
 #endif // YUE_NO_MACRO
 	YueConfig _config;
-	YueParser _parser;
+	YueParser& _parser = YueParser::shared();
 	ParseInfo _info;
 	int _indentOffset = 0;
 	struct VarArgState {
@@ -4960,8 +4961,8 @@ private:
 
 	void pushCurrentModule() {
 		if (_useModule) {
-			lua_pushliteral(L, YUE_MODULE); // YUE_MODULE
-			lua_rawget(L, LUA_REGISTRYINDEX); // reg[YUE_MODULE], tb
+			lua_pushliteral(L, YUE_MODULES); // YUE_MODULES
+			lua_rawget(L, LUA_REGISTRYINDEX); // reg[YUE_MODULES], tb
 			int idx = static_cast<int>(lua_objlen(L, -1)); // idx = #tb, tb
 			lua_rawgeti(L, -1, idx); // tb[idx], tb cur
 			lua_remove(L, -2); // cur
@@ -4987,14 +4988,14 @@ private:
 			}
 			_stateOwner = true;
 		}
-		lua_pushliteral(L, YUE_MODULE); // YUE_MODULE
-		lua_rawget(L, LUA_REGISTRYINDEX); // reg[YUE_MODULE], tb
+		lua_pushliteral(L, YUE_MODULES); // YUE_MODULES
+		lua_rawget(L, LUA_REGISTRYINDEX); // reg[YUE_MODULES], tb
 		if (lua_isnil(L, -1) != 0) { // tb == nil
 			lua_pop(L, 1);
 			lua_newtable(L); // tb
-			lua_pushliteral(L, YUE_MODULE); // tb YUE_MODULE
+			lua_pushliteral(L, YUE_MODULES); // tb YUE_MODULES
 			lua_pushvalue(L, -2); // tb YUE_MODULE tb
-			lua_rawset(L, LUA_REGISTRYINDEX); // reg[YUE_MODULE] = tb, tb
+			lua_rawset(L, LUA_REGISTRYINDEX); // reg[YUE_MODULES] = tb, tb
 		} // tb
 		int idx = static_cast<int>(lua_objlen(L, -1)); // idx = #tb, tb
 		lua_newtable(L); // tb cur
@@ -5016,7 +5017,7 @@ private:
 	bool isModuleLoaded(std::string_view name) {
 		int top = lua_gettop(L);
 		DEFER(lua_settop(L, top));
-		lua_pushliteral(L, YUE_MODULE); // YUE_MODULE
+		lua_pushliteral(L, YUE_MODULES); // YUE_MODULES
 		lua_rawget(L, LUA_REGISTRYINDEX); // modules
 		lua_pushlstring(L, &name.front(), name.size());
 		lua_rawget(L, -2); // modules module
@@ -5027,7 +5028,7 @@ private:
 	}
 
 	void pushModuleTable(std::string_view name) {
-		lua_pushliteral(L, YUE_MODULE); // YUE_MODULE
+		lua_pushliteral(L, YUE_MODULES); // YUE_MODULES
 		lua_rawget(L, LUA_REGISTRYINDEX); // modules
 		lua_pushlstring(L, &name.front(), name.size());
 		lua_rawget(L, -2); // modules module
@@ -5116,18 +5117,15 @@ private:
 				newArgs.emplace_back(_parser.toString(argsDef->varArg));
 			}
 		}
-		_buf << "("sv << join(newArgs, ","sv) << ")->"sv;
-		_buf << _parser.toString(macroLit->body);
-		auto macroCodes = clearBuf();
-		_buf << "=(macro "sv << macroName << ")";
-		auto chunkName = clearBuf();
+		std::string macroCodes = "_ENV=yue:require('yue'),<index>:_G,<newindex>:(k,v)=>_G[k]=v\n("s + join(newArgs, ","sv) + ")->"s + _parser.toString(macroLit->body);
+		auto chunkName = "=(macro "s + macroName + ')';
 		pushCurrentModule(); // cur
 		int top = lua_gettop(L) - 1;
 		DEFER(lua_settop(L, top));
 		pushYue("loadstring"sv); // cur loadstring
 		lua_pushlstring(L, macroCodes.c_str(), macroCodes.size()); // cur loadstring codes
 		lua_pushlstring(L, chunkName.c_str(), chunkName.size()); // cur loadstring codes chunk
-		pushOptions(macro->m_begin.m_line - 1); // cur loadstring codes chunk options
+		pushOptions(macro->m_begin.m_line - 2); // cur loadstring codes chunk options
 		if (lua_pcall(L, 3, 2, 0) != 0) { // loadstring(codes,chunk,options), cur f err
 			std::string err = lua_tostring(L, -1);
 			throw CompileError("failed to load macro codes\n"s + err, macroLit);
@@ -6200,8 +6198,7 @@ private:
 	std::string expandBuiltinMacro(const std::string& name, ast_node* x) {
 		if (name == "LINE"sv) {
 			return std::to_string(x->m_begin.m_line + _config.lineOffset);
-		}
-		if (name == "FILE"sv) {
+		} else if (name == "FILE"sv) {
 			auto moduleName = _config.module;
 			Utils::replace(moduleName, "\\"sv, "\\\\"sv);
 			return moduleName.empty() ? "\"yuescript\""s : '"' + moduleName + '"';
@@ -6218,66 +6215,110 @@ private:
 			if (!code.empty()) return code;
 			throw CompileError("can not resolve macro"sv, x);
 		}
+		str_list argStrs;
+		const node_container* args = nullptr;
+		{
+			if (chainList.size() > 1) {
+				auto item = *(++chainList.begin());
+				if (auto invoke = ast_cast<Invoke_t>(item)) {
+					args = &invoke->args.objects();
+				} else if (auto invoke = ast_cast<InvokeArgs_t>(item)) {
+					args = &invoke->args.objects();
+				}
+			}
+			if (args) {
+				for (auto arg : *args) {
+					std::string str;
+					bool rawString = false;
+					if (auto lstr = ast_cast<LuaString_t>(arg)) {
+						str = _parser.toString(lstr->content);
+						rawString = true;
+					} else {
+						BLOCK_START
+						auto exp = ast_cast<Exp_t>(arg);
+						BREAK_IF(!exp);
+						auto value = singleValueFrom(exp);
+						BREAK_IF(!value);
+						auto lstr = value->get_by_path<String_t, LuaString_t>();
+						BREAK_IF(!lstr);
+						str = _parser.toString(lstr->content);
+						rawString = true;
+						BLOCK_END
+					}
+					if (!rawString && str.empty()) {
+						// check whether arg is reassembled
+						// do some workaround for pipe expression
+						if (ast_is<Exp_t>(arg)) {
+							auto exp = static_cast<Exp_t*>(arg);
+							BLOCK_START
+							BREAK_IF(!exp->opValues.empty());
+							auto chainValue = exp->get_by_path<UnaryExp_t, Value_t, ChainValue_t>();
+							BREAK_IF(!chainValue);
+							BREAK_IF(!isMacroChain(chainValue));
+							str = std::get<1>(expandMacroStr(chainValue));
+							BLOCK_END
+						}
+					}
+					if (!rawString && str.empty()) {
+						str = YueFormat{}.toString(arg);
+					}
+					Utils::trim(str);
+					Utils::replace(str, "\r\n"sv, "\n"sv);
+					argStrs.push_back(str);
+				}
+			}
+		}
 		lua_pushlstring(L, macroName.c_str(), macroName.size()); // cur macroName
 		lua_rawget(L, -2); // cur[macroName], cur macroFunc
-		if (lua_isfunction(L, -1) == 0) {
+		if (!lua_isfunction(L, -1)) {
 			auto code = expandBuiltinMacro(macroName, x);
 			if (!code.empty()) return code;
-			throw CompileError("can not resolve macro"sv, x);
+			if (macroName == "is_ast"sv) {
+				if (!argStrs.empty() && args && !args->empty()) {
+					if (!_parser.hasAST(argStrs.front())) {
+						throw CompileError("invalid AST name"sv, args->front());
+					} else {
+						argStrs.front() = '"' + argStrs.front() + '"';
+					}
+				}
+				lua_pop(L, 1); // cur
+				auto res = "yue.is_ast("s + join(argStrs, ","sv) + ')';
+				lua_pushlstring(L, res.c_str(), res.size()); // cur res
+				return std::nullopt;
+			} else if (macroName == "to_ast"sv) {
+				if (!argStrs.empty() && args && !args->empty()) {
+					if (!_parser.hasAST(argStrs.front())) {
+						throw CompileError("invalid AST name"sv, args->front());
+					} else {
+						argStrs.front() = '"' + argStrs.front() + '"';
+						if (argStrs.size() >= 2) {
+							// name, code, level -> code, level, name
+							auto name = argStrs.front();
+							argStrs.pop_front();
+							auto code = argStrs.front();
+							argStrs.pop_front();
+							if (argStrs.empty()) {
+								argStrs.push_back("0"s);
+							}
+							argStrs.push_front(code);
+							argStrs.push_back(name);
+						}
+					}
+				}
+				lua_pop(L, 1); // cur
+				auto res = "yue.to_ast("s + join(argStrs, ","sv) + ')';
+				lua_pushlstring(L, res.c_str(), res.size()); // cur res
+				return std::nullopt;
+			} else {
+				throw CompileError("can not resolve macro"sv, x);
+			}
 		} // cur macroFunc
 		pushYue("pcall"sv); // cur macroFunc pcall
 		lua_insert(L, -2); // cur pcall macroFunc
-		const node_container* args = nullptr;
-		if (chainList.size() > 1) {
-			auto item = *(++chainList.begin());
-			if (auto invoke = ast_cast<Invoke_t>(item)) {
-				args = &invoke->args.objects();
-			} else if (auto invoke = ast_cast<InvokeArgs_t>(item)) {
-				args = &invoke->args.objects();
-			}
-		}
-		if (args) {
-			for (auto arg : *args) {
-				std::string str;
-				bool rawString = false;
-				if (auto lstr = ast_cast<LuaString_t>(arg)) {
-					str = _parser.toString(lstr->content);
-					rawString = true;
-				} else {
-					BLOCK_START
-					auto exp = ast_cast<Exp_t>(arg);
-					BREAK_IF(!exp);
-					auto value = singleValueFrom(exp);
-					BREAK_IF(!value);
-					auto lstr = value->get_by_path<String_t, LuaString_t>();
-					BREAK_IF(!lstr);
-					str = _parser.toString(lstr->content);
-					rawString = true;
-					BLOCK_END
-				}
-				if (!rawString && str.empty()) {
-					// check whether arg is reassembled
-					// do some workaround for pipe expression
-					if (ast_is<Exp_t>(arg)) {
-						auto exp = static_cast<Exp_t*>(arg);
-						BLOCK_START
-						BREAK_IF(!exp->opValues.empty());
-						auto chainValue = exp->get_by_path<UnaryExp_t, Value_t, ChainValue_t>();
-						BREAK_IF(!chainValue);
-						BREAK_IF(!isMacroChain(chainValue));
-						str = std::get<1>(expandMacroStr(chainValue));
-						BLOCK_END
-					}
-				}
-				if (!rawString && str.empty()) {
-					str = YueFormat{}.toString(arg);
-				}
-				Utils::trim(str);
-				Utils::replace(str, "\r\n"sv, "\n"sv);
-				lua_pushlstring(L, str.c_str(), str.size());
-			} // cur pcall macroFunc args...
-		}
-		bool success = lua_pcall(L, (args ? static_cast<int>(args->size()) : 0), 1, 0) == 0;
+		for (const auto& arg : argStrs) {
+			lua_pushlstring(L, arg.c_str(), arg.size());
+		} // cur pcall macroFunc args...
+		bool success = lua_pcall(L, static_cast<int>(argStrs.size()), 1, 0) == 0;
 		if (!success) { // cur err
 			std::string err = lua_tostring(L, -1);
 			throw CompileError("failed to expand macro: "s + err, x);
@@ -9869,9 +9910,17 @@ private:
 				if (importAllMacro) {
 					lua_pushnil(L); // cur mod startKey
 					while (lua_next(L, -2) != 0) { // cur mod key value
-						lua_pushvalue(L, -2); // cur mod key value key
-						lua_insert(L, -2); // cur mod key key value
-						lua_rawset(L, -5); // cur[key] = value, cur mod key
+						const char* key = lua_tostring(L, -2);
+						auto it = std::find_if(macroPairs.begin(), macroPairs.end(), [&](const auto& item) {
+							return key == item.first;
+						});
+						if (it == macroPairs.end()) {
+							lua_pushvalue(L, -2); // cur mod key value key
+							lua_insert(L, -2); // cur mod key key value
+							lua_rawset(L, -5); // cur[key] = value, cur mod key
+						} else {
+							lua_pop(L, 1); // cur mod key
+						}
 					}
 				}
 				for (const auto& pair : macroPairs) {
@@ -10696,9 +10745,9 @@ CompileInfo YueCompiler::compile(std::string_view codes, const YueConfig& config
 void YueCompiler::clear(void* luaState) {
 #ifndef YUE_NO_MACRO
 	auto L = static_cast<lua_State*>(luaState);
-	lua_pushliteral(L, YUE_MODULE); // YUE_MODULE
+	lua_pushliteral(L, YUE_MODULES); // YUE_MODULES
 	lua_pushnil(L);
-	lua_rawset(L, LUA_REGISTRYINDEX); // reg[YUE_MODULE] = nil
+	lua_rawset(L, LUA_REGISTRYINDEX); // reg[YUE_MODULES] = nil
 #else
 	(void)(luaState);
 #endif // YUE_NO_MACRO

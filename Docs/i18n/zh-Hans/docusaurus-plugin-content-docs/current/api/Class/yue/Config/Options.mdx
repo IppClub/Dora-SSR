@@ -1,0 +1,78 @@
+import "@site/src/languages/highlight";
+
+# Options
+
+**描述：**
+
+&emsp;&emsp;额外编译器选项定义。
+
+## target
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;编译目标 Lua 版本。
+
+**签名：**
+```tl
+target: LuaTarget
+```
+
+## path
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;额外模块搜索路径。
+
+**签名：**
+```tl
+path: string
+```
+
+## __newindex
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;设置选项的元方法。
+
+**签名：**
+```tl
+metamethod __newindex: function(self: Options, key: string, value: string)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| key | string | 键。 |
+| value | string | 值。 |
+
+## __index
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;获取选项的元方法。
+
+**签名：**
+```tl
+metamethod __index: function(self: Options, key: string): string
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| key | string | 键。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 值。 |
