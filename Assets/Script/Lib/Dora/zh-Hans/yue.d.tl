@@ -49,6 +49,12 @@ local record yue
 			-- 额外模块搜索路径。
 			path: string
 
+			-- 是否在回溯错误消息中输出代码块的局部变量。默认为 false。
+			dump_locals: boolean
+
+			-- 是否简化输出的错误消息。默认为 true。
+			simplified: boolean
+
 			-- 设置选项的元方法。
 			-- @param key (string) 键。
 			-- @param value (string) 值。
@@ -181,7 +187,7 @@ local record yue
 	p: function(...: any)
 
 	-- 当前编译器选项。
-	options: {string: string}
+	options: Config.Options
 
 	-- 重写堆栈跟踪中的行号为 Yuescript 代码中的原始行号的 traceback 函数。
 	-- @param message (string) 堆栈跟踪消息。

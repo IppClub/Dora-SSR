@@ -49,6 +49,12 @@ local record yue
 			-- The extra module search path.
 			path: string
 
+			-- Whether to dump the local variables in the traceback error message. Default is false.
+			dump_locals: boolean
+
+			-- Whether to simplify the error message. Default is true.
+			simplified: boolean
+
 			-- The setter metamethod for the Options record.
 			-- @param key (string) The key.
 			-- @param value (string) The value.
@@ -181,7 +187,7 @@ local record yue
 	p: function(...: any)
 
 	-- The current compiler options.
-	options: {string: string}
+	options: Config.Options
 
 	-- The traceback function that rewrites the stack trace line numbers to the original line numbers in the Yuescript code.
 	-- @param message (string) The traceback message.
@@ -250,7 +256,6 @@ local record yue
 	-- @param module (string) The module name.
 	-- @return (any) The module value.
 	metamethod __call: function(self: yue, module: string): any...
-
 end
 
 return yue
