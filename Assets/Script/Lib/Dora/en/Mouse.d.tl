@@ -7,7 +7,7 @@ local record Mouse
 	-- The position of the mouse in the visible window.
 	-- You can use `Mouse.position * App.devicePixelRatio` to get the coordinate in the game world.
 	-- Then use `node:convertToNodeSpace()` to convert the world coordinate to the local coordinate of the node.
-	-- @example
+	-- @usage
 	-- local worldPos = Mouse.position * App.devicePixelRatio
 	-- local nodePos = node:convertToNodeSpace(worldPos)
 	const position: Vec2
