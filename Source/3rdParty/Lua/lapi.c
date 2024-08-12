@@ -58,7 +58,7 @@ static void advancegc (lua_State *L, size_t delta) {
   delta >>= 5;  /* one object for each 32 bytes (empirical) */
   if (delta > 0) {
     global_State *g = G(L);
-    luaE_setdebt(g, g->GCdebt - delta);
+    luaE_setdebt(g, g->GCdebt - cast(l_obj, delta));
   }
 }
 
@@ -207,7 +207,7 @@ LUA_API void lua_settop (lua_State *L, int idx) {
   }
   newtop = L->top.p + diff;
   if (diff < 0 && L->tbclist.p >= newtop) {
-    lua_assert(hastocloseCfunc(ci->nresults));
+    lua_assert(ci->callstatus & CIST_CLSRET);
     newtop = luaF_close(L, newtop, CLOSEKTOP, 0);
   }
   L->top.p = newtop;  /* correct top only after closing any upvalue */
@@ -219,7 +219,7 @@ LUA_API void lua_closeslot (lua_State *L, int idx) {
   StkId level;
   lua_lock(L);
   level = index2stack(L, idx);
-  api_check(L, hastocloseCfunc(L->ci->nresults) && L->tbclist.p == level,
+  api_check(L, (L->ci->callstatus & CIST_CLSRET) && L->tbclist.p == level,
      "no variable to close at given level");
   level = luaF_close(L, level, CLOSEKTOP, 0);
   setnilvalue(s2v(level));
@@ -437,9 +437,9 @@ LUA_API const char *lua_tolstring (lua_State *L, int idx, size_t *len) {
 LUA_API lua_Unsigned lua_rawlen (lua_State *L, int idx) {
   const TValue *o = index2value(L, idx);
   switch (ttypetag(o)) {
-    case LUA_VSHRSTR: return tsvalue(o)->shrlen;
-    case LUA_VLNGSTR: return tsvalue(o)->u.lnglen;
-    case LUA_VUSERDATA: return uvalue(o)->len;
+    case LUA_VSHRSTR: return cast(lua_Unsigned, tsvalue(o)->shrlen);
+    case LUA_VLNGSTR: return cast(lua_Unsigned, tsvalue(o)->u.lnglen);
+    case LUA_VUSERDATA: return cast(lua_Unsigned, uvalue(o)->len);
     case LUA_VTABLE: return luaH_getn(hvalue(o));
     default: return 0;
   }
@@ -467,15 +467,6 @@ l_sinline void *touserdata (const TValue *o) {
 LUA_API void *lua_touserdata (lua_State *L, int idx) {
   const TValue *o = index2value(L, idx);
   return touserdata(o);
-}
-
-
-LUA_API lua_Integer lua_tolightuserinteger (lua_State *L, int idx) {
-  const TValue *o = index2value(L, idx);
-  switch (ttype(o)) {
-    case LUA_TLIGHTUSERDATA: return check_exp(ttislightuserdata(o), val_(o).i);
-    default: return 0;
-  }
 }
 
 
@@ -660,14 +651,6 @@ LUA_API void lua_pushlightuserdata (lua_State *L, void *p) {
 }
 
 
-LUA_API void lua_pushlightuserinteger (lua_State *L, lua_Integer n) {
-  lua_lock(L);
-  { TValue* io = s2v(L->top.p); val_(io).i = n; settt_(io, LUA_VLIGHTUSERDATA); }
-  api_incr_top(L);
-  lua_unlock(L);
-}
-
-
 LUA_API int lua_pushthread (lua_State *L) {
   lua_lock(L);
   setthvalue(L, s2v(L->top.p), L);
@@ -684,7 +667,7 @@ LUA_API int lua_pushthread (lua_State *L) {
 
 
 static int auxgetstr (lua_State *L, const TValue *t, const char *k) {
-  int tag;
+  lu_byte tag;
   TString *str = luaS_new(L, k);
   luaV_fastget(t, str, s2v(L->top.p), luaH_getstr, tag);
   if (!tagisempty(tag)) {
@@ -702,7 +685,7 @@ static int auxgetstr (lua_State *L, const TValue *t, const char *k) {
 
 static void getGlobalTable (lua_State *L, TValue *gt) {
   Table *registry = hvalue(&G(L)->l_registry);
-  int tag = luaH_getint(registry, LUA_RIDX_GLOBALS, gt);
+  lu_byte tag = luaH_getint(registry, LUA_RIDX_GLOBALS, gt);
   (void)tag;  /* avoid not-used warnings when checks are off */
   api_check(L, novariant(tag) == LUA_TTABLE, "global table must exist");
 }
@@ -717,7 +700,7 @@ LUA_API int lua_getglobal (lua_State *L, const char *name) {
 
 
 LUA_API int lua_gettable (lua_State *L, int idx) {
-  int tag;
+  lu_byte tag;
   TValue *t;
   lua_lock(L);
   api_checkpop(L, 1);
@@ -738,7 +721,7 @@ LUA_API int lua_getfield (lua_State *L, int idx, const char *k) {
 
 LUA_API int lua_geti (lua_State *L, int idx, lua_Integer n) {
   TValue *t;
-  int tag;
+  lu_byte tag;
   lua_lock(L);
   t = index2value(L, idx);
   luaV_fastgeti(t, n, s2v(L->top.p), tag);
@@ -753,7 +736,7 @@ LUA_API int lua_geti (lua_State *L, int idx, lua_Integer n) {
 }
 
 
-static int finishrawget (lua_State *L, int tag) {
+static int finishrawget (lua_State *L, lu_byte tag) {
   if (tagisempty(tag))  /* avoid copying empty items to the stack */
     setnilvalue(s2v(L->top.p));
   api_incr_top(L);
@@ -771,7 +754,7 @@ l_sinline Table *gettable (lua_State *L, int idx) {
 
 LUA_API int lua_rawget (lua_State *L, int idx) {
   Table *t;
-  int tag;
+  lu_byte tag;
   lua_lock(L);
   api_checkpop(L, 1);
   t = gettable(L, idx);
@@ -783,7 +766,7 @@ LUA_API int lua_rawget (lua_State *L, int idx) {
 
 LUA_API int lua_rawgeti (lua_State *L, int idx, lua_Integer n) {
   Table *t;
-  int tag;
+  lu_byte tag;
   lua_lock(L);
   t = gettable(L, idx);
   luaH_fastgeti(t, n, s2v(L->top.p), tag);
@@ -1014,23 +997,6 @@ LUA_API int lua_setmetatable (lua_State *L, int objindex) {
 }
 
 
-LUA_API int lua_setlightusermetatable (lua_State *L) {
-  Table *mt;
-  lua_lock(L);
-  api_checknelems(L, 1);
-  if (ttisnil(s2v(L->top.p - 1)))
-    mt = NULL;
-  else {
-    api_check(L, ttistable(s2v(L->top - 1)), "table expected");
-    mt = hvalue(s2v(L->top.p - 1));
-  }
-  G(L)->mt[LUA_TLIGHTUSERDATA] = mt;
-  L->top.p--;
-  lua_unlock(L);
-  return 1;
-}
-
-
 LUA_API int lua_setiuservalue (lua_State *L, int idx, int n) {
   TValue *o;
   int res;
@@ -1056,10 +1022,15 @@ LUA_API int lua_setiuservalue (lua_State *L, int idx, int n) {
 */
 
 
+#define MAXRESULTS	250
+
+
 #define checkresults(L,na,nr) \
-     api_check(L, (nr) == LUA_MULTRET \
+     (api_check(L, (nr) == LUA_MULTRET \
                || (L->ci->top.p - L->top.p >= (nr) - (na)), \
-	"results from function overflow current stack size")
+	"results from function overflow current stack size"), \
+      api_check(L, LUA_MULTRET <= (nr) && (nr) <= MAXRESULTS,  \
+                   "invalid number of results"))
 
 
 LUA_API void lua_callk (lua_State *L, int nargs, int nresults,
@@ -1132,7 +1103,7 @@ LUA_API int lua_pcallk (lua_State *L, int nargs, int nresults, int errfunc,
     ci->u2.funcidx = cast_int(savestack(L, c.func));
     ci->u.c.old_errfunc = L->errfunc;
     L->errfunc = func;
-    setoah(ci->callstatus, L->allowhook);  /* save value of 'allowhook' */
+    setoah(ci, L->allowhook);  /* save value of 'allowhook' */
     ci->callstatus |= CIST_YPCALL;  /* function can do error recovery */
     luaD_call(L, c.func, nresults);  /* do the call */
     ci->callstatus &= ~CIST_YPCALL;
@@ -1260,7 +1231,7 @@ LUA_API int lua_gc (lua_State *L, int what, ...) {
       api_check(L, 0 <= param && param < LUA_GCPN, "invalid parameter");
       res = cast_int(luaO_applyparam(g->gcparams[param], 100));
       if (value >= 0)
-        g->gcparams[param] = luaO_codeparam(value);
+        g->gcparams[param] = luaO_codeparam(cast_uint(value));
       break;
     }
     default: res = -1;  /* invalid option */
@@ -1309,16 +1280,12 @@ LUA_API int lua_next (lua_State *L, int idx) {
 
 
 LUA_API void lua_toclose (lua_State *L, int idx) {
-  int nresults;
   StkId o;
   lua_lock(L);
   o = index2stack(L, idx);
-  nresults = L->ci->nresults;
   api_check(L, L->tbclist.p < o, "given index below or equal a marked one");
   luaF_newtbcupval(L, o);  /* create new to-be-closed upvalue */
-  if (!hastocloseCfunc(nresults))  /* function not marked yet? */
-    L->ci->nresults = codeNresults(nresults);  /* mark it */
-  lua_assert(hastocloseCfunc(L->ci->nresults));
+  L->ci->callstatus |= CIST_CLSRET;  /* mark that function has TBC slots */
   lua_unlock(L);
 }
 
@@ -1386,7 +1353,7 @@ LUA_API void *lua_newuserdatauv (lua_State *L, size_t size, int nuvalue) {
   Udata *u;
   lua_lock(L);
   api_check(L, 0 <= nuvalue && nuvalue < USHRT_MAX, "invalid value");
-  u = luaS_newudata(L, size, nuvalue);
+  u = luaS_newudata(L, size, cast(unsigned short, nuvalue));
   setuvalue(L, s2v(L->top.p), u);
   api_incr_top(L);
   advancegc(L, size);

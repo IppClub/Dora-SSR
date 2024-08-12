@@ -757,11 +757,14 @@ void Director::ProfilerInfo::update(double deltaTime) {
 		double time = 0;
 		for (const auto& item : timeCosts) {
 			time += item.second;
-			updateCosts[item.first] = std::max(0.0, item.second * 1000.0 / frames);
+			double mx = std::max(0.0, item.second * 1000.0 / frames);
+			updateCosts[item.first] = mx;
 		}
 		timeCosts.clear();
-		updateCosts["Logic"s] = std::max(0.0, (logicTime - time) * 1000.0 / frames);
-		updateCosts["Render"s] = std::max(0.0, renderTime * 1000.0 / frames);
+		double mx = std::max(0.0, (logicTime - time) * 1000.0 / frames);
+		updateCosts["Logic"s] = mx;
+		mx = std::max(0.0, renderTime * 1000.0 / frames);
+		updateCosts["Render"s] = mx;
 		logicTime = renderTime = 0;
 
 		elapsedTime = 0.0;

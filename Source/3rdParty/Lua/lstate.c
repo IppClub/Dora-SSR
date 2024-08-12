@@ -177,7 +177,6 @@ static void stack_init (lua_State *L1, lua_State *L) {
   ci->callstatus = CIST_C;
   ci->func.p = L1->top.p;
   ci->u.c.k = NULL;
-  ci->nresults = 0;
   setnilvalue(s2v(L1->top.p));  /* 'function' entry for this 'ci' */
   L1->top.p++;
   ci->top.p = L1->top.p + LUA_MINSTACK;
@@ -191,7 +190,8 @@ static void freestack (lua_State *L) {
   L->ci = &L->base_ci;  /* free the entire 'ci' list */
   freeCI(L);
   lua_assert(L->nci == 0);
-  luaM_freearray(L, L->stack.p, stacksize(L) + EXTRA_STACK);  /* free stack */
+  /* free stack */
+  luaM_freearray(L, L->stack.p, cast_sizet(stacksize(L) + EXTRA_STACK));
 }
 
 
@@ -267,7 +267,7 @@ static void close_state (lua_State *L) {
     luaC_freeallobjects(L);  /* collect all objects */
     luai_userstateclose(L);
   }
-  luaM_freearray(L, G(L)->strt.hash, G(L)->strt.size);
+  luaM_freearray(L, G(L)->strt.hash, cast_sizet(G(L)->strt.size));
   freestack(L);
   lua_assert(g->totalbytes == sizeof(LG));
   lua_assert(gettotalobjs(g) == 1);

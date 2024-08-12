@@ -217,10 +217,13 @@ Slice tolua_tofieldslice(lua_State* L, int lo, int index, const char* def);
 
 union LightValue {
 	using ValueType = Vec2;
+	void* p;
 	lua_Integer i;
 	ValueType value;
 	explicit LightValue(lua_Integer v)
 		: i(v) { }
+	explicit LightValue(void* v)
+		: p(v) { }
 	LightValue(const ValueType& v)
 		: value(v) { }
 	operator ValueType() const { return value; }
