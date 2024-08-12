@@ -232,7 +232,6 @@ private:
 	Own<TealState> _tlState;
 	TealState* loadTealState();
 	void initTealState(bool mainThread);
-	Own<yue::YueCompiler> _yueCompiler;
 
 protected:
 	LuaEngine();

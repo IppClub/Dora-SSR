@@ -31,10 +31,6 @@
 #include "lvm.h"
 
 
-/* Maximum number of registers in a Lua function (must fit in 8 bits) */
-#define MAXREGS		255
-
-
 #define hasjumps(e)	((e)->t != (e)->f)
 
 
@@ -339,7 +335,7 @@ static void savelineinfo (FuncState *fs, Proto *f, int line) {
   }
   luaM_growvector(fs->ls->L, f->lineinfo, pc, f->sizelineinfo, ls_byte,
                   INT_MAX, "opcodes");
-  f->lineinfo[pc] = linedif;
+  f->lineinfo[pc] = cast(ls_byte, linedif);
   fs->previousline = line;  /* last line saved */
 }
 
@@ -394,32 +390,40 @@ int luaK_code (FuncState *fs, Instruction i) {
 ** Format and emit an 'iABC' instruction. (Assertions check consistency
 ** of parameters versus opcode.)
 */
-int luaK_codeABCk (FuncState *fs, OpCode o, int a, int b, int c, int k) {
+int luaK_codeABCk (FuncState *fs, OpCode o, int A, int B, int C, int k) {
   lua_assert(getOpMode(o) == iABC);
-  lua_assert(a <= MAXARG_A && b <= MAXARG_B &&
-             c <= MAXARG_C && (k & ~1) == 0);
-  return luaK_code(fs, CREATE_ABCk(o, a, b, c, k));
+  lua_assert(A <= MAXARG_A && B <= MAXARG_B &&
+             C <= MAXARG_C && (k & ~1) == 0);
+  return luaK_code(fs, CREATE_ABCk(o, A, B, C, k));
+}
+
+
+int luaK_codevABCk (FuncState *fs, OpCode o, int A, int B, int C, int k) {
+  lua_assert(getOpMode(o) == ivABC);
+  lua_assert(A <= MAXARG_A && B <= MAXARG_vB &&
+             C <= MAXARG_vC && (k & ~1) == 0);
+  return luaK_code(fs, CREATE_vABCk(o, A, B, C, k));
 }
 
 
 /*
 ** Format and emit an 'iABx' instruction.
 */
-int luaK_codeABx (FuncState *fs, OpCode o, int a, unsigned int bc) {
+int luaK_codeABx (FuncState *fs, OpCode o, int A, int Bc) {
   lua_assert(getOpMode(o) == iABx);
-  lua_assert(a <= MAXARG_A && bc <= MAXARG_Bx);
-  return luaK_code(fs, CREATE_ABx(o, a, bc));
+  lua_assert(A <= MAXARG_A && Bc <= MAXARG_Bx);
+  return luaK_code(fs, CREATE_ABx(o, A, Bc));
 }
 
 
 /*
 ** Format and emit an 'iAsBx' instruction.
 */
-static int codeAsBx (FuncState *fs, OpCode o, int a, int bc) {
-  unsigned int b = bc + OFFSET_sBx;
+static int codeAsBx (FuncState *fs, OpCode o, int A, int Bc) {
+  int b = Bc + OFFSET_sBx;
   lua_assert(getOpMode(o) == iAsBx);
-  lua_assert(a <= MAXARG_A && b <= MAXARG_Bx);
-  return luaK_code(fs, CREATE_ABx(o, a, b));
+  lua_assert(A <= MAXARG_A && b <= MAXARG_Bx);
+  return luaK_code(fs, CREATE_ABx(o, A, b));
 }
 
 
@@ -427,7 +431,7 @@ static int codeAsBx (FuncState *fs, OpCode o, int a, int bc) {
 ** Format and emit an 'isJ' instruction.
 */
 static int codesJ (FuncState *fs, OpCode o, int sj, int k) {
-  unsigned int j = sj + OFFSET_sJ;
+  int j = sj + OFFSET_sJ;
   lua_assert(getOpMode(o) == isJ);
   lua_assert(j <= MAXARG_sJ && (k & ~1) == 0);
   return luaK_code(fs, CREATE_sJ(o, j, k));
@@ -437,9 +441,9 @@ static int codesJ (FuncState *fs, OpCode o, int sj, int k) {
 /*
 ** Emit an "extra argument" instruction (format 'iAx')
 */
-static int codeextraarg (FuncState *fs, int a) {
-  lua_assert(a <= MAXARG_Ax);
-  return luaK_code(fs, CREATE_Ax(OP_EXTRAARG, a));
+static int codeextraarg (FuncState *fs, int A) {
+  lua_assert(A <= MAXARG_Ax);
+  return luaK_code(fs, CREATE_Ax(OP_EXTRAARG, A));
 }
 
 
@@ -466,7 +470,7 @@ static int luaK_codek (FuncState *fs, int reg, int k) {
 void luaK_checkstack (FuncState *fs, int n) {
   int newstack = fs->freereg + n;
   if (newstack > fs->f->maxstacksize) {
-    if (newstack >= MAXREGS)
+    if (newstack > MAX_FSTACK)
       luaX_syntaxerror(fs->ls,
         "function or expression needs too many registers");
     fs->f->maxstacksize = cast_byte(newstack);
@@ -479,7 +483,7 @@ void luaK_checkstack (FuncState *fs, int n) {
 */
 void luaK_reserveregs (FuncState *fs, int n) {
   luaK_checkstack(fs, n);
-  fs->freereg += n;
+  fs->freereg =  cast_byte(fs->freereg + n);
 }
 
 
@@ -720,6 +724,8 @@ static void const2exp (TValue *v, expdesc *e) {
 */
 void luaK_setreturns (FuncState *fs, expdesc *e, int nresults) {
   Instruction *pc = &getinstruction(fs, e);
+  if (nresults + 1 > MAXARG_C)
+    luaX_syntaxerror(fs->ls, "too many multiple results");
   if (e->k == VCALL)  /* expression is an open function call? */
     SETARG_C(*pc, nresults + 1);
   else {
@@ -1036,10 +1042,10 @@ static int exp2RK (FuncState *fs, expdesc *e) {
 }
 
 
-static void codeABRK (FuncState *fs, OpCode o, int a, int b,
+static void codeABRK (FuncState *fs, OpCode o, int A, int B,
                       expdesc *ec) {
   int k = exp2RK(fs, ec);
-  luaK_codeABCk(fs, o, a, b, ec->u.info, k);
+  luaK_codeABCk(fs, o, A, B, ec->u.info, k);
 }
 
 
@@ -1284,25 +1290,25 @@ void luaK_indexed (FuncState *fs, expdesc *t, expdesc *k) {
   if (t->k == VUPVAL && !isKstr(fs, k))  /* upvalue indexed by non 'Kstr'? */
     luaK_exp2anyreg(fs, t);  /* put it in a register */
   if (t->k == VUPVAL) {
-    int temp = t->u.info;  /* upvalue index */
+    lu_byte temp = cast_byte(t->u.info);  /* upvalue index */
     lua_assert(isKstr(fs, k));
     t->u.ind.t = temp;  /* (can't do a direct assignment; values overlap) */
-    t->u.ind.idx = k->u.info;  /* literal short string */
+    t->u.ind.idx = cast(short, k->u.info);  /* literal short string */
     t->k = VINDEXUP;
   }
   else {
     /* register index of the table */
-    t->u.ind.t = (t->k == VLOCAL) ? t->u.var.ridx: t->u.info;
+    t->u.ind.t = cast_byte((t->k == VLOCAL) ? t->u.var.ridx: t->u.info);
     if (isKstr(fs, k)) {
-      t->u.ind.idx = k->u.info;  /* literal short string */
+      t->u.ind.idx = cast(short, k->u.info);  /* literal short string */
       t->k = VINDEXSTR;
     }
-    else if (isCint(k)) {
-      t->u.ind.idx = cast_int(k->u.ival);  /* int. constant in proper range */
+    else if (isCint(k)) {  /* int. constant in proper range? */
+      t->u.ind.idx = cast(short, k->u.ival);
       t->k = VINDEXI;
     }
     else {
-      t->u.ind.idx = luaK_exp2anyreg(fs, k);  /* register */
+      t->u.ind.idx = cast(short, luaK_exp2anyreg(fs, k));  /* register */
       t->k = VINDEXED;
     }
   }
@@ -1617,7 +1623,7 @@ void luaK_prefix (FuncState *fs, UnOpr opr, expdesc *e, int line) {
   luaK_dischargevars(fs, e);
   switch (opr) {
     case OPR_MINUS: case OPR_BNOT:  /* use 'ef' as fake 2nd operand */
-      if (constfolding(fs, opr + LUA_OPUNM, e, &ef))
+      if (constfolding(fs, cast_int(opr + LUA_OPUNM), e, &ef))
         break;
       /* else */ /* FALLTHROUGH */
     case OPR_LEN:
@@ -1705,7 +1711,7 @@ static void codeconcat (FuncState *fs, expdesc *e1, expdesc *e2, int line) {
 void luaK_posfix (FuncState *fs, BinOpr opr,
                   expdesc *e1, expdesc *e2, int line) {
   luaK_dischargevars(fs, e2);
-  if (foldbinop(opr) && constfolding(fs, opr + LUA_OPADD, e1, e2))
+  if (foldbinop(opr) && constfolding(fs, cast_int(opr + LUA_OPADD), e1, e2))
     return;  /* done by folding */
   switch (opr) {
     case OPR_AND: {
@@ -1791,11 +1797,11 @@ void luaK_fixline (FuncState *fs, int line) {
 
 void luaK_settablesize (FuncState *fs, int pc, int ra, int asize, int hsize) {
   Instruction *inst = &fs->f->code[pc];
-  int rb = (hsize != 0) ? luaO_ceillog2(hsize) + 1 : 0;  /* hash size */
-  int extra = asize / (MAXARG_C + 1);  /* higher bits of array size */
-  int rc = asize % (MAXARG_C + 1);  /* lower bits of array size */
+  int extra = asize / (MAXARG_vC + 1);  /* higher bits of array size */
+  int rc = asize % (MAXARG_vC + 1);  /* lower bits of array size */
   int k = (extra > 0);  /* true iff needs extra argument */
-  *inst = CREATE_ABCk(OP_NEWTABLE, ra, rb, rc, k);
+  hsize = (hsize != 0) ? luaO_ceillog2(cast_uint(hsize)) + 1 : 0;
+  *inst = CREATE_vABCk(OP_NEWTABLE, ra, hsize, rc, k);
   *(inst + 1) = CREATE_Ax(OP_EXTRAARG, extra);
 }
 
@@ -1808,18 +1814,18 @@ void luaK_settablesize (FuncState *fs, int pc, int ra, int asize, int hsize) {
 ** table (or LUA_MULTRET to add up to stack top).
 */
 void luaK_setlist (FuncState *fs, int base, int nelems, int tostore) {
-  lua_assert(tostore != 0 && tostore <= LFIELDS_PER_FLUSH);
+  lua_assert(tostore != 0);
   if (tostore == LUA_MULTRET)
     tostore = 0;
-  if (nelems <= MAXARG_C)
-    luaK_codeABC(fs, OP_SETLIST, base, tostore, nelems);
+  if (nelems <= MAXARG_vC)
+    luaK_codevABCk(fs, OP_SETLIST, base, tostore, nelems, 0);
   else {
-    int extra = nelems / (MAXARG_C + 1);
-    nelems %= (MAXARG_C + 1);
-    luaK_codeABCk(fs, OP_SETLIST, base, tostore, nelems, 1);
+    int extra = nelems / (MAXARG_vC + 1);
+    nelems %= (MAXARG_vC + 1);
+    luaK_codevABCk(fs, OP_SETLIST, base, tostore, nelems, 1);
     codeextraarg(fs, extra);
   }
-  fs->freereg = base + 1;  /* free registers with list values */
+  fs->freereg = cast_byte(base + 1);  /* free registers with list values */
 }
 
 
@@ -1843,12 +1849,15 @@ static int finaltarget (Instruction *code, int i) {
 ** Do a final pass over the code of a function, doing small peephole
 ** optimizations and adjustments.
 */
+#include "lopnames.h"
 void luaK_finish (FuncState *fs) {
   int i;
   Proto *p = fs->f;
   for (i = 0; i < fs->pc; i++) {
     Instruction *pc = &p->code[i];
-    lua_assert(i == 0 || isOT(*(pc - 1)) == isIT(*pc));
+    /* avoid "not used" warnings when assert is off (for 'onelua.c') */
+    (void)luaP_isOT; (void)luaP_isIT;
+    lua_assert(i == 0 || luaP_isOT(*(pc - 1)) == luaP_isIT(*pc));
     switch (GET_OPCODE(*pc)) {
       case OP_RETURN0: case OP_RETURN1: {
         if (!(fs->needclose || (p->flag & PF_ISVARARG)))

@@ -288,8 +288,8 @@ static int floatforloop (StkId ra) {
 /*
 ** Finish the table access 'val = t[key]' and return the tag of the result.
 */
-int luaV_finishget (lua_State *L, const TValue *t, TValue *key, StkId val,
-                      int tag) {
+lu_byte luaV_finishget (lua_State *L, const TValue *t, TValue *key,
+                                      StkId val, lu_byte tag) {
   int loop;  /* counter to avoid infinite loops */
   const TValue *tm;  /* metamethod */
   for (loop = 0; loop < MAXTAGLOOP; loop++) {
@@ -690,7 +690,7 @@ void luaV_objlen (lua_State *L, StkId ra, const TValue *rb) {
       Table *h = hvalue(rb);
       tm = fasttm(L, h->metatable, TM_LEN);
       if (tm) break;  /* metamethod? break switch to call it */
-      setivalue(s2v(ra), luaH_getn(h));  /* else primitive len */
+      setivalue(s2v(ra), l_castU2S(luaH_getn(h)));  /* else primitive len */
       return;
     }
     case LUA_VSHRSTR: {
@@ -698,7 +698,7 @@ void luaV_objlen (lua_State *L, StkId ra, const TValue *rb) {
       return;
     }
     case LUA_VLNGSTR: {
-      setivalue(s2v(ra), tsvalue(rb)->u.lnglen);
+      setivalue(s2v(ra), cast_st2S(tsvalue(rb)->u.lnglen));
       return;
     }
     default: {  /* try metamethod */
@@ -1180,8 +1180,8 @@ void luaV_execute (lua_State *L, CallInfo *ci) {
     #endif
     lua_assert(base == ci->func.p + 1);
     lua_assert(base <= L->top.p && L->top.p <= L->stack_last.p);
-    /* invalidate top for instructions not expecting it */
-    lua_assert(isIT(i) || (cast_void(L->top.p = base), 1));
+    /* for tests, invalidate top for instructions not expecting it */
+    lua_assert(luaP_isIT(i) || (cast_void(L->top.p = base), 1));
     vmdispatch (GET_OPCODE(i)) {
       vmcase(OP_MOVE) {
         StkId ra = RA(i);
@@ -1255,7 +1255,7 @@ void luaV_execute (lua_State *L, CallInfo *ci) {
         TValue *upval = cl->upvals[GETARG_B(i)]->v.p;
         TValue *rc = KC(i);
         TString *key = tsvalue(rc);  /* key must be a short string */
-        int tag;
+        lu_byte tag;
         luaV_fastget(upval, key, s2v(ra), luaH_getshortstr, tag);
         if (tagisempty(tag))
           Protect(luaV_finishget(L, upval, rc, ra, tag));
@@ -1265,7 +1265,7 @@ void luaV_execute (lua_State *L, CallInfo *ci) {
         StkId ra = RA(i);
         TValue *rb = vRB(i);
         TValue *rc = vRC(i);
-        int tag;
+        lu_byte tag;
         if (ttisinteger(rc)) {  /* fast track for integers? */
           luaV_fastgeti(rb, ivalue(rc), s2v(ra), tag);
         }
@@ -1279,7 +1279,7 @@ void luaV_execute (lua_State *L, CallInfo *ci) {
         StkId ra = RA(i);
         TValue *rb = vRB(i);
         int c = GETARG_C(i);
-        int tag;
+        lu_byte tag;
         luaV_fastgeti(rb, c, s2v(ra), tag);
         if (tagisempty(tag)) {
           TValue key;
@@ -1293,7 +1293,7 @@ void luaV_execute (lua_State *L, CallInfo *ci) {
         TValue *rb = vRB(i);
         TValue *rc = KC(i);
         TString *key = tsvalue(rc);  /* key must be a short string */
-        int tag;
+        lu_byte tag;
         luaV_fastget(rb, key, s2v(ra), luaH_getshortstr, tag);
         if (tagisempty(tag))
           Protect(luaV_finishget(L, rb, rc, ra, tag));
@@ -1359,14 +1359,16 @@ void luaV_execute (lua_State *L, CallInfo *ci) {
       }
       vmcase(OP_NEWTABLE) {
         StkId ra = RA(i);
-        int b = GETARG_B(i);  /* log2(hash size) + 1 */
-        int c = GETARG_C(i);  /* array size */
+        unsigned b = cast_uint(GETARG_vB(i));  /* log2(hash size) + 1 */
+        unsigned c = cast_uint(GETARG_vC(i));  /* array size */
         Table *t;
         if (b > 0)
-          b = 1 << (b - 1);  /* size is 2^(b - 1) */
-        lua_assert((!TESTARG_k(i)) == (GETARG_Ax(*pc) == 0));
-        if (TESTARG_k(i))  /* non-zero extra argument? */
-          c += GETARG_Ax(*pc) * (MAXARG_C + 1);  /* add it to size */
+          b = 1u << (b - 1);  /* hash size is 2^(b - 1) */
+        if (TESTARG_k(i)) {  /* non-zero extra argument? */
+          lua_assert(GETARG_Ax(*pc) != 0);
+          /* add it to array size */
+          c += cast_uint(GETARG_Ax(*pc)) * (MAXARG_vC + 1);
+        }
         pc++;  /* skip extra argument */
         L->top.p = ra + 1;  /* correct top in case of emergency GC */
         t = luaH_new(L);  /* memory allocation */
@@ -1378,7 +1380,7 @@ void luaV_execute (lua_State *L, CallInfo *ci) {
       }
       vmcase(OP_SELF) {
         StkId ra = RA(i);
-        int tag;
+        lu_byte tag;
         TValue *rb = vRB(i);
         TValue *rc = RKC(i);
         TString *key = tsvalue(rc);  /* key must be a string */
@@ -1741,10 +1743,10 @@ void luaV_execute (lua_State *L, CallInfo *ci) {
           trap = 1;
         }
         else {  /* do the 'poscall' here */
-          int nres;
+          int nres = get_nresults(ci->callstatus);
           L->ci = ci->previous;  /* back to caller */
           L->top.p = base - 1;
-          for (nres = ci->nresults; l_unlikely(nres > 0); nres--)
+          for (; l_unlikely(nres > 0); nres--)
             setnilvalue(s2v(L->top.p++));  /* all results are nil */
         }
         goto ret;
@@ -1758,7 +1760,7 @@ void luaV_execute (lua_State *L, CallInfo *ci) {
           trap = 1;
         }
         else {  /* do the 'poscall' here */
-          int nres = ci->nresults;
+          int nres = get_nresults(ci->callstatus);
           L->ci = ci->previous;  /* back to caller */
           if (nres == 0)
             L->top.p = base - 1;  /* asked for no results */
@@ -1785,7 +1787,7 @@ void luaV_execute (lua_State *L, CallInfo *ci) {
           if (count > 0) {  /* still more iterations? */
             lua_Integer step = ivalue(s2v(ra + 1));
             lua_Integer idx = ivalue(s2v(ra + 2));  /* control variable */
-            chgivalue(s2v(ra), count - 1);  /* update counter */
+            chgivalue(s2v(ra), l_castU2S(count - 1));  /* update counter */
             idx = intop(+, idx, step);  /* add step to index */
             chgivalue(s2v(ra + 2), idx);  /* update control variable */
             pc -= GETARG_Bx(i);  /* jump back */
@@ -1850,20 +1852,24 @@ void luaV_execute (lua_State *L, CallInfo *ci) {
       }}
       vmcase(OP_SETLIST) {
         StkId ra = RA(i);
-        int n = GETARG_B(i);
-        unsigned int last = GETARG_C(i);
+        unsigned n = cast_uint(GETARG_vB(i));
+        unsigned int last = cast_uint(GETARG_vC(i));
         Table *h = hvalue(s2v(ra));
         if (n == 0)
-          n = cast_int(L->top.p - ra) - 1;  /* get up to the top */
+          n = cast_uint(L->top.p - ra) - 1;  /* get up to the top */
         else
           L->top.p = ci->top.p;  /* correct top in case of emergency GC */
         last += n;
         if (TESTARG_k(i)) {
-          last += GETARG_Ax(*pc) * (MAXARG_C + 1);
+          last += cast_uint(GETARG_Ax(*pc)) * (MAXARG_vC + 1);
           pc++;
         }
-        if (last > luaH_realasize(h))  /* needs more space? */
+        /* when 'n' is known, table should have proper size */
+        if (last > luaH_realasize(h)) {  /* needs more space? */
+          /* fixed-size sets should have space preallocated */
+          lua_assert(GETARG_vB(i) == 0);
           luaH_resizearray(L, h, last);  /* preallocate it at once */
+        }
         for (; n > 0; n--) {
           TValue *val = s2v(ra + n);
           obj2arr(h, last - 1, val);
