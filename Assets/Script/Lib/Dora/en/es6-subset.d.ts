@@ -1163,6 +1163,13 @@ interface Math {
 	 * @param x A numeric expression.
 	 */
 	log1p(x: number): number;
+
+	/**
+	 * Returns the integral part of the a numeric expression, x, removing any fractional digits.
+	 * If x is already an integer, the result is x.
+	 * @param x A numeric expression.
+	 */
+	trunc(x: number): number;
 }
 
 interface NumberConstructor {

@@ -1,6 +1,6 @@
 _ENV = Dora
 
-svg = SVG "Image/Dora.svg"
+svg = SVG "Image/dora.svg"
 const size = 1133
 
 threadLoop ->

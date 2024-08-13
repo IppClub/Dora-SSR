@@ -1440,13 +1440,29 @@ local __TS__MathAtan2 = math.atan2 or math.atan
 
 local __TS__MathModf = math.modf
 
+local function __TS__NumberIsNaN(value)
+    return value ~= value
+end
+
 local function __TS__MathSign(val)
-    if val > 0 then
-        return 1
-    elseif val < 0 then
+    if __TS__NumberIsNaN(val) or val == 0 then
+        return val
+    end
+    if val < 0 then
         return -1
     end
-    return 0
+    return 1
+end
+
+local function __TS__NumberIsFinite(value)
+    return type(value) == "number" and value == value and value ~= math.huge and value ~= -math.huge
+end
+
+local function __TS__MathTrunc(val)
+    if not __TS__NumberIsFinite(val) or val == 0 then
+        return val
+    end
+    return val > 0 and math.floor(val) or math.ceil(val)
 end
 
 local function __TS__Number(value)
@@ -1476,16 +1492,8 @@ local function __TS__Number(value)
     end
 end
 
-local function __TS__NumberIsFinite(value)
-    return type(value) == "number" and value == value and value ~= math.huge and value ~= -math.huge
-end
-
 local function __TS__NumberIsInteger(value)
     return __TS__NumberIsFinite(value) and math.floor(value) == value
-end
-
-local function __TS__NumberIsNaN(value)
-    return value ~= value
 end
 
 local function __TS__StringSubstring(self, start, ____end)
@@ -2659,6 +2667,7 @@ return {
   __TS__MathAtan2 = __TS__MathAtan2,
   __TS__MathModf = __TS__MathModf,
   __TS__MathSign = __TS__MathSign,
+  __TS__MathTrunc = __TS__MathTrunc,
   __TS__New = __TS__New,
   __TS__Number = __TS__Number,
   __TS__NumberIsFinite = __TS__NumberIsFinite,
@@ -2678,8 +2687,6 @@ return {
   __TS__ObjectKeys = __TS__ObjectKeys,
   __TS__ObjectRest = __TS__ObjectRest,
   __TS__ObjectValues = __TS__ObjectValues,
-  __TS__ParseFloat = __TS__ParseFloat,
-  __TS__ParseInt = __TS__ParseInt,
   __TS__Promise = __TS__Promise,
   __TS__PromiseAll = __TS__PromiseAll,
   __TS__PromiseAllSettled = __TS__PromiseAllSettled,

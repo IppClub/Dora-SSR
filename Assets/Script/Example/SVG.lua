@@ -5,7 +5,7 @@ local App = Dora.App -- 1
 local nvg = Dora.nvg -- 1
 local ImGui = Dora.ImGui -- 1
 local Vec2 = Dora.Vec2 -- 1
-local svg = SVG("Image/Dora.svg") -- 3
+local svg = SVG("Image/dora.svg") -- 3
 local size <const> = 1133 -- 4
 threadLoop(function() -- 6
 	local width, height -- 7
