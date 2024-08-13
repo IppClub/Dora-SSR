@@ -1160,6 +1160,13 @@ interface Math {
 	 * @param x 数值表达式。
 	 */
 	log1p(x: number): number;
+
+	/**
+	 * 返回数值表达式 x 的整数部分，去除任何小数位。
+	 * 如果 x 已经是一个整数，则结果为 x。
+	 * @param x 数值表达式。
+	 */
+	trunc(x: number): number;
 }
 
 interface NumberConstructor {
