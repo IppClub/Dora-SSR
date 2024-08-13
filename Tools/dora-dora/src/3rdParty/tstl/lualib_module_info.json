@@ -361,6 +361,16 @@
       "Iterator"
     ]
   },
+  "MapGroupBy": {
+    "exports": [
+      "__TS__MapGroupBy"
+    ],
+    "dependencies": [
+      "Map",
+      "New",
+      "Iterator"
+    ]
+  },
   "Match": {
     "exports": [
       "__TS__Match"
@@ -379,6 +389,17 @@
   "MathSign": {
     "exports": [
       "__TS__MathSign"
+    ],
+    "dependencies": [
+      "NumberIsNaN"
+    ]
+  },
+  "MathTrunc": {
+    "exports": [
+      "__TS__MathTrunc"
+    ],
+    "dependencies": [
+      "NumberIsFinite"
     ]
   },
   "New": {
@@ -477,6 +498,14 @@
       "__TS__ObjectGetOwnPropertyDescriptors"
     ]
   },
+  "ObjectGroupBy": {
+    "exports": [
+      "__TS__ObjectGroupBy"
+    ],
+    "dependencies": [
+      "Iterator"
+    ]
+  },
   "ObjectKeys": {
     "exports": [
       "__TS__ObjectKeys"
@@ -554,7 +583,8 @@
     "dependencies": [
       "Class",
       "Symbol",
-      "Iterator"
+      "Iterator",
+      "New"
     ]
   },
   "SetDescriptor": {
