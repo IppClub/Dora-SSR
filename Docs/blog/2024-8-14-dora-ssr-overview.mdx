@@ -1,0 +1,148 @@
+---
+authors: [lijin]
+tags: [Dora SSR]
+---
+
+import "@site/src/languages/highlight";
+
+# Dora SSR: A New Experience in Game Development
+
+## Reflections on Game Engine Development
+
+There was a time when every major breakthrough in game engines led to significant technological advancements in the industry, such as the transition from 2D to 3D rendering or from basic lighting to real-time shadows and physics simulations. These innovations opened up endless possibilities for game development and propelled the industry forward. However, as technology has matured, such disruptive innovations have become less common.
+
+Today, the focus in game engine development has shifted toward **optimizing and improving existing technologies** to enhance user experience and development efficiency. Especially in open-source engine projects, the integration and refinement of existing open-source libraries have become increasingly important. Open-source developers often lack the resources and manpower to build everything from scratch, such as physics engines, font loaders, or animation runtime systems. In other words, much of the work in open-source game engine development involves **integrating popular third-party libraries**.
+
+This approach not only boosts development efficiency but also makes the game engine more flexible, better catering to the diverse needs of game development. By reusing existing open-source libraries, developers can focus on creating innovative gameplay and content rather than reinventing the wheel. In this way, game engine development becomes more like **building a service platform**, providing developers with the necessary infrastructure to focus on their creative pursuits.
+
+## Positioning of the Dora SSR Engine
+
+Speaking of service platforms, the Dora SSR open-source game engine we are developing is positioned as **a user-friendly, cross-device compatible game engine and development toolchain**. Compared to the Godot engine, which includes a built-in development IDE, Dora SSR differs in that its **integrated game editor** is a **Web application** developed using ReactJS.
+
+This means that Dora’s editor and runtime can run independently across different platforms and even on various hardware devices. As a result, the game under development and the IDE do not interfere with each other within the same process, nor do they compete for resources. Ultimately, it is still possible to package the runtime and development tools into an app or installation package, much like Godot, making it easy to distribute. Preparing a game development environment becomes as simple as installing a mobile app.
+
+However, Dora SSR currently does not fully support 3D rendering. Although the game scene nodes have Z coordinates and rotation attributes for the XY axes, and a 3D camera is used by default, 3D animation models, material management, and a complete 3D rendering pipeline are yet to be implemented. Given the limited resources of the project maintainers, we also lack the capability to create advanced 3D art assets and games, which is a limitation faced by open-source developers without substantial financial backing.
+
+But, does that mean we should abandon what we love just because we can't be the best?
+
+## Open Source, Open Source, and Open Source!
+
+Of course not. We are developing an open-source game engine because of our deep passion for this endeavor. **Open-source culture** represents sharing, collaboration, and innovation, values that resonate strongly with us. Open-source is not just a development model; it's a belief—a belief that everyone can contribute to technological advancement and the growth of their field of interest, regardless of the scale.
+
+In the gaming industry, the significance of open source is particularly profound. Through open source, more developers can participate, collectively refining and optimizing the engine, and driving continuous technological progress. Moreover, open source provides learning and growth opportunities for all, from beginners to seasoned developers. For me, witnessing open-source projects improve through collective effort and seeing more people finding their dreams through open source is incredibly exciting.
+
+I envision a more **open and collaborative** world of **game creation**: a world where everyone with creativity can freely access and use various resources to bring their ideas to life without hindrance. Developers can freely distribute and share their work, receiving feedback and suggestions from around the globe. Such an open environment not only accelerates technological development but also nurtures more talented developers, advancing the entire industry. As a gaming enthusiast, the idea of having more unique and special game choices in the future, thanks to everyone's collaborative efforts, is thrilling.
+
+## Let's Talk About Getting Hands-On!
+
+The current version (v1.5.1) of the Dora SSR engine is structured as follows:
+
+<p align="center">
+  <img src={require('@site/static/img/dora-ssr-architecture.png').default} alt='Dora SSR Architecture'/>
+   Dora SSR Architecture
+</p>
+
+In summary, Dora SSR's software architecture is divided into three layers: **Hardware Abstraction Layer, Core Engine Functionality Layer, and User Interface Layer**.
+
+### Hardware Abstraction Layer
+
+Firstly, the Hardware Abstraction Layer ensures that Dora SSR can run on various operating systems and hardware platforms. Whether it's Windows, Linux, macOS, or mobile devices like iOS and Android, Dora SSR achieves cross-platform compatibility through SDL2 and the Render Hardware Interface (RHI) technology framework, bgfx. bgfx serves as an abstraction layer, providing a unified interface for underlying rendering technologies such as OpenGL, Metal, DirectX, and Vulkan. These technologies address the adaptation to **operating system interfaces** and **graphics rendering interfaces**, ensuring efficient performance across different hardware environments.
+
+### Core Engine Functionality Layer
+
+Next is the Core Engine Functionality Layer, the "heart" of Dora SSR. It includes several sub-functional layers, each responsible for different engine functions:
+
+- **Rendering Layer**: Comprising Line Renderer, Sprite Renderer, VG Renderer, and ImGui Renderer, these renderers handle various graphical rendering requests in batches.
+- **Feature Layer**: Encompassing basic modules like Physics, Assets (resource management), Graphics, Network, Audio, and ML (machine learning).
+- **Game Framework Layer**: Including modules like Platformer Game, AI (artificial intelligence), Unit (unit management), and Action (action management) to support game logic and gameplay.
+
+### User Interface Layer
+
+Finally, the User Interface Layer is where developers directly interact with the engine. Dora SSR offers a powerful Web IDE, integrating the work of other open-source projects like Monaco Editor (frontend of VSCode), Code Wire (visual script editor), Yarn Editor (game script editor), Spine Player (Spine2D animation preview), and TypeScript compiler. These tools are brought together to provide developers with a comprehensive, user-friendly development environment, allowing them to quickly get started and focus on realizing their creativity.
+
+Additionally, the User Interface Layer includes the runtime and language compilers that load, compile, and execute the game scripts written by developers. It supports multiple scripting languages through Lua VM, WASM VM, YueScript compiler, Teal compiler, and various language bindings, offering developers flexibility in choosing languages for game development.
+
+The architecture of Dora SSR is designed with cross-platform compatibility, modular functionality, and user experience in mind. Through its open-source nature, Dora SSR invites more developers to participate and contribute to creating a powerful and flexible game development platform. By organizing its architecture into distinct, scalable layers, Dora SSR simplifies the development process and provides rich feature support, making game development more accessible and enjoyable.
+
+### Dora SSR from a User Functionality Perspective
+
+From a user functionality perspective, the Dora SSR open-source engine is divided into two main parts: the engine runtime and the Web IDE. The engine runtime can operate independently of the Web IDE and external resources. By simply removing the scripts and resources required by the Web IDE from the published engine, you can obtain a pure Dora SSR runtime program, which can be used to load developed games and resources and package them for standalone release.
+
+### Dora SSR Engine Execution Process
+
+The execution process of the Dora SSR engine can be easily understood from the perspective of data flow. Essentially, the game scripts written by users are handling game logic data processing and submission operations. Once this data is submitted to the core engine modules, further data transformation, processing, and merging occur, ultimately generating the data needed by the GPU for rendering. This results in various forms of feedback and interaction, including but not limited to graphical updates and displays.
+
+## Showcase of Some Web IDE Features
+
+* **Code Editor**
+
+<p align="center">
+  <img src={require('@site/static/img/showcase1.jpg').default} alt='Dora SSR Code Editor'/>
+   Dora SSR Code Editor
+</p>
+
+Dora SSR’s Web IDE offers a fully-featured code editor that supports multiple programming languages and file types. In this demo image, we can see users writing TypeScript code and using TSX to define and control the behavior of game objects. The file tree on the left displays the project’s resource structure, including scripts, assets, and configuration files. The code editor features syntax highlighting, auto-completion, and document navigation, enhancing development efficiency. Additionally, the small window at the bottom right shows the real-time preview of the engine runtime, allowing developers to **immediately see** the **effects** of their code changes.
+
+* **Yarn Spinner Script Editor**
+
+<p align="center">
+  <img src={require('@site/static/img/showcase2.jpg').default} alt='Dora SSR Story Editor'/>
+   Dora SSR Story Editor
+</p>
+
+The Dora SSR Web IDE integrates the Yarn Spinner script editor, providing a visual and efficient storytelling tool for game developers. In this demo image, you can see the interface of the Yarn Spinner editor, where the user is writing an interactive script with decision points. The central editing window shows the script content being edited, supporting rich text formatting and simple tags like `<<jump>>` for story branching.
+
+The visual node graph on the right illustrates the script’s flow, with each node representing a story segment, connected by lines to show the story’s progression and decision paths. This graphical script editing approach allows developers to intuitively design and adjust the narrative flow.
+
+Yarn Spinner’s features not only improve the efficiency of game script writing and testing but also facilitate the design and management of complex narratives, making Dora SSR’s
+
+ Web IDE a comprehensive game development platform.
+
+* **Visual Script Editor**
+
+<p align="center">
+  <img src={require('@site/static/img/showcase3.jpg').default} alt='Dora SSR Visual Script Editor'/>
+   Dora SSR Visual Script Editor
+</p>
+
+The Dora SSR Web IDE includes a Visual Script Editor, primarily aimed at **beginners in programming**, especially teenagers, to help them transition smoothly into programming and enhance their experience. In this demo image, you can see the interface of the Visual Script Editor, which uses a graphical programming approach, allowing users to create program logic by dragging and connecting different nodes.
+
+The left panel displays variable management features, enabling users to easily add and manage variables. The central workspace shows various nodes, including loops, conditional statements, and array operations. Users can connect these nodes in an intuitive way to build complex program logic. The right panel, which is collapsible, allows users to view the compiled Teal code, which is used by the engine to execute the visual script.
+
+This graphical programming approach lowers the barrier to entry for programming, allowing beginners to grasp and implement basic programming concepts without needing to master complex syntax. For teenagers, this approach not only makes learning more enjoyable but also fosters logical thinking and problem-solving skills, helping more people easily enter the world of programming.
+
+* **Spine Animation Preview**
+
+<p align="center">
+  <img src={require('@site/static/img/showcase4.jpg').default} alt='Dora SSR Animation Preview'/>
+   Dora SSR Animation Preview
+</p>
+
+The Dora SSR Web IDE also integrates a Spine2D animation model preview feature. This feature allows developers to easily view and adjust Spine animation models, including switching the model’s skin and playing different animations, helping ensure that Spine animation models are loaded and played correctly in the program.
+
+## User Experience of Game Development on Various Devices
+
+Lastly, let’s talk about user experience. Earlier, I mentioned that Dora SSR aims to make setting up a game development environment as quick and simple as installing and using an app. Can Dora really achieve this?
+
+We have already been experimenting with running Dora SSR on various mobile devices, handheld consoles, and embedded devices, utilizing remote access to the Web IDE for game development and testing. Whether on Raspberry Pi, domestic MCUs, or high-performance SoCs on mobile phones, Dora SSR offers a relatively smooth experience. Even on some niche mobile devices with built-in keyboards and trackballs, we can run the engine and access the development environment locally through a browser, turning game development into an activity accessible anytime, anywhere.
+
+However, to ensure a good user experience, we recommend using at least a larger screen and a keyboard-equipped Android tablet or iPad to remotely access and use the Web IDE for game development on small-screen devices, providing a more comfortable game development experience. Whether at home, in a café, or outdoors, Dora SSR offers developers a game development environment that can be accessed anytime, anywhere, removing the constraints of device and location.
+
+<p align="center">
+  <img src={require('@site/static/img/dev-everywhere.jpg').default} alt='Dora SSR Cross-Platform Development'/>
+   Dora SSR Cross-Platform Development
+</p>
+
+## Join Our Community
+
+If you’re interested in Dora SSR, we welcome you to join our community, where we can discuss, share ideas, and collaborate together. You can find us at the following locations:
+
+- GitHub: https://github.com/IppClub/Dora-SSR
+- Gitee: https://gitee.com/pig/Dora-SSR
+- AtomGit: https://atomgit.com/ippclub/Dora-SSR
+
+We look forward to your participation in advancing open-source game engines!
+
+## Coming Soon
+
+In the upcoming series of articles, we will delve into the various modules of Dora SSR, giving you a detailed understanding of the internal workings and implementation techniques of this ever-evolving game engine. Stay tuned for our updates!
