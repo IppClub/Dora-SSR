@@ -1375,7 +1375,7 @@ entryWindow = threadLoop(function() -- 806
 							urlClicked = once(function() -- 852
 								return sleep(5) -- 852
 							end) -- 852
-							App:openURL(url) -- 853
+							App:openURL("http://localhost:8866") -- 853
 						end -- 849
 					else -- 855
 						TextColored(descColor, url) -- 855

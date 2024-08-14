@@ -850,7 +850,7 @@ entryWindow = threadLoop ->
 						BeginDisabled -> Button url
 					elseif Button url
 						urlClicked = once -> sleep 5
-						App\openURL url
+						App\openURL "http://localhost:8866"
 				else
 					TextColored descColor, url
 			else
