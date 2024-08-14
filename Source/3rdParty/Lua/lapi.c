@@ -470,6 +470,15 @@ LUA_API void *lua_touserdata (lua_State *L, int idx) {
 }
 
 
+LUA_API lua_Integer lua_tolightuserinteger (lua_State *L, int idx) {
+  const TValue *o = index2value(L, idx);
+  switch (ttype(o)) {
+    case LUA_TLIGHTUSERDATA: return check_exp(ttislightuserdata(o), val_(o).i);
+    default: return 0;
+  }
+}
+
+
 LUA_API lua_State *lua_tothread (lua_State *L, int idx) {
   const TValue *o = index2value(L, idx);
   return (!ttisthread(o)) ? NULL : thvalue(o);
@@ -646,6 +655,14 @@ LUA_API void lua_pushboolean (lua_State *L, int b) {
 LUA_API void lua_pushlightuserdata (lua_State *L, void *p) {
   lua_lock(L);
   setpvalue(s2v(L->top.p), p);
+  api_incr_top(L);
+  lua_unlock(L);
+}
+
+
+LUA_API void lua_pushlightuserinteger (lua_State *L, lua_Integer n) {
+  lua_lock(L);
+  { TValue* io = s2v(L->top.p); val_(io).i = n; settt_(io, LUA_VLIGHTUSERDATA); }
   api_incr_top(L);
   lua_unlock(L);
 }
@@ -991,6 +1008,23 @@ LUA_API int lua_setmetatable (lua_State *L, int objindex) {
       break;
     }
   }
+  L->top.p--;
+  lua_unlock(L);
+  return 1;
+}
+
+
+LUA_API int lua_setlightusermetatable (lua_State *L) {
+  Table *mt;
+  lua_lock(L);
+  api_checknelems(L, 1);
+  if (ttisnil(s2v(L->top.p - 1)))
+    mt = NULL;
+  else {
+    api_check(L, ttistable(s2v(L->top - 1)), "table expected");
+    mt = hvalue(s2v(L->top.p - 1));
+  }
+  G(L)->mt[LUA_TLIGHTUSERDATA] = mt;
   L->top.p--;
   lua_unlock(L);
   return 1;
