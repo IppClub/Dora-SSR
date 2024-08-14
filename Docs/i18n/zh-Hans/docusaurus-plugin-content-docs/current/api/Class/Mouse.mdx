@@ -21,6 +21,12 @@ import "@site/src/languages/highlight";
 const position: Vec2
 ```
 
+**用法示例：**
+```tl
+local worldPos = Mouse.position * App.devicePixelRatio
+local nodePos = node:convertToNodeSpace(worldPos)
+```
+
 ## leftButtonPressed
 
 **类型：** 只读成员变量。
