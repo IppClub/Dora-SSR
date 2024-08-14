@@ -9,6 +9,8 @@ tags: [Dora SSR, Yuescript, Auspice Gear, Game LSD]
 
 Developing my own games has been a dream since childhood, particularly fueled by my extensive use of the Warcraft 3 World Editor. This sparked a fascination with game engines and development tools. As a student, I delved into programming and soon felt the urge to expand beyond just using various programming languages for development. I started maintaining a programming language called Yuescript, tailored for writing game logic. My learning journey in graphics led me to rewrite the Cocos2d-x as a learning project, which eventually evolved into the Dora SSR game engine. Later, as my love for handheld gaming consoles grew, I began collaborating on an open, programmable gaming device called the "Auspice Gear", aiming to achieve the ultimate digital freedom in gaming.
 
+<!-- truncate -->
+
 ## The Fun and Challenges of Game Scripting Languages
 
 <p align="center">
