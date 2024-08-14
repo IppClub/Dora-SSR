@@ -215,39 +215,37 @@ Slice tolua_tofieldslice(lua_State* L, int lo, int index, const char* def) {
 }
 
 void tolua_pushlight(lua_State* L, LightValue var) {
-	lua_pushlightuserdata(L, var.p);
+	lua_pushlightuserinteger(L, var.i);
 }
 
 void tolua_setlightmetatable(lua_State* L) {
 	lua_rawgeti(L, LUA_REGISTRYINDEX, LuaType<LightValue::ValueType>()); // mt
-	if (lua_isnil(L, -1)) { // mt == nil
+	if (lua_isnil(L, -1)) // mt == nil
+	{
 		Error("[Lua] Type of light value is not registered!");
 		lua_pop(L, 1);
 		lua_pushnil(L);
 		return;
 	}
-	lua_pushlightuserdata(L, nullptr); // mt lud
-	lua_insert(L, -2); // lud mt
-	lua_setmetatable(L, -2); // lud[mt] = mt, lud
-	lua_pop(L, 1); // empty
+	lua_setlightusermetatable(L);
 }
 
 LightValue tolua_tolight(lua_State* L, int narg, LightValue def) {
 	if (lua_gettop(L) < abs(narg)) {
 		return def;
 	} else {
-		return LightValue(lua_touserdata(L, narg));
+		return LightValue(lua_tolightuserinteger(L, narg));
 	}
 }
 
 LightValue tolua_tolight(lua_State* L, int narg) {
-	return LightValue(lua_touserdata(L, narg));
+	return LightValue(lua_tolightuserinteger(L, narg));
 }
 
 LightValue tolua_tofieldlight(lua_State* L, int lo, int index, LightValue def) {
 	lua_pushnumber(L, index);
 	lua_gettable(L, lo);
-	LightValue v = lua_isnil(L, -1) ? def : LightValue(lua_touserdata(L, -1));
+	LightValue v = lua_isnil(L, -1) ? def : LightValue(lua_tolightuserinteger(L, -1));
 	lua_pop(L, 1);
 	return v;
 }
@@ -255,7 +253,7 @@ LightValue tolua_tofieldlight(lua_State* L, int lo, int index, LightValue def) {
 LightValue tolua_tofieldlight(lua_State* L, int lo, int index) {
 	lua_pushnumber(L, index);
 	lua_gettable(L, lo);
-	LightValue v = LightValue(lua_touserdata(L, -1));
+	LightValue v = LightValue(lua_tolightuserinteger(L, -1));
 	lua_pop(L, 1);
 	return v;
 }
