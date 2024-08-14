@@ -21,6 +21,12 @@ Then use `node:convertToNodeSpace()` to convert the world coordinate to the loca
 const position: Vec2
 ```
 
+**Usage:**
+```tl
+local worldPos = Mouse.position * App.devicePixelRatio
+local nodePos = node:convertToNodeSpace(worldPos)
+```
+
 ## leftButtonPressed
 
 **Type:** Readonly Field.
