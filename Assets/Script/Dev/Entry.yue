@@ -844,6 +844,12 @@ entryWindow = threadLoop ->
 		Begin "Web IDE", displayWindowFlags, ->
 			Separator!
 			TextColored themeColor, "#{zh and '网页' or 'Web'} IDE"
+			SameLine!
+			TextDisabled '(?)'
+			if IsItemHovered!
+				BeginTooltip ->
+					PushTextWrapPos 280, ->
+						Text zh and '在本机或是本地局域网连接的其他设备上，使用浏览器访问下面这个地址来使用网页 IDE' or 'You can use the Web IDE by accessing the following address in a browser on this machine or other devices connected to the local network'
 			if url := webStatus?.url
 				if isDesktop and not config.fullScreen
 					if urlClicked
