@@ -48,6 +48,8 @@ namespace fs = ghc::filesystem;
 namespace fs = std::filesystem;
 #endif // BX_PLATFORM_LINUX
 
+#include <atomic>
+
 #if BX_PLATFORM_WINDOWS
 static std::string get_local_ip() {
 	std::string localIP;
@@ -521,7 +523,7 @@ bool HttpClient::isStopped() const noexcept {
 	return _stopped;
 }
 
-void HttpClient::downloadAsync(String url, String filePath, const std::function<void(bool interrupted, uint64_t current, uint64_t total)>& progress) {
+void HttpClient::downloadAsync(String url, String filePath, const std::function<bool(bool interrupted, uint64_t current, uint64_t total)>& progress) {
 	if (_stopped) {
 		progress(true, 0, 0);
 		return;
@@ -569,6 +571,7 @@ void HttpClient::downloadAsync(String url, String filePath, const std::function<
 			httplib::Client client(schemeHostPort);
 			client.enable_server_certificate_verification(false);
 			client.set_follow_location(true);
+			client.set_connection_timeout(10);
 			std::ofstream out(fileStr, std::ios::out | std::ios::trunc | std::ios::binary);
 			if (!out) {
 				Error("invalid local file path \"{}\" to download to", fileStr);
@@ -590,14 +593,19 @@ void HttpClient::downloadAsync(String url, String filePath, const std::function<
 					}
 					return true;
 				},
-				[&](uint64_t current, uint64_t total) -> bool {
-					SharedApplication.invokeInLogic([progress, current, total]() {
-						progress(false, current, total);
+				[&, stopped = std::make_shared<std::atomic<bool>>(false)](uint64_t current, uint64_t total) -> bool {
+					SharedApplication.invokeInLogic([progress, current, total, stopped]() {
+						if (!*stopped) {
+							*stopped = progress(false, current, total);
+						}
 					});
+					if (*stopped) {
+						return false;
+					}
 					return true;
 				});
 			if (!result || result.error() != httplib::Error::Success) {
-				Error("failed to download \"{}\" due to {}", urlStr, httplib::to_string(result.error()));
+				Info("failed to download \"{}\" due to {}", urlStr, httplib::to_string(result.error()));
 				SharedApplication.invokeInLogic([progress]() {
 					progress(true, 0, 0);
 				});

@@ -17,6 +17,7 @@ static void httpclient_download_async(int64_t url, int64_t full_path, int32_t fu
 		args->push(current);
 		args->push(total);
 		SharedWasmRuntime.invoke(func);
+		return std::get<bool>(args->pop());
 	});
 }
 static void linkHttpClient(wasm3::module3& mod) {

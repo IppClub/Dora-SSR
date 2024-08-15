@@ -7,8 +7,9 @@ local record HttpClient
 	-- @param progress (string) [optional] A callback function that is called periodically to report the download progress.
 	--	The function receives two parameters: current (the number of bytes downloaded so far)
 	--	and total (the total number of bytes to be downloaded).
+	-- If the function returns true, the download will be canceled.
 	-- @return (boolean) A boolean value indicating whether the download was done successfully.
-	downloadAsync: function(self: HttpClient, url: string, fullPath: string, progress: function(current: integer, total: integer)): boolean
+	downloadAsync: function(self: HttpClient, url: string, fullPath: string, progress: function(current: integer, total: integer): boolean): boolean
 end
 
 local httpClient: HttpClient
