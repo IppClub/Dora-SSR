@@ -16,7 +16,7 @@ import "@site/src/languages/highlight";
 
 **Signature:**
 ```tl
-downloadAsync: function(self: HttpClient, url: string, fullPath: string, progress: function(current: integer, total: integer)): boolean
+downloadAsync: function(self: HttpClient, url: string, fullPath: string, progress: function(current: integer, total: integer): boolean): boolean
 ```
 
 **Parameters:**
@@ -25,7 +25,7 @@ downloadAsync: function(self: HttpClient, url: string, fullPath: string, progres
 | --- | --- | --- |
 | url | string | The URL of the file to download. |
 | fullPath | string | The full path where the downloaded file should be saved. |
-| progress | string | [optional] A callback function that is called periodically to report the download progress.	The function receives two parameters: current (the number of bytes downloaded so far)	and total (the total number of bytes to be downloaded). |
+| progress | string | [optional] A callback function that is called periodically to report the download progress.	The function receives two parameters: current (the number of bytes downloaded so far)	and total (the total number of bytes to be downloaded).If the function returns true, the download will be canceled. |
 
 **Returns:**
 
