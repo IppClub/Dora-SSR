@@ -531,10 +531,11 @@ do
 				failed = true
 			else
 				if progress then
-					progress(current, total)
+					failed = progress(current, total)
 				end
 				done = current == total
 			end
+			return failed
 		end)
 		wait(function()
 			return done or failed

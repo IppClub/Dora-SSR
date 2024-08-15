@@ -20,11 +20,12 @@ impl HttpClient {
 	/// * `full_path` - The full path where the downloaded file should be saved.
 	/// * `progress` - A callback function that is called periodically to report the download progress.
 	///   The function receives three parameters: `interrupted` (a boolean value indicating whether the download was interrupted), `current` (the number of bytes downloaded so far) and `total` (the total number of bytes to be downloaded).
-	pub fn download_async(url: &str, full_path: &str, mut progress: Box<dyn FnMut(bool, i64, i64)>) {
+	pub fn download_async(url: &str, full_path: &str, mut progress: Box<dyn FnMut(bool, i64, i64) -> bool>) {
 		let mut stack = crate::dora::CallStack::new();
 		let stack_raw = stack.raw();
 		let func_id = crate::dora::push_function(Box::new(move || {
-			progress(stack.pop_bool().unwrap(), stack.pop_i64().unwrap(), stack.pop_i64().unwrap())
+			let result = progress(stack.pop_bool().unwrap(), stack.pop_i64().unwrap(), stack.pop_i64().unwrap());
+			stack.push_bool(result);
 		}));
 		unsafe { httpclient_download_async(crate::dora::from_string(url), crate::dora::from_string(full_path), func_id, stack_raw); }
 	}

@@ -6803,9 +6803,10 @@ interface HttpClient {
 	 * @param url 需要下载的文件的URL。
 	 * @param fullPath 下载文件应保存的完整路径。
 	 * @param progress [可选] 一个定期报告下载进度的回调函数。该函数接收两个参数：current（到目前为止下载的字节数）和 total（需要下载的总字节数）。
+	 * 如果回调函数返回 `true`，则下载将被取消。
 	 * @returns 一个布尔值，表示下载是否成功完成。
 	 */
-	downloadAsync(url: string, fullPath: string, progress?: (current: number, total: number) => void): boolean;
+	downloadAsync(url: string, fullPath: string, progress?: (this: void, current: number, total: number) => boolean): boolean;
 }
 
 const httpClient: HttpClient;

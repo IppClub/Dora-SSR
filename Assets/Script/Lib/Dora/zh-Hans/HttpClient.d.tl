@@ -6,8 +6,9 @@ local record HttpClient
 	-- @param fullPath (string) 下载文件应保存的完整路径。
 	-- @param progress (string) [可选] 一个定期报告下载进度的回调函数。
 	--	该函数接收两个参数：current（到目前为止下载的字节数）和 total（需要下载的总字节数）。
+	-- 如果回调函数返回 `true`，则下载将被取消。
 	-- @return (boolean) 一个布尔值，表示下载是否成功完成。
-	downloadAsync: function(self: HttpClient, url: string, fullPath: string, progress?: function(current: integer, total: integer)): boolean
+	downloadAsync: function(self: HttpClient, url: string, fullPath: string, progress?: function(current: integer, total: integer): boolean): boolean
 end
 
 local httpClient: HttpClient

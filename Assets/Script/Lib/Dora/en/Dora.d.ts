@@ -6803,9 +6803,10 @@ interface HttpClient {
 	 * @param progress [optional] A callback function that is called periodically to report the download progress.
 	 * The function receives two parameters: current (the number of bytes downloaded so far)
 	 * and total (the total number of bytes to be downloaded).
+	 * If the function returns true, the download will be canceled.
 	 * @returns A boolean value indicating whether the download was done successfully.
 	 */
-	downloadAsync(url: string, fullPath: string, progress?: (current: number, total: number) => void): boolean;
+	downloadAsync(url: string, fullPath: string, progress?: (this: void, current: number, total: number) => boolean): boolean;
 }
 
 const httpClient: HttpClient;
