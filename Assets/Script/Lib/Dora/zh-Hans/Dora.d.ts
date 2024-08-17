@@ -6795,6 +6795,82 @@ export interface tolua {
 export const tolua: tolua;
 
 /**
+ * 代表一个HTTP请求对象。
+ */
+interface Request {
+	/** 包含请求头信息的表。 */
+	headers: {string: string}
+	/** 请求的内容体。 */
+	body: LuaTable | string
+}
+
+/**
+ * 代表一个HTTP服务器，可以处理请求和传输文件。
+ */
+interface HttpServer {
+	/**
+	 * 服务器的本地IP地址。
+	 */
+	readonly localIP: string;
+	/**
+	 * WebSocket连接的数量。
+	 */
+	readonly wsConnectionCount: number;
+	/**
+	 * 服务器的根静态文件目录的路径。
+	 */
+	wwwPath: string
+	/**
+	 * 在指定端口上启动HTTP服务器。
+	 * @param port 要启动服务器的端口号。
+	 * @returns 一个布尔值，表示服务器是否成功启动。
+	 */
+	start(port: number): boolean;
+	/**
+	 * 在指定端口上启动WebSocket服务器。
+	 * @param port 要启动服务器的端口号。
+	 * @returns 一个布尔值，表示服务器是否成功启动。
+	 */
+	startWS(port: number): boolean;
+	/**
+	 * 注册一个处理函数，用于处理POST请求。
+	 * @param pattern 要匹配的URL模式。
+	 * @param handler 匹配模式时要调用的处理函数。函数应返回一个包含可以序列化为JSON的响应数据的字典。
+	 */
+	post(
+		pattern: string,
+		handler: (this: void, req: Request) => LuaTable
+	): void;
+	/**
+	 * 注册一个处理函数，用于在协程中处理POST请求。
+	 * @param pattern 要匹配的URL模式。
+	 * @param handler 匹配模式时要调用的处理函数。函数应返回一个包含可以序列化为JSON的响应数据的字典。并且函数将在协程中运行。
+	 */
+	postSchedule(
+		pattern: string,
+		handler: (this: void, req: Request) => LuaTable
+	): void;
+	/**
+	 * 注册一个处理函数，用于处理文件上传的多部分POST请求。
+	 * @param pattern 要匹配的URL模式。
+	 * @param acceptHandler 匹配模式时要调用的处理函数。函数应返回要将文件保存为的文件名，或者返回 `null` 来拒绝文件。
+	 * @param doneHandler 匹配模式时要调用的处理函数。函数应返回 `true` 来接受文件，或者返回 `false` 来拒绝文件。
+	 */
+	upload(
+		pattern: string,
+		acceptHandler: (this: void, req: Request, filename: string) => string | null,
+		doneHandler: (this: void, req: Request, filename: string) => boolean
+	): void;
+	/**
+	 * 停止服务器，包括已启动的HTTP服务器和WebSocket服务器。
+	 */
+	stop(): void;
+}
+
+const httpServer: HttpServer;
+export {httpServer as HttpServer};
+
+/**
  * 代表一个HTTP客户端。
  */
 interface HttpClient {
@@ -6814,4 +6890,8 @@ export {httpClient as HttpClient};
 
 } // module "Dora"
 
+/**
+ * 检查并打印输入参数值的内部信息。
+ * @param args 要检查的参数。
+ */
 declare function p(this: void, ...args: any[]): void;

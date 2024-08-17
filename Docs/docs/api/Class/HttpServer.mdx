@@ -1,0 +1,183 @@
+import "@site/src/languages/highlight";
+
+# HttpServer
+
+**Description:**
+
+&emsp;&emsp;Represents an HTTP server that can handle requests and serve files.
+
+## localIP
+
+**Type:** Readonly Field.
+
+**Description:**
+
+&emsp;&emsp;The local IP address of the server.
+
+**Signature:**
+```tl
+const localIP: string
+```
+
+## wsConnectionCount
+
+**Type:** Readonly Field.
+
+**Description:**
+
+&emsp;&emsp;The number of WebSocket connections.
+
+**Signature:**
+```tl
+const wsConnectionCount: integer
+```
+
+## wwwPath
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The path to the root static file directory of the server.
+
+**Signature:**
+```tl
+wwwPath: string
+```
+
+## start
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Starts the HTTP server on the specified port.
+
+**Signature:**
+```tl
+start: function(self: HttpServer, port: integer): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| port | integer | The port number on which to start the server. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | A boolean value indicating whether the server started successfully. |
+
+## startWS
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Starts the WebSocket server on the specified port.
+
+**Signature:**
+```tl
+startWS: function(self: HttpServer, port: integer): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| port | integer | The port number on which to start the server. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | A boolean value indicating whether the server started successfully. |
+
+## post
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Registers a handler function for handling POST requests.
+
+**Signature:**
+```tl
+post: function(
+		self: HttpServer,
+		pattern: string,
+		handler: function(Request): table
+	)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| pattern | string | The pattern to match the URL of the request. |
+| handler | function | The handler function to call when the pattern is matched. The function should return a Lua table containing response data that can be serialized to JSON. |
+
+## postSchedule
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Registers a handler function for handling POST requests in a coroutine.
+
+**Signature:**
+```tl
+postSchedule: function(
+		self: HttpServer,
+		pattern: string,
+		handler: function(Request): table
+	)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| pattern | string | The URL pattern to match. |
+| handler | function | The handler function to call when the pattern is matched. The function should return a dictionary containing response data that can be serialized to JSON, and the function will run in a coroutine. |
+
+## upload
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Registers a handler function for handling multipart POST requests for file uploads.
+
+**Signature:**
+```tl
+upload: function(
+		self: HttpServer,
+		pattern: string,
+		acceptHandler: function(req: Request, filename: string): (string | nil),
+		doneHandler: function(req: Request, filename: string): boolean
+	)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| pattern | string | The URL pattern to match. |
+| acceptHandler | function | The handler function to call when the pattern is matched. The function should return the filename to save the file as, or return `null` to reject the file. |
+| doneHandler | function | The handler function to call when the pattern is matched. The function should return `true` to accept the file, or `false` to reject the file. |
+
+## stop
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Stops the servers, including HTTP and WebSocket servers.
+
+**Signature:**
+```tl
+stop: function(self: HttpServer)
+```
