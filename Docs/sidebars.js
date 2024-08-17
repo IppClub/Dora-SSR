@@ -784,8 +784,18 @@ const sidebars = {
 			items: [
 				{
 					type: 'doc',
+					label: 'Request',
+					id: 'api/Class/Request',
+				},
+				{
+					type: 'doc',
 					label: 'HttpClient',
 					id: 'api/Class/HttpClient',
+				},
+				{
+					type: 'doc',
+					label: 'HttpServer',
+					id: 'api/Class/HttpServer',
 				},
 			]
 		},

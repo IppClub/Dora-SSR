@@ -6793,6 +6793,82 @@ export interface tolua {
 export const tolua: tolua;
 
 /**
+ * The HTTP request object.
+ */
+interface Request {
+	/** A table containing the request headers. */
+	headers: {string: string}
+	/** The body of the request. */
+	body: LuaTable | string
+}
+
+/**
+ * Represents an HTTP server that can handle requests and serve files.
+ */
+interface HttpServer {
+	/**
+	 * The local IP address of the server.
+	 */
+	readonly localIP: string;
+	/**
+	 * The number of active WebSocket connections.
+	 */
+	readonly wsConnectionCount: number;
+	/**
+	 * The path to the server's root static files directory.
+	 */
+	wwwPath: string
+	/**
+	 * Starts the HTTP server on the specified port.
+	 * @param port The port number to start the server on.
+	 * @returns A boolean value indicating whether the server was started successfully.
+	 */
+	start(port: number): boolean;
+	/**
+	 * Starts the WebSocket server on the specified port.
+	 * @param port The port number to start the server on.
+	 * @returns A boolean value indicating whether the server was started successfully.
+	 */
+	startWS(port: number): boolean;
+	/**
+	 * Registers a handler function for POST requests.
+	 * @param pattern The URL pattern to match.
+	 * @param handler The handler function to call when the pattern is matched. The function should return a LuaTable containing the response data which can be serialized to JSON.
+	 */
+	post(
+		pattern: string,
+		handler: (this: void, req: Request) => LuaTable
+	): void;
+	/**
+	 * Registers a handler function in a coroutine for POST requests.
+	 * @param pattern The URL pattern to match.
+	 * @param handler The handler function to call when the pattern is matched. The function should return a LuaTable containing the response data which can be serialized to JSON. And the function will be run in a coroutine.
+	 */
+	postSchedule(
+		pattern: string,
+		handler: (this: void, req: Request) => LuaTable
+	): void;
+	/**
+	 * Registers a handler function for multipart POST requests as file uploads.
+	 * @param pattern The URL pattern to match.
+	 * @param acceptHandler The handler function to call when a file is being uploaded. The function should return the filename to save the file as, or `null` to reject the file.
+	 * @param doneHandler The handler function to call when the file upload is complete. The function should return `true` to accept the file, or `false` to reject it.
+	 */
+	upload(
+		pattern: string,
+		acceptHandler: (this: void, req: Request, filename: string) => string | null,
+		doneHandler: (this: void, req: Request, filename: string) => boolean
+	): void;
+	/**
+	 * Stops the servers, including HTTP and WebSocket servers.
+	 */
+	stop(): void;
+}
+
+const httpServer: HttpServer;
+export {httpServer as HttpServer};
+
+/**
  * Represents an HTTP client.
  */
 interface HttpClient {
@@ -6814,4 +6890,8 @@ export {httpClient as HttpClient};
 
 } // module "Dora"
 
+/**
+ * Inspect and print the internal information of the input parameter value.
+ * @param args The values to inspect.
+ */
 declare function p(this: void, ...args: any[]): void;

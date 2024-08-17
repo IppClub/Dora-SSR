@@ -4031,7 +4031,7 @@ inline bool read_content_without_length(Stream &strm,
 }
 
 template <typename T>
-inline bool read_content_chunked(Stream &strm, T &x,
+inline bool read_content_chunked(Stream &strm, T &x, Progress progress,
                                  ContentReceiverWithProgress out) {
   const auto bufsiz = 16;
   char buf[bufsiz];
@@ -4051,7 +4051,7 @@ inline bool read_content_chunked(Stream &strm, T &x,
 
     if (chunk_len == 0) { break; }
 
-    if (!read_content_with_length(strm, chunk_len, nullptr, out)) {
+    if (!read_content_with_length(strm, chunk_len, std::move(progress), out)) {
       return false;
     }
 
@@ -4149,7 +4149,7 @@ bool read_content(Stream &strm, T &x, size_t payload_max_length, int &status,
         auto exceed_payload_max_length = false;
 
         if (is_chunked_transfer_encoding(x.headers)) {
-          ret = read_content_chunked(strm, x, out);
+          ret = read_content_chunked(strm, x, std::move(progress), out);
         } else if (!has_header(x.headers, "Content-Length")) {
           ret = read_content_without_length(strm, out);
         } else {
