@@ -16,6 +16,7 @@ import luaLogo from './lua.png';
 import yueLogo from './yuescript.png';
 import tealLogo from './teal.png';
 import typescriptLogo from './typescript.png';
+import yarnLogo from './yarn.png';
 import { AiFillFolderAdd } from 'react-icons/ai';
 import { SiNodered } from 'react-icons/si';
 import { DiCode } from 'react-icons/di';
@@ -64,7 +65,7 @@ const fileTypes: FileType[] = [
 		padding: '13px'
 	},
 	{
-		icon: <img src="/yarn-editor/icon_512x512.png" alt="Yarn" width="50px" height="50px" style={{marginLeft: '0px'}}/>,
+		icon: <img src={yarnLogo} alt="Yarn" width="50px" height="50px" style={{marginLeft: '0px'}}/>,
 		name: "Yarn",
 		desc: "file.yarn",
 		padding: '15px'
