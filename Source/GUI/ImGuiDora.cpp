@@ -844,11 +844,11 @@ void ImGuiDora::showStats(bool* pOpen, const std::function<void()>& extra) {
 			ImGui::SameLine();
 			auto version = SharedApplication.getVersion();
 			ImGui::TextUnformatted(&version.front(), &version.back() + 1);
-			ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"调试模式：") : "Debug Mode:");
+			ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"调试版本：") : "Debug Build:");
 			ImGui::SameLine();
 			auto isDebugging = SharedApplication.isDebugging();
 			if (useChinese) {
-				ImGui::TextUnformatted(r_cast<const char*>(isDebugging ? u8"开启" : u8"关闭"));
+				ImGui::TextUnformatted(r_cast<const char*>(isDebugging ? u8"是" : u8"否"));
 			} else {
 				ImGui::TextUnformatted(isDebugging ? "true" : "false");
 			}

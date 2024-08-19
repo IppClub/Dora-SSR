@@ -1425,10 +1425,12 @@ export default function PersistentDrawerLeft() {
 						}
 						const rootNode = treeData.at(0);
 						if (rootNode === undefined) return;
+						let targetNode: TreeDataType | null = null;
 						const visitData = (node: TreeDataType) => {
 							if (node.key === target.key) {
 								node.key = newFile;
 								node.title = newName;
+								targetNode = node;
 								return true;
 							}
 							if (node.children) {
@@ -1442,6 +1444,13 @@ export default function PersistentDrawerLeft() {
 						};
 						visitData(rootNode);
 						setTreeData([rootNode]);
+						if (targetNode !== null) {
+							setSelectedNode(targetNode);
+							setSelectedKeys([newFile]);
+						} else {
+							setSelectedNode(null);
+							setSelectedKeys([]);
+						}
 						addAlert(t("alert.renamed", {oldFile: path.basename(oldFile), newFile: path.basename(newFile)}), "success");
 					}).catch(() => {
 						addAlert(t("alert.renameFailed"), "error");
@@ -1666,10 +1675,9 @@ export default function PersistentDrawerLeft() {
 				const doRename = () => {
 					return Service.rename({old: self.key, new: newFile}).then((res) => {
 						if (res.success) {
-							loadAssets().then(() => {
+							return loadAssets().then(() => {
 								addAlert(t("alert.moved", {from: self.title, to: targetName}), "success");
 							});
-							return;
 						}
 						addAlert(t("alert.movingFailed", {from: self.title, to: targetName}), "error");
 					});
@@ -1680,8 +1688,9 @@ export default function PersistentDrawerLeft() {
 						doRename().then(() => {
 							setFiles(res.newFiles);
 							setExpandedKeys(res.newExpanded);
-							setSelectedNode(null);
-							setSelectedKeys([]);
+							if (tabIndex !== null && tabIndex < res.newFiles.length && res.newFiles[tabIndex].key === newFile) {
+								switchTab(tabIndex, res.newFiles[tabIndex]);
+							}
 						});
 					});
 				} else {
@@ -1692,13 +1701,14 @@ export default function PersistentDrawerLeft() {
 							setFiles(prev => [...prev]);
 						}
 						setExpandedKeys(expandedKeys.filter(k => k !== self.key));
-						setSelectedNode(null);
-						setSelectedKeys([]);
+						if (tabIndex !== null && tabIndex < files.length && files[tabIndex].key === newFile) {
+							switchTab(tabIndex, files[tabIndex]);
+						}
 					});
 				}
 			}
 		});
-	}, [checkFileReadonly, expandedKeys, files, updateDir, loadAssets, t, treeData]);
+	}, [checkFileReadonly, expandedKeys, files, updateDir, loadAssets, t, treeData, switchTab, tabIndex]);
 
 	const onUploaded = useCallback((dir: string, file: string) => {
 		const key = path.join(dir, file);
@@ -1918,6 +1928,41 @@ export default function PersistentDrawerLeft() {
 			case "CloseOthers": closeOtherTabs(); break;
 		}
 	}, [saveCurrentTab, saveAllTabs, closeCurrentTab, closeAllTabs, closeOtherTabs]);
+
+	const onTabClose = useCallback((key: string) => {
+		let targetIndex = files.findIndex(f => f.key === key);
+		if (targetIndex !== -1 && tabIndex !== null) {
+			const isCurrent = tabIndex === targetIndex;
+			const closeTab = () => {
+				const newFiles = files.filter((_, index) => index !== targetIndex);
+				setFiles(newFiles);
+				if (isCurrent) {
+					if (newFiles.length === 0) {
+						switchTab(null);
+					} else {
+						if (targetIndex >= newFiles.length) {
+							targetIndex = newFiles.length - 1;
+						}
+						switchTab(targetIndex, newFiles[targetIndex]);
+					}
+				} else {
+					if (targetIndex < tabIndex) {
+						setTabIndex(tabIndex - 1);
+					}
+				}
+			};
+			if (files[targetIndex].contentModified !== null) {
+				setPopupInfo({
+					title: t("popup.closingTab"),
+					msg: t("popup.closingNoSave"),
+					cancelable: true,
+					confirmed: closeTab,
+				});
+				return;
+			}
+			setTimeout(closeTab, 10);
+		}
+	}, [switchTab, t, files, tabIndex]);
 
 	const onKeyDown = (event: KeyboardEvent) => {
 		if (event.ctrlKey || event.altKey || event.metaKey) {
@@ -2277,6 +2322,7 @@ export default function PersistentDrawerLeft() {
 							items={files}
 							onChange={tabBarOnChange}
 							onMenuClick={onTabMenuClick}
+							onTabClose={onTabClose}
 						/>
 					</Toolbar>
 				</AppBar>

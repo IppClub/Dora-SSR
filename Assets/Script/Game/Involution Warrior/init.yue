@@ -849,9 +849,9 @@ Director.ui\addChild with AlignNode true
 			\css 'height: 1; width: 0; margin-top: 200; margin-right: 80'
 			\addChild with CircleButton {
 					text: "FIGHT"
-					radius: 80
+					radius: 40 * uiScale
 					fontName: "sarasa-mono-sc-regular"
-					fontSize: 48
+					fontSize: math.floor 24 * uiScale
 				}
 				.scaleX = .scaleY = 1 / uiScale
 				\slot "Tapped", ->
@@ -865,9 +865,9 @@ Director.ui\addChild with AlignNode true
 			\css 'height: 1; width: 0; margin-top: 200'
 			\addChild with CircleButton {
 					text: "STRIKE\nBACK"
-					radius: 80
+					radius: 40 * uiScale
 					fontName: "sarasa-mono-sc-regular"
-					fontSize: 48
+					fontSize: math.floor 24 * uiScale
 				}
 				.scaleX = .scaleY = 1 / uiScale
 				.visible = false
@@ -887,9 +887,9 @@ Director.ui\addChild with AlignNode true
 			\css 'height: 1; width: 0; margin-top: 200; margin-left: 80'
 			\addChild with CircleButton {
 					text: "ANOTHER\nWAY"
-					radius: 80
+					radius: 40 * uiScale
 					fontName: "sarasa-mono-sc-regular"
-					fontSize: 48
+					fontSize: math.floor 24 * uiScale
 				}
 				.scaleX = .scaleY = 1 / uiScale
 				\slot "Tapped", ->
