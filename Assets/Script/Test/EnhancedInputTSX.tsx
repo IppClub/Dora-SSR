@@ -173,7 +173,7 @@ node.schedule(loop(() => {
 		ImGui.ProgressBar(holdTime, Vec2(-1, 30));
 	});
 	return false;
-}))
+}));
 
 let checked = false;
 

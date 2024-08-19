@@ -232,11 +232,11 @@ getProjectEntries = (path) ->
 					bannerFile = Path path, Path\getPath(fileName), "Image", "banner.jpg"
 					bannerFile = nil unless Content\exist bannerFile
 				if bannerFile then thread ->
-					Cache\loadAsync bannerFile
-					bannerTex = Texture2D bannerFile
-					if bannerTex
-						entry[] = bannerFile
-						entry[] = bannerTex
+					if Cache\loadAsync bannerFile
+						bannerTex = Texture2D bannerFile
+						if bannerTex
+							entry[] = bannerFile
+							entry[] = bannerTex
 				entries[] = entry
 	table.sort entries, (a, b) -> a[1] < b[1]
 	entries
@@ -802,6 +802,10 @@ match = (name) ->
 	res = not filterText or name\lower!\match filterText
 	anyEntryMatched = true if res
 	res
+iconTex = nil
+thread ->
+	if Cache\loadAsync "Image/icon_s.png"
+		iconTex = Texture2D "Image/icon_s.png"
 
 entryWindow = threadLoop ->
 	if App.fpsLimited ~= config.fpsLimited
@@ -830,8 +834,9 @@ entryWindow = threadLoop ->
 		Begin "Web IDE Connected", displayWindowFlags, ->
 			Separator!
 			TextColored themeColor, "#{zh and '网页 IDE 已连接 ……' or 'Web IDE connected ...'}"
-			Image "Image/icon_s.png", Vec2 24, 24
-			SameLine!
+			if iconTex
+				Image "Image/icon_s.png", Vec2 24, 24
+				SameLine!
 			slogon = zh and 'Dora 启动！' or 'Dora Start!'
 			TextColored descColor, slogon
 			Separator!
@@ -873,8 +878,9 @@ entryWindow = threadLoop ->
 	PushStyleVar "WindowPadding", Vec2(10, 0), ->
 		Begin "Dora Dev", displayWindowFlags, ->
 			Dummy Vec2 fullWidth - 20, 0
-			Image "Image/icon_s.png", Vec2 24, 24
-			SameLine!
+			if iconTex
+				Image "Image/icon_s.png", Vec2 24, 24
+				SameLine!
 			TextColored themeColor, "DORA SSR #{zh and '开发' or 'DEV'}"
 			SameLine!
 			if fullWidth >= 320

@@ -14,6 +14,7 @@ import Box from '@mui/material/Box';
 import { StyledMenu, StyledMenuItem } from './Menu';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
+import { IoIosClose } from "react-icons/io";
 import {
 	AiOutlineClose,
 	AiOutlineSave,
@@ -23,7 +24,7 @@ import {
 } from 'react-icons/ai';
 import { useTranslation } from 'react-i18next';
 import { Color } from './Frame';
-import { Tooltip } from '@mui/material';
+import { IconButton, Tooltip } from '@mui/material';
 
 export type TabStatus = "normal" | "warning" | "error";
 
@@ -39,6 +40,7 @@ export interface FileTabBarProps {
 	items: TabItem[];
 	onChange: (index: number) => void;
 	onMenuClick: (event: TabMenuEvent) => void;
+	onTabClose: (key: string) => void;
 };
 
 interface StyledTabsProps {
@@ -53,9 +55,12 @@ export const StyledTabs = styled((props: StyledTabsProps) => (
 		variant='scrollable'
 		selectionFollowsFocus
 		{...props}
-		TabIndicatorProps={{ children: <span className="MuiTabs-indicatorSpan" /> }}
+		TabIndicatorProps={{
+			children: <span className="MuiTabs-indicatorSpan"/>
+		}}
 	/>
 ))({
+	margin: 0,
 	'& .MuiTabs-indicator': {
 		display: 'flex',
 		justifyContent: 'center',
@@ -70,16 +75,32 @@ export const StyledTabs = styled((props: StyledTabsProps) => (
 
 interface StyledTabProps {
 	label: string;
-	tooltip?: string;
-	status?: TabStatus;
-	onContextMenu?: (event: React.MouseEvent) => void;
+	tooltip: string;
+	status: TabStatus;
+	onContextMenu: (event: React.MouseEvent) => void;
+	onTabClose?: (key: string) => void;
 }
 
-export const StyledTab = styled((props: StyledTabProps) => (
-	<Tooltip arrow title={props.tooltip}>
-		<Tab disableRipple {...props}/>
-	</Tooltip>
-))(({ theme, status }) => {
+export const StyledTab = styled((props: StyledTabProps) => {
+	const {tooltip, onTabClose} = props;
+	const newProps = {...props};
+	delete newProps.onTabClose;
+	return (
+		<div>
+			<Tooltip arrow title={props.tooltip}>
+				<Tab disableRipple {...newProps}/>
+			</Tooltip>
+			<IconButton size='small' color="secondary" sx={{marginLeft: -3, opacity: 0.6}}
+				onPointerDown={() => {
+					if (onTabClose) {
+						onTabClose(tooltip);
+					}
+				}}>
+				<IoIosClose/>
+			</IconButton>
+		</div>
+	);
+})(({ theme, status }) => {
 	let color = Color.Secondary;
 	let selectedColor = Color.Primary;
 	switch (status) {
@@ -115,7 +136,7 @@ export type TabMenuEvent =
 	"CloseAll";
 
 export default memo(function FileTabBar(props: FileTabBarProps) {
-	const {index, items = [], onChange, onMenuClick} = props;
+	const {index, items = [], onChange, onMenuClick, onTabClose} = props;
 	const [anchorEl, setAnchorEl] = useState<Element | null>(null);
 	const [value, setValue] = useState<number | false>(false);
 	const {t} = useTranslation();
@@ -152,6 +173,7 @@ export default memo(function FileTabBar(props: FileTabBarProps) {
 					items.map((item, index) =>
 						<StyledTab
 							onContextMenu={onContextMenu}
+							onTabClose={onTabClose}
 							key={item.key}
 							tooltip={item.key}
 							label={(index < 9 ? index + 1 + '.' : '') + (item.contentModified !== null ? '*' + item.title : item.title)}

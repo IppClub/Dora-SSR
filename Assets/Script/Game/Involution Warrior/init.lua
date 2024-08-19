@@ -1130,9 +1130,9 @@ Director.ui:addChild((function() -- 815
 			_with_2:addChild((function() -- 850
 				local _with_3 = CircleButton({ -- 851
 					text = "FIGHT", -- 851
-					radius = 80, -- 852
+					radius = 40 * uiScale, -- 852
 					fontName = "sarasa-mono-sc-regular", -- 853
-					fontSize = 48 -- 854
+					fontSize = math.floor(24 * uiScale) -- 854
 				}) -- 850
 				do -- 856
 					local _tmp_0 = 1 / uiScale -- 856
@@ -1160,9 +1160,9 @@ Director.ui:addChild((function() -- 815
 			_with_2:addChild((function() -- 866
 				local _with_3 = CircleButton({ -- 867
 					text = "STRIKE\nBACK", -- 867
-					radius = 80, -- 868
+					radius = 40 * uiScale, -- 868
 					fontName = "sarasa-mono-sc-regular", -- 869
-					fontSize = 48 -- 870
+					fontSize = math.floor(24 * uiScale) -- 870
 				}) -- 866
 				do -- 872
 					local _tmp_0 = 1 / uiScale -- 872
@@ -1195,9 +1195,9 @@ Director.ui:addChild((function() -- 815
 			_with_2:addChild((function() -- 888
 				local _with_3 = CircleButton({ -- 889
 					text = "ANOTHER\nWAY", -- 889
-					radius = 80, -- 890
+					radius = 40 * uiScale, -- 890
 					fontName = "sarasa-mono-sc-regular", -- 891
-					fontSize = 48 -- 892
+					fontSize = math.floor(24 * uiScale) -- 892
 				}) -- 888
 				do -- 894
 					local _tmp_0 = 1 / uiScale -- 894
