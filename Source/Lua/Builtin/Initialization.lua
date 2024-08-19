@@ -381,9 +381,11 @@ do
 		end
 		local count = 0
 		local total = #files
+		local result = true
 		for i = 1, total do
-			Cache_loadAsync(self, files[i], function()
+			Cache_loadAsync(self, files[i], function(success)
 				count = count + 1
+				result = result and success
 				if handler then
 					handler(count / total)
 				end
@@ -392,6 +394,7 @@ do
 		wait(function()
 			return count == total
 		end)
+		return result
 	end
 
 	local RenderTarget = Dora.RenderTarget

@@ -14,7 +14,7 @@ class Texture2D;
 
 struct Cache {
 	static bool load(String filename);
-	static void loadAsync(String filename, const std::function<void()>& callback);
+	static void loadAsync(String filename, const std::function<void(bool)>& callback);
 	static void update(String filename, String content);
 	static void update(String filename, Texture2D* texture);
 	static void unload();

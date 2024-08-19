@@ -9,11 +9,14 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 static int32_t cache_load(int64_t filename) {
 	return Cache::load(*str_from(filename)) ? 1 : 0;
 }
-static void cache_load_async(int64_t filename, int32_t func) {
+static void cache_load_async(int64_t filename, int32_t func, int64_t stack) {
 	std::shared_ptr<void> deref(nullptr, [func](auto) {
 		SharedWasmRuntime.deref(func);
 	});
-	Cache::loadAsync(*str_from(filename), [func, deref]() {
+	auto args = r_cast<CallStack*>(stack);
+	Cache::loadAsync(*str_from(filename), [func, args, deref](bool success) {
+		args->clear();
+		args->push(success);
 		SharedWasmRuntime.invoke(func);
 	});
 }

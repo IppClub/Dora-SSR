@@ -4717,8 +4717,16 @@ class Cache {
 	 * Loads a file into the cache asynchronously.
 	 * @param filename The name of the file(s) to load.
 	 * @param handler A function to call when a resource is loaded. The progress parameter is a number between 0 and 1.
+	 * @returns True if the file was loaded successfully, false otherwise.
+	 * @example
+	 * thread(() => {
+	 * 	const success = Cache.loadAsync("file.png");
+	 * 	if (success) {
+	 * 		print("Game resource is loaded into memory");
+	 * 	}
+	 * });
 	 */
-	loadAsync(filename: string | string[], handler?: (this: void, progress: number) => void): void;
+	loadAsync(filename: string | string[], handler?: (this: void, progress: number) => void): boolean;
 
 	/**
 	 * Updates the content of a file loaded in the cache.

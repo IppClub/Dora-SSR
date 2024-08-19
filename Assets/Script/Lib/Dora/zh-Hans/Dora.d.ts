@@ -4719,8 +4719,16 @@ class Cache {
 	 * 异步将文件加载到缓存中。
 	 * @param filename 要加载的文件的名称。
 	 * @param handler [可选] 加载进度回调函数。progress 参数是一个介于0和1之间的数字，表示加载进度的百分比。
+	 * @returns 如果文件成功加载，则返回true，否则返回false。
+	 * @example
+	 * thread(() => {
+	 * 	const success = Cache.loadAsync("file.png");
+	 * 	if (success) {
+	 * 		print("游戏资源已加载到内存中");
+	 * 	}
+	 * });
 	 */
-	loadAsync(filename: string | string[], handler?: (this: void, progress: number) => void): void;
+	loadAsync(filename: string | string[], handler?: (this: void, progress: number) => void): boolean;
 
 	/**
 	 * 更新缓存中已加载文件的内容。
