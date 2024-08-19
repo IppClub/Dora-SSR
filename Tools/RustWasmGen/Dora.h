@@ -3492,7 +3492,7 @@ singleton struct Cache
 	///
 	/// * `filenames` - The name of the file(s) to load. This can be a single string or a vector of strings.
 	/// * `handler` - A callback function that is invoked when the file is loaded.
-	static void loadAsync(string filename, function<void()> handler);
+	static void loadAsync(string filename, function<void(bool success)> handler);
 	/// Updates the content of a file loaded in the cache.
 	/// If the item of filename does not exist in the cache, a new file content will be added into the cache.
 	///

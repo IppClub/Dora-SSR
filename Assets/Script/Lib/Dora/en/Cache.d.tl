@@ -48,7 +48,8 @@ local record Cache
 	-- end)
 	-- @param filenames (string | {string}) The name of the file(s) to load.
 	-- @param handler (function) [optional] A callback function that is invoked when the file is loaded. The progress parameter is a number between 0 and 1.
-	loadAsync: function(self: Cache, filename: string | {string}, handler?: function(progress: number))
+	-- @return (boolean) True if the files were loaded successfully, false otherwise.
+	loadAsync: function(self: Cache, filename: string | {string}, handler?: function(progress: number)): boolean
 
 	-- Updates the content of a file loaded in the cache.
 	-- If the item of filename does not exist in the cache, a new file content will be added into the cache.
