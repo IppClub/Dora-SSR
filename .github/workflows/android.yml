@@ -41,7 +41,7 @@ jobs:
           cd app/build/outputs/apk/release
           mv app-release.apk dora-ssr-${{ github.ref_name }}-android.apk
           zip dora-ssr-${{ github.ref_name }}-android.zip dora-ssr-${{ github.ref_name }}-android.apk
-          mv dora-ssr-${{ github.ref_name }}-android.zip $GITHUB_WORKSPACE/dora-ssr-${{ github.ref_name }}-android.apk
+          mv dora-ssr-${{ github.ref_name }}-android.zip $GITHUB_WORKSPACE/dora-ssr-${{ github.ref_name }}-android.zip
       - name: Release
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
