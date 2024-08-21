@@ -6,6 +6,28 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
+static void httpclient_post_async(int64_t url, int64_t json, float timeout, int32_t func, int64_t stack) {
+	std::shared_ptr<void> deref(nullptr, [func](auto) {
+		SharedWasmRuntime.deref(func);
+	});
+	auto args = r_cast<CallStack*>(stack);
+	SharedHttpClient.postAsync(*str_from(url), *str_from(json), timeout, [func, args, deref](OptString body) {
+		args->clear();
+		args->push(body);
+		SharedWasmRuntime.invoke(func);
+	});
+}
+static void httpclient_get_async(int64_t url, float timeout, int32_t func, int64_t stack) {
+	std::shared_ptr<void> deref(nullptr, [func](auto) {
+		SharedWasmRuntime.deref(func);
+	});
+	auto args = r_cast<CallStack*>(stack);
+	SharedHttpClient.getAsync(*str_from(url), timeout, [func, args, deref](OptString body) {
+		args->clear();
+		args->push(body);
+		SharedWasmRuntime.invoke(func);
+	});
+}
 static void httpclient_download_async(int64_t url, int64_t full_path, int32_t func, int64_t stack) {
 	std::shared_ptr<void> deref(nullptr, [func](auto) {
 		SharedWasmRuntime.deref(func);
@@ -21,5 +43,7 @@ static void httpclient_download_async(int64_t url, int64_t full_path, int32_t fu
 	});
 }
 static void linkHttpClient(wasm3::module3& mod) {
+	mod.link_optional("*", "httpclient_post_async", httpclient_post_async);
+	mod.link_optional("*", "httpclient_get_async", httpclient_get_async);
 	mod.link_optional("*", "httpclient_download_async", httpclient_download_async);
 }

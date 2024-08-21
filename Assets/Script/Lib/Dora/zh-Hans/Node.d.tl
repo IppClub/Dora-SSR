@@ -390,6 +390,11 @@ local record Node
 	emit: function(self: Node, eventName: string, ...: any)
 
 	-- 将场景的一部分节点渲染到一张绑定到网格的纹理上的抓取器类。
+	-- @usage
+	-- local node = Node()
+	-- node.size = Size(500, 500)
+	-- local grabber = node:grab(true)
+	-- grabber:moveUV(0, 0, Vec2(0, 0.1))
 	record Grabber
 
 		-- 继承自`Object`。
@@ -441,7 +446,7 @@ local record Node
 
 	-- 创建或移除节点上的纹理抓取器。
 	-- @param enabled (boolean) [可选] 是否启用或禁用抓取器。默认为 true。
-	-- @return (Grabber) 启用时会返回一个抓取器对象。
+	-- @return (Grabber) 启用时会返回一个抓取器对象（gridX 和 gridY 均为 1）。
 	grab: function(
 		self: Node,
 		enabled?: boolean --[[true]]

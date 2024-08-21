@@ -115,6 +115,18 @@ public:
 		tolua_pushusertype(L, new T(value), LuaType<T>());
 	}
 
+	template <typename T>
+	typename std::enable_if_t<
+		!std::is_same_v<T, Slice>
+		&& std::is_same_v<T, std::optional<Slice>>>
+	push(const T& value) {
+		if (value) {
+			tolua_pushslice(L, *value);
+		} else {
+			lua_pushnil(L);
+		}
+	}
+
 	void push(Value* value);
 	void push(String value);
 	void push(const Vec2& value);

@@ -546,6 +546,40 @@ do
 		return not failed
 	end
 
+	local HttpClient_postAsync = HttpClient.postAsync
+	HttpClient.postAsync = function(self, url, json, timeout)
+		local _, mainThread = coroutine.running()
+		assert(not mainThread, "HttpClient.postAsync should be run in a thread")
+		timeout = timeout or 5
+		local result = nil
+		local done = false
+		HttpClient_postAsync(self, url, json, timeout, function(data)
+			result = data
+			done = true
+		end)
+		wait(function()
+			return done
+		end)
+		return result
+	end
+
+	local HttpClient_getAsync = HttpClient.getAsync
+	HttpClient.getAsync = function(self, url, timeout)
+		local _, mainThread = coroutine.running()
+		assert(not mainThread, "HttpClient.getAsync should be run in a thread")
+		timeout = timeout or 5
+		local result = nil
+		local done = false
+		HttpClient_getAsync(self, url, timeout, function(data)
+			result = data
+			done = true
+		end)
+		wait(function()
+			return done
+		end)
+		return result
+	end
+
 	local yue_checkAsync = yue.checkAsync
 	yue.checkAsync = function(codes, searchPath)
 		local _, mainThread = coroutine.running()

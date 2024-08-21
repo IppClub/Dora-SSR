@@ -6,6 +6,14 @@ import "@site/src/languages/highlight";
 
 &emsp;&emsp;将场景的一部分节点渲染到一张绑定到网格的纹理上的抓取器类。
 
+**用法示例：**
+```tl
+local node = Node()
+node.size = Size(500, 500)
+local grabber = node:grab(true)
+grabber:moveUV(0, 0, Vec2(0, 0.1))
+```
+
 **继承自：**[Object](/docs/api/Class/Object)。
 
 ## camera

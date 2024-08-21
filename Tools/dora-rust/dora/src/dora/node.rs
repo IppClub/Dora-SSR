@@ -816,7 +816,7 @@ pub trait INode: IObject {
 	///
 	/// # Returns
 	///
-	/// * `Grabber` - A Grabber object.
+	/// * `Grabber` - A Grabber object with gridX == 1 and gridY == 1.
 	fn grab(&mut self) -> crate::dora::Grabber {
 		unsafe { return crate::dora::Grabber::from(node_grab(self.raw())).unwrap(); }
 	}

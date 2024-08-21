@@ -1,0 +1,71 @@
+import "@site/src/languages/highlight";
+
+# json
+
+**Description:**
+
+&emsp;&emsp;JSON library for Dora.
+
+## load
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Parses the specified JSON text and returns the corresponding table.
+
+**Signature:**
+```tl
+load: function(json: string, maxDepth?: integer): table | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| json | string | The JSON text to parse. |
+| maxDepth | number | [optional] The maximum depth of parsing (default is 128). |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| table | The table representing the JSON data, or nil if the text is not valid JSON. |
+
+## dump
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Dumps the specified table into a JSON text.
+
+**Signature:**
+```tl
+dump: function(tab: table): string | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| tab | table | The table to dump. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | The JSON text representing the table, or nil if the table cannot be dumped. |
+
+## null
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Represents a JSON null value.
+
+**Signature:**
+```tl
+null: JsonNull
+```

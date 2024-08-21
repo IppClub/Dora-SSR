@@ -1147,6 +1147,8 @@ class HttpServer
 
 class HttpClient
 {
+	void postAsync(String url, String json, float timeout, tolua_function_void callback);
+	void getAsync(String url, float timeout, tolua_function_void callback);
 	void downloadAsync(String url, String filePath, tolua_function_bool progress);
 	static tolua_outside HttpClient* HttpClient_shared @ create();
 };

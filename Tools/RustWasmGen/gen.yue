@@ -209,6 +209,16 @@ basicTypes =
 		* (name)-> "crate::dora::Rect::from(#{name})"
 		* -> error "unsupported"
 		* -> error "unsupported"
+	OptString:
+		* "i64"
+		* -> error "unsupported"
+		* -> error "unsupported"
+		* "Option<String>"
+		* "String"
+		* -> error "unsupported"
+		* -> error "unsupported"
+		* (fnArgId)-> "stack#{fnArgId}.pop_str()"
+		* -> error "unsupported"
 	NVGpaint:
 		* "i64"
 		* (name)-> "*r_cast<NVGpaint*>(#{name})"

@@ -24,6 +24,8 @@ using dora_val_t = std::variant<
 	Vec2,
 	Size>;
 
+using OptString = std::optional<Slice>;
+
 class CallStack {
 public:
 	void push(uint64_t value);
@@ -35,6 +37,15 @@ public:
 	void push(const Vec2& value);
 	void push(const Size& value);
 	void push_v(dora_val_t value);
+	template <typename T>
+	typename std::enable_if_t<
+		!std::is_same_v<T, Slice>
+		&& std::is_same_v<T, OptString>>
+	push(const T& value) {
+		if (value) {
+			push(*value);
+		}
+	}
 	bool empty() const;
 	dora_val_t pop();
 	dora_val_t& front();
