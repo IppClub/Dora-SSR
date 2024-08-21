@@ -38,12 +38,15 @@ jobs:
           echo "${{ secrets.KEYSTORE_B64 }}" | base64 -d > $GITHUB_WORKSPACE/signing-key.jks
           cd Projects/Android/Dora
           ./gradlew assembleRelease -Pandroid.injected.signing.store.file=$GITHUB_WORKSPACE/signing-key.jks -Pandroid.injected.signing.store.password=${{ secrets.KEYSTORE_PASSWORD }} -Pandroid.injected.signing.key.alias=${{ secrets.KEY_ALIAS }} -Pandroid.injected.signing.key.password=${{ secrets.KEY_PASSWORD }}
-          mv app/build/outputs/apk/release/app-release.apk $GITHUB_WORKSPACE/dora-ssr-${{ github.ref_name }}-android.apk
+          cd app/build/outputs/apk/release
+          mv app-release.apk dora-ssr-${{ github.ref_name }}-android.apk
+          zip dora-ssr-${{ github.ref_name }}-android.zip dora-ssr-${{ github.ref_name }}-android.apk
+          mv dora-ssr-${{ github.ref_name }}-android.zip $GITHUB_WORKSPACE/dora-ssr-${{ github.ref_name }}-android.apk
       - name: Release
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: |
-            dora-ssr-${{ github.ref_name }}-android.apk
+            dora-ssr-${{ github.ref_name }}-android.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
