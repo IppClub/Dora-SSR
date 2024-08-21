@@ -1,6 +1,19 @@
 -- 代表一个HTTP客户端。
 local record HttpClient
 
+	-- 向指定的URL发送JSON文本的POST请求，并返回响应文本。
+	-- @param url (string) 要发送请求的URL。
+	-- @param json (string) 要在请求中发送的JSON文本。
+	-- @param timeout (number) [可选] 请求超时时间（以秒为单位，默认为5秒）。
+	-- @return (string) 响应体的文本，如果请求失败则返回nil。
+	postAsync: function(self: HttpClient, url: string, json: string, timeout?: number): string | nil
+
+	-- 向指定的URL发送GET请求，并返回响应文本。
+	-- @param url (string) 要发送请求的URL。
+	-- @param timeout (number) [可选] 请求超时时间（以秒为单位，默认为5秒）。
+	-- @return (string) 响应体的文本，如果请求失败则返回nil。
+	getAsync: function(self: HttpClient, url: string, timeout?: number): string | nil
+
 	-- 从指定的URL异步下载文件，并保存到指定的路径。必须在一个协程中调用此方法。
 	-- @param url (string) 需要下载的文件的URL。
 	-- @param fullPath (string) 下载文件应保存的完整路径。

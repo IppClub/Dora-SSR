@@ -1,0 +1,71 @@
+import "@site/src/languages/highlight";
+
+# json
+
+**描述：**
+
+&emsp;&emsp;Dora的JSON库。
+
+## load
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;解析指定的JSON文本，并返回相应的表。
+
+**签名：**
+```tl
+load: function(json: string, maxDepth?: integer): table | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| json | string | 要解析的JSON文本。 |
+| maxDepth | number | [可选] 解析的最大深度（默认为128）。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| table | 表示JSON数据的表，如果文本不是有效的JSON，则返回nil。 |
+
+## dump
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;将指定的表转换为JSON文本。
+
+**签名：**
+```tl
+dump: function(tab: table): string | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| tab | table | 要转换的表。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| string | 表示表的JSON文本，如果无法转储表，则返回nil。 |
+
+## null
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;表示JSON null值。
+
+**签名：**
+```tl
+null: JsonNull
+```

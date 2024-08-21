@@ -511,8 +511,9 @@ const char* HttpServer::getVersion() {
 /* HttpClient */
 
 HttpClient::HttpClient()
-	: _thread(nullptr),
-	_stopped(false) {
+	: _requestThread(nullptr)
+	, _downloadThread(nullptr)
+	, _stopped(false) {
 }
 
 HttpClient::~HttpClient() {
@@ -523,14 +524,7 @@ bool HttpClient::isStopped() const noexcept {
 	return _stopped;
 }
 
-void HttpClient::downloadAsync(String url, String filePath, const std::function<bool(bool interrupted, uint64_t current, uint64_t total)>& progress) {
-	if (_stopped) {
-		progress(true, 0, 0);
-		return;
-	}
-	if (!_thread) {
-		_thread = SharedAsyncThread.newThread();
-	}
+static std::optional<std::pair<std::string, std::string>> getURLParts(String url) {
 	static std::regex urlRegex(
 		R"(^(([^:\/?#]+):)?(//([^\/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?)",
 		std::regex::extended);
@@ -545,13 +539,11 @@ void HttpClient::downloadAsync(String url, String filePath, const std::function<
 		std::string fragment = matchResult[9];
 		if (scheme.empty()) {
 			Error("url scheme is missing for \"{}\"", urlStr);
-			progress(true, 0, 0);
-			return;
+			return std::nullopt;
 		}
 		if (authority.empty()) {
 			Error("url authority is missing for \"{}\"", urlStr);
-			progress(true, 0, 0);
-			return;
+			return std::nullopt;
 		}
 		schemeHostPort = scheme + "://"s + authority;
 		pathToGet = path;
@@ -561,12 +553,117 @@ void HttpClient::downloadAsync(String url, String filePath, const std::function<
 		if (!fragment.empty()) {
 			pathToGet += '#' + fragment;
 		}
+		return std::make_pair(schemeHostPort, pathToGet);
 	} else {
-		Error("malformed url \"{}\" to download", urlStr);
+		Error("got malformed url \"{}\"", urlStr);
+		return std::nullopt;
+	}
+}
+
+void HttpClient::postAsync(String url, String json, float timeout, const std::function<void(std::optional<Slice>)>& callback) {
+	if (_stopped) {
+		callback(std::nullopt);
+		return;
+	}
+	if (!_requestThread) {
+		_requestThread = SharedAsyncThread.newThread();
+	}
+	auto parts = getURLParts(url);
+	std::string schemeHostPort, pathToGet;
+	if (parts) {
+		schemeHostPort = parts->first;
+		pathToGet = parts->second;
+	} else {
+		callback(std::nullopt);
+		return;
+	}
+	_requestThread->run([schemeHostPort, json = json.toString(), timeout, urlStr = url.toString(), callback, pathToGet]() {
+		try {
+			httplib::Client client(schemeHostPort);
+			client.enable_server_certificate_verification(false);
+			client.set_follow_location(true);
+			client.set_connection_timeout(timeout);
+			auto result = client.Post(pathToGet, json, "application/json"s);
+			if (!result || result.error() != httplib::Error::Success) {
+				Info("failed to do HTTP POST \"{}\" due to {}", urlStr, httplib::to_string(result.error()));
+				SharedApplication.invokeInLogic([callback]() {
+					callback(std::nullopt);
+				});
+			} else {
+				SharedApplication.invokeInLogic([callback, body = std::move(result.value().body)]() {
+					callback(body);
+				});
+			}
+		} catch (const std::invalid_argument& ex) {
+			Error("invalid url \"{}\" to do HTTP POST due to: {}", urlStr, ex.what());
+			SharedApplication.invokeInLogic([callback]() {
+				callback(Slice::Empty);
+			});
+		}
+	});
+}
+
+void HttpClient::getAsync(String url, float timeout, const std::function<void(std::optional<Slice>)>& callback) {
+	if (_stopped) {
+		callback(std::nullopt);
+		return;
+	}
+	if (!_requestThread) {
+		_requestThread = SharedAsyncThread.newThread();
+	}
+	auto parts = getURLParts(url);
+	std::string schemeHostPort, pathToGet;
+	if (parts) {
+		schemeHostPort = parts->first;
+		pathToGet = parts->second;
+	} else {
+		callback(std::nullopt);
+		return;
+	}
+	_requestThread->run([schemeHostPort, timeout, urlStr = url.toString(), callback, pathToGet]() {
+		try {
+			httplib::Client client(schemeHostPort);
+			client.enable_server_certificate_verification(false);
+			client.set_follow_location(true);
+			client.set_connection_timeout(timeout);
+			auto result = client.Get(pathToGet);
+			if (!result || result.error() != httplib::Error::Success) {
+				Info("failed to do HTTP GET \"{}\" due to {}", urlStr, httplib::to_string(result.error()));
+				SharedApplication.invokeInLogic([callback]() {
+					callback(std::nullopt);
+				});
+			} else {
+				SharedApplication.invokeInLogic([callback, body = std::move(result.value().body)]() {
+					callback(body);
+				});
+			}
+		} catch (const std::invalid_argument& ex) {
+			Error("invalid url \"{}\" to do HTTP GET due to: {}", urlStr, ex.what());
+			SharedApplication.invokeInLogic([callback]() {
+				callback(std::nullopt);
+			});
+		}
+	});
+}
+
+void HttpClient::downloadAsync(String url, String filePath, const std::function<bool(bool interrupted, uint64_t current, uint64_t total)>& progress) {
+	if (_stopped) {
 		progress(true, 0, 0);
 		return;
 	}
-	_thread->run([schemeHostPort, fileStr = filePath.toString(), urlStr, progress, pathToGet]() {
+	if (!_downloadThread) {
+		_downloadThread = SharedAsyncThread.newThread();
+	}
+	auto parts = getURLParts(url);
+	std::string schemeHostPort, pathToGet;
+	if (parts) {
+		schemeHostPort = parts->first;
+		pathToGet = parts->second;
+	} else {
+		progress(true, 0, 0);
+		return;
+	}
+	_downloadThread->run([schemeHostPort, fileStr = filePath.toString(), urlStr = url.toString(), progress, pathToGet]() {
 		try {
 			httplib::Client client(schemeHostPort);
 			client.enable_server_certificate_verification(false);

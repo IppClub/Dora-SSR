@@ -6,6 +6,59 @@ import "@site/src/languages/highlight";
 
 &emsp;&emsp;Represents an HTTP client.
 
+## postAsync
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Makes a POST request to the specified URL with the specified JSON text and returns the response in text.
+
+**Signature:**
+```tl
+postAsync: function(self: HttpClient, url: string, json: string, timeout?: number): string | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| url | string | The URL to make the request to. |
+| json | string | The JSON text to send in the request. |
+| timeout | number | [optional] The request timeout in seconds (default is 5 seconds). |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | The response in text，or nil if the request fails. |
+
+## getAsync
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Makes a GET request to the specified URL and returns the response in text.
+
+**Signature:**
+```tl
+getAsync: function(self: HttpClient, url: string, timeout?: number): string | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| url | string | The URL to make the request to. |
+| timeout | number | [optional] The request timeout in seconds (default is 5 seconds). |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | The response in text，or nil if the request fails. |
+
 ## downloadAsync
 
 **Type:** Function.

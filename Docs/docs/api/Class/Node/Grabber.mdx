@@ -7,6 +7,14 @@ import "@site/src/languages/highlight";
 &emsp;&emsp;A grabber which is used to render a part of the scene to a texture
 by a grid of vertices.
 
+**Usage:**
+```tl
+local node = Node()
+node.size = Size(500, 500)
+local grabber = node:grab(true)
+grabber:moveUV(0, 0, Vec2(0, 0.1))
+```
+
 ## camera
 
 **Type:** Field.

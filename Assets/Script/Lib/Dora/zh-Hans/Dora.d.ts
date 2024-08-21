@@ -2311,6 +2311,11 @@ export {controller as Controller};
 
 /**
  * 将场景的一部分节点渲染到一张绑定到网格的纹理上的抓取器类。
+ * @example
+ * const node = Node();
+ * node.size = Size(500, 500);
+ * const grabber = node.grab();
+ * grabber.moveUV(0, 0, Vec2(0, 0.1));
  */
 class Grabber extends Object {
 	private constructor();
@@ -3126,11 +3131,23 @@ class Node extends Object {
 	emit(eventName: string, ...args: any[]): void;
 
 	/**
-	 * 为指定节点创建或删除纹理抓取器。
-	 * @param enabled [可选] 是否启用或禁用抓取器。默认为true。
-	 * @returns 启用时的Grabber对象。
+	 * 为指定节点创建纹理抓取器。
+	 * @returns 启用抓取器时获取的 Grabber 对象（gridX 和 gridY 均为1）。
 	 */
-	grab(enabled?: boolean): Grabber;
+	grab(): Grabber;
+
+	/**
+	 * 为指定节点创建纹理抓取器。
+	 * @param enabled 设置为true以启用抓取器。
+	 * @returns 启用抓取器时获取的 Grabber 对象（gridX 和 gridY 均为1）。
+	 */
+	grab(enabled: true): Grabber;
+
+	/**
+	 * 为指定节点删除纹理抓取器。
+	 * @param enabled 设置为false以禁用抓取器。
+	 */
+	grab(enabled: false): void;
 
 	/**
 	 * 为指定节点创建具有指定网格大小的纹理抓取器。
@@ -6883,6 +6900,27 @@ export {httpServer as HttpServer};
  */
 interface HttpClient {
 	/**
+	 * 向指定的URL发送JSON文本的POST请求，并返回响应文本。
+	 * @param url 要发送请求的URL。
+	 * @param json 要发送的JSON文本。
+	 * @param timeout [可选] 请求的超时时间（以秒为单位）。默认为5。
+	 * @returns 响应文本，如果请求失败则返回 `null`。
+	 */
+	postAsync(url: string, json: string, timeout?: number): string | null;
+	/**
+	 * Sends a GET request to the specified URL and returns the response body.
+	 * @param url The URL to send the request to.
+	 * @param timeout [optional] The timeout in seconds for the request. Defaults to 5.
+	 * @returns The response body text, or `null` if the request failed.
+	 */
+	/**
+	 * 向指定的URL异步发送GET请求，并返回响应文本。
+	 * @param url 要发送请求的URL。
+	 * @param timeout [可选] 请求的超时时间（以秒为单位）。默认为5。
+	 * @returns 响应文本，如果请求失败则返回 `null`。
+	 */
+	getAsync(url: string, timeout?: number): string | null;
+	/**
 	 * 从指定的URL异步下载文件，并保存到指定的路径。必须在一个协程中调用此方法。
 	 * @param url 需要下载的文件的URL。
 	 * @param fullPath 下载文件应保存的完整路径。
@@ -6895,6 +6933,32 @@ interface HttpClient {
 
 const httpClient: HttpClient;
 export {httpClient as HttpClient};
+
+/**
+ * Dora 的 JSON 库。
+ */
+interface json {
+	/**
+	 * 解析指定的 JSON 文本并返回相应的对象。
+	 * @param json 要解析的 JSON 文本。
+	 * @param maxDepth 解析的最大深度（默认是 128）。
+	 * @returns 表示 JSON 数据的对象，如果文本不是有效的 JSON，则返回 null。
+	 */
+	load(this: void, json: string, maxDepth?: number): object | null;
+	/**
+	 * 将指定的对象转换为 JSON 文本。
+	 * @param obj 要转换的对象。
+	 * @returns 表示对象的 JSON 文本，如果对象无法转换，则返回 null。
+	 */
+	dump(this: void, obj: object): string | null;
+	/**
+	 * 表示 JSON null 值。
+	 */
+	["null"]: BasicType<"JsonNull">;
+}
+
+const jsn: json;
+export {jsn as json};
 
 } // module "Dora"
 

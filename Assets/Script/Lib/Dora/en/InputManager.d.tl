@@ -368,7 +368,7 @@ local record InputManagerClass
 		-- The padding of the buttons. [optional]
 		fontName: string
 
-		-- The font name of the trigger pad. [optional]
+		-- The input manager for the trigger pad. [required]
 		inputManager: InputManager
 
 		-- The color of the trigger pad. [optional]

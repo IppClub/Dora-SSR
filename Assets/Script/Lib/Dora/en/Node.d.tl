@@ -390,6 +390,11 @@ local record Node
 
 	-- A grabber which is used to render a part of the scene to a texture
 	-- by a grid of vertices.
+	-- @usage
+	-- local node = Node()
+	-- node.size = Size(500, 500)
+	-- local grabber = node:grab(true)
+	-- grabber:moveUV(0, 0, Vec2(0, 0.1))
 	record Grabber
 		embed Object
 
@@ -439,7 +444,7 @@ local record Node
 
 	-- Creates or removes a texture grabber for the specified node.
 	-- @param enabled (boolean) [optional] Whether to enable or disable the grabber. Default is true.
-	-- @return (Grabber) A Grabber object when enabled.
+	-- @return (Grabber) A Grabber object with gridX == 1 and gridY == 1 when enabled.
 	grab: function(
 		self: Node,
 		enabled?: boolean --[[true]]

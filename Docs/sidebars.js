@@ -302,6 +302,11 @@ const sidebars = {
 						},
 						{
 							type: 'doc',
+							label: 'Sprite',
+							id: "api/Class/Grid",
+						},
+						{
+							type: 'doc',
 							label: 'Line',
 							id: 'api/Class/Line',
 						},
@@ -380,6 +385,11 @@ const sidebars = {
 							type: 'doc',
 							label: 'RenderTarget',
 							id: 'api/Class/RenderTarget',
+						},
+						{
+							type: 'doc',
+							label: 'Grabber',
+							id: 'api/Class/Node/Grabber',
 						},
 					]
 				},
@@ -640,6 +650,11 @@ const sidebars = {
 				},
 				{
 					type: 'doc',
+					label: 'AI',
+					id: 'api/Class/Platformer/AI',
+				},
+				{
+					type: 'doc',
 					label: 'Data',
 					id: 'api/Class/Platformer/Data',
 				},
@@ -662,6 +677,11 @@ const sidebars = {
 					type: 'doc',
 					label: 'UnitAction',
 					id: 'api/Class/Platformer/UnitAction',
+				},
+				{
+					type: 'doc',
+					label: 'UnitActionParam',
+					id: 'api/Class/Platformer/UnitActionParam',
 				},
 				{
 					type: 'doc',
@@ -801,44 +821,48 @@ const sidebars = {
 		},
 		{
 			type: 'category',
+			label: 'Misc Functions',
+			items: [
+				"api/Class/Buffer",
+				"api/Class/tolua",
+				"api/Class/json",
+				{
+					type: 'category',
+					label: 'Yuescript',
+					items: [
+						{
+							type: 'doc',
+							label: 'yue',
+							id: 'api/Class/yue',
+						},
+						{
+							type: 'doc',
+							label: 'Config',
+							id: 'api/Class/yue/Config',
+						},
+						{
+							type: 'doc',
+							label: 'Options',
+							id: 'api/Class/yue/Config/Options',
+						},
+					],
+				},
+			]
+		},
+		{
+			type: 'category',
 			label: 'Uncategorized API',
 			items: [
 				{
 					type: 'category',
 					label: 'Class',
 					items: [
-						"api/Class/tolua",
-						"api/Class/Platformer/UnitActionParam",
 						"api/Class/Platformer/Decision/Leaf",
 						"api/Class/Platformer/Behavior/Leaf",
-						"api/Class/Platformer/AI",
-						"api/Class/Node/Grabber",
 						"api/Class/ML",
-						"api/Class/Grid",
 						"api/Class/Ease/EaseFunc",
 						"api/Class/ContainerItem",
-						"api/Class/Buffer",
-						{
-							type: 'category',
-							label: 'Yuescript',
-							items: [
-								{
-									type: 'doc',
-									label: 'yue',
-									id: 'api/Class/yue',
-								},
-								{
-									type: 'doc',
-									label: 'Config',
-									id: 'api/Class/yue/Config',
-								},
-								{
-									type: 'doc',
-									label: 'Options',
-									id: 'api/Class/yue/Config/Options',
-								},
-							],
-						},
+						"api/Class/json/JsonNull",
 					]
 				},
 				{

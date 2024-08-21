@@ -87,13 +87,16 @@ public:
 	PROPERTY_BOOL(Stopped);
 	virtual ~HttpClient();
 	void stop();
+	void postAsync(String url, String json, float timeout, const std::function<void(std::optional<Slice>)>& callback);
+	void getAsync(String url, float timeout, const std::function<void(std::optional<Slice>)>& callback);
 	void downloadAsync(String url, String filePath, const std::function<bool(bool interrupted, uint64_t current, uint64_t total)>& progress);
 
 protected:
 	HttpClient();
 
 private:
-	Async* _thread;
+	Async* _requestThread;
+	Async* _downloadThread;
 	bool _stopped;
 	SINGLETON_REF(HttpClient, AsyncThread, Director);
 };

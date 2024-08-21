@@ -1467,7 +1467,7 @@ interface object class Node
 	///
 	/// # Returns
 	///
-	/// * `Grabber` - A Grabber object.
+	/// * `Grabber` - A Grabber object with gridX == 1 and gridY == 1.
 	outside Grabber* node_start_grabbing @ grab();
 	/// Creates a texture grabber for the specified node with a specified grid size.
 	///
@@ -3931,6 +3931,23 @@ singleton class C45
 /// An HTTP client interface.
 singleton class HttpClient
 {
+	/// Sends a POST request to the specified URL and returns the response body.
+	///
+	/// # Arguments
+	///
+	/// * `url` - The URL to send the request to.
+	/// * `json` - The JSON data to send in the request body.
+	/// * `timeout` - The timeout in seconds for the request.
+	/// * `callback` - A callback function that is called when the request is complete. The function receives the response body as a parameter.
+	void postAsync(string url, string json, float timeout, function<void(OptString body)> callback);
+	/// Sends a GET request to the specified URL and returns the response body.
+	///
+	/// # Arguments
+	///
+	/// * `url` - The URL to send the request to.
+	/// * `timeout` - The timeout in seconds for the request.
+	/// * `callback` - A callback function that is called when the request is complete. The function receives the response body as a parameter.
+	void getAsync(string url, float timeout, function<void(OptString body)> callback);
 	/// Downloads a file asynchronously from the specified URL and saves it to the specified path.
 	///
 	/// # Arguments

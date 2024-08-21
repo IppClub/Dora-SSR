@@ -1064,6 +1064,8 @@ LuaEngine::LuaEngine()
 
 		lua_getglobal(L, "package"); // Dora package
 		lua_getfield(L, -1, "loaded"); // Dora package loaded
+		lua_getfield(L, -1, "json"); // Dora package loaded json
+		lua_setfield(L, -4, "json"); // Dora["json"] = json, Dora package loaded
 		lua_getfield(L, -1, "yue"); // Dora package loaded yue
 		lua_setfield(L, -4, "yue"); // Dora["yue"] = yue, Dora package loaded
 		lua_pop(L, 2);

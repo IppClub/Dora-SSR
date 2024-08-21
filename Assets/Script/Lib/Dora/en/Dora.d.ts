@@ -2314,6 +2314,11 @@ export {controller as Controller};
 
 /**
  * A grabber which is used to render a part of the scene to a texture by a grid of vertices.
+ * @example
+ * const node = Node();
+ * node.size = Size(500, 500);
+ * const grabber = node.grab();
+ * grabber.moveUV(0, 0, Vec2(0, 0.1));
  */
 class Grabber extends Object {
 	private constructor();
@@ -3126,11 +3131,23 @@ class Node extends Object {
 	emit(eventName: string, ...args: any[]): void;
 
 	/**
-	 * Creates or removes a texture grabber for the specified node.
-	 * @param enabled [optional] Whether to enable or disable the grabber. Default is true.
-	 * @returns A Grabber object when enabled.
+	 * Creates a texture grabber for the specified node.
+	 * @returns A Grabber object with gridX == 1 and gridY == 1.
 	 */
-	grab(enabled?: boolean): Grabber;
+	grab(): Grabber;
+
+	/**
+	 * Creates a texture grabber for the specified node.
+	 * @param enabled Passes true to enable the grabber.
+	 * @returns A Grabber object with gridX == 1 and gridY == 1 when enabled.
+	 */
+	grab(enabled: true): Grabber;
+
+	/**
+	 * Removes a texture grabber for the specified node.
+	 * @param enabled Passes false to disable it.
+	 */
+	grab(enabled: false): void;
 
 	/**
 	 * Creates a texture grabber for the specified node with a specified grid size.
@@ -6881,6 +6898,21 @@ export {httpServer as HttpServer};
  */
 interface HttpClient {
 	/**
+	 * Sends a POST request to the specified URL and returns the response body.
+	 * @param url The URL to send the request to.
+	 * @param json The JSON data to send in the request body.
+	 * @param timeout [optional] The timeout in seconds for the request. Defaults to 5.
+	 * @returns The response body text, or `null` if the request failed.
+	 */
+	postAsync(url: string, json: string, timeout?: number): string | null;
+	/**
+	 * Sends a GET request to the specified URL and returns the response body.
+	 * @param url The URL to send the request to.
+	 * @param timeout [optional] The timeout in seconds for the request. Defaults to 5.
+	 * @returns The response body text, or `null` if the request failed.
+	 */
+	getAsync(url: string, timeout?: number): string | null;
+	/**
 	 * Downloads a file asynchronously from the specified URL and saves it to the specified path. Should be run in a coroutine.
 	 * @param url The URL of the file to download.
 	 * @param fullPath The full path where the downloaded file should be saved.
@@ -6895,6 +6927,32 @@ interface HttpClient {
 
 const httpClient: HttpClient;
 export {httpClient as HttpClient};
+
+/**
+ * Dora's JSON library.
+ */
+interface json {
+	/**
+	 * Parses the specified JSON text and returns the corresponding object.
+	 * @param json The JSON text to parse.
+	 * @param maxDepth The maximum depth to parse (default is 128).
+	 * @returns The object representing the JSON data, or null if the text is not valid JSON.
+	 */
+	load(this: void, json: string, maxDepth?: number): object | null;
+	/**
+	 * Converts the specified object to JSON text.
+	 * @param obj The object to convert.
+	 * @returns The JSON text representing the object, or null if the object cannot be dumped.
+	 */
+	dump(this: void, obj: object): string | null;
+	/**
+	 * Represents the JSON null value.
+	 */
+	["null"]: BasicType<"JsonNull">;
+}
+
+const jsn: json;
+export {jsn as json};
 
 } // module "Dora"
 

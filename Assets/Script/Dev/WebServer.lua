@@ -14,6 +14,7 @@ local ipairs = _G.ipairs -- 1
 local pairs = _G.pairs -- 1
 local App = Dora.App -- 1
 local wait = Dora.wait -- 1
+local json = Dora.json -- 1
 local emit = Dora.emit -- 1
 local thread = Dora.thread -- 1
 local print = _G.print -- 1
@@ -2073,115 +2074,114 @@ HttpServer:post("/editingInfo", function(req) -- 829
 	end -- 832
 	if not _match_0 then -- 832
 		if not (config.editingInfo ~= nil) then -- 836
-			local json = require("json") -- 837
-			local folder -- 838
-			if App.locale:match('^zh') then -- 838
-				folder = 'zh-Hans' -- 838
-			else -- 838
-				folder = 'en' -- 838
-			end -- 838
-			config.editingInfo = json.dump({ -- 840
-				index = 0, -- 840
-				files = { -- 842
-					{ -- 843
-						key = Path(Content.assetPath, 'Doc', folder, 'welcome.md'), -- 843
-						title = "welcome.md" -- 844
-					} -- 842
-				} -- 841
-			}) -- 839
+			local folder -- 837
+			if App.locale:match('^zh') then -- 837
+				folder = 'zh-Hans' -- 837
+			else -- 837
+				folder = 'en' -- 837
+			end -- 837
+			config.editingInfo = json.dump({ -- 839
+				index = 0, -- 839
+				files = { -- 841
+					{ -- 842
+						key = Path(Content.assetPath, 'Doc', folder, 'welcome.md'), -- 842
+						title = "welcome.md" -- 843
+					} -- 841
+				} -- 840
+			}) -- 838
 		end -- 836
-		return { -- 848
-			success = true, -- 848
-			editingInfo = config.editingInfo -- 848
-		} -- 848
-	end -- 848
+		return { -- 847
+			success = true, -- 847
+			editingInfo = config.editingInfo -- 847
+		} -- 847
+	end -- 847
 end) -- 829
-HttpServer:post("/command", function(req) -- 850
-	do -- 851
-		local _type_0 = type(req) -- 851
-		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 851
-		if _tab_0 then -- 851
-			local code -- 851
-			do -- 851
-				local _obj_0 = req.body -- 851
-				local _type_1 = type(_obj_0) -- 851
-				if "table" == _type_1 or "userdata" == _type_1 then -- 851
-					code = _obj_0.code -- 851
-				end -- 853
-			end -- 853
-			local log -- 851
-			do -- 851
-				local _obj_0 = req.body -- 851
-				local _type_1 = type(_obj_0) -- 851
-				if "table" == _type_1 or "userdata" == _type_1 then -- 851
-					log = _obj_0.log -- 851
-				end -- 853
-			end -- 853
-			if code ~= nil and log ~= nil then -- 851
-				emit("AppCommand", code, log) -- 852
-				return { -- 853
-					success = true -- 853
-				} -- 853
-			end -- 851
-		end -- 853
-	end -- 853
-	return { -- 850
-		success = false -- 850
-	} -- 853
-end) -- 850
-HttpServer:post("/exist", function(req) -- 855
-	do -- 856
-		local _type_0 = type(req) -- 856
-		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 856
-		if _tab_0 then -- 856
-			local file -- 856
-			do -- 856
-				local _obj_0 = req.body -- 856
-				local _type_1 = type(_obj_0) -- 856
-				if "table" == _type_1 or "userdata" == _type_1 then -- 856
-					file = _obj_0.file -- 856
-				end -- 857
-			end -- 857
-			if file ~= nil then -- 856
-				return { -- 857
-					success = Content:exist(file) -- 857
-				} -- 857
+HttpServer:post("/command", function(req) -- 849
+	do -- 850
+		local _type_0 = type(req) -- 850
+		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 850
+		if _tab_0 then -- 850
+			local code -- 850
+			do -- 850
+				local _obj_0 = req.body -- 850
+				local _type_1 = type(_obj_0) -- 850
+				if "table" == _type_1 or "userdata" == _type_1 then -- 850
+					code = _obj_0.code -- 850
+				end -- 852
+			end -- 852
+			local log -- 850
+			do -- 850
+				local _obj_0 = req.body -- 850
+				local _type_1 = type(_obj_0) -- 850
+				if "table" == _type_1 or "userdata" == _type_1 then -- 850
+					log = _obj_0.log -- 850
+				end -- 852
+			end -- 852
+			if code ~= nil and log ~= nil then -- 850
+				emit("AppCommand", code, log) -- 851
+				return { -- 852
+					success = true -- 852
+				} -- 852
+			end -- 850
+		end -- 852
+	end -- 852
+	return { -- 849
+		success = false -- 849
+	} -- 852
+end) -- 849
+HttpServer:post("/exist", function(req) -- 854
+	do -- 855
+		local _type_0 = type(req) -- 855
+		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 855
+		if _tab_0 then -- 855
+			local file -- 855
+			do -- 855
+				local _obj_0 = req.body -- 855
+				local _type_1 = type(_obj_0) -- 855
+				if "table" == _type_1 or "userdata" == _type_1 then -- 855
+					file = _obj_0.file -- 855
+				end -- 856
 			end -- 856
-		end -- 857
-	end -- 857
-	return { -- 855
-		success = false -- 855
-	} -- 857
-end) -- 855
-local status = { } -- 859
-_module_0 = status -- 860
-thread(function() -- 862
-	local doraWeb = Path(Content.assetPath, "www", "index.html") -- 863
-	local doraReady = Path(Content.writablePath, ".www", "dora-ready") -- 864
-	if Content:exist(doraWeb) then -- 865
-		local needReload -- 866
-		if Content:exist(doraReady) then -- 866
-			needReload = App.version ~= Content:load(doraReady) -- 867
-		else -- 868
-			needReload = true -- 868
-		end -- 866
-		if needReload then -- 869
-			Content:remove(Path(Content.writablePath, ".www")) -- 870
-			Content:copyAsync(Path(Content.assetPath, "www"), Path(Content.writablePath, ".www")) -- 871
-			Content:save(doraReady, App.version) -- 875
-			print("Dora Dora is ready!") -- 876
-		end -- 869
-	end -- 865
-	if HttpServer:start(8866) then -- 877
-		local localIP = HttpServer.localIP -- 878
-		if localIP == "" then -- 879
-			localIP = "localhost" -- 879
-		end -- 879
-		status.url = "http://" .. tostring(localIP) .. ":8866" -- 880
-		return HttpServer:startWS(8868) -- 881
-	else -- 883
-		status.url = nil -- 883
-		return print("8866 Port not available!") -- 884
-	end -- 877
-end) -- 862
-return _module_0 -- 884
+			if file ~= nil then -- 855
+				return { -- 856
+					success = Content:exist(file) -- 856
+				} -- 856
+			end -- 855
+		end -- 856
+	end -- 856
+	return { -- 854
+		success = false -- 854
+	} -- 856
+end) -- 854
+local status = { } -- 858
+_module_0 = status -- 859
+thread(function() -- 861
+	local doraWeb = Path(Content.assetPath, "www", "index.html") -- 862
+	local doraReady = Path(Content.writablePath, ".www", "dora-ready") -- 863
+	if Content:exist(doraWeb) then -- 864
+		local needReload -- 865
+		if Content:exist(doraReady) then -- 865
+			needReload = App.version ~= Content:load(doraReady) -- 866
+		else -- 867
+			needReload = true -- 867
+		end -- 865
+		if needReload then -- 868
+			Content:remove(Path(Content.writablePath, ".www")) -- 869
+			Content:copyAsync(Path(Content.assetPath, "www"), Path(Content.writablePath, ".www")) -- 870
+			Content:save(doraReady, App.version) -- 874
+			print("Dora Dora is ready!") -- 875
+		end -- 868
+	end -- 864
+	if HttpServer:start(8866) then -- 876
+		local localIP = HttpServer.localIP -- 877
+		if localIP == "" then -- 878
+			localIP = "localhost" -- 878
+		end -- 878
+		status.url = "http://" .. tostring(localIP) .. ":8866" -- 879
+		return HttpServer:startWS(8868) -- 880
+	else -- 882
+		status.url = nil -- 882
+		return print("8866 Port not available!") -- 883
+	end -- 876
+end) -- 861
+return _module_0 -- 883

@@ -109,6 +109,7 @@ local EffekNode = require("EffekNode")
 local TileNode = require("TileNode")
 local teal = require("teal")
 local yue = require("yue")
+local json = require("json")
 global p = require("p")
 local Class: function(...: any): any
 local classmethod: function(...: any): any
@@ -225,6 +226,7 @@ global Dora = {
 	Platformer = Platformer,
 	teal = teal,
 	yue = yue,
+	json = json,
 	HttpServer = HttpServer,
 	HttpClient = HttpClient,
 	Profiler = Profiler,

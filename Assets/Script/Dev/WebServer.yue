@@ -834,7 +834,6 @@ HttpServer\post "/editingInfo", (req) ->
 		success: true
 	else
 		if not config.editingInfo?
-			import "json"
 			folder = if App.locale\match '^zh' then 'zh-Hans' else 'en'
 			config.editingInfo = json.dump {
 				index: 0
