@@ -25,7 +25,7 @@ jobs:
           yarn install --network-timeout 1000000
           yarn build
           ren build www
-          7z a ..\..\dora-ssr-windows-x86.7z www
+          7z a -tzip ..\..\dora-ssr-windows-x86.zip www
           cd ..\..
           cd Tools\dora-dora\3rdParty\YarnEditor
           yarn
@@ -33,28 +33,28 @@ jobs:
           ren dist yarn-editor
           mkdir www
           move yarn-editor www
-          7z a ..\..\dora-ssr-windows-x86.7z www\yarn-editor
+          7z a -tzip ..\..\dora-ssr-windows-x86.zip www\yarn-editor
           cd ..\..\..\..
-          (cd Assets && 7z a ..\dora-ssr-windows-x86.7z Audio && cd ..)
-          (cd Assets && 7z a ..\dora-ssr-windows-x86.7z Data && cd ..)
-          (cd Assets && 7z a ..\dora-ssr-windows-x86.7z Doc && cd ..)
-          (cd Assets && 7z a ..\dora-ssr-windows-x86.7z DragonBones && cd ..)
-          (cd Assets && 7z a ..\dora-ssr-windows-x86.7z Font && cd ..)
-          (cd Assets && 7z a ..\dora-ssr-windows-x86.7z gamecontrollerdb.txt && cd ..)
-          (cd Assets && 7z a ..\dora-ssr-windows-x86.7z Image && cd ..)
-          (cd Assets && 7z a ..\dora-ssr-windows-x86.7z LICENSES && cd ..)
-          (cd Assets && 7z a ..\dora-ssr-windows-x86.7z Model && cd ..)
-          (cd Assets && 7z a ..\dora-ssr-windows-x86.7z Particle && cd ..)
-          (cd Assets && 7z a ..\dora-ssr-windows-x86.7z Script && cd ..)
-          (cd Assets && 7z a ..\dora-ssr-windows-x86.7z Spine && cd ..)
-          (cd Assets && 7z a ..\dora-ssr-windows-x86.7z TMX && cd ..)
-          (cd Projects\Windows\build\Release && 7z a ..\..\..\..\dora-ssr-windows-x86.7z Dora.exe && cd ..\..\..\..)
-          ren dora-ssr-windows-x86.7z dora-ssr-${{ github.ref_name }}-windows-x86.7z
+          (cd Assets && 7z a -tzip ..\dora-ssr-windows-x86.zip Audio && cd ..)
+          (cd Assets && 7z a -tzip ..\dora-ssr-windows-x86.zip Data && cd ..)
+          (cd Assets && 7z a -tzip ..\dora-ssr-windows-x86.zip Doc && cd ..)
+          (cd Assets && 7z a -tzip ..\dora-ssr-windows-x86.zip DragonBones && cd ..)
+          (cd Assets && 7z a -tzip ..\dora-ssr-windows-x86.zip Font && cd ..)
+          (cd Assets && 7z a -tzip ..\dora-ssr-windows-x86.zip gamecontrollerdb.txt && cd ..)
+          (cd Assets && 7z a -tzip ..\dora-ssr-windows-x86.zip Image && cd ..)
+          (cd Assets && 7z a -tzip ..\dora-ssr-windows-x86.zip LICENSES && cd ..)
+          (cd Assets && 7z a -tzip ..\dora-ssr-windows-x86.zip Model && cd ..)
+          (cd Assets && 7z a -tzip ..\dora-ssr-windows-x86.zip Particle && cd ..)
+          (cd Assets && 7z a -tzip ..\dora-ssr-windows-x86.zip Script && cd ..)
+          (cd Assets && 7z a -tzip ..\dora-ssr-windows-x86.zip Spine && cd ..)
+          (cd Assets && 7z a -tzip ..\dora-ssr-windows-x86.zip TMX && cd ..)
+          (cd Projects\Windows\build\Release && 7z a -tzip ..\..\..\..\dora-ssr-windows-x86.zip Dora.exe && cd ..\..\..\..)
+          ren dora-ssr-windows-x86.zip dora-ssr-${{ github.ref_name }}-windows-x86.zip
       - name: Release
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: |
-            dora-ssr-${{ github.ref_name }}-windows-x86.7z
+            dora-ssr-${{ github.ref_name }}-windows-x86.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
