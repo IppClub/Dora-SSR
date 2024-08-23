@@ -125,6 +125,7 @@ class Application
 	tolua_property__bool bool fPSLimited @ fpsLimited;
 	tolua_property__bool bool idled;
 	void openURL(String url);
+	void install(String path);
 	void shutdown();
 	static tolua_outside Application* Application_shared @ create();
 };
@@ -1149,7 +1150,7 @@ class HttpClient
 {
 	void postAsync(String url, String json, float timeout, tolua_function_void callback);
 	void getAsync(String url, float timeout, tolua_function_void callback);
-	void downloadAsync(String url, String filePath, tolua_function_bool progress);
+	void downloadAsync(String url, String filePath, float timeout, tolua_function_bool progress);
 	static tolua_outside HttpClient* HttpClient_shared @ create();
 };
 

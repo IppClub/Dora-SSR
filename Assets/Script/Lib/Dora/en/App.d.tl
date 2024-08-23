@@ -110,6 +110,10 @@ local record App
 	-- @param url (string) The URL to open.
 	openURL: function(self: App, url: string)
 
+	-- A function used for self updating the game engine.
+	-- @param path (string) The path to the new engine file.
+	install: function(self: App, path: string)
+
 	-- A function that shuts down the game engine.
 	-- It is not working and acts as a dummy function for platform Android and iOS to follow the specification of how mobile platform applications should operate.
 	shutdown: function(self: App)

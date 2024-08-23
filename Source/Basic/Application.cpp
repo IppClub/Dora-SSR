@@ -53,6 +53,7 @@ extern "C" ANativeWindow* Android_JNI_GetNativeWindow();
 
 #if BX_PLATFORM_WINDOWS
 #define DEFAULT_WIN_DPI 96
+#include <shellapi.h>
 #endif // BX_PLATFORM_WINDOWS
 
 NS_DORA_BEGIN
@@ -672,6 +673,64 @@ void Application::openURL(String url) {
 			Error("failed to open url due to: {}", SDL_GetError());
 		}
 	});
+}
+
+void Application::install(String path) {
+#if BX_PLATFORM_WINDOWS
+	AssertUnless(SharedContent.isAbsolutePath(path), "expecting an absolute path");
+	auto assetPath = SharedContent.getAssetPath();
+	auto appPath = path.toString();
+	auto bakPath = Path::concat({assetPath, "Bak"sv});
+	SharedContent.remove(bakPath);
+	{
+		auto dirs = SharedContent.getDirs(assetPath);
+		auto files = SharedContent.getFiles(assetPath);
+		SharedContent.createFolder(bakPath);
+		for (const auto& dir : dirs) {
+			SharedContent.move(Path::concat({assetPath, dir}), Path::concat({bakPath, dir}));
+		}
+		for (const auto& file : files) {
+			SharedContent.move(Path::concat({assetPath, file}), Path::concat({bakPath, file}));
+		}
+	}
+	{
+		auto dirs = SharedContent.getDirs(appPath);
+		auto files = SharedContent.getFiles(appPath);
+		for (const auto& dir : dirs) {
+			SharedContent.move(Path::concat({appPath, dir}), Path::concat({assetPath, dir}));
+		}
+		for (const auto& file : files) {
+			SharedContent.move(Path::concat({appPath, file}), Path::concat({assetPath, file}));
+		}
+	}
+
+	STARTUPINFO si;
+	PROCESS_INFORMATION pi;
+	ZeroMemory(&si, sizeof(si));
+	si.cb = sizeof(si);
+	ZeroMemory(&pi, sizeof(pi));
+
+	std::string command = '"' + Path::concat({assetPath, "Dora.exe"}) + '"';
+
+	if (CreateProcess(NULL,
+			const_cast<char*>(command.c_str()),
+			NULL,
+			NULL,
+			FALSE,
+			0,
+			NULL,
+			NULL,
+			&si,
+			&pi)
+	) {
+		CloseHandle(pi.hProcess);
+		CloseHandle(pi.hThread);
+	}
+	Application::shutdown();
+#elif BX_PLATFORM_ANDROID
+#else
+	Issue("Application.install() is not unsupported on this platform");
+#endif
 }
 
 NS_DORA_END

@@ -1567,8 +1567,8 @@ entryWindow = threadLoop(function() -- 810
 						end -- 976
 					end -- 976
 					local showTool = false -- 977
-					for _index_0 = 1, #doraExamples do -- 978
-						local _des_0 = doraExamples[_index_0] -- 978
+					for _index_0 = 1, #doraTools do -- 978
+						local _des_0 = doraTools[_index_0] -- 978
 						local name = _des_0[1] -- 978
 						if match(name) then -- 979
 							showTool = true -- 979

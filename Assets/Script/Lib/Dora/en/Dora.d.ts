@@ -665,6 +665,12 @@ interface App {
 	openURL(url: string): void;
 
 	/**
+	 * A function used for self updating the game engine.
+	 * @param path The path to the new engine file.
+	 */
+	install(path: string): void;
+
+	/**
 	 * A function that shuts down the game engine.
 	 * It is not working and acts as a dummy function for platform Android and iOS to follow the specification of how mobile platform applications should operate.
 	 */
@@ -3437,7 +3443,7 @@ class Content {
 	 * @param filter A function to filter the files to include in the archive. The function takes a filename as input and returns a boolean indicating whether to include the file. If not provided, all files will be included.
 	 * @returns `true` if the folder was decompressed successfully, `false` otherwise.
 	 */
-	unzipAsync(folderPath: string, zipFile: string, filter?: (this: void, filename: string) => boolean): boolean;
+	unzipAsync(zipFile: string, folderPath: string, filter?: (this: void, filename: string) => boolean): boolean;
 
 	/**
 	 * Gets the names of all subdirectories in the specified directory.
@@ -6916,13 +6922,14 @@ interface HttpClient {
 	 * Downloads a file asynchronously from the specified URL and saves it to the specified path. Should be run in a coroutine.
 	 * @param url The URL of the file to download.
 	 * @param fullPath The full path where the downloaded file should be saved.
+	 * @param timeout [optional] The timeout in seconds for the download. Defaults to 30.
 	 * @param progress [optional] A callback function that is called periodically to report the download progress.
 	 * The function receives two parameters: current (the number of bytes downloaded so far)
 	 * and total (the total number of bytes to be downloaded).
 	 * If the function returns true, the download will be canceled.
 	 * @returns A boolean value indicating whether the download was done successfully.
 	 */
-	downloadAsync(url: string, fullPath: string, progress?: (this: void, current: number, total: number) => boolean): boolean;
+	downloadAsync(url: string, fullPath: string, timeout?: number, progress?: (this: void, current: number, total: number) => boolean): boolean;
 }
 
 const httpClient: HttpClient;

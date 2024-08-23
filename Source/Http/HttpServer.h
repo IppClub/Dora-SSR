@@ -89,7 +89,7 @@ public:
 	void stop();
 	void postAsync(String url, String json, float timeout, const std::function<void(std::optional<Slice>)>& callback);
 	void getAsync(String url, float timeout, const std::function<void(std::optional<Slice>)>& callback);
-	void downloadAsync(String url, String filePath, const std::function<bool(bool interrupted, uint64_t current, uint64_t total)>& progress);
+	void downloadAsync(String url, String filePath, float timeout, const std::function<bool(bool interrupted, uint64_t current, uint64_t total)>& progress);
 
 protected:
 	HttpClient();

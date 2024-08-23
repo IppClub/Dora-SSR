@@ -975,7 +975,7 @@ entryWindow = threadLoop ->
 				for [name,] in *games
 					showGame = true if match name
 				showTool = false
-				for [name,] in *doraExamples
+				for [name,] in *doraTools
 					showTool = true if match name
 				showExample = false
 				for [name,] in *doraExamples

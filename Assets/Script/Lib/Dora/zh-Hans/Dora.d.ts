@@ -669,6 +669,12 @@ interface App {
 	openURL(url: string): void;
 
 	/**
+	 * 用于自更新游戏引擎。
+	 * @param path 新版本引擎文件的路径。
+	 */
+	install(path: string): void;
+
+	/**
 	 * 关闭游戏引擎。
 	 * 该函数在Android和iOS平台不会生效，以遵循移动平台上应用程序规范。
 	 */
@@ -3437,7 +3443,7 @@ class Content {
 	 * @param filter 过滤器函数，用于过滤包含在存档中的文件。该函数接受文件名作为输入，并返回布尔值，表示是否包含该文件。如果未提供，将包含所有文件。
 	 * @returns 如果文件夹成功解压缩，则返回`true`，否则返回`false`。
 	 */
-	unzipAsync(folderPath: string, zipFile: string, filter?: (this: void, filename: string) => boolean): boolean;
+	unzipAsync(zipFile: string, folderPath: string, filter?: (this: void, filename: string) => boolean): boolean;
 
 	/**
 	 * 获取指定目录中所有子目录的名称。
@@ -6924,11 +6930,12 @@ interface HttpClient {
 	 * 从指定的URL异步下载文件，并保存到指定的路径。必须在一个协程中调用此方法。
 	 * @param url 需要下载的文件的URL。
 	 * @param fullPath 下载文件应保存的完整路径。
+	 * @param timeout [可选] 下载的超时时间（以秒为单位）。默认为30。
 	 * @param progress [可选] 一个定期报告下载进度的回调函数。该函数接收两个参数：current（到目前为止下载的字节数）和 total（需要下载的总字节数）。
 	 * 如果回调函数返回 `true`，则下载将被取消。
 	 * @returns 一个布尔值，表示下载是否成功完成。
 	 */
-	downloadAsync(url: string, fullPath: string, progress?: (this: void, current: number, total: number) => boolean): boolean;
+	downloadAsync(url: string, fullPath: string, timeout?: number, progress?: (this: void, current: number, total: number) => boolean): boolean;
 }
 
 const httpClient: HttpClient;

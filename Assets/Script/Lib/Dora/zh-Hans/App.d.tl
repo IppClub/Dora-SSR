@@ -111,6 +111,10 @@ local record App
 	-- @param url (string) 要打开的URL地址。
 	openURL: function(self: App, url: string)
 
+	-- 用于自更新游戏引擎。
+	-- @param path (string) 新版本引擎文件的路径。
+	install: function(self: App, path: string)
+
 	-- 关闭游戏引擎。
 	-- 该函数在Android和iOS平台不会生效，以遵循移动平台上应用程序规范。
 	shutdown: function(self: App)

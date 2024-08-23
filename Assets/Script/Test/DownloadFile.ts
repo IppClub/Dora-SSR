@@ -14,6 +14,7 @@ function download(this: void) {
 		const success = HttpClient.downloadAsync(
 			url,
 			targetFile,
+			10,
 			(current, total) => {
 				if (cancelDownload) {
 					return true;

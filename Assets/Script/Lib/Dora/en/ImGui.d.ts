@@ -372,19 +372,19 @@ export function SetWindowSize(this: void, name: string, size: Vec2, setCond?: Se
 export function SetWindowCollapsed(this: void, name: string, collapsed: boolean, setCond?: SetCond): void;
 export function SetColorEditOptions(this: void, colorEditFlags: ColorEditFlag[]): void;
 export function InputText(this: void, label: string, buffer: Buffer, inputTextFlags?: InputTextFlag[]): boolean;
-export function InputTextMultiline(this: void, label: string, buffer: Buffer, size?: Vec2, inputTextFlags?: InputTextFlag): boolean;
-export function TreeNodeEx(this: void, label: string, treeNodeFlags: TreeNodeFlag, inside: (this: void) => void): boolean;
+export function InputTextMultiline(this: void, label: string, buffer: Buffer, size?: Vec2, inputTextFlags?: InputTextFlag[]): boolean;
+export function TreeNodeEx(this: void, label: string, treeNodeFlags: TreeNodeFlag[], inside: (this: void) => void): boolean;
 export function TreeNodeEx(this: void, label: string, inside: (this: void) => void): boolean;
-export function TreeNodeEx(this: void, str_id: string, text: string, treeNodeFlags: TreeNodeFlag, inside: (this: void) => void): boolean;
+export function TreeNodeEx(this: void, str_id: string, text: string, treeNodeFlags: TreeNodeFlag[], inside: (this: void) => void): boolean;
 export function TreeNodeEx(this: void, str_id: string, text: string, inside: (this: void) => void): boolean;
 export function SetNextItemOpen(this: void, is_open: boolean, setCond?: SetCond): boolean;
-export function CollapsingHeader(this: void, label: string, treeNodeFlags?: TreeNodeFlag): boolean;
-export function CollapsingHeader(this: void, label: string, p_open: boolean, treeNodeFlags?: TreeNodeFlag): boolean;
-export function Selectable(this: void, label: string, selectableFlags?: SelectableFlag): boolean;
-export function Selectable(this: void, label: string, p_selected: boolean, size?: Vec2, selectableFlags?: SelectableFlag): boolean;
-export function BeginPopupModal(this: void, name: string, windowsFlags: WindowFlag, inside: (this: void) => void): void;
+export function CollapsingHeader(this: void, label: string, treeNodeFlags?: TreeNodeFlag[]): boolean;
+export function CollapsingHeader(this: void, label: string, p_open: boolean, treeNodeFlags?: TreeNodeFlag[]): boolean;
+export function Selectable(this: void, label: string, selectableFlags?: SelectableFlag[]): boolean;
+export function Selectable(this: void, label: string, p_selected: boolean, size?: Vec2, selectableFlags?: SelectableFlag[]): boolean;
+export function BeginPopupModal(this: void, name: string, windowsFlags: WindowFlag[], inside: (this: void) => void): void;
 export function BeginPopupModal(this: void, name: string, inside: (this: void) => void): void;
-export function BeginPopupModal(this: void, name: string, p_open: boolean, windowsFlags: WindowFlag, inside: (this: void) => void): boolean;
+export function BeginPopupModal(this: void, name: string, p_open: boolean, windowsFlags: WindowFlag[], inside: (this: void) => void): boolean;
 export function BeginPopupModal(this: void, name: string, p_open: boolean, inside: (this: void) => void): boolean;
 export function PushStyleColor(this: void, name: StyleColor, color: Color, inside: (this: void) => void): void;
 export function PushStyleVar(this: void, name: StyleVarNum, val: number, inside: (this: void) => void): void;
@@ -434,7 +434,7 @@ export function InputFloat(
 		step?: number, // Default: 0.0
 		step_fast?: number, // Default: 0.0
 		format?: string, // Default: "%.3f"
-		flags?: SliderFlag // Default: nil
+		flags?: SliderFlag[] // Default: nil
 	): LuaMultiReturn<[boolean, number]>;
 
 export function InputFloat2(
@@ -443,7 +443,7 @@ export function InputFloat2(
 		p_v1: number,
 		p_v2: number,
 		format?: string, // Default: "%.1f"
-		flags?: SliderFlag
+		flags?: SliderFlag[]
 	): LuaMultiReturn<[boolean, number, number]>;
 
 export function InputInt(
@@ -452,7 +452,7 @@ export function InputInt(
 		p_v: number,
 		step?: number, // Default: 1
 		step_fast?: number, // Default: 100
-		flags?: SliderFlag
+		flags?: SliderFlag[]
 	): LuaMultiReturn<[boolean, number]>;
 
 export function InputInt2(
@@ -460,7 +460,7 @@ export function InputInt2(
 		label: string,
 		p_v1: number,
 		p_v2: number,
-		flags?: SliderFlag
+		flags?: SliderFlag[]
 	): LuaMultiReturn<[boolean, number, number]>;
 
 export function SliderFloat(this: void, label: string, p_v: number, v_min: number, v_max: number, format?: string, flags?: SliderFlag[]): LuaMultiReturn<[boolean, number]>;
@@ -525,7 +525,6 @@ export function SetCursorScreenPos(this: void, pos: Vec2): void;
 export function AlignTextToFramePadding(this: void): void;
 export function GetTextLineHeight(this: void): number;
 export function GetTextLineHeightWithSpacing(this: void): number;
-
 
 export function NextColumn(this: void): void;
 export function GetColumnIndex(this: void): number;
