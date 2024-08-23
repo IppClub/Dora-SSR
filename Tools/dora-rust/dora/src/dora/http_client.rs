@@ -9,7 +9,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 extern "C" {
 	fn httpclient_post_async(url: i64, json: i64, timeout: f32, func: i32, stack: i64);
 	fn httpclient_get_async(url: i64, timeout: f32, func: i32, stack: i64);
-	fn httpclient_download_async(url: i64, full_path: i64, func: i32, stack: i64);
+	fn httpclient_download_async(url: i64, full_path: i64, timeout: f32, func: i32, stack: i64);
 }
 /// An HTTP client interface.
 pub struct HttpClient { }
@@ -51,15 +51,16 @@ impl HttpClient {
 	///
 	/// * `url` - The URL of the file to download.
 	/// * `full_path` - The full path where the downloaded file should be saved.
+	/// * `timeout` - The timeout in seconds for the request.
 	/// * `progress` - A callback function that is called periodically to report the download progress.
 	///   The function receives three parameters: `interrupted` (a boolean value indicating whether the download was interrupted), `current` (the number of bytes downloaded so far) and `total` (the total number of bytes to be downloaded).
-	pub fn download_async(url: &str, full_path: &str, mut progress: Box<dyn FnMut(bool, i64, i64) -> bool>) {
+	pub fn download_async(url: &str, full_path: &str, timeout: f32, mut progress: Box<dyn FnMut(bool, i64, i64) -> bool>) {
 		let mut stack = crate::dora::CallStack::new();
 		let stack_raw = stack.raw();
 		let func_id = crate::dora::push_function(Box::new(move || {
 			let result = progress(stack.pop_bool().unwrap(), stack.pop_i64().unwrap(), stack.pop_i64().unwrap());
 			stack.push_bool(result);
 		}));
-		unsafe { httpclient_download_async(crate::dora::from_string(url), crate::dora::from_string(full_path), func_id, stack_raw); }
+		unsafe { httpclient_download_async(crate::dora::from_string(url), crate::dora::from_string(full_path), timeout, func_id, stack_raw); }
 	}
 }

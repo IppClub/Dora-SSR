@@ -236,7 +236,7 @@ bool ZipFile::getFileDataByChunks(const std::string& fileName, const std::functi
 		BREAK_IF(it == _file->fileList.end());
 		auto zipIter = mz_zip_reader_extract_file_iter_new(archive, it->second.name.c_str(), 0);
 		uint8_t buf[DORA_COPY_BUFFER_SIZE];
-		int nSize = 0, total = 0;
+		size_t nSize = 0, total = 0;
 		do {
 			nSize = mz_zip_reader_extract_iter_read(zipIter, buf, DORA_COPY_BUFFER_SIZE);
 			if (nSize > 0) {

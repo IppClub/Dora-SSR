@@ -3954,9 +3954,10 @@ singleton class HttpClient
 	///
 	/// * `url` - The URL of the file to download.
 	/// * `full_path` - The full path where the downloaded file should be saved.
+	/// * `timeout` - The timeout in seconds for the request.
 	/// * `progress` - A callback function that is called periodically to report the download progress.
 	///   The function receives three parameters: `interrupted` (a boolean value indicating whether the download was interrupted), `current` (the number of bytes downloaded so far) and `total` (the total number of bytes to be downloaded).
-	void downloadAsync(string url, string fullPath, function<bool(bool interrupted, uint64_t current, uint64_t total)> progress);
+	void downloadAsync(string url, string fullPath, float timeout, function<bool(bool interrupted, uint64_t current, uint64_t total)> progress);
 };
 
 namespace Platformer {

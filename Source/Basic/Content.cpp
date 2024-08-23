@@ -305,7 +305,7 @@ Content::SearchPath Content::getFullPathAndPackage(String filename) {
 		std::tie(path, file) = splitDirectoryAndFilename((fs::path(_assetPath) / fName).string());
 		fullPath = Content::getFullPathForDirectoryAndFilename(path, file);
 		if (!fullPath.empty()) {
-			_fullPathCache[targetFile.toString()] = {fullPath, nullptr};
+			_fullPathCache[fStr] = {fullPath, nullptr};
 			return {fullPath, nullptr, Slice::Empty};
 		}
 	}
@@ -658,7 +658,7 @@ void Content::unzipAsync(String zipFile, String folderPath, const std::function<
 			if (auto parent = Path::getPath(path); !exist(parent)) {
 				createFolder(parent);
 			}
-			std::ofstream stream(path);
+			std::ofstream stream(path, std::ios::trunc | std::ios::binary);
 			if (stream) {
 				if (!zip->getFileDataByChunks(file, [&stream](uint8_t* data, size_t size) {
 						if (stream.write(r_cast<const char*>(data), size)) {

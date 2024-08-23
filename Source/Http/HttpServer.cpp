@@ -646,7 +646,7 @@ void HttpClient::getAsync(String url, float timeout, const std::function<void(st
 	});
 }
 
-void HttpClient::downloadAsync(String url, String filePath, const std::function<bool(bool interrupted, uint64_t current, uint64_t total)>& progress) {
+void HttpClient::downloadAsync(String url, String filePath, float timeout, const std::function<bool(bool interrupted, uint64_t current, uint64_t total)>& progress) {
 	if (_stopped) {
 		progress(true, 0, 0);
 		return;
@@ -663,12 +663,12 @@ void HttpClient::downloadAsync(String url, String filePath, const std::function<
 		progress(true, 0, 0);
 		return;
 	}
-	_downloadThread->run([schemeHostPort, fileStr = filePath.toString(), urlStr = url.toString(), progress, pathToGet]() {
+	_downloadThread->run([schemeHostPort, fileStr = filePath.toString(), urlStr = url.toString(), timeout, progress, pathToGet]() {
 		try {
 			httplib::Client client(schemeHostPort);
 			client.enable_server_certificate_verification(false);
 			client.set_follow_location(true);
-			client.set_connection_timeout(10);
+			client.set_connection_timeout(timeout);
 			std::ofstream out(fileStr, std::ios::out | std::ios::trunc | std::ios::binary);
 			if (!out) {
 				Error("invalid local file path \"{}\" to download to", fileStr);

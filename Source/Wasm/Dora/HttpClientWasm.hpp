@@ -28,12 +28,12 @@ static void httpclient_get_async(int64_t url, float timeout, int32_t func, int64
 		SharedWasmRuntime.invoke(func);
 	});
 }
-static void httpclient_download_async(int64_t url, int64_t full_path, int32_t func, int64_t stack) {
+static void httpclient_download_async(int64_t url, int64_t full_path, float timeout, int32_t func, int64_t stack) {
 	std::shared_ptr<void> deref(nullptr, [func](auto) {
 		SharedWasmRuntime.deref(func);
 	});
 	auto args = r_cast<CallStack*>(stack);
-	SharedHttpClient.downloadAsync(*str_from(url), *str_from(full_path), [func, args, deref](bool interrupted, uint64_t current, uint64_t total) {
+	SharedHttpClient.downloadAsync(*str_from(url), *str_from(full_path), timeout, [func, args, deref](bool interrupted, uint64_t current, uint64_t total) {
 		args->clear();
 		args->push(interrupted);
 		args->push(current);

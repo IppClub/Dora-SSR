@@ -524,12 +524,13 @@ do
 
 	local HttpClient = Dora.HttpClient
 	local HttpClient_downloadAsync = HttpClient.downloadAsync
-	HttpClient.downloadAsync = function(self, url, filePath, progress)
+	HttpClient.downloadAsync = function(self, url, filePath, timeout, progress)
 		local _, mainThread = coroutine.running()
 		assert(not mainThread, "HttpClient.downloadAsync should be run in a thread")
+		timeout = timeout or 30
 		local failed = false
 		local done = false
-		HttpClient_downloadAsync(self, url, filePath, function(interrupted, current, total)
+		HttpClient_downloadAsync(self, url, filePath, timeout, function(interrupted, current, total)
 			if interrupted then
 				failed = true
 			else
