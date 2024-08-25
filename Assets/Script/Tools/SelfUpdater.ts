@@ -93,6 +93,7 @@ function download(this: void) {
 		progress = 0;
 		const [url, filename] = getDownloadURL();
 		const targetFile = Path(Content.writablePath, ".download", filename);
+		downloadTargetFile = targetFile;
 		Content.mkdir(Path(Content.writablePath, ".download"));
 		downloadTitle = (zh ? "正在下载：" : "Downloading: ") + filename;
 		const success = HttpClient.downloadAsync(
@@ -109,14 +110,14 @@ function download(this: void) {
 		);
 		if (success) {
 			downloadTitle = zh ? `解压中：${filename}` : `Unziping: ${filename}`;
-			const unzipPath = App.platform === PlatformType.Windows ? Path(Path.getPath(targetFile), Path.getName(targetFile)) : Path.getPath(targetFile);
+			const unzipPath = Path(Path.getPath(targetFile), Path.getName(targetFile));
 			targetUnzipPath = unzipPath;
+			Content.remove(unzipPath);
 			if (!Content.unzipAsync(targetFile, unzipPath)) {
 				Content.remove(unzipPath);
 				targetUnzipPath = "";
 				showPopup(zh ? "解压失败" : "Failed to unzip ", zh ? `无法解压文件：${filename}` : `Failed to unzip: ${filename}`);
 			} else {
-				targetUnzipPath = "";
 				Content.remove(targetFile);
 				const pathForInstall = App.platform === PlatformType.Windows ? unzipPath : Path(unzipPath, `dora-ssr-${latestVersion}-android.apk`)
 				App.install(pathForInstall);
@@ -228,10 +229,17 @@ threadLoop(() => {
 				}
 			}
 		}
-		if (downloadTitle !== "") {
-			ImGui.Separator();
-			ImGui.Text(downloadTitle);
-			ImGui.ProgressBar(progress, Vec2(-1, 30));
+		if (targetUnzipPath === "") {
+			if (downloadTitle !== "") {
+				ImGui.Separator();
+				ImGui.Text(downloadTitle);
+				ImGui.ProgressBar(progress, Vec2(-1, 30));
+			}
+		} else if (App.platform === "Android") {
+			if (ImGui.Button(zh ? "进行安装" : "Install")) {
+				const pathForInstall = Path(targetUnzipPath, `dora-ssr-${latestVersion}-android.apk`)
+				App.install(pathForInstall);
+			}
 		}
 		if (popupShow) {
 			popupShow = false;
@@ -244,7 +252,7 @@ threadLoop(() => {
 
 const node = Node();
 node.slot(Slot.Cleanup, () => {
-	if (0 < progress && progress < 1) {
+	if (0 < progress && progress < 1 && downloadTargetFile !== "") {
 		cancelDownload = true;
 		Content.remove(downloadTargetFile);
 	}

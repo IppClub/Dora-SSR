@@ -29,8 +29,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <ctime>
 #include <thread>
 
-#define DORA_VERSION "1.5.11"_slice
-#define DORA_REVISION "3"_slice
+#define DORA_VERSION "1.5.12"_slice
+#define DORA_REVISION "1"_slice
 
 #if BX_PLATFORM_ANDROID
 #include <jni.h>
@@ -48,7 +48,16 @@ JNIEXPORT void JNICALL Java_org_ippclub_dorassr_MainActivity_nativeSetScreenDens
 	g_androidScreenDensity = s_cast<float>(screenDensity);
 }
 }
+static std::string g_androidInstallFile;
+extern "C" {
+JNIEXPORT jstring JNICALL Java_org_ippclub_dorassr_MainActivity_nativeGetInstallFile(JNIEnv *env, jclass cls) {
+    jstring jstr = env->NewStringUTF(g_androidInstallFile.c_str());
+    g_androidInstallFile.clear();
+    return jstr;
+}
+}
 extern "C" ANativeWindow* Android_JNI_GetNativeWindow();
+extern "C" int Android_JNI_SendMessage(int command, int param);
 #endif // BX_PLATFORM_ANDROID
 
 #if BX_PLATFORM_WINDOWS
@@ -728,6 +737,9 @@ void Application::install(String path) {
 	}
 	Application::shutdown();
 #elif BX_PLATFORM_ANDROID
+	g_androidInstallFile = path.toString();
+	const int COMMAND_INSTALL = 0x8000;
+	Android_JNI_SendMessage(COMMAND_INSTALL, 0);
 #else
 	Issue("Application.install() is not unsupported on this platform");
 #endif

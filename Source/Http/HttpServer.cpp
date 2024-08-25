@@ -680,6 +680,7 @@ void HttpClient::downloadAsync(String url, String filePath, float timeout, const
 						return false;
 					} else if (!out.write(data, data_length)) {
 						Error("failed to write downloaded file for \"{}\"", urlStr);
+						out.close();
 						SharedApplication.invokeInLogic([progress]() {
 							progress(true, 0, 0);
 						});
@@ -691,18 +692,23 @@ void HttpClient::downloadAsync(String url, String filePath, float timeout, const
 					return true;
 				},
 				[&, stopped = std::make_shared<std::atomic<bool>>(false)](uint64_t current, uint64_t total) -> bool {
+					if (current == total) {
+						out.close();
+					}
 					SharedApplication.invokeInLogic([progress, current, total, stopped]() {
 						if (!*stopped) {
 							*stopped = progress(false, current, total);
 						}
 					});
 					if (*stopped) {
+						out.close();
 						return false;
 					}
 					return true;
 				});
 			if (!result || result.error() != httplib::Error::Success) {
 				Info("failed to download \"{}\" due to {}", urlStr, httplib::to_string(result.error()));
+				out.close();
 				SharedApplication.invokeInLogic([progress]() {
 					progress(true, 0, 0);
 				});
