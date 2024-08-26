@@ -15,7 +15,7 @@ type AnyNotNil = {};
  * @param TBrand A string used to uniquely identify the language extension type
  */
 declare interface LuaExtension<TBrand extends string> {
-    readonly __tstlExtension: TBrand;
+	readonly __tstlExtension: TBrand;
 }
 
 /**
@@ -25,7 +25,7 @@ declare interface LuaExtension<TBrand extends string> {
  * @param TBrand A string used to uniquely identify the language extension type
  */
 declare interface LuaIterationExtension<TBrand extends string> {
-    readonly __tstlIterable: TBrand;
+	readonly __tstlIterable: TBrand;
 }
 
 /**
@@ -44,7 +44,7 @@ declare const $multi: (<T extends any[]>(...values: T) => LuaMultiReturn<T>) & L
  * @param T A tuple type with each element type representing a return value's type.
  */
 declare type LuaMultiReturn<T extends any[]> = T & {
-    readonly __tstlMultiReturn: any;
+	readonly __tstlMultiReturn: any;
 };
 
 /**
@@ -56,7 +56,7 @@ declare type LuaMultiReturn<T extends any[]> = T & {
  * @param step The amount to increment each iteration.
  */
 declare const $range: ((start: number, limit: number, step?: number) => Iterable<number>) &
-    LuaExtension<"RangeFunction">;
+	LuaExtension<"RangeFunction">;
 
 /**
  * Transpiles to the global vararg (`...`)
@@ -74,18 +74,18 @@ declare const $vararg: string[] & LuaExtension<"VarargConstant">;
  * @param lastValue The last value returned from this function. If iterating LuaMultiReturn values, this is the first value of the tuple.
  */
 declare type LuaIterator<TValue, TState> = TState extends undefined
-    ? (this: void) => TValue
-    : LuaMultiReturn<
-          [
-              (
-                  this: void,
-                  state: TState,
-                  lastValue: TValue extends LuaMultiReturn<infer TTuple> ? TTuple[0] : TValue
-              ) => TValue,
-              TState,
-              TValue extends LuaMultiReturn<infer TTuple> ? TTuple[0] : TValue
-          ]
-      >;
+	? (this: void) => TValue
+	: LuaMultiReturn<
+		[
+			(
+				this: void,
+				state: TState,
+				lastValue: TValue extends LuaMultiReturn<infer TTuple> ? TTuple[0] : TValue
+			) => TValue,
+			TState,
+			TValue extends LuaMultiReturn<infer TTuple> ? TTuple[0] : TValue
+		]
+	>;
 
 /**
  * Represents a Lua-style iteratable which iterates single values in a `for...in` loop (ex. `for x in iter() do`).
@@ -95,8 +95,8 @@ declare type LuaIterator<TValue, TState> = TState extends undefined
  * @param TState The type of the state value passed back to the iterator function each iteration.
  */
 declare type LuaIterable<TValue, TState = undefined> = Iterable<TValue> &
-    LuaIterator<TValue, TState> &
-    LuaIterationExtension<"Iterable">;
+	LuaIterator<TValue, TState> &
+	LuaIterationExtension<"Iterable">;
 
 /**
  * Represents an object that can be iterated with pairs()
@@ -106,7 +106,7 @@ declare type LuaIterable<TValue, TState = undefined> = Iterable<TValue> &
  * @param TValue The type of the value returned each iteration.
  */
 declare type LuaPairsIterable<TKey extends AnyNotNil, TValue> = Iterable<[TKey, TValue]> &
-    LuaIterationExtension<"Pairs">;
+	LuaIterationExtension<"Pairs">;
 
 /**
  * Represents an object that can be iterated with pairs(), where only the key value is used.
@@ -143,7 +143,7 @@ declare type LuaAdditionMethod<TRight, TReturn> = ((right: TRight) => TReturn) &
  * @param TReturn The resulting (return) type of the operation.
  */
 declare type LuaSubtraction<TLeft, TRight, TReturn> = ((left: TLeft, right: TRight) => TReturn) &
-    LuaExtension<"Subtraction">;
+	LuaExtension<"Subtraction">;
 
 /**
  * Calls to methods with this type are translated to `left - right`, where `left` is the object with the method.
@@ -163,7 +163,7 @@ declare type LuaSubtractionMethod<TRight, TReturn> = ((right: TRight) => TReturn
  * @param TReturn The resulting (return) type of the operation.
  */
 declare type LuaMultiplication<TLeft, TRight, TReturn> = ((left: TLeft, right: TRight) => TReturn) &
-    LuaExtension<"Multiplication">;
+	LuaExtension<"Multiplication">;
 
 /**
  * Calls to methods with this type are translated to `left * right`, where `left` is the object with the method.
@@ -173,7 +173,7 @@ declare type LuaMultiplication<TLeft, TRight, TReturn> = ((left: TLeft, right: T
  * @param TReturn The resulting (return) type of the operation.
  */
 declare type LuaMultiplicationMethod<TRight, TReturn> = ((right: TRight) => TReturn) &
-    LuaExtension<"MultiplicationMethod">;
+	LuaExtension<"MultiplicationMethod">;
 
 /**
  * Calls to functions with this type are translated to `left / right`.
@@ -241,7 +241,7 @@ declare type LuaPowerMethod<TRight, TReturn> = ((right: TRight) => TReturn) & Lu
  * @param TReturn The resulting (return) type of the operation.
  */
 declare type LuaFloorDivision<TLeft, TRight, TReturn> = ((left: TLeft, right: TRight) => TReturn) &
-    LuaExtension<"FloorDivision">;
+	LuaExtension<"FloorDivision">;
 
 /**
  * Calls to methods with this type are translated to `left // right`, where `left` is the object with the method.
@@ -251,7 +251,7 @@ declare type LuaFloorDivision<TLeft, TRight, TReturn> = ((left: TLeft, right: TR
  * @param TReturn The resulting (return) type of the operation.
  */
 declare type LuaFloorDivisionMethod<TRight, TReturn> = ((right: TRight) => TReturn) &
-    LuaExtension<"FloorDivisionMethod">;
+	LuaExtension<"FloorDivisionMethod">;
 
 /**
  * Calls to functions with this type are translated to `left & right`.
@@ -262,7 +262,7 @@ declare type LuaFloorDivisionMethod<TRight, TReturn> = ((right: TRight) => TRetu
  * @param TReturn The resulting (return) type of the operation.
  */
 declare type LuaBitwiseAnd<TLeft, TRight, TReturn> = ((left: TLeft, right: TRight) => TReturn) &
-    LuaExtension<"BitwiseAnd">;
+	LuaExtension<"BitwiseAnd">;
 
 /**
  * Calls to methods with this type are translated to `left & right`, where `left` is the object with the method.
@@ -282,7 +282,7 @@ declare type LuaBitwiseAndMethod<TRight, TReturn> = ((right: TRight) => TReturn)
  * @param TReturn The resulting (return) type of the operation.
  */
 declare type LuaBitwiseOr<TLeft, TRight, TReturn> = ((left: TLeft, right: TRight) => TReturn) &
-    LuaExtension<"BitwiseOr">;
+	LuaExtension<"BitwiseOr">;
 
 /**
  * Calls to methods with this type are translated to `left | right`, where `left` is the object with the method.
@@ -302,7 +302,7 @@ declare type LuaBitwiseOrMethod<TRight, TReturn> = ((right: TRight) => TReturn) 
  * @param TReturn The resulting (return) type of the operation.
  */
 declare type LuaBitwiseExclusiveOr<TLeft, TRight, TReturn> = ((left: TLeft, right: TRight) => TReturn) &
-    LuaExtension<"BitwiseExclusiveOr">;
+	LuaExtension<"BitwiseExclusiveOr">;
 
 /**
  * Calls to methods with this type are translated to `left ~ right`, where `left` is the object with the method.
@@ -312,7 +312,7 @@ declare type LuaBitwiseExclusiveOr<TLeft, TRight, TReturn> = ((left: TLeft, righ
  * @param TReturn The resulting (return) type of the operation.
  */
 declare type LuaBitwiseExclusiveOrMethod<TRight, TReturn> = ((right: TRight) => TReturn) &
-    LuaExtension<"BitwiseExclusiveOrMethod">;
+	LuaExtension<"BitwiseExclusiveOrMethod">;
 
 /**
  * Calls to functions with this type are translated to `left << right`.
@@ -323,7 +323,7 @@ declare type LuaBitwiseExclusiveOrMethod<TRight, TReturn> = ((right: TRight) => 
  * @param TReturn The resulting (return) type of the operation.
  */
 declare type LuaBitwiseLeftShift<TLeft, TRight, TReturn> = ((left: TLeft, right: TRight) => TReturn) &
-    LuaExtension<"BitwiseLeftShift">;
+	LuaExtension<"BitwiseLeftShift">;
 
 /**
  * Calls to methods with this type are translated to `left << right`, where `left` is the object with the method.
@@ -333,7 +333,7 @@ declare type LuaBitwiseLeftShift<TLeft, TRight, TReturn> = ((left: TLeft, right:
  * @param TReturn The resulting (return) type of the operation.
  */
 declare type LuaBitwiseLeftShiftMethod<TRight, TReturn> = ((right: TRight) => TReturn) &
-    LuaExtension<"BitwiseLeftShiftMethod">;
+	LuaExtension<"BitwiseLeftShiftMethod">;
 
 /**
  * Calls to functions with this type are translated to `left >> right`.
@@ -344,7 +344,7 @@ declare type LuaBitwiseLeftShiftMethod<TRight, TReturn> = ((right: TRight) => TR
  * @param TReturn The resulting (return) type of the operation.
  */
 declare type LuaBitwiseRightShift<TLeft, TRight, TReturn> = ((left: TLeft, right: TRight) => TReturn) &
-    LuaExtension<"BitwiseRightShift">;
+	LuaExtension<"BitwiseRightShift">;
 
 /**
  * Calls to methods with this type are translated to `left >> right`, where `left` is the object with the method.
@@ -354,7 +354,7 @@ declare type LuaBitwiseRightShift<TLeft, TRight, TReturn> = ((left: TLeft, right
  * @param TReturn The resulting (return) type of the operation.
  */
 declare type LuaBitwiseRightShiftMethod<TRight, TReturn> = ((right: TRight) => TReturn) &
-    LuaExtension<"BitwiseRightShiftMethod">;
+	LuaExtension<"BitwiseRightShiftMethod">;
 
 /**
  * Calls to functions with this type are translated to `left .. right`.
@@ -403,7 +403,7 @@ declare type LuaLessThanMethod<TRight, TReturn> = ((right: TRight) => TReturn) &
  * @param TReturn The resulting (return) type of the operation.
  */
 declare type LuaGreaterThan<TLeft, TRight, TReturn> = ((left: TLeft, right: TRight) => TReturn) &
-    LuaExtension<"GreaterThan">;
+	LuaExtension<"GreaterThan">;
 
 /**
  * Calls to methods with this type are translated to `left > right`, where `left` is the object with the method.
@@ -474,10 +474,10 @@ declare type LuaLengthMethod<TReturn> = (() => TReturn) & LuaExtension<"LengthMe
  * @param TValue The type of the value stored in the table.
  */
 declare type LuaTableGet<TTable extends AnyTable, TKey extends AnyNotNil, TValue> = ((
-    table: TTable,
-    key: TKey
+	table: TTable,
+	key: TKey
 ) => TValue) &
-    LuaExtension<"TableGet">;
+	LuaExtension<"TableGet">;
 
 /**
  * Calls to methods with this type are translated to `table[key]`, where `table` is the object with the method.
@@ -487,7 +487,7 @@ declare type LuaTableGet<TTable extends AnyTable, TKey extends AnyNotNil, TValue
  * @param TValue The type of the value stored in the table.
  */
 declare type LuaTableGetMethod<TKey extends AnyNotNil, TValue> = ((key: TKey) => TValue) &
-    LuaExtension<"TableGetMethod">;
+	LuaExtension<"TableGetMethod">;
 
 /**
  * Calls to functions with this type are translated to `table[key] = value`.
@@ -498,11 +498,11 @@ declare type LuaTableGetMethod<TKey extends AnyNotNil, TValue> = ((key: TKey) =>
  * @param TValue The type of the value to assign to the table.
  */
 declare type LuaTableSet<TTable extends AnyTable, TKey extends AnyNotNil, TValue> = ((
-    table: TTable,
-    key: TKey,
-    value: TValue
+	table: TTable,
+	key: TKey,
+	value: TValue
 ) => void) &
-    LuaExtension<"TableSet">;
+	LuaExtension<"TableSet">;
 
 /**
  * Calls to methods with this type are translated to `table[key] = value`, where `table` is the object with the method.
@@ -512,7 +512,7 @@ declare type LuaTableSet<TTable extends AnyTable, TKey extends AnyNotNil, TValue
  * @param TValue The type of the value to assign to the table.
  */
 declare type LuaTableSetMethod<TKey extends AnyNotNil, TValue> = ((key: TKey, value: TValue) => void) &
-    LuaExtension<"TableSetMethod">;
+	LuaExtension<"TableSetMethod">;
 
 /**
  * Calls to functions with this type are translated to `table[key] = true`.
@@ -522,7 +522,7 @@ declare type LuaTableSetMethod<TKey extends AnyNotNil, TValue> = ((key: TKey, va
  * @param TKey The type of the key to use to access the table.
  */
 declare type LuaTableAddKey<TTable extends AnyTable, TKey extends AnyNotNil> = ((table: TTable, key: TKey) => void) &
-    LuaExtension<"TableAddKey">;
+	LuaExtension<"TableAddKey">;
 
 /**
  * Calls to methods with this type are translated to `table[key] = true`, where `table` is the object with the method.
@@ -539,7 +539,7 @@ declare type LuaTableAddKeyMethod<TKey extends AnyNotNil> = ((key: TKey) => void
  * @param TKey The type of the key to use to access the table.
  */
 declare type LuaTableHas<TTable extends AnyTable, TKey extends AnyNotNil> = ((table: TTable, key: TKey) => boolean) &
-    LuaExtension<"TableHas">;
+	LuaExtension<"TableHas">;
 
 /**
  * Calls to methods with this type are translated to `table[key] ~= nil`, where `table` is the object with the method.
@@ -557,7 +557,7 @@ declare type LuaTableHasMethod<TKey extends AnyNotNil> = ((key: TKey) => boolean
  * @param TKey The type of the key to use to access the table.
  */
 declare type LuaTableDelete<TTable extends AnyTable, TKey extends AnyNotNil> = ((table: TTable, key: TKey) => boolean) &
-    LuaExtension<"TableDelete">;
+	LuaExtension<"TableDelete">;
 
 /**
  * Calls to methods with this type are translated to `table[key] = nil`, where `table` is the object with the method.
@@ -566,7 +566,7 @@ declare type LuaTableDelete<TTable extends AnyTable, TKey extends AnyNotNil> = (
  * @param TKey The type of the key to use to access the table.
  */
 declare type LuaTableDeleteMethod<TKey extends AnyNotNil> = ((key: TKey) => boolean) &
-    LuaExtension<"TableDeleteMethod">;
+	LuaExtension<"TableDeleteMethod">;
 
 /**
  * Calls to functions with this type are translated to `next(myTable) == nil`.
@@ -590,12 +590,12 @@ declare type LuaTableIsEmptyMethod = (() => boolean) & LuaExtension<"TableIsEmpt
  * @param TValue The type of the values stored in the table.
  */
 declare interface LuaTable<TKey extends AnyNotNil = AnyNotNil, TValue = any> extends LuaPairsIterable<TKey, TValue> {
-    length: LuaLengthMethod<number>;
-    get: LuaTableGetMethod<TKey, TValue>;
-    set: LuaTableSetMethod<TKey, TValue>;
-    has: LuaTableHasMethod<TKey>;
-    delete: LuaTableDeleteMethod<TKey>;
-    isEmpty: LuaTableIsEmptyMethod;
+	length: LuaLengthMethod<number>;
+	get: LuaTableGetMethod<TKey, TValue>;
+	set: LuaTableSetMethod<TKey, TValue>;
+	has: LuaTableHasMethod<TKey>;
+	delete: LuaTableDeleteMethod<TKey>;
+	isEmpty: LuaTableIsEmptyMethod;
 }
 
 /**
@@ -606,10 +606,10 @@ declare interface LuaTable<TKey extends AnyNotNil = AnyNotNil, TValue = any> ext
  * @param TValue The type of the values stored in the table.
  */
 declare type LuaTableConstructor = (new <TKey extends AnyNotNil = AnyNotNil, TValue = any>() => LuaTable<
-    TKey,
-    TValue
+	TKey,
+	TValue
 >) &
-    LuaExtension<"TableNew">;
+	LuaExtension<"TableNew">;
 
 /**
  * A convenience type for working directly with a Lua table.
@@ -629,11 +629,11 @@ declare const LuaTable: LuaTableConstructor;
  * @param V The type of the values stored in the table.
  */
 declare interface LuaMap<K extends AnyNotNil = AnyNotNil, V = any> extends LuaPairsIterable<K, V> {
-    get: LuaTableGetMethod<K, V | undefined>;
-    set: LuaTableSetMethod<K, V>;
-    has: LuaTableHasMethod<K>;
-    delete: LuaTableDeleteMethod<K>;
-    isEmpty: LuaTableIsEmptyMethod;
+	get: LuaTableGetMethod<K, V | undefined>;
+	set: LuaTableSetMethod<K, V>;
+	has: LuaTableHasMethod<K>;
+	delete: LuaTableDeleteMethod<K>;
+	isEmpty: LuaTableIsEmptyMethod;
 }
 
 /**
@@ -653,9 +653,9 @@ declare const LuaMap: (new <K extends AnyNotNil = AnyNotNil, V = any>() => LuaMa
  * @param V The type of the values stored in the table.
  */
 declare interface ReadonlyLuaMap<K extends AnyNotNil = AnyNotNil, V = any> extends LuaPairsIterable<K, V> {
-    get: LuaTableGetMethod<K, V | undefined>;
-    has: LuaTableHasMethod<K>;
-    isEmpty: LuaTableIsEmptyMethod;
+	get: LuaTableGetMethod<K, V | undefined>;
+	has: LuaTableHasMethod<K>;
+	isEmpty: LuaTableIsEmptyMethod;
 }
 
 /**
@@ -665,10 +665,10 @@ declare interface ReadonlyLuaMap<K extends AnyNotNil = AnyNotNil, V = any> exten
  * @param T The type of the keys used to access the table.
  */
 declare interface LuaSet<T extends AnyNotNil = AnyNotNil> extends LuaPairsKeyIterable<T> {
-    add: LuaTableAddKeyMethod<T>;
-    has: LuaTableHasMethod<T>;
-    delete: LuaTableDeleteMethod<T>;
-    isEmpty: LuaTableIsEmptyMethod;
+	add: LuaTableAddKeyMethod<T>;
+	has: LuaTableHasMethod<T>;
+	delete: LuaTableDeleteMethod<T>;
+	isEmpty: LuaTableIsEmptyMethod;
 }
 
 /**
@@ -685,186 +685,186 @@ declare const LuaSet: (new <T extends AnyNotNil = AnyNotNil>() => LuaSet<T>) & L
  * @param T The type of the keys used to access the table.
  */
 declare interface ReadonlyLuaSet<T extends AnyNotNil = AnyNotNil> extends LuaPairsKeyIterable<T> {
-    has: LuaTableHasMethod<T>;
-    isEmpty: LuaTableIsEmptyMethod;
+	has: LuaTableHasMethod<T>;
+	isEmpty: LuaTableIsEmptyMethod;
 }
 
 interface ObjectConstructor {
-    /** Returns an array of keys of an object, when iterated with `pairs`. */
-    keys<K extends AnyNotNil>(o: LuaPairsIterable<K, any> | LuaPairsKeyIterable<K>): K[];
+	/** Returns an array of keys of an object, when iterated with `pairs`. */
+	keys<K extends AnyNotNil>(o: LuaPairsIterable<K, any> | LuaPairsKeyIterable<K>): K[];
 
-    /** Returns an array of values of an object, when iterated with `pairs`. */
-    values<V>(o: LuaPairsIterable<any, V>): V[];
+	/** Returns an array of values of an object, when iterated with `pairs`. */
+	values<V>(o: LuaPairsIterable<any, V>): V[];
 
-    /** Returns an array of key/values of an object, when iterated with `pairs`. */
-    entries<K extends AnyNotNil, V>(o: LuaPairsIterable<K, V>): Array<[K, V]>;
+	/** Returns an array of key/values of an object, when iterated with `pairs`. */
+	entries<K extends AnyNotNil, V>(o: LuaPairsIterable<K, V>): Array<[K, V]>;
 }
 
 // Based on https://www.lua.org/manual/5.3/manual.html#2.4
 
 interface LuaMetatable<
-    T,
-    TIndex extends object | ((this: T, key: any) => any) | undefined =
-        | object
-        | ((this: T, key: any) => any)
-        | undefined
+	T,
+	TIndex extends object | ((this: T, key: any) => any) | undefined =
+		| object
+		| ((this: T, key: any) => any)
+		| undefined
 > {
-    /**
-     * the addition (+) operation. If any operand for an addition is not a number
-     * (nor a string coercible to a number), Lua will try to call a metamethod.
-     * First, Lua will check the first operand (even if it is valid). If that
-     * operand does not define a metamethod for __add, then Lua will check the
-     * second operand. If Lua can find a metamethod, it calls the metamethod with
-     * the two operands as arguments, and the result of the call (adjusted to one
-     * value) is the result of the operation. Otherwise, it raises an error.
-     */
-    __add?(this: T, operand: any): any;
+	/**
+	 * the addition (+) operation. If any operand for an addition is not a number
+	 * (nor a string coercible to a number), Lua will try to call a metamethod.
+	 * First, Lua will check the first operand (even if it is valid). If that
+	 * operand does not define a metamethod for __add, then Lua will check the
+	 * second operand. If Lua can find a metamethod, it calls the metamethod with
+	 * the two operands as arguments, and the result of the call (adjusted to one
+	 * value) is the result of the operation. Otherwise, it raises an error.
+	 */
+	__add?(this: T, operand: any): any;
 
-    /**
-     * the subtraction (-) operation. Behavior similar to the addition operation.
-     */
-    __sub?(this: T, operand: any): any;
+	/**
+	 * the subtraction (-) operation. Behavior similar to the addition operation.
+	 */
+	__sub?(this: T, operand: any): any;
 
-    /**
-     * the multiplication (*) operation. Behavior similar to the addition
-     * operation.
-     */
-    __mul?(this: T, operand: any): any;
+	/**
+	 * the multiplication (*) operation. Behavior similar to the addition
+	 * operation.
+	 */
+	__mul?(this: T, operand: any): any;
 
-    /**
-     * the division (/) operation. Behavior similar to the addition operation.
-     */
-    __div?(this: T, operand: any): any;
+	/**
+	 * the division (/) operation. Behavior similar to the addition operation.
+	 */
+	__div?(this: T, operand: any): any;
 
-    /**
-     * the modulo (%) operation. Behavior similar to the addition operation.
-     */
-    __mod?(this: T, operand: any): any;
+	/**
+	 * the modulo (%) operation. Behavior similar to the addition operation.
+	 */
+	__mod?(this: T, operand: any): any;
 
-    /**
-     * the exponentiation (^) operation. Behavior similar to the addition
-     * operation.
-     */
-    __pow?(this: T, operand: any): any;
+	/**
+	 * the exponentiation (^) operation. Behavior similar to the addition
+	 * operation.
+	 */
+	__pow?(this: T, operand: any): any;
 
-    /**
-     * the negation (unary -) operation. Behavior similar to the addition
-     * operation.
-     */
-    __unm?(this: T, operand: any): any;
+	/**
+	 * the negation (unary -) operation. Behavior similar to the addition
+	 * operation.
+	 */
+	__unm?(this: T, operand: any): any;
 
-    /**
-     * the concatenation (..) operation. Behavior similar to the addition
-     * operation, except that Lua will try a metamethod if any operand is neither
-     * a string nor a number (which is always coercible to a string).
-     */
-    __concat?(this: T, operand: any): any;
+	/**
+	 * the concatenation (..) operation. Behavior similar to the addition
+	 * operation, except that Lua will try a metamethod if any operand is neither
+	 * a string nor a number (which is always coercible to a string).
+	 */
+	__concat?(this: T, operand: any): any;
 
-    /**
-     * the length (#) operation. If the object is not a string, Lua will try its
-     * metamethod. If there is a metamethod, Lua calls it with the object as
-     * argument, and the result of the call (always adjusted to one value) is the
-     * result of the operation. If there is no metamethod but the object is a
-     * table, then Lua uses the table length operation (see §3.4.7). Otherwise,
-     * Lua raises an error.
-     */
-    __len?(this: T): any;
+	/**
+	 * the length (#) operation. If the object is not a string, Lua will try its
+	 * metamethod. If there is a metamethod, Lua calls it with the object as
+	 * argument, and the result of the call (always adjusted to one value) is the
+	 * result of the operation. If there is no metamethod but the object is a
+	 * table, then Lua uses the table length operation (see §3.4.7). Otherwise,
+	 * Lua raises an error.
+	 */
+	__len?(this: T): any;
 
-    /**
-     * the equal (==) operation. Behavior similar to the addition operation,
-     * except that Lua will try a metamethod only when the values being compared
-     * are either both tables or both full userdata and they are not primitively
-     * equal. The result of the call is always converted to a boolean.
-     */
-    __eq?(this: T, operand: any): boolean;
+	/**
+	 * the equal (==) operation. Behavior similar to the addition operation,
+	 * except that Lua will try a metamethod only when the values being compared
+	 * are either both tables or both full userdata and they are not primitively
+	 * equal. The result of the call is always converted to a boolean.
+	 */
+	__eq?(this: T, operand: any): boolean;
 
-    /**
-     * the less than (<) operation. Behavior similar to the addition operation,
-     * except that Lua will try a metamethod only when the values being compared
-     * are neither both numbers nor both strings. The result of the call is always
-     * converted to a boolean.
-     */
-    __lt?(this: T, operand: any): boolean;
+	/**
+	 * the less than (<) operation. Behavior similar to the addition operation,
+	 * except that Lua will try a metamethod only when the values being compared
+	 * are neither both numbers nor both strings. The result of the call is always
+	 * converted to a boolean.
+	 */
+	__lt?(this: T, operand: any): boolean;
 
-    /**
-     * the less equal (<=) operation. Unlike other operations, the less-equal
-     * operation can use two different events. First, Lua looks for the __le
-     * metamethod in both operands, like in the less than operation. If it cannot
-     * find such a metamethod, then it will try the __lt metamethod, assuming that
-     * a <= b is equivalent to not (b < a). As with the other comparison
-     * operators, the result is always a boolean. (This use of the __lt event can
-     * be removed in future versions; it is also slower than a real __le
-     * metamethod.)
-     */
-    __le?(this: T, operand: any): boolean;
+	/**
+	 * the less equal (<=) operation. Unlike other operations, the less-equal
+	 * operation can use two different events. First, Lua looks for the __le
+	 * metamethod in both operands, like in the less than operation. If it cannot
+	 * find such a metamethod, then it will try the __lt metamethod, assuming that
+	 * a <= b is equivalent to not (b < a). As with the other comparison
+	 * operators, the result is always a boolean. (This use of the __lt event can
+	 * be removed in future versions; it is also slower than a real __le
+	 * metamethod.)
+	 */
+	__le?(this: T, operand: any): boolean;
 
-    /**
-     * The indexing access table[key]. This event happens when table is not a
-     * table or when key is not present in table. The metamethod is looked up in
-     * table.
-     *
-     * Despite the name, the metamethod for this event can be either a function or
-     * a table. If it is a function, it is called with table and key as arguments,
-     * and the result of the call (adjusted to one value) is the result of the
-     * operation. If it is a table, the final result is the result of indexing
-     * this table with key. (This indexing is regular, not raw, and therefore can
-     * trigger another metamethod.)
-     */
-    __index?: TIndex;
+	/**
+	 * The indexing access table[key]. This event happens when table is not a
+	 * table or when key is not present in table. The metamethod is looked up in
+	 * table.
+	 *
+	 * Despite the name, the metamethod for this event can be either a function or
+	 * a table. If it is a function, it is called with table and key as arguments,
+	 * and the result of the call (adjusted to one value) is the result of the
+	 * operation. If it is a table, the final result is the result of indexing
+	 * this table with key. (This indexing is regular, not raw, and therefore can
+	 * trigger another metamethod.)
+	 */
+	__index?: TIndex;
 
-    /**
-     * The indexing assignment table[key] = value. Like the index event, this
-     * event happens when table is not a table or when key is not present in
-     * table. The metamethod is looked up in table.
-     *
-     * Like with indexing, the metamethod for this event can be either a function
-     * or a table. If it is a function, it is called with table, key, and value as
-     * arguments. If it is a table, Lua does an indexing assignment to this table
-     * with the same key and value. (This assignment is regular, not raw, and
-     * therefore can trigger another metamethod.)
-     *
-     * Whenever there is a __newindex metamethod, Lua does not perform the
-     * primitive assignment. (If necessary, the metamethod itself can call rawset
-     * to do the assignment.)
-     */
-    __newindex?: object | ((this: T, key: any, value: any) => void);
+	/**
+	 * The indexing assignment table[key] = value. Like the index event, this
+	 * event happens when table is not a table or when key is not present in
+	 * table. The metamethod is looked up in table.
+	 *
+	 * Like with indexing, the metamethod for this event can be either a function
+	 * or a table. If it is a function, it is called with table, key, and value as
+	 * arguments. If it is a table, Lua does an indexing assignment to this table
+	 * with the same key and value. (This assignment is regular, not raw, and
+	 * therefore can trigger another metamethod.)
+	 *
+	 * Whenever there is a __newindex metamethod, Lua does not perform the
+	 * primitive assignment. (If necessary, the metamethod itself can call rawset
+	 * to do the assignment.)
+	 */
+	__newindex?: object | ((this: T, key: any, value: any) => void);
 
-    /**
-     * The call operation func(args). This event happens when Lua tries to call a
-     * non-function value (that is, func is not a function). The metamethod is
-     * looked up in func. If present, the metamethod is called with func as its
-     * first argument, followed by the arguments of the original call (args). All
-     * results of the call are the result of the operation. (This is the only
-     * metamethod that allows multiple results.)
-     */
-    __call?(this: T, ...args: any[]): any;
+	/**
+	 * The call operation func(args). This event happens when Lua tries to call a
+	 * non-function value (that is, func is not a function). The metamethod is
+	 * looked up in func. If present, the metamethod is called with func as its
+	 * first argument, followed by the arguments of the original call (args). All
+	 * results of the call are the result of the operation. (This is the only
+	 * metamethod that allows multiple results.)
+	 */
+	__call?(this: T, ...args: any[]): any;
 
-    /**
-     * If the metatable of v has a __tostring field, then tostring calls the
-     * corresponding value with v as argument, and uses the result of the call as
-     * its result.
-     */
-    __tostring?(this: T): string;
+	/**
+	 * If the metatable of v has a __tostring field, then tostring calls the
+	 * corresponding value with v as argument, and uses the result of the call as
+	 * its result.
+	 */
+	__tostring?(this: T): string;
 
-    /**
-     * If this field is a string containing the character 'k', the keys in the
-     * table are weak. If it contains 'v', the values in the table are weak.
-     */
-    __mode?: 'k' | 'v' | 'kv';
+	/**
+	 * If this field is a string containing the character 'k', the keys in the
+	 * table are weak. If it contains 'v', the values in the table are weak.
+	 */
+	__mode?: 'k' | 'v' | 'kv';
 
-    /**
-     * If the object's metatable has this field, `getmetatable` returns the
-     * associated value.
-     */
-    __metatable?: any;
+	/**
+	 * If the object's metatable has this field, `getmetatable` returns the
+	 * associated value.
+	 */
+	__metatable?: any;
 
-    /**
-     * Userdata finalizer code. When userdata is set to be garbage collected, if
-     * the metatable has a __gc field pointing to a function, that function is
-     * first invoked, passing the userdata to it. The __gc metamethod is not
-     * called for tables.
-     */
-    __gc?(this: T): void;
+	/**
+	 * Userdata finalizer code. When userdata is set to be garbage collected, if
+	 * the metatable has a __gc field pointing to a function, that function is
+	 * first invoked, passing the userdata to it. The __gc metamethod is not
+	 * called for tables.
+	 */
+	__gc?(this: T): void;
 }
 
 // Based on https://www.lua.org/manual/5.3/manual.html#6.1
@@ -877,11 +877,11 @@ type LuaUserdata = { readonly __internal__: unique symbol };
  * Lua version.
  */
 declare const _VERSION:
-    | ('Lua 5.0' | 'Lua 5.0.1' | 'Lua 5.0.2' | 'Lua 5.0.3')
-    | 'Lua 5.1'
-    | 'Lua 5.2'
-    | 'Lua 5.3'
-    | 'Lua 5.4';
+	| ('Lua 5.0' | 'Lua 5.0.1' | 'Lua 5.0.2' | 'Lua 5.0.3')
+	| 'Lua 5.1'
+	| 'Lua 5.2'
+	| 'Lua 5.3'
+	| 'Lua 5.4';
 
 /**
  * A global variable (not a function) that holds the global environment (see
@@ -897,8 +897,8 @@ declare const _G: typeof globalThis;
  */
 declare function assert<V>(v: V): Exclude<V, undefined | null | false>;
 declare function assert<V, A extends any[]>(
-    v: V,
-    ...args: A
+	v: V,
+	...args: A
 ): LuaMultiReturn<[Exclude<V, undefined | null | false>, ...A]>;
 
 /**
@@ -993,7 +993,7 @@ declare function getmetatable<T>(object: T): LuaMetatable<T> | undefined;
  * first nil value.
  */
 declare function ipairs<T>(
-    t: Record<number, T>
+	t: Record<number, T>
 ): LuaIterable<LuaMultiReturn<[number, NonNullable<T>]>>;
 
 /**
@@ -1028,7 +1028,7 @@ declare function next(table: object, index?: any): LuaMultiReturn<[any, any] | [
  * traversal.
  */
 declare function pairs<TKey extends AnyNotNil, TValue>(
-    t: LuaTable<TKey, TValue>
+	t: LuaTable<TKey, TValue>
 ): LuaIterable<LuaMultiReturn<[TKey, NonNullable<TValue>]>>;
 declare function pairs<T>(t: T): LuaIterable<LuaMultiReturn<[keyof T, NonNullable<T[keyof T]>]>>;
 
@@ -1041,14 +1041,14 @@ declare function pairs<T>(t: T): LuaIterable<LuaMultiReturn<[keyof T, NonNullabl
  * pcall returns false plus the error message.
  */
 declare function pcall<This, Args extends any[], R>(
-    f: (this: This, ...args: Args) => R,
-    context: This,
-    ...args: Args
+	f: (this: This, ...args: Args) => R,
+	context: This,
+	...args: Args
 ): LuaMultiReturn<[true, R] | [false, string]>;
 
 declare function pcall<A extends any[], R>(
-    f: (this: void, ...args: A) => R,
-    ...args: A
+	f: (this: void, ...args: A) => R,
+	...args: A
 ): LuaMultiReturn<[true, R] | [false, string]>;
 
 /**
@@ -1112,16 +1112,16 @@ declare function select<T>(index: '#', ...args: T[]): number;
  * This function returns table.
  */
 declare function setmetatable<
-    T extends object,
-    TIndex extends object | ((this: T, key: any) => any) | undefined = undefined
+	T extends object,
+	TIndex extends object | ((this: T, key: any) => any) | undefined = undefined
 >(
-    table: T,
-    metatable?: LuaMetatable<T, TIndex> | null
+	table: T,
+	metatable?: LuaMetatable<T, TIndex> | null
 ): TIndex extends (this: T, key: infer TKey) => infer TValue
-    ? T & { [K in TKey & string]: TValue }
-    : TIndex extends object
-    ? T & TIndex
-    : T;
+	? T & { [K in TKey & string]: TValue }
+	: TIndex extends object
+	? T & TIndex
+	: T;
 
 /**
  * When called with no base, tonumber tries to convert its argument to a number.
@@ -1156,7 +1156,7 @@ declare function tostring(v: any): string;
  * Returns the type of its only argument, coded as a string.
  */
 declare function type(
-    v: any
+	v: any
 ): 'nil' | 'number' | 'string' | 'boolean' | 'table' | 'function' | 'thread' | 'userdata';
 
 // Based on https://www.lua.org/manual/5.3/manual.html#6.2
@@ -1232,18 +1232,6 @@ declare namespace coroutine {
  */
 declare namespace debug {
 	/**
-	 * Enters an interactive mode with the user, running each string that the user
-	 * enters. Using simple commands and other debug facilities, the user can
-	 * inspect global and local variables, change their values, evaluate
-	 * expressions, and so on. A line containing only the word cont finishes this
-	 * function, so that the caller continues its execution.
-	 *
-	 * Note that commands for debug.debug are not lexically nested within any
-	 * function and so have no direct access to local variables.
-	 */
-	function debug(): void;
-
-	/**
 	 * Returns the current hook settings of the thread, as three values: the
 	 * current hook function, the current hook mask, and the current hook count
 	 * (as set by the debug.sethook function).
@@ -1253,40 +1241,40 @@ declare namespace debug {
 	): LuaMultiReturn<[undefined, 0] | [Function, number, string?]>;
 
 	interface FunctionInfo<T extends Function = Function> {
-		 /**
-		  * The function itself.
-		  */
-		 func: T;
+		/**
+		 * The function itself.
+		 */
+		func: T;
 
-		 /**
-		  * A reasonable name for the function.
-		  */
-		 name?: string;
-		 /**
-		  * What the `name` field means. The empty string means that Lua did not find
-		  * a name for the function.
-		  */
-		 namewhat: 'global' | 'local' | 'method' | 'field' | '';
+		/**
+		 * A reasonable name for the function.
+		 */
+		name?: string;
+		/**
+		 * What the `name` field means. The empty string means that Lua did not find
+		 * a name for the function.
+		 */
+		namewhat: 'global' | 'local' | 'method' | 'field' | '';
 
-		 source: string;
-		 /**
-		  * A short version of source (up to 60 characters), useful for error
-		  * messages.
-		  */
-		 short_src: string;
-		 linedefined: number;
-		 lastlinedefined: number;
-		 /**
-		  * What this function is.
-		  */
-		 what: 'Lua' | 'C' | 'main';
+		source: string;
+		/**
+		 * A short version of source (up to 60 characters), useful for error
+		 * messages.
+		 */
+		short_src: string;
+		linedefined: number;
+		lastlinedefined: number;
+		/**
+		 * What this function is.
+		 */
+		what: 'Lua' | 'C' | 'main';
 
-		 currentline: number;
+		currentline: number;
 
-		 /**
-		  * Number of upvalues of that function.
-		  */
-		 nups: number;
+		/**
+		 * Number of upvalues of that function.
+		 */
+		nups: number;
 	}
 
 	/**
@@ -1448,6 +1436,168 @@ declare namespace debug {
 	function traceback<T>(thread: LuaThread, message: T): T;
 }
 
+// Based on https://www.lua.org/manual/5.3/manual.html#6.9
+
+interface LuaDateInfo {
+	year: number;
+	month: number;
+	day: number;
+	hour?: number;
+	min?: number;
+	sec?: number;
+	isdst?: boolean;
+}
+
+interface LuaDateInfoResult {
+	year: number;
+	month: number;
+	day: number;
+	hour: number;
+	min: number;
+	sec: number;
+	isdst: boolean;
+	yday: number;
+	wday: number;
+}
+
+/**
+ * Operating System Facilities
+ */
+declare namespace os {
+	/**
+	 * Sets the current locale of the program. locale is a system-dependent string
+	 * specifying a locale; category is an optional string describing which
+	 * category to change: "all", "collate", "ctype", "monetary", "numeric", or
+	 * "time"; the default category is "all". The function returns the name of the
+	 * new locale, or nil if the request cannot be honored.
+	 *
+	 * If locale is the empty string, the current locale is set to an
+	 * implementation-defined native locale. If locale is the string "C", the
+	 * current locale is set to the standard C locale.
+	 *
+	 * When called with nil as the first argument, this function only returns the
+	 * name of the current locale for the given category.
+	 *
+	 * This function may be not thread safe because of its reliance on C function
+	 * setlocale.
+	 */
+	function setlocale(
+		locale?: string,
+		category?: 'all' | 'collate' | 'ctype' | 'monetary' | 'numeric' | 'time'
+	): string | undefined;
+
+	/**
+	 * Returns a string or a table containing date and time, formatted according
+	 * to the given string format.
+	 *
+	 * If the time argument is present, this is the time to be formatted (see the
+	 * os.time function for a description of this value). Otherwise, date formats
+	 * the current time.
+	 *
+	 * If format starts with '!', then the date is formatted in Coordinated
+	 * Universal Time. After this optional character, if format is the string
+	 * "*t", then date returns a table with the following fields: year, month
+	 * (1–12), day (1–31), hour (0–23), min (0–59), sec (0–61), wday (weekday,
+	 * 1–7, Sunday is 1), yday (day of the year, 1–366), and isdst (daylight
+	 * saving flag, a boolean). This last field may be absent if the information
+	 * is not available.
+	 *
+	 * If format is not "*t", then date returns the date as a string, formatted
+	 * according to the same rules as the ISO C function strftime.
+	 *
+	 * When called without arguments, date returns a reasonable date and time
+	 * representation that depends on the host system and on the current locale.
+	 * (More specifically, os.date() is equivalent to os.date("%c").)
+	 *
+	 * On non-POSIX systems, this function may be not thread safe because of its
+	 * reliance on C function gmtime and C function localtime.
+	 */
+	function date(format?: string, time?: number): string;
+
+	/**
+	 * Returns a string or a table containing date and time, formatted according
+	 * to the given string format.
+	 *
+	 * If the time argument is present, this is the time to be formatted (see the
+	 * os.time function for a description of this value). Otherwise, date formats
+	 * the current time.
+	 *
+	 * If format starts with '!', then the date is formatted in Coordinated
+	 * Universal Time. After this optional character, if format is the string
+	 * "*t", then date returns a table with the following fields: year, month
+	 * (1–12), day (1–31), hour (0–23), min (0–59), sec (0–61), wday (weekday,
+	 * 1–7, Sunday is 1), yday (day of the year, 1–366), and isdst (daylight
+	 * saving flag, a boolean). This last field may be absent if the information
+	 * is not available.
+	 *
+	 * If format is not "*t", then date returns the date as a string, formatted
+	 * according to the same rules as the ISO C function strftime, for example "%Y-%m-%d %H:%M:%S".
+	 *
+	 * When called without arguments, date returns a reasonable date and time
+	 * representation that depends on the host system and on the current locale.
+	 * (More specifically, os.date() is equivalent to os.date("%c").)
+	 *
+	 * On non-POSIX systems, this function may be not thread safe because of its
+	 * reliance on C function gmtime and C function localtime.
+	 */
+	function date(format: '*t', time?: number): LuaDateInfoResult;
+
+	/**
+	 * Returns the current time when called without arguments, or a time
+	 * representing the local date and time specified by the given table. This
+	 * table must have fields year, month, and day, and may have fields hour
+	 * (default is 12), min (default is 0), sec (default is 0), and isdst (default
+	 * is nil). Other fields are ignored. For a description of these fields, see
+	 * the os.date function.
+	 *
+	 * The values in these fields do not need to be inside their valid ranges. For
+	 * instance, if sec is -10, it means -10 seconds from the time specified by
+	 * the other fields; if hour is 1000, it means +1000 hours from the time
+	 * specified by the other fields.
+	 *
+	 * The returned value is a number, whose meaning depends on your system. In
+	 * POSIX, Windows, and some other systems, this number counts the number of
+	 * seconds since some given start time (the "epoch"). In other systems, the
+	 * meaning is not specified, and the number returned by time can be used only
+	 * as an argument to os.date and os.difftime.
+	 */
+	function time(): number;
+
+	/**
+	 * Returns the current time when called without arguments, or a time
+	 * representing the local date and time specified by the given table. This
+	 * table must have fields year, month, and day, and may have fields hour
+	 * (default is 12), min (default is 0), sec (default is 0), and isdst (default
+	 * is nil). Other fields are ignored. For a description of these fields, see
+	 * the os.date function.
+	 *
+	 * The values in these fields do not need to be inside their valid ranges. For
+	 * instance, if sec is -10, it means -10 seconds from the time specified by
+	 * the other fields; if hour is 1000, it means +1000 hours from the time
+	 * specified by the other fields.
+	 *
+	 * The returned value is a number, whose meaning depends on your system. In
+	 * POSIX, Windows, and some other systems, this number counts the number of
+	 * seconds since some given start time (the "epoch"). In other systems, the
+	 * meaning is not specified, and the number returned by time can be used only
+	 * as an argument to os.date and os.difftime.
+	 */
+	function time(table: LuaDateInfo): number;
+
+	/**
+	 * Returns the difference, in seconds, from time t1 to time t2 (where the
+	 * times are values returned by os.time). In POSIX, Windows, and some other
+	 * systems, this value is exactly t2-t1.
+	 */
+	function difftime(t1: number, t2: number): number;
+
+	/**
+	 * Returns the value of the process environment variable varname, or nil if
+	 * the variable is not defined.
+	 */
+	function getenv(varname: string): string | undefined;
+}
+
 // Based on https://www.lua.org/manual/5.3/manual.html#6.7
 
 /**
@@ -1593,106 +1743,106 @@ declare function require(modname: string): any;
  * else is exported in a table package.
  */
 declare namespace package {
-    /**
-     * A string describing some compile-time configurations for packages. This
-     * string is a sequence of lines:
-     * * The first line is the directory separator string. Default is '\' for
-     *   Windows and '/' for all other systems.
-     * * The second line is the character that separates templates in a path.
-     *   Default is ';'.
-     * * The third line is the string that marks the substitution points in a
-     *   template. Default is '?'.
-     * * The fourth line is a string that, in a path in Windows, is replaced by
-     *   the executable's directory. Default is '!'.
-     * * The fifth line is a mark to ignore all text after it when building the
-     *   luaopen_ function name. Default is '-'.
-     */
-    var config: string;
+	/**
+	 * A string describing some compile-time configurations for packages. This
+	 * string is a sequence of lines:
+	 * * The first line is the directory separator string. Default is '\' for
+	 *   Windows and '/' for all other systems.
+	 * * The second line is the character that separates templates in a path.
+	 *   Default is ';'.
+	 * * The third line is the string that marks the substitution points in a
+	 *   template. Default is '?'.
+	 * * The fourth line is a string that, in a path in Windows, is replaced by
+	 *   the executable's directory. Default is '!'.
+	 * * The fifth line is a mark to ignore all text after it when building the
+	 *   luaopen_ function name. Default is '-'.
+	 */
+	var config: string;
 
-    /**
-     * The path used by require to search for a C loader.
-     *
-     * Lua initializes the C path package.cpath in the same way it initializes the
-     * Lua path package.path, using the environment variable LUA_CPATH_5_3, or the
-     * environment variable LUA_CPATH, or a default path defined in luaconf.h.
-     */
-    var cpath: string;
+	/**
+	 * The path used by require to search for a C loader.
+	 *
+	 * Lua initializes the C path package.cpath in the same way it initializes the
+	 * Lua path package.path, using the environment variable LUA_CPATH_5_3, or the
+	 * environment variable LUA_CPATH, or a default path defined in luaconf.h.
+	 */
+	var cpath: string;
 
-    /**
-     * A table used by require to control which modules are already loaded. When
-     * you require a module modname and package.loaded[modname] is not false,
-     * require simply returns the value stored there.
-     *
-     * This variable is only a reference to the real table; assignments to this
-     * variable do not change the table used by require.
-     */
-    const loaded: Record<string, any>;
+	/**
+	 * A table used by require to control which modules are already loaded. When
+	 * you require a module modname and package.loaded[modname] is not false,
+	 * require simply returns the value stored there.
+	 *
+	 * This variable is only a reference to the real table; assignments to this
+	 * variable do not change the table used by require.
+	 */
+	const loaded: Record<string, any>;
 
-    /**
-     * Dynamically links the host program with the C library libname.
-     *
-     * If funcname is "*", then it only links with the library, making the symbols
-     * exported by the library available to other dynamically linked libraries.
-     * Otherwise, it looks for a function funcname inside the library and returns
-     * this function as a C function. So, funcname must follow the lua_CFunction
-     * prototype (see lua_CFunction).
-     *
-     * This is a low-level function. It completely bypasses the package and module
-     * system. Unlike require, it does not perform any path searching and does not
-     * automatically adds extensions. libname must be the complete file name of
-     * the C library, including if necessary a path and an extension. funcname
-     * must be the exact name exported by the C library (which may depend on the C
-     * compiler and linker used).
-     *
-     * This function is not supported by Standard C. As such, it is only available
-     * on some platforms (Windows, Linux, Mac OS X, Solaris, BSD, plus other Unix
-     * systems that support the dlfcn standard).
-     */
-    function loadlib(
-        libname: string,
-        funcname: string
-    ): [Function] | [undefined, string, 'open' | 'init'];
+	/**
+	 * Dynamically links the host program with the C library libname.
+	 *
+	 * If funcname is "*", then it only links with the library, making the symbols
+	 * exported by the library available to other dynamically linked libraries.
+	 * Otherwise, it looks for a function funcname inside the library and returns
+	 * this function as a C function. So, funcname must follow the lua_CFunction
+	 * prototype (see lua_CFunction).
+	 *
+	 * This is a low-level function. It completely bypasses the package and module
+	 * system. Unlike require, it does not perform any path searching and does not
+	 * automatically adds extensions. libname must be the complete file name of
+	 * the C library, including if necessary a path and an extension. funcname
+	 * must be the exact name exported by the C library (which may depend on the C
+	 * compiler and linker used).
+	 *
+	 * This function is not supported by Standard C. As such, it is only available
+	 * on some platforms (Windows, Linux, Mac OS X, Solaris, BSD, plus other Unix
+	 * systems that support the dlfcn standard).
+	 */
+	function loadlib(
+		libname: string,
+		funcname: string
+	): [Function] | [undefined, string, 'open' | 'init'];
 
-    /**
-     * The path used by require to search for a Lua loader.
-     *
-     * At start-up, Lua initializes this variable with the value of the
-     * environment variable LUA_PATH_5_3 or the environment variable LUA_PATH or
-     * with a default path defined in luaconf.h, if those environment variables
-     * are not defined. Any ";;" in the value of the environment variable is
-     * replaced by the default path.
-     */
-    var path: string;
+	/**
+	 * The path used by require to search for a Lua loader.
+	 *
+	 * At start-up, Lua initializes this variable with the value of the
+	 * environment variable LUA_PATH_5_3 or the environment variable LUA_PATH or
+	 * with a default path defined in luaconf.h, if those environment variables
+	 * are not defined. Any ";;" in the value of the environment variable is
+	 * replaced by the default path.
+	 */
+	var path: string;
 
-    /**
-     * A table to store loaders for specific modules (see require).
-     *
-     * This variable is only a reference to the real table; assignments to this
-     * variable do not change the table used by require.
-     */
-    const preload: Record<string, (modname: string, fileName?: string) => any>;
+	/**
+	 * A table to store loaders for specific modules (see require).
+	 *
+	 * This variable is only a reference to the real table; assignments to this
+	 * variable do not change the table used by require.
+	 */
+	const preload: Record<string, (modname: string, fileName?: string) => any>;
 
-    /**
-     * Searches for the given name in the given path.
-     *
-     * A path is a string containing a sequence of templates separated by
-     * semicolons. For each template, the function replaces each interrogation
-     * mark (if any) in the template with a copy of name wherein all occurrences
-     * of sep (a dot, by default) were replaced by rep (the system's directory
-     * separator, by default), and then tries to open the resulting file name.
-     *
-     * For instance, if the path is the string
-     *
-     * `./?.lua;./?.lc;/usr/local/?/init.lua`
-     *
-     * the search for the name foo.a will try to open the files ./foo/a.lua,
-     * ./foo/a.lc, and /usr/local/foo/a/init.lua, in that order.
-     *
-     * Returns the resulting name of the first file that it can open in read mode
-     * (after closing the file), or nil plus an error message if none succeeds.
-     * (This error message lists all file names it tried to open.)
-     */
-    function searchpath(name: string, path: string, sep?: string, rep?: string): string;
+	/**
+	 * Searches for the given name in the given path.
+	 *
+	 * A path is a string containing a sequence of templates separated by
+	 * semicolons. For each template, the function replaces each interrogation
+	 * mark (if any) in the template with a copy of name wherein all occurrences
+	 * of sep (a dot, by default) were replaced by rep (the system's directory
+	 * separator, by default), and then tries to open the resulting file name.
+	 *
+	 * For instance, if the path is the string
+	 *
+	 * `./?.lua;./?.lc;/usr/local/?/init.lua`
+	 *
+	 * the search for the name foo.a will try to open the files ./foo/a.lua,
+	 * ./foo/a.lc, and /usr/local/foo/a/init.lua, in that order.
+	 *
+	 * Returns the resulting name of the first file that it can open in read mode
+	 * (after closing the file), or nil plus an error message if none succeeds.
+	 * (This error message lists all file names it tried to open.)
+	 */
+	function searchpath(name: string, path: string, sep?: string, rep?: string): string;
 }
 
 // Based on https://www.lua.org/manual/5.3/manual.html#6.4
@@ -2008,104 +2158,104 @@ declare function collectgarbage(opt: 'isrunning'): boolean;
 declare function module(name: string, ...options: Function[]): void;
 
 declare namespace package {
-    /**
-     * A table used by require to control how to load modules.
-     *
-     * Each entry in this table is a searcher function. When looking for a module,
-     * require calls each of these searchers in ascending order, with the module
-     * name (the argument given to require) as its sole parameter. The function
-     * can return another function (the module loader) plus an extra value that
-     * will be passed to that loader, or a string explaining why it did not find
-     * that module (or nil if it has nothing to say).
-     *
-     * Lua initializes this table with four searcher functions.
-     *
-     * The first searcher simply looks for a loader in the package.preload table.
-     *
-     * The second searcher looks for a loader as a Lua library, using the path
-     * stored at package.path. The search is done as described in function
-     * package.searchpath.
-     *
-     * The third searcher looks for a loader as a C library, using the path given
-     * by the variable package.cpath. Again, the search is done as described in
-     * function package.searchpath. For instance, if the C path is the string
-     *
-     * `./?.so;./?.dll;/usr/local/?/init.so`
-     *
-     * the searcher for module foo will try to open the files ./foo.so, ./foo.dll,
-     * and /usr/local/foo/init.so, in that order. Once it finds a C library, this
-     * searcher first uses a dynamic link facility to link the application with
-     * the library. Then it tries to find a C function inside the library to be
-     * used as the loader. The name of this C function is the string "luaopen_"
-     * concatenated with a copy of the module name where each dot is replaced by
-     * an underscore. Moreover, if the module name has a hyphen, its suffix after
-     * (and including) the first hyphen is removed. For instance, if the module
-     * name is a.b.c-v2.1, the function name will be luaopen_a_b_c.
-     *
-     * The fourth searcher tries an all-in-one loader. It searches the C path for
-     * a library for the root name of the given module. For instance, when
-     * requiring a.b.c, it will search for a C library for a. If found, it looks
-     * into it for an open function for the submodule; in our example, that would
-     * be luaopen_a_b_c. With this facility, a package can pack several C
-     * submodules into one single library, with each submodule keeping its
-     * original open function.
-     *
-     * All searchers except the first one (preload) return as the extra value the
-     * file name where the module was found, as returned by package.searchpath.
-     * The first searcher returns no extra value.
-     */
-    var searchers: (
-        | ((modname: string) => LuaMultiReturn<[(modname: string) => void]>)
-        | (<T>(modname: string) => LuaMultiReturn<[(modname: string, extra: T) => T, T]>)
-        | string
-    )[];
+	/**
+	 * A table used by require to control how to load modules.
+	 *
+	 * Each entry in this table is a searcher function. When looking for a module,
+	 * require calls each of these searchers in ascending order, with the module
+	 * name (the argument given to require) as its sole parameter. The function
+	 * can return another function (the module loader) plus an extra value that
+	 * will be passed to that loader, or a string explaining why it did not find
+	 * that module (or nil if it has nothing to say).
+	 *
+	 * Lua initializes this table with four searcher functions.
+	 *
+	 * The first searcher simply looks for a loader in the package.preload table.
+	 *
+	 * The second searcher looks for a loader as a Lua library, using the path
+	 * stored at package.path. The search is done as described in function
+	 * package.searchpath.
+	 *
+	 * The third searcher looks for a loader as a C library, using the path given
+	 * by the variable package.cpath. Again, the search is done as described in
+	 * function package.searchpath. For instance, if the C path is the string
+	 *
+	 * `./?.so;./?.dll;/usr/local/?/init.so`
+	 *
+	 * the searcher for module foo will try to open the files ./foo.so, ./foo.dll,
+	 * and /usr/local/foo/init.so, in that order. Once it finds a C library, this
+	 * searcher first uses a dynamic link facility to link the application with
+	 * the library. Then it tries to find a C function inside the library to be
+	 * used as the loader. The name of this C function is the string "luaopen_"
+	 * concatenated with a copy of the module name where each dot is replaced by
+	 * an underscore. Moreover, if the module name has a hyphen, its suffix after
+	 * (and including) the first hyphen is removed. For instance, if the module
+	 * name is a.b.c-v2.1, the function name will be luaopen_a_b_c.
+	 *
+	 * The fourth searcher tries an all-in-one loader. It searches the C path for
+	 * a library for the root name of the given module. For instance, when
+	 * requiring a.b.c, it will search for a C library for a. If found, it looks
+	 * into it for an open function for the submodule; in our example, that would
+	 * be luaopen_a_b_c. With this facility, a package can pack several C
+	 * submodules into one single library, with each submodule keeping its
+	 * original open function.
+	 *
+	 * All searchers except the first one (preload) return as the extra value the
+	 * file name where the module was found, as returned by package.searchpath.
+	 * The first searcher returns no extra value.
+	 */
+	var searchers: (
+		| ((modname: string) => LuaMultiReturn<[(modname: string) => void]>)
+		| (<T>(modname: string) => LuaMultiReturn<[(modname: string, extra: T) => T, T]>)
+		| string
+	)[];
 }
 
 declare namespace table {
-    /**
-     * Returns the elements from the given list. This function is equivalent to
-     *
-     * `return list[i], list[i+1], ···, list[j]`
-     *
-     * By default, i is 1 and j is #list.
-     */
-    function unpack<T extends any[]>(list: T): LuaMultiReturn<T>;
-    function unpack<T>(list: T[], i: number, j?: number): LuaMultiReturn<T[]>;
+	/**
+	 * Returns the elements from the given list. This function is equivalent to
+	 *
+	 * `return list[i], list[i+1], ···, list[j]`
+	 *
+	 * By default, i is 1 and j is #list.
+	 */
+	function unpack<T extends any[]>(list: T): LuaMultiReturn<T>;
+	function unpack<T>(list: T[], i: number, j?: number): LuaMultiReturn<T[]>;
 
-    /**
-     * Returns a new table with all parameters stored into keys 1, 2, etc. and
-     * with a field "n" with the total number of parameters. Note that the
-     * resulting table may not be a sequence.
-     */
-    function pack<T extends any[]>(...args: T): T & { n: number };
+	/**
+	 * Returns a new table with all parameters stored into keys 1, 2, etc. and
+	 * with a field "n" with the total number of parameters. Note that the
+	 * resulting table may not be a sequence.
+	 */
+	function pack<T extends any[]>(...args: T): T & { n: number };
 }
 
 declare namespace debug {
-    interface FunctionInfo<T extends Function> {
-        istailcall: boolean;
-    }
+	interface FunctionInfo<T extends Function> {
+		istailcall: boolean;
+	}
 }
 
 interface LuaMetatable<T> {
-    /**
-     * Handle iteration through table pairs when `for k,v in pairs(tbl) do ...
-     * end` is called.
-     */
-    __pairs?<T>(t: T): [(t: T, index?: any) => [any, any], T];
+	/**
+	 * Handle iteration through table pairs when `for k,v in pairs(tbl) do ...
+	 * end` is called.
+	 */
+	__pairs?<T>(t: T): [(t: T, index?: any) => [any, any], T];
 
-    /**
-     * Handle iteration through table pairs when `for k,v in ipairs(tbl) do ...
-     * end` is called.
-     */
-    __ipairs?<T extends object>(t: T): [(t: T, index?: number) => [number, any], T, 0];
+	/**
+	 * Handle iteration through table pairs when `for k,v in ipairs(tbl) do ...
+	 * end` is called.
+	 */
+	__ipairs?<T extends object>(t: T): [(t: T, index?: number) => [number, any], T, 0];
 }
 
 declare namespace coroutine {
-    /**
-     * Returns the running coroutine plus a boolean, true when the running
-     * coroutine is the main one.
-     */
-    function running(): LuaMultiReturn<[LuaThread, boolean]>;
+	/**
+	 * Returns the running coroutine plus a boolean, true when the running
+	 * coroutine is the main one.
+	 */
+	function running(): LuaMultiReturn<[LuaThread, boolean]>;
 }
 
 // Lua 5.2 plus or jit
@@ -2259,102 +2409,102 @@ declare namespace string {
 declare function collectgarbage(opt: 'count'): number;
 
 declare namespace math {
-    /**
-     * Returns the arc tangent of y/x (in radians), but uses the signs of both
-     * parameters to find the quadrant of the result. (It also handles correctly
-     * the case of x being zero.)
-     *
-     * The default value for x is 1, so that the call math.atan(y) returns the arc
-     * tangent of y.
-     */
-    function atan(y: number, x?: number): number;
+	/**
+	 * Returns the arc tangent of y/x (in radians), but uses the signs of both
+	 * parameters to find the quadrant of the result. (It also handles correctly
+	 * the case of x being zero.)
+	 *
+	 * The default value for x is 1, so that the call math.atan(y) returns the arc
+	 * tangent of y.
+	 */
+	function atan(y: number, x?: number): number;
 
-    /**
-     * An integer with the minimum value for an integer.
-     */
-    const mininteger: number;
+	/**
+	 * An integer with the minimum value for an integer.
+	 */
+	const mininteger: number;
 
-    /**
-     * An integer with the maximum value for an integer.
-     */
-    const maxinteger: number;
+	/**
+	 * An integer with the maximum value for an integer.
+	 */
+	const maxinteger: number;
 
-    /**
-     * If the value x is convertible to an integer, returns that integer.
-     * Otherwise, returns nil.
-     */
-    function tointeger(x: number): number;
+	/**
+	 * If the value x is convertible to an integer, returns that integer.
+	 * Otherwise, returns nil.
+	 */
+	function tointeger(x: number): number;
 
-    /**
-     * Returns "integer" if x is an integer, "float" if it is a float, or nil if x
-     * is not a number.
-     */
-    function type(x: number): 'integer' | 'float' | undefined;
+	/**
+	 * Returns "integer" if x is an integer, "float" if it is a float, or nil if x
+	 * is not a number.
+	 */
+	function type(x: number): 'integer' | 'float' | undefined;
 
-    /**
-     * Returns a boolean, true if and only if integer m is below integer n when
-     * they are compared as unsigned integers.
-     */
-    function ult(m: number, n: number): boolean;
+	/**
+	 * Returns a boolean, true if and only if integer m is below integer n when
+	 * they are compared as unsigned integers.
+	 */
+	function ult(m: number, n: number): boolean;
 }
 
 declare namespace table {
-    /**
-     * Moves elements from table a1 to table a2, performing the equivalent to the
-     * following multiple assignment: a2[t],··· = a1[f],···,a1[e]. The default for
-     * a2 is a1. The destination range can overlap with the source range. The
-     * number of elements to be moved must fit in a Lua integer.
-     *
-     * Returns the destination table a2.
-     */
-    function move<T1, T2 = T1>(a1: T1[], f: number, e: number, t: number, a2?: T2[]): (T2 | T1)[];
+	/**
+	 * Moves elements from table a1 to table a2, performing the equivalent to the
+	 * following multiple assignment: a2[t],··· = a1[f],···,a1[e]. The default for
+	 * a2 is a1. The destination range can overlap with the source range. The
+	 * number of elements to be moved must fit in a Lua integer.
+	 *
+	 * Returns the destination table a2.
+	 */
+	function move<T1, T2 = T1>(a1: T1[], f: number, e: number, t: number, a2?: T2[]): (T2 | T1)[];
 }
 
 declare namespace string {
-    /**
-     * Returns a string containing a binary representation (a binary chunk) of the
-     * given function, so that a later load on this string returns a copy of the
-     * function (but with new upvalues). If strip is a true value, the binary
-     * representation may not include all debug information about the function, to
-     * save space.
-     *
-     * Functions with upvalues have only their number of upvalues saved. When
-     * (re)loaded, those upvalues receive fresh instances containing nil. (You can
-     * use the debug library to serialize and reload the upvalues of a function in
-     * a way adequate to your needs.)
-     */
-    function dump(func: Function, strip?: boolean): string;
+	/**
+	 * Returns a string containing a binary representation (a binary chunk) of the
+	 * given function, so that a later load on this string returns a copy of the
+	 * function (but with new upvalues). If strip is a true value, the binary
+	 * representation may not include all debug information about the function, to
+	 * save space.
+	 *
+	 * Functions with upvalues have only their number of upvalues saved. When
+	 * (re)loaded, those upvalues receive fresh instances containing nil. (You can
+	 * use the debug library to serialize and reload the upvalues of a function in
+	 * a way adequate to your needs.)
+	 */
+	function dump(func: Function, strip?: boolean): string;
 
-    /**
-     * Returns a binary string containing the values v1, v2, etc. packed (that is,
-     * serialized in binary form) according to the format string fmt (see §6.4.2).
-     */
-    function pack(fmt: string, ...values: any[]): string;
+	/**
+	 * Returns a binary string containing the values v1, v2, etc. packed (that is,
+	 * serialized in binary form) according to the format string fmt (see §6.4.2).
+	 */
+	function pack(fmt: string, ...values: any[]): string;
 
-    /**
-     * Returns the values packed in string s (see string.pack) according to the
-     * format string fmt (see §6.4.2). An optional pos marks where to start
-     * reading in s (default is 1). After the read values, this function also
-     * returns the index of the first unread byte in s.
-     */
-    function unpack(fmt: string, s: string, pos?: number): LuaMultiReturn<any[]>;
+	/**
+	 * Returns the values packed in string s (see string.pack) according to the
+	 * format string fmt (see §6.4.2). An optional pos marks where to start
+	 * reading in s (default is 1). After the read values, this function also
+	 * returns the index of the first unread byte in s.
+	 */
+	function unpack(fmt: string, s: string, pos?: number): LuaMultiReturn<any[]>;
 
-    /**
-     * Returns the size of a string resulting from string.pack with the given
-     * format. The format string cannot have the variable-length options 's' or
-     * 'z' (see §6.4.2).
-     */
-    function packsize(fmt: string): number;
+	/**
+	 * Returns the size of a string resulting from string.pack with the given
+	 * format. The format string cannot have the variable-length options 's' or
+	 * 'z' (see §6.4.2).
+	 */
+	function packsize(fmt: string): number;
 }
 
 declare namespace coroutine {
-    /**
-     * Returns true when the running coroutine can yield.
-     *
-     * A running coroutine is yieldable if it is not the main thread and it is not
-     * inside a non-yieldable C function.
-     */
-    function isyieldable(): boolean;
+	/**
+	 * Returns true when the running coroutine can yield.
+	 *
+	 * A running coroutine is yieldable if it is not the main thread and it is not
+	 * inside a non-yieldable C function.
+	 */
+	function isyieldable(): boolean;
 }
 
 // https://www.lua.org/manual/5.3/manual.html#6.5
@@ -2372,107 +2522,107 @@ declare namespace coroutine {
  * library, negative indices count from the end of the string.
  */
 declare namespace utf8 {
-    /**
-     * Receives zero or more integers, converts each one to its corresponding
-     * UTF-8 byte sequence and returns a string with the concatenation of all
-     * these sequences
-     */
-    function char(...args: number[]): string;
+	/**
+	 * Receives zero or more integers, converts each one to its corresponding
+	 * UTF-8 byte sequence and returns a string with the concatenation of all
+	 * these sequences
+	 */
+	function char(...args: number[]): string;
 
-    /**
-     * The pattern (a string, not a function) "[\0-\x7F\xC2-\xF4][\x80-\xBF]*"
-     * (see §6.4.1), which matches exactly one UTF-8 byte sequence, assuming that
-     * the subject is a valid UTF-8 string.
-     */
-    var charpattern: string;
+	/**
+	 * The pattern (a string, not a function) "[\0-\x7F\xC2-\xF4][\x80-\xBF]*"
+	 * (see §6.4.1), which matches exactly one UTF-8 byte sequence, assuming that
+	 * the subject is a valid UTF-8 string.
+	 */
+	var charpattern: string;
 
-    /**
-     * Returns values so that the construction
-     *
-     * `for p, c in utf8.codes(s) do body end`
-     *
-     * will iterate over all characters in string s, with p being the position (in
-     * bytes) and c the code point of each character. It raises an error if it
-     * meets any invalid byte sequence.
-     */
-    function codes<S extends string>(
-        s: S
-    ): [(s: S, index?: number) => LuaMultiReturn<[number, number]>, S, 0];
+	/**
+	 * Returns values so that the construction
+	 *
+	 * `for p, c in utf8.codes(s) do body end`
+	 *
+	 * will iterate over all characters in string s, with p being the position (in
+	 * bytes) and c the code point of each character. It raises an error if it
+	 * meets any invalid byte sequence.
+	 */
+	function codes<S extends string>(
+		s: S
+	): [(s: S, index?: number) => LuaMultiReturn<[number, number]>, S, 0];
 
-    /**
-     * Returns the codepoints (as integers) from all characters in s that start
-     * between byte position i and j (both included). The default for i is 1 and
-     * for j is i. It raises an error if it meets any invalid byte sequence.
-     */
-    function codepoint(s: string, i?: number, j?: number): LuaMultiReturn<number[]>;
+	/**
+	 * Returns the codepoints (as integers) from all characters in s that start
+	 * between byte position i and j (both included). The default for i is 1 and
+	 * for j is i. It raises an error if it meets any invalid byte sequence.
+	 */
+	function codepoint(s: string, i?: number, j?: number): LuaMultiReturn<number[]>;
 
-    /**
-     * Returns the number of UTF-8 characters in string s that start between
-     * positions i and j (both inclusive). The default for i is 1 and for j is -1.
-     * If it finds any invalid byte sequence, returns a false value plus the
-     * position of the first invalid byte.
-     */
-    function len(s: string, i?: number, j?: number): number;
+	/**
+	 * Returns the number of UTF-8 characters in string s that start between
+	 * positions i and j (both inclusive). The default for i is 1 and for j is -1.
+	 * If it finds any invalid byte sequence, returns a false value plus the
+	 * position of the first invalid byte.
+	 */
+	function len(s: string, i?: number, j?: number): number;
 
-    /**
-     * Returns the position (in bytes) where the encoding of the n-th character of
-     * s (counting from position i) starts. A negative n gets characters before
-     * position i. The default for i is 1 when n is non-negative and #s + 1
-     * otherwise, so that utf8.offset(s, -n) gets the offset of the n-th character
-     * from the end of the string. If the specified character is neither in the
-     * subject nor right after its end, the function returns nil.
-     *
-     * As a special case, when n is 0 the function returns the start of the
-     * encoding of the character that contains the i-th byte of s.
-     *
-     * This function assumes that s is a valid UTF-8 string.
-     */
-    function offset(s: string, n?: number, i?: number): number;
+	/**
+	 * Returns the position (in bytes) where the encoding of the n-th character of
+	 * s (counting from position i) starts. A negative n gets characters before
+	 * position i. The default for i is 1 when n is non-negative and #s + 1
+	 * otherwise, so that utf8.offset(s, -n) gets the offset of the n-th character
+	 * from the end of the string. If the specified character is neither in the
+	 * subject nor right after its end, the function returns nil.
+	 *
+	 * As a special case, when n is 0 the function returns the start of the
+	 * encoding of the character that contains the i-th byte of s.
+	 *
+	 * This function assumes that s is a valid UTF-8 string.
+	 */
+	function offset(s: string, n?: number, i?: number): number;
 }
 
 interface LuaMetatable<T> {
-    /**
-     * the floor division (//) operation. Behavior similar to the addition
-     * operation.
-     */
-    __idiv?(this: T, operand: any): any;
+	/**
+	 * the floor division (//) operation. Behavior similar to the addition
+	 * operation.
+	 */
+	__idiv?(this: T, operand: any): any;
 
-    /**
-     * the bitwise AND (&) operation. Behavior similar to the addition operation,
-     * except that Lua will try a metamethod if any operand is neither an integer
-     * nor a value coercible to an integer (see §3.4.3).
-     */
-    __band?(this: T, operand: any): any;
+	/**
+	 * the bitwise AND (&) operation. Behavior similar to the addition operation,
+	 * except that Lua will try a metamethod if any operand is neither an integer
+	 * nor a value coercible to an integer (see §3.4.3).
+	 */
+	__band?(this: T, operand: any): any;
 
-    /**
-     * the bitwise OR (|) operation. Behavior similar to the bitwise AND
-     * operation.
-     */
-    __bor?(this: T, operand: any): any;
+	/**
+	 * the bitwise OR (|) operation. Behavior similar to the bitwise AND
+	 * operation.
+	 */
+	__bor?(this: T, operand: any): any;
 
-    /**
-     * the bitwise exclusive OR (binary ~) operation. Behavior similar to the
-     * bitwise AND operation.
-     */
-    __bxor?(this: T, operand: any): any;
+	/**
+	 * the bitwise exclusive OR (binary ~) operation. Behavior similar to the
+	 * bitwise AND operation.
+	 */
+	__bxor?(this: T, operand: any): any;
 
-    /**
-     * the bitwise NOT (unary ~) operation. Behavior similar to the bitwise AND
-     * operation.
-     */
-    __bnot?(this: T, operand: any): any;
+	/**
+	 * the bitwise NOT (unary ~) operation. Behavior similar to the bitwise AND
+	 * operation.
+	 */
+	__bnot?(this: T, operand: any): any;
 
-    /**
-     * the bitwise left shift (<<) operation. Behavior similar to the bitwise AND
-     * operation.
-     */
-    __shl?(this: T, operand: any): any;
+	/**
+	 * the bitwise left shift (<<) operation. Behavior similar to the bitwise AND
+	 * operation.
+	 */
+	__shl?(this: T, operand: any): any;
 
-    /**
-     * the bitwise right shift (>>) operation. Behavior similar to the bitwise AND
-     * operation.
-     */
-    __shr?(this: T, operand: any): any;
+	/**
+	 * the bitwise right shift (>>) operation. Behavior similar to the bitwise AND
+	 * operation.
+	 */
+	__shr?(this: T, operand: any): any;
 }
 
 // Lua 5.4 only

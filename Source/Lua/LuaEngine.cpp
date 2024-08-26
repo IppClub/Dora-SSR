@@ -609,6 +609,7 @@ static int dora_load_base(lua_State* L) {
 		{LUA_MATHLIBNAME, luaopen_math},
 		{LUA_UTF8LIBNAME, luaopen_utf8},
 		{LUA_DBLIBNAME, luaopen_debug},
+		{LUA_OSLIBNAME, luaopen_os},
 		{NULL, NULL}};
 	for (const luaL_Reg* lib = lualibs; lib->func; lib++) {
 		luaL_requiref(L, lib->name, lib->func, 1);

@@ -1254,6 +1254,107 @@ declare namespace debug {
 	function traceback<T>(thread: LuaThread, message: T): T;
 }
 
+// 基于 https://www.lua.org/manual/5.3/manual.html#6.9
+
+interface LuaDateInfo {
+	year: number;
+	month: number;
+	day: number;
+	hour?: number;
+	min?: number;
+	sec?: number;
+	isdst?: boolean;
+}
+
+interface LuaDateInfoResult {
+	year: number;
+	month: number;
+	day: number;
+	hour: number;
+	min: number;
+	sec: number;
+	isdst: boolean;
+	yday: number;
+	wday: number;
+}
+
+/**
+ * 操作系统功能
+ */
+declare namespace os {
+	/**
+	 * 设置程序的当前区域设置。locale 是一个系统相关的字符串，指定一个区域设置；category 是一个可选字符串，描述要更改的类别："all", "collate", "ctype", "monetary", "numeric", 或 "time"；默认类别是 "all"。该函数返回新区域设置的名称，如果请求无法满足则返回 nil。
+	 *
+	 * 如果 locale 是空字符串，则当前区域设置被设置为实现定义的本地区域设置。如果 locale 是字符串 "C"，则当前区域设置被设置为标准 C 区域设置。
+	 *
+	 * 当第一个参数为 nil 时，此函数仅返回给定类别的当前区域设置的名称。
+	 *
+	 * 由于依赖于 C 函数 setlocale，此函数可能不是线程安全的。
+	 */
+	function setlocale(
+		locale?: string,
+		category?: 'all' | 'collate' | 'ctype' | 'monetary' | 'numeric' | 'time'
+	): string | undefined;
+
+	/**
+	 * 返回一个包含日期和时间的字符串或表，格式根据给定的字符串格式化。
+	 *
+	 * 如果提供了 time 参数，则这是要格式化的时间（参见 os.time 函数以了解此值的描述）。否则，date 格式化当前时间。
+	 *
+	 * 如果格式以 '!' 开头，则日期格式化为协调世界时。在此可选字符之后，如果格式是字符串 "*t"，则 date 返回一个包含以下字段的表：year, month (1–12), day (1–31), hour (0–23), min (0–59), sec (0–61), wday (星期几, 1–7, 星期天是 1), yday (一年中的第几天, 1–366), 和 isdst (夏令时标志，一个布尔值)。如果信息不可用，则最后一个字段可能不存在。
+	 *
+	 * 如果格式不是 "*t"，则 date 返回一个字符串，格式化规则与 ISO C 函数 strftime 相同。
+	 *
+	 * 当不带参数调用时，date 返回一个合理的日期和时间表示，具体取决于主机系统和当前区域设置。（更具体地说，os.date() 等效于 os.date("%c")。）
+	 *
+	 * 在非 POSIX 系统上，由于依赖于 C 函数 gmtime 和 C 函数 localtime，此函数可能不是线程安全的。
+	 */
+	function date(format?: string, time?: number): string;
+
+	/**
+	 * 返回一个包含日期和时间的字符串或表，格式根据给定的字符串格式化。
+	 *
+	 * 如果提供了 time 参数，则这是要格式化的时间（参见 os.time 函数以了解此值的描述）。否则，date 格式化当前时间。
+	 *
+	 * 如果格式以 '!' 开头，则日期格式化为协调世界时。在此可选字符之后，如果格式是字符串 "*t"，则 date 返回一个包含以下字段的表：year, month (1–12), day (1–31), hour (0–23), min (0–59), sec (0–61), wday (星期几, 1–7, 星期天是 1), yday (一年中的第几天, 1–366), 和 isdst (夏令时标志，一个布尔值)。如果信息不可用，则最后一个字段可能不存在。
+	 *
+	 * 如果格式不是 "*t"，则 date 返回一个字符串，格式化规则与 ISO C 函数 strftime 相同，示例： "%Y-%m-%d %H:%M:%S"。
+	 *
+	 * 当不带参数调用时，date 返回一个合理的日期和时间表示，具体取决于主机系统和当前区域设置。（更具体地说，os.date() 等效于 os.date("%c")。）
+	 *
+	 * 在非 POSIX 系统上，由于依赖于 C 函数 gmtime 和 C 函数 localtime，此函数可能不是线程安全的。
+	 */
+	function date(format: '*t', time?: number): LuaDateInfoResult;
+
+	/**
+	 * 当不带参数调用时，返回当前时间，或者返回由给定表指定的本地日期和时间。这个表必须包含字段 year, month 和 day，并且可以包含字段 hour（默认是 12）, min（默认是 0）, sec（默认是 0）和 isdst（默认是 nil）。其他字段将被忽略。有关这些字段的描述，请参见 os.date 函数。
+	 *
+	 * 这些字段中的值不需要在其有效范围内。例如，如果 sec 是 -10，则表示在其他字段指定的时间之前的 10 秒；如果 hour 是 1000，则表示在其他字段指定的时间之后的 1000 小时。
+	 *
+	 * 返回值是一个数字，其含义取决于您的系统。在 POSIX、Windows 和其他一些系统中，这个数字表示自某个给定起始时间（“纪元”）以来的秒数。在其他系统中，这个含义没有指定，time 返回的数字只能作为 os.date 和 os.difftime 的参数使用。
+	 */
+	function time(): number;
+
+	/**
+	 * 当不带参数调用时，返回当前时间，或者返回由给定表指定的本地日期和时间。这个表必须包含字段 year, month 和 day，并且可以包含字段 hour（默认是 12）, min（默认是 0）, sec（默认是 0）和 isdst（默认是 nil）。其他字段将被忽略。有关这些字段的描述，请参见 os.date 函数。
+	 *
+	 * 这些字段中的值不需要在其有效范围内。例如，如果 sec 是 -10，则表示在其他字段指定的时间之前的 10 秒；如果 hour 是 1000，则表示在其他字段指定的时间之后的 1000 小时。
+	 *
+	 * 返回值是一个数字，其含义取决于您的系统。在 POSIX、Windows 和其他一些系统中，这个数字表示自某个给定起始时间（“纪元”）以来的秒数。在其他系统中，这个含义没有指定，time 返回的数字只能作为 os.date 和 os.difftime 的参数使用。
+	 */
+	function time(table: LuaDateInfo): number;
+
+	/**
+	 * 返回从时间 t1 到时间 t2 的差值（以秒为单位）（其中时间是 os.time 返回的值）。在 POSIX、Windows 和其他一些系统中，这个值正好是 t2-t1。
+	 */
+	function difftime(t1: number, t2: number): number;
+
+	/**
+	 * 返回进程环境变量 varname 的值，如果变量未定义则返回 nil。
+	 */
+	function getenv(varname: string): string | undefined;
+}
+
 // 基于 https://www.lua.org/manual/5.3/manual.html#6.7
 
 /**

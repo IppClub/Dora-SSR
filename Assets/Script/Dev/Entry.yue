@@ -61,6 +61,8 @@ config = Config(
 	"engineDev"
 	"webProfiler"
 	"drawerWidth"
+	"lastUpdateCheck"
+	"updateNotification"
 )
 config\load!
 if config.fpsLimited?
@@ -161,6 +163,34 @@ export.getConfig = -> config
 export.getEngineDev = ->
 	return false unless App.debugging
 	config.engineDev
+
+updateCheck = -> thread ->
+	if res := HttpClient\getAsync "https://api.github.com/repos/IppClub/Dora-SSR/releases/latest"
+		if data := json.load res
+			major, minor, patch = App.version\match "(%d+)%.(%d+)%.(%d+)%.(%d+)"
+			a, b, c = tonumber(major), tonumber(minor), tonumber patch
+			sa, sb, sc = data.tag_name\match "v(%d+)%.(%d+)%.(%d+)"
+			na, nb, nc = tonumber(sa), tonumber(sb), tonumber sc
+			if na < a
+				goto not_new_version
+			if na == a
+				if nb < b
+					goto not_new_version
+				if nb == b
+					if nc < c
+						goto not_new_version
+					if nc == c
+						goto not_new_version
+			config.updateNotification = true
+			::not_new_version::
+			config.lastUpdateCheck = os.time!
+
+if config.lastUpdateCheck?
+	diffSeconds = os.difftime os.time!, config.lastUpdateCheck
+	if diffSeconds >= 7 * 24 * 60 * 60
+		updateCheck!
+else
+	updateCheck!
 
 from "Utils" import Set, Struct, LintYueGlobals, GSplit
 options: {extension: yueext} = yue
@@ -742,6 +772,11 @@ footerWindow = threadLoop ->
 		SameLine!
 		if changed, showConsole := Checkbox zh and "控制台" or "Log", showConsole
 			config.showConsole = showConsole
+		if config.updateNotification
+			SameLine!
+			if ImGui.Button zh and "更新可用" or "Update Available"
+				config.updateNotification = false
+				enterDemoEntry ["SelfUpdater", Path Content.assetPath, "Script", "Tools", "SelfUpdater"]
 		unless isInEntry
 			SameLine!
 			if Button zh and "主页" or "Home", Vec2 70, 30
@@ -883,8 +918,8 @@ entryWindow = threadLoop ->
 				SameLine!
 			TextColored themeColor, "DORA SSR #{zh and '开发' or 'DEV'}"
 			SameLine!
-			if fullWidth >= 320
-				Dummy Vec2 fullWidth - 320, 0
+			if fullWidth >= 360
+				Dummy Vec2 fullWidth - 360, 0
 				SameLine!
 				SetNextItemWidth -50
 				if InputText zh and '筛选' or 'Filter', filterBuf, ["AutoSelectAll",]
