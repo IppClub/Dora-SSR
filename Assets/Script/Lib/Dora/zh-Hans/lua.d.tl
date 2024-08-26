@@ -1008,6 +1008,74 @@ local record lua
 		-- @param n2 (number) 第二个上值索引。
 		upvaluejoin: function(f1: function, n1: number, f2: function, n2: number)
 	end
+
+	-- 提供操作系统功能的库。
+	record os
+
+		-- 区域设置类别的枚举。
+		enum LocaleCategory
+			"all"
+			"collate"
+			"ctype"
+			"monetary"
+			"numeric"
+			"time"
+		end
+
+		-- 设置程序的当前区域设置。
+		-- @param locale (string) [可选] 要设置的区域设置。
+		-- 如果 locale 是空字符串，则当前区域设置被设置为实现定义的本地区域设置。如果 locale 是字符串 "C"，则当前区域设置被设置为标准 C 区域设置。当 locale 参数为 nil 时，此函数仅返回给定类别的当前区域设置的名称。
+		-- @param category (LocaleCategory) [可选] 要更改的类别。默认是 "all"。
+		-- @return (string | nil) 新区域设置的名称，如果请求无法满足则返回 nil。
+		setlocale: function(locale?: string, category?: LocaleCategory): string | nil
+
+		-- 输出的日期和时间记录。
+		record OutputDate
+			year: number
+			month: number --[[1-12]]
+			day: number --[[1-31]]
+			hour: number --[[0-23]]
+			min: number --[[0-59]]
+			sec: number --[[0-61，60和61是闰秒]]
+			wday: number --[[1-7，星期天是 1]]
+			yday: number --[[1-366]]
+			isdst: boolean --[[夏令时标志]]
+		end
+
+		-- 返回一个包含日期和时间的字符串或表，格式根据给定的字符串格式化。
+		-- @param format (string) [可选] 格式字符串。默认是 "%c"，表示人类可读的日期和时间表示。如果格式以 '!' 开头，则日期格式化为协调世界时。如果格式是字符串 "*t"，则 date 返回一个包含字段 year, month, day, hour, min, sec, wday, yday 和 isdst 的表。如果格式不是 "*t"，则 date 返回一个字符串，格式化规则与 ISO C 函数 strftime 相同，例如 "%Y-%m-%d %H:%M:%S"。
+		-- @param time (number) [可选] 要格式化的时间。默认是当前时间。
+		-- @return (string | OutputDate) 格式化的日期和时间。
+		date: function(format?: string, time?: number): string | OutputDate
+
+		-- 输入的日期和时间记录。
+		record InputDate
+			year: number
+			month: number
+			day: number
+			hour: number --[[默认是 12]]
+			min: number --[[默认是 0]]
+			sec: number --[[默认是 0]]
+			isdst: boolean --[[默认是 nil]]
+		end
+
+		-- 当没有参数时，返回当前时间，或者返回由给定表指定的本地日期和时间。这个表必须包含字段 year, month 和 day，并且可以包含字段 hour（默认是 12）, min（默认是 0）, sec（默认是 0）和 isdst（默认是 nil）。其他字段将被忽略。os.time 还会规范化 os.date 函数中记录的所有字段，以便它们表示与调用前相同的时间，但值在其有效范围内。
+		-- @param date (InputDate) [可选] 表示本地日期和时间的表。
+		-- 当调用该函数时，这些字段中的值不需要在其有效范围内。例如，如果 sec 是 -10，则表示在其他字段指定的时间之前的 10 秒；如果 hour 是 1000，则表示在其他字段指定的时间之后的 1000 小时。
+		-- @return (number) 当前时间或表中指定的时间。返回值是一个数字，其含义取决于您的系统。在 POSIX、Windows 和其他一些系统中，这个数字表示自某个给定起始时间（“纪元”）以来的秒数。在其他系统中，这个含义没有指定，time 返回的数字只能作为 os.date 和 os.difftime 的参数使用。
+		time: function(date?: InputDate): number
+
+		-- 返回从时间 t1 到时间 t2 的差值（以秒为单位）（其中时间是 os.time 返回的值）。在 POSIX、Windows 和其他一些系统中，这个值正好是 t2-t1。
+		-- @param t2 (number) 结束时间。
+		-- @param t1 (number) 开始时间。
+		-- @return (number) 时间差，以秒为单位。
+		difftime: function(t2: number, t1: number): number
+
+		-- 返回进程环境变量 varname 的值，如果变量未定义则返回 nil。
+		-- @param varname (string) 环境变量的名称。
+		-- @return (string | nil) 环境变量的值，如果变量未定义则返回 nil。
+		getenv: function(varname: string): string | nil
+	end
 end
 
 return lua

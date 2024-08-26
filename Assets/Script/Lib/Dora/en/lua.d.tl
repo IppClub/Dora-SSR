@@ -1009,6 +1009,74 @@ local record lua
 		-- @param n2 (number) The second upvalue index.
 		upvaluejoin: function(f1: function, n1: number, f2: function, n2: number)
 	end
+
+	-- Library provides the functionality of the operating system facilities.
+	record os
+
+		-- Enumeration for locale category.
+		enum LocaleCategory
+			"all"
+			"collate"
+			"ctype"
+			"monetary"
+			"numeric"
+			"time"
+		end
+
+		-- Sets the current locale of the program.
+		-- @param locale (string) [optional] The locale to set.
+		-- If locale is the empty string, the current locale is set to an implementation-defined native locale. If locale is the string "C", the current locale is set to the standard C locale. When called with nil as the locale argument, this function only returns the name of the current locale for the given category.
+		-- @param category (LocaleCategory) [optional] The category to change. Default is "all".
+		-- @return (string | nil) The name of the new locale or nil if the request cannot be honored.
+		setlocale: function(locale?: string, category?: LocaleCategory): string | nil
+
+		-- The date and time record for output.
+		record OutputDate
+			year: number
+			month: number --[[1-12]]
+			day: number --[[1-31]]
+			hour: number --[[0-23]]
+			min: number --[[0-59]]
+			sec: number --[[0-61, due to leap seconds]]
+			wday: number --[[1-7, Sunday is 1]]
+			yday: number --[[1-366]]
+			isdst: boolean --[[daylight saving flag]]
+		end
+
+		-- Returns a string or a table containing date and time, formatted according to the given string format.
+		-- @param format (string) [optional] The format string. Default is "%c" for a human-readable date and time representation. If format starts with '!', the date is formatted in Coordinated Universal Time. If format is the string "*t", then date returns a table with fields year, month, day, hour, min, sec, wday, yday, and isdst. If format is not "*t", then date returns the date as a string, formatted according to the same rules as the ISO C function strftime, for example, "%Y-%m-%d %H:%M:%S".
+		-- @param time (number) [optional] The time to be formatted. Default is the current time.
+		-- @return (string | OutputDate) The formatted date and time.
+		date: function(format?: string, time?: number): string | OutputDate
+
+		-- The date and time record for input.
+		record InputDate
+			year: number
+			month: number
+			day: number
+			hour: number --[[default is 12]]
+			min: number --[[default is 0]]
+			sec: number --[[default is 0]]
+			isdst: boolean --[[default is nil]]
+		end
+
+		-- Returns the current time when called without arguments, or a time representing the local date and time specified by the given table. This table must have fields year, month, and day, and may have fields hour (default is 12), min (default is 0), sec (default is 0), and isdst (default is nil). Other fields are ignored. os.time also normalizes all the fields recorded by the os.date function so that they represent the same time as before the call, but with values inside their valid ranges.
+		-- @param date (InputDate) [optional] The table representing the local date and time.
+		-- When the function is called, the values in these fields do not need to be inside their valid ranges. For instance, if sec is -10, it means 10 seconds before the time specified by the other fields; if hour is 1000, it means 1000 hours after the time specified by the other fields.
+		-- @return (number) The current time or the time specified by the table. The return value is a number, whose meaning depends on your system. In POSIX, Windows, and some other systems, this number represents the number of seconds since some given start time (the "epoch"). In other systems, the meaning is not specified, and the number returned by time can only be used as an argument to os.date and os.difftime.
+		time: function(date?: InputDate): number
+
+		-- Returns the difference, in seconds, from time t1 to time t2 (where the times are values returned by os.time). In POSIX, Windows, and some other systems, this value is exactly t2-t1.
+		-- @param t2 (number) The end time.
+		-- @param t1 (number) The start time.
+		-- @return (number) The difference in seconds.
+		difftime: function(t2: number, t1: number): number
+
+		-- Returns the value of the process environment variable varname or fail if the variable is not defined.
+		-- @param varname (string) The name of the environment variable.
+		-- @return (string | nil) The value of the environment variable, or nil if the variable is not defined.
+		getenv: function(varname: string): string | nil
+	end
 end
 
 return lua

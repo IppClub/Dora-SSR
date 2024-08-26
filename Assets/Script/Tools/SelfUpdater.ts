@@ -87,6 +87,7 @@ let downloadTitle = "";
 let progress = 0;
 let downloadTargetFile = "";
 let targetUnzipPath = "";
+let unzipDone = false
 
 function download(this: void) {
 	thread(() => {
@@ -111,14 +112,16 @@ function download(this: void) {
 		if (success) {
 			downloadTitle = zh ? `解压中：${filename}` : `Unziping: ${filename}`;
 			const unzipPath = Path(Path.getPath(targetFile), Path.getName(targetFile));
-			targetUnzipPath = unzipPath;
 			Content.remove(unzipPath);
+			unzipDone = false;
+			targetUnzipPath = unzipPath;
 			if (!Content.unzipAsync(targetFile, unzipPath)) {
 				Content.remove(unzipPath);
 				targetUnzipPath = "";
 				showPopup(zh ? "解压失败" : "Failed to unzip ", zh ? `无法解压文件：${filename}` : `Failed to unzip: ${filename}`);
 			} else {
 				Content.remove(targetFile);
+				unzipDone = true;
 				const pathForInstall = App.platform === PlatformType.Windows ? unzipPath : Path(unzipPath, `dora-ssr-${latestVersion}-android.apk`)
 				App.install(pathForInstall);
 			}
@@ -178,7 +181,7 @@ threadLoop(() => {
 				ImGui.TextWrapped(zh ? "请通过 Dora SSR PPA，使用 apt-get 工具进行更新管理。详见官网的安装教程。" : "Please use apt-get to manage updates via the Dora SSR PPA. See the installation tutorial on the official website for details.");
 				return false;
 			case PlatformType.macOS:
-				ImGui.TextWrapped(zh ? "请通过 Homebrew 工具进行更新管理。详见官网的安装教程。" : "Please use the homebrew tool to manage updates. See the installation tutorial on the official website for details.");
+				ImGui.TextWrapped(zh ? "请通过 Homebrew 工具进行更新管理。详见官网的安装教程。" : "Please use the Homebrew tool to manage updates. See the installation tutorial on the official website for details.");
 				return false;
 		}
 		let _ = false;
@@ -229,17 +232,17 @@ threadLoop(() => {
 				}
 			}
 		}
-		if (targetUnzipPath === "") {
-			if (downloadTitle !== "") {
-				ImGui.Separator();
-				ImGui.Text(downloadTitle);
-				ImGui.ProgressBar(progress, Vec2(-1, 30));
+		if (unzipDone) {
+			if (App.platform === "Android") {
+				if (ImGui.Button(zh ? "进行安装" : "Install")) {
+					const pathForInstall = Path(targetUnzipPath, `dora-ssr-${latestVersion}-android.apk`);
+					App.install(pathForInstall);
+				}
 			}
-		} else if (App.platform === "Android") {
-			if (ImGui.Button(zh ? "进行安装" : "Install")) {
-				const pathForInstall = Path(targetUnzipPath, `dora-ssr-${latestVersion}-android.apk`)
-				App.install(pathForInstall);
-			}
+		} else if (downloadTitle !== "") {
+			ImGui.Separator();
+			ImGui.Text(downloadTitle);
+			ImGui.ProgressBar(progress, Vec2(-1, 30));
 		}
 		if (popupShow) {
 			popupShow = false;

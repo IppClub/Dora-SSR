@@ -40,6 +40,14 @@ do
 	Dora.Platformer.Data = Dora.Platformer.Data()
 end
 
+-- remove some os lib APIs
+os.clock = nil
+os.execute = nil
+os.exit = nil
+os.remove = nil
+os.rename = nil
+os.tmpname = nil
+
 -- setup Yuescript loader
 package.path = "?.lua"
 
