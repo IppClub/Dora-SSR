@@ -69,7 +69,7 @@ getAsync: function(self: HttpClient, url: string, timeout?: number): string | ni
 
 **签名：**
 ```tl
-downloadAsync: function(self: HttpClient, url: string, fullPath: string, progress?: function(current: integer, total: integer): boolean): boolean
+downloadAsync: function(self: HttpClient, url: string, fullPath: string, timeout?: number, progress?: function(current: integer, total: integer): boolean): boolean
 ```
 
 **参数：**
@@ -78,6 +78,7 @@ downloadAsync: function(self: HttpClient, url: string, fullPath: string, progres
 | --- | --- | --- |
 | url | string | 需要下载的文件的URL。 |
 | fullPath | string | 下载文件应保存的完整路径。 |
+| timeout | number | [可选] 下载超时时间（以秒为单位，默认为30秒）。 |
 | progress | string | [可选] 一个定期报告下载进度的回调函数。	该函数接收两个参数：current（到目前为止下载的字节数）和 total（需要下载的总字节数）。如果回调函数返回 `true`，则下载将被取消。 |
 
 **返回值：**
