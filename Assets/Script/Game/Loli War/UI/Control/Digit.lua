@@ -1,4 +1,4 @@
--- [yue]: Script/Game/Loli War/UI/Control/Digit.yue
+-- [yue]: UI/Control/Digit.yue
 local Class = Dora.Class -- 1
 local property = Dora.property -- 1
 local math = _G.math -- 1

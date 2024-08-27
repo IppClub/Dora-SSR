@@ -1,4 +1,4 @@
--- [yue]: Script/Game/Touch the Sky/init.yue
+-- [yue]: init.yue
 local Path = Dora.Path -- 1
 local Content = Dora.Content -- 1
 local Vec2 = Dora.Vec2 -- 1

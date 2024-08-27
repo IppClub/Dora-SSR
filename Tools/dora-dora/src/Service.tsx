@@ -271,8 +271,23 @@ export interface ReadResponse {
 export const read = (req: ReadRequest) => {
 	return post<ReadResponse>("/read", req);
 };
-export const readSync = (req: ReadRequest) => {
-	return postSync<ReadResponse>("/read", req);
+
+// ReadSync
+
+export interface ReadSyncRequest {
+	path: string;
+	exts?: string[];
+}
+export type ReadSyncResponse =  {
+	success: false;
+} | {
+	success: true;
+	content: string;
+	ext: string;
+};
+export const readSync = (req: ReadSyncRequest) => {
+	const {path, exts = [""]} = req;
+	return postSync<ReadSyncResponse>("/read-sync", {path, exts});
 };
 
 // Write
@@ -287,6 +302,19 @@ export interface WriteResponse {
 }
 export const write = (req: WriteRequest) => {
 	return post<WriteResponse>("/write", req);
+};
+
+// Build
+
+export interface BuildRequest {
+	path: string;
+}
+export interface BuildResponse {
+	success: boolean;
+	resultCodes?: string;
+}
+export const build = (req: BuildRequest) => {
+	return post<BuildResponse>("/build", req);
 };
 
 // Rename

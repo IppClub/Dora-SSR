@@ -60,10 +60,12 @@ i18n
 						doneUnzip: "finished unziping file {{title}}",
 						failedUnzip: "failed to unzip file {{title}}, make sure it's a ZIP and no same named folder exist",
 						failedTS: "TypeScript compile error, check log for details",
-						failedCompile: "not generated {{title}}",
+						failedCompile: "failed to compile {{title}}",
 						copied: "copied path {{title}}",
 						copy: "failed to copy path",
 						tocopy: "Relative path for {{title}}",
+						build: "Built {{title}}",
+						buildDone: "Build done {{title}}",
 					},
 					popup: {
 						goToFile: "Go to File",
@@ -132,6 +134,7 @@ i18n
 						copyPath: "Copy Path",
 						modKey: "Mod Key Using",
 						switchTab: "Switch Tab",
+						build: "Build",
 					},
 					log: {
 						wait: "Wait for logging messages ...",
@@ -242,10 +245,12 @@ i18n
 						doneUnzip: "完成解压缩 {{title}}",
 						failedUnzip: "解压缩 {{title}} 失败，请确认为 ZIP 文件且目录下无同名文件夹",
 						failedTS: "TypeScript 编译报错，请查看日志",
-						failedCompile: "待生成 {{title}}",
+						failedCompile: "编译失败 {{title}}",
 						copied: "已复制路径 {{title}}",
 						copy: "复制路径失败",
 						tocopy: "{{title}} 的相对路径",
+						build: "生成成功 {{title}}",
+						buildDone: "编译完成 {{title}}",
 					},
 					popup: {
 						goToFile: "跳转到文件",
@@ -314,6 +319,7 @@ i18n
 						copyPath: "复制路径",
 						modKey: "Mod 键使用",
 						switchTab: "切换标签",
+						build: "编译生成",
 					},
 					log: {
 						wait: "接收日志消息中……",

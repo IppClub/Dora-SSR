@@ -24,7 +24,7 @@ import {
 	AiFillFileZip,
 } from 'react-icons/ai';
 import { RxClipboardCopy } from "react-icons/rx";
-import { GoFileCode } from "react-icons/go";
+import { GoFileCode, GoChecklist } from "react-icons/go";
 import { FcImageFile } from 'react-icons/fc';
 import { SiWebassembly } from 'react-icons/si';
 import Tree from 'rc-tree';
@@ -140,7 +140,7 @@ const motion = {
 	onLeaveActive: () => ({ height: 0 }),
 };
 
-export type TreeMenuEvent = "New" | "Rename" | "Delete" | "Download" | "Cancel" | "Unzip" | "View Compiled" | "Copy Path";
+export type TreeMenuEvent = "New" | "Rename" | "Delete" | "Download" | "Cancel" | "Unzip" | "View Compiled" | "Copy Path" | "Build";
 
 export interface FileTreeProps {
 	selectedKeys: string[];
@@ -239,6 +239,32 @@ export default memo(function FileTree(props: FileTreeProps) {
 					</ListItemIcon>
 					<ListItemText primary={ t("menu.copyPath") }/>
 				</StyledMenuItem>
+				{anchorItem && ext === ".zip" ?
+					<StyledMenuItem onClick={() => handleClose("Unzip", anchorItem?.data)}>
+						<ListItemIcon>
+							<AiOutlineFolderOpen/>
+						</ListItemIcon>
+						<ListItemText primary={ t("menu.extract") }/>
+					</StyledMenuItem> : null
+				}
+				{anchorItem &&
+					((Info.path.extname(
+						Info.path.basename(anchorItem.data.key, ext)
+					) === "" &&
+					(
+						ext === ".yue" ||
+						ext === ".tl" ||
+						ext === ".ts" ||
+						ext === ".tsx" ||
+						ext === ".xml"
+					)) || anchorItem.data.dir) ?
+					<StyledMenuItem onClick={() => handleClose("Build", anchorItem?.data)}>
+					<ListItemIcon>
+						<GoChecklist/>
+					</ListItemIcon>
+					<ListItemText primary={ t("menu.build") }/>
+					</StyledMenuItem> : null
+				}
 				{anchorItem && ext === ".zip" ?
 					<StyledMenuItem onClick={() => handleClose("Unzip", anchorItem?.data)}>
 						<ListItemIcon>

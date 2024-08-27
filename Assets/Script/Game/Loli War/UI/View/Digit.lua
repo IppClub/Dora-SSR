@@ -1,4 +1,4 @@
--- [xml]: Script/Game/Loli War/UI/View/Digit.xml
+-- [xml]: UI/View/Digit.xml
 return function(args) -- 1
 local _ENV = Dora(args) -- 1
 local node1 = Node() -- 1

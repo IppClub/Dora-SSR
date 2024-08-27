@@ -1,4 +1,4 @@
--- [yue]: Script/Game/Zombie Escape/AI.yue
+-- [yue]: AI.yue
 local _module_0 = Dora.Platformer -- 1
 local Data = _module_0.Data -- 1
 local _module_1 = Dora.Platformer.Decision -- 1

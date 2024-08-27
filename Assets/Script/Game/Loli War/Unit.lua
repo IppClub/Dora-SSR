@@ -1,4 +1,4 @@
--- [yue]: Script/Game/Loli War/Unit.yue
+-- [yue]: Unit.yue
 local _module_0 = Dora.Platformer -- 1
 local Data = _module_0.Data -- 1
 local Dictionary = Dora.Dictionary -- 1
