@@ -1326,8 +1326,108 @@ export default function PersistentDrawerLeft() {
 				})
 				break;
 			}
-			case "View Compiled": {
+			case "Build": {
 				const {key} = data;
+				const buildFile = async (key: string, preferLog: boolean) => {
+					if (checkFileReadonly(key, false)) return;
+					const title = path.basename(key);
+					const ext = path.extname(key).toLowerCase();
+					const name = path.basename(key, ext);
+					if (path.extname(name) === ".d") return;
+					const dir = path.dirname(key);
+					const luaFile = path.join(dir, name + ".lua");
+					const fileInTab = files.find(f => path.relative(f.key, luaFile) === "");
+					try {
+						if ((ext === '.ts' || ext === '.tsx') && !key.toLocaleLowerCase().endsWith(".d.ts")) {
+							const res = await Service.read({path: key});
+							if (res.success && res.content !== undefined) {
+								const {transpileTypescript} = await import('./TranspileTS');
+								const luaCode = await transpileTypescript(key, res.content);
+								if (luaCode !== undefined) {
+									if (fileInTab !== undefined) {
+										fileInTab.content = luaCode;
+										const model = monaco.editor.getModel(monaco.Uri.parse(luaFile));
+										if (model) {
+											model.setValue(luaCode);
+										}
+									}
+									const res = await Service.write({path: luaFile, content: luaCode});
+									if (res.success) {
+										if (preferLog) {
+											Service.addLog(`Built ${title}\n`);
+										} else {
+											addAlert(t("alert.build", {title}), "success");
+										}
+									} else {
+										if (preferLog) {
+											Service.addLog(`Failed to save ${title}\n`);
+										} else {
+											addAlert(t("alert.saveCurrent"), "error");
+										}
+									}
+								}
+							}
+						} else if (ext === '.yue' || ext === '.tl' || ext === '.xml') {
+							const res = await Service.build({path: key});
+							if (res.success) {
+								if (preferLog) {
+									Service.addLog(`Built ${title}\n`);
+								} else {
+									addAlert(t("alert.build", {title}), "success");
+								}
+								if (fileInTab !== undefined) {
+									const resultCodes = res.resultCodes === undefined ? "" : res.resultCodes;
+									fileInTab.content = resultCodes;
+									setTimeout(() => {
+										const model = monaco.editor.getModel(monaco.Uri.parse(luaFile));
+										if (model) {
+											model.setValue(resultCodes);
+										}
+									}, 10);
+								}
+							} else {
+								if (preferLog) {
+									Service.addLog(`Failed to build ${title}\n`);
+								} else {
+									addAlert(t("alert.failedCompile", {title}), "warning");
+								}
+							}
+						}
+					} catch {
+						if (preferLog) {
+							Service.addLog(`Failed to build ${title}\n`);
+						} else {
+							addAlert(t("alert.failedCompile", {title}), "warning");
+						}
+					}
+				};
+				if (data.dir) {
+					const {title} = data;
+					setOpenLog({
+						title: t("menu.build") + " " + title,
+						stopOnClose: false
+					});
+					const buildAllFiles = async () => {
+						const visitData = async (node: TreeDataType) => {
+							if (node.children !== undefined) {
+								for (let i = 0; i < node.children.length; i++) {
+									await visitData(node.children[i]);
+								}
+							}
+							if (node.dir) return;
+							await buildFile(node.key, true);
+						}
+						await visitData(data);
+						Service.addLog(t("alert.buildDone", {title}) + '\n');
+					};
+					buildAllFiles();
+				} else {
+					buildFile(key, false);
+				}
+				break;
+			}
+			case "View Compiled": {
+				const {key, title} = data;
 				const extname = path.extname(key);
 				const name = path.basename(key, extname);
 				const dir = path.dirname(key);
@@ -1336,7 +1436,7 @@ export default function PersistentDrawerLeft() {
 					if (res.success && res.content !== undefined) {
 						openFileInTab(luaFile, name + ".lua", false, undefined, true);
 					} else {
-						addAlert(t("alert.failedCompile", {title: name + ".lua"}), "warning");
+						addAlert(t("alert.failedCompile", {title}), "warning");
 					}
 				}).catch(() => {
 					addAlert(t("alert.read", {title: name + ".lua"}), "error");
@@ -1363,7 +1463,7 @@ export default function PersistentDrawerLeft() {
 				break;
 			}
 		}
-	}, [checkFileReadonly, loadAssets, t, deleteFile, treeData, openFileInTab]);
+	}, [checkFileReadonly, loadAssets, t, files, deleteFile, treeData, openFileInTab]);
 
 	const onNewFileClose = (item?: DoraFileType) => {
 		let ext: string | null = null;

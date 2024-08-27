@@ -627,6 +627,14 @@ HttpServer\postSchedule "/read", (req): success: false ->
 			if content := Content\loadAsync path
 				return :content, success: true
 
+HttpServer\post "/read-sync", (req): success: false ->
+	switch req when {body: {:path, :exts}}
+		for ext in *exts
+			targetPath = path .. ext
+			if Content\exist targetPath
+				if content := Content\load targetPath
+					return :content, success: true, :ext
+
 compileFileAsync = (inputFile, sourceCodes): nil ->
 	file = inputFile
 	searchPath = if dir := getProjectDirFromFile inputFile
@@ -680,6 +688,14 @@ HttpServer\postSchedule "/write", (req): success: false ->
 					resultCodes = compileFileAsync path, content
 					return success: true, :resultCodes
 			return success: true
+
+HttpServer\postSchedule "/build", (req): success: false ->
+	switch req when {body: {:path}}
+		switch Path\getExt path when "tl", "yue", "xml"
+			if '' == Path\getExt Path\getName path
+				if content := Content\loadAsync path
+					if resultCodes := compileFileAsync path, content
+						return success: true, :resultCodes
 
 extentionLevels =
 	vs: 2

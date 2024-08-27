@@ -1,4 +1,4 @@
--- [yue]: Script/Game/Loli War/UI/Control/HPWheel.yue
+-- [yue]: UI/Control/HPWheel.yue
 local _module_0 = Dora.Platformer -- 1
 local Data = _module_0.Data -- 1
 local Class = Dora.Class -- 1

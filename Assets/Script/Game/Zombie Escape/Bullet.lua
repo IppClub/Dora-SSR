@@ -1,4 +1,4 @@
--- [yue]: Script/Game/Zombie Escape/Bullet.yue
+-- [yue]: Bullet.yue
 local _module_0 = Dora.Platformer -- 1
 local Data = _module_0.Data -- 1
 local BulletDef = _module_0.BulletDef -- 1

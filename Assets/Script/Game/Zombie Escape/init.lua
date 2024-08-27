@@ -1,4 +1,4 @@
--- [yue]: Script/Game/Zombie Escape/init.yue
+-- [yue]: init.yue
 local Path = Dora.Path -- 1
 local Content = Dora.Content -- 1
 local scriptPath = Path:getScriptPath(...) -- 13

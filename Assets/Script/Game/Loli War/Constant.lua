@@ -1,4 +1,4 @@
--- [yue]: Script/Game/Loli War/Constant.yue
+-- [yue]: Constant.yue
 local _module_0 = Dora.Platformer -- 1
 local Data = _module_0.Data -- 1
 local _with_0 = Data.store -- 11

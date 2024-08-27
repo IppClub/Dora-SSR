@@ -1,4 +1,4 @@
--- [yue]: Script/Game/Zombie Escape/Action.yue
+-- [yue]: Action.yue
 local _module_0 = Dora.Platformer -- 1
 local UnitAction = _module_0.UnitAction -- 1
 local groundEntranceEnd -- 11
