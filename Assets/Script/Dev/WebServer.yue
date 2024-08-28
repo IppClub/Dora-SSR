@@ -653,7 +653,9 @@ compileFileAsync = (inputFile, sourceCodes): nil ->
 			return unless codes
 			success, result = LintYueGlobals codes, globals
 			return unless success
-			return nil if codes == ""
+			if codes == ""
+				resultCodes = ""
+				return nil
 			codes = codes\gsub "%s*local%s*_ENV%s*=%s*Dora%([^%)]-%)[^\n\r]+[\n\r%s]*", "\n"
 			codes = codes\gsub "%s*local%s*_ENV%s*=%s*Dora[^%w_$][^\n\r]+[\n\r%s]*", "\n"
 			codes = codes\gsub "^\n*", ""
@@ -662,7 +664,8 @@ compileFileAsync = (inputFile, sourceCodes): nil ->
 			resultCodes
 		if not success
 			Content\remove outputFile
-			resultCodes = false
+			if resultCodes == nil
+				resultCodes = false
 	when "tl"
 		if codes := teal.toluaAsync sourceCodes, file, searchPath
 			resultCodes = codes
@@ -831,11 +834,78 @@ HttpServer\postSchedule "/stop", ->
 	import "Script.Dev.Entry"
 	success: Entry.stop!
 
+minifyAsync = (sourcePath, minifyPath) ->
+	return unless Content\exist sourcePath
+	import "Script.Dev.Entry"
+	errors = []
+	files = Entry.getAllFiles sourcePath, ["lua",], true
+	files = [file for file in *files when file\sub(1, 1) ~= '.']
+	paths = {Path\getPath(file), true for file in *files}
+	Content\mkdir Path(minifyPath, path) for path in pairs paths
+	close _ = <close>: ->
+		package.loaded["luaminify.FormatMini"] = nil
+		package.loaded["luaminify.ParseLua"] = nil
+		package.loaded["luaminify.Scope"] = nil
+		package.loaded["luaminify.Util"] = nil
+	from "luaminify" import FormatMini
+	fileCount = #files
+	count = 0
+	for file in *files
+		thread ->
+			close _ = <close>: -> count += 1
+			input = Path sourcePath, file
+			output = Path minifyPath, Path\replaceExt file, "lua"
+			if Content\exist input
+					sourceCodes = Content\loadAsync input
+					res, err = FormatMini sourceCodes
+					if res
+						Content\saveAsync output, res
+						print "Minify #{file}"
+					else
+						errors[] = "Minify errors in #{file}.\n#{err}"
+			else
+				errors[] = "Minify errors in #{file}.\nTarget file is not exist!"
+		sleep!
+	wait -> count == fileCount
+	if #errors > 0
+		print table.concat errors, '\n'
+	print "Obfuscation done."
+	files
+
+zipping = false
+
 HttpServer\postSchedule "/zip", (req): success: false ->
-	switch req when {body: {:path, :zipFile}}
+	return success: false if zipping
+	zipping = true
+	close _ = <close>: -> zipping = false
+	switch req when {body: {:path, :zipFile, :obfuscated = false}}
+		goto failed unless Content\exist path
 		Content\mkdir Path\getPath zipFile
-		return success: Content\zipAsync path, zipFile, (file) ->
-			not (file\match('^%.') or file\match "[\\/]%.")
+		if obfuscated
+			scriptPath = Path Content.writablePath, ".download", ".script"
+			obfuscatedPath = Path Content.writablePath, ".download", ".obfuscated"
+			tempPath = Path Content.writablePath, ".download", ".temp"
+			Content\remove scriptPath
+			Content\remove obfuscatedPath
+			Content\remove tempPath
+			Content\mkdir scriptPath
+			Content\mkdir obfuscatedPath
+			Content\mkdir tempPath
+			goto failed unless Content\copyAsync path, tempPath
+			import "Script.Dev.Entry"
+			luaFiles = minifyAsync tempPath, obfuscatedPath
+			scriptFiles = Entry.getAllFiles tempPath, ["tl", "yue", "lua", "ts", "tsx", "vs", "xml"], true
+			for file in *scriptFiles
+				Content\remove Path tempPath, file
+			for file in *luaFiles
+				Content\move Path(obfuscatedPath, file), Path tempPath, file
+			goto failed unless Content\zipAsync tempPath, zipFile, (file) ->
+				not (file\match('^%.') or file\match "[\\/]%.")
+			return success: true
+		else
+			return success: Content\zipAsync path, zipFile, (file) ->
+				not (file\match('^%.') or file\match "[\\/]%.")
+	::failed::
 
 HttpServer\postSchedule "/unzip", (req): success: false ->
 	switch req when {body: {:zipFile, :path}}

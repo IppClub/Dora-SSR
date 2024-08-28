@@ -1234,7 +1234,8 @@ export default function PersistentDrawerLeft() {
 				setOpenNewFile(data);
 				break;
 			}
-			case "Download": {
+			case "Download":
+			case "Obfuscate": {
 				const rootNode = treeData.at(0);
 				if (rootNode === undefined) break;
 				const {key, title} = data;
@@ -1263,10 +1264,10 @@ export default function PersistentDrawerLeft() {
 						addAlert(t("alert.downloadWait"), "info");
 						break;
 					}
+					waitingForDownload = true;
 					addAlert(t("alert.downloadStart"), "info");
 					const zipFile = path.join(rootNode.key, ".download", title + ".zip");
-					waitingForDownload = true;
-					Service.zip({zipFile, path: key}).then(res => {
+					Service.zip({zipFile, path: key, obfuscated: event === "Obfuscate"}).then(res => {
 						waitingForDownload = false;
 						if (res.success) {
 							downloadFile(zipFile);
@@ -1436,7 +1437,7 @@ export default function PersistentDrawerLeft() {
 					if (res.success && res.content !== undefined) {
 						openFileInTab(luaFile, name + ".lua", false, undefined, true);
 					} else {
-						addAlert(t("alert.failedCompile", {title}), "warning");
+						addAlert(t("alert.notGenerated", {title}), "warning");
 					}
 				}).catch(() => {
 					addAlert(t("alert.read", {title: name + ".lua"}), "error");
