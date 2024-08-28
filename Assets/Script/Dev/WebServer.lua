@@ -2150,49 +2150,44 @@ minifyAsync = function(sourcePath, minifyPath) -- 837
 end -- 837
 local zipping = false -- 875
 HttpServer:postSchedule("/zip", function(req) -- 877
-	if zipping then -- 878
-		return { -- 878
-			success = false -- 878
-		} -- 878
-	end -- 878
-	zipping = true -- 879
-	local _ <close> = setmetatable({ }, { -- 880
-		__close = function() -- 880
-			zipping = false -- 880
-		end -- 880
-	}) -- 880
-	do -- 881
-		local _type_0 = type(req) -- 881
-		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 881
-		if _tab_0 then -- 881
-			local path -- 881
-			do -- 881
-				local _obj_0 = req.body -- 881
-				local _type_1 = type(_obj_0) -- 881
-				if "table" == _type_1 or "userdata" == _type_1 then -- 881
-					path = _obj_0.path -- 881
+	do -- 878
+		local _type_0 = type(req) -- 878
+		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 878
+		if _tab_0 then -- 878
+			local path -- 878
+			do -- 878
+				local _obj_0 = req.body -- 878
+				local _type_1 = type(_obj_0) -- 878
+				if "table" == _type_1 or "userdata" == _type_1 then -- 878
+					path = _obj_0.path -- 878
 				end -- 907
 			end -- 907
-			local zipFile -- 881
-			do -- 881
-				local _obj_0 = req.body -- 881
-				local _type_1 = type(_obj_0) -- 881
-				if "table" == _type_1 or "userdata" == _type_1 then -- 881
-					zipFile = _obj_0.zipFile -- 881
+			local zipFile -- 878
+			do -- 878
+				local _obj_0 = req.body -- 878
+				local _type_1 = type(_obj_0) -- 878
+				if "table" == _type_1 or "userdata" == _type_1 then -- 878
+					zipFile = _obj_0.zipFile -- 878
 				end -- 907
 			end -- 907
-			local obfuscated -- 881
-			do -- 881
-				local _obj_0 = req.body -- 881
-				local _type_1 = type(_obj_0) -- 881
-				if "table" == _type_1 or "userdata" == _type_1 then -- 881
-					obfuscated = _obj_0.obfuscated -- 881
+			local obfuscated -- 878
+			do -- 878
+				local _obj_0 = req.body -- 878
+				local _type_1 = type(_obj_0) -- 878
+				if "table" == _type_1 or "userdata" == _type_1 then -- 878
+					obfuscated = _obj_0.obfuscated -- 878
 				end -- 907
 			end -- 907
-			if obfuscated == nil then -- 881
-				obfuscated = false -- 881
-			end -- 881
-			if path ~= nil and zipFile ~= nil then -- 881
+			if path ~= nil and zipFile ~= nil and obfuscated ~= nil then -- 878
+				if zipping then -- 879
+					goto failed -- 879
+				end -- 879
+				zipping = true -- 880
+				local _ <close> = setmetatable({ }, { -- 881
+					__close = function() -- 881
+						zipping = false -- 881
+					end -- 881
+				}) -- 881
 				if not Content:exist(path) then -- 882
 					goto failed -- 882
 				end -- 882
@@ -2244,7 +2239,7 @@ HttpServer:postSchedule("/zip", function(req) -- 877
 						end) -- 906
 					} -- 907
 				end -- 884
-			end -- 881
+			end -- 878
 		end -- 907
 	end -- 907
 	::failed:: -- 908

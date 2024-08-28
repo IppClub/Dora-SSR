@@ -875,10 +875,10 @@ minifyAsync = (sourcePath, minifyPath) ->
 zipping = false
 
 HttpServer\postSchedule "/zip", (req): success: false ->
-	return success: false if zipping
-	zipping = true
-	close _ = <close>: -> zipping = false
-	switch req when {body: {:path, :zipFile, :obfuscated = false}}
+	switch req when {body: {:path, :zipFile, :obfuscated}}
+		goto failed if zipping
+		zipping = true
+		close _ = <close>: -> zipping = false
 		goto failed unless Content\exist path
 		Content\mkdir Path\getPath zipFile
 		if obfuscated
