@@ -38,7 +38,7 @@ import tealLogo from './teal.png';
 import typescriptLogo from './typescript.png';
 import spineLogo from './spine.png';
 import { DiCode } from 'react-icons/di';
-import { TbSql } from 'react-icons/tb';
+import { TbMoodConfuzed, TbSql } from 'react-icons/tb';
 import { SiNodered } from 'react-icons/si';
 import { VscMarkdown } from 'react-icons/vsc';
 import { MacScrollbar } from 'mac-scrollbar';
@@ -140,7 +140,7 @@ const motion = {
 	onLeaveActive: () => ({ height: 0 }),
 };
 
-export type TreeMenuEvent = "New" | "Rename" | "Delete" | "Download" | "Cancel" | "Unzip" | "View Compiled" | "Copy Path" | "Build";
+export type TreeMenuEvent = "New" | "Rename" | "Delete" | "Download" | "Cancel" | "Unzip" | "View Compiled" | "Copy Path" | "Build" | "Obfuscate";
 
 export interface FileTreeProps {
 	selectedKeys: string[];
@@ -259,10 +259,18 @@ export default memo(function FileTree(props: FileTreeProps) {
 						ext === ".xml"
 					)) || anchorItem.data.dir) ?
 					<StyledMenuItem onClick={() => handleClose("Build", anchorItem?.data)}>
-					<ListItemIcon>
-						<GoChecklist/>
-					</ListItemIcon>
-					<ListItemText primary={ t("menu.build") }/>
+						<ListItemIcon>
+							<GoChecklist/>
+						</ListItemIcon>
+						<ListItemText primary={ t("menu.build") }/>
+					</StyledMenuItem> : null
+				}
+				{anchorItem && anchorItem.data.dir ?
+					<StyledMenuItem onClick={() => handleClose("Obfuscate", anchorItem?.data)}>
+						<ListItemIcon>
+							<TbMoodConfuzed/>
+						</ListItemIcon>
+						<ListItemText primary={ t("menu.obfuscate") }/>
 					</StyledMenuItem> : null
 				}
 				{anchorItem && ext === ".zip" ?
@@ -285,10 +293,10 @@ export default memo(function FileTree(props: FileTreeProps) {
 						ext === ".xml"
 					) ?
 					<StyledMenuItem onClick={() => handleClose("View Compiled", anchorItem?.data)}>
-					<ListItemIcon>
-						<GoFileCode/>
-					</ListItemIcon>
-					<ListItemText primary={ t("menu.viewCompiled", {lang: "Lua"}) }/>
+						<ListItemIcon>
+							<GoFileCode/>
+						</ListItemIcon>
+						<ListItemText primary={ t("menu.viewCompiled", {lang: "Lua"}) }/>
 					</StyledMenuItem> : null
 				}
 			</StyledMenu>

@@ -22,7 +22,7 @@ local function lookupify(tb)
 	return tb
 end
 
-
+--[[
 local function CountTable(tb)
 	local c = 0
 	for _ in pairs(tb) do c = c + 1 end
@@ -71,7 +71,7 @@ local function PrintTable(tb, atIndent)
 	out = out..(useNewlines and string.rep('    ', atIndent) or '').."}"
 	return out
 end
-
+]]
 
 local blacklist = {
 	["do"] = true,
@@ -163,7 +163,7 @@ local Scope = {
 	end,
 
 	GetLocal = function(self, name)
-		for k, var in pairs(self.Locals) do
+		for _k, var in pairs(self.Locals) do
 			if var.Name == name then return var end
 		end
 
@@ -237,7 +237,7 @@ local Scope = {
 
 	GetAllVariables = function(self)
 		local ret = self:getVars(true) -- down
-		for k, v in pairs(self:getVars(false)) do -- up
+		for _k, v in pairs(self:getVars(false)) do -- up
 			table.insert(ret, v)
 		end
 		return ret
@@ -246,20 +246,20 @@ local Scope = {
 	getVars = function(self, top)
 		local ret = { }
 		if top then
-			for k, v in pairs(self.Children) do
-				for k2, v2 in pairs(v:getVars(true)) do
+			for _k, v in pairs(self.Children) do
+				for _k2, v2 in pairs(v:getVars(true)) do
 					table.insert(ret, v2)
 				end
 			end
 		else
-			for k, v in pairs(self.Locals) do
+			for _k, v in pairs(self.Locals) do
 				table.insert(ret, v)
 			end
-			for k, v in pairs(self.Globals) do
+			for _k, v in pairs(self.Globals) do
 				table.insert(ret, v)
 			end
 			if self.Parent then
-				for k, v in pairs(self.Parent:getVars(false)) do
+				for _k, v in pairs(self.Parent:getVars(false)) do
 					table.insert(ret, v)
 				end
 			end
@@ -282,7 +282,7 @@ local Scope = {
 	end,
 
 	GetGlobal = function(self, name)
-		for k, v in pairs(self.Globals) do
+		for _k, v in pairs(self.Globals) do
 			if v.Name == name then return v end
 		end
 
@@ -295,8 +295,8 @@ local Scope = {
 		return self:GetLocal(name) or self:GetGlobal(name)
 	end,
 
-	ObfuscateLocals = function(self, recommendedMaxLength, validNameChars)
-		for i, var in pairs(self.Locals) do
+	ObfuscateLocals = function(self)
+		for _i, var in pairs(self.Locals) do
 			if var.Name == "_ENV" then
 				self:RenameLocal(var.Name, "_ENV")
 			else
@@ -952,7 +952,7 @@ local function ParseLua(src)
 		return true, nodeFunc
 	end
 
-	function ParsePrimaryExpr(scope)
+	ParsePrimaryExpr = function(scope)
 		local tokenList = {}
 
 		if tok:ConsumeSymbol('(', tokenList) then
@@ -999,7 +999,7 @@ local function ParseLua(src)
 		end
 	end
 
-	function ParseSuffixedExpr(scope, onlyDotColon)
+	ParseSuffixedExpr = function(scope, onlyDotColon)
 		--base primary expression
 		local st, prim = ParsePrimaryExpr(scope)
 		if not st then return false, prim end
@@ -1090,7 +1090,7 @@ local function ParseLua(src)
 	end
 
 
-	function ParseSimpleExpr(scope)
+	ParseSimpleExpr = function(scope)
 		local tokenList = {}
 
 		if tok:Is('Number') then
@@ -1244,7 +1244,7 @@ local function ParseLua(src)
 		['and'] = {2,2};
 		['or'] = {1,1};
 	}
-	function ParseSubExpr(scope, level)
+	ParseSubExpr = function(scope, level)
 		--base item, possibly with unop prefix
 		local st, exp
 		if unops[tok:Peek().Data] then

@@ -398,6 +398,7 @@ export const stop = () => {
 export interface ZipRequest {
 	path: string;
 	zipFile: string;
+	obfuscated: boolean;
 }
 export interface ZipResponse {
 	success: boolean;

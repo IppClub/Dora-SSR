@@ -202,7 +202,7 @@ unless isChineseSupported
 
 building = false
 
-getAllFiles = (path, exts, recursive = true) ->
+export getAllFiles = (path, exts, recursive = true) ->
 	filters = Set exts
 	files = if recursive
 		Content\getAllFiles path
@@ -479,8 +479,6 @@ doClean = ->
 	Content\clearPathCache!
 	if Content\remove targetDir
 		print "Cleaned: #{targetDir}"
-	Content\remove Path writablePath, ".upload"
-	Content\remove Path writablePath, ".download"
 
 screenScale = 2.0 -- App.devicePixelRatio
 scaleContent = false
@@ -523,9 +521,16 @@ export allClear = ->
 	App.idled = true
 	Wasm\clear!
 
+clearTempFiles = ->
+	:writablePath = Content
+	Content\remove Path writablePath, ".upload"
+	Content\remove Path writablePath, ".download"
+
 setupEventHandlers = ->
 	with Director.postNode
-		\gslot "AppQuit", allClear
+		\gslot "AppQuit", ->
+			allClear!
+			clearTempFiles!
 		\gslot "AppTheme", (argb) ->
 			config.themeColor = argb
 		\gslot "AppLocale", (locale) ->
@@ -546,6 +551,7 @@ setupEventHandlers = ->
 				x: config.winX, y: config.winY = App.winPosition
 
 setupEventHandlers!
+clearTempFiles!
 
 export stop = ->
 	return false if isInEntry
