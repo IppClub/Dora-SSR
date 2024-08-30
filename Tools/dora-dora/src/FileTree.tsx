@@ -169,7 +169,7 @@ export default memo(function FileTree(props: FileTreeProps) {
 		setAnchorItem(null);
 	};
 
-	const onSelect = (keys: Key[], info: {selectedNodes: TreeDataType[]}) => {
+	const onSelect = (_keys: Key[], info: {selectedNodes: TreeDataType[]}) => {
 		props.onSelect(info.selectedNodes);
 	};
 
@@ -271,14 +271,6 @@ export default memo(function FileTree(props: FileTreeProps) {
 							<TbMoodConfuzed/>
 						</ListItemIcon>
 						<ListItemText primary={ t("menu.obfuscate") }/>
-					</StyledMenuItem> : null
-				}
-				{anchorItem && ext === ".zip" ?
-					<StyledMenuItem onClick={() => handleClose("Unzip", anchorItem?.data)}>
-						<ListItemIcon>
-							<AiOutlineFolderOpen/>
-						</ListItemIcon>
-						<ListItemText primary={ t("menu.extract") }/>
 					</StyledMenuItem> : null
 				}
 				{anchorItem &&

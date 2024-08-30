@@ -107,13 +107,17 @@ bool PlatformWorld::init() {
 }
 
 void PlatformWorld::onEnter() {
-	SharedDirector.pushCamera(_camera.get());
+	if (_camera) {
+		SharedDirector.pushCamera(_camera.get());
+	}
 	SharedData.apply(this);
 	Node::onEnter();
 }
 
 void PlatformWorld::onExit() {
-	SharedDirector.removeCamera(_camera.get());
+	if (_camera) {
+		SharedDirector.removeCamera(_camera.get());
+	}
 	Node::onExit();
 }
 
@@ -168,8 +172,9 @@ void PlatformWorld::onCameraMoved(float deltaX, float deltaY) {
 
 void PlatformWorld::onCameraReset() {
 	for (auto it : _layers) {
-		Layer* layer = it.second;
-		layer->setPosition(layer->getOffset());
+		if (Layer* layer = it.second) {
+			layer->setPosition(layer->getOffset());
+		}
 	}
 }
 
