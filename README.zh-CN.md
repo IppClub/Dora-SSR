@@ -12,7 +12,7 @@
 
 ----
 
-&emsp;&emsp;Dora SSR 是一个用于多种设备上快速开发2D游戏的游戏引擎。它内置易用的开发工具链，支持在手机、开源掌机等设备上直接进行游戏开发。
+&emsp;&emsp;Dora SSR 是一个用于多种设备上快速开发 2D 游戏的游戏引擎。它内置易用的开发工具链，支持在手机、开源掌机等设备上直接进行游戏开发。
 
 <div align='center'><img src='Docs/static/img/3.png' alt='Playground' width='650px'/></div>
 
@@ -79,8 +79,8 @@
 
 - 快速上手
 	- Android
-		- 1、在游戏的运行终端下载并安装[APK](https://github.com/ippclub/Dora-SSR/releases/latest)包。
-		- 2、运行软件，通过局域网内的PC（平板或其他开发设备）的浏览器访问软件显示的服务器地址。
+		- 1、在游戏的运行终端下载并安装 [APK](https://github.com/ippclub/Dora-SSR/releases/latest) 包。
+		- 2、运行软件，通过局域网内的 PC（平板或其他开发设备）的浏览器访问软件显示的服务器地址。
 		- 3、开始游戏开发。
 	- Windows、macOS
 		- 1、下载并运行[软件](https://github.com/ippclub/Dora-SSR/releases/latest)。
@@ -120,9 +120,9 @@
 
 1. 第一步：创建一个新项目
 	- 在浏览器中，打开 Dora Dora 编辑器左侧游戏资源树的右键菜单。
-	- 点击菜单项 `New`，选择新建文件夹。
+	- 点击菜单项 `新建`，选择新建文件夹。
 2. 第二步：编写游戏代码
-	- 在项目文件夹下新建游戏入口代码文件，选择 Lua  (YueScript, Teal, TypeScript 或 TSX) 语言命名为`init`。
+	- 在项目文件夹下新建游戏入口代码文件，选择 Lua  (YueScript, Teal, TypeScript 或 TSX) 语言命名为 `init`。
 	- 编写 Hello World 代码：
 
 - **Lua**
@@ -267,10 +267,10 @@ fn main () {
 
 3. 第三步：运行游戏
 
-&emsp;&emsp;点击编辑器右下角`🎮`图标，然后点击菜单项`Run`。或者按下组合键`Ctrl + r`。
+&emsp;&emsp;点击编辑器右下角 `🎮` 图标，然后点击菜单项 `运行`。或者按下组合键 `Ctrl + r`。
 
 4. 第四步：发布游戏
-	- 通过编辑器左侧游戏资源树，打开刚才新建的项目文件夹的右键菜单，点击`Download`选项。
+	- 通过编辑器左侧游戏资源树，打开刚才新建的项目文件夹的右键菜单，点击 `下载` 选项。
 	- 等待浏览器弹出已打包项目文件的下载提示。
 
 &emsp;&emsp;更详细的教程，请查看[官方文档](https://dora-ssr.net/zh-Hans/docs/tutorial/quick-start)。
@@ -286,14 +286,14 @@ fn main () {
 
 ## 社区
 
-- [Discord](https://discord.gg/ZfNBSKXnf9)
 - [QQ群：512620381](https://qm.qq.com/cgi-bin/qm/qr?k=7siAhjlLaSMGLHIbNctO-9AJQ0bn0G7i&jump_from=webapi&authKey=Kb6tXlvcJ2LgyTzHQzKwkMxdsQ7sjERXMJ3g10t6b+716pdKClnXqC9bAfrFUEWa)
+- [Discord](https://discord.gg/ZfNBSKXnf9)
 
 <br>
 
 ## 贡献
 
-&emsp;&emsp;欢迎参与Dora SSR的开发和维护。请查看[贡献指南](CONTRIBUTING.zh-CN.md)了解如何提交Issue和Pull Request。
+&emsp;&emsp;欢迎参与 Dora SSR 的开发和维护。请查看[贡献指南](CONTRIBUTING.zh-CN.md)了解如何提交 Issue 和 Pull Request。
 
 <br>
 
@@ -311,7 +311,7 @@ fn main () {
 
 ## 许可证
 
-&emsp;&emsp;Dora SSR使用[MIT许可证](LICENSE)。原为Dorothy SSR项目，项目名称现处于更名程序中。
+&emsp;&emsp;Dora SSR 使用 [MIT 许可证](LICENSE)。原为 Dorothy SSR 项目，项目名称现处于更名程序中。
 
 ### 特别提示
 
