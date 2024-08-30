@@ -1,7 +1,6 @@
 <p align="center">
-  <img src='Assets/Image/logo.png' alt='Dora SSR' width='300px'/>
+  <img src='Assets/Image/logo.png' alt='Dora SSR' width='260px'/>
 </p>
-
 
 # 多萝珍奇引擎（Dora SSR）
 
@@ -267,10 +266,10 @@ fn main () {
 
 3. 第三步：运行游戏
 
-&emsp;&emsp;点击编辑器右下角 `🎮` 图标，然后点击菜单项 `运行`。或者按下组合键 `Ctrl + r`。
+&emsp;&emsp;点击编辑器右下角 `🎮` 图标，然后点击菜单项 `运行`。或者按下组合键 `Ctrl + r`。
 
 4. 第四步：发布游戏
-	- 通过编辑器左侧游戏资源树，打开刚才新建的项目文件夹的右键菜单，点击 `下载` 选项。
+	- 通过编辑器左侧游戏资源树，打开刚才新建的项目文件夹的右键菜单，点击 `下载` 选项。
 	- 等待浏览器弹出已打包项目文件的下载提示。
 
 &emsp;&emsp;更详细的教程，请查看[官方文档](https://dora-ssr.net/zh-Hans/docs/tutorial/quick-start)。

@@ -1,5 +1,5 @@
 <p align="center">
-  <img src='Assets/Image/logo.png' alt='Dora SSR' width='300px'/>
+  <img src='Assets/Image/logo.png' alt='Dora SSR' width='260px'/>
 </p>
 
 # Dora SSR (多萝珍奇引擎)
