@@ -15,16 +15,6 @@ Dora SSR is a game engine for rapid development of 2D games on various devices. 
 
 <div align='center'><img src='Docs/static/img/3.png' alt='Playground' width='650px'/></div>
 
-## Dora SSR Joins the Open Atom Foundation
-
-We are delighted to announce that the Dora SSR project has officially become a donation and incubation preparatory project under the Open Atom Foundation. This new stage of development signifies our steadfast commitment to building a more open and collaborative gaming development environment.
-
-### About the Open Atom Foundation
-
-The Open Atom Foundation is a non-profit organization dedicated to supporting and promoting the development of open-source technologies. Within this foundation's community, Dora SSR will utilize broader resources and community support to propel the project's development and innovation. For more information, please visit the [foundation's official website](https://openatom.org/).
-
-<div align='center'><img src='Docs/static/img/cheer.png' alt='Playground' width='600px'/></div>
-
 ## Key Features
 
 |Feature|Description|
@@ -314,6 +304,18 @@ For more detailed tutorials, please check [official documents](https://Dora-ssr.
 ## Contribute
 
 Welcome to participate in the development and maintenance of Dora SSR. Please see [Contributing Guidelines](CONTRIBUTING.md) to learn how to submit Issues and Pull Requests.
+
+<br>
+
+## Dora SSR Joins the Open Atom Foundation
+
+We are delighted to announce that the Dora SSR project has officially become a donation and incubation preparatory project under the Open Atom Foundation. This new stage of development signifies our steadfast commitment to building a more open and collaborative gaming development environment.
+
+### About the Open Atom Foundation
+
+The Open Atom Foundation is a non-profit organization dedicated to supporting and promoting the development of open-source technologies. Within this foundation's community, Dora SSR will utilize broader resources and community support to propel the project's development and innovation. For more information, please visit the [foundation's official website](https://openatom.org/).
+
+<div align='center'><img src='Docs/static/img/cheer.png' alt='Playground' width='600px'/></div>
 
 <br>
 
