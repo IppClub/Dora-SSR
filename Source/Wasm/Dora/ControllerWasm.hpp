@@ -6,18 +6,22 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-static int32_t controller__is_button_down(int32_t controller_id, int64_t name) {
-	return SharedController.isButtonDown(s_cast<int>(controller_id), *str_from(name)) ? 1 : 0;
+extern "C" {
+using namespace Dora;
+int32_t controller__is_button_down(int32_t controller_id, int64_t name) {
+	return SharedController.isButtonDown(s_cast<int>(controller_id), *Str_From(name)) ? 1 : 0;
 }
-static int32_t controller__is_button_up(int32_t controller_id, int64_t name) {
-	return SharedController.isButtonUp(s_cast<int>(controller_id), *str_from(name)) ? 1 : 0;
+int32_t controller__is_button_up(int32_t controller_id, int64_t name) {
+	return SharedController.isButtonUp(s_cast<int>(controller_id), *Str_From(name)) ? 1 : 0;
 }
-static int32_t controller__is_button_pressed(int32_t controller_id, int64_t name) {
-	return SharedController.isButtonPressed(s_cast<int>(controller_id), *str_from(name)) ? 1 : 0;
+int32_t controller__is_button_pressed(int32_t controller_id, int64_t name) {
+	return SharedController.isButtonPressed(s_cast<int>(controller_id), *Str_From(name)) ? 1 : 0;
 }
-static float controller__get_axis(int32_t controller_id, int64_t name) {
-	return SharedController.getAxis(s_cast<int>(controller_id), *str_from(name));
+float controller__get_axis(int32_t controller_id, int64_t name) {
+	return SharedController.getAxis(s_cast<int>(controller_id), *Str_From(name));
 }
+} // extern "C"
+
 static void linkController(wasm3::module3& mod) {
 	mod.link_optional("*", "controller__is_button_down", controller__is_button_down);
 	mod.link_optional("*", "controller__is_button_up", controller__is_button_up);

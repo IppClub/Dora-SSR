@@ -6,21 +6,25 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-static int32_t particle_type() {
+extern "C" {
+using namespace Dora;
+int32_t particle_type() {
 	return DoraType<ParticleNode>();
 }
-static int32_t particlenode_is_active(int64_t self) {
+int32_t particlenode_is_active(int64_t self) {
 	return r_cast<ParticleNode*>(self)->isActive() ? 1 : 0;
 }
-static void particlenode_start(int64_t self) {
+void particlenode_start(int64_t self) {
 	r_cast<ParticleNode*>(self)->start();
 }
-static void particlenode_stop(int64_t self) {
+void particlenode_stop(int64_t self) {
 	r_cast<ParticleNode*>(self)->stop();
 }
-static int64_t particlenode_new(int64_t filename) {
-	return from_object(ParticleNode::create(*str_from(filename)));
+int64_t particlenode_new(int64_t filename) {
+	return Object_From(ParticleNode::create(*Str_From(filename)));
 }
+} // extern "C"
+
 static void linkParticleNode(wasm3::module3& mod) {
 	mod.link_optional("*", "particle_type", particle_type);
 	mod.link_optional("*", "particlenode_is_active", particlenode_is_active);

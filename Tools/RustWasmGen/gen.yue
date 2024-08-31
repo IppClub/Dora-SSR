@@ -151,8 +151,8 @@ basicTypes =
 		* (name, fnArgId)-> "stack#{fnArgId}.push_f64(#{name});"
 	string:
 		* "i64"
-		* (name)-> "*str_from(#{name})"
-		* (name)-> "str_retain(#{name})"
+		* (name)-> "*Str_From(#{name})"
+		* (name)-> "Str_Retain(#{name})"
 		* "&str"
 		* "String"
 		* (name)-> "crate::dora::from_string(#{name})"
@@ -161,8 +161,8 @@ basicTypes =
 		* (name, fnArgId)-> "stack#{fnArgId}.push_str(#{name}.as_str());"
 	Vec2:
 		* "i64"
-		* (name)-> "vec2_from(#{name})"
-		* (name)-> "vec2_retain(#{name})"
+		* (name)-> "Vec2_From(#{name})"
+		* (name)-> "Vec2_Retain(#{name})"
 		* "&crate::dora::Vec2"
 		* "crate::dora::Vec2"
 		* (name)-> "#{name}.into_i64()"
@@ -171,8 +171,8 @@ basicTypes =
 		* (name, fnArgId)-> "stack#{fnArgId}.push_vec2(#{name});"
 	Size:
 		* "i64"
-		* (name)-> "size_from(#{name})"
-		* (name)-> "size_retain(#{name})"
+		* (name)-> "Size_From(#{name})"
+		* (name)-> "Size_Retain(#{name})"
 		* "&crate::dora::Size"
 		* "crate::dora::Size"
 		* (name)-> "#{name}.into_i64()"
@@ -281,8 +281,8 @@ basicTypes =
 		* -> error "unsupported"
 	VecStr:
 		* "i64"
-		* (name)-> "from_str_vec(#{name})"
-		* (name)-> "to_vec(#{name})"
+		* (name)-> "Vec_FromStr(#{name})"
+		* (name)-> "Vec_To(#{name})"
 		* "&Vec<&str>"
 		* "Vec<String>"
 		* (name)-> "crate::dora::Vector::from_str(#{name})"
@@ -291,8 +291,8 @@ basicTypes =
 		* -> error "unsupported"
 	VecVec2:
 		* "i64"
-		* (name)-> "from_vec2_vec(#{name})"
-		* (name)-> "to_vec(#{name})"
+		* (name)-> "Vec_FromVec2(#{name})"
+		* (name)-> "Vec_To(#{name})"
 		* "&Vec<crate::dora::Vec2>"
 		* "Vec<crate::dora::Vec2>"
 		* (name)-> "crate::dora::Vector::from_vec2(#{name})"
@@ -301,8 +301,8 @@ basicTypes =
 		* -> error "unsupported"
 	VecUint32:
 		* "i64"
-		* (name)-> "from_uint32_vec(#{name})"
-		* (name)-> "to_vec(#{name})"
+		* (name)-> "Vec_FromUint32(#{name})"
+		* (name)-> "Vec_To(#{name})"
 		* "&Vec<i32>"
 		* "Vec<i32>"
 		* (name)-> "crate::dora::Vector::from_num(#{name})"
@@ -311,8 +311,8 @@ basicTypes =
 		* -> error "unsupported"
 	VecFloat:
 		* "i64"
-		* (name)-> "from_float_vec(#{name})"
-		* (name)-> "to_vec(#{name})"
+		* (name)-> "Vec_FromFloat(#{name})"
+		* (name)-> "Vec_To(#{name})"
 		* "&Vec<f32>"
 		* "Vec<f32>"
 		* (name)-> "crate::dora::Vector::from_num(#{name})"
@@ -331,8 +331,8 @@ basicTypes =
 		* -> error "unsupported"
 	VecVertexColor:
 		* "i64"
-		* (name)-> "from_vertex_color_vec(#{name})"
-		* (name)-> "to_vec(#{name})"
+		* (name)-> "Vec_FromVertexColor(#{name})"
+		* (name)-> "Vec_To(#{name})"
 		* "&Vec<crate::dora::VertexColor>"
 		* "Vec<crate::dora::VertexColor>"
 		* (name)-> "crate::dora::Vector::from_vertex_color(#{name})"
@@ -351,8 +351,8 @@ basicTypes =
 		* -> error "unsupported"
 	VecActionDef:
 		* "i64"
-		* (name)-> "from_action_def_vec(#{name})"
-		* (name)-> "to_vec(#{name})"
+		* (name)-> "Vec_FromActionDef(#{name})"
+		* (name)-> "Vec_To(#{name})"
 		* "&Vec<crate::dora::ActionDef>"
 		* "Vec<crate::dora::ActionDef>"
 		* (name)-> "crate::dora::Vector::from_action_def(#{name})"
@@ -361,8 +361,8 @@ basicTypes =
 		* -> error "unsupported"
 	VecBTree:
 		* "i64"
-		* (name)-> "from_btree_vec(#{name})"
-		* (name)-> "to_vec(#{name})"
+		* (name)-> "Vec_FromBtree(#{name})"
+		* (name)-> "Vec_To(#{name})"
 		* "&Vec<crate::dora::platformer::behavior::Tree>"
 		* "Vec<crate::dora::platformer::behavior::Tree>"
 		* (name)-> "crate::dora::Vector::from_btree(#{name})"
@@ -371,8 +371,8 @@ basicTypes =
 		* -> error "unsupported"
 	VecDTree:
 		* "i64"
-		* (name)-> "from_dtree_vec(#{name})"
-		* (name)-> "to_vec(#{name})"
+		* (name)-> "Vec_FromDtree(#{name})"
+		* (name)-> "Vec_To(#{name})"
 		* "&Vec<crate::dora::platformer::decision::Tree>"
 		* "Vec<crate::dora::platformer::decision::Tree>"
 		* (name)-> "crate::dora::Vector::from_dtree(#{name})"
@@ -596,7 +596,7 @@ else
 			return
 				* "i64"
 				* (name)-> "r_cast<#{dataType}*>(#{name})"
-				* (name)-> nonObjectTypes[rustName] and "r_cast<int64_t>(#{name})" or "from_object(#{name})"
+				* (name)-> nonObjectTypes[rustName] and "r_cast<int64_t>(#{name})" or "Object_From(#{name})"
 				* "&#{rustName}"
 				* isOptional and "Option<#{rustName}>" or rustName
 				* (name)-> "#{name}.raw()"
@@ -607,7 +607,7 @@ else
 			return
 				* "i64"
 				* (name)-> "r_cast<#{dataType}*>(#{name})"
-				* (name)-> nonObjectTypes[rustName] and "r_cast<int64_t>(#{name})" or "from_object(#{name})"
+				* (name)-> nonObjectTypes[rustName] and "r_cast<int64_t>(#{name})" or "Object_From(#{name})"
 				* interfaces[rustName] and "&dyn crate::dora::I#{rustName}" or "&crate::dora::#{rustName}"
 				* "Option<crate::dora::#{rustName}>"
 				* (name)-> "#{name}.raw()"
@@ -618,7 +618,7 @@ else
 			return
 				* "i64"
 				* (name)-> "r_cast<#{dataType}*>(#{name})"
-				* (name)-> nonObjectTypes[rustName] and "r_cast<int64_t>(#{name})" or "from_object(#{name})"
+				* (name)-> nonObjectTypes[rustName] and "r_cast<int64_t>(#{name})" or "Object_From(#{name})"
 				* interfaces[rustName] and "&dyn crate::dora::I#{rustName}" or "&crate::dora::#{rustName}"
 				* "crate::dora::#{rustName}"
 				* (name)-> "#{name}.raw()"
@@ -691,7 +691,7 @@ else
 		objectUsed = #rustBinding
 		if isObject
 			objectUsed = nil
-			cppBinding[] = "static int32_t #{namespace}#{clsNewNameL}_type() {
+			cppBinding[] = "int32_t #{namespace}#{clsNewNameL}_type() {
 	return DoraType<#{clsName}>();
 }"
 		if clsParent
@@ -737,7 +737,7 @@ impl I#{clsNewName} for #{clsNewName} { }"
 		})
 	}"
 		if isValue
-			cppBinding[] = "static void #{namespace}#{clsNewNameL}_release(int64_t raw) {
+			cppBinding[] = "void #{namespace}#{clsNewNameL}_release(int64_t raw) {
 	delete r_cast<#{clsName}*>(raw);
 }"
 			rustExtern[] = "\tfn #{namespace}#{clsNewNameL}_release(raw: i64);"
@@ -822,9 +822,9 @@ impl I#{clsNewName} for #{clsNewName} { }"
 							cppLink[] = "\tmod.link_optional(\"*\", \"#{cppSetterName}\", #{cppSetterName});"
 							cppBinding[] = if isSingleton
 								callFunc = isStatic and "#{clsName}::#{setFunc};" or "#{singletonName}.#{setFunc};"
-								"static void #{cppSetterName}(#{cppType} var) {\n\t#{callFunc}\n}"
+								"void #{cppSetterName}(#{cppType} var) {\n\t#{callFunc}\n}"
 							else
-								"static void #{cppSetterName}(int64_t self, #{cppType} var) {\n\tr_cast<#{clsName}*>(self)->#{setFunc};\n}"
+								"void #{cppSetterName}(int64_t self, #{cppType} var) {\n\tr_cast<#{clsName}*>(self)->#{setFunc};\n}"
 							rustExtern[] = if isSingleton
 								"\tfn #{cppSetterName}(var: #{rt});"
 							else
@@ -856,11 +856,11 @@ impl I#{clsNewName} for #{clsNewName} { }"
 						cppBinding[] = if isSingleton
 							callFunc = isStatic and "#{clsName}::#{getFunc}" or "#{singletonName}.#{getFunc}"
 							item = castFrom "#{callFunc}"
-							"static #{cppType} #{cppGetterName}() {\n\treturn #{item};\n}"
+							"#{cppType} #{cppGetterName}() {\n\treturn #{item};\n}"
 						else
 							callFunc = isStatic and "#{clsName}::#{getFunc}" or "r_cast<#{clsName}*>(self)->#{getFunc}"
 							item = castFrom callFunc
-							"static #{cppType} #{cppGetterName}(int64_t self) {\n\treturn #{item};\n}"
+							"#{cppType} #{cppGetterName}(int64_t self) {\n\treturn #{item};\n}"
 						rustExtern[] = if isSingleton
 							"\tfn #{cppGetterName}() -> #{rt};"
 						else
@@ -1071,7 +1071,7 @@ impl I#{clsNewName} for #{clsNewName} { }"
 							callFunc = isStatic and "#{clsName}::#{name}(#{argPass})" or "#{singletonName}.#{name}(#{argPass})"
 							callFunc = isOutside and "#{name}(#{argPass})" or callFunc
 							item = castFrom callFunc
-							"static #{cppType} #{cppFuncName}(#{argDefs}) {#{argPrepare}\n\t#{prefix}#{item};\n}"
+							"#{cppType} #{cppFuncName}(#{argDefs}) {#{argPrepare}\n\t#{prefix}#{item};\n}"
 						else
 							slf = isStatic and "" or "int64_t self"
 							if slf ~= "" then argDefs = slf .. (argDefs ~= "" and ", " or "") .. argDefs
@@ -1087,7 +1087,7 @@ impl I#{clsNewName} for #{clsNewName} { }"
 									"r_cast<#{clsName}*>(self)->#{name}(#{argPass})"
 							callFunc = isValue and argPass or callFunc if isCreate
 							item = castFrom callFunc
-							"static #{cppType} #{cppFuncName}(#{argDefs}) {#{argPrepare}\n\t#{prefix}#{item};\n}"
+							"#{cppType} #{cppFuncName}(#{argDefs}) {#{argPrepare}\n\t#{prefix}#{item};\n}"
 						rustExtern[] = if isSingleton
 							"\tfn #{cppFuncName}(#{argRtDefs})#{rt and ' -> ' .. rt or ''};"
 						else
@@ -1146,7 +1146,10 @@ impl I#{clsNewName} for #{clsNewName} { }"
 		close _f1 = with io.open "../../Source/Wasm/Dora/#{moduleScope ~= '' and moduleScope .. "/" .. cppModuleName or cppModuleName}Wasm.hpp", "w"
 			\write licenseText
 			\write "\n\n"
+			\write "extern \"C\" {\n"
+			\write "using namespace Dora;\n"
 			\write table.concat cppBinding, "\n"
+			\write "\n} // extern \"C\"\n"
 			\write "\n"
 			\write table.concat cppLink, "\n"
 		moduleScope = table.concat [toCamelCase(mod) for mod in *moduleScopes], "/"

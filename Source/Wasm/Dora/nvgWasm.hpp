@@ -6,192 +6,196 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-static void nvg_save() {
+extern "C" {
+using namespace Dora;
+void nvg_save() {
 	nvg::Save();
 }
-static void nvg_restore() {
+void nvg_restore() {
 	nvg::Restore();
 }
-static void nvg_reset() {
+void nvg_reset() {
 	nvg::Reset();
 }
-static int32_t nvg__create_image(int32_t w, int32_t h, int64_t filename, int32_t image_flags) {
-	return s_cast<int32_t>(nvg::CreateImage(s_cast<int>(w), s_cast<int>(h), *str_from(filename), s_cast<int>(image_flags)));
+int32_t nvg__create_image(int32_t w, int32_t h, int64_t filename, int32_t image_flags) {
+	return s_cast<int32_t>(nvg::CreateImage(s_cast<int>(w), s_cast<int>(h), *Str_From(filename), s_cast<int>(image_flags)));
 }
-static int32_t nvg_create_font(int64_t name) {
-	return s_cast<int32_t>(nvg::CreateFont(*str_from(name)));
+int32_t nvg_create_font(int64_t name) {
+	return s_cast<int32_t>(nvg::CreateFont(*Str_From(name)));
 }
-static float nvg_text_bounds(float x, float y, int64_t text, int64_t bounds) {
-	return nvg::TextBounds(x, y, *str_from(text), *r_cast<Rect*>(bounds));
+float nvg_text_bounds(float x, float y, int64_t text, int64_t bounds) {
+	return nvg::TextBounds(x, y, *Str_From(text), *r_cast<Rect*>(bounds));
 }
-static int64_t nvg_text_box_bounds(float x, float y, float break_row_width, int64_t text) {
-	return r_cast<int64_t>(new Rect{nvg::TextBoxBounds(x, y, break_row_width, *str_from(text))});
+int64_t nvg_text_box_bounds(float x, float y, float break_row_width, int64_t text) {
+	return r_cast<int64_t>(new Rect{nvg::TextBoxBounds(x, y, break_row_width, *Str_From(text))});
 }
-static float nvg_text(float x, float y, int64_t text) {
-	return nvg::Text(x, y, *str_from(text));
+float nvg_text(float x, float y, int64_t text) {
+	return nvg::Text(x, y, *Str_From(text));
 }
-static void nvg_text_box(float x, float y, float break_row_width, int64_t text) {
-	nvg::TextBox(x, y, break_row_width, *str_from(text));
+void nvg_text_box(float x, float y, float break_row_width, int64_t text) {
+	nvg::TextBox(x, y, break_row_width, *Str_From(text));
 }
-static void nvg_stroke_color(int32_t color) {
+void nvg_stroke_color(int32_t color) {
 	nvg::StrokeColor(Color(s_cast<uint32_t>(color)));
 }
-static void nvg_stroke_paint(int64_t paint) {
+void nvg_stroke_paint(int64_t paint) {
 	nvg::StrokePaint(*r_cast<NVGpaint*>(paint));
 }
-static void nvg_fill_color(int32_t color) {
+void nvg_fill_color(int32_t color) {
 	nvg::FillColor(Color(s_cast<uint32_t>(color)));
 }
-static void nvg_fill_paint(int64_t paint) {
+void nvg_fill_paint(int64_t paint) {
 	nvg::FillPaint(*r_cast<NVGpaint*>(paint));
 }
-static void nvg_miter_limit(float limit) {
+void nvg_miter_limit(float limit) {
 	nvg::MiterLimit(limit);
 }
-static void nvg_stroke_width(float size) {
+void nvg_stroke_width(float size) {
 	nvg::StrokeWidth(size);
 }
-static void nvg__line_cap(int32_t cap) {
+void nvg__line_cap(int32_t cap) {
 	nvg::LineCap(s_cast<int>(cap));
 }
-static void nvg__line_join(int32_t join) {
+void nvg__line_join(int32_t join) {
 	nvg::LineJoin(s_cast<int>(join));
 }
-static void nvg_global_alpha(float alpha) {
+void nvg_global_alpha(float alpha) {
 	nvg::GlobalAlpha(alpha);
 }
-static void nvg_reset_transform() {
+void nvg_reset_transform() {
 	nvg::ResetTransform();
 }
-static void nvg_apply_transform(int64_t node) {
+void nvg_apply_transform(int64_t node) {
 	nvg::ApplyTransform(r_cast<Node*>(node));
 }
-static void nvg_translate(float x, float y) {
+void nvg_translate(float x, float y) {
 	nvg::Translate(x, y);
 }
-static void nvg_rotate(float angle) {
+void nvg_rotate(float angle) {
 	nvg::Rotate(angle);
 }
-static void nvg_skew_x(float angle) {
+void nvg_skew_x(float angle) {
 	nvg::SkewX(angle);
 }
-static void nvg_skew_y(float angle) {
+void nvg_skew_y(float angle) {
 	nvg::SkewY(angle);
 }
-static void nvg_scale(float x, float y) {
+void nvg_scale(float x, float y) {
 	nvg::Scale(x, y);
 }
-static int64_t nvg_image_size(int32_t image) {
-	return size_retain(nvg::ImageSize(s_cast<int>(image)));
+int64_t nvg_image_size(int32_t image) {
+	return Size_Retain(nvg::ImageSize(s_cast<int>(image)));
 }
-static void nvg_delete_image(int32_t image) {
+void nvg_delete_image(int32_t image) {
 	nvg::DeleteImage(s_cast<int>(image));
 }
-static int64_t nvg_linear_gradient(float sx, float sy, float ex, float ey, int32_t icol, int32_t ocol) {
+int64_t nvg_linear_gradient(float sx, float sy, float ex, float ey, int32_t icol, int32_t ocol) {
 	return r_cast<int64_t>(new NVGpaint{nvg::LinearGradient(sx, sy, ex, ey, Color(s_cast<uint32_t>(icol)), Color(s_cast<uint32_t>(ocol)))});
 }
-static int64_t nvg_box_gradient(float x, float y, float w, float h, float r, float f, int32_t icol, int32_t ocol) {
+int64_t nvg_box_gradient(float x, float y, float w, float h, float r, float f, int32_t icol, int32_t ocol) {
 	return r_cast<int64_t>(new NVGpaint{nvg::BoxGradient(x, y, w, h, r, f, Color(s_cast<uint32_t>(icol)), Color(s_cast<uint32_t>(ocol)))});
 }
-static int64_t nvg_radial_gradient(float cx, float cy, float inr, float outr, int32_t icol, int32_t ocol) {
+int64_t nvg_radial_gradient(float cx, float cy, float inr, float outr, int32_t icol, int32_t ocol) {
 	return r_cast<int64_t>(new NVGpaint{nvg::RadialGradient(cx, cy, inr, outr, Color(s_cast<uint32_t>(icol)), Color(s_cast<uint32_t>(ocol)))});
 }
-static int64_t nvg_image_pattern(float ox, float oy, float ex, float ey, float angle, int32_t image, float alpha) {
+int64_t nvg_image_pattern(float ox, float oy, float ex, float ey, float angle, int32_t image, float alpha) {
 	return r_cast<int64_t>(new NVGpaint{nvg::ImagePattern(ox, oy, ex, ey, angle, s_cast<int>(image), alpha)});
 }
-static void nvg_scissor(float x, float y, float w, float h) {
+void nvg_scissor(float x, float y, float w, float h) {
 	nvg::Scissor(x, y, w, h);
 }
-static void nvg_intersect_scissor(float x, float y, float w, float h) {
+void nvg_intersect_scissor(float x, float y, float w, float h) {
 	nvg::IntersectScissor(x, y, w, h);
 }
-static void nvg_reset_scissor() {
+void nvg_reset_scissor() {
 	nvg::ResetScissor();
 }
-static void nvg_begin_path() {
+void nvg_begin_path() {
 	nvg::BeginPath();
 }
-static void nvg_move_to(float x, float y) {
+void nvg_move_to(float x, float y) {
 	nvg::MoveTo(x, y);
 }
-static void nvg_line_to(float x, float y) {
+void nvg_line_to(float x, float y) {
 	nvg::LineTo(x, y);
 }
-static void nvg_bezier_to(float c_1x, float c_1y, float c_2x, float c_2y, float x, float y) {
+void nvg_bezier_to(float c_1x, float c_1y, float c_2x, float c_2y, float x, float y) {
 	nvg::BezierTo(c_1x, c_1y, c_2x, c_2y, x, y);
 }
-static void nvg_quad_to(float cx, float cy, float x, float y) {
+void nvg_quad_to(float cx, float cy, float x, float y) {
 	nvg::QuadTo(cx, cy, x, y);
 }
-static void nvg_arc_to(float x_1, float y_1, float x_2, float y_2, float radius) {
+void nvg_arc_to(float x_1, float y_1, float x_2, float y_2, float radius) {
 	nvg::ArcTo(x_1, y_1, x_2, y_2, radius);
 }
-static void nvg_close_path() {
+void nvg_close_path() {
 	nvg::ClosePath();
 }
-static void nvg__path_winding(int32_t dir) {
+void nvg__path_winding(int32_t dir) {
 	nvg::PathWinding(s_cast<int>(dir));
 }
-static void nvg__arc(float cx, float cy, float r, float a_0, float a_1, int32_t dir) {
+void nvg__arc(float cx, float cy, float r, float a_0, float a_1, int32_t dir) {
 	nvg::Arc(cx, cy, r, a_0, a_1, s_cast<int>(dir));
 }
-static void nvg_rect(float x, float y, float w, float h) {
+void nvg_rect(float x, float y, float w, float h) {
 	nvg::Rectangle(x, y, w, h);
 }
-static void nvg_rounded_rect(float x, float y, float w, float h, float r) {
+void nvg_rounded_rect(float x, float y, float w, float h, float r) {
 	nvg::RoundedRect(x, y, w, h, r);
 }
-static void nvg_rounded_rect_varying(float x, float y, float w, float h, float rad_top_left, float rad_top_right, float rad_bottom_right, float rad_bottom_left) {
+void nvg_rounded_rect_varying(float x, float y, float w, float h, float rad_top_left, float rad_top_right, float rad_bottom_right, float rad_bottom_left) {
 	nvg::RoundedRectVarying(x, y, w, h, rad_top_left, rad_top_right, rad_bottom_right, rad_bottom_left);
 }
-static void nvg_ellipse(float cx, float cy, float rx, float ry) {
+void nvg_ellipse(float cx, float cy, float rx, float ry) {
 	nvg::Ellipse(cx, cy, rx, ry);
 }
-static void nvg_circle(float cx, float cy, float r) {
+void nvg_circle(float cx, float cy, float r) {
 	nvg::Circle(cx, cy, r);
 }
-static void nvg_fill() {
+void nvg_fill() {
 	nvg::Fill();
 }
-static void nvg_stroke() {
+void nvg_stroke() {
 	nvg::Stroke();
 }
-static int32_t nvg_find_font(int64_t name) {
-	return s_cast<int32_t>(nvg::FindFont(*str_from(name)));
+int32_t nvg_find_font(int64_t name) {
+	return s_cast<int32_t>(nvg::FindFont(*Str_From(name)));
 }
-static int32_t nvg_add_fallback_font_id(int32_t base_font, int32_t fallback_font) {
+int32_t nvg_add_fallback_font_id(int32_t base_font, int32_t fallback_font) {
 	return s_cast<int32_t>(nvg::AddFallbackFontId(s_cast<int>(base_font), s_cast<int>(fallback_font)));
 }
-static int32_t nvg_add_fallback_font(int64_t base_font, int64_t fallback_font) {
-	return s_cast<int32_t>(nvg::AddFallbackFont(*str_from(base_font), *str_from(fallback_font)));
+int32_t nvg_add_fallback_font(int64_t base_font, int64_t fallback_font) {
+	return s_cast<int32_t>(nvg::AddFallbackFont(*Str_From(base_font), *Str_From(fallback_font)));
 }
-static void nvg_font_size(float size) {
+void nvg_font_size(float size) {
 	nvg::FontSize(size);
 }
-static void nvg_font_blur(float blur) {
+void nvg_font_blur(float blur) {
 	nvg::FontBlur(blur);
 }
-static void nvg_text_letter_spacing(float spacing) {
+void nvg_text_letter_spacing(float spacing) {
 	nvg::TextLetterSpacing(spacing);
 }
-static void nvg_text_line_height(float line_height) {
+void nvg_text_line_height(float line_height) {
 	nvg::TextLineHeight(line_height);
 }
-static void nvg__text_align(int32_t h_align, int32_t v_align) {
+void nvg__text_align(int32_t h_align, int32_t v_align) {
 	nvg::TextAlign(s_cast<int>(h_align), s_cast<int>(v_align));
 }
-static void nvg_font_face_id(int32_t font) {
+void nvg_font_face_id(int32_t font) {
 	nvg::FontFaceId(s_cast<int>(font));
 }
-static void nvg_font_face(int64_t font) {
-	nvg::FontFace(*str_from(font));
+void nvg_font_face(int64_t font) {
+	nvg::FontFace(*Str_From(font));
 }
-static void nvg_dora_ssr() {
+void nvg_dora_ssr() {
 	nvg::DoraSSR();
 }
-static int64_t nvg_get_dora_ssr(float scale) {
-	return from_object(nvg::GetDoraSSR(scale));
+int64_t nvg_get_dora_ssr(float scale) {
+	return Object_From(nvg::GetDoraSSR(scale));
 }
+} // extern "C"
+
 static void linknvg(wasm3::module3& mod) {
 	mod.link_optional("*", "nvg_save", nvg_save);
 	mod.link_optional("*", "nvg_restore", nvg_restore);

@@ -6,27 +6,31 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-static int32_t motorjoint_type() {
+extern "C" {
+using namespace Dora;
+int32_t motorjoint_type() {
 	return DoraType<MotorJoint>();
 }
-static void motorjoint_set_enabled(int64_t self, int32_t var) {
+void motorjoint_set_enabled(int64_t self, int32_t var) {
 	r_cast<MotorJoint*>(self)->setEnabled(var != 0);
 }
-static int32_t motorjoint_is_enabled(int64_t self) {
+int32_t motorjoint_is_enabled(int64_t self) {
 	return r_cast<MotorJoint*>(self)->isEnabled() ? 1 : 0;
 }
-static void motorjoint_set_force(int64_t self, float var) {
+void motorjoint_set_force(int64_t self, float var) {
 	r_cast<MotorJoint*>(self)->setForce(var);
 }
-static float motorjoint_get_force(int64_t self) {
+float motorjoint_get_force(int64_t self) {
 	return r_cast<MotorJoint*>(self)->getForce();
 }
-static void motorjoint_set_speed(int64_t self, float var) {
+void motorjoint_set_speed(int64_t self, float var) {
 	r_cast<MotorJoint*>(self)->setSpeed(var);
 }
-static float motorjoint_get_speed(int64_t self) {
+float motorjoint_get_speed(int64_t self) {
 	return r_cast<MotorJoint*>(self)->getSpeed();
 }
+} // extern "C"
+
 static void linkMotorJoint(wasm3::module3& mod) {
 	mod.link_optional("*", "motorjoint_type", motorjoint_type);
 	mod.link_optional("*", "motorjoint_set_enabled", motorjoint_set_enabled);

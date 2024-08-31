@@ -6,21 +6,25 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-static int32_t dictionary_type() {
+extern "C" {
+using namespace Dora;
+int32_t dictionary_type() {
 	return DoraType<Dictionary>();
 }
-static int32_t dictionary_get_count(int64_t self) {
+int32_t dictionary_get_count(int64_t self) {
 	return s_cast<int32_t>(r_cast<Dictionary*>(self)->getCount());
 }
-static int64_t dictionary_get_keys(int64_t self) {
-	return to_vec(r_cast<Dictionary*>(self)->getKeys());
+int64_t dictionary_get_keys(int64_t self) {
+	return Vec_To(r_cast<Dictionary*>(self)->getKeys());
 }
-static void dictionary_clear(int64_t self) {
+void dictionary_clear(int64_t self) {
 	r_cast<Dictionary*>(self)->clear();
 }
-static int64_t dictionary_new() {
-	return from_object(Dictionary::create());
+int64_t dictionary_new() {
+	return Object_From(Dictionary::create());
 }
+} // extern "C"
+
 static void linkDictionary(wasm3::module3& mod) {
 	mod.link_optional("*", "dictionary_type", dictionary_type);
 	mod.link_optional("*", "dictionary_get_count", dictionary_get_count);

@@ -6,54 +6,58 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-static void director_set_clear_color(int32_t var) {
+extern "C" {
+using namespace Dora;
+void director_set_clear_color(int32_t var) {
 	SharedDirector.setClearColor(Color(s_cast<uint32_t>(var)));
 }
-static int32_t director_get_clear_color() {
+int32_t director_get_clear_color() {
 	return SharedDirector.getClearColor().toARGB();
 }
-static int64_t director_get_ui() {
-	return from_object(SharedDirector.getUI());
+int64_t director_get_ui() {
+	return Object_From(SharedDirector.getUI());
 }
-static int64_t director_get_ui_3d() {
-	return from_object(SharedDirector.getUI3D());
+int64_t director_get_ui_3d() {
+	return Object_From(SharedDirector.getUI3D());
 }
-static int64_t director_get_entry() {
-	return from_object(SharedDirector.getEntry());
+int64_t director_get_entry() {
+	return Object_From(SharedDirector.getEntry());
 }
-static int64_t director_get_post_node() {
-	return from_object(SharedDirector.getPostNode());
+int64_t director_get_post_node() {
+	return Object_From(SharedDirector.getPostNode());
 }
-static int64_t director_get_current_camera() {
-	return from_object(SharedDirector.getCurrentCamera());
+int64_t director_get_current_camera() {
+	return Object_From(SharedDirector.getCurrentCamera());
 }
-static void director_set_frustum_culling(int32_t var) {
+void director_set_frustum_culling(int32_t var) {
 	SharedDirector.setFrustumCulling(var != 0);
 }
-static int32_t director_is_frustum_culling() {
+int32_t director_is_frustum_culling() {
 	return SharedDirector.isFrustumCulling() ? 1 : 0;
 }
-static int64_t director_get_scheduler() {
-	return from_object(director_get_wasm_scheduler());
+int64_t director_get_scheduler() {
+	return Object_From(Director_GetScheduler());
 }
-static int64_t director_get_post_scheduler() {
-	return from_object(director_get_wasm_post_scheduler());
+int64_t director_get_post_scheduler() {
+	return Object_From(Director_GetPostScheduler());
 }
-static void director_push_camera(int64_t camera) {
+void director_push_camera(int64_t camera) {
 	SharedDirector.pushCamera(r_cast<Camera*>(camera));
 }
-static void director_pop_camera() {
+void director_pop_camera() {
 	SharedDirector.popCamera();
 }
-static int32_t director_remove_camera(int64_t camera) {
+int32_t director_remove_camera(int64_t camera) {
 	return SharedDirector.removeCamera(r_cast<Camera*>(camera)) ? 1 : 0;
 }
-static void director_clear_camera() {
+void director_clear_camera() {
 	SharedDirector.clearCamera();
 }
-static void director_cleanup() {
-	director_wasm_cleanup();
+void director_cleanup() {
+	Director_Cleanup();
 }
+} // extern "C"
+
 static void linkDirector(wasm3::module3& mod) {
 	mod.link_optional("*", "director_set_clear_color", director_set_clear_color);
 	mod.link_optional("*", "director_get_clear_color", director_get_clear_color);

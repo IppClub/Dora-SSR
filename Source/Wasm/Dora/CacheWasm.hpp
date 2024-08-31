@@ -6,38 +6,42 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-static int32_t cache_load(int64_t filename) {
-	return Cache::load(*str_from(filename)) ? 1 : 0;
+extern "C" {
+using namespace Dora;
+int32_t cache_load(int64_t filename) {
+	return Cache::load(*Str_From(filename)) ? 1 : 0;
 }
-static void cache_load_async(int64_t filename, int32_t func, int64_t stack) {
+void cache_load_async(int64_t filename, int32_t func, int64_t stack) {
 	std::shared_ptr<void> deref(nullptr, [func](auto) {
 		SharedWasmRuntime.deref(func);
 	});
 	auto args = r_cast<CallStack*>(stack);
-	Cache::loadAsync(*str_from(filename), [func, args, deref](bool success) {
+	Cache::loadAsync(*Str_From(filename), [func, args, deref](bool success) {
 		args->clear();
 		args->push(success);
 		SharedWasmRuntime.invoke(func);
 	});
 }
-static void cache_update_item(int64_t filename, int64_t content) {
-	Cache::update(*str_from(filename), *str_from(content));
+void cache_update_item(int64_t filename, int64_t content) {
+	Cache::update(*Str_From(filename), *Str_From(content));
 }
-static void cache_update_texture(int64_t filename, int64_t texture) {
-	Cache::update(*str_from(filename), r_cast<Texture2D*>(texture));
+void cache_update_texture(int64_t filename, int64_t texture) {
+	Cache::update(*Str_From(filename), r_cast<Texture2D*>(texture));
 }
-static int32_t cache_unload_item_or_type(int64_t name) {
-	return Cache::unload(*str_from(name)) ? 1 : 0;
+int32_t cache_unload_item_or_type(int64_t name) {
+	return Cache::unload(*Str_From(name)) ? 1 : 0;
 }
-static void cache_unload() {
+void cache_unload() {
 	Cache::unload();
 }
-static void cache_remove_unused() {
+void cache_remove_unused() {
 	Cache::removeUnused();
 }
-static void cache_remove_unused_by_type(int64_t type_name) {
-	Cache::removeUnused(*str_from(type_name));
+void cache_remove_unused_by_type(int64_t type_name) {
+	Cache::removeUnused(*Str_From(type_name));
 }
+} // extern "C"
+
 static void linkCache(wasm3::module3& mod) {
 	mod.link_optional("*", "cache_load", cache_load);
 	mod.link_optional("*", "cache_load_async", cache_load_async);

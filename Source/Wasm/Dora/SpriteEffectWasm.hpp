@@ -6,12 +6,16 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-static int32_t spriteeffect_type() {
+extern "C" {
+using namespace Dora;
+int32_t spriteeffect_type() {
 	return DoraType<SpriteEffect>();
 }
-static int64_t spriteeffect_new(int64_t vert_shader, int64_t frag_shader) {
-	return from_object(SpriteEffect::create(*str_from(vert_shader), *str_from(frag_shader)));
+int64_t spriteeffect_new(int64_t vert_shader, int64_t frag_shader) {
+	return Object_From(SpriteEffect::create(*Str_From(vert_shader), *Str_From(frag_shader)));
 }
+} // extern "C"
+
 static void linkSpriteEffect(wasm3::module3& mod) {
 	mod.link_optional("*", "spriteeffect_type", spriteeffect_type);
 	mod.link_optional("*", "spriteeffect_new", spriteeffect_new);

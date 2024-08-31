@@ -6,57 +6,61 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-static int32_t playable_type() {
+extern "C" {
+using namespace Dora;
+int32_t playable_type() {
 	return DoraType<Playable>();
 }
-static void playable_set_look(int64_t self, int64_t var) {
-	r_cast<Playable*>(self)->setLook(*str_from(var));
+void playable_set_look(int64_t self, int64_t var) {
+	r_cast<Playable*>(self)->setLook(*Str_From(var));
 }
-static int64_t playable_get_look(int64_t self) {
-	return str_retain(r_cast<Playable*>(self)->getLook());
+int64_t playable_get_look(int64_t self) {
+	return Str_Retain(r_cast<Playable*>(self)->getLook());
 }
-static void playable_set_speed(int64_t self, float var) {
+void playable_set_speed(int64_t self, float var) {
 	r_cast<Playable*>(self)->setSpeed(var);
 }
-static float playable_get_speed(int64_t self) {
+float playable_get_speed(int64_t self) {
 	return r_cast<Playable*>(self)->getSpeed();
 }
-static void playable_set_recovery(int64_t self, float var) {
+void playable_set_recovery(int64_t self, float var) {
 	r_cast<Playable*>(self)->setRecovery(var);
 }
-static float playable_get_recovery(int64_t self) {
+float playable_get_recovery(int64_t self) {
 	return r_cast<Playable*>(self)->getRecovery();
 }
-static void playable_set_fliped(int64_t self, int32_t var) {
+void playable_set_fliped(int64_t self, int32_t var) {
 	r_cast<Playable*>(self)->setFliped(var != 0);
 }
-static int32_t playable_is_fliped(int64_t self) {
+int32_t playable_is_fliped(int64_t self) {
 	return r_cast<Playable*>(self)->isFliped() ? 1 : 0;
 }
-static int64_t playable_get_current(int64_t self) {
-	return str_retain(r_cast<Playable*>(self)->getCurrent());
+int64_t playable_get_current(int64_t self) {
+	return Str_Retain(r_cast<Playable*>(self)->getCurrent());
 }
-static int64_t playable_get_last_completed(int64_t self) {
-	return str_retain(r_cast<Playable*>(self)->getLastCompleted());
+int64_t playable_get_last_completed(int64_t self) {
+	return Str_Retain(r_cast<Playable*>(self)->getLastCompleted());
 }
-static int64_t playable_get_key(int64_t self, int64_t name) {
-	return vec2_retain(r_cast<Playable*>(self)->getKeyPoint(*str_from(name)));
+int64_t playable_get_key(int64_t self, int64_t name) {
+	return Vec2_Retain(r_cast<Playable*>(self)->getKeyPoint(*Str_From(name)));
 }
-static float playable_play(int64_t self, int64_t name, int32_t looping) {
-	return r_cast<Playable*>(self)->play(*str_from(name), looping != 0);
+float playable_play(int64_t self, int64_t name, int32_t looping) {
+	return r_cast<Playable*>(self)->play(*Str_From(name), looping != 0);
 }
-static void playable_stop(int64_t self) {
+void playable_stop(int64_t self) {
 	r_cast<Playable*>(self)->stop();
 }
-static void playable_set_slot(int64_t self, int64_t name, int64_t item) {
-	r_cast<Playable*>(self)->setSlot(*str_from(name), r_cast<Node*>(item));
+void playable_set_slot(int64_t self, int64_t name, int64_t item) {
+	r_cast<Playable*>(self)->setSlot(*Str_From(name), r_cast<Node*>(item));
 }
-static int64_t playable_get_slot(int64_t self, int64_t name) {
-	return from_object(r_cast<Playable*>(self)->getSlot(*str_from(name)));
+int64_t playable_get_slot(int64_t self, int64_t name) {
+	return Object_From(r_cast<Playable*>(self)->getSlot(*Str_From(name)));
 }
-static int64_t playable_new(int64_t filename) {
-	return from_object(Playable::create(*str_from(filename)));
+int64_t playable_new(int64_t filename) {
+	return Object_From(Playable::create(*Str_From(filename)));
 }
+} // extern "C"
+
 static void linkPlayable(wasm3::module3& mod) {
 	mod.link_optional("*", "playable_type", playable_type);
 	mod.link_optional("*", "playable_set_look", playable_set_look);

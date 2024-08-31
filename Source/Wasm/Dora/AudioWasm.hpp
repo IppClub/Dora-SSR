@@ -6,18 +6,22 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-static int32_t audio_play(int64_t filename, int32_t looping) {
-	return s_cast<int32_t>(SharedAudio.play(*str_from(filename), looping != 0));
+extern "C" {
+using namespace Dora;
+int32_t audio_play(int64_t filename, int32_t looping) {
+	return s_cast<int32_t>(SharedAudio.play(*Str_From(filename), looping != 0));
 }
-static void audio_stop(int32_t handle) {
+void audio_stop(int32_t handle) {
 	SharedAudio.stop(s_cast<uint32_t>(handle));
 }
-static void audio_play_stream(int64_t filename, int32_t looping, float cross_fade_time) {
-	SharedAudio.playStream(*str_from(filename), looping != 0, cross_fade_time);
+void audio_play_stream(int64_t filename, int32_t looping, float cross_fade_time) {
+	SharedAudio.playStream(*Str_From(filename), looping != 0, cross_fade_time);
 }
-static void audio_stop_stream(float fade_time) {
+void audio_stop_stream(float fade_time) {
 	SharedAudio.stopStream(fade_time);
 }
+} // extern "C"
+
 static void linkAudio(wasm3::module3& mod) {
 	mod.link_optional("*", "audio_play", audio_play);
 	mod.link_optional("*", "audio_stop", audio_stop);

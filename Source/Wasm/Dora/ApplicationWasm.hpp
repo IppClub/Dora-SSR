@@ -6,99 +6,103 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-static int32_t application_get_frame() {
+extern "C" {
+using namespace Dora;
+int32_t application_get_frame() {
 	return s_cast<int32_t>(SharedApplication.getFrame());
 }
-static int64_t application_get_buffer_size() {
-	return size_retain(SharedApplication.getBufferSize());
+int64_t application_get_buffer_size() {
+	return Size_Retain(SharedApplication.getBufferSize());
 }
-static int64_t application_get_visual_size() {
-	return size_retain(SharedApplication.getVisualSize());
+int64_t application_get_visual_size() {
+	return Size_Retain(SharedApplication.getVisualSize());
 }
-static float application_get_device_pixel_ratio() {
+float application_get_device_pixel_ratio() {
 	return SharedApplication.getDevicePixelRatio();
 }
-static int64_t application_get_platform() {
-	return str_retain(SharedApplication.getPlatform());
+int64_t application_get_platform() {
+	return Str_Retain(SharedApplication.getPlatform());
 }
-static int64_t application_get_version() {
-	return str_retain(SharedApplication.getVersion());
+int64_t application_get_version() {
+	return Str_Retain(SharedApplication.getVersion());
 }
-static int64_t application_get_deps() {
-	return str_retain(SharedApplication.getDeps());
+int64_t application_get_deps() {
+	return Str_Retain(SharedApplication.getDeps());
 }
-static double application_get_delta_time() {
+double application_get_delta_time() {
 	return SharedApplication.getDeltaTime();
 }
-static double application_get_elapsed_time() {
+double application_get_elapsed_time() {
 	return SharedApplication.getElapsedTime();
 }
-static double application_get_total_time() {
+double application_get_total_time() {
 	return SharedApplication.getTotalTime();
 }
-static double application_get_running_time() {
+double application_get_running_time() {
 	return SharedApplication.getRunningTime();
 }
-static int64_t application_get_rand() {
+int64_t application_get_rand() {
 	return s_cast<int64_t>(SharedApplication.getRand());
 }
-static int32_t application_get_max_fps() {
+int32_t application_get_max_fps() {
 	return s_cast<int32_t>(SharedApplication.getMaxFPS());
 }
-static int32_t application_is_debugging() {
+int32_t application_is_debugging() {
 	return SharedApplication.isDebugging() ? 1 : 0;
 }
-static void application_set_locale(int64_t var) {
-	SharedApplication.setLocale(*str_from(var));
+void application_set_locale(int64_t var) {
+	SharedApplication.setLocale(*Str_From(var));
 }
-static int64_t application_get_locale() {
-	return str_retain(SharedApplication.getLocale());
+int64_t application_get_locale() {
+	return Str_Retain(SharedApplication.getLocale());
 }
-static void application_set_theme_color(int32_t var) {
+void application_set_theme_color(int32_t var) {
 	SharedApplication.setThemeColor(Color(s_cast<uint32_t>(var)));
 }
-static int32_t application_get_theme_color() {
+int32_t application_get_theme_color() {
 	return SharedApplication.getThemeColor().toARGB();
 }
-static void application_set_seed(int32_t var) {
+void application_set_seed(int32_t var) {
 	SharedApplication.setSeed(s_cast<uint32_t>(var));
 }
-static int32_t application_get_seed() {
+int32_t application_get_seed() {
 	return s_cast<int32_t>(SharedApplication.getSeed());
 }
-static void application_set_target_fps(int32_t var) {
+void application_set_target_fps(int32_t var) {
 	SharedApplication.setTargetFPS(s_cast<uint32_t>(var));
 }
-static int32_t application_get_target_fps() {
+int32_t application_get_target_fps() {
 	return s_cast<int32_t>(SharedApplication.getTargetFPS());
 }
-static void application_set_win_size(int64_t var) {
-	SharedApplication.setWinSize(size_from(var));
+void application_set_win_size(int64_t var) {
+	SharedApplication.setWinSize(Size_From(var));
 }
-static int64_t application_get_win_size() {
-	return size_retain(SharedApplication.getWinSize());
+int64_t application_get_win_size() {
+	return Size_Retain(SharedApplication.getWinSize());
 }
-static void application_set_win_position(int64_t var) {
-	SharedApplication.setWinPosition(vec2_from(var));
+void application_set_win_position(int64_t var) {
+	SharedApplication.setWinPosition(Vec2_From(var));
 }
-static int64_t application_get_win_position() {
-	return vec2_retain(SharedApplication.getWinPosition());
+int64_t application_get_win_position() {
+	return Vec2_Retain(SharedApplication.getWinPosition());
 }
-static void application_set_fps_limited(int32_t var) {
+void application_set_fps_limited(int32_t var) {
 	SharedApplication.setFPSLimited(var != 0);
 }
-static int32_t application_is_fps_limited() {
+int32_t application_is_fps_limited() {
 	return SharedApplication.isFPSLimited() ? 1 : 0;
 }
-static void application_set_idled(int32_t var) {
+void application_set_idled(int32_t var) {
 	SharedApplication.setIdled(var != 0);
 }
-static int32_t application_is_idled() {
+int32_t application_is_idled() {
 	return SharedApplication.isIdled() ? 1 : 0;
 }
-static void application_shutdown() {
+void application_shutdown() {
 	SharedApplication.shutdown();
 }
+} // extern "C"
+
 static void linkApplication(wasm3::module3& mod) {
 	mod.link_optional("*", "application_get_frame", application_get_frame);
 	mod.link_optional("*", "application_get_buffer_size", application_get_buffer_size);

@@ -6,54 +6,58 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-static int64_t view_get_size() {
-	return size_retain(SharedView.getSize());
+extern "C" {
+using namespace Dora;
+int64_t view_get_size() {
+	return Size_Retain(SharedView.getSize());
 }
-static float view_get_standard_distance() {
+float view_get_standard_distance() {
 	return SharedView.getStandardDistance();
 }
-static float view_get_aspect_ratio() {
+float view_get_aspect_ratio() {
 	return SharedView.getAspectRatio();
 }
-static void view_set_near_plane_distance(float var) {
+void view_set_near_plane_distance(float var) {
 	SharedView.setNearPlaneDistance(var);
 }
-static float view_get_near_plane_distance() {
+float view_get_near_plane_distance() {
 	return SharedView.getNearPlaneDistance();
 }
-static void view_set_far_plane_distance(float var) {
+void view_set_far_plane_distance(float var) {
 	SharedView.setFarPlaneDistance(var);
 }
-static float view_get_far_plane_distance() {
+float view_get_far_plane_distance() {
 	return SharedView.getFarPlaneDistance();
 }
-static void view_set_field_of_view(float var) {
+void view_set_field_of_view(float var) {
 	SharedView.setFieldOfView(var);
 }
-static float view_get_field_of_view() {
+float view_get_field_of_view() {
 	return SharedView.getFieldOfView();
 }
-static void view_set_scale(float var) {
+void view_set_scale(float var) {
 	SharedView.setScale(var);
 }
-static float view_get_scale() {
+float view_get_scale() {
 	return SharedView.getScale();
 }
-static void view_set_post_effect(int64_t var) {
+void view_set_post_effect(int64_t var) {
 	SharedView.setPostEffect(r_cast<SpriteEffect*>(var));
 }
-static int64_t view_get_post_effect() {
-	return from_object(SharedView.getPostEffect());
+int64_t view_get_post_effect() {
+	return Object_From(SharedView.getPostEffect());
 }
-static void view_set_post_effect_null() {
-	view_set_post_effect_nullptr();
+void view_set_post_effect_null() {
+	View_SetPostEffectNullptr();
 }
-static void view_set_vsync(int32_t var) {
+void view_set_vsync(int32_t var) {
 	SharedView.setVSync(var != 0);
 }
-static int32_t view_is_vsync() {
+int32_t view_is_vsync() {
 	return SharedView.isVSync() ? 1 : 0;
 }
+} // extern "C"
+
 static void linkView(wasm3::module3& mod) {
 	mod.link_optional("*", "view_get_size", view_get_size);
 	mod.link_optional("*", "view_get_standard_distance", view_get_standard_distance);

@@ -6,12 +6,16 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-static double platformer_behavior_blackboard_get_delta_time(int64_t self) {
+extern "C" {
+using namespace Dora;
+double platformer_behavior_blackboard_get_delta_time(int64_t self) {
 	return r_cast<Platformer::Behavior::Blackboard*>(self)->getDeltaTime();
 }
-static int64_t platformer_behavior_blackboard_get_owner(int64_t self) {
-	return from_object(r_cast<Platformer::Behavior::Blackboard*>(self)->getOwner());
+int64_t platformer_behavior_blackboard_get_owner(int64_t self) {
+	return Object_From(r_cast<Platformer::Behavior::Blackboard*>(self)->getOwner());
 }
+} // extern "C"
+
 static void linkPlatformerBehaviorBlackboard(wasm3::module3& mod) {
 	mod.link_optional("*", "platformer_behavior_blackboard_get_delta_time", platformer_behavior_blackboard_get_delta_time);
 	mod.link_optional("*", "platformer_behavior_blackboard_get_owner", platformer_behavior_blackboard_get_owner);

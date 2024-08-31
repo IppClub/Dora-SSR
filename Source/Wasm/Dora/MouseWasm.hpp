@@ -6,21 +6,25 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-static int64_t mouse_get_position() {
-	return vec2_retain(Mouse::getPosition());
+extern "C" {
+using namespace Dora;
+int64_t mouse_get_position() {
+	return Vec2_Retain(Mouse::getPosition());
 }
-static int32_t mouse_is_left_button_pressed() {
+int32_t mouse_is_left_button_pressed() {
 	return Mouse::isLeftButtonPressed() ? 1 : 0;
 }
-static int32_t mouse_is_right_button_pressed() {
+int32_t mouse_is_right_button_pressed() {
 	return Mouse::isRightButtonPressed() ? 1 : 0;
 }
-static int32_t mouse_is_middle_button_pressed() {
+int32_t mouse_is_middle_button_pressed() {
 	return Mouse::isMiddleButtonPressed() ? 1 : 0;
 }
-static float mouse_get_wheel() {
+float mouse_get_wheel() {
 	return Mouse::getWheel();
 }
+} // extern "C"
+
 static void linkMouse(wasm3::module3& mod) {
 	mod.link_optional("*", "mouse_get_position", mouse_get_position);
 	mod.link_optional("*", "mouse_is_left_button_pressed", mouse_is_left_button_pressed);

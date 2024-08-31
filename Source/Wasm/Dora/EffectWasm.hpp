@@ -6,21 +6,25 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-static int32_t effect_type() {
+extern "C" {
+using namespace Dora;
+int32_t effect_type() {
 	return DoraType<Effect>();
 }
-static void effect_add(int64_t self, int64_t pass) {
+void effect_add(int64_t self, int64_t pass) {
 	r_cast<Effect*>(self)->add(r_cast<Pass*>(pass));
 }
-static int64_t effect_get(int64_t self, int64_t index) {
-	return from_object(effect_get_pass(r_cast<Effect*>(self), s_cast<int64_t>(index)));
+int64_t effect_get(int64_t self, int64_t index) {
+	return Object_From(Effect_GetPass(r_cast<Effect*>(self), s_cast<int64_t>(index)));
 }
-static void effect_clear(int64_t self) {
+void effect_clear(int64_t self) {
 	r_cast<Effect*>(self)->clear();
 }
-static int64_t effect_new(int64_t vert_shader, int64_t frag_shader) {
-	return from_object(Effect::create(*str_from(vert_shader), *str_from(frag_shader)));
+int64_t effect_new(int64_t vert_shader, int64_t frag_shader) {
+	return Object_From(Effect::create(*Str_From(vert_shader), *Str_From(frag_shader)));
 }
+} // extern "C"
+
 static void linkEffect(wasm3::module3& mod) {
 	mod.link_optional("*", "effect_type", effect_type);
 	mod.link_optional("*", "effect_add", effect_add);

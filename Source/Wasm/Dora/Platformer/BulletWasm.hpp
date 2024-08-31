@@ -6,42 +6,46 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-static int32_t platformer_bullet_type() {
+extern "C" {
+using namespace Dora;
+int32_t platformer_bullet_type() {
 	return DoraType<Platformer::Bullet>();
 }
-static void platformer_bullet_set_target_allow(int64_t self, int32_t var) {
+void platformer_bullet_set_target_allow(int64_t self, int32_t var) {
 	r_cast<Platformer::Bullet*>(self)->setTargetAllow(s_cast<uint32_t>(var));
 }
-static int32_t platformer_bullet_get_target_allow(int64_t self) {
+int32_t platformer_bullet_get_target_allow(int64_t self) {
 	return s_cast<int32_t>(r_cast<Platformer::Bullet*>(self)->getTargetAllow());
 }
-static int32_t platformer_bullet_is_face_right(int64_t self) {
+int32_t platformer_bullet_is_face_right(int64_t self) {
 	return r_cast<Platformer::Bullet*>(self)->isFaceRight() ? 1 : 0;
 }
-static void platformer_bullet_set_hit_stop(int64_t self, int32_t var) {
+void platformer_bullet_set_hit_stop(int64_t self, int32_t var) {
 	r_cast<Platformer::Bullet*>(self)->setHitStop(var != 0);
 }
-static int32_t platformer_bullet_is_hit_stop(int64_t self) {
+int32_t platformer_bullet_is_hit_stop(int64_t self) {
 	return r_cast<Platformer::Bullet*>(self)->isHitStop() ? 1 : 0;
 }
-static int64_t platformer_bullet_get_emitter(int64_t self) {
-	return from_object(r_cast<Platformer::Bullet*>(self)->getEmitter());
+int64_t platformer_bullet_get_emitter(int64_t self) {
+	return Object_From(r_cast<Platformer::Bullet*>(self)->getEmitter());
 }
-static int64_t platformer_bullet_get_bullet_def(int64_t self) {
-	return from_object(r_cast<Platformer::Bullet*>(self)->getBulletDef());
+int64_t platformer_bullet_get_bullet_def(int64_t self) {
+	return Object_From(r_cast<Platformer::Bullet*>(self)->getBulletDef());
 }
-static void platformer_bullet_set_face(int64_t self, int64_t var) {
+void platformer_bullet_set_face(int64_t self, int64_t var) {
 	r_cast<Platformer::Bullet*>(self)->setFace(r_cast<Node*>(var));
 }
-static int64_t platformer_bullet_get_face(int64_t self) {
-	return from_object(r_cast<Platformer::Bullet*>(self)->getFace());
+int64_t platformer_bullet_get_face(int64_t self) {
+	return Object_From(r_cast<Platformer::Bullet*>(self)->getFace());
 }
-static void platformer_bullet_destroy(int64_t self) {
+void platformer_bullet_destroy(int64_t self) {
 	r_cast<Platformer::Bullet*>(self)->destroy();
 }
-static int64_t platformer_bullet_new(int64_t def, int64_t owner) {
-	return from_object(Platformer::Bullet::create(r_cast<Platformer::BulletDef*>(def), r_cast<Platformer::Unit*>(owner)));
+int64_t platformer_bullet_new(int64_t def, int64_t owner) {
+	return Object_From(Platformer::Bullet::create(r_cast<Platformer::BulletDef*>(def), r_cast<Platformer::Unit*>(owner)));
 }
+} // extern "C"
+
 static void linkPlatformerBullet(wasm3::module3& mod) {
 	mod.link_optional("*", "platformer_bullet_type", platformer_bullet_type);
 	mod.link_optional("*", "platformer_bullet_set_target_allow", platformer_bullet_set_target_allow);

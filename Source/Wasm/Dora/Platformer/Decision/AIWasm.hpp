@@ -6,27 +6,31 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-static int64_t platformer_decision_ai_get_units_by_relation(int32_t relation) {
-	return from_object(SharedAI.getUnitsByRelation(s_cast<Platformer::Relation>(relation)));
+extern "C" {
+using namespace Dora;
+int64_t platformer_decision_ai_get_units_by_relation(int32_t relation) {
+	return Object_From(SharedAI.getUnitsByRelation(s_cast<Platformer::Relation>(relation)));
 }
-static int64_t platformer_decision_ai_get_detected_units() {
-	return from_object(SharedAI.getDetectedUnits());
+int64_t platformer_decision_ai_get_detected_units() {
+	return Object_From(SharedAI.getDetectedUnits());
 }
-static int64_t platformer_decision_ai_get_detected_bodies() {
-	return from_object(SharedAI.getDetectedBodies());
+int64_t platformer_decision_ai_get_detected_bodies() {
+	return Object_From(SharedAI.getDetectedBodies());
 }
-static int64_t platformer_decision_ai_get_nearest_unit(int32_t relation) {
-	return from_object(SharedAI.getNearestUnit(s_cast<Platformer::Relation>(relation)));
+int64_t platformer_decision_ai_get_nearest_unit(int32_t relation) {
+	return Object_From(SharedAI.getNearestUnit(s_cast<Platformer::Relation>(relation)));
 }
-static float platformer_decision_ai_get_nearest_unit_distance(int32_t relation) {
+float platformer_decision_ai_get_nearest_unit_distance(int32_t relation) {
 	return SharedAI.getNearestUnitDistance(s_cast<Platformer::Relation>(relation));
 }
-static int64_t platformer_decision_ai_get_units_in_attack_range() {
-	return from_object(SharedAI.getUnitsInAttackRange());
+int64_t platformer_decision_ai_get_units_in_attack_range() {
+	return Object_From(SharedAI.getUnitsInAttackRange());
 }
-static int64_t platformer_decision_ai_get_bodies_in_attack_range() {
-	return from_object(SharedAI.getBodiesInAttackRange());
+int64_t platformer_decision_ai_get_bodies_in_attack_range() {
+	return Object_From(SharedAI.getBodiesInAttackRange());
 }
+} // extern "C"
+
 static void linkPlatformerDecisionAI(wasm3::module3& mod) {
 	mod.link_optional("*", "platformer_decision_ai_get_units_by_relation", platformer_decision_ai_get_units_by_relation);
 	mod.link_optional("*", "platformer_decision_ai_get_detected_units", platformer_decision_ai_get_detected_units);

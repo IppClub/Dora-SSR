@@ -6,265 +6,267 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-static int32_t node_type() {
+extern "C" {
+using namespace Dora;
+int32_t node_type() {
 	return DoraType<Node>();
 }
-static void node_set_order(int64_t self, int32_t var) {
+void node_set_order(int64_t self, int32_t var) {
 	r_cast<Node*>(self)->setOrder(s_cast<int>(var));
 }
-static int32_t node_get_order(int64_t self) {
+int32_t node_get_order(int64_t self) {
 	return s_cast<int32_t>(r_cast<Node*>(self)->getOrder());
 }
-static void node_set_angle(int64_t self, float var) {
+void node_set_angle(int64_t self, float var) {
 	r_cast<Node*>(self)->setAngle(var);
 }
-static float node_get_angle(int64_t self) {
+float node_get_angle(int64_t self) {
 	return r_cast<Node*>(self)->getAngle();
 }
-static void node_set_angle_x(int64_t self, float var) {
+void node_set_angle_x(int64_t self, float var) {
 	r_cast<Node*>(self)->setAngleX(var);
 }
-static float node_get_angle_x(int64_t self) {
+float node_get_angle_x(int64_t self) {
 	return r_cast<Node*>(self)->getAngleX();
 }
-static void node_set_angle_y(int64_t self, float var) {
+void node_set_angle_y(int64_t self, float var) {
 	r_cast<Node*>(self)->setAngleY(var);
 }
-static float node_get_angle_y(int64_t self) {
+float node_get_angle_y(int64_t self) {
 	return r_cast<Node*>(self)->getAngleY();
 }
-static void node_set_scale_x(int64_t self, float var) {
+void node_set_scale_x(int64_t self, float var) {
 	r_cast<Node*>(self)->setScaleX(var);
 }
-static float node_get_scale_x(int64_t self) {
+float node_get_scale_x(int64_t self) {
 	return r_cast<Node*>(self)->getScaleX();
 }
-static void node_set_scale_y(int64_t self, float var) {
+void node_set_scale_y(int64_t self, float var) {
 	r_cast<Node*>(self)->setScaleY(var);
 }
-static float node_get_scale_y(int64_t self) {
+float node_get_scale_y(int64_t self) {
 	return r_cast<Node*>(self)->getScaleY();
 }
-static void node_set_x(int64_t self, float var) {
+void node_set_x(int64_t self, float var) {
 	r_cast<Node*>(self)->setX(var);
 }
-static float node_get_x(int64_t self) {
+float node_get_x(int64_t self) {
 	return r_cast<Node*>(self)->getX();
 }
-static void node_set_y(int64_t self, float var) {
+void node_set_y(int64_t self, float var) {
 	r_cast<Node*>(self)->setY(var);
 }
-static float node_get_y(int64_t self) {
+float node_get_y(int64_t self) {
 	return r_cast<Node*>(self)->getY();
 }
-static void node_set_z(int64_t self, float var) {
+void node_set_z(int64_t self, float var) {
 	r_cast<Node*>(self)->setZ(var);
 }
-static float node_get_z(int64_t self) {
+float node_get_z(int64_t self) {
 	return r_cast<Node*>(self)->getZ();
 }
-static void node_set_position(int64_t self, int64_t var) {
-	r_cast<Node*>(self)->setPosition(vec2_from(var));
+void node_set_position(int64_t self, int64_t var) {
+	r_cast<Node*>(self)->setPosition(Vec2_From(var));
 }
-static int64_t node_get_position(int64_t self) {
-	return vec2_retain(r_cast<Node*>(self)->getPosition());
+int64_t node_get_position(int64_t self) {
+	return Vec2_Retain(r_cast<Node*>(self)->getPosition());
 }
-static void node_set_skew_x(int64_t self, float var) {
+void node_set_skew_x(int64_t self, float var) {
 	r_cast<Node*>(self)->setSkewX(var);
 }
-static float node_get_skew_x(int64_t self) {
+float node_get_skew_x(int64_t self) {
 	return r_cast<Node*>(self)->getSkewX();
 }
-static void node_set_skew_y(int64_t self, float var) {
+void node_set_skew_y(int64_t self, float var) {
 	r_cast<Node*>(self)->setSkewY(var);
 }
-static float node_get_skew_y(int64_t self) {
+float node_get_skew_y(int64_t self) {
 	return r_cast<Node*>(self)->getSkewY();
 }
-static void node_set_visible(int64_t self, int32_t var) {
+void node_set_visible(int64_t self, int32_t var) {
 	r_cast<Node*>(self)->setVisible(var != 0);
 }
-static int32_t node_is_visible(int64_t self) {
+int32_t node_is_visible(int64_t self) {
 	return r_cast<Node*>(self)->isVisible() ? 1 : 0;
 }
-static void node_set_anchor(int64_t self, int64_t var) {
-	r_cast<Node*>(self)->setAnchor(vec2_from(var));
+void node_set_anchor(int64_t self, int64_t var) {
+	r_cast<Node*>(self)->setAnchor(Vec2_From(var));
 }
-static int64_t node_get_anchor(int64_t self) {
-	return vec2_retain(r_cast<Node*>(self)->getAnchor());
+int64_t node_get_anchor(int64_t self) {
+	return Vec2_Retain(r_cast<Node*>(self)->getAnchor());
 }
-static void node_set_width(int64_t self, float var) {
+void node_set_width(int64_t self, float var) {
 	r_cast<Node*>(self)->setWidth(var);
 }
-static float node_get_width(int64_t self) {
+float node_get_width(int64_t self) {
 	return r_cast<Node*>(self)->getWidth();
 }
-static void node_set_height(int64_t self, float var) {
+void node_set_height(int64_t self, float var) {
 	r_cast<Node*>(self)->setHeight(var);
 }
-static float node_get_height(int64_t self) {
+float node_get_height(int64_t self) {
 	return r_cast<Node*>(self)->getHeight();
 }
-static void node_set_size(int64_t self, int64_t var) {
-	r_cast<Node*>(self)->setSize(size_from(var));
+void node_set_size(int64_t self, int64_t var) {
+	r_cast<Node*>(self)->setSize(Size_From(var));
 }
-static int64_t node_get_size(int64_t self) {
-	return size_retain(r_cast<Node*>(self)->getSize());
+int64_t node_get_size(int64_t self) {
+	return Size_Retain(r_cast<Node*>(self)->getSize());
 }
-static void node_set_tag(int64_t self, int64_t var) {
-	r_cast<Node*>(self)->setTag(*str_from(var));
+void node_set_tag(int64_t self, int64_t var) {
+	r_cast<Node*>(self)->setTag(*Str_From(var));
 }
-static int64_t node_get_tag(int64_t self) {
-	return str_retain(r_cast<Node*>(self)->getTag());
+int64_t node_get_tag(int64_t self) {
+	return Str_Retain(r_cast<Node*>(self)->getTag());
 }
-static void node_set_opacity(int64_t self, float var) {
+void node_set_opacity(int64_t self, float var) {
 	r_cast<Node*>(self)->setOpacity(var);
 }
-static float node_get_opacity(int64_t self) {
+float node_get_opacity(int64_t self) {
 	return r_cast<Node*>(self)->getOpacity();
 }
-static void node_set_color(int64_t self, int32_t var) {
+void node_set_color(int64_t self, int32_t var) {
 	r_cast<Node*>(self)->setColor(Color(s_cast<uint32_t>(var)));
 }
-static int32_t node_get_color(int64_t self) {
+int32_t node_get_color(int64_t self) {
 	return r_cast<Node*>(self)->getColor().toARGB();
 }
-static void node_set_color3(int64_t self, int32_t var) {
+void node_set_color3(int64_t self, int32_t var) {
 	r_cast<Node*>(self)->setColor3(Color3(s_cast<uint32_t>(var)));
 }
-static int32_t node_get_color3(int64_t self) {
+int32_t node_get_color3(int64_t self) {
 	return r_cast<Node*>(self)->getColor3().toRGB();
 }
-static void node_set_pass_opacity(int64_t self, int32_t var) {
+void node_set_pass_opacity(int64_t self, int32_t var) {
 	r_cast<Node*>(self)->setPassOpacity(var != 0);
 }
-static int32_t node_is_pass_opacity(int64_t self) {
+int32_t node_is_pass_opacity(int64_t self) {
 	return r_cast<Node*>(self)->isPassOpacity() ? 1 : 0;
 }
-static void node_set_pass_color3(int64_t self, int32_t var) {
+void node_set_pass_color3(int64_t self, int32_t var) {
 	r_cast<Node*>(self)->setPassColor3(var != 0);
 }
-static int32_t node_is_pass_color3(int64_t self) {
+int32_t node_is_pass_color3(int64_t self) {
 	return r_cast<Node*>(self)->isPassColor3() ? 1 : 0;
 }
-static void node_set_transform_target(int64_t self, int64_t var) {
+void node_set_transform_target(int64_t self, int64_t var) {
 	r_cast<Node*>(self)->setTransformTarget(r_cast<Node*>(var));
 }
-static int64_t node_get_transform_target(int64_t self) {
-	return from_object(r_cast<Node*>(self)->getTransformTarget());
+int64_t node_get_transform_target(int64_t self) {
+	return Object_From(r_cast<Node*>(self)->getTransformTarget());
 }
-static void node_set_scheduler(int64_t self, int64_t var) {
+void node_set_scheduler(int64_t self, int64_t var) {
 	r_cast<Node*>(self)->setScheduler(r_cast<Scheduler*>(var));
 }
-static int64_t node_get_scheduler(int64_t self) {
-	return from_object(r_cast<Node*>(self)->getScheduler());
+int64_t node_get_scheduler(int64_t self) {
+	return Object_From(r_cast<Node*>(self)->getScheduler());
 }
-static int64_t node_get_children(int64_t self) {
-	return from_object(r_cast<Node*>(self)->getChildren());
+int64_t node_get_children(int64_t self) {
+	return Object_From(r_cast<Node*>(self)->getChildren());
 }
-static int64_t node_get_parent(int64_t self) {
-	return from_object(r_cast<Node*>(self)->getParent());
+int64_t node_get_parent(int64_t self) {
+	return Object_From(r_cast<Node*>(self)->getParent());
 }
-static int32_t node_is_running(int64_t self) {
+int32_t node_is_running(int64_t self) {
 	return r_cast<Node*>(self)->isRunning() ? 1 : 0;
 }
-static int32_t node_is_scheduled(int64_t self) {
+int32_t node_is_scheduled(int64_t self) {
 	return r_cast<Node*>(self)->isScheduled() ? 1 : 0;
 }
-static int32_t node_get_action_count(int64_t self) {
+int32_t node_get_action_count(int64_t self) {
 	return s_cast<int32_t>(r_cast<Node*>(self)->getActionCount());
 }
-static int64_t node_get_data(int64_t self) {
-	return from_object(r_cast<Node*>(self)->getUserData());
+int64_t node_get_data(int64_t self) {
+	return Object_From(r_cast<Node*>(self)->getUserData());
 }
-static void node_set_touch_enabled(int64_t self, int32_t var) {
+void node_set_touch_enabled(int64_t self, int32_t var) {
 	r_cast<Node*>(self)->setTouchEnabled(var != 0);
 }
-static int32_t node_is_touch_enabled(int64_t self) {
+int32_t node_is_touch_enabled(int64_t self) {
 	return r_cast<Node*>(self)->isTouchEnabled() ? 1 : 0;
 }
-static void node_set_swallow_touches(int64_t self, int32_t var) {
+void node_set_swallow_touches(int64_t self, int32_t var) {
 	r_cast<Node*>(self)->setSwallowTouches(var != 0);
 }
-static int32_t node_is_swallow_touches(int64_t self) {
+int32_t node_is_swallow_touches(int64_t self) {
 	return r_cast<Node*>(self)->isSwallowTouches() ? 1 : 0;
 }
-static void node_set_swallow_mouse_wheel(int64_t self, int32_t var) {
+void node_set_swallow_mouse_wheel(int64_t self, int32_t var) {
 	r_cast<Node*>(self)->setSwallowMouseWheel(var != 0);
 }
-static int32_t node_is_swallow_mouse_wheel(int64_t self) {
+int32_t node_is_swallow_mouse_wheel(int64_t self) {
 	return r_cast<Node*>(self)->isSwallowMouseWheel() ? 1 : 0;
 }
-static void node_set_keyboard_enabled(int64_t self, int32_t var) {
+void node_set_keyboard_enabled(int64_t self, int32_t var) {
 	r_cast<Node*>(self)->setKeyboardEnabled(var != 0);
 }
-static int32_t node_is_keyboard_enabled(int64_t self) {
+int32_t node_is_keyboard_enabled(int64_t self) {
 	return r_cast<Node*>(self)->isKeyboardEnabled() ? 1 : 0;
 }
-static void node_set_controller_enabled(int64_t self, int32_t var) {
+void node_set_controller_enabled(int64_t self, int32_t var) {
 	r_cast<Node*>(self)->setControllerEnabled(var != 0);
 }
-static int32_t node_is_controller_enabled(int64_t self) {
+int32_t node_is_controller_enabled(int64_t self) {
 	return r_cast<Node*>(self)->isControllerEnabled() ? 1 : 0;
 }
-static void node_set_render_group(int64_t self, int32_t var) {
+void node_set_render_group(int64_t self, int32_t var) {
 	r_cast<Node*>(self)->setRenderGroup(var != 0);
 }
-static int32_t node_is_render_group(int64_t self) {
+int32_t node_is_render_group(int64_t self) {
 	return r_cast<Node*>(self)->isRenderGroup() ? 1 : 0;
 }
-static void node_set_show_debug(int64_t self, int32_t var) {
+void node_set_show_debug(int64_t self, int32_t var) {
 	r_cast<Node*>(self)->setShowDebug(var != 0);
 }
-static int32_t node_is_show_debug(int64_t self) {
+int32_t node_is_show_debug(int64_t self) {
 	return r_cast<Node*>(self)->isShowDebug() ? 1 : 0;
 }
-static void node_set_render_order(int64_t self, int32_t var) {
+void node_set_render_order(int64_t self, int32_t var) {
 	r_cast<Node*>(self)->setRenderOrder(s_cast<int>(var));
 }
-static int32_t node_get_render_order(int64_t self) {
+int32_t node_get_render_order(int64_t self) {
 	return s_cast<int32_t>(r_cast<Node*>(self)->getRenderOrder());
 }
-static void node_add_child_with_order_tag(int64_t self, int64_t child, int32_t order, int64_t tag) {
-	r_cast<Node*>(self)->addChild(r_cast<Node*>(child), s_cast<int>(order), *str_from(tag));
+void node_add_child_with_order_tag(int64_t self, int64_t child, int32_t order, int64_t tag) {
+	r_cast<Node*>(self)->addChild(r_cast<Node*>(child), s_cast<int>(order), *Str_From(tag));
 }
-static void node_add_child_with_order(int64_t self, int64_t child, int32_t order) {
+void node_add_child_with_order(int64_t self, int64_t child, int32_t order) {
 	r_cast<Node*>(self)->addChild(r_cast<Node*>(child), s_cast<int>(order));
 }
-static void node_add_child(int64_t self, int64_t child) {
+void node_add_child(int64_t self, int64_t child) {
 	r_cast<Node*>(self)->addChild(r_cast<Node*>(child));
 }
-static int64_t node_add_to_with_order_tag(int64_t self, int64_t parent, int32_t order, int64_t tag) {
-	return from_object(r_cast<Node*>(self)->addTo(r_cast<Node*>(parent), s_cast<int>(order), *str_from(tag)));
+int64_t node_add_to_with_order_tag(int64_t self, int64_t parent, int32_t order, int64_t tag) {
+	return Object_From(r_cast<Node*>(self)->addTo(r_cast<Node*>(parent), s_cast<int>(order), *Str_From(tag)));
 }
-static int64_t node_add_to_with_order(int64_t self, int64_t parent, int32_t order) {
-	return from_object(r_cast<Node*>(self)->addTo(r_cast<Node*>(parent), s_cast<int>(order)));
+int64_t node_add_to_with_order(int64_t self, int64_t parent, int32_t order) {
+	return Object_From(r_cast<Node*>(self)->addTo(r_cast<Node*>(parent), s_cast<int>(order)));
 }
-static int64_t node_add_to(int64_t self, int64_t parent) {
-	return from_object(r_cast<Node*>(self)->addTo(r_cast<Node*>(parent)));
+int64_t node_add_to(int64_t self, int64_t parent) {
+	return Object_From(r_cast<Node*>(self)->addTo(r_cast<Node*>(parent)));
 }
-static void node_remove_child(int64_t self, int64_t child, int32_t cleanup) {
+void node_remove_child(int64_t self, int64_t child, int32_t cleanup) {
 	r_cast<Node*>(self)->removeChild(r_cast<Node*>(child), cleanup != 0);
 }
-static void node_remove_child_by_tag(int64_t self, int64_t tag, int32_t cleanup) {
-	r_cast<Node*>(self)->removeChildByTag(*str_from(tag), cleanup != 0);
+void node_remove_child_by_tag(int64_t self, int64_t tag, int32_t cleanup) {
+	r_cast<Node*>(self)->removeChildByTag(*Str_From(tag), cleanup != 0);
 }
-static void node_remove_all_children(int64_t self, int32_t cleanup) {
+void node_remove_all_children(int64_t self, int32_t cleanup) {
 	r_cast<Node*>(self)->removeAllChildren(cleanup != 0);
 }
-static void node_remove_from_parent(int64_t self, int32_t cleanup) {
+void node_remove_from_parent(int64_t self, int32_t cleanup) {
 	r_cast<Node*>(self)->removeFromParent(cleanup != 0);
 }
-static void node_move_to_parent(int64_t self, int64_t parent) {
+void node_move_to_parent(int64_t self, int64_t parent) {
 	r_cast<Node*>(self)->moveToParent(r_cast<Node*>(parent));
 }
-static void node_cleanup(int64_t self) {
+void node_cleanup(int64_t self) {
 	r_cast<Node*>(self)->cleanup();
 }
-static int64_t node_get_child_by_tag(int64_t self, int64_t tag) {
-	return from_object(r_cast<Node*>(self)->getChildByTag(*str_from(tag)));
+int64_t node_get_child_by_tag(int64_t self, int64_t tag) {
+	return Object_From(r_cast<Node*>(self)->getChildByTag(*Str_From(tag)));
 }
-static void node_schedule(int64_t self, int32_t func, int64_t stack) {
+void node_schedule(int64_t self, int32_t func, int64_t stack) {
 	std::shared_ptr<void> deref(nullptr, [func](auto) {
 		SharedWasmRuntime.deref(func);
 	});
@@ -276,27 +278,27 @@ static void node_schedule(int64_t self, int32_t func, int64_t stack) {
 		return std::get<bool>(args->pop());
 	});
 }
-static void node_unschedule(int64_t self) {
+void node_unschedule(int64_t self) {
 	r_cast<Node*>(self)->unschedule();
 }
-static int64_t node_convert_to_node_space(int64_t self, int64_t world_point) {
-	return vec2_retain(r_cast<Node*>(self)->convertToNodeSpace(vec2_from(world_point)));
+int64_t node_convert_to_node_space(int64_t self, int64_t world_point) {
+	return Vec2_Retain(r_cast<Node*>(self)->convertToNodeSpace(Vec2_From(world_point)));
 }
-static int64_t node_convert_to_world_space(int64_t self, int64_t node_point) {
-	return vec2_retain(r_cast<Node*>(self)->convertToWorldSpace(vec2_from(node_point)));
+int64_t node_convert_to_world_space(int64_t self, int64_t node_point) {
+	return Vec2_Retain(r_cast<Node*>(self)->convertToWorldSpace(Vec2_From(node_point)));
 }
-static void node_convert_to_window_space(int64_t self, int64_t node_point, int32_t func, int64_t stack) {
+void node_convert_to_window_space(int64_t self, int64_t node_point, int32_t func, int64_t stack) {
 	std::shared_ptr<void> deref(nullptr, [func](auto) {
 		SharedWasmRuntime.deref(func);
 	});
 	auto args = r_cast<CallStack*>(stack);
-	r_cast<Node*>(self)->convertToWindowSpace(vec2_from(node_point), [func, args, deref](Vec2 result) {
+	r_cast<Node*>(self)->convertToWindowSpace(Vec2_From(node_point), [func, args, deref](Vec2 result) {
 		args->clear();
 		args->push(result);
 		SharedWasmRuntime.invoke(func);
 	});
 }
-static int32_t node_each_child(int64_t self, int32_t func, int64_t stack) {
+int32_t node_each_child(int64_t self, int32_t func, int64_t stack) {
 	std::shared_ptr<void> deref(nullptr, [func](auto) {
 		SharedWasmRuntime.deref(func);
 	});
@@ -308,7 +310,7 @@ static int32_t node_each_child(int64_t self, int32_t func, int64_t stack) {
 		return std::get<bool>(args->pop());
 	}) ? 1 : 0;
 }
-static int32_t node_traverse(int64_t self, int32_t func, int64_t stack) {
+int32_t node_traverse(int64_t self, int32_t func, int64_t stack) {
 	std::shared_ptr<void> deref(nullptr, [func](auto) {
 		SharedWasmRuntime.deref(func);
 	});
@@ -320,7 +322,7 @@ static int32_t node_traverse(int64_t self, int32_t func, int64_t stack) {
 		return std::get<bool>(args->pop());
 	}) ? 1 : 0;
 }
-static int32_t node_traverse_all(int64_t self, int32_t func, int64_t stack) {
+int32_t node_traverse_all(int64_t self, int32_t func, int64_t stack) {
 	std::shared_ptr<void> deref(nullptr, [func](auto) {
 		SharedWasmRuntime.deref(func);
 	});
@@ -332,88 +334,90 @@ static int32_t node_traverse_all(int64_t self, int32_t func, int64_t stack) {
 		return std::get<bool>(args->pop());
 	}) ? 1 : 0;
 }
-static float node_run_action_def(int64_t self, int64_t def, int32_t looped) {
-	return node_run_action_def_duration(r_cast<Node*>(self), std::move(*r_cast<ActionDef*>(def)), looped != 0);
+float node_run_action_def(int64_t self, int64_t def, int32_t looped) {
+	return Node_RunActionDefDuration(r_cast<Node*>(self), std::move(*r_cast<ActionDef*>(def)), looped != 0);
 }
-static float node_run_action(int64_t self, int64_t action, int32_t looped) {
+float node_run_action(int64_t self, int64_t action, int32_t looped) {
 	return r_cast<Node*>(self)->runAction(r_cast<Action*>(action), looped != 0);
 }
-static void node_stop_all_actions(int64_t self) {
+void node_stop_all_actions(int64_t self) {
 	r_cast<Node*>(self)->stopAllActions();
 }
-static float node_perform_def(int64_t self, int64_t action_def, int32_t looped) {
-	return node_perform_def_duration(r_cast<Node*>(self), std::move(*r_cast<ActionDef*>(action_def)), looped != 0);
+float node_perform_def(int64_t self, int64_t action_def, int32_t looped) {
+	return Node_PerformDefDuration(r_cast<Node*>(self), std::move(*r_cast<ActionDef*>(action_def)), looped != 0);
 }
-static float node_perform(int64_t self, int64_t action, int32_t looped) {
+float node_perform(int64_t self, int64_t action, int32_t looped) {
 	return r_cast<Node*>(self)->perform(r_cast<Action*>(action), looped != 0);
 }
-static void node_stop_action(int64_t self, int64_t action) {
+void node_stop_action(int64_t self, int64_t action) {
 	r_cast<Node*>(self)->stopAction(r_cast<Action*>(action));
 }
-static int64_t node_align_items_vertically(int64_t self, float padding) {
-	return size_retain(r_cast<Node*>(self)->alignItemsVertically(padding));
+int64_t node_align_items_vertically(int64_t self, float padding) {
+	return Size_Retain(r_cast<Node*>(self)->alignItemsVertically(padding));
 }
-static int64_t node_align_items_vertically_with_size(int64_t self, int64_t size, float padding) {
-	return size_retain(r_cast<Node*>(self)->alignItemsVertically(size_from(size), padding));
+int64_t node_align_items_vertically_with_size(int64_t self, int64_t size, float padding) {
+	return Size_Retain(r_cast<Node*>(self)->alignItemsVertically(Size_From(size), padding));
 }
-static int64_t node_align_items_horizontally(int64_t self, float padding) {
-	return size_retain(r_cast<Node*>(self)->alignItemsHorizontally(padding));
+int64_t node_align_items_horizontally(int64_t self, float padding) {
+	return Size_Retain(r_cast<Node*>(self)->alignItemsHorizontally(padding));
 }
-static int64_t node_align_items_horizontally_with_size(int64_t self, int64_t size, float padding) {
-	return size_retain(r_cast<Node*>(self)->alignItemsHorizontally(size_from(size), padding));
+int64_t node_align_items_horizontally_with_size(int64_t self, int64_t size, float padding) {
+	return Size_Retain(r_cast<Node*>(self)->alignItemsHorizontally(Size_From(size), padding));
 }
-static int64_t node_align_items(int64_t self, float padding) {
-	return size_retain(r_cast<Node*>(self)->alignItems(padding));
+int64_t node_align_items(int64_t self, float padding) {
+	return Size_Retain(r_cast<Node*>(self)->alignItems(padding));
 }
-static int64_t node_align_items_with_size(int64_t self, int64_t size, float padding) {
-	return size_retain(r_cast<Node*>(self)->alignItems(size_from(size), padding));
+int64_t node_align_items_with_size(int64_t self, int64_t size, float padding) {
+	return Size_Retain(r_cast<Node*>(self)->alignItems(Size_From(size), padding));
 }
-static void node_move_and_cull_items(int64_t self, int64_t delta) {
-	r_cast<Node*>(self)->moveAndCullItems(vec2_from(delta));
+void node_move_and_cull_items(int64_t self, int64_t delta) {
+	r_cast<Node*>(self)->moveAndCullItems(Vec2_From(delta));
 }
-static void node_attach_ime(int64_t self) {
+void node_attach_ime(int64_t self) {
 	r_cast<Node*>(self)->attachIME();
 }
-static void node_detach_ime(int64_t self) {
+void node_detach_ime(int64_t self) {
 	r_cast<Node*>(self)->detachIME();
 }
-static int64_t node_grab(int64_t self) {
-	return from_object(node_start_grabbing(r_cast<Node*>(self)));
+int64_t node_grab(int64_t self) {
+	return Object_From(Node_StartGrabbing(r_cast<Node*>(self)));
 }
-static int64_t node_grab_with_size(int64_t self, int32_t grid_x, int32_t grid_y) {
-	return from_object(r_cast<Node*>(self)->grab(s_cast<uint32_t>(grid_x), s_cast<uint32_t>(grid_y)));
+int64_t node_grab_with_size(int64_t self, int32_t grid_x, int32_t grid_y) {
+	return Object_From(r_cast<Node*>(self)->grab(s_cast<uint32_t>(grid_x), s_cast<uint32_t>(grid_y)));
 }
-static void node_stop_grab(int64_t self) {
-	node_stop_grabbing(r_cast<Node*>(self));
+void node_stop_grab(int64_t self) {
+	Node_StopGrabbing(r_cast<Node*>(self));
 }
-static void node_set_transform_target_null(int64_t self) {
-	node_set_transform_target_nullptr(r_cast<Node*>(self));
+void node_set_transform_target_null(int64_t self) {
+	Node_SetTransformTargetNullptr(r_cast<Node*>(self));
 }
-static void node_slot(int64_t self, int64_t event_name, int32_t func, int64_t stack) {
+void node_slot(int64_t self, int64_t event_name, int32_t func, int64_t stack) {
 	std::shared_ptr<void> deref(nullptr, [func](auto) {
 		SharedWasmRuntime.deref(func);
 	});
 	auto args = r_cast<CallStack*>(stack);
-	r_cast<Node*>(self)->slot(*str_from(event_name), [func, args, deref](Event* e) {
+	r_cast<Node*>(self)->slot(*Str_From(event_name), [func, args, deref](Event* e) {
 		args->clear();
 		e->pushArgsToWasm(args);
 		SharedWasmRuntime.invoke(func);
 	});
 }
-static void node_gslot(int64_t self, int64_t event_name, int32_t func, int64_t stack) {
+void node_gslot(int64_t self, int64_t event_name, int32_t func, int64_t stack) {
 	std::shared_ptr<void> deref(nullptr, [func](auto) {
 		SharedWasmRuntime.deref(func);
 	});
 	auto args = r_cast<CallStack*>(stack);
-	r_cast<Node*>(self)->gslot(*str_from(event_name), [func, args, deref](Event* e) {
+	r_cast<Node*>(self)->gslot(*Str_From(event_name), [func, args, deref](Event* e) {
 		args->clear();
 		e->pushArgsToWasm(args);
 		SharedWasmRuntime.invoke(func);
 	});
 }
-static int64_t node_new() {
-	return from_object(Node::create());
+int64_t node_new() {
+	return Object_From(Node::create());
 }
+} // extern "C"
+
 static void linkNode(wasm3::module3& mod) {
 	mod.link_optional("*", "node_type", node_type);
 	mod.link_optional("*", "node_set_order", node_set_order);

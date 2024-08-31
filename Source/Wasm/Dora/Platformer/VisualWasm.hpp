@@ -6,24 +6,28 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-static int32_t platformer_visual_type() {
+extern "C" {
+using namespace Dora;
+int32_t platformer_visual_type() {
 	return DoraType<Platformer::Visual>();
 }
-static int32_t platformer_visual_is_playing(int64_t self) {
+int32_t platformer_visual_is_playing(int64_t self) {
 	return r_cast<Platformer::Visual*>(self)->isPlaying() ? 1 : 0;
 }
-static void platformer_visual_start(int64_t self) {
+void platformer_visual_start(int64_t self) {
 	r_cast<Platformer::Visual*>(self)->start();
 }
-static void platformer_visual_stop(int64_t self) {
+void platformer_visual_stop(int64_t self) {
 	r_cast<Platformer::Visual*>(self)->stop();
 }
-static int64_t platformer_visual_auto_remove(int64_t self) {
-	return from_object(r_cast<Platformer::Visual*>(self)->autoRemove());
+int64_t platformer_visual_auto_remove(int64_t self) {
+	return Object_From(r_cast<Platformer::Visual*>(self)->autoRemove());
 }
-static int64_t platformer_visual_new(int64_t name) {
-	return from_object(Platformer::Visual::create(*str_from(name)));
+int64_t platformer_visual_new(int64_t name) {
+	return Object_From(Platformer::Visual::create(*Str_From(name)));
 }
+} // extern "C"
+
 static void linkPlatformerVisual(wasm3::module3& mod) {
 	mod.link_optional("*", "platformer_visual_type", platformer_visual_type);
 	mod.link_optional("*", "platformer_visual_is_playing", platformer_visual_is_playing);
