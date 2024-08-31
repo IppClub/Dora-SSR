@@ -6,12 +6,16 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-static int32_t observer_type() {
+extern "C" {
+using namespace Dora;
+int32_t observer_type() {
 	return DoraType<EntityObserver>();
 }
-static int64_t entityobserver_new(int32_t event, int64_t components) {
-	return from_object(EntityObserver::create(s_cast<int>(event), from_str_vec(components)));
+int64_t entityobserver_new(int32_t event, int64_t components) {
+	return Object_From(EntityObserver::create(s_cast<int>(event), Vec_FromStr(components)));
 }
+} // extern "C"
+
 static void linkEntityObserver(wasm3::module3& mod) {
 	mod.link_optional("*", "observer_type", observer_type);
 	mod.link_optional("*", "entityobserver_new", entityobserver_new);

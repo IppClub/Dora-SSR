@@ -6,74 +6,78 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-static int32_t db_exist(int64_t table_name) {
-	return SharedDB.exist(*str_from(table_name)) ? 1 : 0;
+extern "C" {
+using namespace Dora;
+int32_t db_exist(int64_t table_name) {
+	return SharedDB.exist(*Str_From(table_name)) ? 1 : 0;
 }
-static int32_t db_exist_schema(int64_t table_name, int64_t schema) {
-	return SharedDB.exist(*str_from(table_name), *str_from(schema)) ? 1 : 0;
+int32_t db_exist_schema(int64_t table_name, int64_t schema) {
+	return SharedDB.exist(*Str_From(table_name), *Str_From(schema)) ? 1 : 0;
 }
-static int32_t db_exec(int64_t sql) {
-	return s_cast<int32_t>(SharedDB.exec(*str_from(sql)));
+int32_t db_exec(int64_t sql) {
+	return s_cast<int32_t>(SharedDB.exec(*Str_From(sql)));
 }
-static int32_t db_transaction(int64_t query) {
-	return db_do_transaction(*r_cast<DBQuery*>(query)) ? 1 : 0;
+int32_t db_transaction(int64_t query) {
+	return DB_Transaction(*r_cast<DBQuery*>(query)) ? 1 : 0;
 }
-static void db_transaction_async(int64_t query, int32_t func, int64_t stack) {
+void db_transaction_async(int64_t query, int32_t func, int64_t stack) {
 	std::shared_ptr<void> deref(nullptr, [func](auto) {
 		SharedWasmRuntime.deref(func);
 	});
 	auto args = r_cast<CallStack*>(stack);
-	db_do_transaction_async(*r_cast<DBQuery*>(query), [func, args, deref](bool result) {
+	DB_TransactionAsync(*r_cast<DBQuery*>(query), [func, args, deref](bool result) {
 		args->clear();
 		args->push(result);
 		SharedWasmRuntime.invoke(func);
 	});
 }
-static int64_t db_query(int64_t sql, int32_t with_columns) {
-	return r_cast<int64_t>(new DBRecord{db_do_query(*str_from(sql), with_columns != 0)});
+int64_t db_query(int64_t sql, int32_t with_columns) {
+	return r_cast<int64_t>(new DBRecord{DB_Query(*Str_From(sql), with_columns != 0)});
 }
-static int64_t db_query_with_params(int64_t sql, int64_t params, int32_t with_columns) {
-	return r_cast<int64_t>(new DBRecord{db_do_query_with_params(*str_from(sql), r_cast<Array*>(params), with_columns != 0)});
+int64_t db_query_with_params(int64_t sql, int64_t params, int32_t with_columns) {
+	return r_cast<int64_t>(new DBRecord{DB_QueryWithParams(*Str_From(sql), r_cast<Array*>(params), with_columns != 0)});
 }
-static void db_insert(int64_t table_name, int64_t values) {
-	db_do_insert(*str_from(table_name), *r_cast<DBParams*>(values));
+void db_insert(int64_t table_name, int64_t values) {
+	DB_Insert(*Str_From(table_name), *r_cast<DBParams*>(values));
 }
-static int32_t db_exec_with_records(int64_t sql, int64_t values) {
-	return db_do_exec_with_records(*str_from(sql), *r_cast<DBParams*>(values));
+int32_t db_exec_with_records(int64_t sql, int64_t values) {
+	return DB_ExecWithRecords(*Str_From(sql), *r_cast<DBParams*>(values));
 }
-static void db_query_with_params_async(int64_t sql, int64_t params, int32_t with_columns, int32_t func, int64_t stack) {
+void db_query_with_params_async(int64_t sql, int64_t params, int32_t with_columns, int32_t func, int64_t stack) {
 	std::shared_ptr<void> deref(nullptr, [func](auto) {
 		SharedWasmRuntime.deref(func);
 	});
 	auto args = r_cast<CallStack*>(stack);
-	db_do_query_with_params_async(*str_from(sql), r_cast<Array*>(params), with_columns != 0, [func, args, deref](DBRecord& result) {
+	DB_QueryWithParamsAsync(*Str_From(sql), r_cast<Array*>(params), with_columns != 0, [func, args, deref](DBRecord& result) {
 		args->clear();
 		args->push(r_cast<int64_t>(new DBRecord{std::move(result)}));
 		SharedWasmRuntime.invoke(func);
 	});
 }
-static void db_insert_async(int64_t table_name, int64_t values, int32_t func, int64_t stack) {
+void db_insert_async(int64_t table_name, int64_t values, int32_t func, int64_t stack) {
 	std::shared_ptr<void> deref(nullptr, [func](auto) {
 		SharedWasmRuntime.deref(func);
 	});
 	auto args = r_cast<CallStack*>(stack);
-	db_do_insert_async(*str_from(table_name), *r_cast<DBParams*>(values), [func, args, deref](bool result) {
+	DB_InsertAsync(*Str_From(table_name), *r_cast<DBParams*>(values), [func, args, deref](bool result) {
 		args->clear();
 		args->push(result);
 		SharedWasmRuntime.invoke(func);
 	});
 }
-static void db_exec_async(int64_t sql, int64_t values, int32_t func, int64_t stack) {
+void db_exec_async(int64_t sql, int64_t values, int32_t func, int64_t stack) {
 	std::shared_ptr<void> deref(nullptr, [func](auto) {
 		SharedWasmRuntime.deref(func);
 	});
 	auto args = r_cast<CallStack*>(stack);
-	db_do_exec_async(*str_from(sql), *r_cast<DBParams*>(values), [func, args, deref](int64_t rowChanges) {
+	DB_ExecAsync(*Str_From(sql), *r_cast<DBParams*>(values), [func, args, deref](int64_t rowChanges) {
 		args->clear();
 		args->push(rowChanges);
 		SharedWasmRuntime.invoke(func);
 	});
 }
+} // extern "C"
+
 static void linkDB(wasm3::module3& mod) {
 	mod.link_optional("*", "db_exist", db_exist);
 	mod.link_optional("*", "db_exist_schema", db_exist_schema);

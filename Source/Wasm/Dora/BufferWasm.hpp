@@ -6,24 +6,28 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-static int32_t buffer_type() {
+extern "C" {
+using namespace Dora;
+int32_t buffer_type() {
 	return DoraType<Buffer>();
 }
-static void buffer_set_text(int64_t self, int64_t var) {
-	r_cast<Buffer*>(self)->setText(*str_from(var));
+void buffer_set_text(int64_t self, int64_t var) {
+	r_cast<Buffer*>(self)->setText(*Str_From(var));
 }
-static int64_t buffer_get_text(int64_t self) {
-	return str_retain(r_cast<Buffer*>(self)->getText());
+int64_t buffer_get_text(int64_t self) {
+	return Str_Retain(r_cast<Buffer*>(self)->getText());
 }
-static void buffer_resize(int64_t self, int32_t size) {
+void buffer_resize(int64_t self, int32_t size) {
 	r_cast<Buffer*>(self)->resize(s_cast<uint32_t>(size));
 }
-static void buffer_zero_memory(int64_t self) {
+void buffer_zero_memory(int64_t self) {
 	r_cast<Buffer*>(self)->zeroMemory();
 }
-static int32_t buffer_get_size(int64_t self) {
+int32_t buffer_get_size(int64_t self) {
 	return s_cast<int32_t>(r_cast<Buffer*>(self)->size());
 }
+} // extern "C"
+
 static void linkBuffer(wasm3::module3& mod) {
 	mod.link_optional("*", "buffer_type", buffer_type);
 	mod.link_optional("*", "buffer_set_text", buffer_set_text);

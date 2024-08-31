@@ -6,46 +6,48 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-static int32_t model_type() {
+extern "C" {
+using namespace Dora;
+int32_t model_type() {
 	return DoraType<Model>();
 }
-static float model_get_duration(int64_t self) {
+float model_get_duration(int64_t self) {
 	return r_cast<Model*>(self)->getDuration();
 }
-static void model_set_reversed(int64_t self, int32_t var) {
+void model_set_reversed(int64_t self, int32_t var) {
 	r_cast<Model*>(self)->setReversed(var != 0);
 }
-static int32_t model_is_reversed(int64_t self) {
+int32_t model_is_reversed(int64_t self) {
 	return r_cast<Model*>(self)->isReversed() ? 1 : 0;
 }
-static int32_t model_is_playing(int64_t self) {
+int32_t model_is_playing(int64_t self) {
 	return r_cast<Model*>(self)->isPlaying() ? 1 : 0;
 }
-static int32_t model_is_paused(int64_t self) {
+int32_t model_is_paused(int64_t self) {
 	return r_cast<Model*>(self)->isPaused() ? 1 : 0;
 }
-static int32_t model_has_animation(int64_t self, int64_t name) {
-	return r_cast<Model*>(self)->hasAnimation(*str_from(name)) ? 1 : 0;
+int32_t model_has_animation(int64_t self, int64_t name) {
+	return r_cast<Model*>(self)->hasAnimation(*Str_From(name)) ? 1 : 0;
 }
-static void model_pause(int64_t self) {
+void model_pause(int64_t self) {
 	r_cast<Model*>(self)->pause();
 }
-static void model_resume(int64_t self) {
+void model_resume(int64_t self) {
 	r_cast<Model*>(self)->resume();
 }
-static void model_resume_animation(int64_t self, int64_t name, int32_t looping) {
-	r_cast<Model*>(self)->resume(*str_from(name), looping != 0);
+void model_resume_animation(int64_t self, int64_t name, int32_t looping) {
+	r_cast<Model*>(self)->resume(*Str_From(name), looping != 0);
 }
-static void model_reset(int64_t self) {
+void model_reset(int64_t self) {
 	r_cast<Model*>(self)->reset();
 }
-static void model_update_to(int64_t self, float elapsed, int32_t reversed) {
+void model_update_to(int64_t self, float elapsed, int32_t reversed) {
 	r_cast<Model*>(self)->updateTo(elapsed, reversed != 0);
 }
-static int64_t model_get_node_by_name(int64_t self, int64_t name) {
-	return from_object(r_cast<Model*>(self)->getNodeByName(*str_from(name)));
+int64_t model_get_node_by_name(int64_t self, int64_t name) {
+	return Object_From(r_cast<Model*>(self)->getNodeByName(*Str_From(name)));
 }
-static int32_t model_each_node(int64_t self, int32_t func, int64_t stack) {
+int32_t model_each_node(int64_t self, int32_t func, int64_t stack) {
 	std::shared_ptr<void> deref(nullptr, [func](auto) {
 		SharedWasmRuntime.deref(func);
 	});
@@ -57,21 +59,23 @@ static int32_t model_each_node(int64_t self, int32_t func, int64_t stack) {
 		return std::get<bool>(args->pop());
 	}) ? 1 : 0;
 }
-static int64_t model_new(int64_t filename) {
-	return from_object(Model::create(*str_from(filename)));
+int64_t model_new(int64_t filename) {
+	return Object_From(Model::create(*Str_From(filename)));
 }
-static int64_t model_dummy() {
-	return from_object(Model::dummy());
+int64_t model_dummy() {
+	return Object_From(Model::dummy());
 }
-static int64_t model_get_clip_file(int64_t filename) {
-	return str_retain(model_get_clip_filename(*str_from(filename)));
+int64_t model_get_clip_file(int64_t filename) {
+	return Str_Retain(Model_GetClipFilename(*Str_From(filename)));
 }
-static int64_t model_get_looks(int64_t filename) {
-	return to_vec(model_get_look_names(*str_from(filename)));
+int64_t model_get_looks(int64_t filename) {
+	return Vec_To(Model_GetLookNames(*Str_From(filename)));
 }
-static int64_t model_get_animations(int64_t filename) {
-	return to_vec(model_get_animation_names(*str_from(filename)));
+int64_t model_get_animations(int64_t filename) {
+	return Vec_To(Model_GetAnimationNames(*Str_From(filename)));
 }
+} // extern "C"
+
 static void linkModel(wasm3::module3& mod) {
 	mod.link_optional("*", "model_type", model_type);
 	mod.link_optional("*", "model_get_duration", model_get_duration);

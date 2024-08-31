@@ -6,22 +6,24 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-static int32_t scheduler_type() {
+extern "C" {
+using namespace Dora;
+int32_t scheduler_type() {
 	return DoraType<Scheduler>();
 }
-static void scheduler_set_time_scale(int64_t self, float var) {
+void scheduler_set_time_scale(int64_t self, float var) {
 	r_cast<Scheduler*>(self)->setTimeScale(var);
 }
-static float scheduler_get_time_scale(int64_t self) {
+float scheduler_get_time_scale(int64_t self) {
 	return r_cast<Scheduler*>(self)->getTimeScale();
 }
-static void scheduler_set_fixed_fps(int64_t self, int32_t var) {
+void scheduler_set_fixed_fps(int64_t self, int32_t var) {
 	r_cast<Scheduler*>(self)->setFixedFPS(s_cast<int>(var));
 }
-static int32_t scheduler_get_fixed_fps(int64_t self) {
+int32_t scheduler_get_fixed_fps(int64_t self) {
 	return s_cast<int32_t>(r_cast<Scheduler*>(self)->getFixedFPS());
 }
-static void scheduler_schedule(int64_t self, int32_t func, int64_t stack) {
+void scheduler_schedule(int64_t self, int32_t func, int64_t stack) {
 	std::shared_ptr<void> deref(nullptr, [func](auto) {
 		SharedWasmRuntime.deref(func);
 	});
@@ -33,9 +35,11 @@ static void scheduler_schedule(int64_t self, int32_t func, int64_t stack) {
 		return std::get<bool>(args->pop());
 	});
 }
-static int64_t scheduler_new() {
-	return from_object(Scheduler::create());
+int64_t scheduler_new() {
+	return Object_From(Scheduler::create());
 }
+} // extern "C"
+
 static void linkScheduler(wasm3::module3& mod) {
 	mod.link_optional("*", "scheduler_type", scheduler_type);
 	mod.link_optional("*", "scheduler_set_time_scale", scheduler_set_time_scale);

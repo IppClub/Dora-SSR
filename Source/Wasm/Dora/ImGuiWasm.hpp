@@ -6,632 +6,636 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-static void imgui_load_font_ttf_async(int64_t ttf_font_file, float font_size, int64_t glyph_ranges, int32_t func, int64_t stack) {
+extern "C" {
+using namespace Dora;
+void imgui_load_font_ttf_async(int64_t ttf_font_file, float font_size, int64_t glyph_ranges, int32_t func, int64_t stack) {
 	std::shared_ptr<void> deref(nullptr, [func](auto) {
 		SharedWasmRuntime.deref(func);
 	});
 	auto args = r_cast<CallStack*>(stack);
-	ImGui::Binding::LoadFontTTFAsync(*str_from(ttf_font_file), font_size, *str_from(glyph_ranges), [func, args, deref](bool success) {
+	ImGui::Binding::LoadFontTTFAsync(*Str_From(ttf_font_file), font_size, *Str_From(glyph_ranges), [func, args, deref](bool success) {
 		args->clear();
 		args->push(success);
 		SharedWasmRuntime.invoke(func);
 	});
 }
-static int32_t imgui_is_font_loaded() {
+int32_t imgui_is_font_loaded() {
 	return ImGui::Binding::IsFontLoaded() ? 1 : 0;
 }
-static void imgui_show_stats() {
+void imgui_show_stats() {
 	ImGui::Binding::ShowStats();
 }
-static void imgui_show_console() {
+void imgui_show_console() {
 	ImGui::Binding::ShowConsole();
 }
-static int32_t imgui__begin_opts(int64_t name, int32_t windows_flags) {
-	return ImGui::Binding::Begin(*str_from(name), s_cast<uint32_t>(windows_flags)) ? 1 : 0;
+int32_t imgui__begin_opts(int64_t name, int32_t windows_flags) {
+	return ImGui::Binding::Begin(*Str_From(name), s_cast<uint32_t>(windows_flags)) ? 1 : 0;
 }
-static void imgui__end() {
+void imgui__end() {
 	ImGui::End();
 }
-static int32_t imgui__begin_child_opts(int64_t str_id, int64_t size, int32_t child_flags, int32_t window_flags) {
-	return ImGui::Binding::BeginChild(*str_from(str_id), vec2_from(size), s_cast<uint32_t>(child_flags), s_cast<uint32_t>(window_flags)) ? 1 : 0;
+int32_t imgui__begin_child_opts(int64_t str_id, int64_t size, int32_t child_flags, int32_t window_flags) {
+	return ImGui::Binding::BeginChild(*Str_From(str_id), Vec2_From(size), s_cast<uint32_t>(child_flags), s_cast<uint32_t>(window_flags)) ? 1 : 0;
 }
-static int32_t imgui__begin_child_with_id_opts(int32_t id, int64_t size, int32_t child_flags, int32_t window_flags) {
-	return ImGui::Binding::BeginChild(s_cast<uint32_t>(id), vec2_from(size), s_cast<uint32_t>(child_flags), s_cast<uint32_t>(window_flags)) ? 1 : 0;
+int32_t imgui__begin_child_with_id_opts(int32_t id, int64_t size, int32_t child_flags, int32_t window_flags) {
+	return ImGui::Binding::BeginChild(s_cast<uint32_t>(id), Vec2_From(size), s_cast<uint32_t>(child_flags), s_cast<uint32_t>(window_flags)) ? 1 : 0;
 }
-static void imgui__end_child() {
+void imgui__end_child() {
 	ImGui::EndChild();
 }
-static void imgui__set_next_window_pos_center_opts(int32_t set_cond) {
+void imgui__set_next_window_pos_center_opts(int32_t set_cond) {
 	ImGui::Binding::SetNextWindowPosCenter(s_cast<uint32_t>(set_cond));
 }
-static void imgui__set_next_window_size_opts(int64_t size, int32_t set_cond) {
-	ImGui::SetNextWindowSize(vec2_from(size), s_cast<uint32_t>(set_cond));
+void imgui__set_next_window_size_opts(int64_t size, int32_t set_cond) {
+	ImGui::SetNextWindowSize(Vec2_From(size), s_cast<uint32_t>(set_cond));
 }
-static void imgui__set_next_window_collapsed_opts(int32_t collapsed, int32_t set_cond) {
+void imgui__set_next_window_collapsed_opts(int32_t collapsed, int32_t set_cond) {
 	ImGui::SetNextWindowCollapsed(collapsed != 0, s_cast<uint32_t>(set_cond));
 }
-static void imgui__set_window_pos_opts(int64_t name, int64_t pos, int32_t set_cond) {
-	ImGui::Binding::SetWindowPos(*str_from(name), vec2_from(pos), s_cast<uint32_t>(set_cond));
+void imgui__set_window_pos_opts(int64_t name, int64_t pos, int32_t set_cond) {
+	ImGui::Binding::SetWindowPos(*Str_From(name), Vec2_From(pos), s_cast<uint32_t>(set_cond));
 }
-static void imgui__set_window_size_opts(int64_t name, int64_t size, int32_t set_cond) {
-	ImGui::Binding::SetWindowSize(*str_from(name), vec2_from(size), s_cast<uint32_t>(set_cond));
+void imgui__set_window_size_opts(int64_t name, int64_t size, int32_t set_cond) {
+	ImGui::Binding::SetWindowSize(*Str_From(name), Vec2_From(size), s_cast<uint32_t>(set_cond));
 }
-static void imgui__set_window_collapsed_opts(int64_t name, int32_t collapsed, int32_t set_cond) {
-	ImGui::Binding::SetWindowCollapsed(*str_from(name), collapsed != 0, s_cast<uint32_t>(set_cond));
+void imgui__set_window_collapsed_opts(int64_t name, int32_t collapsed, int32_t set_cond) {
+	ImGui::Binding::SetWindowCollapsed(*Str_From(name), collapsed != 0, s_cast<uint32_t>(set_cond));
 }
-static void imgui__set_color_edit_options(int32_t color_edit_flags) {
+void imgui__set_color_edit_options(int32_t color_edit_flags) {
 	ImGui::SetColorEditOptions(s_cast<uint32_t>(color_edit_flags));
 }
-static int32_t imgui__input_text_opts(int64_t label, int64_t buffer, int32_t input_text_flags) {
-	return ImGui::Binding::InputText(*str_from(label), r_cast<Buffer*>(buffer), s_cast<uint32_t>(input_text_flags)) ? 1 : 0;
+int32_t imgui__input_text_opts(int64_t label, int64_t buffer, int32_t input_text_flags) {
+	return ImGui::Binding::InputText(*Str_From(label), r_cast<Buffer*>(buffer), s_cast<uint32_t>(input_text_flags)) ? 1 : 0;
 }
-static int32_t imgui__input_text_multiline_opts(int64_t label, int64_t buffer, int64_t size, int32_t input_text_flags) {
-	return ImGui::Binding::InputTextMultiline(*str_from(label), r_cast<Buffer*>(buffer), vec2_from(size), s_cast<uint32_t>(input_text_flags)) ? 1 : 0;
+int32_t imgui__input_text_multiline_opts(int64_t label, int64_t buffer, int64_t size, int32_t input_text_flags) {
+	return ImGui::Binding::InputTextMultiline(*Str_From(label), r_cast<Buffer*>(buffer), Vec2_From(size), s_cast<uint32_t>(input_text_flags)) ? 1 : 0;
 }
-static int32_t imgui__tree_node_ex_opts(int64_t label, int32_t tree_node_flags) {
-	return ImGui::Binding::TreeNodeEx(*str_from(label), s_cast<uint32_t>(tree_node_flags)) ? 1 : 0;
+int32_t imgui__tree_node_ex_opts(int64_t label, int32_t tree_node_flags) {
+	return ImGui::Binding::TreeNodeEx(*Str_From(label), s_cast<uint32_t>(tree_node_flags)) ? 1 : 0;
 }
-static int32_t imgui__tree_node_ex_with_id_opts(int64_t str_id, int64_t text, int32_t tree_node_flags) {
-	return ImGui::Binding::TreeNodeEx(*str_from(str_id), *str_from(text), s_cast<uint32_t>(tree_node_flags)) ? 1 : 0;
+int32_t imgui__tree_node_ex_with_id_opts(int64_t str_id, int64_t text, int32_t tree_node_flags) {
+	return ImGui::Binding::TreeNodeEx(*Str_From(str_id), *Str_From(text), s_cast<uint32_t>(tree_node_flags)) ? 1 : 0;
 }
-static void imgui__set_next_item_open_opts(int32_t is_open, int32_t set_cond) {
+void imgui__set_next_item_open_opts(int32_t is_open, int32_t set_cond) {
 	ImGui::SetNextItemOpen(is_open != 0, s_cast<uint32_t>(set_cond));
 }
-static int32_t imgui__collapsing_header_opts(int64_t label, int32_t tree_node_flags) {
-	return ImGui::Binding::CollapsingHeader(*str_from(label), s_cast<uint32_t>(tree_node_flags)) ? 1 : 0;
+int32_t imgui__collapsing_header_opts(int64_t label, int32_t tree_node_flags) {
+	return ImGui::Binding::CollapsingHeader(*Str_From(label), s_cast<uint32_t>(tree_node_flags)) ? 1 : 0;
 }
-static int32_t imgui__selectable_opts(int64_t label, int32_t selectable_flags) {
-	return ImGui::Binding::Selectable(*str_from(label), s_cast<uint32_t>(selectable_flags)) ? 1 : 0;
+int32_t imgui__selectable_opts(int64_t label, int32_t selectable_flags) {
+	return ImGui::Binding::Selectable(*Str_From(label), s_cast<uint32_t>(selectable_flags)) ? 1 : 0;
 }
-static int32_t imgui__begin_popup_modal_opts(int64_t name, int32_t windows_flags) {
-	return ImGui::Binding::BeginPopupModal(*str_from(name), s_cast<uint32_t>(windows_flags)) ? 1 : 0;
+int32_t imgui__begin_popup_modal_opts(int64_t name, int32_t windows_flags) {
+	return ImGui::Binding::BeginPopupModal(*Str_From(name), s_cast<uint32_t>(windows_flags)) ? 1 : 0;
 }
-static int32_t imgui__begin_popup_modal_ret_opts(int64_t name, int64_t stack, int32_t windows_flags) {
-	return ImGui::Binding::BeginPopupModal(*str_from(name), r_cast<CallStack*>(stack), s_cast<uint32_t>(windows_flags)) ? 1 : 0;
+int32_t imgui__begin_popup_modal_ret_opts(int64_t name, int64_t stack, int32_t windows_flags) {
+	return ImGui::Binding::BeginPopupModal(*Str_From(name), r_cast<CallStack*>(stack), s_cast<uint32_t>(windows_flags)) ? 1 : 0;
 }
-static int32_t imgui__begin_popup_context_item_opts(int64_t name, int32_t popup_flags) {
-	return ImGui::Binding::BeginPopupContextItem(*str_from(name), s_cast<uint32_t>(popup_flags)) ? 1 : 0;
+int32_t imgui__begin_popup_context_item_opts(int64_t name, int32_t popup_flags) {
+	return ImGui::Binding::BeginPopupContextItem(*Str_From(name), s_cast<uint32_t>(popup_flags)) ? 1 : 0;
 }
-static int32_t imgui__begin_popup_context_window_opts(int64_t name, int32_t popup_flags) {
-	return ImGui::Binding::BeginPopupContextWindow(*str_from(name), s_cast<uint32_t>(popup_flags)) ? 1 : 0;
+int32_t imgui__begin_popup_context_window_opts(int64_t name, int32_t popup_flags) {
+	return ImGui::Binding::BeginPopupContextWindow(*Str_From(name), s_cast<uint32_t>(popup_flags)) ? 1 : 0;
 }
-static int32_t imgui__begin_popup_context_void_opts(int64_t name, int32_t popup_flags) {
-	return ImGui::Binding::BeginPopupContextVoid(*str_from(name), s_cast<uint32_t>(popup_flags)) ? 1 : 0;
+int32_t imgui__begin_popup_context_void_opts(int64_t name, int32_t popup_flags) {
+	return ImGui::Binding::BeginPopupContextVoid(*Str_From(name), s_cast<uint32_t>(popup_flags)) ? 1 : 0;
 }
-static void imgui__push_style_color(int32_t name, int32_t color) {
+void imgui__push_style_color(int32_t name, int32_t color) {
 	ImGui::Binding::PushStyleColor(s_cast<uint32_t>(name), Color(s_cast<uint32_t>(color)));
 }
-static void imgui__push_style_float(int32_t name, float val) {
+void imgui__push_style_float(int32_t name, float val) {
 	ImGui::PushStyleVar(s_cast<uint32_t>(name), val);
 }
-static void imgui__push_style_vec2(int32_t name, int64_t val) {
-	ImGui::PushStyleVar(s_cast<uint32_t>(name), vec2_from(val));
+void imgui__push_style_vec2(int32_t name, int64_t val) {
+	ImGui::PushStyleVar(s_cast<uint32_t>(name), Vec2_From(val));
 }
-static void imgui_text(int64_t text) {
-	ImGui::Binding::Text(*str_from(text));
+void imgui_text(int64_t text) {
+	ImGui::Binding::Text(*Str_From(text));
 }
-static void imgui_text_colored(int32_t color, int64_t text) {
-	ImGui::Binding::TextColored(Color(s_cast<uint32_t>(color)), *str_from(text));
+void imgui_text_colored(int32_t color, int64_t text) {
+	ImGui::Binding::TextColored(Color(s_cast<uint32_t>(color)), *Str_From(text));
 }
-static void imgui_text_disabled(int64_t text) {
-	ImGui::Binding::TextDisabled(*str_from(text));
+void imgui_text_disabled(int64_t text) {
+	ImGui::Binding::TextDisabled(*Str_From(text));
 }
-static void imgui_text_wrapped(int64_t text) {
-	ImGui::Binding::TextWrapped(*str_from(text));
+void imgui_text_wrapped(int64_t text) {
+	ImGui::Binding::TextWrapped(*Str_From(text));
 }
-static void imgui_label_text(int64_t label, int64_t text) {
-	ImGui::Binding::LabelText(*str_from(label), *str_from(text));
+void imgui_label_text(int64_t label, int64_t text) {
+	ImGui::Binding::LabelText(*Str_From(label), *Str_From(text));
 }
-static void imgui_bullet_text(int64_t text) {
-	ImGui::Binding::BulletText(*str_from(text));
+void imgui_bullet_text(int64_t text) {
+	ImGui::Binding::BulletText(*Str_From(text));
 }
-static int32_t imgui__tree_node(int64_t str_id, int64_t text) {
-	return ImGui::Binding::TreeNode(*str_from(str_id), *str_from(text)) ? 1 : 0;
+int32_t imgui__tree_node(int64_t str_id, int64_t text) {
+	return ImGui::Binding::TreeNode(*Str_From(str_id), *Str_From(text)) ? 1 : 0;
 }
-static void imgui_set_tooltip(int64_t text) {
-	ImGui::Binding::SetTooltip(*str_from(text));
+void imgui_set_tooltip(int64_t text) {
+	ImGui::Binding::SetTooltip(*Str_From(text));
 }
-static void imgui_image_opts(int64_t clip_str, int64_t size, int32_t tint_col, int32_t border_col) {
-	ImGui::Binding::Image(*str_from(clip_str), vec2_from(size), Color(s_cast<uint32_t>(tint_col)), Color(s_cast<uint32_t>(border_col)));
+void imgui_image_opts(int64_t clip_str, int64_t size, int32_t tint_col, int32_t border_col) {
+	ImGui::Binding::Image(*Str_From(clip_str), Vec2_From(size), Color(s_cast<uint32_t>(tint_col)), Color(s_cast<uint32_t>(border_col)));
 }
-static int32_t imgui_image_button_opts(int64_t str_id, int64_t clip_str, int64_t size, int32_t bg_col, int32_t tint_col) {
-	return ImGui::Binding::ImageButton(*str_from(str_id), *str_from(clip_str), vec2_from(size), Color(s_cast<uint32_t>(bg_col)), Color(s_cast<uint32_t>(tint_col))) ? 1 : 0;
+int32_t imgui_image_button_opts(int64_t str_id, int64_t clip_str, int64_t size, int32_t bg_col, int32_t tint_col) {
+	return ImGui::Binding::ImageButton(*Str_From(str_id), *Str_From(clip_str), Vec2_From(size), Color(s_cast<uint32_t>(bg_col)), Color(s_cast<uint32_t>(tint_col))) ? 1 : 0;
 }
-static int32_t imgui__color_button_opts(int64_t desc_id, int32_t col, int32_t color_edit_flags, int64_t size) {
-	return ImGui::Binding::ColorButton(*str_from(desc_id), Color(s_cast<uint32_t>(col)), s_cast<uint32_t>(color_edit_flags), vec2_from(size)) ? 1 : 0;
+int32_t imgui__color_button_opts(int64_t desc_id, int32_t col, int32_t color_edit_flags, int64_t size) {
+	return ImGui::Binding::ColorButton(*Str_From(desc_id), Color(s_cast<uint32_t>(col)), s_cast<uint32_t>(color_edit_flags), Vec2_From(size)) ? 1 : 0;
 }
-static void imgui_columns(int32_t count) {
+void imgui_columns(int32_t count) {
 	ImGui::Binding::Columns(s_cast<int>(count));
 }
-static void imgui_columns_opts(int32_t count, int32_t border, int64_t str_id) {
-	ImGui::Binding::Columns(s_cast<int>(count), border != 0, *str_from(str_id));
+void imgui_columns_opts(int32_t count, int32_t border, int64_t str_id) {
+	ImGui::Binding::Columns(s_cast<int>(count), border != 0, *Str_From(str_id));
 }
-static int32_t imgui__begin_table_opts(int64_t str_id, int32_t column, int64_t outer_size, float inner_width, int32_t table_flags) {
-	return ImGui::Binding::BeginTable(*str_from(str_id), s_cast<int>(column), vec2_from(outer_size), inner_width, s_cast<uint32_t>(table_flags)) ? 1 : 0;
+int32_t imgui__begin_table_opts(int64_t str_id, int32_t column, int64_t outer_size, float inner_width, int32_t table_flags) {
+	return ImGui::Binding::BeginTable(*Str_From(str_id), s_cast<int>(column), Vec2_From(outer_size), inner_width, s_cast<uint32_t>(table_flags)) ? 1 : 0;
 }
-static void imgui__table_next_row_opts(float min_row_height, int32_t table_row_flag) {
+void imgui__table_next_row_opts(float min_row_height, int32_t table_row_flag) {
 	ImGui::TableNextRow(min_row_height, s_cast<uint32_t>(table_row_flag));
 }
-static void imgui__table_setup_column_opts(int64_t label, float init_width_or_weight, int32_t user_id, int32_t table_column_flags) {
-	ImGui::Binding::TableSetupColumn(*str_from(label), init_width_or_weight, s_cast<uint32_t>(user_id), s_cast<uint32_t>(table_column_flags));
+void imgui__table_setup_column_opts(int64_t label, float init_width_or_weight, int32_t user_id, int32_t table_column_flags) {
+	ImGui::Binding::TableSetupColumn(*Str_From(label), init_width_or_weight, s_cast<uint32_t>(user_id), s_cast<uint32_t>(table_column_flags));
 }
-static void imgui_set_style_bool(int64_t name, int32_t var) {
-	ImGui::Binding::SetStyleVar(*str_from(name), var != 0);
+void imgui_set_style_bool(int64_t name, int32_t var) {
+	ImGui::Binding::SetStyleVar(*Str_From(name), var != 0);
 }
-static void imgui_set_style_float(int64_t name, float var) {
-	ImGui::Binding::SetStyleVar(*str_from(name), var);
+void imgui_set_style_float(int64_t name, float var) {
+	ImGui::Binding::SetStyleVar(*Str_From(name), var);
 }
-static void imgui_set_style_vec2(int64_t name, int64_t var) {
-	ImGui::Binding::SetStyleVar(*str_from(name), vec2_from(var));
+void imgui_set_style_vec2(int64_t name, int64_t var) {
+	ImGui::Binding::SetStyleVar(*Str_From(name), Vec2_From(var));
 }
-static void imgui_set_style_color(int64_t name, int32_t color) {
-	ImGui::Binding::SetStyleColor(*str_from(name), Color(s_cast<uint32_t>(color)));
+void imgui_set_style_color(int64_t name, int32_t color) {
+	ImGui::Binding::SetStyleColor(*Str_From(name), Color(s_cast<uint32_t>(color)));
 }
-static int32_t imgui__begin_ret_opts(int64_t name, int64_t stack, int32_t windows_flags) {
-	return ImGui::Binding::Begin(*str_from(name), r_cast<CallStack*>(stack), s_cast<uint32_t>(windows_flags)) ? 1 : 0;
+int32_t imgui__begin_ret_opts(int64_t name, int64_t stack, int32_t windows_flags) {
+	return ImGui::Binding::Begin(*Str_From(name), r_cast<CallStack*>(stack), s_cast<uint32_t>(windows_flags)) ? 1 : 0;
 }
-static int32_t imgui__collapsing_header_ret_opts(int64_t label, int64_t stack, int32_t tree_node_flags) {
-	return ImGui::Binding::CollapsingHeader(*str_from(label), r_cast<CallStack*>(stack), s_cast<uint32_t>(tree_node_flags)) ? 1 : 0;
+int32_t imgui__collapsing_header_ret_opts(int64_t label, int64_t stack, int32_t tree_node_flags) {
+	return ImGui::Binding::CollapsingHeader(*Str_From(label), r_cast<CallStack*>(stack), s_cast<uint32_t>(tree_node_flags)) ? 1 : 0;
 }
-static int32_t imgui__selectable_ret_opts(int64_t label, int64_t stack, int64_t size, int32_t selectable_flags) {
-	return ImGui::Binding::Selectable(*str_from(label), r_cast<CallStack*>(stack), vec2_from(size), s_cast<uint32_t>(selectable_flags)) ? 1 : 0;
+int32_t imgui__selectable_ret_opts(int64_t label, int64_t stack, int64_t size, int32_t selectable_flags) {
+	return ImGui::Binding::Selectable(*Str_From(label), r_cast<CallStack*>(stack), Vec2_From(size), s_cast<uint32_t>(selectable_flags)) ? 1 : 0;
 }
-static int32_t imgui__combo_ret_opts(int64_t label, int64_t stack, int64_t items, int32_t height_in_items) {
-	return ImGui::Binding::Combo(*str_from(label), r_cast<CallStack*>(stack), from_str_vec(items), s_cast<int>(height_in_items)) ? 1 : 0;
+int32_t imgui__combo_ret_opts(int64_t label, int64_t stack, int64_t items, int32_t height_in_items) {
+	return ImGui::Binding::Combo(*Str_From(label), r_cast<CallStack*>(stack), Vec_FromStr(items), s_cast<int>(height_in_items)) ? 1 : 0;
 }
-static int32_t imgui__drag_float_ret_opts(int64_t label, int64_t stack, float v_speed, float v_min, float v_max, int64_t display_format, int32_t slider_flags) {
-	return ImGui::Binding::DragFloat(*str_from(label), r_cast<CallStack*>(stack), v_speed, v_min, v_max, *str_from(display_format), s_cast<uint32_t>(slider_flags)) ? 1 : 0;
+int32_t imgui__drag_float_ret_opts(int64_t label, int64_t stack, float v_speed, float v_min, float v_max, int64_t display_format, int32_t slider_flags) {
+	return ImGui::Binding::DragFloat(*Str_From(label), r_cast<CallStack*>(stack), v_speed, v_min, v_max, *Str_From(display_format), s_cast<uint32_t>(slider_flags)) ? 1 : 0;
 }
-static int32_t imgui__drag_float2_ret_opts(int64_t label, int64_t stack, float v_speed, float v_min, float v_max, int64_t display_format, int32_t slider_flags) {
-	return ImGui::Binding::DragFloat2(*str_from(label), r_cast<CallStack*>(stack), v_speed, v_min, v_max, *str_from(display_format), s_cast<uint32_t>(slider_flags)) ? 1 : 0;
+int32_t imgui__drag_float2_ret_opts(int64_t label, int64_t stack, float v_speed, float v_min, float v_max, int64_t display_format, int32_t slider_flags) {
+	return ImGui::Binding::DragFloat2(*Str_From(label), r_cast<CallStack*>(stack), v_speed, v_min, v_max, *Str_From(display_format), s_cast<uint32_t>(slider_flags)) ? 1 : 0;
 }
-static int32_t imgui__drag_int_ret_opts(int64_t label, int64_t stack, float v_speed, int32_t v_min, int32_t v_max, int64_t display_format, int32_t slider_flags) {
-	return ImGui::Binding::DragInt(*str_from(label), r_cast<CallStack*>(stack), v_speed, s_cast<int>(v_min), s_cast<int>(v_max), *str_from(display_format), s_cast<uint32_t>(slider_flags)) ? 1 : 0;
+int32_t imgui__drag_int_ret_opts(int64_t label, int64_t stack, float v_speed, int32_t v_min, int32_t v_max, int64_t display_format, int32_t slider_flags) {
+	return ImGui::Binding::DragInt(*Str_From(label), r_cast<CallStack*>(stack), v_speed, s_cast<int>(v_min), s_cast<int>(v_max), *Str_From(display_format), s_cast<uint32_t>(slider_flags)) ? 1 : 0;
 }
-static int32_t imgui__drag_int2_ret_opts(int64_t label, int64_t stack, float v_speed, int32_t v_min, int32_t v_max, int64_t display_format, int32_t slider_flags) {
-	return ImGui::Binding::DragInt2(*str_from(label), r_cast<CallStack*>(stack), v_speed, s_cast<int>(v_min), s_cast<int>(v_max), *str_from(display_format), s_cast<uint32_t>(slider_flags)) ? 1 : 0;
+int32_t imgui__drag_int2_ret_opts(int64_t label, int64_t stack, float v_speed, int32_t v_min, int32_t v_max, int64_t display_format, int32_t slider_flags) {
+	return ImGui::Binding::DragInt2(*Str_From(label), r_cast<CallStack*>(stack), v_speed, s_cast<int>(v_min), s_cast<int>(v_max), *Str_From(display_format), s_cast<uint32_t>(slider_flags)) ? 1 : 0;
 }
-static int32_t imgui__input_float_ret_opts(int64_t label, int64_t stack, float step, float step_fast, int64_t display_format, int32_t input_text_flags) {
-	return ImGui::Binding::InputFloat(*str_from(label), r_cast<CallStack*>(stack), step, step_fast, *str_from(display_format), s_cast<uint32_t>(input_text_flags)) ? 1 : 0;
+int32_t imgui__input_float_ret_opts(int64_t label, int64_t stack, float step, float step_fast, int64_t display_format, int32_t input_text_flags) {
+	return ImGui::Binding::InputFloat(*Str_From(label), r_cast<CallStack*>(stack), step, step_fast, *Str_From(display_format), s_cast<uint32_t>(input_text_flags)) ? 1 : 0;
 }
-static int32_t imgui__input_float2_ret_opts(int64_t label, int64_t stack, int64_t display_format, int32_t input_text_flags) {
-	return ImGui::Binding::InputFloat2(*str_from(label), r_cast<CallStack*>(stack), *str_from(display_format), s_cast<uint32_t>(input_text_flags)) ? 1 : 0;
+int32_t imgui__input_float2_ret_opts(int64_t label, int64_t stack, int64_t display_format, int32_t input_text_flags) {
+	return ImGui::Binding::InputFloat2(*Str_From(label), r_cast<CallStack*>(stack), *Str_From(display_format), s_cast<uint32_t>(input_text_flags)) ? 1 : 0;
 }
-static int32_t imgui__input_int_ret_opts(int64_t label, int64_t stack, int32_t step, int32_t step_fast, int32_t input_text_flags) {
-	return ImGui::Binding::InputInt(*str_from(label), r_cast<CallStack*>(stack), s_cast<int>(step), s_cast<int>(step_fast), s_cast<uint32_t>(input_text_flags)) ? 1 : 0;
+int32_t imgui__input_int_ret_opts(int64_t label, int64_t stack, int32_t step, int32_t step_fast, int32_t input_text_flags) {
+	return ImGui::Binding::InputInt(*Str_From(label), r_cast<CallStack*>(stack), s_cast<int>(step), s_cast<int>(step_fast), s_cast<uint32_t>(input_text_flags)) ? 1 : 0;
 }
-static int32_t imgui__input_int2_ret_opts(int64_t label, int64_t stack, int32_t input_text_flags) {
-	return ImGui::Binding::InputInt2(*str_from(label), r_cast<CallStack*>(stack), s_cast<uint32_t>(input_text_flags)) ? 1 : 0;
+int32_t imgui__input_int2_ret_opts(int64_t label, int64_t stack, int32_t input_text_flags) {
+	return ImGui::Binding::InputInt2(*Str_From(label), r_cast<CallStack*>(stack), s_cast<uint32_t>(input_text_flags)) ? 1 : 0;
 }
-static int32_t imgui__slider_float_ret_opts(int64_t label, int64_t stack, float v_min, float v_max, int64_t display_format, int32_t slider_flags) {
-	return ImGui::Binding::SliderFloat(*str_from(label), r_cast<CallStack*>(stack), v_min, v_max, *str_from(display_format), s_cast<uint32_t>(slider_flags)) ? 1 : 0;
+int32_t imgui__slider_float_ret_opts(int64_t label, int64_t stack, float v_min, float v_max, int64_t display_format, int32_t slider_flags) {
+	return ImGui::Binding::SliderFloat(*Str_From(label), r_cast<CallStack*>(stack), v_min, v_max, *Str_From(display_format), s_cast<uint32_t>(slider_flags)) ? 1 : 0;
 }
-static int32_t imgui__slider_float2_ret_opts(int64_t label, int64_t stack, float v_min, float v_max, int64_t display_format, int32_t slider_flags) {
-	return ImGui::Binding::SliderFloat2(*str_from(label), r_cast<CallStack*>(stack), v_min, v_max, *str_from(display_format), s_cast<uint32_t>(slider_flags)) ? 1 : 0;
+int32_t imgui__slider_float2_ret_opts(int64_t label, int64_t stack, float v_min, float v_max, int64_t display_format, int32_t slider_flags) {
+	return ImGui::Binding::SliderFloat2(*Str_From(label), r_cast<CallStack*>(stack), v_min, v_max, *Str_From(display_format), s_cast<uint32_t>(slider_flags)) ? 1 : 0;
 }
-static int32_t imgui__slider_int_ret_opts(int64_t label, int64_t stack, int32_t v_min, int32_t v_max, int64_t format, int32_t slider_flags) {
-	return ImGui::Binding::SliderInt(*str_from(label), r_cast<CallStack*>(stack), s_cast<int>(v_min), s_cast<int>(v_max), *str_from(format), s_cast<uint32_t>(slider_flags)) ? 1 : 0;
+int32_t imgui__slider_int_ret_opts(int64_t label, int64_t stack, int32_t v_min, int32_t v_max, int64_t format, int32_t slider_flags) {
+	return ImGui::Binding::SliderInt(*Str_From(label), r_cast<CallStack*>(stack), s_cast<int>(v_min), s_cast<int>(v_max), *Str_From(format), s_cast<uint32_t>(slider_flags)) ? 1 : 0;
 }
-static int32_t imgui__slider_int2_ret_opts(int64_t label, int64_t stack, int32_t v_min, int32_t v_max, int64_t display_format, int32_t slider_flags) {
-	return ImGui::Binding::SliderInt2(*str_from(label), r_cast<CallStack*>(stack), s_cast<int>(v_min), s_cast<int>(v_max), *str_from(display_format), s_cast<uint32_t>(slider_flags)) ? 1 : 0;
+int32_t imgui__slider_int2_ret_opts(int64_t label, int64_t stack, int32_t v_min, int32_t v_max, int64_t display_format, int32_t slider_flags) {
+	return ImGui::Binding::SliderInt2(*Str_From(label), r_cast<CallStack*>(stack), s_cast<int>(v_min), s_cast<int>(v_max), *Str_From(display_format), s_cast<uint32_t>(slider_flags)) ? 1 : 0;
 }
-static int32_t imgui__drag_float_range2_ret_opts(int64_t label, int64_t stack, float v_speed, float v_min, float v_max, int64_t format, int64_t format_max, int32_t slider_flags) {
-	return ImGui::Binding::DragFloatRange2(*str_from(label), r_cast<CallStack*>(stack), v_speed, v_min, v_max, *str_from(format), *str_from(format_max), s_cast<uint32_t>(slider_flags)) ? 1 : 0;
+int32_t imgui__drag_float_range2_ret_opts(int64_t label, int64_t stack, float v_speed, float v_min, float v_max, int64_t format, int64_t format_max, int32_t slider_flags) {
+	return ImGui::Binding::DragFloatRange2(*Str_From(label), r_cast<CallStack*>(stack), v_speed, v_min, v_max, *Str_From(format), *Str_From(format_max), s_cast<uint32_t>(slider_flags)) ? 1 : 0;
 }
-static int32_t imgui__drag_int_range2_ret_opts(int64_t label, int64_t stack, float v_speed, int32_t v_min, int32_t v_max, int64_t format, int64_t format_max, int32_t slider_flags) {
-	return ImGui::Binding::DragIntRange2(*str_from(label), r_cast<CallStack*>(stack), v_speed, s_cast<int>(v_min), s_cast<int>(v_max), *str_from(format), *str_from(format_max), s_cast<uint32_t>(slider_flags)) ? 1 : 0;
+int32_t imgui__drag_int_range2_ret_opts(int64_t label, int64_t stack, float v_speed, int32_t v_min, int32_t v_max, int64_t format, int64_t format_max, int32_t slider_flags) {
+	return ImGui::Binding::DragIntRange2(*Str_From(label), r_cast<CallStack*>(stack), v_speed, s_cast<int>(v_min), s_cast<int>(v_max), *Str_From(format), *Str_From(format_max), s_cast<uint32_t>(slider_flags)) ? 1 : 0;
 }
-static int32_t imgui__v_slider_float_ret_opts(int64_t label, int64_t size, int64_t stack, float v_min, float v_max, int64_t format, int32_t slider_flags) {
-	return ImGui::Binding::VSliderFloat(*str_from(label), vec2_from(size), r_cast<CallStack*>(stack), v_min, v_max, *str_from(format), s_cast<uint32_t>(slider_flags)) ? 1 : 0;
+int32_t imgui__v_slider_float_ret_opts(int64_t label, int64_t size, int64_t stack, float v_min, float v_max, int64_t format, int32_t slider_flags) {
+	return ImGui::Binding::VSliderFloat(*Str_From(label), Vec2_From(size), r_cast<CallStack*>(stack), v_min, v_max, *Str_From(format), s_cast<uint32_t>(slider_flags)) ? 1 : 0;
 }
-static int32_t imgui__v_slider_int_ret_opts(int64_t label, int64_t size, int64_t stack, int32_t v_min, int32_t v_max, int64_t format, int32_t slider_flags) {
-	return ImGui::Binding::VSliderInt(*str_from(label), vec2_from(size), r_cast<CallStack*>(stack), s_cast<int>(v_min), s_cast<int>(v_max), *str_from(format), s_cast<uint32_t>(slider_flags)) ? 1 : 0;
+int32_t imgui__v_slider_int_ret_opts(int64_t label, int64_t size, int64_t stack, int32_t v_min, int32_t v_max, int64_t format, int32_t slider_flags) {
+	return ImGui::Binding::VSliderInt(*Str_From(label), Vec2_From(size), r_cast<CallStack*>(stack), s_cast<int>(v_min), s_cast<int>(v_max), *Str_From(format), s_cast<uint32_t>(slider_flags)) ? 1 : 0;
 }
-static int32_t imgui__color_edit3_ret_opts(int64_t label, int64_t stack, int32_t color_edit_flags) {
-	return ImGui::Binding::ColorEdit3(*str_from(label), r_cast<CallStack*>(stack), s_cast<uint32_t>(color_edit_flags)) ? 1 : 0;
+int32_t imgui__color_edit3_ret_opts(int64_t label, int64_t stack, int32_t color_edit_flags) {
+	return ImGui::Binding::ColorEdit3(*Str_From(label), r_cast<CallStack*>(stack), s_cast<uint32_t>(color_edit_flags)) ? 1 : 0;
 }
-static int32_t imgui__color_edit4_ret_opts(int64_t label, int64_t stack, int32_t color_edit_flags) {
-	return ImGui::Binding::ColorEdit4(*str_from(label), r_cast<CallStack*>(stack), s_cast<uint32_t>(color_edit_flags)) ? 1 : 0;
+int32_t imgui__color_edit4_ret_opts(int64_t label, int64_t stack, int32_t color_edit_flags) {
+	return ImGui::Binding::ColorEdit4(*Str_From(label), r_cast<CallStack*>(stack), s_cast<uint32_t>(color_edit_flags)) ? 1 : 0;
 }
-static void imgui_scroll_when_dragging_on_void() {
+void imgui_scroll_when_dragging_on_void() {
 	ImGui::Binding::ScrollWhenDraggingOnVoid();
 }
-static void imgui__set_next_window_pos_opts(int64_t pos, int32_t set_cond, int64_t pivot) {
-	ImGui::SetNextWindowPos(vec2_from(pos), s_cast<uint32_t>(set_cond), vec2_from(pivot));
+void imgui__set_next_window_pos_opts(int64_t pos, int32_t set_cond, int64_t pivot) {
+	ImGui::SetNextWindowPos(Vec2_From(pos), s_cast<uint32_t>(set_cond), Vec2_From(pivot));
 }
-static void imgui_set_next_window_bg_alpha(float alpha) {
+void imgui_set_next_window_bg_alpha(float alpha) {
 	ImGui::SetNextWindowBgAlpha(alpha);
 }
-static void imgui_show_demo_window() {
+void imgui_show_demo_window() {
 	ImGui::ShowDemoWindow();
 }
-static int64_t imgui_get_content_region_avail() {
-	return vec2_retain(ImGui::GetContentRegionAvail());
+int64_t imgui_get_content_region_avail() {
+	return Vec2_Retain(ImGui::GetContentRegionAvail());
 }
-static int64_t imgui_get_window_pos() {
-	return vec2_retain(ImGui::GetWindowPos());
+int64_t imgui_get_window_pos() {
+	return Vec2_Retain(ImGui::GetWindowPos());
 }
-static int64_t imgui_get_window_size() {
-	return vec2_retain(ImGui::GetWindowSize());
+int64_t imgui_get_window_size() {
+	return Vec2_Retain(ImGui::GetWindowSize());
 }
-static float imgui_get_window_width() {
+float imgui_get_window_width() {
 	return ImGui::GetWindowWidth();
 }
-static float imgui_get_window_height() {
+float imgui_get_window_height() {
 	return ImGui::GetWindowHeight();
 }
-static int32_t imgui_is_window_collapsed() {
+int32_t imgui_is_window_collapsed() {
 	return ImGui::IsWindowCollapsed() ? 1 : 0;
 }
-static void imgui_set_window_font_scale(float scale) {
+void imgui_set_window_font_scale(float scale) {
 	ImGui::SetWindowFontScale(scale);
 }
-static void imgui_set_next_window_size_constraints(int64_t size_min, int64_t size_max) {
-	ImGui::SetNextWindowSizeConstraints(vec2_from(size_min), vec2_from(size_max));
+void imgui_set_next_window_size_constraints(int64_t size_min, int64_t size_max) {
+	ImGui::SetNextWindowSizeConstraints(Vec2_From(size_min), Vec2_From(size_max));
 }
-static void imgui_set_next_window_content_size(int64_t size) {
-	ImGui::SetNextWindowContentSize(vec2_from(size));
+void imgui_set_next_window_content_size(int64_t size) {
+	ImGui::SetNextWindowContentSize(Vec2_From(size));
 }
-static void imgui_set_next_window_focus() {
+void imgui_set_next_window_focus() {
 	ImGui::SetNextWindowFocus();
 }
-static float imgui_get_scroll_x() {
+float imgui_get_scroll_x() {
 	return ImGui::GetScrollX();
 }
-static float imgui_get_scroll_y() {
+float imgui_get_scroll_y() {
 	return ImGui::GetScrollY();
 }
-static float imgui_get_scroll_max_x() {
+float imgui_get_scroll_max_x() {
 	return ImGui::GetScrollMaxX();
 }
-static float imgui_get_scroll_max_y() {
+float imgui_get_scroll_max_y() {
 	return ImGui::GetScrollMaxY();
 }
-static void imgui_set_scroll_x(float scroll_x) {
+void imgui_set_scroll_x(float scroll_x) {
 	ImGui::SetScrollX(scroll_x);
 }
-static void imgui_set_scroll_y(float scroll_y) {
+void imgui_set_scroll_y(float scroll_y) {
 	ImGui::SetScrollY(scroll_y);
 }
-static void imgui_set_scroll_here_y(float center_y_ratio) {
+void imgui_set_scroll_here_y(float center_y_ratio) {
 	ImGui::SetScrollHereY(center_y_ratio);
 }
-static void imgui_set_scroll_from_pos_y(float pos_y, float center_y_ratio) {
+void imgui_set_scroll_from_pos_y(float pos_y, float center_y_ratio) {
 	ImGui::SetScrollFromPosY(pos_y, center_y_ratio);
 }
-static void imgui_set_keyboard_focus_here(int32_t offset) {
+void imgui_set_keyboard_focus_here(int32_t offset) {
 	ImGui::SetKeyboardFocusHere(s_cast<int>(offset));
 }
-static void imgui__pop_style_color(int32_t count) {
+void imgui__pop_style_color(int32_t count) {
 	ImGui::PopStyleColor(s_cast<int>(count));
 }
-static void imgui__pop_style_var(int32_t count) {
+void imgui__pop_style_var(int32_t count) {
 	ImGui::PopStyleVar(s_cast<int>(count));
 }
-static void imgui_set_next_item_width(float item_width) {
+void imgui_set_next_item_width(float item_width) {
 	ImGui::SetNextItemWidth(item_width);
 }
-static void imgui__push_item_width(float item_width) {
+void imgui__push_item_width(float item_width) {
 	ImGui::PushItemWidth(item_width);
 }
-static void imgui__pop_item_width() {
+void imgui__pop_item_width() {
 	ImGui::PopItemWidth();
 }
-static float imgui_calc_item_width() {
+float imgui_calc_item_width() {
 	return ImGui::CalcItemWidth();
 }
-static void imgui__push_text_wrap_pos(float wrap_pos_x) {
+void imgui__push_text_wrap_pos(float wrap_pos_x) {
 	ImGui::PushTextWrapPos(wrap_pos_x);
 }
-static void imgui__pop_text_wrap_pos() {
+void imgui__pop_text_wrap_pos() {
 	ImGui::PopTextWrapPos();
 }
-static void imgui__push_item_flag(int32_t flag, int32_t enabled) {
+void imgui__push_item_flag(int32_t flag, int32_t enabled) {
 	ImGui::PushItemFlag(s_cast<uint32_t>(flag), enabled != 0);
 }
-static void imgui__pop_item_flag() {
+void imgui__pop_item_flag() {
 	ImGui::PopItemFlag();
 }
-static void imgui_separator() {
+void imgui_separator() {
 	ImGui::Separator();
 }
-static void imgui_same_line(float pos_x, float spacing_w) {
+void imgui_same_line(float pos_x, float spacing_w) {
 	ImGui::SameLine(pos_x, spacing_w);
 }
-static void imgui_new_line() {
+void imgui_new_line() {
 	ImGui::NewLine();
 }
-static void imgui_spacing() {
+void imgui_spacing() {
 	ImGui::Spacing();
 }
-static void imgui_dummy(int64_t size) {
-	ImGui::Dummy(vec2_from(size));
+void imgui_dummy(int64_t size) {
+	ImGui::Dummy(Vec2_From(size));
 }
-static void imgui_indent(float indent_w) {
+void imgui_indent(float indent_w) {
 	ImGui::Indent(indent_w);
 }
-static void imgui_unindent(float indent_w) {
+void imgui_unindent(float indent_w) {
 	ImGui::Unindent(indent_w);
 }
-static void imgui__begin_group() {
+void imgui__begin_group() {
 	ImGui::BeginGroup();
 }
-static void imgui__end_group() {
+void imgui__end_group() {
 	ImGui::EndGroup();
 }
-static int64_t imgui_get_cursor_pos() {
-	return vec2_retain(ImGui::GetCursorPos());
+int64_t imgui_get_cursor_pos() {
+	return Vec2_Retain(ImGui::GetCursorPos());
 }
-static float imgui_get_cursor_pos_x() {
+float imgui_get_cursor_pos_x() {
 	return ImGui::GetCursorPosX();
 }
-static float imgui_get_cursor_pos_y() {
+float imgui_get_cursor_pos_y() {
 	return ImGui::GetCursorPosY();
 }
-static void imgui_set_cursor_pos(int64_t local_pos) {
-	ImGui::SetCursorPos(vec2_from(local_pos));
+void imgui_set_cursor_pos(int64_t local_pos) {
+	ImGui::SetCursorPos(Vec2_From(local_pos));
 }
-static void imgui_set_cursor_pos_x(float x) {
+void imgui_set_cursor_pos_x(float x) {
 	ImGui::SetCursorPosX(x);
 }
-static void imgui_set_cursor_pos_y(float y) {
+void imgui_set_cursor_pos_y(float y) {
 	ImGui::SetCursorPosY(y);
 }
-static int64_t imgui_get_cursor_start_pos() {
-	return vec2_retain(ImGui::GetCursorStartPos());
+int64_t imgui_get_cursor_start_pos() {
+	return Vec2_Retain(ImGui::GetCursorStartPos());
 }
-static int64_t imgui_get_cursor_screen_pos() {
-	return vec2_retain(ImGui::GetCursorScreenPos());
+int64_t imgui_get_cursor_screen_pos() {
+	return Vec2_Retain(ImGui::GetCursorScreenPos());
 }
-static void imgui_set_cursor_screen_pos(int64_t pos) {
-	ImGui::SetCursorScreenPos(vec2_from(pos));
+void imgui_set_cursor_screen_pos(int64_t pos) {
+	ImGui::SetCursorScreenPos(Vec2_From(pos));
 }
-static void imgui_align_text_to_frame_padding() {
+void imgui_align_text_to_frame_padding() {
 	ImGui::AlignTextToFramePadding();
 }
-static float imgui_get_text_line_height() {
+float imgui_get_text_line_height() {
 	return ImGui::GetTextLineHeight();
 }
-static float imgui_get_text_line_height_with_spacing() {
+float imgui_get_text_line_height_with_spacing() {
 	return ImGui::GetTextLineHeightWithSpacing();
 }
-static void imgui_next_column() {
+void imgui_next_column() {
 	ImGui::NextColumn();
 }
-static int32_t imgui_get_column_index() {
+int32_t imgui_get_column_index() {
 	return s_cast<int32_t>(ImGui::GetColumnIndex());
 }
-static float imgui_get_column_offset(int32_t column_index) {
+float imgui_get_column_offset(int32_t column_index) {
 	return ImGui::GetColumnOffset(s_cast<int>(column_index));
 }
-static void imgui_set_column_offset(int32_t column_index, float offset_x) {
+void imgui_set_column_offset(int32_t column_index, float offset_x) {
 	ImGui::SetColumnOffset(s_cast<int>(column_index), offset_x);
 }
-static float imgui_get_column_width(int32_t column_index) {
+float imgui_get_column_width(int32_t column_index) {
 	return ImGui::GetColumnWidth(s_cast<int>(column_index));
 }
-static int32_t imgui_get_columns_count() {
+int32_t imgui_get_columns_count() {
 	return s_cast<int32_t>(ImGui::GetColumnsCount());
 }
-static void imgui__end_table() {
+void imgui__end_table() {
 	ImGui::EndTable();
 }
-static int32_t imgui_table_next_column() {
+int32_t imgui_table_next_column() {
 	return ImGui::TableNextColumn() ? 1 : 0;
 }
-static int32_t imgui_table_set_column_index(int32_t column_n) {
+int32_t imgui_table_set_column_index(int32_t column_n) {
 	return ImGui::TableSetColumnIndex(s_cast<int>(column_n)) ? 1 : 0;
 }
-static void imgui_table_setup_scroll_freeze(int32_t cols, int32_t rows) {
+void imgui_table_setup_scroll_freeze(int32_t cols, int32_t rows) {
 	ImGui::TableSetupScrollFreeze(s_cast<int>(cols), s_cast<int>(rows));
 }
-static void imgui_table_headers_row() {
+void imgui_table_headers_row() {
 	ImGui::TableHeadersRow();
 }
-static void imgui_bullet_item() {
+void imgui_bullet_item() {
 	ImGui::Bullet();
 }
-static int32_t imgui_text_link(int64_t label) {
-	return ImGui::Binding::TextLink(*str_from(label)) ? 1 : 0;
+int32_t imgui_text_link(int64_t label) {
+	return ImGui::Binding::TextLink(*Str_From(label)) ? 1 : 0;
 }
-static void imgui_text_link_open_url(int64_t label, int64_t url) {
-	ImGui::Binding::TextLinkOpenURL(*str_from(label), *str_from(url));
+void imgui_text_link_open_url(int64_t label, int64_t url) {
+	ImGui::Binding::TextLinkOpenURL(*Str_From(label), *Str_From(url));
 }
-static void imgui_set_window_focus(int64_t name) {
-	ImGui::Binding::SetWindowFocus(*str_from(name));
+void imgui_set_window_focus(int64_t name) {
+	ImGui::Binding::SetWindowFocus(*Str_From(name));
 }
-static void imgui_separator_text(int64_t text) {
-	ImGui::Binding::SeparatorText(*str_from(text));
+void imgui_separator_text(int64_t text) {
+	ImGui::Binding::SeparatorText(*Str_From(text));
 }
-static void imgui_table_header(int64_t label) {
-	ImGui::Binding::TableHeader(*str_from(label));
+void imgui_table_header(int64_t label) {
+	ImGui::Binding::TableHeader(*Str_From(label));
 }
-static void imgui__push_id(int64_t str_id) {
-	ImGui::Binding::PushID(*str_from(str_id));
+void imgui__push_id(int64_t str_id) {
+	ImGui::Binding::PushID(*Str_From(str_id));
 }
-static void imgui__pop_id() {
+void imgui__pop_id() {
 	ImGui::PopID();
 }
-static int32_t imgui_get_id(int64_t str_id) {
-	return s_cast<int32_t>(ImGui::Binding::GetID(*str_from(str_id)));
+int32_t imgui_get_id(int64_t str_id) {
+	return s_cast<int32_t>(ImGui::Binding::GetID(*Str_From(str_id)));
 }
-static int32_t imgui_button(int64_t label, int64_t size) {
-	return ImGui::Binding::Button(*str_from(label), vec2_from(size)) ? 1 : 0;
+int32_t imgui_button(int64_t label, int64_t size) {
+	return ImGui::Binding::Button(*Str_From(label), Vec2_From(size)) ? 1 : 0;
 }
-static int32_t imgui_small_button(int64_t label) {
-	return ImGui::Binding::SmallButton(*str_from(label)) ? 1 : 0;
+int32_t imgui_small_button(int64_t label) {
+	return ImGui::Binding::SmallButton(*Str_From(label)) ? 1 : 0;
 }
-static int32_t imgui_invisible_button(int64_t str_id, int64_t size) {
-	return ImGui::Binding::InvisibleButton(*str_from(str_id), vec2_from(size)) ? 1 : 0;
+int32_t imgui_invisible_button(int64_t str_id, int64_t size) {
+	return ImGui::Binding::InvisibleButton(*Str_From(str_id), Vec2_From(size)) ? 1 : 0;
 }
-static int32_t imgui__checkbox_ret(int64_t label, int64_t stack) {
-	return ImGui::Binding::Checkbox(*str_from(label), r_cast<CallStack*>(stack)) ? 1 : 0;
+int32_t imgui__checkbox_ret(int64_t label, int64_t stack) {
+	return ImGui::Binding::Checkbox(*Str_From(label), r_cast<CallStack*>(stack)) ? 1 : 0;
 }
-static int32_t imgui__radio_button_ret(int64_t label, int64_t stack, int32_t v_button) {
-	return ImGui::Binding::RadioButton(*str_from(label), r_cast<CallStack*>(stack), s_cast<int>(v_button)) ? 1 : 0;
+int32_t imgui__radio_button_ret(int64_t label, int64_t stack, int32_t v_button) {
+	return ImGui::Binding::RadioButton(*Str_From(label), r_cast<CallStack*>(stack), s_cast<int>(v_button)) ? 1 : 0;
 }
-static void imgui_plot_lines(int64_t label, int64_t values) {
-	ImGui::Binding::PlotLines(*str_from(label), from_float_vec(values));
+void imgui_plot_lines(int64_t label, int64_t values) {
+	ImGui::Binding::PlotLines(*Str_From(label), Vec_FromFloat(values));
 }
-static void imgui_plot_lines_opts(int64_t label, int64_t values, int32_t values_offset, int64_t overlay_text, float scale_min, float scale_max, int64_t graph_size) {
-	ImGui::Binding::PlotLines(*str_from(label), from_float_vec(values), s_cast<int>(values_offset), *str_from(overlay_text), scale_min, scale_max, vec2_from(graph_size));
+void imgui_plot_lines_opts(int64_t label, int64_t values, int32_t values_offset, int64_t overlay_text, float scale_min, float scale_max, int64_t graph_size) {
+	ImGui::Binding::PlotLines(*Str_From(label), Vec_FromFloat(values), s_cast<int>(values_offset), *Str_From(overlay_text), scale_min, scale_max, Vec2_From(graph_size));
 }
-static void imgui_plot_histogram(int64_t label, int64_t values) {
-	ImGui::Binding::PlotHistogram(*str_from(label), from_float_vec(values));
+void imgui_plot_histogram(int64_t label, int64_t values) {
+	ImGui::Binding::PlotHistogram(*Str_From(label), Vec_FromFloat(values));
 }
-static void imgui_plot_histogram_opts(int64_t label, int64_t values, int32_t values_offset, int64_t overlay_text, float scale_min, float scale_max, int64_t graph_size) {
-	ImGui::Binding::PlotHistogram(*str_from(label), from_float_vec(values), s_cast<int>(values_offset), *str_from(overlay_text), scale_min, scale_max, vec2_from(graph_size));
+void imgui_plot_histogram_opts(int64_t label, int64_t values, int32_t values_offset, int64_t overlay_text, float scale_min, float scale_max, int64_t graph_size) {
+	ImGui::Binding::PlotHistogram(*Str_From(label), Vec_FromFloat(values), s_cast<int>(values_offset), *Str_From(overlay_text), scale_min, scale_max, Vec2_From(graph_size));
 }
-static void imgui_progress_bar(float fraction) {
+void imgui_progress_bar(float fraction) {
 	ImGui::Binding::ProgressBar(fraction);
 }
-static void imgui_progress_bar_opts(float fraction, int64_t size_arg, int64_t overlay) {
-	ImGui::Binding::ProgressBar(fraction, vec2_from(size_arg), *str_from(overlay));
+void imgui_progress_bar_opts(float fraction, int64_t size_arg, int64_t overlay) {
+	ImGui::Binding::ProgressBar(fraction, Vec2_From(size_arg), *Str_From(overlay));
 }
-static int32_t imgui__list_box_ret_opts(int64_t label, int64_t stack, int64_t items, int32_t height_in_items) {
-	return ImGui::Binding::ListBox(*str_from(label), r_cast<CallStack*>(stack), from_str_vec(items), s_cast<int>(height_in_items)) ? 1 : 0;
+int32_t imgui__list_box_ret_opts(int64_t label, int64_t stack, int64_t items, int32_t height_in_items) {
+	return ImGui::Binding::ListBox(*Str_From(label), r_cast<CallStack*>(stack), Vec_FromStr(items), s_cast<int>(height_in_items)) ? 1 : 0;
 }
-static int32_t imgui__slider_angle_ret(int64_t label, int64_t stack, float v_degrees_min, float v_degrees_max) {
-	return ImGui::Binding::SliderAngle(*str_from(label), r_cast<CallStack*>(stack), v_degrees_min, v_degrees_max) ? 1 : 0;
+int32_t imgui__slider_angle_ret(int64_t label, int64_t stack, float v_degrees_min, float v_degrees_max) {
+	return ImGui::Binding::SliderAngle(*Str_From(label), r_cast<CallStack*>(stack), v_degrees_min, v_degrees_max) ? 1 : 0;
 }
-static void imgui__tree_push(int64_t str_id) {
-	ImGui::Binding::TreePush(*str_from(str_id));
+void imgui__tree_push(int64_t str_id) {
+	ImGui::Binding::TreePush(*Str_From(str_id));
 }
-static void imgui__tree_pop() {
+void imgui__tree_pop() {
 	ImGui::TreePop();
 }
-static void imgui_value(int64_t prefix, int32_t b) {
-	ImGui::Binding::Value(*str_from(prefix), b != 0);
+void imgui_value(int64_t prefix, int32_t b) {
+	ImGui::Binding::Value(*Str_From(prefix), b != 0);
 }
-static int32_t imgui_menu_item(int64_t label, int64_t shortcut, int32_t selected, int32_t enabled) {
-	return ImGui::Binding::MenuItem(*str_from(label), *str_from(shortcut), selected != 0, enabled != 0) ? 1 : 0;
+int32_t imgui_menu_item(int64_t label, int64_t shortcut, int32_t selected, int32_t enabled) {
+	return ImGui::Binding::MenuItem(*Str_From(label), *Str_From(shortcut), selected != 0, enabled != 0) ? 1 : 0;
 }
-static void imgui_open_popup(int64_t str_id) {
-	ImGui::Binding::OpenPopup(*str_from(str_id));
+void imgui_open_popup(int64_t str_id) {
+	ImGui::Binding::OpenPopup(*Str_From(str_id));
 }
-static int32_t imgui__begin_popup(int64_t str_id) {
-	return ImGui::Binding::BeginPopup(*str_from(str_id)) ? 1 : 0;
+int32_t imgui__begin_popup(int64_t str_id) {
+	return ImGui::Binding::BeginPopup(*Str_From(str_id)) ? 1 : 0;
 }
-static void imgui__end_popup() {
+void imgui__end_popup() {
 	ImGui::EndPopup();
 }
-static float imgui_get_tree_node_to_label_spacing() {
+float imgui_get_tree_node_to_label_spacing() {
 	return ImGui::GetTreeNodeToLabelSpacing();
 }
-static int32_t imgui__begin_list_box(int64_t label, int64_t size) {
-	return ImGui::Binding::BeginListBox(*str_from(label), vec2_from(size)) ? 1 : 0;
+int32_t imgui__begin_list_box(int64_t label, int64_t size) {
+	return ImGui::Binding::BeginListBox(*Str_From(label), Vec2_From(size)) ? 1 : 0;
 }
-static void imgui__end_list_box() {
+void imgui__end_list_box() {
 	ImGui::EndListBox();
 }
-static void imgui__begin_disabled() {
+void imgui__begin_disabled() {
 	ImGui::BeginDisabled();
 }
-static void imgui__end_disabled() {
+void imgui__end_disabled() {
 	ImGui::EndDisabled();
 }
-static int32_t imgui__begin_tooltip() {
+int32_t imgui__begin_tooltip() {
 	return ImGui::BeginTooltip() ? 1 : 0;
 }
-static void imgui__end_tooltip() {
+void imgui__end_tooltip() {
 	ImGui::EndTooltip();
 }
-static int32_t imgui__begin_main_menu_bar() {
+int32_t imgui__begin_main_menu_bar() {
 	return ImGui::BeginMainMenuBar() ? 1 : 0;
 }
-static void imgui__end_main_menu_bar() {
+void imgui__end_main_menu_bar() {
 	ImGui::EndMainMenuBar();
 }
-static int32_t imgui__begin_menu_bar() {
+int32_t imgui__begin_menu_bar() {
 	return ImGui::BeginMenuBar() ? 1 : 0;
 }
-static void imgui__end_menu_bar() {
+void imgui__end_menu_bar() {
 	ImGui::EndMenuBar();
 }
-static int32_t imgui__begin_menu(int64_t label, int32_t enabled) {
-	return ImGui::Binding::BeginMenu(*str_from(label), enabled != 0) ? 1 : 0;
+int32_t imgui__begin_menu(int64_t label, int32_t enabled) {
+	return ImGui::Binding::BeginMenu(*Str_From(label), enabled != 0) ? 1 : 0;
 }
-static void imgui__end_menu() {
+void imgui__end_menu() {
 	ImGui::EndMenu();
 }
-static void imgui_close_current_popup() {
+void imgui_close_current_popup() {
 	ImGui::CloseCurrentPopup();
 }
-static void imgui__push_clip_rect(int64_t clip_rect_min, int64_t clip_rect_max, int32_t intersect_with_current_clip_rect) {
-	ImGui::PushClipRect(vec2_from(clip_rect_min), vec2_from(clip_rect_max), intersect_with_current_clip_rect != 0);
+void imgui__push_clip_rect(int64_t clip_rect_min, int64_t clip_rect_max, int32_t intersect_with_current_clip_rect) {
+	ImGui::PushClipRect(Vec2_From(clip_rect_min), Vec2_From(clip_rect_max), intersect_with_current_clip_rect != 0);
 }
-static void imgui__pop_clip_rect() {
+void imgui__pop_clip_rect() {
 	ImGui::PopClipRect();
 }
-static int32_t imgui_is_item_hovered() {
+int32_t imgui_is_item_hovered() {
 	return ImGui::IsItemHovered() ? 1 : 0;
 }
-static int32_t imgui_is_item_active() {
+int32_t imgui_is_item_active() {
 	return ImGui::IsItemActive() ? 1 : 0;
 }
-static int32_t imgui_is_item_clicked(int32_t mouse_button) {
+int32_t imgui_is_item_clicked(int32_t mouse_button) {
 	return ImGui::IsItemClicked(s_cast<int>(mouse_button)) ? 1 : 0;
 }
-static int32_t imgui_is_item_visible() {
+int32_t imgui_is_item_visible() {
 	return ImGui::IsItemVisible() ? 1 : 0;
 }
-static int32_t imgui_is_any_item_hovered() {
+int32_t imgui_is_any_item_hovered() {
 	return ImGui::IsAnyItemHovered() ? 1 : 0;
 }
-static int32_t imgui_is_any_item_active() {
+int32_t imgui_is_any_item_active() {
 	return ImGui::IsAnyItemActive() ? 1 : 0;
 }
-static int64_t imgui_get_item_rect_min() {
-	return vec2_retain(ImGui::GetItemRectMin());
+int64_t imgui_get_item_rect_min() {
+	return Vec2_Retain(ImGui::GetItemRectMin());
 }
-static int64_t imgui_get_item_rect_max() {
-	return vec2_retain(ImGui::GetItemRectMax());
+int64_t imgui_get_item_rect_max() {
+	return Vec2_Retain(ImGui::GetItemRectMax());
 }
-static int64_t imgui_get_item_rect_size() {
-	return vec2_retain(ImGui::GetItemRectSize());
+int64_t imgui_get_item_rect_size() {
+	return Vec2_Retain(ImGui::GetItemRectSize());
 }
-static void imgui_set_next_item_allow_overlap() {
+void imgui_set_next_item_allow_overlap() {
 	ImGui::SetNextItemAllowOverlap();
 }
-static int32_t imgui_is_window_hovered() {
+int32_t imgui_is_window_hovered() {
 	return ImGui::IsWindowHovered() ? 1 : 0;
 }
-static int32_t imgui_is_window_focused() {
+int32_t imgui_is_window_focused() {
 	return ImGui::IsWindowFocused() ? 1 : 0;
 }
-static int32_t imgui_is_rect_visible(int64_t size) {
-	return ImGui::IsRectVisible(vec2_from(size)) ? 1 : 0;
+int32_t imgui_is_rect_visible(int64_t size) {
+	return ImGui::IsRectVisible(Vec2_From(size)) ? 1 : 0;
 }
-static int32_t imgui_is_mouse_down(int32_t button) {
+int32_t imgui_is_mouse_down(int32_t button) {
 	return ImGui::IsMouseDown(s_cast<int>(button)) ? 1 : 0;
 }
-static int32_t imgui_is_mouse_clicked(int32_t button, int32_t repeat) {
+int32_t imgui_is_mouse_clicked(int32_t button, int32_t repeat) {
 	return ImGui::IsMouseClicked(s_cast<int>(button), repeat != 0) ? 1 : 0;
 }
-static int32_t imgui_is_mouse_double_clicked(int32_t button) {
+int32_t imgui_is_mouse_double_clicked(int32_t button) {
 	return ImGui::IsMouseDoubleClicked(s_cast<int>(button)) ? 1 : 0;
 }
-static int32_t imgui_is_mouse_released(int32_t button) {
+int32_t imgui_is_mouse_released(int32_t button) {
 	return ImGui::IsMouseReleased(s_cast<int>(button)) ? 1 : 0;
 }
-static int32_t imgui_is_mouse_hovering_rect(int64_t r_min, int64_t r_max, int32_t clip) {
-	return ImGui::IsMouseHoveringRect(vec2_from(r_min), vec2_from(r_max), clip != 0) ? 1 : 0;
+int32_t imgui_is_mouse_hovering_rect(int64_t r_min, int64_t r_max, int32_t clip) {
+	return ImGui::IsMouseHoveringRect(Vec2_From(r_min), Vec2_From(r_max), clip != 0) ? 1 : 0;
 }
-static int32_t imgui_is_mouse_dragging(int32_t button, float lock_threshold) {
+int32_t imgui_is_mouse_dragging(int32_t button, float lock_threshold) {
 	return ImGui::IsMouseDragging(s_cast<int>(button), lock_threshold) ? 1 : 0;
 }
-static int64_t imgui_get_mouse_pos() {
-	return vec2_retain(ImGui::GetMousePos());
+int64_t imgui_get_mouse_pos() {
+	return Vec2_Retain(ImGui::GetMousePos());
 }
-static int64_t imgui_get_mouse_pos_on_opening_current_popup() {
-	return vec2_retain(ImGui::GetMousePosOnOpeningCurrentPopup());
+int64_t imgui_get_mouse_pos_on_opening_current_popup() {
+	return Vec2_Retain(ImGui::GetMousePosOnOpeningCurrentPopup());
 }
-static int64_t imgui_get_mouse_drag_delta(int32_t button, float lock_threshold) {
-	return vec2_retain(ImGui::GetMouseDragDelta(s_cast<int>(button), lock_threshold));
+int64_t imgui_get_mouse_drag_delta(int32_t button, float lock_threshold) {
+	return Vec2_Retain(ImGui::GetMouseDragDelta(s_cast<int>(button), lock_threshold));
 }
-static void imgui_reset_mouse_drag_delta(int32_t button) {
+void imgui_reset_mouse_drag_delta(int32_t button) {
 	ImGui::ResetMouseDragDelta(s_cast<int>(button));
 }
+} // extern "C"
+
 static void linkImGui(wasm3::module3& mod) {
 	mod.link_optional("*", "imgui_load_font_ttf_async", imgui_load_font_ttf_async);
 	mod.link_optional("*", "imgui_is_font_loaded", imgui_is_font_loaded);

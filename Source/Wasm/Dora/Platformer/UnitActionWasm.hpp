@@ -6,34 +6,36 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-static void platformer_unitaction_set_reaction(int64_t self, float var) {
+extern "C" {
+using namespace Dora;
+void platformer_unitaction_set_reaction(int64_t self, float var) {
 	r_cast<Platformer::UnitAction*>(self)->reaction = s_cast<float>(var);
 }
-static float platformer_unitaction_get_reaction(int64_t self) {
+float platformer_unitaction_get_reaction(int64_t self) {
 	return r_cast<Platformer::UnitAction*>(self)->reaction;
 }
-static void platformer_unitaction_set_recovery(int64_t self, float var) {
+void platformer_unitaction_set_recovery(int64_t self, float var) {
 	r_cast<Platformer::UnitAction*>(self)->recovery = s_cast<float>(var);
 }
-static float platformer_unitaction_get_recovery(int64_t self) {
+float platformer_unitaction_get_recovery(int64_t self) {
 	return r_cast<Platformer::UnitAction*>(self)->recovery;
 }
-static int64_t platformer_unitaction_get_name(int64_t self) {
-	return str_retain(r_cast<Platformer::UnitAction*>(self)->getName());
+int64_t platformer_unitaction_get_name(int64_t self) {
+	return Str_Retain(r_cast<Platformer::UnitAction*>(self)->getName());
 }
-static int32_t platformer_unitaction_is_doing(int64_t self) {
+int32_t platformer_unitaction_is_doing(int64_t self) {
 	return r_cast<Platformer::UnitAction*>(self)->isDoing() ? 1 : 0;
 }
-static int64_t platformer_unitaction_get_owner(int64_t self) {
-	return from_object(r_cast<Platformer::UnitAction*>(self)->getOwner());
+int64_t platformer_unitaction_get_owner(int64_t self) {
+	return Object_From(r_cast<Platformer::UnitAction*>(self)->getOwner());
 }
-static float platformer_unitaction_get_elapsed_time(int64_t self) {
+float platformer_unitaction_get_elapsed_time(int64_t self) {
 	return r_cast<Platformer::UnitAction*>(self)->getElapsedTime();
 }
-static void platformer_unitaction_clear() {
+void platformer_unitaction_clear() {
 	Platformer::UnitAction::clear();
 }
-static void platformer_unitaction_add(int64_t name, int32_t priority, float reaction, float recovery, int32_t queued, int32_t func, int64_t stack, int32_t func1, int64_t stack1, int32_t func2, int64_t stack2) {
+void platformer_unitaction_add(int64_t name, int32_t priority, float reaction, float recovery, int32_t queued, int32_t func, int64_t stack, int32_t func1, int64_t stack1, int32_t func2, int64_t stack2) {
 	std::shared_ptr<void> deref(nullptr, [func](auto) {
 		SharedWasmRuntime.deref(func);
 	});
@@ -46,7 +48,7 @@ static void platformer_unitaction_add(int64_t name, int32_t priority, float reac
 		SharedWasmRuntime.deref(func2);
 	});
 	auto args2 = r_cast<CallStack*>(stack2);
-	platformer_wasm_unit_action_add(*str_from(name), s_cast<int>(priority), reaction, recovery, queued != 0, [func, args, deref](Platformer::Unit* owner, Platformer::UnitAction* action) {
+	Platformer_UnitAction_Add(*Str_From(name), s_cast<int>(priority), reaction, recovery, queued != 0, [func, args, deref](Platformer::Unit* owner, Platformer::UnitAction* action) {
 		args->clear();
 		args->push(owner);
 		args->push(r_cast<int64_t>(action));
@@ -65,6 +67,8 @@ static void platformer_unitaction_add(int64_t name, int32_t priority, float reac
 		SharedWasmRuntime.invoke(func2);
 	});
 }
+} // extern "C"
+
 static void linkPlatformerUnitAction(wasm3::module3& mod) {
 	mod.link_optional("*", "platformer_unitaction_set_reaction", platformer_unitaction_set_reaction);
 	mod.link_optional("*", "platformer_unitaction_get_reaction", platformer_unitaction_get_reaction);

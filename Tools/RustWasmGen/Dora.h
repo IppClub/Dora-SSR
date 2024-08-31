@@ -150,7 +150,7 @@ value struct Rect
 	/// * `Rect` - A new rectangle object.
 	static Rect create(Vec2 origin, Size size);
 	/// Gets a rectangle object with all properties set to 0.
-	static outside Rect rect_get_zero @ zero();
+	static outside Rect Rect_GetZero @ zero();
 };
 
 /// A struct representing an application.
@@ -771,7 +771,7 @@ interface object class Effect
 	/// # Returns
 	///
 	/// * `Pass` - The Pass object at the given index.
-	outside optional Pass* effect_get_pass @ get(size_t index) const;
+	outside optional Pass* Effect_GetPass @ get(size_t index) const;
 	/// Removes all Pass objects from this Effect.
 	void clear();
 	/// A method that allows you to create a new Effect object.
@@ -825,9 +825,9 @@ singleton class Director
 	/// whether or not to enable frustum culling.
 	boolean bool frustumCulling;
 	/// Gets the game scheduler which is used for scheduling tasks.
-	outside Scheduler* director_get_wasm_scheduler @ getScheduler();
+	outside Scheduler* Director_GetScheduler @ getScheduler();
 	/// Gets the scheduler used for processing post game logic.
-	outside Scheduler* director_get_wasm_post_scheduler @ getPostScheduler();
+	outside Scheduler* Director_GetPostScheduler @ getPostScheduler();
 	/// Adds a new camera to Director's camera stack and sets it to the current camera.
 	///
 	/// # Arguments
@@ -849,7 +849,7 @@ singleton class Director
 	/// Removes all cameras from Director's camera stack.
 	void clearCamera();
 	/// Cleans up all resources managed by the Director, including scene trees and cameras.
-	outside void director_wasm_cleanup @ cleanup();
+	outside void Director_Cleanup @ cleanup();
 };
 
 /// A struct that provides access to the 3D graphic view.
@@ -872,7 +872,7 @@ singleton class View
 	/// the post effect applied to the view.
 	optional common SpriteEffect* postEffect;
 	/// Removes the post effect applied to the view.
-	outside void view_set_post_effect_nullptr @ set_post_effect_null();
+	outside void View_SetPostEffectNullptr @ set_post_effect_null();
 	/// whether or not vertical sync is enabled.
 	boolean bool vSync @ vsync;
 };
@@ -1347,7 +1347,7 @@ interface object class Node
 	/// # Returns
 	///
 	/// * `f32` - The duration of the newly running action in seconds.
-	outside float node_run_action_def_duration @ run_action_def(ActionDef def, bool looped);
+	outside float Node_RunActionDefDuration @ run_action_def(ActionDef def, bool looped);
 	/// Runs an action on this node.
 	///
 	/// # Arguments
@@ -1371,7 +1371,7 @@ interface object class Node
 	/// # Returns
 	///
 	/// * `f32` - The duration of the newly running action in seconds.
-	outside float node_perform_def_duration @ perform_def(ActionDef actionDef, bool looped);
+	outside float Node_PerformDefDuration @ perform_def(ActionDef actionDef, bool looped);
 	/// Runs an action on this node right after clearing all the previous running actions.
 	///
 	/// # Arguments
@@ -1468,7 +1468,7 @@ interface object class Node
 	/// # Returns
 	///
 	/// * `Grabber` - A Grabber object with gridX == 1 and gridY == 1.
-	outside Grabber* node_start_grabbing @ grab();
+	outside Grabber* Node_StartGrabbing @ grab();
 	/// Creates a texture grabber for the specified node with a specified grid size.
 	///
 	/// # Arguments
@@ -1481,9 +1481,9 @@ interface object class Node
 	/// * `Grabber` - A Grabber object.
 	Grabber* grab @ grabWithSize(uint32_t gridX, uint32_t gridY);
 	/// Removes the texture grabber for the specified node.
-	outside void node_stop_grabbing @ stop_grab();
+	outside void Node_StopGrabbing @ stop_grab();
 	/// Removes the transform target for the specified node.
-	outside void node_set_transform_target_nullptr @ set_transform_target_null();
+	outside void Node_SetTransformTargetNullptr @ set_transform_target_null();
 	/// Associates the given handler function with the node event.
 	///
 	/// # Arguments
@@ -1518,7 +1518,7 @@ object class Texture2D
 	/// # Returns
 	///
 	/// * `Texture2D` - The texture object.
-	static outside optional Texture2D* texture_2d_create @ createFile(string filename);
+	static outside optional Texture2D* Texture2D_Create @ createFile(string filename);
 };
 
 /// A struct to render texture in game scene tree hierarchy.
@@ -1544,7 +1544,7 @@ object class Sprite : public INode
 	/// the texture filtering mode for the sprite.
 	common TextureFilter filter;
 	/// Removes the sprite effect and sets the default effect.
-	outside void sprite_set_effect_nullptr @ set_effect_as_default();
+	outside void Sprite_SetEffectNullptr @ set_effect_as_default();
 	/// A method for creating a Sprite object.
 	///
 	/// # Returns
@@ -2130,7 +2130,7 @@ object class Model : public IPlayable
 	/// # Returns
 	///
 	/// * A `String` representing the name of the clip file.
-	static outside string model_get_clip_filename @ getClipFile(string filename);
+	static outside string Model_GetClipFilename @ getClipFile(string filename);
 	/// Gets an array of look names from the specified model file.
 	///
 	/// # Arguments
@@ -2140,7 +2140,7 @@ object class Model : public IPlayable
 	/// # Returns
 	///
 	/// * A `Vec<String>` representing an array of look names found in the model file.
-	static outside VecStr model_get_look_names @ getLooks(string filename);
+	static outside VecStr Model_GetLookNames @ getLooks(string filename);
 	/// Gets an array of animation names from the specified model file.
 	///
 	/// # Arguments
@@ -2150,7 +2150,7 @@ object class Model : public IPlayable
 	/// # Returns
 	///
 	/// * A `Vec<String>` representing an array of animation names found in the model file.
-	static outside VecStr model_get_animation_names @ getAnimations(string filename);
+	static outside VecStr Model_GetAnimationNames @ getAnimations(string filename);
 };
 
 /// An implementation of an animation system using the Spine engine.
@@ -2223,7 +2223,7 @@ object class Spine : public IPlayable
 	/// # Returns
 	///
 	/// * A `Vec<String>` representing the available looks.
-	static outside VecStr spine_get_look_names @ getLooks(string spineStr);
+	static outside VecStr Spine_GetLookNames @ getLooks(string spineStr);
 	/// Returns a list of available animations for the specified Spine2D file string.
 	///
 	/// # Arguments
@@ -2233,7 +2233,7 @@ object class Spine : public IPlayable
 	/// # Returns
 	///
 	/// * A `Vec<String>` representing the available animations.
-	static outside VecStr spine_get_animation_names @ getAnimations(string spineStr);
+	static outside VecStr Spine_GetAnimationNames @ getAnimations(string spineStr);
 };
 
 /// An implementation of the 'Playable' record using the DragonBones animation system.
@@ -2295,7 +2295,7 @@ object class DragonBone : public IPlayable
 	/// # Returns
 	///
 	/// * A `Vec<String>` representing the available looks.
-	static outside VecStr dragon_bone_get_look_names @ getLooks(string boneStr);
+	static outside VecStr DragonBone_GetLookNames @ getLooks(string boneStr);
 	/// Returns a list of available animations for the specified DragonBone file string.
 	///
 	/// # Arguments
@@ -2305,7 +2305,7 @@ object class DragonBone : public IPlayable
 	/// # Returns
 	///
 	/// * A `Vec<String>` representing the available animations.
-	static outside VecStr dragon_bone_get_animation_names @ getAnimations(string boneStr);
+	static outside VecStr DragonBone_GetAnimationNames @ getAnimations(string boneStr);
 };
 
 /// A node used for aligning layout elements.
@@ -2506,8 +2506,8 @@ object class FixtureDef { };
 /// A struct to describe the properties of a physics body.
 object class BodyDef
 {
-	outside void body_def_set_type_enum @ _set_type(int var);
-	outside int32_t body_def_get_type_enum @ _get_type() const;
+	outside void BodyDef_SetTypeEnum @ _set_type(int var);
+	outside int32_t BodyDef_GetTypeEnum @ _get_type() const;
 	/// define for the position of the body.
 	Vec2 offset @ position;
 	/// define for the angle of the body.
@@ -3763,7 +3763,7 @@ singleton class DB
 	/// # Returns
 	///
 	/// * `bool` - `true` if the transaction was successful, `false` otherwise.
-	outside bool db_do_transaction @ transaction(DBQuery query);
+	outside bool DB_Transaction @ transaction(DBQuery query);
 	/// Executes a list of SQL statements as a single transaction asynchronously.
 	///
 	/// # Arguments
@@ -3774,7 +3774,7 @@ singleton class DB
 	/// # Returns
 	///
 	/// * `bool` - `true` if the transaction was successful, `false` otherwise.
-	outside void db_do_transaction_async @ transactionAsync(DBQuery query, function<void(bool result)> callback);
+	outside void DB_TransactionAsync @ transactionAsync(DBQuery query, function<void(bool result)> callback);
 	/// Executes an SQL query and returns the results as a list of rows.
 	///
 	/// # Arguments
@@ -3785,7 +3785,7 @@ singleton class DB
 	/// # Returns
 	///
 	/// * `DBRecord` - A list of rows returned by the query.
-	outside DBRecord db_do_query @ query(string sql, bool withColumns);
+	outside DBRecord DB_Query @ query(string sql, bool withColumns);
 	/// Executes an SQL query and returns the results as a list of rows.
 	///
 	/// # Arguments
@@ -3797,7 +3797,7 @@ singleton class DB
 	/// # Returns
 	///
 	/// * `DBRecord` - A list of rows returned by the query.
-	outside DBRecord db_do_query_with_params @ queryWithParams(string sql, Array* params, bool withColumns);
+	outside DBRecord DB_QueryWithParams @ queryWithParams(string sql, Array* params, bool withColumns);
 	/// Inserts a row of data into a table within a transaction.
 	///
 	/// # Arguments
@@ -3808,7 +3808,7 @@ singleton class DB
 	/// # Returns
 	///
 	/// * `bool` - `true` if the insertion was successful, `false` otherwise.
-	outside void db_do_insert @ insert(string tableName, DBParams values);
+	outside void DB_Insert @ insert(string tableName, DBParams values);
 	/// Executes an SQL statement and returns the number of rows affected.
 	///
 	/// # Arguments
@@ -3819,7 +3819,7 @@ singleton class DB
 	/// # Returns
 	///
 	/// * `i32` - The number of rows affected by the statement.
-	outside int32_t db_do_exec_with_records @ execWithRecords(string sql, DBParams values);
+	outside int32_t DB_ExecWithRecords @ execWithRecords(string sql, DBParams values);
 	/// Executes an SQL query asynchronously and returns the results as a list of rows.
 	///
 	/// # Arguments
@@ -3828,7 +3828,7 @@ singleton class DB
 	/// * `params` - Optional. A list of values to substitute into the SQL statement.
 	/// * `with_column` - Optional. Whether to include column names in the result. Default is `false`.
 	/// * `callback` - A callback function that is invoked when the query is executed, receiving the results as a list of rows.
-	outside void db_do_query_with_params_async @ queryWithParamsAsync(string sql, Array* params, bool withColumns, function<void(DBRecord result)> callback);
+	outside void DB_QueryWithParamsAsync @ queryWithParamsAsync(string sql, Array* params, bool withColumns, function<void(DBRecord result)> callback);
 	/// Inserts a row of data into a table within a transaction asynchronously.
 	///
 	/// # Arguments
@@ -3836,7 +3836,7 @@ singleton class DB
 	/// * `table_name` - The name of the table to insert into.
 	/// * `values` - The values to insert into the table.
 	/// * `callback` - A callback function that is invoked when the insertion is executed, receiving the result of the insertion.
-	outside void db_do_insert_async @ insertAsync(string tableName, DBParams values, function<void(bool result)> callback);
+	outside void DB_InsertAsync @ insertAsync(string tableName, DBParams values, function<void(bool result)> callback);
 	/// Executes an SQL statement with a list of values within a transaction asynchronously and returns the number of rows affected.
 	///
 	/// # Arguments
@@ -3844,7 +3844,7 @@ singleton class DB
 	/// * `sql` - The SQL statement to execute.
 	/// * `values` - A list of values to substitute into the SQL statement.
 	/// * `callback` - A callback function that is invoked when the statement is executed, recieving the number of rows affected.
-	outside void db_do_exec_async @ execAsync(string sql, DBParams values, function<void(int64_t rowChanges)> callback);
+	outside void DB_ExecAsync @ execAsync(string sql, DBParams values, function<void(int64_t rowChanges)> callback);
 };
 
 /// A simple reinforcement learning framework that can be used to learn optimal policies for Markov decision processes using Q-learning. Q-learning is a model-free reinforcement learning algorithm that learns an optimal action-value function from experience by repeatedly updating estimates of the Q-value of state-action pairs.
@@ -3873,7 +3873,7 @@ object class MLQLearner @ QLearner
 	/// # Arguments
 	///
 	/// * `handler` - A function that is called for each state-action pair.
-	outside void ml_qlearner_visit_state_action_q @ visitMatrix(function<void(MLQState state, MLQAction action, double q)> handler);
+	outside void ML_QLearnerVisitStateActionQ @ visitMatrix(function<void(MLQState state, MLQAction action, double q)> handler);
 	/// Constructs a state from given hints and condition values.
 	///
 	/// # Arguments
@@ -4475,7 +4475,7 @@ class UnitAction
 	/// * `available` - A function that takes a `Unit` object and a `UnitAction` object and returns a boolean value indicating whether the "UnitAction" is available to be performed.
 	/// * `create` - A function that takes a `Unit` object and a `UnitAction` object and returns a `WasmActionUpdate` object that contains the update function for the "UnitAction".
 	/// * `stop` - A function that takes a `Unit` object and a `UnitAction` object and stops the "UnitAction".
-	static outside void platformer_wasm_unit_action_add @ add(
+	static outside void Platformer_UnitAction_Add @ add(
 		string name, int priority, float reaction, float recovery, bool queued,
 		function<bool(Platformer::Unit* owner, Platformer::UnitAction action)> available,
 		function<Platformer::WasmActionUpdate*(Platformer::Unit* owner, Platformer::UnitAction action)> create,
@@ -4622,7 +4622,7 @@ object class PlatformCamera : public ICamera
 	/// the game unit that the camera should track.
 	optional common Node* followTarget;
 	/// Removes the target that the camera is following.
-	outside void platform_camera_set_follow_target_nullptr @ set_follow_target_null();
+	outside void PlatformCamera_SetFollowTargetNullptr @ set_follow_target_null();
 	/// Creates a new instance of `PlatformCamera`.
 	///
 	/// # Arguments

@@ -6,36 +6,40 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-static int32_t line_type() {
+extern "C" {
+using namespace Dora;
+int32_t line_type() {
 	return DoraType<Line>();
 }
-static void line_set_depth_write(int64_t self, int32_t var) {
+void line_set_depth_write(int64_t self, int32_t var) {
 	r_cast<Line*>(self)->setDepthWrite(var != 0);
 }
-static int32_t line_is_depth_write(int64_t self) {
+int32_t line_is_depth_write(int64_t self) {
 	return r_cast<Line*>(self)->isDepthWrite() ? 1 : 0;
 }
-static void line__set_blend_func(int64_t self, int64_t func) {
+void line__set_blend_func(int64_t self, int64_t func) {
 	r_cast<Line*>(self)->setBlendFunc(BlendFunc(s_cast<uint64_t>(func)));
 }
-static int64_t line__get_blend_func(int64_t self) {
+int64_t line__get_blend_func(int64_t self) {
 	return s_cast<int64_t>(r_cast<Line*>(self)->getBlendFunc().toValue());
 }
-static void line_add(int64_t self, int64_t verts, int32_t color) {
-	r_cast<Line*>(self)->add(from_vec2_vec(verts), Color(s_cast<uint32_t>(color)));
+void line_add(int64_t self, int64_t verts, int32_t color) {
+	r_cast<Line*>(self)->add(Vec_FromVec2(verts), Color(s_cast<uint32_t>(color)));
 }
-static void line_set(int64_t self, int64_t verts, int32_t color) {
-	r_cast<Line*>(self)->set(from_vec2_vec(verts), Color(s_cast<uint32_t>(color)));
+void line_set(int64_t self, int64_t verts, int32_t color) {
+	r_cast<Line*>(self)->set(Vec_FromVec2(verts), Color(s_cast<uint32_t>(color)));
 }
-static void line_clear(int64_t self) {
+void line_clear(int64_t self) {
 	r_cast<Line*>(self)->clear();
 }
-static int64_t line_new() {
-	return from_object(Line::create());
+int64_t line_new() {
+	return Object_From(Line::create());
 }
-static int64_t line_with_vec_color(int64_t verts, int32_t color) {
-	return from_object(Line::create(from_vec2_vec(verts), Color(s_cast<uint32_t>(color))));
+int64_t line_with_vec_color(int64_t verts, int32_t color) {
+	return Object_From(Line::create(Vec_FromVec2(verts), Color(s_cast<uint32_t>(color))));
 }
+} // extern "C"
+
 static void linkLine(wasm3::module3& mod) {
 	mod.link_optional("*", "line_type", line_type);
 	mod.link_optional("*", "line_set_depth_write", line_set_depth_write);

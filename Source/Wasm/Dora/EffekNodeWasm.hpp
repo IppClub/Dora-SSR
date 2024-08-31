@@ -6,18 +6,22 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-static int32_t effeknode_type() {
+extern "C" {
+using namespace Dora;
+int32_t effeknode_type() {
 	return DoraType<EffekNode>();
 }
-static int32_t effeknode_play(int64_t self, int64_t filename, int64_t pos, float z) {
-	return s_cast<int32_t>(r_cast<EffekNode*>(self)->play(*str_from(filename), vec2_from(pos), z));
+int32_t effeknode_play(int64_t self, int64_t filename, int64_t pos, float z) {
+	return s_cast<int32_t>(r_cast<EffekNode*>(self)->play(*Str_From(filename), Vec2_From(pos), z));
 }
-static void effeknode_stop(int64_t self, int32_t handle) {
+void effeknode_stop(int64_t self, int32_t handle) {
 	r_cast<EffekNode*>(self)->stop(s_cast<int>(handle));
 }
-static int64_t effeknode_new() {
-	return from_object(EffekNode::create());
+int64_t effeknode_new() {
+	return Object_From(EffekNode::create());
 }
+} // extern "C"
+
 static void linkEffekNode(wasm3::module3& mod) {
 	mod.link_optional("*", "effeknode_type", effeknode_type);
 	mod.link_optional("*", "effeknode_play", effeknode_play);

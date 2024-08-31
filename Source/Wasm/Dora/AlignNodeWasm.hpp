@@ -6,15 +6,19 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-static int32_t alignnode_type() {
+extern "C" {
+using namespace Dora;
+int32_t alignnode_type() {
 	return DoraType<AlignNode>();
 }
-static void alignnode_css(int64_t self, int64_t style) {
-	r_cast<AlignNode*>(self)->css(*str_from(style));
+void alignnode_css(int64_t self, int64_t style) {
+	r_cast<AlignNode*>(self)->css(*Str_From(style));
 }
-static int64_t alignnode_new(int32_t is_window_root) {
-	return from_object(AlignNode::create(is_window_root != 0));
+int64_t alignnode_new(int32_t is_window_root) {
+	return Object_From(AlignNode::create(is_window_root != 0));
 }
+} // extern "C"
+
 static void linkAlignNode(wasm3::module3& mod) {
 	mod.link_optional("*", "alignnode_type", alignnode_type);
 	mod.link_optional("*", "alignnode_css", alignnode_css);

@@ -6,12 +6,16 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-static void worksheet_release(int64_t raw) {
+extern "C" {
+using namespace Dora;
+void worksheet_release(int64_t raw) {
 	delete r_cast<WorkSheet*>(raw);
 }
-static int32_t worksheet_read(int64_t self, int64_t row) {
+int32_t worksheet_read(int64_t self, int64_t row) {
 	return r_cast<WorkSheet*>(self)->read(r_cast<Array*>(row)) ? 1 : 0;
 }
+} // extern "C"
+
 static void linkWorkSheet(wasm3::module3& mod) {
 	mod.link_optional("*", "worksheet_release", worksheet_release);
 	mod.link_optional("*", "worksheet_read", worksheet_read);

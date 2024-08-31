@@ -6,15 +6,19 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-static void dbparams_release(int64_t raw) {
+extern "C" {
+using namespace Dora;
+void dbparams_release(int64_t raw) {
 	delete r_cast<DBParams*>(raw);
 }
-static void dbparams_add(int64_t self, int64_t params) {
+void dbparams_add(int64_t self, int64_t params) {
 	r_cast<DBParams*>(self)->add(r_cast<Array*>(params));
 }
-static int64_t dbparams_new() {
+int64_t dbparams_new() {
 	return r_cast<int64_t>(new DBParams{});
 }
+} // extern "C"
+
 static void linkDBParams(wasm3::module3& mod) {
 	mod.link_optional("*", "dbparams_release", dbparams_release);
 	mod.link_optional("*", "dbparams_add", dbparams_add);

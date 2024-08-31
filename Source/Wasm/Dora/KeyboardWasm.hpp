@@ -6,18 +6,22 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-static int32_t keyboard__is_key_down(int64_t name) {
-	return SharedKeyboard.isKeyDown(*str_from(name)) ? 1 : 0;
+extern "C" {
+using namespace Dora;
+int32_t keyboard__is_key_down(int64_t name) {
+	return SharedKeyboard.isKeyDown(*Str_From(name)) ? 1 : 0;
 }
-static int32_t keyboard__is_key_up(int64_t name) {
-	return SharedKeyboard.isKeyUp(*str_from(name)) ? 1 : 0;
+int32_t keyboard__is_key_up(int64_t name) {
+	return SharedKeyboard.isKeyUp(*Str_From(name)) ? 1 : 0;
 }
-static int32_t keyboard__is_key_pressed(int64_t name) {
-	return SharedKeyboard.isKeyPressed(*str_from(name)) ? 1 : 0;
+int32_t keyboard__is_key_pressed(int64_t name) {
+	return SharedKeyboard.isKeyPressed(*Str_From(name)) ? 1 : 0;
 }
-static void keyboard_update_ime_pos_hint(int64_t win_pos) {
-	SharedKeyboard.updateIMEPosHint(vec2_from(win_pos));
+void keyboard_update_ime_pos_hint(int64_t win_pos) {
+	SharedKeyboard.updateIMEPosHint(Vec2_From(win_pos));
 }
+} // extern "C"
+
 static void linkKeyboard(wasm3::module3& mod) {
 	mod.link_optional("*", "keyboard__is_key_down", keyboard__is_key_down);
 	mod.link_optional("*", "keyboard__is_key_up", keyboard__is_key_up);

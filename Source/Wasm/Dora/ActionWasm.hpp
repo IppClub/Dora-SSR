@@ -6,42 +6,46 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-static int32_t action_type() {
+extern "C" {
+using namespace Dora;
+int32_t action_type() {
 	return DoraType<Action>();
 }
-static float action_get_duration(int64_t self) {
+float action_get_duration(int64_t self) {
 	return r_cast<Action*>(self)->getDuration();
 }
-static int32_t action_is_running(int64_t self) {
+int32_t action_is_running(int64_t self) {
 	return r_cast<Action*>(self)->isRunning() ? 1 : 0;
 }
-static int32_t action_is_paused(int64_t self) {
+int32_t action_is_paused(int64_t self) {
 	return r_cast<Action*>(self)->isPaused() ? 1 : 0;
 }
-static void action_set_reversed(int64_t self, int32_t var) {
+void action_set_reversed(int64_t self, int32_t var) {
 	r_cast<Action*>(self)->setReversed(var != 0);
 }
-static int32_t action_is_reversed(int64_t self) {
+int32_t action_is_reversed(int64_t self) {
 	return r_cast<Action*>(self)->isReversed() ? 1 : 0;
 }
-static void action_set_speed(int64_t self, float var) {
+void action_set_speed(int64_t self, float var) {
 	r_cast<Action*>(self)->setSpeed(var);
 }
-static float action_get_speed(int64_t self) {
+float action_get_speed(int64_t self) {
 	return r_cast<Action*>(self)->getSpeed();
 }
-static void action_pause(int64_t self) {
+void action_pause(int64_t self) {
 	r_cast<Action*>(self)->pause();
 }
-static void action_resume(int64_t self) {
+void action_resume(int64_t self) {
 	r_cast<Action*>(self)->resume();
 }
-static void action_update_to(int64_t self, float elapsed, int32_t reversed) {
+void action_update_to(int64_t self, float elapsed, int32_t reversed) {
 	r_cast<Action*>(self)->updateTo(elapsed, reversed != 0);
 }
-static int64_t action_new(int64_t def) {
-	return from_object(Action::create(std::move(*r_cast<ActionDef*>(def))));
+int64_t action_new(int64_t def) {
+	return Object_From(Action::create(std::move(*r_cast<ActionDef*>(def))));
 }
+} // extern "C"
+
 static void linkAction(wasm3::module3& mod) {
 	mod.link_optional("*", "action_type", action_type);
 	mod.link_optional("*", "action_get_duration", action_get_duration);

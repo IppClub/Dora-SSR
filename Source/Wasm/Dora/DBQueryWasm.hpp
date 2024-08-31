@@ -6,18 +6,22 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-static void dbquery_release(int64_t raw) {
+extern "C" {
+using namespace Dora;
+void dbquery_release(int64_t raw) {
 	delete r_cast<DBQuery*>(raw);
 }
-static void dbquery_add_with_params(int64_t self, int64_t sql, int64_t params) {
-	r_cast<DBQuery*>(self)->addWithParams(*str_from(sql), *r_cast<DBParams*>(params));
+void dbquery_add_with_params(int64_t self, int64_t sql, int64_t params) {
+	r_cast<DBQuery*>(self)->addWithParams(*Str_From(sql), *r_cast<DBParams*>(params));
 }
-static void dbquery_add(int64_t self, int64_t sql) {
-	r_cast<DBQuery*>(self)->add(*str_from(sql));
+void dbquery_add(int64_t self, int64_t sql) {
+	r_cast<DBQuery*>(self)->add(*Str_From(sql));
 }
-static int64_t dbquery_new() {
+int64_t dbquery_new() {
 	return r_cast<int64_t>(new DBQuery{});
 }
+} // extern "C"
+
 static void linkDBQuery(wasm3::module3& mod) {
 	mod.link_optional("*", "dbquery_release", dbquery_release);
 	mod.link_optional("*", "dbquery_add_with_params", dbquery_add_with_params);

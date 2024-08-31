@@ -6,12 +6,16 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-static int32_t camera_type() {
+extern "C" {
+using namespace Dora;
+int32_t camera_type() {
 	return DoraType<Camera>();
 }
-static int64_t camera_get_name(int64_t self) {
-	return str_retain(r_cast<Camera*>(self)->getName());
+int64_t camera_get_name(int64_t self) {
+	return Str_Retain(r_cast<Camera*>(self)->getName());
 }
+} // extern "C"
+
 static void linkCamera(wasm3::module3& mod) {
 	mod.link_optional("*", "camera_type", camera_type);
 	mod.link_optional("*", "camera_get_name", camera_get_name);

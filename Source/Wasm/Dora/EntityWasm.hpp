@@ -6,27 +6,31 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-static int32_t entity_type() {
+extern "C" {
+using namespace Dora;
+int32_t entity_type() {
 	return DoraType<Entity>();
 }
-static int32_t entity_get_count(int64_t self) {
+int32_t entity_get_count(int64_t self) {
 	return s_cast<int32_t>(Entity::getCount());
 }
-static int32_t entity_get_index(int64_t self) {
+int32_t entity_get_index(int64_t self) {
 	return s_cast<int32_t>(r_cast<Entity*>(self)->getIndex());
 }
-static void entity_clear() {
+void entity_clear() {
 	Entity::clear();
 }
-static void entity_remove(int64_t self, int64_t key) {
-	r_cast<Entity*>(self)->remove(*str_from(key));
+void entity_remove(int64_t self, int64_t key) {
+	r_cast<Entity*>(self)->remove(*Str_From(key));
 }
-static void entity_destroy(int64_t self) {
+void entity_destroy(int64_t self) {
 	r_cast<Entity*>(self)->destroy();
 }
-static int64_t entity_new() {
-	return from_object(Entity::create());
+int64_t entity_new() {
+	return Object_From(Entity::create());
 }
+} // extern "C"
+
 static void linkEntity(wasm3::module3& mod) {
 	mod.link_optional("*", "entity_type", entity_type);
 	mod.link_optional("*", "entity_get_count", entity_get_count);

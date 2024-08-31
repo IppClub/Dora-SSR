@@ -6,18 +6,22 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-static int32_t cameraotho_type() {
+extern "C" {
+using namespace Dora;
+int32_t cameraotho_type() {
 	return DoraType<CameraOtho>();
 }
-static void cameraotho_set_position(int64_t self, int64_t var) {
-	r_cast<CameraOtho*>(self)->setPosition(vec2_from(var));
+void cameraotho_set_position(int64_t self, int64_t var) {
+	r_cast<CameraOtho*>(self)->setPosition(Vec2_From(var));
 }
-static int64_t cameraotho_get_position(int64_t self) {
-	return vec2_retain(r_cast<CameraOtho*>(self)->getPosition());
+int64_t cameraotho_get_position(int64_t self) {
+	return Vec2_Retain(r_cast<CameraOtho*>(self)->getPosition());
 }
-static int64_t cameraotho_new(int64_t name) {
-	return from_object(CameraOtho::create(*str_from(name)));
+int64_t cameraotho_new(int64_t name) {
+	return Object_From(CameraOtho::create(*Str_From(name)));
 }
+} // extern "C"
+
 static void linkCameraOtho(wasm3::module3& mod) {
 	mod.link_optional("*", "cameraotho_type", cameraotho_type);
 	mod.link_optional("*", "cameraotho_set_position", cameraotho_set_position);
