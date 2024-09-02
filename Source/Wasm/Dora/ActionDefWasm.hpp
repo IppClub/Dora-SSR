@@ -12,37 +12,37 @@ void actiondef_release(int64_t raw) {
 	delete r_cast<ActionDef*>(raw);
 }
 int64_t actiondef_prop(float duration, float start, float stop, int32_t prop, int32_t easing) {
-	return r_cast<int64_t>(new ActionDef{action_def_prop(duration, start, stop, s_cast<Property::Enum>(prop), s_cast<Ease::Enum>(easing))});
+	return r_cast<int64_t>(new ActionDef{ActionDef_Prop(duration, start, stop, s_cast<Property::Enum>(prop), s_cast<Ease::Enum>(easing))});
 }
 int64_t actiondef_tint(float duration, int32_t start, int32_t stop, int32_t easing) {
-	return r_cast<int64_t>(new ActionDef{action_def_tint(duration, Color3(s_cast<uint32_t>(start)), Color3(s_cast<uint32_t>(stop)), s_cast<Ease::Enum>(easing))});
+	return r_cast<int64_t>(new ActionDef{ActionDef_Tint(duration, Color3(s_cast<uint32_t>(start)), Color3(s_cast<uint32_t>(stop)), s_cast<Ease::Enum>(easing))});
 }
 int64_t actiondef_roll(float duration, float start, float stop, int32_t easing) {
-	return r_cast<int64_t>(new ActionDef{action_def_roll(duration, start, stop, s_cast<Ease::Enum>(easing))});
+	return r_cast<int64_t>(new ActionDef{ActionDef_Roll(duration, start, stop, s_cast<Ease::Enum>(easing))});
 }
 int64_t actiondef_spawn(int64_t defs) {
-	return r_cast<int64_t>(new ActionDef{action_def_spawn(Vec_FromActionDef(defs))});
+	return r_cast<int64_t>(new ActionDef{ActionDef_Spawn(Vec_FromActionDef(defs))});
 }
 int64_t actiondef_sequence(int64_t defs) {
-	return r_cast<int64_t>(new ActionDef{action_def_sequence(Vec_FromActionDef(defs))});
+	return r_cast<int64_t>(new ActionDef{ActionDef_Sequence(Vec_FromActionDef(defs))});
 }
 int64_t actiondef_delay(float duration) {
-	return r_cast<int64_t>(new ActionDef{action_def_delay(duration)});
+	return r_cast<int64_t>(new ActionDef{ActionDef_Delay(duration)});
 }
 int64_t actiondef_show() {
-	return r_cast<int64_t>(new ActionDef{action_def_show()});
+	return r_cast<int64_t>(new ActionDef{ActionDef_Show()});
 }
 int64_t actiondef_hide() {
-	return r_cast<int64_t>(new ActionDef{action_def_hide()});
+	return r_cast<int64_t>(new ActionDef{ActionDef_Hide()});
 }
 int64_t actiondef_event(int64_t event_name, int64_t msg) {
-	return r_cast<int64_t>(new ActionDef{action_def_emit(*Str_From(event_name), *Str_From(msg))});
+	return r_cast<int64_t>(new ActionDef{ActionDef_Emit(*Str_From(event_name), *Str_From(msg))});
 }
 int64_t actiondef_move_to(float duration, int64_t start, int64_t stop, int32_t easing) {
-	return r_cast<int64_t>(new ActionDef{action_def_move(duration, Vec2_From(start), Vec2_From(stop), s_cast<Ease::Enum>(easing))});
+	return r_cast<int64_t>(new ActionDef{ActionDef_Move(duration, Vec2_From(start), Vec2_From(stop), s_cast<Ease::Enum>(easing))});
 }
 int64_t actiondef_scale(float duration, float start, float stop, int32_t easing) {
-	return r_cast<int64_t>(new ActionDef{action_def_scale(duration, start, stop, s_cast<Ease::Enum>(easing))});
+	return r_cast<int64_t>(new ActionDef{ActionDef_Scale(duration, start, stop, s_cast<Ease::Enum>(easing))});
 }
 } // extern "C"
 

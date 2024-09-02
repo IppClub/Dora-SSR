@@ -891,7 +891,7 @@ value class ActionDef {
 	/// # Returns
 	///
 	/// * `Action` - A new Action object.
-	static outside ActionDef action_def_prop @ prop(float duration, float start, float stop, Property prop, EaseType easing);
+	static outside ActionDef ActionDef_Prop @ prop(float duration, float start, float stop, Property prop, EaseType easing);
 	/// Creates a new Action object to change the color of a node.
 	///
 	/// # Arguments
@@ -904,7 +904,7 @@ value class ActionDef {
 	/// # Returns
 	///
 	/// * `Action` - A new Action object.
-	static outside ActionDef action_def_tint @ tint(float duration, Color3 start, Color3 stop, EaseType easing);
+	static outside ActionDef ActionDef_Tint @ tint(float duration, Color3 start, Color3 stop, EaseType easing);
 	/// Creates a new Action object to rotate a node by smallest angle.
 	///
 	/// # Arguments
@@ -917,7 +917,7 @@ value class ActionDef {
 	/// # Returns
 	///
 	/// * `Action` - A new Action object.
-	static outside ActionDef action_def_roll @ roll(float duration, float start, float stop, EaseType easing);
+	static outside ActionDef ActionDef_Roll @ roll(float duration, float start, float stop, EaseType easing);
 	/// Creates a new Action object to run a group of actions in parallel.
 	///
 	/// # Arguments
@@ -927,7 +927,7 @@ value class ActionDef {
 	/// # Returns
 	///
 	/// * `Action` - A new Action object.
-	static outside ActionDef action_def_spawn @ spawn(VecActionDef defs);
+	static outside ActionDef ActionDef_Spawn @ spawn(VecActionDef defs);
 	/// Creates a new Action object to run a group of actions in sequence.
 	///
 	/// # Arguments
@@ -937,7 +937,7 @@ value class ActionDef {
 	/// # Returns
 	///
 	/// * `Action` - A new Action object.
-	static outside ActionDef action_def_sequence @ sequence(VecActionDef defs);
+	static outside ActionDef ActionDef_Sequence @ sequence(VecActionDef defs);
 	/// Creates a new Action object to delay the execution of following action.
 	///
 	/// # Arguments
@@ -947,11 +947,11 @@ value class ActionDef {
 	/// # Returns
 	///
 	/// * `Action` - A new Action object.
-	static outside ActionDef action_def_delay @ delay(float duration);
+	static outside ActionDef ActionDef_Delay @ delay(float duration);
 	/// Creates a new Action object to show a node.
-	static outside ActionDef action_def_show @ show();
+	static outside ActionDef ActionDef_Show @ show();
 	/// Creates a new Action object to hide a node.
-	static outside ActionDef action_def_hide @ hide();
+	static outside ActionDef ActionDef_Hide @ hide();
 	/// Creates a new Action object to emit an event.
 	///
 	/// # Arguments
@@ -962,7 +962,7 @@ value class ActionDef {
 	/// # Returns
 	///
 	/// * `Action` - A new Action object.
-	static outside ActionDef action_def_emit @ event(string eventName, string msg);
+	static outside ActionDef ActionDef_Emit @ event(string eventName, string msg);
 	/// Creates a new Action object to move a node.
 	///
 	/// # Arguments
@@ -975,7 +975,7 @@ value class ActionDef {
 	/// # Returns
 	///
 	/// * `Action` - A new Action object.
-	static outside ActionDef action_def_move @ move_to(float duration, Vec2 start, Vec2 stop, EaseType easing);
+	static outside ActionDef ActionDef_Move @ move_to(float duration, Vec2 start, Vec2 stop, EaseType easing);
 	/// Creates a new Action object to scale a node.
 	///
 	/// # Arguments
@@ -988,7 +988,7 @@ value class ActionDef {
 	/// # Returns
 	///
 	/// * `Action` - A new Action object.
-	static outside ActionDef action_def_scale @ scale(float duration, float start, float stop, EaseType easing);
+	static outside ActionDef ActionDef_Scale @ scale(float duration, float start, float stop, EaseType easing);
 };
 
 /// Represents an action that can be run on a node.
