@@ -453,17 +453,17 @@ static Pass* Effect_GetPass(Effect* self, size_t index) {
 
 // Action
 
-#define action_def_prop PropertyAction::alloc
-#define action_def_tint Tint::alloc
-#define action_def_roll Roll::alloc
-#define action_def_spawn Spawn::alloc
-#define action_def_sequence Sequence::alloc
-#define action_def_delay Delay::alloc
-#define action_def_show Show::alloc
-#define action_def_hide Hide::alloc
-#define action_def_emit Emit::alloc
-#define action_def_move Move::alloc
-#define action_def_scale Scale::alloc
+#define ActionDef_Prop PropertyAction::alloc
+#define ActionDef_Tint Tint::alloc
+#define ActionDef_Roll Roll::alloc
+#define ActionDef_Spawn Spawn::alloc
+#define ActionDef_Sequence Sequence::alloc
+#define ActionDef_Delay Delay::alloc
+#define ActionDef_Show Show::alloc
+#define ActionDef_Hide Hide::alloc
+#define ActionDef_Emit Emit::alloc
+#define ActionDef_Move Move::alloc
+#define ActionDef_Scale Scale::alloc
 
 // Model
 
