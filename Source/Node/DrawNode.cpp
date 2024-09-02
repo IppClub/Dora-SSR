@@ -222,6 +222,44 @@ void DrawNode::drawPolygon(const std::vector<Vec2>& verts, Color fillColor, floa
 }
 
 void DrawNode::drawPolygon(const Vec2* verts, uint32_t count, Color fillColor, float borderWidth, Color borderColor) {
+	bool outline = (borderColor.a > 0 && borderWidth > 0.0f);
+	bool fillPoly = (fillColor.a > 0);
+
+	if (fillPoly && !outline) {
+		const size_t triangleCount = 3 * count - 2;
+		const size_t vertexCount = 3 * triangleCount;
+		_posColors.reserve(vertexCount);
+		_vertices.reserve(vertexCount);
+
+		Vec4 fillColor4 = fillColor.toVec4();
+		Vec4 borderColor4 = borderColor.toVec4();
+		uint16_t start = s_cast<uint16_t>(_vertices.size());
+
+		float inset = (outline ? 0.0f : 0.5f);
+		if (fillPoly) {
+			for (uint32_t i = 0; i < count - 2; i++) {
+				Vec2 v0 = verts[0];
+				Vec2 v1 = verts[i + 1];
+				Vec2 v2 = verts[i + 2];
+
+				pushVertex(v0, fillColor4, Vec2::zero);
+				pushVertex(v1, fillColor4, Vec2::zero);
+				pushVertex(v2, fillColor4, Vec2::zero);
+			}
+		}
+
+		const size_t indexCount = _vertices.size() - start;
+		_indices.reserve(indexCount);
+
+		for (uint16_t i = 0; i < indexCount; i++) {
+			_indices.push_back(start + i);
+		}
+
+		_flags.setOn(DrawNode::VertexColorDirty);
+		_flags.setOn(DrawNode::VertexPosDirty);
+		return;
+	}
+
 	struct ExtrudeVerts {
 		Vec2 offset, n;
 	};
@@ -235,9 +273,6 @@ void DrawNode::drawPolygon(const Vec2* verts, uint32_t count, Color fillColor, f
 		Vec2 offset = (n1 + n2) * (1.0f / (n1.dot(n2) + 1.0f));
 		extrude[i] = {offset, n2};
 	}
-
-	bool outline = (borderColor.a > 0 && borderWidth > 0.0f);
-	bool fillPoly = (fillColor.a > 0);
 
 	const size_t triangleCount = 3 * count - 2;
 	const size_t vertexCount = 3 * triangleCount - (fillPoly ? 0 : count - 2);
