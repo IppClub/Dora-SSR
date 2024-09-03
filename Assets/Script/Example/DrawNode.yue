@@ -3,7 +3,7 @@ _ENV = Dora
 CircleVertices = (radius, verts = 20) ->
 	newV = (index, radius) ->
 		angle = 2 * math.pi * index / verts
-		Vec2(radius * math.cos(angle), radius * math.sin(angle)) + Vec2(radius, radius)
+		Vec2(radius * math.cos(angle), radius * math.sin(angle)) + Vec2 radius, radius
 	[newV index, radius for index = 0, verts]
 
 StarVertices = (radius) ->

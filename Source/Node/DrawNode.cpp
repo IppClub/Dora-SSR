@@ -232,20 +232,15 @@ void DrawNode::drawPolygon(const Vec2* verts, uint32_t count, Color fillColor, f
 		_vertices.reserve(vertexCount);
 
 		Vec4 fillColor4 = fillColor.toVec4();
-		Vec4 borderColor4 = borderColor.toVec4();
 		uint16_t start = s_cast<uint16_t>(_vertices.size());
+		for (uint32_t i = 0; i < count - 2; i++) {
+			Vec2 v0 = verts[0];
+			Vec2 v1 = verts[i + 1];
+			Vec2 v2 = verts[i + 2];
 
-		float inset = (outline ? 0.0f : 0.5f);
-		if (fillPoly) {
-			for (uint32_t i = 0; i < count - 2; i++) {
-				Vec2 v0 = verts[0];
-				Vec2 v1 = verts[i + 1];
-				Vec2 v2 = verts[i + 2];
-
-				pushVertex(v0, fillColor4, Vec2::zero);
-				pushVertex(v1, fillColor4, Vec2::zero);
-				pushVertex(v2, fillColor4, Vec2::zero);
-			}
+			pushVertex(v0, fillColor4, Vec2::zero);
+			pushVertex(v1, fillColor4, Vec2::zero);
+			pushVertex(v2, fillColor4, Vec2::zero);
 		}
 
 		const size_t indexCount = _vertices.size() - start;
