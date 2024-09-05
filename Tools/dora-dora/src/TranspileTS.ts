@@ -224,6 +224,7 @@ export async function transpileTypescript(
 		writeFile: collector.writeFile
 	});
 	diagnostics = [...diagnostics, ...res.diagnostics].filter(d => d.code !== 2497 && d.code !== 2666);
+	let success = true;
 	if (diagnostics.length > 0) {
 		Service.addLog(
 			(Service.getLog() !== "" ? "\n" : "") +
@@ -234,7 +235,7 @@ export async function transpileTypescript(
 				getNewLine: () => "\n"
 			})
 		);
-		Service.alert("alert.failedTS", "error");
+		success = false;
 	}
 	const file = collector.files.find(({ sourceFiles }) => sourceFiles.some(f => {
 		return Info.path.relative(f.fileName, fileName) === "";
@@ -262,10 +263,10 @@ export async function transpileTypescript(
 					return line + ` -- ${lineToUse}`;
 				}).filter(l => l !== "").join('\n');
 			});
-			return modifiedLuaCode;
+			return {success, luaCode: modifiedLuaCode};
 		}
 	}
-	return undefined as string | undefined;
+	return {success, luaCode: undefined as string | undefined};
 }
 
 export async function revalidateModel(model: monaco.editor.ITextModel) {
