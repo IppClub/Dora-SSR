@@ -8,7 +8,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 import EventEmitter from "events";
 import type { TreeDataType } from "./FileTree";
-import type { AlertColor } from '@mui/material';
 import { ProfilerInfo } from "./ProfilerInfo";
 
 let webSocket: WebSocket;
@@ -27,7 +26,6 @@ function wsUrl() {
 const wsOpenEvent = "Open";
 const wsCloseEvent = "Close";
 const logEventName = "Log";
-const alertEventName = "Alert";
 const profilerEventName = "Profiler";
 
 let logText = "";
@@ -68,14 +66,6 @@ export const addWSOpenListener = (listener: () => void) => {
 
 export const addWSCloseListener = (listener: () => void) => {
 	eventEmitter.on(wsCloseEvent, listener);
-};
-
-export const addAlertListener = (listener: (message: string, color: AlertColor) => void) => {
-	eventEmitter.on(alertEventName, listener);
-};
-
-export const alert = (message: string, color: AlertColor) => {
-	eventEmitter.emit(alertEventName, message, color);
 };
 
 export function openWebSocket() {

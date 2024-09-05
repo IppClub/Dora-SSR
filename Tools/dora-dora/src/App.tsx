@@ -21,7 +21,7 @@ import FileTabBar, { TabMenuEvent, TabStatus } from './FileTabBar';
 import Info from './Info';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
-import { Alert, AlertColor, Button, Collapse, DialogActions, DialogContent, DialogContentText, InputAdornment, TextField, Container } from '@mui/material';
+import { Alert, AlertColor, Button, Collapse, DialogActions, DialogContent, DialogContentText, InputAdornment, TextField, Container, Link } from '@mui/material';
 import NewFileDialog, { DoraFileType } from './NewFileDialog';
 import logo from './logo.svg';
 import DoraUpload from './Upload';
@@ -212,6 +212,7 @@ export default function PersistentDrawerLeft() {
 		msg: string,
 		key: string,
 		type: AlertColor,
+		openLog?: boolean,
 	}[]>([]);
 	const [drawerOpen, setDrawerOpen] = useState(true);
 	const [tabIndex, setTabIndex] = useState<number | null>(null);
@@ -263,13 +264,14 @@ export default function PersistentDrawerLeft() {
 
 	const [openLog, setOpenLog] = useState<{title: string, stopOnClose: boolean} | null>(null);
 
-	const addAlert = (msg: string, type: AlertColor) => {
+	const addAlert = (msg: string, type: AlertColor, openLog?: boolean) => {
 		const key = msg + Date.now().toString();
 		setAlerts((prevState) => {
 			return [...prevState, {
 				msg,
 				key,
-				type
+				type,
+				openLog,
 			}];
 		});
 		setTimeout(() => {
@@ -343,9 +345,6 @@ export default function PersistentDrawerLeft() {
 				});
 				return open;
 			});
-		});
-		Service.addAlertListener((label: string, type: AlertColor) => {
-			addAlert(t(label), type);
 		});
 		Service.addWSOpenListener(() => {
 			addAlert(t("log.open"), "success");
@@ -1030,7 +1029,12 @@ export default function PersistentDrawerLeft() {
 				if (file.contentModified !== null && (ext === '.ts' || ext === '.tsx') && !file.key.toLocaleLowerCase().endsWith(".d.ts")) {
 					const {key, contentModified} = file;
 					import('./TranspileTS').then(({transpileTypescript}) => {
-						transpileTypescript(key, contentModified).then(luaCode => {
+						transpileTypescript(key, contentModified).then(res => {
+							const {luaCode, success} = res;
+							if (!success) {
+								addAlert(t("alert.failedTS"), "error", true);
+								preview = false;
+							}
 							if (luaCode !== undefined) {
 								const extname = path.extname(file.key);
 								const name = path.basename(file.key, extname);
@@ -1343,7 +1347,7 @@ export default function PersistentDrawerLeft() {
 							const res = await Service.read({path: key});
 							if (res.success && res.content !== undefined) {
 								const {transpileTypescript} = await import('./TranspileTS');
-								const luaCode = await transpileTypescript(key, res.content);
+								const {luaCode} = await transpileTypescript(key, res.content);
 								if (luaCode !== undefined) {
 									if (fileInTab !== undefined) {
 										fileInTab.content = luaCode;
@@ -2644,6 +2648,7 @@ export default function PersistentDrawerLeft() {
 									setAlerts(newAlerts);
 								}} severity={item.type} color={item.type} style={{margin: 5}}>
 									{item.msg}
+									{item.openLog ? <>&emsp;[<Link color="inherit" onClick={() => onPlayControlClick("View Log")}>{t("menu.viewLog")}</Link>]</> : null}
 								</Alert>
 							</Collapse>
 						))}
