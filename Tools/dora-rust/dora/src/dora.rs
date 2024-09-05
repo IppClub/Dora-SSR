@@ -2921,7 +2921,7 @@ impl ImGuiWindowFlag {
 #[repr(u8)]
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum ImGuiChildFlag {
-	Border = 1 << 0,
+	Borders = 1 << 0,
 	AlwaysUseWindowPadding = 1 << 1,
 	ResizeX = 1 << 2,
 	ResizeY = 1 << 3,

@@ -120,7 +120,7 @@ local record ImGui
 	end
 	enum ChildFlag
 		""
-		"Border"
+		"Borders"
 		"AlwaysUseWindowPadding"
 		"ResizeX"
 		"ResizeY"

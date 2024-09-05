@@ -131,7 +131,7 @@ static uint32_t WindowFlags(Slice* flags, int count) {
 
 static ImGuiChildFlags_ getChildFlag(String style) {
 	switch (Switch::hash(style)) {
-		case "Border"_hash: return ImGuiChildFlags_Border;
+		case "Borders"_hash: return ImGuiChildFlags_Borders;
 		case "AlwaysUseWindowPadding"_hash: return ImGuiChildFlags_AlwaysUseWindowPadding;
 		case "ResizeX"_hash: return ImGuiChildFlags_ResizeX;
 		case "ResizeY"_hash: return ImGuiChildFlags_ResizeY;

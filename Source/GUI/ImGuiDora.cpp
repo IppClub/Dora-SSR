@@ -409,11 +409,11 @@ ImGuiDora::~ImGuiDora() {
 	ImGui::DestroyContext();
 }
 
-const char* ImGuiDora::getClipboardText(void*) {
+const char* ImGuiDora::getClipboardText(ImGuiContext*) {
 	return SDL_GetClipboardText();
 }
 
-void ImGuiDora::setClipboardText(void*, const char* text) {
+void ImGuiDora::setClipboardText(ImGuiContext*, const char* text) {
 	SDL_SetClipboardText(text);
 }
 
@@ -981,7 +981,6 @@ bool ImGuiDora::init() {
 
 	DoraSetupTheme(SharedApplication.getThemeColor());
 
-	ImGuiIO& io = ImGui::GetIO();
 	_keymap[SDLK_TAB] = ImGuiKey_Tab;
 	_keymap[SDLK_z] = ImGuiKey_Z;
 	_keymap[SDLK_y] = ImGuiKey_Y;
@@ -1002,11 +1001,13 @@ bool ImGuiDora::init() {
 	_keymap[SDL_SCANCODE_RIGHT] = ImGuiKey_RightArrow;
 	_keymap[SDL_SCANCODE_LEFT] = ImGuiKey_LeftArrow;
 
-	io.SetClipboardTextFn = ImGuiDora::setClipboardText;
-	io.GetClipboardTextFn = ImGuiDora::getClipboardText;
-	io.PlatformSetImeDataFn = PlatformSetImeDataFn;
-	io.ClipboardUserData = nullptr;
+	ImGuiPlatformIO& platformIO = ImGui::GetPlatformIO();
+	platformIO.Platform_SetClipboardTextFn = ImGuiDora::setClipboardText;
+	platformIO.Platform_GetClipboardTextFn = ImGuiDora::getClipboardText;
+	platformIO.Platform_SetImeDataFn = PlatformSetImeDataFn;
+	platformIO.Platform_ClipboardUserData = nullptr;
 
+	ImGuiIO& io = ImGui::GetIO();
 	_iniFilePath = Path::concat({SharedContent.getWritablePath(), "imgui.ini"sv});
 	io.IniFilename = _iniFilePath.c_str();
 
