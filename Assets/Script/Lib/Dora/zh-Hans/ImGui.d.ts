@@ -135,7 +135,7 @@ export const enum WindowFlag {
 
 export const enum ChildFlag {
 	None = "",
-	Border = "Border",
+	Borders = "Borders",
 	AlwaysUseWindowPadding = "AlwaysUseWindowPadding",
 	ResizeX = "ResizeX",
 	ResizeY = "ResizeY",

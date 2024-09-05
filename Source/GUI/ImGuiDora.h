@@ -13,6 +13,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 struct ImDrawData;
 struct ImFontAtlas;
+struct ImGuiContext;
 
 NS_DORA_BEGIN
 
@@ -53,8 +54,8 @@ public:
 protected:
 	ImGuiDora();
 	void sendKey(int key, int count);
-	static const char* getClipboardText(void*);
-	static void setClipboardText(void*, const char* text);
+	static const char* getClipboardText(ImGuiContext*);
+	static void setClipboardText(ImGuiContext*, const char* text);
 	static int _lastIMEPosX, _lastIMEPosY;
 
 private:
