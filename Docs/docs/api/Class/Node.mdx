@@ -743,7 +743,7 @@ getChildByTag: function(self: Node, tag: string): Node
 
 **Description:**
 
-&emsp;&emsp;Schedules a function to run every frame.
+&emsp;&emsp;Schedules a main function to run every frame. Call this function again to replace the previous scheduled main function or coroutine.
 
 **Signature:**
 ```tl
@@ -754,7 +754,7 @@ schedule: function(self: Node, func: function(number): boolean)
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| func | function | The function to run, return true to stop. |
+| func | function | The main function to run, returns true to stop. |
 
 ## schedule
 
@@ -762,7 +762,7 @@ schedule: function(self: Node, func: function(number): boolean)
 
 **Description:**
 
-&emsp;&emsp;Schedules a coroutine to run.
+&emsp;&emsp;Schedules a main coroutine to run. Call this function again to replace the previous scheduled main function or coroutine.
 
 **Signature:**
 ```tl
@@ -773,7 +773,7 @@ schedule: function(self: Node, job: Routine.Job)
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| job | Routine.Job | The coroutine to run, return or yield true to stop. |
+| job | Routine.Job | The main coroutine to run, return or yield true to stop. |
 
 ## unschedule
 
@@ -781,12 +781,50 @@ schedule: function(self: Node, job: Routine.Job)
 
 **Description:**
 
-&emsp;&emsp;Unschedules the current node's scheduled function or coroutine.
+&emsp;&emsp;Unschedules the current node's scheduled main function or coroutine.
 
 **Signature:**
 ```tl
 unschedule: function(self: Node)
 ```
+
+## once
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Schedules a function that runs in a coroutine once. Call this function to replace the previous scheduled main function or coroutine.
+
+**Signature:**
+```tl
+once: function(self: Node, func: function())
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| func | function | The function to run once. |
+
+## loop
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Schedules a function that runs in a coroutine in a loop. Call this function to replace the previous scheduled main function or coroutine.
+
+**Signature:**
+```tl
+loop: function(self: Node, func: function(): boolean)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| func | function | The function to run in a loop, returns true to stop. |
 
 ## convertToNodeSpace
 
@@ -1512,3 +1550,473 @@ grab: function(self: Node, gridX: number, gridY: number): Grabber
 | Return Type | Description |
 | --- | --- |
 | Grabber | A Grabber object. |
+
+## onUpdate
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Schedules a function to run every frame. Call this function again to schedule multiple functions.
+
+**Signature:**
+```tl
+onUpdate: function(self: Node, func: function(number): boolean)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| func | function | The function to run every frame, returns true to stop. |
+
+## onUpdate
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Schedules a coroutine to run every frame. Call this function again to schedule multiple coroutines.
+
+**Signature:**
+```tl
+onUpdate: function(self: Node, job: Routine.Job)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| job | Routine.Job | The coroutine to run every frame. |
+
+## onActionEnd
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Registers a callback for event triggered when an action is finished.
+
+**Signature:**
+```tl
+onActionEnd: function(self: Node, callback: function(action: Action, target: Node))
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| callback | function | The callback function to register. |
+
+## onTapFilter
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Registers a callback for event triggered before the TapBegan slot and can be used to filter out certain taps.
+This function also sets `node.touchEnabled = true`.
+
+**Signature:**
+```tl
+onTapFilter: function(self: Node, callback: function(touch: Touch))
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| callback | function | The callback function to register. |
+
+## onTapBegan
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Registers callback for event triggered when a tap is detected.
+This function also sets `node.touchEnabled = true`.
+
+**Signature:**
+```tl
+onTapBegan: function(self: Node, callback: function(touch: Touch))
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| callback | function | The callback function to register. |
+
+## onTapEnded
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Registers callback for event triggered when a tap ends.
+This function also sets `node.touchEnabled = true`.
+
+**Signature:**
+```tl
+onTapEnded: function(self: Node, callback: function(touch: Touch))
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| callback | function | The callback function to register. |
+
+## onTapped
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Registers callback for event triggered when a tap is detected and has ended.
+This function also sets `node.touchEnabled = true`.
+
+**Signature:**
+```tl
+onTapped: function(self: Node, callback: function(touch: Touch))
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| callback | function | The callback function to register. |
+
+## onTapMoved
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Registers callback for event triggered when a tap moves.
+This function also sets `node.touchEnabled = true`.
+
+**Signature:**
+```tl
+onTapMoved: function(self: Node, callback: function(touch: Touch))
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| callback | function | The callback function to register. |
+
+## onMouseWheel
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Registers callback for event triggered when the mouse wheel is scrolled.
+This function also sets `node.touchEnabled = true`.
+
+**Signature:**
+```tl
+onMouseWheel: function(self: Node, callback: function(delta: Vec2))
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| callback | function | The callback function to register. |
+
+## onGesture
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Registers callback for event triggered when a gesture is recognized.
+This function also sets `node.touchEnabled = true`.
+
+**Signature:**
+```tl
+onGesture: function(self: Node, callback: function(center: Vec2, numFingers: integer, deltaDist: number, deltaAngle: number))
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| callback | function | The callback function to register. |
+
+## onEnter
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Registers callback for event triggered when a node is added to the scene graph.
+
+**Signature:**
+```tl
+onEnter: function(self: Node, callback: function())
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| callback | function | The callback function to register. |
+
+## onExit
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Registers callback for event triggered when a node is removed from the scene graph.
+
+**Signature:**
+```tl
+onExit: function(self: Node, callback: function())
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| callback | function | The callback function to register. |
+
+## onCleanup
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Registers callback for event triggered when a node is cleaned up.
+
+**Signature:**
+```tl
+onCleanup: function(self: Node, callback: function())
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| callback | function | The callback function to register. |
+
+## onKeyDown
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Registers callback for event triggered when a key is pressed down.
+This function also sets `node.keyboardEnabled = true`.
+
+**Signature:**
+```tl
+onKeyDown: function(self: Node, callback: function(keyName: Keyboard.KeyName))
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| callback | function | The callback function to register. |
+
+## onKeyUp
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Registers callback for event triggered when a key is released.
+This function also sets `node.keyboardEnabled = true`.
+
+**Signature:**
+```tl
+onKeyUp: function(self: Node, callback: function(keyName: Keyboard.KeyName))
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| callback | function | The callback function to register. |
+
+## onKeyPressed
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Registers callback for event triggered when a key is pressed.
+This function also sets `node.keyboardEnabled = true`.
+
+**Signature:**
+```tl
+onKeyPressed: function(self: Node, callback: function(keyName: Keyboard.KeyName))
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| callback | function | The callback function to register. |
+
+## onAttachIME
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Registers callback for event triggered when the input method editor (IME) is attached.
+
+**Signature:**
+```tl
+onAttachIME: function(self: Node, callback: function())
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| callback | function | The callback function to register. |
+
+## onDetachIME
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Registers callback for event triggered when the input method editor (IME) is detached.
+
+**Signature:**
+```tl
+onDetachIME: function(self: Node, callback: function())
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| callback | function | The callback function to register. |
+
+## onTextInput
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Registers callback for event triggered when text input is received.
+
+**Signature:**
+```tl
+onTextInput: function(self: Node, callback: function(text: string))
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| callback | function | The callback function to register. |
+
+## onTextEditing
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Registers callback for event triggered when text is being edited.
+
+**Signature:**
+```tl
+onTextEditing: function(self: Node, callback: function(text: string, startPos: integer))
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| callback | function | The callback function to register. |
+
+## onButtonDown
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Registers callback for event triggered when a button is pressed down on a controller.
+This function also sets `node.controllerEnabled = true`.
+
+**Signature:**
+```tl
+onButtonDown: function(self: Node, callback: function(controllerId: integer, buttonName: Controller.ButtonName))
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| callback | function | The callback function to register. |
+
+## onButtonUp
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Registers callback for event triggered when a button is released on a controller.
+This function also sets `node.controllerEnabled = true`.
+
+**Signature:**
+```tl
+onButtonUp: function(self: Node, callback: function(controllerId: integer, buttonName: Controller.ButtonName))
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| callback | function | The callback function to register. |
+
+## onButtonPressed
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Registers callback for event triggered when a button is pressed on a controller.
+This function also sets `node.controllerEnabled = true`.
+
+**Signature:**
+```tl
+onButtonPressed: function(self: Node, callback: function(controllerId: integer, buttonName: Controller.ButtonName))
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| callback | function | The callback function to register. |
+
+## onAxis
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Registers callback for event triggered when an axis is moved on a controller.
+This function also sets `node.controllerEnabled = true`.
+
+**Signature:**
+```tl
+onAxis: function(self: Node, callback: function(controllerId: integer, axisName: Controller.AxisName, value: number))
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| callback | function | The callback function to register. |

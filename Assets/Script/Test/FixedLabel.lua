@@ -1,5 +1,4 @@
 -- [yue]: Script/Test/FixedLabel.yue
-local once = Dora.once -- 1
 local sleep = Dora.sleep -- 1
 local Node = Dora.Node -- 1
 local LineRect = require("UI.View.Shape.LineRect") -- 3
@@ -20,12 +19,12 @@ createLabel = function(textAlign) -- 7
 	})) -- 9
 	local text = "1.23456壹贰叁肆伍陆柒玐玖" -- 10
 	local textLen = utf8.len(text) -- 11
-	_with_0:schedule(once(function() -- 12
+	_with_0:once(function() -- 12
 		for i = 1, textLen do -- 13
 			_with_0.text = utf8.sub(text, 1, i) -- 14
 			sleep(0.3) -- 15
 		end -- 15
-	end)) -- 12
+	end) -- 12
 	return _with_0 -- 8
 end -- 7
 local _with_0 = Node() -- 17

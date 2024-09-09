@@ -83,6 +83,7 @@ Application::Application()
 	, _fpsLimited(true)
 	, _renderRunning(true)
 	, _logicRunning(true)
+	, _fullScreen(false)
 	, _frame(0)
 	, _visualWidth(1280)
 	, _visualHeight(720)
@@ -116,7 +117,7 @@ const std::string& Application::getLocale() const noexcept {
 
 void Application::setLocale(String var) {
 	_locale = var.toString();
-	Event::send("AppLocale"_slice, _locale);
+	Event::send("AppChange"_slice, "Locale"s);
 }
 
 Size Application::getBufferSize() const noexcept {
@@ -133,7 +134,7 @@ float Application::getDevicePixelRatio() const noexcept {
 
 void Application::setThemeColor(Color var) {
 	_themeColor = var;
-	Event::send("AppTheme"_slice, _themeColor.toARGB());
+	Event::send("AppChange"_slice, "Theme"s);
 }
 
 Color Application::getThemeColor() const noexcept {
@@ -196,7 +197,8 @@ void Application::setWinSize(Size var) {
 		invokeInRender([&]() {
 			SDL_SetWindowFullscreen(_sdlWindow, SDL_WINDOW_FULLSCREEN_DESKTOP);
 		});
-		Event::send("AppFullScreen"_slice, true);
+		_fullScreen = true;
+		Event::send("AppChange"_slice, "FullScreen"s);
 	} else {
 		invokeInRender([&, var]() {
 			SDL_SetWindowFullscreen(_sdlWindow, 0);
@@ -204,8 +206,9 @@ void Application::setWinSize(Size var) {
 			SDL_SetWindowPosition(_sdlWindow, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 		});
 		_winPosition = {s_cast<float>(SDL_WINDOWPOS_CENTERED), s_cast<float>(SDL_WINDOWPOS_CENTERED)};
-		Event::send("AppMoved"_slice);
-		Event::send("AppFullScreen"_slice, false);
+		Event::send("AppChange"_slice, "Position"s);
+		_fullScreen = false;
+		Event::send("AppChange"_slice, "FullScreen"s);
 	}
 }
 
@@ -243,6 +246,10 @@ bool Application::isLogicRunning() const noexcept {
 	return _logicRunning;
 }
 
+bool Application::isFullScreen() const noexcept {
+	return _fullScreen;
+}
+
 // This function runs in main (render) thread, and do render work
 int Application::run(int argc, const char* const argv[]) {
 	Application::setSeed(s_cast<uint32_t>(std::time(nullptr)));
@@ -265,6 +272,7 @@ int Application::run(int argc, const char* const argv[]) {
 	windowFlags |= SDL_WINDOW_HIDDEN | SDL_WINDOW_ALWAYS_ON_TOP;
 #elif BX_PLATFORM_IOS || BX_PLATFORM_ANDROID
 	windowFlags |= SDL_WINDOW_FULLSCREEN | SDL_WINDOW_BORDERLESS;
+	_fullScreen = true;
 #endif // BX_PLATFORM
 
 	_sdlWindow = SDL_CreateWindow("Dora SSR",

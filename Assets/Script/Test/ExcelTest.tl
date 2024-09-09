@@ -11,6 +11,7 @@ local Director <const> = require("Director")
 local App <const> = require("App")
 local Color <const> = require("Color")
 local View <const> = require("View")
+local type Node <const> = require("Node")
 
 local TerrainLayer = 0
 local PlayerLayer = 1
@@ -31,8 +32,10 @@ local world = Platformer.PlatformWorld()
 world.camera.boundary = Rect(-1250, -500, 2500, 1000)
 world.camera.followRatio = Vec2(0.02, 0.02)
 world.camera.zoom = View.size.width / DesignWidth
-world:gslot("AppSizeChanged", function()
-	world.camera.zoom = View.size.width / DesignWidth
+world:onAppChange(function(settingName: Node.AppSettingName)
+	if settingName == "Size" then
+		world.camera.zoom = View.size.width / DesignWidth
+	end
 end)
 
 local terrainDef = BodyDef()
@@ -306,7 +309,7 @@ Observer("Add", {"x", "icon"}):watch(function(self: Entity.Type, x: number, icon
 	body.group = ItemGroup
 	body:addChild(sprite)
 
-	body:slot("BodyEnter", function(item: Body.Type)
+	body:onBodyEnter(function(item: Body.Type)
 		if tolua.type(item) == "Platformer::Unit" then
 			self.picked = true
 			body.group = Data.groupHide
@@ -392,8 +395,7 @@ end
 
 local ui = AlignNode(true)
 ui:css('flex-direction: column-reverse')
-ui.controllerEnabled = true
-ui:slot("ButtonDown", function(controllerId: integer, buttonName: Controller.ButtonName)
+ui:onButtonDown(function(controllerId: integer, buttonName: Controller.ButtonName)
 	if controllerId ~= 0 then return end
 	if buttonName == "dpleft" then
 		updatePlayerControl("keyLeft", true, true)
@@ -403,7 +405,7 @@ ui:slot("ButtonDown", function(controllerId: integer, buttonName: Controller.But
 		updatePlayerControl("keyJump", true, true)
 	end
 end)
-ui:slot("ButtonUp", function(controllerId: integer, buttonName: Controller.ButtonName)
+ui:onButtonUp(function(controllerId: integer, buttonName: Controller.ButtonName)
 	if controllerId ~= 0 then return end
 	if buttonName == "dpleft" then
 		updatePlayerControl("keyLeft", false, true)
@@ -441,10 +443,10 @@ local leftButton = CircleButton {
 	fontSize = 36
 }
 leftButton.anchor = Vec2.zero
-leftButton:slot("TapBegan", function()
+leftButton:onTapBegan(function()
 	updatePlayerControl("keyLeft", true, true)
 end)
-leftButton:slot("TapEnded", function()
+leftButton:onTapEnded(function()
 	updatePlayerControl("keyLeft", false, true)
 end)
 leftButton:addTo(leftMenu)
@@ -456,10 +458,10 @@ local rightButton = CircleButton {
 	fontSize = 36
 }
 rightButton.anchor = Vec2.zero
-rightButton:slot("TapBegan", function()
+rightButton:onTapBegan(function()
 	updatePlayerControl("keyRight", true, true)
 end)
-rightButton:slot("TapEnded", function()
+rightButton:onTapEnded(function()
 	updatePlayerControl("keyRight", false, true)
 end)
 rightButton:addTo(leftMenu)
@@ -481,10 +483,10 @@ local jumpButton = CircleButton {
 	fontSize = 36
 }
 jumpButton.anchor = Vec2.zero
-jumpButton:slot("TapBegan", function()
+jumpButton:onTapBegan(function()
 	updatePlayerControl("keyJump", true, true)
 end)
-jumpButton:slot("TapEnded", function()
+jumpButton:onTapEnded(function()
 	updatePlayerControl("keyJump", false, true)
 end)
 jumpButton:addTo(rightMenu)

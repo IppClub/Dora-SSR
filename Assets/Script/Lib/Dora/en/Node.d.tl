@@ -211,16 +211,24 @@ local record Node
 	-- @return (Node) The child node, or nil if not found.
 	getChildByTag: function(self: Node, tag: string): Node
 
-	-- Schedules a function to run every frame.
-	-- @param func (function) The function to run, return true to stop.
+	-- Schedules a main function to run every frame. Call this function again to replace the previous scheduled main function or coroutine.
+	-- @param func (function) The main function to run, returns true to stop.
 	schedule: function(self: Node, func: function(number): boolean)
 
-	-- Schedules a coroutine to run.
-	-- @param job (Routine.Job) The coroutine to run, return or yield true to stop.
+	-- Schedules a main coroutine to run. Call this function again to replace the previous scheduled main function or coroutine.
+	-- @param job (Routine.Job) The main coroutine to run, return or yield true to stop.
 	schedule: function(self: Node, job: Routine.Job)
 
-	-- Unschedules the current node's scheduled function or coroutine.
+	-- Unschedules the current node's scheduled main function or coroutine.
 	unschedule: function(self: Node)
+
+	-- Schedules a function that runs in a coroutine once. Call this function to replace the previous scheduled main function or coroutine.
+	-- @param func (function) The function to run once.
+	once: function(self: Node, func: function())
+
+	-- Schedules a function that runs in a coroutine in a loop. Call this function to replace the previous scheduled main function or coroutine.
+	-- @param func (function) The function to run in a loop, returns true to stop.
+	loop: function(self: Node, func: function(): boolean)
 
 	-- Converts a point in world space to node space.
 	-- @param worldPoint (Vec2) The point to convert.
@@ -455,6 +463,218 @@ local record Node
 	-- @param gridY (number) The number of vertical grid cells to divide the grabber into.
 	-- @return (Grabber) A Grabber object.
 	grab: function(self: Node, gridX: number, gridY: number): Grabber
+
+	-- Schedules a function to run every frame. Call this function again to schedule multiple functions.
+	-- @param func (function) The function to run every frame, returns true to stop.
+	-- 	@param deltaTime (number) The time interval in seconds since the last frame.
+	-- 	@return (boolean) True to stop the function from running.
+	onUpdate: function(self: Node, func: function(number): boolean)
+
+	-- Schedules a coroutine to run every frame. Call this function again to schedule multiple coroutines.
+	-- @param job (Routine.Job) The coroutine to run every frame.
+	onUpdate: function(self: Node, job: Routine.Job)
+
+	-- Registers a callback for event triggered when an action is finished.
+	-- @param callback (function) The callback function to register.
+	-- 	@param action (Action) The action that has finished.
+	-- 	@param target (Node) The node that the action is running on.
+	onActionEnd: function(self: Node, callback: function(action: Action, target: Node))
+
+	-- Registers a callback for event triggered before the TapBegan slot and can be used to filter out certain taps.
+	-- This function also sets `node.touchEnabled = true`.
+	-- @param callback (function) The callback function to register.
+	-- 	@param touch (Touch) The touch object that triggered the tap.
+	onTapFilter: function(self: Node, callback: function(touch: Touch))
+
+	-- Registers callback for event triggered when a tap is detected.
+	-- This function also sets `node.touchEnabled = true`.
+	-- @param callback (function) The callback function to register.
+	-- 	@param touch (Touch) The touch object that triggered the tap.
+	onTapBegan: function(self: Node, callback: function(touch: Touch))
+
+	-- Registers callback for event triggered when a tap ends.
+	-- This function also sets `node.touchEnabled = true`.
+	-- @param callback (function) The callback function to register.
+	-- 	@param touch (Touch) The touch object that triggered the tap.
+	onTapEnded: function(self: Node, callback: function(touch: Touch))
+
+	-- Registers callback for event triggered when a tap is detected and has ended.
+	-- This function also sets `node.touchEnabled = true`.
+	-- @param callback (function) The callback function to register.
+	-- 	@param touch (Touch) The touch object that triggered the tap.
+	onTapped: function(self: Node, callback: function(touch: Touch))
+
+	-- Registers callback for event triggered when a tap moves.
+	-- This function also sets `node.touchEnabled = true`.
+	-- @param callback (function) The callback function to register.
+	-- 	@param touch (Touch) The touch object that triggered the tap.
+	onTapMoved: function(self: Node, callback: function(touch: Touch))
+
+	-- Registers callback for event triggered when the mouse wheel is scrolled.
+	-- This function also sets `node.touchEnabled = true`.
+	-- @param callback (function) The callback function to register.
+	-- 	@param delta (Vec2) The delta of the mouse wheel scroll.
+	onMouseWheel: function(self: Node, callback: function(delta: Vec2))
+
+	-- Registers callback for event triggered when a gesture is recognized.
+	-- This function also sets `node.touchEnabled = true`.
+	-- @param callback (function) The callback function to register.
+	-- 	@param center (Vec2) The center of the gesture.
+	-- 	@param numFingers (integer) The number of fingers used in the gesture.
+	-- 	@param deltaDist (number) The distance moved in the gesture.
+	-- 	@param deltaAngle (number) The angle rotated in the gesture.
+	onGesture: function(self: Node, callback: function(center: Vec2, numFingers: integer, deltaDist: number, deltaAngle: number))
+
+	-- Registers callback for event triggered when a node is added to the scene graph.
+	-- @param callback (function) The callback function to register.
+	onEnter: function(self: Node, callback: function())
+
+	-- Registers callback for event triggered when a node is removed from the scene graph.
+	-- @param callback (function) The callback function to register.
+	onExit: function(self: Node, callback: function())
+
+	-- Registers callback for event triggered when a node is cleaned up.
+	-- @param callback (function) The callback function to register.
+	onCleanup: function(self: Node, callback: function())
+
+	-- Registers callback for event triggered when a key is pressed down.
+	-- This function also sets `node.keyboardEnabled = true`.
+	-- @param callback (function) The callback function to register.
+	-- 	@param keyName (Keyboard.KeyName) The key name to listen for.
+	onKeyDown: function(self: Node, callback: function(keyName: Keyboard.KeyName))
+
+	-- Registers callback for event triggered when a key is released.
+	-- This function also sets `node.keyboardEnabled = true`.
+	-- @param callback (function) The callback function to register.
+	-- 	@param keyName (Keyboard.KeyName) The key name to listen for.
+	onKeyUp: function(self: Node, callback: function(keyName: Keyboard.KeyName))
+
+	-- Registers callback for event triggered when a key is pressed.
+	-- This function also sets `node.keyboardEnabled = true`.
+	-- @param callback (function) The callback function to register.
+	-- 	@param keyName (Keyboard.KeyName) The key name to listen for.
+	onKeyPressed: function(self: Node, callback: function(keyName: Keyboard.KeyName))
+
+	-- Registers callback for event triggered when the input method editor (IME) is attached.
+	-- @param callback (function) The callback function to register.
+	onAttachIME: function(self: Node, callback: function())
+
+	-- Registers callback for event triggered when the input method editor (IME) is detached.
+	-- @param callback (function) The callback function to register.
+	onDetachIME: function(self: Node, callback: function())
+
+	-- Registers callback for event triggered when text input is received.
+	-- @param callback (function) The callback function to register.
+	-- 	@param text (string) The text input received.
+	onTextInput: function(self: Node, callback: function(text: string))
+
+	-- Registers callback for event triggered when text is being edited.
+	-- @param callback (function) The callback function to register.
+	-- 	@param text (string) The text being edited.
+	-- 	@param startPos (integer) The starting position of the text being edited.
+	onTextEditing: function(self: Node, callback: function(text: string, startPos: integer))
+
+	-- Registers callback for event triggered when a button is pressed down on a controller.
+	-- This function also sets `node.controllerEnabled = true`.
+	-- @param callback (function) The callback function to register.
+	-- 	@param controllerId (integer) The ID of the controller that triggered the event.
+	-- 	@param buttonName (Controller.ButtonName) The name of the button that was pressed.
+	onButtonDown: function(self: Node, callback: function(controllerId: integer, buttonName: Controller.ButtonName))
+
+	-- Registers callback for event triggered when a button is released on a controller.
+	-- This function also sets `node.controllerEnabled = true`.
+	-- @param callback (function) The callback function to register.
+	-- 	@param controllerId (integer) The ID of the controller that triggered the event.
+	-- 	@param buttonName (Controller.ButtonName) The name of the button that was released.
+	onButtonUp: function(self: Node, callback: function(controllerId: integer, buttonName: Controller.ButtonName))
+
+	-- Registers callback for event triggered when a button is pressed on a controller.
+	-- This function also sets `node.controllerEnabled = true`.
+	-- @param callback (function) The callback function to register.
+	-- 	@param controllerId (integer) The ID of the controller that triggered the event.
+	-- 	@param buttonName (Controller.ButtonName) The name of the button that was pressed.
+	onButtonPressed: function(self: Node, callback: function(controllerId: integer, buttonName: Controller.ButtonName))
+
+	-- Registers callback for event triggered when an axis is moved on a controller.
+	-- This function also sets `node.controllerEnabled = true`.
+	-- @param callback (function) The callback function to register.
+	-- 	@param controllerId (integer) The ID of the controller that triggered the event.
+	-- 	@param axisName (Controller.AxisName) The name of the axis that was moved.
+	-- 	@param value (number) The value of the axis.
+	onAxis: function(self: Node, callback: function(controllerId: integer, axisName: Controller.AxisName, value: number))
+
+	-- Enumeration of application events.
+	enum AppEventType
+
+		-- The application is about to quit.
+		"Quit"
+
+		-- The application gets a low memory warning.
+		"LowMemory"
+
+		-- The application is about to enter the background.
+		"WillEnterBackground"
+
+		-- The application has entered the background.
+		"DidEnterBackground"
+
+		-- The application is about to enter the foreground.
+		"WillEnterForeground"
+
+		-- The application has entered the foreground.
+		"DidEnterForeground"
+	end
+
+	-- Registers callback for event triggered when an application event occurs.
+	-- @param callback (function) The callback function to register.
+	-- 	@param eventType (AppEventType) The type of application event that occurred.
+	onAppEvent: function(self: Node, callback: function(eventType: AppEventType))
+
+	-- Enumeration of application settings.
+	enum AppSettingName
+
+		-- The application's locale.
+		"Locale"
+
+		-- The application's theme color.
+		"Theme"
+
+		-- The application window's fullscreen state.
+		"FullScreen"
+
+		-- The application window's position.
+		"Position"
+
+		-- The application window's size.
+		"Size"
+	end
+
+	-- Registers callback for event triggered when an application setting changes.
+	-- @param callback (function) The callback function to register.
+	-- 	@param settingName (AppSettingName) The name of the application setting that changed.
+	onAppChange: function(self: Node, callback: function(settingName: AppSettingName))
+
+	-- Enumeration of application WebSocket events.
+	enum AppWSEvent
+
+		-- A WebSocket connection is opened.
+		"Open"
+
+		-- A WebSocket connection is closed.
+		"Close"
+
+		-- The WebSocket receives a message.
+		"Send"
+
+		-- The WebSocket broadcasts a message.
+		"Receive"
+	end
+
+	-- Registers callback for event triggered when an application WebSocket event occurs.
+	-- @param callback (function) The callback function to register.
+	-- 	@param event (AppWSEvent) The type of WebSocket event that occurred.
+	-- 	@param message (string) The message received or sent.
+	onAppWS: function(self: Node, callback: function(event: AppWSEvent, message: string))
 end
 
 -- The available event slots for a Node.
@@ -577,20 +797,14 @@ local record __SLOT__
 	-- @param controllerId (integer) The controller id, incrementing from 0 when multiple controllers connected.
 	-- @param axisValue (number) The controller axis value ranging from -1.0 to 1.0.
 	["Axis"]: function(controllerId: integer, axisValue: number)
-
-	-- Triggers when the layout of the `AlignNode` is updated.
-	-- @param width (number) The width of the node.
-	-- @param height (number) The height of the node.
-	["AlignLayout"]: function(width: number, height: number)
-
-	-- Triggers when an Effekseer effect has ended.
-	-- @param handle (integer) The handle of the effect that has ended.
-	["EffekEnd"]: function(handle: integer)
 end
 
 -- A class object for the `Node` class.
 local record NodeClass
 	type Type = Node
+	type AppEventType = Node.AppEventType
+	type AppSettingName = Node.AppSettingName
+	type AppWSEvent = Node.AppWSEvent
 
 	-- Creates a new instance of the `Node` class.
 	-- @usage

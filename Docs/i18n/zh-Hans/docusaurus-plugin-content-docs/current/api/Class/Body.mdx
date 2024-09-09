@@ -357,3 +357,83 @@ onContactFilter: function(self: Body, filter: function(other: Body): boolean)
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
 | filter | function | 碰撞过滤器函数。 |
+
+## onBodyEnter
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;注册一个函数，当物理体进入传感器时被调用。
+该函数将设置`receivingContact`属性为true。
+
+**签名：**
+```tl
+onBodyEnter: function(self: Body, callback: function(other: Body, sensorTag: integer))
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| callback | function | 物理体进入传感器时的回调函数。 |
+
+## onBodyLeave
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;注册一个函数，当物理体离开传感器时被调用。
+该函数将设置`receivingContact`属性为true。
+
+**签名：**
+```tl
+onBodyLeave: function(self: Body, callback: function(other: Body, sensorTag: integer))
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| callback | function | 物理体离开传感器时的回调函数。 |
+
+## onContactStart
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;注册一个函数，当物理体开始与另一个物体发生碰撞时被调用。
+该函数将设置`receivingContact`属性为true。
+
+**签名：**
+```tl
+onContactStart: function(self: Body, callback: function(other: Body, point: Vec2, normal: Vec2))
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| callback | function | 物理体开始与另一个物体发生碰撞时的回调函数。 |
+
+## onContactEnd
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;注册一个函数，当物理体停止与另一个物体发生碰撞时被调用。
+该函数将设置`receivingContact`属性为true。
+
+**签名：**
+```tl
+onContactEnd: function(self: Body, callback: function(other: Body, point: Vec2, normal: Vec2))
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| callback | function | 物理体停止与另一个物体发生碰撞时的回调函数。 |

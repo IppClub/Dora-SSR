@@ -12,7 +12,7 @@ do -- 5
 	_with_0.recovery = 0.2 -- 6
 	_with_0.look = "happy" -- 7
 	_with_0:play("walk", true) -- 8
-	_with_0:slot("AnimationEnd", function(name) -- 9
+	_with_0:onAnimationEnd(function(name) -- 9
 		return print(name, "end") -- 9
 	end) -- 9
 	model = _with_0 -- 5

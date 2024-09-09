@@ -1,7 +1,7 @@
 // @preview-file on
 import { React, toNode } from 'DoraX';
 import { Data, PlatformWorld, Unit, UnitAction } from 'Platformer';
-import { App, Body, BodyMoveType, Color, Color3, Dictionary, GSlot, Rect, Size, Vec2, View, loop, once, sleep, Array, Observer, EntityEvent, Sprite, Spawn, Ease, Y, Slot, tolua, Scale, Opacity, Content, Group, Entity, Component, Director, Keyboard, KeyName, TypeName, ButtonName } from 'Dora';
+import { App, Body, BodyMoveType, Color, Color3, Dictionary, Rect, Size, Vec2, View, loop, once, sleep, Array, Observer, EntityEvent, Sprite, Spawn, Ease, Y, tolua, Scale, Opacity, Content, Group, Entity, Component, Director, Keyboard, KeyName, TypeName, ButtonName } from 'Dora';
 import { DecisionTree, toAI } from 'PlatformerX';
 
 const TerrainLayer = 0;
@@ -22,8 +22,10 @@ const world = PlatformWorld();
 world.camera.boundary = Rect(-1250, -500, 2500, 1000);
 world.camera.followRatio = Vec2(0.02, 0.02);
 world.camera.zoom = View.size.width / DesignWidth;
-world.gslot(GSlot.AppSizeChanged, () => {
-	world.camera.zoom = View.size.width / DesignWidth;
+world.onAppChange((settingName) => {
+	if (settingName === "Size") {
+		world.camera.zoom = View.size.width / DesignWidth;
+	}
 });
 
 interface RectShapeProps {
@@ -249,7 +251,7 @@ Observer(EntityEvent.Add, ["x", "icon"]).watch((self, x: number, icon: string) =
 
 	const itemBody = body as Body.Type;
 	body.addChild(sprite);
-	body.slot(Slot.BodyEnter, item => {
+	itemBody.onBodyEnter(item => {
 		if (tolua.type(item) === TypeName.Unit) {
 			self.picked = true;
 			itemBody.group = Data.groupHide;

@@ -43,13 +43,15 @@ do -- 17
 		viewWidth, viewHeight = _obj_0.width, _obj_0.height -- 18
 	end -- 18
 	root:css("width: " .. tostring(viewWidth) .. "; height: " .. tostring(viewHeight) .. "; flex-direction: column-reverse") -- 19
-	root:gslot("AppSizeChanged", function() -- 20
-		local width, height -- 21
-		do -- 21
-			local _obj_0 = View.size -- 21
-			width, height = _obj_0.width, _obj_0.height -- 21
-		end -- 21
-		return root:css("width: " .. tostring(width) .. "; height: " .. tostring(height) .. "; flex-direction: column-reverse") -- 22
+	root:gslot("AppChange", function(settingName) -- 20
+		if settingName == "Size" then -- 20
+			local width, height -- 21
+			do -- 21
+				local _obj_0 = View.size -- 21
+				width, height = _obj_0.width, _obj_0.height -- 21
+			end -- 21
+			return root:css("width: " .. tostring(width) .. "; height: " .. tostring(height) .. "; flex-direction: column-reverse") -- 22
+		end -- 20
 	end) -- 20
 	local width <const>, height <const> = viewWidth - 200, viewHeight - 20 -- 23
 	root:addChild((function() -- 24
@@ -62,12 +64,14 @@ do -- 17
 			viewHeight = height -- 30
 		}) -- 24
 		scroll.border = LineRect({ -- 32
-			width = width, -- 32
-			height = height, -- 32
+			x = 1, -- 32
+			y = 1, -- 32
+			width = width - 2, -- 32
+			height = height - 2, -- 32
 			color = 0xffffffff -- 32
 		}) -- 32
 		scroll.area:addChild(scroll.border) -- 33
-		root:slot("AlignLayout", function(w, h) -- 34
+		root:onAlignLayout(function(w, h) -- 34
 			scroll.position = Vec2(w / 2, h / 2) -- 35
 			w = w - 200 -- 36
 			h = h - 20 -- 37
@@ -75,8 +79,10 @@ do -- 17
 			scroll:adjustSizeWithAlign("Auto", 10, Size(w, h)) -- 39
 			scroll.area:removeChild(scroll.border) -- 40
 			scroll.border = LineRect({ -- 41
-				width = w, -- 41
-				height = h, -- 41
+				x = 1, -- 41
+				y = 1, -- 41
+				width = w - 2, -- 41
+				height = h - 2, -- 41
 				color = 0xffffffff -- 41
 			}) -- 41
 			return scroll.area:addChild(scroll.border) -- 42
@@ -95,7 +101,7 @@ do -- 17
 		control:css("height: 140; margin-bottom: 40") -- 48
 		menu = Menu() -- 49
 		control:addChild(menu) -- 50
-		control:slot("AlignLayout", function(w, h) -- 51
+		control:onAlignLayout(function(w, h) -- 51
 			menu.position = Vec2(w / 2, h / 2) -- 52
 		end) -- 51
 		return control -- 47
@@ -143,7 +149,7 @@ setButtons = function(options) -- 65
 				radius = 60, -- 73
 				fontSize = 40 -- 74
 			}) -- 71
-			_with_0:slot("Tapped", function() -- 76
+			_with_0:onTapped(function() -- 76
 				if options then -- 77
 					return advance(i) -- 78
 				else -- 80

@@ -36,6 +36,12 @@ local record AlignNode
 	-- @usage
 	-- alignNode:css("flex-direction: column; justify-content: center; align-items: center;")
 	css: function(self: AlignNode, style: string)
+
+	-- 注册一个布局更新时的回调函数。
+	-- @param callback (function) 布局更新时的回调函数。
+	-- 	@param width (number) 节点更新后的宽度。
+	-- 	@param height (number) 节点更新后的高度。
+	onAlignLayout: function(self: AlignNode, callback: function(width: number, height: number))
 end
 
 -- 用于创建 AlignNode 对象的类。
@@ -46,6 +52,21 @@ local record AlignNodeClass
 	-- @param isWindowRoot (boolean) [可选] 是否为窗口根节点。窗口根节点会自动监听窗口大小变化事件自动更新布局。
 	-- @return (AlignNode) 新创建的 AlignNode 对象。
 	metamethod __call: function(self: AlignNodeClass, isWindowRoot?: boolean): AlignNode
+end
+
+-- 用于对齐节点的布局更新时触发的信号槽定义。
+-- @usage
+-- -- 可以使用以下形式的代码来注册监听这些事件：
+-- alignNode:addTo(parentNode)
+-- alignNode:slot("AlignLayout", function(width: number, height: number)
+-- 	print("对齐节点的布局已更新", width, height)
+-- end)
+local record __SLOT__
+
+	-- 当`AlignNode`节点的布局更新时触发。
+	-- @param width (number) 节点的宽度。
+	-- @param height (number) 节点的高度。
+	["AlignLayout"]: function(width: number, height: number)
 end
 
 local alignNodeClass: AlignNodeClass

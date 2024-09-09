@@ -37,15 +37,15 @@ bool Menu::isEnabled() const noexcept {
 bool Menu::init() {
 	if (!Node::init()) return false;
 	slot("TapFilter"_slice, [&](Event* e) {
-		Touch* touch;
-		e->get(touch);
+		Touch* touch = nullptr;
+		if (!e->get(touch)) return;
 		if (_selectedItem || !_enabled) {
 			touch->setEnabled(false);
 		}
 	});
 	slot("TapBegan"_slice, [&](Event* e) {
-		Touch* touch;
-		e->get(touch);
+		Touch* touch = nullptr;
+		if (!e->get(touch)) return;
 		_selectedItem = itemForTouch(touch);
 		if (_selectedItem) {
 			_selectedItem->emit("TapBegan"_slice, touch);
@@ -53,8 +53,8 @@ bool Menu::init() {
 			touch->setEnabled(false);
 	});
 	slot("TapMoved"_slice, [&](Event* e) {
-		Touch* touch;
-		e->get(touch);
+		Touch* touch = nullptr;
+		if (!e->get(touch)) return;
 		Node* currentItem = itemForTouch(touch);
 		if (!_enabled) {
 			if (currentItem && currentItem == _selectedItem) {
@@ -74,8 +74,8 @@ bool Menu::init() {
 		}
 	});
 	slot("TapEnded"_slice, [&](Event* e) {
-		Touch* touch;
-		e->get(touch);
+		Touch* touch = nullptr;
+		if (!e->get(touch)) return;
 		if (_selectedItem) {
 			_selectedItem->emit("TapEnded"_slice, touch);
 			if (_enabled) {

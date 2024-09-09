@@ -25,13 +25,12 @@ if bone == nil then
 end
 bone.look = looks[1]
 bone:play(animations[1], true)
-bone:slot("AnimationEnd", function(name)
+bone:onAnimationEnd(function(name)
 	print(name .. " end!")
 end)
 
 bone.y = -200
-bone.touchEnabled = true
-bone:slot("TapBegan", function(touch)
+bone:onTapBegan(function(touch)
 	local loc = touch.location
 	local x, y = loc.x, loc.y
 	local name = bone:containsPoint(x, y)

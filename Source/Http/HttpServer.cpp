@@ -159,7 +159,7 @@ public:
 		writer.Key("text");
 		writer.String(log.c_str(), log.size());
 		writer.EndObject();
-		Event::send("AppWSSend"sv, std::string{buf.GetString(), buf.GetLength()});
+		Event::send("AppWS"sv, "Send"s, std::string{buf.GetString(), buf.GetLength()});
 	}
 
 	bool start(int port) {
@@ -168,7 +168,7 @@ public:
 				if (ws::frame::opcode::TEXT == msg->get_opcode()) {
 					auto message = std::make_shared<std::string>(msg->get_payload());
 					SharedApplication.invokeInLogic([message = std::move(message)]() {
-						Event::send("AppWSMessage"sv, std::move(*message));
+						Event::send("AppWS"sv, "Receive"s, std::move(*message));
 					});
 				}
 			});
@@ -178,7 +178,7 @@ public:
 					_connections.insert(hdl);
 				}
 				SharedApplication.invokeInLogic([]() {
-					Event::send("AppWSOpen"sv);
+					Event::send("AppWS"sv, "Open"s, Slice::Empty);
 				});
 			});
 			_server.set_close_handler([this](ws::connection_hdl hdl) {
@@ -187,7 +187,7 @@ public:
 					_connections.erase(hdl);
 				}
 				SharedApplication.invokeInLogic([]() {
-					Event::send("AppWSClose"sv);
+					Event::send("AppWS"sv, "Close"s, Slice::Empty);
 				});
 			});
 			_server.set_reuse_addr(true);
@@ -480,11 +480,14 @@ bool HttpServer::startWS(int port) {
 		_webSocketServer = nullptr;
 		return false;
 	}
-	_webSocketListener = Listener::create("AppWSSend"s, [this](Event* event) {
+	_webSocketListener = Listener::create("AppWS"s, [this](Event* event) {
 		if (_webSocketServer) {
+			std::string eventType;
 			std::string msg;
-			if (event->get(msg)) {
-				_webSocketServer->send(msg);
+			if (event->get(eventType, msg)) {
+				if (eventType == "Send"sv) {
+					_webSocketServer->send(msg);
+				}
 			}
 		}
 	});

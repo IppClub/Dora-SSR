@@ -22,12 +22,14 @@ do -- 13
 	width, height = _obj_0.width, _obj_0.height -- 13
 end -- 13
 root:css("width: " .. tostring(width) .. "; height: " .. tostring(height)) -- 14
-root:gslot("AppSizeChanged", function() -- 15
-	do -- 16
-		local _obj_0 = View.size -- 16
-		width, height = _obj_0.width, _obj_0.height -- 16
-	end -- 16
-	return root:css("width: " .. tostring(width) .. "; height: " .. tostring(height)) -- 17
+root:gslot("AppChange", function(settingName) -- 15
+	if settingName == "Size" then -- 15
+		do -- 16
+			local _obj_0 = View.size -- 16
+			width, height = _obj_0.width, _obj_0.height -- 16
+		end -- 16
+		return root:css("width: " .. tostring(width) .. "; height: " .. tostring(height)) -- 17
+	end -- 15
 end) -- 15
 root:addChild((function() -- 18
 	local _with_0 = ScrollArea({ -- 19
@@ -44,7 +46,7 @@ root:addChild((function() -- 18
 		color = 0xffffffff -- 26
 	}) -- 26
 	_with_0.area:addChild(_with_0.border) -- 27
-	root:slot("AlignLayout", function(w, h) -- 28
+	root:onAlignLayout(function(w, h) -- 28
 		_with_0.position = Vec2(w / 2, h / 2) -- 29
 		w = w - 200 -- 30
 		h = h - 20 -- 31
@@ -52,8 +54,10 @@ root:addChild((function() -- 18
 		_with_0:adjustSizeWithAlign("Auto", 10, Size(w, h)) -- 33
 		_with_0.area:removeChild(_with_0.border) -- 34
 		_with_0.border = LineRect({ -- 35
-			width = w, -- 35
-			height = h, -- 35
+			x = 1, -- 35
+			y = 1, -- 35
+			width = w - 2, -- 35
+			height = h - 2, -- 35
 			color = 0xffffffff -- 35
 		}) -- 35
 		return _with_0.area:addChild(_with_0.border) -- 36

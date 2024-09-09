@@ -27,144 +27,143 @@ do -- 6
 		"scene" -- 6
 	}) -- 6
 	_with_0:watch(function(self, scene) -- 7
-		scene.touchEnabled = true -- 8
-		scene:slot("TapEnded", function(touch) -- 9
-			local location = touch.location -- 10
-			return positionGroup:each(function(entity) -- 11
-				entity.target = location -- 12
-			end) -- 12
-		end) -- 9
-		return false -- 12
+		scene:onTapEnded(function(touch) -- 8
+			local location = touch.location -- 9
+			return positionGroup:each(function(entity) -- 10
+				entity.target = location -- 11
+			end) -- 11
+		end) -- 8
+		return false -- 11
 	end) -- 7
 end -- 6
-do -- 14
-	local _with_0 = Observer("Add", { -- 14
-		"image" -- 14
-	}) -- 14
-	_with_0:watch(function(self, image) -- 15
-		sceneGroup:each(function(e) -- 15
-			do -- 16
-				local _with_1 = Sprite(image) -- 16
-				self.sprite = _with_1 -- 16
-				_with_1:addTo(e.scene) -- 17
-				_with_1:runAction(Scale(0.5, 0, 0.5, Ease.OutBack)) -- 18
-			end -- 16
-			return true -- 19
-		end) -- 15
-		return false -- 19
-	end) -- 15
-end -- 14
-do -- 21
-	local _with_0 = Observer("Remove", { -- 21
-		"sprite" -- 21
-	}) -- 21
-	_with_0:watch(function(self) -- 22
-		return self.oldValues.sprite:removeFromParent() -- 22
-	end) -- 22
-end -- 21
-do -- 24
-	local _with_0 = Observer("Remove", { -- 24
-		"target" -- 24
-	}) -- 24
-	_with_0:watch(function(self) -- 25
-		return print("remove target from entity " .. tostring(self.index)) -- 25
-	end) -- 25
-end -- 24
-do -- 27
-	local _with_0 = Group({ -- 27
-		"position", -- 27
-		"direction", -- 27
-		"speed", -- 27
-		"target" -- 27
-	}) -- 27
-	_with_0:watch(function(self, position, direction, speed, target) -- 28
-		if target == position then -- 29
-			return -- 29
-		end -- 29
-		local dir = target - position -- 30
-		dir = dir:normalize() -- 31
-		local angle = math.deg(math.atan(dir.x, dir.y)) -- 32
-		local newPos = position + dir * speed -- 33
-		newPos = newPos:clamp(position, target) -- 34
-		self.position = newPos -- 35
-		self.direction = angle -- 36
-		if newPos == target then -- 37
-			self.target = nil -- 37
-		end -- 37
-		return false -- 37
-	end) -- 28
-end -- 27
-do -- 39
-	local _with_0 = Observer("AddOrChange", { -- 39
-		"position", -- 39
-		"direction", -- 39
-		"sprite" -- 39
-	}) -- 39
-	_with_0:watch(function(self, position, direction, sprite) -- 40
-		sprite.position = position -- 41
-		local lastDirection = self.oldValues.direction or sprite.angle -- 42
-		if math.abs(direction - lastDirection) > 1 then -- 43
-			sprite:runAction(Roll(0.3, lastDirection, direction)) -- 44
-		end -- 43
-		return false -- 44
-	end) -- 40
-end -- 39
-Entity({ -- 47
-	scene = Node() -- 47
-}) -- 46
-Entity({ -- 50
-	image = "Image/logo.png", -- 50
-	position = Vec2.zero, -- 51
-	direction = 45.0, -- 52
-	speed = 4.0 -- 53
-}) -- 49
-Entity({ -- 56
-	image = "Image/logo.png", -- 56
-	position = Vec2(-100, 200), -- 57
-	direction = 90.0, -- 58
-	speed = 10.0 -- 59
-}) -- 55
-local windowFlags = { -- 64
-	"NoDecoration", -- 64
-	"AlwaysAutoResize", -- 64
-	"NoSavedSettings", -- 64
-	"NoFocusOnAppearing", -- 64
-	"NoNav", -- 64
-	"NoMove" -- 64
-} -- 64
-return threadLoop(function() -- 72
-	local width -- 73
-	width = App.visualSize.width -- 73
-	ImGui.SetNextWindowBgAlpha(0.35) -- 74
-	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0)) -- 75
-	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver") -- 76
-	return ImGui.Begin("ECS System", windowFlags, function() -- 77
-		ImGui.Text("ECS System (Yuescript)") -- 78
-		ImGui.Separator() -- 79
-		ImGui.TextWrapped("Tap any place to move entities.") -- 80
-		if ImGui.Button("Create Random Entity") then -- 81
-			Entity({ -- 83
-				image = "Image/logo.png", -- 83
-				position = Vec2(6 * math.random(1, 100), 6 * math.random(1, 100)), -- 84
-				direction = 1.0 * math.random(0, 360), -- 85
-				speed = 1.0 * math.random(1, 20) -- 86
-			}) -- 82
-		end -- 81
-		if ImGui.Button("Destroy An Entity") then -- 87
-			return Group({ -- 88
-				"sprite", -- 88
-				"position" -- 88
-			}):each(function(entity) -- 88
-				entity.position = nil -- 89
-				do -- 90
-					local _with_0 = entity.sprite -- 90
-					_with_0:runAction(Sequence(Scale(0.5, 0.5, 0, Ease.InBack), Event("Destroy"))) -- 91
-					_with_0:slot("Destroy", function() -- 92
-						return entity:destroy() -- 92
-					end) -- 92
-				end -- 90
-				return true -- 93
-			end) -- 93
-		end -- 87
-	end) -- 93
-end) -- 93
+do -- 13
+	local _with_0 = Observer("Add", { -- 13
+		"image" -- 13
+	}) -- 13
+	_with_0:watch(function(self, image) -- 14
+		sceneGroup:each(function(e) -- 14
+			do -- 15
+				local _with_1 = Sprite(image) -- 15
+				self.sprite = _with_1 -- 15
+				_with_1:addTo(e.scene) -- 16
+				_with_1:runAction(Scale(0.5, 0, 0.5, Ease.OutBack)) -- 17
+			end -- 15
+			return true -- 18
+		end) -- 14
+		return false -- 18
+	end) -- 14
+end -- 13
+do -- 20
+	local _with_0 = Observer("Remove", { -- 20
+		"sprite" -- 20
+	}) -- 20
+	_with_0:watch(function(self) -- 21
+		return self.oldValues.sprite:removeFromParent() -- 21
+	end) -- 21
+end -- 20
+do -- 23
+	local _with_0 = Observer("Remove", { -- 23
+		"target" -- 23
+	}) -- 23
+	_with_0:watch(function(self) -- 24
+		return print("remove target from entity " .. tostring(self.index)) -- 24
+	end) -- 24
+end -- 23
+do -- 26
+	local _with_0 = Group({ -- 26
+		"position", -- 26
+		"direction", -- 26
+		"speed", -- 26
+		"target" -- 26
+	}) -- 26
+	_with_0:watch(function(self, position, direction, speed, target) -- 27
+		if target == position then -- 28
+			return -- 28
+		end -- 28
+		local dir = target - position -- 29
+		dir = dir:normalize() -- 30
+		local angle = math.deg(math.atan(dir.x, dir.y)) -- 31
+		local newPos = position + dir * speed -- 32
+		newPos = newPos:clamp(position, target) -- 33
+		self.position = newPos -- 34
+		self.direction = angle -- 35
+		if newPos == target then -- 36
+			self.target = nil -- 36
+		end -- 36
+		return false -- 36
+	end) -- 27
+end -- 26
+do -- 38
+	local _with_0 = Observer("AddOrChange", { -- 38
+		"position", -- 38
+		"direction", -- 38
+		"sprite" -- 38
+	}) -- 38
+	_with_0:watch(function(self, position, direction, sprite) -- 39
+		sprite.position = position -- 40
+		local lastDirection = self.oldValues.direction or sprite.angle -- 41
+		if math.abs(direction - lastDirection) > 1 then -- 42
+			sprite:runAction(Roll(0.3, lastDirection, direction)) -- 43
+		end -- 42
+		return false -- 43
+	end) -- 39
+end -- 38
+Entity({ -- 46
+	scene = Node() -- 46
+}) -- 45
+Entity({ -- 49
+	image = "Image/logo.png", -- 49
+	position = Vec2.zero, -- 50
+	direction = 45.0, -- 51
+	speed = 4.0 -- 52
+}) -- 48
+Entity({ -- 55
+	image = "Image/logo.png", -- 55
+	position = Vec2(-100, 200), -- 56
+	direction = 90.0, -- 57
+	speed = 10.0 -- 58
+}) -- 54
+local windowFlags = { -- 63
+	"NoDecoration", -- 63
+	"AlwaysAutoResize", -- 63
+	"NoSavedSettings", -- 63
+	"NoFocusOnAppearing", -- 63
+	"NoNav", -- 63
+	"NoMove" -- 63
+} -- 63
+return threadLoop(function() -- 71
+	local width -- 72
+	width = App.visualSize.width -- 72
+	ImGui.SetNextWindowBgAlpha(0.35) -- 73
+	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0)) -- 74
+	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver") -- 75
+	return ImGui.Begin("ECS System", windowFlags, function() -- 76
+		ImGui.Text("ECS System (Yuescript)") -- 77
+		ImGui.Separator() -- 78
+		ImGui.TextWrapped("Tap any place to move entities.") -- 79
+		if ImGui.Button("Create Random Entity") then -- 80
+			Entity({ -- 82
+				image = "Image/logo.png", -- 82
+				position = Vec2(6 * math.random(1, 100), 6 * math.random(1, 100)), -- 83
+				direction = 1.0 * math.random(0, 360), -- 84
+				speed = 1.0 * math.random(1, 20) -- 85
+			}) -- 81
+		end -- 80
+		if ImGui.Button("Destroy An Entity") then -- 86
+			return Group({ -- 87
+				"sprite", -- 87
+				"position" -- 87
+			}):each(function(entity) -- 87
+				entity.position = nil -- 88
+				do -- 89
+					local _with_0 = entity.sprite -- 89
+					_with_0:runAction(Sequence(Scale(0.5, 0.5, 0, Ease.InBack), Event("Destroy"))) -- 90
+					_with_0:slot("Destroy", function() -- 91
+						return entity:destroy() -- 91
+					end) -- 91
+				end -- 89
+				return true -- 92
+			end) -- 92
+		end -- 86
+	end) -- 92
+end) -- 92

@@ -603,6 +603,9 @@ interface App {
 	/** Whether the game engine is running in debug mode. */
 	readonly debugging: boolean;
 
+	/** Whether the game engine is running in full screen mode. */
+	readonly fullScreen: boolean;
+
 	/** An array of test names of engine included C++ tests. */
 	readonly testNames: string[];
 
@@ -1640,14 +1643,14 @@ class Scheduler extends Object {
 	fixedFPS: number;
 
 	/**
-	 * Schedules a function to be called every frame.
-	 * @param handler The function to be called. It should take a single argument of type number, which represents the delta time since the last frame.
+	 * Schedules a main function to run every frame. Call this function again to replace the previous scheduled main function or coroutine.
+	 * @param handler The main function to be called every frame. It should take a single argument of type number, which represents the delta time since the last frame, returns true to stop.
 	 * If the function returns true, it will not be called again.
 	 */
 	schedule(handler: (this: void, deltaTime: number) => boolean): void;
 
 	/**
-	 * Schedules a coroutine job to be resumed every frame.
+	 * Schedules a main coroutine to run. Call this function again to replace the previous scheduled main function or coroutine.
 	 * @param job The coroutine job to be resumed.
 	 */
 	schedule(job: Job): void;
@@ -2585,7 +2588,7 @@ interface NodeEventHandlerMap {
 
 	/**
 	 * Triggers when a Body object collides with a sensor object.
-	 * Triggers after setting `body.receivingContact = true`.
+	 * This event triggers only when the Body attached with any fixture as sensor.
 	 * @param other The other Body object that the current Body is colliding with.
 	 * @param sensorTag The tag of the sensor that triggered this collision.
 	*/
@@ -2593,7 +2596,7 @@ interface NodeEventHandlerMap {
 
 	/**
 	 * Triggers when a `Body` object is no longer colliding with a sensor object.
-	 * Triggers after setting `body.receivingContact = true`.
+	 * This event triggers only when the Body attached with any fixture as sensor.
 	 * @param other The other `Body` object that the current `Body` is no longer colliding with.
 	 * @param sensorTag The tag of the sensor that triggered this collision.
 	*/
@@ -2637,70 +2640,26 @@ interface NodeEventHandlerMap {
 }
 
 const enum GlobalEvent {
-	AppQuit = "AppQuit",
-	AppLowMemory = "AppLowMemory",
-	AppWillEnterBackground = "AppWillEnterBackground",
-	AppDidEnterBackground = "AppDidEnterBackground",
-	AppWillEnterForeground = "AppWillEnterForeground",
-	AppDidEnterForeground = "AppDidEnterForeground",
-	AppSizeChanged = "AppSizeChanged",
-	AppFullScreen = "AppFullScreen",
-	AppMoved = "AppMoved",
-	AppTheme = "AppTheme",
-	AppWSOpen = "AppWSOpen",
-	AppWSClose = "AppWSClose",
-	AppWSMessage = "AppWSMessage",
-	AppWSSend = "AppWSSend"
+	AppEvent = "AppEvent",
+	AppChange = "AppChange",
+	AppWS = "AppWS",
 }
 
 export {GlobalEvent as GSlot};
 
+type AppEventType = "Quit" | "LowMemory" | "WillEnterBackground" | "DidEnterBackground" | "WillEnterForeground" | "DidEnterForeground";
+type AppSettingName = "Locale" | "Theme" | "FullScreen" | "Position" | "Size";
+type AppWSEventType = "Open" | "Close" | "Send" | "Receive";
+
 type GlobalEventHandlerMap = {
-	/** Triggers when the application is about to quit. */
-	AppQuit(this: void): void;
+	/** Triggers when the application receives an event. */
+	AppEvent(this: void, eventType: AppEventType): void;
 
-	/** Triggers when the application receives a low memory warning. */
-	AppLowMemory(this: void): void;
+	/** Triggers when the application window changes a specific setting. */
+	AppChange(this: void, settingName: AppSettingName): void;
 
-	/** Triggers when the application is about to enter the background. */
-	AppWillEnterBackground(this: void): void;
-
-	/** Triggers when the application has entered the background. */
-	AppDidEnterBackground(this: void): void;
-
-	/** Triggers when the application is about to enter the foreground. */
-	AppWillEnterForeground(this: void): void;
-
-	/** Triggers when the application has entered the foreground. */
-	AppDidEnterForeground(this: void): void;
-
-	/** Triggers when the application window size changes. */
-	AppSizeChanged(this: void): void;
-
-	/** Triggers when the application window enters or exits full-screen mode. */
-	AppFullScreen(this: void, fullScreen: boolean): void;
-
-	/** Triggers when the application window position changes. */
-	AppMoved(this: void): void;
-
-	/** Triggers when the application theme color changes. */
-	AppTheme(this: void, themeColor: Color): void;
-
-	/** Triggers when a websocket connection is open. */
-	AppWSOpen(this: void): void;
-
-	/** Triggers when a websocket connection is closed. */
-	AppWSClose(this: void): void;
-
-	/** Triggers when received text message from a websocket connection. */
-	AppWSMessage(this: void, msg: string): void;
-
-	/**
-	 * A gobal event for broadcasting massage to all websocket connections.
-	 * @example
-	 * emit("AppWSSend", "A message")
-	 */
-	AppWSSend(this: void, msg: string): void;
+	/** Triggers when a websocket connection gets an event. */
+	AppWS(this: void, eventType: AppWSEventType, msg: string): void;
 };
 
 /**
@@ -2891,21 +2850,33 @@ class Node extends Object {
 	getChildByTag(tag: string): Node | null;
 
 	/**
-	 * Schedules a function to run every frame.
-	 * @param func The function to run, return true to stop.
+	 * Schedules a main function to run every frame. Call this function again to replace the previous scheduled main function or coroutine.
+	 * @param func The main function to be called every frame. It should take a single argument of type number, which represents the delta time since the last frame, returns true to stop.
 	 */
 	schedule(func: (this: void, deltaTime: number) => boolean): void;
 
 	/**
-	 * Schedules a coroutine to run.
-	 * @param job The coroutine to run, return or yield true to stop.
+	 * Schedules a main coroutine to run. Call this function again to replace the previous scheduled main function or coroutine.
+	 * @param job The main coroutine to run, return or yield true to stop.
 	 */
 	schedule(job: Job): void;
 
 	/**
-	 * Unschedules the current node's scheduled function or coroutine.
+	 * Unschedules the current node's scheduled main function or coroutine.
 	 */
 	unschedule(): void;
+
+	/**
+	 * Schedules a function that runs in a coroutine once. Call this function to replace the previous scheduled main function or coroutine.
+	 * @param func The function to run once.
+	 */
+	once(func: (this: void) => void): void;
+
+	/**
+	 * Schedules a function that runs in a coroutine in a loop. Call this function to replace the previous scheduled main function or coroutine.
+	 * @param func The function to run in a loop, returns true to stop.
+	 */
+	loop(func: (this: void) => boolean): void;
 
 	/**
 	 * Converts a point in world space to node space.
@@ -3086,8 +3057,8 @@ class Node extends Object {
 	 * Register for builtin global events:
 	 * ```
 	 * const node = Node()
-	 * node.gslot(GSlot.AppQuit, () => {
-	 * 	print("Application is shuting down!");
+	 * node.gslot(GSlot.AppEvent, (eventType) => {
+	 * 	print("Application event: " + eventType);
 	 * });
 	 * ```
 	 */
@@ -3162,6 +3133,182 @@ class Node extends Object {
 	 * @returns A Grabber object.
 	 */
 	grab(gridX: number, gridY: number): Grabber;
+
+	/**
+	 * Schedules a function to run every frame. Call this function again to schedule multiple functions.
+	 * @param func The function to run every frame, returns true to stop.
+	 */
+	onUpdate(func: (this: void, number) => boolean): void;
+
+	/**
+	 * Schedules a coroutine to run every frame. Call this function again to schedule multiple coroutines.
+	 * @param job The coroutine to run every frame.
+	 */
+	onUpdate(job: Job): void;
+
+	/**
+	 * Registers a callback for the event triggered when an action is finished.
+	 * @param callback The callback function to register.
+	 */
+	onActionEnd(callback: (this: void, action: Action, target: Node) => void): void;
+
+	/**
+	 * Registers a callback for the event triggered before the TapBegan slot and can be used to filter out certain taps.
+	 * This function also sets `node.touchEnabled = true`.
+	 * @param callback The callback function to register.
+	 */
+	onTapFilter(callback: (this: void, touch: Touch) => void): void;
+
+	/**
+	 * Registers a callback for the event triggered when a tap is detected.
+	 * This function also sets `node.touchEnabled = true`.
+	 * @param callback The callback function to register.
+	 */
+	onTapBegan(callback: (this: void, touch: Touch) => void): void;
+
+	/**
+	 * Registers a callback for the event triggered when a tap ends.
+	 * This function also sets `node.touchEnabled = true`.
+	 * @param callback The callback function to register.
+	 */
+	onTapEnded(callback: (this: void, touch: Touch) => void): void;
+
+	/**
+	 * Registers a callback for the event triggered when a tap is detected and has ended.
+	 * This function also sets `node.touchEnabled = true`.
+	 * @param callback The callback function to register.
+	 */
+	onTapped(callback: (this: void, touch: Touch) => void): void;
+
+	/**
+	 * Registers a callback for the event triggered when a tap moves.
+	 * This function also sets `node.touchEnabled = true`.
+	 * @param callback The callback function to register.
+	 */
+	onTapMoved(callback: (this: void, touch: Touch) => void): void;
+
+	/**
+	 * Registers a callback for the event triggered when the mouse wheel is scrolled.
+	 * This function also sets `node.touchEnabled = true`.
+	 * @param callback The callback function to register.
+	 */
+	onMouseWheel(callback: (this: void, delta: Vec2) => void): void;
+
+	/**
+	 * Registers a callback for the event triggered when a gesture is recognized.
+	 * This function also sets `node.touchEnabled = true`.
+	 * @param callback The callback function to register.
+	 */
+	onGesture(callback: (this: void, center: Vec2, numFingers: number, deltaDist: number, deltaAngle: number) => void): void;
+
+	/**
+	 * Registers a callback for the event triggered when a node is added to the scene graph.
+	 * @param callback The callback function to register.
+	 */
+	onEnter(callback: (this: void) => void): void;
+
+	/**
+	 * Registers a callback for the event triggered when a node is removed from the scene graph.
+	 * @param callback The callback function to register.
+	 */
+	onExit(callback: (this: void) => void): void;
+
+	/**
+	 * Registers a callback for the event triggered when a node is cleaned up.
+	 * @param callback The callback function to register.
+	 */
+	onCleanup(callback: (this: void) => void): void;
+
+	/**
+	 * Registers a callback for the event triggered when a key is pressed down.
+	 * This function also sets `node.keyboardEnabled = true`.
+	 * @param callback The callback function to register.
+	 */
+	onKeyDown(callback: (this: void, keyName: KeyName) => void): void;
+
+	/**
+	 * Registers a callback for the event triggered when a key is released.
+	 * This function also sets `node.keyboardEnabled = true`.
+	 * @param callback The callback function to register.
+	 */
+	onKeyUp(callback: (this: void, keyName: KeyName) => void): void;
+
+	/**
+	 * Registers a callback for the event triggered when a key is being pressed.
+	 * This function also sets `node.keyboardEnabled = true`.
+	 * @param callback The callback function to register.
+	 */
+	onKeyPressed(callback: (this: void, keyName: KeyName) => void): void;
+
+	/**
+	 * Registers a callback for the event triggered when the input method editor (IME) is attached.
+	 * @param callback The callback function to register.
+	 */
+	onAttachIME(callback: (this: void) => void): void;
+
+	/**
+	 * Registers a callback for the event triggered when the input method editor (IME) is detached.
+	 * @param callback The callback function to register.
+	 */
+	onDetachIME(callback: (this: void) => void): void;
+
+	/**
+	 * Registers a callback for the event triggered when text input is received.
+	 * @param callback The callback function to register.
+	 */
+	onTextInput(callback: (this: void, text: string) => void): void;
+
+	/**
+	 * Registers a callback for the event triggered when text is being edited.
+	 * @param callback The callback function to register.
+	 */
+	onTextEditing(callback: (this: void, text: string, startPos: number) => void): void;
+
+	/**
+	 * Registers a callback for the event triggered when a button is pressed down on a controller.
+	 * This function also sets `node.controllerEnabled = true`.
+	 * @param callback The callback function to register.
+	 */
+	onButtonDown(callback: (this: void, controllerId: number, buttonName: ButtonName) => void): void;
+
+	/**
+	 * Registers a callback for the event triggered when a button is released on a controller.
+	 * This function also sets `node.controllerEnabled = true`.
+	 * @param callback The callback function to register.
+	 */
+	onButtonUp(callback: (this: void, controllerId: number, buttonName: ButtonName) => void): void;
+
+	/**
+	 * Registers a callback for the event triggered when a button is pressed on a controller.
+	 * This function also sets `node.controllerEnabled = true`.
+	 * @param callback The callback function to register.
+	 */
+	onButtonPressed(callback: (this: void, controllerId: number, buttonName: ButtonName) => void): void;
+
+	/**
+	 * Registers a callback for the event triggered when an axis is moved on a controller.
+	 * This function also sets `node.controllerEnabled = true`.
+	 * @param callback The callback function to register.
+	 */
+	onAxis(callback: (this: void, controllerId: number, axisName: AxisName, value: number) => void): void;
+
+	/**
+	 * Registers a callback for the application event.
+	 * @param callback The callback function to register.
+	 */
+	onAppEvent(callback: (this: void, eventType: AppEventType) => void): void;
+
+	/**
+	 * Registers a callback for the application setting change event.
+	 * @param callback The callback function to register.
+	 */
+	onAppChange(callback: (this: void, settingName: AppSettingName) => void): void;
+
+	/**
+	 * Registers a callback for the application websocket event.
+	 * @param callback The callback function to register.
+	 */
+	onAppWS(callback: (this: void, eventType: AppWSEventType, msg: string) => void): void;
 }
 
 export {Node as NodeType};
@@ -3803,6 +3950,12 @@ class Playable extends Node {
 	 * @returns The node in the slot, or null if there is no node in the slot.
 	 */
 	getSlot(name: string): Node | null;
+
+	/**
+	 * Registers a callback for the event triggered when an animation is finished.
+	 * @param callback The callback function to register.
+	 */
+	onAnimationEnd(callback: (this: void, name: string, playable: Playable) => void): void;
 }
 
 export namespace Playable {
@@ -4220,6 +4373,12 @@ class AlignNode extends Node {
 	 * * display: Controls whether to display (flex, none).
 	 */
 	css(style: string): void;
+
+	/**
+	 * Registers a callback function for when the layout is updated.
+	 * @param callback The callback function for when the layout is updated.
+	 */
+	onAlignLayout(callback: (this: void, width: number, height: number) => void): void;
 }
 
 interface AlignNodeClass {
@@ -4260,6 +4419,12 @@ class EffekNode extends Node {
 	 * @param handle The handle of the effect.
 	 */
 	stop(handle: number): void;
+
+	/**
+	 * Registers a callback for when an Effekseer effect has ended.
+	 * @param callback The callback function for when the effect has ended.
+	 */
+	onEffekEnd(callback: (this: void, handle: number) => void): void;
 }
 
 /**
@@ -5235,6 +5400,32 @@ class Body extends Node {
 	 * @param filter The filter function to set.
 	 */
 	onContactFilter(filter: (this: void, other: Body) => boolean): void;
+
+	/**
+	 * Registers a callback function for when the body enters a sensor.
+	 * @param callback The callback function for when the body enters a sensor.
+	 */
+	onBodyEnter(callback: (this: void, other: Body, sensorTag: number) => void): void;
+
+	/**
+	 * Registers a callback function for when the body leaves a sensor.
+	 * @param callback The callback function for when the body leaves a sensor.
+	 */
+	onBodyLeave(callback: (this: void, other: Body, sensorTag: number) => void): void;
+
+	/**
+	 * Registers a callback function for when the body starts to collide with another object.
+	 * This function sets the `receivingContact` property to true.
+	 * @param callback The callback function for when the body starts to collide with another object.
+	 */
+	onContactStart(callback: (this: void, other: Body, point: Vec2, normal: Vec2) => void): void;
+
+	/**
+	 * Registers a callback function for when the body stops colliding with another object.
+	 * This function sets the `receivingContact` property to true.
+	 * @param callback The callback function for when the body stops colliding with another object.
+	 */
+	onContactEnd(callback: (this: void, other: Body, point: Vec2, normal: Vec2) => void): void;
 }
 
 export {Body as BodyType};
@@ -6357,6 +6548,13 @@ class Particle extends Node {
 	 * Stops emitting particles and waits for all active particles to end their lives.
 	 */
 	stop(): void;
+
+	/**
+	 * Registers a callback function for when the particle system ends.
+	 * Triggered after a Particle node started a stop action and then all the active particles end their lives.
+	 * @param callback The callback function for when the particle system ends.
+	 */
+	onFinished(callback: (this: void) => void): void;
 }
 
 export namespace Particle {

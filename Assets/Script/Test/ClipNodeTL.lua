@@ -44,7 +44,7 @@ X(1.5, 200, -200),
 Event("Turn")))
 
 
-targetA:slot("ActionEnd", function(action)
+targetA:onActionEnd(function(action)
 	targetA:runAction(action)
 end)
 targetA:slot("Turn", function()
@@ -75,7 +75,7 @@ X(1.5, -200, 200),
 X(1.5, 200, -200)))
 
 
-targetB:slot("ActionEnd", function(action)
+targetB:onActionEnd(function(action)
 	targetB:runAction(action)
 end)
 

@@ -8,28 +8,30 @@ local type PhysicsWorld = require("PhysicsWorldType")
 -- @usage
 -- -- 可以使用以下形式的代码来注册监听这些事件：
 -- body.receivingContact = true
--- body:slot("BodyEnter", function(other: Body, sensorTag: integer)
--- 	print("感应器感应到了物理体", other, sensorTag)
+-- body:slot("ContactStart", function(other: Body, point: Vec2, normal: Vec2)
+-- 	print("感应器碰撞到了物理体", other, point, normal)
 -- end)
 local record __SLOT__
 
-	-- 当物理体对象与传感器对象碰撞时触发。
+	-- 当物理体对象与传感器对象碰撞时触发。此事件当物理体附加了传感器时就会触发。
 	-- @param other (Body) 当前发生碰撞的物理体对象。
 	-- @param sensorTag (integer) 触发此碰撞事件的传感器的标签编号。
 	["BodyEnter"]: function(other: Body, sensorTag: integer)
 
-	-- 当物理体对象不再与传感器对象碰撞时触发。
+	-- 当物理体对象不再与传感器对象碰撞时触发。此事件当物理体附加了传感器时就会触发。
 	-- @param other (Body) 当前结束碰撞的物理体对象。
 	-- @param sensorTag (integer) 触发此碰撞事件的传感器的标签。
 	["BodyLeave"]: function(other: Body, sensorTag: integer)
 
 	-- 当一个物理体对象开始与另一个物理体碰撞时触发。
+	-- 需要将物理体对象的“receivingContact”属性设置为true才会触发。
 	-- @param other (Body) 被碰撞的物理体对象。
 	-- @param point (Vec2) 世界坐标系中的碰撞点。
 	-- @param normal (Vec2) 世界坐标系中的接触表面法向量。
 	["ContactStart"]: function(other: Body, point: Vec2, normal: Vec2)
 
 	-- 当一个物理体对象停止与另一个物理体碰撞时触发。
+	-- 需要将物理体对象的“receivingContact”属性设置为true才会触发。
 	-- @param other (Body) 结束碰撞的物理体对象。
 	-- @param point (Vec2) 世界坐标系中的碰撞点。
 	-- @param normal (Vec2) 世界坐标系中的接触表面法向量。

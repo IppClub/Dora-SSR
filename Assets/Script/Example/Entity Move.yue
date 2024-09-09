@@ -5,8 +5,7 @@ positionGroup = Group ["position",]
 
 with Observer "Add", ["scene",]
 	\watch (scene): false => with scene
-		.touchEnabled = true
-		\slot "TapEnded", (touch) ->
+		\onTapEnded (touch) ->
 			:location = touch
 			positionGroup\each (entity) ->
 				entity.target = location

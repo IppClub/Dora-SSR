@@ -1,25 +1,25 @@
 // @preview-file on
 import { WindowFlag, SetCond } from "ImGui";
 import * as ImGui from "ImGui";
-import { App, Node, Slot, Vec2, once, sleep, threadLoop } from "Dora";
+import { App, Node, Vec2, sleep, threadLoop } from "Dora";
 
 const node = Node();
-node.slot(Slot.Enter, () => {
+node.onEnter(() => {
 	print("on enter event");
 });
-node.slot(Slot.Exit, () => {
+node.onExit(() => {
 	print("on exit event");
 });
-node.slot(Slot.Cleanup, () => {
+node.onCleanup(() => {
 	print("on node destoyed event");
 });
-node.schedule(once(() => {
+node.once(() => {
 	for (let i = 5; i >= 1; i--) {
 		print(i);
 		sleep(1);
 	}
 	print("Hello World!");
-}));
+});
 
 const windowFlags = [
 	WindowFlag.NoDecoration,

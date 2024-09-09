@@ -14,7 +14,7 @@ Panel = (width, height, viewWidth, viewHeight) ->
 			:viewWidth
 			:viewHeight
 		}
-		.border = LineRect x: 1, width: width - 2, :height, color: 0xffffffff
+		.border = LineRect x: 1, y: 1, width: width - 2, height: height - 2, color: 0xffffffff
 		.area\addChild .border
 		for i = 1, 50
 			.view\addChild with Button {
@@ -24,19 +24,19 @@ Panel = (width, height, viewWidth, viewHeight) ->
 					fontName: "sarasa-mono-sc-regular"
 					fontSize: math.floor 16 * scale
 				}
-				\slot "Tapped", -> print "clicked #{i}"
+				\onTapped -> print "clicked #{i}"
 		.view\alignItems Size viewWidth, height
 		.updateSize = (w, h) =>
 			@position = Vec2 w / 2, h / 2
 			@adjustSizeWithAlign "Auto", 10 * scale, Size(w, h), Size width * scale, h
 			@area\removeChild @border
-			@border = LineRect x: 1, width: w - 2, height: h, color: 0xffffffff
+			@border = LineRect x: 1, y: 1, width: w - 2, height: h - 2, color: 0xffffffff
 			@area\addChild @border
 
 Director.ui\addChild with AlignNode!
 	:width, :height = App.bufferSize
 	\css "width: #{width}; height: #{height}"
-	\gslot "AppSizeChanged", ->
+	\gslot "AppChange", (settingName) -> if settingName == "Size"
 		:width, :height = App.bufferSize
 		\css "width: #{width}; height: #{height}"
 	\css "justify-content: space-between; flex-direction: row"
@@ -46,18 +46,18 @@ Director.ui\addChild with AlignNode!
 			\css "width: 100%; height: 100%"
 			panel = Panel 500, 1000, 1000, 1000
 			\addChild panel
-			\slot "AlignLayout", (w, h) -> panel\updateSize w, h
+			\onAlignLayout (w, h) -> panel\updateSize w, h
 	\addChild with AlignNode!
 		\css "width: 40%; height: 100%; padding: 10; justify-content: center"
 		\addChild with AlignNode!
 			\css "width: 100%; height: 50%"
 			panel = Panel 600, 1000, 1000, 1000
 			\addChild panel
-			\slot "AlignLayout", (w, h) -> panel\updateSize w, h
+			\onAlignLayout (w, h) -> panel\updateSize w, h
 	\addChild with AlignNode!
 		\css "width: 30%; height: 100%; padding: 10; flex-direction: column-reverse"
 		\addChild with AlignNode!
 			\css "width: 100%; height: 40%"
 			panel = Panel 600, 1000, 1000, 1000
 			\addChild panel
-			\slot "AlignLayout", (w, h) -> panel\updateSize w, h
+			\onAlignLayout (w, h) -> panel\updateSize w, h

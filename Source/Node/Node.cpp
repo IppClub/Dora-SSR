@@ -710,7 +710,7 @@ FixedScheduledItem* Node::getFixedScheduledItem() {
 
 void Node::schedule(const std::function<bool(double)>& func) {
 	auto updateItem = getUpdateItem();
-	updateItem->scheduledFunc = func;
+	updateItem->scheduledMainFunc = func;
 	if (_flags.isOff(Node::Running)) return;
 	if (!updateItem->scheduled()) {
 		_scheduler->schedule(updateItem->scheduledItem.get());
@@ -719,11 +719,20 @@ void Node::schedule(const std::function<bool(double)>& func) {
 
 void Node::unschedule() {
 	if (!_updateItem) return;
-	if (_updateItem->scheduledFunc) {
-		_updateItem->scheduledFunc = nullptr;
+	if (_updateItem->scheduledMainFunc) {
+		_updateItem->scheduledMainFunc = nullptr;
 		if (_flags.isOff(Node::Updating) && _updateItem->scheduledItem->iter) {
 			_scheduler->unschedule(_updateItem->scheduledItem.get());
 		}
+	}
+}
+
+void Node::onUpdate(const std::function<bool(double)>& func) {
+	auto updateItem = getUpdateItem();
+	updateItem->scheduledThreadFuncs.push_back(func);
+	if (_flags.isOff(Node::Running)) return;
+	if (!updateItem->scheduled()) {
+		_scheduler->schedule(updateItem->scheduledItem.get());
 	}
 }
 
@@ -740,7 +749,7 @@ void Node::scheduleUpdate() {
 	_flags.setOn(Node::Updating);
 	if (_flags.isOff(Node::Running)) return;
 	auto updateItem = getUpdateItem();
-	if (!updateItem->scheduledItem->iter) {
+	if (!updateItem->scheduled()) {
 		_scheduler->schedule(updateItem->scheduledItem.get());
 	}
 }
@@ -758,7 +767,7 @@ void Node::scheduleFixedUpdate() {
 void Node::unscheduleUpdate() {
 	if (_flags.isOn(Node::Updating)) {
 		_flags.setOff(Node::Updating);
-		if (_updateItem && !_updateItem->scheduledFunc && _updateItem->scheduledItem->iter) {
+		if (_updateItem && !_updateItem->hasFunc() && _updateItem->scheduledItem->iter) {
 			_scheduler->unschedule(_updateItem->scheduledItem.get());
 		}
 	}
@@ -780,7 +789,30 @@ bool Node::fixedUpdate(double deltaTime) {
 bool Node::update(double deltaTime) {
 	bool result = true;
 	if (isScheduled()) {
-		result = _updateItem->scheduledFunc(deltaTime);
+		if (_updateItem->scheduledMainFunc != nullptr) {
+			if (_updateItem->scheduledMainFunc(deltaTime)) {
+				_updateItem->scheduledMainFunc = nullptr;
+			} else {
+				result = false;
+			}
+		}
+		if (!_updateItem->scheduledThreadFuncs.empty()) {
+			auto funcs = std::move(_updateItem->scheduledThreadFuncs);
+			std::list<std::function<bool(double)>> temp;
+			do {
+				auto& func = funcs.front();
+				bool res = func(deltaTime);
+				if (!res) {
+					result = false;
+					temp.push_back(std::move(func));
+				}
+				funcs.pop_front();
+			} while (!funcs.empty());
+			for (auto& f : _updateItem->scheduledThreadFuncs) {
+				temp.push_back(std::move(f));
+			}
+			_updateItem->scheduledThreadFuncs = std::move(temp);
+		}
 		if (result) unschedule();
 	}
 	return result && !isUpdating();
@@ -1760,7 +1792,7 @@ void Signal::emit(Event* event) {
 }
 
 bool Node::UpdateItem::hasFunc() const {
-	return scheduledFunc != nullptr;
+	return scheduledMainFunc != nullptr || !scheduledThreadFuncs.empty();
 }
 
 bool Node::UpdateItem::scheduled() const {

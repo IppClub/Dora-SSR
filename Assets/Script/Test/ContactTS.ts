@@ -1,7 +1,7 @@
 // @preview-file on
 import { SetCond, WindowFlag } from "ImGui";
 import * as ImGui from 'ImGui';
-import { App, Body, BodyDef, BodyMoveType, Label, Line, PhysicsWorld, Slot, Vec2, threadLoop } from "Dora";
+import { App, Body, BodyDef, BodyMoveType, Label, Line, PhysicsWorld, Vec2, threadLoop } from "Dora";
 
 const gravity = Vec2(0, -10);
 
@@ -43,8 +43,7 @@ diskDef.attachDisk(20, 5, 0.8, 1);
 const disk = Body(diskDef, world, Vec2(100, 200));
 disk.addTo(world);
 disk.angularRate = -1800;
-disk.receivingContact = true;
-disk.slot(Slot.ContactStart, (_, point) => {
+disk.onContactStart((_, point) => {
 	drawNode.position = point
 	if (label !== undefined) {
 		label.text = string.format("Contact: [%.0f,%.0f]", point.x, point.y);

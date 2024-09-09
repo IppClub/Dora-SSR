@@ -51,6 +51,7 @@ public:
 	PROPERTY_READONLY_BOOL(RenderRunning);
 	PROPERTY_READONLY_BOOL(LogicRunning);
 	PROPERTY_READONLY_BOOL(Debugging);
+	PROPERTY_READONLY_BOOL(FullScreen);
 	PROPERTY_READONLY(std::thread::id, LogicThread);
 	PROPERTY_READONLY(uint32_t, MaxFPS);
 	PROPERTY_STRING(Locale);
@@ -93,6 +94,7 @@ private:
 	bool _fpsLimited;
 	bool _renderRunning;
 	bool _logicRunning;
+	bool _fullScreen;
 	int _visualWidth;
 	int _visualHeight;
 	int _winWidth;

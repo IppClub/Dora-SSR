@@ -1,6 +1,6 @@
 // @preview-file on
 import { Data, Decision, PlatformWorld, Unit, UnitAction } from 'Platformer';
-import { App, Body, BodyDef, BodyMoveType, Color, Dictionary, GSlot, Rect, Size, Vec2, View, loop, once, sleep, Array, Observer, EntityEvent, Sprite, Spawn, AngleY, Sequence, Ease, Y, Slot, tolua, Scale, Opacity, Content, Group, Entity, Component, Director, Menu, Keyboard, KeyName, TypeName, AlignNode, ButtonName } from 'Dora';
+import { App, Body, BodyDef, BodyMoveType, Color, Dictionary, Rect, Size, Vec2, View, loop, once, sleep, Array, Observer, EntityEvent, Sprite, Spawn, AngleY, Sequence, Ease, Y, tolua, Scale, Opacity, Content, Group, Entity, Component, Director, Menu, Keyboard, KeyName, TypeName, AlignNode, ButtonName } from 'Dora';
 import * as Rectangle from 'UI/View/Shape/Rectangle';
 
 const TerrainLayer = 0;
@@ -22,8 +22,10 @@ const world = PlatformWorld();
 world.camera.boundary = Rect(-1250, -500, 2500, 1000);
 world.camera.followRatio = Vec2(0.02, 0.02);
 world.camera.zoom = View.size.width / DesignWidth;
-world.gslot(GSlot.AppSizeChanged, () => {
-	world.camera.zoom = View.size.width / DesignWidth;
+world.onAppChange((settingName) => {
+	if (settingName === "Size") {
+		world.camera.zoom = View.size.width / DesignWidth;
+	}
 });
 
 const terrainDef = BodyDef();
@@ -257,7 +259,7 @@ Observer(EntityEvent.Add, ["x", "icon"]).watch((self, x: number, icon: string) =
 	body.group = ItemGroup;
 	body.addChild(sprite);
 
-	body.slot(Slot.BodyEnter, item => {
+	body.onBodyEnter(item => {
 		if (tolua.type(item) === TypeName.Unit) {
 			self.picked = true;
 			body.group = Data.groupHide;
@@ -353,8 +355,7 @@ function updatePlayerControl(this: void, key: string, flag: boolean, vpad: boole
 
 const ui = AlignNode(true);
 ui.css('flex-direction: column-reverse');
-ui.controllerEnabled = true;
-ui.slot(Slot.ButtonDown, (id, buttonName) => {
+ui.onButtonDown((id, buttonName) => {
 	if (id !== 0) return;
 	switch (buttonName) {
 		case ButtonName.dpleft: updatePlayerControl("keyLeft", true, true); break;
@@ -362,7 +363,7 @@ ui.slot(Slot.ButtonDown, (id, buttonName) => {
 		case ButtonName.b: updatePlayerControl("keyJump", true, true); break;
 	}
 });
-ui.slot(Slot.ButtonUp, (id, buttonName) => {
+ui.onButtonUp((id, buttonName) => {
 	if (id !== 0) return;
 	switch (buttonName) {
 		case ButtonName.dpleft: updatePlayerControl("keyLeft", false, true); break;
@@ -397,10 +398,10 @@ const leftButton = CircleButton({
 	fontSize: 36
 });
 leftButton.anchor = Vec2.zero;
-leftButton.slot(Slot.TapBegan, () => {
+leftButton.onTapBegan(() => {
 	updatePlayerControl("keyLeft", true, true);
 });
-leftButton.slot(Slot.TapEnded, () => {
+leftButton.onTapEnded(() => {
 	updatePlayerControl("keyLeft", false, true);
 });
 leftButton.addTo(leftMenu);
@@ -412,10 +413,10 @@ const rightButton = CircleButton({
 	fontSize: 36
 });
 rightButton.anchor = Vec2.zero;
-rightButton.slot(Slot.TapBegan, () => {
+rightButton.onTapBegan(() => {
 	updatePlayerControl("keyRight", true, true);
 });
-rightButton.slot(Slot.TapEnded, () => {
+rightButton.onTapEnded(() => {
 	updatePlayerControl("keyRight", false, true);
 });
 rightButton.addTo(leftMenu);
@@ -436,10 +437,10 @@ const jumpButton = CircleButton({
 	fontSize: 36
 });
 jumpButton.anchor = Vec2.zero;
-jumpButton.slot(Slot.TapBegan, () => {
+jumpButton.onTapBegan(() => {
 	updatePlayerControl("keyJump", true, true);
 });
-jumpButton.slot(Slot.TapEnded, () => {
+jumpButton.onTapEnded(() => {
 	updatePlayerControl("keyJump", false, true);
 });
 jumpButton.addTo(rightMenu);

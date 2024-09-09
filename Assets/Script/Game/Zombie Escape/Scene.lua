@@ -22,8 +22,10 @@ do -- 22
 	_with_0:getLayer(TerrainLayer).renderGroup = true -- 25
 	_with_0.camera.followRatio = Vec2(0.01, 0.01) -- 26
 	_with_0.camera.zoom = View.size.width / DesignWidth -- 27
-	_with_0:gslot("AppSizeChanged", function() -- 28
-		_with_0.camera.zoom = View.size.width / DesignWidth -- 29
+	_with_0:onAppChange(function(settingName) -- 28
+		if settingName == "Size" then -- 28
+			_with_0.camera.zoom = View.size.width / DesignWidth -- 29
+		end -- 28
 	end) -- 28
 	world = _with_0 -- 22
 end -- 22

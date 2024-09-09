@@ -49,7 +49,7 @@ local function Item()
 	line:addTo(node)
 
 	node:runAction(Angle(5, 0, 360))
-	node:slot("ActionEnd", function(action)
+	node:onActionEnd(function(action)
 		node:runAction(action)
 	end)
 	return node

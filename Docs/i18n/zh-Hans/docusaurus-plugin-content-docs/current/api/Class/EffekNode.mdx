@@ -55,3 +55,22 @@ stop: function(self: EffekNode, handle: integer)
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
 | handle | integer | 要停止的特效的句柄。 |
+
+## onEffekEnd
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;注册一个回调函数，当一个 Effekseer 特效结束时触发。
+
+**签名：**
+```tl
+onEffekEnd: function(self: EffekNode, callback: function(handle: integer))
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| callback | function | 特效结束时的回调函数。 |

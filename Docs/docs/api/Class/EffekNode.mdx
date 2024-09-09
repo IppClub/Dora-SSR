@@ -55,3 +55,22 @@ stop: function(self: EffekNode, handle: integer)
 | Parameter | Type | Description |
 | --- | --- | --- |
 | handle | integer | The handle of the effect. |
+
+## onEffekEnd
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Registers a callback for when an Effekseer effect has ended.
+
+**Signature:**
+```tl
+onEffekEnd: function(self: EffekNode, callback: function(handle: integer))
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| callback | function | The callback function for when the effect has ended. |

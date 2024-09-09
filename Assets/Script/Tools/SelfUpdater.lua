@@ -266,16 +266,13 @@ threadLoop(function() -- 163
     return false -- 253
 end) -- 163
 local node = Node() -- 256
-node:slot( -- 257
-    "Cleanup", -- 257
-    function() -- 257
-        if 0 < progress and progress < 1 and downloadTargetFile ~= "" then -- 257
-            cancelDownload = true -- 259
-            Content:remove(downloadTargetFile) -- 260
-        end -- 260
-        if targetUnzipPath ~= "" then -- 260
-            Content:remove(targetUnzipPath) -- 263
-        end -- 263
-    end -- 257
-) -- 257
+node:onCleanup(function() -- 257
+    if 0 < progress and progress < 1 and downloadTargetFile ~= "" then -- 257
+        cancelDownload = true -- 259
+        Content:remove(downloadTargetFile) -- 260
+    end -- 260
+    if targetUnzipPath ~= "" then -- 260
+        Content:remove(targetUnzipPath) -- 263
+    end -- 263
+end) -- 257
 return ____exports -- 257

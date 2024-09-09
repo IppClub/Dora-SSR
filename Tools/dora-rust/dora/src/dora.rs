@@ -1780,92 +1780,64 @@ impl Slot {
 /// An interface for providing Dora SSR built-in global event names.
 pub struct GSlot { }
 impl GSlot {
-	/// Triggers when the application is about to quit.
-	pub const APP_QUIT: &'static str = "AppQuit";
-	/// Triggers when the application receives a low memory warning.
-	pub const APP_LOW_MEMORY: &'static str = "AppLowMemory";
-	/// Triggers when the application is about to enter the background.
-	pub const APP_WILL_ENTER_BACKGROUND: &'static str = "AppWillEnterBackground";
-	/// Triggers when the application has entered the background.
-	pub const APP_DID_ENTER_BACKGROUND: &'static str = "AppDidEnterBackground";
-	/// Triggers when the application is about to enter the foreground.
-	pub const APP_WILL_ENTER_FOREGROUND: &'static str = "AppWillEnterForeground";
-	/// Triggers when the application has entered the foreground.
-	pub const APP_DID_ENTER_FOREGROUND: &'static str = "AppDidEnterForeground";
-	/// Triggers when the application window size changes.
-	pub const APP_SIZE_CHANGED: &'static str = "AppSizeChanged";
-	/// Triggers when the application window enters or exits full-screen mode.
+	/// Triggers when the application receives an event.
 	///
 	/// # Callback Arguments
 	///
-	/// * fullScreen: bool - True if the application is in full-screen mode, false otherwise.
+	/// * eventType: string - The type of the application event. The event type could be "Quit", "LowMemory", "WillEnterBackground", "DidEnterBackground", "WillEnterForeground", "DidEnterForeground".
 	///
 	/// # Callback Example
 	///
 	/// ```
-	/// node.gslot(GSlot::APP_FULL_SCREEN, Box::new(|stack| {
-	/// 	let fullScreen = match stack.pop_bool() {
-	/// 		Some(fullScreen) => fullScreen,
+	/// node.gslot(GSlot::APP_EVENT, Box::new(|stack| {
+	/// 	let eventType = match stack.pop_str() {
+	/// 		Some(eventType) => eventType,
 	/// 		None => return,
 	/// 	};
-	/// 	if fullScreen {
-	/// 		p!("App is in full-screen mode!");
-	/// 	} else {
-	/// 		p!("App is not in full-screen mode!");
-	/// 	}
+	/// 	p!(eventType);
 	/// }));
 	/// ```
-	pub const APP_FULL_SCREEN: &'static str = "AppFullScreen";
-	/// Triggers when the application window position changes.
-	pub const APP_MOVED: &'static str = "AppMoved";
-	/// Triggers when the application theme color changes.
+	pub const APP_EVENT: &'static str = "AppEvent";
+	/// Triggers when the application settings change.
 	///
 	/// # Callback Arguments
 	///
-	/// * themeColor: Color - The new theme color.
+	/// * settingName: string - The name of the setting that changed. Could be "Locale", "Theme", "FullScreen", "Position", "Size".
 	///
 	/// # Callback Example
 	///
 	/// ```
-	/// node.gslot(GSlot::APP_THEME, Box::new(|stack| {
-	/// 	let themeColor = match stack.pop_cast::<Color>() {
-	/// 		Some(themeColor) => themeColor,
+	/// node.gslot(GSlot::APP_CHANGE, Box::new(|stack| {
+	/// 	let settingName = match stack.pop_str() {
+	/// 		Some(settingName) => settingName,
 	/// 		None => return,
 	/// 	};
-	/// 	p!("themeColor [{}, {}, {}, {}]", themeColor.r(), themeColor.g(), themeColor.b(), themeColor.a());
+	/// 	p!(settingName);
 	/// }));
 	/// ```
-	pub const APP_THEME: &'static str = "AppTheme";
-	/// Triggers when a websocket connection is open.
-	pub const APP_WS_OPEN: &'static str = "AppWSOpen";
-	/// Triggers when a websocket connection is closed.
-	pub const APP_WS_CLOSE: &'static str = "AppWSClose";
-	/// Triggers when received text message from a websocket connection.
+	pub const APP_CHANGE: &'static str = "AppChange";
+	/// Triggers when gets an event from a websocket connection.
 	///
 	/// # Callback Arguments
 	///
+	/// * eventType: string - The event type of the message received. Could be "Open", "Close", "Send", "Receive".
 	/// * msg: string - The message received.
 	///
 	/// # Callback Example
 	///
 	/// ```
-	/// node.gslot(GSlot::APP_WS_MESSAGE, Box::new(|stack| {
-	/// 	let msg = match stack.pop_str() {
-	/// 		Some(msg) => msg,
+	/// node.gslot(GSlot::APP_WS, Box::new(|stack| {
+	/// 	let (
+	/// 		eventType,
+	/// 		msg
+	/// 	) = match (stack.pop_str(), stack.pop_str()) {
+	/// 		(Some(eventType), Some(msg)) => (eventType, msg),
 	/// 		None => return,
 	/// 	};
-	/// 	p!(msg);
+	/// 	p!(eventType, msg);
 	/// }));
 	/// ```
-	pub const APP_WS_MESSAGE: &'static str = "AppWSMessage";
-	/// A gobal event used for broadcasting massage to all websocket connections.
-	///
-	/// # Usage
-	///
-	/// ```
-	/// emit(GSlot::APP_WS_SEND, args!("A text message"));
-	/// ```
-	pub const APP_WS_SEND: &'static str = "AppWSSend";
+	pub const APP_WS: &'static str = "AppWS";
 }
 
 // Content

@@ -1,7 +1,7 @@
 // @preview-file on
 import { WindowFlag, SetCond } from "ImGui";
 import * as ImGui from "ImGui";
-import { App, Color, Event, Line, Node, RenderTarget, Sequence, Slot, Spine, Sprite, Vec2, X, threadLoop } from "Dora";
+import { App, Color, Event, Line, Node, RenderTarget, Sequence, Spine, Sprite, Vec2, X, threadLoop } from "Dora";
 
 const root = Node();
 

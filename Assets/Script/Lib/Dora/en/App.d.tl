@@ -66,6 +66,9 @@ local record App
 	-- Whether the game engine is running in debug mode.
 	const debugging: boolean
 
+	-- Whether the game engine is running in full screen mode.
+	const fullScreen: boolean
+
 	-- An array of test names of engine included C++ tests.
 	const testNames: {string}
 
@@ -124,13 +127,13 @@ end
 -- @usage
 -- -- Register for these events using codes:
 -- local node = Node():addTo(Director.entry)
--- node:gslot("AppQuit", function()
--- 	print("Application is shuting down!")
+-- node:gslot("AppEvent", function(eventType: string)
+-- 	print("App event triggered: " .. eventType)
 -- end)
 local record __GSLOT__
 
-	-- Triggers when the application is about to quit.
-	["AppQuit"]: function()
+	-- Triggers when the application receives an event. The event type could be "Quit", "LowMemory", "WillEnterBackground", "DidEnterBackground", "WillEnterForeground", "DidEnterForeground".
+	["AppEvent"]: function(eventType: string)
 
 	-- Triggers when the application receives a low memory warning.
 	["AppLowMemory"]: function()
@@ -147,31 +150,11 @@ local record __GSLOT__
 	-- Triggers when the application has entered the foreground.
 	["AppDidEnterForeground"]: function()
 
-	-- Triggers when the application window size changes.
-	["AppSizeChanged"]: function()
+	-- Triggers when the application settings change. The setting name could be "Locale", "Theme", "FullScreen", "Position", "Size".
+	["AppChange"]: function(settingName: string)
 
-	-- Triggers when the application window enters or exits full-screen mode.
-	["AppFullScreen"]: function(fullScreen: boolean)
-
-	-- Triggers when the application window position changes.
-	["AppMoved"]: function()
-
-	-- Triggers when the application theme color changes.
-	["AppTheme"]: function(themeColor: Color)
-
-	-- Triggers when a websocket connection is open.
-	["AppWSOpen"]: function()
-
-	-- Triggers when a websocket connection is closed.
-	["AppWSClose"]: function()
-
-	-- Triggers when received text message from a websocket connection.
-	["AppWSMessage"]: function(msg: string)
-
-	-- A gobal event for broadcasting massage to all websocket connections.
-	-- @usage
-	-- emit "AppWSSend", "A message"
-	["AppWSSend"]: function(msg: string)
+	-- Triggers when a websocket connection gets an event. The event type could be "Open", "Close", "Send", "Receive".
+	["AppWS"]: function(eventType: string, msg: string)
 end
 
 local app: App

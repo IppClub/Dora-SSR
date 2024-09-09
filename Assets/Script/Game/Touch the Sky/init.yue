@@ -18,7 +18,8 @@ const gravity = Vec2 0, -10
 updateViewScale = ->
 	Director.currentCamera.zoom = View.size.width / 1620
 root = with Node!
-	\gslot "AppSizeChanged", updateViewScale
+	\onAppChange (settingName) -> if settingName == "Size"
+		updateViewScale!
 
 ui = with Node!
 	\addTo Director.ui

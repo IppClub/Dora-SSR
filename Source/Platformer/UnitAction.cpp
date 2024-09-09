@@ -280,7 +280,7 @@ void Jump::stop() {
 void Jump::onAnimationEnd(Event* e) {
 	std::string name;
 	Playable* playable = nullptr;
-	e->get(name, playable);
+	if (!e->get(name, playable)) return;
 	if (name == ActionSetting::AnimationJump) {
 		Jump::stop();
 	}
@@ -358,7 +358,7 @@ void Attack::stop() {
 void Attack::onAnimationEnd(Event* e) {
 	std::string name;
 	Playable* playable = nullptr;
-	e->get(name, playable);
+	if (!e->get(name, playable)) return;
 	if (name == ActionSetting::AnimationAttack) {
 		if (UnitAction::isDoing()) {
 			this->stop();
@@ -536,7 +536,7 @@ void Hit::update(float dt) { }
 void Hit::onAnimationEnd(Event* e) {
 	std::string name;
 	Playable* playable = nullptr;
-	e->get(name, playable);
+	if (!e->get(name, playable)) return;
 	if (name == ActionSetting::AnimationHit) {
 		if (UnitAction::isDoing()) {
 			this->stop();
@@ -594,7 +594,7 @@ void Fall::stop() {
 void Fall::onAnimationEnd(Event* e) {
 	std::string name;
 	Playable* playable = nullptr;
-	e->get(name, playable);
+	if (!e->get(name, playable)) return;
 	if (name == ActionSetting::AnimationFall) {
 		if (UnitAction::isDoing()) {
 			this->stop();

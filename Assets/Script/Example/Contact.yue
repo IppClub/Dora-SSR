@@ -39,8 +39,7 @@ diskDef = with BodyDef!
 disk = with Body diskDef, world, Vec2 100, 200
 	\addTo world
 	.angularRate = -1800
-	.receivingContact = true
-	\slot "ContactStart", (_, point) ->
+	\onContactStart (_, point) ->
 		drawNode.position = point
 		label.text = string.format "Contact: [%.0f,%.0f]", point.x, point.y
 

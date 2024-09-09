@@ -74,37 +74,36 @@ do -- 39
 	local _with_0 = Body(diskDef, world, Vec2(100, 200)) -- 39
 	_with_0:addTo(world) -- 40
 	_with_0.angularRate = -1800 -- 41
-	_with_0.receivingContact = true -- 42
-	_with_0:slot("ContactStart", function(_, point) -- 43
-		drawNode.position = point -- 44
-		label.text = string.format("Contact: [%.0f,%.0f]", point.x, point.y) -- 45
-	end) -- 43
+	_with_0:onContactStart(function(_, point) -- 42
+		drawNode.position = point -- 43
+		label.text = string.format("Contact: [%.0f,%.0f]", point.x, point.y) -- 44
+	end) -- 42
 	disk = _with_0 -- 39
 end -- 39
-local windowFlags = { -- 50
-	"NoDecoration", -- 50
-	"AlwaysAutoResize", -- 50
-	"NoSavedSettings", -- 50
-	"NoFocusOnAppearing", -- 50
-	"NoNav", -- 50
-	"NoMove" -- 50
-} -- 50
-local receivingContact = disk.receivingContact -- 58
-return threadLoop(function() -- 59
-	local width -- 60
-	width = App.visualSize.width -- 60
-	ImGui.SetNextWindowBgAlpha(0.35) -- 61
-	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0)) -- 62
-	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver") -- 63
-	return ImGui.Begin("Contact", windowFlags, function() -- 64
-		ImGui.Text("Contact (Yuescript)") -- 65
-		ImGui.Separator() -- 66
-		ImGui.TextWrapped("Receive events when physics bodies contact.") -- 67
-		local changed -- 68
-		changed, receivingContact = ImGui.Checkbox("Receiving Contact", receivingContact) -- 68
-		if changed then -- 68
-			disk.receivingContact = receivingContact -- 69
-			label.text = "" -- 70
-		end -- 68
-	end) -- 70
-end) -- 70
+local windowFlags = { -- 49
+	"NoDecoration", -- 49
+	"AlwaysAutoResize", -- 49
+	"NoSavedSettings", -- 49
+	"NoFocusOnAppearing", -- 49
+	"NoNav", -- 49
+	"NoMove" -- 49
+} -- 49
+local receivingContact = disk.receivingContact -- 57
+return threadLoop(function() -- 58
+	local width -- 59
+	width = App.visualSize.width -- 59
+	ImGui.SetNextWindowBgAlpha(0.35) -- 60
+	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0)) -- 61
+	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver") -- 62
+	return ImGui.Begin("Contact", windowFlags, function() -- 63
+		ImGui.Text("Contact (Yuescript)") -- 64
+		ImGui.Separator() -- 65
+		ImGui.TextWrapped("Receive events when physics bodies contact.") -- 66
+		local changed -- 67
+		changed, receivingContact = ImGui.Checkbox("Receiving Contact", receivingContact) -- 67
+		if changed then -- 67
+			disk.receivingContact = receivingContact -- 68
+			label.text = "" -- 69
+		end -- 67
+	end) -- 69
+end) -- 69

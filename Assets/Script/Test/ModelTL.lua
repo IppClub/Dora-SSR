@@ -7,7 +7,7 @@ local model = Model(modelFile)
 model.recovery = 0.2
 model.look = "happy"
 model:play("walk", true)
-model:slot("AnimationEnd", function(name)
+model:onAnimationEnd(function(name)
 	print(name, "end")
 end)
 

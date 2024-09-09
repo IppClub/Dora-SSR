@@ -529,27 +529,28 @@ clearTempFiles = ->
 
 setupEventHandlers = ->
 	with Director.postNode
-		\gslot "AppQuit", ->
+		\onAppEvent (eventType) -> if eventType == "Quit"
 			allClear!
 			clearTempFiles!
-		\gslot "AppTheme", (argb) ->
-			config.themeColor = argb
-		\gslot "AppLocale", (locale) ->
-			config.locale = locale
-			updateLocale!
-			teal.clear true
-		\gslot "AppWSClose", ->
+		\onAppChange (settingName) -> switch settingName
+			when "Theme"
+				config.themeColor = App.themeColor\toARGB!
+			when "Locale"
+				config.locale = App.locale
+				updateLocale!
+				teal.clear true
+			when "FullScreen", "Size", "Position"
+				if App.platform in ["Linux", "Windows", "macOS"]
+					switch settingName
+						when "FullScreen" then config.fullScreen = App.fullScreen
+						when "Position" then x: config.winX, y: config.winY = App.winPosition
+						when "Size"
+							:width, :height = App.winSize
+							config.winWidth = width
+							config.winHeight = height
+		\onAppWS (eventType) -> if eventType == "Close"
 			if HttpServer.wsConnectionCount == 0
 				updateEntries!
-		switch App.platform when "Linux", "Windows", "macOS"
-			\gslot "AppSizeChanged", ->
-				:width, :height = App.winSize
-				config.winWidth = width
-				config.winHeight = height
-			\gslot "AppFullScreen", (fullScreen) ->
-				config.fullScreen = fullScreen
-			\gslot "AppMoved", ->
-				x: config.winX, y: config.winY = App.winPosition
 
 setupEventHandlers!
 clearTempFiles!
@@ -593,7 +594,7 @@ export enterEntryAsync = (entry) ->
 		Director.ui\addChild with root = AlignNode!
 			:width, :height = App.bufferSize
 			\css "width: #{width}; height: #{height}"
-			\gslot "AppSizeChanged", ->
+			\onAppChange (settingName) -> if settingName == "Size"
 				:width, :height = App.bufferSize
 				\css "width: #{width}; height: #{height}"
 			\addChild with ScrollArea {
@@ -604,7 +605,7 @@ export enterEntryAsync = (entry) ->
 					viewWidth: height
 					viewHeight: height
 				}
-				root\slot "AlignLayout", (w, h) ->
+				root\onAlignLayout (w, h) ->
 					.position = Vec2 w / 2, h / 2
 					w -= 20
 					h -= 20

@@ -53,6 +53,12 @@ local record Playable
 	-- @param name (string) The name of the slot to get.
 	-- @return (Node|nil) The node in the slot, or nil if there is no node in the slot.
 	getSlot: function(self: Playable, name: string): Node | nil
+
+	-- Registers a callback for when an animation has ended.
+	-- @param callback (function) The callback function for when the animation has ended.
+	-- 	@param animationName (string) The name of the animation that ended.
+	-- 	@param target (Playable) The Playable instance that the animation was played on.
+	onAnimationEnd: function(self: Playable, callback: function(animationName: string, target: Playable))
 end
 
 -- This is just a demonstration record showing signal slot events that are emiting by the Playable animation systems.

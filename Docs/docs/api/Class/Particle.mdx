@@ -48,3 +48,23 @@ start: function(self: Particle)
 ```tl
 stop: function(self: Particle)
 ```
+
+## onFinished
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Registers a callback function for when the particle system ends.
+Triggered after a Particle node started a stop action and then all the active particles end their lives.
+
+**Signature:**
+```tl
+onFinished: function(self: Particle, callback: function())
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| callback | function | The callback function for when the particle system ends. |

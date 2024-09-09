@@ -201,3 +201,22 @@ getSlot: function(self: Playable, name: string): Node | nil
 | Return Type | Description |
 | --- | --- |
 | Node\|nil | The node in the slot, or nil if there is no node in the slot. |
+
+## onAnimationEnd
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Registers a callback for when an animation has ended.
+
+**Signature:**
+```tl
+onAnimationEnd: function(self: Playable, callback: function(animationName: string, target: Playable))
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| callback | function | The callback function for when the animation has ended. |

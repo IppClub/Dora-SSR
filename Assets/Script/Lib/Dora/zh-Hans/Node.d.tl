@@ -211,16 +211,24 @@ local record Node
 	-- @return (Node) 子节点，如果未找到则返回nil。
 	getChildByTag: function(self: Node, tag: string): Node
 
-	-- 调度一个函数在每一帧运行。
-	-- @param func (function) 要被调度的函数，返回true停止运行。
+	-- 调度一个主更新函数在每一帧运行。重复调用会覆盖被调度的主更新函数或协程任务。
+	-- @param func (function) 要被调度的主更新函数，返回true停止运行。
 	schedule: function(self: Node, func: function(number): boolean)
 
-	-- 调度执行一个协程任务。
-	-- @param job (Routine.Job) 要运行的协程，用`return true`或`coroutine.yield(true)`停止运行。
+	-- 调度执行一个主协程任务。重复调用会覆盖被调度的主更新函数或协程任务。
+	-- @param job (Routine.Job) 要运行的主协程，用`return true`或`coroutine.yield(true)`停止运行。
 	schedule: function(self: Node, job: Routine.Job)
 
-	-- 停止调度的每帧运行的函数或协程任务。
+	-- 停止调度的每帧运行的主更新函数或协程任务。
 	unschedule: function(self: Node)
+
+	-- 调度一个函数，该函数会在协程中运行一次。调用该函数会覆盖被调度的主更新函数或协程任务。
+	-- @param func (function) 要在协程运行一次的函数。
+	once: function(self: Node, func: function())
+
+	-- 调度一个函数，该函数会在协程中循环执行。调用该函数会覆盖被调度的主更新函数或协程任务。
+	-- @param func (function) 要在循环执行的函数，返回true以停止。
+	loop: function(self: Node, func: function(): boolean)
 
 	-- 将世界空间中的点坐标转换为节点空间的点坐标。
 	-- @param worldPoint (Vec2) 要转换的点。
@@ -457,6 +465,217 @@ local record Node
 	-- @param gridY (number) 将抓取器分成的垂直网格单元数。
 	-- @return (Grabber) 返回一个抓取器对象。
 	grab: function(self: Node, gridX: number, gridY: number): Grabber
+
+	-- 调度一个函数，该函数会在每一帧运行。可以反复调用以同时调度多个函数。
+	-- @param func (function) 要在每一帧运行的函数，返回true以停止。
+	-- 	@parem deltaTime (number) 从上一帧到当前帧的时间间隔。
+	-- 	@return (boolean) 如果返回true，则停止调度。
+	onUpdate: function(self: Node, func: function(number): boolean)
+
+	-- 调度一个协程，该协程会在每一帧运行。可以反复调用以同时调度多个协程。
+	-- @param job (Routine.Job) 要在每一帧运行的协程。
+	onUpdate: function(self: Node, job: Routine.Job)
+
+	-- 注册节点执行完一个动作时触发的回调函数。
+	-- @param callback (function) 动作执行完时的回调函数。
+	-- 	@param action (Action) 执行完的动作对象。
+	-- 	@param target (Node) 执行完动作的节点。
+	onActionEnd: function(self: Node, callback: function(action: Action, target: Node))
+
+	-- 注册节点点击事件的过滤器回调函数。
+	-- 同时会设置节点的`touchEnabled`属性为 true。
+	-- @param callback (function) 点击事件的过滤器回调函数。
+	-- 	@param touch (Touch) 点击事件的触摸消息对象。
+	onTapFilter: function(self: Node, callback: function(touch: Touch))
+
+	-- 注册节点检测到点击开始时触发的回调函数。
+	-- 同时会设置节点的`touchEnabled`属性为 true。
+	-- @param callback (function) 点击事件开始的回调函数。
+	-- 	@param touch (Touch) 点击事件的触摸消息对象。
+	onTapBegan: function(self: Node, callback: function(touch: Touch))
+
+	-- 注册节点点击结束时触发的回调函数。
+	-- 同时会设置节点的`touchEnabled`属性为 true。
+	-- @param callback (function) 点击事件结束的回调函数。
+	-- 	@param touch (Touch) 点击事件的触摸消息对象。
+	onTapEnded: function(self: Node, callback: function(touch: Touch))
+
+	-- 注册节点检测到并结束点击时触发的回调函数。
+	-- 同时会设置节点的`touchEnabled`属性为 true。
+	-- @param callback (function) 点击事件结束的回调函数。
+	-- 	@param touch (Touch) 点击事件的触摸消息对象。
+	onTapped: function(self: Node, callback: function(touch: Touch))
+
+	-- 注册节点点击移动时触发的回调函数。
+	-- 同时会设置节点的`touchEnabled`属性为 true。
+	-- @param callback (function) 点击事件移动的回调函数。
+	-- 	@param touch (Touch) 点击事件的触摸消息对象。
+	onTapMoved: function(self: Node, callback: function(touch: Touch))
+
+	-- 注册节点滚动鼠标滚轮时触发的回调函数。
+	-- 同时会设置节点的`touchEnabled`属性为 true。
+	-- @param callback (function) 鼠标滚轮滚动的回调函数。
+	-- 	@param delta (Vec2) 鼠标滚轮滚动的增量。
+	onMouseWheel: function(self: Node, callback: function(delta: Vec2))
+
+	-- 注册节点识别到多点手势时触发的回调函数。
+	-- 同时会设置节点的`touchEnabled`属性为 true。
+	-- @param callback (function) 多点手势的回调函数。
+	-- 	@param center (Vec2) 多点手势的中心点。
+	-- 	@param numFingers (integer) 多点手势的手指数量。
+	-- 	@param deltaDist (number) 多点手势的距离变化。
+	-- 	@param deltaAngle (number) 多点手势的角度变化。
+	onGesture: function(self: Node, callback: function(center: Vec2, numFingers: integer, deltaDist: number, deltaAngle: number))
+
+	-- 注册节点进入场景树时触发的回调函数。
+	-- @param callback (function) 节点进入场景树时的回调函数。
+	onEnter: function(self: Node, callback: function())
+
+	-- 注册节点离开场景树时触发的回调函数。
+	-- @param callback (function) 节点离开场景树时的回调函数。
+	onExit: function(self: Node, callback: function())
+
+	-- 注册节点清理时触发的回调函数。
+	-- @param callback (function) 节点清理时的回调函数。
+	onCleanup: function(self: Node, callback: function())
+
+	-- 注册按下键盘按键时触发的回调函数。
+	-- 同时会设置节点的`keyboardEnabled`属性为 true。
+	-- @param callback (function) 按键按下时的回调函数。
+	-- 	@param keyName (Keyboard.KeyName) 按下的键盘按键名称。
+	onKeyDown: function(self: Node, callback: function(keyName: Keyboard.KeyName))
+
+	-- 注册释放键盘按键时触发的回调函数。
+	-- 同时会设置节点的`keyboardEnabled`属性为 true。
+	-- @param callback (function) 按键释放时的回调函数。
+	-- 	@param keyName (Keyboard.KeyName) 释放的键盘按键名称。
+	onKeyUp: function(self: Node, callback: function(keyName: Keyboard.KeyName))
+
+	-- 注册按键盘按键时触发的回调函数。
+	-- 同时会设置节点的`keyboardEnabled`属性为 true。
+	-- @param callback (function) 按键按下时的回调函数。
+	-- 	@param keyName (Keyboard.KeyName) 按下的键盘按键名称。
+	onKeyPressed: function(self: Node, callback: function(keyName: Keyboard.KeyName))
+
+	-- 注册打开操作系统输入法 (IME) 时触发的回调函数。
+	-- @param callback (function) 打开输入法时的回调函数。
+	onAttachIME: function(self: Node, callback: function())
+
+	-- 注册关闭操作系统输入法 (IME) 时触发的回调函数。
+	-- @param callback (function) 关闭输入法时的回调函数。
+	onDetachIME: function(self: Node, callback: function())
+
+	-- 注册输入文本时触发的回调函数。
+	-- @param callback (function) 输入文本时的回调函数。
+	-- 	@param text (string) 输入的文本。
+	onTextInput: function(self: Node, callback: function(text: string))
+
+	-- 注册编辑文本时触发的回调函数。
+	-- @param callback (function) 编辑文本时的回调函数。
+	-- 	@param text (string) 编辑的文本。
+	onTextEditing: function(self: Node, callback: function(text: string, startPos: integer))
+
+	-- 注册按下游戏手柄按键时触发的回调函数。
+	-- 同时会设置节点的`controllerEnabled`属性为 true。
+	-- @param callback (function) 按键按下时的回调函数。
+	-- 	@param controllerId (integer) 游戏手柄的 ID。
+	-- 	@param buttonName (Controller.ButtonName) 按下的游戏手柄按键名称。
+	onButtonDown: function(self: Node, callback: function(controllerId: integer, buttonName: Controller.ButtonName))
+
+	-- 注册释放游戏手柄按键时触发的回调函数。
+	-- 同时会设置节点的`controllerEnabled`属性为 true。
+	-- @param callback (function) 按键释放时的回调函数。
+	-- 	@param controllerId (integer) 游戏手柄的 ID。
+	-- 	@param buttonName (Controller.ButtonName) 释放的游戏手柄按键名称。
+	onButtonUp: function(self: Node, callback: function(controllerId: integer, buttonName: Controller.ButtonName))
+
+	-- 注册按住游戏手柄按键时触发的回调函数。
+	-- 同时会设置节点的`controllerEnabled`属性为 true。
+	-- @param callback (function) 按键按住时的回调函数。
+	-- 	@param controllerId (integer) 游戏手柄的 ID。
+	-- 	@param buttonName (Controller.ButtonName) 按住的游戏手柄按键名称。
+	onButtonPressed: function(self: Node, callback: function(controllerId: integer, buttonName: Controller.ButtonName))
+
+	-- 注册游戏控制器轴发生变化时触发的回调函数。
+	-- 同时会设置节点的`controllerEnabled`属性为 true。
+	-- @param callback (function) 控制器轴变化时的回调函数。
+	-- 	@param controllerId (integer) 游戏手柄的 ID。
+	-- 	@param axisName (Controller.AxisName) 变化的轴名称。
+	-- 	@param value (number) 轴的新值。
+	onAxis: function(self: Node, callback: function(controllerId: integer, axisName: Controller.AxisName, value: number))
+
+	-- 应用程序事件的枚举。
+	enum AppEventType
+
+		-- 应用程序即将退出。
+		"Quit"
+
+		-- 应用程序收到低内存警告。
+		"LowMemory"
+
+		-- 应用程序即将进入后台。
+		"WillEnterBackground"
+
+		-- 应用程序已进入后台。
+		"DidEnterBackground"
+
+		-- 应用程序即将进入前台。
+		"WillEnterForeground"
+
+		-- 应用程序已进入前台。
+		"DidEnterForeground"
+	end
+
+	-- 注册应用程序事件发生时触发的回调函数。
+	-- @param callback (function) 要注册的回调函数。
+	-- 	@param eventType (AppEventType) 发生的应用程序事件类型。
+	onAppEvent: function(self: Node, callback: function(eventType: AppEventType))
+
+	-- 应用程序设置的枚举。
+	enum AppSettingName
+
+		-- 应用程序的区域设置。
+		"Locale"
+
+		-- 应用程序的主题颜色。
+		"Theme"
+
+		-- 应用程序窗口的全屏状态。
+		"FullScreen"
+
+		-- 应用程序窗口的位置。
+		"Position"
+
+		-- 应用程序窗口的大小。
+		"Size"
+	end
+
+	-- 注册应用程序设置更改时触发的回调函数。
+	-- @param callback (function) 要注册的回调函数。
+	-- 	@param settingName (AppSettingName) 更改的应用程序设置名称。
+	onAppChange: function(self: Node, callback: function(settingName: AppSettingName))
+
+	-- 应用程序 WebSocket 事件的枚举。
+	enum AppWSEvent
+
+		-- WebSocket 连接已打开。
+		"Open"
+
+		-- WebSocket 连接已关闭。
+		"Close"
+
+		-- WebSocket 接收到消息。
+		"Send"
+
+		-- WebSocket 广播消息。
+		"Receive"
+	end
+
+	-- 注册应用程序 WebSocket 事件发生时触发的回调函数。
+	-- @param callback (function) 要注册的回调函数。
+	-- 	@param event (AppWSEvent) 发生的 WebSocket 事件类型。
+	-- 	@param message (string) 接收到或发送的消息。
+	onAppWS: function(self: Node, callback: function(event: AppWSEvent, message: string))
 end
 
 -- 节点可监听的事件的定义。
@@ -579,20 +798,14 @@ local record __SLOT__
 	-- @param controllerId (integer) 控制器ID，当有多个控制器连接时从0开始递增。
 	-- @param axisValue (number) 控制器轴的值，范围从 -1.0 到 1.0。
 	["Axis"]: function(controllerId: integer, axisValue: number)
-
-	-- 当`AlignNode`节点的布局更新时触发。
-	-- @param width (number) 节点的宽度。
-	-- @param height (number) 节点的高度。
-	["AlignLayout"]: function(width: number, height: number)
-
-	-- 当一个 Effekseer 特效结束时触发。
-	-- @param handle (integer) 结束的特效的句柄。
-	["EffekEnd"]: function(handle: integer)
 end
 
 -- 用于创建场景节点实例的类。
 local record NodeClass
 	type Type = Node
+	type AppEventType = Node.AppEventType
+	type AppSettingName = Node.AppSettingName
+	type AppWSEvent = Node.AppWSEvent
 
 	-- 创建一个新的场景节点实例。
 	-- @usage

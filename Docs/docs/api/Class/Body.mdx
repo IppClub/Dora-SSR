@@ -356,3 +356,83 @@ onContactFilter: function(self: Body, filter: function(other: Body): boolean)
 | Parameter | Type | Description |
 | --- | --- | --- |
 | filter | function | The filter function to set. |
+
+## onBodyEnter
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Registers a callback function for when the body enters a sensor.
+This function sets the `receivingContact` property to true.
+
+**Signature:**
+```tl
+onBodyEnter: function(self: Body, callback: function(other: Body, sensorTag: integer))
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| callback | function | The callback function for when the body enters a sensor. |
+
+## onBodyLeave
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Registers a callback function for when the body leaves a sensor.
+This function sets the `receivingContact` property to true.
+
+**Signature:**
+```tl
+onBodyLeave: function(self: Body, callback: function(other: Body, sensorTag: integer))
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| callback | function | The callback function for when the body leaves a sensor. |
+
+## onContactStart
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Registers a callback function for when the body starts to collide with another object.
+This function sets the `receivingContact` property to true.
+
+**Signature:**
+```tl
+onContactStart: function(self: Body, callback: function(other: Body, point: Vec2, normal: Vec2))
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| callback | function | The callback function for when the body starts to collide with another object. |
+
+## onContactEnd
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Registers a callback function for when the body stops colliding with another object.
+This function sets the `receivingContact` property to true.
+
+**Signature:**
+```tl
+onContactEnd: function(self: Body, callback: function(other: Body, point: Vec2, normal: Vec2))
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| callback | function | The callback function for when the body stops colliding with another object. |

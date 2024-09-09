@@ -1,10 +1,10 @@
 _ENV = Dora
 
 with Node!
-	\slot "Enter", -> print "on enter event"
-	\slot "Exit", -> print "on exit event"
-	\slot "Cleanup", -> print "on node destoyed event"
-	\schedule once ->
+	\onEnter -> print "on enter event"
+	\onExit -> print "on exit event"
+	\onCleanup -> print "on node destoyed event"
+	\once ->
 		for i = 5, 1, -1
 			print i
 			sleep 1

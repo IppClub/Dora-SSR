@@ -1,7 +1,7 @@
 // @preview-file on
 import { SetCond, WindowFlag } from "ImGui";
 import * as ImGui from 'ImGui';
-import { App, Component, Ease, Entity, Event, Group, Node, Observer, EntityEvent, Roll, Scale, Sequence, Slot, Sprite, TypeName, Vec2, tolua } from "Dora";
+import { App, Component, Ease, Entity, Event, Group, Node, Observer, EntityEvent, Roll, Scale, Sequence, Sprite, TypeName, Vec2, tolua } from "Dora";
 
 const sceneGroup = Group(["scene"]);
 const positionGroup = Group(["position"]);
@@ -11,8 +11,7 @@ function toNode(item: any) {
 }
 
 Observer(EntityEvent.Add, ["scene"]).watch((_, scene: Node.Type) => {
-	scene.touchEnabled = true;
-	scene.slot(Slot.TapEnded, touch => {
+	scene.onTapEnded(touch => {
 		const {location} = touch;
 		positionGroup.each(entity => {
 			entity.target = location;

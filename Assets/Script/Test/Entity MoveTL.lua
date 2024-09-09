@@ -22,8 +22,7 @@ local function toNode(item)
 end
 
 Observer("Add", { "scene" }):watch(function(_entity, scene)
-	scene.touchEnabled = true
-	scene:slot("TapEnded", function(touch)
+	scene:onTapEnded(function(touch)
 		local location = touch.location
 		positionGroup:each(function(entity)
 			entity.target = location

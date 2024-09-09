@@ -940,9 +940,11 @@ do -- 702
 	_with_0.camera.boundary = Rect(-1250, -500, 2500, 1000) -- 703
 	_with_0.camera.followRatio = Vec2(0.01, 0.01) -- 704
 	_with_0.camera.zoom = View.size.width / DesignWidth -- 705
-	_with_0:gslot("AppSizeChanged", function() -- 706
-		local zoom = View.size.width / DesignWidth -- 707
-		_with_0.camera.zoom = zoom -- 708
+	_with_0:onAppChange(function(settingName) -- 706
+		if settingName == "Size" then -- 706
+			local zoom = View.size.width / DesignWidth -- 707
+			_with_0.camera.zoom = zoom -- 708
+		end -- 706
 	end) -- 706
 	world = _with_0 -- 702
 end -- 702

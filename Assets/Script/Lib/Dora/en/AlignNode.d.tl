@@ -36,6 +36,12 @@ local record AlignNode
 	-- @usage
 	-- alignNode:css("flex-direction: column; justify-content: center; align-items: center;")
 	css: function(self: AlignNode, style: string)
+
+	-- Registers a callback function for when the layout is updated.
+	-- @param callback (function) The callback function for when the layout is updated.
+	-- 	@param width (number) The width of the node after the update.
+	-- 	@param height (number) The height of the node after the update.
+	onAlignLayout: function(self: AlignNode, callback: function(width: number, height: number))
 end
 
 -- A class for creating AlignNode objects.
@@ -46,6 +52,21 @@ local record AlignNodeClass
 	-- @param isWindowRoot (boolean) [optional] Whether the node is a window root node. A window root node will automatically listen for window size change events and update the layout accordingly.
 	-- @return (AlignNode) The created AlignNode object.
 	metamethod __call: function(self: AlignNodeClass, isWindowRoot?: boolean): AlignNode
+end
+
+-- This is just a demonstration record showing some signal slot events that are used. And they are meant to be used for layout updates of the AlignNode.
+-- @usage
+-- -- you can register for these events using codes
+-- alignNode:addTo(parentNode)
+-- alignNode:slot("AlignLayout", function(width: number, height: number)
+-- 	print("The layout of the AlignNode is updated", width, height)
+-- end)
+local record __SLOT__
+
+	-- Triggers when the layout of the `AlignNode` is updated.
+	-- @param width (number) The width of the node.
+	-- @param height (number) The height of the node.
+	["AlignLayout"]: function(width: number, height: number)
 end
 
 local alignNodeClass: AlignNodeClass

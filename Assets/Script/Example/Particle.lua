@@ -243,132 +243,131 @@ do -- 68
 	_with_0.scaleX = 2 -- 69
 	_with_0.scaleY = 2 -- 70
 	_with_0:addChild(particle) -- 71
-	_with_0.touchEnabled = true -- 72
-	_with_0:slot("TapMoved", function(touch) -- 73
-		if not touch.first then -- 74
-			return -- 74
-		end -- 74
-		particle.position = particle.position + (touch.delta / 2) -- 75
-	end) -- 73
+	_with_0:onTapMoved(function(touch) -- 72
+		if not touch.first then -- 73
+			return -- 73
+		end -- 73
+		particle.position = particle.position + (touch.delta / 2) -- 74
+	end) -- 72
 	root = _with_0 -- 68
 end -- 68
-local DataDirty = false -- 79
-local Item -- 81
-Item = function(name) -- 81
-	return PushItemWidth(-180, function() -- 82
-		local _exp_0 = Data[name][2] -- 83
-		if "float" == _exp_0 then -- 84
-			local changed -- 85
-			changed, Data[name][3] = DragFloat(name, Data[name][3], 0.1, -1000, 1000, "%.1f") -- 85
-			if changed then -- 86
-				DataDirty = true -- 86
-			end -- 86
-		elseif "floatN" == _exp_0 then -- 87
-			local changed -- 88
-			changed, Data[name][3] = DragFloat(name, Data[name][3], 0.1, -1, 1000, "%.1f") -- 88
-			if changed then -- 89
-				DataDirty = true -- 89
-			end -- 89
-		elseif "Uint32" == _exp_0 then -- 90
-			local changed -- 91
-			changed, Data[name][3] = DragInt(name, math.floor(Data[name][3]), 1, 0, 1000) -- 91
-			if changed then -- 92
-				DataDirty = true -- 92
-			end -- 92
-		elseif "EmitterType" == _exp_0 then -- 93
-			return LabelText("EmitterType", "Gravity") -- 94
-		elseif "BlendFunc" == _exp_0 then -- 95
-			return LabelText("BlendFunc", "Additive") -- 96
-		elseif "Vec2" == _exp_0 then -- 97
-			local x, y -- 98
-			do -- 98
-				local _obj_0 = Data[name][3] -- 98
-				x, y = _obj_0.x, _obj_0.y -- 98
-			end -- 98
-			local changed -- 99
-			changed, x, y = DragInt2(name, math.floor(x), math.floor(y), 1, -1000, 1000) -- 99
-			if changed then -- 100
-				DataDirty, Data[name][3] = true, Vec2(x, y) -- 100
-			end -- 100
-		elseif "Color" == _exp_0 then -- 101
-			return PushItemWidth(-150, function() -- 102
-				SetColorEditOptions({ -- 103
-					"DisplayRGB" -- 103
-				}) -- 103
-				local changed = ColorEdit4(name, Data[name][3]) -- 104
-				if changed then -- 105
-					DataDirty = true -- 105
-				end -- 105
-			end) -- 105
-		elseif "bool" == _exp_0 then -- 106
-			local changed -- 107
-			changed, Data[name][3] = Checkbox(name, Data[name][3]) -- 107
-			if changed then -- 108
-				DataDirty = true -- 108
-			end -- 108
-		elseif "string" == _exp_0 then -- 109
-			local buffer = Data[name][4] -- 110
-			local changed = InputText(name, buffer) -- 111
-			if changed then -- 112
-				DataDirty = true -- 113
-				Data[name][3] = buffer:toString() -- 114
-			end -- 112
-		end -- 114
-	end) -- 114
-end -- 81
-local _anon_func_0 = function(Data, pairs, toString, tostring) -- 121
-	local _accum_0 = { } -- 121
-	local _len_0 = 1 -- 121
-	for k, v in pairs(Data) do -- 121
-		_accum_0[_len_0] = "<" .. tostring(v[1]) .. " A=\"" .. tostring(toString(v[3])) .. "\"/>" -- 121
-		_len_0 = _len_0 + 1 -- 121
-	end -- 121
-	return _accum_0 -- 121
-end -- 121
-local work = coroutine.wrap(function() -- 116
-	while true do -- 117
-		sleep(1) -- 118
-		if DataDirty then -- 119
-			DataDirty = false -- 120
-			Cache:update("__test__.par", "<A>" .. table.concat(_anon_func_0(Data, pairs, toString, tostring)) .. "</A>") -- 121
-			particle:removeFromParent() -- 122
-			do -- 123
-				local _with_0 = Particle("__test__.par") -- 123
-				_with_0:start() -- 124
-				particle = _with_0 -- 123
-			end -- 123
-			root:addChild(particle) -- 125
-		end -- 119
-	end -- 125
-end) -- 116
-local windowFlags = { -- 128
-	"NoResize", -- 128
-	"NoSavedSettings" -- 128
-} -- 128
-local _anon_func_1 = function(Data, pairs, toString, tostring) -- 137
-	local _accum_0 = { } -- 137
-	local _len_0 = 1 -- 137
-	for k, v in pairs(Data) do -- 137
-		_accum_0[_len_0] = "<" .. tostring(v[1]) .. " A=\"" .. tostring(toString(v[3])) .. "\"/>" -- 137
-		_len_0 = _len_0 + 1 -- 137
-	end -- 137
-	return _accum_0 -- 137
-end -- 137
-return threadLoop(function() -- 129
-	local width, height -- 130
-	do -- 130
-		local _obj_0 = App.visualSize -- 130
-		width, height = _obj_0.width, _obj_0.height -- 130
-	end -- 130
-	SetNextWindowPos(Vec2(width - 400, 10), "FirstUseEver") -- 131
-	SetNextWindowSize(Vec2(390, height - 80), "FirstUseEver") -- 132
-	Begin("Particle", windowFlags, function() -- 133
-		for k in pairs(Data) do -- 134
-			Item(k) -- 135
+local DataDirty = false -- 78
+local Item -- 80
+Item = function(name) -- 80
+	return PushItemWidth(-180, function() -- 81
+		local _exp_0 = Data[name][2] -- 82
+		if "float" == _exp_0 then -- 83
+			local changed -- 84
+			changed, Data[name][3] = DragFloat(name, Data[name][3], 0.1, -1000, 1000, "%.1f") -- 84
+			if changed then -- 85
+				DataDirty = true -- 85
+			end -- 85
+		elseif "floatN" == _exp_0 then -- 86
+			local changed -- 87
+			changed, Data[name][3] = DragFloat(name, Data[name][3], 0.1, -1, 1000, "%.1f") -- 87
+			if changed then -- 88
+				DataDirty = true -- 88
+			end -- 88
+		elseif "Uint32" == _exp_0 then -- 89
+			local changed -- 90
+			changed, Data[name][3] = DragInt(name, math.floor(Data[name][3]), 1, 0, 1000) -- 90
+			if changed then -- 91
+				DataDirty = true -- 91
+			end -- 91
+		elseif "EmitterType" == _exp_0 then -- 92
+			return LabelText("EmitterType", "Gravity") -- 93
+		elseif "BlendFunc" == _exp_0 then -- 94
+			return LabelText("BlendFunc", "Additive") -- 95
+		elseif "Vec2" == _exp_0 then -- 96
+			local x, y -- 97
+			do -- 97
+				local _obj_0 = Data[name][3] -- 97
+				x, y = _obj_0.x, _obj_0.y -- 97
+			end -- 97
+			local changed -- 98
+			changed, x, y = DragInt2(name, math.floor(x), math.floor(y), 1, -1000, 1000) -- 98
+			if changed then -- 99
+				DataDirty, Data[name][3] = true, Vec2(x, y) -- 99
+			end -- 99
+		elseif "Color" == _exp_0 then -- 100
+			return PushItemWidth(-150, function() -- 101
+				SetColorEditOptions({ -- 102
+					"DisplayRGB" -- 102
+				}) -- 102
+				local changed = ColorEdit4(name, Data[name][3]) -- 103
+				if changed then -- 104
+					DataDirty = true -- 104
+				end -- 104
+			end) -- 104
+		elseif "bool" == _exp_0 then -- 105
+			local changed -- 106
+			changed, Data[name][3] = Checkbox(name, Data[name][3]) -- 106
+			if changed then -- 107
+				DataDirty = true -- 107
+			end -- 107
+		elseif "string" == _exp_0 then -- 108
+			local buffer = Data[name][4] -- 109
+			local changed = InputText(name, buffer) -- 110
+			if changed then -- 111
+				DataDirty = true -- 112
+				Data[name][3] = buffer:toString() -- 113
+			end -- 111
+		end -- 113
+	end) -- 113
+end -- 80
+local _anon_func_0 = function(Data, pairs, toString, tostring) -- 120
+	local _accum_0 = { } -- 120
+	local _len_0 = 1 -- 120
+	for k, v in pairs(Data) do -- 120
+		_accum_0[_len_0] = "<" .. tostring(v[1]) .. " A=\"" .. tostring(toString(v[3])) .. "\"/>" -- 120
+		_len_0 = _len_0 + 1 -- 120
+	end -- 120
+	return _accum_0 -- 120
+end -- 120
+local work = coroutine.wrap(function() -- 115
+	while true do -- 116
+		sleep(1) -- 117
+		if DataDirty then -- 118
+			DataDirty = false -- 119
+			Cache:update("__test__.par", "<A>" .. table.concat(_anon_func_0(Data, pairs, toString, tostring)) .. "</A>") -- 120
+			particle:removeFromParent() -- 121
+			do -- 122
+				local _with_0 = Particle("__test__.par") -- 122
+				_with_0:start() -- 123
+				particle = _with_0 -- 122
+			end -- 122
+			root:addChild(particle) -- 124
+		end -- 118
+	end -- 124
+end) -- 115
+local windowFlags = { -- 127
+	"NoResize", -- 127
+	"NoSavedSettings" -- 127
+} -- 127
+local _anon_func_1 = function(Data, pairs, toString, tostring) -- 136
+	local _accum_0 = { } -- 136
+	local _len_0 = 1 -- 136
+	for k, v in pairs(Data) do -- 136
+		_accum_0[_len_0] = "<" .. tostring(v[1]) .. " A=\"" .. tostring(toString(v[3])) .. "\"/>" -- 136
+		_len_0 = _len_0 + 1 -- 136
+	end -- 136
+	return _accum_0 -- 136
+end -- 136
+return threadLoop(function() -- 128
+	local width, height -- 129
+	do -- 129
+		local _obj_0 = App.visualSize -- 129
+		width, height = _obj_0.width, _obj_0.height -- 129
+	end -- 129
+	SetNextWindowPos(Vec2(width - 400, 10), "FirstUseEver") -- 130
+	SetNextWindowSize(Vec2(390, height - 80), "FirstUseEver") -- 131
+	Begin("Particle", windowFlags, function() -- 132
+		for k in pairs(Data) do -- 133
+			Item(k) -- 134
+		end -- 134
+		if Button("Export") then -- 135
+			return print("<A>" .. table.concat(_anon_func_1(Data, pairs, toString, tostring)) .. "</A>") -- 136
 		end -- 135
-		if Button("Export") then -- 136
-			return print("<A>" .. table.concat(_anon_func_1(Data, pairs, toString, tostring)) .. "</A>") -- 137
-		end -- 136
-	end) -- 133
-	return work() -- 138
-end) -- 138
+	end) -- 132
+	return work() -- 137
+end) -- 137

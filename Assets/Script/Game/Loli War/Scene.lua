@@ -82,8 +82,10 @@ local GameWorld = Class(PlatformWorld, { -- 28
 		}) -- 29
 		local DesignWidth <const> = 1024 -- 30
 		self.camera.zoom = View.size.width / DesignWidth -- 31
-		return self:gslot("AppSizeChanged", function() -- 32
-			self.camera.zoom = View.size.width / DesignWidth -- 33
+		return self:onAppChange(function(settingName) -- 32
+			if settingName == "Size" then -- 32
+				self.camera.zoom = View.size.width / DesignWidth -- 33
+			end -- 32
 		end) -- 33
 	end, -- 28
 	buildBackground = function(self) -- 35

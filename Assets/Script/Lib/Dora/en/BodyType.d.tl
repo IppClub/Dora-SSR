@@ -87,7 +87,39 @@ local record Body
 
 	-- Register a function to be called when the body begins to receive contact events. Return false from this function to prevent colliding.
 	-- @param filter (function) The filter function to set.
+	-- 	@param other (Body) The other body that the current body is colliding with.
+	-- 	@return (boolean) Return false to prevent the collision.
 	onContactFilter: function(self: Body, filter: function(other: Body): boolean)
+
+	-- Registers a callback function for when the body enters a sensor.
+	-- This function sets the `receivingContact` property to true.
+	-- @param callback (function) The callback function for when the body enters a sensor.
+	-- 	@param other (Body) The other body that the current body is colliding with.
+	-- 	@param sensorTag (integer) The tag of the sensor that triggered this collision.
+	onBodyEnter: function(self: Body, callback: function(other: Body, sensorTag: integer))
+
+	-- Registers a callback function for when the body leaves a sensor.
+	-- This function sets the `receivingContact` property to true.
+	-- @param callback (function) The callback function for when the body leaves a sensor.
+	-- 	@param other (Body) The other body that the current body is no longer colliding with.
+	-- 	@param sensorTag (integer) The tag of the sensor that triggered this collision.
+	onBodyLeave: function(self: Body, callback: function(other: Body, sensorTag: integer))
+
+	-- Registers a callback function for when the body starts to collide with another object.
+	-- This function sets the `receivingContact` property to true.
+	-- @param callback (function) The callback function for when the body starts to collide with another object.
+	-- 	@param other (Body) The other body that the current body is colliding with.
+	-- 	@param point (Vec2) The point of collision in world coordinates.
+	-- 	@param normal (Vec2) The normal vector of the contact surface in world coordinates.
+	onContactStart: function(self: Body, callback: function(other: Body, point: Vec2, normal: Vec2))
+
+	-- Registers a callback function for when the body stops colliding with another object.
+	-- This function sets the `receivingContact` property to true.
+	-- @param callback (function) The callback function for when the body stops colliding with another object.
+	-- 	@param other (Body) The other body that the current body is no longer colliding with.
+	-- 	@param point (Vec2) The point of collision in world coordinates.
+	-- 	@param normal (Vec2) The normal vector of the contact surface in world coordinates.
+	onContactEnd: function(self: Body, callback: function(other: Body, point: Vec2, normal: Vec2))
 end
 
 return Body

@@ -1,0 +1,36 @@
+import "@site/src/languages/highlight";
+
+# AlignNode Event
+
+**Description:**
+
+&emsp;&emsp;This is just a demonstration record showing some signal slot events that are used. And they are meant to be used for layout updates of the AlignNode.
+
+**Usage:**
+```tl
+-- you can register for these events using codes
+alignNode:addTo(parentNode)
+alignNode:slot("AlignLayout", function(width: number, height: number)
+	print("The layout of the AlignNode is updated", width, height)
+end)
+```
+
+## AlignLayout
+
+**Type:** Node Event.
+
+**Description:**
+
+&emsp;&emsp;Triggers when the layout of the `AlignNode` is updated.
+
+**Signature:**
+```tl
+["AlignLayout"]: function(width: number, height: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| width | number | The width of the node. |
+| height | number | The height of the node. |

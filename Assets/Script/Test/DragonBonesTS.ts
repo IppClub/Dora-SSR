@@ -1,7 +1,7 @@
 // @preview-file on
 import { SetCond, WindowFlag } from "ImGui";
 import * as ImGui from 'ImGui';
-import { App, Delay, DragonBone, Ease, Event, Label, Opacity, Scale, Sequence, Slot, Spawn, Vec2, threadLoop } from "Dora";
+import { App, Delay, DragonBone, Ease, Event, Label, Opacity, Scale, Sequence, Spawn, Vec2, threadLoop } from "Dora";
 
 const boneStr = "DragonBones/NewDragon";
 const animations = DragonBone.getAnimations(boneStr);
@@ -13,13 +13,12 @@ const bone = DragonBone(boneStr);
 if (bone !== null) {
 	bone.look = looks[0];
 	bone.play(animations[0], true);
-	bone.slot(Slot.AnimationEnd, (name) => {
+	bone.onAnimationEnd((name) => {
 		print(name + " end!");
 	});
 
 	bone.y = -200;
-	bone.touchEnabled = true;
-	bone.slot(Slot.TapBegan, (touch) => {
+	bone.onTapBegan((touch) => {
 		const { x, y } = touch.location;
 		const name = bone.containsPoint(x, y);
 		if (name !== undefined) {

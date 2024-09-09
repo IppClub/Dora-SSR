@@ -1,0 +1,39 @@
+import "@site/src/languages/highlight";
+
+# EffekNode Event
+
+**Description:**
+
+&emsp;&emsp;Signal slot that can be connected to an EffekNode object.
+This is just a demonstration record showing the signal slot names and callbacks.
+
+**Usage:**
+```tl
+-- you can register for these events using codes
+local effekNode = EffekNode()
+local laserHandle = effekNode.play("Laser.efk", Vec2.zero)
+effekNode:slot("EffekEnd", function(handle: integer)
+	if handle == laserHandle then
+		print("The laser effect has ended")
+	end
+end)
+```
+
+## EffekEnd
+
+**Type:** Node Event.
+
+**Description:**
+
+&emsp;&emsp;Triggers when an Effekseer effect has ended.
+
+**Signature:**
+```tl
+["EffekEnd"]: function(handle: integer)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| handle | integer | The handle of the effect that has ended. |

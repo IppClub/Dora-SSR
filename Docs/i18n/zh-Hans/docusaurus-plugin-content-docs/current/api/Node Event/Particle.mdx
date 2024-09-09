@@ -7,6 +7,16 @@ import "@site/src/languages/highlight";
 &emsp;&emsp;可连接到粒子系统节点对象上可以监听的事件。
 这只是一个事件定义的展示，定义事件名称和回调。
 
+**用法示例：**
+```tl
+-- 可以使用以下形式的代码来注册监听这些事件：
+local particle = Particle("effect.par")
+particle:start()
+particle:slot("Finished", function()
+	print("粒子系统已结束")
+end)
+```
+
 ## Finished
 
 **类型：** 节点事件。
