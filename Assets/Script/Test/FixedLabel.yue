@@ -9,7 +9,7 @@ createLabel = (textAlign)->
 		\addChild LineRect width: 100, height: 30, color: 0xffff0080
 		text = "1.23456壹贰叁肆伍陆柒玐玖"
 		textLen = utf8.len text
-		\schedule once ->
+		\once ->
 			for i = 1, textLen
 				.text = utf8.sub text, 1, i
 				sleep 0.3

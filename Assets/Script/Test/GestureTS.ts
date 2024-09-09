@@ -1,7 +1,7 @@
 // @preview-file on
 import { SetCond, WindowFlag } from 'ImGui';
 import * as ImGui from 'ImGui';
-import { App, Node, Slot, Sprite, Vec2, View, threadLoop } from 'Dora';
+import { App, Node, Sprite, Vec2, View, threadLoop } from 'Dora';
 import * as nvg from 'nvg';
 
 const texture = nvg.GetDoraSSR();
@@ -13,8 +13,7 @@ let scaledSize = size;
 
 const node = Node();
 node.addChild(sprite);
-node.touchEnabled = true;
-node.slot(Slot.Gesture, (center, _numFingers, deltaDist, deltaAngle) => {
+node.onGesture((center, _numFingers, deltaDist, deltaAngle) => {
 	sprite.position = center;
 	sprite.angle = sprite.angle + deltaAngle;
 	scaledSize = scaledSize + (deltaDist * length);

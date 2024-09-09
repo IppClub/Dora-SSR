@@ -382,15 +382,17 @@ ImGuiDora::ImGuiDora()
 		.add(bgfx::Attrib::Color0, 4, bgfx::AttribType::Uint8, true)
 		.end();
 	SharedApplication.eventHandler += std::make_pair(this, &ImGuiDora::handleEvent);
-	_themeListener = Listener::create("AppTheme"s, [&](Event* e) {
-		uint32_t argb = 0;
-		e->get(argb);
-		DoraSetupTheme(Color(argb));
-	});
-	_localeListener = Listener::create("AppLocale"s, [&](Event* e) {
-		std::string locale;
-		e->get(locale);
-		_useChinese = Slice(locale).left(2) == "zh";
+	_appChangeListener = Listener::create("AppChange"s, [&](Event* e) {
+		std::string settingName;
+		if (!e->get(settingName)) return;
+		switch (Switch::hash(settingName)) {
+			case "Theme"_hash:
+				DoraSetupTheme(SharedApplication.getThemeColor());
+				break;
+			case "Locale"_hash:
+				_useChinese = Slice(SharedApplication.getLocale()).left(2) == "zh";
+				break;
+		}
 	});
 	_useChinese = Slice(SharedApplication.getLocale()).left(2) == "zh";
 }

@@ -68,55 +68,51 @@ local disk = Body( -- 43
 ) -- 43
 disk:addTo(world) -- 44
 disk.angularRate = -1800 -- 45
-disk.receivingContact = true -- 46
-disk:slot( -- 47
-    "ContactStart", -- 47
-    function(_, point) -- 47
-        drawNode.position = point -- 48
-        if label ~= nil then -- 48
-            label.text = string.format("Contact: [%.0f,%.0f]", point.x, point.y) -- 50
-        end -- 50
-    end -- 47
-) -- 47
-local windowFlags = { -- 53
-    "NoDecoration", -- 54
-    "AlwaysAutoResize", -- 55
-    "NoSavedSettings", -- 56
-    "NoFocusOnAppearing", -- 57
-    "NoNav", -- 58
-    "NoMove" -- 59
-} -- 59
-local receivingContact = disk.receivingContact -- 61
-threadLoop(function() -- 62
-    local ____App_visualSize_2 = App.visualSize -- 63
-    local width = ____App_visualSize_2.width -- 63
-    ImGui.SetNextWindowBgAlpha(0.35) -- 64
-    ImGui.SetNextWindowPos( -- 65
-        Vec2(width - 10, 10), -- 65
-        "Always", -- 65
-        Vec2(1, 0) -- 65
+disk:onContactStart(function(_, point) -- 46
+    drawNode.position = point -- 47
+    if label ~= nil then -- 47
+        label.text = string.format("Contact: [%.0f,%.0f]", point.x, point.y) -- 49
+    end -- 49
+end) -- 46
+local windowFlags = { -- 52
+    "NoDecoration", -- 53
+    "AlwaysAutoResize", -- 54
+    "NoSavedSettings", -- 55
+    "NoFocusOnAppearing", -- 56
+    "NoNav", -- 57
+    "NoMove" -- 58
+} -- 58
+local receivingContact = disk.receivingContact -- 60
+threadLoop(function() -- 61
+    local ____App_visualSize_2 = App.visualSize -- 62
+    local width = ____App_visualSize_2.width -- 62
+    ImGui.SetNextWindowBgAlpha(0.35) -- 63
+    ImGui.SetNextWindowPos( -- 64
+        Vec2(width - 10, 10), -- 64
+        "Always", -- 64
+        Vec2(1, 0) -- 64
+    ) -- 64
+    ImGui.SetNextWindowSize( -- 65
+        Vec2(240, 0), -- 65
+        "FirstUseEver" -- 65
     ) -- 65
-    ImGui.SetNextWindowSize( -- 66
-        Vec2(240, 0), -- 66
-        "FirstUseEver" -- 66
+    ImGui.Begin( -- 66
+        "Contact", -- 66
+        windowFlags, -- 66
+        function() -- 66
+            ImGui.Text("Contact (Typescript)") -- 67
+            ImGui.Separator() -- 68
+            ImGui.TextWrapped("Receive events when physics bodies contact.") -- 69
+            local changed = false -- 70
+            changed, receivingContact = ImGui.Checkbox("Receiving Contact", receivingContact) -- 71
+            if changed then -- 71
+                disk.receivingContact = receivingContact -- 73
+                if label ~= nil then -- 73
+                    label.text = "" -- 74
+                end -- 74
+            end -- 74
+        end -- 66
     ) -- 66
-    ImGui.Begin( -- 67
-        "Contact", -- 67
-        windowFlags, -- 67
-        function() -- 67
-            ImGui.Text("Contact (Typescript)") -- 68
-            ImGui.Separator() -- 69
-            ImGui.TextWrapped("Receive events when physics bodies contact.") -- 70
-            local changed = false -- 71
-            changed, receivingContact = ImGui.Checkbox("Receiving Contact", receivingContact) -- 72
-            if changed then -- 72
-                disk.receivingContact = receivingContact -- 74
-                if label ~= nil then -- 74
-                    label.text = "" -- 75
-                end -- 75
-            end -- 75
-        end -- 67
-    ) -- 67
-    return false -- 78
-end) -- 62
-return ____exports -- 62
+    return false -- 77
+end) -- 61
+return ____exports -- 61

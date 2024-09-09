@@ -5,29 +5,19 @@ local ____Dora = require("Dora") -- 4
 local App = ____Dora.App -- 4
 local Node = ____Dora.Node -- 4
 local Vec2 = ____Dora.Vec2 -- 4
-local once = ____Dora.once -- 4
 local sleep = ____Dora.sleep -- 4
 local threadLoop = ____Dora.threadLoop -- 4
 local node = Node() -- 6
-node:slot( -- 7
-    "Enter", -- 7
-    function() -- 7
-        print("on enter event") -- 8
-    end -- 7
-) -- 7
-node:slot( -- 10
-    "Exit", -- 10
-    function() -- 10
-        print("on exit event") -- 11
-    end -- 10
-) -- 10
-node:slot( -- 13
-    "Cleanup", -- 13
-    function() -- 13
-        print("on node destoyed event") -- 14
-    end -- 13
-) -- 13
-node:schedule(once(function() -- 16
+node:onEnter(function() -- 7
+    print("on enter event") -- 8
+end) -- 7
+node:onExit(function() -- 10
+    print("on exit event") -- 11
+end) -- 10
+node:onCleanup(function() -- 13
+    print("on node destoyed event") -- 14
+end) -- 13
+node:once(function() -- 16
     do -- 16
         local i = 5 -- 17
         while i >= 1 do -- 17
@@ -37,7 +27,7 @@ node:schedule(once(function() -- 16
         end -- 17
     end -- 17
     print("Hello World!") -- 21
-end)) -- 16
+end) -- 16
 local windowFlags = { -- 24
     "NoDecoration", -- 25
     "AlwaysAutoResize", -- 26

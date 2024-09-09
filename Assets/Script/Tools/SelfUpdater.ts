@@ -6,7 +6,7 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-import {HttpClient, json, thread, App, threadLoop, Vec2, Buffer, Path, Content, PlatformType, Node, Slot} from 'Dora';
+import {HttpClient, json, thread, App, threadLoop, Vec2, Buffer, Path, Content, PlatformType, Node} from 'Dora';
 import { InputTextFlag, SetCond, WindowFlag } from "ImGui";
 import * as ImGui from 'ImGui';
 
@@ -254,7 +254,7 @@ threadLoop(() => {
 });
 
 const node = Node();
-node.slot(Slot.Cleanup, () => {
+node.onCleanup(() => {
 	if (0 < progress && progress < 1 && downloadTargetFile !== "") {
 		cancelDownload = true;
 		Content.remove(downloadTargetFile);

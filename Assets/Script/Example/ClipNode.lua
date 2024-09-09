@@ -84,7 +84,7 @@ do -- 48
 	local _with_0 = DrawNode() -- 48
 	_with_0:drawPolygon(StarVertices(160)) -- 49
 	_with_0:runAction(Sequence(X(1.5, -200, 200), X(1.5, 200, -200))) -- 50
-	_with_0:slot("ActionEnd", function(action) -- 54
+	_with_0:onActionEnd(function(action) -- 54
 		return _with_0:runAction(action) -- 54
 	end) -- 54
 	targetB = _with_0 -- 48

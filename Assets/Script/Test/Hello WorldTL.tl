@@ -1,26 +1,25 @@
 -- @preview-file on
 local threadLoop <const> = require("threadLoop")
 local Node <const> = require("Node")
-local once <const> = require("once")
 local sleep <const> = require("sleep")
 
 local node = Node()
-node:slot("Enter", function()
+node:onEnter(function()
 	print("on enter event")
 end)
-node:slot("Exit", function()
+node:onExit(function()
 	print("on exit event")
 end)
-node:slot("Cleanup", function()
+node:onCleanup(function()
 	print("on node destoyed event")
 end)
-node:schedule(once(function()
+node:once(function()
 	for i = 5, 1, -1 do
 		print(i)
 		sleep(1)
 	end
 	print("Hello World!")
-end))
+end)
 
 -- example codes ends here, some test ui below --
 

@@ -14,7 +14,7 @@ with CircleButton {
 		radius: 60
 		fontSize: 40
 	}
-	\slot "Tapped", ->
+	\onTapped ->
 		if .text == "显示"
 			.text = "隐藏"
 			ruler\show 0, 0, 100, 10, (value) ->

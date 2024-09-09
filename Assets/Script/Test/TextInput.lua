@@ -88,12 +88,12 @@ local TextInput = Class((function(args) -- 7
 			label.text = text -- 60
 		end -- 58
 		_with_0.imeAttached = false -- 62
-		_with_0:slot("AttachIME", function() -- 63
+		_with_0:onAttachIME(function() -- 63
 			_with_0.imeAttached = true -- 64
 			_with_0.keyboardEnabled = true -- 65
 			return updateText(textDisplay) -- 66
 		end) -- 63
-		_with_0:slot("DetachIME", function() -- 68
+		_with_0:onDetachIME(function() -- 68
 			_with_0.imeAttached = false -- 69
 			_with_0.keyboardEnabled = false -- 70
 			cursor.visible = false -- 71
@@ -104,84 +104,83 @@ local TextInput = Class((function(args) -- 7
 				label.text = _with_0.hint -- 75
 			end -- 75
 		end) -- 68
-		_with_0.touchEnabled = true -- 77
-		_with_0:slot("Tapped", function(touch) -- 78
-			if touch.first then -- 78
-				return startEditing() -- 78
-			end -- 78
-		end) -- 78
-		_with_0:slot("KeyPressed", function(key) -- 80
-			if App.platform == "Android" and utf8.len(textEditing) == 1 then -- 81
-				if key == "BackSpace" then -- 82
-					textEditing = "" -- 82
-				end -- 82
-			else -- 84
-				if textEditing ~= "" then -- 84
-					return -- 84
-				end -- 84
-			end -- 81
-			if "BackSpace" == key then -- 86
-				if #textDisplay > 0 then -- 87
-					textDisplay = utf8.sub(textDisplay, 1, -2) -- 88
-					return updateText(textDisplay) -- 89
-				end -- 87
-			elseif "Return" == key then -- 90
-				return _with_0:detachIME() -- 91
-			end -- 91
-		end) -- 80
-		_with_0:slot("TextInput", function(text) -- 93
-			textDisplay = utf8.sub(textDisplay, 1, -1 - utf8.len(textEditing)) .. text -- 94
-			textEditing = "" -- 95
-			updateText(textDisplay) -- 96
-			return updateIMEPos() -- 97
-		end) -- 93
-		_with_0:slot("TextEditing", function(text, start) -- 99
-			textDisplay = utf8.sub(textDisplay, 1, -1 - utf8.len(textEditing)) .. text -- 100
-			textEditing = text -- 101
-			label.text = textDisplay -- 102
-			local offsetX = math.max(label.width + 3 - width, 0) -- 103
-			label.x = -offsetX -- 104
-			local charSprite = label:getCharacter(utf8.len(textDisplay) - utf8.len(textEditing) + start) -- 105
-			if charSprite then -- 106
-				cursor.x = charSprite.x + charSprite.width / 2 - offsetX + 1 -- 107
-				cursor:schedule(blink()) -- 108
-			else -- 110
-				updateText(textDisplay) -- 110
-			end -- 106
-			return updateIMEPos() -- 111
-		end) -- 99
+		_with_0:onTapped(function(touch) -- 77
+			if touch.first then -- 77
+				return startEditing() -- 77
+			end -- 77
+		end) -- 77
+		_with_0:onKeyPressed(function(key) -- 79
+			if App.platform == "Android" and utf8.len(textEditing) == 1 then -- 80
+				if key == "BackSpace" then -- 81
+					textEditing = "" -- 81
+				end -- 81
+			else -- 83
+				if textEditing ~= "" then -- 83
+					return -- 83
+				end -- 83
+			end -- 80
+			if "BackSpace" == key then -- 85
+				if #textDisplay > 0 then -- 86
+					textDisplay = utf8.sub(textDisplay, 1, -2) -- 87
+					return updateText(textDisplay) -- 88
+				end -- 86
+			elseif "Return" == key then -- 89
+				return _with_0:detachIME() -- 90
+			end -- 90
+		end) -- 79
+		_with_0:onTextInput(function(text) -- 92
+			textDisplay = utf8.sub(textDisplay, 1, -1 - utf8.len(textEditing)) .. text -- 93
+			textEditing = "" -- 94
+			updateText(textDisplay) -- 95
+			return updateIMEPos() -- 96
+		end) -- 92
+		_with_0:onTextEditing(function(text, start) -- 98
+			textDisplay = utf8.sub(textDisplay, 1, -1 - utf8.len(textEditing)) .. text -- 99
+			textEditing = text -- 100
+			label.text = textDisplay -- 101
+			local offsetX = math.max(label.width + 3 - width, 0) -- 102
+			label.x = -offsetX -- 103
+			local charSprite = label:getCharacter(utf8.len(textDisplay) - utf8.len(textEditing) + start) -- 104
+			if charSprite then -- 105
+				cursor.x = charSprite.x + charSprite.width / 2 - offsetX + 1 -- 106
+				cursor:schedule(blink()) -- 107
+			else -- 109
+				updateText(textDisplay) -- 109
+			end -- 105
+			return updateIMEPos() -- 110
+		end) -- 98
 		node = _with_0 -- 41
 	end -- 41
-	local _with_0 = Node() -- 113
-	_with_0.content = node -- 114
-	_with_0.cursor = cursor -- 115
-	_with_0.label = label -- 116
-	_with_0.size = Size(width, height) -- 117
-	_with_0:addChild(node) -- 118
-	return _with_0 -- 113
-end), { -- 120
-	text = property((function(self) -- 120
-		return self.label.text -- 120
-	end), function(self, value) -- 121
-		if self.content.imeAttached then -- 122
-			self.content:detachIME() -- 122
-		end -- 122
-		return self.content:updateDisplayText(value) -- 123
-	end) -- 120
+	local _with_0 = Node() -- 112
+	_with_0.content = node -- 113
+	_with_0.cursor = cursor -- 114
+	_with_0.label = label -- 115
+	_with_0.size = Size(width, height) -- 116
+	_with_0:addChild(node) -- 117
+	return _with_0 -- 112
+end), { -- 119
+	text = property((function(self) -- 119
+		return self.label.text -- 119
+	end), function(self, value) -- 120
+		if self.content.imeAttached then -- 121
+			self.content:detachIME() -- 121
+		end -- 121
+		return self.content:updateDisplayText(value) -- 122
+	end) -- 119
 }) -- 7
-local _with_0 = TextInput({ -- 127
-	hint = "点这里进行输入", -- 127
-	width = 300, -- 128
-	height = 60, -- 129
-	fontName = "sarasa-mono-sc-regular", -- 130
-	fontSize = 40 -- 131
-}) -- 126
-local themeColor = App.themeColor:toARGB() -- 133
-_with_0.label.color = Color(0xffff0080) -- 136
-_with_0:addChild(LineRect({ -- 138
-	x = -2, -- 138
-	width = _with_0.width + 4, -- 139
-	height = _with_0.height, -- 140
-	color = themeColor -- 141
-})) -- 137
-return _with_0 -- 126
+local _with_0 = TextInput({ -- 126
+	hint = "点这里进行输入", -- 126
+	width = 300, -- 127
+	height = 60, -- 128
+	fontName = "sarasa-mono-sc-regular", -- 129
+	fontSize = 40 -- 130
+}) -- 125
+local themeColor = App.themeColor:toARGB() -- 132
+_with_0.label.color = Color(0xffff0080) -- 135
+_with_0:addChild(LineRect({ -- 137
+	x = -2, -- 137
+	width = _with_0.width + 4, -- 138
+	height = _with_0.height, -- 139
+	color = themeColor -- 140
+})) -- 136
+return _with_0 -- 125

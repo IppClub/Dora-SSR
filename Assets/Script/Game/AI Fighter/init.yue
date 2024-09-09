@@ -703,7 +703,7 @@ world = with PlatformWorld!
 	.camera.boundary = Rect -1250, -500, 2500, 1000
 	.camera.followRatio = Vec2 0.01,0.01
 	.camera.zoom = View.size.width / DesignWidth
-	\gslot "AppSizeChanged", ->
+	\onAppChange (settingName) -> if settingName == "Size"
 		zoom = View.size.width / DesignWidth
 		.camera.zoom = zoom
 Store["world"] = world

@@ -65,6 +65,9 @@ local record App
 	-- 游戏引擎是否运行在调试模式下。
 	const debugging: boolean
 
+	-- 游戏引擎是否运行在全屏模式下。
+	const fullScreen: boolean
+
 	-- 引擎内置的C++测试的测试名称（用于辅助引擎本身开发）。
 	const testNames: {string}
 
@@ -125,54 +128,19 @@ end
 -- @usage
 -- -- 可以使用如下示例代码注册这些事件：
 -- local node = Node():addTo(Director.entry)
--- node:gslot("AppQuit", function()
--- 	print("应用正在被关闭！")
+-- node:gslot("AppEvent", function(eventType: string)
+-- 	print("接收到系统事件：" .. eventType)
 -- end)
 local record __GSLOT__
 
-	-- 应用即将退出时触发。
-	["AppQuit"]: function()
+	-- 应用收到系统事件时触发。事件类型可以是 "Quit"、"LowMemory"、"WillEnterBackground"、"DidEnterBackground"、"WillEnterForeground"、"DidEnterForeground"。
+	["AppEvent"]: function(eventType: string)
 
-	-- 应用接收到低内存警告时触发。
-	["AppLowMemory"]: function()
+	-- 应用设置发生变化时触发。设置名称可以是 "Locale"、"Theme"、"FullScreen"、"Position"、"Size"。
+	["AppChange"]: function(settingName: string)
 
-	-- 应用即将进入后台时触发。
-	["AppWillEnterBackground"]: function()
-
-	-- 应用已经进入后台时触发。
-	["AppDidEnterBackground"]: function()
-
-	-- 应用即将进入前台时触发。
-	["AppWillEnterForeground"]: function()
-
-	-- 应用已经进入前台时触发。
-	["AppDidEnterForeground"]: function()
-
-	-- 应用窗口大小发生变化时触发。
-	["AppSizeChanged"]: function()
-
-	-- 应用进入或退出全屏窗口模式时触发。
-	["AppFullScreen"]: function(fullScreen: boolean)
-
-	-- 应用窗口位置发生变化时触发。
-	["AppMoved"]: function()
-
-	-- 应用改变主题颜色时触发。
-	["AppTheme"]: function(themeColor: Color)
-
-	-- 当一个客户端和应用建立 Websocket 连接时触发。
-	["AppWSOpen"]: function()
-
-	-- 当一个客户端和应用断开 Websocket 连接时触发。
-	["AppWSClose"]: function()
-
-	-- 当一个客户端向应用发送 Websocket 文本消息时触发。
-	["AppWSMessage"]: function(msg: string)
-
-	-- 用于向所有已建立 Websocket 连接的客户端广播发送文本消息的事件。
-	-- @usage
-	-- emit "AppWSSend", "A message"
-	["AppWSSend"]: function(msg: string)
+	-- 当一个客户端和应用建立 Websocket 连接时并收发到事件时触发。事件类型可以是 "Open"、"Close"、"Send"、"Receive"。
+	["AppWS"]: function(eventType: string, msg: string)
 end
 
 local app: App

@@ -53,6 +53,12 @@ local record Playable
 	-- @param name (string) 要获取的插槽的名称。
 	-- @return (Node|nil) 插槽中的节点，如果插槽中没有节点，则返回 nil。
 	getSlot: function(self: Playable, name: string): Node | nil
+
+	-- 注册一个回调函数，当动画播放结束时触发。
+	-- @param callback (function) 动画播放结束时的回调函数。
+	-- 	@param animationName (string) 播放结束的动画的名称。
+	-- 	@param target (Playable) 播放该动画的 Playable 实例。
+	onAnimationEnd: function(self: Playable, callback: function(animationName: string, target: Playable))
 end
 
 -- 展示动画系统的事件定义，包含事件名称和回调函数参数。

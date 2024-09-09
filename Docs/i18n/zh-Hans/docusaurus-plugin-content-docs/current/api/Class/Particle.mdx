@@ -48,3 +48,23 @@ start: function(self: Particle)
 ```tl
 stop: function(self: Particle)
 ```
+
+## onFinished
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;注册粒子系统结束时的回调函数。
+当粒子系统节点在启动之后又停止发射粒子，并等待所有已发射的粒子结束它们的生命周期时触发。
+
+**签名：**
+```tl
+onFinished: function(self: Particle, callback: function())
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| callback | function | 粒子系统结束时的回调函数。 |

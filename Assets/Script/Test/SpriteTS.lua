@@ -11,240 +11,232 @@ local sprite = Sprite("Image/logo.png") -- 6
 if sprite then -- 6
     sprite.scaleX = 0.5 -- 8
     sprite.scaleY = 0.5 -- 9
-    sprite.touchEnabled = true -- 10
-    sprite.showDebug = true -- 11
-    sprite:slot( -- 12
-        "TapMoved", -- 12
-        function(touch) -- 12
-            if not touch.first then -- 12
-                return -- 14
-            end -- 14
-            if not sprite then -- 14
-                return -- 16
-            end -- 16
-            sprite.position = sprite.position:add(touch.delta) -- 17
-        end -- 12
-    ) -- 12
-end -- 12
-local windowFlags = {"NoResize", "NoSavedSettings"} -- 21
-threadLoop(function() -- 25
-    local ____App_visualSize_0 = App.visualSize -- 26
-    local width = ____App_visualSize_0.width -- 26
-    ImGui.SetNextWindowPos( -- 27
-        Vec2(width - 10, 10), -- 27
-        "FirstUseEver", -- 27
-        Vec2(1, 0) -- 27
+    sprite.showDebug = true -- 10
+    sprite:onTapMoved(function(touch) -- 11
+        if not touch.first then -- 11
+            return -- 13
+        end -- 13
+        if not sprite then -- 13
+            return -- 15
+        end -- 15
+        sprite.position = sprite.position:add(touch.delta) -- 16
+    end) -- 11
+end -- 11
+local windowFlags = {"NoResize", "NoSavedSettings"} -- 20
+threadLoop(function() -- 24
+    local ____App_visualSize_0 = App.visualSize -- 25
+    local width = ____App_visualSize_0.width -- 25
+    ImGui.SetNextWindowPos( -- 26
+        Vec2(width - 10, 10), -- 26
+        "FirstUseEver", -- 26
+        Vec2(1, 0) -- 26
+    ) -- 26
+    ImGui.SetNextWindowSize( -- 27
+        Vec2(240, 520), -- 27
+        "FirstUseEver" -- 27
     ) -- 27
-    ImGui.SetNextWindowSize( -- 28
-        Vec2(240, 520), -- 28
-        "FirstUseEver" -- 28
-    ) -- 28
-    ImGui.Begin( -- 29
-        "Sprite", -- 29
-        windowFlags, -- 29
-        function() -- 29
-            ImGui.Text("Sprite (Typescript)") -- 30
-            ImGui.BeginChild( -- 31
-                "SpriteSetting", -- 31
-                Vec2(-1, -40), -- 31
-                function() -- 31
-                    if not sprite then -- 31
-                        return -- 32
-                    end -- 32
-                    local changed = false -- 33
-                    local z = sprite.z -- 34
-                    changed, z = ImGui.DragFloat( -- 35
-                        "Z", -- 35
-                        z, -- 35
-                        1, -- 35
-                        -1000, -- 35
-                        1000, -- 35
-                        "%.2f" -- 35
-                    ) -- 35
-                    if changed then -- 35
-                        sprite.z = z -- 37
-                    end -- 37
-                    local anchor = sprite.anchor -- 39
-                    local x, y = anchor.x, anchor.y -- 40
-                    changed, x, y = ImGui.DragFloat2( -- 41
-                        "Anchor", -- 41
-                        x, -- 41
-                        y, -- 41
-                        0.01, -- 41
-                        0, -- 41
-                        1, -- 41
-                        "%.2f" -- 41
-                    ) -- 41
-                    if changed then -- 41
-                        sprite.anchor = Vec2(x, y) -- 43
-                    end -- 43
-                    local size = sprite.size -- 45
-                    local spriteW, height = size.width, size.height -- 46
-                    changed, spriteW, height = ImGui.DragFloat2( -- 47
-                        "Size", -- 47
-                        spriteW, -- 47
-                        height, -- 47
-                        1, -- 47
-                        0, -- 47
-                        1500, -- 47
-                        "%.f" -- 47
-                    ) -- 47
-                    if changed then -- 47
-                        sprite.size = Size(spriteW, height) -- 49
-                    end -- 49
-                    local scaleX, scaleY = sprite.scaleX, sprite.scaleY -- 51
-                    changed, scaleX, scaleY = ImGui.DragFloat2( -- 52
-                        "Scale", -- 52
-                        scaleX, -- 52
-                        scaleY, -- 52
-                        0.01, -- 52
-                        -2, -- 52
-                        2, -- 52
-                        "%.2f" -- 52
-                    ) -- 52
-                    if changed then -- 52
-                        local ____temp_1 = {scaleX, scaleY} -- 54
-                        sprite.scaleX = ____temp_1[1] -- 54
-                        sprite.scaleY = ____temp_1[2] -- 54
-                    end -- 54
-                    ImGui.PushItemWidth( -- 56
-                        -60, -- 56
-                        function() -- 56
-                            if not sprite then -- 56
-                                return -- 57
-                            end -- 57
-                            local angle = sprite.angle -- 58
-                            changed, angle = ImGui.DragInt( -- 59
-                                "Angle", -- 59
-                                math.floor(angle), -- 59
-                                1, -- 59
-                                -360, -- 59
-                                360 -- 59
-                            ) -- 59
-                            if changed then -- 59
-                                sprite.angle = angle -- 61
-                            end -- 61
-                        end -- 56
-                    ) -- 56
-                    ImGui.PushItemWidth( -- 64
-                        -60, -- 64
-                        function() -- 64
-                            if not sprite then -- 64
-                                return -- 65
-                            end -- 65
-                            local angleX = sprite.angleX -- 66
-                            changed, angleX = ImGui.DragInt( -- 67
-                                "AngleX", -- 67
-                                math.floor(angleX), -- 67
-                                1, -- 67
-                                -360, -- 67
-                                360 -- 67
-                            ) -- 67
-                            if changed then -- 67
-                                sprite.angleX = angleX -- 69
-                            end -- 69
-                        end -- 64
-                    ) -- 64
-                    ImGui.PushItemWidth( -- 72
-                        -60, -- 72
-                        function() -- 72
-                            if not sprite then -- 72
-                                return -- 73
-                            end -- 73
-                            local angleY = sprite.angleY -- 74
-                            changed, angleY = ImGui.DragInt( -- 75
-                                "AngleY", -- 75
-                                math.floor(angleY), -- 75
-                                1, -- 75
-                                -360, -- 75
-                                360 -- 75
-                            ) -- 75
-                            if changed then -- 75
-                                sprite.angleY = angleY -- 77
-                            end -- 77
-                        end -- 72
-                    ) -- 72
-                    local skewX, skewY = sprite.skewX, sprite.skewY -- 80
-                    changed, skewX, skewY = ImGui.DragInt2( -- 81
-                        "Skew", -- 81
-                        math.floor(skewX), -- 81
-                        math.floor(skewY), -- 81
-                        1, -- 81
-                        -360, -- 81
-                        360 -- 81
-                    ) -- 81
-                    if changed then -- 81
-                        local ____temp_2 = {skewX, skewY} -- 83
-                        sprite.skewX = ____temp_2[1] -- 83
-                        sprite.skewY = ____temp_2[2] -- 83
-                    end -- 83
-                    ImGui.PushItemWidth( -- 85
-                        -70, -- 85
-                        function() -- 85
-                            if not sprite then -- 85
-                                return -- 86
-                            end -- 86
-                            local opacity = sprite.opacity -- 87
-                            changed, opacity = ImGui.DragFloat( -- 88
-                                "Opacity", -- 88
-                                opacity, -- 88
-                                0.01, -- 88
-                                0, -- 88
-                                1, -- 88
-                                "%.2f" -- 88
-                            ) -- 88
-                            if changed then -- 88
-                                sprite.opacity = opacity -- 90
-                            end -- 90
-                        end -- 85
-                    ) -- 85
-                    ImGui.PushItemWidth( -- 93
-                        -1, -- 93
-                        function() -- 93
-                            if not sprite then -- 93
-                                return -- 94
-                            end -- 94
-                            local color3 = sprite.color3 -- 95
-                            ImGui.SetColorEditOptions({"DisplayRGB"}) -- 96
-                            if ImGui.ColorEdit3("", color3) then -- 96
-                                sprite.color3 = color3 -- 98
-                            end -- 98
-                        end -- 93
-                    ) -- 93
-                end -- 31
-            ) -- 31
-            if ImGui.Button( -- 31
-                "Reset", -- 102
-                Vec2(140, 30) -- 102
-            ) then -- 102
-                if not sprite then -- 102
-                    return -- 103
-                end -- 103
-                local parent = sprite.parent -- 104
-                sprite:removeFromParent() -- 105
-                sprite = Sprite("Image/logo.png") -- 106
-                if sprite and parent then -- 106
-                    sprite.scaleX = 0.5 -- 108
-                    sprite.scaleY = 0.5 -- 109
-                    sprite.touchEnabled = true -- 110
-                    sprite.showDebug = true -- 111
-                    sprite:slot( -- 112
-                        "TapMoved", -- 112
-                        function(touch) -- 112
-                            if not touch.first then -- 112
-                                return -- 114
-                            end -- 114
-                            if not sprite then -- 114
-                                return -- 116
-                            end -- 116
-                            sprite.position = sprite.position:add(touch.delta) -- 117
+    ImGui.Begin( -- 28
+        "Sprite", -- 28
+        windowFlags, -- 28
+        function() -- 28
+            ImGui.Text("Sprite (Typescript)") -- 29
+            ImGui.BeginChild( -- 30
+                "SpriteSetting", -- 30
+                Vec2(-1, -40), -- 30
+                function() -- 30
+                    if not sprite then -- 30
+                        return -- 31
+                    end -- 31
+                    local changed = false -- 32
+                    local z = sprite.z -- 33
+                    changed, z = ImGui.DragFloat( -- 34
+                        "Z", -- 34
+                        z, -- 34
+                        1, -- 34
+                        -1000, -- 34
+                        1000, -- 34
+                        "%.2f" -- 34
+                    ) -- 34
+                    if changed then -- 34
+                        sprite.z = z -- 36
+                    end -- 36
+                    local anchor = sprite.anchor -- 38
+                    local x, y = anchor.x, anchor.y -- 39
+                    changed, x, y = ImGui.DragFloat2( -- 40
+                        "Anchor", -- 40
+                        x, -- 40
+                        y, -- 40
+                        0.01, -- 40
+                        0, -- 40
+                        1, -- 40
+                        "%.2f" -- 40
+                    ) -- 40
+                    if changed then -- 40
+                        sprite.anchor = Vec2(x, y) -- 42
+                    end -- 42
+                    local size = sprite.size -- 44
+                    local spriteW, height = size.width, size.height -- 45
+                    changed, spriteW, height = ImGui.DragFloat2( -- 46
+                        "Size", -- 46
+                        spriteW, -- 46
+                        height, -- 46
+                        1, -- 46
+                        0, -- 46
+                        1500, -- 46
+                        "%.f" -- 46
+                    ) -- 46
+                    if changed then -- 46
+                        sprite.size = Size(spriteW, height) -- 48
+                    end -- 48
+                    local scaleX, scaleY = sprite.scaleX, sprite.scaleY -- 50
+                    changed, scaleX, scaleY = ImGui.DragFloat2( -- 51
+                        "Scale", -- 51
+                        scaleX, -- 51
+                        scaleY, -- 51
+                        0.01, -- 51
+                        -2, -- 51
+                        2, -- 51
+                        "%.2f" -- 51
+                    ) -- 51
+                    if changed then -- 51
+                        local ____temp_1 = {scaleX, scaleY} -- 53
+                        sprite.scaleX = ____temp_1[1] -- 53
+                        sprite.scaleY = ____temp_1[2] -- 53
+                    end -- 53
+                    ImGui.PushItemWidth( -- 55
+                        -60, -- 55
+                        function() -- 55
+                            if not sprite then -- 55
+                                return -- 56
+                            end -- 56
+                            local angle = sprite.angle -- 57
+                            changed, angle = ImGui.DragInt( -- 58
+                                "Angle", -- 58
+                                math.floor(angle), -- 58
+                                1, -- 58
+                                -360, -- 58
+                                360 -- 58
+                            ) -- 58
+                            if changed then -- 58
+                                sprite.angle = angle -- 60
+                            end -- 60
+                        end -- 55
+                    ) -- 55
+                    ImGui.PushItemWidth( -- 63
+                        -60, -- 63
+                        function() -- 63
+                            if not sprite then -- 63
+                                return -- 64
+                            end -- 64
+                            local angleX = sprite.angleX -- 65
+                            changed, angleX = ImGui.DragInt( -- 66
+                                "AngleX", -- 66
+                                math.floor(angleX), -- 66
+                                1, -- 66
+                                -360, -- 66
+                                360 -- 66
+                            ) -- 66
+                            if changed then -- 66
+                                sprite.angleX = angleX -- 68
+                            end -- 68
+                        end -- 63
+                    ) -- 63
+                    ImGui.PushItemWidth( -- 71
+                        -60, -- 71
+                        function() -- 71
+                            if not sprite then -- 71
+                                return -- 72
+                            end -- 72
+                            local angleY = sprite.angleY -- 73
+                            changed, angleY = ImGui.DragInt( -- 74
+                                "AngleY", -- 74
+                                math.floor(angleY), -- 74
+                                1, -- 74
+                                -360, -- 74
+                                360 -- 74
+                            ) -- 74
+                            if changed then -- 74
+                                sprite.angleY = angleY -- 76
+                            end -- 76
+                        end -- 71
+                    ) -- 71
+                    local skewX, skewY = sprite.skewX, sprite.skewY -- 79
+                    changed, skewX, skewY = ImGui.DragInt2( -- 80
+                        "Skew", -- 80
+                        math.floor(skewX), -- 80
+                        math.floor(skewY), -- 80
+                        1, -- 80
+                        -360, -- 80
+                        360 -- 80
+                    ) -- 80
+                    if changed then -- 80
+                        local ____temp_2 = {skewX, skewY} -- 82
+                        sprite.skewX = ____temp_2[1] -- 82
+                        sprite.skewY = ____temp_2[2] -- 82
+                    end -- 82
+                    ImGui.PushItemWidth( -- 84
+                        -70, -- 84
+                        function() -- 84
+                            if not sprite then -- 84
+                                return -- 85
+                            end -- 85
+                            local opacity = sprite.opacity -- 86
+                            changed, opacity = ImGui.DragFloat( -- 87
+                                "Opacity", -- 87
+                                opacity, -- 87
+                                0.01, -- 87
+                                0, -- 87
+                                1, -- 87
+                                "%.2f" -- 87
+                            ) -- 87
+                            if changed then -- 87
+                                sprite.opacity = opacity -- 89
+                            end -- 89
+                        end -- 84
+                    ) -- 84
+                    ImGui.PushItemWidth( -- 92
+                        -1, -- 92
+                        function() -- 92
+                            if not sprite then -- 92
+                                return -- 93
+                            end -- 93
+                            local color3 = sprite.color3 -- 94
+                            ImGui.SetColorEditOptions({"DisplayRGB"}) -- 95
+                            if ImGui.ColorEdit3("", color3) then -- 95
+                                sprite.color3 = color3 -- 97
+                            end -- 97
+                        end -- 92
+                    ) -- 92
+                end -- 30
+            ) -- 30
+            if ImGui.Button( -- 30
+                "Reset", -- 101
+                Vec2(140, 30) -- 101
+            ) then -- 101
+                if not sprite then -- 101
+                    return -- 102
+                end -- 102
+                local parent = sprite.parent -- 103
+                sprite:removeFromParent() -- 104
+                sprite = Sprite("Image/logo.png") -- 105
+                if sprite and parent then -- 105
+                    sprite.scaleX = 0.5 -- 107
+                    sprite.scaleY = 0.5 -- 108
+                    sprite.showDebug = true -- 109
+                    sprite:onTapMoved(function(touch) -- 110
+                        if not touch.first then -- 110
+                            return -- 112
                         end -- 112
-                    ) -- 112
-                    parent:addChild(sprite) -- 119
-                end -- 119
-            end -- 119
-        end -- 29
-    ) -- 29
-    return false -- 123
-end) -- 25
-return ____exports -- 25
+                        if not sprite then -- 112
+                            return -- 114
+                        end -- 114
+                        sprite.position = sprite.position:add(touch.delta) -- 115
+                    end) -- 110
+                    parent:addChild(sprite) -- 117
+                end -- 117
+            end -- 117
+        end -- 28
+    ) -- 28
+    return false -- 121
+end) -- 24
+return ____exports -- 24

@@ -51,7 +51,7 @@ targetB = with DrawNode!
 		X 1.5, -200, 200
 		X 1.5, 200, -200
 	)
-	\slot "ActionEnd", (action) -> \runAction action
+	\onActionEnd (action) -> \runAction action
 
 clipNodeB = with ClipNode maskB
 	\addChild targetB

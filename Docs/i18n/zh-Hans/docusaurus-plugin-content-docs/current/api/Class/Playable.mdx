@@ -201,3 +201,22 @@ getSlot: function(self: Playable, name: string): Node | nil
 | 返回类型 | 描述 |
 | --- | --- |
 | Node\|nil | 插槽中的节点，如果插槽中没有节点，则返回 nil。 |
+
+## onAnimationEnd
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;注册一个回调函数，当动画播放结束时触发。
+
+**签名：**
+```tl
+onAnimationEnd: function(self: Playable, callback: function(animationName: string, target: Playable))
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| callback | function | 动画播放结束时的回调函数。 |

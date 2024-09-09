@@ -1,4 +1,4 @@
-import {HttpClient, Path, thread, HttpServer, Content, loop, App, Vec2, Buffer, Node, Slot} from 'Dora';
+import {HttpClient, Path, thread, HttpServer, Content, loop, App, Vec2, Buffer, Node} from 'Dora';
 import * as ImGui from 'ImGui';
 import {SetCond, WindowFlag} from 'ImGui';
 
@@ -49,7 +49,7 @@ const downloadFlags = [
 ];
 const buffer = Buffer(256);
 const node = Node();
-node.slot(Slot.Cleanup, () => {
+node.onCleanup(() => {
 	cancelDownload = true;
 	if (Content.remove(targetFile)) {
 		print(`${targetFile} is deleted`);

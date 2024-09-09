@@ -118,7 +118,7 @@ void View::setScale(float var) {
 		std::floor(bufferSize.width / _scale),
 		std::floor(bufferSize.height / _scale)};
 	View::updateProjection();
-	Event::send("AppSizeChanged"_slice);
+	Event::send("AppChange"_slice, "Size"s);
 }
 
 float View::getScale() const noexcept {

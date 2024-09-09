@@ -60,12 +60,12 @@ TextInput = Class ((args) ->
 			label.text = text
 
 		.imeAttached = false
-		\slot "AttachIME", ->
+		\onAttachIME ->
 			.imeAttached = true
 			.keyboardEnabled = true
 			updateText textDisplay
 
-		\slot "DetachIME", ->
+		\onDetachIME ->
 			.imeAttached = false
 			.keyboardEnabled = false
 			cursor.visible = false
@@ -74,10 +74,9 @@ TextInput = Class ((args) ->
 			label.x = 0
 			label.text = .hint if textDisplay == ""
 
-		.touchEnabled = true
-		\slot "Tapped", (touch) -> startEditing! if touch.first
+		\onTapped (touch) -> startEditing! if touch.first
 
-		\slot "KeyPressed", (key) ->
+		\onKeyPressed (key) ->
 			if App.platform == "Android" and utf8.len(textEditing) == 1
 				textEditing = "" if key == "BackSpace"
 			else
@@ -90,13 +89,13 @@ TextInput = Class ((args) ->
 				when "Return"
 					\detachIME!
 
-		\slot "TextInput", (text) ->
+		\onTextInput (text) ->
 			textDisplay = utf8.sub(textDisplay, 1, -1 - utf8.len(textEditing)) .. text
 			textEditing = ""
 			updateText textDisplay
 			updateIMEPos!
 
-		\slot "TextEditing", (text, start) ->
+		\onTextEditing (text, start) ->
 			textDisplay = utf8.sub(textDisplay, 1, -1 - utf8.len(textEditing)) .. text
 			textEditing = text
 			label.text = textDisplay

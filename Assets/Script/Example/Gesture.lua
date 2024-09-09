@@ -16,32 +16,31 @@ local scaledSize = size -- 8
 do -- 10
 	local _with_0 = Node() -- 10
 	_with_0:addChild(sprite) -- 11
-	_with_0.touchEnabled = true -- 12
-	_with_0:slot("Gesture", function(center, _numTouches, delta, angle) -- 13
-		sprite.position = center -- 17
-		sprite.angle = sprite.angle + angle -- 18
-		scaledSize = scaledSize + (delta * length) -- 19
-		sprite.scaleX = scaledSize / size -- 20
-		sprite.scaleY = scaledSize / size -- 21
-	end) -- 13
+	_with_0:onGesture(function(center, _numTouches, delta, angle) -- 12
+		sprite.position = center -- 16
+		sprite.angle = sprite.angle + angle -- 17
+		scaledSize = scaledSize + (delta * length) -- 18
+		sprite.scaleX = scaledSize / size -- 19
+		sprite.scaleY = scaledSize / size -- 20
+	end) -- 12
 end -- 10
-local windowFlags = { -- 26
-	"NoDecoration", -- 26
-	"AlwaysAutoResize", -- 26
-	"NoSavedSettings", -- 26
-	"NoFocusOnAppearing", -- 26
-	"NoNav", -- 26
-	"NoMove" -- 26
-} -- 26
-return threadLoop(function() -- 34
-	local width -- 35
-	width = App.visualSize.width -- 35
-	ImGui.SetNextWindowBgAlpha(0.35) -- 36
-	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0)) -- 37
-	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver") -- 38
-	return ImGui.Begin("Gesture", windowFlags, function() -- 39
-		ImGui.Text("Gesture (Yuescript)") -- 40
-		ImGui.Separator() -- 41
-		return ImGui.TextWrapped("Interact with multi-touches!") -- 42
-	end) -- 42
-end) -- 42
+local windowFlags = { -- 25
+	"NoDecoration", -- 25
+	"AlwaysAutoResize", -- 25
+	"NoSavedSettings", -- 25
+	"NoFocusOnAppearing", -- 25
+	"NoNav", -- 25
+	"NoMove" -- 25
+} -- 25
+return threadLoop(function() -- 33
+	local width -- 34
+	width = App.visualSize.width -- 34
+	ImGui.SetNextWindowBgAlpha(0.35) -- 35
+	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0)) -- 36
+	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver") -- 37
+	return ImGui.Begin("Gesture", windowFlags, function() -- 38
+		ImGui.Text("Gesture (Yuescript)") -- 39
+		ImGui.Separator() -- 40
+		return ImGui.TextWrapped("Interact with multi-touches!") -- 41
+	end) -- 41
+end) -- 41

@@ -649,8 +649,6 @@ let getBody: (this: void, enode: React.Element, world: Dora.PhysicsWorld.Type) =
 		}
 		const cnode = getNode(enode, body, handleBodyAttribute);
 		if (def.receivingContact !== false && (
-			def.onBodyEnter ||
-			def.onBodyLeave ||
 			def.onContactStart ||
 			def.onContactEnd
 		)) {

@@ -7,6 +7,16 @@ import "@site/src/languages/highlight";
 &emsp;&emsp;Signal slot that can be connected to a Particle object.
 This is just a demonstration record showing the signal slot names and callbacks.
 
+**Usage:**
+```tl
+-- you can register for these events using codes
+local particle = Particle("effect.par")
+particle:start()
+particle:slot("Finished", function()
+	print("The particle system has ended")
+end)
+```
+
 ## Finished
 
 **Type:** Node Event.

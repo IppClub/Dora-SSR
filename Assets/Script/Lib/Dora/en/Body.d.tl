@@ -8,28 +8,28 @@ local type PhysicsWorld = require("PhysicsWorldType")
 -- @usage
 -- -- you can register for these events using codes
 -- body.receivingContact = true
--- body:slot("BodyEnter", function(other: Body, sensorTag: integer)
--- 	print("A body enter senser", other, sensorTag)
+-- body:slot("ContactStart", function(other: Body, point: Vec2, normal: Vec2)
+-- 	print("A body has contacted", other, point, normal)
 -- end)
 local record __SLOT__
 
-	-- Triggers when a Body object collides with a sensor object.
+	-- Triggers when a Body object collides with a sensor object. This event triggers only when the Body attached with any fixture as sensor.
 	-- @param other (Body) The other Body object that the current Body is colliding with.
 	-- @param sensorTag (integer) The tag of the sensor that triggered this collision.
 	["BodyEnter"]: function(other: Body, sensorTag: integer)
 
-	-- Triggers when a `Body` object is no longer colliding with a sensor object.
+	-- Triggers when a `Body` object is no longer colliding with a sensor object. This event triggers only when the Body attached with any fixture as sensor.
 	-- @param other (Body) The other `Body` object that the current `Body` is no longer colliding with.
 	-- @param sensorTag (integer) The tag of the sensor that triggered this collision.
 	["BodyLeave"]: function(other: Body, sensorTag: integer)
 
-	-- Triggers when a `Body` object starts to collide with another object.
+	-- Triggers when a `Body` object starts to collide with another object. This event triggers only when the `receivingContact` property of the `Body` is set to true.
 	-- @param other (Body) The other `Body` object that the current `Body` is colliding with.
 	-- @param point (Vec2) The point of collision in world coordinates.
 	-- @param normal (Vec2) The normal vector of the contact surface in world coordinates.
 	["ContactStart"]: function(other: Body, point: Vec2, normal: Vec2)
 
-	-- Triggers when a `Body` object stops colliding with another object.
+	-- Triggers when a `Body` object stops colliding with another object. This event triggers only when the `receivingContact` property of the `Body` is set to true.
 	-- @param other (Body) The other `Body` object that the current `Body` is no longer colliding with.
 	-- @param point (Vec2) The point of collision in world coordinates.
 	-- @param normal (Vec2) The normal vector of the contact surface in world coordinates.

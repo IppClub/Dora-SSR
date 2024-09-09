@@ -283,6 +283,16 @@ const sidebars = {
 							label: 'Particle Event',
 							id: 'api/Node Event/Particle',
 						},
+						{
+							type: 'doc',
+							label: 'AlignNode Event',
+							id: 'api/Node Event/AlignNode',
+						},
+						{
+							type: 'doc',
+							label: 'EffekNode Event',
+							id: 'api/Node Event/EffekNode',
+						},
 					]
 				},
 			]

@@ -51,8 +51,7 @@ diskDef:attachDisk(20, 5, 0.8, 1)
 local disk = Body(diskDef, world, Vec2(100, 200))
 disk:addTo(world)
 disk.angularRate = -1800
-disk.receivingContact = true
-disk:slot("ContactStart", function(_: Body.Type, point: Vec2.Type)
+disk:onContactStart(function(_: Body.Type, point: Vec2.Type)
 	drawNode.position = point
 	label.text = string.format("Contact: [%.0f,%.0f]", point.x, point.y)
 end)

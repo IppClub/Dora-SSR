@@ -1,7 +1,7 @@
 // @preview-file on
 import { WindowFlag, SetCond } from "ImGui";
 import * as ImGui from 'ImGui';
-import { App, Model, Slot, Vec2, threadLoop } from "Dora";
+import { App, Model, Vec2, threadLoop } from "Dora";
 
 const modelFile = "Model/xiaoli.model";
 
@@ -25,7 +25,7 @@ if (model) {
 	model.recovery = 0.2;
 	model.look = looks[currentLook];
 	model.play(animations[currentAnim], true);
-	model.slot(Slot.AnimationEnd, name => {
+	model.onAnimationEnd(name => {
 		print(name, "end");
 	});
 }

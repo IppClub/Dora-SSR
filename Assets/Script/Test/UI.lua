@@ -23,8 +23,9 @@ Panel = function(width, height, viewWidth, viewHeight) -- 7
 	}) -- 9
 	_with_0.border = LineRect({ -- 17
 		x = 1, -- 17
+		y = 1, -- 17
 		width = width - 2, -- 17
-		height = height, -- 17
+		height = height - 2, -- 17
 		color = 0xffffffff -- 17
 	}) -- 17
 	_with_0.area:addChild(_with_0.border) -- 18
@@ -37,7 +38,7 @@ Panel = function(width, height, viewWidth, viewHeight) -- 7
 				fontName = "sarasa-mono-sc-regular", -- 24
 				fontSize = math.floor(16 * scale) -- 25
 			}) -- 20
-			_with_1:slot("Tapped", function() -- 27
+			_with_1:onTapped(function() -- 27
 				return print("clicked " .. tostring(i)) -- 27
 			end) -- 27
 			return _with_1 -- 20
@@ -50,8 +51,9 @@ Panel = function(width, height, viewWidth, viewHeight) -- 7
 		self.area:removeChild(self.border) -- 32
 		self.border = LineRect({ -- 33
 			x = 1, -- 33
+			y = 1, -- 33
 			width = w - 2, -- 33
-			height = h, -- 33
+			height = h - 2, -- 33
 			color = 0xffffffff -- 33
 		}) -- 33
 		return self.area:addChild(self.border) -- 34
@@ -66,12 +68,14 @@ return Director.ui:addChild((function() -- 36
 		width, height = _obj_0.width, _obj_0.height -- 37
 	end -- 37
 	_with_0:css("width: " .. tostring(width) .. "; height: " .. tostring(height)) -- 38
-	_with_0:gslot("AppSizeChanged", function() -- 39
-		do -- 40
-			local _obj_0 = App.bufferSize -- 40
-			width, height = _obj_0.width, _obj_0.height -- 40
-		end -- 40
-		return _with_0:css("width: " .. tostring(width) .. "; height: " .. tostring(height)) -- 41
+	_with_0:gslot("AppChange", function(settingName) -- 39
+		if settingName == "Size" then -- 39
+			do -- 40
+				local _obj_0 = App.bufferSize -- 40
+				width, height = _obj_0.width, _obj_0.height -- 40
+			end -- 40
+			return _with_0:css("width: " .. tostring(width) .. "; height: " .. tostring(height)) -- 41
+		end -- 39
 	end) -- 39
 	_with_0:css("justify-content: space-between; flex-direction: row") -- 42
 	_with_0:addChild((function() -- 43
@@ -82,7 +86,7 @@ return Director.ui:addChild((function() -- 36
 			_with_2:css("width: 100%; height: 100%") -- 46
 			local panel = Panel(500, 1000, 1000, 1000) -- 47
 			_with_2:addChild(panel) -- 48
-			_with_2:slot("AlignLayout", function(w, h) -- 49
+			_with_2:onAlignLayout(function(w, h) -- 49
 				return panel:updateSize(w, h) -- 49
 			end) -- 49
 			return _with_2 -- 45
@@ -97,7 +101,7 @@ return Director.ui:addChild((function() -- 36
 			_with_2:css("width: 100%; height: 50%") -- 53
 			local panel = Panel(600, 1000, 1000, 1000) -- 54
 			_with_2:addChild(panel) -- 55
-			_with_2:slot("AlignLayout", function(w, h) -- 56
+			_with_2:onAlignLayout(function(w, h) -- 56
 				return panel:updateSize(w, h) -- 56
 			end) -- 56
 			return _with_2 -- 52
@@ -112,7 +116,7 @@ return Director.ui:addChild((function() -- 36
 			_with_2:css("width: 100%; height: 40%") -- 60
 			local panel = Panel(600, 1000, 1000, 1000) -- 61
 			_with_2:addChild(panel) -- 62
-			_with_2:slot("AlignLayout", function(w, h) -- 63
+			_with_2:onAlignLayout(function(w, h) -- 63
 				return panel:updateSize(w, h) -- 63
 			end) -- 63
 			return _with_2 -- 59

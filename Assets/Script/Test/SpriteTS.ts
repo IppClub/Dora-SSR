@@ -1,15 +1,14 @@
 // @preview-file on
 import { WindowFlag, SetCond, ColorEditFlag } from "ImGui";
 import * as ImGui from "ImGui";
-import { App, Size, Slot, Sprite, Vec2, threadLoop } from "Dora";
+import { App, Size, Sprite, Vec2, threadLoop } from "Dora";
 
 let sprite = Sprite("Image/logo.png");
 if (sprite) {
 	sprite.scaleX = 0.5;
 	sprite.scaleY = 0.5;
-	sprite.touchEnabled = true;
 	sprite.showDebug = true;
-	sprite.slot(Slot.TapMoved, touch => {
+	sprite.onTapMoved(touch => {
 		if (!touch.first) {
 			return;
 		}
@@ -107,9 +106,8 @@ threadLoop(() => {
 			if (sprite && parent) {
 				sprite.scaleX = 0.5;
 				sprite.scaleY = 0.5;
-				sprite.touchEnabled = true;
 				sprite.showDebug = true;
-				sprite.slot(Slot.TapMoved, touch => {
+				sprite.onTapMoved(touch => {
 					if (!touch.first) {
 						return;
 					}

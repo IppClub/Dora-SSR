@@ -25,7 +25,7 @@ world = with PlatformWorld!
 	\getLayer(TerrainLayer).renderGroup = true
 	.camera.followRatio = Vec2 0.01, 0.01
 	.camera.zoom = View.size.width / DesignWidth
-	\gslot "AppSizeChanged", ->
+	\onAppChange (settingName) -> if settingName == "Size"
 		.camera.zoom = View.size.width / DesignWidth
 Store.world = world
 

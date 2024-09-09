@@ -38,10 +38,10 @@ local Menu = ____Dora.Menu -- 3
 local Keyboard = ____Dora.Keyboard -- 3
 local AlignNode = ____Dora.AlignNode -- 3
 local Rectangle = require("UI.View.Shape.Rectangle") -- 4
-local ____Utils = require("Utils") -- 287
-local Struct = ____Utils.Struct -- 287
-local CircleButton = require("UI.Control.Basic.CircleButton") -- 337
-local ImGui = require("ImGui") -- 339
+local ____Utils = require("Utils") -- 289
+local Struct = ____Utils.Struct -- 289
+local CircleButton = require("UI.Control.Basic.CircleButton") -- 339
+local ImGui = require("ImGui") -- 341
 local TerrainLayer = 0 -- 6
 local PlayerLayer = 1 -- 7
 local ItemLayer = 2 -- 8
@@ -60,590 +60,561 @@ local world = PlatformWorld() -- 21
 world.camera.boundary = Rect(-1250, -500, 2500, 1000) -- 22
 world.camera.followRatio = Vec2(0.02, 0.02) -- 23
 world.camera.zoom = View.size.width / DesignWidth -- 24
-world:gslot( -- 25
-    "AppSizeChanged", -- 25
-    function() -- 25
-        world.camera.zoom = View.size.width / DesignWidth -- 26
-    end -- 25
-) -- 25
-local terrainDef = BodyDef() -- 29
-terrainDef.type = "Static" -- 30
-terrainDef:attachPolygon( -- 31
-    Vec2(0, -500), -- 31
-    2500, -- 31
-    10, -- 31
-    0, -- 31
-    1, -- 31
-    1, -- 31
-    0 -- 31
-) -- 31
-terrainDef:attachPolygon( -- 32
-    Vec2(0, 500), -- 32
-    2500, -- 32
-    10, -- 32
-    0, -- 32
-    1, -- 32
-    1, -- 32
-    0 -- 32
-) -- 32
+world:onAppChange(function(settingName) -- 25
+    if settingName == "Size" then -- 25
+        world.camera.zoom = View.size.width / DesignWidth -- 27
+    end -- 27
+end) -- 25
+local terrainDef = BodyDef() -- 31
+terrainDef.type = "Static" -- 32
 terrainDef:attachPolygon( -- 33
-    Vec2(1250, 0), -- 33
+    Vec2(0, -500), -- 33
+    2500, -- 33
     10, -- 33
-    1000, -- 33
     0, -- 33
     1, -- 33
     1, -- 33
     0 -- 33
 ) -- 33
 terrainDef:attachPolygon( -- 34
-    Vec2(-1250, 0), -- 34
+    Vec2(0, 500), -- 34
+    2500, -- 34
     10, -- 34
-    1000, -- 34
     0, -- 34
     1, -- 34
     1, -- 34
     0 -- 34
 ) -- 34
-local terrain = Body(terrainDef, world, Vec2.zero) -- 36
-terrain.order = TerrainLayer -- 37
-terrain.group = TerrainGroup -- 38
-terrain:addChild(Rectangle({ -- 39
-    y = -500, -- 40
-    width = 2500, -- 41
-    height = 10, -- 42
-    fillColor = fillColor, -- 43
-    borderColor = borderColor, -- 44
-    fillOrder = 1, -- 45
-    lineOrder = 2 -- 46
-})) -- 46
-terrain:addChild(Rectangle({ -- 48
-    x = 1250, -- 49
-    y = 0, -- 50
-    width = 10, -- 51
-    height = 1000, -- 52
-    fillColor = fillColor, -- 53
-    borderColor = borderColor, -- 54
-    fillOrder = 1, -- 55
-    lineOrder = 2 -- 56
-})) -- 56
-terrain:addChild(Rectangle({ -- 58
-    x = -1250, -- 59
-    y = 0, -- 60
-    width = 10, -- 61
-    height = 1000, -- 62
-    fillColor = fillColor, -- 63
-    borderColor = borderColor, -- 64
-    fillOrder = 1, -- 65
-    lineOrder = 2 -- 66
-})) -- 66
-world:addChild(terrain) -- 68
-UnitAction:add( -- 70
-    "idle", -- 70
-    { -- 70
-        priority = 1, -- 71
-        reaction = 2, -- 72
-        recovery = 0.2, -- 73
-        available = function(____self) -- 74
-            return ____self.onSurface -- 75
-        end, -- 74
-        create = function(____self) -- 77
-            local ____self_0 = ____self -- 78
-            local playable = ____self_0.playable -- 78
-            playable.speed = 1 -- 79
-            playable:play("idle", true) -- 80
-            local playIdleSpecial = loop(function() -- 81
-                sleep(3) -- 82
-                sleep(playable:play("idle1")) -- 83
-                playable:play("idle", true) -- 84
-                return false -- 85
-            end) -- 81
-            ____self.data.playIdleSpecial = playIdleSpecial -- 87
-            return function(owner) -- 88
-                coroutine.resume(playIdleSpecial) -- 89
-                return not owner.onSurface -- 90
-            end -- 88
-        end -- 77
-    } -- 77
-) -- 77
-UnitAction:add( -- 95
-    "move", -- 95
-    { -- 95
-        priority = 1, -- 96
-        reaction = 2, -- 97
-        recovery = 0.2, -- 98
-        available = function(____self) -- 99
-            return ____self.onSurface -- 100
-        end, -- 99
-        create = function(____self) -- 102
-            local ____self_1 = ____self -- 103
-            local playable = ____self_1.playable -- 103
-            playable.speed = 1 -- 104
-            playable:play("fmove", true) -- 105
-            return function(____self, action) -- 106
-                local ____action_2 = action -- 107
-                local elapsedTime = ____action_2.elapsedTime -- 107
-                local recovery = action.recovery * 2 -- 108
-                local move = ____self.unitDef.move -- 109
-                local moveSpeed = 1 -- 110
-                if elapsedTime < recovery then -- 110
-                    moveSpeed = math.min(elapsedTime / recovery, 1) -- 112
-                end -- 112
-                ____self.velocityX = moveSpeed * (____self.faceRight and move or -move) -- 114
-                return not ____self.onSurface -- 115
-            end -- 106
-        end -- 102
-    } -- 102
-) -- 102
-UnitAction:add( -- 120
-    "jump", -- 120
-    { -- 120
-        priority = 3, -- 121
-        reaction = 2, -- 122
-        recovery = 0.1, -- 123
-        queued = true, -- 124
-        available = function(____self) -- 125
-            return ____self.onSurface -- 126
-        end, -- 125
-        create = function(____self) -- 128
-            local jump = ____self.unitDef.jump -- 129
-            ____self.velocityY = jump -- 130
-            return once(function() -- 131
-                local ____self_3 = ____self -- 132
-                local playable = ____self_3.playable -- 132
-                playable.speed = 1 -- 133
-                sleep(playable:play("jump", false)) -- 134
-            end) -- 131
-        end -- 128
-    } -- 128
-) -- 128
-UnitAction:add( -- 139
-    "fallOff", -- 139
-    { -- 139
-        priority = 2, -- 140
-        reaction = -1, -- 141
-        recovery = 0.3, -- 142
-        available = function(____self) -- 143
-            return not ____self.onSurface -- 144
-        end, -- 143
-        create = function(____self) -- 146
-            if ____self.playable.current ~= "jumping" then -- 146
-                local ____self_4 = ____self -- 148
-                local playable = ____self_4.playable -- 148
-                playable.speed = 1 -- 149
-                playable:play("jumping", true) -- 150
-            end -- 150
-            return loop(function() -- 152
-                if ____self.onSurface then -- 152
-                    local ____self_5 = ____self -- 154
-                    local playable = ____self_5.playable -- 154
-                    playable.speed = 1 -- 155
-                    sleep(playable:play("landing", false)) -- 156
-                    return true -- 157
-                end -- 157
-                return false -- 159
-            end) -- 152
-        end -- 146
-    } -- 146
-) -- 146
-local ____Decision_6 = Decision -- 164
-local Sel = ____Decision_6.Sel -- 164
-local Seq = ____Decision_6.Seq -- 164
-local Con = ____Decision_6.Con -- 164
-local Act = ____Decision_6.Act -- 164
-Data.store["AI:playerControl"] = Sel({ -- 166
-    Seq({ -- 167
-        Con( -- 168
-            "fmove key down", -- 168
-            function(____self) -- 168
-                local keyLeft = ____self.entity.keyLeft -- 169
-                local keyRight = ____self.entity.keyRight -- 170
-                return not (keyLeft and keyRight) and (keyLeft and ____self.faceRight or keyRight and not ____self.faceRight) -- 171
-            end -- 168
-        ), -- 168
-        Act("turn") -- 177
-    }), -- 177
-    Seq({ -- 179
-        Con( -- 180
-            "is falling", -- 180
-            function(____self) -- 180
-                return not ____self.onSurface -- 181
-            end -- 180
-        ), -- 180
-        Act("fallOff") -- 183
-    }), -- 183
-    Seq({ -- 185
-        Con( -- 186
-            "jump key down", -- 186
-            function(____self) -- 186
-                return ____self.entity.keyJump -- 187
-            end -- 186
-        ), -- 186
-        Act("jump") -- 189
-    }), -- 189
-    Seq({ -- 191
-        Con( -- 192
-            "fmove key down", -- 192
-            function(____self) -- 192
-                return ____self.entity.keyLeft or ____self.entity.keyRight -- 193
-            end -- 192
-        ), -- 192
-        Act("move") -- 195
-    }), -- 195
-    Act("idle") -- 197
-}) -- 197
-local unitDef = Dictionary() -- 200
-unitDef.linearAcceleration = Vec2(0, -15) -- 201
-unitDef.bodyType = "Dynamic" -- 202
-unitDef.scale = 1 -- 203
-unitDef.density = 1 -- 204
-unitDef.friction = 1 -- 205
-unitDef.restitution = 0 -- 206
-unitDef.playable = "spine:Spine/moling" -- 207
-unitDef.defaultFaceRight = true -- 208
-unitDef.size = Size(60, 300) -- 209
-unitDef.sensity = 0 -- 210
-unitDef.move = 300 -- 211
-unitDef.jump = 1000 -- 212
-unitDef.detectDistance = 350 -- 213
-unitDef.hp = 5 -- 214
-unitDef.tag = "player" -- 215
-unitDef.decisionTree = "AI:playerControl" -- 216
-unitDef.usePreciseHit = false -- 217
-unitDef.actions = Array({ -- 218
-    "idle", -- 219
-    "turn", -- 220
-    "move", -- 221
-    "jump", -- 222
-    "fallOff", -- 223
-    "cancel" -- 224
-}) -- 224
-Observer("Add", {"player"}):watch(function(____self) -- 227
-    local unit = Unit( -- 228
-        unitDef, -- 228
-        world, -- 228
-        ____self, -- 228
-        Vec2(300, -350) -- 228
-    ) -- 228
-    unit.order = PlayerLayer -- 229
-    unit.group = PlayerGroup -- 230
-    unit.playable.position = Vec2(0, -150) -- 231
-    unit.playable:play("idle", true) -- 232
-    world:addChild(unit) -- 233
-    world.camera.followTarget = unit -- 234
-    return false -- 235
-end) -- 227
-Observer("Add", {"x", "icon"}):watch(function(____self, x, icon) -- 238
-    local sprite = Sprite(icon) -- 239
-    if not sprite then -- 239
-        return false -- 240
-    end -- 240
-    sprite:runAction( -- 241
-        Spawn( -- 241
-            AngleY(5, 0, 360), -- 242
-            Sequence( -- 243
-                Y(2.5, 0, 40, Ease.OutQuad), -- 244
-                Y(2.5, 40, 0, Ease.InQuad) -- 245
-            ) -- 245
-        ), -- 245
-        true -- 247
-    ) -- 247
-    local bodyDef = BodyDef() -- 249
-    bodyDef.type = "Dynamic" -- 250
-    bodyDef.linearAcceleration = Vec2(0, -10) -- 251
-    bodyDef:attachPolygon(sprite.width * 0.5, sprite.height) -- 252
-    bodyDef:attachPolygonSensor(0, sprite.width, sprite.height) -- 253
-    local body = Body( -- 255
-        bodyDef, -- 255
-        world, -- 255
-        Vec2(x, 0) -- 255
-    ) -- 255
-    body.order = ItemLayer -- 256
-    body.group = ItemGroup -- 257
-    body:addChild(sprite) -- 258
-    body:slot( -- 260
-        "BodyEnter", -- 260
-        function(item) -- 260
-            if tolua.type(item) == "Platformer::Unit" then -- 260
-                ____self.picked = true -- 262
-                body.group = Data.groupHide -- 263
-                body:schedule(once(function() -- 264
-                    sleep(sprite:runAction(Spawn( -- 265
-                        Scale(0.2, 1, 1.3, Ease.OutBack), -- 266
-                        Opacity(0.2, 1, 0) -- 267
-                    ))) -- 267
-                    ____self.body = nil -- 269
-                end)) -- 264
-            end -- 264
-        end -- 260
-    ) -- 260
-    world:addChild(body) -- 274
-    ____self.body = body -- 275
-    return false -- 276
-end) -- 238
-Observer("Remove", {"body"}):watch(function(____self) -- 279
-    local body = tolua.cast(____self.oldValues.body, "Body") -- 280
-    if body ~= nil then -- 280
-        body:removeFromParent() -- 282
-    end -- 282
-    return false -- 284
-end) -- 279
-local function loadExcel() -- 308
-    local xlsx = Content:loadExcel("Data/items.xlsx", {"items"}) -- 309
-    if xlsx ~= nil then -- 309
-        local its = xlsx.items -- 311
-        local names = its[2] -- 312
-        table.remove(names, 1) -- 313
-        if not Struct:has("Item") then -- 313
-            Struct.Item(names) -- 315
-        end -- 315
-        Group({"item"}):each(function(e) -- 317
-            e:destroy() -- 318
-            return false -- 319
-        end) -- 317
-        do -- 317
-            local i = 2 -- 321
-            while i < #its do -- 321
-                local st = Struct:load(its[i + 1]) -- 322
-                local item = { -- 323
-                    name = st.Name, -- 324
-                    no = st.No, -- 325
-                    x = st.X, -- 326
-                    num = st.Num, -- 327
-                    icon = st.Icon, -- 328
-                    desc = st.Desc, -- 329
-                    item = true -- 330
-                } -- 330
-                Entity(item) -- 332
-                i = i + 1 -- 321
-            end -- 321
-        end -- 321
-    end -- 321
-end -- 308
-local keyboardEnabled = true -- 341
-local playerGroup = Group({"player"}) -- 343
-local function updatePlayerControl(key, flag, vpad) -- 344
-    if keyboardEnabled and vpad then -- 344
-        keyboardEnabled = false -- 346
-    end -- 346
-    playerGroup:each(function(____self) -- 348
-        ____self[key] = flag -- 349
-        return false -- 350
-    end) -- 348
-end -- 344
-local ui = AlignNode(true) -- 354
-ui:css("flex-direction: column-reverse") -- 355
-ui.controllerEnabled = true -- 356
-ui:slot( -- 357
-    "ButtonDown", -- 357
-    function(id, buttonName) -- 357
-        if id ~= 0 then -- 357
-            return -- 358
-        end -- 358
-        repeat -- 358
-            local ____switch41 = buttonName -- 358
-            local ____cond41 = ____switch41 == "dpleft" -- 358
-            if ____cond41 then -- 358
-                updatePlayerControl("keyLeft", true, true) -- 360
-                break -- 360
-            end -- 360
-            ____cond41 = ____cond41 or ____switch41 == "dpright" -- 360
-            if ____cond41 then -- 360
-                updatePlayerControl("keyRight", true, true) -- 361
-                break -- 361
-            end -- 361
-            ____cond41 = ____cond41 or ____switch41 == "b" -- 361
-            if ____cond41 then -- 361
-                updatePlayerControl("keyJump", true, true) -- 362
-                break -- 362
-            end -- 362
-        until true -- 362
-    end -- 357
-) -- 357
-ui:slot( -- 365
-    "ButtonUp", -- 365
-    function(id, buttonName) -- 365
-        if id ~= 0 then -- 365
-            return -- 366
-        end -- 366
-        repeat -- 366
-            local ____switch44 = buttonName -- 366
-            local ____cond44 = ____switch44 == "dpleft" -- 366
-            if ____cond44 then -- 366
-                updatePlayerControl("keyLeft", false, true) -- 368
-                break -- 368
-            end -- 368
-            ____cond44 = ____cond44 or ____switch44 == "dpright" -- 368
-            if ____cond44 then -- 368
-                updatePlayerControl("keyRight", false, true) -- 369
-                break -- 369
-            end -- 369
-            ____cond44 = ____cond44 or ____switch44 == "b" -- 369
-            if ____cond44 then -- 369
-                updatePlayerControl("keyJump", false, true) -- 370
-                break -- 370
-            end -- 370
-        until true -- 370
-    end -- 365
-) -- 365
-ui:addTo(Director.ui) -- 373
-local bottomAlign = AlignNode() -- 375
-bottomAlign:css("\n\theight: 60;\n\tjustify-content: space-between;\n\tmargin: 0, 20, 40;\n\tflex-direction: row\n") -- 376
-bottomAlign:addTo(ui) -- 382
-local leftAlign = AlignNode() -- 384
-leftAlign:css("width: 130; height: 60") -- 385
-leftAlign:addTo(bottomAlign) -- 386
-local leftMenu = Menu() -- 388
-leftMenu.size = Size(250, 120) -- 389
-leftMenu.anchor = Vec2.zero -- 390
-leftMenu.scaleY = 0.5 -- 391
-leftMenu.scaleX = 0.5 -- 391
-leftMenu:addTo(leftAlign) -- 392
-local leftButton = CircleButton({text = "左(a)", radius = 60, fontSize = 36}) -- 394
-leftButton.anchor = Vec2.zero -- 399
-leftButton:slot( -- 400
-    "TapBegan", -- 400
-    function() -- 400
-        updatePlayerControl("keyLeft", true, true) -- 401
-    end -- 400
-) -- 400
-leftButton:slot( -- 403
-    "TapEnded", -- 403
-    function() -- 403
-        updatePlayerControl("keyLeft", false, true) -- 404
-    end -- 403
-) -- 403
-leftButton:addTo(leftMenu) -- 406
-local rightButton = CircleButton({text = "右(d)", x = 130, radius = 60, fontSize = 36}) -- 408
-rightButton.anchor = Vec2.zero -- 414
-rightButton:slot( -- 415
-    "TapBegan", -- 415
-    function() -- 415
-        updatePlayerControl("keyRight", true, true) -- 416
-    end -- 415
-) -- 415
-rightButton:slot( -- 418
-    "TapEnded", -- 418
-    function() -- 418
-        updatePlayerControl("keyRight", false, true) -- 419
-    end -- 418
-) -- 418
-rightButton:addTo(leftMenu) -- 421
-local rightAlign = AlignNode() -- 423
-rightAlign:css("width: 60; height: 60") -- 424
-rightAlign:addTo(bottomAlign) -- 425
-local rightMenu = Menu() -- 427
-rightMenu.size = Size(120, 120) -- 428
-rightMenu.anchor = Vec2.zero -- 429
-rightMenu.scaleY = 0.5 -- 430
-rightMenu.scaleX = 0.5 -- 430
-rightAlign:addChild(rightMenu) -- 431
-local jumpButton = CircleButton({text = "跳(j)", radius = 60, fontSize = 36}) -- 433
-jumpButton.anchor = Vec2.zero -- 438
-jumpButton:slot( -- 439
-    "TapBegan", -- 439
-    function() -- 439
-        updatePlayerControl("keyJump", true, true) -- 440
-    end -- 439
-) -- 439
-jumpButton:slot( -- 442
-    "TapEnded", -- 442
-    function() -- 442
-        updatePlayerControl("keyJump", false, true) -- 443
-    end -- 442
-) -- 442
-jumpButton:addTo(rightMenu) -- 445
-ui:schedule(function() -- 447
-    local keyA = Keyboard:isKeyPressed("A") -- 448
-    local keyD = Keyboard:isKeyPressed("D") -- 449
-    local keyJ = Keyboard:isKeyPressed("J") -- 450
-    if keyD or keyD or keyJ then -- 450
-        keyboardEnabled = true -- 452
-    end -- 452
-    if not keyboardEnabled then -- 452
-        return false -- 455
-    end -- 455
-    updatePlayerControl("keyLeft", keyA, false) -- 457
-    updatePlayerControl("keyRight", keyD, false) -- 458
-    updatePlayerControl("keyJump", keyJ, false) -- 459
-    return false -- 460
-end) -- 447
-local pickedItemGroup = Group({"picked"}) -- 463
-local windowFlags = { -- 464
-    "NoDecoration", -- 465
-    "AlwaysAutoResize", -- 466
-    "NoSavedSettings", -- 467
-    "NoFocusOnAppearing", -- 468
-    "NoNav", -- 469
-    "NoMove" -- 470
-} -- 470
-Director.ui:schedule(function() -- 472
-    local size = App.visualSize -- 473
-    ImGui.SetNextWindowBgAlpha(0.35) -- 474
-    ImGui.SetNextWindowPos( -- 475
-        Vec2(size.width - 10, 10), -- 475
-        "Always", -- 475
-        Vec2(1, 0) -- 475
-    ) -- 475
-    ImGui.SetNextWindowSize( -- 476
-        Vec2(100, 300), -- 476
-        "FirstUseEver" -- 476
+terrainDef:attachPolygon( -- 35
+    Vec2(1250, 0), -- 35
+    10, -- 35
+    1000, -- 35
+    0, -- 35
+    1, -- 35
+    1, -- 35
+    0 -- 35
+) -- 35
+terrainDef:attachPolygon( -- 36
+    Vec2(-1250, 0), -- 36
+    10, -- 36
+    1000, -- 36
+    0, -- 36
+    1, -- 36
+    1, -- 36
+    0 -- 36
+) -- 36
+local terrain = Body(terrainDef, world, Vec2.zero) -- 38
+terrain.order = TerrainLayer -- 39
+terrain.group = TerrainGroup -- 40
+terrain:addChild(Rectangle({ -- 41
+    y = -500, -- 42
+    width = 2500, -- 43
+    height = 10, -- 44
+    fillColor = fillColor, -- 45
+    borderColor = borderColor, -- 46
+    fillOrder = 1, -- 47
+    lineOrder = 2 -- 48
+})) -- 48
+terrain:addChild(Rectangle({ -- 50
+    x = 1250, -- 51
+    y = 0, -- 52
+    width = 10, -- 53
+    height = 1000, -- 54
+    fillColor = fillColor, -- 55
+    borderColor = borderColor, -- 56
+    fillOrder = 1, -- 57
+    lineOrder = 2 -- 58
+})) -- 58
+terrain:addChild(Rectangle({ -- 60
+    x = -1250, -- 61
+    y = 0, -- 62
+    width = 10, -- 63
+    height = 1000, -- 64
+    fillColor = fillColor, -- 65
+    borderColor = borderColor, -- 66
+    fillOrder = 1, -- 67
+    lineOrder = 2 -- 68
+})) -- 68
+world:addChild(terrain) -- 70
+UnitAction:add( -- 72
+    "idle", -- 72
+    { -- 72
+        priority = 1, -- 73
+        reaction = 2, -- 74
+        recovery = 0.2, -- 75
+        available = function(____self) -- 76
+            return ____self.onSurface -- 77
+        end, -- 76
+        create = function(____self) -- 79
+            local ____self_0 = ____self -- 80
+            local playable = ____self_0.playable -- 80
+            playable.speed = 1 -- 81
+            playable:play("idle", true) -- 82
+            local playIdleSpecial = loop(function() -- 83
+                sleep(3) -- 84
+                sleep(playable:play("idle1")) -- 85
+                playable:play("idle", true) -- 86
+                return false -- 87
+            end) -- 83
+            ____self.data.playIdleSpecial = playIdleSpecial -- 89
+            return function(owner) -- 90
+                coroutine.resume(playIdleSpecial) -- 91
+                return not owner.onSurface -- 92
+            end -- 90
+        end -- 79
+    } -- 79
+) -- 79
+UnitAction:add( -- 97
+    "move", -- 97
+    { -- 97
+        priority = 1, -- 98
+        reaction = 2, -- 99
+        recovery = 0.2, -- 100
+        available = function(____self) -- 101
+            return ____self.onSurface -- 102
+        end, -- 101
+        create = function(____self) -- 104
+            local ____self_1 = ____self -- 105
+            local playable = ____self_1.playable -- 105
+            playable.speed = 1 -- 106
+            playable:play("fmove", true) -- 107
+            return function(____self, action) -- 108
+                local ____action_2 = action -- 109
+                local elapsedTime = ____action_2.elapsedTime -- 109
+                local recovery = action.recovery * 2 -- 110
+                local move = ____self.unitDef.move -- 111
+                local moveSpeed = 1 -- 112
+                if elapsedTime < recovery then -- 112
+                    moveSpeed = math.min(elapsedTime / recovery, 1) -- 114
+                end -- 114
+                ____self.velocityX = moveSpeed * (____self.faceRight and move or -move) -- 116
+                return not ____self.onSurface -- 117
+            end -- 108
+        end -- 104
+    } -- 104
+) -- 104
+UnitAction:add( -- 122
+    "jump", -- 122
+    { -- 122
+        priority = 3, -- 123
+        reaction = 2, -- 124
+        recovery = 0.1, -- 125
+        queued = true, -- 126
+        available = function(____self) -- 127
+            return ____self.onSurface -- 128
+        end, -- 127
+        create = function(____self) -- 130
+            local jump = ____self.unitDef.jump -- 131
+            ____self.velocityY = jump -- 132
+            return once(function() -- 133
+                local ____self_3 = ____self -- 134
+                local playable = ____self_3.playable -- 134
+                playable.speed = 1 -- 135
+                sleep(playable:play("jump", false)) -- 136
+            end) -- 133
+        end -- 130
+    } -- 130
+) -- 130
+UnitAction:add( -- 141
+    "fallOff", -- 141
+    { -- 141
+        priority = 2, -- 142
+        reaction = -1, -- 143
+        recovery = 0.3, -- 144
+        available = function(____self) -- 145
+            return not ____self.onSurface -- 146
+        end, -- 145
+        create = function(____self) -- 148
+            if ____self.playable.current ~= "jumping" then -- 148
+                local ____self_4 = ____self -- 150
+                local playable = ____self_4.playable -- 150
+                playable.speed = 1 -- 151
+                playable:play("jumping", true) -- 152
+            end -- 152
+            return loop(function() -- 154
+                if ____self.onSurface then -- 154
+                    local ____self_5 = ____self -- 156
+                    local playable = ____self_5.playable -- 156
+                    playable.speed = 1 -- 157
+                    sleep(playable:play("landing", false)) -- 158
+                    return true -- 159
+                end -- 159
+                return false -- 161
+            end) -- 154
+        end -- 148
+    } -- 148
+) -- 148
+local ____Decision_6 = Decision -- 166
+local Sel = ____Decision_6.Sel -- 166
+local Seq = ____Decision_6.Seq -- 166
+local Con = ____Decision_6.Con -- 166
+local Act = ____Decision_6.Act -- 166
+Data.store["AI:playerControl"] = Sel({ -- 168
+    Seq({ -- 169
+        Con( -- 170
+            "fmove key down", -- 170
+            function(____self) -- 170
+                local keyLeft = ____self.entity.keyLeft -- 171
+                local keyRight = ____self.entity.keyRight -- 172
+                return not (keyLeft and keyRight) and (keyLeft and ____self.faceRight or keyRight and not ____self.faceRight) -- 173
+            end -- 170
+        ), -- 170
+        Act("turn") -- 179
+    }), -- 179
+    Seq({ -- 181
+        Con( -- 182
+            "is falling", -- 182
+            function(____self) -- 182
+                return not ____self.onSurface -- 183
+            end -- 182
+        ), -- 182
+        Act("fallOff") -- 185
+    }), -- 185
+    Seq({ -- 187
+        Con( -- 188
+            "jump key down", -- 188
+            function(____self) -- 188
+                return ____self.entity.keyJump -- 189
+            end -- 188
+        ), -- 188
+        Act("jump") -- 191
+    }), -- 191
+    Seq({ -- 193
+        Con( -- 194
+            "fmove key down", -- 194
+            function(____self) -- 194
+                return ____self.entity.keyLeft or ____self.entity.keyRight -- 195
+            end -- 194
+        ), -- 194
+        Act("move") -- 197
+    }), -- 197
+    Act("idle") -- 199
+}) -- 199
+local unitDef = Dictionary() -- 202
+unitDef.linearAcceleration = Vec2(0, -15) -- 203
+unitDef.bodyType = "Dynamic" -- 204
+unitDef.scale = 1 -- 205
+unitDef.density = 1 -- 206
+unitDef.friction = 1 -- 207
+unitDef.restitution = 0 -- 208
+unitDef.playable = "spine:Spine/moling" -- 209
+unitDef.defaultFaceRight = true -- 210
+unitDef.size = Size(60, 300) -- 211
+unitDef.sensity = 0 -- 212
+unitDef.move = 300 -- 213
+unitDef.jump = 1000 -- 214
+unitDef.detectDistance = 350 -- 215
+unitDef.hp = 5 -- 216
+unitDef.tag = "player" -- 217
+unitDef.decisionTree = "AI:playerControl" -- 218
+unitDef.usePreciseHit = false -- 219
+unitDef.actions = Array({ -- 220
+    "idle", -- 221
+    "turn", -- 222
+    "move", -- 223
+    "jump", -- 224
+    "fallOff", -- 225
+    "cancel" -- 226
+}) -- 226
+Observer("Add", {"player"}):watch(function(____self) -- 229
+    local unit = Unit( -- 230
+        unitDef, -- 230
+        world, -- 230
+        ____self, -- 230
+        Vec2(300, -350) -- 230
+    ) -- 230
+    unit.order = PlayerLayer -- 231
+    unit.group = PlayerGroup -- 232
+    unit.playable.position = Vec2(0, -150) -- 233
+    unit.playable:play("idle", true) -- 234
+    world:addChild(unit) -- 235
+    world.camera.followTarget = unit -- 236
+    return false -- 237
+end) -- 229
+Observer("Add", {"x", "icon"}):watch(function(____self, x, icon) -- 240
+    local sprite = Sprite(icon) -- 241
+    if not sprite then -- 241
+        return false -- 242
+    end -- 242
+    sprite:runAction( -- 243
+        Spawn( -- 243
+            AngleY(5, 0, 360), -- 244
+            Sequence( -- 245
+                Y(2.5, 0, 40, Ease.OutQuad), -- 246
+                Y(2.5, 40, 0, Ease.InQuad) -- 247
+            ) -- 247
+        ), -- 247
+        true -- 249
+    ) -- 249
+    local bodyDef = BodyDef() -- 251
+    bodyDef.type = "Dynamic" -- 252
+    bodyDef.linearAcceleration = Vec2(0, -10) -- 253
+    bodyDef:attachPolygon(sprite.width * 0.5, sprite.height) -- 254
+    bodyDef:attachPolygonSensor(0, sprite.width, sprite.height) -- 255
+    local body = Body( -- 257
+        bodyDef, -- 257
+        world, -- 257
+        Vec2(x, 0) -- 257
+    ) -- 257
+    body.order = ItemLayer -- 258
+    body.group = ItemGroup -- 259
+    body:addChild(sprite) -- 260
+    body:onBodyEnter(function(item) -- 262
+        if tolua.type(item) == "Platformer::Unit" then -- 262
+            ____self.picked = true -- 264
+            body.group = Data.groupHide -- 265
+            body:schedule(once(function() -- 266
+                sleep(sprite:runAction(Spawn( -- 267
+                    Scale(0.2, 1, 1.3, Ease.OutBack), -- 268
+                    Opacity(0.2, 1, 0) -- 269
+                ))) -- 269
+                ____self.body = nil -- 271
+            end)) -- 266
+        end -- 266
+    end) -- 262
+    world:addChild(body) -- 276
+    ____self.body = body -- 277
+    return false -- 278
+end) -- 240
+Observer("Remove", {"body"}):watch(function(____self) -- 281
+    local body = tolua.cast(____self.oldValues.body, "Body") -- 282
+    if body ~= nil then -- 282
+        body:removeFromParent() -- 284
+    end -- 284
+    return false -- 286
+end) -- 281
+local function loadExcel() -- 310
+    local xlsx = Content:loadExcel("Data/items.xlsx", {"items"}) -- 311
+    if xlsx ~= nil then -- 311
+        local its = xlsx.items -- 313
+        local names = its[2] -- 314
+        table.remove(names, 1) -- 315
+        if not Struct:has("Item") then -- 315
+            Struct.Item(names) -- 317
+        end -- 317
+        Group({"item"}):each(function(e) -- 319
+            e:destroy() -- 320
+            return false -- 321
+        end) -- 319
+        do -- 319
+            local i = 2 -- 323
+            while i < #its do -- 323
+                local st = Struct:load(its[i + 1]) -- 324
+                local item = { -- 325
+                    name = st.Name, -- 326
+                    no = st.No, -- 327
+                    x = st.X, -- 328
+                    num = st.Num, -- 329
+                    icon = st.Icon, -- 330
+                    desc = st.Desc, -- 331
+                    item = true -- 332
+                } -- 332
+                Entity(item) -- 334
+                i = i + 1 -- 323
+            end -- 323
+        end -- 323
+    end -- 323
+end -- 310
+local keyboardEnabled = true -- 343
+local playerGroup = Group({"player"}) -- 345
+local function updatePlayerControl(key, flag, vpad) -- 346
+    if keyboardEnabled and vpad then -- 346
+        keyboardEnabled = false -- 348
+    end -- 348
+    playerGroup:each(function(____self) -- 350
+        ____self[key] = flag -- 351
+        return false -- 352
+    end) -- 350
+end -- 346
+local ui = AlignNode(true) -- 356
+ui:css("flex-direction: column-reverse") -- 357
+ui:onButtonDown(function(id, buttonName) -- 358
+    if id ~= 0 then -- 358
+        return -- 359
+    end -- 359
+    repeat -- 359
+        local ____switch42 = buttonName -- 359
+        local ____cond42 = ____switch42 == "dpleft" -- 359
+        if ____cond42 then -- 359
+            updatePlayerControl("keyLeft", true, true) -- 361
+            break -- 361
+        end -- 361
+        ____cond42 = ____cond42 or ____switch42 == "dpright" -- 361
+        if ____cond42 then -- 361
+            updatePlayerControl("keyRight", true, true) -- 362
+            break -- 362
+        end -- 362
+        ____cond42 = ____cond42 or ____switch42 == "b" -- 362
+        if ____cond42 then -- 362
+            updatePlayerControl("keyJump", true, true) -- 363
+            break -- 363
+        end -- 363
+    until true -- 363
+end) -- 358
+ui:onButtonUp(function(id, buttonName) -- 366
+    if id ~= 0 then -- 366
+        return -- 367
+    end -- 367
+    repeat -- 367
+        local ____switch45 = buttonName -- 367
+        local ____cond45 = ____switch45 == "dpleft" -- 367
+        if ____cond45 then -- 367
+            updatePlayerControl("keyLeft", false, true) -- 369
+            break -- 369
+        end -- 369
+        ____cond45 = ____cond45 or ____switch45 == "dpright" -- 369
+        if ____cond45 then -- 369
+            updatePlayerControl("keyRight", false, true) -- 370
+            break -- 370
+        end -- 370
+        ____cond45 = ____cond45 or ____switch45 == "b" -- 370
+        if ____cond45 then -- 370
+            updatePlayerControl("keyJump", false, true) -- 371
+            break -- 371
+        end -- 371
+    until true -- 371
+end) -- 366
+ui:addTo(Director.ui) -- 374
+local bottomAlign = AlignNode() -- 376
+bottomAlign:css("\n\theight: 60;\n\tjustify-content: space-between;\n\tmargin: 0, 20, 40;\n\tflex-direction: row\n") -- 377
+bottomAlign:addTo(ui) -- 383
+local leftAlign = AlignNode() -- 385
+leftAlign:css("width: 130; height: 60") -- 386
+leftAlign:addTo(bottomAlign) -- 387
+local leftMenu = Menu() -- 389
+leftMenu.size = Size(250, 120) -- 390
+leftMenu.anchor = Vec2.zero -- 391
+leftMenu.scaleY = 0.5 -- 392
+leftMenu.scaleX = 0.5 -- 392
+leftMenu:addTo(leftAlign) -- 393
+local leftButton = CircleButton({text = "左(a)", radius = 60, fontSize = 36}) -- 395
+leftButton.anchor = Vec2.zero -- 400
+leftButton:onTapBegan(function() -- 401
+    updatePlayerControl("keyLeft", true, true) -- 402
+end) -- 401
+leftButton:onTapEnded(function() -- 404
+    updatePlayerControl("keyLeft", false, true) -- 405
+end) -- 404
+leftButton:addTo(leftMenu) -- 407
+local rightButton = CircleButton({text = "右(d)", x = 130, radius = 60, fontSize = 36}) -- 409
+rightButton.anchor = Vec2.zero -- 415
+rightButton:onTapBegan(function() -- 416
+    updatePlayerControl("keyRight", true, true) -- 417
+end) -- 416
+rightButton:onTapEnded(function() -- 419
+    updatePlayerControl("keyRight", false, true) -- 420
+end) -- 419
+rightButton:addTo(leftMenu) -- 422
+local rightAlign = AlignNode() -- 424
+rightAlign:css("width: 60; height: 60") -- 425
+rightAlign:addTo(bottomAlign) -- 426
+local rightMenu = Menu() -- 428
+rightMenu.size = Size(120, 120) -- 429
+rightMenu.anchor = Vec2.zero -- 430
+rightMenu.scaleY = 0.5 -- 431
+rightMenu.scaleX = 0.5 -- 431
+rightAlign:addChild(rightMenu) -- 432
+local jumpButton = CircleButton({text = "跳(j)", radius = 60, fontSize = 36}) -- 434
+jumpButton.anchor = Vec2.zero -- 439
+jumpButton:onTapBegan(function() -- 440
+    updatePlayerControl("keyJump", true, true) -- 441
+end) -- 440
+jumpButton:onTapEnded(function() -- 443
+    updatePlayerControl("keyJump", false, true) -- 444
+end) -- 443
+jumpButton:addTo(rightMenu) -- 446
+ui:schedule(function() -- 448
+    local keyA = Keyboard:isKeyPressed("A") -- 449
+    local keyD = Keyboard:isKeyPressed("D") -- 450
+    local keyJ = Keyboard:isKeyPressed("J") -- 451
+    if keyD or keyD or keyJ then -- 451
+        keyboardEnabled = true -- 453
+    end -- 453
+    if not keyboardEnabled then -- 453
+        return false -- 456
+    end -- 456
+    updatePlayerControl("keyLeft", keyA, false) -- 458
+    updatePlayerControl("keyRight", keyD, false) -- 459
+    updatePlayerControl("keyJump", keyJ, false) -- 460
+    return false -- 461
+end) -- 448
+local pickedItemGroup = Group({"picked"}) -- 464
+local windowFlags = { -- 465
+    "NoDecoration", -- 466
+    "AlwaysAutoResize", -- 467
+    "NoSavedSettings", -- 468
+    "NoFocusOnAppearing", -- 469
+    "NoNav", -- 470
+    "NoMove" -- 471
+} -- 471
+Director.ui:schedule(function() -- 473
+    local size = App.visualSize -- 474
+    ImGui.SetNextWindowBgAlpha(0.35) -- 475
+    ImGui.SetNextWindowPos( -- 476
+        Vec2(size.width - 10, 10), -- 476
+        "Always", -- 476
+        Vec2(1, 0) -- 476
     ) -- 476
-    ImGui.Begin( -- 477
-        "BackPack", -- 477
-        windowFlags, -- 477
-        function() -- 477
-            if ImGui.Button("重新加载Excel") then -- 477
-                loadExcel() -- 479
-            end -- 479
-            ImGui.Separator() -- 481
-            ImGui.Dummy(Vec2(100, 10)) -- 482
-            ImGui.Text("背包 (Typescript)") -- 483
-            ImGui.Separator() -- 484
-            ImGui.Columns(3, false) -- 485
-            pickedItemGroup:each(function(e) -- 486
-                local item = e -- 487
-                if item.num > 0 then -- 487
-                    if ImGui.ImageButton( -- 487
-                        "item" .. tostring(item.no), -- 489
-                        item.icon, -- 489
-                        Vec2(50, 50) -- 489
-                    ) then -- 489
-                        item.num = item.num - 1 -- 490
-                        local sprite = Sprite(item.icon) -- 491
-                        if not sprite then -- 491
-                            return false -- 492
-                        end -- 492
-                        sprite.scaleX = 0.5 -- 493
-                        sprite.scaleY = 0.5 -- 494
-                        sprite:perform(Spawn( -- 495
-                            Opacity(1, 1, 0), -- 496
-                            Y(1, 150, 250) -- 497
-                        )) -- 497
-                        local player = playerGroup:find(function() return true end) -- 499
-                        if player ~= nil then -- 499
-                            local unit = player.unit -- 501
-                            unit:addChild(sprite) -- 502
-                        end -- 502
-                    end -- 502
-                    if ImGui.IsItemHovered() then -- 502
-                        ImGui.BeginTooltip(function() -- 506
-                            ImGui.Text(item.name) -- 507
-                            ImGui.TextColored(themeColor, "数量：") -- 508
-                            ImGui.SameLine() -- 509
-                            ImGui.Text(tostring(item.num)) -- 510
-                            ImGui.TextColored(themeColor, "描述：") -- 511
-                            ImGui.SameLine() -- 512
-                            ImGui.Text(tostring(item.desc)) -- 513
-                        end) -- 506
-                    end -- 506
-                    ImGui.NextColumn() -- 516
-                end -- 516
-                return false -- 518
-            end) -- 486
-        end -- 477
+    ImGui.SetNextWindowSize( -- 477
+        Vec2(100, 300), -- 477
+        "FirstUseEver" -- 477
     ) -- 477
-    return false -- 521
-end) -- 472
-Entity({player = true}) -- 524
-loadExcel() -- 525
-return ____exports -- 525
+    ImGui.Begin( -- 478
+        "BackPack", -- 478
+        windowFlags, -- 478
+        function() -- 478
+            if ImGui.Button("重新加载Excel") then -- 478
+                loadExcel() -- 480
+            end -- 480
+            ImGui.Separator() -- 482
+            ImGui.Dummy(Vec2(100, 10)) -- 483
+            ImGui.Text("背包 (Typescript)") -- 484
+            ImGui.Separator() -- 485
+            ImGui.Columns(3, false) -- 486
+            pickedItemGroup:each(function(e) -- 487
+                local item = e -- 488
+                if item.num > 0 then -- 488
+                    if ImGui.ImageButton( -- 488
+                        "item" .. tostring(item.no), -- 490
+                        item.icon, -- 490
+                        Vec2(50, 50) -- 490
+                    ) then -- 490
+                        item.num = item.num - 1 -- 491
+                        local sprite = Sprite(item.icon) -- 492
+                        if not sprite then -- 492
+                            return false -- 493
+                        end -- 493
+                        sprite.scaleX = 0.5 -- 494
+                        sprite.scaleY = 0.5 -- 495
+                        sprite:perform(Spawn( -- 496
+                            Opacity(1, 1, 0), -- 497
+                            Y(1, 150, 250) -- 498
+                        )) -- 498
+                        local player = playerGroup:find(function() return true end) -- 500
+                        if player ~= nil then -- 500
+                            local unit = player.unit -- 502
+                            unit:addChild(sprite) -- 503
+                        end -- 503
+                    end -- 503
+                    if ImGui.IsItemHovered() then -- 503
+                        ImGui.BeginTooltip(function() -- 507
+                            ImGui.Text(item.name) -- 508
+                            ImGui.TextColored(themeColor, "数量：") -- 509
+                            ImGui.SameLine() -- 510
+                            ImGui.Text(tostring(item.num)) -- 511
+                            ImGui.TextColored(themeColor, "描述：") -- 512
+                            ImGui.SameLine() -- 513
+                            ImGui.Text(tostring(item.desc)) -- 514
+                        end) -- 507
+                    end -- 507
+                    ImGui.NextColumn() -- 517
+                end -- 517
+                return false -- 519
+            end) -- 487
+        end -- 478
+    ) -- 478
+    return false -- 522
+end) -- 473
+Entity({player = true}) -- 525
+loadExcel() -- 526
+return ____exports -- 526

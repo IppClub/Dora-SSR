@@ -743,7 +743,7 @@ getChildByTag: function(self: Node, tag: string): Node
 
 **描述：**
 
-&emsp;&emsp;调度一个函数在每一帧运行。
+&emsp;&emsp;调度一个主更新函数在每一帧运行。重复调用会覆盖被调度的主更新函数或协程任务。
 
 **签名：**
 ```tl
@@ -754,7 +754,7 @@ schedule: function(self: Node, func: function(number): boolean)
 
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
-| func | function | 要被调度的函数，返回true停止运行。 |
+| func | function | 要被调度的主更新函数，返回true停止运行。 |
 
 ## schedule
 
@@ -762,7 +762,7 @@ schedule: function(self: Node, func: function(number): boolean)
 
 **描述：**
 
-&emsp;&emsp;调度执行一个协程任务。
+&emsp;&emsp;调度执行一个主协程任务。重复调用会覆盖被调度的主更新函数或协程任务。
 
 **签名：**
 ```tl
@@ -773,7 +773,7 @@ schedule: function(self: Node, job: Routine.Job)
 
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
-| job | Routine.Job | 要运行的协程，用`return true`或`coroutine.yield(true)`停止运行。 |
+| job | Routine.Job | 要运行的主协程，用`return true`或`coroutine.yield(true)`停止运行。 |
 
 ## unschedule
 
@@ -781,12 +781,50 @@ schedule: function(self: Node, job: Routine.Job)
 
 **描述：**
 
-&emsp;&emsp;停止调度的每帧运行的函数或协程任务。
+&emsp;&emsp;停止调度的每帧运行的主更新函数或协程任务。
 
 **签名：**
 ```tl
 unschedule: function(self: Node)
 ```
+
+## once
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;调度一个函数，该函数会在协程中运行一次。调用该函数会覆盖被调度的主更新函数或协程任务。
+
+**签名：**
+```tl
+once: function(self: Node, func: function())
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| func | function | 要在协程运行一次的函数。 |
+
+## loop
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;调度一个函数，该函数会在协程中循环执行。调用该函数会覆盖被调度的主更新函数或协程任务。
+
+**签名：**
+```tl
+loop: function(self: Node, func: function(): boolean)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| func | function | 要在循环执行的函数，返回true以停止。 |
 
 ## convertToNodeSpace
 
@@ -1513,3 +1551,473 @@ grab: function(self: Node, gridX: number, gridY: number): Grabber
 | 返回类型 | 描述 |
 | --- | --- |
 | Grabber | 返回一个抓取器对象。 |
+
+## onUpdate
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;调度一个函数，该函数会在每一帧运行。可以反复调用以同时调度多个函数。
+
+**签名：**
+```tl
+onUpdate: function(self: Node, func: function(number): boolean)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| func | function | 要在每一帧运行的函数，返回true以停止。 |
+
+## onUpdate
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;调度一个协程，该协程会在每一帧运行。可以反复调用以同时调度多个协程。
+
+**签名：**
+```tl
+onUpdate: function(self: Node, job: Routine.Job)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| job | Routine.Job | 要在每一帧运行的协程。 |
+
+## onActionEnd
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;注册节点执行完一个动作时触发的回调函数。
+
+**签名：**
+```tl
+onActionEnd: function(self: Node, callback: function(action: Action, target: Node))
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| callback | function | 动作执行完时的回调函数。 |
+
+## onTapFilter
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;注册节点点击事件的过滤器回调函数。
+同时会设置节点的`touchEnabled`属性为 true。
+
+**签名：**
+```tl
+onTapFilter: function(self: Node, callback: function(touch: Touch))
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| callback | function | 点击事件的过滤器回调函数。 |
+
+## onTapBegan
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;注册节点检测到点击开始时触发的回调函数。
+同时会设置节点的`touchEnabled`属性为 true。
+
+**签名：**
+```tl
+onTapBegan: function(self: Node, callback: function(touch: Touch))
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| callback | function | 点击事件开始的回调函数。 |
+
+## onTapEnded
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;注册节点点击结束时触发的回调函数。
+同时会设置节点的`touchEnabled`属性为 true。
+
+**签名：**
+```tl
+onTapEnded: function(self: Node, callback: function(touch: Touch))
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| callback | function | 点击事件结束的回调函数。 |
+
+## onTapped
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;注册节点检测到并结束点击时触发的回调函数。
+同时会设置节点的`touchEnabled`属性为 true。
+
+**签名：**
+```tl
+onTapped: function(self: Node, callback: function(touch: Touch))
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| callback | function | 点击事件结束的回调函数。 |
+
+## onTapMoved
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;注册节点点击移动时触发的回调函数。
+同时会设置节点的`touchEnabled`属性为 true。
+
+**签名：**
+```tl
+onTapMoved: function(self: Node, callback: function(touch: Touch))
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| callback | function | 点击事件移动的回调函数。 |
+
+## onMouseWheel
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;注册节点滚动鼠标滚轮时触发的回调函数。
+同时会设置节点的`touchEnabled`属性为 true。
+
+**签名：**
+```tl
+onMouseWheel: function(self: Node, callback: function(delta: Vec2))
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| callback | function | 鼠标滚轮滚动的回调函数。 |
+
+## onGesture
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;注册节点识别到多点手势时触发的回调函数。
+同时会设置节点的`touchEnabled`属性为 true。
+
+**签名：**
+```tl
+onGesture: function(self: Node, callback: function(center: Vec2, numFingers: integer, deltaDist: number, deltaAngle: number))
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| callback | function | 多点手势的回调函数。 |
+
+## onEnter
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;注册节点进入场景树时触发的回调函数。
+
+**签名：**
+```tl
+onEnter: function(self: Node, callback: function())
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| callback | function | 节点进入场景树时的回调函数。 |
+
+## onExit
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;注册节点离开场景树时触发的回调函数。
+
+**签名：**
+```tl
+onExit: function(self: Node, callback: function())
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| callback | function | 节点离开场景树时的回调函数。 |
+
+## onCleanup
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;注册节点清理时触发的回调函数。
+
+**签名：**
+```tl
+onCleanup: function(self: Node, callback: function())
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| callback | function | 节点清理时的回调函数。 |
+
+## onKeyDown
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;注册按下键盘按键时触发的回调函数。
+同时会设置节点的`keyboardEnabled`属性为 true。
+
+**签名：**
+```tl
+onKeyDown: function(self: Node, callback: function(keyName: Keyboard.KeyName))
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| callback | function | 按键按下时的回调函数。 |
+
+## onKeyUp
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;注册释放键盘按键时触发的回调函数。
+同时会设置节点的`keyboardEnabled`属性为 true。
+
+**签名：**
+```tl
+onKeyUp: function(self: Node, callback: function(keyName: Keyboard.KeyName))
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| callback | function | 按键释放时的回调函数。 |
+
+## onKeyPressed
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;注册按键盘按键时触发的回调函数。
+同时会设置节点的`keyboardEnabled`属性为 true。
+
+**签名：**
+```tl
+onKeyPressed: function(self: Node, callback: function(keyName: Keyboard.KeyName))
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| callback | function | 按键按下时的回调函数。 |
+
+## onAttachIME
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;注册打开操作系统输入法 (IME) 时触发的回调函数。
+
+**签名：**
+```tl
+onAttachIME: function(self: Node, callback: function())
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| callback | function | 打开输入法时的回调函数。 |
+
+## onDetachIME
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;注册关闭操作系统输入法 (IME) 时触发的回调函数。
+
+**签名：**
+```tl
+onDetachIME: function(self: Node, callback: function())
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| callback | function | 关闭输入法时的回调函数。 |
+
+## onTextInput
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;注册输入文本时触发的回调函数。
+
+**签名：**
+```tl
+onTextInput: function(self: Node, callback: function(text: string))
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| callback | function | 输入文本时的回调函数。 |
+
+## onTextEditing
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;注册编辑文本时触发的回调函数。
+
+**签名：**
+```tl
+onTextEditing: function(self: Node, callback: function(text: string, startPos: integer))
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| callback | function | 编辑文本时的回调函数。 |
+
+## onButtonDown
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;注册按下游戏手柄按键时触发的回调函数。
+同时会设置节点的`controllerEnabled`属性为 true。
+
+**签名：**
+```tl
+onButtonDown: function(self: Node, callback: function(controllerId: integer, buttonName: Controller.ButtonName))
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| callback | function | 按键按下时的回调函数。 |
+
+## onButtonUp
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;注册释放游戏手柄按键时触发的回调函数。
+同时会设置节点的`controllerEnabled`属性为 true。
+
+**签名：**
+```tl
+onButtonUp: function(self: Node, callback: function(controllerId: integer, buttonName: Controller.ButtonName))
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| callback | function | 按键释放时的回调函数。 |
+
+## onButtonPressed
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;注册按住游戏手柄按键时触发的回调函数。
+同时会设置节点的`controllerEnabled`属性为 true。
+
+**签名：**
+```tl
+onButtonPressed: function(self: Node, callback: function(controllerId: integer, buttonName: Controller.ButtonName))
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| callback | function | 按键按住时的回调函数。 |
+
+## onAxis
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;注册游戏控制器轴发生变化时触发的回调函数。
+同时会设置节点的`controllerEnabled`属性为 true。
+
+**签名：**
+```tl
+onAxis: function(self: Node, callback: function(controllerId: integer, axisName: Controller.AxisName, value: number))
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| callback | function | 控制器轴变化时的回调函数。 |

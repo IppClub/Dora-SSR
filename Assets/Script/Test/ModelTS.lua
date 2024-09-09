@@ -26,12 +26,9 @@ if model then -- 23
     model.recovery = 0.2 -- 25
     model.look = looks[currentLook + 1] -- 26
     model:play(animations[currentAnim + 1], true) -- 27
-    model:slot( -- 28
-        "AnimationEnd", -- 28
-        function(name) -- 28
-            print(name, "end") -- 29
-        end -- 28
-    ) -- 28
+    model:onAnimationEnd(function(name) -- 28
+        print(name, "end") -- 29
+    end) -- 28
 end -- 28
 currentLook = currentLook + 1 -- 33
 currentAnim = currentAnim + 1 -- 34

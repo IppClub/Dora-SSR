@@ -263,6 +263,14 @@ do
 			coroutine_yield(false)
 		end
 	end
+
+	Dora.Node.once = function(self, func)
+		self:schedule(once(func))
+	end
+
+	Dora.Node.loop = function(self, func)
+		self:schedule(loop(func))
+	end
 end
 
 -- async functions
@@ -707,6 +715,85 @@ do
 			return Node_perform(self, action, loop)
 		end
 	end
+
+	local function registerCommonEvent(nodeClass, name)
+		nodeClass["on" .. name] = function(self, callback)
+			self:slot(name, callback)
+		end
+	end
+	registerCommonEvent(Node, "Enter")
+	registerCommonEvent(Node, "Exit")
+	registerCommonEvent(Node, "Cleanup")
+	registerCommonEvent(Node, "ActionEnd")
+
+	local function registerTouchEvent(nodeClass, name)
+		nodeClass["on" .. name] = function(self, callback)
+			self.touchEnabled = true
+			self:slot(name, callback)
+		end
+	end
+	registerTouchEvent(Node, "TapFilter")
+	registerTouchEvent(Node, "TapBegan")
+	registerTouchEvent(Node, "TapEnded")
+	registerTouchEvent(Node, "Tapped")
+	registerTouchEvent(Node, "TapMoved")
+	registerTouchEvent(Node, "MouseWheel")
+	registerTouchEvent(Node, "Gesture")
+
+	local function registerKeyboardEvent(nodeClass, name)
+		nodeClass["on" .. name] = function(self, callback)
+			self.keyboardEnabled = true
+			self:slot(name, callback)
+		end
+	end
+	registerKeyboardEvent(Node, "KeyDown")
+	registerKeyboardEvent(Node, "KeyUp")
+	registerKeyboardEvent(Node, "KeyPressed")
+
+	registerCommonEvent(Node, "AttachIME")
+	registerCommonEvent(Node, "DetachIME")
+	registerCommonEvent(Node, "TextInput")
+	registerCommonEvent(Node, "TextEditing")
+
+	local function registerControllerEvent(nodeClass, name)
+		nodeClass["on" .. name] = function(self, callback)
+			self.controllerEnabled = true
+			self:slot(name, callback)
+		end
+	end
+	registerControllerEvent(Node, "ButtonDown")
+	registerControllerEvent(Node, "ButtonUp")
+	registerControllerEvent(Node, "ButtonPressed")
+	registerControllerEvent(Node, "Axis")
+
+	local function registerGlobalEvent(nodeClass, name)
+		nodeClass["on" .. name] = function(self, callback)
+			self:gslot(name, callback)
+		end
+	end
+	registerGlobalEvent(Node, "AppEvent")
+	registerGlobalEvent(Node, "AppChange")
+	registerGlobalEvent(Node, "AppWS")
+
+	registerCommonEvent(Dora.Particle, "Finished")
+
+	registerCommonEvent(Dora.Playable, "AnimationEnd")
+
+	registerCommonEvent(Dora.Body, "BodyEnter")
+	registerCommonEvent(Dora.Body, "BodyLeave")
+
+	local function registerBodyEvent(nodeClass, name)
+		nodeClass["on" .. name] = function(self, callback)
+			self.receivingContact = true
+			self:slot(name, callback)
+		end
+	end
+	registerBodyEvent(Dora.Body, "ContactStart")
+	registerBodyEvent(Dora.Body, "ContactEnd")
+
+	registerCommonEvent(Dora.AlignNode, "AlignLayout")
+
+	registerCommonEvent(Dora.EffekNode, "EffekEnd")
 
 	for _, actionName in ipairs {
 		"X",

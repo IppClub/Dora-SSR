@@ -9,8 +9,7 @@ end
 sprite.showDebug = true
 sprite.scaleX = 0.5
 sprite.scaleY = 0.5
-sprite.touchEnabled = true
-sprite:slot("TapMoved", function(touch: Touch)
+sprite:onTapMoved(function(touch: Touch)
 	if not touch.first then
 		return
 	end
@@ -112,8 +111,7 @@ threadLoop(function(): boolean
 				sprite.showDebug = true
 				sprite.scaleX = 0.5
 				sprite.scaleY = 0.5
-				sprite.touchEnabled = true
-				sprite:slot("TapMoved", function(touch: Touch)
+				sprite:onTapMoved(function(touch: Touch)
 					if not touch.first then
 						return
 					end

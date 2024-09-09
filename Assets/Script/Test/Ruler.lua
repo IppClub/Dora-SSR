@@ -12,7 +12,7 @@ local _with_0 = CircleButton({ -- 12
 	radius = 60, -- 14
 	fontSize = 40 -- 15
 }) -- 11
-_with_0:slot("Tapped", function() -- 17
+_with_0:onTapped(function() -- 17
 	if _with_0.text == "显示" then -- 18
 		_with_0.text = "隐藏" -- 19
 		return ruler:show(0, 0, 100, 10, function(value) -- 20

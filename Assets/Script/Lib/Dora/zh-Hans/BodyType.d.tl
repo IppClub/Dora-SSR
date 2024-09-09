@@ -88,7 +88,39 @@ local record Body
 	-- 注册一个函数，该函数在物理体与其他物理体发生碰撞时被调用。
 	-- 当注册的函数返回false时，物理体将不会触发本次的碰撞事件。
 	-- @param filter (function) 碰撞过滤器函数。
+	-- 	@param other (Body) 与物理体发生碰撞的其他物理体。
+	-- 	@return (boolean) 是否允许物理体与其他物理体发生碰撞。
 	onContactFilter: function(self: Body, filter: function(other: Body): boolean)
+
+	-- 注册一个函数，当物理体进入传感器时被调用。
+	-- 该函数将设置`receivingContact`属性为true。
+	-- @param callback (function) 物理体进入传感器时的回调函数。
+	-- 	@param other (Body) 进入传感器的物理体。
+	-- 	@param sensorTag (integer) 触发此碰撞的传感器的标签。
+	onBodyEnter: function(self: Body, callback: function(other: Body, sensorTag: integer))
+
+	-- 注册一个函数，当物理体离开传感器时被调用。
+	-- 该函数将设置`receivingContact`属性为true。
+	-- @param callback (function) 物理体离开传感器时的回调函数。
+	-- 	@param other (Body) 离开传感器的物理体。
+	-- 	@param sensorTag (integer) 触发此碰撞的传感器的标签。
+	onBodyLeave: function(self: Body, callback: function(other: Body, sensorTag: integer))
+
+	-- 注册一个函数，当物理体开始与另一个物体发生碰撞时被调用。
+	-- 该函数将设置`receivingContact`属性为true。
+	-- @param callback (function) 物理体开始与另一个物体发生碰撞时的回调函数。
+	-- 	@param other (Body) 物理体开始与之碰撞的另一个物体。
+	-- 	@param point (Vec2) 世界坐标中的碰撞点。
+	-- 	@param normal (Vec2) 世界坐标中的接触表面的法向量。
+	onContactStart: function(self: Body, callback: function(other: Body, point: Vec2, normal: Vec2))
+
+	-- 注册一个函数，当物理体停止与另一个物体发生碰撞时被调用。
+	-- 该函数将设置`receivingContact`属性为true。
+	-- @param callback (function) 物理体停止与另一个物体发生碰撞时的回调函数。
+	-- 	@param other (Body) 物理体不再与之碰撞的另一个物体。
+	-- 	@param point (Vec2) 世界坐标中的碰撞点。
+	-- 	@param normal (Vec2) 世界坐标中的接触表面的法向量。
+	onContactEnd: function(self: Body, callback: function(other: Body, point: Vec2, normal: Vec2))
 end
 
 return Body

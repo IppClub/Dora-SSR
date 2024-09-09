@@ -36,268 +36,264 @@ local ____View_size_0 = View.size -- 33
 local viewWidth = ____View_size_0.width -- 33
 local viewHeight = ____View_size_0.height -- 33
 root:css(((("width: " .. tostring(viewWidth)) .. "; height: ") .. tostring(viewHeight)) .. "; flex-direction: column-reverse") -- 34
-root:gslot( -- 35
-    "AppSizeChanged", -- 35
-    function() -- 35
-        local ____View_size_1 = View.size -- 36
-        local width = ____View_size_1.width -- 36
-        local height = ____View_size_1.height -- 36
-        root:css(((("width: " .. tostring(width)) .. "; height: ") .. tostring(height)) .. "; flex-direction: column-reverse") -- 37
-    end -- 35
-) -- 35
-local width = viewWidth - 200 -- 40
-local height = viewHeight - 20 -- 41
-local scroll = ScrollArea({ -- 42
-    width = width, -- 43
-    height = height, -- 44
-    paddingX = 0, -- 45
-    paddingY = 50, -- 46
-    viewWidth = height, -- 47
-    viewHeight = height -- 48
-}) -- 48
-scroll:addTo(root) -- 50
-local border = LineRect({width = width, height = height, color = 4294967295}) -- 52
-scroll.area:addChild(border) -- 53
-root:slot( -- 54
-    "AlignLayout", -- 54
-    function(w, h) -- 54
-        scroll.position = Vec2(w / 2, h / 2) -- 55
-        w = w - 200 -- 56
-        h = h - 20 -- 57
-        local ____tolua_cast_4 = tolua.cast -- 58
-        local ____opt_2 = scroll.view.children -- 58
-        local label = ____tolua_cast_4(____opt_2 and ____opt_2.first, "Label") -- 58
-        if label ~= nil then -- 58
-            label.textWidth = w - fontSize -- 60
-        end -- 60
-        scroll:adjustSizeWithAlign( -- 62
-            "Auto", -- 62
-            10, -- 62
-            Size(w, h) -- 62
-        ) -- 62
-        scroll.area:removeChild(border) -- 63
-        border = LineRect({width = w, height = h, color = 4294967295}) -- 64
-        scroll.area:addChild(border) -- 65
-    end -- 54
-) -- 54
-local ____opt_5 = Label("sarasa-mono-sc-regular", fontSize) -- 54
-local label = ____opt_5 and ____opt_5:addTo(scroll.view) -- 67
-if label then -- 67
-    label.alignment = "Left" -- 69
-    label.textWidth = width - fontSize -- 70
-    label.text = "" -- 71
-end -- 71
-local control = AlignNode():addTo(root) -- 74
-control:css("height: 140; margin-bottom: 40") -- 75
-local menu = Menu():addTo(control) -- 77
-control:slot( -- 78
-    "AlignLayout", -- 78
-    function(w, h) -- 78
-        menu.position = Vec2(w / 2, h / 2) -- 79
-    end -- 78
-) -- 78
-local commands = setmetatable( -- 82
-    {}, -- 82
-    {__index = function(____, name) return function(____, ...) -- 82
-        local args = {...} -- 82
-        local argStrs = {} -- 84
-        do -- 84
-            local i = 1 -- 85
-            while i <= select("#", args) do -- 85
-                argStrs[#argStrs + 1] = tostring({select(i, args)}) -- 86
-                i = i + 1 -- 85
-            end -- 85
-        end -- 85
-        local msg = (("[command]: " .. name) .. " ") .. table.concat(argStrs, ", ") -- 88
-        coroutine.yield("Command", msg) -- 89
-    end end} -- 83
-) -- 83
-local runner = YarnRunner( -- 93
-    testFile, -- 93
-    "Start", -- 93
-    {}, -- 93
-    commands, -- 93
-    true -- 93
-) -- 93
-local function setButtons(____, options) -- 95
-    menu:removeAllChildren() -- 96
-    local buttons = options or 1 -- 97
-    menu.size = Size(140 * buttons, 140) -- 98
-    do -- 98
-        local i = 1 -- 99
-        while i <= buttons do -- 99
-            local circleButton = CircleButton({ -- 100
-                text = options and tostring(i) or "Next", -- 101
-                radius = 60, -- 102
-                fontSize = 40 -- 103
-            }):addTo(menu) -- 103
-            circleButton:slot( -- 105
-                "Tapped", -- 105
-                function() -- 105
-                    advance(nil, options) -- 106
-                end -- 105
-            ) -- 105
-            i = i + 1 -- 99
-        end -- 99
-    end -- 99
-    menu:alignItems() -- 109
-end -- 95
-advance = function(____, option) -- 112
-    local action, result = runner:advance(option) -- 113
-    if action == "Text" then -- 113
-        local charName = "" -- 115
-        if result.marks ~= nil then -- 115
-            for ____, mark in ipairs(result.marks) do -- 117
-                if mark.name == "char" and mark.attrs ~= nil then -- 117
-                    charName = tostring(mark.attrs.name) .. ": " -- 119
-                end -- 119
-            end -- 119
-        end -- 119
-        texts[#texts + 1] = charName .. result.text -- 123
-        if result.optionsFollowed then -- 123
-            advance(nil) -- 125
-        else -- 125
-            setButtons(nil) -- 127
-        end -- 127
-    elseif action == "Option" then -- 127
-        for i, op in ipairs(result) do -- 130
-            if type(op) ~= "boolean" then -- 130
-                texts[#texts + 1] = (("[" .. tostring(i)) .. "]: ") .. op.text -- 132
-            end -- 132
-        end -- 132
-        setButtons(nil, #result) -- 135
-    elseif action == "Command" then -- 135
-        texts[#texts + 1] = result -- 137
-        setButtons(nil) -- 138
-    else -- 138
-        menu:removeAllChildren() -- 140
-        texts[#texts + 1] = result -- 141
-    end -- 141
-    if not label then -- 141
-        return -- 143
+root:onAppChange(function(settingName) -- 35
+    if settingName == "Size" then -- 35
+        local ____View_size_1 = View.size -- 37
+        local width = ____View_size_1.width -- 37
+        local height = ____View_size_1.height -- 37
+        root:css(((("width: " .. tostring(width)) .. "; height: ") .. tostring(height)) .. "; flex-direction: column-reverse") -- 38
+    end -- 38
+end) -- 35
+local width = viewWidth - 200 -- 42
+local height = viewHeight - 20 -- 43
+local scroll = ScrollArea({ -- 44
+    width = width, -- 45
+    height = height, -- 46
+    paddingX = 0, -- 47
+    paddingY = 50, -- 48
+    viewWidth = height, -- 49
+    viewHeight = height -- 50
+}) -- 50
+scroll:addTo(root) -- 52
+local border = LineRect({width = width, height = height, color = 4294967295}) -- 54
+scroll.area:addChild(border) -- 55
+root:onAlignLayout(function(w, h) -- 56
+    scroll.position = Vec2(w / 2, h / 2) -- 57
+    w = w - 200 -- 58
+    h = h - 20 -- 59
+    local ____tolua_cast_4 = tolua.cast -- 60
+    local ____opt_2 = scroll.view.children -- 60
+    local label = ____tolua_cast_4(____opt_2 and ____opt_2.first, "Label") -- 60
+    if label ~= nil then -- 60
+        label.textWidth = w - fontSize -- 62
+    end -- 62
+    scroll:adjustSizeWithAlign( -- 64
+        "Auto", -- 64
+        10, -- 64
+        Size(w, h) -- 64
+    ) -- 64
+    scroll.area:removeChild(border) -- 65
+    border = LineRect({ -- 66
+        x = 1, -- 66
+        y = 1, -- 66
+        width = w - 2, -- 66
+        height = h - 2, -- 66
+        color = 4294967295 -- 66
+    }) -- 66
+    scroll.area:addChild(border) -- 67
+end) -- 56
+local ____opt_5 = Label("sarasa-mono-sc-regular", fontSize) -- 56
+local label = ____opt_5 and ____opt_5:addTo(scroll.view) -- 69
+if label then -- 69
+    label.alignment = "Left" -- 71
+    label.textWidth = width - fontSize -- 72
+    label.text = "" -- 73
+end -- 73
+local control = AlignNode():addTo(root) -- 76
+control:css("height: 140; margin-bottom: 40") -- 77
+local menu = Menu():addTo(control) -- 79
+control:onAlignLayout(function(w, h) -- 80
+    menu.position = Vec2(w / 2, h / 2) -- 81
+end) -- 80
+local commands = setmetatable( -- 84
+    {}, -- 84
+    {__index = function(____, name) return function(____, ...) -- 84
+        local args = {...} -- 84
+        local argStrs = {} -- 86
+        do -- 86
+            local i = 1 -- 87
+            while i <= select("#", args) do -- 87
+                argStrs[#argStrs + 1] = tostring({select(i, args)}) -- 88
+                i = i + 1 -- 87
+            end -- 87
+        end -- 87
+        local msg = (("[command]: " .. name) .. " ") .. table.concat(argStrs, ", ") -- 90
+        coroutine.yield("Command", msg) -- 91
+    end end} -- 85
+) -- 85
+local runner = YarnRunner( -- 95
+    testFile, -- 95
+    "Start", -- 95
+    {}, -- 95
+    commands, -- 95
+    true -- 95
+) -- 95
+local function setButtons(____, options) -- 97
+    menu:removeAllChildren() -- 98
+    local buttons = options or 1 -- 99
+    menu.size = Size(140 * buttons, 140) -- 100
+    do -- 100
+        local i = 1 -- 101
+        while i <= buttons do -- 101
+            local circleButton = CircleButton({ -- 102
+                text = options and tostring(i) or "Next", -- 103
+                radius = 60, -- 104
+                fontSize = 40 -- 105
+            }):addTo(menu) -- 105
+            circleButton:onTapped(function() -- 107
+                advance(nil, options) -- 108
+            end) -- 107
+            i = i + 1 -- 101
+        end -- 101
+    end -- 101
+    menu:alignItems() -- 111
+end -- 97
+advance = function(____, option) -- 114
+    local action, result = runner:advance(option) -- 115
+    if action == "Text" then -- 115
+        local charName = "" -- 117
+        if result.marks ~= nil then -- 117
+            for ____, mark in ipairs(result.marks) do -- 119
+                if mark.name == "char" and mark.attrs ~= nil then -- 119
+                    charName = tostring(mark.attrs.name) .. ": " -- 121
+                end -- 121
+            end -- 121
+        end -- 121
+        texts[#texts + 1] = charName .. result.text -- 125
+        if result.optionsFollowed then -- 125
+            advance(nil) -- 127
+        else -- 127
+            setButtons(nil) -- 129
+        end -- 129
+    elseif action == "Option" then -- 129
+        for i, op in ipairs(result) do -- 132
+            if type(op) ~= "boolean" then -- 132
+                texts[#texts + 1] = (("[" .. tostring(i)) .. "]: ") .. op.text -- 134
+            end -- 134
+        end -- 134
+        setButtons(nil, #result) -- 137
+    elseif action == "Command" then -- 137
+        texts[#texts + 1] = result -- 139
+        setButtons(nil) -- 140
+    else -- 140
+        menu:removeAllChildren() -- 142
+        texts[#texts + 1] = result -- 143
     end -- 143
-    label.text = table.concat(texts, "\n") -- 144
-    scroll:adjustSizeWithAlign("Auto", 10) -- 145
-    thread(function() -- 146
-        scroll:scrollToPosY(label.y - label.height / 2) -- 147
-    end) -- 146
-end -- 112
-advance(nil) -- 151
-local testFilePaths = {testFile} -- 153
-local testFileNames = {"Test/tutorial.yarn"} -- 154
-for ____, file in ipairs(Content:getAllFiles(Content.writablePath)) do -- 155
-    do -- 155
-        if "yarn" ~= Path:getExt(file) then -- 155
-            goto __continue29 -- 157
-        end -- 157
-        testFilePaths[#testFilePaths + 1] = Path(Content.writablePath, file) -- 159
-        testFileNames[#testFileNames + 1] = Path:getFilename(file) -- 160
-    end -- 160
-    ::__continue29:: -- 160
-end -- 160
-local filteredPaths = testFilePaths -- 163
-local filteredNames = testFileNames -- 164
-local currentFile = 1 -- 166
-local filterBuf = Buffer(20) -- 167
-local windowFlags = { -- 168
-    "NoDecoration", -- 169
-    "NoSavedSettings", -- 170
-    "NoFocusOnAppearing", -- 171
-    "NoNav", -- 172
-    "NoMove" -- 173
-} -- 173
-local inputTextFlags = {"AutoSelectAll"} -- 175
-threadLoop(function() -- 176
-    local ____App_visualSize_7 = App.visualSize -- 177
-    local width = ____App_visualSize_7.width -- 177
-    ImGui.SetNextWindowPos( -- 178
-        Vec2(width - 10, 10), -- 178
-        "Always", -- 178
-        Vec2(1, 0) -- 178
-    ) -- 178
-    ImGui.SetNextWindowSize( -- 179
-        Vec2(230, 0), -- 179
-        "Always" -- 179
-    ) -- 179
-    ImGui.Begin( -- 180
-        "Yarn Tester", -- 180
-        windowFlags, -- 180
-        function() -- 180
-            ImGui.Text(zh and "Yarn 测试工具" or "Yarn Tester") -- 181
-            ImGui.SameLine() -- 182
-            ImGui.TextDisabled("(?)") -- 183
-            if ImGui.IsItemHovered() then -- 183
-                ImGui.BeginTooltip(function() -- 185
-                    ImGui.PushTextWrapPos( -- 186
-                        300, -- 186
-                        function() -- 186
-                            ImGui.Text(zh and "重新加载 Yarn 测试工具，以检测任何新添加的以 '.yarn' 结尾的 Yarn Spinner 文件。" or "Reload Yarn Tester to detect any newly added Yarn Spinner files with a '.yarn' extension.") -- 187
-                        end -- 186
-                    ) -- 186
-                end) -- 185
-            end -- 185
-            ImGui.Separator() -- 191
-            ImGui.InputText("##FilterInput", filterBuf, inputTextFlags) -- 192
-            ImGui.SameLine() -- 193
-            if ImGui.Button(zh and "筛选" or "Filter") then -- 193
-                local filterText = string.lower(filterBuf.text) -- 195
-                local filtered = __TS__ArrayFilter( -- 196
-                    __TS__ArrayMap( -- 196
-                        testFileNames, -- 196
-                        function(____, n, i) return {n, testFilePaths[i + 1]} end -- 196
-                    ), -- 196
-                    function(____, it, i) -- 196
-                        local matched = string.match( -- 197
-                            string.lower(it[1]), -- 197
-                            filterText -- 197
-                        ) -- 197
-                        if matched ~= nil then -- 197
-                            return true -- 199
-                        end -- 199
-                        return false -- 201
-                    end -- 196
-                ) -- 196
-                filteredNames = __TS__ArrayMap( -- 203
-                    filtered, -- 203
-                    function(____, f) return f[1] end -- 203
-                ) -- 203
-                filteredPaths = __TS__ArrayMap( -- 204
-                    filtered, -- 204
-                    function(____, f) return f[2] end -- 204
-                ) -- 204
-                currentFile = 1 -- 205
-                if #filteredPaths > 0 then -- 205
-                    runner = YarnRunner( -- 207
-                        filteredPaths[currentFile], -- 207
-                        "Start", -- 207
-                        {}, -- 207
-                        commands, -- 207
-                        true -- 207
-                    ) -- 207
-                    texts = {} -- 208
-                    advance(nil) -- 209
-                end -- 209
-            end -- 209
-            local changed = false -- 212
-            changed, currentFile = ImGui.Combo(zh and "文件" or "File", currentFile, filteredNames) -- 213
-            if changed then -- 213
-                runner = YarnRunner( -- 215
-                    filteredPaths[currentFile], -- 215
-                    "Start", -- 215
-                    {}, -- 215
-                    commands, -- 215
-                    true -- 215
-                ) -- 215
-                texts = {} -- 216
-                advance(nil) -- 217
-            end -- 217
-            ImGui.Text(zh and "变量" or "Variables") -- 219
-            ImGui.Separator() -- 220
-            for k, v in pairs(runner.state) do -- 221
-                ImGui.Text((k .. ": ") .. tostring(v)) -- 222
-            end -- 222
-        end -- 180
+    if not label then -- 143
+        return -- 145
+    end -- 145
+    label.text = table.concat(texts, "\n") -- 146
+    scroll:adjustSizeWithAlign("Auto", 10) -- 147
+    thread(function() -- 148
+        scroll:scrollToPosY(label.y - label.height / 2) -- 149
+    end) -- 148
+end -- 114
+advance(nil) -- 153
+local testFilePaths = {testFile} -- 155
+local testFileNames = {"Test/tutorial.yarn"} -- 156
+for ____, file in ipairs(Content:getAllFiles(Content.writablePath)) do -- 157
+    do -- 157
+        if "yarn" ~= Path:getExt(file) then -- 157
+            goto __continue30 -- 159
+        end -- 159
+        testFilePaths[#testFilePaths + 1] = Path(Content.writablePath, file) -- 161
+        testFileNames[#testFileNames + 1] = Path:getFilename(file) -- 162
+    end -- 162
+    ::__continue30:: -- 162
+end -- 162
+local filteredPaths = testFilePaths -- 165
+local filteredNames = testFileNames -- 166
+local currentFile = 1 -- 168
+local filterBuf = Buffer(20) -- 169
+local windowFlags = { -- 170
+    "NoDecoration", -- 171
+    "NoSavedSettings", -- 172
+    "NoFocusOnAppearing", -- 173
+    "NoNav", -- 174
+    "NoMove" -- 175
+} -- 175
+local inputTextFlags = {"AutoSelectAll"} -- 177
+threadLoop(function() -- 178
+    local ____App_visualSize_7 = App.visualSize -- 179
+    local width = ____App_visualSize_7.width -- 179
+    ImGui.SetNextWindowPos( -- 180
+        Vec2(width - 10, 10), -- 180
+        "Always", -- 180
+        Vec2(1, 0) -- 180
     ) -- 180
-    return false -- 225
-end) -- 176
-return ____exports -- 176
+    ImGui.SetNextWindowSize( -- 181
+        Vec2(230, 0), -- 181
+        "Always" -- 181
+    ) -- 181
+    ImGui.Begin( -- 182
+        "Yarn Tester", -- 182
+        windowFlags, -- 182
+        function() -- 182
+            ImGui.Text(zh and "Yarn 测试工具" or "Yarn Tester") -- 183
+            ImGui.SameLine() -- 184
+            ImGui.TextDisabled("(?)") -- 185
+            if ImGui.IsItemHovered() then -- 185
+                ImGui.BeginTooltip(function() -- 187
+                    ImGui.PushTextWrapPos( -- 188
+                        300, -- 188
+                        function() -- 188
+                            ImGui.Text(zh and "重新加载 Yarn 测试工具，以检测任何新添加的以 '.yarn' 结尾的 Yarn Spinner 文件。" or "Reload Yarn Tester to detect any newly added Yarn Spinner files with a '.yarn' extension.") -- 189
+                        end -- 188
+                    ) -- 188
+                end) -- 187
+            end -- 187
+            ImGui.Separator() -- 193
+            ImGui.InputText("##FilterInput", filterBuf, inputTextFlags) -- 194
+            ImGui.SameLine() -- 195
+            if ImGui.Button(zh and "筛选" or "Filter") then -- 195
+                local filterText = string.lower(filterBuf.text) -- 197
+                local filtered = __TS__ArrayFilter( -- 198
+                    __TS__ArrayMap( -- 198
+                        testFileNames, -- 198
+                        function(____, n, i) return {n, testFilePaths[i + 1]} end -- 198
+                    ), -- 198
+                    function(____, it, i) -- 198
+                        local matched = string.match( -- 199
+                            string.lower(it[1]), -- 199
+                            filterText -- 199
+                        ) -- 199
+                        if matched ~= nil then -- 199
+                            return true -- 201
+                        end -- 201
+                        return false -- 203
+                    end -- 198
+                ) -- 198
+                filteredNames = __TS__ArrayMap( -- 205
+                    filtered, -- 205
+                    function(____, f) return f[1] end -- 205
+                ) -- 205
+                filteredPaths = __TS__ArrayMap( -- 206
+                    filtered, -- 206
+                    function(____, f) return f[2] end -- 206
+                ) -- 206
+                currentFile = 1 -- 207
+                if #filteredPaths > 0 then -- 207
+                    runner = YarnRunner( -- 209
+                        filteredPaths[currentFile], -- 209
+                        "Start", -- 209
+                        {}, -- 209
+                        commands, -- 209
+                        true -- 209
+                    ) -- 209
+                    texts = {} -- 210
+                    advance(nil) -- 211
+                end -- 211
+            end -- 211
+            local changed = false -- 214
+            changed, currentFile = ImGui.Combo(zh and "文件" or "File", currentFile, filteredNames) -- 215
+            if changed then -- 215
+                runner = YarnRunner( -- 217
+                    filteredPaths[currentFile], -- 217
+                    "Start", -- 217
+                    {}, -- 217
+                    commands, -- 217
+                    true -- 217
+                ) -- 217
+                texts = {} -- 218
+                advance(nil) -- 219
+            end -- 219
+            ImGui.Text(zh and "变量" or "Variables") -- 221
+            ImGui.Separator() -- 222
+            for k, v in pairs(runner.state) do -- 223
+                ImGui.Text((k .. ": ") .. tostring(v)) -- 224
+            end -- 224
+        end -- 182
+    ) -- 182
+    return false -- 227
+end) -- 178
+return ____exports -- 178

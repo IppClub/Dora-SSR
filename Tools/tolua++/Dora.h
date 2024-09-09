@@ -116,6 +116,7 @@ class Application
 	tolua_readonly tolua_property__common uint32_t rand;
 	tolua_readonly tolua_property__common uint32_t maxFPS;
 	tolua_readonly tolua_property__bool bool debugging;
+	tolua_readonly tolua_property__bool bool fullScreen;
 	tolua_property__common string locale;
 	tolua_property__common Color themeColor;
 	tolua_property__common unsigned int seed;
@@ -383,6 +384,8 @@ class Node : public Object
 
 	void schedule(tolua_function_bool func);
 	void unschedule();
+
+	void onUpdate(tolua_function_bool func);
 
 	Vec2 convertToNodeSpace(Vec2 worldPoint);
 	Vec2 convertToNodeSpace(Vec2 worldPoint, float& zInOut);

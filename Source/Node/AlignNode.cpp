@@ -244,7 +244,10 @@ AlignNode::AlignNode(bool isWindowRoot) {
 		float scale = SharedApplication.getDevicePixelRatio();
 		setScaleX(scale);
 		setScaleY(scale);
-		gslot("AppSizeChanged"_slice, [this](Event*) {
+		gslot("AppChange"_slice, [this](Event* e) {
+			std::string settingName;
+			if (!e->get(settingName)) return;
+			if (settingName != "Size"sv) return;
 			setSize(SharedApplication.getVisualSize());
 			float scale = SharedApplication.getDevicePixelRatio();
 			setScaleX(scale);

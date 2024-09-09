@@ -13,7 +13,7 @@ import * as ScrollArea from "UI/Control/Basic/ScrollArea";
 import { AlignMode } from "UI/Control/Basic/ScrollArea";
 import * as LineRect from 'UI/View/Shape/LineRect';
 import * as YarnRunner from "YarnRunner";
-import { AlignNode, App, Buffer, Content, GSlot, Label, Menu, Path, Size, Slot, TextAlign, TypeName, Vec2, View, thread, threadLoop, tolua } from "Dora";
+import { AlignNode, App, Buffer, Content, Label, Menu, Path, Size, TextAlign, TypeName, Vec2, View, thread, threadLoop, tolua } from "Dora";
 import { InputTextFlag, SetCond, WindowFlag } from "ImGui";
 import * as ImGui from 'ImGui';
 
@@ -32,9 +32,11 @@ let texts: string[] = [];
 const root = AlignNode();
 const {width: viewWidth, height: viewHeight} = View.size;
 root.css(`width: ${viewWidth}; height: ${viewHeight}; flex-direction: column-reverse`);
-root.gslot(GSlot.AppSizeChanged, () => {
-	const {width, height} = View.size;
-	root.css(`width: ${width}; height: ${height}; flex-direction: column-reverse`)
+root.onAppChange((settingName) => {
+	if (settingName == "Size") {
+		const {width, height} = View.size;
+		root.css(`width: ${width}; height: ${height}; flex-direction: column-reverse`)
+	}
 });
 
 const width = viewWidth - 200;
@@ -51,7 +53,7 @@ scroll.addTo(root);
 
 let border = LineRect({width, height, color: 0xffffffff});
 scroll.area.addChild(border);
-root.slot(Slot.AlignLayout, (w: number, h: number) => {
+root.onAlignLayout((w: number, h: number) => {
 	scroll.position = Vec2(w / 2, h / 2);
 	w -= 200;
 	h -= 20;
@@ -61,7 +63,7 @@ root.slot(Slot.AlignLayout, (w: number, h: number) => {
 	}
 	scroll.adjustSizeWithAlign(AlignMode.Auto, 10, Size(w, h));
 	scroll.area.removeChild(border);
-	border = LineRect({width: w, height: h, color: 0xffffffff});
+	border = LineRect({x: 1, y: 1, width: w - 2, height: h - 2, color: 0xffffffff});
 	scroll.area.addChild(border);
 });
 const label = Label("sarasa-mono-sc-regular", fontSize)?.addTo(scroll.view);
@@ -75,7 +77,7 @@ const control = AlignNode().addTo(root);
 control.css("height: 140; margin-bottom: 40");
 
 const menu = Menu().addTo(control);
-control.slot(Slot.AlignLayout, (w, h) => {
+control.onAlignLayout((w, h) => {
 	menu.position = Vec2(w / 2, h / 2);
 });
 
@@ -102,7 +104,7 @@ const setButtons = (options?: number) => {
 			radius: 60,
 			fontSize: 40
 		}).addTo(menu);
-		circleButton.slot(Slot.Tapped, () => {
+		circleButton.onTapped(() => {
 			advance(options);
 		});
 	}

@@ -56,15 +56,12 @@ local downloadFlags = { -- 43
 } -- 48
 local buffer = Buffer(256) -- 50
 local node = Node() -- 51
-node:slot( -- 52
-    "Cleanup", -- 52
-    function() -- 52
-        cancelDownload = true -- 53
-        if Content:remove(targetFile) then -- 53
-            print(targetFile .. " is deleted") -- 55
-        end -- 55
-    end -- 52
-) -- 52
+node:onCleanup(function() -- 52
+    cancelDownload = true -- 53
+    if Content:remove(targetFile) then -- 53
+        print(targetFile .. " is deleted") -- 55
+    end -- 55
+end) -- 52
 node:schedule(loop(function() -- 58
     local ____App_visualSize_0 = App.visualSize -- 59
     local width = ____App_visualSize_0.width -- 59

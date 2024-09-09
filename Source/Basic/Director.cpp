@@ -549,7 +549,7 @@ void Director::handleSDLEvent(const SDL_Event& event) {
 		// User-requested quit
 		case SDL_QUIT:
 			_stoped = true;
-			Event::send("AppQuit"_slice);
+			Event::send("AppEvent"_slice, "Quit"s);
 			cleanup();
 			if (Singleton<HttpServer>::isInitialized()) {
 				SharedHttpServer.stop();
@@ -563,29 +563,29 @@ void Director::handleSDLEvent(const SDL_Event& event) {
 			break;
 		// The application is being terminated by the OS.
 		case SDL_APP_TERMINATING:
-			Event::send("AppQuit"_slice);
+			Event::send("AppEvent"_slice, "Quit"s);
 			break;
 		// The application is low on memory, free memory if possible.
 		case SDL_APP_LOWMEMORY:
-			Event::send("AppLowMemory"_slice);
+			Event::send("AppEvent"_slice, "LowMemory"s);
 			break;
 		// The application is about to enter the background.
 		case SDL_APP_WILLENTERBACKGROUND:
 			_paused = true;
-			Event::send("AppWillEnterBackground"_slice);
+			Event::send("AppEvent"_slice, "WillEnterBackground"s);
 			break;
 		case SDL_APP_DIDENTERBACKGROUND:
 			bgfx::reset(0, 0);
-			Event::send("AppDidEnterBackground"_slice);
+			Event::send("AppEvent"_slice, "DidEnterBackground"s);
 			break;
 		case SDL_APP_WILLENTERFOREGROUND:
-			Event::send("AppWillEnterForeground"_slice);
+			Event::send("AppEvent"_slice, "WillEnterForeground"s);
 			break;
 		case SDL_APP_DIDENTERFOREGROUND:
 			_paused = false;
 			SharedView.reset();
-			Event::send("AppDidEnterForeground"_slice);
-			Event::send("AppSizeChanged"_slice);
+			Event::send("AppEvent"_slice, "DidEnterForeground"s);
+			Event::send("AppChange"_slice, "Size"s);
 			break;
 		case SDL_WINDOWEVENT: {
 			switch (event.window.event) {
@@ -598,10 +598,10 @@ void Director::handleSDLEvent(const SDL_Event& event) {
 				case SDL_WINDOWEVENT_RESIZED:
 				case SDL_WINDOWEVENT_SIZE_CHANGED:
 					SharedView.reset();
-					Event::send("AppSizeChanged"_slice);
+					Event::send("AppChange"_slice, "Size"s);
 					break;
 				case SDL_WINDOWEVENT_MOVED:
-					Event::send("AppMoved"_slice);
+					Event::send("AppChange"_slice, "Position"s);
 					break;
 			}
 			break;
@@ -770,7 +770,7 @@ void Director::ProfilerInfo::update(double deltaTime) {
 		elapsedTime = 0.0;
 		frames = 0;
 
-		if (profilerSending && Event::hasListener("AppWSSend"sv)) {
+		if (profilerSending && Event::hasListener("AppWS"sv)) {
 			rapidjson::StringBuffer buf;
 			rapidjson::Writer<rapidjson::StringBuffer> writer(buf);
 			writer.SetMaxDecimalPlaces(2);
@@ -884,7 +884,7 @@ void Director::ProfilerInfo::update(double deltaTime) {
 			}
 			writer.EndObject();
 			writer.EndObject();
-			Event::send("AppWSSend"sv, std::string{buf.GetString(), buf.GetLength()});
+			Event::send("AppWS"sv, "Send"s, std::string{buf.GetString(), buf.GetLength()});
 		}
 	}
 }

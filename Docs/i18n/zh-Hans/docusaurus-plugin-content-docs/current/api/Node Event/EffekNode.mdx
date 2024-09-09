@@ -1,0 +1,38 @@
+import "@site/src/languages/highlight";
+
+# EffekNode的节点事件
+
+**描述：**
+
+&emsp;&emsp;用于连接到 EffekNode 对象的信号槽。
+
+**用法示例：**
+```tl
+-- 可以使用以下形式的代码来注册监听这些事件：
+local effekNode = EffekNode()
+local laserHandle = effekNode:play("Laser.efk", Vec2.zero)
+effekNode:slot("EffekEnd", function(handle: integer)
+	if handle == laserHandle then
+		print("激光特效已结束")
+	end
+end)
+```
+
+## EffekEnd
+
+**类型：** 节点事件。
+
+**描述：**
+
+&emsp;&emsp;当一个 Effekseer 特效结束时触发。
+
+**签名：**
+```tl
+["EffekEnd"]: function(handle: integer)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| handle | integer | 结束的特效的句柄。 |

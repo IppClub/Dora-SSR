@@ -76,8 +76,7 @@ private:
 	bgfx::UniformHandle _sampler;
 	Ref<Pass> _defaultPass;
 	Ref<Pass> _imagePass;
-	Ref<Listener> _themeListener;
-	Ref<Listener> _localeListener;
+	Ref<Listener> _appChangeListener;
 	bgfx::VertexLayout _vertexLayout;
 	std::list<std::any> _inputs;
 	std::vector<uint32_t> _textEditing;

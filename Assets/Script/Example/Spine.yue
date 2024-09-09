@@ -10,14 +10,14 @@ p animations, looks
 spine = with Spine spineStr
 	.look = looks[1]
 	\play animations[1], true
-	\slot "AnimationEnd", (name) -> print "#{name} end!"
-	.touchEnabled = true
-	\slot "TapBegan", (touch) ->
+	\onAnimationEnd (name) -> print "#{name} end!"
+	\onTapBegan (touch) ->
 		:x, :y = touch.location
 		if name := \containsPoint x, y
 			\addChild with Label "sarasa-mono-sc-regular", 30
 				.text = name
 				.color = App.themeColor
+				.position = Vec2 x, y
 				\perform Sequence Spawn(
 					Scale 1, 0, 2, Ease.OutQuad
 					Sequence(
@@ -25,7 +25,6 @@ spine = with Spine spineStr
 						Opacity 0.5, 1, 0
 					)
 				), Event "Stop"
-				.position = Vec2 x, y
 				\slot "Stop", -> \removeFromParent!
 
 -- example codes ends here, some test ui below --

@@ -15,8 +15,7 @@ local scaledSize = size
 
 local node = Node()
 node:addChild(sprite)
-node.touchEnabled = true
-node:slot("Gesture", function(center: Vec2.Type, _numFingers: integer, deltaDist: number, deltaAngle: number)
+node:onGesture(function(center: Vec2.Type, _numFingers: integer, deltaDist: number, deltaAngle: number)
 	sprite.position = center
 	sprite.angle = sprite.angle + deltaAngle
 	scaledSize = scaledSize + (deltaDist * length)

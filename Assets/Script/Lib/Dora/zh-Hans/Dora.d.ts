@@ -608,6 +608,9 @@ interface App {
 	/** 游戏引擎是否运行在调试模式下。 */
 	readonly debugging: boolean;
 
+	/** 游戏引擎是否运行在全屏模式下。 */
+	readonly fullScreen: boolean;
+
 	/** 引擎内置的C++测试的测试名称（用于辅助引擎本身开发）。 */
 	readonly testNames: string[];
 
@@ -2582,7 +2585,7 @@ interface NodeEventHandlerMap {
 
 	/**
 	 * 当物理体对象与传感器对象碰撞时触发。
-	 * 在设置`body.receivingContact = true`之后触发。
+	 * 此事件当物理体附加了传感器时就会触发。
 	 * @param other 当前发生碰撞的物理体对象。
 	 * @param sensorTag 触发此碰撞事件的传感器的标签编号。
 	*/
@@ -2590,7 +2593,7 @@ interface NodeEventHandlerMap {
 
 	/**
 	 * 当物理体对象不再与传感器对象碰撞时触发。
-	 * 在设置`body.receivingContact = true`之后触发。
+	 * 此事件当物理体附加了传感器时就会触发。
 	 * @param other 当前结束碰撞的物理体对象。
 	 * @param sensorTag 触发此碰撞事件的传感器的标签。
 	*/
@@ -2634,72 +2637,26 @@ interface NodeEventHandlerMap {
 }
 
 const enum GlobalEvent {
-	AppQuit = "AppQuit",
-	AppLowMemory = "AppLowMemory",
-	AppWillEnterBackground = "AppWillEnterBackground",
-	AppDidEnterBackground = "AppDidEnterBackground",
-	AppWillEnterForeground = "AppWillEnterForeground",
-	AppDidEnterForeground = "AppDidEnterForeground",
-	AppSizeChanged = "AppSizeChanged",
-	AppFullScreen = "AppFullScreen",
-	AppMoved = "AppMoved",
-	AppTheme = "AppTheme",
-	AppWSOpen = "AppWSOpen",
-	AppWSClose = "AppWSClose",
-	AppWSMessage = "AppWSMessage",
-	AppWSSend = "AppWSSend"
+	AppEvent = "AppEvent",
+	AppChange = "AppChange",
+	AppWS = "AppWS",
 }
 
 export {GlobalEvent as GSlot};
 
+type AppEventType = "Quit" | "LowMemory" | "WillEnterBackground" | "DidEnterBackground" | "WillEnterForeground" | "DidEnterForeground";
+type AppSettingName = "Locale" | "Theme" | "FullScreen" | "Position" | "Size";
+type AppWSEventType = "Open" | "Close" | "Send" | "Receive";
+
 type GlobalEventHandlerMap = {
-	/** 应用即将退出时触发。 */
-	AppQuit(this: void): void;
+	/** 应用接收到各种系统事件时触发。 */
+	AppEvent(this: void, eventType: AppEventType): void;
 
-	/** 应用接收到低内存警告时触发。 */
-	AppLowMemory(this: void): void;
+	/** 应用设置发生变化时触发。 */
+	AppChange(this: void, settingName: AppSettingName): void;
 
-	/** 应用即将进入后台时触发。 */
-	AppWillEnterBackground(this: void): void;
-
-	/** 应用已经进入后台时触发。 */
-	AppDidEnterBackground(this: void): void;
-
-	/** 应用即将进入前台时触发。 */
-	AppWillEnterForeground(this: void): void;
-
-	/** 应用已经进入前台时触发。 */
-	AppDidEnterForeground(this: void): void;
-
-	/** 应用窗口大小发生变化时触发。 */
-	AppSizeChanged(this: void): void;
-
-	/** 应用进入或退出全屏窗口模式时触发。 */
-	AppFullScreen(this: void, fullScreen: boolean): void;
-
-	/** 应用窗口位置发生变化时触发。 */
-	AppMoved(this: void): void;
-
-	/** 应用改变主题颜色时触发。 */
-	AppTheme(this: void, themeColor: Color): void;
-
-	/** 当一个客户端和应用建立 Websocket 连接时触发。 */
-	AppWSOpen(this: void): void;
-
-	/** 当一个客户端和应用断开 Websocket 连接时触发。 */
-	AppWSClose(this: void): void;
-
-	/** 当一个客户端向应用发送 Websocket 文本消息时触发。 */
-	AppWSMessage(this: void, msg: string): void;
-
-	/**
-	 * 用于向所有已建立 Websocket 连接的客户端广播发送文本消息的事件。
-	 * @example
-	 * ```
-	 * emit("AppWSSend", "A message");
-	 * ```
-	 */
-	AppWSSend(this: void, msg: string): void;
+	/** 当一个客户端和应用建立 Websocket 连接并收发消息时触发。 */
+	AppWS(this: void, eventType: AppWSEventType, msg: string): void;
 };
 
 /**
@@ -2890,14 +2847,14 @@ class Node extends Object {
 	getChildByTag(tag: string): Node | null;
 
 	/**
-	 * 安排函数在每一帧运行。
-	 * @param func 要运行的函数，返回true以停止。
+	 * 调度一个主更新函数在每一帧运行。重复调用会覆盖被调度的主更新函数或协程任务。
+	 * @param func 要调用的函数。它应该接受数值的参数，表示自上一帧以来的时间间隔。如果函数返回true，它将不再被调度。
 	 */
 	schedule(func: (this: void, deltaTime: number) => boolean): void;
 
 	/**
-	 * 安排协程开始运行。
-	 * @param job 要运行的协程，用返回true或`coroutine.yield(true)`停止运行。
+	 * 调度执行一个主协程任务。重复调用会覆盖被调度的主更新函数或协程任务。
+	 * @param job 要运行的主协程，用`return true`或`coroutine.yield(true)`停止运行。
 	 */
 	schedule(job: Job): void;
 
@@ -2905,6 +2862,18 @@ class Node extends Object {
 	 * 取消当前节点在调度的函数或协程。
 	 */
 	unschedule(): void;
+
+	/**
+	 * 调度一个函数，该函数会在协程中运行一次。调用该函数会覆盖被调度的主更新函数或协程任务。
+	 * @param func 要在协程运行一次的函数。
+	 */
+	once(func: (this: void) => void): void;
+
+	/**
+	 * 调度一个函数，该函数会在协程中循环执行。调用该函数会覆盖被调度的主更新函数或协程任务。
+	 * @param func 要在循环执行的函数，返回true以停止。
+	 */
+	loop(func: (this: void) => boolean): void;
 
 	/**
 	 * 将世界空间中的坐标点转换为节点空间的坐标。
@@ -3085,8 +3054,8 @@ class Node extends Object {
 	 * 注册内置全局事件：
 	 * ```
 	 * const node = Node()
-	 * node.gslot(GSlot.AppQuit, () => {
-	 * 	print("Application is shuting down!");
+	 * node.gslot(GSlot.AppEvent, (eventType) => {
+	 * 	print("收到应用事件：" + eventType);
 	 * });
 	 * ```
 	 */
@@ -3162,6 +3131,182 @@ class Node extends Object {
 	 * @returns Grabber对象。
 	 */
 	grab(gridX: number, gridY: number): Grabber;
+
+	/**
+	 * 调度一个函数，该函数会在每一帧运行。可以反复调用以同时调度多个函数。
+	 * @param func 要在每一帧运行的函数，返回true以停止。
+	 */
+	onUpdate(func: (this: void, deltaTime: number) => boolean): void;
+
+	/**
+	 * 调度一个协程，该协程会在每一帧运行。可以反复调用以同时调度多个协程。
+	 * @param job 要在每一帧运行的协程。
+	 */
+	onUpdate(job: Job): void;
+
+	/**
+	 * 注册一个回调函数，当动作结束时触发。
+	 * @param callback 要注册的回调函数。
+	 */
+	onActionEnd(callback: (this: void, action: Action, target: Node) => void): void;
+
+	/**
+	 * 注册一个回调函数，当检测到轻触时触发，并可用于过滤掉某些触摸事件。
+	 * 该函数还会设置`node.touchEnabled = true`。
+	 * @param callback 要注册的回调函数。
+	 */
+	onTapFilter(callback: (this: void, touch: Touch) => void): void;
+
+	/**
+	 * 注册一个回调函数，当检测到触摸开始时触发。
+	 * 该函数还会设置`node.touchEnabled = true`。
+	 * @param callback 要注册的回调函数。
+	 */
+	onTapBegan(callback: (this: void, touch: Touch) => void): void;
+
+	/**
+	 * 注册一个回调函数，当检测到触摸事件停止时触发。
+	 * 该函数还会设置`node.touchEnabled = true`。
+	 * @param callback 要注册的回调函数。
+	 */
+	onTapEnded(callback: (this: void, touch: Touch) => void): void;
+
+	/**
+	 * 注册一个回调函数，当检测到触摸事件结束时触发。
+	 * 该函数还会设置`node.touchEnabled = true`。
+	 * @param callback 要注册的回调函数。
+	 */
+	onTapped(callback: (this: void, touch: Touch) => void): void;
+
+	/**
+	 * 注册一个回调函数，当检测到触摸事件移动时触发。
+	 * 该函数还会设置`node.touchEnabled = true`。
+	 * @param callback 要注册的回调函数。
+	 */
+	onTapMoved(callback: (this: void, touch: Touch) => void): void;
+
+	/**
+	 * 注册一个回调函数，当检测到鼠标滚轮滚动时触发。
+	 * 该函数还会设置`node.touchEnabled = true`。
+	 * @param callback 要注册的回调函数。
+	 */
+	onMouseWheel(callback: (this: void, delta: Vec2) => void): void;
+
+	/**
+	 * 注册一个回调函数，当检测到多指手势时触发。
+	 * 该函数还会设置`node.touchEnabled = true`。
+	 * @param callback 要注册的回调函数。
+	 */
+	onGesture(callback: (this: void, center: Vec2, numFingers: number, deltaDist: number, deltaAngle: number) => void): void;
+
+	/**
+	 * 注册一个回调函数，当节点被添加到场景树中时触发。
+	 * @param callback 要注册的回调函数。
+	 */
+	onEnter(callback: (this: void) => void): void;
+
+	/**
+	 * 注册一个回调函数，当节点从场景树中移除时触发。
+	 * @param callback 要注册的回调函数。
+	 */
+	onExit(callback: (this: void) => void): void;
+
+	/**
+	 * 注册一个回调函数，当节点被清理时触发。
+	 * @param callback 要注册的回调函数。
+	 */
+	onCleanup(callback: (this: void) => void): void;
+
+	/**
+	 * 注册一个回调函数，当按下键盘按键时触发。
+	 * 该函数还会设置`node.keyboardEnabled = true`。
+	 * @param callback 要注册的回调函数。
+	 */
+	onKeyDown(callback: (this: void, keyName: KeyName) => void): void;
+
+	/**
+	 * 注册一个回调函数，当释放键盘按键时触发。
+	 * 该函数还会设置`node.keyboardEnabled = true`。
+	 * @param callback 要注册的回调函数。
+	 */
+	onKeyUp(callback: (this: void, keyName: KeyName) => void): void;
+
+	/**
+	 * 注册一个回调函数，当持续按下键盘按键时不断触发。
+	 * 该函数还会设置`node.keyboardEnabled = true`。
+	 * @param callback 要注册的回调函数。
+	 */
+	onKeyPressed(callback: (this: void, keyName: KeyName) => void): void;
+
+	/**
+	 * 注册一个回调函数，当打开输入法编辑器（IME）时触发。
+	 * @param callback 要注册的回调函数。
+	 */
+	onAttachIME(callback: (this: void) => void): void;
+
+	/**
+	 * 注册一个回调函数，当关闭输入法编辑器（IME）时触发。
+	 * @param callback 要注册的回调函数。
+	 */
+	onDetachIME(callback: (this: void) => void): void;
+
+	/**
+	 * 注册一个回调函数，当接收到确认的文本输入时触发。
+	 * @param callback 要注册的回调函数。
+	 */
+	onTextInput(callback: (this: void, text: string) => void): void;
+
+	/**
+	 * 注册一个回调函数，当IME正在编辑文本时触发。
+	 * @param callback 要注册的回调函数。
+	 */
+	onTextEditing(callback: (this: void, text: string, startPos: number) => void): void;
+
+	/**
+	 * 注册一个回调函数，当按下控制器上的按钮时触发。
+	 * 该函数还会设置`node.controllerEnabled = true`。
+	 * @param callback 要注册的回调函数。
+	 */
+	onButtonDown(callback: (this: void, controllerId: number, buttonName: ButtonName) => void): void;
+
+	/**
+	 * 注册一个回调函数，当释放控制器上的按钮时触发。
+	 * 该函数还会设置`node.controllerEnabled = true`。
+	 * @param callback 要注册的回调函数。
+	 */
+	onButtonUp(callback: (this: void, controllerId: number, buttonName: ButtonName) => void): void;
+
+	/**
+	 * 注册一个回调函数，当持续按下控制器上的按钮时不断触发。
+	 * 该函数还会设置`node.controllerEnabled = true`。
+	 * @param callback 要注册的回调函数。
+	 */
+	onButtonPressed(callback: (this: void, controllerId: number, buttonName: ButtonName) => void): void;
+
+	/**
+	 * 注册一个回调函数，当在控制器上移动轴时触发。
+	 * 该函数还会设置`node.controllerEnabled = true`。
+	 * @param callback 要注册的回调函数。
+	 */
+	onAxis(callback: (this: void, controllerId: number, axisName: AxisName, value: number) => void): void;
+
+	/**
+	 * 注册一个回调函数，当应用事件发生时触发。
+	 * @param callback 要注册的回调函数。
+	 */
+	onAppEvent(callback: (this: void, eventType: AppEventType) => void): void;
+
+	/**
+	 * 注册一个回调函数，当应用设置更改时触发。
+	 * @param callback 要注册的回调函数。
+	 */
+	onAppChange(callback: (this: void, settingName: AppSettingName) => void): void;
+
+	/**
+	 * 注册一个回调函数，当应用 Websocket 事件发生时触发。
+	 * @param callback 要注册的回调函数。
+	 */
+	onAppWS(callback: (this: void, eventType: AppWSEventType, msg: string) => void): void;
 }
 
 export {Node as NodeType};
@@ -3803,6 +3948,12 @@ class Playable extends Node {
 	 * @returns 插槽中的节点，如果插槽中没有节点，则返回null。
 	 */
 	getSlot(name: string): Node | null;
+
+	/**
+	 * 注册一个回调函数，当动画播放完成时触发。
+	 * @param callback 要注册的回调函数。
+	 */
+	onAnimationEnd(callback: (this: void, name: string, playable: Playable) => void): void;
 }
 
 export namespace Playable {
@@ -4220,6 +4371,12 @@ class AlignNode extends Node {
 	 * * display：控制是否显示（flex、none）。
 	 */
 	css(style: string): void;
+
+	/**
+	 * 注册布局更新时的回调函数。
+	 * @param callback 布局更新时的回调函数。
+	 */
+	onAlignLayout(callback: (this: void, width: number, height: number) => void): void;
 }
 
 interface AlignNodeClass {
@@ -4261,6 +4418,12 @@ class EffekNode extends Node {
 	 * @param handle 要停止的特效的句柄。
 	 */
 	stop(handle: number): void;
+
+	/**
+	 * 注册一个回调函数，当一个 Effekseer 特效结束时触发。
+	 * @param callback 特效结束时的回调函数。
+	 */
+	onEffekEnd(callback: (this: void, handle: number) => void): void;
 }
 
 /**
@@ -5238,6 +5401,32 @@ class Body extends Node {
 	 * @param filter 碰撞过滤器函数。
 	 */
 	onContactFilter(filter: (this: void, body: Body) => boolean): void;
+
+	/**
+	 * 注册一个函数，当物理体进入感应器时调用。
+	 * @param callback 当物理体进入感应器时调用的回调函数。
+	 */
+	onBodyEnter(callback: (this: void, other: Body, sensorTag: number) => void): void;
+
+	/**
+	 * 注册一个函数，当物理体离开感应器时调用。
+	 * @param callback 当物理体离开感应器时调用的回调函数。
+	 */
+	onBodyLeave(callback: (this: void, other: Body, sensorTag: number) => void): void;
+
+	/**
+	 * 注册一个函数，当物理体开始与另一个物体碰撞时调用。
+	 * 这个函数会将`receivingContact`属性设置为true。
+	 * @param callback 当物理体开始与另一个物体碰撞时调用的回调函数。
+	 */
+	onContactStart(callback: (this: void, other: Body, point: Vec2, normal: Vec2) => void): void;
+
+	/**
+	 * 注册一个函数，当物理体停止与另一个物体碰撞时调用。
+	 * 这个函数会将`receivingContact`属性设置为true。
+	 * @param callback 当物理体停止与另一个物体碰撞时调用的回调函数。
+	 */
+	onContactEnd(callback: (this: void, other: Body, point: Vec2, normal: Vec2) => void): void;
 }
 
 export {Body as BodyType};
@@ -6359,6 +6548,13 @@ class Particle extends Node {
 	 * 停止发射粒子，并等待所有活动粒子结束生命周期。
 	 */
 	stop(): void;
+
+	/**
+	 * 注册粒子系统结束时的回调函数。
+	 * 当粒子系统节点在启动之后又停止发射粒子，并等待所有已发射的粒子结束它们的生命周期时触发。
+	 * @param callback 粒子系统结束时的回调函数。
+	 */
+	onFinished(callback: (this: void) => void): void;
 }
 
 export namespace Particle {
