@@ -21,6 +21,7 @@ extern "C" {
 	fn application_get_rand() -> i64;
 	fn application_get_max_fps() -> i32;
 	fn application_is_debugging() -> i32;
+	fn application_is_full_screen() -> i32;
 	fn application_set_locale(var: i64);
 	fn application_get_locale() -> i64;
 	fn application_set_theme_color(var: i32);
@@ -105,6 +106,10 @@ impl App {
 	/// Gets whether the game engine is running in debug mode.
 	pub fn is_debugging() -> bool {
 		return unsafe { application_is_debugging() != 0 };
+	}
+	/// Gets whether the game engine is running in full screen mode.
+	pub fn is_full_screen() -> bool {
+		return unsafe { application_is_full_screen() != 0 };
 	}
 	/// Sets the system locale string, in format like: `zh-Hans`, `en`.
 	pub fn set_locale(var: &str) {

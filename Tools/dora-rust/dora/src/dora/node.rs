@@ -122,6 +122,7 @@ extern "C" {
 	fn node_set_transform_target_null(slf: i64);
 	fn node_slot(slf: i64, event_name: i64, func: i32, stack: i64);
 	fn node_gslot(slf: i64, event_name: i64, func: i32, stack: i64);
+	fn node_on_update(slf: i64, func: i32, stack: i64);
 	fn node_new() -> i64;
 }
 use crate::dora::IObject;
@@ -542,7 +543,7 @@ pub trait INode: IObject {
 	fn get_child_by_tag(&mut self, tag: &str) -> Option<crate::dora::Node> {
 		unsafe { return crate::dora::Node::from(node_get_child_by_tag(self.raw(), crate::dora::from_string(tag))); }
 	}
-	/// Schedules a function to be called every frame.
+	/// Schedules a main function to run every frame. Call this function again to replace the previous scheduled main function or coroutine.
 	///
 	/// # Arguments
 	///
@@ -556,7 +557,7 @@ pub trait INode: IObject {
 		}));
 		unsafe { node_schedule(self.raw(), func_id, stack_raw); }
 	}
-	/// Unschedules the current node's scheduled function.
+	/// Unschedules the current node's scheduled main function.
 	fn unschedule(&mut self) {
 		unsafe { node_unschedule(self.raw()); }
 	}
@@ -868,6 +869,20 @@ pub trait INode: IObject {
 			func(&mut stack)
 		}));
 		unsafe { node_gslot(self.raw(), crate::dora::from_string(event_name), func_id, stack_raw); }
+	}
+	/// Schedules a function to run every frame. Call this function again to schedule multiple functions.
+	///
+	/// # Arguments
+	///
+	/// * `func` - The function to run every frame. If the function returns `true`, it will not be called again.
+	fn on_update(&mut self, mut func: Box<dyn FnMut(f64) -> bool>) {
+		let mut stack = crate::dora::CallStack::new();
+		let stack_raw = stack.raw();
+		let func_id = crate::dora::push_function(Box::new(move || {
+			let result = func(stack.pop_f64().unwrap());
+			stack.push_bool(result);
+		}));
+		unsafe { node_on_update(self.raw(), func_id, stack_raw); }
 	}
 }
 impl Node {

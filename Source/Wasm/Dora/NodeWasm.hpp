@@ -413,6 +413,18 @@ void node_gslot(int64_t self, int64_t event_name, int32_t func, int64_t stack) {
 		SharedWasmRuntime.invoke(func);
 	});
 }
+void node_on_update(int64_t self, int32_t func, int64_t stack) {
+	std::shared_ptr<void> deref(nullptr, [func](auto) {
+		SharedWasmRuntime.deref(func);
+	});
+	auto args = r_cast<CallStack*>(stack);
+	r_cast<Node*>(self)->onUpdate([func, args, deref](double deltaTime) {
+		args->clear();
+		args->push(deltaTime);
+		SharedWasmRuntime.invoke(func);
+		return std::get<bool>(args->pop());
+	});
+}
 int64_t node_new() {
 	return Object_From(Node::create());
 }
@@ -534,5 +546,6 @@ static void linkNode(wasm3::module3& mod) {
 	mod.link_optional("*", "node_set_transform_target_null", node_set_transform_target_null);
 	mod.link_optional("*", "node_slot", node_slot);
 	mod.link_optional("*", "node_gslot", node_gslot);
+	mod.link_optional("*", "node_on_update", node_on_update);
 	mod.link_optional("*", "node_new", node_new);
 }
