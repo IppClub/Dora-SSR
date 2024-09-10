@@ -323,7 +323,6 @@ pub fn test() {
 		body.set_order(ITEM_LAYER);
 		body.set_group(item_group);
 		body.add_child(&sprite);
-		body.set_receiving_contact(true);
 
 		let mut body_clone = body.clone();
 		let mut entity_clone = entity.clone();
