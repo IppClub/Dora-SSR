@@ -920,6 +920,42 @@ void object_retain(int64_t obj) {
 void object_release(int64_t obj) {
 	r_cast<Object*>(obj)->release();
 }
+int64_t object_to_node(int64_t obj) {
+	if (auto target = d_cast<Node*>(r_cast<Object*>(obj))) {
+		return r_cast<int64_t>(target);
+	}
+	return 0;
+}
+int64_t object_to_camera(int64_t obj) {
+	if (auto target = d_cast<Camera*>(r_cast<Object*>(obj))) {
+		return r_cast<int64_t>(target);
+	}
+	return 0;
+}
+int64_t object_to_playable(int64_t obj) {
+	if (auto target = d_cast<Playable*>(r_cast<Object*>(obj))) {
+		return r_cast<int64_t>(target);
+	}
+	return 0;
+}
+int64_t object_to_physics_world(int64_t obj) {
+	if (auto target = d_cast<PhysicsWorld*>(r_cast<Object*>(obj))) {
+		return r_cast<int64_t>(target);
+	}
+	return 0;
+}
+int64_t object_to_body(int64_t obj) {
+	if (auto target = d_cast<Body*>(r_cast<Object*>(obj))) {
+		return r_cast<int64_t>(target);
+	}
+	return 0;
+}
+int64_t object_to_joint(int64_t obj) {
+	if (auto target = d_cast<Joint*>(r_cast<Object*>(obj))) {
+		return r_cast<int64_t>(target);
+	}
+	return 0;
+}
 
 /* Value */
 
@@ -1512,6 +1548,13 @@ static void linkDoraModule(wasm3::module3& mod) {
 	mod.link_optional("*", "object_get_type", object_get_type);
 	mod.link_optional("*", "object_retain", object_retain);
 	mod.link_optional("*", "object_release", object_release);
+
+	mod.link_optional("*", "object_to_node", object_to_node);
+	mod.link_optional("*", "object_to_camera", object_to_camera);
+	mod.link_optional("*", "object_to_playable", object_to_playable);
+	mod.link_optional("*", "object_to_physics_world", object_to_physics_world);
+	mod.link_optional("*", "object_to_body", object_to_body);
+	mod.link_optional("*", "object_to_joint", object_to_joint);
 
 	mod.link_optional("*", "value_create_i64", value_create_i64);
 	mod.link_optional("*", "value_create_f64", value_create_f64);
