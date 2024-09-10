@@ -961,7 +961,8 @@ macro_rules! dora_object {
 				}
 			}
 			impl $name {
-				pub fn from(raw: i64) -> Option<$name> {
+				#[allow(dead_code)]
+				pub(crate) fn from(raw: i64) -> Option<$name> {
 					match raw {
 						0 => None,
 						_ => Some($name { raw: raw })
@@ -2670,7 +2671,11 @@ impl Node {
 	///
 	/// * `Option<Node>` - The node if the object is a node, None otherwise.
 	pub fn cast(obj: &dyn IObject) -> Option<Node> {
-		Node::from(unsafe { object_to_node(obj.raw()) })
+		let node = Node::from(unsafe { object_to_node(obj.raw()) });
+		if node.is_some() {
+			unsafe { object_retain(obj.raw()); }
+		}
+		node
 	}
 }
 
@@ -2687,7 +2692,11 @@ impl Camera {
 	///
 	/// * `Option<Camera>` - The camera if the object is a camera, None otherwise.
 	pub fn cast(obj: &dyn IObject) -> Option<Camera> {
-		Camera::from(unsafe { object_to_camera(obj.raw()) })
+		let camera = Camera::from(unsafe { object_to_camera(obj.raw()) });
+		if camera.is_some() {
+			unsafe { object_retain(obj.raw()); }
+		}
+		camera
 	}
 }
 
@@ -2704,7 +2713,11 @@ impl Playable {
 	///
 	/// * `Option<Playable>` - The playable if the object is a playable, None otherwise.
 	pub fn cast(obj: &dyn IObject) -> Option<Playable> {
-		Playable::from(unsafe { object_to_playable(obj.raw()) })
+		let playable = Playable::from(unsafe { object_to_playable(obj.raw()) });
+		if playable.is_some() {
+			unsafe { object_retain(obj.raw()); }
+		}
+		playable
 	}
 }
 
@@ -2721,7 +2734,11 @@ impl Body {
 	///
 	/// * `Option<Body>` - The body if the object is a body, None otherwise.
 	pub fn cast(obj: &dyn IObject) -> Option<Body> {
-		Body::from(unsafe { object_to_body(obj.raw()) })
+		let body = Body::from(unsafe { object_to_body(obj.raw()) });
+		if body.is_some() {
+			unsafe { object_retain(obj.raw()); }
+		}
+		body
 	}
 }
 
@@ -2738,7 +2755,11 @@ impl Joint {
 	///
 	/// * `Option<Joint>` - The joint if the object is a joint, None otherwise.
 	pub fn cast(obj: &dyn IObject) -> Option<Joint> {
-		Joint::from(unsafe { object_to_joint(obj.raw()) })
+		let joint = Joint::from(unsafe { object_to_joint(obj.raw()) });
+		if joint.is_some() {
+			unsafe { object_retain(obj.raw()); }
+		}
+		joint
 	}
 }
 
@@ -2755,7 +2776,11 @@ impl PhysicsWorld {
 	///
 	/// * `Option<PhysicsWorld>` - The physics world if the object is a physics world, None otherwise.
 	pub fn cast(obj: &dyn IObject) -> Option<PhysicsWorld> {
-		PhysicsWorld::from(unsafe { object_to_physics_world(obj.raw()) })
+		let physics_world = PhysicsWorld::from(unsafe { object_to_physics_world(obj.raw()) });
+		if physics_world.is_some() {
+			unsafe { object_retain(obj.raw()); }
+		}
+		physics_world
 	}
 }
 
