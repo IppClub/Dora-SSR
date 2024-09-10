@@ -30,10 +30,16 @@ pub fn test() {
 	camera.set_follow_ratio(&Vec2::new(0.02, 0.02));
 	camera.set_zoom(App::get_visual_size().width / DESIGN_WIDTH);
 	let world_clone = world.clone();
-	world.gslot(GSlot::APP_SIZE_CHANGED, Box::new(move |_| {
-		world_clone.get_camera().set_zoom(
-			App::get_visual_size().width / DESIGN_WIDTH
-		);
+	world.gslot(GSlot::APP_CHANGE, Box::new(move |stack| {
+		let setting_name = match stack.pop_str() {
+			Some(setting_name) => setting_name,
+			None => return,
+		};
+		if setting_name == "Size" {
+			world_clone.get_camera().set_zoom(
+				App::get_visual_size().width / DESIGN_WIDTH
+			);
+		}
 	}));
 
 	let mut terrain_def = BodyDef::new();
