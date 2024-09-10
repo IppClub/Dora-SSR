@@ -807,7 +807,7 @@ impl Clone for Object {
 	}
 }
 impl Object {
-	pub fn from(raw: i64) -> Option<Object> {
+	pub(crate) fn from(raw: i64) -> Option<Object> {
 		match raw {
 			0 => None,
 			_ => Some(Object { raw: raw })
@@ -1190,7 +1190,7 @@ impl Slot {
 	/// 		action,
 	/// 		target
 	/// 	) = match (
-	/// 		stack.pop_cast::<Action>,
+	/// 		stack.pop_cast::<Action>(),
 	/// 		stack.pop_cast::<Node>()
 	/// 	) {
 	/// 		(Some(action), Some(target)) => (action, target),
@@ -1319,9 +1319,9 @@ impl Slot {
 	/// # Callback Arguments
 	///
 	/// * center: Vec2 - The center of the gesture.
-	/// * numFingers: i32 - The number of fingers involved in the gesture.
-	/// * deltaDist: f32 - The distance the gesture has moved.
-	/// * deltaAngle: f32 - The angle of the gesture.
+	/// * num_fingers: i32 - The number of fingers involved in the gesture.
+	/// * delta_dist: f32 - The distance the gesture has moved.
+	/// * delta_angle: f32 - The angle of the gesture.
 	///
 	/// # Callback Example
 	///
@@ -1330,16 +1330,16 @@ impl Slot {
 	/// node.slot(Slot::GESTURE, Box::new(|stack| {
 	/// 	let (
 	/// 		center,
-	/// 		numFingers,
-	/// 		deltaDist,
-	/// 		deltaAngle
+	/// 		num_fingers,
+	/// 		delta_dist,
+	/// 		delta_angle
 	/// 	) = match (
 	/// 		stack.pop_vec2(),
 	/// 		stack.pop_i32(),
 	/// 		stack.pop_f32(),
 	/// 		stack.pop_f32()
 	/// 	) {
-	/// 		(Some(center), Some(numFingers), Some(deltaDist), Some(deltaAngle)) => (center, numFingers, deltaDist, deltaAngle),
+	/// 		(Some(center), Some(num_fingers), Some(delta_dist), Some(delta_angle)) => (center, num_fingers, delta_dist, delta_angle),
 	/// 		_ => return,
 	/// 	};
 	/// }));
@@ -1359,18 +1359,18 @@ impl Slot {
 	///
 	/// # Callback Arguments
 	///
-	/// * keyName: String - The name of the key that was pressed.
+	/// * key_name: String - The name of the key that was pressed.
 	///
 	/// # Callback Example
 	///
 	/// ```
 	/// node.set_keyboard_enabled(true);
 	/// node.slot(Slot::KEY_DOWN, Box::new(|stack| {
-	/// 	let keyName = match stack.pop_str() {
-	/// 		Some(keyName) => keyName,
+	/// 	let key_name = match stack.pop_str() {
+	/// 		Some(key_name) => key_name,
 	/// 		None => return,
 	/// 	};
-	/// 	if keyName == KeyName::Space.as_ref() {
+	/// 	if key_name == KeyName::Space.as_ref() {
 	/// 		p!("Space key down!");
 	/// 	}
 	/// }));
@@ -1381,18 +1381,18 @@ impl Slot {
 	///
 	/// # Callback Arguments
 	///
-	/// * keyName: String - The name of the key that was released.
+	/// * key_name: String - The name of the key that was released.
 	///
 	/// # Callback Example
 	///
 	/// ```
 	/// node.set_keyboard_enabled(true);
 	/// node.slot(Slot::KEY_UP, Box::new(|stack| {
-	/// 	let keyName = match stack.pop_str() {
-	/// 		Some(keyName) => keyName,
+	/// 	let key_name = match stack.pop_str() {
+	/// 		Some(key_name) => key_name,
 	/// 		None => return,
 	/// 	};
-	/// 	if keyName == KeyName::Space.as_ref() {
+	/// 	if key_name == KeyName::Space.as_ref() {
 	/// 		p!("Space key up!");
 	/// 	}
 	/// }));
@@ -1403,18 +1403,18 @@ impl Slot {
 	///
 	/// # Callback Arguments
 	///
-	/// * keyName: String - The name of the key that was pressed.
+	/// * key_name: String - The name of the key that was pressed.
 	///
 	/// # Callback Example
 	///
 	/// ```
 	/// node.set_keyboard_enabled(true);
 	/// node.slot(Slot::KEY_PRESSED, Box::new(|stack| {
-	/// 	let keyName = match stack.pop_str() {
-	/// 		Some(keyName) => keyName,
+	/// 	let key_name = match stack.pop_str() {
+	/// 		Some(key_name) => key_name,
 	/// 		None => return,
 	/// 	};
-	/// 	if keyName == KeyName::Space.as_ref() {
+	/// 	if key_name == KeyName::Space.as_ref() {
 	/// 		p!("Space key pressed!");
 	/// 	}
 	/// }));
@@ -1450,7 +1450,7 @@ impl Slot {
 	/// # Callback Arguments
 	///
 	/// * text: String - The text that is being edited.
-	/// * startPos: i32 - The starting position of the text being edited.
+	/// * start_pos: i32 - The starting position of the text being edited.
 	///
 	/// # Callback Example
 	///
@@ -1459,15 +1459,15 @@ impl Slot {
 	/// node.slot(Slot::TEXT_EDITING, Box::new(|stack| {
 	/// 	let (
 	/// 		text,
-	/// 		startPos
+	/// 		start_pos
 	/// 	) = match (
 	/// 		stack.pop_str(),
 	/// 		stack.pop_i32()
 	/// 	) {
-	/// 		(Some(text), Some(startPos)) => (text, startPos),
+	/// 		(Some(text), Some(start_pos)) => (text, start_pos),
 	/// 		_ => return,
 	/// 	};
-	/// 	p!(text, startPos);
+	/// 	p!(text, start_pos);
 	/// }));
 	/// ```
 	pub const TEXT_EDITING: &'static str = "TextEditing";
@@ -1476,8 +1476,8 @@ impl Slot {
 	///
 	/// # Callback Arguments
 	///
-	/// * controllerId: i32 - The controller id, incrementing from 0 when multiple controllers connected.
-	/// * buttonName: String - The name of the button that was pressed.
+	/// * controller_id: i32 - The controller id, incrementing from 0 when multiple controllers connected.
+	/// * button_name: String - The name of the button that was pressed.
 	///
 	/// # Callback Example
 	///
@@ -1485,16 +1485,16 @@ impl Slot {
 	/// node.set_controller_enabled(true);
 	/// node.slot(Slot::BUTTON_DOWN, Box::new(|stack| {
 	/// 	let (
-	/// 		controllerId,
-	/// 		buttonName
+	/// 		controller_id,
+	/// 		button_name
 	/// 	) = match (
 	/// 		stack.pop_i32(),
 	/// 		stack.pop_str()
 	/// 	) {
-	/// 		(Some(controllerId), Some(buttonName)) => (controllerId, buttonName),
+	/// 		(Some(controller_id), Some(button_name)) => (controller_id, button_name),
 	/// 		_ => return,
 	/// 	};
-	/// 	if controllerId == 0 && buttonName == ButtonName::DPUp.as_ref() {
+	/// 	if controller_id == 0 && button_name == ButtonName::DPUp.as_ref() {
 	/// 		p!("DPad up button down!");
 	/// 	}
 	/// }));
@@ -1505,8 +1505,8 @@ impl Slot {
 	///
 	/// # Callback Arguments
 	///
-	/// * controllerId: i32 - The controller id, incrementing from 0 when multiple controllers connected.
-	/// * buttonName: String - The name of the button that was released.
+	/// * controller_id: i32 - The controller id, incrementing from 0 when multiple controllers connected.
+	/// * button_name: String - The name of the button that was released.
 	///
 	/// # Callback Example
 	///
@@ -1514,16 +1514,16 @@ impl Slot {
 	/// node.set_controller_enabled(true);
 	/// node.slot(Slot::BUTTON_UP, Box::new(|stack| {
 	/// 	let (
-	/// 		controllerId,
-	/// 		buttonName
+	/// 		controller_id,
+	/// 		button_name
 	/// 	) = match (
 	/// 		stack.pop_i32(),
 	/// 		stack.pop_str()
 	/// 	) {
-	/// 		(Some(controllerId), Some(buttonName)) => (controllerId, buttonName),
+	/// 		(Some(controller_id), Some(button_name)) => (controller_id, button_name),
 	/// 		_ => return,
 	/// 	};
-	/// 	if controllerId == 0 && buttonName == ButtonName::DPUp.as_ref() {
+	/// 	if controller_id == 0 && button_name == ButtonName::DPUp.as_ref() {
 	/// 		p!("DPad up button up!");
 	/// 	}
 	/// }));
@@ -1535,8 +1535,8 @@ impl Slot {
 	///
 	/// # Callback Arguments
 	///
-	/// * controllerId: i32 - The controller id, incrementing from 0 when multiple controllers connected.
-	/// * buttonName: String - The name of the button that is being pressed.
+	/// * controller_id: i32 - The controller id, incrementing from 0 when multiple controllers connected.
+	/// * button_name: String - The name of the button that is being pressed.
 	///
 	/// # Callback Example
 	///
@@ -1544,16 +1544,16 @@ impl Slot {
 	/// node.set_controller_enabled(true);
 	/// node.slot(Slot::BUTTON_PRESSED, Box::new(|stack| {
 	/// 	let (
-	/// 		controllerId,
-	/// 		buttonName
+	/// 		controller_id,
+	/// 		button_name
 	/// 	) = match (
 	/// 		stack.pop_i32(),
 	/// 		stack.pop_str()
 	/// 	) {
-	/// 		(Some(controllerId), Some(buttonName)) => (controllerId, buttonName),
+	/// 		(Some(controller_id), Some(button_name)) => (controller_id, button_name),
 	/// 		_ => return,
 	/// 	};
-	/// 	if controllerId == 0 && buttonName == ButtonName::DPUp.as_ref() {
+	/// 	if controller_id == 0 && button_name == ButtonName::DPUp.as_ref() {
 	/// 		p!("DPad up button pressed!");
 	/// 	}
 	/// }));
@@ -1565,8 +1565,8 @@ impl Slot {
 	/// # Callback Arguments
 	///
 	/// * controllerId: i32 - The controller id, incrementing from 0 when multiple controllers connected.
-	/// * axisName: String - The name of the axis that changed.
-	/// * axisValue: f32 - The controller axis value ranging from -1.0 to 1.0.
+	/// * axis_name: String - The name of the axis that changed.
+	/// * axis_value: f32 - The controller axis value ranging from -1.0 to 1.0.
 	///
 	/// # Callback Example
 	///
@@ -1574,19 +1574,19 @@ impl Slot {
 	/// node.set_controller_enabled(true);
 	/// node.slot(Slot::AXIS, Box::new(|stack| {
 	/// 	let (
-	/// 		controllerId,
-	/// 		axisName,
-	/// 		axisValue
+	/// 		controller_id,
+	/// 		axis_name,
+	/// 		axis_value
 	/// 	) = match (
 	/// 		stack.pop_i32(),
 	/// 		stack.pop_str(),
 	/// 		stack.pop_f32()
 	/// 	) {
-	/// 		(Some(controllerId), Some(axisName), Some(axisValue)) => (controllerId, axisName, axisValue),
+	/// 		(Some(controller_id), Some(axis_name), Some(axis_value)) => (controller_id, axis_name, axis_value),
 	/// 		_ => return,
 	/// 	};
-	/// 	if controllerId == 0 && axisName == AxisName::LeftX.as_ref() {
-	/// 		p!("Left stick x value {}", axisValue);
+	/// 	if controller_id == 0 && axis_name == AxisName::LeftX.as_ref() {
+	/// 		p!("Left stick x value {}", axis_value);
 	/// 	}
 	/// }));
 	pub const AXIS: &'static str = "Axis";
@@ -1594,7 +1594,7 @@ impl Slot {
 	///
 	/// # Callback Arguments
 	///
-	/// * animationName: String - The name of the animation that ended.
+	/// * animation_name: String - The name of the animation that ended.
 	/// * target: Playable - The Playable instance that the animation was played on.
 	///
 	/// # Callback Example
@@ -1603,16 +1603,16 @@ impl Slot {
 	/// playable.play("Walk", false);
 	/// playable.slot(Slot::ANIMATION_END, Box::new(|stack| {
 	/// 	let (
-	/// 		animationName,
+	/// 		animation_name,
 	/// 		target
 	/// 	) = match (
 	/// 		stack.pop_str(),
 	/// 		stack.pop_cast::<Playable>()
 	/// 	) {
-	/// 		(Some(animationName), Some(target)) => (animationName, target),
+	/// 		(Some(animation_name), Some(target)) => (animation_name, target),
 	/// 		_ => return,
 	/// 	};
-	/// 	if animationName == "Walk" {
+	/// 	if animation_name == "Walk" {
 	/// 		target.play("Idle", true);
 	/// 	}
 	/// }));
@@ -1633,15 +1633,15 @@ impl Slot {
 	/// body.slot(Slot::BODY_ENTER, Box::new(|stack| {
 	/// 	let (
 	/// 		other,
-	/// 		sensorTag
+	/// 		sensor_tag
 	/// 	) = match (
 	/// 		stack.pop_cast::<Body>(),
 	/// 		stack.pop_i32()
 	/// 	) {
-	/// 		(Some(other), Some(sensorTag)) => (other, sensorTag),
+	/// 		(Some(other), Some(sensor_tag)) => (other, sensor_tag),
 	/// 		_ => return,
 	/// 	};
-	/// 	p!(sensorTag);
+	/// 	p!(sensor_tag);
 	/// }));
 	/// ```
 	pub const BODY_ENTER: &'static str = "BodyEnter";
@@ -1651,7 +1651,7 @@ impl Slot {
 	/// # Callback Arguments
 	///
 	/// * other: Body - The other `Body` object that the current `Body` is no longer colliding with.
-	/// * sensorTag: i32 - The tag of the sensor that triggered this collision.
+	/// * sensor_tag: i32 - The tag of the sensor that triggered this collision.
 	///
 	/// # Callback Example
 	///
@@ -1660,15 +1660,15 @@ impl Slot {
 	/// body.slot(Slot::BODY_LEAVE, Box::new(|stack| {
 	/// 	let (
 	/// 		other,
-	/// 		sensorTag
+	/// 		sensor_tag
 	/// 	) = match (
 	/// 		stack.pop_cast::<Body>(),
 	/// 		stack.pop_i32()
 	/// 	) {
-	/// 		(Some(other), Some(sensorTag)) => (other, sensorTag),
+	/// 		(Some(other), Some(sensor_tag)) => (other, sensor_tag),
 	/// 		_ => return,
 	/// 	};
-	/// 	p!(sensorTag);
+	/// 	p!(sensor_tag);
 	/// }));
 	/// ```
 	pub const BODY_LEAVE: &'static str = "BodyLeave";
@@ -1784,17 +1784,17 @@ impl GSlot {
 	///
 	/// # Callback Arguments
 	///
-	/// * eventType: string - The type of the application event. The event type could be "Quit", "LowMemory", "WillEnterBackground", "DidEnterBackground", "WillEnterForeground", "DidEnterForeground".
+	/// * event_type: string - The type of the application event. The event type could be "Quit", "LowMemory", "WillEnterBackground", "DidEnterBackground", "WillEnterForeground", "DidEnterForeground".
 	///
 	/// # Callback Example
 	///
 	/// ```
 	/// node.gslot(GSlot::APP_EVENT, Box::new(|stack| {
-	/// 	let eventType = match stack.pop_str() {
-	/// 		Some(eventType) => eventType,
+	/// 	let event_type = match stack.pop_str() {
+	/// 		Some(event_type) => event_type,
 	/// 		None => return,
 	/// 	};
-	/// 	p!(eventType);
+	/// 	p!(event_type);
 	/// }));
 	/// ```
 	pub const APP_EVENT: &'static str = "AppEvent";
@@ -1802,17 +1802,17 @@ impl GSlot {
 	///
 	/// # Callback Arguments
 	///
-	/// * settingName: string - The name of the setting that changed. Could be "Locale", "Theme", "FullScreen", "Position", "Size".
+	/// * setting_name: string - The name of the setting that changed. Could be "Locale", "Theme", "FullScreen", "Position", "Size".
 	///
 	/// # Callback Example
 	///
 	/// ```
 	/// node.gslot(GSlot::APP_CHANGE, Box::new(|stack| {
-	/// 	let settingName = match stack.pop_str() {
-	/// 		Some(settingName) => settingName,
+	/// 	let setting_name = match stack.pop_str() {
+	/// 		Some(setting_name) => setting_name,
 	/// 		None => return,
 	/// 	};
-	/// 	p!(settingName);
+	/// 	p!(setting_name);
 	/// }));
 	/// ```
 	pub const APP_CHANGE: &'static str = "AppChange";
@@ -1820,7 +1820,7 @@ impl GSlot {
 	///
 	/// # Callback Arguments
 	///
-	/// * eventType: string - The event type of the message received. Could be "Open", "Close", "Send", "Receive".
+	/// * event_type: string - The event type of the message received. Could be "Open", "Close", "Send", "Receive".
 	/// * msg: string - The message received.
 	///
 	/// # Callback Example
@@ -1828,13 +1828,13 @@ impl GSlot {
 	/// ```
 	/// node.gslot(GSlot::APP_WS, Box::new(|stack| {
 	/// 	let (
-	/// 		eventType,
+	/// 		event_type,
 	/// 		msg
 	/// 	) = match (stack.pop_str(), stack.pop_str()) {
-	/// 		(Some(eventType), Some(msg)) => (eventType, msg),
+	/// 		(Some(event_type), Some(msg)) => (event_type, msg),
 	/// 		None => return,
 	/// 	};
-	/// 	p!(eventType, msg);
+	/// 	p!(event_type, msg);
 	/// }));
 	/// ```
 	pub const APP_WS: &'static str = "AppWS";
