@@ -192,6 +192,8 @@ singleton class Application @ App
 	readonly common uint32_t maxFPS @ max_fps;
 	/// whether the game engine is running in debug mode.
 	readonly boolean bool debugging;
+	/// whether the game engine is running in full screen mode.
+	readonly boolean bool fullScreen;
 	/// the system locale string, in format like: `zh-Hans`, `en`.
 	common string locale;
 	/// the theme color for Dora SSR.
@@ -1268,13 +1270,13 @@ interface object class Node
 	///
 	/// * `Option<Node>` - The child node, or `None` if not found.
 	optional Node* getChildByTag(string tag);
-	/// Schedules a function to be called every frame.
+	/// Schedules a main function to run every frame. Call this function again to replace the previous scheduled main function or coroutine.
 	///
 	/// # Arguments
 	///
 	/// * `func` - The function to be called. If the function returns `true`, it will not be called again.
 	void schedule(function<bool(double deltaTime)> func);
-	/// Unschedules the current node's scheduled function.
+	/// Unschedules the current node's scheduled main function.
 	void unschedule();
 	/// Converts a point from world space to node space.
 	///
@@ -1498,6 +1500,12 @@ interface object class Node
 	/// * `event_name` - The name of the global event.
 	/// * `handler` - The handler function to associate with the event.
 	void gslot(string eventName, function<void(Event* e)> func);
+	/// Schedules a function to run every frame. Call this function again to schedule multiple functions.
+	///
+	/// # Arguments
+	///
+	/// * `func` - The function to run every frame. If the function returns `true`, it will not be called again.
+	void onUpdate(function<bool(double deltaTime)> func);
 	/// Creates a new instance of the `Node` struct.
 	static Node* create();
 };
