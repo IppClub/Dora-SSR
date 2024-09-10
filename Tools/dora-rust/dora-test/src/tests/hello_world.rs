@@ -2,15 +2,15 @@ use dora_ssr::*;
 
 pub fn test() {
 	let mut node = Node::new();
-	node.slot(Slot::ENTER, Box::new(|_| {
+	Slot::on_enter(&mut node, || {
 		p!("on enter event");
-	}));
-	node.slot(Slot::EXIT, Box::new(|_| {
+	});
+	Slot::on_exit(&mut node, || {
 		p!("on exit event");
-	}));
-	node.slot(Slot::CLEANUP, Box::new(|_| {
+	});
+	Slot::on_cleanup(&mut node, || {
 		p!("on node destoyed event");
-	}));
+	});
 	node.schedule(once(move |mut co| async move {
 		for i in (1..=5).rev() {
 			p!("{}", i);

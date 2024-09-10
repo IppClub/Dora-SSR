@@ -39,16 +39,15 @@ pub fn test() {
 		ActionDef::prop(1.0, 0.0, 360.0, Property::Angle, EaseType::Linear),
 		ActionDef::scale(1.0, 1.0, 4.0, EaseType::Linear)
 	]), false);
-	node.set_touch_enabled(true);
 	let paint_clone = paint.clone();
-	node.slot(Slot::TAP_BEGAN, Box::new(move |_| {
+	Slot::on_tap_began(&mut node, move |_| {
 		*paint_clone.borrow_mut() = dark.clone();
-	}));
+	});
 	let paint_clone = paint.clone();
-	node.slot(Slot::TAP_ENDED, Box::new(move |_| {
+	Slot::on_tap_ended(&mut node, move |_| {
 		*paint_clone.borrow_mut() = light.clone();
-	}));
-	node.slot(Slot::TAPPED, Box::new(move |_| {
+	});
+	Slot::on_tapped(&mut node, move |_| {
 		p!("Clicked!");
-	}));
+	});
 }

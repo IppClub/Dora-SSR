@@ -238,6 +238,13 @@ extern "C" {
 	fn object_retain(obj: i64);
 	fn object_release(obj: i64);
 
+	fn object_to_node(obj: i64) -> i64;
+	fn object_to_camera(obj: i64) -> i64;
+	fn object_to_playable(obj: i64) -> i64;
+	fn object_to_physics_world(obj: i64) -> i64;
+	fn object_to_body(obj: i64) -> i64;
+	fn object_to_joint(obj: i64) -> i64;
+
 	fn str_new(len: i32) -> i64;
 	fn str_len(str: i64) -> i32;
 	fn str_read(dest: *mut c_void, src: i64);
@@ -744,7 +751,10 @@ impl Vector {
 }
 
 fn get_object(raw: i64) -> Option<Box<dyn IObject>> {
-	unsafe { OBJECT_MAP[object_get_type(raw) as usize](raw) }
+	unsafe {
+		object_retain(raw);
+		OBJECT_MAP[object_get_type(raw) as usize](raw)
+	}
 }
 
 fn push_function(func: Box<dyn FnMut()>) -> i32 {
@@ -816,7 +826,7 @@ impl Object {
 }
 
 pub fn cast<T: Clone + 'static>(obj: &dyn IObject) -> Option<T> {
-	Some(obj.as_any().downcast_ref::<T>()?.clone())
+	Some(get_object(obj.raw())?.as_any().downcast_ref::<T>()?.clone())
 }
 
 /// An argument stack for passing values to a function.
@@ -1027,6 +1037,54 @@ impl Value {
 			} else { None }
 		}
 	}
+	pub fn into_node(&self) -> Option<Node> {
+		unsafe {
+			if value_is_object(self.raw) != 0 {
+				let raw = value_into_object(self.raw);
+				Node::from(object_to_node(raw))
+			} else { None }
+		}
+	}
+	pub fn into_camera(&self) -> Option<Camera> {
+		unsafe {
+			if value_is_object(self.raw) != 0 {
+				let raw = value_into_object(self.raw);
+				Camera::from(object_to_camera(raw))
+			} else { None }
+		}
+	}
+	pub fn into_playable(&self) -> Option<Playable> {
+		unsafe {
+			if value_is_object(self.raw) != 0 {
+				let raw = value_into_object(self.raw);
+				Playable::from(object_to_playable(raw))
+			} else { None }
+		}
+	}
+	pub fn into_physics_world(&self) -> Option<PhysicsWorld> {
+		unsafe {
+			if value_is_object(self.raw) != 0 {
+				let raw = value_into_object(self.raw);
+				PhysicsWorld::from(object_to_physics_world(raw))
+			} else { None }
+		}
+	}
+	pub fn into_body(&self) -> Option<Body> {
+		unsafe {
+			if value_is_object(self.raw) != 0 {
+				let raw = value_into_object(self.raw);
+				Body::from(object_to_body(raw))
+			} else { None }
+		}
+	}
+	pub fn into_joint(&self) -> Option<Joint> {
+		unsafe {
+			if value_is_object(self.raw) != 0 {
+				let raw = value_into_object(self.raw);
+				Joint::from(object_to_joint(raw))
+			} else { None }
+		}
+	}
 	pub fn into_vec2(&self) -> Option<Vec2> {
 		unsafe {
 			if value_is_vec2(self.raw) != 0 {
@@ -1136,6 +1194,54 @@ impl CallStack {
 			} else { None }
 		}
 	}
+	pub fn pop_node(&mut self) -> Option<Node> {
+		unsafe {
+			if call_stack_front_object(self.raw) != 0 {
+				let raw = call_stack_pop_object(self.raw);
+				Node::from(object_to_node(raw))
+			} else { None }
+		}
+	}
+	pub fn pop_camera(&mut self) -> Option<Camera> {
+		unsafe {
+			if call_stack_front_object(self.raw) != 0 {
+				let raw = call_stack_pop_object(self.raw);
+				Camera::from(object_to_camera(raw))
+			} else { None }
+		}
+	}
+	pub fn pop_playable(&mut self) -> Option<Playable> {
+		unsafe {
+			if call_stack_front_object(self.raw) != 0 {
+				let raw = call_stack_pop_object(self.raw);
+				Playable::from(object_to_playable(raw))
+			} else { None }
+		}
+	}
+	pub fn pop_physics_world(&mut self) -> Option<PhysicsWorld> {
+		unsafe {
+			if call_stack_front_object(self.raw) != 0 {
+				let raw = call_stack_pop_object(self.raw);
+				PhysicsWorld::from(object_to_physics_world(raw))
+			} else { None }
+		}
+	}
+	pub fn pop_body(&mut self) -> Option<Body> {
+		unsafe {
+			if call_stack_front_object(self.raw) != 0 {
+				let raw = call_stack_pop_object(self.raw);
+				Body::from(object_to_body(raw))
+			} else { None }
+		}
+	}
+	pub fn pop_joint(&mut self) -> Option<Joint> {
+		unsafe {
+			if call_stack_front_object(self.raw) != 0 {
+				let raw = call_stack_pop_object(self.raw);
+				Joint::from(object_to_joint(raw))
+			} else { None }
+		}
+	}
 	pub fn pop_cast<T: Clone + 'static>(&mut self) -> Option<T> {
 		unsafe {
 			if call_stack_front_object(self.raw) != 0 {
@@ -1188,12 +1294,12 @@ impl Slot {
 	/// node.slot(Slot::ACTION_END, Box::new(|stack| {
 	/// 	let (
 	/// 		action,
-	/// 		target
+	/// 		node
 	/// 	) = match (
 	/// 		stack.pop_cast::<Action>(),
-	/// 		stack.pop_cast::<Node>()
+	/// 		stack.pop_node()
 	/// 	) {
-	/// 		(Some(action), Some(target)) => (action, target),
+	/// 		(Some(action), Some(node)) => (action, node),
 	/// 		_ => return,
 	/// 	};
 	/// }));
@@ -1604,22 +1710,22 @@ impl Slot {
 	/// playable.slot(Slot::ANIMATION_END, Box::new(|stack| {
 	/// 	let (
 	/// 		animation_name,
-	/// 		target
+	/// 		playable
 	/// 	) = match (
 	/// 		stack.pop_str(),
-	/// 		stack.pop_cast::<Playable>()
+	/// 		stack.pop_playable()
 	/// 	) {
-	/// 		(Some(animation_name), Some(target)) => (animation_name, target),
+	/// 		(Some(animation_name), Some(playable)) => (animation_name, playable),
 	/// 		_ => return,
 	/// 	};
 	/// 	if animation_name == "Walk" {
-	/// 		target.play("Idle", true);
+	/// 		playable.play("Idle", true);
 	/// 	}
 	/// }));
 	/// ```
 	pub const ANIMATION_END: &'static str = "AnimationEnd";
 	/// Triggers when a Body object collides with a sensor object.
-	/// Triggers after setting `body.set_receiving_contact(true)`.
+	/// Triggers when `Body` was attached with sensors.
 	///
 	/// # Callback Arguments
 	///
@@ -1629,13 +1735,12 @@ impl Slot {
 	/// # Callback Example
 	///
 	/// ```
-	/// body.set_receiving_contact(true);
 	/// body.slot(Slot::BODY_ENTER, Box::new(|stack| {
 	/// 	let (
 	/// 		other,
 	/// 		sensor_tag
 	/// 	) = match (
-	/// 		stack.pop_cast::<Body>(),
+	/// 		stack.pop_body(),
 	/// 		stack.pop_i32()
 	/// 	) {
 	/// 		(Some(other), Some(sensor_tag)) => (other, sensor_tag),
@@ -1646,7 +1751,7 @@ impl Slot {
 	/// ```
 	pub const BODY_ENTER: &'static str = "BodyEnter";
 	/// Triggers when a `Body` object is no longer colliding with a sensor object.
-	/// Triggers after setting `body.set_receiving_contact(true)`.
+	/// Triggers when `Body` was attached with sensors.
 	///
 	/// # Callback Arguments
 	///
@@ -1656,13 +1761,12 @@ impl Slot {
 	/// # Callback Example
 	///
 	/// ```
-	/// body.set_receiving_contact(true);
 	/// body.slot(Slot::BODY_LEAVE, Box::new(|stack| {
 	/// 	let (
 	/// 		other,
 	/// 		sensor_tag
 	/// 	) = match (
-	/// 		stack.pop_cast::<Body>(),
+	/// 		stack.pop_body(),
 	/// 		stack.pop_i32()
 	/// 	) {
 	/// 		(Some(other), Some(sensor_tag)) => (other, sensor_tag),
@@ -1691,7 +1795,7 @@ impl Slot {
 	/// 		point,
 	/// 		normal
 	/// 	) = match (
-	/// 		stack.pop_cast::<Body>(),
+	/// 		stack.pop_body(),
 	/// 		stack.pop_vec2(),
 	/// 		stack.pop_vec2()
 	/// 	) {
@@ -1720,7 +1824,7 @@ impl Slot {
 	/// 		point,
 	/// 		normal
 	/// 	) = match (
-	/// 		stack.pop_cast::<Body>(),
+	/// 		stack.pop_body(),
 	/// 		stack.pop_vec2(),
 	/// 		stack.pop_vec2()
 	/// 	) {
@@ -1775,6 +1879,373 @@ impl Slot {
 	/// }));
 	/// ```
 	pub const EFFEK_END: &'static str = "EffekEnd";
+
+	pub fn on_action_end<F>(node: &mut dyn INode, mut callback: F) where F: FnMut(/*action*/ Action, /*node*/ Node) + 'static {
+		node.slot(Slot::ACTION_END, Box::new(move |stack| {
+			let (
+				action,
+				node
+			) = match (
+				stack.pop_cast::<Action>(),
+				stack.pop_node()
+			) {
+				(Some(action), Some(node)) => (action, node),
+				_ => return,
+			};
+			callback(action, node);
+		}));
+	}
+	pub fn on_tap_filter<F>(node: &mut dyn INode, mut callback: F) where F: FnMut(/*touch*/ Touch) + 'static {
+		node.set_touch_enabled(true);
+		node.slot(Slot::TAP_FILTER, Box::new(move |stack| {
+			let touch = match stack.pop_cast::<Touch>() {
+				Some(touch) => touch,
+				None => return,
+			};
+			callback(touch);
+		}));
+	}
+	pub fn on_tap_began<F>(node: &mut dyn INode, mut callback: F) where F: FnMut(/*touch*/ Touch) + 'static {
+		node.set_touch_enabled(true);
+		node.slot(Slot::TAP_BEGAN, Box::new(move |stack| {
+			let touch = match stack.pop_cast::<Touch>() {
+				Some(touch) => touch,
+				None => return,
+			};
+			callback(touch);
+		}));
+	}
+	pub fn on_tap_ended<F>(node: &mut dyn INode, mut callback: F) where F: FnMut(/*touch*/ Touch) + 'static {
+		node.set_touch_enabled(true);
+		node.slot(Slot::TAP_ENDED, Box::new(move |stack| {
+			let touch = match stack.pop_cast::<Touch>() {
+				Some(touch) => touch,
+				None => return,
+			};
+			callback(touch);
+		}));
+	}
+	pub fn on_tapped<F>(node: &mut dyn INode, mut callback: F) where F: FnMut(/*touch*/ Touch) + 'static {
+		node.set_touch_enabled(true);
+		node.slot(Slot::TAPPED, Box::new(move |stack| {
+			let touch = match stack.pop_cast::<Touch>() {
+				Some(touch) => touch,
+				None => return,
+			};
+			callback(touch);
+		}));
+	}
+	pub fn on_tap_moved<F>(node: &mut dyn INode, mut callback: F) where F: FnMut(/*touch*/ Touch) + 'static {
+		node.set_touch_enabled(true);
+		node.slot(Slot::TAP_MOVED, Box::new(move |stack| {
+			let touch = match stack.pop_cast::<Touch>() {
+				Some(touch) => touch,
+				None => return,
+			};
+			callback(touch);
+		}));
+	}
+	pub fn on_mouse_wheel<F>(node: &mut dyn INode, mut callback: F) where F: FnMut(/*delta*/ Vec2) + 'static {
+		node.set_touch_enabled(true);
+		node.slot(Slot::MOUSE_WHEEL, Box::new(move |stack| {
+			let delta = match stack.pop_vec2() {
+				Some(delta) => delta,
+				None => return,
+			};
+			callback(delta);
+		}));
+	}
+	pub fn on_gesture<F>(node: &mut dyn INode, mut callback: F) where F: FnMut(/*center*/ Vec2, /*num_fingers*/ i32, /*delta_dist*/ f32, /*delta_angle*/ f32) + 'static {
+		node.set_touch_enabled(true);
+		node.slot(Slot::GESTURE, Box::new(move |stack| {
+			let (
+				center,
+				num_fingers,
+				delta_dist,
+				delta_angle
+			) = match (
+				stack.pop_vec2(),
+				stack.pop_i32(),
+				stack.pop_f32(),
+				stack.pop_f32()
+			) {
+				(Some(center), Some(num_fingers), Some(delta_dist), Some(delta_angle)) => (center, num_fingers, delta_dist, delta_angle),
+				_ => return,
+			};
+			callback(center, num_fingers, delta_dist, delta_angle);
+		}));
+	}
+	pub fn on_enter<F>(node: &mut dyn INode, mut callback: F) where F: FnMut() + 'static {
+		node.slot(Slot::ENTER, Box::new(move |_| {
+			callback();
+		}));
+	}
+	pub fn on_exit<F>(node: &mut dyn INode, mut callback: F) where F: FnMut() + 'static {
+		node.slot(Slot::EXIT, Box::new(move |_| {
+			callback();
+		}));
+	}
+	pub fn on_cleanup<F>(node: &mut dyn INode, mut callback: F) where F: FnMut() + 'static {
+		node.slot(Slot::CLEANUP, Box::new(move |_| {
+			callback();
+		}));
+	}
+	pub fn on_key_down<F>(node: &mut dyn INode, key: KeyName, mut callback: F) where F: FnMut() + 'static {
+		node.set_keyboard_enabled(true);
+		node.slot(Slot::KEY_DOWN, Box::new(move |stack| {
+			let key_name = match stack.pop_str() {
+				Some(key_name) => key_name,
+				None => return,
+			};
+			if key.as_ref() == key_name {
+				callback();
+			}
+		}));
+	}
+	pub fn on_key_up<F>(node: &mut dyn INode, key: KeyName, mut callback: F) where F: FnMut() + 'static {
+		node.set_keyboard_enabled(true);
+		node.slot(Slot::KEY_UP, Box::new(move |stack| {
+			let key_name = match stack.pop_str() {
+				Some(key_name) => key_name,
+				None => return,
+			};
+			if key.as_ref() == key_name {
+				callback();
+			}
+		}));
+	}
+	pub fn on_key_pressed<F>(node: &mut dyn INode, key: KeyName, mut callback: F) where F: FnMut() + 'static {
+		node.set_keyboard_enabled(true);
+		node.slot(Slot::KEY_PRESSED, Box::new(move |stack| {
+			let key_name = match stack.pop_str() {
+				Some(key_name) => key_name,
+				None => return,
+			};
+			if key.as_ref() == key_name {
+				callback();
+			}
+		}));
+	}
+	pub fn on_attach_ime<F>(node: &mut dyn INode, mut callback: F) where F: FnMut() + 'static {
+		node.slot(Slot::ATTACH_IME, Box::new(move |_| {
+			callback();
+		}));
+	}
+	pub fn on_detach_ime<F>(node: &mut dyn INode, mut callback: F) where F: FnMut() + 'static {
+		node.slot(Slot::DETACH_IME, Box::new(move |_| {
+			callback();
+		}));
+	}
+	pub fn on_text_input<F>(node: &mut dyn INode, mut callback: F) where F: FnMut(/*text*/ String) + 'static {
+		node.attach_ime();
+		node.slot(Slot::TEXT_INPUT, Box::new(move |stack| {
+			let text = match stack.pop_str() {
+				Some(text) => text,
+				None => return,
+			};
+			callback(text);
+		}));
+	}
+	pub fn on_text_editing<F>(node: &mut dyn INode, mut callback: F) where F: FnMut(/*text*/ String, /*start_pos*/ i32) + 'static {
+		node.attach_ime();
+		node.slot(Slot::TEXT_EDITING, Box::new(move |stack| {
+			let (
+				text,
+				start_pos
+			) = match (
+				stack.pop_str(),
+				stack.pop_i32()
+			) {
+				(Some(text), Some(start_pos)) => (text, start_pos),
+				_ => return,
+			};
+			callback(text, start_pos);
+		}));
+	}
+	pub fn on_button_down<F>(node: &mut dyn INode, button: ButtonName, mut callback: F) where F: FnMut(/*controller_id*/ i32) + 'static {
+		node.set_controller_enabled(true);
+		node.slot(Slot::BUTTON_DOWN, Box::new(move |stack| {
+			let (
+				controller_id,
+				button_name
+			) = match (
+				stack.pop_i32(),
+				stack.pop_str()
+			) {
+				(Some(controller_id), Some(button_name)) => (controller_id, button_name),
+				_ => return,
+			};
+			if button.as_ref() == button_name {
+				callback(controller_id);
+			}
+		}));
+	}
+	pub fn on_button_up<F>(node: &mut dyn INode, button: ButtonName, mut callback: F) where F: FnMut(/*controller_id*/ i32) + 'static {
+		node.set_controller_enabled(true);
+		node.slot(Slot::BUTTON_UP, Box::new(move |stack| {
+			let (
+				controller_id,
+				button_name
+			) = match (
+				stack.pop_i32(),
+				stack.pop_str()
+			) {
+				(Some(controller_id), Some(button_name)) => (controller_id, button_name),
+				_ => return,
+			};
+			if button.as_ref() == button_name {
+				callback(controller_id);
+			}
+		}));
+	}
+	pub fn on_button_pressed<F>(node: &mut dyn INode, button: ButtonName, mut callback: F) where F: FnMut(/*controller_id*/ i32) + 'static {
+		node.set_controller_enabled(true);
+		node.slot(Slot::BUTTON_PRESSED, Box::new(move |stack| {
+			let (
+				controller_id,
+				button_name
+			) = match (
+				stack.pop_i32(),
+				stack.pop_str()
+			) {
+				(Some(controller_id), Some(button_name)) => (controller_id, button_name),
+				_ => return,
+			};
+			if button.as_ref() == button_name {
+				callback(controller_id);
+			}
+		}));
+	}
+	pub fn on_axis<F>(node: &mut dyn INode, axis: AxisName, mut callback: F) where F: FnMut(/*controller_id*/ i32, /*axis_value*/ f32) + 'static {
+		node.set_controller_enabled(true);
+		node.slot(Slot::AXIS, Box::new(move |stack| {
+			let (
+				controller_id,
+				axis_name,
+				axis_value
+			) = match (
+				stack.pop_i32(),
+				stack.pop_str(),
+				stack.pop_f32()
+			) {
+				(Some(controller_id), Some(axis_name), Some(axis_value)) => (controller_id, axis_name, axis_value),
+				_ => return,
+			};
+			if axis.as_ref() == axis_name {
+				callback(controller_id, axis_value);
+			}
+		}));
+	}
+	pub fn on_animation_end<F>(node: &mut dyn IPlayable, mut callback: F) where F: FnMut(/*animation_name*/ String, /*target*/ Playable) + 'static {
+		node.slot(Slot::ANIMATION_END, Box::new(move |stack| {
+			let (
+				animation_name,
+				playable
+			) = match (
+				stack.pop_str(),
+				stack.pop_playable()
+			) {
+				(Some(animation_name), Some(playable)) => (animation_name, playable),
+				_ => return,
+			};
+			callback(animation_name, playable);
+		}));
+	}
+	pub fn on_body_enter<F>(node: &mut dyn IBody, mut callback: F) where F: FnMut(/*other*/ Body, /*sensor_tag*/ i32) + 'static {
+		node.slot(Slot::BODY_ENTER, Box::new(move |stack| {
+			let (
+				other,
+				sensor_tag
+			) = match (
+				stack.pop_body(),
+				stack.pop_i32()
+			) {
+				(Some(other), Some(sensor_tag)) => (other, sensor_tag),
+				_ => return,
+			};
+			callback(other, sensor_tag);
+		}));
+	}
+	pub fn on_body_leave<F>(node: &mut dyn IBody, mut callback: F) where F: FnMut(/*other*/ Body, /*sensor_tag*/ i32) + 'static {
+		node.slot(Slot::BODY_LEAVE, Box::new(move |stack| {
+			let (
+				other,
+				sensor_tag
+			) = match (
+				stack.pop_body(),
+				stack.pop_i32()
+			) {
+				(Some(other), Some(sensor_tag)) => (other, sensor_tag),
+				_ => return,
+			};
+			callback(other, sensor_tag);
+		}));
+	}
+	pub fn on_contact_start<F>(node: &mut dyn IBody, mut callback: F) where F: FnMut(/*other*/ Body, /*point*/ Vec2, /*normal*/ Vec2) + 'static {
+		node.set_receiving_contact(true);
+		node.slot(Slot::CONTACT_START, Box::new(move |stack| {
+			let (
+				other,
+				point,
+				normal
+			) = match (
+				stack.pop_body(),
+				stack.pop_vec2(),
+				stack.pop_vec2()
+			) {
+				(Some(other), Some(point), Some(normal)) => (other, point, normal),
+				_ => return,
+			};
+			callback(other, point, normal);
+		}));
+	}
+	pub fn on_contact_end<F>(node: &mut dyn IBody, mut callback: F) where F: FnMut(/*other*/ Body, /*point*/ Vec2, /*normal*/ Vec2) + 'static {
+		node.set_receiving_contact(true);
+		node.slot(Slot::CONTACT_END, Box::new(move |stack| {
+			let (
+				other,
+				point,
+				normal
+			) = match (
+				stack.pop_body(),
+				stack.pop_vec2(),
+				stack.pop_vec2()
+			) {
+				(Some(other), Some(point), Some(normal)) => (other, point, normal),
+				_ => return,
+			};
+			callback(other, point, normal);
+		}));
+	}
+	pub fn on_finished<F>(node: &mut Particle, mut callback: F) where F: FnMut() + 'static {
+		node.slot(Slot::FINISHED, Box::new(move |_| {
+			callback();
+		}));
+	}
+	pub fn on_align_layout<F>(node: &mut AlignNode, mut callback: F) where F: FnMut(/*width*/ f32, /*height*/ f32) + 'static {
+		node.slot(Slot::ALIGN_LAYOUT, Box::new(move |stack| {
+			let (
+				width,
+				height
+			) = match (
+				stack.pop_f32(),
+				stack.pop_f32()
+			) {
+				(Some(width), Some(height)) => (width, height),
+				_ => return,
+			};
+			callback(width, height);
+		}));
+	}
+	pub fn on_effek_end<F>(node: &mut EffekNode, mut callback: F) where F: FnMut(/*handle*/ i32) + 'static {
+		node.slot(Slot::EFFEK_END, Box::new(move |stack| {
+			let handle = match stack.pop_i32() {
+				Some(handle) => handle,
+				None => return,
+			};
+			callback(handle);
+		}));
+	}
 }
 
 /// An interface for providing Dora SSR built-in global event names.
@@ -1832,12 +2303,46 @@ impl GSlot {
 	/// 		msg
 	/// 	) = match (stack.pop_str(), stack.pop_str()) {
 	/// 		(Some(event_type), Some(msg)) => (event_type, msg),
-	/// 		None => return,
+	/// 		_ => return,
 	/// 	};
 	/// 	p!(event_type, msg);
 	/// }));
 	/// ```
 	pub const APP_WS: &'static str = "AppWS";
+
+	pub fn on_app_event<F>(node: &mut dyn INode, mut callback: F) where F: FnMut(/*event_type*/ String) + 'static {
+		node.gslot(GSlot::APP_EVENT, Box::new(move |stack| {
+			let event_type = match stack.pop_str() {
+				Some(event_type) => event_type,
+				None => return,
+			};
+			callback(event_type);
+		}));
+	}
+	pub fn on_app_change<F>(node: &mut dyn INode, mut callback: F) where F: FnMut(/*setting_name*/ String) + 'static {
+		node.gslot(GSlot::APP_CHANGE, Box::new(move |stack| {
+			let setting_name = match stack.pop_str() {
+				Some(setting_name) => setting_name,
+				None => return,
+			};
+			callback(setting_name);
+		}));
+	}
+	pub fn on_app_ws<F>(node: &mut dyn INode, mut callback: F) where F: FnMut(/*event_type*/ String, /*msg*/ String) + 'static {
+		node.gslot(GSlot::APP_WS, Box::new(move |stack| {
+			let (
+				event_type,
+				msg
+			) = match (
+				stack.pop_str(),
+				stack.pop_str()
+			) {
+				(Some(event_type), Some(msg)) => (event_type, msg),
+				_ => return,
+			};
+			callback(event_type, msg);
+		}));
+	}
 }
 
 // Content
@@ -2154,6 +2659,103 @@ impl Node {
 	/// * `stack` - The argument stack to be passed to the event handler.
 	pub fn emit(&mut self, name: &str, stack: CallStack) {
 		unsafe { node_emit(self.raw(), from_string(name), stack.raw()); }
+	}
+	/// Casts the object to a node.
+	///
+	/// # Arguments
+	///
+	/// * `obj` - The object to cast.
+	///
+	/// # Returns
+	///
+	/// * `Option<Node>` - The node if the object is a node, None otherwise.
+	pub fn cast(obj: &dyn IObject) -> Option<Node> {
+		Node::from(unsafe { object_to_node(obj.raw()) })
+	}
+}
+
+// Camera
+
+impl Camera {
+	/// Casts the object to a camera.
+	///
+	/// # Arguments
+	///
+	/// * `obj` - The object to cast.
+	///
+	/// # Returns
+	///
+	/// * `Option<Camera>` - The camera if the object is a camera, None otherwise.
+	pub fn cast(obj: &dyn IObject) -> Option<Camera> {
+		Camera::from(unsafe { object_to_camera(obj.raw()) })
+	}
+}
+
+// Playable
+
+impl Playable {
+	/// Casts the object to a playable.
+	///
+	/// # Arguments
+	///
+	/// * `obj` - The object to cast.
+	///
+	/// # Returns
+	///
+	/// * `Option<Playable>` - The playable if the object is a playable, None otherwise.
+	pub fn cast(obj: &dyn IObject) -> Option<Playable> {
+		Playable::from(unsafe { object_to_playable(obj.raw()) })
+	}
+}
+
+// Body
+
+impl Body {
+	/// Casts the object to a body.
+	///
+	/// # Arguments
+	///
+	/// * `obj` - The object to cast.
+	///
+	/// # Returns
+	///
+	/// * `Option<Body>` - The body if the object is a body, None otherwise.
+	pub fn cast(obj: &dyn IObject) -> Option<Body> {
+		Body::from(unsafe { object_to_body(obj.raw()) })
+	}
+}
+
+// Joint
+
+impl Joint {
+	/// Casts the object to a joint.
+	///
+	/// # Arguments
+	///
+	/// * `obj` - The object to cast.
+	///
+	/// # Returns
+	///
+	/// * `Option<Joint>` - The joint if the object is a joint, None otherwise.
+	pub fn cast(obj: &dyn IObject) -> Option<Joint> {
+		Joint::from(unsafe { object_to_joint(obj.raw()) })
+	}
+}
+
+// PhysicsWorld
+
+impl PhysicsWorld {
+	/// Casts the object to a physics world.
+	///
+	/// # Arguments
+	///
+	/// * `obj` - The object to cast.
+	///
+	/// # Returns
+	///
+	/// * `Option<PhysicsWorld>` - The physics world if the object is a physics world, None otherwise.
+	pub fn cast(obj: &dyn IObject) -> Option<PhysicsWorld> {
+		PhysicsWorld::from(unsafe { object_to_physics_world(obj.raw()) })
 	}
 }
 

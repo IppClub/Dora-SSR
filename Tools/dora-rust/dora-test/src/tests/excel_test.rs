@@ -30,17 +30,13 @@ pub fn test() {
 	camera.set_follow_ratio(&Vec2::new(0.02, 0.02));
 	camera.set_zoom(App::get_visual_size().width / DESIGN_WIDTH);
 	let world_clone = world.clone();
-	world.gslot(GSlot::APP_CHANGE, Box::new(move |stack| {
-		let setting_name = match stack.pop_str() {
-			Some(setting_name) => setting_name,
-			None => return,
-		};
+	GSlot::on_app_change(&mut world, move |setting_name| {
 		if setting_name == "Size" {
 			world_clone.get_camera().set_zoom(
 				App::get_visual_size().width / DESIGN_WIDTH
 			);
 		}
-	}));
+	});
 
 	let mut terrain_def = BodyDef::new();
 	terrain_def.set_type(BodyType::Static);
@@ -326,13 +322,13 @@ pub fn test() {
 		let mut body = Body::new(&body_def, &world_clone, &Vec2::new(x, 0.0), 0.0);
 		body.set_order(ITEM_LAYER);
 		body.set_group(item_group);
-		body.set_receiving_contact(true);
 		body.add_child(&sprite);
+		body.set_receiving_contact(true);
 
 		let mut body_clone = body.clone();
 		let mut entity_clone = entity.clone();
-		body.slot(Slot::BODY_ENTER, Box::new(move |stack| {
-			if stack.pop_cast::<platformer::Unit>().is_some() {
+		Slot::on_body_enter(&mut body, move |other, _| {
+			if cast::<platformer::Unit>(&other).is_some() {
 				body_clone.set_group(platformer::Data::get_group_hide());
 				let mut body_clone_two = body_clone.clone();
 				let mut sprite_clone = sprite.clone();
@@ -347,7 +343,7 @@ pub fn test() {
 					body_clone_two.set_group(platformer::Data::get_group_hide());
 				}));
 			}
-		}));
+		});
 
 		world_clone.add_child(&body);
 		entity.set("body", body.obj());
