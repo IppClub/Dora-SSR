@@ -10,8 +10,8 @@ import "@site/src/languages/highlight";
 ```tl
 -- you can register for these events using codes
 body.receivingContact = true
-body:slot("BodyEnter", function(other: Body, sensorTag: integer)
-	print("A body enter senser", other, sensorTag)
+body:slot("ContactStart", function(other: Body, point: Vec2, normal: Vec2)
+	print("A body has contacted", other, point, normal)
 end)
 ```
 
@@ -21,7 +21,7 @@ end)
 
 **Description:**
 
-&emsp;&emsp;Triggers when a Body object collides with a sensor object.
+&emsp;&emsp;Triggers when a Body object collides with a sensor object. This event triggers only when the Body attached with any fixture as sensor.
 
 **Signature:**
 ```tl
@@ -41,7 +41,7 @@ end)
 
 **Description:**
 
-&emsp;&emsp;Triggers when a `Body` object is no longer colliding with a sensor object.
+&emsp;&emsp;Triggers when a `Body` object is no longer colliding with a sensor object. This event triggers only when the Body attached with any fixture as sensor.
 
 **Signature:**
 ```tl
@@ -61,7 +61,7 @@ end)
 
 **Description:**
 
-&emsp;&emsp;Triggers when a `Body` object starts to collide with another object.
+&emsp;&emsp;Triggers when a `Body` object starts to collide with another object. This event triggers only when the `receivingContact` property of the `Body` is set to true.
 
 **Signature:**
 ```tl
@@ -82,7 +82,7 @@ end)
 
 **Description:**
 
-&emsp;&emsp;Triggers when a `Body` object stops colliding with another object.
+&emsp;&emsp;Triggers when a `Body` object stops colliding with another object. This event triggers only when the `receivingContact` property of the `Body` is set to true.
 
 **Signature:**
 ```tl

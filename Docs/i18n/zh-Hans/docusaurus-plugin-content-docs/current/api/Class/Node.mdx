@@ -2021,3 +2021,147 @@ onAxis: function(self: Node, callback: function(controllerId: integer, axisName:
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
 | callback | function | 控制器轴变化时的回调函数。 |
+
+## Node.AppEventType
+
+**类型：** 枚举。
+
+**描述：**
+
+&emsp;&emsp;应用程序事件的枚举。
+
+**签名：**
+```tl
+enum AppEventType
+
+	-- 应用程序即将退出。
+	"Quit"
+
+	-- 应用程序收到低内存警告。
+	"LowMemory"
+
+	-- 应用程序即将进入后台。
+	"WillEnterBackground"
+
+	-- 应用程序已进入后台。
+	"DidEnterBackground"
+
+	-- 应用程序即将进入前台。
+	"WillEnterForeground"
+
+	-- 应用程序已进入前台。
+	"DidEnterForeground"
+end
+```
+
+## onAppEvent
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;注册应用程序事件发生时触发的回调函数。
+
+**签名：**
+```tl
+onAppEvent: function(self: Node, callback: function(eventType: AppEventType))
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| callback | function | 要注册的回调函数。 |
+
+## Node.AppSettingName
+
+**类型：** 枚举。
+
+**描述：**
+
+&emsp;&emsp;应用程序设置的枚举。
+
+**签名：**
+```tl
+enum AppSettingName
+
+	-- 应用程序的区域设置。
+	"Locale"
+
+	-- 应用程序的主题颜色。
+	"Theme"
+
+	-- 应用程序窗口的全屏状态。
+	"FullScreen"
+
+	-- 应用程序窗口的位置。
+	"Position"
+
+	-- 应用程序窗口的大小。
+	"Size"
+end
+```
+
+## onAppChange
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;注册应用程序设置更改时触发的回调函数。
+
+**签名：**
+```tl
+onAppChange: function(self: Node, callback: function(settingName: AppSettingName))
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| callback | function | 要注册的回调函数。 |
+
+## Node.AppWSEvent
+
+**类型：** 枚举。
+
+**描述：**
+
+&emsp;&emsp;应用程序 WebSocket 事件的枚举。
+
+**签名：**
+```tl
+enum AppWSEvent
+
+	-- WebSocket 连接已打开。
+	"Open"
+
+	-- WebSocket 连接已关闭。
+	"Close"
+
+	-- WebSocket 接收到消息。
+	"Send"
+
+	-- WebSocket 广播消息。
+	"Receive"
+end
+```
+
+## onAppWS
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;注册应用程序 WebSocket 事件发生时触发的回调函数。
+
+**签名：**
+```tl
+onAppWS: function(self: Node, callback: function(event: AppWSEvent, message: string))
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| callback | function | 要注册的回调函数。 |

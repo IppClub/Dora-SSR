@@ -10,8 +10,8 @@ import "@site/src/languages/highlight";
 ```tl
 -- 可以使用以下形式的代码来注册监听这些事件：
 body.receivingContact = true
-body:slot("BodyEnter", function(other: Body, sensorTag: integer)
-	print("感应器感应到了物理体", other, sensorTag)
+body:slot("ContactStart", function(other: Body, point: Vec2, normal: Vec2)
+	print("感应器碰撞到了物理体", other, point, normal)
 end)
 ```
 
@@ -21,7 +21,7 @@ end)
 
 **描述：**
 
-&emsp;&emsp;当物理体对象与传感器对象碰撞时触发。
+&emsp;&emsp;当物理体对象与传感器对象碰撞时触发。此事件当物理体附加了传感器时就会触发。
 
 **签名：**
 ```tl
@@ -41,7 +41,7 @@ end)
 
 **描述：**
 
-&emsp;&emsp;当物理体对象不再与传感器对象碰撞时触发。
+&emsp;&emsp;当物理体对象不再与传感器对象碰撞时触发。此事件当物理体附加了传感器时就会触发。
 
 **签名：**
 ```tl
@@ -62,6 +62,7 @@ end)
 **描述：**
 
 &emsp;&emsp;当一个物理体对象开始与另一个物理体碰撞时触发。
+需要将物理体对象的“receivingContact”属性设置为true才会触发。
 
 **签名：**
 ```tl
@@ -83,6 +84,7 @@ end)
 **描述：**
 
 &emsp;&emsp;当一个物理体对象停止与另一个物理体碰撞时触发。
+需要将物理体对象的“receivingContact”属性设置为true才会触发。
 
 **签名：**
 ```tl

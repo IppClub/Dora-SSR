@@ -11,194 +11,46 @@ import "@site/src/languages/highlight";
 ```tl
 -- 可以使用如下示例代码注册这些事件：
 local node = Node():addTo(Director.entry)
-node:gslot("AppQuit", function()
-	print("应用正在被关闭！")
+node:gslot("AppEvent", function(eventType: string)
+	print("接收到系统事件：" .. eventType)
 end)
 ```
 
-## AppQuit
+## AppEvent
 
 **类型：** 全局事件。
 
 **描述：**
 
-&emsp;&emsp;应用即将退出时触发。
+&emsp;&emsp;应用收到系统事件时触发。事件类型可以是 "Quit"、"LowMemory"、"WillEnterBackground"、"DidEnterBackground"、"WillEnterForeground"、"DidEnterForeground"。
 
 **签名：**
 ```tl
-["AppQuit"]: function()
+["AppEvent"]: function(eventType: string)
 ```
 
-## AppLowMemory
+## AppChange
 
 **类型：** 全局事件。
 
 **描述：**
 
-&emsp;&emsp;应用接收到低内存警告时触发。
+&emsp;&emsp;应用设置发生变化时触发。设置名称可以是 "Locale"、"Theme"、"FullScreen"、"Position"、"Size"。
 
 **签名：**
 ```tl
-["AppLowMemory"]: function()
+["AppChange"]: function(settingName: string)
 ```
 
-## AppWillEnterBackground
+## AppWS
 
 **类型：** 全局事件。
 
 **描述：**
 
-&emsp;&emsp;应用即将进入后台时触发。
+&emsp;&emsp;当一个客户端和应用建立 Websocket 连接时并收发到事件时触发。事件类型可以是 "Open"、"Close"、"Send"、"Receive"。
 
 **签名：**
 ```tl
-["AppWillEnterBackground"]: function()
-```
-
-## AppDidEnterBackground
-
-**类型：** 全局事件。
-
-**描述：**
-
-&emsp;&emsp;应用已经进入后台时触发。
-
-**签名：**
-```tl
-["AppDidEnterBackground"]: function()
-```
-
-## AppWillEnterForeground
-
-**类型：** 全局事件。
-
-**描述：**
-
-&emsp;&emsp;应用即将进入前台时触发。
-
-**签名：**
-```tl
-["AppWillEnterForeground"]: function()
-```
-
-## AppDidEnterForeground
-
-**类型：** 全局事件。
-
-**描述：**
-
-&emsp;&emsp;应用已经进入前台时触发。
-
-**签名：**
-```tl
-["AppDidEnterForeground"]: function()
-```
-
-## AppSizeChanged
-
-**类型：** 全局事件。
-
-**描述：**
-
-&emsp;&emsp;应用窗口大小发生变化时触发。
-
-**签名：**
-```tl
-["AppSizeChanged"]: function()
-```
-
-## AppFullScreen
-
-**类型：** 全局事件。
-
-**描述：**
-
-&emsp;&emsp;应用进入或退出全屏窗口模式时触发。
-
-**签名：**
-```tl
-["AppFullScreen"]: function(fullScreen: boolean)
-```
-
-## AppMoved
-
-**类型：** 全局事件。
-
-**描述：**
-
-&emsp;&emsp;应用窗口位置发生变化时触发。
-
-**签名：**
-```tl
-["AppMoved"]: function()
-```
-
-## AppTheme
-
-**类型：** 全局事件。
-
-**描述：**
-
-&emsp;&emsp;应用改变主题颜色时触发。
-
-**签名：**
-```tl
-["AppTheme"]: function(themeColor: Color)
-```
-
-## AppWSOpen
-
-**类型：** 全局事件。
-
-**描述：**
-
-&emsp;&emsp;当一个客户端和应用建立 Websocket 连接时触发。
-
-**签名：**
-```tl
-["AppWSOpen"]: function()
-```
-
-## AppWSClose
-
-**类型：** 全局事件。
-
-**描述：**
-
-&emsp;&emsp;当一个客户端和应用断开 Websocket 连接时触发。
-
-**签名：**
-```tl
-["AppWSClose"]: function()
-```
-
-## AppWSMessage
-
-**类型：** 全局事件。
-
-**描述：**
-
-&emsp;&emsp;当一个客户端向应用发送 Websocket 文本消息时触发。
-
-**签名：**
-```tl
-["AppWSMessage"]: function(msg: string)
-```
-
-## AppWSSend
-
-**类型：** 全局事件。
-
-**描述：**
-
-&emsp;&emsp;用于向所有已建立 Websocket 连接的客户端广播发送文本消息的事件。
-
-**签名：**
-```tl
-["AppWSSend"]: function(msg: string)
-```
-
-**用法示例：**
-```tl
-emit "AppWSSend", "A message"
+["AppWS"]: function(eventType: string, msg: string)
 ```
