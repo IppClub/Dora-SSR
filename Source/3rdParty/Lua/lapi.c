@@ -1014,23 +1014,6 @@ LUA_API int lua_setmetatable (lua_State *L, int objindex) {
 }
 
 
-LUA_API int lua_setlightusermetatable (lua_State *L) {
-  Table *mt;
-  lua_lock(L);
-  api_checknelems(L, 1);
-  if (ttisnil(s2v(L->top.p - 1)))
-    mt = NULL;
-  else {
-    api_check(L, ttistable(s2v(L->top - 1)), "table expected");
-    mt = hvalue(s2v(L->top.p - 1));
-  }
-  G(L)->mt[LUA_TLIGHTUSERDATA] = mt;
-  L->top.p--;
-  lua_unlock(L);
-  return 1;
-}
-
-
 LUA_API int lua_setiuservalue (lua_State *L, int idx, int n) {
   TValue *o;
   int res;

@@ -222,12 +222,14 @@ void tolua_setlightmetatable(lua_State* L) {
 	lua_rawgeti(L, LUA_REGISTRYINDEX, LuaType<LightValue::ValueType>()); // mt
 	if (lua_isnil(L, -1)) // mt == nil
 	{
-		Error("[Lua] Type of light value is not registered!");
 		lua_pop(L, 1);
-		lua_pushnil(L);
+		Error("[Lua] Type of light value is not registered!");
 		return;
 	}
-	lua_setlightusermetatable(L);
+	lua_pushlightuserdata(L, nullptr); // mt ud
+	lua_insert(L, -2); // ud mt
+	lua_setmetatable(L, -2); // setmetatable(ud, mt), ud
+	lua_pop(L, 1); // clear
 }
 
 LightValue tolua_tolight(lua_State* L, int narg, LightValue def) {

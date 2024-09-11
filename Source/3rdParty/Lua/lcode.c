@@ -31,6 +31,7 @@
 #include "lvm.h"
 
 
+/* (note that expressions VJMP also have jumps.) */
 #define hasjumps(e)	((e)->t != (e)->f)
 
 
@@ -207,6 +208,7 @@ void luaK_ret (FuncState *fs, int first, int nret) {
     case 1: op = OP_RETURN1; break;
     default: op = OP_RETURN; break;
   }
+  luaY_checklimit(fs, nret + 1, MAXARG_B, "returns");
   luaK_codeABC(fs, op, first, nret + 1, 0);
 }
 
@@ -470,9 +472,7 @@ static int luaK_codek (FuncState *fs, int reg, int k) {
 void luaK_checkstack (FuncState *fs, int n) {
   int newstack = fs->freereg + n;
   if (newstack > fs->f->maxstacksize) {
-    if (newstack > MAX_FSTACK)
-      luaX_syntaxerror(fs->ls,
-        "function or expression needs too many registers");
+    luaY_checklimit(fs, newstack, MAX_FSTACK, "registers");
     fs->f->maxstacksize = cast_byte(newstack);
   }
 }
@@ -724,8 +724,7 @@ static void const2exp (TValue *v, expdesc *e) {
 */
 void luaK_setreturns (FuncState *fs, expdesc *e, int nresults) {
   Instruction *pc = &getinstruction(fs, e);
-  if (nresults + 1 > MAXARG_C)
-    luaX_syntaxerror(fs->ls, "too many multiple results");
+  luaY_checklimit(fs, nresults + 1, MAXARG_C, "multiple results");
   if (e->k == VCALL)  /* expression is an open function call? */
     SETARG_C(*pc, nresults + 1);
   else {
@@ -991,7 +990,7 @@ void luaK_exp2anyregup (FuncState *fs, expdesc *e) {
 ** or it is a constant.
 */
 void luaK_exp2val (FuncState *fs, expdesc *e) {
-  if (hasjumps(e))
+  if (e->k == VJMP || hasjumps(e))
     luaK_exp2anyreg(fs, e);
   else
     luaK_dischargevars(fs, e);
