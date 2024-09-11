@@ -122,6 +122,7 @@ extern "C" {
 	fn node_set_transform_target_null(slf: i64);
 	fn node_slot(slf: i64, event_name: i64, func: i32, stack: i64);
 	fn node_gslot(slf: i64, event_name: i64, func: i32, stack: i64);
+	fn node_emit(slf: i64, name: i64, stack: i64);
 	fn node_on_update(slf: i64, func: i32, stack: i64);
 	fn node_new() -> i64;
 }
@@ -869,6 +870,15 @@ pub trait INode: IObject {
 			func(&mut stack)
 		}));
 		unsafe { node_gslot(self.raw(), crate::dora::from_string(event_name), func_id, stack_raw); }
+	}
+	/// Emits an event to a node, triggering the event handler associated with the event name.
+	///
+	/// # Arguments
+	///
+	/// * `name` - The name of the event.
+	/// * `stack` - The argument stack to be passed to the event handler.
+	fn emit(&mut self, name: &str, stack: &crate::dora::CallStack) {
+		unsafe { node_emit(self.raw(), crate::dora::from_string(name), stack.raw()); }
 	}
 	/// Schedules a function to run every frame. Call this function again to schedule multiple functions.
 	///

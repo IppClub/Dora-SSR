@@ -1500,6 +1500,13 @@ interface object class Node
 	/// * `event_name` - The name of the global event.
 	/// * `handler` - The handler function to associate with the event.
 	void gslot(string eventName, function<void(Event* e)> func);
+	/// Emits an event to a node, triggering the event handler associated with the event name.
+	///
+	/// # Arguments
+	///
+	/// * `name` - The name of the event.
+	/// * `stack` - The argument stack to be passed to the event handler.
+	outside void Node_Emit @ emit(string name, CallStack* stack);
 	/// Schedules a function to run every frame. Call this function again to schedule multiple functions.
 	///
 	/// # Arguments

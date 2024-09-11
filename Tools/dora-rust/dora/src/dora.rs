@@ -750,7 +750,11 @@ impl Vector {
 	}
 }
 
-fn get_object(raw: i64) -> Option<Box<dyn IObject>> {
+fn into_object(raw: i64) -> Option<Box<dyn IObject>> {
+	unsafe { OBJECT_MAP[object_get_type(raw) as usize](raw) }
+}
+
+fn new_object(raw: i64) -> Option<Box<dyn IObject>> {
 	unsafe {
 		object_retain(raw);
 		OBJECT_MAP[object_get_type(raw) as usize](raw)
@@ -826,7 +830,7 @@ impl Object {
 }
 
 pub fn cast<T: Clone + 'static>(obj: &dyn IObject) -> Option<T> {
-	Some(get_object(obj.raw())?.as_any().downcast_ref::<T>()?.clone())
+	Some(new_object(obj.raw())?.as_any().downcast_ref::<T>()?.clone())
 }
 
 /// An argument stack for passing values to a function.
@@ -1034,57 +1038,27 @@ impl Value {
 	pub fn into_object(&self) -> Option<Box<dyn IObject>> {
 		unsafe {
 			if value_is_object(self.raw) != 0 {
-				get_object(value_into_object(self.raw))
+				into_object(value_into_object(self.raw))
 			} else { None }
 		}
 	}
 	pub fn into_node(&self) -> Option<Node> {
-		unsafe {
-			if value_is_object(self.raw) != 0 {
-				let raw = value_into_object(self.raw);
-				Node::from(object_to_node(raw))
-			} else { None }
-		}
+		Node::cast(self.into_object()?.as_ref())
 	}
 	pub fn into_camera(&self) -> Option<Camera> {
-		unsafe {
-			if value_is_object(self.raw) != 0 {
-				let raw = value_into_object(self.raw);
-				Camera::from(object_to_camera(raw))
-			} else { None }
-		}
+		Camera::cast(self.into_object()?.as_ref())
 	}
 	pub fn into_playable(&self) -> Option<Playable> {
-		unsafe {
-			if value_is_object(self.raw) != 0 {
-				let raw = value_into_object(self.raw);
-				Playable::from(object_to_playable(raw))
-			} else { None }
-		}
+		Playable::cast(self.into_object()?.as_ref())
 	}
 	pub fn into_physics_world(&self) -> Option<PhysicsWorld> {
-		unsafe {
-			if value_is_object(self.raw) != 0 {
-				let raw = value_into_object(self.raw);
-				PhysicsWorld::from(object_to_physics_world(raw))
-			} else { None }
-		}
+		PhysicsWorld::cast(self.into_object()?.as_ref())
 	}
 	pub fn into_body(&self) -> Option<Body> {
-		unsafe {
-			if value_is_object(self.raw) != 0 {
-				let raw = value_into_object(self.raw);
-				Body::from(object_to_body(raw))
-			} else { None }
-		}
+		Body::cast(self.into_object()?.as_ref())
 	}
 	pub fn into_joint(&self) -> Option<Joint> {
-		unsafe {
-			if value_is_object(self.raw) != 0 {
-				let raw = value_into_object(self.raw);
-				Joint::from(object_to_joint(raw))
-			} else { None }
-		}
+		Joint::cast(self.into_object()?.as_ref())
 	}
 	pub fn into_vec2(&self) -> Option<Vec2> {
 		unsafe {
@@ -1145,6 +1119,7 @@ impl CallStack {
 	pub fn push_size(&mut self, value: &Size) {
 		unsafe { call_stack_push_size(self.raw, value.into_i64()); }
 	}
+	/// Pops the value from the stack if it is a i32.
 	pub fn pop_i32(&mut self) -> Option<i32> {
 		unsafe {
 			if call_stack_front_i64(self.raw) != 0 {
@@ -1152,6 +1127,7 @@ impl CallStack {
 			} else { None }
 		}
 	}
+	/// Pops the value from the stack if it is a i64.
 	pub fn pop_i64(&mut self) -> Option<i64> {
 		unsafe {
 			if call_stack_front_i64(self.raw) != 0 {
@@ -1159,6 +1135,7 @@ impl CallStack {
 			} else { None }
 		}
 	}
+	/// Pops the value from the stack if it is a f32.
 	pub fn pop_f32(&mut self) -> Option<f32> {
 		unsafe {
 			if call_stack_front_f64(self.raw) != 0 {
@@ -1166,6 +1143,7 @@ impl CallStack {
 			} else { None }
 		}
 	}
+	/// Pops the value from the stack if it is a f64.
 	pub fn pop_f64(&mut self) -> Option<f64> {
 		unsafe {
 			if call_stack_front_f64(self.raw) != 0 {
@@ -1173,6 +1151,7 @@ impl CallStack {
 			} else { None }
 		}
 	}
+	/// Pops the value from the stack if it is a string.
 	pub fn pop_str(&mut self) -> Option<String> {
 		unsafe {
 			if call_stack_front_str(self.raw) != 0 {
@@ -1180,6 +1159,7 @@ impl CallStack {
 			} else { None }
 		}
 	}
+	/// Pops the value from the stack if it is a bool.
 	pub fn pop_bool(&mut self) -> Option<bool> {
 		unsafe {
 			if call_stack_front_bool(self.raw) != 0 {
@@ -1187,70 +1167,7 @@ impl CallStack {
 			} else { None }
 		}
 	}
-	pub fn pop_object(&mut self) -> Option<Box<dyn IObject>> {
-		unsafe {
-			if call_stack_front_object(self.raw) != 0 {
-				let raw = call_stack_pop_object(self.raw);
-				get_object(raw)
-			} else { None }
-		}
-	}
-	pub fn pop_node(&mut self) -> Option<Node> {
-		unsafe {
-			if call_stack_front_object(self.raw) != 0 {
-				let raw = call_stack_pop_object(self.raw);
-				Node::from(object_to_node(raw))
-			} else { None }
-		}
-	}
-	pub fn pop_camera(&mut self) -> Option<Camera> {
-		unsafe {
-			if call_stack_front_object(self.raw) != 0 {
-				let raw = call_stack_pop_object(self.raw);
-				Camera::from(object_to_camera(raw))
-			} else { None }
-		}
-	}
-	pub fn pop_playable(&mut self) -> Option<Playable> {
-		unsafe {
-			if call_stack_front_object(self.raw) != 0 {
-				let raw = call_stack_pop_object(self.raw);
-				Playable::from(object_to_playable(raw))
-			} else { None }
-		}
-	}
-	pub fn pop_physics_world(&mut self) -> Option<PhysicsWorld> {
-		unsafe {
-			if call_stack_front_object(self.raw) != 0 {
-				let raw = call_stack_pop_object(self.raw);
-				PhysicsWorld::from(object_to_physics_world(raw))
-			} else { None }
-		}
-	}
-	pub fn pop_body(&mut self) -> Option<Body> {
-		unsafe {
-			if call_stack_front_object(self.raw) != 0 {
-				let raw = call_stack_pop_object(self.raw);
-				Body::from(object_to_body(raw))
-			} else { None }
-		}
-	}
-	pub fn pop_joint(&mut self) -> Option<Joint> {
-		unsafe {
-			if call_stack_front_object(self.raw) != 0 {
-				let raw = call_stack_pop_object(self.raw);
-				Joint::from(object_to_joint(raw))
-			} else { None }
-		}
-	}
-	pub fn pop_cast<T: Clone + 'static>(&mut self) -> Option<T> {
-		unsafe {
-			if call_stack_front_object(self.raw) != 0 {
-				let raw = call_stack_pop_object(self.raw);
-				cast::<T>(get_object(raw)?.as_ref())
-			} else { None }
-		}
-	}
+	/// Pops the value from the stack if it is a Vec2 object.
 	pub fn pop_vec2(&mut self) -> Option<Vec2> {
 		unsafe {
 			if call_stack_front_vec2(self.raw) != 0 {
@@ -1258,6 +1175,7 @@ impl CallStack {
 			} else { None }
 		}
 	}
+	/// Pops the value from the stack if it is a Size object.
 	pub fn pop_size(&mut self) -> Option<Size> {
 		unsafe {
 			if call_stack_front_size(self.raw) != 0 {
@@ -1265,6 +1183,52 @@ impl CallStack {
 			} else { None }
 		}
 	}
+	/// Pops the value from the stack if it is an object.
+	pub fn pop_object(&mut self) -> Option<Box<dyn IObject>> {
+		unsafe {
+			if call_stack_front_object(self.raw) != 0 {
+				let raw = call_stack_pop_object(self.raw);
+				into_object(raw)
+			} else { None }
+		}
+	}
+	/// Pops the value from the stack and then converts it to a Node. If the value on the stack is not a object or the object can not be converted to a Node, this function returns None.
+	/// This function is the same as `Node::cast(stack.pop_object()?.as_ref())`.
+	pub fn pop_into_node(&mut self) -> Option<Node> {
+		Node::cast(self.pop_object()?.as_ref())
+	}
+	/// Pops the value from the stack and then converts it to a Camera. If the value on the stack is not a object or the object can not be converted to a Camera, this function returns None.
+	/// This function is the same as `Camera::cast(stack.pop_object()?.as_ref())`.
+	pub fn pop_into_camera(&mut self) -> Option<Camera> {
+		Camera::cast(self.pop_object()?.as_ref())
+	}
+	/// Pops the value from the stack and then converts it to a Playable. If the value on the stack is not a object or the object can not be converted to a Playable, this function returns None.
+	/// This function is the same as `Playable::cast(stack.pop_object()?.as_ref())`.
+	pub fn pop_into_playable(&mut self) -> Option<Playable> {
+		Playable::cast(self.pop_object()?.as_ref())
+	}
+	/// Pops the value from the stack and then converts it to a PhysicsWorld. If the value on the stack is not a object or the object can not be converted to a PhysicsWorld, this function returns None.
+	/// This function is the same as `PhysicsWorld::cast(stack.pop_object()?.as_ref())`.
+	pub fn pop_into_physics_world(&mut self) -> Option<PhysicsWorld> {
+		PhysicsWorld::cast(self.pop_object()?.as_ref())
+	}
+	/// Pops the value from the stack and then converts it to a Body. If the value on the stack is not a object or the object can not be converted to a Body, this function returns None.
+	/// This function is the same as `Body::cast(stack.pop_object()?.as_ref())`.
+	pub fn pop_into_body(&mut self) -> Option<Body> {
+		Body::cast(self.pop_object()?.as_ref())
+	}
+	/// Pops the value from the stack and then converts it to a Joint. If the value on the stack is not a object or the object can not be converted to a Joint, this function returns None.
+	/// This function is the same as `Joint::cast(stack.pop_object()?.as_ref())`.
+	pub fn pop_into_joint(&mut self) -> Option<Joint> {
+		Joint::cast(self.pop_object()?.as_ref())
+	}
+	/// Pops a value from the stack and then casts it to the specified type. If the value on the stack is not a object or can not be casted, it returns None.
+	/// This function is the same as `cast::<T>(stack.pop_object()?.as_ref())`.
+	pub fn pop_cast<T: Clone + 'static>(&mut self) -> Option<T> {
+		cast::<T>(self.pop_object()?.as_ref())
+	}
+	/// Pops a value from the stack.
+	/// Returns true if a value was popped, otherwise false.
 	pub fn pop(&mut self) -> bool {
 		if unsafe { call_stack_pop(self.raw) } == 0 {
 			return false;
@@ -1298,7 +1262,7 @@ impl Slot {
 	/// 		node
 	/// 	) = match (
 	/// 		stack.pop_cast::<Action>(),
-	/// 		stack.pop_node()
+	/// 		stack.pop_into_node()
 	/// 	) {
 	/// 		(Some(action), Some(node)) => (action, node),
 	/// 		_ => return,
@@ -1714,7 +1678,7 @@ impl Slot {
 	/// 		playable
 	/// 	) = match (
 	/// 		stack.pop_str(),
-	/// 		stack.pop_playable()
+	/// 		stack.pop_into_playable()
 	/// 	) {
 	/// 		(Some(animation_name), Some(playable)) => (animation_name, playable),
 	/// 		_ => return,
@@ -1741,7 +1705,7 @@ impl Slot {
 	/// 		other,
 	/// 		sensor_tag
 	/// 	) = match (
-	/// 		stack.pop_body(),
+	/// 		stack.pop_into_body(),
 	/// 		stack.pop_i32()
 	/// 	) {
 	/// 		(Some(other), Some(sensor_tag)) => (other, sensor_tag),
@@ -1767,7 +1731,7 @@ impl Slot {
 	/// 		other,
 	/// 		sensor_tag
 	/// 	) = match (
-	/// 		stack.pop_body(),
+	/// 		stack.pop_into_body(),
 	/// 		stack.pop_i32()
 	/// 	) {
 	/// 		(Some(other), Some(sensor_tag)) => (other, sensor_tag),
@@ -1796,7 +1760,7 @@ impl Slot {
 	/// 		point,
 	/// 		normal
 	/// 	) = match (
-	/// 		stack.pop_body(),
+	/// 		stack.pop_into_body(),
 	/// 		stack.pop_vec2(),
 	/// 		stack.pop_vec2()
 	/// 	) {
@@ -1825,7 +1789,7 @@ impl Slot {
 	/// 		point,
 	/// 		normal
 	/// 	) = match (
-	/// 		stack.pop_body(),
+	/// 		stack.pop_into_body(),
 	/// 		stack.pop_vec2(),
 	/// 		stack.pop_vec2()
 	/// 	) {
@@ -1880,7 +1844,14 @@ impl Slot {
 	/// }));
 	/// ```
 	pub const EFFEK_END: &'static str = "EffekEnd";
-
+	/// Registers a callback for event triggered when an action is finished.
+	///
+	/// # Arguments
+	///
+	/// * node: &mut dyn INode - The node to register the callback on.
+	/// * callback: F - The callback to be called when the event is triggered with the following arguments:
+	/// 	* action: Action - The finished action.
+	/// 	* target: Node - The node that finished the action.
 	pub fn on_action_end<F>(node: &mut dyn INode, mut callback: F) where F: FnMut(/*action*/ Action, /*node*/ Node) + 'static {
 		node.slot(Slot::ACTION_END, Box::new(move |stack| {
 			let (
@@ -1888,7 +1859,7 @@ impl Slot {
 				node
 			) = match (
 				stack.pop_cast::<Action>(),
-				stack.pop_node()
+				stack.pop_into_node()
 			) {
 				(Some(action), Some(node)) => (action, node),
 				_ => return,
@@ -1896,6 +1867,13 @@ impl Slot {
 			callback(action, node);
 		}));
 	}
+	/// Registers a callback for event triggered when a tap is detected and can be used to filter out certain taps.
+	///
+	/// # Arguments
+	///
+	/// * node: &mut dyn INode - The node to register the callback on.
+	/// * callback: F - The callback to be called when the event is triggered with the following arguments:
+	/// 	* touch: Touch - The touch that triggered the tap.
 	pub fn on_tap_filter<F>(node: &mut dyn INode, mut callback: F) where F: FnMut(/*touch*/ Touch) + 'static {
 		node.set_touch_enabled(true);
 		node.slot(Slot::TAP_FILTER, Box::new(move |stack| {
@@ -1906,6 +1884,13 @@ impl Slot {
 			callback(touch);
 		}));
 	}
+	/// Registers a callback for event triggered when a tap is detected.
+	///
+	/// # Arguments
+	///
+	/// * node: &mut dyn INode - The node to register the callback on.
+	/// * callback: F - The callback to be called when the event is triggered with the following arguments:
+	/// 	* touch: Touch - The touch that triggered the tap.
 	pub fn on_tap_began<F>(node: &mut dyn INode, mut callback: F) where F: FnMut(/*touch*/ Touch) + 'static {
 		node.set_touch_enabled(true);
 		node.slot(Slot::TAP_BEGAN, Box::new(move |stack| {
@@ -1916,6 +1901,13 @@ impl Slot {
 			callback(touch);
 		}));
 	}
+	/// Registers a callback for event triggered when a tap ends.
+	///
+	/// # Arguments
+	///
+	/// * node: &mut dyn INode - The node to register the callback on.
+	/// * callback: F - The callback to be called when the event is triggered with the following arguments:
+	/// 	* touch: Touch - The touch that triggered the tap.
 	pub fn on_tap_ended<F>(node: &mut dyn INode, mut callback: F) where F: FnMut(/*touch*/ Touch) + 'static {
 		node.set_touch_enabled(true);
 		node.slot(Slot::TAP_ENDED, Box::new(move |stack| {
@@ -1926,6 +1918,13 @@ impl Slot {
 			callback(touch);
 		}));
 	}
+	/// Registers a callback for event triggered when a tap is detected and has ended.
+	///
+	/// # Arguments
+	///
+	/// * node: &mut dyn INode - The node to register the callback on.
+	/// * callback: F - The callback to be called when the event is triggered with the following arguments:
+	/// 	* touch: Touch - The touch that triggered the tap.
 	pub fn on_tapped<F>(node: &mut dyn INode, mut callback: F) where F: FnMut(/*touch*/ Touch) + 'static {
 		node.set_touch_enabled(true);
 		node.slot(Slot::TAPPED, Box::new(move |stack| {
@@ -1936,6 +1935,13 @@ impl Slot {
 			callback(touch);
 		}));
 	}
+	/// Registers a callback for event triggered when a tap moves.
+	///
+	/// # Arguments
+	///
+	/// * node: &mut dyn INode - The node to register the callback on.
+	/// * callback: F - The callback to be called when the event is triggered with the following arguments:
+	/// 	* touch: Touch - The touch that triggered the tap.
 	pub fn on_tap_moved<F>(node: &mut dyn INode, mut callback: F) where F: FnMut(/*touch*/ Touch) + 'static {
 		node.set_touch_enabled(true);
 		node.slot(Slot::TAP_MOVED, Box::new(move |stack| {
@@ -1946,6 +1952,13 @@ impl Slot {
 			callback(touch);
 		}));
 	}
+	/// Registers a callback for event triggered when the mouse wheel is scrolled.
+	///
+	/// # Arguments
+	///
+	/// * node: &mut dyn INode - The node to register the callback on.
+	/// * callback: F - The callback to be called when the event is triggered with the following arguments:
+	/// 	* delta: Vec2 - The amount of scrolling that occurred.
 	pub fn on_mouse_wheel<F>(node: &mut dyn INode, mut callback: F) where F: FnMut(/*delta*/ Vec2) + 'static {
 		node.set_touch_enabled(true);
 		node.slot(Slot::MOUSE_WHEEL, Box::new(move |stack| {
@@ -1956,6 +1969,16 @@ impl Slot {
 			callback(delta);
 		}));
 	}
+	/// Registers a callback for event triggered when a multi-touch gesture is recognized.
+	///
+	/// # Arguments
+	///
+	/// * node: &mut dyn INode - The node to register the callback on.
+	/// * callback: F - The callback to be called when the event is triggered with the following arguments:
+	/// 	* center: Vec2 - The center of the gesture.
+	/// 	* num_fingers: i32 - The number of fingers involved in the gesture.
+	/// 	* delta_dist: f32 - The distance the gesture has moved.
+	/// 	* delta_angle: f32 - The angle of the gesture.
 	pub fn on_gesture<F>(node: &mut dyn INode, mut callback: F) where F: FnMut(/*center*/ Vec2, /*num_fingers*/ i32, /*delta_dist*/ f32, /*delta_angle*/ f32) + 'static {
 		node.set_touch_enabled(true);
 		node.slot(Slot::GESTURE, Box::new(move |stack| {
@@ -1976,21 +1999,46 @@ impl Slot {
 			callback(center, num_fingers, delta_dist, delta_angle);
 		}));
 	}
+	/// Registers a callback for event triggered when a node is added to the scene graph.
+	///
+	/// # Arguments
+	///
+	/// * node: &mut dyn INode - The node to register the callback on.
+	/// * callback: F - The callback to be called when the event is triggered.
 	pub fn on_enter<F>(node: &mut dyn INode, mut callback: F) where F: FnMut() + 'static {
 		node.slot(Slot::ENTER, Box::new(move |_| {
 			callback();
 		}));
 	}
+	/// Registers a callback for event triggered when a node is removed from the scene graph.
+	///
+	/// # Arguments
+	///
+	/// * node: &mut dyn INode - The node to register the callback on.
+	/// * callback: F - The callback to be called when the event is triggered.
 	pub fn on_exit<F>(node: &mut dyn INode, mut callback: F) where F: FnMut() + 'static {
 		node.slot(Slot::EXIT, Box::new(move |_| {
 			callback();
 		}));
 	}
+	/// Registers a callback for event triggered when a node is cleaned up.
+	///
+	/// # Arguments
+	///
+	/// * node: &mut dyn INode - The node to register the callback on.
+	/// * callback: F - The callback to be called when the event is triggered.
 	pub fn on_cleanup<F>(node: &mut dyn INode, mut callback: F) where F: FnMut() + 'static {
 		node.slot(Slot::CLEANUP, Box::new(move |_| {
 			callback();
 		}));
 	}
+	/// Registers a callback for event triggered when a key is pressed down.
+	///
+	/// # Arguments
+	///
+	/// * node: &mut dyn INode - The node to register the callback on.
+	/// * key: KeyName - The key to trigger the callback on.
+	/// * callback: F - The callback to be called when the event is triggered.
 	pub fn on_key_down<F>(node: &mut dyn INode, key: KeyName, mut callback: F) where F: FnMut() + 'static {
 		node.set_keyboard_enabled(true);
 		node.slot(Slot::KEY_DOWN, Box::new(move |stack| {
@@ -2003,6 +2051,12 @@ impl Slot {
 			}
 		}));
 	}
+	/// Registers a callback for event triggered when a key is released.
+	///
+	/// # Arguments
+	///
+	/// * node: &mut dyn INode - The node to register the callback on.
+	/// * key: KeyName - The key to trigger the callback on.
 	pub fn on_key_up<F>(node: &mut dyn INode, key: KeyName, mut callback: F) where F: FnMut() + 'static {
 		node.set_keyboard_enabled(true);
 		node.slot(Slot::KEY_UP, Box::new(move |stack| {
@@ -2015,6 +2069,12 @@ impl Slot {
 			}
 		}));
 	}
+	/// Registers a callback for event triggered when a key is pressed.
+	///
+	/// # Arguments
+	///
+	/// * node: &mut dyn INode - The node to register the callback on.
+	/// * key: KeyName - The key to trigger the callback on.
 	pub fn on_key_pressed<F>(node: &mut dyn INode, key: KeyName, mut callback: F) where F: FnMut() + 'static {
 		node.set_keyboard_enabled(true);
 		node.slot(Slot::KEY_PRESSED, Box::new(move |stack| {
@@ -2027,16 +2087,35 @@ impl Slot {
 			}
 		}));
 	}
+	/// Registers a callback for event triggered when the input method editor (IME) is attached.
+	///
+	/// # Arguments
+	///
+	/// * node: &mut dyn INode - The node to register the callback on.
+	/// * callback: F - The callback to be called when the event is triggered.
 	pub fn on_attach_ime<F>(node: &mut dyn INode, mut callback: F) where F: FnMut() + 'static {
 		node.slot(Slot::ATTACH_IME, Box::new(move |_| {
 			callback();
 		}));
 	}
+	/// Registers a callback for event triggered when the input method editor (IME) is detached.
+	///
+	/// # Arguments
+	///
+	/// * node: &mut dyn INode - The node to register the callback on.
+	/// * callback: F - The callback to be called when the event is triggered.
 	pub fn on_detach_ime<F>(node: &mut dyn INode, mut callback: F) where F: FnMut() + 'static {
 		node.slot(Slot::DETACH_IME, Box::new(move |_| {
 			callback();
 		}));
 	}
+	/// Registers a callback for event triggered when text input is received.
+	///
+	/// # Arguments
+	///
+	/// * node: &mut dyn INode - The node to register the callback on.
+	/// * callback: F - The callback to be called when the event is triggered with the following arguments:
+	/// 	* text: String - The text that was input.
 	pub fn on_text_input<F>(node: &mut dyn INode, mut callback: F) where F: FnMut(/*text*/ String) + 'static {
 		node.attach_ime();
 		node.slot(Slot::TEXT_INPUT, Box::new(move |stack| {
@@ -2047,6 +2126,14 @@ impl Slot {
 			callback(text);
 		}));
 	}
+	/// Registers a callback for event triggered when text is being edited.
+	///
+	/// # Arguments
+	///
+	/// * node: &mut dyn INode - The node to register the callback on.
+	/// * callback: F - The callback to be called when the event is triggered with the following arguments:
+	/// 	* text: String - The text that is being edited.
+	/// 	* start_pos: i32 - The starting position of the text being edited.
 	pub fn on_text_editing<F>(node: &mut dyn INode, mut callback: F) where F: FnMut(/*text*/ String, /*start_pos*/ i32) + 'static {
 		node.attach_ime();
 		node.slot(Slot::TEXT_EDITING, Box::new(move |stack| {
@@ -2063,6 +2150,14 @@ impl Slot {
 			callback(text, start_pos);
 		}));
 	}
+	/// Registers a callback for event triggered when a game controller button is pressed down.
+	///
+	/// # Arguments
+	///
+	/// * node: &mut dyn INode - The node to register the callback on.
+	/// * button: ButtonName - The button to trigger the callback on.
+	/// * callback: F - The callback to be called when the event is triggered with the following arguments:
+	/// 	* controller_id: i32 - The controller id, incrementing from 0 when multiple controllers connected.
 	pub fn on_button_down<F>(node: &mut dyn INode, button: ButtonName, mut callback: F) where F: FnMut(/*controller_id*/ i32) + 'static {
 		node.set_controller_enabled(true);
 		node.slot(Slot::BUTTON_DOWN, Box::new(move |stack| {
@@ -2081,6 +2176,14 @@ impl Slot {
 			}
 		}));
 	}
+	/// Registers a callback for event triggered when a game controller button is released.
+	///
+	/// # Arguments
+	///
+	/// * node: &mut dyn INode - The node to register the callback on.
+	/// * button: ButtonName - The button to trigger the callback on.
+	/// * callback: F - The callback to be called when the event is triggered with the following arguments:
+	/// 	* controller_id: i32 - The controller id, incrementing from 0 when multiple controllers connected.
 	pub fn on_button_up<F>(node: &mut dyn INode, button: ButtonName, mut callback: F) where F: FnMut(/*controller_id*/ i32) + 'static {
 		node.set_controller_enabled(true);
 		node.slot(Slot::BUTTON_UP, Box::new(move |stack| {
@@ -2099,6 +2202,15 @@ impl Slot {
 			}
 		}));
 	}
+	/// Registers a callback for event triggered when a game controller button is being pressed.
+	/// This slot is triggered every frame while the button is being pressed.
+	///
+	/// # Arguments
+	///
+	/// * node: &mut dyn INode - The node to register the callback on.
+	/// * button: ButtonName - The button to trigger the callback on.
+	/// * callback: F - The callback to be called when the event is triggered with the following arguments:
+	/// 	* controller_id: i32 - The controller id, incrementing from 0 when multiple controllers connected.
 	pub fn on_button_pressed<F>(node: &mut dyn INode, button: ButtonName, mut callback: F) where F: FnMut(/*controller_id*/ i32) + 'static {
 		node.set_controller_enabled(true);
 		node.slot(Slot::BUTTON_PRESSED, Box::new(move |stack| {
@@ -2117,6 +2229,16 @@ impl Slot {
 			}
 		}));
 	}
+	/// Registers a callback for event triggered when a game controller axis changed.
+	/// This slot is triggered every frame while the axis value changes.
+	/// The axis value ranges from -1.0 to 1.0.
+	///
+	/// # Arguments
+	///
+	/// * node: &mut dyn INode - The node to register the callback on.
+	/// * axis: AxisName - The axis to trigger the callback on.
+	/// * callback: F - The callback to be called when the event is triggered with the following arguments:
+	/// 	* controller_id: i32 - The controller id, incrementing from 0 when multiple controllers connected.
 	pub fn on_axis<F>(node: &mut dyn INode, axis: AxisName, mut callback: F) where F: FnMut(/*controller_id*/ i32, /*axis_value*/ f32) + 'static {
 		node.set_controller_enabled(true);
 		node.slot(Slot::AXIS, Box::new(move |stack| {
@@ -2137,6 +2259,14 @@ impl Slot {
 			}
 		}));
 	}
+	/// Registers a callback for event triggered when an animation has ended on a Playable instance.
+	///
+	/// # Arguments
+	///
+	/// * node: &mut dyn IPlayable - The node to register the callback on.
+	/// * callback: F - The callback to be called when the event is triggered with the following arguments:
+	/// 	* animation_name: String - The name of the animation that ended.
+	/// 	* target: Playable - The Playable instance that the animation was played on.
 	pub fn on_animation_end<F>(node: &mut dyn IPlayable, mut callback: F) where F: FnMut(/*animation_name*/ String, /*target*/ Playable) + 'static {
 		node.slot(Slot::ANIMATION_END, Box::new(move |stack| {
 			let (
@@ -2144,7 +2274,7 @@ impl Slot {
 				playable
 			) = match (
 				stack.pop_str(),
-				stack.pop_playable()
+				stack.pop_into_playable()
 			) {
 				(Some(animation_name), Some(playable)) => (animation_name, playable),
 				_ => return,
@@ -2152,13 +2282,21 @@ impl Slot {
 			callback(animation_name, playable);
 		}));
 	}
+	/// Registers a callback for event triggered when a Body object collides with a sensor object.
+	///
+	/// # Arguments
+	///
+	/// * node: &mut dyn IBody - The node to register the callback on.
+	/// * callback: F - The callback to be called when the event is triggered with the following arguments:
+	/// 	* other: Body - The other Body object that the current Body is colliding with.
+	/// 	* sensor_tag: i32 - The tag of the sensor that triggered this collision.
 	pub fn on_body_enter<F>(node: &mut dyn IBody, mut callback: F) where F: FnMut(/*other*/ Body, /*sensor_tag*/ i32) + 'static {
 		node.slot(Slot::BODY_ENTER, Box::new(move |stack| {
 			let (
 				other,
 				sensor_tag
 			) = match (
-				stack.pop_body(),
+				stack.pop_into_body(),
 				stack.pop_i32()
 			) {
 				(Some(other), Some(sensor_tag)) => (other, sensor_tag),
@@ -2167,13 +2305,21 @@ impl Slot {
 			callback(other, sensor_tag);
 		}));
 	}
+	/// Registers a callback for event triggered when a Body object is no longer colliding with a sensor object.
+	///
+	/// # Arguments
+	///
+	/// * node: &mut dyn IBody - The node to register the callback on.
+	/// * callback: F - The callback to be called when the event is triggered with the following arguments:
+	/// 	* other: Body - The other Body object that the current Body is no longer colliding with.
+	/// 	* sensor_tag: i32 - The tag of the sensor that triggered this collision.
 	pub fn on_body_leave<F>(node: &mut dyn IBody, mut callback: F) where F: FnMut(/*other*/ Body, /*sensor_tag*/ i32) + 'static {
 		node.slot(Slot::BODY_LEAVE, Box::new(move |stack| {
 			let (
 				other,
 				sensor_tag
 			) = match (
-				stack.pop_body(),
+				stack.pop_into_body(),
 				stack.pop_i32()
 			) {
 				(Some(other), Some(sensor_tag)) => (other, sensor_tag),
@@ -2182,6 +2328,15 @@ impl Slot {
 			callback(other, sensor_tag);
 		}));
 	}
+	/// Registers a callback for event triggered when a Body object starts to collide with another object.
+	///
+	/// # Arguments
+	///
+	/// * node: &mut dyn IBody - The node to register the callback on.
+	/// * callback: F - The callback to be called when the event is triggered with the following arguments:
+	/// 	* other: Body - The other Body object that the current Body is colliding with.
+	/// 	* point: Vec2 - The point of collision in world coordinates.
+	/// 	* normal: Vec2 - The normal vector of the contact surface in world coordinates.
 	pub fn on_contact_start<F>(node: &mut dyn IBody, mut callback: F) where F: FnMut(/*other*/ Body, /*point*/ Vec2, /*normal*/ Vec2) + 'static {
 		node.set_receiving_contact(true);
 		node.slot(Slot::CONTACT_START, Box::new(move |stack| {
@@ -2190,7 +2345,7 @@ impl Slot {
 				point,
 				normal
 			) = match (
-				stack.pop_body(),
+				stack.pop_into_body(),
 				stack.pop_vec2(),
 				stack.pop_vec2()
 			) {
@@ -2200,6 +2355,15 @@ impl Slot {
 			callback(other, point, normal);
 		}));
 	}
+	/// Registers a callback for event triggered when a Body object stops colliding with another object.
+	///
+	/// # Arguments
+	///
+	/// * node: &mut dyn IBody - The node to register the callback on.
+	/// * callback: F - The callback to be called when the event is triggered with the following arguments:
+	/// 	* other: Body - The other Body object that the current Body is no longer colliding with.
+	/// 	* point: Vec2 - The point of collision in world coordinates.
+	/// 	* normal: Vec2 - The normal vector of the contact surface in world coordinates.
 	pub fn on_contact_end<F>(node: &mut dyn IBody, mut callback: F) where F: FnMut(/*other*/ Body, /*point*/ Vec2, /*normal*/ Vec2) + 'static {
 		node.set_receiving_contact(true);
 		node.slot(Slot::CONTACT_END, Box::new(move |stack| {
@@ -2208,7 +2372,7 @@ impl Slot {
 				point,
 				normal
 			) = match (
-				stack.pop_body(),
+				stack.pop_into_body(),
 				stack.pop_vec2(),
 				stack.pop_vec2()
 			) {
@@ -2218,11 +2382,25 @@ impl Slot {
 			callback(other, point, normal);
 		}));
 	}
+	/// Registers a callback for event triggered when a Particle node starts a stop action and then all the active particles end their lives.
+	///
+	/// # Arguments
+	///
+	/// * node: &mut Particle - The node to register the callback on.
+	/// * callback: F - The callback to be called when the event is triggered.
 	pub fn on_finished<F>(node: &mut Particle, mut callback: F) where F: FnMut() + 'static {
 		node.slot(Slot::FINISHED, Box::new(move |_| {
 			callback();
 		}));
 	}
+	/// Registers a callback for event triggered when the layout of the AlignNode is updated.
+	///
+	/// # Arguments
+	///
+	/// * node: &mut AlignNode - The node to register the callback on.
+	/// * callback: F - The callback to be called when the event is triggered with the following arguments:
+	/// 	* width: f32 - The width of the AlignNode.
+	/// 	* height: f32 - The height of the AlignNode.
 	pub fn on_align_layout<F>(node: &mut AlignNode, mut callback: F) where F: FnMut(/*width*/ f32, /*height*/ f32) + 'static {
 		node.slot(Slot::ALIGN_LAYOUT, Box::new(move |stack| {
 			let (
@@ -2238,6 +2416,13 @@ impl Slot {
 			callback(width, height);
 		}));
 	}
+	/// Registers a callback for event triggered when the EffekseerNode finishes playing an effect.
+	///
+	/// # Arguments
+	///
+	/// * node: &mut EffekNode - The node to register the callback on.
+	/// * callback: F - The callback to be called when the event is triggered with the following arguments:
+	/// 	* handle: i32 - The handle of the effect that finished playing.
 	pub fn on_effek_end<F>(node: &mut EffekNode, mut callback: F) where F: FnMut(/*handle*/ i32) + 'static {
 		node.slot(Slot::EFFEK_END, Box::new(move |stack| {
 			let handle = match stack.pop_i32() {
@@ -2310,7 +2495,13 @@ impl GSlot {
 	/// }));
 	/// ```
 	pub const APP_WS: &'static str = "AppWS";
-
+	/// Registers a callback for event triggered when the application receives an event.
+	///
+	/// # Arguments
+	///
+	/// * node: &mut dyn INode - The node to register the callback on.
+	/// * callback: F - The callback to be called when the event is triggered with the following arguments:
+	/// 	* event_type: String - The type of the application event. The event type could be "Quit", "LowMemory", "WillEnterBackground", "DidEnterBackground", "WillEnterForeground", "DidEnterForeground".
 	pub fn on_app_event<F>(node: &mut dyn INode, mut callback: F) where F: FnMut(/*event_type*/ String) + 'static {
 		node.gslot(GSlot::APP_EVENT, Box::new(move |stack| {
 			let event_type = match stack.pop_str() {
@@ -2320,6 +2511,13 @@ impl GSlot {
 			callback(event_type);
 		}));
 	}
+	/// Registers a callback for event triggered when the application settings change.
+	///
+	/// # Arguments
+	///
+	/// * node: &mut dyn INode - The node to register the callback on.
+	/// * callback: F - The callback to be called when the event is triggered with the following arguments:
+	/// 	* setting_name: String - The name of the setting that changed. Could be "Locale", "Theme", "FullScreen", "Position", "Size".
 	pub fn on_app_change<F>(node: &mut dyn INode, mut callback: F) where F: FnMut(/*setting_name*/ String) + 'static {
 		node.gslot(GSlot::APP_CHANGE, Box::new(move |stack| {
 			let setting_name = match stack.pop_str() {
@@ -2329,6 +2527,14 @@ impl GSlot {
 			callback(setting_name);
 		}));
 	}
+	/// Registers a callback for event triggered when gets an event from a websocket connection.
+	///
+	/// # Arguments
+	///
+	/// * node: &mut dyn INode - The node to register the callback on.
+	/// * callback: F - The callback to be called when the event is triggered with the following arguments:
+	/// 	* event_type: String - The event type of the message received. Could be "Open", "Close", "Send", "Receive".
+	/// 	* msg: String - The message received.
 	pub fn on_app_ws<F>(node: &mut dyn INode, mut callback: F) where F: FnMut(/*event_type*/ String, /*msg*/ String) + 'static {
 		node.gslot(GSlot::APP_WS, Box::new(move |stack| {
 			let (
@@ -2647,20 +2853,7 @@ impl Observer {
 
 // Node
 
-extern "C" {
-	fn node_emit(node: i64, name: i64, stack: i64);
-}
-
 impl Node {
-	/// Emits an event to a node, triggering the event handler associated with the event name.
-	///
-	/// # Arguments
-	///
-	/// * `name` - The name of the event.
-	/// * `stack` - The argument stack to be passed to the event handler.
-	pub fn emit(&mut self, name: &str, stack: CallStack) {
-		unsafe { node_emit(self.raw(), from_string(name), stack.raw()); }
-	}
 	/// Casts the object to a node.
 	///
 	/// # Arguments
