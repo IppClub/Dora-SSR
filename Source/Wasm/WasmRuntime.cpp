@@ -416,6 +416,10 @@ static float Node_PerformDefDuration(Node* node, ActionDef def, bool loop) {
 	}
 	return 0.0f;
 }
+static void Node_Emit(Node* node, String name, CallStack* stack) {
+	WasmEventArgs event(name, stack);
+	r_cast<Node*>(node)->emit(&event);
+}
 
 // Texture2D
 
@@ -1330,13 +1334,6 @@ void observer_watch(int64_t observer, int32_t func, int64_t stack) {
 	});
 }
 
-// Node
-
-void node_emit(int64_t node, int64_t name, int64_t stack) {
-	WasmEventArgs event(*Str_From(name), r_cast<CallStack*>(stack));
-	r_cast<Node*>(node)->emit(&event);
-}
-
 // Blackboard
 
 void blackboard_set(int64_t b, int64_t k, int64_t v) {
@@ -1647,8 +1644,6 @@ static void linkDoraModule(wasm3::module3& mod) {
 	mod.link_optional("*", "group_find", group_find);
 
 	mod.link_optional("*", "observer_watch", observer_watch);
-
-	mod.link_optional("*", "node_emit", node_emit);
 
 	mod.link_optional("*", "blackboard_set", blackboard_set);
 	mod.link_optional("*", "blackboard_get", blackboard_get);
