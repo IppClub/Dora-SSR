@@ -2020,3 +2020,147 @@ onAxis: function(self: Node, callback: function(controllerId: integer, axisName:
 | Parameter | Type | Description |
 | --- | --- | --- |
 | callback | function | The callback function to register. |
+
+## Node.AppEventType
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;Enumeration of application events.
+
+**Signature:**
+```tl
+enum AppEventType
+
+	-- The application is about to quit.
+	"Quit"
+
+	-- The application gets a low memory warning.
+	"LowMemory"
+
+	-- The application is about to enter the background.
+	"WillEnterBackground"
+
+	-- The application has entered the background.
+	"DidEnterBackground"
+
+	-- The application is about to enter the foreground.
+	"WillEnterForeground"
+
+	-- The application has entered the foreground.
+	"DidEnterForeground"
+end
+```
+
+## onAppEvent
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Registers callback for event triggered when an application event occurs.
+
+**Signature:**
+```tl
+onAppEvent: function(self: Node, callback: function(eventType: AppEventType))
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| callback | function | The callback function to register. |
+
+## Node.AppSettingName
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;Enumeration of application settings.
+
+**Signature:**
+```tl
+enum AppSettingName
+
+	-- The application's locale.
+	"Locale"
+
+	-- The application's theme color.
+	"Theme"
+
+	-- The application window's fullscreen state.
+	"FullScreen"
+
+	-- The application window's position.
+	"Position"
+
+	-- The application window's size.
+	"Size"
+end
+```
+
+## onAppChange
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Registers callback for event triggered when an application setting changes.
+
+**Signature:**
+```tl
+onAppChange: function(self: Node, callback: function(settingName: AppSettingName))
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| callback | function | The callback function to register. |
+
+## Node.AppWSEvent
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;Enumeration of application WebSocket events.
+
+**Signature:**
+```tl
+enum AppWSEvent
+
+	-- A WebSocket connection is opened.
+	"Open"
+
+	-- A WebSocket connection is closed.
+	"Close"
+
+	-- The WebSocket receives a message.
+	"Send"
+
+	-- The WebSocket broadcasts a message.
+	"Receive"
+end
+```
+
+## onAppWS
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Registers callback for event triggered when an application WebSocket event occurs.
+
+**Signature:**
+```tl
+onAppWS: function(self: Node, callback: function(event: AppWSEvent, message: string))
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| callback | function | The callback function to register. |

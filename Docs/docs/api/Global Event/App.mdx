@@ -11,22 +11,22 @@ This is just a demonstration record showing the global signal slot names and cal
 ```tl
 -- Register for these events using codes:
 local node = Node():addTo(Director.entry)
-node:gslot("AppQuit", function()
-	print("Application is shuting down!")
+node:gslot("AppEvent", function(eventType: string)
+	print("App event triggered: " .. eventType)
 end)
 ```
 
-## AppQuit
+## AppEvent
 
 **Type:** Global Event.
 
 **Description:**
 
-&emsp;&emsp;Triggers when the application is about to quit.
+&emsp;&emsp;Triggers when the application receives an event. The event type could be "Quit", "LowMemory", "WillEnterBackground", "DidEnterBackground", "WillEnterForeground", "DidEnterForeground".
 
 **Signature:**
 ```tl
-["AppQuit"]: function()
+["AppEvent"]: function(eventType: string)
 ```
 
 ## AppLowMemory
@@ -94,111 +94,28 @@ end)
 ["AppDidEnterForeground"]: function()
 ```
 
-## AppSizeChanged
+## AppChange
 
 **Type:** Global Event.
 
 **Description:**
 
-&emsp;&emsp;Triggers when the application window size changes.
+&emsp;&emsp;Triggers when the application settings change. The setting name could be "Locale", "Theme", "FullScreen", "Position", "Size".
 
 **Signature:**
 ```tl
-["AppSizeChanged"]: function()
+["AppChange"]: function(settingName: string)
 ```
 
-## AppFullScreen
+## AppWS
 
 **Type:** Global Event.
 
 **Description:**
 
-&emsp;&emsp;Triggers when the application window enters or exits full-screen mode.
+&emsp;&emsp;Triggers when a websocket connection gets an event. The event type could be "Open", "Close", "Send", "Receive".
 
 **Signature:**
 ```tl
-["AppFullScreen"]: function(fullScreen: boolean)
-```
-
-## AppMoved
-
-**Type:** Global Event.
-
-**Description:**
-
-&emsp;&emsp;Triggers when the application window position changes.
-
-**Signature:**
-```tl
-["AppMoved"]: function()
-```
-
-## AppTheme
-
-**Type:** Global Event.
-
-**Description:**
-
-&emsp;&emsp;Triggers when the application theme color changes.
-
-**Signature:**
-```tl
-["AppTheme"]: function(themeColor: Color)
-```
-
-## AppWSOpen
-
-**Type:** Global Event.
-
-**Description:**
-
-&emsp;&emsp;Triggers when a websocket connection is open.
-
-**Signature:**
-```tl
-["AppWSOpen"]: function()
-```
-
-## AppWSClose
-
-**Type:** Global Event.
-
-**Description:**
-
-&emsp;&emsp;Triggers when a websocket connection is closed.
-
-**Signature:**
-```tl
-["AppWSClose"]: function()
-```
-
-## AppWSMessage
-
-**Type:** Global Event.
-
-**Description:**
-
-&emsp;&emsp;Triggers when received text message from a websocket connection.
-
-**Signature:**
-```tl
-["AppWSMessage"]: function(msg: string)
-```
-
-## AppWSSend
-
-**Type:** Global Event.
-
-**Description:**
-
-&emsp;&emsp;A gobal event for broadcasting massage to all websocket connections.
-
-**Signature:**
-```tl
-["AppWSSend"]: function(msg: string)
-```
-
-**Usage:**
-```tl
-emit "AppWSSend", "A message"
+["AppWS"]: function(eventType: string, msg: string)
 ```
