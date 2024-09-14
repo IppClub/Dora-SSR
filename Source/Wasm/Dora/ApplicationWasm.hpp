@@ -50,9 +50,6 @@ int32_t application_get_max_fps() {
 int32_t application_is_debugging() {
 	return SharedApplication.isDebugging() ? 1 : 0;
 }
-int32_t application_is_full_screen() {
-	return SharedApplication.isFullScreen() ? 1 : 0;
-}
 void application_set_locale(int64_t var) {
 	SharedApplication.setLocale(*Str_From(var));
 }
@@ -101,6 +98,18 @@ void application_set_idled(int32_t var) {
 int32_t application_is_idled() {
 	return SharedApplication.isIdled() ? 1 : 0;
 }
+void application_set_full_screen(int32_t var) {
+	SharedApplication.setFullScreen(var != 0);
+}
+int32_t application_is_full_screen() {
+	return SharedApplication.isFullScreen() ? 1 : 0;
+}
+void application_set_always_on_top(int32_t var) {
+	SharedApplication.setAlwaysOnTop(var != 0);
+}
+int32_t application_is_always_on_top() {
+	return SharedApplication.isAlwaysOnTop() ? 1 : 0;
+}
 void application_shutdown() {
 	SharedApplication.shutdown();
 }
@@ -121,7 +130,6 @@ static void linkApplication(wasm3::module3& mod) {
 	mod.link_optional("*", "application_get_rand", application_get_rand);
 	mod.link_optional("*", "application_get_max_fps", application_get_max_fps);
 	mod.link_optional("*", "application_is_debugging", application_is_debugging);
-	mod.link_optional("*", "application_is_full_screen", application_is_full_screen);
 	mod.link_optional("*", "application_set_locale", application_set_locale);
 	mod.link_optional("*", "application_get_locale", application_get_locale);
 	mod.link_optional("*", "application_set_theme_color", application_set_theme_color);
@@ -138,5 +146,9 @@ static void linkApplication(wasm3::module3& mod) {
 	mod.link_optional("*", "application_is_fps_limited", application_is_fps_limited);
 	mod.link_optional("*", "application_set_idled", application_set_idled);
 	mod.link_optional("*", "application_is_idled", application_is_idled);
+	mod.link_optional("*", "application_set_full_screen", application_set_full_screen);
+	mod.link_optional("*", "application_is_full_screen", application_is_full_screen);
+	mod.link_optional("*", "application_set_always_on_top", application_set_always_on_top);
+	mod.link_optional("*", "application_is_always_on_top", application_is_always_on_top);
 	mod.link_optional("*", "application_shutdown", application_shutdown);
 }

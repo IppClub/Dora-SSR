@@ -603,9 +603,6 @@ interface App {
 	/** Whether the game engine is running in debug mode. */
 	readonly debugging: boolean;
 
-	/** Whether the game engine is running in full screen mode. */
-	readonly fullScreen: boolean;
-
 	/** An array of test names of engine included C++ tests. */
 	readonly testNames: string[];
 
@@ -641,9 +638,20 @@ interface App {
 	idled: boolean;
 
 	/**
+	 * Whether the game engine is running in full screen mode.
+	 * It is not available to set this property on platform Android and iOS.
+	 */
+	fullScreen: boolean;
+
+	/**
+	 * Whether the game engine window is always on top.
+	 * It is not available to set this property on platform Android and iOS.
+	 */
+	alwayOnTop: boolean;
+
+	/**
 	 * The application window size.
 	 * May differ from visual size due to the different DPIs of display devices.
-	 * Set `winSize` to `Size.zero` to toggle application window into full screen mode,
 	 * It is not available to set this property on platform Android and iOS.
 	 */
 	winSize: Size;
@@ -2253,32 +2261,32 @@ export {mouse as Mouse};
  * Enumeration for defining the controller axis names.
  */
 export const enum AxisName {
-	leftx = "leftx",
-	lefty = "lefty",
-	rightx = "rightx",
-	righty = "righty",
-	lefttrigger = "lefttrigger",
-	righttrigger = "righttrigger"
+	LeftX = "leftx",
+	LeftY = "lefty",
+	RightX = "rightx",
+	RightY = "righty",
+	LeftTrigger = "lefttrigger",
+	RightTrigger = "righttrigger"
 }
 
 /**
 * Enumeration for defining the controller button names.
 */
 export const enum ButtonName {
-	a = "a",
-	b = "b",
-	back = "back",
-	dpdown = "dpdown",
-	dpleft = "dpleft",
-	dpright = "dpright",
-	dpup = "dpup",
-	leftshoulder = "leftshoulder",
-	leftstick = "leftstick",
-	rightshoulder = "rightshoulder",
-	rightstick = "rightstick",
-	start = "start",
-	x = "x",
-	y = "y"
+	A = "a",
+	B = "b",
+	Back = "back",
+	Down = "dpdown",
+	Left = "dpleft",
+	Right = "dpright",
+	Up = "dpup",
+	LeftShoulder = "leftshoulder",
+	LeftStick = "leftstick",
+	RightShoulder = "rightshoulder",
+	RightStick = "rightstick",
+	Start = "start",
+	X = "x",
+	Y = "y"
 }
 
 /**
@@ -3138,7 +3146,7 @@ class Node extends Object {
 	 * Schedules a function to run every frame. Call this function again to schedule multiple functions.
 	 * @param func The function to run every frame, returns true to stop.
 	 */
-	onUpdate(func: (this: void, number) => boolean): void;
+	onUpdate(func: (this: void, deltaTime: number) => boolean): void;
 
 	/**
 	 * Schedules a coroutine to run every frame. Call this function again to schedule multiple coroutines.

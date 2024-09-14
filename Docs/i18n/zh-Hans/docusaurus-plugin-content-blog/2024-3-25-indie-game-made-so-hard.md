@@ -1,13 +1,13 @@
 ---
 authors: [lijin]
-tags: [Dora SSR, Yuescript, Auspice Gear, Game LSD]
+tags: [Dora SSR, YueScript, Auspice Gear, Game LSD]
 ---
 
 # 从编译器、游戏引擎到游戏掌机——我是这样做独立游戏的
 
 ## 引言
 
-&emsp;&emsp;自己开发制作游戏是一个儿时起就有的梦，特别是长时间接触魔兽争霸3世界编辑器后，我对游戏引擎和开发工具也有着特别的兴趣。学生时代接触编程以后，梦的外延开始扩散，不满足于使用各式编程语言做开发，开始维护一门自己喜欢的写游戏业务逻辑的编程语言 Yuescript，因为学习图形学和作为学习项目重写 Cocos2d-x 有了 Dora SSR 游戏引擎。工作后因为对游戏掌机的喜爱，开始与伙伴合作研发自由开放的可编程游戏掌机设备——吉祥机，实现自己游戏梦终极的 Digital Freedom。
+&emsp;&emsp;自己开发制作游戏是一个儿时起就有的梦，特别是长时间接触魔兽争霸3世界编辑器后，我对游戏引擎和开发工具也有着特别的兴趣。学生时代接触编程以后，梦的外延开始扩散，不满足于使用各式编程语言做开发，开始维护一门自己喜欢的写游戏业务逻辑的编程语言 YueScript，因为学习图形学和作为学习项目重写 Cocos2d-x 有了 Dora SSR 游戏引擎。工作后因为对游戏掌机的喜爱，开始与伙伴合作研发自由开放的可编程游戏掌机设备——吉祥机，实现自己游戏梦终极的 Digital Freedom。
 
 <!-- truncate -->
 
@@ -18,7 +18,7 @@ tags: [Dora SSR, Yuescript, Auspice Gear, Game LSD]
    编程语言游乐场！
 </p>
 
-&emsp;&emsp;各式新的编程语言的学习是充满乐趣，对不同语言工具的接触也会带来不同的编程理念和程序设计思想。对于复杂多变的游戏玩法的脚本编程（Scripting）我也形成了自己编程偏好，即使用一门尽可能简洁和表达力强的编程语言来编写容易变化的业务逻辑，可以转译为 Lua 语言执行的 Yuescript 就是满足这个需求的产物。后来随着使用自己的 Dora SSR 游戏引擎项目有了更多的游戏开发体验，又为 Dora SSR 游戏引擎引入了 Teal（为 Lua 语言添加静态类型检查能力的语言），Typescript（进一步增强代码编辑器提示和代码检查的语言），JSX 和 XML（提供描述性代码进行组件化开发的语言）等等。每一种脚本语言都能在特定的游戏开发场景发挥优势，并通过转译到最终运行的同样的Lua语言进行无缝的互通调用。不只是基于 Lua 语言的扩展，Dora SSR 游戏引擎还在尝试通过 WASM 虚拟机来支持更加多样的可以用做游戏脚本编程的语言，如 Rust 和准备支持的 C++ 和 Go 等，兼顾性能与引擎的运行时扩展能力。
+&emsp;&emsp;各式新的编程语言的学习是充满乐趣，对不同语言工具的接触也会带来不同的编程理念和程序设计思想。对于复杂多变的游戏玩法的脚本编程（Scripting）我也形成了自己编程偏好，即使用一门尽可能简洁和表达力强的编程语言来编写容易变化的业务逻辑，可以转译为 Lua 语言执行的 YueScript 就是满足这个需求的产物。后来随着使用自己的 Dora SSR 游戏引擎项目有了更多的游戏开发体验，又为 Dora SSR 游戏引擎引入了 Teal（为 Lua 语言添加静态类型检查能力的语言），Typescript（进一步增强代码编辑器提示和代码检查的语言），JSX 和 XML（提供描述性代码进行组件化开发的语言）等等。每一种脚本语言都能在特定的游戏开发场景发挥优势，并通过转译到最终运行的同样的Lua语言进行无缝的互通调用。不只是基于 Lua 语言的扩展，Dora SSR 游戏引擎还在尝试通过 WASM 虚拟机来支持更加多样的可以用做游戏脚本编程的语言，如 Rust 和准备支持的 C++ 和 Go 等，兼顾性能与引擎的运行时扩展能力。
 
 ## 游戏引擎的创新之路
 
@@ -62,6 +62,6 @@ tags: [Dora SSR, Yuescript, Auspice Gear, Game LSD]
 
 * 游戏引擎：https://github.com/IppClub/Dora-SSR
 
-* Yuescript语言：https://github.com/pigpigyyy/Yuescript
+* YueScript语言：https://github.com/pigpigyyy/YueScript
 
 * 《灵数奇缘》开源游戏项目：https://luv-sense-digital.readthedocs.io

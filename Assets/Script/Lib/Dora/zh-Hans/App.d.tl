@@ -65,9 +65,6 @@ local record App
 	-- 游戏引擎是否运行在调试模式下。
 	const debugging: boolean
 
-	-- 游戏引擎是否运行在全屏模式下。
-	const fullScreen: boolean
-
 	-- 引擎内置的C++测试的测试名称（用于辅助引擎本身开发）。
 	const testNames: {string}
 
@@ -95,9 +92,16 @@ local record App
 	-- 闲置状态可以减少额外的CPU占用。
 	idled: boolean
 
+	-- 游戏引擎是否运行在全屏模式下。
+	-- 在Android和iOS平台上无法设置此属性。
+	fullScreen: boolean
+
+	-- 游戏引擎是否运行在窗口置顶模式下。
+	-- 在Android和iOS平台上无法设置此属性。
+	alwayOnTop: boolean
+
 	-- 应用程序窗口大小。
 	-- 由于显示设备的DPI不同，可能会与实际的可视大小有差异。
-	-- 将`winSize`设置为`Size.zero`，可以将应用程序窗口切换到全屏模式。
 	-- 在Android和iOS平台上无法设置此属性。
 	winSize: Size
 

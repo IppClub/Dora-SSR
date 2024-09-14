@@ -608,9 +608,6 @@ interface App {
 	/** 游戏引擎是否运行在调试模式下。 */
 	readonly debugging: boolean;
 
-	/** 游戏引擎是否运行在全屏模式下。 */
-	readonly fullScreen: boolean;
-
 	/** 引擎内置的C++测试的测试名称（用于辅助引擎本身开发）。 */
 	readonly testNames: string[];
 
@@ -645,9 +642,20 @@ interface App {
 	idled: boolean;
 
 	/**
+	 * 游戏引擎是否运行在全屏模式下。
+	 * 在Android和iOS平台上无法设置此属性。
+	 */
+	fullScreen: boolean;
+
+	/**
+	 * 游戏引擎的窗口是否始终在最上层。
+	 * 在Android和iOS平台上无法设置此属性。
+	 */
+	alwayOnTop: boolean;
+
+	/**
 	 * 应用程序窗口大小。
 	 * 由于显示设备的DPI不同，可能会与实际的可视大小有差异。
-	 * 将`winSize`设置为`Size.zero`，可以将应用程序窗口切换到全屏模式。
 	 * 在Android和iOS平台上无法设置此属性。
 	 */
 	winSize: Size;
@@ -2250,32 +2258,32 @@ export {mouse as Mouse};
  * 用于定义控制器轴名称的枚举。
  */
 export const enum AxisName {
-	leftx = "leftx",
-	lefty = "lefty",
-	rightx = "rightx",
-	righty = "righty",
-	lefttrigger = "lefttrigger",
-	righttrigger = "righttrigger"
+	LeftX = "leftx",
+	LeftY = "lefty",
+	RightX = "rightx",
+	RightY = "righty",
+	LeftTrigger = "lefttrigger",
+	RightTrigger = "righttrigger"
 }
 
 /**
 * 用于定义控制器按钮名称的枚举。
 */
 export const enum ButtonName {
-	a = "a",
-	b = "b",
-	back = "back",
-	dpdown = "dpdown",
-	dpleft = "dpleft",
-	dpright = "dpright",
-	dpup = "dpup",
-	leftshoulder = "leftshoulder",
-	leftstick = "leftstick",
-	rightshoulder = "rightshoulder",
-	rightstick = "rightstick",
-	start = "start",
-	x = "x",
-	y = "y"
+	A = "a",
+	B = "b",
+	Back = "back",
+	Down = "dpdown",
+	Left = "dpleft",
+	Right = "dpright",
+	Up = "dpup",
+	LeftShoulder = "leftshoulder",
+	LeftStick = "leftstick",
+	RightShoulder = "rightshoulder",
+	RightStick = "rightstick",
+	Start = "start",
+	X = "x",
+	Y = "y"
 }
 
 /**

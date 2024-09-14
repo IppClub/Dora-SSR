@@ -23,7 +23,7 @@ sidebar_position: 5
   - **Data**：用于存放静态的游戏数据文件如Excel表格，脚本编写的配置表等。
   - **Font**：用于存放游戏的字库文件资源。
   - **Image**：用于存放游戏图片资源。
-  - **Script**：存放脚本文件，如 Lua、Yuescript 、 Teal 或是 TS 代码。
+  - **Script**：存放脚本文件，如 Lua、YueScript 、 Teal 或是 TS 代码。
   - **Spine**：用于存放游戏动画资源。
   - **init.yue/lua/tl/ts/tsx/wasm**：项目启动文件，根据使用的脚本语言选择合适的扩展名。
 
@@ -31,7 +31,7 @@ sidebar_position: 5
 
 ### 4. 代码模块的搜索路径
 
-&emsp;&emsp;在编写 Lua、Yuescript 或 Teal 代码时，如果需要导入外部模块，Dora SSR 引擎运行时和 Web IDE 将按以下顺序搜索代码模块：
+&emsp;&emsp;在编写 Lua、YueScript 或 Teal 代码时，如果需要导入外部模块，Dora SSR 引擎运行时和 Web IDE 将按以下顺序搜索代码模块：
 
 1. **引擎用户资源根目录/游戏项目根目录/Script**
 2. **引擎用户资源根目录/游戏项目根目录**

@@ -114,9 +114,9 @@ Director.entry:addChild(MainScene())
 
 &emsp;&emsp;这样我们的界面开发的程序逻辑组织就比较完善了。用 Dora XML 来管理界面外观，然后在 Lua 类中写界面逻辑。现在UI组件的外观定义和业务逻辑的代码就可以分别在不同的文件中进行开发和维护了。
 
-## 使用 Yuescript 编写 UI 逻辑
+## 使用 YueScript 编写 UI 逻辑
 
-&emsp;&emsp;有了 Dora XML 简化界面代码的编写，我们可以进一步地引入了叫做 Yuescript 的新语言进行开发，Yuescript 是一门编译成Lua运行的语言，所以可以和 Lua 无缝结合使用。它的最大的特性是代码比较简洁和易于维护。下面就来看一下怎么用 Yuescript 配合 Dora XML 写业务逻辑吧。前文中的代码如果使用 Yuescript 就可以写成：
+&emsp;&emsp;有了 Dora XML 简化界面代码的编写，我们可以进一步地引入了叫做 YueScript 的新语言进行开发，YueScript 是一门编译成Lua运行的语言，所以可以和 Lua 无缝结合使用。它的最大的特性是代码比较简洁和易于维护。下面就来看一下怎么用 YueScript 配合 Dora XML 写业务逻辑吧。前文中的代码如果使用 YueScript 就可以写成：
 
 ```yue title="Button.yue"
 _ENV = Dora!
@@ -156,4 +156,4 @@ import "MainScene"
 Director.entry\addChild MainScene!
 ```
 
-&emsp;&emsp;比前文的代码要简练了很多，但实现的功能是完全相同的。所以推荐读者可以尝试使用 Yuescript 来编写UI界面的逻辑代码。Yuescript 使用了 Python 的缩进控制代码块的代码风格，以及从包括 Python 在内的很多语言中吸收了优秀的语法特性。目前在 Dora SSR 的 Web IDE 中也添加了对 Yuescript 的代码编写的支持，包括高亮补全和错误检查等，想学习 Yuescript 这门语言，就从[这里](https://yuescript.org/doc)开始吧。
+&emsp;&emsp;比前文的代码要简练了很多，但实现的功能是完全相同的。所以推荐读者可以尝试使用 YueScript 来编写UI界面的逻辑代码。YueScript 使用了 Python 的缩进控制代码块的代码风格，以及从包括 Python 在内的很多语言中吸收了优秀的语法特性。目前在 Dora SSR 的 Web IDE 中也添加了对 YueScript 的代码编写的支持，包括高亮补全和错误检查等，想学习 YueScript 这门语言，就从[这里](https://yuescript.org/doc)开始吧。

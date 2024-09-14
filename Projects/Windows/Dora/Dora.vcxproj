@@ -2420,10 +2420,6 @@
     <ClInclude Include="..\..\..\Source\3rdParty\tmxlite\TileLayer.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\tmxlite\Tileset.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\tmxlite\Types.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\wasm3\extra\coremark_minimal.wasm.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\wasm3\extra\fib32.wasm.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\wasm3\extra\fib32_tail.wasm.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\wasm3\extra\fib64.wasm.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\wasm3\extra\wasi_core.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\wasm3\m3_api_libc.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\wasm3\m3_api_tracer.h" />

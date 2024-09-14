@@ -114,9 +114,9 @@ Director.entry:addChild(MainScene())
 
 This way, the organization of our program logic for UI development is more complete. We use Dora XML to manage the appearance of the UI, and then write the UI logic in Lua classes. Now the appearance definition of UI components and the code for business logic can be developed and maintained in separate files.
 
-## Writing UI Logic with Yuescript
+## Writing UI Logic with YueScript
 
-With Dora XML simplifying the UI code, we can further introduce a new language called Yuescript for development. Yuescript is a language that compiles into Lua and can seamlessly integrate with Lua. Its main feature is concise and easy-to-maintain code. Let's see how to use Yuescript together with Dora XML to write business logic. The code from the previous section can be written in Yuescript as follows:
+With Dora XML simplifying the UI code, we can further introduce a new language called YueScript for development. YueScript is a language that compiles into Lua and can seamlessly integrate with Lua. Its main feature is concise and easy-to-maintain code. Let's see how to use YueScript together with Dora XML to write business logic. The code from the previous section can be written in YueScript as follows:
 
 ```yue title="Button.yue"
 _ENV = Dora!
@@ -156,4 +156,4 @@ import "MainScene"
 Director.entry\addChild MainScene!
 ```
 
-The code is much more concise than the previous version, but it achieves the same functionality. Therefore, I recommend readers to try using Yuescript to write UI logic code. Yuescript adopts the code style of Python with indentation controlling code blocks, and it incorporates excellent syntax features from many languages, including Python. Currently, the Dora SSR Web IDE also supports Yuescript code writing, including features like syntax highlighting, autocompletion, and error checking. If you want to learn Yuescript, you can start [here](https://yuescript.org/doc).
+The code is much more concise than the previous version, but it achieves the same functionality. Therefore, I recommend readers to try using YueScript to write UI logic code. YueScript adopts the code style of Python with indentation controlling code blocks, and it incorporates excellent syntax features from many languages, including Python. Currently, the Dora SSR Web IDE also supports YueScript code writing, including features like syntax highlighting, autocompletion, and error checking. If you want to learn YueScript, you can start [here](https://yuescript.org/doc).

@@ -66,9 +66,6 @@ local record App
 	-- Whether the game engine is running in debug mode.
 	const debugging: boolean
 
-	-- Whether the game engine is running in full screen mode.
-	const fullScreen: boolean
-
 	-- An array of test names of engine included C++ tests.
 	const testNames: {string}
 
@@ -94,9 +91,16 @@ local record App
 	-- `idled` state can reduce some CPU usage.
 	idled: boolean
 
+	-- Whether the game engine is running in full screen mode.
+	-- It is not available to set this property on platform Android and iOS.
+	fullScreen: boolean
+
+	-- Whether the game engine window is always on top.
+	-- It is not available to set this property on platform Android and iOS.
+	alwaysOnTop: boolean
+
 	-- The application window size.
 	-- May differ from visual size due to the different DPIs of display devices.
-	-- Set `winSize` to `Size.zero` to toggle application window into full screen mode,
 	-- It is not available to set this property on platform Android and iOS.
 	winSize: Size
 

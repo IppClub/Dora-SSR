@@ -192,8 +192,6 @@ singleton class Application @ App
 	readonly common uint32_t maxFPS @ max_fps;
 	/// whether the game engine is running in debug mode.
 	readonly boolean bool debugging;
-	/// whether the game engine is running in full screen mode.
-	readonly boolean bool fullScreen;
 	/// the system locale string, in format like: `zh-Hans`, `en`.
 	common string locale;
 	/// the theme color for Dora SSR.
@@ -205,7 +203,6 @@ singleton class Application @ App
 	common uint32_t targetFPS @ target_fps;
 	/// the application window size.
 	/// May differ from visual size due to the different DPIs of display devices.
-	/// Set `winSize` to `Size.zero` to toggle application window into full screen mode,
 	/// It is not available to set this property on platform Android and iOS.
 	common Size winSize;
 	/// the application window position.
@@ -218,6 +215,12 @@ singleton class Application @ App
 	/// Set `idled` to true, will make game logic thread use a sleep time and going idled for next frame to come. Due to the imprecision in sleep time. This idled state may cause game engine over slept for a few frames to lost.
 	/// `idled` state can reduce some CPU usage.
 	boolean bool idled;
+	/// whether the game engine is running in full screen mode.
+	/// It is not available to set this property on platform Android and iOS.
+	boolean bool fullScreen;
+	/// whether the game engine window is always on top. Default is true.
+	/// It is not available to set this property on platform Android and iOS.
+	boolean bool alwaysOnTop;
 	/// Shuts down the game engine.
 	/// It is not working and acts as a dummy function for platform Android and iOS to follow the specification of how mobile platform applications should operate.
 	void shutdown();

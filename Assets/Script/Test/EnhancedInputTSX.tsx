@@ -40,13 +40,13 @@ const inputManager = CreateManager([
 	{name: "Default", actions: [
 		{name: "Confirm", trigger:
 			Trigger.Selector([
-				Trigger.ButtonHold(ButtonName.y, 1),
+				Trigger.ButtonHold(ButtonName.Y, 1),
 				Trigger.KeyHold(KeyName.Return, 1),
 			])
 		},
 		{name: "MoveDown", trigger:
 			Trigger.Selector([
-				Trigger.ButtonPressed(ButtonName.dpdown),
+				Trigger.ButtonPressed(ButtonName.Down),
 				Trigger.KeyPressed(KeyName.S)
 			])
 		},
@@ -54,14 +54,14 @@ const inputManager = CreateManager([
 	{name: "Test", actions: [
 		{name: "Confirm", trigger: 
 			Trigger.Selector([
-				Trigger.ButtonHold(ButtonName.x, 0.3),
+				Trigger.ButtonHold(ButtonName.X, 0.3),
 				Trigger.KeyHold(KeyName.LCtrl, 0.3),
 			])
 		},
 	]},
-	QTEContext(QTE.Phase1, KeyName.J, ButtonName.a, 3),
-	QTEContext(QTE.Phase2, KeyName.K, ButtonName.b, 2),
-	QTEContext(QTE.Phase3, KeyName.L, ButtonName.x, 1)
+	QTEContext(QTE.Phase1, KeyName.J, ButtonName.A, 3),
+	QTEContext(QTE.Phase2, KeyName.K, ButtonName.B, 2),
+	QTEContext(QTE.Phase3, KeyName.L, ButtonName.X, 1)
 ]);
 
 inputManager.pushContext("Default");

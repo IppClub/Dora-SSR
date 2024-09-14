@@ -2795,18 +2795,6 @@
     <ClInclude Include="..\..\..\Source\3rdParty\wasm3\wasm3_defs.h">
       <Filter>3rdParty\wasm3</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\wasm3\extra\coremark_minimal.wasm.h">
-      <Filter>3rdParty\wasm3\extra</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\wasm3\extra\fib32.wasm.h">
-      <Filter>3rdParty\wasm3\extra</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\wasm3\extra\fib32_tail.wasm.h">
-      <Filter>3rdParty\wasm3\extra</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\wasm3\extra\fib64.wasm.h">
-      <Filter>3rdParty\wasm3\extra</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\wasm3\extra\wasi_core.h">
       <Filter>3rdParty\wasm3\extra</Filter>
     </ClInclude>

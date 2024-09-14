@@ -21,7 +21,6 @@ extern "C" {
 	fn application_get_rand() -> i64;
 	fn application_get_max_fps() -> i32;
 	fn application_is_debugging() -> i32;
-	fn application_is_full_screen() -> i32;
 	fn application_set_locale(var: i64);
 	fn application_get_locale() -> i64;
 	fn application_set_theme_color(var: i32);
@@ -38,6 +37,10 @@ extern "C" {
 	fn application_is_fps_limited() -> i32;
 	fn application_set_idled(var: i32);
 	fn application_is_idled() -> i32;
+	fn application_set_full_screen(var: i32);
+	fn application_is_full_screen() -> i32;
+	fn application_set_always_on_top(var: i32);
+	fn application_is_always_on_top() -> i32;
 	fn application_shutdown();
 }
 /// A struct representing an application.
@@ -107,10 +110,6 @@ impl App {
 	pub fn is_debugging() -> bool {
 		return unsafe { application_is_debugging() != 0 };
 	}
-	/// Gets whether the game engine is running in full screen mode.
-	pub fn is_full_screen() -> bool {
-		return unsafe { application_is_full_screen() != 0 };
-	}
 	/// Sets the system locale string, in format like: `zh-Hans`, `en`.
 	pub fn set_locale(var: &str) {
 		unsafe { application_set_locale(crate::dora::from_string(var)) };
@@ -147,14 +146,12 @@ impl App {
 	}
 	/// Sets the application window size.
 	/// May differ from visual size due to the different DPIs of display devices.
-	/// Set `winSize` to `Size.zero` to toggle application window into full screen mode,
 	/// It is not available to set this property on platform Android and iOS.
 	pub fn set_win_size(var: &crate::dora::Size) {
 		unsafe { application_set_win_size(var.into_i64()) };
 	}
 	/// Gets the application window size.
 	/// May differ from visual size due to the different DPIs of display devices.
-	/// Set `winSize` to `Size.zero` to toggle application window into full screen mode,
 	/// It is not available to set this property on platform Android and iOS.
 	pub fn get_win_size() -> crate::dora::Size {
 		return unsafe { crate::dora::Size::from(application_get_win_size()) };
@@ -190,6 +187,26 @@ impl App {
 	/// `idled` state can reduce some CPU usage.
 	pub fn is_idled() -> bool {
 		return unsafe { application_is_idled() != 0 };
+	}
+	/// Sets whether the game engine is running in full screen mode.
+	/// It is not available to set this property on platform Android and iOS.
+	pub fn set_full_screen(var: bool) {
+		unsafe { application_set_full_screen(if var { 1 } else { 0 }) };
+	}
+	/// Gets whether the game engine is running in full screen mode.
+	/// It is not available to set this property on platform Android and iOS.
+	pub fn is_full_screen() -> bool {
+		return unsafe { application_is_full_screen() != 0 };
+	}
+	/// Sets whether the game engine window is always on top. Default is true.
+	/// It is not available to set this property on platform Android and iOS.
+	pub fn set_always_on_top(var: bool) {
+		unsafe { application_set_always_on_top(if var { 1 } else { 0 }) };
+	}
+	/// Gets whether the game engine window is always on top. Default is true.
+	/// It is not available to set this property on platform Android and iOS.
+	pub fn is_always_on_top() -> bool {
+		return unsafe { application_is_always_on_top() != 0 };
 	}
 	/// Shuts down the game engine.
 	/// It is not working and acts as a dummy function for platform Android and iOS to follow the specification of how mobile platform applications should operate.

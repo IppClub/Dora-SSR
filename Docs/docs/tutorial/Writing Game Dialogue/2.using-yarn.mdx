@@ -9,7 +9,7 @@ Welcome to the YarnRunner functionality tutorial. In this tutorial, we will guid
 ### 1. Initializing YarnRunner
 
 <Tabs>
-<TabItem value="yue" label="Yuescript">
+<TabItem value="yue" label="YueScript">
 
 First, make sure you have imported all the necessary modules.
 
@@ -91,7 +91,7 @@ local runner = YarnRunner("tutorial.yarn", "Start")
 We have defined an `advance` function that can read and display text content or options from the Yarn script. Depending on the narrative content, it can also display character names:
 
 <Tabs>
-<TabItem value="yue" label="Yuescript">
+<TabItem value="yue" label="YueScript">
 
 ```yue title="init.yue"
 -- The `advance` function takes an optional integer parameter representing the player's choice index.
@@ -241,7 +241,7 @@ end
 To initiate the narrative, you simply call the `advance` function without any arguments:
 
 <Tabs>
-<TabItem value="yue" label="Yuescript">
+<TabItem value="yue" label="YueScript">
 
 ```yue title="init.yue"
 advance!
@@ -269,7 +269,7 @@ advance()
 To allow player interaction with the narrative, we need a node to capture and respond to user input. We create a node and assign it a signal slot named "go." When this signal is triggered, it will call the `advance` function again and pass the player's choice:
 
 <Tabs>
-<TabItem value="yue" label="Yuescript">
+<TabItem value="yue" label="YueScript">
 
 ```yue title="init.yue"
 with Node!

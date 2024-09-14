@@ -13,16 +13,16 @@ To create a node in the Dora SSR engine, you need to create an instance of the N
 
 Here's an example of how to create a new Node instance in script code:
 
-<Tabs>
-<TabItem value="yue" label="Yuescript">
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
 
-```yue
+```lua
 -- Create a new Node instance, and it will be automatically
 -- mounted to the root node of the game scene
-node = Node!
+local node = Node()
 
--- Or you can mount it to the root node of the game scene manually
--- Director.entry\addChild node
+-- Or you can mount it to the root node of the game scene explicitly
+-- Director.entry:addChild(node)
 ```
 
 </TabItem>
@@ -33,20 +33,20 @@ node = Node!
 -- mounted to the root node of the game scene
 local node = Node()
 
--- Mount the newly created Node instance to the root node of the game scene
+-- Or you can mount it to the root node of the game scene explicitly
 -- Director.entry:addChild(node)
 ```
 
 </TabItem>
-<TabItem value="lua" label="Lua">
+<TabItem value="yue" label="YueScript">
 
-```lua
+```yue
 -- Create a new Node instance, and it will be automatically
 -- mounted to the root node of the game scene
-local node = Node()
+node = Node!
 
--- Mount the newly created Node instance to the root node of the game scene
--- Director.entry:addChild(node)
+-- Or you can mount it to the root node of the game scene explicitly
+-- Director.entry\addChild node
 ```
 
 </TabItem>
@@ -58,8 +58,30 @@ The Node class has many member variables that can be set, such as `x`, `y`, `z` 
 
 Here's an example of how to set these properties in Lua:
 
-<Tabs>
-<TabItem value="yue" label="Yuescript">
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+node.x = 100
+node.y = 200
+node.width = 50
+node.height = 50
+node.visible = true
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```teal
+node.x = 100
+node.y = 200
+node.width = 50
+node.height = 50
+node.visible = true
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
 
 ```yue
 with node
@@ -71,40 +93,18 @@ with node
 ```
 
 </TabItem>
-<TabItem value="teal" label="Teal">
-
-```teal
-node.x = 100
-node.y = 200
-node.width = 50
-node.height = 50
-node.visible = true
-```
-
-</TabItem>
-<TabItem value="lua" label="Lua">
-
-```lua
-node.x = 100
-node.y = 200
-node.width = 50
-node.height = 50
-node.visible = true
-```
-
-</TabItem>
 </Tabs>
 
 ## Adding Child Nodes
 
 In the Node class, you can add child nodes using the `addChild` method. Here's an example of how to add a child node in your code:
 
-<Tabs>
-<TabItem value="yue" label="Yuescript">
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
 
-```yue
-childNode = Node!
-node\addChild childNode
+```lua
+local childNode = Node()
+node:addChild(childNode)
 ```
 
 </TabItem>
@@ -116,11 +116,11 @@ node:addChild(childNode)
 ```
 
 </TabItem>
-<TabItem value="lua" label="Lua">
+<TabItem value="yue" label="YueScript">
 
-```lua
-local childNode = Node()
-node:addChild(childNode)
+```yue
+childNode = Node!
+node\addChild childNode
 ```
 
 </TabItem>
@@ -134,14 +134,13 @@ The Node class has some read-only member variables, such as `hasChildren` (wheth
 
 Here's an example of how to check these properties in Lua:
 
-<Tabs>
-<TabItem value="yue" label="Yuescript">
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
 
-```yue
-with node
-	print .hasChildren -- Print whether the node has child nodes
-	print .children -- Print the list of child nodes
-	print .parent -- Print the parent node of the current node
+```lua
+print(node.hasChildren) -- Print whether the node has child nodes
+print(node.children) -- Print the list of child nodes
+print(node.parent) -- Print the parent node of the current node
 ```
 
 </TabItem>
@@ -154,12 +153,13 @@ print(node.parent) -- Print the parent node of the current node
 ```
 
 </TabItem>
-<TabItem value="lua" label="Lua">
+<TabItem value="yue" label="YueScript">
 
-```lua
-print(node.hasChildren) -- Print whether the node has child nodes
-print(node.children) -- Print the list of child nodes
-print(node.parent) -- Print the parent node of the current node
+```yue
+with node
+	print .hasChildren -- Print whether the node has child nodes
+	print .children -- Print the list of child nodes
+	print .parent -- Print the parent node of the current node
 ```
 
 </TabItem>
@@ -171,14 +171,15 @@ Firstly, the event system of the scene node class supports various types of even
 
 The basic steps to register and handle events are as follows:
 
-1. **Registering an Event**: You can register an event on a node to listen to it. For example, you can use the following code pattern to register and listen to an event:
+1. **Registering an Event**: You can register an event on a node to listen to it. And the event is triggered by the built-in engine features, such as screen touch, mouse, keyboard, and gamepad inputs. You can use the following code pattern to register and listen to events on a node. The event triggering on the node is multicast, meaning you can register multiple callback functions to listen to the same event. Here's an example code:
 
-<Tabs>
-<TabItem value="yue" label="Yuescript">
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
 
-```yue
-node\slot "EventName", (...)->
+```lua
+node:slot("EventName", function(...)
 	-- Add your code here
+end)
 ```
 
 </TabItem>
@@ -191,12 +192,11 @@ end)
 ```
 
 </TabItem>
-<TabItem value="lua" label="Lua">
+<TabItem value="yue" label="YueScript">
 
-```lua
-node:slot("EventName", function(...)
+```yue
+node\slot "EventName", (...)->
 	-- Add your code here
-end)
 ```
 
 </TabItem>
@@ -204,12 +204,13 @@ end)
 
 2. **Handling the Event**: When the registered event is triggered, you can add code to handle the event in the callback function and retrieve the event-related parameters. For example, you can add code to handle the action end event in the callback function:
 
-<Tabs>
-<TabItem value="yue" label="Yuescript">
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
 
-```yue
-node\slot "ActionEnd", (action, target)->
-	print "Action completed: #{action} Target node: #{target}"
+```lua
+node:slot("ActionEnd", function(action, target)
+	print("Action completed: " .. tostring(action) .. " Target node: " .. tostring(target))
+end)
 ```
 
 </TabItem>
@@ -222,12 +223,69 @@ end)
 ```
 
 </TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+node\slot "ActionEnd", (action, target)->
+	print "Action completed: #{action} Target node: #{target}"
+```
+
+</TabItem>
+</Tabs>
+
+3. **Removing an Event**: When you no longer need to listen to an event, you can remove the event listener using the following methods. Here's an example code:
+
+<Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
 
 ```lua
-node:slot("ActionEnd", function(action, target)
-	print("Action completed: " .. tostring(action) .. " Target node: " .. tostring(target))
-end)
+local function callback(...)
+	-- Add your code here
+end
+
+-- Register the event
+node:slot("EventName", callback)
+
+-- Remove the event
+node:slot("EventName"):remove(callback)
+
+-- Or you can remove all event listeners
+node:slot("EventName", nil)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```teal
+local function callback(...)
+	-- Add your code here
+end
+
+-- Register the event
+node:slot("EventName", callback)
+
+-- Remove the event
+node:slot("EventName"):remove(callback)
+
+-- Or you can remove all event listeners
+node:slot("EventName", nil)
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+callback = (event)->
+	-- Add your code here
+
+-- Register the event
+node\slot "EventName", callback
+
+-- Remove the event
+node\slot "EventName"\remove callback
+
+-- Or you can remove all event listeners
+node\slot "EventName", nil
 ```
 
 </TabItem>
@@ -248,18 +306,51 @@ node.touchEnabled = true
 
 By registering and handling these events, you can easily add complex interactive functionality to your game nodes. For other available node events, please refer to [here](../api/Node%20Event/Node).
 
+To simplify event handling, we also provide some built-in event registering functions, such as `onTapBegan`, `onTapEnded`, `onTapped`, `onTapMoved`, `onMouseWheel`, etc. You can register and handle events by calling these functions on the node.
+
+For example, you can register and handle the tap began event by calling the following code:
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+node:onTapBegan(function(touch)
+	print("Tap began")
+end)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```teal
+node:onTapBegan(function(touch)
+	print("Tap began")
+end)
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+node\onTapBegan (touch)->
+	print "Tap began"
+```
+
+</TabItem>
+</Tabs>
+
 ## Node Actions
 
 &emsp;&emsp;Below, we will demonstrate how to use the node action system to create various animation effects.
 
 1. **Move Action**:
 
-<Tabs>
-<TabItem value="yue" label="Yuescript">
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
 
-```yue
-moveAction = Move duration, startPosition, stopPosition
-node\perform moveAction
+```lua
+local moveAction = Move(duration, startPosition, stopPosition)
+node:perform(moveAction)
 ```
 
 </TabItem>
@@ -271,11 +362,11 @@ node:perform(moveAction)
 ```
 
 </TabItem>
-<TabItem value="lua" label="Lua">
+<TabItem value="yue" label="YueScript">
 
-```lua
-local moveAction = Move(duration, startPosition, stopPosition)
-node:perform(moveAction)
+```yue
+moveAction = Move duration, startPosition, stopPosition
+node\perform moveAction
 ```
 
 </TabItem>
@@ -285,12 +376,12 @@ node:perform(moveAction)
 
 2. **Scale Action**:
 
-<Tabs>
-<TabItem value="yue" label="Yuescript">
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
 
-```yue
-scaleAction = Scale duration, startScale, stopScale
-node\perform scaleAction
+```lua
+local scaleAction = Scale(duration, startScale, stopScale)
+node:perform(scaleAction)
 ```
 
 </TabItem>
@@ -302,11 +393,11 @@ node:perform(scaleAction)
 ```
 
 </TabItem>
-<TabItem value="lua" label="Lua">
+<TabItem value="yue" label="YueScript">
 
-```lua
-local scaleAction = Scale(duration, startScale, stopScale)
-node:perform(scaleAction)
+```yue
+scaleAction = Scale duration, startScale, stopScale
+node\perform scaleAction
 ```
 
 </TabItem>
@@ -316,12 +407,12 @@ node:perform(scaleAction)
 
 3. **Rotation Action**:
 
-<Tabs>
-<TabItem value="yue" label="Yuescript">
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
 
-```yue
-rotateAction = Angle duration, startAngle, stopAngle
-node\perform rotateAction
+```lua
+local rotateAction = Angle(duration, startAngle, stopAngle)
+node:perform(rotateAction)
 ```
 
 </TabItem>
@@ -333,11 +424,11 @@ node:perform(rotateAction)
 ```
 
 </TabItem>
-<TabItem value="lua" label="Lua">
+<TabItem value="yue" label="YueScript">
 
-```lua
-local rotateAction = Angle(duration, startAngle, stopAngle)
-node:perform(rotateAction)
+```yue
+rotateAction = Angle duration, startAngle, stopAngle
+node\perform rotateAction
 ```
 
 </TabItem>
@@ -349,8 +440,28 @@ node:perform(rotateAction)
 
 4. **Sequence Action**:
 
-<Tabs>
-<TabItem value="yue" label="Yuescript">
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+node:perform(Sequence(
+	Move(duration, startPosition, stopPosition),
+	Angle(duration, startAngle, stopAngle)
+))
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```teal
+node:perform(Sequence(
+	Move(duration, startPosition, stopPosition),
+	Angle(duration, startAngle, stopAngle)
+))
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
 
 ```yue
 node\perform Sequence(
@@ -360,40 +471,20 @@ node\perform Sequence(
 ```
 
 </TabItem>
-<TabItem value="tl" label="Teal">
-
-```teal
-node:perform(Sequence(
-	Move(duration, startPosition, stopPosition),
-	Angle(duration, startAngle, stopAngle)
-))
-```
-
-</TabItem>
-<TabItem value="lua" label="Lua">
-
-```lua
-node:perform(Sequence(
-	Move(duration, startPosition, stopPosition),
-	Angle(duration, startAngle, stopAngle)
-))
-```
-
-</TabItem>
 </Tabs>
 
 &emsp;&emsp;In the above code, `Move` and `Angle` actions will be executed sequentially in the order they appear in the sequence.
 
 5. **Spawn Action**:
 
-<Tabs>
-<TabItem value="yue" label="Yuescript">
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
 
-```yue
-node\perform Spawn(
-	Move duration, startPosition, stopPosition
-	Scale duration, startScale, stopScale
-)
+```lua
+node:perform(Spawn(
+	Move(duration, startPosition, stopPosition),
+	Scale(duration, startScale, stopScale)
+))
 ```
 
 </TabItem>
@@ -407,13 +498,13 @@ node:perform(Spawn(
 ```
 
 </TabItem>
-<TabItem value="lua" label="Lua">
+<TabItem value="yue" label="YueScript">
 
-```lua
-node:perform(Spawn(
-	Move(duration, startPosition, stopPosition),
-	Scale(duration, startScale, stopScale)
-))
+```yue
+node\perform Spawn(
+	Move duration, startPosition, stopPosition
+	Scale duration, startScale, stopScale
+)
 ```
 
 </TabItem>
@@ -438,17 +529,17 @@ node:perform(Spawn(
 
 &emsp;&emsp;When creating an instance of an action, you can pass the easing function as the last parameter to the corresponding creation function. For example:
 
-<Tabs>
-<TabItem value="yue" label="Yuescript">
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
 
-```yue
-moveAction = Move(
-	duration
-	startPosition
-	stopPosition
+```lua
+local moveAction = Move(
+	duration,
+	startPosition,
+	stopPosition,
 	Ease.InOutQuad
 )
-node\perform moveAction
+node:perform(moveAction)
 ```
 
 </TabItem>
@@ -465,16 +556,16 @@ node:perform(moveAction)
 ```
 
 </TabItem>
-<TabItem value="lua" label="Lua">
+<TabItem value="yue" label="YueScript">
 
-```lua
-local moveAction = Move(
-	duration,
-	startPosition,
-	stopPosition,
+```yue
+moveAction = Move(
+	duration
+	startPosition
+	stopPosition
 	Ease.InOutQuad
 )
-node:perform(moveAction)
+node\perform moveAction
 ```
 
 </TabItem>

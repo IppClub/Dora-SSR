@@ -45,69 +45,13 @@ import TabItem from '@theme/TabItem';
 ## 2. Write the Game
 
 1. Step One: Create a new project
-	- In the browser, open the right-click menu of the game resource tree on the left side of the Dora Dora editor.
+	- In the browser, right click on the menu "Assets" of the resource tree on the left side of the Dora Dora editor.
 	- Click the `New` menu item, select "New Folder", and name it `Hello`.
 2. Step Two: Write the game code
-	- Create a new game entry code file in the project folder, select the Yuescript language (or Teal, Lua, Typescript), and name it `init`.
+	- Create a new game entry code file in the project folder, select the Lua language (or Teal, TypeScript, YueScript), and name it `init`.
 	- Write the code:
 
 <Tabs>
-<TabItem value="tsx" label="TSX">
-
-```tsx title="Hello/init.tsx"
-// @preview-file on
-import {React, toNode, useRef} from 'DoraX';
-import {Ease, Move, Sprite} from 'Dora';
-
-const spriteRef = useRef<Sprite.Type>();
-
-// create the root node of the game scene tree
-// and a sprite as a child node
-toNode(
-	<node onTapBegan={(touch) => {
-		const {current: sprite} = spriteRef;
-		if (sprite) {
-			sprite.perform(Move(
-				1, // duration in seconds
-				sprite.position, // start position
-				touch.location, // end position
-				Ease.OutBack // easing function
-			));
-		}
-	}}>
-		<sprite ref={spriteRef} file='Image/logo.png'/>
-	</node>
-);
-```
-
-</TabItem>
-<TabItem value="yue" label="Yuescript">
-
-```yue title="Hello/init.yue"
--- import modules
-_ENV = Dora
-
--- create a sprite
-sprite = Sprite "Image/logo.png"
-
--- create the root node of the game scene tree
-with Node!
-
-	-- mount the sprite to the root node
-	\addChild sprite
-
-	-- receive and process click events to move the sprite
-	.touchEnabled = true
-	\slot "TapBegan", (touch)->
-		sprite\perform Move(
-			1 -- duration in seconds
-			sprite.position -- start position
-			touch.location -- end position
-			Ease.OutBack -- easing function
-		)
-```
-
-</TabItem>
 <TabItem value="lua" label="Lua">
 
 ```lua title="Hello/init.lua"
@@ -117,24 +61,25 @@ local Node <const> = require("Node")
 local Move <const> = require("Move")
 local Ease <const> = require("Ease")
 
--- create a sprite
-local sprite = Sprite("Image/logo.png")
-
 -- create the root node of the game scene tree
 local root = Node()
 
--- mount the sprite to the root node
-root:addChild(sprite)
+-- create a sprite
+local sprite = Sprite("Image/logo.png")
 
--- receive and process click events to move the sprite
-root.touchEnabled = true
-root:slot("TapBegan", function(touch)
-	sprite:perform(Move(
-		1, -- duration in seconds
-		sprite.position, -- start position
-		touch.location, -- end position
-		Ease.OutBack -- easing function
-	))
+-- mount the sprite to the root node
+sprite:addTo(root)
+
+-- register for click events to move the sprite
+root:onTapBegan(function(touch)
+	sprite:perform(
+		Move(
+			1, -- duration in seconds
+			sprite.position, -- start position
+			touch.location, -- end position
+			Ease.OutBack -- easing function
+		)
+	)
 end)
 ```
 
@@ -147,7 +92,7 @@ local Sprite <const> = require("Sprite")
 local Node <const> = require("Node")
 local Move <const> = require("Move")
 local Ease <const> = require("Ease")
-local type Touch = require("TouchType")
+local type Touch = require("Touch")
 
 -- create the root node of the game scene tree
 local root = Node()
@@ -159,21 +104,22 @@ if not sprite is nil then
 	-- mount the sprite to the root node
 	root:addChild(sprite)
 
-	-- receive and process click events to move the sprite
-	root.touchEnabled = true
-	root:slot("TapBegan", function(touch: Touch)
-		sprite:perform(Move(
-			1, -- duration in seconds
-			sprite.position, -- start position
-			touch.location, -- end position
-			Ease.OutBack -- easing function
-		))
+	-- register for click events to move the sprite
+	root:onTapBegan(function(touch: Touch.Type)
+		sprite:perform(
+			Move(
+				1, -- duration in seconds
+				sprite.position, -- start position
+				touch.location, -- end position
+				Ease.OutBack -- easing function
+			)
+		)
 	end)
 end
 ```
 
 </TabItem>
-<TabItem value="ts" label="Typescript">
+<TabItem value="ts" label="TypeScript">
 
 ```ts title="Hello/init.ts"
 // import modules
@@ -189,9 +135,8 @@ if (sprite) {
 	// mount the sprite to the root node
 	root.addChild(sprite);
 
-	// receive and process click events to move the sprite
-	root.touchEnabled = true;
-	root.slot(Slot.TapBegan, touch => {
+	// register for click events to move the sprite
+	root.onTapBegan(touch => {
 		sprite.perform(
 			Move(
 				1, // duration in seconds
@@ -202,6 +147,66 @@ if (sprite) {
 		);
 	});
 }
+```
+
+</TabItem>
+<TabItem value="tsx" label="TSX">
+
+```tsx title="Hello/init.tsx"
+// @preview-file on
+import {React, toNode, useRef} from 'DoraX';
+import {Ease, Move, Sprite, Touch} from 'Dora';
+
+const sprite = useRef<Sprite.Type>();
+
+// define the touch event handler
+const onTapBegan = (touch: Touch.Type) => {
+	const {current} = sprite;
+	if (current) {
+		current.perform(
+			Move(
+				1, // duration in seconds
+				current.position, // start position
+				touch.location, // end position
+				Ease.OutBack // easing function
+			)
+		);
+	}
+};
+
+// create the root node of the game scene tree
+// and a sprite as a child node
+toNode(
+	<node onTapBegan={onTapBegan}>
+		<sprite ref={sprite} file='Image/logo.png'/>
+	</node>
+);
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue title="Hello/init.yue"
+-- import modules
+_ENV = Dora
+
+-- create a sprite
+sprite = Sprite "Image/logo.png"
+
+-- create the root node of the game scene tree
+with Node!
+
+	-- mount the sprite to the root node
+	\addChild sprite
+
+	-- register for click events to move the sprite
+	\onTapBegan (touch) ->
+		sprite\perform Move(
+			1 -- duration in seconds
+			sprite.position -- start position
+			touch.location -- end position
+			Ease.OutBack -- easing function
+		)
 ```
 
 </TabItem>

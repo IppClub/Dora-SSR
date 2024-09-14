@@ -11076,6 +11076,19 @@ tl.dora_infer = function(codes, line, row, search_path)
 						current_type = get_real_type(type_report, id)
 					end
 				end
+			elseif current_type.types then
+				for _, id in ipairs(current_type.types) do
+					local tp = get_real_type(type_report, id)
+					local item_id = tp.fields[item]
+					if item_id then
+						if i == #chains then
+							current_type = type_report.types[item_id]
+						else
+							current_type = get_real_type(type_report, item_id)
+						end
+						break
+					end
+				end
 			elseif current_type.fields then
 				local id = current_type.fields[item]
 				if id then
@@ -11095,13 +11108,9 @@ tl.dora_infer = function(codes, line, row, search_path)
 			while current_type and current_type.ref do
 				current_type = type_report.types[current_type.ref]
 			end
-			if str:match("^polymorphic") then
-				for _, id in ipairs(current_type.types) do
-					local tp = type_report.types[id]
-					if tp.y and current_type.y and tp.y < current_type.y then
-						current_type = tp
-					end
-				end
+			if current_type.types then
+				local id = current_type.types[1]
+				current_type = get_real_type(type_report, id)
 			end
 			return {
 				str = str,
@@ -11177,6 +11186,20 @@ tl.dora_signature = function(codes, line, row, search_path)
 					end
 					matched = true
 				end
+			elseif current_type.types then
+				for _, id in ipairs(current_type.types) do
+					local tp = get_real_type(type_report, id)
+					local item_id = tp.fields[item]
+					if item_id then
+						if i == #chains then
+							current_type = type_report.types[item_id]
+						else
+							current_type = get_real_type(type_report, item_id)
+						end
+						matched = true
+						break
+					end
+				end
 			elseif current_type.fields then
 				local id = current_type.fields[item]
 				if id then
@@ -11205,7 +11228,7 @@ tl.dora_signature = function(codes, line, row, search_path)
 					current_type = type_report.types[id]
 				end
 			end
-			if current_type.str:match("^polymorphic") then
+			if current_type.types then
 				local results = {}
 				for _, id in ipairs(current_type.types) do
 					local tp = type_report.types[id]

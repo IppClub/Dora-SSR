@@ -47,157 +47,186 @@ Unlike Entitas, in the Dora SSR ECS framework, we manage each field on the entit
 In this tutorial, we will demonstrate how to use the ECS (Entity Component System) framework in Dora SSR to develop game logic through a code example.
 
 <Tabs>
-<TabItem value="yue" label="Yuescript">
 
-Before writing the actual code, we require the modules we will use in this tutorial for Yuescript language.
+<TabItem value="lua" label="Lua">
 
-```yue
-_ENV = Dora!
+Before writing the actual code, we require the modules we will use in this tutorial for Lua language.
+
+```lua
+local Group <const> = require("Group")
+local Observer <const> = require("Observer")
+local Entity <const> = require("Entity")
+local Node <const> = require("Node")
+local Director <const> = require("Director")
+local Touch <const> = require("Touch")
+local Sprite <const> = require("Sprite")
+local Scale <const> = require("Scale")
+local Ease <const> = require("Ease")
+local Vec2 <const> = require("Vec2")
+local Roll <const> = require("Roll")
 ```
 
 First, we create two entity groups, `sceneGroup` and `positionGroup`, which are used to access and manage entities with the "scene" and "position" component names, respectively.
 
-```yue
-sceneGroup = Group ["scene",]
-positionGroup = Group ["position",]
+```lua
+local sceneGroup = Group {"scene"}
+local positionGroup = Group {"position"}
 ```
 
 Next, we use Observers to listen for changes in entities. Sometimes, you need to perform certain actions when specific components are added to entities. In such cases, you can use Observers to listen for entity addition events and execute corresponding logic when these events occur. Here's an example code snippet on how to use an Observer to listen for entity addition events:
 
-```yue
-with Observer "Add", ["scene",]
-	\watch (_entity, scene): false ->
-		Director.entry\addChild with scene
-			.touchEnabled = true
-			\slot "TapEnded", (touch) ->
-				:location = touch
-				positionGroup\each (entity) ->
-					entity.target = location
+```lua
+Observer("Add", {"scene"})
+	:watch(function(_entity, scene)
+		Director.entry:addChild(scene)
+		scene.touchEnabled = true
+		scene:slot("TapEnded", function(touch)
+			local location = touch.location
+			positionGroup:each(function(entity)
+				entity.target = location
+			end)
+		end)
+	end)
 ```
 
 First, we create an Observer object using the `Observer` class. We specify the event type as "Add" to listen for entity addition events. Additionally, we pass a list containing the string "scene" as the parameter to specify the component types to monitor.
 
-```yue
-with Observer "Add", ["scene",]
+```lua
+Observer("Add", {"scene"})
 ```
 
 Inside the `watch` method of the Observer object, we define a callback function `(_entity, scene)->`. This callback function is triggered when an entity addition event occurs. The first parameter represents the entity object that triggered the event, followed by the parameters corresponding to the monitored components.
 
-```yue
-\watch (_entity, scene): false ->
+```lua
+:watch(function(_entity, scene)
 ```
 
 Within the callback function, we perform a series of operations. First,we use `Director.entry` to add the `scene` to the game scene.
 
-```yue
-Director.entry\addChild with scene
+```lua
+Director.entry:addChild(scene)
 ```
 
 Next, we set the `touchEnabled` property of the `scene` to `true` to enable touch or tap events.
 
-```yue
-.touchEnabled = true
+```lua
+scene.touchEnabled = true
 ```
 
 Then, we add an event handling function for the "TapEnded" event to the `scene`. This function will be called when the touch event ends.
 
-```yue
-\slot "TapEnded", (touch) ->
+```lua
+scene:slot("TapEnded", function(touch)
 ```
 
-Inside the event handling function, we assign the location of the touch to the `location` variable using `:location = touch`.
+Inside the event handling function, we assign the location of the touch to the `location` variable.
 
-```yue
-:location = touch
+```lua
+local location = touch.location
 ```
 
-Finally, we use `positionGroup\each (entity)->` to iterate over all entities in the `positionGroup` and set the `target` property of each entity to the `location`.
+Finally, we use `positionGroup:each()` to iterate over all entities in the `positionGroup` and set the `target` property of each entity to the `location`.
 
-```yue
-positionGroup\each (entity) ->
+```lua
+positionGroup:each(function(entity)
 	entity.target = location
+end)
 ```
 
 In this way, when a new entity with the "scene" component is added, this observer will be triggered, and the defined operations will be executed. The scene node will be added to the game scene, touch events will be enabled, and the target property of entities in the positionGroup will be set to the touch location.
 
 Next, we create additional observers to handle other types of entity changes, such as "Add" and "Remove" events, for the "image" and "sprite" components.
 
-```yue
-with Observer "Add", ["image",]
-	\watch (image): false => sceneGroup\each (e) ->
-		with @sprite = Sprite image
-			\addTo e.scene
-			\runAction Scale 0.5, 0, 0.5, Ease.OutBack
-		true
+```lua
+Observer("Add", {"image"}):watch(function(entity, image)
+	sceneGroup:each(function(e)
+		local sprite = Sprite(image)
+		sprite:runAction(Scale(0.5, 0, 0.5, Ease.OutBack))
+		sprite:addTo(e.scene)
+		entity.sprite = sprite
+		return true
+	end)
+end)
 
-with Observer "Remove", ["sprite",]
-	\watch => @oldValues.sprite\removeFromParent!
+Observer("Remove", {"sprite"}):watch(function(entity)
+	entity.oldValues.sprite:removeFromParent()
+end)
 ```
 
 Then, we create an entity group with the components "position", "direction", "speed", and "target". We define an observer to handle changes in these components and update the rotation angle and position properties of the entities based on their speed and the elapsed time.
 
-```yue
-with Group ["position", "direction", "speed", "target"]
-	\watch (entity, position, direction, speed, target): false ->
-		return if target == position
-		dir = target - position
-		dir = dir\normalize!
-		newPos = position + dir * speed
-		newPos = newPos\clamp position, target
+```lua
+Group({"position", "direction", "speed", "target"}):watch(
+	function(entity, position, _direction, speed, target)
+		if target == position then
+			return
+		end
+		local dir = target - position
+		dir = dir:normalize()
+		local newPos = position + dir * speed
+		newPos = newPos:clamp(position, target)
 		entity.position = newPos
-		entity.target = nil if newPos == target
-		angle = math.deg math.atan dir.x, dir.y
+		if newPos == target then
+			entity.target = nil
+		end
+		local angle = math.deg(math.atan(dir.x, dir.y))
 		entity.direction = angle
+	end)
 ```
 
 In this code snippet, we first create a group object using the `Group` class and specify the component types as "position", "direction", "speed", and "target".
 
-```yue
-with Group ["position", "direction", "speed", "target"]
+```lua
+Group({"position", "direction", "speed", "target"})
 ```
 
 Then, we use the `watch` method of the entity group to iterate over all entities in the group every frame and execute the defined callback function to handle the components on each entity.
 
-```yue
-\watch (entity, position, direction, speed, target): false ->
+```lua
+:watch(
+	function(entity, position, _direction, speed, target)
 ```
 
 Inside the callback function, we start with some conditional checks. We use `return if target == position` to check if the target position is the same as the current position. If they are the same, we return and skip the update operations.
 
-```yue
-return if target == position
+```lua
+if target == position then
+	return
+end
 ```
 
 Next, we calculate the direction vector `dir` of the entity by subtracting the position from the target position and normalize it.
 
-```yue
-dir = target - position
-dir = dir\normalize!
+```lua
+local dir = target - position
+dir = dir:normalize()
 ```
 
 After that, we calculate the new position `newPos` of the entity for the current frame update based on its current position, direction vector, and speed. We multiply the normalized direction vector `dir` by the speed `speed` and add it to the current position `position`.
 
-```yue
-newPos = position + dir * speed
+```lua
+local newPos = position + dir * speed
 ```
 
 Then, we use `newPos\clamp position, target` to clamp the new position between the current position and the target position. This ensures that the entity does not overshoot its target position. And assigning the corrected position to entity.
 
-```yue
-newPos = newPos\clamp position, target
+```lua
+newPos = newPos:clamp(position, target)
 entity.position = newPos
 ```
 
 Additionally, if the new position is equal to the target position, we clear the `target` component of the entity.
 
-```yue
-entity.target = nil if newPos == target
+```lua
+if newPos == target then
+	entity.target = nil
+end
 ```
 
 Finally, we calculate the angle `angle` of the entity based on the direction vector `dir` using the `math.atan` function and convert it from radians to degrees. We update the `direction` component of the entity with the calculated angle.
 
-```yue
-angle = math.deg math.atan dir.x, dir.y
+```lua
+local angle = math.deg(math.atan(dir.x, dir.y))
 entity.direction = angle
 ```
 
@@ -205,34 +234,37 @@ By using this code, the defined callback function will be executed for each enti
 
 After completing the data calculation and update, we also need to update the data results to the rendered graphics.
 
-```yue
-with Observer "AddOrChange", ["position", "direction", "sprite"]
-	\watch (position, direction, sprite): false =>
+```lua
+Observer("AddOrChange", {"position", "direction", "sprite"})
+	:watch(function(entity, position, direction, sprite)
 		-- Update the display position of the image
 		sprite.position = position
-		lastDirection = @oldValues.direction or sprite.angle
+		local lastDirection = entity.oldValues.direction or sprite.angle
 		-- When the rotation angle of the image changes, we play a rotation animation
-		if math.abs(direction - lastDirection) > 1
-			sprite\runAction Roll 0.3, lastDirection, direction
+		if math.abs(direction - lastDirection) > 1 then
+			sprite:runAction(Roll(0.3, lastDirection, direction))
+		end
+	end)
 ```
 
 Lastly, we create three entities and add different components to them. This is where the game system begins to run.
 
-```yue
-Entity
-	scene: Node!
+```lua
+Entity { scene = Node() }
 
-Entity
-	image: "Image/logo.png"
-	position: Vec2.zero
-	direction: 45.0
-	speed: 4.0
+Entity {
+	image = "Image/logo.png",
+	position = Vec2.zero,
+	direction = 45.0,
+	speed = 4.0
+}
 
-Entity
-	image: "Image/logo.png"
-	position: Vec2 -100, 200
-	direction: 90.0
-	speed: 10.0
+Entity {
+	image = "Image/logo.png",
+	position = Vec2(-100, 200),
+	direction = 90.0,
+	speed = 10.0
+}
 ```
 
 </TabItem>
@@ -460,185 +492,157 @@ Entity {
 ```
 
 </TabItem>
-<TabItem value="lua" label="Lua">
+<TabItem value="yue" label="YueScript">
 
-Before writing the actual code, we require the modules we will use in this tutorial for Lua language.
+Before writing the actual code, we require the modules we will use in this tutorial for YueScript language.
 
-```lua
-local Group <const> = require("Group")
-local Observer <const> = require("Observer")
-local Entity <const> = require("Entity")
-local Node <const> = require("Node")
-local Director <const> = require("Director")
-local Touch <const> = require("Touch")
-local Sprite <const> = require("Sprite")
-local Scale <const> = require("Scale")
-local Ease <const> = require("Ease")
-local Vec2 <const> = require("Vec2")
-local Roll <const> = require("Roll")
+```yue
+_ENV = Dora!
 ```
 
 First, we create two entity groups, `sceneGroup` and `positionGroup`, which are used to access and manage entities with the "scene" and "position" component names, respectively.
 
-```lua
-local sceneGroup = Group {"scene"}
-local positionGroup = Group {"position"}
+```yue
+sceneGroup = Group ["scene",]
+positionGroup = Group ["position",]
 ```
 
 Next, we use Observers to listen for changes in entities. Sometimes, you need to perform certain actions when specific components are added to entities. In such cases, you can use Observers to listen for entity addition events and execute corresponding logic when these events occur. Here's an example code snippet on how to use an Observer to listen for entity addition events:
 
-```lua
-Observer("Add", {"scene"})
-	:watch(function(_entity, scene)
-		Director.entry:addChild(scene)
-		scene.touchEnabled = true
-		scene:slot("TapEnded", function(touch)
-			local location = touch.location
-			positionGroup:each(function(entity)
-				entity.target = location
-			end)
-		end)
-	end)
+```yue
+with Observer "Add", ["scene",]
+	\watch (_entity, scene): false ->
+		Director.entry\addChild with scene
+			.touchEnabled = true
+			\slot "TapEnded", (touch) ->
+				:location = touch
+				positionGroup\each (entity) ->
+					entity.target = location
 ```
 
 First, we create an Observer object using the `Observer` class. We specify the event type as "Add" to listen for entity addition events. Additionally, we pass a list containing the string "scene" as the parameter to specify the component types to monitor.
 
-```lua
-Observer("Add", {"scene"})
+```yue
+with Observer "Add", ["scene",]
 ```
 
 Inside the `watch` method of the Observer object, we define a callback function `(_entity, scene)->`. This callback function is triggered when an entity addition event occurs. The first parameter represents the entity object that triggered the event, followed by the parameters corresponding to the monitored components.
 
-```lua
-:watch(function(_entity, scene)
+```yue
+\watch (_entity, scene): false ->
 ```
 
 Within the callback function, we perform a series of operations. First,we use `Director.entry` to add the `scene` to the game scene.
 
-```lua
-Director.entry:addChild(scene)
+```yue
+Director.entry\addChild with scene
 ```
 
 Next, we set the `touchEnabled` property of the `scene` to `true` to enable touch or tap events.
 
-```lua
-scene.touchEnabled = true
+```yue
+.touchEnabled = true
 ```
 
 Then, we add an event handling function for the "TapEnded" event to the `scene`. This function will be called when the touch event ends.
 
-```lua
-scene:slot("TapEnded", function(touch)
+```yue
+\slot "TapEnded", (touch) ->
 ```
 
-Inside the event handling function, we assign the location of the touch to the `location` variable.
+Inside the event handling function, we assign the location of the touch to the `location` variable using `:location = touch`.
 
-```lua
-local location = touch.location
+```yue
+:location = touch
 ```
 
-Finally, we use `positionGroup:each()` to iterate over all entities in the `positionGroup` and set the `target` property of each entity to the `location`.
+Finally, we use `positionGroup\each (entity)->` to iterate over all entities in the `positionGroup` and set the `target` property of each entity to the `location`.
 
-```lua
-positionGroup:each(function(entity)
+```yue
+positionGroup\each (entity) ->
 	entity.target = location
-end)
 ```
 
 In this way, when a new entity with the "scene" component is added, this observer will be triggered, and the defined operations will be executed. The scene node will be added to the game scene, touch events will be enabled, and the target property of entities in the positionGroup will be set to the touch location.
 
 Next, we create additional observers to handle other types of entity changes, such as "Add" and "Remove" events, for the "image" and "sprite" components.
 
-```lua
-Observer("Add", {"image"}):watch(function(entity, image)
-	sceneGroup:each(function(e)
-		local sprite = Sprite(image)
-		sprite:runAction(Scale(0.5, 0, 0.5, Ease.OutBack))
-		sprite:addTo(e.scene)
-		entity.sprite = sprite
-		return true
-	end)
-end)
+```yue
+with Observer "Add", ["image",]
+	\watch (image): false => sceneGroup\each (e) ->
+		with @sprite = Sprite image
+			\addTo e.scene
+			\runAction Scale 0.5, 0, 0.5, Ease.OutBack
+		true
 
-Observer("Remove", {"sprite"}):watch(function(entity)
-	entity.oldValues.sprite:removeFromParent()
-end)
+with Observer "Remove", ["sprite",]
+	\watch => @oldValues.sprite\removeFromParent!
 ```
 
 Then, we create an entity group with the components "position", "direction", "speed", and "target". We define an observer to handle changes in these components and update the rotation angle and position properties of the entities based on their speed and the elapsed time.
 
-```lua
-Group({"position", "direction", "speed", "target"}):watch(
-	function(entity, position, _direction, speed, target)
-		if target == position then
-			return
-		end
-		local dir = target - position
-		dir = dir:normalize()
-		local newPos = position + dir * speed
-		newPos = newPos:clamp(position, target)
+```yue
+with Group ["position", "direction", "speed", "target"]
+	\watch (entity, position, direction, speed, target): false ->
+		return if target == position
+		dir = target - position
+		dir = dir\normalize!
+		newPos = position + dir * speed
+		newPos = newPos\clamp position, target
 		entity.position = newPos
-		if newPos == target then
-			entity.target = nil
-		end
-		local angle = math.deg(math.atan(dir.x, dir.y))
+		entity.target = nil if newPos == target
+		angle = math.deg math.atan dir.x, dir.y
 		entity.direction = angle
-	end)
 ```
 
 In this code snippet, we first create a group object using the `Group` class and specify the component types as "position", "direction", "speed", and "target".
 
-```lua
-Group({"position", "direction", "speed", "target"})
+```yue
+with Group ["position", "direction", "speed", "target"]
 ```
 
 Then, we use the `watch` method of the entity group to iterate over all entities in the group every frame and execute the defined callback function to handle the components on each entity.
 
-```lua
-:watch(
-	function(entity, position, _direction, speed, target)
+```yue
+\watch (entity, position, direction, speed, target): false ->
 ```
 
 Inside the callback function, we start with some conditional checks. We use `return if target == position` to check if the target position is the same as the current position. If they are the same, we return and skip the update operations.
 
-```lua
-if target == position then
-	return
-end
+```yue
+return if target == position
 ```
 
 Next, we calculate the direction vector `dir` of the entity by subtracting the position from the target position and normalize it.
 
-```lua
-local dir = target - position
-dir = dir:normalize()
+```yue
+dir = target - position
+dir = dir\normalize!
 ```
 
 After that, we calculate the new position `newPos` of the entity for the current frame update based on its current position, direction vector, and speed. We multiply the normalized direction vector `dir` by the speed `speed` and add it to the current position `position`.
 
-```lua
-local newPos = position + dir * speed
+```yue
+newPos = position + dir * speed
 ```
 
 Then, we use `newPos\clamp position, target` to clamp the new position between the current position and the target position. This ensures that the entity does not overshoot its target position. And assigning the corrected position to entity.
 
-```lua
-newPos = newPos:clamp(position, target)
+```yue
+newPos = newPos\clamp position, target
 entity.position = newPos
 ```
 
 Additionally, if the new position is equal to the target position, we clear the `target` component of the entity.
 
-```lua
-if newPos == target then
-	entity.target = nil
-end
+```yue
+entity.target = nil if newPos == target
 ```
 
 Finally, we calculate the angle `angle` of the entity based on the direction vector `dir` using the `math.atan` function and convert it from radians to degrees. We update the `direction` component of the entity with the calculated angle.
 
-```lua
-local angle = math.deg(math.atan(dir.x, dir.y))
+```yue
+angle = math.deg math.atan dir.x, dir.y
 entity.direction = angle
 ```
 
@@ -646,37 +650,34 @@ By using this code, the defined callback function will be executed for each enti
 
 After completing the data calculation and update, we also need to update the data results to the rendered graphics.
 
-```lua
-Observer("AddOrChange", {"position", "direction", "sprite"})
-	:watch(function(entity, position, direction, sprite)
+```yue
+with Observer "AddOrChange", ["position", "direction", "sprite"]
+	\watch (position, direction, sprite): false =>
 		-- Update the display position of the image
 		sprite.position = position
-		local lastDirection = entity.oldValues.direction or sprite.angle
+		lastDirection = @oldValues.direction or sprite.angle
 		-- When the rotation angle of the image changes, we play a rotation animation
-		if math.abs(direction - lastDirection) > 1 then
-			sprite:runAction(Roll(0.3, lastDirection, direction))
-		end
-	end)
+		if math.abs(direction - lastDirection) > 1
+			sprite\runAction Roll 0.3, lastDirection, direction
 ```
 
 Lastly, we create three entities and add different components to them. This is where the game system begins to run.
 
-```lua
-Entity { scene = Node() }
+```yue
+Entity
+	scene: Node!
 
-Entity {
-	image = "Image/logo.png",
-	position = Vec2.zero,
-	direction = 45.0,
-	speed = 4.0
-}
+Entity
+	image: "Image/logo.png"
+	position: Vec2.zero
+	direction: 45.0
+	speed: 4.0
 
-Entity {
-	image = "Image/logo.png",
-	position = Vec2(-100, 200),
-	direction = 90.0,
-	speed = 10.0
-}
+Entity
+	image: "Image/logo.png"
+	position: Vec2 -100, 200
+	direction: 90.0
+	speed: 10.0
 ```
 
 </TabItem>
