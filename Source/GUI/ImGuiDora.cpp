@@ -610,7 +610,7 @@ void ImGuiDora::showStats(bool* pOpen, const std::function<void()>& extra) {
 				{320, 240}};
 			if (ImGui::BeginPopup("WindowSizeSelector")) {
 				if (ImGui::Selectable(useChinese ? r_cast<const char*>(u8"全屏模式") : "Full Screen")) {
-					SharedApplication.setWinSize(Size::zero);
+					SharedApplication.setFullScreen(true);
 				}
 				for (const auto& size : sizes) {
 					ImGui::Separator();

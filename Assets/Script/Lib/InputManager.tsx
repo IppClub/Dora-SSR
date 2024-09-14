@@ -952,10 +952,10 @@ class JoyStickTrigger extends Trigger {
 			switch (this.joyStickType) {
 				case JoyStickType.Left: {
 					switch (axisName) {
-						case AxisName.leftx:
+						case AxisName.LeftX:
 							this.axis = Vec2(value, this.axis.y);
 							break;
-						case AxisName.lefty:
+						case AxisName.LeftY:
 							this.axis = Vec2(this.axis.x, value);
 							break;
 					}
@@ -963,10 +963,10 @@ class JoyStickTrigger extends Trigger {
 				}
 				case JoyStickType.Right: {
 					switch (axisName) {
-						case AxisName.rightx:
+						case AxisName.RightX:
 							this.axis = Vec2(value, this.axis.y);
 							break;
-						case AxisName.righty:
+						case AxisName.RightY:
 							this.axis = Vec2(this.axis.x, value);
 							break;
 					}
@@ -1578,10 +1578,10 @@ export function DPad(props: DPadProps) {
 	return (
 		<align-node style={{width: halfSize * 2, height: halfSize * 2}}>
 			<menu x={halfSize} y={halfSize} width={halfSize * 2} height={halfSize * 2}>
-				<DPadButton x={halfSize} y={dOffset + halfSize} onMount={onMount(ButtonName.dpup)}/>
-				<DPadButton x={halfSize} y={-dOffset + halfSize} angle={180} onMount={onMount(ButtonName.dpdown)}/>
-				<DPadButton x={dOffset + halfSize} y={halfSize} angle={90} onMount={onMount(ButtonName.dpright)}/>
-				<DPadButton x={-dOffset + halfSize} y={halfSize} angle={-90} onMount={onMount(ButtonName.dpleft)}/>
+				<DPadButton x={halfSize} y={dOffset + halfSize} onMount={onMount(ButtonName.Up)}/>
+				<DPadButton x={halfSize} y={-dOffset + halfSize} angle={180} onMount={onMount(ButtonName.Down)}/>
+				<DPadButton x={dOffset + halfSize} y={halfSize} angle={90} onMount={onMount(ButtonName.Right)}/>
+				<DPadButton x={-dOffset + halfSize} y={halfSize} angle={-90} onMount={onMount(ButtonName.Left)}/>
 			</menu>
 		</align-node>
 	);
@@ -1656,7 +1656,7 @@ export function JoyStick(props: JoyStickProps) {
 		buttonSize = 20,
 	} = props;
 	const visualBound = math.max(moveSize - hatSize, 0);
-	const stickButton = stickType === JoyStickType.Left ? ButtonName.leftstick : ButtonName.rightstick;
+	const stickButton = stickType === JoyStickType.Left ? ButtonName.LeftStick : ButtonName.RightStick;
 
 	function updatePosition(this: void, node: DrawNode.Type, location: Vec2.Type) {
 		if (location.length > visualBound) {
@@ -1666,12 +1666,12 @@ export function JoyStick(props: JoyStickProps) {
 		}
 		switch (stickType) {
 			case JoyStickType.Left:
-				props.inputManager.emitAxis(AxisName.leftx, node.x / visualBound);
-				props.inputManager.emitAxis(AxisName.lefty, node.y / visualBound);
+				props.inputManager.emitAxis(AxisName.LeftX, node.x / visualBound);
+				props.inputManager.emitAxis(AxisName.LeftY, node.y / visualBound);
 				break;
 			case JoyStickType.Right:
-				props.inputManager.emitAxis(AxisName.rightx, node.x / visualBound);
-				props.inputManager.emitAxis(AxisName.righty, node.y / visualBound);
+				props.inputManager.emitAxis(AxisName.RightX, node.x / visualBound);
+				props.inputManager.emitAxis(AxisName.RightY, node.y / visualBound);
 				break;
 		}
 	}
@@ -1765,25 +1765,25 @@ export function ButtonPad(props: ButtonPadProps) {
 					color={color} primaryOpacity={primaryOpacity}
 					buttonSize={buttonSize}
 					x={-buttonSize * 2 - buttonPadding}
-					onMount={onMount(ButtonName.x)}
+					onMount={onMount(ButtonName.X)}
 				/>
 				<Button text='Y' fontName={fontName}
 					color={color} primaryOpacity={primaryOpacity}
 					buttonSize={buttonSize}
-					onMount={onMount(ButtonName.y)}/>
+					onMount={onMount(ButtonName.Y)}/>
 				<Button text='A' fontName={fontName}
 					color={color} primaryOpacity={primaryOpacity}
 					buttonSize={buttonSize}
 					x={-buttonSize - buttonPadding / 2}
 					y={-buttonSize * 2 - buttonPadding}
-					onMount={onMount(ButtonName.a)}
+					onMount={onMount(ButtonName.A)}
 				/>
 				<Button text='B' fontName={fontName}
 					color={color} primaryOpacity={primaryOpacity}
 					buttonSize={buttonSize}
 					x={buttonSize + buttonPadding / 2}
 					y={-buttonSize * 2 - buttonPadding}
-					onMount={onMount(ButtonName.b)}
+					onMount={onMount(ButtonName.B)}
 				/>
 			</node>
 		</align-node>
@@ -1840,13 +1840,13 @@ export function ControlPad(props: ControlPadProps) {
 			<align-node style={{width: buttonSize * 2, height: buttonSize}}>
 				<Button text='Start'
 					x={buttonSize} y={buttonSize / 2}
-					onMount={onMount(ButtonName.start)}
+					onMount={onMount(ButtonName.Start)}
 				/>
 			</align-node>
 			<align-node style={{width: buttonSize * 2, height: buttonSize}}>
 				<Button text='Back'
 					x={buttonSize} y={buttonSize / 2}
-					onMount={onMount(ButtonName.back)}
+					onMount={onMount(ButtonName.Back)}
 				/>
 			</align-node>
 		</align-node>
@@ -1915,12 +1915,12 @@ export function TriggerPad(props: TriggerPadProps) {
 			<align-node style={{width: buttonSize * 4 + 10, height: buttonSize}}>
 				<Button text='LT'
 					x={buttonSize} y={buttonSize / 2}
-					onMount={onMountAxis(AxisName.lefttrigger)}
+					onMount={onMountAxis(AxisName.LeftTrigger)}
 				/>
 				{props.noShoulder ? null :
 					<Button text='LB'
 						x={buttonSize * 3 + 10} y={buttonSize / 2}
-						onMount={onMountButton(ButtonName.leftshoulder)}
+						onMount={onMountButton(ButtonName.LeftShoulder)}
 					/>
 				}
 			</align-node>
@@ -1928,12 +1928,12 @@ export function TriggerPad(props: TriggerPadProps) {
 				{props.noShoulder ? null :
 					<Button text='RB'
 						x={buttonSize} y={buttonSize / 2}
-						onMount={onMountButton(ButtonName.rightshoulder)}
+						onMount={onMountButton(ButtonName.RightShoulder)}
 					/>
 				}
 				<Button text='RT'
 					x={buttonSize * 3 + 10} y={buttonSize / 2}
-					onMount={onMountAxis(AxisName.righttrigger)}
+					onMount={onMountAxis(AxisName.RightTrigger)}
 				/>
 			</align-node>
 		</align-node>

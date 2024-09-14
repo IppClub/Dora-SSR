@@ -358,17 +358,17 @@ ui.css('flex-direction: column-reverse');
 ui.onButtonDown((id, buttonName) => {
 	if (id !== 0) return;
 	switch (buttonName) {
-		case ButtonName.dpleft: updatePlayerControl("keyLeft", true, true); break;
-		case ButtonName.dpright: updatePlayerControl("keyRight", true, true); break;
-		case ButtonName.b: updatePlayerControl("keyJump", true, true); break;
+		case ButtonName.Left: updatePlayerControl("keyLeft", true, true); break;
+		case ButtonName.Right: updatePlayerControl("keyRight", true, true); break;
+		case ButtonName.B: updatePlayerControl("keyJump", true, true); break;
 	}
 });
 ui.onButtonUp((id, buttonName) => {
 	if (id !== 0) return;
 	switch (buttonName) {
-		case ButtonName.dpleft: updatePlayerControl("keyLeft", false, true); break;
-		case ButtonName.dpright: updatePlayerControl("keyRight", false, true); break;
-		case ButtonName.b: updatePlayerControl("keyJump", false, true); break;
+		case ButtonName.Left: updatePlayerControl("keyLeft", false, true); break;
+		case ButtonName.Right: updatePlayerControl("keyRight", false, true); break;
+		case ButtonName.B: updatePlayerControl("keyJump", false, true); break;
 	}
 });
 ui.addTo(Director.ui);

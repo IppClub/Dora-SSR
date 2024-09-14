@@ -1851,10 +1851,6 @@
 		3CFEA0FF285B857A002D106F /* m3_exec.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = m3_exec.h; path = ../../../Source/3rdParty/wasm3/m3_exec.h; sourceTree = "<group>"; };
 		3CFEA100285B857A002D106F /* m3_info.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = m3_info.h; path = ../../../Source/3rdParty/wasm3/m3_info.h; sourceTree = "<group>"; };
 		3CFEA101285B857A002D106F /* wasm3_defs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = wasm3_defs.h; path = ../../../Source/3rdParty/wasm3/wasm3_defs.h; sourceTree = "<group>"; };
-		3CFEA103285B857A002D106F /* fib64.wasm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = fib64.wasm.h; sourceTree = "<group>"; };
-		3CFEA104285B857A002D106F /* coremark_minimal.wasm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = coremark_minimal.wasm.h; sourceTree = "<group>"; };
-		3CFEA105285B857A002D106F /* fib32_tail.wasm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = fib32_tail.wasm.h; sourceTree = "<group>"; };
-		3CFEA106285B857A002D106F /* fib32.wasm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = fib32.wasm.h; sourceTree = "<group>"; };
 		3CFEA107285B857A002D106F /* wasi_core.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = wasi_core.h; sourceTree = "<group>"; };
 		3CFEA108285B857A002D106F /* m3_info.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = m3_info.c; path = ../../../Source/3rdParty/wasm3/m3_info.c; sourceTree = "<group>"; };
 		3CFEA109285B857A002D106F /* m3_api_wasi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = m3_api_wasi.h; path = ../../../Source/3rdParty/wasm3/m3_api_wasi.h; sourceTree = "<group>"; };
@@ -4078,10 +4074,6 @@
 		3CFEA102285B857A002D106F /* extra */ = {
 			isa = PBXGroup;
 			children = (
-				3CFEA103285B857A002D106F /* fib64.wasm.h */,
-				3CFEA104285B857A002D106F /* coremark_minimal.wasm.h */,
-				3CFEA105285B857A002D106F /* fib32_tail.wasm.h */,
-				3CFEA106285B857A002D106F /* fib32.wasm.h */,
 				3CFEA107285B857A002D106F /* wasi_core.h */,
 			);
 			name = extra;

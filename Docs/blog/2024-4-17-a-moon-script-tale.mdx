@@ -1,6 +1,6 @@
 ---
 authors: [lijin]
-tags: [Yuescript, Lua]
+tags: [YueScript, Lua]
 ---
 
 import "@site/src/languages/highlight";
@@ -29,7 +29,7 @@ The creator of Moonscript has developed commercial sites like the indie game mar
 
 As a die-hard fan of Moonscript, I couldn't just stand by. The original Moonscript compiler was written in Moonscript itself, with a core parser built in C using a PEG grammar library to generate ASTs, which were then processed back in Lua. This was a resource-intensive process, particularly for large projects where dynamic loading of Moonscript code could cause noticeable lag. Additionally, the dynamic nature of Lua made it ill-suited for handling strict data types in ASTs—a typical weak point in dynamic language development.
 
-So, instead of building on the existing codebase, I opted for a fresh start in my second favorite programming language, C++ (with Moonscript being the first, of course). This rewrite not only solved several unresolved issues but also reintroduced some long-missed programming features from other languages. Check out the new project here: [Yuescript](https://yuescript.org/zh).
+So, instead of building on the existing codebase, I opted for a fresh start in my second favorite programming language, C++ (with Moonscript being the first, of course). This rewrite not only solved several unresolved issues but also reintroduced some long-missed programming features from other languages. Check out the new project here: [YueScript](https://yuescript.org/zh).
 
 ## Transpilers for Lua and PEG Grammar
 
@@ -68,10 +68,10 @@ switch (node->getId()) {
 }
 ```
 
-## Yuescript in Action: More Than Just a Language
+## YueScript in Action: More Than Just a Language
 
-Initially, Yuescript was tied to an open-source game engine project, Dora SSR (https://dora-ssr.net ), aiming to elevate the capabilities of the Lua-supported engine with an advanced version of Moonscript. Along with the engine’s Web IDE, Yuescript also adds modest code completion and type inference features to enhance coding efficiency.
+Initially, YueScript was tied to an open-source game engine project, Dora SSR (https://dora-ssr.net ), aiming to elevate the capabilities of the Lua-supported engine with an advanced version of Moonscript. Along with the engine’s Web IDE, YueScript also adds modest code completion and type inference features to enhance coding efficiency.
 
-I particularly enjoy using Yuescript during Game Jams, brainstorming with teammates and then diving into coding without overthinking the design—a somewhat reckless yet fun approach to programming. Although we still integrate some programming design using Dora SSR’s messaging system combined with Yuescript’s functional style. You can see some of our frenzied Game Jam projects in Yuescript at [Dora SSR's repository](https://github.com/IppClub/Dora-SSR/tree/main/Assets/Script/Game).
+I particularly enjoy using YueScript during Game Jams, brainstorming with teammates and then diving into coding without overthinking the design—a somewhat reckless yet fun approach to programming. Although we still integrate some programming design using Dora SSR’s messaging system combined with YueScript’s functional style. You can see some of our frenzied Game Jam projects in YueScript at [Dora SSR's repository](https://github.com/IppClub/Dora-SSR/tree/main/Assets/Script/Game).
 
-So, as a dialect of Lua's dialect Moonscript, Yuescript not only holds its ground in theory but has also been battle-tested in real applications within the Dora SSR project.
+So, as a dialect of Lua's dialect Moonscript, YueScript not only holds its ground in theory but has also been battle-tested in real applications within the Dora SSR project.

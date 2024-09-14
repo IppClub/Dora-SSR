@@ -1,13 +1,13 @@
 ---
 authors: [lijin]
-tags: [Dora SSR, Yuescript, Auspice Gear, Game LSD]
+tags: [Dora SSR, YueScript, Auspice Gear, Game LSD]
 ---
 
 # From Compiler, Game Engine to Handheld Console: My Journey in Indie Game Development
 
 ## Introduction
 
-Developing my own games has been a dream since childhood, particularly fueled by my extensive use of the Warcraft 3 World Editor. This sparked a fascination with game engines and development tools. As a student, I delved into programming and soon felt the urge to expand beyond just using various programming languages for development. I started maintaining a programming language called Yuescript, tailored for writing game logic. My learning journey in graphics led me to rewrite the Cocos2d-x as a learning project, which eventually evolved into the Dora SSR game engine. Later, as my love for handheld gaming consoles grew, I began collaborating on an open, programmable gaming device called the "Auspice Gear", aiming to achieve the ultimate digital freedom in gaming.
+Developing my own games has been a dream since childhood, particularly fueled by my extensive use of the Warcraft 3 World Editor. This sparked a fascination with game engines and development tools. As a student, I delved into programming and soon felt the urge to expand beyond just using various programming languages for development. I started maintaining a programming language called YueScript, tailored for writing game logic. My learning journey in graphics led me to rewrite the Cocos2d-x as a learning project, which eventually evolved into the Dora SSR game engine. Later, as my love for handheld gaming consoles grew, I began collaborating on an open, programmable gaming device called the "Auspice Gear", aiming to achieve the ultimate digital freedom in gaming.
 
 <!-- truncate -->
 
@@ -18,7 +18,7 @@ Developing my own games has been a dream since childhood, particularly fueled by
    Multilingual Playground!
 </p>
 
-Programming in various languages is exhilarating, as each language offers unique programming philosophies and design principles. For scripting complex and dynamic game mechanics, I prefer using languages that are succinct and expressive. Yuescript, translatable to Lua, fulfills this need beautifully. Over time, as I developed more with my Dora SSR engine, I integrated languages like Teal (which adds static typing to Lua), TypeScript (for enhanced code hints and checks), JSX, and XML (for descriptive, componentized development). Each scripting language shines in specific game development contexts and seamlessly inter-operates through translation to Lua. Beyond Lua-based extensions, the Dora SSR engine also experiments with supporting diverse scripting languages via the WASM virtual machine, such as Rust and upcoming support for C++ and Go, balancing performance with runtime expansibility.
+Programming in various languages is exhilarating, as each language offers unique programming philosophies and design principles. For scripting complex and dynamic game mechanics, I prefer using languages that are succinct and expressive. YueScript, translatable to Lua, fulfills this need beautifully. Over time, as I developed more with my Dora SSR engine, I integrated languages like Teal (which adds static typing to Lua), TypeScript (for enhanced code hints and checks), JSX, and XML (for descriptive, componentized development). Each scripting language shines in specific game development contexts and seamlessly inter-operates through translation to Lua. Beyond Lua-based extensions, the Dora SSR engine also experiments with supporting diverse scripting languages via the WASM virtual machine, such as Rust and upcoming support for C++ and Go, balancing performance with runtime expansibility.
 
 ## Innovating with Game Engines
 
@@ -61,5 +61,5 @@ We warmly invite everyone passionate about game development to join us. Whether 
 ## Project Links
 
 - Game Engine: [Dora-SSR on GitHub](https://github.com/IppClub/Dora-SSR)
-- Yuescript Language: [Yuescript on GitHub](https://github.com/pigpigyyy/Yuescript)
+- YueScript Language: [YueScript on GitHub](https://github.com/pigpigyyy/YueScript)
 - "Luv Sense Digital" Open Source Game Project: [Documentation](https://luv-sense-digital.readthedocs.io)

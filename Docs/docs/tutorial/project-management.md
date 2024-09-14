@@ -24,7 +24,7 @@ To standardize your game project organization, it is suggested (but not mandator
   - **Data**: For static game data files such as Excel spreadsheets, script configuration tables, etc.
   - **Font**: For storing game font files.
   - **Image**: For storing game image resources.
-  - **Script**: For storing script files, such as Lua, Yuescript, Teal, or TS code.
+  - **Script**: For storing script files, such as Lua, YueScript, Teal, or TS code.
   - **Spine**: For storing game animation resources.
   - **init.yue/lua/tl/ts/tsx/wasm**: The project startup file, chosen according to the scripting language used.
 
@@ -32,7 +32,7 @@ This structure is not only clear but also easy to manage and maintain.
 
 ### 4. Code Module Search Paths
 
-When writing Lua, Yuescript, or Teal code, if you need to import external modules, the Dora SSR engine runtime and Web IDE will search for code modules in the following order:
+When writing Lua, YueScript, or Teal code, if you need to import external modules, the Dora SSR engine runtime and Web IDE will search for code modules in the following order:
 
 1. **"Engine User Resource Root Directory"/"Game Project Root Directory"/Script**
 2. **"Engine User Resource Root Directory"/"Game Project Root Directory"**

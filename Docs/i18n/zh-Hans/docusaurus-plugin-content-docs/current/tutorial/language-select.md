@@ -10,7 +10,7 @@ sidebar_position: 2
 
 ## 了解你的可选项
 
-&emsp;&emsp;Dora SSR 支持多种编程语言，目前包括 Lua、Yuescript、Teal、TypeScript、TSX、Rust 等。每种语言都有其独特的特点和优势。
+&emsp;&emsp;Dora SSR 支持多种编程语言，目前包括 Lua、YueScript、Teal、TypeScript、TSX、Rust 等。每种语言都有其独特的特点和优势。
 
 ### 1. Lua：轻量级且快速
 
@@ -22,13 +22,13 @@ sidebar_position: 2
 
 ----
 
-### 2. Yuescript：Lua 的现代替代品
+### 2. YueScript：Lua 的现代替代品
 
 <div style={{marginLeft: '30px', width: '120px'}}>
 ![Lua](@site/static/img/yuescript.png)
 </div>
 
-&emsp;&emsp;Yuescript 是 Lua 的一种方言，它继承了 Lua 的语言特性，同时引入了一些现代编程语言的语法糖和类Python的简洁的编码风格。如果你对 Lua 这样动态类型（弱类型）的编程方式感兴趣，但想要更现代化的语法，Yuescript 将是理想之选。
+&emsp;&emsp;YueScript 是 Lua 的一种方言，它继承了 Lua 的语言特性，同时引入了一些现代编程语言的语法糖和类Python的简洁的编码风格。如果你对 Lua 这样动态类型（弱类型）的编程方式感兴趣，但想要更现代化的语法，YueScript 将是理想之选。
 
 ----
 
@@ -79,13 +79,13 @@ sidebar_position: 2
 
 ## 多样的编程语言支持是怎么做到的？
 
-1. **转译器的魔法**   
-&emsp;&emsp;Dora SSR 使用了一种被称为“转译（transpiling）”的技术。简单来说，就是将你用 Yuescript、Teal、Typescript 等语言编写的代码，自动地转换成 Lua 代码。这就像是一个多语言的翻译机，让不同的编程语言可以在同一个游戏引擎下和谐共存。
+1. **转译器的魔法**
+&emsp;&emsp;Dora SSR 使用了一种被称为“转译（transpiling）”的技术。简单来说，就是将你用 YueScript、Teal、Typescript 等语言编写的代码，自动地转换成 Lua 代码。这就像是一个多语言的翻译机，让不同的编程语言可以在同一个游戏引擎下和谐共存。
 
-2. **WebAssembly（WASM）：跨语言的桥梁**  
+2. **WebAssembly（WASM）：跨语言的桥梁**
 &emsp;&emsp;对于更加底层的编程语言，比如 Rust、C/C++ 或 Go，Dora SSR 采用了 WebAssembly（WASM）技术。通过将这些语言编译成 WASM 字节码，再在内置的 WASM 虚拟机中运行，Dora SSR 实现了对这些语言的支持。这就像是在游戏引擎中建立了一个万能运行平台，任何可以编译到WASM的语言写的程序都可以在这里运行。
 
-3. **无缝的集成体验**  
+3. **无缝的集成体验**
 &emsp;&emsp;最重要的是，在使用转译类的语言做开发时，Dora SSR 把这些复杂的技术细节隐藏在了其 Web IDE（集成开发环境）之后。对于开发者来说，他们只需在这个友好的界面中编写代码，剩下的转译和编译工作都由 IDE 自动完成。这就像是在驾驶一辆自动挡汽车，你只需要关注路线和目的地，引擎会在不知不觉中自动帮你换挡。
 
 &emsp;&emsp;在 Dora SSR 中选择编程语言是一个既激动人心又重要的决定。每种语言都有其独特的优势和应用场景，最终的选择应基于你的个人需求、经验和项目目标。记住，没有绝对的“最佳”语言，只有最适合你的语言。祝你在 Dora SSR 的旅程中发现属于你的编程语言，并创造出令人兴奋的游戏作品！

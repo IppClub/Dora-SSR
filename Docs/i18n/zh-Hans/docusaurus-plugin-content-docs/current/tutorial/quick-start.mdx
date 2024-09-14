@@ -11,14 +11,14 @@ import TabItem from '@theme/TabItem';
 ### 一、安装
 
 - Android
-	- 1、在游戏的运行终端下载并安装[APK](https://github.com/ippclub/Dora-SSR/releases/latest)包。
-	- 2、运行软件，通过局域网内的PC（平板或其他开发设备）的浏览器访问软件显示的服务器地址。
+	- 1、在游戏的运行终端下载并安装 [APK](https://github.com/ippclub/Dora-SSR/releases/latest) 包。
+	- 2、运行软件，通过局域网内的 PC（平板或其他开发设备）的浏览器访问软件显示的服务器地址。
 	- 3、开始游戏开发。
 
 - Windows、macOS
 	- 1、下载并运行[软件](https://github.com/ippclub/Dora-SSR/releases/latest)。
 		- 对于 Windows 用户，请确保您已安装 Visual Studio 2022 的 X86 Visual C++ 可再发行组件包（包含 MSVC 编译的程序所需运行时的 vc_redist.x86 补丁），以运行此应用程序。您可以从[微软网站](https://learn.microsoft.com/zh-cn/cpp/windows/latest-supported-vc-redist?view=msvc-170)下载。
-		- 在macOS上也可以通过Homebrew进行软件安装。
+		- 在 macOS 上也可以通过 Homebrew 进行软件安装。
 			```sh
 			brew tap ippclub/dora-ssr
 			brew install --cask dora-ssr
@@ -48,71 +48,15 @@ import TabItem from '@theme/TabItem';
 
 1. 第一步：创建一个新项目
 
-	- 在浏览器中，打开Dora Dora编辑器左侧游戏资源树的右键菜单。
-	- 点击菜单项`新建`，选择新建文件夹，命名为`Hello`。
+	- 在浏览器中，鼠标右键点击 Dora Dora 编辑器左侧资源树的“资源根目录”菜单。
+	- 点击菜单项 `新建`，选择新建文件夹，命名为 `Hello`。
 
 2. 第二步：编写游戏代码
 
-	- 在项目文件夹下新建游戏入口代码文件，选择Yuescript语言（或Teal、Lua、Typescript）命名为`init`。
+	- 在项目文件夹下新建游戏入口代码文件，选择 Lua 语言（或 Teal、TypeScript、YueScript）命名为 `init`。
 	- 编写代码：
 
 <Tabs>
-<TabItem value="tsx" label="TSX">
-
-```tsx title="Hello/init.tsx"
-// @preview-file on
-import {React, toNode, useRef} from 'DoraX';
-import {Ease, Move, Sprite} from 'Dora';
-
-const spriteRef = useRef<Sprite.Type>();
-
-// 创建游戏场景树根节点
-// 以及一个图片精灵作为子节点
-toNode(
-	<node onTapBegan={(touch) => {
-		const {current: sprite} = spriteRef;
-		if (sprite) {
-			sprite.perform(Move(
-				1, // 持续时间，单位为秒
-				sprite.position, // 开始位置
-				touch.location, // 结束位置
-				Ease.OutBack // 缓动函数
-			));
-		}
-	}}>
-		<sprite ref={spriteRef} file='Image/logo.png'/>
-	</node>
-);
-```
-
-</TabItem>
-<TabItem value="yue" label="Yuescript">
-
-```yue title="Hello/init.yue"
--- 导入功能模块
-_ENV = Dora
-
--- 创建图片精灵
-sprite = Sprite "Image/logo.png"
-
--- 创建游戏场景树根节点
-with Node!
-
-	-- 挂载图片精灵到游戏场景树根节点
-	\addChild sprite
-
-	-- 接收并处理点击事件移动图片精灵
-	.touchEnabled = true
-	\slot "TapBegan", (touch)->
-		sprite\perform Move(
-			1 -- 持续时间，单位为秒
-			sprite.position -- 开始位置
-			touch.location -- 结束位置
-			Ease.OutBack -- 缓动函数
-		)
-```
-
-</TabItem>
 <TabItem value="lua" label="Lua">
 
 ```lua title="Hello/init.lua"
@@ -132,14 +76,15 @@ local root = Node()
 root:addChild(sprite)
 
 -- 接收并处理点击事件移动图片精灵
-root.touchEnabled = true
-root:slot("TapBegan", function(touch)
-	sprite:perform(Move(
-		1, -- 持续时间，单位为秒
-		sprite.position, -- 开始位置
-		touch.location, -- 结束位置
-		Ease.OutBack -- 缓动函数
-	))
+root:onTapBegan(function(touch)
+	sprite:perform(
+		Move(
+			1, -- 持续时间，单位为秒
+			sprite.position, -- 开始位置
+			touch.location, -- 结束位置
+			Ease.OutBack -- 缓动函数
+		)
+	)
 end)
 ```
 
@@ -152,7 +97,7 @@ local Sprite <const> = require("Sprite")
 local Node <const> = require("Node")
 local Move <const> = require("Move")
 local Ease <const> = require("Ease")
-local type Touch = require("TouchType")
+local type Touch = require("Touch")
 
 -- 创建游戏场景树根节点
 local root = Node()
@@ -165,20 +110,21 @@ if not sprite is nil then
 	root:addChild(sprite)
 
 	-- 接收并处理点击事件移动图片精灵
-	root.touchEnabled = true
-	root:slot("TapBegan", function(touch: Touch)
-		sprite:perform(Move(
-			1, -- 持续时间，单位为秒
-			sprite.position, -- 开始位置
-			touch.location, -- 结束位置
-			Ease.OutBack -- 缓动函数
-		))
+	root:onTapBegan(function(touch: Touch.Type)
+		sprite:perform(
+			Move(
+				1, -- 持续时间，单位为秒
+				sprite.position, -- 开始位置
+				touch.location, -- 结束位置
+				Ease.OutBack -- 缓动函数
+			)
+		)
 	end)
 end
 ```
 
 </TabItem>
-<TabItem value="ts" label="Typescript">
+<TabItem value="ts" label="TypeScript">
 
 ```ts title="Hello/init.ts"
 // 导入功能模块
@@ -195,8 +141,7 @@ if (sprite) {
 	root.addChild(sprite);
 
 	// 接收并处理点击事件移动图片精灵
-	root.touchEnabled = true;
-	root.slot(Slot.TapBegan, touch => {
+	root.onTapBegan(touch => {
 		sprite.perform(
 			Move(
 				1, // 持续时间，单位为秒
@@ -210,13 +155,71 @@ if (sprite) {
 ```
 
 </TabItem>
+<TabItem value="tsx" label="TSX">
+
+```tsx title="Hello/init.tsx"
+// @preview-file on
+import {React, toNode, useRef} from 'DoraX';
+import {Ease, Move, Sprite, Touch} from 'Dora';
+
+const sprite = useRef<Sprite.Type>();
+
+// 点击事件处理函数
+const onTapBegan = (touch: Touch.Type) => {
+	const {current} = sprite;
+	if (current) {
+		current.perform(Move(
+			1, // 持续时间，单位为秒
+			current.position, // 开始位置
+			touch.location, // 结束位置
+			Ease.OutBack // 缓动函数
+		));
+	}
+};
+
+// 创建游戏场景树根节点
+// 以及一个图片精灵作为子节点
+toNode(
+	<node onTapBegan={onTapBegan}>
+		<sprite ref={sprite} file='Image/logo.png'/>
+	</node>
+);
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue title="Hello/init.yue"
+-- 导入功能模块
+_ENV = Dora
+
+-- 创建图片精灵
+sprite = Sprite "Image/logo.png"
+
+-- 创建游戏场景树根节点
+with Node!
+
+	-- 挂载图片精灵到游戏场景树根节点
+	\addChild sprite
+
+	-- 接收并处理点击事件移动图片精灵
+	\onTapBegan (touch) ->
+		sprite\perform Move(
+			1 -- 持续时间，单位为秒
+			sprite.position -- 开始位置
+			touch.location -- 结束位置
+			Ease.OutBack -- 缓动函数
+		)
+```
+
+</TabItem>
 </Tabs>
 
 3. 第三步：运行游戏
 
-&emsp;&emsp;点击编辑器右下角`🎮`图标，然后点击菜单项`运行`。或者按下组合键`Ctrl + r`。
+&emsp;&emsp;点击编辑器右下角 `🎮` 图标，然后点击菜单项 `运行`。或者按下组合键 `Ctrl + r`。
 
 ### 三、发布游戏
 
-1. 通过编辑器左侧游戏资源树，打开刚才新建的项目文件夹的右键菜单，点击`下载`选项。
+1. 通过编辑器左侧游戏资源树，打开刚才新建的项目文件夹的右键菜单，点击 `下载` 选项。
 2. 等待浏览器弹出已打包项目文件的下载提示。

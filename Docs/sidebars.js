@@ -838,7 +838,7 @@ const sidebars = {
 				"api/Class/json",
 				{
 					type: 'category',
-					label: 'Yuescript',
+					label: 'YueScript',
 					items: [
 						{
 							type: 'doc',

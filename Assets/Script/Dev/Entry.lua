@@ -45,6 +45,7 @@ local debug = _G.debug -- 1
 local math = _G.math -- 1
 local AlignNode = Dora.AlignNode -- 1
 local Label = Dora.Label -- 1
+local Checkbox = _module_0.Checkbox -- 1
 local Button = _module_0.Button -- 1
 local SetNextWindowPosCenter = _module_0.SetNextWindowPosCenter -- 1
 local SetNextWindowSize = _module_0.SetNextWindowSize -- 1
@@ -59,7 +60,6 @@ local BeginPopup = _module_0.BeginPopup -- 1
 local Selectable = _module_0.Selectable -- 1
 local Separator = _module_0.Separator -- 1
 local BeginDisabled = _module_0.BeginDisabled -- 1
-local Checkbox = _module_0.Checkbox -- 1
 local setmetatable = _G.setmetatable -- 1
 local ipairs = _G.ipairs -- 1
 local threadLoop = Dora.threadLoop -- 1
@@ -138,1766 +138,1784 @@ if DB:exist("Config") then -- 36
 	end -- 40
 end -- 36
 local Config = require("Config") -- 42
-local config = Config("", "fpsLimited", "targetFPS", "fixedFPS", "vsync", "fullScreen", "winX", "winY", "winWidth", "winHeight", "themeColor", "locale", "editingInfo", "showStats", "showConsole", "showFooter", "filter", "engineDev", "webProfiler", "drawerWidth", "lastUpdateCheck", "updateNotification") -- 43
-config:load() -- 67
-if (config.fpsLimited ~= nil) then -- 68
-	App.fpsLimited = config.fpsLimited -- 69
-else -- 71
-	config.fpsLimited = App.fpsLimited -- 71
-end -- 68
-if (config.targetFPS ~= nil) then -- 73
-	App.targetFPS = config.targetFPS -- 74
-else -- 76
-	config.targetFPS = App.targetFPS -- 76
-end -- 73
-if (config.vsync ~= nil) then -- 78
-	View.vsync = config.vsync -- 79
-else -- 81
-	config.vsync = View.vsync -- 81
-end -- 78
-if (config.fixedFPS ~= nil) then -- 83
-	Director.scheduler.fixedFPS = config.fixedFPS -- 84
-else -- 86
-	config.fixedFPS = Director.scheduler.fixedFPS -- 86
-end -- 83
-local showEntry = true -- 88
-local isDesktop = false -- 90
-if (function() -- 91
-	local _val_0 = App.platform -- 91
-	return "Linux" == _val_0 or "Windows" == _val_0 or "macOS" == _val_0 -- 91
-end)() then -- 91
-	isDesktop = true -- 92
-	if config.fullScreen then -- 93
-		App.winSize = Size.zero -- 94
-	elseif (config.winWidth ~= nil) and (config.winHeight ~= nil) then -- 95
-		local size = Size(config.winWidth, config.winHeight) -- 96
-		if App.winSize ~= size then -- 97
-			App.winSize = size -- 98
-			showEntry = false -- 99
-			thread(function() -- 100
-				sleep() -- 101
+local config = Config("", "fpsLimited", "targetFPS", "fixedFPS", "vsync", "fullScreen", "alwaysOnTop", "winX", "winY", "winWidth", "winHeight", "themeColor", "locale", "editingInfo", "showStats", "showConsole", "showFooter", "filter", "engineDev", "webProfiler", "drawerWidth", "lastUpdateCheck", "updateNotification") -- 43
+config:load() -- 68
+if (config.fpsLimited ~= nil) then -- 69
+	App.fpsLimited = config.fpsLimited -- 70
+else -- 72
+	config.fpsLimited = App.fpsLimited -- 72
+end -- 69
+if (config.targetFPS ~= nil) then -- 74
+	App.targetFPS = config.targetFPS -- 75
+else -- 77
+	config.targetFPS = App.targetFPS -- 77
+end -- 74
+if (config.vsync ~= nil) then -- 79
+	View.vsync = config.vsync -- 80
+else -- 82
+	config.vsync = View.vsync -- 82
+end -- 79
+if (config.fixedFPS ~= nil) then -- 84
+	Director.scheduler.fixedFPS = config.fixedFPS -- 85
+else -- 87
+	config.fixedFPS = Director.scheduler.fixedFPS -- 87
+end -- 84
+local showEntry = true -- 89
+local isDesktop = false -- 91
+if (function() -- 92
+	local _val_0 = App.platform -- 92
+	return "Linux" == _val_0 or "Windows" == _val_0 or "macOS" == _val_0 -- 92
+end)() then -- 92
+	isDesktop = true -- 93
+	if config.fullScreen then -- 94
+		App.fullScreen = true -- 95
+	elseif (config.winWidth ~= nil) and (config.winHeight ~= nil) then -- 96
+		local size = Size(config.winWidth, config.winHeight) -- 97
+		if App.winSize ~= size then -- 98
+			App.winSize = size -- 99
+			showEntry = false -- 100
+			thread(function() -- 101
 				sleep() -- 102
-				showEntry = true -- 103
-			end) -- 100
-		end -- 97
-		local winX, winY -- 104
-		do -- 104
-			local _obj_0 = App.winPosition -- 104
-			winX, winY = _obj_0.x, _obj_0.y -- 104
-		end -- 104
-		if (config.winX ~= nil) then -- 105
-			winX = config.winX -- 106
-		else -- 108
-			config.winX = 0 -- 108
+				sleep() -- 103
+				showEntry = true -- 104
+			end) -- 101
+		end -- 98
+		local winX, winY -- 105
+		do -- 105
+			local _obj_0 = App.winPosition -- 105
+			winX, winY = _obj_0.x, _obj_0.y -- 105
 		end -- 105
-		if (config.winY ~= nil) then -- 109
-			winY = config.winY -- 110
-		else -- 112
-			config.winY = 0 -- 112
-		end -- 109
-		App.winPosition = Vec2(winX, winY) -- 113
-	end -- 93
-end -- 91
-if (config.themeColor ~= nil) then -- 115
-	App.themeColor = Color(config.themeColor) -- 116
-else -- 118
-	config.themeColor = App.themeColor:toARGB() -- 118
-end -- 115
-if not (config.locale ~= nil) then -- 120
-	config.locale = App.locale -- 121
+		if (config.winX ~= nil) then -- 106
+			winX = config.winX -- 107
+		else -- 109
+			config.winX = 0 -- 109
+		end -- 106
+		if (config.winY ~= nil) then -- 110
+			winY = config.winY -- 111
+		else -- 113
+			config.winY = 0 -- 113
+		end -- 110
+		App.winPosition = Vec2(winX, winY) -- 114
+	end -- 94
+	if (config.alwaysOnTop ~= nil) then -- 115
+		App.alwaysOnTop = config.alwaysOnTop -- 116
+	else -- 118
+		config.alwaysOnTop = true -- 118
+	end -- 115
+end -- 92
+if (config.themeColor ~= nil) then -- 120
+	App.themeColor = Color(config.themeColor) -- 121
+else -- 123
+	config.themeColor = App.themeColor:toARGB() -- 123
 end -- 120
-local showStats = false -- 123
-if (config.showStats ~= nil) then -- 124
-	showStats = config.showStats -- 125
-else -- 127
-	config.showStats = showStats -- 127
-end -- 124
-local showConsole = true -- 129
-if (config.showConsole ~= nil) then -- 130
-	showConsole = config.showConsole -- 131
-else -- 133
-	config.showConsole = showConsole -- 133
-end -- 130
-local showFooter = true -- 135
-if (config.showFooter ~= nil) then -- 136
-	showFooter = config.showFooter -- 137
-else -- 139
-	config.showFooter = showFooter -- 139
-end -- 136
-local filterBuf = Buffer(20) -- 141
-if (config.filter ~= nil) then -- 142
-	filterBuf.text = config.filter -- 143
-else -- 145
-	config.filter = "" -- 145
-end -- 142
-local engineDev = false -- 147
-if (config.engineDev ~= nil) then -- 148
-	engineDev = config.engineDev -- 149
-else -- 151
-	config.engineDev = engineDev -- 151
-end -- 148
-if (config.webProfiler ~= nil) then -- 153
-	Director.profilerSending = config.webProfiler -- 154
+if not (config.locale ~= nil) then -- 125
+	config.locale = App.locale -- 126
+end -- 125
+local showStats = false -- 128
+if (config.showStats ~= nil) then -- 129
+	showStats = config.showStats -- 130
+else -- 132
+	config.showStats = showStats -- 132
+end -- 129
+local showConsole = true -- 134
+if (config.showConsole ~= nil) then -- 135
+	showConsole = config.showConsole -- 136
+else -- 138
+	config.showConsole = showConsole -- 138
+end -- 135
+local showFooter = true -- 140
+if (config.showFooter ~= nil) then -- 141
+	showFooter = config.showFooter -- 142
+else -- 144
+	config.showFooter = showFooter -- 144
+end -- 141
+local filterBuf = Buffer(20) -- 146
+if (config.filter ~= nil) then -- 147
+	filterBuf.text = config.filter -- 148
+else -- 150
+	config.filter = "" -- 150
+end -- 147
+local engineDev = false -- 152
+if (config.engineDev ~= nil) then -- 153
+	engineDev = config.engineDev -- 154
 else -- 156
-	config.webProfiler = true -- 156
-	Director.profilerSending = true -- 157
+	config.engineDev = engineDev -- 156
 end -- 153
-if not (config.drawerWidth ~= nil) then -- 159
-	config.drawerWidth = 200 -- 160
-end -- 159
-_module_0.getConfig = function() -- 162
-	return config -- 162
-end -- 162
-_module_0.getEngineDev = function() -- 163
-	if not App.debugging then -- 164
-		return false -- 164
-	end -- 164
-	return config.engineDev -- 165
-end -- 163
-local updateCheck -- 167
-updateCheck = function() -- 167
-	return thread(function() -- 167
-		local res = HttpClient:getAsync("https://api.github.com/repos/IppClub/Dora-SSR/releases/latest") -- 168
-		if res then -- 168
-			local data = json.load(res) -- 169
-			if data then -- 169
-				local major, minor, patch = App.version:match("(%d+)%.(%d+)%.(%d+)%.(%d+)") -- 170
-				local a, b, c = tonumber(major), tonumber(minor), tonumber(patch) -- 171
-				local sa, sb, sc = data.tag_name:match("v(%d+)%.(%d+)%.(%d+)") -- 172
-				local na, nb, nc = tonumber(sa), tonumber(sb), tonumber(sc) -- 173
-				if na < a then -- 174
-					goto not_new_version -- 175
-				end -- 174
-				if na == a then -- 176
-					if nb < b then -- 177
-						goto not_new_version -- 178
-					end -- 177
-					if nb == b then -- 179
-						if nc < c then -- 180
-							goto not_new_version -- 181
-						end -- 180
-						if nc == c then -- 182
-							goto not_new_version -- 183
-						end -- 182
-					end -- 179
-				end -- 176
-				config.updateNotification = true -- 184
-				::not_new_version:: -- 185
-				config.lastUpdateCheck = os.time() -- 186
-			end -- 169
-		end -- 168
-	end) -- 186
+if (config.webProfiler ~= nil) then -- 158
+	Director.profilerSending = config.webProfiler -- 159
+else -- 161
+	config.webProfiler = true -- 161
+	Director.profilerSending = true -- 162
+end -- 158
+if not (config.drawerWidth ~= nil) then -- 164
+	config.drawerWidth = 200 -- 165
+end -- 164
+_module_0.getConfig = function() -- 167
+	return config -- 167
 end -- 167
-if (config.lastUpdateCheck ~= nil) then -- 188
-	local diffSeconds = os.difftime(os.time(), config.lastUpdateCheck) -- 189
-	if diffSeconds >= 7 * 24 * 60 * 60 then -- 190
-		updateCheck() -- 191
-	end -- 190
-else -- 193
-	updateCheck() -- 193
-end -- 188
-local Set, Struct, LintYueGlobals, GSplit -- 195
-do -- 195
-	local _obj_0 = require("Utils") -- 195
-	Set, Struct, LintYueGlobals, GSplit = _obj_0.Set, _obj_0.Struct, _obj_0.LintYueGlobals, _obj_0.GSplit -- 195
-end -- 195
-local yueext = yue.options.extension -- 196
-local isChineseSupported = IsFontLoaded() -- 198
-if not isChineseSupported then -- 199
-	LoadFontTTF("Font/sarasa-mono-sc-regular.ttf", 20, "Chinese", function() -- 200
-		isChineseSupported = true -- 201
-	end) -- 200
-end -- 199
-local building = false -- 203
-local getAllFiles -- 205
-getAllFiles = function(path, exts, recursive) -- 205
-	if recursive == nil then -- 205
-		recursive = true -- 205
-	end -- 205
-	local filters = Set(exts) -- 206
-	local files -- 207
-	if recursive then -- 207
-		files = Content:getAllFiles(path) -- 208
-	else -- 210
-		files = Content:getFiles(path) -- 210
-	end -- 207
-	local _accum_0 = { } -- 211
-	local _len_0 = 1 -- 211
-	for _index_0 = 1, #files do -- 211
-		local file = files[_index_0] -- 211
-		if not filters[Path:getExt(file)] then -- 212
-			goto _continue_0 -- 212
-		end -- 212
-		_accum_0[_len_0] = file -- 213
-		_len_0 = _len_0 + 1 -- 213
-		::_continue_0:: -- 212
-	end -- 213
-	return _accum_0 -- 213
-end -- 205
-_module_0["getAllFiles"] = getAllFiles -- 213
-local getFileEntries -- 215
-getFileEntries = function(path, recursive) -- 215
-	if recursive == nil then -- 215
-		recursive = true -- 215
-	end -- 215
-	local entries = { } -- 216
-	local _list_0 = getAllFiles(path, { -- 217
-		"lua", -- 217
-		"xml", -- 217
-		yueext, -- 217
-		"tl" -- 217
-	}, recursive) -- 217
-	for _index_0 = 1, #_list_0 do -- 217
-		local file = _list_0[_index_0] -- 217
-		local entryName = Path:getName(file) -- 218
-		local entryAdded = false -- 219
-		for _index_1 = 1, #entries do -- 220
-			local _des_0 = entries[_index_1] -- 220
-			local ename = _des_0[1] -- 220
-			if entryName == ename then -- 221
-				entryAdded = true -- 222
-				break -- 223
-			end -- 221
-		end -- 223
-		if entryAdded then -- 224
-			goto _continue_0 -- 224
-		end -- 224
-		local fileName = Path:replaceExt(file, "") -- 225
-		fileName = Path(path, fileName) -- 226
-		local entry = { -- 227
-			entryName, -- 227
-			fileName -- 227
-		} -- 227
-		entries[#entries + 1] = entry -- 228
-		::_continue_0:: -- 218
-	end -- 228
-	table.sort(entries, function(a, b) -- 229
-		return a[1] < b[1] -- 229
-	end) -- 229
-	return entries -- 230
-end -- 215
-local getProjectEntries -- 232
-getProjectEntries = function(path) -- 232
-	local entries = { } -- 233
-	local _list_0 = Content:getDirs(path) -- 234
-	for _index_0 = 1, #_list_0 do -- 234
-		local dir = _list_0[_index_0] -- 234
-		if dir:match("^%.") then -- 235
-			goto _continue_0 -- 235
-		end -- 235
-		local _list_1 = getAllFiles(Path(path, dir), { -- 236
-			"lua", -- 236
-			"xml", -- 236
-			yueext, -- 236
-			"tl", -- 236
-			"wasm" -- 236
-		}) -- 236
-		for _index_1 = 1, #_list_1 do -- 236
-			local file = _list_1[_index_1] -- 236
-			if "init" == Path:getName(file):lower() then -- 237
-				local fileName = Path:replaceExt(file, "") -- 238
-				fileName = Path(path, dir, fileName) -- 239
-				local entryName = Path:getName(Path:getPath(fileName)) -- 240
-				local entryAdded = false -- 241
-				for _index_2 = 1, #entries do -- 242
-					local _des_0 = entries[_index_2] -- 242
-					local ename = _des_0[1] -- 242
-					if entryName == ename then -- 243
-						entryAdded = true -- 244
-						break -- 245
-					end -- 243
-				end -- 245
-				if entryAdded then -- 246
-					goto _continue_1 -- 246
-				end -- 246
-				local examples = { } -- 247
-				local tests = { } -- 248
-				local examplePath = Path(path, dir, Path:getPath(file), "Example") -- 249
-				if Content:exist(examplePath) then -- 250
-					local _list_2 = getFileEntries(examplePath) -- 251
-					for _index_2 = 1, #_list_2 do -- 251
-						local _des_0 = _list_2[_index_2] -- 251
-						local name, ePath = _des_0[1], _des_0[2] -- 251
-						local entry = { -- 252
-							name, -- 252
-							Path(path, dir, Path:getPath(file), ePath) -- 252
-						} -- 252
-						examples[#examples + 1] = entry -- 253
-					end -- 253
+_module_0.getEngineDev = function() -- 168
+	if not App.debugging then -- 169
+		return false -- 169
+	end -- 169
+	return config.engineDev -- 170
+end -- 168
+local updateCheck -- 172
+updateCheck = function() -- 172
+	return thread(function() -- 172
+		local res = HttpClient:getAsync("https://api.github.com/repos/IppClub/Dora-SSR/releases/latest") -- 173
+		if res then -- 173
+			local data = json.load(res) -- 174
+			if data then -- 174
+				local major, minor, patch = App.version:match("(%d+)%.(%d+)%.(%d+)%.(%d+)") -- 175
+				local a, b, c = tonumber(major), tonumber(minor), tonumber(patch) -- 176
+				local sa, sb, sc = data.tag_name:match("v(%d+)%.(%d+)%.(%d+)") -- 177
+				local na, nb, nc = tonumber(sa), tonumber(sb), tonumber(sc) -- 178
+				if na < a then -- 179
+					goto not_new_version -- 180
+				end -- 179
+				if na == a then -- 181
+					if nb < b then -- 182
+						goto not_new_version -- 183
+					end -- 182
+					if nb == b then -- 184
+						if nc < c then -- 185
+							goto not_new_version -- 186
+						end -- 185
+						if nc == c then -- 187
+							goto not_new_version -- 188
+						end -- 187
+					end -- 184
+				end -- 181
+				config.updateNotification = true -- 189
+				::not_new_version:: -- 190
+				config.lastUpdateCheck = os.time() -- 191
+			end -- 174
+		end -- 173
+	end) -- 191
+end -- 172
+if (config.lastUpdateCheck ~= nil) then -- 193
+	local diffSeconds = os.difftime(os.time(), config.lastUpdateCheck) -- 194
+	if diffSeconds >= 7 * 24 * 60 * 60 then -- 195
+		updateCheck() -- 196
+	end -- 195
+else -- 198
+	updateCheck() -- 198
+end -- 193
+local Set, Struct, LintYueGlobals, GSplit -- 200
+do -- 200
+	local _obj_0 = require("Utils") -- 200
+	Set, Struct, LintYueGlobals, GSplit = _obj_0.Set, _obj_0.Struct, _obj_0.LintYueGlobals, _obj_0.GSplit -- 200
+end -- 200
+local yueext = yue.options.extension -- 201
+local isChineseSupported = IsFontLoaded() -- 203
+if not isChineseSupported then -- 204
+	LoadFontTTF("Font/sarasa-mono-sc-regular.ttf", 20, "Chinese", function() -- 205
+		isChineseSupported = true -- 206
+	end) -- 205
+end -- 204
+local building = false -- 208
+local getAllFiles -- 210
+getAllFiles = function(path, exts, recursive) -- 210
+	if recursive == nil then -- 210
+		recursive = true -- 210
+	end -- 210
+	local filters = Set(exts) -- 211
+	local files -- 212
+	if recursive then -- 212
+		files = Content:getAllFiles(path) -- 213
+	else -- 215
+		files = Content:getFiles(path) -- 215
+	end -- 212
+	local _accum_0 = { } -- 216
+	local _len_0 = 1 -- 216
+	for _index_0 = 1, #files do -- 216
+		local file = files[_index_0] -- 216
+		if not filters[Path:getExt(file)] then -- 217
+			goto _continue_0 -- 217
+		end -- 217
+		_accum_0[_len_0] = file -- 218
+		_len_0 = _len_0 + 1 -- 218
+		::_continue_0:: -- 217
+	end -- 218
+	return _accum_0 -- 218
+end -- 210
+_module_0["getAllFiles"] = getAllFiles -- 218
+local getFileEntries -- 220
+getFileEntries = function(path, recursive) -- 220
+	if recursive == nil then -- 220
+		recursive = true -- 220
+	end -- 220
+	local entries = { } -- 221
+	local _list_0 = getAllFiles(path, { -- 222
+		"lua", -- 222
+		"xml", -- 222
+		yueext, -- 222
+		"tl" -- 222
+	}, recursive) -- 222
+	for _index_0 = 1, #_list_0 do -- 222
+		local file = _list_0[_index_0] -- 222
+		local entryName = Path:getName(file) -- 223
+		local entryAdded = false -- 224
+		for _index_1 = 1, #entries do -- 225
+			local _des_0 = entries[_index_1] -- 225
+			local ename = _des_0[1] -- 225
+			if entryName == ename then -- 226
+				entryAdded = true -- 227
+				break -- 228
+			end -- 226
+		end -- 228
+		if entryAdded then -- 229
+			goto _continue_0 -- 229
+		end -- 229
+		local fileName = Path:replaceExt(file, "") -- 230
+		fileName = Path(path, fileName) -- 231
+		local entry = { -- 232
+			entryName, -- 232
+			fileName -- 232
+		} -- 232
+		entries[#entries + 1] = entry -- 233
+		::_continue_0:: -- 223
+	end -- 233
+	table.sort(entries, function(a, b) -- 234
+		return a[1] < b[1] -- 234
+	end) -- 234
+	return entries -- 235
+end -- 220
+local getProjectEntries -- 237
+getProjectEntries = function(path) -- 237
+	local entries = { } -- 238
+	local _list_0 = Content:getDirs(path) -- 239
+	for _index_0 = 1, #_list_0 do -- 239
+		local dir = _list_0[_index_0] -- 239
+		if dir:match("^%.") then -- 240
+			goto _continue_0 -- 240
+		end -- 240
+		local _list_1 = getAllFiles(Path(path, dir), { -- 241
+			"lua", -- 241
+			"xml", -- 241
+			yueext, -- 241
+			"tl", -- 241
+			"wasm" -- 241
+		}) -- 241
+		for _index_1 = 1, #_list_1 do -- 241
+			local file = _list_1[_index_1] -- 241
+			if "init" == Path:getName(file):lower() then -- 242
+				local fileName = Path:replaceExt(file, "") -- 243
+				fileName = Path(path, dir, fileName) -- 244
+				local entryName = Path:getName(Path:getPath(fileName)) -- 245
+				local entryAdded = false -- 246
+				for _index_2 = 1, #entries do -- 247
+					local _des_0 = entries[_index_2] -- 247
+					local ename = _des_0[1] -- 247
+					if entryName == ename then -- 248
+						entryAdded = true -- 249
+						break -- 250
+					end -- 248
 				end -- 250
-				local testPath = Path(path, dir, Path:getPath(file), "Test") -- 254
-				if Content:exist(testPath) then -- 255
-					local _list_2 = getFileEntries(testPath) -- 256
+				if entryAdded then -- 251
+					goto _continue_1 -- 251
+				end -- 251
+				local examples = { } -- 252
+				local tests = { } -- 253
+				local examplePath = Path(path, dir, Path:getPath(file), "Example") -- 254
+				if Content:exist(examplePath) then -- 255
+					local _list_2 = getFileEntries(examplePath) -- 256
 					for _index_2 = 1, #_list_2 do -- 256
 						local _des_0 = _list_2[_index_2] -- 256
-						local name, tPath = _des_0[1], _des_0[2] -- 256
+						local name, ePath = _des_0[1], _des_0[2] -- 256
 						local entry = { -- 257
 							name, -- 257
-							Path(path, dir, Path:getPath(file), tPath) -- 257
+							Path(path, dir, Path:getPath(file), ePath) -- 257
 						} -- 257
-						tests[#tests + 1] = entry -- 258
+						examples[#examples + 1] = entry -- 258
 					end -- 258
 				end -- 255
-				local entry = { -- 259
-					entryName, -- 259
-					fileName, -- 259
-					examples, -- 259
-					tests -- 259
-				} -- 259
-				local bannerFile = Path(path, Path:getPath(fileName), "Image", "banner.png") -- 260
-				if not Content:exist(bannerFile) then -- 261
-					bannerFile = Path(path, Path:getPath(fileName), "Image", "banner.jpg") -- 262
-					if not Content:exist(bannerFile) then -- 263
-						bannerFile = nil -- 263
+				local testPath = Path(path, dir, Path:getPath(file), "Test") -- 259
+				if Content:exist(testPath) then -- 260
+					local _list_2 = getFileEntries(testPath) -- 261
+					for _index_2 = 1, #_list_2 do -- 261
+						local _des_0 = _list_2[_index_2] -- 261
+						local name, tPath = _des_0[1], _des_0[2] -- 261
+						local entry = { -- 262
+							name, -- 262
+							Path(path, dir, Path:getPath(file), tPath) -- 262
+						} -- 262
+						tests[#tests + 1] = entry -- 263
 					end -- 263
-				end -- 261
-				if bannerFile then -- 264
-					thread(function() -- 264
-						if Cache:loadAsync(bannerFile) then -- 265
-							local bannerTex = Texture2D(bannerFile) -- 266
-							if bannerTex then -- 267
-								entry[#entry + 1] = bannerFile -- 268
-								entry[#entry + 1] = bannerTex -- 269
-							end -- 267
-						end -- 265
-					end) -- 264
-				end -- 264
-				entries[#entries + 1] = entry -- 270
-			end -- 237
-			::_continue_1:: -- 237
-		end -- 270
-		::_continue_0:: -- 235
-	end -- 270
-	table.sort(entries, function(a, b) -- 271
-		return a[1] < b[1] -- 271
-	end) -- 271
-	return entries -- 272
-end -- 232
-local gamesInDev, games -- 274
-local doraTools, doraExamples, doraTests -- 275
-local cppTests, cppTestSet -- 276
-local allEntries -- 277
-local updateEntries -- 279
-updateEntries = function() -- 279
-	gamesInDev = getProjectEntries(Content.writablePath) -- 280
-	games = getProjectEntries(Path(Content.assetPath, "Script")) -- 281
-	doraTools = getFileEntries(Path(Content.assetPath, "Script", "Tools"), false) -- 283
-	doraExamples = getFileEntries(Path(Content.assetPath, "Script", "Example")) -- 284
-	doraTests = getFileEntries(Path(Content.assetPath, "Script", "Test")) -- 285
-	cppTests = { } -- 287
-	local _list_0 = App.testNames -- 288
-	for _index_0 = 1, #_list_0 do -- 288
-		local name = _list_0[_index_0] -- 288
-		local entry = { -- 289
-			name -- 289
-		} -- 289
-		cppTests[#cppTests + 1] = entry -- 290
-	end -- 290
-	cppTestSet = Set(cppTests) -- 291
-	allEntries = { } -- 293
-	for _index_0 = 1, #gamesInDev do -- 294
-		local game = gamesInDev[_index_0] -- 294
-		allEntries[#allEntries + 1] = game -- 295
-		local examples, tests = game[3], game[4] -- 296
-		for _index_1 = 1, #examples do -- 297
-			local example = examples[_index_1] -- 297
-			allEntries[#allEntries + 1] = example -- 298
-		end -- 298
-		for _index_1 = 1, #tests do -- 299
-			local test = tests[_index_1] -- 299
-			allEntries[#allEntries + 1] = test -- 300
-		end -- 300
-	end -- 300
-	for _index_0 = 1, #games do -- 301
-		local game = games[_index_0] -- 301
-		allEntries[#allEntries + 1] = game -- 302
-		local examples, tests = game[3], game[4] -- 303
-		for _index_1 = 1, #examples do -- 304
-			local example = examples[_index_1] -- 304
-			doraExamples[#doraExamples + 1] = example -- 305
+				end -- 260
+				local entry = { -- 264
+					entryName, -- 264
+					fileName, -- 264
+					examples, -- 264
+					tests -- 264
+				} -- 264
+				local bannerFile = Path(path, Path:getPath(fileName), "Image", "banner.png") -- 265
+				if not Content:exist(bannerFile) then -- 266
+					bannerFile = Path(path, Path:getPath(fileName), "Image", "banner.jpg") -- 267
+					if not Content:exist(bannerFile) then -- 268
+						bannerFile = nil -- 268
+					end -- 268
+				end -- 266
+				if bannerFile then -- 269
+					thread(function() -- 269
+						if Cache:loadAsync(bannerFile) then -- 270
+							local bannerTex = Texture2D(bannerFile) -- 271
+							if bannerTex then -- 272
+								entry[#entry + 1] = bannerFile -- 273
+								entry[#entry + 1] = bannerTex -- 274
+							end -- 272
+						end -- 270
+					end) -- 269
+				end -- 269
+				entries[#entries + 1] = entry -- 275
+			end -- 242
+			::_continue_1:: -- 242
+		end -- 275
+		::_continue_0:: -- 240
+	end -- 275
+	table.sort(entries, function(a, b) -- 276
+		return a[1] < b[1] -- 276
+	end) -- 276
+	return entries -- 277
+end -- 237
+local gamesInDev, games -- 279
+local doraTools, doraExamples, doraTests -- 280
+local cppTests, cppTestSet -- 281
+local allEntries -- 282
+local updateEntries -- 284
+updateEntries = function() -- 284
+	gamesInDev = getProjectEntries(Content.writablePath) -- 285
+	games = getProjectEntries(Path(Content.assetPath, "Script")) -- 286
+	doraTools = getFileEntries(Path(Content.assetPath, "Script", "Tools"), false) -- 288
+	doraExamples = getFileEntries(Path(Content.assetPath, "Script", "Example")) -- 289
+	doraTests = getFileEntries(Path(Content.assetPath, "Script", "Test")) -- 290
+	cppTests = { } -- 292
+	local _list_0 = App.testNames -- 293
+	for _index_0 = 1, #_list_0 do -- 293
+		local name = _list_0[_index_0] -- 293
+		local entry = { -- 294
+			name -- 294
+		} -- 294
+		cppTests[#cppTests + 1] = entry -- 295
+	end -- 295
+	cppTestSet = Set(cppTests) -- 296
+	allEntries = { } -- 298
+	for _index_0 = 1, #gamesInDev do -- 299
+		local game = gamesInDev[_index_0] -- 299
+		allEntries[#allEntries + 1] = game -- 300
+		local examples, tests = game[3], game[4] -- 301
+		for _index_1 = 1, #examples do -- 302
+			local example = examples[_index_1] -- 302
+			allEntries[#allEntries + 1] = example -- 303
+		end -- 303
+		for _index_1 = 1, #tests do -- 304
+			local test = tests[_index_1] -- 304
+			allEntries[#allEntries + 1] = test -- 305
 		end -- 305
-		for _index_1 = 1, #tests do -- 306
-			local test = tests[_index_1] -- 306
-			doraTests[#doraTests + 1] = test -- 307
-		end -- 307
-	end -- 307
-	local _list_1 = { -- 309
-		doraExamples, -- 309
-		doraTests, -- 310
-		cppTests -- 311
-	} -- 308
-	for _index_0 = 1, #_list_1 do -- 312
-		local group = _list_1[_index_0] -- 308
-		for _index_1 = 1, #group do -- 313
-			local entry = group[_index_1] -- 313
-			allEntries[#allEntries + 1] = entry -- 314
-		end -- 314
-	end -- 314
-end -- 279
-updateEntries() -- 316
-local doCompile -- 318
-doCompile = function(minify) -- 318
-	if building then -- 319
-		return -- 319
+	end -- 305
+	for _index_0 = 1, #games do -- 306
+		local game = games[_index_0] -- 306
+		allEntries[#allEntries + 1] = game -- 307
+		local examples, tests = game[3], game[4] -- 308
+		for _index_1 = 1, #examples do -- 309
+			local example = examples[_index_1] -- 309
+			doraExamples[#doraExamples + 1] = example -- 310
+		end -- 310
+		for _index_1 = 1, #tests do -- 311
+			local test = tests[_index_1] -- 311
+			doraTests[#doraTests + 1] = test -- 312
+		end -- 312
+	end -- 312
+	local _list_1 = { -- 314
+		doraExamples, -- 314
+		doraTests, -- 315
+		cppTests -- 316
+	} -- 313
+	for _index_0 = 1, #_list_1 do -- 317
+		local group = _list_1[_index_0] -- 313
+		for _index_1 = 1, #group do -- 318
+			local entry = group[_index_1] -- 318
+			allEntries[#allEntries + 1] = entry -- 319
+		end -- 319
 	end -- 319
-	building = true -- 320
-	local startTime = App.runningTime -- 321
-	local luaFiles = { } -- 322
-	local yueFiles = { } -- 323
-	local xmlFiles = { } -- 324
-	local tlFiles = { } -- 325
-	local writablePath = Content.writablePath -- 326
-	local buildPaths = { -- 328
-		{ -- 329
-			Path(Content.assetPath), -- 329
-			Path(writablePath, ".build"), -- 330
-			"" -- 331
-		} -- 328
-	} -- 327
-	for _index_0 = 1, #gamesInDev do -- 334
-		local _des_0 = gamesInDev[_index_0] -- 334
-		local entryFile = _des_0[2] -- 334
-		local gamePath = Path:getPath(Path:getRelative(entryFile, writablePath)) -- 335
-		buildPaths[#buildPaths + 1] = { -- 337
-			Path(writablePath, gamePath), -- 337
-			Path(writablePath, ".build", gamePath), -- 338
-			Path(writablePath, gamePath, "Script", "?.lua") .. ";" .. Path(writablePath, gamePath, "?.lua"), -- 339
-			gamePath -- 340
-		} -- 336
-	end -- 340
-	for _index_0 = 1, #buildPaths do -- 341
-		local _des_0 = buildPaths[_index_0] -- 341
-		local inputPath, outputPath, searchPath, gamePath = _des_0[1], _des_0[2], _des_0[3], _des_0[4] -- 341
-		if not Content:exist(inputPath) then -- 342
-			goto _continue_0 -- 342
-		end -- 342
-		local _list_0 = getAllFiles(inputPath, { -- 344
-			"lua" -- 344
-		}) -- 344
-		for _index_1 = 1, #_list_0 do -- 344
-			local file = _list_0[_index_1] -- 344
-			luaFiles[#luaFiles + 1] = { -- 346
-				file, -- 346
-				Path(inputPath, file), -- 347
-				Path(outputPath, file), -- 348
-				gamePath -- 349
-			} -- 345
-		end -- 349
-		local _list_1 = getAllFiles(inputPath, { -- 351
-			yueext -- 351
-		}) -- 351
-		for _index_1 = 1, #_list_1 do -- 351
-			local file = _list_1[_index_1] -- 351
-			yueFiles[#yueFiles + 1] = { -- 353
-				file, -- 353
-				Path(inputPath, file), -- 354
-				Path(outputPath, Path:replaceExt(file, "lua")), -- 355
-				searchPath, -- 356
-				gamePath -- 357
-			} -- 352
-		end -- 357
-		local _list_2 = getAllFiles(inputPath, { -- 359
-			"xml" -- 359
-		}) -- 359
-		for _index_1 = 1, #_list_2 do -- 359
-			local file = _list_2[_index_1] -- 359
-			xmlFiles[#xmlFiles + 1] = { -- 361
-				file, -- 361
-				Path(inputPath, file), -- 362
-				Path(outputPath, Path:replaceExt(file, "lua")), -- 363
-				gamePath -- 364
-			} -- 360
-		end -- 364
-		local _list_3 = getAllFiles(inputPath, { -- 366
-			"tl" -- 366
-		}) -- 366
-		for _index_1 = 1, #_list_3 do -- 366
-			local file = _list_3[_index_1] -- 366
-			if not file:match(".*%.d%.tl$") then -- 367
-				tlFiles[#tlFiles + 1] = { -- 369
-					file, -- 369
-					Path(inputPath, file), -- 370
-					Path(outputPath, Path:replaceExt(file, "lua")), -- 371
-					searchPath, -- 372
-					gamePath -- 373
-				} -- 368
-			end -- 367
-		end -- 373
-		::_continue_0:: -- 342
-	end -- 373
-	local paths -- 375
-	do -- 375
-		local _tbl_0 = { } -- 375
-		local _list_0 = { -- 376
-			luaFiles, -- 376
-			yueFiles, -- 376
-			xmlFiles, -- 376
-			tlFiles -- 376
-		} -- 376
-		for _index_0 = 1, #_list_0 do -- 376
-			local files = _list_0[_index_0] -- 376
-			for _index_1 = 1, #files do -- 377
-				local file = files[_index_1] -- 377
-				_tbl_0[Path:getPath(file[3])] = true -- 375
-			end -- 375
-		end -- 375
-		paths = _tbl_0 -- 375
-	end -- 377
-	for path in pairs(paths) do -- 379
-		Content:mkdir(path) -- 379
-	end -- 379
-	local totalFiles = #yueFiles + #xmlFiles + #tlFiles -- 381
-	local fileCount = 0 -- 382
-	local errors = { } -- 383
-	for _index_0 = 1, #yueFiles do -- 384
-		local _des_0 = yueFiles[_index_0] -- 384
-		local file, input, output, searchPath, gamePath = _des_0[1], _des_0[2], _des_0[3], _des_0[4], _des_0[5] -- 384
-		local filename -- 385
-		if gamePath then -- 385
-			filename = Path(gamePath, file) -- 385
-		else -- 385
-			filename = file -- 385
-		end -- 385
-		yue.compile(input, output, searchPath, function(codes, err, globals) -- 386
-			if not codes then -- 387
-				errors[#errors + 1] = "Compile errors in " .. tostring(filename) .. ".\n" .. tostring(err) -- 388
-				return -- 389
-			end -- 387
-			local success, result = LintYueGlobals(codes, globals) -- 390
-			if success then -- 391
-				codes = codes:gsub("%s*local%s*_ENV%s*=%s*Dora%([^%)]-%)[^\n\r]+[\n\r%s]*", "\n") -- 392
-				codes = codes:gsub("%s*local%s*_ENV%s*=%s*Dora[^%w_$][^\n\r]+[\n\r%s]*", "\n") -- 393
-				codes = codes:gsub("^\n*", "") -- 394
-				if not (result == "") then -- 395
-					result = result .. "\n" -- 395
-				end -- 395
-				return "-- [yue]: " .. tostring(file) .. "\n" .. tostring(result) .. tostring(codes) -- 396
-			else -- 398
-				local yueCodes = Content:load(input) -- 398
-				if yueCodes then -- 398
-					local globalErrors = { } -- 399
-					for _index_1 = 1, #result do -- 400
-						local _des_1 = result[_index_1] -- 400
-						local name, line, col = _des_1[1], _des_1[2], _des_1[3] -- 400
-						local countLine = 1 -- 401
-						local code = "" -- 402
-						for lineCode in yueCodes:gmatch("([^\r\n]*)\r?\n?") do -- 403
-							if countLine == line then -- 404
-								code = lineCode -- 405
-								break -- 406
-							end -- 404
-							countLine = countLine + 1 -- 407
-						end -- 407
-						globalErrors[#globalErrors + 1] = "invalid global variable \"" .. tostring(name) .. "\"\nin \"" .. tostring(filename) .. "\", at line " .. tostring(line) .. ", col " .. tostring(col) .. ".\n" .. tostring(code:gsub("\t", " ") .. '\n' .. string.rep(" ", col - 1) .. "^") -- 408
-					end -- 408
-					errors[#errors + 1] = table.concat(globalErrors, "\n") -- 409
-				else -- 411
-					errors[#errors + 1] = "failed to load file " .. tostring(input) -- 411
-				end -- 398
-			end -- 391
-		end, function(success) -- 386
-			if success then -- 412
-				print("Yue compiled: " .. tostring(filename)) -- 412
-			end -- 412
-			fileCount = fileCount + 1 -- 413
-		end) -- 386
-	end -- 413
-	thread(function() -- 415
-		for _index_0 = 1, #xmlFiles do -- 416
-			local _des_0 = xmlFiles[_index_0] -- 416
-			local file, input, output, gamePath = _des_0[1], _des_0[2], _des_0[3], _des_0[4] -- 416
-			local filename -- 417
-			if gamePath then -- 417
-				filename = Path(gamePath, file) -- 417
-			else -- 417
-				filename = file -- 417
+end -- 284
+updateEntries() -- 321
+local doCompile -- 323
+doCompile = function(minify) -- 323
+	if building then -- 324
+		return -- 324
+	end -- 324
+	building = true -- 325
+	local startTime = App.runningTime -- 326
+	local luaFiles = { } -- 327
+	local yueFiles = { } -- 328
+	local xmlFiles = { } -- 329
+	local tlFiles = { } -- 330
+	local writablePath = Content.writablePath -- 331
+	local buildPaths = { -- 333
+		{ -- 334
+			Path(Content.assetPath), -- 334
+			Path(writablePath, ".build"), -- 335
+			"" -- 336
+		} -- 333
+	} -- 332
+	for _index_0 = 1, #gamesInDev do -- 339
+		local _des_0 = gamesInDev[_index_0] -- 339
+		local entryFile = _des_0[2] -- 339
+		local gamePath = Path:getPath(Path:getRelative(entryFile, writablePath)) -- 340
+		buildPaths[#buildPaths + 1] = { -- 342
+			Path(writablePath, gamePath), -- 342
+			Path(writablePath, ".build", gamePath), -- 343
+			Path(writablePath, gamePath, "Script", "?.lua") .. ";" .. Path(writablePath, gamePath, "?.lua"), -- 344
+			gamePath -- 345
+		} -- 341
+	end -- 345
+	for _index_0 = 1, #buildPaths do -- 346
+		local _des_0 = buildPaths[_index_0] -- 346
+		local inputPath, outputPath, searchPath, gamePath = _des_0[1], _des_0[2], _des_0[3], _des_0[4] -- 346
+		if not Content:exist(inputPath) then -- 347
+			goto _continue_0 -- 347
+		end -- 347
+		local _list_0 = getAllFiles(inputPath, { -- 349
+			"lua" -- 349
+		}) -- 349
+		for _index_1 = 1, #_list_0 do -- 349
+			local file = _list_0[_index_1] -- 349
+			luaFiles[#luaFiles + 1] = { -- 351
+				file, -- 351
+				Path(inputPath, file), -- 352
+				Path(outputPath, file), -- 353
+				gamePath -- 354
+			} -- 350
+		end -- 354
+		local _list_1 = getAllFiles(inputPath, { -- 356
+			yueext -- 356
+		}) -- 356
+		for _index_1 = 1, #_list_1 do -- 356
+			local file = _list_1[_index_1] -- 356
+			yueFiles[#yueFiles + 1] = { -- 358
+				file, -- 358
+				Path(inputPath, file), -- 359
+				Path(outputPath, Path:replaceExt(file, "lua")), -- 360
+				searchPath, -- 361
+				gamePath -- 362
+			} -- 357
+		end -- 362
+		local _list_2 = getAllFiles(inputPath, { -- 364
+			"xml" -- 364
+		}) -- 364
+		for _index_1 = 1, #_list_2 do -- 364
+			local file = _list_2[_index_1] -- 364
+			xmlFiles[#xmlFiles + 1] = { -- 366
+				file, -- 366
+				Path(inputPath, file), -- 367
+				Path(outputPath, Path:replaceExt(file, "lua")), -- 368
+				gamePath -- 369
+			} -- 365
+		end -- 369
+		local _list_3 = getAllFiles(inputPath, { -- 371
+			"tl" -- 371
+		}) -- 371
+		for _index_1 = 1, #_list_3 do -- 371
+			local file = _list_3[_index_1] -- 371
+			if not file:match(".*%.d%.tl$") then -- 372
+				tlFiles[#tlFiles + 1] = { -- 374
+					file, -- 374
+					Path(inputPath, file), -- 375
+					Path(outputPath, Path:replaceExt(file, "lua")), -- 376
+					searchPath, -- 377
+					gamePath -- 378
+				} -- 373
+			end -- 372
+		end -- 378
+		::_continue_0:: -- 347
+	end -- 378
+	local paths -- 380
+	do -- 380
+		local _tbl_0 = { } -- 380
+		local _list_0 = { -- 381
+			luaFiles, -- 381
+			yueFiles, -- 381
+			xmlFiles, -- 381
+			tlFiles -- 381
+		} -- 381
+		for _index_0 = 1, #_list_0 do -- 381
+			local files = _list_0[_index_0] -- 381
+			for _index_1 = 1, #files do -- 382
+				local file = files[_index_1] -- 382
+				_tbl_0[Path:getPath(file[3])] = true -- 380
+			end -- 380
+		end -- 380
+		paths = _tbl_0 -- 380
+	end -- 382
+	for path in pairs(paths) do -- 384
+		Content:mkdir(path) -- 384
+	end -- 384
+	local totalFiles = #yueFiles + #xmlFiles + #tlFiles -- 386
+	local fileCount = 0 -- 387
+	local errors = { } -- 388
+	for _index_0 = 1, #yueFiles do -- 389
+		local _des_0 = yueFiles[_index_0] -- 389
+		local file, input, output, searchPath, gamePath = _des_0[1], _des_0[2], _des_0[3], _des_0[4], _des_0[5] -- 389
+		local filename -- 390
+		if gamePath then -- 390
+			filename = Path(gamePath, file) -- 390
+		else -- 390
+			filename = file -- 390
+		end -- 390
+		yue.compile(input, output, searchPath, function(codes, err, globals) -- 391
+			if not codes then -- 392
+				errors[#errors + 1] = "Compile errors in " .. tostring(filename) .. ".\n" .. tostring(err) -- 393
+				return -- 394
+			end -- 392
+			local success, result = LintYueGlobals(codes, globals) -- 395
+			if success then -- 396
+				codes = codes:gsub("%s*local%s*_ENV%s*=%s*Dora%([^%)]-%)[^\n\r]+[\n\r%s]*", "\n") -- 397
+				codes = codes:gsub("%s*local%s*_ENV%s*=%s*Dora[^%w_$][^\n\r]+[\n\r%s]*", "\n") -- 398
+				codes = codes:gsub("^\n*", "") -- 399
+				if not (result == "") then -- 400
+					result = result .. "\n" -- 400
+				end -- 400
+				return "-- [yue]: " .. tostring(file) .. "\n" .. tostring(result) .. tostring(codes) -- 401
+			else -- 403
+				local yueCodes = Content:load(input) -- 403
+				if yueCodes then -- 403
+					local globalErrors = { } -- 404
+					for _index_1 = 1, #result do -- 405
+						local _des_1 = result[_index_1] -- 405
+						local name, line, col = _des_1[1], _des_1[2], _des_1[3] -- 405
+						local countLine = 1 -- 406
+						local code = "" -- 407
+						for lineCode in yueCodes:gmatch("([^\r\n]*)\r?\n?") do -- 408
+							if countLine == line then -- 409
+								code = lineCode -- 410
+								break -- 411
+							end -- 409
+							countLine = countLine + 1 -- 412
+						end -- 412
+						globalErrors[#globalErrors + 1] = "invalid global variable \"" .. tostring(name) .. "\"\nin \"" .. tostring(filename) .. "\", at line " .. tostring(line) .. ", col " .. tostring(col) .. ".\n" .. tostring(code:gsub("\t", " ") .. '\n' .. string.rep(" ", col - 1) .. "^") -- 413
+					end -- 413
+					errors[#errors + 1] = table.concat(globalErrors, "\n") -- 414
+				else -- 416
+					errors[#errors + 1] = "failed to load file " .. tostring(input) -- 416
+				end -- 403
+			end -- 396
+		end, function(success) -- 391
+			if success then -- 417
+				print("Yue compiled: " .. tostring(filename)) -- 417
 			end -- 417
-			local sourceCodes = Content:loadAsync(input) -- 418
-			local codes, err = xml.tolua(sourceCodes) -- 419
-			if not codes then -- 420
-				errors[#errors + 1] = "Compile errors in " .. tostring(filename) .. ".\n" .. tostring(err) -- 421
-			else -- 423
-				Content:saveAsync(output, "-- [xml]: " .. tostring(file) .. "\n" .. tostring(codes)) -- 423
-				print("Xml compiled: " .. tostring(filename)) -- 424
-			end -- 420
-			fileCount = fileCount + 1 -- 425
-		end -- 425
-	end) -- 415
-	thread(function() -- 427
-		for _index_0 = 1, #tlFiles do -- 428
-			local _des_0 = tlFiles[_index_0] -- 428
-			local file, input, output, searchPath, gamePath = _des_0[1], _des_0[2], _des_0[3], _des_0[4], _des_0[5] -- 428
-			local filename -- 429
-			if gamePath then -- 429
-				filename = Path(gamePath, file) -- 429
-			else -- 429
-				filename = file -- 429
-			end -- 429
-			local sourceCodes = Content:loadAsync(input) -- 430
-			local codes, err = teal.toluaAsync(sourceCodes, file, searchPath) -- 431
-			if not codes then -- 432
-				errors[#errors + 1] = "Compile errors in " .. tostring(filename) .. ".\n" .. tostring(err) -- 433
-			else -- 435
-				Content:saveAsync(output, codes) -- 435
-				print("Teal compiled: " .. tostring(filename)) -- 436
-			end -- 432
-			fileCount = fileCount + 1 -- 437
-		end -- 437
-	end) -- 427
-	return thread(function() -- 439
-		wait(function() -- 440
-			return fileCount == totalFiles -- 440
-		end) -- 440
-		if minify then -- 441
-			local _list_0 = { -- 442
-				yueFiles, -- 442
-				xmlFiles, -- 442
-				tlFiles -- 442
-			} -- 442
-			for _index_0 = 1, #_list_0 do -- 442
-				local files = _list_0[_index_0] -- 442
-				for _index_1 = 1, #files do -- 442
-					local file = files[_index_1] -- 442
-					local output = Path:replaceExt(file[3], "lua") -- 443
-					luaFiles[#luaFiles + 1] = { -- 445
-						Path:replaceExt(file[1], "lua"), -- 445
-						output, -- 446
-						output -- 447
-					} -- 444
-				end -- 447
-			end -- 447
-			local FormatMini -- 449
-			do -- 449
-				local _obj_0 = require("luaminify") -- 449
-				FormatMini = _obj_0.FormatMini -- 449
-			end -- 449
-			for _index_0 = 1, #luaFiles do -- 450
-				local _des_0 = luaFiles[_index_0] -- 450
-				local file, input, output = _des_0[1], _des_0[2], _des_0[3] -- 450
-				if Content:exist(input) then -- 451
-					local sourceCodes = Content:loadAsync(input) -- 452
-					local res, err = FormatMini(sourceCodes) -- 453
-					if res then -- 454
-						Content:saveAsync(output, res) -- 455
-						print("Minify: " .. tostring(file)) -- 456
-					else -- 458
-						errors[#errors + 1] = "Minify errors in " .. tostring(file) .. ".\n" .. tostring(err) -- 458
-					end -- 454
-				else -- 460
-					errors[#errors + 1] = "Minify errors in " .. tostring(file) .. ".\nTarget file is not exist!" -- 460
-				end -- 451
-			end -- 460
-			package.loaded["luaminify.FormatMini"] = nil -- 461
-			package.loaded["luaminify.ParseLua"] = nil -- 462
-			package.loaded["luaminify.Scope"] = nil -- 463
-			package.loaded["luaminify.Util"] = nil -- 464
-		end -- 441
-		local errorMessage = table.concat(errors, "\n") -- 465
-		if errorMessage ~= "" then -- 466
-			print("\n" .. errorMessage) -- 466
-		end -- 466
-		local builtFiles = totalFiles + (minify and #luaFiles or 0) - #errors -- 467
-		print("\n" .. tostring(builtFiles) .. " " .. tostring(builtFiles == 1 and 'file' or 'files') .. " built! Cost " .. tostring(string.format('%.2f', App.runningTime - startTime)) .. "s") -- 468
-		print(tostring(#errors) .. " " .. tostring(#errors == 1 and 'file fails' or 'files fail') .. " to build.") -- 469
-		Content:clearPathCache() -- 470
-		teal.clear() -- 471
-		yue.clear() -- 472
-		building = false -- 473
-	end) -- 473
-end -- 318
-local doClean -- 475
-doClean = function() -- 475
-	if building then -- 476
-		return -- 476
-	end -- 476
-	local writablePath = Content.writablePath -- 477
-	local targetDir = Path(writablePath, ".build") -- 478
-	Content:clearPathCache() -- 479
-	if Content:remove(targetDir) then -- 480
-		return print("Cleaned: " .. tostring(targetDir)) -- 481
-	end -- 480
-end -- 475
-local screenScale = 2.0 -- 483
-local scaleContent = false -- 484
-local isInEntry = true -- 485
-local currentEntry = nil -- 486
-local footerWindow = nil -- 488
-local entryWindow = nil -- 489
-local testingThread = nil -- 490
-local setupEventHandlers = nil -- 492
-local allClear -- 494
-allClear = function() -- 494
-	local _list_0 = Routine -- 495
-	for _index_0 = 1, #_list_0 do -- 495
-		local routine = _list_0[_index_0] -- 495
-		if footerWindow == routine or entryWindow == routine or testingThread == routine then -- 497
-			goto _continue_0 -- 498
-		else -- 500
-			Routine:remove(routine) -- 500
-		end -- 500
-		::_continue_0:: -- 496
-	end -- 500
-	for _index_0 = 1, #moduleCache do -- 501
-		local module = moduleCache[_index_0] -- 501
-		package.loaded[module] = nil -- 502
-	end -- 502
-	moduleCache = { } -- 503
-	Director:cleanup() -- 504
-	Cache:unload() -- 505
-	Entity:clear() -- 506
-	Platformer.Data:clear() -- 507
-	Platformer.UnitAction:clear() -- 508
-	Audio:stopStream(0.5) -- 509
-	Struct:clear() -- 510
-	View.postEffect = nil -- 511
-	View.scale = scaleContent and screenScale or 1 -- 512
-	Director.clearColor = Color(0xff1a1a1a) -- 513
-	teal.clear() -- 514
-	yue.clear() -- 515
-	for _, item in pairs(ubox()) do -- 516
-		local node = tolua.cast(item, "Node") -- 517
-		if node then -- 517
-			node:cleanup() -- 517
-		end -- 517
-	end -- 517
-	collectgarbage() -- 518
-	collectgarbage() -- 519
-	setupEventHandlers() -- 520
-	Content.searchPaths = searchPaths -- 521
-	App.idled = true -- 522
-	return Wasm:clear() -- 523
-end -- 494
-_module_0["allClear"] = allClear -- 523
-local clearTempFiles -- 525
-clearTempFiles = function() -- 525
-	local writablePath = Content.writablePath -- 526
-	Content:remove(Path(writablePath, ".upload")) -- 527
-	return Content:remove(Path(writablePath, ".download")) -- 528
-end -- 525
-local _anon_func_0 = function(App, _with_0) -- 543
-	local _val_0 = App.platform -- 543
-	return "Linux" == _val_0 or "Windows" == _val_0 or "macOS" == _val_0 -- 543
-end -- 543
-setupEventHandlers = function() -- 530
-	local _with_0 = Director.postNode -- 531
-	_with_0:onAppEvent(function(eventType) -- 532
-		if eventType == "Quit" then -- 532
-			allClear() -- 533
-			return clearTempFiles() -- 534
-		end -- 532
-	end) -- 532
-	_with_0:onAppChange(function(settingName) -- 535
-		if "Theme" == settingName then -- 536
-			config.themeColor = App.themeColor:toARGB() -- 537
-		elseif "Locale" == settingName then -- 538
-			config.locale = App.locale -- 539
-			updateLocale() -- 540
-			return teal.clear(true) -- 541
-		elseif "FullScreen" == settingName or "Size" == settingName or "Position" == settingName then -- 542
-			if _anon_func_0(App, _with_0) then -- 543
-				if "FullScreen" == settingName then -- 545
-					config.fullScreen = App.fullScreen -- 545
-				elseif "Position" == settingName then -- 546
-					local _obj_0 = App.winPosition -- 546
-					config.winX, config.winY = _obj_0.x, _obj_0.y -- 546
-				elseif "Size" == settingName then -- 547
-					local width, height -- 548
-					do -- 548
-						local _obj_0 = App.winSize -- 548
-						width, height = _obj_0.width, _obj_0.height -- 548
-					end -- 548
-					config.winWidth = width -- 549
-					config.winHeight = height -- 550
-				end -- 550
-			end -- 543
-		end -- 550
-	end) -- 535
-	_with_0:onAppWS(function(eventType) -- 551
-		if eventType == "Close" then -- 551
-			if HttpServer.wsConnectionCount == 0 then -- 552
-				return updateEntries() -- 553
-			end -- 552
-		end -- 551
-	end) -- 551
-	return _with_0 -- 531
+			fileCount = fileCount + 1 -- 418
+		end) -- 391
+	end -- 418
+	thread(function() -- 420
+		for _index_0 = 1, #xmlFiles do -- 421
+			local _des_0 = xmlFiles[_index_0] -- 421
+			local file, input, output, gamePath = _des_0[1], _des_0[2], _des_0[3], _des_0[4] -- 421
+			local filename -- 422
+			if gamePath then -- 422
+				filename = Path(gamePath, file) -- 422
+			else -- 422
+				filename = file -- 422
+			end -- 422
+			local sourceCodes = Content:loadAsync(input) -- 423
+			local codes, err = xml.tolua(sourceCodes) -- 424
+			if not codes then -- 425
+				errors[#errors + 1] = "Compile errors in " .. tostring(filename) .. ".\n" .. tostring(err) -- 426
+			else -- 428
+				Content:saveAsync(output, "-- [xml]: " .. tostring(file) .. "\n" .. tostring(codes)) -- 428
+				print("Xml compiled: " .. tostring(filename)) -- 429
+			end -- 425
+			fileCount = fileCount + 1 -- 430
+		end -- 430
+	end) -- 420
+	thread(function() -- 432
+		for _index_0 = 1, #tlFiles do -- 433
+			local _des_0 = tlFiles[_index_0] -- 433
+			local file, input, output, searchPath, gamePath = _des_0[1], _des_0[2], _des_0[3], _des_0[4], _des_0[5] -- 433
+			local filename -- 434
+			if gamePath then -- 434
+				filename = Path(gamePath, file) -- 434
+			else -- 434
+				filename = file -- 434
+			end -- 434
+			local sourceCodes = Content:loadAsync(input) -- 435
+			local codes, err = teal.toluaAsync(sourceCodes, file, searchPath) -- 436
+			if not codes then -- 437
+				errors[#errors + 1] = "Compile errors in " .. tostring(filename) .. ".\n" .. tostring(err) -- 438
+			else -- 440
+				Content:saveAsync(output, codes) -- 440
+				print("Teal compiled: " .. tostring(filename)) -- 441
+			end -- 437
+			fileCount = fileCount + 1 -- 442
+		end -- 442
+	end) -- 432
+	return thread(function() -- 444
+		wait(function() -- 445
+			return fileCount == totalFiles -- 445
+		end) -- 445
+		if minify then -- 446
+			local _list_0 = { -- 447
+				yueFiles, -- 447
+				xmlFiles, -- 447
+				tlFiles -- 447
+			} -- 447
+			for _index_0 = 1, #_list_0 do -- 447
+				local files = _list_0[_index_0] -- 447
+				for _index_1 = 1, #files do -- 447
+					local file = files[_index_1] -- 447
+					local output = Path:replaceExt(file[3], "lua") -- 448
+					luaFiles[#luaFiles + 1] = { -- 450
+						Path:replaceExt(file[1], "lua"), -- 450
+						output, -- 451
+						output -- 452
+					} -- 449
+				end -- 452
+			end -- 452
+			local FormatMini -- 454
+			do -- 454
+				local _obj_0 = require("luaminify") -- 454
+				FormatMini = _obj_0.FormatMini -- 454
+			end -- 454
+			for _index_0 = 1, #luaFiles do -- 455
+				local _des_0 = luaFiles[_index_0] -- 455
+				local file, input, output = _des_0[1], _des_0[2], _des_0[3] -- 455
+				if Content:exist(input) then -- 456
+					local sourceCodes = Content:loadAsync(input) -- 457
+					local res, err = FormatMini(sourceCodes) -- 458
+					if res then -- 459
+						Content:saveAsync(output, res) -- 460
+						print("Minify: " .. tostring(file)) -- 461
+					else -- 463
+						errors[#errors + 1] = "Minify errors in " .. tostring(file) .. ".\n" .. tostring(err) -- 463
+					end -- 459
+				else -- 465
+					errors[#errors + 1] = "Minify errors in " .. tostring(file) .. ".\nTarget file is not exist!" -- 465
+				end -- 456
+			end -- 465
+			package.loaded["luaminify.FormatMini"] = nil -- 466
+			package.loaded["luaminify.ParseLua"] = nil -- 467
+			package.loaded["luaminify.Scope"] = nil -- 468
+			package.loaded["luaminify.Util"] = nil -- 469
+		end -- 446
+		local errorMessage = table.concat(errors, "\n") -- 470
+		if errorMessage ~= "" then -- 471
+			print("\n" .. errorMessage) -- 471
+		end -- 471
+		local builtFiles = totalFiles + (minify and #luaFiles or 0) - #errors -- 472
+		print("\n" .. tostring(builtFiles) .. " " .. tostring(builtFiles == 1 and 'file' or 'files') .. " built! Cost " .. tostring(string.format('%.2f', App.runningTime - startTime)) .. "s") -- 473
+		print(tostring(#errors) .. " " .. tostring(#errors == 1 and 'file fails' or 'files fail') .. " to build.") -- 474
+		Content:clearPathCache() -- 475
+		teal.clear() -- 476
+		yue.clear() -- 477
+		building = false -- 478
+	end) -- 478
+end -- 323
+local doClean -- 480
+doClean = function() -- 480
+	if building then -- 481
+		return -- 481
+	end -- 481
+	local writablePath = Content.writablePath -- 482
+	local targetDir = Path(writablePath, ".build") -- 483
+	Content:clearPathCache() -- 484
+	if Content:remove(targetDir) then -- 485
+		return print("Cleaned: " .. tostring(targetDir)) -- 486
+	end -- 485
+end -- 480
+local screenScale = 2.0 -- 488
+local scaleContent = false -- 489
+local isInEntry = true -- 490
+local currentEntry = nil -- 491
+local footerWindow = nil -- 493
+local entryWindow = nil -- 494
+local testingThread = nil -- 495
+local setupEventHandlers = nil -- 497
+local allClear -- 499
+allClear = function() -- 499
+	local _list_0 = Routine -- 500
+	for _index_0 = 1, #_list_0 do -- 500
+		local routine = _list_0[_index_0] -- 500
+		if footerWindow == routine or entryWindow == routine or testingThread == routine then -- 502
+			goto _continue_0 -- 503
+		else -- 505
+			Routine:remove(routine) -- 505
+		end -- 505
+		::_continue_0:: -- 501
+	end -- 505
+	for _index_0 = 1, #moduleCache do -- 506
+		local module = moduleCache[_index_0] -- 506
+		package.loaded[module] = nil -- 507
+	end -- 507
+	moduleCache = { } -- 508
+	Director:cleanup() -- 509
+	Cache:unload() -- 510
+	Entity:clear() -- 511
+	Platformer.Data:clear() -- 512
+	Platformer.UnitAction:clear() -- 513
+	Audio:stopStream(0.5) -- 514
+	Struct:clear() -- 515
+	View.postEffect = nil -- 516
+	View.scale = scaleContent and screenScale or 1 -- 517
+	Director.clearColor = Color(0xff1a1a1a) -- 518
+	teal.clear() -- 519
+	yue.clear() -- 520
+	for _, item in pairs(ubox()) do -- 521
+		local node = tolua.cast(item, "Node") -- 522
+		if node then -- 522
+			node:cleanup() -- 522
+		end -- 522
+	end -- 522
+	collectgarbage() -- 523
+	collectgarbage() -- 524
+	setupEventHandlers() -- 525
+	Content.searchPaths = searchPaths -- 526
+	App.idled = true -- 527
+	return Wasm:clear() -- 528
+end -- 499
+_module_0["allClear"] = allClear -- 528
+local clearTempFiles -- 530
+clearTempFiles = function() -- 530
+	local writablePath = Content.writablePath -- 531
+	Content:remove(Path(writablePath, ".upload")) -- 532
+	return Content:remove(Path(writablePath, ".download")) -- 533
 end -- 530
-setupEventHandlers() -- 555
-clearTempFiles() -- 556
-local stop -- 558
-stop = function() -- 558
-	if isInEntry then -- 559
-		return false -- 559
-	end -- 559
-	allClear() -- 560
-	isInEntry = true -- 561
-	currentEntry = nil -- 562
-	return true -- 563
-end -- 558
-_module_0["stop"] = stop -- 563
-local _anon_func_1 = function(Content, Path, file, require, type) -- 585
-	local scriptPath = Path:getPath(file) -- 578
-	Content:insertSearchPath(1, scriptPath) -- 579
-	scriptPath = Path(scriptPath, "Script") -- 580
-	if Content:exist(scriptPath) then -- 581
-		Content:insertSearchPath(1, scriptPath) -- 582
-	end -- 581
-	local result = require(file) -- 583
-	if "function" == type(result) then -- 584
-		result() -- 584
-	end -- 584
-	return nil -- 585
-end -- 578
-local _anon_func_2 = function(Label, _with_0, err, fontSize, width) -- 617
-	local label = Label("sarasa-mono-sc-regular", fontSize) -- 614
-	label.alignment = "Left" -- 615
-	label.textWidth = width - fontSize -- 616
-	label.text = err -- 617
-	return label -- 614
-end -- 614
-local enterEntryAsync -- 565
-enterEntryAsync = function(entry) -- 565
-	isInEntry = false -- 566
-	App.idled = false -- 567
-	emit(Profiler.EventName, "ClearLoader") -- 568
-	currentEntry = entry -- 569
-	local name, file = entry[1], entry[2] -- 570
-	if cppTestSet[entry] then -- 571
-		if App:runTest(name) then -- 572
-			return true -- 573
-		else -- 575
-			return false, "failed to run cpp test '" .. tostring(name) .. "'" -- 575
-		end -- 572
-	end -- 571
-	sleep() -- 576
-	return xpcall(_anon_func_1, function(msg) -- 585
-		local err = debug.traceback(msg) -- 587
-		print(err) -- 588
-		allClear() -- 589
-		local ScrollArea = require("UI.Control.Basic.ScrollArea") -- 590
-		local viewWidth, viewHeight -- 591
-		do -- 591
-			local _obj_0 = View.size -- 591
-			viewWidth, viewHeight = _obj_0.width, _obj_0.height -- 591
-		end -- 591
-		local width, height = viewWidth - 20, viewHeight - 20 -- 592
-		local fontSize = math.floor(20 * App.devicePixelRatio) -- 593
-		Director.ui:addChild((function() -- 594
-			local root = AlignNode() -- 594
-			do -- 595
-				local _obj_0 = App.bufferSize -- 595
-				width, height = _obj_0.width, _obj_0.height -- 595
-			end -- 595
-			root:css("width: " .. tostring(width) .. "; height: " .. tostring(height)) -- 596
-			root:onAppChange(function(settingName) -- 597
-				if settingName == "Size" then -- 597
-					do -- 598
-						local _obj_0 = App.bufferSize -- 598
-						width, height = _obj_0.width, _obj_0.height -- 598
-					end -- 598
-					return root:css("width: " .. tostring(width) .. "; height: " .. tostring(height)) -- 599
-				end -- 597
-			end) -- 597
-			root:addChild((function() -- 600
-				local _with_0 = ScrollArea({ -- 601
-					width = width, -- 601
-					height = height, -- 602
-					paddingX = 0, -- 603
-					paddingY = 50, -- 604
-					viewWidth = height, -- 605
-					viewHeight = height -- 606
-				}) -- 600
-				root:onAlignLayout(function(w, h) -- 608
-					_with_0.position = Vec2(w / 2, h / 2) -- 609
-					w = w - 20 -- 610
-					h = h - 20 -- 611
-					_with_0.view.children.first.textWidth = w - fontSize -- 612
-					return _with_0:adjustSizeWithAlign("Auto", 10, Size(w, h)) -- 613
-				end) -- 608
-				_with_0.view:addChild(_anon_func_2(Label, _with_0, err, fontSize, width)) -- 614
-				return _with_0 -- 600
-			end)()) -- 600
-			return root -- 594
-		end)()) -- 594
-		return err -- 618
-	end, Content, Path, file, require, type) -- 618
-end -- 565
-_module_0["enterEntryAsync"] = enterEntryAsync -- 618
-local enterDemoEntry -- 620
-enterDemoEntry = function(entry) -- 620
-	return thread(function() -- 620
-		return enterEntryAsync(entry) -- 620
-	end) -- 620
-end -- 620
-local reloadCurrentEntry -- 622
-reloadCurrentEntry = function() -- 622
-	if currentEntry then -- 623
-		allClear() -- 624
-		return enterDemoEntry(currentEntry) -- 625
-	end -- 623
-end -- 622
-Director.clearColor = Color(0xff1a1a1a) -- 627
-local waitForWebStart = true -- 629
-thread(function() -- 630
-	sleep(2) -- 631
-	waitForWebStart = false -- 632
-end) -- 630
-local reloadDevEntry -- 634
-reloadDevEntry = function() -- 634
-	return thread(function() -- 634
-		waitForWebStart = true -- 635
-		doClean() -- 636
-		allClear() -- 637
-		_G.require = oldRequire -- 638
-		Dora.require = oldRequire -- 639
-		package.loaded["Script.Dev.Entry"] = nil -- 640
-		return Director.systemScheduler:schedule(function() -- 641
-			Routine:clear() -- 642
-			oldRequire("Script.Dev.Entry") -- 643
-			return true -- 644
-		end) -- 644
-	end) -- 644
-end -- 634
-local isOSSLicenseExist = Content:exist("LICENSES") -- 646
-local ossLicenses = nil -- 647
-local ossLicenseOpen = false -- 648
-local extraOperations -- 650
-extraOperations = function() -- 650
-	local zh = useChinese and isChineseSupported -- 651
-	if isOSSLicenseExist then -- 652
-		if Button(zh and '开源协议' or 'OSS Licenses') then -- 653
-			if not ossLicenses then -- 654
-				ossLicenses = { } -- 655
-				local licenseText = Content:load("LICENSES") -- 656
-				ossLicenseOpen = (licenseText ~= nil) -- 657
-				if ossLicenseOpen then -- 657
-					licenseText = licenseText:gsub("\r\n", "\n") -- 658
-					for license in GSplit(licenseText, "\n--------\n", true) do -- 659
-						local name, text = license:match("[%s\n]*([^\n]*)[\n]*(.*)") -- 660
-						if name then -- 660
-							ossLicenses[#ossLicenses + 1] = { -- 661
-								name, -- 661
-								text -- 661
-							} -- 661
-						end -- 660
-					end -- 661
-				end -- 657
-			else -- 663
-				ossLicenseOpen = true -- 663
-			end -- 654
-		end -- 653
-		if ossLicenseOpen then -- 664
-			local width, height, themeColor -- 665
-			do -- 665
-				local _obj_0 = App -- 665
-				width, height, themeColor = _obj_0.visualSize.width, _obj_0.visualSize.height, _obj_0.themeColor -- 665
-			end -- 665
-			SetNextWindowPosCenter("Appearing", Vec2(0.5, 0.5)) -- 666
-			SetNextWindowSize(Vec2(math.min(width * 0.8, 750), height * 0.8), "Appearing") -- 667
-			PushStyleVar("WindowPadding", Vec2(20, 10), function() -- 668
-				ossLicenseOpen = Begin(zh and '开源协议' or 'OSS Licenses', ossLicenseOpen, { -- 671
-					"NoSavedSettings" -- 671
-				}, function() -- 672
-					for _index_0 = 1, #ossLicenses do -- 672
-						local _des_0 = ossLicenses[_index_0] -- 672
-						local firstLine, text = _des_0[1], _des_0[2] -- 672
-						local name, license = firstLine:match("(.+): (.+)") -- 673
-						TextColored(themeColor, name) -- 674
-						SameLine() -- 675
-						TreeNode(tostring(license) .. "###" .. tostring(name), function() -- 676
-							return TextWrapped(text) -- 676
-						end) -- 676
-					end -- 676
-				end) -- 668
-			end) -- 668
-		end -- 664
-	end -- 652
-	if not App.debugging then -- 678
-		return -- 678
-	end -- 678
-	return TreeNode(zh and "开发操作" or "Development", function() -- 679
-		if Button(zh and "脚本编译测试" or "Script Build Test") then -- 680
-			OpenPopup("build") -- 680
-		end -- 680
-		PushStyleVar("WindowPadding", Vec2(10, 10), function() -- 681
-			return BeginPopup("build", function() -- 681
-				if Selectable(zh and "编译" or "Compile") then -- 682
-					doCompile(false) -- 682
-				end -- 682
-				Separator() -- 683
-				if Selectable(zh and "压缩" or "Minify") then -- 684
-					doCompile(true) -- 684
-				end -- 684
-				Separator() -- 685
-				if Selectable(zh and "清理" or "Clean") then -- 686
-					return doClean() -- 686
-				end -- 686
-			end) -- 686
-		end) -- 681
-		if isInEntry then -- 687
-			if waitForWebStart then -- 688
-				BeginDisabled(function() -- 689
-					return Button(zh and "重载开发程序(Ctrl+Z)" or "Reload Dev Entry(Ctrl+Z)") -- 689
-				end) -- 689
-			elseif Button(zh and "重载开发程序(Ctrl+Z)" or "Reload Dev Entry(Ctrl+Z)") then -- 690
-				reloadDevEntry() -- 691
-			end -- 688
-		end -- 687
-		do -- 692
-			local changed -- 692
-			changed, scaleContent = Checkbox(string.format("%.1fx " .. tostring(zh and '屏幕缩放' or 'Screen'), screenScale), scaleContent) -- 692
-			if changed then -- 692
-				View.scale = scaleContent and screenScale or 1 -- 693
-			end -- 692
-		end -- 692
-		do -- 694
-			local changed -- 694
-			changed, engineDev = Checkbox(zh and '引擎开发模式' or 'Engine Dev Mode', engineDev) -- 694
-			if changed then -- 694
-				config.engineDev = engineDev -- 695
-			end -- 694
-		end -- 694
-		if Button(zh and "开始自动测试" or "Test automatically") then -- 696
-			testingThread = thread(function() -- 697
-				local _ <close> = setmetatable({ }, { -- 698
-					__close = function() -- 698
-						allClear() -- 699
-						testingThread = nil -- 700
-						isInEntry = true -- 701
-						currentEntry = nil -- 702
-						return print("Testing done!") -- 703
-					end -- 698
-				}) -- 698
-				for _, entry in ipairs(allEntries) do -- 704
-					allClear() -- 705
-					print("Start " .. tostring(entry[1])) -- 706
-					enterDemoEntry(entry) -- 707
-					sleep(2) -- 708
-					print("Stop " .. tostring(entry[1])) -- 709
-				end -- 709
-			end) -- 697
-		end -- 696
-	end) -- 679
-end -- 650
-local transparant = Color(0x0) -- 711
-local windowFlags = { -- 712
-	"NoTitleBar", -- 712
-	"NoResize", -- 712
-	"NoMove", -- 712
-	"NoCollapse", -- 712
-	"NoSavedSettings", -- 712
-	"NoBringToFrontOnFocus" -- 712
-} -- 712
-local initFooter = true -- 720
-local _anon_func_3 = function(allEntries, currentIndex) -- 756
-	if currentIndex > 1 then -- 756
-		return allEntries[currentIndex - 1] -- 757
-	else -- 759
-		return allEntries[#allEntries] -- 759
-	end -- 756
-end -- 756
-local _anon_func_4 = function(allEntries, currentIndex) -- 763
-	if currentIndex < #allEntries then -- 763
-		return allEntries[currentIndex + 1] -- 764
-	else -- 766
-		return allEntries[1] -- 766
-	end -- 763
-end -- 763
-footerWindow = threadLoop(function() -- 721
-	local zh = useChinese and isChineseSupported -- 722
-	if HttpServer.wsConnectionCount > 0 then -- 723
-		return -- 724
-	end -- 723
-	if Keyboard:isKeyDown("Escape") then -- 725
-		allClear() -- 726
-		App:shutdown() -- 727
-	end -- 725
-	do -- 728
-		local ctrl = Keyboard:isKeyPressed("LCtrl") -- 729
-		if ctrl and Keyboard:isKeyDown("Q") then -- 730
-			stop() -- 731
-		end -- 730
-		if ctrl and Keyboard:isKeyDown("Z") then -- 732
-			reloadCurrentEntry() -- 733
-		end -- 732
-		if ctrl and Keyboard:isKeyDown(",") then -- 734
-			if showFooter then -- 735
-				showStats = not showStats -- 735
-			else -- 735
-				showStats = true -- 735
-			end -- 735
-			showFooter = true -- 736
-			config.showFooter = showFooter -- 737
-			config.showStats = showStats -- 738
-		end -- 734
-		if ctrl and Keyboard:isKeyDown(".") then -- 739
-			if showFooter then -- 740
-				showConsole = not showConsole -- 740
-			else -- 740
-				showConsole = true -- 740
-			end -- 740
-			showFooter = true -- 741
-			config.showFooter = showFooter -- 742
-			config.showConsole = showConsole -- 743
-		end -- 739
-		if ctrl and Keyboard:isKeyDown("/") then -- 744
-			showFooter = not showFooter -- 745
-			config.showFooter = showFooter -- 746
-		end -- 744
-		local left = ctrl and Keyboard:isKeyDown("Left") -- 747
-		local right = ctrl and Keyboard:isKeyDown("Right") -- 748
-		local currentIndex = nil -- 749
-		for i, entry in ipairs(allEntries) do -- 750
-			if currentEntry == entry then -- 751
-				currentIndex = i -- 752
-			end -- 751
-		end -- 752
-		if left then -- 753
-			allClear() -- 754
-			if currentIndex == nil then -- 755
-				currentIndex = #allEntries + 1 -- 755
-			end -- 755
-			enterDemoEntry(_anon_func_3(allEntries, currentIndex)) -- 756
-		end -- 753
-		if right then -- 760
-			allClear() -- 761
-			if currentIndex == nil then -- 762
-				currentIndex = 0 -- 762
-			end -- 762
-			enterDemoEntry(_anon_func_4(allEntries, currentIndex)) -- 763
-		end -- 760
+local _anon_func_0 = function(App, _with_0) -- 548
+	local _val_0 = App.platform -- 548
+	return "Linux" == _val_0 or "Windows" == _val_0 or "macOS" == _val_0 -- 548
+end -- 548
+setupEventHandlers = function() -- 535
+	local _with_0 = Director.postNode -- 536
+	_with_0:onAppEvent(function(eventType) -- 537
+		if eventType == "Quit" then -- 537
+			allClear() -- 538
+			return clearTempFiles() -- 539
+		end -- 537
+	end) -- 537
+	_with_0:onAppChange(function(settingName) -- 540
+		if "Theme" == settingName then -- 541
+			config.themeColor = App.themeColor:toARGB() -- 542
+		elseif "Locale" == settingName then -- 543
+			config.locale = App.locale -- 544
+			updateLocale() -- 545
+			return teal.clear(true) -- 546
+		elseif "FullScreen" == settingName or "Size" == settingName or "Position" == settingName then -- 547
+			if _anon_func_0(App, _with_0) then -- 548
+				if "FullScreen" == settingName then -- 550
+					config.fullScreen = App.fullScreen -- 550
+				elseif "Position" == settingName then -- 551
+					local _obj_0 = App.winPosition -- 551
+					config.winX, config.winY = _obj_0.x, _obj_0.y -- 551
+				elseif "Size" == settingName then -- 552
+					local width, height -- 553
+					do -- 553
+						local _obj_0 = App.winSize -- 553
+						width, height = _obj_0.width, _obj_0.height -- 553
+					end -- 553
+					config.winWidth = width -- 554
+					config.winHeight = height -- 555
+				end -- 555
+			end -- 548
+		end -- 555
+	end) -- 540
+	_with_0:onAppWS(function(eventType) -- 556
+		if eventType == "Close" then -- 556
+			if HttpServer.wsConnectionCount == 0 then -- 557
+				return updateEntries() -- 558
+			end -- 557
+		end -- 556
+	end) -- 556
+	return _with_0 -- 536
+end -- 535
+setupEventHandlers() -- 560
+clearTempFiles() -- 561
+local stop -- 563
+stop = function() -- 563
+	if isInEntry then -- 564
+		return false -- 564
+	end -- 564
+	allClear() -- 565
+	isInEntry = true -- 566
+	currentEntry = nil -- 567
+	return true -- 568
+end -- 563
+_module_0["stop"] = stop -- 568
+local _anon_func_1 = function(Content, Path, file, require, type) -- 590
+	local scriptPath = Path:getPath(file) -- 583
+	Content:insertSearchPath(1, scriptPath) -- 584
+	scriptPath = Path(scriptPath, "Script") -- 585
+	if Content:exist(scriptPath) then -- 586
+		Content:insertSearchPath(1, scriptPath) -- 587
+	end -- 586
+	local result = require(file) -- 588
+	if "function" == type(result) then -- 589
+		result() -- 589
+	end -- 589
+	return nil -- 590
+end -- 583
+local _anon_func_2 = function(Label, _with_0, err, fontSize, width) -- 622
+	local label = Label("sarasa-mono-sc-regular", fontSize) -- 619
+	label.alignment = "Left" -- 620
+	label.textWidth = width - fontSize -- 621
+	label.text = err -- 622
+	return label -- 619
+end -- 619
+local enterEntryAsync -- 570
+enterEntryAsync = function(entry) -- 570
+	isInEntry = false -- 571
+	App.idled = false -- 572
+	emit(Profiler.EventName, "ClearLoader") -- 573
+	currentEntry = entry -- 574
+	local name, file = entry[1], entry[2] -- 575
+	if cppTestSet[entry] then -- 576
+		if App:runTest(name) then -- 577
+			return true -- 578
+		else -- 580
+			return false, "failed to run cpp test '" .. tostring(name) .. "'" -- 580
+		end -- 577
+	end -- 576
+	sleep() -- 581
+	return xpcall(_anon_func_1, function(msg) -- 590
+		local err = debug.traceback(msg) -- 592
+		print(err) -- 593
+		allClear() -- 594
+		local ScrollArea = require("UI.Control.Basic.ScrollArea") -- 595
+		local viewWidth, viewHeight -- 596
+		do -- 596
+			local _obj_0 = View.size -- 596
+			viewWidth, viewHeight = _obj_0.width, _obj_0.height -- 596
+		end -- 596
+		local width, height = viewWidth - 20, viewHeight - 20 -- 597
+		local fontSize = math.floor(20 * App.devicePixelRatio) -- 598
+		Director.ui:addChild((function() -- 599
+			local root = AlignNode() -- 599
+			do -- 600
+				local _obj_0 = App.bufferSize -- 600
+				width, height = _obj_0.width, _obj_0.height -- 600
+			end -- 600
+			root:css("width: " .. tostring(width) .. "; height: " .. tostring(height)) -- 601
+			root:onAppChange(function(settingName) -- 602
+				if settingName == "Size" then -- 602
+					do -- 603
+						local _obj_0 = App.bufferSize -- 603
+						width, height = _obj_0.width, _obj_0.height -- 603
+					end -- 603
+					return root:css("width: " .. tostring(width) .. "; height: " .. tostring(height)) -- 604
+				end -- 602
+			end) -- 602
+			root:addChild((function() -- 605
+				local _with_0 = ScrollArea({ -- 606
+					width = width, -- 606
+					height = height, -- 607
+					paddingX = 0, -- 608
+					paddingY = 50, -- 609
+					viewWidth = height, -- 610
+					viewHeight = height -- 611
+				}) -- 605
+				root:onAlignLayout(function(w, h) -- 613
+					_with_0.position = Vec2(w / 2, h / 2) -- 614
+					w = w - 20 -- 615
+					h = h - 20 -- 616
+					_with_0.view.children.first.textWidth = w - fontSize -- 617
+					return _with_0:adjustSizeWithAlign("Auto", 10, Size(w, h)) -- 618
+				end) -- 613
+				_with_0.view:addChild(_anon_func_2(Label, _with_0, err, fontSize, width)) -- 619
+				return _with_0 -- 605
+			end)()) -- 605
+			return root -- 599
+		end)()) -- 599
+		return err -- 623
+	end, Content, Path, file, require, type) -- 623
+end -- 570
+_module_0["enterEntryAsync"] = enterEntryAsync -- 623
+local enterDemoEntry -- 625
+enterDemoEntry = function(entry) -- 625
+	return thread(function() -- 625
+		return enterEntryAsync(entry) -- 625
+	end) -- 625
+end -- 625
+local reloadCurrentEntry -- 627
+reloadCurrentEntry = function() -- 627
+	if currentEntry then -- 628
+		allClear() -- 629
+		return enterDemoEntry(currentEntry) -- 630
+	end -- 628
+end -- 627
+Director.clearColor = Color(0xff1a1a1a) -- 632
+local waitForWebStart = true -- 634
+thread(function() -- 635
+	sleep(2) -- 636
+	waitForWebStart = false -- 637
+end) -- 635
+local reloadDevEntry -- 639
+reloadDevEntry = function() -- 639
+	return thread(function() -- 639
+		waitForWebStart = true -- 640
+		doClean() -- 641
+		allClear() -- 642
+		_G.require = oldRequire -- 643
+		Dora.require = oldRequire -- 644
+		package.loaded["Script.Dev.Entry"] = nil -- 645
+		return Director.systemScheduler:schedule(function() -- 646
+			Routine:clear() -- 647
+			oldRequire("Script.Dev.Entry") -- 648
+			return true -- 649
+		end) -- 649
+	end) -- 649
+end -- 639
+local isOSSLicenseExist = Content:exist("LICENSES") -- 651
+local ossLicenses = nil -- 652
+local ossLicenseOpen = false -- 653
+local _anon_func_3 = function(App) -- 657
+	local _val_0 = App.platform -- 657
+	return not ("Android" == _val_0 or "iOS" == _val_0) -- 657
+end -- 657
+local extraOperations -- 655
+extraOperations = function() -- 655
+	local zh = useChinese and isChineseSupported -- 656
+	if _anon_func_3(App) then -- 657
+		local alwaysOnTop = config.alwaysOnTop -- 658
+		local changed -- 659
+		changed, alwaysOnTop = Checkbox(zh and "窗口置顶" or "Always On Top", alwaysOnTop) -- 659
+		if changed then -- 659
+			App.alwaysOnTop = alwaysOnTop -- 660
+			config.alwaysOnTop = alwaysOnTop -- 661
+		end -- 659
+	end -- 657
+	if isOSSLicenseExist then -- 662
+		if Button(zh and '开源协议' or 'OSS Licenses') then -- 663
+			if not ossLicenses then -- 664
+				ossLicenses = { } -- 665
+				local licenseText = Content:load("LICENSES") -- 666
+				ossLicenseOpen = (licenseText ~= nil) -- 667
+				if ossLicenseOpen then -- 667
+					licenseText = licenseText:gsub("\r\n", "\n") -- 668
+					for license in GSplit(licenseText, "\n--------\n", true) do -- 669
+						local name, text = license:match("[%s\n]*([^\n]*)[\n]*(.*)") -- 670
+						if name then -- 670
+							ossLicenses[#ossLicenses + 1] = { -- 671
+								name, -- 671
+								text -- 671
+							} -- 671
+						end -- 670
+					end -- 671
+				end -- 667
+			else -- 673
+				ossLicenseOpen = true -- 673
+			end -- 664
+		end -- 663
+		if ossLicenseOpen then -- 674
+			local width, height, themeColor -- 675
+			do -- 675
+				local _obj_0 = App -- 675
+				width, height, themeColor = _obj_0.visualSize.width, _obj_0.visualSize.height, _obj_0.themeColor -- 675
+			end -- 675
+			SetNextWindowPosCenter("Appearing", Vec2(0.5, 0.5)) -- 676
+			SetNextWindowSize(Vec2(math.min(width * 0.8, 750), height * 0.8), "Appearing") -- 677
+			PushStyleVar("WindowPadding", Vec2(20, 10), function() -- 678
+				ossLicenseOpen = Begin(zh and '开源协议' or 'OSS Licenses', ossLicenseOpen, { -- 681
+					"NoSavedSettings" -- 681
+				}, function() -- 682
+					for _index_0 = 1, #ossLicenses do -- 682
+						local _des_0 = ossLicenses[_index_0] -- 682
+						local firstLine, text = _des_0[1], _des_0[2] -- 682
+						local name, license = firstLine:match("(.+): (.+)") -- 683
+						TextColored(themeColor, name) -- 684
+						SameLine() -- 685
+						TreeNode(tostring(license) .. "###" .. tostring(name), function() -- 686
+							return TextWrapped(text) -- 686
+						end) -- 686
+					end -- 686
+				end) -- 678
+			end) -- 678
+		end -- 674
+	end -- 662
+	if not App.debugging then -- 688
+		return -- 688
+	end -- 688
+	return TreeNode(zh and "开发操作" or "Development", function() -- 689
+		if Button(zh and "脚本编译测试" or "Script Build Test") then -- 690
+			OpenPopup("build") -- 690
+		end -- 690
+		PushStyleVar("WindowPadding", Vec2(10, 10), function() -- 691
+			return BeginPopup("build", function() -- 691
+				if Selectable(zh and "编译" or "Compile") then -- 692
+					doCompile(false) -- 692
+				end -- 692
+				Separator() -- 693
+				if Selectable(zh and "压缩" or "Minify") then -- 694
+					doCompile(true) -- 694
+				end -- 694
+				Separator() -- 695
+				if Selectable(zh and "清理" or "Clean") then -- 696
+					return doClean() -- 696
+				end -- 696
+			end) -- 696
+		end) -- 691
+		if isInEntry then -- 697
+			if waitForWebStart then -- 698
+				BeginDisabled(function() -- 699
+					return Button(zh and "重载开发程序(Ctrl+Z)" or "Reload Dev Entry(Ctrl+Z)") -- 699
+				end) -- 699
+			elseif Button(zh and "重载开发程序(Ctrl+Z)" or "Reload Dev Entry(Ctrl+Z)") then -- 700
+				reloadDevEntry() -- 701
+			end -- 698
+		end -- 697
+		do -- 702
+			local changed -- 702
+			changed, scaleContent = Checkbox(string.format("%.1fx " .. tostring(zh and '屏幕缩放' or 'Screen'), screenScale), scaleContent) -- 702
+			if changed then -- 702
+				View.scale = scaleContent and screenScale or 1 -- 703
+			end -- 702
+		end -- 702
+		do -- 704
+			local changed -- 704
+			changed, engineDev = Checkbox(zh and '引擎开发模式' or 'Engine Dev Mode', engineDev) -- 704
+			if changed then -- 704
+				config.engineDev = engineDev -- 705
+			end -- 704
+		end -- 704
+		if Button(zh and "开始自动测试" or "Test automatically") then -- 706
+			testingThread = thread(function() -- 707
+				local _ <close> = setmetatable({ }, { -- 708
+					__close = function() -- 708
+						allClear() -- 709
+						testingThread = nil -- 710
+						isInEntry = true -- 711
+						currentEntry = nil -- 712
+						return print("Testing done!") -- 713
+					end -- 708
+				}) -- 708
+				for _, entry in ipairs(allEntries) do -- 714
+					allClear() -- 715
+					print("Start " .. tostring(entry[1])) -- 716
+					enterDemoEntry(entry) -- 717
+					sleep(2) -- 718
+					print("Stop " .. tostring(entry[1])) -- 719
+				end -- 719
+			end) -- 707
+		end -- 706
+	end) -- 689
+end -- 655
+local transparant = Color(0x0) -- 721
+local windowFlags = { -- 722
+	"NoTitleBar", -- 722
+	"NoResize", -- 722
+	"NoMove", -- 722
+	"NoCollapse", -- 722
+	"NoSavedSettings", -- 722
+	"NoBringToFrontOnFocus" -- 722
+} -- 722
+local initFooter = true -- 730
+local _anon_func_4 = function(allEntries, currentIndex) -- 766
+	if currentIndex > 1 then -- 766
+		return allEntries[currentIndex - 1] -- 767
+	else -- 769
+		return allEntries[#allEntries] -- 769
 	end -- 766
-	if not showEntry then -- 767
-		return -- 767
-	end -- 767
-	local width, height -- 769
-	do -- 769
-		local _obj_0 = App.visualSize -- 769
-		width, height = _obj_0.width, _obj_0.height -- 769
-	end -- 769
-	SetNextWindowSize(Vec2(50, 50)) -- 770
-	SetNextWindowPos(Vec2(width - 50, height - 50)) -- 771
-	PushStyleColor("WindowBg", transparant, function() -- 772
-		return Begin("Show", windowFlags, function() -- 772
-			if isInEntry or width >= 540 then -- 773
-				local changed -- 774
-				changed, showFooter = Checkbox("##dev", showFooter) -- 774
-				if changed then -- 774
-					config.showFooter = showFooter -- 775
-				end -- 774
-			end -- 773
-		end) -- 775
-	end) -- 772
-	if isInEntry and not waitForWebStart and Keyboard:isKeyPressed("LCtrl") and Keyboard:isKeyDown("Z") then -- 777
-		reloadDevEntry() -- 781
+end -- 766
+local _anon_func_5 = function(allEntries, currentIndex) -- 773
+	if currentIndex < #allEntries then -- 773
+		return allEntries[currentIndex + 1] -- 774
+	else -- 776
+		return allEntries[1] -- 776
+	end -- 773
+end -- 773
+footerWindow = threadLoop(function() -- 731
+	local zh = useChinese and isChineseSupported -- 732
+	if HttpServer.wsConnectionCount > 0 then -- 733
+		return -- 734
+	end -- 733
+	if Keyboard:isKeyDown("Escape") then -- 735
+		allClear() -- 736
+		App:shutdown() -- 737
+	end -- 735
+	do -- 738
+		local ctrl = Keyboard:isKeyPressed("LCtrl") -- 739
+		if ctrl and Keyboard:isKeyDown("Q") then -- 740
+			stop() -- 741
+		end -- 740
+		if ctrl and Keyboard:isKeyDown("Z") then -- 742
+			reloadCurrentEntry() -- 743
+		end -- 742
+		if ctrl and Keyboard:isKeyDown(",") then -- 744
+			if showFooter then -- 745
+				showStats = not showStats -- 745
+			else -- 745
+				showStats = true -- 745
+			end -- 745
+			showFooter = true -- 746
+			config.showFooter = showFooter -- 747
+			config.showStats = showStats -- 748
+		end -- 744
+		if ctrl and Keyboard:isKeyDown(".") then -- 749
+			if showFooter then -- 750
+				showConsole = not showConsole -- 750
+			else -- 750
+				showConsole = true -- 750
+			end -- 750
+			showFooter = true -- 751
+			config.showFooter = showFooter -- 752
+			config.showConsole = showConsole -- 753
+		end -- 749
+		if ctrl and Keyboard:isKeyDown("/") then -- 754
+			showFooter = not showFooter -- 755
+			config.showFooter = showFooter -- 756
+		end -- 754
+		local left = ctrl and Keyboard:isKeyDown("Left") -- 757
+		local right = ctrl and Keyboard:isKeyDown("Right") -- 758
+		local currentIndex = nil -- 759
+		for i, entry in ipairs(allEntries) do -- 760
+			if currentEntry == entry then -- 761
+				currentIndex = i -- 762
+			end -- 761
+		end -- 762
+		if left then -- 763
+			allClear() -- 764
+			if currentIndex == nil then -- 765
+				currentIndex = #allEntries + 1 -- 765
+			end -- 765
+			enterDemoEntry(_anon_func_4(allEntries, currentIndex)) -- 766
+		end -- 763
+		if right then -- 770
+			allClear() -- 771
+			if currentIndex == nil then -- 772
+				currentIndex = 0 -- 772
+			end -- 772
+			enterDemoEntry(_anon_func_5(allEntries, currentIndex)) -- 773
+		end -- 770
+	end -- 776
+	if not showEntry then -- 777
+		return -- 777
 	end -- 777
-	if initFooter then -- 782
-		initFooter = false -- 783
-	else -- 785
-		if not showFooter then -- 785
-			return -- 785
-		end -- 785
-	end -- 782
-	SetNextWindowSize(Vec2(width, 50)) -- 787
-	SetNextWindowPos(Vec2(0, height - 50)) -- 788
-	SetNextWindowBgAlpha(0.35) -- 789
-	do -- 790
-		return PushStyleVar("WindowPadding", Vec2(10, 0), function() -- 791
-			return Begin("Footer", windowFlags, function() -- 792
-				Dummy(Vec2(width - 20, 0)) -- 793
-				do -- 794
-					local changed -- 794
-					changed, showStats = Checkbox(zh and "状态" or "Stats", showStats) -- 794
-					if changed then -- 794
-						config.showStats = showStats -- 795
-					end -- 794
-				end -- 794
-				SameLine() -- 796
-				do -- 797
-					local changed -- 797
-					changed, showConsole = Checkbox(zh and "控制台" or "Log", showConsole) -- 797
-					if changed then -- 797
-						config.showConsole = showConsole -- 798
-					end -- 797
-				end -- 797
-				if config.updateNotification then -- 799
-					SameLine() -- 800
-					if ImGui.Button(zh and "更新可用" or "Update Available") then -- 801
-						config.updateNotification = false -- 802
-						enterDemoEntry({ -- 803
-							"SelfUpdater", -- 803
-							Path(Content.assetPath, "Script", "Tools", "SelfUpdater") -- 803
-						}) -- 803
-					end -- 801
-				end -- 799
-				if not isInEntry then -- 804
-					SameLine() -- 805
-					if Button(zh and "主页" or "Home", Vec2(70, 30)) then -- 806
-						allClear() -- 807
-						isInEntry = true -- 808
-						currentEntry = nil -- 809
-					end -- 806
-					local currentIndex = nil -- 810
-					for i, entry in ipairs(allEntries) do -- 811
-						if currentEntry == entry then -- 812
-							currentIndex = i -- 813
-						end -- 812
-					end -- 813
-					if currentIndex then -- 814
-						if currentIndex > 1 then -- 815
-							SameLine() -- 816
-							if Button(zh and "前一个" or "Prev", Vec2(70, 30)) then -- 817
-								allClear() -- 818
-								enterDemoEntry(allEntries[currentIndex - 1]) -- 819
-							end -- 817
-						end -- 815
-						if currentIndex < #allEntries then -- 820
-							SameLine() -- 821
-							if Button(zh and "后一个" or "Next", Vec2(70, 30)) then -- 822
-								allClear() -- 823
-								enterDemoEntry(allEntries[currentIndex + 1]) -- 824
-							end -- 822
-						end -- 820
-					end -- 814
-					SameLine() -- 825
-					if Button(zh and "刷新" or "Reload", Vec2(70, 30)) then -- 826
-						reloadCurrentEntry() -- 827
-					end -- 826
+	local width, height -- 779
+	do -- 779
+		local _obj_0 = App.visualSize -- 779
+		width, height = _obj_0.width, _obj_0.height -- 779
+	end -- 779
+	SetNextWindowSize(Vec2(50, 50)) -- 780
+	SetNextWindowPos(Vec2(width - 50, height - 50)) -- 781
+	PushStyleColor("WindowBg", transparant, function() -- 782
+		return Begin("Show", windowFlags, function() -- 782
+			if isInEntry or width >= 540 then -- 783
+				local changed -- 784
+				changed, showFooter = Checkbox("##dev", showFooter) -- 784
+				if changed then -- 784
+					config.showFooter = showFooter -- 785
+				end -- 784
+			end -- 783
+		end) -- 785
+	end) -- 782
+	if isInEntry and not waitForWebStart and Keyboard:isKeyPressed("LCtrl") and Keyboard:isKeyDown("Z") then -- 787
+		reloadDevEntry() -- 791
+	end -- 787
+	if initFooter then -- 792
+		initFooter = false -- 793
+	else -- 795
+		if not showFooter then -- 795
+			return -- 795
+		end -- 795
+	end -- 792
+	SetNextWindowSize(Vec2(width, 50)) -- 797
+	SetNextWindowPos(Vec2(0, height - 50)) -- 798
+	SetNextWindowBgAlpha(0.35) -- 799
+	do -- 800
+		return PushStyleVar("WindowPadding", Vec2(10, 0), function() -- 801
+			return Begin("Footer", windowFlags, function() -- 802
+				Dummy(Vec2(width - 20, 0)) -- 803
+				do -- 804
+					local changed -- 804
+					changed, showStats = Checkbox(zh and "状态" or "Stats", showStats) -- 804
+					if changed then -- 804
+						config.showStats = showStats -- 805
+					end -- 804
 				end -- 804
-				return PushStyleVar("WindowPadding", Vec2(10, 10), function() -- 828
-					if showStats then -- 829
-						SetNextWindowPos(Vec2(10, 50), "FirstUseEver") -- 830
-						showStats = ShowStats(showStats, extraOperations) -- 831
-						config.showStats = showStats -- 832
-					end -- 829
-					if showConsole then -- 833
-						SetNextWindowPos(Vec2(width - 425, height - 375), "FirstUseEver") -- 834
-						showConsole = ShowConsole(showConsole) -- 835
-						config.showConsole = showConsole -- 836
-					end -- 833
-				end) -- 828
-			end) -- 792
-		end) -- 791
-	end -- 836
-end) -- 721
-local MaxWidth <const> = 800 -- 838
-local displayWindowFlags = { -- 840
-	"NoDecoration", -- 840
-	"NoSavedSettings", -- 840
-	"NoFocusOnAppearing", -- 840
-	"NoNav", -- 840
-	"NoMove", -- 840
-	"NoScrollWithMouse", -- 840
-	"AlwaysAutoResize", -- 840
-	"NoBringToFrontOnFocus" -- 840
-} -- 840
-local webStatus = nil -- 851
-local descColor = Color(0xffa1a1a1) -- 852
-local gameOpen = #gamesInDev == 0 -- 853
-local toolOpen = false -- 854
-local exampleOpen = false -- 855
-local testOpen = false -- 856
-local filterText = nil -- 857
-local anyEntryMatched = false -- 858
-local urlClicked = nil -- 859
-local match -- 860
-match = function(name) -- 860
-	local res = not filterText or name:lower():match(filterText) -- 861
-	if res then -- 862
-		anyEntryMatched = true -- 862
-	end -- 862
-	return res -- 863
-end -- 860
-local iconTex = nil -- 864
-thread(function() -- 865
-	if Cache:loadAsync("Image/icon_s.png") then -- 865
-		iconTex = Texture2D("Image/icon_s.png") -- 866
-	end -- 865
-end) -- 865
-entryWindow = threadLoop(function() -- 868
-	if App.fpsLimited ~= config.fpsLimited then -- 869
-		config.fpsLimited = App.fpsLimited -- 870
-	end -- 869
-	if App.targetFPS ~= config.targetFPS then -- 871
-		config.targetFPS = App.targetFPS -- 872
-	end -- 871
-	if View.vsync ~= config.vsync then -- 873
-		config.vsync = View.vsync -- 874
-	end -- 873
-	if Director.scheduler.fixedFPS ~= config.fixedFPS then -- 875
-		config.fixedFPS = Director.scheduler.fixedFPS -- 876
+				SameLine() -- 806
+				do -- 807
+					local changed -- 807
+					changed, showConsole = Checkbox(zh and "控制台" or "Log", showConsole) -- 807
+					if changed then -- 807
+						config.showConsole = showConsole -- 808
+					end -- 807
+				end -- 807
+				if config.updateNotification then -- 809
+					SameLine() -- 810
+					if ImGui.Button(zh and "更新可用" or "Update Available") then -- 811
+						config.updateNotification = false -- 812
+						enterDemoEntry({ -- 813
+							"SelfUpdater", -- 813
+							Path(Content.assetPath, "Script", "Tools", "SelfUpdater") -- 813
+						}) -- 813
+					end -- 811
+				end -- 809
+				if not isInEntry then -- 814
+					SameLine() -- 815
+					if Button(zh and "主页" or "Home", Vec2(70, 30)) then -- 816
+						allClear() -- 817
+						isInEntry = true -- 818
+						currentEntry = nil -- 819
+					end -- 816
+					local currentIndex = nil -- 820
+					for i, entry in ipairs(allEntries) do -- 821
+						if currentEntry == entry then -- 822
+							currentIndex = i -- 823
+						end -- 822
+					end -- 823
+					if currentIndex then -- 824
+						if currentIndex > 1 then -- 825
+							SameLine() -- 826
+							if Button(zh and "前一个" or "Prev", Vec2(70, 30)) then -- 827
+								allClear() -- 828
+								enterDemoEntry(allEntries[currentIndex - 1]) -- 829
+							end -- 827
+						end -- 825
+						if currentIndex < #allEntries then -- 830
+							SameLine() -- 831
+							if Button(zh and "后一个" or "Next", Vec2(70, 30)) then -- 832
+								allClear() -- 833
+								enterDemoEntry(allEntries[currentIndex + 1]) -- 834
+							end -- 832
+						end -- 830
+					end -- 824
+					SameLine() -- 835
+					if Button(zh and "刷新" or "Reload", Vec2(70, 30)) then -- 836
+						reloadCurrentEntry() -- 837
+					end -- 836
+				end -- 814
+				return PushStyleVar("WindowPadding", Vec2(10, 10), function() -- 838
+					if showStats then -- 839
+						SetNextWindowPos(Vec2(10, 50), "FirstUseEver") -- 840
+						showStats = ShowStats(showStats, extraOperations) -- 841
+						config.showStats = showStats -- 842
+					end -- 839
+					if showConsole then -- 843
+						SetNextWindowPos(Vec2(width - 425, height - 375), "FirstUseEver") -- 844
+						showConsole = ShowConsole(showConsole) -- 845
+						config.showConsole = showConsole -- 846
+					end -- 843
+				end) -- 838
+			end) -- 802
+		end) -- 801
+	end -- 846
+end) -- 731
+local MaxWidth <const> = 800 -- 848
+local displayWindowFlags = { -- 850
+	"NoDecoration", -- 850
+	"NoSavedSettings", -- 850
+	"NoFocusOnAppearing", -- 850
+	"NoNav", -- 850
+	"NoMove", -- 850
+	"NoScrollWithMouse", -- 850
+	"AlwaysAutoResize", -- 850
+	"NoBringToFrontOnFocus" -- 850
+} -- 850
+local webStatus = nil -- 861
+local descColor = Color(0xffa1a1a1) -- 862
+local gameOpen = #gamesInDev == 0 -- 863
+local toolOpen = false -- 864
+local exampleOpen = false -- 865
+local testOpen = false -- 866
+local filterText = nil -- 867
+local anyEntryMatched = false -- 868
+local urlClicked = nil -- 869
+local match -- 870
+match = function(name) -- 870
+	local res = not filterText or name:lower():match(filterText) -- 871
+	if res then -- 872
+		anyEntryMatched = true -- 872
+	end -- 872
+	return res -- 873
+end -- 870
+local iconTex = nil -- 874
+thread(function() -- 875
+	if Cache:loadAsync("Image/icon_s.png") then -- 875
+		iconTex = Texture2D("Image/icon_s.png") -- 876
 	end -- 875
-	if Director.profilerSending ~= config.webProfiler then -- 877
-		config.webProfiler = Director.profilerSending -- 878
-	end -- 877
-	if urlClicked then -- 879
-		local _, result = coroutine.resume(urlClicked) -- 880
-		if result then -- 881
-			coroutine.close(urlClicked) -- 882
-			urlClicked = nil -- 883
-		end -- 881
+end) -- 875
+entryWindow = threadLoop(function() -- 878
+	if App.fpsLimited ~= config.fpsLimited then -- 879
+		config.fpsLimited = App.fpsLimited -- 880
 	end -- 879
-	if not showEntry then -- 884
-		return -- 884
-	end -- 884
-	if not isInEntry then -- 885
-		return -- 885
+	if App.targetFPS ~= config.targetFPS then -- 881
+		config.targetFPS = App.targetFPS -- 882
+	end -- 881
+	if View.vsync ~= config.vsync then -- 883
+		config.vsync = View.vsync -- 884
+	end -- 883
+	if Director.scheduler.fixedFPS ~= config.fixedFPS then -- 885
+		config.fixedFPS = Director.scheduler.fixedFPS -- 886
 	end -- 885
-	local zh = useChinese and isChineseSupported -- 886
-	if HttpServer.wsConnectionCount > 0 then -- 887
-		local themeColor = App.themeColor -- 888
-		local width, height -- 889
-		do -- 889
-			local _obj_0 = App.visualSize -- 889
-			width, height = _obj_0.width, _obj_0.height -- 889
-		end -- 889
-		SetNextWindowBgAlpha(0.5) -- 890
-		SetNextWindowPos(Vec2(width / 2, height / 2), "Always", Vec2(0.5, 0.5)) -- 891
-		Begin("Web IDE Connected", displayWindowFlags, function() -- 892
-			Separator() -- 893
-			TextColored(themeColor, tostring(zh and '网页 IDE 已连接 ……' or 'Web IDE connected ...')) -- 894
-			if iconTex then -- 895
-				Image("Image/icon_s.png", Vec2(24, 24)) -- 896
-				SameLine() -- 897
-			end -- 895
-			local slogon = zh and 'Dora 启动！' or 'Dora Start!' -- 898
-			TextColored(descColor, slogon) -- 899
-			return Separator() -- 900
-		end) -- 892
-		return -- 901
+	if Director.profilerSending ~= config.webProfiler then -- 887
+		config.webProfiler = Director.profilerSending -- 888
 	end -- 887
-	local themeColor = App.themeColor -- 903
-	local fullWidth, height -- 904
-	do -- 904
-		local _obj_0 = App.visualSize -- 904
-		fullWidth, height = _obj_0.width, _obj_0.height -- 904
-	end -- 904
-	SetNextWindowBgAlpha(0.85) -- 906
-	SetNextWindowPos(Vec2(fullWidth - 30, height - 130), "Always", Vec2(1, 0)) -- 907
-	PushStyleVar("WindowPadding", Vec2(10, 5), function() -- 908
-		return Begin("Web IDE", displayWindowFlags, function() -- 909
-			Separator() -- 910
-			TextColored(themeColor, tostring(zh and '网页' or 'Web') .. " IDE") -- 911
-			SameLine() -- 912
-			TextDisabled('(?)') -- 913
-			if IsItemHovered() then -- 914
-				BeginTooltip(function() -- 915
-					return PushTextWrapPos(280, function() -- 916
-						return Text(zh and '在本机或是本地局域网连接的其他设备上，使用浏览器访问下面这个地址来使用网页 IDE' or 'You can use the Web IDE by accessing the following address in a browser on this machine or other devices connected to the local network') -- 917
-					end) -- 917
-				end) -- 915
-			end -- 914
-			do -- 918
-				local url -- 918
-				if webStatus ~= nil then -- 918
-					url = webStatus.url -- 918
-				end -- 918
-				if url then -- 918
-					if isDesktop and not config.fullScreen then -- 919
-						if urlClicked then -- 920
-							BeginDisabled(function() -- 921
-								return Button(url) -- 921
-							end) -- 921
-						elseif Button(url) then -- 922
-							urlClicked = once(function() -- 923
-								return sleep(5) -- 923
-							end) -- 923
-							App:openURL("http://localhost:8866") -- 924
-						end -- 920
-					else -- 926
-						TextColored(descColor, url) -- 926
-					end -- 919
-				else -- 928
-					TextColored(descColor, zh and '不可用' or 'not available') -- 928
-				end -- 918
-			end -- 918
-			return Separator() -- 929
-		end) -- 929
-	end) -- 908
-	local width = math.min(MaxWidth, fullWidth) -- 931
-	local paddingX = math.max(10, fullWidth / 2 - width / 2 - 10) -- 932
-	local maxColumns = math.max(math.floor(width / 200), 1) -- 933
-	SetNextWindowPos(Vec2.zero) -- 934
-	SetNextWindowBgAlpha(0) -- 935
-	do -- 936
-		PushStyleVar("WindowPadding", Vec2(10, 0), function() -- 937
-			return Begin("Dora Dev", displayWindowFlags, function() -- 938
-				Dummy(Vec2(fullWidth - 20, 0)) -- 939
-				if iconTex then -- 940
-					Image("Image/icon_s.png", Vec2(24, 24)) -- 941
-					SameLine() -- 942
-				end -- 940
-				TextColored(themeColor, "DORA SSR " .. tostring(zh and '开发' or 'DEV')) -- 943
-				SameLine() -- 944
-				if fullWidth >= 360 then -- 945
-					Dummy(Vec2(fullWidth - 360, 0)) -- 946
-					SameLine() -- 947
-					SetNextItemWidth(-50) -- 948
-					if InputText(zh and '筛选' or 'Filter', filterBuf, { -- 949
-						"AutoSelectAll" -- 949
-					}) then -- 949
-						config.filter = filterBuf.text -- 950
-					end -- 949
-				end -- 945
-				Separator() -- 951
-				return Dummy(Vec2(fullWidth - 20, 0)) -- 952
-			end) -- 938
-		end) -- 937
-	end -- 952
-	anyEntryMatched = false -- 954
-	SetNextWindowPos(Vec2(0, 50)) -- 955
-	SetNextWindowSize(Vec2(fullWidth, height - 100)) -- 956
-	do -- 957
-		return PushStyleColor("WindowBg", transparant, function() -- 958
-			return PushStyleVar("WindowPadding", Vec2(paddingX, 10), function() -- 959
-				return Begin("Content", windowFlags, function() -- 960
-					filterText = filterBuf.text:match("[^%%%.%[]+") -- 961
-					if filterText then -- 962
-						filterText = filterText:lower() -- 962
-					end -- 962
-					if #gamesInDev > 0 then -- 963
-						for _index_0 = 1, #gamesInDev do -- 964
-							local game = gamesInDev[_index_0] -- 964
-							local gameName, fileName, examples, tests, bannerFile, bannerTex = game[1], game[2], game[3], game[4], game[5], game[6] -- 965
-							local showSep = false -- 966
-							if match(gameName) then -- 967
-								Columns(1, false) -- 968
-								TextColored(themeColor, zh and "项目：" or "Project:") -- 969
-								SameLine() -- 970
-								Text(gameName) -- 971
-								Separator() -- 972
-								if bannerFile then -- 973
-									local texWidth, texHeight = bannerTex.width, bannerTex.height -- 974
-									local displayWidth = (fullWidth / 2 - paddingX) * 2 - 35 -- 975
-									local sizing <const> = 0.8 -- 976
-									texHeight = displayWidth * sizing * texHeight / texWidth -- 977
-									texWidth = displayWidth * sizing -- 978
-									local padding = displayWidth * (1 - sizing) / 2 - 10 -- 979
-									Dummy(Vec2(padding, 0)) -- 980
-									SameLine() -- 981
-									PushID(fileName, function() -- 982
-										if ImageButton(gameName, bannerFile, Vec2(texWidth, texHeight)) then -- 983
-											return enterDemoEntry(game) -- 984
-										end -- 983
-									end) -- 982
-								else -- 986
-									PushID(fileName, function() -- 986
-										if Button(zh and "开始运行" or "Game Start", Vec2(-1, 40)) then -- 987
-											return enterDemoEntry(game) -- 988
-										end -- 987
-									end) -- 986
-								end -- 973
-								NextColumn() -- 989
-								showSep = true -- 990
-							end -- 967
-							if #examples > 0 then -- 991
-								local showExample = false -- 992
-								for _index_1 = 1, #examples do -- 993
-									local example = examples[_index_1] -- 993
-									if match(example[1]) then -- 994
-										showExample = true -- 995
-										break -- 996
-									end -- 994
-								end -- 996
-								if showExample then -- 997
-									Columns(1, false) -- 998
-									TextColored(themeColor, zh and "示例：" or "Example:") -- 999
-									SameLine() -- 1000
-									Text(gameName) -- 1001
-									PushStyleVar("ItemSpacing", Vec2(20, 10), function() -- 1002
-										Columns(maxColumns, false) -- 1003
-										for _index_1 = 1, #examples do -- 1004
-											local example = examples[_index_1] -- 1004
-											if not match(example[1]) then -- 1005
-												goto _continue_0 -- 1005
-											end -- 1005
-											PushID(tostring(gameName) .. " " .. tostring(example[1]) .. " example", function() -- 1006
-												if Button(example[1], Vec2(-1, 40)) then -- 1007
-													enterDemoEntry(example) -- 1008
-												end -- 1007
-												return NextColumn() -- 1009
-											end) -- 1006
-											showSep = true -- 1010
-											::_continue_0:: -- 1005
-										end -- 1010
-									end) -- 1002
-								end -- 997
-							end -- 991
-							if #tests > 0 then -- 1011
-								local showTest = false -- 1012
-								for _index_1 = 1, #tests do -- 1013
-									local test = tests[_index_1] -- 1013
-									if match(test[1]) then -- 1014
-										showTest = true -- 1015
-										break -- 1016
-									end -- 1014
-								end -- 1016
-								if showTest then -- 1017
-									Columns(1, false) -- 1018
-									TextColored(themeColor, zh and "测试：" or "Test:") -- 1019
-									SameLine() -- 1020
-									Text(gameName) -- 1021
-									PushStyleVar("ItemSpacing", Vec2(20, 10), function() -- 1022
-										Columns(maxColumns, false) -- 1023
-										for _index_1 = 1, #tests do -- 1024
-											local test = tests[_index_1] -- 1024
-											if not match(test[1]) then -- 1025
-												goto _continue_0 -- 1025
-											end -- 1025
-											PushID(tostring(gameName) .. " " .. tostring(test[1]) .. " test", function() -- 1026
-												if Button(test[1], Vec2(-1, 40)) then -- 1027
-													enterDemoEntry(test) -- 1028
-												end -- 1027
-												return NextColumn() -- 1029
-											end) -- 1026
-											showSep = true -- 1030
-											::_continue_0:: -- 1025
-										end -- 1030
-									end) -- 1022
-								end -- 1017
-							end -- 1011
-							if showSep then -- 1031
-								Columns(1, false) -- 1032
-								Separator() -- 1033
-							end -- 1031
-						end -- 1033
-					end -- 963
-					if #games > 0 or #doraExamples > 0 or #doraTests > 0 then -- 1034
-						local showGame = false -- 1035
-						for _index_0 = 1, #games do -- 1036
-							local _des_0 = games[_index_0] -- 1036
-							local name = _des_0[1] -- 1036
-							if match(name) then -- 1037
-								showGame = true -- 1037
-							end -- 1037
-						end -- 1037
-						local showTool = false -- 1038
-						for _index_0 = 1, #doraTools do -- 1039
-							local _des_0 = doraTools[_index_0] -- 1039
-							local name = _des_0[1] -- 1039
-							if match(name) then -- 1040
-								showTool = true -- 1040
-							end -- 1040
-						end -- 1040
-						local showExample = false -- 1041
-						for _index_0 = 1, #doraExamples do -- 1042
-							local _des_0 = doraExamples[_index_0] -- 1042
-							local name = _des_0[1] -- 1042
-							if match(name) then -- 1043
-								showExample = true -- 1043
-							end -- 1043
+	if urlClicked then -- 889
+		local _, result = coroutine.resume(urlClicked) -- 890
+		if result then -- 891
+			coroutine.close(urlClicked) -- 892
+			urlClicked = nil -- 893
+		end -- 891
+	end -- 889
+	if not showEntry then -- 894
+		return -- 894
+	end -- 894
+	if not isInEntry then -- 895
+		return -- 895
+	end -- 895
+	local zh = useChinese and isChineseSupported -- 896
+	if HttpServer.wsConnectionCount > 0 then -- 897
+		local themeColor = App.themeColor -- 898
+		local width, height -- 899
+		do -- 899
+			local _obj_0 = App.visualSize -- 899
+			width, height = _obj_0.width, _obj_0.height -- 899
+		end -- 899
+		SetNextWindowBgAlpha(0.5) -- 900
+		SetNextWindowPos(Vec2(width / 2, height / 2), "Always", Vec2(0.5, 0.5)) -- 901
+		Begin("Web IDE Connected", displayWindowFlags, function() -- 902
+			Separator() -- 903
+			TextColored(themeColor, tostring(zh and '网页 IDE 已连接 ……' or 'Web IDE connected ...')) -- 904
+			if iconTex then -- 905
+				Image("Image/icon_s.png", Vec2(24, 24)) -- 906
+				SameLine() -- 907
+			end -- 905
+			local slogon = zh and 'Dora 启动！' or 'Dora Start!' -- 908
+			TextColored(descColor, slogon) -- 909
+			return Separator() -- 910
+		end) -- 902
+		return -- 911
+	end -- 897
+	local themeColor = App.themeColor -- 913
+	local fullWidth, height -- 914
+	do -- 914
+		local _obj_0 = App.visualSize -- 914
+		fullWidth, height = _obj_0.width, _obj_0.height -- 914
+	end -- 914
+	SetNextWindowBgAlpha(0.85) -- 916
+	SetNextWindowPos(Vec2(fullWidth - 30, height - 130), "Always", Vec2(1, 0)) -- 917
+	PushStyleVar("WindowPadding", Vec2(10, 5), function() -- 918
+		return Begin("Web IDE", displayWindowFlags, function() -- 919
+			Separator() -- 920
+			TextColored(themeColor, tostring(zh and '网页' or 'Web') .. " IDE") -- 921
+			SameLine() -- 922
+			TextDisabled('(?)') -- 923
+			if IsItemHovered() then -- 924
+				BeginTooltip(function() -- 925
+					return PushTextWrapPos(280, function() -- 926
+						return Text(zh and '在本机或是本地局域网连接的其他设备上，使用浏览器访问下面这个地址来使用网页 IDE' or 'You can use the Web IDE by accessing the following address in a browser on this machine or other devices connected to the local network') -- 927
+					end) -- 927
+				end) -- 925
+			end -- 924
+			do -- 928
+				local url -- 928
+				if webStatus ~= nil then -- 928
+					url = webStatus.url -- 928
+				end -- 928
+				if url then -- 928
+					if isDesktop and not config.fullScreen then -- 929
+						if urlClicked then -- 930
+							BeginDisabled(function() -- 931
+								return Button(url) -- 931
+							end) -- 931
+						elseif Button(url) then -- 932
+							urlClicked = once(function() -- 933
+								return sleep(5) -- 933
+							end) -- 933
+							App:openURL("http://localhost:8866") -- 934
+						end -- 930
+					else -- 936
+						TextColored(descColor, url) -- 936
+					end -- 929
+				else -- 938
+					TextColored(descColor, zh and '不可用' or 'not available') -- 938
+				end -- 928
+			end -- 928
+			return Separator() -- 939
+		end) -- 939
+	end) -- 918
+	local width = math.min(MaxWidth, fullWidth) -- 941
+	local paddingX = math.max(10, fullWidth / 2 - width / 2 - 10) -- 942
+	local maxColumns = math.max(math.floor(width / 200), 1) -- 943
+	SetNextWindowPos(Vec2.zero) -- 944
+	SetNextWindowBgAlpha(0) -- 945
+	do -- 946
+		PushStyleVar("WindowPadding", Vec2(10, 0), function() -- 947
+			return Begin("Dora Dev", displayWindowFlags, function() -- 948
+				Dummy(Vec2(fullWidth - 20, 0)) -- 949
+				if iconTex then -- 950
+					Image("Image/icon_s.png", Vec2(24, 24)) -- 951
+					SameLine() -- 952
+				end -- 950
+				TextColored(themeColor, "DORA SSR " .. tostring(zh and '开发' or 'DEV')) -- 953
+				SameLine() -- 954
+				if fullWidth >= 360 then -- 955
+					Dummy(Vec2(fullWidth - 360, 0)) -- 956
+					SameLine() -- 957
+					SetNextItemWidth(-50) -- 958
+					if InputText(zh and '筛选' or 'Filter', filterBuf, { -- 959
+						"AutoSelectAll" -- 959
+					}) then -- 959
+						config.filter = filterBuf.text -- 960
+					end -- 959
+				end -- 955
+				Separator() -- 961
+				return Dummy(Vec2(fullWidth - 20, 0)) -- 962
+			end) -- 948
+		end) -- 947
+	end -- 962
+	anyEntryMatched = false -- 964
+	SetNextWindowPos(Vec2(0, 50)) -- 965
+	SetNextWindowSize(Vec2(fullWidth, height - 100)) -- 966
+	do -- 967
+		return PushStyleColor("WindowBg", transparant, function() -- 968
+			return PushStyleVar("WindowPadding", Vec2(paddingX, 10), function() -- 969
+				return Begin("Content", windowFlags, function() -- 970
+					filterText = filterBuf.text:match("[^%%%.%[]+") -- 971
+					if filterText then -- 972
+						filterText = filterText:lower() -- 972
+					end -- 972
+					if #gamesInDev > 0 then -- 973
+						for _index_0 = 1, #gamesInDev do -- 974
+							local game = gamesInDev[_index_0] -- 974
+							local gameName, fileName, examples, tests, bannerFile, bannerTex = game[1], game[2], game[3], game[4], game[5], game[6] -- 975
+							local showSep = false -- 976
+							if match(gameName) then -- 977
+								Columns(1, false) -- 978
+								TextColored(themeColor, zh and "项目：" or "Project:") -- 979
+								SameLine() -- 980
+								Text(gameName) -- 981
+								Separator() -- 982
+								if bannerFile then -- 983
+									local texWidth, texHeight = bannerTex.width, bannerTex.height -- 984
+									local displayWidth = (fullWidth / 2 - paddingX) * 2 - 35 -- 985
+									local sizing <const> = 0.8 -- 986
+									texHeight = displayWidth * sizing * texHeight / texWidth -- 987
+									texWidth = displayWidth * sizing -- 988
+									local padding = displayWidth * (1 - sizing) / 2 - 10 -- 989
+									Dummy(Vec2(padding, 0)) -- 990
+									SameLine() -- 991
+									PushID(fileName, function() -- 992
+										if ImageButton(gameName, bannerFile, Vec2(texWidth, texHeight)) then -- 993
+											return enterDemoEntry(game) -- 994
+										end -- 993
+									end) -- 992
+								else -- 996
+									PushID(fileName, function() -- 996
+										if Button(zh and "开始运行" or "Game Start", Vec2(-1, 40)) then -- 997
+											return enterDemoEntry(game) -- 998
+										end -- 997
+									end) -- 996
+								end -- 983
+								NextColumn() -- 999
+								showSep = true -- 1000
+							end -- 977
+							if #examples > 0 then -- 1001
+								local showExample = false -- 1002
+								for _index_1 = 1, #examples do -- 1003
+									local example = examples[_index_1] -- 1003
+									if match(example[1]) then -- 1004
+										showExample = true -- 1005
+										break -- 1006
+									end -- 1004
+								end -- 1006
+								if showExample then -- 1007
+									Columns(1, false) -- 1008
+									TextColored(themeColor, zh and "示例：" or "Example:") -- 1009
+									SameLine() -- 1010
+									Text(gameName) -- 1011
+									PushStyleVar("ItemSpacing", Vec2(20, 10), function() -- 1012
+										Columns(maxColumns, false) -- 1013
+										for _index_1 = 1, #examples do -- 1014
+											local example = examples[_index_1] -- 1014
+											if not match(example[1]) then -- 1015
+												goto _continue_0 -- 1015
+											end -- 1015
+											PushID(tostring(gameName) .. " " .. tostring(example[1]) .. " example", function() -- 1016
+												if Button(example[1], Vec2(-1, 40)) then -- 1017
+													enterDemoEntry(example) -- 1018
+												end -- 1017
+												return NextColumn() -- 1019
+											end) -- 1016
+											showSep = true -- 1020
+											::_continue_0:: -- 1015
+										end -- 1020
+									end) -- 1012
+								end -- 1007
+							end -- 1001
+							if #tests > 0 then -- 1021
+								local showTest = false -- 1022
+								for _index_1 = 1, #tests do -- 1023
+									local test = tests[_index_1] -- 1023
+									if match(test[1]) then -- 1024
+										showTest = true -- 1025
+										break -- 1026
+									end -- 1024
+								end -- 1026
+								if showTest then -- 1027
+									Columns(1, false) -- 1028
+									TextColored(themeColor, zh and "测试：" or "Test:") -- 1029
+									SameLine() -- 1030
+									Text(gameName) -- 1031
+									PushStyleVar("ItemSpacing", Vec2(20, 10), function() -- 1032
+										Columns(maxColumns, false) -- 1033
+										for _index_1 = 1, #tests do -- 1034
+											local test = tests[_index_1] -- 1034
+											if not match(test[1]) then -- 1035
+												goto _continue_0 -- 1035
+											end -- 1035
+											PushID(tostring(gameName) .. " " .. tostring(test[1]) .. " test", function() -- 1036
+												if Button(test[1], Vec2(-1, 40)) then -- 1037
+													enterDemoEntry(test) -- 1038
+												end -- 1037
+												return NextColumn() -- 1039
+											end) -- 1036
+											showSep = true -- 1040
+											::_continue_0:: -- 1035
+										end -- 1040
+									end) -- 1032
+								end -- 1027
+							end -- 1021
+							if showSep then -- 1041
+								Columns(1, false) -- 1042
+								Separator() -- 1043
+							end -- 1041
 						end -- 1043
-						local showTest = false -- 1044
-						for _index_0 = 1, #doraTests do -- 1045
-							local _des_0 = doraTests[_index_0] -- 1045
-							local name = _des_0[1] -- 1045
-							if match(name) then -- 1046
-								showTest = true -- 1046
-							end -- 1046
-						end -- 1046
-						for _index_0 = 1, #cppTests do -- 1047
-							local _des_0 = cppTests[_index_0] -- 1047
-							local name = _des_0[1] -- 1047
-							if match(name) then -- 1048
-								showTest = true -- 1048
-							end -- 1048
-						end -- 1048
-						if not (showGame or showTool or showExample or showTest) then -- 1049
-							goto endEntry -- 1049
-						end -- 1049
-						Columns(1, false) -- 1050
-						TextColored(themeColor, "Dora SSR:") -- 1051
-						SameLine() -- 1052
-						Text(zh and "开发示例" or "Development Showcase") -- 1053
-						Separator() -- 1054
-						local demoViewWith <const> = 400 -- 1055
-						if #games > 0 and showGame then -- 1056
-							local opened -- 1057
-							if (filterText ~= nil) then -- 1057
-								opened = showGame -- 1057
-							else -- 1057
-								opened = false -- 1057
-							end -- 1057
-							SetNextItemOpen(gameOpen) -- 1058
-							TreeNode(zh and "游戏演示" or "Game Demo", function() -- 1059
-								local columns = math.max(math.floor(width / demoViewWith), 1) -- 1060
-								Columns(columns, false) -- 1061
-								for _index_0 = 1, #games do -- 1062
-									local game = games[_index_0] -- 1062
-									if not match(game[1]) then -- 1063
-										goto _continue_0 -- 1063
-									end -- 1063
-									local gameName, fileName, bannerFile, bannerTex = game[1], game[2], game[5], game[6] -- 1064
-									if columns > 1 then -- 1065
-										if bannerFile then -- 1066
-											local texWidth, texHeight = bannerTex.width, bannerTex.height -- 1067
-											local displayWidth <const> = demoViewWith - 40 -- 1068
-											texHeight = displayWidth * texHeight / texWidth -- 1069
-											texWidth = displayWidth -- 1070
-											Text(gameName) -- 1071
-											PushID(fileName, function() -- 1072
-												if ImageButton(gameName, bannerFile, Vec2(texWidth, texHeight)) then -- 1073
-													return enterDemoEntry(game) -- 1074
-												end -- 1073
-											end) -- 1072
-										else -- 1076
-											PushID(fileName, function() -- 1076
-												if Button(gameName, Vec2(-1, 40)) then -- 1077
-													return enterDemoEntry(game) -- 1078
-												end -- 1077
-											end) -- 1076
-										end -- 1066
-									else -- 1080
-										if bannerFile then -- 1080
-											local texWidth, texHeight = bannerTex.width, bannerTex.height -- 1081
-											local displayWidth = (fullWidth / 2 - paddingX) * 2 - 35 -- 1082
-											local sizing = 0.8 -- 1083
-											texHeight = displayWidth * sizing * texHeight / texWidth -- 1084
-											texWidth = displayWidth * sizing -- 1085
-											if texWidth > 500 then -- 1086
-												sizing = 0.6 -- 1087
-												texHeight = displayWidth * sizing * texHeight / texWidth -- 1088
-												texWidth = displayWidth * sizing -- 1089
-											end -- 1086
-											local padding = displayWidth * (1 - sizing) / 2 - 10 -- 1090
-											Dummy(Vec2(padding, 0)) -- 1091
-											SameLine() -- 1092
-											Text(gameName) -- 1093
-											Dummy(Vec2(padding, 0)) -- 1094
-											SameLine() -- 1095
-											PushID(fileName, function() -- 1096
-												if ImageButton(gameName, bannerFile, Vec2(texWidth, texHeight)) then -- 1097
-													return enterDemoEntry(game) -- 1098
-												end -- 1097
-											end) -- 1096
-										else -- 1100
-											PushID(fileName, function() -- 1100
-												if Button(gameName, Vec2(-1, 40)) then -- 1101
-													return enterDemoEntry(game) -- 1102
-												end -- 1101
-											end) -- 1100
-										end -- 1080
-									end -- 1065
-									NextColumn() -- 1103
-									::_continue_0:: -- 1063
-								end -- 1103
-								Columns(1, false) -- 1104
-								opened = true -- 1105
-							end) -- 1059
-							gameOpen = opened -- 1106
+					end -- 973
+					if #games > 0 or #doraExamples > 0 or #doraTests > 0 then -- 1044
+						local showGame = false -- 1045
+						for _index_0 = 1, #games do -- 1046
+							local _des_0 = games[_index_0] -- 1046
+							local name = _des_0[1] -- 1046
+							if match(name) then -- 1047
+								showGame = true -- 1047
+							end -- 1047
+						end -- 1047
+						local showTool = false -- 1048
+						for _index_0 = 1, #doraTools do -- 1049
+							local _des_0 = doraTools[_index_0] -- 1049
+							local name = _des_0[1] -- 1049
+							if match(name) then -- 1050
+								showTool = true -- 1050
+							end -- 1050
+						end -- 1050
+						local showExample = false -- 1051
+						for _index_0 = 1, #doraExamples do -- 1052
+							local _des_0 = doraExamples[_index_0] -- 1052
+							local name = _des_0[1] -- 1052
+							if match(name) then -- 1053
+								showExample = true -- 1053
+							end -- 1053
+						end -- 1053
+						local showTest = false -- 1054
+						for _index_0 = 1, #doraTests do -- 1055
+							local _des_0 = doraTests[_index_0] -- 1055
+							local name = _des_0[1] -- 1055
+							if match(name) then -- 1056
+								showTest = true -- 1056
+							end -- 1056
 						end -- 1056
-						if #doraTools > 0 and showTool then -- 1107
-							local opened -- 1108
-							if (filterText ~= nil) then -- 1108
-								opened = showTool -- 1108
-							else -- 1108
-								opened = false -- 1108
-							end -- 1108
-							SetNextItemOpen(toolOpen) -- 1109
-							TreeNode(zh and "引擎工具" or "Engine Tools", function() -- 1110
-								return PushStyleVar("ItemSpacing", Vec2(20, 10), function() -- 1111
-									Columns(maxColumns, false) -- 1112
-									for _index_0 = 1, #doraTools do -- 1113
-										local example = doraTools[_index_0] -- 1113
-										if not match(example[1]) then -- 1114
-											goto _continue_0 -- 1114
-										end -- 1114
-										if Button(example[1], Vec2(-1, 40)) then -- 1115
-											enterDemoEntry(example) -- 1116
-										end -- 1115
-										NextColumn() -- 1117
-										::_continue_0:: -- 1114
-									end -- 1117
-									Columns(1, false) -- 1118
-									opened = true -- 1119
-								end) -- 1111
-							end) -- 1110
-							toolOpen = opened -- 1120
-						end -- 1107
-						if #doraExamples > 0 and showExample then -- 1121
-							local opened -- 1122
-							if (filterText ~= nil) then -- 1122
-								opened = showExample -- 1122
-							else -- 1122
-								opened = false -- 1122
-							end -- 1122
-							SetNextItemOpen(exampleOpen) -- 1123
-							TreeNode(zh and "引擎示例" or "Engine Example", function() -- 1124
-								return PushStyleVar("ItemSpacing", Vec2(20, 10), function() -- 1125
-									Columns(maxColumns, false) -- 1126
-									for _index_0 = 1, #doraExamples do -- 1127
-										local example = doraExamples[_index_0] -- 1127
-										if not match(example[1]) then -- 1128
-											goto _continue_0 -- 1128
-										end -- 1128
-										if Button(example[1], Vec2(-1, 40)) then -- 1129
-											enterDemoEntry(example) -- 1130
-										end -- 1129
-										NextColumn() -- 1131
-										::_continue_0:: -- 1128
-									end -- 1131
-									Columns(1, false) -- 1132
-									opened = true -- 1133
-								end) -- 1125
-							end) -- 1124
-							exampleOpen = opened -- 1134
-						end -- 1121
-						if (#doraTests > 0 or #cppTests > 0) and showTest then -- 1135
-							local opened -- 1136
-							if (filterText ~= nil) then -- 1136
-								opened = showTest -- 1136
-							else -- 1136
-								opened = false -- 1136
-							end -- 1136
-							SetNextItemOpen(testOpen) -- 1137
-							TreeNode(zh and "引擎测试" or "Engine Test", function() -- 1138
-								return PushStyleVar("ItemSpacing", Vec2(20, 10), function() -- 1139
-									Columns(maxColumns, false) -- 1140
-									for _index_0 = 1, #doraTests do -- 1141
-										local test = doraTests[_index_0] -- 1141
-										if not match(test[1]) then -- 1142
-											goto _continue_0 -- 1142
-										end -- 1142
-										if Button(test[1], Vec2(-1, 40)) then -- 1143
-											enterDemoEntry(test) -- 1144
-										end -- 1143
-										NextColumn() -- 1145
-										::_continue_0:: -- 1142
-									end -- 1145
-									for _index_0 = 1, #cppTests do -- 1146
-										local test = cppTests[_index_0] -- 1146
-										if not match(test[1]) then -- 1147
-											goto _continue_1 -- 1147
-										end -- 1147
-										if Button(test[1], Vec2(-1, 40)) then -- 1148
-											enterDemoEntry(test) -- 1149
-										end -- 1148
-										NextColumn() -- 1150
-										::_continue_1:: -- 1147
-									end -- 1150
-									opened = true -- 1151
-								end) -- 1139
-							end) -- 1138
-							testOpen = opened -- 1152
-						end -- 1135
-					end -- 1034
-					::endEntry:: -- 1153
-					if not anyEntryMatched then -- 1154
-						SetNextWindowBgAlpha(0) -- 1155
-						SetNextWindowPos(Vec2(fullWidth / 2, height / 2), "Always", Vec2(0.5, 0.5)) -- 1156
-						Begin("Entries Not Found", displayWindowFlags, function() -- 1157
-							Separator() -- 1158
-							TextColored(themeColor, zh and "多萝：" or "Dora:") -- 1159
-							TextColored(descColor, zh and '别担心，改变一些咒语，我们会找到新的冒险～' or 'Don\'t worry, more magic words and we\'ll find a new adventure!') -- 1160
-							return Separator() -- 1161
-						end) -- 1157
-					end -- 1154
-					Columns(1, false) -- 1162
-					Dummy(Vec2(100, 80)) -- 1163
-					return ScrollWhenDraggingOnVoid() -- 1164
-				end) -- 960
-			end) -- 959
-		end) -- 958
-	end -- 1164
-end) -- 868
-webStatus = require("Script.Dev.WebServer") -- 1166
-return _module_0 -- 1166
+						for _index_0 = 1, #cppTests do -- 1057
+							local _des_0 = cppTests[_index_0] -- 1057
+							local name = _des_0[1] -- 1057
+							if match(name) then -- 1058
+								showTest = true -- 1058
+							end -- 1058
+						end -- 1058
+						if not (showGame or showTool or showExample or showTest) then -- 1059
+							goto endEntry -- 1059
+						end -- 1059
+						Columns(1, false) -- 1060
+						TextColored(themeColor, "Dora SSR:") -- 1061
+						SameLine() -- 1062
+						Text(zh and "开发示例" or "Development Showcase") -- 1063
+						Separator() -- 1064
+						local demoViewWith <const> = 400 -- 1065
+						if #games > 0 and showGame then -- 1066
+							local opened -- 1067
+							if (filterText ~= nil) then -- 1067
+								opened = showGame -- 1067
+							else -- 1067
+								opened = false -- 1067
+							end -- 1067
+							SetNextItemOpen(gameOpen) -- 1068
+							TreeNode(zh and "游戏演示" or "Game Demo", function() -- 1069
+								local columns = math.max(math.floor(width / demoViewWith), 1) -- 1070
+								Columns(columns, false) -- 1071
+								for _index_0 = 1, #games do -- 1072
+									local game = games[_index_0] -- 1072
+									if not match(game[1]) then -- 1073
+										goto _continue_0 -- 1073
+									end -- 1073
+									local gameName, fileName, bannerFile, bannerTex = game[1], game[2], game[5], game[6] -- 1074
+									if columns > 1 then -- 1075
+										if bannerFile then -- 1076
+											local texWidth, texHeight = bannerTex.width, bannerTex.height -- 1077
+											local displayWidth <const> = demoViewWith - 40 -- 1078
+											texHeight = displayWidth * texHeight / texWidth -- 1079
+											texWidth = displayWidth -- 1080
+											Text(gameName) -- 1081
+											PushID(fileName, function() -- 1082
+												if ImageButton(gameName, bannerFile, Vec2(texWidth, texHeight)) then -- 1083
+													return enterDemoEntry(game) -- 1084
+												end -- 1083
+											end) -- 1082
+										else -- 1086
+											PushID(fileName, function() -- 1086
+												if Button(gameName, Vec2(-1, 40)) then -- 1087
+													return enterDemoEntry(game) -- 1088
+												end -- 1087
+											end) -- 1086
+										end -- 1076
+									else -- 1090
+										if bannerFile then -- 1090
+											local texWidth, texHeight = bannerTex.width, bannerTex.height -- 1091
+											local displayWidth = (fullWidth / 2 - paddingX) * 2 - 35 -- 1092
+											local sizing = 0.8 -- 1093
+											texHeight = displayWidth * sizing * texHeight / texWidth -- 1094
+											texWidth = displayWidth * sizing -- 1095
+											if texWidth > 500 then -- 1096
+												sizing = 0.6 -- 1097
+												texHeight = displayWidth * sizing * texHeight / texWidth -- 1098
+												texWidth = displayWidth * sizing -- 1099
+											end -- 1096
+											local padding = displayWidth * (1 - sizing) / 2 - 10 -- 1100
+											Dummy(Vec2(padding, 0)) -- 1101
+											SameLine() -- 1102
+											Text(gameName) -- 1103
+											Dummy(Vec2(padding, 0)) -- 1104
+											SameLine() -- 1105
+											PushID(fileName, function() -- 1106
+												if ImageButton(gameName, bannerFile, Vec2(texWidth, texHeight)) then -- 1107
+													return enterDemoEntry(game) -- 1108
+												end -- 1107
+											end) -- 1106
+										else -- 1110
+											PushID(fileName, function() -- 1110
+												if Button(gameName, Vec2(-1, 40)) then -- 1111
+													return enterDemoEntry(game) -- 1112
+												end -- 1111
+											end) -- 1110
+										end -- 1090
+									end -- 1075
+									NextColumn() -- 1113
+									::_continue_0:: -- 1073
+								end -- 1113
+								Columns(1, false) -- 1114
+								opened = true -- 1115
+							end) -- 1069
+							gameOpen = opened -- 1116
+						end -- 1066
+						if #doraTools > 0 and showTool then -- 1117
+							local opened -- 1118
+							if (filterText ~= nil) then -- 1118
+								opened = showTool -- 1118
+							else -- 1118
+								opened = false -- 1118
+							end -- 1118
+							SetNextItemOpen(toolOpen) -- 1119
+							TreeNode(zh and "引擎工具" or "Engine Tools", function() -- 1120
+								return PushStyleVar("ItemSpacing", Vec2(20, 10), function() -- 1121
+									Columns(maxColumns, false) -- 1122
+									for _index_0 = 1, #doraTools do -- 1123
+										local example = doraTools[_index_0] -- 1123
+										if not match(example[1]) then -- 1124
+											goto _continue_0 -- 1124
+										end -- 1124
+										if Button(example[1], Vec2(-1, 40)) then -- 1125
+											enterDemoEntry(example) -- 1126
+										end -- 1125
+										NextColumn() -- 1127
+										::_continue_0:: -- 1124
+									end -- 1127
+									Columns(1, false) -- 1128
+									opened = true -- 1129
+								end) -- 1121
+							end) -- 1120
+							toolOpen = opened -- 1130
+						end -- 1117
+						if #doraExamples > 0 and showExample then -- 1131
+							local opened -- 1132
+							if (filterText ~= nil) then -- 1132
+								opened = showExample -- 1132
+							else -- 1132
+								opened = false -- 1132
+							end -- 1132
+							SetNextItemOpen(exampleOpen) -- 1133
+							TreeNode(zh and "引擎示例" or "Engine Example", function() -- 1134
+								return PushStyleVar("ItemSpacing", Vec2(20, 10), function() -- 1135
+									Columns(maxColumns, false) -- 1136
+									for _index_0 = 1, #doraExamples do -- 1137
+										local example = doraExamples[_index_0] -- 1137
+										if not match(example[1]) then -- 1138
+											goto _continue_0 -- 1138
+										end -- 1138
+										if Button(example[1], Vec2(-1, 40)) then -- 1139
+											enterDemoEntry(example) -- 1140
+										end -- 1139
+										NextColumn() -- 1141
+										::_continue_0:: -- 1138
+									end -- 1141
+									Columns(1, false) -- 1142
+									opened = true -- 1143
+								end) -- 1135
+							end) -- 1134
+							exampleOpen = opened -- 1144
+						end -- 1131
+						if (#doraTests > 0 or #cppTests > 0) and showTest then -- 1145
+							local opened -- 1146
+							if (filterText ~= nil) then -- 1146
+								opened = showTest -- 1146
+							else -- 1146
+								opened = false -- 1146
+							end -- 1146
+							SetNextItemOpen(testOpen) -- 1147
+							TreeNode(zh and "引擎测试" or "Engine Test", function() -- 1148
+								return PushStyleVar("ItemSpacing", Vec2(20, 10), function() -- 1149
+									Columns(maxColumns, false) -- 1150
+									for _index_0 = 1, #doraTests do -- 1151
+										local test = doraTests[_index_0] -- 1151
+										if not match(test[1]) then -- 1152
+											goto _continue_0 -- 1152
+										end -- 1152
+										if Button(test[1], Vec2(-1, 40)) then -- 1153
+											enterDemoEntry(test) -- 1154
+										end -- 1153
+										NextColumn() -- 1155
+										::_continue_0:: -- 1152
+									end -- 1155
+									for _index_0 = 1, #cppTests do -- 1156
+										local test = cppTests[_index_0] -- 1156
+										if not match(test[1]) then -- 1157
+											goto _continue_1 -- 1157
+										end -- 1157
+										if Button(test[1], Vec2(-1, 40)) then -- 1158
+											enterDemoEntry(test) -- 1159
+										end -- 1158
+										NextColumn() -- 1160
+										::_continue_1:: -- 1157
+									end -- 1160
+									opened = true -- 1161
+								end) -- 1149
+							end) -- 1148
+							testOpen = opened -- 1162
+						end -- 1145
+					end -- 1044
+					::endEntry:: -- 1163
+					if not anyEntryMatched then -- 1164
+						SetNextWindowBgAlpha(0) -- 1165
+						SetNextWindowPos(Vec2(fullWidth / 2, height / 2), "Always", Vec2(0.5, 0.5)) -- 1166
+						Begin("Entries Not Found", displayWindowFlags, function() -- 1167
+							Separator() -- 1168
+							TextColored(themeColor, zh and "多萝：" or "Dora:") -- 1169
+							TextColored(descColor, zh and '别担心，改变一些咒语，我们会找到新的冒险～' or 'Don\'t worry, more magic words and we\'ll find a new adventure!') -- 1170
+							return Separator() -- 1171
+						end) -- 1167
+					end -- 1164
+					Columns(1, false) -- 1172
+					Dummy(Vec2(100, 80)) -- 1173
+					return ScrollWhenDraggingOnVoid() -- 1174
+				end) -- 970
+			end) -- 969
+		end) -- 968
+	end -- 1174
+end) -- 878
+webStatus = require("Script.Dev.WebServer") -- 1176
+return _module_0 -- 1176

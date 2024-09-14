@@ -1,6 +1,6 @@
 ---
 authors: [lijin]
-tags: [Yuescript, Lua]
+tags: [YueScript, Lua]
 
 ---
 
@@ -33,7 +33,7 @@ import "@site/src/languages/highlight";
 
 &emsp;&emsp;当然说得再多不如拿出代码有意义，所以我没有继承已有的 code base，而是直接用第二喜欢的编程语言 C++ 进行了完全的重写（第一喜欢的就是 Moonscript）。并在重写的同时顺便修复了各类作者未解决的问题，并引入一些缺失了几年的其它语言都已经用烂的编程特性。
 
-&emsp;&emsp;详见项目：[Yuescript](https://yuescript.org/zh)。
+&emsp;&emsp;详见项目：[YueScript](https://yuescript.org/zh)。
 
 ## Transpilers For Lua 和 PEG 文法
 
@@ -90,15 +90,15 @@ switch (node->getId()) {
 
 `node->getByPath("ChainValue", "Callable")`
 
-&emsp;&emsp;这样的写法少很多潜在的风险，同时进行了编译期参数检查，运行时类型匹配的两重功能，动态类型的语言是很难取代这样的优势的。在这些设施的帮助下，不用额外设计特别复杂的检查机制，错误地操作 AST 结构就会产生明确的编译报错或是运行时报错，让 C++ 写 transpiler 无比爽快和省心。 
+&emsp;&emsp;这样的写法少很多潜在的风险，同时进行了编译期参数检查，运行时类型匹配的两重功能，动态类型的语言是很难取代这样的优势的。在这些设施的帮助下，不用额外设计特别复杂的检查机制，错误地操作 AST 结构就会产生明确的编译报错或是运行时报错，让 C++ 写 transpiler 无比爽快和省心。
 
-## 方言中的方言——Yuescript 语言的生产应用
+## 方言中的方言——YueScript 语言的生产应用
 
-&emsp;&emsp;Yuescript 在创作之初其实有一直绑定了一个开源的游戏引擎项目 Dora SSR (https://dora-ssr.net )，可以说 Yuescript 的一个重要的创作目标，就是为了让支持 Lua 语言的 Dora SSR 开源游戏引擎用上升级版的 Moonscript 语言。结合 Dora SSR 的 Web IDE，我们还给 Yuescript 语言稍微增加了一点点代码编辑器上的类型推导和代码补全的辅助能力。
+&emsp;&emsp;YueScript 在创作之初其实有一直绑定了一个开源的游戏引擎项目 Dora SSR (https://dora-ssr.net )，可以说 YueScript 的一个重要的创作目标，就是为了让支持 Lua 语言的 Dora SSR 开源游戏引擎用上升级版的 Moonscript 语言。结合 Dora SSR 的 Web IDE，我们还给 YueScript 语言稍微增加了一点点代码编辑器上的类型推导和代码补全的辅助能力。
 
-&emsp;&emsp;我特别喜欢在参加一些 Game Jam 活动的时候，和策划伙伴一顿头脑风暴，然后掏出 Dora SSR 引擎和 Yuescript 就是一阵不考虑太多编程设计且“不计后果”的糊玩法编码。当然编程设计也不能说是完全没有，结合 Dora SSR 游戏引擎的消息系统机制 + Yuescript 函数式风格编程的写法。Game Jam 里埋头花几个钟头写 1k 行代码左右，在一个函数内把游戏 demo 写完也是没有问题的。在 [Dora SSR 的仓库](https://github.com/IppClub/Dora-SSR/tree/main/Assets/Script/Game) 里也可以看到我们过往糊的各种 Game Jam 小游戏的 Yuescript 源码。
+&emsp;&emsp;我特别喜欢在参加一些 Game Jam 活动的时候，和策划伙伴一顿头脑风暴，然后掏出 Dora SSR 引擎和 YueScript 就是一阵不考虑太多编程设计且“不计后果”的糊玩法编码。当然编程设计也不能说是完全没有，结合 Dora SSR 游戏引擎的消息系统机制 + YueScript 函数式风格编程的写法。Game Jam 里埋头花几个钟头写 1k 行代码左右，在一个函数内把游戏 demo 写完也是没有问题的。在 [Dora SSR 的仓库](https://github.com/IppClub/Dora-SSR/tree/main/Assets/Script/Game) 里也可以看到我们过往糊的各种 Game Jam 小游戏的 YueScript 源码。
 
-&emsp;&emsp;所以对 Lua 的方言 Moonscript 的方言 Yuescript 语言的可用性，至少也是在 Dora SSR 项目中有过不少代码有在做验证啦。
+&emsp;&emsp;所以对 Lua 的方言 Moonscript 的方言 YueScript 语言的可用性，至少也是在 Dora SSR 项目中有过不少代码有在做验证啦。
 
 
 

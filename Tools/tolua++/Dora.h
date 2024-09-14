@@ -116,7 +116,6 @@ class Application
 	tolua_readonly tolua_property__common uint32_t rand;
 	tolua_readonly tolua_property__common uint32_t maxFPS;
 	tolua_readonly tolua_property__bool bool debugging;
-	tolua_readonly tolua_property__bool bool fullScreen;
 	tolua_property__common string locale;
 	tolua_property__common Color themeColor;
 	tolua_property__common unsigned int seed;
@@ -125,6 +124,8 @@ class Application
 	tolua_property__common Vec2 winPosition;
 	tolua_property__bool bool fPSLimited @ fpsLimited;
 	tolua_property__bool bool idled;
+	tolua_property__bool bool fullScreen;
+	tolua_property__bool bool alwaysOnTop;
 	void openURL(String url);
 	void install(String path);
 	void shutdown();

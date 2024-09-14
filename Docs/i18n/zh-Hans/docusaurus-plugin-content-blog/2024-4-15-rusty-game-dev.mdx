@@ -135,7 +135,7 @@ object class EntityGroup @ Group
 
 ### 2. 生成胶水代码的程序
 
-&emsp;&emsp;第二步是编写一个程序，通过 IDL 生成 C++、WASM 和 Rust 之间互相调用的胶水代码。为了实现这一点，我们选择使用 Dora SSR 项目自创的 Yuescript 语言。Yuescript 是基于 Lua 的一门动态编程语言，它结合了 Lua 语言生态中的 lpeg 语法解析库来处理 IDL 的解析和胶水代码的生成。使用 Yuescript 的好处是它继承了 Lua 的灵活性和轻量级，同时提供了更丰富的语法和功能，适合处理复杂的代码生成任务。以下是使用 PEG 文法编写的 IDL 解析器的代码节选。
+&emsp;&emsp;第二步是编写一个程序，通过 IDL 生成 C++、WASM 和 Rust 之间互相调用的胶水代码。为了实现这一点，我们选择使用 Dora SSR 项目自创的 YueScript 语言。YueScript 是基于 Lua 的一门动态编程语言，它结合了 Lua 语言生态中的 lpeg 语法解析库来处理 IDL 的解析和胶水代码的生成。使用 YueScript 的好处是它继承了 Lua 的灵活性和轻量级，同时提供了更丰富的语法和功能，适合处理复杂的代码生成任务。以下是使用 PEG 文法编写的 IDL 解析器的代码节选。
 
 ```lua
 Param = P {

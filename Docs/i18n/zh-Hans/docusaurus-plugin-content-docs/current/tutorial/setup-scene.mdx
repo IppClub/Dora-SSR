@@ -13,22 +13,22 @@ import TabItem from '@theme/TabItem';
 
 &emsp;&emsp;以下是如何在脚本代码中创建一个新的Node实例的示例：
 
-<Tabs>
-<TabItem value="yue" label="Yuescript">
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
 
-```yue
--- 创建一个新的节点实例，它将自动挂载到游戏场景的根节点
-node = Node!
+```lua
+-- 创建一个新的节点实例，它将会自动挂载到游戏场景的根节点
+local node = Node()
 
 -- 或者您可以手动将其挂载到游戏场景的根节点上
--- Director.entry\addChild node
+-- Director.entry:addChild(node)
 ```
 
 </TabItem>
 <TabItem value="tl" label="Teal">
 
 ```teal
--- 创建一个新的节点实例，它将自动挂载到游戏场景的根节点
+-- 创建一个新的节点实例，它将会自动挂载到游戏场景的根节点
 local node = Node()
 
 -- 或者您可以手动将其挂载到游戏场景的根节点上
@@ -36,14 +36,14 @@ local node = Node()
 ```
 
 </TabItem>
-<TabItem value="lua" label="Lua">
+<TabItem value="yue" label="YueScript">
 
-```lua
--- 创建一个新的节点实例，它将自动挂载到游戏场景的根节点
-local node = Node()
+```yue
+-- 创建一个新的节点实例，它将会自动挂载到游戏场景的根节点
+node = Node!
 
 -- 或者您可以手动将其挂载到游戏场景的根节点上
--- Director.entry:addChild(node)
+-- Director.entry\addChild node
 ```
 
 </TabItem>
@@ -55,8 +55,30 @@ local node = Node()
 
 &emsp;&emsp;以下是如何在Lua中设置这些属性的示例：
 
-<Tabs>
-<TabItem value="yue" label="Yuescript">
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+node.x = 100
+node.y = 200
+node.width = 50
+node.height = 50
+node.visible = true
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```teal
+node.x = 100
+node.y = 200
+node.width = 50
+node.height = 50
+node.visible = true
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
 
 ```yue
 with node
@@ -68,40 +90,18 @@ with node
 ```
 
 </TabItem>
-<TabItem value="teal" label="Teal">
-
-```teal
-node.x = 100
-node.y = 200
-node.width = 50
-node.height = 50
-node.visible = true
-```
-
-</TabItem>
-<TabItem value="lua" label="Lua">
-
-```lua
-node.x = 100
-node.y = 200
-node.width = 50
-node.height = 50
-node.visible = true
-```
-
-</TabItem>
 </Tabs>
 
 ### 三、添加子节点
 
 &emsp;&emsp;在Node类中，可以通过`addChild`方法添加子节点。以下是在代码中如何添加子节点的示例：
 
-<Tabs>
-<TabItem value="yue" label="Yuescript">
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
 
-```yue
-childNode = Node!
-node\addChild childNode
+```lua
+local childNode = Node()
+node:addChild(childNode)
 ```
 
 </TabItem>
@@ -113,11 +113,11 @@ node:addChild(childNode)
 ```
 
 </TabItem>
-<TabItem value="lua" label="Lua">
+<TabItem value="yue" label="YueScript">
 
-```lua
-local childNode = Node()
-node:addChild(childNode)
+```yue
+childNode = Node!
+node\addChild childNode
 ```
 
 </TabItem>
@@ -131,14 +131,13 @@ node:addChild(childNode)
 
 &emsp;&emsp;以下是在Lua中如何检查这些属性的示例：
 
-<Tabs>
-<TabItem value="yue" label="Yuescript">
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
 
-```yue
-with node
-	print .hasChildren -- 打印是否有子节点
-	print .children -- 打印子节点的列表
-	print .parent -- 打印节点的父节点
+```lua
+print(node.hasChildren) -- 打印是否有子节点
+print(node.children) -- 打印子节点的列表
+print(node.parent) -- 打印节点的父节点
 ```
 
 </TabItem>
@@ -151,12 +150,13 @@ print(node.parent) -- 打印节点的父节点
 ```
 
 </TabItem>
-<TabItem value="lua" label="Lua">
+<TabItem value="yue" label="YueScript">
 
-```lua
-print(node.hasChildren) -- 打印是否有子节点
-print(node.children) -- 打印子节点的列表
-print(node.parent) -- 打印节点的父节点
+```yue
+with node
+	print .hasChildren -- 打印是否有子节点
+	print .children -- 打印子节点的列表
+	print .parent -- 打印节点的父节点
 ```
 
 </TabItem>
@@ -168,14 +168,15 @@ print(node.parent) -- 打印节点的父节点
 
 &emsp;&emsp;注册和处理事件的基本步骤如下：
 
-1. **注册事件**：你可以通过在节点上注册事件来监听事件。例如，你可以使用下面的代码模式来注册和监听事件：
+1. **注册事件**：你可以通过在节点上注册事件来监听引擎内置功能触发的事件，比如屏幕触摸，鼠标、键盘和游戏手柄输入等。可以使用下面的代码编写模式通过节点来注册和监听事件，节点上的事件触发是支持多播的，即可以重复注册多个回调函数来监听同一个事件。示例代码如下：
 
-<Tabs>
-<TabItem value="yue" label="Yuescript">
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
 
-```yue
-node\slot "事件的名称", (...)->
+```lua
+node:slot("事件的名称", function(...)
 	-- 在这里添加你的代码
+end)
 ```
 
 </TabItem>
@@ -188,12 +189,11 @@ end)
 ```
 
 </TabItem>
-<TabItem value="lua" label="Lua">
+<TabItem value="yue" label="YueScript">
 
-```lua
-node:slot("事件的名称", function(...)
+```yue
+node\slot "事件的名称", (...) ->
 	-- 在这里添加你的代码
-end)
 ```
 
 </TabItem>
@@ -201,8 +201,8 @@ end)
 
 2. **处理事件**：当注册的事件被触发时，你可以在回调函数中添加处理事件的代码，并获取事件相关的参数。例如，你可以在节点动作执行结束事件的回调函数中添加代码来处理动作结束事件：
 
-<Tabs>
-<TabItem value="yue" label="Yuescript">
+<Tabs groupId="language-select">
+<TabItem value="yue" label="YueScript">
 
 ```yue
 node\slot "ActionEnd", (action, target)->
@@ -230,6 +230,64 @@ end)
 </TabItem>
 </Tabs>
 
+3. **移除事件**：当你不再需要监听某个事件时，你可以通过下面几种方法来移除事件的监听。示例代码如下：
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local function callback(...)
+	-- 在这里添加你的处理代码
+end
+
+-- 注册事件
+node:slot("事件的名称", callback)
+
+-- 移除事件
+node:slot("事件的名称"):remove(callback)
+
+-- 移除所有注册的事件
+node:slot("事件的名称", nil)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```teal
+local function callback(...)
+	-- 在这里添加你的处理代码
+end
+
+-- 注册事件
+node:slot("事件的名称", callback)
+
+-- 移除事件
+node:slot("事件的名称"):remove(callback)
+
+-- 移除所有注册的事件
+node:slot("事件的名称", nil)
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+callback = (...) ->
+	-- 在这里添加你的处理代码
+
+-- 注册事件
+node\slot "事件的名称", callback
+
+-- 移除事件
+node\slot("事件的名称")\remove callback
+
+-- 移除所有注册的事件
+node\slot "事件的名称", nil
+```
+
+</TabItem>
+</Tabs>
+
 &emsp;&emsp;常用的游戏交互相关的节点事件类型和对应的回调函数签名如下，在使用这些事件之前还需要打开节点接收点击事件的开关：
 
 ```lua
@@ -245,18 +303,74 @@ node.touchEnabled = true
 
 &emsp;&emsp;通过注册和处理这些事件，你可以轻松地为你的游戏节点添加复杂的交互功能。其它可以监听的节点事件详见[这里](../api/Node%20Event/Node)。
 
+&emsp;&emsp;为了简化对事件的处理，我们还提供了一些内置的事件注册函数，如`onTapBegan`、`onTapEnded`、`onTapped`、`onTapMoved`、`onMouseWheel`等。你可以通过在节点上调用这些函数来注册和处理事件。
+
+&emsp;&emsp;例如，你可以通过以下代码来注册和处理点击开始事件：
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+node:onTapBegan(function(touch)
+	print("点击开始")
+end)
+
+-- 等同于代码
+--[[
+node.touchEnabled = true
+node:slot("TapBegan", function(touch)
+	print("点击开始")
+end)
+]]
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```teal
+node:onTapBegan(function(touch: Touch)
+	print("点击开始")
+end)
+
+-- 等同于代码
+--[[
+node.touchEnabled = true
+node:slot("TapBegan", function(touch: Touch)
+	print("点击开始")
+end)
+]]
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+node\onTapBegan (touch)->
+	print "点击开始"
+
+-- 等同于代码
+--[[
+node.touchEnabled = true
+node\slot "TapBegan", (touch)->
+	print "点击开始"
+]]
+```
+
+</TabItem>
+</Tabs>
+
 ### 六、节点动作
 
 &emsp;&emsp;下面将展示如何使用节点动作系统来创建各种动画效果。
 
 1. **移动动作（Move）**：
 
-<Tabs>
-<TabItem value="yue" label="Yuescript">
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
 
-```yue
-moveAction = Move duration, startPosition, stopPosition
-node\perform moveAction
+```lua
+local moveAction = Move(duration, startPosition, stopPosition)
+node:perform(moveAction)
 ```
 
 </TabItem>
@@ -268,11 +382,11 @@ node:perform(moveAction)
 ```
 
 </TabItem>
-<TabItem value="lua" label="Lua">
+<TabItem value="yue" label="YueScript">
 
-```lua
-local moveAction = Move(duration, startPosition, stopPosition)
-node:perform(moveAction)
+```yue
+moveAction = Move duration, startPosition, stopPosition
+node\perform moveAction
 ```
 
 </TabItem>
@@ -282,12 +396,12 @@ node:perform(moveAction)
 
 2. **缩放动作（Scale）**：
 
-<Tabs>
-<TabItem value="yue" label="Yuescript">
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
 
-```yue
-scaleAction = Scale duration, startScale, stopScale
-node\perform scaleAction
+```lua
+local scaleAction = Scale(duration, startScale, stopScale)
+node:perform(scaleAction)
 ```
 
 </TabItem>
@@ -299,11 +413,11 @@ node:perform(scaleAction)
 ```
 
 </TabItem>
-<TabItem value="lua" label="Lua">
+<TabItem value="yue" label="YueScript">
 
-```lua
-local scaleAction = Scale(duration, startScale, stopScale)
-node:perform(scaleAction)
+```yue
+scaleAction = Scale duration, startScale, stopScale
+node\perform scaleAction
 ```
 
 </TabItem>
@@ -313,12 +427,12 @@ node:perform(scaleAction)
 
 3. **旋转动作（Angle）**：
 
-<Tabs>
-<TabItem value="yue" label="Yuescript">
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
 
-```yue
-rotateAction = Angle duration, startAngle, stopAngle
-node\perform rotateAction
+```lua
+local rotateAction = Angle(duration, startAngle, stopAngle)
+node:perform(rotateAction)
 ```
 
 </TabItem>
@@ -330,11 +444,11 @@ node:perform(rotateAction)
 ```
 
 </TabItem>
-<TabItem value="lua" label="Lua">
+<TabItem value="yue" label="YueScript">
 
-```lua
-local rotateAction = Angle(duration, startAngle, stopAngle)
-node:perform(rotateAction)
+```yue
+rotateAction = Angle duration, startAngle, stopAngle
+node\perform rotateAction
 ```
 
 </TabItem>
@@ -346,8 +460,28 @@ node:perform(rotateAction)
 
 4. **按顺序执行动作（Sequence）**：
 
-<Tabs>
-<TabItem value="yue" label="Yuescript">
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+node:perform(Sequence(
+	Move(duration, startPosition, stopPosition),
+	Angle(duration, startAngle, stopAngle)
+))
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```teal
+node:perform(Sequence(
+	Move(duration, startPosition, stopPosition),
+	Angle(duration, startAngle, stopAngle)
+))
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
 
 ```yue
 node\perform Sequence(
@@ -357,40 +491,20 @@ node\perform Sequence(
 ```
 
 </TabItem>
-<TabItem value="tl" label="Teal">
-
-```teal
-node:perform(Sequence(
-	Move(duration, startPosition, stopPosition),
-	Angle(duration, startAngle, stopAngle)
-))
-```
-
-</TabItem>
-<TabItem value="lua" label="Lua">
-
-```lua
-node:perform(Sequence(
-	Move(duration, startPosition, stopPosition),
-	Angle(duration, startAngle, stopAngle)
-))
-```
-
-</TabItem>
 </Tabs>
 
 &emsp;&emsp;在上述代码中，`Move`和`Angle`会按照它们在序列中的顺序依次执行。
 
 5. **同时执行动作（Spawn）**：
 
-<Tabs>
-<TabItem value="yue" label="Yuescript">
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
 
-```yue
-node\perform Spawn(
-	Move duration, startPosition, stopPosition
-	Scale duration, startScale, stopScale
-)
+```lua
+node:perform(Spawn(
+	Move(duration, startPosition, stopPosition),
+	Scale(duration, startScale, stopScale)
+))
 ```
 
 </TabItem>
@@ -404,13 +518,13 @@ node:perform(Spawn(
 ```
 
 </TabItem>
-<TabItem value="lua" label="Lua">
+<TabItem value="yue" label="YueScript">
 
-```lua
-node:perform(Spawn(
-	Move(duration, startPosition, stopPosition),
-	Scale(duration, startScale, stopScale)
-))
+```yue
+node\perform Spawn(
+	Move duration, startPosition, stopPosition
+	Scale duration, startScale, stopScale
+)
 ```
 
 </TabItem>
@@ -435,17 +549,17 @@ node:perform(Spawn(
 
 &emsp;&emsp;在创建动作实例时，你可以将缓动函数作为最后一个参数传递给相应的创建函数。例如：
 
-<Tabs>
-<TabItem value="yue" label="Yuescript">
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
 
-```yue
-moveAction = Move(
-	duration
-	startPosition
-	stopPosition
+```lua
+local moveAction = Move(
+	duration,
+	startPosition,
+	stopPosition,
 	Ease.InOutQuad
 )
-node\perform moveAction
+node:perform(moveAction)
 ```
 
 </TabItem>
@@ -462,16 +576,16 @@ node:perform(moveAction)
 ```
 
 </TabItem>
-<TabItem value="lua" label="Lua">
+<TabItem value="yue" label="YueScript">
 
-```lua
-local moveAction = Move(
-	duration,
-	startPosition,
-	stopPosition,
+```yue
+moveAction = Move(
+	duration
+	startPosition
+	stopPosition
 	Ease.InOutQuad
 )
-node:perform(moveAction)
+node\perform moveAction
 ```
 
 </TabItem>
@@ -480,4 +594,3 @@ node:perform(moveAction)
 &emsp;&emsp;在上述示例中，`Ease.InOutQuad`指定了缓动函数为缓入缓出效果。
 
 &emsp;&emsp;你可以根据需要选择适合的缓动函数，为你的动作增添更多动感和细节。记得尝试不同的缓动函数来获得你想要的动画效果。所有可用的缓动函数见[这里](../api/Class/Ease)。
-

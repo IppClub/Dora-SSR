@@ -30,7 +30,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <thread>
 
 #define DORA_VERSION "1.5.15"_slice
-#define DORA_REVISION "1"_slice
+#define DORA_REVISION "2"_slice
 
 #if BX_PLATFORM_ANDROID
 #include <jni.h>
@@ -84,6 +84,7 @@ Application::Application()
 	, _renderRunning(true)
 	, _logicRunning(true)
 	, _fullScreen(false)
+	, _alwaysOnTop(true)
 	, _frame(0)
 	, _visualWidth(1280)
 	, _visualHeight(720)
@@ -193,23 +194,17 @@ bool Application::isFPSLimited() const noexcept {
 void Application::setWinSize(Size var) {
 	AssertIf(getPlatform() == "iOS"_slice || getPlatform() == "Android"_slice,
 		"changing window size is not available on {}.", getPlatform().toString());
-	if (var == Size::zero) {
-		invokeInRender([&]() {
-			SDL_SetWindowFullscreen(_sdlWindow, SDL_WINDOW_FULLSCREEN_DESKTOP);
-		});
-		_fullScreen = true;
-		Event::send("AppChange"_slice, "FullScreen"s);
-	} else {
-		invokeInRender([&, var]() {
-			SDL_SetWindowFullscreen(_sdlWindow, 0);
-			SDL_SetWindowSize(_sdlWindow, s_cast<int>(var.width), s_cast<int>(var.height));
-			SDL_SetWindowPosition(_sdlWindow, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
-		});
-		_winPosition = {s_cast<float>(SDL_WINDOWPOS_CENTERED), s_cast<float>(SDL_WINDOWPOS_CENTERED)};
-		Event::send("AppChange"_slice, "Position"s);
-		_fullScreen = false;
-		Event::send("AppChange"_slice, "FullScreen"s);
-	}
+	AssertIf(var.width <= 0 || var.height <= 0,
+		"window size should be larger than zero.");
+	invokeInRender([&, var]() {
+		SDL_SetWindowFullscreen(_sdlWindow, 0);
+		SDL_SetWindowSize(_sdlWindow, s_cast<int>(var.width), s_cast<int>(var.height));
+		SDL_SetWindowPosition(_sdlWindow, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+	});
+	_winPosition = {s_cast<float>(SDL_WINDOWPOS_CENTERED), s_cast<float>(SDL_WINDOWPOS_CENTERED)};
+	_fullScreen = false;
+	Event::send("AppChange"_slice, "Position"s);
+	Event::send("AppChange"_slice, "FullScreen"s);
 }
 
 Size Application::getWinSize() const noexcept {
@@ -219,11 +214,15 @@ Size Application::getWinSize() const noexcept {
 void Application::setWinPosition(const Vec2& var) {
 	AssertIf(getPlatform() == "iOS"_slice || getPlatform() == "Android"_slice,
 		"changing window position is not available on {}.", getPlatform().toString());
+	if (_winPosition == var) {
+		return;
+	}
 	_winPosition = var;
 	invokeInRender([&, var]() {
 		SDL_SetWindowFullscreen(_sdlWindow, 0);
 		SDL_SetWindowPosition(_sdlWindow, s_cast<int>(var.x), s_cast<int>(var.y));
 	});
+	Event::send("AppChange"_slice, "Position"s);
 }
 
 const Vec2& Application::getWinPosition() const noexcept {
@@ -246,8 +245,38 @@ bool Application::isLogicRunning() const noexcept {
 	return _logicRunning;
 }
 
+void Application::setFullScreen(bool var) {
+	AssertIf(getPlatform() == "iOS"_slice || getPlatform() == "Android"_slice,
+		"changing window full screen mode is not available on {}.", getPlatform().toString());
+	if (_fullScreen == var) {
+		return;
+	}
+	_fullScreen = var;
+	invokeInRender([&, var]() {
+		SDL_SetWindowFullscreen(_sdlWindow, var ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
+	});
+	Event::send("AppChange"_slice, "FullScreen"s);
+}
+
 bool Application::isFullScreen() const noexcept {
 	return _fullScreen;
+}
+
+void Application::setAlwaysOnTop(bool var) {
+	AssertIf(getPlatform() == "iOS"_slice || getPlatform() == "Android"_slice,
+		"changing window always-on-top mode is not available on {}.", getPlatform().toString());
+	if (_alwaysOnTop == var) {
+		return;
+	}
+	_alwaysOnTop = var;
+	invokeInRender([&, var]() {
+		SDL_SetWindowAlwaysOnTop(_sdlWindow, var ? SDL_TRUE : SDL_FALSE);
+	});
+	Event::send("AppChange"_slice, "AlwaysOnTop"s);
+}
+
+bool Application::isAlwaysOnTop() const noexcept {
+	return _alwaysOnTop;
 }
 
 // This function runs in main (render) thread, and do render work

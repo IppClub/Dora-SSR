@@ -135,7 +135,7 @@ Considering the differences between C++'s object-oriented features and Rust's de
 
 ### 2. Generating Glue Code
 
-The second step involved writing a program to generate the glue code that facilitates calls between C++, WASM, and Rust through the IDL. For this purpose, we chose to use Yuescript, a dynamic programming language based on Lua, developed as part of the Dora SSR project. Yuescript combines the flexibility and lightweight nature of Lua with the rich syntax and features necessary for complex code generation tasks, utilizing Lua's lpeg syntax parsing library to handle IDL parsing and glue code generation. Below is an excerpt from the IDL parser written using PEG grammar in Yuescript.
+The second step involved writing a program to generate the glue code that facilitates calls between C++, WASM, and Rust through the IDL. For this purpose, we chose to use YueScript, a dynamic programming language based on Lua, developed as part of the Dora SSR project. YueScript combines the flexibility and lightweight nature of Lua with the rich syntax and features necessary for complex code generation tasks, utilizing Lua's lpeg syntax parsing library to handle IDL parsing and glue code generation. Below is an excerpt from the IDL parser written using PEG grammar in YueScript.
 
 ```lua
 Param = P {

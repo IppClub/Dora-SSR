@@ -9,7 +9,7 @@ import TabItem from '@theme/TabItem';
 ### 一、初始化 YarnRunner
 
 <Tabs>
-<TabItem value="yue" label="Yuescript">
+<TabItem value="yue" label="YueScript">
 
 &emsp;&emsp;首先确保您已经导入所有必需的模块。
 
@@ -91,7 +91,7 @@ local runner = YarnRunner("tutorial.yarn", "Start")
 &emsp;&emsp;我们定义了一个 `advance` 函数，该函数可以读取并展示 Yarn 脚本中的文本内容或选项。根据叙事的内容，它还可以展示角色的名字：
 
 <Tabs>
-<TabItem value="yue" label="Yuescript">
+<TabItem value="yue" label="YueScript">
 
 ```yue title="init.yue"
 -- advance 函数的参数是一个可选的整数，代表玩家选择的选项索引。
@@ -240,7 +240,7 @@ end
 &emsp;&emsp;要启动叙事，我们只需调用 `advance` 函数，不带任何参数：
 
 <Tabs>
-<TabItem value="yue" label="Yuescript">
+<TabItem value="yue" label="YueScript">
 
 ```yue title="init.yue"
 advance!
@@ -268,7 +268,7 @@ advance()
 &emsp;&emsp;为了能够让玩家与叙事互动，我们需要一个节点来捕获和响应用户的输入。我们创建一个节点，并为其指定一个名为 "go" 的信号槽。当这个信号被触发时，它将再次调用 `advance` 函数，并传递玩家选择的选项：
 
 <Tabs>
-<TabItem value="yue" label="Yuescript">
+<TabItem value="yue" label="YueScript">
 
 ```yue title="init.yue"
 with Node!

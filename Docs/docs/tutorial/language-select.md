@@ -10,7 +10,7 @@ Welcome to the world of Dora SSR! If you're new to game development, you might b
 
 ## Exploring Your Options
 
-Dora SSR supports a range of programming languages, including Lua, Yuescript, Teal, TypeScript, TSX, and Rust, each with its unique features and advantages.
+Dora SSR supports a range of programming languages, including Lua, YueScript, Teal, TypeScript, TSX, and Rust, each with its unique features and advantages.
 
 ### 1. Lua: Lightweight and Fast
 
@@ -22,13 +22,13 @@ Lua is a lightweight scripting language known for its simplicity, efficiency, an
 
 ----
 
-### 2. Yuescript: A Modern Alternative to Lua
+### 2. YueScript: A Modern Alternative to Lua
 
 <div style={{marginLeft: '30px', width: '120px'}}>
 ![Lua](@site/static/img/yuescript.png)
 </div>
 
-Yuescript, a dialect of Lua, inherits Lua's features while introducing syntax sugar and a Python-like coding style found in modern programming languages. If you're interested in dynamic (weakly-typed) programming like Lua but want a more modern syntax, Yuescript is ideal.
+YueScript, a dialect of Lua, inherits Lua's features while introducing syntax sugar and a Python-like coding style found in modern programming languages. If you're interested in dynamic (weakly-typed) programming like Lua but want a more modern syntax, YueScript is ideal.
 
 ----
 
@@ -79,13 +79,13 @@ Consider the following factors when choosing a programming language:
 
 ## How is Multi-language Support Achieved?
 
-1. **The Magic of Transpilers**   
-Dora SSR uses a technique known as "transpiling" to automatically convert code written in Yuescript, Teal, TypeScript, etc., into Lua. It's like a multi-language translator, allowing different programming languages to coexist harmoniously in the same game engine.
+1. **The Magic of Transpilers**
+Dora SSR uses a technique known as "transpiling" to automatically convert code written in YueScript, Teal, TypeScript, etc., into Lua. It's like a multi-language translator, allowing different programming languages to coexist harmoniously in the same game engine.
 
-2. **WebAssembly (WASM): The Cross-Language Bridge**  
+2. **WebAssembly (WASM): The Cross-Language Bridge**
 For lower-level languages like Rust, C/C++, or Go, Dora SSR employs WebAssembly (WASM). By compiling these languages into WASM bytecode and running it in a built-in WASM virtual machine, Dora SSR supports these languages. It's like creating a universal platform within the game engine, where any WASM-compilable language can run.
 
-3. **Seamless Integration Experience**  
+3. **Seamless Integration Experience**
 Most importantly, Dora SSR hides these complex technical details behind its Web IDE (Integrated Development Environment). Developers simply code in a friendly interface, with the IDE handling all transpiling and compilation. It's like driving an automatic car, where you focus on the journey and destination, and the engine seamlessly shifts gears for you.
 
 Choosing a programming language in Dora SSR is an exciting and significant decision. Each language has its unique strengths and use cases. Your final choice should be based on your personal needs, experience, and project goals. Remember, there's no "best" language, only the one that's best for you. Here's to discovering your programming language in Dora SSR and creating exciting game projects!
