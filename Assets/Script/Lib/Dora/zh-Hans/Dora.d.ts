@@ -3925,6 +3925,7 @@ class Playable extends Node {
 
 	/**
 	 * 通过其名称获取动画模型上的关键点。
+	 * 在 Model 动画系统中，关键点是模型上设置的特定点。在 DragonBone 中，关键点是骨骼的位置。在 Spine2D 中，关键点是顶点附件的位置。
 	 * @param name 要获取的关键点的名称。
 	 * @returns 关键点值作为Vec2。
 	 */

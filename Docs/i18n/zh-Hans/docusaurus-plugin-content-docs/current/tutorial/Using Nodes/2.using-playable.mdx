@@ -1,0 +1,246 @@
+# 使用 Playable 节点类
+
+在游戏开发中，动画是使角色和场景生动起来的重要元素。Dora SSR 引擎提供了一个强大的动画处理节点类——**Playable**。它是三种动画系统的基础类：
+
+- **Model**：Dora SSR 引擎实现的骨骼动画系统。动画模型通常由一个 `.model` 文件，一个 `.clip` 文件和一个 `.png` 文件组成。
+- **DragonBone**：开源的 DragonBones 动画系统。动画模型通常由一个以 `_ske.json` 结尾的文件，一个以 `_tex.json` 结尾的文件和一个以 `_tex.png` 结尾的图片文件组成。
+- **Spine**：著名的商业动画软件 Spine2D 的动画系统。动画模型通常由一个 `.json` (或是 `.skel`) 文件，一个 `.atlas` 文件和一个 `.png` 文件组成。
+
+本教程将指导您如何在程序中使用 Playable 节点，涵盖从加载动画到控制播放的各个方面。
+
+## 创建 Playable 实例
+
+要使用 Playable 节点，首先需要创建其实例。Playable 支持三种动画系统，通常使用的加载方式如下：
+
+- **Model 文件**：`"model:"` 前缀 + 不带后缀的模型文件路径。
+- **Spine 文件**：`"spine:"` 前缀 + 不带后缀的 Spine 文件路径。
+- **DragonBones 文件**：`"bone:"` 前缀 + 不带后缀的 DragonBones 文件路径。
+
+### 示例：加载 Model 动画
+
+```lua
+local Playable = require("Playable")
+
+-- 加载 Model 动画
+local modelPath = "model:assets/character"
+local character = Playable(modelPath)
+
+if character then
+	character.position = Vec2(100, 200)
+	stage:addChild(character)
+else
+	print("加载 Model 动画失败！")
+end
+```
+
+### 示例：加载 Spine 动画
+
+```lua
+local Playable = require("Playable")
+
+-- 加载 Spine 动画
+local spinePath = "spine:assets/monster"
+local monster = Playable(spinePath)
+
+if monster then
+	monster.position = Vec2(300, 200)
+	stage:addChild(monster)
+else
+	print("加载 Spine 动画失败！")
+end
+```
+
+### 示例：加载 DragonBones 动画
+
+```lua
+local Playable = require("Playable")
+
+-- 加载 DragonBones 动画
+local dragonBonePath = "bone:assets/dragon"
+local dragon = Playable(dragonBonePath)
+
+if dragon then
+	dragon.position = Vec2(500, 200)
+	stage:addChild(dragon)
+else
+	print("加载 DragonBones 动画失败！")
+end
+```
+
+### 示例：异步加载动画
+
+在实际开发中，加载动画可能需要一些时间。您可以使用 `Cache:loadAsync()` 方法异步加载动画，加载完成后执行回调函数。
+
+```lua
+local Playable = require("Playable")
+local thread = require("thread")
+
+-- 异步加载 Model 动画
+local modelPath = "model:assets/character"
+thread(function()
+	if Cache:loadAsync(modelPath) then
+		local character = Playable(modelPath)
+		character.position = Vec2(100, 200)
+		stage:addChild(character)
+	else
+		print("异步加载 Model 动画失败！")
+	end
+end)
+```
+
+## 播放动画
+
+创建实例后，可以使用 `play` 方法播放指定的动画。
+
+```lua
+-- 播放动画 "run"，并循环播放
+local duration = character:play("run", true)
+```
+
+- **参数说明**：
+	- `name`：要播放的动画名称。
+	- `loop`（可选）：是否循环播放，默认为 `false`。
+- **返回值**：动画的持续时间（秒）。
+
+## 停止动画
+
+使用 `stop` 方法可以停止当前正在播放的动画。
+
+```lua
+-- 停止动画
+character:stop()
+```
+
+## 设置播放速度
+
+通过调整 `speed` 属性，可以改变动画的播放速度。
+
+```lua
+-- 将播放速度加倍
+character.speed = 2.0
+```
+
+- **注意**：`speed` 的默认值为 `1.0`。
+
+## 翻转动画
+
+使用 `fliped` 属性可以水平翻转动画，常用于角色转向。
+
+```lua
+-- 水平翻转
+character.fliped = true
+```
+
+- **`fliped`**：`true` 表示翻转，`false` 表示正常。
+
+## 获取关键点坐标
+
+`getKey` 方法用于获取模型上关键点的坐标，例如角色的手、脚位置。在 Model 动画系统中，关键点是模型上设置的特定点。在 DragonBone 中，关键点是骨骼的位置。在 Spine2D 中，关键点是顶点附件的位置。
+
+```lua
+-- 获取角色右手的坐标
+local handPosition = character:getKey("right_hand")
+print("右手坐标：", handPosition.x, handPosition.y)
+```
+
+- **参数**：关键点名称（字符串）。
+- **返回值**：`Vec2`，表示关键点的坐标。
+
+## 使用插槽添加子节点
+
+`setSlot` 方法允许在模型的特定插槽上添加子节点，例如为角色添加武器或装备。
+
+```lua
+-- 创建武器精灵
+local sword = Sprite("assets/sword.png")
+
+-- 将武器添加到角色的 "right_hand" 插槽
+character:setSlot("right_hand", sword)
+```
+
+- **参数说明**：
+  - `name`：插槽名称。
+  - `item`：要添加的节点对象。
+
+## 获取插槽上的子节点
+
+使用 `getSlot` 方法可以获取指定插槽上的子节点。
+
+```lua
+-- 获取 "right_hand" 插槽上的节点
+local equippedItem = character:getSlot("right_hand")
+if equippedItem then
+	print("已装备物品：", equippedItem)
+else
+	print("插槽为空")
+end
+```
+
+- **返回值**：`Node` 对象或 `nil`。
+
+## 监听动画结束事件
+
+可以使用 `onAnimationEnd` 方法注册一个回调函数，当动画播放结束时触发。
+
+```lua
+-- 注册动画结束回调
+character:onAnimationEnd(function(animationName, target)
+	print("动画结束：", animationName)
+	-- 可以在此处进行后续操作，例如切换动画
+end)
+```
+
+- **参数说明**：
+	- `callback`：回调函数，接受 `animationName` 和 `target` 两个参数。
+
+## 综合示例
+
+以下是一个综合示例，演示如何创建角色，播放动画，添加装备，并处理动画结束事件。
+
+```lua
+local Playable = require("Playable")
+local Sprite = require("Sprite")
+local Vec2 = require("Vec2")
+local sleep = require("sleep")
+
+-- 创建角色
+local character = Playable("model:assets/hero.model")
+character.position = Vec2(200, 300)
+stage:addChild(character)
+
+-- 设置属性
+character.speed = 1.0
+character.fliped = false
+
+-- 播放待机动画
+character:play("idle", true)
+
+-- 创建武器并装备
+local sword = Sprite("assets/sword.png")
+character:setSlot("right_hand", sword)
+
+-- 注册动画结束事件
+character:onAnimationEnd(function(animationName, target)
+	if animationName == "attack" then
+		-- 攻击结束后返回待机状态
+		target:play("idle", true)
+	end
+end)
+
+-- 每隔3秒执行一次攻击
+character:loop(function()
+	-- 播放攻击动画，不循环
+	local duration = character:play("attack")
+	sleep(duration)
+end)
+```
+
+## 结论
+
+通过本教程，您已经学会了如何在 Dora SSR 引擎中使用 Playable 节点类来加载和控制各种动画模型。Playable 提供了丰富的接口，支持多种动画系统，使您能够轻松地在游戏中添加复杂的动画效果。
+
+:::warning Spine2D 是商业软件
+由于 Spine2D 是商业软件，使用其动画需要遵守相应的许可协议，具体请参考 [Spine 官方网站](https://esotericsoftware.com/)。
+:::
+
+希望本教程对您有所帮助，祝您在游戏开发中取得成功！

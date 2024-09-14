@@ -3927,6 +3927,7 @@ class Playable extends Node {
 
 	/**
 	 * Get a key point on the animation model by its name.
+	 * In the Model animation system, key points are specific points set on the model. In DragonBone, key points are the positions of the armature. In Spine2D, key points are the positions of the point attachments.
 	 * @param name The name of the key point to get.
 	 * @returns The key point value as a Vec2.
 	 */

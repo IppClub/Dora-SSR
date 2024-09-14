@@ -26,7 +26,7 @@ To standardize your game project organization, it is suggested (but not mandator
   - **Image**: For storing game image resources.
   - **Script**: For storing script files, such as Lua, YueScript, Teal, or TS code.
   - **Spine**: For storing game animation resources.
-  - **init.yue/lua/tl/ts/tsx/wasm**: The project startup file, chosen according to the scripting language used.
+  - **init.yue|lua|tl|ts|tsx|wasm**: The project startup file, chosen according to the scripting language used.
 
 This structure is not only clear but also easy to manage and maintain.
 

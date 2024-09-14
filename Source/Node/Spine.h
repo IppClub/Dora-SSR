@@ -39,8 +39,8 @@ public:
 	virtual void setSlot(String name, Node* item) override;
 	virtual Node* getSlot(String name) override;
 	bool setBoneRotation(String name, float rotation);
-	std::string containsPoint(float x, float y);
-	std::string intersectsSegment(float x1, float y1, float x2, float y2);
+	std::string containsPoint(float x, float y) const;
+	std::string intersectsSegment(float x1, float y1, float x2, float y2) const;
 	CREATE_FUNC_NULLABLE(Spine);
 
 protected:

@@ -296,7 +296,7 @@ bool Spine::setBoneRotation(String name, float rotation) {
 	return false;
 }
 
-std::string Spine::containsPoint(float x, float y) {
+std::string Spine::containsPoint(float x, float y) const {
 	if (!_bounds || !isHitTestEnabled()) return Slice::Empty;
 	if (_bounds->aabbcontainsPoint(x, y)) {
 		if (auto attachment = _bounds->containsPoint(x, y)) {
@@ -308,7 +308,7 @@ std::string Spine::containsPoint(float x, float y) {
 	return Slice::Empty;
 }
 
-std::string Spine::intersectsSegment(float x1, float y1, float x2, float y2) {
+std::string Spine::intersectsSegment(float x1, float y1, float x2, float y2) const {
 	if (!_bounds || !isHitTestEnabled()) return Slice::Empty;
 	if (_bounds->aabbintersectsSegment(x1, y1, x2, y2)) {
 		if (auto attachment = _bounds->intersectsSegment(x1, y1, x2, y2)) {
