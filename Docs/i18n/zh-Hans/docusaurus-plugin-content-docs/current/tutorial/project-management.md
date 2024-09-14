@@ -25,7 +25,7 @@ sidebar_position: 5
   - **Image**：用于存放游戏图片资源。
   - **Script**：存放脚本文件，如 Lua、YueScript 、 Teal 或是 TS 代码。
   - **Spine**：用于存放游戏动画资源。
-  - **init.yue/lua/tl/ts/tsx/wasm**：项目启动文件，根据使用的脚本语言选择合适的扩展名。
+  - **init.yue|lua|tl|ts|tsx|wasm**：项目启动文件，根据使用的脚本语言选择合适的扩展名。
 
 &emsp;&emsp;这种结构不仅清晰，也便于管理和维护。
 

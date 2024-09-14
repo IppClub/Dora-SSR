@@ -1,0 +1,121 @@
+import "@site/src/languages/highlight";
+
+# 使用 Sprite 节点类
+
+在这篇教程中，我们将学习如何在 Dora SSR 游戏引擎中使用 Sprite（精灵）节点类来创建并渲染游戏中的图形元素。Sprite 节点是游戏场景中的基本构建块，用于渲染纹理（例如图片、图案）到屏幕上。
+
+## 1. 什么是 Sprite？
+
+Sprite 是一个继承自 `Node` 的类，表示游戏场景中的图形元素。它可以加载图片文件作为纹理并将其显示在游戏场景中。通过 Sprite 类，您可以控制纹理的绘制方式、位置、环绕模式、混合模式等。
+
+### Sprite 的一些核心属性和功能：
+
+- **texture**: 渲染的纹理对象（例如图片文件）。
+- **textureRect**: 定义渲染的纹理矩形区域，默认为渲染整个纹理。
+- **blendFunc**: 控制纹理的混合模式，用于控制纹理渲染时的透明度效果。
+- **effect**: 设置渲染时使用的着色器特效。
+- **uwrap/vwrap**: 分别控制 U 和 V 轴的纹理环绕模式。
+- **filter**: 控制纹理的过滤模式，用于控制纹理在放大缩小时的采样方式。
+
+## 2. 准备工作
+
+在开始之前，确保您已经在项目中正确导入了 Sprite 类。代码示例如下：
+
+```lua
+local Sprite = require("Sprite")
+local Texture2D = require("Texture2D")
+```
+
+## 3. 创建一个基础 Sprite
+
+首先，我们来创建一个简单的 Sprite 来渲染一张图片。假设我们有一张图片文件 `"Image/hero.png"`，我们可以这样加载它：
+
+```lua
+-- 创建一个新的 Sprite 对象，并加载 "Image/hero.png" 作为纹理
+local heroSprite = Sprite("Image/hero.png")
+
+-- 将 Sprite 添加到场景中
+scene:addChild(heroSprite)
+```
+
+在这个示例中，`heroSprite` 通过 `Sprite("Image/hero.png")` 创建，并将 `"Image/hero.png"` 图片文件加载为纹理。接着，我们将这个 Sprite 添加到场景中进行渲染。
+
+在实际开发中，加载图片可能需要一些时间。您可以使用 `Cache:loadAsync()` 方法异步加载图片，以避免阻塞主线程。
+
+```lua
+local Sprite = require("Sprite")
+local thread = require("thread")
+
+-- 异步加载图片
+local imagePath = "Image/hero.png"
+thread(function()
+	if Cache:loadAsync(imagePath) then
+		local character = Sprite(imagePath)
+		character.position = Vec2(100, 200)
+		stage:addChild(character)
+	else
+		print("异步加载图片失败！")
+	end
+end)
+```
+
+## 4. 设置 Sprite 的纹理矩形区域
+
+有时我们只想渲染纹理的一部分。这时可以通过设置 `textureRect` 来指定纹理的渲染区域。例如，如果我们想只渲染图片的左上角区域，可以这样做：
+
+```lua
+-- 定义纹理的矩形区域，表示左上角区域（假设图片大小为 256x256）
+local textureRect = Rect(0, 0, 128, 128)
+
+-- 加载纹理并设置渲染区域
+local heroSprite = Sprite("Image/hero.png")
+heroSprite.textureRect = textureRect
+```
+
+在这个示例中，我们定义了一个 `Rect` 对象来表示纹理的左上角 128x128 的区域，并将其应用到 `heroSprite` 的 `textureRect` 属性上。
+
+## 5. 调整纹理环绕模式和过滤模式
+
+Sprite 提供了对纹理环绕模式（`uwrap` 和 `vwrap`）以及过滤模式（`filter`）的控制。通过调整这些模式，您可以控制纹理在 Sprite 上如何重复显示或如何处理放大缩小。
+
+### 环绕模式：
+
+- `None`: 无环绕，不重复显示纹理。
+- `Mirror`: 镜像重复。
+- `Clamp`: 边界钳制。
+
+### 过滤模式：
+
+- `Point`: 使用最近的像素进行采样，适用于像素风格游戏。
+- `Anisotropic`: 各向异性过滤，提供更好的细节处理。
+
+示例代码：
+
+```lua
+-- 创建 Sprite 并设置纹理环绕模式
+local heroSprite = Sprite("Image/hero.png")
+heroSprite.uwrap = "Mirror"
+heroSprite.vwrap = "Clamp"
+
+-- 设置纹理过滤模式为最近点采样（适合像素风格）
+heroSprite.filter = "Point"
+```
+
+## 6. 使用自定义着色器特效
+
+Sprite 类允许您为渲染的图形应用着色器特效。您可以通过 `effect` 属性来设置特效。例如：
+
+```lua
+local SpriteEffect = require("SpriteEffect")
+-- 加载内置的 sprite 着色器并应用
+local spriteEffect = SpriteEffect("builtin:vs_sprite", "builtin:fs_sprite")
+heroSprite.effect = spriteEffect
+```
+
+在这里，我们为 Sprite 加载了一个内置的顶点和片段着色器，并将其应用到 `heroSprite` 上，增加了渲染效果。
+
+## 7. 总结
+
+在本教程中，我们介绍了如何在 Dora SSR 引擎中使用 Sprite 节点来渲染纹理，并展示了如何创建 Sprite、控制纹理区域、设置环绕和过滤模式，以及应用自定义着色器特效。这些基础功能将帮助您在游戏中构建复杂的图形元素。
+
+希望这篇教程能够帮助您快速上手 Sprite 类的使用！

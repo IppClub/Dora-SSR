@@ -1,0 +1,246 @@
+# Using the Playable Node
+
+In game development, animation is a key element that brings characters and scenes to life. The Dora SSR engine provides a robust animation handling node class called **Playable**. It serves as the base class for three different animation systems:
+
+- **Model**: The skeletal animation system implemented by the Dora SSR engine. Model animations usually consist of a `.model` file, a `.clip` file, and a `.png` file.
+- **DragonBone**: An open-source animation system. DragonBones animations typically consist of a file ending with `_ske.json`, a file ending with `_tex.json`, and an image file ending with `_tex.png`.
+- **Spine**: The animation system of the famous commercial software Spine2D. Spine animations generally consist of a `.json` (or `.skel`) file, an `.atlas` file, and a `.png` file.
+
+This tutorial will guide you on how to use the Playable node in your program, covering everything from loading animations to controlling playback.
+
+## Creating a Playable Instance
+
+To use the Playable node, you first need to create an instance. Playable supports three animation systems, and they can be loaded using the following conventions:
+
+- **Model files**: `"model:"` prefix + the file path without an extension.
+- **Spine files**: `"spine:"` prefix + the file path without an extension.
+- **DragonBones files**: `"bone:"` prefix + the file path without an extension.
+
+### Example: Loading a Model Animation
+
+```lua
+local Playable = require("Playable")
+
+-- Load a Model animation
+local modelPath = "model:assets/character"
+local character = Playable(modelPath)
+
+if character then
+	character.position = Vec2(100, 200)
+	stage:addChild(character)
+else
+	print("Failed to load Model animation!")
+end
+```
+
+### Example: Loading a Spine Animation
+
+```lua
+local Playable = require("Playable")
+
+-- Load a Spine animation
+local spinePath = "spine:assets/monster"
+local monster = Playable(spinePath)
+
+if monster then
+	monster.position = Vec2(300, 200)
+	stage:addChild(monster)
+else
+	print("Failed to load Spine animation!")
+end
+```
+
+### Example: Loading a DragonBones Animation
+
+```lua
+local Playable = require("Playable")
+
+-- Load a DragonBones animation
+local dragonBonePath = "bone:assets/dragon"
+local dragon = Playable(dragonBonePath)
+
+if dragon then
+	dragon.position = Vec2(500, 200)
+	stage:addChild(dragon)
+else
+	print("Failed to load DragonBones animation!")
+end
+```
+
+### Example: Asynchronously Loading an Animation
+
+In real-world development, loading animations might take some time. You can use the `Cache:loadAsync()` method to load animations asynchronously and trigger a callback once loading is complete.
+
+```lua
+local Playable = require("Playable")
+local thread = require("thread")
+
+-- Asynchronously load a Model animation
+local modelPath = "model:assets/character"
+thread(function()
+	if Cache:loadAsync(modelPath) then
+		local character = Playable(modelPath)
+		character.position = Vec2(100, 200)
+		stage:addChild(character)
+	else
+		print("Failed to load Model animation asynchronously!")
+	end
+end)
+```
+
+## Playing Animations
+
+Once the instance is created, you can use the `play` method to play a specified animation.
+
+```lua
+-- Play the "run" animation, looping it
+local duration = character:play("run", true)
+```
+
+- **Parameters**:
+	- `name`: The name of the animation to play.
+	- `loop` (optional): Whether to loop the animation. Defaults to `false`.
+- **Return Value**: The duration of the animation in seconds.
+
+## Stopping an Animation
+
+You can stop the currently playing animation using the `stop` method.
+
+```lua
+-- Stop the animation
+character:stop()
+```
+
+## Adjusting Playback Speed
+
+You can change the playback speed of an animation by modifying the `speed` property.
+
+```lua
+-- Double the playback speed
+character.speed = 2.0
+```
+
+- **Note**: The default value of `speed` is `1.0`.
+
+## Flipping Animations
+
+The `fliped` property allows you to flip animations horizontally, which is often useful for character direction changes.
+
+```lua
+-- Flip the animation horizontally
+character.fliped = true
+```
+
+- **`fliped`**: `true` flips the animation, `false` leaves it normal.
+
+## Getting Key Point Coordinates
+
+The `getKey` method retrieves the coordinates of key points on the model, such as the hands and feet. In the Model animation system, key points are predefined on the model. In DragonBone, they refer to bone positions, and in Spine2D, they refer to attachment points.
+
+```lua
+-- Get the right hand position
+local handPosition = character:getKey("right_hand")
+print("Right hand coordinates:", handPosition.x, handPosition.y)
+```
+
+- **Parameter**: The name of the key point (string).
+- **Return Value**: `Vec2`, representing the coordinates of the key point.
+
+## Adding Child Nodes to Slots
+
+The `setSlot` method allows you to add child nodes to specific slots in the model, such as equipping a character with a weapon.
+
+```lua
+-- Create a sword sprite
+local sword = Sprite("assets/sword.png")
+
+-- Add the sword to the "right_hand" slot
+character:setSlot("right_hand", sword)
+```
+
+- **Parameters**:
+  - `name`: The name of the slot.
+  - `item`: The node object to be added.
+
+## Retrieving Slot Contents
+
+You can retrieve the child node in a specific slot using the `getSlot` method.
+
+```lua
+-- Get the node in the "right_hand" slot
+local equippedItem = character:getSlot("right_hand")
+if equippedItem then
+	print("Equipped item:", equippedItem)
+else
+	print("Slot is empty")
+end
+```
+
+- **Return Value**: A `Node` object or `nil`.
+
+## Listening for Animation End Events
+
+You can register a callback using the `onAnimationEnd` method to trigger when the animation finishes playing.
+
+```lua
+-- Register an animation end callback
+character:onAnimationEnd(function(animationName, target)
+	print("Animation ended:", animationName)
+	-- Perform further actions, such as switching animations
+end)
+```
+
+- **Parameters**:
+	- `callback`: The callback function, which receives `animationName` and `target`.
+
+## Complete Example
+
+Here’s a full example showing how to create a character, play animations, add equipment, and handle animation end events.
+
+```lua
+local Playable = require("Playable")
+local Sprite = require("Sprite")
+local Vec2 = require("Vec2")
+local sleep = require("sleep")
+
+-- Create the character
+local character = Playable("model:assets/hero.model")
+character.position = Vec2(200, 300)
+stage:addChild(character)
+
+-- Set attributes
+character.speed = 1.0
+character.fliped = false
+
+-- Play idle animation
+character:play("idle", true)
+
+-- Create a sword and equip it
+local sword = Sprite("assets/sword.png")
+character:setSlot("right_hand", sword)
+
+-- Register animation end event
+character:onAnimationEnd(function(animationName, target)
+	if animationName == "attack" then
+		-- After attack animation, return to idle
+		target:play("idle", true)
+	end
+end)
+
+-- Perform attack every 3 seconds
+character:loop(function()
+	-- Play attack animation without looping
+	local duration = character:play("attack")
+	sleep(duration)
+end)
+```
+
+## Conclusion
+
+Through this tutorial, you’ve learned how to use the Playable node class in Dora SSR to load and control various animation models. Playable offers a rich set of APIs supporting multiple animation systems, allowing you to easily add complex animations to your game.
+
+:::warning Spine2D is Commercial Software
+Since Spine2D is commercial software, using its animations requires following the appropriate licensing agreements. Please refer to the [Spine official website](https://esotericsoftware.com/) for more details.
+:::
+
+We hope this tutorial helps you, and best of luck with your game development!

@@ -74,6 +74,10 @@ void DBSlotNode::render() {
 	Node::render();
 }
 
+const AffineTransform& DBSlotNode::getDBTransform() const noexcept {
+	return _transform;
+}
+
 const Matrix& DBSlotNode::getWorld() {
 	if (_flags.isOn(DBSlotNode::TransformDirty) || _flags.isOn(Node::WorldDirty)) {
 		_flags.setOff(DBSlotNode::TransformDirty);
@@ -88,6 +92,10 @@ const Matrix& DBSlotNode::getWorld() {
 
 float DBSlot::getTextureScale() const noexcept {
 	return _textureScale;
+}
+
+DBSlotNode* DBSlot::getNode() const noexcept {
+	return _node;
 }
 
 void DBSlot::_onClear() {
@@ -504,6 +512,11 @@ const std::string& DragonBone::getLastCompleted() const {
 }
 
 Vec2 DragonBone::getKeyPoint(String name) const {
+	for (db::Slot* slot : _armatureProxy->getArmature()->getSlots()) {
+		if (slot->getName() == name) {
+			return s_cast<DBSlot*>(slot)->getNode()->getDBTransform().applyPoint(Vec2::zero);
+		}
+	}
 	return Vec2::zero;
 }
 
@@ -520,19 +533,30 @@ void DragonBone::stop() {
 }
 
 void DragonBone::setSlot(String name, Node* item) {
-	if (auto slot = getChildByTag(name)) {
-		slot->addChild(item, 0, name);
+	for (db::Slot* slot : _armatureProxy->getArmature()->getSlots()) {
+		if (slot->getName() == name) {
+			if (auto node = s_cast<DBSlot*>(slot)->getNode()) {
+				if (auto child = node->getChildByTag(name)) {
+					child->removeFromParent();
+				}
+				node->addChild(item, 0, name);
+			}
+		}
 	}
 }
 
 Node* DragonBone::getSlot(String name) {
-	if (auto slot = getChildByTag(name)) {
-		return slot->getChildByTag(name);
+	for (db::Slot* slot : _armatureProxy->getArmature()->getSlots()) {
+		if (slot->getName() == name) {
+			if (auto node = s_cast<DBSlot*>(slot)->getNode()) {
+				return node->getChildByTag(name);
+			}
+		}
 	}
 	return nullptr;
 }
 
-std::string DragonBone::containsPoint(float x, float y) {
+std::string DragonBone::containsPoint(float x, float y) const {
 	if (!isHitTestEnabled()) return Slice::Empty;
 	for (db::Slot* slot : _armatureProxy->getArmature()->getSlots()) {
 		if (slot->containsPoint(x, y)) {
@@ -542,7 +566,7 @@ std::string DragonBone::containsPoint(float x, float y) {
 	return Slice::Empty;
 }
 
-std::string DragonBone::intersectsSegment(float x1, float y1, float x2, float y2) {
+std::string DragonBone::intersectsSegment(float x1, float y1, float x2, float y2) const {
 	if (!isHitTestEnabled()) return Slice::Empty;
 	for (db::Slot* slot : _armatureProxy->getArmature()->getSlots()) {
 		if (slot->intersectsSegment(x1, y1, x2, y2)) {

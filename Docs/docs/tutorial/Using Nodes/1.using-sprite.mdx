@@ -1,0 +1,118 @@
+# Using the Sprite Node
+
+In this tutorial, we will learn how to use the `Sprite` node class in the Dora SSR game engine to create and render graphical elements in your game. The `Sprite` node is a fundamental building block for rendering textures (such as images or patterns) on the screen.
+
+## 1. What is a Sprite?
+
+A `Sprite` is a class that inherits from `Node` and represents a graphical element in the game scene. It can load image files as textures and display them in the game. Using the `Sprite` class, you can control how textures are drawn, their position, wrap mode, blend mode, and more.
+
+### Core attributes and functions of a Sprite:
+
+- **texture**: The texture object to render (e.g., an image file).
+- **textureRect**: Defines the rectangle area of the texture to be rendered. By default, it renders the entire texture.
+- **blendFunc**: Controls the blending function used for rendering the texture, often for transparency effects.
+- **effect**: Sets the shader effect to use during rendering.
+- **uwrap/vwrap**: Controls the texture wrapping mode for the U and V axes.
+
+## 2. Preparation
+
+Before we begin, make sure you have imported the `Sprite` class correctly into your project. The code example is as follows:
+
+```lua
+local Sprite = require("Sprite")
+local Texture2D = require("Texture2D")
+```
+
+## 3. Creating a Basic Sprite
+
+Let's start by creating a simple `Sprite` to render an image. Suppose we have an image file `"Image/hero.png"`, we can load it like this:
+
+```lua
+-- Create a new Sprite object and load "Image/hero.png" as a texture
+local heroSprite = Sprite("Image/hero.png")
+
+-- Add the Sprite to the scene
+scene:addChild(heroSprite)
+```
+
+In this example, the `heroSprite` is created by calling `Sprite("Image/hero.png")`, which loads the `"Image/hero.png"` image file as the texture. We then add this `Sprite` to the scene for rendering.
+
+In real-world development, loading images may take some time. You can use the `Cache:loadAsync()` method to load images asynchronously to avoid blocking the main thread.
+
+```lua
+local Sprite = require("Sprite")
+local thread = require("thread")
+
+-- Load the image asynchronously
+local imagePath = "Image/hero.png"
+thread(function()
+	if Cache:loadAsync(imagePath) then
+		local character = Sprite(imagePath)
+		character.position = Vec2(100, 200)
+		stage:addChild(character)
+	else
+		print("Failed to load the image asynchronously!")
+	end
+end)
+```
+
+## 4. Setting the Texture Rectangle
+
+Sometimes, you may want to render only a part of the texture. You can specify the texture rendering area by setting the `textureRect`. For example, if we want to render only the top-left corner of the image, we can do this:
+
+```lua
+-- Define a rectangle area for the texture (assuming the image size is 256x256)
+local textureRect = Rect(0, 0, 128, 128)
+
+-- Load the texture and set the render area
+local heroSprite = Sprite("Image/hero.png")
+heroSprite.textureRect = textureRect
+```
+
+In this example, we define a `Rect` object representing a 128x128 area from the top-left corner of the texture and assign it to the `heroSprite`'s `textureRect` property.
+
+## 5. Adjusting Texture Wrap and Filter Modes
+
+The `Sprite` class allows you to control the texture wrapping modes (`uwrap` and `vwrap`) and filter mode (`filter`). By adjusting these modes, you can control how the texture repeats or handles scaling.
+
+### Wrap Modes:
+
+- **None**: No wrapping, texture is not repeated.
+- **Mirror**: Mirrors the texture when repeating.
+- **Clamp**: Clamps the texture to its edges.
+
+### Filter Modes:
+
+- **Point**: Uses nearest pixel sampling, ideal for pixel art games.
+- **Anisotropic**: Anisotropic filtering, providing better detail handling.
+
+Example code:
+
+```lua
+-- Create a Sprite and set texture wrapping mode
+local heroSprite = Sprite("Image/hero.png")
+heroSprite.uwrap = "Mirror"
+heroSprite.vwrap = "Clamp"
+
+-- Set texture filter mode to Point sampling (good for pixel art)
+heroSprite.filter = "Point"
+```
+
+## 6. Using Custom Shader Effects
+
+The `Sprite` class allows you to apply shader effects to the rendered graphic via the `effect` property. For example:
+
+```lua
+local SpriteEffect = require("SpriteEffect")
+-- Load and apply a built-in sprite shader
+local spriteEffect = SpriteEffect("builtin:vs_sprite", "builtin:fs_sprite")
+heroSprite.effect = spriteEffect
+```
+
+Here, we load a built-in vertex and fragment shader and apply it to `heroSprite`, enhancing the rendering effects.
+
+## 7. Conclusion
+
+In this tutorial, we introduced how to use the `Sprite` node in the Dora SSR engine to render textures. We demonstrated how to create sprites, control texture areas, set wrap and filter modes, and apply custom shader effects. These basic features will help you build complex graphical elements in your game.
+
+I hope this tutorial helps you get started with the `Sprite` class quickly!

@@ -27,6 +27,7 @@ local record Playable
 	const lastCompleted: string
 
 	-- Get a key point on the animation model by its name.
+	-- In the Model animation system, key points are specific points set on the model. In DragonBone, key points are the positions of the armature. In Spine2D, key points are the positions of the point attachments.
 	-- @param name (string) The name of the key point to get.
 	-- @return (Vec2) The key point value as a Vec2.
 	getKey: function(self: Playable, name: string): Vec2

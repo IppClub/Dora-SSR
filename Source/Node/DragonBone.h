@@ -18,6 +18,7 @@ NS_DORA_BEGIN
 
 class DBSlotNode : public Node {
 public:
+	PROPERTY_READONLY_CREF(AffineTransform, DBTransform);
 	virtual void render() override;
 	virtual const Matrix& getWorld() override;
 	CREATE_FUNC_NOT_NULL(DBSlotNode);
@@ -45,6 +46,7 @@ class DBSlot : public db::Slot {
 
 public:
 	PROPERTY_READONLY(float, TextureScale);
+	PROPERTY_READONLY(DBSlotNode*, Node);
 	virtual void _updateVisible() override;
 	virtual void _updateBlendMode() override;
 	virtual void _updateColor() override;
@@ -111,8 +113,8 @@ public:
 	virtual void stop() override;
 	virtual void setSlot(String name, Node* item) override;
 	virtual Node* getSlot(String name) override;
-	std::string containsPoint(float x, float y);
-	std::string intersectsSegment(float x1, float y1, float x2, float y2);
+	std::string containsPoint(float x, float y) const;
+	std::string intersectsSegment(float x1, float y1, float x2, float y2) const;
 	static DragonBone* create(String boneFile, String atlasFile);
 	static DragonBone* create(String boneStr);
 
