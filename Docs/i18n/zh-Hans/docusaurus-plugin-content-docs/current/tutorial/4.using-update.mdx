@@ -1,0 +1,214 @@
+---
+sidebar_position: 4
+---
+import "@site/src/languages/highlight";
+
+# 如何使用 Update 调度
+
+&emsp;&emsp;Dora SSR 提供了灵活的 Update 调度机制，让开发者可以方便地控制游戏逻辑的更新。本教程将带你了解如何使用 Update 调度，包括异步处理的协程任务和每帧重复调用的更新函数。
+
+## 1. 理解 Update 调度
+
+&emsp;&emsp;Update 调度是游戏引擎中用于管理和执行游戏逻辑更新的机制。它允许开发者在每一帧或特定条件下执行代码，从而实现动态的游戏体验。
+
+## 2. 协程任务与更新函数的区别
+
+- **协程任务（Coroutine Tasks）**：
+  - **异步处理**：可以在多个帧之间暂停和恢复。
+  - **使用场景**：适合处理需要等待的操作，如加载资源、计时器等。
+  - **实现方式**：通过 `thread`、`threadLoop`、`once`、`loop` 等函数。
+- **更新函数（Update Functions）**：
+  - **同步处理**：在每一帧都会被调用。
+  - **使用场景**：适合处理每帧都需要更新的逻辑，如移动、碰撞检测等。
+  - **实现方式**：通过 `node:schedule()`、`node:onUpdate()` 函数。
+
+## 3. 使用协程任务实现异步处理
+
+&emsp;&emsp;协程任务允许您在执行过程中暂停，等待条件满足或一定的时间，然后继续执行。允许你在不阻塞主线程的情况下执行耗时操作。这对于处理异步事件非常有用。
+
+### 全局协程任务与节点关联的协程任务
+
+&emsp;&emsp;在 Dora SSR 中，协程任务的执行有两种方式：
+
+1. **全局协程任务**：使用 `thread(function() ... end)` 创建的协程任务，其生命周期由引擎的全局调度模块管理。除非手动移除，这些任务会一直运行，直到引擎退出时才会清理所有正在执行的调度。
+2. **节点关联的协程任务**：使用 `node:schedule(once(function() ... end))` 创建的协程任务，其生命周期与关联的节点相同。当节点被清理时，调度在其上的函数也会被停止并清理。
+
+#### 示例：执行一个全局协程任务
+
+```lua
+local thread = require("thread")
+local sleep = require("sleep")
+local Content = require("Content")
+
+thread(function()
+	print("开始异步加载资源")
+	local resourceData = Content:loadAsync("path/to/resource")
+	sleep(2) -- 模拟额外的耗时操作
+	print("资源加载完成")
+	-- 在资源加载完成后执行后续逻辑
+end)
+```
+
+&emsp;&emsp;在上述示例中，`thread(function() ... end)` 创建了一个协程任务，`loadAsync` 异步加载资源，`sleep(2)` 模拟耗时操作。协程使得长时间运行的任务不会阻塞主线程，任务的生命周期由引擎全局管理。
+
+#### 示例：节点关联的协程任务
+
+```lua
+local Node = require("Node")
+local sleep = require("sleep")
+
+local node = Node()
+node:once(function()
+	print("开始节点关联的异步操作")
+	sleep(2) -- 模拟耗时操作
+	print("节点关联的异步操作完成")
+end)
+```
+
+&emsp;&emsp;这里，`node:once(function() ... end)` 创建了一个与节点 `node` 关联的协程任务。当 `node` 被清理时，任务也会自动停止并清理。
+
+### 两种协程任务使用的区别
+
+- **生命周期管理**：
+  - **全局协程任务**：生命周期独立于任何节点，由引擎全局调度模块管理，需要手动移除或等待引擎退出时清理。
+  - **节点关联的协程任务**：生命周期与关联节点绑定，当节点被销毁时，任务自动停止并清理。
+
+- **适用场景**：
+  - **全局协程任务**：适合需要在整个游戏生命周期中持续运行的任务，如全局事件监听。
+  - **节点关联的协程任务**：适合与特定场景或对象关联的任务，如角色的动画控制。
+
+### 使用协程控制函数
+
+&emsp;&emsp;在 Dora SSR 游戏引擎中，协程任务是异步执行的，你可以在协程中使用一些专门的控制流函数来管理任务的执行顺序和暂停。这些函数包括 wait、cycle 和 sleep。它们的主要用途是控制协程在特定条件下暂停或循环，直到某些条件被满足。
+
+1. `wait` 函数
+
+&emsp;&emsp;wait 函数用于暂停协程任务，直到某个条件被满足。这个条件是一个返回 true 的函数。
+
+#### 示例：等待一个条件满足后继续执行
+
+```lua
+local thread = require("thread")
+local wait = require("wait")
+
+thread(function()
+	print("等待条件成立...")
+	wait(function()
+		-- 当玩家的分数大于100时继续执行
+		return player.score > 100
+	end)
+	print("条件满足，继续执行后续逻辑")
+end)
+```
+
+2. `cycle` 函数
+
+&emsp;&emsp;cycle 函数的功能是在特定的时间周期内，每帧重复调用一个函数，直到时间过去。它适合用于需要在特定时间段内重复执行某些逻辑的场景。
+
+#### 示例：在 3 秒内每帧更新物体位置
+
+```lua
+local cycle = require("cycle“)
+local Node = require("Node")
+
+local node = Node()
+node:once(function()
+	local startX = node.x
+	print("开始移动")
+	cycle(3, function(time)
+		-- 在 3 秒内，每帧更新物体位置
+		node.x = startX + 500 * time -- time 的值会从 0 到 1
+	end)
+	print("移动结束")
+end))
+```
+
+3. `sleep` 用法
+
+&emsp;&emsp;sleep 函数用于在协程任务中暂停执行指定的时间。它可以用作简单的定时器，让协程在指定时间后恢复执行。
+
+#### 示例：延迟 2 秒后执行任务
+
+```lua
+local sleep = require("sleep")
+local thread = require("thread")
+
+thread(function()
+	print("任务开始...")
+	sleep(2) -- 暂停协程 2 秒
+	print("2 秒后继续执行任务")
+end)
+```
+
+&emsp;&emsp;在此示例中，`sleep(2)` 让协程暂停 2 秒，之后才会继续执行剩下的逻辑。你可以使用 `sleep` 轻松创建定时器功能。
+
+## 4. 使用每帧更新的函数
+
+&emsp;&emsp;有些情况下，你需要在每一帧都执行某些逻辑，例如检测用户输入或更新物体位置。
+
+#### 示例：每帧更新物体位置
+
+```lua
+local Node = require("Node")
+
+local node = Node()
+node:schedule(function(deltaTime)
+	-- 当右方向键被按下
+	if Keyboard:isKeyPressed("Right") then
+		-- 更新物体位置
+		node.x = node.x + 10 * deltaTime
+		-- 返回 true 可停止更新
+	end
+end)
+```
+
+&emsp;&emsp;`node:schedule(function(deltaTime) ... end)` 调度了一个每帧调用的函数，其中 `deltaTime` 是上一帧到当前帧的时间间隔。
+
+### 使用`node:schedule()` 与 `node:onUpdate()` 的异同
+
+&emsp;&emsp;**相同点：**
+
+- 调度的函数在每帧都会被调用，返回 `true` 停止运行。
+- 也可以调度一个协程任务，使用 `return true` 或 `coroutine.yield(true)` 停止运行。
+
+&emsp;&emsp;**不同点：**
+
+- **`node:schedule()`**：用于调度主更新函数或协程任务。重复调用会覆盖之前被调度的函数。
+- **`node:onUpdate()`**：用于调度多个每帧运行的函数或协程任务。可以多次调用，并使多个函数被同时调度。
+
+#### 示例：
+
+```lua
+-- 使用 node:schedule() 调度主更新函数
+node:schedule(function(deltaTime)
+	-- 主更新逻辑
+	if condition then
+		return true -- 返回内部状态停止调度
+		-- 或是使用 node:unschedule() 主动取消调度
+	end
+end)
+
+-- 使用 node:onUpdate() 调度多个更新函数
+node:onUpdate(function(deltaTime)
+	-- 更新逻辑 A
+end)
+
+node:onUpdate(function(deltaTime)
+	-- 更新逻辑 B
+end)
+```
+
+## 函数缩写说明
+
+&emsp;&emsp;在 Dora SSR 中，为了简化代码编写，提供了多个函数的缩写形式：
+
+- **`thread(function() end)`** 是 **`Routine(once(function() end))`** 的缩写。
+- **`threadLoop(function() end)`** 是 **`Routine(loop(function() end))`** 的缩写。
+- **`node:once(function() end)`** 是 **`node:schedule(once(function() end))`** 的缩写。
+- **`node:loop(function() end)`** 是 **`node:schedule(loop(function() end))`** 的缩写。
+
+## 总结
+
+&emsp;&emsp;通过本教程，你应该已经了解了如何在 Dora SSR 游戏引擎中使用 Update 调度机制。你可以利用协程任务进行异步处理，确保主线程的流畅运行；同时，使用每帧更新函数来处理需要持续更新的逻辑。理解 `node:schedule()` 和 `node:onUpdate()` 的区别，以及函数的缩写形式，可以帮助你编写更高效的代码。
+
+&emsp;&emsp;希望本教程能帮助你更好地掌握 Dora SSR 的 Update 调度，开发出色的游戏！

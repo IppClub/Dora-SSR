@@ -8,27 +8,30 @@ import TabItem from '@theme/TabItem';
 
 ### 一、初始化 YarnRunner
 
-<Tabs>
-<TabItem value="yue" label="YueScript">
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
 
-&emsp;&emsp;首先确保您已经导入所有必需的模块。
+&emsp;&emsp;首先确保您已正确地导入所有必需的模块。以下是本教程示例中我们需要的模块：
 
-```yue title="init.yue"
-_ENV = Dora!
-import "YarnRunner"
+```lua title="init.lua"
+local Content <const> = require("Content")
+local Path <const> = require("Path")
+local Node <const> = require("Node")
+local Director <const> = require("Director")
+local YarnRunner <const> = require("YarnRunner")
 ```
 
 &emsp;&emsp;为了确保我们可以找到 Yarn 脚本，我们需要设置正确的搜索路径。如果 Yarn 脚本和程序模块在同一个目录下时我们可以增加如下代码：
 
-```yue title="init.yue"
-path = Path\getScriptPath ...
-Content\insertSearchPath 1, path
+```lua title="init.lua"
+local path = Path:getScriptPath(...)
+Content:insertSearchPath(1, path)
 ```
 
 &emsp;&emsp;接下来，假设我们要加载的 Yarn 文件名为 "tutorial.yarn"，起始节点的标题名称为 "Start"，则编写如下代码：
 
-```yue title="init.yue"
-runner = YarnRunner "tutorial.yarn", "Start"
+```lua title="init.lua"
+local runner = YarnRunner("tutorial.yarn", "Start")
 ```
 
 </TabItem>
@@ -58,29 +61,26 @@ local runner = YarnRunner("tutorial.yarn", "Start")
 ```
 
 </TabItem>
-<TabItem value="lua" label="Lua">
+<TabItem value="yue" label="YueScript">
 
-&emsp;&emsp;首先确保您已正确地导入所有必需的模块。以下是本教程示例中我们需要的模块：
+&emsp;&emsp;首先确保您已经导入所有必需的模块。
 
-```lua title="init.lua"
-local Content <const> = require("Content")
-local Path <const> = require("Path")
-local Node <const> = require("Node")
-local Director <const> = require("Director")
-local YarnRunner <const> = require("YarnRunner")
+```yue title="init.yue"
+_ENV = Dora!
+import "YarnRunner"
 ```
 
 &emsp;&emsp;为了确保我们可以找到 Yarn 脚本，我们需要设置正确的搜索路径。如果 Yarn 脚本和程序模块在同一个目录下时我们可以增加如下代码：
 
-```lua title="init.lua"
-local path = Path:getScriptPath(...)
-Content:insertSearchPath(1, path)
+```yue title="init.yue"
+path = Path\getScriptPath ...
+Content\insertSearchPath 1, path
 ```
 
 &emsp;&emsp;接下来，假设我们要加载的 Yarn 文件名为 "tutorial.yarn"，起始节点的标题名称为 "Start"，则编写如下代码：
 
-```lua title="init.lua"
-local runner = YarnRunner("tutorial.yarn", "Start")
+```yue title="init.yue"
+runner = YarnRunner "tutorial.yarn", "Start"
 ```
 
 </TabItem>
@@ -90,43 +90,54 @@ local runner = YarnRunner("tutorial.yarn", "Start")
 
 &emsp;&emsp;我们定义了一个 `advance` 函数，该函数可以读取并展示 Yarn 脚本中的文本内容或选项。根据叙事的内容，它还可以展示角色的名字：
 
-<Tabs>
-<TabItem value="yue" label="YueScript">
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
 
-```yue title="init.yue"
+```lua title="init.lua"
 -- advance 函数的参数是一个可选的整数，代表玩家选择的选项索引。
 -- 当第一次调用此函数或在不需要选择时，我们将传递 nil
-advance = (option)->
+local function advance(option)
 
-	-- 函数首先调用 runner\advance 来获取 Yarn 脚本的下一部分内容。
+	-- 函数首先调用 runner:advance(option) 来获取 Yarn 脚本的下一部分内容。
 	-- 这将返回两个值：一个动作类型和一个结果。
-	action, result = runner\advance option
+	local action, result = runner:advance(option)
 
 	-- 根据动作类型，选择如何处理结果。
-	switch action when "Text"
+	if action == "Text" then
 
 		-- 如果动作是 "Text"，则结果会是一个 TextResult 对象，
 		-- 其中包含文本内容和任何相关的标记（例如角色名）。
 		-- 检查标记，提取角色名（如果存在）并打印出文本内容。
-		charName = ""
-		if result.marks
-			for mark in *result.marks
-				switch mark when {name: attr, attrs: {:name}}
-					charName = "#{name}: " if attr == "char"
-		print charName .. result.text
+		local characterName = ""
+		local marks = result.marks
+		if marks then
+			for i = 1, #marks do
+				local mark = marks[i]
+				if mark.name == "char" then
+					characterName = mark.attrs.name .. ": "
+				end
+			end
+		end
+		print(characterName .. result.text)
 
-	when "Option"
+	elseif action == "Option" then
 
 		-- 如果动作是 "Option"，则结果会是一个 OptionResult 对象，
 		-- 其中包含了一个或多个选项。函数会遍历这些选项并打印它们，
 		-- 玩家稍后可以选择它们。
-		for i, op in ipairs result
-			print "[#{i}]: #{op.text}" if op
+		for i, op in ipairs(result) do
+			if op then
+				print("[" .. tostring(i) .. "]: " .. op.text)
+			end
+		end
 
 	else
 
 		-- 对于其他动作（例如错误），函数将直接打印结果。
-		print result
+		print(result)
+
+	end
+end
 ```
 
 </TabItem>
@@ -183,53 +194,42 @@ end
 ```
 
 </TabItem>
-<TabItem value="lua" label="Lua">
+<TabItem value="yue" label="YueScript">
 
-```lua title="init.lua"
+```yue title="init.yue"
 -- advance 函数的参数是一个可选的整数，代表玩家选择的选项索引。
 -- 当第一次调用此函数或在不需要选择时，我们将传递 nil
-local function advance(option)
+advance = (option)->
 
-	-- 函数首先调用 runner:advance(option) 来获取 Yarn 脚本的下一部分内容。
+	-- 函数首先调用 runner\advance 来获取 Yarn 脚本的下一部分内容。
 	-- 这将返回两个值：一个动作类型和一个结果。
-	local action, result = runner:advance(option)
+	action, result = runner\advance option
 
 	-- 根据动作类型，选择如何处理结果。
-	if action == "Text" then
+	switch action when "Text"
 
 		-- 如果动作是 "Text"，则结果会是一个 TextResult 对象，
 		-- 其中包含文本内容和任何相关的标记（例如角色名）。
 		-- 检查标记，提取角色名（如果存在）并打印出文本内容。
-		local characterName = ""
-		local marks = result.marks
-		if marks then
-			for i = 1, #marks do
-				local mark = marks[i]
-				if mark.name == "char" then
-					characterName = mark.attrs.name .. ": "
-				end
-			end
-		end
-		print(characterName .. result.text)
+		charName = ""
+		if result.marks
+			for mark in *result.marks
+				switch mark when {name: attr, attrs: {:name}}
+					charName = "#{name}: " if attr == "char"
+		print charName .. result.text
 
-	elseif action == "Option" then
+	when "Option"
 
 		-- 如果动作是 "Option"，则结果会是一个 OptionResult 对象，
 		-- 其中包含了一个或多个选项。函数会遍历这些选项并打印它们，
 		-- 玩家稍后可以选择它们。
-		for i, op in ipairs(result) do
-			if op then
-				print("[" .. tostring(i) .. "]: " .. op.text)
-			end
-		end
+		for i, op in ipairs result
+			print "[#{i}]: #{op.text}" if op
 
 	else
 
 		-- 对于其他动作（例如错误），函数将直接打印结果。
-		print(result)
-
-	end
-end
+		print result
 ```
 
 </TabItem>
@@ -239,11 +239,11 @@ end
 
 &emsp;&emsp;要启动叙事，我们只需调用 `advance` 函数，不带任何参数：
 
-<Tabs>
-<TabItem value="yue" label="YueScript">
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
 
-```yue title="init.yue"
-advance!
+```lua title="init.lua"
+advance()
 ```
 
 </TabItem>
@@ -254,10 +254,10 @@ advance()
 ```
 
 </TabItem>
-<TabItem value="lua" label="Lua">
+<TabItem value="yue" label="YueScript">
 
-```lua title="init.lua"
-advance()
+```yue title="init.yue"
+advance!
 ```
 
 </TabItem>
@@ -267,13 +267,15 @@ advance()
 
 &emsp;&emsp;为了能够让玩家与叙事互动，我们需要一个节点来捕获和响应用户的输入。我们创建一个节点，并为其指定一个名为 "go" 的信号槽。当这个信号被触发时，它将再次调用 `advance` 函数，并传递玩家选择的选项：
 
-<Tabs>
-<TabItem value="yue" label="YueScript">
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
 
-```yue title="init.yue"
-with Node!
-	\gslot "go", (option)-> advance option
-	\addTo Director.entry
+```lua title="init.lua"
+local node = Node()
+node:gslot("go", function(option)
+	advance(option)
+end)
+node:addTo(Director.entry)
 ```
 
 </TabItem>
@@ -288,14 +290,12 @@ node:addTo(Director.entry)
 ```
 
 </TabItem>
-<TabItem value="lua" label="Lua">
+<TabItem value="yue" label="YueScript">
 
-```lua title="init.lua"
-local node = Node()
-node:gslot("go", function(option)
-	advance(option)
-end)
-node:addTo(Director.entry)
+```yue title="init.yue"
+with Node!
+	\gslot "go", (option)-> advance option
+	\addTo Director.entry
 ```
 
 </TabItem>
