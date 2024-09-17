@@ -8,27 +8,30 @@ Welcome to the YarnRunner functionality tutorial. In this tutorial, we will guid
 
 ### 1. Initializing YarnRunner
 
-<Tabs>
-<TabItem value="yue" label="YueScript">
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
 
-First, make sure you have imported all the necessary modules.
+First, make sure you have correctly imported all the necessary modules. Here are the modules we need for the examples in this tutorial:
 
-```yue title="init.yue"
-_ENV = Dora!
-import "YarnRunner"
+```lua title="init.lua"
+local Content <const> = require("Content")
+local Path <const> = require("Path")
+local Node <const> = require("Node")
+local Director <const> = require("Director")
+local YarnRunner <const> = require("YarnRunner")
 ```
 
 To ensure that we can locate the Yarn script, we need to set the correct search path. If the Yarn script and program modules are in the same directory, you can add the following code:
 
-```yue title="init.yue"
-path = Path\getScriptPath ...
-Content\insertSearchPath 1, path
+```lua title="init.lua"
+local path = Path:getScriptPath(...)
+Content:insertSearchPath(1, path)
 ```
 
 Next, assuming we want to load a Yarn file named "tutorial.yarn" with a starting node titled "Start," you can write the following code:
 
-```yue title="init.yue"
-runner = YarnRunner "tutorial.yarn", "Start"
+```lua title="init.lua"
+local runner = YarnRunner("tutorial.yarn", "Start")
 ```
 
 </TabItem>
@@ -58,29 +61,26 @@ local runner = YarnRunner("tutorial.yarn", "Start")
 ```
 
 </TabItem>
-<TabItem value="lua" label="Lua">
+<TabItem value="yue" label="YueScript">
 
-First, make sure you have correctly imported all the necessary modules. Here are the modules we need for the examples in this tutorial:
+First, make sure you have imported all the necessary modules.
 
-```lua title="init.lua"
-local Content <const> = require("Content")
-local Path <const> = require("Path")
-local Node <const> = require("Node")
-local Director <const> = require("Director")
-local YarnRunner <const> = require("YarnRunner")
+```yue title="init.yue"
+_ENV = Dora!
+import "YarnRunner"
 ```
 
 To ensure that we can locate the Yarn script, we need to set the correct search path. If the Yarn script and program modules are in the same directory, you can add the following code:
 
-```lua title="init.lua"
-local path = Path:getScriptPath(...)
-Content:insertSearchPath(1, path)
+```yue title="init.yue"
+path = Path\getScriptPath ...
+Content\insertSearchPath 1, path
 ```
 
 Next, assuming we want to load a Yarn file named "tutorial.yarn" with a starting node titled "Start," you can write the following code:
 
-```lua title="init.lua"
-local runner = YarnRunner("tutorial.yarn", "Start")
+```yue title="init.yue"
+runner = YarnRunner "tutorial.yarn", "Start"
 ```
 
 </TabItem>
@@ -90,43 +90,54 @@ local runner = YarnRunner("tutorial.yarn", "Start")
 
 We have defined an `advance` function that can read and display text content or options from the Yarn script. Depending on the narrative content, it can also display character names:
 
-<Tabs>
-<TabItem value="yue" label="YueScript">
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
 
-```yue title="init.yue"
+```lua title="init.lua"
 -- The `advance` function takes an optional integer parameter representing the player's choice index.
 -- When calling this function for the first time or when no choice is needed, we pass nil.
-advance = (option)->
+local function advance(option)
 
-	-- The function first calls `runner\advance` to fetch the next part of the Yarn script.
+	-- The function first calls `runner:advance(option)` to fetch the next part of the Yarn script.
 	-- This returns two values: an action type and a result.
-	action, result = runner\advance option
+	local action, result = runner:advance(option)
 
 	-- Based on the action type, we choose how to handle the result.
-	switch action when "Text"
+	if action == "Text" then
 
 		-- If the action is "Text," the result will be a TextResult object,
 		-- which contains the text content and any associated marks (e.g., character names).
 		-- We check for marks, extract the character name (if present), and print the text content.
-		charName = ""
-		if result.marks
-			for mark in *result.marks
-				switch mark when {name: attr, attrs: {:name}}
-					charName = "#{name}: " if attr == "char"
-		print charName .. result.text
+		local characterName = ""
+		local marks = result.marks
+		if marks then
+			for i = 1, #marks do
+				local mark = marks[i]
+				if mark.name == "char" then
+					characterName = mark.attrs.name .. ": "
+				end
+			end
+		end
+		print(characterName .. result.text)
 
-	when "Option"
+	elseif action == "Option" then
 
 		-- If the action is "Option," the result will be an OptionResult object,
 		-- which contains one or more options. The function iterates through these options and prints them,
 		-- which the player can choose later.
-		for i, op in ipairs result
-			print "[#{i}]: #{op.text}" if op
+		for i, op in ipairs(result) do
+			if op then
+				print("[" .. tostring(i) .. "]: " .. op.text)
+			end
+		end
 
 	else
 
 		-- For other actions (e.g., errors), the function directly prints the result.
-		print result
+		print(result)
+
+	end
+end
 ```
 
 </TabItem>
@@ -184,53 +195,42 @@ end
 ```
 
 </TabItem>
-<TabItem value="lua" label="Lua">
+<TabItem value="yue" label="YueScript">
 
-```lua title="init.lua"
+```yue title="init.yue"
 -- The `advance` function takes an optional integer parameter representing the player's choice index.
 -- When calling this function for the first time or when no choice is needed, we pass nil.
-local function advance(option)
+advance = (option)->
 
-	-- The function first calls `runner:advance(option)` to fetch the next part of the Yarn script.
+	-- The function first calls `runner\advance` to fetch the next part of the Yarn script.
 	-- This returns two values: an action type and a result.
-	local action, result = runner:advance(option)
+	action, result = runner\advance option
 
 	-- Based on the action type, we choose how to handle the result.
-	if action == "Text" then
+	switch action when "Text"
 
 		-- If the action is "Text," the result will be a TextResult object,
 		-- which contains the text content and any associated marks (e.g., character names).
 		-- We check for marks, extract the character name (if present), and print the text content.
-		local characterName = ""
-		local marks = result.marks
-		if marks then
-			for i = 1, #marks do
-				local mark = marks[i]
-				if mark.name == "char" then
-					characterName = mark.attrs.name .. ": "
-				end
-			end
-		end
-		print(characterName .. result.text)
+		charName = ""
+		if result.marks
+			for mark in *result.marks
+				switch mark when {name: attr, attrs: {:name}}
+					charName = "#{name}: " if attr == "char"
+		print charName .. result.text
 
-	elseif action == "Option" then
+	when "Option"
 
 		-- If the action is "Option," the result will be an OptionResult object,
 		-- which contains one or more options. The function iterates through these options and prints them,
 		-- which the player can choose later.
-		for i, op in ipairs(result) do
-			if op then
-				print("[" .. tostring(i) .. "]: " .. op.text)
-			end
-		end
+		for i, op in ipairs result
+			print "[#{i}]: #{op.text}" if op
 
 	else
 
 		-- For other actions (e.g., errors), the function directly prints the result.
-		print(result)
-
-	end
-end
+		print result
 ```
 
 </TabItem>
@@ -240,11 +240,11 @@ end
 
 To initiate the narrative, you simply call the `advance` function without any arguments:
 
-<Tabs>
-<TabItem value="yue" label="YueScript">
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
 
-```yue title="init.yue"
-advance!
+```lua title="init.lua"
+advance()
 ```
 
 </TabItem>
@@ -255,10 +255,10 @@ advance()
 ```
 
 </TabItem>
-<TabItem value="lua" label="Lua">
+<TabItem value="yue" label="YueScript">
 
-```lua title="init.lua"
-advance()
+```yue title="init.yue"
+advance!
 ```
 
 </TabItem>
@@ -268,13 +268,15 @@ advance()
 
 To allow player interaction with the narrative, we need a node to capture and respond to user input. We create a node and assign it a signal slot named "go." When this signal is triggered, it will call the `advance` function again and pass the player's choice:
 
-<Tabs>
-<TabItem value="yue" label="YueScript">
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
 
-```yue title="init.yue"
-with Node!
-	\gslot "go", (option)-> advance option
-	\addTo Director.entry
+```lua title="init.lua"
+local node = Node()
+node:gslot("go", function(option)
+	advance(option)
+end)
+node:addTo(Director.entry)
 ```
 
 </TabItem>
@@ -289,14 +291,12 @@ node:addTo(Director.entry)
 ```
 
 </TabItem>
-<TabItem value="lua" label="Lua">
+<TabItem value="yue" label="YueScript">
 
-```lua title="init.lua"
-local node = Node()
-node:gslot("go", function(option)
-	advance(option)
-end)
-node:addTo(Director.entry)
+```yue title="init.yue"
+with Node!
+	\gslot "go", (option)-> advance option
+	\addTo Director.entry
 ```
 
 </TabItem>

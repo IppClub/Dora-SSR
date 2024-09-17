@@ -1,0 +1,214 @@
+---
+sidebar_position: 4
+---
+import "@site/src/languages/highlight";
+
+# Using the Update Scheduling
+
+Dora SSR provides a flexible Update scheduling mechanism, allowing developers to control game logic updates easily. This tutorial will guide you through the basics of using Update scheduling, including asynchronous coroutine tasks and per-frame update functions.
+
+## 1. Understanding Update Scheduling
+
+Update scheduling is a mechanism in the game engine used to manage and execute game logic updates. It allows developers to run code in each frame or under specific conditions, ensuring a dynamic game experience.
+
+## 2. Difference Between Coroutine Tasks and Update Functions
+
+- **Coroutine Tasks**:
+  - **Asynchronous processing**: Can be paused and resumed across multiple frames.
+  - **Use case**: Ideal for handling operations that require waiting, such as loading resources or timers.
+  - **Implementation**: Achieved through functions like `thread`, `threadLoop`, `once`, and `loop`.
+
+- **Update Functions**:
+  - **Synchronous processing**: Called in every frame.
+  - **Use case**: Suitable for logic that needs to be updated every frame, such as movement or collision detection.
+  - **Implementation**: Achieved through functions like `node:schedule()` and `node:onUpdate()`.
+
+## 3. Using Coroutine Tasks for Asynchronous Processing
+
+Coroutine tasks allow you to pause execution, wait for conditions to be met, or for a certain amount of time to pass before continuing. This enables time-consuming operations without blocking the main thread, making them highly useful for handling asynchronous events.
+
+### Global Coroutine Tasks vs. Node-bound Coroutine Tasks
+
+In Dora SSR, coroutine tasks can be executed in two ways:
+
+1. **Global Coroutine Tasks**: Created using `thread(function() ... end)`. Their lifecycle is managed by the engine's global scheduling module. These tasks continue to run unless manually removed or until the engine exits, which cleans up all active schedules.
+
+2. **Node-bound Coroutine Tasks**: Created using `node:schedule(once(function() ... end))`. Their lifecycle is tied to the associated node. When the node is cleaned up, the scheduled function is also stopped and cleared.
+
+#### Example: Executing a Global Coroutine Task
+
+```lua
+local thread = require("thread")
+local sleep = require("sleep")
+local Content = require("Content")
+
+thread(function()
+    print("Starting async resource loading")
+    local resourceData = Content:loadAsync("path/to/resource")
+    sleep(2) -- Simulating additional delay
+    print("Resource loading completed")
+    -- Proceed with logic after resource loading
+end)
+```
+
+In this example, `thread(function() ... end)` creates a coroutine task. The `loadAsync` function asynchronously loads a resource, and `sleep(2)` simulates a delay. The coroutine allows long-running tasks without blocking the main thread, with the lifecycle managed globally by the engine.
+
+#### Example: Node-bound Coroutine Task
+
+```lua
+local Node = require("Node")
+local sleep = require("sleep")
+
+local node = Node()
+node:once(function()
+    print("Starting node-bound async operation")
+    sleep(2) -- Simulating delay
+    print("Node-bound async operation completed")
+end)
+```
+
+Here, `node:once(function() ... end)` creates a coroutine task tied to the `node`. When the `node` is cleaned up, the task is automatically stopped and cleared.
+
+### Difference Between Global and Node-bound Coroutine Tasks
+
+- **Lifecycle management**:
+  - **Global Coroutine Tasks**: Independent of any node, managed by the global scheduling module. They need to be manually removed or cleaned up when the engine exits.
+  - **Node-bound Coroutine Tasks**: Tied to the lifecycle of the associated node, automatically stopping when the node is destroyed.
+
+- **Use cases**:
+  - **Global Coroutine Tasks**: Suitable for tasks that need to run throughout the game lifecycle, such as global event listeners.
+  - **Node-bound Coroutine Tasks**: Suitable for tasks associated with specific scenes or objects, such as character animation control.
+
+### Coroutine Control Functions
+
+In Dora SSR, coroutine tasks are executed asynchronously, and you can use specific control flow functions to manage the order and suspension of tasks. These functions include `wait`, `cycle`, and `sleep`, which help manage coroutine pauses and loops based on conditions or time.
+
+#### 1. `wait` Function
+
+The `wait` function pauses a coroutine task until a specified condition is met. This condition is a function that returns `true`.
+
+##### Example: Waiting for a Condition to Be Met
+
+```lua
+local thread = require("thread")
+local wait = require("wait")
+
+thread(function()
+    print("Waiting for the condition to be met...")
+    wait(function()
+        -- Resume when the player's score exceeds 100
+        return player.score > 100
+    end)
+    print("Condition met, continuing with the logic")
+end)
+```
+
+#### 2. `cycle` Function
+
+The `cycle` function repeatedly calls a function every frame for a specified duration. It is useful for scenarios where certain logic needs to be repeated within a fixed time period.
+
+##### Example: Updating Object Position Over 3 Seconds
+
+```lua
+local cycle = require("cycle")
+local Node = require("Node")
+
+local node = Node()
+node:once(function()
+    local startX = node.x
+    print("Starting movement")
+    cycle(3, function(time)
+        -- Update the object position over 3 seconds
+        node.x = startX + 500 * time -- 'time' ranges from 0 to 1
+    end)
+    print("Movement completed")
+end)
+```
+
+#### 3. `sleep` Function
+
+The `sleep` function pauses the execution of a coroutine task for a specified time. It acts as a simple timer, allowing the coroutine to resume after a delay.
+
+##### Example: Delaying Task Execution by 2 Seconds
+
+```lua
+local sleep = require("sleep")
+local thread = require("thread")
+
+thread(function()
+    print("Task started...")
+    sleep(2) -- Pauses the coroutine for 2 seconds
+    print("Resuming task after 2 seconds")
+end)
+```
+
+In this example, `sleep(2)` pauses the coroutine for 2 seconds, after which the remaining logic is executed. You can use `sleep` to easily create timers.
+
+## 4. Using Per-Frame Update Functions
+
+In some cases, you need to execute certain logic in every frame, such as detecting user input or updating object positions.
+
+##### Example: Updating Object Position Every Frame
+
+```lua
+local Node = require("Node")
+
+local node = Node()
+node:schedule(function(deltaTime)
+    -- If the right arrow key is pressed
+    if Keyboard:isKeyPressed("Right") then
+        -- Update the object position
+        node.x = node.x + 10 * deltaTime
+    end
+    -- Return true to stop the update
+end)
+```
+
+Here, `node:schedule(function(deltaTime) ... end)` schedules a function that is called every frame. The `deltaTime` parameter represents the time interval between the previous and current frames.
+
+### Differences Between `node:schedule()` and `node:onUpdate()`
+
+**Similarities**:
+- Both schedule functions that are called every frame, returning `true` stops the execution.
+- Both can schedule coroutine tasks that stop when `return true` or `coroutine.yield(true)` is called.
+
+**Differences**:
+- **`node:schedule()`**: Used to schedule the primary update function or coroutine task. Repeated calls overwrite previously scheduled functions.
+- **`node:onUpdate()`**: Used to schedule multiple update functions or coroutine tasks. You can call it multiple times, and multiple functions will be scheduled concurrently.
+
+##### Example:
+
+```lua
+-- Schedule the primary update function with node:schedule()
+node:schedule(function(deltaTime)
+    -- Main update logic
+    if condition then
+        return true -- Stop the scheduling internally
+        -- Or use node:unschedule() to manually cancel the scheduling
+    end
+end)
+
+-- Schedule multiple update functions with node:onUpdate()
+node:onUpdate(function(deltaTime)
+    -- Update logic A
+end)
+
+node:onUpdate(function(deltaTime)
+    -- Update logic B
+end)
+```
+
+## Function Abbreviations
+
+In Dora SSR, several function abbreviations simplify code writing:
+
+- **`thread(function() end)`** is a shorthand for **`Routine(once(function() end))`**.
+- **`threadLoop(function() end)`** is a shorthand for **`Routine(loop(function() end))`**.
+- **`node:once(function() end)`** is a shorthand for **`node:schedule(once(function() end))`**.
+- **`node:loop(function() end)`** is a shorthand for **`node:schedule(loop(function() end))`**.
+
+## Conclusion
+
+With this tutorial, you should now have a solid understanding of how to use the Update scheduling mechanism in the Dora SSR game engine. You can utilize coroutine tasks for asynchronous processing, ensuring the smooth execution of the main thread, while using per-frame update functions to handle continuous logic. Understanding the difference between `node:schedule()` and `node:onUpdate()`, along with the function abbreviations, will help you write more efficient code.
+
+We hope this tutorial helps you master Update scheduling in Dora SSR and develop great games!

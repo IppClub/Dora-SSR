@@ -337,14 +337,6 @@
     "message": "折叠侧边栏分类 '{label}'",
     "description": "The ARIA label to collapse the sidebar category"
   },
-  "theme.unlistedContent.title": {
-    "message": "未列出页",
-    "description": "The unlisted content banner title"
-  },
-  "theme.unlistedContent.message": {
-    "message": "此页面未列出。搜索引擎不会对其索引，只有拥有直接链接的用户才能访问。",
-    "description": "The unlisted content banner message"
-  },
   "theme.docs.DocCard.categoryDescription.plurals": {
     "message": "{count} 个项目",
     "description": "The default description for a category card in the generated index about how many items this category includes"
@@ -476,5 +468,33 @@
   "engine_feature_description_profiling_and_debugging_tools": {
     "message": "Dora SSR Web IDE 提供了实用的性能分析和调试工具，允许开发者实时监控 CPU 和 GPU 的使用情况，分析内存占用，并细致地跟踪脚本执行时间和各个模块的性能瓶颈，帮助优化游戏性能。",
     "description": "The engine feature description Profiling and Debugging Tools in front page"
+  },
+  "theme.blog.author.pageTitle": {
+    "message": "{authorName} - {nPosts}",
+    "description": "The title of the page for a blog author"
+  },
+  "theme.blog.authorsList.pageTitle": {
+    "message": "Authors",
+    "description": "The title of the authors page"
+  },
+  "theme.blog.authorsList.viewAll": {
+    "message": "View All Authors",
+    "description": "The label of the link targeting the blog authors page"
+  },
+  "theme.contentVisibility.unlistedBanner.title": {
+    "message": "未列出页",
+    "description": "The unlisted content banner title"
+  },
+  "theme.contentVisibility.unlistedBanner.message": {
+    "message": "此页面未列出。搜索引擎不会对其索引，只有拥有直接链接的用户才能访问。",
+    "description": "The unlisted content banner message"
+  },
+  "theme.contentVisibility.draftBanner.title": {
+    "message": "Draft page",
+    "description": "The draft content banner title"
+  },
+  "theme.contentVisibility.draftBanner.message": {
+    "message": "This page is a draft. It will only be visible in dev and be excluded from the production build.",
+    "description": "The draft content banner message"
   }
 }

@@ -261,7 +261,7 @@
   },
   "sidebar.apiSidebar.doc.Sprite": {
     "message": "Sprite",
-    "description": "The label for the doc item Sprite in sidebar apiSidebar, linking to the doc api/Class/Sprite"
+    "description": "The label for the doc item Sprite in sidebar apiSidebar, linking to the doc api/Class/Grid"
   },
   "sidebar.apiSidebar.doc.Texture2D": {
     "message": "Texture2D",
@@ -477,7 +477,7 @@
   },
   "sidebar.apiSidebar.doc.Behavior": {
     "message": "Behavior",
-    "description": "The label for the doc item Behavior in sidebar apiSidebar, linking to the doc api/Class/Routine"
+    "description": "The label for the doc item Behavior in sidebar apiSidebar, linking to the doc api/Class/Platformer/Behavior"
   },
   "sidebar.apiSidebar.doc.Blackboard": {
     "message": "Blackboard",
@@ -622,5 +622,69 @@
   "sidebar.apiSidebar.doc.InputManager": {
     "message": "InputManager",
     "description": "The label for the doc item InputManager in sidebar apiSidebar, linking to the doc api/Class/InputManager"
+  },
+  "sidebar.tutorialSidebar.category.Using Nodes": {
+    "message": "如何使用多种节点",
+    "description": "The label for category Using Nodes in sidebar tutorialSidebar"
+  },
+  "sidebar.apiSidebar.category.Misc Functions": {
+    "message": "Misc Functions",
+    "description": "The label for category Misc Functions in sidebar apiSidebar"
+  },
+  "sidebar.apiSidebar.category.YueScript": {
+    "message": "YueScript",
+    "description": "The label for category YueScript in sidebar apiSidebar"
+  },
+  "sidebar.apiSidebar.doc.Mouse": {
+    "message": "Mouse",
+    "description": "The label for the doc item Mouse in sidebar apiSidebar, linking to the doc api/Class/Mouse"
+  },
+  "sidebar.apiSidebar.doc.AlignNode Event": {
+    "message": "AlignNode Event",
+    "description": "The label for the doc item AlignNode Event in sidebar apiSidebar, linking to the doc api/Node Event/AlignNode"
+  },
+  "sidebar.apiSidebar.doc.EffekNode Event": {
+    "message": "EffekNode Event",
+    "description": "The label for the doc item EffekNode Event in sidebar apiSidebar, linking to the doc api/Node Event/EffekNode"
+  },
+  "sidebar.apiSidebar.doc.VGNode": {
+    "message": "VGNode",
+    "description": "The label for the doc item VGNode in sidebar apiSidebar, linking to the doc api/Class/VGNode"
+  },
+  "sidebar.apiSidebar.doc.Grabber": {
+    "message": "Grabber",
+    "description": "The label for the doc item Grabber in sidebar apiSidebar, linking to the doc api/Class/Node/Grabber"
+  },
+  "sidebar.apiSidebar.doc.AI": {
+    "message": "AI",
+    "description": "The label for the doc item AI in sidebar apiSidebar, linking to the doc api/Class/Platformer/AI"
+  },
+  "sidebar.apiSidebar.doc.UnitActionParam": {
+    "message": "UnitActionParam",
+    "description": "The label for the doc item UnitActionParam in sidebar apiSidebar, linking to the doc api/Class/Platformer/UnitActionParam"
+  },
+  "sidebar.apiSidebar.doc.Routine": {
+    "message": "Routine",
+    "description": "The label for the doc item Routine in sidebar apiSidebar, linking to the doc api/Class/Routine"
+  },
+  "sidebar.apiSidebar.doc.Request": {
+    "message": "Request",
+    "description": "The label for the doc item Request in sidebar apiSidebar, linking to the doc api/Class/Request"
+  },
+  "sidebar.apiSidebar.doc.HttpServer": {
+    "message": "HttpServer",
+    "description": "The label for the doc item HttpServer in sidebar apiSidebar, linking to the doc api/Class/HttpServer"
+  },
+  "sidebar.apiSidebar.doc.yue": {
+    "message": "yue",
+    "description": "The label for the doc item yue in sidebar apiSidebar, linking to the doc api/Class/yue"
+  },
+  "sidebar.apiSidebar.doc.Config": {
+    "message": "Config",
+    "description": "The label for the doc item Config in sidebar apiSidebar, linking to the doc api/Class/yue/Config"
+  },
+  "sidebar.apiSidebar.doc.Options": {
+    "message": "Options",
+    "description": "The label for the doc item Options in sidebar apiSidebar, linking to the doc api/Class/yue/Config/Options"
   }
 }
