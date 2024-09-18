@@ -93,14 +93,12 @@ local record Body
 	onContactFilter: function(self: Body, filter: function(other: Body): boolean)
 
 	-- 注册一个函数，当物理体进入传感器时被调用。
-	-- 该函数将设置`receivingContact`属性为true。
 	-- @param callback (function) 物理体进入传感器时的回调函数。
 	-- 	@param other (Body) 进入传感器的物理体。
 	-- 	@param sensorTag (integer) 触发此碰撞的传感器的标签。
 	onBodyEnter: function(self: Body, callback: function(other: Body, sensorTag: integer))
 
 	-- 注册一个函数，当物理体离开传感器时被调用。
-	-- 该函数将设置`receivingContact`属性为true。
 	-- @param callback (function) 物理体离开传感器时的回调函数。
 	-- 	@param other (Body) 离开传感器的物理体。
 	-- 	@param sensorTag (integer) 触发此碰撞的传感器的标签。

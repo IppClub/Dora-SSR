@@ -92,14 +92,12 @@ local record Body
 	onContactFilter: function(self: Body, filter: function(other: Body): boolean)
 
 	-- Registers a callback function for when the body enters a sensor.
-	-- This function sets the `receivingContact` property to true.
 	-- @param callback (function) The callback function for when the body enters a sensor.
 	-- 	@param other (Body) The other body that the current body is colliding with.
 	-- 	@param sensorTag (integer) The tag of the sensor that triggered this collision.
 	onBodyEnter: function(self: Body, callback: function(other: Body, sensorTag: integer))
 
 	-- Registers a callback function for when the body leaves a sensor.
-	-- This function sets the `receivingContact` property to true.
 	-- @param callback (function) The callback function for when the body leaves a sensor.
 	-- 	@param other (Body) The other body that the current body is no longer colliding with.
 	-- 	@param sensorTag (integer) The tag of the sensor that triggered this collision.

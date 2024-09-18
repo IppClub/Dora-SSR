@@ -51,7 +51,7 @@ yue_compiled: {string: string}
 
 **描述：**
 
-&emsp;&emsp;月之脚本的编译函数。它将 YueScript 代码编译为 Lua 代码。
+&emsp;&emsp;月之脚本的编译函数。它将 Yuescript 代码编译为 Lua 代码。
 
 **签名：**
 ```tl
@@ -65,7 +65,7 @@ to_lua: function(code: string, config?: Config):
 
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
-| code | string | YueScript 代码。 |
+| code | string | Yuescript 代码。 |
 | config | Config | [可选] 编译器选项。 |
 
 **返回值：**
@@ -132,7 +132,7 @@ read_file: function(filename: string): string
 
 **描述：**
 
-&emsp;&emsp;将 YueScript 加载器插入到 Lua 包加载器（搜索器）中。
+&emsp;&emsp;将 Yuescript 加载器插入到 Lua 包加载器（搜索器）中。
 
 **签名：**
 ```tl
@@ -157,7 +157,7 @@ insert_loader: function(pos?: integer): boolean
 
 **描述：**
 
-&emsp;&emsp;从 Lua 包加载器（搜索器）中移除 YueScript 加载器。
+&emsp;&emsp;从 Lua 包加载器（搜索器）中移除 Yuescript 加载器。
 
 **签名：**
 ```tl
@@ -176,7 +176,7 @@ remove_loader: function(): boolean
 
 **描述：**
 
-&emsp;&emsp;将 YueScript 代码字符串加载为一个函数。
+&emsp;&emsp;将 Yuescript 代码字符串加载为一个函数。
 
 **签名：**
 ```tl
@@ -189,7 +189,7 @@ loadstring: function(input: string, chunkname: string, env: table, config?: Conf
 
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
-| input | string | YueScript 代码。 |
+| input | string | Yuescript 代码。 |
 | chunkname | string | 代码块的名称。 |
 | env | table | 环境表。 |
 | config | Config | [可选] 编译器选项。 |
@@ -207,7 +207,7 @@ loadstring: function(input: string, chunkname: string, env: table, config?: Conf
 
 **描述：**
 
-&emsp;&emsp;将 YueScript 代码字符串加载为一个函数。
+&emsp;&emsp;将 Yuescript 代码字符串加载为一个函数。
 
 **签名：**
 ```tl
@@ -220,7 +220,7 @@ loadstring: function(input: string, chunkname: string, config?: Config):
 
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
-| input | string | YueScript 代码。 |
+| input | string | Yuescript 代码。 |
 | chunkname | string | 代码块的名称。 |
 | config | Config | [可选] 编译器选项。 |
 
@@ -237,7 +237,7 @@ loadstring: function(input: string, chunkname: string, config?: Config):
 
 **描述：**
 
-&emsp;&emsp;将 YueScript 代码字符串加载为一个函数。
+&emsp;&emsp;将 Yuescript 代码字符串加载为一个函数。
 
 **签名：**
 ```tl
@@ -250,7 +250,7 @@ loadstring: function(input: string, config?: Config):
 
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
-| input | string | YueScript 代码。 |
+| input | string | Yuescript 代码。 |
 | config | Config | [可选] 编译器选项。 |
 
 **返回值：**
@@ -266,7 +266,7 @@ loadstring: function(input: string, config?: Config):
 
 **描述：**
 
-&emsp;&emsp;将 YueScript 代码文件加载为一个函数。
+&emsp;&emsp;将 Yuescript 代码文件加载为一个函数。
 
 **签名：**
 ```tl
@@ -296,7 +296,7 @@ loadfile: function(filename: string, env: table, config?: Config):
 
 **描述：**
 
-&emsp;&emsp;将 YueScript 代码文件加载为一个函数。
+&emsp;&emsp;将 Yuescript 代码文件加载为一个函数。
 
 **签名：**
 ```tl
@@ -325,7 +325,7 @@ loadfile: function(filename: string, config?: Config):
 
 **描述：**
 
-&emsp;&emsp;将 YueScript 代码文件加载为一个函数并执行。
+&emsp;&emsp;将 Yuescript 代码文件加载为一个函数并执行。
 
 **签名：**
 ```tl
@@ -352,7 +352,7 @@ dofile: function(filename: string, env: table, config?: Config): any...
 
 **描述：**
 
-&emsp;&emsp;将 YueScript 代码文件加载为一个函数并执行。
+&emsp;&emsp;将 Yuescript 代码文件加载为一个函数并执行。
 
 **签名：**
 ```tl
@@ -378,7 +378,7 @@ dofile: function(filename: string, config?: Config): any...
 
 **描述：**
 
-&emsp;&emsp;将 YueScript 模块名解析为文件路径。
+&emsp;&emsp;将 Yuescript 模块名解析为文件路径。
 
 **签名：**
 ```tl
@@ -405,7 +405,7 @@ find_modulepath: function(name: string): string
 
 &emsp;&emsp;在保护模式下调用一个函数。
 会捕获任何错误，执行成功则返回成功状态和结果，否则为失败状态和错误信息。
-当发生错误时，将错误信息中的代码行号重写为 YueScript 代码中的原始行号。
+当发生错误时，将错误信息中的代码行号重写为 Yuescript 代码中的原始行号。
 
 **签名：**
 ```tl
@@ -431,8 +431,8 @@ pcall: function(f: function, ...: any): boolean, any...
 
 **描述：**
 
-&emsp;&emsp;加载给定的模块。可以是 Lua 模块或 YueScript 模块。
-如果模块是 YueScript 模块且加载失败，则将错误信息中的代码行号重写为 YueScript 代码中的原始行号。
+&emsp;&emsp;加载给定的模块。可以是 Lua 模块或 Yuescript 模块。
+如果模块是 Yuescript 模块且加载失败，则将错误信息中的代码行号重写为 Yuescript 代码中的原始行号。
 
 **签名：**
 ```tl
@@ -489,7 +489,7 @@ options: Config.Options
 
 **描述：**
 
-&emsp;&emsp;重写堆栈跟踪中的行号为 YueScript 代码中的原始行号的 traceback 函数。
+&emsp;&emsp;重写堆栈跟踪中的行号为 Yuescript 代码中的原始行号的 traceback 函数。
 
 **签名：**
 ```tl
@@ -514,7 +514,7 @@ traceback: function(message: string): string
 
 **描述：**
 
-&emsp;&emsp;在线程中异步将 YueScript 代码编译为 Lua 代码。
+&emsp;&emsp;在线程中异步将 Yuescript 代码编译为 Lua 代码。
 
 **签名：**
 ```tl
@@ -604,7 +604,7 @@ to_ast: function(code: string, flattenLevel?: number, astName?: string):
 
 **描述：**
 
-&emsp;&emsp;在线程中异步检查 YueScript 代码中的问题。
+&emsp;&emsp;在线程中异步检查 Yuescript 代码中的问题。
 只能在协程线程中调用。
 
 **签名：**
@@ -623,7 +623,7 @@ checkAsync: function(yueCodes: string, searchPath: string):
 
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
-| yueCodes | string | YueScript 代码。 |
+| yueCodes | string | Yuescript 代码。 |
 | searchPath | string | 额外模块搜索路径。 |
 
 **返回值：**
@@ -652,8 +652,8 @@ clear: function()
 
 **描述：**
 
-&emsp;&emsp;导入 YueScript 模块。
-如果发生加载失败，则将错误信息中的代码行号重写为 YueScript 代码中的原始行号。
+&emsp;&emsp;导入 Yuescript 模块。
+如果发生加载失败，则将错误信息中的代码行号重写为 Yuescript 代码中的原始行号。
 
 **签名：**
 ```tl

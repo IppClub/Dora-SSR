@@ -216,19 +216,6 @@ const maxFPS: integer
 const debugging: boolean
 ```
 
-## fullScreen
-
-**Type:** Readonly Field.
-
-**Description:**
-
-&emsp;&emsp;Whether the game engine is running in full screen mode.
-
-**Signature:**
-```tl
-const fullScreen: boolean
-```
-
 ## testNames
 
 **Type:** Readonly Field.
@@ -324,6 +311,34 @@ Set `idled` to true, will make game logic thread use a sleep time and going idle
 idled: boolean
 ```
 
+## fullScreen
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Whether the game engine is running in full screen mode.
+It is not available to set this property on platform Android and iOS.
+
+**Signature:**
+```tl
+fullScreen: boolean
+```
+
+## alwaysOnTop
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Whether the game engine window is always on top.
+It is not available to set this property on platform Android and iOS.
+
+**Signature:**
+```tl
+alwaysOnTop: boolean
+```
+
 ## winSize
 
 **Type:** Field.
@@ -332,7 +347,6 @@ idled: boolean
 
 &emsp;&emsp;The application window size.
 May differ from visual size due to the different DPIs of display devices.
-Set `winSize` to `Size.zero` to toggle application window into full screen mode,
 It is not available to set this property on platform Android and iOS.
 
 **Signature:**
