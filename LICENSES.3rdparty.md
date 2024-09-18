@@ -59,6 +59,8 @@ THE OPEN SOURCE SOFTWARE IN THIS PRODUCT IS DISTRIBUTED IN THE HOPE THAT IT WILL
 - [ktm](https://github.com/YGXXD/ktm): [MIT License](Source/3rdParty/ktm/LICENSE)
 - [pugixml](https://github.com/zeux/pugixml): [MIT License](Source/3rdParty/tmxlite/detail/LICENSE-pugixml)
 - [tmxlite](https://github.com/fallahn/tmxlite): [zlib License](Source/3rdParty/tmxlite/LICENSE)
+- [prism](https://github.com/PrismJS/prism): [MIT License](Tools/dora-dora/src/languages/LICENSE-prism)
+- [konva](https://github.com/konvajs/konva): [MIT License](Tools/dora-dora/public/code-wire/javascript/Dependencies/Konva/LICENSE)
 
 
 

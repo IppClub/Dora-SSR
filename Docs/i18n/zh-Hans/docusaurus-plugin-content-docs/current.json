@@ -686,5 +686,9 @@
   "sidebar.apiSidebar.doc.Options": {
     "message": "Options",
     "description": "The label for the doc item Options in sidebar apiSidebar, linking to the doc api/Class/yue/Config/Options"
+  },
+  "sidebar.tutorialSidebar.category.Language Tutorial": {
+    "message": "编程语言教程",
+    "description": "The label for category Language Tutorial in sidebar tutorialSidebar"
   }
 }

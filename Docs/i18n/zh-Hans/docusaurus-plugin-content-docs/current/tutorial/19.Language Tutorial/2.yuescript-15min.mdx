@@ -1,0 +1,300 @@
+import "@site/src/languages/highlight";
+
+# 15分钟掌握YueScript
+
+:::tip 提示
+&emsp;&emsp;本教程提供了 YueScript 的快速概览，它是一种 Lua 的现代替代方案。YueScript 继承了 Lua 的特性，同时引入了语法糖和类似Python的编码风格。因为 YueScript 是 MoonScript 的方言，本教程修改自["15分钟掌握MoonScript"](https://github.com/leafo/moonscript/wiki/Learn-MoonScript-in-15-Minutes)，并假设你有一定的编程经验并熟悉 Lua。
+:::
+
+&emsp;&emsp;与 Lua 不同，YueScript 不使用 `do`、`then` 或 `end`，而是采用类似 Python 的缩进语法。
+
+```yue
+-- 两个横杠表示注释。注释会一直到行尾。
+-- YueScript 编译成 Lua 后不会保留注释。
+```
+
+## 1. 赋值
+
+```yue
+hello = "world"
+a, b, c = 1, 2, 3
+hello = 123 -- 覆盖之前的 `hello`
+
+x = 0
+x += 10 -- x = x + 10
+
+s = "hello "
+s ..= "world" -- s = s .. "world"
+
+b = false
+b and= true or false -- b = b and (true or false)
+```
+
+## 2. 字面量和运算符
+
+&emsp;&emsp;字面量的使用与Lua几乎一致。字符串可以在行中间换行而不需要使用`\`。
+
+```yue
+some_string = "exa
+mple" -- 等效于 local some_string = "exa\nmple"
+```
+
+&emsp;&emsp;字符串中可以插入变量值，这些值会先被计算，再插入到字符串中。
+
+```yue
+some_string = "这是一个 #{some_string}" -- 变为 '这是一个 exa\nmple'
+```
+
+### 2.1. 函数字面量
+
+&emsp;&emsp;函数使用箭头符号来定义：
+
+```yue
+my_function = -> -- 编译为 function() end
+my_function() -- 调用空函数
+```
+
+&emsp;&emsp;函数可以不使用括号来调用。如果需要优先级，可以使用括号。
+
+```yue
+func_a = -> print "Hello World!"
+func_b = ->
+	value = 100
+	print "值是：#{value}"
+```
+
+&emsp;&emsp;如果函数不需要参数，可以使用 `()` 或 `!` 来调用。
+
+```yue
+func_a!
+func_b()
+```
+
+&emsp;&emsp;可以通过在箭头前加参数名的列表来为函数传递参数：
+
+```yue
+sum = (x, y) -> x + y -- 最后一个表达式将作为返回值
+print sum(5, 10)
+```
+
+&emsp;&emsp;Lua 中有一种将第一个参数作为"self"对象的惯例。使用 `=>` 代替 `->` 会自动创建一个 `self` 变量。`@x` 是 `self.x` 的简写。
+
+```yue
+func = (num) => @value + num
+```
+
+&emsp;&emsp;也可以在函数中使用默认参数：
+
+```yue
+a_function = (name = "某人", height = 100) ->
+	print "你好，我叫#{name}。\n我的身高是#{height}。"
+```
+
+&emsp;&emsp;因为默认参数在 Lua 中是在函数体内计算的，所以可以引用之前的参数：
+
+```yue
+some_args = (x = 100, y = x + 1000) -> print(x + y)
+```
+
+&emsp;&emsp;注意事项
+
+&emsp;&emsp;减号既可以作为一元运算符，也可以作为二元减法运算符。建议在二元运算符之间留有空格，以避免冲突。
+
+```yue
+a = x - 10 --  a = x - 10
+b = x-10 -- b = x - 10
+c = x -y -- c = x(-y)
+d = x- z -- d = x - z
+```
+
+&emsp;&emsp;当变量与字符串字面量之间没有空格时，函数调用优先于后续表达式：
+
+```yue
+x = func"hello" + 100 -- func("hello") + 100
+y = func "hello" + 100 -- func("hello" + 100)
+```
+
+&emsp;&emsp;函数的参数可以跨多行，只要保持缩进即可。缩进也可以嵌套。
+
+```yue
+my_func 5, -- 调用 my_func(5, 8, another_func(6, 7, 9, 1, 2), 5, 4)
+	8, another_func 6, 7, -- 调用 another_func(6, 7, 9, 1, 2)
+	5, 4
+```
+
+&emsp;&emsp;如果一个函数在代码块的开头使用，其缩进可以与块内的缩进不同。
+
+```yue
+if func 1, 2, 3, -- 调用 func(1, 2, 3, "hello", "world")
+		"hello",
+		"world"
+	print "hello"
+```
+
+## 3. 表（Tables）
+
+&emsp;&emsp;表通过花括号定义，类似于Lua：
+
+```yue
+some_values = [1, 2, 3, 4] -- 推荐使用 [] 而不是 {} 来表示数组类型的表
+```
+
+&emsp;&emsp;表的元素可以换行，而不需要逗号分隔。
+
+```yue
+some_other_values = [
+	5, 6
+	7, 8
+]
+```
+
+&emsp;&emsp;表字段赋值使用 `:` 而不是 `=`：
+
+```yue
+profile = {
+	name: "Bill"
+	age: 200
+	"favorite food": "rice"
+}
+```
+
+&emsp;&emsp;对于键值表，花括号可以省略。
+
+```yue
+y = type: "dog", legs: 4, tails: 1
+
+profile =
+	height: "4 feet",
+	shoe_size: 13,
+	favorite_foods: -- 嵌套表
+		foo: "冰淇淋",
+		bar: "甜甜圈"
+```
+
+&emsp;&emsp;通过 `:` 前缀操作符，可以使用与变量同名的键构建表。
+
+```yue
+hair = "金色"
+height = 200
+person = {:hair, :height}
+```
+
+&emsp;&emsp;在Lua中，可以使用 `[]` 来表示非字符串或非数字的键。
+
+```yue
+t =
+	[1 + 2]: "hello"
+	"hello world": true -- 字符串字面量不需要使用 []
+```
+
+### 3.1. 表推导
+
+&emsp;&emsp;表推导类似于数组推导，可以通过遍历生成一个新的表。
+
+```yue
+items = [1, 2, 3, 4]
+doubled = [item * 2 for item in *items]
+```
+
+&emsp;&emsp;使用 `when` 来筛选出需要的值。
+
+```yue
+slice = [item for item in *items[1, 2]]
+```
+
+&emsp;&emsp;推导中的 `for` 子句可以链式调用。
+
+```yue
+x_coords = [4, 5, 6, 7]
+y_coords = [9, 2, 3]
+
+points = [ [x, y] for x in *x_coords for y in *y_coords]
+```
+
+&emsp;&emsp;你可以使用类似的结构遍历表中的键值对：
+
+```yue
+thing = color: "red", name: "thing", width: 123
+thing_copy = {k, v for k, v in pairs thing}
+```
+
+## 4. 控制结构
+
+```yue
+have_coins = false
+if have_coins
+	print "有硬币"
+else
+	print "没硬币"
+```
+
+&emsp;&emsp;你可以使用 `then` 来简写单行 `if`。
+
+```yue
+result = if have_coins then "有硬币" else "没硬币"
+```
+
+&emsp;&emsp;`unless` 是 `if` 的反义词。
+
+```yue
+unless os.date("%A") == "Monday"
+	print "今天不是周一！"
+```
+
+## 5. 面向对象编程
+
+&emsp;&emsp;类通过 `class` 关键字定义，后面跟一个标识符，通常使用驼峰命名法。类的特殊函数 `new` 用于初始化实例。
+
+```yue
+class Inventory
+	new: => @items = {}
+	add_item: (name) =>
+		@items[name] = 0 unless @items[name]
+		@items[name] += 1
+```
+
+&emsp;&emsp;实例的创建方式与调用函数类似：
+
+```yue
+inv = Inventory!
+inv\add_item "T恤"
+inv\add_item "裤子"
+```
+
+&emsp;&emsp;实例中的类变量可以在类中共享。
+
+```yue
+class Person
+	clothes: []
+	give_item: (name) =>
+		table.insert @clothes, name
+
+a = Person!
+b = Person!
+
+a\give_item "裤子"
+b\give_item "衬衫"
+
+-- 打印出 "裤子" 和 "衬衫"
+print item for item in *a.clothes
+```
+
+## 6. 作用域
+
+&emsp;&emsp;所有值默认是局部的。可以使用 `global` 关键字将变量声明为全局变量。
+
+```yue
+global var_1, var_2
+```
+
+&emsp;&emsp;你还可以使用 `do` 手动创建作用域：
+
+```yue
+do
+	x = 5
+print x -- nil
+```
+
+:::tip 延伸阅读
+&emsp;&emsp;完整的 YueScript 文档请访问 [YueScript官方网站](https://yuescript.org/zh/doc)。
+:::
