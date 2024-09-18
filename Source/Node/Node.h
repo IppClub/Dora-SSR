@@ -422,9 +422,11 @@ public:
 	static const size_t MaxSlotArraySize;
 
 private:
-	Own<StringMap<Own<Slot>>> _slots;
-	Own<std::vector<std::pair<std::string, Own<Slot>>>> _slotsArray;
+	using SlotMap = StringMap<Own<Slot>>;
+	using SlotArray = std::vector<std::pair<std::string, Own<Slot>>>;
+	std::variant<std::nullopt_t, Own<SlotMap>, Own<SlotArray>> _slots = std::nullopt;
 	RefVector<Listener> _gslots;
 };
 
 NS_DORA_END
+

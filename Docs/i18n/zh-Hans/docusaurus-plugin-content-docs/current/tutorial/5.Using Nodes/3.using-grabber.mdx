@@ -1,0 +1,105 @@
+import "@site/src/languages/highlight";
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# 使用场景节点渲染后处理
+
+&emsp;&emsp;在游戏开发中，后处理效果可以为场景增添独特的视觉效果，如模糊、描边、色彩调整等。Dora SSR 提供了方便的方式来对场景节点进行渲染后处理。接下来将详细介绍如何使用 Dora SSR 的场景节点渲染后处理功能，并通过示例进行说明。
+
+## 一、什么是场景节点渲染后处理？
+
+&emsp;&emsp;场景节点渲染后处理是指将特定的场景节点渲染到一张纹理上，然后对这张纹理应用着色器效果。这样可以实现对场景中某些部分的特殊视觉效果，而不影响其他节点。
+
+## 二、实现步骤
+
+&emsp;&emsp;要对场景节点进行渲染后处理，主要分为以下几个步骤：
+
+1. **设置节点的尺寸**：需要对哪个节点进行后处理，就设置该节点的 `size` 属性。该属性会被用作后处理的画面尺寸。
+2. **获取画面抓取器（Grabber）**：通过调用 `node:grab()` 方法，获取该节点的画面抓取器。
+3. **应用着色器特效**：设置抓取器的 `effect` 属性，将你想要的着色器效果应用到抓取的画面上。
+
+## 三、代码示例
+
+&emsp;&emsp;下面我们通过一个完整的代码示例，演示如何在 Dora SSR 中对场景节点进行渲染后处理。
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+-- 引入必要的模块
+local Spine = require("Spine")
+local Node = require("Node")
+local Size = require("Size")
+local SpriteEffect = require("SpriteEffect")
+local Color = require("Color")
+
+-- 加载 Spine 动画资源
+local spineStr = "Spine/moling"
+local animations = Spine:getAnimations(spineStr)
+local looks = Spine:getLooks(spineStr)
+
+-- 创建 Spine 可播放对象
+local playable = Spine(spineStr)
+playable.x = 200
+playable.y = 190
+playable.look = looks[1]
+playable:play(animations[1], true)
+
+-- 定义渲染后处理的尺寸
+local width, height = 400, 600
+
+-- 创建着色器特效（这里使用内置的描边效果）
+local effect = SpriteEffect("builtin::vs_sprite", "builtin::fs_spriteoutlinecolor")
+local pass = effect:get(1)
+pass:set("u_linecolor", Color(0xff00ffff)) -- 设置描边颜色
+pass:set("u_lineoffset", 5 / width, 5 / height, 5, 0.1) -- 设置描边参数
+
+-- 创建一个节点并设置尺寸
+local node = Node()
+node.size = Size(width, height)
+
+-- 获取抓取器并应用特效
+local grabber = node:grab()
+grabber.effect = effect
+
+-- 将可播放对象添加到节点中
+node:addChild(playable)
+```
+
+</TabItem>
+</Tabs>
+
+### 代码详解
+
+1. **引入模块**：首先，我们需要引入必要的代码模块。
+
+2. **加载 Spine 动画**：使用 `Spine` 模块加载动画资源，并获取动画和外观列表。
+
+3. **创建可播放对象**：实例化一个 Spine 对象，设置位置、外观，并开始播放动画。
+
+4. **定义后处理尺寸**：指定后处理画面的宽度和高度。
+
+5. **创建着色器特效**：这里我们创建了一个描边效果的着色器，并设置了描边颜色和参数。
+
+6. **创建节点并设置尺寸**：实例化一个 `Node` 对象，并设置其 `size` 属性为前面定义的尺寸。这一步非常关键，只有设置了尺寸，才能对节点进行后处理。
+
+7. **获取抓取器并应用特效**：调用 `node:grab()` 方法获取抓取器 `grabber`，然后将之前创建的着色器特效赋给 `grabber.effect`。
+
+8. **添加子节点**：最后，将可播放的 Spine 对象添加到节点中。作为要抓取的画面内容。它将被渲染到一张纹理上，并应用我们设置的描边效果。
+
+## 四、运行效果和总结
+
+&emsp;&emsp;运行上述代码后，您将看到：
+
+- 一个宽 400 像素，高 600 像素的节点，其中包含了我们的 Spine 动画。
+- 该节点的内容会被渲染到一张纹理上，并应用我们设置的描边着色器特效。
+- 最终效果是，动画角色将具有我们指定颜色的描边效果。
+
+&emsp;&emsp;通过这个示例，您可以了解如何在 Dora SSR 中对场景节点进行渲染后处理。这种方式可以让您实现各种独特的视觉效果，为您的游戏增添更多乐趣。
+
+## 五、扩展阅读
+
+- **自定义着色器**：您可以编写自己的着色器来实现独特的效果，只需在创建 `SpriteEffect` 时指定您的着色器文件。
+- **动态调整参数**：通过修改着色器参数，您可以在运行时动态调整效果，例如改变描边颜色、厚度等。
+
+&emsp;&emsp;希望本教程对您了解 Dora SSR 的场景节点渲染后处理有所帮助，祝您开发顺利！

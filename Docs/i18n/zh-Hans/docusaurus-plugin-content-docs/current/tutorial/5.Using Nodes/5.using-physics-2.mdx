@@ -1,0 +1,221 @@
+import "@site/src/languages/highlight";
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# 创建物理节点 II
+
+&emsp;&emsp;在本教程中，我们将深入探讨物理节点的高级功能，包括：
+
+1. **感应器（Sensor）功能**：不参与物理碰撞，但能检测物体进入或离开指定区域。
+2. **单向通过的平台**：使用 `onContactFilter` 回调创建只允许物体从一个方向通过的平台。
+3. **获取物体碰撞的事件**：如何监听并处理物体的碰撞事件。
+
+&emsp;&emsp;通过以下示例代码和讲解，您将学会如何在 Dora SSR 中实现这些功能。
+
+## 1. 创建物理世界
+
+&emsp;&emsp;首先，初始化物理世界并设置基本参数。
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local Vec2 <const> = require("Vec2")
+local PhysicsWorld <const> = require("PhysicsWorld")
+
+local gravity <const> = Vec2(0, -10) -- 定义重力方向和大小
+
+local world = PhysicsWorld() -- 创建物理世界
+world:setShouldContact(0, 0, true) -- 设置组间碰撞规则
+world.showDebug = true -- 显示调试信息
+```
+
+</TabItem>
+</Tabs>
+
+## 2. 创建感应器（Sensor）
+
+&emsp;&emsp;感应器是一种特殊的物理对象，它不参与碰撞，但可以检测其他物体进入或离开其区域。
+
+### 2.1 定义感应器
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local BodyDef <const> = require("BodyDef")
+
+-- 通过定义一组顶点来创建一个空心的圆形静态刚体
+-- 用于限制本示例的活动区域
+local terrainDef = BodyDef()
+local count <const> = 50
+local radius <const> = 300
+local vertices = {}
+for i = 1, count + 1 do
+	local angle = 2 * math.pi * i / count
+	vertices[i] = Vec2(radius * math.cos(angle), radius * math.sin(angle))
+end
+-- 添加闭合的链形状的静态刚体的定义
+terrainDef:attachChain(vertices, 0.4, 0)
+
+-- 添加一个圆形感应器区域，标签为数字 99
+terrainDef:attachDiskSensor(99, Vec2(80, 80), 100)
+```
+
+</TabItem>
+</Tabs>
+
+- `attachChain`：创建一个由多个顶点组成的链形状。
+- `attachDiskSensor`：在指定位置添加一个圆形感应器，不参与物理碰撞，但可检测进入的物体。
+
+### 2.2 监听感应器事件
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local terrain = Body(terrainDef, world)
+terrain:onBodyEnter(function(other, sensorTag)
+	if sensorTag == 99 then
+		-- 当有物体进入感应器区域时触发
+		other.velocity = other.velocity * 0.5 -- 将物体速度减半
+	end
+end)
+terrain:addTo(world)
+```
+
+</TabItem>
+</Tabs>
+
+- `onBodyEnter`：当其他物体进入感应器区域时调用。
+- 回调函数参数：
+	- `other`：进入感应器的物体。
+	- `sensorTag`：感应器的标签，用于区分不同的感应器。
+
+## 3. 创建单向通过的平台
+
+&emsp;&emsp;通过 `onContactFilter`，我们可以控制物体的碰撞行为，创建一个单向通过的平台。
+
+### 3.1 定义平台刚体
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local platformDef = BodyDef()
+-- 添加一个矩形平台的定义
+platformDef:attachPolygon(
+	Vec2(0, -80), -- 位置
+	120, 30, -- 宽高
+	0, -- 角度
+	1, 0, 1.0 -- 密度、摩擦系数、弹性系数
+)
+```
+
+</TabItem>
+</Tabs>
+
+### 3.2 设置碰撞过滤器
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local platform = Body(platformDef, world)
+platform:onContactFilter(function(body)
+	return body.velocityY < 0 -- 仅当物体向下移动时才发生碰撞
+end)
+platform:addTo(world)
+```
+
+</TabItem>
+</Tabs>
+
+- `onContactFilter`：自定义碰撞检测规则。
+- 回调函数返回 `true` 表示允许碰撞，`false` 表示忽略碰撞。
+- 通过判断物体的垂直速度 `velocityY`，实现单向碰撞效果。
+
+## 4. 获取物体碰撞的事件
+
+&emsp;&emsp;监听物体的碰撞事件，可以执行特定的逻辑，例如播放音效、触发动画等。
+
+### 4.1 创建动态刚体
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local BodyDef <const> = require("BodyDef")
+local diskDef = BodyDef()
+diskDef.type = "Dynamic"
+diskDef.linearAcceleration = gravity
+diskDef:attachDisk(20, 5, 0.8, 1) -- 创建半径为20的圆形刚体
+
+local disk = Body(diskDef, world, Vec2(100, 200))
+disk.angularRate = -1800 -- 设置旋转速度
+disk:addTo(world)
+```
+
+</TabItem>
+</Tabs>
+
+- `type`：设置为动态刚体，受物理引擎影响。
+- `attachDisk`：创建圆形形状的刚体。
+
+### 4.2 监听碰撞事件
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local Line <const> = require("Line")
+local App <const> = require("App")
+
+-- 创建用于在碰撞点绘制的标记
+local drawNode = Line({
+	Vec2(-20, 0),
+	Vec2(20, 0),
+	Vec2.zero,
+	Vec2(0, -20),
+	Vec2(0, 20)
+}, App.themeColor)
+drawNode:addTo(world)
+
+disk:onContactStart(function(other, point)
+	-- 设置绘制标记的位置为碰撞点
+	drawNode.position = point
+end)
+```
+
+</TabItem>
+</Tabs>
+
+- `onContactStart`：当刚体开始接触另一个物体时调用。
+- 回调函数参数：
+	- `other`：碰撞的另一个物体。
+	- `point`：碰撞发生的世界坐标点。
+- 使用 `drawNode` 在碰撞位置显示一个标记，方便可视化观察。
+
+## 5. 运行效果
+
+&emsp;&emsp;通过以上代码，您将实现以下效果：
+
+- **感应器功能**：当物体进入感应器区域时，其速度被减半，模拟一个减速区域的效果。
+- **单向平台**：物体只能从平台上方落下，无法从下方穿过，实现单向通过。
+- **碰撞事件**：当圆形刚体与其他物体碰撞时，在碰撞点显示标记。
+
+## 6. 总结
+
+&emsp;&emsp;本教程介绍了物理节点的高级功能，包括感应器的使用、如何创建单向通过的平台，以及如何获取和处理物体的碰撞事件。这些功能能够丰富您的游戏交互性，提升玩家体验。
+
+&emsp;&emsp;通过对感应器和碰撞事件的掌握，您可以：
+
+- **设计复杂的触发机制**：如陷阱、开关、传送门等。
+- **优化游戏物理效果**：实现更逼真的物理交互，如弹性碰撞、速度控制。
+- **增强游戏玩法**：创造独特的关卡设计和挑战。
+
+&emsp;&emsp;希望本教程能帮助您更深入地理解 Dora SSR 的物理系统，继续探索更丰富的游戏功能！
+
+:::tip 提示
+&emsp;&emsp;在实际开发中，善于利用物理引擎的高级特性，可以让您的游戏更具创意和趣味性。多尝试不同的参数和功能，发现更多可能性！
+:::

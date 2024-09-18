@@ -1,4 +1,6 @@
 import "@site/src/languages/highlight";
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
 
 # 使用 Sprite 节点类
 
@@ -21,14 +23,23 @@ import "@site/src/languages/highlight";
 
 &emsp;&emsp;在开始之前，确保您已经在项目中正确导入了 Sprite 类。代码示例如下：
 
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
 ```lua
 local Sprite = require("Sprite")
 local Texture2D = require("Texture2D")
 ```
 
+</TabItem>
+</Tabs>
+
 ## 3. 创建一个基础 Sprite
 
 &emsp;&emsp;首先，我们来创建一个简单的 Sprite 来渲染一张图片。假设我们有一张图片文件 `"Image/hero.png"`，我们可以这样加载它：
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
 
 ```lua
 -- 创建一个新的 Sprite 对象，并加载 "Image/hero.png" 作为纹理
@@ -38,9 +49,15 @@ local heroSprite = Sprite("Image/hero.png")
 scene:addChild(heroSprite)
 ```
 
+</TabItem>
+</Tabs>
+
 &emsp;&emsp;在这个示例中，`heroSprite` 通过 `Sprite("Image/hero.png")` 创建，并将 `"Image/hero.png"` 图片文件加载为纹理。接着，我们将这个 Sprite 添加到场景中进行渲染。
 
 &emsp;&emsp;在实际开发中，加载图片可能需要一些时间。您可以使用 `Cache:loadAsync()` 方法异步加载图片，以避免阻塞主线程。
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
 
 ```lua
 local Sprite = require("Sprite")
@@ -59,9 +76,15 @@ thread(function()
 end)
 ```
 
+</TabItem>
+</Tabs>
+
 ## 4. 设置 Sprite 的纹理矩形区域
 
 &emsp;&emsp;有时我们只想渲染纹理的一部分。这时可以通过设置 `textureRect` 来指定纹理的渲染区域。例如，如果我们想只渲染图片的左上角区域，可以这样做：
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
 
 ```lua
 -- 定义纹理的矩形区域，表示左上角区域（假设图片大小为 256x256）
@@ -71,6 +94,9 @@ local textureRect = Rect(0, 0, 128, 128)
 local heroSprite = Sprite("Image/hero.png")
 heroSprite.textureRect = textureRect
 ```
+
+</TabItem>
+</Tabs>
 
 &emsp;&emsp;在这个示例中，我们定义了一个 `Rect` 对象来表示纹理的左上角 128x128 的区域，并将其应用到 `heroSprite` 的 `textureRect` 属性上。
 
@@ -91,6 +117,9 @@ heroSprite.textureRect = textureRect
 
 示例代码：
 
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
 ```lua
 -- 创建 Sprite 并设置纹理环绕模式
 local heroSprite = Sprite("Image/hero.png")
@@ -101,9 +130,15 @@ heroSprite.vwrap = "Clamp"
 heroSprite.filter = "Point"
 ```
 
+</TabItem>
+</Tabs>
+
 ## 6. 使用自定义着色器特效
 
 &emsp;&emsp;Sprite 类允许您为渲染的图形应用着色器特效。您可以通过 `effect` 属性来设置特效。例如：
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
 
 ```lua
 local SpriteEffect = require("SpriteEffect")
@@ -111,6 +146,9 @@ local SpriteEffect = require("SpriteEffect")
 local spriteEffect = SpriteEffect("builtin:vs_sprite", "builtin:fs_sprite")
 heroSprite.effect = spriteEffect
 ```
+
+</TabItem>
+</Tabs>
 
 &emsp;&emsp;在这里，我们为 Sprite 加载了一个内置的顶点和片段着色器，并将其应用到 `heroSprite` 上，增加了渲染效果。
 

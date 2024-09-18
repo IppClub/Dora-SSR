@@ -1,3 +1,7 @@
+import "@site/src/languages/highlight";
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # Using the Sprite Node
 
 In this tutorial, we will learn how to use the `Sprite` node class in the Dora SSR game engine to create and render graphical elements in your game. The `Sprite` node is a fundamental building block for rendering textures (such as images or patterns) on the screen.
@@ -18,14 +22,23 @@ A `Sprite` is a class that inherits from `Node` and represents a graphical eleme
 
 Before we begin, make sure you have imported the `Sprite` class correctly into your project. The code example is as follows:
 
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
 ```lua
 local Sprite = require("Sprite")
 local Texture2D = require("Texture2D")
 ```
 
+</TabItem>
+</Tabs>
+
 ## 3. Creating a Basic Sprite
 
 Let's start by creating a simple `Sprite` to render an image. Suppose we have an image file `"Image/hero.png"`, we can load it like this:
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
 
 ```lua
 -- Create a new Sprite object and load "Image/hero.png" as a texture
@@ -35,9 +48,15 @@ local heroSprite = Sprite("Image/hero.png")
 scene:addChild(heroSprite)
 ```
 
+</TabItem>
+</Tabs>
+
 In this example, the `heroSprite` is created by calling `Sprite("Image/hero.png")`, which loads the `"Image/hero.png"` image file as the texture. We then add this `Sprite` to the scene for rendering.
 
 In real-world development, loading images may take some time. You can use the `Cache:loadAsync()` method to load images asynchronously to avoid blocking the main thread.
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
 
 ```lua
 local Sprite = require("Sprite")
@@ -56,9 +75,15 @@ thread(function()
 end)
 ```
 
+</TabItem>
+</Tabs>
+
 ## 4. Setting the Texture Rectangle
 
 Sometimes, you may want to render only a part of the texture. You can specify the texture rendering area by setting the `textureRect`. For example, if we want to render only the top-left corner of the image, we can do this:
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
 
 ```lua
 -- Define a rectangle area for the texture (assuming the image size is 256x256)
@@ -68,6 +93,9 @@ local textureRect = Rect(0, 0, 128, 128)
 local heroSprite = Sprite("Image/hero.png")
 heroSprite.textureRect = textureRect
 ```
+
+</TabItem>
+</Tabs>
 
 In this example, we define a `Rect` object representing a 128x128 area from the top-left corner of the texture and assign it to the `heroSprite`'s `textureRect` property.
 
@@ -88,6 +116,9 @@ The `Sprite` class allows you to control the texture wrapping modes (`uwrap` and
 
 Example code:
 
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
 ```lua
 -- Create a Sprite and set texture wrapping mode
 local heroSprite = Sprite("Image/hero.png")
@@ -98,9 +129,15 @@ heroSprite.vwrap = "Clamp"
 heroSprite.filter = "Point"
 ```
 
+</TabItem>
+</Tabs>
+
 ## 6. Using Custom Shader Effects
 
 The `Sprite` class allows you to apply shader effects to the rendered graphic via the `effect` property. For example:
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
 
 ```lua
 local SpriteEffect = require("SpriteEffect")
@@ -108,6 +145,9 @@ local SpriteEffect = require("SpriteEffect")
 local spriteEffect = SpriteEffect("builtin:vs_sprite", "builtin:fs_sprite")
 heroSprite.effect = spriteEffect
 ```
+
+</TabItem>
+</Tabs>
 
 Here, we load a built-in vertex and fragment shader and apply it to `heroSprite`, enhancing the rendering effects.
 

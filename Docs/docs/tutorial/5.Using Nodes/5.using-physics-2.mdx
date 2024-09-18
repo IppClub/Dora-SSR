@@ -1,0 +1,221 @@
+import "@site/src/languages/highlight";
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Creating Physics Nodes II
+
+In this tutorial, we will dive into the advanced features of physics nodes, including:
+
+1. **Sensor Functionality**: Sensors do not participate in physical collisions but can detect when objects enter or leave a specified area.
+2. **One-Way Platform**: Using the `onContactFilter` callback to create a platform that only allows objects to pass through from one direction.
+3. **Detecting Collision Events**: How to listen for and handle object collision events.
+
+Through the following code examples and explanations, you'll learn how to implement these features in Dora SSR.
+
+## 1. Creating the Physics World
+
+First, initialize the physics world and set basic parameters.
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local Vec2 <const> = require("Vec2")
+local PhysicsWorld <const> = require("PhysicsWorld")
+
+local gravity <const> = Vec2(0, -10) -- Define gravity direction and magnitude
+
+local world = PhysicsWorld() -- Create the physics world
+world:setShouldContact(0, 0, true) -- Set collision rules between groups
+world.showDebug = true -- Show debug information
+```
+
+</TabItem>
+</Tabs>
+
+## 2. Creating a Sensor
+
+A sensor is a special type of physics object that doesn’t participate in collisions but can detect other objects entering or leaving its area.
+
+### 2.1 Defining the Sensor
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local BodyDef <const> = require("BodyDef")
+
+-- Define a hollow circular static body using a series of vertices
+-- This limits the activity area for this example
+local terrainDef = BodyDef()
+local count <const> = 50
+local radius <const> = 300
+local vertices = {}
+for i = 1, count + 1 do
+	local angle = 2 * math.pi * i / count
+	vertices[i] = Vec2(radius * math.cos(angle), radius * math.sin(angle))
+end
+-- Add a chain-shaped static body definition
+terrainDef:attachChain(vertices, 0.4, 0)
+
+-- Add a circular sensor with a tag number 99
+terrainDef:attachDiskSensor(99, Vec2(80, 80), 100)
+```
+
+</TabItem>
+</Tabs>
+
+- `attachChain`: Creates a chain shape composed of multiple vertices.
+- `attachDiskSensor`: Adds a circular sensor at the specified location that does not participate in collisions but can detect objects entering the area.
+
+### 2.2 Listening for Sensor Events
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local terrain = Body(terrainDef, world)
+terrain:onBodyEnter(function(other, sensorTag)
+	if sensorTag == 99 then
+		-- Triggered when an object enters the sensor area
+		other.velocity = other.velocity * 0.5 -- Reduce the object's speed by half
+	end
+end)
+terrain:addTo(world)
+```
+
+</TabItem>
+</Tabs>
+
+- `onBodyEnter`: Called when another object enters the sensor area.
+- Callback parameters:
+	- `other`: The object that enters the sensor.
+	- `sensorTag`: The tag used to identify different sensors.
+
+## 3. Creating a One-Way Platform
+
+By using `onContactFilter`, we can control how objects interact with the platform, creating a one-way passage.
+
+### 3.1 Defining the Platform Body
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local platformDef = BodyDef()
+-- Define a rectangular platform
+platformDef:attachPolygon(
+	Vec2(0, -80), -- Position
+	120, 30, -- Width and height
+	0, -- Angle
+	1, 0, 1.0 -- Density, friction, and restitution
+)
+```
+
+</TabItem>
+</Tabs>
+
+### 3.2 Setting the Collision Filter
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local platform = Body(platformDef, world)
+platform:onContactFilter(function(body)
+	return body.velocityY < 0 -- Only collide when the object is moving downward
+end)
+platform:addTo(world)
+```
+
+</TabItem>
+</Tabs>
+
+- `onContactFilter`: A custom collision detection rule.
+- The callback returns `true` to allow the collision or `false` to ignore it.
+- By checking the object’s vertical velocity (`velocityY`), we achieve the one-way collision effect.
+
+## 4. Detecting Collision Events
+
+By listening to collision events, we can execute specific logic, such as playing sound effects or triggering animations.
+
+### 4.1 Creating a Dynamic Body
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local BodyDef <const> = require("BodyDef")
+local diskDef = BodyDef()
+diskDef.type = "Dynamic"
+diskDef.linearAcceleration = gravity
+diskDef:attachDisk(20, 5, 0.8, 1) -- Create a disk-shaped dynamic body with a radius of 20
+
+local disk = Body(diskDef, world, Vec2(100, 200))
+disk.angularRate = -1800 -- Set the angular rotation rate
+disk:addTo(world)
+```
+
+</TabItem>
+</Tabs>
+
+- `type`: Set the body as dynamic so it’s affected by the physics engine.
+- `attachDisk`: Creates a circular-shaped rigid body.
+
+### 4.2 Listening for Collision Events
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local Line <const> = require("Line")
+local App <const> = require("App")
+
+-- Create a marker to draw at the collision point
+local drawNode = Line({
+	Vec2(-20, 0),
+	Vec2(20, 0),
+	Vec2.zero,
+	Vec2(0, -20),
+	Vec2(0, 20)
+}, App.themeColor)
+drawNode:addTo(world)
+
+disk:onContactStart(function(other, point)
+	-- Set the marker's position at the collision point
+	drawNode.position = point
+end)
+```
+
+</TabItem>
+</Tabs>
+
+- `onContactStart`: Called when the body begins contact with another object.
+- Callback parameters:
+	- `other`: The other object involved in the collision.
+	- `point`: The world coordinates of the collision point.
+- `drawNode`: Used to display a marker at the collision point for visual observation.
+
+## 5. Running the Code
+
+With the above code, you will achieve the following effects:
+
+- **Sensor functionality**: When an object enters the sensor area, its speed is halved, simulating a slow-down zone.
+- **One-way platform**: Objects can only fall through the platform from above, preventing passage from below.
+- **Collision events**: When the circular body collides with another object, a marker appears at the collision point.
+
+## 6. Conclusion
+
+This tutorial covered advanced physics node features, including using sensors, creating a one-way platform, and detecting and handling collision events. These features can enrich your game's interactivity and enhance player experience.
+
+By mastering sensors and collision events, you can:
+
+- **Design complex trigger mechanisms**: Such as traps, switches, and teleporters.
+- **Optimize game physics effects**: Achieve more realistic physical interactions, such as elastic collisions and speed control.
+- **Enhance gameplay**: Create unique level designs and challenges.
+
+We hope this tutorial helps you deepen your understanding of Dora SSR's physics system and inspires you to explore more advanced game functionalities!
+
+:::tip
+In actual development, utilizing the advanced features of the physics engine can make your game more creative and fun. Experiment with different parameters and functions to discover more possibilities!
+:::

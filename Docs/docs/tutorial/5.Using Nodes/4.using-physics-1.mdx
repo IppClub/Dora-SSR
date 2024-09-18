@@ -1,0 +1,151 @@
+import "@site/src/languages/highlight";
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Creating Physics Nodes I
+
+In this tutorial, we will learn how to create physical rigid body node objects in the Dora SSR game engine and set collision relationships between different groups of physical objects. By following these steps, you'll be able to implement basic object gravity movement, shape configuration, and collision detection in the physics world.
+
+## 1. Creating the Physics World and Gravity
+
+First, we need to define a physics world and set the direction and magnitude of gravity. In this example, gravity is defined as downward with a magnitude of `-10`.
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local Vec2 <const> = require("Vec2")
+local PhysicsWorld <const> = require("PhysicsWorld")
+
+local gravity <const> = Vec2(0, -10) -- Define gravity direction and magnitude
+local world = PhysicsWorld() -- Create the physics world
+world.y = -200 -- Adjust the y-axis position of the physics world
+```
+
+</TabItem>
+</Tabs>
+
+## 2. Defining Rigid Bodies
+
+Rigid bodies can be either static or dynamic. Static bodies are used for immovable objects (such as the ground), while dynamic bodies are used for movable objects (such as characters or obstacles). Additionally, there's a kinematic type for objects that have infinite mass but can be moved programmatically.
+
+### Defining a Static Terrain Rigid Body
+
+Static rigid bodies are often used for the ground or walls, which typically aren't affected by gravity. In the example below, we create a static terrain body with a polygon shape of 800x10.
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local BodyDef <const> = require("BodyDef")
+
+local terrainDef = BodyDef()
+terrainDef.type = "Static" -- Set the body to be static
+terrainDef:attachPolygon(800, 10, 1, 0.8, 0.2) -- Attach a rectangular polygon of width 800 and height 10
+-- Note that 1, 0.8, 0.2 represent density, friction, and restitution coefficients respectively
+```
+
+</TabItem>
+</Tabs>
+
+### Defining a Dynamic Polygon Rigid Body
+
+Dynamic bodies are affected by gravity and move according to the forces in the physics world. Below, we define a polygon-shaped body, in this case, a hexagon.
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local polygonDef = BodyDef()
+polygonDef.type = "Dynamic" -- Set the body to be dynamic
+polygonDef.linearAcceleration = gravity -- Apply gravity
+polygonDef:attachPolygon({
+	Vec2(60, 0),
+	Vec2(30, -30),
+	Vec2(-30, -30),
+	Vec2(-60, 0),
+	Vec2(-30, 30),
+	Vec2(30, 30)
+}, 1, 0.4, 0.4) -- Define a hexagon shape
+```
+
+</TabItem>
+</Tabs>
+
+### Defining a Dynamic Disk Rigid Body
+
+A disk-shaped body is similar to a polygon body, except its shape is circular, and it is also affected by gravity.
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local diskDef = BodyDef()
+diskDef.type = "Dynamic" -- Set the body to be dynamic
+diskDef.linearAcceleration = gravity -- Apply gravity
+diskDef:attachDisk(60, 1, 0.4, 0.4) -- Attach a disk with a radius of 60
+```
+
+</TabItem>
+</Tabs>
+
+## 3. Setting Group and Collision Relationships
+
+We can use groups to determine collision relationships between objects. In this example, we create three groups and use the `setShouldContact` method to specify the collision rules between them.
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local groupZero <const> = 0
+local groupOne <const> = 1
+local groupTwo <const> = 2
+
+world:setShouldContact(groupZero, groupOne, false) -- Group 0 doesn't collide with group 1
+world:setShouldContact(groupZero, groupTwo, true)  -- Group 0 collides with group 2
+world:setShouldContact(groupOne, groupTwo, true)   -- Group 1 collides with group 2
+world.showDebug = true -- Show debug information
+```
+
+</TabItem>
+</Tabs>
+
+:::tip Best Practices for Physics Grouping
+In actual game development, setting up physics groups properly can significantly improve performance and reduce unnecessary calculations. It's recommended to assign different groups to static elements, dynamic objects, and player characters in the game, and adjust collision relationships as needed.
+:::
+
+## 4. Creating and Adding Rigid Bodies to the Physics World
+
+Finally, we instantiate the defined rigid body objects and add them to the physics world. Each body can be assigned to a different group and have an initial position in the world.
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local Body <const> = require("Body")
+
+-- Create and add the static terrain body
+local terrain = Body(terrainDef, world, Vec2.zero)
+terrain.group = groupTwo -- Set the body to group 2
+world:addChild(terrain)
+
+-- Create and add the dynamic polygon body
+local polygon = Body(polygonDef, world, Vec2(0, 500), 15)
+polygon.group = groupOne -- Set the body to group 1
+world:addChild(polygon)
+
+-- Create and add the dynamic disk body
+local disk = Body(diskDef, world, Vec2(50, 800))
+disk.group = groupZero -- Set the body to group 0
+disk.angularRate = 90 -- Set the rotation speed
+world:addChild(disk)
+```
+
+</TabItem>
+</Tabs>
+
+## 5. Conclusion
+
+In this tutorial, you learned how to create physical rigid bodies in the Dora SSR game engine and control collisions between objects through grouping. By flexibly configuring the properties, shapes, and groups of rigid bodies, you can achieve complex physical effects and add more fun to your game.
+
+We hope this tutorial helps you better understand Dora SSR's physics system. Happy developing!

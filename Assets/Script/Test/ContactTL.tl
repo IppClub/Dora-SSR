@@ -28,11 +28,23 @@ for i = 1, count + 1 do
 	index = index + 1
 end
 terrainDef:attachChain(vertices, 0.4, 0)
-terrainDef:attachDisk(Vec2(0, -270), 30, 1, 0, 1.0)
-terrainDef:attachPolygon(Vec2(0, 80), 120, 30, 0, 1, 0, 1.0)
-
+terrainDef:attachDiskSensor(99, Vec2(80, 80), 100)
 local terrain = Body(terrainDef, world)
+terrain:onBodyEnter(function(other: Body.Type, sensorTag: integer)
+	if sensorTag == 99 then
+		other.velocity = other.velocity * 0.5
+	end
+end)
 terrain:addTo(world)
+
+local platformDef = BodyDef()
+platformDef:attachPolygon(Vec2(0, -80), 120, 30, 0, 1, 0, 1.0)
+
+local platform = Body(platformDef, world)
+platform:onContactFilter(function(body: Body.Type): boolean
+	return body.velocityY < 0
+end)
+platform:addTo(world)
 
 local drawNode = Line({
 	Vec2(-20, 0),

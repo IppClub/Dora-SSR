@@ -1,10 +1,20 @@
+import "@site/src/languages/highlight";
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # 使用 Playable 节点类
 
 &emsp;&emsp;在游戏开发中，动画是使角色和场景生动起来的重要元素。Dora SSR 引擎提供了一个强大的动画处理节点类——**Playable**。它是三种动画系统的基础类：
 
-- **Model**：Dora SSR 引擎实现的骨骼动画系统。动画模型通常由一个 `.model` 文件，一个 `.clip` 文件和一个 `.png` 文件组成。
-- **DragonBone**：开源的 DragonBones 动画系统。动画模型通常由一个以 `_ske.json` 结尾的文件，一个以 `_tex.json` 结尾的文件和一个以 `_tex.png` 结尾的图片文件组成。
-- **Spine**：著名的商业动画软件 Spine2D 的动画系统。动画模型通常由一个 `.json` (或是 `.skel`) 文件，一个 `.atlas` 文件和一个 `.png` 文件组成。
+- **Model**：
+	- Dora SSR 引擎实现的骨骼动画系统。
+	- 动画模型通常由一个 `.model` 文件，一个 `.clip` 文件和一个 `.png` 文件组成。
+- **DragonBone**：
+	- 开源的 DragonBones 动画系统。
+	- 动画模型通常由一个以 `_ske.json` 结尾的文件，一个以 `_tex.json` 结尾的文件和一个以 `_tex.png` 结尾的图片文件组成。
+- **Spine**：
+	- 著名的商业动画软件 Spine2D 的动画系统。
+	- 动画模型通常由一个 `.json` (或是 `.skel`) 文件，一个 `.atlas` 文件和一个 `.png` 文件组成。
 
 &emsp;&emsp;本教程将指导您如何在程序中使用 Playable 节点，涵盖从加载动画到控制播放的各个方面。
 
@@ -17,6 +27,9 @@
 - **DragonBones 文件**：`"bone:"` 前缀 + 不带后缀的 DragonBones 文件路径。
 
 ### 示例：加载 Model 动画
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
 
 ```lua
 local Playable = require("Playable")
@@ -33,7 +46,13 @@ else
 end
 ```
 
+</TabItem>
+</Tabs>
+
 ### 示例：加载 Spine 动画
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
 
 ```lua
 local Playable = require("Playable")
@@ -50,7 +69,13 @@ else
 end
 ```
 
+</TabItem>
+</Tabs>
+
 ### 示例：加载 DragonBones 动画
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
 
 ```lua
 local Playable = require("Playable")
@@ -67,9 +92,15 @@ else
 end
 ```
 
+</TabItem>
+</Tabs>
+
 ### 示例：异步加载动画
 
 &emsp;&emsp;在实际开发中，加载动画可能需要一些时间。您可以使用 `Cache:loadAsync()` 方法异步加载动画，加载完成后执行回调函数。
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
 
 ```lua
 local Playable = require("Playable")
@@ -88,14 +119,23 @@ thread(function()
 end)
 ```
 
+</TabItem>
+</Tabs>
+
 ## 播放动画
 
 &emsp;&emsp;创建实例后，可以使用 `play` 方法播放指定的动画。
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
 
 ```lua
 -- 播放动画 "run"，并循环播放
 local duration = character:play("run", true)
 ```
+
+</TabItem>
+</Tabs>
 
 - **参数说明**：
 	- `name`：要播放的动画名称。
@@ -106,19 +146,31 @@ local duration = character:play("run", true)
 
 &emsp;&emsp;使用 `stop` 方法可以停止当前正在播放的动画。
 
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
 ```lua
 -- 停止动画
 character:stop()
 ```
 
+</TabItem>
+</Tabs>
+
 ## 设置播放速度
 
 &emsp;&emsp;通过调整 `speed` 属性，可以改变动画的播放速度。
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
 
 ```lua
 -- 将播放速度加倍
 character.speed = 2.0
 ```
+
+</TabItem>
+</Tabs>
 
 - **注意**：`speed` 的默认值为 `1.0`。
 
@@ -126,10 +178,16 @@ character.speed = 2.0
 
 &emsp;&emsp;使用 `fliped` 属性可以水平翻转动画，常用于角色转向。
 
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
 ```lua
 -- 水平翻转
 character.fliped = true
 ```
+
+</TabItem>
+</Tabs>
 
 - **`fliped`**：`true` 表示翻转，`false` 表示正常。
 
@@ -137,11 +195,17 @@ character.fliped = true
 
 &emsp;&emsp;`getKey` 方法用于获取模型上关键点的坐标，例如角色的手、脚位置。在 Model 动画系统中，关键点是模型上设置的特定点。在 DragonBone 中，关键点是骨骼的位置。在 Spine2D 中，关键点是顶点附件的位置。
 
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
 ```lua
 -- 获取角色右手的坐标
 local handPosition = character:getKey("right_hand")
 print("右手坐标：", handPosition.x, handPosition.y)
 ```
+
+</TabItem>
+</Tabs>
 
 - **参数**：关键点名称（字符串）。
 - **返回值**：`Vec2`，表示关键点的坐标。
@@ -149,6 +213,9 @@ print("右手坐标：", handPosition.x, handPosition.y)
 ## 使用插槽添加子节点
 
 &emsp;&emsp;`setSlot` 方法允许在模型的特定插槽上添加子节点，例如为角色添加武器或装备。
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
 
 ```lua
 -- 创建武器精灵
@@ -158,13 +225,19 @@ local sword = Sprite("assets/sword.png")
 character:setSlot("right_hand", sword)
 ```
 
+</TabItem>
+</Tabs>
+
 - **参数说明**：
-  - `name`：插槽名称。
-  - `item`：要添加的节点对象。
+	- `name`：插槽名称。
+	- `item`：要添加的节点对象。
 
 ## 获取插槽上的子节点
 
 &emsp;&emsp;使用 `getSlot` 方法可以获取指定插槽上的子节点。
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
 
 ```lua
 -- 获取 "right_hand" 插槽上的节点
@@ -176,11 +249,17 @@ else
 end
 ```
 
+</TabItem>
+</Tabs>
+
 - **返回值**：`Node` 对象或 `nil`。
 
 ## 监听动画结束事件
 
 &emsp;&emsp;可以使用 `onAnimationEnd` 方法注册一个回调函数，当动画播放结束时触发。
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
 
 ```lua
 -- 注册动画结束回调
@@ -190,12 +269,18 @@ character:onAnimationEnd(function(animationName, target)
 end)
 ```
 
+</TabItem>
+</Tabs>
+
 - **参数说明**：
 	- `callback`：回调函数，接受 `animationName` 和 `target` 两个参数。
 
 ## 综合示例
 
 &emsp;&emsp;以下是一个综合示例，演示如何创建角色，播放动画，添加装备，并处理动画结束事件。
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
 
 ```lua
 local Playable = require("Playable")
@@ -234,6 +319,9 @@ character:loop(function()
 	sleep(duration)
 end)
 ```
+
+</TabItem>
+</Tabs>
 
 ## 结论
 
