@@ -4,7 +4,7 @@ import "@site/src/languages/highlight";
 
 **Description:**
 
-&emsp;&emsp;The YueScript language library.
+&emsp;&emsp;The Yuescript language library.
 
 ## version
 
@@ -12,7 +12,7 @@ import "@site/src/languages/highlight";
 
 **Description:**
 
-&emsp;&emsp;The YueScript version.
+&emsp;&emsp;The Yuescript version.
 
 **Signature:**
 ```tl
@@ -51,7 +51,7 @@ yue_compiled: {string: string}
 
 **Description:**
 
-&emsp;&emsp;The YueScript compiling function. It compiles the YueScript code to Lua code.
+&emsp;&emsp;The Yuescript compiling function. It compiles the Yuescript code to Lua code.
 
 **Signature:**
 ```tl
@@ -65,7 +65,7 @@ to_lua: function(code: string, config?: Config):
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| code | string | The YueScript code. |
+| code | string | The Yuescript code. |
 | config | Config | [Optional] The compiler options. |
 
 **Returns:**
@@ -132,7 +132,7 @@ read_file: function(filename: string): string
 
 **Description:**
 
-&emsp;&emsp;Insert the YueScript loader to the package loaders (searchers).
+&emsp;&emsp;Insert the Yuescript loader to the package loaders (searchers).
 
 **Signature:**
 ```tl
@@ -157,7 +157,7 @@ insert_loader: function(pos?: integer): boolean
 
 **Description:**
 
-&emsp;&emsp;Remove the YueScript loader from the package loaders (searchers).
+&emsp;&emsp;Remove the Yuescript loader from the package loaders (searchers).
 
 **Signature:**
 ```tl
@@ -176,7 +176,7 @@ remove_loader: function(): boolean
 
 **Description:**
 
-&emsp;&emsp;Loads YueScript code from a string into a function.
+&emsp;&emsp;Loads Yuescript code from a string into a function.
 
 **Signature:**
 ```tl
@@ -189,7 +189,7 @@ loadstring: function(input: string, chunkname: string, env: table, config?: Conf
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| input | string | The YueScript code. |
+| input | string | The Yuescript code. |
 | chunkname | string | The name of the code chunk. |
 | env | table | The environment table. |
 | config | Config | [Optional] The compiler options. |
@@ -207,7 +207,7 @@ loadstring: function(input: string, chunkname: string, env: table, config?: Conf
 
 **Description:**
 
-&emsp;&emsp;Loads YueScript code from a string into a function.
+&emsp;&emsp;Loads Yuescript code from a string into a function.
 
 **Signature:**
 ```tl
@@ -220,7 +220,7 @@ loadstring: function(input: string, chunkname: string, config?: Config):
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| input | string | The YueScript code. |
+| input | string | The Yuescript code. |
 | chunkname | string | The name of the code chunk. |
 | config | Config | [Optional] The compiler options. |
 
@@ -237,7 +237,7 @@ loadstring: function(input: string, chunkname: string, config?: Config):
 
 **Description:**
 
-&emsp;&emsp;Loads YueScript code from a string into a function.
+&emsp;&emsp;Loads Yuescript code from a string into a function.
 
 **Signature:**
 ```tl
@@ -250,7 +250,7 @@ loadstring: function(input: string, config?: Config):
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| input | string | The YueScript code. |
+| input | string | The Yuescript code. |
 | config | Config | [Optional] The compiler options. |
 
 **Returns:**
@@ -266,7 +266,7 @@ loadstring: function(input: string, config?: Config):
 
 **Description:**
 
-&emsp;&emsp;Loads YueScript code from a file into a function.
+&emsp;&emsp;Loads Yuescript code from a file into a function.
 
 **Signature:**
 ```tl
@@ -296,7 +296,7 @@ loadfile: function(filename: string, env: table, config?: Config):
 
 **Description:**
 
-&emsp;&emsp;Loads YueScript code from a file into a function.
+&emsp;&emsp;Loads Yuescript code from a file into a function.
 
 **Signature:**
 ```tl
@@ -325,7 +325,7 @@ loadfile: function(filename: string, config?: Config):
 
 **Description:**
 
-&emsp;&emsp;Loads YueScript code from a file into a function and executes it.
+&emsp;&emsp;Loads Yuescript code from a file into a function and executes it.
 
 **Signature:**
 ```tl
@@ -352,7 +352,7 @@ dofile: function(filename: string, env: table, config?: Config): any...
 
 **Description:**
 
-&emsp;&emsp;Loads YueScript code from a file into a function and executes it.
+&emsp;&emsp;Loads Yuescript code from a file into a function and executes it.
 
 **Signature:**
 ```tl
@@ -378,7 +378,7 @@ dofile: function(filename: string, config?: Config): any...
 
 **Description:**
 
-&emsp;&emsp;Resolves the YueScript module name to the file path.
+&emsp;&emsp;Resolves the Yuescript module name to the file path.
 
 **Signature:**
 ```tl
@@ -405,7 +405,7 @@ find_modulepath: function(name: string): string
 
 &emsp;&emsp;Calls a function in protected mode.
 Catches any errors and returns a status code and results or error object.
-Rewrites the error line number to the original line number in the YueScript code when errors occur.
+Rewrites the error line number to the original line number in the Yuescript code when errors occur.
 
 **Signature:**
 ```tl
@@ -431,8 +431,8 @@ pcall: function(f: function, ...: any): boolean, any...
 
 **Description:**
 
-&emsp;&emsp;Loads a given module. Can be either a Lua module or a YueScript module.
-Rewrites the error line number to the original line number in the YueScript code if the module is a YueScript module and loading fails.
+&emsp;&emsp;Loads a given module. Can be either a Lua module or a Yuescript module.
+Rewrites the error line number to the original line number in the Yuescript code if the module is a Yuescript module and loading fails.
 
 **Signature:**
 ```tl
@@ -489,7 +489,7 @@ options: Config.Options
 
 **Description:**
 
-&emsp;&emsp;The traceback function that rewrites the stack trace line numbers to the original line numbers in the YueScript code.
+&emsp;&emsp;The traceback function that rewrites the stack trace line numbers to the original line numbers in the Yuescript code.
 
 **Signature:**
 ```tl
@@ -514,7 +514,7 @@ traceback: function(message: string): string
 
 **Description:**
 
-&emsp;&emsp;Compiles the YueScript code to Lua code in a thread.
+&emsp;&emsp;Compiles the Yuescript code to Lua code in a thread.
 
 **Signature:**
 ```tl
@@ -612,7 +612,7 @@ to_ast: function(code: string, flattenLevel?: number, astName?: string):
 
 **Description:**
 
-&emsp;&emsp;Checks for the problems in the YueScript code asynchronously.
+&emsp;&emsp;Checks for the problems in the Yuescript code asynchronously.
 Should be called in a coroutine thread.
 
 **Signature:**
@@ -631,7 +631,7 @@ checkAsync: function(yueCodes: string, searchPath: string):
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| yueCodes | string | The YueScript code. |
+| yueCodes | string | The Yuescript code. |
 | searchPath | string | The extra module search path. |
 
 **Returns:**
@@ -660,8 +660,8 @@ clear: function()
 
 **Description:**
 
-&emsp;&emsp;Requires the YueScript module.
-Rewrites the error line number to the original line number in the YueScript code when loading fails.
+&emsp;&emsp;Requires the Yuescript module.
+Rewrites the error line number to the original line number in the Yuescript code when loading fails.
 
 **Signature:**
 ```tl

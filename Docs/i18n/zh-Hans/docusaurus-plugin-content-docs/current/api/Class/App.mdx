@@ -215,19 +215,6 @@ const maxFPS: integer
 const debugging: boolean
 ```
 
-## fullScreen
-
-**类型：** 只读成员变量。
-
-**描述：**
-
-&emsp;&emsp;游戏引擎是否运行在全屏模式下。
-
-**签名：**
-```tl
-const fullScreen: boolean
-```
-
 ## testNames
 
 **类型：** 只读成员变量。
@@ -325,6 +312,34 @@ fpsLimited: boolean
 idled: boolean
 ```
 
+## fullScreen
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;游戏引擎是否运行在全屏模式下。
+在Android和iOS平台上无法设置此属性。
+
+**签名：**
+```tl
+fullScreen: boolean
+```
+
+## alwayOnTop
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;游戏引擎是否运行在窗口置顶模式下。
+在Android和iOS平台上无法设置此属性。
+
+**签名：**
+```tl
+alwayOnTop: boolean
+```
+
 ## winSize
 
 **类型：** 成员变量。
@@ -333,7 +348,6 @@ idled: boolean
 
 &emsp;&emsp;应用程序窗口大小。
 由于显示设备的DPI不同，可能会与实际的可视大小有差异。
-将`winSize`设置为`Size.zero`，可以将应用程序窗口切换到全屏模式。
 在Android和iOS平台上无法设置此属性。
 
 **签名：**
