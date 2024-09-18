@@ -36,7 +36,7 @@ interface Packer {
 	growDown(w: number, h: number): Node | undefined;
 }
 
-function CreatePacker(this: void) {
+function CreatePacker() {
 	const packer: Packer = {
 		fit(blocks: Block[]) {
 			table.sort(blocks, (a, b) => {

@@ -21,6 +21,7 @@ const tstlOptions: tstl.CompilerOptions = {
 	luaLibImport: tstl.LuaLibImportKind.Require,
 	noHeader: true,
 	sourceMap: true,
+	noImplicitSelf: true,
 	moduleResolution: ts.ModuleResolutionKind.Classic,
 	allowSyntheticDefaultImports: true,
 	target: ts.ScriptTarget.ES2015,

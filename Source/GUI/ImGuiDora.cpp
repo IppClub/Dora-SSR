@@ -197,7 +197,8 @@ public:
 			clipper.Begin(s_cast<int>(_logs.size()));
 			while (clipper.Step()) {
 				for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++) {
-					ImGui::TextUnformatted(&_logs.at(i).front(), &_logs.at(i).back() + 1);
+					auto log = Slice(_logs.at(i));
+					ImGui::TextUnformatted(log.begin(), log.end());
 				}
 			}
 			clipper.End();

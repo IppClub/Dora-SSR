@@ -62,13 +62,13 @@ world:onAppChange(function(settingName) -- 25
         world.camera.zoom = View.size.width / DesignWidth -- 27
     end -- 27
 end) -- 25
-local function RectShape(self, props) -- 39
+local function RectShape(props) -- 39
     local x = props.x or 0 -- 40
     local y = props.y or 0 -- 41
     local color = Color3(props.color) -- 42
     local fillColor = Color(color, 102):toARGB() -- 43
     local borderColor = Color(color, 255):toARGB() -- 44
-    return React:createElement("rect-shape", { -- 45
+    return React.createElement("rect-shape", { -- 45
         centerX = x, -- 45
         centerY = y, -- 45
         width = props.width, -- 45
@@ -78,43 +78,43 @@ local function RectShape(self, props) -- 39
         borderWidth = 1 -- 45
     }) -- 45
 end -- 39
-local terrain = toNode(React:createElement( -- 56
+local terrain = toNode(React.createElement( -- 56
     "body", -- 56
     {type = "Static", world = world, order = TerrainLayer, group = TerrainGroup}, -- 56
-    React:createElement("rect-fixture", { -- 56
+    React.createElement("rect-fixture", { -- 56
         centerY = -500, -- 56
         width = 2500, -- 56
         height = 10, -- 56
         friction = 1, -- 56
         restitution = 0 -- 56
     }), -- 56
-    React:createElement("rect-fixture", { -- 56
+    React.createElement("rect-fixture", { -- 56
         centerY = 500, -- 56
         width = 2500, -- 56
         height = 10, -- 56
         friction = 1, -- 56
         restitution = 0 -- 56
     }), -- 56
-    React:createElement("rect-fixture", { -- 56
+    React.createElement("rect-fixture", { -- 56
         centerX = 1250, -- 56
         width = 10, -- 56
         height = 2500, -- 56
         friction = 1, -- 56
         restitution = 0 -- 56
     }), -- 56
-    React:createElement("rect-fixture", { -- 56
+    React.createElement("rect-fixture", { -- 56
         centerX = -1250, -- 56
         width = 10, -- 56
         height = 2500, -- 56
         friction = 1, -- 56
         restitution = 0 -- 56
     }), -- 56
-    React:createElement( -- 56
+    React.createElement( -- 56
         "draw-node", -- 56
         nil, -- 56
-        React:createElement(RectShape, {y = -500, width = 2500, height = 10, color = color}), -- 56
-        React:createElement(RectShape, {x = 1250, width = 10, height = 1000, color = color}), -- 56
-        React:createElement(RectShape, {x = -1250, width = 10, height = 1000, color = color}) -- 56
+        React.createElement(RectShape, {y = -500, width = 2500, height = 10, color = color}), -- 56
+        React.createElement(RectShape, {x = 1250, width = 10, height = 1000, color = color}), -- 56
+        React.createElement(RectShape, {x = -1250, width = 10, height = 1000, color = color}) -- 56
     ) -- 56
 )) -- 56
 if terrain ~= nil then -- 56
@@ -224,10 +224,10 @@ local ____DecisionTree_8 = DecisionTree -- 157
 local Selector = ____DecisionTree_8.Selector -- 157
 local Match = ____DecisionTree_8.Match -- 157
 local Action = ____DecisionTree_8.Action -- 157
-Data.store["AI:playerControl"] = toAI(React:createElement( -- 159
+Data.store["AI:playerControl"] = toAI(React.createElement( -- 159
     Selector, -- 160
     nil, -- 160
-    React:createElement( -- 160
+    React.createElement( -- 160
         Match, -- 161
         { -- 161
             desc = "fmove key down", -- 161
@@ -237,33 +237,33 @@ Data.store["AI:playerControl"] = toAI(React:createElement( -- 159
                 return not (keyLeft and keyRight) and (keyLeft and ____self.faceRight or keyRight and not ____self.faceRight) -- 164
             end -- 161
         }, -- 161
-        React:createElement(Action, {name = "turn"}) -- 161
+        React.createElement(Action, {name = "turn"}) -- 161
     ), -- 161
-    React:createElement( -- 161
+    React.createElement( -- 161
         Match, -- 173
         { -- 173
             desc = "is falling", -- 173
             onCheck = function(____self) return not ____self.onSurface end -- 173
         }, -- 173
-        React:createElement(Action, {name = "fallOff"}) -- 173
+        React.createElement(Action, {name = "fallOff"}) -- 173
     ), -- 173
-    React:createElement( -- 173
+    React.createElement( -- 173
         Match, -- 177
         { -- 177
             desc = "jump key down", -- 177
             onCheck = function(____self) return ____self.entity.keyJump end -- 177
         }, -- 177
-        React:createElement(Action, {name = "jump"}) -- 177
+        React.createElement(Action, {name = "jump"}) -- 177
     ), -- 177
-    React:createElement( -- 177
+    React.createElement( -- 177
         Match, -- 181
         { -- 181
             desc = "fmove key down", -- 181
             onCheck = function(____self) return ____self.entity.keyLeft or ____self.entity.keyRight end -- 181
         }, -- 181
-        React:createElement(Action, {name = "move"}) -- 181
+        React.createElement(Action, {name = "move"}) -- 181
     ), -- 181
-    React:createElement(Action, {name = "idle"}) -- 181
+    React.createElement(Action, {name = "idle"}) -- 181
 )) -- 181
 local unitDef = Dictionary() -- 189
 unitDef.linearAcceleration = Vec2(0, -15) -- 190
@@ -306,21 +306,21 @@ Observer("Add", {"player"}):watch(function(____self) -- 215
     return false -- 223
 end) -- 215
 Observer("Add", {"x", "icon"}):watch(function(____self, x, icon) -- 226
-    local sprite = toNode(React:createElement( -- 227
+    local sprite = toNode(React.createElement( -- 227
         "sprite", -- 227
         {file = icon}, -- 227
-        React:createElement( -- 227
+        React.createElement( -- 227
             "loop", -- 227
             nil, -- 227
-            React:createElement( -- 227
+            React.createElement( -- 227
                 "spawn", -- 227
                 nil, -- 227
-                React:createElement("angle-y", {time = 5, start = 0, stop = 360}), -- 227
-                React:createElement( -- 227
+                React.createElement("angle-y", {time = 5, start = 0, stop = 360}), -- 227
+                React.createElement( -- 227
                     "sequence", -- 227
                     nil, -- 227
-                    React:createElement("move-y", {time = 2.5, start = 0, stop = 40, easing = Ease.OutQuad}), -- 227
-                    React:createElement("move-y", {time = 2.5, start = 40, stop = 0, easing = Ease.InQuad}) -- 227
+                    React.createElement("move-y", {time = 2.5, start = 0, stop = 40, easing = Ease.OutQuad}), -- 227
+                    React.createElement("move-y", {time = 2.5, start = 40, stop = 0, easing = Ease.InQuad}) -- 227
                 ) -- 227
             ) -- 227
         ) -- 227
@@ -328,7 +328,7 @@ Observer("Add", {"x", "icon"}):watch(function(____self, x, icon) -- 226
     if not sprite then -- 227
         return false -- 240
     end -- 240
-    local body = toNode(React:createElement( -- 242
+    local body = toNode(React.createElement( -- 242
         "body", -- 242
         { -- 242
             type = "Dynamic", -- 242
@@ -338,8 +338,8 @@ Observer("Add", {"x", "icon"}):watch(function(____self, x, icon) -- 226
             order = ItemLayer, -- 242
             group = ItemGroup -- 242
         }, -- 242
-        React:createElement("rect-fixture", {width = sprite.width * 0.5, height = sprite.height}), -- 242
-        React:createElement("rect-fixture", {sensorTag = 0, width = sprite.width, height = sprite.height}) -- 242
+        React.createElement("rect-fixture", {width = sprite.width * 0.5, height = sprite.height}), -- 242
+        React.createElement("rect-fixture", {sensorTag = 0, width = sprite.width, height = sprite.height}) -- 242
     )) -- 242
     if not body then -- 242
         return false -- 250
@@ -413,8 +413,8 @@ local function updatePlayerControl(key, flag, vpad) -- 338
         return false -- 344
     end) -- 342
 end -- 338
-local function CircleButton(self, props) -- 352
-    return React:createElement( -- 353
+local function CircleButton(props) -- 352
+    return React.createElement( -- 353
         "custom-node", -- 353
         __TS__ObjectAssign( -- 353
             {onCreate = function() return CircleButtonCreate({text = props.text, radius = 60, fontSize = 36}) end}, -- 353
@@ -422,7 +422,7 @@ local function CircleButton(self, props) -- 352
         ) -- 357
     ) -- 357
 end -- 352
-local ui = toNode(React:createElement( -- 360
+local ui = toNode(React.createElement( -- 360
     "align-node", -- 360
     { -- 360
         windowRoot = true, -- 360
@@ -474,13 +474,13 @@ local ui = toNode(React:createElement( -- 360
             until true -- 375
         end -- 370
     }, -- 370
-    React:createElement( -- 370
+    React.createElement( -- 370
         "align-node", -- 370
         {style = {height = 60, justifyContent = "space-between", margin = {0, 20, 40}, flexDirection = "row"}}, -- 370
-        React:createElement( -- 370
+        React.createElement( -- 370
             "align-node", -- 370
             {style = {width = 130, height = 60}}, -- 370
-            React:createElement( -- 370
+            React.createElement( -- 370
                 "menu", -- 370
                 { -- 370
                     width = 250, -- 370
@@ -490,7 +490,7 @@ local ui = toNode(React:createElement( -- 360
                     scaleX = 0.5, -- 370
                     scaleY = 0.5 -- 370
                 }, -- 370
-                React:createElement( -- 370
+                React.createElement( -- 370
                     CircleButton, -- 381
                     { -- 381
                         text = "Left\n(a)", -- 381
@@ -500,7 +500,7 @@ local ui = toNode(React:createElement( -- 360
                         onTapEnded = function() return updatePlayerControl("keyLeft", false, true) end -- 381
                     } -- 381
                 ), -- 381
-                React:createElement( -- 381
+                React.createElement( -- 381
                     CircleButton, -- 386
                     { -- 386
                         text = "Right\n(a)", -- 386
@@ -513,10 +513,10 @@ local ui = toNode(React:createElement( -- 360
                 ) -- 386
             ) -- 386
         ), -- 386
-        React:createElement( -- 386
+        React.createElement( -- 386
             "align-node", -- 386
             {style = {width = 60, height = 60}}, -- 386
-            React:createElement( -- 386
+            React.createElement( -- 386
                 "menu", -- 386
                 { -- 386
                     width = 120, -- 386
@@ -526,7 +526,7 @@ local ui = toNode(React:createElement( -- 360
                     scaleX = 0.5, -- 386
                     scaleY = 0.5 -- 386
                 }, -- 386
-                React:createElement( -- 386
+                React.createElement( -- 386
                     CircleButton, -- 395
                     { -- 395
                         text = "Jump\n(j)", -- 395

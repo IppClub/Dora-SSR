@@ -10,7 +10,7 @@ local Vec2 = ____Dora.Vec2 -- 5
 local once = ____Dora.once -- 5
 local sleep = ____Dora.sleep -- 5
 local threadLoop = ____Dora.threadLoop -- 5
-toNode(React:createElement( -- 7
+toNode(React.createElement( -- 7
     "node", -- 7
     { -- 7
         onEnter = function() -- 7

@@ -1308,10 +1308,10 @@ export namespace Trigger {
 	export function KeyTimed(this: void, keyName: KeyName, timeWindow: number) {
 		return new KeyTimedTrigger(keyName, timeWindow);
 	}
-	export function KeyDoubleDown(key: KeyName, threshold?: number) {
+	export function KeyDoubleDown(this: void, key: KeyName, threshold?: number) {
 		return new KeyDoubleDownTrigger(key, threshold ?? 0.3);
 	}
-	export function AnyKeyPressed() {
+	export function AnyKeyPressed(this: void) {
 		return new AnyKeyPressedTrigger();
 	}
 	export function ButtonDown(this: void, combineButtons: ButtonName | ButtonName[], controllerId?: number) {
@@ -1338,10 +1338,10 @@ export namespace Trigger {
 	export function ButtonTimed(this: void, buttonName: ButtonName, timeWindow: number, controllerId?: number) {
 		return new ButtonTimedTrigger(buttonName, timeWindow, controllerId ?? 0);
 	}
-	export function ButtonDoubleDown(button: ButtonName, threshold?: number, controllerId?: number) {
+	export function ButtonDoubleDown(this: void, button: ButtonName, threshold?: number, controllerId?: number) {
 		return new ButtonDoubleDownTrigger(button, threshold ?? 0.3, controllerId ?? 0);
 	}
-	export function AnyButtonPressed(controllerId?: number) {
+	export function AnyButtonPressed(this: void, controllerId?: number) {
 		return new AnyButtonPressedTrigger(controllerId ?? 0);
 	}
 	export function JoyStick(this: void, joyStickType: JoyStickType, controllerId?: number) {

@@ -3,9 +3,9 @@ import { SetCond, WindowFlag } from "ImGui";
 import * as ImGui from "ImGui";
 import { App, Color, DrawNode, Line, Node, Vec2, threadLoop } from "Dora"
 
-function CircleVertices(this: void, radius: number, verts?: number): Vec2.Type[] {
+function CircleVertices(radius: number, verts?: number): Vec2.Type[] {
 	const v = verts ?? 20;
-	function newV(this: void, index: number, r: number): Vec2.Type {
+	function newV(index: number, r: number): Vec2.Type {
 		const angle = 2 * math.pi * index / v;
 		return Vec2(r * math.cos(angle), radius * math.sin(angle)).add(Vec2(r, radius));
 	}
@@ -16,7 +16,7 @@ function CircleVertices(this: void, radius: number, verts?: number): Vec2.Type[]
 	return vs;
 }
 
-function StarVertices(this: void, radius: number): Vec2.Type[] {
+function StarVertices(radius: number): Vec2.Type[] {
 	const a = math.rad(36);
 	const c = math.rad(72);
 	const f = math.sin(a) * math.tan(c) + math.cos(a);

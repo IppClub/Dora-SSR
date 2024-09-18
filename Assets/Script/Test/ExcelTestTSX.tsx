@@ -299,7 +299,7 @@ interface ItemEntity extends Record<string, Component> {
 	item: boolean;
 }
 
-function loadExcel(this: void) {
+function loadExcel() {
 	const xlsx = Content.loadExcel("Data/items.xlsx", ["items"]);
 	if (xlsx !== null) {
 		const its = xlsx["items"];
@@ -335,7 +335,7 @@ import * as ImGui from 'ImGui';
 let keyboardEnabled = true;
 
 const playerGroup = Group(["player"]);
-function updatePlayerControl(this: void, key: string, flag: boolean, vpad: boolean) {
+function updatePlayerControl(key: string, flag: boolean, vpad: boolean) {
 	if (keyboardEnabled && vpad) {
 		keyboardEnabled = false;
 	}

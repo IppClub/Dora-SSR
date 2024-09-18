@@ -13,10 +13,10 @@ local Line = ____Dora.Line -- 3
 local Scale = ____Dora.Scale -- 3
 local Vec2 = ____Dora.Vec2 -- 3
 local tolua = ____Dora.tolua -- 3
-toNode(React:createElement("sprite", {file = "Image/logo.png", scaleX = 0.2, scaleY = 0.2})) -- 5
-local function Box(____, props) -- 14
+toNode(React.createElement("sprite", {file = "Image/logo.png", scaleX = 0.2, scaleY = 0.2})) -- 5
+local function Box(props) -- 14
     local numText = tostring(props.num) -- 15
-    return React:createElement( -- 16
+    return React.createElement( -- 16
         "body", -- 16
         { -- 16
             type = "Dynamic", -- 16
@@ -26,11 +26,11 @@ local function Box(____, props) -- 14
             y = props.y, -- 16
             tag = numText -- 16
         }, -- 16
-        React:createElement("rect-fixture", {width = 100, height = 100}), -- 16
-        React:createElement( -- 16
+        React.createElement("rect-fixture", {width = 100, height = 100}), -- 16
+        React.createElement( -- 16
             "draw-node", -- 16
             nil, -- 16
-            React:createElement("rect-shape", { -- 16
+            React.createElement("rect-shape", { -- 16
                 width = 100, -- 16
                 height = 100, -- 16
                 fillColor = 2281766911, -- 16
@@ -38,7 +38,7 @@ local function Box(____, props) -- 14
                 borderColor = 4278255615 -- 16
             }) -- 16
         ), -- 16
-        React:createElement("label", {fontName = "sarasa-mono-sc-regular", fontSize = 40}, numText), -- 16
+        React.createElement("label", {fontName = "sarasa-mono-sc-regular", fontSize = 40}, numText), -- 16
         props.children -- 23
     ) -- 23
 end -- 14
@@ -48,7 +48,7 @@ local start = Vec2.zero -- 31
 local delta = Vec2.zero -- 32
 local line = Line() -- 34
 local world = useRef() -- 35
-toNode(React:createElement( -- 37
+toNode(React.createElement( -- 37
     "align-node", -- 37
     { -- 37
         windowRoot = true, -- 37
@@ -58,7 +58,7 @@ toNode(React:createElement( -- 37
             end -- 40
         end -- 38
     }, -- 38
-    React:createElement( -- 38
+    React.createElement( -- 38
         "physics-world", -- 38
         { -- 38
             ref = world, -- 38
@@ -85,14 +85,14 @@ toNode(React:createElement( -- 37
                 line:clear() -- 57
             end -- 52
         }, -- 52
-        React:createElement( -- 52
+        React.createElement( -- 52
             "body", -- 52
             {type = "Static"}, -- 52
-            React:createElement("rect-fixture", {centerY = -200, width = 2000, height = 10}), -- 52
-            React:createElement( -- 52
+            React.createElement("rect-fixture", {centerY = -200, width = 2000, height = 10}), -- 52
+            React.createElement( -- 52
                 "draw-node", -- 52
                 nil, -- 52
-                React:createElement("rect-shape", {centerY = -200, width = 2000, height = 10, fillColor = 4294689792}) -- 52
+                React.createElement("rect-shape", {centerY = -200, width = 2000, height = 10, fillColor = 4294689792}) -- 52
             ) -- 52
         ), -- 52
         __TS__ArrayMap( -- 68
@@ -103,18 +103,18 @@ toNode(React:createElement( -- 37
                 40, -- 68
                 50 -- 68
             }, -- 68
-            function(____, num, i) return React:createElement( -- 68
+            function(____, num, i) return React.createElement( -- 68
                 Box, -- 69
                 {num = num, x = 200, y = -150 + i * 100}, -- 69
-                React:createElement( -- 69
+                React.createElement( -- 69
                     "sequence", -- 69
                     nil, -- 69
-                    React:createElement("delay", {time = i * 0.2}), -- 69
-                    React:createElement("scale", {time = 0.3, start = 0, stop = 1}) -- 69
+                    React.createElement("delay", {time = i * 0.2}), -- 69
+                    React.createElement("scale", {time = 0.3, start = 0, stop = 1}) -- 69
                 ) -- 69
             ) end -- 69
         ), -- 69
-        React:createElement( -- 69
+        React.createElement( -- 69
             "body", -- 69
             { -- 69
                 ref = bird, -- 69
@@ -136,14 +136,14 @@ toNode(React:createElement( -- 37
                     end -- 85
                 end -- 78
             }, -- 78
-            React:createElement("disk-fixture", {radius = 50}), -- 78
-            React:createElement( -- 78
+            React.createElement("disk-fixture", {radius = 50}), -- 78
+            React.createElement( -- 78
                 "draw-node", -- 78
                 nil, -- 78
-                React:createElement("dot-shape", {radius = 50, color = 4294901896}) -- 78
+                React.createElement("dot-shape", {radius = 50, color = 4294901896}) -- 78
             ), -- 78
-            React:createElement("label", {ref = score, fontName = "sarasa-mono-sc-regular", fontSize = 40}, "0"), -- 78
-            React:createElement("scale", {time = 0.4, start = 0.3, stop = 1, easing = Ease.OutBack}) -- 78
+            React.createElement("label", {ref = score, fontName = "sarasa-mono-sc-regular", fontSize = 40}, "0"), -- 78
+            React.createElement("scale", {time = 0.4, start = 0.3, stop = 1, easing = Ease.OutBack}) -- 78
         ) -- 78
     ) -- 78
 )) -- 78

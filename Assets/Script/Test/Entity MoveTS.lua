@@ -17,7 +17,7 @@ local Vec2 = ____Dora.Vec2 -- 4
 local tolua = ____Dora.tolua -- 4
 local sceneGroup = Group({"scene"}) -- 6
 local positionGroup = Group({"position"}) -- 7
-local function toNode(self, item) -- 9
+local function toNode(item) -- 9
     return tolua.cast(item, "Node") -- 10
 end -- 9
 Observer("Add", {"scene"}):watch(function(_, scene) -- 13
@@ -33,7 +33,7 @@ Observer("Add", {"scene"}):watch(function(_, scene) -- 13
 end) -- 13
 Observer("Add", {"image"}):watch(function(entity, image) -- 24
     sceneGroup:each(function(e) -- 25
-        local scene = toNode(nil, e.scene) -- 26
+        local scene = toNode(e.scene) -- 26
         if scene ~= nil then -- 26
             local sprite = Sprite(image) -- 28
             if sprite then -- 28
@@ -48,7 +48,7 @@ Observer("Add", {"image"}):watch(function(entity, image) -- 24
     return false -- 38
 end) -- 24
 Observer("Remove", {"sprite"}):watch(function(entity) -- 41
-    local sprite = toNode(nil, entity.oldValues.sprite) -- 42
+    local sprite = toNode(entity.oldValues.sprite) -- 42
     if sprite ~= nil then -- 42
         sprite:removeFromParent() -- 43
     end -- 43
@@ -106,7 +106,7 @@ local windowFlags = { -- 104
     "NoMove" -- 110
 } -- 110
 Observer("Add", {"scene"}):watch(function(entity) -- 112
-    local scene = toNode(nil, entity.scene) -- 113
+    local scene = toNode(entity.scene) -- 113
     if scene ~= nil then -- 113
         scene:schedule(function() -- 115
             local ____App_visualSize_4 = App.visualSize -- 116
@@ -143,7 +143,7 @@ Observer("Add", {"scene"}):watch(function(entity) -- 112
                     if ImGui.Button("Destroy An Entity") then -- 131
                         Group({"sprite", "position"}):each(function(e) -- 134
                             e.position = nil -- 135
-                            local sprite = toNode(nil, e.sprite) -- 136
+                            local sprite = toNode(e.sprite) -- 136
                             if sprite ~= nil then -- 136
                                 sprite:runAction(Sequence( -- 138
                                     Scale(0.5, 0.5, 0, Ease.InBack), -- 140

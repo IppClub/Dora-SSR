@@ -2444,6 +2444,10 @@ export default function PersistentDrawerLeft() {
 					anchor="left"
 					open={drawerOpen}
 				>
+					<a
+						href={Info.locale.match(/^zh/) ? 'https://ippclub.atomgit.net/Dora-SSR/zh-Hans/' : 'https://dora-ssr.net'}
+						target="_blank"
+					>
 						<img
 							src={logo}
 							alt="logo"
@@ -2454,16 +2458,17 @@ export default function PersistentDrawerLeft() {
 								textAlign: "center"
 							}}
 						/>
-						<Divider style={{backgroundColor: '#0004'}}/>
-						<FileTree
-							selectedKeys={selectedKeys}
-							expandedKeys={expandedKeys}
-							treeData={treeData}
-							onMenuClick={onTreeMenuClick}
-							onSelect={onSelect}
-							onExpand={onExpand}
-							onDrop={onDrop}
-						/>
+					</a>
+					<Divider style={{backgroundColor: '#0004'}}/>
+					<FileTree
+						selectedKeys={selectedKeys}
+						expandedKeys={expandedKeys}
+						treeData={treeData}
+						onMenuClick={onTreeMenuClick}
+						onSelect={onSelect}
+						onExpand={onExpand}
+						onDrop={onDrop}
+					/>
 					<div
 						style={{
 							position: 'absolute',

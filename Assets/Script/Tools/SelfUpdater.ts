@@ -36,7 +36,7 @@ let popupMessageTitle = "";
 let popupMessage = "";
 let popupShow = false;
 
-function showPopup(this: void, title: string, msg: string) {
+function showPopup(title: string, msg: string) {
 	popupMessageTitle = title;
 	popupMessage = msg;
 	popupShow = true;
@@ -44,7 +44,7 @@ function showPopup(this: void, title: string, msg: string) {
 
 let latestVersion = "";
 let checking = false;
-function getLatestVersion(this: void) {
+function getLatestVersion() {
 	checking = true;
 	latestVersion = "";
 	thread(() => {
@@ -66,7 +66,7 @@ function getLatestVersion(this: void) {
 	});
 }
 
-function getDownloadURL(this: void) {
+function getDownloadURL() {
 	switch (App.platform) {
 		case PlatformType.Android: {
 			const filename = `dora-ssr-${latestVersion}-android.zip`;
@@ -89,7 +89,7 @@ let downloadTargetFile = "";
 let targetUnzipPath = "";
 let unzipDone = false
 
-function download(this: void) {
+function download() {
 	thread(() => {
 		progress = 0;
 		const [url, filename] = getDownloadURL();
@@ -149,7 +149,7 @@ const messagePopupFlags = [
 const inputTextFlags = [InputTextFlag.AutoSelectAll];
 const proxyBuf = Buffer(100);
 
-function messagePopup(this: void) {
+const messagePopup = () => {
 	ImGui.Text(popupMessageTitle);
 	ImGui.Separator();
 	ImGui.PushTextWrapPos(300, () => {

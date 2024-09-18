@@ -6,7 +6,7 @@ import * as ImGui from 'ImGui';
 
 let current: Node.Type | null = null;
 
-function Test(this: void, name: string, jsx: React.Element) {
+function Test(name: string, jsx: React.Element) {
 	return {name, test: () => {
 		current = toNode(jsx);
 	}};

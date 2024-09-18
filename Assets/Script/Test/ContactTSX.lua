@@ -13,15 +13,15 @@ local gravity = Vec2(0, -10) -- 7
 local anchor = useRef() -- 8
 local label = useRef() -- 9
 local disk = useRef() -- 10
-toNode(React:createElement( -- 12
+toNode(React.createElement( -- 12
     "physics-world", -- 12
     {showDebug = true}, -- 12
-    React:createElement("contact", {groupA = 0, groupB = 0, enabled = true}), -- 12
-    React:createElement("label", {ref = label, fontName = "sarasa-mono-sc-regular", fontSize = 30}), -- 12
-    React:createElement( -- 12
+    React.createElement("contact", {groupA = 0, groupB = 0, enabled = true}), -- 12
+    React.createElement("label", {ref = label, fontName = "sarasa-mono-sc-regular", fontSize = 30}), -- 12
+    React.createElement( -- 12
         "body", -- 12
         {type = "Static"}, -- 12
-        React:createElement( -- 12
+        React.createElement( -- 12
             "chain-fixture", -- 12
             { -- 12
                 verts = (function() -- 12
@@ -36,14 +36,14 @@ toNode(React:createElement( -- 12
                         ) -- 26
                     end -- 26
                     return vertices -- 28
-                end)(nil), -- 20
+                end)(), -- 20
                 friction = 0.4, -- 20
                 restitution = 0 -- 20
             } -- 20
         ), -- 20
-        React:createElement("disk-fixture", {radius = 30, centerY = -270, friction = 0, restitution = 1}) -- 20
+        React.createElement("disk-fixture", {radius = 30, centerY = -270, friction = 0, restitution = 1}) -- 20
     ), -- 20
-    React:createElement( -- 20
+    React.createElement( -- 20
         "body", -- 20
         { -- 20
             type = "Static", -- 20
@@ -51,7 +51,7 @@ toNode(React:createElement( -- 12
                 return other.velocityY < 0 -- 37
             end -- 36
         }, -- 36
-        React:createElement("rect-fixture", { -- 36
+        React.createElement("rect-fixture", { -- 36
             width = 120, -- 36
             height = 30, -- 36
             centerY = -60, -- 36
@@ -59,7 +59,7 @@ toNode(React:createElement( -- 12
             restitution = 1 -- 36
         }) -- 36
     ), -- 36
-    React:createElement( -- 36
+    React.createElement( -- 36
         "line", -- 36
         { -- 36
             ref = anchor, -- 36
@@ -73,7 +73,7 @@ toNode(React:createElement( -- 12
             lineColor = App.themeColor:toARGB() -- 47
         } -- 47
     ), -- 47
-    React:createElement( -- 47
+    React.createElement( -- 47
         "body", -- 47
         { -- 47
             ref = disk, -- 47
@@ -91,7 +91,7 @@ toNode(React:createElement( -- 12
                 end -- 61
             end -- 56
         }, -- 56
-        React:createElement("disk-fixture", {radius = 20, density = 5, friction = 0.8, restitution = 1}) -- 56
+        React.createElement("disk-fixture", {radius = 20, density = 5, friction = 0.8, restitution = 1}) -- 56
     ) -- 56
 )) -- 56
 local windowFlags = { -- 70

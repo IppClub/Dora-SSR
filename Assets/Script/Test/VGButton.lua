@@ -8,7 +8,7 @@ local Color = ____Dora.Color -- 3
 local Node = ____Dora.Node -- 3
 local Size = ____Dora.Size -- 3
 local nvg = require("nvg") -- 4
-local function Button(____, props) -- 12
+local function Button(props) -- 12
     local fontId = nvg.CreateFont("sarasa-mono-sc-regular") -- 13
     local light = nvg.LinearGradient( -- 14
         0, -- 14
@@ -55,7 +55,7 @@ local function Button(____, props) -- 12
         end) -- 20
         return node -- 37
     end -- 17
-    return React:createElement( -- 39
+    return React.createElement( -- 39
         "custom-node", -- 39
         { -- 39
             onCreate = onCreate, -- 39
@@ -72,18 +72,18 @@ local function Button(____, props) -- 12
         } -- 43
     ) -- 43
 end -- 12
-toNode(React:createElement( -- 50
+toNode(React.createElement( -- 50
     Button, -- 51
     { -- 51
         text = "OK", -- 51
         onClick = function() return print("Clicked") end -- 51
     }, -- 51
-    React:createElement( -- 51
+    React.createElement( -- 51
         "sequence", -- 51
         nil, -- 51
-        React:createElement("move-x", {time = 1, start = 0, stop = 200}), -- 51
-        React:createElement("angle", {time = 1, start = 0, stop = 360}), -- 51
-        React:createElement("scale", {time = 1, start = 1, stop = 4}) -- 51
+        React.createElement("move-x", {time = 1, start = 0, stop = 200}), -- 51
+        React.createElement("angle", {time = 1, start = 0, stop = 360}), -- 51
+        React.createElement("scale", {time = 1, start = 1, stop = 4}) -- 51
     ) -- 51
 )) -- 51
 return ____exports -- 51

@@ -7,7 +7,7 @@ const targetFile = Path(Content.writablePath, ".download", "testDownloadFile");
 let cancelDownload = false;
 let progress = 0;
 
-function download(this: void) {
+function download() {
 	thread(() => {
 		progress = 0;
 		Content.mkdir(Path(Content.writablePath, ".download"));

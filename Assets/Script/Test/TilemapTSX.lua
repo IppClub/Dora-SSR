@@ -10,12 +10,12 @@ local Vec2 = ____Dora.Vec2 -- 3
 local threadLoop = ____Dora.threadLoop -- 3
 local ImGui = require("ImGui") -- 5
 local current = nil -- 7
-local function TMX(self, file) -- 9
+local function TMX(file) -- 9
     if current then -- 9
         current:removeFromParent() -- 11
     end -- 11
     local tileNodeRef = useRef() -- 13
-    current = toNode(React:createElement( -- 14
+    current = toNode(React.createElement( -- 14
         "align-node", -- 14
         { -- 14
             windowRoot = true, -- 14
@@ -25,11 +25,11 @@ local function TMX(self, file) -- 9
                 end -- 17
             end -- 15
         }, -- 15
-        React:createElement("tile-node", {ref = tileNodeRef, file = file}) -- 15
+        React.createElement("tile-node", {ref = tileNodeRef, file = file}) -- 15
     )) -- 15
 end -- 9
 local files = {"TMX/platform.tmx", "TMX/demo.tmx"} -- 25
-TMX(nil, files[1]) -- 30
+TMX(files[1]) -- 30
 local currentTest = 1 -- 32
 local windowFlags = { -- 33
     "NoDecoration", -- 34
@@ -60,7 +60,7 @@ threadLoop(function() -- 40
             local changed = false -- 48
             changed, currentTest = ImGui.Combo("File", currentTest, files) -- 49
             if changed then -- 49
-                TMX(nil, files[currentTest]) -- 51
+                TMX(files[currentTest]) -- 51
             end -- 51
         end -- 44
     ) -- 44
