@@ -225,19 +225,11 @@ export async function transpileTypescript(
 		writeFile: collector.writeFile
 	});
 	diagnostics = [...diagnostics, ...res.diagnostics].filter(d => d.code !== 2497 && d.code !== 2666);
-	let success = true;
-	if (diagnostics.length > 0) {
-		Service.addLog(
-			(Service.getLog() !== "" ? "\n" : "") +
-			`Compiling error: ${fileName}\n` +
-			ts.formatDiagnostics(diagnostics, {
-				getCanonicalFileName: fileName => Info.path.normalize(fileName),
-				getCurrentDirectory: () => Info.path.dirname(fileName),
-				getNewLine: () => "\n"
-			})
-		);
-		success = false;
-	}
+
+	const otherFileDiagnostics = diagnostics.filter(d => Info.path.relative(monaco.Uri.parse(d.file?.fileName ?? "").fsPath, fileName) !== "");
+	addDiagnosticToLog(fileName, otherFileDiagnostics);
+
+	const success = diagnostics.length === 0;
 	const file = collector.files.find(({ sourceFiles }) => sourceFiles.some(f => {
 		return Info.path.relative(f.fileName, fileName) === "";
 	}));
@@ -264,10 +256,10 @@ export async function transpileTypescript(
 					return line + ` -- ${lineToUse}`;
 				}).filter(l => l !== "").join('\n');
 			});
-			return {success, luaCode: modifiedLuaCode};
+			return {success, luaCode: modifiedLuaCode, diagnostics, extraError: otherFileDiagnostics.length > 0};
 		}
 	}
-	return {success, luaCode: undefined as string | undefined};
+	return {success, luaCode: undefined as string | undefined, diagnostics, extraError: otherFileDiagnostics.length > 0};
 }
 
 export async function revalidateModel(model: monaco.editor.ITextModel) {
@@ -292,4 +284,34 @@ export async function revalidateModel(model: monaco.editor.ITextModel) {
 		};
 	});
 	monaco.editor.setModelMarkers(model, model.getLanguageId(), markers);
+}
+
+export function setModelMarkers(model: monaco.editor.ITextModel, diagnostics: readonly ts.Diagnostic[]) {
+	const markers = diagnostics.filter(d => Info.path.relative(monaco.Uri.parse(d.file?.fileName ?? "").fsPath, model.uri.fsPath) === "" && d.source === 'typescript-to-lua').map(d => {
+		let {start = 0, length = 0} = d;
+		const startPos = model.getPositionAt(start);
+		const endPos = model.getPositionAt(start + length);
+		return {
+			severity: monaco.MarkerSeverity.Error,
+			startLineNumber: startPos.lineNumber,
+			startColumn: startPos.column,
+			endLineNumber: endPos.lineNumber,
+			endColumn: endPos.column,
+			message: ts.flattenDiagnosticMessageText(d.messageText, "\n")
+		};
+	});
+	monaco.editor.setModelMarkers(model, 'tstl', markers);
+}
+
+export function addDiagnosticToLog(fileName: string, diagnostics: readonly ts.Diagnostic[]) {
+	if (diagnostics.length === 0) return;
+	Service.addLog(
+		(Service.getLog() !== "" ? "\n" : "") +
+		`Compiling error: ${fileName}\n` +
+		ts.formatDiagnostics(diagnostics, {
+			getCanonicalFileName: fileName => Info.path.normalize(fileName),
+			getCurrentDirectory: () => Info.path.dirname(fileName),
+			getNewLine: () => "\n"
+		})
+	);
 }
