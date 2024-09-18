@@ -1672,46 +1672,49 @@ Signal::~Signal() {
 }
 
 Slot* Signal::addSlot(String name) {
-	if (_slots) {
-		auto it = _slots->find(name);
-		if (it != _slots->end()) {
+	if (std::holds_alternative<std::nullopt_t>(_slots)) {
+		auto slotsArray = New<SlotArray>(MaxSlotArraySize);
+		auto slot = Slot::alloc();
+		auto slotPtr = slot.get();
+		slotsArray->push_back(std::make_pair(name.toString(), std::move(slot)));
+		_slots = std::move(slotsArray);
+		return slotPtr;
+	} else if (std::holds_alternative<Own<SlotMap>>(_slots)) {
+		auto& slots = std::get<Own<SlotMap>>(_slots);
+		auto it = slots->find(name);
+		if (it != slots->end()) {
 			return it->second.get();
 		} else {
 			auto slot = Slot::alloc();
 			auto slotPtr = slot.get();
-			(*_slots)[name.toString()] = std::move(slot);
+			(*slots)[name.toString()] = std::move(slot);
 			return slotPtr;
 		}
-	} else if (_slotsArray) {
-		for (auto& item : *_slotsArray) {
+	} else {
+		auto& slots = std::get<Own<SlotArray>>(_slots);
+		for (auto& item : *slots) {
 			if (name == item.first) {
 				return item.second.get();
 			}
 		}
 		auto nameStr = name.toString();
-		if (_slotsArray->size() < Signal::MaxSlotArraySize) {
+		if (slots->size() < Signal::MaxSlotArraySize) {
 			auto slot = Slot::alloc();
 			auto slotPtr = slot.get();
-			_slotsArray->push_back(
+			slots->push_back(
 				std::make_pair(nameStr, std::move(slot)));
 			return slotPtr;
 		} else {
-			_slots = New<StringMap<Own<Slot>>>();
-			for (auto& item : *_slotsArray) {
-				(*_slots)[item.first] = std::move(item.second);
+			auto newSlots = New<SlotMap>();
+			for (auto& item : *slots) {
+				(*newSlots)[item.first] = std::move(item.second);
 			}
 			auto slot = Slot::alloc();
 			auto slotPtr = slot.get();
-			(*_slots)[nameStr] = std::move(slot);
-			_slotsArray = nullptr;
+			(*newSlots)[nameStr] = std::move(slot);
+			_slots = std::move(newSlots);
 			return slotPtr;
 		}
-	} else {
-		_slotsArray = New<std::vector<std::pair<std::string, Own<Slot>>>>(MaxSlotArraySize);
-		auto slot = Slot::alloc();
-		auto slotPtr = slot.get();
-		_slotsArray->push_back(std::make_pair(name.toString(), std::move(slot)));
-		return slotPtr;
 	}
 }
 
@@ -1726,16 +1729,20 @@ void Signal::removeGSlot(Listener* gslot) {
 }
 
 void Signal::removeSlots(String name) {
-	if (_slots) {
-		auto it = _slots->find(name);
-		if (it != _slots->end()) {
+	if (std::holds_alternative<std::nullopt_t>(_slots)) {
+		return;
+	} else if (std::holds_alternative<Own<SlotMap>>(_slots)) {
+		auto& slots = std::get<Own<SlotMap>>(_slots);
+		auto it = slots->find(name);
+		if (it != slots->end()) {
 			it->second->clear();
 			return;
 		}
-	} else if (_slotsArray) {
-		for (auto it = _slotsArray->begin(); it != _slotsArray->end(); ++it) {
+	} else {
+		auto& slots = std::get<Own<SlotArray>>(_slots);
+		for (auto it = slots->begin(); it != slots->end(); ++it) {
 			if (name == it->first) {
-				_slotsArray->erase(it);
+				slots->erase(it);
 				return;
 			}
 		}
@@ -1750,13 +1757,17 @@ void Signal::removeGSlots(String name) {
 }
 
 Slot* Signal::getSlot(String name) {
-	if (_slots) {
-		auto it = _slots->find(name);
-		if (it != _slots->end()) {
+	if (std::holds_alternative<std::nullopt_t>(_slots)) {
+		return nullptr;
+	} else if (std::holds_alternative<Own<SlotMap>>(_slots)) {
+		auto& slots = std::get<Own<SlotMap>>(_slots);
+		auto it = slots->find(name);
+		if (it != slots->end()) {
 			return it->second.get();
 		}
-	} else if (_slotsArray) {
-		for (auto& item : *_slotsArray) {
+	} else {
+		auto& slots = std::get<Own<SlotArray>>(_slots);
+		for (auto& item : *slots) {
 			if (name == item.first) {
 				return item.second.get();
 			}
@@ -1776,13 +1787,17 @@ RefVector<Listener> Signal::getGSlots(String name) const {
 }
 
 void Signal::emit(Event* event) {
-	if (_slots) {
-		auto it = _slots->find(event->getName());
-		if (it != _slots->end()) {
+	if (std::holds_alternative<std::nullopt_t>(_slots)) {
+		return;
+	} else if (std::holds_alternative<Own<SlotMap>>(_slots)) {
+		auto& slots = std::get<Own<SlotMap>>(_slots);
+		auto it = slots->find(event->getName());
+		if (it != slots->end()) {
 			it->second->handle(event);
 		}
-	} else if (_slotsArray) {
-		for (auto& item : *_slotsArray) {
+	} else {
+		auto& slots = std::get<Own<SlotArray>>(_slots);
+		for (auto& item : *slots) {
 			if (item.second && event->getName() == item.first) {
 				item.second->handle(event);
 				return;
@@ -1818,3 +1833,4 @@ bool Node::isShowDebug() const noexcept {
 }
 
 NS_DORA_END
+

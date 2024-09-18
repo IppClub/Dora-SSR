@@ -1,7 +1,6 @@
----
-sidebar_position: 4
----
 import "@site/src/languages/highlight";
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
 
 # Using the Update Scheduling
 
@@ -14,14 +13,14 @@ Update scheduling is a mechanism in the game engine used to manage and execute g
 ## 2. Difference Between Coroutine Tasks and Update Functions
 
 - **Coroutine Tasks**:
-  - **Asynchronous processing**: Can be paused and resumed across multiple frames.
-  - **Use case**: Ideal for handling operations that require waiting, such as loading resources or timers.
-  - **Implementation**: Achieved through functions like `thread`, `threadLoop`, `once`, and `loop`.
+	- **Asynchronous processing**: Can be paused and resumed across multiple frames.
+	- **Use case**: Ideal for handling operations that require waiting, such as loading resources or timers.
+	- **Implementation**: Achieved through functions like `thread`, `threadLoop`, `once`, and `loop`.
 
 - **Update Functions**:
-  - **Synchronous processing**: Called in every frame.
-  - **Use case**: Suitable for logic that needs to be updated every frame, such as movement or collision detection.
-  - **Implementation**: Achieved through functions like `node:schedule()` and `node:onUpdate()`.
+	- **Synchronous processing**: Called in every frame.
+	- **Use case**: Suitable for logic that needs to be updated every frame, such as movement or collision detection.
+	- **Implementation**: Achieved through functions like `node:schedule()` and `node:onUpdate()`.
 
 ## 3. Using Coroutine Tasks for Asynchronous Processing
 
@@ -37,23 +36,32 @@ In Dora SSR, coroutine tasks can be executed in two ways:
 
 #### Example: Executing a Global Coroutine Task
 
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
 ```lua
 local thread = require("thread")
 local sleep = require("sleep")
 local Content = require("Content")
 
 thread(function()
-    print("Starting async resource loading")
-    local resourceData = Content:loadAsync("path/to/resource")
-    sleep(2) -- Simulating additional delay
-    print("Resource loading completed")
-    -- Proceed with logic after resource loading
+	print("Starting async resource loading")
+	local resourceData = Content:loadAsync("path/to/resource")
+	sleep(2) -- Simulating additional delay
+	print("Resource loading completed")
+	-- Proceed with logic after resource loading
 end)
 ```
+
+</TabItem>
+</Tabs>
 
 In this example, `thread(function() ... end)` creates a coroutine task. The `loadAsync` function asynchronously loads a resource, and `sleep(2)` simulates a delay. The coroutine allows long-running tasks without blocking the main thread, with the lifecycle managed globally by the engine.
 
 #### Example: Node-bound Coroutine Task
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
 
 ```lua
 local Node = require("Node")
@@ -61,23 +69,26 @@ local sleep = require("sleep")
 
 local node = Node()
 node:once(function()
-    print("Starting node-bound async operation")
-    sleep(2) -- Simulating delay
-    print("Node-bound async operation completed")
+	print("Starting node-bound async operation")
+	sleep(2) -- Simulating delay
+	print("Node-bound async operation completed")
 end)
 ```
+
+</TabItem>
+</Tabs>
 
 Here, `node:once(function() ... end)` creates a coroutine task tied to the `node`. When the `node` is cleaned up, the task is automatically stopped and cleared.
 
 ### Difference Between Global and Node-bound Coroutine Tasks
 
 - **Lifecycle management**:
-  - **Global Coroutine Tasks**: Independent of any node, managed by the global scheduling module. They need to be manually removed or cleaned up when the engine exits.
-  - **Node-bound Coroutine Tasks**: Tied to the lifecycle of the associated node, automatically stopping when the node is destroyed.
+	- **Global Coroutine Tasks**: Independent of any node, managed by the global scheduling module. They need to be manually removed or cleaned up when the engine exits.
+	- **Node-bound Coroutine Tasks**: Tied to the lifecycle of the associated node, automatically stopping when the node is destroyed.
 
 - **Use cases**:
-  - **Global Coroutine Tasks**: Suitable for tasks that need to run throughout the game lifecycle, such as global event listeners.
-  - **Node-bound Coroutine Tasks**: Suitable for tasks associated with specific scenes or objects, such as character animation control.
+	- **Global Coroutine Tasks**: Suitable for tasks that need to run throughout the game lifecycle, such as global event listeners.
+	- **Node-bound Coroutine Tasks**: Suitable for tasks associated with specific scenes or objects, such as character animation control.
 
 ### Coroutine Control Functions
 
@@ -89,19 +100,25 @@ The `wait` function pauses a coroutine task until a specified condition is met. 
 
 ##### Example: Waiting for a Condition to Be Met
 
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
 ```lua
 local thread = require("thread")
 local wait = require("wait")
 
 thread(function()
-    print("Waiting for the condition to be met...")
-    wait(function()
-        -- Resume when the player's score exceeds 100
-        return player.score > 100
-    end)
-    print("Condition met, continuing with the logic")
+	print("Waiting for the condition to be met...")
+	wait(function()
+		-- Resume when the player's score exceeds 100
+		return player.score > 100
+	end)
+	print("Condition met, continuing with the logic")
 end)
 ```
+
+</TabItem>
+</Tabs>
 
 #### 2. `cycle` Function
 
@@ -109,21 +126,27 @@ The `cycle` function repeatedly calls a function every frame for a specified dur
 
 ##### Example: Updating Object Position Over 3 Seconds
 
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
 ```lua
 local cycle = require("cycle")
 local Node = require("Node")
 
 local node = Node()
 node:once(function()
-    local startX = node.x
-    print("Starting movement")
-    cycle(3, function(time)
-        -- Update the object position over 3 seconds
-        node.x = startX + 500 * time -- 'time' ranges from 0 to 1
-    end)
-    print("Movement completed")
+	local startX = node.x
+	print("Starting movement")
+	cycle(3, function(time)
+		-- Update the object position over 3 seconds
+		node.x = startX + 500 * time -- 'time' ranges from 0 to 1
+	end)
+	print("Movement completed")
 end)
 ```
+
+</TabItem>
+</Tabs>
 
 #### 3. `sleep` Function
 
@@ -131,16 +154,22 @@ The `sleep` function pauses the execution of a coroutine task for a specified ti
 
 ##### Example: Delaying Task Execution by 2 Seconds
 
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
 ```lua
 local sleep = require("sleep")
 local thread = require("thread")
 
 thread(function()
-    print("Task started...")
-    sleep(2) -- Pauses the coroutine for 2 seconds
-    print("Resuming task after 2 seconds")
+	print("Task started...")
+	sleep(2) -- Pauses the coroutine for 2 seconds
+	print("Resuming task after 2 seconds")
 end)
 ```
+
+</TabItem>
+</Tabs>
 
 In this example, `sleep(2)` pauses the coroutine for 2 seconds, after which the remaining logic is executed. You can use `sleep` to easily create timers.
 
@@ -150,19 +179,25 @@ In some cases, you need to execute certain logic in every frame, such as detecti
 
 ##### Example: Updating Object Position Every Frame
 
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
 ```lua
 local Node = require("Node")
 
 local node = Node()
 node:schedule(function(deltaTime)
-    -- If the right arrow key is pressed
-    if Keyboard:isKeyPressed("Right") then
-        -- Update the object position
-        node.x = node.x + 10 * deltaTime
-    end
-    -- Return true to stop the update
+	-- If the right arrow key is pressed
+	if Keyboard:isKeyPressed("Right") then
+		-- Update the object position
+		node.x = node.x + 10 * deltaTime
+	end
+	-- Return true to stop the update
 end)
 ```
+
+</TabItem>
+</Tabs>
 
 Here, `node:schedule(function(deltaTime) ... end)` schedules a function that is called every frame. The `deltaTime` parameter represents the time interval between the previous and current frames.
 
@@ -178,25 +213,31 @@ Here, `node:schedule(function(deltaTime) ... end)` schedules a function that is 
 
 ##### Example:
 
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
 ```lua
 -- Schedule the primary update function with node:schedule()
 node:schedule(function(deltaTime)
-    -- Main update logic
-    if condition then
-        return true -- Stop the scheduling internally
-        -- Or use node:unschedule() to manually cancel the scheduling
-    end
+	-- Main update logic
+	if condition then
+		return true -- Stop the scheduling internally
+		-- Or use node:unschedule() to manually cancel the scheduling
+	end
 end)
 
 -- Schedule multiple update functions with node:onUpdate()
 node:onUpdate(function(deltaTime)
-    -- Update logic A
+	-- Update logic A
 end)
 
 node:onUpdate(function(deltaTime)
-    -- Update logic B
+	-- Update logic B
 end)
 ```
+
+</TabItem>
+</Tabs>
 
 ## Function Abbreviations
 

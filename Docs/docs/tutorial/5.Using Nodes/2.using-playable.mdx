@@ -1,10 +1,20 @@
+import "@site/src/languages/highlight";
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # Using the Playable Node
 
 In game development, animation is a key element that brings characters and scenes to life. The Dora SSR engine provides a robust animation handling node class called **Playable**. It serves as the base class for three different animation systems:
 
-- **Model**: The skeletal animation system implemented by the Dora SSR engine. Model animations usually consist of a `.model` file, a `.clip` file, and a `.png` file.
-- **DragonBone**: An open-source animation system. DragonBones animations typically consist of a file ending with `_ske.json`, a file ending with `_tex.json`, and an image file ending with `_tex.png`.
-- **Spine**: The animation system of the famous commercial software Spine2D. Spine animations generally consist of a `.json` (or `.skel`) file, an `.atlas` file, and a `.png` file.
+- **Model**:
+	- The skeletal animation system implemented by the Dora SSR engine.
+	- Model animations usually consist of a `.model` file, a `.clip` file, and a `.png` file.
+- **DragonBone**:
+	- An open-source animation system.
+	- DragonBones animations typically consist of a file ending with `_ske.json`, a file ending with `_tex.json`, and an image file ending with `_tex.png`.
+- **Spine**:
+	- The animation system of the famous commercial software Spine2D.
+	- Spine animations generally consist of a `.json` (or `.skel`) file, an `.atlas` file, and a `.png` file.
 
 This tutorial will guide you on how to use the Playable node in your program, covering everything from loading animations to controlling playback.
 
@@ -17,6 +27,9 @@ To use the Playable node, you first need to create an instance. Playable support
 - **DragonBones files**: `"bone:"` prefix + the file path without an extension.
 
 ### Example: Loading a Model Animation
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
 
 ```lua
 local Playable = require("Playable")
@@ -33,7 +46,13 @@ else
 end
 ```
 
+</TabItem>
+</Tabs>
+
 ### Example: Loading a Spine Animation
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
 
 ```lua
 local Playable = require("Playable")
@@ -50,7 +69,13 @@ else
 end
 ```
 
+</TabItem>
+</Tabs>
+
 ### Example: Loading a DragonBones Animation
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
 
 ```lua
 local Playable = require("Playable")
@@ -67,9 +92,15 @@ else
 end
 ```
 
+</TabItem>
+</Tabs>
+
 ### Example: Asynchronously Loading an Animation
 
 In real-world development, loading animations might take some time. You can use the `Cache:loadAsync()` method to load animations asynchronously and trigger a callback once loading is complete.
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
 
 ```lua
 local Playable = require("Playable")
@@ -88,14 +119,23 @@ thread(function()
 end)
 ```
 
+</TabItem>
+</Tabs>
+
 ## Playing Animations
 
 Once the instance is created, you can use the `play` method to play a specified animation.
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
 
 ```lua
 -- Play the "run" animation, looping it
 local duration = character:play("run", true)
 ```
+
+</TabItem>
+</Tabs>
 
 - **Parameters**:
 	- `name`: The name of the animation to play.
@@ -106,19 +146,31 @@ local duration = character:play("run", true)
 
 You can stop the currently playing animation using the `stop` method.
 
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
 ```lua
 -- Stop the animation
 character:stop()
 ```
 
+</TabItem>
+</Tabs>
+
 ## Adjusting Playback Speed
 
 You can change the playback speed of an animation by modifying the `speed` property.
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
 
 ```lua
 -- Double the playback speed
 character.speed = 2.0
 ```
+
+</TabItem>
+</Tabs>
 
 - **Note**: The default value of `speed` is `1.0`.
 
@@ -126,10 +178,16 @@ character.speed = 2.0
 
 The `fliped` property allows you to flip animations horizontally, which is often useful for character direction changes.
 
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
 ```lua
 -- Flip the animation horizontally
 character.fliped = true
 ```
+
+</TabItem>
+</Tabs>
 
 - **`fliped`**: `true` flips the animation, `false` leaves it normal.
 
@@ -137,11 +195,17 @@ character.fliped = true
 
 The `getKey` method retrieves the coordinates of key points on the model, such as the hands and feet. In the Model animation system, key points are predefined on the model. In DragonBone, they refer to bone positions, and in Spine2D, they refer to attachment points.
 
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
 ```lua
 -- Get the right hand position
 local handPosition = character:getKey("right_hand")
 print("Right hand coordinates:", handPosition.x, handPosition.y)
 ```
+
+</TabItem>
+</Tabs>
 
 - **Parameter**: The name of the key point (string).
 - **Return Value**: `Vec2`, representing the coordinates of the key point.
@@ -149,6 +213,9 @@ print("Right hand coordinates:", handPosition.x, handPosition.y)
 ## Adding Child Nodes to Slots
 
 The `setSlot` method allows you to add child nodes to specific slots in the model, such as equipping a character with a weapon.
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
 
 ```lua
 -- Create a sword sprite
@@ -158,13 +225,19 @@ local sword = Sprite("assets/sword.png")
 character:setSlot("right_hand", sword)
 ```
 
+</TabItem>
+</Tabs>
+
 - **Parameters**:
-  - `name`: The name of the slot.
-  - `item`: The node object to be added.
+	- `name`: The name of the slot.
+	- `item`: The node object to be added.
 
 ## Retrieving Slot Contents
 
 You can retrieve the child node in a specific slot using the `getSlot` method.
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
 
 ```lua
 -- Get the node in the "right_hand" slot
@@ -176,11 +249,17 @@ else
 end
 ```
 
+</TabItem>
+</Tabs>
+
 - **Return Value**: A `Node` object or `nil`.
 
 ## Listening for Animation End Events
 
 You can register a callback using the `onAnimationEnd` method to trigger when the animation finishes playing.
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
 
 ```lua
 -- Register an animation end callback
@@ -190,12 +269,18 @@ character:onAnimationEnd(function(animationName, target)
 end)
 ```
 
+</TabItem>
+</Tabs>
+
 - **Parameters**:
 	- `callback`: The callback function, which receives `animationName` and `target`.
 
 ## Complete Example
 
 Here’s a full example showing how to create a character, play animations, add equipment, and handle animation end events.
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
 
 ```lua
 local Playable = require("Playable")
@@ -234,6 +319,9 @@ character:loop(function()
 	sleep(duration)
 end)
 ```
+
+</TabItem>
+</Tabs>
 
 ## Conclusion
 

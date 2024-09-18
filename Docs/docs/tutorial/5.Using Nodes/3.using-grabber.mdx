@@ -1,0 +1,105 @@
+import "@site/src/languages/highlight";
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Using Post-Processing for Nodes
+
+In game development, post-processing effects can add unique visual elements to a scene, such as blur, outlines, color adjustments, and more. Dora SSR provides a simple way to implement post-processing on scene nodes. In this tutorial, we will introduce how to use Dora SSR's post-processing functionality for scene nodes and provide an example to demonstrate the process.
+
+## 1. What is Scene Node Post-Processing?
+
+Scene node post-processing refers to rendering a specific node onto a texture and then applying shader effects to that texture. This allows you to apply special visual effects to certain parts of the scene without affecting other nodes.
+
+## 2. Implementation Steps
+
+To implement post-processing on a scene node, follow these steps:
+
+1. **Set the node's size**: Specify the size of the node using the `size` property. This size will be used for the post-processing render target.
+2. **Obtain the Grabber**: Use the `node:grab()` method to get a Grabber, which handles the texture capturing.
+3. **Apply Shader Effects**: Set the `effect` property of the Grabber to apply your desired shader effect to the captured texture.
+
+## 3. Code Example
+
+Below is a complete code example demonstrating how to apply post-processing to a scene node in Dora SSR.
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+-- Import necessary modules
+local Spine = require("Spine")
+local Node = require("Node")
+local Size = require("Size")
+local SpriteEffect = require("SpriteEffect")
+local Color = require("Color")
+
+-- Load Spine animation resources
+local spineStr = "Spine/moling"
+local animations = Spine:getAnimations(spineStr)
+local looks = Spine:getLooks(spineStr)
+
+-- Create a Spine playable object
+local playable = Spine(spineStr)
+playable.x = 200
+playable.y = 190
+playable.look = looks[1]
+playable:play(animations[1], true)
+
+-- Define the post-processing render size
+local width, height = 400, 600
+
+-- Create a shader effect (using built-in outline effect)
+local effect = SpriteEffect("builtin::vs_sprite", "builtin::fs_spriteoutlinecolor")
+local pass = effect:get(1)
+pass:set("u_linecolor", Color(0xff00ffff)) -- Set outline color
+pass:set("u_lineoffset", 5 / width, 5 / height, 5, 0.1) -- Set outline parameters
+
+-- Create a node and set its size
+local node = Node()
+node.size = Size(width, height)
+
+-- Obtain the Grabber and apply the effect
+local grabber = node:grab()
+grabber.effect = effect
+
+-- Add the playable object to the node
+node:addChild(playable)
+```
+
+</TabItem>
+</Tabs>
+
+### Code Breakdown
+
+1. **Import Modules**: First, we import the necessary modules required for the script.
+
+2. **Load Spine Animation**: We use the `Spine` module to load the animation resources and retrieve the available animations and looks.
+
+3. **Create Playable Object**: A Spine object is instantiated, and its position, appearance, and animation playback are configured.
+
+4. **Define Render Size**: The width and height for the post-processing render target are defined.
+
+5. **Create Shader Effect**: A shader effect for outlining is created, and the outline color and parameters are set.
+
+6. **Create Node and Set Size**: A `Node` object is created, and its size is set. This size defines the area to be processed.
+
+7. **Obtain Grabber and Apply Effect**: The `node:grab()` method is called to obtain a Grabber, and the previously created shader effect is applied to the Grabber.
+
+8. **Add Child Node**: The Spine playable object is added to the node, which will be part of the post-processed scene.
+
+## 4. Output and Summary
+
+Running the above code will produce the following results:
+
+- A 400x600 node containing the Spine animation.
+- The contents of this node will be rendered to a texture and processed with the outline shader effect.
+- The final result will show the animated character with an outline of the specified color.
+
+Through this example, you can see how to apply post-processing to scene nodes in Dora SSR. This method allows you to achieve various unique visual effects, enhancing the overall appearance of your game.
+
+## 5. Further Reading
+
+- **Custom Shaders**: You can write custom shaders to create unique effects. Just specify your shader files when creating the `SpriteEffect`.
+- **Dynamic Parameter Adjustment**: By modifying shader parameters, you can dynamically adjust effects at runtime, such as changing the outline color or thickness.
+
+We hope this tutorial helps you understand how to apply post-processing to scene nodes in Dora SSR. Happy developing!
