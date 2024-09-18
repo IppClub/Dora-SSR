@@ -1027,13 +1027,19 @@ export default function PersistentDrawerLeft() {
 			} else {
 				const ext = path.extname(file.key).toLowerCase();
 				if (file.contentModified !== null && (ext === '.ts' || ext === '.tsx') && !file.key.toLocaleLowerCase().endsWith(".d.ts")) {
-					const {key, contentModified} = file;
-					import('./TranspileTS').then(({transpileTypescript}) => {
+					const {key, contentModified, editor} = file;
+					const model = editor?.getModel();
+					import('./TranspileTS').then(({transpileTypescript, setModelMarkers}) => {
 						transpileTypescript(key, contentModified).then(res => {
-							const {luaCode, success} = res;
+							const {luaCode, success, diagnostics, extraError} = res;
 							if (!success) {
-								addAlert(t("alert.failedTS"), "error", true);
+								if (extraError) {
+									addAlert(t("alert.failedTS"), "error", true);
+								}
 								preview = false;
+							}
+							if (model) {
+								setModelMarkers(model, diagnostics);
 							}
 							if (luaCode !== undefined) {
 								const extname = path.extname(file.key);
@@ -1346,8 +1352,9 @@ export default function PersistentDrawerLeft() {
 						if ((ext === '.ts' || ext === '.tsx') && !key.toLocaleLowerCase().endsWith(".d.ts")) {
 							const res = await Service.read({path: key});
 							if (res.success && res.content !== undefined) {
-								const {transpileTypescript} = await import('./TranspileTS');
-								const {luaCode} = await transpileTypescript(key, res.content);
+								const {transpileTypescript, addDiagnosticToLog} = await import('./TranspileTS');
+								const {luaCode, diagnostics} = await transpileTypescript(key, res.content);
+								addDiagnosticToLog(key, diagnostics);
 								if (luaCode !== undefined) {
 									if (fileInTab !== undefined) {
 										fileInTab.content = luaCode;
@@ -2243,7 +2250,7 @@ export default function PersistentDrawerLeft() {
 		}
 		if (file.editor !== undefined) {
 			const filtered = markers.filter(marker => {
-				return marker.code !== "2497" && marker.code !== "2666";
+				return marker.owner !== 'tstl' && marker.code !== "2497" && marker.code !== "2666";
 			});
 			if (filtered.length !== markers.length) {
 				const model = file.editor.getModel();
