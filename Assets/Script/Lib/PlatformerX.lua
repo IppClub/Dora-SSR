@@ -215,38 +215,38 @@ do -- 443
     Leaf.name = "Leaf" -- 27
     function Leaf.prototype.____constructor(self) -- 28
     end -- 28
-    function BehaviorTree.Selector(self, props) -- 38
-        return React:createElement("custom-element", {name = "BTSelector", data = props}) -- 39
+    function BehaviorTree.Selector(props) -- 38
+        return React.createElement("custom-element", {name = "BTSelector", data = props}) -- 39
     end -- 38
-    function BehaviorTree.Sequence(self, props) -- 42
-        return React:createElement("custom-element", {name = "BTSequence", data = props}) -- 43
+    function BehaviorTree.Sequence(props) -- 42
+        return React.createElement("custom-element", {name = "BTSequence", data = props}) -- 43
     end -- 42
-    function BehaviorTree.Condition(self, props) -- 51
-        return React:createElement("custom-element", {name = "BTCondition", data = props}) -- 52
+    function BehaviorTree.Condition(props) -- 51
+        return React.createElement("custom-element", {name = "BTCondition", data = props}) -- 52
     end -- 51
-    function BehaviorTree.Match(self, props) -- 61
-        return React:createElement("custom-element", {name = "BTMatch", data = props}) -- 62
+    function BehaviorTree.Match(props) -- 61
+        return React.createElement("custom-element", {name = "BTMatch", data = props}) -- 62
     end -- 61
-    function BehaviorTree.Action(self, props) -- 69
-        return React:createElement("custom-element", {name = "BTAction", data = props}) -- 70
+    function BehaviorTree.Action(props) -- 69
+        return React.createElement("custom-element", {name = "BTAction", data = props}) -- 70
     end -- 69
-    function BehaviorTree.Command(self, props) -- 73
-        return React:createElement("custom-element", {name = "BTCommand", data = props}) -- 74
+    function BehaviorTree.Command(props) -- 73
+        return React.createElement("custom-element", {name = "BTCommand", data = props}) -- 74
     end -- 73
-    function BehaviorTree.Wait(self, props) -- 81
-        return React:createElement("custom-element", {name = "BTWait", data = props}) -- 82
+    function BehaviorTree.Wait(props) -- 81
+        return React.createElement("custom-element", {name = "BTWait", data = props}) -- 82
     end -- 81
-    function BehaviorTree.Countdown(self, props) -- 90
-        return React:createElement("custom-element", {name = "BTCountdown", data = props}) -- 91
+    function BehaviorTree.Countdown(props) -- 90
+        return React.createElement("custom-element", {name = "BTCountdown", data = props}) -- 91
     end -- 90
-    function BehaviorTree.Timeout(self, props) -- 94
-        return React:createElement("custom-element", {name = "BTTimeout", data = props}) -- 95
+    function BehaviorTree.Timeout(props) -- 94
+        return React.createElement("custom-element", {name = "BTTimeout", data = props}) -- 95
     end -- 94
-    function BehaviorTree.Repeat(self, props) -- 103
-        return React:createElement("custom-element", {name = "BTRepeat", data = props}) -- 104
+    function BehaviorTree.Repeat(props) -- 103
+        return React.createElement("custom-element", {name = "BTRepeat", data = props}) -- 104
     end -- 103
-    function BehaviorTree.Retry(self, props) -- 107
-        return React:createElement("custom-element", {name = "BTRetry", data = props}) -- 108
+    function BehaviorTree.Retry(props) -- 107
+        return React.createElement("custom-element", {name = "BTRetry", data = props}) -- 108
     end -- 107
 end -- 107
 ____exports.DecisionTree = {} -- 107
@@ -257,29 +257,29 @@ do -- 107
     Leaf.name = "Leaf" -- 124
     function Leaf.prototype.____constructor(self) -- 125
     end -- 125
-    function DecisionTree.Selector(self, props) -- 135
-        return React:createElement("custom-element", {name = "DTSelector", data = props}) -- 136
+    function DecisionTree.Selector(props) -- 135
+        return React.createElement("custom-element", {name = "DTSelector", data = props}) -- 136
     end -- 135
-    function DecisionTree.Sequence(self, props) -- 139
-        return React:createElement("custom-element", {name = "DTSequence", data = props}) -- 140
+    function DecisionTree.Sequence(props) -- 139
+        return React.createElement("custom-element", {name = "DTSequence", data = props}) -- 140
     end -- 139
-    function DecisionTree.Condition(self, props) -- 148
-        return React:createElement("custom-element", {name = "DTCondition", data = props}) -- 149
+    function DecisionTree.Condition(props) -- 148
+        return React.createElement("custom-element", {name = "DTCondition", data = props}) -- 149
     end -- 148
-    function DecisionTree.Match(self, props) -- 158
-        return React:createElement("custom-element", {name = "DTMatch", data = props}) -- 159
+    function DecisionTree.Match(props) -- 158
+        return React.createElement("custom-element", {name = "DTMatch", data = props}) -- 159
     end -- 158
-    function DecisionTree.Action(self, props) -- 166
-        return React:createElement("custom-element", {name = "DTAction", data = props}) -- 167
+    function DecisionTree.Action(props) -- 166
+        return React.createElement("custom-element", {name = "DTAction", data = props}) -- 167
     end -- 166
-    function DecisionTree.Accept(self) -- 170
-        return React:createElement("custom-element", {name = "DTAccept", data = nil}) -- 171
+    function DecisionTree.Accept() -- 170
+        return React.createElement("custom-element", {name = "DTAccept", data = nil}) -- 171
     end -- 170
-    function DecisionTree.Reject(self) -- 174
-        return React:createElement("custom-element", {name = "DTReject", data = nil}) -- 175
+    function DecisionTree.Reject() -- 174
+        return React.createElement("custom-element", {name = "DTReject", data = nil}) -- 175
     end -- 174
-    function DecisionTree.Behavior(self, props) -- 182
-        return React:createElement("custom-element", {name = "DTBehavior", data = props}) -- 183
+    function DecisionTree.Behavior(props) -- 182
+        return React.createElement("custom-element", {name = "DTBehavior", data = props}) -- 183
     end -- 182
 end -- 182
 local function visitDTree(treeStack, node) -- 191

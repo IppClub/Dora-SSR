@@ -73,7 +73,7 @@ local inputManager = CreateManager({ -- 39
     QTEContext("Phase3", "L", "x", 1) -- 64
 }) -- 64
 inputManager:pushContext("Default") -- 67
-toNode(React:createElement(GamePad, {inputManager = inputManager})) -- 69
+toNode(React.createElement(GamePad, {inputManager = inputManager})) -- 69
 local phase = "None" -- 73
 local text = "" -- 74
 local holdTime = 0 -- 76

@@ -22,30 +22,30 @@ end -- 9
 local tests = { -- 15
     Test( -- 17
         "Laser", -- 17
-        React:createElement( -- 17
+        React.createElement( -- 17
             "effek-node", -- 17
             {scaleX = 50, scaleY = 50, x = -300, angleY = -90}, -- 17
-            React:createElement("effek", {file = "Particle/effek/Laser01.efk"}) -- 17
+            React.createElement("effek", {file = "Particle/effek/Laser01.efk"}) -- 17
         ) -- 17
     ), -- 17
     Test( -- 23
         "Simple Model UV", -- 23
-        React:createElement( -- 23
+        React.createElement( -- 23
             "effek-node", -- 23
             {scaleX = 50, scaleY = 50, y = -200}, -- 23
-            React:createElement("effek", {file = "Particle/effek/Simple_Model_UV.efkefc"}) -- 23
+            React.createElement("effek", {file = "Particle/effek/Simple_Model_UV.efkefc"}) -- 23
         ) -- 23
     ), -- 23
     Test( -- 29
         "Sword Lightning", -- 29
-        React:createElement( -- 29
+        React.createElement( -- 29
             "effek-node", -- 29
             {scaleX = 50, scaleY = 50, y = -300}, -- 29
-            React:createElement("effek", {file = "Particle/effek/sword_lightning.efkefc"}) -- 29
+            React.createElement("effek", {file = "Particle/effek/sword_lightning.efkefc"}) -- 29
         ) -- 29
     ) -- 29
 } -- 29
-tests[1]:test() -- 36
+tests[1].test() -- 36
 local testNames = __TS__ArrayMap( -- 38
     tests, -- 38
     function(____, t) return t.name end -- 38
@@ -82,7 +82,7 @@ threadLoop(function() -- 48
                 if current then -- 56
                     current:removeFromParent() -- 59
                 end -- 59
-                tests[currentTest]:test() -- 61
+                tests[currentTest].test() -- 61
             end -- 61
         end -- 52
     ) -- 52

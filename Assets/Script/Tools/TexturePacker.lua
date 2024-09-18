@@ -277,7 +277,7 @@ local function generateClips(folder) -- 130
 end -- 130
 local length = Vec2(App.visualSize).length -- 228
 local tapCount = 0 -- 229
-toNode(React:createElement( -- 230
+toNode(React.createElement( -- 230
     "node", -- 230
     { -- 230
         order = 1, -- 230

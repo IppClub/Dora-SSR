@@ -84,7 +84,7 @@ export function createElement(
 			} else {
 				props.children = children;
 			}
-			const inst = new typeName(props);
+			const inst = new typeName(props) as React.Component<any>;
 			return inst.render();
 		}
 		default: {

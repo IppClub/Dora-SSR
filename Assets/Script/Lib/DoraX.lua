@@ -87,7 +87,7 @@ do -- 1371
         end -- 48
         return flatChildren, false -- 52
     end -- 30
-    function React.createElement(self, typeName, props, ...) -- 61
+    function React.createElement(typeName, props, ...) -- 61
         local children = {...} -- 61
         repeat -- 61
             local ____switch14 = type(typeName) -- 61
@@ -105,7 +105,7 @@ do -- 1371
                     else -- 70
                         props.children = children -- 72
                     end -- 72
-                    return typeName(nil, props) -- 74
+                    return typeName(props) -- 74
                 end -- 74
             end -- 74
             ____cond14 = ____cond14 or ____switch14 == "table" -- 74

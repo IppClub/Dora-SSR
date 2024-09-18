@@ -3,7 +3,7 @@ import { WindowFlag, SetCond } from "ImGui";
 import * as ImGui from 'ImGui';
 import { Angle, App, Color, DrawNode, Line, Node, Size, Sprite, Vec2, threadLoop } from "Dora";
 
-function Item(this: void) {
+function Item() {
 	const node = Node();
 	node.width = 144;
 	node.height = 144;

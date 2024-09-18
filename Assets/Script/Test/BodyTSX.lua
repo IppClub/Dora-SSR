@@ -12,13 +12,13 @@ local gravity = Vec2(0, -10) -- 7
 local groupA = 0 -- 8
 local groupB = 1 -- 9
 local groupTerrain = 2 -- 10
-toNode(React:createElement( -- 12
+toNode(React.createElement( -- 12
     "physics-world", -- 12
     {y = -200, showDebug = true}, -- 12
-    React:createElement("contact", {groupA = groupA, groupB = groupB, enabled = false}), -- 12
-    React:createElement("contact", {groupA = groupA, groupB = groupTerrain, enabled = true}), -- 12
-    React:createElement("contact", {groupA = groupB, groupB = groupTerrain, enabled = true}), -- 12
-    React:createElement( -- 12
+    React.createElement("contact", {groupA = groupA, groupB = groupB, enabled = false}), -- 12
+    React.createElement("contact", {groupA = groupA, groupB = groupTerrain, enabled = true}), -- 12
+    React.createElement("contact", {groupA = groupB, groupB = groupTerrain, enabled = true}), -- 12
+    React.createElement( -- 12
         "body", -- 12
         { -- 12
             type = "Dynamic", -- 12
@@ -27,7 +27,7 @@ toNode(React:createElement( -- 12
             y = 500, -- 12
             angle = 15 -- 12
         }, -- 12
-        React:createElement( -- 12
+        React.createElement( -- 12
             "polygon-fixture", -- 12
             { -- 12
                 verts = { -- 12
@@ -44,7 +44,7 @@ toNode(React:createElement( -- 12
             } -- 32
         ) -- 32
     ), -- 32
-    React:createElement( -- 32
+    React.createElement( -- 32
         "body", -- 32
         { -- 32
             type = "Dynamic", -- 32
@@ -54,12 +54,12 @@ toNode(React:createElement( -- 12
             y = 800, -- 32
             angularRate = 90 -- 32
         }, -- 32
-        React:createElement("disk-fixture", {radius = 60, density = 1, friction = 0.4, restitution = 0.4}) -- 32
+        React.createElement("disk-fixture", {radius = 60, density = 1, friction = 0.4, restitution = 0.4}) -- 32
     ), -- 32
-    React:createElement( -- 32
+    React.createElement( -- 32
         "body", -- 32
         {type = "Static", group = groupTerrain}, -- 32
-        React:createElement("rect-fixture", {width = 800, height = 10, friction = 0.8, restitution = 0.2}) -- 32
+        React.createElement("rect-fixture", {width = 800, height = 10, friction = 0.8, restitution = 0.2}) -- 32
     ) -- 32
 )) -- 32
 local windowFlags = { -- 62

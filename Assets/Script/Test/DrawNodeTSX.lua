@@ -49,13 +49,13 @@ local function StarVertices(radius) -- 20
     return vs -- 32
 end -- 20
 local themeColor = App.themeColor:toARGB() -- 35
-toNode(React:createElement( -- 37
+toNode(React.createElement( -- 37
     React.Fragment, -- 37
     nil, -- 37
-    React:createElement( -- 37
+    React.createElement( -- 37
         "draw-node", -- 37
         {x = 200, y = 200}, -- 37
-        React:createElement( -- 37
+        React.createElement( -- 37
             "polygon-shape", -- 37
             { -- 37
                 verts = StarVertices(60), -- 37
@@ -65,7 +65,7 @@ toNode(React:createElement( -- 37
             } -- 37
         ) -- 37
     ), -- 37
-    React:createElement( -- 37
+    React.createElement( -- 37
         "line", -- 37
         { -- 37
             verts = CircleVertices(60), -- 37
@@ -74,13 +74,13 @@ toNode(React:createElement( -- 37
             y = 200 -- 37
         } -- 37
     ), -- 37
-    React:createElement( -- 37
+    React.createElement( -- 37
         "node", -- 37
         {color3 = themeColor, scaleX = 2, scaleY = 2}, -- 37
-        React:createElement( -- 37
+        React.createElement( -- 37
             "draw-node", -- 37
             {opacity = 0.5}, -- 37
-            React:createElement( -- 37
+            React.createElement( -- 37
                 "polygon-shape", -- 37
                 {verts = { -- 37
                     Vec2(-20, -10), -- 48
@@ -89,7 +89,7 @@ toNode(React:createElement( -- 37
                     Vec2(-20, 10) -- 51
                 }} -- 51
             ), -- 51
-            React:createElement( -- 51
+            React.createElement( -- 51
                 "polygon-shape", -- 51
                 {verts = { -- 51
                     Vec2(20, 3), -- 54
@@ -98,10 +98,10 @@ toNode(React:createElement( -- 37
                     Vec2(20, -3) -- 57
                 }} -- 57
             ), -- 57
-            React:createElement("dot-shape", {x = -11, y = 20, radius = 10}), -- 57
-            React:createElement("dot-shape", {x = 11, y = 20, radius = 10}) -- 57
+            React.createElement("dot-shape", {x = -11, y = 20, radius = 10}), -- 57
+            React.createElement("dot-shape", {x = 11, y = 20, radius = 10}) -- 57
         ), -- 57
-        React:createElement( -- 57
+        React.createElement( -- 57
             "line", -- 57
             { -- 57
                 verts = CircleVertices(10), -- 57
@@ -109,7 +109,7 @@ toNode(React:createElement( -- 37
                 y = 10 -- 57
             } -- 57
         ), -- 57
-        React:createElement( -- 57
+        React.createElement( -- 57
             "line", -- 57
             { -- 57
                 verts = CircleVertices(10), -- 57
@@ -117,7 +117,7 @@ toNode(React:createElement( -- 37
                 y = 10 -- 57
             } -- 57
         ), -- 57
-        React:createElement( -- 57
+        React.createElement( -- 57
             "line", -- 57
             {verts = { -- 57
                 Vec2(20, 3), -- 66

@@ -82,13 +82,15 @@ control.onAlignLayout((w, h) => {
 });
 
 const commands = setmetatable({}, {
-	__index: (name: string) => (...args: any) => {
-		const argStrs = [];
-		for (let i = 1; i <= select('#', args); i++) {
-			argStrs.push(tostring(select(i, args)));
-		}
-		const msg = "[command]: " + name + " " + table.concat(argStrs, ', ');
-		coroutine.yield("Command", msg);
+	__index(this: {}, name: string) {
+		return (...args: any[]) => {
+			const argStrs = [];
+			for (let i = 0; i < args.length; i++) {
+				argStrs.push(tostring(args[i]));
+			}
+			const msg = "[command]: " + name + " " + table.concat(argStrs, ', ');
+			coroutine.yield("Command", msg);
+		};
 	}
 });
 

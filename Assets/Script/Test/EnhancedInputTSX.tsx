@@ -12,7 +12,7 @@ const enum QTE {
 	Phase3 = "Phase3"
 }
 
-function QTEContext(this: void, contextName: QTE, keyName: KeyName, buttonName: ButtonName, timeWindow: number): InputContext {
+function QTEContext(contextName: QTE, keyName: KeyName, buttonName: ButtonName, timeWindow: number): InputContext {
 	return {name: contextName,
 		actions: [{
 			name: "QTE", trigger:
@@ -144,7 +144,7 @@ node.gslot("Input.QTE", (state: TriggerState, progress: number) => {
 	}
 });
 
-function QTEButton(this: void) {
+function QTEButton() {
 	if (ImGui.Button("Start QTE")) {
 		phase = QTE.Phase1;
 		text = "Button A or Key J"

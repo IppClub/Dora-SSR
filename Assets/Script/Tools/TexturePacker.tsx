@@ -21,9 +21,9 @@ let zh = false;
 	zh = res !== null && ImGui.IsFontLoaded();
 }
 
-function getAllClipFolders(this: void) {
+function getAllClipFolders() {
 	const folders: string[] = [];
-	function visitFolders(this: void, parent: string) {
+	function visitFolders(parent: string) {
 		for (let dir of Content.getDirs(parent)) {
 			const path = Path(parent, dir);
 			if (Path.getExt(path) === 'clips') {
@@ -55,7 +55,7 @@ if (clipFolders.length > 0) {
 	displayClips(clipFolders[0]);
 }
 
-function getLabel(this: void, text: string) {
+function getLabel(text: string) {
 	const label = Label("sarasa-mono-sc-regular", math.tointeger(24 * pixelRatio));
 	if (label) {
 		label.text = text;
@@ -63,7 +63,7 @@ function getLabel(this: void, text: string) {
 	return label;
 }
 
-function displayClips(this: void, folder: string) {
+function displayClips(folder: string) {
 	if (currentFolder === folder) {
 		return;
 	}
@@ -127,7 +127,7 @@ function displayClips(this: void, folder: string) {
 	}
 }
 
-function generateClips(this: void, folder: string) {
+function generateClips(folder: string) {
 	scaledSize = 1;
 	ruler.value = 1;
 	clipHover = "-";
