@@ -1,0 +1,771 @@
+import "@site/src/languages/highlight";
+
+# 使用 Teal 进行类型编程
+
+:::tip Dora SSR 适用的 Teal 语言
+本教程是原始 Teal 教程的稍作修改版，已根据 Dora SSR 进行调整。原教程可在[此处](https://github.com/teal-language/tl/blob/master/docs/tutorial.md)查看。
+:::
+
+## 欢迎学习 Teal！
+
+&emsp;&emsp;在本教程中，我们将介绍一些基础内容，帮助你快速开始使用 Teal 对你的 Lua 代码进行类型检查。Teal 是 Lua 的一种带类型的方言。
+
+## 为什么要使用类型
+
+&emsp;&emsp;如果你已经了解类型检查的重要性，可以跳过这一部分。:)
+
+&emsp;&emsp;你的程序中的数据是有类型的：Lua 是一种高级语言，因此存储在 Lua 虚拟机内存中的每一个数据都带有一个类型：数字、字符串、函数、布尔值、用户数据、线程、nil 或表。
+
+&emsp;&emsp;程序的核心就是对各种类型数据的操作。当程序按照预期运行时，它是正确的，而这一切依赖于将正确类型的数据相互匹配，比如拼图：你可以把一个数字乘以另一个数字，但不能把数字乘以布尔值；你可以调用一个函数，但不能调用字符串，等等。
+
+&emsp;&emsp;然而，Lua 的变量并不知道类型。你可以随时将任何值赋给任何变量，如果你犯了错误，错误匹配了类型，程序会在运行时崩溃，或者更糟糕的情况是，它会默默地出现异常行为。
+
+&emsp;&emsp;Teal 的变量知道类型：每个变量都有一个指定的类型，并且会一直保持该类型。这样，Teal 编译器可以在程序运行之前，帮助你发现一类常见的错误。
+
+&emsp;&emsp;当然，它不能捕捉到程序中所有可能的错误，但可以帮助你避免一些诸如表字段拼写错误、遗漏参数等问题。Teal 还会让你对程序中处理的数据类型更加明确：当不够明确时，编译器会询问你并要求你通过类型来记录。它还会不断检查这种“文档”是否已经过时。使用类型编程就像和机器一起进行配对编程。
+
+## 你的第一个 Teal 程序
+
+&emsp;&emsp;让我们从一个简单的例子开始，声明一个类型安全的函数。假设这个例子叫做 `add.tl`：
+
+```tl
+local function add(a: number, b: number): number
+	return a + b
+end
+
+local s = add(1,2)
+print(s)
+```
+
+&emsp;&emsp;我们也可以在 Teal 中编写模块，并在 Lua 中加载它们。让我们创建第一个模块：
+
+```tl
+local addsub = {}
+
+function addsub.add(a: number, b: number): number
+	return a + b
+end
+
+function addsub.sub(a: number, b: number): number
+	return a - b
+end
+
+return addsub
+```
+
+## Teal 中的类型
+
+&emsp;&emsp;Teal 是 Lua 的一种方言。本教程假设你已经了解 Lua，因此我们将重点介绍 Teal 为 Lua 添加的内容，主要是类型声明。
+
+&emsp;&emsp;Teal 中的类型比 Lua 更加具体，因为 Lua 表格（table）能代表的数据结构非常广泛，并没有一个类型的概念加以约束。以下是 Teal 中的基本类型：
+
+* `any`
+* `nil`
+* `boolean`
+* `integer`
+* `number`
+* `string`
+* `thread`（协程）
+
+&emsp;&emsp;注意：`integer` 是 `number` 的一个子类型，它的精度未定义，取决于 Lua 虚拟机。
+
+&emsp;&emsp;你还可以使用类型构造器声明更多类型。以下是几个例子：
+
+* 数组 - `{number}`, `{{number}}`
+* 元组 - `{number, integer, string}`
+* 映射 - `{string:boolean}`
+* 函数 - `function(number, string): {number}, string`
+
+&emsp;&emsp;最后，还有一些必须通过名称声明和引用的类型：
+
+* 枚举 (enum)
+* 记录 (record)
+	* 用户数据 (userdata)
+	* 数组记录 (arrayrecord)
+
+&emsp;&emsp;以下是每种类型的声明示例：
+
+```tl
+-- 一个枚举：一组可接受的字符串
+local enum State
+	"open"
+	"closed"
+end
+
+-- 一个记录：具有已知字段集的表
+local record Point
+	x: number
+	y: number
+end
+
+-- 一个用户数据记录：用作用户数据的记录
+local record File
+	userdata
+	status: function(): State
+	close: function(File): boolean, string
+end
+
+-- 一个数组记录：既是记录又是数组
+local record TreeNode<T>
+	{TreeNode<T>}
+	item: T
+end
+```
+
+## 局部变量
+
+&emsp;&emsp;Teal 中的变量有类型。因此，当你使用 `local` 关键字声明变量时，需要提供足够的信息以确定类型。在 Teal 中，声明变量时不给出类型是无效的：
+
+```tl
+local x -- 错误！不知道这个变量的类型是什么？
+```
+
+&emsp;&emsp;然而，有两种方式可以为变量赋予类型：
+
+* 通过声明
+* 通过初始化
+
+&emsp;&emsp;声明时，在变量名后加上冒号和类型。当同时声明多个变量时，每个变量都应该有自己的类型：
+
+```tl
+local s: string
+local r, g, b: number, number, number
+```
+
+&emsp;&emsp;如果在创建变量时初始化它，就不需要写类型：
+
+```tl
+local s = "hello"
+local r, g, b = 0, 128, 128
+local ok = true
+```
+
+&emsp;&emsp;如果你用 `nil` 初始化变量但不给出类型，就无法提供有用的信息（你不希望变量在程序的整个生命周期中都保持 `nil`，对吧？），因此你需要显式声明类型：
+
+```tl
+local n: number = nil
+```
+
+&emsp;&emsp;这与省略 `= nil` 的做法类似，但它为 Teal 提供了所需的信息。Teal 中的每个类型都接受 `nil` 作为有效值，尽管像在 Lua 中一样，在某些操作中使用它会导致运行时错误，因此要留意这一点！
+
+## 数组
+
+&emsp;&emsp;Teal 中最简单的结构化类型是数组。数组是 Lua 表，其中所有键都是数字，所有值都是相同类型的。实际上，它是一个 Lua 序列，具有与 Lua 序列相同的语义，比如 `#` 操作符和 `table` 标准库的使用。
+
+&emsp;&emsp;数组使用花括号表示，可以通过声明或初始化来表示：
+
+```tl
+local values: {number}
+local names = {"John", "Paul", "George", "Ringo"}
+```
+
+&emsp;&emsp;注意，`values` 被初始化为 `nil`。要将其初始化为空表，需要显式地这么做：
+
+```tl
+local prices: {number} = {}
+```
+
+&emsp;&emsp;由于初始化空表用于构造数组的情况非常常见，Teal 提供了一个简单的推断逻辑，支持为没有声明的空表确定类型。代码中第一次为空表赋值的地方决定了它的类型。因此，以下代码是可以工作的：
+
+```tl
+local lengths = {}
+for i, n in ipairs(names) do
+	table.insert(lengths, #n) -- 这使得 lengths 表成为 {number}
+end
+```
+
+&emsp;&emsp;注意，这甚至适用于库调用。如果你对不兼容的类型进行赋值，tl 编译器会告诉你在程序的哪个地方它最初认为空表是一个不兼容的类型。
+
+&emsp;&emsp;还要注意，我们在上面的例子中并不需要声明 `i` 和 `n` 的类型：`for` 语句可以从 `ipairs` 调用返回的迭代器函数的返回类型中推断出它们的类型。将 `{string}` 传递给 `ipairs` 意味着 `ipairs` 循环的迭代变量将是 `number` 和 `string`。关于自定义用户编写的迭代器的示例，请参见下面的[函数](#函数)部分。
+
+&emsp;&emsp;请注意，数组的所有项都应该是相同类型的。如果你需要处理异构数组，你将不得不使用强制转换运算符 `as` 将元素强制转换为所需的类型。请记住，当你使用 `as` 时，Teal 将接受你使用的任何类型，这意味着它也可以隐藏数据的不正确使用：
+
+```tl
+local sizes: {number} = {34, 36, 38}
+sizes[#sizes + 1] = true as number -- 这不会执行真正的转换！它只会让 Teal 不再抱怨！
+local sum = 0
+for i = 1, #sizes do
+	sum = sum + sizes[i] -- 将在运行时崩溃！
+end
+```
+
+## 元组
+
+&emsp;&emsp;在 Lua 中，另一种常见的表用法是元组：表中包含一个有序的元素集，每个元素的类型都已知，并且分配给其整数键。
+
+```tl
+-- 包含姓名和年龄的类型为 {string, integer} 的元组
+local p1 = { "Anna", 15 }
+local p2 = { "Bob", 37 }
+local p3 = { "Chris", 65 }
+```
+
+&emsp;&emsp;当使用常量数字索引元组时，其类型可以正确推断，超出范围的索引会产生错误。
+
+```tl
+local age_of_p1: number = p1[2] -- 没有类型错误
+local nonsense = p1[3] -- 错误！索引 3 超出元组 {1: string, 2: integer} 的范围
+```
+
+&emsp;&emsp;当使用 `number` 变量索引元组时，Teal 会尽力通过将元组中的所有类型进行[联合类型](#联合类型)（遵循下面详细说明的联合限制）。
+
+```tl
+local my_number = math.random(1, 2)
+local x = p1[my_number] -- => x 是 string | number 联合
+if x is string then
+	print("Name is " .. x .. "!")
+else
+	print("Age is " .. x)
+end
+```
+
+&emsp;&emsp;元组还可以帮助你跟踪意外添加比预期更多的元素（只要它们的长度是显式注释的，而不是推断的）。
+
+```tl
+local p4: {string, integer} = { "Delilah", 32, false } -- 错误！预期最大长度为 2，得到了 3
+```
+
+&emsp;&emsp;在使用元组和数组时需要记住的一点是类型推断，以及何时需要或不需要它。如果表中的所有元素都是相同类型，那么表将被推断为数组，如果任何类型不同，则被推断为元组。因此，如果你想要一个联合类型的数组而不是元组，请明确注释：
+
+```tl
+local array_of_union: {string | number} = {1, 2, "hello", "hi"}
+```
+
+&emsp;&emsp;如果你想要一个所有元素都是相同类型的元组，也要进行注释：
+
+```tl
+local tuple_of_nums: {number, number} = {1, 2}
+```
+
+## 映射
+
+&emsp;&emsp;映射是另一种非常常见的表类型：表中的所有键都是某一类型，所有值都是另一类型，键和值的类型可以相同或不同。映射使用花括号和冒号表示：
+
+```tl
+local populations: {string:number}
+local complicated: {Object:{string:{Point}}} = {}
+local modes = { -- 这是 {boolean:number}
+	[false] = 127,
+	[true] = 230,
+}
+```
+
+## 记录
+
+&emsp;&emsp;记录是 Teal 中支持的第三大表类型。它们代表了 Lua 代码中的另一种常见模式，Lua 为这种模式提供了特殊语法（点和冒号表示法用于索引）：带有一组已知字段的表，每个字段对应一个特定的值类型。
+
+&emsp;&emsp;要声明记录变量，首先需要创建一个记录类型。类型描述了该记录可以包含的有效字段集（键为字符串、值为特定类型）。你可以使用 `local type` 声明类型，也可以使用 `global type` 声明全局类型。
+
+```tl
+local type Point = record
+	x: number
+	y: number
+end
+```
+
+&emsp;&emsp;记录类型是常量：不能重新赋值，声明时必须用类型初始化。
+
+&emsp;&emsp;你还可以在记录定义后使用 Lua 的常规冒号或点语法声明记录函数，只要它在同一作用域中：
+
+```tl
+function Point.new(x: number, y: number): Point
+	local self: Point = setmetatable({}, { __index = Point })
+	self.x = x or 0
+	self.y = y or 0
+	return self
+end
+
+function Point:move(dx: number, dy: number)
+	self.x = self.x + dx
+	self.y = self.y + dy
+end
+```
+
+&emsp;&emsp;当你使用这些函数时，不用担心：如果你搞错了冒号或点，tl 会检测并提示你！
+
+&emsp;&emsp;如果你想在一个后续的作用域中定义函数（例如，该函数是由模块的用户定义的回调函数），你可以在记录中声明函数字段的类型，然后在任何地方进行赋值：
+
+```tl
+local record Obj
+	location: Point
+	draw: function(Obj)
+end
+```
+
+&emsp;&emsp;一个记录也可以有数组部分，形成一个“数组记录”。以下是一个数组记录的例子。你可以同时将它作为一个记录使用（通过名称访问其字段），也可以将其作为一个数组使用（通过数字索引访问其元素）。
+
+```tl
+local record Node
+	{Node}
+	weight: number
+	name: string
+end
+```
+
+&emsp;&emsp;请注意，上例中的递归定义：`Node` 类型的记录可以通过数组部分组织成树结构。
+
+&emsp;&emsp;最后，记录可以包含嵌套的记录类型定义。这在将模块导出为记录时非常有用，因此在模块中创建的类型可以被客户端代码使用。
+
+```tl
+local record http
+
+	record Response
+		status_code: number
+	end
+
+	get: function(string): Response
+end
+
+return http
+```
+
+&emsp;&emsp;你可以使用常规的点表示法引用嵌套类型，并在所需的模块中使用它们：
+
+```tl
+local http = require("http")
+
+local x: http.Response = http.get("http://example.com")
+print(x.status_code)
+```
+
+&emsp;&emsp;你可以将记录字段标记为 `const`，以防止它在初始化后被修改：
+
+```tl
+local record Point
+	const x: number
+	const y: number
+end
+
+local point: Point = {x = 100, y = 200}
+point.x = 456 -- 错误！无法修改 const 字段
+```
+
+&emsp;&emsp;你可以使用 `embed` 关键字将另一个记录的所有字段包含到当前记录中：
+
+```tl
+local record Point
+	x: number
+	y: number
+end
+
+local record Circle
+	embed Point
+	radius: number
+end
+
+local c: Circle = {x = 100, y = 200, radius = 50}
+```
+
+## 泛型
+
+&emsp;&emsp;Teal 支持简单的泛型，足够处理操作抽象数据类型的集合和算法。
+
+&emsp;&emsp;你可以在任何类型的地方使用类型变量，并且可以在函数和记录中声明它们。以下是一个泛型函数的例子：
+
+```tl
+local function keys<K,V>(xs: {K:V}):{K}
+	local ks = {}
+	for k, v in pairs(xs) do
+		table.insert(ks, k)
+	end
+	return ks
+end
+
+local s = keys({ a = 1, b = 2 }) -- s 是 {string}
+```
+
+&emsp;&emsp;我们在尖括号中声明类型变量，并将它们用作类型。泛型记录的声明和使用方式如下：
+
+```tl
+local type Tree = record<X>
+	{Tree<X>}
+	item: X
+end
+
+local t: Tree<number> = {
+	item = 1,
+	{ item = 2 },
+	{ item = 3, { item = 4 } },
+}
+```
+
+## 元方法
+
+&emsp;&emsp;Lua 支持元方法，用于提供一些高级功能，例如操作符重载。与 Lua 表一样，Teal 中的记录也支持元方法。要在记录中使用元方法，你需要做两件事：
+
+* 在记录类型中声明元方法，使用 `metamethod` 关键字，以便进行静态类型检查；
+* 像在 Lua 中那样，使用 `setmetatable` 给表设置元表，以获取动态元表行为。
+
+&emsp;&emsp;以下是一个完整的例子，展示了记录块中的元方法声明和 `setmetatable` 的元表设置。
+
+```tl
+local type Rec = record
+	x: number
+	metamethod __call: function(Rec, string, number): string
+	metamethod __add: function(Rec, Rec): Rec
+end
+
+local rec_mt: metatable<Rec>
+rec_mt = {
+	__call = function(self: Rec, s: string, n: number): string
+		return tostring(self.x * n) .. s
+	end,
+	__add = function(a: Rec, b: Rec): Rec
+		local res: Rec = setmetatable({}, rec_mt)
+		res.x = a.x + b.x
+		return res
+	end,
+}
+
+local r: Rec = setmetatable({ x = 10 }, rec_mt)
+local s: Rec = setmetatable({ x = 20 }, rec_mt)
+
+r.x = 12
+print(r("!!!", 1000)) -- 打印 12000!!!
+print((r + s).x)		-- 打印 32
+```
+
+&emsp;&emsp;注意，当我们使用 `setmetatable` 初始化时，显式声明了 `Rec` 类型变量。Teal 标准库中 `setmetatable` 的定义是 `function<T>(T, metatable<T>): T`，因此在声明中正确地声明记录类型将记录类型赋予类型变量 `T`，并将其传播到参数类型，从而匹配正确的表和元表类型。
+
+&emsp;&emsp;即使 Teal 在 Lua 5.1 上运行，整除运算符 `//` 和位运算符的元方法也得到支持。
+
+## 枚举
+
+&emsp;&emsp;枚举是一种限制类型的字符串值，代表了一种 Lua 代码中的常见实践：使用一组有限的字符串常量来描述可能的值。
+
+&emsp;&emsp;你可以这样描述一个枚举：
+
+```tl
+local type Direction = enum
+	"north"
+	"south"
+	"east"
+	"west"
+end
+```
+
+或者这样：
+
+```tl
+local enum Direction
+	"north"
+	"south"
+	"east"
+	"west"
+end
+```
+
+&emsp;&emsp;这种类型的变量和参数只能接受声明列表中的值。枚举可以自由转换为字符串，但字符串不能直接转换为枚举。当然，你可以通过强制转换将任意字符串提升为枚举。
+
+## 函数
+
+&emsp;&emsp;Teal 中的函数应该像你所期望的那样工作，我们之前已经展示了几个例子。
+
+&emsp;&emsp;你可以像声明记录类型那样声明命名的函数类型，避免繁琐的类型声明，特别是在声明接受回调函数的函数时。可以通过使用函数类型来实现这一点，函数类型也可以是泛型的：
+
+```tl
+local type Comparator = function<T>(T, T): boolean
+
+local function mysort<A>(arr: {A}, cmp: Comparator<A>)
+	-- ...
+end
+```
+
+&emsp;&emsp;还有一点需要注意的是，当你使用嵌套声明和多重返回值时，你可以对返回类型进行括号化处理，以避免歧义：
+
+```tl
+f: function(function():(number, number), number)
+```
+
+&emsp;&emsp;你可以声明生成迭代器的函数，这些函数可以用于 `for` 循环。函数需要生成另一个函数来进行迭代。以下是一个例子，改编自[《Programming in Lua》](https://www.lua.org/pil/7.1.html)一书：
+
+```tl
+local function allwords(): (function(): string)
+	local line = io.read()
+	local pos = 1
+	return function(): string
+		while line do
+			local s, e = line:find("%w+", pos)
+			if s then
+				pos = e + 1
+				return line:sub(s, e)
+			else
+				line = io.read()
+				pos = 1
+			end
+		end
+		return nil
+	end
+end
+
+for word in allwords() do
+	print(word)
+end
+```
+
+&emsp;&emsp;上面的代码只在函数声明中添加了类型签名。
+
+### 可变参数函数
+
+&emsp;&emsp;就像在 Lua 中一样，Teal 中的一些函数可以接受不定数量的参数。可变参数函数可以通过指定 `...` 作为函数的最后一个参数来声明：
+
+```tl
+local function test(...: number)
+	print(...)
+end
+
+test(1, 2, 3)
+```
+
+&emsp;&emsp;如果你的函数返回不定数量的值，你也可以使用 `type...` 语法来声明可变返回类型：
+
+```tl
+local function test(...: number): number...
+	return ...
+end
+
+local a, b, c = test(1, 2, 3)
+```
+
+&emsp;&emsp;如果你的函数非常动态（例如，一个可以返回任意类型值的 Lua 函数），通常的返回类型将是 `any...`。在使用这些函数时，调用站点通常已经知道期望返回的值的类型。你可以使用 `as` 操作符为这些动态返回值设置类型，方法是对多个值使用带括号的类型列表：
+
+```tl
+local s = { 1234, "ola" }
+local a, b = table.unpack(s) as (number, string)
+
+print(a + 1)		-- `a` 类型为 number
+print(b:upper())  -- `b` 类型为 string
+```
+
+## 联合类型
+
+&emsp;&emsp;Teal 语言支持一种基本形式的联合类型。你可以注册一个逻辑 "或" 的类型，它将接受来自多种类型的值，并在运行时区分它们。
+
+&emsp;&emsp;你可以这样声明联合类型：
+
+```tl
+local a: string | number | MyRecord
+local b: {boolean} | MyEnum
+local c: number | {string:number}
+```
+
+&emsp;&emsp;要使用这种类型的值，你需要使用 `is` 操作符对变量进行区分，`is` 操作符接受联合类型的变量和它的一种类型：
+
+```tl
+local a: string | number | MyRecord
+
+if a is string then
+	print("Hello, " .. a)
+elseif a is number then
+	print(a + 10)
+else
+	print(a.my_record_field)
+end
+```
+
+&emsp;&emsp;如上例所示，每次使用 `is` 操作符时，变量的类型会在相应的代码块中被正确地缩小到测试的类型。
+
+&emsp;&emsp;`is` 操作符的流动分析也会在表达式中生效：
+
+```tl
+local a: string | number
+
+local x: number = a is number and a + 1 or 0
+```
+
+### 当前联合类型的限制
+
+&emsp;&emsp;在当前版本中，Teal 对联合类型的支持有两个主要限制。
+
+&emsp;&emsp;第一个是 `is` 操作符只能匹配变量，不能匹配任意表达式。这个限制是为了避免变量别名问题。
+
+&emsp;&emsp;由于 `is` 操作符用于区分联合类型的代码生成会转换为运行时的 `type()` 检查，因此我们只能区分基础类型和最多一种表类型。
+
+&emsp;&emsp;这意味着以下联合是不被接受的：
+
+```tl
+local invalid1: MyRecord | MyOtherRecord
+local invalid2: {string} | {number}
+local invalid3: {string} | {string:string}
+local invalid4: {string} | MyRecord
+```
+
+&emsp;&emsp;另外，由于枚举的 `is` 检查目前也被转换为 `type()` 检查，这意味着它们在运行时与字符串无法区分。因此，目前以下联合也是不被接受的：
+
+```tl
+local invalid5: string | MyEnum
+```
+
+&emsp;&emsp;未来可能会取消字符串和枚举之间的限制，也可能会解除对记录的限制。
+
+## `any` 类型
+
+&emsp;&emsp;`any` 类型，顾名思义，接受任何值，像 Lua 中的动态类型变量一样。但是，由于 Teal 对这种值一无所知，因此除了进行相等性比较和与 `nil` 进行比较之外，几乎不能对其进行任何操作，除非使用 `as` 操作符将其转换为其他类型。
+
+&emsp;&emsp;一些 Lua 库使用了复杂的动态类型，这些类型难以在 Teal 中表示。在这些情况下，使用 `any` 并进行显式转换是我们的最后选择。
+
+## 变量属性
+
+&emsp;&emsp;Teal 支持变量注解，语法和行为类似于 Lua 5.4。它们包括：
+
+### 常量变量
+
+&emsp;&emsp;`<const>` 注解在 Teal 中的工作方式与 Lua 5.4 相同（即使你使用的 Lua 版本不是 5.4，它也可以在编译时生效）。但请注意，这是对变量的注解，而不是对值的注解：设置为常量变量的值的内容并不是不可变的。
+
+```tl
+local xs <const> = {1,2,3}
+xs[1] = 999 -- 可以！数组本身没有被冻结
+xs = {} -- 错误！不能替换变量 xs 中的数组
+```
+
+### “即将关闭”的变量
+
+&emsp;&emsp;`<close>` 注解仅在 Teal 生成目标为 Lua 5.4 时支持。这些变量的工作方式与 [Lua 5.4 中的工作方式](https://www.lua.org/manual/5.4/manual.html#3.3.8)完全相同。
+
+```tl
+local contents = {}
+for _, name in ipairs(filenames) do
+	local f <close> = assert(io.open(name, "r"))
+	contents[name] = f:read("*a")
+	-- 不需要调用 f:close()，因为文件有 __close 元方法
+end
+```
+
+### 完整变量
+
+&emsp;&emsp;`<total>` 注解是 Teal 特有的。它声明了一个常量变量，该变量被赋予一个表值，并且其中的所有可能键都需要被显式声明。
+
+&emsp;&emsp;当然，并不是所有类型都允许你枚举所有可能的键：某些键的取值范围过大（虽然计算机的能力有限，但数量仍然很大！）。示例中的合法键类型包括布尔值（只有两个可能值）以及最常见的枚举类型。
+
+&emsp;&emsp;枚举是完整变量的主要用例：常见的场景是声明一个枚举的多个情况，然后有一个值映射表来处理每个情况。通过将这个映射表声明为 `<total>`，你可以确保在添加新的枚举值时，不会忘记添加相应的处理逻辑。
+
+```tl
+local degrees <total>: {Direction:number} = {
+	["north"] = 0,
+	["west"] = 90,
+	["south"] = 180,
+	["east"] = 270,
+}
+
+-- 如果你后来在 `Direction` 枚举中添加了新方向
+-- 比如 "northeast" 和 "southwest"，上面的 `degrees` 声明
+-- 将会触发编译时错误，因为表不再是完整的！
+```
+
+&emsp;&emsp;记录类型也是另一类拥有有限数量有效键的类型。通过将记录变量标记为 `<total>`，你可以确保在初始化表时必须声明所有字段。
+
+```tl
+local record Color
+	red: integer
+	green: integer
+	blue: integer
+end
+
+local teal_color <total>: Color = {
+	red = 0,
+	green = 128,
+	blue = 128,
+}
+
+-- 如果你后来在 `Color` 记录中添加了新组件
+-- 比如 `alpha`，上面的 `teal_color` 声明
+-- 将触发编译时错误，因为表不再是完整的！
+```
+
+&emsp;&emsp;请注意，完整性检查仅适用于显式声明的字段：即使你将字段赋值为 `nil` 也会被视为合法声明。其原理是显式的 `nil` 表示程序员已经考虑了该情况，并选择将其留空。因此，以下代码是允许的：
+
+```tl
+local vertical_only <total>: {Direction:MotionCallback} = {
+	["north"] = move_up,
+	["west"] = nil,
+	["south"] = move_down,
+	["east"] = nil,
+}
+
+-- 该声明是合法的：映射表仍然是完整的，因为我们
+-- 明确指出了哪些情况下将其留空。
+```
+
+&emsp;&emsp;（旁注：“total” 这个名称来源于数学中的“全关系”概念，它表示在给定一组键和映射值的关系中，键完全覆盖其类型的域）。
+
+## 全局变量
+
+&emsp;&emsp;与 Lua 不同，Teal 中的全局变量必须声明，因为编译器需要知道它的类型。这还允许编译器捕捉到变量名的拼写错误，因为无效的名称不会被假设为某个未知的全局变量（默认为 `nil`）。
+
+&emsp;&emsp;你可以通过 `global` 关键字来声明全局变量，并进行声明和/或赋值：
+
+```tl
+global n: number
+
+global m: {string:boolean} = {}
+
+global hi = function(): string
+	return "hi"
+end
+
+global function my_function()
+	print("I am a global function")
+end
+```
+
+&emsp;&emsp;你还可以声明全局类型，这些类型在模块之间是可见的，只要它们的定义已经被 `require`：
+
+```tl
+-- mymod.tl
+local mymod = {}
+
+global type MyPoint = record
+	x: number
+	y: number
+end
+
+return mymod
+```
+
+```tl
+-- main.tl
+local mymod = require("mymod")
+
+local function do_something(p: MyPoint)
+	-- ...
+end
+```
+
+&emsp;&emsp;如果你有跨多个文件的循环类型依赖关系，可以通过指定类型名称但不实现其具体内容来进行全局类型的前向声明：
+
+```tl
+-- person.tl
+local person = {}
+
+global type Building
+
+global record Person
+	residence: Building
+end
+
+return person
+```
+
+```tl
+-- building.tl
+local building = {}
+
+global type Person
+
+global record Building
+	owner: Person
+end
+
+return building
+```
+
+```tl
+-- main.tl
+local person = require("person")
+local building = require("building")
+
+local b: Building = {}
+local p: Person = { residence = b }
+
+b.owner = p
+```
