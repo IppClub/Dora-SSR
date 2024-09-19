@@ -17,4 +17,4 @@ interface BasicInfo {
 	drawerWidth: number;
 };
 
-export default {} as BasicInfo;
+export default {locale: ""} as BasicInfo;
