@@ -1,0 +1,216 @@
+import "@site/src/languages/highlight";
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Using ClipNode for Masking Effects
+
+In game development and graphic rendering, masking is a common technique used to control the visible area of images or scenes. In Dora SSR, we can easily achieve various masking effects using the `ClipNode` class. This tutorial will guide you through the process of using `ClipNode` to create masking effects based on shapes and images, with example code provided.
+
+## 1. What is ClipNode?
+
+`ClipNode` is a scene node class in Dora SSR used for setting clipping masks to control the visible area of child nodes. By specifying a mask node (`stencil`), `ClipNode` can clip the rendering of its child nodes based on the shape or transparency of the mask.
+
+### Main Properties of ClipNode
+
+- **stencil**: Defines the mask node that determines the clipping shape.
+- **alphaThreshold**: The alpha threshold for clipping mask pixels to take effect. The value ranges from 0 to 1, and only pixels with alpha values greater than this threshold will be included in the clipping.
+- **inverted**: Specifies whether to invert the clipping region. When set to `true`, the clipping area is swapped with the non-clipping area.
+
+## 2. Example A: Using Arbitrary Shapes as a Mask
+
+In the first example, we will use a star shape as a mask to clip the visible area of an animated model.
+
+### Step-by-Step Breakdown
+
+1. **Create the Vertex Data for the Star Shape**
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local function StarVertices(radius, line)
+	-- Calculate the vertex coordinates of a star
+	local a = math.rad(36)
+	local c = math.rad(72)
+	local f = math.sin(a) * math.tan(c) + math.cos(a)
+	local R = radius
+	local r = R / f
+	local vecs = {}
+	local count = 1
+	for i = 9, line and -1 or 0, -1 do
+		local angle = i * a
+		local cr = i % 2 == 1 and r or R
+		vecs[count] = Vec2(cr * math.sin(angle), cr * math.cos(angle))
+		count = count + 1
+	end
+	-- Return the vertex array
+	return vecs
+end
+```
+
+</TabItem>
+</Tabs>
+
+2. **Draw the Mask Shape**
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local maskA = DrawNode()
+maskA:drawPolygon(StarVertices(160, false))
+```
+
+</TabItem>
+</Tabs>
+
+Here, we use `DrawNode` to create a star-shaped mask.
+
+3. **Create the Animated Model**
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local targetA = Model("Model/xiaoli.model")
+targetA.look = "happy"
+targetA.fliped = true
+-- Set the animation and movement path of the model
+targetA:play("walk", true)
+targetA:runAction(
+	Sequence(
+		X(1.5, -200, 200), Event("Turn"),
+		X(1.5, 200, -200), Event("Turn")
+	), true
+)
+targetA:slot("Turn", function()
+	targetA.fliped = not targetA.fliped
+end)
+```
+
+</TabItem>
+</Tabs>
+
+4. **Create the ClipNode and Add Child Nodes**
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local clipNodeA = ClipNode(maskA)
+clipNodeA:addChild(targetA)
+clipNodeA.inverted = true
+```
+
+</TabItem>
+</Tabs>
+
+We pass the mask node `maskA` to `ClipNode` and add the animated model `targetA` as its child.
+
+5. **Add to the Scene**
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local exampleA = Node()
+exampleA:addChild(clipNodeA)
+```
+
+</TabItem>
+</Tabs>
+
+### Visual Effect
+
+When you run the above code, you'll see that the model is only visible inside the star shape, and the parts outside the star are clipped.
+
+## 3. Example B: Using Images and alphaThreshold for Masking
+
+In the second example, we will use a model with transparency as a mask and use the `alphaThreshold` property to control the clipping effect.
+
+### Step-by-Step Breakdown
+
+1. **Create the Mask Model**
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local maskB = Model("Model/xiaoli.model")
+maskB.look = "happy"
+maskB.fliped = true
+maskB:play("walk", true)
+```
+
+</TabItem>
+</Tabs>
+
+Here, we use a model as the mask node.
+
+2. **Create the Target Shape**
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local targetB = DrawNode()
+targetB:drawPolygon(StarVertices(160, false))
+-- Set the movement path of the target shape
+targetB:runAction(
+	Sequence(
+		X(1.5, -200, 200),
+		X(1.5, 200, -200)
+	), true
+)
+```
+
+</TabItem>
+</Tabs>
+
+3. **Create the ClipNode and Set alphaThreshold**
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local clipNodeB = ClipNode(maskB)
+clipNodeB:addChild(targetB)
+clipNodeB.inverted = true
+clipNodeB.alphaThreshold = 0.3
+```
+
+</TabItem>
+</Tabs>
+
+By setting `alphaThreshold = 0.3`, clipping only occurs where the mask model's pixels have an alpha value greater than 0.3.
+
+4. **Add to the Scene**
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local exampleB = Node()
+exampleB:addChild(clipNodeB)
+```
+
+</TabItem>
+</Tabs>
+
+### Visual Effect
+
+When you run the code, you'll notice that the target shape is only visible in the non-transparent parts of the mask model, creating a clipping effect based on transparency.
+
+## 4. Conclusion
+
+Through these two examples, we've learned how to use `ClipNode` in Dora SSR to achieve various masking effects:
+
+- **Example A** shows how to use arbitrary shapes as a mask to clip the visible area of child nodes.
+- **Example B** demonstrates how to use the `alphaThreshold` property with images or models that have transparency for more advanced masking.
+
+### Tips
+
+- **Using alphaThreshold**: This property is very useful when the mask node has semi-transparent regions. It allows you to finely control which pixels participate in the clipping.
+- **inverted Property**: By toggling `inverted`, you can easily reverse the clipping region to achieve different visual effects.
+
+We hope this tutorial helps you better understand and apply `ClipNode` in Dora SSR to create rich and varied masking effects. If you have any questions, feel free to check the official documentation or join the community discussions.
