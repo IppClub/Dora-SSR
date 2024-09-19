@@ -628,7 +628,7 @@
     "description": "The label for category Using Nodes in sidebar tutorialSidebar"
   },
   "sidebar.apiSidebar.category.Misc Functions": {
-    "message": "Misc Functions",
+    "message": "杂项功能",
     "description": "The label for category Misc Functions in sidebar apiSidebar"
   },
   "sidebar.apiSidebar.category.YueScript": {
