@@ -2454,6 +2454,7 @@ export default function PersistentDrawerLeft() {
 					<a
 						href={Info.locale.match(/^zh/) ? 'https://ippclub.atomgit.net/Dora-SSR/zh-Hans/' : 'https://dora-ssr.net'}
 						target="_blank"
+						rel="noreferrer"
 					>
 						<img
 							src={logo}
