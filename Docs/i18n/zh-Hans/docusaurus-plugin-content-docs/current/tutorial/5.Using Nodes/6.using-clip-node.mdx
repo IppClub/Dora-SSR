@@ -1,0 +1,216 @@
+import "@site/src/languages/highlight";
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# 使用 ClipNode 实现蒙版效果
+
+&emsp;&emsp;在游戏开发和图形渲染中，蒙版效果是一种常见的技术，用于控制图像或场景的可见区域。在 Dora SSR 中，我们可以使用 `ClipNode` 类轻松实现各种蒙版效果。本教程将通过示例代码，指导您如何使用 `ClipNode` 来实现基于形状和图像的蒙版效果。
+
+## 1. 什么是 ClipNode
+
+&emsp;&emsp;`ClipNode` 是 Dora SSR 中的一个场景节点类，用于设置裁剪蒙版，从而控制子节点的可见区域。通过指定一个蒙版节点（`stencil`），`ClipNode` 会根据蒙版的形状或透明度来裁剪其子节点的渲染内容。
+
+### ClipNode 的主要属性
+
+- **stencil**: 定义裁剪形状的蒙版节点。
+- **alphaThreshold**: 生效的用于裁剪的蒙版像素的 alpha 阈值（0 到 1 之间）。只有当蒙版像素的 alpha 值大于该阈值时，裁剪才会生效。
+- **inverted**: 是否翻转裁剪区域。当设置为 `true` 时，裁剪区域和非裁剪区域互换。
+
+## 2. 示例 A：使用任意形状作为蒙版
+
+&emsp;&emsp;在第一个示例中，我们将使用一个五角星形状作为蒙版，裁剪一个动画模型的显示区域。
+
+### 步骤解析
+
+1. **创建五角星形状的顶点数据**
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local function StarVertices(radius, line)
+	-- 计算五角星的顶点坐标
+	local a = math.rad(36)
+	local c = math.rad(72)
+	local f = math.sin(a) * math.tan(c) + math.cos(a)
+	local R = radius
+	local r = R / f
+	local vecs = {}
+	local count = 1
+	for i = 9, line and -1 or 0, -1 do
+		local angle = i * a
+		local cr = i % 2 == 1 and r or R
+		vecs[count] = Vec2(cr * math.sin(angle), cr * math.cos(angle))
+		count = count + 1
+	end
+	-- 返回顶点数组
+	return vecs
+end
+```
+
+</TabItem>
+</Tabs>
+
+2. **绘制蒙版形状**
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local maskA = DrawNode()
+maskA:drawPolygon(StarVertices(160, false))
+```
+
+</TabItem>
+</Tabs>
+
+&emsp;&emsp;这里，我们使用 `DrawNode` 绘制一个五角星形状，作为蒙版节点。
+
+3. **创建动画模型**
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local targetA = Model("Model/xiaoli.model")
+targetA.look = "happy"
+targetA.fliped = true
+-- 设置模型的动画和移动路径
+targetA:play("walk", true)
+targetA:runAction(
+	Sequence(
+		X(1.5, -200, 200), Event("Turn"),
+		X(1.5, 200, -200), Event("Turn")
+	), true
+)
+targetA:slot("Turn", function()
+	targetA.fliped = not targetA.fliped
+end)
+```
+
+</TabItem>
+</Tabs>
+
+4. **创建 ClipNode 并添加子节点**
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local clipNodeA = ClipNode(maskA)
+clipNodeA:addChild(targetA)
+clipNodeA.inverted = true
+```
+
+</TabItem>
+</Tabs>
+
+&emsp;&emsp;我们将蒙版节点 `maskA` 传递给 `ClipNode`，并将动画模型 `targetA` 添加为其子节点。
+
+5. **添加到场景中**
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local exampleA = Node()
+exampleA:addChild(clipNodeA)
+```
+
+</TabItem>
+</Tabs>
+
+### 运行效果
+
+&emsp;&emsp;运行上述代码后，您会看到模型仅在五角星形状内可见，而在五角星外部的部分被裁剪掉。
+
+## 3. 示例 B：使用图像及 alphaThreshold 实现蒙版效果
+
+&emsp;&emsp;在第二个示例中，我们将使用一个具有透明度的模型作为蒙版，并利用 `alphaThreshold` 属性来控制裁剪效果。
+
+### 步骤解析
+
+1. **创建蒙版模型**
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local maskB = Model("Model/xiaoli.model")
+maskB.look = "happy"
+maskB.fliped = true
+maskB:play("walk", true)
+```
+
+</TabItem>
+</Tabs>
+
+&emsp;&emsp;这里，我们使用一个模型作为蒙版节点。
+
+2. **创建目标形状**
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local targetB = DrawNode()
+targetB:drawPolygon(StarVertices(160, false))
+-- 设置目标形状的移动路径
+targetB:runAction(
+	Sequence(
+		X(1.5, -200, 200),
+		X(1.5, 200, -200)
+	), true
+)
+```
+
+</TabItem>
+</Tabs>
+
+3. **创建 ClipNode 并设置 alphaThreshold**
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local clipNodeB = ClipNode(maskB)
+clipNodeB:addChild(targetB)
+clipNodeB.inverted = true
+clipNodeB.alphaThreshold = 0.3
+```
+
+</TabItem>
+</Tabs>
+
+&emsp;&emsp;通过设置 `alphaThreshold = 0.3`，只有当蒙版模型的像素 alpha 值大于 0.3 时，裁剪才会生效。
+
+4. **添加到场景中**
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local exampleB = Node()
+exampleB:addChild(clipNodeB)
+```
+
+</TabItem>
+</Tabs>
+
+### 运行效果
+
+&emsp;&emsp;运行代码后，您会发现目标形状仅在蒙版模型的非透明部分可见，实现了基于透明度的蒙版效果。
+
+## 4. 总结
+
+&emsp;&emsp;通过以上两个示例，我们学习了如何在 Dora SSR 中使用 `ClipNode` 实现不同的蒙版效果：
+
+- **示例 A** 展示了如何使用任意绘制的形状作为蒙版，裁剪子节点的显示区域。
+- **示例 B** 演示了如何利用 `alphaThreshold` 属性，使用具有透明度的图像或模型进行裁剪。
+
+### 小贴士
+
+- **alphaThreshold 的使用**：当蒙版节点包含半透明区域时，`alphaThreshold` 非常有用。它允许您精细控制哪些像素参与裁剪。
+- **inverted 属性**：通过切换 `inverted`，您可以方便地反转裁剪区域，达到不同的视觉效果。
+
+&emsp;&emsp;希望本教程能帮助您更好地理解和应用 Dora SSR 的 `ClipNode`，创造出丰富多彩的蒙版效果。如有任何疑问，欢迎查阅官方文档或参与社区讨论。

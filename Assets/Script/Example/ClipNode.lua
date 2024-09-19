@@ -83,59 +83,56 @@ local targetB -- 48
 do -- 48
 	local _with_0 = DrawNode() -- 48
 	_with_0:drawPolygon(StarVertices(160)) -- 49
-	_with_0:runAction(Sequence(X(1.5, -200, 200), X(1.5, 200, -200))) -- 50
-	_with_0:onActionEnd(function(action) -- 54
-		return _with_0:runAction(action) -- 54
-	end) -- 54
+	_with_0:runAction(Sequence(X(1.5, -200, 200), X(1.5, 200, -200)), true) -- 50
 	targetB = _with_0 -- 48
 end -- 48
-local clipNodeB -- 56
-do -- 56
-	local _with_0 = ClipNode(maskB) -- 56
-	_with_0:addChild(targetB) -- 57
-	_with_0.inverted = true -- 58
-	_with_0.alphaThreshold = 0.3 -- 59
-	clipNodeB = _with_0 -- 56
-end -- 56
-local exampleB -- 60
-do -- 60
-	local _with_0 = Node() -- 60
-	_with_0:addChild(clipNodeB) -- 61
-	exampleB = _with_0 -- 60
-end -- 60
-local inverted = true -- 65
-local withAlphaThreshold = true -- 66
-local windowFlags = { -- 68
-	"NoDecoration", -- 68
-	"AlwaysAutoResize", -- 68
-	"NoSavedSettings", -- 68
-	"NoFocusOnAppearing", -- 68
-	"NoNav", -- 68
-	"NoMove" -- 68
-} -- 68
-return threadLoop(function() -- 76
-	local width -- 77
-	width = App.visualSize.width -- 77
-	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0)) -- 78
-	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver") -- 79
-	return ImGui.Begin("Clip Node", windowFlags, function() -- 80
-		ImGui.Text("Clip Node (Yuescript)") -- 81
-		ImGui.Separator() -- 82
-		ImGui.TextWrapped("Render children nodes with mask!") -- 83
-		do -- 84
-			local changed -- 84
-			changed, inverted = ImGui.Checkbox("Inverted", inverted) -- 84
-			if changed then -- 84
-				clipNodeA.inverted = inverted -- 85
-				clipNodeB.inverted = inverted -- 86
-				frame.visible = not inverted -- 87
-			end -- 84
-		end -- 84
-		local changed -- 88
-		changed, withAlphaThreshold = ImGui.Checkbox("With alphaThreshold", withAlphaThreshold) -- 88
-		if changed then -- 88
-			exampleB.visible = withAlphaThreshold -- 89
-			exampleA.visible = not withAlphaThreshold -- 90
-		end -- 88
-	end) -- 90
-end) -- 90
+local clipNodeB -- 55
+do -- 55
+	local _with_0 = ClipNode(maskB) -- 55
+	_with_0:addChild(targetB) -- 56
+	_with_0.inverted = true -- 57
+	_with_0.alphaThreshold = 0.3 -- 58
+	clipNodeB = _with_0 -- 55
+end -- 55
+local exampleB -- 59
+do -- 59
+	local _with_0 = Node() -- 59
+	_with_0:addChild(clipNodeB) -- 60
+	exampleB = _with_0 -- 59
+end -- 59
+local inverted = true -- 64
+local withAlphaThreshold = true -- 65
+local windowFlags = { -- 67
+	"NoDecoration", -- 67
+	"AlwaysAutoResize", -- 67
+	"NoSavedSettings", -- 67
+	"NoFocusOnAppearing", -- 67
+	"NoNav", -- 67
+	"NoMove" -- 67
+} -- 67
+return threadLoop(function() -- 75
+	local width -- 76
+	width = App.visualSize.width -- 76
+	ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0)) -- 77
+	ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver") -- 78
+	return ImGui.Begin("Clip Node", windowFlags, function() -- 79
+		ImGui.Text("Clip Node (Yuescript)") -- 80
+		ImGui.Separator() -- 81
+		ImGui.TextWrapped("Render children nodes with mask!") -- 82
+		do -- 83
+			local changed -- 83
+			changed, inverted = ImGui.Checkbox("Inverted", inverted) -- 83
+			if changed then -- 83
+				clipNodeA.inverted = inverted -- 84
+				clipNodeB.inverted = inverted -- 85
+				frame.visible = not inverted -- 86
+			end -- 83
+		end -- 83
+		local changed -- 87
+		changed, withAlphaThreshold = ImGui.Checkbox("With alphaThreshold", withAlphaThreshold) -- 87
+		if changed then -- 87
+			exampleB.visible = withAlphaThreshold -- 88
+			exampleA.visible = not withAlphaThreshold -- 89
+		end -- 87
+	end) -- 89
+end) -- 89

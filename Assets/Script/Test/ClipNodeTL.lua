@@ -10,7 +10,6 @@ local ClipNode <const> = require("ClipNode")
 local Line <const> = require("Line")
 local App <const> = require("App")
 local threadLoop <const> = require("threadLoop")
-local Action <const> = require("Action")
 
 local function StarVertices(radius, line)
 	local a = math.rad(36)
@@ -41,12 +40,9 @@ Sequence(
 X(1.5, -200, 200),
 Event("Turn"),
 X(1.5, 200, -200),
-Event("Turn")))
+Event("Turn")),
+true)
 
-
-targetA:onActionEnd(function(action)
-	targetA:runAction(action)
-end)
 targetA:slot("Turn", function()
 	targetA.fliped = not targetA.fliped
 end)
@@ -72,12 +68,9 @@ targetB:drawPolygon(StarVertices(160, false))
 targetB:runAction(
 Sequence(
 X(1.5, -200, 200),
-X(1.5, 200, -200)))
+X(1.5, 200, -200)),
+true)
 
-
-targetB:onActionEnd(function(action)
-	targetB:runAction(action)
-end)
 
 local exampleB = Node()
 local clipNodeB = ClipNode(maskB)

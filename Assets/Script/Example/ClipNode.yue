@@ -50,8 +50,7 @@ targetB = with DrawNode!
 	\runAction Sequence(
 		X 1.5, -200, 200
 		X 1.5, 200, -200
-	)
-	\onActionEnd (action) -> \runAction action
+	), true
 
 clipNodeB = with ClipNode maskB
 	\addChild targetB

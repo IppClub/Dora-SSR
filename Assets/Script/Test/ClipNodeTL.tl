@@ -10,7 +10,6 @@ local ClipNode <const> = require("ClipNode")
 local Line <const> = require("Line")
 local App <const> = require("App")
 local threadLoop <const> = require("threadLoop")
-local Action <const> = require("Action")
 
 local function StarVertices(radius: number, line: boolean): {Vec2.Type}
 	local a = math.rad(36)
@@ -42,11 +41,8 @@ targetA:runAction(
 		Event("Turn"),
 		X(1.5, 200, -200),
 		Event("Turn")
-	)
+	), true
 )
-targetA:onActionEnd(function(action: Action.Type)
-	targetA:runAction(action)
-end)
 targetA:slot("Turn", function()
 	targetA.fliped = not targetA.fliped
 end)
@@ -73,11 +69,8 @@ targetB:runAction(
 	Sequence(
 		X(1.5, -200, 200),
 		X(1.5, 200, -200)
-	)
+	), true
 )
-targetB:onActionEnd(function(action: Action.Type)
-	targetB:runAction(action)
-end)
 
 local exampleB = Node()
 local clipNodeB = ClipNode(maskB)
