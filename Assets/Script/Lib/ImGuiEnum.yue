@@ -115,7 +115,7 @@ export macro WindowFlag = $Enum(
 	"UnsavedDocument"
 )
 export macro ChildFlag = $Enum(
-	"Border"
+	"Borders"
 	"AlwaysUseWindowPadding"
 	"ResizeX"
 	"ResizeY"
