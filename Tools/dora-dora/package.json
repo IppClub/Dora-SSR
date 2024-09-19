@@ -25,7 +25,7 @@
     "jest-watch-typeahead": "^2.2.2",
     "mac-scrollbar": "^0.13.6",
     "match-sorter": "^6.3.1",
-    "monaco-editor": "^0.50.0",
+    "monaco-editor": "^0.51.0",
     "monaco-jsx-syntax-highlight": "^1.2.0",
     "postcss": "^8.4.4",
     "postcss-flexbugs-fixes": "^5.0.2",
