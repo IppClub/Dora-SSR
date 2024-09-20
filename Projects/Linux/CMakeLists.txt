@@ -52,7 +52,7 @@ set_target_properties(
 	${CMAKE_SOURCE_DIR}/3rdParty/libs/libbimg_decodeRelease.a
 )
 
-add_definitions(-DWITH_SDL2 -DBX_CONFIG_DEBUG=0 -Dd_m3HasWASI -DLUA_USE_LINUX)
+add_definitions(-DWITH_SDL2 -DBX_CONFIG_DEBUG=0 -Dd_m3HasWASI -DLUA_USE_LINUX -DSPDLOG_FMT_EXTERNAL)
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     add_definitions(-Wno-psabi)

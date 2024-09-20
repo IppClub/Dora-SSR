@@ -306,11 +306,6 @@ export default function PersistentDrawerLeft() {
 			return;
 		}
 		addAlert(t("alert.platform", {platform: Info.platform}), "success");
-		loadAssets().then((res) => {
-			if (res !== null) {
-				setExpandedKeys([res.key]);
-			}
-		});
 		document.addEventListener("keydown", (event: KeyboardEvent) => {
 			if (event.ctrlKey || event.altKey || event.metaKey) {
 				switch (event.key) {
@@ -358,7 +353,8 @@ export default function PersistentDrawerLeft() {
 			Service.read({path: "es6-subset.d.ts"}),
 			Service.read({path: "lua.d.ts"}),
 			Service.read({path: "Dora.d.ts"}),
-		]).then(([es6, lua, dora]) => {
+			loadAssets(),
+		]).then(([es6, lua, dora, res]) => {
 			if (es6.content !== undefined) {
 				monaco.languages.typescript.typescriptDefaults.addExtraLib(es6.content, "es6-subset.d.ts");
 			}
@@ -368,48 +364,46 @@ export default function PersistentDrawerLeft() {
 			if (dora.content !== undefined) {
 				monaco.languages.typescript.typescriptDefaults.addExtraLib(dora.content, "Dora.d.ts");
 			}
+			if (res !== null) {
+				setExpandedKeys([res.key]);
+			}
+			Service.editingInfo().then((res: {success: boolean, editingInfo?: string}) => {
+				if (res.success && res.editingInfo) {
+					const editingInfo: Service.EditingInfo = JSON.parse(res.editingInfo);
+					const targetIndex = editingInfo.index;
+					Promise.all(editingInfo.files.map((file, i) => {
+						return openFile(file.key, file.title, file.folder).then((newFile) => {
+							newFile.position = file.position;
+							newFile.mdEditing = file.mdEditing;
+							newFile.readOnly = file.readOnly;
+							newFile.sortIndex = i;
+							return newFile;
+						});
+					})).then((files) => {
+						const result = files.sort((a, b) => {
+							const indexA = a.sortIndex ?? 0;
+							const indexB = b.sortIndex ?? 0;
+							if (indexA < indexB) {
+								return -1;
+							} else if (indexA > indexB) {
+								return 1;
+							} else {
+								return 0;
+							}
+						});
+						setFiles(result);
+						switchTab(targetIndex, result[targetIndex]);
+					}).catch(() => {
+						addAlert(t("alert.open"), "error");
+					});
+				}
+			});
 		});
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
 	const writablePath = treeData.at(0)?.key ?? "";
 	const assetPath = treeData.at(0)?.children?.at(0)?.key ?? "";
-
-	useEffect(() => {
-		if (writablePath === "") return;
-		Service.editingInfo().then((res: {success: boolean, editingInfo?: string}) => {
-			if (res.success && res.editingInfo) {
-				const editingInfo: Service.EditingInfo = JSON.parse(res.editingInfo);
-				const targetIndex = editingInfo.index;
-				Promise.all(editingInfo.files.map((file, i) => {
-					return openFile(file.key, file.title, file.folder).then((newFile) => {
-						newFile.position = file.position;
-						newFile.mdEditing = file.mdEditing;
-						newFile.readOnly = file.readOnly;
-						newFile.sortIndex = i;
-						return newFile;
-					});
-				})).then((files) => {
-					const result = files.sort((a, b) => {
-						const indexA = a.sortIndex ?? 0;
-						const indexB = b.sortIndex ?? 0;
-						if (indexA < indexB) {
-							return -1;
-						} else if (indexA > indexB) {
-							return 1;
-						} else {
-							return 0;
-						}
-					});
-					setFiles(result);
-					switchTab(targetIndex, result[targetIndex]);
-				}).catch(() => {
-					addAlert(t("alert.open"), "error");
-				});
-			}
-		});
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [writablePath]);
 
 	if (modified !== null) {
 		setModified(null);
@@ -663,10 +657,18 @@ export default function PersistentDrawerLeft() {
 				debounceDuration: 2000,
 				sourceCache: {
 					isFileAvailable: async (uri: string) => {
+						const lib = monaco.languages.typescript.typescriptDefaults.getExtraLibs()[uri];
+						if (lib !== undefined) return true;
+						const model = monaco.editor.getModel(monaco.Uri.parse(uri));
+						if (model !== null) return true;
 						const res = await Service.exist({file: uri.startsWith("file:") ? monaco.Uri.parse(uri).fsPath : uri});
 						return res.success;
 					},
 					getFile: async (uri: string) => {
+						const lib = monaco.languages.typescript.typescriptDefaults.getExtraLibs()[uri];
+						if (lib !== undefined) return lib.content;
+						const model = monaco.editor.getModel(monaco.Uri.parse(uri));
+						if (model !== null) return model.getValue();
 						const res = await Service.read({path: uri.startsWith("file:") ? monaco.Uri.parse(uri).fsPath : uri});
 						return res.content;
 					}

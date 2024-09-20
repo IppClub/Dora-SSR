@@ -32,7 +32,7 @@ To use the Playable node, you first need to create an instance. Playable support
 <TabItem value="lua" label="Lua">
 
 ```lua
-local Playable = require("Playable")
+local Playable <const> = require("Playable")
 
 -- Load a Model animation
 local modelPath = "model:assets/character"
@@ -55,7 +55,7 @@ end
 <TabItem value="lua" label="Lua">
 
 ```lua
-local Playable = require("Playable")
+local Playable <const> = require("Playable")
 
 -- Load a Spine animation
 local spinePath = "spine:assets/monster"
@@ -78,7 +78,7 @@ end
 <TabItem value="lua" label="Lua">
 
 ```lua
-local Playable = require("Playable")
+local Playable <const> = require("Playable")
 
 -- Load a DragonBones animation
 local dragonBonePath = "bone:assets/dragon"
@@ -103,8 +103,8 @@ In real-world development, loading animations might take some time. You can use 
 <TabItem value="lua" label="Lua">
 
 ```lua
-local Playable = require("Playable")
-local thread = require("thread")
+local Playable <const> = require("Playable")
+local thread <const> = require("thread")
 
 -- Asynchronously load a Model animation
 local modelPath = "model:assets/character"
@@ -283,10 +283,10 @@ Here’s a full example showing how to create a character, play animations, add 
 <TabItem value="lua" label="Lua">
 
 ```lua
-local Playable = require("Playable")
-local Sprite = require("Sprite")
-local Vec2 = require("Vec2")
-local sleep = require("sleep")
+local Playable <const> = require("Playable")
+local Sprite <const> = require("Sprite")
+local Vec2 <const> = require("Vec2")
+local sleep <const> = require("sleep")
 
 -- Create the character
 local character = Playable("model:assets/hero.model")

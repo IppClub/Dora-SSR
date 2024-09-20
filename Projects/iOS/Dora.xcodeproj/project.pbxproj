@@ -6191,6 +6191,7 @@
 					"BX_CONFIG_DEBUG=0",
 					d_m3HasWASI,
 					LUA_USE_IOS,
+					SPDLOG_FMT_EXTERNAL,
 				);
 				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
 				INFOPLIST_FILE = Dora/Info.plist;
@@ -6260,6 +6261,7 @@
 					"BX_CONFIG_DEBUG=0",
 					d_m3HasWASI,
 					LUA_USE_IOS,
+					SPDLOG_FMT_EXTERNAL,
 				);
 				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
 				INFOPLIST_FILE = Dora/Info.plist;
@@ -6474,6 +6476,7 @@
 					"BX_CONFIG_DEBUG=0",
 					d_m3HasWASI,
 					LUA_USE_IOS,
+					SPDLOG_FMT_EXTERNAL,
 				);
 				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
 				INFOPLIST_FILE = Dora/Info.plist;
@@ -6544,6 +6547,7 @@
 					"BX_CONFIG_DEBUG=0",
 					d_m3HasWASI,
 					LUA_USE_IOS,
+					SPDLOG_FMT_EXTERNAL,
 				);
 				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
 				INFOPLIST_FILE = Dora/Info.plist;

@@ -26,8 +26,8 @@ Before we begin, make sure you have imported the `Sprite` class correctly into y
 <TabItem value="lua" label="Lua">
 
 ```lua
-local Sprite = require("Sprite")
-local Texture2D = require("Texture2D")
+local Sprite <const> = require("Sprite")
+local Texture2D <const> = require("Texture2D")
 ```
 
 </TabItem>
@@ -59,8 +59,8 @@ In real-world development, loading images may take some time. You can use the `C
 <TabItem value="lua" label="Lua">
 
 ```lua
-local Sprite = require("Sprite")
-local thread = require("thread")
+local Sprite <const> = require("Sprite")
+local thread <const> = require("thread")
 
 -- Load the image asynchronously
 local imagePath = "Image/hero.png"
@@ -140,7 +140,7 @@ The `Sprite` class allows you to apply shader effects to the rendered graphic vi
 <TabItem value="lua" label="Lua">
 
 ```lua
-local SpriteEffect = require("SpriteEffect")
+local SpriteEffect <const> = require("SpriteEffect")
 -- Load and apply a built-in sprite shader
 local spriteEffect = SpriteEffect("builtin:vs_sprite", "builtin:fs_sprite")
 heroSprite.effect = spriteEffect

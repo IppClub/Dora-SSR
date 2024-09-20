@@ -102,7 +102,7 @@ const lightCodeTheme = {
 		{
 			types: ['atrule', 'tag'],
 			style: {
-				color: '#22863A',
+				color: '#af893b',
 			},
 		},
 		{
@@ -126,13 +126,13 @@ const lightCodeTheme = {
 		{
 			types: ['class-name'],
 			style: {
-				color: '#116329',
+				color: '#af893b',
 			},
 		},
 		{
 			types: ['attr-name'],
 			style: {
-				color: '#0550AE',
+				color: '#0099CC',
 			},
 		},
 		{
@@ -144,7 +144,7 @@ const lightCodeTheme = {
 		{
 			types: ['function'],
 			style: {
-				color: '#8250DF',
+				color: '#c89c48',
 			},
 		},
 		{
@@ -163,6 +163,7 @@ const lightCodeTheme = {
 			types: ['comment'],
 			style: {
 				color: '#6B6B6B',
+				fontStyle: 'normal',
 			},
 		},
 	],

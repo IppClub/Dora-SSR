@@ -64,7 +64,7 @@ set_target_properties(
 	${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp/3rdParty/OpenSSL/Lib/Android/${ANDROID_ABI}/libcrypto.a
 )
 
-add_definitions(-DWITH_SDL2 -DBX_CONFIG_DEBUG=0 -Dd_m3HasWASI -DLUA_USE_LINUX)
+add_definitions(-DWITH_SDL2 -DBX_CONFIG_DEBUG=0 -Dd_m3HasWASI -DLUA_USE_LINUX -DSPDLOG_FMT_EXTERNAL)
 
 add_library(main SHARED
 	src/main/cpp/Platformer/AINode.cpp

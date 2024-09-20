@@ -126,7 +126,7 @@ private:
 	SDL_Window* _sdlWindow;
 	std::mt19937 _randomEngine;
 	bgfx::PlatformData _platformData;
-	SINGLETON_REF(Application, AsyncLogThread);
+	SINGLETON_REF(Application, Logger, AsyncLogThread);
 };
 
 #define SharedApplication \

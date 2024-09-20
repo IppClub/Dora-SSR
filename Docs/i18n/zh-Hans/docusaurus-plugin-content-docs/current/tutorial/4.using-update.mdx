@@ -38,9 +38,9 @@ import TabItem from '@theme/TabItem';
 <TabItem value="lua" label="Lua">
 
 ```lua
-local thread = require("thread")
-local sleep = require("sleep")
-local Content = require("Content")
+local thread <const> = require("thread")
+local sleep <const> = require("sleep")
+local Content <const> = require("Content")
 
 thread(function()
 	print("开始异步加载资源")
@@ -62,8 +62,8 @@ end)
 <TabItem value="lua" label="Lua">
 
 ```lua
-local Node = require("Node")
-local sleep = require("sleep")
+local Node <const> = require("Node")
+local sleep <const> = require("sleep")
 
 local node = Node()
 node:once(function()
@@ -102,8 +102,8 @@ end)
 <TabItem value="lua" label="Lua">
 
 ```lua
-local thread = require("thread")
-local wait = require("wait")
+local thread <const> = require("thread")
+local wait <const> = require("wait")
 
 thread(function()
 	print("等待条件成立...")
@@ -128,8 +128,8 @@ end)
 <TabItem value="lua" label="Lua">
 
 ```lua
-local cycle = require("cycle“)
-local Node = require("Node")
+local cycle <const> = require("cycle“)
+local Node <const> = require("Node")
 
 local node = Node()
 node:once(function()
@@ -156,8 +156,8 @@ end))
 <TabItem value="lua" label="Lua">
 
 ```lua
-local sleep = require("sleep")
-local thread = require("thread")
+local sleep <const> = require("sleep")
+local thread <const> = require("thread")
 
 thread(function()
 	print("任务开始...")
@@ -181,7 +181,7 @@ end)
 <TabItem value="lua" label="Lua">
 
 ```lua
-local Node = require("Node")
+local Node <const> = require("Node")
 
 local node = Node()
 node:schedule(function(deltaTime)
