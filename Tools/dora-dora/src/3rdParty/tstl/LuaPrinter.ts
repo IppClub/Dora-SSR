@@ -267,11 +267,11 @@ export class LuaPrinter {
     }
 
     protected pushIndent(): void {
-        this.currentIndent += "    ";
+        this.currentIndent += "\t";
     }
 
     protected popIndent(): void {
-        this.currentIndent = this.currentIndent.slice(4);
+        this.currentIndent = this.currentIndent.slice(1);
     }
 
     protected indent(input: SourceChunk = ""): SourceChunk {

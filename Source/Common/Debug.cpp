@@ -11,59 +11,115 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Common/Debug.h"
 
 #include "Basic/Application.h"
+#include "Basic/Content.h"
 #include "Common/Async.h"
 #include "Common/Singleton.h"
 
-#include <iostream>
-
 #if BX_PLATFORM_ANDROID
-#include <android/log.h>
-#include <jni.h>
+#include "spdlog/sinks/android_sink.h"
+#else
+#include "spdlog/sinks/stdout_color_sinks.h"
 #endif // BX_PLATFORM_ANDROID
 
 #include "Lua/LuaEngine.h"
 #include "Wasm/WasmRuntime.h"
 
+#include "spdlog/pattern_formatter.h"
+#include "spdlog/sinks/callback_sink.h"
+#include "spdlog/sinks/rotating_file_sink.h"
+
 NS_DORA_BEGIN
 
 Acf::Delegate<void(const std::string&)> LogHandler;
 
-void LogError(const std::string& str) {
-#if BX_PLATFORM_ANDROID
-	__android_log_print(ANDROID_LOG_DEBUG, "dora debug info", "%s", str.c_str());
-#else
-	std::cerr << str;
-#endif // BX_PLATFORM_ANDROID
-	if (Singleton<Dora::Application>::isInitialized() && SharedApplication.isLogicRunning()) {
-		SharedApplication.invokeInLogic([str]() {
-			LogHandler(str);
-		});
-	}
+const char* getShortFilename(const char* filename) {
+	return spdlog::details::short_filename_formatter<spdlog::details::null_scoped_padder>::basename(filename);
 }
 
-void LogPrintInThread(const std::string& str) {
-	if (Singleton<Dora::Application>::isDisposed() || Singleton<Dora::AsyncLogThread>::isDisposed() || !SharedApplication.isLogicRunning()) {
-#if DORA_DEBUG
+class Logger : public NonCopyable {
+#if !BX_PLATFORM_ANDROID
+private:
+	struct Mutex {
+		using mutex_t = std::mutex;
+		static mutex_t& mutex() {
+			return *mutexPtr;
+		}
+		static std::mutex* mutexPtr;
+	};
+	std::mutex _mutex;
+#endif
+public:
+	Logger() {
 #if BX_PLATFORM_ANDROID
-		__android_log_print(ANDROID_LOG_DEBUG, "dora debug info", "%s", str.c_str());
+		auto consoleSink = std::make_shared<spdlog::sinks::android_sink_mt>("dora"s);
 #else
-		std::cout << str;
-#endif // BX_PLATFORM_ANDROID
-#endif // DORA_DEBUG
+		Mutex::mutexPtr = &_mutex;
+		auto consoleSink = std::make_shared<spdlog::sinks::ansicolor_stdout_sink<Mutex>>();
+#endif
+		const auto maxSize = 1024 * 128; // 128 kb
+		const auto maxFiles = 2;
+		auto logFile = Path::concat({SharedContent.getWritablePath(), "log.txt"sv});
+		auto fileSink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(logFile, maxSize, maxFiles);
+		auto doraSink = std::make_shared<spdlog::sinks::callback_sink_mt>([](const spdlog::details::log_msg& msg) {
+			static auto formatter = spdlog::pattern_formatter("[%H:%M:%S.%e] [%l] %v"s);
+			spdlog::memory_buf_t buf;
+			formatter.format(msg, buf);
+			auto str = fmt::to_string(buf);
+			if (Singleton<Dora::Application>::isInitialized() && SharedApplication.isLogicRunning()) {
+				SharedApplication.invokeInLogic([str]() {
+					LogHandler(str);
+				});
+			}
+		});
+		_logger = std::make_shared<spdlog::logger>(std::string(), spdlog::sinks_init_list{consoleSink, fileSink, doraSink});
+	}
+
+	virtual ~Logger() { }
+
+	spdlog::logger& get() const {
+		return *_logger;
+	}
+
+private:
+	std::shared_ptr<spdlog::logger> _logger;
+	SINGLETON_REF(Logger, Content);
+};
+
+#if !BX_PLATFORM_ANDROID
+std::mutex* Logger::Mutex::mutexPtr = nullptr;
+#endif
+
+#define SharedLogger \
+	Singleton<Logger>::shared()
+
+static spdlog::logger& getLogger() {
+	return SharedLogger.get();
+}
+
+void LogError(const std::string& msg) {
+	getLogger().error(msg);
+}
+
+static void LogWithLevel(spdlog::level::level_enum level, const std::string& msg) {
+	if (Singleton<Dora::Application>::isDisposed() || Singleton<Dora::AsyncLogThread>::isDisposed() || !SharedApplication.isLogicRunning()) {
+		getLogger().log(level, msg);
 		return;
 	}
-	SharedApplication.invokeInLogic([str]() {
-		LogHandler(str);
+	SharedAsyncLogThread.run([level, msg] {
+		getLogger().log(level, msg);
 	});
-	SharedAsyncLogThread.run([str] {
-#if DORA_DEBUG
-#if BX_PLATFORM_ANDROID
-		__android_log_print(ANDROID_LOG_DEBUG, "dora debug info", "%s", str.c_str());
-#else
-		std::cout << str;
-#endif // BX_PLATFORM_ANDROID
-#endif // DORA_DEBUG
-	});
+}
+
+void LogErrorThreaded(const std::string& msg) {
+	LogWithLevel(spdlog::level::err, msg);
+}
+
+void LogWarnThreaded(const std::string& msg) {
+	LogWithLevel(spdlog::level::warn, msg);
+}
+
+void LogInfoThreaded(const std::string& msg) {
+	LogWithLevel(spdlog::level::info, msg);
 }
 
 bool IsInLuaOrWasm() {

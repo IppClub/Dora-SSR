@@ -8,9 +8,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
+#include "Const/Config.h"
 #include "Other/AcfDelegate.h"
 #include "fmt/format.h"
-#include "Const/Config.h"
 
 #include <cassert>
 
@@ -18,16 +18,18 @@ NS_DORA_BEGIN
 
 extern Acf::Delegate<void(const std::string&)> LogHandler;
 
-void LogError(const std::string& str);
-void LogPrintInThread(const std::string& str);
+void LogError(const std::string& msg);
+
+void LogErrorThreaded(const std::string& msg);
+void LogWarnThreaded(const std::string& msg);
+void LogInfoThreaded(const std::string& msg);
+
+const char* getShortFilename(const char* filename);
 
 bool IsInLuaOrWasm();
 
-#define LogPrint(...) \
-	Dora::LogPrintInThread(fmt::format(__VA_ARGS__))
-
-#define println(format, ...) \
-	LogPrint(format "\n", ##__VA_ARGS__)
+#define LogPrint(...) Dora::LogInfoThreaded(fmt::format(__VA_ARGS__))
+#define println(...) LogPrint(__VA_ARGS__)
 
 #if DORA_DISABLE_LOG
 #define Info(...) DORA_DUMMY
@@ -37,23 +39,20 @@ bool IsInLuaOrWasm();
 #define WarnIf(...) DORA_DUMMY
 #define ErrorIf(...) DORA_DUMMY
 #else
-#define Info(format, ...) \
-	LogPrint("[Dora Info] " format "\n", ##__VA_ARGS__)
-#define Warn(format, ...) \
-	LogPrint("[Dora Warning] " format "\n", ##__VA_ARGS__)
-#define Error(format, ...) \
-	LogPrint("[Dora Error] " format "\n", ##__VA_ARGS__)
-#define InfoIf(format, ...) \
+#define Info(...) LogInfoThreaded(fmt::format(__VA_ARGS__))
+#define Warn(...) LogWarnThreaded(fmt::format(__VA_ARGS__))
+#define Error(...) LogErrorThreaded(fmt::format(__VA_ARGS__))
+#define InfoIf(cond, ...) \
 	if (cond) { \
-		LogPrint("[Dora Info] " format "\n", ##__VA_ARGS__); \
+		Info(__VA_ARGS__); \
 	}
-#define WarnIf(cond, format, ...) \
+#define WarnIf(cond, ...) \
 	if (cond) { \
-		LogPrint("[Dora Warning] " format "\n", ##__VA_ARGS__); \
+		Warn(__VA_ARGS__); \
 	}
-#define ErrorIf(cond, format, ...) \
+#define ErrorIf(cond, ...) \
 	if (cond) { \
-		LogPrint("[Dora Error] " format "\n", ##__VA_ARGS__); \
+		Error(__VA_ARGS__); \
 	}
 #endif
 
@@ -65,13 +64,13 @@ bool IsInLuaOrWasm();
 #define AssertIf(cond, ...) \
 	do { \
 		if (cond) { \
-			auto msg = fmt::format("[Dora Error]\n[File] {},\n[Func] {}, [Line] {},\n[Message] {}", \
-				__FILE__, __FUNCTION__, __LINE__, \
+			auto msg = fmt::format("[runtime error]\n{}:{}: [{}] {}", \
+				getShortFilename(__FILE__), __LINE__, __FUNCTION__, \
 				fmt::format(__VA_ARGS__)); \
 			if (Dora::IsInLuaOrWasm()) { \
 				throw std::runtime_error(msg); \
 			} else { \
-				Dora::LogError(msg + '\n'); \
+				Dora::LogError(msg); \
 				std::abort(); \
 			} \
 		} \
@@ -79,26 +78,26 @@ bool IsInLuaOrWasm();
 #define AssertUnless(cond, ...) \
 	do { \
 		if (!(cond)) { \
-			auto msg = fmt::format("[Dora Error]\n[File] {},\n[Func] {}, [Line] {},\n[Message] {}", \
-				__FILE__, __FUNCTION__, __LINE__, \
+			auto msg = fmt::format("[runtime error]\n{}:{}: [{}] {}", \
+				getShortFilename(__FILE__), __LINE__, __FUNCTION__, \
 				fmt::format(__VA_ARGS__)); \
 			if (Dora::IsInLuaOrWasm()) { \
 				throw std::runtime_error(msg); \
 			} else { \
-				Dora::LogError(msg + '\n'); \
+				Dora::LogError(msg); \
 				std::abort(); \
 			} \
 		} \
 	} while (false)
 #define Issue(...) \
 	do { \
-		auto msg = fmt::format("[Dora Error]\n[File] {},\n[Func] {}, [Line] {},\n[Message] {}", \
-			__FILE__, __FUNCTION__, __LINE__, \
+		auto msg = fmt::format("[runtime error]\n{}:{}: [{}] {}", \
+			getShortFilename(__FILE__), __LINE__, __FUNCTION__, \
 			fmt::format(__VA_ARGS__)); \
 		if (Dora::IsInLuaOrWasm()) { \
 			throw std::runtime_error(msg); \
 		} else { \
-			Dora::LogError(msg + '\n'); \
+			Dora::LogError(msg); \
 			std::abort(); \
 		} \
 	} while (false)

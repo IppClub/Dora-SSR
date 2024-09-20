@@ -76,9 +76,8 @@ static int dora_print(lua_State* L) {
 		lua_pop(L, 1);
 		if (i != nargs) t += '\t';
 	}
-	t += '\n';
 	lua_settop(L, nargs);
-	LogPrintInThread(t);
+	LogInfoThreaded(t);
 	return 0;
 }
 
@@ -89,7 +88,7 @@ static int dora_trace_back(lua_State* L) {
 	lua_pushvalue(L, -3); // err debug traceback err
 	lua_pushinteger(L, 1); // err debug traceback err 1
 	lua_call(L, 2, 1); // traceback(err, 1), err debug msg
-	LogPrintInThread(tolua_toslice(L, -1, nullptr).toString());
+	LogInfoThreaded(tolua_toslice(L, -1, nullptr).toString());
 	lua_pop(L, 3); // empty
 	return 0;
 }
@@ -1119,7 +1118,7 @@ LuaEngine::LuaEngine()
 		std::string codes;
 		bool log = false;
 		if (event->get(codes, log)) {
-			if (log) LogPrintInThread(codes + '\n');
+			if (log) LogInfoThreaded(codes);
 			codes.insert(0,
 				"rawset Dora, '_REPL', <index>: Dora unless Dora._REPL\n"
 				"_ENV = Dora._REPL\n"
@@ -1133,7 +1132,7 @@ LuaEngine::LuaEngine()
 			pushOptions(L, -3);
 			BLOCK_START
 			if (lua_pcall(L, 3, 2, 0) != 0) {
-				LogPrint("{}\n", lua_tostring(L, -1));
+				LogErrorThreaded(lua_tostring(L, -1));
 				break;
 			}
 			if (lua_isnil(L, -2) != 0) {
@@ -1147,7 +1146,7 @@ LuaEngine::LuaEngine()
 					int lineNum = std::stoi(err.substr(0, pos));
 					err = std::to_string(lineNum - 1) + err.substr(pos);
 				}
-				LogPrint("{}\n", err);
+				LogErrorThreaded(err);
 				break;
 			}
 			lua_pop(L, 1);
@@ -1155,7 +1154,7 @@ LuaEngine::LuaEngine()
 			lua_insert(L, -2);
 			int last = lua_gettop(L) - 2;
 			if (lua_pcall(L, 1, LUA_MULTRET, 0) != 0) {
-				LogPrint("{}\n", lua_tostring(L, -1));
+				LogErrorThreaded(lua_tostring(L, -1));
 				break;
 			}
 			int cur = lua_gettop(L);
@@ -1164,12 +1163,12 @@ LuaEngine::LuaEngine()
 			if (success) {
 				if (log && retCount > 1) {
 					for (int i = 1; i < retCount; ++i) {
-						LogPrint("{}\n", luaL_tolstring(L, -retCount + i, nullptr));
+						LogInfoThreaded(luaL_tolstring(L, -retCount + i, nullptr));
 						lua_pop(L, 1);
 					}
 				}
 			} else {
-				LogPrint("{}\n", lua_tostring(L, -1));
+				LogErrorThreaded(lua_tostring(L, -1));
 			}
 			BLOCK_END
 		}

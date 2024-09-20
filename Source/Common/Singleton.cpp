@@ -111,7 +111,7 @@ struct LifeCycler {
 				}
 			}
 			if (!nameList.empty()) {
-				Info("singleton destroyed: {}.", std::accumulate(nameList.begin() + 1, nameList.end(), nameList.front(), [](const std::string& a, const std::string& b) {
+				Info("singletons to destroy: {}.", std::accumulate(nameList.begin() + 1, nameList.end(), nameList.front(), [](const std::string& a, const std::string& b) {
 					return a + ", " + b;
 				}));
 			}

@@ -40,9 +40,9 @@ In Dora SSR, coroutine tasks can be executed in two ways:
 <TabItem value="lua" label="Lua">
 
 ```lua
-local thread = require("thread")
-local sleep = require("sleep")
-local Content = require("Content")
+local thread <const> = require("thread")
+local sleep <const> = require("sleep")
+local Content <const> = require("Content")
 
 thread(function()
 	print("Starting async resource loading")
@@ -64,8 +64,8 @@ In this example, `thread(function() ... end)` creates a coroutine task. The `loa
 <TabItem value="lua" label="Lua">
 
 ```lua
-local Node = require("Node")
-local sleep = require("sleep")
+local Node <const> = require("Node")
+local sleep <const> = require("sleep")
 
 local node = Node()
 node:once(function()
@@ -104,8 +104,8 @@ The `wait` function pauses a coroutine task until a specified condition is met. 
 <TabItem value="lua" label="Lua">
 
 ```lua
-local thread = require("thread")
-local wait = require("wait")
+local thread <const> = require("thread")
+local wait <const> = require("wait")
 
 thread(function()
 	print("Waiting for the condition to be met...")
@@ -130,8 +130,8 @@ The `cycle` function repeatedly calls a function every frame for a specified dur
 <TabItem value="lua" label="Lua">
 
 ```lua
-local cycle = require("cycle")
-local Node = require("Node")
+local cycle <const> = require("cycle")
+local Node <const> = require("Node")
 
 local node = Node()
 node:once(function()
@@ -158,8 +158,8 @@ The `sleep` function pauses the execution of a coroutine task for a specified ti
 <TabItem value="lua" label="Lua">
 
 ```lua
-local sleep = require("sleep")
-local thread = require("thread")
+local sleep <const> = require("sleep")
+local thread <const> = require("thread")
 
 thread(function()
 	print("Task started...")
@@ -183,7 +183,7 @@ In some cases, you need to execute certain logic in every frame, such as detecti
 <TabItem value="lua" label="Lua">
 
 ```lua
-local Node = require("Node")
+local Node <const> = require("Node")
 
 local node = Node()
 node:schedule(function(deltaTime)

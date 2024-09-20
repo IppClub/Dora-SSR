@@ -1129,7 +1129,7 @@ int32_t call_stack_front_size(int64_t stack) {
 /* print */
 
 void dora_print(int64_t var) {
-	LogPrintInThread(*Str_From(var));
+	LogInfoThreaded(*Str_From(var));
 }
 
 /* Vec2 */

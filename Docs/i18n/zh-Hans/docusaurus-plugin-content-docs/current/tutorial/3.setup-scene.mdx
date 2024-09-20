@@ -199,11 +199,12 @@ node\slot "事件的名称", (...) ->
 2. **处理事件**：当注册的事件被触发时，你可以在回调函数中添加处理事件的代码，并获取事件相关的参数。例如，你可以在节点动作执行结束事件的回调函数中添加代码来处理动作结束事件：
 
 <Tabs groupId="language-select">
-<TabItem value="yue" label="YueScript">
+<TabItem value="lua" label="Lua">
 
-```yue
-node\slot "ActionEnd", (action, target)->
-	print "完成动作：#{action} 目标节点：#{target}"
+```lua
+node:slot("ActionEnd", function(action, target)
+	print("Action completed: " .. tostring(action) .. " Target node: " .. tostring(target))
+end)
 ```
 
 </TabItem>
@@ -216,12 +217,11 @@ end)
 ```
 
 </TabItem>
-<TabItem value="lua" label="Lua">
+<TabItem value="yue" label="YueScript">
 
-```lua
-node:slot("ActionEnd", function(action, target)
-	print("Action completed: " .. tostring(action) .. " Target node: " .. tostring(target))
-end)
+```yue
+node\slot "ActionEnd", (action, target) ->
+	print "完成动作：#{action} 目标节点：#{target}"
 ```
 
 </TabItem>

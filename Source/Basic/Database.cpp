@@ -61,7 +61,7 @@ bool DB::exist(String tableName, String schema) const {
 	bool existed = false;
 	_thread->pause();
 	try {
-		SQLite::Statement statement(*_database, schema.empty() ? "SELECT count(*) FROM sqlite_master WHERE type = 'table' AND name = ?"s : fmt::format("SELECT count(*) FROM {}.sqlite_master WHERE type = 'table' AND name = ?", schema.toString()));
+		SQLite::Statement statement(*_database, schema.empty() ? "SELECT EXISTS(SELECT 1 FROM sqlite_master WHERE type='table' AND name = ?)"s : fmt::format("SELECT EXISTS(SELECT 1 FROM {}.sqlite_master WHERE type='table' AND name = ?)", schema.toString()));
 		statement.bind(1, tableName.toString());
 		int result = 0;
 		if (statement.executeStep()) {
@@ -69,7 +69,7 @@ bool DB::exist(String tableName, String schema) const {
 		}
 		existed = result == 0 ? false : true;
 	} catch (std::exception& e) {
-		Error("failed to execute DB query: {}", e.what());
+		Warn("failed to execute DB query: {}", e.what());
 	}
 	_thread->resume();
 	return existed;
@@ -81,7 +81,7 @@ int DB::exec(String sql) {
 	try {
 		rowChanged = execUnsafe(_database.get(), sql);
 	} catch (std::exception& e) {
-		Error("failed to execute DB SQL: {}", e.what());
+		Warn("failed to execute DB SQL: {}", e.what());
 	}
 	_thread->resume();
 	return rowChanged;
@@ -93,7 +93,7 @@ int DB::exec(String sql, const std::vector<Own<Value>>& args) {
 	try {
 		rowChanged = execUnsafe(_database.get(), sql, args);
 	} catch (std::exception& e) {
-		Error("failed to execute DB SQL: {}", e.what());
+		Warn("failed to execute DB SQL: {}", e.what());
 	}
 	_thread->resume();
 	return rowChanged;
@@ -132,7 +132,7 @@ bool DB::transactionUnsafe(const std::function<void(SQLite::Database*)>& sqls) {
 		transaction.commit();
 		return true;
 	} catch (std::exception& e) {
-		Error("failed to execute DB transaction: {}", e.what());
+		Warn("failed to execute DB transaction: {}", e.what());
 	}
 	return false;
 }
@@ -146,7 +146,7 @@ void DB::transactionAsync(const std::function<void(SQLite::Database*)>& sqls, co
 				transaction.commit();
 				return Values::alloc(true);
 			} catch (std::exception& e) {
-				Error("failed to execute DB transaction: {}", e.what());
+				Warn("failed to execute DB transaction: {}", e.what());
 				return Values::alloc(false);
 			}
 		},
@@ -180,7 +180,7 @@ std::optional<DB::Rows> DB::query(String sql, const std::vector<Own<Value>>& arg
 		auto result = DB::queryUnsafe(sql, args, withColumns);
 		return result;
 	} catch (std::exception& e) {
-		Error("failed to execute DB query: {}", e.what());
+		Warn("failed to execute DB query: {}", e.what());
 		return std::nullopt;
 	}
 }
@@ -267,7 +267,7 @@ void DB::queryAsync(String sql, std::vector<Own<Value>>&& args, bool withColumns
 				auto result = SharedDB.queryUnsafe(sqlStr, *argsPtr, withColumns);
 				return Values::alloc(std::move(result));
 			} catch (std::exception& e) {
-				Error("failed to execute DB query: {}", e.what());
+				Warn("failed to execute DB query: {}", e.what());
 				return Own<Values>{};
 			}
 		},
