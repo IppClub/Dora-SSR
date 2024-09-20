@@ -15,18 +15,18 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Common/Async.h"
 #include "Common/Singleton.h"
 
-#if BX_PLATFORM_ANDROID
-#include "spdlog/sinks/android_sink.h"
-#else
-#include "spdlog/sinks/stdout_color_sinks.h"
-#endif // BX_PLATFORM_ANDROID
-
 #include "Lua/LuaEngine.h"
 #include "Wasm/WasmRuntime.h"
 
 #include "spdlog/pattern_formatter.h"
 #include "spdlog/sinks/callback_sink.h"
 #include "spdlog/sinks/rotating_file_sink.h"
+
+#if BX_PLATFORM_ANDROID
+#include "spdlog/sinks/android_sink.h"
+#else
+#include "spdlog/sinks/ansicolor_sink.h"
+#endif // BX_PLATFORM_ANDROID
 
 NS_DORA_BEGIN
 
