@@ -111,6 +111,25 @@ const LogView = memo((props: LogViewProps) => {
 		Service.clearLog();
 	};
 
+	const onReload = async () => {
+		try {
+			const res = await Service.saveLog();
+			if (res.success) {
+				const assetPath = res.path;
+				const x = new XMLHttpRequest();
+				x.open("GET", Service.addr("/" + assetPath), true);
+				x.responseType = 'text';
+				x.onload = function() {
+					Service.clearLog();
+					Service.addLog(x.response);
+				};
+				x.send();
+			}
+		} catch (err) {
+			console.error(err);
+		}
+	};
+
 	const maxHistoryLength = 20;
 
 	const onSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -585,6 +604,9 @@ const LogView = memo((props: LogViewProps) => {
 						/>
 					</FormControl>
 				</form>
+				<Button onClick={onReload}>
+					{t("action.reload")}
+				</Button>
 				<Button onClick={onClear}>
 					{t("action.clear")}
 				</Button>

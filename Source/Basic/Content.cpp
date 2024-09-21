@@ -775,7 +775,7 @@ uint8_t* Content::loadUnsafe(String filename, int64_t& size) {
 		BLOCK_END
 	}
 	if (!data) {
-		Error("failed to load file: {}", fullPath);
+		Error("failed to load file: \"{}\"", fullPath);
 	}
 	return data;
 }
@@ -939,7 +939,7 @@ uint8_t* Content::loadUnsafe(String filename, int64_t& size) {
 #endif // BX_PLATFORM_WINDOWS
 	SDL_RWops* io = SDL_RWFromFile(fullPath.c_str(), "rb");
 	if (io == nullptr) {
-		Error("failed to load file: {}", filename.toString());
+		Error("failed to load file: \"{}\"", filename.toString());
 		return nullptr;
 	}
 	size = SDL_RWsize(io);

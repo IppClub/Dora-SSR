@@ -686,6 +686,13 @@ interface App {
 	install(path: string): void;
 
 	/**
+	 * 保存所有引擎日志到指定的文件路径为单个文件。
+	 * @param path 要保存日志文件的路径。
+	 * @returns 日志文件是否保存成功。
+	 */
+	saveLog(path: string): boolean;
+
+	/**
 	 * 关闭游戏引擎。
 	 * 该函数在Android和iOS平台不会生效，以遵循移动平台上应用程序规范。
 	 */

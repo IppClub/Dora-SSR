@@ -30,7 +30,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <thread>
 
 #define DORA_VERSION "1.5.16"_slice
-#define DORA_REVISION "1"_slice
+#define DORA_REVISION "2"_slice
 
 #if BX_PLATFORM_ANDROID
 #include <jni.h>
@@ -780,6 +780,10 @@ void Application::install(String path) {
 #else
 	Issue("Application.install() is not unsupported on this platform");
 #endif
+}
+
+bool Application::saveLog(String filename) {
+	return LogSaveAs(filename.toView());
 }
 
 NS_DORA_END

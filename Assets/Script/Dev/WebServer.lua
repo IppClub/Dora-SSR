@@ -2385,35 +2385,51 @@ HttpServer:post("/exist", function(req) -- 940
 		success = false -- 940
 	} -- 942
 end) -- 940
-local status = { } -- 944
-_module_0 = status -- 945
-thread(function() -- 947
-	local doraWeb = Path(Content.assetPath, "www", "index.html") -- 948
-	local doraReady = Path(Content.writablePath, ".www", "dora-ready") -- 949
-	if Content:exist(doraWeb) then -- 950
-		local needReload -- 951
-		if Content:exist(doraReady) then -- 951
-			needReload = App.version ~= Content:load(doraReady) -- 952
-		else -- 953
-			needReload = true -- 953
-		end -- 951
-		if needReload then -- 954
-			Content:remove(Path(Content.writablePath, ".www")) -- 955
-			Content:copyAsync(Path(Content.assetPath, "www"), Path(Content.writablePath, ".www")) -- 956
-			Content:save(doraReady, App.version) -- 960
-			print("Dora Dora is ready!") -- 961
-		end -- 954
+HttpServer:post("/saveLog", function() -- 944
+	local folder = ".download" -- 945
+	local fullLogFile = "dora_full_logs.txt" -- 946
+	local fullFolder = Path(Content.writablePath, folder) -- 947
+	Content:mkdir(fullFolder) -- 948
+	local logPath = Path(fullFolder, fullLogFile) -- 949
+	if App:saveLog(logPath) then -- 950
+		return { -- 951
+			success = true, -- 951
+			path = Path(folder, fullLogFile) -- 951
+		} -- 951
 	end -- 950
-	if HttpServer:start(8866) then -- 962
-		local localIP = HttpServer.localIP -- 963
-		if localIP == "" then -- 964
-			localIP = "localhost" -- 964
-		end -- 964
-		status.url = "http://" .. tostring(localIP) .. ":8866" -- 965
-		return HttpServer:startWS(8868) -- 966
-	else -- 968
-		status.url = nil -- 968
-		return print("8866 Port not available!") -- 969
-	end -- 962
-end) -- 947
-return _module_0 -- 969
+	return { -- 944
+		success = false -- 944
+	} -- 951
+end) -- 944
+local status = { } -- 953
+_module_0 = status -- 954
+thread(function() -- 956
+	local doraWeb = Path(Content.assetPath, "www", "index.html") -- 957
+	local doraReady = Path(Content.writablePath, ".www", "dora-ready") -- 958
+	if Content:exist(doraWeb) then -- 959
+		local needReload -- 960
+		if Content:exist(doraReady) then -- 960
+			needReload = App.version ~= Content:load(doraReady) -- 961
+		else -- 962
+			needReload = true -- 962
+		end -- 960
+		if needReload then -- 963
+			Content:remove(Path(Content.writablePath, ".www")) -- 964
+			Content:copyAsync(Path(Content.assetPath, "www"), Path(Content.writablePath, ".www")) -- 965
+			Content:save(doraReady, App.version) -- 969
+			print("Dora Dora is ready!") -- 970
+		end -- 963
+	end -- 959
+	if HttpServer:start(8866) then -- 971
+		local localIP = HttpServer.localIP -- 972
+		if localIP == "" then -- 973
+			localIP = "localhost" -- 973
+		end -- 973
+		status.url = "http://" .. tostring(localIP) .. ":8866" -- 974
+		return HttpServer:startWS(8868) -- 975
+	else -- 977
+		status.url = nil -- 977
+		return print("8866 Port not available!") -- 978
+	end -- 971
+end) -- 956
+return _module_0 -- 978

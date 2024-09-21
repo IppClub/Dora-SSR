@@ -24,6 +24,8 @@ void LogErrorThreaded(const std::string& msg);
 void LogWarnThreaded(const std::string& msg);
 void LogInfoThreaded(const std::string& msg);
 
+bool LogSaveAs(std::string_view filename);
+
 const char* getShortFilename(const char* filename);
 
 bool IsInLuaOrWasm();

@@ -367,7 +367,7 @@ export default function PersistentDrawerLeft() {
 			if (res !== null) {
 				setExpandedKeys([res.key]);
 			}
-			Service.editingInfo().then((res: {success: boolean, editingInfo?: string}) => {
+			Service.editingInfo().then(res => {
 				if (res.success && res.editingInfo) {
 					const editingInfo: Service.EditingInfo = JSON.parse(res.editingInfo);
 					const targetIndex = editingInfo.index;

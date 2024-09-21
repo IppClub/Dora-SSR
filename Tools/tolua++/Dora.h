@@ -128,6 +128,7 @@ class Application
 	tolua_property__bool bool alwaysOnTop;
 	void openURL(String url);
 	void install(String path);
+	bool saveLog(String filename);
 	void shutdown();
 	static tolua_outside Application* Application_shared @ create();
 };
