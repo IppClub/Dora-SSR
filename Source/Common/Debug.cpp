@@ -56,10 +56,6 @@ public:
 		Mutex::mutexPtr = &_mutex;
 		auto consoleSink = std::make_shared<spdlog::sinks::ansicolor_stdout_sink<Mutex>>();
 #endif
-		const auto maxSize = 1024 * 128; // 128 kb
-		const auto maxFiles = 2;
-		auto logFile = Path::concat({SharedContent.getWritablePath(), "log.txt"sv});
-		auto fileSink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(logFile, maxSize, maxFiles);
 		auto doraSink = std::make_shared<spdlog::sinks::callback_sink_mt>([](const spdlog::details::log_msg& msg) {
 			static auto formatter = spdlog::pattern_formatter("[%H:%M:%S.%e] [%l] %v"s);
 			spdlog::memory_buf_t buf;
@@ -71,10 +67,46 @@ public:
 				});
 			}
 		});
-		_logger = std::make_shared<spdlog::logger>(std::string(), spdlog::sinks_init_list{consoleSink, fileSink, doraSink});
+		auto fileSink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(getFilename(), getMaxFileSize(), getMaxFiles());
+		_logger = std::make_shared<spdlog::logger>(std::string(), spdlog::sinks_init_list{consoleSink, doraSink, fileSink});
+	}
+
+	int getMaxFiles() const {
+		return 2;
+	}
+
+	std::string getFilename() const {
+		return Path::concat({SharedContent.getWritablePath(), "log.txt"sv});
+	}
+
+	int getMaxFileSize() const {
+		return 1024 * 128; // 128 kb
 	}
 
 	virtual ~Logger() { }
+
+	bool saveAs(String filename) {
+		_logger->flush();
+		_logger->sinks().pop_back();
+		std::string logText;
+		for (int i = getMaxFiles() - 1; i >= 0; i--) {
+			auto logFile = spdlog::sinks::rotating_file_sink_mt::calc_filename(getFilename(), i);
+			if (!SharedContent.exist(logFile)) {
+				continue;
+			}
+			auto result = SharedContent.load(logFile);
+			if (result.first) {
+				if (logText.empty()) {
+					logText = std::string(r_cast<const char*>(result.first.get()), result.second);
+				} else {
+					logText += '\n' + std::string(r_cast<const char*>(result.first.get()), result.second);
+				}
+			}
+		}
+		bool result = SharedContent.save(filename, logText);
+		_logger->sinks().push_back(std::make_shared<spdlog::sinks::rotating_file_sink_mt>(getFilename(), getMaxFileSize(), getMaxFiles()));
+		return result;
+	}
 
 	spdlog::logger& get() const {
 		return *_logger;
@@ -94,6 +126,10 @@ std::mutex* Logger::Mutex::mutexPtr = nullptr;
 
 static spdlog::logger& getLogger() {
 	return SharedLogger.get();
+}
+
+bool LogSaveAs(std::string_view filename) {
+	return SharedLogger.saveAs(filename);
 }
 
 void LogError(const std::string& msg) {

@@ -941,6 +941,15 @@ HttpServer\post "/exist", (req): success: false ->
 	switch req when {body: {:file}}
 		return success: Content\exist file
 
+HttpServer\post "/saveLog", (): success: false ->
+	folder = ".download"
+	fullLogFile = "dora_full_logs.txt"
+	fullFolder = Path Content.writablePath, folder
+	Content\mkdir fullFolder
+	logPath = Path fullFolder, fullLogFile
+	if App\saveLog logPath
+		return success: true, path: Path folder, fullLogFile
+
 status = {}
 export default status
 

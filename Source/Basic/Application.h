@@ -71,6 +71,7 @@ public:
 	void invokeInLogic(const std::function<void()>& func);
 	void openURL(String url);
 	void install(String path);
+	bool saveLog(String filename);
 	static int mainLogic(bx::Thread* thread, void* userData);
 	static int mainLogic(Application* app);
 #if BX_PLATFORM_WINDOWS

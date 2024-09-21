@@ -464,3 +464,15 @@ export const exist = (req: FileExistRequest) => {
 export const existSync = (req: FileExistRequest) => {
 	return postSync<FileExistResponse>("/exist", req);
 };
+
+// saveLog
+
+export type SaveLogResponse = {
+	success: true;
+	path: string;
+} | {
+	success: false;
+};
+export const saveLog = () => {
+	return post<SaveLogResponse>("/saveLog", {});
+};

@@ -682,6 +682,13 @@ interface App {
 	install(path: string): void;
 
 	/**
+	 * A function that saves the log file to the specified path.
+	 * @param path The path to save the log file to.
+	 * @returns Whether the log was saved successfully.
+	 */
+	saveLog(path: string): boolean;
+
+	/**
 	 * A function that shuts down the game engine.
 	 * It is not working and acts as a dummy function for platform Android and iOS to follow the specification of how mobile platform applications should operate.
 	 */

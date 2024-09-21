@@ -121,6 +121,11 @@ local record App
 	-- @param path (string) The path to the new engine file.
 	install: function(self: App, path: string)
 
+	-- A function used for save all the log to a file.
+	-- @param path (string) The path to save the log file.
+	-- @return (boolean) Whether the log file was saved successfully.
+	saveLog: function(self: App, path: string): boolean
+
 	-- A function that shuts down the game engine.
 	-- It is not working and acts as a dummy function for platform Android and iOS to follow the specification of how mobile platform applications should operate.
 	shutdown: function(self: App)
