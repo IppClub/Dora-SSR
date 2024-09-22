@@ -142,8 +142,8 @@ namespace ImGui
 	do { \
 		if (!(_EXPR)) \
 		{ \
-			auto msg = fmt::format("[Dora Error]\n[File] {},\n[Func] {}, [Line] {},\n[Message] {}", \
-				__FILE__, __FUNCTION__, __LINE__, \
+			auto msg = fmt::format("[imgui error]\n{}:{}: [{}] {}", \
+				Dora::getShortFilename(__FILE__), __LINE__, __FUNCTION__, \
 				#_EXPR); \
 			Dora::LogError(msg); \
 			std::abort(); \

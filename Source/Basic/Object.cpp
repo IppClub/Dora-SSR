@@ -32,7 +32,7 @@ public:
 	uint32_t luaRefCount;
 	std::stack<uint32_t> availableLuaRefs;
 	std::stack<uint32_t> availableIds;
-	SINGLETON_REF(ObjectBase, AsyncLogThread);
+	SINGLETON_REF(ObjectBase, AsyncLogThread, Logger);
 };
 
 #define SharedObjectBase \

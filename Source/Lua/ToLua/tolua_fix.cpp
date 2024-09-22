@@ -166,24 +166,26 @@ void tolua_stack_dump(lua_State* L, int offset, const char* label) {
 	if (top == 0) {
 		return;
 	}
-	LogError(fmt::format("Total [{}] in lua stack: {}\n", top, label != 0 ? label : ""));
+	std::list<std::string> msgs;
+	msgs.push_back(fmt::format("Total [{}] in lua stack: {}\n", top, label != 0 ? label : ""));
 	for (int i = -1; i >= -top; i--) {
 		int t = lua_type(L, i);
 		switch (t) {
 			case LUA_TSTRING:
-				LogError(fmt::format("  [{}] [string] {}\n", i, lua_tostring(L, i)));
+				msgs.push_back(fmt::format("  [{}] [string] {}\n", i, lua_tostring(L, i)));
 				break;
 			case LUA_TBOOLEAN:
-				LogError(fmt::format("  [{}] [boolean] {}\n", i, lua_toboolean(L, i) ? "true" : "false"));
+				msgs.push_back(fmt::format("  [{}] [boolean] {}\n", i, lua_toboolean(L, i) ? "true" : "false"));
 				break;
 			case LUA_TNUMBER:
-				LogError(fmt::format("  [{}] [number] {}\n", i, lua_tonumber(L, i)));
+				msgs.push_back(fmt::format("  [{}] [number] {}\n", i, lua_tonumber(L, i)));
 				break;
 			default:
-				LogError(fmt::format("  [{}] {}\n", i, lua_typename(L, t)));
+				msgs.push_back(fmt::format("  [{}] {}\n", i, lua_typename(L, t)));
 				break;
 		}
 	}
+	LogInfo(String::join(msgs));
 }
 
 Slice tolua_toslice(lua_State* L, int narg, const char* def) {

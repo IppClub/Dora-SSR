@@ -18,6 +18,7 @@ NS_DORA_BEGIN
 
 extern Acf::Delegate<void(const std::string&)> LogHandler;
 
+void LogInfo(const std::string& msg);
 void LogError(const std::string& msg);
 
 void LogErrorThreaded(const std::string& msg);
@@ -30,8 +31,7 @@ const char* getShortFilename(const char* filename);
 
 bool IsInLuaOrWasm();
 
-#define LogPrint(...) Dora::LogInfoThreaded(fmt::format(__VA_ARGS__))
-#define println(...) LogPrint(__VA_ARGS__)
+#define println(...) Dora::LogInfoThreaded(fmt::format(__VA_ARGS__))
 
 #if DORA_DISABLE_LOG
 #define Info(...) DORA_DUMMY

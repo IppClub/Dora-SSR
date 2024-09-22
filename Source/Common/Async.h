@@ -62,29 +62,10 @@ private:
 	int _nextProcess;
 	OwnVector<Async> _process;
 	OwnVector<Async> _userThreads;
-	SINGLETON_REF(AsyncThread, ObjectBase);
+	SINGLETON_REF(AsyncThread, ObjectBase, Logger);
 };
 
 #define SharedAsyncThread \
 	Dora::Singleton<Dora::AsyncThread>::shared()
-
-class AsyncLogThread : public Async {
-public:
-	virtual ~AsyncLogThread() {
-		Async::stop();
-	}
-#if BX_PLATFORM_WINDOWS
-	inline void* operator new(size_t i) {
-		return _mm_malloc(i, 16);
-	}
-	inline void operator delete(void* p) {
-		_mm_free(p);
-	}
-#endif // BX_PLATFORM_WINDOWS
-	SINGLETON_REF(AsyncLogThread);
-};
-
-#define SharedAsyncLogThread \
-	Dora::Singleton<Dora::AsyncLogThread>::shared()
 
 NS_DORA_END

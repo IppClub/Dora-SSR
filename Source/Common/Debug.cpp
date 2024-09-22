@@ -50,16 +50,17 @@ private:
 #endif
 public:
 	Logger() {
+		_thread = SharedAsyncThread.newThread();
+		_formatter.set_pattern("[%H:%M:%S.%e] [%l] %v"s);
 #if BX_PLATFORM_ANDROID
 		auto consoleSink = std::make_shared<spdlog::sinks::android_sink_mt>("dora"s);
 #else
 		Mutex::mutexPtr = &_mutex;
 		auto consoleSink = std::make_shared<spdlog::sinks::ansicolor_stdout_sink<Mutex>>();
 #endif
-		auto doraSink = std::make_shared<spdlog::sinks::callback_sink_mt>([](const spdlog::details::log_msg& msg) {
-			static auto formatter = spdlog::pattern_formatter("[%H:%M:%S.%e] [%l] %v"s);
+		auto doraSink = std::make_shared<spdlog::sinks::callback_sink_mt>([this](const spdlog::details::log_msg& msg) {
 			spdlog::memory_buf_t buf;
-			formatter.format(msg, buf);
+			_formatter.format(msg, buf);
 			auto str = fmt::to_string(buf);
 			if (Singleton<Dora::Application>::isInitialized() && SharedApplication.isLogicRunning()) {
 				SharedApplication.invokeInLogic([str]() {
@@ -108,13 +109,29 @@ public:
 		return result;
 	}
 
+	void log(spdlog::level::level_enum level, const std::string& msg) {
+		_logger->log(level, msg);
+	}
+
+	void logAsync(spdlog::level::level_enum level, const std::string& msg) {
+		if (Singleton<AsyncThread>::isDisposed()) {
+			_logger->log(level, msg);
+		} else {
+			_thread->run([this, level, msg]() {
+				_logger->log(level, msg);
+			});
+		}
+	}
+
 	spdlog::logger& get() const {
 		return *_logger;
 	}
 
 private:
+	spdlog::pattern_formatter _formatter;
 	std::shared_ptr<spdlog::logger> _logger;
-	SINGLETON_REF(Logger, Content);
+	Async* _thread;
+	SINGLETON_REF(Logger);
 };
 
 #if !BX_PLATFORM_ANDROID
@@ -124,38 +141,28 @@ std::mutex* Logger::Mutex::mutexPtr = nullptr;
 #define SharedLogger \
 	Singleton<Logger>::shared()
 
-static spdlog::logger& getLogger() {
-	return SharedLogger.get();
-}
-
 bool LogSaveAs(std::string_view filename) {
 	return SharedLogger.saveAs(filename);
 }
 
-void LogError(const std::string& msg) {
-	getLogger().error(msg);
+void LogInfo(const std::string& msg) {
+	SharedLogger.log(spdlog::level::info, msg);
 }
 
-static void LogWithLevel(spdlog::level::level_enum level, const std::string& msg) {
-	if (Singleton<Dora::Application>::isDisposed() || Singleton<Dora::AsyncLogThread>::isDisposed() || !SharedApplication.isLogicRunning()) {
-		getLogger().log(level, msg);
-		return;
-	}
-	SharedAsyncLogThread.run([level, msg] {
-		getLogger().log(level, msg);
-	});
+void LogError(const std::string& msg) {
+	SharedLogger.log(spdlog::level::err, msg);
 }
 
 void LogErrorThreaded(const std::string& msg) {
-	LogWithLevel(spdlog::level::err, msg);
+	SharedLogger.logAsync(spdlog::level::err, msg);
 }
 
 void LogWarnThreaded(const std::string& msg) {
-	LogWithLevel(spdlog::level::warn, msg);
+	SharedLogger.logAsync(spdlog::level::warn, msg);
 }
 
 void LogInfoThreaded(const std::string& msg) {
-	LogWithLevel(spdlog::level::info, msg);
+	SharedLogger.logAsync(spdlog::level::info, msg);
 }
 
 bool IsInLuaOrWasm() {
