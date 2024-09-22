@@ -111,9 +111,9 @@ struct LifeCycler {
 				}
 			}
 			if (!nameList.empty()) {
-				Info("singletons to destroy: {}.", std::accumulate(nameList.begin() + 1, nameList.end(), nameList.front(), [](const std::string& a, const std::string& b) {
+				LogInfo(fmt::format("singletons to destroy: {}.", std::accumulate(nameList.begin() + 1, nameList.end(), nameList.front(), [](const std::string& a, const std::string& b) {
 					return a + ", " + b;
-				}));
+				})));
 			}
 #endif // DORA_DEBUG
 			for (auto it = items.rbegin(); it != items.rend(); ++it) {
