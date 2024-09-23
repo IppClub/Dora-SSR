@@ -1525,6 +1525,7 @@ static ImGuiItemFlags_ getItemFlag(String flag) {
 		case "NoNavDefaultFocus"_hash: return ImGuiItemFlags_NoNavDefaultFocus;
 		case "ButtonRepeat"_hash: return ImGuiItemFlags_ButtonRepeat;
 		case "AutoClosePopups"_hash: return ImGuiItemFlags_AutoClosePopups;
+		case "AllowDuplicateId"_hash: return ImGuiItemFlags_AllowDuplicateId;
 		default:
 			Issue("ImGui item flag named \"{}\" is invalid.", flag.toString());
 			return ImGuiItemFlags_None;

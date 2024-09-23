@@ -4029,7 +4029,8 @@ pub enum ImGuiItemFlags {
 	NoNav = 1 << 1,
 	NoNavDefaultFocus = 1 << 2,
 	ButtonRepeat = 1 << 3,
-	AutoClosePopups = 1 << 4
+	AutoClosePopups = 1 << 4,
+	AllowDuplicateId = 1 << 5
 }
 
 #[bitflags]

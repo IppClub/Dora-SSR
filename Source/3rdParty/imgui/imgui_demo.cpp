@@ -1,4 +1,4 @@
-// dear imgui, v1.91.1
+// dear imgui, v1.91.3 WIP
 // (demo code)
 
 // Help:
@@ -539,6 +539,8 @@ void ImGui::ShowDemoWindow(bool* p_open)
             ImGui::Checkbox("io.ConfigWindowsResizeFromEdges", &io.ConfigWindowsResizeFromEdges);
             ImGui::SameLine(); HelpMarker("Enable resizing of windows from their edges and from the lower-left corner.\nThis requires (io.BackendFlags & ImGuiBackendFlags_HasMouseCursors) because it needs mouse cursor feedback.");
             ImGui::Checkbox("io.ConfigWindowsMoveFromTitleBarOnly", &io.ConfigWindowsMoveFromTitleBarOnly);
+            ImGui::Checkbox("io.ConfigScrollbarScrollByPage", &io.ConfigScrollbarScrollByPage);
+            ImGui::SameLine(); HelpMarker("Enable scrolling page by page when clicking outside the scrollbar grab.\nWhen disabled, always scroll to clicked location.\nWhen enabled, Shift+Click scrolls to clicked location.");
             ImGui::Checkbox("io.ConfigMacOSXBehaviors", &io.ConfigMacOSXBehaviors);
             ImGui::SameLine(); HelpMarker("Swap Cmd<>Ctrl keys, enable various MacOS style behaviors.");
             ImGui::Text("Also see Style->Rendering for rendering options.");
@@ -546,8 +548,10 @@ void ImGui::ShowDemoWindow(bool* p_open)
             ImGui::SeparatorText("Debug");
             ImGui::Checkbox("io.ConfigDebugIsDebuggerPresent", &io.ConfigDebugIsDebuggerPresent);
             ImGui::SameLine(); HelpMarker("Enable various tools calling IM_DEBUG_BREAK().\n\nRequires a debugger being attached, otherwise IM_DEBUG_BREAK() options will appear to crash your application.");
+            ImGui::Checkbox("io.ConfigDebugHighlightIdConflicts", &io.ConfigDebugHighlightIdConflicts);
+            ImGui::SameLine(); HelpMarker("Highlight and show an error message when multiple items have conflicting identifiers.");
             ImGui::BeginDisabled();
-            ImGui::Checkbox("io.ConfigDebugBeginReturnValueOnce", &io.ConfigDebugBeginReturnValueOnce); // .
+            ImGui::Checkbox("io.ConfigDebugBeginReturnValueOnce", &io.ConfigDebugBeginReturnValueOnce);
             ImGui::EndDisabled();
             ImGui::SameLine(); HelpMarker("First calls to Begin()/BeginChild() will return false.\n\nTHIS OPTION IS DISABLED because it needs to be set at application boot-time to make sense. Showing the disabled option is a way to make this feature easier to discover.");
             ImGui::Checkbox("io.ConfigDebugBeginReturnValueLoop", &io.ConfigDebugBeginReturnValueLoop);
@@ -684,6 +688,7 @@ static void ShowDemoWindowMenuBar(ImGuiDemoWindowData* demo_data)
         if (ImGui::BeginMenu("Tools"))
         {
             IMGUI_DEMO_MARKER("Menu/Tools");
+            ImGuiIO& io = ImGui::GetIO();
 #ifndef IMGUI_DISABLE_DEBUG_TOOLS
             const bool has_debug_tools = true;
 #else
@@ -692,14 +697,16 @@ static void ShowDemoWindowMenuBar(ImGuiDemoWindowData* demo_data)
             ImGui::MenuItem("Metrics/Debugger", NULL, &demo_data->ShowMetrics, has_debug_tools);
             ImGui::MenuItem("Debug Log", NULL, &demo_data->ShowDebugLog, has_debug_tools);
             ImGui::MenuItem("ID Stack Tool", NULL, &demo_data->ShowIDStackTool, has_debug_tools);
-            ImGui::MenuItem("Style Editor", NULL, &demo_data->ShowStyleEditor);
-            bool is_debugger_present = ImGui::GetIO().ConfigDebugIsDebuggerPresent;
+            bool is_debugger_present = io.ConfigDebugIsDebuggerPresent;
             if (ImGui::MenuItem("Item Picker", NULL, false, has_debug_tools && is_debugger_present))
                 ImGui::DebugStartItemPicker();
             if (!is_debugger_present)
                 ImGui::SetItemTooltip("Requires io.ConfigDebugIsDebuggerPresent=true to be set.\n\nWe otherwise disable the menu option to avoid casual users crashing the application.\n\nYou can however always access the Item Picker in Metrics->Tools.");
-            ImGui::Separator();
+            ImGui::MenuItem("Style Editor", NULL, &demo_data->ShowStyleEditor);
             ImGui::MenuItem("About Dear ImGui", NULL, &demo_data->ShowAbout);
+
+            ImGui::SeparatorText("Debug Options");
+            ImGui::MenuItem("Highlight ID Conflicts", NULL, &io.ConfigDebugHighlightIdConflicts, has_debug_tools);
             ImGui::EndMenu();
         }
         ImGui::EndMenuBar();
@@ -2000,8 +2007,8 @@ static void ShowDemoWindowWidgets(ImGuiDemoWindowData* demo_data)
         ImGui::SameLine();
         ImGui::SliderInt("Sample count", &display_count, 1, 400);
         float (*func)(void*, int) = (func_type == 0) ? Funcs::Sin : Funcs::Saw;
-        ImGui::PlotLines("Lines", func, NULL, display_count, 0, NULL, -1.0f, 1.0f, ImVec2(0, 80));
-        ImGui::PlotHistogram("Histogram", func, NULL, display_count, 0, NULL, -1.0f, 1.0f, ImVec2(0, 80));
+        ImGui::PlotLines("Lines##2", func, NULL, display_count, 0, NULL, -1.0f, 1.0f, ImVec2(0, 80));
+        ImGui::PlotHistogram("Histogram##2", func, NULL, display_count, 0, NULL, -1.0f, 1.0f, ImVec2(0, 80));
         ImGui::Separator();
 
         ImGui::Text("Need better plotting and graphing? Consider using ImPlot:");
@@ -2596,6 +2603,11 @@ static void ShowDemoWindowWidgets(ImGuiDemoWindowData* demo_data)
         IMGUI_DEMO_MARKER("Widgets/Drag and Drop/Drag to reorder items (simple)");
         if (ImGui::TreeNode("Drag to reorder items (simple)"))
         {
+            // FIXME: there is temporary (usually single-frame) ID Conflict during reordering as a same item may be submitting twice.
+            // This code was always slightly faulty but in a way which was not easily noticeable.
+            // Until we fix this, enable ImGuiItemFlags_AllowDuplicateId to disable detecting the issue.
+            ImGui::PushItemFlag(ImGuiItemFlags_AllowDuplicateId, true);
+
             // Simple reordering
             HelpMarker(
                 "We don't use the drag and drop api at all here! "
@@ -2617,6 +2629,8 @@ static void ShowDemoWindowWidgets(ImGuiDemoWindowData* demo_data)
                     }
                 }
             }
+
+            ImGui::PopItemFlag();
             ImGui::TreePop();
         }
 
@@ -4225,7 +4239,7 @@ static void ShowDemoWindowLayout()
             // down by FramePadding.y ahead of time)
             ImGui::AlignTextToFramePadding();
             ImGui::Text("OK Blahblah"); ImGui::SameLine();
-            ImGui::Button("Some framed item"); ImGui::SameLine();
+            ImGui::Button("Some framed item##2"); ImGui::SameLine();
             HelpMarker("We call AlignTextToFramePadding() to vertically align the text baseline by +FramePadding.y");
 
             // SmallButton() uses the same vertical padding as Text
@@ -7148,12 +7162,14 @@ static void ShowDemoWindowColumns()
         {
             if (h_borders && ImGui::GetColumnIndex() == 0)
                 ImGui::Separator();
+            ImGui::PushID(i);
             ImGui::Text("%c%c%c", 'a' + i, 'a' + i, 'a' + i);
             ImGui::Text("Width %.2f", ImGui::GetColumnWidth());
             ImGui::Text("Avail %.2f", ImGui::GetContentRegionAvail().x);
             ImGui::Text("Offset %.2f", ImGui::GetColumnOffset());
             ImGui::Text("Long text that is likely to clip");
             ImGui::Button("Button", ImVec2(-FLT_MIN, 0.0f));
+            ImGui::PopID();
             ImGui::NextColumn();
         }
         ImGui::Columns(1);
@@ -7476,7 +7492,8 @@ static void ShowDemoWindowInputs()
             IM_ASSERT(IM_ARRAYSIZE(mouse_cursors_names) == ImGuiMouseCursor_COUNT);
 
             ImGuiMouseCursor current = ImGui::GetMouseCursor();
-            ImGui::Text("Current mouse cursor = %d: %s", current, mouse_cursors_names[current]);
+            const char* cursor_name = (current >= ImGuiMouseCursor_Arrow) && (current < ImGuiMouseCursor_COUNT) ? mouse_cursors_names[current] : "N/A";
+            ImGui::Text("Current mouse cursor = %d: %s", current, cursor_name);
             ImGui::BeginDisabled(true);
             ImGui::CheckboxFlags("io.BackendFlags: HasMouseCursors", &io.BackendFlags, ImGuiBackendFlags_HasMouseCursors);
             ImGui::EndDisabled();

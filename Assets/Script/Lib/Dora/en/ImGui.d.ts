@@ -330,7 +330,8 @@ export const enum ItemFlags {
 	NoNav = "NoNav",
 	NoNavDefaultFocus = "NoNavDefaultFocus",
 	ButtonRepeat = "ButtonRepeat",
-	AutoClosePopups = "AutoClosePopups"
+	AutoClosePopups = "AutoClosePopups",
+	AllowDuplicateId = "AllowDuplicateId",
 }
 
 export const enum GlyphRange {

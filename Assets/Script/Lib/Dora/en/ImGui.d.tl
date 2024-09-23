@@ -305,6 +305,7 @@ local record ImGui
 		"NoNavDefaultFocus"
 		"ButtonRepeat"
 		"AutoClosePopups"
+		"AllowDuplicateId"
 	end
 	enum GlyphRange
 		"Default"
