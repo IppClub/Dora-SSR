@@ -32,38 +32,55 @@
 
 1. **Fork 项目**：
 
-   Fork 项目仓库。
+	Fork 项目仓库。
 
 2. **创建分支**：
 
-   在本地创建一个新的分支，以便进行更改。
+	在本地创建一个新的分支，以便进行更改。
 
 3. **从源代码构建**：
 
-   通过参考[从源代码构建的文档](https://dora-ssr.net/zh-Hans/docs/tutorial/dev-configuration)，熟悉项目从源代码编译的过程。
+	通过参考[从源代码构建的文档](https://dora-ssr.net/zh-Hans/docs/tutorial/dev-configuration)，熟悉项目从源代码编译的过程。
 
 4. **进行编码**：
 
-   编写代码并确保代码符合项目的编码规范。
+	编写代码并确保代码符合项目的编码规范。
 
-   **编码风格指南：**
+	**编码风格指南：**
 
-   - 我们希望遵循同一种编码书写的风格，以保持项目的一致性和可读性。我们的风格定义在位于[此处](Tools/Format/.clang-format)的 clang-format 配置文件中。
-   - 提交代码之前，请确保对代码运行 clang-format 对代码做格式化的处理。
+	- 我们希望遵循同一种编码书写的风格，以保持项目的一致性和可读性。我们的风格定义在位于[此处](Tools/Format/.clang-format)的 clang-format 配置文件中。
+	- 提交代码之前，请确保对代码运行 clang-format 对代码做格式化的处理。
 
 5. **提交和推送**：
 
-   提交更改并将它们推送到您的 fork 仓库。
+	提交更改并将它们推送到您的 fork 仓库。
 
 6. **提交 Pull Request**：
 
-   创建一个 Pull Request，详细描述你的更改及其理由。
+	创建一个 Pull Request，详细描述你的更改及其理由。
 
 <br>
 
 ## 贡献文档
 
 &emsp;&emsp;文档对于开源项目的成功至关重要。如果您发现了文档中的错误，或者您认为可以改进文档，请提交Issue或Pull Request。
+
+<br>
+
+## 开发者认证协议 (DCO)
+
+通过为这个项目做出贡献，您同意开发者认证协议的条款。这意味着：
+
+1. 您提交的代码是您自己的，或者您有权贡献它。
+2. 您同意将您的贡献在与项目相同的许可证下进行许可。
+
+为了表明您接受这些条款，您必须在提交信息中包含一行 `Signed-off-by`：
+
+```
+Signed-off-by: Your Name youremail@example.com
+```
+
+您可以在提交时运行 `git commit -s` 来自动添加这一行。
 
 <br>
 

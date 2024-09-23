@@ -31,38 +31,55 @@ If you would like to contribute code to Dora SSR, please follow these steps:
 
 1. **Fork the Project**:
 
-   Fork the project repository.
+	Fork the project repository.
 
 2. **Branch Creation**:
 
-   Create a new branch locally to make changes.
+	Create a new branch locally to make changes.
 
 3. **Build from Source**:
 
-   Familiarize yourself with the project's compile-from-source process by referring to the [Build-from-Source Documentation](https://dora-ssr.net/docs/tutorial/dev-configuration).
+	Familiarize yourself with the project's compile-from-source process by referring to the [Build-from-Source Documentation](https://dora-ssr.net/docs/tutorial/dev-configuration).
 
 4. **Coding**:
 
-   Write the code and ensure it adheres to the project's coding standards.
+	Write the code and ensure it adheres to the project's coding standards.
 
-   **Coding Style Guidelines:**
+	**Coding Style Guidelines:**
 
-   - We adhere to a coding style to maintain consistency and readability across the project. Our style is defined in the clang-format config file located [here](Tools/Format/.clang-format).
-   - Before submitting your code, please ensure running clang-format on your code.
+	- We adhere to a coding style to maintain consistency and readability across the project. Our style is defined in the clang-format config file located [here](Tools/Format/.clang-format).
+	- Before submitting your code, please ensure running clang-format on your code.
 
 5. **Commit and Push**:
 
-   Commit the changes and push them to your forked repository.
+	Commit the changes and push them to your forked repository.
 
 6. **Submit a Pull Request**:
 
-   Create a Pull Request, describing your changes and their rationale in detail.
+	Create a Pull Request, describing your changes and their rationale in detail.
 
 <br>
 
 ## Documentation Contributions
 
 Documentation is crucial to the success of any open-source project. If you find errors in the documentation or believe it can be improved, please submit an Issue or Pull Request.
+
+<br>
+
+## Developer Certificate of Origin (DCO)
+
+By contributing to this project, you agree to the terms of the Developer Certificate of Origin. This means that:
+
+1. The code you are submitting is your own or you have permission to contribute it.
+2. You agree to license your contribution under the same license as the project.
+
+To indicate that you accept these terms, you must include a `Signed-off-by` line in your commit message:
+
+```
+Signed-off-by: Your Name youremail@example.com
+```
+
+You can add this automatically by running `git commit -s` when you make a commit.
 
 <br>
 
