@@ -1,5 +1,5 @@
 <p align="center">
-  <img src='Assets/Image/logo.png' alt='Dora SSR' width='260px'/>
+  <img src='Assets/Image/logo.png' alt='Dora SSR' width='240px'/>
 </p>
 
 # 多萝珍奇引擎（Dora SSR）
@@ -13,7 +13,24 @@
 
 &emsp;&emsp;Dora SSR 是一个用于多种设备上快速开发 2D 游戏的游戏引擎。它内置易用的开发工具链，支持在手机、开源掌机等设备上直接进行游戏开发。
 
-<div align='center'><img src='Docs/static/img/3.png' alt='Playground' width='650px'/></div>
+<div align='center'><img src='Docs/static/img/3.png' alt='Playground' width='500px'/></div>
+
+## 目录
+
+- [主要特点](#主要特点)
+- [示例项目](#示例项目)
+- [安装配置](#安装配置)
+	- [Android](#android)
+	- [Windows](#windows)
+	- [macOS](#macos)
+	- [Linux](#linux)
+- [快速上手](#快速上手)
+- [文档](#文档)
+- [社区](#社区)
+- [贡献](#贡献)
+- [许可证](#许可证)
+
+<br>
 
 ## 主要特点
 
@@ -76,46 +93,55 @@
 
 ## 安装配置
 
-- 快速上手
-	- Android
-		- 1、在游戏的运行终端下载并安装 [APK](https://github.com/ippclub/Dora-SSR/releases/latest) 包。
-		- 2、运行软件，通过局域网内的 PC（平板或其他开发设备）的浏览器访问软件显示的服务器地址。
-		- 3、开始游戏开发。
-	- Windows、macOS
-		- 1、下载并运行[软件](https://github.com/ippclub/Dora-SSR/releases/latest)。
-			- 对于 Windows 用户，请确保您已安装 Visual Studio 2022 的 X86 Visual C++ 可再发行组件包（包含 MSVC 编译的程序所需运行时的 vc_redist.x86 补丁），以运行此应用程序。您可以从[微软网站](https://learn.microsoft.com/zh-cn/cpp/windows/latest-supported-vc-redist?view=msvc-170)下载。
-			- 在 macOS 上也可以通过 Homebrew 进行软件安装。
-				```sh
-				brew tap ippclub/dora-ssr
-				brew install --cask dora-ssr
-				```
-		- 2、运行软件，通过浏览器访问软件显示的服务器地址。
-		- 3、开始游戏开发。
-	- Linux
-		- 1、安装软件：
-			- Ubuntu Jammy
-				```sh
-				sudo add-apt-repository ppa:ippclub/dora-ssr
-				sudo apt update
-				sudo apt install dora-ssr
-				```
-			- Debian Bookworm
-				```sh
-				sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 9C7705BF
-				sudo add-apt-repository -S "deb https://ppa.launchpadcontent.net/ippclub/dora-ssr/ubuntu jammy main"
-				sudo apt update
-				sudo apt install dora-ssr
-				```
-		- 2、运行软件，通过浏览器访问软件显示的服务器地址。
-		- 3、开始游戏开发。
+### Android
 
-- 引擎项目开发
+- 1、在游戏的运行终端下载并安装 [APK](https://github.com/ippclub/Dora-SSR/releases/latest) 包。
+- 2、运行软件，通过局域网内的 PC（平板或其他开发设备）的浏览器访问软件显示的服务器地址。
+- 3、开始游戏开发。
+
+### Windows
+
+- 1、请确保您已安装 Visual Studio 2022 的 X86 Visual C++ 可再发行组件包（包含 MSVC 编译的程序所需运行时的 vc_redist.x86 补丁），以运行此应用程序。您可以从[微软网站](https://learn.microsoft.com/zh-cn/cpp/windows/latest-supported-vc-redist?view=msvc-170)下载。
+- 2、下载并解压[软件](https://github.com/ippclub/Dora-SSR/releases/latest)。
+- 3、运行软件，通过浏览器访问软件显示的服务器地址。
+- 4、开始游戏开发。
+
+### macOS
+
+- 1、下载并解压[软件](https://github.com/ippclub/Dora-SSR/releases/latest)。或者也可以通过 [Homebrew](https://brew.sh) 使用下面命令进行软件安装。
+	```sh
+	brew tap ippclub/dora-ssr
+	brew install --cask dora-ssr
+	```
+- 2、运行软件，通过浏览器访问软件显示的服务器地址。
+- 3、开始游戏开发。
+
+### Linux
+
+- 1、安装软件：
+	- Ubuntu Jammy
+	```sh
+	sudo add-apt-repository ppa:ippclub/dora-ssr
+	sudo apt update
+	sudo apt install dora-ssr
+	```
+	- Debian Bookworm
+	```sh
+	sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 9C7705BF
+	sudo add-apt-repository -S "deb https://ppa.launchpadcontent.net/ippclub/dora-ssr/ubuntu jammy main"
+	sudo apt update
+	sudo apt install dora-ssr
+	```
+- 2、运行软件，通过浏览器访问软件显示的服务器地址。
+- 3、开始游戏开发。
+
+### 进行引擎的开发
 
 &emsp;&emsp;进行 Dora SSR 项目开发的安装配置，详见[官方文档](https://dora-ssr.net/zh-Hans/docs/tutorial/dev-configuration)。
 
 <br>
 
-## 快速入门
+## 快速上手
 
 1. 第一步：创建一个新项目
 	- 在浏览器中，打开 Dora Dora 编辑器左侧游戏资源树的右键菜单。
@@ -125,6 +151,7 @@
 	- 编写 Hello World 代码：
 
 - **Lua**
+
 ```lua
 local _ENV = Dora
 
@@ -143,6 +170,7 @@ end))
 ```
 
 - **Teal**
+
 ```lua
 local sleep <const> = require("sleep")
 local Ease <const> = require("Ease")
@@ -166,6 +194,7 @@ if not sprite is nil then
   end))
 end
 ```
+
 - **Yuescript**
 
 &emsp;&emsp;有关 Dora SSR 所支持的 Yuescript 这门小众语言的故事在[这里](https://dora-ssr.net/zh-Hans/blog/2024/4/17/a-moon-script-tale)。
@@ -183,7 +212,9 @@ with Sprite "Image/logo.png"
        Scale 0.5, 0.5, 1, Ease. OutBack
      )
 ```
+
 - **TypeScript**
+
 ```typescript
 import {Sprite, Ease, Scale, Sequence, once, sleep} from 'Dora';
 
@@ -202,9 +233,11 @@ if (sprite) {
   }));
 }
 ```
+
 - **TSX**
 
 &emsp;&emsp;使用 TSX 语言来创建 Dora SSR 的游戏场景是一个比较容易上手的选择。新手教程可以参见[这里](https://dora-ssr.net/zh-Hans/blog/2024/4/25/tsx-dev-intro)。
+
 ```tsx
 import {React, toNode, useRef} from 'DoraX';
 import {ActionDef, Ease, Sprite, once, sleep} from 'Dora';
@@ -238,9 +271,11 @@ toNode(
   </sprite>
 );
 ```
+
 - **Rust**
 
 &emsp;&emsp;Dora SSR 也支持使用 Rust 语言来编写游戏代码，编译为 WASM 文件，命名为 `init.wasm` 再上传到引擎中加载运行。详情见[这里](https://dora-ssr.net/zh-Hans/blog/2024/4/15/rusty-game-dev)。
+
 ```rust
 use dora_ssr::*;
 
@@ -317,4 +352,3 @@ fn main () {
 &emsp;&emsp;请注意，Dora SSR 集成了 Spine 运行时库，这是一个**商业软件**。在你的项目中使用 Spine 运行时需要获取 Esoteric Software 提供有效的商业许可证。有关获取许可证的更多详细信息，请访问  [Spine 官方网站](http://esotericsoftware.com/)。
 
 &emsp;&emsp;请确保遵守所有许可要求，再在项目中使用 Spine 运行时。或者可以使用同样集成的开源的 DragonBones 系统作为动画系统的替代方案。如果你只需要创建比较简单的动画，也可以使用 Dora SSR 提供的 Model 动画模块看是否能满足需要。
-
