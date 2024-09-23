@@ -339,7 +339,7 @@ fn main () {
 
 &emsp;&emsp;开放原子开源基金会（Open Atom Foundation）是一个非盈利组织，旨在支持和推广开源技术的发展。在该基金会的大家庭中，Dora SSR 会利用更广泛的资源和社区支持，以推动项目的发展和创新。更多信息请查看[基金会官网](https://openatom.org/)。
 
-<div align='center'><img src='Docs/static/img/cheer.png' alt='Cheer' width='600px'/></div>
+<div align='center'><img src='Docs/static/img/cheer.png' alt='Cheer' width='500px'/></div>
 
 <br>
 
