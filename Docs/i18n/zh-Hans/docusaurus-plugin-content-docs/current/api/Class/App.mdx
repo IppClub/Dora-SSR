@@ -432,6 +432,31 @@ install: function(self: App, path: string)
 | --- | --- | --- |
 | path | string | 新版本引擎文件的路径。 |
 
+## saveLog
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;保存所有引擎日志到指定的文件路径为单个文件。
+
+**签名：**
+```tl
+saveLog: function(self: App, path: string): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| path | string | 要保存日志文件的路径。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 日志文件是否保存成功。 |
+
 ## shutdown
 
 **类型：** 函数。
