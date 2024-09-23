@@ -290,6 +290,7 @@ export macro ItemFlags = $Enum(
 	"NoNavDefaultFocus"
 	"ButtonRepeat"
 	"AutoClosePopups"
+	"AllowDuplicateId"
 )
 export macro GlyphRange = $Enum(
 	"Default"
