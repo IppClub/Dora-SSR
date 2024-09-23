@@ -1,5 +1,5 @@
 <p align="center">
-  <img src='Assets/Image/logo.png' alt='Dora SSR' width='260px'/>
+  <img src='Assets/Image/logo.png' alt='Dora SSR' width='240px'/>
 </p>
 
 # Dora SSR (多萝珍奇引擎)
@@ -13,7 +13,24 @@
 
 Dora SSR is a game engine for rapid development of 2D games on various devices. It has a built-in easy-to-use development tool chain that supports direct game development on mobile phones, open source handhelds and other devices.
 
-<div align='center'><img src='Docs/static/img/3.png' alt='Playground' width='650px'/></div>
+<div align='center'><img src='Docs/static/img/3.png' alt='Playground' width='500px'/></div>
+
+## Table of Contents
+
+- [Key Features](#key-features)
+- [Example Projects](#example-projects)
+- [Installation](#installation)
+	- [Android](#android)
+	- [Windows](#windows)
+	- [macOS](#macos)
+	- [Linux](#linux)
+- [Quick Start](#quick-start)
+- [Documentation](#documentation)
+- [Community](#community)
+- [Contribute](#contribute)
+- [License](#license)
+
+<br>
 
 ## Key Features
 
@@ -76,41 +93,55 @@ Dora SSR is a game engine for rapid development of 2D games on various devices. 
 
 ## Installation
 
-- Quick start
-	- Android
-		- 1. Download and install the [APK](https://github.com/ippclub/Dora-SSR/releases/latest) package on the running terminal for games.
-		- 2. Run the software, and access the server address displayed by the software through the browser of a PC (tablet or other development device) on the LAN.
-		- 3. Start game development.
-	- Windows, macOS
-		- 1. Download and run the [software](https://github.com/ippclub/Dora-SSR/releases/latest).
-			- For Windows users, ensure that you have the X86 Visual C++ Redistributable for Visual Studio 2022 (the MSVC runtime package vc_redist.x86) installed to run the application. You can download it from the [Microsoft website](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170).
-			- Get software on macOS with Homebrew using
-				```sh
-				brew tap ippclub/dora-ssr
-				brew install --cask dora-ssr
-				```
+### Android
 
-		- 2. Run the software and access the server address displayed by the software through a browser.
-		- 3. Start game development.
-	- Linux
-		- 1. Installation.
-			- Ubuntu Jammy
-				```sh
-				sudo add-apt-repository ppa:ippclub/dora-ssr
-				sudo apt update
-				sudo apt install dora-ssr
-				```
-			- Debian Bookworm
-				```sh
-				sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 9C7705BF
-				sudo add-apt-repository -S "deb https://ppa.launchpadcontent.net/ippclub/dora-ssr/ubuntu jammy main"
-				sudo apt update
-				sudo apt install dora-ssr
-				```
-	- 2. Run the software and access the server address displayed by the software through a browser.
-	- 3. Start game development.
+- 1. Download and install the [APK](https://github.com/ippclub/Dora-SSR/releases/latest) package on the running terminal for games.
+- 2. Run the software, and access the server address displayed by the software through the browser of a PC (tablet or other development device) on the LAN.
+- 3. Start game development.
 
-- Engine project development
+### Windows
+
+- 1. Ensure that you have the X86 Visual C++ Redistributable for Visual Studio 2022 (the MSVC runtime package vc_redist.x86) installed to run the application. You can download it from the [Microsoft website](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170).
+- 2. Download and decompress the [software](https://github.com/ippclub/Dora-SSR/releases/latest).
+- 3. Run the software and access the server address displayed by the software through a browser.
+- 4. Start game development.
+
+### macOS
+
+- 1. Download and decompress the [software](https://github.com/ippclub/Dora-SSR/releases/latest).
+
+  Or you can get software using [Homebrew](https://brew.sh) with:
+
+   ```sh
+   brew tap ippclub/dora-ssr
+   brew install --cask dora-ssr
+   ```
+
+- 2. Run the software and access the server address displayed by the software through a browser.
+- 3. Start game development.
+
+### Linux
+
+- 1. Installation from PPA.
+	- Ubuntu Jammy
+   ```sh
+   sudo add-apt-repository ppa:ippclub/dora-ssr
+   sudo apt update
+   sudo apt install dora-ssr
+   ```
+	- Debian Bookworm
+   ```sh
+   sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 9C7705BF
+   sudo add-apt-repository -S "deb https://ppa.launchpadcontent.net/ippclub/dora-ssr/ubuntu jammy main"
+   sudo apt update
+   sudo apt install dora-ssr
+   ```
+
+- 2. Run the software and access the server address displayed by the software through a browser.
+
+- 3. Start game development.
+
+### Game engine development
 
 For the installation and configuration of Dora SSR project development, see [Official Documents](https://dora-ssr.net/docs/tutorial/dev-configuration) for details.
 
@@ -315,7 +346,7 @@ We are delighted to announce that the Dora SSR project has officially become a d
 
 The Open Atom Foundation is a non-profit organization dedicated to supporting and promoting the development of open-source technologies. Within this foundation's community, Dora SSR will utilize broader resources and community support to propel the project's development and innovation. For more information, please visit the [foundation's official website](https://openatom.org/).
 
-<div align='center'><img src='Docs/static/img/cheer.png' alt='Playground' width='600px'/></div>
+<div align='center'><img src='Docs/static/img/cheer.png' alt='Playground' width='500px'/></div>
 
 <br>
 
