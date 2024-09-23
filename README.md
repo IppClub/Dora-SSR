@@ -1,5 +1,5 @@
 <p align="center">
-  <img src='Assets/Image/logo.png' alt='Dora SSR' width='240px'/>
+	<img src='Assets/Image/logo.png' alt='Dora SSR' width='240px'/>
 </p>
 
 # Dora SSR (多萝珍奇引擎)
@@ -95,47 +95,45 @@ Dora SSR is a game engine for rapid development of 2D games on various devices. 
 
 ### Android
 
-- 1. Download and install the [APK](https://github.com/ippclub/Dora-SSR/releases/latest) package on the running terminal for games.
-- 2. Run the software, and access the server address displayed by the software through the browser of a PC (tablet or other development device) on the LAN.
-- 3. Start game development.
+- 1\. Download and install the [APK](https://github.com/ippclub/Dora-SSR/releases/latest) package on the running terminal for games.
+- 2\. Run the software, and access the server address displayed by the software through the browser of a PC (tablet or other development device) on the LAN.
+- 3\. Start game development.
 
 ### Windows
 
-- 1. Ensure that you have the X86 Visual C++ Redistributable for Visual Studio 2022 (the MSVC runtime package vc_redist.x86) installed to run the application. You can download it from the [Microsoft website](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170).
-- 2. Download and decompress the [software](https://github.com/ippclub/Dora-SSR/releases/latest).
-- 3. Run the software and access the server address displayed by the software through a browser.
-- 4. Start game development.
+- 1\. Ensure that you have the X86 Visual C++ Redistributable for Visual Studio 2022 (the MSVC runtime package vc_redist.x86) installed to run the application. You can download it from the [Microsoft website](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170).
+- 2\. Download and decompress the [software](https://github.com/ippclub/Dora-SSR/releases/latest).
+- 3\. Run the software and access the server address displayed by the software through a browser.
+- 4\. Start game development.
 
 ### macOS
 
-- 1. Download and decompress the [software](https://github.com/ippclub/Dora-SSR/releases/latest). Or you can get software using [Homebrew](https://brew.sh) with:
+- 1\. Download and decompress the [software](https://github.com/ippclub/Dora-SSR/releases/latest). Or you can get software using [Homebrew](https://brew.sh) with:
 	```sh
 	brew tap ippclub/dora-ssr
 	brew install --cask dora-ssr
 	```
-- 2. Run the software and access the server address displayed by the software through a browser.
-- 3. Start game development.
+- 2\. Run the software and access the server address displayed by the software through a browser.
+- 3\. Start game development.
 
 ### Linux
 
-- 1. Installation from PPA.
+- 1\. Installation from PPA.
 	- Ubuntu Jammy
-   ```sh
-   sudo add-apt-repository ppa:ippclub/dora-ssr
-   sudo apt update
-   sudo apt install dora-ssr
-   ```
+	```sh
+	sudo add-apt-repository ppa:ippclub/dora-ssr
+	sudo apt update
+	sudo apt install dora-ssr
+	```
 	- Debian Bookworm
-   ```sh
-   sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 9C7705BF
-   sudo add-apt-repository -S "deb https://ppa.launchpadcontent.net/ippclub/dora-ssr/ubuntu jammy main"
-   sudo apt update
-   sudo apt install dora-ssr
-   ```
-
-- 2. Run the software and access the server address displayed by the software through a browser.
-
-- 3. Start game development.
+	```sh
+	sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 9C7705BF
+	sudo add-apt-repository -S "deb https://ppa.launchpadcontent.net/ippclub/dora-ssr/ubuntu jammy main"
+	sudo apt update
+	sudo apt install dora-ssr
+	```
+- 2\. Run the software and access the server address displayed by the software through a browser.
+- 3\. Start game development.
 
 ### Game engine development
 
@@ -145,10 +143,10 @@ For the installation and configuration of Dora SSR project development, see [Off
 
 ## Quick Start
 
-1. Step One: Create a new project
+- Step One: Create a new project
 	- In the browser, open the right-click menu of the game resource tree on the left side of the Dora Dora editor.
 	- Click on the menu item `New` and choose to create a new folder.
-2. Step Two: Write game code
+- Step Two: Write game code
 	- Create a new game entry code file of Lua (YueScript, Teal, TypeScript or TSX) under the project folder, named `init`.
 	- Write Hello World code:
 
@@ -302,11 +300,11 @@ fn main () {
 }
 ```
 
-3. Step Three: Run the game
+- Step Three: Run the game
 
 	Click the `🎮` icon in the lower right corner of the editor, then click the menu item `Run`. Or press the key combination `Ctrl + r`.
 
-4. Step Four: Publish the game
+- Step Four: Publish the game
 	- Open the right-click menu of the project folder just created through the game resource tree on the left side of the editor and click the `Download` option.
 	- Wait for the browser to pop up a download prompt for the packaged project file.
 
