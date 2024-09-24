@@ -1,0 +1,67 @@
+import "@site/src/languages/highlight";
+
+# Considerations When Using TSTL
+
+Although TypeScript To Lua (TSTL) aims to support most modern TypeScript features and compile them into Lua code, there are some language environment differences to be aware of. This article highlights some potential issues to help developers avoid pitfalls when using TSTL.
+
+## 1. Differences Between JavaScript and Lua
+
+Since TypeScript is based on JavaScript, some behaviors may differ when compiled to Lua. Here are a few key behavior differences:
+
+### 1.1 Boolean Coercion
+
+JavaScript and Lua handle boolean values differently. In Lua, certain "falsy" values in JavaScript are treated as "truthy," and TSTL follows Lua’s evaluation rules:
+
+| TypeScript | JavaScript Behavior | Lua Behavior |
+|------------|---------------------|--------------|
+| `false` | `false` | `false` |
+| `undefined`| `false` | `false` |
+| `null` | `false` | `false` |
+| `NaN` | `false` | ⚠️ `true` |
+| `""` | `false` | ⚠️ `true` |
+| `0` | `false` | ⚠️ `true` |
+| others | `true` | `true` |
+
+**Suggestion**: Use strict boolean expression to explicitly handle boolean values in your project.
+
+### 1.2 Loose vs Strict Equality
+
+In Lua, there is no distinction between `==` and `===`. TSTL treats all comparisons as strict equality (`===`), meaning `==` and `===` are equivalent in TSTL.
+
+### 1.3 `undefined` and `null`
+
+Lua has no direct equivalent to `null`, so TSTL converts both `undefined` and `null` to `nil`. This means that, in most cases, you can use `undefined` and `null` interchangeably. However, it is recommended to use `undefined` in TSTL code to better match Lua semantics.
+
+### 1.4 Deleting and Checking for Table Keys
+
+In JavaScript, object keys can have arbitrary values, including `undefined` and `null`. In Lua, removing a table key is done by assigning `nil`. Since TSTL converts both `undefined` and `null` to `nil`, this can result in keys disappearing when you attempt to read them.
+
+**Suggestion**: If you need to use `null` or `undefined` to represent an uninitialized value in a container, use a special value like `-1` or `__TSTL_NULL`, or define a `const Null = {}` to represent it.
+
+### 1.5 Array Length
+
+TSTL converts TypeScript’s `.length` for arrays into Lua’s `#` operator. Due to differences in how arrays are handled in Lua, the length of arrays may differ between JavaScript and Lua. For example, setting an array index to `undefined` may alter the length in Lua, whereas it would not in JavaScript.
+
+**Suggestion**: Avoid non-standard array operations like directly setting an index to `null` or `undefined`. Use array methods to manipulate arrays where possible.
+
+### 1.6 Array Iteration Order
+
+Neither JavaScript nor Lua guarantees the iteration order of object keys or array elements. In TSTL, the `for ... in` loop in JavaScript will behave differently in Lua.
+
+**Suggestion**: If you require a consistent order, use arrays rather than objects or dictionary tables.
+
+## 2. Other Considerations
+
+### 2.1 Local Variable Limit
+
+Lua imposes a limit on the number of local variables (200), whereas JavaScript/TypeScript has no such limit. If your program has a large number of local variables, it may cause runtime errors.
+
+**Solution**: Combine multiple modules into a single table export to avoid exceeding the local variable limit.
+
+### 2.2 Stable Sorting
+
+Lua’s `table.sort` does not guarantee stable sorting, while JavaScript’s `Array.sort` is stable. Therefore, in TSTL, if you rely on stable sorting, you may need to implement it manually or use a third-party library.
+
+---
+
+By understanding these differences, you can better handle potential language environment issues when developing with TSTL, ensuring stability and compatibility in your project.

@@ -1,0 +1,119 @@
+import "@site/src/languages/highlight";
+
+# Using External Lua Code
+
+In TypeScript code, if you want to integrate some existing Lua code, you can follow the steps below:
+
+- 1.**Add Lua files to the project**: Place the Lua files in the same project directory as your TypeScript files.
+- 2.**Create declaration files**: Create a `.d.ts` declaration file for each Lua file. This allows you to import and use these Lua modules in TypeScript.
+
+Below, we will explain how to use external Lua code in Dora SSR.
+
+## 1. Sample Project
+
+##### Sample project structure:
+
+```text
+project/
+├── main.ts
+├── someLua.lua
+└── someLua.d.ts
+```
+
+##### Sample Code:
+
+```ts title="main.ts"
+import { foo, bar } from "./someLua";
+
+foo();
+bar();
+```
+
+```lua title="someLua.lua"
+local someLua = {}
+
+function someLua:foo()
+	print("hello")
+end
+
+function someLua:bar()
+	print("world")
+end
+
+return someLua
+```
+
+```ts title="someLua.d.ts"
+export function foo(): void;
+export function bar(): void;
+```
+
+In this way, you can seamlessly call Lua code from TypeScript while keeping the benefits of type checking.
+
+## 2. Importing a Lua Module that Only Exports an Array Object
+
+Sometimes, a Lua file might only export an array object without named or default exports. In this case, writing the definition file in TypeScript becomes slightly more complex.
+
+##### Sample Lua Module:
+
+```lua title="things.lua"
+return {
+	{
+		foo = 123,
+		bar = 456,
+	},
+	{
+		foo = 789,
+		bar = 987,
+	},
+}
+```
+
+To correctly import this Lua array module in TypeScript, you need to use the `export =` syntax. The definition file would look like this:
+
+```ts title="things.d.ts"
+interface Thing {
+	foo: number;
+	bar: number;
+}
+
+declare const things: Thing[];
+export = things;
+```
+
+Then, you can use it in TypeScript as follows:
+
+```ts title="main.ts"
+import * as things from "./things";
+
+print(things[0].foo); // Outputs "123"
+```
+
+In this case, the `export =` syntax handles Lua files without named exports, allowing TypeScript to correctly perform type checking.
+
+## 3. Watch Out for Lua and TypeScript Syntax Differences
+
+When converting TypeScript code to Lua, there are a few syntax differences you need to be aware of:
+
+- **Indexing starts from 1**:
+
+	Lua arrays are indexed starting from 1, while TypeScript arrays start from 0. Be mindful of this when using Lua arrays in TypeScript.
+
+- **Global vs Local Variables**:
+
+	In Lua, variables default to global scope unless explicitly declared as `local`. In TypeScript, variable scoping is stricter. To avoid unintended global variable pollution, it's recommended to always use the `local` keyword in Lua.
+
+- **Lua Functions Return Multiple Values**:
+
+	Lua functions can return multiple values, a feature not supported by TypeScript. When calling Lua functions in TypeScript, you may need to wrap the return values appropriately.
+
+## 4. Debugging Lua and TypeScript in Dora SSR
+
+Dora SSR’s Web IDE provides features like code inspection, syntax highlighting, and error prompts for TypeScript code. However, when integrating Lua modules, you should pay attention to the following:
+
+- **Type Checking**: Create `.d.ts` declaration files for Lua files to ensure TypeScript performs proper type checking.
+- **Runtime Errors**: Since TypeScript code is compiled into Lua, runtime error messages will initially point to the generated Lua files. Dora SSR maps the error information, such as line numbers, back to the original TypeScript source files, which are displayed in the Web IDE console.
+
+## 5. Conclusion
+
+When developing with TypeScript to Lua in Dora SSR, it’s essential to handle the differences between TypeScript and Lua languages flexibly. By creating appropriate declaration files, you can easily integrate Lua code while maintaining type safety in TypeScript. Understanding these differences and making full use of Dora SSR’s development toolchain will make your development process smoother.

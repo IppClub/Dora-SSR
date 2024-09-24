@@ -1,0 +1,207 @@
+import "@site/src/languages/highlight";
+
+# Differences in the `self` Parameter
+
+When using TypeScriptToLua (TSTL) to write TypeScript and compile it into Lua, developers need to be aware of some key differences in behavior due to language-specific features. This article will focus on handling the `self` parameter, managing context in callback functions, and how to avoid common type errors.
+
+### The Importance of the `self` Parameter
+
+In the default configuration of TSTL, all functions include a `self` parameter by default to simulate the behavior of the `this` keyword in JavaScript. The `self` parameter refers to the object context calling the function. For most Lua users, this behavior is similar to calling methods using Lua's `:` (colon).
+
+## 1. Considerations for Dora SSR
+
+In Dora SSR, TSTL is configured with the `noImplicitSelf` option enabled. This means that ordinary functions will no longer include a `self` parameter by default to simulate JavaScript's `this` keyword behavior.
+
+### Example:
+
+In Dora SSR:
+
+**Input (TypeScript)**
+
+```ts
+function f() {}
+function f2(this: any) {}
+const a = () => {};
+class C {
+	method() {}
+};
+interface Item {
+	method(): void;
+};
+const item: Item = {
+	method() {}
+};
+```
+
+**Output (Lua)**
+
+```lua
+function f() end
+function f2(self) end
+local a = function() end
+
+local C = __TS__Class()
+C.name = "C"
+function C.prototype.____constructor(self) end
+function C.prototype.method(self) end -- Class methods still include the self parameter
+
+local item = {
+	method = function(self) end -- Object member functions still include the self parameter
+}
+```
+
+Even with `noImplicitSelf` enabled, class methods and object member functions still default to including `self` unless you explicitly declare `this: void`.
+
+## 2. How to Explicitly Remove the `self` Parameter
+
+If you want to remove the `self` parameter explicitly, especially when interacting with Lua code, you can use the TypeScript `this: void` syntax. This informs the compiler that `this` is not allowed in the current context, eliminating the `self` parameter.
+
+### 2.1 Using `this: void` in Class Methods
+
+In class definitions, you can declare `this: void` if you want certain methods to exclude the `self` parameter.
+
+#### Example:
+
+**Input (TypeScript)**
+
+```ts
+declare class Class {
+	colon(arg: string): void;
+	dot(this: void, arg: string): void;
+}
+
+const c = new Class();
+c.colon("foo"); // Called with colon
+c.dot("foo"); // Called with dot notation
+```
+
+**Output (Lua)**
+
+```lua
+local c = __TS__New(Class)
+c:colon("foo")
+c.dot("foo")
+```
+
+This way, you can control whether the `self` parameter is generated in class methods according to your needs.
+
+### 2.2 Handling `self` in Callback Functions
+
+In many Lua libraries, callback functions do not use the `self` parameter. When writing TypeScript code that interacts with such libraries, ensure that the callback function does not include the `self` parameter.
+
+#### Example:
+
+**Input (TypeScript)**
+
+```ts
+type Callback = (this: void, arg: string) => void;
+
+declare function useCallback(this: void, callback: Callback): void;
+
+useCallback(arg => {
+	console.log(arg);
+});
+```
+
+**Output (Lua)**
+
+```lua
+useCallback(function(arg)
+  print(arg)
+end)
+```
+
+In this example, we explicitly declare that the callback function does not include the `self` parameter, ensuring the generated Lua code does not have extra context parameters.
+
+### 2.3 Using the `@noSelf` Annotation
+
+If you want to ensure that all functions in a class or interface do not include the `self` parameter, you can use the `@noSelf` annotation. This can save you from manually specifying `this: void` for every function.
+
+**Input (TypeScript)**
+
+```ts
+/** @noSelf **/
+interface Item {
+	foo(arg: string): void;
+};
+const item: Item = {
+	foo(arg) {}
+};
+```
+
+**Output (Lua)**
+
+```lua
+local item = {
+	foo = function(arg) end
+}
+```
+
+You can also override the `@noSelf` annotation for individual functions by explicitly specifying the `this` parameter:
+
+**Input (TypeScript)**
+
+```ts
+/** @noSelf **/
+interface Item {
+	foo(arg: string): void;
+	bar(this: any, arg: string): void;
+};
+const item: Item = {
+	foo(arg) {},
+	bar(arg) {}
+};
+```
+
+**Output (Lua)**
+
+```lua
+local item = {
+	foo = function(arg) end,
+	bar = function(self, arg) end
+}
+```
+
+## 3. Assignment Errors and Solutions
+
+In TSTL, functions with `this: void` and regular functions cannot be assigned to each other. If you try to assign a function with a context parameter to one without it, TSTL will throw an error.
+
+#### Error Example:
+
+```typescript
+declare function useCallback(cb: (this: void, arg: string) => void);
+
+function callback(arg: string) {}
+useCallback(callback);  // ❌ Error
+```
+
+You can resolve this error by wrapping the function in an arrow function:
+
+#### Corrected:
+
+```typescript
+useCallback((arg) => callback(arg));
+```
+
+This ensures that TSTL does not generate a `self` parameter, avoiding type mismatches.
+
+## 4. Avoiding Context Inconsistencies in Overloaded Functions
+
+In TypeScript, functions can be overloaded with different signatures. However, in TSTL, if overloaded functions have inconsistent context types (e.g., one has `this: void` and another does not), it will result in a compilation error.
+
+#### Example:
+
+```ts
+declare function useCallback(f: () => {}): void;
+
+declare function callback(this: void, s: string, n: number): void;
+declare function callback(s: string);
+
+useCallback(callback);  // ❌ Error: Inconsistent context types
+```
+
+To avoid these errors, it’s best to avoid overloading functions with inconsistent context types.
+
+---
+
+By understanding and following these key considerations, you can develop more effectively with TypeScriptToLua in Dora SSR and avoid common pitfalls arising from differences between the two languages.
