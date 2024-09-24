@@ -633,7 +633,6 @@ HttpServer\post "/exist", (req): success: false ->
 				Content\removeSearchPath projDir
 				Content\removeSearchPath scriptDir
 				return success: result
-			return success: false
 		return success: Content\exist file
 
 HttpServer\postSchedule "/read", (req): success: false ->
@@ -651,7 +650,6 @@ HttpServer\postSchedule "/read", (req): success: false ->
 						return :content, success: true
 				else
 					Content\removeSearchPath projDir
-			return success: false
 		if Content\exist path
 			if content := Content\loadAsync path
 				return :content, success: true
