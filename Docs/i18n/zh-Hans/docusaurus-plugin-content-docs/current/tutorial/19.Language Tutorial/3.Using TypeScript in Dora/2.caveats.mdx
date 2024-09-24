@@ -1,0 +1,67 @@
+import "@site/src/languages/highlight";
+
+# 使用 TSTL 的注意事项
+
+&emsp;&emsp;虽然 TypeScript To Lua (TSTL) 旨在尽可能支持大多数现代 TypeScript 特性，并将其编译为 Lua 代码，仍然有一些需要注意的语言环境差异。本文将详细介绍一些潜在的问题，帮助开发者避免在使用 TSTL 时遇到的“坑”。
+
+## 1、JavaScript 与 Lua 的差异
+
+&emsp;&emsp;由于 TypeScript 基于 JavaScript，因此在编译成 Lua 时，部分行为可能与 JavaScript 不同。以下是一些行为差异：
+
+### 1.1 布尔值的强制转换
+
+&emsp;&emsp;JavaScript 和 Lua 对布尔值的计算有所不同。在 Lua 中，某些 JavaScript 中的“假”值会被视为“真”，而 TSTL 只遵循 Lua 的布尔值评估规则：
+
+| TypeScript | JavaScript 行为 | Lua 行为 |
+|-------------|-----------------|------------|
+| `false` | `false` | `false` |
+| `undefined` | `false` | `false` |
+| `null` | `false` | `false` |
+| `NaN` | `false` | ⚠️ `true` |
+| `""` | `false` | ⚠️ `true` |
+| `0` | `false` | ⚠️ `true` |
+| 其他 | `true` | `true` |
+
+&emsp;&emsp;**建议**：使用严格的布尔表达式来确保你在项目中显式处理布尔值。
+
+### 1.2 松散相等与严格相等
+
+&emsp;&emsp;在 Lua 中，`==` 和 `===` 之间没有区别，所以 TSTL 将所有比较视为严格比较 (===)，所以 `==` 和 `===` 在 TSTL 中是等价的。
+
+### 1.3 `undefined` 和 `null`
+
+&emsp;&emsp;Lua 没有与 `null` 完全等价的值，因此 TSTL 会将 `undefined` 和 `null` 都转换为 `nil`。这意味着在大多数情况下，你可以将 `undefined` 和 `null` 互换使用。不过，建议在 TSTL 代码中尽量避免使用 `null`，改为使用 `undefined`，以更好地映射到 Lua 的语义。
+
+### 1.4 表键的删除与存在性
+
+&emsp;&emsp;在 JavaScript 中，对象键可以具有任意值，包括 `undefined` 和 `null`。而在 Lua 中，删除表中的键是通过赋值为 `nil` 来实现的。由于 TSTL 将 `undefined` 和 `null` 都转化为 `nil`，当你尝试读取对象键时，可能会导致某些键丢失。
+
+&emsp;&emsp;**建议**：如果一定要使用 `null` 或 `undefined` 在容器中表示一个未初始化的值，可以使用其他特殊值，如 `-1` 或 `__TSTL_NULL`，再或者自己定义一个 `const Null = {}` 使用也行。
+
+### 1.5 数组长度
+
+&emsp;&emsp;TSTL 会将 TypeScript 数组的 `.length` 转换为 Lua 的 `#` 操作符。由于 Lua 中数组的实现方式不同，可能会导致 JavaScript 和 Lua 中的数组长度不一致。例如，设置数组某个索引为 `undefined`，可能会导致 Lua 数组长度变化，而在 JavaScript 中不会。
+
+&emsp;&emsp;**建议**：尽量避免使用不规范的数组操作，如直接修改数组索引值为 `null` 或 `undefined`，尽可能使用数组操作的方法修改数组。
+
+### 1.6 数组的迭代顺序
+
+&emsp;&emsp;JavaScript 和 Lua 都不能保证对象键或数组元素的迭代顺序。因此，在 TSTL 中，JavaScript 的 `for ... in` 循环会表现出与 Lua 不同的顺序。
+
+&emsp;&emsp;**建议**：如果需要顺序一致的集合，建议使用数组，而非对象或字典表。
+
+## 2、其他注意事项
+
+### 2.1 本地变量限制
+
+&emsp;&emsp;Lua 对本地变量的数量有一定限制（200 个），而 JavaScript/TypeScript 没有这样的限制。如果你的程序包含大量本地变量，可能会导致运行时错误。
+
+&emsp;&emsp;**解决方案**：可以合并多个模块到单个表中导出，以避免变量超限问题。
+
+### 2.2 稳定排序
+
+&emsp;&emsp;Lua 的 `table.sort` 并不保证排序的稳定性，而 JavaScript 的 `Array.sort` 是稳定排序。因此，在 TSTL 中，如果你依赖于稳定排序，可能需要手动实现或使用第三方库。
+
+---
+
+&emsp;&emsp;通过了解这些差异，你可以在使用 TSTL 开发时更好地处理潜在的语言环境问题，确保项目的稳定性和兼容性。

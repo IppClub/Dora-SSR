@@ -1,0 +1,119 @@
+import "@site/src/languages/highlight";
+
+# 使用外部 Lua 代码
+
+&emsp;&emsp;在 TypeScript 代码中，如果你想集成一些已有的 Lua 代码，可以通过以下步骤实现：
+
+- 1、**将 Lua 文件添加到项目中**：将 Lua 文件放置在与 TypeScript 文件相同的项目目录下。
+- 2、**创建声明文件**：为每个 Lua 文件创建一个同名的 `.d.ts` 声明文件，这样就可以在 TypeScript 中导入并使用这些 Lua 模块。
+
+&emsp;&emsp;下面我们将介绍如何在 Dora SSR 中使用外部 Lua 代码。
+
+## 1、示例项目
+
+##### 示例项目结构：
+
+```text
+project/
+├── main.ts
+├── someLua.lua
+└── someLua.d.ts
+```
+
+##### 示例代码：
+
+```ts title="main.ts"
+import { foo, bar } from "./someLua";
+
+foo();
+bar();
+```
+
+```lua title="someLua.lua"
+local someLua = {}
+
+function someLua:foo()
+	print("hello")
+end
+
+function someLua:bar()
+	print("world")
+end
+
+return someLua
+```
+
+```ts title="someLua.d.ts"
+export function foo(): void;
+export function bar(): void;
+```
+
+&emsp;&emsp;通过这种方式，你可以在 TypeScript 中无缝调用 Lua 代码，同时保持类型检查的优势。
+
+## 2、导入一个仅导出数组对象的 Lua 模块
+
+&emsp;&emsp;有时，Lua 文件仅导出一个数组对象，而没有命名导出或进行默认导出。此时，在 TypeScript 中为其编写定义文件会稍微更麻烦一点。
+
+##### 示例 Lua 模块：
+
+```lua title="things.lua"
+return {
+	{
+		foo = 123,
+		bar = 456,
+	},
+	{
+		foo = 789,
+		bar = 987,
+	},
+}
+```
+
+&emsp;&emsp;为了在 TypeScript 中正确导入这个 Lua 数组模块，你需要使用 `export =` 语法。定义文件示例如下：
+
+```ts title="things.d.ts"
+interface Thing {
+	foo: number;
+	bar: number;
+}
+
+declare const things: Thing[];
+export = things;
+```
+
+&emsp;&emsp;然后在 TypeScript 中使用它：
+
+```ts title="main.ts"
+import * as things from "./things";
+
+print(things[0].foo); // 输出 "123"
+```
+
+&emsp;&emsp;这种情况下，`export =` 语法用于处理没有命名导出的 Lua 文件，让 TypeScript 能够正确地进行类型检查。
+
+## 3、注意 Lua 和 TypeScript 语法差异
+
+&emsp;&emsp;在将 TypeScript 代码转换为 Lua 时，有一些特定的语法差异需要注意：
+
+- **索引从 1 开始**：
+
+	Lua 的数组索引从 1 开始，而 TypeScript 的数组从 0 开始。在 TypeScript 中使用 Lua 数组时，要特别注意这一点。
+
+- **全局变量与局部变量**：
+
+	Lua 中如果没有显式声明变量为 `local`，则默认为全局变量。TypeScript 中的变量作用域则较为严格。为了避免意外的全局变量污染，建议在 Lua 中明确使用 `local` 关键字。
+
+- **Lua 函数返回多个值**：
+
+	Lua 函数可以返回多个值，而 TypeScript 不支持此特性。因此，在 TypeScript 中调用 Lua 函数时，可能需要对返回值进行适当的封装。
+
+## 4、在 Dora SSR 中调试 Lua 与 TypeScript
+
+&emsp;&emsp;Dora SSR 的 Web IDE 提供了 TypeScript 代码的检查、语法高亮和错误提示功能。然而，当你集成 Lua 模块时，需要注意以下几点：
+
+- **类型检查**：为 Lua 文件编写 `.d.ts` 声明文件，确保 TypeScript 能正确进行类型检查。
+- **运行时错误**：由于 TypeScript 编译后生成的是 Lua 代码，运行时的错误提示会首先指向生成的 Lua 文件，然后 Dora SSR 会把错误信息比如代码行号等映射回 TypeScript 源文件，并在 Web IDE 控制台中输出显示。
+
+## 5、结论
+
+&emsp;&emsp;在 Dora SSR 中使用 TypeScript To Lua 进行开发时，灵活处理 TypeScript 和 Lua 语言的差异非常重要。通过创建合适的声明文件，你可以轻松地集成 Lua 代码，并在 TypeScript 中保持代码的类型安全。了解这些差异，并善加利用 Dora SSR 提供的开发工具链，可以让你的开发过程更加顺畅。

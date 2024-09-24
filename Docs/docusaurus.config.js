@@ -302,8 +302,8 @@ const config = {
 							to: '/blog',
 						},
 						{
-							label:  github ? 'GitHub' : 'AtomGit',
-							href:  github ?
+							label: github ? 'GitHub' : 'AtomGit',
+							href: github ?
 								'https://github.com/ippclub/Dora-SSR' :
 								'https://atomgit.com/ippclub/Dora-SSR',
 						},

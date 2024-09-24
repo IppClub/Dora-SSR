@@ -1,0 +1,98 @@
+import "@site/src/languages/highlight";
+
+# Getting Started with TSTL
+
+:::tip Tips
+This tutorial assumes you are already familiar with TypeScript syntax. If you are not familiar with TypeScript, you can refer to the [TypeScript official documentation](https://www.typescriptlang.org/docs/) for learning. This tutorial also assumes you are already familiar with the basics of Lua. If you are not familiar with Lua, you can refer to the [Lua official documentation](https://lua-users.org/wiki/TutorialDirectory) for learning.
+:::
+
+## Introduction
+
+In this tutorial, we will introduce how to use the Dora SSR game engine's Web IDE along with TypeScript To Lua (TSTL) for development. Dora SSR integrates the TSTL compiler toolchain, enabling you to write game logic in TypeScript and convert it into Lua for execution. Additionally, the Web IDE offers a rich development experience, including code inspection, syntax highlighting, and error prompts, making the development process more efficient.
+
+## Mapping Between TypeScript and Lua
+
+The TSTL compiler converts TypeScript code into Lua, supporting most TypeScript syntax features. Below are some common TypeScript features mapped to Lua:
+
+- **Basic types**: TypeScript's `number`, `string`, `boolean`, etc., are directly mapped to Lua's basic types.
+- **Classes and interfaces**: TypeScript's class structure is mapped to Lua's tables and metatables.
+- **Modules**: TypeScript modules are mapped to Lua's module system, making it easy to organize code.
+
+You can use these TypeScript features to structure your game logic, and TSTL will automatically compile your code into Lua when you save it. To access Dora SSR APIs in TypeScript, Dora SSR provides a set of `.d.ts` declaration files, which you can directly import and use.
+
+## Writing TypeScript Code
+
+In Dora SSR, you can quickly start writing game logic in TypeScript by following these steps:
+
+1. **Run the Engine**: Start the Dora SSR executable program.
+2. **Open the Web IDE**: Open Dora SSR's Web IDE in your browser.
+3. **Create a Script File**: In the Web IDE, create a new `.ts` TypeScript file, such as `init.ts`.
+4. **Use Dora SSR's API**: You can directly call Dora SSR APIs in TypeScript, for example:
+
+```ts
+import { Node, Sprite } from "Dora";
+
+// Create a new scene
+const scene = Node();
+
+// Create a new sprite
+const sprite = Sprite("assets/image.png");
+
+// Add the sprite to the scene
+scene.addChild(sprite);
+```
+
+5. **Run the Code**: After saving the code, Dora SSR's Web IDE will automatically compile it using TSTL and run the generated Lua code locally. You can view the output and error messages via the Web IDE's editor interface and console.
+
+## Debugging and Error Checking
+
+The Web IDE has built-in support for TypeScript code inspection and debugging, including:
+
+- **Syntax Highlighting**: Real-time syntax highlighting for TypeScript code.
+- **Error Prompts**: The Web IDE provides suggestions for potential syntax or type errors while you're writing, helping you quickly identify issues.
+- **Compilation Error Messages**: If errors occur while compiling TypeScript to Lua, the console will display detailed error information.
+
+For example, if you call a non-existent API, the Web IDE will give an error prompt before compiling:
+
+```ts
+// Error: 'move' does not exist on type 'Sprite'
+sprite.move(10, 10);
+```
+
+## Sample Project: Creating Simple Character Controls
+
+Here's a simple example demonstrating how to write character control logic using TypeScript in Dora SSR:
+
+```ts
+// @preview-file on
+import { Node, Sprite, Keyboard, KeyName } from "Dora";
+
+const scene = Node();
+const sprite = Sprite("assets/character.png");
+
+scene.addChild(sprite);
+
+// Control the character's movement with the keyboard
+scene.onUpdate(() => {
+	if (Keyboard.isKeyPressed(KeyName.Left)) {
+		sprite.x -= 5;
+	}
+	if (Keyboard.isKeyPressed(KeyName.Right)) {
+		sprite.x += 5;
+	}
+});
+```
+
+Once you save the code, the Web IDE will automatically compile it and run the game in the emulator.
+
+## Importing Modules from the Project
+
+In real-world development, you may need to import other TypeScript modules from your project. Unlike TypeScript's module imports, Dora SSR uses Lua's module system, which has different code search mechanism. This difference can often cause relative path code searches to fail. Please refer to the [project code search path](../../project-management) documentation to correctly write your code import paths.
+
+## Packaging and Deployment
+
+After completing your game development, you can use the Web IDE to package the final Lua files, export them as a ZIP package, and deploy them to your target device. Dora SSR's packaging tools make it easy to publish projects to mobile phones, open-source handheld consoles, and more.
+
+## Conclusion
+
+By combining Dora SSR's Web IDE with TSTL, developers can create games in the familiar TypeScript ecosystem while enjoying powerful tools and APIs from Dora SSR. We hope this tutorial helps you quickly get started with TypeScript To Lua in Dora SSR and build your creative games!

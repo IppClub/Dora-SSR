@@ -690,5 +690,9 @@
   "sidebar.tutorialSidebar.category.Language Tutorial": {
     "message": "编程语言教程",
     "description": "The label for category Language Tutorial in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Using TypeScript in Dora": {
+    "message": "在 Dora 中使用 TypeScript",
+    "description": "The label for category Using TypeScript in Dora in sidebar tutorialSidebar"
   }
 }
