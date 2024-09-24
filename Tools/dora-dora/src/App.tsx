@@ -355,13 +355,13 @@ export default function PersistentDrawerLeft() {
 			Service.read({path: "Dora.d.ts"}),
 			loadAssets(),
 		]).then(([es6, lua, dora, res]) => {
-			if (es6.content !== undefined) {
+			if (es6.success) {
 				monaco.languages.typescript.typescriptDefaults.addExtraLib(es6.content, "es6-subset.d.ts");
 			}
-			if (lua.content !== undefined) {
+			if (lua.success) {
 				monaco.languages.typescript.typescriptDefaults.addExtraLib(lua.content, "lua.d.ts");
 			}
-			if (dora.content !== undefined) {
+			if (dora.success) {
 				monaco.languages.typescript.typescriptDefaults.addExtraLib(dora.content, "Dora.d.ts");
 			}
 			if (res !== null) {
@@ -653,6 +653,7 @@ export default function PersistentDrawerLeft() {
 					});
 				});
 			}
+			const projFile = editor.getModel()?.uri.fsPath;
 			await AutoTypings.create(editor, {
 				debounceDuration: 2000,
 				sourceCache: {
@@ -661,7 +662,7 @@ export default function PersistentDrawerLeft() {
 						if (lib !== undefined) return true;
 						const model = monaco.editor.getModel(monaco.Uri.parse(uri));
 						if (model !== null) return true;
-						const res = await Service.exist({file: uri.startsWith("file:") ? monaco.Uri.parse(uri).fsPath : uri});
+						const res = await Service.exist({file: uri.startsWith("file:") ? monaco.Uri.parse(uri).fsPath : uri, projFile});
 						return res.success;
 					},
 					getFile: async (uri: string) => {
@@ -669,8 +670,11 @@ export default function PersistentDrawerLeft() {
 						if (lib !== undefined) return lib.content;
 						const model = monaco.editor.getModel(monaco.Uri.parse(uri));
 						if (model !== null) return model.getValue();
-						const res = await Service.read({path: uri.startsWith("file:") ? monaco.Uri.parse(uri).fsPath : uri});
-						return res.content;
+						const res = await Service.read({path: uri.startsWith("file:") ? monaco.Uri.parse(uri).fsPath : uri, projFile});
+						if (res.success) {
+							return res.content;
+						}
+						return undefined;
 					}
 				}
 			});
@@ -1723,7 +1727,7 @@ export default function PersistentDrawerLeft() {
 	const updateDir = useCallback((oldDir: string, newDir: string) => {
 		return Service.list({path: oldDir}).then((res) => {
 			if (res.success) {
-				const affected = res.files ? res.files.map(f => [path.join(oldDir, f), path.join(newDir, f)]) : [];
+				const affected = res.files.map(f => [path.join(oldDir, f), path.join(newDir, f)]);
 				affected.push([oldDir, newDir]);
 				const newFiles = files.map(f => {
 					affected.some(x => {
