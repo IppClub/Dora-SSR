@@ -64,6 +64,7 @@ disabledCheckForLua =
 	* "redeclaration of variable"
 	* "cannot apply pairs"
 	* "not a function"
+	* "to%-be%-closed"
 
 yueCheck = (file, content) ->
 	searchPath = getSearchPath file
@@ -621,8 +622,36 @@ HttpServer\post "/rename", (req): success: false ->
 							Content\move Path(parent, file), Path newParent, newName .. ".lua"
 				return success: true
 
+HttpServer\post "/exist", (req): success: false ->
+	switch req when {body: {:file}}
+		if projFile := req.body.projFile
+			if projDir := getProjectDirFromFile projFile
+				scriptDir = Path projDir, "Script"
+				Content\addSearchPath scriptDir
+				Content\addSearchPath projDir
+				result = Content\exist file
+				Content\removeSearchPath projDir
+				Content\removeSearchPath scriptDir
+				return success: result
+			return success: false
+		return success: Content\exist file
+
 HttpServer\postSchedule "/read", (req): success: false ->
 	switch req when {body: {:path}}
+		if projFile := req.body.projFile
+			if projDir := getProjectDirFromFile projFile
+				scriptDir = Path projDir, "Script"
+				Content\addSearchPath scriptDir
+				Content\addSearchPath projDir
+				if Content\exist path
+					content = Content\loadAsync path
+					Content\removeSearchPath projDir
+					Content\removeSearchPath scriptDir
+					if content
+						return :content, success: true
+				else
+					Content\removeSearchPath projDir
+			return success: false
 		if Content\exist path
 			if content := Content\loadAsync path
 				return :content, success: true
@@ -936,10 +965,6 @@ HttpServer\post "/command", (req): success: false ->
 	switch req when {body: {:code, :log}}
 		emit "AppCommand", code, log
 		return success: true
-
-HttpServer\post "/exist", (req): success: false ->
-	switch req when {body: {:file}}
-		return success: Content\exist file
 
 HttpServer\post "/saveLog", (): success: false ->
 	folder = ".download"

@@ -144,7 +144,7 @@ function postSync<T>(url: string, data: any): T | null {
 			return null;
 		}
 	} else {
-		throw new Error('请求失败: ' + xhr.status);
+		throw new Error('failed to post: ' + xhr.status);
 	}
 }
 
@@ -219,12 +219,12 @@ export const complete = (req: CompleteRequest) => {
 export interface CheckRequest {
 	file: string;
 	content: string;
-}
+};
 type CheckError = "parsing" | "syntax" | "type" | "warning" | "crash";
 export interface CheckResponse {
 	success: boolean;
 	info?: [CheckError, string, number, number, string][];
-}
+};
 export const check = (req: CheckRequest) => {
 	return post<CheckResponse>("/check", req);
 };
@@ -244,7 +244,7 @@ export interface InfoResponse {
 	engineDev: boolean;
 	webProfiler: boolean;
 	drawerWidth: number;
-}
+};
 export const info = () => {
 	return post<InfoResponse>("/info");
 };
@@ -253,11 +253,14 @@ export const info = () => {
 
 export interface ReadRequest {
 	path: string;
-}
-export interface ReadResponse {
-	success: boolean;
-	content?: string;
-}
+	projFile?: string;
+};
+export type ReadResponse  = {
+	success: true;
+	content: string;
+} | {
+	success: false;
+};
 export const read = (req: ReadRequest) => {
 	return post<ReadResponse>("/read", req);
 };
@@ -267,7 +270,7 @@ export const read = (req: ReadRequest) => {
 export interface ReadSyncRequest {
 	path: string;
 	exts?: string[];
-}
+};
 export type ReadSyncResponse =  {
 	success: false;
 } | {
@@ -285,11 +288,11 @@ export const readSync = (req: ReadSyncRequest) => {
 export interface WriteRequest {
 	path: string;
 	content: string;
-}
+};
 export interface WriteResponse {
 	success: boolean;
 	resultCodes?: string;
-}
+};
 export const write = (req: WriteRequest) => {
 	return post<WriteResponse>("/write", req);
 };
@@ -298,11 +301,13 @@ export const write = (req: WriteRequest) => {
 
 export interface BuildRequest {
 	path: string;
-}
-export interface BuildResponse {
-	success: boolean;
-	resultCodes?: string;
-}
+};
+export type BuildResponse = {
+	success: true;
+	resultCodes: string;
+} | {
+	success: false;
+};
 export const build = (req: BuildRequest) => {
 	return post<BuildResponse>("/build", req);
 };
@@ -312,10 +317,10 @@ export const build = (req: BuildRequest) => {
 export interface RenameRequest {
 	old: string;
 	new: string;
-}
+};
 export interface RenameResponse {
 	success: boolean;
-}
+};
 export const rename = (req: RenameRequest) => {
 	return post<RenameResponse>("/rename", req);
 };
@@ -351,10 +356,12 @@ export const newFile = (req: NewRequest) => {
 export interface ListRequest {
 	path: string;
 }
-export interface ListResponse {
-	success: boolean;
-	files?: string[];
-}
+export type ListResponse = {
+	success: true;
+	files: string[];
+} | {
+	success: false;
+};
 export const list = (req: ListRequest) => {
 	return post<ListResponse>("/list", req);
 };
@@ -454,6 +461,7 @@ export const command = (req: CommandRequest) => {
 
 export interface FileExistRequest {
 	file: string;
+	projFile?: string;
 };
 export interface FileExistResponse {
 	success: boolean;
