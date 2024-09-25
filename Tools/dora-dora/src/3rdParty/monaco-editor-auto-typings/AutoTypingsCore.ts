@@ -23,7 +23,6 @@ export class AutoTypingsCore implements monaco.IDisposable {
       this.debouncedResolveContents();
     });
     this.disposables.push(changeModelDisposable);
-    this.resolveContents();
   }
 
   public static async create(editor: Editor, options?: Partial<Options>): Promise<AutoTypingsCore> {
@@ -87,7 +86,7 @@ export class AutoTypingsCore implements monaco.IDisposable {
     }
   }
 
-  private async resolveContents() {
+  public async resolveContents() {
     this.isResolving = true;
     invokeUpdate(
       {

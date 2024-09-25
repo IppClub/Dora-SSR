@@ -653,8 +653,12 @@ export default function PersistentDrawerLeft() {
 					});
 				});
 			}
-			const projFile = editor.getModel()?.uri.fsPath;
-			await AutoTypings.create(editor, {
+			const model = editor.getModel();
+			if (model === null) {
+				return;
+			}
+			const projFile = model.uri.fsPath;
+			const autoTyping = await AutoTypings.create(editor, {
 				debounceDuration: 2000,
 				sourceCache: {
 					isFileAvailable: async (uri: string) => {
@@ -678,6 +682,9 @@ export default function PersistentDrawerLeft() {
 					}
 				}
 			});
+			await autoTyping.resolveContents();
+			const {revalidateModel} = await import('./TranspileTS');
+			revalidateModel(model);
 		}
 	}, [t, checkFileReadonly]);
 
