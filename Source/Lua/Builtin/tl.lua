@@ -10838,12 +10838,12 @@ end
 
 local function get_resolving_text(line)
 	local lineLen = #line
-	line = line:gsub("%s*%(.-%)%s*", "")
-	line = line:gsub("%s*{.-}%s*", "")
+	line = line:gsub("%s*%([^%(]-%)%s*", "")
+	line = line:gsub("%s*{[^{]-}%s*", "")
 	while lineLen > #line do
 		lineLen = #line
-		line = line:gsub("%s*%(.-%)%s*", "")
-		line = line:gsub("%s*{.-}%s*", "")
+		line = line:gsub("%s*%([^%(]-%)%s*", "")
+		line = line:gsub("%s*{[^{]-}%s*", "")
 	end
 	local resolve = line:match("[%w_%.:]+$")
 	return resolve
@@ -10931,6 +10931,7 @@ tl.dora_complete = function(codes, line, row, search_path)
 			local first = true
 			local current_type = nil
 			for i, item in ipairs(chains) do
+				print(i, item)
 				if first then
 					first = false
 					local id = symbols[item]
@@ -10940,6 +10941,18 @@ tl.dora_complete = function(codes, line, row, search_path)
 					current_type = get_real_type(type_report, id)
 				elseif current_type.fields then
 					local id = current_type.fields[item]
+					current_type = get_real_type(type_report, id)
+				elseif current_type.types then
+					local fields = {}
+					for i = 1, #current_type.types do
+						local t = get_real_type(type_report, current_type.types[i])
+						if t and t.fields then
+							for k, v in pairs(t.fields) do
+								fields[k] = v
+							end
+						end
+					end
+					local id = fields[item]
 					current_type = get_real_type(type_report, id)
 				end
 				if current_type == nil then
