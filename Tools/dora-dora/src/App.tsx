@@ -1372,13 +1372,13 @@ export default function PersistentDrawerLeft() {
 									const res = await Service.write({path: luaFile, content: luaCode});
 									if (res.success) {
 										if (preferLog) {
-											Service.addLog(`Built ${title}\n`);
+											Service.command({code: `print [=======[Built ${title}]=======]`, log: false});
 										} else {
 											addAlert(t("alert.build", {title}), "success");
 										}
 									} else {
 										if (preferLog) {
-											Service.addLog(`Failed to save ${title}\n`);
+											Service.command({code: `print [=======[Failed to save ${title}]=======]`, log: false});
 										} else {
 											addAlert(t("alert.saveCurrent"), "error");
 										}
@@ -1389,7 +1389,7 @@ export default function PersistentDrawerLeft() {
 							const res = await Service.build({path: key});
 							if (res.success) {
 								if (preferLog) {
-									Service.addLog(`Built ${title}\n`);
+									Service.command({code: `print [=======[Built ${title}]=======]`, log: false});
 								} else {
 									addAlert(t("alert.build", {title}), "success");
 								}
@@ -1405,7 +1405,7 @@ export default function PersistentDrawerLeft() {
 								}
 							} else {
 								if (preferLog) {
-									Service.addLog(`Failed to build ${title}\n`);
+									Service.command({code: `print [=======[Failed to build ${title}]=======]`, log: false});
 								} else {
 									addAlert(t("alert.failedCompile", {title}), "warning");
 								}
@@ -1414,7 +1414,7 @@ export default function PersistentDrawerLeft() {
 					} catch (e) {
 						console.error(e);
 						if (preferLog) {
-							Service.addLog(`Failed to build ${title}\n`);
+							Service.command({code: `print [=======[Failed to build ${title}]=======]`, log: false});
 						} else {
 							addAlert(t("alert.failedCompile", {title}), "warning");
 						}
@@ -1437,7 +1437,8 @@ export default function PersistentDrawerLeft() {
 							await buildFile(node.key, true);
 						}
 						await visitData(data);
-						Service.addLog(t("alert.buildDone", {title}) + '\n');
+						await new Promise(resolve => setTimeout(resolve, 100));
+						Service.command({code: `print [=======[${t("alert.buildDone", {title})}]=======]`, log: false});
 					};
 					buildAllFiles();
 				} else {

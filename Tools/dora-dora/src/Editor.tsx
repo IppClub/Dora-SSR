@@ -17,7 +17,6 @@ const options = monaco.languages.typescript.typescriptDefaults.getCompilerOption
 options.noLib = true;
 options.strict = true;
 options.jsx = monaco.languages.typescript.JsxEmit.React;
-options.allowSyntheticDefaultImports = true;
 options.target = monaco.languages.typescript.ScriptTarget.ESNext;
 options.module = monaco.languages.typescript.ModuleKind.ESNext;
 options.moduleResolution = monaco.languages.typescript.ModuleResolutionKind.Classic;
