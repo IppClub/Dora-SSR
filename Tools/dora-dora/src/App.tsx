@@ -1411,7 +1411,8 @@ export default function PersistentDrawerLeft() {
 								}
 							}
 						}
-					} catch {
+					} catch (e) {
+						console.error(e);
 						if (preferLog) {
 							Service.addLog(`Failed to build ${title}\n`);
 						} else {

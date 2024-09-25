@@ -270,17 +270,18 @@ export const read = (req: ReadRequest) => {
 export interface ReadSyncRequest {
 	path: string;
 	exts?: string[];
+	projFile?: string;
 };
 export type ReadSyncResponse =  {
 	success: false;
 } | {
 	success: true;
 	content: string;
-	ext: string;
+	fullPath: string;
 };
 export const readSync = (req: ReadSyncRequest) => {
-	const {path, exts = [""]} = req;
-	return postSync<ReadSyncResponse>("/read-sync", {path, exts});
+	const {path, exts = [""], projFile} = req;
+	return postSync<ReadSyncResponse>("/read-sync", {path, exts, projFile});
 };
 
 // Write
@@ -468,9 +469,6 @@ export interface FileExistResponse {
 };
 export const exist = (req: FileExistRequest) => {
 	return post<FileExistResponse>("/exist", req);
-};
-export const existSync = (req: FileExistRequest) => {
-	return postSync<FileExistResponse>("/exist", req);
 };
 
 // saveLog
