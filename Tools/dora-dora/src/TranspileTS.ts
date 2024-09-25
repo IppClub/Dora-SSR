@@ -24,12 +24,13 @@ const tstlOptions: tstl.CompilerOptions = {
 	noImplicitSelf: true,
 	moduleResolution: ts.ModuleResolutionKind.Classic,
 	allowSyntheticDefaultImports: true,
-	target: ts.ScriptTarget.ES2015,
-	module: ts.ModuleKind.ES2015,
+	target: ts.ScriptTarget.ESNext,
+	module: ts.ModuleKind.ESNext,
 };
 
 function createTypescriptProgram(rootFileName: string, content: string): ts.Program {
 	const currentDirectory = Info.path.dirname(rootFileName);
+	const pathMap = new Map<string, monaco.Uri>();
 	const compilerHost: ts.CompilerHost = {
 		fileExists: fileName => {
 			if (fileName.search("node_modules") > 0) {
@@ -52,17 +53,24 @@ function createTypescriptProgram(rootFileName: string, content: string): ts.Prog
 					const ext = Info.path.extname(relativePath);
 					let baseName = Info.path.basename(relativePath, ext);
 					baseName = Info.path.extname(baseName) === ".d" ? Info.path.basename(baseName, ".d") : baseName;
-					const targetFile = baseName + ".d.ts";
+					const targetFile = baseName;
 					const dirName = Info.path.dirname(relativePath);
 					const path = Info.path.join(dirName, targetFile);
-					const uri = monaco.Uri.parse(path);
-					const model = monaco.editor.getModel(uri);
-					if (model !== null) {
-						return true;
+					for (const ext of [".d.ts", ".ts", ".tsx"]) {
+						const uri = monaco.Uri.parse(path + ext);
+						const model = monaco.editor.getModel(uri);
+						if (model !== null) {
+							pathMap.set(fileName, uri);
+							return true;
+						}
 					}
-					const res = Service.readSync({path});
+					const res = Service.readSync({path, exts: [".d.ts", ".ts", ".tsx"], projFile: rootFileName});
 					if (res?.success) {
-						monaco.editor.createModel(res.content, 'typescript', uri);
+						const uri = monaco.Uri.parse(res.fullPath);
+						if (monaco.editor.getModel(uri) === null) {
+							monaco.editor.createModel(res.content, 'typescript', uri);
+						}
+						pathMap.set(fileName, uri);
 						return true;
 					}
 				}
@@ -74,14 +82,18 @@ function createTypescriptProgram(rootFileName: string, content: string): ts.Prog
 				const uri = monaco.Uri.parse(Info.path.join(Info.path.dirname(fileName), currentBaseName + ext));
 				const model = monaco.editor.getModel(uri);
 				if (model !== null) {
+					pathMap.set(fileName, uri);
 					return true;
 				}
 			}
 			const searchFile = Info.path.join(Info.path.dirname(fileName), currentBaseName);
-			const res = Service.readSync({path: searchFile, exts: [".d.ts", ".ts", ".tsx"]});
+			const res = Service.readSync({path: searchFile, exts: [".d.ts", ".ts", ".tsx"], projFile: rootFileName});
 			if (res?.success) {
-				const uri = monaco.Uri.parse(searchFile + res.ext);
-				monaco.editor.createModel(res.content, 'typescript', uri);
+				const uri = monaco.Uri.parse(res.fullPath);
+				if (monaco.editor.getModel(uri) === null) {
+					monaco.editor.createModel(res.content, 'typescript', uri);
+				}
+				pathMap.set(fileName, uri);
 				return true;
 			}
 			if (Info.path.isAbsolute(fileName)) {
@@ -94,12 +106,16 @@ function createTypescriptProgram(rootFileName: string, content: string): ts.Prog
 				const uri = monaco.Uri.parse(targetFile);
 				const model = monaco.editor.getModel(uri);
 				if (model !== null) {
+					pathMap.set(fileName, uri);
 					return true;
 				}
-				const res = Service.readSync({path: targetFile});
+				const res = Service.readSync({path: targetFile, projFile: rootFileName});
 				if (res?.success) {
 					const uri = monaco.Uri.parse(targetFile);
-					monaco.editor.createModel(res.content, 'typescript', uri);
+					if (monaco.editor.getModel(uri) === null) {
+						monaco.editor.createModel(res.content, 'typescript', uri);
+					}
+					pathMap.set(fileName, uri);
 					return true;
 				}
 			}
@@ -117,7 +133,9 @@ function createTypescriptProgram(rootFileName: string, content: string): ts.Prog
 			}
 			const res = Service.readSync({path: fileName});
 			if (res?.success) {
-				monaco.editor.createModel(res.content, 'typescript', uri);
+				if (monaco.editor.getModel(uri) === null) {
+					monaco.editor.createModel(res.content, 'typescript', uri);
+				}
 			}
 			return content;
 		},
@@ -128,18 +146,18 @@ function createTypescriptProgram(rootFileName: string, content: string): ts.Prog
 			fileName = Info.path.normalize(fileName);
 			const baseName = Info.path.basename(fileName);
 			if (baseName.startsWith('Dora.')) {
-				return ts.createSourceFile("dummy.d.ts", "", ts.ScriptTarget.ES2015, false);
+				return ts.createSourceFile("dummy.d.ts", "", ts.ScriptTarget.ESNext, false);
 			}
 			if (baseName === 'jsx.d.ts' || baseName === 'DoraX.d.ts') {
 				const uri = monaco.Uri.parse(baseName);
 				const model = monaco.editor.getModel(uri);
 				if (model !== null) {
-					return ts.createSourceFile(baseName, model.getValue(), ts.ScriptTarget.ES2015, false);
+					return ts.createSourceFile(baseName, model.getValue(), ts.ScriptTarget.ESNext, false);
 				} else {
-					const res = Service.readSync({path: baseName});
+					const res = Service.readSync({path: baseName, projFile: rootFileName});
 					if (res?.success) {
 						monaco.editor.createModel(res.content, 'typescript', uri);
-						return ts.createSourceFile(baseName, res.content, ts.ScriptTarget.ES2015, false);
+						return ts.createSourceFile(baseName, res.content, ts.ScriptTarget.ESNext, false);
 					}
 				}
 			}
@@ -147,51 +165,27 @@ function createTypescriptProgram(rootFileName: string, content: string): ts.Prog
 				const uri = monaco.Uri.parse("Dora.d.ts");
 				const model = monaco.editor.getModel(uri);
 				if (model !== null) {
-					return ts.createSourceFile("Dora.d.ts", model.getValue(), ts.ScriptTarget.ES2015, false);
+					return ts.createSourceFile("Dora.d.ts", model.getValue(), ts.ScriptTarget.ESNext, false);
 				} else {
 					const res = Service.readSync({path: "Dora.d.ts"});
 					if (res?.success) {
 						monaco.editor.createModel(res.content, 'typescript', uri);
-						return ts.createSourceFile("Dora.d.ts", res.content, ts.ScriptTarget.ES2015, false);
-					}
-				}
-			}
-			if (Info.path.isAbsolute(fileName) && rootFileName !== fileName) {
-				const relativePath = Info.path.relative(currentDirectory, fileName);
-				if (!relativePath.startsWith('..')) {
-					const ext = Info.path.extname(relativePath);
-					const baseName = Info.path.basename(relativePath, ext) + ".d.ts";
-					const dirName = Info.path.dirname(relativePath);
-					const path = Info.path.join(dirName, baseName);
-					const uri = monaco.Uri.parse(path);
-					const model = monaco.editor.getModel(uri);
-					if (model !== null) {
-						return ts.createSourceFile(baseName, model.getValue(), ts.ScriptTarget.ES2015, false);
+						return ts.createSourceFile("Dora.d.ts", res.content, ts.ScriptTarget.ESNext, false);
 					}
 				}
 			}
 			const lib = monaco.languages.typescript.typescriptDefaults.getExtraLibs()[fileName];
 			if (lib) {
-				return ts.createSourceFile(fileName, lib.content, ts.ScriptTarget.ES2015, false);
+				return ts.createSourceFile(fileName, lib.content, ts.ScriptTarget.ESNext, false);
 			}
 			if (!Info.path.isAbsolute(fileName) || Info.path.relative(rootFileName, fileName) === "") {
-				return ts.createSourceFile(fileName, content, ts.ScriptTarget.ES2015, false);
+				return ts.createSourceFile(fileName, content, ts.ScriptTarget.ESNext, false);
 			} else {
-				const uri = monaco.Uri.parse(fileName);
-				const model = monaco.editor.getModel(uri);
-				if (model !== null) {
-					return ts.createSourceFile(fileName, model.getValue(), ts.ScriptTarget.ES2015, false);
-				}
-				if (Info.path.isAbsolute(fileName)) {
-					fileName = Info.path.join(".", fileName);
-					const ext = Info.path.extname(fileName);
-					const baseName = Info.path.basename(fileName, ext) + ".d.ts";
-					const dirName = Info.path.dirname(fileName);
-					fileName = Info.path.join(dirName, baseName);
-					const uri = monaco.Uri.parse(fileName);
+				const uri = pathMap.get(fileName);
+				if (uri !== undefined) {
 					const model = monaco.editor.getModel(uri);
 					if (model !== null) {
-						return ts.createSourceFile(fileName, model.getValue(), ts.ScriptTarget.ES2015, false);
+						return ts.createSourceFile(uri.fsPath, model.getValue(), ts.ScriptTarget.ESNext, false);
 					}
 				}
 				return undefined;
@@ -224,7 +218,7 @@ export async function transpileTypescript(
 		program,
 		writeFile: collector.writeFile
 	});
-	diagnostics = [...diagnostics, ...res.diagnostics].filter(d => d.code !== 2497 && d.code !== 2666);
+	diagnostics = [...diagnostics, ...res.diagnostics].filter(d => d.code !== 2497 && d.code !== 2666 && d.code !== 1203);
 
 	const otherFileDiagnostics = diagnostics.filter(d => Info.path.relative(monaco.Uri.parse(d.file?.fileName ?? "").fsPath, fileName) !== "");
 	addDiagnosticToLog(fileName, otherFileDiagnostics);
@@ -269,7 +263,7 @@ export async function revalidateModel(model: monaco.editor.ITextModel) {
 	const diagnostics = (await Promise.all([
 		worker.getSyntacticDiagnostics(model.uri.toString()),
 		worker.getSemanticDiagnostics(model.uri.toString())
-	])).reduce((a, it) => a.concat(it)).filter(d => d.code !== 2497 && d.code !== 2666);
+	])).reduce((a, it) => a.concat(it)).filter(d => d.code !== 2497 && d.code !== 2666 && d.code !== 1203);
 	const markers = diagnostics.map(d => {
 		let {start = 0, length = 0} = d;
 		const startPos = model.getPositionAt(start);

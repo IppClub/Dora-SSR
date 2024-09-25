@@ -627,40 +627,46 @@ HttpServer\post "/exist", (req): success: false ->
 		if projFile := req.body.projFile
 			if projDir := getProjectDirFromFile projFile
 				scriptDir = Path projDir, "Script"
-				Content\addSearchPath scriptDir
-				Content\addSearchPath projDir
-				result = Content\exist file
-				Content\removeSearchPath projDir
-				Content\removeSearchPath scriptDir
-				return success: result
+				:searchPaths = Content
+				Content\addSearchPath scriptDir if Content\exist scriptDir
+				Content\addSearchPath projDir if Content\exist projDir
+				close _ = <close>: -> Content.searchPaths = searchPaths
+				return success: Content\exist file
 		return success: Content\exist file
 
 HttpServer\postSchedule "/read", (req): success: false ->
 	switch req when {body: {:path}}
+		readFile = (): nil ->
+			if Content\exist path
+				if content := Content\loadAsync path
+					return :content, success: true
 		if projFile := req.body.projFile
 			if projDir := getProjectDirFromFile projFile
 				scriptDir = Path projDir, "Script"
-				Content\addSearchPath scriptDir
-				Content\addSearchPath projDir
-				if Content\exist path
-					content = Content\loadAsync path
-					Content\removeSearchPath projDir
-					Content\removeSearchPath scriptDir
-					if content
-						return :content, success: true
-				else
-					Content\removeSearchPath projDir
-		if Content\exist path
-			if content := Content\loadAsync path
-				return :content, success: true
+				:searchPaths = Content
+				Content\addSearchPath scriptDir if Content\exist scriptDir
+				Content\addSearchPath projDir if Content\exist projDir
+				close _ = <close>: -> Content.searchPaths = searchPaths
+				return result if result := readFile!
+		return result if result := readFile!
 
 HttpServer\post "/read-sync", (req): success: false ->
 	switch req when {body: {:path, :exts}}
-		for ext in *exts
-			targetPath = path .. ext
-			if Content\exist targetPath
-				if content := Content\load targetPath
-					return :content, success: true, :ext
+		readFile = (): nil ->
+			for ext in *exts
+				targetPath = path .. ext
+				if Content\exist targetPath
+					if content := Content\load targetPath
+						return :content, success: true, fullPath: Content\getFullPath targetPath
+		if projFile := req.body.projFile
+			if projDir := getProjectDirFromFile projFile
+				scriptDir = Path projDir, "Script"
+				:searchPaths = Content
+				Content\addSearchPath scriptDir if Content\exist scriptDir
+				Content\addSearchPath projDir if Content\exist projDir
+				close _ = <close>: -> Content.searchPaths = searchPaths
+				return result if result := readFile!
+		return result if result := readFile!
 
 compileFileAsync = (inputFile, sourceCodes): nil ->
 	file = inputFile
