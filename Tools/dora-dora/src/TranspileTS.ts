@@ -23,7 +23,6 @@ const tstlOptions: tstl.CompilerOptions = {
 	sourceMap: true,
 	noImplicitSelf: true,
 	moduleResolution: ts.ModuleResolutionKind.Classic,
-	allowSyntheticDefaultImports: true,
 	target: ts.ScriptTarget.ESNext,
 	module: ts.ModuleKind.ESNext,
 };
@@ -218,7 +217,7 @@ export async function transpileTypescript(
 		program,
 		writeFile: collector.writeFile
 	});
-	diagnostics = [...diagnostics, ...res.diagnostics].filter(d => d.code !== 2497 && d.code !== 2666 && d.code !== 1203);
+	diagnostics = [...diagnostics, ...res.diagnostics].filter(d => d.code !== 2497 && d.code !== 2666);
 
 	const otherFileDiagnostics = diagnostics.filter(d => Info.path.relative(monaco.Uri.parse(d.file?.fileName ?? "").fsPath, fileName) !== "");
 	addDiagnosticToLog(fileName, otherFileDiagnostics);
@@ -263,7 +262,7 @@ export async function revalidateModel(model: monaco.editor.ITextModel) {
 	const diagnostics = (await Promise.all([
 		worker.getSyntacticDiagnostics(model.uri.toString()),
 		worker.getSemanticDiagnostics(model.uri.toString())
-	])).reduce((a, it) => a.concat(it)).filter(d => d.code !== 2497 && d.code !== 2666 && d.code !== 1203);
+	])).reduce((a, it) => a.concat(it)).filter(d => d.code !== 2497 && d.code !== 2666);
 	const markers = diagnostics.map(d => {
 		let {start = 0, length = 0} = d;
 		const startPos = model.getPositionAt(start);
@@ -299,13 +298,11 @@ export function setModelMarkers(model: monaco.editor.ITextModel, diagnostics: re
 
 export function addDiagnosticToLog(fileName: string, diagnostics: readonly ts.Diagnostic[]) {
 	if (diagnostics.length === 0) return;
-	Service.addLog(
-		(Service.getLog() !== "" ? "\n" : "") +
-		`Compiling error: ${fileName}\n` +
+	const message = `Compiling error: ${fileName}\n` +
 		ts.formatDiagnostics(diagnostics, {
 			getCanonicalFileName: fileName => Info.path.normalize(fileName),
 			getCurrentDirectory: () => Info.path.dirname(fileName),
 			getNewLine: () => "\n"
-		})
-	);
+		});
+	Service.command({code: `print [=======[${message}]=======]`, log: false});
 }
