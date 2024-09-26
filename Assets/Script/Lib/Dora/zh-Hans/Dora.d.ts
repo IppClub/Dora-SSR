@@ -3637,9 +3637,10 @@ export {content as Content};
 
 /**
  * 将日志消息打印到控制台。
+ * @param level 要打印的日志级别。
  * @param msg 要打印的日志消息。
  */
-export function Log(this: void, msg: string): void;
+export function Log(this: void, level: "Info" | "Warn" | "Error", msg: string): void;
 
 /**
  * 数据库列的类型定义。

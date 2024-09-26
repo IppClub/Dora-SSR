@@ -153,6 +153,23 @@ void LogError(const std::string& msg) {
 	SharedLogger.log(spdlog::level::err, msg);
 }
 
+void LogThreaded(const std::string& level, const std::string& msg) {
+	switch (Switch::hash(level)) {
+		case "Info"_hash:
+			SharedLogger.logAsync(spdlog::level::info, msg);
+			break;
+		case "Warn"_hash:
+			SharedLogger.logAsync(spdlog::level::warn, msg);
+			break;
+		case "Error"_hash:
+			SharedLogger.logAsync(spdlog::level::err, msg);
+			break;
+		default:
+			SharedLogger.logAsync(spdlog::level::info, msg);
+			break;
+	}
+}
+
 void LogErrorThreaded(const std::string& msg) {
 	SharedLogger.logAsync(spdlog::level::err, msg);
 }
