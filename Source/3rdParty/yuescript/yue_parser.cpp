@@ -369,7 +369,7 @@ YueParser::YueParser() {
 	Switch = key("switch") >> space >> Exp >>
 		space >> Seperator >> (
 			SwitchCase >> space >> (
-				line_break >> *space_break >> check_indent_match >> space >> SwitchCase >> switch_block |
+				switch_block |
 				*(space >> SwitchCase) >> -(space >> switch_else)
 			) |
 			+space_break >> advance_match >> space >> SwitchCase >> switch_block >> pop_indent
