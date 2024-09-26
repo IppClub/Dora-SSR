@@ -4490,7 +4490,7 @@ private:
 		for (auto it = nodes.begin(); it != nodes.end(); ++it) {
 			auto node = *it;
 			auto stmt = static_cast<Statement_t*>(node);
-			if (stmt->content.is<Return_t>() && stmt != nodes.back()) {
+			if (!stmt->appendix && stmt->content.is<Return_t>() && stmt != nodes.back()) {
 				throw CompileError("'return' statement must be the last line in the block"sv, stmt->content);
 			} else if (auto pipeBody = stmt->content.as<PipeBody_t>()) {
 				auto x = stmt;
@@ -9167,7 +9167,6 @@ private:
 						auto doNode = stmt->new_ptr<Do_t>();
 						doNode->body.set(newBody);
 						transformDo(doNode, temp, ExpUsage::Common);
-						temp.back().insert(0, indent());
 						transformed = true;
 					}
 				}
