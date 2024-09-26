@@ -666,7 +666,7 @@ const Slice Application::getVersion() const noexcept {
 }
 
 bool Application::isDebugging() const noexcept {
-#if NDEBUG
+#ifdef NDEBUG
 	return false;
 #else
 	return true;

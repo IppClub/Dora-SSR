@@ -5144,6 +5144,8 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = NO;
 				GCC_PREFIX_HEADER = "";
 				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"NDEBUG=1",
 					WITH_SDL2_STATIC,
 					"BX_CONFIG_DEBUG=0",
 					d_m3HasWASI,
