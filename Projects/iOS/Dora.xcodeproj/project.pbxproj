@@ -804,14 +804,6 @@
 		3C5931B52CA4F67300CAF224 /* AlignNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C59302F2CA4F67300CAF224 /* AlignNode.cpp */; };
 		3C5931B62CA4F67300CAF224 /* RenderTarget.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C59307C2CA4F67300CAF224 /* RenderTarget.cpp */; };
 		3C5931B72CA4F67300CAF224 /* tolua_fix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C59300E2CA4F67300CAF224 /* tolua_fix.cpp */; };
-		3C5931B82CA4F67300CAF224 /* LICENSE-tl in Resources */ = {isa = PBXBuildFile; fileRef = 3C5930092CA4F67300CAF224 /* LICENSE-tl */; };
-		3C5931D02CA4F67300CAF224 /* Initialization.lua in Resources */ = {isa = PBXBuildFile; fileRef = 3C5930082CA4F67300CAF224 /* Initialization.lua */; };
-		3C5931DE2CA4F67300CAF224 /* Class.lua in Resources */ = {isa = PBXBuildFile; fileRef = 3C5930072CA4F67300CAF224 /* Class.lua */; };
-		3C5931EC2CA4F67300CAF224 /* tl.lua in Resources */ = {isa = PBXBuildFile; fileRef = 3C59300A2CA4F67300CAF224 /* tl.lua */; };
-		3C5931EF2CA4F67300CAF224 /* LICENSE-tl in Resources */ = {isa = PBXBuildFile; fileRef = 3C5930092CA4F67300CAF224 /* LICENSE-tl */; };
-		3C5932072CA4F67300CAF224 /* Initialization.lua in Resources */ = {isa = PBXBuildFile; fileRef = 3C5930082CA4F67300CAF224 /* Initialization.lua */; };
-		3C5932152CA4F67300CAF224 /* Class.lua in Resources */ = {isa = PBXBuildFile; fileRef = 3C5930072CA4F67300CAF224 /* Class.lua */; };
-		3C5932232CA4F67300CAF224 /* tl.lua in Resources */ = {isa = PBXBuildFile; fileRef = 3C59300A2CA4F67300CAF224 /* tl.lua */; };
 		3C5932262CA4F67300CAF224 /* Face.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C59306B2CA4F67300CAF224 /* Face.cpp */; };
 		3C5932272CA4F67300CAF224 /* TMXCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592FD12CA4F67300CAF224 /* TMXCache.cpp */; };
 		3C5932282CA4F67300CAF224 /* ModelDef.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592FA22CA4F67300CAF224 /* ModelDef.cpp */; };
@@ -2123,7 +2115,6 @@
 		3C5930052CA4F67300CAF224 /* TouchDispather.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TouchDispather.cpp; sourceTree = "<group>"; };
 		3C5930072CA4F67300CAF224 /* Class.lua */ = {isa = PBXFileReference; lastKnownFileType = text; path = Class.lua; sourceTree = "<group>"; };
 		3C5930082CA4F67300CAF224 /* Initialization.lua */ = {isa = PBXFileReference; lastKnownFileType = text; path = Initialization.lua; sourceTree = "<group>"; };
-		3C5930092CA4F67300CAF224 /* LICENSE-tl */ = {isa = PBXFileReference; lastKnownFileType = text; path = "LICENSE-tl"; sourceTree = "<group>"; };
 		3C59300A2CA4F67300CAF224 /* tl.lua */ = {isa = PBXFileReference; lastKnownFileType = text; path = tl.lua; sourceTree = "<group>"; };
 		3C59300C2CA4F67300CAF224 /* tolua_event.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = tolua_event.h; sourceTree = "<group>"; };
 		3C59300D2CA4F67300CAF224 /* tolua_event.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = tolua_event.cpp; sourceTree = "<group>"; };
@@ -4122,7 +4113,6 @@
 			children = (
 				3C5930072CA4F67300CAF224 /* Class.lua */,
 				3C5930082CA4F67300CAF224 /* Initialization.lua */,
-				3C5930092CA4F67300CAF224 /* LICENSE-tl */,
 				3C59300A2CA4F67300CAF224 /* tl.lua */,
 			);
 			path = Builtin;
@@ -5009,10 +4999,6 @@
 				3C59DA7E2703037C0096813A /* Launch Screen.storyboard in Resources */,
 				3C59DA7F2703037C0096813A /* Main.storyboard in Resources */,
 				3C0C775D275744690030BDCD /* Data in Resources */,
-				3C5931EF2CA4F67300CAF224 /* LICENSE-tl in Resources */,
-				3C5932072CA4F67300CAF224 /* Initialization.lua in Resources */,
-				3C5932152CA4F67300CAF224 /* Class.lua in Resources */,
-				3C5932232CA4F67300CAF224 /* tl.lua in Resources */,
 				3C59DA802703037C0096813A /* Assets.xcassets in Resources */,
 				3CBE0F0326087F7B003F4F45 /* Model in Resources */,
 				3C60DE162A2069FE007D7865 /* Doc in Resources */,
@@ -5037,10 +5023,6 @@
 				3C59DA7B270303750096813A /* Launch Screen.storyboard in Resources */,
 				3C59DA7C270303750096813A /* Main.storyboard in Resources */,
 				3C0C775C275744690030BDCD /* Data in Resources */,
-				3C5931B82CA4F67300CAF224 /* LICENSE-tl in Resources */,
-				3C5931D02CA4F67300CAF224 /* Initialization.lua in Resources */,
-				3C5931DE2CA4F67300CAF224 /* Class.lua in Resources */,
-				3C5931EC2CA4F67300CAF224 /* tl.lua in Resources */,
 				3C59DA7D270303750096813A /* Assets.xcassets in Resources */,
 				3C030CF724CAE6580074786E /* Model in Resources */,
 				3C60DE152A2069FE007D7865 /* Doc in Resources */,
@@ -6309,6 +6291,8 @@
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
 				GCC_PRECOMPILE_PREFIX_HEADER = NO;
 				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"NDEBUG=1",
 					WITH_SDL2_STATIC,
 					"HAVE_GETHOSTUUID=0",
 					"BX_CONFIG_DEBUG=0",
