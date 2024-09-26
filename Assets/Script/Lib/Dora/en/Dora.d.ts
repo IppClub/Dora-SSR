@@ -3639,9 +3639,10 @@ export {content as Content};
 
 /**
  * Logs a message to the console.
+ * @param level The message logging level.
  * @param msg The message to be logged.
  */
-export function Log(this: void, msg: string): void;
+export function Log(this: void, level: "Info" | "Warn" | "Error", msg: string): void;
 
 /**
  * Type definition for a database column.

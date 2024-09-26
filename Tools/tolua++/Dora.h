@@ -301,7 +301,7 @@ class View
 	static tolua_outside View* View_shared @ create();
 }
 
-void Dora_Log @ Log(String msg);
+void Dora_Log @ Log(String level, String msg);
 
 class Slot
 {

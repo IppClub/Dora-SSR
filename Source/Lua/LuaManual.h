@@ -60,7 +60,7 @@ inline Director* Director_shared() { return &SharedDirector; }
 inline View* View_shared() { return &SharedView; }
 
 /* Log */
-inline void Dora_Log(String msg) { Info("{}", msg.toString()); }
+inline void Dora_Log(String level, String msg) { LogThreaded(level.toString(), msg.toString()); }
 
 /* Node */
 int Node_emit(lua_State* L);

@@ -1079,7 +1079,7 @@ void Node::markDirty() noexcept {
 }
 
 void Node::sortAllChildren() {
-	if (_flags.isOn(Node::Reorder)) {
+	if (_children && _flags.isOn(Node::Reorder)) {
 		auto& data = _children->data();
 		std::stable_sort(data.begin(), data.end(), [](const Own<Value>& a, const Own<Value>& b) {
 			return a->to<Node>()->getOrder() < b->to<Node>()->getOrder();

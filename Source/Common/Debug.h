@@ -21,6 +21,8 @@ extern Acf::Delegate<void(const std::string&)> LogHandler;
 void LogInfo(const std::string& msg);
 void LogError(const std::string& msg);
 
+void LogThreaded(const std::string& level, const std::string& msg);
+
 void LogErrorThreaded(const std::string& msg);
 void LogWarnThreaded(const std::string& msg);
 void LogInfoThreaded(const std::string& msg);

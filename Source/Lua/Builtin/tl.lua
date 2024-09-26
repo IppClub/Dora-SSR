@@ -10931,7 +10931,6 @@ tl.dora_complete = function(codes, line, row, search_path)
 			local first = true
 			local current_type = nil
 			for i, item in ipairs(chains) do
-				print(i, item)
 				if first then
 					first = false
 					local id = symbols[item]
