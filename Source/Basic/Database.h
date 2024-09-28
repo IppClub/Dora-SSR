@@ -47,6 +47,7 @@ public:
 	static int execUnsafe(SQLite::Database* db, String sql);
 	static int execUnsafe(SQLite::Database* db, String sql, const std::vector<Own<Value>>& args);
 	static int execUnsafe(SQLite::Database* db, String sql, const std::deque<std::vector<Own<Value>>>& rows);
+	void stop();
 
 protected:
 	DB();

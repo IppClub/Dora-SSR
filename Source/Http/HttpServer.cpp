@@ -338,7 +338,7 @@ bool HttpServer::start(int port) {
 		}
 		return false;
 	});
-	server.Options(".*", [](const httplib::Request& req, httplib::Response& res) {});
+	server.Options(".*", [](const httplib::Request& req, httplib::Response& res) { });
 	bool success = server.bind_to_port("0.0.0.0", port);
 	if (success) {
 		if (!_wwwPath.empty()) {

@@ -117,15 +117,15 @@ struct WasmArgsPusher {
 	}
 };
 
-template<typename... Args>
+template <typename... Args>
 struct ArgCount;
 
-template<typename T, typename... Args>
+template <typename T, typename... Args>
 struct ArgCount<T, Args...> {
 	static const int value = 1 + ArgCount<Args...>::value;
 };
 
-template<>
+template <>
 struct ArgCount<> {
 	static const int value = 0;
 };

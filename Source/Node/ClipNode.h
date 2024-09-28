@@ -36,7 +36,7 @@ private:
 	float _alphaThreshold;
 	Ref<Node> _stencil;
 	static int _layer;
-	enum: Flag::ValueType {
+	enum : Flag::ValueType {
 		Inverted = Node::UserFlag
 	};
 	DORA_TYPE_OVERRIDE(ClipNode);

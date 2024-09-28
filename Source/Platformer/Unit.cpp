@@ -110,9 +110,9 @@ static inline Value* assertNotNull(Value* value) {
 
 Unit::Unit(String defName, String worldName, NotNull<Entity, 3> entity, const Vec2& pos, float rot)
 	: Unit(
-		assertNotNull(SharedData.getStore()->get(defName).get())->to<Dictionary>(),
-		assertNotNull(SharedData.getStore()->get(worldName).get())->to<PhysicsWorld>(),
-		entity, pos, rot) { }
+		  assertNotNull(SharedData.getStore()->get(defName).get())->to<Dictionary>(),
+		  assertNotNull(SharedData.getStore()->get(worldName).get())->to<PhysicsWorld>(),
+		  entity, pos, rot) { }
 
 bool Unit::init() {
 	if (!Body::init()) return false;

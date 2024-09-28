@@ -56,7 +56,7 @@ void Event::send(Event* e) {
 	}
 }
 
-void Event::post(String name, const EventHandler &handler) {
+void Event::post(String name, const EventHandler& handler) {
 	_postEvents.emplace_back(name.toString(), handler);
 }
 

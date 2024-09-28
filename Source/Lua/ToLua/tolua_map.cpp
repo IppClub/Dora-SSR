@@ -36,7 +36,7 @@ static int tolua_newmetatable(lua_State* L, const char* name) {
 	lua_pushstring(L, name);
 	lua_setfield(L, -2, "__name"); /* metatable.__name = tname */
 	lua_pushvalue(L, -1);
-	lua_setfield(L, LUA_REGISTRYINDEX, name);  /* registry.name = metatable */
+	lua_setfield(L, LUA_REGISTRYINDEX, name); /* registry.name = metatable */
 	lua_pushvalue(L, -1);
 	lua_pushstring(L, name);
 	lua_rawset(L, LUA_REGISTRYINDEX); // reg[mt] = type_name

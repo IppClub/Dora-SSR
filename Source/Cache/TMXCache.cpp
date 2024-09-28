@@ -25,37 +25,38 @@ void TMXDef::loadAsync(String filename, const std::function<void(bool)>& callbac
 	auto file = filename.toString();
 	SharedContent.getThread()->run([file, this]() {
 		return Values::alloc(this->_map.loadUnsafe(file));
-	}, [callback, this](Own<Values> values) {
-		bool done = false;
-		values->get(done);
-		if (!done) {
-			callback(false);
-			return;
-		}
-		std::unordered_set<std::string> images;
-		for (const auto& tileset : this->_map.getTilesets()) {
-			images.insert(tileset.getImagePath());
-		}
-		auto imageCopies = std::make_shared<std::unordered_set<std::string>>(images);
-		for (const auto& image : images) {
-			SharedTextureCache.loadAsync(image, [image, imageCopies, callback](Texture2D* tex) {
-				if (imageCopies->empty()) {
-					return;
-				}
-				if (tex) {
-					imageCopies->erase(image);
-				} else {
-					imageCopies->clear();
-					callback(false);
-					return;
-				}
-				if (imageCopies->empty()) {
-					callback(true);
-				}
-			});
-		}
-		this->release();
-	});
+	},
+		[callback, this](Own<Values> values) {
+			bool done = false;
+			values->get(done);
+			if (!done) {
+				callback(false);
+				return;
+			}
+			std::unordered_set<std::string> images;
+			for (const auto& tileset : this->_map.getTilesets()) {
+				images.insert(tileset.getImagePath());
+			}
+			auto imageCopies = std::make_shared<std::unordered_set<std::string>>(images);
+			for (const auto& image : images) {
+				SharedTextureCache.loadAsync(image, [image, imageCopies, callback](Texture2D* tex) {
+					if (imageCopies->empty()) {
+						return;
+					}
+					if (tex) {
+						imageCopies->erase(image);
+					} else {
+						imageCopies->clear();
+						callback(false);
+						return;
+					}
+					if (imageCopies->empty()) {
+						callback(true);
+					}
+				});
+			}
+			this->release();
+		});
 }
 
 /* TMXCache */

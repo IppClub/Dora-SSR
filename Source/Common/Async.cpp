@@ -47,8 +47,8 @@ void Async::run(const std::function<Own<Values>()>& worker, const std::function<
 		SharedDirector.getSystemScheduler()->schedule([this](double deltaTime) {
 			DORA_UNUSED_PARAM(deltaTime);
 			for (Own<QEvent> event = _finisherEvent.poll();
-				 event != nullptr;
-				 event = _finisherEvent.poll()) {
+				event != nullptr;
+				event = _finisherEvent.poll()) {
 				Own<Package> package;
 				Own<Values> result;
 				event->get(package, result);
@@ -76,8 +76,8 @@ int Async::work(bx::Thread* thread, void* userData) {
 	Async* worker = r_cast<Async*>(userData);
 	while (true) {
 		for (auto event = worker->_workerEvent.poll();
-			 event != nullptr;
-			 event = worker->_workerEvent.poll()) {
+			event != nullptr;
+			event = worker->_workerEvent.poll()) {
 			switch (Switch::hash(event->getName())) {
 				case "Work"_hash: {
 					std::unique_ptr<std::function<void()>> worker;
@@ -109,8 +109,8 @@ int Async::work(bx::Thread* thread, void* userData) {
 void Async::pause() {
 	if (_thread.isRunning()) {
 		for (auto event = _workerEvent.poll();
-			 event != nullptr;
-			 event = _workerEvent.poll()) {
+			event != nullptr;
+			event = _workerEvent.poll()) {
 			switch (Switch::hash(event->getName())) {
 				case "Work"_hash: {
 					Own<std::function<void()>> worker;
@@ -148,8 +148,8 @@ void Async::resume() {
 
 void Async::cancel() {
 	for (auto event = _workerEvent.poll();
-		 event != nullptr;
-		 event = _workerEvent.poll()) {
+		event != nullptr;
+		event = _workerEvent.poll()) {
 		switch (Switch::hash(event->getName())) {
 			case "Work"_hash: {
 				Own<std::function<void()>> worker;
@@ -196,6 +196,13 @@ void AsyncThread::run(const std::function<void()>& worker) {
 Async* AsyncThread::newThread() {
 	_userThreads.push_back(New<Async>());
 	return _userThreads.back().get();
+}
+
+void AsyncThread::cancelAndPause() {
+	for (const auto& thread : _process) {
+		thread->cancel();
+		thread->pause();
+	}
 }
 
 NS_DORA_END

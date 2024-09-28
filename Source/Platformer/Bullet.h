@@ -45,7 +45,7 @@ protected:
 	virtual void updatePhysics() override;
 
 private:
-	enum: Flag::ValueType {
+	enum : Flag::ValueType {
 		FaceRight = BodyUserFlag,
 		HitStop = BodyUserFlag << 1,
 	};

@@ -338,7 +338,7 @@ protected:
 	UpdateItem* getUpdateItem();
 	FixedScheduledItem* getFixedScheduledItem();
 	void post(String name);
-	enum: Flag::ValueType {
+	enum : Flag::ValueType {
 		Visible = 1,
 		SelfVisible = 1 << 1,
 		ChildrenVisible = 1 << 2,
@@ -429,4 +429,3 @@ private:
 };
 
 NS_DORA_END
-
