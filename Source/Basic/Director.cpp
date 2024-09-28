@@ -557,6 +557,9 @@ void Director::handleSDLEvent(const SDL_Event& event) {
 			if (Singleton<HttpClient>::isInitialized()) {
 				SharedHttpClient.stop();
 			}
+			if (Singleton<AsyncThread>::isInitialized()) {
+				SharedAsyncThread.cancelAndPause();
+			}
 			if (Singleton<WasmRuntime>::isInitialized()) {
 				SharedWasmRuntime.clear();
 			}

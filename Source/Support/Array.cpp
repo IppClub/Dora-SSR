@@ -126,7 +126,7 @@ int Array::index(NotNull<Value, 1> value) {
 }
 
 void Array::set(size_t index, Own<Value>&& value) {
-    _data[index] = std::move(value);
+	_data[index] = std::move(value);
 }
 
 Own<Value>& Array::get(size_t index) {

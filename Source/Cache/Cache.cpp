@@ -21,8 +21,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Cache/ShaderCache.h"
 #include "Cache/SkeletonCache.h"
 #include "Cache/SoundCache.h"
-#include "Cache/TextureCache.h"
 #include "Cache/TMXCache.h"
+#include "Cache/TextureCache.h"
 #include "Node/Label.h"
 #include "Node/Particle.h"
 

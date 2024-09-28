@@ -12,6 +12,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Basic/AutoreleasePool.h"
 #include "Basic/Content.h"
+#include "Basic/Database.h"
 #include "Basic/Director.h"
 #include "Basic/Scheduler.h"
 #include "Common/Async.h"
@@ -26,6 +27,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "bx/timer.h"
 
 #include <chrono>
+#include <cstdlib>
 #include <ctime>
 #include <thread>
 
@@ -50,10 +52,10 @@ JNIEXPORT void JNICALL Java_org_ippclub_dorassr_MainActivity_nativeSetScreenDens
 }
 static std::string g_androidInstallFile;
 extern "C" {
-JNIEXPORT jstring JNICALL Java_org_ippclub_dorassr_MainActivity_nativeGetInstallFile(JNIEnv *env, jclass cls) {
-    jstring jstr = env->NewStringUTF(g_androidInstallFile.c_str());
-    g_androidInstallFile.clear();
-    return jstr;
+JNIEXPORT jstring JNICALL Java_org_ippclub_dorassr_MainActivity_nativeGetInstallFile(JNIEnv* env, jclass cls) {
+	jstring jstr = env->NewStringUTF(g_androidInstallFile.c_str());
+	g_androidInstallFile.clear();
+	return jstr;
 }
 }
 extern "C" ANativeWindow* Android_JNI_GetNativeWindow();
@@ -339,7 +341,14 @@ int Application::run(int argc, const char* const argv[]) {
 		while (SDL_PollEvent(&event)) {
 			switch (event.type) {
 				case SDL_QUIT:
+#ifdef NDEBUG
+					if (Singleton<DB>::isInitialized()) {
+						SharedDB.stop();
+					}
+					std::_Exit(EXIT_SUCCESS);
+#else
 					_renderRunning = false;
+#endif
 					break;
 #if BX_PLATFORM_ANDROID
 				case SDL_APP_DIDENTERFOREGROUND: {
@@ -390,8 +399,8 @@ int Application::run(int argc, const char* const argv[]) {
 
 		// poll events from logic thread
 		for (Own<QEvent> event = _renderEvent.poll();
-			 event != nullptr;
-			 event = _renderEvent.poll()) {
+			event != nullptr;
+			event = _renderEvent.poll()) {
 			switch (Switch::hash(event->getName())) {
 				case "Quit"_hash: {
 					SDL_Event ev;
@@ -566,8 +575,8 @@ int Application::mainLogic(Application* app) {
 
 		// poll events from render thread
 		for (Own<QEvent> event = app->_logicEvent.poll();
-			 event != nullptr;
-			 event = app->_logicEvent.poll()) {
+			event != nullptr;
+			event = app->_logicEvent.poll()) {
 			switch (Switch::hash(event->getName())) {
 				case "SDLEvent"_hash: {
 					SDL_Event sdlEvent;
@@ -767,8 +776,7 @@ void Application::install(String path) {
 			NULL,
 			NULL,
 			&si,
-			&pi)
-	) {
+			&pi)) {
 		CloseHandle(pi.hProcess);
 		CloseHandle(pi.hThread);
 	}
@@ -843,10 +851,10 @@ int CALLBACK WinMain(
 #include "implot.h"
 #include "playrho/Defines.hpp"
 #include "soloud.h"
+#include "spine/Version.h"
 #include "sqlite3.h"
 #include "wasm3.h"
 #include "yuescript/yue_compiler.h"
-#include "spine/Version.h"
 
 std::string Dora::Application::getDeps() const noexcept {
 	return fmt::format(

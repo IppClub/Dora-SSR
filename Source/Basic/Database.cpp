@@ -336,4 +336,8 @@ Own<Value> DB::col(const Col& c) {
 	}
 }
 
+void DB::stop() {
+	_thread->stop();
+}
+
 NS_DORA_END

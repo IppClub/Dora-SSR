@@ -269,8 +269,8 @@ void DBSlot::_updateMesh() {
 						 iB = weightData->offset + s_cast<unsigned>(db::BinaryOffset::WeigthBoneIndices) + bones.size(),
 						 iV = s_cast<std::size_t>(weightFloatOffset),
 						 iF = 0;
-			 i < vertexCount;
-			 ++i) {
+			i < vertexCount;
+			++i) {
 			const auto boneCount = s_cast<std::size_t>(intArray[iB++]);
 			auto xG = 0.0f, yG = 0.0f;
 			for (std::size_t j = 0; j < boneCount; ++j) {

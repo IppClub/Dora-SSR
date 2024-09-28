@@ -601,38 +601,37 @@ int Sprite_GetClips(lua_State* L) {
 #ifndef TOLUA_RELEASE
 	tolua_Error tolua_err;
 	if (
-		!tolua_isusertable(L, 1, "Sprite", 0, &tolua_err) ||
-		!tolua_isslice(L, 2, 0, &tolua_err) ||
-		!tolua_isnoobj(L, 3, &tolua_err)
-	)
-	goto tolua_lerror;
+		!tolua_isusertable(L, 1, "Sprite", 0, &tolua_err) || !tolua_isslice(L, 2, 0, &tolua_err) || !tolua_isnoobj(L, 3, &tolua_err))
+		goto tolua_lerror;
 	else
 #endif
 	{
 #ifndef TOLUA_RELEASE
-	try {
+		try {
 #endif
-	Slice filename = tolua_toslice(L, 2, nullptr);
-	if (auto clipDef = SharedClipCache.load(filename)) {
-		lua_newtable(L);
-		for (const auto& pair : clipDef->rects) {
-			tolua_pushslice(L, pair.first);
-			LuaEngine::push(L, *pair.second);
-			lua_rawset(L, -3);
-		}
-		return 1;
-	} else {
-		lua_pushnil(L);
-		return 1;
-	}
+			Slice filename = tolua_toslice(L, 2, nullptr);
+			if (auto clipDef = SharedClipCache.load(filename)) {
+				lua_newtable(L);
+				for (const auto& pair : clipDef->rects) {
+					tolua_pushslice(L, pair.first);
+					LuaEngine::push(L, *pair.second);
+					lua_rawset(L, -3);
+				}
+				return 1;
+			} else {
+				lua_pushnil(L);
+				return 1;
+			}
 #ifndef TOLUA_RELEASE
-	} catch (std::runtime_error& e) { luaL_error(L, e.what()); }
+		} catch (std::runtime_error& e) {
+			luaL_error(L, e.what());
+		}
 #endif
 	}
 	return 0;
 #ifndef TOLUA_RELEASE
 tolua_lerror:
-	tolua_error(L, "#ferror in function 'Sprite_GetClips'.",&tolua_err);
+	tolua_error(L, "#ferror in function 'Sprite_GetClips'.", &tolua_err);
 	return 0;
 #endif
 }
@@ -1658,8 +1657,8 @@ int Array_create(lua_State* L) {
 #ifndef TOLUA_RELEASE
 			try {
 #endif
-			Array* tolua_ret = Array::create(other);
-			tolua_pushobject(L, tolua_ret);
+				Array* tolua_ret = Array::create(other);
+				tolua_pushobject(L, tolua_ret);
 #ifndef TOLUA_RELEASE
 			} catch (std::runtime_error& e) {
 				luaL_error(L, e.what());

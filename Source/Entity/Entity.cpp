@@ -46,7 +46,8 @@ public:
 			nextValues.clear();
 			triggers.erase(std::remove_if(triggers.begin(), triggers.end(), [](const auto& trigger) {
 				return trigger();
-			}), triggers.end());
+			}),
+				triggers.end());
 			for (auto& it : observers) {
 				it.second->clear();
 			}

@@ -50,6 +50,7 @@ public:
 	Async* newThread();
 	void run(const std::function<Own<Values>()>& worker, const std::function<void(Own<Values>)>& finisher);
 	void run(const std::function<void()>& worker);
+	void cancelAndPause();
 #if BX_PLATFORM_WINDOWS
 	inline void* operator new(size_t i) {
 		return _mm_malloc(i, 16);

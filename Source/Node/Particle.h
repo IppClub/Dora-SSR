@@ -135,7 +135,7 @@ private:
 	Ref<ParticleDef> _particleDef;
 	std::vector<SpriteQuad> _quads;
 	std::vector<Particle> _particles;
-	enum: Flag::ValueType {
+	enum : Flag::ValueType {
 		Active = Node::UserFlag,
 		Emitting = Node::UserFlag << 1,
 		DepthWrite = Node::UserFlag << 2,

@@ -48,7 +48,7 @@ Model::Model(ModelDef* def)
 
 Model::Model(String filename)
 	: Model(SharedModelCache.load(
-		Path::getExt(filename.toString()).empty() ? filename.toString() + ".model"s : filename.toString())) { }
+		  Path::getExt(filename.toString()).empty() ? filename.toString() + ".model"s : filename.toString())) { }
 
 bool Model::init() {
 	if (!Playable::init()) return false;
@@ -84,8 +84,7 @@ bool Model::hasAnimation(String name) const {
 }
 
 void Model::addLook(int index, Node* node) {
-	for (int n = s_cast<int>(_looks.size()); n < index + 1; _looks.push_back(New<Look>()), n++)
-		;
+	for (int n = s_cast<int>(_looks.size()); n < index + 1; _looks.push_back(New<Look>()), n++);
 	_looks[index]->add(node);
 }
 
@@ -150,8 +149,7 @@ void Model::reset() {
 }
 
 void Model::addAnimation(int index, Node* node, Action* action) {
-	for (int n = s_cast<int>(_animationGroups.size()); n < index + 1; _animationGroups.push_back(New<AnimationGroup>()), n++)
-		;
+	for (int n = s_cast<int>(_animationGroups.size()); n < index + 1; _animationGroups.push_back(New<AnimationGroup>()), n++);
 	_animationGroups[index]->animations.push_back(New<Animation>(node, action));
 }
 

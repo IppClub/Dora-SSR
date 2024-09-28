@@ -30,23 +30,23 @@ DORA_TEST_ENTRY(HelloWorldCpp) {
 		println("Hello World!"sv);
 	}));
 
-//	auto time = std::make_shared<double>(0);
-//	auto countDown = std::make_shared<int>(5);
-//	node->schedule([time, countDown](double deltaTime) {
-//		*time += deltaTime;
-//		if (*time >= 1.0) {
-//			*time = 0;
-//			if (*countDown > 0) {
-//				println("{}", *countDown);
-//			}
-//			--*countDown;
-//		}
-//		if (*countDown < 0) {
-//			println("Hello World!");
-//			return true;
-//		}
-//		return false;
-//	});
+	//	auto time = std::make_shared<double>(0);
+	//	auto countDown = std::make_shared<int>(5);
+	//	node->schedule([time, countDown](double deltaTime) {
+	//		*time += deltaTime;
+	//		if (*time >= 1.0) {
+	//			*time = 0;
+	//			if (*countDown > 0) {
+	//				println("{}", *countDown);
+	//			}
+	//			--*countDown;
+	//		}
+	//		if (*countDown < 0) {
+	//			println("Hello World!");
+	//			return true;
+	//		}
+	//		return false;
+	//	});
 
 	auto ui = Node::create();
 	ui->schedule([](double) {

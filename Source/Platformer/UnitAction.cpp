@@ -27,8 +27,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Platformer/Data.h"
 #include "Platformer/Unit.h"
 #include "Platformer/VisualCache.h"
-#include "playrho/d2/Distance.hpp"
 #include "Support/Dictionary.h"
+#include "playrho/d2/Distance.hpp"
 
 NS_DORA_PLATFORMER_BEGIN
 

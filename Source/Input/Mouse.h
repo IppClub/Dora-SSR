@@ -19,6 +19,7 @@ public:
 	static bool isRightButtonPressed();
 	static bool isMiddleButtonPressed();
 	static float getWheel();
+
 private:
 	Mouse() = delete;
 };

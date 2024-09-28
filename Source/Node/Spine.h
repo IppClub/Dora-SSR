@@ -68,7 +68,7 @@ private:
 	Own<spine::SkeletonClipping> _clipper;
 	Ref<Line> _debugLine;
 	Own<StringMap<Ref<Node>>> _slots;
-	enum: Flag::ValueType {
+	enum : Flag::ValueType {
 		DepthWrite = Node::UserFlag,
 		HitTest = Node::UserFlag << 1,
 	};

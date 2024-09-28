@@ -37,6 +37,7 @@ public:
 	void removeUnused();
 	bool unload(String filename);
 	bool unload();
+
 protected:
 	TMXCache() { }
 

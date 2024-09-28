@@ -20,8 +20,7 @@ QEvent::~QEvent() { }
 EventQueue::EventQueue() { }
 
 EventQueue::~EventQueue() {
-	for (auto e = poll(); e; e = poll())
-		;
+	for (auto e = poll(); e; e = poll());
 }
 
 Own<QEvent> EventQueue::poll() {
