@@ -3,30 +3,35 @@ type Vec2 = Vec2.Type;
 
 declare module 'Utils' {
 
-type Struct<T = {}> = {
-	set(index: number, item: any): void;
-	get(index: number): any;
-	insert(item: any): void;
+class StructType {
+	private __struct_type__: "Struct";
+}
+
+type StructArray<T> = {
+	set(index: number, item: T & StructType): void;
+	get(index: number): T & StructType;
+	insert(item: T & StructType): void;
 	/** index is 1 based */
-	insert(index: number, item: any): void;
-	remove(item: any): any;
+	insert(index: number, item: T & StructType): void;
+	remove(item: T & StructType): (T & StructType) | undefined;
 	/** index is 1 based */
 	removeAt(index: number): boolean;
 	clear(): void;
-	each(handler: (value: any, index: number) => boolean): boolean;
-	eachAttr(handler: (key: string, value: any) => void): void;
-	contains(item: any): boolean;
+	each(handler: (this: void, item: T & StructType, index: number) => boolean): boolean;
+	contains(item: T & StructType): boolean;
 	count(): number;
-	sort(comparer: (a: any, b: any) => boolean): void;
-	__notify(event: RecordEvent | ArrayEvent | StructEvent, key?: string | number, value?: any): void;
-} & T;
+	sort(comparer: (this: void, a: T, b: T) => boolean): void;
+	__notify(this: void, event: ArrayEvent, index: number, item: T & StructType): void;
+} & StructType;
+
+type Struct<T> = {
+	eachAttr<K extends keyof T>(handler: (this: void, key: K, value: T[K]) => void): void;
+	__notify<K extends keyof T>(this: void, event: StructEvent, key: K, value: T[K]): void;
+} & T & StructType;
 
 export const enum StructEvent {
-	Updated = "Updated"
-}
-
-export const enum RecordEvent {
 	Modified = "Modified",
+	Updated = "Updated"
 }
 
 export const enum ArrayEvent {
@@ -38,18 +43,22 @@ export const enum ArrayEvent {
 
 interface StructClass<T> {
 	(this: void, values?: T): Struct<T>;
-	(this: void, ...items: any[]): Struct<T>;
+}
+
+interface StructArrayClass<T> {
+	(this: void, items?: (T & StructType)[]): StructArray<T>;
 }
 
 interface StructModule {
 	[name: string]: StructModule;
-	<T = {}>(this: void, ...fieldNames: string[]): StructClass<T>;
-	<T = {}>(this: void, fieldNames: string[]): StructClass<T>;
+	<T>(this: void, fieldName: keyof T, ...fieldNames: (keyof T)[]): StructClass<T>;
+	<T>(this: void, fieldNames: (keyof T)[]): StructClass<T>;
+	<T>(this: void): StructArrayClass<T>;
 }
 
 type StructHelper = {
-	load<T = {}>(input: string | Record<string, any>, name?: string): Struct<T>;
-	loadfile<T = {}>(filename: string): Struct<T>;
+	load<T>(input: string | {}, name?: string): Struct<T> | StructArray<T>;
+	loadfile<T>(filename: string):  Struct<T> | StructArray<T>;
 	clear(): void;
 	has(name: string): boolean;
 } & {

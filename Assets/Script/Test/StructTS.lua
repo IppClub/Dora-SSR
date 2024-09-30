@@ -2,7 +2,7 @@
 local ____exports = {} -- 1
 local ____Utils = require("Utils") -- 2
 local Struct = ____Utils.Struct -- 2
-local Unit = Struct.My.Name.Space.Unit("name", "group", "tag", "actions") -- 11
+local Unit = Struct.My.Name.Space.Unit("name", "group", "tag", "actions") -- 15
 local Action = Struct.Action("name", "id") -- 16
 local Array = Struct.Array() -- 17
 local unit = Unit({ -- 20
@@ -15,7 +15,7 @@ local unit = Unit({ -- 20
 		Action({name = "sleep", id = "a3"}) -- 27
 	}) -- 27
 }) -- 27
-unit.__notify = function(____, event, key, value) -- 32
+unit.__notify = function(event, key, value) -- 32
 	repeat -- 32
 		local ____switch3 = event -- 32
 		local ____cond3 = ____switch3 == "Modified" -- 32
@@ -30,7 +30,7 @@ unit.__notify = function(____, event, key, value) -- 32
 		end -- 39
 	until true -- 39
 end -- 32
-unit.actions.__notify = function(____, event, index, item) -- 44
+unit.actions.__notify = function(event, index, item) -- 44
 	repeat -- 44
 		local ____switch5 = event -- 44
 		local ____cond5 = ____switch5 == "Added" -- 44

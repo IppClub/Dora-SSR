@@ -4,6 +4,11 @@ local record Struct
 		"Modified"
 		"Updated"
 	end
+	__notify: function(event: RecordEvent, key: string, value: any)
+	metamethod __index: function(self: Struct, key: string): any
+	metamethod __newindex: function(self: Struct, key: string, item: any)
+end
+local record StructArray
 	enum ArrayEvent
 		"Added"
 		"Removed"
@@ -21,28 +26,30 @@ local record Struct
 	eachAttr: function(self: Struct, handler: function(key: string, value: any))
 	contains: function(self: Struct, item: any): boolean
 	count: function(self: Struct): integer
-	sort: function(comparer: function(any,any):boolean)
-	__notify: function(event: RecordEvent, key: string, value: any)
-	__notify: function(event: ArrayEvent, index: integer, value: any)
-	metamethod __index: function(self: Struct, key: string): any
-	metamethod __newindex: function(self: Struct, key: string, item: any)
+	sort: function(comparer: function(any, any):boolean)
+	__notify: function(event: ArrayEvent, index: integer, item: any)
 end
 local record StructClass
 	metamethod __call: function(self: StructClass, values?: table): Struct
 end
+local record StructArrayClass
+	metamethod __call: function(self: StructClass, items?: {any}): StructArray
+end
 local record StructModule
 	metamethod __index: function(self: StructModule, name: string): StructModule
-	metamethod __call: function(self: StructModule, ...: string | {string}): StructClass
+	metamethod __call: function(self: StructModule, fieldName: string, ...: string): StructClass
+	metamethod __call: function(self: StructModule, fieldNames: {string}): StructClass
+	metamethod __call: function(self: StructModule): StructArrayClass
 end
 local record StructHelper
 	type Type = Struct
 	type RecordEvent = Struct.RecordEvent
-	type ArrayEvent = Struct.ArrayEvent
+	type ArrayEvent = StructArray.ArrayEvent
 	metamethod __index: function(self: StructHelper, name: string): StructModule
-	load: function(self: StructHelper, input: string): Struct
-	load: function(self: StructHelper, input: table): Struct
-	load: function(self: StructHelper, name: string, input: table): Struct
-	loadfile: function(self: StructHelper, filename: string): Struct
+	load: function(self: StructHelper, input: string): any -- Struct | StructArray
+	load: function(self: StructHelper, input: table): any -- Struct | StructArray
+	load: function(self: StructHelper, name: string, input: table): any -- Struct | StructArray
+	loadfile: function(self: StructHelper, filename: string): any -- Struct | StructArray
 	clear: function(self: StructHelper)
 	has: function(self: StructHelper, name: string): boolean
 end

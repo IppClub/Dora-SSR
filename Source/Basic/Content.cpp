@@ -578,7 +578,7 @@ void Content::zipAsync(String folderPath, String zipFile, const std::function<bo
 		mz_zip_zero_struct(&archive);
 		if (mz_zip_writer_init_file(&archive, zipFile.c_str(), 0)) {
 			for (const auto& file : files) {
-				if (!mz_zip_writer_add_file(&archive, file.second.c_str(), file.first.c_str(), nullptr, 0, MZ_DEFAULT_COMPRESSION)) {
+				if (!mz_zip_writer_add_file(&archive, file.second.c_str(), file.first.c_str(), nullptr, 0, MZ_BEST_SPEED)) {
 					Error("failed to write file \"{}\" to zip, due to: {}", file.first, mz_zip_get_error_string(mz_zip_get_last_error(&archive)));
 					mz_zip_writer_end(&archive);
 					return Values::alloc(false);
