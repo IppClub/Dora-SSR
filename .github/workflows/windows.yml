@@ -33,7 +33,7 @@ jobs:
           ren dist yarn-editor
           mkdir www
           move yarn-editor www
-          7z a -tzip ..\..\dora-ssr-windows-x86.zip www\yarn-editor
+          7z a -tzip ..\..\..\..\dora-ssr-windows-x86.zip www\yarn-editor
           cd ..\..\..\..
           (cd Assets && 7z a -tzip ..\dora-ssr-windows-x86.zip Audio && cd ..)
           (cd Assets && 7z a -tzip ..\dora-ssr-windows-x86.zip Data && cd ..)
