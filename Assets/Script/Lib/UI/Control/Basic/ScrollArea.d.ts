@@ -15,7 +15,7 @@ interface Param {
 	paddingY?: number; // default 200
 	visible?: boolean; // default true
 	scrollBar?: boolean; // default true
-	scrollBarColor3?: boolean; // default App.themeColor
+	scrollBarColor3?: number; // default App.themeColor.toARGB()
 	clipping?: boolean; // default true
 }
 

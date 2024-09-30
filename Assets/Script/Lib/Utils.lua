@@ -346,7 +346,7 @@ local _anon_func_0 = function(StructDefs, pairs, tostring) -- 264
 	return _accum_0 -- 264
 end -- 264
 Struct = setmetatable({ -- 233
-	load = function(self, ...) -- 233
+	load = function(_self, ...) -- 233
 		local count = select("#", ...) -- 234
 		if count > 1 then -- 235
 			local name = select(1, ...) -- 236
@@ -372,14 +372,14 @@ Struct = setmetatable({ -- 233
 			return data -- 251
 		end -- 235
 	end, -- 233
-	clear = function(self) -- 252
+	clear = function(_self) -- 252
 		StructDefs = { } -- 253
 	end, -- 252
-	has = function(self, name) -- 254
+	has = function(_self, name) -- 254
 		return (StructDefs[name] ~= nil) -- 254
 	end -- 254
 }, { -- 256
-	__index = function(self, name) -- 256
+	__index = function(_self, name) -- 256
 		local def = StructDefs[name] -- 257
 		if not def then -- 258
 			StructHelper.name = name -- 259
@@ -388,7 +388,7 @@ Struct = setmetatable({ -- 233
 		end -- 258
 		return def -- 262
 	end, -- 256
-	__tostring = function(self) -- 263
+	__tostring = function(_self) -- 263
 		return concat(_anon_func_0(StructDefs, pairs, tostring), "\n") -- 264
 	end -- 263
 }) -- 232

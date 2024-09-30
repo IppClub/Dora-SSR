@@ -1,20 +1,20 @@
 // @preview-file on
-import {ArrayEvent, RecordEvent, Struct, StructEvent} from 'Utils';
+import {ArrayEvent, StructEvent, Struct, StructArray} from 'Utils';
 
 // create struct definitions
-interface UnitStruct {
-	name: string;
-	group: number;
-	tag: string;
-	actions: Struct;
-};
-const Unit = Struct.My.Name.Space.Unit<UnitStruct>("name", "group", "tag", "actions");
 interface ActionStruct {
 	name: string;
 	id: string;
 };
+interface UnitStruct {
+	name: string;
+	group: number;
+	tag: string;
+	actions: StructArray<ActionStruct>;
+};
+const Unit = Struct.My.Name.Space.Unit<UnitStruct>("name", "group", "tag", "actions");
 const Action = Struct.Action<ActionStruct>("name", "id");
-const Array = Struct.Array();
+const Array = Struct.Array<ActionStruct>();
 
 // create instance
 const unit = Unit({
@@ -29,9 +29,9 @@ const unit = Unit({
 });
 
 // get notified when record field changes
-unit.__notify = (event: RecordEvent | StructEvent, key: string, value) => {
+unit.__notify = (event, key, value) => {
 	switch (event) {
-		case RecordEvent.Modified:
+		case StructEvent.Modified:
 			print(`Value of name \"${key}\" changed to ${value}.`);
 			break;
 		case StructEvent.Updated:
@@ -41,7 +41,7 @@ unit.__notify = (event: RecordEvent | StructEvent, key: string, value) => {
 };
 
 // get notified when list item changes
-unit.actions.__notify = (event: ArrayEvent | StructEvent, index: number, item: any) => {
+unit.actions.__notify = (event, index, item) => {
 	switch (event) {
 		case ArrayEvent.Added:
 			print(`Add item ${item} at index ${index}.`);
@@ -52,7 +52,7 @@ unit.actions.__notify = (event: ArrayEvent | StructEvent, index: number, item: a
 		case ArrayEvent.Changed:
 			print(`Change item to ${item} at index ${index}.`);
 			break;
-		case StructEvent.Updated:
+		case ArrayEvent.Updated:
 			print("Items updated.");
 			break;
 	}
@@ -65,7 +65,7 @@ unit.actions.removeAt(1);
 const structStr = tostring(unit);
 print(structStr);
 
-const loadedUnit = Struct.load<UnitStruct>(structStr);
+const loadedUnit = Struct.load(structStr) as Struct<UnitStruct>;
 for (let i = 1; i <= loadedUnit.actions.count(); i++) {
 	print(i, loadedUnit.actions.get(i));
 }

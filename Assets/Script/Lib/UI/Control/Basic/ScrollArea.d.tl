@@ -12,7 +12,7 @@ local record Param
 	paddingY: number
 	visible: boolean
 	scrollBar: boolean
-	scrollBarColor3: boolean
+	scrollBarColor3: number
 	clipping: boolean
 end
 local record ScrollArea

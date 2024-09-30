@@ -88,7 +88,7 @@ StructDefMeta = {
 		item = if index
 			if 0 < index and index < length
 				index += 1
-				remove @,index
+				remove @, index
 			else
 				nil
 		else
@@ -230,7 +230,7 @@ StructLoad = (data) ->
 		for item in *data
 			StructLoad item
 export Struct = setmetatable {
-	load: (...) =>
+	load: (_self, ...) ->
 		count = select "#", ...
 		if count > 1
 			name = select 1, ...
@@ -249,18 +249,18 @@ export Struct = setmetatable {
 					arg
 			StructLoad data
 			data
-	clear: =>
+	clear: (_self) ->
 		StructDefs = {}
-	has: (name) => StructDefs[name]?
+	has: (_self, name) -> StructDefs[name]?
 }, {
-	__index: (name) =>
+	__index: (_self, name) ->
 		def = StructDefs[name]
 		if not def
 			StructHelper.name = name
 			StructHelper.path = ""
 			def = StructHelper
 		def
-	__tostring: =>
+	__tostring: (_self) ->
 		concat [tostring v for _, v in pairs StructDefs], "\n"
 }
 

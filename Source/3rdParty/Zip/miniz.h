@@ -1,5 +1,7 @@
+#ifndef MINIZ_EXPORT
 #define MINIZ_EXPORT
-/* miniz.c 2.2.0 - public domain deflate/inflate, zlib-subset, ZIP reading/writing/appending, PNG writing
+#endif
+/* miniz.c 3.0.0 - public domain deflate/inflate, zlib-subset, ZIP reading/writing/appending, PNG writing
    See "unlicense" statement at the end of this file.
    Rich Geldreich <richgel99@gmail.com>, last updated Oct. 13, 2013
    Implements RFC 1950: http://www.ietf.org/rfc/rfc1950.txt and RFC 1951: http://www.ietf.org/rfc/rfc1951.txt
@@ -178,11 +180,23 @@
 
 /* Set MINIZ_LITTLE_ENDIAN only if not set */
 #if !defined(MINIZ_LITTLE_ENDIAN)
-#if (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__) || MINIZ_X86_OR_X64_CPU
+#if defined(__BYTE_ORDER__) && defined(__ORDER_LITTLE_ENDIAN__)
+
+#if (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
 /* Set MINIZ_LITTLE_ENDIAN to 1 if the processor is little endian. */
 #define MINIZ_LITTLE_ENDIAN 1
 #else
 #define MINIZ_LITTLE_ENDIAN 0
+#endif
+
+#else
+
+#if MINIZ_X86_OR_X64_CPU
+#define MINIZ_LITTLE_ENDIAN 1
+#else
+#define MINIZ_LITTLE_ENDIAN 0
+#endif
+
 #endif
 #endif
 
@@ -197,7 +211,7 @@
 #if !defined(MINIZ_USE_UNALIGNED_LOADS_AND_STORES)
 #if MINIZ_X86_OR_X64_CPU
 /* Set MINIZ_USE_UNALIGNED_LOADS_AND_STORES to 1 on CPU's that permit efficient integer loads and stores from unaligned addresses. */
-#define MINIZ_USE_UNALIGNED_LOADS_AND_STORES 1
+#define MINIZ_USE_UNALIGNED_LOADS_AND_STORES 0
 #define MINIZ_UNALIGNED_USE_MEMCPY
 #else
 #define MINIZ_USE_UNALIGNED_LOADS_AND_STORES 0
@@ -261,9 +275,9 @@ enum
     MZ_DEFAULT_COMPRESSION = -1
 };
 
-#define MZ_VERSION "10.2.0"
-#define MZ_VERNUM 0xA100
-#define MZ_VER_MAJOR 10
+#define MZ_VERSION "11.0.2"
+#define MZ_VERNUM 0xB002
+#define MZ_VER_MAJOR 11
 #define MZ_VER_MINOR 2
 #define MZ_VER_REVISION 0
 #define MZ_VER_SUBREVISION 0
@@ -557,7 +571,8 @@ typedef int mz_bool;
 #ifdef MINIZ_NO_TIME
 typedef struct mz_dummy_time_t_tag
 {
-    int m_dummy;
+    mz_uint32 m_dummy1;
+    mz_uint32 m_dummy2;
 } mz_dummy_time_t;
 #define MZ_TIME_T mz_dummy_time_t
 #else
@@ -922,12 +937,6 @@ enum
     TINFL_FAST_LOOKUP_SIZE = 1 << TINFL_FAST_LOOKUP_BITS
 };
 
-typedef struct
-{
-    mz_uint8 m_code_size[TINFL_MAX_HUFF_SYMBOLS_0];
-    mz_int16 m_look_up[TINFL_FAST_LOOKUP_SIZE], m_tree[TINFL_MAX_HUFF_SYMBOLS_0 * 2];
-} tinfl_huff_table;
-
 #if MINIZ_HAS_64BIT_REGISTERS
 #define TINFL_USE_64BIT_BITBUF 1
 #else
@@ -947,7 +956,13 @@ struct tinfl_decompressor_tag
     mz_uint32 m_state, m_num_bits, m_zhdr0, m_zhdr1, m_z_adler32, m_final, m_type, m_check_adler32, m_dist, m_counter, m_num_extra, m_table_sizes[TINFL_MAX_HUFF_TABLES];
     tinfl_bit_buf_t m_bit_buf;
     size_t m_dist_from_out_buf_start;
-    tinfl_huff_table m_tables[TINFL_MAX_HUFF_TABLES];
+    mz_int16 m_look_up[TINFL_MAX_HUFF_TABLES][TINFL_FAST_LOOKUP_SIZE];
+    mz_int16 m_tree_0[TINFL_MAX_HUFF_SYMBOLS_0 * 2];
+    mz_int16 m_tree_1[TINFL_MAX_HUFF_SYMBOLS_1 * 2];
+    mz_int16 m_tree_2[TINFL_MAX_HUFF_SYMBOLS_2 * 2];
+    mz_uint8 m_code_size_0[TINFL_MAX_HUFF_SYMBOLS_0];
+    mz_uint8 m_code_size_1[TINFL_MAX_HUFF_SYMBOLS_1];
+    mz_uint8 m_code_size_2[TINFL_MAX_HUFF_SYMBOLS_2];
     mz_uint8 m_raw_header[4], m_len_codes[TINFL_MAX_HUFF_SYMBOLS_0 + TINFL_MAX_HUFF_SYMBOLS_1 + 137];
 };
 
@@ -990,10 +1005,6 @@ typedef struct
     mz_uint16 m_bit_flag;
     mz_uint16 m_method;
 
-#ifndef MINIZ_NO_TIME
-    MZ_TIME_T m_time;
-#endif
-
     /* CRC-32 of uncompressed data. */
     mz_uint32 m_crc32;
 
@@ -1030,6 +1041,11 @@ typedef struct
     /* Guaranteed to be zero terminated, may be truncated to fit. */
     char m_comment[MZ_ZIP_MAX_ARCHIVE_FILE_COMMENT_SIZE];
 
+#ifdef MINIZ_NO_TIME
+    MZ_TIME_T m_padding;
+#else
+    MZ_TIME_T m_time;
+#endif
 } mz_zip_archive_file_stat;
 
 typedef size_t (*mz_file_read_func)(void *pOpaque, mz_uint64 file_ofs, void *pBuf, size_t n);
@@ -1141,9 +1157,7 @@ typedef struct
     mz_uint flags;
 
     int status;
-#ifndef MINIZ_DISABLE_ZIP_READER_CRC32_CHECKS
-    mz_uint file_crc32;
-#endif
+
     mz_uint64 read_buf_size, read_buf_ofs, read_buf_avail, comp_remaining, out_buf_ofs, cur_file_ofs;
     mz_zip_archive_file_stat file_stat;
     void *pRead_buf;
@@ -1152,6 +1166,12 @@ typedef struct
     size_t out_blk_remain;
 
     tinfl_decompressor inflator;
+
+#ifdef MINIZ_DISABLE_ZIP_READER_CRC32_CHECKS
+    mz_uint padding;
+#else
+    mz_uint file_crc32;
+#endif
 
 } mz_zip_reader_extract_iter_state;
 
@@ -1276,9 +1296,9 @@ MINIZ_EXPORT mz_bool mz_zip_reader_extract_file_to_cfile(mz_zip_archive *pZip, c
 /* TODO */
 	typedef void *mz_zip_streaming_extract_state_ptr;
 	mz_zip_streaming_extract_state_ptr mz_zip_streaming_extract_begin(mz_zip_archive *pZip, mz_uint file_index, mz_uint flags);
-	uint64_t mz_zip_streaming_extract_get_size(mz_zip_archive *pZip, mz_zip_streaming_extract_state_ptr pState);
-	uint64_t mz_zip_streaming_extract_get_cur_ofs(mz_zip_archive *pZip, mz_zip_streaming_extract_state_ptr pState);
-	mz_bool mz_zip_streaming_extract_seek(mz_zip_archive *pZip, mz_zip_streaming_extract_state_ptr pState, uint64_t new_ofs);
+	mz_uint64 mz_zip_streaming_extract_get_size(mz_zip_archive *pZip, mz_zip_streaming_extract_state_ptr pState);
+	mz_uint64 mz_zip_streaming_extract_get_cur_ofs(mz_zip_archive *pZip, mz_zip_streaming_extract_state_ptr pState);
+	mz_bool mz_zip_streaming_extract_seek(mz_zip_archive *pZip, mz_zip_streaming_extract_state_ptr pState, mz_uint64 new_ofs);
 	size_t mz_zip_streaming_extract_read(mz_zip_archive *pZip, mz_zip_streaming_extract_state_ptr pState, void *pBuf, size_t buf_size);
 	mz_bool mz_zip_streaming_extract_end(mz_zip_archive *pZip, mz_zip_streaming_extract_state_ptr pState);
 #endif
@@ -1292,7 +1312,9 @@ MINIZ_EXPORT mz_bool mz_zip_validate_archive(mz_zip_archive *pZip, mz_uint flags
 
 /* Misc utils/helpers, valid for ZIP reading or writing */
 MINIZ_EXPORT mz_bool mz_zip_validate_mem_archive(const void *pMem, size_t size, mz_uint flags, mz_zip_error *pErr);
+#ifndef MINIZ_NO_STDIO
 MINIZ_EXPORT mz_bool mz_zip_validate_file_archive(const char *pFilename, mz_uint flags, mz_zip_error *pErr);
+#endif
 
 /* Universal end function - calls either mz_zip_reader_end() or mz_zip_writer_end(). */
 MINIZ_EXPORT mz_bool mz_zip_end(mz_zip_archive *pZip);
@@ -1383,11 +1405,13 @@ MINIZ_EXPORT mz_bool mz_zip_writer_end(mz_zip_archive *pZip);
 MINIZ_EXPORT mz_bool mz_zip_add_mem_to_archive_file_in_place(const char *pZip_filename, const char *pArchive_name, const void *pBuf, size_t buf_size, const void *pComment, mz_uint16 comment_size, mz_uint level_and_flags);
 MINIZ_EXPORT mz_bool mz_zip_add_mem_to_archive_file_in_place_v2(const char *pZip_filename, const char *pArchive_name, const void *pBuf, size_t buf_size, const void *pComment, mz_uint16 comment_size, mz_uint level_and_flags, mz_zip_error *pErr);
 
+#ifndef MINIZ_NO_STDIO
 /* Reads a single file from an archive into a heap block. */
 /* If pComment is not NULL, only the file with the specified comment will be extracted. */
 /* Returns NULL on failure. */
 MINIZ_EXPORT void *mz_zip_extract_archive_file_to_heap(const char *pZip_filename, const char *pArchive_name, size_t *pSize, mz_uint flags);
 MINIZ_EXPORT void *mz_zip_extract_archive_file_to_heap_v2(const char *pZip_filename, const char *pArchive_name, const char *pComment, size_t *pSize, mz_uint flags, mz_zip_error *pErr);
+#endif
 
 #endif /* #ifndef MINIZ_NO_ARCHIVE_WRITING_APIS */
 
