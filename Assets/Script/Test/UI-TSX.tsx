@@ -118,9 +118,15 @@ items.__notify = (event, index, item) => {
 
 toNode(
 	<align-node windowRoot style={{alignItems: 'center', justifyContent: 'center'}}>
-		<align-node style={{width: 250, height: 300}} onLayout={(width, height) => {
+		<align-node style={{width: "50%", height: "50%"}} onLayout={(width, height) => {
 			const {current} = scrollArea;
-			if (current) current.position = Vec2(width / 2, height / 2);
+			if (current) {
+				current.position = Vec2(width / 2, height / 2);
+				current.adjustSizeWithAlign(AlignMode.Auto, 10, Size(width, height));
+				const border = LineRectCreate({x: 1, y: 1, width: width - 2, height: height - 2, color: 0xffffffff});
+				current.area.getChildByTag("border")?.removeFromParent();
+				current.area.addChild(border, 0, "border");
+			}
 		}}>
 			<ScrollArea ref={scrollArea} width={250} height={300} paddingX={0}/>
 		</align-node>

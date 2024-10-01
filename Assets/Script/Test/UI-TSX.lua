@@ -130,21 +130,38 @@ toNode(React.createElement( -- 119
 	React.createElement( -- 119
 		"align-node", -- 119
 		{ -- 119
-			style = {width = 250, height = 300}, -- 119
+			style = {width = "50%", height = "50%"}, -- 119
 			onLayout = function(width, height) -- 119
 				local current = scrollArea.current -- 119
 				if current then -- 119
-					current.position = Vec2(width / 2, height / 2) -- 123
-				end -- 123
+					current.position = Vec2(width / 2, height / 2) -- 124
+					current:adjustSizeWithAlign( -- 125
+						"Auto", -- 125
+						10, -- 125
+						Size(width, height) -- 125
+					) -- 125
+					local border = LineRectCreate({ -- 126
+						x = 1, -- 126
+						y = 1, -- 126
+						width = width - 2, -- 126
+						height = height - 2, -- 126
+						color = 4294967295 -- 126
+					}) -- 126
+					local ____opt_7 = current.area:getChildByTag("border") -- 126
+					if ____opt_7 ~= nil then -- 126
+						____opt_7:removeFromParent() -- 127
+					end -- 127
+					current.area:addChild(border, 0, "border") -- 128
+				end -- 128
 			end -- 121
 		}, -- 121
 		React.createElement(ScrollArea, {ref = scrollArea, width = 250, height = 300, paddingX = 0}) -- 121
 	) -- 121
 )) -- 121
 for i = 1, 30 do -- 121
-	items:insert(Item({ -- 131
-		name = "btn " .. tostring(i), -- 131
-		value = i -- 131
-	})) -- 131
-end -- 131
-return ____exports -- 131
+	items:insert(Item({ -- 137
+		name = "btn " .. tostring(i), -- 137
+		value = i -- 137
+	})) -- 137
+end -- 137
+return ____exports -- 137
