@@ -947,6 +947,44 @@ static Own<ActionDuration> create(lua_State* L, int location) {
 						}
 						return Sequence::alloc(std::move(actions));
 					}
+					case "Frame"_hash: {
+						auto def = FrameActionDef::create();
+						lua_rawgeti(L, location, 2);
+						Slice clipStr = tolua_toslice(L, -1, nullptr);
+						auto [tex, rect] = SharedClipCache.loadTexture(clipStr);
+						if (!tex) {
+							luaL_error(L, "invalid texture \"%s\" used for creating frame action.", clipStr.c_str().get());
+						}
+						if (rect.getHeight() > rect.getWidth()) {
+							luaL_error(L, "invalid texture \"%s\" (height > width) used for creating frame action.", clipStr.c_str().get());
+						}
+						def->clipStr = clipStr.toString();
+						auto totalFrames = s_cast<int>(rect.getWidth() / rect.getHeight());
+						std::vector<Rect> rects(totalFrames);
+						for (int i = 0; i < totalFrames; i++) {
+							rects[i] = {rect.getX() + i * rect.getHeight(), rect.getY(), rect.getHeight(), rect.getHeight()};
+						}
+						float duration = toNumber(L, location, 3);
+						def->duration = duration;
+						lua_rawgeti(L, location, 4);
+						if (lua_istable(L, -1)) {
+							if (!tolua_isintegerarray(L, -1, totalFrames, 0, &tolua_err)) {
+								tolua_error(L, "#ferror in creating frame action.", &tolua_err);
+							}
+							for (int i = 0; i < totalFrames; i++) {
+								auto count = tolua_tofieldinteger(L, -1, i + 1, 0);
+								for (int c = 0; c < count; c++) {
+									def->rects.push_back(New<Rect>(rects[i]));
+								}
+							}
+						} else {
+							for (const auto& rc : rects) {
+								def->rects.push_back(New<Rect>(rc));
+							}
+						}
+						lua_pop(L, 2);
+						return FrameAction::alloc(def);
+					}
 					default: {
 						luaL_error(L, "action named \"%s\" is not exist.", name.c_str().get());
 						return Own<ActionDuration>();
