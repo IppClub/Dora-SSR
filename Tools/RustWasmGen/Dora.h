@@ -994,6 +994,29 @@ value class ActionDef {
 	///
 	/// * `Action` - A new Action object.
 	static outside ActionDef ActionDef_Scale @ scale(float duration, float start, float stop, EaseType easing);
+	/// Creates a new Action object to do a frame animation. Can only be performed on a Sprite node.
+	///
+	/// # Arguments
+	///
+	/// * `clipStr` - The name of the image clip, which is a sprite sheet. Can be "Image/file.png" and "Image/items.clip|itemA". Supports image file format: jpg, png, dds, pvr, ktx.
+	/// * `duration` - The duration of the action.
+	///
+	/// # Returns
+	///
+	/// * `Action` - A new Action object.
+	static outside ActionDef ActionDef_Frame @ frame(string clipStr, float duration);
+	/// Creates a new Action object to do a frame animation with frames count for each frame. Can only be performed on a Sprite node.
+	///
+	/// # Arguments
+	///
+	/// * `clipStr` - The name of the image clip, which is a sprite sheet. Can be "Image/file.png" and "Image/items.clip|itemA". Supports image file format: jpg, png, dds, pvr, ktx.
+	/// * `duration` - The duration of the action.
+	/// * `frames` - The number of frames for each frame.
+	///
+	/// # Returns
+	///
+	/// * `Action` - A new Action object.
+	static outside ActionDef ActionDef_Frame @ frame_with_frames(string clipStr, float duration, VecUint32 frames);
 };
 
 /// Represents an action that can be run on a node.

@@ -1240,6 +1240,16 @@ export function Spawn(this: void, ...actions: ActionDef[]): ActionDef;
 export function Sequence(this: void, ...actions: ActionDef[]): ActionDef;
 
 /**
+ * Create a frame animation with frames count for each frame. Can only be performed on a Sprite node.
+ * @param clipStr The string containing format for loading a texture file.
+ * Can be "Image/file.png" and "Image/items.clip|itemA". Supports image file format: jpg, png, dds, pvr, ktx.
+ * @param duration The total duration of the animation.
+ * @param frames [optional] The number of frames for each frame. The number of frames should match the number of frames in the clip.
+ * @returns Returns a new action definition.
+ */
+export function Frame(this: void, clipStr: string, duration: number, frames?: number[]): ActionDef;
+
+/**
  * The supported array data types.
  * This can be an integer, number, boolean, string, thread, ContainerItem.
  */

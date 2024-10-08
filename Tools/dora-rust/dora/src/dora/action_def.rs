@@ -19,6 +19,8 @@ extern "C" {
 	fn actiondef_event(event_name: i64, msg: i64) -> i64;
 	fn actiondef_move_to(duration: f32, start: i64, stop: i64, easing: i32) -> i64;
 	fn actiondef_scale(duration: f32, start: f32, stop: f32, easing: i32) -> i64;
+	fn actiondef_frame(clip_str: i64, duration: f32) -> i64;
+	fn actiondef_frame_with_frames(clip_str: i64, duration: f32, frames: i64) -> i64;
 }
 pub struct ActionDef { raw: i64 }
 impl Drop for ActionDef {
@@ -163,5 +165,32 @@ impl ActionDef {
 	/// * `Action` - A new Action object.
 	pub fn scale(duration: f32, start: f32, stop: f32, easing: crate::dora::EaseType) -> crate::dora::ActionDef {
 		unsafe { return crate::dora::ActionDef::from(actiondef_scale(duration, start, stop, easing as i32)); }
+	}
+	/// Creates a new Action object to do a frame animation. Can only be performed on a Sprite node.
+	///
+	/// # Arguments
+	///
+	/// * `clipStr` - The name of the image clip, which is a sprite sheet. Can be "Image/file.png" and "Image/items.clip|itemA". Supports image file format: jpg, png, dds, pvr, ktx.
+	/// * `duration` - The duration of the action.
+	///
+	/// # Returns
+	///
+	/// * `Action` - A new Action object.
+	pub fn frame(clip_str: &str, duration: f32) -> crate::dora::ActionDef {
+		unsafe { return crate::dora::ActionDef::from(actiondef_frame(crate::dora::from_string(clip_str), duration)); }
+	}
+	/// Creates a new Action object to do a frame animation with frames count for each frame. Can only be performed on a Sprite node.
+	///
+	/// # Arguments
+	///
+	/// * `clipStr` - The name of the image clip, which is a sprite sheet. Can be "Image/file.png" and "Image/items.clip|itemA". Supports image file format: jpg, png, dds, pvr, ktx.
+	/// * `duration` - The duration of the action.
+	/// * `frames` - The number of frames for each frame.
+	///
+	/// # Returns
+	///
+	/// * `Action` - A new Action object.
+	pub fn frame_with_frames(clip_str: &str, duration: f32, frames: &Vec<i32>) -> crate::dora::ActionDef {
+		unsafe { return crate::dora::ActionDef::from(actiondef_frame_with_frames(crate::dora::from_string(clip_str), duration, crate::dora::Vector::from_num(frames))); }
 	}
 }

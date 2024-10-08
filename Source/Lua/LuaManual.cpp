@@ -968,11 +968,12 @@ static Own<ActionDuration> create(lua_State* L, int location) {
 						def->duration = duration;
 						lua_rawgeti(L, location, 4);
 						if (lua_istable(L, -1)) {
-							if (!tolua_isintegerarray(L, -1, totalFrames, 0, &tolua_err)) {
+							int lo = lua_gettop(L);
+							if (!tolua_isintegerarray(L, lo, totalFrames, 0, &tolua_err)) {
 								tolua_error(L, "#ferror in creating frame action.", &tolua_err);
 							}
 							for (int i = 0; i < totalFrames; i++) {
-								auto count = tolua_tofieldinteger(L, -1, i + 1, 0);
+								auto count = tolua_tofieldinteger(L, lo, i + 1, 0);
 								for (int c = 0; c < count; c++) {
 									def->rects.push_back(New<Rect>(rects[i]));
 								}

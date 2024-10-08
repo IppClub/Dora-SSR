@@ -469,6 +469,57 @@ static Pass* Effect_GetPass(Effect* self, size_t index) {
 #define ActionDef_Move Move::alloc
 #define ActionDef_Scale Scale::alloc
 
+static Own<ActionDuration> ActionDef_Frame(String clipStr, float duration) {
+	auto def = FrameActionDef::create();
+	auto [tex, rect] = SharedClipCache.loadTexture(clipStr);
+	if (!tex) {
+		Error("invalid texture \"{}\" used for creating frame action.", clipStr.toString());
+		return FrameAction::alloc(def);
+	}
+	if (rect.getHeight() > rect.getWidth()) {
+		Error("invalid texture \"%s\" (height > width) used for creating frame action.", clipStr.toString());
+		return FrameAction::alloc(def);
+	}
+	def->clipStr = clipStr.toString();
+	auto totalFrames = s_cast<int>(rect.getWidth() / rect.getHeight());
+	for (int i = 0; i < totalFrames; i++) {
+		def->rects.push_back(New<Rect>(rect.getX() + i * rect.getHeight(), rect.getY(), rect.getHeight(), rect.getHeight()));
+	}
+	def->duration = duration;
+	return FrameAction::alloc(def);
+}
+
+static Own<ActionDuration> ActionDef_Frame(String clipStr, float duration, const std::vector<uint32_t>& frames) {
+	auto def = FrameActionDef::create();
+	auto [tex, rect] = SharedClipCache.loadTexture(clipStr);
+	if (!tex) {
+		Error("invalid texture \"{}\" used for creating frame action.", clipStr.toString());
+		return FrameAction::alloc(def);
+	}
+	if (rect.getHeight() > rect.getWidth()) {
+		Error("invalid texture \"%s\" (height > width) used for creating frame action.", clipStr.toString());
+		return FrameAction::alloc(def);
+	}
+	def->clipStr = clipStr.toString();
+	auto totalFrames = s_cast<int>(rect.getWidth() / rect.getHeight());
+	std::vector<Rect> rects(totalFrames);
+	for (int i = 0; i < totalFrames; i++) {
+		rects[i] = {rect.getX() + i * rect.getHeight(), rect.getY(), rect.getHeight(), rect.getHeight()};
+	}
+	def->duration = duration;
+	if (totalFrames != frames.size()) {
+		Error("unmatched frame numbers, expecting {}, got {}.", totalFrames, frames.size());
+		return FrameAction::alloc(def);
+	}
+	for (int i = 0; i < totalFrames; i++) {
+		auto count = frames[i];
+		for (int c = 0; c < count; c++) {
+			def->rects.push_back(New<Rect>(rects[i]));
+		}
+	}
+	return FrameAction::alloc(def);
+}
+
 // Model
 
 static std::string Model_GetClipFilename(String filename) {

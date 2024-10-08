@@ -1244,6 +1244,15 @@ export function Spawn(this: void, ...actions: ActionDef[]): ActionDef;
 export function Sequence(this: void, ...actions: ActionDef[]): ActionDef;
 
 /**
+ * 用于创建一个帧动画，可以指定每个动画帧的持续帧数。只能在 Sprite 节点上使用。
+ * @param clipStr 包含加载纹理文件格式的字符串，可以是 "Image/file.png" 和 "Image/items.clip|itemA"，支持的图片文件格式有：jpg、png、dds、pvr、ktx。
+ * @param duration 动画的持续时间。
+ * @param frames [可选] 每个动画帧的持续帧数。每个动画帧的持续帧数应该与图片序列中的帧数相匹配。
+ * @returns 返回新的动作定义。
+ */
+export function Frame(clipStr: string, duration: number, frames?: number[]): ActionDef
+
+/**
  * 支持在数组对象存储数据类型。
  * 可以是整数，数字，布尔值，字符串，线程，继承自`ContainerItem`的对象。
  */

@@ -9174,7 +9174,7 @@ private:
 			transformIf(ifNode, temp, ExpUsage::Common);
 		} else {
 			bool transformed = false;
-			if (assignList || returnValue) {
+			if (!extraScope && assignList) {
 				if (auto block = with->body.as<Block_t>()) {
 					if (!block->statements.empty()) {
 						Statement_t* stmt = static_cast<Statement_t*>(block->statements.back());
@@ -9199,7 +9199,6 @@ private:
 						auto doNode = stmt->new_ptr<Do_t>();
 						doNode->body.set(newBody);
 						transformDo(doNode, temp, ExpUsage::Common);
-						temp.back().insert(0, indent());
 						transformed = true;
 					}
 				}
