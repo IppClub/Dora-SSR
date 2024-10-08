@@ -281,10 +281,13 @@ local record ImGui
 	end
 	enum SliderFlag
 		""
-		"AlwaysClamp"
 		"Logarithmic"
 		"NoRoundToFormat"
 		"NoInput"
+		"WrapAround"
+		"ClampOnInput"
+		"ClampZeroRange"
+		"AlwaysClamp"
 	end
 	enum PopupFlag
 		""

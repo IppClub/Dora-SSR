@@ -20,9 +20,17 @@ pub fn test() {
 	}
 	terrain_def.attach_chain(&vertices, 0.4, 0.0);
 	terrain_def.attach_disk_with_center(&Vec2::new(0.0, -270.0), 30.0, 1.0, 0.0, 1.0);
-	terrain_def.attach_polygon_with_center(&Vec2::new(0.0, 80.0), 120.0, 30.0, 0.0, 1.0, 0.0, 1.0);
 	let mut terrain = Body::new(&terrain_def, &world, &Vec2::zero(), 0.0);
 	terrain.add_to(&world);
+
+	let mut platform_def = BodyDef::new();
+	platform_def.attach_polygon_with_center(&Vec2::new(0.0, -80.0), 120.0, 30.0, 0.0, 1.0, 0.0, 1.0);
+	let mut platform = Body::new(&platform_def, &world, &Vec2::zero(), 0.0);
+	platform.on_contact_filter(Box::new(|other| {
+		other.get_velocity_y() < 0.0
+	}));
+	platform.add_to(&world);
+
 	let mut draw_node = Line::with_vec_color(&vec![
 		Vec2::new(-20.0, 0.0),
 		Vec2::new(20.0, 0.0),

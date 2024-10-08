@@ -1010,7 +1010,7 @@ do
 			local args = { ... }
 			local callFunc = table_remove(args)
 			if type(callFunc) ~= "function" then
-				error("ImGui paired calls now require a function as last argument in 'Begin' function.")
+				error("requires a function as last argument in 'Begin' function.")
 			end
 			local began, ret = beginFunc(unpack(args))
 			closeVar[#closeVar + 1] = endFunc
@@ -1027,7 +1027,7 @@ do
 			local args = { ... }
 			local callFunc = table_remove(args)
 			if type(callFunc) ~= "function" then
-				error("ImGui paired calls now require a function as last argument in 'Begin' function.")
+				error("requires a function as last argument in 'Begin' function.")
 			end
 			local began, ret = beginFunc(unpack(args))
 			if began then
@@ -1044,7 +1044,7 @@ do
 			local args = { ... }
 			local callFunc = table_remove(args)
 			if type(callFunc) ~= "function" then
-				error("ImGui paired calls now require a function as last argument in 'Begin' function.")
+				error("requires a function as last argument in 'Begin' function.")
 			end
 			local began, ret = beginFunc(unpack(args))
 			closeVar[#closeVar + 1] = endFunc

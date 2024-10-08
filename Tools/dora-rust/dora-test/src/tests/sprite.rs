@@ -31,7 +31,7 @@ pub fn test() {
 		ImGui::begin_opts("Sprite", windows_flags, || {
 			ImGui::text("Sprite (Rust)");
 			ImGui::begin_child_opts("SpriteSetting", &Vec2::new(-1.0, -40.0), BitFlags::default(), BitFlags::default(), || {
-				let (changed, z) = ImGui::drag_float_ret_opts("Z", sp.get_z(), 1.0, -1000.0, 1000.0, "%.2f", ImGuiSliderFlag::AlwaysClamp.into());
+				let (changed, z) = ImGui::drag_float_ret_opts("Z", sp.get_z(), 1.0, -1000.0, 1000.0, "%.2f", ImGuiSliderFlag::ALWAYS_CLAMP.into());
 				if changed {
 					sprite.set_z(z);
 				}
@@ -70,7 +70,7 @@ pub fn test() {
 					}
 				});
 				ImGui::push_item_width(-70.0, || {
-					let (changed, opacity) = ImGui::drag_float_ret_opts("Opacity", sp.get_opacity(), 0.01, 0.0, 1.0, "%.2f", ImGuiSliderFlag::AlwaysClamp.into());
+					let (changed, opacity) = ImGui::drag_float_ret_opts("Opacity", sp.get_opacity(), 0.01, 0.0, 1.0, "%.2f", ImGuiSliderFlag::ALWAYS_CLAMP.into());
 					if changed {
 						sp.set_opacity(opacity);
 					}
