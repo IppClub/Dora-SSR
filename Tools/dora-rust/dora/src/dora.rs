@@ -3669,13 +3669,19 @@ use enumflags2::{bitflags, make_bitflags};
 pub use enumflags2::BitFlags;
 
 #[bitflags]
-#[repr(u8)]
+#[repr(u32)]
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum ImGuiSliderFlag {
-	AlwaysClamp = 1 << 4,
 	Logarithmic = 1 << 5,
 	NoRoundToFormat = 1 << 6,
-	NoInput = 1 << 7
+	NoInput = 1 << 7,
+	WrapAround = 1 << 8,
+	ClampOnInput = 1 << 9,
+	ClampZeroRange = 1 << 10,
+}
+
+impl ImGuiSliderFlag {
+	pub const ALWAYS_CLAMP: BitFlags<Self> = make_bitflags!(Self::{ClampOnInput | ClampZeroRange});
 }
 
 #[bitflags]

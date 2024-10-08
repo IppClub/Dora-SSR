@@ -65,15 +65,15 @@ pub fn test() {
 				model.play(&animations[current_anim as usize], loop_);
 			}
 			ImGui::push_item_width(-70.0, || {
-				let (changed, speed) = ImGui::drag_float_ret_opts("Speed", model.get_speed(), 0.01, 0.0, 10.0, "%.2f", ImGuiSliderFlag::AlwaysClamp.into());
+				let (changed, speed) = ImGui::drag_float_ret_opts("Speed", model.get_speed(), 0.01, 0.0, 10.0, "%.2f", ImGuiSliderFlag::ALWAYS_CLAMP.into());
 				if changed {
 					model.set_speed(speed);
 				}
-				let (changed, recovery) = ImGui::drag_float_ret_opts("Recovery", model.get_recovery(), 0.01, 0.0, 10.0, "%.2f", ImGuiSliderFlag::AlwaysClamp.into());
+				let (changed, recovery) = ImGui::drag_float_ret_opts("Recovery", model.get_recovery(), 0.01, 0.0, 10.0, "%.2f", ImGuiSliderFlag::ALWAYS_CLAMP.into());
 				if changed {
 					model.set_recovery(recovery);
 				}
-				let (changed, scale) = ImGui::drag_float_ret_opts("Scale", model.get_scale_x(), 0.01, 0.5, 2.0, "%.2f", ImGuiSliderFlag::AlwaysClamp.into());
+				let (changed, scale) = ImGui::drag_float_ret_opts("Scale", model.get_scale_x(), 0.01, 0.5, 2.0, "%.2f", ImGuiSliderFlag::ALWAYS_CLAMP.into());
 				if changed {
 					model.set_scale_x(scale);
 					model.set_scale_y(scale);

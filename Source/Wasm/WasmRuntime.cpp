@@ -19,7 +19,7 @@ NS_DORA_BEGIN
 
 #define DoraVersion(major, minor, patch) ((major) << 16 | (minor) << 8 | (patch))
 
-static const int doraWASMVersion = DoraVersion(0, 4, 7);
+static const int doraWASMVersion = DoraVersion(0, 4, 8);
 
 static std::string VersionToStr(int version) {
 	return std::to_string((version & 0x00ff0000) >> 16) + '.' + std::to_string((version & 0x0000ff00) >> 8) + '.' + std::to_string(version & 0x000000ff);
@@ -854,11 +854,15 @@ int32_t str_len(int64_t str) {
 }
 void str_read(void* dest, int64_t src) {
 	auto str = r_cast<std::string*>(src);
-	std::memcpy(dest, str->c_str(), str->length());
+	if (str->length() > 0) {
+		std::memcpy(dest, str->c_str(), str->length());
+	}
 }
 void str_write(int64_t dest, const void* src) {
 	auto str = r_cast<std::string*>(dest);
-	std::memcpy(&str->front(), src, str->length());
+	if (str->length() > 0) {
+		std::memcpy(&str->front(), src, str->length());
+	}
 }
 void str_release(int64_t str) {
 	delete r_cast<std::string*>(str);
@@ -894,14 +898,18 @@ int32_t buf_len(int64_t v) {
 void buf_read(void* dest, int64_t src) {
 	auto vec = r_cast<dora_vec_t*>(src);
 	std::visit([&](const auto& arg) {
-		std::memcpy(dest, arg.data(), arg.size() * sizeof(arg[0]));
+		if (arg.size() > 0) {
+			std::memcpy(dest, arg.data(), arg.size() * sizeof(arg[0]));
+		}
 	},
 		*vec);
 }
 void buf_write(int64_t dest, const void* src) {
 	auto vec = r_cast<dora_vec_t*>(dest);
 	std::visit([&](auto& arg) {
-		std::memcpy(&arg.front(), src, arg.size() * sizeof(arg[0]));
+		if (arg.size() > 0) {
+			std::memcpy(&arg.front(), src, arg.size() * sizeof(arg[0]));
+		}
 	},
 		*vec);
 }
@@ -1728,7 +1736,7 @@ void WasmRuntime::executeMainFileAsync(String filename, const std::function<void
 					auto versionFunc = New<wasm3::function>(_runtime->find_function("dora_wasm_version"));
 					auto version = versionFunc->call<int32_t>();
 					if (doraVer != version) {
-						Error("expecting dora WASM version {}, got {}", VersionToStr(doraVer), VersionToStr(version));
+						Error("expecting dora WASM file of version {}, got {}", VersionToStr(doraVer), VersionToStr(version));
 						_env = New<wasm3::environment>();
 						_runtime = New<wasm3::runtime>(_env->new_runtime(DORA_WASM_STACK_SIZE));
 						_wasm = {nullptr, 0};

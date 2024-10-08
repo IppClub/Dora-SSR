@@ -67,14 +67,20 @@ NS_BEGIN(ImGui::Binding)
 
 static ImGuiSliderFlags_ getSliderFlag(String flag) {
 	switch (Switch::hash(flag)) {
-		case "AlwaysClamp"_hash:
-			return ImGuiSliderFlags_AlwaysClamp;
 		case "Logarithmic"_hash:
 			return ImGuiSliderFlags_Logarithmic;
 		case "NoRoundToFormat"_hash:
 			return ImGuiSliderFlags_NoRoundToFormat;
 		case "NoInput"_hash:
 			return ImGuiSliderFlags_NoInput;
+		case "WrapAround"_hash:
+			return ImGuiSliderFlags_WrapAround;
+		case "ClampOnInput"_hash:
+			return ImGuiSliderFlags_ClampOnInput;
+		case "ClampZeroRange"_hash:
+			return ImGuiSliderFlags_ClampZeroRange;
+		case "AlwaysClamp"_hash:
+			return ImGuiSliderFlags_AlwaysClamp;
 		case ""_hash: return ImGuiSliderFlags_None;
 		default:
 			Issue("ImGui slider flag named \"{}\" is invalid.", flag.toString());

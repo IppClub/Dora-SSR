@@ -268,10 +268,13 @@ export macro TableColumnFlag = $Enum(
 	"IsHovered"
 )
 export macro SliderFlag = $Enum(
-	"AlwaysClamp"
 	"Logarithmic"
 	"NoRoundToFormat"
 	"NoInput"
+	"WrapAround"
+	"ClampOnInput"
+	"ClampZeroRange"
+	"AlwaysClamp"
 )
 export macro PopupFlag = $Enum(
 	"MouseButtonLeft"

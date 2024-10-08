@@ -61,6 +61,9 @@ PhysicsWorld::~PhysicsWorld() {
 void PhysicsWorld::setupBeginContact() {
 	pd::SetBeginContactListener(*_world, [this](pr::ContactID contact) {
 		auto& world = *_world;
+		if (!pd::IsEnabled(world, contact)) {
+			return;
+		}
 		pr::ShapeID fixtureA = pd::GetShapeA(world, contact);
 		pr::ShapeID fixtureB = pd::GetShapeB(world, contact);
 		Body* bodyA = _bodyData[pd::GetBodyA(world, contact).get()];
@@ -84,24 +87,26 @@ void PhysicsWorld::setupBeginContact() {
 			}
 		} else {
 			if (bodyA->isReceivingContact() || bodyB->isReceivingContact()) {
-				pd::WorldManifold worldManifold = pd::GetWorldManifold(world, contact);
-				Vec2 point = PhysicsWorld::Val(worldManifold.GetPoint(0));
-				pd::UnitVec normal = worldManifold.GetNormal();
-				if (bodyA->isReceivingContact()) {
-					ContactPair pair{bodyA, bodyB};
-					pair.retain();
-					_contactStarts.push_back(pair);
+				if (bodyA->filterContact && !bodyA->filterContact(bodyB)) {
+					pd::UnsetEnabled(world, contact);
+				} else if (bodyB->filterContact && !bodyB->filterContact(bodyA)) {
+					pd::UnsetEnabled(world, contact);
 				}
-				if (bodyB->isReceivingContact()) {
-					ContactPair pair{bodyB, bodyA, point, {normal[0], normal[1]}};
-					pair.retain();
-					_contactStarts.push_back(pair);
+				if (pd::IsEnabled(world, contact)) {
+					pd::WorldManifold worldManifold = pd::GetWorldManifold(world, contact);
+					Vec2 point = PhysicsWorld::Val(worldManifold.GetPoint(0));
+					pd::UnitVec normal = worldManifold.GetNormal();
+					if (bodyA->isReceivingContact()) {
+						ContactPair pair{bodyA, bodyB};
+						pair.retain();
+						_contactStarts.push_back(pair);
+					}
+					if (bodyB->isReceivingContact()) {
+						ContactPair pair{bodyB, bodyA, point, {normal[0], normal[1]}};
+						pair.retain();
+						_contactStarts.push_back(pair);
+					}
 				}
-			}
-			if (bodyA->filterContact && !bodyA->filterContact(bodyB)) {
-				pd::UnsetEnabled(world, contact);
-			} else if (bodyB->filterContact && !bodyB->filterContact(bodyA)) {
-				pd::UnsetEnabled(world, contact);
 			}
 		}
 	});

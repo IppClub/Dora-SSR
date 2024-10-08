@@ -26,6 +26,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Other/utf8.h"
 #include "imgui.h"
+#include "imgui_internal.h"
 #include "implot.h"
 
 #include "SDL.h"
@@ -1014,6 +1015,9 @@ bool ImGuiDora::init() {
 	_iniFilePath = Path::concat({SharedContent.getWritablePath(), "imgui.ini"sv});
 	io.IniFilename = _iniFilePath.c_str();
 
+	io.ConfigErrorRecoveryEnableAssert = false;
+	io.ConfigErrorRecoveryEnableTooltip = true;
+
 	_sampler = bgfx::createUniform("s_texColor", bgfx::UniformType::Sampler);
 
 	_defaultPass = Pass::create(
@@ -1076,6 +1080,11 @@ bool ImGuiDora::init() {
 	return true;
 }
 
+static ImGuiErrorRecoveryState& getImGuiErrorRecoveryState() {
+	static ImGuiErrorRecoveryState state;
+	return state;
+}
+
 void ImGuiDora::begin() {
 	ImGuiIO& io = ImGui::GetIO();
 	Size visualSize = SharedApplication.getVisualSize();
@@ -1114,9 +1123,13 @@ void ImGuiDora::begin() {
 
 	// Start the frame
 	ImGui::NewFrame();
+	auto& state = getImGuiErrorRecoveryState();
+	ImGui::ErrorRecoveryStoreState(&state);
 }
 
 void ImGuiDora::end() {
+	auto& state = getImGuiErrorRecoveryState();
+	ImGui::ErrorRecoveryTryToRecoverState(&state);
 	ImGui::Render();
 }
 

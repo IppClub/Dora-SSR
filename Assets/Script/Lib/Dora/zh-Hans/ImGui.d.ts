@@ -305,10 +305,13 @@ export const enum TableColumnFlag {
 
 export const enum SliderFlag {
 	None = "",
-	AlwaysClamp = "AlwaysClamp",
 	Logarithmic = "Logarithmic",
 	NoRoundToFormat = "NoRoundToFormat",
-	NoInput = "NoInput"
+	NoInput = "NoInput",
+	WrapAround = "WrapAround",
+	ClampOnInput = "ClampOnInput",
+	ClampZeroRange = "ClampZeroRange",
+	AlwaysClamp = "AlwaysClamp"
 }
 
 export const enum PopupFlag {
