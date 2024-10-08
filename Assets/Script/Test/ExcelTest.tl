@@ -359,7 +359,7 @@ local function loadExcel()
 			e:destroy()
 		end)
 		for i = 3, #its do
-			local st = Struct:load(its[i])
+			local st = Struct:load(its[i]) as table
 			local item <total>: ItemEntity = {
 				name = st.Name as string,
 				no = st.No as number,

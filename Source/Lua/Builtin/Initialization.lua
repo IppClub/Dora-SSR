@@ -818,7 +818,8 @@ do
 		"Delay",
 		"Event",
 		"Spawn",
-		"Sequence"
+		"Sequence",
+		"Frame"
 	} do
 		Dora[actionName] = function(...)
 			return {

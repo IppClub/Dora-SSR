@@ -44,6 +44,12 @@ int64_t actiondef_move_to(float duration, int64_t start, int64_t stop, int32_t e
 int64_t actiondef_scale(float duration, float start, float stop, int32_t easing) {
 	return r_cast<int64_t>(new ActionDef{ActionDef_Scale(duration, start, stop, s_cast<Ease::Enum>(easing))});
 }
+int64_t actiondef_frame(int64_t clip_str, float duration) {
+	return r_cast<int64_t>(new ActionDef{ActionDef_Frame(*Str_From(clip_str), duration)});
+}
+int64_t actiondef_frame_with_frames(int64_t clip_str, float duration, int64_t frames) {
+	return r_cast<int64_t>(new ActionDef{ActionDef_Frame(*Str_From(clip_str), duration, Vec_FromUint32(frames))});
+}
 } // extern "C"
 
 static void linkActionDef(wasm3::module3& mod) {
@@ -59,4 +65,6 @@ static void linkActionDef(wasm3::module3& mod) {
 	mod.link_optional("*", "actiondef_event", actiondef_event);
 	mod.link_optional("*", "actiondef_move_to", actiondef_move_to);
 	mod.link_optional("*", "actiondef_scale", actiondef_scale);
+	mod.link_optional("*", "actiondef_frame", actiondef_frame);
+	mod.link_optional("*", "actiondef_frame_with_frames", actiondef_frame_with_frames);
 }

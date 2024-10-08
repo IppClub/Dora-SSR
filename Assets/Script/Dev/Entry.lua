@@ -974,7 +974,7 @@ enterEntryAsync = function(entry) -- 570
 		end -- 577
 	end -- 576
 	sleep() -- 581
-	return xpcall(_anon_func_1, function(msg) -- 590
+	return xpcall(_anon_func_1, function(msg) -- 623
 		local err = debug.traceback(msg) -- 592
 		print(err) -- 593
 		allClear() -- 594

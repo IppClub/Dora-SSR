@@ -620,7 +620,7 @@ export enterEntryAsync = (entry) ->
 					.alignment = "Left"
 					.textWidth = width - fontSize
 					.text = err
-		return err
+		err
 
 enterDemoEntry = (entry) -> thread -> enterEntryAsync entry
 

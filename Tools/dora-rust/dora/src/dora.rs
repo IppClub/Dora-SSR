@@ -359,10 +359,10 @@ pub fn emit(name: &str, stack: CallStack) {
 #[macro_export]
 macro_rules! p {
 	() => {
-		dora_ssr::print("\n")
+		dora_ssr::print("")
 	};
 	($($arg:tt)*) => {{
-		dora_ssr::print((format!($($arg)*) + "\n").as_str());
+		dora_ssr::print((format!($($arg)*)).as_str());
 	}};
 }
 

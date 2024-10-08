@@ -311,7 +311,7 @@ function loadExcel() {
 	const xlsx = Content.loadExcel("Data/items.xlsx", ["items"]);
 	if (xlsx !== null) {
 		const its = xlsx["items"];
-		const names = its[1] as [string];
+		const names = its[1] as [keyof ItemStruct];
 		table.remove(names, 1);
 		if (!Struct.has("Item")) {
 			Struct.Item<ItemStruct>(names);
@@ -321,7 +321,7 @@ function loadExcel() {
 			return false;
 		});
 		for (let i = 2; i < its.length; i++) {
-			const st = Struct.load<ItemStruct>(its[i]);
+			const st = Struct.load<ItemStruct>(its[i]) as Struct<ItemStruct>;
 			const item: ItemEntity = {
 				name: st.Name,
 				no: st.No,
