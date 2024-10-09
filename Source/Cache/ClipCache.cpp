@@ -48,9 +48,15 @@ std::string ClipDef::toXml() {
 std::pair<Texture2D*, Rect> ClipCache::loadTexture(String clipStr) {
 	if (clipStr.toString().find('|') != std::string::npos) {
 		auto tokens = clipStr.split("|");
-		AssertUnless(tokens.size() == 2 && Path::getExt(tokens.front().toString()) == "clip"_slice, "invalid clip str: \"{}\".", clipStr.toString());
+		if (tokens.size() != 2 || Path::getExt(tokens.front().toString()) != "clip"_slice) {
+			Error("invalid clip str: \"{}\".", clipStr.toString());
+			return {};
+		}
 		ClipDef* clipDef = ClipCache::load(tokens.front());
-		AssertUnless(clipDef, "failed to load clip: \"{}\".", clipStr.toString());
+		if (!clipDef) {
+			Error("failed to load clip: \"{}\".", clipStr.toString());
+			return {};
+		}
 		Slice name = tokens.back();
 		auto nameStr = name.toString();
 		auto it = clipDef->rects.find(nameStr);
@@ -61,7 +67,7 @@ std::pair<Texture2D*, Rect> ClipCache::loadTexture(String clipStr) {
 			Error("no clip named \"{}\" in {}", nameStr, tokens.front().toString());
 			Texture2D* tex = SharedTextureCache.load(clipDef->textureFile);
 			Rect rect(0.0f, 0.0f, s_cast<float>(tex->getWidth()), s_cast<float>(tex->getHeight()));
-			return {tex, rect};
+			return {};
 		}
 	} else if (Path::getExt(clipStr.toString()) == "clip"_slice) {
 		Texture2D* tex = nullptr;

@@ -54,7 +54,7 @@ const SpinePlayer = memo((props: SpinePlayerProps) => {
 								animation = "idle";
 							}
 							player = new Spine(currentPlayer, {
-								backgroundColor: Color.BackgroundSecondary,
+								backgroundColor: Color.BackgroundDark,
 								animation,
 								animations,
 								preserveDrawingBuffer: false,

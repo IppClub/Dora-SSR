@@ -9,9 +9,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 import { LazyLog } from 'react-lazylog';
 import * as Service from './Service';
 import { FormEvent, memo, useEffect, useState } from 'react';
-import { Box, Button, Dialog, DialogActions, DialogContent, Divider, FormControl, IconButton, TextField, Tooltip } from '@mui/material';
+import { Box, Button, Dialog, DialogActions, DialogContent, FormControl, IconButton, TextField, Tooltip } from '@mui/material';
 import { useTranslation } from 'react-i18next';
-import { Color, Entry } from './Frame';
+import { Color, Entry, Separator } from './Frame';
 import { BsTerminal } from 'react-icons/bs';
 import InsertChartIcon from '@mui/icons-material/InsertChart';
 import { ProfilerInfo } from './ProfilerInfo';
@@ -20,7 +20,7 @@ import type { DescriptionsProps, RadioChangeEvent } from 'antd';
 import { CheckboxChangeEvent } from 'antd/es/checkbox';
 import { MacScrollbar } from 'mac-scrollbar';
 import { Line, LineConfig, Pie, PieConfig } from '@ant-design/plots';
-import { Table, Divider as DVD } from 'antd';
+import { Table, Divider } from 'antd';
 import type { TableColumnsType } from 'antd';
 import Info from './Info';
 
@@ -69,6 +69,17 @@ const getTableColumns = (t: (key: string) => string): TableColumnsType<LoaderDat
 			dataIndex: 'moduleName',
 		},
 	];
+};
+
+const formatPart = (text: string) => {
+	return <span>{
+		text.split(/\[(error|warning|info)\]/).map((part, index) => {
+			if (index % 2 === 1) {
+				return <span key={index}>[<span style={{color: part === 'error' ? Color.Error : part === 'warning' ? Color.Warning : Color.Info}}>{part}</span>]</span>;
+			}
+			return <span key={index}>{part}</span>;
+		})
+	}</span>;
 };
 
 const LogView = memo((props: LogViewProps) => {
@@ -535,7 +546,7 @@ const LogView = memo((props: LogViewProps) => {
 										<Descriptions title={t('pro.memory')} layout='vertical' bordered items={memoryItems} size='small'/>
 									</div>
 									<div style={{padding: 5, width: '50%', minHeight: 290}}>
-										<DVD>{t('pro.loaderTimeCosts')} ({totalLoaderCost.toFixed(4)} s)</DVD>
+										<Divider>{t('pro.loaderTimeCosts')} ({totalLoaderCost.toFixed(4)} s)</Divider>
 										<Table bordered dataSource={profilerInfo?.loaderCosts?.map((item) => {
 											return {
 												key: item.order,
@@ -550,7 +561,7 @@ const LogView = memo((props: LogViewProps) => {
 							</MacScrollbar>
 						</ConfigProvider>
 					</Box>
-					<Divider/>
+					<Separator/>
 				</div>
 				<LazyLog
 					height={toggleProfiler ? consoleMinHeight : props.height}
@@ -564,7 +575,9 @@ const LogView = memo((props: LogViewProps) => {
 						color: Color.TextSecondary,
 						background: Color.BackgroundDark,
 					}}
+					formatPart={formatPart}
 					rowHeight={22}
+					extraLines={1}
 					selectableLines
 					enableSearch
 					caseInsensitive
