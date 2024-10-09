@@ -10,7 +10,7 @@ import { styled, ThemeProvider } from '@mui/material/styles';
 import { createTheme } from '@mui/material/styles';
 import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar';
 import Stack from '@mui/system/Stack';
-import { IconButton, ListItemIcon, ListItemText, Toolbar } from '@mui/material';
+import { Divider, IconButton, ListItemIcon, ListItemText, Toolbar } from '@mui/material';
 import SportsEsports from '@mui/icons-material/SportsEsports';
 import { BsFillFileEarmarkPlayFill, BsPlayCircle, BsStopCircle, BsSearch, BsTerminal } from 'react-icons/bs';
 import { StyledMenu, StyledMenuItem } from './Menu';
@@ -19,9 +19,8 @@ import { useTranslation } from 'react-i18next';
 import Info from './Info';
 
 export namespace Color {
-	export const Background = '#3a3a3a';
-	export const BackgroundSecondary = '#2a2a2a';
-	export const BackgroundDark = '#1a1a1a';
+	export const Background = '#1f1f1f';
+	export const BackgroundDark = '#181818';
 
 	export const Primary = '#ccc';
 	export const Secondary = '#ccca';
@@ -30,13 +29,19 @@ export namespace Color {
 	export const TextSecondary = '#eee8';
 
 	export const Theme = '#fac03d';
+
+	export const Line = '#ffffff20';
+
+	export const Error = '#f44336';
+	export const Warning = '#ff9800';
+	export const Info = '#abb85d';
 };
 
 const theme = createTheme({
 	palette: {
 		background: {
 			default: Color.Background,
-			paper: Color.BackgroundSecondary,
+			paper: Color.BackgroundDark,
 		},
 		primary: {
 			main: Color.Primary,
@@ -55,6 +60,8 @@ const theme = createTheme({
 		}
 	}
 });
+
+export const Separator = () => <Divider style={{backgroundColor: Color.Line}}/>;
 
 interface EntryProp {
 	children?: React.ReactNode;
@@ -135,7 +142,7 @@ export const DrawerHeader = styled('div')(({ theme }) => ({
 	display: 'flex',
 	alignItems: 'center',
 	padding: theme.spacing(0),
-	...theme.mixins.toolbar,
+	minHeight: 48,
 	justifyContent: 'flex-end',
 }));
 

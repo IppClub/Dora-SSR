@@ -26,9 +26,7 @@ FrameActionDef* FrameCache::loadFrame(String frameStr) {
 		def->clipStr = parts.front().toString();
 		Vec2 origin{};
 		if (SharedClipCache.isClip(parts.front())) {
-			Texture2D* tex = nullptr;
-			Rect rect;
-			std::tie(tex, rect) = SharedClipCache.loadTexture(parts.front());
+			auto [_tex, rect] = SharedClipCache.loadTexture(parts.front());
 			origin = rect.origin;
 		}
 		auto tokens = parts.back().split(","_slice);

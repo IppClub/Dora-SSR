@@ -590,7 +590,7 @@ export enterEntryAsync = (entry) ->
 		nil
 	catch msg
 		err = debug.traceback msg
-		print err
+		Log "Error", err
 		allClear!
 		import "UI.Control.Basic.ScrollArea"
 		width: viewWidth, height: viewHeight = View.size

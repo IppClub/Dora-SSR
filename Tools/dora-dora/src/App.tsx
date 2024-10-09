@@ -10,7 +10,6 @@ import React, { ChangeEvent, Suspense, memo, useCallback, useEffect, useState } 
 import Box from '@mui/material/Box';
 import Drawer from '@mui/material/Drawer';
 import Toolbar from '@mui/material/Toolbar';
-import Divider from '@mui/material/Divider';
 import CssBaseline from '@mui/material/CssBaseline';
 import IconButton from '@mui/material/IconButton';
 import Fullscreen from '@mui/icons-material/Fullscreen';
@@ -28,7 +27,7 @@ import DoraUpload from './Upload';
 import { TransitionGroup } from 'react-transition-group';
 import * as monaco from 'monaco-editor';
 import * as Service from './Service';
-import { AppBar, DrawerHeader, Entry, Main, PlayControl, PlayControlMode, StyledStack, Color } from './Frame';
+import { AppBar, DrawerHeader, Entry, Main, PlayControl, PlayControlMode, StyledStack, Color, Separator } from './Frame';
 import { MacScrollbar } from 'mac-scrollbar';
 import 'mac-scrollbar/dist/mac-scrollbar.css';
 import FileFilter, { FilterOption } from './FileFilter';
@@ -136,6 +135,7 @@ const Editor = memo((props: {
 			path={monaco.Uri.file(editingFile.key).toString()}
 			options={{
 				readOnly,
+				padding: {top: 20},
 				wordWrap: 'on',
 				wordBreak: 'keepAll',
 				selectOnLineNumbers: true,
@@ -260,7 +260,7 @@ export default function PersistentDrawerLeft() {
 		height: window.innerHeight
 	});
 	const editorWidth = winSize.width - (drawerOpen ? drawerWidth : 0);
-	const editorHeight = winSize.height - 64;
+	const editorHeight = winSize.height - 48;
 
 	const [openLog, setOpenLog] = useState<{title: string, stopOnClose: boolean} | null>(null);
 
@@ -2430,11 +2430,11 @@ export default function PersistentDrawerLeft() {
 					drawerWidth={drawerWidth}
 					isResizing={isResizing}
 				>
-					<Toolbar style={{
-						backgroundColor: Color.BackgroundSecondary,
+					<Toolbar variant='dense' sx={{
+						backgroundColor: Color.BackgroundDark,
 						width: "100%",
-						height: "30px",
-						color: Color.Primary
+						color: Color.Primary,
+						minHeight: 48,
 					}}>
 						<IconButton
 							color="inherit"
@@ -2460,6 +2460,8 @@ export default function PersistentDrawerLeft() {
 						'& .MuiDrawer-paper': {
 							width: drawerWidth,
 							boxSizing: 'border-box',
+							borderRightColor: Color.Line,
+							borderRightWidth: 0.5,
 						},
 					}}
 					variant="persistent"
@@ -2482,7 +2484,7 @@ export default function PersistentDrawerLeft() {
 							}}
 						/>
 					</a>
-					<Divider style={{backgroundColor: '#0004'}}/>
+					<Separator/>
 					<FileTree
 						selectedKeys={selectedKeys}
 						expandedKeys={expandedKeys}

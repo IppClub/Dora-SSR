@@ -15,7 +15,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
   width: 100%;
   min-height: calc(100vh - 65px);
   color: #c9d1d9;
-  background-color: #1a1a1a;
+  background-color: #1f1f1f;
   font-family: -apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji";
   font-size: 16px;
   line-height: 1.5;
@@ -114,7 +114,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
   border-style: none;
   max-width: 100%;
   box-sizing: content-box;
-  background-color: #1a1a1a;
+  background-color: #1f1f1f;
 }
 
 .markdown-body code,
@@ -580,7 +580,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 }
 
 .markdown-body table tr {
-  background-color: #1a1a1a;
+  background-color: #1f1f1f;
   border-top: 1px solid #21262d;
 }
 
@@ -775,7 +775,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 .markdown-body .csv-data .blob-num {
   padding: 10px 8px 9px;
   text-align: right;
-  background: #1a1a1a;
+  background: #1f1f1f;
   border: 0;
 }
 

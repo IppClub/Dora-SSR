@@ -451,7 +451,7 @@ float FrameAction::getDuration() const {
 bool FrameAction::update(Node* target, float elapsed) {
 	if (_ended && elapsed > _def->duration) return true;
 	Sprite* sprite = DoraAs<Sprite>(target);
-	if (sprite) {
+	if (sprite && _texture) {
 		int frames = s_cast<int>(_def->rects.size());
 		float time = std::max(0.0f, elapsed / std::max(_def->duration, FLT_EPSILON));
 		int current = s_cast<int>(time * frames + 0.5f);

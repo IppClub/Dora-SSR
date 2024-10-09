@@ -42,6 +42,7 @@ local emit = Dora.emit -- 1
 local Profiler = Dora.Profiler -- 1
 local xpcall = _G.xpcall -- 1
 local debug = _G.debug -- 1
+local Log = Dora.Log -- 1
 local math = _G.math -- 1
 local AlignNode = Dora.AlignNode -- 1
 local Label = Dora.Label -- 1
@@ -976,7 +977,7 @@ enterEntryAsync = function(entry) -- 570
 	sleep() -- 581
 	return xpcall(_anon_func_1, function(msg) -- 623
 		local err = debug.traceback(msg) -- 592
-		print(err) -- 593
+		Log("Error", err) -- 593
 		allClear() -- 594
 		local ScrollArea = require("UI.Control.Basic.ScrollArea") -- 595
 		local viewWidth, viewHeight -- 596

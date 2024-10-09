@@ -88,7 +88,7 @@ export const StyledTab = styled((props: StyledTabProps) => {
 	return (
 		<div>
 			<Tooltip arrow title={props.tooltip}>
-				<Tab disableRipple {...newProps}/>
+				<Tab disableRipple style={{textWrap: 'nowrap'}} {...newProps}/>
 			</Tooltip>
 			<IconButton size='small' color="secondary" sx={{marginLeft: -3, opacity: 0.6}}
 				onPointerDown={() => {
