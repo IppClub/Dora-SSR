@@ -1,0 +1,26 @@
+import "@site/src/languages/highlight";
+
+# Frame
+
+**Description:**
+
+&emsp;&emsp;Create a frame animation with frames count for each frame. Can only be performed on a Sprite node.
+
+**Signature:**
+```tl
+Frame: function(clipStr: string, duration: number, frames?: {integer}): ActionDef
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| clipStr | string | The string containing format for loading a texture file.Can be "Image/file.png" and "Image/items.clip|itemA". Supports image file format: jpg, png, dds, pvr, ktx. |
+| duration | number | The total duration of the animation. |
+| frames | \{integer} | [optional] The number of frames for each frame. The number of frames should match the number of frames in the clip. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| ActionDef | Returns a new action definition. |
