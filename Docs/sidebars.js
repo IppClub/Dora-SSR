@@ -527,6 +527,11 @@ const sidebars = {
 				},
 				{
 					type: 'doc',
+					label: 'Frame',
+					id: 'api/Module/Frame',
+				},
+				{
+					type: 'doc',
 					label: 'Sequence',
 					id: 'api/Module/Sequence',
 				},

@@ -8,11 +8,12 @@ import "@site/src/languages/highlight";
 
 **Signature:**
 ```tl
-Log: function(msg: string)
+Log: function(level: LogLevel, msg: string)
 ```
 
 **Parameters:**
 
 | Parameter | Type | Description |
 | --- | --- | --- |
+| level | "Info" | "Warn" | "Error" | The logging level. |
 | msg | string | The message to be logged. |
