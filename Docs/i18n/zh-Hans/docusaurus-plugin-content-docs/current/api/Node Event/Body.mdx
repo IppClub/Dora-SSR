@@ -10,8 +10,8 @@ import "@site/src/languages/highlight";
 ```tl
 -- 可以使用以下形式的代码来注册监听这些事件：
 body.receivingContact = true
-body:slot("ContactStart", function(other: Body, point: Vec2, normal: Vec2)
-	print("感应器碰撞到了物理体", other, point, normal)
+body:slot("ContactStart", function(other: Body, point: Vec2, normal: Vec2, enabled: boolean)
+	print("感应器碰撞到了物理体", other, point, normal, enabled)
 end)
 ```
 
@@ -66,7 +66,7 @@ end)
 
 **签名：**
 ```tl
-["ContactStart"]: function(other: Body, point: Vec2, normal: Vec2)
+["ContactStart"]: function(other: Body, point: Vec2, normal: Vec2, enabled: boolean)
 ```
 
 **参数：**
@@ -76,6 +76,7 @@ end)
 | other | Body | 被碰撞的物理体对象。 |
 | point | Vec2 | 世界坐标系中的碰撞点。 |
 | normal | Vec2 | 世界坐标系中的接触表面法向量。 |
+| enabled | boolean | 碰撞是否启用。被过滤的碰撞仍会触发此事件，但启用状态将为false。 |
 
 ## ContactEnd
 
