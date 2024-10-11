@@ -10,8 +10,8 @@ import "@site/src/languages/highlight";
 ```tl
 -- you can register for these events using codes
 body.receivingContact = true
-body:slot("ContactStart", function(other: Body, point: Vec2, normal: Vec2)
-	print("A body has contacted", other, point, normal)
+body:slot("ContactStart", function(other: Body, point: Vec2, normal: Vec2, enabled: boolean)
+	print("A body has contacted", other, point, normal, enabled)
 end)
 ```
 
@@ -65,7 +65,7 @@ end)
 
 **Signature:**
 ```tl
-["ContactStart"]: function(other: Body, point: Vec2, normal: Vec2)
+["ContactStart"]: function(other: Body, point: Vec2, normal: Vec2, enabled: boolean)
 ```
 
 **Parameters:**
@@ -75,6 +75,7 @@ end)
 | other | Body | The other `Body` object that the current `Body` is colliding with. |
 | point | Vec2 | The point of collision in world coordinates. |
 | normal | Vec2 | The normal vector of the contact surface in world coordinates. |
+| enabled | boolean | Whether the contact is enabled or not. Collisions that are filtered out will still trigger this event, but the enabled state will be false. |
 
 ## ContactEnd
 

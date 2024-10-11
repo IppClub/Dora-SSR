@@ -92,7 +92,7 @@ distance: function(self: Vec2, vec: Vec2): number
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| vec | Vec2 | The other vector to calculate the distance to, represented by a Vec2 object. |
+| vec | Vec2 | The other vector to calculate the distance to. |
 
 **Returns:**
 
@@ -117,7 +117,7 @@ distanceSquared: function(self: Vec2, vec: Vec2): number
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| vec | Vec2 | The other vector to calculate the squared distance to, represented by a Vec2 object. |
+| vec | Vec2 | The other vector to calculate the squared distance to. |
 
 **Returns:**
 
@@ -180,14 +180,39 @@ clamp: function(self: Vec2, from: Vec2, to: Vec2): Vec2
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| from | Vec2 | The lower bound of the range, represented by a Vec2 object. |
-| to | Vec2 | The upper bound of the range, represented by a Vec2 object. |
+| from | Vec2 | The lower bound of the range. |
+| to | Vec2 | The upper bound of the range. |
 
 **Returns:**
 
 | Return Type | Description |
 | --- | --- |
 | Vec2 | The clamped vector. |
+
+## dot
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the dot product of two vectors.
+
+**Signature:**
+```tl
+dot: function(self: Vec2, other: Vec2): number
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| other | Vec2 | The other vector to calculate the dot product with. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The dot product of the two vectors. |
 
 ## add
 
@@ -206,7 +231,7 @@ add: function(self: Vec2, other: Vec2): Vec2
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| other | Vec2 | The other vector to add, represented by a Vec2 object. |
+| other | Vec2 | The other vector to add. |
 
 **Returns:**
 
@@ -231,7 +256,7 @@ sub: function(self: Vec2, other: Vec2): Vec2
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| other | Vec2 | The vector to subtract, represented by a Vec2 object. |
+| other | Vec2 | The vector to subtract. |
 
 **Returns:**
 
@@ -256,7 +281,7 @@ mul: function(self: Vec2, other: Vec2): Vec2
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| other | Vec2 | The other vector to multiply by, represented by a Vec2 object. |
+| other | Vec2 | The other vector to multiply by. |
 
 **Returns:**
 
@@ -361,7 +386,7 @@ equals: function(self: Vec2, other: Vec2): boolean
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| other | Vec2 | The other vector to compare to, represented by a Vec2 object. |
+| other | Vec2 | The other vector to compare to. |
 
 **Returns:**
 
@@ -386,7 +411,7 @@ metamethod __add: function(self: Vec2, other: Vec2): Vec2
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| other | Vec2 | The other vector to add, represented by a Vec2 object. |
+| other | Vec2 | The other vector to add. |
 
 **Returns:**
 
@@ -411,7 +436,7 @@ metamethod __sub: function(self: Vec2, other: Vec2): Vec2
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| other | Vec2 | The vector to subtract, represented by a Vec2 object. |
+| other | Vec2 | The vector to subtract. |
 
 **Returns:**
 
@@ -436,7 +461,7 @@ metamethod __mul: function(self: Vec2, other: Vec2): Vec2
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| other | Vec2 | The other vector to multiply by, represented by a Vec2 object. |
+| other | Vec2 | The other vector to multiply by. |
 
 **Returns:**
 
@@ -541,7 +566,7 @@ metamethod __eq: function(self: Vec2, other: Vec2): boolean
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| other | Vec2 | The other vector to compare to, represented by a Vec2 object. |
+| other | Vec2 | The other vector to compare to. |
 
 **Returns:**
 
