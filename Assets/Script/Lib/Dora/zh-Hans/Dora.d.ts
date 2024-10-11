@@ -166,6 +166,13 @@ class Vec2 extends ContainerItem {
 	clamp(from: Vec2, to: Vec2): Vec2;
 
 	/**
+	 * 计算两个向量的点积。
+	 * @param other 要计算点积的另一个向量。
+	 * @returns 两个向量的点积。
+	 */
+	dot(other: Vec2): number;
+
+	/**
 	 * 将两个向量相加。
 	 * @param other 要添加的另向量。
 	 * @returns 两个向量的和。
@@ -2629,8 +2636,9 @@ interface NodeEventHandlerMap {
 	 * @param other 被碰撞的物理体对象。
 	 * @param point 世界坐标系中的碰撞点。
 	 * @param normal 世界坐标系中的接触表面法向量。
+	 * @param enabled 该碰撞是否启用。被过滤的碰撞仍会触发此事件，但是启用状态为false。
 	*/
-	ContactStart(this: void, other: Body, point: Vec2, normal: Vec2): void;
+	ContactStart(this: void, other: Body, point: Vec2, normal: Vec2, enabled: boolean): void;
 
 	/**
 	 * 当一个物理体对象停止与另一个物理体碰撞时触发。
@@ -5445,7 +5453,7 @@ class Body extends Node {
 	 * 这个函数会将`receivingContact`属性设置为true。
 	 * @param callback 当物理体开始与另一个物体碰撞时调用的回调函数。
 	 */
-	onContactStart(callback: (this: void, other: Body, point: Vec2, normal: Vec2) => void): void;
+	onContactStart(callback: (this: void, other: Body, point: Vec2, normal: Vec2, enabled: boolean) => void): void;
 
 	/**
 	 * 注册一个函数，当物理体停止与另一个物体碰撞时调用。

@@ -110,7 +110,8 @@ local record Body
 	-- 	@param other (Body) 物理体开始与之碰撞的另一个物体。
 	-- 	@param point (Vec2) 世界坐标中的碰撞点。
 	-- 	@param normal (Vec2) 世界坐标中的接触表面的法向量。
-	onContactStart: function(self: Body, callback: function(other: Body, point: Vec2, normal: Vec2))
+	-- 	@param enabled (boolean) 碰撞是否启用。被过滤的碰撞仍会触发此事件，但启用状态将为false。
+	onContactStart: function(self: Body, callback: function(other: Body, point: Vec2, normal: Vec2, enabled: boolean))
 
 	-- 注册一个函数，当物理体停止与另一个物体发生碰撞时被调用。
 	-- 该函数将设置`receivingContact`属性为true。

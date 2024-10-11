@@ -53,6 +53,7 @@ struct Vec2
 	tolua_outside Vec2 Vec2::normalize @ normalize();
 	tolua_outside Vec2 Vec2::perp @ perp();
 	tolua_outside Vec2 Vec2::clamp @ clamp(Vec2 from, Vec2 to);
+	tolua_outside float Vec2::dot @ dot(Vec2 vec);
 	static tolua_outside Vec2 Vec2_create @ create(float x, float y);
 	static tolua_outside Vec2 Vec2_create @ create(Size size);
 	static tolua_readonly Vec2 zero;

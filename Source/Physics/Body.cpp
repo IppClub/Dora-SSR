@@ -331,8 +331,8 @@ void Body::onBodyLeave(Body* other, int sensorTag) {
 	emit("BodyLeave"_slice, other, sensorTag);
 }
 
-void Body::onContactStart(Body* other, const Vec2& point, const Vec2& normal) {
-	emit("ContactStart"_slice, other, point, normal);
+void Body::onContactStart(Body* other, const Vec2& point, const Vec2& normal, bool enabled) {
+	emit("ContactStart"_slice, other, point, normal, enabled);
 }
 
 void Body::onContactEnd(Body* other, const Vec2& point, const Vec2& normal) {

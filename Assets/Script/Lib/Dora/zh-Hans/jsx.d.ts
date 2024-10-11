@@ -1303,8 +1303,9 @@ class Body extends Node {
 	 * @param other 被碰撞的物理体对象。
 	 * @param point 世界坐标系中的碰撞点。
 	 * @param normal 世界坐标系中的接触表面法向量。
+	 * @param enabled 碰撞是否启用。被过滤的碰撞仍会触发此事件，但启用状态将为false。
 	*/
-	onContactStart?(this: void, other: Dora.Body.Type, point: Dora.Vec2.Type, normal: Dora.Vec2.Type): void;
+	onContactStart?(this: void, other: Dora.Body.Type, point: Dora.Vec2.Type, normal: Dora.Vec2.Type, enabled: boolean): void;
 
 	/**
 	 * 当一个物理体对象停止与另一个物理体碰撞时触发。

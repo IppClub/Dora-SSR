@@ -166,6 +166,13 @@ class Vec2 extends ContainerItem {
 	clamp(from: Vec2, to: Vec2): Vec2;
 
 	/**
+	 * Calculates the dot product of two vectors.
+	 * @param other The other vector to calculate the dot product with.
+	 * @returns The dot product of the two vectors.
+	 */
+	dot(other: Vec2): number;
+
+	/**
 	 * Adds two vectors together.
 	 * @param other The other vector to add.
 	 * @returns The sum of the two vectors.
@@ -2633,8 +2640,9 @@ interface NodeEventHandlerMap {
 	 * @param other The other `Body` object that the current `Body` is colliding with.
 	 * @param point The point of collision in world coordinates.
 	 * @param normal The normal vector of the contact surface in world coordinates.
+	 * @param enabled Whether the collision is enabled. Collisions that are filtered out will still trigger this event, but with enabled set to false.
 	*/
-	ContactStart(this: void, other: Body, point: Vec2, normal: Vec2): void;
+	ContactStart(this: void, other: Body, point: Vec2, normal: Vec2, enabled: boolean): void;
 
 	/**
 	 * Triggers when a `Body` object stops colliding with another object.
@@ -5445,7 +5453,7 @@ class Body extends Node {
 	 * This function sets the `receivingContact` property to true.
 	 * @param callback The callback function for when the body starts to collide with another object.
 	 */
-	onContactStart(callback: (this: void, other: Body, point: Vec2, normal: Vec2) => void): void;
+	onContactStart(callback: (this: void, other: Body, point: Vec2, normal: Vec2, enabled: boolean) => void): void;
 
 	/**
 	 * Registers a callback function for when the body stops colliding with another object.

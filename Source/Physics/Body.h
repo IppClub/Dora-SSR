@@ -24,7 +24,8 @@ class Contact;
 class FixtureDef;
 
 typedef Acf::Delegate<bool(Body* body)> ContactFilterHandler;
-typedef Acf::Delegate<void(Body* body, const Vec2& point, const Vec2& normal)> ContactHandler;
+typedef Acf::Delegate<void(Body* body, const Vec2& point, const Vec2& normal, bool enabled)> ContactStartHandler;
+typedef Acf::Delegate<void(Body* body, const Vec2& point, const Vec2& normal)> ContactEndHandler;
 
 class Body : public Node {
 public:
@@ -46,8 +47,8 @@ public:
 	PROPERTY_EXCEPT(float, VelocityY);
 	PROPERTY_VIRTUAL(uint8_t, Group);
 	PROPERTY_BOOL(ReceivingContact);
-	ContactHandler contactStart;
-	ContactHandler contactEnd;
+	ContactStartHandler contactStart;
+	ContactEndHandler contactEnd;
 	ContactFilterHandler filterContact;
 	void applyLinearImpulse(const Vec2& impulse, const Vec2& pos);
 	void applyAngularImpulse(float impulse);
@@ -79,7 +80,7 @@ protected:
 	};
 	void onBodyEnter(Body* other, int sensorTag);
 	void onBodyLeave(Body* other, int sensorTag);
-	void onContactStart(Body* other, const Vec2& point, const Vec2& normal);
+	void onContactStart(Body* other, const Vec2& point, const Vec2& normal, bool enabled);
 	void onContactEnd(Body* other, const Vec2& point, const Vec2& normal);
 	void clearPhysics();
 

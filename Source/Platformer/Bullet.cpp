@@ -60,8 +60,8 @@ bool Bullet::init() {
 	if (Body::getBodyDef()->getLinearAcceleration() != Vec2::zero) {
 		Bullet::setAngle(-bx::toDeg(std::atan2(v.y, _emitter->isFaceRight() ? v.x : -v.x)));
 	}
-	hitTarget += [](Bullet* bullet, Unit* target, Vec2 point) {
-		bullet->emit("HitTarget"_slice, bullet, target, point);
+	hitTarget += [](Bullet* bullet, Unit* target, Vec2 point, Vec2 normal) {
+		bullet->emit("HitTarget"_slice, bullet, target, point, normal);
 		return bullet->isHitStop();
 	};
 	this->scheduleUpdate();
@@ -123,7 +123,7 @@ uint32_t Bullet::getTargetAllow() const noexcept {
 	return targetAllow.toValue();
 }
 
-void Bullet::onBodyContact(Body* body, Vec2 point, Vec2 normal) {
+void Bullet::onBodyContact(Body* body, Vec2 point, Vec2 normal, bool) {
 	if (body == _emitter) {
 		return;
 	}
@@ -143,13 +143,13 @@ void Bullet::onBodyContact(Body* body, Vec2 point, Vec2 normal) {
 			_pWorld->query(rect, [&](Body* body) {
 				Unit* unit = DoraAs<Unit>(body->getOwner());
 				if (unit && targetAllow.isAllow(SharedData.getRelation(_emitter, unit))) {
-					hitTarget(this, unit, unit->getPosition());
+					hitTarget(this, unit, unit->getPosition(), normal);
 				}
 				return false;
 			});
 		} else if (isHitUnit) {
 			/* hitTarget function may cancel this hit by returning false */
-			isHit = hitTarget(this, unit, point);
+			isHit = hitTarget(this, unit, point, normal);
 		}
 	}
 	if (isHit) {

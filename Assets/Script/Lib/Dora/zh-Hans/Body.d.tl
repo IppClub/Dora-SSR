@@ -8,8 +8,8 @@ local type PhysicsWorld = require("PhysicsWorldType")
 -- @usage
 -- -- 可以使用以下形式的代码来注册监听这些事件：
 -- body.receivingContact = true
--- body:slot("ContactStart", function(other: Body, point: Vec2, normal: Vec2)
--- 	print("感应器碰撞到了物理体", other, point, normal)
+-- body:slot("ContactStart", function(other: Body, point: Vec2, normal: Vec2, enabled: boolean)
+-- 	print("感应器碰撞到了物理体", other, point, normal, enabled)
 -- end)
 local record __SLOT__
 
@@ -28,7 +28,8 @@ local record __SLOT__
 	-- @param other (Body) 被碰撞的物理体对象。
 	-- @param point (Vec2) 世界坐标系中的碰撞点。
 	-- @param normal (Vec2) 世界坐标系中的接触表面法向量。
-	["ContactStart"]: function(other: Body, point: Vec2, normal: Vec2)
+	-- @param enabled (boolean) 碰撞是否启用。被过滤的碰撞仍会触发此事件，但启用状态将为false。
+	["ContactStart"]: function(other: Body, point: Vec2, normal: Vec2, enabled: boolean)
 
 	-- 当一个物理体对象停止与另一个物理体碰撞时触发。
 	-- 需要将物理体对象的“receivingContact”属性设置为true才会触发。

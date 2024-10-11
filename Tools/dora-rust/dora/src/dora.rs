@@ -1749,6 +1749,7 @@ impl Slot {
 	/// * other: Body - The other `Body` object that the current `Body` is colliding with.
 	/// * point: Vec2 - The point of collision in world coordinates.
 	/// * normal: Vec2 - The normal vector of the contact surface in world coordinates.
+	/// * enabled: bool - Whether the contact is enabled or not. Collisions that are filtered out will still trigger this event, but the enabled state will be false.
 	///
 	/// # Callback Example
 	///
@@ -1758,13 +1759,15 @@ impl Slot {
 	/// 	let (
 	/// 		other,
 	/// 		point,
-	/// 		normal
+	/// 		normal,
+	/// 		enabled
 	/// 	) = match (
 	/// 		stack.pop_into_body(),
 	/// 		stack.pop_vec2(),
-	/// 		stack.pop_vec2()
+	/// 		stack.pop_vec2(),
+	/// 		stack.pop_bool()
 	/// 	) {
-	/// 		(Some(other), Some(point), Some(normal)) => (other, point, normal),
+	/// 		(Some(other), Some(point), Some(normal), Some(enabled)) => (other, point, normal, enabled),
 	/// 		_ => return,
 	/// 	};
 	/// }));
@@ -1783,7 +1786,7 @@ impl Slot {
 	///
 	/// ```
 	/// body.set_receiving_contact(true);
-	/// body.slot(Slot::CONTACT_START, Box::new(|stack| {
+	/// body.slot(Slot::CONTACT_END, Box::new(|stack| {
 	/// 	let (
 	/// 		other,
 	/// 		point,
@@ -2337,22 +2340,25 @@ impl Slot {
 	/// 	* other: Body - The other Body object that the current Body is colliding with.
 	/// 	* point: Vec2 - The point of collision in world coordinates.
 	/// 	* normal: Vec2 - The normal vector of the contact surface in world coordinates.
-	pub fn on_contact_start<F>(node: &mut dyn IBody, mut callback: F) where F: FnMut(/*other*/ Body, /*point*/ Vec2, /*normal*/ Vec2) + 'static {
+	/// 	* enabled: bool - Whether the contact is enabled or not. Collisions that are filtered out will still trigger this event, but the enabled state will be false.
+	pub fn on_contact_start<F>(node: &mut dyn IBody, mut callback: F) where F: FnMut(/*other*/ Body, /*point*/ Vec2, /*normal*/ Vec2, /*enabled*/ bool) + 'static {
 		node.set_receiving_contact(true);
 		node.slot(Slot::CONTACT_START, Box::new(move |stack| {
 			let (
 				other,
 				point,
-				normal
+				normal,
+				enabled
 			) = match (
 				stack.pop_into_body(),
 				stack.pop_vec2(),
-				stack.pop_vec2()
+				stack.pop_vec2(),
+				stack.pop_bool()
 			) {
-				(Some(other), Some(point), Some(normal)) => (other, point, normal),
+				(Some(other), Some(point), Some(normal), Some(enabled)) => (other, point, normal, enabled),
 				_ => return,
 			};
-			callback(other, point, normal);
+			callback(other, point, normal, enabled);
 		}));
 	}
 	/// Registers a callback for event triggered when a Body object stops colliding with another object.

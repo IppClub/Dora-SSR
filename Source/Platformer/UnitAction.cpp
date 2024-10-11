@@ -473,7 +473,7 @@ void RangeAttack::onAttack() {
 	}
 }
 
-bool RangeAttack::onHitTarget(Bullet* bullet, Unit* target, Vec2 hitPoint) {
+bool RangeAttack::onHitTarget(Bullet* bullet, Unit* target, Vec2 hitPoint, Vec2 normal) {
 	/* Get hit point */
 	bool attackFromRight = false;
 	if (bullet->getBulletDef()->damageRadius > 0.0f) {

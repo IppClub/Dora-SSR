@@ -119,6 +119,7 @@ private:
 		Body* bodyB;
 		Vec2 point;
 		Vec2 normal;
+		bool enabled = true;
 		void retain();
 		void release();
 	};

@@ -47,9 +47,11 @@ pub fn test() {
 	disk.add_to(&world);
 	disk.set_angular_rate(-1800.0);
 	let mut lb = label.clone();
-	Slot::on_contact_start(&mut disk, move |_other, point, _normal| {
-		draw_node.set_position(&point);
-		lb.set_text(&format!("Contact: [{:.0},{:.0}]", point.x, point.y));
+	Slot::on_contact_start(&mut disk, move |_other, point, _normal, enabled| {
+		if enabled {
+			draw_node.set_position(&point);
+			lb.set_text(&format!("Contact: [{:.0},{:.0}]", point.x, point.y));
+		}
 	});
 	let windows_flags =
 		ImGuiWindowFlag::NO_DECORATION |

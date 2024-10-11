@@ -201,7 +201,7 @@ protected:
 class RangeAttack : public Attack {
 public:
 	static Own<UnitAction> alloc(Unit* unit);
-	bool onHitTarget(Bullet* bullet, Unit* target, Vec2 hitPoint);
+	bool onHitTarget(Bullet* bullet, Unit* target, Vec2 hitPoint, Vec2 normal);
 
 protected:
 	RangeAttack(Unit* unit);

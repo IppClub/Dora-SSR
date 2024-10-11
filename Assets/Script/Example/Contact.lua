@@ -74,7 +74,7 @@ do -- 39
 	local _with_0 = Body(diskDef, world, Vec2(100, 200)) -- 39
 	_with_0:addTo(world) -- 40
 	_with_0.angularRate = -1800 -- 41
-	_with_0:onContactStart(function(_, point) -- 42
+	_with_0:onContactStart(function(_target, point, _normal, _enabled) -- 42
 		drawNode.position = point -- 43
 		label.text = string.format("Contact: [%.0f,%.0f]", point.x, point.y) -- 44
 	end) -- 42
