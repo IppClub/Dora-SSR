@@ -339,7 +339,7 @@ void SpriteRenderer::render() {
 		uint32_t indexCount = s_cast<uint32_t>(_indices.size());
 		if (bgfx::allocTransientBuffers(
 				&vertexBuffer, SpriteVertex::ms_layout, vertexCount,
-				&indexBuffer, indexCount)) {
+				&indexBuffer, indexCount, std::is_same_v<IndexType, uint32_t>)) {
 			Renderer::render();
 			std::memcpy(vertexBuffer.data, _vertices.data(), _vertices.size() * sizeof(_vertices[0]));
 			std::memcpy(indexBuffer.data, _indices.data(), _indices.size() * sizeof(_indices[0]));

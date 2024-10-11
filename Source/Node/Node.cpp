@@ -579,6 +579,10 @@ void Node::cleanup() {
 		unschedule();
 		unscheduleUpdate();
 		stopActionInList(_action);
+		if (_updateItem) {
+			_updateItem->scheduledMainFunc = nullptr;
+			_updateItem->scheduledThreadFuncs.clear();
+		}
 		if (_userData) {
 			_userData->clear();
 		}
