@@ -82,64 +82,67 @@ toNode(React.createElement( -- 12
 			angularRate = -2200, -- 47
 			x = 100, -- 47
 			y = 200, -- 47
-			onContactStart = function(_other, point, _normal) -- 47
-				if anchor.current then -- 47
-					anchor.current.position = point -- 58
-				end -- 58
-				if label.current then -- 58
-					label.current.text = string.format("Contact: [%.0f,%.0f]", point.x, point.y) -- 61
-				end -- 61
+			onContactStart = function(_other, point, _normal, enabled) -- 47
+				if not enabled then -- 47
+					return -- 57
+				end -- 57
+				if anchor.current then -- 57
+					anchor.current.position = point -- 59
+				end -- 59
+				if label.current then -- 59
+					label.current.text = string.format("Contact: [%.0f,%.0f]", point.x, point.y) -- 62
+				end -- 62
 			end -- 56
 		}, -- 56
 		React.createElement("disk-fixture", {radius = 20, density = 5, friction = 0.8, restitution = 1}) -- 56
 	) -- 56
 )) -- 56
-local windowFlags = { -- 70
-	"NoDecoration", -- 71
-	"AlwaysAutoResize", -- 72
-	"NoSavedSettings", -- 73
-	"NoFocusOnAppearing", -- 74
-	"NoNav", -- 75
-	"NoMove" -- 76
-} -- 76
-local ____opt_0 = disk.current -- 76
-local ____temp_2 = ____opt_0 and ____opt_0.receivingContact -- 78
-if ____temp_2 == nil then -- 78
-	____temp_2 = true -- 78
-end -- 78
-local receivingContact = ____temp_2 -- 78
-threadLoop(function() -- 79
-	local ____App_visualSize_3 = App.visualSize -- 80
-	local width = ____App_visualSize_3.width -- 80
-	ImGui.SetNextWindowBgAlpha(0.35) -- 81
-	ImGui.SetNextWindowPos( -- 82
-		Vec2(width - 10, 10), -- 82
-		"Always", -- 82
-		Vec2(1, 0) -- 82
-	) -- 82
-	ImGui.SetNextWindowSize( -- 83
-		Vec2(240, 0), -- 83
-		"FirstUseEver" -- 83
+local windowFlags = { -- 71
+	"NoDecoration", -- 72
+	"AlwaysAutoResize", -- 73
+	"NoSavedSettings", -- 74
+	"NoFocusOnAppearing", -- 75
+	"NoNav", -- 76
+	"NoMove" -- 77
+} -- 77
+local ____opt_0 = disk.current -- 77
+local ____temp_2 = ____opt_0 and ____opt_0.receivingContact -- 79
+if ____temp_2 == nil then -- 79
+	____temp_2 = true -- 79
+end -- 79
+local receivingContact = ____temp_2 -- 79
+threadLoop(function() -- 80
+	local ____App_visualSize_3 = App.visualSize -- 81
+	local width = ____App_visualSize_3.width -- 81
+	ImGui.SetNextWindowBgAlpha(0.35) -- 82
+	ImGui.SetNextWindowPos( -- 83
+		Vec2(width - 10, 10), -- 83
+		"Always", -- 83
+		Vec2(1, 0) -- 83
 	) -- 83
-	ImGui.Begin( -- 84
-		"Contact", -- 84
-		windowFlags, -- 84
-		function() -- 84
-			ImGui.Text("Contact (TSX)") -- 85
-			ImGui.Separator() -- 86
-			ImGui.TextWrapped("Receive events when physics bodies contact.") -- 87
-			local changed = false -- 88
-			changed, receivingContact = ImGui.Checkbox("Receiving Contact", receivingContact) -- 89
-			if changed then -- 89
-				if disk.current then -- 89
-					disk.current.receivingContact = receivingContact -- 92
-				end -- 92
-				if label.current then -- 92
-					label.current.text = "" -- 95
-				end -- 95
-			end -- 95
-		end -- 84
+	ImGui.SetNextWindowSize( -- 84
+		Vec2(240, 0), -- 84
+		"FirstUseEver" -- 84
 	) -- 84
-	return false -- 99
-end) -- 79
-return ____exports -- 79
+	ImGui.Begin( -- 85
+		"Contact", -- 85
+		windowFlags, -- 85
+		function() -- 85
+			ImGui.Text("Contact (TSX)") -- 86
+			ImGui.Separator() -- 87
+			ImGui.TextWrapped("Receive events when physics bodies contact.") -- 88
+			local changed = false -- 89
+			changed, receivingContact = ImGui.Checkbox("Receiving Contact", receivingContact) -- 90
+			if changed then -- 90
+				if disk.current then -- 90
+					disk.current.receivingContact = receivingContact -- 93
+				end -- 93
+				if label.current then -- 93
+					label.current.text = "" -- 96
+				end -- 96
+			end -- 96
+		end -- 85
+	) -- 85
+	return false -- 100
+end) -- 80
+return ____exports -- 80

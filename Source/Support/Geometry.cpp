@@ -160,6 +160,10 @@ Vec2 Vec2::clamp(const Vec2& vec, const Vec2& from, const Vec2& to) {
 		Math::clamp(vec.y, from.y, to.y)};
 }
 
+float Vec2::dot(const Vec2& vecA, const Vec2& vecB) {
+	return vecA.dot(vecB);
+}
+
 Vec2 Vec2::from(const pr::Vec2& vec) {
 	return Vec2{vec[0], vec[0]};
 }

@@ -8,8 +8,8 @@ local type PhysicsWorld = require("PhysicsWorldType")
 -- @usage
 -- -- you can register for these events using codes
 -- body.receivingContact = true
--- body:slot("ContactStart", function(other: Body, point: Vec2, normal: Vec2)
--- 	print("A body has contacted", other, point, normal)
+-- body:slot("ContactStart", function(other: Body, point: Vec2, normal: Vec2, enabled: boolean)
+-- 	print("A body has contacted", other, point, normal, enabled)
 -- end)
 local record __SLOT__
 
@@ -27,7 +27,8 @@ local record __SLOT__
 	-- @param other (Body) The other `Body` object that the current `Body` is colliding with.
 	-- @param point (Vec2) The point of collision in world coordinates.
 	-- @param normal (Vec2) The normal vector of the contact surface in world coordinates.
-	["ContactStart"]: function(other: Body, point: Vec2, normal: Vec2)
+	-- @param enabled (boolean) Whether the contact is enabled or not. Collisions that are filtered out will still trigger this event, but the enabled state will be false.
+	["ContactStart"]: function(other: Body, point: Vec2, normal: Vec2, enabled: boolean)
 
 	-- Triggers when a `Body` object stops colliding with another object. This event triggers only when the `receivingContact` property of the `Body` is set to true.
 	-- @param other (Body) The other `Body` object that the current `Body` is no longer colliding with.

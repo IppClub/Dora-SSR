@@ -109,7 +109,8 @@ local record Body
 	-- 	@param other (Body) The other body that the current body is colliding with.
 	-- 	@param point (Vec2) The point of collision in world coordinates.
 	-- 	@param normal (Vec2) The normal vector of the contact surface in world coordinates.
-	onContactStart: function(self: Body, callback: function(other: Body, point: Vec2, normal: Vec2))
+	-- 	@param enabled (boolean) Whether the contact is enabled or not. Collisions that are filtered out will still trigger this event, but the enabled state will be false.
+	onContactStart: function(self: Body, callback: function(other: Body, point: Vec2, normal: Vec2, enabled: boolean))
 
 	-- Registers a callback function for when the body stops colliding with another object.
 	-- This function sets the `receivingContact` property to true.

@@ -1305,8 +1305,9 @@ class Body extends Node {
 	 * @param other The other `Body` object that the current `Body` is colliding with.
 	 * @param point The point of collision in world coordinates.
 	 * @param normal The normal vector of the contact surface in world coordinates.
+	 * @param enabled Whether the contact is enabled or not. Collisions that are filtered out will still trigger this event, but the enabled state will be false.
 	*/
-	onContactStart?(this: void, other: Dora.Body.Type, point: Dora.Vec2.Type, normal: Dora.Vec2.Type): void;
+	onContactStart?(this: void, other: Dora.Body.Type, point: Dora.Vec2.Type, normal: Dora.Vec2.Type, enabled: boolean): void;
 
 	/**
 	 * Triggers when a `Body` object stops colliding with another object.

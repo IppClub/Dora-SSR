@@ -45,6 +45,11 @@ local record Vec2
 	-- @return (Vec2) 限定在范围内的向量。
 	clamp: function(self: Vec2, from: Vec2, to: Vec2): Vec2
 
+	-- 获取两个向量的点积。
+	-- @param other (Vec2) 要计算点积的另一个向量。
+	-- @return (number) 两个向量的点积。
+	dot: function(self: Vec2, other: Vec2): number
+
 	-- 将两个向量相加的元方法。
 	-- @param other (Vec2) 要相加的另一个向量。
 	-- @return (Vec2) 两个向量之和。

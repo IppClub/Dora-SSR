@@ -53,7 +53,8 @@ toNode(
 			linearAcceleration={gravity}
 			angularRate={-2200}
 			x={100} y={200}
-			onContactStart={(_other, point, _normal) => {
+			onContactStart={(_other, point, _normal, enabled) => {
+				if (!enabled) return;
 				if (anchor.current) {
 					anchor.current.position = point;
 				}

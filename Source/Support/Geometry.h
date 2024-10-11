@@ -52,6 +52,7 @@ struct Vec2 {
 	static Vec2 normalize(const Vec2& vec);
 	static Vec2 perp(const Vec2& vec);
 	static Vec2 clamp(const Vec2& vec, const Vec2& from, const Vec2& to);
+	static float dot(const Vec2& vecA, const Vec2& vecB);
 	static Vec2 from(const pr::Vec2& vec);
 };
 

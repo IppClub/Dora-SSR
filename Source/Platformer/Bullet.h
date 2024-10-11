@@ -19,7 +19,7 @@ class Unit;
 class BulletDef;
 class Bullet;
 
-typedef Acf::Delegate<bool(Bullet* bullet, Unit* target, Vec2 point)> BulletHandler;
+typedef Acf::Delegate<bool(Bullet* bullet, Unit* target, Vec2 point, Vec2 normal)> BulletHandler;
 
 class Bullet : public Body {
 public:
@@ -30,7 +30,7 @@ public:
 	PROPERTY(Node*, Face);
 	virtual bool init() override;
 	virtual bool update(double deltaTime) override;
-	void onBodyContact(Body* body, Vec2 point, Vec2 normal);
+	void onBodyContact(Body* body, Vec2 point, Vec2 normal, bool enabled);
 	BulletDef* getBulletDef();
 	TargetAllow targetAllow;
 	BulletHandler hitTarget;

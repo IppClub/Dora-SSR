@@ -92,20 +92,19 @@ void PhysicsWorld::setupBeginContact() {
 				} else if (bodyB->filterContact && !bodyB->filterContact(bodyA)) {
 					pd::UnsetEnabled(world, contact);
 				}
-				if (pd::IsEnabled(world, contact)) {
-					pd::WorldManifold worldManifold = pd::GetWorldManifold(world, contact);
-					Vec2 point = PhysicsWorld::Val(worldManifold.GetPoint(0));
-					pd::UnitVec normal = worldManifold.GetNormal();
-					if (bodyA->isReceivingContact()) {
-						ContactPair pair{bodyA, bodyB};
-						pair.retain();
-						_contactStarts.push_back(pair);
-					}
-					if (bodyB->isReceivingContact()) {
-						ContactPair pair{bodyB, bodyA, point, {normal[0], normal[1]}};
-						pair.retain();
-						_contactStarts.push_back(pair);
-					}
+				bool enabled = pd::IsEnabled(world, contact);
+				pd::WorldManifold worldManifold = pd::GetWorldManifold(world, contact);
+				Vec2 point = PhysicsWorld::Val(worldManifold.GetPoint(0));
+				pd::UnitVec normal = worldManifold.GetNormal();
+				if (bodyA->isReceivingContact()) {
+					ContactPair pair{bodyA, bodyB, point, {normal[0], normal[1]}, enabled};
+					pair.retain();
+					_contactStarts.push_back(pair);
+				}
+				if (bodyB->isReceivingContact()) {
+					ContactPair pair{bodyB, bodyA, point, {normal[0], normal[1]}, enabled};
+					pair.retain();
+					_contactStarts.push_back(pair);
 				}
 			}
 		}
@@ -427,7 +426,7 @@ const pr::Filter& PhysicsWorld::getFilter(uint8_t group) const {
 void PhysicsWorld::solveContacts() {
 	if (!_contactStarts.empty()) {
 		for (ContactPair& pair : _contactStarts) {
-			pair.bodyA->contactStart(pair.bodyB, pair.point, pair.normal);
+			pair.bodyA->contactStart(pair.bodyB, pair.point, pair.normal, pair.enabled);
 			pair.release();
 		}
 		_contactStarts.clear();
