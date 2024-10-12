@@ -2472,16 +2472,15 @@ export default function PersistentDrawerLeft() {
 						href={Info.locale.match(/^zh/) ? 'https://ippclub.atomgit.net/Dora-SSR/zh-Hans/' : 'https://dora-ssr.net'}
 						target="_blank"
 						rel="noreferrer"
+						style={{
+							paddingTop: 8,
+							paddingLeft: 10,
+						}}
 					>
 						<img
 							src={logo}
 							alt="logo"
-							width="100%"
-							height="180px"
-							style={{
-								padding: "20px",
-								textAlign: "center"
-							}}
+							height={34}
 						/>
 					</a>
 					<Separator/>
