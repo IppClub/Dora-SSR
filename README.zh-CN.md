@@ -1,17 +1,20 @@
 <p align="center">
-  <img src='Assets/Image/logo.png' alt='Dora SSR' width='240px'/>
+  <img src='Assets/Image/logo.png' alt='Dora SSR' width='200px'/>
 </p>
 
 # 多萝珍奇引擎（Dora SSR）
 
 #### [English](README.md)  | 中文
 
-![Static Badge](https://img.shields.io/badge/C%2B%2B20-Game_Engine-yellow?logo=c%2B%2B) ![Static Badge](https://img.shields.io/badge/ReactJS-Web_IDE-00d8ff?logo=react&logoColor=white) ![Static Badge](https://img.shields.io/badge/Rust-Scripting-e36f39?logo=rust) ![Static Badge](https://img.shields.io/badge/Lua-Scripting-blue?logo=lua) ![Static Badge](https://img.shields.io/badge/Teal-Scripting-blue) ![Static Badge](https://img.shields.io/badge/YueScript-Scripting-blue) ![Static Badge](https://img.shields.io/badge/TypeScript-Scripting-blue?logo=typescript&logoColor=white) ![Static Badge](https://img.shields.io/badge/TSX-Scripting-blue?logo=typescript&logoColor=white)
- ![Android](https://github.com/ippclub/Dora-SSR/actions/workflows/android.yml/badge.svg) ![Linux](https://github.com/ippclub/Dora-SSR/actions/workflows/linux.yml/badge.svg) ![Windows](https://github.com/ippclub/Dora-SSR/actions/workflows/windows.yml/badge.svg) ![macOS](https://github.com/ippclub/Dora-SSR/actions/workflows/macos.yml/badge.svg) ![iOS](https://github.com/ippclub/Dora-SSR/actions/workflows/ios.yml/badge.svg)
+* 提供游戏开发工具：![Static Badge](https://img.shields.io/badge/C%2B%2B20-Game_Engine-d5a64c?logo=c%2B%2B) ![Static Badge](https://img.shields.io/badge/ReactJS-Web_IDE-00d8ff?logo=react&logoColor=white)
+
+* 支持编程语言：![Static Badge](https://img.shields.io/badge/Rust-Scripting-e36f39?logo=rust) ![Static Badge](https://img.shields.io/badge/Lua-Scripting-blue?logo=lua) ![Static Badge](https://img.shields.io/badge/TypeScript-Scripting-blue?logo=typescript&logoColor=white) ![Static Badge](https://img.shields.io/badge/TSX-Scripting-blue?logo=typescript&logoColor=white) ![Static Badge](https://img.shields.io/badge/Teal-Scripting-blue) ![Static Badge](https://img.shields.io/badge/YueScript-Scripting-blue)
+
+* 支持运行平台：![Android](https://github.com/ippclub/Dora-SSR/actions/workflows/android.yml/badge.svg) ![Linux](https://github.com/ippclub/Dora-SSR/actions/workflows/linux.yml/badge.svg) ![Windows](https://github.com/ippclub/Dora-SSR/actions/workflows/windows.yml/badge.svg) ![macOS](https://github.com/ippclub/Dora-SSR/actions/workflows/macos.yml/badge.svg) ![iOS](https://github.com/ippclub/Dora-SSR/actions/workflows/ios.yml/badge.svg)
 
 ----
 
-&emsp;&emsp;Dora SSR 是一个用于多种设备上快速开发 2D 游戏的游戏引擎。它内置易用的开发工具链，支持在手机、开源掌机等设备上直接进行游戏开发。
+&emsp;&emsp;Dora SSR 是一个用于多种设备上快速开发 2D 游戏的游戏引擎。它内置易用的 Web IDE 开发工具链，支持在手机、开源掌机等设备上直接进行游戏开发。
 
 <div align='center'><img src='Docs/static/img/3.png' alt='Playground' width='500px'/></div>
 
