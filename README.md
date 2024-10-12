@@ -251,8 +251,10 @@ const onUpdate = once(() => {
     sleep(1);
   }
   print("Hello World");
-  if (actionRef.current && spriteRef.current) {
-    spriteRef.current.perform(actionRef.current);
+  const {current: action} = actionRef;
+  const {current: sprite} = spriteRef;
+  if (action && sprite) {
+    sprite.perform(action);
   }
 });
 
