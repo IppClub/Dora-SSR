@@ -156,7 +156,7 @@ For the installation and configuration of Dora SSR project development, see [Off
 local _ENV = Dora
 
 local sprite = Sprite("Image/logo.png")
-sprite:schedule(once(function()
+sprite:once(function()
   for i = 3, 1, -1 do
     print(i)
     sleep(1)
@@ -166,7 +166,7 @@ sprite:schedule(once(function()
     Scale(0.1, 1, 0.5),
     Scale(0.5, 0.5, 1, Ease.OutBack)
   ))
-end))
+end)
 ```
 
 - **Teal**
@@ -176,12 +176,11 @@ local sleep <const> = require("sleep")
 local Ease <const> = require("Ease")
 local Scale <const> = require("Scale")
 local Sequence <const> = require("Sequence")
-local once <const> = require("once")
 local Sprite <const> = require("Sprite")
 
 local sprite = Sprite("Image/logo.png")
 if not sprite is nil then
-  sprite:schedule(once(function()
+  sprite:once(function()
     for i = 3, 1, -1 do
       print(i)
       sleep(1)
@@ -191,7 +190,7 @@ if not sprite is nil then
       Scale(0.1, 1, 0.5),
       Scale(0.5, 0.5, 1, Ease.OutBack)
     ))
-  end))
+  end)
 end
 ```
 
@@ -203,25 +202,25 @@ end
 _ENV = Dora
 
 with Sprite "Image/logo.png"
-   \schedule once ->
+   \once ->
      for i = 3, 1, -1
        print i
        sleep 1
      print "Hello World!"
      \perform Sequence(
        Scale 0.1, 1, 0.5
-       Scale 0.5, 0.5, 1, Ease. OutBack
+       Scale 0.5, 0.5, 1, Ease.OutBack
      )
 ```
 
 - **TypeScript**
 
 ```typescript
-import {Sprite, Ease, Scale, Sequence, once, sleep} from 'Dora';
+import {Sprite, Ease, Scale, Sequence, sleep} from 'Dora';
 
 const sprite = Sprite("Image/logo.png");
 if (sprite) {
-  sprite.schedule(once(() => {
+  sprite.once(() => {
     for (let i of $range(3, 1, -1)) {
       print(i);
       sleep(1);
@@ -231,7 +230,7 @@ if (sprite) {
       Scale(0.1, 1, 0.5),
       Scale(0.5, 0.5, 1, Ease.OutBack)
     ))
-  }));
+  });
 }
 ```
 
