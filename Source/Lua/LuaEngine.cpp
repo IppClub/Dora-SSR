@@ -583,10 +583,10 @@ static int dora_threaded_read_file(lua_State* L) {
 	auto fileStr = luaL_checklstring(L, 1, &size);
 	Slice filename{fileStr, size};
 	OwnArray<uint8_t> codeData;
-	size_t codeSize;
+	size_t codeSize = 0;
 	bx::Semaphore waitForLoaded;
 	SharedContent.getThread()->run([&]() {
-		int64_t size;
+		int64_t size = 0;
 		auto data = SharedContent.loadUnsafe(filename, size);
 		codeSize = s_cast<size_t>(size);
 		codeData = MakeOwnArray(data);
@@ -1190,7 +1190,6 @@ LuaEngine::TealState* LuaEngine::loadTealState() {
 		lua_State* tl = luaL_newstate();
 		_tlState->L = tl;
 		_tlState->thread = SharedAsyncThread.newThread();
-		_tlState->initialized = false;
 		int top = lua_gettop(tl);
 		DEFER(lua_settop(tl, top));
 		dora_load_base(tl);
@@ -1205,30 +1204,31 @@ LuaEngine::TealState* LuaEngine::loadTealState() {
 }
 
 void LuaEngine::initTealState(bool mainThread) {
-	AssertUnless(_tlState, "Teal state not loaded");
-	if (_tlState->initialized) return;
-	auto tl = _tlState->L;
-	int top = lua_gettop(tl);
-	DEFER(lua_settop(tl, top));
-	tolua_TealCompiler_open(tl);
-	lua_getglobal(tl, "package"); // package
-	lua_pushliteral(tl, "path"); // package "path"
-	lua_pushliteral(tl, "?.lua"); // package "path" "?.lua"
-	lua_rawset(tl, -3); // package.path = "?.lua", package
-	lua_getfield(tl, -1, "loaded"); // package loaded
-	lua_getfield(tl, -1, "tl"); // package loaded tl
-	lua_pushcfunction(tl, dora_file_exist);
-	lua_setfield(tl, -2, "file_exist");
-	if (mainThread) {
-		lua_pushcfunction(tl, dora_read_file);
-		lua_setfield(tl, -2, "read_file");
-	} else {
-		lua_pushcfunction(tl, dora_threaded_read_file);
-		lua_setfield(tl, -2, "read_file");
-	}
-	lua_getfield(tl, -1, "dora_init"); // package loaded tl dora_init
-	LuaEngine::call(tl, 0, 0);
-	_tlState->initialized = true;
+	static std::once_flag initTealOnce;
+	std::call_once(initTealOnce, [this, mainThread]() {
+		AssertUnless(_tlState, "Teal state not loaded");
+		auto tl = _tlState->L;
+		int top = lua_gettop(tl);
+		DEFER(lua_settop(tl, top));
+		tolua_TealCompiler_open(tl);
+		lua_getglobal(tl, "package"); // package
+		lua_pushliteral(tl, "path"); // package "path"
+		lua_pushliteral(tl, "?.lua"); // package "path" "?.lua"
+		lua_rawset(tl, -3); // package.path = "?.lua", package
+		lua_getfield(tl, -1, "loaded"); // package loaded
+		lua_getfield(tl, -1, "tl"); // package loaded tl
+		lua_pushcfunction(tl, dora_file_exist);
+		lua_setfield(tl, -2, "file_exist");
+		if (mainThread) {
+			lua_pushcfunction(tl, dora_read_file);
+			lua_setfield(tl, -2, "read_file");
+		} else {
+			lua_pushcfunction(tl, dora_threaded_read_file);
+			lua_setfield(tl, -2, "read_file");
+		}
+		lua_getfield(tl, -1, "dora_init"); // package loaded tl dora_init
+		LuaEngine::call(tl, 0, 0);
+	});
 }
 
 std::string LuaEngine::getTealVersion() {

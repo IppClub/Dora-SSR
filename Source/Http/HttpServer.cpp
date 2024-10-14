@@ -318,7 +318,7 @@ bool HttpServer::start(int port) {
 		size_t dataSize = 0;
 		bx::Semaphore waitForLoaded;
 		SharedContent.getThread()->run([&]() {
-			int64_t size;
+			int64_t size = 0;
 			auto result = SharedContent.loadUnsafe(path, size);
 			if (size > 0) {
 				data = MakeOwnArray(result);

@@ -239,7 +239,6 @@ private:
 	struct TealState {
 		lua_State* L;
 		Async* thread;
-		bool initialized;
 	};
 	Own<TealState> _tlState;
 	TealState* loadTealState();
