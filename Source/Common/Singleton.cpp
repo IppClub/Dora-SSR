@@ -10,7 +10,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Common/Singleton.h"
 
-#include <mutex>
 #include <numeric>
 
 NS_DORA_BEGIN
