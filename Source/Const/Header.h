@@ -30,6 +30,7 @@ using namespace std::string_literals;
 using namespace std::string_view_literals;
 #include <concepts>
 #include <iterator>
+#include <mutex>
 
 #include "bx/bx.h"
 

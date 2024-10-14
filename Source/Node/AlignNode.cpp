@@ -16,7 +16,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include <charconv>
 #include <map>
-#include <mutex>
 #include <ranges>
 #include <string_view>
 #include <system_error>
