@@ -2469,7 +2469,7 @@ export default function PersistentDrawerLeft() {
 					open={drawerOpen}
 				>
 					<a
-						href={Info.locale.match(/^zh/) ? 'https://ippclub.atomgit.net/Dora-SSR/zh-Hans/' : 'https://dora-ssr.net'}
+						href={Info.locale.match(/^zh/) ? 'https://ippclub.atomgit.net/Dora-SSR/zh-Hans/docs/api/intro' : 'https://dora-ssr.net/docs/api/intro'}
 						target="_blank"
 						rel="noreferrer"
 						style={{
