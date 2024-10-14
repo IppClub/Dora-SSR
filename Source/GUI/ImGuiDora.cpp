@@ -487,7 +487,7 @@ void ImGuiDora::loadFontTTFAsync(String ttfFontFile, float fontSize, String glyp
 	fontSize *= scale;
 #endif
 
-	int64_t size;
+	int64_t size = 0;
 	uint8_t* fileData = SharedContent.loadInMainUnsafe(ttfFontFile, size);
 
 	if (!fileData) {

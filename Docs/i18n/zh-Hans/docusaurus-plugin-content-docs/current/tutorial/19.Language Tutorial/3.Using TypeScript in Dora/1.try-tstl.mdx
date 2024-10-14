@@ -6,11 +6,11 @@ import "@site/src/languages/highlight";
 &emsp;&emsp;这篇教程假设你已经熟悉 TypeScript 语法。如果你还不熟悉 TypeScript，可以参考 [TypeScript 官方文档](https://www.typescriptlang.org/docs/) 进行学习。同时教程也假设你已经了解 Lua 语言的基础知识，如果你还不熟悉 Lua，可以参考 [Lua 官方文档](https://lua-users.lua.ac.cn/wiki/TutorialDirectory) 进行学习。
 :::
 
-## 前言
+## 1、前言
 
 &emsp;&emsp;在这篇教程中，我们将介绍如何使用 Dora SSR 游戏引擎的 Web IDE 与 TypeScript To Lua (TSTL) 进行开发。Dora SSR 集成了 TSTL 编译器工具链，支持通过 TypeScript 编写游戏逻辑并转换为 Lua 运行。此外，Web IDE 提供了丰富的开发体验，包括代码检查、语法高亮、错误提示等功能，让开发过程更加高效。
 
-## TypeScript 与 Lua 的基本映射
+## 2、TypeScript 与 Lua 的基本映射
 
 &emsp;&emsp;TSTL 编译器将 TypeScript 代码编译为 Lua 代码，支持 TypeScript 的大部分语法特性。以下是一些常见的 TypeScript 特性在 Lua 中的映射：
 
@@ -20,7 +20,7 @@ import "@site/src/languages/highlight";
 
 &emsp;&emsp;你可以在项目中使用这些 TypeScript 特性来组织游戏逻辑，TSTL 会在你保存时自动编译为 Lua。为了在 TypeScript 中提供 Dora SSR API 的访问能力，Dora SSR 提供了一系列的 `.d.ts` 声明文件，你可以直接引入并使用。
 
-## 编写 TypeScript 代码
+## 3、编写 TypeScript 代码
 
 &emsp;&emsp;在 Dora SSR 中，你可以通过以下几步快速开始用 TypeScript 编写游戏逻辑：
 
@@ -44,7 +44,7 @@ scene.addChild(sprite);
 
 - 5、**运行代码**：保存代码后，Dora SSR 的 Web IDE 会自动进行 TSTL 编译，并在本地运行生成的 Lua 代码。你可以通过 Web IDE 的编辑器界面和控制台查看输出信息和错误提示。
 
-## 调试与错误检查
+## 4、调试与错误检查
 
 &emsp;&emsp;Web IDE 内置了 TypeScript 代码的检查和调试功能，支持：
 
@@ -59,7 +59,7 @@ scene.addChild(sprite);
 sprite.move(10, 10);
 ```
 
-## 示例项目：创建简单的角色控制
+## 5、示例项目：创建简单的角色控制
 
 &emsp;&emsp;下面是一个简单的示例，演示如何在 Dora SSR 中使用 TypeScript 编写角色控制逻辑：
 
@@ -85,14 +85,14 @@ scene.onUpdate(() => {
 
 &emsp;&emsp;保存代码后，Web IDE 将会自动编译并在模拟器中运行此游戏。
 
-## 导入项目下的模块
+## 6、导入项目下的模块
 
 &emsp;&emsp;在实际开发中，你可能需要导入项目下的其它 TypeScript 编写的模块。这里与 TypeScript 的模块导入有不同的是，Dora SSR 使用的是 Lua 模块系统，代码的搜索方式也有所不同。通常这个差异会导致使用相对路径的代码搜索失效。请参考这篇包含项目代码搜索路径的[说明](../../project-management)，来正确编写你的代码导入路径。
 
-## 打包与发布
+## 7、打包与发布
 
 &emsp;&emsp;完成游戏开发后，你可以通过 Web IDE 打包生成最终的 Lua 文件，导出 Zip 包，并部署到目标设备。通过 Dora SSR 提供的打包工具，你可以轻松将项目发布到手机、开源掌机等设备上。
 
-## 总结
+## 8、总结
 
 &emsp;&emsp;通过 Dora SSR 的 Web IDE 与 TSTL 的结合，开发者可以在熟悉的 TypeScript 生态中进行游戏开发，并享受便捷的工具支持和强大的 Dora SSR API。希望本教程帮助你快速上手在 Dora SSR 中使用 TypeScript To Lua 进行开发，并制作出属于你的创意游戏！
