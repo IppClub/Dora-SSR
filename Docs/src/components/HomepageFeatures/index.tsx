@@ -363,7 +363,7 @@ export default function HomepageFeatures(): JSX.Element {
 						<Translate
 							id='promotion_section_title'
 							description='The promotion section title in front page'>
-							Why Dora SSR?
+							Why Dora SSR
 						</Translate>
 					</h2>
 					<div className="row">

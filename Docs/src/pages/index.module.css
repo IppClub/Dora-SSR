@@ -4,20 +4,37 @@
  */
 
 .heroBanner {
-  padding: 4rem 0;
-  text-align: center;
-  position: relative;
-  overflow: hidden;
+	padding: 4rem 0;
+	text-align: center;
+	position: relative;
+	overflow: hidden;
+	background-image: url('@site/static/img/dora-toto.jpg');
+	background-size: cover;
+	background-position: center;
+	background-position-y: calc(0% + 15%);
+	background-repeat: no-repeat;
+	background-blend-mode: darken;
+	background-color: rgba(0, 0, 0, 0.5);
+}
+
+.heroTitle {
+	font-size: 5rem;
+	color: var(--ifm-color-title);
+}
+
+.heroSubtitle {
+	padding-bottom: 1rem;
+	color: var(--ifm-color-subtitle);
 }
 
 @media screen and (max-width: 996px) {
-  .heroBanner {
-    padding: 2rem;
-  }
+	.heroBanner {
+		padding: 2rem;
+	}
 }
 
 .buttons {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 }
