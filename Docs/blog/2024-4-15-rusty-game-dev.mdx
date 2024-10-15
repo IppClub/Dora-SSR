@@ -213,14 +213,14 @@ print("string passing time: " .. tostring((App.elapsedTime - start) * 1000) .. "
 
 ```
 Rust + WASM:
-object passing time: 0.6279945373535156 ms
-number passing time: 0.5879402160644531 ms
-string passing time: 3.543853759765625 ms
+object passing time: 0.63 ms
+number passing time: 0.59 ms
+string passing time: 3.54 ms
 
 Lua:
-object passing time: 6.7338943481445 ms
-number passing time: 2.687931060791 ms
-string passing time: 4.2259693145752 ms
+object passing time: 6.73 ms
+number passing time: 2.69 ms
+string passing time: 4.23 ms
 ```
 
 As observed, aside from string type interface calling, Lua's cross-language calling performance in Dora SSR is almost an order of magnitude slower than WASM's. The slight difference in string handling is likely due to the bulk of performance loss occurring during string object copying, a minor concern compared to cross-language calling overheads.
