@@ -213,14 +213,14 @@ print("string passing time: " .. tostring((App.elapsedTime - start) * 1000) .. "
 
 ```
 Rust + WASM:
-object passing time: 0.6279945373535156 ms
-number passing time: 0.5879402160644531 ms
-string passing time: 3.543853759765625 ms
+object passing time: 0.63 ms
+number passing time: 0.59 ms
+string passing time: 3.54 ms
 
 Lua:
-object passing time: 6.7338943481445 ms
-number passing time: 2.687931060791 ms
-string passing time: 4.2259693145752 ms
+object passing time: 6.73 ms
+number passing time: 2.69 ms
+string passing time: 4.23 ms
 ```
 
 &emsp;&emsp;可以看出，除了字符串类型的接口传参调用外，在 Dora SSR 中实现的其它类型的接口的 Lua 跨语言调用性能要比 WASM 跨语言调用几乎慢一个数量级。字符串类型的接口推断是因为性能消耗大头主要都是在字符串对象的拷贝上，跨语言调用的开销远比内存拷贝的开销小，所以结果差距不大。
