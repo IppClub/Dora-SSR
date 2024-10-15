@@ -12,7 +12,7 @@
     "description": "The feature title two in front page"
   },
   "feature_description_two": {
-    "message": "Dora SSR 的目标：在任何电子设备上极速提供开箱即用的2D游戏开发环境。",
+    "message": "Dora SSR 的目标：在任何电子设备上极速提供开箱即用的游戏开发环境。",
     "description": "The feature description two in front page"
   },
   "feature_title_three": {
@@ -446,7 +446,7 @@
     "description": "The engine feature description Rust Scripting Support in front page"
   },
   "promotion_section_title": {
-    "message": "为什么选择 Dora SSR 引擎？",
+    "message": "为什么选择 Dora SSR",
     "description": "The promotion section title in front page"
   },
   "feature_section_title": {
