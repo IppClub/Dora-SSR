@@ -24,6 +24,7 @@ const sidebars = {
 		{
 			type: 'category',
 			label: 'Basic Functionality',
+			collapsed: true,
 			items: [
 				{
 					type: 'doc',
@@ -169,6 +170,7 @@ const sidebars = {
 		{
 			type: 'category',
 			label: 'Scene Management',
+			collapsed: true,
 			items: [
 				{
 					type: 'category',
@@ -247,6 +249,7 @@ const sidebars = {
 		{
 			type: 'category',
 			label: 'Event Management',
+			collapsed: true,
 			items: [
 				{
 					type: 'category',
@@ -300,6 +303,7 @@ const sidebars = {
 		{
 			type: 'category',
 			label: 'Graphics Rendering',
+			collapsed: true,
 			items: [
 				{
 					type: 'category',
@@ -434,6 +438,7 @@ const sidebars = {
 		{
 			type: 'category',
 			label: 'Node Actions',
+			collapsed: true,
 			items: [
 				{
 					type: 'doc',
@@ -575,6 +580,7 @@ const sidebars = {
 		{
 			type: 'category',
 			label: 'Physics Simulation',
+			collapsed: true,
 			items: [
 				{
 					type: 'doc',
@@ -626,6 +632,7 @@ const sidebars = {
 		{
 			type: 'category',
 			label: 'ECS Framework',
+			collapsed: true,
 			items: [
 				{
 					type: 'doc',
@@ -647,6 +654,7 @@ const sidebars = {
 		{
 			type: 'category',
 			label: 'Platformer Game Framework',
+			collapsed: true,
 			items: [
 				{
 					type: 'doc',
@@ -728,6 +736,7 @@ const sidebars = {
 		{
 			type: 'category',
 			label: 'Coroutine Management',
+			collapsed: true,
 			items: [
 				{
 					type: 'doc',
@@ -774,6 +783,7 @@ const sidebars = {
 		{
 			type: 'category',
 			label: 'Machine Learning Algorithms',
+			collapsed: true,
 			items: [
 				{
 					type: 'link',
@@ -790,6 +800,7 @@ const sidebars = {
 		{
 			type: 'category',
 			label: 'Dialogue System',
+			collapsed: true,
 			items: [
 				{
 					type: 'doc',
@@ -816,6 +827,7 @@ const sidebars = {
 		{
 			type: 'category',
 			label: 'Networking Service',
+			collapsed: true,
 			items: [
 				{
 					type: 'doc',
@@ -837,6 +849,7 @@ const sidebars = {
 		{
 			type: 'category',
 			label: 'Misc Functions',
+			collapsed: true,
 			items: [
 				"api/Class/Buffer",
 				"api/Class/tolua",
@@ -867,6 +880,7 @@ const sidebars = {
 		{
 			type: 'category',
 			label: 'Uncategorized API',
+			collapsed: true,
 			items: [
 				{
 					type: 'category',

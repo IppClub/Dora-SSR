@@ -1,6 +1,6 @@
 {
   "version.label": {
-    "message": "下一个",
+    "message": "版本 1.5.18",
     "description": "The label for version current"
   },
   "sidebar.apiSidebar.category.Class": {
@@ -694,5 +694,9 @@
   "sidebar.tutorialSidebar.category.Using TypeScript in Dora": {
     "message": "在 Dora 中使用 TypeScript",
     "description": "The label for category Using TypeScript in Dora in sidebar tutorialSidebar"
+  },
+  "sidebar.apiSidebar.doc.Frame": {
+    "message": "Frame",
+    "description": "The label for the doc item Frame in sidebar apiSidebar, linking to the doc api/Module/Frame"
   }
 }

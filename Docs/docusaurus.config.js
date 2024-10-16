@@ -209,9 +209,15 @@ const config = {
 					editUrl: github ?
 						'https://github.com/ippclub/Dora-SSR/tree/main/Docs' :
 						'https://atomgit.com/ippclub/Dora-SSR/blob/main/Docs',
-					// sidebarCollapsed: false,
+					sidebarCollapsed: false,
 					showLastUpdateAuthor: true,
 					showLastUpdateTime: true,
+					lastVersion: 'current',
+					versions: {
+						current: {
+							label: 'v1.5.18',
+						},
+					},
 				},
 				blog: {
 					showReadingTime: true,
@@ -241,21 +247,30 @@ const config = {
 			},
 			items: [
 				{
-					type: 'localeDropdown',
-				},
-				{
 					type: 'docSidebar',
 					sidebarId: 'tutorialSidebar',
-					position: 'left',
 					label: 'Tutorial',
+					position: 'left',
 				},
 				{
 					type: 'docSidebar',
 					sidebarId: 'apiSidebar',
+					label: 'Reference',
 					position: 'left',
-					label: 'API',
 				},
-				{to: '/blog', label: 'Blog', position: 'left'},
+				{
+					to: '/blog',
+					label: 'Blog',
+					position: 'left'
+				},
+				{
+					type: 'docsVersionDropdown',
+					position: 'right',
+				},
+				{
+					type: 'localeDropdown',
+					position: 'right',
+				},
 				{
 					href: github ?
 						'https://github.com/ippclub/Dora-SSR' :

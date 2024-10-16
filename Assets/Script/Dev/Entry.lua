@@ -218,7 +218,7 @@ if (config.showStats ~= nil) then -- 129
 else -- 132
 	config.showStats = showStats -- 132
 end -- 129
-local showConsole = true -- 134
+local showConsole = false -- 134
 if (config.showConsole ~= nil) then -- 135
 	showConsole = config.showConsole -- 136
 else -- 138

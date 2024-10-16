@@ -131,7 +131,7 @@ if config.showStats?
 else
 	config.showStats = showStats
 
-showConsole = true
+showConsole = false
 if config.showConsole?
 	showConsole = config.showConsole
 else
