@@ -4,7 +4,7 @@
 
 #### English | [中文](README.zh-CN.md)
 
-Dora SSR is a game engine for rapid development of 2D games on various devices. It has a built-in easy-to-use Web IDE development tool chain that supports direct game development on mobile phones, open source handhelds and other devices.
+Dora SSR is a game engine for rapid development of games on various devices. It has a built-in easy-to-use Web IDE development tool chain that supports direct game development on mobile phones, open source handhelds and other devices.
 
 | Category | Badges |
 | - | - |
