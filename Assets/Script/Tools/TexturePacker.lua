@@ -268,191 +268,213 @@ local function generateClips(folder) -- 130
 	thread(function() -- 216
 		Content:saveAsync(clipFile, xml) -- 217
 		target:saveAsync(textureFile) -- 218
+		Cache:unload(textureFile) -- 219
+		Cache:unload(clipFile) -- 220
+		local rects = Sprite:getClips(clipFile) -- 221
+		if rects then -- 221
+			frame:schedule(function() -- 223
+				local ____App_bufferSize_7 = App.bufferSize -- 224
+				local bw = ____App_bufferSize_7.width -- 224
+				local bh = ____App_bufferSize_7.height -- 224
+				local ____App_visualSize_8 = App.visualSize -- 225
+				local vw = ____App_visualSize_8.width -- 225
+				local pos = Mouse.position:mul(bw / vw) -- 226
+				pos = Vec2(pos.x - bw / 2, bh / 2 - pos.y) -- 227
+				local localPos = frame:convertToNodeSpace(pos) -- 228
+				clipHover = "-" -- 229
+				for name, rc in pairs(rects) do -- 230
+					if rc:containsPoint(Vec2(localPos.x, height - localPos.y)) then -- 230
+						clipHover = name -- 232
+					end -- 232
+				end -- 232
+				return false -- 235
+			end) -- 223
+		end -- 223
 	end) -- 216
-	local displaySprite = Sprite(target.texture) -- 221
-	displaySprite.filter = anisotropic and "Anisotropic" or "Point" -- 222
-	displaySprite:addChild(frame) -- 223
-	displaySprite:runAction(Opacity(0.3, 0, 1)) -- 224
-	currentDisplay = displaySprite -- 225
+	local displaySprite = Sprite(target.texture) -- 240
+	displaySprite.filter = anisotropic and "Anisotropic" or "Point" -- 241
+	displaySprite:addChild(frame) -- 242
+	displaySprite:runAction(Opacity(0.3, 0, 1)) -- 243
+	currentDisplay = displaySprite -- 244
 end -- 130
-local length = Vec2(App.visualSize).length -- 228
-local tapCount = 0 -- 229
-toNode(React.createElement( -- 230
-	"node", -- 230
-	{ -- 230
-		order = 1, -- 230
-		onTapBegan = function() -- 230
-			tapCount = tapCount + 1 -- 233
-		end, -- 232
-		onTapEnded = function() -- 232
-			tapCount = tapCount - 1 -- 236
-		end, -- 235
-		onTapMoved = function(touch) -- 235
-			if currentDisplay then -- 235
-				currentDisplay.position = currentDisplay.position:add(touch.delta) -- 240
-			end -- 240
-		end, -- 238
-		onGesture = function(_center, fingers, deltaDist, _deltaAngle) -- 238
-			if tapCount > 0 then -- 238
-				return -- 244
-			end -- 244
-			if currentDisplay and tolua.cast(currentDisplay, "Sprite") and fingers == 2 then -- 244
-				local ____currentDisplay_7 = currentDisplay -- 246
-				local width = ____currentDisplay_7.width -- 246
-				local height = ____currentDisplay_7.height -- 246
-				local size = Vec2(width, height).length -- 247
-				scaledSize = scaledSize + deltaDist * length * 10 / size -- 248
-				scaledSize = math.max(0.5, scaledSize) -- 249
-				scaledSize = math.min(5, scaledSize) -- 250
-				local ____currentDisplay_9 = currentDisplay -- 251
-				local ____scaledSize_8 = scaledSize -- 251
-				currentDisplay.scaleY = ____scaledSize_8 -- 251
-				____currentDisplay_9.scaleX = ____scaledSize_8 -- 251
-			end -- 251
-		end -- 243
-	} -- 243
-)) -- 243
-local current = 1 -- 257
-local filterBuf = Buffer(20) -- 258
-local windowFlags = { -- 259
-	"NoDecoration", -- 260
-	"NoSavedSettings", -- 261
-	"NoFocusOnAppearing", -- 262
-	"NoNav", -- 263
-	"NoMove", -- 264
-	"NoScrollWithMouse" -- 265
-} -- 265
-local inputTextFlags = {"AutoSelectAll"} -- 267
-local filteredNames = clipNames -- 268
-local filteredFolders = clipFolders -- 269
-local scaleChecked = false -- 270
-local themeColor = App.themeColor -- 271
-threadLoop(function() -- 272
-	local ____App_visualSize_10 = App.visualSize -- 273
-	local width = ____App_visualSize_10.width -- 273
-	ImGui.SetNextWindowPos( -- 274
-		Vec2(width - 10, 10), -- 274
-		"Always", -- 274
-		Vec2(1, 0) -- 274
-	) -- 274
-	ImGui.SetNextWindowSize( -- 275
-		Vec2(230, 0), -- 275
-		"Always" -- 275
-	) -- 275
-	ImGui.Begin( -- 276
-		"Texture Packer", -- 276
-		windowFlags, -- 276
-		function() -- 276
-			ImGui.Text(zh and "纹理打包工具" or "Texture Packer") -- 277
-			ImGui.SameLine() -- 278
-			ImGui.TextDisabled("(?)") -- 279
-			if ImGui.IsItemHovered() then -- 279
-				ImGui.BeginTooltip(function() -- 281
-					ImGui.PushTextWrapPos( -- 282
-						300, -- 282
-						function() -- 282
-							ImGui.Text(zh and "将图像文件（png、jpg、ktx、pvr）放入一个以 '.clips' 结尾的文件夹中，然后重新加载纹理打包工具以找到该文件夹并创建一个打包图像文件。打包后的图像将保存为 '.png' 文件，并生成一个对应的描述文件，保存为 '.clip' 文件。例如，'items.clips' 会变成 'items.png' 和 'items.clip'。" or "Place image files (png, jpg, ktx, pvr) in a folder named with a '.clips' suffix. Reload the texture packer to locate the folder and create a packed image file. The packed image will be saved as a '.png' file, and a corresponding description file will be saved as a '.clip' file. For example, 'items.clips' becomes 'items.png' and 'items.clip'.") -- 283
-						end -- 282
-					) -- 282
-				end) -- 281
-			end -- 281
-			ImGui.Separator() -- 287
-			ImGui.InputText("##FilterInput", filterBuf, inputTextFlags) -- 288
-			ImGui.SameLine() -- 289
-			if ImGui.Button(zh and "筛选" or "Filter") then -- 289
-				local filterText = filterBuf.text -- 291
-				if filterText == "" then -- 291
-					filteredNames = clipNames -- 293
-					filteredFolders = clipFolders -- 294
-					current = 1 -- 295
-					if #filteredFolders > 0 then -- 295
-						displayClips(filteredFolders[current]) -- 297
-					end -- 297
-				else -- 297
-					local filtered = __TS__ArrayFilter( -- 300
-						__TS__ArrayMap( -- 300
-							clipNames, -- 300
-							function(____, n, i) return {n, clipFolders[i + 1]} end -- 300
-						), -- 300
-						function(____, it, i) -- 300
-							local matched = string.match( -- 301
-								string.lower(it[1]), -- 301
-								filterText -- 301
-							) -- 301
-							if matched ~= nil then -- 301
-								return true -- 303
-							end -- 303
-							return false -- 305
-						end -- 300
-					) -- 300
-					filteredNames = __TS__ArrayMap( -- 307
-						filtered, -- 307
-						function(____, f) return f[1] end -- 307
-					) -- 307
-					filteredFolders = __TS__ArrayMap( -- 308
-						filtered, -- 308
-						function(____, f) return f[2] end -- 308
-					) -- 308
-					current = 1 -- 309
-					if #filteredFolders > 0 then -- 309
-						displayClips(filteredFolders[current]) -- 311
-					end -- 311
-				end -- 311
-			end -- 311
-			if #filteredNames > 0 then -- 311
-				local changed = false -- 316
-				changed, current = ImGui.Combo(zh and "文件" or "File", current, filteredNames) -- 317
-				if changed then -- 317
-					displayClips(filteredFolders[current]) -- 319
-				end -- 319
-				if ImGui.Button(zh and "生成切片图集" or "Generate Clip") then -- 319
-					generateClips(filteredFolders[current]) -- 322
-				end -- 322
-			end -- 322
-			ImGui.Separator() -- 325
-			ImGui.Text(zh and "预览" or "Preview") -- 326
-			local sprite = tolua.cast(currentDisplay, "Sprite") -- 327
-			if sprite then -- 327
-				ImGui.TextColored(themeColor, zh and "尺寸：" or "Size:") -- 329
-				ImGui.SameLine() -- 330
-				ImGui.Text((tostring(math.tointeger(sprite.width)) .. " x ") .. tostring(math.tointeger(sprite.height))) -- 331
-				ImGui.TextColored(themeColor, zh and "切片名称：" or "Clip Name:") -- 332
-				ImGui.SameLine() -- 333
-				ImGui.Text(clipHover) -- 334
-			end -- 334
-			local changed = false -- 336
-			changed, anisotropic = ImGui.Checkbox(zh and "各向异性过滤" or "Anisotropic", anisotropic) -- 337
-			if changed then -- 337
-				if sprite then -- 337
-					sprite.filter = anisotropic and "Anisotropic" or "Point" -- 340
-				end -- 340
-			end -- 340
-			ImGui.Separator() -- 343
-			changed = false -- 344
-			changed, scaleChecked = ImGui.Checkbox(zh and "缩放工具" or "Scale Helper", scaleChecked) -- 345
-			if changed then -- 345
-				if scaleChecked then -- 345
-					ruler:show( -- 348
-						scaledSize, -- 348
-						0.5, -- 348
-						5, -- 348
-						1, -- 348
-						function(value) -- 348
-							scaledSize = value -- 349
-							if currentDisplay and tolua.cast(currentDisplay, "Sprite") then -- 349
-								local ____currentDisplay_12 = currentDisplay -- 351
-								local ____scaledSize_11 = scaledSize -- 351
-								currentDisplay.scaleY = ____scaledSize_11 -- 351
-								____currentDisplay_12.scaleX = ____scaledSize_11 -- 351
-							end -- 351
-						end -- 348
-					) -- 348
-				else -- 348
-					ruler:hide() -- 355
-				end -- 355
-			end -- 355
-		end -- 276
-	) -- 276
-	return false -- 359
-end) -- 272
-return ____exports -- 272
+local length = Vec2(App.visualSize).length -- 247
+local tapCount = 0 -- 248
+toNode(React.createElement( -- 249
+	"node", -- 249
+	{ -- 249
+		order = 1, -- 249
+		onTapBegan = function() -- 249
+			tapCount = tapCount + 1 -- 252
+		end, -- 251
+		onTapEnded = function() -- 251
+			tapCount = tapCount - 1 -- 255
+		end, -- 254
+		onTapMoved = function(touch) -- 254
+			if currentDisplay then -- 254
+				currentDisplay.position = currentDisplay.position:add(touch.delta) -- 259
+			end -- 259
+		end, -- 257
+		onGesture = function(_center, fingers, deltaDist, _deltaAngle) -- 257
+			if tapCount > 0 then -- 257
+				return -- 263
+			end -- 263
+			if currentDisplay and tolua.cast(currentDisplay, "Sprite") and fingers == 2 then -- 263
+				local ____currentDisplay_9 = currentDisplay -- 265
+				local width = ____currentDisplay_9.width -- 265
+				local height = ____currentDisplay_9.height -- 265
+				local size = Vec2(width, height).length -- 266
+				scaledSize = scaledSize + deltaDist * length * 10 / size -- 267
+				scaledSize = math.max(0.5, scaledSize) -- 268
+				scaledSize = math.min(5, scaledSize) -- 269
+				local ____currentDisplay_11 = currentDisplay -- 270
+				local ____scaledSize_10 = scaledSize -- 270
+				currentDisplay.scaleY = ____scaledSize_10 -- 270
+				____currentDisplay_11.scaleX = ____scaledSize_10 -- 270
+			end -- 270
+		end -- 262
+	} -- 262
+)) -- 262
+local current = 1 -- 276
+local filterBuf = Buffer(20) -- 277
+local windowFlags = { -- 278
+	"NoDecoration", -- 279
+	"NoSavedSettings", -- 280
+	"NoFocusOnAppearing", -- 281
+	"NoNav", -- 282
+	"NoMove", -- 283
+	"NoScrollWithMouse" -- 284
+} -- 284
+local inputTextFlags = {"AutoSelectAll"} -- 286
+local filteredNames = clipNames -- 287
+local filteredFolders = clipFolders -- 288
+local scaleChecked = false -- 289
+local themeColor = App.themeColor -- 290
+threadLoop(function() -- 291
+	local ____App_visualSize_12 = App.visualSize -- 292
+	local width = ____App_visualSize_12.width -- 292
+	ImGui.SetNextWindowPos( -- 293
+		Vec2(width - 10, 10), -- 293
+		"Always", -- 293
+		Vec2(1, 0) -- 293
+	) -- 293
+	ImGui.SetNextWindowSize( -- 294
+		Vec2(230, 0), -- 294
+		"Always" -- 294
+	) -- 294
+	ImGui.Begin( -- 295
+		"Texture Packer", -- 295
+		windowFlags, -- 295
+		function() -- 295
+			ImGui.Text(zh and "纹理打包工具" or "Texture Packer") -- 296
+			ImGui.SameLine() -- 297
+			ImGui.TextDisabled("(?)") -- 298
+			if ImGui.IsItemHovered() then -- 298
+				ImGui.BeginTooltip(function() -- 300
+					ImGui.PushTextWrapPos( -- 301
+						300, -- 301
+						function() -- 301
+							ImGui.Text(zh and "将图像文件（png、jpg、ktx、pvr）放入一个以 '.clips' 结尾的文件夹中，然后重新加载纹理打包工具以找到该文件夹并创建一个打包图像文件。打包后的图像将保存为 '.png' 文件，并生成一个对应的描述文件，保存为 '.clip' 文件。例如，'items.clips' 会变成 'items.png' 和 'items.clip'。" or "Place image files (png, jpg, ktx, pvr) in a folder named with a '.clips' suffix. Reload the texture packer to locate the folder and create a packed image file. The packed image will be saved as a '.png' file, and a corresponding description file will be saved as a '.clip' file. For example, 'items.clips' becomes 'items.png' and 'items.clip'.") -- 302
+						end -- 301
+					) -- 301
+				end) -- 300
+			end -- 300
+			ImGui.Separator() -- 306
+			ImGui.InputText("##FilterInput", filterBuf, inputTextFlags) -- 307
+			ImGui.SameLine() -- 308
+			if ImGui.Button(zh and "筛选" or "Filter") then -- 308
+				local filterText = filterBuf.text -- 310
+				if filterText == "" then -- 310
+					filteredNames = clipNames -- 312
+					filteredFolders = clipFolders -- 313
+					current = 1 -- 314
+					if #filteredFolders > 0 then -- 314
+						displayClips(filteredFolders[current]) -- 316
+					end -- 316
+				else -- 316
+					local filtered = __TS__ArrayFilter( -- 319
+						__TS__ArrayMap( -- 319
+							clipNames, -- 319
+							function(____, n, i) return {n, clipFolders[i + 1]} end -- 319
+						), -- 319
+						function(____, it, i) -- 319
+							local matched = string.match( -- 320
+								string.lower(it[1]), -- 320
+								filterText -- 320
+							) -- 320
+							if matched ~= nil then -- 320
+								return true -- 322
+							end -- 322
+							return false -- 324
+						end -- 319
+					) -- 319
+					filteredNames = __TS__ArrayMap( -- 326
+						filtered, -- 326
+						function(____, f) return f[1] end -- 326
+					) -- 326
+					filteredFolders = __TS__ArrayMap( -- 327
+						filtered, -- 327
+						function(____, f) return f[2] end -- 327
+					) -- 327
+					current = 1 -- 328
+					if #filteredFolders > 0 then -- 328
+						displayClips(filteredFolders[current]) -- 330
+					end -- 330
+				end -- 330
+			end -- 330
+			if #filteredNames > 0 then -- 330
+				local changed = false -- 335
+				changed, current = ImGui.Combo(zh and "文件" or "File", current, filteredNames) -- 336
+				if changed then -- 336
+					displayClips(filteredFolders[current]) -- 338
+				end -- 338
+				if ImGui.Button(zh and "生成切片图集" or "Generate Clip") then -- 338
+					generateClips(filteredFolders[current]) -- 341
+				end -- 341
+			end -- 341
+			ImGui.Separator() -- 344
+			ImGui.Text(zh and "预览" or "Preview") -- 345
+			local sprite = tolua.cast(currentDisplay, "Sprite") -- 346
+			if sprite then -- 346
+				ImGui.TextColored(themeColor, zh and "尺寸：" or "Size:") -- 348
+				ImGui.SameLine() -- 349
+				ImGui.Text((tostring(math.tointeger(sprite.width)) .. " x ") .. tostring(math.tointeger(sprite.height))) -- 350
+				ImGui.TextColored(themeColor, zh and "切片名称：" or "Clip Name:") -- 351
+				ImGui.SameLine() -- 352
+				ImGui.Text(clipHover) -- 353
+			end -- 353
+			local changed = false -- 355
+			changed, anisotropic = ImGui.Checkbox(zh and "各向异性过滤" or "Anisotropic", anisotropic) -- 356
+			if changed then -- 356
+				if sprite then -- 356
+					sprite.filter = anisotropic and "Anisotropic" or "Point" -- 359
+				end -- 359
+			end -- 359
+			ImGui.Separator() -- 362
+			changed = false -- 363
+			changed, scaleChecked = ImGui.Checkbox(zh and "缩放工具" or "Scale Helper", scaleChecked) -- 364
+			if changed then -- 364
+				if scaleChecked then -- 364
+					ruler:show( -- 367
+						scaledSize, -- 367
+						0.5, -- 367
+						5, -- 367
+						1, -- 367
+						function(value) -- 367
+							scaledSize = value -- 368
+							if currentDisplay and tolua.cast(currentDisplay, "Sprite") then -- 368
+								local ____currentDisplay_14 = currentDisplay -- 370
+								local ____scaledSize_13 = scaledSize -- 370
+								currentDisplay.scaleY = ____scaledSize_13 -- 370
+								____currentDisplay_14.scaleX = ____scaledSize_13 -- 370
+							end -- 370
+						end -- 367
+					) -- 367
+				else -- 367
+					ruler:hide() -- 374
+				end -- 374
+			end -- 374
+		end -- 295
+	) -- 295
+	return false -- 378
+end) -- 291
+return ____exports -- 291

@@ -216,6 +216,25 @@ function generateClips(folder: string) {
 	thread(() => {
 		Content.saveAsync(clipFile, xml);
 		target.saveAsync(textureFile);
+		Cache.unload(textureFile);
+		Cache.unload(clipFile);
+		const rects = Sprite.getClips(clipFile);
+		if (rects) {
+			frame.schedule(() => {
+				const {width: bw, height: bh} = App.bufferSize;
+				const {width: vw} = App.visualSize;
+				let pos = Mouse.position.mul(bw / vw);
+				pos = Vec2(pos.x - bw / 2, bh / 2 - pos.y);
+				const localPos = frame.convertToNodeSpace(pos);
+				clipHover = "-";
+				for (let [name, rc] of rects) {
+					if (rc.containsPoint(Vec2(localPos.x, height - localPos.y))) {
+						clipHover = name;
+					}
+				}
+				return false;
+			});
+		}
 	});
 
 	const displaySprite = Sprite(target.texture);
