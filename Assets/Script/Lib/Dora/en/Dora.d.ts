@@ -4584,7 +4584,7 @@ class Entity extends Object {
 	 * @param key The name of the property to set.
 	 * @param item The value to set the property to.
 	 */
-	set(key: string, item: Component | undefined): void;
+	set(key: string, item: Component | undefined | null): void;
 
 	/**
 	 * A function that retrieves the value of a property of the entity

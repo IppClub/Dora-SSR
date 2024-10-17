@@ -4584,7 +4584,7 @@ class Entity extends Object {
 	 * @param key 要设置的属性的名称。
 	 * @param item 要设置的属性值。
 	 */
-	set(key: string, item: Component | undefined): void;
+	set(key: string, item: Component | undefined | null): void;
 
 	/**
 	 * 获取实体的属性值的函数。
