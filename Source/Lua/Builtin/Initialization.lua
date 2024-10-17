@@ -969,8 +969,22 @@ do
 		return Entity_index(self, key)
 	end
 
+	Entity.get = function(self, key)
+		local index = Entity_tryGetComIndex(key)
+		local item = Entity_get(self, index)
+		if item ~= nil then
+			return item
+		end
+		return Entity_index(self, key)
+	end
+
 	local Entity_set = Entity.set
 	Entity.__newindex = function(self, key, value)
+		local index = Entity_getComIndex(key)
+		Entity_set(self, index, value)
+	end
+
+	Entity.set = function(self, key, value)
 		local index = Entity_getComIndex(key)
 		Entity_set(self, index, value)
 	end
