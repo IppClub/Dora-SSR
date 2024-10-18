@@ -897,7 +897,7 @@ do
 	end
 end
 
--- entity cache and old value accessing sugar
+-- entity cache and old value accessing sugar API
 do
 	local Entity = Dora.Entity
 
@@ -1144,7 +1144,7 @@ do
 	end
 end
 
--- blackboard accessing sugar
+-- blackboard accessing sugar API
 do
 	local Blackboard = Dora.Platformer.Behavior.Blackboard
 	local Blackboard_index = Blackboard.__index
@@ -1160,7 +1160,7 @@ do
 	Blackboard.__newindex = Blackboard.set
 end
 
--- API for Typescript without operator overloading
+-- API for TSTL without operator overloading
 do
 	Dora.Size.equals = function(self, var)
 		return self == var

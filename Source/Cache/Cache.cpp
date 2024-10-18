@@ -111,6 +111,10 @@ void Cache::loadAsync(String filename, const std::function<void(bool)>& callback
 				break;
 		}
 	}
+	auto clipTokens = filename.split("|"_slice);
+	if (clipTokens.size() == 2) {
+		filename = clipTokens.front();
+	}
 	std::string ext = Path::getExt(filename);
 	if (!ext.empty()) {
 		switch (Switch::hash(ext)) {

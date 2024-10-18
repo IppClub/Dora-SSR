@@ -590,7 +590,7 @@ class Sprite extends Node {
 	 * The string containing format for loading a texture file.
 	 * Can be "Image/file.png" and "Image/items.clip|itemA". Supports image file format: jpg, png, dds, pvr, ktx.
 	 */
-	file: string;
+	file?: string;
 
 	/**
 	 * Whether the depth buffer should be written to when rendering the sprite (default is false).
@@ -1169,6 +1169,15 @@ class MoveZ {
 	stop: number;
 	/** [optional] The easing function to use for the animation. Defaults to Ease.Linear if not specified. */
 	easing?: Dora.EaseFunc;
+}
+
+class Frame {
+	/** The duration of the animation in seconds. */
+	time: number;
+	/** The number of frames for each frame. The number of frames should match the number of frames in the clip. */
+	file: string;
+	/** The number of frames for each frame. The number of frames should match the number of frames in the clip. */
+	frames?: number[];
 }
 
 class Loop {
@@ -1814,6 +1823,11 @@ interface IntrinsicElements {
 	 * Must be placed under <action>, <spawn>, <sequence>, <loop> or scene node to take effect.
 	 */
 	'move-z': MoveZ;
+	/**
+	 * Creates a definition for a frame animation with frames count for each frame. Can only be applied to <sprite> element.
+	 * Must be placed under <action>, <spawn>, <sequence>, <loop> or scene node to take effect.
+	 */
+	frame: Frame;
 	/**
 	 * Creates a definition for an action that runs repeatedly.
 	 * Must be placed under scene node to take effect.
