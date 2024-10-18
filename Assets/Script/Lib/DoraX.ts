@@ -402,8 +402,14 @@ let getSprite: (this: void, enode: React.Element) => Dora.Sprite.Type | null;
 	}
 	getSprite = (enode: React.Element) => {
 		const sp = enode.props as JSX.Sprite;
-		const node = Dora.Sprite(sp.file);
-		if (node !== null) {
+		if (sp.file) {
+			const node = Dora.Sprite(sp.file);
+			if (node !== null) {
+				const cnode = getNode(enode, node, handleSpriteAttribute);
+				return cnode as Dora.Sprite.Type;
+			}
+		} else {
+			const node = Dora.Sprite();
 			const cnode = getNode(enode, node, handleSpriteAttribute);
 			return cnode as Dora.Sprite.Type;
 		}
@@ -804,6 +810,11 @@ function visitAction(this: void, actionStack: Dora.ActionDef.Type[], enode: Reac
 			actionStack.push(Dora.Move(item.time, Dora.Vec2(item.startX, item.startY), Dora.Vec2(item.stopX, item.stopY), item.easing));
 			break;
 		}
+		case 'frame': {
+			const item = enode.props as JSX.Frame;
+			actionStack.push(Dora.Frame(item.file, item.time, item.frames));
+			break;
+		}
 		case 'spawn': {
 			const spawnStack: Dora.ActionDef.Type[] = [];
 			for (let i of $range(1, enode.children.length)) {
@@ -986,6 +997,7 @@ const elementMap: ElementMap = {
 	'move-x': actionCheck,
 	'move-y': actionCheck,
 	'move-z': actionCheck,
+	frame: actionCheck,
 	spawn: actionCheck,
 	sequence: actionCheck,
 	loop: (nodeStack: Dora.Node.Type[], enode: React.Element, _parent?: React.Element) => {
@@ -1403,11 +1415,17 @@ function getPreload(this: void, preloadList: string[], node: React.Element | Rea
 		switch (enode.type as keyof JSX.IntrinsicElements) {
 			case 'sprite':
 				const sprite = enode.props as JSX.Sprite;
-				preloadList.push(sprite.file);
+				if (sprite.file) {
+					preloadList.push(sprite.file);
+				}
 				break;
 			case 'playable':
 				const playable = enode.props as JSX.Playable;
 				preloadList.push(playable.file);
+				break;
+			case 'frame':
+				const frame = enode.props as JSX.Frame;
+				preloadList.push(frame.file);
 				break;
 			case 'model':
 				const model = enode.props as JSX.Model;

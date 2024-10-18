@@ -590,7 +590,7 @@ class Sprite extends Node {
 	 * 包含加载纹理文件格式的字符串。
 	 * 可以是 "Image/file.png" 或者 "Image/items.clip|itemA"。支持的图片文件格式有：jpg、png、dds、pvr、ktx。
 	 */
-	file: string;
+	file?: string;
 
 	/**
 	 * 当渲染图元时，是否应该写入深度缓冲区（默认为false）。
@@ -1167,6 +1167,15 @@ class MoveZ {
 	stop: number;
 	/** [可选] 用于动画的缓动函数。如果未指定，默认为Ease.Linear。 */
 	easing?: Dora.EaseFunc;
+}
+
+class Frame {
+	/** 动画的持续时间（以秒为单位）。 */
+	time: number;
+	/** 包含加载纹理文件格式的字符串，可以是 "Image/file.png" 和 "Image/items.clip|itemA"，支持的图片文件格式有：jpg、png、dds、pvr、ktx。 */
+	file: string;
+	/** 每个动画帧的持续帧数。每个动画帧的持续帧数应该与图片序列中的帧数相匹配。 */
+	frames?: number[];
 }
 
 class Loop {
@@ -1807,6 +1816,11 @@ interface IntrinsicElements {
 	 * 只能作为`<action>`、`<sequence>`、`<spawn>`、`<loop>`或者场景节点的子标签来使用。
 	 */
 	'move-z': MoveZ;
+	/**
+	 * 创建动作定义，该动作将创建一个帧动画，可以指定每个动画帧的持续帧数。只会对 <sprite> 节点生效。
+	 * 只能作为`<action>`、`<sequence>`、`<spawn>`、`<loop>`或者场景节点的子标签来使用。
+	 */
+	frame: Frame;
 	/**
 	 * 创建动作定义，该动作会一直重复执行。
 	 * 只能作为`<action>`、`<sequence>`、`<spawn>`、`<loop>`或者场景节点的子标签来使用。
