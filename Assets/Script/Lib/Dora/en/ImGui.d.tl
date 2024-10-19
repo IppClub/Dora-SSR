@@ -54,7 +54,7 @@ local record ImGui
 		"TextSelectedBg"
 		"TextLink"
 		"DragDropTarget"
-		"NavHighlight"
+		"NavCursor"
 		"NavWindowingHighlight"
 		"NavWindowingDimBg"
 		"ModalWindowDimBg"

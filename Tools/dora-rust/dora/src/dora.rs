@@ -3854,7 +3854,7 @@ pub enum ImGuiCol {
 	TextLink,
 	TextSelectedBg,
 	DragDropTarget,
-	NavHighlight,
+	NavCursor,
 	NavWindowingHighlight,
 	NavWindowingDimBg,
 	ModalWindowDimBg

@@ -307,7 +307,7 @@ static uint32_t ColorIndex(String col) {
 		case "TableRowBgAlt"_hash: return ImGuiCol_TableRowBgAlt;
 		case "TextSelectedBg"_hash: return ImGuiCol_TextSelectedBg;
 		case "DragDropTarget"_hash: return ImGuiCol_DragDropTarget;
-		case "NavHighlight"_hash: return ImGuiCol_NavHighlight;
+		case "NavCursor"_hash: return ImGuiCol_NavCursor;
 		case "NavWindowingHighlight"_hash: return ImGuiCol_NavWindowingHighlight;
 		case "NavWindowingDimBg"_hash: return ImGuiCol_NavWindowingDimBg;
 		case "ModalWindowDimBg"_hash: return ImGuiCol_ModalWindowDimBg;
