@@ -8,7 +8,7 @@
 #ifndef CPPHTTPLIB_HTTPLIB_H
 #define CPPHTTPLIB_HTTPLIB_H
 
-#define CPPHTTPLIB_VERSION "0.18.0"
+#define CPPHTTPLIB_VERSION "0.18.1"
 
 /*
  * Configuration
@@ -16,6 +16,10 @@
 
 #ifndef CPPHTTPLIB_KEEPALIVE_TIMEOUT_SECOND
 #define CPPHTTPLIB_KEEPALIVE_TIMEOUT_SECOND 5
+#endif
+
+#ifndef CPPHTTPLIB_KEEPALIVE_TIMEOUT_CHECK_INTERVAL_USECOND
+#define CPPHTTPLIB_KEEPALIVE_TIMEOUT_CHECK_INTERVAL_USECOND 10000
 #endif
 
 #ifndef CPPHTTPLIB_KEEPALIVE_MAX_COUNT
@@ -366,8 +370,9 @@ inline unsigned char to_lower(int c) {
 
 inline bool equal(const std::string &a, const std::string &b) {
   return a.size() == b.size() &&
-         std::equal(a.begin(), a.end(), b.begin(),
-                    [](char ca, char cb) { return to_lower(ca) == to_lower(cb); });
+         std::equal(a.begin(), a.end(), b.begin(), [](char ca, char cb) {
+           return to_lower(ca) == to_lower(cb);
+         });
 }
 
 struct equal_to {
@@ -392,7 +397,7 @@ struct hash {
   }
 };
 
-}; // namespace case_ignore
+} // namespace case_ignore
 
 // This is based on
 // "http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4189".
@@ -2900,9 +2905,7 @@ inline void stream_line_reader::append(char c) {
   }
 }
 
-inline mmap::mmap(const char *path) {
-  open(path);
-}
+inline mmap::mmap(const char *path) { open(path); }
 
 inline mmap::~mmap() { close(); }
 
@@ -3255,6 +3258,41 @@ private:
 };
 #endif
 
+inline bool keep_alive(const std::atomic<socket_t> &svr_sock, socket_t sock,
+                       time_t keep_alive_timeout_sec) {
+  using namespace std::chrono;
+
+  const auto interval_usec =
+      CPPHTTPLIB_KEEPALIVE_TIMEOUT_CHECK_INTERVAL_USECOND;
+
+  // Avoid expensive `steady_clock::now()` call for the first time
+  if (select_read(sock, 0, interval_usec) > 0) { return true; }
+
+  const auto start = steady_clock::now() - microseconds{interval_usec};
+  const auto timeout = seconds{keep_alive_timeout_sec};
+
+  while (true) {
+    if (svr_sock == INVALID_SOCKET) {
+      break; // Server socket is closed
+    }
+
+    auto val = select_read(sock, 0, interval_usec);
+    if (val < 0) {
+      break; // Ssocket error
+    } else if (val == 0) {
+      if (steady_clock::now() - start > timeout) {
+        break; // Timeout
+      }
+    } else {
+      return true; // Ready for read
+    }
+
+    std::this_thread::sleep_for(microseconds{interval_usec});
+  }
+
+  return false;
+}
+
 template <typename T>
 inline bool
 process_server_socket_core(const std::atomic<socket_t> &svr_sock, socket_t sock,
@@ -3263,8 +3301,7 @@ process_server_socket_core(const std::atomic<socket_t> &svr_sock, socket_t sock,
   assert(keep_alive_max_count > 0);
   auto ret = false;
   auto count = keep_alive_max_count;
-  while (svr_sock != INVALID_SOCKET && count > 0 &&
-         select_read(sock, keep_alive_timeout_sec, 0) > 0) {
+  while (count > 0 && keep_alive(svr_sock, sock, keep_alive_timeout_sec)) {
     auto close_connection = count == 1;
     auto connection_closed = false;
     ret = callback(close_connection, connection_closed);
@@ -3726,7 +3763,7 @@ inline unsigned int str2tag(const std::string &s) {
 
 namespace udl {
 
-inline constexpr unsigned int operator"" _t(const char *s, size_t l) {
+inline constexpr unsigned int operator""_t(const char *s, size_t l) {
   return str2tag_core(s, l, 0);
 }
 
@@ -4081,7 +4118,7 @@ inline bool parse_header(const char *beg, const char *end, T fn) {
     p++;
   }
 
-  if (p < end) {
+  if (p <= end) {
     auto key_len = key_end - beg;
     if (!key_len) { return false; }
 
@@ -9468,8 +9505,8 @@ SSLClient::verify_host_with_subject_alt_name(X509 *server_cert) const {
 
   auto type = GEN_DNS;
 
-  struct in6_addr addr6 {};
-  struct in_addr addr {};
+  struct in6_addr addr6{};
+  struct in_addr addr{};
   size_t addr_len = 0;
 
 #ifndef __MINGW32__

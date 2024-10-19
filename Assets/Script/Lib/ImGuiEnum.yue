@@ -51,7 +51,7 @@ export macro StyleColor = $Enum(
 	"TextSelectedBg"
 	"TextLink"
 	"DragDropTarget"
-	"NavHighlight"
+	"NavCursor"
 	"NavWindowingHighlight"
 	"NavWindowingDimBg"
 	"ModalWindowDimBg"

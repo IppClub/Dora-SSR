@@ -64,7 +64,7 @@ export const enum StyleColor {
 	TextSelectedBg = "TextSelectedBg",
 	TextLink = "TextLink",
 	DragDropTarget = "DragDropTarget",
-	NavHighlight = "NavHighlight",
+	NavCursor = "NavCursor",
 	NavWindowingHighlight = "NavWindowingHighlight",
 	NavWindowingDimBg = "NavWindowingDimBg",
 	ModalWindowDimBg = "ModalWindowDimBg"
