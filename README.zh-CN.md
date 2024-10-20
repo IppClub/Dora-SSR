@@ -346,7 +346,7 @@ fn main () {
 
 ## 许可证
 
-&emsp;&emsp;Dora SSR 使用 [MIT 许可证](LICENSE)。原为 Dorothy SSR 项目，项目名称现处于更名程序中。
+&emsp;&emsp;Dora SSR 使用 [MIT 许可证](LICENSE)。
 
 ### 特别提示
 

@@ -346,7 +346,7 @@ The Open Atom Foundation is a non-profit organization dedicated to supporting an
 
 ## License
 
-Dora SSR uses the [MIT License](LICENSE). The project was originally named Dorothy SSR and is currently undergoing a renaming process.
+Dora SSR uses the [MIT License](LICENSE).
 
 ### Notice
 
