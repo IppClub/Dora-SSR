@@ -1,0 +1,278 @@
+import "@site/src/languages/highlight";
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Screen Adaptation for Scenes and UI
+
+In game development, **screen adaptation** is a crucial feature. Regardless of the device or window size the player is using, they expect the best visual experience. This tutorial will guide you step by step on how to implement screen adaptation for game scenes and game UI in the **Dora SSR** engine.
+
+## 1. Understanding Screen Adaptation
+
+Screen sizes and resolutions vary across different devices. Without proper adaptation, the game might display incompletely on some devices, or element positions might be misaligned. The goal of screen adaptation is to ensure that game content displays correctly on various screens, maintaining a good user experience.
+
+## 2. Implementing Screen Adaptation for Game Scenes
+
+Screen adaptation for game scenes mainly involves adjusting the camera's viewport according to the window size to ensure that the scene content is fully displayed on the screen.
+
+### 2.1 Defining the Design Resolution
+
+First, define the game's **design resolution**. This is the reference size upon which you base your design and development.
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local DesignSceneHeight = 1024
+```
+
+</TabItem>
+</Tabs>
+
+Here, we set the design height to `1024`. This means we design the scene at a height of `1024`. When adapting the game, we want to ensure that the vertical area of the scene is fully displayed. Any horizontal area exceeding the screen will be cropped, or if it's smaller than the screen, it will be centered.
+
+### 2.2 Adjusting the Camera Zoom
+
+Next, we need to adjust the camera's zoom factor based on the actual window size.
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local function updateViewSize()
+	Director.currentCamera.zoom = View.size.height / DesignSceneHeight
+end
+```
+
+</TabItem>
+</Tabs>
+
+**Explanation:**
+
+- `Director.currentCamera`: The camera object of the current scene.
+- `zoom`: The camera's zoom property, affecting the viewport.
+- `View.size.height`: The actual height of the current window.
+- By calculating `View.size.height / DesignSceneHeight`, we obtain the ratio of the actual height to the design height, then set it as the camera's zoom value.
+
+### 2.3 Listening to Window Size Changes
+
+To timely update the camera's zoom when the window size changes (e.g., when the user resizes the window or the device rotates), we need to listen for application size change events.
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+updateViewSize()  -- Initialize by calling once
+
+Director.entry:onAppChange(function(settingName)
+	if settingName == "Size" then
+		updateViewSize() -- Update whenever size changes
+	end
+end)
+```
+
+</TabItem>
+</Tabs>
+
+**Explanation:**
+
+- `Director.entry:onAppChange`: Registers a listener that is triggered when the application's settings change.
+- `settingName`: Indicates the name of the setting that has changed.
+- When `settingName` is `"Size"`, it means the window size has changed. In this case, `updateViewSize()` is called to update the camera's zoom.
+
+### 2.4 Complete Code
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+-- Screen Adaptation for Game Scene Example
+
+-- Import modules
+local DrawNode <const> = require("DrawNode")
+local Director <const> = require("Director")
+local View <const> = require("View")
+
+-- Define design resolution
+local DesignSceneHeight = 1024
+
+-- Create scene
+local node = DrawNode()
+node:drawDot(Vec2.zero, DesignSceneHeight / 2)
+node:addTo(Director.entry)
+
+-- Handle window size changes
+local function updateViewSize()
+	Director.currentCamera.zoom = View.size.height / DesignSceneHeight
+end
+updateViewSize()
+
+-- Register window size change event callback
+Director.entry:onAppChange(function(settingName)
+	if settingName == "Size" then
+		updateViewSize()
+	end
+end)
+```
+
+</TabItem>
+</Tabs>
+
+## 3. Implementing Screen Adaptation for Game UI
+
+Screen adaptation for game UI requires ensuring that interface elements are reasonably laid out on screens of different sizes. We will use the [**Yoga layout engine**](https://github.com/facebook/yoga) integrated into Dora SSR, defining the layout relationships of elements through CSS-like Flex layout syntax.
+
+### 3.1 Introducing the Yoga Layout Engine
+
+**Yoga** is a cross-platform layout engine that supports Flexbox-based layouts. It allows us to use familiar CSS syntax to define the layout of elements.
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local AlignNode <const> = require("AlignNode")
+```
+
+</TabItem>
+</Tabs>
+
+`AlignNode` is a node type in Dora SSR that supports layout.
+
+### 3.2 Using CSS Flex Layout
+
+:::tip A Game to Learn CSS Flex Layout
+For a quick way to learn Flex layout, try the online game **Flexbox Froggy**: https://flexboxfroggy.com/
+:::
+
+First, create a root node and set its layout properties.
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local root = AlignNode(true)
+root:css("justify-content: center; align-items: center")
+root:addTo(Director.ui)
+```
+
+</TabItem>
+</Tabs>
+
+**Explanation:**
+
+- `AlignNode(true)`: Creates a node that supports layout; `true` indicates that this node acts as the layout container for the window's root node.
+- `css(...)`: Applies CSS layout styles to the node.
+	- `justify-content: center`: Horizontally center-aligns child nodes.
+	- `align-items: center`: Vertically center-aligns child nodes.
+- `root:addTo(Director.ui)`: Adds the root node to the engine's built-in UI layer.
+
+Next, create a child node and set its size relative to the parent node as a percentage.
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local centerNode = AlignNode()
+centerNode:css("width: 60%; height: 60%")
+centerNode:addTo(root)
+```
+
+</TabItem>
+</Tabs>
+
+**Explanation:**
+
+- `width: 60%`: Width is 60% of the parent node's width.
+- `height: 60%`: Height is 60% of the parent node's height.
+
+### 3.3 Adjusting Elements to Fit the Layout
+
+Add actual UI elements (e.g., a sprite object displaying an image) to the layout node, and adjust its properties after the layout is complete.
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local sprite = Sprite("Image/logo.png")
+sprite:addTo(centerNode)
+```
+
+</TabItem>
+</Tabs>
+
+To update the sprite's position and size to match the adaptive result after the layout adjustment, we need to listen for the layout completion event.
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+centerNode:onAlignLayout(function(width, height)
+	-- Adjust the sprite's display parameters to match the parent's adaptive result
+	sprite.position = Vec2(width / 2, height / 2)
+	sprite.size = Size(width, height)
+end)
+```
+
+</TabItem>
+</Tabs>
+
+**Explanation:**
+
+- `onAlignLayout`: A callback function triggered when the layout calculation is complete.
+- `width` and `height`: The calculated width and height of the layout node.
+- In the callback, we set the sprite's `position` to the center of the node and set its `size` to the node's dimensions, so the sprite's display matches the layout node's calculated result.
+
+### 3.4 Complete Code
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+-- Screen Adaptation for Game UI
+
+-- Import modules
+local AlignNode <const> = require("AlignNode")
+local Director <const> = require("Director")
+local Sprite <const> = require("Sprite")
+local Vec2 <const> = require("Vec2")
+local Size <const> = require("Size")
+
+-- Create root node that adapts to the screen
+local root = AlignNode(true)
+root:css("justify-content: center; align-items: center")
+root:addTo(Director.ui)
+
+-- Create child node to be centered in the layout
+local centerNode = AlignNode()
+centerNode:css("width: 60%; height: 60%")
+centerNode:addTo(root)
+
+-- Create the sprite object to display on the child node
+local sprite = Sprite("Image/logo.png")
+sprite:addTo(centerNode)
+
+-- Register the adaptive callback to update the display parameters of the sprite to match the layout result
+centerNode:onAlignLayout(function(width, height)
+	sprite.position = Vec2(width / 2, height / 2)
+	sprite.size = Size(width, height)
+end)
+```
+
+</TabItem>
+</Tabs>
+
+## 4. Summary
+
+Through this tutorial, you have learned how to implement screen adaptation for game scenes and game UI in Dora SSR:
+
+- **Game Scene Adaptation**: By setting the design resolution and adjusting the camera's zoom factor, you ensure that the scene content is fully displayed.
+- **Game UI Adaptation**: Using the Yoga layout engine and CSS Flex layout syntax, you define the layout relationships of elements and update element properties after layout adjustments.
+
+These methods can help you create games that adapt to different screen sizes, providing players with a consistent and excellent experience.
+
+**Next Steps**, you can try:
+
+- Delve deeper into more features of the **Yoga layout engine**, such as `flex-direction`, `flex-wrap`, etc.
+- Add adaptive layouts for more UI elements, such as buttons, text boxes, and more.
+- Explore other functional modules of Dora SSR to enrich your game development knowledge.
+
+We hope this tutorial has been helpful to you, and wish you success on your game development journey!
