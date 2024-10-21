@@ -1,0 +1,278 @@
+import "@site/src/languages/highlight";
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# 游戏场景和 UI 的屏幕自适应
+
+&emsp;&emsp;在游戏开发中，屏幕自适应是一项至关重要的功能。无论玩家使用何种设备或窗口尺寸，都希望能获得最佳的视觉体验。本教程将带您一步步了解如何在 Dora SSR 引擎中实现游戏场景和游戏 UI 的屏幕自适应。
+
+## 1. 理解屏幕自适应
+
+&emsp;&emsp;在不同设备上，屏幕尺寸和分辨率各不相同。如果不进行自适应处理，游戏可能会在某些设备上显示不完整，或者元素位置错乱。屏幕自适应的目标是确保游戏内容在各种屏幕上都能正确显示，并保持良好的用户体验。
+
+## 2. 实现游戏场景的自适应
+
+&emsp;&emsp;游戏场景的自适应主要涉及根据窗口尺寸调整摄像机的视野，以确保场景内容完整地显示在屏幕中。
+
+### 2.1 定义设计尺寸
+
+&emsp;&emsp;首先，定义游戏的**设计尺寸**。这是您在设计和开发过程中所基于的参考尺寸。
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local DesignSceneHeight = 1024
+```
+
+</TabItem>
+</Tabs>
+
+&emsp;&emsp;在这里，我们将设计高度设为 `1024`。这意味着我们以高度为 `1024` 的尺寸进行场景设计。并希望游戏在做自适应时，会确保纵向的场景区域得到完整展示，横向超出屏幕区域的场景会被裁减，或是因为小于屏幕区域而被居中展示。
+
+### 2.2 调整摄像机缩放
+
+&emsp;&emsp;接下来，需要根据当前窗口的实际尺寸，调整摄像机的缩放比例。
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local function updateViewSize()
+	Director.currentCamera.zoom = View.size.height / DesignSceneHeight
+end
+```
+
+</TabItem>
+</Tabs>
+
+**说明：**
+
+- `Director.currentCamera`：当前场景的摄像机对象。
+- `zoom`：摄像机的缩放属性，影响视野范围。
+- `View.size.height`：当前窗口的实际高度。
+- 通过计算 `View.size.height / DesignSceneHeight`，我们得到实际高度与设计高度的比例，然后将其设置为摄像机的缩放值。
+
+### 2.3 监听窗口尺寸变化
+
+&emsp;&emsp;为了在窗口尺寸发生变化时（例如用户调整窗口大小或设备旋转）及时更新摄像机缩放，需要监听应用的尺寸变化事件。
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+updateViewSize()  -- 初始化时调用一次
+
+Director.entry:onAppChange(function(settingName)
+	if settingName == "Size" then
+		updateViewSize() -- 每次触发尺寸变化时更新
+	end
+end)
+```
+
+</TabItem>
+</Tabs>
+
+**说明：**
+
+- `Director.entry:onAppChange`：注册一个监听器，当应用的设置发生变化时被触发。
+- `settingName`：表示发生变化的设置项名称。
+- 当 `settingName` 为 `"Size"` 时，表示窗口尺寸发生了变化，此时调用 `updateViewSize()` 更新摄像机缩放。
+
+### 2.4 完整代码
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+-- 自适应游戏场景示例
+
+-- 导入模块
+local DrawNode <const> = require("DrawNode")
+local Director <const> = require("Director")
+local View <const> = require("View")
+
+-- 定义设计尺寸
+local DesignSceneHeight = 1024
+
+-- 创建场景
+local node = DrawNode()
+node:drawDot(Vec2.zero, DesignSceneHeight / 2)
+node:addTo(Director.entry)
+
+-- 处理窗口尺寸变化
+local function updateViewSize()
+	Director.currentCamera.zoom = View.size.height / DesignSceneHeight
+end
+updateViewSize()
+
+-- 注册窗口尺寸变化的事件回调
+Director.entry:onAppChange(function(settingName)
+	if settingName == "Size" then
+		updateViewSize()
+	end
+end)
+```
+
+</TabItem>
+</Tabs>
+
+## 3. 实现游戏 UI 的自适应
+
+&emsp;&emsp;游戏 UI 的自适应需要确保界面元素在不同尺寸的屏幕上都能合理布局。我们将使用 Dora SSR 集成的 [**Yoga 布局引擎**](https://github.com/facebook/yoga)，通过类似 CSS 的 Flex 布局语法来定义元素的布局关系。
+
+### 3.1 引入 Yoga 布局引擎
+
+&emsp;&emsp;**Yoga** 是一个跨平台的布局引擎，支持基于 Flexbox 的布局方式。它允许我们使用熟悉的 CSS 语法来定义元素的布局。
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local AlignNode <const> = require("AlignNode")
+```
+
+</TabItem>
+</Tabs>
+
+&emsp;&emsp;`AlignNode` 是 Dora SSR 中支持布局的节点类型。
+
+### 3.2 使用 CSS Flex 布局
+
+:::tip 推荐一个学习 CSS Flex 布局的游戏
+想要快速学习 Flex 布局，可以试试 **Flexbox Froggy** 这款在线小游戏：https://flexboxfroggy.com/
+:::
+
+&emsp;&emsp;首先，创建一个根节点，并设置其布局属性。
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local root = AlignNode(true)
+root:css("justify-content: center; align-items: center")
+root:addTo(Director.ui)
+```
+
+</TabItem>
+</Tabs>
+
+**说明：**
+
+- `AlignNode(true)`：创建一个支持布局的节点，`true` 表示该节点作为窗口根节点的布局容器。
+- `css(...)`：为节点应用 CSS 布局样式。
+	- `justify-content: center`：水平居中对齐子节点。
+	- `align-items: center`：垂直居中对齐子节点。
+- `root:addTo(Director.ui)`：将根节点添加到引擎内置 UI 层的场景中。
+
+&emsp;&emsp;接下来，创建一个子节点，并设置其尺寸为相对于父节点的百分比。
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local centerNode = AlignNode()
+centerNode:css("width: 60%; height: 60%")
+centerNode:addTo(root)
+```
+
+</TabItem>
+</Tabs>
+
+**说明：**
+
+- `width: 60%`：宽度为父节点宽度的 60%。
+- `height: 60%`：高度为父节点高度的 60%。
+
+### 3.3 调整元素以适应布局
+
+&emsp;&emsp;将实际的 UI 元素（例如显示图片的图元对象）添加到布局节点中，并在布局完成后调整其属性。
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local sprite = Sprite("Image/logo.png")
+sprite:addTo(centerNode)
+```
+
+</TabItem>
+</Tabs>
+
+&emsp;&emsp;为了在布局调整后更新图元的位置和尺寸以匹配自适应的结果，我们需要监听布局完成的事件。
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+centerNode:onAlignLayout(function(width, height)
+	-- 调整图元对象的显示参数以匹配父节点做自适应的结果
+	sprite.position = Vec2(width / 2, height / 2)
+	sprite.size = Size(width, height)
+end)
+```
+
+</TabItem>
+</Tabs>
+
+**说明：**
+
+- `onAlignLayout`：当布局计算完成后触发的回调函数。
+- `width` 和 `height`：布局节点计算后的宽度和高度。
+- 在回调中，我们将图元的 `position` 设置为节点的中心位置，并将 `size` 设置为节点的尺寸，这样图元的显示就会和布局节点的计算结果一致了。
+
+### 3.3 完整代码
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+-- 自适应游戏 UI
+
+-- 导入模块
+local AlignNode <const> = require("AlignNode")
+local Director <const> = require("Director")
+local Sprite <const> = require("Sprite")
+local Vec2 <const> = require("Vec2")
+local Size <const> = require("Size")
+
+-- 创建自适应屏幕的根节点
+local root = AlignNode(true)
+root:css("justify-content: center; align-items: center")
+root:addTo(Director.ui)
+
+-- 创建要被居中布局的子节点
+local centerNode = AlignNode()
+centerNode:css("width: 60%; height: 60%")
+centerNode:addTo(root)
+
+-- 创建子节点上做显示的图元对象
+local sprite = Sprite("Image/logo.png")
+sprite:addTo(centerNode)
+
+-- 注册自适应回调，更新显示对象适应布局结果的显示参数
+centerNode:onAlignLayout(function(width, height)
+	sprite.position = Vec2(width / 2, height / 2)
+	sprite.size = Size(width, height)
+end)
+```
+
+</TabItem>
+</Tabs>
+
+## 4. 总结
+
+&emsp;&emsp;通过本教程，您学习了如何在 Dora SSR 中实现游戏场景和游戏 UI 的屏幕自适应：
+
+- **游戏场景自适应**：通过设置设计尺寸，计算并调整摄像机的缩放比例，确保场景内容完整显示。
+- **游戏 UI 自适应**：使用 Yoga 布局引擎和 CSS Flex 布局语法，定义元素的布局关系，并在布局调整后更新元素属性。
+
+&emsp;&emsp;这些方法可以帮助您创建适配不同屏幕尺寸的游戏，使玩家获得一致且良好的体验。
+
+**下一步**，您可以尝试：
+
+- 深入研究 **Yoga 布局引擎** 的更多特性，例如 `flex-direction`、`flex-wrap` 等。
+- 为更多的 UI 元素添加自适应布局，例如按钮、文本框等。
+- 探索 Dora SSR 的其他功能模块，丰富您的游戏开发知识。
+
+&emsp;&emsp;希望本教程对您有所帮助，祝您在游戏开发之路上取得成功！
