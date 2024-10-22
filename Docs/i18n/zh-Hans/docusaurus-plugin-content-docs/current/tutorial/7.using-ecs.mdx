@@ -4,7 +4,7 @@ import TabItem from '@theme/TabItem';
 
 # 如何使用 ECS 框架
 
-### 一、框架介绍
+## 1. 框架介绍
 
 &emsp;&emsp;Dora SSR 的 ECS 框架是受 [Entitas](https://github.com/sschmid/Entitas) 启发而来，并做了功能上的略微改动，其基本概念可以借助 Entitas 的原理图进行理解。
 
@@ -39,7 +39,7 @@ Entitas ECS
 
 &emsp;&emsp;与Entitas不同的是，在 Dora SSR 的 ECS 框架中，我们以实体对象上的一个字段就作为一个系统组件进行管理。这样会导致一些额外的性能损耗，但是能大幅简化逻辑代码的编写。
 
-### 二、代码示例
+## 2. 代码示例
 
 &emsp;&emsp;在这个教程中，我们会通过一个代码示例，展示如何使用 Dora SSR 的 ECS（Entity Component System）框架进行游戏逻辑的编写。
 
@@ -131,7 +131,7 @@ with Observer "Remove", ["sprite",]
 	\watch => @oldValues.sprite\removeFromParent!
 ```
 
-&emsp;&emsp;然后，我们创建一个具有 "position", "direction", "speed", "target" 组件的实体组，并定义了观察器来处理实体组内组件的变化，并在每一帧游戏更新时对一组特定的实体进行遍历，并根据实体的速度、更新时间等信息来更新实体的旋转角度和位置属性。
+&emsp;&emsp;然后，我们创建一个具有 "position", "direction", "speed", "target" 组件的实体组，并定义了观察器来处理实体组内组件的变化，并在每一帧游戏更新时对一组特定的实体进行遍历，并根据实体的速度. 更新时间等信息来更新实体的旋转角度和位置属性。
 
 ```yue
 with Group ["position", "direction", "speed", "target"]
@@ -147,7 +147,7 @@ with Group ["position", "direction", "speed", "target"]
 		entity.direction = angle
 ```
 
-&emsp;&emsp;在这段代码中，首先，我们使用 `Group` 类创建了一个实体组对象，并指定了组中包含的组件类型为 "position"、"direction"、"speed" 和 "target"。
+&emsp;&emsp;在这段代码中，首先，我们使用 `Group` 类创建了一个实体组对象，并指定了组中包含的组件类型为 "position". "direction". "speed" 和 "target"。
 
 ```yue
 with Group ["position", "direction", "speed", "target"]
@@ -198,7 +198,7 @@ angle = math.deg math.atan dir.x, dir.y
 entity.direction = angle
 ```
 
-&emsp;&emsp;这样，当每一帧游戏更新时，实体组内的就会触发这段代码对每个实体做逻辑处理，并对实体当前的 "position"、"direction"、"speed" 或 "target" 组件做更新操作。
+&emsp;&emsp;这样，当每一帧游戏更新时，实体组内的就会触发这段代码对每个实体做逻辑处理，并对实体当前的 "position". "direction". "speed" 或 "target" 组件做更新操作。
 
 &emsp;&emsp;在完成数据计算和更新后，我们还需要把数据结果更新到渲染图形上。
 
@@ -342,7 +342,7 @@ Observer("Remove", {"sprite"}):watch(function(self: Entity.Type)
 end)
 ```
 
-&emsp;&emsp;然后，我们创建一个具有 "position", "direction", "speed", "target" 组件的实体组，并定义了观察器来处理实体组内组件的变化，并在每一帧游戏更新时对一组特定的实体进行遍历，并根据实体的速度、更新时间等信息来更新实体的旋转角度和位置属性。
+&emsp;&emsp;然后，我们创建一个具有 "position", "direction", "speed", "target" 组件的实体组，并定义了观察器来处理实体组内组件的变化，并在每一帧游戏更新时对一组特定的实体进行遍历，并根据实体的速度. 更新时间等信息来更新实体的旋转角度和位置属性。
 
 ```tl
 Group({"position", "direction", "speed", "target"}):watch(
@@ -363,7 +363,7 @@ Group({"position", "direction", "speed", "target"}):watch(
 end)
 ```
 
-&emsp;&emsp;在这段代码中，首先，我们使用 `Group` 类创建了一个实体组对象，并指定了组中包含的组件类型为 "position"、"direction"、"speed" 和 "target"。
+&emsp;&emsp;在这段代码中，首先，我们使用 `Group` 类创建了一个实体组对象，并指定了组中包含的组件类型为 "position". "direction". "speed" 和 "target"。
 
 ```tl
 Group({"position", "direction", "speed", "target"})
@@ -419,7 +419,7 @@ local angle = math.deg(math.atan(dir.x, dir.y))
 entity.direction = angle
 ```
 
-&emsp;&emsp;这样，当每一帧游戏更新时，实体组内的就会触发这段代码对每个实体做逻辑处理，并对实体当前的 "position"、"direction"、"speed" 或 "target" 组件做更新操作。
+&emsp;&emsp;这样，当每一帧游戏更新时，实体组内的就会触发这段代码对每个实体做逻辑处理，并对实体当前的 "position". "direction". "speed" 或 "target" 组件做更新操作。
 
 &emsp;&emsp;在完成数据计算和更新后，我们还需要把数据结果更新到渲染图形上。
 
@@ -563,7 +563,7 @@ Observer("Remove", {"sprite"}):watch(function(entity)
 end)
 ```
 
-&emsp;&emsp;然后，我们创建一个具有 "position", "direction", "speed", "target" 组件的实体组，并定义了观察器来处理实体组内组件的变化，并在每一帧游戏更新时对一组特定的实体进行遍历，并根据实体的速度、更新时间等信息来更新实体的旋转角度和位置属性。
+&emsp;&emsp;然后，我们创建一个具有 "position", "direction", "speed", "target" 组件的实体组，并定义了观察器来处理实体组内组件的变化，并在每一帧游戏更新时对一组特定的实体进行遍历，并根据实体的速度. 更新时间等信息来更新实体的旋转角度和位置属性。
 
 ```lua
 Group({"position", "direction", "speed", "target"}):watch(
@@ -584,7 +584,7 @@ Group({"position", "direction", "speed", "target"}):watch(
 end)
 ```
 
-&emsp;&emsp;在这段代码中，首先，我们使用 `Group` 类创建了一个实体组对象，并指定了组中包含的组件类型为 "position"、"direction"、"speed" 和 "target"。
+&emsp;&emsp;在这段代码中，首先，我们使用 `Group` 类创建了一个实体组对象，并指定了组中包含的组件类型为 "position". "direction". "speed" 和 "target"。
 
 ```lua
 Group({"position", "direction", "speed", "target"})
@@ -640,7 +640,7 @@ local angle = math.deg(math.atan(dir.x, dir.y))
 entity.direction = angle
 ```
 
-&emsp;&emsp;这样，当每一帧游戏更新时，实体组内的就会触发这段代码对每个实体做逻辑处理，并对实体当前的 "position"、"direction"、"speed" 或 "target" 组件做更新操作。
+&emsp;&emsp;这样，当每一帧游戏更新时，实体组内的就会触发这段代码对每个实体做逻辑处理，并对实体当前的 "position". "direction". "speed" 或 "target" 组件做更新操作。
 
 &emsp;&emsp;在完成数据计算和更新后，我们还需要把数据结果更新到渲染图形上。
 
@@ -680,16 +680,18 @@ Entity {
 </TabItem>
 </Tabs>
 
-&emsp;&emsp;这个代码示例演示了使用ECS框架开发游戏的基本流程。你可以根据自己的游戏需求，使用框架提供的实体、组、观察器等接口来构建游戏逻辑。在代码中，你可以根据实体的组件变化来触发相应的操作，对实体进行增删改查等操作，并利用实体组进行分组管理。通过使用观察器，你可以监听实体的变化事件，例如添加、修改或删除实体的特定组件。在观察器的处理函数中，你可以根据实体的变化执行相应的逻辑操作，例如更新场景中的节点、处理用户输入或打印调试信息等。
+&emsp;&emsp;这个代码示例演示了使用ECS框架开发游戏的基本流程。你可以根据自己的游戏需求，使用框架提供的实体. 组. 观察器等接口来构建游戏逻辑。在代码中，你可以根据实体的组件变化来触发相应的操作，对实体进行增删改查等操作，并利用实体组进行分组管理。通过使用观察器，你可以监听实体的变化事件，例如添加. 修改或删除实体的特定组件。在观察器的处理函数中，你可以根据实体的变化执行相应的逻辑操作，例如更新场景中的节点. 处理用户输入或打印调试信息等。
 
 &emsp;&emsp;通过合理组织实体和组件的关系，以及利用观察器的监听和处理能力，你可以构建出复杂的游戏逻辑和行为。在实际开发中，你可以根据游戏的需求设计和定义自己的组件类型，并利用ECS框架提供的接口来实现游戏中的各种功能和行为。
+
+## 3. 总结
 
 &emsp;&emsp;总结起来，使用ECS框架开发游戏的基本流程包括：
 
 1. 定义实体的组件类型，并根据实际需求创建实体对象。
 2. 创建实体组并将实体添加到相应的组中，用于分组管理实体。
-3. 使用观察器监听实体的变化事件，例如添加、修改或删除特定组件。
+3. 使用观察器监听实体的变化事件，例如添加. 修改或删除特定组件。
 4. 在实体组观察器的处理函数中每帧根据实体的变化执行相应的逻辑操作。
-5. 根据游戏需求设计和实现其他的组件、系统等功能。
+5. 根据游戏需求设计和实现其他的组件. 系统等功能。
 
 &emsp;&emsp;通过按照上述流程使用 Dora SSR 的 ECS 框架，你可以更好地组织和管理游戏逻辑，提高代码的可维护性和扩展性，实现复杂的游戏功能和行为。

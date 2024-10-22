@@ -6,12 +6,12 @@ import "@site/src/languages/highlight";
 This tutorial is a slightly modified version of the original Teal tutorial, adapted for Dora SSR. The original tutorial can be found [here](https://github.com/teal-language/tl/blob/master/docs/tutorial.md). And this tutorial assumes you are already familiar with Lua.
 :::
 
-## Welcome to Teal!
+## 1. Welcome to Teal!
 
 In this tutorial, we will go through the basics so you can get up and running
 type checking your Lua code, through the use of Teal, a typed dialect of Lua.
 
-## Why Types
+## 2. Why Types
 
 If you're already convinced about the idea of type checking, you may skip this
 part. :)
@@ -44,7 +44,7 @@ about it and have you document it via types. It will also constantly check
 that this "documentation" is not out of date. Coding with types is like pair
 programming with the machine.
 
-## Your first Teal program
+## 3. Your first Teal program
 
 Let's start with a simple example, which declares a type-safe function. Let's
 call this example `add.tl`:
@@ -75,7 +75,7 @@ end
 return addsub
 ```
 
-## Types in Teal
+## 4. Types in Teal
 
 Teal is a dialect of Lua. This tutorial will assume you already know Lua, so
 we'll focus on the things that Teal adds to Lua, and those are primarily type
@@ -140,7 +140,7 @@ local record TreeNode<T>
 end
 ```
 
-## Local variables
+## 5. Local variables
 
 Variables in Teal have types. So, when you declare a variable with the `local`
 keyword, you need to provide enough information so that the type can be determined.
@@ -187,7 +187,7 @@ information the Teal program needs. Every type in Teal accepts nil as a valid
 value, even if, like in Lua, attempting to use it with some operations would
 cause a runtime error, so be aware!
 
-## Arrays
+## 6. Arrays
 
 The simplest structured type in Teal is the array. An array is a Lua table where
 all keys are numbers and all values are of the same type. It is in fact a Lua
@@ -248,7 +248,7 @@ for i = 1, #sizes do
 end
 ```
 
-## Tuples
+## 7. Tuples
 
 Another common usage of tables in Lua are tuples: tables containing an ordered set
 of elements of known types assigned to its integer keys.
@@ -308,7 +308,7 @@ as well:
 local tuple_of_nums: {number, number} = {1, 2}
 ```
 
-## Maps
+## 8. Maps
 
 Another very common type of table is the map: a table where all keys of one
 given type, and all values are of another given type, which may or may not be
@@ -347,7 +347,7 @@ local is_vowel: {string:boolean} = {
 For now, if you have to deal with heterogeneous maps (that is, Lua tables with
 a mix of types in their keys or values), you'll have to use casts.
 
-## Records
+## 9. Records
 
 Records are the third major type of table supported in Teal. They represent
 another super common pattern in Lua code, so much that Lua includes special
@@ -512,7 +512,7 @@ end
 local c: Circle = {x = 100, y = 200, radius = 50}
 ```
 
-## Generics
+## 10. Generics
 
 Teal supports a simple form of generics that is useful enough for dealing
 collections and algorithms that operate over abstract data types.
@@ -548,7 +548,7 @@ local t: Tree<number> = {
 }
 ```
 
-## Metamethods
+## 11. Metamethods
 
 Lua supports metamethods to provide some advanced features such as operator
 overloading. Like Lua tables, records support metamethods. To use metamethods
@@ -600,7 +600,7 @@ Operator metamethods for integer division `//` and bitwise operators are
 supported even when Teal runs on top of Lua versions that do not support them
 natively, such as Lua 5.1.
 
-## Enums
+## 12. Enums
 
 Enums are a restricted type of string value, which represent a common practice
 in Lua code: using a limited set of string constants to describe an
@@ -632,7 +632,7 @@ Variables and arguments of this type will only accept values from the declared
 list. Enums are freely convertible to strings, but not the other way around.
 You can of course promote an arbitrary string to an enum with a cast.
 
-## Functions
+## 13. Functions
 
 Functions in Teal should work like you expect, and we have already showed
 various examples.
@@ -689,7 +689,7 @@ end
 The only changes made to the code above were the addition of type signatures
 in both function declarations.
 
-### Variadic functions
+### 13.1 Variadic functions
 
 Just like in Lua, some functions in Teal may receive a variable amount of arguments. Variadic functions can be declared by specifying `...` as the last argument of the function:
 
@@ -726,7 +726,7 @@ print(a + 1)		-- `a` has type number
 print(b:upper())  -- `b` has type string
 ```
 
-## Union types
+## 14. Union types
 
 The language supports a basic form of union types. You can register a type
 that is a logical "or" of multiple types: it will accept values from multiple
@@ -767,7 +767,7 @@ local a: string | number
 local x: number = a is number and a + 1 or 0
 ```
 
-### Current limitations of union types
+### 14.1 Current limitations of union types
 
 In the current version, there are two main limitations regarding support
 for union types in Teal.
@@ -800,7 +800,7 @@ local invalid5: string | MyEnum
 This restriction between strings and enums may be removed in the future.
 The restriction on records may also be lifted in the future.
 
-## The type `any`
+## 15. The type `any`
 
 The type `any`, as it name implies, accepts any value, like a
 dynamically-typed Lua variable. However, since Teal doesn't know anything
@@ -812,12 +812,12 @@ Some Lua libraries use complex dynamic types that can't be easily represented
 in Teal. In those cases, using `any` and making explicit casts is our last
 resort.
 
-## Variable attributes
+## 16. Variable attributes
 
 Teal supports variable annotations, with similar syntax and behavior to those
 from Lua 5.4. They are:
 
-### Const variables
+### 16.1 Const variables
 
 The `<const>` annotation works in Teal like it does in Lua 5.4 (it works at
 compile time, even if you're running a different version of Lua). Do note
@@ -830,7 +830,7 @@ xs[1] = 999 -- ok! the array is not frozen
 xs = {} -- Error! can't replace the array in variable xs
 ```
 
-### To-be-closed variables
+### 16.2 To-be-closed variables
 
 The `<close>` annotation from Lua 5.4 is only supported in Teal if your
 code generation target is Lua 5.4. These work just
@@ -845,7 +845,7 @@ for _, name in ipairs(filenames) do
 end
 ```
 
-### Total variables
+### 16.3 Total variables
 
 The `<total>` annotation is specific to Teal. It declares a const variable
 assigned to a table value in which all possible keys need to be explicitly
@@ -923,7 +923,7 @@ local vertical_only <total>: {Direction:MotionCallback} = {
 in mathematics, which is a relation where, given a set of "keys" mapping
 to a set of "values", the keys fully cover the domain of their type).
 
-## Global variables
+## 17. Global variables
 
 Unlike in Lua, global variables in Teal need to be declared, because the
 compiler needs to know its type. It also allows the compiler to catch typos in

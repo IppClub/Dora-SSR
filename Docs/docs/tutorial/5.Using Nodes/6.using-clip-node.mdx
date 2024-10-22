@@ -10,7 +10,7 @@ In game development and graphic rendering, masking is a common technique used to
 
 `ClipNode` is a scene node class in Dora SSR used for setting clipping masks to control the visible area of child nodes. By specifying a mask node (`stencil`), `ClipNode` can clip the rendering of its child nodes based on the shape or transparency of the mask.
 
-### Main Properties of ClipNode
+### 1.1 Main Properties of ClipNode
 
 - **stencil**: Defines the mask node that determines the clipping shape.
 - **alphaThreshold**: The alpha threshold for clipping mask pixels to take effect. The value ranges from 0 to 1, and only pixels with alpha values greater than this threshold will be included in the clipping.
@@ -20,7 +20,7 @@ In game development and graphic rendering, masking is a common technique used to
 
 In the first example, we will use a star shape as a mask to clip the visible area of an animated model.
 
-### Step-by-Step Breakdown
+### 2.1 Step-by-Step Breakdown
 
 1. **Create the Vertex Data for the Star Shape**
 
@@ -120,7 +120,7 @@ exampleA:addChild(clipNodeA)
 </TabItem>
 </Tabs>
 
-### Visual Effect
+### 2.2 Visual Effect
 
 When you run the above code, you'll see that the model is only visible inside the star shape, and the parts outside the star are clipped.
 
@@ -128,7 +128,7 @@ When you run the above code, you'll see that the model is only visible inside th
 
 In the second example, we will use a model with transparency as a mask and use the `alphaThreshold` property to control the clipping effect.
 
-### Step-by-Step Breakdown
+### 3.1 Step-by-Step Breakdown
 
 1. **Create the Mask Model**
 
@@ -197,7 +197,7 @@ exampleB:addChild(clipNodeB)
 </TabItem>
 </Tabs>
 
-### Visual Effect
+### 3.2 Visual Effect
 
 When you run the code, you'll notice that the target shape is only visible in the non-transparent parts of the mask model, creating a clipping effect based on transparency.
 
@@ -208,7 +208,7 @@ Through these two examples, we've learned how to use `ClipNode` in Dora SSR to a
 - **Example A** shows how to use arbitrary shapes as a mask to clip the visible area of child nodes.
 - **Example B** demonstrates how to use the `alphaThreshold` property with images or models that have transparency for more advanced masking.
 
-### Tips
+### 4.1 Tips
 
 - **Using alphaThreshold**: This property is very useful when the mask node has semi-transparent regions. It allows you to finely control which pixels participate in the clipping.
 - **inverted Property**: By toggling `inverted`, you can easily reverse the clipping region to achieve different visual effects.

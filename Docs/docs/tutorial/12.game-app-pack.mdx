@@ -4,7 +4,7 @@ import "@site/src/languages/highlight";
 
 This tutorial will guide you through the process of packaging your game project as a standalone software package using the Dora SSR game engine, making it independent of the Dora SSR development support tools and Web IDE functionality.
 
-### 1. Prepare Game Assets
+## 1. Prepare Game Assets
 
 Before packaging, ensure that all game assets are correctly placed in the `Assets` directory of your game project. This includes:
 
@@ -15,11 +15,11 @@ Before packaging, ensure that all game assets are correctly placed in the `Asset
 
 These assets are essential components of the game's operation and must be included in the final application package.
 
-### 2. Streamline the Assets Directory
+## 2. Streamline the Assets Directory
 
 In the `Assets` directory, the `Script/Lib` subdirectory contains development support scripts and component libraries provided by the Dora SSR engine, which must be retained as they may be referenced by the game program. Other directories and content can be considered for deletion to reduce the size of the final application package, as long as it does not affect the game’s operation.
 
-### 3. Set Resource Search Path
+## 3. Set Resource Search Path
 
 When developing and testing games with Dora SSR's Web IDE, the engine will by default insert the following paths into the resource search path before running:
 
@@ -43,7 +43,7 @@ Content.searchPaths = {
 }
 ```
 
-### 4. Building and Packaging Process
+## 4. Building and Packaging Process
 
 The packaging process mainly involves the following steps:
 
@@ -59,7 +59,7 @@ After building, package the executable file and all necessary resource files tog
 #### d. Test the Application
 Test the packaged application on the target platform to ensure that all functions are working correctly and no resources are missing or incorrect.
 
-### 5. Distribution and Release
+## 5. Distribution and Release
 
 Once packaging and testing are completed, your game application is ready for distribution and release. You can choose to release it on various gaming platforms or set up your own download site for players to download.
 

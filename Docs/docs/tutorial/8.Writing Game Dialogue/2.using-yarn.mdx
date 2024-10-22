@@ -6,7 +6,7 @@ import TabItem from '@theme/TabItem';
 
 Welcome to the YarnRunner functionality tutorial. In this tutorial, we will guide you on how to load and run the Yarn narrative scripts you wrote in the [previous tutorial](/docs/tutorial/Writing%20Game%20Dialogue/introduction-to-yarn).
 
-### 1. Initializing YarnRunner
+## 1. Initializing YarnRunner
 
 <Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
@@ -86,7 +86,7 @@ runner = YarnRunner "tutorial.yarn", "Start"
 </TabItem>
 </Tabs>
 
-### 2. Executing and Displaying Narrative Content
+## 2. Executing and Displaying Narrative Content
 
 We have defined an `advance` function that can read and display text content or options from the Yarn script. Depending on the narrative content, it can also display character names:
 
@@ -200,7 +200,7 @@ end
 ```yue title="init.yue"
 -- The `advance` function takes an optional integer parameter representing the player's choice index.
 -- When calling this function for the first time or when no choice is needed, we pass nil.
-advance = (option)->
+advance = (option) ->
 
 	-- The function first calls `runner\advance` to fetch the next part of the Yarn script.
 	-- This returns two values: an action type and a result.
@@ -236,7 +236,7 @@ advance = (option)->
 </TabItem>
 </Tabs>
 
-### 3. Initiating the Narrative
+## 3. Initiating the Narrative
 
 To initiate the narrative, you simply call the `advance` function without any arguments:
 
@@ -264,7 +264,7 @@ advance!
 </TabItem>
 </Tabs>
 
-### 4. Responding to User Input
+## 4. Responding to User Input
 
 To allow player interaction with the narrative, we need a node to capture and respond to user input. We create a node and assign it a signal slot named "go." When this signal is triggered, it will call the `advance` function again and pass the player's choice:
 
@@ -295,7 +295,7 @@ node:addTo(Director.entry)
 
 ```yue title="init.yue"
 with Node!
-	\gslot "go", (option)-> advance option
+	\gslot "go", (option) -> advance option
 	\addTo Director.entry
 ```
 
@@ -304,6 +304,53 @@ with Node!
 
 In this example, a global event listener has been registered for quick testing. In actual game development, you would need to implement UI interaction logic. With the "go" global event listener, you can continue the dialogue by entering `emit 'go'` in the Dora SSR console command line, and you can interactively test the conversation by entering `emit 'go', 1` to select dialogue branches.
 
-### 5. Conclusion
+## 5. Adding Custom Commands and States
+
+&emsp;&emsp;You can add custom commands and initial state variables by passing the `command` and `state` parameters to `YarnRunner`. The `command` parameter is a Lua table containing callback functions that can execute commands, and the `state` parameter is a table containing predefined variables. Here is an example:
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua title="init.lua"
+local runner = YarnRunner("tutorial.yarn", "Start", {
+	playerScore = 100
+}, {
+	print = print
+})
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl title="init.tl"
+local runner = YarnRunner("tutorial.yarn", "Start", {
+	playerScore = 100
+}, {
+	print = print
+})
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue title="init.yue"
+runner = YarnRunner "tutorial.yarn", "Start", {
+	playerScore: 100
+}, {
+	print: print
+}
+```
+
+</TabItem>
+</Tabs>
+
+&emsp;&emsp;Then, in the Yarn script, you can change the initial variable values by using the `<<set $variableName = expression>>` command and print the variable values using the custom command `<<print $variableName>>`:
+
+```html title="Test Dialogue Node"
+<<set $playerScore = $playerScore + 200>>
+<<print $playerScore>>
+```
+
+## 6. Conclusion
 
 Now, you have set up all the necessary code to load and run Yarn narrative scripts. You can run the above scripts to start your interactive narrative, where players can interact by choosing options. Happy storytelling!

@@ -698,5 +698,9 @@
   "sidebar.apiSidebar.doc.Frame": {
     "message": "Frame",
     "description": "The label for the doc item Frame in sidebar apiSidebar, linking to the doc api/Module/Frame"
+  },
+  "sidebar.tutorialSidebar.category.Managing Game Data": {
+    "message": "管理游戏数据",
+    "description": "The label for category Managing Game Data in sidebar tutorialSidebar"
   }
 }

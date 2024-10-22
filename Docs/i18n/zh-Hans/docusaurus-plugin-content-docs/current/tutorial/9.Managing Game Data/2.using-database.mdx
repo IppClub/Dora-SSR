@@ -1,0 +1,522 @@
+import "@site/src/languages/highlight";
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# 使用 SQLite 数据库
+
+&emsp;&emsp;Dora SSR 引擎为开发者提供了 [SQLite](https://www.sqlite.org) 数据库的集成，用于管理和查询大量游戏数据，以及进行关键游戏数据的持久化存储。本教程将带您从零开始，逐步了解如何使用 Dora 的数据库功能。
+
+## 1. 引言
+
+&emsp;&emsp;在游戏开发中，经常需要管理大量的游戏数据，如玩家信息. 游戏物品. 关卡配置等。使用数据库可以高效地存储和检索这些数据。Dora SSR 引擎集成了 SQLite 数据库，提供了一系列简单易用的接口，让您可以轻松地进行数据库操作。
+
+### 1.1 初识数据库操作
+
+&emsp;&emsp;在开始之前，确保您已了解以下概念：
+
+- **数据库（Database）**：存储和管理数据的系统。
+- **数据表（Table）**：数据库中的数据存储结构，由行和列组成。
+- **行（Row）**：表中的一条记录。
+- **列（Column）**：表中某个属性的集合。
+
+## 2. DB 类简介
+
+&emsp;&emsp;`DB` 类是 Dora 提供的用于数据库操作的核心类。通过这个类，您可以执行以下操作：
+
+- 检查数据表是否存在
+- 执行 SQL 查询
+- 插入. 更新. 删除数据
+- 执行事务
+- 进行异步操作
+
+### 2.1 DB 类相关重要概念
+
+- **Column**：表示数据库列的数据类型，可以是 `integer`. `number`. `string` 或 `boolean`。
+
+	:::tip 特别提示
+	在 Dora SSR 中数据库列的 boolean 类型仅支持 `false` 值，用于表示数据库中的空值（NULL）。如果需要在数据库中存储布尔值，需要使用数值类型的 `0` 和 `1` 来代替 `false` 和 `true`。
+	:::
+
+- **Row**：表示数据库中的一行数据，通常是一个包含多个 `Column` 的 Lua 表。
+- **SQL**：表示 SQL 查询语句，可以是字符串或包含参数的字符串加上参数表。
+
+## 3. 基本操作示例
+
+&emsp;&emsp;下面，我们将通过一些基本操作来熟悉 `DB` 类的使用。
+
+### 3.1 检查数据表是否存在
+
+&emsp;&emsp;在操作数据库之前，通常需要确认某个数据表是否存在。可以使用 `exist` 方法：
+
+<Tabs>
+<TabItem value="lua" label="Lua">
+
+```lua
+local tableExists = DB:exist("test_table")
+print(tableExists and "表存在" or "表不存在")
+```
+
+</TabItem>
+</Tabs>
+
+### 3.2 创建和删除数据表
+
+&emsp;&emsp;可以使用 `exec` 方法执行创建和删除表的 SQL 语句：
+
+<Tabs>
+<TabItem value="lua" label="Lua">
+
+```lua
+-- 删除名为 test_table 的数据表（如果存在）
+DB:exec("DROP TABLE IF EXISTS test_table")
+
+-- 创建名为 test_table 的数据表
+DB:exec("CREATE TABLE test_table (id INTEGER PRIMARY KEY, value TEXT)")
+```
+
+</TabItem>
+</Tabs>
+
+### 3.3 插入数据
+
+&emsp;&emsp;使用 `insert` 方法可以将数据插入到表中：
+
+<Tabs>
+<TabItem value="lua" label="Lua">
+
+```lua
+local success = DB:insert("test_table", {
+	{1, "Hello"},
+	{2, "World"}
+})
+print(success and "插入成功" or "插入失败")
+```
+
+</TabItem>
+</Tabs>
+
+### 3.4 查询数据
+
+&emsp;&emsp;使用 `query` 方法可以从表中查询数据：
+
+<Tabs>
+<TabItem value="lua" label="Lua">
+
+```lua
+local results = DB:query("SELECT * FROM test_table")
+for _, row in ipairs(results) do
+	print("ID:", row[1], "Value:", row[2])
+end
+```
+
+</TabItem>
+</Tabs>
+
+### 3.5 更新和删除数据
+
+&emsp;&emsp;可以使用 `exec` 方法执行更新和删除操作：
+
+<Tabs>
+<TabItem value="lua" label="Lua">
+
+```lua
+-- 更新数据
+local rowsAffected = DB:exec("UPDATE test_table SET value = ? WHERE id = ?", {"Hello Dora", 1})
+print("更新了", rowsAffected, "行")
+
+-- 删除数据
+rowsAffected = DB:exec("DELETE FROM test_table WHERE id = ?", {2})
+print("删除了", rowsAffected, "行")
+```
+
+</TabItem>
+</Tabs>
+
+## 4. 事务处理
+
+&emsp;&emsp;事务是一组要么全部执行并执行成功. 要么遇到错误就全部都不执行的操作。在 Dora SSR 中，可以使用 `transaction` 方法来执行事务：
+
+<Tabs>
+<TabItem value="lua" label="Lua">
+
+```lua
+local sqlStatements = {
+	"INSERT INTO test_table (id, value) VALUES (3, 'Dora')",
+	"INSERT INTO test_table (id, value) VALUES (4, 'SSR')"
+}
+local transactionSuccess = DB:transaction(sqlStatements)
+print(transactionSuccess and "事务成功" or "事务失败")
+```
+
+</TabItem>
+</Tabs>
+
+## 5. 异步操作
+
+&emsp;&emsp;为了不阻塞主线程，Dora SSR 提供了异步操作的方法，如 `insertAsync`. `queryAsync` 和 `execAsync`。这些方法可以在后台线程中执行数据库操作。
+
+<Tabs>
+<TabItem value="lua" label="Lua">
+
+```lua
+thread(function()
+	-- 异步插入数据
+	DB:insertAsync("test_table", {
+		{5, "Async"},
+		{6, "Operation"}
+	})
+
+	-- 异步查询数据
+	local asyncResults = DB:queryAsync("SELECT * FROM test_table")
+	if asyncResults then
+		for _, row in ipairs(asyncResults) do
+			print("异步查询 - ID:", row[1], "Value:", row[2])
+		end
+	end
+end)
+```
+
+</TabItem>
+</Tabs>
+
+## 6. 建立新的 Schema
+
+&emsp;&emsp;在实际项目中，有时会需要建立一个新的 Schema 来分别存储管理游戏数据。而不是把数据都放在同一个默认库中。Schema 是一种数据库中的逻辑结构，可以看作是包含多个数据表的一个分组。可以使用 `exec` 方法来创建 Schema。
+
+<Tabs>
+<TabItem value="lua" label="Lua">
+
+```lua
+-- 定义存储新的 Schema 数据的文件完整路径，必须是在引擎可写目录下
+local schemaFile = Path(Content.writablePath, "game_data.db")
+
+-- 创建 Schema，
+-- 当数据库文件不存在时会自动创建，
+-- 存在时会添加到当前数据库连接中
+DB:exec("ATTACH DATABASE '" .. schemaFile .. "' AS game_data")
+
+-- 在新的 Schema 中创建数据表并插入数据
+DB:exec("CREATE TABLE game_data.player (id INTEGER PRIMARY KEY, name TEXT)")
+DB:insert("game_data.player", {false, "Dora"})
+
+-- 查询新的 Schema 中的表数据
+DB:query("SELECT * FROM game_data.player")
+
+-- 卸载 Schema，使得新的 Schema 数据不再可以访问
+DB:exec("DETACH DATABASE game_data")
+```
+
+</TabItem>
+</Tabs>
+
+:::tip 总结提示
+Dora SSR 引擎提供的默认 Schema 库会存储在代码 `Path(Content.writablePath, "dora.db")` 所对应的文件中。在访问数据表时，如果没有在表名前加前缀，即表示访问的是默认 Schema 中的数据表。如果需要创建. 加载或是管理新的 Schema 库，如用于创建一个独立的更容易迁移的数据库文件，或是进行加载，可以使用 `ATTACH DATABASE` 和 `DETACH DATABASE` 来进行操作。
+:::
+
+## 7. 将 Excel 数据导入数据库
+
+&emsp;&emsp;在游戏开发中，通常会使用 Excel 表格来管理游戏数据。当 Excel 中的数据量较大，做数据关联等复杂的查询操作时，使用数据库会更加高效。Dora SSR 引擎提供了便捷的将 Excel 数据导入数据库的功能，方便开发者进行数据管理。
+
+### 7.1 前置条件
+
+- **数据表结构与 Excel 表格结构一致**：确保数据库中的表结构（列名和列类型）与 Excel 工作表中的数据列对应。
+- **Excel 文件格式**：目前支持的 Excel 文件格式为 `.xlsx`。
+
+### 7.2 示例步骤
+
+&emsp;&emsp;下面我们将通过一个示例，演示如何将 Excel 数据导入到数据库中。
+
+#### 创建数据库表
+
+&emsp;&emsp;假设我们有一个 Excel 文件 `data.xlsx`，其中包含一个工作表 `Items`，记录了游戏道具的信息，包括道具 ID. 名称和描述。首先，我们需要在数据库中创建对应的表：
+
+<Tabs>
+<TabItem value="lua" label="Lua">
+
+```lua
+DB:exec([[
+	CREATE TABLE IF NOT EXISTS Items (
+		id INTEGER PRIMARY KEY,
+		name TEXT,
+		description TEXT
+	)
+]])
+```
+
+</TabItem>
+</Tabs>
+
+#### 准备 Excel 文件
+
+&emsp;&emsp;确保您的 Excel 文件 `data.xlsx` 位于项目的可访问路径下，工作表 `Items` 的第一行为列名，对应数据库表的列名：
+
+| id | name | description |
+| ---- | ------ | ------------ |
+| 1 | Sword | Basic sword |
+| 2 | Shield | Basic shield |
+| ... | ... | ... |
+
+#### 使用 `DB.insertAsync` 导入数据
+
+<Tabs>
+<TabItem value="lua" label="Lua">
+
+```lua
+thread(function()
+	local success = DB:insertAsync(
+		{"Items"},
+		"data.xlsx",
+		2
+	)
+	if success then
+		print("Excel 数据导入成功！")
+	else
+		print("Excel 数据导入失败！")
+	end
+end)
+```
+
+</TabItem>
+</Tabs>
+
+#### 验证导入结果
+
+&emsp;&emsp;您可以查询数据库，验证数据是否成功导入：
+
+<Tabs>
+<TabItem value="lua" label="Lua">
+
+```lua
+local items = DB:query("SELECT * FROM Items")
+for _, item in ipairs(items) do
+	print("ID:", item[1], "名称:", item[2], "描述:", item[3])
+end
+```
+
+</TabItem>
+</Tabs>
+
+### 7.3 使用自定义工作表名称
+
+&emsp;&emsp;如果您的 Excel 文件中，工作表名称与数据库表名不同，您可以指定对应关系：
+
+<Tabs>
+<TabItem value="lua" label="Lua">
+
+```lua
+thread(function()
+	local tableSheets = {
+		{"Items", "GameItems"}  -- 数据库表名为 "Items"，对应的 Excel 工作表名为 "GameItems"
+	}
+	local success = DB:insertAsync(
+		tableSheets,
+		"data.xlsx",
+		2
+	)
+	if success then
+		print("Excel 数据导入成功！")
+	else
+		print("Excel 数据导入失败！")
+	end
+end)
+```
+
+</TabItem>
+</Tabs>
+
+### 7.4 注意事项
+
+- **数据类型匹配**：确保 Excel 中的数据类型与数据库表的列类型兼容，例如，数值型数据应对应 INTEGER 或 REAL 类型，文本数据应对应 TEXT 类型。
+- **日期和布尔值处理**：Excel 中的日期和布尔值需要在导入前进行适当的转换，以匹配数据库中的数据类型。
+- **错误处理**：`insertAsync` 方法在导入过程中如果遇到错误，将返回 `false`。建议在实际应用中添加错误日志，捕获并处理可能的异常情况。
+
+## 8. 完整示例代码
+
+&emsp;&emsp;下面是一段完整的示例代码，我们将逐行进行解析。
+
+<Tabs>
+<TabItem value="lua" label="Lua">
+
+```lua
+local DB <const> = require("DB")
+local thread <const> = require("thread")
+
+-- 使用事务建立一张表并插入初始化数据
+local sqls = {
+	"DROP TABLE IF EXISTS test",
+	"CREATE TABLE test (id INTEGER PRIMARY KEY, value TEXT)",
+	{
+		"INSERT INTO test VALUES(?, ?)",
+		{
+			{false, "hello"},
+			{false, "world"},
+			{false, "ok"}
+		}
+	}
+}
+
+local result = DB:transaction(sqls)
+print(result and "Success" or "Failure")
+
+-- 检查表是否存在
+print(DB:exist("test"))
+
+-- 查询并打印数据
+p(DB:query("SELECT * FROM test", true))
+
+-- 删除和更新数据
+print("row changed:", DB:exec("DELETE FROM test WHERE id > 1"))
+print("row changed:", DB:exec("UPDATE test SET value = ? WHERE id = 1", {"hello world!"}))
+
+-- 进行异步操作
+thread(function()
+	-- 异步插入数据
+	print("insert async")
+	local data = {}
+	local count = 1
+	for k in pairs(_G) do
+		data[count] = {false, k}
+		count = count + 1
+	end
+	p(DB:insertAsync("test", data))
+
+	-- 异步查询数据
+	print("query async...")
+	local items = DB:queryAsync("SELECT value FROM test WHERE value NOT LIKE 'hello%' ORDER BY value ASC")
+	local rows = {}
+	if items then
+		count = 1
+		for i = 1, #items do
+			local item = items[i]
+			rows[count] = item[1]
+			count = count + 1
+		end
+	end
+	p(rows)
+end)
+```
+
+</TabItem>
+</Tabs>
+
+### 8.1 代码解析
+
+1. **导入模块**：
+
+	```lua
+	local DB <const> = require("DB")
+	local thread <const> = require("thread")
+	```
+
+	- `DB` 模块用于数据库操作。
+	- `thread` 模块用于创建异步线程。
+
+2. **定义 SQL 语句列表**：
+
+	```lua
+	local sqls = {
+		"DROP TABLE IF EXISTS test",
+		"CREATE TABLE test (id INTEGER PRIMARY KEY, value TEXT)",
+		{
+			"INSERT INTO test VALUES(?, ?)",
+			{
+				{false, "hello"}, -- 使用 false 作为数据库 NULL 值占位，id 会自动增长
+				{false, "world"},
+				{false, "ok"}
+			}
+		}
+	}
+	```
+
+	- 删除名为 `test` 的表（如果存在）。
+	- 创建名为 `test` 的表，包含 `id` 和 `value` 两列。
+	- 插入三条数据，其中 `id` 因为数据表被创建为主键，会自动增长（使用 `false` 代表数据库 NULL 值占位），`value` 分别为 `"hello"`. `"world"`. `"ok"`。
+
+3. **执行事务**：
+
+	```lua
+	local result = DB:transaction(sqls)
+	print(result and "Success" or "Failure")
+	```
+
+	- 使用 `transaction` 方法执行一组 SQL 语句，保证原子性。
+	- 输出事务执行结果。
+
+4. **检查表是否存在**：
+
+	```lua
+	print(DB:exist("test"))
+	```
+
+	- 检查 `test` 表是否存在。
+
+5. **查询并打印数据**：
+
+	```lua
+	p(DB:query("SELECT * FROM test", true))
+	```
+
+	- 查询 `test` 表中的所有数据，`true` 表示结果包含列名。
+	- 使用 `p` 函数（引擎内置的特殊打印函数）打印查询结果。
+
+6. **删除和更新数据**：
+
+	```lua
+	print("row changed:", DB:exec("DELETE FROM test WHERE id > 1"))
+	print("row changed:", DB:exec("UPDATE test SET value = ? WHERE id = 1", {"hello world!"}))
+	```
+
+	- 删除 `id` 大于 1 的数据。
+	- 更新 `id` 等于 1 的数据，将 `value` 改为 `"hello world!"`。
+	- 输出受影响的行数。
+
+7. **异步操作**：
+
+	```lua
+	thread(function()
+		-- 异步插入数据
+		print("insert async")
+		local data = {}
+		local count = 1
+		for k in pairs(_G) do
+			data[count] = {false, k}
+			count = count + 1
+		end
+		p(DB:insertAsync("test", data))
+
+		-- 异步查询数据
+		print("query async...")
+		local items = DB:queryAsync("SELECT value FROM test WHERE value NOT LIKE 'hello%' ORDER BY value ASC")
+		local rows = {}
+		if items then
+			count = 1
+			for i = 1, #items do
+				local item = items[i]
+				rows[count] = item[1]
+				count = count + 1
+			end
+		end
+		p(rows)
+	end)
+	```
+
+	- 创建一个新线程，执行异步操作。
+	- **异步插入**：将全局变量名插入到 `test` 表中。
+	- **异步查询**：查询 `value` 不以 `"hello"` 开头的数据，按字母顺序排序。
+	- **处理结果**：将查询结果中的 `value` 提取出来，存入 `rows` 表。
+	- 打印结果。
+
+## 9. 总结
+
+&emsp;&emsp;通过本教程，您应该已经掌握了如何使用 Dora SSR 引擎的 SQLite 数据库功能来进行基本的数据操作。利用这些接口，您可以高效地管理游戏中的各种数据，为玩家提供更丰富的游戏体验。
+
+**提示**：
+
+- 始终确保在执行数据库操作时，处理可能的错误情况。
+- 使用事务可以确保数据操作的原子性，避免数据不一致。
+
+**下一步**：
+
+- 了解更多高级 SQL 语法，如 JOIN. 子查询等。关于 SQLite SQL 语法的详细信息，请参考 [SQLite 官方文档](https://www.sqlite.org/lang.html)。
+- 学习如何优化数据库查询，提高性能。
+- 探索如何在实际项目中组织和管理数据库代码。

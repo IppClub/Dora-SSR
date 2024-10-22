@@ -4,7 +4,7 @@ import "@site/src/languages/highlight";
 
 When using TypeScriptToLua (TSTL) to write TypeScript and compile it into Lua, developers need to be aware of some key differences in behavior due to language-specific features. This article will focus on handling the `self` parameter, managing context in callback functions, and how to avoid common type errors.
 
-### The Importance of the `self` Parameter
+#### The Importance of the `self` Parameter
 
 In the default configuration of TSTL, all functions include a `self` parameter by default to simulate the behavior of the `this` keyword in JavaScript. The `self` parameter refers to the object context calling the function. For most Lua users, this behavior is similar to calling methods using Lua's `:` (colon).
 
@@ -12,7 +12,7 @@ In the default configuration of TSTL, all functions include a `self` parameter b
 
 In Dora SSR, TSTL is configured with the `noImplicitSelf` option enabled. This means that ordinary functions will no longer include a `self` parameter by default to simulate JavaScript's `this` keyword behavior.
 
-### Example:
+### 1.1 Example:
 
 In Dora SSR:
 

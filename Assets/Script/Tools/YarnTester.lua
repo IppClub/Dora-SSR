@@ -289,13 +289,25 @@ threadLoop(function() -- 180
 				texts = {} -- 220
 				advance() -- 221
 			end -- 221
-			ImGui.Text(zh and "变量" or "Variables") -- 223
-			ImGui.Separator() -- 224
-			for k, v in pairs(runner.state) do -- 225
-				ImGui.Text((k .. ": ") .. tostring(v)) -- 226
+			if ImGui.Button(zh and "重载" or "Reload") then -- 221
+				runner = YarnRunner( -- 224
+					filteredPaths[currentFile], -- 224
+					"Start", -- 224
+					{}, -- 224
+					commands, -- 224
+					true -- 224
+				) -- 224
+				texts = {} -- 225
+				advance() -- 226
 			end -- 226
+			ImGui.SameLine() -- 228
+			ImGui.Text(zh and "变量：" or "Variables:") -- 229
+			ImGui.Separator() -- 230
+			for k, v in pairs(runner.state) do -- 231
+				ImGui.Text((k .. ": ") .. tostring(v)) -- 232
+			end -- 232
 		end -- 184
 	) -- 184
-	return false -- 229
+	return false -- 235
 end) -- 180
 return ____exports -- 180

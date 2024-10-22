@@ -26,7 +26,7 @@ Update scheduling is a mechanism in the game engine used to manage and execute g
 
 Coroutine tasks allow you to pause execution, wait for conditions to be met, or for a certain amount of time to pass before continuing. This enables time-consuming operations without blocking the main thread, making them highly useful for handling asynchronous events.
 
-### Global Coroutine Tasks vs. Node-bound Coroutine Tasks
+### 3.1 Global Coroutine Tasks vs. Node-bound Coroutine Tasks
 
 In Dora SSR, coroutine tasks can be executed in two ways:
 
@@ -80,7 +80,7 @@ end)
 
 Here, `node:once(function() ... end)` creates a coroutine task tied to the `node`. When the `node` is cleaned up, the task is automatically stopped and cleared.
 
-### Difference Between Global and Node-bound Coroutine Tasks
+### 3.2 Difference Between Global and Node-bound Coroutine Tasks
 
 - **Lifecycle management**:
 	- **Global Coroutine Tasks**: Independent of any node, managed by the global scheduling module. They need to be manually removed or cleaned up when the engine exits.
@@ -90,7 +90,7 @@ Here, `node:once(function() ... end)` creates a coroutine task tied to the `node
 	- **Global Coroutine Tasks**: Suitable for tasks that need to run throughout the game lifecycle, such as global event listeners.
 	- **Node-bound Coroutine Tasks**: Suitable for tasks associated with specific scenes or objects, such as character animation control.
 
-### Coroutine Control Functions
+### 3.3 Coroutine Control Functions
 
 In Dora SSR, coroutine tasks are executed asynchronously, and you can use specific control flow functions to manage the order and suspension of tasks. These functions include `wait`, `cycle`, and `sleep`, which help manage coroutine pauses and loops based on conditions or time.
 
@@ -201,7 +201,7 @@ end)
 
 Here, `node:schedule(function(deltaTime) ... end)` schedules a function that is called every frame. The `deltaTime` parameter represents the time interval between the previous and current frames.
 
-### Differences Between `node:schedule()` and `node:onUpdate()`
+### 4.1 Differences Between `node:schedule()` and `node:onUpdate()`
 
 **Similarities**:
 - Both schedule functions that are called every frame, returning `true` stops the execution.
@@ -239,7 +239,7 @@ end)
 </TabItem>
 </Tabs>
 
-## Function Abbreviations
+## 5. Function Abbreviations
 
 In Dora SSR, several function abbreviations simplify code writing:
 
@@ -248,7 +248,7 @@ In Dora SSR, several function abbreviations simplify code writing:
 - **`node:once(function() end)`** is a shorthand for **`node:schedule(once(function() end))`**.
 - **`node:loop(function() end)`** is a shorthand for **`node:schedule(loop(function() end))`**.
 
-## Conclusion
+## 6. Conclusion
 
 With this tutorial, you should now have a solid understanding of how to use the Update scheduling mechanism in the Dora SSR game engine. You can utilize coroutine tasks for asynchronous processing, ensuring the smooth execution of the main thread, while using per-frame update functions to handle continuous logic. Understanding the difference between `node:schedule()` and `node:onUpdate()`, along with the function abbreviations, will help you write more efficient code.
 
