@@ -16,9 +16,11 @@ face:addChild(node1) -- 21
 local item2 = SolidRect{renderOrder = 1, color = backColor or 0x66000000, height = height, width = width} -- 22
 node1:addChild(item2) -- 22
 if text then -- 25
-local label = Label(fontName or 'sarasa-mono-sc-regular',fontSize or 18) -- 26
+local label = Label(fontName or 'sarasa-mono-sc-regular',math.floor((fontSize or 18) * App.devicePixelRatio)) -- 26
 label.x = face.width*0.5 -- 26
 label.y = face.height*0.5 -- 26
+label.scaleX = 1 / App.devicePixelRatio -- 26
+label.scaleY = 1 / App.devicePixelRatio -- 26
 label.renderOrder = 2 -- 26
 label.alignment = "Center" -- 26
 label.text = text -- 26

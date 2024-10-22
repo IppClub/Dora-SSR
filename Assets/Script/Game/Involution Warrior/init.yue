@@ -811,17 +811,15 @@ WaitForSignal = (text, duration) ->
 
 GameScore = 20
 
-uiScale = App.devicePixelRatio
 Director.ui\addChild with AlignNode true
 	\css 'flex-direction: row'
 	\addChild with AlignNode!
 		\css 'width: 30%'
 		\addChild with AlignNode!
-			\css 'margin-left: 160; margin-top: 40; width: 0; height: 1'
-			.scaleX = .scaleY = 1 / uiScale
+			\css 'margin-left: 165; margin-top: 40; width: 0; height: 1'
 			\gslot "AddScore", (value) ->
 				return if value < 0 and GameScore == 0
-				\addChild with Label "sarasa-mono-sc-regular", 64
+				\addChild with Label "sarasa-mono-sc-regular", 32
 					.color = themeColor
 					.text = string.format "#{value > 0 and '+' or ''}%d", value
 					\runAction Sequence(
@@ -849,11 +847,10 @@ Director.ui\addChild with AlignNode true
 			\css 'height: 1; width: 0; margin-top: 200; margin-right: 80'
 			\addChild with CircleButton {
 					text: "FIGHT"
-					radius: 40 * uiScale
+					radius: 40
 					fontName: "sarasa-mono-sc-regular"
-					fontSize: math.floor 24 * uiScale
+					fontSize: 24
 				}
-				.scaleX = .scaleY = 1 / uiScale
 				\slot "Tapped", ->
 					return if GameScore <= 0
 					GamePaused = false
@@ -865,11 +862,10 @@ Director.ui\addChild with AlignNode true
 			\css 'height: 1; width: 0; margin-top: 200'
 			\addChild with CircleButton {
 					text: "STRIKE\nBACK"
-					radius: 40 * uiScale
+					radius: 40
 					fontName: "sarasa-mono-sc-regular"
-					fontSize: math.floor 24 * uiScale
+					fontSize: 24
 				}
-				.scaleX = .scaleY = 1 / uiScale
 				.visible = false
 				\gslot "GameLost", ->
 					.visible = true
@@ -887,11 +883,10 @@ Director.ui\addChild with AlignNode true
 			\css 'height: 1; width: 0; margin-top: 200; margin-left: 80'
 			\addChild with CircleButton {
 					text: "ANOTHER\nWAY"
-					radius: 40 * uiScale
+					radius: 40
 					fontName: "sarasa-mono-sc-regular"
-					fontSize: math.floor 24 * uiScale
+					fontSize: 24
 				}
-				.scaleX = .scaleY = 1 / uiScale
 				\slot "Tapped", ->
 					Audio\play "Audio/switch.wav"
 					if GameScore <= 5
