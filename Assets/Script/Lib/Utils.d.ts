@@ -21,25 +21,17 @@ type StructArray<T> = {
 	contains(item: T & StructType): boolean;
 	count(): number;
 	sort(comparer: (this: void, a: T, b: T) => boolean): void;
-	__notify(this: void, event: ArrayEvent, index: number, item: T & StructType): void;
+	__added(this: void, index: number, item: T & StructType): void;
+	__removed(this: void, index: number, item: T & StructType): void;
+	__changed(this: void, index: number, item: T & StructType): void;
+	__updated(this: void): void;
 } & StructType;
 
 type Struct<T> = {
 	eachAttr<K extends keyof T>(handler: (this: void, key: K, value: T[K]) => void): void;
-	__notify<K extends keyof T>(this: void, event: StructEvent, key: K, value: T[K]): void;
+	__modified<K extends keyof T>(this: void, key: K, value: T[K]): void;
+	__updated(this: void): void;
 } & T & StructType;
-
-export const enum StructEvent {
-	Modified = "Modified",
-	Updated = "Updated"
-}
-
-export const enum ArrayEvent {
-	Added = "Added",
-	Removed = "Removed",
-	Changed = "Changed",
-	Updated = "Updated"
-}
 
 interface StructClass<T> {
 	(this: void, values?: T): Struct<T>;

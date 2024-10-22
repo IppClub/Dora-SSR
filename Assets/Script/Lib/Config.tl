@@ -29,69 +29,70 @@ return function(schema: string, ...: string): DoraConfig
 	local updateValues: {string: any} = {}
 	local deleteValues: {string} = {}
 	local loaded = false
-	local function notify(event: Struct.RecordEvent, key: string, value: any)
-		assert(loaded, "Config should be loaded before updating")
-		if event == "Modified" then
-			if oldValues[key] == nil then
-				insertValues[key] = value
-			elseif value == nil then
-				deleteValues[#deleteValues + 1] = key
-			elseif oldValues[key] ~= value then
-				updateValues[key] = value
-			end
-			oldValues[key] = value
-		elseif event == "Updated" then
-			local iValues: {{string, number | boolean, string | boolean, integer | boolean}} = {}
-			for k, v in pairs(insertValues) do
-				local num: boolean | number = false
-				local str: boolean | string = false
-				local bool: boolean | integer = false
-				if v is number then
-					num = v
-				elseif v is string then
-					str = v
-				elseif v is boolean then
-					bool = v and 1 or 0
-				else
-					print("expecting config value named \"" .. k .. '" to be string | number | boolean, got ' .. type(v))
-				end
-				iValues[#iValues + 1] = {k, num, str, bool}
-			end
-			insertValues = {}
-			local uValues: {{number | boolean, string | boolean, integer | boolean, string}} = {}
-			for k, v in pairs(updateValues) do
-				local num: boolean | number = false
-				local str: boolean | string = false
-				local bool: boolean | integer = false
-				if v is number then
-					num = v
-				elseif v is string then
-					str = v
-				elseif v is boolean then
-					bool = v and 1 or 0
-				else
-					print("expecting config value named \"" .. k .. '" to be string | number | boolean, got ' .. type(v))
-				end
-				uValues[#uValues + 1] = {num, str, bool, k}
-			end
-			updateValues = {}
-			local dValues: {{string}} = {}
-			for i = 1, #deleteValues do
-				dValues[#dValues + 1] = {deleteValues[i]}
-			end
-			deleteValues = {}
-			thread(function()
-				if #iValues > 0 then
-					DB:insertAsync(tableName, iValues)
-				end
-				if #uValues > 0 then
-					DB:execAsync("update " .. tableName .. " set value_num = ?, value_str = ?, value_bool = ? where name = ?", uValues)
-				end
-				if #dValues > 0 then
-					DB:execAsync("delete from " .. tableName .. " where name = ?", dValues)
-				end
-			end)
+
+	local function modified(key: string, value: any)
+		if oldValues[key] == nil then
+			insertValues[key] = value
+		elseif value == nil then
+			deleteValues[#deleteValues + 1] = key
+		elseif oldValues[key] ~= value then
+			updateValues[key] = value
 		end
+		oldValues[key] = value
+	end
+
+	local function updated()
+		assert(loaded, "Config should be loaded before updating")
+		local iValues: {{string, number | boolean, string | boolean, integer | boolean}} = {}
+		for k, v in pairs(insertValues) do
+			local num: boolean | number = false
+			local str: boolean | string = false
+			local bool: boolean | integer = false
+			if v is number then
+				num = v
+			elseif v is string then
+				str = v
+			elseif v is boolean then
+				bool = v and 1 or 0
+			else
+				print("expecting config value named \"" .. k .. '" to be string | number | boolean, got ' .. type(v))
+			end
+			iValues[#iValues + 1] = {k, num, str, bool}
+		end
+		insertValues = {}
+		local uValues: {{number | boolean, string | boolean, integer | boolean, string}} = {}
+		for k, v in pairs(updateValues) do
+			local num: boolean | number = false
+			local str: boolean | string = false
+			local bool: boolean | integer = false
+			if v is number then
+				num = v
+			elseif v is string then
+				str = v
+			elseif v is boolean then
+				bool = v and 1 or 0
+			else
+				print("expecting config value named \"" .. k .. '" to be string | number | boolean, got ' .. type(v))
+			end
+			uValues[#uValues + 1] = {num, str, bool, k}
+		end
+		updateValues = {}
+		local dValues: {{string}} = {}
+		for i = 1, #deleteValues do
+			dValues[#dValues + 1] = {deleteValues[i]}
+		end
+		deleteValues = {}
+		thread(function()
+			if #iValues > 0 then
+				DB:insertAsync(tableName, iValues)
+			end
+			if #uValues > 0 then
+				DB:execAsync("update " .. tableName .. " set value_num = ?, value_str = ?, value_bool = ? where name = ?", uValues)
+			end
+			if #dValues > 0 then
+				DB:execAsync("delete from " .. tableName .. " where name = ?", dValues)
+			end
+		end)
 	end
 
 	local tableOK = false
@@ -160,7 +161,8 @@ return function(schema: string, ...: string): DoraConfig
 		end
 	end)
 
-	rawset(conf as table, "__notify", notify)
+	conf.__modified = modified
+	conf.__updated = updated
 
 	return conf as DoraConfig
 end

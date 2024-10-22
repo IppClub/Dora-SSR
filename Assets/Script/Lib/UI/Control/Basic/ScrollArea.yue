@@ -328,7 +328,7 @@ export default Class ScrollArea,
 		@slot "ScrollTouchEnded", ->
 			menu.enabled = menuEnabled if not menu.enabled
 
-	adjustSizeWithAlign: (alignMode = "Auto", padding = 10, size = @area.size,viewSize) =>
+	adjustSizeWithAlign: (alignMode = "Auto", padding = 10, size = @area.size, viewSize) =>
 		-- alignMode: auto, vertical, horizontal
 		viewSize or= size
 		offset = @offset
@@ -344,7 +344,7 @@ export default Class ScrollArea,
 			size.width
 			size.height
 			viewSize.width
-			viewSize.height
+			viewSize.height + padding
 		)
 		@offset = offset
 

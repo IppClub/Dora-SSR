@@ -53,115 +53,95 @@ local function ScrollArea(props) -- 53
 					Size(width, height) -- 64
 				) -- 64
 			end -- 64
-			local border = LineRectCreate({ -- 66
-				x = 1, -- 66
-				y = 1, -- 66
-				width = width - 2, -- 66
-				height = height - 2, -- 66
-				color = 4294967295 -- 66
-			}) -- 66
-			scrollArea.area:addChild(border, 0, "border") -- 67
-			return scrollArea -- 68
+			return scrollArea -- 66
 		end} -- 54
 	) -- 54
 end -- 53
-local Array = Struct.Array() -- 77
-local Item = Struct.Item("name", "value") -- 78
-local scrollArea = useRef() -- 80
-local items = Array() -- 82
-items.__notify = function(event, index, item) -- 83
-	repeat -- 83
-		local ____switch13 = event -- 83
-		local ____cond13 = ____switch13 == "Added" -- 83
-		if ____cond13 then -- 83
-			do -- 83
-				local current = scrollArea.current -- 83
-				if current then -- 83
-					local ____opt_3 = toNode(React.createElement( -- 83
-						Button, -- 89
-						{ -- 89
-							text = item.name, -- 89
-							width = 50, -- 89
-							height = 50, -- 89
-							onClick = function() -- 89
-								thread(function() -- 90
-									sleep(0.5) -- 91
-									items:remove(item) -- 92
-								end) -- 90
-							end -- 89
-						} -- 89
-					)) -- 89
-					if ____opt_3 ~= nil then -- 89
-						____opt_3:addTo(current.view) -- 88
-					end -- 88
-				end -- 88
-				break -- 97
-			end -- 97
-		end -- 97
-		____cond13 = ____cond13 or ____switch13 == "Removed" -- 97
-		if ____cond13 then -- 97
-			do -- 97
-				local current = scrollArea.current -- 97
-				if current then -- 97
-					local ____opt_5 = current.view.children -- 97
-					local child = ____opt_5 and ____opt_5:get(index) -- 102
-					if child then -- 102
-						child:removeFromParent() -- 104
-					end -- 104
-				end -- 104
-				break -- 107
-			end -- 107
-		end -- 107
-		____cond13 = ____cond13 or ____switch13 == "Updated" -- 107
-		if ____cond13 then -- 107
-			do -- 107
-				local current = scrollArea.current -- 107
-				if current then -- 107
-					current:adjustSizeWithAlign("Auto") -- 112
-				end -- 112
-				break -- 114
-			end -- 114
-		end -- 114
-	until true -- 114
-end -- 83
-toNode(React.createElement( -- 119
-	"align-node", -- 119
-	{windowRoot = true, style = {alignItems = "center", justifyContent = "center"}}, -- 119
-	React.createElement( -- 119
-		"align-node", -- 119
-		{ -- 119
-			style = {width = "50%", height = "50%"}, -- 119
-			onLayout = function(width, height) -- 119
-				local current = scrollArea.current -- 119
-				if current then -- 119
-					current.position = Vec2(width / 2, height / 2) -- 124
-					current:adjustSizeWithAlign( -- 125
-						"Auto", -- 125
-						10, -- 125
-						Size(width, height) -- 125
-					) -- 125
-					local border = LineRectCreate({ -- 126
-						x = 1, -- 126
-						y = 1, -- 126
-						width = width - 2, -- 126
-						height = height - 2, -- 126
-						color = 4294967295 -- 126
-					}) -- 126
-					local ____opt_7 = current.area:getChildByTag("border") -- 126
-					if ____opt_7 ~= nil then -- 126
-						____opt_7:removeFromParent() -- 127
-					end -- 127
-					current.area:addChild(border, 0, "border") -- 128
-				end -- 128
-			end -- 121
-		}, -- 121
-		React.createElement(ScrollArea, {ref = scrollArea, width = 250, height = 300, paddingX = 0}) -- 121
-	) -- 121
-)) -- 121
-for i = 1, 30 do -- 121
-	items:insert(Item({ -- 137
-		name = "btn " .. tostring(i), -- 137
-		value = i -- 137
-	})) -- 137
-end -- 137
-return ____exports -- 137
+local Array = Struct.Array() -- 75
+local Item = Struct.Item("name", "value") -- 76
+local scrollArea = useRef() -- 78
+local items = Array() -- 80
+items.__added = function(index, item) -- 81
+	local current = scrollArea.current -- 81
+	if current then -- 81
+		local node = toNode(React.createElement( -- 84
+			Button, -- 85
+			{ -- 85
+				text = item.name, -- 85
+				width = 50, -- 85
+				height = 50, -- 85
+				onClick = function() -- 85
+					thread(function() -- 86
+						sleep(0.5) -- 87
+						items:remove(item) -- 88
+					end) -- 86
+				end -- 85
+			} -- 85
+		)) -- 85
+		if node then -- 85
+			node.visible = false -- 93
+			node.x = -1000 -- 94
+			node:addTo(current.view, index) -- 95
+		end -- 95
+	end -- 95
+end -- 81
+items.__removed = function(index) -- 99
+	local current = scrollArea.current -- 99
+	if current then -- 99
+		local ____opt_3 = current.view.children -- 99
+		local child = ____opt_3 and ____opt_3:get(index) -- 102
+		if child then -- 102
+			child:removeFromParent() -- 104
+		end -- 104
+	end -- 104
+end -- 99
+items.__updated = function() -- 108
+	local current = scrollArea.current -- 108
+	if current then -- 108
+		current:adjustSizeWithAlign("Auto") -- 111
+	end -- 111
+end -- 108
+toNode(React.createElement( -- 115
+	"align-node", -- 115
+	{windowRoot = true, style = {alignItems = "center", justifyContent = "center"}}, -- 115
+	React.createElement( -- 115
+		"align-node", -- 115
+		{ -- 115
+			style = {width = "50%", height = "50%"}, -- 115
+			onLayout = function(width, height) -- 115
+				local current = scrollArea.current -- 115
+				if current then -- 115
+					current.position = Vec2(width / 2, height / 2) -- 120
+					current:adjustSizeWithAlign( -- 121
+						"Auto", -- 121
+						10, -- 121
+						Size(width, height) -- 121
+					) -- 121
+					local ____opt_5 = current:getChildByTag("border") -- 121
+					if ____opt_5 ~= nil then -- 121
+						____opt_5:removeFromParent() -- 122
+					end -- 122
+					local border = LineRectCreate({ -- 123
+						x = -width / 2, -- 123
+						y = -height / 2, -- 123
+						width = width, -- 123
+						height = height, -- 123
+						color = 4294967295 -- 123
+					}) -- 123
+					current:addChild(border, 0, "border") -- 124
+				end -- 124
+			end -- 117
+		}, -- 117
+		React.createElement(ScrollArea, {ref = scrollArea, width = 250, height = 300, paddingX = 0}) -- 117
+	) -- 117
+)) -- 117
+thread(function() -- 132
+	for i = 1, 30 do -- 132
+		items:insert(Item({ -- 134
+			name = "btn " .. tostring(i), -- 134
+			value = i -- 134
+		})) -- 134
+		sleep(1) -- 135
+	end -- 135
+end) -- 132
+return ____exports -- 132

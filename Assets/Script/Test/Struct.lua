@@ -24,35 +24,38 @@ local unit = Unit({ -- 11
 		}) -- 17
 	}) -- 14
 }) -- 10
-unit.__notify = function(event, key, value) -- 20
-	if "Modified" == event then -- 22
-		return print("Value of name \"" .. tostring(key) .. "\" changed to " .. tostring(value) .. ".") -- 23
-	elseif "Updated" == event then -- 24
-		return print("Values updated.") -- 25
-	end -- 25
+unit.__modified = function(key, value) -- 20
+	return print("Value of name \"" .. tostring(key) .. "\" changed to " .. tostring(value) .. ".") -- 20
 end -- 20
-unit.actions.__notify = function(event, index, item) -- 28
-	if "Added" == event then -- 30
-		return print("Add item " .. tostring(item) .. " at index " .. tostring(index) .. ".") -- 31
-	elseif "Removed" == event then -- 32
-		return print("Remove item " .. tostring(item) .. " at index " .. tostring(index) .. ".") -- 33
-	elseif "Changed" == event then -- 34
-		return print("Change item to " .. tostring(item) .. " at index " .. tostring(index) .. ".") -- 35
-	elseif "Updated" == event then -- 36
-		return print("Items updated.") -- 37
-	end -- 37
-end -- 28
-unit.name = "pig" -- 39
-unit.actions:insert(Action({ -- 40
-	name = "idle", -- 40
-	id = "a4" -- 40
-})) -- 40
-unit.actions:removeAt(1) -- 41
-local structStr = tostring(unit) -- 43
-print(structStr) -- 44
-local loadedUnit = Struct:load(structStr) -- 46
-for i = 1, loadedUnit.actions:count() do -- 47
-	print(loadedUnit.actions:get(i)) -- 48
-end -- 48
-print(Struct) -- 50
-return Struct:clear() -- 53
+unit.__updated = function() -- 21
+	return print("Values updated.") -- 21
+end -- 21
+do -- 24
+	local _with_0 = unit.actions -- 24
+	_with_0.__added = function(index, item) -- 25
+		return print("Add item " .. tostring(item) .. " at index " .. tostring(index) .. ".") -- 25
+	end -- 25
+	_with_0.__removed = function(index, item) -- 26
+		return print("Remove item " .. tostring(item) .. " at index " .. tostring(index) .. ".") -- 26
+	end -- 26
+	_with_0.__changed = function(index, item) -- 27
+		return print("Change item to " .. tostring(item) .. " at index " .. tostring(index) .. ".") -- 27
+	end -- 27
+	_with_0.__updated = function() -- 28
+		return print("Items updated.") -- 28
+	end -- 28
+end -- 24
+unit.name = "pig" -- 30
+unit.actions:insert(Action({ -- 31
+	name = "idle", -- 31
+	id = "a4" -- 31
+})) -- 31
+unit.actions:removeAt(1) -- 32
+local structStr = tostring(unit) -- 34
+print(structStr) -- 35
+local loadedUnit = Struct:load(structStr) -- 37
+for i = 1, loadedUnit.actions:count() do -- 38
+	print(loadedUnit.actions:get(i)) -- 39
+end -- 39
+print(Struct) -- 41
+return Struct:clear() -- 44

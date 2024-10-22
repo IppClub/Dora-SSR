@@ -1,20 +1,11 @@
 local Vec2 = require("Vec2").Type
 local record Struct
-	enum RecordEvent
-		"Modified"
-		"Updated"
-	end
-	__notify: function(event: RecordEvent, key: string, value: any)
+	__modified: function(key: string, value: any)
+	__updated: function()
 	metamethod __index: function(self: Struct, key: string): any
 	metamethod __newindex: function(self: Struct, key: string, item: any)
 end
 local record StructArray
-	enum ArrayEvent
-		"Added"
-		"Removed"
-		"Changed"
-		"Updated"
-	end
 	set: function(self: Struct, index: integer, item: any)
 	get: function(self: Struct, index: integer): any
 	insert: function(self: Struct, item: any)
@@ -27,7 +18,10 @@ local record StructArray
 	contains: function(self: Struct, item: any): boolean
 	count: function(self: Struct): integer
 	sort: function(comparer: function(any, any):boolean)
-	__notify: function(event: ArrayEvent, index: integer, item: any)
+	__added: function(index: integer, item: any)
+	__removed: function(index: integer, item: any)
+	__changed: function(index: integer, item: any)
+	__updated: function()
 end
 local record StructClass
 	metamethod __call: function(self: StructClass, values?: table): Struct
@@ -43,8 +37,6 @@ local record StructModule
 end
 local record StructHelper
 	type Type = Struct
-	type RecordEvent = Struct.RecordEvent
-	type ArrayEvent = StructArray.ArrayEvent
 	metamethod __index: function(self: StructHelper, name: string): StructModule
 	load: function(self: StructHelper, input: string): any -- Struct | StructArray
 	load: function(self: StructHelper, input: table): any -- Struct | StructArray

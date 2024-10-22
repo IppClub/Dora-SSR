@@ -1,5 +1,5 @@
 // @preview-file on
-import {ArrayEvent, StructEvent, Struct, StructArray} from 'Utils';
+import {Struct, StructArray} from 'Utils';
 
 // create struct definitions
 interface ActionStruct {
@@ -29,34 +29,14 @@ const unit = Unit({
 });
 
 // get notified when record field changes
-unit.__notify = (event, key, value) => {
-	switch (event) {
-		case StructEvent.Modified:
-			print(`Value of name \"${key}\" changed to ${value}.`);
-			break;
-		case StructEvent.Updated:
-			print("Values updated.");
-			break;
-	}
-};
+unit.__modified = (key, value) => print(`Value of name \"${key}\" changed to ${value}.`);
+unit.__updated = () => print("Values updated.");
 
 // get notified when list item changes
-unit.actions.__notify = (event, index, item) => {
-	switch (event) {
-		case ArrayEvent.Added:
-			print(`Add item ${item} at index ${index}.`);
-			break;
-		case ArrayEvent.Removed:
-			print(`Remove item ${item} at index ${index}.`);
-			break;
-		case ArrayEvent.Changed:
-			print(`Change item to ${item} at index ${index}.`);
-			break;
-		case ArrayEvent.Updated:
-			print("Items updated.");
-			break;
-	}
-};
+unit.actions.__added = (index, item) => print(`Add item ${item} at index ${index}.`);
+unit.actions.__removed = (index, item) => print(`Remove item ${item} at index ${index}.`);
+unit.actions.__changed = (index, item) => print(`Change item to ${item} at index ${index}.`);
+unit.actions.__updated = () => print("Items updated.");
 
 unit.name = "pig";
 unit.actions.insert(Action({name: "idle", id: "a4"}));

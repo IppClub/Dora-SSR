@@ -423,7 +423,7 @@ _module_0 = Class(ScrollArea, { -- 24
 		elseif "Horizontal" == alignMode then -- 341
 			viewSize = self.view:alignItemsHorizontally(size, padding) -- 342
 		end -- 342
-		self:resetSize(size.width, size.height, viewSize.width, viewSize.height) -- 343
+		self:resetSize(size.width, size.height, viewSize.width, viewSize.height + padding) -- 343
 		self.offset = offset -- 349
 	end, -- 331
 	scrollToPosY = function(self, posY, time) -- 351

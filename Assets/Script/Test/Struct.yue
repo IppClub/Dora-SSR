@@ -17,24 +17,15 @@ unit = Unit
 		* Action name: "sleep", id: "a3"
 
 -- 监听属性变化
-unit.__notify = (event, key, value) ->
-	switch event
-		when "Modified"
-			print "Value of name \"#{key}\" changed to #{value}."
-		when "Updated"
-			print "Values updated."
+unit.__modified = (key, value) -> print "Value of name \"#{key}\" changed to #{value}."
+unit.__updated = -> print "Values updated."
 
 -- 监听列表变化
-unit.actions.__notify = (event, index, item) ->
-	switch event
-		when "Added"
-			print "Add item #{item} at index #{index}."
-		when "Removed"
-			print "Remove item #{item} at index #{index}."
-		when "Changed"
-			print "Change item to #{item} at index #{index}."
-		when "Updated"
-			print "Items updated."
+with unit.actions
+	.__added = (index, item) -> print "Add item #{item} at index #{index}."
+	.__removed = (index, item) -> print "Remove item #{item} at index #{index}."
+	.__changed = (index, item) -> print "Change item to #{item} at index #{index}."
+	.__updated = -> print "Items updated."
 
 unit.name = "pig"
 unit.actions\insert Action name: "idle", id: "a4"
