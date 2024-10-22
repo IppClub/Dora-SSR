@@ -4,7 +4,7 @@ import TabItem from '@theme/TabItem';
 
 # Using SQLite Database
 
-Dora SSR engine integrates [SQLite](https://www.sqlite.org) to help developers manage and query large amounts of game data, as well as persist critical game data. This guide will take you through the basics of how to use Dora’s database functionality.
+Dora SSR engine integrates [SQLite](https://www.sqlite.org) to help developers manage and query large amounts of game data, as well as persist critical game data. This guide will take you through the basics of how to use Dora's database functionality.
 
 ## 1. Introduction
 
@@ -42,11 +42,11 @@ The `DB` class is the core class provided by Dora SSR for performing database op
 
 ## 3. Basic Operation Examples
 
-Let’s get familiar with how to use the `DB` class through some basic operations.
+Let's get familiar with how to use the `DB` class through some basic operations.
 
 ### 3.1 Checking if a Table Exists
 
-Before performing database operations, it’s important to confirm whether a specific table exists. This can be done with the `exist` method:
+Before performing database operations, it's important to confirm whether a specific table exists. This can be done with the `exist` method:
 
 <Tabs>
 <TabItem value="lua" label="Lua">
@@ -208,7 +208,7 @@ DB:exec("DETACH DATABASE game_data")
 </Tabs>
 
 :::tip Note
-Dora SSR’s default schema is stored in a file located at `Path(Content.writablePath, "dora.db")`. Accessing tables without a prefix means interacting with the default schema. To manage independent databases or load different schemas, you can use `ATTACH DATABASE` and `DETACH DATABASE`.
+Dora SSR's default schema is stored in a file located at `Path(Content.writablePath, "dora.db")`. Accessing tables without a prefix means interacting with the default schema. To manage independent databases or load different schemas as an external file, you can use the `ATTACH DATABASE` and `DETACH DATABASE` commands.
 :::
 
 ## 7. Importing Excel Data into the Database
@@ -222,7 +222,7 @@ In game development, Excel sheets are often used to manage game data. When the d
 
 ### 7.2 Steps Example
 
-Let’s go through an example of importing Excel data into the database.
+Let's go through an example of importing Excel data into the database.
 
 #### Creating the Database Table
 
@@ -505,7 +505,7 @@ end)
 
 ## 9. Conclusion
 
-Through this guide, you should now have a good grasp of how to use Dora SSR’s SQLite database functionality for basic operations. Using these APIs, you can efficiently manage game data and provide players with richer experiences.
+Through this guide, you should now have a good grasp of how to use Dora SSR's SQLite database functionality for basic operations. Using these APIs, you can efficiently manage game data and provide players with richer experiences.
 
 **Tips**:
 

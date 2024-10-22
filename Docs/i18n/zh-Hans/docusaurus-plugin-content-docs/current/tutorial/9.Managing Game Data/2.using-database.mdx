@@ -210,7 +210,7 @@ DB:exec("DETACH DATABASE game_data")
 </Tabs>
 
 :::tip 总结提示
-Dora SSR 引擎提供的默认 Schema 库会存储在代码 `Path(Content.writablePath, "dora.db")` 所对应的文件中。在访问数据表时，如果没有在表名前加前缀，即表示访问的是默认 Schema 中的数据表。如果需要创建. 加载或是管理新的 Schema 库，如用于创建一个独立的更容易迁移的数据库文件，或是进行加载，可以使用 `ATTACH DATABASE` 和 `DETACH DATABASE` 来进行操作。
+Dora SSR 引擎提供的默认 Schema 库会存储在代码 `Path(Content.writablePath, "dora.db")` 所对应的文件中。在访问数据表时，如果没有在表名前加前缀，即表示访问的是默认 Schema 中的数据表。如果需要创建新的 Schema 库，并存储在一个独立的更容易进行迁移使用的数据库文件中，可以使用 `ATTACH DATABASE` 和 `DETACH DATABASE` 来进行操作。
 :::
 
 ## 7. 将 Excel 数据导入数据库
