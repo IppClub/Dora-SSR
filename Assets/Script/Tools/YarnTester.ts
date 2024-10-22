@@ -220,7 +220,13 @@ threadLoop(() => {
 			texts = [];
 			advance();
 		}
-		ImGui.Text(zh ? "变量" : "Variables");
+		if (ImGui.Button(zh ? "重载" : "Reload")) {
+			runner = YarnRunner(filteredPaths[currentFile - 1], "Start", {}, commands, true);
+			texts = [];
+			advance();
+		}
+		ImGui.SameLine();
+		ImGui.Text(zh ? "变量：" : "Variables:");
 		ImGui.Separator();
 		for (let [k, v] of pairs(runner.state)) {
 			ImGui.Text(`${k}: ${v}`);

@@ -10,7 +10,7 @@ import TabItem from '@theme/TabItem';
 
 &emsp;&emsp;`ClipNode` 是 Dora SSR 中的一个场景节点类，用于设置裁剪蒙版，从而控制子节点的可见区域。通过指定一个蒙版节点（`stencil`），`ClipNode` 会根据蒙版的形状或透明度来裁剪其子节点的渲染内容。
 
-### ClipNode 的主要属性
+### 1.1 ClipNode 的主要属性
 
 - **stencil**: 定义裁剪形状的蒙版节点。
 - **alphaThreshold**: 生效的用于裁剪的蒙版像素的 alpha 阈值（0 到 1 之间）。只有当蒙版像素的 alpha 值大于该阈值时，裁剪才会生效。
@@ -20,7 +20,7 @@ import TabItem from '@theme/TabItem';
 
 &emsp;&emsp;在第一个示例中，我们将使用一个五角星形状作为蒙版，裁剪一个动画模型的显示区域。
 
-### 步骤解析
+### 2.1 步骤解析
 
 1. **创建五角星形状的顶点数据**
 
@@ -128,7 +128,7 @@ exampleA:addChild(clipNodeA)
 
 &emsp;&emsp;在第二个示例中，我们将使用一个具有透明度的模型作为蒙版，并利用 `alphaThreshold` 属性来控制裁剪效果。
 
-### 步骤解析
+### 3.1 步骤解析
 
 1. **创建蒙版模型**
 
@@ -197,7 +197,7 @@ exampleB:addChild(clipNodeB)
 </TabItem>
 </Tabs>
 
-### 运行效果
+### 3.2 运行效果
 
 &emsp;&emsp;运行代码后，您会发现目标形状仅在蒙版模型的非透明部分可见，实现了基于透明度的蒙版效果。
 
@@ -208,7 +208,7 @@ exampleB:addChild(clipNodeB)
 - **示例 A** 展示了如何使用任意绘制的形状作为蒙版，裁剪子节点的显示区域。
 - **示例 B** 演示了如何利用 `alphaThreshold` 属性，使用具有透明度的图像或模型进行裁剪。
 
-### 小贴士
+### 4.1 小贴士
 
 - **alphaThreshold 的使用**：当蒙版节点包含半透明区域时，`alphaThreshold` 非常有用。它允许您精细控制哪些像素参与裁剪。
 - **inverted 属性**：通过切换 `inverted`，您可以方便地反转裁剪区域，达到不同的视觉效果。

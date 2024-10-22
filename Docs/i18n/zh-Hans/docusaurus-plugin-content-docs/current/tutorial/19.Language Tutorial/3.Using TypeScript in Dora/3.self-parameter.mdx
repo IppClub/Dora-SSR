@@ -2,13 +2,13 @@ import "@site/src/languages/highlight";
 
 # 使用 self 参数的异同
 
-&emsp;&emsp;在使用 TypeScriptToLua (TSTL) 进行 TypeScript 编写并编译为 Lua 时，由于两者在语言特性上的差异，开发者需要注意一些关键的行为变化和约定。本文将重点介绍 `self` 参数的处理、回调函数的上下文参数、以及如何避免常见的类型错误等内容。
+&emsp;&emsp;在使用 TypeScriptToLua (TSTL) 进行 TypeScript 编写并编译为 Lua 时，由于两者在语言特性上的差异，开发者需要注意一些关键的行为变化和约定。本文将重点介绍 `self` 参数的处理. 回调函数的上下文参数. 以及如何避免常见的类型错误等内容。
 
-### `self` 参数存在的意义
+#### `self` 参数存在的意义
 
 &emsp;&emsp;在 TSTL 的默认配置中，所有函数默认会包含一个 `self` 参数，以保持与 JavaScript 中 `this` 关键字的行为一致。这个 `self` 参数用于指代调用函数的对象上下文。对于大部分 Lua 用户来说，这与 Lua 的 `:`（冒号）调用方法类似。
 
-## 1、注意事项
+## 1. 注意事项
 
 &emsp;&emsp;在 Dora SSR 使用的 TSTL 中，则通过启用了 `noImplicitSelf` 配置选项。使得所有的普通函数不再默认包含一个 `self` 参数，以进行 JavaScript 的 `this` 关键字的功能模拟。
 
@@ -52,7 +52,7 @@ local item = {
 
 &emsp;&emsp;注意：即使启用了 `noImplicitSelf`，类方法和对象成员函数依然会默认带有 `self`，除非你明确声明 `this: void`。
 
-## 2、如何显式移除不想要的 `self` 参数
+## 2. 如何显式移除不想要的 `self` 参数
 
 &emsp;&emsp;当你希望主动声明移除 `self` 参数，尤其是为了与 Lua 代码进行交互时，可以使用 TypeScript 的 `this: void` 语法。这会告诉编译器在当前上下文中不允许使用 `this`，从而消除 `self` 参数。
 
@@ -115,7 +115,7 @@ end)
 
 ### 2.3 使用 `@noSelf` 注解
 
-&emsp;&emsp;如果希望某个类、接口中的所有函数都不带上下文参数，可以使用 `@noSelf` 注解。这样可以避免在每个函数中手动指定 `this: void`。
+&emsp;&emsp;如果希望某个类. 接口中的所有函数都不带上下文参数，可以使用 `@noSelf` 注解。这样可以避免在每个函数中手动指定 `this: void`。
 
 **输入 (TypeScript)**
 
@@ -162,7 +162,7 @@ local item = {
 }
 ```
 
-## 3、赋值错误与解决方案
+## 3. 赋值错误与解决方案
 
 &emsp;&emsp;在 TSTL 中，带有 `this: void` 的函数和普通函数之间是不可互相赋值的。如果你试图将一个带有上下文参数的函数赋值给一个不带上下文参数的函数类型，TSTL 会抛出错误。
 
@@ -185,7 +185,7 @@ useCallback((arg) => callback(arg));
 
 &emsp;&emsp;这样，TSTL 将不会尝试生成 `self` 参数，从而避免类型不匹配的问题。
 
-## 4、避免重载函数的上下文不一致
+## 4. 避免重载函数的上下文不一致
 
 &emsp;&emsp;在 TypeScript 中，函数允许重载多个不同的签名。但是，在 TSTL 中，如果多个重载函数的签名的上下文类型不同（例如一个带 `this: void`，一个不带），将会导致编译错误。
 

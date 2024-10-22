@@ -4,7 +4,7 @@ import "@site/src/languages/highlight";
 
 &emsp;&emsp;虽然 TypeScript To Lua (TSTL) 旨在尽可能支持大多数现代 TypeScript 特性，并将其编译为 Lua 代码，仍然有一些需要注意的语言环境差异。本文将详细介绍一些潜在的问题，帮助开发者避免在使用 TSTL 时遇到的“坑”。
 
-## 1、JavaScript 与 Lua 的差异
+## 1. JavaScript 与 Lua 的差异
 
 &emsp;&emsp;由于 TypeScript 基于 JavaScript，因此在编译成 Lua 时，部分行为可能与 JavaScript 不同。以下是一些行为差异：
 
@@ -50,7 +50,7 @@ import "@site/src/languages/highlight";
 
 &emsp;&emsp;**建议**：如果需要顺序一致的集合，建议使用数组，而非对象或字典表。
 
-## 2、其他注意事项
+## 2. 其他注意事项
 
 ### 2.1 本地变量限制
 

@@ -6,7 +6,7 @@ import TabItem from '@theme/TabItem';
 
 &emsp;&emsp;欢迎来到 YarnRunner 功能库使用教程。在本教程中，我们将指导您如何加载和运行您在[前一教程](/docs/tutorial/Writing%20Game%20Dialogue/introduction-to-yarn)中编写的 Yarn 叙事脚本。
 
-### 一、初始化 YarnRunner
+## 1. 初始化 YarnRunner
 
 <Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
@@ -86,7 +86,7 @@ runner = YarnRunner "tutorial.yarn", "Start"
 </TabItem>
 </Tabs>
 
-### 二、执行和展示叙事内容
+## 2. 执行和展示叙事内容
 
 &emsp;&emsp;我们定义了一个 `advance` 函数，该函数可以读取并展示 Yarn 脚本中的文本内容或选项。根据叙事的内容，它还可以展示角色的名字：
 
@@ -199,7 +199,7 @@ end
 ```yue title="init.yue"
 -- advance 函数的参数是一个可选的整数，代表玩家选择的选项索引。
 -- 当第一次调用此函数或在不需要选择时，我们将传递 nil
-advance = (option)->
+advance = (option) ->
 
 	-- 函数首先调用 runner\advance 来获取 Yarn 脚本的下一部分内容。
 	-- 这将返回两个值：一个动作类型和一个结果。
@@ -235,7 +235,7 @@ advance = (option)->
 </TabItem>
 </Tabs>
 
-### 三、启动叙事
+## 3. 启动叙事
 
 &emsp;&emsp;要启动叙事，我们只需调用 `advance` 函数，不带任何参数：
 
@@ -263,7 +263,7 @@ advance!
 </TabItem>
 </Tabs>
 
-### 四、响应用户输入
+## 4. 响应用户输入
 
 &emsp;&emsp;为了能够让玩家与叙事互动，我们需要一个节点来捕获和响应用户的输入。我们创建一个节点，并为其指定一个名为 "go" 的信号槽。当这个信号被触发时，它将再次调用 `advance` 函数，并传递玩家选择的选项：
 
@@ -294,7 +294,7 @@ node:addTo(Director.entry)
 
 ```yue title="init.yue"
 with Node!
-	\gslot "go", (option)-> advance option
+	\gslot "go", (option) -> advance option
 	\addTo Director.entry
 ```
 
@@ -303,6 +303,53 @@ with Node!
 
 &emsp;&emsp;这里只是为了能快速进行测试而注册了一个全局的事件监听器。在实际的游戏开发中会需要通过编写UI交互的逻辑来完成使用。有了这个名叫“go”的全局事件监听器后。我们就可以通过打开 Dora SSR 的控制台界面，在下面的命令行中输入 `emit 'go'` 来继续推进对话，输入 `emit 'go', 1` 来选择对话分支完成交互式的测试运行了。
 
-### 五、结论
+## 5. 添加自定义命令和状态
+
+&emsp;&emsp;您可以通过给 `YarnRunner` 传递 `command` 和 `state` 参数来添加自定义命令和初始状态的变量。`command` 参数是一个包含可以执行命令的回调函数的 Lua 表，`state` 参数是一个包含预定义变量的表格。以下是一个示例：
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua title="init.lua"
+local runner = YarnRunner("tutorial.yarn", "Start", {
+	playerScore = 100
+}, {
+	print = print
+})
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl title="init.tl"
+local runner = YarnRunner("tutorial.yarn", "Start", {
+	playerScore = 100
+}, {
+	print = print
+})
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue title="init.yue"
+runner = YarnRunner "tutorial.yarn", "Start", {
+	playerScore: 100
+}, {
+	print: print
+}
+```
+
+</TabItem>
+</Tabs>
+
+&emsp;&emsp;然后在 Yarn 脚本中，您就可以通过使用 `<<set $变量名 = 表达式>>` 命令来改变初始变量的值，并通过自定义的命令 `<<print $变量名>>` 命令来打印变量的值：
+
+```html title="测试对话节点"
+<<set $playerScore = $playerScore + 200>>
+<<print $playerScore>>
+```
+
+## 6. 结论
 
 &emsp;&emsp;现在，您已经设置好了所有必要的代码来加载和运行 Yarn 叙事脚本。您可以运行上述脚本来开始您的互动叙事，玩家可以通过选择选项来与叙事互动。祝您创作愉快！

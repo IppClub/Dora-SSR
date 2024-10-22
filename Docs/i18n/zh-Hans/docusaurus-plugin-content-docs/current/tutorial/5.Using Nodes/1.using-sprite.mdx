@@ -10,7 +10,7 @@ import TabItem from '@theme/TabItem';
 
 &emsp;&emsp;Sprite 是一个继承自 `Node` 的类，表示游戏场景中的图形元素。它可以加载图片文件作为纹理并将其显示在游戏场景中。通过 Sprite 类，您可以控制纹理的绘制方式、位置、环绕模式、混合模式等。
 
-### Sprite 的一些核心属性和功能：
+### 1.1 Sprite 的一些核心属性和功能：
 
 - **texture**: 渲染的纹理对象（例如图片文件）。
 - **textureRect**: 定义渲染的纹理矩形区域，默认为渲染整个纹理。
@@ -104,13 +104,13 @@ heroSprite.textureRect = textureRect
 
 &emsp;&emsp;Sprite 提供了对纹理环绕模式（`uwrap` 和 `vwrap`）以及过滤模式（`filter`）的控制。通过调整这些模式，您可以控制纹理在 Sprite 上如何重复显示或如何处理放大缩小。
 
-### 环绕模式：
+### 5.1 环绕模式：
 
 - `None`: 无环绕，不重复显示纹理。
 - `Mirror`: 镜像重复。
 - `Clamp`: 边界钳制。
 
-### 过滤模式：
+### 5.2 过滤模式：
 
 - `Point`: 使用最近的像素进行采样，适用于像素风格游戏。
 - `Anisotropic`: 各向异性过滤，提供更好的细节处理。

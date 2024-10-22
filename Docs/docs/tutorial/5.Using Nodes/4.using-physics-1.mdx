@@ -29,7 +29,7 @@ world.y = -200 -- Adjust the y-axis position of the physics world
 
 Rigid bodies can be either static or dynamic. Static bodies are used for immovable objects (such as the ground), while dynamic bodies are used for movable objects (such as characters or obstacles). Additionally, there's a kinematic type for objects that have infinite mass but can be moved programmatically.
 
-### Defining a Static Terrain Rigid Body
+### 2.1 Defining a Static Terrain Rigid Body
 
 Static rigid bodies are often used for the ground or walls, which typically aren't affected by gravity. In the example below, we create a static terrain body with a polygon shape of 800x10.
 
@@ -48,7 +48,7 @@ terrainDef:attachPolygon(800, 10, 1, 0.8, 0.2) -- Attach a rectangular polygon o
 </TabItem>
 </Tabs>
 
-### Defining a Dynamic Polygon Rigid Body
+### 2.2 Defining a Dynamic Polygon Rigid Body
 
 Dynamic bodies are affected by gravity and move according to the forces in the physics world. Below, we define a polygon-shaped body, in this case, a hexagon.
 
@@ -72,7 +72,7 @@ polygonDef:attachPolygon({
 </TabItem>
 </Tabs>
 
-### Defining a Dynamic Disk Rigid Body
+### 2.3 Defining a Dynamic Disk Rigid Body
 
 A disk-shaped body is similar to a polygon body, except its shape is circular, and it is also affected by gravity.
 

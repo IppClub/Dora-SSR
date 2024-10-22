@@ -258,6 +258,42 @@ end)
 ```
 
 </TabItem>
+<TabItem value="tsx" label="TSX">
+
+```tsx
+// Screen Adaptation for Game UI
+
+// Import modules
+import { React, toNode, useRef } from 'DoraX';
+import { Size, Sprite, Vec2, Director } from 'Dora';
+
+const sprite = useRef<Sprite.Type>();
+
+// Create root node that adapts to the screen
+const root = toNode(
+	<align-node windowRoot style={{
+			justifyContent: 'center',
+			alignItems: 'center'
+		}}>
+		<align-node style={{
+				width: '60%',
+				height: '60%'
+			}}
+			onLayout={(width, height) => {
+				const {current} = sprite;
+				if (current) {
+					current.position = Vec2(width / 2, height / 2);
+					current.size = Size(width, height);
+				}
+			}}>
+			<sprite ref={sprite} file='Image/logo.png'/>
+		</align-node>
+	</align-node>
+);
+
+root?.addTo(Director.ui);
+```
+</TabItem>
 </Tabs>
 
 ## 4. Summary

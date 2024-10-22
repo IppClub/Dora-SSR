@@ -10,7 +10,7 @@ In this tutorial, we will learn how to use the `Sprite` node class in the Dora S
 
 A `Sprite` is a class that inherits from `Node` and represents a graphical element in the game scene. It can load image files as textures and display them in the game. Using the `Sprite` class, you can control how textures are drawn, their position, wrap mode, blend mode, and more.
 
-### Core attributes and functions of a Sprite:
+### 1.1 Core attributes and functions of a Sprite:
 
 - **texture**: The texture object to render (e.g., an image file).
 - **textureRect**: Defines the rectangle area of the texture to be rendered. By default, it renders the entire texture.
@@ -103,13 +103,13 @@ In this example, we define a `Rect` object representing a 128x128 area from the 
 
 The `Sprite` class allows you to control the texture wrapping modes (`uwrap` and `vwrap`) and filter mode (`filter`). By adjusting these modes, you can control how the texture repeats or handles scaling.
 
-### Wrap Modes:
+### 5.1 Wrap Modes:
 
 - **None**: No wrapping, texture is not repeated.
 - **Mirror**: Mirrors the texture when repeating.
 - **Clamp**: Clamps the texture to its edges.
 
-### Filter Modes:
+### 5.2 Filter Modes:
 
 - **Point**: Uses nearest pixel sampling, ideal for pixel art games.
 - **Anisotropic**: Anisotropic filtering, providing better detail handling.

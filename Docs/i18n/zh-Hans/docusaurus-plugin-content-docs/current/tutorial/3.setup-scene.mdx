@@ -4,7 +4,7 @@ import TabItem from '@theme/TabItem';
 
 # 如何创建游戏场景
 
-### 一、创建一个节点
+## 1. 创建一个节点
 
 &emsp;&emsp;要在Dora SSR引擎中创建一个节点，您需要创建一个Node类的实例，并用于后续构建游戏场景树的层次结构。
 
@@ -46,7 +46,7 @@ node = Node!
 </TabItem>
 </Tabs>
 
-### 二、设置节点属性
+## 2. 设置节点属性
 
 &emsp;&emsp;Node类有许多成员变量可供设置，如`x`, `y`, `z`（节点的位置），`width`, `height`（节点的大小），`angle`, `angleX`, `angleY`（节点的旋转角度），`scaleX`, `scaleY`（节点的缩放系数），以及`visible`（节点是否可见）等。
 
@@ -89,7 +89,7 @@ with node
 </TabItem>
 </Tabs>
 
-### 三、添加子节点
+## 3. 添加子节点
 
 &emsp;&emsp;在Node类中，可以通过`addChild`方法添加子节点。以下是在代码中如何添加子节点的示例：
 
@@ -122,7 +122,7 @@ node\addChild childNode
 
 &emsp;&emsp;在这个例子中，`childNode`被添加到`node`作为其子节点。
 
-### 四、检查节点属性
+## 4. 检查节点属性
 
 &emsp;&emsp;Node类有一些只读成员变量，如`hasChildren`（是否有子节点），`children`（子节点的列表），`parent`（节点的父节点），以及`boundingBox`（节点的包围盒）等。
 
@@ -159,13 +159,13 @@ with node
 </TabItem>
 </Tabs>
 
-### 五、节点的事件系统
+## 5. 节点的事件系统
 
-&emsp;&emsp;首先，场景节点类的事件系统支持多种事件类型，如动作结束、点击开始、点击结束、点击移动、滚动鼠标滚轮等。每种事件类型都有一个特定的回调函数，当该事件发生时，这个回调函数会被触发。
+&emsp;&emsp;首先，场景节点类的事件系统支持多种事件类型，如动作结束. 点击开始. 点击结束. 点击移动. 滚动鼠标滚轮等。每种事件类型都有一个特定的回调函数，当该事件发生时，这个回调函数会被触发。
 
 &emsp;&emsp;注册和处理事件的基本步骤如下：
 
-1. **注册事件**：你可以通过在节点上注册事件来监听引擎内置功能触发的事件，比如屏幕触摸，鼠标、键盘和游戏手柄输入等。可以使用下面的代码编写模式通过节点来注册和监听事件，节点上的事件触发是支持多播的，即可以重复注册多个回调函数来监听同一个事件。示例代码如下：
+1. **注册事件**：你可以通过在节点上注册事件来监听引擎内置功能触发的事件，比如屏幕触摸，鼠标. 键盘和游戏手柄输入等。可以使用下面的代码编写模式通过节点来注册和监听事件，节点上的事件触发是支持多播的，即可以重复注册多个回调函数来监听同一个事件。示例代码如下：
 
 <Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
@@ -300,7 +300,7 @@ node.touchEnabled = true
 
 &emsp;&emsp;通过注册和处理这些事件，你可以轻松地为你的游戏节点添加复杂的交互功能。其它可以监听的节点事件详见[这里](../api/Node%20Event/Node)。
 
-&emsp;&emsp;为了简化对事件的处理，我们还提供了一些内置的事件注册函数，如`onTapBegan`、`onTapEnded`、`onTapped`、`onTapMoved`、`onMouseWheel`等。你可以通过在节点上调用这些函数来注册和处理事件。
+&emsp;&emsp;为了简化对事件的处理，我们还提供了一些内置的事件注册函数，如`onTapBegan`. `onTapEnded`. `onTapped`. `onTapMoved`. `onMouseWheel`等。你可以通过在节点上调用这些函数来注册和处理事件。
 
 &emsp;&emsp;例如，你可以通过以下代码来注册和处理点击开始事件：
 
@@ -356,7 +356,7 @@ node\slot "TapBegan", (touch)->
 </TabItem>
 </Tabs>
 
-### 六、节点动作
+## 6. 节点动作
 
 &emsp;&emsp;下面将展示如何使用节点动作系统来创建各种动画效果。
 
@@ -529,7 +529,7 @@ node\perform Spawn(
 
 &emsp;&emsp;在上述代码中，`Move`和`Scale`会同时执行。
 
-&emsp;&emsp;除了以上示例中的动作类型，我们的动作系统还支持其他一些动作，如缩放（ScaleX、ScaleY）、旋转（AngleX、AngleY、Roll）、扭曲（SkewX、SkewY）、延迟（Delay）、事件（Event）、显示（Show）、隐藏（Hide）以及锚点（AnchorX、AnchorY）等。
+&emsp;&emsp;除了以上示例中的动作类型，我们的动作系统还支持其他一些动作，如缩放（ScaleX. ScaleY）. 旋转（AngleX. AngleY. Roll）. 扭曲（SkewX. SkewY）. 延迟（Delay）. 事件（Event）. 显示（Show）. 隐藏（Hide）以及锚点（AnchorX. AnchorY）等。
 
 &emsp;&emsp;通过组合和调整这些动作，你可以创造出丰富多样的动画效果来增强你的游戏体验。
 

@@ -4,7 +4,7 @@ import TabItem from '@theme/TabItem';
 
 # Creating Game Scene
 
-## Creating a Node
+## 1. Creating a Node
 
 To create a node in the Dora SSR engine, you need to create an instance of the Node class, which will be used to build the hierarchical structure of your game scene.
 
@@ -49,7 +49,7 @@ node = Node!
 </TabItem>
 </Tabs>
 
-## Setting Node Properties
+## 2. Setting Node Properties
 
 The Node class has many member variables that can be set, such as `x`, `y`, `z` (position of the node), `width`, `height` (size of the node), `angle`, `angleX`, `angleY` (rotation angles of the node), `scaleX`, `scaleY` (scaling factors of the node), and `visible` (whether the node is visible), etc.
 
@@ -92,7 +92,7 @@ with node
 </TabItem>
 </Tabs>
 
-## Adding Child Nodes
+## 3. Adding Child Nodes
 
 In the Node class, you can add child nodes using the `addChild` method. Here's an example of how to add a child node in your code:
 
@@ -125,7 +125,7 @@ node\addChild childNode
 
 In this example, `childNode` is added to `node` as its child node.
 
-## Checking Node Properties
+## 4. Checking Node Properties
 
 The Node class has some read-only member variables, such as `hasChildren` (whether the node has child nodes), `children` (a list of child nodes), `parent` (the parent node of the current node), and `boundingBox` (the bounding box of the node), etc.
 
@@ -162,7 +162,7 @@ with node
 </TabItem>
 </Tabs>
 
-## Node's Event System
+## 5. Node's Event System
 
 Firstly, the event system of the scene node class supports various types of events, such as action end, tap began, tap ended, tap moved, mouse wheel scroll, etc. Each event type has a specific callback function that gets triggered when the event occurs.
 
@@ -336,7 +336,7 @@ node\onTapBegan (touch)->
 </TabItem>
 </Tabs>
 
-## Node Actions
+## 6. Node Actions
 
 &emsp;&emsp;Below, we will demonstrate how to use the node action system to create various animation effects.
 

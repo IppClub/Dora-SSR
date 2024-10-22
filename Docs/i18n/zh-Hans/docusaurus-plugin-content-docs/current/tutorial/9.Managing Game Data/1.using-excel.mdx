@@ -1,0 +1,279 @@
+import "@site/src/languages/highlight";
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# 加载 Excel 格式的游戏配置数据
+
+&emsp;&emsp;在游戏开发中，配置数据通常以表格的形式存储，Excel 文件由于其直观性和易编辑性，常被用于管理这些数据，便于游戏开发团队中的策划，或是设计角色的成员进行便捷的维护。本文将介绍如何使用 Dora SSR 引擎提供的 `Content.loadExcel` 和 `Content.loadExcelAsync` 函数来加载 `.xlsx` 格式的 Excel 文件，并将其转换为 Lua 表，以便在游戏中使用。
+
+## 1. 函数简介
+
+&emsp;&emsp;Dora SSR 引擎提供了两个函数用于加载 Excel 文件：
+
+- `Content.loadExcel`：同步加载 Excel 文件。
+- `Content.loadExcelAsync`：异步加载 Excel 文件。
+
+&emsp;&emsp;这两个函数的用法基本相同，区别在于是否阻塞当前线程。
+
+### 1.1 函数签名
+
+```lua
+-- 同步加载
+Content.loadExcel(self: Content, filename: string, sheetNames?: {string}): table | nil
+
+-- 异步加载
+Content.loadExcelAsync(self: Content, filename: string, sheetNames?: {string}): table | nil
+```
+
+### 1.2 参数说明
+
+- `filename`：要读取的 Excel 文件名（字符串）。
+- `sheetNames`：可选参数，要读取的 Excel 表名的字符串列表。如果不提供，默认读取所有表。
+
+### 1.3 返回值
+
+- 成功时返回一个 Lua 表，键为表名，值为该表的行列数据。
+- 失败时返回 `nil`。
+
+## 2. 步骤详解
+
+### 2.1 准备 Excel 文件
+
+&emsp;&emsp;确保你的 Excel 文件位于游戏资源目录中，或者位于可以访问的资源路径。假设要加载的文件名叫 `config.xlsx`，并包含以下两个表，每个工作表的第一行是表头，定义了每一列的数据含义。在实际使用中，你可以根据游戏需求添加更多的列和行。
+
+* **Enemies** 表（敌人配置表）
+
+	| EnemyID | EnemyName | Health | Attack |
+	|---------|-----------|--------|--------|
+	| 1 | Goblin | 100 | 10 |
+	| 2 | Orc | 200 | 20 |
+	| 3 | Troll | 300 | 30 |
+	| 4 | Dragon | 1000 | 100 |
+
+	- **EnemyID**：敌人的唯一标识符。
+	- **EnemyName**：敌人的名称。
+	- **Health**：敌人的生命值。
+	- **Attack**：敌人的攻击力。
+
+* **Items** 表（道具配置表）
+
+	| ItemID | ItemName | Type | Value |
+	|--------|----------|------|-------|
+	| 101 | Health Potion | Consumable | 50 |
+	| 102 | Mana Potion | Consumable | 30 |
+	| 103 | Sword | Weapon | 150 |
+	| 104 | Shield | Armor | 100 |
+
+	- **ItemID**：道具的唯一标识符。
+	- **ItemName**：道具的名称。
+	- **Type**：道具的类型（例如，消耗品. 武器. 护甲）。
+	- **Value**：道具的价值或效果数值。
+
+### 2.2 使用 `loadExcel` 同步加载
+
+<Tabs>
+<TabItem value="lua" label="Lua">
+
+```lua
+local Content <const> = require("Content")
+
+-- 加载指定的 Excel 文件
+local excelData = Content:loadExcel("config.xlsx")
+if excelData then
+	-- 访问 "Enemies" 表的数据
+	local enemiesData = excelData["Enemies"]
+	if enemiesData then
+		for rowIndex, row in ipairs(enemiesData) do
+			local enemyID = row[1]
+			local enemyName = row[2]
+			print(string.format("Enemy ID: %s, Name: %s", enemyID, enemyName))
+		end
+	end
+
+	-- 访问 "Items" 表的数据
+	local itemsData = excelData["Items"]
+	if itemsData then
+		for rowIndex, row in ipairs(itemsData) do
+			local itemID = row[1]
+			local itemName = row[2]
+			print(string.format("Item ID: %s, Name: %s", itemID, itemName))
+		end
+	end
+else
+	print("Excel 文件加载失败。")
+end
+```
+
+</TabItem>
+</Tabs>
+
+#### 解析返回的 Lua 表
+
+&emsp;&emsp;返回的 `excelData` 是一个嵌套的 Lua 表，结构如下：
+
+```lua
+{
+	["Enemies"] = {
+		{ "EnemyID", "EnemyName", "Health", "Attack" },
+		{ 1, "Goblin", 100, 10 },
+		{ 2, "Orc", 200, 20 },
+		{ 3, "Troll", 300, 30 },
+		{ 4, "Dragon", 1000, 100 },
+	},
+	["Items"] = {
+		{ "ItemID", "ItemName", "Type", "Value" },
+		{ 101, "Health Potion", "Consumable", 50 },
+		{ 102, "Mana Potion", "Consumable", 30 },
+		{ 103, "Sword", "Weapon", 150 },
+		{ 104, "Shield", "Armor", 100 },
+	},
+}
+```
+
+### 2.3 使用 `loadExcelAsync` 异步加载
+
+&emsp;&emsp;当你不希望阻塞当前线程时，可以使用异步加载：
+
+<Tabs>
+<TabItem value="lua" label="Lua">
+
+```lua
+local Content <const> = require("Content")
+local thread <const> = require("thread")
+
+thread(function()
+	-- 异步加载 Excel 文件
+	local excelData = Content:loadExcelAsync("config.xlsx")
+	if excelData then
+		-- 处理数据的逻辑与同步加载相同
+		local enemiesData = excelData["Enemies"]
+		-- ...
+	else
+		print("异步加载 Excel 文件失败。")
+	end
+end)
+```
+
+</TabItem>
+</Tabs>
+
+&emsp;&emsp;注意：`loadExcelAsync` 需要在协程中调用，因此我们使用 `thread` 模块来创建一个新协程，并在其中执行异步加载操作。
+
+### 2.4 加载指定的表
+
+&emsp;&emsp;如果你只想加载特定的表，可以使用 `sheetNames` 参数：
+
+<Tabs>
+<TabItem value="lua" label="Lua">
+
+```lua
+local Content <const> = require("Content")
+
+-- 只加载 "Enemies" 表
+local excelData = Content:loadExcel("config.xlsx", { "Enemies" })
+if excelData and excelData["Enemies"] then
+	-- 处理 "Enemies" 表的数据
+	local enemiesData = excelData["Enemies"]
+	-- ...
+else
+	print("特定表的数据加载失败。")
+end
+```
+
+</TabItem>
+</Tabs>
+
+### 2.5 错误处理
+
+&emsp;&emsp;始终检查返回值是否为 `nil`，以处理可能的加载失败：
+
+<Tabs>
+<TabItem value="lua" label="Lua">
+
+```lua
+local excelData = Content:loadExcel("nonexistent.xlsx")
+if not excelData then
+	print("Excel 文件未找到或加载失败。")
+end
+```
+
+</TabItem>
+</Tabs>
+
+## 3. 完整示例
+
+&emsp;&emsp;下面是一个完整的示例，演示如何加载 Excel 文件并将数据转换为游戏中的配置表：
+
+<Tabs>
+<TabItem value="lua" label="Lua">
+
+```lua
+local Content <const> = require("Content")
+
+-- 定义一个函数来解析 Excel 表数据
+local function parseExcelData(excelData)
+	local config = {}
+
+	-- 解析 "Enemies" 表
+	if excelData["Enemies"] then
+		config.enemies = {}
+		local enemiesData = excelData["Enemies"]
+		-- 第一行为表头进行跳过
+		for rowIndex = 2, #enemiesData do
+			local row = enemiesData[rowIndex]
+			local enemy = {
+				id = row[1],
+				name = row[2],
+				health = row[3],
+				attack = row[4],
+			}
+			table.insert(config.enemies, enemy)
+		end
+	end
+
+	-- 解析 "Items" 表
+	if excelData["Items"] then
+		config.items = {}
+		local itemsData = excelData["Items"]
+		-- 第一行为表头进行跳过
+		for rowIndex = 2, #itemsData do
+			local row = itemsData[rowIndex]
+			local item = {
+				id = row[1],
+				name = row[2],
+				type = row[3],
+				value = row[4],
+			}
+			table.insert(config.items, item)
+		end
+	end
+
+	return config
+end
+
+-- 同步加载 Excel 文件
+local excelData = Content:loadExcel("config.xlsx")
+if excelData then
+	local gameConfig = parseExcelData(excelData)
+	-- 现在 gameConfig 包含了解析后的配置数据
+	print("游戏配置加载成功。")
+else
+	print("游戏配置加载失败。")
+end
+```
+
+</TabItem>
+</Tabs>
+
+## 4. 注意事项
+
+- Excel 表的第一行通常作为表头，包含字段名称。在解析数据时，可以根据表头动态映射字段。
+- 确保 Excel 文件的路径和名称正确，文件存在且格式符合要求。
+- 对于大型 Excel 文件，异步加载可以避免阻塞主线程，提升性能。
+- 对于包含大量数据的 Excel 文件（超过上万行），建议导入到数据库中使用，以提高数据的查询和处理效率。可以参考 [使用 SQLite 数据库](using-database#7将-excel-数据导入数据库) 教程。
+
+## 5. 总结
+
+&emsp;&emsp;使用 Dora SSR 引擎的 `loadExcel` 和 `loadExcelAsync` 函数，可以方便地将 Excel 配置数据加载到 Lua 表中，供游戏使用。通过合理的解析和封装，可以将这些数据转换为游戏所需的配置结构。
+
+&emsp;&emsp;希望本教程对你在游戏开发中处理配置数据有所帮助。

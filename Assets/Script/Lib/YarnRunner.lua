@@ -5,6 +5,7 @@ local setmetatable = _G.setmetatable -- 1
 local coroutine = _G.coroutine -- 1
 local load = _G.load -- 1
 local error = _G.error -- 1
+local pcall = _G.pcall -- 1
 local pairs = _G.pairs -- 1
 local getmetatable = _G.getmetatable -- 1
 local math = _G.math -- 1
@@ -30,6 +31,9 @@ rewriteError = function(err, luaCode, title) -- 13
 	line = lineMap[line] or line -- 24
 	return tostring(title) .. ":" .. tostring(line) .. ": " .. tostring(msg) -- 25
 end -- 13
+local _anon_func_0 = function(json, jsonCode) -- 60
+	return json.load(jsonCode) -- 60
+end -- 60
 local YarnRunner -- 27
 do -- 27
 	local _class_0 -- 27
@@ -178,8 +182,8 @@ do -- 27
 			if not jsonCode then -- 59
 				error("failed to read yarn file \"" .. tostring(filename) .. "\"") -- 59
 			end -- 59
-			local jsonObject = json.load(jsonCode) -- 60
-			if not jsonObject then -- 61
+			local success, jsonObject = pcall(_anon_func_0, json, jsonCode) -- 60
+			if not (success and jsonObject) then -- 61
 				error("failed to load yarn json code") -- 61
 			end -- 61
 			self.codes = { } -- 63
