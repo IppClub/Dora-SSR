@@ -8,19 +8,17 @@ import "UI.Control.Basic.ScrollArea"
 path = Path\getScriptPath ...
 Content\insertSearchPath 1, path
 
-fontSize = math.floor 20 * App.devicePixelRatio
+fontScale = App.devicePixelRatio
+fontSize = math.floor 20 * fontScale
 
 texts = []
 
 local root, label, scroll, control, menu
 
-with root = AlignNode!
+with root = AlignNode true
 	const {width: viewWidth, height: viewHeight} = View.size
-	\css "width: #{viewWidth}; height: #{viewHeight}; flex-direction: column-reverse"
-	\gslot "AppChange", (settingName) -> if settingName == "Size"
-		:width, :height = View.size
-		\css "width: #{width}; height: #{height}; flex-direction: column-reverse"
-	const width, height = viewWidth - 200, viewHeight - 20
+	\css "flex-direction: column-reverse"
+	const width, height = viewWidth - 100, viewHeight - 10
 	\addChild with scroll = ScrollArea {
 			:width
 			:height
@@ -29,20 +27,19 @@ with root = AlignNode!
 			viewWidth: height
 			viewHeight: height
 		}
-		.border = LineRect x: 1, y: 1, width: width - 2, height: height - 2, color: 0xffffffff
-		.area\addChild .border
 		root\onAlignLayout (w, h) ->
 			.position = Vec2 w / 2, h / 2
-			w -= 200
-			h -= 20
-			.view.children.first.textWidth = w - fontSize
+			w -= 100
+			h -= 10
+			.view.children.first.textWidth = (w - fontSize) * fontScale
 			\adjustSizeWithAlign "Auto", 10, Size w, h
-			.area\removeChild .border
-			.border = LineRect x: 1, y: 1, width: w - 2, height: h - 2, color: 0xffffffff
-			.area\addChild .border
+			.area\getChildByTag("border")?\removeFromParent!
+			border = LineRect x: 1, y: 1, width: w - 2, height: h - 2, color: 0xffffffff
+			.area\addChild border, 0, "border"
 		.view\addChild with label = Label "sarasa-mono-sc-regular", fontSize
+			.scaleX = .scaleY = 1 / fontScale
 			.alignment = "Left"
-			.textWidth = width - fontSize
+			.textWidth = (width - fontSize) * fontScale
 			.text = ""
 	\addChild with control = AlignNode!
 		\css "height: 140; margin-bottom: 40"
@@ -66,12 +63,12 @@ setButtons = (options) ->
 	menu\removeAllChildren!
 	buttons = options ?? 1
 	with menu
-		.size = Size 140 * buttons, 140
+		.size = Size 80 * buttons, 80
 		for i = 1, buttons
 			\addChild with CircleButton {
 					text: options and "#{i}" or "Next"
-					radius: 60
-					fontSize: 40
+					radius: 30
+					fontSize: 20
 				}
 				\onTapped ->
 					if options
@@ -132,9 +129,14 @@ threadLoop ->
 		Separator!
 		changed, currentFile = Combo "File", currentFile, files
 		if changed
-			runner = YarnRunner testFiles[currentFile], "Start", {}, commands, true
-			texts = []
-			advance!
+			try
+				runner = YarnRunner testFiles[currentFile], "Start", {}, commands, true
+				texts = []
+				advance!
+			catch err
+				msg = debug.traceback err
+				label.text = "failed to load file #{testFiles[currentFile]}\n#{msg}"
+				scroll\adjustSizeWithAlign "Auto", 10
 		Text "Variables"
 		Separator!
 		for k, v in pairs runner.state

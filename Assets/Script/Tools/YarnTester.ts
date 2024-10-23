@@ -25,22 +25,17 @@ let zh = false;
 
 const testFile = Path(Content.assetPath, "Script", "Test", "tutorial.yarn");
 
-const fontSize = math.floor(20 * App.devicePixelRatio);
+const fontScale = App.devicePixelRatio;
+const fontSize = math.floor(20 * fontScale);
 
 let texts: string[] = [];
 
-const root = AlignNode();
-const {width: viewWidth, height: viewHeight} = View.size;
-root.css(`width: ${viewWidth}; height: ${viewHeight}; flex-direction: column-reverse`);
-root.onAppChange((settingName) => {
-	if (settingName == "Size") {
-		const {width, height} = View.size;
-		root.css(`width: ${width}; height: ${height}; flex-direction: column-reverse`)
-	}
-});
+const root = AlignNode(true);
+root.css('flex-direction: column-reverse');
 
-const width = viewWidth - 200;
-const height = viewHeight - 20;
+const {width: viewWidth, height: viewHeight} = View.size;
+const width = viewWidth - 100;
+const height = viewHeight - 10;
 const scroll = ScrollArea({
 	width,
 	height,
@@ -51,27 +46,24 @@ const scroll = ScrollArea({
 });
 scroll.addTo(root);
 
-let border = LineRect({width, height, color: 0xffffffff});
-scroll.area.addChild(border);
+const label = Label("sarasa-mono-sc-regular", fontSize)?.addTo(scroll.view);
+if (!label) {
+	error("failed to create label!");
+}
+label.scaleX = 1 / fontScale;
+label.scaleY = 1 / fontScale;
+label.alignment = TextAlign.Left;
+
 root.onAlignLayout((w: number, h: number) => {
 	scroll.position = Vec2(w / 2, h / 2);
-	w -= 200;
-	h -= 20;
-	const label = tolua.cast(scroll.view.children?.first, TypeName.Label);
-	if (label !== null) {
-		label.textWidth = w - fontSize;
-	}
+	w -= 100;
+	h -= 10;
+	label.textWidth = (w - fontSize) * fontScale;
 	scroll.adjustSizeWithAlign(AlignMode.Auto, 10, Size(w, h));
-	scroll.area.removeChild(border);
-	border = LineRect({x: 1, y: 1, width: w - 2, height: h - 2, color: 0xffffffff});
-	scroll.area.addChild(border);
+	scroll.area.getChildByTag('border')?.removeFromParent();
+	const border = LineRect({x: 1, y: 1, width: w - 2, height: h - 2, color: 0xffffffff});
+	scroll.area.addChild(border, 0, 'border');
 });
-const label = Label("sarasa-mono-sc-regular", fontSize)?.addTo(scroll.view);
-if (label) {
-	label.alignment = TextAlign.Left;
-	label.textWidth = width - fontSize;
-	label.text = "";
-}
 
 const control = AlignNode().addTo(root);
 control.css("height: 140; margin-bottom: 40");
@@ -99,12 +91,12 @@ let runner = YarnRunner(testFile, "Start", {}, commands, true);
 const setButtons = (options?: number) => {
 	menu.removeAllChildren();
 	const buttons = options ?? 1;
-	menu.size = Size(140 * buttons, 140);
+	menu.size = Size(80 * buttons, 80);
 	for (let i = 1; i <= buttons; i++) {
 		const circleButton = CircleButton({
 			text: options ? i.toString() : "Next",
-			radius: 60,
-			fontSize: 40
+			radius: 30,
+			fontSize: 20
 		}).addTo(menu);
 		circleButton.onTapped(() => {
 			advance(options);
@@ -144,7 +136,6 @@ const advance = (option?: number) => {
 		menu.removeAllChildren();
 		texts.push(result);
 	}
-	if (!label) return;
 	label.text = table.concat(texts, "\n")
 	scroll.adjustSizeWithAlign(AlignMode.Auto, 10);
 	thread(() => {
@@ -195,6 +186,16 @@ threadLoop(() => {
 		ImGui.Separator();
 		ImGui.InputText("##FilterInput", filterBuf, inputTextFlags);
 		ImGui.SameLine();
+		const runFile = () => {
+			try {
+				runner = YarnRunner(filteredPaths[currentFile - 1], "Start", {}, commands, true);
+				texts = [];
+				advance();
+			} catch (err) {
+				label.text = `failed to load file ${filteredPaths[currentFile - 1]}\n${err}`;
+				scroll.adjustSizeWithAlign(AlignMode.Auto, 10);
+			}
+		};
 		if (ImGui.Button(zh ? "筛选" : "Filter")) {
 			const filterText = filterBuf.text.toLowerCase();
 			const filtered = testFileNames.map((n, i) => [n, testFilePaths[i]]).filter((it, i) => {
@@ -208,22 +209,16 @@ threadLoop(() => {
 			filteredPaths = filtered.map(f => f[1]);
 			currentFile = 1;
 			if (filteredPaths.length > 0) {
-				runner = YarnRunner(filteredPaths[currentFile - 1], "Start", {}, commands, true);
-				texts = [];
-				advance();
+				runFile();
 			}
 		}
 		let changed = false;
 		[changed, currentFile] = ImGui.Combo(zh ? "文件" : "File", currentFile, filteredNames);
 		if (changed) {
-			runner = YarnRunner(filteredPaths[currentFile - 1], "Start", {}, commands, true);
-			texts = [];
-			advance();
+			runFile();
 		}
 		if (ImGui.Button(zh ? "重载" : "Reload")) {
-			runner = YarnRunner(filteredPaths[currentFile - 1], "Start", {}, commands, true);
-			texts = [];
-			advance();
+			runFile();
 		}
 		ImGui.SameLine();
 		ImGui.Text(zh ? "变量：" : "Variables:");
