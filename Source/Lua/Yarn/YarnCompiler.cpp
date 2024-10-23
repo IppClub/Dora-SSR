@@ -388,7 +388,7 @@ public:
 		line_break = nl(-expr('\r') >> '\n');
 		any_char = line_break | any();
 		stop = line_break | eof();
-		comment = "##" >> *(not_(set("\r\n")) >> any_char) >> and_(stop);
+		comment = "//" >> *(not_(set("\r\n")) >> any_char) >> and_(stop);
 		space_one = set(" \t");
 		space = -(and_(set(" \t#")) >> *space_one >> -comment);
 		space_break = space >> line_break;
