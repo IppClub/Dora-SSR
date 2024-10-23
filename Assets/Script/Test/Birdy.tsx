@@ -56,6 +56,9 @@ toNode(
 				delta = Vec2.zero;
 				line.clear();
 			}}
+			onMount={world => {
+				world.addChild(line);
+			}}
 		>
 			<body type={BodyMoveType.Static}>
 				<rect-fixture centerY={-200} width={2000} height={10}/>

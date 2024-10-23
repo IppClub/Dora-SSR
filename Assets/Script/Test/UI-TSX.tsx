@@ -1,11 +1,11 @@
 // @preview-file on
 import { React, toNode, useRef } from 'DoraX';
-import { Node, Size, sleep, thread, Vec2 } from 'Dora';
+import { Size, sleep, thread, tolua, TypeName, Vec2 } from 'Dora';
 import { Struct } from 'Utils'
 
+import * as LineRectCreate from 'UI/View/Shape/LineRect';
 import * as ButtonCreate from 'UI/Control/Basic/Button';
 import { Button } from 'UI/Control/Basic/Button';
-import * as LineRectCreate from 'UI/View/Shape/LineRect';
 import * as ScrollAreaCreate from 'UI/Control/Basic/ScrollArea';
 import { ScrollArea, AlignMode } from 'UI/Control/Basic/ScrollArea';
 
@@ -80,49 +80,41 @@ const scrollArea = useRef<ScrollArea.Type>();
 const items = Array();
 items.__added = (index, item) => {
 	const {current} = scrollArea;
-	if (current) {
-		const node = toNode(
-			<Button text={item.name} width={50} height={50} onClick={() => {
-				thread(() => {
-					sleep(0.5);
-					items.remove(item);
-				});
-			}}/>
-		);
-		if (node) {
-			node.visible = false;
-			node.x = -1000;
-			node.addTo(current.view, index);
-		}
+	if (!current) return;
+	const node = toNode(
+		<Button text={item.name} width={50} height={50} onClick={() => {
+			thread(() => {
+				sleep(0.5);
+				items.remove(item);
+			});
+		}}/>
+	);
+	if (node) {
+		node.visible = false;
+		node.x = -1000;
+		node.addTo(current.view, index);
 	}
 };
 items.__removed = (index) => {
 	const {current} = scrollArea;
-	if (current) {
-		const child = current.view.children?.get(index);
-		if (child) {
-			(child as Node.Type).removeFromParent();
-		}
-	}
+	const child = tolua.cast(current?.view.children?.get(index), TypeName.Node);
+	if (child) child.removeFromParent();
 };
 items.__updated = () => {
 	const {current} = scrollArea;
-	if (current) {
-		current.adjustSizeWithAlign(AlignMode.Auto);
-	}
+	current?.adjustSizeWithAlign(AlignMode.Auto);
 };
 
 toNode(
 	<align-node windowRoot style={{alignItems: 'center', justifyContent: 'center'}}>
 		<align-node style={{width: "50%", height: "50%"}} onLayout={(width, height) => {
 			const {current} = scrollArea;
-			if (current) {
-				current.position = Vec2(width / 2, height / 2);
-				current.adjustSizeWithAlign(AlignMode.Auto, 10, Size(width, height));
-				current.getChildByTag("border")?.removeFromParent();
-				const border = LineRectCreate({x: -width / 2, y: -height / 2, width, height, color: 0xffffffff});
-				current.addChild(border, 0, "border");
-			}
+			if (!current) return;
+			current.position = Vec2(width / 2, height / 2);
+			current.adjustSizeWithAlign(AlignMode.Auto, 10, Size(width, height));
+			current.getChildByTag("border")?.removeFromParent();
+			const border = LineRectCreate({x: -width / 2, y: -height / 2, width, height, color: 0xffffffff});
+			current.addChild(border, 0, "border");
 		}}>
 			<ScrollArea ref={scrollArea} width={250} height={300} paddingX={0}/>
 		</align-node>
