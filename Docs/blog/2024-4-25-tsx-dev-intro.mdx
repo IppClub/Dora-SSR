@@ -30,8 +30,8 @@ Developing games with TSX means you can leverage your existing frontend tech sta
 Enough with the theory; let’s dive into some practical work. Let’s see how to write a game similar to "Angry Birds" using less than 100 lines of TSX code in Dora SSR. Before starting, setting up the development environment with Dora SSR is straightforward: install the package, open the browser, and let’s start coding! For installation and getting started, see: [Dora Startup!](https://dora-ssr.net/zh-Hans/docs/tutorial/quick-start)
 
 <p align="center">
-  <img src={require('@site/static/img/dora-on-android.jpg').default} alt='Accidentally installed as an APK on your phone? Access it over the same local network for on-device development and debugging'/>
-   Accidentally installed as an APK on your phone? Access it over the same local network for on-device development and debugging
+	<img src={require('@site/static/img/dora-on-android.jpg').default} alt='Accidentally installed as an APK on your phone? Access it over the same local network for on-device development and debugging'/>
+	Accidentally installed as an APK on your phone? Access it over the same local network for on-device development and debugging
 </p>
 
 ### 1. Crafting the Simplest Game Scene
@@ -63,24 +63,24 @@ Next, the colliding boxes in our game are defined by the `Box` component, which 
 
 ```tsx
 interface BoxProps {
-  num: number;
-  x?: number;
-  y?: number;
-  children?: any | any[];
+	num: number;
+	x?: number;
+	y?: number;
+	children?: any | any[];
 }
 
 const Box = (props: BoxProps) => {
-  const numText = props.num.toString();
-  return (
-    <body type={BodyMoveType.Dynamic} scaleX={0} scaleY={0} x={props.x} y={props.y} tag={numText}>
-      <rect-fixture width={100} height={100}/>
-      <draw-node>
-        <rect-shape width={100} height={100} fillColor={0x8800ffff} borderWidth={1} borderColor={0xff00ffff}/>
-      </draw-node>
-      <label fontName='sarasa-mono-sc-regular' fontSize={40}>{numText}</label>
-      {props.children}
-    </body>
-  );
+	const numText = props.num.toString();
+	return (
+		<body type={BodyMoveType.Dynamic} scaleX={0} scaleY={0} x={props.x} y={props.y} tag={numText}>
+			<rect-fixture width={100} height={100}/>
+			<draw-node>
+				<rect-shape width={100} height={100} fillColor={0x8800ffff} borderWidth={1} borderColor={0xff00ffff}/>
+			</draw-node>
+			<label fontName='sarasa-mono-sc-regular' fontSize={40}>{numText}</label>
+			{props.children}
+		</body>
+	);
 };
 ```
 
@@ -110,25 +110,27 @@ let delta = Vec2.zero;
 const line = Line();
 
 toNode(
-  <physics-world
-    onTapBegan={(touch) => {
-      start = touch.location;
-      line.clear();
-    }}
-    onTapMoved={(touch) => {
-      delta = delta.add(touch.delta);
-      line.set([start, start.add(delta)]);
-    }}
-    onTapEnded={() => {
-      if (!bird.current) return;
-      bird.current.velocity = delta.mul(Vec2(10, 10));
-      start = Vec2.zero;
-      delta = Vec2.zero;
-      line.clear();
-    }}
-  >
-    {/* ...create other game elements under the physics world... */}
-  </physics-world>
+	<physics-world
+		onTapBegan={touch => {
+			start = touch.location;
+			line.clear();
+		}}
+		onTapMoved={touch => {
+			delta = delta.add(touch.delta);
+			line.set([start, start.add(delta)]);
+		}}
+		onTapEnded={() => {
+			if (!bird.current) return;
+			bird.current.velocity = delta.mul(Vec2(10, 10));
+			start = Vec2.zero;
+			delta = Vec2.zero;
+			line.clear();
+		}}
+		onMounted={world => {
+			world.addChild(line);
+		}}>
+		{/* ...create other game elements under the physics world... */}
+	</physics-world>
 );
 ```
 
@@ -146,10 +148,10 @@ First, we use the `body` component to create the ground and set it as a static b
 
 ```tsx
 <body type={BodyMoveType.Static}>
-  <rect-fixture centerY={-200} width={2000} height={10}/>
-  <draw-node>
-    <rect-shape centerY={-200} width={2000} height={10} fillColor={0xfffbc400}/>
-  </draw-node>
+	<rect-fixture centerY={-200} width={2000} height={10}/>
+	<draw-node>
+		<rect-shape centerY={-200} width={2000} height={10} fillColor={0xfffbc400}/>
+	</draw-node>
 </body>
 ```
 
@@ -164,14 +166,14 @@ Next, we use the previously defined `Box` component to create 5 boxes with diffe
 
 ```tsx
 {
-  [10, 20, 30, 40, 50].map((num, i) => (
-    <Box num={num} x={200} y={-150 + i * 100}>
-      <sequence>
-        <delay time={i * 0.2}/>
-        <scale time={0.3} start={0} stop={1}/>
-      </sequence>
-    </Box>
-  ))
+	[10, 20, 30, 40, 50].map((num, i) => (
+		<Box num={num} x={200} y={-150 + i * 100}>
+			<sequence>
+				<delay time={i * 0.2}/>
+				<scale time={0.3} start={0} stop={1}/>
+			</sequence>
+		</Box>
+	))
 }
 ```
 
@@ -224,13 +226,13 @@ Lastly, we use the `body` component to create the bird and set its collision sha
 With that, we have completed the core logic of our small game. You can further refine the game logic and add features based on your own ideas. The complete demo code can be seen at this link: [Dora-SSR/Assets/Script/Test/Birdy.tsx](https://github.com/IppClub/Dora-SSR/blob/main/Assets/Script/Test/Birdy.tsx). Below are some screenshots of the game in action.
 
 <p align="center">
-  <img src={require('@site/static/img/birdy1.png').default} alt='Dragging the screen to launch the "Angry Birds'/>
-   Dragging the screen to launch the "Angry Birds
+	<img src={require('@site/static/img/birdy1.png').default} alt='Dragging the screen to launch the "Angry Birds'/>
+	Dragging the screen to launch the "Angry Birds
 </p>
 
 <p align="center">
-  <img src={require('@site/static/img/birdy2.png').default} alt='Skilled moves earned me all the scores in one shot'/>
-   Skilled moves earned me all the scores in one shot
+	<img src={require('@site/static/img/birdy2.png').default} alt='Skilled moves earned me all the scores in one shot'/>
+	Skilled moves earned me all the scores in one shot
 </p>
 
 ## 4. A Little Reveal

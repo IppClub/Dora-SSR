@@ -4,6 +4,20 @@ import TabItem from '@theme/TabItem';
 
 # How to Create a Game Scene
 
+In the Dora SSR engine, a game scene is composed of nodes, forming a tree structure. A node is a basic element in the game scene that can contain other nodes, creating a hierarchical structure. In this tutorial, we will introduce how to create a game scene using nodes.
+
+Here is a simple example of a game scene. The geometric transformations, color, and opacity properties of the parent node will affect the child nodes. When setting the properties of the child nodes, you are actually setting relative values on the parent node.
+
+```mermaid
+graph TD
+	A[Root Node\nDirector.entry] --> B[Child Node 1]
+	A --> C[Child Node 2]
+	B --> D[Child Node 1.1]
+	B --> E[Child Node 1.2]
+	C --> F[Child Node 2.1]
+	C --> G[Child Node 2.2]
+```
+
 ## 1. Creating a Node
 
 To create a node in the Dora SSR engine, you need to instantiate a `Node` class, which will later be used to build the hierarchy of the game scene tree.

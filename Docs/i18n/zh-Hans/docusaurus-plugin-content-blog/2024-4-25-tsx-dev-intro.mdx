@@ -21,7 +21,7 @@ import "@site/src/languages/highlight";
 
 
 
-## 二、从 TypeScript 到 TSX：前端技术在游戏中的应用
+## 二、从 TypeScript 到 TSX：前端技术在游戏中应用
 
 &emsp;&emsp;许多前端开发者都熟悉 TypeScript 和 React 的 JSX 语法。在 Dora SSR 开源游戏引擎中，我们通过支持 TSX，提供了与前端开发编程模式相似的游戏开发接口。是的你没听错，就是那个 TSX。
 
@@ -34,8 +34,8 @@ import "@site/src/languages/highlight";
 &emsp;&emsp;好了，理论知识够多了，让我们来点实际操作吧。来看看如何在 Dora SSR 中用 100 行以内的 TSX 代码编写一个类似“愤怒的小鸟”的小游戏。当然，在开始之前还是要准备开发环境，做这个事用 Dora SSR 就很简单：我有一个**安装包一装**，我有一个**浏览器一开**，嗯，开始**写代码**运行吧。安装启动参见：[Dora 启动！](https://dora-ssr.net/zh-Hans/docs/tutorial/quick-start)
 
 <p align="center">
-  <img src={require('@site/static/img/dora-on-android.jpg').default} alt='不小心装成了APK包在手机上？那就在同局域网下访问，直接在手机上进行开发调试吧'/>
-   不小心装成了APK包在手机上？那就在同局域网下访问，直接在手机上进行开发调试吧
+	<img src={require('@site/static/img/dora-on-android.jpg').default} alt='不小心装成了APK包在手机上？那就在同局域网下访问，直接在手机上进行开发调试吧'/>
+	不小心装成了APK包在手机上？那就在同局域网下访问，直接在手机上进行开发调试吧
 </p>
 
 ### 1. 编写最简单游戏场景
@@ -69,24 +69,24 @@ toNode(<sprite file='Image/logo.png' scaleX={0.2} scaleY={0.2}/>);
 
 ```tsx
 interface BoxProps {
-  num: number;
-  x?: number;
-  y?: number;
-  children?: any | any[];
+	num: number;
+	x?: number;
+	y?: number;
+	children?: any | any[];
 }
 
 const Box = (props: BoxProps) => {
-  const numText = props.num.toString();
-  return (
-    <body type={BodyMoveType.Dynamic} scaleX={0} scaleY={0} x={props.x} y={props.y} tag={numText}>
-      <rect-fixture width={100} height={100}/>
-      <draw-node>
-        <rect-shape width={100} height={100} fillColor={0x8800ffff} borderWidth={1} borderColor={0xff00ffff}/>
-      </draw-node>
-      <label fontName='sarasa-mono-sc-regular' fontSize={40}>{numText}</label>
-      {props.children}
-    </body>
-  );
+	const numText = props.num.toString();
+	return (
+		<body type={BodyMoveType.Dynamic} scaleX={0} scaleY={0} x={props.x} y={props.y} tag={numText}>
+			<rect-fixture width={100} height={100}/>
+			<draw-node>
+				<rect-shape width={100} height={100} fillColor={0x8800ffff} borderWidth={1} borderColor={0xff00ffff}/>
+			</draw-node>
+			<label fontName='sarasa-mono-sc-regular' fontSize={40}>{numText}</label>
+			{props.children}
+		</body>
+	);
 };
 ```
 
@@ -120,25 +120,28 @@ let delta = Vec2.zero;
 const line = Line();
 
 toNode(
-  <physics-world
-    onTapBegan={(touch) => {
-      start = touch.location;
-      line.clear();
-    }}
-    onTapMoved={(touch) => {
-      delta = delta.add(touch.delta);
-      line.set([start, start.add(delta)]);
-    }}
-    onTapEnded={() => {
-      if (!bird.current) return;
-      bird.current.velocity = delta.mul(Vec2(10, 10));
-      start = Vec2.zero;
-      delta = Vec2.zero;
-      line.clear();
-    }}
-  >
-    {/* ...在物理世界下创建其它游戏元素 ... */}
-  </physics-world>
+	<physics-world
+		onTapBegan={touch => {
+			start = touch.location;
+			line.clear();
+		}}
+		onTapMoved={touch => {
+			delta = delta.add(touch.delta);
+			line.set([start, start.add(delta)]);
+		}}
+		onTapEnded={() => {
+			if (!bird.current) return;
+			bird.current.velocity = delta.mul(Vec2(10, 10));
+			start = Vec2.zero;
+			delta = Vec2.zero;
+			line.clear();
+		}}
+		onMount={world => {
+			world.addChild(line);
+		}}
+	>
+		{/* ...在物理世界下创建其它游戏元素 ... */}
+	</physics-world>
 );
 ```
 
@@ -158,10 +161,10 @@ toNode(
 
 ```tsx
 <body type={BodyMoveType.Static}>
-  <rect-fixture centerY={-200} width={2000} height={10}/>
-  <draw-node>
-    <rect-shape centerY={-200} width={2000} height={10} fillColor={0xfffbc400}/>
-  </draw-node>
+	<rect-fixture centerY={-200} width={2000} height={10}/>
+	<draw-node>
+		<rect-shape centerY={-200} width={2000} height={10} fillColor={0xfffbc400}/>
+	</draw-node>
 </body>
 ```
 
@@ -176,32 +179,33 @@ toNode(
 
 ```tsx
 {
-  [10, 20, 30, 40, 50].map((num, i) => (
-    <Box num={num} x={200} y={-150 + i * 100}>
-      <sequence>
-        <delay time={i * 0.2}/>
-        <scale time={0.3} start={0} stop={1}/>
-      </sequence>
-    </Box>
-  ))
+	[10, 20, 30, 40, 50].map((num, i) => (
+		<Box num={num} x={200} y={-150 + i * 100}>
+			<sequence>
+				<delay time={i * 0.2}/>
+				<scale time={0.3} start={0} stop={1}/>
+			</sequence>
+		</Box>
+	))
 }
 ```
 
 - `map` 函数：用于遍历分数数组从 10 到 50，并为每个分数创建一个需要小鸟撞击的箱子。
 - `Box` 组件：用于创建箱子，并传入以下属性：
-  - `num={num}`：箱子的分数，对应数组中的数字。
-  - `x={200}`：箱子的初始 x 轴位置，为 200。
-  - `y={-150 + i * 100}`：箱子的初始 y 轴位置，根据创建序号递增。
+	- `num={num}`：箱子的分数，对应数组中的数字。
+	- `x={200}`：箱子的初始 x 轴位置，为 200。
+	- `y={-150 + i * 100}`：箱子的初始 y 轴位置，根据创建序号递增。
 - `sequence` 组件：用于创建要在父节点上播放的动画序列，包含以下动画：
-  - `delay time={i * 0.2}`：延迟播放动画，延迟时间根据创建序号递增。
-  - `scale time={0.3} start={0} stop={1}`：缩放动画，从不显示到完全显示，耗时 0.3 秒。
+	- `delay time={i * 0.2}`：延迟播放动画，延迟时间根据创建序号递增。
+	- `scale time={0.3} start={0} stop={1}`：缩放动画，从不显示到完全显示，耗时 0.3 秒。
 
 #### 5.3 小鸟
 
 &emsp;&emsp;最后，我们使用 `body` 组件创建小鸟，并设置碰撞形状、外观和分数标签：
 
 ```tsx
-<body ref={bird} type={BodyMoveType.Dynamic} x={-200} y={-150} onContactStart={(other) => {
+<body ref={bird} type={BodyMoveType.Dynamic} x={-200} y={-150}
+	onContactStart={other => {
 		if (other.tag !== '' && score.current) {
 			// 累加积分
 			const sc = parseFloat(score.current.text) + parseFloat(other.tag);
@@ -220,7 +224,7 @@ toNode(
 	</draw-node>
 	<label ref={score} fontName='sarasa-mono-sc-regular' fontSize={40}>0</label>
 	<scale time={0.4} start={0.3} stop={1.0} easing={Ease.OutBack}/>
-	</body>
+</body>
 ```
 
 - `ref={bird}`：使用 `ref` 创建引用变量，方便后续操控小鸟。
@@ -238,13 +242,13 @@ toNode(
 &emsp;&emsp;至此，我们已经完成了小游戏的核心逻辑。你可以根据自己的想法进一步完善游戏逻辑和增加功能。完整的 demo 代码可以见这个链接：[Dora-SSR/Assets/Script/Test/Birdy.tsx](https://github.com/IppClub/Dora-SSR/blob/main/Assets/Script/Test/Birdy.tsx)。下面是一些运行效果的截图。
 
 <p align="center">
-  <img src={require('@site/static/img/birdy1.png').default} alt='拖拽屏幕发射了“愤怒的小鸟”'/>
-   拖拽屏幕发射了“愤怒的小鸟”
+	<img src={require('@site/static/img/birdy1.png').default} alt='拖拽屏幕发射了“愤怒的小鸟”'/>
+	拖拽屏幕发射了“愤怒的小鸟”
 </p>
 
 <p align="center">
-  <img src={require('@site/static/img/birdy2.png').default} alt='高超的技巧，使我一击获得了所有得分'/>
-   高超的技巧，使我一击获得了所有得分
+	<img src={require('@site/static/img/birdy2.png').default} alt='高超的技巧，使我一击获得了所有得分'/>
+	高超的技巧，使我一击获得了所有得分
 </p>
 
 ## 四、简单揭秘一下

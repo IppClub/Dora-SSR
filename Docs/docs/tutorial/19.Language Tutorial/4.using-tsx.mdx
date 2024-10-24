@@ -1,0 +1,297 @@
+import "@site/src/languages/highlight";
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Game Development with TSX
+
+&emsp;&emsp;Welcome to the world of Dora SSR game development! If you're a frontend developer or familiar with TypeScript and React, you'll find using TSX to write games to be an exciting and familiar experience. If you're not, don't worry—this tutorial will guide you from scratch, showing how to develop games with Dora SSR and TSX while introducing some basic TSX concepts.
+
+## 1. What is TSX?
+
+### 1.1 TSX Basics
+
+&emsp;&emsp;TSX is a combination of TypeScript and JSX, allowing you to use HTML-like tag syntax within TypeScript to build interfaces and components. This is common in React development, and with Dora SSR, you can use TSX to define game objects and scenes. (Note: JSX is a JavaScript syntax extension that allows you to write XML-like code within JavaScript.)
+
+:::info Tip
+To use TSX in Dora SSR, make sure to select TypeScript as the language and `.tsx` as the file extension when creating code files in the Web IDE.
+:::
+
+&emsp;&emsp;**TSX Tags and Attributes**: In TSX, you can use tags and attributes just like in HTML. For example:
+
+```tsx
+<sprite file="Image/logo.png" scaleX={0.2} scaleY={0.2}/>
+```
+
+- `<sprite>` is a tag representing a sprite (image) in the game.
+- `file`, `scaleX`, and `scaleY` are attributes that set the sprite's file path and scale.
+
+&emsp;&emsp;**TSX Function Components**: You can create function components that accept properties and return TSX elements. This is similar to function components in React.
+
+```tsx
+interface ItemProps {
+	x?: number;
+	y?: number;
+	children?: any;
+}
+
+const Item = (props: ItemProps) => {
+	return (
+		<node x={props.x} y={props.y}>
+			{/* Child elements */}
+			{props.children}
+		</node>
+	);
+};
+```
+
+## 2. Writing Game Scenes with TSX
+
+### 2.1 Creating Simple Game Objects
+
+&emsp;&emsp;In Dora SSR, you can define game objects using TSX tags. For example, to create a sprite:
+
+```tsx
+<sprite file="Image/logo.png" scaleX={0.2} scaleY={0.2}/>
+```
+
+### 2.2 Converting to Renderable Object Instances
+
+&emsp;&emsp;To convert the TSX tag above into a renderable game object, you need to use the `toNode()` function. This function accepts a TSX element or array of elements and returns the corresponding game node.
+
+```tsx
+import { React, toNode } from 'DoraX';
+
+const node = toNode(<sprite file="Image/logo.png" scaleX={0.2} scaleY={0.2}/>);
+```
+
+&emsp;&emsp;Now, `node` is an instantiated game scene node object.
+
+## 3. Creating TSX Function Components
+
+&emsp;&emsp;Function components make your code more reusable and readable. Here's how to create a simple box component in Dora SSR.
+
+```tsx
+import { React, toNode } from 'DoraX';
+
+interface BoxProps {
+	x?: number;
+	y?: number;
+	color?: number;
+}
+
+const Box = (props: BoxProps) => {
+	return (
+		<draw-node x={props.x ?? 0} y={props.y ?? 0}>
+			<rect-shape width={100} height={100} fillColor={props.color || 0xffffffff}/>
+		</draw-node>
+	);
+};
+```
+
+&emsp;&emsp;In the example above, `Box` is a function component that accepts `x`, `y`, and `color` properties and returns a draw node with a rectangle shape.
+
+&emsp;&emsp;Using the component:
+
+```tsx
+const boxes = [
+	<Box x={0} y={0} color={0xffff0000}/>,
+	<Box x={150} y={0} color={0xff00ff00}/>,
+	<Box x={300} y={0} color={0xff0000ff}/>,
+];
+
+const scene = toNode(boxes);
+```
+
+&emsp;&emsp;In the example above, we create three boxes of different colors and place them in an array, which we then pass to the `toNode()` function to instantiate as game scene nodes.
+
+## 4. Using useRef to Access Instantiated Objects
+
+&emsp;&emsp;In game development, you might need to directly manipulate a game object, such as changing its position, rotating it, or responding to events. The `useRef()` function helps you access the instantiated object for a TSX element.
+
+```tsx
+import { React, useRef, toNode } from 'DoraX';
+import { Body, BodyMoveType, Vec2 } from 'Dora';
+
+const boxRef = useRef<Body.Type>();
+
+const MovableBox = () => {
+	return (
+		<body ref={boxRef} x={0} y={0} type={BodyMoveType.Dynamic}>
+			<rect-fixture width={100} height={100}/>
+			<draw-node>
+				<rect-shape width={100} height={100} fillColor={0xffffffff}/>
+			</draw-node>
+		</body>
+	);
+};
+
+const scene = toNode(
+	<physics-world>
+		<MovableBox/>
+	</physics-world>
+);
+
+// Now, you can manipulate the instantiated object via boxRef.current
+if (boxRef.current) {
+	boxRef.current.position = Vec2(200, 200);
+}
+```
+
+&emsp;&emsp;In the example above, `boxRef` is a reference to the instantiated object of the `<body>` tag. You can access and manipulate this object through `boxRef.current`.
+
+## 5. Creating Class Components
+
+&emsp;&emsp;In addition to function components, you can also create class-based components. Class components can hold state and lifecycle methods, allowing more flexible management of component behavior. However, class components are relatively more complex, so function components are generally recommended.
+
+```tsx
+import { React, toNode, useRef } from 'DoraX';
+import { Label } from 'Dora';
+
+// Define initial properties for the Counter component
+interface CounterProps {
+	count: number;
+}
+
+// Create a Counter component by extending React.Component
+class Counter extends React.Component<CounterProps> {
+	count: number;
+	labelRef: JSX.Ref<Label.Type>;
+
+	// Constructor to accept initial properties
+	constructor(props: CounterProps) {
+		super(props);
+		this.count = props.count;
+		this.labelRef = useRef<Label.Type>();
+	}
+
+	// Render function to return TSX elements
+	render() {
+		return (
+			<label ref={this.labelRef} text={this.count.toString()}
+				fontName='sarasa-mono-sc-regular' fontSize={80}
+				onTapped={this.onTapped}/>
+		);
+	}
+
+	// Tap event handler
+	onTapped = () => {
+		if (this.labelRef.current) {
+			this.labelRef.current.text = (++this.count).toString();
+		}
+	};
+}
+
+// Instantiate the Counter component
+toNode(<Counter count={1}/>);
+```
+
+&emsp;&emsp;In the example above, we create a counter component `Counter` that holds a count value and a label. When the label is tapped, the count increases, and the label text is updated.
+
+## 6. Complete Example: Creating a Simple Game
+
+&emsp;&emsp;Let's put everything together and create a simple game that includes:
+
+- A movable character (sprite)
+- Some static obstacles (boxes)
+- Tap the screen to control the character's movement
+
+### 6.1 Define the Player Component
+
+```tsx
+import { React, useRef, toNode } from 'DoraX';
+import { Body, BodyMoveType, Vec2 } from 'Dora';
+
+const playerRef = useRef<Body.Type>();
+
+const Player = () => {
+	return (
+		<body ref={playerRef} x={0} y={0} type={BodyMoveType.Dynamic}
+			linearAcceleration={Vec2.zero} linearDamping={1}>
+			<rect-fixture width={50} height={50}/>
+			<draw-node>
+				<rect-shape width={50} height={50} fillColor={0xff00ff00}/>
+			</draw-node>
+		</body>
+	);
+};
+```
+
+&emsp;&emsp;In the code above, `Player` is a player component with a movable rectangle body. `playerRef` is a reference that points to the instantiated player object.
+
+### 6.2 Define the Obstacle Component
+
+```tsx
+const Obstacle = (props: {x: number; y: number}) => {
+	return (
+		<body type={BodyMoveType.Static} x={props.x} y={props.y}>
+			<rect-fixture width={100} height={100}/>
+			<draw-node>
+				<rect-shape width={100} height={100} fillColor={0xffff0000}/>
+			</draw-node>
+		</body>
+	);
+};
+```
+
+&emsp;&emsp;`Obstacle` is an obstacle component that consists of a static rectangular body. You can set the position of the obstacle by passing `x` and `y` as properties.
+
+### 6.3 Create the Game Scene
+
+
+
+```tsx
+const GameScene = () => {
+	return (
+		<physics-world
+			onTapBegan={touch => {
+				// Control player movement to the tap location
+				const {current: player} = playerRef;
+				if (player) {
+					player.velocity = touch.location
+						.sub(player.position)
+						.normalize()
+						.mul(300);
+				}
+			}}>
+			<Player/>
+			<Obstacle x={200} y={0}/>
+			<Obstacle x={-200} y={0}/>
+		</physics-world>
+	);
+};
+```
+
+&emsp;&emsp;In the `GameScene` component, we create a physics world, listen for tap events, and control the player's movement toward the tap location. We also add two obstacles. Note that all physics bodies must be child nodes inside the `physics-world` component.
+
+### 6.4 Run the Game
+
+&emsp;&emsp;Instantiate the scene node:
+
+```tsx
+const scene = toNode(<GameScene/>);
+```
+
+&emsp;&emsp;Now, you've created a simple game where the character can move on the screen and interact with obstacles.
+
+## 7. Conclusion
+
+&emsp;&emsp;In this tutorial, we covered how to develop games using Dora SSR and TSX, including:
+
+- TSX basics: tags, attributes, and function components
+- Using `toNode()` to convert TSX tags into renderable object instances
+- Using `useRef` to access instantiated game objects
+- Creating custom game components
+- Combining components to build a complete game scene
+
+&emsp;&emsp;Dora SSR provides a familiar yet powerful platform for frontend developers, allowing you to easily apply your existing TypeScript and TSX knowledge to game development. Now, try extending this example by adding more game elements and logic, and explore more of Dora SSR's features!
+
+## Appendix: Key Functions and Types
+
+&emsp;&emsp;Here are some important functions and types used in Dora SSR:
+
+- **`React.createElement`**: Used to create TSX elements. Typically, this doesn't need to be used directly as it's called automatically by the engine.
+- **`toNode(enode)`**: Converts a TSX element or array of elements into game nodes.
+- **`useRef<T>(item?: T)`**: Creates a reference to access instantiated objects.
+- **`preloadAsync(enode, handler?)`**: Asynchronously preloads the art assets required by a node.
+
+&emsp;&emsp;Using these functions will help you efficiently write game logic and interfaces in Dora SSR. I hope this tutorial has been helpful, and I wish you success in your game development journey!

@@ -17,6 +17,14 @@ export namespace React {
 		children: Element[];
 	}
 
+	export abstract class Component<T> {
+		constructor(props: T);
+		props: T;
+		abstract render(): React.Element;
+	}
+
+	export const Fragment: undefined;
+
 	/**
 	 * 创建一个 React 元素。
 	 * @param type 元素类型。
