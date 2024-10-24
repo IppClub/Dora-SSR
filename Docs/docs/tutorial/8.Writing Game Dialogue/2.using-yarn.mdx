@@ -4,14 +4,14 @@ import TabItem from '@theme/TabItem';
 
 # Loading and Running Yarn Scripts
 
-Welcome to the YarnRunner functionality tutorial. In this tutorial, we will guide you on how to load and run the Yarn narrative scripts you wrote in the [previous tutorial](/docs/tutorial/Writing%20Game%20Dialogue/introduction-to-yarn).
+Welcome to the YarnRunner library usage tutorial. In this guide, we'll show you how to load and run the Yarn narrative script you wrote in the [previous tutorial](/docs/tutorial/Writing%20Game%20Dialogue/introduction-to-yarn).
 
 ## 1. Initializing YarnRunner
 
 <Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
 
-First, make sure you have correctly imported all the necessary modules. Here are the modules we need for the examples in this tutorial:
+First, make sure you have imported all the necessary modules. Here's the list of modules we will use in this example:
 
 ```lua title="init.lua"
 local Content <const> = require("Content")
@@ -21,14 +21,14 @@ local Director <const> = require("Director")
 local YarnRunner <const> = require("YarnRunner")
 ```
 
-To ensure that we can locate the Yarn script, we need to set the correct search path. If the Yarn script and program modules are in the same directory, you can add the following code:
+To ensure we can locate the Yarn script, we need to set the correct search path. If the Yarn script and program modules are in the same directory, you can add the following code:
 
 ```lua title="init.lua"
 local path = Path:getScriptPath(...)
 Content:insertSearchPath(1, path)
 ```
 
-Next, assuming we want to load a Yarn file named "tutorial.yarn" with a starting node titled "Start," you can write the following code:
+Next, assuming our Yarn file is named "tutorial.yarn" and the starting node title is "Start", we write the following code:
 
 ```lua title="init.lua"
 local runner = YarnRunner("tutorial.yarn", "Start")
@@ -37,7 +37,7 @@ local runner = YarnRunner("tutorial.yarn", "Start")
 </TabItem>
 <TabItem value="tl" label="Teal">
 
-First, make sure you have correctly imported all the necessary modules. Here are the modules we need for the examples in this tutorial:
+First, make sure you have imported all the necessary modules. Here's the list of modules we will use in this example:
 
 ```tl title="init.tl"
 local Content <const> = require("Content")
@@ -47,17 +47,39 @@ local Director <const> = require("Director")
 local YarnRunner <const> = require("YarnRunner")
 ```
 
-To ensure that we can locate the Yarn script, we need to set the correct search path. If the Yarn script and program modules are in the same directory, you can add the following code:
+To ensure we can locate the Yarn script, we need to set the correct search path. If the Yarn script and program modules are in the same directory, you can add the following code:
 
 ```tl title="init.tl"
 local path = Path:getScriptPath(...)
 Content:insertSearchPath(1, path)
 ```
 
-Next, assuming we want to load a Yarn file named "tutorial.yarn" with a starting node titled "Start," you can write the following code:
+Next, assuming our Yarn file is named "tutorial.yarn" and the starting node title is "Start", we write the following code:
 
 ```tl title="init.tl"
 local runner = YarnRunner("tutorial.yarn", "Start")
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+First, make sure you have imported all the necessary modules. Here's the list of modules we will use in this example:
+
+```ts title="init.ts"
+import { Content, Path, Node, Director, YarnRunner } from "Dora";
+```
+
+To ensure we can locate the Yarn script, we need to set the correct search path. If the Yarn script and program modules are in the same directory, you can add the following code:
+
+```ts title="init.ts"
+const path = Path.getScriptPath(...);
+Content.insertSearchPath(1, path);
+```
+
+Next, assuming our Yarn file is named "tutorial.yarn" and the starting node title is "Start", we write the following code:
+
+```ts title="init.ts"
+const runner = YarnRunner("tutorial.yarn", "Start");
 ```
 
 </TabItem>
@@ -70,14 +92,14 @@ _ENV = Dora!
 import "YarnRunner"
 ```
 
-To ensure that we can locate the Yarn script, we need to set the correct search path. If the Yarn script and program modules are in the same directory, you can add the following code:
+To ensure we can locate the Yarn script, we need to set the correct search path. If the Yarn script and program modules are in the same directory, you can add the following code:
 
 ```yue title="init.yue"
 path = Path\getScriptPath ...
 Content\insertSearchPath 1, path
 ```
 
-Next, assuming we want to load a Yarn file named "tutorial.yarn" with a starting node titled "Start," you can write the following code:
+Next, assuming our Yarn file is named "tutorial.yarn" and the starting node title is "Start", we write the following code:
 
 ```yue title="init.yue"
 runner = YarnRunner "tutorial.yarn", "Start"
@@ -88,26 +110,26 @@ runner = YarnRunner "tutorial.yarn", "Start"
 
 ## 2. Executing and Displaying Narrative Content
 
-We have defined an `advance` function that can read and display text content or options from the Yarn script. Depending on the narrative content, it can also display character names:
+We define an `advance` function that can read and display text or options from the Yarn script. Based on the content, it can also display the character's name:
 
 <Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
 
 ```lua title="init.lua"
--- The `advance` function takes an optional integer parameter representing the player's choice index.
--- When calling this function for the first time or when no choice is needed, we pass nil.
+-- The advance function takes an optional integer representing the player's choice index.
+-- For the first call or when no choice is needed, we pass nil.
 local function advance(option)
 
-	-- The function first calls `runner:advance(option)` to fetch the next part of the Yarn script.
+	-- First, we call runner:advance(option) to get the next part of the Yarn script.
 	-- This returns two values: an action type and a result.
 	local action, result = runner:advance(option)
 
-	-- Based on the action type, we choose how to handle the result.
+	-- Handle the result based on the action type.
 	if action == "Text" then
 
-		-- If the action is "Text," the result will be a TextResult object,
-		-- which contains the text content and any associated marks (e.g., character names).
-		-- We check for marks, extract the character name (if present), and print the text content.
+		-- If the action is "Text", the result will be a TextResult object,
+		-- containing the text and any associated markers (e.g., character names).
+		-- Check the markers, extract the character's name (if present), and print the text.
 		local characterName = ""
 		local marks = result.marks
 		if marks then
@@ -122,9 +144,9 @@ local function advance(option)
 
 	elseif action == "Option" then
 
-		-- If the action is "Option," the result will be an OptionResult object,
-		-- which contains one or more options. The function iterates through these options and prints them,
-		-- which the player can choose later.
+		-- If the action is "Option", the result will be an OptionResult object,
+		-- containing one or more options. Iterate over the options and print them,
+		-- allowing the player to select them later.
 		for i, op in ipairs(result) do
 			if op then
 				print("[" .. tostring(i) .. "]: " .. op.text)
@@ -133,7 +155,7 @@ local function advance(option)
 
 	else
 
-		-- For other actions (e.g., errors), the function directly prints the result.
+		-- For other actions (like errors), print the result directly.
 		print(result)
 
 	end
@@ -144,23 +166,22 @@ end
 <TabItem value="tl" label="Teal">
 
 ```tl title="init.tl"
--- The `advance` function takes an optional integer parameter representing the player's choice index.
--- When calling this function for the first time or when no choice is needed, we pass nil.
+-- The advance function takes an optional integer representing the player's choice index.
+-- For the first call or when no choice is needed, we pass nil.
 local function advance(option?: integer)
 
-	-- The function first calls `runner:advance(option)` to fetch the next part of the Yarn script.
+	-- First, we call runner:advance(option) to get the next part of the Yarn script.
 	-- This returns two values: an action type and a result.
 	local action, result = runner:advance(option)
 
-	-- Based on the action type, we choose how to handle the result.
+	-- Handle the result based on the action type.
 	if action == "Text" then
 
-		-- If the action is "Text," the result will be a TextResult object,
-		-- which contains the text content and any associated marks (e.g., character names).
-		-- We check for marks, extract the character name (if present), and print the text content.
+		-- If the action is "Text", the result will be a TextResult object,
+		-- containing the text and any associated markers (e.g., character names).
 		local textResult = result as YarnRunner.TextResult
 
-		-- Check for marks, extract character name (if present), and print text content.
+		-- Check the markers, extract the character's name (if present), and print the text.
 		local characterName = ""
 		local marks = textResult.marks
 		if not (marks is nil) then
@@ -175,9 +196,9 @@ local function advance(option?: integer)
 
 	elseif action == "Option" then
 
-		-- If the action is "Option," the result will be an OptionResult object,
-		-- which contains one or more options. The function iterates through these options and prints them,
-		-- which the player can choose later.
+		-- If the action is "Option", the result will be an OptionResult object,
+		-- containing one or more options. Iterate over the options and print them,
+		-- allowing the player to select them later.
 		local optionResult = result as YarnRunner.OptionResult
 		for i, op in ipairs(optionResult) do
 			if op and not (op is boolean) then
@@ -187,7 +208,7 @@ local function advance(option?: integer)
 
 	else
 
-		-- For other actions (e.g., errors), the function directly prints the result.
+		-- For other actions (like errors), print the result directly.
 		print(result)
 
 	end
@@ -195,23 +216,79 @@ end
 ```
 
 </TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts title="init.ts"
+// The advance function takes an optional integer representing the player's choice index.
+// For the first call or when no choice is needed, we pass null.
+function advance(option?: number): void {
+
+	// First, we call runner.advance(option) to get the next part of the Yarn script.
+	// This returns two values: an action type and a result.
+	const [action, result] = runner.advance(option);
+
+	// Handle the result based on the action type.
+	switch (action) {
+		case "Text":
+
+			// If the action is "Text", the result will be a TextResult object,
+			// containing the text and any associated markers (e.g., character names).
+			// Check the markers, extract the character's name (if present), and print the text.
+			let characterName = "";
+			const marks = result.marks;
+			if (marks) {
+				for (const mark of marks) {
+
+
+	if (mark.name === "char") {
+						characterName = `${mark.attrs?.name}: `;
+					}
+				}
+			}
+			print(characterName + result.text);
+			break;
+
+		case "Option":
+
+			// If the action is "Option", the result will be an OptionResult object,
+			// containing one or more options. Iterate over the options and print them,
+			// allowing the player to select them later.
+			const optionResult = result;
+			for (let i = 0; i < optionResult.length; i++) {
+				const op = optionResult[i];
+				if (op && op !== true) {
+					print(`[${i}]: ${op.text}`);
+				}
+			}
+			break;
+
+		default:
+
+			// For other actions (like errors), print the result directly.
+			print(result);
+			break;
+	}
+}
+```
+
+</TabItem>
 <TabItem value="yue" label="YueScript">
 
 ```yue title="init.yue"
--- The `advance` function takes an optional integer parameter representing the player's choice index.
--- When calling this function for the first time or when no choice is needed, we pass nil.
+-- The advance function takes an optional integer representing the player's choice index.
+-- For the first call or when no choice is needed, we pass nil.
 advance = (option) ->
 
-	-- The function first calls `runner\advance` to fetch the next part of the Yarn script.
+	-- First, call runner\advance to get the next part of the Yarn script.
 	-- This returns two values: an action type and a result.
 	action, result = runner\advance option
 
-	-- Based on the action type, we choose how to handle the result.
+	-- Handle the result based on the action type.
 	switch action when "Text"
 
-		-- If the action is "Text," the result will be a TextResult object,
-		-- which contains the text content and any associated marks (e.g., character names).
-		-- We check for marks, extract the character name (if present), and print the text content.
+		-- If the action is "Text", the result will be a TextResult object,
+		-- containing the text and any associated markers (e.g., character names).
+		-- Check the markers, extract the character's name (if present), and print the text.
 		charName = ""
 		if result.marks
 			for mark in *result.marks
@@ -221,24 +298,24 @@ advance = (option) ->
 
 	when "Option"
 
-		-- If the action is "Option," the result will be an OptionResult object,
-		-- which contains one or more options. The function iterates through these options and prints them,
-		-- which the player can choose later.
+		-- If the action is "Option", the result will be an OptionResult object,
+		-- containing one or more options. Iterate over the options and print them,
+		-- allowing the player to select them later.
 		for i, op in ipairs result
 			print "[#{i}]: #{op.text}" if op
 
 	else
 
-		-- For other actions (e.g., errors), the function directly prints the result.
+		-- For other actions (like errors), print the result directly.
 		print result
 ```
 
 </TabItem>
 </Tabs>
 
-## 3. Initiating the Narrative
+## 3. Starting the Narrative
 
-To initiate the narrative, you simply call the `advance` function without any arguments:
+To start the narrative, simply call the `advance` function without any arguments:
 
 <Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
@@ -255,6 +332,13 @@ advance()
 ```
 
 </TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts title="init.ts"
+advance();
+```
+
+</TabItem>
 <TabItem value="yue" label="YueScript">
 
 ```yue title="init.yue"
@@ -264,9 +348,9 @@ advance!
 </TabItem>
 </Tabs>
 
-## 4. Responding to User Input
+## 4. Handling User Input
 
-To allow player interaction with the narrative, we need a node to capture and respond to user input. We create a node and assign it a signal slot named "go." When this signal is triggered, it will call the `advance` function again and pass the player's choice:
+To enable player interaction, we need a node to capture and respond to user input. We create a node and assign it a signal slot named "go". When this signal is triggered, it will call the `advance` function again, passing the player's choice:
 
 <Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
@@ -291,6 +375,17 @@ node:addTo(Director.entry)
 ```
 
 </TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts title="init.ts"
+const node = Node();
+node.gslot("go", (option: number | null) => {
+	advance(option);
+});
+node.addTo(Director.entry);
+```
+
+</TabItem>
 <TabItem value="yue" label="YueScript">
 
 ```yue title="init.yue"
@@ -302,11 +397,11 @@ with Node!
 </TabItem>
 </Tabs>
 
-In this example, a global event listener has been registered for quick testing. In actual game development, you would need to implement UI interaction logic. With the "go" global event listener, you can continue the dialogue by entering `emit 'go'` in the Dora SSR console command line, and you can interactively test the conversation by entering `emit 'go', 1` to select dialogue branches.
+Here, we registered a global event listener for quick testing. In actual game development, you'd need to write the UI interaction logic. Once this "go" global event listener is set, you can use the Dora SSR console to input `emit 'go'` to continue the dialogue, or `emit 'go', 1` to select dialogue branches for interactive test runs.
 
-## 5. Adding Custom Commands and States
+## 5. Adding Custom Commands and State
 
-&emsp;&emsp;You can add custom commands and initial state variables by passing the `command` and `state` parameters to `YarnRunner`. The `command` parameter is a Lua table containing callback functions that can execute commands, and the `state` parameter is a table containing predefined variables. Here is an example:
+You can add custom commands and initial state variables by passing the `command` and `state` parameters to `YarnRunner`. The `command` parameter is a Lua table containing callback functions for commands, and `state` is a table with predefined variables. Here’s an example:
 
 <Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
@@ -331,6 +426,17 @@ local runner = YarnRunner("tutorial.yarn", "Start", {
 ```
 
 </TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts title="init.ts"
+const runner = YarnRunner("tutorial.yarn", "Start", {
+	playerScore: 100
+}, {
+	print: print
+})
+```
+
+</TabItem>
 <TabItem value="yue" label="YueScript">
 
 ```yue title="init.yue"
@@ -344,7 +450,7 @@ runner = YarnRunner "tutorial.yarn", "Start", {
 </TabItem>
 </Tabs>
 
-&emsp;&emsp;Then, in the Yarn script, you can change the initial variable values by using the `<<set $variableName = expression>>` command and print the variable values using the custom command `<<print $variableName>>`:
+Then, in the Yarn script, you can modify initial variable values using `<<set $variable = expression>>` and print variables using the custom command `<<print $variable>>`:
 
 ```html title="Test Dialogue Node"
 <<set $playerScore = $playerScore + 200>>
@@ -353,4 +459,4 @@ runner = YarnRunner "tutorial.yarn", "Start", {
 
 ## 6. Conclusion
 
-Now, you have set up all the necessary code to load and run Yarn narrative scripts. You can run the above scripts to start your interactive narrative, where players can interact by choosing options. Happy storytelling!
+Now, you have set up all the necessary code to load and run Yarn narrative scripts. You can run the above script to begin your interactive narrative, where players can interact by selecting options. Happy creating!

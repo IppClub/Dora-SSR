@@ -61,6 +61,28 @@ local runner = YarnRunner("tutorial.yarn", "Start")
 ```
 
 </TabItem>
+<TabItem value="ts" label="TypeScript">
+
+&emsp;&emsp;首先确保您已正确地导入所有必需的模块。以下是本教程示例中我们需要的模块：
+
+```ts title="init.ts"
+import { Content, Path, Node, Director, YarnRunner } from "Dora";
+```
+
+&emsp;&emsp;为了确保我们可以找到 Yarn 脚本，我们需要设置正确的搜索路径。如果 Yarn 脚本和程序模块在同一个目录下时我们可以增加如下代码：
+
+```ts title="init.ts"
+const path = Path.getScriptPath(...);
+Content.insertSearchPath(1, path);
+```
+
+&emsp;&emsp;接下来，假设我们要加载的 Yarn 文件名为 "tutorial.yarn"，起始节点的标题名称为 "Start"，则编写如下代码：
+
+```ts title="init.ts"
+const runner = YarnRunner("tutorial.yarn", "Start");
+```
+
+</TabItem>
 <TabItem value="yue" label="YueScript">
 
 &emsp;&emsp;首先确保您已经导入所有必需的模块。
@@ -194,6 +216,60 @@ end
 ```
 
 </TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts title="init.ts"
+// advance 函数的参数是一个可选的整数，代表玩家选择的选项索引。
+// 当第一次调用此函数或在不需要选择时，我们将传递 null
+function advance(option?: number): void {
+
+	// 函数首先调用 runner.advance(option) 来获取 Yarn 脚本的下一部分内容。
+	// 这将返回两个值：一个动作类型和一个结果。
+	const [action, result] = runner.advance(option);
+
+	// 根据动作类型，选择如何处理结果。
+	switch (action) {
+		case "Text":
+
+			// 如果动作是 "Text"，则结果会是一个 TextResult 对象，
+			// 其中包含文本内容和任何相关的标记（例如角色名）。
+			// 检查标记，提取角色名（如果存在）并打印出文本内容。
+			let characterName = "";
+			const marks = result.marks;
+			if (marks) {
+				for (const mark of marks) {
+					if (mark.name === "char") {
+						characterName = `${mark.attrs?.name}: `;
+					}
+				}
+			}
+			print(characterName + result.text);
+			break;
+
+		case "Option":
+
+			// 如果动作是 "Option"，则结果会是一个 OptionResult 对象，
+			// 其中包含了一个或多个选项。函数会遍历这些选项并打印它们，
+			// 玩家稍后可以选择它们。
+			const optionResult = result;
+			for (let i = 0; i < optionResult.length; i++) {
+				const op = optionResult[i];
+				if (op && op !== true) {
+					print(`[${i}]: ${op.text}`);
+				}
+			}
+			break;
+
+		default:
+
+			// 对于其他动作（例如错误），函数将直接打印结果。
+			print(result);
+			break;
+	}
+}
+```
+
+</TabItem>
 <TabItem value="yue" label="YueScript">
 
 ```yue title="init.yue"
@@ -254,6 +330,13 @@ advance()
 ```
 
 </TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts title="init.ts"
+advance();
+```
+
+</TabItem>
 <TabItem value="yue" label="YueScript">
 
 ```yue title="init.yue"
@@ -287,6 +370,17 @@ node:gslot("go", function(option: nil | integer)
 	advance(option)
 end)
 node:addTo(Director.entry)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts title="init.ts"
+const node = Node();
+node.gslot("go", (option: number | null) => {
+	advance(option);
+});
+node.addTo(Director.entry);
 ```
 
 </TabItem>
@@ -326,6 +420,17 @@ local runner = YarnRunner("tutorial.yarn", "Start", {
 	playerScore = 100
 }, {
 	print = print
+})
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts title="init.ts"
+const runner = YarnRunner("tutorial.yarn", "Start", {
+	playerScore: 100
+}, {
+	print: print
 })
 ```
 

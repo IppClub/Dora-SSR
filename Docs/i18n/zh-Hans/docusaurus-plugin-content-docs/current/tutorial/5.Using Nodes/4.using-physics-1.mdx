@@ -23,6 +23,40 @@ world.y = -200 -- 调整物理世界的y轴位置
 ```
 
 </TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local Vec2 <const> = require("Vec2")
+local PhysicsWorld <const> = require("PhysicsWorld")
+
+local gravity <const> = Vec2(0, -10) -- 定义重力方向和大小
+local world = PhysicsWorld() -- 创建物理世界
+world.y = -200 -- 调整物理世界的y轴位置
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { Vec2, PhysicsWorld } from "Dora";
+
+const gravity = Vec2(0, -10); // 定义重力方向和大小
+const world = PhysicsWorld(); // 创建物理世界
+world.y = -200; // 调整物理世界的y轴位置
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+const gravity = Vec2 0, -10 -- 定义重力方向和大小
+world = PhysicsWorld! -- 创建物理世界
+world.y = -200 -- 调整物理世界的y轴位置
+```
+
+</TabItem>
 </Tabs>
 
 ## 2. 定义物理刚体
@@ -46,6 +80,40 @@ terrainDef:attachPolygon(800, 10, 1, 0.8, 0.2) -- 附加一个宽800高10的矩�
 ```
 
 </TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local BodyDef <const> = require("BodyDef")
+
+local terrainDef = BodyDef()
+terrainDef.type = "Static" -- 设置为静态刚体
+terrainDef:attachPolygon(800, 10, 1, 0.8, 0.2) -- 附加一个宽800高10的矩形多边形
+-- 注意 1, 0.8, 0.2 的参数分别为密度. 摩擦系数和弹性系数
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { BodyDef, BodyMoveType } from "Dora";
+
+const terrainDef = BodyDef();
+terrainDef.type = BodyMoveType.Static; // 设置为静态刚体
+terrainDef.attachPolygon(800, 10, 1, 0.8, 0.2); // 附加一个宽800高10的矩形多边形
+// 注意 1, 0.8, 0.2 的参数分别为密度. 摩擦系数和弹性系数
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+terrainDef = with BodyDef!
+	.type = "Static" -- 设置为静态刚体
+	\attachPolygon 800, 10, 1, 0.8, 0.2 -- 附加一个宽800高10的矩形多边形
+	-- 注意 1, 0.8, 0.2 的参数分别为密度. 摩擦系数和弹性系数
+```
+
+</TabItem>
 </Tabs>
 
 ### 2.2 定义动态多边形刚体
@@ -56,6 +124,9 @@ terrainDef:attachPolygon(800, 10, 1, 0.8, 0.2) -- 附加一个宽800高10的矩�
 <TabItem value="lua" label="Lua">
 
 ```lua
+local BodyDef <const> = require("BodyDef")
+local Vec2 <const> = require("Vec2")
+
 local polygonDef = BodyDef()
 polygonDef.type = "Dynamic" -- 设置为动态刚体
 polygonDef.linearAcceleration = gravity -- 应用重力
@@ -70,6 +141,62 @@ polygonDef:attachPolygon({
 ```
 
 </TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local BodyDef <const> = require("BodyDef")
+local Vec2 <const> = require("Vec2")
+
+local polygonDef = BodyDef()
+polygonDef.type = "Dynamic" -- 设置为动态刚体
+polygonDef.linearAcceleration = gravity -- 应用重力
+polygonDef:attachPolygon({
+	Vec2(60, 0),
+	Vec2(30, -30),
+	Vec2(-30, -30),
+	Vec2(-60, 0),
+	Vec2(-30, 30),
+	Vec2(30, 30)
+}, 1, 0.4, 0.4) -- 定义一个六边形
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { BodyDef, Vec2, BodyMoveType } from "Dora";
+
+const polygonDef = BodyDef();
+polygonDef.type = BodyMoveType.Dynamic; // 设置为动态刚体
+polygonDef.linearAcceleration = gravity; // 应用重力
+polygonDef.attachPolygon([
+	Vec2(60, 0),
+	Vec2(30, -30),
+	Vec2(-30, -30),
+	Vec2(-60, 0),
+	Vec2(-30, 30),
+	Vec2(30, 30)
+], 1, 0.4, 0.4); // 定义一个六边形
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+polygonDef = with BodyDef!
+	.type = "Dynamic" -- 设置为动态刚体
+	.linearAcceleration = gravity -- 应用重力
+	\attachPolygon [
+		Vec2 60, 0,
+		Vec2 30, -30,
+		Vec2 -30, -30,
+		Vec2 -60, 0,
+		Vec2 -30, 30,
+		Vec2 30, 30
+	], 1, 0.4, 0.4 -- 定义一个六边形
+```
+
+</TabItem>
 </Tabs>
 
 ### 2.3 定义动态圆形刚体
@@ -80,10 +207,46 @@ polygonDef:attachPolygon({
 <TabItem value="lua" label="Lua">
 
 ```lua
+local BodyDef <const> = require("BodyDef")
+
 local diskDef = BodyDef()
 diskDef.type = "Dynamic" -- 设置为动态刚体
 diskDef.linearAcceleration = gravity -- 应用重力
 diskDef:attachDisk(60, 1, 0.4, 0.4) -- 附加一个半径为60的圆形
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local BodyDef <const> = require("BodyDef")
+
+local diskDef = BodyDef()
+diskDef.type = "Dynamic" -- 设置为动态刚体
+diskDef.linearAcceleration = gravity -- 应用重力
+diskDef:attachDisk(60, 1, 0.4, 0.4) -- 附加一个半径为60的圆形
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { BodyDef, BodyMoveType } from "Dora";
+
+const diskDef = BodyDef();
+diskDef.type = BodyMoveType.Dynamic; // 设置为动态刚体
+diskDef.linearAcceleration = gravity; // 应用重力
+diskDef.attachDisk(60, 1, 0.4, 0.4); // 附加一个半径为60的圆形
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+diskDef = with BodyDef!
+	.type = "Dynamic" -- 设置为动态刚体
+	.linearAcceleration = gravity -- 应用重力
+	\attachDisk 60, 1, 0.4, 0.4 -- 附加一个半径为60的圆形
 ```
 
 </TabItem>
@@ -105,6 +268,49 @@ world:setShouldContact(groupZero, groupOne, false) -- 组0与组1不碰撞
 world:setShouldContact(groupZero, groupTwo, true) -- 组0与组2碰撞
 world:setShouldContact(groupOne, groupTwo, true) -- 组1与组2碰撞
 world.showDebug = true -- 显示调试信息
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local groupZero <const> = 0
+local groupOne <const> = 1
+local groupTwo <const> = 2
+
+world:setShouldContact(groupZero, groupOne, false) -- 组0与组1不碰撞
+world:setShouldContact(groupZero, groupTwo, true) -- 组0与组2碰撞
+world:setShouldContact(groupOne, groupTwo, true) -- 组1与组2碰撞
+world.showDebug = true -- 显示调试信息
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+const groupZero = 0;
+const groupOne = 1;
+const groupTwo = 2;
+
+world.setShouldContact(groupZero, groupOne, false); // 组0与组1不碰撞
+world.setShouldContact(groupZero, groupTwo, true); // 组0与组2碰撞
+world.setShouldContact(groupOne, groupTwo, true); // 组1与组2碰撞
+world.showDebug = true; // 显示调试信息
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+groupZero = 0
+groupOne = 1
+groupTwo = 2
+
+with world
+	\setShouldContact groupZero, groupOne, false -- 组0与组1不碰撞
+	\setShouldContact groupZero, groupTwo, true -- 组0与组2碰撞
+	\setShouldContact groupOne, groupTwo, true -- 组1与组2碰撞
+	.showDebug = true -- 显示调试信息
 ```
 
 </TabItem>
@@ -139,6 +345,73 @@ local disk = Body(diskDef, world, Vec2(50, 800))
 disk.group = groupZero -- 设置刚体分组为组0
 disk.angularRate = 90 -- 设置旋转速度
 world:addChild(disk)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local Body <const> = require("Body")
+
+-- 创建并添加静态地形刚体
+local terrain = Body(terrainDef, world, Vec2.zero)
+terrain.group = groupTwo -- 设置刚体分组为组2
+world:addChild(terrain)
+
+-- 创建并添加动态多边形刚体
+local polygon = Body(polygonDef, world, Vec2(0, 500), 15)
+polygon.group = groupOne -- 设置刚体分组为组1
+world:addChild(polygon)
+
+-- 创建并添加动态圆形刚体
+local disk = Body(diskDef, world, Vec2(50, 800))
+disk.group = groupZero -- 设置刚体分组为组0
+disk.angularRate = 90 -- 设置旋转速度
+world:addChild(disk)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { Body } from "Dora";
+
+// 创建并添加静态地形刚体
+const terrain = Body(terrainDef, world, Vec2.zero);
+terrain.group = groupTwo; // 设置刚体分组为组2
+world.addChild(terrain);
+
+// 创建并添加动态多边形刚体
+const polygon = Body(polygonDef, world, Vec2(0, 500), 15);
+polygon.group = groupOne; // 设置刚体分组为组1
+world.addChild(polygon);
+
+// 创建并添加动态圆形刚体
+const disk = Body(diskDef, world, Vec2(50, 800));
+disk.group = groupZero; // 设置刚体分组为组0
+disk.angularRate = 90; // 设置旋转速度
+world.addChild(disk);
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+-- 创建并添加静态地形刚体
+with Body terrainDef, world, Vec2.zero
+	.group = groupTwo -- 设置刚体分组为组2
+	\addTo world
+
+-- 创建并添加动态多边形刚体
+with Body polygonDef, world, Vec2 0, 500, 15
+	.group = groupOne -- 设置刚体分组为组1
+	\addTo world
+
+-- 创建并添加动态圆形刚体
+with Body diskDef, world, Vec2 50, 800
+	.group = groupZero -- 设置刚体分组为组0
+	.angularRate = 90 -- 设置旋转速度
+	\addTo world
 ```
 
 </TabItem>

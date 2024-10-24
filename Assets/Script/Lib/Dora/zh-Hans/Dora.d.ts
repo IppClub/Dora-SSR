@@ -3483,7 +3483,7 @@ class Content {
 	 * @returns 包含Excel文件中数据的表。键是表名，值是包含表的行和列的表。
 	 */
 	loadExcel(filename: string, sheetNames?: string[]): {
-		[sheetName: string]: [column: string | number][]
+		[sheetName: string]: (/* column */ string | number)[][] | undefined
 	} | null;
 
 	/**
@@ -3585,7 +3585,7 @@ class Content {
 	 * @returns 包含Excel文件中数据的表。键是表名，值是包含表的行和列的表。
 	 */
 	loadExcelAsync(filename: string, sheetNames?: string[]): {
-		[sheetName: string]: [column: string | number][]
+		[sheetName: string]: (/* column */ string | number)[][]
 	} | null;
 
 	/**
@@ -3974,7 +3974,7 @@ class Playable extends Node {
 	 * @param name 要设置的插槽的名称。
 	 * @param item 要设置插槽的节点。
 	 */
-	setSlot(name: string, item: Node): void;
+	setSlot(name: string, item: Node | null): void;
 
 	/**
 	 * 获取附加到动画模型的子节点。
@@ -4633,6 +4633,15 @@ interface EntityClass {
 	 * Entity({ a: 1, b: "abc", c: Node() });
 	 */
 	(this: void, components: Record<string, Component>): Entity;
+
+	/**
+	 * 用于创建具有指定组件的新实体。
+	 * 在新实体创建以后，可以从实体组和观察者中访问新创建的Entity对象。
+	 * @param components 将组件名称（字符串）映射到组件值的数值字典。
+	 * @example
+	 * Entity<Item>({ a: 1, b: "abc", c: Node() });
+	 */
+	<T>(this: void, components: T): Entity;
 }
 
 const entity: EntityClass;

@@ -52,6 +52,52 @@ end)
 ```
 
 </TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local thread <const> = require("thread")
+local sleep <const> = require("sleep")
+local Content <const> = require("Content")
+
+thread(function()
+	print("开始异步加载资源")
+	local resourceData = Content:loadAsync("path/to/resource")
+	sleep(2) -- 模拟额外的耗时操作
+	print("资源加载完成")
+	-- 在资源加载完成后执行后续逻辑
+end)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { thread, sleep, Content } from "Dora";
+
+thread(() => {
+	print("开始异步加载资源");
+	const resourceData = Content.loadAsync("path/to/resource");
+	sleep(2); // 模拟额外的耗时操作
+	print("资源加载完成");
+	// 在资源加载完成后执行后续逻辑
+});
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+thread ->
+	print "开始异步加载资源"
+	resourceData = Content\loadAsync "path/to/resource"
+	sleep 2 -- 模拟额外的耗时操作
+	print "资源加载完成"
+	-- 在资源加载完成后执行后续逻辑
+```
+
+</TabItem>
 </Tabs>
 
 &emsp;&emsp;在上述示例中，`thread(function() ... end)` 创建了一个协程任务，`loadAsync` 异步加载资源，`sleep(2)` 模拟耗时操作。协程使得长时间运行的任务不会阻塞主线程，任务的生命周期由引擎全局管理。
@@ -71,6 +117,48 @@ node:once(function()
 	sleep(2) -- 模拟耗时操作
 	print("节点关联的异步操作完成")
 end)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local Node <const> = require("Node")
+local sleep <const> = require("sleep")
+
+local node = Node()
+node:once(function()
+	print("开始节点关联的异步操作")
+	sleep(2) -- 模拟耗时操作
+	print("节点关联的异步操作完成")
+end)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { Node, sleep } from "Dora";
+
+const node = Node();
+node.once(() => {
+	print("开始节点关联的异步操作");
+	sleep(2); // 模拟耗时操作
+	print("节点关联的异步操作完成");
+});
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+node = Node!
+node\once ->
+	print "开始节点关联的异步操作"
+	sleep 2 -- 模拟耗时操作
+	print "节点关联的异步操作完成"
 ```
 
 </TabItem>
@@ -116,6 +204,53 @@ end)
 ```
 
 </TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local thread <const> = require("thread")
+local wait <const> = require("wait")
+
+thread(function()
+	print("等待条件成立...")
+	wait(function(): boolean
+		-- 当玩家的分数大于100时继续执行
+		return player.score > 100
+	end)
+	print("条件满足，继续执行后续逻辑")
+end)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { thread, wait } from "Dora";
+
+thread(() => {
+	print("等待条件成立...");
+	wait(() => {
+		// 当玩家的分数大于100时继续执行
+		return player.score > 100;
+	});
+	print("条件满足，继续执行后续逻辑");
+});
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+thread ->
+	print "等待条件成立..."
+	wait ->
+		-- 当玩家的分数大于100时继续执行
+		player.score > 100
+	print "条件满足，继续执行后续逻辑"
+```
+
+</TabItem>
 </Tabs>
 
 2. `cycle` 函数
@@ -144,6 +279,59 @@ end))
 ```
 
 </TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local cycle <const> = require("cycle“)
+local Node <const> = require("Node")
+
+local node = Node()
+node:once(function()
+	local startX = node.x
+	print("开始移动")
+	cycle(3, function(time: number)
+		-- 在 3 秒内，每帧更新物体位置
+		node.x = startX + 500 * time -- time 的值会从 0 到 1
+	end)
+	print("移动结束")
+end)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { cycle, Node } from "Dora";
+
+const node = Node();
+node.once(() => {
+	const startX = node.x;
+	print("开始移动");
+	cycle(3, time => {
+		// 在 3 秒内，每帧更新物体位置
+		node.x = startX + 500 * time; // time 的值会从 0 到 1
+	});
+	print("移动结束");
+});
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+node = Node!
+node\once ->
+	startX = node.x
+	print "开始移动"
+	cycle 3, (time) ->
+		-- 在 3 秒内，每帧更新物体位置
+		node.x = startX + 500 * time -- time 的值会从 0 到 1
+	print "移动结束"
+```
+
+</TabItem>
 </Tabs>
 
 3. `sleep` 用法
@@ -164,6 +352,45 @@ thread(function()
 	sleep(2) -- 暂停协程 2 秒
 	print("2 秒后继续执行任务")
 end)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local sleep <const> = require("sleep")
+local thread <const> = require("thread")
+
+thread(function()
+	print("任务开始...")
+	sleep(2) -- 暂停协程 2 秒
+	print("2 秒后继续执行任务")
+end)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { sleep, thread } from "Dora";
+
+thread(() => {
+	print("任务开始...");
+	sleep(2); // 暂停协程 2 秒
+	print("2 秒后继续执行任务");
+});
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+thread ->
+	print "任务开始..."
+	sleep 2 -- 暂停协程 2 秒
+	print "2 秒后继续执行任务"
 ```
 
 </TabItem>
@@ -192,6 +419,56 @@ node:schedule(function(deltaTime)
 		-- 返回 true 可停止更新
 	end
 end)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local Node <const> = require("Node")
+
+local node = Node()
+node:schedule(function(deltaTime: number): boolean
+	-- 当右方向键被按下
+	if Keyboard:isKeyPressed("Right") then
+		-- 更新物体位置
+		node.x = node.x + 10 * deltaTime
+		-- 返回 true 可停止更新
+	end
+end)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { Node, KeyName } from "Dora";
+
+const node = Node();
+node.schedule(deltaTime => {
+	// 当右方向键被按下
+	if (Keyboard.isKeyPressed(KeyName.Right)) {
+		// 更新物体位置
+		node.x += 10 * deltaTime;
+		// 返回 true 可停止更新
+	}
+	return false;
+});
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+node = Node!
+node\schedule (deltaTime) ->
+	-- 当右方向键被按下
+	if Keyboard\isKeyPressed "Right"
+		-- 更新物体位置
+		node.x += 10 * deltaTime
+		-- 返回 true 可停止更新
 ```
 
 </TabItem>
@@ -234,6 +511,74 @@ end)
 node:onUpdate(function(deltaTime)
 	-- 更新逻辑 B
 end)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+-- 使用 node:schedule() 调度主更新函数
+node:schedule(function(deltaTime: number): boolean
+	-- 主更新逻辑
+	if condition then
+		return true -- 返回内部状态停止调度
+		-- 或是使用 node:unschedule() 主动取消调度
+	end
+end)
+
+-- 使用 node:onUpdate() 调度多个更新函数
+node:onUpdate(function(deltaTime: number): boolean
+	-- 更新逻辑 A
+end)
+
+node:onUpdate(function(deltaTime: number): boolean
+	-- 更新逻辑 B
+end)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+// 使用 node.schedule() 调度主更新函数
+node.schedule(deltaTime => {
+	// 主更新逻辑
+	if (condition) {
+		return true; // 返回内部状态停止调度
+		// 或是使用 node.unschedule() 主动取消调度
+	}
+	return false;
+});
+
+// 使用 node.onUpdate() 调度多个更新函数
+node.onUpdate(deltaTime => {
+	// 更新逻辑 A
+	return false;
+});
+
+node.onUpdate(deltaTime => {
+	// 更新逻辑 B
+	return false;
+});
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+-- 使用 node\schedule() 调度主更新函数
+node\schedule (deltaTime) ->
+	-- 主更新逻辑
+	if condition
+		return true -- 返回内部状态停止调度
+		-- 或是使用 node\unschedule() 主动取消调度
+
+-- 使用 node\onUpdate() 调度多个更新函数
+node\onUpdate (deltaTime) ->
+	-- 更新逻辑 A
+
+node\onUpdate (deltaTime) ->
+	-- 更新逻辑 B
 ```
 
 </TabItem>

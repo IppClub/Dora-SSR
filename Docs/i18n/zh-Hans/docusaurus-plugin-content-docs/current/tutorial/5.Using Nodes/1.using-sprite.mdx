@@ -28,7 +28,27 @@ import TabItem from '@theme/TabItem';
 
 ```lua
 local Sprite <const> = require("Sprite")
-local Texture2D <const> = require("Texture2D")
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local Sprite <const> = require("Sprite")
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { Sprite } from "Dora";
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
 ```
 
 </TabItem>
@@ -47,6 +67,43 @@ local heroSprite = Sprite("Image/hero.png")
 
 -- 将 Sprite 添加到场景中
 scene:addChild(heroSprite)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+-- 创建一个新的 Sprite 对象，并加载 "Image/hero.png" 作为纹理
+local heroSprite = Sprite("Image/hero.png")
+
+if not heroSprite is nil then
+	-- 将 Sprite 添加到场景中
+	scene:addChild(heroSprite)
+end
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+// 创建一个新的 Sprite 对象，并加载 "Image/hero.png" 作为纹理
+const heroSprite = Sprite("Image/hero.png");
+
+if (heroSprite !== null) {
+	// 将 Sprite 添加到场景中
+	scene.addChild(heroSprite);
+}
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+-- 创建一个新的 Sprite 对象，并加载 "Image/hero.png" 作为纹理
+heroSprite = Sprite "Image/hero.png"
+
+-- 将 Sprite 添加到场景中
+scene\addChild heroSprite
 ```
 
 </TabItem>
@@ -77,6 +134,63 @@ end)
 ```
 
 </TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local Sprite <const> = require("Sprite")
+local thread <const> = require("thread")
+
+-- 异步加载图片
+local imagePath = "Image/hero.png"
+thread(function()
+	if Cache:loadAsync(imagePath) then
+		local character = Sprite(imagePath)
+		character.position = Vec2(100, 200)
+		stage:addChild(character)
+	else
+		print("异步加载图片失败！")
+	end
+end)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { Sprite, Vec2, Cache, thread } from "Dora";
+
+// 异步加载图片
+const imagePath = "Image/hero.png";
+thread(() => {
+	if (Cache.loadAsync(imagePath)) {
+		const character = Sprite(imagePath);
+		if (character !== null) {
+			character.position = Vec2(100, 200);
+			stage.addChild(character);
+		}
+	} else {
+		print("异步加载图片失败！");
+	}
+});
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+-- 异步加载图片
+imagePath = "Image/hero.png"
+thread ->
+	if Cache\loadAsync imagePath
+		stage\addChild with Sprite imagePath
+			.position = Vec2 100, 200
+	else
+		print "异步加载图片失败！"
+```
+
+</TabItem>
 </Tabs>
 
 ## 4. 设置 Sprite 的纹理矩形区域
@@ -93,6 +207,46 @@ local textureRect = Rect(0, 0, 128, 128)
 -- 加载纹理并设置渲染区域
 local heroSprite = Sprite("Image/hero.png")
 heroSprite.textureRect = textureRect
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+-- 定义纹理的矩形区域，表示左上角区域（假设图片大小为 256x256）
+local textureRect = Rect(0, 0, 128, 128)
+
+-- 加载纹理并设置渲染区域
+local heroSprite = Sprite("Image/hero.png")
+if not heroSprite is nil then
+	heroSprite.textureRect = textureRect
+end
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+// 定义纹理的矩形区域，表示左上角区域（假设图片大小为 256x256）
+const textureRect = Rect(0, 0, 128, 128);
+
+// 加载纹理并设置渲染区域
+const heroSprite = Sprite("Image/hero.png");
+if (heroSprite !== null) {
+	heroSprite.textureRect = textureRect;
+}
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+-- 定义纹理的矩形区域，表示左上角区域（假设图片大小为 256x256）
+textureRect = Rect 0, 0, 128, 128
+
+-- 加载纹理并设置渲染区域
+heroSprite = with Sprite "Image/hero.png"
+	.textureRect = textureRect
 ```
 
 </TabItem>
@@ -131,6 +285,50 @@ heroSprite.filter = "Point"
 ```
 
 </TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+-- 创建 Sprite 并设置纹理环绕模式
+local heroSprite = Sprite("Image/hero.png")
+if not heroSprite is nil then
+	heroSprite.uwrap = "Mirror"
+	heroSprite.vwrap = "Clamp"
+
+	-- 设置纹理过滤模式为最近点采样（适合像素风格）
+	heroSprite.filter = "Point"
+end
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+// 创建 Sprite 并设置纹理环绕模式
+const heroSprite = Sprite("Image/hero.png");
+
+if (heroSprite !== null) {
+	heroSprite.uwrap = TextureWrap.Mirror;
+	heroSprite.vwrap = TextureWrap.Clamp;
+
+	// 设置纹理过滤模式为最近点采样（适合像素风格）
+	heroSprite.filter = TextureFilter.Point;
+}
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+-- 创建 Sprite 并设置纹理环绕模式
+heroSprite = with Sprite "Image/hero.png"
+	.uwrap = "Mirror"
+	.vwrap = "Clamp"
+
+	-- 设置纹理过滤模式为最近点采样（适合像素风格）
+	.filter = "Point"
+```
+
+</TabItem>
 </Tabs>
 
 ## 6. 使用自定义着色器特效
@@ -144,6 +342,35 @@ heroSprite.filter = "Point"
 local SpriteEffect <const> = require("SpriteEffect")
 -- 加载内置的 sprite 着色器并应用
 local spriteEffect = SpriteEffect("builtin:vs_sprite", "builtin:fs_sprite")
+heroSprite.effect = spriteEffect
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local SpriteEffect <const> = require("SpriteEffect")
+-- 加载内置的 sprite 着色器并应用
+local spriteEffect = SpriteEffect("builtin:vs_sprite", "builtin:fs_sprite")
+heroSprite.effect = spriteEffect
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { SpriteEffect } from "Dora";
+// 加载内置的 sprite 着色器并应用
+const spriteEffect = SpriteEffect("builtin:vs_sprite", "builtin:fs_sprite");
+heroSprite.effect = spriteEffect;
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+-- 加载内置的 sprite 着色器并应用
+spriteEffect = SpriteEffect "builtin:vs_sprite", "builtin:fs_sprite"
 heroSprite.effect = spriteEffect
 ```
 

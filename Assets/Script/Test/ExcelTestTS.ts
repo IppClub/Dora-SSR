@@ -311,6 +311,7 @@ function loadExcel() {
 	const xlsx = Content.loadExcel("Data/items.xlsx", ["items"]);
 	if (xlsx !== null) {
 		const its = xlsx["items"];
+		if (!its) return;
 		const names = its[1] as [keyof ItemStruct];
 		table.remove(names, 1);
 		if (!Struct.has("Item")) {

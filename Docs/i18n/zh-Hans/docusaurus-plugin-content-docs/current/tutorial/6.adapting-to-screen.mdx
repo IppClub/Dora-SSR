@@ -22,7 +22,28 @@ import TabItem from '@theme/TabItem';
 <TabItem value="lua" label="Lua">
 
 ```lua
-local DesignSceneHeight = 1024
+local DesignSceneHeight <const> = 1024
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local DesignSceneHeight <const> = 1024
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+const DesignSceneHeight = 1024;
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+const DesignSceneHeight = 1024
 ```
 
 </TabItem>
@@ -38,9 +59,50 @@ local DesignSceneHeight = 1024
 <TabItem value="lua" label="Lua">
 
 ```lua
+local Director <const> = require("Director")
+local View <const> = require("View")
+
 local function updateViewSize()
 	Director.currentCamera.zoom = View.size.height / DesignSceneHeight
 end
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local Director <const> = require("Director")
+local type Camera2D = require("Camera2D")
+local View <const> = require("View")
+
+local function updateViewSize()
+	local camera = Director.currentCamera as Camera2D.Type
+	camera.zoom = View.size.height / DesignSceneHeight
+end
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { Director, View, TypeName, tolua } from 'Dora';
+
+const updateViewSize = () => {
+	const camera = tolua.cast(Director.currentCamera, TypeName.Camera2D);
+	if (camera) {
+		camera.zoom = View.size.height / DesignSceneHeight;
+	}
+};
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+updateViewSize = ->
+	Director.currentCamera.zoom = View.size.height / DesignSceneHeight
 ```
 
 </TabItem>
@@ -71,6 +133,43 @@ end)
 ```
 
 </TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+updateViewSize()  -- 初始化时调用一次
+
+Director.entry:onAppChange(function(settingName: string)
+	if settingName == "Size" then
+		updateViewSize() -- 每次触发尺寸变化时更新
+	end
+end)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+updateViewSize();  // 初始化时调用一次
+
+Director.entry.onAppChange(settingName => {
+	if (settingName === 'Size') {
+		updateViewSize(); // 每次触发尺寸变化时更新
+	}
+});
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+updateViewSize! -- 初始化时调用一次
+
+Director.entry\onAppChange (settingName) ->
+	if settingName == "Size"
+		updateViewSize! -- 每次触发尺寸变化时更新
+```
+
+</TabItem>
 </Tabs>
 
 **说明：**
@@ -91,9 +190,10 @@ end)
 local DrawNode <const> = require("DrawNode")
 local Director <const> = require("Director")
 local View <const> = require("View")
+local Vec2 <const> = require("Vec2")
 
 -- 定义设计尺寸
-local DesignSceneHeight = 1024
+local DesignSceneHeight <const> = 1024
 
 -- 创建场景
 local node = DrawNode()
@@ -115,6 +215,103 @@ end)
 ```
 
 </TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+-- 自适应游戏场景示例
+
+-- 导入模块
+local DrawNode <const> = require("DrawNode")
+local Director <const> = require("Director")
+local View <const> = require("View")
+local Vec2 <const> = require("Vec2")
+local type Camera2D = require("Camera2D")
+
+-- 定义设计尺寸
+local DesignSceneHeight <const> = 1024
+
+-- 创建场景
+local node = DrawNode()
+node:drawDot(Vec2.zero, DesignSceneHeight / 2)
+node:addTo(Director.entry)
+
+-- 处理窗口尺寸变化
+local function updateViewSize()
+	local camera = Director.currentCamera as Camera2D.Type
+	camera.zoom = View.size.height / DesignSceneHeight
+end
+
+updateViewSize()
+
+-- 注册窗口尺寸变化的事件回调
+Director.entry:onAppChange(function(settingName: string)
+	if settingName == "Size" then
+		updateViewSize()
+	end
+end)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+// 自适应游戏场景示例
+
+// 导入模块
+import { DrawNode, Director, View, Vec2, TypeName } from 'Dora';
+
+// 定义设计尺寸
+const DesignSceneHeight = 1024;
+
+// 创建场景
+const node = DrawNode();
+node.drawDot(Vec2.zero, DesignSceneHeight / 2);
+node.addTo(Director.entry);
+
+// 处理窗口尺寸变化
+const updateViewSize = () => {
+	const camera = tolua.cast(Director.currentCamera, TypeName.Camera2D);
+	if (camera) {
+		camera.zoom = View.size.height / DesignSceneHeight;
+	}
+};
+
+updateViewSize();
+
+// 注册窗口尺寸变化的事件回调
+Director.entry.onAppChange(settingName => {
+	if (settingName === 'Size') {
+		updateViewSize();
+	}
+});
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+-- 自适应游戏场景示例
+
+-- 导入模块
+_ENV = Dora
+
+-- 定义设计尺寸
+const DesignSceneHeight = 1024
+
+-- 创建场景
+const node = DrawNode!
+node.drawDot Vec2.zero, DesignSceneHeight / 2
+node.addTo Director.entry
+
+-- 处理窗口尺寸变化
+updateViewSize! -- 初始化时调用一次
+
+Director.entry\onAppChange (settingName) ->
+	if settingName == "Size"
+		updateViewSize! -- 每次触发尺寸变化时更新
+```
+
+</TabItem>
 </Tabs>
 
 ## 3. 实现游戏 UI 的自适应
@@ -130,6 +327,27 @@ end)
 
 ```lua
 local AlignNode <const> = require("AlignNode")
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local AlignNode <const> = require("AlignNode")
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { AlignNode } from 'Dora';
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+import "AlignNode"
 ```
 
 </TabItem>
@@ -155,6 +373,33 @@ root:addTo(Director.ui)
 ```
 
 </TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local root = AlignNode(true)
+root:css("justify-content: center; align-items: center")
+root:addTo(Director.ui)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+const root = AlignNode(true);
+root.css("justify-content: center; align-items: center");
+root.addTo(Director.ui);
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+root = with AlignNode true
+	\css "justify-content: center; align-items: center"
+	\addTo Director.ui
+```
+
+</TabItem>
 </Tabs>
 
 **说明：**
@@ -174,6 +419,33 @@ root:addTo(Director.ui)
 local centerNode = AlignNode()
 centerNode:css("width: 60%; height: 60%")
 centerNode:addTo(root)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local centerNode = AlignNode()
+centerNode:css("width: 60%; height: 60%")
+centerNode:addTo(root)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+const centerNode = AlignNode();
+centerNode.css("width: 60%; height: 60%");
+centerNode.addTo(root);
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+centerNode = with AlignNode
+	\css "width: 60%; height: 60%"
+	\addTo root
 ```
 
 </TabItem>
@@ -197,6 +469,30 @@ sprite:addTo(centerNode)
 ```
 
 </TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local sprite = Sprite("Image/logo.png")
+sprite:addTo(centerNode)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+const sprite = Sprite("Image/logo.png");
+sprite.addTo(centerNode);
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+sprite = with Sprite "Image/logo.png"
+	\addTo centerNode
+```
+
+</TabItem>
 </Tabs>
 
 &emsp;&emsp;为了在布局调整后更新图元的位置和尺寸以匹配自适应的结果，我们需要监听布局完成的事件。
@@ -210,6 +506,38 @@ centerNode:onAlignLayout(function(width, height)
 	sprite.position = Vec2(width / 2, height / 2)
 	sprite.size = Size(width, height)
 end)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+centerNode:onAlignLayout(function(width: number, height: number)
+	-- 调整图元对象的显示参数以匹配父节点做自适应的结果
+	sprite.position = Vec2(width / 2, height / 2)
+	sprite.size = Size(width, height)
+end)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+centerNode.onAlignLayout((width, height) => {
+	// 调整图元对象的显示参数以匹配父节点做自适应的结果
+	sprite.position = Vec2(width / 2, height / 2);
+	sprite.size = Size(width, height);
+});
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+centerNode\onAlignLayout (width, height) ->
+	-- 调整图元对象的显示参数以匹配父节点做自适应的结果
+	sprite.position = Vec2 width / 2, height / 2
+	sprite.size = Size width, height
 ```
 
 </TabItem>
@@ -258,6 +586,70 @@ end)
 ```
 
 </TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+-- 自适应游戏 UI
+
+-- 导入模块
+local AlignNode <const> = require("AlignNode")
+local Director <const> = require("Director")
+local Sprite <const> = require("Sprite")
+local Vec2 <const> = require("Vec2")
+local Size <const> = require("Size")
+
+-- 创建自适应屏幕的根节点
+local root = AlignNode(true)
+root:css("justify-content: center; align-items: center")
+root:addTo(Director.ui)
+
+-- 创建要被居中布局的子节点
+local centerNode = AlignNode()
+centerNode:css("width: 60%; height: 60%")
+centerNode:addTo(root)
+
+-- 创建子节点上做显示的图元对象
+local sprite = Sprite("Image/logo.png")
+sprite:addTo(centerNode)
+
+-- 注册自适应回调，更新显示对象适应布局结果的显示参数
+centerNode:onAlignLayout(function(width: number, height: number)
+	sprite.position = Vec2(width / 2, height / 2)
+	sprite.size = Size(width, height)
+end)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+// 自适应游戏 UI
+
+// 导入模块
+import { AlignNode, Director, Sprite, Vec2, Size } from 'Dora';
+
+// 创建自适应屏幕的根节点
+const root = AlignNode(true);
+root.css('justify-content: center; align-items: center');
+root.addTo(Director.ui);
+
+// 创建要被居中布局的子节点
+const centerNode = AlignNode();
+centerNode.css('width: 60%; height: 60%');
+centerNode.addTo(root);
+
+// 创建子节点上做显示的图元对象
+const sprite = Sprite('Image/logo.png');
+sprite.addTo(centerNode);
+
+// 注册自适应回调，更新显示对象适应布局结果的显示参数
+centerNode.onAlignLayout((width, height) => {
+	sprite.position = Vec2(width / 2, height / 2);
+	sprite.size = Size(width, height);
+});
+```
+
+</TabItem>
 <TabItem value="tsx" label="TSX">
 
 ```tsx
@@ -293,6 +685,35 @@ const root = toNode(
 
 root?.addTo(Director.ui);
 ```
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+-- 自适应游戏 UI
+
+-- 导入模块
+_ENV = Dora
+
+-- 创建自适应屏幕的根节点
+root = with AlignNode true
+	\css "justify-content: center; align-items: center"
+	\addTo Director.ui
+
+-- 创建要被居中布局的子节点
+centerNode = with AlignNode
+	\css "width: 60%; height: 60%"
+	\addTo root
+
+-- 创建子节点上做显示的图元对象
+sprite = with Sprite "Image/logo.png"
+	\addTo centerNode
+
+-- 注册自适应回调，更新显示对象适应布局结果的显示参数
+centerNode\onAlignLayout (width, height) ->
+	sprite.position = Vec2 width / 2, height / 2
+	sprite.size = Size width, height
+```
+
 </TabItem>
 </Tabs>
 

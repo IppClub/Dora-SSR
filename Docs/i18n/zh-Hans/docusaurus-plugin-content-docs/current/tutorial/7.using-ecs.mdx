@@ -8,7 +8,7 @@ import TabItem from '@theme/TabItem';
 
 &emsp;&emsp;Dora SSR 的 ECS 框架是受 [Entitas](https://github.com/sschmid/Entitas) 启发而来，并做了功能上的略微改动，其基本概念可以借助 Entitas 的原理图进行理解。
 
-```
+```text
 Entitas ECS
 
 +-----------------+
@@ -43,420 +43,7 @@ Entitas ECS
 
 &emsp;&emsp;在这个教程中，我们会通过一个代码示例，展示如何使用 Dora SSR 的 ECS（Entity Component System）框架进行游戏逻辑的编写。
 
-<Tabs>
-<TabItem value="yue" label="YueScript">
-
-&emsp;&emsp;在编写实际的代码之前，我们先为YueScript语言引入这篇教程中要用到的功能模块。
-
-```yue
-_ENV = Dora!
-```
-
-&emsp;&emsp;首先，我们创建两个实体组 `sceneGroup` 和 `positionGroup`，分别用于访问和管理所有具有 "scene" 和 "position" 组件名称的实体。
-
-```yue
-sceneGroup = Group ["scene",]
-positionGroup = Group ["position",]
-```
-
-&emsp;&emsp;接下来，我们使用观察器（Observer）来监听实体的变化。当你在使用ECS框架开发游戏时，有时你需要在实体添加特定组件时触发一些操作。这时，你可以使用观察器（Observer）来监听实体的添加事件，并在添加事件发生时执行相应的逻辑。接下来是关于如何使用观察器监听实体添加事件的示例代码段：
-
-```yue
-with Observer "Add", ["scene",]
-	\watch (_entity, scene): false ->
-		Director.entry\addChild with scene
-			.touchEnabled = true
-			\slot "TapEnded", (touch) ->
-				:location = touch
-				positionGroup\each (entity) ->
-					entity.target = location
-```
-
-&emsp;&emsp;首先，使用 `Observer` 类创建一个观察器对象，并指定观察器监测的事件类型为 "Add"，表示监听实体的添加事件。同时，通过传入一个包含字符串 "scene" 的列表作为参数，指定观察器要监测的组件类型包括 "scene"。
-
-```yue
-with Observer "Add", ["scene",]
-```
-
-&emsp;&emsp;接下来，在观察器对象的 `watch` 方法中，定义了一个回调函数 `(_entity, scene)->`。这个回调函数在实体添加事件发生时被触发。它接收的第一个参数为触发事件的实体对象，后面的参数与监测的组件列表相对应。
-
-```yue
-\watch (_entity, scene) ->
-```
-
-&emsp;&emsp;在回调函数内部，我们执行了一系列操作。首先，通过 `Director.entry` 将 `scene` 添加到游戏场景中。
-
-```yue
-Director.entry\addChild with scene
-```
-
-&emsp;&emsp;接着，我们设置了 `scene` 的 `touchEnabled` 属性为 `true`，以启用触摸或点击事件。
-
-```yue
-.touchEnabled = true
-```
-
-&emsp;&emsp;然后，我们给 `scene` 添加了一个 "TapEnded" 的事件处理函数，当触摸结束事件发生时，这个处理函数会被调用。
-
-```yue
-\slot "TapEnded", (touch) ->
-```
-
-&emsp;&emsp;在事件处理函数内部，我们通过 `:location = touch` 将触摸点的位置赋值给 `location` 变量。
-
-```yue
-:location = touch
-```
-
-&emsp;&emsp;最后，通过 `positionGroup\each (entity)->` 遍历了 `positionGroup` 实体组中的所有实体，并为每个实体设置了 `target` 属性为 触摸点的位置`location`。
-
-```yue
-positionGroup\each (entity) ->
-	entity.target = location
-```
-
-&emsp;&emsp;这样，当有新的实体添加了 "scene" 组件时，该观察器会触发并执行以上操作，并将场景节点添加到游戏中，并完成一系列的初始化操作。
-
-&emsp;&emsp;接下来，我们还要再创建一些观察器，分别处理其它 "Add" 和 "Remove" 类型的实体变化，并指定要监测的组件为 `image` 和 `sprite`。
-
-```yue
-with Observer "Add", ["image",]
-	\watch (image): false => sceneGroup\each (e) ->
-		with @sprite = Sprite image
-			\addTo e.scene
-			\runAction Scale 0.5, 0, 0.5, Ease.OutBack
-		true
-
-with Observer "Remove", ["sprite",]
-	\watch => @oldValues.sprite\removeFromParent!
-```
-
-&emsp;&emsp;然后，我们创建一个具有 "position", "direction", "speed", "target" 组件的实体组，并定义了观察器来处理实体组内组件的变化，并在每一帧游戏更新时对一组特定的实体进行遍历，并根据实体的速度. 更新时间等信息来更新实体的旋转角度和位置属性。
-
-```yue
-with Group ["position", "direction", "speed", "target"]
-	\watch (entity, position, direction, speed, target): false ->
-		return if target == position
-		dir = target - position
-		dir = dir\normalize!
-		newPos = position + dir * speed
-		newPos = newPos\clamp position, target
-		entity.position = newPos
-		entity.target = nil if newPos == target
-		angle = math.deg math.atan dir.x, dir.y
-		entity.direction = angle
-```
-
-&emsp;&emsp;在这段代码中，首先，我们使用 `Group` 类创建了一个实体组对象，并指定了组中包含的组件类型为 "position". "direction". "speed" 和 "target"。
-
-```yue
-with Group ["position", "direction", "speed", "target"]
-```
-
-&emsp;&emsp;然后，我们使用了实体组的 `watch` 方法来每帧遍历所有组内的实体，执行我们定义的回调函数来处理实体上的组件。
-
-```yue
-\watch (entity, position, direction, speed, target): false ->
-```
-
-&emsp;&emsp;在回调函数内部，我们首先进行了一些条件判断。通过 `return if target == position` 判断实体的目标位置和当前位置是否相等，如果相等则直接返回，不进行后续的更新操作。
-
-```yue
-return if target == position
-```
-
-&emsp;&emsp;接下来，我们计算了实体的方向向量 `dir`，它等于目标位置减去当前位置，并进行了归一化操作。
-
-```yue
-dir = target - position
-dir = dir\normalize!
-```
-
-&emsp;&emsp;然后，我们根据实体的速度和方向向量，计算实体在当前帧更新时的新位置 `newPos`。通过将方向向量 `dir` 乘以速度 `speed`，然后将其加上当前位置 `position`，即可得到新的位置。
-
-```yue
-newPos = position + dir * speed
-```
-
-&emsp;&emsp;接着，我们使用 `newPos` 和实体的目标位置 `target` 来进行位置的修正。通过 `newPos\clamp position, target`，我们确保新位置在当前位置和目标位置之间，并将修正后的最终位置赋值回实体的 `position` 组件。
-
-```yue
-newPos = newPos\clamp position, target
-entity.position = newPos
-```
-
-&emsp;&emsp;接下来，如果新位置等于目标位置的话，我们就清空实体的目标位置 `target`。
-
-```yue
-entity.target = nil if newPos == target
-```
-
-&emsp;&emsp;最后，我们计算了实体的旋转角度 `angle`，通过使用 `math.atan` 函数来计算方向向量 `dir` 的弧度，并将其转换为角度，更新实体的旋转角度组件 `direction` 为计算得到的角度值。
-
-```yue
-angle = math.deg math.atan dir.x, dir.y
-entity.direction = angle
-```
-
-&emsp;&emsp;这样，当每一帧游戏更新时，实体组内的就会触发这段代码对每个实体做逻辑处理，并对实体当前的 "position". "direction". "speed" 或 "target" 组件做更新操作。
-
-&emsp;&emsp;在完成数据计算和更新后，我们还需要把数据结果更新到渲染图形上。
-
-```yue
-with Observer "AddOrChange", ["position", "direction", "sprite"]
-	\watch (position, direction, sprite): false =>
-		-- 更新图片的显示位置
-		sprite.position = position
-		lastDirection = @oldValues.direction or sprite.angle
-		-- 当图片的旋转角度变化时，我们就播放一个旋转的动画
-		if math.abs(direction - lastDirection) > 1
-			sprite\runAction Roll 0.3, lastDirection, direction
-```
-
-&emsp;&emsp;最后，我们创建三个实体，并为它们添加不同的组件。这时游戏系统将开始正式运行。
-
-```yue
-Entity
-	scene: Node!
-
-Entity
-	image: "Image/logo.png"
-	position: Vec2.zero
-	direction: 45.0
-	speed: 4.0
-
-Entity
-	image: "Image/logo.png"
-	position: Vec2 -100, 200
-	direction: 90.0
-	speed: 10.0
-```
-
-</TabItem>
-<TabItem value="tl" label="Teal">
-
-&emsp;&emsp;在编写实际的代码之前，我们先为Teal语言引入这篇教程中要用到的功能模块。
-
-```tl
-local Group <const> = require("Group")
-local Observer <const> = require("Observer")
-local Entity <const> = require("Entity")
-local Node <const> = require("Node")
-local Director <const> = require("Director")
-local Touch <const> = require("Touch")
-local Sprite <const> = require("Sprite")
-local Scale <const> = require("Scale")
-local Ease <const> = require("Ease")
-local Vec2 <const> = require("Vec2")
-local Roll <const> = require("Roll")
-```
-
-&emsp;&emsp;首先，我们创建两个实体组 `sceneGroup` 和 `positionGroup`，分别用于访问和管理所有具有 "scene" 和 "position" 组件名称的实体。
-
-```tl
-local sceneGroup = Group {"scene"}
-local positionGroup = Group {"position"}
-```
-
-&emsp;&emsp;接下来，我们使用观察器（Observer）来监听实体的变化。当你在使用ECS框架开发游戏时，有时你需要在实体添加特定组件时触发一些操作。这时，你可以使用观察器（Observer）来监听实体的添加事件，并在添加事件发生时执行相应的逻辑。接下来是关于如何使用观察器监听实体添加事件的示例代码段：
-
-```tl
-Observer("Add", {"scene"})
-	:watch(function(_entity: Entity.Type, scene: Node.Type)
-		Director.entry:addChild(scene)
-		scene.touchEnabled = true
-		scene:slot("TapEnded", function(touch: Touch.Type)
-			local location = touch.location
-			positionGroup:each(function(entity: Entity.Type): boolean
-				entity.target = location
-				return false
-			end)
-		end)
-	end)
-```
-
-&emsp;&emsp;首先，使用 `Observer` 类创建一个观察器对象，并指定观察器监测的事件类型为 "Add"，表示监听实体的添加事件。同时，通过传入一个包含字符串 "scene" 的列表作为参数，指定观察器要监测的组件类型包括 "scene"。
-
-```tl
-Observer("Add", {"scene"})
-```
-
-&emsp;&emsp;接下来，在观察器对象的 `watch` 方法中，定义了一个回调函数 `(_entity, scene)->`。这个回调函数在实体添加事件发生时被触发。它接收的第一个参数为触发事件的实体对象，后面的参数与监测的组件列表相对应。
-
-```tl
-:watch(function(_entity: Entity.Type, scene: Node.Type)
-```
-
-&emsp;&emsp;在回调函数内部，我们执行了一系列操作。首先，通过 `Director.entry` 将 `scene` 添加到游戏场景中。
-
-```tl
-Director.entry:addChild(scene)
-```
-
-&emsp;&emsp;接着，我们设置了 `scene` 的 `touchEnabled` 属性为 `true`，以启用触摸或点击事件。
-
-```tl
-scene.touchEnabled = true
-```
-
-&emsp;&emsp;然后，我们给 `scene` 添加了一个 "TapEnded" 的事件处理函数，当触摸结束事件发生时，这个处理函数会被调用。
-
-```tl
-scene:slot("TapEnded", function(touch: Touch.Type)
-```
-
-&emsp;&emsp;在事件处理函数内部，我们先获取了触摸点的位置赋值给 `location` 变量。
-
-```tl
-local location = touch.location
-```
-
-&emsp;&emsp;最后，通过 `positionGroup:each()` 遍历了 `positionGroup` 实体组中的所有实体，并为每个实体设置了 `target` 属性为 触摸点的位置`location`。
-
-```tl
-positionGroup:each(function(entity: Entity.Type): boolean
-	entity.target = location
-	return false
-end)
-```
-
-&emsp;&emsp;这样，当有新的实体添加了 "scene" 组件时，该观察器会触发并执行以上操作，并将场景节点添加到游戏中，并完成一系列的初始化操作。
-
-&emsp;&emsp;接下来，我们还要再创建一些观察器，分别处理其它 "Add" 和 "Remove" 类型的实体变化，并指定要监测的组件为`image`和`sprite`。
-
-```tl
-Observer("Add", {"image"}):watch(function(entity: Entity.Type, image: string)
-	sceneGroup:each(function(e: Entity.Type): boolean
-		local scene = e.scene as Node.Type
-		local sprite = Sprite(image)
-		sprite:runAction(Scale(0.5, 0, 0.5, Ease.OutBack))
-		sprite:addTo(scene)
-		entity.sprite = sprite
-		return true
-	end)
-end)
-
-Observer("Remove", {"sprite"}):watch(function(self: Entity.Type)
-	local sprite = self.oldValues.sprite as Node.Type
-	sprite:removeFromParent()
-end)
-```
-
-&emsp;&emsp;然后，我们创建一个具有 "position", "direction", "speed", "target" 组件的实体组，并定义了观察器来处理实体组内组件的变化，并在每一帧游戏更新时对一组特定的实体进行遍历，并根据实体的速度. 更新时间等信息来更新实体的旋转角度和位置属性。
-
-```tl
-Group({"position", "direction", "speed", "target"}):watch(
-	function(entity: Entity.Type, position: Vec2.Type, _direction: number, speed: number, target: Vec2.Type)
-	if target == position then
-		return
-	end
-	local dir = target - position
-	dir = dir:normalize()
-	local newPos = position + dir * speed
-	newPos = newPos:clamp(position, target)
-	entity.position = newPos
-	if newPos == target then
-		entity.target = nil
-	end
-	local angle = math.deg(math.atan(dir.x, dir.y))
-	entity.direction = angle
-end)
-```
-
-&emsp;&emsp;在这段代码中，首先，我们使用 `Group` 类创建了一个实体组对象，并指定了组中包含的组件类型为 "position". "direction". "speed" 和 "target"。
-
-```tl
-Group({"position", "direction", "speed", "target"})
-```
-
-&emsp;&emsp;然后，我们使用了实体组的 `watch` 方法来每帧遍历所有组内的实体，执行我们定义的回调函数来处理实体上的组件。
-
-```tl
-:watch(
-	function(entity: Entity.Type, position: Vec2.Type, _direction: number, speed: number, target: Vec2.Type)
-```
-
-&emsp;&emsp;在回调函数内部，我们首先进行了一些条件判断。通过 `return if target == position` 判断实体的目标位置和当前位置是否相等，如果相等则直接返回，不进行后续的更新操作。
-
-```tl
-if target == position then
-	return
-end
-```
-
-&emsp;&emsp;接下来，我们计算了实体的方向向量 `dir`，它等于目标位置减去当前位置，并进行了归一化操作。
-
-```tl
-local dir = target - position
-dir = dir:normalize()
-```
-
-&emsp;&emsp;然后，我们根据实体的速度和方向向量，计算实体在当前帧更新时的新位置 `newPos`。通过将方向向量 `dir` 乘以速度 `speed`，然后将其加上当前位置 `position`，即可得到新的位置。
-
-```tl
-local newPos = position + dir * speed
-```
-
-&emsp;&emsp;接着，我们使用 `newPos` 和实体的目标位置 `target` 来进行位置的修正。通过 `newPos\clamp position, target`，我们确保新位置在当前位置和目标位置之间，并将修正后的最终位置赋值回实体的 `position` 组件。
-
-```tl
-newPos = newPos:clamp(position, target)
-entity.position = newPos
-```
-
-&emsp;&emsp;接下来，如果新位置等于目标位置的话，我们就清空实体的目标位置 `target`。
-
-```tl
-if newPos == target then
-	entity.target = nil
-end
-```
-
-&emsp;&emsp;最后，我们计算了实体的旋转角度 `angle`，通过使用 `math.atan` 函数来计算方向向量 `dir` 的弧度，并将其转换为角度，更新实体的旋转角度组件 `direction` 为计算得到的角度值。
-
-```tl
-local angle = math.deg(math.atan(dir.x, dir.y))
-entity.direction = angle
-```
-
-&emsp;&emsp;这样，当每一帧游戏更新时，实体组内的就会触发这段代码对每个实体做逻辑处理，并对实体当前的 "position". "direction". "speed" 或 "target" 组件做更新操作。
-
-&emsp;&emsp;在完成数据计算和更新后，我们还需要把数据结果更新到渲染图形上。
-
-```tl
-Observer("AddOrChange", {"position", "direction", "sprite"})
-	:watch(function(entity: Entity.Type, position: Vec2.Type, direction: number, sprite: Sprite.Type)
-		-- 更新图片的显示位置
-		sprite.position = position
-		local lastDirection = entity.oldValues.direction as number or sprite.angle
-		-- 当图片的旋转角度变化时，我们就播放一个旋转的动画
-		if math.abs(direction - lastDirection) > 1 then
-			sprite:runAction(Roll(0.3, lastDirection, direction))
-		end
-	end)
-```
-
-&emsp;&emsp;最后，我们创建三个实体，并为它们添加不同的组件。这时游戏系统将开始正式运行。
-
-```tl
-Entity { scene = Node() }
-
-Entity {
-	image = "Image/logo.png",
-	position = Vec2.zero,
-	direction = 45.0,
-	speed = 4.0
-}
-
-Entity {
-	image = "Image/logo.png",
-	position = Vec2(-100, 200),
-	direction = 90.0,
-	speed = 10.0
-}
-```
-
-</TabItem>
+<Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
 
 
@@ -489,8 +76,7 @@ local positionGroup = Group {"position"}
 Observer("Add", {"scene"})
 	:watch(function(_entity, scene)
 		Director.entry:addChild(scene)
-		scene.touchEnabled = true
-		scene:slot("TapEnded", function(touch)
+		scene:onTapEnded(function(touch)
 			local location = touch.location
 			positionGroup:each(function(entity)
 				entity.target = location
@@ -517,16 +103,10 @@ Observer("Add", {"scene"})
 Director.entry:addChild(scene)
 ```
 
-&emsp;&emsp;接着，我们设置了 `scene` 的 `touchEnabled` 属性为 `true`，以启用触摸或点击事件。
+&emsp;&emsp;然后，我们给 `scene` 添加了一个 "onTapEnded" 的事件处理函数，当触摸结束事件发生时，这个处理函数会被调用。
 
 ```lua
-scene.touchEnabled = true
-```
-
-&emsp;&emsp;然后，我们给 `scene` 添加了一个 "TapEnded" 的事件处理函数，当触摸结束事件发生时，这个处理函数会被调用。
-
-```lua
-scene:slot("TapEnded", function(touch)
+scene:onTapEnded(function(touch)
 ```
 
 &emsp;&emsp;在事件处理函数内部，我们先获取了触摸点的位置赋值给 `location` 变量。
@@ -675,6 +255,615 @@ Entity {
 	direction = 90.0,
 	speed = 10.0
 }
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+&emsp;&emsp;在编写实际的代码之前，我们先为Teal语言引入这篇教程中要用到的功能模块。
+
+```tl
+local Group <const> = require("Group")
+local Observer <const> = require("Observer")
+local Entity <const> = require("Entity")
+local Node <const> = require("Node")
+local Director <const> = require("Director")
+local Touch <const> = require("Touch")
+local Sprite <const> = require("Sprite")
+local Scale <const> = require("Scale")
+local Ease <const> = require("Ease")
+local Vec2 <const> = require("Vec2")
+local Roll <const> = require("Roll")
+```
+
+&emsp;&emsp;首先，我们创建两个实体组 `sceneGroup` 和 `positionGroup`，分别用于访问和管理所有具有 "scene" 和 "position" 组件名称的实体。
+
+```tl
+local sceneGroup = Group {"scene"}
+local positionGroup = Group {"position"}
+```
+
+&emsp;&emsp;接下来，我们使用观察器（Observer）来监听实体的变化。当你在使用ECS框架开发游戏时，有时你需要在实体添加特定组件时触发一些操作。这时，你可以使用观察器（Observer）来监听实体的添加事件，并在添加事件发生时执行相应的逻辑。接下来是关于如何使用观察器监听实体添加事件的示例代码段：
+
+```tl
+Observer("Add", {"scene"})
+	:watch(function(_entity: Entity.Type, scene: Node.Type)
+		Director.entry:addChild(scene)
+		scene:onTapEnded(function(touch: Touch.Type)
+			local location = touch.location
+			positionGroup:each(function(entity: Entity.Type): boolean
+				entity.target = location
+				return false
+			end)
+		end)
+	end)
+```
+
+&emsp;&emsp;首先，使用 `Observer` 类创建一个观察器对象，并指定观察器监测的事件类型为 "Add"，表示监听实体的添加事件。同时，通过传入一个包含字符串 "scene" 的列表作为参数，指定观察器要监测的组件类型包括 "scene"。
+
+```tl
+Observer("Add", {"scene"})
+```
+
+&emsp;&emsp;接下来，在观察器对象的 `watch` 方法中，定义了一个回调函数 `(_entity, scene)->`。这个回调函数在实体添加事件发生时被触发。它接收的第一个参数为触发事件的实体对象，后面的参数与监测的组件列表相对应。
+
+```tl
+:watch(function(_entity: Entity.Type, scene: Node.Type)
+```
+
+&emsp;&emsp;在回调函数内部，我们执行了一系列操作。首先，通过 `Director.entry` 将 `scene` 添加到游戏场景中。
+
+```tl
+Director.entry:addChild(scene)
+```
+
+&emsp;&emsp;然后，我们给 `scene` 添加了一个 "onTapEnded" 的事件处理函数，当触摸结束事件发生时，这个处理函数会被调用。
+
+```tl
+scene:onTapEnded(function(touch: Touch.Type)
+```
+
+&emsp;&emsp;在事件处理函数内部，我们先获取了触摸点的位置赋值给 `location` 变量。
+
+```tl
+local location = touch.location
+```
+
+&emsp;&emsp;最后，通过 `positionGroup:each()` 遍历了 `positionGroup` 实体组中的所有实体，并为每个实体设置了 `target` 属性为 触摸点的位置`location`。
+
+```tl
+positionGroup:each(function(entity: Entity.Type): boolean
+	entity.target = location
+	return false
+end)
+```
+
+&emsp;&emsp;这样，当有新的实体添加了 "scene" 组件时，该观察器会触发并执行以上操作，并将场景节点添加到游戏中，并完成一系列的初始化操作。
+
+&emsp;&emsp;接下来，我们还要再创建一些观察器，分别处理其它 "Add" 和 "Remove" 类型的实体变化，并指定要监测的组件为 `image` 和 `sprite`。
+
+```tl
+Observer("Add", {"image"}):watch(function(entity: Entity.Type, image: string)
+	sceneGroup:each(function(e: Entity.Type): boolean
+		local scene = e.scene as Node.Type
+		local sprite = Sprite(image)
+		if sprite then
+			sprite:runAction(Scale(0.5, 0, 0.5, Ease.OutBack))
+			sprite:addTo(scene)
+			entity.sprite = sprite
+		end
+		return true
+	end)
+end)
+
+Observer("Remove", {"sprite"}):watch(function(self: Entity.Type)
+	local sprite = self.oldValues.sprite as Node.Type
+	sprite:removeFromParent()
+end)
+```
+
+&emsp;&emsp;然后，我们创建一个具有 "position", "direction", "speed", "target" 组件的实体组，并定义了观察器来处理实体组内组件的变化，并在每一帧游戏更新时对一组特定的实体进行遍历，并根据实体的速度. 更新时间等信息来更新实体的旋转角度和位置属性。
+
+```tl
+Group({"position", "direction", "speed", "target"}):watch(
+	function(entity: Entity.Type, position: Vec2.Type, _direction: number, speed: number, target: Vec2.Type)
+	if target == position then
+		return
+	end
+	local dir = target - position
+	dir = dir:normalize()
+	local newPos = position + dir * speed
+	newPos = newPos:clamp(position, target)
+	entity.position = newPos
+	if newPos == target then
+		entity.target = nil
+	end
+	local angle = math.deg(math.atan(dir.x, dir.y))
+	entity.direction = angle
+end)
+```
+
+&emsp;&emsp;在这段代码中，首先，我们使用 `Group` 类创建了一个实体组对象，并指定了组中包含的组件类型为 "position". "direction". "speed" 和 "target"。
+
+```tl
+Group({"position", "direction", "speed", "target"})
+```
+
+&emsp;&emsp;然后，我们使用了实体组的 `watch` 方法来每帧遍历所有组内的实体，执行我们定义的回调函数来处理实体上的组件。
+
+```tl
+:watch(
+	function(entity: Entity.Type, position: Vec2.Type, _direction: number, speed: number, target: Vec2.Type)
+```
+
+&emsp;&emsp;在回调函数内部，我们首先进行了一些条件判断。通过 `return if target == position` 判断实体的目标位置和当前位置是否相等，如果相等则直接返回，不进行后续的更新操作。
+
+```tl
+if target == position then
+	return
+end
+```
+
+&emsp;&emsp;接下来，我们计算了实体的方向向量 `dir`，它等于目标位置减去当前位置，并进行了归一化操作。
+
+```tl
+local dir = target - position
+dir = dir:normalize()
+```
+
+&emsp;&emsp;然后，我们根据实体的速度和方向向量，计算实体在当前帧更新时的新位置 `newPos`。通过将方向向量 `dir` 乘以速度 `speed`，然后将其加上当前位置 `position`，即可得到新的位置。
+
+```tl
+local newPos = position + dir * speed
+```
+
+&emsp;&emsp;接着，我们使用 `newPos` 和实体的目标位置 `target` 来进行位置的修正。通过 `newPos\clamp position, target`，我们确保新位置在当前位置和目标位置之间，并将修正后的最终位置赋值回实体的 `position` 组件。
+
+```tl
+newPos = newPos:clamp(position, target)
+entity.position = newPos
+```
+
+&emsp;&emsp;接下来，如果新位置等于目标位置的话，我们就清空实体的目标位置 `target`。
+
+```tl
+if newPos == target then
+	entity.target = nil
+end
+```
+
+&emsp;&emsp;最后，我们计算了实体的旋转角度 `angle`，通过使用 `math.atan` 函数来计算方向向量 `dir` 的弧度，并将其转换为角度，更新实体的旋转角度组件 `direction` 为计算得到的角度值。
+
+```tl
+local angle = math.deg(math.atan(dir.x, dir.y))
+entity.direction = angle
+```
+
+&emsp;&emsp;这样，当每一帧游戏更新时，实体组内的就会触发这段代码对每个实体做逻辑处理，并对实体当前的 "position". "direction". "speed" 或 "target" 组件做更新操作。
+
+&emsp;&emsp;在完成数据计算和更新后，我们还需要把数据结果更新到渲染图形上。
+
+```tl
+Observer("AddOrChange", {"position", "direction", "sprite"})
+	:watch(function(entity: Entity.Type, position: Vec2.Type, direction: number, sprite: Sprite.Type)
+		-- 更新图片的显示位置
+		sprite.position = position
+		local lastDirection = entity.oldValues.direction as number or sprite.angle
+		-- 当图片的旋转角度变化时，我们就播放一个旋转的动画
+		if math.abs(direction - lastDirection) > 1 then
+			sprite:runAction(Roll(0.3, lastDirection, direction))
+		end
+	end)
+```
+
+&emsp;&emsp;最后，我们创建三个实体，并为它们添加不同的组件。这时游戏系统将开始正式运行。
+
+```tl
+Entity { scene = Node() }
+
+Entity {
+	image = "Image/logo.png",
+	position = Vec2.zero,
+	direction = 45.0,
+	speed = 4.0
+}
+
+Entity {
+	image = "Image/logo.png",
+	position = Vec2(-100, 200),
+	direction = 90.0,
+	speed = 10.0
+}
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+&emsp;&emsp;在编写实际的代码之前，我们先为 TypeScript 语言引入这篇教程中要用到的功能模块。
+
+```ts
+import {
+	Group, Observer,
+	Entity, Node,
+	Director, Touch,
+	Sprite, Scale,
+	Ease, Vec2, Roll,
+	EntityEvent
+} from "Dora";
+```
+
+&emsp;&emsp;首先，我们创建两个实体组 `sceneGroup` 和 `positionGroup`，分别用于访问和管理所有具有 "scene" 和 "position" 组件名称的实体。
+
+```ts
+const sceneGroup = Group(["scene"]);
+const positionGroup = Group(["position"]);
+```
+
+&emsp;&emsp;接下来，我们使用观察器（Observer）来监听实体的变化。当你在使用ECS框架开发游戏时，有时你需要在实体添加特定组件时触发一些操作。这时，你可以使用观察器（Observer）来监听实体的添加事件，并在添加事件发生时执行相应的逻辑。接下来是关于如何使用观察器监听实体添加事件的示例代码段：
+
+```ts
+Observer(EntityEvent.Add, ["scene"])
+	.watch((_entity, scene: Node.Type) => {
+		Director.entry.addChild(scene);
+		scene.onTapEnded(touch => {
+			const {location} = touch;
+			positionGroup.each(entity => {
+				entity.target = location;
+				return false;
+			})
+		});
+		return false;
+	});
+```
+
+&emsp;&emsp;首先，使用 `Observer` 类创建一个观察器对象，并指定观察器监测的事件类型为 "Add"，表示监听实体的添加事件。同时，通过传入一个包含字符串 "scene" 的列表作为参数，指定观察器要监测的组件类型包括 "scene"。
+
+```ts
+Observer(EntityEvent.Add, ["scene"])
+```
+
+&emsp;&emsp;接下来，在观察器对象的 `watch` 方法中，定义了一个回调函数 `(_entity, scene) =>`。这个回调函数在实体添加事件发生时被触发。它接收的第一个参数为触发事件的实体对象，后面的参数与监测的组件列表相对应。
+
+```ts
+.watch((_entity, scene: Node.Type) => {
+```
+
+&emsp;&emsp;在回调函数内部，我们执行了一系列操作。首先，通过 `Director.entry` 将 `scene` 添加到游戏场景中。
+
+```ts
+Director.entry.addChild(scene);
+```
+
+&emsp;&emsp;然后，我们给 `scene` 添加了一个 "onTapEnded" 的事件处理函数，当触摸结束事件发生时，这个处理函数会被调用。
+
+```ts
+scene.onTapEnded(touch => {
+```
+
+&emsp;&emsp;在事件处理函数内部，我们先获取了触摸点的位置赋值给 `location` 变量。
+
+```ts
+const {location} = touch;
+```
+
+&emsp;&emsp;最后，通过 `positionGroup.each()` 遍历了 `positionGroup` 实体组中的所有实体，并为每个实体设置了 `target` 属性为 触摸点的位置 `location`。
+
+```ts
+positionGroup.each(entity => {
+	entity.target = location;
+	return false;
+});
+```
+
+&emsp;&emsp;这样，当有新的实体添加了 "scene" 组件时，该观察器会触发并执行以上操作，并将场景节点添加到游戏中，并完成一系列的初始化操作。
+
+&emsp;&emsp;接下来，我们还要再创建一些观察器，分别处理其它 "Add" 和 "Remove" 类型的实体变化，并指定要监测的组件为 `image` 和 `sprite`。
+
+```ts
+Observer(EntityEvent.Add, ["image"]).watch((entity, image: string) => {
+	sceneGroup.each(e => {
+		const scene = e.scene as Node.Type;
+		const sprite = Sprite(image);
+		if (sprite) {
+			sprite.runAction(Scale(0.5, 0, 0.5, Ease.OutBack));
+			sprite.addTo(scene);
+			entity.sprite = sprite;
+		}
+		return true;
+	});
+	return false;
+});
+
+Observer(EntityEvent.Remove, ["sprite"]).watch(self => {
+	const sprite = self.oldValues.sprite as Node.Type;
+	sprite.removeFromParent();
+});
+```
+
+&emsp;&emsp;然后，我们创建一个具有 "position", "direction", "speed", "target" 组件的实体组，并定义了观察器来处理实体组内组件的变化，并在每一帧游戏更新时对一组特定的实体进行遍历，并根据实体的速度. 更新时间等信息来更新实体的旋转角度和位置属性。
+
+```ts
+Group(["position", "direction", "speed", "target"]).watch(
+	(entity, position: Vec2.Type, _direction: number, speed: number, target: Vec2.Type) => {
+	if (target.equals(position)) {
+		return;
+	}
+	const dir = target.sub(position).normalize();
+	const newPos = position.add(dir.mul(speed));
+	entity.position = newPos.clamp(position, target);
+	if (newPos.equals(target)) {
+		entity.target = nil;
+	}
+	const angle = math.deg(math.atan(dir.x, dir.y));
+	entity.direction = angle;
+});
+```
+
+&emsp;&emsp;在这段代码中，首先，我们使用 `Group` 类创建了一个实体组对象，并指定了组中包含的组件类型为 "position". "direction". "speed" 和 "target"。
+
+```ts
+Group(["position", "direction", "speed", "target"])
+```
+
+&emsp;&emsp;然后，我们使用了实体组的 `watch` 方法来每帧遍历所有组内的实体，执行我们定义的回调函数来处理实体上的组件。
+
+```ts
+.watch(
+	(entity, position: Vec2.Type, _direction: number, speed: number, target: Vec2.Type) => {
+```
+
+&emsp;&emsp;在回调函数内部，我们首先进行了一些条件判断。通过 `if (target.equals(position))` 判断实体的目标位置和当前位置是否相等，如果相等则直接返回，不进行后续的更新操作。
+
+&emsp;&emsp;接下来，我们计算了实体的方向向量 `dir`，它等于目标位置减去当前位置，并进行了归一化操作。
+
+```ts
+const dir = target.sub(position).normalize();
+```
+
+&emsp;&emsp;然后，我们根据实体的速度和方向向量，计算实体在当前帧更新时的新位置 `newPos`。通过将方向向量 `dir` 乘以速度 `speed`，然后将其加上当前位置 `position`，即可得到新的位置。
+
+```ts
+const newPos = position.add(dir.mul(speed));
+```
+
+&emsp;&emsp;接着，我们使用 `newPos` 和实体的目标位置 `target` 来进行位置的修正。通过 `.clamp(position, target)`，我们确保新位置在当前位置和目标位置之间，并将修正后的最终位置赋值回实体的 `position` 组件。
+
+```ts
+entity.position = newPos.clamp(position, target);
+```
+
+&emsp;&emsp;接下来，如果新位置等于目标位置的话，我们就清空实体的目标位置 `target`。
+
+```ts
+if (newPos.equals(target)) {
+	entity.target = nil;
+}
+```
+
+&emsp;&emsp;最后，我们计算了实体的旋转角度 `angle`，通过使用 `math.atan` 函数来计算方向向量 `dir` 的弧度，并将其转换为角度，更新实体的旋转角度组件 `direction` 为计算得到的角度值。
+
+```ts
+const angle = math.deg(math.atan(dir.x, dir.y));
+entity.direction = angle;
+```
+
+&emsp;&emsp;这样，当每一帧游戏更新时，实体组内的就会触发这段代码对每个实体做逻辑处理，并对实体当前的 "position". "direction". "speed" 或 "target" 组件做更新操作。
+
+&emsp;&emsp;在完成数据计算和更新后，我们还需要把数据结果更新到渲染图形上。
+
+```ts
+Observer(EntityEvent.AddOrChange, ["position", "direction", "sprite"])
+	.watch((entity, position: Vec2.Type, direction: number, sprite: Sprite.Type) => {
+		// 更新图片的显示位置
+		sprite.position = position;
+		const lastDirection = entity.oldValues.direction as number ?? sprite.angle;
+		// 当图片的旋转角度变化时，我们就播放一个旋转的动画
+		if (math.abs(direction - lastDirection) > 1) {
+			sprite.runAction(Roll(0.3, lastDirection, direction));
+		}
+	});
+```
+
+&emsp;&emsp;最后，我们创建三个实体，并为它们添加不同的组件。这时游戏系统将开始正式运行。
+
+```ts
+Entity({ scene: Node() });
+
+Entity({
+	image: "Image/logo.png",
+	position: Vec2.zero,
+	direction: 45.0,
+	speed: 4.0
+});
+
+Entity({
+	image: "Image/logo.png",
+	position: Vec2(-100, 200),
+	direction: 90.0,
+	speed: 10.0
+});
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+&emsp;&emsp;在编写实际的代码之前，我们先为YueScript语言引入这篇教程中要用到的功能模块。
+
+```yue
+_ENV = Dora!
+```
+
+&emsp;&emsp;首先，我们创建两个实体组 `sceneGroup` 和 `positionGroup`，分别用于访问和管理所有具有 "scene" 和 "position" 组件名称的实体。
+
+```yue
+sceneGroup = Group ["scene",]
+positionGroup = Group ["position",]
+```
+
+&emsp;&emsp;接下来，我们使用观察器（Observer）来监听实体的变化。当你在使用ECS框架开发游戏时，有时你需要在实体添加特定组件时触发一些操作。这时，你可以使用观察器（Observer）来监听实体的添加事件，并在添加事件发生时执行相应的逻辑。接下来是关于如何使用观察器监听实体添加事件的示例代码段：
+
+```yue
+with Observer "Add", ["scene",]
+	\watch (_entity, scene): false ->
+		Director.entry\addChild with scene
+			\onTapEnded (touch) ->
+				:location = touch
+				positionGroup\each (entity) ->
+					entity.target = location
+```
+
+&emsp;&emsp;首先，使用 `Observer` 类创建一个观察器对象，并指定观察器监测的事件类型为 "Add"，表示监听实体的添加事件。同时，通过传入一个包含字符串 "scene" 的列表作为参数，指定观察器要监测的组件类型包括 "scene"。
+
+```yue
+with Observer "Add", ["scene",]
+```
+
+&emsp;&emsp;接下来，在观察器对象的 `watch` 方法中，定义了一个回调函数 `(_entity, scene)->`。这个回调函数在实体添加事件发生时被触发。它接收的第一个参数为触发事件的实体对象，后面的参数与监测的组件列表相对应。
+
+```yue
+\watch (_entity, scene) ->
+```
+
+&emsp;&emsp;在回调函数内部，我们执行了一系列操作。首先，通过 `Director.entry` 将 `scene` 添加到游戏场景中。
+
+```yue
+Director.entry\addChild with scene
+```
+
+&emsp;&emsp;然后，我们给 `scene` 添加了一个 "onTapEnded" 的事件处理函数，当触摸结束事件发生时，这个处理函数会被调用。
+
+```yue
+\onTapEnded (touch) ->
+```
+
+&emsp;&emsp;在事件处理函数内部，我们通过 `:location = touch` 将触摸点的位置赋值给 `location` 变量。
+
+```yue
+:location = touch
+```
+
+&emsp;&emsp;最后，通过 `positionGroup\each (entity)->` 遍历了 `positionGroup` 实体组中的所有实体，并为每个实体设置了 `target` 属性为 触摸点的位置`location`。
+
+```yue
+positionGroup\each (entity) ->
+	entity.target = location
+```
+
+&emsp;&emsp;这样，当有新的实体添加了 "scene" 组件时，该观察器会触发并执行以上操作，并将场景节点添加到游戏中，并完成一系列的初始化操作。
+
+&emsp;&emsp;接下来，我们还要再创建一些观察器，分别处理其它 "Add" 和 "Remove" 类型的实体变化，并指定要监测的组件为 `image` 和 `sprite`。
+
+```yue
+with Observer "Add", ["image",]
+	\watch (image): false => sceneGroup\each (e) ->
+		with @sprite = Sprite image
+			\addTo e.scene
+			\runAction Scale 0.5, 0, 0.5, Ease.OutBack
+		true
+
+with Observer "Remove", ["sprite",]
+	\watch (): false => @oldValues.sprite\removeFromParent!
+```
+
+&emsp;&emsp;然后，我们创建一个具有 "position", "direction", "speed", "target" 组件的实体组，并定义了观察器来处理实体组内组件的变化，并在每一帧游戏更新时对一组特定的实体进行遍历，并根据实体的速度. 更新时间等信息来更新实体的旋转角度和位置属性。
+
+```yue
+with Group ["position", "direction", "speed", "target"]
+	\watch (entity, position, direction, speed, target): false ->
+		return if target == position
+		dir = target - position
+		dir = dir\normalize!
+		newPos = position + dir * speed
+		newPos = newPos\clamp position, target
+		entity.position = newPos
+		entity.target = nil if newPos == target
+		angle = math.deg math.atan dir.x, dir.y
+		entity.direction = angle
+```
+
+&emsp;&emsp;在这段代码中，首先，我们使用 `Group` 类创建了一个实体组对象，并指定了组中包含的组件类型为 "position". "direction". "speed" 和 "target"。
+
+```yue
+with Group ["position", "direction", "speed", "target"]
+```
+
+&emsp;&emsp;然后，我们使用了实体组的 `watch` 方法来每帧遍历所有组内的实体，执行我们定义的回调函数来处理实体上的组件。
+
+```yue
+\watch (entity, position, direction, speed, target): false ->
+```
+
+&emsp;&emsp;在回调函数内部，我们首先进行了一些条件判断。通过 `return if target == position` 判断实体的目标位置和当前位置是否相等，如果相等则直接返回，不进行后续的更新操作。
+
+```yue
+return if target == position
+```
+
+&emsp;&emsp;接下来，我们计算了实体的方向向量 `dir`，它等于目标位置减去当前位置，并进行了归一化操作。
+
+```yue
+dir = target - position
+dir = dir\normalize!
+```
+
+&emsp;&emsp;然后，我们根据实体的速度和方向向量，计算实体在当前帧更新时的新位置 `newPos`。通过将方向向量 `dir` 乘以速度 `speed`，然后将其加上当前位置 `position`，即可得到新的位置。
+
+```yue
+newPos = position + dir * speed
+```
+
+&emsp;&emsp;接着，我们使用 `newPos` 和实体的目标位置 `target` 来进行位置的修正。通过 `newPos\clamp position, target`，我们确保新位置在当前位置和目标位置之间，并将修正后的最终位置赋值回实体的 `position` 组件。
+
+```yue
+newPos = newPos\clamp position, target
+entity.position = newPos
+```
+
+&emsp;&emsp;接下来，如果新位置等于目标位置的话，我们就清空实体的目标位置 `target`。
+
+```yue
+entity.target = nil if newPos == target
+```
+
+&emsp;&emsp;最后，我们计算了实体的旋转角度 `angle`，通过使用 `math.atan` 函数来计算方向向量 `dir` 的弧度，并将其转换为角度，更新实体的旋转角度组件 `direction` 为计算得到的角度值。
+
+```yue
+angle = math.deg math.atan dir.x, dir.y
+entity.direction = angle
+```
+
+&emsp;&emsp;这样，当每一帧游戏更新时，实体组内的就会触发这段代码对每个实体做逻辑处理，并对实体当前的 "position". "direction". "speed" 或 "target" 组件做更新操作。
+
+&emsp;&emsp;在完成数据计算和更新后，我们还需要把数据结果更新到渲染图形上。
+
+```yue
+with Observer "AddOrChange", ["position", "direction", "sprite"]
+	\watch (position, direction, sprite): false =>
+		-- 更新图片的显示位置
+		sprite.position = position
+		lastDirection = @oldValues.direction or sprite.angle
+		-- 当图片的旋转角度变化时，我们就播放一个旋转的动画
+		if math.abs(direction - lastDirection) > 1
+			sprite\runAction Roll 0.3, lastDirection, direction
+```
+
+&emsp;&emsp;最后，我们创建三个实体，并为它们添加不同的组件。这时游戏系统将开始正式运行。
+
+```yue
+Entity
+	scene: Node!
+
+Entity
+	image: "Image/logo.png"
+	position: Vec2.zero
+	direction: 45.0
+	speed: 4.0
+
+Entity
+	image: "Image/logo.png"
+	position: Vec2 -100, 200
+	direction: 90.0
+	speed: 10.0
 ```
 
 </TabItem>

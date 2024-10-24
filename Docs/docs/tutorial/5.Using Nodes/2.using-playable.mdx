@@ -4,27 +4,27 @@ import TabItem from '@theme/TabItem';
 
 # Using the Playable Node
 
-In game development, animation is a key element that brings characters and scenes to life. The Dora SSR engine provides a robust animation handling node class called **Playable**. It serves as the base class for three different animation systems:
+In game development, animations are crucial for bringing characters and scenes to life. Dora SSR engine provides a powerful animation handling node class—**Playable**. It serves as the base class for three animation systems:
 
 - **Model**:
-	- The skeletal animation system implemented by the Dora SSR engine.
-	- Model animations usually consist of a `.model` file, a `.clip` file, and a `.png` file.
+	- A skeletal animation system implemented by the Dora SSR engine.
+	- Animation models are usually composed of a `.model` file, a `.clip` file, and a `.png` file.
 - **DragonBone**:
-	- An open-source animation system.
-	- DragonBones animations typically consist of a file ending with `_ske.json`, a file ending with `_tex.json`, and an image file ending with `_tex.png`.
+	- The open-source DragonBones animation system.
+	- Animation models typically consist of a file ending with `_ske.json`, a file ending with `_tex.json`, and an image file ending with `_tex.png`.
 - **Spine**:
-	- The animation system of the famous commercial software Spine2D.
-	- Spine animations generally consist of a `.json` (or `.skel`) file, an `.atlas` file, and a `.png` file.
+	- The animation system of the well-known commercial software Spine2D.
+	- Animation models are generally composed of a `.json` (or `.skel`) file, an `.atlas` file, and a `.png` file.
 
 This tutorial will guide you on how to use the Playable node in your program, covering everything from loading animations to controlling playback.
 
 ## 1. Creating a Playable Instance
 
-To use the Playable node, you first need to create an instance. Playable supports three animation systems, and they can be loaded using the following conventions:
+To use the Playable node, you first need to create an instance. Playable supports three animation systems, and the typical loading methods are as follows:
 
-- **Model files**: `"model:"` prefix + the file path without an extension.
-- **Spine files**: `"spine:"` prefix + the file path without an extension.
-- **DragonBones files**: `"bone:"` prefix + the file path without an extension.
+- **Model files**: `"model:"` prefix + the model file path without the suffix.
+- **Spine files**: `"spine:"` prefix + the Spine file path without the suffix.
+- **DragonBones files**: `"bone:"` prefix + the DragonBones file path without the suffix.
 
 ### 1.1 Example: Loading a Model Animation
 
@@ -34,7 +34,7 @@ To use the Playable node, you first need to create an instance. Playable support
 ```lua
 local Playable <const> = require("Playable")
 
--- Load a Model animation
+-- Load Model animation
 local modelPath = "model:assets/character"
 local character = Playable(modelPath)
 
@@ -44,6 +44,60 @@ if character then
 else
 	print("Failed to load Model animation!")
 end
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local Playable <const> = require("Playable")
+
+-- Load Model animation
+local modelPath = "model:assets/character"
+local character = Playable(modelPath)
+
+if not character is nil then
+	character.position = Vec2(100, 200)
+	stage:addChild(character)
+else
+	print("Failed to load Model animation!")
+end
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { Playable, Vec2 } from "Dora";
+
+// Load Model animation
+const modelPath = "model:assets/character";
+const character = Playable(modelPath);
+
+if (character) {
+	character.position = Vec2(100, 200);
+	stage.addChild(character);
+} else {
+	print("Failed to load Model animation!");
+}
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+-- Load Model animation
+modelPath = "model:assets/character"
+character = Playable modelPath
+
+if character
+	with character
+		.position = Vec2 100, 200
+		\addTo stage
+else
+	print "Failed to load Model animation!"
 ```
 
 </TabItem>
@@ -57,7 +111,7 @@ end
 ```lua
 local Playable <const> = require("Playable")
 
--- Load a Spine animation
+-- Load Spine animation
 local spinePath = "spine:assets/monster"
 local monster = Playable(spinePath)
 
@@ -70,9 +124,63 @@ end
 ```
 
 </TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local Playable <const> = require("Playable")
+
+-- Load Spine animation
+local spinePath = "spine:assets/monster"
+local monster = Playable(spinePath)
+
+if not monster is nil then
+	monster.position = Vec2(300, 200)
+	stage:addChild(monster)
+else
+	print("Failed to load Spine animation!")
+end
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { Playable, Vec2 } from "Dora";
+
+// Load Spine animation
+const spinePath = "spine:assets/monster";
+const monster = Playable(spinePath);
+
+if (monster) {
+	monster.position = Vec2(300, 200);
+	stage.addChild(monster);
+} else {
+	print("Failed to load Spine animation!");
+}
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+-- Load Spine animation
+spinePath = "spine:assets/monster"
+monster = Playable spinePath
+
+if monster
+	with monster
+		.position = Vec2 300, 200
+		\addTo stage
+else
+	print "Failed to load Spine animation!"
+```
+
+</TabItem>
 </Tabs>
 
-### 1.3 Example: Loading a DragonBones Animation
+### 1.3 Example: Loading DragonBones Animation
 
 <Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
@@ -80,7 +188,7 @@ end
 ```lua
 local Playable <const> = require("Playable")
 
--- Load a DragonBones animation
+-- Load DragonBones animation
 local dragonBonePath = "bone:assets/dragon"
 local dragon = Playable(dragonBonePath)
 
@@ -93,11 +201,65 @@ end
 ```
 
 </TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local Playable <const> = require("Playable")
+
+-- Load DragonBones animation
+local dragonBonePath = "bone:assets/dragon"
+local dragon = Playable(dragonBonePath)
+
+if not dragon is nil then
+	dragon.position = Vec2(500, 200)
+	stage:addChild(dragon)
+else
+	print("Failed to load DragonBones animation!")
+end
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { Playable, Vec2 } from "Dora";
+
+// Load DragonBones animation
+const dragonBonePath = "bone:assets/dragon";
+const dragon = Playable(dragonBonePath);
+
+if (dragon) {
+	dragon.position = Vec2(500, 200);
+	stage.addChild(dragon);
+} else {
+	print("Failed to load DragonBones animation!");
+}
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+-- Load DragonBones animation
+dragonBonePath = "bone:assets/dragon"
+dragon = Playable dragonBonePath
+
+if dragon
+	with dragon
+		.position = Vec2 500, 200
+		\addTo stage
+else
+	print "Failed to load DragonBones animation!"
+```
+
+</TabItem>
 </Tabs>
 
-### 1.4 Example: Asynchronously Loading an Animation
+### 1.4 Example: Asynchronous Animation Loading
 
-In real-world development, loading animations might take some time. You can use the `Cache:loadAsync()` method to load animations asynchronously and trigger a callback once loading is complete.
+In real-world development, loading animations may take some time. You can use the `Cache:loadAsync()` method to load animations asynchronously, executing a callback function upon completion.
 
 <Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
@@ -106,7 +268,7 @@ In real-world development, loading animations might take some time. You can use 
 local Playable <const> = require("Playable")
 local thread <const> = require("thread")
 
--- Asynchronously load a Model animation
+-- Asynchronously load Model animation
 local modelPath = "model:assets/character"
 thread(function()
 	if Cache:loadAsync(modelPath) then
@@ -120,31 +282,117 @@ end)
 ```
 
 </TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local Playable <const> = require("Playable")
+local thread <const> = require("thread")
+
+-- Asynchronously load Model animation
+local modelPath = "model:assets/character"
+thread(function()
+	if Cache:loadAsync(modelPath) then
+		local character = Playable(modelPath)
+		if not character is nil then
+			character.position = Vec2(100, 200)
+			stage:addChild(character)
+		end
+	else
+		print("Failed to load Model animation asynchronously!")
+	end
+end)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { Playable, Vec2, Cache, thread } from "Dora";
+
+// Asynchronously load Model animation
+const modelPath = "model:assets/character";
+thread(() => {
+	if (Cache.loadAsync(modelPath)) {
+		const character = Playable(modelPath);
+		if (character) {
+			character.position = Vec2(100, 200);
+			stage.addChild(character);
+		}
+	} else {
+		print("Failed to load Model animation asynchronously!");
+	}
+});
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+-- Asynchronously load Model animation
+modelPath = "model:assets/character"
+thread ->
+	if Cache\loadAsync modelPath
+		with Playable modelPath
+			.position = Vec2 100, 200
+
+
+	\addTo stage
+	else
+		print "Failed to load Model animation asynchronously!"
+```
+
+</TabItem>
 </Tabs>
 
 ## 2. Playing Animations
 
-Once the instance is created, you can use the `play` method to play a specified animation.
+Once you have created an instance, you can play a specific animation using the `play` method.
 
 <Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
 
 ```lua
--- Play the "run" animation, looping it
+-- Play the "run" animation in a loop
 local duration = character:play("run", true)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+-- Play the "run" animation in a loop
+local duration = character:play("run", true)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+// Play the "run" animation ina loop
+const duration = character.play("run", true);
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+-- Play the "run" animation in a loop
+duration = character\play "run", true
 ```
 
 </TabItem>
 </Tabs>
 
 - **Parameters**:
-	- `name`: The name of the animation to play.
-	- `loop` (optional): Whether to loop the animation. Defaults to `false`.
-- **Return Value**: The duration of the animation in seconds.
+    - `name`: The name of the animation to play.
+    - `loop` (optional): Whether to loop the animation, default is `false`.
+- **Return Value**: The duration of the animation (in seconds).
 
-## 3. Stopping an Animation
+## 3. Stopping Animations
 
-You can stop the currently playing animation using the `stop` method.
+Use the `stop` method to stop the currently playing animation.
 
 <Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
@@ -155,16 +403,64 @@ character:stop()
 ```
 
 </TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+-- Stop the animation
+character:stop()
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+// Stop the animation
+character.stop();
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+-- Stop the animation
+character\stop()
+```
+
+</TabItem>
 </Tabs>
 
-## 4. Adjusting Playback Speed
+## 4. Setting Playback Speed
 
-You can change the playback speed of an animation by modifying the `speed` property.
+You can change the animation playback speed by adjusting the `speed` property.
 
 <Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
 
 ```lua
+-- Double the playback speed
+character.speed = 2.0
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+-- Double the playback speed
+character.speed = 2.0
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+// Double the playback speed
+character.speed = 2.0;
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
 -- Double the playback speed
 character.speed = 2.0
 ```
@@ -176,43 +472,94 @@ character.speed = 2.0
 
 ## 5. Flipping Animations
 
-The `fliped` property allows you to flip animations horizontally, which is often useful for character direction changes.
+You can flip the animation horizontally by using the `fliped` property, which is often used for character direction changes.
 
 <Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
 
 ```lua
--- Flip the animation horizontally
+-- Flip horizontally
+character.fliped = true
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+-- Flip horizontally
+character.fliped = true
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+// Flip horizontally
+character.fliped = true;
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+-- Flip horizontally
 character.fliped = true
 ```
 
 </TabItem>
 </Tabs>
 
-- **`fliped`**: `true` flips the animation, `false` leaves it normal.
+- **`fliped`**: `true` means flipped, `false` means normal.
 
-## 6. Getting Key Point Coordinates
+## 6. Getting Keypoint Coordinates
 
-The `getKey` method retrieves the coordinates of key points on the model, such as the hands and feet. In the Model animation system, key points are predefined on the model. In DragonBone, they refer to bone positions, and in Spine2D, they refer to attachment points.
+The `getKey` method is used to get the coordinates of keypoints on the model, such as the character's hand or foot positions. In the Model animation system, keypoints are specific points set on the model. In DragonBone, keypoints are bone positions. In Spine2D, keypoints are vertex attachment positions.
 
 <Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
 
 ```lua
--- Get the right hand position
+-- Get the coordinates of the character's right hand
 local handPosition = character:getKey("right_hand")
 print("Right hand coordinates:", handPosition.x, handPosition.y)
 ```
 
 </TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+-- Get the coordinates of the character's right hand
+local handPosition = character:getKey("right_hand")
+print("Right hand coordinates:", handPosition.x, handPosition.y)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+// Get the coordinates of the character's right hand
+const handPosition = character.getKey("right_hand");
+print("Right hand coordinates:", handPosition.x, handPosition.y);
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+-- Get the coordinates of the character's right hand
+handPosition = character\getKey "right_hand"
+print "Right hand coordinates:", handPosition.x, handPosition.y
+```
+
+</TabItem>
 </Tabs>
 
-- **Parameter**: The name of the key point (string).
-- **Return Value**: `Vec2`, representing the coordinates of the key point.
+- **Parameters**: The name of the keypoint (string).
+- **Return Value**: `Vec2`, representing the coordinates of the keypoint.
 
 ## 7. Adding Child Nodes to Slots
 
-The `setSlot` method allows you to add child nodes to specific slots in the model, such as equipping a character with a weapon.
+The `setSlot` method allows you to add child nodes to specific slots on the model, such as adding a weapon or equipment to a character.
 
 <Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
@@ -221,20 +568,53 @@ The `setSlot` method allows you to add child nodes to specific slots in the mode
 -- Create a sword sprite
 local sword = Sprite("assets/sword.png")
 
--- Add the sword to the "right_hand" slot
+-- Add the sword to the character's "right_hand" slot
 character:setSlot("right_hand", sword)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+-- Create a sword sprite
+local sword = Sprite("assets/sword.png")
+
+-- Add the sword to the character's "right_hand" slot
+character:setSlot("right_hand", sword)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+// Create a sword sprite
+const sword = Sprite("assets/sword.png");
+
+// Add the sword to the character's "right_hand" slot
+character.setSlot("right_hand", sword);
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+-- Create a sword sprite
+sword = Sprite "assets/sword.png"
+
+-- Add the sword to the character's "right_hand" slot
+character\setSlot "right_hand", sword
 ```
 
 </TabItem>
 </Tabs>
 
 - **Parameters**:
-	- `name`: The name of the slot.
-	- `item`: The node object to be added.
+    - `name`: The name of the slot.
+    - `item`: The node object to be added.
 
-## 8. Retrieving Slot Contents
+## 8. Getting Child Nodes from Slots
 
-You can retrieve the child node in a specific slot using the `getSlot` method.
+You can retrieve the child node from a specific slot using the `getSlot` method.
 
 <Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
@@ -250,13 +630,51 @@ end
 ```
 
 </TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+-- Get the node in the "right_hand" slot
+local equippedItem = character:getSlot("right_hand")
+if not equippedItem is nil then
+	print("Equipped item:", equippedItem)
+else
+	print("Slot is empty")
+end
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+// Get the node in the "right_hand" slot
+const equippedItem = character.getSlot("right_hand");
+if (equippedItem) {
+	print("Equipped item:", equippedItem);
+} else {
+	print("Slot is empty");
+}
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+-- Get the node in the "right_hand" slot
+equippedItem = character\getSlot "right_hand"
+if equippedItem
+	print "Equipped item:", equippedItem
+else
+	print "Slot is empty"
+```
+
+</TabItem>
 </Tabs>
 
 - **Return Value**: A `Node` object or `nil`.
 
 ## 9. Listening for Animation End Events
 
-You can register a callback using the `onAnimationEnd` method to trigger when the animation finishes playing.
+You can register a callback function using the `onAnimationEnd` method, which triggers when the animation playback ends.
 
 <Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
@@ -265,19 +683,51 @@ You can register a callback using the `onAnimationEnd` method to trigger when th
 -- Register an animation end callback
 character:onAnimationEnd(function(animationName, target)
 	print("Animation ended:", animationName)
-	-- Perform further actions, such as switching animations
+	-- Perform subsequent actions here, such as switching animations
 end)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+-- Register an animation end callback
+character:onAnimationEnd(function(animationName: string, target: Playable.Type)
+	print("Animation ended:", animationName)
+	-- Perform subsequent actions here, such as switching animations
+end)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+// Register an animation end callback
+character.onAnimationEnd((animationName, target) => {
+	print("Animation ended:", animationName);
+	// Perform subsequent actions here, such as switching animations
+});
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+-- Register an animation end callback
+character\onAnimationEnd (animationName, target) ->
+	print "Animation ended:", animationName
+	-- Perform subsequent actions here, such as switching animations
 ```
 
 </TabItem>
 </Tabs>
 
 - **Parameters**:
-	- `callback`: The callback function, which receives `animationName` and `target`.
+	- `callback`: A callback function that accepts two parameters: `animationName` and `target`.
 
-## 10. Complete Example
+## 10. Comprehensive Example
 
-Here’s a full example showing how to create a character, play animations, add equipment, and handle animation end events.
+The following is a comprehensive example that demonstrates how to create a character, play animations, equip items, and handle animation end events.
 
 <Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
@@ -288,12 +738,11 @@ local Sprite <const> = require("Sprite")
 local Vec2 <const> = require("Vec2")
 local sleep <const> = require("sleep")
 
--- Create the character
+-- Create a character
 local character = Playable("model:assets/hero.model")
 character.position = Vec2(200, 300)
-stage:addChild(character)
 
--- Set attributes
+-- Set properties
 character.speed = 1.0
 character.fliped = false
 
@@ -304,20 +753,137 @@ character:play("idle", true)
 local sword = Sprite("assets/sword.png")
 character:setSlot("right_hand", sword)
 
--- Register animation end event
+-- Register an animation end event
 character:onAnimationEnd(function(animationName, target)
 	if animationName == "attack" then
-		-- After attack animation, return to idle
+		-- Return to idle state after attack ends
 		target:play("idle", true)
 	end
 end)
 
--- Perform attack every 3 seconds
+-- Perform an attack every 3 seconds
 character:loop(function()
-	-- Play attack animation without looping
-	local duration = character:play("attack")
-	sleep(duration)
+	-- Play attack animation
+	character:play("attack")
+	sleep(3)
 end)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local Playable <const> = require("Playable")
+local Sprite <const> = require("Sprite")
+local Vec2 <const> = require("Vec2")
+local sleep <const> = require("sleep")
+
+-- Create a character
+local character = Playable("model:assets/hero.model")
+if not character is nil then
+	character.position = Vec2(200, 300)
+
+	-- Set properties
+	character.speed = 1.0
+	character.fliped = false
+
+	-- Play idle animation
+	character:play("idle", true)
+
+	-- Create a sword and equip it
+	local sword = Sprite("assets/sword.png")
+	character:setSlot("right_hand", sword)
+
+	-- Register an animation end event
+	character:onAnimationEnd(function(animationName: string, target: Playable.Type)
+		if animationName == "attack" then
+			-- Return to idle state after attack ends
+			target:play("idle", true)
+		end
+	end)
+
+	-- Perform an attack every 3 seconds
+	character:loop(function(): boolean
+		-- Play attack animation
+		character:play("attack")
+		sleep(3)
+		return false
+	end)
+end
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { Playable, Sprite, Vec2, sleep } from "Dora";
+
+// Create a character
+const character = Playable("model:assets/hero.model");
+if (character) {
+	character.position = Vec2(200, 300);
+
+	// Set properties
+	character.speed = 1.0;
+	character.fliped = false;
+
+	// Play idle animation
+	character.play("idle", true);
+
+	// Create a sword and equip it
+	const sword = Sprite("assets/sword.png");
+	character.setSlot("right_hand", sword);
+
+	// Register an animation end event
+	character.onAnimationEnd((animationName, target) => {
+		if (animationName === "attack") {
+			// Return to idle state after attack ends
+			target.play("idle", true);
+		}
+	});
+
+	// Perform an attack every 3 seconds
+	character.loop(() => {
+		// Play attack animation
+		character.play("attack");
+		sleep(3);
+		return false;
+	});
+}
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+-- Create a character
+with Playable "model:assets/hero.model"
+	.position = Vec2 200, 300
+
+	-- Set properties
+	.speed = 1.0
+	.fliped = false
+
+	-- Play idle animation
+	\play "idle", true
+
+	-- Create a sword and equip it
+	sword = Sprite "assets/sword.png"
+	\setSlot "right_hand", sword
+
+	-- Register an animation end event
+	\onAnimationEnd (animationName, target) ->
+		if animationName == "attack"
+			-- Return to idle state after attack ends
+			target\play "idle", true
+
+	-- Perform an attack every 3 seconds
+	\loop ->
+		-- Play attack animation, no looping
+		\play "attack"
+		sleep 3
 ```
 
 </TabItem>
@@ -325,10 +891,10 @@ end)
 
 ## 11. Conclusion
 
-Through this tutorial, you’ve learned how to use the Playable node class in Dora SSR to load and control various animation models. Playable offers a rich set of APIs supporting multiple animation systems, allowing you to easily add complex animations to your game.
+Through this tutorial, you have learned how to use the Playable node class in Dora SSR to load and control various animation models. Playable offers a rich set of interfaces, supporting multiple animation systems, making it easy to add complex animation effects to your game.
 
-:::warning Spine2D is Commercial Software
-Since Spine2D is commercial software, using its animations requires following the appropriate licensing agreements. Please refer to the [Spine official website](https://esotericsoftware.com/) for more details.
+:::warning Spine2D is commercial software
+Since Spine2D is commercial software, using its animations requires adhering to the corresponding license agreement. Please refer to the [official Spine website](https://esotericsoftware.com/) for more details.
 :::
 
-We hope this tutorial helps you, and best of luck with your game development!
+We hope this tutorial helps you in your game development journey, and we wish you success!

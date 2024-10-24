@@ -49,6 +49,72 @@ end
 ```
 
 </TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local function StarVertices(radius: number, line: integer): {Vec2.Type}
+	-- 计算五角星的顶点坐标
+	local a = math.rad(36)
+	local c = math.rad(72)
+	local f = math.sin(a) * math.tan(c) + math.cos(a)
+	local R = radius
+	local r = R / f
+	local vecs: {Vec2.Type} = {}
+	local count = 1
+	for i = 9, line and -1 or 0, -1 do
+		local angle = i * a
+		local cr = i % 2 == 1 and r or R
+		vecs[count] = Vec2(cr * math.sin(angle), cr * math.cos(angle))
+		count = count + 1
+	end
+	-- 返回顶点数组
+	return vecs
+end
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+function StarVertices(radius: number, line: number) {
+	// 计算五角星的顶点坐标
+	const a = math.rad(36);
+	const c = math.rad(72);
+	const f = math.sin(a) * math.tan(c) + math.cos(a);
+	const R = radius;
+	const r = R / f;
+	const vecs: Vec2.Type[] = []
+	for (let i = 9; line ? -1 : 0; i--) {
+		const angle = i * a;
+		const cr = i % 2 == 1 ? r : R
+		vecs.push(Vec2(cr * math.sin(angle), cr * math.cos(angle)));
+	}
+	// 返回顶点数组
+	return vecs;
+}
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+StarVertices = (radius, line) ->
+	-- 计算五角星的顶点坐标
+	a = math.rad 36
+	c = math.rad 72
+	f = math.sin(a) * math.tan(c) + math.cos a
+	R = radius
+	r = R / f
+	vecs = []
+	for i = 9, line and -1 or 0, -1
+		angle = i * a
+		cr = i % 2 == 1 and r or R
+		vecs[] = Vec2 cr * math.sin(angle), cr * math.cos angle
+	-- 返回顶点数组
+	vecs
+```
+
+</TabItem>
 </Tabs>
 
 2. **绘制蒙版形状**
@@ -59,6 +125,30 @@ end
 ```lua
 local maskA = DrawNode()
 maskA:drawPolygon(StarVertices(160, false))
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local maskA = DrawNode()
+maskA:drawPolygon(StarVertices(160, false))
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+const maskA = DrawNode();
+maskA.drawPolygon(StarVertices(160, false));
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+maskA = DrawNode()
+maskA.drawPolygon StarVertices(160, false)
 ```
 
 </TabItem>
@@ -89,6 +179,67 @@ end)
 ```
 
 </TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local targetA = Model("Model/xiaoli.model")
+if not targetA is nil then
+	targetA.look = "happy"
+	targetA.fliped = true
+	-- 设置模型的动画和移动路径
+	targetA:play("walk", true)
+	targetA:runAction(
+		Sequence(
+			X(1.5, -200, 200), Event("Turn"),
+			X(1.5, 200, -200), Event("Turn")
+		), true
+	)
+	targetA:slot("Turn", function()
+		targetA.fliped = not targetA.fliped
+	end)
+end
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+const targetA = Model("Model/xiaoli.model");
+if (targetA) {
+	targetA.look = "happy";
+	targetA.fliped = true;
+	// 设置模型的动画和移动路径
+	targetA.play("walk", true);
+	targetA.runAction(
+		Sequence(
+			X(1.5, -200, 200), Event("Turn"),
+			X(1.5, 200, -200), Event("Turn")
+		), true
+	);
+	targetA.slot("Turn", () => {
+		targetA.fliped = !targetA.fliped;
+	});
+}
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+targetA = with Model "Model/xiaoli.model"
+	.look = "happy"
+	.fliped = true
+	-- 设置模型的动画和移动路径
+	.play "walk", true
+	\runAction Sequence(
+		X 1.5, -200, 200, Event "Turn",
+		X 1.5, 200, -200, Event "Turn"
+	), true
+	\slot "Turn", ->
+		targetA.fliped = not targetA.fliped
+```
+
+</TabItem>
 </Tabs>
 
 4. **创建 ClipNode 并添加子节点**
@@ -100,6 +251,33 @@ end)
 local clipNodeA = ClipNode(maskA)
 clipNodeA:addChild(targetA)
 clipNodeA.inverted = true
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local clipNodeA = ClipNode(maskA)
+clipNodeA:addChild(targetA)
+clipNodeA.inverted = true
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+const clipNodeA = ClipNode(maskA);
+clipNodeA.addChild(targetA);
+clipNodeA.inverted = true;
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+clipNodeA = with ClipNode maskA
+	\addChild targetA
+	.inverted = true
 ```
 
 </TabItem>
@@ -115,6 +293,30 @@ clipNodeA.inverted = true
 ```lua
 local exampleA = Node()
 exampleA:addChild(clipNodeA)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local exampleA = Node()
+exampleA:addChild(clipNodeA)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+const exampleA = Node();
+exampleA.addChild(clipNodeA);
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+exampleA = with Node!
+	\addChild clipNodeA
 ```
 
 </TabItem>
@@ -143,6 +345,40 @@ maskB:play("walk", true)
 ```
 
 </TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local maskB = Model("Model/xiaoli.model")
+if not maskB is nil then
+	maskB.look = "happy"
+	maskB.fliped = true
+	maskB:play("walk", true)
+end
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+const maskB = Model("Model/xiaoli.model");
+if (maskB) {
+	maskB.look = "happy";
+	maskB.fliped = true;
+	maskB.play("walk", true);
+}
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+maskB = with Model "Model/xiaoli.model"
+	.look = "happy"
+	.fliped = true
+	.play "walk", true
+```
+
+</TabItem>
 </Tabs>
 
 &emsp;&emsp;这里，我们使用一个模型作为蒙版节点。
@@ -165,6 +401,49 @@ targetB:runAction(
 ```
 
 </TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local targetB = DrawNode()
+targetB:drawPolygon(StarVertices(160, false))
+-- 设置目标形状的移动路径
+targetB:runAction(
+	Sequence(
+		X(1.5, -200, 200),
+		X(1.5, 200, -200)
+	), true
+)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+const targetB = DrawNode();
+targetB.drawPolygon(StarVertices(160, false));
+// 设置目标形状的移动路径
+targetB.runAction(
+	Sequence(
+		X(1.5, -200, 200),
+		X(1.5, 200, -200)
+	), true
+);
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+targetB = with DrawNode!
+	\drawPolygon StarVertices 160, false
+	-- 设置目标形状的移动路径
+	\runAction Sequence(
+		X 1.5, -200, 200,
+		X 1.5, 200, -200
+	), true
+```
+
+</TabItem>
 </Tabs>
 
 3. **创建 ClipNode 并设置 alphaThreshold**
@@ -180,6 +459,36 @@ clipNodeB.alphaThreshold = 0.3
 ```
 
 </TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local clipNodeB = ClipNode(maskB)
+clipNodeB:addChild(targetB)
+clipNodeB.inverted = true
+clipNodeB.alphaThreshold = 0.3
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+const clipNodeB = ClipNode(maskB);
+clipNodeB.addChild(targetB);
+clipNodeB.inverted = true;
+clipNodeB.alphaThreshold = 0.3;
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+clipNodeB = with ClipNode maskB
+	\addChild targetB
+	.inverted = true
+	.alphaThreshold = 0.3
+```
+
+</TabItem>
 </Tabs>
 
 &emsp;&emsp;通过设置 `alphaThreshold = 0.3`，只有当蒙版模型的像素 alpha 值大于 0.3 时，裁剪才会生效。
@@ -192,6 +501,30 @@ clipNodeB.alphaThreshold = 0.3
 ```lua
 local exampleB = Node()
 exampleB:addChild(clipNodeB)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local exampleB = Node()
+exampleB:addChild(clipNodeB)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+const exampleB = Node();
+exampleB.addChild(clipNodeB);
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+exampleB = with Node!
+	\addChild clipNodeB
 ```
 
 </TabItem>

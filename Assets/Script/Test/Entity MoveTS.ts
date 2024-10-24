@@ -1,16 +1,12 @@
 // @preview-file on
 import { SetCond, WindowFlag } from "ImGui";
 import * as ImGui from 'ImGui';
-import { App, Component, Ease, Entity, Event, Group, Node, Observer, EntityEvent, Roll, Scale, Sequence, Sprite, TypeName, Vec2, tolua } from "Dora";
+import { App, Ease, Entity, Event, Group, Node, Observer, EntityEvent, Roll, Scale, Sequence, Sprite, TypeName, Vec2, tolua } from "Dora";
 
 const sceneGroup = Group(["scene"]);
 const positionGroup = Group(["position"]);
 
-function toNode(item: any) {
-	return tolua.cast(item, TypeName.Node);
-}
-
-Observer(EntityEvent.Add, ["scene"]).watch((_, scene: Node.Type) => {
+Observer(EntityEvent.Add, ["scene"]).watch((_entity, scene: Node.Type) => {
 	scene.onTapEnded(touch => {
 		const {location} = touch;
 		positionGroup.each(entity => {
@@ -23,8 +19,8 @@ Observer(EntityEvent.Add, ["scene"]).watch((_, scene: Node.Type) => {
 
 Observer(EntityEvent.Add, ["image"]).watch((entity, image: string) => {
 	sceneGroup.each(e => {
-		const scene = toNode(e.scene);
-		if (scene !== null) {
+		const scene = tolua.cast(e.scene, TypeName.Node);
+		if (scene) {
 			const sprite = Sprite(image);
 			if (sprite) {
 				sprite.addTo(scene);
@@ -34,12 +30,12 @@ Observer(EntityEvent.Add, ["image"]).watch((entity, image: string) => {
 			return true;
 		}
 		return false;
-	})
+	});
 	return false;
 });
 
 Observer(EntityEvent.Remove, ["sprite"]).watch(entity => {
-	const sprite = toNode(entity.oldValues.sprite);
+	const sprite = tolua.cast(entity.oldValues.sprite, TypeName.Sprite);
 	sprite?.removeFromParent();
 	return false;
 });
@@ -54,9 +50,8 @@ Group(["position", "direction", "speed", "target"]).watch(
 	if (target.equals(position)) return false;
 	const dir = target.sub(position).normalize();
 	const angle = math.deg(math.atan(dir.x, dir.y));
-	let newPos = position.add(dir.mul(speed));
-	newPos = newPos.clamp(position, target);
-	entity.position = newPos;
+	const newPos = position.add(dir.mul(speed));
+	entity.position = newPos.clamp(position, target);
 	entity.direction = angle;
 	if (newPos.equals(target)) {
 		entity.target = undefined;
@@ -76,30 +71,28 @@ Observer(EntityEvent.AddOrChange, ["position", "direction", "sprite"]).watch(
 	return false;
 });
 
-interface EntityDef extends Record<string, Component> {
+Entity({scene: Node()});
+
+interface EntityDef {
 	image: string;
 	position: Vec2.Type;
 	direction: number;
 	speed: number;
 }
 
-Entity({scene: Node()});
-
-let def: EntityDef = {
+Entity<EntityDef>({
 	image: "Image/logo.png",
 	position: Vec2.zero,
 	direction: 45.0,
-	speed: 4.0
-};
-Entity(def);
+	speed: 4.0,
+});
 
-def = {
+Entity<EntityDef>({
 	image: "Image/logo.png",
 	position: Vec2(-100, 200),
 	direction: 90.0,
 	speed: 10.0
-};
-Entity(def);
+});
 
 const windowFlags = [
 	WindowFlag.NoDecoration,
@@ -110,7 +103,7 @@ const windowFlags = [
 	WindowFlag.NoMove
 ];
 Observer(EntityEvent.Add, ["scene"]).watch(entity => {
-	const scene = toNode(entity.scene);
+	const scene = tolua.cast(entity.scene, TypeName.Node);
 	if (scene !== null) {
 		scene.schedule(() => {
 			const {width} = App.visualSize;
@@ -122,18 +115,17 @@ Observer(EntityEvent.Add, ["scene"]).watch(entity => {
 				ImGui.Separator()
 				ImGui.TextWrapped("Tap any place to move entities.")
 				if (ImGui.Button("Create Random Entity")) {
-					const def: EntityDef = {
+					Entity<EntityDef>({
 						image: "Image/logo.png",
 						position: Vec2(6 * math.random(1, 100), 6 * math.random(1, 100)),
 						direction: 1.0 * math.random(0, 360),
 						speed: 1.0 * math.random(1, 20)
-					};
-					Entity(def);
+					});
 				}
 				if (ImGui.Button("Destroy An Entity")) {
 					Group(["sprite", "position"]).each(e => {
 						e.position = undefined;
-						const sprite = toNode(e.sprite);
+						const sprite = tolua.cast(e.sprite, TypeName.Sprite);
 						if (sprite !== null) {
 							sprite.runAction(
 								Sequence(

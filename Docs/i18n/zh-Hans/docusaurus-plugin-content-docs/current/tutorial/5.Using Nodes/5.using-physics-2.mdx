@@ -31,6 +31,46 @@ world.showDebug = true -- 显示调试信息
 ```
 
 </TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local Vec2 <const> = require("Vec2")
+local PhysicsWorld <const> = require("PhysicsWorld")
+
+local gravity <const> = Vec2(0, -10) -- 定义重力方向和大小
+
+local world = PhysicsWorld() -- 创建物理世界
+world:setShouldContact(0, 0, true) -- 设置组间碰撞规则
+world.showDebug = true -- 显示调试信息
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { Vec2, PhysicsWorld } from "Dora";
+
+const gravity = Vec2(0, -10); // 定义重力方向和大小
+
+const world = PhysicsWorld(); // 创建物理世界
+world.setShouldContact(0, 0, true); // 设置组间碰撞规则
+world.showDebug = true; // 显示调试信息
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+const gravity = Vec2 0, -10 -- 定义重力方向和大小
+
+world = with PhysicsWorld! -- 创建物理世界
+	\setShouldContact 0, 0, true -- 设置组间碰撞规则
+	.showDebug = true -- 显示调试信息
+```
+
+</TabItem>
 </Tabs>
 
 ## 2. 创建感应器（Sensor）
@@ -63,6 +103,69 @@ terrainDef:attachDiskSensor(99, Vec2(80, 80), 100)
 ```
 
 </TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local BodyDef <const> = require("BodyDef")
+
+-- 通过定义一组顶点来创建一个空心的圆形静态刚体
+-- 用于限制本示例的活动区域
+local terrainDef = BodyDef()
+local count = 50
+local radius = 300
+local vertices = []
+for i = 1 to count + 1 do
+	local angle = 2 * math.pi * i / count
+	vertices[i] = Vec2(radius * math.cos(angle), radius * math.sin(angle))
+end
+-- 添加闭合的链形状的静态刚体的定义
+terrainDef:attachChain(vertices, 0.4, 0)
+
+-- 添加一个圆形感应器区域，标签为数字 99
+terrainDef:attachDiskSensor(99, Vec2(80, 80), 100)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { BodyDef, Vec2 } from "Dora";
+
+const terrainDef = BodyDef();
+const count = 50;
+const radius = 300;
+const vertices: Vec2.Type[] = [];
+
+for (let i = 1; i <= count + 1; i++) {
+	const angle = 2 * math.pi * i / count;
+	vertices.push(Vec2(radius * math.cos(angle), radius * math.sin(angle)));
+}
+
+// 添加闭合的链形状的静态刚体的定义
+terrainDef.attachChain(vertices, 0.4, 0);
+
+// 添加一个圆形感应器区域，标签为数字 99
+terrainDef.attachDiskSensor(99, Vec2(80, 80), 100);
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+terrainDef = with BodyDef!
+	count = 50
+	radius = 300
+	vertices = []
+	for i = 1, count + 1
+		local angle = 2 * math.pi * i / count
+		vertices[i] = Vec2 radius * math.cos angle, radius * math.sin angle
+	\attachChain vertices, 0.4, 0 -- 添加闭合的链形状的静态刚体的定义
+	\attachDiskSensor 99, Vec2 80, 80, 100 -- 添加一个圆形感应器区域，标签为数字 99
+```
+
+</TabItem>
 </Tabs>
 
 - `attachChain`：创建一个由多个顶点组成的链形状。
@@ -82,6 +185,48 @@ terrain:onBodyEnter(function(other, sensorTag)
 	end
 end)
 terrain:addTo(world)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local terrain = Body(terrainDef, world)
+terrain:onBodyEnter(function(other: Body.Type, sensorTag: integer)
+	if sensorTag == 99 then
+		-- 当有物体进入感应器区域时触发
+		other.velocity = other.velocity * 0.5 -- 将物体速度减半
+	end
+end)
+terrain:addTo(world)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { BodyDef, Vec2 } from "Dora";
+
+const terrain = Body(terrainDef, world);
+terrain.onBodyEnter((other, sensorTag) => {
+	if (sensorTag == 99) {
+		// 当有物体进入感应器区域时触发
+		other.velocity = other.velocity.mul(0.5); // 将物体速度减半
+	}
+});
+terrain.addTo(world);
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+terrain = with Body terrainDef, world
+	\onBodyEnter (other, sensorTag) ->
+		if sensorTag == 99
+			-- 当有物体进入感应器区域时触发
+			other.velocity *= 0.5 -- 将物体速度减半
+	\addTo world
 ```
 
 </TabItem>
@@ -113,6 +258,49 @@ platformDef:attachPolygon(
 ```
 
 </TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local platformDef = BodyDef()
+-- 添加一个矩形平台的定义
+platformDef:attachPolygon(
+	Vec2(0, -80), -- 位置
+	120, 30, -- 宽高
+	0, -- 角度
+	1, 0, 1.0 -- 密度. 摩擦系数. 弹性系数
+)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { BodyDef, Vec2 } from "Dora";
+
+const platformDef = BodyDef();
+// 添加一个矩形平台的定义
+platformDef.attachPolygon(
+	Vec2(0, -80), // 位置
+	120, 30, // 宽高
+	0, // 角度
+	1, 0, 1.0 // 密度. 摩擦系数. 弹性系数
+);
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+platformDef = with BodyDef!
+	\attachPolygon(
+		Vec2 0, -80 -- 位置
+		120, 30 -- 宽高
+		0 -- 角度
+		1, 0, 1.0 -- 添加一个矩形平台的定义
+	)
+```
+
+</TabItem>
 </Tabs>
 
 ### 3.2 设置碰撞过滤器
@@ -126,6 +314,40 @@ platform:onContactFilter(function(body)
 	return body.velocityY < 0 -- 仅当物体向下移动时才发生碰撞
 end)
 platform:addTo(world)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local platform = Body(platformDef, world)
+platform:onContactFilter(function(body: Body.Type)
+	return body.velocityY < 0 -- 仅当物体向下移动时才发生碰撞
+end)
+platform:addTo(world)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { Body } from "Dora";
+
+const platform = Body(platformDef, world);
+platform.onContactFilter(body => {
+	return body.velocityY < 0; // 仅当物体向下移动时才发生碰撞
+});
+platform.addTo(world);
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+platform = with Body platformDef, world
+	\onContactFilter (body) ->
+		body.velocityY < 0 -- 仅当物体向下移动时才发生碰撞
+	\addTo world
 ```
 
 </TabItem>
@@ -146,6 +368,7 @@ platform:addTo(world)
 
 ```lua
 local BodyDef <const> = require("BodyDef")
+
 local diskDef = BodyDef()
 diskDef.type = "Dynamic"
 diskDef.linearAcceleration = gravity
@@ -154,6 +377,52 @@ diskDef:attachDisk(20, 5, 0.8, 1) -- 创建半径为20的圆形刚体
 local disk = Body(diskDef, world, Vec2(100, 200))
 disk.angularRate = -1800 -- 设置旋转速度
 disk:addTo(world)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local BodyDef <const> = require("BodyDef")
+
+local diskDef = BodyDef()
+diskDef.type = "Dynamic"
+diskDef.linearAcceleration = gravity
+diskDef:attachDisk(20, 5, 0.8, 1) -- 创建半径为20的圆形刚体
+
+local disk = Body(diskDef, world, Vec2(100, 200))
+disk.angularRate = -1800 -- 设置旋转速度
+disk:addTo(world)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { BodyDef, Vec2, BodyMoveType } from "Dora";
+
+const diskDef = BodyDef();
+diskDef.type = BodyMoveType.Dynamic;
+diskDef.linearAcceleration = gravity;
+diskDef.attachDisk(20, 5, 0.8, 1); // 创建半径为20的圆形刚体
+
+const disk = Body(diskDef, world, Vec2(100, 200));
+disk.angularRate = -1800; // 设置旋转速度
+disk.addTo(world);
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+diskDef = with BodyDef!
+	.type = "Dynamic"
+	.linearAcceleration = gravity
+	\attachDisk 20, 5, 0.8, 1 -- 创建半径为20的圆形刚体
+
+disk = with Body diskDef, world, Vec2 100, 200
+	.angularRate = -1800 -- 设置旋转速度
+	\addTo world
 ```
 
 </TabItem>
@@ -185,6 +454,69 @@ disk:onContactStart(function(other, point)
 	-- 设置绘制标记的位置为碰撞点
 	drawNode.position = point
 end)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local Line <const> = require("Line")
+local App <const> = require("App")
+
+-- 创建用于在碰撞点绘制的标记
+local drawNode = Line({
+	Vec2(-20, 0),
+	Vec2(20, 0),
+	Vec2.zero,
+	Vec2(0, -20),
+	Vec2(0, 20)
+}, App.themeColor)
+drawNode:addTo(world)
+
+disk:onContactStart(function(other: Body.Type, point: Vec2.Type)
+	-- 设置绘制标记的位置为碰撞点
+	drawNode.position = point
+end)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { Line, App } from "Dora";
+
+// 创建用于在碰撞点绘制的标记
+const drawNode = Line([
+	Vec2(-20, 0),
+	Vec2(20, 0),
+	Vec2.zero,
+	Vec2(0, -20),
+	Vec2(0, 20)
+], App.themeColor);
+drawNode.addTo(world);
+
+disk.onContactStart((other, point) => {
+	// 设置绘制标记的位置为碰撞点
+	drawNode.position = point;
+});
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+drawNode = with Line [
+	Vec2 -20, 0
+	Vec2 20, 0
+	Vec2.zero
+	Vec2 0, -20
+	Vec2 0, 20
+], App.themeColor
+	\addTo world
+
+disk\onContactStart (other, point) ->
+	-- 设置绘制标记的位置为碰撞点
+	drawNode.position = point
 ```
 
 </TabItem>

@@ -1,3 +1,7 @@
+import "@site/src/languages/highlight";
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # 如何组织你的游戏工程
 
 &emsp;&emsp;在游戏开发的世界中，项目管理和代码组织是非常关键的一环。本教程旨在介绍如何使用 Dora SSR 开源游戏引擎来组织和管理游戏项目工程目录。
@@ -47,6 +51,9 @@ project/
 	 └── moduleB.lua
 ```
 
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
 ```lua title="init.lua"
 -- 导入本地模块
 local moduleA = require("moduleA") -- 使用了`序号1`的搜索路径: project/Script/moduleA.lua
@@ -55,6 +62,45 @@ local moduleB = require("Script.moduleB") -- 使用了`序号2`的搜索路径: 
 -- 导入引擎内置模块
 local Utils = require("Utils") -- 使用了`序号3`的搜索路径: 引擎内置资源根目录/Script/Lib/Utils.lua
 ```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl title="init.tl"
+-- 导入本地模块
+local moduleA = require("moduleA") -- 使用了`序号1`的搜索路径: project/Script/moduleA.lua
+local moduleB = require("Script.moduleB") -- 使用了`序号2`的搜索路径: project/Script/moduleB.lua
+
+-- 导入引擎内置模块
+local Utils = require("Utils") -- 使用了`序号3`的搜索路径: 引擎内置资源根目录/Script/Lib/Utils.lua
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts title="init.ts"
+// 导入本地模块
+import moduleA from "moduleA"; // 使用了`序号1`的搜索路径: project/Script/moduleA.ts
+import moduleB from "Script/moduleB"; // 使用了`序号2`的搜索路径: project/Script/moduleB.ts
+
+// 导入引擎内置模块
+import * as Utils from "Utils"; // 使用了`序号3`的搜索路径: 引擎内置资源根目录/Script/Lib/Utils.lua
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue title="init.yue"
+-- 导入本地模块
+import "moduleA" -- 使用了`序号1`的搜索路径: project/Script/moduleA.yue
+import "Script.moduleB" -- 使用了`序号2`的搜索路径: project/Script/moduleB.yue
+
+-- 导入引擎内置模块
+local Utils = require("Utils") -- 使用了`序号3`的搜索路径: 引擎内置资源根目录/Script/Lib/Utils.lua
+```
+
+</TabItem>
+</Tabs>
 
 ## 5. 最佳实践
 

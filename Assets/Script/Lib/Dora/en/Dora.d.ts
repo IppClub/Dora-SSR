@@ -3486,7 +3486,7 @@ class Content {
 	 * @returns A table containing the data in the Excel file. The keys are the sheet names and the values are tables containing the rows and columns of the sheet.
 	 */
 	loadExcel(filename: string, sheetNames?: string[]): {
-		[sheetName: string]: [column: string | number][]
+		[sheetName: string]: (/* column */ string | number)[][] | undefined
 	} | null;
 
 	/**
@@ -3588,7 +3588,7 @@ class Content {
 	 * @returns A table containing the data in the Excel file. The keys are the sheet names and the values are tables containing the rows and columns of the sheet.
 	 */
 	loadExcelAsync(filename: string, sheetNames?: string[]): {
-		[sheetName: string]: [column: string | number][]
+		[sheetName: string]: (/* column */ string | number)[][]
 	} | null;
 
 	/**
@@ -3977,7 +3977,7 @@ class Playable extends Node {
 	 * @param name The name of the slot to set.
 	 * @param item The node to set the slot to.
 	 */
-	setSlot(name: string, item: Node): void;
+	setSlot(name: string, item: Node | null): void;
 
 	/**
 	 * Gets the child node attached to the animation model.
@@ -4633,6 +4633,15 @@ interface EntityClass {
 	 * Entity({ a: 1, b: "abc", c: Node() });
 	 */
 	(this: void, components: Record<string, Component>): Entity;
+
+	/**
+	 * A method that creates a new entity with the specified components.
+	 * And you can then get the newly created Entity object from groups and observers.
+	 * @param components A table mapping component names (strings) to component values (Items).
+	 * @example
+	 * Entity<Item>({ a: 1, b: "abc", c: Node() });
+	 */
+	<T>(this: void, components: T): Entity;
 }
 
 const entityClass: EntityClass;
