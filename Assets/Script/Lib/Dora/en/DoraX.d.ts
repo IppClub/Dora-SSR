@@ -17,6 +17,14 @@ export namespace React {
 		children: Element[];
 	}
 
+	export abstract class Component<T> {
+		constructor(props: T);
+		props: T;
+		abstract render(): React.Element;
+	}
+
+	export const Fragment: undefined;
+
 	/**
 	 * Creates a React element.
 	 * @param type The type of the element.

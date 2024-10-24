@@ -1,0 +1,295 @@
+import "@site/src/languages/highlight";
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# 使用 TSX 开发游戏
+
+&emsp;&emsp;欢迎来到 Dora SSR 游戏开发的世界！如果你是一个前端开发者，或者对 TypeScript 和 React 有一定了解，那么你会发现使用 TSX 编写游戏是一个令人兴奋且熟悉的体验。如果不了解也完全不用担心，本教程将带你从零开始，了解如何使用 Dora SSR 和 TSX 开发游戏，并介绍一些 TSX 的基础概念。
+
+## 1. 什么是 TSX？
+
+### 1.1 TSX 基础概念
+
+&emsp;&emsp;TSX 是 TypeScript 与 JSX 的结合，它允许你在 TypeScript 中使用类似 HTML 的标签语法来构建界面和组件。这在 React 开发中非常常见，而在 Dora SSR 中，你可以使用 TSX 来定义游戏对象和场景。（注：JSX 是 JavaScript 的语法扩展，允许你在 JavaScript 中编写类似 XML 的代码。）
+
+:::info 提示
+要在 Dora SSR 中使用 TSX，你需要注意在 Web IDE 中创建代码文件时，选择 TypeScript 语言以及 `.tsx` 扩展名。
+:::
+
+&emsp;&emsp;**TSX 标签和属性**：在 TSX 中，你可以像在 HTML 中一样使用标签和属性。例如：
+
+```tsx
+<sprite file="Image/logo.png" scaleX={0.2} scaleY={0.2}/>
+```
+
+- `<sprite>` 是一个标签，表示游戏中的精灵（图像）。
+- `file`、`scaleX`、`scaleY` 是属性，用于设置精灵的文件路径和缩放比例。
+
+&emsp;&emsp;**TSX 函数组件**：你可以创建函数组件，接受属性并返回 TSX 元素。这与 React 中的函数组件类似。
+
+```tsx
+interface ItemProps {
+	x?: number;
+	y?: number;
+	children?: any;
+}
+
+const Item = (props: ItemProps) => {
+	return (
+		<node x={props.x} y={props.y}>
+			{/* 子元素 */}
+			{props.children}
+		</node>
+	);
+};
+```
+
+## 2. 使用 TSX 编写游戏场景
+
+### 2.1 创建简单的游戏对象
+
+&emsp;&emsp;在 Dora SSR 中，你可以使用 TSX 标签来定义游戏对象。例如，创建一个精灵：
+
+```tsx
+<sprite file="Image/logo.png" scaleX={0.2} scaleY={0.2}/>
+```
+
+### 2.2 转换为渲染对象实例
+
+&emsp;&emsp;要将上述 TSX 标签转换为可渲染的游戏对象，需要使用 `toNode()` 函数。这个函数接受一个 TSX 元素或元素数组，返回对应的游戏节点。
+
+```tsx
+import { React, toNode } from 'DoraX';
+
+const node = toNode(<sprite file="Image/logo.png" scaleX={0.2} scaleY={0.2}/>);
+```
+
+&emsp;&emsp;这样，`node` 就是一个实例化的游戏场景节点对象。
+
+## 3. 创建 TSX 函数组件
+
+&emsp;&emsp;函数组件使你的代码更具可重用性和可读性。以下是如何在 Dora SSR 中创建一个简单的盒子组件。
+
+```tsx
+import { React, toNode } from 'DoraX';
+
+interface BoxProps {
+	x?: number;
+	y?: number;
+	color?: number;
+}
+
+const Box = (props: BoxProps) => {
+	return (
+		<draw-node x={props.x ?? 0} y={props.y ?? 0}>
+			<rect-shape width={100} height={100} fillColor={props.color || 0xffffffff}/>
+		</draw-node>
+	);
+};
+```
+
+&emsp;&emsp;在上面的示例中，`Box` 是一个函数组件，接受 `x`、`y` 和 `color` 属性，返回一个带有矩形形状的绘制节点。
+
+&emsp;&emsp;使用组件：
+
+```tsx
+const boxes = [
+	<Box x={0} y={0} color={0xffff0000}/>,
+	<Box x={150} y={0} color={0xff00ff00}/>,
+	<Box x={300} y={0} color={0xff0000ff}/>,
+];
+
+const scene = toNode(boxes);
+```
+
+&emsp;&emsp;在上面的示例中，我们创建了三个不同颜色的盒子，并将它们放在一个数组中，然后将数组传递给 `toNode()` 函数，实例化为游戏场景节点。
+
+## 4. 使用 useRef 获取实例化对象
+
+&emsp;&emsp;在游戏开发中，你可能需要直接操作某个游戏对象，例如改变其位置、旋转或响应事件。`useRef()` 函数可以帮助你获取 TSX 元素对应的实例化对象。
+
+```tsx
+import { React, useRef, toNode } from 'DoraX';
+import { Body, BodyMoveType, Vec2 } from 'Dora';
+
+const boxRef = useRef<Body.Type>();
+
+const MovableBox = () => {
+	return (
+		<body ref={boxRef} x={0} y={0} type={BodyMoveType.Dynamic}>
+			<rect-fixture width={100} height={100}/>
+			<draw-node>
+				<rect-shape width={100} height={100} fillColor={0xffffffff}/>
+			</draw-node>
+		</body>
+	);
+};
+
+const scene = toNode(
+	<physics-world>
+		<MovableBox/>
+	</physics-world>
+);
+
+// 现在，你可以通过 boxRef.current 操作实例化的对象
+if (boxRef.current) {
+	boxRef.current.position = Vec2(200, 200);
+}
+```
+
+&emsp;&emsp;在上面的示例中，`boxRef` 是一个引用，指向 `<body>` 标签实例化后的对象。你可以通过 `boxRef.current` 来访问并操作该对象。
+
+## 5. 创建 class 组件
+
+&emsp;&emsp;除了函数组件，你还可以创建 class 形式的组件。class 组件可以包含状态和生命周期方法，使你能够更灵活地管理组件的行为。不过，class 组件的使用相对更为复杂，建议优先使用函数组件。
+
+```tsx
+import { React, toNode, useRef } from 'DoraX';
+import { Label } from 'Dora';
+
+// 定义计数器组件的初始化属性
+interface CounterProps {
+	count: number;
+}
+
+// 创建一个计数器组件，必须继承 React.Component
+class Counter extends React.Component<CounterProps> {
+	count: number;
+	labelRef: JSX.Ref<Label.Type>;
+
+	// 构造函数，用于接受初始化属性
+	constructor(props: CounterProps) {
+		super(props);
+		this.count = props.count;
+		this.labelRef = useRef<Label.Type>();
+	}
+
+	// 渲染函数，返回组件的 TSX 元素
+	render() {
+		return (
+			<label ref={this.labelRef} text={this.count.toString()}
+				fontName='sarasa-mono-sc-regular' fontSize={80}
+				onTapped={this.onTapped}/>
+		);
+	}
+
+	// 点击事件处理函数
+	onTapped = () => {
+		if (this.labelRef.current) {
+			this.labelRef.current.text = (++this.count).toString();
+		}
+	};
+}
+
+// 实例化计数器组件
+toNode(<Counter count={1}/>);
+```
+
+&emsp;&emsp;在上面的示例中，我们创建了一个计数器组件 `Counter`，它包含一个计数值和一个标签。当标签被点击时，计数值会增加，并更新标签的文本。
+
+## 6. 完整示例：创建一个简单的小游戏
+
+&emsp;&emsp;让我们综合以上内容，创建一个简单的小游戏，包含以下要素：
+
+- 一个可移动的角色（精灵）
+- 一些静态的障碍物（盒子）
+- 点击屏幕控制角色移动
+
+### 6.1 定义角色组件
+
+```tsx
+import { React, useRef, toNode } from 'DoraX';
+import { Body, BodyMoveType, Vec2 } from 'Dora';
+
+const playerRef = useRef<Body.Type>();
+
+const Player = () => {
+	return (
+		<body ref={playerRef} x={0} y={0} type={BodyMoveType.Dynamic}
+			linearAcceleration={Vec2.zero} linearDamping={1}>
+			<rect-fixture width={50} height={50}/>
+			<draw-node>
+				<rect-shape width={50} height={50} fillColor={0xff00ff00}/>
+			</draw-node>
+		</body>
+	);
+};
+```
+
+&emsp;&emsp;在上面的代码中，`Player` 是一个角色组件，包含一个可移动的矩形刚体。`playerRef` 是一个引用，用于获取实例化的角色对象。
+
+### 6.2 定义障碍物组件
+
+```tsx
+const Obstacle = (props: {x: number; y: number}) => {
+	return (
+		<body type={BodyMoveType.Static} x={props.x} y={props.y}>
+			<rect-fixture width={100} height={100}/>
+			<draw-node>
+				<rect-shape width={100} height={100} fillColor={0xffff0000}/>
+			</draw-node>
+		</body>
+	);
+};
+```
+
+&emsp;&emsp;`Obstacle` 是一个障碍物组件，包含一个静态的矩形刚体。你可以通过传入 `x` 和 `y` 属性来设置障碍物的位置。
+
+### 6.3 创建游戏场景
+
+```tsx
+const GameScene = () => {
+	return (
+		<physics-world
+			onTapBegan={touch => {
+				// 控制角色移动到点击位置
+				const {current: player} = playerRef;
+				if (player) {
+					player.velocity = touch.location
+						.sub(player.position)
+						.normalize()
+						.mul(300);
+				}
+			}}>
+			<Player/>
+			<Obstacle x={200} y={0}/>
+			<Obstacle x={-200} y={0}/>
+		</physics-world>
+	);
+};
+```
+
+&emsp;&emsp;在 `GameScene` 组件中，我们创建了一个物理世界，监听点击事件，并控制角色向点击位置移动。同时，添加了两个障碍物。请注意我们的物理刚体都必须作为子节点放在 `physics-world` 组件中。
+
+### 6.4 运行游戏
+
+&emsp;&emsp;将场景节点进行实例化：
+
+```tsx
+const scene = toNode(<GameScene/>);
+```
+
+&emsp;&emsp;现在，你已经创建了一个简单的小游戏，角色可以在屏幕上移动，并与障碍物进行交互。
+
+## 7. 总结
+
+&emsp;&emsp;在本教程中，我们介绍了如何使用 Dora SSR 和 TSX 来开发游戏，包括：
+
+- TSX 的基础概念：标签、属性和函数组件
+- 使用 `toNode()` 将 TSX 标签转换为渲染对象实例
+- 使用 `useRef` 获取实例化的游戏对象
+- 创建自定义的游戏组件
+- 组合组件构建完整的游戏场景
+
+&emsp;&emsp;Dora SSR 为前端开发者提供了一个熟悉且强大的平台，使你能够轻松地将已有的 TypeScript 和 TSX 知识应用到游戏开发中。现在，你可以尝试扩展这个示例，添加更多的游戏元素和逻辑，探索 Dora SSR 的更多功能。
+
+## 附录：关键函数和类型
+
+&emsp;&emsp;以下是一些在 Dora SSR 中使用的重要函数和类型：
+
+- **`React.createElement`**：用于创建 TSX 元素，一般不需要直接使用，会被引擎自动调用。
+- **`toNode(enode)`**：将 TSX 元素或元素数组转换为游戏节点。
+- **`useRef<T>(item?: T)`**：创建一个引用，用于获取实例化后的对象。
+- **`preloadAsync(enode, handler?)`**：异步预加载节点所需的美术资源。
+
+&emsp;&emsp;使用这些函数来助你在 Dora SSR 中高效地编写游戏逻辑和界面。并希望本教程对你有所帮助，祝你在游戏开发的旅程中取得成功！
