@@ -4,17 +4,17 @@ import TabItem from '@theme/TabItem';
 
 # Creating Physics Nodes II
 
-In this tutorial, we will dive into the advanced features of physics nodes, including:
+In this tutorial, we will dive into the advanced functionalities of physical nodes, including:
 
-1. **Sensor Functionality**: Sensors do not participate in physical collisions but can detect when objects enter or leave a specified area.
-2. **One-Way Platform**: Using the `onContactFilter` callback to create a platform that only allows objects to pass through from one direction.
-3. **Detecting Collision Events**: How to listen for and handle object collision events.
+1. **Sensor Functionality**: Detects objects entering or leaving a specified area without participating in physical collisions.
+2. **One-Way Platforms**: Create platforms that only allow objects to pass through from one direction using the `onContactFilter` callback.
+3. **Handling Collision Events**: How to listen to and handle object collision events.
 
-Through the following code examples and explanations, you'll learn how to implement these features in Dora SSR.
+With the following example code and explanations, you'll learn how to implement these features in Dora SSR.
 
-## 1. Creating the Physics World
+## 1. Creating a Physical World
 
-First, initialize the physics world and set basic parameters.
+First, initialize the physical world and set the basic parameters.
 
 <Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
@@ -25,9 +25,49 @@ local PhysicsWorld <const> = require("PhysicsWorld")
 
 local gravity <const> = Vec2(0, -10) -- Define gravity direction and magnitude
 
-local world = PhysicsWorld() -- Create the physics world
+local world = PhysicsWorld() -- Create the physical world
 world:setShouldContact(0, 0, true) -- Set collision rules between groups
 world.showDebug = true -- Show debug information
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local Vec2 <const> = require("Vec2")
+local PhysicsWorld <const> = require("PhysicsWorld")
+
+local gravity <const> = Vec2(0, -10) -- Define gravity direction and magnitude
+
+local world = PhysicsWorld() -- Create the physical world
+world:setShouldContact(0, 0, true) -- Set collision rules between groups
+world.showDebug = true -- Show debug information
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { Vec2, PhysicsWorld } from "Dora";
+
+const gravity = Vec2(0, -10); // Define gravity direction and magnitude
+
+const world = PhysicsWorld(); // Create the physical world
+world.setShouldContact(0, 0, true); // Set collision rules between groups
+world.showDebug = true; // Show debug information
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+const gravity = Vec2 0, -10 -- Define gravity direction and magnitude
+
+world = with PhysicsWorld! -- Create the physical world
+	\setShouldContact 0, 0, true -- Set collision rules between groups
+	.showDebug = true -- Show debug information
 ```
 
 </TabItem>
@@ -35,9 +75,9 @@ world.showDebug = true -- Show debug information
 
 ## 2. Creating a Sensor
 
-A sensor is a special type of physics object that doesn’t participate in collisions but can detect other objects entering or leaving its area.
+A sensor is a special physical object that doesn't participate in collisions but can detect other objects entering or leaving its area.
 
-### 2.1 Defining the Sensor
+### 2.1 Defining a Sensor
 
 <Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
@@ -45,8 +85,8 @@ A sensor is a special type of physics object that doesn’t participate in colli
 ```lua
 local BodyDef <const> = require("BodyDef")
 
--- Define a hollow circular static body using a series of vertices
--- This limits the activity area for this example
+-- Create a hollow circular static body by defining a set of vertices
+-- Used to restrict the activity area in this example
 local terrainDef = BodyDef()
 local count <const> = 50
 local radius <const> = 300
@@ -55,20 +95,83 @@ for i = 1, count + 1 do
 	local angle = 2 * math.pi * i / count
 	vertices[i] = Vec2(radius * math.cos(angle), radius * math.sin(angle))
 end
--- Add a chain-shaped static body definition
+-- Add a closed chain shape static body definition
 terrainDef:attachChain(vertices, 0.4, 0)
 
--- Add a circular sensor with a tag number 99
+-- Add a circular sensor area with label number 99
 terrainDef:attachDiskSensor(99, Vec2(80, 80), 100)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local BodyDef <const> = require("BodyDef")
+
+-- Create a hollow circular static body by defining a set of vertices
+-- Used to restrict the activity area in this example
+local terrainDef = BodyDef()
+local count = 50
+local radius = 300
+local vertices = []
+for i = 1 to count + 1 do
+	local angle = 2 * math.pi * i / count
+	vertices[i] = Vec2(radius * math.cos(angle), radius * math.sin(angle))
+end
+-- Add a closed chain shape static body definition
+terrainDef:attachChain(vertices, 0.4, 0)
+
+-- Add a circular sensor area with label number 99
+terrainDef:attachDiskSensor(99, Vec2(80, 80), 100)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { BodyDef, Vec2 } from "Dora";
+
+const terrainDef = BodyDef();
+const count = 50;
+const radius = 300;
+const vertices: Vec2.Type[] = [];
+
+for (let i = 1; i <= count + 1; i++) {
+	const angle = 2 * math.pi * i / count;
+	vertices.push(Vec2(radius * math.cos(angle), radius * math.sin(angle)));
+}
+
+// Add a closed chain shape static body definition
+terrainDef.attachChain(vertices, 0.4, 0);
+
+// Add a circular sensor area with label number 99
+terrainDef.attachDiskSensor(99, Vec2(80, 80), 100);
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+terrainDef = with BodyDef!
+	count = 50
+	radius = 300
+	vertices = []
+	for i = 1, count + 1
+		local angle = 2 * math.pi * i / count
+		vertices[i] = Vec2 radius * math.cos angle, radius * math.sin angle
+	\attachChain vertices, 0.4, 0 -- Add a closed chain shape static body definition
+	\attachDiskSensor 99, Vec2 80, 80, 100 -- Add a circular sensor area with label number 99
 ```
 
 </TabItem>
 </Tabs>
 
-- `attachChain`: Creates a chain shape composed of multiple vertices.
-- `attachDiskSensor`: Adds a circular sensor at the specified location that does not participate in collisions but can detect objects entering the area.
+- `attachChain`: Creates a chain shape made of multiple vertices.
+- `attachDiskSensor`: Adds a circular sensor at the specified location that doesn't participate in collisions but can detect objects entering the area.
 
-### 2.2 Listening for Sensor Events
+### 2.2 Listening to Sensor Events
 
 <Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
@@ -78,23 +181,65 @@ local terrain = Body(terrainDef, world)
 terrain:onBodyEnter(function(other, sensorTag)
 	if sensorTag == 99 then
 		-- Triggered when an object enters the sensor area
-		other.velocity = other.velocity * 0.5 -- Reduce the object's speed by half
+		other.velocity = other.velocity * 0.5 -- Halve the object's speed
 	end
 end)
 terrain:addTo(world)
 ```
 
 </TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local terrain = Body(terrainDef, world)
+terrain:onBodyEnter(function(other: Body.Type, sensorTag: integer)
+	if sensorTag == 99 then
+		-- Triggered when an object enters the sensor area
+		other.velocity = other.velocity * 0.5 -- Halve the object's speed
+	end
+end)
+terrain:addTo(world)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { BodyDef, Vec2 } from "Dora";
+
+const terrain = Body(terrainDef, world);
+terrain.onBodyEnter((other, sensorTag) => {
+	if (sensorTag == 99) {
+		// Triggered when an object enters the sensor area
+		other.velocity = other.velocity.mul(0.5); // Halve the object's speed
+	}
+});
+terrain.addTo(world);
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+terrain = with Body terrainDef, world
+	\onBodyEnter (other, sensorTag) ->
+		if sensorTag == 99
+			-- Triggered when an object enters the sensor area
+			other.velocity *= 0.5 -- Halve the object's speed
+	\addTo world
+```
+
+</TabItem>
 </Tabs>
 
 - `onBodyEnter`: Called when another object enters the sensor area.
-- Callback parameters:
-	- `other`: The object that enters the sensor.
-	- `sensorTag`: The tag used to identify different sensors.
+- Callback function parameters:
+	- `other`: The object that entered the sensor.
+	- `sensorTag`: The sensor's label used to distinguish between different sensors.
 
 ## 3. Creating a One-Way Platform
 
-By using `onContactFilter`, we can control how objects interact with the platform, creating a one-way passage.
+Using `onContactFilter`, we can control the collision behavior and create a platform that only allows objects to pass through from one direction.
 
 ### 3.1 Defining the Platform Body
 
@@ -103,13 +248,58 @@ By using `onContactFilter`, we can control how objects interact with the platfor
 
 ```lua
 local platformDef = BodyDef()
--- Define a rectangular platform
+-- Add a rectangular platform definition
 platformDef:attachPolygon(
 	Vec2(0, -80), -- Position
 	120, 30, -- Width and height
 	0, -- Angle
-	1, 0, 1.0 -- Density, friction, and restitution
+	1, 0, 1.0 -- Density, friction coefficient, restitution coefficient
 )
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local platformDef = BodyDef()
+-- Add a rectangular platform definition
+platformDef:attachPolygon(
+	Vec2(0, -80), -- Position
+	120, 30, -- Width and height
+
+
+	0, -- Angle
+	1, 0, 1.0 -- Density, friction coefficient, restitution coefficient
+)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { BodyDef, Vec2 } from "Dora";
+
+const platformDef = BodyDef();
+// Add a rectangular platform definition
+platformDef.attachPolygon(
+	Vec2(0, -80), // Position
+	120, 30, // Width and height
+	0, // Angle
+	1, 0, 1.0 // Density, friction coefficient, restitution coefficient
+);
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+platformDef = with BodyDef!
+	\attachPolygon(
+		Vec2 0, -80 -- Position
+		120, 30 -- Width and height
+		0 -- Angle
+		1, 0, 1.0 -- Add a rectangular platform definition
+	)
 ```
 
 </TabItem>
@@ -129,15 +319,49 @@ platform:addTo(world)
 ```
 
 </TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local platform = Body(platformDef, world)
+platform:onContactFilter(function(body: Body.Type)
+	return body.velocityY < 0 -- Only collide when the object is moving downward
+end)
+platform:addTo(world)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { Body } from "Dora";
+
+const platform = Body(platformDef, world);
+platform.onContactFilter(body => {
+	return body.velocityY < 0; // Only collide when the object is moving downward
+});
+platform.addTo(world);
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+platform = with Body platformDef, world
+	\onContactFilter (body) ->
+		body.velocityY < 0 -- Only collide when the object is moving downward
+	\addTo world
+```
+
+</TabItem>
 </Tabs>
 
-- `onContactFilter`: A custom collision detection rule.
-- The callback returns `true` to allow the collision or `false` to ignore it.
-- By checking the object’s vertical velocity (`velocityY`), we achieve the one-way collision effect.
+- `onContactFilter`: Custom collision detection rules.
+- The callback function returns `true` to allow the collision and `false` to ignore it.
+- By checking the object's vertical speed (`velocityY`), we achieve a one-way collision effect.
 
-## 4. Detecting Collision Events
+## 4. Handling Collision Events
 
-By listening to collision events, we can execute specific logic, such as playing sound effects or triggering animations.
+Listening to collision events allows specific logic to be executed, such as playing sound effects or triggering animations.
 
 ### 4.1 Creating a Dynamic Body
 
@@ -146,23 +370,70 @@ By listening to collision events, we can execute specific logic, such as playing
 
 ```lua
 local BodyDef <const> = require("BodyDef")
+
 local diskDef = BodyDef()
 diskDef.type = "Dynamic"
 diskDef.linearAcceleration = gravity
-diskDef:attachDisk(20, 5, 0.8, 1) -- Create a disk-shaped dynamic body with a radius of 20
+diskDef:attachDisk(20, 5, 0.8, 1) -- Create a circular body with a radius of 20
 
 local disk = Body(diskDef, world, Vec2(100, 200))
-disk.angularRate = -1800 -- Set the angular rotation rate
+disk.angularRate = -1800 -- Set the rotation speed
 disk:addTo(world)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local BodyDef <const> = require("BodyDef")
+
+local diskDef = BodyDef()
+diskDef.type = "Dynamic"
+diskDef.linearAcceleration = gravity
+diskDef:attachDisk(20, 5, 0.8, 1) -- Create a circular body with a radius of 20
+
+local disk = Body(diskDef, world, Vec2(100, 200))
+disk.angularRate = -1800 -- Set the rotation speed
+disk:addTo(world)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { BodyDef, Vec2, BodyMoveType } from "Dora";
+
+const diskDef = BodyDef();
+diskDef.type = BodyMoveType.Dynamic;
+diskDef.linearAcceleration = gravity;
+diskDef.attachDisk(20, 5, 0.8, 1); // Create a circular body with a radius of 20
+
+const disk = Body(diskDef, world, Vec2(100, 200));
+disk.angularRate = -1800; // Set the rotation speed
+disk.addTo(world);
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+diskDef = with BodyDef!
+	.type = "Dynamic"
+	.linearAcceleration = gravity
+	\attachDisk 20, 5, 0.8, 1 -- Create a circular body with a radius of 20
+
+disk = with Body diskDef, world, Vec2 100, 200
+	.angularRate = -1800 -- Set the rotation speed
+	\addTo world
 ```
 
 </TabItem>
 </Tabs>
 
-- `type`: Set the body as dynamic so it’s affected by the physics engine.
-- `attachDisk`: Creates a circular-shaped rigid body.
+- `type`: Set to dynamic body, affected by the physics engine.
+- `attachDisk`: Creates a circular-shaped body.
 
-### 4.2 Listening for Collision Events
+### 4.2 Listening to Collision Events
 
 <Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
@@ -182,40 +453,103 @@ local drawNode = Line({
 drawNode:addTo(world)
 
 disk:onContactStart(function(other, point)
-	-- Set the marker's position at the collision point
+	-- Set the marker's position to the collision point
 	drawNode.position = point
 end)
 ```
 
 </TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local Line <const> = require("Line")
+local App <const> = require("App")
+
+-- Create a marker to draw at the collision point
+local drawNode = Line({
+	Vec2(-20, 0),
+	Vec2(20, 0),
+	Vec2.zero,
+	Vec2(0, -20),
+	Vec2(0, 20)
+}, App.themeColor)
+drawNode:addTo(world)
+
+disk:onContactStart(function(other: Body.Type, point: Vec2.Type)
+	-- Set the marker's position to the collision point
+	drawNode.position = point
+end)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { Line, App } from "Dora";
+
+// Create a marker to draw at the collision point
+const drawNode = Line([
+	Vec2(-20, 0),
+	Vec2(20, 0),
+	Vec2.zero,
+	Vec2(0, -20),
+	Vec2(0, 20)
+], App.themeColor);
+drawNode.addTo(world);
+
+disk.onContactStart((other, point) => {
+	// Set the marker's position to the collision point
+	drawNode.position = point;
+});
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+drawNode = with Line [
+	Vec2 -20, 0
+	Vec2 20, 0
+	Vec2.zero
+	Vec2 0, -20
+	Vec2 0, 20
+], App.themeColor
+	\addTo world
+
+disk\onContactStart (other, point) ->
+	-- Set the marker's position to the collision point
+	drawNode.position = point
+```
+
+</TabItem>
 </Tabs>
 
-- `onContactStart`: Called when the body begins contact with another object.
-- Callback parameters:
+- `onContactStart`: Called when the body starts colliding with another object.
+- Callback function parameters:
 	- `other`: The other object involved in the collision.
 	- `point`: The world coordinates of the collision point.
-- `drawNode`: Used to display a marker at the collision point for visual observation.
+- Use `drawNode` to display a marker at the collision location, making it easier to visualize.
 
-## 5. Running the Code
+## 5. Results
 
-With the above code, you will achieve the following effects:
+By running the above code, you will achieve the following effects:
 
-- **Sensor functionality**: When an object enters the sensor area, its speed is halved, simulating a slow-down zone.
-- **One-way platform**: Objects can only fall through the platform from above, preventing passage from below.
-- **Collision events**: When the circular body collides with another object, a marker appears at the collision point.
+- **Sensor Functionality**: When an object enters the sensor area, its speed is halved, simulating a slowing effect.
+- **One-Way Platform**: Objects can only fall through the platform from above and cannot pass through from below, achieving a one-way collision.
+- **Collision Events**: When the circular body collides with other objects, a marker is displayed at the collision point.
 
-## 6. Conclusion
+## 6. Summary
 
-This tutorial covered advanced physics node features, including using sensors, creating a one-way platform, and detecting and handling collision events. These features can enrich your game's interactivity and enhance player experience.
+This tutorial introduced the advanced features of physical nodes, including the use of sensors, how to create one-way platforms, and how to capture and handle collision events. These features can enhance the interactivity of your game and improve the player experience.
 
 By mastering sensors and collision events, you can:
 
-- **Design complex trigger mechanisms**: Such as traps, switches, and teleporters.
-- **Optimize game physics effects**: Achieve more realistic physical interactions, such as elastic collisions and speed control.
-- **Enhance gameplay**: Create unique level designs and challenges.
+- **Design complex trigger mechanisms**: such as traps, switches, portals, etc.
+- **Optimize game physics effects**: achieving more realistic interactions like elastic collisions and speed control.
+- **Enhance gameplay**: creating unique level designs and challenges.
 
-We hope this tutorial helps you deepen your understanding of Dora SSR's physics system and inspires you to explore more advanced game functionalities!
+We hope this tutorial helps you gain a deeper understanding of Dora SSR's physics system and encourages you to explore more advanced game features!
 
-:::tip
-In actual development, utilizing the advanced features of the physics engine can make your game more creative and fun. Experiment with different parameters and functions to discover more possibilities!
+:::tip Reminder
+In practical development, effectively utilizing the advanced features of the physics engine can make your game more creative and engaging. Experiment with different parameters and functions to discover more possibilities!
 :::

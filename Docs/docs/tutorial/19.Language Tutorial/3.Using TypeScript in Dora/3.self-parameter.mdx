@@ -99,7 +99,7 @@ type Callback = (this: void, arg: string) => void;
 declare function useCallback(this: void, callback: Callback): void;
 
 useCallback(arg => {
-	console.log(arg);
+	print(arg);
 });
 ```
 

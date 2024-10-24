@@ -4,51 +4,51 @@ import TabItem from '@theme/TabItem';
 
 # Using SQLite Database
 
-Dora SSR engine integrates [SQLite](https://www.sqlite.org) to help developers manage and query large amounts of game data, as well as persist critical game data. This guide will take you through the basics of how to use Dora's database functionality.
+&emsp;&emsp;Dora SSR engine provides developers with integrated [SQLite](https://www.sqlite.org) database support, which can be used to manage and query large amounts of game data, as well as store critical game data persistently. This tutorial will guide you from scratch, step by step, through the process of using Dora's database features.
 
 ## 1. Introduction
 
-In game development, managing large volumes of data, such as player information, game items, and level configurations, is common. Using a database can efficiently store and retrieve this data. Dora SSR integrates SQLite and provides simple and intuitive APIs to make database operations easy.
+&emsp;&emsp;In game development, you often need to manage large amounts of game data such as player information, game items, and level configurations. Using a database allows you to store and retrieve this data efficiently. The Dora SSR engine integrates the SQLite database and provides a simple and easy-to-use interface for database operations.
 
 ### 1.1 Getting Started with Database Operations
 
-Before starting, ensure you understand the following concepts:
+&emsp;&emsp;Before we begin, make sure you understand the following concepts:
 
-- **Database**: A system for storing and managing data.
-- **Table**: A data structure within the database, consisting of rows and columns.
-- **Row**: A single record within a table.
-- **Column**: A collection of attributes in a table.
+- **Database**: A system that stores and manages data.
+- **Table**: The structure in a database that stores data, consisting of rows and columns.
+- **Row**: A record in a table.
+- **Column**: A collection of a specific attribute in the table.
 
 ## 2. Introduction to the DB Class
 
-The `DB` class is the core class provided by Dora SSR for performing database operations. With this class, you can:
+&emsp;&emsp;The `DB` class is the core class provided by Dora for database operations. With this class, you can perform the following actions:
 
 - Check if a table exists
 - Execute SQL queries
 - Insert, update, and delete data
-- Perform transactions
-- Execute asynchronous operations
+- Execute transactions
+- Perform asynchronous operations
 
-### 2.1 Key Concepts Related to the DB Class
+### 2.1 Important Concepts Related to the DB Class
 
-- **Column**: Represents a data type in a database column, which can be `integer`, `number`, `string`, or `boolean`.
+- **Column**: Represents a database column type, which can be `integer`, `number`, `string`, or `boolean`.
 
-	:::tip Important Note
-	In Dora SSR, the boolean data type in the database only supports the `false` value to represent NULL. If you need to store boolean values, use numeric types like `0` and `1` instead of `false` and `true`.
+	:::tip Special Note
+	In Dora SSR, the boolean type in the database column only supports the `false` value to represent a NULL value in the database. If you need to store boolean values in the database, use the numeric types `0` and `1` to represent `false` and `true`.
 	:::
 
-- **Row**: Represents a row in the database, typically a Lua table containing multiple `Column` values.
-- **SQL**: Represents SQL query strings, which can be a simple string or a string with a parameterized table.
+- **Row**: Represents a row of data in the database, usually a Lua table containing multiple `Columns`.
+- **SQL**: Represents an SQL query, which can be a string or a string with parameters in combination with a parameter table.
 
 ## 3. Basic Operation Examples
 
-Let's get familiar with how to use the `DB` class through some basic operations.
+&emsp;&emsp;Let's get familiar with the usage of the `DB` class through some basic operations.
 
 ### 3.1 Checking if a Table Exists
 
-Before performing database operations, it's important to confirm whether a specific table exists. This can be done with the `exist` method:
+&emsp;&emsp;Before working with the database, you typically need to confirm whether a table exists. You can use the `exist` method:
 
-<Tabs>
+<Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
 
 ```lua
@@ -57,21 +57,78 @@ print(tableExists and "Table exists" or "Table does not exist")
 ```
 
 </TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local tableExists = DB:exist("test_table")
+print(tableExists and "Table exists" or "Table does not exist")
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+const tableExists = DB.exist("test_table");
+print(tableExists ? "Table exists" : "Table does not exist");
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+tableExists = DB\exist "test_table"
+print tableExists and "Table exists" or "Table does not exist"
+```
+
+</TabItem>
 </Tabs>
 
-### 3.2 Creating and Deleting Tables
+### 3.2 Creating and Dropping a Table
 
-You can use the `exec` method to execute SQL statements for creating and deleting tables:
+&emsp;&emsp;You can use the `exec` method to execute SQL statements to create and drop tables:
 
-<Tabs>
+<Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
 
 ```lua
--- Drop the test_table if it exists
+-- Drop the table named test_table if it exists
 DB:exec("DROP TABLE IF EXISTS test_table")
 
--- Create a new table called test_table
+-- Create the table named test_table
 DB:exec("CREATE TABLE test_table (id INTEGER PRIMARY KEY, value TEXT)")
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+-- Drop the table named test_table if it exists
+DB.exec("DROP TABLE IF EXISTS test_table")
+
+-- Create the table named test_table
+DB:exec("CREATE TABLE test_table (id INTEGER PRIMARY KEY, value TEXT)")
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+// Drop the table named test_table if it exists
+DB.exec("DROP TABLE IF EXISTS test_table");
+
+// Create the table named test_table
+DB.exec("CREATE TABLE test_table (id INTEGER PRIMARY KEY, value TEXT)");
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+-- Drop the table named test_table if it exists
+DB\exec "DROP TABLE IF EXISTS test_table"
+
+-- Create the table named test_table
+DB\exec "CREATE TABLE test_table (id INTEGER PRIMARY KEY, value TEXT)"
 ```
 
 </TabItem>
@@ -79,9 +136,9 @@ DB:exec("CREATE TABLE test_table (id INTEGER PRIMARY KEY, value TEXT)")
 
 ### 3.3 Inserting Data
 
-Use the `insert` method to insert data into a table:
+&emsp;&emsp;You can insert data into a table using the `insert` method:
 
-<Tabs>
+<Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
 
 ```lua
@@ -93,13 +150,46 @@ print(success and "Insert successful" or "Insert failed")
 ```
 
 </TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local success = DB:insert("test_table", {
+	{1, "Hello"},
+	{2, "World"}
+})
+print(success and "Insert successful" or "Insert failed")
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+const success = DB.insert("test_table", [
+	[1, "Hello"],
+	[2, "World"]
+]);
+print(success ? "Insert successful" : "Insert failed");
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+success = DB\insert "test_table", [
+	[1, "Hello"],
+	[2, "World"]
+]
+print success and "Insert successful" or "Insert failed"
+```
+
+</TabItem>
 </Tabs>
 
 ### 3.4 Querying Data
 
-The `query` method allows you to retrieve data from a table:
+&emsp;&emsp;You can query data from the table using the `query` method:
 
-<Tabs>
+<Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
 
 ```lua
@@ -110,13 +200,46 @@ end
 ```
 
 </TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local results = DB:query("SELECT * FROM test_table")
+if not results is nil then
+	for _, row in ipairs(results) do
+		print("ID:", row[1], "Value:", row[2])
+	end
+end
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+const results = DB.query("SELECT * FROM test_table");
+if (results) {
+	for (const [id, value] of results) {
+		print("ID:", id, "Value:", value);
+	}
+}
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+results = DB\query "SELECT * FROM test_table"
+for [id, value] in *results
+	print "ID:", id, "Value:", value
+```
+
+</TabItem>
 </Tabs>
 
 ### 3.5 Updating and Deleting Data
 
-You can perform update and delete operations using the `exec` method:
+&emsp;&emsp;You can perform updates and deletions using the `exec` method:
 
-<Tabs>
+<Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
 
 ```lua
@@ -130,13 +253,52 @@ print("Rows deleted:", rowsAffected)
 ```
 
 </TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+-- Update data
+local rowsAffected = DB:exec("UPDATE test_table SET value = ? WHERE id = ?", {"Hello Dora", 1})
+print("Rows updated:", rowsAffected)
+
+-- Delete data
+rowsAffected = DB:exec("DELETE FROM test_table WHERE id = ?", {2})
+print("Rows deleted:", rowsAffected)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+// Update data
+let rowsAffected = DB.exec("UPDATE test_table SET value = ? WHERE id = ?", ["Hello Dora", 1]);
+print("Rows updated:", rowsAffected);
+
+// Delete data
+rowsAffected = DB.exec("DELETE FROM test_table WHERE id = ?", [2]);
+print("Rows deleted:", rowsAffected);
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+-- Update data
+rowsAffected = DB\exec "UPDATE test_table SET value = ? WHERE id = ?", ["Hello Dora", 1]
+print "Rows updated:", rowsAffected
+
+-- Delete data
+rowsAffected = DB\exec "DELETE FROM test_table WHERE id = ?", [2]
+print "Rows deleted:", rowsAffected
+```
+
+</TabItem>
 </Tabs>
 
-## 4. Transaction Management
+## 4. Transactions
 
-A transaction is a group of operations that either all succeed or all fail. In Dora SSR, you can use the `transaction` method to execute transactions:
+&emsp;&emsp;A transaction is a set of operations that either all succeed or, if an error occurs, none are executed. In Dora SSR, you can use the `transaction` method to execute transactions:
 
-<Tabs>
+<Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
 
 ```lua
@@ -149,31 +311,126 @@ print(transactionSuccess and "Transaction successful" or "Transaction failed")
 ```
 
 </TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local sqlStatements = {
+	"INSERT INTO test_table (id, value) VALUES (3, 'Dora')",
+	"INSERT INTO test_table (id, value) VALUES (4, 'SSR')"
+}
+local transactionSuccess = DB:transaction(sqlStatements)
+print("Transaction successful")
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+const sqlStatements = [
+	"INSERT INTO test_table (id, value) VALUES (3, 'Dora')",
+	"INSERT INTO test_table (id, value) VALUES (4, 'SSR')"
+];
+const transactionSuccess = DB.transaction(sqlStatements);
+print(transactionSuccess ? "Transaction successful" : "Transaction failed");
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+sqlStatements = [
+	"INSERT INTO test_table (id, value) VALUES (3, 'Dora')",
+	"INSERT INTO test_table (id, value) VALUES (4, 'SSR')"
+]
+transactionSuccess = DB\transaction sqlStatements
+print transactionSuccess and "Transaction successful" or "Transaction failed"
+```
+
+</TabItem>
 </Tabs>
 
 ## 5. Asynchronous Operations
 
-To avoid blocking the main thread, Dora SSR provides asynchronous methods such as `insertAsync`, `queryAsync`, and `execAsync`. These methods execute database operations in a background thread.
+&emsp;&emsp;To avoid blocking the main thread, Dora SSR provides asynchronous methods such as `insertAsync`, `queryAsync`, and `execAsync` to perform database operations in a background thread.
 
-<Tabs>
+<Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
 
 ```lua
 thread(function()
-	-- Asynchronously insert data
+	-- Asynchronous insert data
 	DB:insertAsync("test_table", {
 		{5, "Async"},
 		{6, "Operation"}
 	})
 
-	-- Asynchronously query data
+	-- Asynchronous query data
 	local asyncResults = DB:queryAsync("SELECT * FROM test_table")
 	if asyncResults then
 		for _, row in ipairs(asyncResults) do
-			print("Async query - ID:", row[1], "Value:", row[2])
+			print("Async Query - ID:", row[1], "Value:", row[2])
 		end
 	end
 end)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+thread(function()
+	-- Asynchronous insert data
+	DB:insertAsync("test_table", {
+		{5, "Async"},
+		{6, "Operation"}
+	})
+
+	-- Asynchronous query data
+	local asyncResults = DB:queryAsync("SELECT * FROM test_table")
+	if not asyncResults is nil then
+		for _, row in ipairs(asyncResults) do
+			print("Async Query - ID:", row[1], "Value:", row[2])
+		end
+	end
+end)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+thread(() => {
+	// Asynchronous insert data
+	DB.insertAsync("test_table", [
+		[5, "Async"],
+		[6, "Operation"]
+	]);
+
+	// Asynchronous query data
+	const asyncResults = DB.queryAsync("SELECT * FROM test_table");
+	if (asyncResults) {
+		for (const [id, value] of asyncResults) {
+			print("Async Query - ID:", id, "Value:", value);
+		}
+	}
+});
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+thread ->
+	-- Asynchronous insert data
+	DB\insertAsync "test_table", [
+		[5, "Async"],
+		[6, "Operation"]
+	]
+
+	-- Asynchronous query data
+	asyncResults = DB\queryAsync "SELECT * FROM test_table"
+	for [id, value] in *asyncResults
+		print "Async Query - ID:", id, "Value:", value
 ```
 
 </TabItem>
@@ -181,54 +438,127 @@ end)
 
 ## 6. Creating a New Schema
 
-In some cases, you may want to create a new schema to manage game data separately rather than storing everything in the default database. A schema is a logical structure within the database, containing multiple tables. You can use the `exec` method to create a schema.
+&emsp;&emsp;In real-world projects, you may need to create a new schema to store and manage game data separately instead of storing everything in the same default database. A schema is a logical structure in the database, like a grouping of multiple tables. You can use the `exec` method to create schemas.
 
-<Tabs>
+<Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
 
 ```lua
--- Define the complete path to store the new schema data file
+-- Define the full path of the file to store the new schema data, it must be in the engine's writable directory
 local schemaFile = Path(Content.writablePath, "game_data.db")
 
--- Create schema (database file), and attach it
+-- Create schema,
+-- the database file will be automatically created if it doesn't exist,
+-- and will be added to the current database connection if it does exist
 DB:exec("ATTACH DATABASE '" .. schemaFile .. "' AS game_data")
 
--- Create a table in the new schema and insert data
+-- Create tables in the new schema and insert data
 DB:exec("CREATE TABLE game_data.player (id INTEGER PRIMARY KEY, name TEXT)")
 DB:insert("game_data.player", {false, "Dora"})
 
--- Query data from the new schema
+-- Query the data from the new schema
 DB:query("SELECT * FROM game_data.player")
 
--- Detach the schema when done
+-- Detach schema so that the data from the new schema is no longer accessible
 DB:exec("DETACH DATABASE game_data")
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+-- Define the full path of the file to store the new schema data, it must be in the engine's writable directory
+local schemaFile = Path(Content.writablePath, "game_data.db")
+
+-- Create schema,
+-- the database file will be automatically created if it doesn't exist,
+-- and will be added to the current database connection if it does exist
+DB:exec("ATTACH DATABASE '" .. schemaFile .. "' AS game_data")
+
+-- Create tables in the new schema and insert data
+DB:exec("CREATE TABLE game_data.player (id INTEGER PRIMARY KEY, name TEXT)")
+DB:insert("game_data.player", {false, "Dora"})
+
+-- Query the data from the new schema
+DB:query("SELECT * FROM game_data.player")
+
+-- Detach schema so that the data from the new schema is no longer accessible
+DB:exec("DETACH DATABASE game_data")
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+// Define the full path of the file to store the new schema data, it must be in the engine's writable directory
+const schemaFile = Path(Content.writablePath, "game_data.db");
+
+// Create schema,
+// the database file will be automatically created if it doesn't exist,
+// and will be added to the current database connection if it does exist
+DB.exec(`ATTACH DATABASE '${schemaFile}' AS game_data`);
+
+// Create tables in the new schema and insert data
+DB.exec("CREATE TABLE game_data.player (id INTEGER PRIMARY KEY, name TEXT)");
+DB.insert("game_data.player", [false, "Dora"]);
+
+// Query the data from the new schema
+DB.query("SELECT * FROM game_data.player");
+
+// Detach schema so that the data from the new schema is no longer accessible
+DB.exec("DETACH DATABASE game_data");
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+-- Define the full path of the file to store the new schema data, it must be in the engine's writable directory
+schemaFile = Path(Content\writablePath, "game_data.db")
+
+-- Create schema,
+-- the database file will be automatically created if it doesn't exist,
+-- and will be added to the current database connection if it does exist
+DB\exec "ATTACH DATABASE '#{schemaFile}' AS game_data"
+
+-- Create tables in the new schema and insert data
+DB\exec "CREATE TABLE game_data.player (id INTEGER PRIMARY KEY, name TEXT)"
+DB\insert "game_data.player", [false, "Dora"]
+
+-- Query the data from the new schema
+DB\query "SELECT * FROM game_data.player"
+
+-- Detach schema so that the data from the new schema is no longer accessible
+DB\exec "DETACH DATABASE game_data"
 ```
 
 </TabItem>
 </Tabs>
 
-:::tip Note
-Dora SSR's default schema is stored in a file located at `Path(Content.writablePath, "dora.db")`. Accessing tables without a prefix means interacting with the default schema. To manage independent databases or load different schemas as an external file, you can use the `ATTACH DATABASE` and `DETACH DATABASE` commands.
+:::tip Summary
+The default schema library provided by the Dora SSR engine will be stored in the file corresponding to the path `Path(Content.writablePath, "dora.db")`. When accessing tables, if you do not prefix the table name, it means accessing tables in the default schema. If you need to create a new schema and store it in a separate database file for easier migration, you can use `ATTACH DATABASE` and `DETACH DATABASE` for this operation.
 :::
 
 ## 7. Importing Excel Data into the Database
 
-In game development, Excel sheets are often used to manage game data. When the data in Excel is large or requires complex associations, using a database is more efficient. Dora SSR makes it easy to import Excel data into the database.
+&emsp;&emsp;In game development, Excel spreadsheets are often used to manage game data. When the data volume in Excel becomes large and complex queries such as data associations are needed, using a database becomes more efficient. Dora SSR engine provides convenient functionality to import Excel data into the database, making it easier for developers to manage game data.
 
 ### 7.1 Prerequisites
 
-- **Consistency between table and Excel structure**: Ensure that the database table structure (column names and types) matches the data columns in the Excel worksheet.
-- **Excel format**: Currently, `.xlsx` format is supported.
+- **Consistent Table Structure and Excel Sheet Structure**: Ensure that the table structure (
 
-### 7.2 Steps Example
+column names and column types) in the database matches the data columns in the Excel worksheet.
+- **Excel File Format**: Currently supported Excel file format is `.xlsx`.
 
-Let's go through an example of importing Excel data into the database.
+### 7.2 Example Steps
 
-#### Creating the Database Table
+&emsp;&emsp;Let's walk through an example of how to import Excel data into the database.
 
-Assume you have an Excel file `data.xlsx` containing a worksheet `Items` that records game items, including ID, name, and description. First, we create a corresponding table in the database:
+#### Create Database Table
 
-<Tabs>
+&emsp;&emsp;Suppose we have an Excel file `data.xlsx` containing a worksheet `Items`, which records game item information, including item ID, name, and description. First, we need to create the corresponding table in the database:
+
+<Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
 
 ```lua
@@ -242,29 +572,68 @@ DB:exec([[
 ```
 
 </TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+DB:exec([[
+	CREATE TABLE IF NOT EXISTS Items (
+		id INTEGER PRIMARY KEY,
+		name TEXT,
+		description TEXT
+	)
+]])
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+DB.exec(`
+	CREATE TABLE IF NOT EXISTS Items (
+		id INTEGER PRIMARY KEY,
+		name TEXT,
+		description TEXT
+	)
+`);
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+DB\exec [[
+	CREATE TABLE IF NOT EXISTS Items (
+		id INTEGER PRIMARY KEY,
+		name TEXT,
+		description TEXT
+	)
+]]
+```
+
+</TabItem>
 </Tabs>
 
-#### Preparing the Excel File
+#### Prepare Excel File
 
-Ensure your Excel file `data.xlsx` is accessible and structured like this:
+&emsp;&emsp;Ensure that your Excel file `data.xlsx` is located in an accessible path in the project, and that the first row of the worksheet `Items` contains the column names, corresponding to the column names in the database table:
 
 | id | name | description |
-| --- | ------ | -------------- |
+| ---- | ------ | ------------ |
 | 1 | Sword | Basic sword |
 | 2 | Shield | Basic shield |
 | ... | ... | ... |
 
-#### Using `DB.insertAsync` to Import Data
+#### Use `DB.insertAsync` to Import Data
 
-<Tabs>
+<Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
 
 ```lua
 thread(function()
 	local success = DB:insertAsync(
-		{"Items"},  -- Database table names, assuming they match the Excel sheet names
-		"data.xlsx",  -- Path to the Excel file
-		2  -- Start reading data from the second row (first row is the column header)
+		{"Items"},
+		"data.xlsx",
+		2
 	)
 	if success then
 		print("Excel data imported successfully!")
@@ -275,13 +644,65 @@ end)
 ```
 
 </TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+thread(function()
+	local success = DB:insertAsync(
+		{"Items"},
+		"data.xlsx",
+		2
+	)
+	if success then
+		print("Excel data imported successfully!")
+	else
+		print("Excel data import failed!")
+	end
+end)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+thread(() => {
+	const success = DB.insertAsync(
+		["Items"],
+		"data.xlsx",
+		2
+	);
+	if (success) {
+		print("Excel data imported successfully!");
+	} else {
+		print("Excel data import failed!");
+	}
+});
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+thread ->
+	success = DB\insertAsync(
+		["Items",]
+		"data.xlsx"
+		2
+	)
+	if success
+		print "Excel data imported successfully!"
+	else
+		print "Excel data import failed!"
+```
+
+</TabItem>
 </Tabs>
 
-#### Verifying the Import
+#### Verify Import Results
 
-You can query the database to verify if the data was successfully imported:
+&emsp;&emsp;You can query the database to verify that the data was imported successfully:
 
-<Tabs>
+<Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
 
 ```lua
@@ -292,19 +713,52 @@ end
 ```
 
 </TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local items = DB:query("SELECT * FROM Items")
+if not items is nil then
+	for _, item in ipairs(items) do
+		print("ID:", item[1], "Name:", item[2], "Description:", item[3])
+	end
+end
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+const items = DB.query("SELECT * FROM Items");
+if (items) {
+	for (const [id, name, description] of items) {
+		print("ID:", id, "Name:", name, "Description:", description);
+	}
+}
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+items = DB\query "SELECT * FROM Items"
+for [id, name, description] in *items
+	print "ID:", id, "Name:", name, "Description:", description
+```
+
+</TabItem>
 </Tabs>
 
-### 7.3 Using Custom Worksheet Names
+### 7.3 Using a Custom Worksheet Name
 
-If your Excel file has worksheet names that differ from the database table names, you can specify the mapping:
+&emsp;&emsp;If the worksheet name in your Excel file differs from the table name in the database, you can specify the corresponding relationship:
 
-<Tabs>
+<Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
 
 ```lua
 thread(function()
 	local tableSheets = {
-		{"Items", "GameItems"}  -- Database table name "Items" corresponds to Excel sheet "GameItems"
+		{"Items", "GameItems"}  -- The database table name is "Items", corresponding to the Excel worksheet name "GameItems"
 	}
 	local success = DB:insertAsync(
 		tableSheets,
@@ -320,26 +774,87 @@ end)
 ```
 
 </TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+thread(function()
+	local tableSheets = {
+		{"Items", "GameItems"}  -- The database table name is "Items", corresponding to the Excel worksheet name "GameItems"
+	}
+	local success = DB:insertAsync(
+		tableSheets,
+		"data.xlsx",
+		2
+	)
+	if success then
+		print("Excel data imported successfully!")
+	else
+		print("Excel data import failed!")
+	end
+end)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+thread(() => {
+	const tableSheets = [
+		["Items", "GameItems"]  // The database table name is "Items", corresponding to the Excel worksheet name "GameItems"
+	];
+	const success = DB.insertAsync(
+		tableSheets,
+		"data.xlsx",
+		2
+	);
+	if (success) {
+		print("Excel data imported successfully!");
+	} else {
+		print("Excel data import failed!");
+	}
+});
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+thread ->
+	tableSheets = [
+		["Items", "GameItems"]  -- The database table name is "Items", corresponding to the Excel worksheet name "GameItems"
+	]
+	success = DB\insertAsync(
+		tableSheets,
+		"data.xlsx",
+		2
+	)
+	if success
+		print "Excel data imported successfully!"
+	else
+		print "Excel data import failed!"
+```
+
+</TabItem>
 </Tabs>
 
 ### 7.4 Notes
 
-- **Data Type Matching**: Ensure that the data types in Excel match the database column types (e.g., numeric data should be `INTEGER` or `REAL`, and text data should be `TEXT`).
-- **Date and Boolean Handling**: Dates and boolean values in Excel may need conversion before being inserted into the database.
-- **Error Handling**: The `insertAsync` method will return `false` if any errors occur during the import. It's recommended to add error logging and handle potential exceptions in your application.
+- **Data Type Matching**: Ensure that the data types in Excel are compatible with the column types in the database table, for example, numeric data should correspond to INTEGER or REAL types, and text data should correspond to TEXT types.
+- **Handling Dates and Boolean Values**: Dates and boolean values in Excel need to be appropriately converted before importing to match the database column types.
+- **Error Handling**: The `insertAsync` method will return `false` if an error occurs during the import process. It is recommended to add error logs in actual applications to capture and handle potential exceptions.
 
-## 8. Complete Code Example
+## 8. Full Sample Code
 
-Below is a complete example, with line-by-line explanations:
+&emsp;&emsp;Below is a complete sample code, which we will break down line by line.
 
-<Tabs>
+<Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
 
 ```lua
 local DB <const> = require("DB")
 local thread <const> = require("thread")
 
--- Using transactions to create a table and insert initial data
+-- Use a transaction to create a table and insert initial data
 local sqls = {
 	"DROP TABLE IF EXISTS test",
 	"CREATE TABLE test (id INTEGER PRIMARY KEY, value TEXT)",
@@ -363,13 +878,13 @@ print(DB:exist("test"))
 p(DB:query("SELECT * FROM test", true))
 
 -- Delete and update data
-print("Rows changed:", DB:exec("DELETE FROM test WHERE id > 1"))
-print("Rows changed:", DB:exec("UPDATE test SET value = ? WHERE id = 1", {"hello world!"}))
+print("row changed:", DB:exec("DELETE FROM test WHERE id > 1"))
+print("row changed:", DB:exec("UPDATE test SET value = ? WHERE id = 1", {"hello world!"}))
 
 -- Perform asynchronous operations
 thread(function()
-	-- Asynchronously insert data
-	print("Insert async")
+	-- Asynchronous insert data
+	print("insert async")
 	local data = {}
 	local count = 1
 	for k in pairs(_G) do
@@ -378,8 +893,8 @@ thread(function()
 	end
 	p(DB:insertAsync("test", data))
 
-	-- Asynchronously query data
-	print("Query async...")
+	-- Asynchronous query data
+	print("query async...")
 	local items = DB:queryAsync("SELECT value FROM test WHERE value NOT LIKE 'hello%' ORDER BY value ASC")
 	local rows = {}
 	if items then
@@ -395,21 +910,225 @@ end)
 ```
 
 </TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local DB <const> = require("DB")
+local thread <const> = require("thread")
+
+-- Use a transaction to create a table and insert initial data
+local sqls = {
+	"DROP TABLE IF EXISTS test",
+	"CREATE TABLE test (id INTEGER PRIMARY KEY, value TEXT)",
+	{
+		"INSERT INTO test VALUES(?, ?)",
+		{
+			{false, "hello"},
+			{false, "world"},
+			{false, "ok"}
+		}
+	}
+}
+
+local result = DB:transaction(sqls)
+print(result and "Success" or "Failure")
+
+-- Check if the table exists
+print(DB:exist("test"))
+
+-- Query and print data
+p(DB:query("SELECT * FROM test", true))
+
+-- Delete and update data
+print("row changed:", DB:exec("DELETE FROM test WHERE id > 1"))
+print("row changed:", DB:exec("UPDATE test SET value = ? WHERE id = 1", {"hello world!"}))
+
+-- Perform asynchronous operations
+thread(function()
+	-- Asynchronous insert data
+	print("insert async")
+	local data = {}
+	local count = 1
+	for k in pairs(_G as {string: any}) do
+		data[count] = {false, k}
+		count = count + 1
+	end
+	p(DB:insertAsync("test", data))
+
+	-- Asynchronous query data
+	print("query async...")
+	local items = DB:queryAsync("SELECT value FROM test WHERE value NOT LIKE 'hello%' ORDER BY value ASC")
+	local rows = {}
+	if not items is nil then
+		count = 1
+		for i = 1, #items do
+			local item = items[i]
+			rows[count] = item[1]
+			count = count + 1
+		end
+	end
+	p(rows)
+end)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { DB, thread, SQL } from "Dora";
+
+// Use a transaction to create a table and insert initial data
+const sqls: SQL[] = [
+	"DROP TABLE IF EXISTS test",
+	"CREATE TABLE test (id INTEGER PRIMARY KEY, value TEXT)",
+	[
+		"INSERT INTO test VALUES(?, ?)",
+		[
+			[false, "hello"],
+			[false, "world"],
+			[false, "ok"]
+		]
+	]
+];
+
+const result = DB.transaction(sqls);
+print(result ? "Success" : "Failure");
+
+// Check if the table exists
+print(DB.exist("test"));
+
+// Query and print data
+p(DB.query("SELECT * FROM test", true));
+
+// Delete and update data
+print("row changed:", DB.exec("DELETE FROM test WHERE id > 1"));
+print("row changed:", DB.exec("UPDATE test SET value = ? WHERE id = 1", ["hello world!"]));
+
+// Perform asynchronous operations
+thread(() => {
+	// Asynchronous insert data
+	print("insert async");
+	const data = [];
+	let count = 1;
+	for (const k in _G) {
+		data[count] = [false, k];
+		count++;
+	}
+	p(DB.insertAsync("test", data));
+
+	// Asynchronous query data
+	print("query async...");
+	const items = DB.queryAsync("SELECT value FROM test WHERE value NOT LIKE 'hello%' ORDER BY value ASC");
+	const rows = [];
+	if (items) {
+		for (let i = 0; i < items.length; i++) {
+			const item = items[i];
+			rows.push(item[0]);
+		}
+	}
+	p(rows);
+});
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+-- Use a transaction to create a table and insert initial data
+sqls = [
+	"DROP TABLE IF EXISTS test",
+	"CREATE TABLE test (id INTEGER PRIMARY KEY, value TEXT)",
+	[
+		"INSERT INTO test VALUES(?, ?)",
+		[
+			[false, "hello"],
+			[false, "world"],
+			[false, "ok"]
+		]
+	]
+]
+
+result = DB\transaction sqls
+print result and "Success" or "Failure"
+
+-- Check if the table exists
+print DB\exist "test"
+
+-- Query and print data
+p DB\query "SELECT * FROM test", true
+
+-- Delete and update data
+print "row changed:", DB\exec "DELETE FROM test WHERE id > 1"
+print "row changed:", DB\exec "UPDATE test SET value = ? WHERE id = 1", ["hello world!",]
+
+-- Perform asynchronous operations
+thread ->
+	-- Asynchronous insert data
+	print "insert async"
+	data = []
+	for k in pairs _G
+		data[] = [false, k]
+	p DB\insertAsync "test", data
+
+	-- Asynchronous query data
+	print "query async..."
+	items = DB\queryAsync "SELECT value FROM test WHERE value NOT LIKE 'hello%' ORDER BY value ASC"
+	rows = []
+	for i = 1, #items
+		item = items[i]
+		rows[] = item[1]
+	p rows
+```
+
+</TabItem>
 </Tabs>
 
 ### 8.1 Code Breakdown
 
-1. **Importing Modules**:
+1. **Import Modules**:
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
 
 	```lua
 	local DB <const> = require("DB")
 	local thread <const> = require("thread")
 	```
 
-	- The `DB` module is used for database operations.
-	- The `thread` module is used to create asynchronous threads.
+</TabItem>
+<TabItem value="tl" label="Teal">
 
-2. **Defining SQL Statements**:
+	```tl
+	local DB <const> = require("DB")
+	local thread <const> = require("thread")
+	```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+	```ts
+	import { DB, thread, SQL } from "Dora";
+	```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+	```yue
+	_ENV = Dora
+	```
+
+</TabItem>
+</Tabs>
+
+	- The `DB` module is for database operations.
+	- The `thread` module is used for creating asynchronous threads.
+
+2. **Define SQL Statement List**:
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
 
 	```lua
 	local sqls = {
@@ -418,7 +1137,7 @@ end)
 		{
 			"INSERT INTO test VALUES(?, ?)",
 			{
-				{false, "hello"},
+				{false, "hello"}, -- Using false as a placeholder for NULL value in the database, id will auto-increment
 				{false, "world"},
 				{false, "ok"}
 			}
@@ -426,54 +1145,230 @@ end)
 	}
 	```
 
-	- Drop the `test` table if it exists.
-	- Create a new `test` table with columns `id` and `value`.
-	- Insert three rows into the table, with the `id` being auto-incremented (using `false` as a placeholder for NULL).
+</TabItem>
+<TabItem value="tl" label="Teal">
 
-3. **Executing Transactions**:
+	```tl
+	local sqls = {
+		"DROP TABLE IF EXISTS test",
+		"CREATE TABLE test (id INTEGER PRIMARY KEY, value TEXT)",
+		{
+			"INSERT INTO test VALUES(?, ?)",
+			{
+				{false, "hello"}, -- Using false as a placeholder for NULL value in the database, id will auto-increment
+				{false, "world"},
+				{false, "ok"}
+			}
+		}
+	}
+	```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+	```ts
+	const sqls: SQL[] = [
+		"DROP TABLE IF EXISTS test",
+		"CREATE TABLE test (id INTEGER PRIMARY KEY, value TEXT)",
+		[
+			"INSERT INTO test VALUES(?, ?)",
+			[
+				[false, "hello"], // Using false as a placeholder for NULL value in the database, id will auto-increment
+				[false, "world"],
+				[false, "ok"]
+			]
+		]
+	];
+	```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+	```yue
+	sqls = [
+		"DROP TABLE IF EXISTS test",
+		"CREATE TABLE test (id INTEGER PRIMARY KEY, value TEXT)",
+		[
+			"INSERT INTO test VALUES(?, ?)",
+			[
+				[false, "hello"], -- Using false as a placeholder for NULL value in the database, id will auto-increment
+				[false, "world"],
+				[false, "ok"]
+			]
+		]
+	]
+	```
+
+</TabItem>
+</Tabs>
+
+	- Drop the table named `test` if it exists.
+	- Create a table named `test` with two columns: `id` and `value`.
+	- Insert three rows of data. The `id` column will auto-increment (using `false` as a placeholder for NULL), and the `value` column will have `"hello"`, `"world"`, and `"ok"` values.
+
+3. **Execute Transaction**:
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
 
 	```lua
 	local result = DB:transaction(sqls)
 	print(result and "Success" or "Failure")
 	```
 
-	- Execute the SQL statements as a transaction to ensure atomicity.
-	- Print the transaction result.
+</TabItem>
+<TabItem value="tl" label="Teal">
 
-4. **Checking if a Table Exists**:
+	```tl
+	local result = DB:transaction(sqls)
+	print(result and "Success" or "Failure")
+	```
+
+</TabItem>
+<TabItem value
+
+="ts" label="TypeScript">
+
+	```ts
+	const result = DB.transaction(sqls);
+	print(result ? "Success" : "Failure");
+	```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+	```yue
+	result = DB\transaction sqls
+	print result and "Success" or "Failure"
+	```
+
+</TabItem>
+</Tabs>
+
+	- Use the `transaction` method to execute the SQL statements as a transaction, ensuring atomicity.
+	- Print the result of the transaction.
+
+4. **Check if Table Exists**:
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
 
 	```lua
 	print(DB:exist("test"))
 	```
 
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+	```tl
+	print(DB:exist("test"))
+	```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+	```ts
+	print(DB.exist("test"));
+	```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+	```yue
+	print DB\exist "test"
+	```
+
+</TabItem>
+</Tabs>
+
 	- Check if the `test` table exists.
 
-5. **Querying and Printing Data**:
+5. **Query and Print Data**:
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
 
 	```lua
 	p(DB:query("SELECT * FROM test", true))
 	```
 
-	- Query all data from the `test` table, with `true` indicating that column names should be included in the result.
-	- Use the `p` function (a built-in special print function) to display the results.
+</TabItem>
+<TabItem value="tl" label="Teal">
 
-6. **Deleting and Updating Data**:
-
-	```lua
-	print("Rows changed:", DB:exec("DELETE FROM test WHERE id > 1"))
-	print("Rows changed:", DB:exec("UPDATE test SET value = ? WHERE id = 1", {"hello world!"}))
+	```tl
+	p(DB:query("SELECT * FROM test", true))
 	```
 
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+	```ts
+	p(DB.query("SELECT * FROM test", true));
+	```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+	```yue
+	p DB\query "SELECT * FROM test", true
+	```
+
+</TabItem>
+</Tabs>
+
+	- Query all data from the `test` table, `true` indicates that the result includes the column names.
+	- Use the `p` function (a special engine-provided print function) to print the query result.
+
+6. **Delete and Update Data**:
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+	```lua
+	print("row changed:", DB:exec("DELETE FROM test WHERE id > 1"))
+	print("row changed:", DB:exec("UPDATE test SET value = ? WHERE id = 1", {"hello world!"}))
+	```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+	```tl
+	print("row changed:", DB:exec("DELETE FROM test WHERE id > 1"))
+	print("row changed:", DB:exec("UPDATE test SET value = ? WHERE id = 1", {"hello world!"}))
+	```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+	```ts
+	print("row changed:", DB.exec("DELETE FROM test WHERE id > 1"));
+	print("row changed:", DB.exec("UPDATE test SET value = ? WHERE id = 1", ["hello world!"]));
+	```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+	```yue
+	print "row changed:", DB\exec "DELETE FROM test WHERE id > 1"
+	print "row changed:", DB\exec "UPDATE test SET value = ? WHERE id = 1", ["hello world!",]
+	```
+
+</TabItem>
+</Tabs>
+
 	- Delete rows where `id` is greater than 1.
-	- Update the row where `id` equals 1, setting the `value` to `"hello world!"`.
+	- Update the row where `id` is equal to 1, changing the `value` to `"hello world!"`.
 	- Print the number of affected rows.
 
-7. **Performing Asynchronous Operations**:
+7. **Asynchronous Operations**:
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
 
 	```lua
 	thread(function()
-		-- Asynchronously insert data
-		print("Insert async")
+		-- Asynchronous insert data
+		print("insert async")
 		local data = {}
 		local count = 1
 		for k in pairs(_G) do
@@ -482,8 +1377,8 @@ end)
 		end
 		p(DB:insertAsync("test", data))
 
-		-- Asynchronously query data
-		print("Query async...")
+		-- Asynchronous query data
+		print("query async...")
 		local items = DB:queryAsync("SELECT value FROM test WHERE value NOT LIKE 'hello%' ORDER BY value ASC")
 		local rows = {}
 		if items then
@@ -498,22 +1393,108 @@ end)
 	end)
 	```
 
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+	```tl
+	thread(function()
+		-- Asynchronous insert data
+		print("insert async")
+		local data = {}
+		local count = 1
+		for k in pairs(_G as {string: any}) do
+			data[count] = {false, k}
+			count = count + 1
+		end
+		p(DB:insertAsync("test", data))
+
+		-- Asynchronous query data
+		print("query async...")
+		local items = DB:queryAsync("SELECT value FROM test WHERE value NOT LIKE 'hello%' ORDER BY value ASC")
+		local rows = {}
+		if not items is nil then
+			count = 1
+			for i = 1, #items do
+				local item = items[i]
+				rows[count] = item[1]
+				count = count + 1
+			end
+		end
+		p(rows)
+	end)
+	```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+	```ts
+	thread(() => {
+		// Asynchronous insert data
+		print("insert async");
+		const data = [];
+		let count = 1;
+		for (const k in _G) {
+			data[count] = [false, k];
+			count++;
+		}
+		p(DB.insertAsync("test", data));
+
+		// Asynchronous query data
+		print("query async...");
+		const items = DB.queryAsync("SELECT value FROM test WHERE value NOT LIKE 'hello%' ORDER BY value ASC");
+		const rows = [];
+		if (items) {
+			for (let i = 0; i < items.length; i++) {
+				const item = items[i];
+				rows.push(item[0]);
+			}
+		}
+		p(rows);
+	});
+	```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+	```yue
+	thread ->
+		-- Asynchronous insert data
+		print "insert async"
+		data = []
+		for k in pairs _G
+			data[] = [false, k]
+		p DB\insertAsync "test", data
+
+		-- Asynchronous query data
+		print "query async..."
+		items = DB\queryAsync "SELECT value FROM test WHERE value NOT LIKE 'hello%' ORDER BY value ASC"
+		rows = []
+		for i = 1, #items
+			item = items[i]
+			rows[] = item[1]
+		p rows
+	```
+
+</TabItem>
+</Tabs>
+
 	- Create a new thread to perform asynchronous operations.
-	- **Asynchronous Insertion**: Insert global variable names into the `test` table.
-	- **Asynchronous Query**: Query the `test` table for values that do not start with `"hello"` and order them alphabetically.
-	- Extract the `value` from the query result and store it in a table, then print the result.
+	- **Asynchronous Insert**: Insert global variable names into the `test` table.
+	- **Asynchronous Query**: Query values from the `test` table that don't start with `"hello"` and sort them in alphabetical order.
+	- **Process Results**: Extract the `value` from the query results and store it in the `rows` table.
+	- Print the results.
 
-## 9. Conclusion
+## 9. Summary
 
-Through this guide, you should now have a good grasp of how to use Dora SSR's SQLite database functionality for basic operations. Using these APIs, you can efficiently manage game data and provide players with richer experiences.
+&emsp;&emsp;In this tutorial, you have learned how to use Dora SSR engine's SQLite database functionality to perform basic data operations. With these interfaces, you can efficiently manage various data in your games, providing players with a richer gaming experience.
 
 **Tips**:
 
 - Always handle potential errors when performing database operations.
-- Using transactions ensures atomicity of data operations and avoids data inconsistency.
+- Using transactions ensures atomicity of data operations, avoiding data inconsistency.
 
 **Next Steps**:
 
-- Explore more advanced SQL syntax, such as JOINs and subqueries. For detailed information on SQLite SQL syntax, refer to the [official SQLite documentation](https://www.sqlite.org/lang.html).
-- Learn how to optimize database queries to improve performance.
-- Explore how to organize and manage database code in real projects.
+- Learn more advanced SQL syntax such as JOINs and subqueries. For detailed information on SQLite SQL syntax, refer to the [official SQLite documentation](https://www.sqlite.org/lang.html).
+- Learn how to optimize database queries for better performance.
+- Explore how to organize and manage database code in real-world projects.

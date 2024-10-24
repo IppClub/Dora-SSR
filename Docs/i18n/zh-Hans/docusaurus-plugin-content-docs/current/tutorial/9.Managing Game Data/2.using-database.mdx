@@ -48,12 +48,36 @@ import TabItem from '@theme/TabItem';
 
 &emsp;&emsp;在操作数据库之前，通常需要确认某个数据表是否存在。可以使用 `exist` 方法：
 
-<Tabs>
+<Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
 
 ```lua
 local tableExists = DB:exist("test_table")
 print(tableExists and "表存在" or "表不存在")
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local tableExists = DB:exist("test_table")
+print(tableExists and "表存在" or "表不存在")
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+const tableExists = DB.exist("test_table");
+print(tableExists ? "表存在" : "表不存在");
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+tableExists = DB\exist "test_table"
+print tableExists and "表存在" or "表不存在"
 ```
 
 </TabItem>
@@ -63,7 +87,7 @@ print(tableExists and "表存在" or "表不存在")
 
 &emsp;&emsp;可以使用 `exec` 方法执行创建和删除表的 SQL 语句：
 
-<Tabs>
+<Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
 
 ```lua
@@ -75,13 +99,46 @@ DB:exec("CREATE TABLE test_table (id INTEGER PRIMARY KEY, value TEXT)")
 ```
 
 </TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+-- 删除名为 test_table 的数据表（如果存在）
+DB.exec("DROP TABLE IF EXISTS test_table")
+
+-- 创建名为 test_table 的数据表
+DB:exec("CREATE TABLE test_table (id INTEGER PRIMARY KEY, value TEXT)")
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+// 删除名为 test_table 的数据表（如果存在）
+DB.exec("DROP TABLE IF EXISTS test_table");
+
+// 创建名为 test_table 的数据表
+DB.exec("CREATE TABLE test_table (id INTEGER PRIMARY KEY, value TEXT)");
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+-- 删除名为 test_table 的数据表（如果存在）
+DB\exec "DROP TABLE IF EXISTS test_table"
+
+-- 创建名为 test_table 的数据表
+DB\exec "CREATE TABLE test_table (id INTEGER PRIMARY KEY, value TEXT)"
+```
+
+</TabItem>
 </Tabs>
 
 ### 3.3 插入数据
 
 &emsp;&emsp;使用 `insert` 方法可以将数据插入到表中：
 
-<Tabs>
+<Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
 
 ```lua
@@ -93,13 +150,46 @@ print(success and "插入成功" or "插入失败")
 ```
 
 </TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local success = DB:insert("test_table", {
+	{1, "Hello"},
+	{2, "World"}
+})
+print(success and "插入成功" or "插入失败")
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+const success = DB.insert("test_table", [
+	[1, "Hello"],
+	[2, "World"]
+]);
+print(success ? "插入成功" : "插入失败");
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+success = DB\insert "test_table", [
+	[1, "Hello"],
+	[2, "World"]
+]
+print success and "插入成功" or "插入失败"
+```
+
+</TabItem>
 </Tabs>
 
 ### 3.4 查询数据
 
 &emsp;&emsp;使用 `query` 方法可以从表中查询数据：
 
-<Tabs>
+<Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
 
 ```lua
@@ -110,13 +200,46 @@ end
 ```
 
 </TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local results = DB:query("SELECT * FROM test_table")
+if not results is nil then
+	for _, row in ipairs(results) do
+		print("ID:", row[1], "Value:", row[2])
+	end
+end
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+const results = DB.query("SELECT * FROM test_table");
+if (results) {
+	for (const [id, value] of results) {
+		print("ID:", id, "Value:", value);
+	}
+}
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+results = DB\query "SELECT * FROM test_table"
+for [id, value] in *results
+	print "ID:", id, "Value:", value
+```
+
+</TabItem>
 </Tabs>
 
 ### 3.5 更新和删除数据
 
 &emsp;&emsp;可以使用 `exec` 方法执行更新和删除操作：
 
-<Tabs>
+<Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
 
 ```lua
@@ -130,13 +253,52 @@ print("删除了", rowsAffected, "行")
 ```
 
 </TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+-- 更新数据
+local rowsAffected = DB:exec("UPDATE test_table SET value = ? WHERE id = ?", {"Hello Dora", 1})
+print("更新了", rowsAffected, "行")
+
+-- 删除数据
+rowsAffected = DB:exec("DELETE FROM test_table WHERE id = ?", {2})
+print("删除了", rowsAffected, "行")
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+// 更新数据
+let rowsAffected = DB.exec("UPDATE test_table SET value = ? WHERE id = ?", ["Hello Dora", 1]);
+print("更新了", rowsAffected, "行");
+
+// 删除数据
+rowsAffected = DB.exec("DELETE FROM test_table WHERE id = ?", [2]);
+print("删除了", rowsAffected, "行");
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+-- 更新数据
+rowsAffected = DB\exec "UPDATE test_table SET value = ? WHERE id = ?", ["Hello Dora", 1]
+print "更新了", rowsAffected, "行"
+
+-- 删除数据
+rowsAffected = DB\exec "DELETE FROM test_table WHERE id = ?", [2]
+print "删除了", rowsAffected, "行"
+```
+
+</TabItem>
 </Tabs>
 
 ## 4. 事务处理
 
 &emsp;&emsp;事务是一组要么全部执行并执行成功. 要么遇到错误就全部都不执行的操作。在 Dora SSR 中，可以使用 `transaction` 方法来执行事务：
 
-<Tabs>
+<Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
 
 ```lua
@@ -149,13 +311,49 @@ print(transactionSuccess and "事务成功" or "事务失败")
 ```
 
 </TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local sqlStatements = {
+	"INSERT INTO test_table (id, value) VALUES (3, 'Dora')",
+	"INSERT INTO test_table (id, value) VALUES (4, 'SSR')"
+}
+local transactionSuccess = DB:transaction(sqlStatements)
+print("事务成功")
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+const sqlStatements = [
+	"INSERT INTO test_table (id, value) VALUES (3, 'Dora')",
+	"INSERT INTO test_table (id, value) VALUES (4, 'SSR')"
+];
+const transactionSuccess = DB.transaction(sqlStatements);
+print(transactionSuccess ? "事务成功" : "事务失败");
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+sqlStatements = [
+	"INSERT INTO test_table (id, value) VALUES (3, 'Dora')",
+	"INSERT INTO test_table (id, value) VALUES (4, 'SSR')"
+]
+transactionSuccess = DB\transaction sqlStatements
+print transactionSuccess and "事务成功" or "事务失败"
+```
+
+</TabItem>
 </Tabs>
 
 ## 5. 异步操作
 
 &emsp;&emsp;为了不阻塞主线程，Dora SSR 提供了异步操作的方法，如 `insertAsync`. `queryAsync` 和 `execAsync`。这些方法可以在后台线程中执行数据库操作。
 
-<Tabs>
+<Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
 
 ```lua
@@ -177,13 +375,72 @@ end)
 ```
 
 </TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+thread(function()
+	-- 异步插入数据
+	DB:insertAsync("test_table", {
+		{5, "Async"},
+		{6, "Operation"}
+	})
+
+	-- 异步查询数据
+	local asyncResults = DB:queryAsync("SELECT * FROM test_table")
+	if not asyncResults is nil then
+		for _, row in ipairs(asyncResults) do
+			print("异步查询 - ID:", row[1], "Value:", row[2])
+		end
+	end
+end)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+thread(() => {
+	// 异步插入数据
+	DB.insertAsync("test_table", [
+		[5, "Async"],
+		[6, "Operation"]
+	]);
+
+	// 异步查询数据
+	const asyncResults = DB.queryAsync("SELECT * FROM test_table");
+	if (asyncResults) {
+		for (const [id, value] of asyncResults) {
+			print("异步查询 - ID:", id, "Value:", value);
+		}
+	}
+});
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+thread ->
+	-- 异步插入数据
+	DB\insertAsync "test_table", [
+		[5, "Async"],
+		[6, "Operation"]
+	]
+
+	-- 异步查询数据
+	asyncResults = DB\queryAsync "SELECT * FROM test_table"
+	for [id, value] in *asyncResults
+		print "异步查询 - ID:", id, "Value:", value
+```
+
+</TabItem>
 </Tabs>
 
 ## 6. 建立新的 Schema
 
 &emsp;&emsp;在实际项目中，有时会需要建立一个新的 Schema 来分别存储管理游戏数据。而不是把数据都放在同一个默认库中。Schema 是一种数据库中的逻辑结构，可以看作是包含多个数据表的一个分组。可以使用 `exec` 方法来创建 Schema。
 
-<Tabs>
+<Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
 
 ```lua
@@ -204,6 +461,75 @@ DB:query("SELECT * FROM game_data.player")
 
 -- 卸载 Schema，使得新的 Schema 数据不再可以访问
 DB:exec("DETACH DATABASE game_data")
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+-- 定义存储新的 Schema 数据的文件完整路径，必须是在引擎可写目录下
+local schemaFile = Path(Content.writablePath, "game_data.db")
+
+-- 创建 Schema，
+-- 当数据库文件不存在时会自动创建，
+-- 存在时会添加到当前数据库连接中
+DB:exec("ATTACH DATABASE '" .. schemaFile .. "' AS game_data")
+
+-- 在新的 Schema 中创建数据表并插入数据
+DB:exec("CREATE TABLE game_data.player (id INTEGER PRIMARY KEY, name TEXT)")
+DB:insert("game_data.player", {false, "Dora"})
+
+-- 查询新的 Schema 中的表数据
+DB:query("SELECT * FROM game_data.player")
+
+-- 卸载 Schema，使得新的 Schema 数据不再可以访问
+DB:exec("DETACH DATABASE game_data")
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+// 定义存储新的 Schema 数据的文件完整路径，必须是在引擎可写目录下
+const schemaFile = Path(Content.writablePath, "game_data.db");
+
+// 创建 Schema，
+// 当数据库文件不存在时会自动创建，
+// 存在时会添加到当前数据库连接中
+DB.exec(`ATTACH DATABASE '${schemaFile}' AS game_data`);
+
+// 在新的 Schema 中创建数据表并插入数据
+DB.exec("CREATE TABLE game_data.player (id INTEGER PRIMARY KEY, name TEXT)");
+DB.insert("game_data.player", [false, "Dora"]);
+
+// 查询新的 Schema 中的表数据
+DB.query("SELECT * FROM game_data.player");
+
+// 卸载 Schema，使得新的 Schema 数据不再可以访问
+DB.exec("DETACH DATABASE game_data");
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+-- 定义存储新的 Schema 数据的文件完整路径，必须是在引擎可写目录下
+schemaFile = Path(Content\writablePath, "game_data.db")
+
+-- 创建 Schema，
+-- 当数据库文件不存在时会自动创建，
+-- 存在时会添加到当前数据库连接中
+DB\exec "ATTACH DATABASE '#{schemaFile}' AS game_data"
+
+-- 在新的 Schema 中创建数据表并插入数据
+DB\exec "CREATE TABLE game_data.player (id INTEGER PRIMARY KEY, name TEXT)"
+DB\insert "game_data.player", [false, "Dora"]
+
+-- 查询新的 Schema 中的表数据
+DB\query "SELECT * FROM game_data.player"
+
+-- 卸载 Schema，使得新的 Schema 数据不再可以访问
+DB\exec "DETACH DATABASE game_data"
 ```
 
 </TabItem>
@@ -230,7 +556,7 @@ Dora SSR 引擎提供的默认 Schema 库会存储在代码 `Path(Content.writab
 
 &emsp;&emsp;假设我们有一个 Excel 文件 `data.xlsx`，其中包含一个工作表 `Items`，记录了游戏道具的信息，包括道具 ID. 名称和描述。首先，我们需要在数据库中创建对应的表：
 
-<Tabs>
+<Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
 
 ```lua
@@ -241,6 +567,45 @@ DB:exec([[
 		description TEXT
 	)
 ]])
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+DB:exec([[
+	CREATE TABLE IF NOT EXISTS Items (
+		id INTEGER PRIMARY KEY,
+		name TEXT,
+		description TEXT
+	)
+]])
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+DB.exec(`
+	CREATE TABLE IF NOT EXISTS Items (
+		id INTEGER PRIMARY KEY,
+		name TEXT,
+		description TEXT
+	)
+`);
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+DB\exec [[
+	CREATE TABLE IF NOT EXISTS Items (
+		id INTEGER PRIMARY KEY,
+		name TEXT,
+		description TEXT
+	)
+]]
 ```
 
 </TabItem>
@@ -258,7 +623,7 @@ DB:exec([[
 
 #### 使用 `DB.insertAsync` 导入数据
 
-<Tabs>
+<Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
 
 ```lua
@@ -277,13 +642,65 @@ end)
 ```
 
 </TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+thread(function()
+	local success = DB:insertAsync(
+		{"Items"},
+		"data.xlsx",
+		2
+	)
+	if success then
+		print("Excel 数据导入成功！")
+	else
+		print("Excel 数据导入失败！")
+	end
+end)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+thread(() => {
+	const success = DB.insertAsync(
+		["Items"],
+		"data.xlsx",
+		2
+	);
+	if (success) {
+		print("Excel 数据导入成功！");
+	} else {
+		print("Excel 数据导入失败！");
+	}
+});
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+thread ->
+	success = DB\insertAsync(
+		["Items",]
+		"data.xlsx"
+		2
+	)
+	if success
+		print "Excel 数据导入成功！"
+	else
+		print "Excel 数据导入失败！"
+```
+
+</TabItem>
 </Tabs>
 
 #### 验证导入结果
 
 &emsp;&emsp;您可以查询数据库，验证数据是否成功导入：
 
-<Tabs>
+<Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
 
 ```lua
@@ -294,13 +711,46 @@ end
 ```
 
 </TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local items = DB:query("SELECT * FROM Items")
+if not items is nil then
+	for _, item in ipairs(items) do
+		print("ID:", item[1], "名称:", item[2], "描述:", item[3])
+	end
+end
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+const items = DB.query("SELECT * FROM Items");
+if (items) {
+	for (const [id, name, description] of items) {
+		print("ID:", id, "名称:", name, "描述:", description);
+	}
+}
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+items = DB\query "SELECT * FROM Items"
+for [id, name, description] in *items
+	print "ID:", id, "名称:", name, "描述:", description
+```
+
+</TabItem>
 </Tabs>
 
 ### 7.3 使用自定义工作表名称
 
 &emsp;&emsp;如果您的 Excel 文件中，工作表名称与数据库表名不同，您可以指定对应关系：
 
-<Tabs>
+<Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
 
 ```lua
@@ -322,6 +772,67 @@ end)
 ```
 
 </TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+thread(function()
+	local tableSheets = {
+		{"Items", "GameItems"}  -- 数据库表名为 "Items"，对应的 Excel 工作表名为 "GameItems"
+	}
+	local success = DB:insertAsync(
+		tableSheets,
+		"data.xlsx",
+		2
+	)
+	if success then
+		print("Excel 数据导入成功！")
+	else
+		print("Excel 数据导入失败！")
+	end
+end)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+thread(() => {
+	const tableSheets = [
+		["Items", "GameItems"]  // 数据库表名为 "Items"，对应的 Excel 工作表名为 "GameItems"
+	];
+	const success = DB.insertAsync(
+		tableSheets,
+		"data.xlsx",
+		2
+	);
+	if (success) {
+		print("Excel 数据导入成功！");
+	} else {
+		print("Excel 数据导入失败！");
+	}
+});
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+thread ->
+	tableSheets = [
+		["Items", "GameItems"]  -- 数据库表名为 "Items"，对应的 Excel 工作表名为 "GameItems"
+	]
+	success = DB\insertAsync(
+		tableSheets,
+		"data.xlsx",
+		2
+	)
+	if success
+		print "Excel 数据导入成功！"
+	else
+		print "Excel 数据导入失败！"
+```
+
+</TabItem>
 </Tabs>
 
 ### 7.4 注意事项
@@ -334,7 +845,7 @@ end)
 
 &emsp;&emsp;下面是一段完整的示例代码，我们将逐行进行解析。
 
-<Tabs>
+<Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
 
 ```lua
@@ -397,21 +908,225 @@ end)
 ```
 
 </TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local DB <const> = require("DB")
+local thread <const> = require("thread")
+
+-- 使用事务建立一张表并插入初始化数据
+local sqls = {
+	"DROP TABLE IF EXISTS test",
+	"CREATE TABLE test (id INTEGER PRIMARY KEY, value TEXT)",
+	{
+		"INSERT INTO test VALUES(?, ?)",
+		{
+			{false, "hello"},
+			{false, "world"},
+			{false, "ok"}
+		}
+	}
+}
+
+local result = DB:transaction(sqls)
+print(result and "Success" or "Failure")
+
+-- 检查表是否存在
+print(DB:exist("test"))
+
+-- 查询并打印数据
+p(DB:query("SELECT * FROM test", true))
+
+-- 删除和更新数据
+print("row changed:", DB:exec("DELETE FROM test WHERE id > 1"))
+print("row changed:", DB:exec("UPDATE test SET value = ? WHERE id = 1", {"hello world!"}))
+
+-- 进行异步操作
+thread(function()
+	-- 异步插入数据
+	print("insert async")
+	local data = {}
+	local count = 1
+	for k in pairs(_G as {string: any}) do
+		data[count] = {false, k}
+		count = count + 1
+	end
+	p(DB:insertAsync("test", data))
+
+	-- 异步查询数据
+	print("query async...")
+	local items = DB:queryAsync("SELECT value FROM test WHERE value NOT LIKE 'hello%' ORDER BY value ASC")
+	local rows = {}
+	if not items is nil then
+		count = 1
+		for i = 1, #items do
+			local item = items[i]
+			rows[count] = item[1]
+			count = count + 1
+		end
+	end
+	p(rows)
+end)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { DB, thread, SQL } from "Dora";
+
+// 使用事务建立一张表并插入初始化数据
+const sqls: SQL[] = [
+	"DROP TABLE IF EXISTS test",
+	"CREATE TABLE test (id INTEGER PRIMARY KEY, value TEXT)",
+	[
+		"INSERT INTO test VALUES(?, ?)",
+		[
+			[false, "hello"],
+			[false, "world"],
+			[false, "ok"]
+		]
+	]
+];
+
+const result = DB.transaction(sqls);
+print(result ? "Success" : "Failure");
+
+// 检查表是否存在
+print(DB.exist("test"));
+
+// 查询并打印数据
+p(DB.query("SELECT * FROM test", true));
+
+// 删除和更新数据
+print("row changed:", DB.exec("DELETE FROM test WHERE id > 1"));
+print("row changed:", DB.exec("UPDATE test SET value = ? WHERE id = 1", ["hello world!"]));
+
+// 进行异步操作
+thread(() => {
+	// 异步插入数据
+	print("insert async");
+	const data = [];
+	let count = 1;
+	for (const k in _G) {
+		data[count] = [false, k];
+		count++;
+	}
+	p(DB.insertAsync("test", data));
+
+	// 异步查询数据
+	print("query async...");
+	const items = DB.queryAsync("SELECT value FROM test WHERE value NOT LIKE 'hello%' ORDER BY value ASC");
+	const rows = [];
+	if (items) {
+		for (let i = 0; i < items.length; i++) {
+			const item = items[i];
+			rows.push(item[0]);
+		}
+	}
+	p(rows);
+});
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+-- 使用事务建立一张表并插入初始化数据
+sqls = [
+	"DROP TABLE IF EXISTS test",
+	"CREATE TABLE test (id INTEGER PRIMARY KEY, value TEXT)",
+	[
+		"INSERT INTO test VALUES(?, ?)",
+		[
+			[false, "hello"],
+			[false, "world"],
+			[false, "ok"]
+		]
+	]
+]
+
+result = DB\transaction sqls
+print result and "Success" or "Failure"
+
+-- 检查表是否存在
+print DB\exist "test"
+
+-- 查询并打印数据
+p DB\query "SELECT * FROM test", true
+
+-- 删除和更新数据
+print "row changed:", DB\exec "DELETE FROM test WHERE id > 1"
+print "row changed:", DB\exec "UPDATE test SET value = ? WHERE id = 1", ["hello world!",]
+
+-- 进行异步操作
+thread ->
+	-- 异步插入数据
+	print "insert async"
+	data = []
+	for k in pairs _G
+		data[] = [false, k]
+	p DB\insertAsync "test", data
+
+	-- 异步查询数据
+	print "query async..."
+	items = DB\queryAsync "SELECT value FROM test WHERE value NOT LIKE 'hello%' ORDER BY value ASC"
+	rows = []
+	for i = 1, #items
+		item = items[i]
+		rows[] = item[1]
+	p rows
+```
+
+</TabItem>
 </Tabs>
 
 ### 8.1 代码解析
 
 1. **导入模块**：
 
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
 	```lua
 	local DB <const> = require("DB")
 	local thread <const> = require("thread")
 	```
 
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+	```tl
+	local DB <const> = require("DB")
+	local thread <const> = require("thread")
+	```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+	```ts
+	import { DB, thread, SQL } from "Dora";
+	```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+	```yue
+	_ENV = Dora
+	```
+
+</TabItem>
+</Tabs>
+
 	- `DB` 模块用于数据库操作。
 	- `thread` 模块用于创建异步线程。
 
 2. **定义 SQL 语句列表**：
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
 
 	```lua
 	local sqls = {
@@ -428,49 +1143,223 @@ end)
 	}
 	```
 
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+	```tl
+	local sqls = {
+		"DROP TABLE IF EXISTS test",
+		"CREATE TABLE test (id INTEGER PRIMARY KEY, value TEXT)",
+		{
+			"INSERT INTO test VALUES(?, ?)",
+			{
+				{false, "hello"}, -- 使用 false 作为数据库 NULL 值占位，id 会自动增长
+				{false, "world"},
+				{false, "ok"}
+			}
+		}
+	}
+	```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+	```ts
+	const sqls: SQL[] = [
+		"DROP TABLE IF EXISTS test",
+		"CREATE TABLE test (id INTEGER PRIMARY KEY, value TEXT)",
+		[
+			"INSERT INTO test VALUES(?, ?)",
+			[
+				[false, "hello"], // 使用 false 作为数据库 NULL 值占位，id 会自动增长
+				[false, "world"],
+				[false, "ok"]
+			]
+		]
+	];
+	```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+	```yue
+	sqls = [
+		"DROP TABLE IF EXISTS test",
+		"CREATE TABLE test (id INTEGER PRIMARY KEY, value TEXT)",
+		[
+			"INSERT INTO test VALUES(?, ?)",
+			[
+				[false, "hello"], -- 使用 false 作为数据库 NULL 值占位，id 会自动增长
+				[false, "world"],
+				[false, "ok"]
+			]
+		]
+	]
+	```
+
+</TabItem>
+</Tabs>
+
 	- 删除名为 `test` 的表（如果存在）。
 	- 创建名为 `test` 的表，包含 `id` 和 `value` 两列。
 	- 插入三条数据，其中 `id` 因为数据表被创建为主键，会自动增长（使用 `false` 代表数据库 NULL 值占位），`value` 分别为 `"hello"`. `"world"`. `"ok"`。
 
 3. **执行事务**：
 
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
 	```lua
 	local result = DB:transaction(sqls)
 	print(result and "Success" or "Failure")
 	```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+	```tl
+	local result = DB:transaction(sqls)
+	print(result and "Success" or "Failure")
+	```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+	```ts
+	const result = DB.transaction(sqls);
+	print(result ? "Success" : "Failure");
+	```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+	```yue
+	result = DB\transaction sqls
+	print result and "Success" or "Failure"
+	```
+
+</TabItem>
+</Tabs>
 
 	- 使用 `transaction` 方法执行一组 SQL 语句，保证原子性。
 	- 输出事务执行结果。
 
 4. **检查表是否存在**：
 
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
 	```lua
 	print(DB:exist("test"))
 	```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+	```tl
+	print(DB:exist("test"))
+	```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+	```ts
+	print(DB.exist("test"));
+	```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+	```yue
+	print DB\exist "test"
+	```
+
+</TabItem>
+</Tabs>
 
 	- 检查 `test` 表是否存在。
 
 5. **查询并打印数据**：
 
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
 	```lua
 	p(DB:query("SELECT * FROM test", true))
 	```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+	```tl
+	p(DB:query("SELECT * FROM test", true))
+	```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+	```ts
+	p(DB.query("SELECT * FROM test", true));
+	```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+	```yue
+	p DB\query "SELECT * FROM test", true
+	```
+
+</TabItem>
+</Tabs>
 
 	- 查询 `test` 表中的所有数据，`true` 表示结果包含列名。
 	- 使用 `p` 函数（引擎内置的特殊打印函数）打印查询结果。
 
 6. **删除和更新数据**：
 
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
 	```lua
 	print("row changed:", DB:exec("DELETE FROM test WHERE id > 1"))
 	print("row changed:", DB:exec("UPDATE test SET value = ? WHERE id = 1", {"hello world!"}))
 	```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+	```tl
+	print("row changed:", DB:exec("DELETE FROM test WHERE id > 1"))
+	print("row changed:", DB:exec("UPDATE test SET value = ? WHERE id = 1", {"hello world!"}))
+	```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+	```ts
+	print("row changed:", DB.exec("DELETE FROM test WHERE id > 1"));
+	print("row changed:", DB.exec("UPDATE test SET value = ? WHERE id = 1", ["hello world!"]));
+	```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+	```yue
+	print "row changed:", DB\exec "DELETE FROM test WHERE id > 1"
+	print "row changed:", DB\exec "UPDATE test SET value = ? WHERE id = 1", ["hello world!",]
+	```
+
+</TabItem>
+</Tabs>
 
 	- 删除 `id` 大于 1 的数据。
 	- 更新 `id` 等于 1 的数据，将 `value` 改为 `"hello world!"`。
 	- 输出受影响的行数。
 
 7. **异步操作**：
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
 
 	```lua
 	thread(function()
@@ -499,6 +1388,91 @@ end)
 		p(rows)
 	end)
 	```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+	```tl
+	thread(function()
+		-- 异步插入数据
+		print("insert async")
+		local data = {}
+		local count = 1
+		for k in pairs(_G as {string: any}) do
+			data[count] = {false, k}
+			count = count + 1
+		end
+		p(DB:insertAsync("test", data))
+
+		-- 异步查询数据
+		print("query async...")
+		local items = DB:queryAsync("SELECT value FROM test WHERE value NOT LIKE 'hello%' ORDER BY value ASC")
+		local rows = {}
+		if not items is nil then
+			count = 1
+			for i = 1, #items do
+				local item = items[i]
+				rows[count] = item[1]
+				count = count + 1
+			end
+		end
+		p(rows)
+	end)
+	```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+	```ts
+	thread(() => {
+		// 异步插入数据
+		print("insert async");
+		const data = [];
+		let count = 1;
+		for (const k in _G) {
+			data[count] = [false, k];
+			count++;
+		}
+		p(DB.insertAsync("test", data));
+
+		// 异步查询数据
+		print("query async...");
+		const items = DB.queryAsync("SELECT value FROM test WHERE value NOT LIKE 'hello%' ORDER BY value ASC");
+		const rows = [];
+		if (items) {
+			for (let i = 0; i < items.length; i++) {
+				const item = items[i];
+				rows.push(item[0]);
+			}
+		}
+		p(rows);
+	});
+	```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+	```yue
+	thread ->
+		-- 异步插入数据
+		print "insert async"
+		data = []
+		for k in pairs _G
+			data[] = [false, k]
+		p DB\insertAsync "test", data
+
+		-- 异步查询数据
+		print "query async..."
+		items = DB\queryAsync "SELECT value FROM test WHERE value NOT LIKE 'hello%' ORDER BY value ASC"
+		rows = []
+		for i = 1, #items
+			item = items[i]
+			rows[] = item[1]
+		p rows
+	```
+
+</TabItem>
+</Tabs>
 
 	- 创建一个新线程，执行异步操作。
 	- **异步插入**：将全局变量名插入到 `test` 表中。

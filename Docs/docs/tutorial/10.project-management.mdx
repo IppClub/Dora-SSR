@@ -1,3 +1,7 @@
+import "@site/src/languages/highlight";
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # Organizing Your Game Project
 
 In the world of game development, project management and code organization are crucial. This tutorial is designed to introduce how to organize and manage your game project directory using the Dora SSR open-source game engine.
@@ -47,6 +51,9 @@ project/
 	 └── moduleB.lua
 ```
 
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
 ```lua title="init.lua"
 -- Import local modules
 local moduleA = require("moduleA") -- Uses search path `Number 1`: project/Script/moduleA.lua
@@ -55,6 +62,45 @@ local moduleB = require("Script.moduleB") -- Uses search path `Number 2`: projec
 -- Import engine built-in modules
 local Utils = require("Utils") -- Uses search path `Number 3`: "Engine built-in resource root directory"/Script/Lib/Utils.lua
 ```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl title="init.tl"
+-- Import local modules
+local moduleA = require("moduleA") -- Uses search path `Number 1`: project/Script/moduleA.tl
+local moduleB = require("Script.moduleB") -- Uses search path `Number 2`: project/Script/moduleB.tl
+
+-- Import engine built-in modules
+local Utils = require("Utils") -- Uses search path `Number 3`: "Engine built-in resource root directory"/Script/Lib/Utils.tl
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts title="init.ts"
+// Import local modules
+import moduleA from "moduleA"; // Uses search path `Number 1`: project/Script/moduleA.ts
+import moduleB from "Script/moduleB"; // Uses search path `Number 2`: project/Script/moduleB.ts
+
+// Import engine built-in modules
+import * as Utils from "Utils"; // Uses search path `Number 3`: "Engine built-in resource root directory"/Script/Lib/Utils.lua
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue title="init.yue"
+-- Import local modules
+import "moduleA" -- Uses search path `Number 1`: project/Script/moduleA.yue
+import "Script.moduleB" -- Uses search path `Number 2`: project/Script/moduleB.yue
+
+-- Import engine built-in modules
+local Utils = require("Utils") -- Uses search path `Number 3`: "Engine built-in resource root directory"/Script/Lib/Utils.lua
+```
+
+</TabItem>
+</Tabs>
 
 ## 5. Best Practices
 

@@ -67,6 +67,135 @@ node:addChild(playable)
 ```
 
 </TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+-- 引入必要的模块
+local Spine <const> = require("Spine")
+local Node <const> = require("Node")
+local Size <const> = require("Size")
+local SpriteEffect <const> = require("SpriteEffect")
+local Color <const> = require("Color")
+
+-- 加载 Spine 动画资源
+local spineStr = "Spine/moling"
+local animations = Spine:getAnimations(spineStr)
+local looks = Spine:getLooks(spineStr)
+
+-- 创建 Spine 可播放对象
+local playable = Spine(spineStr)
+if not playable is nil then
+	playable.x = 200
+	playable.y = 190
+	playable.look = looks[1]
+	playable:play(animations[1], true)
+
+	-- 定义渲染后处理的尺寸
+	local width, height = 400, 600
+
+	-- 创建着色器特效（这里使用内置的描边效果）
+	local effect = SpriteEffect("builtin::vs_sprite", "builtin::fs_spriteoutlinecolor")
+	local pass = effect:get(1)
+	pass:set("u_linecolor", Color(0xff00ffff)) -- 设置描边颜色
+	pass:set("u_lineoffset", 5 / width, 5 / height, 5, 0.1) -- 设置描边参数
+
+	-- 创建一个节点并设置尺寸
+	local node = Node()
+	node.size = Size(width, height)
+
+	-- 获取抓取器并应用特效
+	local grabber = node:grab()
+	grabber.effect = effect
+
+	-- 将可播放对象添加到节点中
+	node:addChild(playable)
+end
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+// 引入必要的模块
+import {Spine, Node, Size, SpriteEffect, Color} from "Dora";
+
+// 加载 Spine 动画资源
+const spineStr = "Spine/moling";
+const animations = Spine.getAnimations(spineStr);
+const looks = Spine.getLooks(spineStr);
+
+// 创建 Spine 可播放对象
+const playable = Spine(spineStr);
+if (playable) {
+	playable.x = 200;
+	playable.y = 190;
+	playable.look = looks[0];
+	playable.play(animations[1], true);
+
+	// 定义渲染后处理的尺寸
+	const width = 400;
+	const height = 600;
+
+	// 创建着色器特效（这里使用内置的描边效果）
+	const effect = SpriteEffect("builtin::vs_sprite", "builtin::fs_spriteoutlinecolor");
+	const pass = effect.get(1);
+	pass.set("u_linecolor", Color(0xff00ffff)); // 设置描边颜色
+	pass.set("u_lineoffset", 5 / width, 5 / height, 5, 0.1); // 设置描边参数
+
+	// 创建一个节点并设置尺寸
+	const node = Node();
+	node.size = Size(width, height);
+
+	// 获取抓取器并应用特效
+	const grabber = node.grab();
+	grabber.effect = effect;
+
+	// 将可播放对象添加到节点中
+	node.addChild(playable);
+}
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+-- 引入必要的模块
+_ENV = Dora
+
+-- 加载 Spine 动画资源
+spineStr = "Spine/moling"
+animations = Spine\getAnimations spineStr
+looks = Spine\getLooks spineStr
+
+-- 创建 Spine 可播放对象
+playable = with Spine spineStr
+	.x = 200
+	.y = 190
+	.look = looks[1]
+	\play animations[1], true
+
+-- 定义渲染后处理的尺寸
+width, height = 400, 600
+
+-- 创建着色器特效（这里使用内置的描边效果）
+effect = SpriteEffect "builtin::vs_sprite", "builtin::fs_spriteoutlinecolor"
+pass = effect\get 1
+pass\set "u_linecolor", Color 0xff00ffff -- 设置描边颜色
+pass\set "u_lineoffset", 5 / width, 5 / height, 5, 0.1 -- 设置描边参数
+
+-- 创建一个节点并设置尺寸
+node = with Node!
+	.size = Size width, height
+
+-- 获取抓取器并应用特效
+grabber = node\grab!
+	.effect = effect
+
+-- 将可播放对象添加到节点中
+node\addChild playable
+```
+
+</TabItem>
 </Tabs>
 
 ### 3.1 代码详解

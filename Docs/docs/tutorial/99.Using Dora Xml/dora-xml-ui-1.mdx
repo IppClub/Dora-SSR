@@ -60,9 +60,7 @@ We add a Label as a child node of the button component and complete some basic p
 </Node>
 ```
 
-We create a semi-transparent solid circle with a radius of 30 as the appearance of the button. Note that the `<DrawNode>` used for the appearance is written before the `<Label>`, so they will be rendered in order, with the text of the `<Label>` covering the appearance
-
- of the `<DrawNode>`. We also create two action nodes named "fadeIn" and "fadeOut" to control the change in appearance of the button. Actions can only be written within the `<Action>` tag. Actions can also be written as nested sequences or parallel execution using the `<Sequence>` and `<Spawn>` tags.
+We create a semi-transparent solid circle with a radius of 30 as the appearance of the button. Note that the `<DrawNode>` used for the appearance is written before the `<Label>`, so they will be rendered in order, with the text of the `<Label>` covering the appearance of the `<DrawNode>`. We also create two action nodes named "fadeIn" and "fadeOut" to control the change in appearance of the button. Actions can only be written within the `<Action>` tag. Actions can also be written as nested sequences or parallel execution using the `<Sequence>` and `<Spawn>` tags.
 
 ### 4. Changing the Button Appearance with Click Events
 
@@ -195,9 +193,7 @@ If we want to create buttons with different appearances but similar functionalit
 </Node>
 ```
 
-We replace the fixed appearance with a node `<Node>`
-
- that can host any content and name it "face". We also use special expression symbols `$X` and `$Y` to represent the center positions of the X and Y axes within the parent node. Note that we add an attribute called "Ref" to it with a value of True. Only nodes with the Ref attribute set to True will be exported from this component and can be accessed directly from the outside. You can access the exported node as follows:
+We replace the fixed appearance with a node `<Node>` that can host any content and name it "face". We also use special expression symbols `$X` and `$Y` to represent the center positions of the X and Y axes within the parent node. Note that we add an attribute called "Ref" to it with a value of True. Only nodes with the Ref attribute set to True will be exported from this component and can be accessed directly from the outside. You can access the exported node as follows:
 
 ```lua
 local ButtonBase = require("ButtonBase")

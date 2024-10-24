@@ -4,70 +4,105 @@ import TabItem from '@theme/TabItem';
 
 # Screen Adaptation for Scenes and UI
 
-In game development, **screen adaptation** is a crucial feature. Regardless of the device or window size the player is using, they expect the best visual experience. This tutorial will guide you step by step on how to implement screen adaptation for game scenes and game UI in the **Dora SSR** engine.
+In game development, screen adaptation is a crucial feature. No matter what device or window size the player uses, they want to have the best visual experience. This tutorial will guide you step by step on how to implement screen adaptation for game scenes and UI in the Dora SSR engine.
 
 ## 1. Understanding Screen Adaptation
 
-Screen sizes and resolutions vary across different devices. Without proper adaptation, the game might display incompletely on some devices, or element positions might be misaligned. The goal of screen adaptation is to ensure that game content displays correctly on various screens, maintaining a good user experience.
+On different devices, screen sizes and resolutions vary. Without adaptation, the game may not display properly on certain devices, or the elements may be misaligned. The goal of screen adaptation is to ensure the game content displays correctly across various screens while maintaining a good user experience.
 
 ## 2. Implementing Screen Adaptation for Game Scenes
 
-Screen adaptation for game scenes mainly involves adjusting the camera's viewport according to the window size to ensure that the scene content is fully displayed on the screen.
+Screen adaptation for game scenes primarily involves adjusting the camera's view based on the window size, ensuring that the scene's content is fully displayed on the screen.
 
-### 2.1 Defining the Design Resolution
+### 2.1 Define Design Dimensions
 
-First, define the game's **design resolution**. This is the reference size upon which you base your design and development.
+First, define the **design dimensions** for the game. This is the reference size on which you base your design and development.
 
 <Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
 
 ```lua
-local DesignSceneHeight = 1024
+local DesignSceneHeight <const> = 1024
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local DesignSceneHeight <const> = 1024
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+const DesignSceneHeight = 1024;
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+const DesignSceneHeight = 1024
 ```
 
 </TabItem>
 </Tabs>
 
-Here, we set the design height to `1024`. This means we design the scene at a height of `1024`. When adapting the game, we want to ensure that the vertical area of the scene is fully displayed. Any horizontal area exceeding the screen will be cropped, or if it's smaller than the screen, it will be centered.
+Here, we set the design height to `1024`. This means we design the scene with a height of `1024`. When adapting, we aim to ensure the vertical scene area is fully displayed, and any horizontal areas exceeding the screen will be cropped or centered if smaller than the screen area.
 
-### 2.2 Adjusting the Camera Zoom
+### 2.2 Adjust Camera Zoom
 
-Next, we need to adjust the camera's zoom factor based on the actual window size.
+Next, adjust the camera's zoom based on the current window size.
 
 <Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
 
 ```lua
+local Director <const> = require("Director")
+local View <const> = require("View")
+
 local function updateViewSize()
 	Director.currentCamera.zoom = View.size.height / DesignSceneHeight
 end
 ```
 
 </TabItem>
-</Tabs>
+<TabItem value="tl" label="Teal">
 
-**Explanation:**
+```tl
+local Director <const> = require("Director")
+local type Camera2D = require("Camera2D")
+local View <const> = require("View")
 
-- `Director.currentCamera`: The camera object of the current scene.
-- `zoom`: The camera's zoom property, affecting the viewport.
-- `View.size.height`: The actual height of the current window.
-- By calculating `View.size.height / DesignSceneHeight`, we obtain the ratio of the actual height to the design height, then set it as the camera's zoom value.
+local function updateViewSize()
+	local camera = Director.currentCamera as Camera2D.Type
+	camera.zoom = View.size.height / DesignSceneHeight
+end
+```
 
-### 2.3 Listening to Window Size Changes
+</TabItem>
+<TabItem value="ts" label="TypeScript">
 
-To timely update the camera's zoom when the window size changes (e.g., when the user resizes the window or the device rotates), we need to listen for application size change events.
+```ts
+import { Director, View, TypeName, tolua } from 'Dora';
 
-<Tabs groupId="language-select">
-<TabItem value="lua" label="Lua">
+const updateViewSize = () => {
+	const camera = tolua.cast(Director.currentCamera, TypeName.Camera2D);
+	if (camera) {
+		camera.zoom = View.size.height / DesignSceneHeight;
+	}
+};
+```
 
-```lua
-updateViewSize()  -- Initialize by calling once
+</TabItem>
+<TabItem value="yue" label="YueScript">
 
-Director.entry:onAppChange(function(settingName)
-	if settingName == "Size" then
-		updateViewSize() -- Update whenever size changes
-	end
-end)
+```yue
+_ENV = Dora
+
+updateViewSize = ->
+	Director.currentCamera.zoom = View.size.height / DesignSceneHeight
 ```
 
 </TabItem>
@@ -75,9 +110,73 @@ end)
 
 **Explanation:**
 
-- `Director.entry:onAppChange`: Registers a listener that is triggered when the application's settings change.
-- `settingName`: Indicates the name of the setting that has changed.
-- When `settingName` is `"Size"`, it means the window size has changed. In this case, `updateViewSize()` is called to update the camera's zoom.
+- `Director.currentCamera`: The current scene's camera object.
+- `zoom`: The camera's zoom property, which affects the field of view.
+- `View.size.height`: The actual height of the current window.
+- By calculating `View.size.height / DesignSceneHeight`, we get the ratio of the actual height to the design height and set it as the camera's zoom value.
+
+### 2.3 Listen for Window Size Changes
+
+To update the camera's zoom whenever the window size changes (e.g., when the user resizes the window or rotates the device), we need to listen for the application's size change events.
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+updateViewSize()  -- Call once during initialization
+
+Director.entry:onAppChange(function(settingName)
+	if settingName == "Size" then
+		updateViewSize() -- Update whenever a size change occurs
+	end
+end)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+updateViewSize()  -- Call once during initialization
+
+Director.entry:onAppChange(function(settingName: string)
+	if settingName == "Size" then
+		updateViewSize() -- Update whenever a size change occurs
+	end
+end)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+updateViewSize();  // Call once during initialization
+
+Director.entry.onAppChange(settingName => {
+	if (settingName === 'Size') {
+		updateViewSize(); // Update whenever a size change occurs
+	}
+});
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+updateViewSize! -- Call once during initialization
+
+Director.entry\onAppChange (settingName) ->
+	if settingName == "Size"
+		updateViewSize! -- Update whenever a size change occurs
+```
+
+</TabItem>
+</Tabs>
+
+**Explanation:**
+
+- `Director.entry:onAppChange`: Registers a listener that triggers when the application's settings change.
+- `settingName`: The name of the setting that changed.
+- When `settingName` is `"Size"`, it indicates that the window size has changed, and we call `updateViewSize()` to update the camera's zoom.
 
 ### 2.4 Complete Code
 
@@ -85,17 +184,18 @@ end)
 <TabItem value="lua" label="Lua">
 
 ```lua
--- Screen Adaptation for Game Scene Example
+-- Example of game scene adaptation
 
 -- Import modules
 local DrawNode <const> = require("DrawNode")
 local Director <const> = require("Director")
 local View <const> = require("View")
+local Vec2 <const> = require("Vec2")
 
--- Define design resolution
-local DesignSceneHeight = 1024
+-- Define design dimensions
+local DesignSceneHeight <const> = 1024
 
--- Create scene
+-- Create the scene
 local node = DrawNode()
 node:drawDot(Vec2.zero, DesignSceneHeight / 2)
 node:addTo(Director.entry)
@@ -106,7 +206,7 @@ local function updateViewSize()
 end
 updateViewSize()
 
--- Register window size change event callback
+-- Register event callback for window size changes
 Director.entry:onAppChange(function(settingName)
 	if settingName == "Size" then
 		updateViewSize()
@@ -115,15 +215,112 @@ end)
 ```
 
 </TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+-- Example of game scene adaptation
+
+-- Import modules
+local DrawNode <const> = require("DrawNode")
+local Director <const> = require("Director")
+local View <const> = require("View")
+local Vec2 <const> = require("Vec2")
+local type Camera2D = require("Camera2D")
+
+-- Define design dimensions
+local DesignSceneHeight <const> = 1024
+
+-- Create the scene
+local node = DrawNode()
+node:drawDot(Vec2.zero, DesignSceneHeight / 2)
+node:addTo(Director.entry)
+
+-- Handle window size changes
+local function updateViewSize()
+	local camera = Director.currentCamera as Camera2D.Type
+	camera.zoom = View.size.height / DesignSceneHeight
+end
+
+updateViewSize()
+
+-- Register event callback for window size changes
+Director.entry:onAppChange(function(settingName: string)
+	if settingName == "Size" then
+		updateViewSize()
+	end
+end)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+// Example of game scene adaptation
+
+// Import modules
+import { DrawNode, Director, View, Vec2, TypeName } from 'Dora';
+
+// Define design dimensions
+const DesignSceneHeight = 1024;
+
+// Create the scene
+const node = DrawNode();
+node.drawDot(Vec2.zero, DesignSceneHeight / 2);
+node.addTo(Director.entry);
+
+// Handle window size changes
+const updateViewSize = () => {
+	const camera = tolua.cast(Director.currentCamera, TypeName.Camera2D);
+	if (camera) {
+		camera.zoom = View.size.height / DesignSceneHeight;
+	}
+};
+
+updateViewSize();
+
+// Register event callback for window size changes
+Director.entry.onAppChange(settingName => {
+	if (settingName === 'Size') {
+		updateViewSize();
+	}
+});
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+-- Example of game scene adaptation
+
+-- Import modules
+_ENV = Dora
+
+-- Define design dimensions
+const DesignSceneHeight = 1024
+
+-- Create the scene
+const node = DrawNode!
+node.drawDot Vec2.zero, DesignSceneHeight / 2
+node.addTo Director.entry
+
+-- Handle window size changes
+updateViewSize! -- Call once during initialization
+
+Director.entry\onAppChange (settingName) ->
+	if settingName == "Size"
+		updateViewSize! -- Update whenever a size change occurs
+```
+
+</TabItem>
 </Tabs>
 
 ## 3. Implementing Screen Adaptation for Game UI
 
-Screen adaptation for game UI requires ensuring that interface elements are reasonably laid out on screens of different sizes. We will use the [**Yoga layout engine**](https://github.com/facebook/yoga) integrated into Dora SSR, defining the layout relationships of elements through CSS-like Flex layout syntax.
+Screen adaptation for game UI involves ensuring that interface elements are properly arranged on screens of different sizes. We will use the Dora SSR integrated [**Yoga Layout Engine**](https://github.com/facebook/yoga), which defines element layout relationships using CSS-like Flexbox layout syntax.
 
-### 3.1 Introducing the Yoga Layout Engine
+### 3.1 Import Yoga Layout Engine
 
-**Yoga** is a cross-platform layout engine that supports Flexbox-based layouts. It allows us to use familiar CSS syntax to define the layout of elements.
+**Yoga** is a cross-platform layout engine that supports Flexbox-based layouts. It allows us to define layouts using familiar CSS syntax.
 
 <Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
@@ -133,14 +330,35 @@ local AlignNode <const> = require("AlignNode")
 ```
 
 </TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local AlignNode <const> = require("AlignNode")
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { AlignNode } from 'Dora';
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+import "AlignNode"
+```
+
+</TabItem>
 </Tabs>
 
-`AlignNode` is a node type in Dora SSR that supports layout.
+`AlignNode` is the layout node type in Dora SSR that supports layout functions.
 
 ### 3.2 Using CSS Flex Layout
 
-:::tip A Game to Learn CSS Flex Layout
-For a quick way to learn Flex layout, try the online game **Flexbox Froggy**: https://flexboxfroggy.com/
+:::tip A recommended game to learn CSS Flex Layout
+To quickly learn Flex layout, you can try **Flexbox Froggy**, an online game: https://flexboxfroggy.com/
 :::
 
 First, create a root node and set its layout properties.
@@ -155,17 +373,44 @@ root:addTo(Director.ui)
 ```
 
 </TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local root = AlignNode(true)
+root:css("justify-content: center; align-items: center")
+root:addTo(Director.ui)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+const root = AlignNode(true);
+root.css("justify-content: center; align-items: center");
+root.addTo(Director.ui);
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+root = with AlignNode true
+	\css "justify-content: center; align-items: center"
+	\addTo Director.ui
+```
+
+</TabItem>
 </Tabs>
 
 **Explanation:**
 
-- `AlignNode(true)`: Creates a node that supports layout; `true` indicates that this node acts as the layout container for the window's root node.
+- `AlignNode(true)`: Creates a layout-supporting node. `true` indicates this node is the layout container for the window's root.
 - `css(...)`: Applies CSS layout styles to the node.
-	- `justify-content: center`: Horizontally center-aligns child nodes.
-	- `align-items: center`: Vertically center-aligns child nodes.
-- `root:addTo(Director.ui)`: Adds the root node to the engine's built-in UI layer.
+	- `justify-content: center`: Horizontally center the child nodes.
+	- `align-items: center`: Vertically center the child nodes.
+- `root:addTo(Director.ui)`: Adds the root node to the built-in UI layer of the engine.
 
-Next, create a child node and set its size relative to the parent node as a percentage.
+Next, create a child node and set its size relative to the parent node's percentage.
 
 <Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
@@ -177,16 +422,43 @@ centerNode:addTo(root)
 ```
 
 </TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local centerNode = AlignNode()
+centerNode:css("width: 60%; height: 60%")
+centerNode:addTo(root)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+const centerNode = AlignNode();
+centerNode.css("width: 60%; height: 60%");
+centerNode.addTo(root);
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+centerNode = with AlignNode
+	\css "width: 60%; height: 60%"
+	\addTo root
+```
+
+</TabItem>
 </Tabs>
 
 **Explanation:**
 
-- `width: 60%`: Width is 60% of the parent node's width.
-- `height: 60%`: Height is 60% of the parent node's height.
+- `width: 60%`: Sets the width to 60% of the parent node's width.
+- `height: 60%`: Sets the height to 60% of the parent node's height.
 
-### 3.3 Adjusting Elements to Fit the Layout
+### 3.3 Adjust Elements to Fit the Layout
 
-Add actual UI elements (e.g., a sprite object displaying an image) to the layout node, and adjust its properties after the layout is complete.
+Add actual UI elements (e.g., sprite objects displaying images) to the layout node and adjust their properties after the layout is complete.
 
 <Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
@@ -197,19 +469,75 @@ sprite:addTo(centerNode)
 ```
 
 </TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local sprite = Sprite("Image/logo.png")
+sprite:addTo(centerNode)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+const sprite = Sprite("Image/logo.png");
+sprite.addTo(centerNode);
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+sprite = with Sprite "Image/logo.png"
+	\addTo centerNode
+```
+
+</TabItem>
 </Tabs>
 
-To update the sprite's position and size to match the adaptive result after the layout adjustment, we need to listen for the layout completion event.
+To update the sprite's position and size after the layout adjusts for screen adaptation, we need to listen for the layout completion event.
 
 <Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
 
 ```lua
 centerNode:onAlignLayout(function(width, height)
-	-- Adjust the sprite's display parameters to match the parent's adaptive result
+	-- Adjust sprite display parameters to match the adapted result
 	sprite.position = Vec2(width / 2, height / 2)
 	sprite.size = Size(width, height)
 end)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+centerNode:onAlignLayout(function(width: number, height: number)
+	-- Adjust sprite display parameters to match the adapted result
+	sprite.position = Vec2(width / 2, height / 2)
+	sprite.size = Size(width, height)
+end)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+centerNode.onAlignLayout((width, height) => {
+	// Adjust sprite display parameters to match the adapted result
+	sprite.position = Vec2(width / 2, height / 2);
+	sprite.size = Size(width, height);
+});
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+centerNode\onAlignLayout (width, height) ->
+	-- Adjust sprite display parameters to match the adapted result
+	sprite.position = Vec2 width / 2, height / 2
+	sprite.size = Size width, height
 ```
 
 </TabItem>
@@ -217,17 +545,17 @@ end)
 
 **Explanation:**
 
-- `onAlignLayout`: A callback function triggered when the layout calculation is complete.
+- `onAlignLayout`: Callback triggered when layout calculation is completed.
 - `width` and `height`: The calculated width and height of the layout node.
-- In the callback, we set the sprite's `position` to the center of the node and set its `size` to the node's dimensions, so the sprite's display matches the layout node's calculated result.
+- In the callback, we set the sprite's `position` to the center of the node and its `size` to match the node's size, ensuring the sprite displays in line with the layout result.
 
-### 3.4 Complete Code
+### 3.3 Complete Code
 
 <Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
 
 ```lua
--- Screen Adaptation for Game UI
+-- Adaptive Game UI
 
 -- Import modules
 local AlignNode <const> = require("AlignNode")
@@ -236,21 +564,21 @@ local Sprite <const> = require("Sprite")
 local Vec2 <const> = require("Vec2")
 local Size <const> = require("Size")
 
--- Create root node that adapts to the screen
+-- Create root node for screen adaptation
 local root = AlignNode(true)
 root:css("justify-content: center; align-items: center")
 root:addTo(Director.ui)
 
--- Create child node to be centered in the layout
+-- Create child node for centered layout
 local centerNode = AlignNode()
 centerNode:css("width: 60%; height: 60%")
 centerNode:addTo(root)
 
--- Create the sprite object to display on the child node
+-- Create sprite object for display on the child node
 local sprite = Sprite("Image/logo.png")
 sprite:addTo(centerNode)
 
--- Register the adaptive callback to update the display parameters of the sprite to match the layout result
+-- Register adaptation callback to update the display object's parameters to match the layout result
 centerNode:onAlignLayout(function(width, height)
 	sprite.position = Vec2(width / 2, height / 2)
 	sprite.size = Size(width, height)
@@ -258,10 +586,74 @@ end)
 ```
 
 </TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+-- Adaptive Game UI
+
+-- Import modules
+local AlignNode <const> = require("AlignNode")
+local Director <const> = require("Director")
+local Sprite <const> = require("Sprite")
+local Vec2 <const> = require("Vec2")
+local Size <const> = require("Size")
+
+-- Create root node for screen adaptation
+local root = AlignNode(true)
+root:css("justify-content: center; align-items: center")
+root:addTo(Director.ui)
+
+-- Create child node for centered layout
+local centerNode = AlignNode()
+centerNode:css("width: 60%; height: 60%")
+centerNode:addTo(root)
+
+-- Create sprite object for display on the child node
+local sprite = Sprite("Image/logo.png")
+sprite:addTo(centerNode)
+
+-- Register adaptation callback to update the display object's parameters to match the layout result
+centerNode:onAlignLayout(function(width: number, height: number)
+	sprite.position = Vec2(width / 2, height / 2)
+	sprite.size = Size(width, height)
+end)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+// Adaptive Game UI
+
+// Import modules
+import { AlignNode, Director, Sprite, Vec2, Size } from 'Dora';
+
+// Create root node for screen adaptation
+const root = AlignNode(true);
+root.css('justify-content: center; align-items: center');
+root.addTo(Director.ui);
+
+// Create child node for centered layout
+const centerNode = AlignNode();
+centerNode.css('width: 60%; height: 60%');
+centerNode.addTo(root);
+
+// Create sprite object for display on the child node
+const sprite = Sprite('Image/logo.png');
+sprite.addTo(centerNode);
+
+// Register adaptation callback to update the display object's parameters to match the layout result
+centerNode.onAlignLayout((width, height) => {
+	sprite.position = Vec2(width / 2, height / 2);
+	sprite.size = Size(width, height);
+});
+```
+
+</TabItem>
 <TabItem value="tsx" label="TSX">
 
 ```tsx
-// Screen Adaptation for Game UI
+// Adaptive Game UI
 
 // Import modules
 import { React, toNode, useRef } from 'DoraX';
@@ -269,7 +661,7 @@ import { Size, Sprite, Vec2, Director } from 'Dora';
 
 const sprite = useRef<Sprite.Type>();
 
-// Create root node that adapts to the screen
+// Create root node for screen adaptation
 const root = toNode(
 	<align-node windowRoot style={{
 			justifyContent: 'center',
@@ -294,21 +686,50 @@ const root = toNode(
 root?.addTo(Director.ui);
 ```
 </TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+-- Adaptive Game UI
+
+-- Import modules
+_ENV = Dora
+
+-- Create root node for screen adaptation
+root = with AlignNode true
+	\css "justify-content: center; align-items: center"
+	\addTo Director.ui
+
+-- Create child node for centered layout
+centerNode = with AlignNode
+	\css "width: 60%; height: 60%"
+	\addTo root
+
+-- Create sprite object for display on the child node
+sprite = with Sprite "Image/logo.png"
+	\addTo centerNode
+
+-- Register adaptation callback to update the display object's parameters to match the layout result
+centerNode\onAlignLayout (width, height) ->
+	sprite.position = Vec2 width / 2, height / 2
+	sprite.size = Size width, height
+```
+
+</TabItem>
 </Tabs>
 
-## 4. Summary
+## 4. Conclusion
 
-Through this tutorial, you have learned how to implement screen adaptation for game scenes and game UI in Dora SSR:
+In this tutorial, you learned how to implement screen adaptation for game scenes and UI in Dora SSR:
 
-- **Game Scene Adaptation**: By setting the design resolution and adjusting the camera's zoom factor, you ensure that the scene content is fully displayed.
-- **Game UI Adaptation**: Using the Yoga layout engine and CSS Flex layout syntax, you define the layout relationships of elements and update element properties after layout adjustments.
+- **Scene adaptation**: By setting design dimensions and adjusting the camera's zoom, you ensure the scene content is fully displayed.
+- **UI adaptation**: Using the Yoga layout engine and CSS Flexbox layout syntax, you define element layout relationships and update their properties after layout adjustments.
 
-These methods can help you create games that adapt to different screen sizes, providing players with a consistent and excellent experience.
+These methods help you create games that adapt to different screen sizes, providing players with a consistent and enjoyable experience.
 
-**Next Steps**, you can try:
+**Next steps**, you can try:
 
-- Delve deeper into more features of the **Yoga layout engine**, such as `flex-direction`, `flex-wrap`, etc.
-- Add adaptive layouts for more UI elements, such as buttons, text boxes, and more.
-- Explore other functional modules of Dora SSR to enrich your game development knowledge.
+- Delving into more features of the **Yoga Layout Engine**, such as `flex-direction` and `flex-wrap`.
+- Adding adaptive layouts to more UI elements, such as buttons and text boxes.
+- Exploring other modules in Dora SSR to enhance your game development knowledge.
 
-We hope this tutorial has been helpful to you, and wish you success on your game development journey!
+I hope this tutorial was helpful and wish you success on your game development journey!

@@ -47,6 +47,60 @@ end
 ```
 
 </TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local Playable <const> = require("Playable")
+
+-- 加载 Model 动画
+local modelPath = "model:assets/character"
+local character = Playable(modelPath)
+
+if not character is nil then
+	character.position = Vec2(100, 200)
+	stage:addChild(character)
+else
+	print("加载 Model 动画失败！")
+end
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { Playable, Vec2 } from "Dora";
+
+// 加载 Model 动画
+const modelPath = "model:assets/character";
+const character = Playable(modelPath);
+
+if (character) {
+	character.position = Vec2(100, 200);
+	stage.addChild(character);
+} else {
+	print("加载 Model 动画失败！");
+}
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+// 加载 Model 动画
+modelPath = "model:assets/character"
+character = Playable modelPath
+
+if character
+	with character
+		.position = Vec2 100, 200
+		\addTo stage
+else
+	print "加载 Model 动画失败！"
+```
+
+</TabItem>
 </Tabs>
 
 ### 1.2 示例：加载 Spine 动画
@@ -70,6 +124,60 @@ end
 ```
 
 </TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local Playable <const> = require("Playable")
+
+-- 加载 Spine 动画
+local spinePath = "spine:assets/monster"
+local monster = Playable(spinePath)
+
+if not monster is nil then
+	monster.position = Vec2(300, 200)
+	stage:addChild(monster)
+else
+	print("加载 Spine 动画失败！")
+end
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { Playable, Vec2 } from "Dora";
+
+// 加载 Spine 动画
+const spinePath = "spine:assets/monster";
+const monster = Playable(spinePath);
+
+if (monster) {
+	monster.position = Vec2(300, 200);
+	stage.addChild(monster);
+} else {
+	print("加载 Spine 动画失败！");
+}
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+// 加载 Spine 动画
+spinePath = "spine:assets/monster"
+monster = Playable spinePath
+
+if monster
+	with monster
+		.position = Vec2 300, 200
+		\addTo stage
+else
+	print "加载 Spine 动画失败！"
+```
+
+</TabItem>
 </Tabs>
 
 ### 1.3 示例：加载 DragonBones 动画
@@ -90,6 +198,60 @@ if dragon then
 else
 	print("加载 DragonBones 动画失败！")
 end
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local Playable <const> = require("Playable")
+
+-- 加载 DragonBones 动画
+local dragonBonePath = "bone:assets/dragon"
+local dragon = Playable(dragonBonePath)
+
+if not dragon is nil then
+	dragon.position = Vec2(500, 200)
+	stage:addChild(dragon)
+else
+	print("加载 DragonBones 动画失败！")
+end
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { Playable, Vec2 } from "Dora";
+
+// 加载 DragonBones 动画
+const dragonBonePath = "bone:assets/dragon";
+const dragon = Playable(dragonBonePath);
+
+if (dragon) {
+	dragon.position = Vec2(500, 200);
+	stage.addChild(dragon);
+} else {
+	print("加载 DragonBones 动画失败！");
+}
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+// 加载 DragonBones 动画
+dragonBonePath = "bone:assets/dragon"
+dragon = Playable dragonBonePath
+
+if dragon
+	with dragon
+		.position = Vec2 500, 200
+		\addTo stage
+else
+	print "加载 DragonBones 动画失败！"
 ```
 
 </TabItem>
@@ -120,6 +282,66 @@ end)
 ```
 
 </TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local Playable <const> = require("Playable")
+local thread <const> = require("thread")
+
+-- 异步加载 Model 动画
+local modelPath = "model:assets/character"
+thread(function()
+	if Cache:loadAsync(modelPath) then
+		local character = Playable(modelPath)
+		if not character is nil then
+			character.position = Vec2(100, 200)
+			stage:addChild(character)
+		end
+	else
+		print("异步加载 Model 动画失败！")
+	end
+end)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { Playable, Vec2, Cache, thread } from "Dora";
+
+// 异步加载 Model 动画
+const modelPath = "model:assets/character";
+thread(() => {
+	if (Cache.loadAsync(modelPath)) {
+		const character = Playable(modelPath);
+		if (character) {
+			character.position = Vec2(100, 200);
+			stage.addChild(character);
+		}
+	} else {
+		print("异步加载 Model 动画失败！");
+	}
+});
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+-- 异步加载 Model 动画
+modelPath = "model:assets/character"
+thread ->
+	if Cache\loadAsync modelPath
+		with Playable modelPath
+			.position = Vec2 100, 200
+			\addTo stage
+	else
+		print "异步加载 Model 动画失败！"
+```
+
+</TabItem>
 </Tabs>
 
 ## 2. 播放动画
@@ -132,6 +354,30 @@ end)
 ```lua
 -- 播放动画 "run"，并循环播放
 local duration = character:play("run", true)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+-- 播放动画 "run"，并循环播放
+local duration = character:play("run", true)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+// 播放动画 "run"，并循环播放
+const duration = character.play("run", true);
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+// 播放动画 "run"，并循环播放
+duration = character\play "run", true
 ```
 
 </TabItem>
@@ -155,6 +401,30 @@ character:stop()
 ```
 
 </TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+-- 停止动画
+character:stop()
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+// 停止动画
+character.stop();
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+// 停止动画
+character\stop()
+```
+
+</TabItem>
 </Tabs>
 
 ## 4. 设置播放速度
@@ -166,6 +436,30 @@ character:stop()
 
 ```lua
 -- 将播放速度加倍
+character.speed = 2.0
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+-- 将播放速度加倍
+character.speed = 2.0
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+// 将播放速度加倍
+character.speed = 2.0;
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+// 将播放速度加倍
 character.speed = 2.0
 ```
 
@@ -183,6 +477,30 @@ character.speed = 2.0
 
 ```lua
 -- 水平翻转
+character.fliped = true
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+-- 水平翻转
+character.fliped = true
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+// 水平翻转
+character.fliped = true;
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+// 水平翻转
 character.fliped = true
 ```
 
@@ -205,6 +523,33 @@ print("右手坐标：", handPosition.x, handPosition.y)
 ```
 
 </TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+-- 获取角色右手的坐标
+local handPosition = character:getKey("right_hand")
+print("右手坐标：", handPosition.x, handPosition.y)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+// 获取角色右手的坐标
+const handPosition = character.getKey("right_hand");
+print("右手坐标：", handPosition.x, handPosition.y);
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+-- 获取角色右手的坐标
+handPosition = character\getKey "right_hand"
+print "右手坐标：", handPosition.x, handPosition.y
+```
+
+</TabItem>
 </Tabs>
 
 - **参数**：关键点名称（字符串）。
@@ -223,6 +568,39 @@ local sword = Sprite("assets/sword.png")
 
 -- 将武器添加到角色的 "right_hand" 插槽
 character:setSlot("right_hand", sword)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+-- 创建武器精灵
+local sword = Sprite("assets/sword.png")
+
+-- 将武器添加到角色的 "right_hand" 插槽
+character:setSlot("right_hand", sword)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+// 创建武器精灵
+const sword = Sprite("assets/sword.png");
+
+// 将武器添加到角色的 "right_hand" 插槽
+character.setSlot("right_hand", sword);
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+-- 创建武器精灵
+sword = Sprite "assets/sword.png"
+
+-- 将武器添加到角色的 "right_hand" 插槽
+character\setSlot "right_hand", sword
 ```
 
 </TabItem>
@@ -250,6 +628,44 @@ end
 ```
 
 </TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+-- 获取 "right_hand" 插槽上的节点
+local equippedItem = character:getSlot("right_hand")
+if not equippedItem is nil then
+	print("已装备物品：", equippedItem)
+else
+	print("插槽为空")
+end
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+// 获取 "right_hand" 插槽上的节点
+const equippedItem = character.getSlot("right_hand");
+if (equippedItem) {
+	print("已装备物品：", equippedItem);
+} else {
+	print("插槽为空");
+}
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+-- 获取 "right_hand" 插槽上的节点
+equippedItem = character\getSlot "right_hand"
+if equippedItem
+	print "已装备物品：", equippedItem
+else
+	print "插槽为空"
+```
+
+</TabItem>
 </Tabs>
 
 - **返回值**：`Node` 对象或 `nil`。
@@ -267,6 +683,38 @@ character:onAnimationEnd(function(animationName, target)
 	print("动画结束：", animationName)
 	-- 可以在此处进行后续操作，例如切换动画
 end)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+-- 注册动画结束回调
+character:onAnimationEnd(function(animationName: string, target: Playable.Type)
+	print("动画结束：", animationName)
+	-- 可以在此处进行后续操作，例如切换动画
+end)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+// 注册动画结束回调
+character.onAnimationEnd((animationName, target) => {
+	print("动画结束：", animationName);
+	// 可以在此处进行后续操作，例如切换动画
+});
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+-- 注册动画结束回调
+character\onAnimationEnd (animationName, target) ->
+	print "动画结束：", animationName
+	-- 可以在此处进行后续操作，例如切换动画
 ```
 
 </TabItem>
@@ -291,7 +739,6 @@ local sleep <const> = require("sleep")
 -- 创建角色
 local character = Playable("model:assets/hero.model")
 character.position = Vec2(200, 300)
-stage:addChild(character)
 
 -- 设置属性
 character.speed = 1.0
@@ -314,10 +761,127 @@ end)
 
 -- 每隔3秒执行一次攻击
 character:loop(function()
-	-- 播放攻击动画，不循环
-	local duration = character:play("attack")
-	sleep(duration)
+	-- 播放攻击动画
+	character:play("attack")
+	sleep(3)
 end)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local Playable <const> = require("Playable")
+local Sprite <const> = require("Sprite")
+local Vec2 <const> = require("Vec2")
+local sleep <const> = require("sleep")
+
+-- 创建角色
+local character = Playable("model:assets/hero.model")
+if not character is nil then
+	character.position = Vec2(200, 300)
+
+	-- 设置属性
+	character.speed = 1.0
+	character.fliped = false
+
+	-- 播放待机动画
+	character:play("idle", true)
+
+	-- 创建武器并装备
+	local sword = Sprite("assets/sword.png")
+	character:setSlot("right_hand", sword)
+
+	-- 注册动画结束事件
+	character:onAnimationEnd(function(animationName: string, target: Playable.Type)
+		if animationName == "attack" then
+			-- 攻击结束后返回待机状态
+			target:play("idle", true)
+		end
+	end)
+
+	-- 每隔3秒执行一次攻击
+	character:loop(function(): boolean
+		-- 播放攻击动画
+		character:play("attack")
+		sleep(3)
+		return false
+	end)
+end
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { Playable, Sprite, Vec2, sleep } from "Dora";
+
+// 创建角色
+const character = Playable("model:assets/hero.model");
+if (character) {
+	character.position = Vec2(200, 300);
+
+	// 设置属性
+	character.speed = 1.0;
+	character.fliped = false;
+
+	// 播放待机动画
+	character.play("idle", true);
+
+	// 创建武器并装备
+	const sword = Sprite("assets/sword.png");
+	character.setSlot("right_hand", sword);
+
+	// 注册动画结束事件
+	character.onAnimationEnd((animationName, target) => {
+		if (animationName === "attack") {
+			// 攻击结束后返回待机状态
+			target.play("idle", true);
+		}
+	});
+
+	// 每隔3秒执行一次攻击
+	character.loop(() => {
+		// 播放攻击动画
+		character.play("attack");
+		sleep(3);
+		return false;
+	});
+}
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+-- 创建角色
+with Playable "model:assets/hero.model"
+	.position = Vec2 200, 300
+
+	-- 设置属性
+	.speed = 1.0
+	.fliped = false
+
+	-- 播放待机动画
+	\play "idle", true
+
+	-- 创建武器并装备
+	sword = Sprite "assets/sword.png"
+	\setSlot "right_hand", sword
+
+	-- 注册动画结束事件
+	\onAnimationEnd (animationName, target) ->
+		if animationName == "attack"
+			-- 攻击结束后返回待机状态
+			target\play "idle", true
+
+	-- 每隔3秒执行一次攻击
+	\loop ->
+		-- 播放攻击动画，不循环
+		\play "attack"
+		sleep 3
 ```
 
 </TabItem>
