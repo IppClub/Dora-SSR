@@ -271,7 +271,272 @@ const scene = toNode(<GameScene/>);
 
 &emsp;&emsp;现在，你已经创建了一个简单的小游戏，角色可以在屏幕上移动，并与障碍物进行交互。
 
-## 7. 总结
+## 7. 一些特殊的 TSX 元素的用法
+
+&emsp;&emsp;在 Dora SSR 中，有一些特殊的 TSX 元素，可以提供创建场景节点以外的功能。
+
+### 7.1 动作元素
+
+&emsp;&emsp;动作元素用于执行一系列动作，例如移动、旋转、缩放等。你可以在 TSX 中使用动作元素，将其作为子元素添加到游戏对象中。
+
+```tsx
+<sprite file="Image/logo.png">
+	<move time={0.5} startX={0} startY={0} stopX={200} stopY={200}/>
+</sprite>
+```
+
+&emsp;&emsp;在上面的示例中，我们创建了一个精灵，并添加了一个移动动作，使其从 `(0, 0)` 移动到 `(200, 200)`。这个动画会在父节点被创建时就自动播放。
+
+```tsx
+<sprite file="Image/logo.png">
+	<loop>
+		<move time={0.5} startX={0} startY={0} stopX={200} stopY={200}/>
+		<move time={0.5} startX={200} startY={200} stopX={0} stopY={0}/>
+	</loop>
+</sprite>
+```
+
+&emsp;&emsp;可以使用一个循环播放动作的标签 `<loop>`，使子元素的动作序列循环播放。如果需要创建只播放一次的动作序列，可以改成 `<sequence>` 标签。如果需要同时播放多个动作，可以使用 `<spawn>` 标签进行嵌套。注意 `<loop>`、`<sequence>` 和 `<spawn>` 标签只能包含动作元素，并且 `<loop>` 标签只能作为嵌套的最外层标签使用，`<sequence>` 和 `<spawn>` 标签则可以任意组合。
+
+&emsp;&emsp;如果你想创建一个稍后使用的动作序列，可以在最外层使用 `<action>` 标签。
+
+```tsx
+import { ActionDef, Sprite } from "Dora";
+import { React, toNode, useRef } from "DoraX";
+
+// 创建一个包含图元精灵和动作序列的函数组件
+const ActionNode = () => {
+	// 创建引用
+	const spriteRef = useRef<Sprite.Type>();
+	const actionRef = useRef<ActionDef.Type>();
+
+	// 在点击事件处理函数中播放动作
+	const onTapped = () => {
+		const {current: sprite} = spriteRef;
+		const {current: action} = actionRef;
+		if (sprite && action && sprite.actionCount === 0) {
+			sprite.perform(action);
+		}
+	};
+
+	// 返回图元精灵和稍后再使用的动作序列
+	return (
+		<sprite ref={spriteRef} file="Image/logo.png" onTapped={onTapped}>
+			<action ref={actionRef}>
+				<sequence>
+					<move time={0.5} startX={0} startY={0} stopX={200} stopY={200}/>
+					<move time={0.5} startX={200} startY={200} stopX={0} stopY={0}/>
+				</sequence>
+			</action>
+		</sprite>
+	);
+};
+
+// 实例化组件
+toNode(<ActionNode/>);
+```
+
+&emsp;&emsp;在上面的示例中，我们创建了一个包含精灵和动作序列的组件 `ActionNode`，并在点击事件中播放动作序列。
+
+### 7.2 目前支持的动作元素
+
+&emsp;&emsp;目前 Dora SSR 支持以下动作元素：
+
+* `<action>`：创建一个可被引用的动作序列。
+* `<anchor-x>`：持续改变节点的 X 锚点。
+* `<anchor-y>`：持续改变节点的 Y 锚点。
+* `<angle>`：持续改变节点的角度（Z 轴）。
+* `<angle-x>`：持续改变节点的 X 轴旋转角度。
+* `<angle-y>`：持续改变节点的 Y 轴旋转角度。
+* `<delay>`：在动画时间线中产生延迟。
+* `<event>`：触发事件。
+* `<width>`：持续改变节点的宽度。
+* `<height>`：持续改变节点的高度。
+* `<hide>`：隐藏节点。
+* `<show>`：显示节点。
+* `<move>`：持续改变节点的 X、Y 坐标位置。
+* `<move-x>`：持续改变节点的 X 坐标位置。
+* `<move-y>`：持续改变节点的 Y 坐标位置。
+* `<move-z>`：持续改变节点的 Z 位置。
+* `<opacity>`：持续改变节点的不透明度。
+* `<roll>`：持续改变节点的旋转。
+* `<scale>`：持续改变节点的 X 和 Y 轴缩放。
+* `<scale-x>`：持续改变节点的 X 轴缩放。
+* `<scale-y>`：持续改变节点的 Y 轴缩放。
+* `<skew-x>`：持续改变节点的 X 轴倾斜。
+* `<skew-y>`：持续改变节点的 Y 轴倾斜。
+* `<frame>`：创建帧动画。
+* `<loop>`：重复执行动作。
+* `<spawn>`：并行执行一组动作。
+* `<sequence>`：顺序执行一系列动作。
+
+### 7.3 描述性的元素
+
+&emsp;&emsp;除了动作元素，Dora SSR 还提供了一些描述性的元素，用于进一步描述要创建的游戏对象的外观和行为。
+
+```tsx
+<physics-world>
+	<contact groupA={0} groupB={1} enabled={false}/> {/* 定义物理分组碰撞关系 */}
+
+	<body type={BodyMoveType.Dynamic} group={0}>
+		<disk-fixture radius={50}/> {/* 定义物理体的碰撞形状 */}
+		<draw-node>
+			<dot-shape radius={50}/> {/* 定义绘制节点的形状 */}
+		</draw-node>
+	</body>
+
+	<effek-node>
+		<effek file='Particle/effek/Laser01.efk'/> {/* 定义播放特效的信息 */}
+	</effek-node>
+</physics-world>
+```
+
+&emsp;&emsp;在上面的示例中，我们使用了一些描述性的元素，包括 `<contact>`、`<disk-fixture>`、`<dot-shape>` 和 `<effek>`。这些元素不会被实例化为独立的游戏对象，而是用于补充描述要创建的父级元素游戏对象的物理属性、碰撞形状、绘制形状和特效信息。
+
+### 7.4 目前支持的描述性元素
+
+&emsp;&emsp;目前 Dora SSR 支持以下描述性元素：
+
+* 可以在 `<draw-node>` 下使用的绘制形状元素：
+	* `<dot-shape>`：绘制一个点或填充的圆。
+	* `<segment-shape>`：绘制一条线段。
+	* `<polygon-shape>`：绘制一个多边形。
+	* `<rect-shape>`：绘制一个矩形。
+	* `<verts-shape>`：绘制一个多边形，每个顶点有自己的颜色。
+
+* 可以在 `<body>` 下使用的碰撞形状元素：
+	* `<rect-fixture>`：定义一个矩形形状的碰撞体。
+	* `<polygon-fixture>`：定义一个多边形形状的碰撞体。
+	* `<multi-fixture>`：定义一个由多个凸边形组成的凹边形碰撞体。
+	* `<disk-fixture>`：定义一个圆盘形状的碰撞体。
+	* `<chain-fixture>`：定义一个线段组成链形状的碰撞体。
+
+### 7.5 使用 `<custom-node>` 创建自定义节点
+
+&emsp;&emsp;如果你需要创建一个自定义的游戏节点，可以使用 `<custom-node>` 元素。这个元素允许你复用一些使用 TSX 以外的代码编写的，创建其它游戏对象的程序模块。并把这些代码封装为新的 TSX 组件。
+
+```tsx
+// 引入一个非 TSX 代码编写的按钮组件
+import * as ButtonCreate from 'UI/Control/Basic/Button';
+import { Button } from 'UI/Control/Basic/Button';
+
+// 定义新的 TSX 按钮组件的属性
+interface ButtonProps {
+	ref?: JSX.Ref<Button.Type>;
+	text: string;
+	width: number;
+	height: number;
+	onClick?: () => void;
+}
+
+// 使用 `<custom-node>` 创建新的 TSX 按钮组件
+// 并复用导入的外部组件的代码
+const Button = (props: ButtonProps) => {
+	return <custom-node onCreate={() => {
+		const button = ButtonCreate({
+			text: props.text,
+			width: props.width,
+			height: props.height
+		});
+		button.onTapped(() => {
+			if (props.onClick) {
+				props.onClick();
+			}
+		});
+		if (props.ref) {
+			(props.ref.current as any) = button;
+		}
+		return button;
+	}}/>;
+};
+
+// 使用新的 TSX 按钮组件
+toNode(
+	<Button text="Button" width={60} height={60}/>
+);
+```
+
+&emsp;&emsp;在上面的示例中，我们使用 `<custom-node>` 元素创建了一个新的 TSX 按钮组件，复用了外部导入的非 TSX 代码编写的按钮组件代码。这样，你可以在 Dora SSR 中使用自定义的游戏节点，扩展 TSX 语言的功能来创建游戏对象。
+
+### 7.6 使用 `<custom-element>` 创建自定义元素
+
+&emsp;&emsp;如果你需要借助 TSX 语法创建的描述数据，并自己实现对这些描述数据的解析、实例化或是渲染，可以使用 `<custom-element>` 元素。这个元素允许你自定义游戏对象的创建和处理逻辑，实现更加灵活的框架扩展。
+
+```tsx
+// 定义一个自定义元素 Item
+interface ItemProps {
+	value: number;
+}
+const Item = (props: ItemProps) => {
+	return <custom-element name='Item' data={props}/>;
+};
+
+// 定义一个自定义元素 List
+interface ListProps {
+	children?: any | any[];
+}
+const List = (props: ListProps) => {
+	return <custom-element name='List' data={props}/>;
+};
+
+// 创建自定义的 JSX 描述数据
+const jsxObject = (
+	<List>
+		<Item value={0}/>
+		<Item value={1}/>
+	</List>
+);
+
+// 打印创建的 JSX 描述数据
+p(jsxObject);
+```
+
+&emsp;&emsp;打印 `jsxObject` 输出的结果如下：
+
+```lua
+{
+	[type] = "custom-element"
+	[children] = {
+	}
+	[props] = {
+		[name] = "List"
+		[data] = {
+			[children] = {
+				[1] = {
+					[type] = "custom-element"
+					[children] = {
+					}
+					[props] = {
+						[name] = "Item"
+						[data] = {
+							[value] = 0
+							[children] = {
+							}
+						}
+					}
+				}
+				[2] = {
+					[type] = "custom-element"
+					[children] = {
+					}
+					[props] = {
+						[name] = "Item"
+						[data] = {
+							[value] = 1
+							[children] = {
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+```
+
+&emsp;&emsp;在上面的示例中，我们使用 `<custom-element>` 元素创建了两个自定义元素 `Item` 和 `List`，并创建了一个包含这两个自定义元素的 JSX 描述数据。接下来我们就可以继续编写程序访问这个描述数据对象，并实现自定义的对象创建和处理逻辑了。
+
+## 8. 总结
 
 &emsp;&emsp;在本教程中，我们介绍了如何使用 Dora SSR 和 TSX 来开发游戏，包括：
 
