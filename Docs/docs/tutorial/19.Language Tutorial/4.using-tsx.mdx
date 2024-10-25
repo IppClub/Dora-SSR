@@ -4,19 +4,19 @@ import TabItem from '@theme/TabItem';
 
 # Game Development with TSX
 
-&emsp;&emsp;Welcome to the world of Dora SSR game development! If you're a frontend developer or familiar with TypeScript and React, you'll find using TSX to write games to be an exciting and familiar experience. If you're not, don't worry—this tutorial will guide you from scratch, showing how to develop games with Dora SSR and TSX while introducing some basic TSX concepts.
+Welcome to the world of Dora SSR game development! If you're a frontend developer or familiar with TypeScript and React, you'll find using TSX to write games to be an exciting and familiar experience. If you're not, don't worry—this tutorial will guide you from scratch, showing how to develop games with Dora SSR and TSX while introducing some basic TSX concepts.
 
 ## 1. What is TSX?
 
 ### 1.1 TSX Basics
 
-&emsp;&emsp;TSX is a combination of TypeScript and JSX, allowing you to use HTML-like tag syntax within TypeScript to build interfaces and components. This is common in React development, and with Dora SSR, you can use TSX to define game objects and scenes. (Note: JSX is a JavaScript syntax extension that allows you to write XML-like code within JavaScript.)
+TSX is a combination of TypeScript and JSX, allowing you to use HTML-like tag syntax within TypeScript to build interfaces and components. This is common in React development, and with Dora SSR, you can use TSX to define game objects and scenes. (Note: JSX is a JavaScript syntax extension that allows you to write XML-like code within JavaScript.)
 
 :::info Tip
 To use TSX in Dora SSR, make sure to select TypeScript as the language and `.tsx` as the file extension when creating code files in the Web IDE.
 :::
 
-&emsp;&emsp;**TSX Tags and Attributes**: In TSX, you can use tags and attributes just like in HTML. For example:
+**TSX Tags and Attributes**: In TSX, you can use tags and attributes just like in HTML. For example:
 
 ```tsx
 <sprite file="Image/logo.png" scaleX={0.2} scaleY={0.2}/>
@@ -25,7 +25,7 @@ To use TSX in Dora SSR, make sure to select TypeScript as the language and `.tsx
 - `<sprite>` is a tag representing a sprite (image) in the game.
 - `file`, `scaleX`, and `scaleY` are attributes that set the sprite's file path and scale.
 
-&emsp;&emsp;**TSX Function Components**: You can create function components that accept properties and return TSX elements. This is similar to function components in React.
+**TSX Function Components**: You can create function components that accept properties and return TSX elements. This is similar to function components in React.
 
 ```tsx
 interface ItemProps {
@@ -48,7 +48,7 @@ const Item = (props: ItemProps) => {
 
 ### 2.1 Creating Simple Game Objects
 
-&emsp;&emsp;In Dora SSR, you can define game objects using TSX tags. For example, to create a sprite:
+In Dora SSR, you can define game objects using TSX tags. For example, to create a sprite:
 
 ```tsx
 <sprite file="Image/logo.png" scaleX={0.2} scaleY={0.2}/>
@@ -56,7 +56,7 @@ const Item = (props: ItemProps) => {
 
 ### 2.2 Converting to Renderable Object Instances
 
-&emsp;&emsp;To convert the TSX tag above into a renderable game object, you need to use the `toNode()` function. This function accepts a TSX element or array of elements and returns the corresponding game node.
+To convert the TSX tag above into a renderable game object, you need to use the `toNode()` function. This function accepts a TSX element or array of elements and returns the corresponding game node.
 
 ```tsx
 import { React, toNode } from 'DoraX';
@@ -64,11 +64,11 @@ import { React, toNode } from 'DoraX';
 const node = toNode(<sprite file="Image/logo.png" scaleX={0.2} scaleY={0.2}/>);
 ```
 
-&emsp;&emsp;Now, `node` is an instantiated game scene node object.
+Now, `node` is an instantiated game scene node object.
 
 ## 3. Creating TSX Function Components
 
-&emsp;&emsp;Function components make your code more reusable and readable. Here's how to create a simple box component in Dora SSR.
+Function components make your code more reusable and readable. Here's how to create a simple box component in Dora SSR.
 
 ```tsx
 import { React, toNode } from 'DoraX';
@@ -88,9 +88,9 @@ const Box = (props: BoxProps) => {
 };
 ```
 
-&emsp;&emsp;In the example above, `Box` is a function component that accepts `x`, `y`, and `color` properties and returns a draw node with a rectangle shape.
+In the example above, `Box` is a function component that accepts `x`, `y`, and `color` properties and returns a draw node with a rectangle shape.
 
-&emsp;&emsp;Using the component:
+Using the component:
 
 ```tsx
 const boxes = [
@@ -102,11 +102,11 @@ const boxes = [
 const scene = toNode(boxes);
 ```
 
-&emsp;&emsp;In the example above, we create three boxes of different colors and place them in an array, which we then pass to the `toNode()` function to instantiate as game scene nodes.
+In the example above, we create three boxes of different colors and place them in an array, which we then pass to the `toNode()` function to instantiate as game scene nodes.
 
 ## 4. Using useRef to Access Instantiated Objects
 
-&emsp;&emsp;In game development, you might need to directly manipulate a game object, such as changing its position, rotating it, or responding to events. The `useRef()` function helps you access the instantiated object for a TSX element.
+In game development, you might need to directly manipulate a game object, such as changing its position, rotating it, or responding to events. The `useRef()` function helps you access the instantiated object for a TSX element.
 
 ```tsx
 import { React, useRef, toNode } from 'DoraX';
@@ -137,11 +137,11 @@ if (boxRef.current) {
 }
 ```
 
-&emsp;&emsp;In the example above, `boxRef` is a reference to the instantiated object of the `<body>` tag. You can access and manipulate this object through `boxRef.current`.
+In the example above, `boxRef` is a reference to the instantiated object of the `<body>` tag. You can access and manipulate this object through `boxRef.current`.
 
 ## 5. Creating Class Components
 
-&emsp;&emsp;In addition to function components, you can also create class-based components. Class components can hold state and lifecycle methods, allowing more flexible management of component behavior. However, class components are relatively more complex, so function components are generally recommended.
+In addition to function components, you can also create class-based components. Class components can hold state and lifecycle methods, allowing more flexible management of component behavior. However, class components are relatively more complex, so function components are generally recommended.
 
 ```tsx
 import { React, toNode, useRef } from 'DoraX';
@@ -185,11 +185,11 @@ class Counter extends React.Component<CounterProps> {
 toNode(<Counter count={1}/>);
 ```
 
-&emsp;&emsp;In the example above, we create a counter component `Counter` that holds a count value and a label. When the label is tapped, the count increases, and the label text is updated.
+In the example above, we create a counter component `Counter` that holds a count value and a label. When the label is tapped, the count increases, and the label text is updated.
 
 ## 6. Complete Example: Creating a Simple Game
 
-&emsp;&emsp;Let's put everything together and create a simple game that includes:
+Let's put everything together and create a simple game that includes:
 
 - A movable character (sprite)
 - Some static obstacles (boxes)
@@ -216,7 +216,7 @@ const Player = () => {
 };
 ```
 
-&emsp;&emsp;In the code above, `Player` is a player component with a movable rectangle body. `playerRef` is a reference that points to the instantiated player object.
+In the code above, `Player` is a player component with a movable rectangle body. `playerRef` is a reference that points to the instantiated player object.
 
 ### 6.2 Define the Obstacle Component
 
@@ -233,7 +233,7 @@ const Obstacle = (props: {x: number; y: number}) => {
 };
 ```
 
-&emsp;&emsp;`Obstacle` is an obstacle component that consists of a static rectangular body. You can set the position of the obstacle by passing `x` and `y` as properties.
+`Obstacle` is an obstacle component that consists of a static rectangular body. You can set the position of the obstacle by passing `x` and `y` as properties.
 
 ### 6.3 Create the Game Scene
 
@@ -261,21 +261,416 @@ const GameScene = () => {
 };
 ```
 
-&emsp;&emsp;In the `GameScene` component, we create a physics world, listen for tap events, and control the player's movement toward the tap location. We also add two obstacles. Note that all physics bodies must be child nodes inside the `physics-world` component.
+In the `GameScene` component, we create a physics world, listen for tap events, and control the player's movement toward the tap location. We also add two obstacles. Note that all physics bodies must be child nodes inside the `physics-world` component.
 
 ### 6.4 Run the Game
 
-&emsp;&emsp;Instantiate the scene node:
+Instantiate the scene node:
 
 ```tsx
 const scene = toNode(<GameScene/>);
 ```
 
-&emsp;&emsp;Now, you've created a simple game where the character can move on the screen and interact with obstacles.
+Now, you've created a simple game where the character can move on the screen and interact with obstacles.
 
-## 7. Conclusion
+## 7. Some Special TSX Elements
 
-&emsp;&emsp;In this tutorial, we covered how to develop games using Dora SSR and TSX, including:
+In Dora SSR, there are some special TSX elements that provide functionality beyond creating scene nodes.
+
+### 7.1 Action Elements
+
+Action elements are used to perform a series of actions, such as moving, rotating, scaling, etc. You can use action elements in TSX and add them as child elements to game objects.
+
+```tsx
+<sprite file="Image/logo.png">
+	<move time={0.5} startX={0} startY={0} stopX={200} stopY={200}/>
+</sprite>
+```
+
+In the example above, we create a sprite and add a move action to make it move from `(0, 0)` to `(200, 200)`. This animation will automatically play when the parent node is created.
+
+```tsx
+<sprite file="Image/logo.png">
+	<loop>
+		<move time={0.5} startX={0} startY={0} stopX={200} stopY={200}/>
+		<move time={0.5} startX={200} startY={200} stopX={0} stopY={0}/>
+	</loop>
+</sprite>
+```
+
+A looping action can be created using the `<loop>` tag, which allows the action sequence of child elements to loop continuously. If you want to create an action sequence that plays only once, you can use the `<sequence>` tag instead. For simultaneous playback of multiple actions, you can use the `<spawn>` tag in combination. Note that `<loop>`, `<sequence>`, and `<spawn>` tags can only contain action elements, and the `<loop>` tag can only be used as the outermost nested tag, while `<sequence>` and `<spawn>` tags can be combined freely.
+
+If you want to create an action sequence to be used later, you can wrap it with an `<action>` tag at the outermost layer.
+
+```tsx
+import { ActionDef, Sprite } from "Dora";
+import { React, toNode, useRef } from "DoraX";
+
+// Create a function component containing a sprite and action sequence
+const ActionNode = () => {
+	// Create references
+	const spriteRef = useRef<Sprite.Type>();
+	const actionRef = useRef<ActionDef.Type>();
+
+	// Play the action sequence in the click event handler
+	const onTapped = () => {
+		const {current: sprite} = spriteRef;
+		const {current: action} = actionRef;
+		if (sprite && action && sprite.actionCount === 0) {
+			sprite.perform(action);
+		}
+	};
+
+	// Return the sprite and action sequence to be used later
+	return (
+		<sprite ref={spriteRef} file="Image/logo.png" onTapped={onTapped}>
+			<action ref={actionRef}>
+				<sequence>
+					<move time={0.5} startX={0} startY={0} stopX={200} stopY={200}/>
+					<move time={0.5} startX={200} startY={200} stopX={0} stopY={0}/>
+				</sequence>
+			</action>
+		</sprite>
+	);
+};
+
+// Instantiate the component
+toNode(<ActionNode/>);
+```
+
+In the example above, we create a component `ActionNode` containing a sprite and an action sequence, which plays the action sequence when tapped.
+
+Here’s the English version of your MDX content:
+
+### 7.2 Currently Supported Action Elements
+
+Currently, Dora SSR supports the following action elements:
+
+* `<action>`: Creates a referenceable action sequence.
+* `<anchor-x>`: Continuously changes the X anchor point of the node.
+* `<anchor-y>`: Continuously changes the Y anchor point of the node.
+* `<angle>`: Continuously changes the angle of the node (Z-axis).
+* `<angle-x>`: Continuously changes the rotation angle on the X-axis.
+* `<angle-y>`: Continuously changes the rotation angle on the Y-axis.
+* `<delay>`: Adds a delay in the animation timeline.
+* `<event>`: Triggers an event.
+* `<width>`: Continuously changes the width of the node.
+* `<height>`: Continuously changes the height of the node.
+* `<hide>`: Hides the node.
+* `<show>`: Shows the node.
+* `<move>`: Continuously changes the node's X and Y position.
+* `<move-x>`: Continuously changes the node's X position.
+* `<move-y>`: Continuously changes the node's Y position.
+* `<move-z>`: Continuously changes the node's Z position.
+* `<opacity>`: Continuously changes the opacity of the node.
+* `<roll>`: Continuously changes the rotation of the node.
+* `<scale>`: Continuously changes the scale of the node on both X and Y axes.
+* `<scale-x>`: Continuously changes the scale of the node on the X-axis.
+* `<scale-y>`: Continuously changes the scale of the node on the Y-axis.
+* `<skew-x>`: Continuously changes the skew on the X-axis.
+* `<skew-y>`: Continuously changes the skew on the Y-axis.
+* `<frame>`: Creates a frame animation.
+* `<loop>`: Repeats an action.
+* `<spawn>`: Executes a group of actions in parallel.
+* `<sequence>`: Executes a series of actions sequentially.
+
+### 7.3 Descriptive Elements
+
+In addition to action elements, Dora SSR provides descriptive elements that further describe the appearance and behavior of the game objects to be created.
+
+```tsx
+<physics-world>
+	<contact groupA={0} groupB={1} enabled={false}/> {/* Defines the physical group collision relationship */}
+
+	<body type={BodyMoveType.Dynamic} group={0}>
+		<disk-fixture radius={50}/> {/* Defines the collision shape of the physical body */}
+		<draw-node>
+			<dot-shape radius={50}/> {/* Defines the shape of the draw node */}
+		</draw-node>
+	</body>
+
+	<effek-node>
+		<effek file='Particle/effek/Laser01.efk'/> {/* Defines the information for playing effects */}
+	</effek-node>
+</physics-world>
+```
+
+In the example above, we use several descriptive elements, including `<contact>`, `<disk-fixture>`, `<dot-shape>`, and `<effek>`. These elements are not instantiated as independent game objects but are used to complement the description of the physical properties, collision shapes, draw shapes, and effect information for the parent game objects to be created.
+
+### 7.4 Currently Supported Descriptive Elements
+
+Currently, Dora SSR supports the following descriptive elements:
+
+* Draw shape elements usable under `<draw-node>`:
+	* `<dot-shape>`: Draws a dot or a filled circle.
+	* `<segment-shape>`: Draws a line segment.
+	* `<polygon-shape>`: Draws a polygon.
+	* `<rect-shape>`: Draws a rectangle.
+	* `<verts-shape>`: Draws a polygon where each vertex has its own color.
+
+* Collision shape elements usable under `<body>`:
+	* `<rect-fixture>`: Defines a rectangular collision body.
+	* `<polygon-fixture>`: Defines a polygonal collision body.
+	* `<multi-fixture>`: Defines a concave collision body composed of multiple convex polygons.
+	* `<disk-fixture>`: Defines a circular collision body.
+	* `<chain-fixture>`: Defines a chain-shaped collision body composed of line segments.
+
+{/*
+
+### 7.5 使用 `<custom-node>` 创建自定义节点
+
+&emsp;&emsp;如果你需要创建一个自定义的游戏节点，可以使用 `<custom-node>` 元素。这个元素允许你复用一些使用 TSX 以外的代码编写的，创建其它游戏对象的程序模块。并把这些代码封装为新的 TSX 组件。
+
+```tsx
+// 引入一个非 TSX 代码编写的按钮组件
+import * as ButtonCreate from 'UI/Control/Basic/Button';
+import { Button } from 'UI/Control/Basic/Button';
+
+// 定义新的 TSX 按钮组件的属性
+interface ButtonProps {
+	ref?: JSX.Ref<Button.Type>;
+	text: string;
+	width: number;
+	height: number;
+	onClick?: () => void;
+}
+
+// 使用 `<custom-node>` 创建新的 TSX 按钮组件
+// 并复用导入的外部组件的代码
+const Button = (props: ButtonProps) => {
+	return <custom-node onCreate={() => {
+		const button = ButtonCreate({
+			text: props.text,
+			width: props.width,
+			height: props.height
+		});
+		button.onTapped(() => {
+			if (props.onClick) {
+				props.onClick();
+			}
+		});
+		if (props.ref) {
+			(props.ref.current as any) = button;
+		}
+		return button;
+	}}/>;
+};
+
+// 使用新的 TSX 按钮组件
+toNode(
+	<Button text="Button" width={60} height={60}/>
+);
+```
+
+&emsp;&emsp;在上面的示例中，我们使用 `<custom-node>` 元素创建了一个新的 TSX 按钮组件，复用了外部导入的非 TSX 代码编写的按钮组件代码。这样，你可以在 Dora SSR 中使用自定义的游戏节点，扩展 TSX 语言的功能来创建游戏对象。
+
+### 7.6 使用 `<custom-element>` 创建自定义元素
+
+&emsp;&emsp;如果你需要借助 TSX 语法创建的描述数据，并自己实现对这些描述数据的解析、实例化或是渲染，可以使用 `<custom-element>` 元素。这个元素允许你自定义游戏对象的创建和处理逻辑，实现更加灵活的框架扩展。
+
+```tsx
+// 定义一个自定义元素 Item
+interface ItemProps {
+	value: number;
+}
+const Item = (props: ItemProps) => {
+	return <custom-element name='Item' data={props}/>;
+};
+
+// 定义一个自定义元素 List
+interface ListProps {
+	children?: any | any[];
+}
+const List = (props: ListProps) => {
+	return <custom-element name='List' data={props}/>;
+};
+
+// 创建自定义的 JSX 描述数据
+const jsxObject = (
+	<List>
+		<Item value={0}/>
+		<Item value={1}/>
+	</List>
+);
+
+// 打印创建的 JSX 描述数据
+p(jsxObject);
+```
+
+&emsp;&emsp;打印 `jsxObject` 输出的结果如下：
+
+```lua
+{
+	[type] = "custom-element"
+	[children] = {
+	}
+	[props] = {
+		[name] = "List"
+		[data] = {
+			[children] = {
+				[1] = {
+					[type] = "custom-element"
+					[children] = {
+					}
+					[props] = {
+						[name] = "Item"
+						[data] = {
+							[value] = 0
+							[children] = {
+							}
+						}
+					}
+				}
+				[2] = {
+					[type] = "custom-element"
+					[children] = {
+					}
+					[props] = {
+						[name] = "Item"
+						[data] = {
+							[value] = 1
+							[children] = {
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+```
+
+&emsp;&emsp;在上面的示例中，我们使用 `<custom-element>` 元素创建了两个自定义元素 `Item` 和 `List`，并创建了一个包含这两个自定义元素的 JSX 描述数据。接下来我们就可以继续编写程序访问这个描述数据对象，并实现自定义的对象创建和处理逻辑了。
+*/}
+
+### 7.5 Using `<custom-node>` to Create Custom Nodes
+
+If you need to create a custom game node, you can use the `<custom-node>` element. This element allows you to reuse program modules written in code other than TSX to create other game objects. You can encapsulate this code as a new TSX component.
+
+```tsx
+// Import a button component written in non-TSX code
+import * as ButtonCreate from 'UI/Control/Basic/Button';
+import { Button } from 'UI/Control/Basic/Button';
+
+// Define properties for the new TSX button component
+interface ButtonProps {
+	ref?: JSX.Ref<Button.Type>;
+	text: string;
+	width: number;
+	height: number;
+	onClick?: () => void;
+}
+
+// Create a new TSX button component using `<custom-node>`
+// and reuse the code of the imported external component
+const Button = (props: ButtonProps) => {
+	return <custom-node onCreate={() => {
+		const button = ButtonCreate({
+			text: props.text,
+			width: props.width,
+			height: props.height
+		});
+		button.onTapped(() => {
+			if (props.onClick) {
+				props.onClick();
+			}
+		});
+		if (props.ref) {
+			(props.ref.current as any) = button;
+		}
+		return button;
+	}}/>;
+};
+
+// Use the new TSX button component
+toNode(
+	<Button text="Button" width={60} height={60}/>
+);
+```
+
+In the example above, we create a new TSX button component using the `<custom-node>` element, reusing the code of an externally imported button component written in non-TSX code. This way, you can use custom game nodes in Dora SSR, extending the functionality of the TSX language to create game objects.
+
+### 7.6 Using `<custom-element>` to Create Custom Elements
+
+If you need to create descriptive data using TSX syntax and implement the parsing, instantiation, or rendering of this descriptive data yourself, you can use the `<custom-element>` element. This element allows you to customize the creation and processing logic of game objects, enabling more flexible framework extensions.
+
+```tsx
+// Define a custom element Item
+interface ItemProps {
+	value: number;
+}
+const Item = (props: ItemProps) => {
+	return <custom-element name='Item' data={props}/>;
+};
+
+// Define a custom element List
+interface ListProps {
+	children?: any | any[];
+}
+const List = (props: ListProps) => {
+	return <custom-element name='List' data={props}/>;
+};
+
+// Create custom JSX descriptive data
+const jsxObject = (
+	<List>
+		<Item value={0}/>
+		<Item value={1}/>
+	</List>
+);
+
+// Print the created JSX descriptive data
+p(jsxObject);
+```
+
+The output of `jsxObject` is as follows:
+
+```lua
+{
+	[type] = "custom-element"
+	[children] = {
+	}
+	[props] = {
+		[name] = "List"
+		[data] = {
+			[children] = {
+				[1] = {
+					[type] = "custom-element"
+					[children] = {
+					}
+					[props] = {
+						[name] = "Item"
+						[data] = {
+							[value] = 0
+							[children] = {
+							}
+						}
+					}
+				}
+				[2] = {
+					[type] = "custom-element"
+					[children] = {
+					}
+					[props] = {
+						[name] = "Item"
+						[data] = {
+							[value] = 1
+							[children] = {
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+```
+
+In the example above, we create two custom elements `Item` and `List` using the `<custom-element>` element and create JSX descriptive data containing these two custom elements. You can continue to write programs to access this descriptive data object and implement custom object creation and processing logic.
+
+## 8. Conclusion
+
+In this tutorial, we covered how to develop games using Dora SSR and TSX, including:
 
 - TSX basics: tags, attributes, and function components
 - Using `toNode()` to convert TSX tags into renderable object instances
@@ -283,15 +678,15 @@ const scene = toNode(<GameScene/>);
 - Creating custom game components
 - Combining components to build a complete game scene
 
-&emsp;&emsp;Dora SSR provides a familiar yet powerful platform for frontend developers, allowing you to easily apply your existing TypeScript and TSX knowledge to game development. Now, try extending this example by adding more game elements and logic, and explore more of Dora SSR's features!
+Dora SSR provides a familiar yet powerful platform for frontend developers, allowing you to easily apply your existing TypeScript and TSX knowledge to game development. Now, try extending this example by adding more game elements and logic, and explore more of Dora SSR's features!
 
 ## Appendix: Key Functions and Types
 
-&emsp;&emsp;Here are some important functions and types used in Dora SSR:
+Here are some important functions and types used in Dora SSR:
 
 - **`React.createElement`**: Used to create TSX elements. Typically, this doesn't need to be used directly as it's called automatically by the engine.
 - **`toNode(enode)`**: Converts a TSX element or array of elements into game nodes.
 - **`useRef<T>(item?: T)`**: Creates a reference to access instantiated objects.
 - **`preloadAsync(enode, handler?)`**: Asynchronously preloads the art assets required by a node.
 
-&emsp;&emsp;Using these functions will help you efficiently write game logic and interfaces in Dora SSR. I hope this tutorial has been helpful, and I wish you success in your game development journey!
+Using these functions will help you efficiently write game logic and interfaces in Dora SSR. I hope this tutorial has been helpful, and I wish you success in your game development journey!
