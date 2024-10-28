@@ -1854,11 +1854,6 @@ class Touch extends Object {
 	 * The location of the touch event in the node's local coordinate system.
 	 */
 	readonly location: Vec2;
-
-	/**
-	 * The location of the touch event in world coordinate system.
-	 */
-	readonly worldLocation: Vec2;
 }
 
 export namespace Touch {
@@ -2275,7 +2270,7 @@ interface Mouse {
 	/**
 	 * Gets the mouse wheel value.
 	 */
-	readonly wheel: number
+	readonly wheel: Vec2
 }
 
 const mouse: Mouse;

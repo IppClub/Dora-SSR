@@ -11,7 +11,7 @@ extern "C" {
 	fn mouse_is_left_button_pressed() -> i32;
 	fn mouse_is_right_button_pressed() -> i32;
 	fn mouse_is_middle_button_pressed() -> i32;
-	fn mouse_get_wheel() -> f32;
+	fn mouse_get_wheel() -> i64;
 }
 /// An interface for handling mouse inputs.
 pub struct Mouse { }
@@ -42,7 +42,7 @@ impl Mouse {
 		unsafe { return mouse_is_middle_button_pressed() != 0; }
 	}
 	/// Gets the mouse wheel value.
-	pub fn get_wheel() -> f32 {
-		unsafe { return mouse_get_wheel(); }
+	pub fn get_wheel() -> crate::dora::Vec2 {
+		unsafe { return crate::dora::Vec2::from(mouse_get_wheel()); }
 	}
 }

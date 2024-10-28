@@ -515,7 +515,6 @@ class Touch : public Object
 	tolua_readonly tolua_property__common int id;
 	tolua_readonly tolua_property__common Vec2 delta;
 	tolua_readonly tolua_property__common Vec2 location;
-	tolua_readonly tolua_property__common Vec2 worldLocation;
 };
 
 struct Ease
@@ -1115,7 +1114,7 @@ class Mouse
 	static tolua_readonly tolua_property__bool bool leftButtonPressed;
 	static tolua_readonly tolua_property__bool bool rightButtonPressed;
 	static tolua_readonly tolua_property__bool bool middleButtonPressed;
-	static tolua_readonly tolua_property__common float wheel;
+	static tolua_readonly tolua_property__common Vec2 wheel;
 };
 
 class Controller

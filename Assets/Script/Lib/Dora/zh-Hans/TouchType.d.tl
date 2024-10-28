@@ -21,9 +21,6 @@ local record Touch
 
 	-- 触摸事件在场景节点本地坐标系中的位置。
 	const location: Vec2
-
-	-- 触摸事件在世界坐标系中的位置。
-	const worldLocation: Vec2
 end
 
 return Touch

@@ -70,10 +70,7 @@ toNode(React.createElement( -- 37
 			end, -- 44
 			onTapMoved = function(touch) -- 44
 				delta = delta:add(touch.delta) -- 49
-				line:set({ -- 50
-					start, -- 50
-					start:add(delta) -- 50
-				}) -- 50
+				line:set({start, touch.location}) -- 50
 			end, -- 48
 			onTapEnded = function() -- 48
 				if not bird.current then -- 48

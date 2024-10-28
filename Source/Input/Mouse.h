@@ -18,7 +18,7 @@ public:
 	static bool isLeftButtonPressed();
 	static bool isRightButtonPressed();
 	static bool isMiddleButtonPressed();
-	static float getWheel();
+	static Vec2 getWheel();
 
 private:
 	Mouse() = delete;

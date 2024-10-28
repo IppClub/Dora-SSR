@@ -105,7 +105,7 @@ static Node* getTouchedItem(Node* parentItem, const Vec2& worldLocation) {
 }
 
 Node* Menu::itemForTouch(Touch* touch) {
-	Vec2 worldLocation = touch->getWorldLocation();
+	Vec2 worldLocation = this->convertToWorldSpace(touch->getLocation());
 	if (_children && !_children->isEmpty()) {
 		for (int i = s_cast<int>(_children->getCount()) - 1; i >= 0; i--) {
 			Node* childItem = _children->get(i)->to<Node>();

@@ -1755,8 +1755,6 @@ object class Touch
 	readonly common Vec2 delta;
 	/// the location of the touch event in the node's local coordinate system.
 	readonly common Vec2 location;
-	/// the location of the touch event in world coordinate system.
-	readonly common Vec2 worldLocation;
 };
 
 /// A struct that defines a set of easing functions for use in animations.
@@ -3669,7 +3667,7 @@ singleton class Mouse {
 	/// Whether the middle mouse button is currently being pressed.
 	static bool isMiddleButtonPressed();
 	/// Gets the mouse wheel value.
-	static float getWheel();
+	static Vec2 getWheel();
 };
 
 /// An interface for handling game controller inputs.

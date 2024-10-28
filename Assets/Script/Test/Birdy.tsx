@@ -41,13 +41,13 @@ toNode(
 		}
 	}}>
 		<physics-world ref={world} scaleX={0.5} scaleY={0.5}
-			onTapBegan={(touch) => {
+			onTapBegan={touch => {
 				start = touch.location;
 				line.clear();
 			}}
-			onTapMoved={(touch) => {
+			onTapMoved={touch => {
 				delta = delta.add(touch.delta);
-				line.set([start, start.add(delta)]);
+				line.set([start, touch.location]);
 			}}
 			onTapEnded={() => {
 				if (!bird.current) return;

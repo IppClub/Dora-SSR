@@ -702,5 +702,9 @@
   "sidebar.tutorialSidebar.category.Managing Game Data": {
     "message": "管理游戏数据",
     "description": "The label for category Managing Game Data in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Using Input": {
+    "message": "如何处理输入事件",
+    "description": "The label for category Using Input in sidebar tutorialSidebar"
   }
 }

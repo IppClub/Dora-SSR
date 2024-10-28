@@ -29,8 +29,7 @@ uint32_t Touch::_source =
 #endif
 
 Touch::Touch(int id)
-	: _worldLocation(Vec2::zero)
-	, _flags(Touch::Enabled)
+	: _flags(Touch::Enabled)
 	, _id(id) { }
 
 void Touch::setEnabled(bool var) {
@@ -50,7 +49,7 @@ int Touch::getId() const noexcept {
 }
 
 Vec2 Touch::getDelta() const noexcept {
-	return _worldLocation - _worldPreLocation;
+	return _location - _preLocation;
 }
 
 const Vec2& Touch::getLocation() const noexcept {
@@ -59,14 +58,6 @@ const Vec2& Touch::getLocation() const noexcept {
 
 const Vec2& Touch::getPreLocation() const noexcept {
 	return _preLocation;
-}
-
-const Vec2& Touch::getWorldLocation() const noexcept {
-	return _worldLocation;
-}
-
-const Vec2& Touch::getWorldPreLocation() const noexcept {
-	return _worldPreLocation;
 }
 
 uint32_t Touch::getSource() {
@@ -265,7 +256,6 @@ bool NodeTouchHandler::down(const SDL_Event& event) {
 	Touch* touch = alloc(id);
 	if (_target->getSize() == Size::zero || Rect(Vec2::zero, _target->getSize()).containsPoint(pos)) {
 		touch->_preLocation = touch->_location = pos;
-		touch->_worldPreLocation = touch->_worldLocation = _target->convertToWorldSpace(pos);
 		touch->_flags.setOn(Touch::Selected);
 		_target->emit("TapFilter"_slice, touch);
 		if (touch->isEnabled()) {
@@ -300,8 +290,6 @@ bool NodeTouchHandler::up(const SDL_Event& event) {
 			Vec2 pos = getPos(event);
 			touch->_preLocation = touch->_location;
 			touch->_location = pos;
-			touch->_worldPreLocation = touch->_worldLocation;
-			touch->_worldLocation = _target->convertToWorldSpace(pos);
 			if (touch->_flags.isOn(Touch::Selected)) {
 				_target->emit("TapEnded"_slice, touch);
 				_target->emit("Tapped"_slice, touch);
@@ -334,8 +322,6 @@ bool NodeTouchHandler::move(const SDL_Event& event) {
 		Vec2 pos = getPos(event);
 		touch->_preLocation = touch->_location;
 		touch->_location = pos;
-		touch->_worldPreLocation = touch->_worldLocation;
-		touch->_worldLocation = _target->convertToWorldSpace(pos);
 		_target->emit("TapMoved"_slice, touch);
 		if (_target->getSize() != Size::zero) {
 			bool inBound = Rect(Vec2::zero, _target->getSize()).containsPoint(pos);
@@ -420,7 +406,7 @@ const Vec2& UITouchHandler::getMousePos() const noexcept {
 	return _mousePos;
 }
 
-float UITouchHandler::getMouseWheel() const noexcept {
+Vec2 UITouchHandler::getMouseWheel() const noexcept {
 	return _mouseWheel;
 }
 
@@ -437,7 +423,7 @@ bool UITouchHandler::isMiddleButtonPressed() const noexcept {
 }
 
 void UITouchHandler::clear() {
-	_mouseWheel = 0.0f;
+	_mouseWheel = Vec2::zero;
 	_touchSwallowed = false;
 	_wheelSwallowed = false;
 }
@@ -456,10 +442,7 @@ bool UITouchHandler::handle(const SDL_Event& event) {
 void UITouchHandler::handleEvent(const SDL_Event& event) {
 	switch (event.type) {
 		case SDL_MOUSEWHEEL: {
-			if (event.wheel.y > 0)
-				_mouseWheel = 1.0f;
-			else if (event.wheel.y < 0)
-				_mouseWheel = -1.0f;
+			_mouseWheel = Vec2{s_cast<float>(event.wheel.x), s_cast<float>(event.wheel.y)};
 			break;
 		}
 		case SDL_MOUSEBUTTONDOWN: {

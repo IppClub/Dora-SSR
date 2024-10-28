@@ -1849,11 +1849,6 @@ class Touch extends Object {
 	 * 触摸事件在节点的本地坐标系统中的位置。
 	 */
 	readonly location: Vec2;
-
-	/**
-	 * 触摸事件在世界坐标系统中的位置。
-	 */
-	readonly worldLocation: Vec2;
 }
 
 export namespace Touch {
@@ -2271,7 +2266,7 @@ interface Mouse {
 	/**
 	 * 鼠标滚轮的滚动值。
 	 */
-	readonly wheel: number
+	readonly wheel: Vec2
 }
 
 const mouse: Mouse;
