@@ -1,0 +1,1297 @@
+import "@site/src/languages/highlight";
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Basic Game Input Handling
+
+In game development, handling player input is a critical component. The Dora SSR engine provides us with a rich API to manage various input methods, including touch/click, keyboard, input methods, mouse, and game controllers. This tutorial will guide you on how to handle these inputs using **event callbacks** and **per-frame polling**. The main differences between event callbacks and per-frame polling in input handling lie in their triggering mechanisms and applicable scenarios:
+
+* **Event Callback**: Automatically triggered by the system when a specific input event occurs, providing timely responses and higher performance. It is suitable for handling instantaneous, discrete input events like clicks and key presses, resulting in more modular code.
+
+* **Per-Frame Polling**: Requires actively checking the status of input devices within the game’s update loop. It is suitable for situations that need continuous monitoring of input states, such as character movement or sustained key presses. This method offers greater flexibility but may impact performance. Overall, event callbacks are more suitable for immediate input handling, while per-frame polling is better for scenarios requiring ongoing detection and complex input logic.
+
+## 1. Touch/Click Input
+
+### 1.1 Event Callback Method
+
+Dora SSR provides a series of methods to listen for touch/click events on nodes. Touch events refer to operations on a touchscreen, while click events refer to operations using a mouse device. Generally, these two have similar handling methods. We can use `onTapBegan`, `onTapMoved`, `onTapEnded`, and `onTapped` methods to listen for these events. These methods need to be called through the creation of a scene node object.
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local Node <const> = require("Node")
+local Size <const> = require("Size")
+
+local button = Node()
+button.size = Size(100, 100)
+button.showDebug = true
+
+button:onTapBegan(function(touch)
+	-- touch is an object containing touch information
+	-- touch.location gives the touch position relative to the button node
+	print("Tap began at", touch.location)
+end)
+
+button:onTapMoved(function(touch)
+	print("Tap moved to", touch.location)
+end)
+
+button:onTapEnded(function(touch)
+	print("Tap ended at", touch.location)
+end)
+
+button:onTapped(function(touch)
+	print("Completed tap at", touch.location)
+end)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local Node <const> = require("Node")
+local Size <const> = require("Size")
+local type Touch = require("Touch")
+
+local button = Node()
+button.size = Size(100, 100)
+button.showDebug = true
+
+button:onTapBegan(function(touch: Touch.Type)
+	-- touch is an object containing touch information
+	-- touch.location gives the touch position relative to the button node
+	print("Tap began at", touch.location)
+end)
+
+button:onTapMoved(function(touch: Touch.Type)
+	print("Tap moved to", touch.location)
+end)
+
+button:onTapEnded(function(touch: Touch.Type)
+	print("Tap ended at", touch.location)
+end)
+
+button:onTapped(function(touch: Touch.Type)
+	print("Completed tap at", touch.location)
+end)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { Node, Size } from "Dora";
+
+const button = Node();
+button.size = Size(100, 100);
+button.showDebug = true;
+
+button.onTapBegan(touch => {
+	// touch is an object containing touch information
+	// touch.location gives the touch position relative to the button node
+	print("Tap began at", touch.location);
+});
+
+button.onTapMoved(touch => {
+	print("Tap moved to", touch.location);
+});
+
+button.onTapEnded(touch => {
+	print("Tap ended at", touch.location);
+});
+
+button.onTapped(touch => {
+	print("Completed tap at", touch.location);
+});
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+with Node!
+	.size = Size 100, 100
+	.showDebug = true
+
+	\onTapBegan (touch) ->
+		-- touch is an object containing touch information
+		-- touch.location gives the touch position relative to the button node
+		print "Tap began at", touch.location
+
+	\onTapMoved (touch) ->
+		print "Tap moved to", touch.location
+
+	\onTapEnded (touch) ->
+		print "Tap ended at", touch.location
+
+	\onTapped (touch) ->
+		print "Completed tap at", touch.location
+```
+
+</TabItem>
+</Tabs>
+
+**Note:**
+
+- `onTapBegan`: Triggered when a touch begins.
+- `onTapMoved`: Triggered when the touch moves on the screen.
+- `onTapEnded`: Triggered when the touch ends.
+- `onTapped`: Triggered when a complete tap (touch and release) is finished.
+
+#### Touch/Click Event Filter
+
+We can also set up a touch/click event filter by registering the `onTapFilter` method, where only events passing through the filter will trigger the callback. The `onTapFilter` callback will be triggered before `onTapBegan`.
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+button:onTapFilter(function(touch)
+	-- For multi-touch situations, only handle the first touch point
+	if not touch.first then
+		-- Set the touch event's enabled property to false
+		-- This prevents the touch event from triggering subsequent onTapBegan callbacks
+		touch.enabled = false
+	end
+end)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+button:onTapFilter(function(touch: Touch.Type)
+	-- For multi-touch situations, only handle the first touch point
+	if not touch.first then
+		-- Set the touch event's enabled property to false
+		-- This prevents the touch event from triggering subsequent onTapBegan callbacks
+		touch.enabled = false
+	end
+end)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+button.onTapFilter(touch => {
+	// For multi-touch situations, only handle the first touch point
+	if (!touch.first) {
+		// Set the touch event's enabled property to false
+		// This prevents the touch event from triggering subsequent onTapBegan callbacks
+		touch.enabled = false;
+	}
+});
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+button\onTapFilter (touch) ->
+	-- For multi-touch situations, only handle the first touch point
+	unless touch.first
+		-- Set the touch event's enabled property to false
+		-- This prevents the touch event from triggering subsequent onTapBegan callbacks
+		touch.enabled = false
+```
+
+</TabItem>
+</Tabs>
+
+#### `swallowTouches` Property
+
+Typically, touch/click events propagate from the root node down the scene node tree and are processed by each relevant node. If we want to stop the event from being passed down to child nodes after handling it on a certain node, we can set the `swallowTouches` property to `true`. Nodes with the `swallowTouches` property are typically used as masks to intercept touch events.
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+button.swallowTouches = true
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+button.swallowTouches = true
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+button.swallowTouches = true;
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+button.swallowTouches = true
+```
+
+</TabItem>
+</Tabs>
+
+#### Touch Event Toggle
+
+If you need to pause or resume listening for events at a certain moment, such as disabling click events after a button press, you can use the `node.touchEnabled` property.
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+button.touchEnabled = false
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+button.touchEnabled = false
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+button.touchEnabled = false;
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+button.touchEnabled = false
+```
+
+</TabItem>
+</Tabs>
+
+### 1.2 Per-Frame Polling Method
+
+Since touch events are instantaneous, they are not suitable for per-frame polling. However, we can simulate this method by recording the touch state in the variable scope of the parent level.
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local Node <const> = require("Node")
+
+local button = Node()
+local isTouching = false
+
+button:onTapBegan(function(touch)
+	isTouching = true
+end)
+
+button:onTapEnded(function(touch)
+	isTouching = false
+end)
+
+-- In the game's update function
+button:onUpdate(function()
+	if isTouching then
+		print("Currently touching")
+	end
+end)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local Node <const> = require("Node")
+local type Touch = require("Touch")
+
+local button = Node()
+local isTouching = false
+
+button:onTapBegan(function(touch: Touch.Type)
+	isTouching = true
+end)
+
+button:onTapEnded(function(touch: Touch.Type)
+	isTouching = false
+end)
+
+-- In the game's update function
+button:onUpdate(function(): boolean
+	if isTouching then
+		print("Currently touching")
+	end
+	return false
+end)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { Node } from "Dora";
+
+const button = Node();
+let isTouching = false;
+
+button.onTapBegan(() => {
+	isTouching = true;
+});
+
+button.onTapEnded(() => {
+	isTouching = false;
+});
+
+// In the game's update function
+button.onUpdate(() => {
+	if (isTouching) {
+		print("Currently touching");
+	}
+	return false;
+});
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+with Node!
+	isTouching = false
+
+	\onTapBegan (touch) ->
+		isTouching = true
+
+	\onTapEnded (touch) ->
+		isTouching = false
+
+	-- In the game's update function
+	\onUpdate ->
+		if isTouching
+			print "Currently touching"
+```
+
+</TabItem>
+</Tabs>
+
+**Note:**
+
+- We use a boolean variable `isTouching` to record whether there is currently a touch.
+- In the `update` function, we check the state of `isTouching` each frame.
+
+## 2. Keyboard Input
+
+### 2.1 Event Callback Method
+
+You can use the `onKeyDown`, `onKeyUp`, and `onKeyPressed` methods to listen for keyboard events.
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local Node <const> = require("Node")
+
+local node = Node()
+
+node:onKeyDown(function(keyName)
+	print("Key pressed:", keyName)
+end)
+
+node:onKeyUp(function(keyName)
+	print("Key released:", keyName)
+end)
+
+node:onKeyPressed(function(keyName)
+	print("Key held down:", keyName)
+end)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local Node <const> = require("Node")
+local type Keyboard = require("Keyboard")
+
+local node = Node()
+
+node:onKeyDown(function(keyName: Keyboard.KeyName)
+	print("Key pressed:", keyName)
+end)
+
+node:onKeyUp(function(keyName: Keyboard.KeyName)
+	print("Key released:", keyName)
+end)
+
+node:onKeyPressed(function(keyName: Keyboard.KeyName)
+	print("Key held down:", keyName)
+end)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { Node } from "Dora";
+
+const node = Node();
+
+node.onKeyDown(keyName => {
+	print("Key pressed:", keyName);
+});
+
+node.onKeyUp(keyName => {
+	print("Key released:", keyName);
+});
+
+node.onKeyPressed(keyName => {
+	print("Key held down:", keyName);
+});
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+with Node!
+	\onKeyDown (keyName) ->
+		print "Key pressed:", keyName
+
+	\onKeyUp (keyName) ->
+		print "Key released:", keyName
+
+	\onKeyPressed (keyName) ->
+		print "Key held down:", keyName
+```
+
+</TabItem>
+</Tabs>
+
+**Note:**
+
+- `onKeyDown`: Triggered when a key is pressed.
+- `onKeyUp`: Triggered when a key is released.
+- `onKeyPressed`: Triggered every frame while the key is held down.
+
+#### Keyboard Event Toggle
+
+If you need to pause or resume listening for events at a certain moment, you can use the `node.keyboardEnabled` property.
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+node.keyboardEnabled = false
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+node.keyboardEnabled = false
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+node.keyboardEnabled = false;
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+node.keyboardEnabled = false
+```
+
+</TabItem>
+</Tabs>
+
+### 2.2 Per-Frame Polling Method
+
+Use the `Keyboard` class's `isKeyDown`, `isKeyUp`, and `isKeyPressed` methods.
+
+**Example Code:**
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local Keyboard <const> = require("Keyboard")
+local Node <const> = require("Node")
+
+local node = Node()
+
+node:onUpdate(function()
+	if Keyboard:isKeyDown("A") then
+		print("Key A pressed this frame")
+	end
+
+	if Keyboard:isKeyUp("D") then
+		print("Key D released this frame")
+	end
+
+	if Keyboard:isKeyPressed("Space") then
+		print("Space key is being held down")
+	end
+end)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local Keyboard <const> = require("Keyboard")
+local Node <const> = require("Node")
+
+local node = Node()
+
+node:onUpdate(function(): boolean
+	if Keyboard:isKeyDown("A") then
+		print("Key A pressed this frame")
+	end
+
+	if Keyboard:isKeyUp("D") then
+		print("Key D released this frame")
+	end
+
+	if Keyboard:isKeyPressed("Space") then
+		print("Space key is being held down")
+	end
+	return false
+end)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { Keyboard, Node, KeyName } from "Dora";
+
+const node = Node();
+
+node.onUpdate(() => {
+	if (Keyboard.isKeyDown(KeyName.A)) {
+		print("Key A pressed this frame");
+	}
+
+	if (Keyboard.isKeyUp(KeyName.D)) {
+		print("Key D released this frame");
+	}
+
+	if (Keyboard.isKeyPressed(KeyName.Space)) {
+		print("Space key is being held down");
+	}
+	return false;
+});
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+with Node!
+	\onUpdate ->
+		if Keyboard\isKeyDown "A"
+			print "Key A pressed this frame"
+
+		if Keyboard\isKeyUp "D"
+			print "Key D released this frame"
+
+		if Keyboard\isKeyPressed "Space"
+			print "Space key is being held down"
+```
+
+</TabItem>
+</Tabs>
+
+**Explanation:**
+
+- `isKeyDown`: Checks if the specified key was pressed in the current frame.
+- `isKeyUp`: Checks if the specified key was released in the current frame.
+- `isKeyPressed`: Checks if the specified key is currently held down.
+- `A`, `D`, `Space`: These parameters represent the key names. For specific key names, refer to the [Keyboard Key Names](../../api/Class/Keyboard#keyboardkeyname).
+
+## 3. Input Method Input
+
+### 3.1 Event Callback Method
+
+Use the `onAttachIME`, `onDetachIME`, `onTextInput`, and `onTextEditing` methods to handle input method events.
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local Node <const> = require("Node")
+
+local inputField = Node()
+
+inputField:onAttachIME(function()
+	print("Input method listener activated")
+end)
+
+inputField:onDetachIME(function()
+	print("Input method listener deactivated")
+end)
+
+inputField:onTextInput(function(text)
+	-- Triggered after the input method confirms the input
+	print("Text inputted:", text)
+end)
+
+inputField:onTextEditing(function(text, startPos)
+	-- Triggered while editing text in the input method
+	print("Input method is editing text:", text, "Start position:", startPos)
+end)
+
+-- Activate the input method on the node and start listening for input method events
+-- Only one node can activate the input method at a time
+-- Activating it stops the listener on other nodes' input methods
+inputField:attachIME()
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local Node <const> = require("Node")
+
+local inputField = Node()
+
+inputField:onAttachIME(function()
+	print("Input method listener activated")
+end)
+
+inputField:onDetachIME(function()
+	print("Input method listener deactivated")
+end)
+
+inputField:onTextInput(function(text: string)
+	-- Triggered after the input method confirms the input
+	print("Text inputted:", text)
+end)
+
+inputField:onTextEditing(function(text: string, startPos: integer)
+	-- Triggered while editing text in the input method
+	print("Input method is editing text:", text, "Start position:", startPos)
+end)
+
+-- Activate the input method on the node and start listening for input method events
+-- Only one node can activate the input method at a time
+-- Activating it stops the listener on other nodes' input methods
+inputField:attachIME()
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { Node } from "Dora";
+
+const inputField = Node();
+
+inputField.onAttachIME(() => {
+	print("Input method listener activated");
+});
+
+inputField.onDetachIME(() => {
+	print("Input method listener deactivated");
+});
+
+inputField.onTextInput(text => {
+	// Triggered after the input method confirms the input
+	print("Text inputted:", text);
+});
+
+inputField.onTextEditing((text, startPos) => {
+	// Triggered while editing text in the input method
+	print("Input method is editing text:", text, "Start position:", startPos);
+});
+
+// Activate the input method on the node and start listening for input method events
+// Only one node can activate the input method at a time
+// Activating it stops the listener on other nodes' input methods
+inputField.attachIME();
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+with Node!
+	\onAttachIME ->
+		print "Input method listener activated"
+
+	\onDetachIME ->
+		print "Input method listener deactivated"
+
+	\onTextInput (text) ->
+		-- Triggered after the input method confirms the input
+		print "Text inputted:", text
+
+	\onTextEditing (text, startPos) ->
+		-- Triggered while editing text in the input method
+		print "Input method is editing text:", text, "Start position:", startPos
+
+	-- Activate the input method on the node and start listening for input method events
+	-- Only one node can activate the input method at a time
+	-- Activating it stops the listener on other nodes' input methods
+	\attachIME!
+```
+
+</TabItem>
+</Tabs>
+
+**Note:**
+
+- `onAttachIME`: Triggered when the input method is activated.
+- `onDetachIME`: Triggered when the input method is closed.
+- `onTextInput`: Triggered when text is confirmed to be inputted.
+- `onTextEditing`: Triggered when editing text, usually during the candidate word display phase.
+
+## 4. Mouse Input
+
+### 4.1 Event Callback Method
+
+Use the `onMouseWheel` method to listen for mouse wheel events. Mouse button events generally overlap with touch events, and mouse clicks can be handled using touch event methods.
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local Node <const> = require("Node")
+
+local node = Node()
+
+node:onMouseWheel(function(delta)
+	print("Mouse wheel scrolled:", delta.x, delta.y)
+end)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local Node <const> = require("Node")
+local type Vec2 = require("Vec2")
+
+local node = Node()
+
+node:onMouseWheel(function(delta: Vec2.Type)
+	print("Mouse wheel scrolled:", delta.x, delta.y)
+end)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { Node } from "Dora";
+
+const node = Node();
+
+node.onMouseWheel(delta => {
+	print("Mouse wheel scrolled:", delta.x, delta.y);
+});
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+with Node!
+	\onMouseWheel (delta) ->
+		print "Mouse wheel scrolled:", delta.x, delta.y
+```
+
+</TabItem>
+</Tabs>
+
+**Note:**
+
+- `onMouseWheel`: Triggered when the mouse wheel is scrolled. The `delta` contains the scrolling distance information, including values for both the `x` and `y` directions.
+
+#### Mouse Wheel Event Toggle
+
+Mouse wheel events are also controlled by the `node.touchEnabled` property. When `node.touchEnabled` is set to `false`, mouse wheel events will be disabled.
+
+### 4.2 Per-Frame Polling Method
+
+Use properties of the `Mouse` class to get the mouse status.
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local Mouse <const> = require("Mouse")
+local Node <const> = require("Node")
+
+local node = Node()
+
+node:onUpdate(function()
+	-- Convert mouse screen coordinates to game world coordinates
+	local bs = App.bufferSize
+	local bw = bs.width
+	local bh = bs.height
+	local pos = Mouse.position * (bw / App.visualSize.width)
+	local worldPos = Vec2(pos.x - bw / 2, bh / 2 - pos.y)
+
+	-- Convert world coordinates to node coordinates
+	local nodePos = node:convertToNodeSpace(worldPos)
+	print("Mouse position:", nodePos)
+
+	if Mouse.leftButtonPressed then
+		print("Mouse left button pressed")
+	end
+
+	if Mouse.rightButtonPressed then
+		print("Mouse right button pressed")
+	end
+
+	if Mouse.middleButtonPressed then
+		print("Mouse middle button pressed")
+	end
+
+	if Mouse.wheel ~= Vec2.zero then
+		print("Mouse wheel value:", Mouse.wheel)
+	end
+end)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local Mouse <const> = require("Mouse")
+local Node <const> = require("Node")
+
+local node = Node()
+
+node:onUpdate(function(): boolean
+	-- Convert mouse screen coordinates to game world coordinates
+	local bs = App.bufferSize
+	local bw = bs.width
+	local bh = bs.height
+	local pos = Mouse.position * (bw / App.visualSize.width)
+	local worldPos = Vec2(pos.x - bw / 2, bh / 2 - pos.y)
+
+	-- Convert world coordinates to node coordinates
+	local nodePos = node:convertToNodeSpace(worldPos)
+	print("Mouse position:", nodePos)
+
+	if Mouse.leftButtonPressed then
+		print("Mouse left button pressed")
+	end
+
+	if Mouse.rightButtonPressed then
+		print("Mouse right button pressed")
+	end
+
+	if Mouse.middleButtonPressed then
+		print("Mouse middle button pressed")
+	end
+
+	if Mouse.wheel ~= Vec2.zero then
+		print("Mouse wheel value:", Mouse.wheel)
+	end
+	return false
+end)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { Mouse, Node, App, Vec2 } from "Dora";
+
+const node = Node();
+
+node.onUpdate(() => {
+	// Convert mouse screen coordinates to game world coordinates
+	const bs = App.bufferSize;
+	const bw = bs.width;
+	const bh = bs.height;
+	const pos = Mouse.position.mul(bw / App.visualSize.width);
+	const worldPos = Vec2(pos.x - bw / 2, bh / 2 - pos.y);
+
+	// Convert world coordinates to node coordinates
+	const nodePos = node.convertToNodeSpace(worldPos);
+	print("Mouse position:", nodePos);
+
+	if (Mouse.leftButtonPressed) {
+		print("Mouse left button pressed");
+	}
+
+	if (Mouse.rightButtonPressed) {
+		print("Mouse right button pressed");
+	}
+
+	if (Mouse.middleButtonPressed) {
+		print("Mouse middle button pressed");
+	}
+
+	if (!Mouse.wheel.equals(Vec2.zero)) {
+		print("Mouse wheel value:", Mouse.wheel);
+	}
+	return false;
+});
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+with Node!
+	\onUpdate ->
+		-- Convert mouse screen coordinates to game world coordinates
+		width: bw, height: bh = App.bufferSize
+		pos = Mouse.position * (bw / App.visualSize.width)
+		worldPos = Vec2 pos.x - bw / 2, bh / 2 - pos.y
+
+		-- Convert world coordinates to node coordinates
+		nodePos = \convertToNodeSpace worldPos
+		print "Mouse position:", nodePos
+
+		if Mouse.leftButtonPressed
+			print "Mouse left button pressed"
+
+		if Mouse.rightButtonPressed
+			print "Mouse right button pressed"
+
+		if Mouse.middleButtonPressed
+			print "Mouse middle button pressed"
+
+		if Mouse.wheel != Vec2.zero
+			print "Mouse wheel value:", Mouse.wheel
+```
+
+</TabItem>
+</Tabs>
+
+**Note:**
+
+- `Mouse.position`: Retrieves the mouse's position within the window.
+- `leftButtonPressed` and similar properties: Check the pressed state of mouse buttons.
+- `Mouse.wheel`: Gets the scrolling value of the mouse wheel.
+
+## 5. Game Controller Input
+
+### 5.1 Event Callback Method
+
+Use the `onButtonDown`, `onButtonUp`, `onButtonPressed`, and `onAxis` methods to listen for controller events.
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local Node <const> = require("Node")
+
+local node = Node()
+
+node:onButtonDown(function(controllerId, buttonName)
+	print("Controller", controllerId, "button pressed:", buttonName)
+end)
+
+node:onButtonUp(function(controllerId, buttonName)
+	print("Controller", controllerId, "button released:", buttonName)
+end)
+
+node:onButtonPressed(function(controllerId, buttonName)
+	print("Controller", controllerId, "button held down:", buttonName)
+end)
+
+node:onAxis(function(controllerId, axisName, value)
+	print("Controller", controllerId, "axis", axisName, "value:", value)
+end)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local Node <const> = require("Node")
+local type Controller = require("Controller")
+
+local node = Node()
+
+node:onButtonDown(function(controllerId: integer, buttonName: Controller.ButtonName)
+	print("Controller", controllerId, "button pressed:", buttonName)
+end)
+
+node:onButtonUp(function(controllerId: integer, buttonName: Controller.ButtonName)
+	print("Controller", controllerId, "button released:", buttonName)
+end)
+
+node:onButtonPressed(function(controllerId: integer, buttonName: Controller.ButtonName)
+	print("Controller", controllerId, "button held down:", buttonName)
+end)
+
+node:onAxis(function(controllerId: integer, axisName: Controller.AxisName, value: number)
+	print("Controller", controllerId, "axis", axisName, "value:", value)
+end)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { Node } from "Dora";
+
+const node = Node();
+
+node.onButtonDown((controllerId, buttonName) => {
+	print("Controller", controllerId, "button pressed:", buttonName);
+});
+
+node.onButtonUp((controllerId, buttonName) => {
+	print("Controller", controllerId, "button released:", buttonName);
+});
+
+node.onButtonPressed((controllerId, buttonName) => {
+	print("Controller", controllerId, "button held down:", buttonName);
+});
+
+node.onAxis((controllerId, axisName, value) => {
+	print("Controller", controllerId, "axis", axisName, "value:", value);
+});
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+with Node!
+	\onButtonDown (controllerId, buttonName) ->
+		print "Controller", controllerId, "button pressed:", buttonName
+
+	\onButtonUp (controllerId, buttonName) ->
+		print "Controller", controllerId, "button released:", buttonName
+
+	\onButtonPressed (controllerId, buttonName) ->
+		print "Controller", controllerId, "button held down:", buttonName
+
+	\onAxis (controllerId, axisName, value) ->
+		print "Controller", controllerId, "axis", axisName, "value:", value
+```
+
+</TabItem>
+</Tabs>
+
+**Note:**
+
+- `onButtonDown`: Triggered when a controller button is pressed.
+- `onButtonUp`: Triggered when a controller button is released.
+- `onButtonPressed`: Triggered every frame while the controller button is held down.
+- `buttonName`: The name of the button, such as `a`, `b`, `x`, `y`, etc. Specific button names can be found in the [Controller Button Names](../../api/Class/Controller#controllerbuttonname).
+- `onAxis`: Triggered when a controller axis (such as a joystick or trigger) changes.
+- `axisName`: The name of the axis, such as `leftx`, `lefty`, `rightx`, `righty`, etc. Specific axis names can be found in the [Controller Axis Names](../../api/Class/Controller#controlleraxisname).
+
+#### Controller Event Toggle
+
+If you need to pause or resume listening for events at a certain moment, you can use the `node.controllerEnabled` property.
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+node.controllerEnabled = false
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+node.controllerEnabled = false
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+node.controllerEnabled = false;
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+node.controllerEnabled = false
+```
+
+</TabItem>
+</Tabs>
+
+### 5.2 Per-Frame Polling Method
+
+Use methods from the `Controller` class to obtain the status of the controller.
+
+**Example Code:**
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local Controller <const> = require("Controller")
+local Node <const> = require("Node")
+
+local node = Node()
+
+node:onUpdate(function()
+	-- Assume only one controller is connected, controller ID starts from 0
+	local controllerId = 0
+
+	-- Check button status
+	if Controller:isButtonDown(controllerId, "a") then
+		print("Controller", controllerId, "button A pressed this frame")
+	end
+
+	if Controller:isButtonUp(controllerId, "a") then
+		print("Controller", controllerId, "button A released this frame")
+	end
+
+	if Controller:isButtonPressed(controllerId, "a") then
+		print("Controller", controllerId, "button A is being held down")
+	end
+
+	-- Get axis values
+	local leftX = Controller:getAxis(controllerId, "leftx")
+	local leftY = Controller:getAxis(controllerId, "lefty")
+	if leftX ~= 0 or leftY ~= 0 then
+		print("Left joystick position:", leftX, leftY)
+	end
+end)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local Controller <const> = require("Controller")
+local Node <const> = require("Node")
+
+local node = Node()
+
+node:onUpdate(function(): boolean
+	-- Assume only one controller is connected, controller ID starts from 0
+	local controllerId = 0
+
+	-- Check button status
+	if Controller:isButtonDown(controllerId, "a") then
+		print("Controller", controllerId, "button A pressed this frame")
+	end
+
+	if Controller:isButtonUp(controllerId, "a") then
+		print("Controller", controllerId, "button A released this frame")
+	end
+
+	if Controller:isButtonPressed(controllerId, "a") then
+		print("Controller", controllerId, "button A is being held down")
+	end
+
+	-- Get axis values
+	local leftX = Controller:getAxis(controllerId, "leftx")
+	local leftY = Controller:getAxis(controllerId, "lefty")
+	if leftX ~= 0 or leftY ~= 0 then
+		print("Left joystick position:", leftX, leftY)
+	end
+	return false
+end)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { Controller, Node, ButtonName, AxisName } from "Dora";
+
+const node = Node();
+
+node.onUpdate(() => {
+	// Assume only one controller is connected, controller ID starts from 0
+	const controllerId = 0;
+
+	// Check button status
+	if (Controller.isButtonDown(controllerId, ButtonName.A)) {
+		print("Controller", controllerId, "button A pressed this frame");
+	}
+
+	if (Controller.isButtonUp(controllerId, ButtonName.A)) {
+		print("Controller", controllerId, "button A released this frame");
+	}
+
+	if (Controller.isButtonPressed(controllerId, ButtonName.A)) {
+		print("Controller", controllerId, "button A is being held down");
+	}
+
+	// Get axis values
+	const leftX = Controller.getAxis(controllerId, AxisName.LeftX);
+	const leftY = Controller.getAxis(controllerId, AxisName.LeftY);
+	if (leftX !== 0 || leftY !== 0) {
+		print("Left joystick position:", leftX, leftY);
+	}
+	return false;
+});
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+with Node!
+	\onUpdate ->
+		-- Assume only one controller is connected, controller ID starts from 0
+		controllerId = 0
+
+		-- Check button status
+		if Controller\isButtonDown controllerId, "a"
+			print "Controller", controllerId, "button A pressed this frame"
+
+		if Controller\isButtonUp controllerId, "a"
+			print "Controller", controllerId, "button A released this frame"
+
+		if Controller\isButtonPressed controllerId, "a"
+			print "Controller", controllerId, "button A is being held down"
+
+		-- Get axis values
+		leftX = Controller\getAxis controllerId, "leftx"
+		leftY = Controller\getAxis controllerId, "lefty"
+		if leftX != 0 or leftY != 0
+			print "Left joystick position:", leftX, leftY
+```
+
+</TabItem>
+</Tabs>
+
+**Note:**
+
+- `isButtonDown`: Checks if the specified button is pressed in the current frame.
+- `isButtonUp`: Checks if the specified button is released in the current frame.
+- `isButtonPressed`: Checks if the specified button is currently held down.
+- `getAxis`: Retrieves the current value of the specified axis, ranging from -1.0 to 1.0.
+
+## 6. Summary
+
+In this tutorial, we learned how to use the API of the Dora SSR engine to handle various input methods. Through **event callbacks**, we can respond immediately when input events occur; through **
+
+per-frame polling**, we can continuously check input states within the game’s update loop. Depending on the game's needs, you can choose the appropriate method or combine both to achieve optimal input handling effects. In the next tutorial, we will learn how to use the `Enhanced Input Function Module` of Dora SSR to simplify input handling code and manage more complex input logic.
+
+I hope this tutorial helps you better understand and utilize the input handling capabilities of the Dora SSR engine. Happy developing!

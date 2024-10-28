@@ -46,8 +46,6 @@ public:
 	PROPERTY_READONLY(Vec2, Delta);
 	PROPERTY_READONLY_CREF(Vec2, Location);
 	PROPERTY_READONLY_CREF(Vec2, PreLocation);
-	PROPERTY_READONLY_CREF(Vec2, WorldLocation);
-	PROPERTY_READONLY_CREF(Vec2, WorldPreLocation);
 	PROPERTY_READONLY_CLASS(uint32_t, Source);
 	CREATE_FUNC_NOT_NULL(Touch);
 
@@ -59,8 +57,6 @@ private:
 	int _id;
 	Vec2 _location;
 	Vec2 _preLocation;
-	Vec2 _worldLocation;
-	Vec2 _worldPreLocation;
 	enum {
 		Enabled = 1,
 		Selected = 1 << 1,
@@ -98,7 +94,7 @@ class UITouchHandler : public TouchHandler {
 public:
 	PROPERTY_BOOL(TouchSwallowed);
 	PROPERTY_BOOL(WheelSwallowed);
-	PROPERTY_READONLY(float, MouseWheel);
+	PROPERTY_READONLY(Vec2, MouseWheel);
 	PROPERTY_READONLY_CREF(Vec2, MousePos);
 	PROPERTY_READONLY_BOOL(LeftButtonPressed);
 	PROPERTY_READONLY_BOOL(RightButtonPressed);
@@ -115,7 +111,7 @@ private:
 	bool _leftButtonPressed;
 	bool _middleButtonPressed;
 	bool _rightButtonPressed;
-	float _mouseWheel;
+	Vec2 _mouseWheel;
 	Vec2 _mousePos;
 };
 

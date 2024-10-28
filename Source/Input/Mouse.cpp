@@ -31,7 +31,7 @@ bool Mouse::isMiddleButtonPressed() {
 	return SharedDirector.getUITouchHandler()->isMiddleButtonPressed();
 }
 
-float Mouse::getWheel() {
+Vec2 Mouse::getWheel() {
 	return SharedDirector.getUITouchHandler()->getMouseWheel();
 }
 

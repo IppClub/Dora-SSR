@@ -20,8 +20,8 @@ int32_t mouse_is_right_button_pressed() {
 int32_t mouse_is_middle_button_pressed() {
 	return Mouse::isMiddleButtonPressed() ? 1 : 0;
 }
-float mouse_get_wheel() {
-	return Mouse::getWheel();
+int64_t mouse_get_wheel() {
+	return Vec2_Retain(Mouse::getWheel());
 }
 } // extern "C"
 

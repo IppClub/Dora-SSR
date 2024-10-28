@@ -1,0 +1,1296 @@
+import "@site/src/languages/highlight";
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# 基础的游戏输入处理
+
+&emsp;&emsp;在游戏开发中，处理玩家的输入是非常关键的一环。Dora SSR 引擎为我们提供了丰富的 API 来处理各种输入方式，包括触摸/点击、键盘、输入法、鼠标和游戏控制器。本教程将带你了解如何以**事件回调**和**每帧轮询**两种方式来处理这些输入。事件回调和每帧轮询在输入处理上的主要区别在于触发机制和适用场景：
+
+* **事件回调**：是由系统在特定输入事件发生时自动触发的，响应及时，性能更高，适合处理瞬时、离散的输入事件，如点击、按键等，代码更模块化；
+
+* **每帧轮询**：需要在游戏的更新循环中主动检查输入设备的状态，适用于需要持续监控输入状态的情况，如角色移动、持续按键等，提供了更大的灵活性，但可能对性能有一定影响。综合而言，事件回调更适合即时响应的输入处理，每帧轮询则更适合需要持续检测和复杂输入逻辑的场景。
+
+## 1. 触摸/点击输入
+
+### 1.1 事件回调方式
+
+&emsp;&emsp;Dora SSR 提供了一系列方法来监听节点的触摸/点击事件，触摸事件是指在触摸屏上的操作，点击事件是指通过鼠标设备的操作，通常这两者会有相似的处理方式。我们可以使用 `onTapBegan`、`onTapMoved`、`onTapEnded` 和 `onTapped` 方法来监听这些事件。需要通过创建一个场景节点对象进行调用。
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local Node <const> = require("Node")
+local Size <const> = require("Size")
+
+local button = Node()
+button.size = Size(100, 100)
+button.showDebug = true
+
+button:onTapBegan(function(touch)
+	-- touch 是一个包含触摸信息的对象
+	-- 可以通过 touch.location 获取相对于 button 节点的触摸位置
+	print("点击开始于", touch.location)
+end)
+
+button:onTapMoved(function(touch)
+	print("点击移动到", touch.location)
+end)
+
+button:onTapEnded(function(touch)
+	print("点击结束于", touch.location)
+end)
+
+button:onTapped(function(touch)
+	print("完成一次点击于", touch.location)
+end)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local Node <const> = require("Node")
+local Size <const> = require("Size")
+local type Touch = require("Touch")
+
+local button = Node()
+button.size = Size(100, 100)
+button.showDebug = true
+
+button:onTapBegan(function(touch: Touch.Type)
+	-- touch 是一个包含触摸信息的对象
+	-- 可以通过 touch.location 获取相对于 button 节点的触摸位置
+	print("点击开始于", touch.location)
+end)
+
+button:onTapMoved(function(touch: Touch.Type)
+	print("点击移动到", touch.location)
+end)
+
+button:onTapEnded(function(touch: Touch.Type)
+	print("点击结束于", touch.location)
+end)
+
+button:onTapped(function(touch: Touch.Type)
+	print("完成一次点击于", touch.location)
+end)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { Node, Size } from "Dora";
+
+const button = Node();
+button.size = Size(100, 100);
+button.showDebug = true;
+
+button.onTapBegan(touch => {
+	// touch 是一个包含触摸信息的对象
+	// 可以通过 touch.location 获取相对于 button 节点的触摸位置
+	print("点击开始于", touch.location);
+});
+
+button.onTapMoved(touch => {
+	print("点击移动到", touch.location);
+});
+
+button.onTapEnded(touch => {
+	print("点击结束于", touch.location);
+});
+
+button.onTapped(touch => {
+	print("完成一次点击于", touch.location);
+});
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+with Node!
+	.size = Size 100, 100
+	.showDebug = true
+
+	\onTapBegan (touch) ->
+		-- touch 是一个包含触摸信息的对象
+		-- 可以通过 touch.location 获取相对于 button 节点的触摸位置
+		print "点击开始于", touch.location
+
+	\onTapMoved (touch) ->
+		print "点击移动到", touch.location
+
+	\onTapEnded (touch) ->
+		print "点击结束于", touch.location
+
+	\onTapped (touch) ->
+		print "完成一次点击于", touch.location
+```
+
+</TabItem>
+</Tabs>
+
+
+&emsp;&emsp;**说明：**
+
+- `onTapBegan`：当触摸开始时触发。
+- `onTapMoved`：当触摸在屏幕上移动时触发。
+- `onTapEnded`：当触摸结束时触发。
+- `onTapped`：当一次完整的点击（点击并抬起）完成时触发。
+
+#### 触摸/点击事件过滤器
+
+&emsp;&emsp;我们还可以通过注册 `onTapFilter` 方法来设置触摸/点击事件的过滤器，只有通过过滤器的事件才会触发回调。`onTapFilter` 回调会在 `onTapBegan` 之前触发。
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+button:onTapFilter(function(touch)
+	-- 如果为多点触摸的情况，只处理第一个触摸点
+	if not touch.first then
+		-- 将触摸事件的 enabled 属性设置为 false
+		-- 使得该触摸事件不会触发后续的 onTapBegan 等回调
+		touch.enabled = false
+	end
+end)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+button:onTapFilter(function(touch: Touch.Type)
+	-- 如果为多点触摸的情况，只处理第一个触摸点
+	if not touch.first then
+		-- 将触摸事件的 enabled 属性设置为 false
+		-- 使得该触摸事件不会触发后续的 onTapBegan 等回调
+		touch.enabled = false
+	end
+end)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+button.onTapFilter(touch => {
+	// 如果为多点触摸的情况，只处理第一个触摸点
+	if (!touch.first) {
+		// 将触摸事件的 enabled 属性设置为 false
+		// 使得该触摸事件不会触发后续的 onTapBegan 等回调
+		touch.enabled = false;
+	}
+});
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+button\onTapFilter (touch) ->
+	-- 如果为多点触摸的情况，只处理第一个触摸点
+	unless touch.first
+		-- 将触摸事件的 enabled 属性设置为 false
+		-- 使得该触摸事件不会触发后续的 onTapBegan 等回调
+		touch.enabled = false
+```
+
+</TabItem>
+</Tabs>
+
+#### `swallowTouches` 属性
+
+&emsp;&emsp;通常触摸/点击事件会沿着场景节点树从根节点向下传递，并被每一个相关的节点处理。如果我们希望在某个节点上处理完触摸/点击事件后，不再继续往下传递给其子节点，可以设置 `swallowTouches` 属性为 `true`。加上了 `swallowTouches` 属性的节点通常会被用作拦截触摸事件的遮罩层。
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+button.swallowTouches = true
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+button.swallowTouches = true
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+button.swallowTouches = true;
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+button.swallowTouches = true
+```
+
+</TabItem>
+</Tabs>
+
+#### 触摸事件的开关
+
+&emsp;&emsp;如果需要在某个时刻暂停或恢复监听事件，如实现按钮按下后禁用点击事件，可以使用 `node.touchEnabled` 属性。
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+button.touchEnabled = false
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+button.touchEnabled = false
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+button.touchEnabled = false;
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+button.touchEnabled = false
+```
+
+</TabItem>
+</Tabs>
+
+### 1.2 每帧轮询方式
+
+&emsp;&emsp;由于触摸事件是即时的，不适合用每帧轮询的方式处理。然而，我们可以通过在上一级变量域范围内记录触摸状态来模拟这种方式。
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local Node <const> = require("Node")
+
+local button = Node()
+local isTouching = false
+
+button:onTapBegan(function(touch)
+	isTouching = true
+end)
+
+button:onTapEnded(function(touch)
+	isTouching = false
+end)
+
+-- 在游戏的更新函数中
+button:onUpdate(function()
+	if isTouching then
+		print("正在触摸")
+	end
+end)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local Node <const> = require("Node")
+local type Touch = require("Touch")
+
+local button = Node()
+local isTouching = false
+
+button:onTapBegan(function(touch: Touch.Type)
+	isTouching = true
+end)
+
+button:onTapEnded(function(touch: Touch.Type)
+	isTouching = false
+end)
+
+-- 在游戏的更新函数中
+button:onUpdate(function(): boolean
+	if isTouching then
+		print("正在触摸")
+	end
+	return false
+end)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { Node } from "Dora";
+
+const button = Node();
+let isTouching = false;
+
+button.onTapBegan(() => {
+	isTouching = true;
+});
+
+button.onTapEnded(() => {
+	isTouching = false;
+});
+
+// 在游戏的更新函数中
+button.onUpdate(() => {
+	if (isTouching) {
+		print("正在触摸");
+	}
+	return false;
+});
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+with Node!
+	isTouching = false
+
+	\onTapBegan (touch) ->
+		isTouching = true
+
+	\onTapEnded (touch) ->
+		isTouching = false
+
+	-- 在游戏的更新函数中
+	\onUpdate ->
+		if isTouching
+			print "正在触摸"
+```
+
+</TabItem>
+</Tabs>
+
+&emsp;&emsp;**说明：**
+
+- 我们使用一个布尔变量 `isTouching` 来记录当前是否有触摸。
+- 在 `update` 函数中，每帧检查 `isTouching` 的状态。
+
+## 2. 键盘输入
+
+### 2.1 事件回调方式
+
+&emsp;&emsp;可以使用 `onKeyDown`、`onKeyUp` 和 `onKeyPressed` 方法来监听键盘事件。
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local Node <const> = require("Node")
+
+local node = Node()
+
+node:onKeyDown(function(keyName)
+	print("按下键：", keyName)
+end)
+
+node:onKeyUp(function(keyName)
+	print("释放键：", keyName)
+end)
+
+node:onKeyPressed(function(keyName)
+	print("持续按键：", keyName)
+end)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local Node <const> = require("Node")
+local type Keyboard = require("Keyboard")
+
+local node = Node()
+
+node:onKeyDown(function(keyName: Keyboard.KeyName)
+	print("按下键：", keyName)
+end)
+
+node:onKeyUp(function(keyName: Keyboard.KeyName)
+	print("释放键：", keyName)
+end)
+
+node:onKeyPressed(function(keyName: Keyboard.KeyName)
+	print("持续按键：", keyName)
+end)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { Node } from "Dora";
+
+const node = Node();
+
+node.onKeyDown(keyName => {
+	print("按下键：", keyName);
+});
+
+node.onKeyUp(keyName => {
+	print("释放键：", keyName);
+});
+
+node.onKeyPressed(keyName => {
+	print("持续按键：", keyName);
+});
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+with Node!
+	\onKeyDown (keyName) ->
+		print "按下键：", keyName
+
+	\onKeyUp (keyName) ->
+		print "释放键：", keyName
+
+	\onKeyPressed (keyName) ->
+		print "持续按键：", keyName
+```
+
+</TabItem>
+</Tabs>
+
+&emsp;&emsp;**说明：**
+
+- `onKeyDown`：当按键被按下时触发。
+- `onKeyUp`：当按键被释放时触发。
+- `onKeyPressed`：当按键处于按下状态时每帧触发。
+
+#### 键盘事件的开关
+
+&emsp;&emsp;如果需要在某个时刻暂停或恢复监听事件，可以使用 `node.keyboardEnabled` 属性。
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+node.keyboardEnabled = false
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+node.keyboardEnabled = false
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+node.keyboardEnabled = false;
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+node.keyboardEnabled = false
+```
+
+</TabItem>
+</Tabs>
+
+### 2.2 每帧轮询方式
+
+&emsp;&emsp;使用 `Keyboard` 类的 `isKeyDown`、`isKeyUp` 和 `isKeyPressed` 方法。
+
+**示例代码：**
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local Keyboard <const> = require("Keyboard")
+local Node <const> = require("Node")
+
+local node = Node()
+
+node:onUpdate(function()
+	if Keyboard:isKeyDown("A") then
+		print("本帧按下了键 A")
+	end
+
+	if Keyboard:isKeyUp("D") then
+		print("本帧释放了键 D")
+	end
+
+	if Keyboard:isKeyPressed("Space") then
+		print("空格键正在被按住")
+	end
+end)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local Keyboard <const> = require("Keyboard")
+local Node <const> = require("Node")
+
+local node = Node()
+
+node:onUpdate(function(): boolean
+	if Keyboard:isKeyDown("A") then
+		print("本帧按下了键 A")
+	end
+
+	if Keyboard:isKeyUp("D") then
+		print("本帧释放了键 D")
+	end
+
+	if Keyboard:isKeyPressed("Space") then
+		print("空格键正在被按住")
+	end
+	return false
+end)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { Keyboard, Node, KeyName } from "Dora";
+
+const node = Node();
+
+node.onUpdate(() => {
+	if (Keyboard.isKeyDown(KeyName.A)) {
+		print("本帧按下了键 A");
+	}
+
+	if (Keyboard.isKeyUp(KeyName.D)) {
+		print("本帧释放了键 D");
+	}
+
+	if (Keyboard.isKeyPressed(KeyName.Space)) {
+		print("空格键正在被按住");
+	}
+	return false;
+});
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+with Node!
+	\onUpdate ->
+		if Keyboard\isKeyDown "A"
+			print "本帧按下了键 A"
+
+		if Keyboard\isKeyUp "D"
+			print "本帧释放了键 D"
+
+		if Keyboard\isKeyPressed "Space"
+			print "空格键正在被按住"
+```
+
+</TabItem>
+</Tabs>
+
+**解释：**
+
+- `isKeyDown`：检查在当前帧是否按下了指定按键。
+- `isKeyUp`：检查在当前帧是否释放了指定按键。
+- `isKeyPressed`：检查指定按键是否处于按下状态。
+- `A`、`D`、`Space`: 等参数为按键的名称。具体的按键名称可以参考[键盘按键名称](../../api/Class/Keyboard#keyboardkeyname)。
+
+## 3. 输入法输入
+
+### 3.1 事件回调方式
+
+&emsp;&emsp;使用 `onAttachIME`、`onDetachIME`、`onTextInput` 和 `onTextEditing` 方法处理输入法事件。
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local Node <const> = require("Node")
+
+local inputField = Node()
+
+inputField:onAttachIME(function()
+	print("输入法监听已打开")
+end)
+
+inputField:onDetachIME(function()
+	print("输入法监听已关闭")
+end)
+
+inputField:onTextInput(function(text)
+	-- 在输入法确认输入后触发
+	print("输入了文本：", text)
+end)
+
+inputField:onTextEditing(function(text, startPos)
+	-- 输入法正在编辑文本时触发
+	print("输入法正在编辑文本：", text, "起始位置：", startPos)
+end)
+
+-- 在节点上激活输入法，并开始监听输入法事件
+-- 同时只有一个节点可以激活输入法
+-- 激活后其他节点的输入法，当前节点的监听会被停止
+inputField:attachIME()
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local Node <const> = require("Node")
+
+local inputField = Node()
+
+inputField:onAttachIME(function()
+	print("输入法监听已打开")
+end)
+
+inputField:onDetachIME(function()
+	print("输入法监听已关闭")
+end)
+
+inputField:onTextInput(function(text: string)
+	-- 在输入法确认输入后触发
+	print("输入了文本：", text)
+end)
+
+inputField:onTextEditing(function(text: string, startPos: integer)
+	-- 输入法正在编辑文本时触发
+	print("输入法正在编辑文本：", text, "起始位置：", startPos)
+end)
+
+-- 在节点上激活输入法，并开始监听输入法事件
+-- 同时只有一个节点可以激活输入法
+-- 激活后其他节点的输入法，当前节点的监听会被停止
+inputField:attachIME()
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { Node } from "Dora";
+
+const inputField = Node();
+
+inputField.onAttachIME(() => {
+	print("输入法监听已打开");
+});
+
+inputField.onDetachIME(() => {
+	print("输入法监听已关闭");
+});
+
+inputField.onTextInput(text => {
+	// 在输入法确认输入后触发
+	print("输入了文本：", text);
+});
+
+inputField.onTextEditing((text, startPos) => {
+	// 输入法正在编辑文本时触发
+	print("输入法正在编辑文本：", text, "起始位置：", startPos);
+});
+
+// 在节点上激活输入法，并开始监听输入法事件
+// 同时只有一个节点可以激活输入法
+// 激活后其他节点的输入法，当前节点的监听会被停止
+inputField.attachIME();
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+with Node!
+	\onAttachIME ->
+		print "输入法监听已打开"
+
+	\onDetachIME ->
+		print "输入法监听已关闭"
+
+	\onTextInput (text) ->
+		-- 在输入法确认输入后触发
+		print "输入了文本：", text
+
+	\onTextEditing (text, startPos) ->
+		-- 输入法正在编辑文本时触发
+		print "输入法正在编辑文本：", text, "起始位置：", startPos
+
+	-- 在节点上激活输入法，并开始监听输入法事件
+	-- 同时只有一个节点可以激活输入法
+	-- 激活后其他节点的输入法，当前节点的监听会被停止
+	\attachIME!
+```
+
+</TabItem>
+</Tabs>
+
+&emsp;&emsp;**说明：**
+
+- `onAttachIME`：当输入法被激活时触发。
+- `onDetachIME`：当输入法被关闭时触发。
+- `onTextInput`：当有文本被确认输入时触发。
+- `onTextEditing`：当正在编辑文本时触发，通常是显示候选词的编辑阶段。
+
+## 4. 鼠标输入
+
+### 4.1 事件回调方式
+
+&emsp;&emsp;使用 `onMouseWheel` 方法来监听鼠标滚轮事件。鼠标按键事件通常与触摸事件重叠，可以使用触摸事件的方法来处理鼠标点击。
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local Node <const> = require("Node")
+
+local node = Node()
+
+node:onMouseWheel(function(delta)
+	print("鼠标滚轮滚动：", delta.x, delta.y)
+end)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local Node <const> = require("Node")
+local type Vec2 = require("Vec2")
+
+local node = Node()
+
+node:onMouseWheel(function(delta: Vec2.Type)
+	print("鼠标滚轮滚动：", delta.x, delta.y)
+end)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { Node } from "Dora";
+
+const node = Node();
+
+node.onMouseWheel(delta => {
+	print("鼠标滚轮滚动：", delta.x, delta.y);
+});
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+with Node!
+	\onMouseWheel (delta) ->
+		print "鼠标滚轮滚动：", delta.x, delta.y
+```
+
+</TabItem>
+</Tabs>
+
+&emsp;&emsp;**说明：**
+
+- `onMouseWheel`：当鼠标滚轮滚动时触发，`delta` 包含滚动的距离信息，包含 `x` 和 `y` 两个方向的滚动值。
+
+#### 鼠标滚动事件的开关
+
+&emsp;&emsp;鼠标滚动事件也受到 `node.touchEnabled` 属性的控制。当 `node.touchEnabled` 被设置为 `false` 时，鼠标滚动事件也会被禁用。
+
+### 4.2 每帧轮询方式
+
+&emsp;&emsp;使用 `Mouse` 类的属性来获取鼠标状态。
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local Mouse <const> = require("Mouse")
+local Node <const> = require("Node")
+
+local node = Node()
+
+node:onUpdate(function()
+	-- 将鼠标屏幕坐标转换为游戏世界坐标
+	local bs = App.bufferSize
+	local bw = bs.width
+	local bh = bs.height
+	local pos = Mouse.position * (bw / App.visualSize.width)
+	local worldPos = Vec2(pos.x - bw / 2, bh / 2 - pos.y)
+
+	-- 将世界坐标转换为节点坐标
+	local nodePos = node:convertToNodeSpace(worldPos)
+	print("鼠标位置：", nodePos)
+
+	if Mouse.leftButtonPressed then
+		print("鼠标左键被按下")
+	end
+
+	if Mouse.rightButtonPressed then
+		print("鼠标右键被按下")
+	end
+
+	if Mouse.middleButtonPressed then
+		print("鼠标中键被按下")
+	end
+
+	if Mouse.wheel ~= Vec2.zero then
+		print("鼠标滚轮值：", Mouse.wheel)
+	end
+end)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local Mouse <const> = require("Mouse")
+local Node <const> = require("Node")
+
+local node = Node()
+
+node:onUpdate(function(): boolean
+	-- 将鼠标屏幕坐标转换为游戏世界坐标
+	local bs = App.bufferSize
+	local bw = bs.width
+	local bh = bs.height
+	local pos = Mouse.position * (bw / App.visualSize.width)
+	local worldPos = Vec2(pos.x - bw / 2, bh / 2 - pos.y)
+
+	-- 将世界坐标转换为节点坐标
+	local nodePos = node:convertToNodeSpace(worldPos)
+	print("鼠标位置：", nodePos)
+
+	if Mouse.leftButtonPressed then
+		print("鼠标左键被按下")
+	end
+
+	if Mouse.rightButtonPressed then
+		print("鼠标右键被按下")
+	end
+
+	if Mouse.middleButtonPressed then
+		print("鼠标中键被按下")
+	end
+
+	if Mouse.wheel ~= Vec2.zero then
+		print("鼠标滚轮值：", Mouse.wheel)
+	end
+	return false
+end)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { Mouse, Node, App, Vec2 } from "Dora";
+
+const node = Node();
+
+node.onUpdate(() => {
+	// 将鼠标屏幕坐标转换为游戏世界坐标
+	const bs = App.bufferSize;
+	const bw = bs.width;
+	const bh = bs.height;
+	const pos = Mouse.position.mul(bw / App.visualSize.width);
+	const worldPos = Vec2(pos.x - bw / 2, bh / 2 - pos.y);
+
+	// 将世界坐标转换为节点坐标
+	const nodePos = node.convertToNodeSpace(worldPos);
+	print("鼠标位置：", nodePos);
+
+	if (Mouse.leftButtonPressed) {
+		print("鼠标左键被按下");
+	}
+
+	if (Mouse.rightButtonPressed) {
+		print("鼠标右键被按下");
+	}
+
+	if (Mouse.middleButtonPressed) {
+		print("鼠标中键被按下");
+	}
+
+	if (!Mouse.wheel.equals(Vec2.zero)) {
+		print("鼠标滚轮值：", Mouse.wheel);
+	}
+	return false;
+});
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+with Node!
+	\onUpdate ->
+		-- 将鼠标屏幕坐标转换为游戏世界坐标
+		width: bw, height: bh = App.bufferSize
+		pos = Mouse.position * (bw / App.visualSize.width)
+		worldPos = Vec2 pos.x - bw / 2, bh / 2 - pos.y
+
+		-- 将世界坐标转换为节点坐标
+		nodePos = \convertToNodeSpace worldPos
+		print "鼠标位置：", nodePos
+
+		if Mouse.leftButtonPressed
+			print "鼠标左键被按下"
+
+		if Mouse.rightButtonPressed
+			print "鼠标右键被按下"
+
+		if Mouse.middleButtonPressed
+			print "鼠标中键被按下"
+
+		if Mouse.wheel != Vec2.zero
+			print "鼠标滚轮值：", Mouse.wheel
+```
+
+</TabItem>
+</Tabs>
+
+&emsp;&emsp;**说明：**
+
+- `Mouse.position`：获取鼠标在窗口中的位置。
+- `leftButtonPressed` 等属性：判断鼠标按键的按下状态。
+- `Mouse.wheel`：获取鼠标滚轮的滚动值。
+
+## 5. 游戏控制器输入
+
+### 5.1 事件回调方式
+
+&emsp;&emsp;使用 `onButtonDown`、`onButtonUp`、`onButtonPressed` 和 `onAxis` 方法来监听控制器事件。
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local Node <const> = require("Node")
+
+local node = Node()
+
+node:onButtonDown(function(controllerId, buttonName)
+	print("控制器", controllerId, "按下按钮：", buttonName)
+end)
+
+node:onButtonUp(function(controllerId, buttonName)
+	print("控制器", controllerId, "释放按钮：", buttonName)
+end)
+
+node:onButtonPressed(function(controllerId, buttonName)
+	print("控制器", controllerId, "持续按住按钮：", buttonName)
+end)
+
+node:onAxis(function(controllerId, axisName, value)
+	print("控制器", controllerId, "轴", axisName, "的值：", value)
+end)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local Node <const> = require("Node")
+local type Controller = require("Controller")
+
+local node = Node()
+
+node:onButtonDown(function(controllerId: integer, buttonName: Controller.ButtonName)
+	print("控制器", controllerId, "按下按钮：", buttonName)
+end)
+
+node:onButtonUp(function(controllerId: integer, buttonName: Controller.ButtonName)
+	print("控制器", controllerId, "释放按钮：", buttonName)
+end)
+
+node:onButtonPressed(function(controllerId: integer, buttonName: Controller.ButtonName)
+	print("控制器", controllerId, "持续按住按钮：", buttonName)
+end)
+
+node:onAxis(function(controllerId: integer, axisName: Controller.AxisName, value: number)
+	print("控制器", controllerId, "轴", axisName, "的值：", value)
+end)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { Node } from "Dora";
+
+const node = Node();
+
+node.onButtonDown((controllerId, buttonName) => {
+	print("控制器", controllerId, "按下按钮：", buttonName);
+});
+
+node.onButtonUp((controllerId, buttonName) => {
+	print("控制器", controllerId, "释放按钮：", buttonName);
+});
+
+node.onButtonPressed((controllerId, buttonName) => {
+	print("控制器", controllerId, "持续按住按钮：", buttonName);
+});
+
+node.onAxis((controllerId, axisName, value) => {
+	print("控制器", controllerId, "轴", axisName, "的值：", value);
+});
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+with Node!
+	\onButtonDown (controllerId, buttonName) ->
+		print "控制器", controllerId, "按下按钮：", buttonName
+
+	\onButtonUp (controllerId, buttonName) ->
+		print "控制器", controllerId, "释放按钮：", buttonName
+
+	\onButtonPressed (controllerId, buttonName) ->
+		print "控制器", controllerId, "持续按住按钮：", buttonName
+
+	\onAxis (controllerId, axisName, value) ->
+		print "控制器", controllerId, "轴", axisName, "的值：", value
+```
+
+</TabItem>
+</Tabs>
+
+&emsp;&emsp;**说明：**
+
+- `onButtonDown`：当控制器按钮被按下时触发。
+- `onButtonUp`：当控制器按钮被释放时触发。
+- `onButtonPressed`：当控制器按钮被按住时每帧触发。
+- `buttonName`：按钮的名称，如 `a`、`b`、`x`、`y` 等。具体的按钮名称可以参考[控制器按钮名称](../../api/Class/Controller#controllerbuttonname)。
+- `onAxis`：当控制器的轴（如摇杆、扳机）发生变化时触发。
+- `axisName`：轴的名称，如 `leftx`、`lefty`、`rightx`、`righty` 等。具体的轴名称可以参考[控制器轴名称](../../api/Class/Controller#controlleraxisname)。
+
+#### 控制器事件的开关
+
+&emsp;&emsp;如果需要在某个时刻暂停或恢复监听事件，可以使用 `node.controllerEnabled` 属性。
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+node.controllerEnabled = false
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+node.controllerEnabled = false
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+node.controllerEnabled = false;
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+node.controllerEnabled = false
+```
+
+</TabItem>
+</Tabs>
+
+### 5.2 每帧轮询方式
+
+&emsp;&emsp;使用 `Controller` 类的方法来获取控制器的状态。
+
+**示例代码：**
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local Controller <const> = require("Controller")
+local Node <const> = require("Node")
+
+local node = Node()
+
+node:onUpdate(function()
+	-- 假设只连接了一个控制器，控制器编号会从 0 开始递增
+	local controllerId = 0
+
+	-- 检查按钮状态
+	if Controller:isButtonDown(controllerId, "a") then
+		print("控制器", controllerId, "本帧按下了按钮 A")
+	end
+
+	if Controller:isButtonUp(controllerId, "a") then
+		print("控制器", controllerId, "本帧释放了按钮 A")
+	end
+
+	if Controller:isButtonPressed(controllerId, "a") then
+		print("控制器", controllerId, "按钮 A 正在被按住")
+	end
+
+	-- 获取轴的值
+	local leftX = Controller:getAxis(controllerId, "leftx")
+	local leftY = Controller:getAxis(controllerId, "lefty")
+	if leftX ~= 0 or leftY ~= 0 then
+		print("左摇杆位置：", leftX, leftY)
+	end
+end)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local Controller <const> = require("Controller")
+local Node <const> = require("Node")
+
+local node = Node()
+
+node:onUpdate(function(): boolean
+	-- 假设只连接了一个控制器，控制器编号会从 0 开始递增
+	local controllerId = 0
+
+	-- 检查按钮状态
+	if Controller:isButtonDown(controllerId, "a") then
+		print("控制器", controllerId, "本帧按下了按钮 A")
+	end
+
+	if Controller:isButtonUp(controllerId, "a") then
+		print("控制器", controllerId, "本帧释放了按钮 A")
+	end
+
+	if Controller:isButtonPressed(controllerId, "a") then
+		print("控制器", controllerId, "按钮 A 正在被按住")
+	end
+
+	-- 获取轴的值
+	local leftX = Controller:getAxis(controllerId, "leftx")
+	local leftY = Controller:getAxis(controllerId, "lefty")
+	if leftX ~= 0 or leftY ~= 0 then
+		print("左摇杆位置：", leftX, leftY)
+	end
+	return false
+end)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { Controller, Node, ButtonName, AxisName } from "Dora";
+
+const node = Node();
+
+node.onUpdate(() => {
+	// 假设只连接了一个控制器，控制器编号会从 0 开始递增
+	const controllerId = 0;
+
+	// 检查按钮状态
+	if (Controller.isButtonDown(controllerId, ButtonName.A)) {
+		print("控制器", controllerId, "本帧按下了按钮 A");
+	}
+
+	if (Controller.isButtonUp(controllerId, ButtonName.A)) {
+		print("控制器", controllerId, "本帧释放了按钮 A");
+	}
+
+	if (Controller.isButtonPressed(controllerId, ButtonName.A)) {
+		print("控制器", controllerId, "按钮 A 正在被按住");
+	}
+
+	// 获取轴的值
+	const leftX = Controller.getAxis(controllerId, AxisName.LeftX);
+	const leftY = Controller.getAxis(controllerId, AxisName.LeftY);
+	if (leftX !== 0 || leftY !== 0) {
+		print("左摇杆位置：", leftX, leftY);
+	}
+	return false;
+});
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+with Node!
+	\onUpdate ->
+		-- 假设只连接了一个控制器，控制器编号会从 0 开始递增
+		controllerId = 0
+
+		-- 检查按钮状态
+		if Controller\isButtonDown controllerId, "a"
+			print "控制器", controllerId, "本帧按下了按钮 A"
+
+		if Controller\isButtonUp controllerId, "a"
+			print "控制器", controllerId, "本帧释放了按钮 A"
+
+		if Controller\isButtonPressed controllerId, "a"
+			print "控制器", controllerId, "按钮 A 正在被按住"
+
+		-- 获取轴的值
+		leftX = Controller\getAxis controllerId, "leftx"
+		leftY = Controller\getAxis controllerId, "lefty"
+		if leftX != 0 or leftY != 0
+			print "左摇杆位置：", leftX, leftY
+```
+
+</TabItem>
+</Tabs>
+
+&emsp;&emsp;**说明：**
+
+- `isButtonDown`：检查在当前帧是否按下了指定按钮。
+- `isButtonUp`：检查在当前帧是否释放了指定按钮。
+- `isButtonPressed`：检查指定按钮是否处于按下状态。
+- `getAxis`：获取指定轴的当前值，范围为 -1.0 到 1.0。
+
+## 6. 总结
+
+&emsp;&emsp;在本教程中，我们学习了如何使用 Dora SSR 引擎的 API 来处理各种输入方式。通过**事件回调**，我们可以在输入事件发生时立即响应；通过**每帧轮询**，我们可以在游戏的更新循环中持续检查输入状态。根据游戏的需求，可以选择合适的方式或结合两者来实现最佳的输入处理效果。在下一篇教程中，我们将学习如何使用 Dora SSR 的`增强输入功能模块`来简化输入处理的代码，并处理更复杂的输入逻辑。
+
+&emsp;&emsp;希望本教程能帮助你更好地理解和使用 Dora SSR 引擎的输入处理功能，祝你开发愉快！

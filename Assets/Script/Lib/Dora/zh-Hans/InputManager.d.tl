@@ -15,7 +15,7 @@ local type AxisName = Controller.AxisName;
 -- 		actions = {
 -- 			{
 -- 				name = "action1",
--- 				trigger = Trigger.KeyDown(KeyName.W)
+-- 				trigger = Trigger.KeyDown("W")
 -- 			},
 -- 		}
 -- 	},

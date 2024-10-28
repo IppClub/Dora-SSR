@@ -22,7 +22,7 @@ local record Mouse
 	const middleButtonPressed: boolean
 
 	-- The mouse wheel value.
-	const wheel: number
+	const wheel: Vec2
 end
 
 local mouse: Mouse

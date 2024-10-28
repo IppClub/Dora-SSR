@@ -22,7 +22,7 @@ local record Mouse
 	const middleButtonPressed: boolean
 
 	-- 鼠标滚轮的滚动值。
-	const wheel: number
+	const wheel: Vec2
 end
 
 local mouse: Mouse
