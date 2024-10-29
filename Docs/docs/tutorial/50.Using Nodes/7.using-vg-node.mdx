@@ -1,0 +1,809 @@
+import "@site/src/languages/highlight";
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Drawing Nodes with Vector Graphics
+
+&emsp;&emsp;Dora SSR is built on the [nanovg](https://github.com/memononen/nanovg) library, providing a powerful set of vector graphic drawing capabilities. This tutorial will guide you through using these vector graphics features in Dora SSR. You will learn how to create vector graphic nodes, render shapes, apply transformations, and load and display SVG files.
+
+## 1. Introduction
+
+&emsp;&emsp;Vector graphics allow for the creation of scalable, resolution-independent images using mathematical equations rather than pixel grids. Dora SSR's vector graphics capabilities are based on the `nanovg` library, offering a fundamental vector drawing API similar to HTML5 Canvas. These features can be integrated with Dora SSR's scene node system.
+
+&emsp;&emsp;In this tutorial, we will explore how to use Dora SSR's vector graphics API to:
+
+- Create vector graphic nodes (`VGNode`)
+- Draw vector graphics directly on the screen
+- Render shapes and paths
+- Apply transformations
+- Load and display SVG files
+
+## 2. Using VGNode
+
+&emsp;&emsp;`VGNode` is a node in Dora SSR used to statically render vector graphics onto a texture, which can then be mounted in the game scene for display. It internally contains a framebuffer texture for drawing vector graphics and is itself a scene node object. To create a `VGNode`, you need to specify its dimensions, as well as optional scaling and anti-aliasing parameters.
+
+### 2.1 Creating a Node Object
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local VGNode <const> = require("VGNode")
+
+-- Create a VGNode with a width of 800, height of 600, default scaling, and anti-aliasing
+local node = VGNode(
+	800, -- Width of the framebuffer texture
+	600, -- Height of the framebuffer texture
+	1.0, -- Optional scaling factor for rendering units. Default is `1.0`
+	1 -- Optional anti-aliasing factor. Default is `1`
+)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local VGNode <const> = require("VGNode")
+
+local node = VGNode(
+	800, -- Width of the framebuffer texture
+	600, -- Height of the framebuffer texture
+	1.0, -- Optional scaling factor for rendering units. Default is `1.0`
+	1 -- Optional anti-aliasing factor. Default is `1`
+)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { VGNode } from "Dora";
+
+const node = VGNode(
+	800, // Width of the framebuffer texture
+	600, // Height of the framebuffer texture
+	1.0, // Optional scaling factor for rendering units. Default is `1.0`
+	1 // Optional anti-aliasing factor. Default is `1`
+);
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+node = VGNode(
+	800 -- Width of the framebuffer texture
+	600 -- Height of the framebuffer texture
+	1.0 -- Optional scaling factor for rendering units. Default is `1.0`
+	1 -- Optional anti-aliasing factor. Default is `1`
+)
+```
+
+</TabItem>
+</Tabs>
+
+&emsp;&emsp;This will create an instance of `VGNode`, which we will use to render vector graphics onto its associated framebuffer texture.
+
+### 2.2 Rendering Vector Graphics
+
+&emsp;&emsp;To render vector graphics, use the `render` method of the `VGNode` instance. You need to pass a function (closure) that contains drawing commands using the `nvg` module. These drawing commands will draw shapes onto the `VGNode`'s framebuffer texture.
+
+&emsp;&emsp;The `nvg` module provides functions for drawing basic shapes such as rectangles, circles, lines, and paths. You can also customize the appearance of shapes using colors and brushes.
+
+#### Example: Drawing a Rectangle
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local VGNode <const> = require("VGNode")
+local nvg <const> = require("nvg")
+local Color <const> = require("Color")
+
+local node = VGNode(200, 150)
+
+node:render(function()
+	nvg.BeginPath() -- Start a new path
+	nvg.Rect(0, 0, 200, 150) -- x, y, width, height
+	nvg.FillColor(Color(255, 0, 0, 255)) -- Red
+	nvg.Fill()
+end)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local VGNode <const> = require("VGNode")
+local nvg <const> = require("nvg")
+local Color <const> = require("Color")
+
+local node = VGNode(200, 150)
+
+node:render(function()
+	nvg.BeginPath() -- Start a new path
+	nvg.Rect(0, 0, 200, 150) -- x, y, width, height
+	nvg.FillColor(Color(255, 0, 0, 255)) -- Red
+	nvg.Fill()
+end)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { VGNode, Color } from "Dora";
+import * as nvg from "nvg";
+
+const node = VGNode(200, 150);
+
+node.render(() => {
+	nvg.BeginPath(); // Start a new path
+	nvg.Rect(0, 0, 200, 150); // x, y, width, height
+	nvg.FillColor(Color(255, 0, 0, 255)); // Red
+	nvg.Fill();
+});
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+with VGNode 200, 150
+	\render ->
+		nvg.BeginPath! -- Start a new path
+		nvg.Rect 0, 0, 200, 150 -- x, y, width, height
+		nvg.FillColor Color 255, 0, 0, 255 -- Red
+		nvg.Fill!
+```
+
+</TabItem>
+</Tabs>
+
+&emsp;&emsp;The above code draws a red rectangle with a width of 200 and a height of 150.
+
+:::tip Tip
+&emsp;&emsp;When rendering vector graphics with `VGNode`, the origin of the coordinate system is at the top left corner of the node texture, with the x-axis extending right and the y-axis extending down. The graphic calculation units are the texture pixels multiplied by the scaling value.
+:::
+
+#### Example: Drawing a Circle
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local VGNode <const> = require("VGNode")
+local nvg <const> = require("nvg")
+local Color <const> = require("Color")
+
+local node = VGNode(100, 100)
+
+node:render(function()
+	nvg.BeginPath()
+	nvg.Circle(50, 50, 50) -- Center x, y and radius
+	nvg.FillColor(Color(255, 255, 0, 255)) -- Yellow
+	nvg.Fill()
+end)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local VGNode <const> = require("VGNode")
+local nvg <const> = require("nvg")
+local Color <const> = require("Color")
+
+local node = VGNode(100, 100)
+
+node:render(function()
+	nvg.BeginPath()
+	nvg.Circle(50, 50, 50) -- Center x, y and radius
+	nvg.FillColor(Color(255, 255, 0, 255)) -- Yellow
+	nvg.Fill()
+end)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { VGNode, Color } from "Dora";
+import * as nvg from "nvg";
+
+const node = VGNode(100, 100);
+
+node.render(() => {
+	nvg.BeginPath();
+	nvg.Circle(50, 50, 50); // Center x, y and radius
+	nvg.FillColor(Color(255, 255, 0, 255)); // Yellow
+	nvg.Fill();
+});
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+with VGNode 100, 100
+	\render ->
+		nvg.BeginPath! -- Start a new path
+		nvg.Circle 50, 50, 50 -- Center x, y and radius
+		nvg.FillColor Color 255, 255, 0, 255 -- Yellow
+		nvg.Fill!
+```
+
+</TabItem>
+</Tabs>
+
+&emsp;&emsp;This code draws a yellow circle with a radius of 50.
+
+## 3. Directly Drawing Vector Graphics on the Screen
+
+&emsp;&emsp;In addition to using `VGNode`, Dora SSR also supports directly drawing vector graphics on the top layer of the screen buffer. By calling the drawing functions from the `nvg` module in each frame, you can draw vector graphics directly on the screen without the need for `VGNode`.
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local nvg <const> = require("nvg")
+local Color <const> = require("Color")
+local threadLoop <const> = require("threadLoop")
+
+threadLoop(function()
+	nvg.BeginPath()
+	nvg.Rect(100, 100, 200, 150)
+	nvg.FillColor(Color(255, 0, 0, 255))
+	nvg.Fill()
+end)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local nvg <const> = require("nvg")
+local Color <const> = require("Color")
+local threadLoop <const> = require("threadLoop")
+
+threadLoop(function(): boolean
+	nvg.BeginPath()
+	nvg.Rect(100, 100, 200, 150)
+	nvg.FillColor(Color(255, 0, 0, 255))
+	nvg.Fill()
+	return false
+end)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { Color, threadLoop } from "Dora";
+import * as nvg from "nvg";
+
+threadLoop(() => {
+	nvg.BeginPath();
+	nvg.Rect(100, 100, 200, 150);
+	nvg.FillColor(Color(255, 0, 0, 255));
+	nvg.Fill();
+	return false;
+});
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+threadLoop ->
+	nvg.BeginPath! -- Start a new path
+	nvg.Rect 100, 100, 200, 150
+	nvg.FillColor Color 255, 0, 0, 255 -- Red
+	nvg.Fill!
+```
+
+</TabItem>
+</Tabs>
+
+&emsp;&emsp;The above code draws a red rectangle on the screen. Note that this method draws directly to the screen buffer and will overwrite the underlying game scene. It is more suitable for drawing game HUD interfaces, displaying debug information, etc.
+
+:::tip Tip
+&emsp;&emsp;When using this drawing method, the origin of the coordinate system is at the top left corner of the screen, with the x-axis extending right and the y-axis extending down. In the visible area of the screen, the maximum value of the x-coordinate is `App.visualSize.width`, and the maximum value of the y-coordinate is `App.visualSize.height`.
+:::
+
+### 3.1 Combining Game Scene Nodes and Vector Graphics
+
+&emsp;&emsp;You can use the `nvg.ApplyTransform(node)` function to apply the transformation of a scene node to the vector graphics being drawn. This allows you to change the position, rotation, and scaling of the vector graphics in the game scene more conveniently by controlling the node's transformation.
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local nvg <const> = require("nvg")
+local Color <const> = require("Color")
+local Node <const> = require("Node")
+local Size <const> = require("Size")
+local Scale <const> = require("Scale")
+
+local node = Node()
+node.size = Size(200, 150)
+node:schedule(function()
+	nvg.ApplyTransform(node)
+	nvg.BeginPath()
+	nvg.Rect(0, 0, 200, 150)
+	nvg.FillColor(Color(255, 0, 0, 255))
+	nvg.Fill()
+end)
+
+node.x = 50
+node.y = 50
+node.angle = 45
+node:perform(Scale(0.5, 0, 1))
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local nvg <const> = require("nvg")
+local Color <const> = require("Color")
+local Node <const> = require("Node")
+local Size <const> = require("Size")
+local Scale <const> = require("Scale")
+
+local node = Node()
+node.size = Size(200, 150)
+node:schedule(function(): boolean
+	nvg.ApplyTransform(node)
+	nvg.BeginPath()
+	nvg.Rect(0, 0, 200, 150)
+	nvg.FillColor(Color(255, 0, 0, 255))
+	nvg.Fill()
+	return false
+end)
+
+node.x = 50
+node.y = 50
+node.angle = 45
+node:perform(Scale(0.5, 0, 1))
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { Color, Node, Size, Scale } from "Dora";
+import * as nvg from "nvg";
+
+const node = Node();
+node.size = Size(200, 150);
+node.schedule(() => {
+	nvg.ApplyTransform(node);
+	nvg.BeginPath();
+	nvg.Rect(0, 0, 200, 150);
+	nvg.FillColor(Color(255, 0, 0, 255));
+	nvg.Fill();
+	return false;
+});
+
+node.x = 50;
+node.y = 50;
+node.angle = 45;
+node.perform(Scale(0.5, 0, 1));
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+with Node!
+	.size = Size 200, 150
+	\schedule ->
+		nvg.ApplyTransform node
+		nvg.BeginPath! -- Start a new path
+		nvg.Rect 0, 0, 200, 150
+		nvg.FillColor Color 255, 0, 0, 255 -- Red
+		nvg.Fill!
+
+	.x = 50
+	.y = 50
+	.angle = 45
+	\perform Scale 0.5, 0, 1
+```
+
+</TabItem>
+</Tabs>
+
+&emsp;&emsp;The above code creates a node and draws a red rectangle onto it. Then, by setting the position and rotation of the node, the display effect of the rectangle is controlled, and the scaling of the rectangle is controlled through performing scaling actions on the node.
+
+:::tip Tip
+&emsp;&emsp;After using the `nvg.ApplyTransform(node)` function, the coordinate system's origin for the vector graphics will change to the bottom left corner of the scene node, with the x-axis extending right and the y-axis extending up. The node's scaling, rotation, and position transformations will be applied to the drawing of the vector graphics.
+:::
+
+## 4. Using Colors and Brushes
+
+&emsp;&emsp;You can use colors and brushes to customize the appearance of shapes.
+
+#### Fill and Stroke Colors
+
+- `nvg.FillColor(color)`: Sets the fill color.
+- `nvg.StrokeColor(color)`: Sets the stroke (outline) color.
+- `nvg.StrokeWidth(width)`: Sets the stroke width.
+
+#### Example: Fill and Stroke
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local nvg <const> = require("nvg")
+local Color <const> = require("Color")
+local threadLoop <const> = require("threadLoop")
+
+threadLoop(function()
+	nvg.BeginPath()
+	nvg.Rect(10, 10, 100, 80)
+	nvg.FillColor(Color(255, 0, 255, 255)) -- Pink fill
+	nvg.Fill()
+	nvg.StrokeColor(Color(255, 255, 0, 255)) -- Yellow stroke
+	nvg.StrokeWidth(5)
+	nvg.Stroke()
+end)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local nvg <const> = require("nvg")
+local Color <const> = require("Color")
+local threadLoop <const> = require("threadLoop")
+
+threadLoop(function(): boolean
+	nvg.BeginPath()
+	nvg.Rect(10, 10, 100, 80)
+	nvg.FillColor(Color(255, 0, 255, 255)) -- Pink fill
+	nvg.Fill()
+	nvg.StrokeColor(Color(255, 255, 0, 255)) -- Yellow stroke
+	nvg.StrokeWidth(5)
+	nvg.Stroke()
+	return false
+end)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { Color, threadLoop } from "Dora";
+import * as nvg from "nvg";
+
+threadLoop(() => {
+	nvg.BeginPath();
+	nvg.Rect(10, 10, 100, 80);
+	nvg.FillColor(Color(255, 0, 255, 255)); // Pink fill
+	nvg.Fill();
+	nvg.StrokeColor(Color(255, 255, 0, 255)); // Yellow stroke
+	nvg.StrokeWidth(5);
+	nvg.Stroke();
+	return false;
+});
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+threadLoop ->
+	nvg.BeginPath! -- Start a new path
+	nvg.Rect 10, 10, 100, 80
+	nvg.FillColor Color 255, 0, 255, 255 -- Pink fill
+	nvg.Fill!
+	nvg.StrokeColor Color 255, 255, 0, 255 -- Yellow stroke
+	nvg
+
+.StrokeWidth 5
+	nvg.Stroke!
+```
+
+</TabItem>
+</Tabs>
+
+## 5. Applying Transformations
+
+&emsp;&emsp;Transformations allow you to manipulate shapes through translation, rotation, or scaling.
+
+#### Transformation Functions
+
+- `nvg.Translate(x, y)`: Moves the coordinate system.
+- `nvg.Rotate(angle)`: Rotates the coordinate system (angle in radians).
+- `nvg.Scale(sx, sy)`: Scales the coordinate system.
+- `nvg.Save()`: Saves the current transformation state.
+- `nvg.Restore()`: Restores the last saved state.
+
+#### Example: Rotating a Rectangle
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local nvg <const> = require("nvg")
+local Color <const> = require("Color")
+local threadLoop <const> = require("threadLoop")
+
+local function Rect(x, y, angle)
+	nvg.Save()
+	nvg.Translate(x, y) -- Move
+	nvg.Rotate(angle) -- Rotate
+	nvg.BeginPath()
+	nvg.Rect(-100, -50, 200, 100) -- Center-aligned rectangle
+	nvg.FillColor(Color(255, 128, 0, 128)) -- Brown
+	nvg.Fill()
+	nvg.Restore()
+end
+
+threadLoop(function()
+	-- Draw rectangles with transformations that do not affect each other
+	Rect(300, 200, 45)
+	Rect(100, 200, 90)
+end)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local nvg <const> = require("nvg")
+local Color <const> = require("Color")
+local threadLoop <const> = require("threadLoop")
+
+local function Rect(x: number, y: number, angle: number)
+	nvg.Save()
+	nvg.Translate(x, y) -- Move
+	nvg.Rotate(angle) -- Rotate
+	nvg.BeginPath()
+	nvg.Rect(-100, -50, 200, 100) -- Center-aligned rectangle
+	nvg.FillColor(Color(255, 128, 0, 128)) -- Brown
+	nvg.Fill()
+	nvg.Restore()
+end
+
+threadLoop(function(): boolean
+	-- Draw rectangles with transformations that do not affect each other
+	Rect(300, 200, 45)
+	Rect(100, 200, 90)
+	return false
+end)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { Color, threadLoop } from "Dora";
+import * as nvg from "nvg";
+
+const Rect = (x: number, y: number, angle: number) => {
+	nvg.Save();
+	nvg.Translate(x, y); // Move
+	nvg.Rotate(angle); // Rotate
+	nvg.BeginPath();
+	nvg.Rect(-100, -50, 200, 100); // Center-aligned rectangle
+	nvg.FillColor(Color(255, 128, 0, 128)); // Brown
+	nvg.Fill();
+	nvg.Restore();
+};
+
+threadLoop(() => {
+	// Draw rectangles with transformations that do not affect each other
+	Rect(300, 200, 45);
+	Rect(100, 200, 90);
+	return false;
+});
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+Rect = (x, y, angle) ->
+	nvg.Save!
+	nvg.Translate x, y -- Move
+	nvg.Rotate angle -- Rotate
+	nvg.BeginPath! -- Start a new path
+	nvg.Rect -100, -50, 200, 100 -- Center-aligned rectangle
+	nvg.FillColor Color 255, 128, 0, 128 -- Brown
+	nvg.Fill!
+	nvg.Restore!
+
+threadLoop ->
+	-- Draw rectangles with transformations that do not affect each other
+	Rect 300, 200, 45
+	Rect 100, 200, 90
+```
+
+</TabItem>
+</Tabs>
+
+&emsp;&emsp;The above code draws two rotating rectangles, one rotating 45 degrees clockwise and the other 90 degrees clockwise. Their rotation centers are at the center of the rectangles, and their respective geometric transformations do not affect each other.
+
+## 6. Loading and Rendering SVG Files
+
+&emsp;&emsp;Dora SSR provides an `SVG` class for loading and rendering SVG files. Note that currently, only a subset of simplified SVG files processed with the [picosvg](https://github.com/googlefonts/picosvg) tool is supported.
+
+### 6.1 Loading and Directly Rendering SVG Graphics
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local SVG <const> = require("SVG")
+local threadLoop <const> = require("threadLoop")
+
+local svg = SVG("Image/Dora.svg")
+
+threadLoop(function()
+	-- Call the SVG instance's `render` method in each frame to display it.
+	svg:render()
+end)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local SVG <const> = require("SVG")
+local threadLoop <const> = require("threadLoop")
+
+local svg = SVG("Image/Dora.svg")
+
+threadLoop(function(): boolean
+	-- Call the SVG instance's `render` method in each frame to display it.
+	svg:render()
+	return false
+end)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { SVG, threadLoop } from "Dora";
+
+const svg = SVG("Image/Dora.svg");
+
+threadLoop(() => {
+	// Call the SVG instance's `render` method in each frame to display it.
+	svg.render();
+	return false;
+});
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+svg = SVG "Image/Dora.svg"
+
+threadLoop ->
+	-- Call the SVG instance's `render` method in each frame to display it.
+	svg.render!
+```
+
+</TabItem>
+</Tabs>
+
+### 6.2 Controlling SVG Graphics Rendering with Scene Nodes
+
+&emsp;&emsp;You can use scene nodes to control the position, rotation, and scaling of SVG graphics.
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local SVG <const> = require("SVG")
+local Node <const> = require("Node")
+local nvg <const> = require("nvg")
+
+local svg = SVG("Image/Dora.svg")
+
+local node = Node()
+node:schedule(function()
+	nvg.ApplyTransform(node)
+	nvg.Scale(0.2, -0.2)
+	nvg.Translate(-566.5, -566.5)
+	svg:render()
+end)
+
+node.angle = 45
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local SVG <const> = require("SVG")
+local Node <const> = require("Node")
+local nvg <const> = require("nvg")
+
+local svg = SVG("Image/Dora.svg")
+
+local node = Node()
+node:schedule(function(): boolean
+	nvg.ApplyTransform(node)
+	nvg.Scale(0.2, -0.2)
+	nvg.Translate(-566.5, -566.5)
+	svg:render()
+	return false
+end)
+
+node.angle = 45
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { SVG, Node } from "Dora";
+import * as nvg from "nvg";
+
+const svg = SVG("Image/Dora.svg");
+
+const node = Node();
+node.schedule(() => {
+	nvg.ApplyTransform(node);
+	nvg.Scale(0.2, -0.2);
+	nvg.Translate(-566.5, -566.5);
+	svg.render();
+	return false;
+});
+
+node.angle = 45;
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+svg = SVG "Image/Dora.svg"
+
+with Node!
+	\schedule ->
+		nvg.ApplyTransform node
+		nvg.Scale 0.2, -0.2
+		nvg.Translate -566.5, -566.5
+		svg\render!
+
+	.angle = 45
+```
+
+</TabItem>
+</Tabs>
+
+&emsp;&emsp;The above code creates a node and binds the SVG graphics rendering to that node. Then, by setting the rotation of the node, the display effect of the SVG graphics is controlled.
+
+## 7. Conclusion
+
+&emsp;&emsp;In this tutorial, we introduced how to use Dora SSR's vector graphics capabilities to draw shapes, apply transformations, and render SVG files. With these tools, you can create rich vector graphics and animations for your applications.
+
+&emsp;&emsp;Remember, the `nvg` module also offers more advanced drawing and text rendering functions. You can explore functions such as `nvg.Text`, `nvg.FontFace`, and gradient brushes like `nvg.LinearGradient` for more complex graphics.
+
+&emsp;&emsp;Feel free to experiment with different shapes, colors, and transformations to create unique vector graphic projects in Dora SSR!

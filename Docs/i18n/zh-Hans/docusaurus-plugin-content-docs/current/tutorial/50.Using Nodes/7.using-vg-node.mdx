@@ -1,0 +1,808 @@
+import "@site/src/languages/highlight";
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# 使用矢量图形的绘制节点
+
+&emsp;&emsp;Dora SSR 基于 [nanovg](https://github.com/memononen/nanovg) 库，提供了一套强大的矢量图形绘制功能。本教程将引导您在 Dora SSR 中使用这些矢量图形功能。您将学习如何创建矢量图形节点、渲染形状、应用变换，以及加载和显示 SVG 文件。
+
+## 1. 简介
+
+&emsp;&emsp;矢量图形允许使用数学方程而非像素网格来创建可缩放、与分辨率无关的图像。Dora SSR 的矢量图形功能基于 `nanovg` 库，提供了基础的类似于 HTML5 Canvas 的矢量绘图 API。并且可以和 Dora SSR 的场景节点系统进行集成使用。
+
+&emsp;&emsp;在本教程中，我们将探索如何使用 Dora SSR 的矢量图形 API 来：
+
+- 创建矢量图形节点（`VGNode`）
+- 直接在屏幕上绘制矢量图形
+- 渲染形状和路径
+- 应用变换
+- 加载和显示 SVG 文件
+
+## 2. 使用 VGNode
+
+&emsp;&emsp;`VGNode` 是 Dora SSR 中用于将矢量图形静态渲染到一张纹理上，并挂载到游戏场景中展示的节点。所以它的内部包含了一张用于绘制矢量图形的帧缓冲纹理，并且本身是一个场景节点对象。要创建一个 `VGNode`，您需要指定其尺寸，以及可选的缩放比例和边缘抗锯齿系数。
+
+### 2.1 创建节点对象
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local VGNode <const> = require("VGNode")
+
+-- 创建一个宽800，高600，默认缩放比例和边缘抗锯齿的 VGNode
+local node = VGNode(
+	800, -- 帧缓冲纹理的宽度
+	600, -- 帧缓冲纹理的高度
+	1.0, -- 可选渲染单位的缩放比例。默认值为 `1.0`
+	1 -- 可选的边缘抗锯齿系数。默认值为 `1`
+)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local VGNode <const> = require("VGNode")
+
+local node = VGNode(
+	800, -- 帧缓冲纹理的宽度
+	600, -- 帧缓冲纹理的高度
+	1.0, -- 可选渲染单位的缩放比例。默认值为 `1.0`
+	1 -- 可选的边缘抗锯齿系数。默认值为 `1`
+)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { VGNode } from "Dora";
+
+const node = VGNode(
+	800, // 帧缓冲纹理的宽度
+	600, // 帧缓冲纹理的高度
+	1.0, // 可选渲染单位的缩放比例。默认值为 `1.0`
+	1 // 可选的边缘抗锯齿系数。默认值为 `1`
+);
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+node = VGNode(
+	800 -- 帧缓冲纹理的宽度
+	600 -- 帧缓冲纹理的高度
+	1.0 -- 可选渲染单位的缩放比例。默认值为 `1.0`
+	1 -- 可选的边缘抗锯齿系数。默认值为 `1`
+)
+```
+
+</TabItem>
+</Tabs>
+
+&emsp;&emsp;这将创建一个 `VGNode` 实例，我们将使用它把矢量图形渲染到自带的帧缓冲纹理上。
+
+### 2.2 渲染矢量图形
+
+&emsp;&emsp;要渲染矢量图形，使用 `VGNode` 实例的 `render` 方法。您需要传递一个包含使用 `nvg` 模块的绘图命令的函数（闭包）。这些绘图命令会将图形绘制到 `VGNode` 的帧缓冲纹理上。
+
+&emsp;&emsp;`nvg` 模块提供了绘制矩形、圆形、线条和路径等基本形状的函数。您还可以使用颜色和画笔来自定义形状的外观。
+
+#### 示例：绘制矩形
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local VGNode <const> = require("VGNode")
+local nvg <const> = require("nvg")
+local Color <const> = require("Color")
+
+local node = VGNode(200, 150)
+
+node:render(function()
+	nvg.BeginPath() -- 开始新路径
+	nvg.Rect(0, 0, 200, 150) -- x, y, 宽度, 高度
+	nvg.FillColor(Color(255, 0, 0, 255)) -- 红色
+	nvg.Fill()
+end)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local VGNode <const> = require("VGNode")
+local nvg <const> = require("nvg")
+local Color <const> = require("Color")
+
+local node = VGNode(200, 150)
+
+node:render(function()
+	nvg.BeginPath() -- 开始新路径
+	nvg.Rect(0, 0, 200, 150) -- x, y, 宽度, 高度
+	nvg.FillColor(Color(255, 0, 0, 255)) -- 红色
+	nvg.Fill()
+end)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { VGNode, Color } from "Dora";
+import * as nvg from "nvg";
+
+const node = VGNode(200, 150);
+
+node.render(() => {
+	nvg.BeginPath(); // 开始新路径
+	nvg.Rect(0, 0, 200, 150); // x, y, 宽度, 高度
+	nvg.FillColor(Color(255, 0, 0, 255)); // 红色
+	nvg.Fill();
+});
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+with VGNode 200, 150
+	\render ->
+		nvg.BeginPath! -- 开始新路径
+		nvg.Rect 0, 0, 200, 150 -- x, y, 宽度, 高度
+		nvg.FillColor Color 255, 0, 0, 255 -- 红色
+		nvg.Fill!
+```
+
+</TabItem>
+</Tabs>
+
+
+&emsp;&emsp;上述代码绘制了一个宽 200、高 150 的红色矩形。
+
+:::tip 提示
+&emsp;&emsp;使用 `VGNode` 渲染矢量图形时，坐标系原点在节点纹理的左上角，x 轴向右，y 轴向下。以纹理像素乘以缩放值为图形计算单位。
+:::
+
+#### 示例：绘制圆形
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local VGNode <const> = require("VGNode")
+local nvg <const> = require("nvg")
+local Color <const> = require("Color")
+
+local node = VGNode(100, 100)
+
+node:render(function()
+	nvg.BeginPath()
+	nvg.Circle(50, 50, 50) -- 中心 x, y 和半径
+	nvg.FillColor(Color(255, 255, 0, 255)) -- 黄色
+	nvg.Fill()
+end)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local VGNode <const> = require("VGNode")
+local nvg <const> = require("nvg")
+local Color <const> = require("Color")
+
+local node = VGNode(100, 100)
+
+node:render(function()
+	nvg.BeginPath()
+	nvg.Circle(50, 50, 50) -- 中心 x, y 和半径
+	nvg.FillColor(Color(255, 255, 0, 255)) -- 黄色
+	nvg.Fill()
+end)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { VGNode, Color } from "Dora";
+import * as nvg from "nvg";
+
+const node = VGNode(100, 100);
+
+node.render(() => {
+	nvg.BeginPath();
+	nvg.Circle(50, 50, 50); // 中心 x, y 和半径
+	nvg.FillColor(Color(255, 255, 0, 255)); // 黄色
+	nvg.Fill();
+});
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+with VGNode 100, 100
+	\render ->
+		nvg.BeginPath! -- 开始新路径
+		nvg.Circle 50, 50, 50 -- 中心 x, y 和半径
+		nvg.FillColor Color 255, 255, 0, 255 -- 黄色
+		nvg.Fill!
+```
+
+</TabItem>
+</Tabs>
+
+&emsp;&emsp;该代码绘制了一个半径为 50 的黄色圆形。
+
+## 3. 直接绘制矢量图形到屏幕
+
+&emsp;&emsp;除了使用 VGNode，Dora SSR 还支持直接在屏幕缓冲区的最上层绘制矢量图形。只需在每一帧调用 nvg 模块的绘图函数，即可直接将矢量图形绘制到屏幕上，无需借助 VGNode。
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local nvg <const> = require("nvg")
+local Color <const> = require("Color")
+local threadLoop <const> = require("threadLoop")
+
+threadLoop(function()
+	nvg.BeginPath()
+	nvg.Rect(100, 100, 200, 150)
+	nvg.FillColor(Color(255, 0, 0, 255))
+	nvg.Fill()
+end)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local nvg <const> = require("nvg")
+local Color <const> = require("Color")
+local threadLoop <const> = require("threadLoop")
+
+threadLoop(function(): boolean
+	nvg.BeginPath()
+	nvg.Rect(100, 100, 200, 150)
+	nvg.FillColor(Color(255, 0, 0, 255))
+	nvg.Fill()
+	return false
+end)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { Color, threadLoop } from "Dora";
+import * as nvg from "nvg";
+
+threadLoop(() => {
+	nvg.BeginPath();
+	nvg.Rect(100, 100, 200, 150);
+	nvg.FillColor(Color(255, 0, 0, 255));
+	nvg.Fill();
+	return false;
+});
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+threadLoop ->
+	nvg.BeginPath! -- 开始新路径
+	nvg.Rect 100, 100, 200, 150
+	nvg.FillColor Color 255, 0, 0, 255 -- 红色
+	nvg.Fill!
+```
+
+</TabItem>
+</Tabs>
+
+&emsp;&emsp;上述代码在屏幕上绘制了一个红色矩形。请注意，这种方式会直接绘制到屏幕缓冲区，并覆盖下面的游戏场景。比较适合用于绘制游戏的 HUD 界面、显示调试信息等。
+
+:::tip 提示
+&emsp;&emsp;使用这种绘制方式时，坐标系原点在屏幕左上角，x 轴向右，y 轴向下。在屏幕的可见区，坐标横轴的最大值为 `App.visualSize.width`，纵轴的最大值为 `App.visualSize.height`。
+:::
+
+### 3.1 结合游戏场景节点和矢量图形
+
+&emsp;&emsp;您可以使用 `nvg.ApplyTransform(node)` 函数将一个场景节点的变换应用到要绘制的矢量图形上。这样，您可以在游戏场景中，用更便捷的方式，通过控制节点的变换来改变矢量图形的位置、旋转和缩放。
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local nvg <const> = require("nvg")
+local Color <const> = require("Color")
+local Node <const> = require("Node")
+local Size <const> = require("Size")
+local Scale <const> = require("Scale")
+
+local node = Node()
+node.size = Size(200, 150)
+node:schedule(function()
+	nvg.ApplyTransform(node)
+	nvg.BeginPath()
+	nvg.Rect(0, 0, 200, 150)
+	nvg.FillColor(Color(255, 0, 0, 255))
+	nvg.Fill()
+end)
+
+node.x = 50
+node.y = 50
+node.angle = 45
+node:perform(Scale(0.5, 0, 1))
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local nvg <const> = require("nvg")
+local Color <const> = require("Color")
+local Node <const> = require("Node")
+local Size <const> = require("Size")
+local Scale <const> = require("Scale")
+
+local node = Node()
+node.size = Size(200, 150)
+node:schedule(function(): boolean
+	nvg.ApplyTransform(node)
+	nvg.BeginPath()
+	nvg.Rect(0, 0, 200, 150)
+	nvg.FillColor(Color(255, 0, 0, 255))
+	nvg.Fill()
+	return false
+end)
+
+node.x = 50
+node.y = 50
+node.angle = 45
+node:perform(Scale(0.5, 0, 1))
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { Color, Node, Size, Scale } from "Dora";
+import * as nvg from "nvg";
+
+const node = Node();
+node.size = Size(200, 150);
+node.schedule(() => {
+	nvg.ApplyTransform(node);
+	nvg.BeginPath();
+	nvg.Rect(0, 0, 200, 150);
+	nvg.FillColor(Color(255, 0, 0, 255));
+	nvg.Fill();
+	return false;
+});
+
+node.x = 50;
+node.y = 50;
+node.angle = 45;
+node.perform(Scale(0.5, 0, 1));
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+with Node!
+	.size = Size 200, 150
+	\schedule ->
+		nvg.ApplyTransform node
+		nvg.BeginPath! -- 开始新路径
+		nvg.Rect 0, 0, 200, 150
+		nvg.FillColor Color 255, 0, 0, 255 -- 红色
+		nvg.Fill!
+
+	.x = 50
+	.y = 50
+	.angle = 45
+	\perform Scale 0.5, 0, 1
+```
+
+</TabItem>
+</Tabs>
+
+&emsp;&emsp;上述代码创建了一个节点，将一个红色矩形绘制到节点上。然后，通过设置节点的位置、旋转控制矩形的显示效果，并通过在节点上播放缩放动作来控制矩形的缩放。
+
+:::tip 提示
+&emsp;&emsp;使用 `nvg.ApplyTransform(node)` 函数后，矢量图形的坐标系原点会改变为场景节点的左下角，并且 x 轴向右，y 轴变为向上。节点的缩放、旋转和位置变换会应用到矢量图形的绘制上。
+:::
+
+## 4. 使用颜色和画笔
+
+&emsp;&emsp;您可以使用颜色和画笔来自定义形状的外观。
+
+#### 填充和描边颜色
+
+- `nvg.FillColor(color)`：设置填充颜色。
+- `nvg.StrokeColor(color)`：设置描边（轮廓）颜色。
+- `nvg.StrokeWidth(width)`：设置描边宽度。
+
+#### 示例：填充和描边
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local nvg <const> = require("nvg")
+local Color <const> = require("Color")
+local threadLoop <const> = require("threadLoop")
+
+threadLoop(function()
+	nvg.BeginPath()
+	nvg.Rect(10, 10, 100, 80)
+	nvg.FillColor(Color(255, 0, 255, 255)) -- 粉色填充
+	nvg.Fill()
+	nvg.StrokeColor(Color(255, 255, 0, 255)) -- 黄色描边
+	nvg.StrokeWidth(5)
+	nvg.Stroke()
+end)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local nvg <const> = require("nvg")
+local Color <const> = require("Color")
+local threadLoop <const> = require("threadLoop")
+
+threadLoop(function(): boolean
+	nvg.BeginPath()
+	nvg.Rect(10, 10, 100, 80)
+	nvg.FillColor(Color(255, 0, 255, 255)) -- 粉色填充
+	nvg.Fill()
+	nvg.StrokeColor(Color(255, 255, 0, 255)) -- 黄色描边
+	nvg.StrokeWidth(5)
+	nvg.Stroke()
+	return false
+end)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { Color, threadLoop } from "Dora";
+import * as nvg from "nvg";
+
+threadLoop(() => {
+	nvg.BeginPath();
+	nvg.Rect(10, 10, 100, 80);
+	nvg.FillColor(Color(255, 0, 255, 255)); // 粉色填充
+	nvg.Fill();
+	nvg.StrokeColor(Color(255, 255, 0, 255)); // 黄色描边
+	nvg.StrokeWidth(5);
+	nvg.Stroke();
+	return false;
+});
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+threadLoop ->
+	nvg.BeginPath! -- 开始新路径
+	nvg.Rect 10, 10, 100, 80
+	nvg.FillColor Color 255, 0, 255, 255 -- 粉色填充
+	nvg.Fill!
+	nvg.StrokeColor Color 255, 255, 0, 255 -- 黄色描边
+	nvg.StrokeWidth 5
+	nvg.Stroke!
+```
+
+</TabItem>
+</Tabs>
+
+## 5. 应用变换
+
+&emsp;&emsp;变换允许您通过平移、旋转或缩放来操作形状。
+
+#### 变换函数
+
+- `nvg.Translate(x, y)`：移动坐标系。
+- `nvg.Rotate(angle)`：旋转坐标系（角度以弧度为单位）。
+- `nvg.Scale(sx, sy)`：缩放坐标系。
+- `nvg.Save()`：保存当前变换状态。
+- `nvg.Restore()`：恢复上一次保存的状态。
+
+#### 示例：旋转矩形
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local nvg <const> = require("nvg")
+local Color <const> = require("Color")
+local threadLoop <const> = require("threadLoop")
+
+local function Rect(x, y, angle)
+	nvg.Save()
+	nvg.Translate(x, y) -- 移动
+	nvg.Rotate(angle) -- 旋转
+	nvg.BeginPath()
+	nvg.Rect(-100, -50, 200, 100) -- 中心对齐的矩形
+	nvg.FillColor(Color(255, 128, 0, 128)) -- 褐色
+	nvg.Fill()
+	nvg.Restore()
+end
+
+threadLoop(function()
+	-- 绘制几何变换互不影响的矩形
+	Rect(300, 200, 45)
+	Rect(100, 200, 90)
+end)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local nvg <const> = require("nvg")
+local Color <const> = require("Color")
+local threadLoop <const> = require("threadLoop")
+
+local function Rect(x: number, y: number, angle: number)
+	nvg.Save()
+	nvg.Translate(x, y) -- 移动
+	nvg.Rotate(angle) -- 旋转
+	nvg.BeginPath()
+	nvg.Rect(-100, -50, 200, 100) -- 中心对齐的矩形
+	nvg.FillColor(Color(255, 128, 0, 128)) -- 褐色
+	nvg.Fill()
+	nvg.Restore()
+end
+
+threadLoop(function(): boolean
+	-- 绘制几何变换互不影响的矩形
+	Rect(300, 200, 45)
+	Rect(100, 200, 90)
+	return false
+end)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { Color, threadLoop } from "Dora";
+import * as nvg from "nvg";
+
+const Rect = (x: number, y: number, angle: number) => {
+	nvg.Save();
+	nvg.Translate(x, y); // 移动
+	nvg.Rotate(angle); // 旋转
+	nvg.BeginPath();
+	nvg.Rect(-100, -50, 200, 100); // 中心对齐的矩形
+	nvg.FillColor(Color(255, 128, 0, 128)); // 褐色
+	nvg.Fill();
+	nvg.Restore();
+};
+
+threadLoop(() => {
+	// 绘制几何变换互不影响的矩形
+	Rect(300, 200, 45);
+	Rect(100, 200, 90);
+	return false;
+});
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+Rect = (x, y, angle) ->
+	nvg.Save!
+	nvg.Translate x, y -- 移动
+	nvg.Rotate angle -- 旋转
+	nvg.BeginPath! -- 开始新路径
+	nvg.Rect -100, -50, 200, 100 -- 中心对齐的矩形
+	nvg.FillColor Color 255, 128, 0, 128 -- 褐色
+	nvg.Fill!
+	nvg.Restore!
+
+threadLoop ->
+	-- 绘制几何变换互不影响的矩形
+	Rect 300, 200, 45
+	Rect 100, 200, 90
+```
+
+</TabItem>
+</Tabs>
+
+&emsp;&emsp;上述代码绘制了两个旋转的矩形，一个顺时针旋转 45 度，另一个顺时针旋转 90 度。它们的旋转中心都在矩形的中心，同时它们各自执行的几何变换互不影响。
+
+## 6. 加载和渲染 SVG 文件
+
+&emsp;&emsp;Dora SSR 提供了一个 `SVG` 类，用于加载和渲染 SVG 文件。请注意，目前仅支持一部分可以通过 [picosvg](https://github.com/googlefonts/picosvg) 工具处理简化的 SVG 文件。
+
+### 6.1 加载和直接渲染 SVG 图形
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local SVG <const> = require("SVG")
+local threadLoop <const> = require("threadLoop")
+
+local svg = SVG("Image/Dora.svg")
+
+threadLoop(function()
+	-- 在每一帧调用 SVG 实例的 `render` 方法来显示它。
+	svg:render()
+end)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local SVG <const> = require("SVG")
+local threadLoop <const> = require("threadLoop")
+
+local svg = SVG("Image/Dora.svg")
+
+threadLoop(function(): boolean
+	-- 在每一帧调用 SVG 实例的 `render` 方法来显示它。
+	svg:render()
+	return false
+end)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { SVG, threadLoop } from "Dora";
+
+const svg = SVG("Image/Dora.svg");
+
+threadLoop(() => {
+	// 在每一帧调用 SVG 实例的 `render` 方法来显示它。
+	svg.render();
+	return false;
+});
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+svg = SVG "Image/Dora.svg"
+
+threadLoop ->
+	-- 在每一帧调用 SVG 实例的 `render` 方法来显示它。
+	svg.render!
+```
+
+</TabItem>
+</Tabs>
+
+### 6.2 使用场景节点控制 SVG 图形渲染
+
+&emsp;&emsp;您可以使用场景节点来控制 SVG 图形的位置、旋转和缩放。
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local SVG <const> = require("SVG")
+local Node <const> = require("Node")
+local nvg <const> = require("nvg")
+
+local svg = SVG("Image/Dora.svg")
+
+local node = Node()
+node:schedule(function()
+	nvg.ApplyTransform(node)
+	nvg.Scale(0.2, -0.2)
+	nvg.Translate(-566.5, -566.5)
+	svg:render()
+end)
+
+node.angle = 45
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local SVG <const> = require("SVG")
+local Node <const> = require("Node")
+local nvg <const> = require("nvg")
+
+local svg = SVG("Image/Dora.svg")
+
+local node = Node()
+node:schedule(function(): boolean
+	nvg.ApplyTransform(node)
+	nvg.Scale(0.2, -0.2)
+	nvg.Translate(-566.5, -566.5)
+	svg:render()
+	return false
+end)
+
+node.angle = 45
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { SVG, Node } from "Dora";
+import * as nvg from "nvg";
+
+const svg = SVG("Image/Dora.svg");
+
+const node = Node();
+node.schedule(() => {
+	nvg.ApplyTransform(node);
+	nvg.Scale(0.2, -0.2);
+	nvg.Translate(-566.5, -566.5);
+	svg.render();
+	return false;
+});
+
+node.angle = 45;
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+svg = SVG "Image/Dora.svg"
+
+with Node!
+	\schedule ->
+		nvg.ApplyTransform node
+		nvg.Scale 0.2, -0.2
+		nvg.Translate -566.5, -566.5
+		svg\render!
+
+	.angle = 45
+```
+
+</TabItem>
+</Tabs>
+
+&emsp;&emsp;上述代码创建了一个节点，将 SVG 图形渲染绑定到节点上。然后，通过设置节点的旋转控制 SVG 图形的显示效果。
+
+## 7. 总结
+
+&emsp;&emsp;在本教程中，我们介绍了如何使用 Dora SSR 的矢量图形功能来绘制形状、应用变换和渲染 SVG 文件。利用这些工具，您可以为您的应用程序创建丰富的矢量图形和动画。
+
+&emsp;&emsp;请记住，`nvg` 模块还提供了更多高级绘图和文本渲染的函数。您可以探索诸如 `nvg.Text`、`nvg.FontFace` 和渐变画笔如 `nvg.LinearGradient` 等函数，以实现更复杂的图形。
+
+&emsp;&emsp;欢迎您尝试不同的形状、颜色和变换，创造独特的 Dora SSR 矢量图形项目！
