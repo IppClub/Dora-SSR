@@ -164,7 +164,7 @@ with VGNode 200, 150
 </TabItem>
 </Tabs>
 
-&emsp;&emsp;The above code draws a red rectangle with a width of 200 and a height of 150.
+&emsp;&emsp;The above code draws a red rectangle with a width of 200 and a height of 150. The `render` method will only be executed once when called for the first time, and the rendering result will be automatically cached for reuse.
 
 :::tip Tip
 &emsp;&emsp;When rendering vector graphics with `VGNode`, the origin of the coordinate system is at the top left corner of the node texture, with the x-axis extending right and the y-axis extending down. The graphic calculation units are the texture pixels multiplied by the scaling value.
@@ -242,7 +242,7 @@ with VGNode 100, 100
 </TabItem>
 </Tabs>
 
-&emsp;&emsp;This code draws a yellow circle with a radius of 50.
+&emsp;&emsp;This code draws a yellow circle with a radius of 50. The `render` method will only be executed once when called for the first time, and the rendering result will be automatically cached for reuse.
 
 ## 3. Directly Drawing Vector Graphics on the Screen
 
@@ -528,7 +528,7 @@ threadLoop ->
 #### Transformation Functions
 
 - `nvg.Translate(x, y)`: Moves the coordinate system.
-- `nvg.Rotate(angle)`: Rotates the coordinate system (angle in radians).
+- `nvg.Rotate(angle)`: Rotates the coordinate system (angle in degrees).
 - `nvg.Scale(sx, sy)`: Scales the coordinate system.
 - `nvg.Save()`: Saves the current transformation state.
 - `nvg.Restore()`: Restores the last saved state.

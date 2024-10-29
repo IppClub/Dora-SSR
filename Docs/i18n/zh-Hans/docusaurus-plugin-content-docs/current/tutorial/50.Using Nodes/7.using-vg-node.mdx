@@ -165,7 +165,7 @@ with VGNode 200, 150
 </Tabs>
 
 
-&emsp;&emsp;上述代码绘制了一个宽 200、高 150 的红色矩形。
+&emsp;&emsp;上述代码绘制了一个宽 200、高 150 的红色矩形。并且 `render` 方法只会在第一次调用时执行，之后会自动缓存渲染结果进行复用。
 
 :::tip 提示
 &emsp;&emsp;使用 `VGNode` 渲染矢量图形时，坐标系原点在节点纹理的左上角，x 轴向右，y 轴向下。以纹理像素乘以缩放值为图形计算单位。
@@ -243,7 +243,7 @@ with VGNode 100, 100
 </TabItem>
 </Tabs>
 
-&emsp;&emsp;该代码绘制了一个半径为 50 的黄色圆形。
+&emsp;&emsp;该代码绘制了一个半径为 50 的黄色圆形。同样，`render` 方法只会执行一次，并缓存渲染结果进行复用。
 
 ## 3. 直接绘制矢量图形到屏幕
 
@@ -322,7 +322,7 @@ threadLoop ->
 
 ### 3.1 结合游戏场景节点和矢量图形
 
-&emsp;&emsp;您可以使用 `nvg.ApplyTransform(node)` 函数将一个场景节点的变换应用到要绘制的矢量图形上。这样，您可以在游戏场景中，用更便捷的方式，通过控制节点的变换来改变矢量图形的位置、旋转和缩放。
+&emsp;&emsp;您可以使用 `nvg.ApplyTransform(node)` 函数将一个场景节点的变换应用到要绘制的矢量图形上。这样您可以在游戏场景中，用更便捷的方式，通过控制节点的变换来改变矢量图形的位置、旋转和缩放。
 
 <Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
@@ -527,7 +527,7 @@ threadLoop ->
 #### 变换函数
 
 - `nvg.Translate(x, y)`：移动坐标系。
-- `nvg.Rotate(angle)`：旋转坐标系（角度以弧度为单位）。
+- `nvg.Rotate(angle)`：旋转坐标系（角度以度为单位）。
 - `nvg.Scale(sx, sy)`：缩放坐标系。
 - `nvg.Save()`：保存当前变换状态。
 - `nvg.Restore()`：恢复上一次保存的状态。
