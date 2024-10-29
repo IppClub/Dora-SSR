@@ -90,7 +90,7 @@ public:
 		_logger->flush();
 		_logger->sinks().pop_back();
 		std::string logText;
-		for (int i = getMaxFiles() - 1; i >= 0; i--) {
+		for (int i = getMaxFiles(); i >= 0; i--) {
 			auto logFile = spdlog::sinks::rotating_file_sink_mt::calc_filename(getFilename(), i);
 			if (!SharedContent.exist(logFile)) {
 				continue;
