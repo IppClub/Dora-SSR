@@ -41,8 +41,8 @@ local DecisionTree = ____PlatformerX.DecisionTree -- 5
 local toAI = ____PlatformerX.toAI -- 5
 local ____Utils = require("Utils") -- 281
 local Struct = ____Utils.Struct -- 281
-local CircleButtonCreate = require("UI.Control.Basic.CircleButton") -- 331
-local ImGui = require("ImGui") -- 333
+local CircleButtonCreate = require("UI.Control.Basic.CircleButton") -- 332
+local ImGui = require("ImGui") -- 334
 local TerrainLayer = 0 -- 7
 local PlayerLayer = 1 -- 8
 local ItemLayer = 2 -- 9
@@ -374,267 +374,270 @@ local function loadExcel() -- 302
 	local xlsx = Content:loadExcel("Data/items.xlsx", {"items"}) -- 303
 	if xlsx ~= nil then -- 303
 		local its = xlsx.items -- 305
-		local names = its[2] -- 306
-		table.remove(names, 1) -- 307
-		if not Struct:has("Item") then -- 307
-			Struct.Item(names) -- 309
-		end -- 309
-		Group({"item"}):each(function(e) -- 311
-			e:destroy() -- 312
-			return false -- 313
-		end) -- 311
-		do -- 311
-			local i = 2 -- 315
-			while i < #its do -- 315
-				local st = Struct:load(its[i + 1]) -- 316
-				local item = { -- 317
-					name = st.Name, -- 318
-					no = st.No, -- 319
-					x = st.X, -- 320
-					num = st.Num, -- 321
-					icon = st.Icon, -- 322
-					desc = st.Desc, -- 323
-					item = true -- 324
-				} -- 324
-				Entity(item) -- 326
-				i = i + 1 -- 315
-			end -- 315
-		end -- 315
-	end -- 315
+		if not its then -- 305
+			return -- 306
+		end -- 306
+		local names = its[2] -- 307
+		table.remove(names, 1) -- 308
+		if not Struct:has("Item") then -- 308
+			Struct.Item(names) -- 310
+		end -- 310
+		Group({"item"}):each(function(e) -- 312
+			e:destroy() -- 313
+			return false -- 314
+		end) -- 312
+		do -- 312
+			local i = 2 -- 316
+			while i < #its do -- 316
+				local st = Struct:load(its[i + 1]) -- 317
+				local item = { -- 318
+					name = st.Name, -- 319
+					no = st.No, -- 320
+					x = st.X, -- 321
+					num = st.Num, -- 322
+					icon = st.Icon, -- 323
+					desc = st.Desc, -- 324
+					item = true -- 325
+				} -- 325
+				Entity(item) -- 327
+				i = i + 1 -- 316
+			end -- 316
+		end -- 316
+	end -- 316
 end -- 302
-local keyboardEnabled = true -- 335
-local playerGroup = Group({"player"}) -- 337
-local function updatePlayerControl(key, flag, vpad) -- 338
-	if keyboardEnabled and vpad then -- 338
-		keyboardEnabled = false -- 340
-	end -- 340
-	playerGroup:each(function(____self) -- 342
-		____self[key] = flag -- 343
-		return false -- 344
-	end) -- 342
-end -- 338
-local function CircleButton(props) -- 352
-	return React.createElement( -- 353
-		"custom-node", -- 353
-		__TS__ObjectAssign( -- 353
-			{onCreate = function() return CircleButtonCreate({text = props.text, radius = 60, fontSize = 36}) end}, -- 353
-			props -- 357
-		) -- 357
-	) -- 357
-end -- 352
-local ui = toNode(React.createElement( -- 360
-	"align-node", -- 360
-	{ -- 360
-		windowRoot = true, -- 360
-		style = {flexDirection = "column-reverse"}, -- 360
-		onButtonDown = function(id, buttonName) -- 360
-			if id ~= 0 then -- 360
-				return -- 363
-			end -- 363
-			repeat -- 363
-				local ____switch46 = buttonName -- 363
-				local ____cond46 = ____switch46 == "dpleft" -- 363
-				if ____cond46 then -- 363
-					updatePlayerControl("keyLeft", true, true) -- 365
-					break -- 365
-				end -- 365
-				____cond46 = ____cond46 or ____switch46 == "dpright" -- 365
-				if ____cond46 then -- 365
-					updatePlayerControl("keyRight", true, true) -- 366
+local keyboardEnabled = true -- 336
+local playerGroup = Group({"player"}) -- 338
+local function updatePlayerControl(key, flag, vpad) -- 339
+	if keyboardEnabled and vpad then -- 339
+		keyboardEnabled = false -- 341
+	end -- 341
+	playerGroup:each(function(____self) -- 343
+		____self[key] = flag -- 344
+		return false -- 345
+	end) -- 343
+end -- 339
+local function CircleButton(props) -- 353
+	return React.createElement( -- 354
+		"custom-node", -- 354
+		__TS__ObjectAssign( -- 354
+			{onCreate = function() return CircleButtonCreate({text = props.text, radius = 60, fontSize = 36}) end}, -- 354
+			props -- 358
+		) -- 358
+	) -- 358
+end -- 353
+local ui = toNode(React.createElement( -- 361
+	"align-node", -- 361
+	{ -- 361
+		windowRoot = true, -- 361
+		style = {flexDirection = "column-reverse"}, -- 361
+		onButtonDown = function(id, buttonName) -- 361
+			if id ~= 0 then -- 361
+				return -- 364
+			end -- 364
+			repeat -- 364
+				local ____switch47 = buttonName -- 364
+				local ____cond47 = ____switch47 == "dpleft" -- 364
+				if ____cond47 then -- 364
+					updatePlayerControl("keyLeft", true, true) -- 366
 					break -- 366
 				end -- 366
-				____cond46 = ____cond46 or ____switch46 == "b" -- 366
-				if ____cond46 then -- 366
-					updatePlayerControl("keyJump", true, true) -- 367
+				____cond47 = ____cond47 or ____switch47 == "dpright" -- 366
+				if ____cond47 then -- 366
+					updatePlayerControl("keyRight", true, true) -- 367
 					break -- 367
 				end -- 367
-			until true -- 367
-		end, -- 362
-		onButtonUp = function(id, buttonName) -- 362
-			if id ~= 0 then -- 362
-				return -- 371
-			end -- 371
-			repeat -- 371
-				local ____switch49 = buttonName -- 371
-				local ____cond49 = ____switch49 == "dpleft" -- 371
-				if ____cond49 then -- 371
-					updatePlayerControl("keyLeft", false, true) -- 373
-					break -- 373
-				end -- 373
-				____cond49 = ____cond49 or ____switch49 == "dpright" -- 373
-				if ____cond49 then -- 373
-					updatePlayerControl("keyRight", false, true) -- 374
+				____cond47 = ____cond47 or ____switch47 == "b" -- 367
+				if ____cond47 then -- 367
+					updatePlayerControl("keyJump", true, true) -- 368
+					break -- 368
+				end -- 368
+			until true -- 368
+		end, -- 363
+		onButtonUp = function(id, buttonName) -- 363
+			if id ~= 0 then -- 363
+				return -- 372
+			end -- 372
+			repeat -- 372
+				local ____switch50 = buttonName -- 372
+				local ____cond50 = ____switch50 == "dpleft" -- 372
+				if ____cond50 then -- 372
+					updatePlayerControl("keyLeft", false, true) -- 374
 					break -- 374
 				end -- 374
-				____cond49 = ____cond49 or ____switch49 == "b" -- 374
-				if ____cond49 then -- 374
-					updatePlayerControl("keyJump", false, true) -- 375
+				____cond50 = ____cond50 or ____switch50 == "dpright" -- 374
+				if ____cond50 then -- 374
+					updatePlayerControl("keyRight", false, true) -- 375
 					break -- 375
 				end -- 375
-			until true -- 375
-		end -- 370
-	}, -- 370
-	React.createElement( -- 370
-		"align-node", -- 370
-		{style = {height = 60, justifyContent = "space-between", margin = {0, 20, 40}, flexDirection = "row"}}, -- 370
-		React.createElement( -- 370
-			"align-node", -- 370
-			{style = {width = 130, height = 60}}, -- 370
-			React.createElement( -- 370
-				"menu", -- 370
-				{ -- 370
-					width = 250, -- 370
-					height = 120, -- 370
-					anchorX = 0, -- 370
-					anchorY = 0, -- 370
-					scaleX = 0.5, -- 370
-					scaleY = 0.5 -- 370
-				}, -- 370
-				React.createElement( -- 370
-					CircleButton, -- 381
-					{ -- 381
-						text = "Left\n(a)", -- 381
-						anchorX = 0, -- 381
-						anchorY = 0, -- 381
-						onTapBegan = function() return updatePlayerControl("keyLeft", true, true) end, -- 381
-						onTapEnded = function() return updatePlayerControl("keyLeft", false, true) end -- 381
-					} -- 381
-				), -- 381
-				React.createElement( -- 381
-					CircleButton, -- 386
-					{ -- 386
-						text = "Right\n(a)", -- 386
-						x = 130, -- 386
-						anchorX = 0, -- 386
-						anchorY = 0, -- 386
-						onTapBegan = function() return updatePlayerControl("keyRight", true, true) end, -- 386
-						onTapEnded = function() return updatePlayerControl("keyRight", false, true) end -- 386
-					} -- 386
-				) -- 386
-			) -- 386
-		), -- 386
-		React.createElement( -- 386
-			"align-node", -- 386
-			{style = {width = 60, height = 60}}, -- 386
-			React.createElement( -- 386
-				"menu", -- 386
-				{ -- 386
-					width = 120, -- 386
-					height = 120, -- 386
-					anchorX = 0, -- 386
-					anchorY = 0, -- 386
-					scaleX = 0.5, -- 386
-					scaleY = 0.5 -- 386
-				}, -- 386
-				React.createElement( -- 386
-					CircleButton, -- 395
-					{ -- 395
-						text = "Jump\n(j)", -- 395
-						anchorX = 0, -- 395
-						anchorY = 0, -- 395
-						onTapBegan = function() return updatePlayerControl("keyJump", true, true) end, -- 395
-						onTapEnded = function() return updatePlayerControl("keyJump", false, true) end -- 395
-					} -- 395
-				) -- 395
-			) -- 395
-		) -- 395
-	) -- 395
-)) -- 395
-if ui then -- 395
-	ui:addTo(Director.ui) -- 407
-	ui:schedule(function() -- 408
-		local keyA = Keyboard:isKeyPressed("A") -- 409
-		local keyD = Keyboard:isKeyPressed("D") -- 410
-		local keyJ = Keyboard:isKeyPressed("J") -- 411
-		if keyD or keyD or keyJ then -- 411
-			keyboardEnabled = true -- 413
-		end -- 413
-		if not keyboardEnabled then -- 413
-			return false -- 416
-		end -- 416
-		updatePlayerControl("keyLeft", keyA, false) -- 418
-		updatePlayerControl("keyRight", keyD, false) -- 419
-		updatePlayerControl("keyJump", keyJ, false) -- 420
-		return false -- 421
-	end) -- 408
-end -- 408
-local pickedItemGroup = Group({"picked"}) -- 425
-local windowFlags = { -- 426
-	"NoDecoration", -- 427
-	"AlwaysAutoResize", -- 428
-	"NoSavedSettings", -- 429
-	"NoFocusOnAppearing", -- 430
-	"NoNav", -- 431
-	"NoMove" -- 432
-} -- 432
-Director.ui:schedule(function() -- 434
-	local size = App.visualSize -- 435
-	ImGui.SetNextWindowBgAlpha(0.35) -- 436
-	ImGui.SetNextWindowPos( -- 437
-		Vec2(size.width - 10, 10), -- 437
-		"Always", -- 437
-		Vec2(1, 0) -- 437
-	) -- 437
-	ImGui.SetNextWindowSize( -- 438
-		Vec2(100, 300), -- 438
-		"FirstUseEver" -- 438
+				____cond50 = ____cond50 or ____switch50 == "b" -- 375
+				if ____cond50 then -- 375
+					updatePlayerControl("keyJump", false, true) -- 376
+					break -- 376
+				end -- 376
+			until true -- 376
+		end -- 371
+	}, -- 371
+	React.createElement( -- 371
+		"align-node", -- 371
+		{style = {height = 60, justifyContent = "space-between", margin = {0, 20, 40}, flexDirection = "row"}}, -- 371
+		React.createElement( -- 371
+			"align-node", -- 371
+			{style = {width = 130, height = 60}}, -- 371
+			React.createElement( -- 371
+				"menu", -- 371
+				{ -- 371
+					width = 250, -- 371
+					height = 120, -- 371
+					anchorX = 0, -- 371
+					anchorY = 0, -- 371
+					scaleX = 0.5, -- 371
+					scaleY = 0.5 -- 371
+				}, -- 371
+				React.createElement( -- 371
+					CircleButton, -- 382
+					{ -- 382
+						text = "Left\n(a)", -- 382
+						anchorX = 0, -- 382
+						anchorY = 0, -- 382
+						onTapBegan = function() return updatePlayerControl("keyLeft", true, true) end, -- 382
+						onTapEnded = function() return updatePlayerControl("keyLeft", false, true) end -- 382
+					} -- 382
+				), -- 382
+				React.createElement( -- 382
+					CircleButton, -- 387
+					{ -- 387
+						text = "Right\n(a)", -- 387
+						x = 130, -- 387
+						anchorX = 0, -- 387
+						anchorY = 0, -- 387
+						onTapBegan = function() return updatePlayerControl("keyRight", true, true) end, -- 387
+						onTapEnded = function() return updatePlayerControl("keyRight", false, true) end -- 387
+					} -- 387
+				) -- 387
+			) -- 387
+		), -- 387
+		React.createElement( -- 387
+			"align-node", -- 387
+			{style = {width = 60, height = 60}}, -- 387
+			React.createElement( -- 387
+				"menu", -- 387
+				{ -- 387
+					width = 120, -- 387
+					height = 120, -- 387
+					anchorX = 0, -- 387
+					anchorY = 0, -- 387
+					scaleX = 0.5, -- 387
+					scaleY = 0.5 -- 387
+				}, -- 387
+				React.createElement( -- 387
+					CircleButton, -- 396
+					{ -- 396
+						text = "Jump\n(j)", -- 396
+						anchorX = 0, -- 396
+						anchorY = 0, -- 396
+						onTapBegan = function() return updatePlayerControl("keyJump", true, true) end, -- 396
+						onTapEnded = function() return updatePlayerControl("keyJump", false, true) end -- 396
+					} -- 396
+				) -- 396
+			) -- 396
+		) -- 396
+	) -- 396
+)) -- 396
+if ui then -- 396
+	ui:addTo(Director.ui) -- 408
+	ui:schedule(function() -- 409
+		local keyA = Keyboard:isKeyPressed("A") -- 410
+		local keyD = Keyboard:isKeyPressed("D") -- 411
+		local keyJ = Keyboard:isKeyPressed("J") -- 412
+		if keyD or keyD or keyJ then -- 412
+			keyboardEnabled = true -- 414
+		end -- 414
+		if not keyboardEnabled then -- 414
+			return false -- 417
+		end -- 417
+		updatePlayerControl("keyLeft", keyA, false) -- 419
+		updatePlayerControl("keyRight", keyD, false) -- 420
+		updatePlayerControl("keyJump", keyJ, false) -- 421
+		return false -- 422
+	end) -- 409
+end -- 409
+local pickedItemGroup = Group({"picked"}) -- 426
+local windowFlags = { -- 427
+	"NoDecoration", -- 428
+	"AlwaysAutoResize", -- 429
+	"NoSavedSettings", -- 430
+	"NoFocusOnAppearing", -- 431
+	"NoNav", -- 432
+	"NoMove" -- 433
+} -- 433
+Director.ui:schedule(function() -- 435
+	local size = App.visualSize -- 436
+	ImGui.SetNextWindowBgAlpha(0.35) -- 437
+	ImGui.SetNextWindowPos( -- 438
+		Vec2(size.width - 10, 10), -- 438
+		"Always", -- 438
+		Vec2(1, 0) -- 438
 	) -- 438
-	ImGui.Begin( -- 439
-		"BackPack", -- 439
-		windowFlags, -- 439
-		function() -- 439
-			if ImGui.Button("重新加载Excel") then -- 439
-				loadExcel() -- 441
-			end -- 441
-			ImGui.Separator() -- 443
-			ImGui.Dummy(Vec2(100, 10)) -- 444
-			ImGui.Text("背包 (TSX)") -- 445
-			ImGui.Separator() -- 446
-			ImGui.Columns(3, false) -- 447
-			pickedItemGroup:each(function(e) -- 448
-				local item = e -- 449
-				if item.num > 0 then -- 449
-					if ImGui.ImageButton( -- 449
-						"item" .. tostring(item.no), -- 451
-						item.icon, -- 451
-						Vec2(50, 50) -- 451
-					) then -- 451
-						item.num = item.num - 1 -- 452
-						local sprite = Sprite(item.icon) -- 453
-						if not sprite then -- 453
-							return false -- 454
-						end -- 454
-						sprite.scaleY = 0.5 -- 455
-						sprite.scaleX = 0.5 -- 455
-						sprite:perform(Spawn( -- 456
-							Opacity(1, 1, 0), -- 457
-							Y(1, 150, 250) -- 458
-						)) -- 458
-						local player = playerGroup:find(function() return true end) -- 460
-						if player ~= nil then -- 460
-							local unit = player.unit -- 462
-							unit:addChild(sprite) -- 463
-						end -- 463
-					end -- 463
-					if ImGui.IsItemHovered() then -- 463
-						ImGui.BeginTooltip(function() -- 467
-							ImGui.Text(item.name) -- 468
-							ImGui.TextColored(themeColor, "数量：") -- 469
-							ImGui.SameLine() -- 470
-							ImGui.Text(tostring(item.num)) -- 471
-							ImGui.TextColored(themeColor, "描述：") -- 472
-							ImGui.SameLine() -- 473
-							ImGui.Text(tostring(item.desc)) -- 474
-						end) -- 467
-					end -- 467
-					ImGui.NextColumn() -- 477
-				end -- 477
-				return false -- 479
-			end) -- 448
-		end -- 439
+	ImGui.SetNextWindowSize( -- 439
+		Vec2(100, 300), -- 439
+		"FirstUseEver" -- 439
 	) -- 439
-	return false -- 482
-end) -- 434
-Entity({player = true}) -- 485
-loadExcel() -- 486
-return ____exports -- 486
+	ImGui.Begin( -- 440
+		"BackPack", -- 440
+		windowFlags, -- 440
+		function() -- 440
+			if ImGui.Button("重新加载Excel") then -- 440
+				loadExcel() -- 442
+			end -- 442
+			ImGui.Separator() -- 444
+			ImGui.Dummy(Vec2(100, 10)) -- 445
+			ImGui.Text("背包 (TSX)") -- 446
+			ImGui.Separator() -- 447
+			ImGui.Columns(3, false) -- 448
+			pickedItemGroup:each(function(e) -- 449
+				local item = e -- 450
+				if item.num > 0 then -- 450
+					if ImGui.ImageButton( -- 450
+						"item" .. tostring(item.no), -- 452
+						item.icon, -- 452
+						Vec2(50, 50) -- 452
+					) then -- 452
+						item.num = item.num - 1 -- 453
+						local sprite = Sprite(item.icon) -- 454
+						if not sprite then -- 454
+							return false -- 455
+						end -- 455
+						sprite.scaleY = 0.5 -- 456
+						sprite.scaleX = 0.5 -- 456
+						sprite:perform(Spawn( -- 457
+							Opacity(1, 1, 0), -- 458
+							Y(1, 150, 250) -- 459
+						)) -- 459
+						local player = playerGroup:find(function() return true end) -- 461
+						if player ~= nil then -- 461
+							local unit = player.unit -- 463
+							unit:addChild(sprite) -- 464
+						end -- 464
+					end -- 464
+					if ImGui.IsItemHovered() then -- 464
+						ImGui.BeginTooltip(function() -- 468
+							ImGui.Text(item.name) -- 469
+							ImGui.TextColored(themeColor, "数量：") -- 470
+							ImGui.SameLine() -- 471
+							ImGui.Text(tostring(item.num)) -- 472
+							ImGui.TextColored(themeColor, "描述：") -- 473
+							ImGui.SameLine() -- 474
+							ImGui.Text(tostring(item.desc)) -- 475
+						end) -- 468
+					end -- 468
+					ImGui.NextColumn() -- 478
+				end -- 478
+				return false -- 480
+			end) -- 449
+		end -- 440
+	) -- 440
+	return false -- 483
+end) -- 435
+Entity({player = true}) -- 486
+loadExcel() -- 487
+return ____exports -- 487
