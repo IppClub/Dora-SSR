@@ -441,6 +441,7 @@ static VGTexture* GetDoraSSRTexture(void (*render)(NVGcontext* context), int wid
 			s_cast<int32_t>(width * scale),
 			s_cast<int32_t>(height * scale), 0);
 		nvgluSetViewFramebuffer(viewId, framebuffer);
+		bgfx::setViewRect(viewId, 0, 0, s_cast<int16_t>(width * scale), s_cast<int16_t>(height * scale));
 		nvgluBindFramebuffer(framebuffer);
 		nvgBeginFrame(context, s_cast<float>(width), s_cast<float>(height), scale);
 		switch (bgfx::getCaps()->rendererType) {
