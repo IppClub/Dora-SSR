@@ -939,6 +939,7 @@ uint8_t* Content::loadUnsafe(String filename, int64_t& size) {
 #endif // BX_PLATFORM_WINDOWS
 	SDL_RWops* io = SDL_RWFromFile(fullPath.c_str(), "rb");
 	if (io == nullptr) {
+		size = 0;
 		Error("failed to load file: \"{}\", due to: {}", filename.toString(), SDL_GetError());
 		return nullptr;
 	}
