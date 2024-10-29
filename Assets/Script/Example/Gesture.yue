@@ -11,7 +11,7 @@ with Node!
 	\addChild sprite
 	\onGesture (center, _numTouches, delta, angle) ->
 		-- center: center of all touch positions
-		-- delta: changed motion ratio (compare to screen size) along the x-axes and y-axes
+		-- delta: changed motion ratio (compare to screen size)
 		-- angle: rotated angle along the touches` center
 		sprite.position = center
 		sprite.angle += angle

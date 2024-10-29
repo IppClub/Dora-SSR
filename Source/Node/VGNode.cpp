@@ -61,6 +61,7 @@ void VGNode::render(const std::function<void()>& func) {
 			BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH | BGFX_CLEAR_STENCIL,
 			0x0);
 		nvgluSetViewFramebuffer(viewId, framebuffer);
+		bgfx::setViewRect(viewId, 0, 0, texture->getWidth(), texture->getHeight());
 		nvgluBindFramebuffer(framebuffer);
 		nvgBeginFrame(context, _frameWidth, _frameHeight, _frameScale);
 		nvg::BindContext(context);

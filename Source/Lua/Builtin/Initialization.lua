@@ -180,6 +180,7 @@ do
 				coroutine_yield(false)
 			end
 		end
+		coroutine_yield(false)
 	end
 
 	local function Routine_close(routine)

@@ -31,12 +31,16 @@ with VGNode 60, 50, 5
 drawAnimated = coroutine.wrap ->
 	while true
 		cycle 0.2, (time) ->
+			nvg.Translate 60, 50
 			scale = 1 - 0.7 * time
 			nvg.Scale scale, scale
+			nvg.Translate -30, -25
 			drawHeart!
 		cycle 0.5, (time) ->
+			nvg.Translate 60, 50
 			scale = 0.3 + 0.7 * Ease\func Ease.OutBack, time
 			nvg.Scale scale, scale
+			nvg.Translate -30, -25
 			drawHeart!
 
 threadLoop ->
