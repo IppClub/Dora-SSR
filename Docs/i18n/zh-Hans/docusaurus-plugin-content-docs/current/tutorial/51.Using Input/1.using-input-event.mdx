@@ -203,6 +203,64 @@ button\onTapFilter (touch) ->
 </TabItem>
 </Tabs>
 
+#### 多点触摸事件
+
+&emsp;&emsp;Dora SSR 还支持多点触摸事件，可以通过 `onGesture` 方法来监听。
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+button:onGesture(function(center, numTouches, deltaDist, angle)
+	-- center: 所有触摸位置的中心
+	-- numTouches: 触摸点的数量
+	-- deltaDist: 变化的运动比例（相对于屏幕尺寸）
+	-- angle: 沿着触摸中心旋转的角度，单位为弧度
+	print("center:", center, "numTouches:", numTouches, "deltaDist:", delta, "angle:", angle)
+end)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+button:onGesture(function(center: Vec2.Type, numTouches: integer, deltaDist: number, angle: number)
+	-- center: 所有触摸位置的中心
+	-- numTouches: 触摸点的数量
+	-- deltaDist: 变化的运动比例（相对于屏幕尺寸）
+	-- angle: 沿着触摸中心旋转的角度，单位为弧度
+	print("center:", center, "numTouches:", numTouches, "deltaDist:", delta, "angle:", angle)
+end)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+button.onGesture((center, numTouches, deltaDist, angle) => {
+	// center: 所有触摸位置的中心
+	// numTouches: 触摸点的数量
+	// deltaDist: 变化的运动比例（相对于屏幕尺寸）
+	// angle: 沿着触摸中心旋转的角度，单位为弧度
+	print("center:", center, "numTouches:", numTouches, "deltaDist:", delta, "angle:", angle);
+});
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+button\onGesture (center, numTouches, deltaDist, angle) ->
+	-- center: 所有触摸位置的中心
+	-- numTouches: 触摸点的数量
+	-- deltaDist: 变化的运动比例（相对于屏幕尺寸）
+	-- angle: 沿着触摸中心旋转的角度，单位为弧度
+	print "center:", center, "numTouches:", numTouches, "deltaDist:", delta, "angle:", angle
+```
+
+</TabItem>
+</Tabs>
+
 #### `swallowTouches` 属性
 
 &emsp;&emsp;通常触摸/点击事件会沿着场景节点树从根节点向下传递，并被每一个相关的节点处理。如果我们希望在某个节点上处理完触摸/点击事件后，不再继续往下传递给其子节点，可以设置 `swallowTouches` 属性为 `true`。加上了 `swallowTouches` 属性的节点通常会被用作拦截触摸事件的遮罩层。

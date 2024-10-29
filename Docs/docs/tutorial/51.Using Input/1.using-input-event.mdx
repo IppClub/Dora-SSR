@@ -202,6 +202,64 @@ button\onTapFilter (touch) ->
 </TabItem>
 </Tabs>
 
+#### Multi-Touch Events
+
+Dora SSR also supports multi-touch events, which can be listened to using the `onGesture` method.
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+button:onGesture(function(center, numTouches, deltaDist, angle)
+	-- center: The center of all touch positions
+	-- numTouches: The number of touch points
+	-- deltaDist: The change in motion ratio (relative to the screen size)
+	-- angle: The angle rotated around the touch center, in radians
+	print("center:", center, "numTouches:", numTouches, "deltaDist:", delta, "angle:", angle)
+end)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+button:onGesture(function(center: Vec2.Type, numTouches: integer, deltaDist: number, angle: number)
+	-- center: The center of all touch positions
+	-- numTouches: The number of touch points
+	-- deltaDist: The change in motion ratio (relative to the screen size)
+	-- angle: The angle rotated around the touch center, in radians
+	print("center:", center, "numTouches:", numTouches, "deltaDist:", delta, "angle:", angle)
+end)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+button.onGesture((center, numTouches, deltaDist, angle) => {
+	// center: The center of all touch positions
+	// numTouches: The number of touch points
+	// deltaDist: The change in motion ratio (relative to the screen size)
+	// angle: The angle rotated around the touch center, in radians
+	print("center:", center, "numTouches:", numTouches, "deltaDist:", delta, "angle:", angle);
+});
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+button\onGesture (center, numTouches, deltaDist, angle) ->
+	-- center: The center of all touch positions
+	-- numTouches: The number of touch points
+	-- deltaDist: The change in motion ratio (relative to the screen size)
+	-- angle: The angle rotated around the touch center, in radians
+	print "center:", center, "numTouches:", numTouches, "deltaDist:", delta, "angle:", angle
+```
+
+</TabItem>
+</Tabs>
+
 #### `swallowTouches` Property
 
 Typically, touch/click events propagate from the root node down the scene node tree and are processed by each relevant node. If we want to stop the event from being passed down to child nodes after handling it on a certain node, we can set the `swallowTouches` property to `true`. Nodes with the `swallowTouches` property are typically used as masks to intercept touch events.
