@@ -12,6 +12,7 @@ jobs:
     runs-on: macos-15
     if: "!contains(github.event.head_commit.message, '[skip CI]') && !contains(github.event.head_commit.message, '[skip iOS]')"
     steps:
+      - uses: actions/checkout@v2
       - name: iOS build
         run: |
           Tools/tolua++/build.sh
