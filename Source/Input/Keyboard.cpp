@@ -218,7 +218,7 @@ bool Keyboard::isIMEAttached() const {
 
 void Keyboard::updateIMEPosHint(const Vec2& winPos) {
 	int offsetY =
-#if BX_PLATFORM_IOS
+#if BX_PLATFORM_IOS || BX_PLATFORM_ANDROID
 		45;
 #else
 		0;

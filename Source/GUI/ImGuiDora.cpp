@@ -426,7 +426,7 @@ void ImGuiDora::setImePositionHint(int x, int y) {
 	_lastIMEPosX = x;
 	_lastIMEPosY = y;
 	float scale =
-#if BX_PLATFORM_WINDOWS
+#if BX_PLATFORM_WINDOWS || BX_PLATFORM_ANDROID
 		SharedApplication.getDevicePixelRatio();
 #else
 		1.0f;
@@ -1100,10 +1100,10 @@ void ImGuiDora::begin() {
 				_lastCursor = 0;
 				SharedKeyboard.detachIME();
 			}
-			SharedApplication.invokeInRender(_textInputing ? SDL_StartTextInput : SDL_StopTextInput);
 			if (_textInputing) {
 				setImePositionHint(_lastIMEPosX, _lastIMEPosY);
 			}
+			SharedApplication.invokeInRender(_textInputing ? SDL_StartTextInput : SDL_StopTextInput);
 		}
 	}
 

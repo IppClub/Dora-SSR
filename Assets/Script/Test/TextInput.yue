@@ -48,25 +48,23 @@ TextInput = Class ((args) ->
 		\addChild label
 		\addChild cursor
 
-		updateIMEPos = ->
+		updateIMEPos = (next) ->
 			(pos) <- \convertToWindowSpace Vec2 -label.x + label.width, 0
 			Keyboard\updateIMEPosHint pos
+			next! if next
 		startEditing = ->
-			if not .imeAttached
-				\attachIME!
-				updateIMEPos!
+			<- updateIMEPos
+			\detachIME!
+			\attachIME!
 		.updateDisplayText = (_self, text) ->
 			textDisplay = text
 			label.text = text
 
-		.imeAttached = false
 		\onAttachIME ->
-			.imeAttached = true
 			.keyboardEnabled = true
 			updateText textDisplay
 
 		\onDetachIME ->
-			.imeAttached = false
 			.keyboardEnabled = false
 			cursor.visible = false
 			cursor\unschedule!
@@ -118,7 +116,7 @@ TextInput = Class ((args) ->
 	), {
 		text: property (=> @label.text),
 			(value) =>
-				@content\detachIME! if @content.imeAttached
+				@content\detachIME!
 				@content\updateDisplayText value
 	}
 
