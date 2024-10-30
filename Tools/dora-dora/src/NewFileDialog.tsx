@@ -22,7 +22,7 @@ import { SiNodered } from 'react-icons/si';
 import { DiCode } from 'react-icons/di';
 import { VscMarkdown } from 'react-icons/vsc';
 import { useTranslation } from 'react-i18next';
-import { DialogActions, Grid } from '@mui/material';
+import { DialogActions, Grid2 } from '@mui/material';
 
 export type DoraFileType = "Lua" | "Yuescript" | "Teal" | "Typescript" | "Dora XML" | "Markdown" | "Yarn" | "Visual Script" | "Folder"
 
@@ -95,6 +95,12 @@ export interface NewFileDialogProps {
 	onClose: (value?: DoraFileType) => void;
 }
 
+const transitionProps = {
+	appear: false,
+	enter: false,
+	exit: false
+};
+
 function NewFileDialog(props: NewFileDialogProps) {
 	const { t } = useTranslation();
 	const { onClose, open } = props;
@@ -108,12 +114,17 @@ function NewFileDialog(props: NewFileDialogProps) {
 	};
 
 	return (
-		<Dialog maxWidth="sm" onClose={handleClose} open={open}>
+		<Dialog
+			maxWidth="sm"
+			onClose={handleClose}
+			open={open}
+			transitionDuration={0}
+			TransitionProps={transitionProps}>
 			<DialogTitle>{t("file.new")}</DialogTitle>
-			<Grid container columns={2}>
+			<Grid2 container columns={2}>
 			{
 				fileTypes.map((fileType) => (
-					<Grid key={fileType.name} xs={1} item>
+					<Grid2 key={fileType.name} size={1}>
 						<ListItem>
 							<ListItemButton sx={{height:"90px"}}
 								onClick={() => handleListItemClick(fileType.name)}
@@ -123,10 +134,10 @@ function NewFileDialog(props: NewFileDialogProps) {
 								<ListItemText primary={fileType.name} secondary={t(fileType.desc)} sx={{paddingLeft: fileType.padding}}/>
 							</ListItemButton>
 						</ListItem>
-					</Grid>
+					</Grid2>
 				))
 			}
-			</Grid>
+			</Grid2>
 			<DialogActions/>
 		</Dialog>
 	);
