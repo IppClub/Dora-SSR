@@ -82,6 +82,12 @@ const formatPart = (text: string) => {
 	}</span>;
 };
 
+const transitionProps = {
+	appear: false,
+	enter: false,
+	exit: false
+};
+
 const LogView = memo((props: LogViewProps) => {
 	const {t} = useTranslation();
 	const [text, setText] = useState(t("log.wait"));
@@ -497,15 +503,12 @@ const LogView = memo((props: LogViewProps) => {
 		<Dialog
 			maxWidth="lg"
 			fullWidth
+			keepMounted
 			open={props.openName !== null}
 			aria-labelledby="logview-dialog-title"
 			aria-describedby="logview-dialog-description"
 			transitionDuration={0}
-			TransitionProps={{
-				appear: false,
-				enter: false,
-				exit: false,
-			}}
+			TransitionProps={transitionProps}
 		>
 			<DialogContent style={{overflow: "hidden", margin: 0, padding: 0}}>
 				<div hidden={!toggleProfiler}>

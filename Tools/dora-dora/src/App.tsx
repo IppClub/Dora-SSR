@@ -205,6 +205,11 @@ const useResize = ({minWidth, defaultWidth}: UseResizeProps) => {
 };
 
 const resizeHandleWidth = 4;
+const transitionProps = {
+	appear: false,
+	enter: false,
+	exit: false
+};
 
 export default function PersistentDrawerLeft() {
 	const {t} = useTranslation();
@@ -2293,6 +2298,8 @@ export default function PersistentDrawerLeft() {
 			<Dialog
 				maxWidth="lg"
 				open={filterOptions !== null}
+				transitionDuration={0}
+				TransitionProps={transitionProps}
 			>
 				<DialogContent>
 					{filterOptions !== null ?
@@ -2306,6 +2313,8 @@ export default function PersistentDrawerLeft() {
 				open={popupInfo !== null}
 				aria-labelledby="alert-dialog-title"
 				aria-describedby="alert-dialog-description"
+				transitionDuration={0}
+				TransitionProps={transitionProps}
 			>
 				<DialogTitle id="alert-dialog-title">
 					{popupInfo?.title}
@@ -2361,6 +2370,8 @@ export default function PersistentDrawerLeft() {
 				open={fileInfo !== null}
 				aria-labelledby="filename-dialog-title"
 				aria-describedby="filename-dialog-description"
+				transitionDuration={0}
+				TransitionProps={transitionProps}
 			>
 				<DialogTitle id="filename-dialog-title">
 					{t(fileInfo?.title ?? "")}
