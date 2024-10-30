@@ -12,6 +12,9 @@ local Opacity <const> = require("Opacity")
 local node = Node()
 
 local label = Label("sarasa-mono-sc-regular", 40)
+if label == nil then
+	return
+end
 label.batched = false
 label.text = "你好，Dora SSR！"
 label:addTo(node)
@@ -29,6 +32,9 @@ for i = 1, label.characterCount do
 end
 
 label = Label("sarasa-mono-sc-regular", 30)
+if label == nil then
+	return
+end
 label.text = "-- from Jin."
 label.color = App.themeColor
 label.opacity = 0

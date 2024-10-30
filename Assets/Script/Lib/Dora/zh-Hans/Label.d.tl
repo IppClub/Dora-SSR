@@ -70,8 +70,8 @@ local record LabelClass
 	-- @param fontName (string) 用于标签的字体名称。
 	-- 可以是带有或是不带文件扩展名的字体文件路径。
 	-- @param fontSize (integer) 用于标签的字体大小。
-	-- @return (Label) 新的文本标签对象。
-	metamethod __call: function(self: LabelClass, fontName: string, fontSize: integer): Label
+	-- @return (Label | nil) 新的文本标签对象，如果创建失败则返回 `nil`。
+	metamethod __call: function(self: LabelClass, fontName: string, fontSize: integer): Label | nil
 end
 
 local labelClass: LabelClass

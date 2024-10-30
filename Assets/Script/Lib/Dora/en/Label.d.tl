@@ -70,8 +70,8 @@ local record LabelClass
 	-- @param fontName (string) The name of the font to use for the label.
 	-- Can be font file path with or without file extension.
 	-- @param fontSize (integer) The size of the font to use for the label.
-	-- @return (Label) The new Label object.
-	metamethod __call: function(self: LabelClass, fontName: string, fontSize: integer): Label
+	-- @return (Label | nil) The new Label object, or `nil` if the font could not be loaded.
+	metamethod __call: function(self: LabelClass, fontName: string, fontSize: integer): Label | nil
 end
 
 local labelClass: LabelClass

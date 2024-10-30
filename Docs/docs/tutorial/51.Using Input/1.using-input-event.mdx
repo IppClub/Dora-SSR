@@ -818,6 +818,159 @@ with Node!
 - `onTextInput`: Triggered when text is confirmed to be inputted.
 - `onTextEditing`: Triggered when editing text, usually during the candidate word display phase.
 
+### 3.2 Position Hint for Input Method
+
+On some small-screen devices, the input method may cover the input box, or we may want the input method's position to follow our input box. In this case, we can set the input method's position hint using the `Keyboard.updateIMEPosHint` method.
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local Keyboard <const> = require("Keyboard")
+local Label <const> = require("Label")
+local Vec2 <const> = require("Vec2")
+
+local label = Label("sarasa-mono-sc-regular", 40)
+label.text = "Enter text"
+
+local function updateIMEPos(after)
+	-- Convert the lower right corner of the input box to window coordinates
+	label:convertToWindowSpace(Vec2(label.width, 0), function(pos)
+		Keyboard:updateIMEPosHint(pos)
+		if after then after() end
+	end)
+end
+
+label:onTextInput(function(text)
+	label.text = label.text .. text
+	updateIMEPos()
+end)
+
+label:onTapped(function()
+	label.text = "Inputting"
+	-- Update the input method position hint
+	updateIMEPos(function()
+		label:detachIME()
+		label:attachIME()
+		-- Update the input method position hint again for mobile platforms
+		updateIMEPos()
+	end)
+end)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local Keyboard <const> = require("Keyboard")
+local Label <const> = require("Label")
+local Vec2 <const> = require("Vec2")
+
+local label = Label("sarasa-mono-sc-regular", 40)
+if not label is nil then
+	local label = label
+	label.text = "Enter text"
+
+	local function updateIMEPos(after?: function())
+		-- Convert the lower right corner of the input box to window coordinates
+		label:convertToWindowSpace(Vec2(label.width, 0), function(pos: Vec2.Type)
+			Keyboard:updateIMEPosHint(pos)
+			if after then after() end
+		end)
+	end
+
+	label:onTextInput(function(text: string)
+		label.text = label.text .. text
+		updateIMEPos()
+	end)
+
+	label:onTapped(function()
+		label.text = "Inputting"
+		-- Update the input method position hint
+		updateIMEPos(function()
+			label:detachIME()
+			label:attachIME()
+			-- Update the input method position hint again for mobile platforms
+			updateIMEPos()
+		end)
+	end)
+end
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { Keyboard, Label, Vec2 } from "Dora";
+
+const label = Label("sarasa-mono-sc-regular", 40);
+if (!label) error("failed to create label!");
+label.text = "Enter text";
+
+const updateIMEPos = (after?: () => void) => {
+	// Convert the lower right corner of the input box to window coordinates
+	label.convertToWindowSpace(Vec2(label.width, 0), pos => {
+		Keyboard.updateIMEPosHint(pos);
+		if (after) after();
+	});
+};
+
+label.onTextInput(text => {
+	label.text = label.text + text;
+	updateIMEPos();
+});
+
+label.onTapped(() => {
+	label.text = "Inputting";
+	// Update the input method position hint
+	updateIMEPos(() => {
+		label.detachIME();
+		label.attachIME();
+		// Update the input method position hint again for mobile platforms
+		updateIMEPos();
+	});
+});
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+with Label "sarasa-mono-sc-regular", 40
+	.text = "Enter text"
+
+	updateIMEPos = (after) ->
+		-- Convert the lower right corner of the input box to window coordinates
+		\convertToWindowSpace Vec2(.width, 0), (pos) ->
+			Keyboard\updateIMEPosHint pos
+			after! if after
+
+	\onTextInput (text) ->
+		.text ..= text
+		updateIMEPos!
+
+	\onTapped ->
+		.text = "Inputting"
+		-- Update the input method position hint
+		updateIMEPos ->
+			\detachIME!
+			\attachIME!
+			-- Update the input method position hint again for mobile platforms
+			updateIMEPos!
+```
+
+</TabItem>
+</Tabs>
+
+**Explanation:**
+
+In the above code, we create an input box. When the input box is clicked, the input method is activated, and the input method's position follows the input box. When text is input into the input box, the input method's position is also updated.
+
+- `Keyboard.updateIMEPosHint`: Sets the input method position hint, and the input method will try to avoid covering this position.
+- `label.convertToWindowSpace`: Converts node coordinates to window coordinates, returning the converted coordinates through a callback function for setting the input method position hint.
+
 ## 4. Mouse Input
 
 ### 4.1 Event Callback Method

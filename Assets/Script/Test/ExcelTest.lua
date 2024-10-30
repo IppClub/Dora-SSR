@@ -348,29 +348,30 @@ local Struct <const> = Utils.Struct
 
 local function loadExcel()
 	local xlsx = Content:loadExcel("Data/items.xlsx", { "items" })
-	if not (xlsx == nil) then
-		local its = xlsx["items"]
-		local names = its[2]
-		table.remove(names, 1)
-		if not Struct:has("Item") then
-			Struct.Item(names)
-		end
-		Group({ "item" }):each(function(e)
-			e:destroy()
-		end)
-		for i = 3, #its do
-			local st = Struct:load(its[i])
-			local item <const> = {
-				name = st.Name,
-				no = st.No,
-				x = st.X,
-				num = st.Num,
-				icon = st.Icon,
-				desc = st.Desc,
-				item = true,
-			}
-			Entity(item)
-		end
+	if xlsx == nil then
+		return
+	end
+	local its = xlsx["items"]
+	local names = its[2]
+	table.remove(names, 1)
+	if not Struct:has("Item") then
+		Struct.Item(names)
+	end
+	Group({ "item" }):each(function(e)
+		e:destroy()
+	end)
+	for i = 3, #its do
+		local st = Struct:load(its[i])
+		local item <const> = {
+			name = st.Name,
+			no = st.No,
+			x = st.X,
+			num = st.Num,
+			icon = st.Icon,
+			desc = st.Desc,
+			item = true,
+		}
+		Entity(item)
 	end
 end
 

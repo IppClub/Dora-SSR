@@ -15,6 +15,9 @@ world:setShouldContact(0, 0, true)
 world.showDebug = true
 
 local label = Label("sarasa-mono-sc-regular", 30)
+if label == nil then
+	return
+end
 label:addTo(world)
 
 local terrainDef = BodyDef()
