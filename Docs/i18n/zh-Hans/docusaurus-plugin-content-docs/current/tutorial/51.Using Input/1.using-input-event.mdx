@@ -819,6 +819,159 @@ with Node!
 - `onTextInput`：当有文本被确认输入时触发。
 - `onTextEditing`：当正在编辑文本时触发，通常是显示候选词的编辑阶段。
 
+### 3.2 设置输入法位置提示
+
+&emsp;&emsp;在一些小屏幕的设备上，输入法可能会遮挡输入框，或是我们希望输入法的位置跟随我们的输入框。这时可以通过设置 `Keyboard.updateIMEPosHint` 方法来设置输入法的位置提示。
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local Keyboard <const> = require("Keyboard")
+local Label <const> = require("Label")
+local Vec2 <const> = require("Vec2")
+
+local label = Label("sarasa-mono-sc-regular", 40)
+label.text = "请输入文本"
+
+local function updateIMEPos(after)
+	-- 将输入框的右下角转换为窗口坐标
+	label:convertToWindowSpace(Vec2(label.width, 0), function(pos)
+		Keyboard:updateIMEPosHint(pos)
+		if after then after() end
+	end)
+end
+
+label:onTextInput(function(text)
+	label.text = label.text .. text
+	updateIMEPos()
+end)
+
+label:onTapped(function()
+	label.text = "输入中"
+	-- 更新输入法位置提示
+	updateIMEPos(function()
+		label:detachIME()
+		label:attachIME()
+		-- 为移动平台再次更新输入法位置
+		updateIMEPos()
+	end)
+end)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local Keyboard <const> = require("Keyboard")
+local Label <const> = require("Label")
+local Vec2 <const> = require("Vec2")
+
+local label = Label("sarasa-mono-sc-regular", 40)
+if not label is nil then
+	local label = label
+	label.text = "请输入文本"
+
+	local function updateIMEPos(after?: function())
+		-- 将输入框的右下角转换为窗口坐标
+		label:convertToWindowSpace(Vec2(label.width, 0), function(pos: Vec2.Type)
+			Keyboard:updateIMEPosHint(pos)
+			if after then after() end
+		end)
+	end
+
+	label:onTextInput(function(text: string)
+		label.text = label.text .. text
+		updateIMEPos()
+	end)
+
+	label:onTapped(function()
+		label.text = "输入中"
+		-- 更新输入法位置提示
+		updateIMEPos(function()
+			label:detachIME()
+			label:attachIME()
+			-- 为移动平台再次更新输入法位置
+			updateIMEPos()
+		end)
+	end)
+end
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { Keyboard, Label, Vec2 } from "Dora";
+
+const label = Label("sarasa-mono-sc-regular", 40);
+if (!label) error("failed to create label!");
+label.text = "请输入文本";
+
+const updateIMEPos = (after?: () => void) => {
+	// 将输入框的右下角转换为窗口坐标
+	label.convertToWindowSpace(Vec2(label.width, 0), pos => {
+		Keyboard.updateIMEPosHint(pos);
+		if (after) after();
+	});
+};
+
+label.onTextInput(text => {
+	label.text = label.text + text;
+	updateIMEPos();
+});
+
+label.onTapped(() => {
+	label.text = "输入中";
+	// 更新输入法位置提示
+	updateIMEPos(() => {
+		label.detachIME();
+		label.attachIME();
+		// 为移动平台再次更新输入法位置
+		updateIMEPos();
+	});
+});
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+with Label "sarasa-mono-sc-regular", 40
+	.text = "请输入文本"
+
+	updateIMEPos = (after) ->
+		-- 将输入框的右下角转换为窗口坐标
+		\convertToWindowSpace Vec2(.width, 0), (pos) ->
+			Keyboard\updateIMEPosHint pos
+			after! if after
+
+	\onTextInput (text) ->
+		.text ..= text
+		updateIMEPos!
+
+	\onTapped ->
+		.text = "输入中"
+		-- 更新输入法位置提示
+		updateIMEPos ->
+			\detachIME!
+			\attachIME!
+			-- 为移动平台再次更新输入法位置
+			updateIMEPos!
+```
+
+</TabItem>
+</Tabs>
+
+&emsp;&emsp;**说明：**
+
+&emsp;&emsp;上述代码中，我们创建了一个输入框，当输入框被点击时，输入框会被激活输入法，同时输入法的位置会跟随输入框。当输入框输入文本时，输入法的位置也会被更新。
+
+- `Keyboard.updateIMEPosHint`：设置输入法位置提示，输入法会尽量避免遮挡这个位置。
+- `label.convertToWindowSpace`：将节点坐标转换为窗口坐标，会通过回调函数返回转换后的坐标，用于设置输入法位置提示。
+
 ## 4. 鼠标输入
 
 ### 4.1 事件回调方式

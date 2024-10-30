@@ -29,7 +29,7 @@ const AutomaticWidth: number
 
 **Signature:**
 ```tl
-metamethod __call: function(self: LabelClass, fontName: string, fontSize: integer): Label
+metamethod __call: function(self: LabelClass, fontName: string, fontSize: integer): Label | nil
 ```
 
 **Parameters:**
@@ -43,4 +43,4 @@ metamethod __call: function(self: LabelClass, fontName: string, fontSize: intege
 
 | Return Type | Description |
 | --- | --- |
-| Label | The new Label object. |
+| Label \| nil | The new Label object, or `nil` if the font could not be loaded. |

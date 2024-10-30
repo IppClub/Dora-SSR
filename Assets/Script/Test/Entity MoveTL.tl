@@ -35,16 +35,17 @@ end)
 Observer("Add", { "image" }):watch(function(self: Entity.Type, image: string): boolean
 	sceneGroup:each(function(e: Entity.Type): boolean
 		local scene = toNode(e.scene)
-		if not scene is nil then
-			local sprite = Sprite(image)
-			if sprite is nil then
-				return false
-			end
-			sprite:addTo(scene)
-			sprite:runAction(Scale(0.5, 0, 0.5, Ease.OutBack))
-			self.sprite = sprite
-			return true
+		if scene is nil then
+			return false
 		end
+		local sprite = Sprite(image)
+		if sprite is nil then
+			return false
+		end
+		sprite:addTo(scene)
+		sprite:runAction(Scale(0.5, 0, 0.5, Ease.OutBack))
+		self.sprite = sprite
+		return true
 	end)
 	return false
 end)
@@ -136,45 +137,46 @@ local windowFlags = {
 }
 Observer("Add", { "scene" }):watch(function(entity: Entity.Type): boolean
 	local scene = toNode(entity.scene)
-	if not scene is nil then
-		scene:schedule(function(): boolean
-			local width = App.visualSize.width
-			ImGui.SetNextWindowBgAlpha(0.35)
-			ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0))
-			ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver")
-			ImGui.Begin("ECS System", windowFlags, function()
-				ImGui.Text("ECS System (Teal)")
-				ImGui.Separator()
-				ImGui.TextWrapped("Tap any place to move entities.")
-				if ImGui.Button("Create Random Entity") then
-					local def <total>: EntityDef = {
-						image = "Image/logo.png",
-						position = Vec2(6 * math.random(1, 100), 6 * math.random(1, 100)),
-						direction = 1.0 * math.random(0, 360),
-						speed = 1.0 * math.random(1, 20)
-					}
-					Entity(def)
-				end
-				if ImGui.Button("Destroy An Entity") then
-					Group({ "sprite", "position" }):each(function(e: Entity.Type): boolean
-						e.position = nil
-						local sprite = toNode(e.sprite)
-						if not sprite is nil then
-							sprite:runAction(
-								Sequence(
-									Scale(0.5, 0.5, 0, Ease.InBack),
-									Event("Destroy")
-								)
-							)
-							sprite:slot("Destroy", function()
-								e:destroy()
-							end)
-						end
-						return true
-					end)
-				end
-			end)
-		end)
+	if scene is nil then
+		return false
 	end
+	scene:schedule(function(): boolean
+		local width = App.visualSize.width
+		ImGui.SetNextWindowBgAlpha(0.35)
+		ImGui.SetNextWindowPos(Vec2(width - 10, 10), "Always", Vec2(1, 0))
+		ImGui.SetNextWindowSize(Vec2(240, 0), "FirstUseEver")
+		ImGui.Begin("ECS System", windowFlags, function()
+			ImGui.Text("ECS System (Teal)")
+			ImGui.Separator()
+			ImGui.TextWrapped("Tap any place to move entities.")
+			if ImGui.Button("Create Random Entity") then
+				local def <total>: EntityDef = {
+					image = "Image/logo.png",
+					position = Vec2(6 * math.random(1, 100), 6 * math.random(1, 100)),
+					direction = 1.0 * math.random(0, 360),
+					speed = 1.0 * math.random(1, 20)
+				}
+				Entity(def)
+			end
+			if ImGui.Button("Destroy An Entity") then
+				Group({ "sprite", "position" }):each(function(e: Entity.Type): boolean
+					e.position = nil
+					local sprite = toNode(e.sprite)
+					if not sprite is nil then
+						sprite:runAction(
+							Sequence(
+								Scale(0.5, 0.5, 0, Ease.InBack),
+								Event("Destroy")
+							)
+						)
+						sprite:slot("Destroy", function()
+							e:destroy()
+						end)
+					end
+					return true
+				end)
+			end
+		end)
+	end)
 	return false
 end)

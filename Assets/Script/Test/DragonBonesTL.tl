@@ -34,29 +34,33 @@ bone:onTapBegan(function(touch: Touch)
 	local loc = touch.location
 	local x, y = loc.x, loc.y
 	local name = bone:containsPoint(x, y)
-	if not name is nil then
-		local label = Label("sarasa-mono-sc-regular", 30)
-		label.text = name
-		label.color = App.themeColor
-		label.position = Vec2(x, y)
-		label.order = 100
-		label:perform(
-			Sequence(
-				Spawn(
-					Scale(1, 0, 2, Ease.OutQuad),
-					Sequence(
-						Delay(0.5),
-						Opacity(0.5, 1, 0)
-					)
-				),
-				Event("Stop")
-			)
-		)
-		label:slot("Stop", function()
-			label:removeFromParent()
-		end)
-		bone:addChild(label)
+	if name is nil then
+		return
 	end
+	local label = Label("sarasa-mono-sc-regular", 30)
+	if label is nil then
+		return
+	end
+	label.text = name
+	label.color = App.themeColor
+	label.position = Vec2(x, y)
+	label.order = 100
+	label:perform(
+		Sequence(
+			Spawn(
+				Scale(1, 0, 2, Ease.OutQuad),
+				Sequence(
+					Delay(0.5),
+					Opacity(0.5, 1, 0)
+				)
+			),
+			Event("Stop")
+		)
+	)
+	label:slot("Stop", function()
+		label:removeFromParent()
+	end)
+	bone:addChild(label)
 end)
 
 -- example codes ends here, some test ui below --
