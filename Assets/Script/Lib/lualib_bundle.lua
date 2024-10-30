@@ -193,8 +193,14 @@ do
                 result[#result + 1] = v
             end
         else
-            for i, v in arrayLikeIterator(arrayLike) do
-                result[#result + 1] = mapFn(thisArg, v, i - 1)
+            local i = 0
+            for ____, v in arrayLikeIterator(arrayLike) do
+                local ____mapFn_3 = mapFn
+                local ____thisArg_1 = thisArg
+                local ____v_2 = v
+                local ____i_0 = i
+                i = ____i_0 + 1
+                result[#result + 1] = ____mapFn_3(____thisArg_1, ____v_2, ____i_0)
             end
         end
         return result
@@ -2542,10 +2548,7 @@ local function __TS__Using(self, cb, ...)
     local args = {...}
     local thrownError
     local ok, result = xpcall(
-        function() return cb(
-            nil,
-            __TS__Unpack(args)
-        ) end,
+        function() return cb(__TS__Unpack(args)) end,
         function(err)
             thrownError = err
             return thrownError

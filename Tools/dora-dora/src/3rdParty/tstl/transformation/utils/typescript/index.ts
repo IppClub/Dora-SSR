@@ -49,7 +49,10 @@ export function isStandardLibraryDeclaration(context: TransformationContext, dec
     if (!sourceFile) {
         return false;
     }
-
+    // Exclude lib.Dora.d.ts and lua.d.ts for Dora SSR
+    if (sourceFile.fileName === "lib.Dora.d.ts" || sourceFile.fileName === "lua.d.ts") {
+        return false;
+    }
     return context.program.isSourceFileDefaultLibrary(sourceFile);
 }
 
