@@ -14,6 +14,9 @@ import {SourceMapConsumer} from 'source-map';
 import Info from './Info';
 import * as Service from './Service';
 
+const scriptTarget = ts.ScriptTarget.ESNext;
+const moduleKind = ts.ModuleKind.ESNext;
+
 const tstlOptions: tstl.CompilerOptions = {
 	strict: true,
 	jsx: ts.JsxEmit.React,
@@ -23,8 +26,8 @@ const tstlOptions: tstl.CompilerOptions = {
 	sourceMap: true,
 	noImplicitSelf: true,
 	moduleResolution: ts.ModuleResolutionKind.Classic,
-	target: ts.ScriptTarget.ESNext,
-	module: ts.ModuleKind.ESNext,
+	target: scriptTarget,
+	module: moduleKind,
 };
 
 function createTypescriptProgram(rootFileName: string, content: string): ts.Program {
@@ -145,18 +148,18 @@ function createTypescriptProgram(rootFileName: string, content: string): ts.Prog
 			fileName = Info.path.normalize(fileName);
 			const baseName = Info.path.basename(fileName);
 			if (baseName.startsWith('Dora.')) {
-				return ts.createSourceFile("dummy.d.ts", "", ts.ScriptTarget.ESNext, false);
+				return ts.createSourceFile("dummy.d.ts", "", scriptTarget, false);
 			}
 			if (baseName === 'jsx.d.ts' || baseName === 'DoraX.d.ts') {
 				const uri = monaco.Uri.parse(baseName);
 				const model = monaco.editor.getModel(uri);
 				if (model !== null) {
-					return ts.createSourceFile(baseName, model.getValue(), ts.ScriptTarget.ESNext, false);
+					return ts.createSourceFile(baseName, model.getValue(), scriptTarget, false);
 				} else {
 					const res = Service.readSync({path: baseName, projFile: rootFileName});
 					if (res?.success) {
 						monaco.editor.createModel(res.content, 'typescript', uri);
-						return ts.createSourceFile(baseName, res.content, ts.ScriptTarget.ESNext, false);
+						return ts.createSourceFile(baseName, res.content, scriptTarget, false);
 					}
 				}
 			}
@@ -164,27 +167,27 @@ function createTypescriptProgram(rootFileName: string, content: string): ts.Prog
 				const uri = monaco.Uri.parse("Dora.d.ts");
 				const model = monaco.editor.getModel(uri);
 				if (model !== null) {
-					return ts.createSourceFile("Dora.d.ts", model.getValue(), ts.ScriptTarget.ESNext, false);
+					return ts.createSourceFile("Dora.d.ts", model.getValue(), scriptTarget, false);
 				} else {
 					const res = Service.readSync({path: "Dora.d.ts"});
 					if (res?.success) {
 						monaco.editor.createModel(res.content, 'typescript', uri);
-						return ts.createSourceFile("Dora.d.ts", res.content, ts.ScriptTarget.ESNext, false);
+						return ts.createSourceFile("Dora.d.ts", res.content, scriptTarget, false);
 					}
 				}
 			}
 			const lib = monaco.languages.typescript.typescriptDefaults.getExtraLibs()[fileName];
 			if (lib) {
-				return ts.createSourceFile(fileName, lib.content, ts.ScriptTarget.ESNext, false);
+				return ts.createSourceFile(fileName, lib.content, scriptTarget, false);
 			}
 			if (!Info.path.isAbsolute(fileName) || Info.path.relative(rootFileName, fileName) === "") {
-				return ts.createSourceFile(fileName, content, ts.ScriptTarget.ESNext, false);
+				return ts.createSourceFile(fileName, content, scriptTarget, false);
 			} else {
 				const uri = pathMap.get(fileName);
 				if (uri !== undefined) {
 					const model = monaco.editor.getModel(uri);
 					if (model !== null) {
-						return ts.createSourceFile(uri.fsPath, model.getValue(), ts.ScriptTarget.ESNext, false);
+						return ts.createSourceFile(uri.fsPath, model.getValue(), scriptTarget, false);
 					}
 				}
 				return undefined;

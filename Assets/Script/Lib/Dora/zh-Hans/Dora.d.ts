@@ -1257,7 +1257,7 @@ export function Sequence(this: void, ...actions: ActionDef[]): ActionDef;
  * @param frames [可选] 每个动画帧的持续帧数。每个动画帧的持续帧数应该与图片序列中的帧数相匹配。
  * @returns 返回新的动作定义。
  */
-export function Frame(clipStr: string, duration: number, frames?: number[]): ActionDef
+export function Frame(this: void, clipStr: string, duration: number, frames?: number[]): ActionDef
 
 /**
  * 支持在数组对象存储数据类型。
