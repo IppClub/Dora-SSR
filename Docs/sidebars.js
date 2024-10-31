@@ -316,7 +316,7 @@ const sidebars = {
 						},
 						{
 							type: 'doc',
-							label: 'Sprite',
+							label: 'Grid',
 							id: "api/Class/Grid",
 						},
 						{

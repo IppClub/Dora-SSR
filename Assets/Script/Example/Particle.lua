@@ -7,17 +7,17 @@ local Rect = Dora.Rect -- 1
 local tolua = Dora.tolua -- 1
 local tostring = _G.tostring -- 1
 local string = _G.string -- 1
-local Cache = Dora.Cache -- 1
 local table = _G.table -- 1
 local pairs = _G.pairs -- 1
+local Cache = Dora.Cache -- 1
 local Particle = Dora.Particle -- 1
 local Node = Dora.Node -- 1
 local _module_0 = Dora.ImGui -- 1
-local PushItemWidth = _module_0.PushItemWidth -- 1
 local DragFloat = _module_0.DragFloat -- 1
 local DragInt = _module_0.DragInt -- 1
 local math = _G.math -- 1
-local LabelText = _module_0.LabelText -- 1
+local Combo = _module_0.Combo -- 1
+local PushItemWidth = _module_0.PushItemWidth -- 1
 local DragInt2 = _module_0.DragInt2 -- 1
 local SetColorEditOptions = _module_0.SetColorEditOptions -- 1
 local ColorEdit4 = _module_0.ColorEdit4 -- 1
@@ -31,343 +31,441 @@ local SetNextWindowPos = _module_0.SetNextWindowPos -- 1
 local SetNextWindowSize = _module_0.SetNextWindowSize -- 1
 local Begin = _module_0.Begin -- 1
 local Button = _module_0.Button -- 1
-local print = _G.print -- 1
-local Data = { -- 4
-	Angle = { -- 4
-		"B", -- 4
-		"float", -- 4
-		90 -- 4
-	}, -- 4
-	AngleVariance = { -- 5
-		"C", -- 5
-		"float", -- 5
-		360 -- 5
-	}, -- 5
-	BlendFuncDestination = { -- 6
-		"D", -- 6
-		"BlendFunc", -- 6
-		BlendFunc:get("One") -- 6
-	}, -- 6
-	BlendFuncSource = { -- 7
-		"E", -- 7
-		" BlendFunc", -- 7
-		BlendFunc:get("SrcAlpha") -- 7
-	}, -- 7
-	Duration = { -- 8
-		"F", -- 8
-		"floatN", -- 8
-		-1 -- 8
-	}, -- 8
-	EmissionRate = { -- 9
-		"G", -- 9
-		"float", -- 9
-		350 -- 9
-	}, -- 9
-	FinishColor = { -- 10
-		"H", -- 10
-		"Color", -- 10
-		Color(0xff000000) -- 10
-	}, -- 10
-	FinishColorVariance = { -- 11
-		"I", -- 11
-		"Color", -- 11
-		Color(0x0) -- 11
-	}, -- 11
-	RotationStart = { -- 12
-		"J", -- 12
-		"float", -- 12
-		0 -- 12
-	}, -- 12
-	RotationStartVariance = { -- 13
-		"K", -- 13
-		"float", -- 13
-		0 -- 13
-	}, -- 13
-	RotationEnd = { -- 14
-		"L", -- 14
-		"float", -- 14
-		0 -- 14
-	}, -- 14
-	RotationEndVariance = { -- 15
-		"M", -- 15
-		"float", -- 15
-		0 -- 15
-	}, -- 15
-	FinishParticleSize = { -- 16
-		"N", -- 16
-		"floatN", -- 16
-		-1 -- 16
-	}, -- 16
-	FinishParticleSizeVariance = { -- 17
-		"O", -- 17
-		"float", -- 17
-		0 -- 17
-	}, -- 17
-	MaxParticles = { -- 18
-		"P", -- 18
-		"Uint32", -- 18
-		100 -- 18
-	}, -- 18
-	ParticleLifespan = { -- 19
-		"Q", -- 19
-		"float", -- 19
-		1 -- 19
-	}, -- 19
-	ParticleLifespanVariance = { -- 20
-		"R", -- 20
-		"float", -- 20
-		0.5 -- 20
-	}, -- 20
-	StartPosition = { -- 21
-		"S", -- 21
-		"Vec2", -- 21
-		Vec2(0, 0) -- 21
+local SameLine = _module_0.SameLine -- 1
+local InputTextMultiline = _module_0.InputTextMultiline -- 1
+local blendFuncs = { -- 4
+	"One", -- 4
+	"Zero", -- 5
+	"SrcAlpha", -- 6
+	"DstAlpha", -- 7
+	"InvSrcAlpha", -- 8
+	"InvDstAlpha" -- 9
+} -- 3
+local blendFuncDst = 1 -- 11
+local blendFuncSrc = 3 -- 12
+local emitterTypes = { -- 15
+	"Gravity", -- 15
+	"Radius" -- 16
+} -- 14
+local emitterType = 1 -- 18
+local Data = { -- 21
+	Angle = { -- 21
+		"B", -- 21
+		"float", -- 21
+		90 -- 21
 	}, -- 21
-	StartPositionVariance = { -- 22
-		"T", -- 22
-		"Vec2", -- 22
-		Vec2(0, 0) -- 22
+	AngleVariance = { -- 22
+		"C", -- 22
+		"float", -- 22
+		360 -- 22
 	}, -- 22
-	StartColor = { -- 23
-		"U", -- 23
-		"Color", -- 23
-		Color(194, 64, 31, 255) -- 23
+	BlendFuncDestination = { -- 23
+		"D", -- 23
+		"BlendFunc", -- 23
+		BlendFunc:get("One"), -- 23
+		"One" -- 23
 	}, -- 23
-	StartColorVariance = { -- 24
-		"V", -- 24
-		"Color", -- 24
-		Color(0x0) -- 24
+	BlendFuncSource = { -- 24
+		"E", -- 24
+		" BlendFunc", -- 24
+		BlendFunc:get("SrcAlpha"), -- 24
+		"SrcAlpha" -- 24
 	}, -- 24
-	StartParticleSize = { -- 25
-		"W", -- 25
-		"float", -- 25
-		30 -- 25
+	Duration = { -- 25
+		"F", -- 25
+		"floatN", -- 25
+		-1 -- 25
 	}, -- 25
-	StartParticleSizeVariance = { -- 26
-		"X", -- 26
+	EmissionRate = { -- 26
+		"G", -- 26
 		"float", -- 26
-		10 -- 26
+		350 -- 26
 	}, -- 26
-	TextureName = { -- 27
-		"Y", -- 27
-		"string", -- 27
-		"", -- 27
-		Buffer(256) -- 27
+	FinishColor = { -- 27
+		"H", -- 27
+		"Color", -- 27
+		Color(0xff000000) -- 27
 	}, -- 27
-	TextureRect = { -- 28
-		"Z", -- 28
-		"Rect", -- 28
-		Rect(0, 0, 0, 0) -- 28
+	FinishColorVariance = { -- 28
+		"I", -- 28
+		"Color", -- 28
+		Color(0x0) -- 28
 	}, -- 28
-	EmitterType = { -- 29
-		"a", -- 29
-		"EmitterType", -- 29
+	RotationStart = { -- 29
+		"J", -- 29
+		"float", -- 29
 		0 -- 29
 	}, -- 29
-	RotationIsDir = { -- 31
-		"b", -- 31
-		"bool", -- 31
-		false -- 31
+	RotationStartVariance = { -- 30
+		"K", -- 30
+		"float", -- 30
+		0 -- 30
+	}, -- 30
+	RotationEnd = { -- 31
+		"L", -- 31
+		"float", -- 31
+		0 -- 31
 	}, -- 31
-	Gravity = { -- 32
-		"c", -- 32
-		"Vec2", -- 32
-		Vec2(0, 100) -- 32
+	RotationEndVariance = { -- 32
+		"M", -- 32
+		"float", -- 32
+		0 -- 32
 	}, -- 32
-	Speed = { -- 33
-		"d", -- 33
-		"float", -- 33
-		20 -- 33
+	FinishParticleSize = { -- 33
+		"N", -- 33
+		"floatN", -- 33
+		-1 -- 33
 	}, -- 33
-	SpeedVariance = { -- 34
-		"e", -- 34
+	FinishParticleSizeVariance = { -- 34
+		"O", -- 34
 		"float", -- 34
-		5 -- 34
+		0 -- 34
 	}, -- 34
-	RadialAcceleration = { -- 35
-		"f", -- 35
-		"float", -- 35
-		0 -- 35
+	MaxParticles = { -- 35
+		"P", -- 35
+		"Uint32", -- 35
+		100 -- 35
 	}, -- 35
-	RadialAccelVariance = { -- 36
-		"g", -- 36
+	ParticleLifespan = { -- 36
+		"Q", -- 36
 		"float", -- 36
-		0 -- 36
+		1 -- 36
 	}, -- 36
-	TangentialAcceleration = { -- 37
-		"h", -- 37
+	ParticleLifespanVariance = { -- 37
+		"R", -- 37
 		"float", -- 37
-		0 -- 37
+		0.5 -- 37
 	}, -- 37
-	TangentialAccelVariance = { -- 38
-		"i", -- 38
-		"float", -- 38
-		0 -- 38
-	} -- 38
-} -- 3
-local toString -- 48
-toString = function(value) -- 48
-	local _exp_0 = tolua.type(value) -- 49
-	if "number" == _exp_0 then -- 50
-		return tostring(value) -- 51
-	elseif "string" == _exp_0 then -- 52
-		return value -- 53
-	elseif "Rect" == _exp_0 then -- 54
-		return tostring(value.x) .. "," .. tostring(value.y) .. "," .. tostring(value.width) .. "," .. tostring(value.height) -- 55
-	elseif "boolean" == _exp_0 then -- 56
-		return value and "1" or "0" -- 57
-	elseif "Vec2" == _exp_0 then -- 58
-		return tostring(value.x) .. "," .. tostring(value.y) -- 59
-	elseif "Color" == _exp_0 then -- 60
-		return string.format("%.2f,%.2f,%.2f,%.2f", value.r / 255, value.g / 255, value.b / 255, value.a / 255) -- 61
-	end -- 61
-end -- 48
-Cache:update("__test__.par", "<A>" .. table.concat((function() -- 63
-	local _accum_0 = { } -- 63
-	local _len_0 = 1 -- 63
-	for k, v in pairs(Data) do -- 63
-		_accum_0[_len_0] = "<" .. tostring(v[1]) .. " A=\"" .. tostring(toString(v[3])) .. "\"/>" -- 63
-		_len_0 = _len_0 + 1 -- 63
-	end -- 63
-	return _accum_0 -- 63
-end)()) .. "</A>") -- 63
-local particle -- 65
-do -- 65
-	local _with_0 = Particle("__test__.par") -- 65
-	_with_0:start() -- 66
-	particle = _with_0 -- 65
-end -- 65
-local root -- 68
-do -- 68
-	local _with_0 = Node() -- 68
-	_with_0.scaleX = 2 -- 69
-	_with_0.scaleY = 2 -- 70
-	_with_0:addChild(particle) -- 71
-	_with_0:onTapMoved(function(touch) -- 72
-		if not touch.first then -- 73
-			return -- 73
-		end -- 73
-		particle.position = particle.position + (touch.delta / 2) -- 74
-	end) -- 72
-	root = _with_0 -- 68
-end -- 68
-local DataDirty = false -- 78
-local Item -- 80
-Item = function(name) -- 80
-	return PushItemWidth(-180, function() -- 81
-		local _exp_0 = Data[name][2] -- 82
-		if "float" == _exp_0 then -- 83
-			local changed -- 84
-			changed, Data[name][3] = DragFloat(name, Data[name][3], 0.1, -1000, 1000, "%.1f") -- 84
-			if changed then -- 85
-				DataDirty = true -- 85
-			end -- 85
-		elseif "floatN" == _exp_0 then -- 86
-			local changed -- 87
-			changed, Data[name][3] = DragFloat(name, Data[name][3], 0.1, -1, 1000, "%.1f") -- 87
-			if changed then -- 88
-				DataDirty = true -- 88
-			end -- 88
-		elseif "Uint32" == _exp_0 then -- 89
-			local changed -- 90
-			changed, Data[name][3] = DragInt(name, math.floor(Data[name][3]), 1, 0, 1000) -- 90
-			if changed then -- 91
-				DataDirty = true -- 91
-			end -- 91
-		elseif "EmitterType" == _exp_0 then -- 92
-			return LabelText("EmitterType", "Gravity") -- 93
-		elseif "BlendFunc" == _exp_0 then -- 94
-			return LabelText("BlendFunc", "Additive") -- 95
-		elseif "Vec2" == _exp_0 then -- 96
-			local x, y -- 97
-			do -- 97
-				local _obj_0 = Data[name][3] -- 97
-				x, y = _obj_0.x, _obj_0.y -- 97
-			end -- 97
-			local changed -- 98
-			changed, x, y = DragInt2(name, math.floor(x), math.floor(y), 1, -1000, 1000) -- 98
-			if changed then -- 99
-				DataDirty, Data[name][3] = true, Vec2(x, y) -- 99
-			end -- 99
-		elseif "Color" == _exp_0 then -- 100
-			return PushItemWidth(-150, function() -- 101
-				SetColorEditOptions({ -- 102
-					"DisplayRGB" -- 102
-				}) -- 102
-				local changed = ColorEdit4(name, Data[name][3]) -- 103
-				if changed then -- 104
-					DataDirty = true -- 104
-				end -- 104
-			end) -- 104
-		elseif "bool" == _exp_0 then -- 105
-			local changed -- 106
-			changed, Data[name][3] = Checkbox(name, Data[name][3]) -- 106
-			if changed then -- 107
-				DataDirty = true -- 107
-			end -- 107
-		elseif "string" == _exp_0 then -- 108
-			local buffer = Data[name][4] -- 109
-			local changed = InputText(name, buffer) -- 110
-			if changed then -- 111
-				DataDirty = true -- 112
-				Data[name][3] = buffer:toString() -- 113
-			end -- 111
-		end -- 113
-	end) -- 113
+	StartPosition = { -- 38
+		"S", -- 38
+		"Vec2", -- 38
+		Vec2(0, 0) -- 38
+	}, -- 38
+	StartPositionVariance = { -- 39
+		"T", -- 39
+		"Vec2", -- 39
+		Vec2(0, 0) -- 39
+	}, -- 39
+	StartColor = { -- 40
+		"U", -- 40
+		"Color", -- 40
+		Color(194, 64, 31, 255) -- 40
+	}, -- 40
+	StartColorVariance = { -- 41
+		"V", -- 41
+		"Color", -- 41
+		Color(0x0) -- 41
+	}, -- 41
+	StartParticleSize = { -- 42
+		"W", -- 42
+		"float", -- 42
+		30 -- 42
+	}, -- 42
+	StartParticleSizeVariance = { -- 43
+		"X", -- 43
+		"float", -- 43
+		10 -- 43
+	}, -- 43
+	TextureName = { -- 44
+		"Y", -- 44
+		"string", -- 44
+		"", -- 44
+		Buffer(256) -- 44
+	}, -- 44
+	TextureRect = { -- 45
+		"Z", -- 45
+		"Rect", -- 45
+		Rect(0, 0, 0, 0) -- 45
+	}, -- 45
+	EmitterType = { -- 46
+		"a", -- 46
+		"EmitterType", -- 46
+		0 -- 46
+	} -- 46
+} -- 20
+local Gravity = { -- 48
+	RotationIsDir = { -- 48
+		"b", -- 48
+		"bool", -- 48
+		false -- 48
+	}, -- 48
+	Gravity = { -- 49
+		"c", -- 49
+		"Vec2", -- 49
+		Vec2(0, 100) -- 49
+	}, -- 49
+	Speed = { -- 50
+		"d", -- 50
+		"float", -- 50
+		20 -- 50
+	}, -- 50
+	SpeedVariance = { -- 51
+		"e", -- 51
+		"float", -- 51
+		5 -- 51
+	}, -- 51
+	RadialAcceleration = { -- 52
+		"f", -- 52
+		"float", -- 52
+		0 -- 52
+	}, -- 52
+	RadialAccelVariance = { -- 53
+		"g", -- 53
+		"float", -- 53
+		0 -- 53
+	}, -- 53
+	TangentialAcceleration = { -- 54
+		"h", -- 54
+		"float", -- 54
+		0 -- 54
+	}, -- 54
+	TangentialAccelVariance = { -- 55
+		"i", -- 55
+		"float", -- 55
+		0 -- 55
+	} -- 55
+} -- 47
+local Radius = { -- 57
+	StartRadius = { -- 57
+		"j", -- 57
+		"float", -- 57
+		0 -- 57
+	}, -- 57
+	StartRadiusVariance = { -- 58
+		"k", -- 58
+		"float", -- 58
+		0 -- 58
+	}, -- 58
+	FinishRadius = { -- 59
+		"l", -- 59
+		"floatN", -- 59
+		-1 -- 59
+	}, -- 59
+	FinishRadiusVariance = { -- 60
+		"m", -- 60
+		"float", -- 60
+		0 -- 60
+	}, -- 60
+	RotatePerSecond = { -- 61
+		"n", -- 61
+		"float", -- 61
+		0 -- 61
+	}, -- 61
+	RotatePerSecondVariance = { -- 62
+		"o", -- 62
+		"float", -- 62
+		0 -- 62
+	} -- 62
+} -- 56
+local toString -- 64
+toString = function(value) -- 64
+	local _exp_0 = tolua.type(value) -- 65
+	if "number" == _exp_0 then -- 66
+		return tostring(value) -- 67
+	elseif "string" == _exp_0 then -- 68
+		return value -- 69
+	elseif "Rect" == _exp_0 then -- 70
+		return tostring(value.x) .. "," .. tostring(value.y) .. "," .. tostring(value.width) .. "," .. tostring(value.height) -- 71
+	elseif "boolean" == _exp_0 then -- 72
+		return value and "1" or "0" -- 73
+	elseif "Vec2" == _exp_0 then -- 74
+		return tostring(value.x) .. "," .. tostring(value.y) -- 75
+	elseif "Color" == _exp_0 then -- 76
+		return string.format("%.2f,%.2f,%.2f,%.2f", value.r / 255, value.g / 255, value.b / 255, value.a / 255) -- 77
+	end -- 77
+end -- 64
+local _anon_func_1 = function(Data, Gravity, Radius, emitterType, pairs) -- 80
+	local _tab_0 = { } -- 80
+	local _idx_0 = 1 -- 80
+	for _key_0, _value_0 in pairs(Data) do -- 80
+		if _idx_0 == _key_0 then -- 80
+			_tab_0[#_tab_0 + 1] = _value_0 -- 80
+			_idx_0 = _idx_0 + 1 -- 80
+		else -- 80
+			_tab_0[_key_0] = _value_0 -- 80
+		end -- 80
+	end -- 80
+	local _obj_0 = (emitterType == 1 and Gravity or Radius) -- 80
+	local _idx_1 = 1 -- 80
+	for _key_0, _value_0 in pairs(_obj_0) do -- 80
+		if _idx_1 == _key_0 then -- 80
+			_tab_0[#_tab_0 + 1] = _value_0 -- 80
+			_idx_1 = _idx_1 + 1 -- 80
+		else -- 80
+			_tab_0[_key_0] = _value_0 -- 80
+		end -- 80
+	end -- 80
+	return _tab_0 -- 80
 end -- 80
-local _anon_func_0 = function(Data, pairs, toString, tostring) -- 120
-	local _accum_0 = { } -- 120
-	local _len_0 = 1 -- 120
-	for k, v in pairs(Data) do -- 120
-		_accum_0[_len_0] = "<" .. tostring(v[1]) .. " A=\"" .. tostring(toString(v[3])) .. "\"/>" -- 120
-		_len_0 = _len_0 + 1 -- 120
-	end -- 120
-	return _accum_0 -- 120
-end -- 120
-local work = coroutine.wrap(function() -- 115
-	while true do -- 116
-		sleep(1) -- 117
-		if DataDirty then -- 118
-			DataDirty = false -- 119
-			Cache:update("__test__.par", "<A>" .. table.concat(_anon_func_0(Data, pairs, toString, tostring)) .. "</A>") -- 120
-			particle:removeFromParent() -- 121
-			do -- 122
-				local _with_0 = Particle("__test__.par") -- 122
-				_with_0:start() -- 123
-				particle = _with_0 -- 122
-			end -- 122
-			root:addChild(particle) -- 124
+local _anon_func_0 = function(Data, Gravity, Radius, emitterType, pairs, toString, tostring) -- 80
+	local _accum_0 = { } -- 80
+	local _len_0 = 1 -- 80
+	for k, v in pairs(_anon_func_1(Data, Gravity, Radius, emitterType, pairs)) do -- 80
+		_accum_0[_len_0] = "\n\t<" .. tostring(v[1]) .. " A=\"" .. tostring(toString(v[3])) .. "\"/>" -- 80
+		_len_0 = _len_0 + 1 -- 80
+	end -- 80
+	return _accum_0 -- 80
+end -- 80
+local getParticle -- 79
+getParticle = function() -- 79
+	return "<A>" .. table.concat(_anon_func_0(Data, Gravity, Radius, emitterType, pairs, toString, tostring)) .. "\n</A>" -- 80
+end -- 79
+Cache:update("__test__.par", getParticle()) -- 82
+local particle -- 84
+do -- 84
+	local _with_0 = Particle("__test__.par") -- 84
+	_with_0:start() -- 85
+	particle = _with_0 -- 84
+end -- 84
+local root -- 87
+do -- 87
+	local _with_0 = Node() -- 87
+	_with_0.scaleX = 2 -- 88
+	_with_0.scaleY = 2 -- 89
+	_with_0:addChild(particle) -- 90
+	_with_0:onTapMoved(function(touch) -- 91
+		if not touch.first then -- 92
+			return -- 92
+		end -- 92
+		particle.position = particle.position + (touch.delta / 2) -- 93
+	end) -- 91
+	root = _with_0 -- 87
+end -- 87
+local DataDirty = false -- 97
+local Item -- 99
+Item = function(name, data) -- 99
+	local _with_0 = data[name] -- 99
+	local _exp_0 = _with_0[2] -- 99
+	if "float" == _exp_0 then -- 100
+		local changed -- 101
+		changed, _with_0[3] = DragFloat(name, _with_0[3], 0.1, -1000, 1000, "%.1f") -- 101
+		if changed then -- 101
+			DataDirty = true -- 102
+		end -- 101
+	elseif "floatN" == _exp_0 then -- 103
+		local changed -- 104
+		changed, _with_0[3] = DragFloat(name, _with_0[3], 0.1, -1, 1000, "%.1f") -- 104
+		if changed then -- 104
+			DataDirty = true -- 105
+		end -- 104
+	elseif "Uint32" == _exp_0 then -- 106
+		local changed -- 107
+		changed, _with_0[3] = DragInt(name, math.floor(_with_0[3]), 1, 0, 1000) -- 107
+		if changed then -- 107
+			DataDirty = true -- 108
+		end -- 107
+	elseif "EmitterType" == _exp_0 then -- 109
+		do -- 110
+			local changed -- 110
+			changed, emitterType = Combo("EmitterType", emitterType, emitterTypes) -- 110
+			if changed then -- 110
+				_with_0[3] = emitterType == 1 and 0 or 1 -- 111
+			end -- 110
+		end -- 110
+		PushItemWidth(-180, function() -- 112
+			if emitterType == 1 then -- 113
+				for k in pairs(Gravity) do -- 114
+					Item(k, Gravity) -- 114
+				end -- 114
+			else -- 116
+				for k in pairs(Radius) do -- 116
+					Item(k, Radius) -- 116
+				end -- 116
+			end -- 113
+		end) -- 112
+	elseif "BlendFunc" == _exp_0 then -- 117
+		if name == "BlendFuncDestination" then -- 118
+			local changed -- 119
+			changed, blendFuncDst = Combo("BlendFuncDestination", blendFuncDst, blendFuncs) -- 119
+			if changed then -- 119
+				_with_0[3] = BlendFunc:get(blendFuncs[blendFuncDst]) -- 120
+				_with_0[4] = blendFuncs[blendFuncDst] -- 121
+			end -- 119
+		elseif name == "BlendFuncSource" then -- 122
+			local changed -- 123
+			changed, blendFuncSrc = Combo("BlendFuncSource", blendFuncSrc, blendFuncs) -- 123
+			if changed then -- 123
+				_with_0[3] = BlendFunc:get(blendFuncs[blendFuncSrc]) -- 124
+				_with_0[4] = blendFuncs[blendFuncSrc] -- 125
+			end -- 123
 		end -- 118
-	end -- 124
-end) -- 115
-local windowFlags = { -- 127
-	"NoResize", -- 127
-	"NoSavedSettings" -- 127
-} -- 127
-local _anon_func_1 = function(Data, pairs, toString, tostring) -- 136
-	local _accum_0 = { } -- 136
-	local _len_0 = 1 -- 136
-	for k, v in pairs(Data) do -- 136
-		_accum_0[_len_0] = "<" .. tostring(v[1]) .. " A=\"" .. tostring(toString(v[3])) .. "\"/>" -- 136
-		_len_0 = _len_0 + 1 -- 136
-	end -- 136
-	return _accum_0 -- 136
-end -- 136
-return threadLoop(function() -- 128
-	local width, height -- 129
-	do -- 129
-		local _obj_0 = App.visualSize -- 129
-		width, height = _obj_0.width, _obj_0.height -- 129
-	end -- 129
-	SetNextWindowPos(Vec2(width - 400, 10), "FirstUseEver") -- 130
-	SetNextWindowSize(Vec2(390, height - 80), "FirstUseEver") -- 131
-	Begin("Particle", windowFlags, function() -- 132
-		for k in pairs(Data) do -- 133
-			Item(k) -- 134
-		end -- 134
-		if Button("Export") then -- 135
-			return print("<A>" .. table.concat(_anon_func_1(Data, pairs, toString, tostring)) .. "</A>") -- 136
-		end -- 135
-	end) -- 132
-	return work() -- 137
-end) -- 137
+	elseif "Vec2" == _exp_0 then -- 126
+		local x, y -- 127
+		do -- 127
+			local _obj_0 = _with_0[3] -- 127
+			x, y = _obj_0.x, _obj_0.y -- 127
+		end -- 127
+		local changed -- 128
+		changed, x, y = DragInt2(name, math.floor(x), math.floor(y), 1, -1000, 1000) -- 128
+		if changed then -- 128
+			DataDirty, _with_0[3] = true, Vec2(x, y) -- 129
+		end -- 128
+	elseif "Color" == _exp_0 then -- 130
+		PushItemWidth(-150, function() -- 131
+			SetColorEditOptions({ -- 132
+				"DisplayRGB" -- 132
+			}) -- 132
+			local changed = ColorEdit4(name, _with_0[3]) -- 133
+			if changed then -- 133
+				DataDirty = true -- 134
+			end -- 133
+		end) -- 131
+	elseif "bool" == _exp_0 then -- 135
+		local changed -- 136
+		changed, _with_0[3] = Checkbox(name, _with_0[3]) -- 136
+		if changed then -- 136
+			DataDirty = true -- 137
+		end -- 136
+	elseif "string" == _exp_0 then -- 138
+		local buffer = _with_0[4] -- 139
+		local changed = InputText(name, buffer) -- 140
+		if changed then -- 140
+			DataDirty = true -- 141
+			_with_0[3] = buffer.text -- 142
+		end -- 140
+	end -- 142
+	return _with_0 -- 99
+end -- 99
+local refresh = coroutine.wrap(function() -- 144
+	while true do -- 144
+		sleep(1) -- 145
+		if DataDirty then -- 146
+			DataDirty = false -- 147
+			Cache:update("__test__.par", getParticle()) -- 148
+			particle:removeFromParent() -- 149
+			local _with_0 = Particle("__test__.par") -- 150
+			_with_0:start() -- 151
+			_with_0:addTo(particle) -- 152
+			particle = _with_0 -- 150
+		end -- 146
+	end -- 152
+end) -- 144
+local buffer = Buffer(5000) -- 155
+local windowFlags = { -- 156
+	"NoResize", -- 156
+	"NoSavedSettings" -- 156
+} -- 156
+return threadLoop(function() -- 157
+	local width, height -- 158
+	do -- 158
+		local _obj_0 = App.visualSize -- 158
+		width, height = _obj_0.width, _obj_0.height -- 158
+	end -- 158
+	SetNextWindowPos(Vec2(width - 400, 10), "FirstUseEver") -- 159
+	SetNextWindowSize(Vec2(390, height - 80), "FirstUseEver") -- 160
+	Begin("Particle", windowFlags, function() -- 161
+		PushItemWidth(-180, function() -- 162
+			for k in pairs(Data) do -- 163
+				Item(k, Data) -- 164
+			end -- 164
+		end) -- 162
+		if Button("Export") then -- 165
+			buffer.text = getParticle() -- 166
+		end -- 165
+		SameLine() -- 167
+		return PushItemWidth(-1, function() -- 168
+			return InputTextMultiline("###Edited", buffer) -- 169
+		end) -- 169
+	end) -- 161
+	return refresh() -- 170
+end) -- 170
