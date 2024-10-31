@@ -1309,6 +1309,6 @@ collectgarbage("param", "pause", 100)
 collectgarbage("param", "stepmul", 5000)
 ]]
 collectgarbage("generational")
-collectgarbage("param", "minormul", 25)
-collectgarbage("param", "minormajor", 100)
+collectgarbage("param", "minormul", 20)
+collectgarbage("param", "minormajor", 70)
 collectgarbage("param", "majorminor", 50)
