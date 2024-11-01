@@ -2,13 +2,25 @@ import "@site/src/languages/highlight";
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-# 如何使用 Update 调度
+# 如何使用游戏更新调度
 
-&emsp;&emsp;Dora SSR 提供了灵活的 Update 调度机制，让开发者可以方便地控制游戏逻辑的更新。本教程将带你了解如何使用 Update 调度，包括异步处理的协程任务和每帧重复调用的更新函数。
+&emsp;&emsp;Dora SSR 提供了灵活的调度机制，让开发者可以方便地控制游戏逻辑的更新。本教程将带你了解如何使用游戏更新调度系统，包括异步处理的协程任务和每帧重复调用的更新函数。
 
-## 1. 理解 Update 调度
+## 1. 理解游戏更新调度
 
-&emsp;&emsp;Update 调度是游戏引擎中用于管理和执行游戏逻辑更新的机制。它允许开发者在每一帧或特定条件下执行代码，从而实现动态的游戏体验。
+&emsp;&emsp;游戏更新调度是游戏引擎中用于管理和执行游戏逻辑更新的机制。它允许开发者在每一帧或特定条件下执行代码，从而实现动态的游戏体验。游戏引擎的本质就是一个不间断的循环程序，每一次循环称为一帧，游戏逻辑的更新就是在每一帧中进行的。
+
+&emsp;&emsp;一个典型的游戏逻辑更新流程如下，在 60 帧执行的引擎下，这个流程会在每秒执行 60 次：
+
+```mermaid
+flowchart TD
+	Start[开始帧]
+	Start --> Input[处理输入]
+	Input --> Update[更新游戏逻辑]
+	Update --> Render[渲染场景]
+	Render --> End[结束帧]
+	End --> Start
+```
 
 ## 2. 协程任务与更新函数的区别
 

@@ -4154,7 +4154,7 @@ interface SpineClass {
 	/**
 	 * Creates a new instance of 'Spine' using the specified Spine string.
 	 * @param spineStr The Spine file string for the new instance.
-	-- A Spine file string can be a file path with the target file extention like "Spine/item" or file paths with all the related files like "Spine/item.skel|Spine/item.atlas" or "Spine/item.json|Spine/item.atlas".
+	 * A Spine file string can be a file path with the target file extention like "Spine/item" or file paths with all the related files like "Spine/item.skel|Spine/item.atlas" or "Spine/item.json|Spine/item.atlas".
 	 * @returns A new instance of 'Spine'.
 	 */
 	(this: void, spineStr: string): Spine | null;

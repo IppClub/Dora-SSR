@@ -119,7 +119,7 @@ Director.entry:addChild(MainScene())
 &emsp;&emsp;有了 Dora XML 简化界面代码的编写，我们可以进一步地引入了叫做 YueScript 的新语言进行开发，YueScript 是一门编译成Lua运行的语言，所以可以和 Lua 无缝结合使用。它的最大的特性是代码比较简洁和易于维护。下面就来看一下怎么用 YueScript 配合 Dora XML 写业务逻辑吧。前文中的代码如果使用 YueScript 就可以写成：
 
 ```yue title="Button.yue"
-_ENV = Dora!
+_ENV = Dora
 import "ButtonView"
 
 -- params: x, y, radius, text, fontSize
@@ -139,7 +139,7 @@ Class
 ```
 
 ```yue title="MainScene.yue"
-_ENV = Dora!
+_ENV = Dora
 import "MainSceneView"
 
 Class
