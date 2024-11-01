@@ -1,0 +1,512 @@
+import "@site/src/languages/highlight";
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# 使用瓦片地图的功能
+
+&emsp;&emsp;在游戏开发中，瓦片地图是一种常见的场景构建方式。本文将介绍如何使用 **Tiled Editor** 制作瓦片地图，并利用 **Dora SSR** 游戏引擎的 **TileNode** 类来加载和渲染这些地图，以及如何读取地图中的分层数据。
+
+## 1. Tiled Editor 简介
+
+&emsp;&emsp;[Tiled Editor](https://www.mapeditor.org) 是一款免费、开源且功能强大的瓦片地图编辑器。它支持多种地图格式和层级，可以方便地创建复杂的游戏场景。主要特点包括：
+
+- **多平台支持**：可在 Windows、macOS、Linux 等操作系统上运行。
+- **灵活的层级系统**：支持多层地图编辑，包括瓦片层、对象层和图像层。
+- **丰富的导出格式**：支持导出为 JSON、XML、TMX 等多种格式，方便与各种游戏引擎集成。
+
+## 2. 使用 TileNode 加载和渲染瓦片地图
+
+### 2.1 准备工作
+
+&emsp;&emsp;首先，确保已安装 **Tiled Editor** 并制作了一个瓦片地图，导出为 **TMX（XML 格式）** 文件。例如，我们有一个名为 `platform.tmx` 的地图文件。
+
+### 2.2 创建 TileNode 实例
+
+&emsp;&emsp;在 Lua 脚本中，首先需要加载 `TileNode` 模块，然后创建一个 `TileNode` 对象。
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local TileNode <const> = require("TileNode")
+
+-- 加载整个地图
+local tmxNode = TileNode("TMX/platform.tmx")
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local TileNode <const> = require("TileNode")
+
+-- 加载整个地图，包括所有图层
+local tmxNode = TileNode("TMX/platform.tmx")
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { TileNode } from "Dora";
+
+// 加载整个地图，包括所有图层
+const tmxNode = TileNode("TMX/platform.tmx");
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+-- 加载整个地图，包括所有图层
+tmxNode = TileNode "TMX/platform.tmx"
+```
+
+</TabItem>
+</Tabs>
+
+&emsp;&emsp;如果只想加载特定的图层，可以在创建 `TileNode` 时指定图层名称：
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+-- 加载指定的图层
+local tmxNode = TileNode("TMX/platform.tmx", "Far")
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+-- 加载指定的图层
+local tmxNode = TileNode("TMX/platform.tmx", "Far")
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+// 加载指定的图层
+const tmxNode = TileNode("TMX/platform.tmx", "Far");
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+-- 加载指定的图层
+tmxNode = TileNode "TMX/platform.tmx" "Far"
+```
+
+</TabItem>
+</Tabs>
+
+&emsp;&emsp;或者只加载多个特定的图层：
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+-- 加载多个图层
+local tmxNode = TileNode("TMX/platform.tmx", {"Far", "Near"})
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+-- 加载多个图层
+local tmxNode = TileNode("TMX/platform.tmx", {"Far", "Near"})
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+// 加载多个图层
+const tmxNode = TileNode("TMX/platform.tmx", ["Far", "Near"]);
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+-- 加载多个图层
+tmxNode = TileNode "TMX/platform.tmx", ["Far", "Near"]
+```
+
+</TabItem>
+</Tabs>
+
+### 2.3 添加 TileNode 到场景树
+
+&emsp;&emsp;创建好 `TileNode` 实例后，可以将其添加到特定的场景树中，并可以通过该节点控制瓦片地图的平移、旋转和缩放等操作。
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+-- 将 TileNode 添加到一个已有的场景中
+scene:addChild(tmxNode)
+
+-- 设置瓦片地图的位置和缩放
+tmxNode.position = Vec2(100, 100)
+tmxNode.scaleX = 2.0
+tmxNode.scaleY = 2.0
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+-- 将 TileNode 添加到一个已有的场景中
+scene:addChild(tmxNode)
+
+-- 设置瓦片地图的位置和缩放
+tmxNode.position = Vec2(100, 100)
+tmxNode.scaleX = 2.0
+tmxNode.scaleY = 2.0
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+// 将 TileNode 添加到一个已有的场景中
+scene.addChild(tmxNode);
+
+// 设置瓦片地图的位置和缩放
+tmxNode.position = Vec2(100, 100);
+tmxNode.scaleX = 2.0;
+tmxNode.scaleY = 2.0;
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+-- 将 TileNode 添加到一个已有的场景中
+scene\addChild tmxNode
+
+-- 设置瓦片地图的位置和缩放
+tmxNode.position = Vec2 100, 100
+tmxNode.scaleX = 2.0
+tmxNode.scaleY = 2.0
+```
+
+</TabItem>
+</Tabs>
+
+### 2.4 读取图层数据
+
+&emsp;&emsp;`TileNode` 提供了 `getLayer` 方法，可以根据图层名称获取对应的图层数据。
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+-- 获取名为 "Objects" 的图层
+local layer = tmxNode:getLayer("Objects")
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+-- 获取名为 "Objects" 的图层
+if tmxNode is nil then
+	return
+end
+
+local layer = tmxNode:getLayer("Objects")
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+// 获取名为 "Objects" 的图层
+if (tmxNode !== null) {
+	error("加载地图失败");
+}
+
+const layer = tmxNode.getLayer("Objects");
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+-- 获取名为 "Objects" 的图层
+layer = tmxNode\getLayer "Objects"
+```
+
+</TabItem>
+</Tabs>
+
+&emsp;&emsp;图层数据以字典（Dictionary）的形式返回，具体内容取决于图层的类型。例如，对于 Tiled 的对象层，可以这样遍历其中的对象。
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+-- 遍历对象层中的对象
+layer.objects:each(function(item)
+	print("对象：", item.name)
+	item:each(function(value, key)
+		print("\t", key, value)
+	end)
+end)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local Dictionary <const> = require("Dictionary")
+
+-- 遍历对象层中的对象
+if layer is nil then
+	return
+end
+
+local objects = layer.objects as Dictionary.Type
+objects:each(function(item: Dictionary.Type): boolean
+	print("对象：", item.name)
+	item:each(function(value: any, key: string)
+		print("\t", key, value)
+	end)
+	return false
+end)
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { tolua, TypeName } from "Dora";
+
+// 遍历对象层中的对象
+const objects = tolua.cast(tmxNode.getLayer("Objects")?.objects, TypeName.Array);
+objects?.each(item => {
+	print(item);
+	const dict = tolua.cast(item, TypeName.Dictionary);
+	dict?.each((value, key) => {
+		print('\t', key, value);
+		return false;
+	});
+	return false;
+});
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+-- 遍历对象层中的对象
+layer.objects\each (item) ->
+	print "对象：", item.name
+	item\each (value, key) ->
+		print "\t", key, value
+```
+
+</TabItem>
+</Tabs>
+
+### 2.5 设置渲染属性
+
+&emsp;&emsp;`TileNode` 还提供了一些属性，可以控制瓦片地图的渲染效果。
+
+- **depthWrite**：是否写入深度缓冲区，默认值为 `false`。
+- **blendFunc**：混合函数，控制渲染的混合模式。
+- **effect**：着色器效果，可以为瓦片地图添加特效。
+- **filter**：纹理过滤模式，控制纹理的显示效果。默认值为 `"Point"`，这个模式比较适合像素风格的游戏地图渲染。
+
+&emsp;&emsp;例如，设置瓦片地图的纹理过滤模式为异向性过滤，使得地图边缘更加平滑：
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+tmxNode.filter = "Anisotropic"
+```
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+tmxNode.filter = "Anisotropic"
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { TextureFilter } from "Dora";
+
+tmxNode.filter = TextureFilter.Anisotropic;
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+tmxNode.filter = "Anisotropic"
+```
+
+</TabItem>
+</Tabs>
+
+## 3. 完整示例
+
+&emsp;&emsp;下面是一个完整的示例，演示如何加载瓦片地图、添加到场景、读取对象层数据并设置渲染属性。
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local TileNode <const> = require("TileNode")
+local Director <const> = require("Director")
+
+-- 创建 TileNode 实例，加载整个地图
+local tmxNode = TileNode("TMX/platform.tmx")
+
+-- 设置纹理过滤模式
+tmxNode.filter = "Anisotropic"
+
+-- 将 TileNode 添加到场景中
+-- Director.entry 为引擎的场景根节点
+-- 如果注释下面代码不做指定也会自动默认添加到这个节点
+local scene = Director.entry
+scene:addChild(tmxNode)
+
+-- 获取对象层数据
+local layer = tmxNode:getLayer("Objects")
+
+-- 遍历对象层中的对象
+layer.objects:each(function(item)
+	print("对象名：", item.name)
+	print(" 可见属性：", item.visible)
+	print(" 位置属性：", item.position)
+	print(" 形状属性：", item.shape)
+	-- 访问其他属性...
+end)
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local TileNode <const> = require("TileNode")
+local Director <const> = require("Director")
+local Dictionary <const> = require("Dictionary")
+
+-- 创建 TileNode 实例，加载整个地图
+local tmxNode = TileNode("TMX/platform.tmx")
+if tmxNode is nil then return end
+
+-- 设置纹理过滤模式
+tmxNode.filter = "Anisotropic"
+
+-- 将 TileNode 添加到场景中
+-- Director.entry 为引擎的场景根节点
+-- 如果注释下面代码不做指定也会自动默认添加到这个节点
+local scene = Director.entry
+scene:addChild(tmxNode)
+
+-- 获取对象层数据
+local layer = tmxNode:getLayer("Objects")
+if not layer is nil then
+	local objects = layer.objects as Dictionary.Type
+
+	-- 遍历对象层中的对象
+	objects:each(function(item: Dictionary.Type): boolean
+		print("对象名：", item.name)
+		print(" 可见属性：", item.visible)
+		print(" 位置属性：", item.position)
+		print(" 形状属性：", item.shape)
+		-- 访问其他属性...
+		return false
+	end)
+end
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { TileNode, Director, TextureFilter, tolua, TypeName } from "Dora";
+
+// 创建 TileNode 实例，加载整个地图
+const tmxNode = TileNode("TMX/platform.tmx");
+if (tmxNode === null) {
+	error("加载地图失败");
+}
+
+// 设置纹理过滤模式
+tmxNode.filter = TextureFilter.Anisotropic;
+
+// 将 TileNode 添加到场景中
+// Director.entry 为引擎的场景根节点
+// 如果注释下面代码不做指定也会自动默认添加到这个节点
+const scene = Director.entry;
+scene.addChild(tmxNode);
+
+// 获取对象层数据
+const layer = tmxNode.getLayer("Objects");
+if (layer !== null) {
+	const objects = tolua.cast(layer.objects, TypeName.Dictionary);
+	// 遍历对象层中的对象
+	objects?.each(obj => {
+		const item = tolua.cast(obj, TypeName.Dictionary);
+		if (item !== null) {
+			print("对象名：", item.name);
+			print(" 可见属性：", item.visible);
+			print(" 位置属性：", item.position);
+			print(" 形状属性：", item.shape);
+			// 访问其他属性...
+		}
+		return false;
+	});
+}
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+
+-- 创建 TileNode 实例，加载整个地图
+tmxNode = TileNode "TMX/platform.tmx"
+
+-- 设置纹理过滤模式
+tmxNode.filter = "Anisotropic"
+
+-- 将 TileNode 添加到场景中
+-- Director.entry 为引擎的场景根节点
+-- 如果注释下面代码不做指定也会自动默认添加到这个节点
+scene = Director.entry
+scene\addChild tmxNode
+
+-- 获取对象层数据
+layer = tmxNode\getLayer "Objects"
+
+-- 遍历对象层中的对象
+layer.objects\each (item) ->
+	print "对象名：", item.name
+	print " 可见属性：", item.visible
+	print " 位置属性：", item.position
+	print " 形状属性：", item.shape
+	-- 访问其他属性...
+```
+
+</TabItem>
+</Tabs>
+
+
+## 4. 总结
+
+&emsp;&emsp;通过 **Dora SSR** 的 **TileNode** 类，我们可以方便地加载和渲染由 **Tiled Editor** 制作的瓦片地图。同时，可以通过 `getLayer` 方法获取地图中的图层数据，进行游戏逻辑的处理。利用这些功能，开发者可以高效地构建复杂的瓦片地图游戏场景。

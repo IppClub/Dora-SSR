@@ -4,13 +4,13 @@ import TabItem from '@theme/TabItem';
 
 # Using Vector Graphics Nodes
 
-&emsp;&emsp;Dora SSR is built on the [nanovg](https://github.com/memononen/nanovg) library, providing a powerful set of vector graphic drawing capabilities. This tutorial will guide you through using these vector graphics features in Dora SSR. You will learn how to create vector graphic nodes, render shapes, apply transformations, and load and display SVG files.
+Dora SSR is built on the [nanovg](https://github.com/memononen/nanovg) library, providing a powerful set of vector graphic drawing capabilities. This tutorial will guide you through using these vector graphics features in Dora SSR. You will learn how to create vector graphic nodes, render shapes, apply transformations, and load and display SVG files.
 
 ## 1. Introduction
 
-&emsp;&emsp;Vector graphics allow for the creation of scalable, resolution-independent images using mathematical equations rather than pixel grids. Dora SSR's vector graphics capabilities are based on the `nanovg` library, offering a fundamental vector drawing API similar to HTML5 Canvas. These features can be integrated with Dora SSR's scene node system.
+Vector graphics allow for the creation of scalable, resolution-independent images using mathematical equations rather than pixel grids. Dora SSR's vector graphics capabilities are based on the `nanovg` library, offering a fundamental vector drawing API similar to HTML5 Canvas. These features can be integrated with Dora SSR's scene node system.
 
-&emsp;&emsp;In this tutorial, we will explore how to use Dora SSR's vector graphics API to:
+In this tutorial, we will explore how to use Dora SSR's vector graphics API to:
 
 - Create vector graphic nodes (`VGNode`)
 - Draw vector graphics directly on the screen
@@ -20,7 +20,7 @@ import TabItem from '@theme/TabItem';
 
 ## 2. Using VGNode
 
-&emsp;&emsp;`VGNode` is a node in Dora SSR used to statically render vector graphics onto a texture, which can then be mounted in the game scene for display. It internally contains a framebuffer texture for drawing vector graphics and is itself a scene node object. To create a `VGNode`, you need to specify its dimensions, as well as optional scaling and anti-aliasing parameters.
+`VGNode` is a node in Dora SSR used to statically render vector graphics onto a texture, which can then be mounted in the game scene for display. It internally contains a framebuffer texture for drawing vector graphics and is itself a scene node object. To create a `VGNode`, you need to specify its dimensions, as well as optional scaling and anti-aliasing parameters.
 
 ### 2.1 Creating a Node Object
 
@@ -84,13 +84,13 @@ node = VGNode(
 </TabItem>
 </Tabs>
 
-&emsp;&emsp;This will create an instance of `VGNode`, which we will use to render vector graphics onto its associated framebuffer texture.
+This will create an instance of `VGNode`, which we will use to render vector graphics onto its associated framebuffer texture.
 
 ### 2.2 Rendering Vector Graphics
 
-&emsp;&emsp;To render vector graphics, use the `render` method of the `VGNode` instance. You need to pass a function (closure) that contains drawing commands using the `nvg` module. These drawing commands will draw shapes onto the `VGNode`'s framebuffer texture.
+To render vector graphics, use the `render` method of the `VGNode` instance. You need to pass a function (closure) that contains drawing commands using the `nvg` module. These drawing commands will draw shapes onto the `VGNode`'s framebuffer texture.
 
-&emsp;&emsp;The `nvg` module provides functions for drawing basic shapes such as rectangles, circles, lines, and paths. You can also customize the appearance of shapes using colors and brushes.
+The `nvg` module provides functions for drawing basic shapes such as rectangles, circles, lines, and paths. You can also customize the appearance of shapes using colors and brushes.
 
 #### Example: Drawing a Rectangle
 
@@ -164,10 +164,10 @@ with VGNode 200, 150
 </TabItem>
 </Tabs>
 
-&emsp;&emsp;The above code draws a red rectangle with a width of 200 and a height of 150. The `render` method will only be executed once when called for the first time, and the rendering result will be automatically cached for reuse.
+The above code draws a red rectangle with a width of 200 and a height of 150. The `render` method will only be executed once when called for the first time, and the rendering result will be automatically cached for reuse.
 
 :::tip Tip
-&emsp;&emsp;When rendering vector graphics with `VGNode`, the origin of the coordinate system is at the top left corner of the node texture, with the x-axis extending right and the y-axis extending down. The graphic calculation units are the texture pixels multiplied by the scaling value.
+When rendering vector graphics with `VGNode`, the origin of the coordinate system is at the top left corner of the node texture, with the x-axis extending right and the y-axis extending down. The graphic calculation units are the texture pixels multiplied by the scaling value.
 :::
 
 #### Example: Drawing a Circle
@@ -242,11 +242,11 @@ with VGNode 100, 100
 </TabItem>
 </Tabs>
 
-&emsp;&emsp;This code draws a yellow circle with a radius of 50. The `render` method will only be executed once when called for the first time, and the rendering result will be automatically cached for reuse.
+This code draws a yellow circle with a radius of 50. The `render` method will only be executed once when called for the first time, and the rendering result will be automatically cached for reuse.
 
 ## 3. Directly Drawing Vector Graphics on the Screen
 
-&emsp;&emsp;In addition to using `VGNode`, Dora SSR also supports directly drawing vector graphics on the top layer of the screen buffer. By calling the drawing functions from the `nvg` module in each frame, you can draw vector graphics directly on the screen without the need for `VGNode`.
+In addition to using `VGNode`, Dora SSR also supports directly drawing vector graphics on the top layer of the screen buffer. By calling the drawing functions from the `nvg` module in each frame, you can draw vector graphics directly on the screen without the need for `VGNode`.
 
 <Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
@@ -313,15 +313,15 @@ threadLoop ->
 </TabItem>
 </Tabs>
 
-&emsp;&emsp;The above code draws a red rectangle on the screen. Note that this method draws directly to the screen buffer and will overwrite the underlying game scene. It is more suitable for drawing game HUD interfaces, displaying debug information, etc.
+The above code draws a red rectangle on the screen. Note that this method draws directly to the screen buffer and will overwrite the underlying game scene. It is more suitable for drawing game HUD interfaces, displaying debug information, etc.
 
 :::tip Tip
-&emsp;&emsp;When using this drawing method, the origin of the coordinate system is at the top left corner of the screen, with the x-axis extending right and the y-axis extending down. In the visible area of the screen, the maximum value of the x-coordinate is `App.visualSize.width`, and the maximum value of the y-coordinate is `App.visualSize.height`.
+When using this drawing method, the origin of the coordinate system is at the top left corner of the screen, with the x-axis extending right and the y-axis extending down. In the visible area of the screen, the maximum value of the x-coordinate is `App.visualSize.width`, and the maximum value of the y-coordinate is `App.visualSize.height`.
 :::
 
 ### 3.1 Combining Game Scene Nodes and Vector Graphics
 
-&emsp;&emsp;You can use the `nvg.ApplyTransform(node)` function to apply the transformation of a scene node to the vector graphics being drawn. This allows you to change the position, rotation, and scaling of the vector graphics in the game scene more conveniently by controlling the node's transformation.
+You can use the `nvg.ApplyTransform(node)` function to apply the transformation of a scene node to the vector graphics being drawn. This allows you to change the position, rotation, and scaling of the vector graphics in the game scene more conveniently by controlling the node's transformation.
 
 <Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
@@ -424,15 +424,15 @@ with Node!
 </TabItem>
 </Tabs>
 
-&emsp;&emsp;The above code creates a node and draws a red rectangle onto it. Then, by setting the position and rotation of the node, the display effect of the rectangle is controlled, and the scaling of the rectangle is controlled through performing scaling actions on the node.
+The above code creates a node and draws a red rectangle onto it. Then, by setting the position and rotation of the node, the display effect of the rectangle is controlled, and the scaling of the rectangle is controlled through performing scaling actions on the node.
 
 :::tip Tip
-&emsp;&emsp;After using the `nvg.ApplyTransform(node)` function, the coordinate system's origin for the vector graphics will change to the bottom left corner of the scene node, with the x-axis extending right and the y-axis extending up. The node's scaling, rotation, and position transformations will be applied to the drawing of the vector graphics.
+After using the `nvg.ApplyTransform(node)` function, the coordinate system's origin for the vector graphics will change to the bottom left corner of the scene node, with the x-axis extending right and the y-axis extending up. The node's scaling, rotation, and position transformations will be applied to the drawing of the vector graphics.
 :::
 
 ## 4. Using Colors and Brushes
 
-&emsp;&emsp;You can use colors and brushes to customize the appearance of shapes.
+You can use colors and brushes to customize the appearance of shapes.
 
 #### Fill and Stroke Colors
 
@@ -523,7 +523,7 @@ threadLoop ->
 
 ## 5. Applying Transformations
 
-&emsp;&emsp;Transformations allow you to manipulate shapes through translation, rotation, or scaling.
+Transformations allow you to manipulate shapes through translation, rotation, or scaling.
 
 #### Transformation Functions
 
@@ -639,11 +639,11 @@ threadLoop ->
 </TabItem>
 </Tabs>
 
-&emsp;&emsp;The above code draws two rotating rectangles, one rotating 45 degrees clockwise and the other 90 degrees clockwise. Their rotation centers are at the center of the rectangles, and their respective geometric transformations do not affect each other.
+The above code draws two rotating rectangles, one rotating 45 degrees clockwise and the other 90 degrees clockwise. Their rotation centers are at the center of the rectangles, and their respective geometric transformations do not affect each other.
 
 ## 6. Loading and Rendering SVG Files
 
-&emsp;&emsp;Dora SSR provides an `SVG` class for loading and rendering SVG files. Note that currently, only a subset of simplified SVG files processed with the [picosvg](https://github.com/googlefonts/picosvg) tool is supported.
+Dora SSR provides an `SVG` class for loading and rendering SVG files. Note that currently, only a subset of simplified SVG files processed with the [picosvg](https://github.com/googlefonts/picosvg) tool is supported.
 
 ### 6.1 Loading and Directly Rendering SVG Graphics
 
@@ -711,7 +711,7 @@ threadLoop ->
 
 ### 6.2 Controlling SVG Graphics Rendering with Scene Nodes
 
-&emsp;&emsp;You can use scene nodes to control the position, rotation, and scaling of SVG graphics.
+You can use scene nodes to control the position, rotation, and scaling of SVG graphics.
 
 <Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
@@ -798,12 +798,12 @@ with Node!
 </TabItem>
 </Tabs>
 
-&emsp;&emsp;The above code creates a node and binds the SVG graphics rendering to that node. Then, by setting the rotation of the node, the display effect of the SVG graphics is controlled.
+The above code creates a node and binds the SVG graphics rendering to that node. Then, by setting the rotation of the node, the display effect of the SVG graphics is controlled.
 
 ## 7. Conclusion
 
-&emsp;&emsp;In this tutorial, we introduced how to use Dora SSR's vector graphics capabilities to draw shapes, apply transformations, and render SVG files. With these tools, you can create rich vector graphics and animations for your applications.
+In this tutorial, we introduced how to use Dora SSR's vector graphics capabilities to draw shapes, apply transformations, and render SVG files. With these tools, you can create rich vector graphics and animations for your applications.
 
-&emsp;&emsp;Remember, the `nvg` module also offers more advanced drawing and text rendering functions. You can explore functions such as `nvg.Text`, `nvg.FontFace`, and gradient brushes like `nvg.LinearGradient` for more complex graphics.
+Remember, the `nvg` module also offers more advanced drawing and text rendering functions. You can explore functions such as `nvg.Text`, `nvg.FontFace`, and gradient brushes like `nvg.LinearGradient` for more complex graphics.
 
-&emsp;&emsp;Feel free to experiment with different shapes, colors, and transformations to create unique vector graphic projects in Dora SSR!
+Feel free to experiment with different shapes, colors, and transformations to create unique vector graphic projects in Dora SSR!

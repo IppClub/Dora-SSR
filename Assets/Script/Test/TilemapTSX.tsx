@@ -12,7 +12,7 @@ function TMX(file: string) {
 	}
 	const tileNodeRef = useRef<TileNode.Type>();
 	current = toNode(
-		<align-node windowRoot onTapMoved={(touch) => {
+		<align-node windowRoot onTapMoved={touch => {
 				if (tileNodeRef.current) {
 					tileNodeRef.current.position = tileNodeRef.current.position.add(touch.delta);
 				}

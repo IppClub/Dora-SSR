@@ -6,9 +6,21 @@ import TabItem from '@theme/TabItem';
 
 Dora SSR provides a flexible Update scheduling mechanism that allows developers to easily control game logic updates. This tutorial will guide you through how to use Update scheduling, including coroutine tasks for asynchronous processing and update functions that are called every frame.
 
-## 1. Understanding Update Scheduling
+## 1. Understanding Game Update Scheduling
 
-Update scheduling is a mechanism in the game engine used to manage and execute game logic updates. It allows developers to execute code in every frame or under specific conditions, providing a dynamic game experience.
+Game update scheduling is a mechanism in game engines used to manage and execute game logic updates. It allows developers to execute code on each frame or under specific conditions, creating a dynamic gaming experience. The essence of a game engine is an uninterrupted loop program, with each cycle referred to as a frame, during which game logic updates occur.
+
+A typical game logic update process is outlined below. Under an engine executing at 60 frames per second, this process runs 60 times per second:
+
+```mermaid
+flowchart TD
+	Start[Start Frame]
+	Start --> Input[Process Input]
+	Input --> Update[Update Game Logic]
+	Update --> Render[Render Scene]
+	Render --> End[End Frame]
+	End --> Start
+```
 
 ## 2. Differences Between Coroutine Tasks and Update Functions
 

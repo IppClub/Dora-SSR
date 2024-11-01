@@ -1735,8 +1735,8 @@ class Dictionary extends Object {
 	/**
 	 * 遍历字典中每个键值对并调用处理函数。
 	 * @param func 对字典中每个键值对调用的函数。
-	-- 此函数会接收值对象Item和字符串的键作为参数，并需要返回布尔值。返回true停止遍历，false继续。
-	-- @returns 如果遍历成功完成，则返回false，否则返回true。
+	 * 此函数会接收值对象Item和字符串的键作为参数，并需要返回布尔值。返回true停止遍历，false继续。
+	 * @returns 如果遍历成功完成，则返回false，否则返回true。
 	 */
 	each(func: (this: void, item: Item, key: string) => boolean): boolean;
 
