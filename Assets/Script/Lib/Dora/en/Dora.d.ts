@@ -6475,7 +6475,7 @@ class QLearner extends Object {
 	/**
 	 * Update Q-value for a state-action pair based on received reward.
 	 * @param state Representing the state.
-	 * @param action Representing the action.
+	 * @param action Representing the action. Must be greater than 0.
 	 * @param reward Representing the reward received for the action in the state.
 	 */
 	update(state: number, action: number, reward: number): void;
@@ -6483,7 +6483,7 @@ class QLearner extends Object {
 	/**
 	 * Returns the best action for a given state based on the current Q-values.
 	 * @param state The current state.
-	 * @returns The action with the highest Q-value for the given state.
+	 * @returns The action with the highest Q-value for the given state. Returns 0 if no action is available.
 	 */
 	getBestAction(state: number): number;
 
@@ -6504,7 +6504,7 @@ export namespace QLearner {
 interface QLearnerClass {
 	/**
 	 * Construct a state from given hints and condition values.
-	 * @param hints Representing the byte length of provided values.
+	 * @param hints Representing the max number of possible hints. For example, if there are two conditions, and each condition has 3 possible values (0, 1, 2), then the hints array is {3, 3}.
 	 * @param values The condition values as discrete values.
 	 * @returns The packed state value.
 	 */
@@ -6512,7 +6512,7 @@ interface QLearnerClass {
 
 	/**
 	 * Deconstruct a state from given hints to get condition values.
-	 * @param hints Representing the byte length of provided values.
+	 * @param hints Representing the max number of possible hints. For example, if there are two conditions, and each condition has 3 possible values (0, 1, 2), then the hints array is {3, 3}.
 	 * @param state The state integer to unpack.
 	 * @returns The condition values as discrete values.
 	 */
@@ -6551,6 +6551,7 @@ class ML {
 	 * @returns The accuracy of the decision tree on the training data. And an error message if an error occurred during building of the decision tree.
 	 */
 	BuildDecisionTreeAsync(
+		this: void,
 		csvData: string,
 		maxDepth: number,
 		handler: (

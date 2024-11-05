@@ -15,13 +15,13 @@ local record QLearner
 
 	-- Update Q-value for a state-action pair based on received reward.
 	-- @param state (integer) Representing the state.
-	-- @param action (integer) Representing the action.
+	-- @param action (integer) Representing the action. Must be greater than 0.
 	-- @param reward (number) Representing the reward received for the action in the state.
 	update: function(self: QLearner, state: integer, action: integer, reward: number)
 
 	-- Returns the best action for a given state based on the current Q-values.
 	-- @param state (integer) The current state.
-	-- @return (integer) The action with the highest Q-value for the given state.
+	-- @return (integer) The action with the highest Q-value for the given state. Returns 0 if no action is available.
 	getBestAction: function(self: QLearner, state: integer): integer
 
 	-- Load Q-values from a matrix of state-action pairs.
@@ -41,13 +41,13 @@ local record QLearnerClass
 	type Type = QLearner
 
 	-- Construct a state from given hints and condition values.
-	-- @param hints ({integer}) Representing the byte length of provided values.
+	-- @param hints ({integer}) Representing the max number of possible hints. For example, if there are two conditions, and each condition has 3 possible values (0, 1, 2), then the hints array is {3, 3}.
 	-- @param values ({integer}) The condition values as discrete values.
 	-- @return (integer) The packed state value.
 	pack: function(self: QLearnerClass, hints: {integer}, values: {integer}): --[[state]] integer
 
 	-- Deconstruct a state from given hints to get condition values.
-	-- @param hints ({integer}) Representing the byte length of provided values.
+	-- @param hints ({integer}) Representing the max number of possible hints. For example, if there are two conditions, and each condition has 3 possible values (0, 1, 2), then the hints array is {3, 3}.
 	-- @param state (integer) The state integer to unpack.
 	-- @return ({integer}) The condition values as discrete values.
 	unpack: function(self: QLearnerClass, hints: {integer}, state: integer): {integer}

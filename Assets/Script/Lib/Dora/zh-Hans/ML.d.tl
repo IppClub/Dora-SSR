@@ -16,13 +16,13 @@ local record QLearner
 
 	-- 根据收到的奖励值更新一对状态和动作下的Q值。
 	-- @param state (integer) 表示状态的整数。
-	-- @param action (integer) 表示动作的整数。
+	-- @param action (integer) 表示动作的整数。必须为大于0的整数。
 	-- @param reward (number) 表示在状态中采取行动获得的奖励值。
 	update: function(self: QLearner, state: integer, action: integer, reward: number)
 
 	-- 基于当前Q值返回给定状态的最佳动作。
 	-- @param state (integer) 当前状态。
-	-- @return (integer) 给定状态下具有最高Q值的动作。
+	-- @return (integer) 给定状态下具有最高Q值的动作。返回0表示没有动作。
 	getBestAction: function(self: QLearner, state: integer): integer
 
 	-- 从状态-动作对的矩阵中加载Q值。
@@ -41,14 +41,14 @@ end
 local record QLearnerClass
 	type Type = QLearner
 
-	-- 根据给定的数值的字节长度的提示和条件数值构造状态值。
-	-- @param hints ({integer}) 表示条件数值的字节长度。
+	-- 根据给定的离散条件有多少种可能的提示和当前的条件数值构造状态值。
+	-- @param hints ({integer}) 表示离散条件有多少种可能的提示。假设有两组条件，取值范围均为0, 1, 2，则提示数组为{3, 3}。
 	-- @param values ({integer}) 离散值形式的条件值。
 	-- @return (integer) 生成的状态值。
 	pack: function(self: QLearnerClass, hints: {integer}, values: {integer}): --[[state]] integer
 
-	-- 通过给定的字节长度的提示解析状态值以获取条件值。
-	-- @param hints ({integer}) 表示条件数值的字节长度。
+	-- 通过给定的离散条件有多少种可能的提示，解析状态值以获取条件值。
+	-- @param hints ({integer}) 表示离散条件有多少种可能的提示。假设有两组条件，取值范围均为0, 1, 2，则提示数组为{3, 3}。
 	-- @param state (integer) 要解析的状态整数。
 	-- @return ({integer}) 包含离散值形式的条件值列表。
 	unpack: function(self: QLearnerClass, hints: {integer}, state: integer): {integer}
