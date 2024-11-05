@@ -46,7 +46,7 @@ update: function(self: QLearner, state: integer, action: integer, reward: number
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
 | state | integer | 表示状态的整数。 |
-| action | integer | 表示动作的整数。 |
+| action | integer | 表示动作的整数。必须为大于0的整数。 |
 | reward | number | 表示在状态中采取行动获得的奖励值。 |
 
 ## getBestAction
@@ -72,7 +72,7 @@ getBestAction: function(self: QLearner, state: integer): integer
 
 | 返回类型 | 描述 |
 | --- | --- |
-| integer | 给定状态下具有最高Q值的动作。 |
+| integer | 给定状态下具有最高Q值的动作。返回0表示没有动作。 |
 
 ## load
 
