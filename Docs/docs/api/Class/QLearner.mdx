@@ -45,7 +45,7 @@ update: function(self: QLearner, state: integer, action: integer, reward: number
 | Parameter | Type | Description |
 | --- | --- | --- |
 | state | integer | Representing the state. |
-| action | integer | Representing the action. |
+| action | integer | Representing the action. Must be greater than 0. |
 | reward | number | Representing the reward received for the action in the state. |
 
 ## getBestAction
@@ -71,7 +71,7 @@ getBestAction: function(self: QLearner, state: integer): integer
 
 | Return Type | Description |
 | --- | --- |
-| integer | The action with the highest Q-value for the given state. |
+| integer | The action with the highest Q-value for the given state. Returns 0 if no action is available. |
 
 ## load
 

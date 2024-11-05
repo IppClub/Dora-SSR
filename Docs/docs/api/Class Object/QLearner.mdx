@@ -29,7 +29,7 @@ pack: function(self: QLearnerClass, hints: {integer}, values: {integer}): --[[st
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| hints | \{integer} | Representing the byte length of provided values. |
+| hints | \{integer} | Representing the max number of possible hints. For example, if there are two conditions, and each condition has 3 possible values (0, 1, 2), then the hints array is \{3, 3}. |
 | values | \{integer} | The condition values as discrete values. |
 
 **Returns:**
@@ -55,7 +55,7 @@ unpack: function(self: QLearnerClass, hints: {integer}, state: integer): {intege
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| hints | \{integer} | Representing the byte length of provided values. |
+| hints | \{integer} | Representing the max number of possible hints. For example, if there are two conditions, and each condition has 3 possible values (0, 1, 2), then the hints array is \{3, 3}. |
 | state | integer | The state integer to unpack. |
 
 **Returns:**
