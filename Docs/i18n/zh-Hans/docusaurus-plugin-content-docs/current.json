@@ -261,7 +261,7 @@
   },
   "sidebar.apiSidebar.doc.Sprite": {
     "message": "Sprite",
-    "description": "The label for the doc item Sprite in sidebar apiSidebar, linking to the doc api/Class/Grid"
+    "description": "The label for the doc item Sprite in sidebar apiSidebar, linking to the doc api/Class/Sprite"
   },
   "sidebar.apiSidebar.doc.Texture2D": {
     "message": "Texture2D",
@@ -706,5 +706,13 @@
   "sidebar.tutorialSidebar.category.Using Input": {
     "message": "如何处理输入事件",
     "description": "The label for category Using Input in sidebar tutorialSidebar"
+  },
+  "sidebar.tutorialSidebar.category.Using Machine Learning": {
+    "message": "如何使用机器学习",
+    "description": "The label for category Using Machine Learning in sidebar tutorialSidebar"
+  },
+  "sidebar.apiSidebar.doc.Grid": {
+    "message": "Grid",
+    "description": "The label for the doc item Grid in sidebar apiSidebar, linking to the doc api/Class/Grid"
   }
 }

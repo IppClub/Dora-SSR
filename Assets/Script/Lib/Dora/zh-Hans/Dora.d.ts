@@ -6474,7 +6474,7 @@ class QLearner extends Object {
 	/**
 	 * 根据接收到的奖励更新状态-动作对的 Q 值。
 	 * @param state 表示状态的值。
-	 * @param action 表示动作的值。
+	 * @param action 表示动作的值。必须为大于0的整数。
 	 * @param reward 表示在状态中执行动作所获得的奖励。
 	 */
 	update(state: number, action: number, reward: number): void;
@@ -6482,7 +6482,7 @@ class QLearner extends Object {
 	/**
 	 * 根据当前的 Q 值返回特定状态的最佳动作。
 	 * @param state 当前状态。
-	 * @returns 特定状态下具有最高 Q 值的动作。
+	 * @returns 特定状态下具有最高 Q 值的动作。返回0表示没有动作。
 	 */
 	getBestAction(state: number): number;
 
@@ -6503,7 +6503,7 @@ export namespace QLearner {
 interface QLearnerClass {
 	/**
 	 * 根据特定的提示和条件值构造状态。
-	 * @param hints 提供的值的字节长度。
+	 * @param hints 表示离散条件有多少种可能的提示。假设有两组条件，取值范围均为0, 1, 2，则提示数组为{3, 3}。
 	 * @param values 离散值的条件值。
 	 * @returns 打包后的状态值。
 	 */
@@ -6511,7 +6511,7 @@ interface QLearnerClass {
 
 	/**
 	 * 解包函数，将状态整数解包为离散值。
-	 * @param hints 提供的值的字节长度。
+	 * @param hints 表示离散条件有多少种可能的提示。假设有两组条件，取值范围均为0, 1, 2，则提示数组为{3, 3}。
 	 * @param state 要解包的状态整数。
 	 * @returns 离散值的条件值。
 	 */
@@ -6550,6 +6550,7 @@ class ML {
 	 * @returns 决策树在训练数据上的准确度。如果在构建决策树过程中发生错误，则返回错误消息。
 	 */
 	BuildDecisionTreeAsync(
+		this: void,
 		csvData: string,
 		maxDepth: number,
 		handler: (

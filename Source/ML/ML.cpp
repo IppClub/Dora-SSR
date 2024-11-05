@@ -18,6 +18,7 @@ NS_BEGIN(ML)
 
 void BuildDecisionTreeAsync(String data, int maxDepth,
 	const std::function<void(double, String, String, String)>& handleTree) {
+	data.trimSpace();
 	auto dataStr = std::make_shared<std::string>(data.rawData(), data.size());
 	SharedAsyncThread.run(
 		[dataStr, maxDepth]() {

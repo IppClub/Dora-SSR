@@ -58,9 +58,9 @@ import TabItem from '@theme/TabItem';
 
 ```mermaid
 graph TD
-	A[一个输入上下文\n（Input Context）] -->|包含多个动作定义| B[动作定义\n（Action）]
+	A[一个输入上下文<br>（Input Context）] -->|包含多个动作定义| B[动作定义<br>（Action）]
 	A --> F[上下文的名称]
-	B -->|包含以树形结构嵌套的触发器| C[触发器\n（Trigger）]
+	B -->|包含以树形结构嵌套的触发器| C[触发器<br>（Trigger）]
 	B --> G[动作的名称]
 	C -->|描述多种触发事件源| D[按键、手柄、轴等]
 	C -->|发送包含当前输入状态的全局事件| E[Ongoing、Completed、Canceled]
@@ -72,8 +72,8 @@ graph TD
 
 ```mermaid
 graph TD
-	A[Sequence\n检测序列] -->|持续按下| B[KeyHold\n按键 LCtrl]
-	A -->|并按下| C[KeyDown\n按键 C]
+	A[Sequence<br>检测序列] -->|持续按下| B[KeyHold<br>按键 LCtrl]
+	A -->|并按下| C[KeyDown<br>按键 C]
 ```
 
 &emsp;&emsp;对应的触发器代码定义：
@@ -125,8 +125,8 @@ Trigger.Sequence [
 
 ```mermaid
 graph TD
-	A[Selector\n选择器] -->|长按| B[KeyHold\n按键 Return]
-	A -->|或长按| C[ButtonHold\n按钮 A]
+	A[Selector<br>选择器] -->|长按| B[KeyHold<br>按键 Return]
+	A -->|或长按| C[ButtonHold<br>按钮 A]
 ```
 
 &emsp;&emsp;对应的触发器代码定义：
