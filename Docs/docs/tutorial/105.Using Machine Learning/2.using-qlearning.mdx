@@ -591,9 +591,7 @@ for (let episode = 1; episode <= 1000; episode++) {
 	const enemy = math.random(0, 1); // 0: Infantry, 1: Tank
 
 	// Use pack() method to combine current conditions into a unique state value
-	const stateValues = [
-
-environment, enemy];
+	const stateValues = [environment, enemy];
 	const state = ML.QLearner.pack(hints, stateValues);
 
 	// Attempt to get the best action for the given state

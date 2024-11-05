@@ -6,11 +6,11 @@ import TabItem from '@theme/TabItem';
 
 ## 1. Introduction
 
-&emsp;&emsp;In game development, **Artificial Intelligence (AI)** plays a crucial role. This tutorial will introduce how to use the **C4.5 decision tree** algorithm provided by the Dora SSR engine to create intelligent game AI. We will learn this process step by step through a simple example.
+In game development, **Artificial Intelligence (AI)** plays a crucial role. This tutorial will introduce how to use the **C4.5 decision tree** algorithm provided by the Dora SSR engine to create intelligent game AI. We will learn this process step by step through a simple example.
 
 ### 1.1 What is a Decision Tree?
 
-&emsp;&emsp;A decision tree is a structure similar to a flowchart that assists in decision-making. Imagine we are playing a game of "guess the animal":
+A decision tree is a structure similar to a flowchart that assists in decision-making. Imagine we are playing a game of "guess the animal":
 
 ```mermaid
 graph TD
@@ -22,15 +22,15 @@ C -->|Yes| F[It's a bird]
 C -->|No| G[It's a snake]
 ```
 
-&emsp;&emsp;This is a simple example of a decision tree. In game AI, we can use a similar structure to make intelligent decisions.
+This is a simple example of a decision tree. In game AI, we can use a similar structure to make intelligent decisions.
 
 ## 2. Preparation
 
-&emsp;&emsp;First, we need to prepare training data. Suppose we are developing a simple fighting game AI that needs to decide when to **attack**, **defend**, or **flee**.
+First, we need to prepare training data. Suppose we are developing a simple fighting game AI that needs to decide when to **attack**, **defend**, or **flee**.
 
 ### 2.1 Preparing Training Data (CSV Format)
 
-&emsp;&emsp;The format of the training data is described as follows:
+The format of the training data is described as follows:
 
 - **First line**: Contains the names of all features, such as "Distance," "Enemy Health," etc.
 - **Second line**: Defines the data types of each feature, where:
@@ -51,7 +51,7 @@ Far,Low,High,Attack
 
 ## 3. Basic Code Implementation
 
-&emsp;&emsp;Let's train and generate a decision tree with this training data to implement a simple combat AI:
+Let's train and generate a decision tree with this training data to implement a simple combat AI:
 
 <Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
@@ -265,7 +265,7 @@ thread buildDecisionTreeAsync
 
 ### 3.1 Visualizing the Generated Decision Tree
 
-&emsp;&emsp;The structure of the generated decision tree is as follows:
+The structure of the generated decision tree is as follows:
 
 ```mermaid
 graph TD
@@ -277,7 +277,7 @@ C -->|No| E[Return: Defend]
 
 ## 4. Using in the Game
 
-&emsp;&emsp;Below is a simple follow-up example demonstrating how to apply this AI decision tree in a game character:
+Below is a simple follow-up example demonstrating how to apply this AI decision tree in a game character:
 
 <Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
@@ -604,7 +604,7 @@ thread ->
 
 ### 5.1 Advantages of Decision Trees
 
-&emsp;&emsp;**Decision trees**, as a machine learning algorithm, have the following advantages in game AI development:
+**Decision trees**, as a machine learning algorithm, have the following advantages in game AI development:
 
 - **Easy to understand and implement**: The structure of decision trees is intuitive and resembles human decision-making processes, making it easier for developers to comprehend and implement complex decision logic.
 - **Transparent decision process**: Each decision step is clearly visible, facilitating debugging and optimization of AI behavior.
@@ -613,7 +613,7 @@ thread ->
 
 ### 5.2 Considerations for Use
 
-&emsp;&emsp;When using decision trees to build game AI, the following points should be noted:
+When using decision trees to build game AI, the following points should be noted:
 
 - **Representativeness of training data**: Ensure that the training data covers various possible game scenarios, allowing AI to handle different states. It is recommended to use real player data as training samples.
 - **Avoid overfitting**: The depth of the decision tree should not be too large. A tree that is too deep may overfit the training data, reducing its ability to generalize to new data. Start with a smaller depth and adjust gradually based on performance.
@@ -628,7 +628,7 @@ thread ->
 
 - **Dynamically adjust AI behavior**:
 
-	&emsp;&emsp;During the game, you can dynamically update the training data based on player behavior data, retraining the decision tree to make the AI more aligned with the player's style.
+	During the game, you can dynamically update the training data based on player behavior data, retraining the decision tree to make the AI more aligned with the player's style.
 
 	<Tabs groupId="language-select">
 	<TabItem value="lua" label="Lua">
@@ -734,7 +734,7 @@ thread ->
 
 ## 8. Conclusion
 
-&emsp;&emsp;Through this tutorial, we have learned:
+Through this tutorial, we have learned:
 
 - **Basic concepts of decision trees**: Understanding how decision trees assist in decision-making and their applications in game AI.
 - **How to prepare training data**: Mastering the construction of effective training datasets as a foundation for model training.
@@ -742,4 +742,4 @@ thread ->
 - **Applying decision trees in games**: Understanding how to integrate the trained model into game logic for intelligent decision-making.
 - **Methods for optimizing and improving AI systems**: Recognizing the importance of continuous optimization and how to enhance AI performance through model and data adjustments.
 
-&emsp;&emsp;Remember, a great game AI should not only have complex algorithms but also enhance the player's gaming experience. By continuously adjusting and optimizing, you can create an AI that is both fun and challenging.
+Remember, a great game AI should not only have complex algorithms but also enhance the player's gaming experience. By continuously adjusting and optimizing, you can create an AI that is both fun and challenging.
