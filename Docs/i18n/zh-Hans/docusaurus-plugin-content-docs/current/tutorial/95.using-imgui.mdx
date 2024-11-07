@@ -78,6 +78,8 @@ import * as ImGui from "ImGui";
 threadLoop(() => {
 	ImGui.Begin("示例窗口", () => {
 		ImGui.Text("欢迎使用 Dora SSR 的 ImGui！");
+		ImGui.Separator();
+		ImGui.TextWrapped("这是一个简单的示例窗口，展示了基本的文本和分隔线。");
 	});
 	return false;
 });
@@ -417,12 +419,10 @@ _ENV = Dora Dora.ImGui
 gameObject =
 	name: "Player"
 	position:
-		x: 0.0
-		y: 0.0
+		x: 0.0, y: 0.0
 	rotation: 0.0,
 	scale:
-		x: 1.0
-		y: 1.0
+		x: 1.0, y: 1.0
 	isActive: true
 
 nameBuffer = with Buffer 100
@@ -529,13 +529,13 @@ end)
 local ImGui = require("ImGui")
 local threadLoop = require("threadLoop")
 
-local record ObjNode
+local record Node
 	name: string
-	children: {ObjNode}
+	children: {Node}
 end
 
 -- 假设我们有一个场景对象列表，包含父子关系
-local sceneObjects: {ObjNode} = {
+local sceneObjects: {Node} = {
 	{
 		name = "Root",
 		children = {
@@ -558,7 +558,7 @@ local leafFlags = {"Leaf"}
 local empty = function() end
 
 -- 递归函数，用于绘制场景树
-local function drawSceneTree(nodes: {ObjNode})
+local function drawSceneTree(nodes: {Node})
 	for _, node in ipairs(nodes) do
 		if #node.children > 0 then
 			ImGui.TreeNode(node.name, function()
@@ -586,13 +586,13 @@ import * as ImGui from "ImGui";
 import { threadLoop } from "Dora";
 import { TreeNodeFlag } from "ImGui";
 
-interface ObjNode {
+interface Node {
 	name: string;
-	children: ObjNode[];
+	children: Node[];
 }
 
 // 假设我们有一个场景对象列表，包含父子关系
-const sceneObjects: ObjNode[] = [
+const sceneObjects: Node[] = [
 	{
 		name: "Root",
 		children: [
@@ -615,7 +615,7 @@ const leafFlags = [TreeNodeFlag.Leaf];
 const empty = () => {};
 
 // 递归函数，用于绘制场景树
-function drawSceneTree(nodes: ObjNode[]) {
+function drawSceneTree(nodes: Node[]) {
 	for (const node of nodes) {
 		if (node.children.length > 0) {
 			ImGui.TreeNode(node.name, () => {

@@ -78,6 +78,8 @@ import * as ImGui from "ImGui";
 threadLoop(() => {
 	ImGui.Begin("Example Window", () => {
 		ImGui.Text("Welcome to ImGui with Dora SSR!");
+		ImGui.Separator();
+		ImGui.TextWrapped("This is a simple example window showcasing basic text and a separator.");
 	});
 	return false;
 });
@@ -529,13 +531,13 @@ end)
 local ImGui = require("ImGui")
 local threadLoop = require("threadLoop")
 
-local record ObjNode
+local record Node
 	name: string
-	children: {ObjNode}
+	children: {Node}
 end
 
 -- Assume we have a list of scene objects with parent-child relationships
-local sceneObjects: {ObjNode} = {
+local sceneObjects: {Node} = {
 	{
 		name = "Root",
 		children = {
@@ -558,7 +560,7 @@ local leafFlags = {"Leaf"}
 local empty = function() end
 
 -- Recursive function to draw the scene tree
-local function drawSceneTree(nodes: {ObjNode})
+local function drawSceneTree(nodes: {Node})
 	for _, node in ipairs(nodes) do
 		if #node.children > 0 then
 			ImGui.TreeNode(node.name, function()
@@ -586,13 +588,13 @@ import * as ImGui from "ImGui";
 import { threadLoop } from "Dora";
 import { TreeNodeFlag } from "ImGui";
 
-interface ObjNode {
+interface Node {
 	name: string;
-	children: ObjNode[];
+	children: Node[];
 }
 
 // Assume we have a list of scene objects with parent-child relationships
-const sceneObjects: ObjNode[] = [
+const sceneObjects: Node[] = [
 	{
 		name: "Root",
 		children: [
@@ -615,7 +617,7 @@ const leafFlags = [TreeNodeFlag.Leaf];
 const empty = () => {};
 
 // Recursive function to draw the scene tree
-function drawSceneTree(nodes: ObjNode[]) {
+function drawSceneTree(nodes: Node[]) {
 	for (const node of nodes) {
 		if (node.children.length > 0) {
 			ImGui.TreeNode(node.name, () => {
