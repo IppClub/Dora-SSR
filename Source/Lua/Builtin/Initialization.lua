@@ -65,7 +65,7 @@ end
 debug.debug = nil
 
 local function traceback(err)
-	print(debug.traceback(err, 2))
+	Dora.Log("Error", debug.traceback(err, 2))
 end
 
 -- setup loader profilers
@@ -225,7 +225,7 @@ do
 				success, result = coroutine_resume(routine)
 				if not success then
 					coroutine_close(routine)
-					print(result)
+					Dora.Log("Error", result)
 				end
 			end
 			if (success and result) or (not success) then
