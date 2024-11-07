@@ -264,18 +264,18 @@ void Director::doLogic() {
 		SharedTouchDispatcher.add(SharedImGui.getTarget()->getTouchHandler()->ref());
 		SharedTouchDispatcher.dispatch();
 
-		/* handle ui3D touch */
-		if (_ui3D) {
-			registerTouchHandler(_ui3D);
-			pushViewProjection(_ui3DCamera->getView(), []() {
-				SharedTouchDispatcher.dispatch();
-			});
-		}
-
 		/* handle ui touch */
 		if (_ui) {
 			registerTouchHandler(_ui);
 			pushViewProjection(_uiCamera->getView(), []() {
+				SharedTouchDispatcher.dispatch();
+			});
+		}
+
+		/* handle ui3D touch */
+		if (_ui3D) {
+			registerTouchHandler(_ui3D);
+			pushViewProjection(_ui3DCamera->getView(), []() {
 				SharedTouchDispatcher.dispatch();
 			});
 		}
