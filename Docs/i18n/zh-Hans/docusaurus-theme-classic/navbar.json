@@ -22,5 +22,9 @@
   "item.label.Reference": {
     "message": "参考手册",
     "description": "Navbar item with label Reference"
+  },
+  "item.label.Example": {
+    "message": "示例",
+    "description": "Navbar item with label Example"
   }
 }

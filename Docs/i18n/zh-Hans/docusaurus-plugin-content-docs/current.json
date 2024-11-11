@@ -1,6 +1,6 @@
 {
   "version.label": {
-    "message": "版本 1.5.19",
+    "message": "版本 1.5.20",
     "description": "The label for version current"
   },
   "sidebar.apiSidebar.category.Class": {
@@ -18,10 +18,6 @@
   "sidebar.tutorialSidebar.category.Using Dora Xml": {
     "message": "使用 Dora Xml",
     "description": "The label for category Using Dora Xml in sidebar tutorialSidebar"
-  },
-  "sidebar.tutorialSidebar.category.Platformer Tutorial": {
-    "message": "2D 横版游戏开发教程",
-    "description": "The label for category Platformer Tutorial in sidebar tutorialSidebar"
   },
   "sidebar.tutorialSidebar.category.Writing Game Dialogue": {
     "message": "编写游戏对话系统",
@@ -714,5 +710,9 @@
   "sidebar.apiSidebar.doc.Grid": {
     "message": "Grid",
     "description": "The label for the doc item Grid in sidebar apiSidebar, linking to the doc api/Class/Grid"
+  },
+  "sidebar.exampleSidebar.category.Platformer Tutorial": {
+    "message": "2D 横版游戏开发教程",
+    "description": "The label for category Platformer Tutorial in sidebar exampleSidebar"
   }
 }
