@@ -1,6 +1,6 @@
 // @preview-file on
-import { React, toNode, useRef } from 'DoraX';
-import { Size, sleep, thread, tolua, TypeName, Vec2 } from 'Dora';
+import { React, toNode, toAction, useRef } from 'DoraX';
+import { Ease, Size, sleep, thread, tolua, TypeName, Vec2 } from 'Dora';
 import { Struct } from 'Utils'
 
 import * as LineRectCreate from 'UI/View/Shape/LineRect';
@@ -14,7 +14,8 @@ interface ButtonProps {
 	text: string;
 	width: number;
 	height: number;
-	onClick: () => void;
+	children?: any[];
+	onClick: (this: void) => void;
 }
 
 const Button = (props: ButtonProps) => {
@@ -31,7 +32,7 @@ const Button = (props: ButtonProps) => {
 			(props.ref.current as any) = btn;
 		}
 		return btn;
-	}}/>;
+	}} children={props.children}/>;
 };
 
 interface ScrollAreaProps {
@@ -90,19 +91,24 @@ items.__added = (index, item) => {
 		}}/>
 	);
 	if (node) {
-		node.visible = false;
-		node.x = -1000;
+		tolua.cast(node.children?.first, TypeName.Node)?.perform(toAction(
+			<scale time={0.3} start={0} stop={1} easing={Ease.OutBack}/>
+		));
 		node.addTo(current.view, index);
+		current.adjustSizeWithAlign(AlignMode.Auto);
 	}
 };
 items.__removed = (index) => {
 	const {current} = scrollArea;
-	const child = tolua.cast(current?.view.children?.get(index), TypeName.Node);
+	const children = current?.view.children;
+	if (!children) return;
+	const child = tolua.cast(children.get(index), TypeName.Node);
 	if (child) child.removeFromParent();
-};
-items.__updated = () => {
-	const {current} = scrollArea;
-	current?.adjustSizeWithAlign(AlignMode.Auto);
+	for (let i = 1; i <= children.count; i++) {
+		const child = tolua.cast(children[i], TypeName.Node);
+		if (child) child.order = i;
+	}
+	current.adjustSizeWithAlign(AlignMode.Auto);
 };
 
 toNode(
