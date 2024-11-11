@@ -1394,7 +1394,7 @@ class Array extends Object {
 
 	/**
 	 * 使用[]运算符获取给定索引处的元素。
-	 * @param index 要访问的索引，从0开始。
+	 * @param index 要访问的索引，从1开始。
 	 * @returns 元素的值。
 	 */
 	[index: number]: Item | undefined;

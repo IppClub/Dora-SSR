@@ -1391,7 +1391,7 @@ class Array extends Object {
 
 	/**
 	 * Access the item at the given index using the [] operator.
-	 * @param index The index to get, should be 0 based.
+	 * @param index The index to get, should be 1 based.
 	 * @returns The item value.
 	 */
 	[index: number]: Item | undefined;

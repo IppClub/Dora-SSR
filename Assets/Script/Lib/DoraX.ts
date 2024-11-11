@@ -11,7 +11,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 import * as Dora from 'Dora';
 
 function Warn(this: void, msg: string) {
-	print(`[Dora Warning] ${msg}`);
+	Dora.Log('Warn', `[Dora Warning] ${msg}`);
 }
 
 export namespace React {
@@ -1380,19 +1380,25 @@ function visitNode(this: void, nodeStack: Dora.Node.Type[], node: React.Element 
 	}
 }
 
-export function toNode(this: void, enode: React.Element | React.Element[]): Dora.Node.Type | null {
+export function toNode(this: void, enode: React.Element | React.Element[], typeName?: Dora.TypeName): Dora.Node.Type | null {
 	const nodeStack: Dora.Node.Type[] = [];
 	visitNode(nodeStack, enode);
+	let node: Dora.Node.Type | null = null;
 	if (nodeStack.length === 1) {
-		return nodeStack[0];
+		node = nodeStack[0];
 	} else if (nodeStack.length > 1) {
-		const node = Dora.Node();
+		node = Dora.Node();
 		for (let i of $range(1, nodeStack.length)) {
 			node.addChild(nodeStack[i - 1]);
 		}
-		return node;
 	}
-	return null;
+	if (typeName) {
+		if (Dora.tolua.cast(node, typeName) !== null) {
+			return node;
+		}
+		return null;
+	}
+	return node;
 }
 
 export function useRef<T>(this: void, item?: T): JSX.Ref<T> {
@@ -1452,4 +1458,11 @@ export function preloadAsync(this: void, enode: React.Element | React.Element[],
 	const preloadList: string[] = [];
 	getPreload(preloadList, enode);
 	Dora.Cache.loadAsync(preloadList, handler);
+}
+
+export function toAction(this: void, enode: React.Element) {
+	const actionDef = useRef<Dora.ActionDef.Type>();
+	toNode(React.createElement('action', {ref: actionDef}, enode));
+	if (!actionDef.current) error('failed to create action');
+	return actionDef.current;
 }

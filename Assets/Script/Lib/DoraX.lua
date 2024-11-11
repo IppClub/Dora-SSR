@@ -11,7 +11,7 @@ local ____exports = {} -- 1
 local Warn, visitNode, actionMap, elementMap -- 1
 local Dora = require("Dora") -- 11
 function Warn(msg) -- 13
-	print("[Dora Warning] " .. msg) -- 14
+	Dora.Log("Warn", "[Dora Warning] " .. msg) -- 14
 end -- 14
 function visitNode(nodeStack, node, parent) -- 1357
 	if type(node) ~= "table" then -- 1357
@@ -38,19 +38,25 @@ function visitNode(nodeStack, node, parent) -- 1357
 		end -- 1378
 	end -- 1378
 end -- 1378
-function ____exports.toNode(enode) -- 1383
+function ____exports.toNode(enode, typeName) -- 1383
 	local nodeStack = {} -- 1384
 	visitNode(nodeStack, enode) -- 1385
-	if #nodeStack == 1 then -- 1385
-		return nodeStack[1] -- 1387
-	elseif #nodeStack > 1 then -- 1387
-		local node = Dora.Node() -- 1389
-		for i = 1, #nodeStack do -- 1389
-			node:addChild(nodeStack[i]) -- 1391
-		end -- 1391
-		return node -- 1393
-	end -- 1393
-	return nil -- 1395
+	local node = nil -- 1386
+	if #nodeStack == 1 then -- 1386
+		node = nodeStack[1] -- 1388
+	elseif #nodeStack > 1 then -- 1388
+		node = Dora.Node() -- 1390
+		for i = 1, #nodeStack do -- 1390
+			node:addChild(nodeStack[i]) -- 1392
+		end -- 1392
+	end -- 1392
+	if typeName then -- 1392
+		if Dora.tolua.cast(node, typeName) ~= nil then -- 1392
+			return node -- 1397
+		end -- 1397
+		return nil -- 1399
+	end -- 1399
+	return node -- 1401
 end -- 1383
 ____exports.React = {} -- 1383
 local React = ____exports.React -- 1383
@@ -1992,80 +1998,88 @@ elementMap = { -- 892
 		end -- 1353
 	end -- 1350
 } -- 1350
-function ____exports.useRef(item) -- 1398
-	local ____item_55 = item -- 1399
-	if ____item_55 == nil then -- 1399
-		____item_55 = nil -- 1399
-	end -- 1399
-	return {current = ____item_55} -- 1399
-end -- 1398
-local function getPreload(preloadList, node) -- 1402
-	if type(node) ~= "table" then -- 1402
-		return -- 1404
-	end -- 1404
-	local enode = node -- 1406
-	if enode.type == nil then -- 1406
-		local list = node -- 1408
-		if #list > 0 then -- 1408
-			for i = 1, #list do -- 1408
-				getPreload(preloadList, list[i]) -- 1411
-			end -- 1411
-		end -- 1411
-	else -- 1411
-		repeat -- 1411
-			local ____switch312 = enode.type -- 1411
-			local sprite, playable, frame, model, spine, dragonBone, label -- 1411
-			local ____cond312 = ____switch312 == "sprite" -- 1411
-			if ____cond312 then -- 1411
-				sprite = enode.props -- 1417
-				if sprite.file then -- 1417
-					preloadList[#preloadList + 1] = sprite.file -- 1419
-				end -- 1419
-				break -- 1421
-			end -- 1421
-			____cond312 = ____cond312 or ____switch312 == "playable" -- 1421
-			if ____cond312 then -- 1421
-				playable = enode.props -- 1423
-				preloadList[#preloadList + 1] = playable.file -- 1424
-				break -- 1425
-			end -- 1425
-			____cond312 = ____cond312 or ____switch312 == "frame" -- 1425
-			if ____cond312 then -- 1425
-				frame = enode.props -- 1427
-				preloadList[#preloadList + 1] = frame.file -- 1428
-				break -- 1429
-			end -- 1429
-			____cond312 = ____cond312 or ____switch312 == "model" -- 1429
-			if ____cond312 then -- 1429
-				model = enode.props -- 1431
-				preloadList[#preloadList + 1] = "model:" .. model.file -- 1432
-				break -- 1433
-			end -- 1433
-			____cond312 = ____cond312 or ____switch312 == "spine" -- 1433
-			if ____cond312 then -- 1433
-				spine = enode.props -- 1435
-				preloadList[#preloadList + 1] = "spine:" .. spine.file -- 1436
-				break -- 1437
-			end -- 1437
-			____cond312 = ____cond312 or ____switch312 == "dragon-bone" -- 1437
-			if ____cond312 then -- 1437
-				dragonBone = enode.props -- 1439
-				preloadList[#preloadList + 1] = "bone:" .. dragonBone.file -- 1440
-				break -- 1441
-			end -- 1441
-			____cond312 = ____cond312 or ____switch312 == "label" -- 1441
-			if ____cond312 then -- 1441
-				label = enode.props -- 1443
-				preloadList[#preloadList + 1] = (("font:" .. label.fontName) .. ";") .. tostring(label.fontSize) -- 1444
-				break -- 1445
-			end -- 1445
-		until true -- 1445
-	end -- 1445
-	getPreload(preloadList, enode.children) -- 1448
-end -- 1402
-function ____exports.preloadAsync(enode, handler) -- 1451
-	local preloadList = {} -- 1452
-	getPreload(preloadList, enode) -- 1453
-	Dora.Cache:loadAsync(preloadList, handler) -- 1454
-end -- 1451
-return ____exports -- 1451
+function ____exports.useRef(item) -- 1404
+	local ____item_55 = item -- 1405
+	if ____item_55 == nil then -- 1405
+		____item_55 = nil -- 1405
+	end -- 1405
+	return {current = ____item_55} -- 1405
+end -- 1404
+local function getPreload(preloadList, node) -- 1408
+	if type(node) ~= "table" then -- 1408
+		return -- 1410
+	end -- 1410
+	local enode = node -- 1412
+	if enode.type == nil then -- 1412
+		local list = node -- 1414
+		if #list > 0 then -- 1414
+			for i = 1, #list do -- 1414
+				getPreload(preloadList, list[i]) -- 1417
+			end -- 1417
+		end -- 1417
+	else -- 1417
+		repeat -- 1417
+			local ____switch314 = enode.type -- 1417
+			local sprite, playable, frame, model, spine, dragonBone, label -- 1417
+			local ____cond314 = ____switch314 == "sprite" -- 1417
+			if ____cond314 then -- 1417
+				sprite = enode.props -- 1423
+				if sprite.file then -- 1423
+					preloadList[#preloadList + 1] = sprite.file -- 1425
+				end -- 1425
+				break -- 1427
+			end -- 1427
+			____cond314 = ____cond314 or ____switch314 == "playable" -- 1427
+			if ____cond314 then -- 1427
+				playable = enode.props -- 1429
+				preloadList[#preloadList + 1] = playable.file -- 1430
+				break -- 1431
+			end -- 1431
+			____cond314 = ____cond314 or ____switch314 == "frame" -- 1431
+			if ____cond314 then -- 1431
+				frame = enode.props -- 1433
+				preloadList[#preloadList + 1] = frame.file -- 1434
+				break -- 1435
+			end -- 1435
+			____cond314 = ____cond314 or ____switch314 == "model" -- 1435
+			if ____cond314 then -- 1435
+				model = enode.props -- 1437
+				preloadList[#preloadList + 1] = "model:" .. model.file -- 1438
+				break -- 1439
+			end -- 1439
+			____cond314 = ____cond314 or ____switch314 == "spine" -- 1439
+			if ____cond314 then -- 1439
+				spine = enode.props -- 1441
+				preloadList[#preloadList + 1] = "spine:" .. spine.file -- 1442
+				break -- 1443
+			end -- 1443
+			____cond314 = ____cond314 or ____switch314 == "dragon-bone" -- 1443
+			if ____cond314 then -- 1443
+				dragonBone = enode.props -- 1445
+				preloadList[#preloadList + 1] = "bone:" .. dragonBone.file -- 1446
+				break -- 1447
+			end -- 1447
+			____cond314 = ____cond314 or ____switch314 == "label" -- 1447
+			if ____cond314 then -- 1447
+				label = enode.props -- 1449
+				preloadList[#preloadList + 1] = (("font:" .. label.fontName) .. ";") .. tostring(label.fontSize) -- 1450
+				break -- 1451
+			end -- 1451
+		until true -- 1451
+	end -- 1451
+	getPreload(preloadList, enode.children) -- 1454
+end -- 1408
+function ____exports.preloadAsync(enode, handler) -- 1457
+	local preloadList = {} -- 1458
+	getPreload(preloadList, enode) -- 1459
+	Dora.Cache:loadAsync(preloadList, handler) -- 1460
+end -- 1457
+function ____exports.toAction(enode) -- 1463
+	local actionDef = ____exports.useRef() -- 1464
+	____exports.toNode(____exports.React.createElement("action", {ref = actionDef}, enode)) -- 1465
+	if not actionDef.current then -- 1465
+		error("failed to create action") -- 1466
+	end -- 1466
+	return actionDef.current -- 1467
+end -- 1463
+return ____exports -- 1463
