@@ -215,7 +215,7 @@ const config = {
 					lastVersion: 'current',
 					versions: {
 						current: {
-							label: 'v1.5.19',
+							label: 'v1.5.20',
 						},
 					},
 				},
@@ -256,6 +256,12 @@ const config = {
 					type: 'docSidebar',
 					sidebarId: 'apiSidebar',
 					label: 'Reference',
+					position: 'left',
+				},
+				{
+					type: 'docSidebar',
+					sidebarId: 'exampleSidebar',
+					label: 'Example',
 					position: 'left',
 				},
 				{
@@ -338,7 +344,6 @@ const config = {
 		},
 		docs: {
 			sidebar: {
-				hideable: true,
 				autoCollapseCategories: true,
 			},
 		},
