@@ -39,6 +39,7 @@ import { AutoTypings } from './3rdParty/monaco-editor-auto-typings';
 import { TbSwitchVertical } from "react-icons/tb";
 import './Editor';
 import KeyboardShortcuts from './KeyboardShortcuts';
+import BottomLog from './BottomLog';
 
 const SpinePlayer = React.lazy(() => import('./SpinePlayer'));
 const Markdown = React.lazy(() => import('./Markdown'));
@@ -268,6 +269,7 @@ export default function PersistentDrawerLeft() {
 	const editorHeight = winSize.height - 48;
 
 	const [openLog, setOpenLog] = useState<{title: string, stopOnClose: boolean} | null>(null);
+	const [openBottomLog, setOpenBottomLog] = useState(false);
 
 	const addAlert = (msg: string, type: AlertColor, openLog?: boolean) => {
 		const key = msg + Date.now().toString();
@@ -854,7 +856,8 @@ export default function PersistentDrawerLeft() {
 		setExpandedKeys(keys);
 	}, [expandedKeys, loadAssets, switchTab, t, treeData]);
 
-	const onPlayControlRun = useCallback((mode: "Run" | "Run This", noLog?: boolean) => {
+	const onPlayControlRun = useCallback((mode: "Run" | "Run This", noLog?: boolean, bottomLog?: boolean) => {
+		setOpenBottomLog(bottomLog ?? false);
 		let key: string | null = null;
 		let title: string | null = null;
 		let dir = false;
@@ -967,10 +970,26 @@ export default function PersistentDrawerLeft() {
 							}
 							switch (ext) {
 								case ".ts": case ".tsx": case ".lua": case ".tl": case ".yue": case ".xml": {
-									if (preview && contentModified.search(/@preview-file on\b/) >= 0) {
-										onPlayControlRun("Run This", true);
-									} else if (preview && contentModified.search(/@preview-project on\b/) >= 0) {
-										onPlayControlRun("Run", true);
+									let index = contentModified.search(/@preview-file on\b/);
+									if (preview && index >= 0) {
+										const lineEnd = contentModified.indexOf("\n", index);
+										const line = contentModified.substring(index, lineEnd);
+										if (line.search(/\bclear\b/) >= 0) {
+											Service.clearLog();
+										}
+										const bottomLog = line.search(/\bnolog\b/) < 0;
+										onPlayControlRun("Run This", true, bottomLog);
+									} else {
+										index = contentModified.search(/@preview-project on\b/);
+										if (preview && index >= 0) {
+											const lineEnd = contentModified.indexOf("\n", index);
+											const line = contentModified.substring(index, lineEnd);
+											if (line.search(/\bclear\b/) >= 0) {
+												Service.clearLog();
+											}
+											const bottomLog = line.search(/\bnolog\b/) < 0;
+											onPlayControlRun("Run", true, bottomLog);
+										}
 									}
 									break;
 								}
@@ -1612,29 +1631,36 @@ export default function PersistentDrawerLeft() {
 				let content = "";
 				let position: monaco.IPosition | undefined = undefined;
 				switch (ext) {
-					case ".yue":
-						content = "_ENV = Dora\n\n";
+					case ".lua":
+						content = "-- @preview-file on clear\n\n";
 						position = {
 							lineNumber: 3,
 							column: 1
 						};
 						break;
+					case ".yue":
+						content = "-- @preview-file on clear\n_ENV = Dora\n\n";
+						position = {
+							lineNumber: 4,
+							column: 1
+						};
+						break;
 					case ".tsx":
-						content = "// @preview-file on\nimport { React, toNode, useRef } from 'DoraX';\nimport {} from 'Dora';\n\n";
+						content = "// @preview-file on clear nolog\nimport { React, toNode, useRef } from 'DoraX';\nimport {} from 'Dora';\n\n";
 						position = {
 							lineNumber: 5,
 							column: 1
 						};
 						break;
 					case ".ts":
-						content = "import {} from 'Dora';\n\n";
+						content = "// @preview-file on clear\nimport {} from 'Dora';\n\n";
 						position = {
-							lineNumber: 3,
+							lineNumber: 4,
 							column: 1
 						};
 						break;
 					case ".xml":
-						content = "<!-- @preview-file on -->\n<Dora>\n\t\n</Dora>\n";
+						content = "<!-- @preview-file on clear nolog -->\n<Dora>\n\t\n</Dora>\n";
 						position = {
 							lineNumber: 3,
 							column: 2
@@ -1981,6 +2007,7 @@ export default function PersistentDrawerLeft() {
 	};
 
 	const onStopRunning = useCallback(() => {
+		setOpenBottomLog(false);
 		if (tabIndex !== null) {
 			const file = files.at(tabIndex);
 			if (file !== undefined) {
@@ -2678,22 +2705,27 @@ export default function PersistentDrawerLeft() {
 				{files.length > 0 ? null :
 					<KeyboardShortcuts/>
 				}
-				<PlayControl width={editorWidth} onClick={onPlayControlClick}/>
-				<StyledStack open={drawerOpen} drawerWidth={drawerWidth}>
-					<TransitionGroup>
-						{alerts.map((item) => (
-							<Collapse key={item.key}>
-								<Alert onClose={() => {
-									const newAlerts = alerts.filter(a => a.key !== item.key);
-									setAlerts(newAlerts);
-								}} severity={item.type} color={item.type} style={{margin: 5}}>
-									{item.msg}
-									{item.openLog ? <>&emsp;[<Link color="inherit" onClick={() => onPlayControlClick("View Log")}>{t("menu.viewLog")}</Link>]</> : null}
-								</Alert>
-							</Collapse>
-						))}
-					</TransitionGroup>
-				</StyledStack>
+				<div style={{position: 'fixed', left: drawerWidth, bottom: 0, width: editorWidth, zIndex: 998}} hidden={!openBottomLog}>
+					<BottomLog height={editorHeight * 0.3}/>
+				</div>
+				<div style={{zIndex: 999}}>
+					<PlayControl width={editorWidth} onClick={onPlayControlClick}/>
+					<StyledStack open={drawerOpen} drawerWidth={drawerWidth}>
+						<TransitionGroup>
+							{alerts.map((item) => (
+								<Collapse key={item.key}>
+									<Alert onClose={() => {
+										const newAlerts = alerts.filter(a => a.key !== item.key);
+										setAlerts(newAlerts);
+									}} severity={item.type} color={item.type} style={{margin: 5}}>
+										{item.msg}
+										{item.openLog ? <>&emsp;[<Link color="inherit" onClick={() => onPlayControlClick("View Log")}>{t("menu.viewLog")}</Link>]</> : null}
+									</Alert>
+								</Collapse>
+							))}
+						</TransitionGroup>
+					</StyledStack>
+				</div>
 			</Box>
 		</Entry>
 	);

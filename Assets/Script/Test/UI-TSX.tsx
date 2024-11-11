@@ -1,7 +1,7 @@
 // @preview-file on
 import { React, toNode, toAction, useRef } from 'DoraX';
 import { Ease, Size, sleep, thread, tolua, TypeName, Vec2 } from 'Dora';
-import { Struct } from 'Utils'
+import { Struct } from 'Utils';
 
 import * as LineRectCreate from 'UI/View/Shape/LineRect';
 import * as ButtonCreate from 'UI/Control/Basic/Button';
