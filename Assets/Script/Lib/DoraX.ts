@@ -1380,25 +1380,19 @@ function visitNode(this: void, nodeStack: Dora.Node.Type[], node: React.Element 
 	}
 }
 
-export function toNode(this: void, enode: React.Element | React.Element[], typeName?: Dora.TypeName): Dora.Node.Type | null {
+export function toNode(this: void, enode: React.Element | React.Element[]): Dora.Node.Type | null {
 	const nodeStack: Dora.Node.Type[] = [];
 	visitNode(nodeStack, enode);
-	let node: Dora.Node.Type | null = null;
 	if (nodeStack.length === 1) {
-		node = nodeStack[0];
+		return nodeStack[0];
 	} else if (nodeStack.length > 1) {
-		node = Dora.Node();
+		const node = Dora.Node();
 		for (let i of $range(1, nodeStack.length)) {
 			node.addChild(nodeStack[i - 1]);
 		}
+		return node;
 	}
-	if (typeName) {
-		if (Dora.tolua.cast(node, typeName) !== null) {
-			return node;
-		}
-		return null;
-	}
-	return node;
+	return null;
 }
 
 export function useRef<T>(this: void, item?: T): JSX.Ref<T> {
