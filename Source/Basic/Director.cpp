@@ -236,10 +236,6 @@ void Director::doLogic() {
 	/* update system logic */
 	_systemScheduler->update(deltaTime);
 
-	if (Singleton<EffekManager>::isInitialized()) {
-		SharedEffekManager.update();
-	}
-
 	if (_paused) return;
 
 	/* push default view projection */
