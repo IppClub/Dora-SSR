@@ -2067,6 +2067,18 @@ namespace SoLoud
 		}
 #endif
 
+#ifdef __arm__
+		// flush to zero (FTZ) for ARM
+		{
+			static bool once = false;
+			if (!once)
+			{
+				once = true;
+				asm( "vmsr fpscr,%0" :: "r" (1 << 24) );
+			}
+		}
+#endif
+
 #ifdef _MCW_DN
 		{
 			static bool once = false;
