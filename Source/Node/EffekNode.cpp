@@ -19,6 +19,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Render/RenderTarget.h"
 #include "Render/Renderer.h"
 #include "Render/View.h"
+#include "Basic/Scheduler.h"
 #include "Shader/Builtin.h"
 
 #include "bgfxrenderer.h"
@@ -383,6 +384,13 @@ EffekManager::EffekManager() {
 	instance->efkManager->SetMaterialLoader(instance->efkRenderer->CreateMaterialLoader(fileInterface));
 	instance->efkManager->SetCurveLoader(Effekseer::MakeRefPtr<Effekseer::CurveLoader>(fileInterface));
 	instance->efkManager->SetEffectLoader(Effekseer::Effect::CreateEffectLoader(fileInterface));
+
+	SharedDirector.getSystemScheduler()->schedule([](double) {
+		if (Singleton<EffekManager>::isInitialized()) {
+			SharedEffekManager.update();
+		}
+		return false;
+	});
 }
 
 EffekManager::~EffekManager() {
