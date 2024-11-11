@@ -43,14 +43,6 @@ export namespace React {
 export function toNode(this: void, enode: React.Element | React.Element[]): Dora.Node.Type | null;
 
 /**
- * Converts a React element or an array of React elements to a Dora node.
- * @param enode The React element or array of React elements to convert.
- * @param typeName The type name of the node.
- * @returns The converted Dora node.
- */
-export function toNode<k extends Dora.TypeName>(this: void, enode: React.Element | React.Element[], typeName: Dora.TypeName): Dora.TypeMap[k] | null;
-
-/**
  * Converts a React element to a Dora action definition.
  * @param enode The React element to convert.
  * @returns The converted Dora action definition.
