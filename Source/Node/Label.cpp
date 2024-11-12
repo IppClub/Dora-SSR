@@ -471,6 +471,7 @@ float Label::getLetterPosXRight(CharItem* item) {
 }
 
 void Label::updateCharacters(const std::vector<uint32_t>& chars) {
+	if (!_font) return;
 	float nextFontPositionX = 0;
 	float nextFontPositionY = 0;
 	uint32_t prev = 0;
@@ -588,6 +589,7 @@ void Label::updateCharacters(const std::vector<uint32_t>& chars) {
 }
 
 void Label::updateLabel() {
+	if (!_font) return;
 	auto text = utf8_get_characters(_textUTF8.c_str());
 	_text.clear();
 	for (auto elem : text) {
