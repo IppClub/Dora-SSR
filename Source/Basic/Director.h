@@ -78,6 +78,9 @@ protected:
 	void pushViewProjection(const Matrix& viewProj);
 	void popViewProjection();
 
+	void handleTouchEvents();
+	void handleUnmanagedNodes();
+
 public:
 	struct ProfilerInfo {
 		const char* renderer = nullptr;
@@ -157,7 +160,7 @@ private:
 	Ref<Scheduler> _systemScheduler;
 	Ref<Scheduler> _scheduler;
 	Ref<Scheduler> _postScheduler;
-	RefVector<Node> _unManagedNodes;
+	RefVector<Node> _unmanagedNodes;
 	ProfilerInfo _profilerInfo;
 	std::vector<WRef<Node>> _waitingList;
 	Own<UITouchHandler> _uiTouchHandler;

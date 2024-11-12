@@ -213,21 +213,59 @@ bool Director::init() {
 	return true;
 }
 
-void Director::doLogic() {
-	if (_stoped) return;
+void Director::handleTouchEvents() {
+	/* handle ImGui touch */
+	SharedTouchDispatcher.add(SharedImGui.getTarget()->getTouchHandler()->ref());
+	SharedTouchDispatcher.dispatch();
 
-	if (!_unManagedNodes.empty()) {
+	/* handle ui touch */
+	if (_ui) {
+		registerTouchHandler(_ui);
+		pushViewProjection(_uiCamera->getView(), []() {
+			SharedTouchDispatcher.dispatch();
+		});
+	}
+
+	/* handle ui3D touch */
+	if (_ui3D) {
+		registerTouchHandler(_ui3D);
+		pushViewProjection(_ui3DCamera->getView(), []() {
+			SharedTouchDispatcher.dispatch();
+		});
+	}
+
+	/* handle post node touch */
+	if (_postNode) {
+		registerTouchHandler(_postNode);
+		SharedTouchDispatcher.dispatch();
+	}
+
+	/* handle scene tree touch */
+	if (_entry) {
+		registerTouchHandler(_entry);
+		SharedTouchDispatcher.dispatch();
+	}
+
+	SharedTouchDispatcher.clearEvents();
+}
+
+void Director::handleUnmanagedNodes() {
+	if (!_unmanagedNodes.empty()) {
 		RefVector<Node> nodes;
-		for (Node* node : _unManagedNodes) {
+		for (Node* node : _unmanagedNodes) {
 			if (node->isUnManaged()) {
 				nodes.push_back(node);
 			}
 		}
-		_unManagedNodes.clear();
+		_unmanagedNodes.clear();
 		for (Node* node : nodes) {
 			getEntry()->addChild(node);
 		}
 	}
+}
+
+void Director::doLogic() {
+	if (_stoped) return;
 
 	double deltaTime = SharedApplication.getDeltaTime();
 
@@ -248,47 +286,19 @@ void Director::doLogic() {
 	pushViewProjection(_defaultViewProj, [&]() {
 		/* update game logic */
 		SharedImGui.begin();
+
+		handleTouchEvents();
+
 		_scheduler->update(deltaTime);
 		_postScheduler->update(deltaTime);
+
+		handleUnmanagedNodes();
 		Event::handlePostEvents();
-		SharedImGui.end();
 
 		SharedKeyboard.clearChanges();
 		SharedController.clearChanges();
 
-		/* handle ImGui touch */
-		SharedTouchDispatcher.add(SharedImGui.getTarget()->getTouchHandler()->ref());
-		SharedTouchDispatcher.dispatch();
-
-		/* handle ui touch */
-		if (_ui) {
-			registerTouchHandler(_ui);
-			pushViewProjection(_uiCamera->getView(), []() {
-				SharedTouchDispatcher.dispatch();
-			});
-		}
-
-		/* handle ui3D touch */
-		if (_ui3D) {
-			registerTouchHandler(_ui3D);
-			pushViewProjection(_ui3DCamera->getView(), []() {
-				SharedTouchDispatcher.dispatch();
-			});
-		}
-
-		/* handle post node touch */
-		if (_postNode) {
-			registerTouchHandler(_postNode);
-			SharedTouchDispatcher.dispatch();
-		}
-
-		/* handle scene tree touch */
-		if (_entry) {
-			registerTouchHandler(_entry);
-			SharedTouchDispatcher.dispatch();
-		}
-
-		SharedTouchDispatcher.clearEvents();
+		SharedImGui.end();
 	});
 }
 
@@ -439,12 +449,12 @@ void Director::popViewProjection() {
 }
 
 void Director::cleanup() {
-	if (!_unManagedNodes.empty()) {
-		for (Node* node : _unManagedNodes) {
+	if (!_unmanagedNodes.empty()) {
+		for (Node* node : _unmanagedNodes) {
 			node->cleanup();
 		}
 	}
-	_unManagedNodes.clear();
+	_unmanagedNodes.clear();
 	if (!_waitingList.empty()) {
 		for (Node* node : _waitingList) {
 			if (node) {
@@ -489,7 +499,7 @@ void Director::cleanup() {
 }
 
 void Director::addUnManagedNode(Node* node) {
-	_unManagedNodes.push_back(node);
+	_unmanagedNodes.push_back(node);
 }
 
 void Director::addToWaitingList(Node* node) {
