@@ -120,8 +120,7 @@ float Node::getScaleY() const noexcept {
 }
 
 void Node::setX(float var) {
-	_position.x = var;
-	markDirty();
+	setPosition({var, _position.y});
 }
 
 float Node::getX() const noexcept {
@@ -129,8 +128,7 @@ float Node::getX() const noexcept {
 }
 
 void Node::setY(float var) {
-	_position.y = var;
-	markDirty();
+	setPosition({_position.x, var});
 }
 
 float Node::getY() const noexcept {

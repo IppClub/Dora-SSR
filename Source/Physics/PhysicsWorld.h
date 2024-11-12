@@ -108,20 +108,16 @@ private:
 	pr::StepConf _stepConf;
 
 	struct SensorPair {
-		Body* owner;
-		Sensor* sensor;
-		Body* body;
-		void retain();
-		void release();
+		WRef<Body> owner;
+		WRef<Sensor> sensor;
+		WRef<Body> body;
 	};
 	struct ContactPair {
-		Body* bodyA;
-		Body* bodyB;
+		WRef<Body> bodyA;
+		WRef<Body> bodyB;
 		Vec2 point;
 		Vec2 normal;
 		bool enabled = true;
-		void retain();
-		void release();
 	};
 	std::vector<SensorPair> _sensorEnters;
 	std::vector<SensorPair> _sensorLeaves;
