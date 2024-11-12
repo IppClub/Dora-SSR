@@ -28,7 +28,7 @@ jobs:
           cd Assets/www && zip -vr ../../web-ide-files.zip . && cd ../..
           cd $GITHUB_WORKSPACE
           Tools/tolua++/build.sh
-          xcodebuild archive -project Projects/macOS/Dora.xcodeproj -scheme Dora -configuration release -archivePath dora.xcarchive
+          xcodebuild archive -project Projects/macOS/Dora.xcodeproj -scheme Dora -configuration release -archivePath dora.xcarchive -arch arm64 -arch x86_64 ONLY_ACTIVE_ARCH=NO
           cd dora.xcarchive/Products/Applications
           zip -vr Dora.zip Dora.app
           mv Dora.zip $GITHUB_WORKSPACE/dora-ssr-${{ github.ref_name }}-macos-universal.zip
