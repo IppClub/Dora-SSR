@@ -16,41 +16,34 @@ import "InputManager"
 
 :Trigger = InputManager
 
-KeyBtnDown = (name, buttonName, keyName) ->
-	return
-		:name
-		trigger: Trigger.Selector [
-			Trigger.ButtonDown buttonName
-			Trigger.KeyDown keyName
-		]
+KeyBtnDown = (buttonName, keyName) ->
+	Trigger.Selector [
+		Trigger.ButtonDown buttonName
+		Trigger.KeyDown keyName
+	]
 
-KeyBtnDownUp = (name, buttonName, keyName) ->
-	return
-		* name: "#{name}Down"
-			trigger: Trigger.Selector [
-				Trigger.ButtonDown buttonName
-				Trigger.KeyDown keyName
-			]
-		* name: "#{name}Up"
-			trigger: Trigger.Selector [
-				Trigger.ButtonUp buttonName
-				Trigger.KeyUp keyName
-			]
+KeyBtnDownUp = (name, buttonName, keyName) -> return
+	["#{name}Down"]: Trigger.Selector [
+		Trigger.ButtonDown buttonName
+		Trigger.KeyDown keyName
+	]
+	["#{name}Up"]: Trigger.Selector [
+		Trigger.ButtonUp buttonName
+		Trigger.KeyUp keyName
+	]
 
 inputManager = InputManager.CreateManager
-	* name: "Select"
-		actions:
-			* KeyBtnDown "Flandre", "dpleft", "A"
-			* KeyBtnDown "Villy", "dpdown", "S"
-			* KeyBtnDown "Dorothy", "dpright", "D"
-	* name: "Control"
-		actions: [
-			KeyBtnDown "Restart", "back", "Q"
-			...KeyBtnDownUp "Left", "dpleft", "A"
-			...KeyBtnDownUp "Right", "dpright", "D"
-			...KeyBtnDownUp "Jump", "a", "K"
-			...KeyBtnDownUp "Attack", "b", "J"
-		]
+	Select:
+		Flandre: KeyBtnDown "dpleft", "A"
+		Villy: KeyBtnDown "dpdown", "S"
+		Dorothy: KeyBtnDown "dpright", "D"
+	Control: {
+		Restart: KeyBtnDown "back", "Q"
+		...KeyBtnDownUp "Left", "dpleft", "A"
+		...KeyBtnDownUp "Right", "dpright", "D"
+		...KeyBtnDownUp "Jump", "a", "K"
+		...KeyBtnDownUp "Attack", "b", "J"
+	}
 
 inputManager\pushContext "Control"
 
