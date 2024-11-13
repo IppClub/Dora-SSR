@@ -190,16 +190,14 @@ local Trigger <const> = InputManager.Trigger
 local Node <const> = require("Node")
 
 -- 创建输入管理器，包含一个上下文和一个动作
-local input = InputManager.CreateManager({{
-	name = "testContext",
-	actions = {{
-		name = "Ctrl+C",
-		trigger = Trigger.Sequence({
+local input = InputManager.CreateManager({
+	testContext = {
+		["Ctrl+C"] = Trigger.Sequence({
 			Trigger.KeyPressed("LCtrl"),
 			Trigger.KeyDown("C")
 		})
-	}}
-}})
+	}
+})
 
 -- 创建一个节点，用于接收和处理输入事件
 local node = Node()
@@ -228,16 +226,14 @@ local Node <const> = require("Node")
 local type Vec2 = require("Vec2")
 
 -- 创建输入管理器，包含一个上下文和一个动作
-local input = InputManager.CreateManager({{
-	name = "testContext",
-	actions = {{
-		name = "Ctrl+C",
-		trigger = Trigger.Sequence({
+local input = InputManager.CreateManager({
+	testContext= {
+		["Ctrl+C"] = Trigger.Sequence({
 			Trigger.KeyPressed("LCtrl"),
 			Trigger.KeyDown("C")
 		})
-	}}
-}})
+	}
+})
 
 -- 创建一个节点，用于接收和处理输入事件
 local node = Node()
@@ -263,16 +259,14 @@ import { Node, KeyName, Vec2 } from "Dora";
 import { CreateManager, Trigger, TriggerState } from "InputManager";
 
 // 创建输入管理器，包含一个上下文和一个动作
-const inputManager = CreateManager([{
-	name: "testContext",
-	actions: [{
-		name: "Ctrl+C",
-		trigger: Trigger.Sequence([
+const inputManager = CreateManager({
+	testContext: {
+		["Ctrl+C"]: Trigger.Sequence([
 			Trigger.KeyPressed(KeyName.LCtrl),
 			Trigger.KeyDown(KeyName.C)
 		])
-	}]
-}]);
+	}
+});
 
 // 创建一个节点，用于接收和处理输入事件
 const node = Node();
@@ -298,20 +292,12 @@ _ENV = Dora
 import "InputManager" as :CreateManager, :Trigger
 
 -- 创建输入管理器，包含一个上下文和一个动作
-inputManager = CreateManager [
-	{
-		name: "testContext"
-		actions: [
-			{
-				name: "Ctrl+C",
-				trigger: Trigger.Sequence [
-					Trigger.KeyPressed "LCtrl"
-					Trigger.KeyDown "C"
-				]
-			},
+inputManager = CreateManager
+	testContext:
+		["Ctrl+C"]: Trigger.Sequence [
+			Trigger.KeyPressed "LCtrl"
+			Trigger.KeyDown "C"
 		]
-	},
-]
 
 -- 创建一个节点，用于接收和处理输入事件
 with Node!
@@ -349,31 +335,21 @@ local Node <const> = require("Node")
 
 -- 创建输入管理器，包含两个上下文和包含的动作
 local inputManager = InputManager.CreateManager({
-	{
-		name = "UI",
-		actions = {{
-			name = "Confirm",
-			trigger = Trigger.Selector({
-				Trigger.KeyHold("Return", 1),
-				Trigger.ButtonHold("a", 1)
-			})
-		}}
+	UI = {
+		Confirm = Trigger.Selector({
+			Trigger.KeyHold("Return", 1),
+			Trigger.ButtonHold("a", 1)
+		})
 	},
-	{
-		name = "Game",
-		actions = {{
-			name = "MoveLeft",
-			trigger = Trigger.Selector({
-				Trigger.KeyPressed("Left"),
-				Trigger.ButtonPressed("dpleft")
-			})
-		}, {
-			name = "MoveRight",
-			trigger = Trigger.Selector({
-				Trigger.KeyPressed("Right"),
-				Trigger.ButtonPressed("dpright")
-			})
-		}}
+	Game = {
+		MoveLeft = Trigger.Selector({
+			Trigger.KeyPressed("Left"),
+			Trigger.ButtonPressed("dpleft")
+		}),
+		MoveRight = Trigger.Selector({
+			Trigger.KeyPressed("Right"),
+			Trigger.ButtonPressed("dpright")
+		})
 	}
 })
 
@@ -413,31 +389,21 @@ local Node <const> = require("Node")
 
 -- 创建输入管理器，包含两个上下文和包含的动作
 local inputManager = InputManager.CreateManager({
-	{
-		name = "UI",
-		actions = {{
-			name = "Confirm",
-			trigger = Trigger.Selector({
-				Trigger.KeyHold("Return", 1),
-				Trigger.ButtonHold("a", 1)
-			})
-		}}
+	UI = {
+		Confirm = Trigger.Selector({
+			Trigger.KeyHold("Return", 1),
+			Trigger.ButtonHold("a", 1)
+		})
 	},
-	{
-		name = "Game",
-		actions = {{
-			name = "MoveLeft",
-			trigger = Trigger.Selector({
-				Trigger.KeyPressed("Left"),
-				Trigger.ButtonPressed("dpleft")
-			})
-		}, {
-			name = "MoveRight",
-			trigger = Trigger.Selector({
-				Trigger.KeyPressed("Right"),
-				Trigger.ButtonPressed("dpright")
-			})
-		}}
+	Game = {
+		MoveLeft = Trigger.Selector({
+			Trigger.KeyPressed("Left"),
+			Trigger.ButtonPressed("dpleft")
+		}),
+		MoveRight = Trigger.Selector({
+			Trigger.KeyPressed("Right"),
+			Trigger.ButtonPressed("dpright")
+		})
 	}
 })
 
@@ -475,34 +441,24 @@ import { Node, KeyName, ButtonName } from "Dora";
 import { CreateManager, Trigger, TriggerState } from "InputManager";
 
 // 创建输入管理器，包含两个上下文和包含的动作
-const inputManager = CreateManager([
-	{
-		name: "UI",
-		actions: [{
-			name: "Confirm",
-			trigger: Trigger.Selector([
-				Trigger.KeyHold(KeyName.Return, 1),
-				Trigger.ButtonHold(ButtonName.A, 1)
-			])
-		}]
+const inputManager = CreateManager({
+	UI: {
+		Confirm: Trigger.Selector([
+			Trigger.KeyHold(KeyName.Return, 1),
+			Trigger.ButtonHold(ButtonName.A, 1)
+		])
 	},
-	{
-		name: "Game",
-		actions: [{
-			name: "MoveLeft",
-			trigger: Trigger.Selector([
-				Trigger.KeyPressed(KeyName.Left),
-				Trigger.ButtonPressed(ButtonName.Left)
-			])
-		}, {
-			name: "MoveRight",
-			trigger: Trigger.Selector([
-				Trigger.KeyPressed(KeyName.Right),
-				Trigger.ButtonPressed(ButtonName.Right)
-			])
-		}]
+	Game: {
+		MoveLeft: Trigger.Selector([
+			Trigger.KeyPressed(KeyName.Left),
+			Trigger.ButtonPressed(ButtonName.Left)
+		]),
+		MoveRight: Trigger.Selector([
+			Trigger.KeyPressed(KeyName.Right),
+			Trigger.ButtonPressed(ButtonName.Right)
+		])
 	}
-]);
+});
 
 // 创建一个节点，用于接收和处理输入事件
 const node = Node();
@@ -538,39 +494,21 @@ _ENV = Dora
 import "InputManager" as :CreateManager, :Trigger
 
 -- 创建输入管理器，包含两个上下文和包含的动作
-inputManager = CreateManager [
-	{
-		name: "UI"
-		actions: [
-			{
-				name: "Confirm"
-				trigger: Trigger.Selector [
-					Trigger.KeyHold "Return", 1
-					Trigger.ButtonHold "a", 1
-				]
-			}
+inputManager = CreateManager
+	UI:
+		Confirm: Trigger.Selector [
+			Trigger.KeyHold "Return", 1
+			Trigger.ButtonHold "a", 1
 		]
-	},
-	{
-		name: "Game"
-		actions: [
-			{
-				name: "MoveLeft"
-				trigger: Trigger.Selector [
-					Trigger.KeyPressed "Left"
-					Trigger.ButtonPressed "dpleft"
-				]
-			},
-			{
-				name: "MoveRight"
-				trigger: Trigger.Selector [
-					Trigger.KeyPressed "Right"
-					Trigger.ButtonPressed "dpright"
-				]
-			}
+	Game:
+		MoveLeft: Trigger.Selector [
+			Trigger.KeyPressed "Left"
+			Trigger.ButtonPressed "dpleft"
 		]
-	}
-]
+		MoveRight: Trigger.Selector [
+			Trigger.KeyPressed "Right"
+			Trigger.ButtonPressed "dpright"
+		]
 
 -- 创建一个节点，用于接收和处理输入事件
 with Node!
@@ -722,33 +660,29 @@ local InputManager <const> = require("InputManager")
 local Trigger <const> = InputManager.Trigger
 
 -- 用于定义一个同时支持键盘和游戏手柄按键的 QTE 挑战的输入上下文
-local function QTEContext(contextName, keyName, buttonName, timeWindow)
+local function QTEContext(keyName, buttonName, timeWindow)
 	return {
-		name = contextName,
-		actions = {{
-			name = "QTE",
-			trigger = Trigger.Sequence({
+		QTE = Trigger.Sequence({
+			Trigger.Selector({
+				-- 用于过滤特定键盘按键的触发器
+				-- 在按错键时触发失败
 				Trigger.Selector({
-					-- 用于过滤特定键盘按键的触发器
-					-- 在按错键时触发失败
-					Trigger.Selector({
-						Trigger.KeyPressed(keyName),
-						Trigger.Block(Trigger.AnyKeyPressed())
-					}),
-					-- 用于过滤特定游戏手柄按钮的触发器
-					-- 在按错按钮时触发失败
-					Trigger.Selector({
-						Trigger.ButtonPressed(buttonName),
-						Trigger.Block(Trigger.AnyButtonPressed())
-					})
+					Trigger.KeyPressed(keyName),
+					Trigger.Block(Trigger.AnyKeyPressed())
 				}),
-				-- 用于检测在指定时间窗口内按下指定键或按钮
+				-- 用于过滤特定游戏手柄按钮的触发器
+				-- 在按错按钮时触发失败
 				Trigger.Selector({
-					Trigger.KeyTimed(keyName, timeWindow),
-					Trigger.ButtonTimed(buttonName, timeWindow)
+					Trigger.ButtonPressed(buttonName),
+					Trigger.Block(Trigger.AnyButtonPressed())
 				})
+			}),
+			-- 用于检测在指定时间窗口内按下指定键或按钮
+			Trigger.Selector({
+				Trigger.KeyTimed(keyName, timeWindow),
+				Trigger.ButtonTimed(buttonName, timeWindow)
 			})
-		}}
+		})
 	}
 end
 ```
@@ -763,33 +697,29 @@ local type Controller = require("Controller")
 local Trigger <const> = InputManager.Trigger
 
 -- 用于定义一个同时支持键盘和游戏手柄按键的 QTE 挑战的输入上下文
-local function QTEContext(contextName: string, keyName: Keyboard.KeyName, buttonName: Controller.ButtonName, timeWindow: number): InputManager.InputContext
+local function QTEContext(keyName: Keyboard.KeyName, buttonName: Controller.ButtonName, timeWindow: number): InputManager.InputContext
 	return {
-		name = contextName,
-		actions = {{
-			name = "QTE",
-			trigger = Trigger.Sequence({
+		QTE = Trigger.Sequence({
+			Trigger.Selector({
+				-- 用于过滤特定键盘按键的触发器
+				-- 在按错键时触发失败
 				Trigger.Selector({
-					-- 用于过滤特定键盘按键的触发器
-					-- 在按错键时触发失败
-					Trigger.Selector({
-						Trigger.KeyPressed(keyName),
-						Trigger.Block(Trigger.AnyKeyPressed())
-					}),
-					-- 用于过滤特定游戏手柄按钮的触发器
-					-- 在按错按钮时触发失败
-					Trigger.Selector({
-						Trigger.ButtonPressed(buttonName),
-						Trigger.Block(Trigger.AnyButtonPressed())
-					})
+					Trigger.KeyPressed(keyName),
+					Trigger.Block(Trigger.AnyKeyPressed())
 				}),
-				-- 用于检测在指定时间窗口内按下指定键或按钮
+				-- 用于过滤特定游戏手柄按钮的触发器
+				-- 在按错按钮时触发失败
 				Trigger.Selector({
-					Trigger.KeyTimed(keyName, timeWindow),
-					Trigger.ButtonTimed(buttonName, timeWindow)
+					Trigger.ButtonPressed(buttonName),
+					Trigger.Block(Trigger.AnyButtonPressed())
 				})
+			}),
+			-- 用于检测在指定时间窗口内按下指定键或按钮
+			Trigger.Selector({
+				Trigger.KeyTimed(keyName, timeWindow),
+				Trigger.ButtonTimed(buttonName, timeWindow)
 			})
-		}}
+		})
 	}
 end
 ```
@@ -802,33 +732,29 @@ import { KeyName, ButtonName } from "Dora";
 import { CreateManager, Trigger, InputContext } from "InputManager";
 
 // 用于定义一个同时支持键盘和游戏手柄按键的 QTE 挑战的输入上下文
-function QTEContext(contextName: string, keyName: KeyName, buttonName: ButtonName, timeWindow: number): InputContext {
+function QTEContext(keyName: KeyName, buttonName: ButtonName, timeWindow: number): InputContext {
 	return {
-		name: contextName,
-		actions: [{
-			name: "QTE",
-			trigger: Trigger.Sequence([
+		QTE: Trigger.Sequence([
+			Trigger.Selector([
+				// 用于过滤特定键盘按键的触发器
+				// 在按错键时触发失败
 				Trigger.Selector([
-					// 用于过滤特定键盘按键的触发器
-					// 在按错键时触发失败
-					Trigger.Selector([
-						Trigger.KeyPressed(keyName),
-						Trigger.Block(Trigger.AnyKeyPressed())
-					]),
-					// 用于过滤特定游戏手柄按钮的触发器
-					// 在按错按钮时触发失败
-					Trigger.Selector([
-						Trigger.ButtonPressed(buttonName),
-						Trigger.Block(Trigger.AnyButtonPressed())
-					])
+					Trigger.KeyPressed(keyName),
+					Trigger.Block(Trigger.AnyKeyPressed())
 				]),
-				// 用于检测在指定时间窗口内按下指定键或按钮
+				// 用于过滤特定游戏手柄按钮的触发器
+				// 在按错按钮时触发失败
 				Trigger.Selector([
-					Trigger.KeyTimed(keyName, timeWindow),
-					Trigger.ButtonTimed(buttonName, timeWindow)
+					Trigger.ButtonPressed(buttonName),
+					Trigger.Block(Trigger.AnyButtonPressed())
 				])
+			]),
+			// 用于检测在指定时间窗口内按下指定键或按钮
+			Trigger.Selector([
+				Trigger.KeyTimed(keyName, timeWindow),
+				Trigger.ButtonTimed(buttonName, timeWindow)
 			])
-		}]
+		])
 	};
 }
 ```
@@ -841,33 +767,27 @@ _ENV = Dora
 import "InputManager" as :Trigger
 
 -- 用于定义一个同时支持键盘和游戏手柄按键的 QTE 挑战的输入上下文
-QTEContext = (contextName, keyName, buttonName, timeWindow) -> return
-	name: contextName
-	actions: [
-		{
-			name: "QTE"
-			trigger: Trigger.Sequence [
-				Trigger.Selector [
-					-- 用于过滤特定键盘按键的触发器
-					-- 在按错键时触发失败
-					Trigger.Selector [
-						Trigger.KeyPressed keyName
-						Trigger.Block Trigger.AnyKeyPressed!
-					]
-					-- 用于过滤特定游戏手柄按钮的触发器
-					-- 在按错按钮时触发失败
-					Trigger.Selector [
-						Trigger.ButtonPressed buttonName
-						Trigger.Block Trigger.AnyButtonPressed!
-					]
-				]
-				-- 用于检测在指定时间窗口内按下指定键或按钮
-				Trigger.Selector [
-					Trigger.KeyTimed keyName, timeWindow
-					Trigger.ButtonTimed buttonName, timeWindow
-				]
+QTEContext = (keyName, buttonName, timeWindow) -> return
+	QTE: Trigger.Sequence [
+		Trigger.Selector [
+			-- 用于过滤特定键盘按键的触发器
+			-- 在按错键时触发失败
+			Trigger.Selector [
+				Trigger.KeyPressed keyName
+				Trigger.Block Trigger.AnyKeyPressed!
 			]
-		},
+			-- 用于过滤特定游戏手柄按钮的触发器
+			-- 在按错按钮时触发失败
+			Trigger.Selector [
+				Trigger.ButtonPressed buttonName
+				Trigger.Block Trigger.AnyButtonPressed!
+			]
+		]
+		-- 用于检测在指定时间窗口内按下指定键或按钮
+		Trigger.Selector [
+			Trigger.KeyTimed keyName, timeWindow
+			Trigger.ButtonTimed buttonName, timeWindow
+		]
 	]
 ```
 
@@ -893,21 +813,16 @@ QTEContext = (contextName, keyName, buttonName, timeWindow) -> return
 ```lua
 -- 创建输入管理器并添加上下文
 local inputManager = InputManager.CreateManager({
-	{
-		name = "Default",
-		actions = {{
-			name = "StartQTE",
-			-- 按下空格键或开始按钮来启动 QTE 挑战
-			trigger = Trigger.Selector({
-				Trigger.KeyDown("Space"),
-				Trigger.ButtonDown("start")
-			})
-		}}
+	Default = {
+		StartQTE = Trigger.Selector({
+			Trigger.KeyDown("Space"),
+			Trigger.ButtonDown("start")
+		})
 	},
 	-- 添加 QTE 阶段的上下文
-	QTEContext("Phase1", "J", "a", 3), -- 阶段1：3秒内，按下键盘 J 或按钮 A
-	QTEContext("Phase2", "K", "b", 2), -- 阶段2：2秒内，按下键盘 K 或按钮 B
-	QTEContext("Phase3", "L", "x", 1) -- 阶段3：1秒内，按下键盘 L 或按钮 X
+	Phase1 = QTEContext("J", "a", 3), -- 阶段1：3秒内，按下键盘 J 或按钮 A
+	Phase2 = QTEContext("K", "b", 2), -- 阶段2：2秒内，按下键盘 K 或按钮 B
+	Phase3 = QTEContext("L", "x", 1) -- 阶段3：1秒内，按下键盘 L 或按钮 X
 })
 
 -- 激活默认上下文
@@ -920,21 +835,16 @@ inputManager:pushContext("Default")
 ```tl
 -- 创建输入管理器并添加上下文
 local inputManager = InputManager.CreateManager({
-	{
-		name = "Default",
-		actions = {{
-			name = "StartQTE",
-			-- 按下空格键或开始按钮来启动 QTE 挑战
-			trigger = Trigger.Selector({
-				Trigger.KeyDown("Space"),
-				Trigger.ButtonDown("start")
-			})
-		}}
+	Default = {
+		StartQTE = Trigger.Selector({
+			Trigger.KeyDown("Space"),
+			Trigger.ButtonDown("start")
+		})
 	},
 	-- 添加 QTE 阶段的上下文
-	QTEContext("Phase1", "J", "a", 3), -- 阶段1：3秒内，按下键盘 J 或按钮 A
-	QTEContext("Phase2", "K", "b", 2), -- 阶段2：2秒内，按下键盘 K 或按钮 B
-	QTEContext("Phase3", "L", "x", 1) -- 阶段3：1秒内，按下键盘 L 或按钮 X
+	Phase1 = QTEContext("J", "a", 3), -- 阶段1：3秒内，按下键盘 J 或按钮 A
+	Phase2 = QTEContext("K", "b", 2), -- 阶段2：2秒内，按下键盘 K 或按钮 B
+	Phase3 = QTEContext("L", "x", 1) -- 阶段3：1秒内，按下键盘 L 或按钮 X
 })
 
 -- 激活默认上下文
@@ -946,23 +856,18 @@ inputManager:pushContext("Default")
 
 ```ts
 // 创建输入管理器并添加上下文
-const inputManager = CreateManager([
-	{
-		name: "Default",
-		actions: [{
-			name: "StartQTE",
-			// 按下空格键或开始按钮来启动 QTE 挑战
-			trigger: Trigger.Selector([
-				Trigger.KeyDown(KeyName.Space),
-				Trigger.ButtonDown(ButtonName.Start)
-			])
-		}]
+const inputManager = CreateManager({
+	Default: {
+		StartQTE: Trigger.Selector([
+			Trigger.KeyDown(KeyName.Space),
+			Trigger.ButtonDown(ButtonName.Start)
+		])
 	},
 	// 添加 QTE 阶段的上下文
-	QTEContext("Phase1", KeyName.J, ButtonName.A, 3), // 阶段1：3秒内，按下键盘 J 或按钮 A
-	QTEContext("Phase2", KeyName.K, ButtonName.B, 2), // 阶段2：2秒内，按下键盘 K 或按钮 B
-	QTEContext("Phase3", KeyName.L, ButtonName.X, 1) // 阶段3：1秒内，按下键盘 L 或按钮 X
-]);
+	Phase1: QTEContext(KeyName.J, ButtonName.A, 3), // 阶段1：3秒内，按下键盘 J 或按钮 A
+	Phase2: QTEContext(KeyName.K, ButtonName.B, 2), // 阶段2：2秒内，按下键盘 K 或按钮 B
+	Phase3: QTEContext(KeyName.L, ButtonName.X, 1) // 阶段3：1秒内，按下键盘 L 或按钮 X
+});
 
 // 激活默认上下文
 inputManager.pushContext("Default");
@@ -973,25 +878,16 @@ inputManager.pushContext("Default");
 
 ```yue
 -- 创建输入管理器并添加上下文
-inputManager = InputManager.CreateManager [
-	{
-		name: "Default"
-		actions: [
-			{
-				name: "StartQTE"
-				-- 按下空格键或开始按钮来启动 QTE 挑战
-				trigger: Trigger.Selector [
-					Trigger.KeyDown "Space"
-					Trigger.ButtonDown "start"
-				]
-			},
+inputManager = InputManager.CreateManager
+	Default:
+		StartQTE: Trigger.Selector [
+			Trigger.KeyDown "Space"
+			Trigger.ButtonDown "start"
 		]
-	}
 	-- 添加 QTE 阶段的上下文
-	QTEContext "Phase1", "J", "a", 3 -- 阶段1：3秒内，按下键盘 J 或按钮 A
-	QTEContext "Phase2", "K", "b", 2 -- 阶段2：2秒内，按下键盘 K 或按钮 B
-	QTEContext "Phase3", "L", "x", 1 -- 阶段3：1秒内，按下键盘 L 或按钮 X
-]
+	Phase1: QTEContext "J", "a", 3 -- 阶段1：3秒内，按下键盘 J 或按钮 A
+	Phase2: QTEContext "K", "b", 2 -- 阶段2：2秒内，按下键盘 K 或按钮 B
+	Phase3: QTEContext "L", "x", 1 -- 阶段3：1秒内，按下键盘 L 或按钮 X
 
 -- 激活默认上下文
 inputManager\pushContext "Default"
