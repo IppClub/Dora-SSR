@@ -567,7 +567,10 @@ HttpServer\post "/new", (req): success: false ->
 				name = Path\getName(path)\lower!
 				for file in *files
 					if name == Path\getName(file)\lower!
-						if ("d" == Path\getExt name) and (Path\getExt(file) ~= Path\getExt path)
+						ext = Path\getExt file
+						if ext not in ["tl", "yue", "ts", "tsx", "vs", "xml", "lua"]
+							continue
+						elseif ("d" == Path\getExt name) and (ext ~= Path\getExt path)
 							continue
 						return success: false
 				if Content\save path, content
@@ -601,9 +604,12 @@ HttpServer\post "/rename", (req): success: false ->
 						return success: false
 			else
 				name = Path\getName(new)\lower!
+				ext = Path\getExt new
 				for file in *files
 					if name == Path\getName(file)\lower!
-						if ("d" == Path\getExt name) and (Path\getExt(file) ~= Path\getExt new)
+						if ext not in ["tl", "yue", "ts", "tsx", "vs", "xml", "lua"]
+							continue
+						elseif ("d" == Path\getExt name) and (Path\getExt(file) ~= ext)
 							continue
 						return success: false
 			if Content\move old, new
