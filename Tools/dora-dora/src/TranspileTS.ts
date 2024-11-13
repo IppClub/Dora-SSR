@@ -307,5 +307,5 @@ export function addDiagnosticToLog(fileName: string, diagnostics: readonly ts.Di
 			getCurrentDirectory: () => Info.path.dirname(fileName),
 			getNewLine: () => "\n"
 		});
-	Service.command({code: `print [=======[${message}]=======]`, log: false});
+	Service.command({code: `Log "Error", [===========[${message}]===========]`, log: false});
 }

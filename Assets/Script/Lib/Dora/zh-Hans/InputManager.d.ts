@@ -176,31 +176,13 @@ export namespace Trigger {
 	export function Block(this: void, trigger: Trigger): Trigger;
 }
 
-/** 输入动作，定义了一个带有名称和对应触发器的输入动作。 */
-export interface InputAction {
-	name: string;
-	trigger: Trigger;
-}
-
-/** 输入上下文，定义了包含一组输入动作的上下文。 */
-export interface InputContext {
-	name: string;
-	actions: InputAction[];
-}
-
 /**
  * `InputManager` 是一个用于管理输入上下文和动作的类。可以通过创建输入上下文和动作，然后将它们添加到输入管理器中，来实现输入事件的监听和处理。可以通过调用 `pushContext` 和 `popContext` 方法来激活和停用特定组合的输入上下文。在触发事件时，可以通过注册全局输入事件监听器来处理输入事件。
  * @usage
  * import { CreateManager, Trigger } from "InputManager";
  * const inputManager = CreateManager([
- * 	{
- * 		name: "context1",
- * 		actions: [
- * 			{
- * 				name: "action1",
- * 				trigger: Trigger.KeyDown(KeyName.W)
- * 			},
- * 		]
+ * 	context1: {
+ * 		action1: Trigger.KeyDown(KeyName.W),
  * 	},
  * ]);
  * // 激活上下文 context1
@@ -215,7 +197,7 @@ export interface InputContext {
  * inputManager.destroy();
  */
 export class InputManager {
-	private constructor(contexts: InputContext[]);
+	private constructor(contexts: {[contextName: string]: {[actionName: string]: Trigger}});
 	/**
 	 * 获取当前输入系统使用的场景节点。该节点用于接收输入事件。它在创建后，如果没有被添加到指定的父节点，会在稍后被自动添加到 `Director.entry` 中。
 	 * @returns 输入系统的场景节点。
@@ -273,7 +255,7 @@ export class InputManager {
  * @param contexts 要创建的一组输入上下文。
  * @returns 输入管理器。
  */
-export function CreateManager(this: void, contexts: InputContext[]): InputManager;
+export function CreateManager(this: void, contexts: {[contextName: string]: {[actionName: string]: Trigger}}): InputManager;
 
 /** 虚拟方向键（D-pad）的属性。 */
 export interface DPadProps {

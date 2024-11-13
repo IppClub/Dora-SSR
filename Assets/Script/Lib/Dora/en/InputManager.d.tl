@@ -10,14 +10,8 @@ local type AxisName = Controller.AxisName;
 -- @usage
 -- local InputManager = require("InputManager")
 -- local inputManager = InputManager.CreateManager({
--- 	{
--- 		name = "context1",
--- 		actions = {
--- 			{
--- 				name = "action1",
--- 				trigger = Trigger.KeyDown("W")
--- 			},
--- 		}
+-- 	context1 = {
+-- 		action1 = Trigger.KeyDown("W"),
 -- 	},
 -- })
 -- -- activate context1
@@ -210,26 +204,6 @@ local record InputManagerClass
 		Block: function(trigger: Trigger): Trigger
 	end
 
-	-- A record that defines an input action with a name and a trigger.
-	record InputAction
-
-		-- The name of the input action.
-		name: string
-
-		-- The trigger of the input action.
-		trigger: Trigger
-	end
-
-	-- A record that defines a context for input actions.
-	record InputContext
-
-		-- The name of the input context.
-		name: string
-
-		-- The input actions of the input context.
-		actions: {InputAction}
-	end
-
 	-- The trigger state enumeration.
 	enum TriggerState
 
@@ -250,9 +224,9 @@ local record InputManagerClass
 	end
 
 	-- Creates an input manager with the specified input contexts.
-	-- @param contexts ({InputContext}) The input contexts to be created.
+	-- @param contexts ({string: {string: Trigger}}) The input contexts to be created.
 	-- @return (InputManager) The input manager.
-	CreateManager: function(contexts: {InputContext}): InputManager
+	CreateManager: function(contexts: {--[[contextName]] string: {--[[actionName]] string: Trigger}}): InputManager
 
 	-- The virtual directional pad (D-pad) properties.
 	record DPadProps

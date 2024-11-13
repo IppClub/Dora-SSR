@@ -1,3 +1,4 @@
+-- @preview-file on clear
 _ENV = Dora
 
 import "Enum" as $
@@ -18,50 +19,43 @@ macro State = $Enum(
 	Ongoing
 )
 
-QTEContext = (contextName, keyName, buttonName, timeWindow) -> with Trigger do return
-	name: contextName,
-	actions:
-		* name: "QTE",
-			trigger: .Sequence [
+QTEContext = (keyName, buttonName, timeWindow) -> with Trigger do return
+	QTE:
+		.Sequence [
+			.Selector [
 				.Selector [
-					.Selector [
-						.KeyPressed keyName
-						.Block Trigger.AnyKeyPressed!
-					]
-					.Selector [
-						.ButtonPressed buttonName
-						.Block Trigger.AnyButtonPressed!
-					]
+					.KeyPressed keyName
+					.Block Trigger.AnyKeyPressed!
 				]
 				.Selector [
-					.KeyTimed keyName, timeWindow
-					.ButtonTimed buttonName, timeWindow
+					.ButtonPressed buttonName
+					.Block Trigger.AnyButtonPressed!
 				]
 			]
+			.Selector [
+				.KeyTimed keyName, timeWindow
+				.ButtonTimed buttonName, timeWindow
+			]
+		]
 
 inputManager = InputManager.CreateManager
-	* name: "Default"
-		actions:
-			* name: "Confirm"
-				trigger: Trigger.Selector [
-					Trigger.ButtonHold "y", 1
-					Trigger.KeyHold "Return", 1
-				]
-			* name: "MoveDown"
-				trigger: Trigger.Selector [
-					Trigger.ButtonPressed "dpdown"
-					Trigger.KeyPressed "S"
-				]
-	* name: "Test"
-		actions:
-			* name: "Confirm"
-				trigger: Trigger.Selector [
-					Trigger.ButtonHold "x", 0.3
-					Trigger.KeyHold "LCtrl", 0.3
-				]
-	* QTEContext ($QTE Phase1), "J", "a", 3
-	* QTEContext ($QTE Phase2), "K", "b", 2
-	* QTEContext ($QTE Phase3), "L", "x", 1
+	Default:
+		Confirm: Trigger.Selector [
+			Trigger.ButtonHold "y", 1
+			Trigger.KeyHold "Return", 1
+		]
+		MoveDown: Trigger.Selector [
+			Trigger.ButtonPressed "dpdown"
+			Trigger.KeyPressed "S"
+		]
+	Test:
+		Confirm: Trigger.Selector [
+			Trigger.ButtonHold "x", 0.3
+			Trigger.KeyHold "LCtrl", 0.3
+		]
+	[$QTE Phase1]: QTEContext "J", "a", 3
+	[$QTE Phase2]: QTEContext "K", "b", 2
+	[$QTE Phase3]: QTEContext "L", "x", 1
 
 inputManager\pushContext "Default"
 
@@ -168,8 +162,8 @@ threadLoop (): false ->
 		ImGui.Separator!
 		ImGui.TextWrapped "Change input context to alter input mapping"
 		if phase == $QTE None
-			if changed, result := ImGui.Checkbox "hold X to confirm (instead Y)", checked
-				checked = result
-				inputManager\popContext!
-			else
-				inputManager\pushContext "Test"
+			if changed, checked := ImGui.Checkbox "hold X to confirm (instead Y)", checked
+				if checked
+					inputManager\pushContext "Test"
+				else
+					inputManager\popContext!

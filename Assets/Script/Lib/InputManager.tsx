@@ -1372,28 +1372,27 @@ export interface InputAction {
 	trigger: Trigger;
 }
 
-export interface InputContext {
-	name: string;
-	actions: InputAction[];
-}
-
 class InputManager {
 	private manager: Node.Type;
 	private contextMap: Map<string, InputAction[]>;
 	private contextStack: string[][];
 
-	constructor(contexts: InputContext[]) {
+	constructor(contexts: {[contextName: string]: {[actionName: string]: Trigger}}) {
 		this.manager = Node();
-		this.contextMap = new Map(contexts.map(ctx => {
-			for (let action of ctx.actions) {
-				const eventName = `Input.${action.name}`;
-				action.trigger.onChange = () => {
-					const {state, progress, value} = action.trigger;
+		this.contextMap = new Map();
+		for (let [contextName, actionMap] of pairs(contexts)) {
+			let actions: InputAction[] = [];
+			for (let [actionName, trigger] of pairs(actionMap)) {
+				const name = actionName as string;
+				const eventName = `Input.${name}`;
+				trigger.onChange = () => {
+					const {state, progress, value} = trigger;
 					emit(eventName, state, progress, value);
 				};
+				actions.push({name, trigger});
 			}
-			return [ctx.name, ctx.actions];
-		}));
+			this.contextMap.set(contextName as string, actions);
+		}
 		this.contextStack = [];
 		this.manager.schedule((deltaTime) => {
 			if (this.contextStack.length > 0) {
@@ -1515,7 +1514,7 @@ class InputManager {
 	}
 }
 
-export function CreateManager(this: void, contexts: InputContext[]): InputManager {
+export function CreateManager(this: void, contexts: {[contextName: string]: {[actionName: string]: Trigger}}): InputManager {
 	return new InputManager(contexts);
 }
 
@@ -1585,6 +1584,12 @@ export function DPad(props: DPadProps) {
 			</menu>
 		</align-node>
 	);
+}
+
+export function CreateDPad(this: void, props: DPadProps): Node.Type {
+	return toNode(
+		<DPad {...props}/>
+	) as Node.Type;
 }
 
 interface ButtonProps {
@@ -1788,6 +1793,12 @@ export function ButtonPad(props: ButtonPadProps) {
 			</node>
 		</align-node>
 	);
+}
+
+export function CreateButtonPad(this: void, props: ButtonPadProps): Node.Type {
+	return toNode(
+		<ButtonPad {...props}/>
+	) as Node.Type;
 }
 
 export interface ControlPadProps {

@@ -20,57 +20,47 @@ local Trigger <const> = InputManager.Trigger
 
 
 
-local function QTEContext(contextName, keyName, buttonName, timeWindow)
+local function QTEContext(keyName, buttonName, timeWindow)
 	return {
-		name = contextName,
-		actions = { {
-			name = "QTE",
-			trigger = Trigger.Sequence({
+		QTE = Trigger.Sequence({
+			Trigger.Selector({
 				Trigger.Selector({
-					Trigger.Selector({
-						Trigger.KeyPressed(keyName),
-						Trigger.Block(Trigger.AnyKeyPressed()),
-					}),
-					Trigger.Selector({
-						Trigger.ButtonPressed(buttonName),
-						Trigger.Block(Trigger.AnyButtonPressed()),
-					}),
+					Trigger.KeyPressed(keyName),
+					Trigger.Block(Trigger.AnyKeyPressed()),
 				}),
 				Trigger.Selector({
-					Trigger.KeyTimed(keyName, timeWindow),
-					Trigger.ButtonTimed(buttonName, timeWindow),
+					Trigger.ButtonPressed(buttonName),
+					Trigger.Block(Trigger.AnyButtonPressed()),
 				}),
 			}),
-		}, },
+			Trigger.Selector({
+				Trigger.KeyTimed(keyName, timeWindow),
+				Trigger.ButtonTimed(buttonName, timeWindow),
+			}),
+		}),
 	}
 end
 
 local inputManager = InputManager.CreateManager({
-	{ name = "Default", actions = {
-		{ name = "Confirm", trigger = 
-Trigger.Selector({
+	Default = {
+		Confirm = Trigger.Selector({
 			Trigger.ButtonHold("y", 1),
 			Trigger.KeyHold("Return", 1),
 		}),
-		},
-		{ name = "MoveDown", trigger = 
-Trigger.Selector({
+		MoveDown = Trigger.Selector({
 			Trigger.ButtonPressed("dpdown"),
 			Trigger.KeyPressed("S"),
 		}),
-		},
-	}, },
-	{ name = "Test", actions = {
-		{ name = "Confirm", trigger = 
-Trigger.Selector({
+	},
+	Test = {
+		Confirm = Trigger.Selector({
 			Trigger.ButtonHold("x", 0.3),
 			Trigger.KeyHold("LCtrl", 0.3),
 		}),
-		},
-	}, },
-	QTEContext("Phase1", "J", "a", 3),
-	QTEContext("Phase2", "K", "b", 2),
-	QTEContext("Phase3", "L", "x", 1),
+	},
+	Phase1 = QTEContext("J", "a", 3),
+	Phase2 = QTEContext("K", "b", 2),
+	Phase3 = QTEContext("L", "x", 1),
 })
 
 inputManager:pushContext("Default")
