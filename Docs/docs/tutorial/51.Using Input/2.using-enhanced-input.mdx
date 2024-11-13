@@ -190,16 +190,14 @@ local Trigger <const> = InputManager.Trigger
 local Node <const> = require("Node")
 
 -- Create input manager with one context and one action
-local input = InputManager.CreateManager({{
-	name = "testContext",
-	actions = {{
-		name = "Ctrl+C",
-		trigger = Trigger.Sequence({
+local input = InputManager.CreateManager({
+	testContext = {
+		["Ctrl+C"] = Trigger.Sequence({
 			Trigger.KeyPressed("LCtrl"),
 			Trigger.KeyDown("C")
 		})
-	}}
-}})
+	}
+})
 
 -- Create a node to receive and process input events
 local node = Node()
@@ -228,16 +226,14 @@ local Node <const> = require("Node")
 local type Vec2 = require("Vec2")
 
 -- Create input manager with one context and one action
-local input = InputManager.CreateManager({{
-	name = "testContext",
-	actions = {{
-		name = "Ctrl+C",
-		trigger = Trigger.Sequence({
+local input = InputManager.CreateManager({
+	testContext = {
+		["Ctrl+C"] = Trigger.Sequence({
 			Trigger.KeyPressed("LCtrl"),
 			Trigger.KeyDown("C")
 		})
-	}}
-}})
+	}
+})
 
 -- Create a node to receive and process input events
 local node = Node()
@@ -265,16 +261,14 @@ import { Node, KeyName, Vec2 } from "Dora";
 import { CreateManager, Trigger, TriggerState } from "InputManager";
 
 // Create input manager with one context and one action
-const inputManager = CreateManager([{
-	name: "testContext",
-	actions: [{
-		name: "Ctrl+C",
-		trigger: Trigger.Sequence([
+const inputManager = CreateManager({
+	testContext: {
+		["Ctrl+C"]: Trigger.Sequence([
 			Trigger.KeyPressed(KeyName.LCtrl),
 			Trigger.KeyDown(KeyName.C)
 		])
-	}]
-}]);
+	}
+});
 
 // Create a node to receive and process input events
 const node = Node();
@@ -300,20 +294,12 @@ _ENV = Dora
 import "InputManager" as :CreateManager, :Trigger
 
 -- Create input manager with one context and one action
-inputManager = CreateManager [
-	{
-		name: "testContext"
-		actions: [
-			{
-				name: "Ctrl+C",
-				trigger: Trigger.Sequence [
-					Trigger.KeyPressed "LCtrl"
-					Trigger.KeyDown "C"
-				]
-			},
+inputManager = CreateManager
+	testContext:
+		["Ctrl+C"]: Trigger.Sequence [
+			Trigger.KeyPressed "LCtrl"
+			Trigger.KeyDown "C"
 		]
-	},
-]
 
 -- Create a node to receive and process input events
 with Node!
@@ -351,31 +337,21 @@ local Node <const> = require("Node")
 
 -- Create input manager with two contexts and their actions
 local inputManager = InputManager.CreateManager({
-	{
-		name = "UI",
-		actions = {{
-			name = "Confirm",
-			trigger = Trigger.Selector({
-				Trigger.KeyHold("Return", 1),
-				Trigger.ButtonHold("a", 1)
-			})
-		}}
+	UI = {
+		Confirm = Trigger.Selector({
+			Trigger.KeyHold("Return", 1),
+			Trigger.ButtonHold("a", 1)
+		})
 	},
-	{
-		name = "Game",
-		actions = {{
-			name = "MoveLeft",
-			trigger = Trigger.Selector({
-				Trigger.KeyPressed("Left"),
-				Trigger.ButtonPressed("dpleft")
-			})
-		}, {
-			name = "MoveRight",
-			trigger = Trigger.Selector({
-				Trigger.KeyPressed("Right"),
-				Trigger.ButtonPressed("dpright")
-			})
-		}}
+	Game = {
+		MoveLeft = Trigger.Selector({
+			Trigger.KeyPressed("Left"),
+			Trigger.ButtonPressed("dpleft")
+		}),
+		MoveRight = Trigger.Selector({
+			Trigger.KeyPressed("Right"),
+			Trigger.ButtonPressed("dpright")
+		})
 	}
 })
 
@@ -415,31 +391,21 @@ local Node <const> = require("Node")
 
 -- Create input manager with two contexts and their actions
 local inputManager = InputManager.CreateManager({
-	{
-		name = "UI",
-		actions = {{
-			name = "Confirm",
-			trigger = Trigger.Selector({
-				Trigger.KeyHold("Return", 1),
-				Trigger.ButtonHold("a", 1)
-			})
-		}}
+	UI = {
+		Confirm = Trigger.Selector({
+			Trigger.KeyHold("Return", 1),
+			Trigger.ButtonHold("a", 1)
+		})
 	},
-	{
-		name = "Game",
-		actions = {{
-			name = "MoveLeft",
-			trigger = Trigger.Selector({
-				Trigger.KeyPressed("Left"),
-				Trigger.ButtonPressed("dpleft")
-			})
-		}, {
-			name = "MoveRight",
-			trigger = Trigger.Selector({
-				Trigger.KeyPressed("Right"),
-				Trigger.ButtonPressed("dpright")
-			})
-		}}
+	Game = {
+		MoveLeft = Trigger.Selector({
+			Trigger.KeyPressed("Left"),
+			Trigger.ButtonPressed("dpleft")
+		}),
+		MoveRight = Trigger.Selector({
+			Trigger.KeyPressed("Right"),
+			Trigger.ButtonPressed("dpright")
+		})
 	}
 })
 
@@ -477,34 +443,24 @@ import { Node, KeyName, ButtonName } from "Dora";
 import { CreateManager, Trigger, TriggerState } from "InputManager";
 
 // Create input manager with two contexts and their actions
-const inputManager = CreateManager([
-	{
-		name: "UI",
-		actions: [{
-			name: "Confirm",
-			trigger: Trigger.Selector([
-				Trigger.KeyHold(KeyName.Return, 1),
-				Trigger.ButtonHold(ButtonName.A, 1)
-			])
-		}]
+const inputManager = CreateManager({
+	UI: {
+		Confirm: Trigger.Selector([
+			Trigger.KeyHold(KeyName.Return, 1),
+			Trigger.ButtonHold(ButtonName.A, 1)
+		])
 	},
-	{
-		name: "Game",
-		actions: [{
-			name: "MoveLeft",
-			trigger: Trigger.Selector([
-				Trigger.KeyPressed(KeyName.Left),
-				Trigger.ButtonPressed(ButtonName.Left)
-			])
-		}, {
-			name: "MoveRight",
-			trigger: Trigger.Selector([
-				Trigger.KeyPressed(KeyName.Right),
-				Trigger.ButtonPressed(ButtonName.Right)
-			])
-		}]
+	Game: {
+		MoveLeft: Trigger.Selector([
+			Trigger.KeyPressed(KeyName.Left),
+			Trigger.ButtonPressed(ButtonName.Left)
+		]),
+		MoveRight: Trigger.Selector([
+			Trigger.KeyPressed(KeyName.Right),
+			Trigger.ButtonPressed(ButtonName.Right)
+		])
 	}
-]);
+});
 
 // Create a node to receive and process input events
 const node = Node();
@@ -540,39 +496,21 @@ _ENV = Dora
 import "InputManager" as :CreateManager, :Trigger
 
 -- Create input manager with two contexts and their actions
-inputManager = CreateManager [
-	{
-		name: "UI"
-		actions: [
-			{
-				name: "Confirm"
-				trigger: Trigger.Selector [
-					Trigger.KeyHold "Return", 1
-					Trigger.ButtonHold "a", 1
-				]
-			}
+inputManager = CreateManager
+	UI:
+		Confirm: Trigger.Selector [
+			Trigger.KeyHold "Return", 1
+			Trigger.ButtonHold "a", 1
 		]
-	},
-	{
-		name: "Game"
-		actions: [
-			{
-				name: "MoveLeft"
-				trigger: Trigger.Selector [
-					Trigger.KeyPressed "Left"
-					Trigger.ButtonPressed "dpleft"
-				]
-			},
-			{
-				name: "MoveRight"
-				trigger: Trigger.Selector [
-					Trigger.KeyPressed "Right"
-					Trigger.ButtonPressed "dpright"
-				]
-			}
+	Game:
+		MoveLeft: Trigger.Selector [
+			Trigger.KeyPressed "Left"
+			Trigger.ButtonPressed "dpleft"
 		]
-	}
-]
+		MoveRight: Trigger.Selector [
+			Trigger.KeyPressed "Right"
+			Trigger.ButtonPressed "dpright"
+		]
 
 -- Create a node to receive and process input events
 with Node!
@@ -723,34 +661,30 @@ local InputManager <const> = require("InputManager")
 local Trigger <const> = InputManager.Trigger
 
 -- Function to define a QTE challenge input context supporting both keyboard and game controller buttons
-local function QTEContext(contextName, keyName, buttonName, timeWindow)
+local function QTEContext(keyName, buttonName, timeWindow)
 	return {
-		name = contextName,
-		actions = {{
-			name = "QTE",
-			trigger = Trigger.Sequence({
+		QTE = Trigger.Sequence({
+			Trigger.Selector({
+				-- Trigger for filtering specific keyboard keys
+				-- Trigger failure on pressing the wrong key
 				Trigger.Selector({
-					-- Trigger for filtering specific keyboard keys
-					-- Trigger failure on pressing the wrong key
-					Trigger.Selector({
-						Trigger.KeyPressed(keyName),
-						Trigger.Block(Trigger.AnyKeyPressed())
-					}),
-					-- Trigger for filtering specific game controller buttons
-					-- Trigger failure on pressing the wrong button
-					Trigger.Selector({
-						Trigger.ButtonPressed(buttonName),
-						Trigger.Block(Trigger.AnyButtonPressed())
-					})
+					Trigger.KeyPressed(keyName),
+					Trigger.Block(Trigger.AnyKeyPressed())
 				}),
-				-- Trigger to detect pressing the specified key or button within the designated time window
+				-- Trigger for filtering specific game controller buttons
+				-- Trigger failure on pressing the wrong button
 				Trigger.Selector({
-					Trigger.KeyTimed(keyName, timeWindow),
-					Trigger.ButtonTimed(buttonName, timeWindow)
+					Trigger.ButtonPressed(buttonName),
+					Trigger.Block(Trigger.AnyButtonPressed())
 				})
+			}),
+			-- Trigger to detect pressing the specified key or button within the designated time window
+			Trigger.Selector({
+				Trigger.KeyTimed(keyName, timeWindow),
+				Trigger.ButtonTimed(buttonName, timeWindow)
 			})
-		}}
-	end
+		})
+	}
 end
 ```
 
@@ -764,34 +698,30 @@ local type Controller = require("Controller")
 local Trigger <const> = InputManager.Trigger
 
 -- Function to define a QTE challenge input context supporting both keyboard and game controller buttons
-local function QTEContext(contextName: string, keyName: Keyboard.KeyName, buttonName: Controller.ButtonName, timeWindow: number): InputManager.InputContext
+local function QTEContext(keyName: Keyboard.KeyName, buttonName: Controller.ButtonName, timeWindow: number): InputManager.InputContext
 	return {
-		name = contextName,
-		actions = {{
-			name = "QTE",
-			trigger = Trigger.Sequence({
+		QTE = Trigger.Sequence({
+			Trigger.Selector({
+				-- Trigger for filtering specific keyboard keys
+				-- Trigger failure on pressing the wrong key
 				Trigger.Selector({
-					-- Trigger for filtering specific keyboard keys
-					-- Trigger failure on pressing the wrong key
-					Trigger.Selector({
-						Trigger.KeyPressed(keyName),
-						Trigger.Block(Trigger.AnyKeyPressed())
-					}),
-					-- Trigger for filtering specific game controller buttons
-					-- Trigger failure on pressing the wrong button
-					Trigger.Selector({
-						Trigger.ButtonPressed(buttonName),
-						Trigger.Block(Trigger.AnyButtonPressed())
-					})
+					Trigger.KeyPressed(keyName),
+					Trigger.Block(Trigger.AnyKeyPressed())
 				}),
-				-- Trigger to detect pressing the specified key or button within the designated time window
+				-- Trigger for filtering specific game controller buttons
+				-- Trigger failure on pressing the wrong button
 				Trigger.Selector({
-					Trigger.KeyTimed(keyName, timeWindow),
-					Trigger.ButtonTimed(buttonName, timeWindow)
+					Trigger.ButtonPressed(buttonName),
+					Trigger.Block(Trigger.AnyButtonPressed())
 				})
+			}),
+			-- Trigger to detect pressing the specified key or button within the designated time window
+			Trigger.Selector({
+				Trigger.KeyTimed(keyName, timeWindow),
+				Trigger.ButtonTimed(buttonName, timeWindow)
 			})
-		}}
-	end
+		})
+	}
 end
 ```
 
@@ -803,33 +733,29 @@ import { KeyName, ButtonName } from "Dora";
 import { CreateManager, Trigger, InputContext } from "InputManager";
 
 // Function to define a QTE challenge input context supporting both keyboard and game controller buttons
-function QTEContext(contextName: string, keyName: KeyName, buttonName: ButtonName, timeWindow: number): InputContext {
+function QTEContext(keyName: KeyName, buttonName: ButtonName, timeWindow: number): InputContext {
 	return {
-		name: contextName,
-		actions: [{
-			name: "QTE",
-			trigger: Trigger.Sequence([
+		QTE: Trigger.Sequence([
+			Trigger.Selector([
+				// Trigger for filtering specific keyboard keys
+				// Trigger failure on pressing the wrong key
 				Trigger.Selector([
-					// Trigger for filtering specific keyboard keys
-					// Trigger failure on pressing the wrong key
-					Trigger.Selector([
-						Trigger.KeyPressed(keyName),
-						Trigger.Block(Trigger.AnyKeyPressed())
-					]),
-					// Trigger for filtering specific game controller buttons
-					// Trigger failure on pressing the wrong button
-					Trigger.Selector([
-						Trigger.ButtonPressed(buttonName),
-						Trigger.Block(Trigger.AnyButtonPressed())
-					])
+					Trigger.KeyPressed(keyName),
+					Trigger.Block(Trigger.AnyKeyPressed())
 				]),
-				// Trigger to detect pressing the specified key or button within the designated time window
+				// Trigger for filtering specific game controller buttons
+				// Trigger failure on pressing the wrong button
 				Trigger.Selector([
-					Trigger.KeyTimed(keyName, timeWindow),
-					Trigger.ButtonTimed(buttonName, timeWindow)
+					Trigger.ButtonPressed(buttonName),
+					Trigger.Block(Trigger.AnyButtonPressed())
 				])
+			]),
+			// Trigger to detect pressing the specified key or button within the designated time window
+			Trigger.Selector([
+				Trigger.KeyTimed(keyName, timeWindow),
+				Trigger.ButtonTimed(buttonName, timeWindow)
 			])
-		}]
+		])
 	};
 }
 ```
@@ -842,33 +768,27 @@ _ENV = Dora
 import "InputManager" as :Trigger
 
 -- Function to define a QTE challenge input context supporting both keyboard and game controller buttons
-QTEContext = (contextName, keyName, buttonName, timeWindow) -> return
-	name: contextName
-	actions: [
-		{
-			name: "QTE"
-			trigger: Trigger.Sequence [
-				Trigger.Selector [
-					-- Trigger for filtering specific keyboard keys
-					-- Trigger failure on pressing the wrong key
-					Trigger.Selector [
-						Trigger.KeyPressed keyName
-						Trigger.Block Trigger.AnyKeyPressed!
-					]
-					-- Trigger for filtering specific game controller buttons
-					-- Trigger failure on pressing the wrong button
-					Trigger.Selector [
-						Trigger.ButtonPressed buttonName
-						Trigger.Block Trigger.AnyButtonPressed!
-					]
-				]
-				-- Trigger to detect pressing the specified key or button within the designated time window
-				Trigger.Selector [
-					Trigger.KeyTimed keyName, timeWindow
-					Trigger.ButtonTimed buttonName, timeWindow
-				]
+QTEContext = (keyName, buttonName, timeWindow) -> return
+	QTE: Trigger.Sequence [
+		Trigger.Selector [
+			-- Trigger for filtering specific keyboard keys
+			-- Trigger failure on pressing the wrong key
+			Trigger.Selector [
+				Trigger.KeyPressed keyName
+				Trigger.Block Trigger.AnyKeyPressed!
 			]
-		},
+			-- Trigger for filtering specific game controller buttons
+			-- Trigger failure on pressing the wrong button
+			Trigger.Selector [
+				Trigger.ButtonPressed buttonName
+				Trigger.Block Trigger.AnyButtonPressed!
+			]
+		]
+		-- Trigger to detect pressing the specified key or button within the designated time window
+		Trigger.Selector [
+			Trigger.KeyTimed keyName, timeWindow
+			Trigger.ButtonTimed buttonName, timeWindow
+		]
 	]
 ```
 
@@ -894,21 +814,16 @@ Now, we will create an input manager and add the default context along with mult
 ```lua
 -- Create input manager and add contexts
 local inputManager = InputManager.CreateManager({
-	{
-		name = "Default",
-		actions = {{
-			name = "StartQTE",
-			-- Press the space bar or start button to initiate the QTE challenge
-			trigger = Trigger.Selector({
-				Trigger.KeyDown("Space"),
-				Trigger.ButtonDown("start")
-			})
-		}}
+	Default = {
+		StartQTE = Trigger.Selector({
+			Trigger.KeyDown("Space"),
+			Trigger.ButtonDown("start")
+		})
 	},
 	-- Add QTE stage contexts
-	QTEContext("Phase1", "J", "a", 3), -- Phase 1: Press key J or button A within 3 seconds
-	QTEContext("Phase2", "K", "b", 2), -- Phase 2: Press key K or button B within 2 seconds
-	QTEContext("Phase3", "L", "x", 1) -- Phase 3: Press key L or button X within 1 second
+	Phase1 = QTEContext("J", "a", 3), -- Phase 1: Press key J or button A within 3 seconds
+	Phase2 = QTEContext("K", "b", 2), -- Phase 2: Press key K or button B within 2 seconds
+	Phase3 = QTEContext("L", "x", 1) -- Phase 3: Press key L or button X within 1 second
 })
 
 -- Activate the default context
@@ -921,21 +836,16 @@ inputManager:pushContext("Default")
 ```tl
 -- Create input manager and add contexts
 local inputManager = InputManager.CreateManager({
-	{
-		name = "Default",
-		actions = {{
-			name = "StartQTE",
-			-- Press the space bar or start button to initiate the QTE challenge
-			trigger = Trigger.Selector({
-				Trigger.KeyDown("Space"),
-				Trigger.ButtonDown("start")
-			})
-		}}
+	Default = {
+		StartQTE = Trigger.Selector({
+			Trigger.KeyDown("Space"),
+			Trigger.ButtonDown("start")
+		})
 	},
 	-- Add QTE stage contexts
-	QTEContext("Phase1", "J", "a", 3), -- Phase 1: Press key J or button A within 3 seconds
-	QTEContext("Phase2", "K", "b", 2), -- Phase 2: Press key K or button B within 2 seconds
-	QTEContext("Phase3", "L", "x", 1) -- Phase 3: Press key L or button X within 1 second
+	Phase1 = QTEContext("J", "a", 3), -- Phase 1: Press key J or button A within 3 seconds
+	Phase2 = QTEContext("K", "b", 2), -- Phase 2: Press key K or button B within 2 seconds
+	Phase3 = QTEContext("L", "x", 1) -- Phase 3: Press key L or button X within 1 second
 })
 
 -- Activate the default context
@@ -947,23 +857,18 @@ inputManager:pushContext("Default")
 
 ```ts
 // Create input manager and add contexts
-const inputManager = CreateManager([
-	{
-		name: "Default",
-		actions: [{
-			name: "StartQTE",
-			// Press the space bar or start button to initiate the QTE challenge
-			trigger: Trigger.Selector([
-				Trigger.KeyDown(KeyName.Space),
-				Trigger.ButtonDown(ButtonName.Start)
-			])
-		}]
+const inputManager = CreateManager({
+	Default: {
+		StartQTE: Trigger.Selector([
+			Trigger.KeyDown(KeyName.Space),
+			Trigger.ButtonDown(ButtonName.Start)
+		])
 	},
 	// Add QTE stage contexts
-	QTEContext("Phase1", KeyName.J, ButtonName.A, 3), // Phase 1: Press key J or button A within 3 seconds
-	QTEContext("Phase2", KeyName.K, ButtonName.B, 2), // Phase 2: Press key K or button B within 2 seconds
-	QTEContext("Phase3", KeyName.L, ButtonName.X, 1) // Phase 3: Press key L or button X within 1 second
-]);
+	Phase1: QTEContext(KeyName.J, ButtonName.A, 3), // Phase 1: Press key J or button A within 3 seconds
+	Phase2: QTEContext(KeyName.K, ButtonName.B, 2), // Phase 2: Press key K or button B within 2 seconds
+	Phase3: QTEContext(KeyName.L, ButtonName.X, 1) // Phase 3: Press key L or button X within 1 second
+});
 
 // Activate the default context
 inputManager.pushContext("Default");
@@ -974,25 +879,16 @@ inputManager.pushContext("Default");
 
 ```yue
 -- Create input manager and add contexts
-inputManager = InputManager.CreateManager [
-	{
-		name: "Default"
-		actions: [
-			{
-				name: "StartQTE"
-				-- Press the space bar or start button to initiate the QTE challenge
-				trigger: Trigger.Selector [
-					Trigger.KeyDown "Space"
-					Trigger.ButtonDown "start"
-				]
-			},
+inputManager = InputManager.CreateManager
+	Default:
+		StartQTE: Trigger.Selector [
+			Trigger.KeyDown "Space"
+			Trigger.ButtonDown "start"
 		]
-	}
 	-- Add QTE stage contexts
-	QTEContext "Phase1", "J", "a", 3 -- Phase 1: Press key J or button A within 3 seconds
-	QTEContext "Phase2", "K", "b", 2 -- Phase 2: Press key K or button B within 2 seconds
-	QTEContext "Phase3", "L", "x", 1 -- Phase 3: Press key L or button X within 1 second
-]
+	Phase1: QTEContext "J", "a", 3 -- Phase 1: Press key J or button A within 3 seconds
+	Phase2: QTEContext "K", "b", 2 -- Phase 2: Press key K or button B within 2 seconds
+	Phase3: QTEContext "L", "x", 1 -- Phase 3: Press key L or button X within 1 second
 
 -- Activate the default context
 inputManager\pushContext "Default"
