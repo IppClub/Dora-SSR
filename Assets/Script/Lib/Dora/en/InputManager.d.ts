@@ -176,31 +176,13 @@ export namespace Trigger {
 	export function Block(this: void, trigger: Trigger): Trigger;
 }
 
-/** An interface that defines an input action with a name and a trigger. */
-export interface InputAction {
-	name: string;
-	trigger: Trigger;
-}
-
-/** An interface that defines a context for input actions. */
-export interface InputContext {
-	name: string;
-	actions: InputAction[];
-}
-
 /**
  * `InputManager` is a class for managing input contexts and actions. Input events can be listened for and handled by creating input contexts and actions, and then adding them to the input manager. Specific combinations of input contexts can be activated and deactivated by calling the `pushContext` and `popContext` methods. When an event is triggered, input events can be handled by registering global input event listeners.
  * @usage
  * import { CreateManager, Trigger } from "InputManager";
  * const inputManager = CreateManager([
- * 	{
- * 		name: "context1",
- * 		actions: [
- * 			{
- * 				name: "action1",
- * 				trigger: Trigger.KeyDown(KeyName.W)
- * 			},
- * 		]
+ * 	context1: {
+ * 		action1: Trigger.KeyDown(KeyName.W),
  * 	},
  * ]);
  * // activate context1
@@ -215,7 +197,7 @@ export interface InputContext {
  * inputManager.destroy();
  */
 export class InputManager {
-	private constructor(contexts: InputContext[]);
+	private constructor(contexts: {[contextName: string]: {[actionName: string]: Trigger}});
 	/**
 	 * Gets the current input node. The input node is used to receive input events. It will be added to `Director.entry` automatically.
 	 * @returns The input node.
@@ -274,7 +256,7 @@ export class InputManager {
  * @param contexts The input contexts to be created.
  * @returns The input manager.
  */
-export function CreateManager(this: void, contexts: InputContext[]): InputManager;
+export function CreateManager(this: void, contexts: {[contextName: string]: {[actionName: string]: Trigger}}): InputManager;
 
 /** The virtual directional pad (D-pad) properties. */
 export interface DPadProps {

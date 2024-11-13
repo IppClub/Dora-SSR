@@ -10,14 +10,8 @@ local type AxisName = Controller.AxisName;
 -- @usage
 -- local InputManager = require("InputManager")
 -- local inputManager = InputManager.CreateManager({
--- 	{
--- 		name = "context1",
--- 		actions = {
--- 			{
--- 				name = "action1",
--- 				trigger = Trigger.KeyDown("W")
--- 			},
--- 		}
+-- 	context1 = {
+-- 		action1 = Trigger.KeyDown("W"),
 -- 	},
 -- })
 -- -- 激活上下文 context1
@@ -212,26 +206,6 @@ local record InputManagerClass
 		Block: function(trigger: Trigger): Trigger
 	end
 
-	-- 输入动作的记录，定义了一个带有名称和对应触发器的输入动作。
-	record InputAction
-
-		-- 动作的名称。
-		name: string
-
-		-- 动作的触发器。
-		trigger: Trigger
-	end
-
-	-- 输入上下文的记录，定义了包含一组输入动作的上下文。
-	record InputContext
-
-		-- 上下文的名称。
-		name: string
-
-		-- 上下文包含的输入动作。
-		actions: {InputAction}
-	end
-
 	-- 触发器状态的枚举。
 	enum TriggerState
 
@@ -252,9 +226,9 @@ local record InputManagerClass
 	end
 
 	-- 使用指定的输入上下文创建输入管理器。
-	-- @param contexts ({InputContext}) 要创建的一组输入上下文。
+	-- @param contexts ({string: {string: Trigger}) 要创建的一组输入上下文。
 	-- @return (InputManager) 输入管理器。
-	CreateManager: function(contexts: {InputContext}): InputManager
+	CreateManager: function(contexts: {--[[contextName]] string: {--[[actionName]] string: Trigger}}): InputManager
 
 	-- 虚拟方向键（D-pad）的属性。
 	record DPadProps
@@ -336,7 +310,6 @@ local record InputManagerClass
 	-- @param props (ButtonPadProps) 按钮盘的属性。
 	-- @return (Node) 按钮盘节点。
 	CreateButtonPad: function(props: ButtonPadProps): Node.Type
-
 
 	-- 虚拟肩部按钮UI的属性。
 	record ControlPadProps

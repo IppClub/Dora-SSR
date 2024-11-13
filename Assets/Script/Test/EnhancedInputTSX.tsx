@@ -3,7 +3,7 @@ import { React, toNode } from 'DoraX';
 import { App, ButtonName, KeyName, Node, Vec2, loop, threadLoop } from 'Dora';
 import * as ImGui from "ImGui";
 import { SetCond, WindowFlag } from 'ImGui';
-import { GamePad, CreateManager, Trigger, TriggerState, InputContext } from 'InputManager';
+import { GamePad, CreateManager, Trigger, TriggerState } from 'InputManager';
 
 const enum QTE {
 	None = "None",
@@ -12,57 +12,48 @@ const enum QTE {
 	Phase3 = "Phase3"
 }
 
-function QTEContext(contextName: QTE, keyName: KeyName, buttonName: ButtonName, timeWindow: number): InputContext {
-	return {name: contextName,
-		actions: [{
-			name: "QTE", trigger:
-			Trigger.Sequence([
+function QTEContext(keyName: KeyName, buttonName: ButtonName, timeWindow: number) {
+	return {
+		QTE: Trigger.Sequence([
+			Trigger.Selector([
 				Trigger.Selector([
-					Trigger.Selector([
-						Trigger.KeyPressed(keyName),
-						Trigger.Block(Trigger.AnyKeyPressed()),
-					]),
-					Trigger.Selector([
-						Trigger.ButtonPressed(buttonName),
-						Trigger.Block(Trigger.AnyButtonPressed()),
-					]),
+					Trigger.KeyPressed(keyName),
+					Trigger.Block(Trigger.AnyKeyPressed()),
 				]),
 				Trigger.Selector([
-					Trigger.KeyTimed(keyName, timeWindow),
-					Trigger.ButtonTimed(buttonName, timeWindow),
+					Trigger.ButtonPressed(buttonName),
+					Trigger.Block(Trigger.AnyButtonPressed()),
 				]),
-			])
-		}]
+			]),
+			Trigger.Selector([
+				Trigger.KeyTimed(keyName, timeWindow),
+				Trigger.ButtonTimed(buttonName, timeWindow),
+			]),
+		])
 	};
 }
 
-const inputManager = CreateManager([
-	{name: "Default", actions: [
-		{name: "Confirm", trigger:
-			Trigger.Selector([
-				Trigger.ButtonHold(ButtonName.Y, 1),
-				Trigger.KeyHold(KeyName.Return, 1),
-			])
-		},
-		{name: "MoveDown", trigger:
-			Trigger.Selector([
-				Trigger.ButtonPressed(ButtonName.Down),
-				Trigger.KeyPressed(KeyName.S)
-			])
-		},
-	]},
-	{name: "Test", actions: [
-		{name: "Confirm", trigger: 
-			Trigger.Selector([
-				Trigger.ButtonHold(ButtonName.X, 0.3),
-				Trigger.KeyHold(KeyName.LCtrl, 0.3),
-			])
-		},
-	]},
-	QTEContext(QTE.Phase1, KeyName.J, ButtonName.A, 3),
-	QTEContext(QTE.Phase2, KeyName.K, ButtonName.B, 2),
-	QTEContext(QTE.Phase3, KeyName.L, ButtonName.X, 1)
-]);
+const inputManager = CreateManager({
+	Default: {
+		Confirm: Trigger.Selector([
+			Trigger.ButtonHold(ButtonName.Y, 1),
+			Trigger.KeyHold(KeyName.Return, 1),
+		]),
+		MoveDown: Trigger.Selector([
+			Trigger.ButtonPressed(ButtonName.Down),
+			Trigger.KeyPressed(KeyName.S)
+		]),
+	},
+	Test: {
+		Confirm: Trigger.Selector([
+			Trigger.ButtonHold(ButtonName.X, 0.3),
+			Trigger.KeyHold(KeyName.LCtrl, 0.3),
+		]),
+	},
+	[QTE.Phase1]: QTEContext(KeyName.J, ButtonName.A, 3),
+	[QTE.Phase2]: QTEContext(KeyName.K, ButtonName.B, 2),
+	[QTE.Phase3]: QTEContext(KeyName.L, ButtonName.X, 1)
+});
 
 inputManager.pushContext("Default");
 
