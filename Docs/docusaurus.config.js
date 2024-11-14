@@ -209,7 +209,6 @@ const config = {
 					editUrl: github ?
 						'https://github.com/ippclub/Dora-SSR/tree/main/Docs' :
 						'https://atomgit.com/ippclub/Dora-SSR/blob/main/Docs',
-					sidebarCollapsed: false,
 					showLastUpdateAuthor: true,
 					showLastUpdateTime: true,
 					lastVersion: 'current',

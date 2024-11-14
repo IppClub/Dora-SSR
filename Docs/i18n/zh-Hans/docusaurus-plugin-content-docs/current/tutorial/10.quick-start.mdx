@@ -155,8 +155,8 @@ if (sprite) {
 
 ```tsx title="Hello/init.tsx"
 // @preview-file on
-import {React, toNode, useRef} from 'DoraX';
-import {Ease, Move, Sprite, Touch} from 'Dora';
+import {React, toNode, toAction, useRef} from 'DoraX';
+import {Ease, Sprite, Touch} from 'Dora';
 
 const sprite = useRef<Sprite.Type>();
 
@@ -164,11 +164,13 @@ const sprite = useRef<Sprite.Type>();
 const onTapBegan = (touch: Touch.Type) => {
 	const {current} = sprite;
 	if (current) {
-		current.perform(Move(
-			1, // 持续时间，单位为秒
-			current.position, // 开始位置
-			touch.location, // 结束位置
-			Ease.OutBack // 缓动函数
+		const {x, y} = touch.location;
+		current.perform(toAction(
+			<move time={1}
+				startX={current.x} startY={current.y}
+				stopX={x} stopY={y}
+				easing={Ease.OutBack}
+			/>
 		));
 	}
 };
