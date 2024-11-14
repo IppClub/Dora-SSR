@@ -16,11 +16,11 @@
     "description": "The label for category Module in sidebar apiSidebar"
   },
   "sidebar.tutorialSidebar.category.Using Dora Xml": {
-    "message": "使用 Dora Xml",
+    "message": "如何使用 Dora Xml",
     "description": "The label for category Using Dora Xml in sidebar tutorialSidebar"
   },
   "sidebar.tutorialSidebar.category.Writing Game Dialogue": {
-    "message": "编写游戏对话系统",
+    "message": "如何编写游戏对话系统",
     "description": "The label for category Writing Game Dialogue in sidebar tutorialSidebar"
   },
   "sidebar.apiSidebar.category.Basic Functionality": {
@@ -684,7 +684,7 @@
     "description": "The label for the doc item Options in sidebar apiSidebar, linking to the doc api/Class/yue/Config/Options"
   },
   "sidebar.tutorialSidebar.category.Language Tutorial": {
-    "message": "编程语言教程",
+    "message": "Dora 的编程语言教程",
     "description": "The label for category Language Tutorial in sidebar tutorialSidebar"
   },
   "sidebar.tutorialSidebar.category.Using TypeScript in Dora": {
@@ -696,7 +696,7 @@
     "description": "The label for the doc item Frame in sidebar apiSidebar, linking to the doc api/Module/Frame"
   },
   "sidebar.tutorialSidebar.category.Managing Game Data": {
-    "message": "管理游戏数据",
+    "message": "如何管理游戏数据",
     "description": "The label for category Managing Game Data in sidebar tutorialSidebar"
   },
   "sidebar.tutorialSidebar.category.Using Input": {
