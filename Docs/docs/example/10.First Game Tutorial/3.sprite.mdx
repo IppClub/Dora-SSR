@@ -1,0 +1,113 @@
+import "@site/src/languages/highlight";
+
+# Chapter 3: Sprites and Animations: Rendering and Animation Handling
+
+In this chapter, you'll learn how to load sprite images in Dora and add them to the scene. Additionally, you'll discover how to use frame animations to bring characters and enemies to life, making your game more engaging and dynamic.
+
+#### **Objectives**
+
+- Load and display sprites
+- Create frame animations
+- Add animations to characters and enemies
+
+---
+
+## 1. Loading and Displaying Sprites
+
+In Dora, `Sprite` is the basic node for displaying images. You can use `Sprite` to load and display images for game elements such as characters and enemies. The following code demonstrates how to load a sprite and add it to the scene:
+
+```ts title="Example Code"
+import { Sprite, Vec2 } from 'Dora';
+
+// Load and display a sprite
+const playerSprite = Sprite('Image/art.clip|playerGrey_walk1');
+if (!playerSprite) error('Failed to create sprite!');
+playerSprite.order = 1;
+playerSprite.position = Vec2(0, 0); // Set position
+playerSprite.addTo(Director.entry); // Add to the current scene
+```
+
+In this example, we load a sprite using `Sprite('Image/art.clip|playerGrey_walk1')`. Here, `playerGrey_walk1` is the resource name of the sprite image contained in the `Image/art.clip` atlas. The `position` property is used to set the sprite's display position.
+
+---
+
+## 2. Creating Frame Animations
+
+To add walking or other repetitive actions to characters, you can use frame animations. Frame animations consist of a series of images that are quickly switched to create an animation effect.
+
+In Dora, you can create a function called `playAnimation` to play frame animations, as shown below:
+
+```ts title="dodge_the_creeps/init.tsx"
+import { Node, Sprite, sleep } from 'Dora';
+
+const playAnimation = (node: Node.Type, name: string) => {
+	node.removeAllChildren(); // Clear other child nodes
+	const interval = 0.2; // Set frame interval time
+	const frames = [
+		Sprite(`Image/art.clip|${name}1`) ?? Sprite(),
+		Sprite(`Image/art.clip|${name}2`) ?? Sprite()
+	];
+	for (let frame of frames) {
+		// If the animation name starts with `enemy`, rotate the sprite to a set angle
+		if (name.startsWith('enemy')) {
+			frame.angle = -90; // Adjust angle
+		}
+		frame.addTo(node);
+	}
+	let i = 0;
+	node.loop(() => {
+		frames[i].visible = true;
+		i = (i + 1) % 2; // Switch frames
+		frames[i].visible = false;
+		sleep(interval);
+		return false;
+	});
+};
+```
+
+In the `playAnimation` function:
+
+- `node.removeAllChildren()`: Clears the node's child nodes to avoid overlapping elements.
+- The `frames` array contains the frames needed for the animation.
+- `node.loop()` creates a loop to periodically switch frames, achieving the animation effect.
+- `sleep(interval)` sets the time interval between frame switches.
+
+---
+
+## 3. Applying Animations to Characters and Enemies
+
+Next, we'll apply this animation to characters and enemies, adding dynamic effects to the game.
+
+* **Adding Animation to Characters**
+
+Assuming you already have a character node `playerNode`, you can add a walking animation with the following code:
+
+```ts title="Example Code"
+const playerNode = Node().addTo(Director.entry);
+playerNode.order = 1;
+const playerAnimNode = Node().addTo(playerNode); // Create a child node for animation
+playAnimation(playerAnimNode, 'playerGrey_walk'); // Play animation
+```
+
+Here, we create `playerAnimNode` and add it to `playerNode`. Then, we call `playAnimation`, specifying the animation name `playerGrey_walk`.
+
+* **Adding Different Animations to Enemies**
+
+You can use the same `playAnimation` function to add different animations to enemies. For example, if enemies have three types: flying, walking, and swimming, you can randomly select an animation type:
+
+```ts title="Example Code"
+const enemyNode = Node().addTo(Director.currentScene);
+const enemyAnimNode = Sprite().addTo(enemyNode);
+const animations = ['enemyFlyingAlt_', 'enemyWalking_', 'enemySwimming_'];
+playAnimation(enemyAnimNode, animations[math.random(0, animations.length - 1)]);
+```
+
+Using `math.random`, a random animation type is selected, giving enemies different behaviors and adding variety to the game.
+
+---
+
+## 4. Summary
+
+In this chapter, you learned how to load and display sprites in Dora and create frame animations. We applied animations to characters and enemies, adjusting their animation directions as needed. These skills allow you to design lively animations for game characters and enemies, enhancing the visual experience of your game.
+
+In the next chapter, you'll learn how to use the `InputManager` to handle keyboard and controller inputs, enabling players to control character movement.

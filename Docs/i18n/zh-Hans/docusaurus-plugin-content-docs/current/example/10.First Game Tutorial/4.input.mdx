@@ -1,0 +1,157 @@
+import "@site/src/languages/highlight";
+
+# 第四章：输入管理：响应玩家操作
+
+&emsp;&emsp;在游戏中，玩家的输入是关键的一部分。Dora 提供了强大的 `InputManager`，可以帮助我们方便地处理键盘、手柄等设备的输入。本章将带你了解如何使用 `InputManager` 为游戏设置响应玩家操作的输入控制。
+
+#### **目标**
+
+- 学习如何使用 `InputManager` 创建输入事件。
+- 实现玩家角色的基本移动控制。
+- 在游戏中为不同的输入场景（例如 UI 和游戏场景）设置输入上下文。
+
+---
+
+## 1. 设置输入管理器
+
+&emsp;&emsp;在开始之前，我们需要初始化输入管理器并定义输入上下文。我们会创建一个 `Game` 上下文用于玩家控制，和一个 `UI` 上下文用于菜单界面。
+
+```ts title="dodge_the_creeps/init.tsx"
+import { CreateManager, Trigger, GamePad } from 'InputManager';
+import { KeyName, ButtonName } from 'Dora';
+```
+
+---
+
+## 2. 定义输入触发器
+
+&emsp;&emsp;通过 `Trigger` 定义不同按键的触发方式，我们可以将键盘和手柄的按键统一为一种操作。例如，将 `W` 键和手柄的上方向键都定义为 `上` 的触发条件。
+
+```ts title="dodge_the_creeps/init.tsx"
+const Pressed = (keyName: KeyName, buttonName: ButtonName) => {
+	return Trigger.Selector([
+		Trigger.KeyPressed(keyName),
+		Trigger.ButtonPressed(buttonName),
+	]);
+};
+```
+
+---
+
+## 3. 创建输入上下文
+
+&emsp;&emsp;定义 `Game` 和 `UI` 两个上下文，分别对应游戏和菜单界面的输入。
+
+```ts title="dodge_the_creeps/init.tsx"
+const inputManager = CreateManager({
+	Game: {
+		Up: Pressed(KeyName.W, ButtonName.Up),
+		Down: Pressed(KeyName.S, ButtonName.Down),
+		Left: Pressed(KeyName.A, ButtonName.Left),
+		Right: Pressed(KeyName.D, ButtonName.Right),
+	},
+	UI: {
+		Start: Trigger.Selector([
+			Trigger.KeyDown(KeyName.Return),
+			Trigger.ButtonDown(ButtonName.Start),
+		]),
+	},
+});
+```
+
+---
+
+## 4. 将输入管理器添加到 UI
+
+&emsp;&emsp;将输入管理器节点添加到 `Director.ui` 中，让它管理整个游戏的输入。
+
+```ts title="dodge_the_creeps/init.tsx"
+inputManager.getNode().addTo(Director.ui);
+```
+
+---
+
+## 5. 创建虚拟手柄（可选）
+
+&emsp;&emsp;由于我们游戏设备的差异，可以通过 `GamePad` 来模拟虚拟手柄，从而支持触屏操作。
+
+```ts title="dodge_the_creeps/init.tsx"
+toNode(
+	<GamePad inputManager={inputManager} noLeftStick noRightStick noButtonPad noTriggerPad noControlPad />
+)?.addTo(Director.ui);
+```
+
+---
+
+## 6. 切换输入上下文
+
+&emsp;&emsp;在游戏不同的场景中，可能需要不同的输入上下文。在这里，我们可以通过 `popContext` 和 `pushContext` 来切换当前的输入上下文。
+
+- **UI 上下文**：主要用于菜单界面，当玩家在游戏开始界面时，只允许响应 `Start` 输入。
+- **Game 上下文**：用于游戏进行时，允许玩家控制角色的移动。
+
+```ts title="示例代码"
+// 在初始化游戏开始场景时，切换到 UI 输入上下文
+const StartUp = () => {
+	inputManager.popContext();
+	inputManager.pushContext('UI');
+	// 下面初始化游戏开始界面
+	// ...
+};
+
+// 在初始化游戏进行场景时，切换到 Game 输入上下文
+const Game = () => {
+	inputManager.popContext();
+	inputManager.pushContext('Game');
+	// 下面初始化游戏进行界面
+	// ...
+};
+```
+
+---
+
+## 7. 响应玩家操作
+
+&emsp;&emsp;将玩家输入事件绑定到角色的移动控制上。这里假设我们有一个 `player` 实体，并为其绑定上下左右移动的控制。注意注册的事件名称需要与上下文中定义的一致，并添加 `Input.` 前缀。
+
+```ts title="示例代码"
+// 切换到 Game 输入上下文，响应玩家操作
+inputManager.pushContext("Game");
+
+const player = Node();
+const playerAnim = Node().addTo(player);
+playAnimation(playerAnim, 'playerGrey_walk');
+
+// 初始化移动变量
+let x = 0;
+let y = 0;
+
+// 为上下左右方向绑定事件
+player.gslot('Input.Up', () => y = 1);
+player.gslot('Input.Down', () => y = -1);
+player.gslot('Input.Left', () => x = -1);
+player.gslot('Input.Right', () => x = 1);
+
+// 实现移动逻辑
+player.loop(() => {
+	const newPos = player.position.add(Vec2(x, y).normalize().mul(10));
+	player.position = newPos;
+	x = 0;
+	y = 0;
+	return false;
+});
+```
+
+---
+
+## 8. 验证输入是否工作
+
+&emsp;&emsp;通过绑定的 `Game` 上下文控制玩家角色的移动。在启动游戏后，使用键盘的 `W、A、S、D` 或手柄的方向键来控制角色移动。
+
+---
+
+## 9. 小结
+
+&emsp;&emsp;在这一章中，我们学习了如何在 Dora 中使用 `InputManager` 实现输入管理。通过创建和管理不同的输入上下文，我们可以轻松地控制不同场景下的输入方式。这种方式不仅灵活，也让代码更具结构性和可读性。
+
+&emsp;&emsp;在接下来的章节中，我们将进一步完善玩家角色的移动控制，并引入更多物理和动画效果，丰富我们的游戏体验。

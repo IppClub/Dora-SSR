@@ -1,0 +1,96 @@
+import "@site/src/languages/highlight";
+
+# Chapter 1: Introduction to Dora: Getting Started with Game Development
+
+In this chapter, we will embark on a learning journey with the Dora game engine. You will learn the basic concepts of Dora, set up the development environment, and create your first simple game project, laying a solid foundation for the subsequent lessons.
+
+:::info Tip
+In this tutorial, we will write game code using the TSX language. If you're not familiar with TSX, it's recommended to first read Dora's [TSX Beginner Tutorial](/docs/tutorial/Language%20Tutorial/using-tsx). For a deeper understanding of programming languages, you may also refer to the official documentation of [TypeScript](https://www.typescriptlang.org/) and [JSX](https://reactjs.org/docs/introducing-jsx.html). However, for this series of tutorials, it's sufficient to grasp the basics of TSX syntax, or you can just experiment with your programming knowledge and experience.
+:::
+
+---
+
+## 1. What is Dora?
+
+Dora is an open-source, cross-platform game engine designed to help developers quickly build games on various devices. It comes with an easy-to-use development toolchain that supports game development and programming learning on devices like smartphones, open-source handhelds, and more. With Dora, developers can write game logic using multiple programming languages such as Lua, Teal, TypeScript, and YueScript, significantly lowering the development barrier.
+
+---
+
+## 2. Setting Up the Development Environment
+
+Dora offers flexible installation methods depending on your operating system. Please follow the steps below according to your device's system.
+
+1. Download and install the Dora SSR software on your gaming terminal. For detailed installation steps, please refer to the [installation guide here](/docs/tutorial/quick-start#1-安装).
+2. Run the application, and it will display a local network server address.
+3. On a PC, tablet, or other development devices within the same network, access the server address through your browser.
+4. Now, you can start game development directly in the browser.
+
+## 3. Writing Your First Game Program
+
+After the installation, you can write and run games using Dora's Web IDE. Below are the steps to create your first simple project.
+
+### Step 1: Create a New Project
+
+1. Open the browser and visit the server address displayed when you launched the software to access Dora's Web IDE.
+2. In the Web IDE, right-click the "Resource Root Directory" menu on the left resource tree.
+3. Click "New," select "New Folder," and name the folder `Hello` to serve as the project's root folder.
+
+### Step 2: Write Game Code
+
+1. In the `Hello` folder, create a game entry code file. Right-click the `Hello` folder, select "New File," and name the file `init`.
+2. Choose TypeScript as the language and use the `.tsx` file extension. Write the following simple example code:
+
+	```tsx title="Hello/init.tsx"
+	// @preview-file on clear
+	import { React, toNode } from 'DoraX';
+
+	// Create a node to display text
+	const HelloDora = () => (
+		<label fontName='sarasa-mono-sc-regular' fontSize={60} text='Hello, Dora!'/>
+	);
+
+	// Add the node to the game interface
+	toNode(<HelloDora/>);
+	```
+
+3. After writing the code, press `Ctrl + S` to save the file. At this point, the Dora engine window should automatically refresh, and you should see the text "Hello, Dora!" displayed, indicating that you have successfully run your first simple game program.
+
+### Step 3: Run the Game Again
+
+1. Click the 🎮 icon in the lower-right corner of the editor to open the run menu.
+2. In the menu, click "Run," or press the shortcut `Ctrl + R`.
+3. The program will automatically recompile and run, and you should see the text "Hello, Dora!" in the game window.
+
+---
+
+## 4. Exploring Dora's Developer Tools
+
+Dora's Web IDE provides developers with features such as code editing, resource management, and real-time preview:
+
+- **Resource Tree**: Displays the project's files and folders on the left, making it easy to organize the project structure.
+- **Code Editor**: Supports syntax highlighting and error提示 for multiple languages, including Lua, Teal, TypeScript, and YueScript.
+- **Real-Time Preview**: After modifying code, you can instantly view the results, making it ideal for quick debugging and adjustments.
+
+With these features, you can easily write, debug, and run your games.
+
+---
+
+## 5. Summary and Outlook
+
+In this chapter, you learned how to install Dora on various platforms, set up the development environment, create your first simple game project, and get familiar with the basic usage of Dora's Web IDE. You've laid a solid foundation for the upcoming lessons.
+
+When it comes to game development, designing the game is a key part. In this tutorial series, we will guide you step by step through the creation of a game called *Dodge the Creeps*. Here's an overview of the game design:
+
+* *Dodge the Creeps* is a simple yet challenging survival game where players must continuously avoid enemies coming from all directions and survive as long as possible. The design concept includes the following core elements:
+
+* **Game Objective**: Players control a character moving on the screen and avoid enemies coming from random directions. The goal is to survive as long as possible while earning points that gradually increase, showing the player's survival skills.
+
+* **Enemy Generation and Movement**: Enemies spawn from random positions on the screen edges and move towards the player at a certain speed. As the game progresses, the speed and/or number of enemies increase, raising the difficulty.
+
+* **Player Character Control**: Players can control the character's movement up, down, left, and right via keyboard or gamepad. The character's movement needs to be agile to help the player avoid enemy attacks.
+
+* **Collision Detection and Game Over**: When the player collides with an enemy, the game ends. A score and "Game Over" message will appear, providing simple feedback to the player.
+
+* **Start Screen and Score Display**: The game begins with a simple start screen. Players click the start button to enter the game. During gameplay, the score is displayed on the screen in real-time.
+
+The core design of *Dodge the Creeps* is straightforward but tests the player's reaction speed and strategic thinking, making it a great practice project for beginners. Starting from the next tutorial, we will implement these designs step by step and build the full game. We hope you'll follow along with us to complete this project!

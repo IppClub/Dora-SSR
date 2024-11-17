@@ -1,0 +1,249 @@
+import "@site/src/languages/highlight";
+
+# 第五章：物理世界：引入物理引擎
+
+&emsp;&emsp;在游戏开发中，物理引擎是让游戏世界变得真实和互动的关键工具。Dora 提供了强大的物理引擎支持，让我们能够轻松实现碰撞检测、重力效果和物体的移动等功能。本章将带您了解如何在游戏中引入物理世界，并创建和管理物理实体。
+
+---
+
+## 1. 什么是物理世界？
+
+&emsp;&emsp;物理世界是一个虚拟的环境，它模拟现实中的物理规律，如物体之间的碰撞、速度和加速度。在 Dora 中，物理世界由 `PhysicsWorld` 节点表示。我们可以通过它来定义物体的行为和交互。
+
+---
+
+## 2. 创建物理世界
+
+&emsp;&emsp;在 Dora 中，我们可以通过在场景中添加一个 `PhysicsWorld` 节点来创建物理世界。
+
+```tsx title="示例代码"
+import { PhysicsWorld } from 'Dora';
+// 创建物理世界节点
+const physicsWorld = toNode(<physics-world showDebug/>) as PhysicsWorld.Type;
+if (!physicsWorld) error('创建物理世界失败！');
+```
+
+&emsp;&emsp;添加到场景中的 `PhysicsWorld` 会成为整个物理系统的基础，所有的物理对象都会在它的管理下进行交互。
+
+---
+
+## 3. 添加物理实体
+
+&emsp;&emsp;物理实体是能够在物理世界中移动或产生交互的对象。Dora 提供了多种物理实体类型，例如静态（Static）、动态（Dynamic）和运动学（Kinematic）。在本教程中，我们以动态实体为例，创建一个玩家角色的物理实体。
+
+```tsx title="示例代码"
+import { BodyMoveType } from 'Dora';
+
+// 创建动态物理实体
+const player = toNode(
+	<body
+		world={physicsWorld}
+		group={1}
+		type={BodyMoveType.Kinematic}
+		linearAcceleration={Vec2.zero}>
+		<disk-fixture radius={40}/>
+	</body>
+);
+if (!player) error('创建玩家失败！');
+
+// 将实体添加到物理世界
+player.addTo(physicsWorld);
+```
+
+#### **代码解释**
+
+- `type={BodyMoveType.Kinematic}`：指定玩家物理实体为运动体类型，即只可以通过代码控制其运动。
+- `linearAcceleration={Vec2.zero}`：设置物体的线性加速度为 0，即物体不受重力的影响。
+- `<disk-fixture radius={40}/>`：为物理实体定义一个圆形碰撞区域，半径为 40。
+
+---
+
+## 4. 处理物体的碰撞
+
+&emsp;&emsp;通过为物理世界定义碰撞规则，我们可以决定哪些物体可以碰撞以及如何处理碰撞事件。
+
+```tsx title="示例代码"
+// 定义碰撞规则：组 0 和组 1 之间的碰撞有效
+<physics-world>
+	<contact groupA={0} groupB={1} enabled/>
+</physics-world>
+```
+
+```ts
+// 处理碰撞事件
+player.onContactStart(other => {
+	if (other.group === 0) {
+		print('玩家与敌人发生碰撞！');
+	}
+});
+```
+
+#### **代码解释**
+
+- `<contact groupA={0} groupB={1} enabled/>`：定义了组 0 和组 1 之间的碰撞规则。
+- `onContactStart`：为玩家物理实体添加一个事件，当与其他物体发生碰撞时触发。
+
+---
+
+## 5. 动态生成物体
+
+&emsp;&emsp;动态生成物体是实现挑战和互动的重要方式。以下是一个生成敌人的示例：
+
+```tsx title="示例代码"
+const createEnemy = () => {
+	const enemy = toNode(
+		<body
+			world={physicsWorld}
+			group={0}
+			type={BodyMoveType.Dynamic}
+			linearAcceleration={Vec2.zero}
+			velocityX={100}
+			velocityY={100}>
+			<disk-fixture radius={40}/>
+		</body>
+	);
+	enemy?.addTo(physicsWorld);
+};
+```
+
+&emsp;&emsp;通过在游戏循环中调用 `createEnemy` 方法，我们可以不断生成新的敌人。
+
+---
+
+## 6. 控制物体运动
+
+&emsp;&emsp;物理实体的运动可以通过设置速度、施加力或者直接修改位置来实现。以下是一个简单的示例，展示了如何通过键盘输入控制玩家角色的移动。
+
+```ts title="示例代码"
+inputManager.pushContext("Game");
+
+let velocityX = 0;
+let velocityY = 0;
+
+player.gslot('Input.Up', () => velocityY = 1);
+player.gslot('Input.Down', () => velocityY = -1);
+player.gslot('Input.Left', () => velocityX = -1);
+player.gslot('Input.Right', () => velocityX = 1);
+
+player.loop(() => {
+	const newPos = player.position.add(Vec2(velocityX, velocityY).normalize().mul(10));
+	player.position = newPos;
+	velocityX = 0;
+	velocityY = 0;
+	return false;
+});
+```
+
+#### **代码解释**
+
+- `velocityX` 和 `velocityY`：用于存储玩家角色的速度。
+- `player.gslot`：为玩家角色绑定键盘输入事件。
+- `player.loop`：在游戏循环中更新玩家角色的位置。
+
+---
+
+## 7. 综合示例：在物理世界实现敌人生成和玩家控制
+
+&emsp;&emsp;以下代码结合上面的示例，实现了一个简单的游戏场景，其中玩家可以控制角色移动，同时每秒生成一个敌人。
+
+```tsx title="示例代码"
+import { BodyMoveType, PhysicsWorld } from 'Dora';
+
+// 创建敌人的方法
+const Enemy = (world: PhysicsWorld.Type) => {
+	const enemy = toNode(
+		<body
+			world={world}
+			group={0}
+			type={BodyMoveType.Dynamic}
+			linearAcceleration={Vec2.zero}
+			velocityX={math.random(-100, 100)}
+			velocityY={math.random(-100, 100)}>
+			<disk-fixture radius={40}/>
+		</body>
+	)?.addTo(world);
+	if (!enemy) error('创建敌人失败！');
+
+	// 为敌人添加动画
+	const enemyAnim = Node().addTo(enemy);
+	const animations = ['enemyFlyingAlt_', 'enemyWalking_', 'enemySwimming_'];
+	playAnimation(enemyAnim, animations[math.random(0, animations.length - 1)]);
+};
+
+// 创建玩家的方法
+const Player = (world: PhysicsWorld.Type) => {
+	const player = toNode(
+		<body
+			world={world}
+			group={1}
+			type={BodyMoveType.Kinematic}
+			linearAcceleration={Vec2.zero}>
+			<disk-fixture radius={40}/>
+		</body>
+	)?.addTo(world);
+	if (!player) error('创建玩家失败！');
+
+	// 为玩家添加动画
+	const playerAnim = Node().addTo(player);
+	playAnimation(playerAnim, "playerGrey_walk");
+
+	// 玩家移动控制
+	let velocityX = 0;
+	let velocityY = 0;
+
+	player.gslot('Input.Up', () => velocityY = 1);
+	player.gslot('Input.Down', () => velocityY = -1);
+	player.gslot('Input.Left', () => velocityX = -1);
+	player.gslot('Input.Right', () => velocityX = 1);
+
+	player.loop(() => {
+		const newPos = player.position.add(Vec2(velocityX, velocityY).normalize().mul(10));
+		player.position = newPos;
+		velocityX = 0;
+		velocityY = 0;
+		return false;
+	});
+}
+
+// 创建游戏场景的组件
+const Game = () => {
+	// 切换到 Game 输入上下文，响应玩家操作
+	inputManager.pushContext("Game");
+
+	// 创建物理世界
+	return (
+		<physics-world onMount={world => {
+			Player(world); // 创建玩家
+
+			// 游戏循环：每 1 秒生成一个敌人
+			world.loop(() => {
+				sleep(1);
+				Enemy(world); // 创建敌人
+				return false;
+			});
+		}}>
+			<contact groupA={0} groupB={1} enabled/> {/* 敌人与玩家碰撞 */}
+			<contact groupA={0} groupB={0} enabled={false}/> {/* 敌人之间碰撞无效 */}
+		</physics-world>
+	);
+};
+
+// 注册开始场景发出的游戏开始事件
+Director.entry.gslot("Input.Start", () => {
+	Director.entry.removeAllChildren();
+	// 进入游戏场景
+	toNode(<Game/>);
+});
+```
+
+---
+
+## 8. 小结
+
+&emsp;&emsp;通过本章内容，我们学习了如何：
+
+1. 创建物理世界并将其添加到场景中。
+2. 创建物理实体并定义碰撞规则。
+3. 动态生成物体并控制它们的运动。
+
+&emsp;&emsp;在接下来的章节中，我们将继续完善游戏，加入更多功能和优化，让您的游戏变得更加丰富和有趣！

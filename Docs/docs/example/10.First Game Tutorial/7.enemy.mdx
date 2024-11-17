@@ -1,0 +1,236 @@
+import "@site/src/languages/highlight";
+
+# Chapter 7: Enemy Spawning: The Source of Challenge
+
+In this chapter, we will enhance the game's challenge by dynamically spawning enemies. Building on the code from previous chapters, we will focus on designing and implementing enemy spawning logic and behaviors.
+
+---
+
+## 1. Enemy Spawning Design Concept
+
+In games, enemies are a primary source of challenge. We aim to implement the following features:
+
+1. **Randomized Enemy Spawning**: Enemies spawn from various directions (top, bottom, left, right).
+2. **Dynamic Speed Adjustment**: Enemy speed increases with the player's score.
+3. **Collision Handling**: The game ends when enemies collide with the player.
+
+---
+
+## 2. Implementing Enemy Spawning Logic
+
+To dynamically spawn enemies, we need to write an `Enemy` spawning function. Below is the breakdown of the code logic:
+
+- **Spawn Position**: Randomly select one of the four edges for enemy spawning.
+- **Movement Direction**: Randomly determine the enemy's movement direction based on its spawn position.
+- **Speed Adjustment**: Dynamically increase the speed based on the current score.
+
+Here is the complete `Enemy` function code:
+
+```tsx title="dodge_the_creeps/init.tsx"
+const Enemy = (world: PhysicsWorld.Type, score: number) => {
+	const dir = math.random(0, 3); // Randomly choose direction
+	const angle = math.random(dir * 90 + 25, dir * 90 + 180 - 25); // Avoid axis-aligned spawns
+	let pos = Vec2.zero;
+	const minW = -hw - 40; const maxW = hw + 40;
+	const minH = -hh - 40; const maxH = hh + 40;
+	const randW = math.random(minW, maxW);
+	const randH = math.random(minH, maxH);
+
+	// Determine initial position based on direction
+	switch (dir) {
+		case 0: pos = Vec2(minW, randH); break; // Spawn from left
+		case 1: pos = Vec2(randW, maxH); break; // Spawn from bottom
+		case 2: pos = Vec2(maxW, randH); break; // Spawn from right
+		case 3: pos = Vec2(randW, minH); break; // Spawn from top
+	}
+
+	const radian = math.rad(angle); // Convert angle to radians
+	const velocity = Vec2(math.sin(radian), math.cos(radian))
+		.normalize()
+		.mul(200 + score * 2); // Speed scales with score
+
+	// Create enemy entity
+	toNode(
+		<body world={world} group={0} type={BodyMoveType.Dynamic} linearAcceleration={Vec2.zero}
+			x={pos.x} y={pos.y} velocityX={velocity.x} velocityY={velocity.y} angle={angle}
+			onMount={node => {
+				const enemys = [Animation.enemyFlyingAlt, Animation.enemySwimming, Animation.enemyWalking];
+				playAnimation(node, enemys[math.random(0, 2)]); // Randomly select an animation
+			}}>
+			<disk-fixture radius={40}/> {/* Set collision body */}
+		</body>
+	)?.addTo(world);
+};
+```
+
+---
+
+## 3. Dynamic Enemy Spawning
+
+In the main game logic, we need to spawn enemies periodically. The following code demonstrates how to use `world.loop` to spawn enemies based on the player's score:
+
+```tsx title="Example Code"
+world.loop(() => {
+	sleep(0.5); // Spawn an enemy every 0.5 seconds
+	Enemy(world, score); // Pass the current score
+	return false; // Repeat indefinitely
+});
+```
+
+---
+
+## 4. Balancing the Game
+
+To optimize the gameplay experience, you can tweak the following parameters:
+
+- **Initial Speed**: Modify the `200 + score * 2` base speed value.
+- **Spawn Frequency**: Adjust the interval in `sleep(0.5)`.
+- **Score Impact on Speed**: Change the weight of the score in the speed formula, e.g., `200 + score * 4`.
+
+---
+
+## 5. Verifying the Gameplay
+
+After implementing enemy spawning, test the following:
+
+- **Enemy spawn directions and speeds** meet expectations.
+- **Collision detection** works properly.
+- **Increasing score** makes the game progressively challenging.
+
+---
+
+## 6. Handling Off-Screen Enemies
+
+### Design Concept:
+
+- To prevent the buildup of off-screen enemies, we need to detect when they leave the scene boundaries.
+- Enemies leaving the scene will be removed.
+
+We can detect off-screen enemies by adding a static `body` with a rectangular sensor in the `<physics-world>`. When enemies enter or leave the sensor area, events will trigger accordingly.
+
+Here is the implementation code:
+
+```tsx title="Example Code"
+<physics-world>
+	<body type={BodyMoveType.Static} group={1} onBodyLeave={() => {
+		// Increment score when an enemy leaves the scene
+		score++;
+	}}>
+		<rect-fixture sensorTag={0} width={width} height={height}/> {/* Sensor matches scene size */}
+	</body>
+</physics-world>
+```
+
+**Explanation:**
+
+- `onBodyLeave` is a callback triggered when an enemy leaves the scene.
+- `score++` increments the score and updates the score display in real time.
+
+---
+
+## 7. Score Display
+
+### Design Concept:
+
+- Players earn points by avoiding collisions and letting enemies leave the scene.
+- Each enemy that exits the scene increases the player's score.
+
+To display the score, we use a `Label` in the game interface. Ensure the label appears only after the "Get Ready!" prompt.
+
+```tsx title="Example Code"
+const label = useRef<Label.Type>(); // Create a reference for the score label
+
+<label ref={label} fontName='Xolonium-Regular' fontSize={60} text='0' y={300} visible={false}/>
+```
+
+**Explanation:**
+
+- `useRef` allows dynamic updates to the label.
+- The `visible` property is initially set to `false`, showing the label only after the game starts.
+
+When the game starts, the label becomes visible after the "Get Ready!" prompt:
+
+```tsx title="Example Code"
+world.once(() => {
+	const msg = toNode(
+		<label fontName='Xolonium-Regular' fontSize={80} text='Get Ready!' y={200}/>
+	);
+	sleep(1); // Remove the prompt after 1 second
+	msg?.removeFromParent();
+	if (label.current) {
+		label.current.visible = true; // Show the score label
+	}
+	// Start spawning enemies
+	// ...
+});
+```
+
+---
+
+## 8. Complete Enemy Logic Integration
+
+Below is the core integrated logic:
+
+```tsx title="dodge_the_creeps/init.tsx"
+const Game = () => {
+	inputManager.popContext();
+	inputManager.pushContext('Game');
+
+	let score = 0;
+	const label = useRef<Label.Type>();  // Create a reference for the score label
+	Audio.playStream('Audio/House In a Forest Loop.ogg', true);
+	return (
+		<clip-node stencil={<Rect/>}>
+			<physics-world onMount={world => {
+				Player(world); // Create player
+				world.once(() => {
+					// Show "Get Ready!" prompt
+					const msg = toNode(
+						<label fontName='Xolonium-Regular' fontSize={80} text='Get Ready!' y={200}/>
+					);
+					sleep(1);
+					msg?.removeFromParent();
+					if (label.current) {
+						label.current.visible = true;
+					}
+					// Periodically spawn enemies
+					world.loop(() => {
+						sleep(0.5);
+						Enemy(world, score);
+						return false;
+					});
+				});
+			}}>
+				<contact groupA={0} groupB={0} enabled={false}/> {/* Disable collisions between enemies */}
+				<contact groupA={0} groupB={1} enabled/> {/* Enable collisions between player and enemies */}
+				{/* Sensor to detect off-screen enemies */}
+				<body type={BodyMoveType.Static} group={1} onBodyLeave={() => {
+					score++;
+					if (label.current) {
+						label.current.text = score.toString();
+					}
+				}}>
+					<rect-fixture sensorTag={0} width={width} height={height}/>
+				</body>
+			</physics-world>
+			<label ref={label} fontName='Xolonium-Regular' fontSize={60} text='0' y={300} visible={false}/>
+		</clip-node>
+	);
+};
+```
+
+---
+
+## 9. Debugging and Verification
+
+After finishing, test the game to ensure:
+
+1. **Off-screen enemies trigger score increment**.
+2. **Score updates correctly**.
+3. **Score display logic syncs with game prompts**.
+
+---
+
+## 10. Chapter Summary
+
+In this chapter, we implemented off-screen enemy detection and the player's scoring mechanism, making the game more complete and engaging. In the next chapter, we will design the game's user interface, including pause functionality, restart buttons, and more.

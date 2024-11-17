@@ -1,0 +1,218 @@
+import "@site/src/languages/highlight";
+
+# 第八章：游戏界面：开始和结束场景
+
+&emsp;&emsp;在这一章节中，我们将学习如何为游戏创建开始界面和结束场景。开始界面用于展示游戏标题并引导玩家进入游戏，而结束场景用于显示游戏结束状态和得分。通过场景的切换，我们可以为游戏实现完整的交互体验。
+
+#### **目标**
+
+1. 创建一个简单的游戏开始界面。
+2. 实现游戏结束逻辑，并展示得分。
+3. 使用 `Label` 组件显示文本信息。
+4. 使用 `InputManager` 响应玩家的启动操作。
+
+---
+
+## 1. 创建开始界面
+
+&emsp;&emsp;开始界面是玩家进入游戏时看到的第一屏。我们之前教程中实现的带有游戏标题和“开始”按钮的界面中，增加进入游戏场景的切换功能。
+
+&emsp;&emsp;**代码实现**
+
+```tsx title="dodge_the_creeps/init.tsx"
+const Background = () => (
+	<draw-node>
+		<rect-shape width={width} height={height} fillColor={0xff4b6b6c}/>
+	</draw-node>
+);
+
+const StartUp = () => {
+	// 切换到 UI 输入上下文
+	inputManager.popContext();
+	inputManager.pushContext('UI');
+
+	return (
+		<>
+			{/* 绘制背景 */}
+			<Background/>
+
+			{/* 显示标题 */}
+			<label
+				fontName='Xolonium-Regular'
+				fontSize={80}
+				text='Dodge the Creeps!'
+				textWidth={400}
+				y={200}
+			/>
+
+			{/* 创建开始按钮 */}
+			<draw-node y={-150}>
+				<rect-shape width={250} height={80} fillColor={0xff3a3a3a} />
+				<label fontName='Xolonium-Regular' fontSize={60} text={'Start'} />
+
+				{/* 按钮的交互逻辑 */}
+				<node
+					width={250}
+					height={80}
+					onTapped={() => emit('Input.Start')}
+					onMount={node => {
+						node.gslot('Input.Start', () => {
+							Director.entry.removeAllChildren(); // 清空当前场景
+							toNode(<Game />); // 进入游戏场景
+						});
+					}}
+				/>
+			</draw-node>
+		</>
+	);
+};
+```
+
+&emsp;&emsp;**关键点解析**
+
+- `draw-node` 用于绘制背景和按钮框。
+- `label` 用于显示文字信息，如标题和按钮文本。
+- `onTapped` 响应玩家的点击事件。
+- 使用 `emit` 和 `gslot` 来绑定输入事件。
+
+---
+
+## 2. 实现游戏结束逻辑
+
+&emsp;&emsp;当玩家的角色与敌人碰撞时，我们希望显示“Game Over”提示并返回到开始界面。
+
+&emsp;&emsp;**代码实现**
+
+```tsx title="dodge_the_creeps/init.tsx"
+const Player = (world: PhysicsWorld.Type) => {
+	const node = toNode(
+		<body
+			world={world}
+			group={1}
+			type={BodyMoveType.Dynamic}
+			linearAcceleration={Vec2.zero}
+			onContactStart={other => {
+				if (other.group === 0) { // 如果与敌人发生碰撞
+					// 显示 "Game Over" 信息
+					toNode(
+						<label
+							fontName='Xolonium-Regular'
+							fontSize={80}
+							text='Game Over'
+							textWidth={300}
+							y={0}
+						/>
+					);
+
+					// 移除玩家角色
+					node?.removeFromParent();
+
+					// 延时后返回到开始界面
+					thread(() => {
+						sleep(2); // 延时 2 秒
+						Director.entry.removeAllChildren();
+						toNode(<StartUp />); // 返回开始界面
+					});
+
+					// 播放游戏结束音效
+					Audio.stopStream(0.5); // 停止背景音乐
+					Audio.play('Audio/gameover.wav');
+				}
+			}}
+		>
+			<disk-fixture radius={40} />
+		</body>
+	);
+
+	if (!node) error('failed to create player!');
+	node.addTo(world);
+};
+```
+
+&emsp;&emsp;**关键点解析**
+
+- `onContactStart` 监听碰撞事件。
+- 碰撞后移除玩家节点并返回开始界面。
+- 使用 `thread` 和 `sleep` 实现延时效果。
+- 添加音效以增强游戏体验。
+
+---
+
+## 3. 显示得分
+
+&emsp;&emsp;在游戏结束时，除了显示“Game Over”信息，我们还需要显示玩家的得分。
+
+&emsp;&emsp;**代码实现**
+
+```tsx title="dodge_the_creeps/init.tsx"
+const Game = () => {
+	inputManager.popContext();
+	inputManager.pushContext('Game');
+	let score = 0;
+	const label = useRef<Label.Type>();
+
+	Audio.playStream('Audio/House In a Forest Loop.ogg', true); // 播放背景音乐
+
+	return (
+		<clip-node stencil={<Background/>}>
+			{/* 显示背景 */}
+			<Background/>
+
+			{/* 显示得分 */}
+			<label
+				ref={label}
+				fontName='Xolonium-Regular'
+				fontSize={60}
+				text='0'
+				y={300}
+				visible={true}
+			/>
+
+			<physics-world
+				onMount={world => {
+					Player(world); // 创建玩家角色
+
+					// 定时生成敌人
+					world.loop(() => {
+						sleep(0.5); // 每隔 0.5 秒生成一个敌人
+						Enemy(world, score);
+						return false;
+					});
+
+					// 更新得分
+					world.onBodyLeave(() => {
+						score++;
+						if (label.current) {
+							label.current.text = score.toString(); // 更新得分显示
+						}
+					});
+				}}
+			/>
+		</clip-node>
+	);
+};
+```
+
+---
+
+## 4. 完整界面逻辑总结
+
+&emsp;&emsp;通过开始界面和结束逻辑，我们实现了游戏的基本结构：
+
+1. **开始界面**：引导玩家进入游戏，按钮的点击逻辑与游戏场景切换。
+2. **游戏结束逻辑**：处理玩家角色的失败状态，返回到开始界面。
+3. **得分显示**：动态更新和展示得分。
+
+&emsp;&emsp;以上代码为玩家提供了一个完整的游戏体验循环，从开始游戏、得分记录到结束场景的返回，形成了一个闭环。
+
+---
+
+## 5. 可选任务
+
+- **设计更精美的开始界面**：添加动画或更复杂的布局。
+- **优化得分系统**：加入高分榜。
+- **添加暂停菜单**：让玩家可以暂停游戏并选择退出或重新开始。
+
+&emsp;&emsp;通过学习本章节，您将掌握简单的游戏界面设计和切换的基本方法，为后续开发打下坚实基础！
+
+&emsp;&emsp;至此，我们的游戏开发教程已经告一段落。完整的项目可以在[这里](https://github.com/IppClub/Dora-Demo/tree/main/dodge_the_creeps)找到。希望您在学习过程中有所收获，也欢迎您继续深入学习更多关于游戏开发的知识！

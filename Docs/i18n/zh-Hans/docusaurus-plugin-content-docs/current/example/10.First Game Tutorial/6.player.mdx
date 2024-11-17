@@ -1,0 +1,134 @@
+import "@site/src/languages/highlight";
+
+# 第六章：玩家角色：主角的实现
+
+&emsp;&emsp;在这一章中，我们将进一步完善玩家角色的实现。通过为玩家角色添加更多功能和互动逻辑，打造一个更加有趣和丰富的游戏体验。本章重点内容包括：
+
+1. **限制玩家角色的移动范围**
+2. **添加玩家角色的碰撞响应**
+3. **实现玩家角色的游戏结束逻辑**
+
+---
+
+## 1. 限制玩家角色的移动范围
+
+&emsp;&emsp;在之前的代码中，玩家角色可以自由移动，但未对移动范围进行限制。如果玩家角色超出游戏窗口，可能导致游戏体验不佳。我们将为玩家角色添加移动范围限制。
+
+&emsp;&emsp;在 `player.loop` 的逻辑中，加入限制范围的代码：
+
+```tsx title="示例代码"
+// 计算游戏场景的一半宽高
+const hw = width / 2;
+const hh = height / 2;
+
+// 玩家移动控制
+player.loop(() => {
+	const newPos = player.position.add(Vec2(velocityX, velocityY).normalize().mul(10));
+	// 限制玩家移动范围
+	player.position = newPos.clamp(Vec2(-hw + 40, -hh + 40), Vec2(hw - 40, hh - 40));
+	velocityX = 0;
+	velocityY = 0;
+	return false;
+});
+```
+
+&emsp;&emsp;通过 `clamp` 函数，我们将玩家的位置限制在游戏窗口的有效范围内。
+
+---
+
+## 2. 添加玩家角色的碰撞响应
+
+&emsp;&emsp;我们需要为玩家角色设置与敌人碰撞后的响应逻辑，例如：播放音效、显示“游戏结束”的提示，并重置游戏。
+
+&emsp;&emsp;首先，在玩家的 `onContactStart` 回调中，检查与敌人的碰撞：
+
+```tsx title="示例代码"
+import { Body, Audio, thread } from 'Dora';
+
+const Player = (world: PhysicsWorld.Type) => {
+	// 创建玩家角色
+	// ...
+
+	// 处理玩家角色的碰撞响应
+	(player as Body.Type).onContactStart(other => {
+		if (other.group === 0) { // 检测与敌人（group 0）的碰撞
+			// 显示“游戏结束”提示
+			toNode(
+				<label
+					fontName="Xolonium-Regular"
+					fontSize={80}
+					text="Game Over"
+					textWidth={300}/>
+			);
+
+			// 移除玩家角色
+			player.removeFromParent();
+
+			// 停止游戏背景音乐，播放游戏结束音效
+			Audio.stopStream(0.5);
+			Audio.play('Audio/gameover.wav');
+
+			// 重置游戏
+			thread(() => {
+				sleep(2);
+				Director.entry.removeAllChildren();
+				toNode(<StartUp/>); // 返回到游戏开始界面
+			});
+		}
+	});
+};
+```
+
+&emsp;&emsp;这段代码实现了当玩家与敌人发生碰撞时的游戏结束逻辑，并通过音效和提示信息增强用户体验。
+
+---
+
+## 3. 改进玩家动画与状态管理
+
+&emsp;&emsp;为了使玩家角色更加生动，我们可以扩展动画的使用，根据玩家的移动方向切换不同的动画。
+
+&emsp;&emsp;在 `player.loop` 中，根据玩家的移动方向调整角色的角度和动画：
+
+```tsx title="示例代码"
+player.loop(() => {
+	const direction = Vec2(velocityX, velocityY).normalize();
+	if (direction.length > 0) {
+		// 根据方向调整角色的角度
+		player.angle = -math.deg(math.atan(direction.y, direction.x)) + 90;
+
+		// 播放移动动画
+		if (!isMoving) {
+			isMoving = true;
+			playAnimation(playerAnim, "playerGrey_up");
+		}
+	} else {
+		// 如果没有移动，切换为站立动画
+		if (isMoving) {
+			isMoving = false;
+			playAnimation(playerAnim, "playerGrey_walk");
+		}
+	}
+
+	// 更新位置并限制范围
+	const newPos = player.position.add(direction.mul(10));
+	player.position = newPos.clamp(Vec2(-hw + 40, -hh + 40), Vec2(hw - 40, hh - 40));
+
+	velocityX = 0;
+	velocityY = 0;
+	return false;
+});
+```
+
+&emsp;&emsp;通过动态调整角度和动画，玩家角色的表现将更加贴合操作逻辑。
+
+---
+
+## 4. 完成后的玩家角色
+
+&emsp;&emsp;最终实现的玩家角色具备以下功能：
+
+1. 在有效范围内自由移动。
+2. 碰撞敌人时触发游戏结束逻辑。
+3. 根据移动方向自动调整角度和动画。
+
+&emsp;&emsp;通过以上内容，玩家角色的基础实现已完成！接下来，我们将在后续章节中实现更加复杂的功能，例如计分系统和游戏难度提升。
