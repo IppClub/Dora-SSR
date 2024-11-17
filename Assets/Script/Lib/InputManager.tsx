@@ -1,5 +1,5 @@
 import { React, toNode, useRef } from 'DoraX';
-import { AxisName, ButtonName, DrawNode, KeyName, Node, Slot, Vec2, emit } from 'Dora';
+import { AxisName, ButtonName, DrawNode, KeyName, Node, Slot, Touch, Vec2, emit } from 'Dora';
 
 export const enum TriggerState {
 	None = "None",
@@ -1574,13 +1574,61 @@ export function DPad(props: DPadProps) {
 		};
 	}
 
+	const up = useRef<Node.Type>();
+	const down = useRef<Node.Type>();
+	const left = useRef<Node.Type>();
+	const right = useRef<Node.Type>();
+	const center = useRef<Node.Type>();
+
+	let current: Node.Type | null = null;
+
+	const clearButton = () => {
+		if (current) {
+			current.emit("TapEnded");
+			current = null;
+		}
+	};
+
+	const changeToButton = (node: Node.Type) => {
+		if (current !== node) {
+			clearButton();
+			current = node;
+			current.emit("TapBegan");
+		}
+	};
+
+	const touchForButton = (touch: Touch.Type) => {
+		if (!up.current || !down.current || !left.current || !right.current || !center.current) return;
+		const menu = up.current.parent;
+		if (!menu) return;
+		const wp = menu.convertToWorldSpace(touch.location);
+		let {x, y} = center.current.convertToNodeSpace(wp);
+		const hw = (width + offset * 2) / 2;
+		x -= hw; y -= hw;
+		const angle = math.deg(math.atan(y, x));
+		if (45 <= angle && angle < 145) {
+			changeToButton(up.current);
+		} else if (-45 <= angle && angle < 45) {
+			changeToButton(right.current);
+		} else if (-145 <= angle && angle < -45) {
+			changeToButton(down.current);
+		} else {
+			changeToButton(left.current);
+		}
+	};
+
 	return (
 		<align-node style={{width: halfSize * 2, height: halfSize * 2}}>
 			<menu x={halfSize} y={halfSize} width={halfSize * 2} height={halfSize * 2}>
-				<DPadButton x={halfSize} y={dOffset + halfSize} onMount={onMount(ButtonName.Up)}/>
-				<DPadButton x={halfSize} y={-dOffset + halfSize} angle={180} onMount={onMount(ButtonName.Down)}/>
-				<DPadButton x={dOffset + halfSize} y={halfSize} angle={90} onMount={onMount(ButtonName.Right)}/>
-				<DPadButton x={-dOffset + halfSize} y={halfSize} angle={-90} onMount={onMount(ButtonName.Left)}/>
+				<DPadButton ref={up} x={halfSize} y={dOffset + halfSize} onMount={onMount(ButtonName.Up)}/>
+				<DPadButton ref={down} x={halfSize} y={-dOffset + halfSize} angle={180} onMount={onMount(ButtonName.Down)}/>
+				<DPadButton ref={right} x={dOffset + halfSize} y={halfSize} angle={90} onMount={onMount(ButtonName.Right)}/>
+				<DPadButton ref={left} x={-dOffset + halfSize} y={halfSize} angle={-90} onMount={onMount(ButtonName.Left)}/>
+				<node ref={center} x={halfSize} y={halfSize} width={width + offset * 2} height={width + offset * 2}
+					onTapBegan={touch => touchForButton(touch)}
+					onTapMoved={touch => touchForButton(touch)}
+					onTapEnded={() => clearButton()}
+				/>
 			</menu>
 		</align-node>
 	);
