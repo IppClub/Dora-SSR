@@ -1,0 +1,134 @@
+import "@site/src/languages/highlight";
+
+# Chapter 6: Player Character: Implementing the Protagonist
+
+In this chapter, we will further enhance the implementation of the player character. By adding more features and interaction logic, we aim to create a richer and more engaging gaming experience. This chapter focuses on:
+
+1. **Restricting the player character's movement range**
+2. **Adding collision responses for the player character**
+3. **Implementing the game-over logic for the player character**
+
+---
+
+## 1. Restricting the Player Character's Movement Range
+
+In the previous code, the player character could move freely without any constraints. However, allowing the player character to move outside the game window can negatively impact the gameplay experience. Here, we will restrict the movement range for the player character.
+
+Add the following code to the `player.loop` logic to enforce movement limits:
+
+```tsx title="Example Code"
+// Calculate half of the scene width and height
+const hw = width / 2;
+const hh = height / 2;
+
+// Player movement control
+player.loop(() => {
+	const newPos = player.position.add(Vec2(velocityX, velocityY).normalize().mul(10));
+	// Restrict player movement range
+	player.position = newPos.clamp(Vec2(-hw + 40, -hh + 40), Vec2(hw - 40, hh - 40));
+	velocityX = 0;
+	velocityY = 0;
+	return false;
+});
+```
+
+Using the `clamp` function, we restrict the player's position within the valid area of the game window.
+
+---
+
+## 2. Adding Collision Responses for the Player Character
+
+The player character needs to respond to collisions with enemies. For example, when colliding, the game should play sound effects, display a "Game Over" message, and reset the game.
+
+First, check for collisions with enemies in the player's `onContactStart` callback:
+
+```tsx title="Example Code"
+import { Body, Audio, thread } from 'Dora';
+
+const Player = (world: PhysicsWorld.Type) => {
+	// Create the player character
+	// ...
+
+	// Handle collision responses for the player character
+	(player as Body.Type).onContactStart(other => {
+		if (other.group === 0) { // Check collision with enemies (group 0)
+			// Display "Game Over" message
+			toNode(
+				<label
+					fontName="Xolonium-Regular"
+					fontSize={80}
+					text="Game Over"
+					textWidth={300}/>
+			);
+
+			// Remove the player character
+			player.removeFromParent();
+
+			// Stop background music and play game-over sound effect
+			Audio.stopStream(0.5);
+			Audio.play('Audio/gameover.wav');
+
+			// Reset the game
+			thread(() => {
+				sleep(2);
+				Director.entry.removeAllChildren();
+				toNode(<StartUp/>); // Return to the game start screen
+			});
+		}
+	});
+};
+```
+
+This code implements the game-over logic when the player collides with an enemy, enhancing the user experience with sound effects and visual feedback.
+
+---
+
+## 3. Enhancing Player Animation and State Management
+
+To make the player character more dynamic, we can expand the use of animations, switching between different animations based on the player's movement direction.
+
+In `player.loop`, adjust the character's angle and animation based on movement direction:
+
+```tsx title="Example Code"
+player.loop(() => {
+	const direction = Vec2(velocityX, velocityY).normalize();
+	if (direction.length > 0) {
+		// Adjust character angle based on direction
+		player.angle = -math.deg(math.atan(direction.y, direction.x)) + 90;
+
+		// Play movement animation
+		if (!isMoving) {
+			isMoving = true;
+			playAnimation(playerAnim, "playerGrey_up");
+		}
+	} else {
+		// Switch to idle animation if not moving
+		if (isMoving) {
+			isMoving = false;
+			playAnimation(playerAnim, "playerGrey_walk");
+		}
+	}
+
+	// Update position and enforce range limits
+	const newPos = player.position.add(direction.mul(10));
+	player.position = newPos.clamp(Vec2(-hw + 40, -hh + 40), Vec2(hw - 40, hh - 40));
+
+	velocityX = 0;
+	velocityY = 0;
+	return false;
+});
+```
+
+By dynamically adjusting the angle and animations, the player character's behavior will align more closely with player controls.
+
+---
+
+## 4. The Completed Player Character
+
+The final player character implementation includes the following features:
+
+1. Free movement within a valid range.
+2. Game-over logic triggered when colliding with enemies.
+3. Automatic adjustment of angle and animation based on movement direction.
+
+With these enhancements, the basic implementation of the player character is complete! In the next chapters, we will add more complex features, such as a scoring system and increasing game difficulty.

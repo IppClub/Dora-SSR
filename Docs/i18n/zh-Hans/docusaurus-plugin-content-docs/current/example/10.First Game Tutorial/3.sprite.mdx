@@ -1,0 +1,113 @@
+import "@site/src/languages/highlight";
+
+# 第三章：精灵与动画：绘制和动画处理
+
+&emsp;&emsp;在本章节中，你将学会如何在 Dora 中加载精灵图像，并将其添加到场景中。此外，你还将学习如何使用帧动画，为角色和敌人添加动画效果，使游戏更加生动有趣。
+
+#### **目标**
+
+- 加载和显示精灵
+- 创建帧动画
+- 为角色和敌人添加动画效果
+
+---
+
+## 1. 加载精灵并显示
+
+&emsp;&emsp;在 Dora 中，`Sprite` 是用来显示图像的基本节点。你可以通过 `Sprite` 来加载和显示游戏角色和敌人等元素的图像。以下代码展示了如何加载一个精灵并将其添加到场景中：
+
+```ts title="示例代码"
+import { Sprite, Vec2 } from 'Dora';
+
+// 加载并显示一个图元精灵
+const playerSprite = Sprite('Image/art.clip|playerGrey_walk1');
+if (!playerSprite) error('创建图元精灵失败！');
+playerSprite.order = 1;
+playerSprite.position = Vec2(0, 0); // 设置位置
+playerSprite.addTo(Director.entry); // 添加到当前场景
+```
+
+&emsp;&emsp;在这个例子中，我们通过 `Sprite('Image/art.clip|playerGrey_walk1')` 来加载一个精灵。`playerGrey_walk1` 是精灵图的资源名，包含在 `Image/art.clip` 图集中。`position` 属性用于设置精灵的显示位置。
+
+---
+
+## 2. 创建帧动画
+
+&emsp;&emsp;要为角色添加行走或其他重复的动作，我们可以使用帧动画。帧动画由一组图像组成，通过快速切换这些图像来产生动画效果。
+
+&emsp;&emsp;在 Dora 中，我们可以创建一个播放帧动画的函数 `playAnimation`，如下所示：
+
+```ts title="dodge_the_creeps/init.tsx"
+import { Node, Sprite, sleep } from 'Dora';
+
+const playAnimation = (node: Node.Type, name: string) => {
+	node.removeAllChildren(); // 清空节点中的其他子节点
+	const interval = 0.2; // 设置帧切换的时间间隔
+	const frames = [
+		Sprite(`Image/art.clip|${name}1`) ?? Sprite(),
+		Sprite(`Image/art.clip|${name}2`) ?? Sprite()
+	];
+	for (let frame of frames) {
+		// 当动画的名称以 `enemy` 开头时，精灵会自动旋转到设定的角度
+		if (name.startsWith('enemy')) {
+			frame.angle = -90; // 调整角度
+		}
+		frame.addTo(node);
+	}
+	let i = 0;
+	node.loop(() => {
+		frames[i].visible = true;
+		i = (i + 1) % 2; // 切换帧
+		frames[i].visible = false;
+		sleep(interval);
+		return false;
+	});
+};
+```
+
+&emsp;&emsp;在 `playAnimation` 函数中：
+
+- `node.removeAllChildren()`：清空当前节点的子节点，确保不会叠加其他元素。
+- `frames` 数组包含了动画所需的帧。
+- `node.loop()` 创建了一个循环，定期切换帧以实现动画效果。
+- `sleep(interval)` 用来设置帧切换的间隔时间。
+
+---
+
+## 3. 将动画应用到角色和敌人
+
+&emsp;&emsp;接下来，我们将这个动画应用到角色和敌人上，为游戏增添动感效果。
+
+* **为角色添加动画**
+
+&emsp;&emsp;假设你已经有一个角色节点 `playerNode`，可以通过以下代码为其添加行走动画：
+
+```ts title="示例代码"
+const playerNode = Node().addTo(Director.entry);
+playerNode.order = 1;
+const playerAnimNode = Node().addTo(playerNode); // 创建一个用于显示动画的子节点
+playAnimation(playerAnimNode, 'playerGrey_walk'); // 播放动画
+```
+
+&emsp;&emsp;在这里，我们创建了 `playerAnimNode`，并将 `playerAnimNode` 添加到 `playerNode`。然后，我们调用 `playAnimation`，指定动画名称 `playerGrey_walk`。
+
+* **为敌人添加不同类型的动画**
+
+&emsp;&emsp;我们可以通过相同的 `playAnimation` 函数为敌人添加不同的动画。假设敌人类型有三种：飞行、行走、游泳。我们可以随机为敌人选择一个动画类型：
+
+```ts title="示例代码"
+const enemyNode = Node().addTo(Director.currentScene);
+const enemyAnimNode = Sprite().addTo(enemyNode);
+const animations = ['enemyFlyingAlt_', 'enemyWalking_', 'enemySwimming_'];
+playAnimation(enemyAnimNode, animations[math.random(0, animations.length - 1)]);
+```
+
+&emsp;&emsp;通过 `math.random` 随机选择一个动画类型，敌人将会有不同的表现效果，为游戏增加趣味性。
+
+---
+
+## 4. 小结
+
+&emsp;&emsp;在本章节中，你学习了如何在 Dora 中加载和显示精灵，并为精灵创建帧动画。同时，我们将动画应用于角色和敌人，并根据需求调整动画方向。通过这些内容，你可以为游戏角色和敌人设计出富有生机的动画效果，提升游戏的视觉体验。
+
+&emsp;&emsp;在下一章节中，我们将学习如何使用输入管理器 `InputManager` 来处理键盘和手柄输入，使玩家能够控制角色的移动。

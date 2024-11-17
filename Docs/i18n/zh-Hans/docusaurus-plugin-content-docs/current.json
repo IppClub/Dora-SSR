@@ -714,5 +714,9 @@
   "sidebar.exampleSidebar.category.Platformer Tutorial": {
     "message": "2D 横版游戏开发教程",
     "description": "The label for category Platformer Tutorial in sidebar exampleSidebar"
+  },
+  "sidebar.exampleSidebar.category.First Game Tutorial": {
+    "message": "你的第一个 Dora 游戏",
+    "description": "The label for category First Game Tutorial in sidebar exampleSidebar"
   }
 }

@@ -1,0 +1,157 @@
+import "@site/src/languages/highlight";
+
+# Chapter 4: Input Management: Responding to Player Actions
+
+In a game, player input is a critical component. Dora provides a powerful `InputManager` to handle input from devices like keyboards and gamepads easily. This chapter will guide you on how to use `InputManager` to set up input controls that respond to player actions in your game.
+
+#### **Objectives**
+
+- Learn how to use `InputManager` to create input events.
+- Implement basic movement controls for the player character.
+- Set up input contexts for different scenarios (e.g., UI and game scenes).
+
+---
+
+## 1. Setting Up the Input Manager
+
+Before starting, we need to initialize the input manager and define input contexts. We'll create a `Game` context for player controls and a `UI` context for menu interfaces.
+
+```ts title="dodge_the_creeps/init.tsx"
+import { CreateManager, Trigger, GamePad } from 'InputManager';
+import { KeyName, ButtonName } from 'Dora';
+```
+
+---
+
+## 2. Defining Input Triggers
+
+Use `Trigger` to define the trigger conditions for different keys, unifying keyboard and gamepad inputs into a single action. For example, map the `W` key and the gamepad's up button to the action "Up."
+
+```ts title="dodge_the_creeps/init.tsx"
+const Pressed = (keyName: KeyName, buttonName: ButtonName) => {
+	return Trigger.Selector([
+		Trigger.KeyPressed(keyName),
+		Trigger.ButtonPressed(buttonName),
+	]);
+};
+```
+
+---
+
+## 3. Creating Input Contexts
+
+Define two contexts, `Game` and `UI`, corresponding to the game and menu interfaces.
+
+```ts title="dodge_the_creeps/init.tsx"
+const inputManager = CreateManager({
+	Game: {
+		Up: Pressed(KeyName.W, ButtonName.Up),
+		Down: Pressed(KeyName.S, ButtonName.Down),
+		Left: Pressed(KeyName.A, ButtonName.Left),
+		Right: Pressed(KeyName.D, ButtonName.Right),
+	},
+	UI: {
+		Start: Trigger.Selector([
+			Trigger.KeyDown(KeyName.Return),
+			Trigger.ButtonDown(ButtonName.Start),
+		]),
+	},
+});
+```
+
+---
+
+## 4. Adding the Input Manager to the UI
+
+Add the input manager node to `Director.ui` to manage the game's overall input.
+
+```ts title="dodge_the_creeps/init.tsx"
+inputManager.getNode().addTo(Director.ui);
+```
+
+---
+
+## 5. Creating a Virtual Gamepad (Optional)
+
+For devices with different input options, use `GamePad` to simulate a virtual gamepad, enabling touch input support.
+
+```ts title="dodge_the_creeps/init.tsx"
+toNode(
+	<GamePad inputManager={inputManager} noLeftStick noRightStick noButtonPad noTriggerPad noControlPad />
+)?.addTo(Director.ui);
+```
+
+---
+
+## 6. Switching Input Contexts
+
+Different scenes in a game may require different input contexts. Use `popContext` and `pushContext` to switch between contexts.
+
+- **UI Context**: Used for menu screens, allowing only `Start` input in the start menu.
+- **Game Context**: Used during gameplay, enabling player movement controls.
+
+```ts title="Example Code"
+// Switch to the UI input context when initializing the start scene
+const StartUp = () => {
+	inputManager.popContext();
+	inputManager.pushContext('UI');
+	// Initialize the start menu below
+	// ...
+};
+
+// Switch to the Game input context when initializing the gameplay scene
+const Game = () => {
+	inputManager.popContext();
+	inputManager.pushContext('Game');
+	// Initialize the gameplay screen below
+	// ...
+};
+```
+
+---
+
+## 7. Responding to Player Actions
+
+Bind player input events to control the player's movement. Assume we have a `player` entity and bind the controls for up, down, left, and right movement. The event names must match the context definitions and include the `Input.` prefix.
+
+```ts title="Example Code"
+// Switch to the Game input context to respond to player actions
+inputManager.pushContext("Game");
+
+const player = Node();
+const playerAnim = Node().addTo(player);
+playAnimation(playerAnim, 'playerGrey_walk');
+
+// Initialize movement variables
+let x = 0;
+let y = 0;
+
+// Bind events for up, down, left, and right directions
+player.gslot('Input.Up', () => y = 1);
+player.gslot('Input.Down', () => y = -1);
+player.gslot('Input.Left', () => x = -1);
+player.gslot('Input.Right', () => x = 1);
+
+// Implement movement logic
+player.loop(() => {
+	const newPos = player.position.add(Vec2(x, y).normalize().mul(10));
+	player.position = newPos;
+	x = 0;
+	y = 0;
+	return false;
+});
+```
+
+---
+
+## 8. Verifying Input Functionality
+
+Control the player's movement via the `Game` context. After starting the game, use the `W, A, S, D` keys or the gamepad's directional buttons to move the player.
+
+---
+
+## 9. Summary
+
+In this chapter, we learned how to use the `InputManager` in Dora to handle input management. By creating and managing different input contexts, we can flexibly control inputs in different scenarios. This approach is not only flexible but also makes the code more structured and readable.
+
+In the next chapter, we will further enhance the player's movement controls and introduce more physics and animation effects to enrich the gaming experience.

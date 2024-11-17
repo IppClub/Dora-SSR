@@ -1,0 +1,236 @@
+import "@site/src/languages/highlight";
+
+# 第七章：敌人生成：挑战的来源
+
+&emsp;&emsp;在本章节，我们将通过动态生成敌人来增加游戏的挑战性。以下内容将基于前几章的代码，重点讲解如何设计和实现敌人的生成逻辑及行为。
+
+---
+
+## 1. 敌人生成的设计思路
+
+&emsp;&emsp;在游戏中，敌人是挑战的来源。我们希望实现以下功能：
+
+1. **随机生成敌人**：敌人从不同方向生成（上、下、左、右）。
+2. **动态调整敌人速度**：随着得分的增加，敌人的速度逐渐提升。
+3. **碰撞处理**：敌人与玩家碰撞时结束游戏。
+
+---
+
+## 2. 实现敌人生成逻辑
+
+&emsp;&emsp;首先，为了动态生成敌人，我们需要编写一个生成函数 `Enemy`。以下是代码逻辑的分解：
+
+- **生成位置**：随机选择从上下左右四个边界生成敌人。
+- **运动方向**：基于生成位置随机生成敌人的运动方向。
+- **速度调整**：根据当前得分动态增加速度。
+
+&emsp;&emsp;以下是完整的 `Enemy` 函数代码：
+
+```tsx title="dodge_the_creeps/init.tsx"
+const Enemy = (world: PhysicsWorld.Type, score: number) => {
+	const dir = math.random(0, 3); // 随机选择方向
+	const angle = math.random(dir * 90 + 25, dir * 90 + 180 - 25); // 确保敌人不会直接沿着轴线生成
+	let pos = Vec2.zero;
+	const minW = -hw - 40; const maxW = hw + 40;
+	const minH = -hh - 40; const maxH = hh + 40;
+	const randW = math.random(minW, maxW);
+	const randH = math.random(minH, maxH);
+
+	// 根据生成方向选择初始位置
+	switch (dir) {
+		case 0: pos = Vec2(minW, randH); break; // 左边生成
+		case 1: pos = Vec2(randW, maxH); break; // 下方生成
+		case 2: pos = Vec2(maxW, randH); break; // 右边生成
+		case 3: pos = Vec2(randW, minH); break; // 上方生成
+	}
+
+	const radian = math.rad(angle); // 角度转弧度
+	const velocity = Vec2(math.sin(radian), math.cos(radian))
+		.normalize()
+		.mul(200 + score * 2); // 速度与得分相关
+
+	// 创建敌人实体
+	toNode(
+		<body world={world} group={0} type={BodyMoveType.Dynamic} linearAcceleration={Vec2.zero}
+			x={pos.x} y={pos.y} velocityX={velocity.x} velocityY={velocity.y} angle={angle}
+			onMount={node => {
+				const enemys = [Animation.enemyFlyingAlt, Animation.enemySwimming, Animation.enemyWalking];
+				playAnimation(node, enemys[math.random(0, 2)]); // 随机选择一种动画
+			}}>
+			<disk-fixture radius={40}/> {/* 设置碰撞体积 */}
+		</body>
+	)?.addTo(world);
+};
+```
+
+---
+
+## 3. 动态生成敌人
+
+&emsp;&emsp;在主游戏逻辑中，我们需要定时生成敌人。以下代码展示了如何使用 `world.loop` 来实现每隔一段时间，并根据玩家的积分来生成敌人：
+
+```tsx title="示例代码"
+world.loop(() => {
+	sleep(0.5); // 每 0.5 秒生成一个敌人
+	Enemy(world, score); // 传入当前得分
+	return false; // 持续循环
+});
+```
+
+---
+
+## 4. 调整游戏平衡性
+
+&emsp;&emsp;为了优化游戏体验，可以尝试调整敌人的以下参数：
+
+- **初始速度**：通过修改 `200 + score * 2` 的 200 初始值。
+- **生成频率**：通过调整 `sleep(0.5)` 的时间间隔。
+- **得分对速度的影响**：改变速度公式中的得分权重，例如 `200 + score * 4`。
+
+---
+
+## 5. 游戏效果验证
+
+&emsp;&emsp;在完成敌人生成后，可以运行游戏测试效果：
+
+- **敌人生成方向和速度是否符合预期**。
+- **碰撞检测是否正常工作**。
+- **随着得分的增加，游戏是否变得更具挑战性**。
+
+---
+
+## 6. 敌人离开场景逻辑
+
+#### 设计思路：
+
+- 为了避免场景中堆积过多的敌人，我们需要检测敌人是否离开场景边界。
+- 离开场景的敌人会被移除。
+
+&emsp;&emsp;要检测敌人是否离开场景，我们可以通过在 `<physics-world>` 添加一个静态 `body`，使用一个覆盖整个场景的矩形感应区域（Sensor）。任何进入该区域的敌人在离开时都会触发离开事件。
+
+&emsp;&emsp;以下是实现代码：
+
+```tsx title="示例代码"
+<physics-world>
+	<body type={BodyMoveType.Static} group={1} onBodyLeave={() => {
+		// 敌人离开场景时记分
+		score++;
+	}}>
+		<rect-fixture sensorTag={0} width={width} height={height}/> {/* 感应区域大小与场景一致 */}
+	</body>
+</physics-world>
+```
+
+&emsp;&emsp;**代码解释：**
+
+- `onBodyLeave` 是一个回调，当敌人离开场景时会触发。
+- `score++` 用于增加分数，并通过 `label.current.text` 实时更新得分显示。
+
+---
+
+## 7. 记分显示
+
+#### 设计思路：
+
+- 玩家通过避免与敌人碰撞并让敌人离开场景来得分。
+- 每个敌人离开场景时，玩家得分增加。
+
+&emsp;&emsp;在游戏界面中，我们使用一个 `Label` 来显示当前得分。确保标签在玩家看到 "Get Ready!" 提示后才显示。
+
+```tsx title="示例代码"
+const label = useRef<Label.Type>(); // 创建得分标签的引用
+
+<label ref={label} fontName='Xolonium-Regular' fontSize={60} text='0' y={300} visible={false}/>
+```
+
+&emsp;&emsp;**代码解释：**
+
+- `useRef` 用于动态更新标签。
+- 初始 `visible` 属性设为 `false`，直到游戏正式开始时显示。
+
+&emsp;&emsp;在游戏开始并且玩家看到 "Get Ready!" 提示后，得分标签通过以下逻辑开始显示：
+
+```tsx title="示例代码"
+world.once(() => {
+	const msg = toNode(
+		<label fontName='Xolonium-Regular' fontSize={80} text='Get Ready!' y={200}/>
+	);
+	sleep(1); // 等待 1 秒后移除提示
+	msg?.removeFromParent();
+	if (label.current) {
+		label.current.visible = true; // 显示得分标签
+	}
+	// 开始定期生成敌人
+	// ...
+});
+```
+
+---
+
+## 8. 完整敌人逻辑整合
+
+&emsp;&emsp;以下是整合后的核心逻辑代码段：
+
+```tsx title="dodge_the_creeps/init.tsx"
+const Game = () => {
+	inputManager.popContext();
+	inputManager.pushContext('Game');
+
+	let score = 0;
+	const label = useRef<Label.Type>();  // 创建得分标签的引用
+	Audio.playStream('Audio/House In a Forest Loop.ogg', true);
+	return (
+		<clip-node stencil={<Rect/>}>
+			<physics-world onMount={world => {
+				Player(world); // 创建玩家
+				world.once(() => {
+					// 显示提示
+					const msg = toNode(
+						<label fontName='Xolonium-Regular' fontSize={80} text='Get Ready!' y={200}/>
+					);
+					sleep(1);
+					msg?.removeFromParent();
+					if (label.current) {
+						label.current.visible = true;
+					}
+					// 定期生成敌人
+					world.loop(() => {
+						sleep(0.5);
+						Enemy(world, score);
+						return false;
+					});
+				});
+			}}>
+				<contact groupA={0} groupB={0} enabled={false}/> {/* 敌人间不发生碰撞 */}
+				<contact groupA={0} groupB={1} enabled/> {/* 玩家与敌人碰撞检测 */}
+				{/* 感应器，用于检测敌人离开场景 */}
+				<body type={BodyMoveType.Static} group={1} onBodyLeave={() => {
+					score++;
+					if (label.current) {
+						label.current.text = score.toString();
+					}
+				}}>
+					<rect-fixture sensorTag={0} width={width} height={height}/>
+				</body>
+			</physics-world>
+			<label ref={label} fontName='Xolonium-Regular' fontSize={60} text='0' y={300} visible={false}/>
+		</clip-node>
+	);
+};
+```
+
+---
+
+## 9. 调试与验证
+
+&emsp;&emsp;完成后，运行游戏测试以下功能：
+
+1. **敌人离开场景是否触发得分**。
+2. **得分是否正确更新**。
+3. **得分标签显示逻辑是否与游戏提示配合良好**。
+
+---
+
+## 10. 本节小结
+
+&emsp;&emsp;通过本节内容，我们实现了敌人离开场景的检测和玩家得分机制，使得游戏更加完整和有趣。接下来，我们将在下一章中学习如何设计游戏界面，包括添加暂停功能、重新开始按钮等。

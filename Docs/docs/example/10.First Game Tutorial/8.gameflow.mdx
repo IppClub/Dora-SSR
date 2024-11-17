@@ -1,0 +1,218 @@
+import "@site/src/languages/highlight";
+
+# Chapter 8: Game Interface: Start and End Scenes
+
+In this chapter, we'll learn how to create a start interface and end scenes for a game. The start interface introduces the game title and guides players into the gameplay, while the end scene displays the game over state and the score. Through scene transitions, we can provide a complete interactive experience for the game.
+
+#### **Objectives**
+
+1. Create a simple game start interface.
+2. Implement game-over logic and display the score.
+3. Use the `Label` component to show text information.
+4. Use `InputManager` to respond to player input.
+
+---
+
+## 1. Creating the Start Interface
+
+The start interface is the first screen players see when entering the game. We'll enhance the interface we created earlier with a game title and a "Start" button by adding functionality to transition into the game scene.
+
+### **Implementation**
+
+```tsx title="dodge_the_creeps/init.tsx"
+const Background = () => (
+	<draw-node>
+		<rect-shape width={width} height={height} fillColor={0xff4b6b6c}/>
+	</draw-node>
+);
+
+const StartUp = () => {
+	// Switch to the UI input context
+	inputManager.popContext();
+	inputManager.pushContext('UI');
+
+	return (
+		<>
+			{/* Draw background */}
+			<Background/>
+
+			{/* Display title */}
+			<label
+				fontName='Xolonium-Regular'
+				fontSize={80}
+				text='Dodge the Creeps!'
+				textWidth={400}
+				y={200}
+			/>
+
+			{/* Create Start button */}
+			<draw-node y={-150}>
+				<rect-shape width={250} height={80} fillColor={0xff3a3a3a} />
+				<label fontName='Xolonium-Regular' fontSize={60} text={'Start'} />
+
+				{/* Button interaction logic */}
+				<node
+					width={250}
+					height={80}
+					onTapped={() => emit('Input.Start')}
+					onMount={node => {
+						node.gslot('Input.Start', () => {
+							Director.entry.removeAllChildren(); // Clear current scene
+							toNode(<Game />); // Enter game scene
+						});
+					}}
+				/>
+			</draw-node>
+		</>
+	);
+};
+```
+
+### **Key Points**
+
+- `draw-node` is used to draw the background and button boxes.
+- `label` displays text information such as the title and button text.
+- `onTapped` handles player tap events.
+- `emit` and `gslot` bind input events.
+
+---
+
+## 2. Implementing Game-Over Logic
+
+When the player's character collides with an enemy, we want to show a "Game Over" message and return to the start interface.
+
+### **Implementation**
+
+```tsx title="dodge_the_creeps/init.tsx"
+const Player = (world: PhysicsWorld.Type) => {
+	const node = toNode(
+		<body
+			world={world}
+			group={1}
+			type={BodyMoveType.Dynamic}
+			linearAcceleration={Vec2.zero}
+			onContactStart={other => {
+				if (other.group === 0) { // If collision occurs with an enemy
+					// Display "Game Over" message
+					toNode(
+						<label
+							fontName='Xolonium-Regular'
+							fontSize={80}
+							text='Game Over'
+							textWidth={300}
+							y={0}
+						/>
+					);
+
+					// Remove player character
+					node?.removeFromParent();
+
+					// Delay and return to the start interface
+					thread(() => {
+						sleep(2); // Delay for 2 seconds
+						Director.entry.removeAllChildren();
+						toNode(<StartUp />); // Return to start interface
+					});
+
+					// Play game-over sound effect
+					Audio.stopStream(0.5); // Stop background music
+					Audio.play('Audio/gameover.wav');
+				}
+			}}
+		>
+			<disk-fixture radius={40} />
+		</body>
+	);
+
+	if (!node) error('failed to create player!');
+	node.addTo(world);
+};
+```
+
+### **Key Points**
+
+- `onContactStart` listens for collision events.
+- After collision, the player node is removed, and the game returns to the start interface.
+- `thread` and `sleep` are used for implementing delays.
+- Sound effects are added to enhance the experience.
+
+---
+
+## 3. Displaying the Score
+
+At the end of the game, besides showing the "Game Over" message, we need to display the player's score.
+
+### **Implementation**
+
+```tsx title="dodge_the_creeps/init.tsx"
+const Game = () => {
+	inputManager.popContext();
+	inputManager.pushContext('Game');
+	let score = 0;
+	const label = useRef<Label.Type>();
+
+	Audio.playStream('Audio/House In a Forest Loop.ogg', true); // Play background music
+
+	return (
+		<clip-node stencil={<Background/>}>
+			{/* Display background */}
+			<Background/>
+
+			{/* Display score */}
+			<label
+				ref={label}
+				fontName='Xolonium-Regular'
+				fontSize={60}
+				text='0'
+				y={300}
+				visible={true}
+			/>
+
+			<physics-world
+				onMount={world => {
+					Player(world); // Create player character
+
+					// Spawn enemies at intervals
+					world.loop(() => {
+						sleep(0.5); // Spawn an enemy every 0.5 seconds
+						Enemy(world, score);
+						return false;
+					});
+
+					// Update score
+					world.onBodyLeave(() => {
+						score++;
+						if (label.current) {
+							label.current.text = score.toString(); // Update score display
+						}
+					});
+				}}
+			/>
+		</clip-node>
+	);
+};
+```
+
+---
+
+## 4. Summary of Interface Logic
+
+By implementing the start interface and game-over logic, we've created the basic structure of the game:
+
+1. **Start Interface**: Guides the player into the game with clickable buttons transitioning between scenes.
+2. **Game-Over Logic**: Handles the failure state and transitions back to the start interface.
+3. **Score Display**: Dynamically updates and shows the player's score.
+
+The above code provides players with a complete gameplay loop—from starting the game and recording scores to transitioning back to the start scene—forming a closed cycle.
+
+---
+
+## 5. Optional Tasks
+
+- **Design a more polished start interface**: Add animations or a more complex layout.
+- **Optimize the scoring system**: Introduce a high-score leaderboard.
+- **Add a pause menu**: Allow players to pause the game and choose to exit or restart.
+
+By completing this chapter, you'll have mastered the basics of game interface design and scene transitions, laying a solid foundation for further development!
+
+The complete project can be found [here](https://github.com/IppClub/Dora-Demo/tree/main/dodge_the_creeps). We hope you've found this tutorial helpful and encourage you to continue exploring more knowledge about game development!
