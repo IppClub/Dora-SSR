@@ -71,6 +71,8 @@ bool Menu::init() {
 			if (currentItem) {
 				currentItem->emit("TapBegan"_slice, touch);
 			}
+		} else if (currentItem) {
+			currentItem->emit("TapMoved"_slice, touch);
 		}
 	});
 	slot("TapEnded"_slice, [&](Event* e) {
