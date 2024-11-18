@@ -31,10 +31,10 @@ const Vec2& PlatformWorld::Layer::getOffset() const noexcept {
 	return _offset;
 }
 
-void PlatformWorld::Layer::sortAllChildren() {
-	if (_flags.isOn(Node::Reorder)) {
-		Node::sortAllChildren();
-		markParentReorder();
+void PlatformWorld::Layer::markReorder() noexcept {
+	Node::markReorder();
+	if (_parent) {
+		_parent->markReorder();
 	}
 }
 
