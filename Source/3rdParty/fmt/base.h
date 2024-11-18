@@ -1103,7 +1103,7 @@ template <typename T = char> class counting_buffer : public buffer<T> {
   }
 
  public:
-  FMT_CONSTEXPR counting_buffer() : buffer<T>(grow, data_, 0, buffer_size) {}
+  counting_buffer() : buffer<T>(grow, data_, 0, buffer_size) {}
 
   auto count() -> size_t { return count_ + this->size(); }
 };
@@ -1184,6 +1184,20 @@ using appender = basic_appender<char>;
 namespace detail {
 template <typename T>
 struct is_back_insert_iterator<basic_appender<T>> : std::true_type {};
+
+template <typename T, typename Enable = void>
+struct locking : std::true_type {};
+template <typename T>
+struct locking<T, void_t<typename formatter<remove_cvref_t<T>>::nonlocking>>
+    : std::false_type {};
+
+template <typename T = int> FMT_CONSTEXPR inline auto is_locking() -> bool {
+  return locking<T>::value;
+}
+template <typename T1, typename T2, typename... Tail>
+FMT_CONSTEXPR inline auto is_locking() -> bool {
+  return locking<T1>::value || is_locking<T2, Tail...>();
+}
 
 // An optimized version of std::copy with the output value type (T).
 template <typename T, typename InputIt, typename OutputIt,
@@ -1855,7 +1869,7 @@ template <typename Context> class basic_format_args {
 
   FMT_CONSTEXPR auto type(int index) const -> detail::type {
     int shift = index * detail::packed_arg_bits;
-    unsigned mask = (1 << detail::packed_arg_bits) - 1;
+    unsigned int mask = (1 << detail::packed_arg_bits) - 1;
     return static_cast<detail::type>((desc_ >> shift) & mask);
   }
 
@@ -1895,7 +1909,8 @@ template <typename Context> class basic_format_args {
     }
     if (static_cast<unsigned>(id) >= detail::max_packed_args) return arg;
     arg.type_ = type(id);
-    if (arg.type_ != detail::type::none_type) arg.value_ = values_[id];
+    if (arg.type_ == detail::type::none_type) return arg;
+    arg.value_ = values_[id];
     return arg;
   }
 
@@ -2058,21 +2073,6 @@ enum type FMT_ENUM_UNDERLYING_TYPE(unsigned char){none, minus, plus, space};
 using sign_t = sign::type;
 
 namespace detail {
-
-template <typename T, typename Enable = void>
-struct locking : bool_constant<mapped_type_constant<T, format_context>::value ==
-                               type::custom_type> {};
-template <typename T>
-struct locking<T, void_t<typename formatter<remove_cvref_t<T>>::nonlocking>>
-    : std::false_type {};
-
-template <typename T = int> FMT_CONSTEXPR inline auto is_locking() -> bool {
-  return locking<T>::value;
-}
-template <typename T1, typename T2, typename... Tail>
-FMT_CONSTEXPR inline auto is_locking() -> bool {
-  return locking<T1>::value || is_locking<T2, Tail...>();
-}
 
 template <typename Char>
 using unsigned_char = typename conditional_t<std::is_integral<Char>::value,
@@ -2281,8 +2281,8 @@ template <typename Char> constexpr auto is_name_start(Char c) -> bool {
 }
 
 template <typename Char, typename Handler>
-FMT_CONSTEXPR auto parse_arg_id(const Char* begin, const Char* end,
-                                Handler&& handler) -> const Char* {
+FMT_CONSTEXPR auto do_parse_arg_id(const Char* begin, const Char* end,
+                                   Handler&& handler) -> const Char* {
   Char c = *begin;
   if (c >= '0' && c <= '9') {
     int index = 0;
@@ -2308,10 +2308,25 @@ FMT_CONSTEXPR auto parse_arg_id(const Char* begin, const Char* end,
   return it;
 }
 
+template <typename Char, typename Handler>
+FMT_CONSTEXPR auto parse_arg_id(const Char* begin, const Char* end,
+                                Handler&& handler) -> const Char* {
+  FMT_ASSERT(begin != end, "");
+  Char c = *begin;
+  if (c != '}' && c != ':') return do_parse_arg_id(begin, end, handler);
+  handler.on_auto();
+  return begin;
+}
+
 template <typename Char> struct dynamic_spec_id_handler {
   basic_format_parse_context<Char>& ctx;
   arg_ref<Char>& ref;
 
+  FMT_CONSTEXPR void on_auto() {
+    int id = ctx.next_arg_id();
+    ref = arg_ref<Char>(id);
+    ctx.check_dynamic_spec(id);
+  }
   FMT_CONSTEXPR void on_index(int id) {
     ref = arg_ref<Char>(id);
     ctx.check_arg_id(id);
@@ -2323,7 +2338,7 @@ template <typename Char> struct dynamic_spec_id_handler {
   }
 };
 
-// Parses integer | "{" [arg_id] "}".
+// Parses [integer | "{" [arg_id] "}"].
 template <typename Char>
 FMT_CONSTEXPR auto parse_dynamic_spec(const Char* begin, const Char* end,
                                       int& value, arg_ref<Char>& ref,
@@ -2332,24 +2347,15 @@ FMT_CONSTEXPR auto parse_dynamic_spec(const Char* begin, const Char* end,
   FMT_ASSERT(begin != end, "");
   if ('0' <= *begin && *begin <= '9') {
     int val = parse_nonnegative_int(begin, end, -1);
-    if (val == -1) report_error("number is too big");
-    value = val;
-  } else {
-    if (*begin == '{') {
-      ++begin;
-      if (begin != end) {
-        Char c = *begin;
-        if (c == '}' || c == ':') {
-          int id = ctx.next_arg_id();
-          ref = arg_ref<Char>(id);
-          ctx.check_dynamic_spec(id);
-        } else {
-          begin =
-              parse_arg_id(begin, end, dynamic_spec_id_handler<Char>{ctx, ref});
-        }
-      }
-      if (begin != end && *begin == '}') return ++begin;
-    }
+    if (val != -1)
+      value = val;
+    else
+      report_error("number is too big");
+  } else if (*begin == '{') {
+    ++begin;
+    auto handler = dynamic_spec_id_handler<Char>{ctx, ref};
+    if (begin != end) begin = parse_arg_id(begin, end, handler);
+    if (begin != end && *begin == '}') return ++begin;
     report_error("invalid format string");
   }
   return begin;
@@ -2361,11 +2367,11 @@ FMT_CONSTEXPR auto parse_precision(const Char* begin, const Char* end,
                                    basic_format_parse_context<Char>& ctx)
     -> const Char* {
   ++begin;
-  if (begin != end)
-    begin = parse_dynamic_spec(begin, end, value, ref, ctx);
-  else
+  if (begin == end || *begin == '}') {
     report_error("invalid precision");
-  return begin;
+    return begin;
+  }
+  return parse_dynamic_spec(begin, end, value, ref, ctx);
 }
 
 enum class state { start, align, sign, hash, zero, width, precision, locale };
@@ -2556,53 +2562,39 @@ FMT_CONSTEXPR auto parse_format_specs(const Char* begin, const Char* end,
 }
 
 template <typename Char, typename Handler>
-FMT_CONSTEXPR FMT_INLINE auto parse_replacement_field(const Char* begin,
-                                                      const Char* end,
-                                                      Handler&& handler)
-    -> const Char* {
-  ++begin;
-  if (begin == end) {
-    handler.on_error("invalid format string");
-    return end;
-  }
-  int arg_id = 0;
-  switch (*begin) {
-  case '}':
-    handler.on_replacement_field(handler.on_arg_id(), begin);
-    return begin + 1;
-  case '{':
-    handler.on_text(begin, begin + 1);
-    return begin + 1;
-  case ':':
-    arg_id = handler.on_arg_id();
-    break;
-  default: {
-    struct id_adapter {
-      Handler& handler;
-      int arg_id;
+FMT_CONSTEXPR auto parse_replacement_field(const Char* begin, const Char* end,
+                                           Handler&& handler) -> const Char* {
+  struct id_adapter {
+    Handler& handler;
+    int arg_id;
 
-      FMT_CONSTEXPR void on_index(int id) { arg_id = handler.on_arg_id(id); }
-      FMT_CONSTEXPR void on_name(basic_string_view<Char> id) {
-        arg_id = handler.on_arg_id(id);
-      }
-    } adapter = {handler, 0};
+    FMT_CONSTEXPR void on_auto() { arg_id = handler.on_arg_id(); }
+    FMT_CONSTEXPR void on_index(int id) { arg_id = handler.on_arg_id(id); }
+    FMT_CONSTEXPR void on_name(basic_string_view<Char> id) {
+      arg_id = handler.on_arg_id(id);
+    }
+  };
+
+  ++begin;
+  if (begin == end) return handler.on_error("invalid format string"), end;
+  if (*begin == '}') {
+    handler.on_replacement_field(handler.on_arg_id(), begin);
+  } else if (*begin == '{') {
+    handler.on_text(begin, begin + 1);
+  } else {
+    auto adapter = id_adapter{handler, 0};
     begin = parse_arg_id(begin, end, adapter);
-    arg_id = adapter.arg_id;
     Char c = begin != end ? *begin : Char();
     if (c == '}') {
-      handler.on_replacement_field(arg_id, begin);
-      return begin + 1;
+      handler.on_replacement_field(adapter.arg_id, begin);
+    } else if (c == ':') {
+      begin = handler.on_format_specs(adapter.arg_id, begin + 1, end);
+      if (begin == end || *begin != '}')
+        return handler.on_error("unknown format specifier"), end;
+    } else {
+      return handler.on_error("missing '}' in format string"), end;
     }
-    if (c != ':') {
-      handler.on_error("missing '}' in format string");
-      return end;
-    }
-    break;
   }
-  }
-  begin = handler.on_format_specs(arg_id, begin + 1, end);
-  if (begin == end || *begin != '}')
-    return handler.on_error("unknown format specifier"), end;
   return begin + 1;
 }
 

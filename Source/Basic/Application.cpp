@@ -855,6 +855,7 @@ int CALLBACK WinMain(
 #include "sqlite3.h"
 #include "wasm3.h"
 #include "yuescript/yue_compiler.h"
+#include "spdlog/version.h"
 
 std::string Dora::Application::getDeps() const noexcept {
 	return fmt::format(
@@ -873,7 +874,8 @@ std::string Dora::Application::getDeps() const noexcept {
 		"- SQLiteCpp {}\n"
 		"- wasm3 {}\n"
 		"- fmt {}\n"
-		"- httplib {}",
+		"- httplib {}\n"
+		"- spdlog {}.{}.{}",
 		SDL_MAJOR_VERSION, SDL_MINOR_VERSION, SDL_PATCHLEVEL,
 		BGFX_API_VERSION,
 		LUA_VERSION_MAJOR, LUA_VERSION_MINOR, LUA_VERSION_RELEASE,
@@ -888,5 +890,6 @@ std::string Dora::Application::getDeps() const noexcept {
 		SQLITECPP_VERSION,
 		M3_VERSION,
 		FMT_VERSION,
-		HttpServer::getVersion());
+		HttpServer::getVersion(),
+		SPDLOG_VER_MAJOR, SPDLOG_VER_MINOR, SPDLOG_VER_PATCH);
 }

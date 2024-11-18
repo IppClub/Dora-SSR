@@ -1644,7 +1644,6 @@
 		3C5937112CA4FA8B00CAF224 /* format.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = format.h; sourceTree = "<group>"; };
 		3C5937122CA4FA8B00CAF224 /* format.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = format.cpp; sourceTree = "<group>"; };
 		3C5937132CA4FA8B00CAF224 /* format-inl.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "format-inl.h"; sourceTree = "<group>"; };
-		3C5937142CA4FA8B00CAF224 /* locale.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = locale.h; sourceTree = "<group>"; };
 		3C5937152CA4FA8B00CAF224 /* os.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = os.h; sourceTree = "<group>"; };
 		3C5937162CA4FA8B00CAF224 /* os.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = os.cpp; sourceTree = "<group>"; };
 		3C5937172CA4FA8B00CAF224 /* ostream.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ostream.h; sourceTree = "<group>"; };
@@ -3500,7 +3499,6 @@
 				3C5937112CA4FA8B00CAF224 /* format.h */,
 				3C5937122CA4FA8B00CAF224 /* format.cpp */,
 				3C5937132CA4FA8B00CAF224 /* format-inl.h */,
-				3C5937142CA4FA8B00CAF224 /* locale.h */,
 				3C5937152CA4FA8B00CAF224 /* os.h */,
 				3C5937162CA4FA8B00CAF224 /* os.cpp */,
 				3C5937172CA4FA8B00CAF224 /* ostream.h */,
