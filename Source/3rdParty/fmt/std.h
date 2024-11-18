@@ -129,9 +129,7 @@ template <typename Char> struct formatter<std::filesystem::path, Char> {
     it = detail::parse_align(it, end, specs_);
     if (it == end) return it;
 
-    Char c = *it;
-    if ((c >= '0' && c <= '9') || c == '{')
-      it = detail::parse_dynamic_spec(it, end, specs_.width, width_ref_, ctx);
+    it = detail::parse_dynamic_spec(it, end, specs_.width, width_ref_, ctx);
     if (it != end && *it == '?') {
       debug_ = true;
       ++it;

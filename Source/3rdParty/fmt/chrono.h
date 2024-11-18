@@ -1147,7 +1147,7 @@ void write_fractional_seconds(OutputIt& out, Duration d, int precision = -1) {
                         std::chrono::seconds::period>::value) {
       *out++ = '.';
       out = detail::fill_n(out, leading_zeroes, '0');
-      out = format_decimal<Char>(out, n, num_digits);
+      out = format_decimal<Char>(out, n, num_digits).end;
     }
   } else if (precision > 0) {
     *out++ = '.';
@@ -1158,12 +1158,12 @@ void write_fractional_seconds(OutputIt& out, Duration d, int precision = -1) {
       int num_truncated_digits = num_digits - remaining;
       n /= to_unsigned(detail::pow10(to_unsigned(num_truncated_digits)));
       if (n) {
-        out = format_decimal<Char>(out, n, remaining);
+        out = format_decimal<Char>(out, n, remaining).end;
       }
       return;
     }
     if (n) {
-      out = format_decimal<Char>(out, n, num_digits);
+      out = format_decimal<Char>(out, n, num_digits).end;
       remaining -= num_digits;
     }
     out = detail::fill_n(out, remaining, '0');
@@ -1319,7 +1319,7 @@ class tm_writer {
     const int num_digits = count_digits(n);
     if (width > num_digits)
       out_ = detail::fill_n(out_, width - num_digits, '0');
-    out_ = format_decimal<Char>(out_, n, num_digits);
+    out_ = format_decimal<Char>(out_, n, num_digits).end;
   }
   void write_year(long long year) {
     if (year >= 0 && year < 10000) {
@@ -1481,7 +1481,7 @@ class tm_writer {
     char buf[10];
     size_t offset = 0;
     if (year >= 0 && year < 10000) {
-      write2digits(buf, static_cast<size_t>(year / 100));
+      copy2(buf, digits2(static_cast<size_t>(year / 100)));
     } else {
       offset = 4;
       write_year_extended(year);
@@ -1881,7 +1881,7 @@ struct chrono_formatter {
     if (width > num_digits) {
       out = detail::write_padding(out, pad, width - num_digits);
     }
-    out = format_decimal<char_type>(out, n, num_digits);
+    out = format_decimal<char_type>(out, n, num_digits).end;
   }
 
   void write_nan() { std::copy_n("nan", 3, out); }
@@ -2251,11 +2251,8 @@ struct formatter<std::chrono::duration<Rep, Period>, Char> {
     it = detail::parse_align(it, end, specs_);
     if (it == end) return it;
 
-    Char c = *it;
-    if ((c >= '0' && c <= '9') || c == '{') {
-      it = detail::parse_dynamic_spec(it, end, specs_.width, width_ref_, ctx);
-      if (it == end) return it;
-    }
+    it = detail::parse_dynamic_spec(it, end, specs_.width, width_ref_, ctx);
+    if (it == end) return it;
 
     auto checker = detail::chrono_format_checker();
     if (*it == '.') {
@@ -2282,7 +2279,7 @@ struct formatter<std::chrono::duration<Rep, Period>, Char> {
     // As a possible future optimization, we could avoid extra copying if width
     // is not specified.
     auto buf = basic_memory_buffer<Char>();
-    auto out = basic_appender<Char>(buf);
+    auto out = std::back_inserter(buf);
     detail::handle_dynamic_spec<detail::width_checker>(specs.width, width_ref_,
                                                        ctx);
     detail::handle_dynamic_spec<detail::precision_checker>(precision,
@@ -2391,7 +2388,7 @@ template <typename Char> struct formatter<std::tm, Char> {
                  const Duration* subsecs) const -> decltype(ctx.out()) {
     auto specs = specs_;
     auto buf = basic_memory_buffer<Char>();
-    auto out = basic_appender<Char>(buf);
+    auto out = std::back_inserter(buf);
     detail::handle_dynamic_spec<detail::width_checker>(specs.width, width_ref_,
                                                        ctx);
 
@@ -2413,11 +2410,8 @@ template <typename Char> struct formatter<std::tm, Char> {
     it = detail::parse_align(it, end, specs_);
     if (it == end) return it;
 
-    Char c = *it;
-    if ((c >= '0' && c <= '9') || c == '{') {
-      it = detail::parse_dynamic_spec(it, end, specs_.width, width_ref_, ctx);
-      if (it == end) return it;
-    }
+    it = detail::parse_dynamic_spec(it, end, specs_.width, width_ref_, ctx);
+    if (it == end) return it;
 
     end = detail::parse_chrono_format(it, end, detail::tm_format_checker());
     // Replace the default format_str only if the new spec is not empty.

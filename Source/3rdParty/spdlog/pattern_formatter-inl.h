@@ -180,7 +180,7 @@ public:
 
 // Abbreviated month
 static const std::array<const char *, 12> months{
-    {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec"}};
+    {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"}};
 
 template <typename ScopedPadder>
 class b_formatter final : public flag_formatter {
@@ -832,7 +832,7 @@ public:
 #endif
 
 // Full info formatter
-// pattern: [%Y-%m-%d %H:%M:%S.%e] [%n] [%l] [%s:%!:%#] %v
+// pattern: [%Y-%m-%d %H:%M:%S.%e] [%n] [%l] [%s:%#] %v
 class full_formatter final : public flag_formatter {
 public:
     explicit full_formatter(padding_info padinfo)
@@ -901,8 +901,6 @@ public:
                 details::short_filename_formatter<details::null_scoped_padder>::basename(
                     msg.source.filename);
             fmt_helper::append_string_view(filename, dest);
-            dest.push_back(':');
-            fmt_helper::append_string_view(msg.source.funcname, dest);
             dest.push_back(':');
             fmt_helper::append_int(msg.source.line, dest);
             dest.push_back(']');
