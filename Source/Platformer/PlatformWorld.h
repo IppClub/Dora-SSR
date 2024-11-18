@@ -49,7 +49,7 @@ protected:
 		Layer()
 			: _offset{}
 			, ratio{} { }
-		virtual void sortAllChildren() override;
+		virtual void markReorder() noexcept override;
 
 	private:
 		Vec2 _offset;

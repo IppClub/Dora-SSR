@@ -174,13 +174,17 @@ const Matrix& Director::getViewProjection() const noexcept {
 	return _viewProjs.top()->matrix;
 }
 
-static void registerTouchHandler(Node* target) {
-	target->traverseVisible([](Node* node) {
-		if (node->isTouchEnabled()) {
-			SharedTouchDispatcher.add(node->getTouchHandler()->ref());
-		}
-		return false;
-	});
+static bool registerTouchHandler(Node* target) {
+	if (target && SharedTouchDispatcher.hasEvents()) {
+		target->traverseVisible([](Node* node) {
+			if (node->isTouchEnabled()) {
+				SharedTouchDispatcher.add(node->getTouchHandler()->ref());
+			}
+			return false;
+		});
+		return true;
+	}
+	return false;
 }
 
 bool Director::init() {
@@ -219,30 +223,26 @@ void Director::handleTouchEvents() {
 	SharedTouchDispatcher.dispatch();
 
 	/* handle ui touch */
-	if (_ui) {
-		registerTouchHandler(_ui);
+	if (registerTouchHandler(_ui)) {
 		pushViewProjection(_uiCamera->getView(), []() {
 			SharedTouchDispatcher.dispatch();
 		});
 	}
 
 	/* handle ui3D touch */
-	if (_ui3D) {
-		registerTouchHandler(_ui3D);
+	if (registerTouchHandler(_ui3D)) {
 		pushViewProjection(_ui3DCamera->getView(), []() {
 			SharedTouchDispatcher.dispatch();
 		});
 	}
 
 	/* handle post node touch */
-	if (_postNode) {
-		registerTouchHandler(_postNode);
+	if (registerTouchHandler(_postNode)) {
 		SharedTouchDispatcher.dispatch();
 	}
 
 	/* handle scene tree touch */
-	if (_entry) {
-		registerTouchHandler(_entry);
+	if (registerTouchHandler(_entry)) {
 		SharedTouchDispatcher.dispatch();
 	}
 

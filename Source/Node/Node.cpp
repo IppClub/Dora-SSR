@@ -1090,8 +1090,12 @@ void Node::sortAllChildren() {
 	}
 }
 
+void Node::markReorder() noexcept {
+	_flags.setOn(Node::Reorder);
+}
+
 void Node::markParentReorder() {
-	if (_parent) _parent->_flags.setOn(Node::Reorder);
+	if (_parent) _parent->markReorder();
 }
 
 void Node::updateRealColor3() {

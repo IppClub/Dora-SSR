@@ -142,6 +142,7 @@ public:
 	virtual const Matrix& getWorld();
 
 	void markDirty() noexcept;
+	virtual void markReorder() noexcept;
 
 	void emit(Event* event);
 

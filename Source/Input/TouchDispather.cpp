@@ -478,6 +478,10 @@ void TouchDispatcher::add(const std::weak_ptr<TouchHandler>& handler) {
 	_handlers.push_back(handler);
 }
 
+bool TouchDispatcher::hasEvents() {
+	return !_events.empty();
+}
+
 void TouchDispatcher::dispatch() {
 	if (!_events.empty() && !_handlers.empty()) {
 		for (auto it = _handlers.rbegin(); it != _handlers.rend(); ++it) {

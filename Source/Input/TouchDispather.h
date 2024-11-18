@@ -119,6 +119,7 @@ class TouchDispatcher : public NonCopyable {
 public:
 	void add(const SDL_Event& event);
 	void add(const std::weak_ptr<TouchHandler>& handler);
+	bool hasEvents();
 	void dispatch();
 	void clearHandlers();
 	void clearEvents();
