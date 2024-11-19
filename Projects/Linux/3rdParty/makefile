@@ -4,7 +4,7 @@ x86_64:
 	[ -d bx ] || git clone --depth=1 --branch dora https://github.com/pigpigyyy/bx.git
 	[ -d GENie ] || git clone --depth=1 --branch linux-arm https://github.com/pigpigyyy/GENie.git
 	[ -f GENie/bin/linux/genie ] || ($(MAKE) -C GENie && cp GENie/bin/linux/genie bx/tools/bin/linux/genie && cd bgfx && ../bx/tools/bin/linux/genie --gcc=linux-gcc gmake)
-	$(MAKE) -R -C bgfx/.build/projects/gmake-linux config=release64
+	$(MAKE) -R -C bgfx/.build/projects/gmake-linux-gcc config=release64
 	[ -d libs ] || mkdir libs
 	cp -r bgfx/.build/linux64_gcc/bin/* libs
 
