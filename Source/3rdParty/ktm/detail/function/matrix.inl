@@ -111,50 +111,53 @@ struct ktm::detail::matrix_implement::determinant<4, T>
     }
 };
 
-template<size_t N, typename T, typename Void>
-struct ktm::detail::matrix_implement::determinant
+template<size_t N, typename T>
+struct ktm::detail::matrix_implement::determinant<N, T, std::enable_if_t<std::is_floating_point_v<T> && (N > 4)>>
 {
     using M = mat<N, N, T>;
     static KTM_NOINLINE T call(const M& m) noexcept
     {
-        T det;
-        if constexpr(std::is_floating_point_v<T>)
+        T det = one<T>; M a { m }; 
+        for(int i = 0; i < N - 1; ++i)
         {
-            det = one<T>; M a { m }; 
-            for(int i = 0; i < N - 1; ++i)
+            T recip_diag = recip(a[i][i]);
+            for(int j = i + 1; j < N; ++j)
             {
-                T recip_diag = recip(a[i][i]);
-                for(int j = i + 1; j < N; ++j)
+                T factor = a[j][i] * recip_diag;
+                for(int k = i + 1; k < N; ++k)
                 {
-                    T factor = a[j][i] * recip_diag;
-                    for(int k = i + 1; k < N; ++k)
-                    {
-                        a[j][k] -= a[i][k] * factor;
-                    }
+                    a[j][k] -= a[i][k] * factor;
                 }
             }
-            for(int i = 0; i < N; ++i)
-                det *= a[i][i];
         }
-        else
+        for(int i = 0; i < N; ++i)
+            det *= a[i][i];
+        return det;
+    }
+};
+
+template<size_t N, typename T>
+struct ktm::detail::matrix_implement::determinant<N, T, std::enable_if_t<!std::is_floating_point_v<T> && (N > 4)>>
+{
+    using M = mat<N, N, T>;
+    static KTM_NOINLINE T call(const M& m) noexcept
+    {
+        T det = zero<T>;
+        for(int i = 0; i < N; ++i) 
         {
-            det = zero<T>;
-            for(int i = 0; i < N; ++i) 
+            mat<N - 1, N - 1, T> sub_matrix;
+            for(int col = 1; col < N; ++col) 
             {
-                mat<N - 1, N - 1, T> sub_matrix;
-                for(int col = 1; col < N; ++col) 
+                for(int row = 0, sub_row = 0; row < N; ++row) 
                 {
-                    for(int row = 0, sub_row = 0; row < N; ++row) 
-                    {
-                        if(row == i) 
-                            continue;
-                        sub_matrix[col - 1][sub_row] = m[col][row];
-                        ++sub_row;
-                    }
+                    if(row == i) 
+                        continue;
+                    sub_matrix[col - 1][sub_row] = m[col][row];
+                    ++sub_row;
                 }
-                T sub_det = m[0][i] * determinant<N - 1, T>::call(sub_matrix);
-                det += i & 0x1 ? -sub_det : sub_det;
             }
+            T sub_det = m[0][i] * determinant<N - 1, T>::call(sub_matrix);
+            det += i & 0x1 ? -sub_det : sub_det;
         }
         return det;
     }
@@ -257,8 +260,8 @@ struct ktm::detail::matrix_implement::inverse<4, T>
     }
 };
 
-template<size_t N, typename T, typename Void>
-struct ktm::detail::matrix_implement::inverse
+template<size_t N, typename T>
+struct ktm::detail::matrix_implement::inverse<N, T, std::enable_if_t<(N > 4)>>
 {
     using M = mat<N, N, T>;
     static KTM_NOINLINE M call(const M& m) noexcept

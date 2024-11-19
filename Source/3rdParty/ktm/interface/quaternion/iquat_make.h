@@ -65,9 +65,8 @@ struct iquat_make<Father, quat<T>> : Father
 
     static KTM_NOINLINE quat<T> from_to(const vec<3, T>& from, const vec<3, T>& to) noexcept
     {
-        if(dot(from, to) >= 0) {
+        if(dot(from, to) >= 0)
             return from_to_less_half_pi(from, to); 
-        }
         
         vec<3, T> half = from + to;
 

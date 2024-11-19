@@ -29,18 +29,18 @@ public:
     struct alignas(align()) type { private: T e[N]; };
 };
 
-template<size_t OUT, size_t IN, typename T, typename Void>
+template<size_t OSize, size_t ISize, typename T, typename Void>
 struct ktm::detail::vec_data_implement::vec_swizzle
 {
 private:
     template<size_t ...E>
     static KTM_INLINE constexpr bool enable_swizzle() noexcept
     {
-        return (sizeof...(E) == OUT) && ((E < IN) && ...);
+        return (sizeof...(E) == OSize) && ((E < ISize) && ...);
     }
 public:
-    using V = vec<IN, T>;
-    using RetV = vec<OUT, T>;
+    using V = vec<ISize, T>;
+    using RetV = vec<OSize, T>;
 
     template<size_t ...E>
     static KTM_INLINE std::enable_if_t<enable_swizzle<E...>(), RetV> call(const V& v) noexcept

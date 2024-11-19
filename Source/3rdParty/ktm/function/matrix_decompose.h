@@ -19,10 +19,10 @@
 #include "geometric.h"
 #include "matrix.h"
 
-#define KTM_MATRIX_DECOMPOSE_ITERATION_MAX 100
-
 namespace ktm
 {
+
+#define KTM_MATRIX_DECOMPOSE_ITERATION_MAX 120
 
 template<class M>
 KTM_NOINLINE std::enable_if_t<is_square_matrix_v<M> && is_floating_point_base_v<M>, reduce_component<M>> reduce_hessenberg(const M& m) noexcept
@@ -697,6 +697,8 @@ KTM_NOINLINE std::enable_if_t<is_square_matrix_v<M> && is_floating_point_base_v<
     }
     
 }
+
+#undef KTM_MATRIX_DECOMPOSE_ITERATION_MAX
 
 }
 
