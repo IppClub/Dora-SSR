@@ -8,14 +8,27 @@
 #ifndef _KTM_OPERATOR_H_
 #define _KTM_OPERATOR_H_
 
+#include <cmath>
 #include <type_traits>
 #include "setup.h"
 
 template<typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-KTM_FUNC constexpr T ktm_operator_madd(T x, T y, T z) noexcept { return x + y * z; }
+KTM_FUNC constexpr T ktm_operator_madd(T x, T y, T z) noexcept 
+{
+    if constexpr(std::is_floating_point_v<T>)
+        return std::fma(y, z, x);
+    return x + y * z; 
+}
 
 template<typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-KTM_FUNC constexpr T ktm_operator_smadd(T& x, T y, T z) noexcept { x += y * z; return x; }
+KTM_FUNC constexpr T ktm_operator_smadd(T& x, T y, T z) noexcept 
+{
+    if constexpr(std::is_floating_point_v<T>)
+        x = std::fma(y, z, x);
+    else
+        x += y * z; 
+    return x; 
+}
 
 namespace ktm
 {

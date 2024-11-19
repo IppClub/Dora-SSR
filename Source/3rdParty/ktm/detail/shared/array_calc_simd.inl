@@ -12,54 +12,67 @@
 #include "../loop_util.h"
 #include "../../simd/skv.h"
 
-#define KTM_DETAIL_ARRAY_CALC_FUNC_PARAMS_ENUM_UNARY(...) A& out, const A& x
-#define KTM_DETAIL_ARRAY_CALC_LOOP_OPERATION_ENUM_UNARY(impl_name, type, num, ...) impl_name<type, num>::call
-#define KTM_DETAIL_ARRAY_CALC_LOOP_PARAMS_ENUM_UNARY(cast_type, index, ...) \
-reinterpret_cast<cast_type&>(out[index]), reinterpret_cast<const cast_type&>(x[index])
-#define KTM_DETAIL_ARRAY_CALC_LAST_PARAMS_ENUM_UNARY(cast_type, index, ...) KTM_DETAIL_ARRAY_CALC_LOOP_PARAMS_ENUM_UNARY(cast_type, index)
+#define KTM_DETAIL_ARRAY_CALC_FUNC_PARAMS_UNARY(...) A& out, const A& x
+#define KTM_DETAIL_ARRAY_CALC_LOOP_OPERATION_UNARY(impl_name, type, num, ...) impl_name<type, num>::call
+#define KTM_DETAIL_ARRAY_CALC_LOOP_PARAMS_UNARY(cast_type, index, ...) \
+    reinterpret_cast<cast_type&>(out[index]), reinterpret_cast<const cast_type&>(x[index])
+#define KTM_DETAIL_ARRAY_CALC_LAST_PARAMS_UNARY(cast_type, index, ...) \
+    KTM_DETAIL_ARRAY_CALC_LOOP_PARAMS_UNARY(cast_type, index)
 
-#define KTM_DETAIL_ARRAY_CALC_FUNC_PARAMS_ENUM_BINARY(...) KTM_DETAIL_ARRAY_CALC_FUNC_PARAMS_ENUM_UNARY(), const A& y
-#define KTM_DETAIL_ARRAY_CALC_LOOP_OPERATION_ENUM_BINARY(impl_name, type, num, ...) impl_name<type, num>::call
-#define KTM_DETAIL_ARRAY_CALC_LOOP_PARAMS_ENUM_BINARY(cast_type, index, ...) \
-KTM_DETAIL_ARRAY_CALC_LOOP_PARAMS_ENUM_UNARY(cast_type, index), reinterpret_cast<const cast_type&>(y[index])
-#define KTM_DETAIL_ARRAY_CALC_LAST_PARAMS_ENUM_BINARY(cast_type, index, ...) KTM_DETAIL_ARRAY_CALC_LOOP_PARAMS_ENUM_BINARY(cast_type, index)
+#define KTM_DETAIL_ARRAY_CALC_FUNC_PARAMS_BINARY(...) \
+    KTM_DETAIL_ARRAY_CALC_FUNC_PARAMS_UNARY(), const A& y
+#define KTM_DETAIL_ARRAY_CALC_LOOP_OPERATION_BINARY(impl_name, type, num, ...) impl_name<type, num>::call
+#define KTM_DETAIL_ARRAY_CALC_LOOP_PARAMS_BINARY(cast_type, index, ...) \
+    KTM_DETAIL_ARRAY_CALC_LOOP_PARAMS_UNARY(cast_type, index), reinterpret_cast<const cast_type&>(y[index])
+#define KTM_DETAIL_ARRAY_CALC_LAST_PARAMS_BINARY(cast_type, index, ...) \
+    KTM_DETAIL_ARRAY_CALC_LOOP_PARAMS_BINARY(cast_type, index)
 
-#define KTM_DETAIL_ARRAY_CALC_FUNC_PARAMS_ENUM_TERNARY(...) KTM_DETAIL_ARRAY_CALC_FUNC_PARAMS_ENUM_BINARY(), const A& z
-#define KTM_DETAIL_ARRAY_CALC_LOOP_OPERATION_ENUM_TERNARY(impl_name, type, num, ...) impl_name<type, num>::call
-#define KTM_DETAIL_ARRAY_CALC_LOOP_PARAMS_ENUM_TERNARY(cast_type, index, ...) \
-KTM_DETAIL_ARRAY_CALC_LOOP_PARAMS_ENUM_BINARY(cast_type, index), reinterpret_cast<const cast_type&>(z[index])
-#define KTM_DETAIL_ARRAY_CALC_LAST_PARAMS_ENUM_TERNARY(cast_type, index, ...) KTM_DETAIL_ARRAY_CALC_LOOP_PARAMS_ENUM_TERNARY(cast_type, index)
+#define KTM_DETAIL_ARRAY_CALC_FUNC_PARAMS_TERNARY(...) \
+    KTM_DETAIL_ARRAY_CALC_FUNC_PARAMS_BINARY(), const A& z
+#define KTM_DETAIL_ARRAY_CALC_LOOP_OPERATION_TERNARY(impl_name, type, num, ...) impl_name<type, num>::call
+#define KTM_DETAIL_ARRAY_CALC_LOOP_PARAMS_TERNARY(cast_type, index, ...) \
+    KTM_DETAIL_ARRAY_CALC_LOOP_PARAMS_BINARY(cast_type, index), reinterpret_cast<const cast_type&>(z[index])
+#define KTM_DETAIL_ARRAY_CALC_LAST_PARAMS_TERNARY(cast_type, index, ...) \
+    KTM_DETAIL_ARRAY_CALC_LOOP_PARAMS_TERNARY(cast_type, index)
 
-#define KTM_DETAIL_ARRAY_CALC_FUNC_PARAMS_ENUM_BINARY_SCALAR(type, ...) KTM_DETAIL_ARRAY_CALC_FUNC_PARAMS_ENUM_UNARY(), type scalar
-#define KTM_DETAIL_ARRAY_CALC_LOOP_OPERATION_ENUM_BINARY_SCALAR(impl_name, type, num, ...) \
-[&scalar](std::array<type, num>& out, const std::array<type, num>& x) -> void { impl_name<type, num>::call(out, x, scalar); }
-#define KTM_DETAIL_ARRAY_CALC_LOOP_PARAMS_ENUM_BINARY_SCALAR(cast_type, index, ...) KTM_DETAIL_ARRAY_CALC_LOOP_PARAMS_ENUM_UNARY(cast_type, index)
-#define KTM_DETAIL_ARRAY_CALC_LAST_PARAMS_ENUM_BINARY_SCALAR(cast_type, index, ...) KTM_DETAIL_ARRAY_CALC_LOOP_PARAMS_ENUM_BINARY_SCALAR(cast_type, index), scalar
+#define KTM_DETAIL_ARRAY_CALC_FUNC_PARAMS_BINARY_SCALAR(type, ...) \
+    KTM_DETAIL_ARRAY_CALC_FUNC_PARAMS_UNARY(), type scalar
+#define KTM_DETAIL_ARRAY_CALC_LOOP_OPERATION_BINARY_SCALAR(impl_name, type, num, ...) \
+    [&scalar](std::array<type, num>& out, const std::array<type, num>& x) \
+    -> void { impl_name<type, num>::call(out, x, scalar); }
+#define KTM_DETAIL_ARRAY_CALC_LOOP_PARAMS_BINARY_SCALAR(cast_type, index, ...) \
+    KTM_DETAIL_ARRAY_CALC_LOOP_PARAMS_UNARY(cast_type, index)
+#define KTM_DETAIL_ARRAY_CALC_LAST_PARAMS_BINARY_SCALAR(cast_type, index, ...) \
+    KTM_DETAIL_ARRAY_CALC_LOOP_PARAMS_BINARY_SCALAR(cast_type, index), scalar
 
-#define KTM_DETAIL_ARRAY_CALC_FUNC_PARAMS_ENUM_TERNARY_SCALAR(type, ...) KTM_DETAIL_ARRAY_CALC_FUNC_PARAMS_ENUM_BINARY(), type scalar
-#define KTM_DETAIL_ARRAY_CALC_LOOP_OPERATION_ENUM_TERNARY_SCALAR(impl_name, type, num, ...) \
-[&scalar](std::array<type, num>& out, const std::array<type, num>& x, const std::array<type, num>& y) -> void { impl_name<type, num>::call(out, x, y, scalar); }
-#define KTM_DETAIL_ARRAY_CALC_LOOP_PARAMS_ENUM_TERNARY_SCALAR(cast_type, index, ...) KTM_DETAIL_ARRAY_CALC_LOOP_PARAMS_ENUM_BINARY(cast_type, index)
-#define KTM_DETAIL_ARRAY_CALC_LAST_PARAMS_ENUM_TERNARY_SCALAR(cast_type, index, ...) KTM_DETAIL_ARRAY_CALC_LOOP_PARAMS_ENUM_TERNARY_SCALAR(cast_type, index), scalar
+#define KTM_DETAIL_ARRAY_CALC_FUNC_PARAMS_TERNARY_SCALAR(type, ...) \
+    KTM_DETAIL_ARRAY_CALC_FUNC_PARAMS_BINARY(), type scalar
+#define KTM_DETAIL_ARRAY_CALC_LOOP_OPERATION_TERNARY_SCALAR(impl_name, type, num, ...) \
+    [&scalar](std::array<type, num>& out, const std::array<type, num>& x, const std::array<type, num>& y) \
+    -> void { impl_name<type, num>::call(out, x, y, scalar); }
+#define KTM_DETAIL_ARRAY_CALC_LOOP_PARAMS_TERNARY_SCALAR(cast_type, index, ...) \
+    KTM_DETAIL_ARRAY_CALC_LOOP_PARAMS_BINARY(cast_type, index)
+#define KTM_DETAIL_ARRAY_CALC_LAST_PARAMS_TERNARY_SCALAR(cast_type, index, ...) \
+    KTM_DETAIL_ARRAY_CALC_LOOP_PARAMS_TERNARY_SCALAR(cast_type, index), scalar
 
 #define KTM_DETAIL_ARRAY_CALC_SIMD_IMPL(impl_name, type, enum) \
-template<size_t N> \
-struct ktm::detail::array_calc_implement::impl_name<type, N, std::enable_if_t<(N > 4)>> \
-{ \
-    using A = std::array<type, N>; \
-    static KTM_INLINE void call(KTM_DETAIL_ARRAY_CALC_FUNC_PARAMS_ENUM_##enum(type)) noexcept \
+    template<size_t N> \
+    struct ktm::detail::array_calc_implement::impl_name<type, N, std::enable_if_t<(N > 4)>> \
     { \
-        constexpr size_t K = N / 4; \
-        using AA4K = std::array<std::array<type, 4>, K>; \
-        loop_op<K, void>::call(KTM_DETAIL_ARRAY_CALC_LOOP_OPERATION_ENUM_##enum(impl_name, type, 4), \
-                                   KTM_DETAIL_ARRAY_CALC_LOOP_PARAMS_ENUM_##enum(AA4K, 0)); \
-        if constexpr(constexpr size_t J = N % 4) \
+        using A = std::array<type, N>; \
+        static KTM_INLINE void call(KTM_DETAIL_ARRAY_CALC_FUNC_PARAMS_##enum(type)) noexcept \
         { \
-            using ATJ = std::array<type, J>; \
-            impl_name<type, J>::call(KTM_DETAIL_ARRAY_CALC_LAST_PARAMS_ENUM_##enum(ATJ, K * 4)); \
+            constexpr size_t K = N / 4; \
+            using AA4K = std::array<std::array<type, 4>, K>; \
+            loop_op<K, void>::call(KTM_DETAIL_ARRAY_CALC_LOOP_OPERATION_##enum(impl_name, type, 4), \
+                                    KTM_DETAIL_ARRAY_CALC_LOOP_PARAMS_##enum(AA4K, 0)); \
+            if constexpr(constexpr size_t J = N % 4) \
+            { \
+                using ATJ = std::array<type, J>; \
+                impl_name<type, J>::call(KTM_DETAIL_ARRAY_CALC_LAST_PARAMS_##enum(ATJ, K * 4)); \
+            } \
         } \
-    } \
-};
+    };
 
 #if KTM_SIMD_ENABLE(KTM_SIMD_NEON | KTM_SIMD_SSE | KTM_SIMD_WASM)
 
@@ -546,5 +559,32 @@ struct ktm::detail::array_calc_implement::madd_scalar<int, 2>
 };
 
 #endif // KTM_SIMD_ENABLE(KTM_SIMD_NEON)
+
+#undef KTM_DETAIL_ARRAY_CALC_FUNC_PARAMS_UNARY
+#undef KTM_DETAIL_ARRAY_CALC_LOOP_OPERATION_UNARY
+#undef KTM_DETAIL_ARRAY_CALC_LOOP_PARAMS_UNARY
+#undef KTM_DETAIL_ARRAY_CALC_LAST_PARAMS_UNARY
+
+#undef KTM_DETAIL_ARRAY_CALC_FUNC_PARAMS_BINARY
+#undef KTM_DETAIL_ARRAY_CALC_LOOP_OPERATION_BINARY
+#undef KTM_DETAIL_ARRAY_CALC_LOOP_PARAMS_BINARY
+#undef KTM_DETAIL_ARRAY_CALC_LAST_PARAMS_BINARY
+
+#undef KTM_DETAIL_ARRAY_CALC_FUNC_PARAMS_TERNARY
+#undef KTM_DETAIL_ARRAY_CALC_LOOP_OPERATION_TERNARY
+#undef KTM_DETAIL_ARRAY_CALC_LOOP_PARAMS_TERNARY
+#undef KTM_DETAIL_ARRAY_CALC_LAST_PARAMS_TERNARY
+
+#undef KTM_DETAIL_ARRAY_CALC_FUNC_PARAMS_BINARY_SCALAR
+#undef KTM_DETAIL_ARRAY_CALC_LOOP_OPERATION_BINARY_SCALAR
+#undef KTM_DETAIL_ARRAY_CALC_LOOP_PARAMS_BINARY_SCALAR
+#undef KTM_DETAIL_ARRAY_CALC_LAST_PARAMS_BINARY_SCALAR
+
+#undef KTM_DETAIL_ARRAY_CALC_FUNC_PARAMS_TERNARY_SCALAR
+#undef KTM_DETAIL_ARRAY_CALC_LOOP_OPERATION_TERNARY_SCALAR
+#undef KTM_DETAIL_ARRAY_CALC_LOOP_PARAMS_TERNARY_SCALAR
+#undef KTM_DETAIL_ARRAY_CALC_LAST_PARAMS_TERNARY_SCALAR
+
+#undef KTM_DETAIL_ARRAY_CALC_SIMD_IMPL
 
 #endif

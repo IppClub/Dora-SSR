@@ -134,11 +134,10 @@ using single_extends_t = typename single_extends<typename package_interface<Fath
 
 }
 
-#define KTM_CRTP_CHILD_IMPL_VALUE(class_name, implement) decltype(check_##implement<class_name>(0))::value
-#define KTM_CRTP_CHILD_IMPL_CHECK(interface, implement) \
-template <typename CheckT, typename T> \
-static inline constexpr auto check_##implement(T) \
-    -> std::enable_if_t<ktm::is_same_function_traits_v<decltype(&CheckT::interface), decltype(&CheckT::implement)>, std::true_type>; \
-template<typename CheckT> static inline constexpr std::false_type check_##implement(...);
+#define KTM_CRTP_INTERFACE_REGISTER(interface, implement) \
+    template<typename ImplClass> static inline constexpr auto interface_check_##implement(int) -> std::enable_if_t< \
+        ktm::is_same_function_traits_v<decltype(&ImplClass::interface), decltype(&ImplClass::implement)>, std::true_type>; \
+    template<typename ImplClass> static inline constexpr std::false_type interface_check_##implement(...);
+#define KTM_CRTP_INTERFACE_IMPLEMENT(impl_class, implement) decltype(interface_check_##implement<impl_class>(0))::value
 
 #endif

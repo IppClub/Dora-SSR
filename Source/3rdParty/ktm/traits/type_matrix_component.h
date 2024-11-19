@@ -12,13 +12,13 @@
 #include "../type/vec_fwd.h"
 #include "../type/mat_fwd.h"
 
-#define KTM_MATRIX_COMPONENT_ELEMENT(name, index) \
-using name##_type = std::tuple_element_t<index, type>; \
-inline name##_type& get_##name() noexcept { return std::get<index>(*this); } \
-inline const name##_type& get_##name() const noexcept { return std::get<index>(*this); }
-
 namespace ktm
 {
+
+#define KTM_MATRIX_COMPONENT_ELEMENT(name, index) \
+    using name##_type = std::tuple_element_t<index, type>; \
+    inline name##_type& get_##name() noexcept { return std::get<index>(*this); } \
+    inline const name##_type& get_##name() const noexcept { return std::get<index>(*this); }
 
 template<class M>
 struct reduce_component;
@@ -100,6 +100,8 @@ struct affine_component<mat<N, N, T>> : std::tuple<mat<N, N, T>, mat<N, N, T>, m
     KTM_MATRIX_COMPONENT_ELEMENT(shear, 2)
     KTM_MATRIX_COMPONENT_ELEMENT(scale, 3)
 };
+
+#undef KTM_MATRIX_COMPONENT_ELEMENT
 
 }
 

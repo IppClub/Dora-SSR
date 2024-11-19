@@ -38,7 +38,7 @@ struct iquat_data<Father, quat<T>> : Father
     KTM_FUNC iquat_data& operator=(const iquat_data& copy) { st = copy.st; return *this; };
     KTM_FUNC iquat_data& operator=(iquat_data&& copy) { st = copy.st; return *this; };
     KTM_FUNC iquat_data(T x, T y, T z, T w) noexcept : i(x), j(y), k(z), r(w) { }
-    KTM_FUNC explicit iquat_data(const vec<4, T>& vec) noexcept : i(vec.x), j(vec.y), k(vec.z), r(vec.w) { }
+    KTM_FUNC iquat_data(const vec<4, T>& vec) noexcept : i(vec.x), j(vec.y), k(vec.z), r(vec.w) { }
 
     KTM_FUNC T real() const noexcept { return r; }
     KTM_FUNC vec<3, T> imag() const noexcept { return vec<3, T>(i, j, k); } 
