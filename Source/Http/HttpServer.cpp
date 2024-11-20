@@ -726,6 +726,11 @@ void HttpClient::downloadAsync(String url, String filePath, float timeout, const
 			SharedApplication.invokeInLogic([progress]() {
 				progress(true, 0, 0);
 			});
+		} catch (const std::exception& ex) {
+			Error("failed to download \"{}\" due to: {}", urlStr, ex.what());
+			SharedApplication.invokeInLogic([progress]() {
+				progress(true, 0, 0);
+			});
 		}
 	});
 }
