@@ -666,7 +666,8 @@ void HttpClient::downloadAsync(String url, String filePath, float timeout, const
 		progress(true, 0, 0);
 		return;
 	}
-	_downloadThread->run([schemeHostPort, fileStr = filePath.toString(), urlStr = url.toString(), timeout, progress, pathToGet]() {
+	auto progressFunc = std::make_shared<std::function<bool(bool interrupted, uint64_t current, uint64_t total)>>(progress);
+	_downloadThread->run([schemeHostPort, fileStr = filePath.toString(), urlStr = url.toString(), timeout, progressFunc, pathToGet]() -> Own<Values> {
 		try {
 			httplib::Client client(schemeHostPort);
 			client.enable_server_certificate_verification(false);
@@ -675,7 +676,7 @@ void HttpClient::downloadAsync(String url, String filePath, float timeout, const
 			std::ofstream out(fileStr, std::ios::out | std::ios::trunc | std::ios::binary);
 			if (!out) {
 				Error("invalid local file path \"{}\" to download to", fileStr);
-				return;
+				return nullptr;
 			}
 			auto result = client.Get(
 				pathToGet, [&](const char* data, size_t data_length) -> bool {
@@ -684,8 +685,8 @@ void HttpClient::downloadAsync(String url, String filePath, float timeout, const
 					} else if (!out.write(data, data_length)) {
 						Error("failed to write downloaded file for \"{}\"", urlStr);
 						out.close();
-						SharedApplication.invokeInLogic([progress]() {
-							progress(true, 0, 0);
+						SharedApplication.invokeInLogic([progressFunc]() {
+							(*progressFunc)(true, 0, 0);
 						});
 						std::error_code err;
 						fs::remove_all(fileStr, err);
@@ -698,9 +699,9 @@ void HttpClient::downloadAsync(String url, String filePath, float timeout, const
 					if (current == total) {
 						out.close();
 					}
-					SharedApplication.invokeInLogic([progress, current, total, stopped]() {
+					SharedApplication.invokeInLogic([progressFunc, current, total, stopped]() {
 						if (!*stopped) {
-							*stopped = progress(false, current, total);
+							*stopped = (*progressFunc)(false, current, total);
 						}
 					});
 					if (*stopped) {
@@ -712,8 +713,8 @@ void HttpClient::downloadAsync(String url, String filePath, float timeout, const
 			if (!result || result.error() != httplib::Error::Success) {
 				Info("failed to download \"{}\" due to {}", urlStr, httplib::to_string(result.error()));
 				out.close();
-				SharedApplication.invokeInLogic([progress]() {
-					progress(true, 0, 0);
+				SharedApplication.invokeInLogic([progressFunc]() {
+					(*progressFunc)(true, 0, 0);
 				});
 				std::error_code err;
 				if (fs::exists(fileStr, err)) {
@@ -723,16 +724,19 @@ void HttpClient::downloadAsync(String url, String filePath, float timeout, const
 			}
 		} catch (const std::invalid_argument& ex) {
 			Error("invalid url \"{}\" to download due to: {}", urlStr, ex.what());
-			SharedApplication.invokeInLogic([progress]() {
-				progress(true, 0, 0);
+			SharedApplication.invokeInLogic([progressFunc]() {
+				(*progressFunc)(true, 0, 0);
 			});
 		} catch (const std::exception& ex) {
 			Error("failed to download \"{}\" due to: {}", urlStr, ex.what());
-			SharedApplication.invokeInLogic([progress]() {
-				progress(true, 0, 0);
+			SharedApplication.invokeInLogic([progressFunc]() {
+				(*progressFunc)(true, 0, 0);
 			});
 		}
-	});
+		return nullptr;
+	},
+		[progressFunc](Own<Values>) {
+		});
 }
 
 void HttpClient::stop() {
