@@ -1586,6 +1586,9 @@ private:
   bool send_(Request &req, Response &res, Error &error);
   Result send_(Request &&req);
 
+#ifdef CPPHTTPLIB_OPENSSL_SUPPORT
+  bool is_ssl_peer_could_be_closed(SSL *ssl) const;
+#endif
   socket_t create_client_socket(Error &error) const;
   bool read_response_line(Stream &strm, const Request &req,
                           Response &res) const;
@@ -2262,13 +2265,33 @@ make_basic_authentication_header(const std::string &username,
 
 namespace detail {
 
+#if defined(_WIN32)
+inline std::wstring u8string_to_wstring(const char *s) {
+  std::wstring ws;
+  auto len = static_cast<int>(strlen(s));
+  auto wlen = ::MultiByteToWideChar(CP_UTF8, 0, s, len, nullptr, 0);
+  if (wlen > 0) {
+    ws.resize(wlen);
+    wlen = ::MultiByteToWideChar(
+        CP_UTF8, 0, s, len,
+        const_cast<LPWSTR>(reinterpret_cast<LPCWSTR>(ws.data())), wlen);
+    if (wlen != ws.size()) { ws.clear(); }
+  }
+  return ws;
+}
+#endif
+
 struct FileStat {
   FileStat(const std::string &path);
   bool is_file() const;
   bool is_dir() const;
 
 private:
+#if defined(_WIN32)
+  struct _stat st_;
+#else
   struct stat st_;
+#endif
   int ret_ = -1;
 };
 
@@ -2643,7 +2666,12 @@ inline bool is_valid_path(const std::string &path) {
 }
 
 inline FileStat::FileStat(const std::string &path) {
+#if defined(_WIN32)
+  auto wpath = u8string_to_wstring(path.c_str());
+  ret_ = _wstat(wpath.c_str(), &st_);
+#else
   ret_ = stat(path.c_str(), &st_);
+#endif
 }
 inline bool FileStat::is_file() const {
   return ret_ >= 0 && S_ISREG(st_.st_mode);
@@ -2913,10 +2941,8 @@ inline bool mmap::open(const char *path) {
   close();
 
 #if defined(_WIN32)
-  std::wstring wpath;
-  for (size_t i = 0; i < strlen(path); i++) {
-    wpath += path[i];
-  }
+  auto wpath = u8string_to_wstring(path);
+  if (wpath.empty()) { return false; }
 
 #if _WIN32_WINNT >= _WIN32_WINNT_WIN8
   hFile_ = ::CreateFile2(wpath.c_str(), GENERIC_READ, FILE_SHARE_READ,
@@ -3286,8 +3312,6 @@ inline bool keep_alive(const std::atomic<socket_t> &svr_sock, socket_t sock,
     } else {
       return true; // Ready for read
     }
-
-    std::this_thread::sleep_for(microseconds{interval_usec});
   }
 
   return false;
@@ -7406,6 +7430,14 @@ inline bool ClientImpl::send(Request &req, Response &res, Error &error) {
   return ret;
 }
 
+#ifdef CPPHTTPLIB_OPENSSL_SUPPORT
+inline bool ClientImpl::is_ssl_peer_could_be_closed(SSL *ssl) const {
+  char buf[1];
+  return !SSL_peek(ssl, buf, 1) &&
+    SSL_get_error(ssl, 0) == SSL_ERROR_ZERO_RETURN;
+}
+#endif
+
 inline bool ClientImpl::send_(Request &req, Response &res, Error &error) {
   {
     std::lock_guard<std::mutex> guard(socket_mutex_);
@@ -7417,6 +7449,15 @@ inline bool ClientImpl::send_(Request &req, Response &res, Error &error) {
     auto is_alive = false;
     if (socket_.is_open()) {
       is_alive = detail::is_socket_alive(socket_.sock);
+
+#ifdef CPPHTTPLIB_OPENSSL_SUPPORT
+      if (is_alive && is_ssl()) {
+        if (is_ssl_peer_could_be_closed(socket_.ssl)) {
+          is_alive = false;
+        }
+      }
+#endif
+
       if (!is_alive) {
         // Attempt to avoid sigpipe by shutting down nongracefully if it seems
         // like the other side has already closed the connection Also, there
@@ -7693,12 +7734,26 @@ inline bool ClientImpl::write_request(Stream &strm, Request &req,
 
   if (!req.has_header("Accept")) { req.set_header("Accept", "*/*"); }
 
-#ifndef CPPHTTPLIB_NO_DEFAULT_USER_AGENT
-  if (!req.has_header("User-Agent")) {
-    auto agent = std::string("cpp-httplib/") + CPPHTTPLIB_VERSION;
-    req.set_header("User-Agent", agent);
-  }
+  if (!req.content_receiver) {
+    if (!req.has_header("Accept-Encoding")) {
+      std::string accept_encoding;
+#ifdef CPPHTTPLIB_BROTLI_SUPPORT
+      accept_encoding = "br";
 #endif
+#ifdef CPPHTTPLIB_ZLIB_SUPPORT
+      if (!accept_encoding.empty()) { accept_encoding += ", "; }
+      accept_encoding += "gzip, deflate";
+#endif
+      req.set_header("Accept-Encoding", accept_encoding);
+    }
+
+#ifndef CPPHTTPLIB_NO_DEFAULT_USER_AGENT
+    if (!req.has_header("User-Agent")) {
+      auto agent = std::string("cpp-httplib/") + CPPHTTPLIB_VERSION;
+      req.set_header("User-Agent", agent);
+    }
+#endif
+  };
 
   if (req.body.empty()) {
     if (req.content_provider_) {
@@ -7899,9 +7954,7 @@ inline bool ClientImpl::process_request(Stream &strm, Request &req,
   if (is_ssl()) {
     auto is_proxy_enabled = !proxy_host_.empty() && proxy_port_ != -1;
     if (!is_proxy_enabled) {
-      char buf[1];
-      if (SSL_peek(socket_.ssl, buf, 1) == 0 &&
-          SSL_get_error(socket_.ssl, 0) == SSL_ERROR_ZERO_RETURN) {
+      if (is_ssl_peer_could_be_closed(socket_.ssl)) {
         error = Error::SSLPeerCouldBeClosed_;
         return false;
       }
