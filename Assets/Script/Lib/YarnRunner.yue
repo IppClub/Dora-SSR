@@ -57,8 +57,8 @@ class YarnRunner
 	new: (filename, startTitle, state = {}, command = {}, testing = false) =>
 		jsonCode = Content\load filename
 		error "failed to read yarn file \"#{filename}\"" unless jsonCode
-		success, jsonObject = try json.load jsonCode
-		error "failed to load yarn json code" unless success and jsonObject
+		jsonObject = json.load jsonCode
+		error "failed to load yarn json code" unless jsonObject
 
 		@codes = {}
 		@funcs = {}
