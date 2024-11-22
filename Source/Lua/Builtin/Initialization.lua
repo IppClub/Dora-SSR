@@ -1227,6 +1227,30 @@ do
 	end
 end
 
+-- Dora json wrapper
+do
+	local json = Dora.json
+	local jsonLoad = json.load
+	json.load = function(str, maxdepth)
+		local success, result = pcall(jsonLoad, str, maxdepth)
+		if success then
+			return result
+		else
+			return nil, result
+		end
+	end
+
+	local jsonDump = json.dump
+	json.dump = function(obj)
+		local success, result = pcall(jsonDump, obj)
+		if success then
+			return result
+		else
+			return nil, result
+		end
+	end
+end
+
 -- Dora helpers
 do
 	_G.p = yue.p
