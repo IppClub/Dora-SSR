@@ -40,7 +40,7 @@ local function getLatestVersion() -- 47
 		local res = HttpClient:getAsync(url) -- 53
 		local success = false -- 54
 		if res then -- 54
-			local info = json.load(res) -- 56
+			local info = (json.load(res)) -- 56
 			if info then -- 56
 				latestVersion = info.tag_name -- 58
 				success = true -- 59
