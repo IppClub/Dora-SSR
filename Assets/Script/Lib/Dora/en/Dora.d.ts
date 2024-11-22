@@ -7150,6 +7150,15 @@ interface HttpClient {
 	 */
 	postAsync(url: string, json: string, timeout?: number): string | null;
 	/**
+	 * Sends a POST request to the specified URL with custom headers and returns the response body.
+	 * @param url The URL to send the request to.
+	 * @param headers The headers to send with the request. Each header should be a string in the format "name: value".
+	 * @param json The JSON data to send in the request body.
+	 * @param timeout [optional] The timeout in seconds for the request. Defaults to 5.
+	 * @returns The response body text, or `null` if the request failed.
+	 */
+	postAsync(url: string, headers: string[], json: string, timeout?: number): string | null;
+	/**
 	 * Sends a GET request to the specified URL and returns the response body.
 	 * @param url The URL to send the request to.
 	 * @param timeout [optional] The timeout in seconds for the request. Defaults to 5.

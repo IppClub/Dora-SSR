@@ -19,6 +19,17 @@ void httpclient_post_async(int64_t url, int64_t json, float timeout, int32_t fun
 		SharedWasmRuntime.invoke(func);
 	});
 }
+void httpclient_post_with_headers_async(int64_t url, int64_t headers, int64_t json, float timeout, int32_t func, int64_t stack) {
+	std::shared_ptr<void> deref(nullptr, [func](auto) {
+		SharedWasmRuntime.deref(func);
+	});
+	auto args = r_cast<CallStack*>(stack);
+	SharedHttpClient.postAsync(*Str_From(url), Vec_FromStr(headers), *Str_From(json), timeout, [func, args, deref](OptString body) {
+		args->clear();
+		args->push(body);
+		SharedWasmRuntime.invoke(func);
+	});
+}
 void httpclient_get_async(int64_t url, float timeout, int32_t func, int64_t stack) {
 	std::shared_ptr<void> deref(nullptr, [func](auto) {
 		SharedWasmRuntime.deref(func);
@@ -48,6 +59,7 @@ void httpclient_download_async(int64_t url, int64_t full_path, float timeout, in
 
 static void linkHttpClient(wasm3::module3& mod) {
 	mod.link_optional("*", "httpclient_post_async", httpclient_post_async);
+	mod.link_optional("*", "httpclient_post_with_headers_async", httpclient_post_with_headers_async);
 	mod.link_optional("*", "httpclient_get_async", httpclient_get_async);
 	mod.link_optional("*", "httpclient_download_async", httpclient_download_async);
 }

@@ -8,6 +8,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 	fn httpclient_post_async(url: i64, json: i64, timeout: f32, func: i32, stack: i64);
+	fn httpclient_post_with_headers_async(url: i64, headers: i64, json: i64, timeout: f32, func: i32, stack: i64);
 	fn httpclient_get_async(url: i64, timeout: f32, func: i32, stack: i64);
 	fn httpclient_download_async(url: i64, full_path: i64, timeout: f32, func: i32, stack: i64);
 }
@@ -29,6 +30,23 @@ impl HttpClient {
 			callback(stack.pop_str())
 		}));
 		unsafe { httpclient_post_async(crate::dora::from_string(url), crate::dora::from_string(json), timeout, func_id, stack_raw); }
+	}
+	/// Sends a POST request to the specified URL with custom headers and returns the response body.
+	///
+	/// # Arguments
+	///
+	/// * `url` - The URL to send the request to.
+	/// * `headers` - A vector of headers to include in the request. Each header should be in the format `key: value`.
+	/// * `json` - The JSON data to send in the request body.
+	/// * `timeout` - The timeout in seconds for the request.
+	/// * `callback` - A callback function that is called when the request is complete. The function receives the response body as a parameter.
+	pub fn post_with_headers_async(url: &str, headers: &Vec<&str>, json: &str, timeout: f32, mut callback: Box<dyn FnMut(Option<String>)>) {
+		let mut stack = crate::dora::CallStack::new();
+		let stack_raw = stack.raw();
+		let func_id = crate::dora::push_function(Box::new(move || {
+			callback(stack.pop_str())
+		}));
+		unsafe { httpclient_post_with_headers_async(crate::dora::from_string(url), crate::dora::Vector::from_str(headers), crate::dora::from_string(json), timeout, func_id, stack_raw); }
 	}
 	/// Sends a GET request to the specified URL and returns the response body.
 	///
