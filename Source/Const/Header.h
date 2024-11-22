@@ -12,25 +12,28 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <any>
 #include <cctype>
 #include <cmath>
+#include <concepts>
 #include <cstdint>
 #include <functional>
+#include <iterator>
 #include <list>
 #include <memory>
+#include <mutex>
 #include <optional>
 #include <queue>
+#include <span>
 #include <stack>
-#include <string>
 #include <tuple>
 #include <unordered_map>
 #include <unordered_set>
 #include <variant>
 #include <vector>
+
+#include <string>
 using namespace std::string_literals;
+
 #include <string_view>
 using namespace std::string_view_literals;
-#include <concepts>
-#include <iterator>
-#include <mutex>
 
 #include "bx/bx.h"
 

@@ -565,16 +565,20 @@ do
 	end
 
 	local HttpClient_postAsync = HttpClient.postAsync
-	HttpClient.postAsync = function(self, url, json, timeout)
+	HttpClient.postAsync = function(self, url, ...)
+		local args = {...}
+		if type(args[#args]) ~= "number" then
+			args[#args + 1] = 5
+		end
 		local _, mainThread = coroutine.running()
 		assert(not mainThread, "HttpClient.postAsync should be run in a thread")
-		timeout = timeout or 5
 		local result = nil
 		local done = false
-		HttpClient_postAsync(self, url, json, timeout, function(data)
+		args[#args + 1] = function(data)
 			result = data
 			done = true
-		end)
+		end
+		HttpClient_postAsync(self, url, unpack(args))
 		wait(function()
 			return done
 		end)

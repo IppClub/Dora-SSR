@@ -8,6 +8,14 @@ local record HttpClient
 	-- @return (string) The response in text，or nil if the request fails.
 	postAsync: function(self: HttpClient, url: string, json: string, timeout?: number): string | nil
 
+	-- Makes a POST request to the specified URL with the specified headers and JSON text, and returns the response in text.
+	-- @param url (string) The URL to make the request to.
+	-- @param headers ({string}) The headers to send in the request. Each header should be in the format "name: value".
+	-- @param json (string) The JSON text to send in the request.
+	-- @param timeout (number) [optional] The request timeout in seconds (default is 5 seconds).
+	-- @return (string) The response in text，or nil if the request fails.
+	postAsync: function(self: HttpClient, url: string, headers: {string}, json: string, timeout?: number): string | nil
+
 	-- Makes a GET request to the specified URL and returns the response in text.
 	-- @param url (string) The URL to make the request to.
 	-- @param timeout (number) [optional] The request timeout in seconds (default is 5 seconds).

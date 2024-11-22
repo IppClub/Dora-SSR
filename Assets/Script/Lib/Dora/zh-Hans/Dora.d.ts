@@ -7149,11 +7149,14 @@ interface HttpClient {
 	 */
 	postAsync(url: string, json: string, timeout?: number): string | null;
 	/**
-	 * Sends a GET request to the specified URL and returns the response body.
-	 * @param url The URL to send the request to.
-	 * @param timeout [optional] The timeout in seconds for the request. Defaults to 5.
-	 * @returns The response body text, or `null` if the request failed.
+	 * 向指定的URL发送自定义请求头和JSON文本的POST请求，并返回响应文本。
+	 * @param url 要发送请求的URL。
+	 * @param headers 要发送的请求头。每个头部应该以 "name: value" 的格式。
+	 * @param json 要发送的JSON文本。
+	 * @param timeout [可选] 请求的超时时间（以秒为单位）。默认为5。
+	 * @returns 响应文本，如果请求失败则返回 `null`。
 	 */
+	postAsync(url: string, headers: string[], json: string, timeout?: number): string | null;
 	/**
 	 * 向指定的URL异步发送GET请求，并返回响应文本。
 	 * @param url 要发送请求的URL。

@@ -8,6 +8,14 @@ local record HttpClient
 	-- @return (string) 响应体的文本，如果请求失败则返回nil。
 	postAsync: function(self: HttpClient, url: string, json: string, timeout?: number): string | nil
 
+	-- 向指定的URL发送带有指定头部和JSON文本的POST请求，并返回响应文本。
+	-- @param url (string) 要发送请求的URL。
+	-- @param headers ({string}) 要在请求中发送的头部。每个头部应该以 "name: value" 的格式。
+	-- @param json (string) 要在请求中发送的JSON文本。
+	-- @param timeout (number) [可选] 请求超时时间（以秒为单位，默认为5秒）。
+	-- @return (string) 响应体的文本，如果请求失败则返回nil。
+	postAsync: function(self: HttpClient, url: string, headers: {string}, json: string, timeout?: number): string | nil
+
 	-- 向指定的URL发送GET请求，并返回响应文本。
 	-- @param url (string) 要发送请求的URL。
 	-- @param timeout (number) [可选] 请求超时时间（以秒为单位，默认为5秒）。
