@@ -385,7 +385,13 @@ AffineTransform& AffineTransform::scale(float sx, float sy) {
 }
 
 AffineTransform& AffineTransform::concat(const AffineTransform& t2) {
-	r_cast<ktm::faffine2d*>(this)->concat(r_cast<const ktm::faffine2d&>(t2));
+	*this = {
+		a * t2.a + b * t2.c,
+		a * t2.b + b * t2.d,
+		c * t2.a + d * t2.c,
+		c * t2.b + d * t2.d,
+		tx * t2.a + ty * t2.c + t2.tx,
+		tx * t2.b + ty * t2.d + t2.ty};
 	return *this;
 }
 
