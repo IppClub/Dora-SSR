@@ -217,10 +217,14 @@ export getAllFiles = (path, exts, recursive = true) ->
 		continue if not filters[Path\getExt file]
 		file
 
-getFileEntries = (path, recursive = true) ->
+getFileEntries = (path, recursive = true, excludeFiles = nil) ->
 	entries = {}
+	excludes = if excludeFiles
+		Set excludeFiles
 	for file in *getAllFiles path, ["lua", "xml", yueext, "tl"], recursive
 		entryName = Path\getName file
+		if excludes and excludes[entryName]
+			continue
 		entryAdded = false
 		for [ename,] in *entries
 			if entryName == ename
@@ -287,7 +291,7 @@ updateEntries = ->
 
 	doraTools = getFileEntries Path(Content.assetPath, "Script", "Tools"), false
 	doraExamples = getFileEntries Path Content.assetPath, "Script", "Example"
-	doraTests = getFileEntries Path Content.assetPath, "Script", "Test"
+	doraTests = getFileEntries Path(Content.assetPath, "Script", "Test"), true, unless App.debugging then ["ImGui",]
 
 	cppTests = []
 	for name in *App.testNames
