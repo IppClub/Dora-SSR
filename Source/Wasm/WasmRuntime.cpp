@@ -513,7 +513,7 @@ static Own<ActionDuration> ActionDef_Frame(String clipStr, float duration, const
 	}
 	for (int i = 0; i < totalFrames; i++) {
 		auto count = frames[i];
-		for (int c = 0; c < count; c++) {
+		for (unsigned int c = 0; c < count; c++) {
 			def->rects.push_back(New<Rect>(rects[i]));
 		}
 	}

@@ -87,16 +87,7 @@ bool Map::loadUnsafe(const std::string& path)
         return false;
     }
 
-    //make sure we have consistent path separators
-    m_workingDirectory = path;
-    std::replace(m_workingDirectory.begin(), m_workingDirectory.end(), '\\', '/');
-    m_workingDirectory = getFilePath(m_workingDirectory);
-
-    if (!m_workingDirectory.empty() &&
-        m_workingDirectory.back() == '/')
-    {
-        m_workingDirectory.pop_back();
-    }
+	m_workingDirectory = getFilePath(path);
 
 
     //find the map node and bail if it doesn't exist
@@ -132,16 +123,7 @@ bool Map::loadFromStringUnsafe(const std::string& data, const std::string& worki
         return false;
     }
 
-    //make sure we have consistent path separators
-    m_workingDirectory = workingDir;
-    std::replace(m_workingDirectory.begin(), m_workingDirectory.end(), '\\', '/');
-    m_workingDirectory = getFilePath(m_workingDirectory);
-
-    if (!m_workingDirectory.empty() &&
-        m_workingDirectory.back() == '/')
-    {
-        m_workingDirectory.pop_back();
-    }
+	m_workingDirectory = getFilePath(workingDir);
 
     //find the map node and bail if it doesn't exist
     auto mapNode = doc.child("map");
