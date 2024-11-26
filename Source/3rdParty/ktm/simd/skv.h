@@ -20,8 +20,8 @@ namespace skv
     typedef float32x4_t fv4;
     typedef int32x4_t sv4;
 #elif KTM_SIMD_ENABLE(KTM_SIMD_SSE)
-    typedef __m64 fv2;
-    typedef __m64 sv2;
+    typedef uint64_t fv2;
+    typedef uint64_t sv2;
     typedef __m128 fv4;
     #if KTM_SIMD_ENABLE(KTM_SIMD_SSE2)
        typedef __m128i sv4; 

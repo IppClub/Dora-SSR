@@ -199,9 +199,8 @@ void nvg::ApplyTransform(NotNull<Node, 1> node) {
 	transform.translate(size.width / 2, size.height / 2);
 	transform.scale(1.0f / scale, -1.0f / scale);
 	const auto& world = node->getWorld();
-	nvgResetTransform(Context());
-	nvgTransform(Context(), transform.a, transform.b, transform.c, transform.d, transform.tx, transform.ty);
-	nvgTransform(Context(), world.m[0], world.m[1], world.m[4], world.m[5], world.m[12], world.m[13]);
+	transform.concat({world.m[0], world.m[1], world.m[4], world.m[5], world.m[12], world.m[13]});
+	nvgSetTransform(Context(), &transform.a);
 }
 
 void nvg::Translate(float x, float y) {
