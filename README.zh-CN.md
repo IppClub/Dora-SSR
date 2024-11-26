@@ -238,11 +238,10 @@ if (sprite) {
 &emsp;&emsp;使用 TSX 语言来创建 Dora SSR 的游戏场景是一个比较容易上手的选择。新手教程可以参见[这里](https://dora-ssr.net/zh-Hans/blog/2024/4/25/tsx-dev-intro)。
 
 ```tsx
-import {React, toNode, useRef} from 'DoraX';
-import {ActionDef, Ease, Sprite, once, sleep} from 'Dora';
+import {React, toNode, toAction, useRef} from 'DoraX';
+import {Ease, Sprite, once, sleep} from 'Dora';
 
-const actionRef = useRef<ActionDef.Type>();
-const spriteRef = useRef<Sprite.Type>();
+const sprite = useRef<Sprite.Type>();
 
 const onUpdate = once(() => {
   for (let i of $range(3, 1, -1)) {
@@ -250,26 +249,20 @@ const onUpdate = once(() => {
     sleep(1);
   }
   print("Hello World");
-  const {current: action} = actionRef;
-  const {current: sprite} = spriteRef;
-  if (action && sprite) {
-    sprite.perform(action);
-  }
+  sprite.current?.perform(toAction(
+    <sequence>
+      <scale time={0.1} start={1} stop={0.5}/>
+      <scale time={0.5} start={0.5} stop={1} easing={Ease.OutBack}/>
+    </sequence>
+  ));
 });
 
 toNode(
   <sprite
-    ref={spriteRef}
+    ref={sprite}
     file='Image/logo.png'
     onUpdate={onUpdate}
-  >
-    <action ref={actionRef}>
-      <sequence>
-        <scale time={0.1} start={1} stop={0.5}/>
-        <scale time={0.5} start={0.5} stop={1} easing={Ease.OutBack}/>
-      </sequence>
-    </action>
-  </sprite>
+  />
 );
 ```
 

@@ -21,6 +21,9 @@
 #define KTM_SIMD_WASM 0x00000100
 #define KTM_SIMD_ENABLE(flags) (KTM_SIMD_SUPPORT & (flags))
 
+#include <cstddef>
+#include <cstdint>
+
 #if defined(KTM_COMPILER_MSVC)
 	#if defined(__AVX__)
 		#ifndef __SSE4_2__
