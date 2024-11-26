@@ -955,11 +955,11 @@ entryWindow = threadLoop ->
 			Image "Image/icon_s.png", Vec2 24, 24
 			SameLine!
 		TextColored themeColor, "DORA SSR #{zh and '开发' or 'DEV'}"
-		SameLine!
-		if fullWidth >= 360
-			Dummy Vec2 fullWidth - 360, 0
+		if fullWidth >= 320
 			SameLine!
-			SetNextItemWidth -50
+			Dummy Vec2 fullWidth - 320, 0
+			SameLine!
+			SetNextItemWidth -30
 			if InputText zh and '筛选' or 'Filter', filterBuf, ["AutoSelectAll",]
 				config.filter = filterBuf.text
 		Separator!
