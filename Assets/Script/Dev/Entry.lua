@@ -1563,17 +1563,17 @@ entryWindow = threadLoop(function() -- 882
 					SameLine() -- 956
 				end -- 954
 				TextColored(themeColor, "DORA SSR " .. tostring(zh and '开发' or 'DEV')) -- 957
-				SameLine() -- 958
-				if fullWidth >= 360 then -- 959
-					Dummy(Vec2(fullWidth - 360, 0)) -- 960
+				if fullWidth >= 320 then -- 958
+					SameLine() -- 959
+					Dummy(Vec2(fullWidth - 320, 0)) -- 960
 					SameLine() -- 961
-					SetNextItemWidth(-50) -- 962
+					SetNextItemWidth(-30) -- 962
 					if InputText(zh and '筛选' or 'Filter', filterBuf, { -- 963
 						"AutoSelectAll" -- 963
 					}) then -- 963
 						config.filter = filterBuf.text -- 964
 					end -- 963
-				end -- 959
+				end -- 958
 				Separator() -- 965
 				return Dummy(Vec2(fullWidth - 20, 0)) -- 966
 			end) -- 952
