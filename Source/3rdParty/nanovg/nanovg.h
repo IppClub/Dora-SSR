@@ -301,6 +301,8 @@ void nvgResetTransform(NVGcontext* ctx);
 //   [0 0 1]
 void nvgTransform(NVGcontext* ctx, float a, float b, float c, float d, float e, float f);
 
+void nvgSetTransform(NVGcontext* ctx, float xform[6]);
+
 // Translates current coordinate system.
 void nvgTranslate(NVGcontext* ctx, float x, float y);
 
