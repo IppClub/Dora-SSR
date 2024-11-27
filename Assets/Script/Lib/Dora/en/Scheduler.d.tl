@@ -25,6 +25,11 @@ local record Scheduler
 	-- Schedules a coroutine job to be resumed every frame.
 	-- @param job (Routine.Job) The coroutine job to be resumed.
 	schedule: function(self: Scheduler, job: Routine.Job)
+
+	-- Manually updates the scheduler if it is created by the user.
+	-- @param deltaTime (number) The time interval since the last update.
+	-- @return (boolean) Returns true if the scheduler has stopped.
+	update: function(self: Scheduler, deltaTime: number): boolean
 end
 
 -- A class for creating Scheduler objects.

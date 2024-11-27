@@ -19,7 +19,7 @@ NS_DORA_BEGIN
 
 #define DoraVersion(major, minor, patch) ((major) << 16 | (minor) << 8 | (patch))
 
-static const int doraWASMVersion = DoraVersion(0, 4, 12);
+static const int doraWASMVersion = DoraVersion(0, 4, 13);
 
 static std::string VersionToStr(int version) {
 	return std::to_string((version & 0x00ff0000) >> 16) + '.' + std::to_string((version & 0x0000ff00) >> 8) + '.' + std::to_string(version & 0x000000ff);
@@ -379,12 +379,12 @@ static inline const Rect& Rect_GetZero() { return Rect::zero; }
 
 // Director
 
-static Scheduler* Director_GetScheduler() {
-	return SharedWasmRuntime.getScheduler();
+static void Director_Schedule(const std::function<bool(double)>& handler) {
+	SharedWasmRuntime.getScheduler()->schedule(handler);
 }
 
-static Scheduler* Director_GetPostScheduler() {
-	return SharedWasmRuntime.getPostScheduler();
+static void Director_SchedulePosted(const std::function<bool(double)>& handler) {
+	SharedWasmRuntime.getPostScheduler()->schedule(handler);
 }
 
 static void Director_Cleanup() {
@@ -1712,8 +1712,6 @@ int WasmRuntime::_callFromWasm = 0;
 
 WasmRuntime::WasmRuntime()
 	: _loading(false) {
-	_env = New<wasm3::environment>();
-	_runtime = New<wasm3::runtime>(_env->new_runtime(DORA_WASM_STACK_SIZE));
 }
 
 WasmRuntime::~WasmRuntime() { }
@@ -1734,6 +1732,8 @@ bool WasmRuntime::executeMainFile(String filename) {
 		{
 			PROFILE("Loader"_slice, filename.toString() + " [Load]"s);
 			_wasm = SharedContent.load(filename);
+			_env = New<wasm3::environment>();
+			_runtime = New<wasm3::runtime>(_env->new_runtime(DORA_WASM_STACK_SIZE));
 			auto mod = _env->parse_module(_wasm.first.get(), _wasm.second);
 			_runtime->load(mod);
 			mod.link_default();
@@ -1741,8 +1741,8 @@ bool WasmRuntime::executeMainFile(String filename) {
 			auto versionFunc = New<wasm3::function>(_runtime->find_function("dora_wasm_version"));
 			auto version = versionFunc->call<int32_t>();
 			if (doraWASMVersion != version) {
-				_env = New<wasm3::environment>();
-				_runtime = New<wasm3::runtime>(_env->new_runtime(DORA_WASM_STACK_SIZE));
+				_env = nullptr;
+				_runtime = nullptr;
 				_wasm = {nullptr, 0};
 				Error("expecting dora WASM version {}, got {}", VersionToStr(doraWASMVersion), VersionToStr(version));
 				return false;
@@ -1780,6 +1780,8 @@ void WasmRuntime::executeMainFileAsync(String filename, const std::function<void
 		SharedAsyncThread.run(
 			[file, this, doraVer = doraWASMVersion] {
 				try {
+					_env = New<wasm3::environment>();
+					_runtime = New<wasm3::runtime>(_env->new_runtime(DORA_WASM_STACK_SIZE));
 					auto mod = New<wasm3::module3>(_env->parse_module(_wasm.first.get(), _wasm.second));
 					_runtime->load(*mod);
 					mod->link_default();
@@ -1788,8 +1790,8 @@ void WasmRuntime::executeMainFileAsync(String filename, const std::function<void
 					auto version = versionFunc->call<int32_t>();
 					if (doraVer != version) {
 						Error("expecting dora WASM file of version {}, got {}", VersionToStr(doraVer), VersionToStr(version));
-						_env = New<wasm3::environment>();
-						_runtime = New<wasm3::runtime>(_env->new_runtime(DORA_WASM_STACK_SIZE));
+						_env = nullptr;
+						_runtime = nullptr;
 						_wasm = {nullptr, 0};
 						return Values::alloc(Own<wasm3::module3>(), Own<wasm3::function>());
 					}
@@ -1856,10 +1858,14 @@ Scheduler* WasmRuntime::getPostScheduler() {
 }
 
 uint32_t WasmRuntime::getMemorySize() const noexcept {
+	uint32_t totalSize = 0;
 	if (_wasm.first) {
-		return _runtime->get_memory_size() + _wasm.second + DORA_WASM_STACK_SIZE;
+		totalSize += _wasm.second;
 	}
-	return DORA_WASM_STACK_SIZE;
+	if (_runtime) {
+		totalSize += _runtime->get_memory_size() + DORA_WASM_STACK_SIZE;
+	}
+	return totalSize;
 }
 
 void WasmRuntime::unscheduleUpdate() {
@@ -1904,8 +1910,8 @@ void WasmRuntime::clear() {
 	_derefFunc = nullptr;
 	_runtime = nullptr;
 
-	_env = New<wasm3::environment>();
-	_runtime = New<wasm3::runtime>(_env->new_runtime(DORA_WASM_STACK_SIZE));
+	_env = nullptr;
+	_runtime = nullptr;
 	_wasm = {nullptr, 0};
 }
 

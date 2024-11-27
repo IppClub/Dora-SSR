@@ -731,7 +731,7 @@ void ImGuiDora::showStats(bool* pOpen, const std::function<void()>& extra) {
 			ImGui::Text("%.2f mb", info->lastMemLua / 1024.0f / 1024.0f);
 			itemHovered |= ImGui::IsItemHovered();
 			if (itemHovered) HelpMarker(useChinese ? u8"正在运行Lua虚拟机所分配的内存大小"sv : "the size of memory allocated by the running Lua virtual machine"_slice);
-			if (Singleton<WasmRuntime>::isInitialized()) {
+			if (info->lastMemWASM > 0) {
 				ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"WASM内存：") : "WASM Memory:");
 				itemHovered = ImGui::IsItemHovered();
 				ImGui::SameLine();

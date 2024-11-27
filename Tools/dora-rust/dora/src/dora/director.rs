@@ -16,8 +16,8 @@ extern "C" {
 	fn director_get_current_camera() -> i64;
 	fn director_set_frustum_culling(var: i32);
 	fn director_is_frustum_culling() -> i32;
-	fn director_get_scheduler() -> i64;
-	fn director_get_post_scheduler() -> i64;
+	fn director_schedule(func: i32, stack: i64);
+	fn director_schedule_posted(func: i32, stack: i64);
 	fn director_push_camera(camera: i64);
 	fn director_pop_camera();
 	fn director_remove_camera(camera: i64) -> i32;
@@ -63,13 +63,33 @@ impl Director {
 	pub fn is_frustum_culling() -> bool {
 		return unsafe { director_is_frustum_culling() != 0 };
 	}
-	/// Gets the game scheduler which is used for scheduling tasks.
-	pub fn get_scheduler() -> crate::dora::Scheduler {
-		unsafe { return crate::dora::Scheduler::from(director_get_scheduler()).unwrap(); }
+	/// Schedule a function to be called every frame.
+	///
+	/// # Arguments
+	///
+	/// * `func` - The function to call every frame.
+	pub fn schedule(mut func: Box<dyn FnMut(f64) -> bool>) {
+		let mut stack = crate::dora::CallStack::new();
+		let stack_raw = stack.raw();
+		let func_id = crate::dora::push_function(Box::new(move || {
+			let result = func(stack.pop_f64().unwrap());
+			stack.push_bool(result);
+		}));
+		unsafe { director_schedule(func_id, stack_raw); }
 	}
-	/// Gets the scheduler used for processing post game logic.
-	pub fn get_post_scheduler() -> crate::dora::Scheduler {
-		unsafe { return crate::dora::Scheduler::from(director_get_post_scheduler()).unwrap(); }
+	/// Schedule a function to be called every frame for processing post game logic.
+	///
+	/// # Arguments
+	///
+	/// * `func` - The function to call every frame.
+	pub fn schedule_posted(mut func: Box<dyn FnMut(f64) -> bool>) {
+		let mut stack = crate::dora::CallStack::new();
+		let stack_raw = stack.raw();
+		let func_id = crate::dora::push_function(Box::new(move || {
+			let result = func(stack.pop_f64().unwrap());
+			stack.push_bool(result);
+		}));
+		unsafe { director_schedule_posted(func_id, stack_raw); }
 	}
 	/// Adds a new camera to Director's camera stack and sets it to the current camera.
 	///

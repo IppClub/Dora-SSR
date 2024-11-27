@@ -653,12 +653,16 @@ object class Scheduler
 	/// The fixed update will ensure a constant frame rate, and the operation handled in a fixed update can use a constant delta time value.
 	/// It is used for preventing weird behavior of a physics engine or synchronizing some states via network communications.
 	common int fixedFPS @ fixed_fps;
-	/// Schedules a function to be called every frame.
+	/// Used for manually updating the scheduler if it is created by the user.
 	///
 	/// # Arguments
 	///
-	/// * `func` - The function to be called. It should take a single argument of type `f64`, which represents the delta time since the last frame. If the function returns `true`, it will not be called again.
-	void schedule(function<bool(double deltaTime)> func);
+	/// * `deltaTime` - The time in seconds since the last frame update.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `true` if the scheduler was stoped, `false` otherwise.
+	bool update(double deltaTime);
 	/// Creates a new Scheduler object.
 	static Scheduler* create();
 };
@@ -829,10 +833,18 @@ singleton class Director
 	readonly common Camera* currentCamera;
 	/// whether or not to enable frustum culling.
 	boolean bool frustumCulling;
-	/// Gets the game scheduler which is used for scheduling tasks.
-	outside Scheduler* Director_GetScheduler @ getScheduler();
-	/// Gets the scheduler used for processing post game logic.
-	outside Scheduler* Director_GetPostScheduler @ getPostScheduler();
+	/// Schedule a function to be called every frame.
+	///
+	/// # Arguments
+	///
+	/// * `func` - The function to call every frame.
+	outside void Director_Schedule @ schedule(function<bool(double deltaTime)> func);
+	/// Schedule a function to be called every frame for processing post game logic.
+	///
+	/// # Arguments
+	///
+	/// * `func` - The function to call every frame.
+	outside void Director_SchedulePosted @ schedulePosted(function<bool(double deltaTime)> func);
 	/// Adds a new camera to Director's camera stack and sets it to the current camera.
 	///
 	/// # Arguments

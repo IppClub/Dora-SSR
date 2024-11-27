@@ -35,11 +35,29 @@ void director_set_frustum_culling(int32_t var) {
 int32_t director_is_frustum_culling() {
 	return SharedDirector.isFrustumCulling() ? 1 : 0;
 }
-int64_t director_get_scheduler() {
-	return Object_From(Director_GetScheduler());
+void director_schedule(int32_t func, int64_t stack) {
+	std::shared_ptr<void> deref(nullptr, [func](auto) {
+		SharedWasmRuntime.deref(func);
+	});
+	auto args = r_cast<CallStack*>(stack);
+	Director_Schedule([func, args, deref](double deltaTime) {
+		args->clear();
+		args->push(deltaTime);
+		SharedWasmRuntime.invoke(func);
+		return std::get<bool>(args->pop());
+	});
 }
-int64_t director_get_post_scheduler() {
-	return Object_From(Director_GetPostScheduler());
+void director_schedule_posted(int32_t func, int64_t stack) {
+	std::shared_ptr<void> deref(nullptr, [func](auto) {
+		SharedWasmRuntime.deref(func);
+	});
+	auto args = r_cast<CallStack*>(stack);
+	Director_SchedulePosted([func, args, deref](double deltaTime) {
+		args->clear();
+		args->push(deltaTime);
+		SharedWasmRuntime.invoke(func);
+		return std::get<bool>(args->pop());
+	});
 }
 void director_push_camera(int64_t camera) {
 	SharedDirector.pushCamera(r_cast<Camera*>(camera));
@@ -68,8 +86,8 @@ static void linkDirector(wasm3::module3& mod) {
 	mod.link_optional("*", "director_get_current_camera", director_get_current_camera);
 	mod.link_optional("*", "director_set_frustum_culling", director_set_frustum_culling);
 	mod.link_optional("*", "director_is_frustum_culling", director_is_frustum_culling);
-	mod.link_optional("*", "director_get_scheduler", director_get_scheduler);
-	mod.link_optional("*", "director_get_post_scheduler", director_get_post_scheduler);
+	mod.link_optional("*", "director_schedule", director_schedule);
+	mod.link_optional("*", "director_schedule_posted", director_schedule_posted);
 	mod.link_optional("*", "director_push_camera", director_push_camera);
 	mod.link_optional("*", "director_pop_camera", director_pop_camera);
 	mod.link_optional("*", "director_remove_camera", director_remove_camera);

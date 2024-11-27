@@ -1686,6 +1686,13 @@ class Scheduler extends Object {
 	 * @param job The coroutine job to be resumed.
 	 */
 	schedule(job: Job): void;
+
+	/**
+	 * Manually updates the scheduler if it is created by the user.
+	 * @param deltaTime The time interval between the last update and the current update.
+	 * @returns False if the scheduler is still running, true otherwise.
+	 */
+	update(deltaTime: number): boolean;
 }
 
 export namespace Scheduler {

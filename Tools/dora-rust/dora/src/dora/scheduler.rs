@@ -12,7 +12,7 @@ extern "C" {
 	fn scheduler_get_time_scale(slf: i64) -> f32;
 	fn scheduler_set_fixed_fps(slf: i64, var: i32);
 	fn scheduler_get_fixed_fps(slf: i64) -> i32;
-	fn scheduler_schedule(slf: i64, func: i32, stack: i64);
+	fn scheduler_update(slf: i64, delta_time: f64) -> i32;
 	fn scheduler_new() -> i64;
 }
 use crate::dora::IObject;
@@ -50,19 +50,17 @@ impl Scheduler {
 	pub fn get_fixed_fps(&self) -> i32 {
 		return unsafe { scheduler_get_fixed_fps(self.raw()) };
 	}
-	/// Schedules a function to be called every frame.
+	/// Used for manually updating the scheduler if it is created by the user.
 	///
 	/// # Arguments
 	///
-	/// * `func` - The function to be called. It should take a single argument of type `f64`, which represents the delta time since the last frame. If the function returns `true`, it will not be called again.
-	pub fn schedule(&mut self, mut func: Box<dyn FnMut(f64) -> bool>) {
-		let mut stack = crate::dora::CallStack::new();
-		let stack_raw = stack.raw();
-		let func_id = crate::dora::push_function(Box::new(move || {
-			let result = func(stack.pop_f64().unwrap());
-			stack.push_bool(result);
-		}));
-		unsafe { scheduler_schedule(self.raw(), func_id, stack_raw); }
+	/// * `deltaTime` - The time in seconds since the last frame update.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `true` if the scheduler was stoped, `false` otherwise.
+	pub fn update(&mut self, delta_time: f64) -> bool {
+		unsafe { return scheduler_update(self.raw(), delta_time) != 0; }
 	}
 	/// Creates a new Scheduler object.
 	pub fn new() -> Scheduler {
