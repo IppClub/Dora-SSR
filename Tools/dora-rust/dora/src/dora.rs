@@ -4777,7 +4777,7 @@ pub fn thread<C, F>(closure: C) where
 	F: Future<Output=()> + 'static,
 	C: FnOnce(Coroutine) -> F, {
 	let mut executor = Executor::new(closure);
-	Director::get_scheduler().schedule(Box::new(move |_| {
+	Director::schedule(Box::new(move |_| {
 		executor.update()
 	}));
 }

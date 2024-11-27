@@ -245,6 +245,7 @@ class Scheduler : public Object
 	tolua_property__common float timeScale;
 	tolua_property__common int fixedFPS;
 	void schedule(tolua_function_bool handler);
+	bool update(double deltaTime);
 	static Scheduler* create();
 };
 

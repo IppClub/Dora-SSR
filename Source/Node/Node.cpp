@@ -325,7 +325,9 @@ void Node::setScheduler(Scheduler* var) {
 		}
 		var->scheduleFixed(getFixedScheduledItem());
 	}
+	pauseActionInList(_action);
 	_scheduler = var;
+	resumeActionInList(_action);
 }
 
 Scheduler* Node::getScheduler() const noexcept {

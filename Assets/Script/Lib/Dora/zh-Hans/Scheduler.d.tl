@@ -25,6 +25,11 @@ local record Scheduler
 	-- 开始调度执行一个协程任务。
 	-- @param job (Routine.Job) 要被调度的协程任务。
 	schedule: function(self: Scheduler, job: Routine.Job)
+
+	-- 如果调度器是由用户手动创建的，则用该方法手动更新调度器。
+	-- @param deltaTime (number) 自上一次更新以来的时间间隔。
+	-- @return (boolean) 如果调度器已经停止，则返回 true。
+	update: function(self: Scheduler, deltaTime: number): boolean
 end
 
 -- 用于创建调度器对象的类。

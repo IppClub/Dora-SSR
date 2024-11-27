@@ -1682,6 +1682,13 @@ class Scheduler extends Object {
 	 * @param job 要调度的协程作业。
 	 */
 	schedule(job: Job): void;
+
+	/**
+	 * 如果调度器是由用户手动创建的，则用该方法手动更新调度器。
+	 * @param deltaTime 自上一次更新以来的时间间隔。
+	 * @returns 如果调度器已停止，则返回true，否则返回false。
+	 */
+	update(deltaTime: number): boolean;
 }
 
 export namespace Scheduler {
