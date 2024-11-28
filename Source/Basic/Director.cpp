@@ -170,7 +170,20 @@ Camera* Director::getCurrentCamera() {
 	return _camStack->getLast()->to<Camera>();
 }
 
-const Matrix& Director::getViewProjection() const noexcept {
+const Matrix& Director::getCurrentViewProjection() {
+	Camera* camera = getCurrentCamera();
+	if (camera->hasProjection()) {
+		_currentViewProj = camera->getView();
+	} else {
+		Matrix::mulMtx(_currentViewProj, SharedView.getProjection(), camera->getView());
+	}
+	return _currentViewProj;
+}
+
+const Matrix& Director::getViewProjection() {
+	if (_viewProjs.empty()) {
+		return getCurrentViewProjection();
+	}
 	return _viewProjs.top()->matrix;
 }
 
@@ -276,37 +289,31 @@ void Director::doLogic() {
 
 	if (_paused) return;
 
-	/* push default view projection */
-	Camera* camera = getCurrentCamera();
-	if (camera->hasProjection()) {
-		_defaultViewProj = camera->getView();
-	} else {
-		Matrix::mulMtx(_defaultViewProj, SharedView.getProjection(), camera->getView());
-	}
-	pushViewProjection(_defaultViewProj, [&]() {
-		/* update game logic */
-		SharedImGui.begin();
+	/* update game logic */
+	SharedImGui.begin();
 
-		handleTouchEvents();
+	handleTouchEvents();
 
-		_scheduler->update(deltaTime);
-		_postScheduler->update(deltaTime);
+	_scheduler->update(deltaTime);
+	_postScheduler->update(deltaTime);
 
-		handleUnmanagedNodes();
-		Event::handlePostEvents();
+	handleUnmanagedNodes();
+	Event::handlePostEvents();
 
-		SharedKeyboard.clearChanges();
-		SharedController.clearChanges();
+	SharedKeyboard.clearChanges();
+	SharedController.clearChanges();
 
-		SharedImGui.end();
-	});
+	SharedImGui.end();
 }
 
 void Director::doRender() {
 	if (_paused || _stoped) return;
 
 	/* push default view projection */
-	pushViewProjection(_defaultViewProj, [&]() {
+	const auto& defaultViewProj = getCurrentViewProjection();
+
+	/* push default view projection */
+	pushViewProjection(defaultViewProj, [&]() {
 		/* do render */
 		if (SharedView.isPostProcessNeeded()) {
 			/* initialize RT */

@@ -7,8 +7,7 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 use std::{ffi::c_void, any::Any};
-use std::sync::LazyLock;
-use std::cell::RefCell;
+use std::cell::{RefCell, LazyCell};
 
 mod rect;
 pub use rect::Rect;
@@ -158,77 +157,79 @@ fn none_type(_: i64) -> Option<Box<dyn IObject>> {
 	panic!("'none_type' should not be called!");
 }
 
-static OBJECT_MAP: LazyLock<Vec<fn(i64) -> Option<Box<dyn IObject>>>> = LazyLock::new(|| {
-	let mut map: Vec<fn(i64) -> Option<Box<dyn IObject>>> = Vec::new();
-	let type_funcs = [
-		Array::type_info(),
-		Dictionary::type_info(),
-		Entity::type_info(),
-		Group::type_info(),
-		Observer::type_info(),
-		Scheduler::type_info(),
-		Camera::type_info(),
-		Camera2D::type_info(),
-		CameraOtho::type_info(),
-		Pass::type_info(),
-		Effect::type_info(),
-		SpriteEffect::type_info(),
-		Grabber::type_info(),
-		Action::type_info(),
-		Node::type_info(),
-		Texture2D::type_info(),
-		Sprite::type_info(),
-		Grid::type_info(),
-		Touch::type_info(),
-		Label::type_info(),
-		RenderTarget::type_info(),
-		ClipNode::type_info(),
-		DrawNode::type_info(),
-		Line::type_info(),
-		Particle::type_info(),
-		Playable::type_info(),
-		Model::type_info(),
-		Spine::type_info(),
-		DragonBone::type_info(),
-		AlignNode::type_info(),
-		EffekNode::type_info(),
-		TileNode::type_info(),
-		PhysicsWorld::type_info(),
-		FixtureDef::type_info(),
-		BodyDef::type_info(),
-		Sensor::type_info(),
-		Body::type_info(),
-		JointDef::type_info(),
-		Joint::type_info(),
-		MotorJoint::type_info(),
-		MoveJoint::type_info(),
-		SVG::type_info(),
-		ml::QLearner::type_info(),
-		platformer::ActionUpdate::type_info(),
-		platformer::Face::type_info(),
-		platformer::BulletDef::type_info(),
-		platformer::Bullet::type_info(),
-		platformer::Visual::type_info(),
-		platformer::behavior::Tree::type_info(),
-		platformer::decision::Tree::type_info(),
-		platformer::Unit::type_info(),
-		platformer::PlatformCamera::type_info(),
-		platformer::PlatformWorld::type_info(),
-		Buffer::type_info(),
-		VGNode::type_info(),
-	];
-	for pair in type_funcs.iter() {
-		let t = pair.0 as usize;
-		if map.len() < t + 1 {
-			map.resize(t + 1, none_type);
+thread_local! {
+	static OBJECT_MAP: LazyCell<Vec<fn(i64) -> Option<Box<dyn IObject>>>> = LazyCell::new(|| {
+		let mut map: Vec<fn(i64) -> Option<Box<dyn IObject>>> = Vec::new();
+		let type_funcs = [
+			Array::type_info(),
+			Dictionary::type_info(),
+			Entity::type_info(),
+			Group::type_info(),
+			Observer::type_info(),
+			Scheduler::type_info(),
+			Camera::type_info(),
+			Camera2D::type_info(),
+			CameraOtho::type_info(),
+			Pass::type_info(),
+			Effect::type_info(),
+			SpriteEffect::type_info(),
+			Grabber::type_info(),
+			Action::type_info(),
+			Node::type_info(),
+			Texture2D::type_info(),
+			Sprite::type_info(),
+			Grid::type_info(),
+			Touch::type_info(),
+			Label::type_info(),
+			RenderTarget::type_info(),
+			ClipNode::type_info(),
+			DrawNode::type_info(),
+			Line::type_info(),
+			Particle::type_info(),
+			Playable::type_info(),
+			Model::type_info(),
+			Spine::type_info(),
+			DragonBone::type_info(),
+			AlignNode::type_info(),
+			EffekNode::type_info(),
+			TileNode::type_info(),
+			PhysicsWorld::type_info(),
+			FixtureDef::type_info(),
+			BodyDef::type_info(),
+			Sensor::type_info(),
+			Body::type_info(),
+			JointDef::type_info(),
+			Joint::type_info(),
+			MotorJoint::type_info(),
+			MoveJoint::type_info(),
+			SVG::type_info(),
+			ml::QLearner::type_info(),
+			platformer::ActionUpdate::type_info(),
+			platformer::Face::type_info(),
+			platformer::BulletDef::type_info(),
+			platformer::Bullet::type_info(),
+			platformer::Visual::type_info(),
+			platformer::behavior::Tree::type_info(),
+			platformer::decision::Tree::type_info(),
+			platformer::Unit::type_info(),
+			platformer::PlatformCamera::type_info(),
+			platformer::PlatformWorld::type_info(),
+			Buffer::type_info(),
+			VGNode::type_info(),
+		];
+		for pair in type_funcs.iter() {
+			let t = pair.0 as usize;
+			if map.len() < t + 1 {
+				map.resize(t + 1, none_type);
+			}
+			if map[t] != none_type {
+				panic!("cpp object type id {} duplicated!", t);
+			}
+			map[t] = pair.1;
 		}
-		if map[t] != none_type {
-			panic!("cpp object type id {} duplicated!", t);
-		}
-		map[t] = pair.1;
-	}
-	map
-});
+		map
+	});
+}
 static mut FUNC_MAP: Vec<Box<dyn FnMut()>> = Vec::new();
 static mut FUNC_AVAILABLE: Vec<i32> = Vec::new();
 
@@ -751,14 +752,20 @@ impl Vector {
 }
 
 fn into_object(raw: i64) -> Option<Box<dyn IObject>> {
-	unsafe { OBJECT_MAP[object_get_type(raw) as usize](raw) }
+	let mut converted: Option<Box<dyn IObject>> = None;
+	OBJECT_MAP.with(|map| {
+		converted = map[unsafe { object_get_type(raw) } as usize](raw)
+	});
+	converted
 }
 
 fn new_object(raw: i64) -> Option<Box<dyn IObject>> {
-	unsafe {
-		object_retain(raw);
-		OBJECT_MAP[object_get_type(raw) as usize](raw)
-	}
+	unsafe { object_retain(raw); }
+	let mut converted: Option<Box<dyn IObject>> = None;
+	OBJECT_MAP.with(|map| {
+		converted = map[unsafe { object_get_type(raw) } as usize](raw)
+	});
+	converted
 }
 
 fn push_function(func: Box<dyn FnMut()>) -> i32 {
@@ -4911,7 +4918,7 @@ pub fn thread<C, F>(closure: C) where
 	F: Future<Output=()> + 'static,
 	C: FnOnce(Coroutine) -> F, {
 	let mut executor = Executor::new(closure);
-	Director::schedule(Box::new(move |_| {
+	Director::schedule_posted(Box::new(move |_| {
 		executor.update()
 	}));
 }
