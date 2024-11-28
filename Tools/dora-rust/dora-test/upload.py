@@ -26,11 +26,11 @@ args = parser.parse_args()
 
 # Compile the Rust project
 print("Compiling Rust project...")
-subprocess.run(["cargo", "build", "--release", "--target", "wasm32-wasi"], check=True)
+subprocess.run(["cargo", "build", "--release", "--target", "wasm32-wasip1"], check=True)
 print("Compilation complete.")
 
 # Find the latest .wasm file
-build_directory = "target/wasm32-wasi/release/"
+build_directory = "target/wasm32-wasip1/release/"
 wasm_files = glob(os.path.join(build_directory, "**/*.wasm"), recursive=True)
 
 if not wasm_files:

@@ -41,7 +41,7 @@ public:
 	PROPERTY_READONLY(Camera*, PrevCamera);
 	PROPERTY_READONLY(Scheduler*, SystemScheduler);
 	PROPERTY_READONLY(Scheduler*, PostScheduler);
-	PROPERTY_READONLY(const Matrix&, ViewProjection);
+	PROPERTY_READONLY_CALL(const Matrix&, ViewProjection);
 	PROPERTY_BOOL(FrustumCulling);
 	PROPERTY_BOOL(ProfilerSending);
 	bool init();
@@ -77,6 +77,8 @@ protected:
 	Director();
 	void pushViewProjection(const Matrix& viewProj);
 	void popViewProjection();
+
+	const Matrix& getCurrentViewProjection();
 
 	void handleTouchEvents();
 	void handleUnmanagedNodes();
@@ -169,8 +171,8 @@ private:
 		Frustum frustum;
 	};
 	std::stack<Own<ViewProject>> _viewProjs;
-	Matrix _defaultViewProj;
 	NVGcontext* _nvgContext;
+	Matrix _currentViewProj;
 	SINGLETON_REF(Director, EffekManager, FontManager, LuaEngine, BGFXDora, Application);
 };
 
