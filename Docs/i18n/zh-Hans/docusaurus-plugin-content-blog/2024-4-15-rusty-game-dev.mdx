@@ -50,7 +50,7 @@ import "@site/src/languages/highlight";
 &emsp;&emsp;然后在命令行中创建一个新的 Rust 项目：
 
 ```shell
-rustup target add wasm32-wasi
+rustup target add wasm32-wasip1
 cargo new hello-dora --name init
 cd hello-dora
 cargo add dora_ssr
@@ -84,7 +84,7 @@ fn main () {
 &emsp;&emsp;构建生成 WASM 文件：
 
 ```shell
-cargo build --release --target wasm32-wasi
+cargo build --release --target wasm32-wasip1
 ```
 
 #### 第三步：上传并运行游戏
