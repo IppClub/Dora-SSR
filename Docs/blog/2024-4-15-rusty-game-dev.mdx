@@ -50,7 +50,7 @@ Once the Dora SSR engine is running, open the Dora SSR Web IDE in your browser, 
 Next, create a new Rust project from the command line:
 
 ```shell
-rustup target add wasm32-wasi
+rustup target add wasm32-wasip1
 cargo new hello-dora --name init
 cd hello-dora
 cargo add dora_ssr
@@ -84,7 +84,7 @@ fn main() {
 Build the WASM file:
 
 ```shell
-cargo build --release --target wasm32-wasi
+cargo build --release --target wasm32-wasip1
 ```
 
 #### Step Three: Upload and Run the Game
