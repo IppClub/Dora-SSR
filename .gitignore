@@ -49,6 +49,7 @@ xcuserdata/
 DerivedData/
 Assets/*.icns
 Assets/*.car
+Projects/macOS/Dora.app
 
 # Ignore vim swaps
 *.swp
@@ -73,3 +74,6 @@ Assets/www/
 # Ignore Linux lib files
 Projects/Linux/3rdParty/
 
+# Ignore rust files
+Source/Rust/lib/*
+Source/Rust/target/*

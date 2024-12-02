@@ -769,13 +769,20 @@ fn new_object(raw: i64) -> Option<Box<dyn IObject>> {
 }
 
 fn push_function(func: Box<dyn FnMut()>) -> i32 {
+	#[cfg(target_arch = "wasm32")]
+	let flag = 0x01000000;
+	#[cfg(not(target_arch = "wasm32"))]
+	let flag = 0x00000000;
 	unsafe {
+		if FUNC_MAP.len() >= 0xffffff {
+			panic!("too many functions!");
+		}
 		if let Some(func_id) = FUNC_AVAILABLE.pop() {
 			FUNC_MAP[func_id as usize] = func;
-			func_id
+			func_id | flag
 		} else {
 			FUNC_MAP.push(func);
-			(FUNC_MAP.len() - 1) as i32
+			(FUNC_MAP.len() - 1) as i32 | flag
 		}
 	}
 }
@@ -790,7 +797,8 @@ pub extern fn dora_wasm_version() -> i32 {
 
 #[no_mangle]
 pub extern fn call_function(func_id: i32) {
-	unsafe { FUNC_MAP[func_id as usize](); }
+	let real_id = func_id & 0x00ffffff;
+	unsafe { FUNC_MAP[real_id as usize](); }
 }
 
 fn dummy_func() {
@@ -799,9 +807,10 @@ fn dummy_func() {
 
 #[no_mangle]
 pub extern fn deref_function(func_id: i32) {
+	let real_id = func_id & 0x00ffffff;
 	unsafe {
-		FUNC_MAP[func_id as usize] = Box::new(dummy_func);
-		FUNC_AVAILABLE.push(func_id);
+		FUNC_MAP[real_id as usize] = Box::new(dummy_func);
+		FUNC_AVAILABLE.push(real_id);
 	}
 }
 
@@ -2861,6 +2870,55 @@ impl Observer {
 		}));
 		unsafe { observer_watch(self.raw(), func_id, stack_raw); }
 		self
+	}
+}
+
+// Director
+
+#[cfg(not(target_arch = "wasm32"))]
+extern "C" {
+	fn director_get_scheduler() -> i64;
+	fn director_get_post_scheduler() -> i64;
+}
+
+#[cfg(target_arch = "wasm32")]
+extern "C" {
+	fn director_get_wasm_scheduler() -> i64;
+	fn director_get_post_wasm_scheduler() -> i64;
+}
+
+impl Director {
+	/// Gets the scheduler for the director.
+	/// The scheduler is used for scheduling tasks to run for the main game logic.
+	///
+	/// # Returns
+	///
+	/// * `Scheduler` - The scheduler for the director.
+	pub fn get_scheduler() -> Scheduler {
+		#[cfg(target_arch = "wasm32")]
+		{
+			Scheduler::from(unsafe { director_get_wasm_scheduler() }).unwrap()
+		}
+		#[cfg(not(target_arch = "wasm32"))]
+		{
+			Scheduler::from(unsafe { director_get_scheduler() }).unwrap()
+		}
+	}
+	/// Gets the post scheduler for the director.
+	/// The post scheduler is used for scheduling tasks that should run after the main scheduler has finished.
+	///
+	/// # Returns
+	///
+	/// * `Scheduler` - The post scheduler for the director.
+	pub fn get_post_scheduler() -> Scheduler {
+		#[cfg(target_arch = "wasm32")]
+		{
+			Scheduler::from(unsafe { director_get_post_wasm_scheduler() }).unwrap()
+		}
+		#[cfg(not(target_arch = "wasm32"))]
+		{
+			Scheduler::from(unsafe { director_get_post_scheduler() }).unwrap()
+		}
 	}
 }
 

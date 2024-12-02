@@ -1115,6 +1115,8 @@
 		3CBE0F4D26088937003F4F45 /* libSDL2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CBE0F2226087FC8003F4F45 /* libSDL2.a */; };
 		3CBE0F5126088B89003F4F45 /* CoreHaptics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CBE0F5026088B89003F4F45 /* CoreHaptics.framework */; };
 		3CBE0F762608983E003F4F45 /* CoreHaptics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CBE0F5026088B89003F4F45 /* CoreHaptics.framework */; };
+		3CBE6FFF2CFA183F00A1C497 /* libdora_runtime.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CBE6FFE2CFA183F00A1C497 /* libdora_runtime.a */; };
+		3CBE70012CFA185400A1C497 /* libdora_runtime.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CBE70002CFA185300A1C497 /* libdora_runtime.a */; };
 		3CBFB70A264376D4006348C8 /* implot_demo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CBFB704264376D4006348C8 /* implot_demo.cpp */; };
 		3CBFB70B264376D4006348C8 /* implot.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CBFB706264376D4006348C8 /* implot.cpp */; };
 		3CBFB70C264376D4006348C8 /* implot_items.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CBFB707264376D4006348C8 /* implot_items.cpp */; };
@@ -2501,6 +2503,8 @@
 		3CBE0F1D26087FB3003F4F45 /* libbgfx.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbgfx.a; path = "../../Source/3rdParty/bgfx/Lib/iOS-Simulator/libbgfx.a"; sourceTree = "<group>"; };
 		3CBE0F2226087FC8003F4F45 /* libSDL2.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libSDL2.a; path = "../../Source/3rdParty/SDL2/Lib/iOS-Simulator/libSDL2.a"; sourceTree = "<group>"; };
 		3CBE0F5026088B89003F4F45 /* CoreHaptics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreHaptics.framework; path = System/Library/Frameworks/CoreHaptics.framework; sourceTree = SDKROOT; };
+		3CBE6FFE2CFA183F00A1C497 /* libdora_runtime.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libdora_runtime.a; path = ../../Source/Rust/lib/iOS/libdora_runtime.a; sourceTree = "<group>"; };
+		3CBE70002CFA185300A1C497 /* libdora_runtime.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libdora_runtime.a; path = "../../Source/Rust/lib/iOS-Simulator/libdora_runtime.a"; sourceTree = "<group>"; };
 		3CBFB704264376D4006348C8 /* implot_demo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = implot_demo.cpp; sourceTree = "<group>"; };
 		3CBFB705264376D4006348C8 /* implot_internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = implot_internal.h; sourceTree = "<group>"; };
 		3CBFB706264376D4006348C8 /* implot.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = implot.cpp; sourceTree = "<group>"; };
@@ -2552,6 +2556,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3CBE70012CFA185400A1C497 /* libdora_runtime.a in Frameworks */,
 				3C7FA3772B68A1F0005A8441 /* libssl.a in Frameworks */,
 				3C7FA3782B68A1F0005A8441 /* libcrypto.a in Frameworks */,
 				3CBE0F4D26088937003F4F45 /* libSDL2.a in Frameworks */,
@@ -2578,6 +2583,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3CBE6FFF2CFA183F00A1C497 /* libdora_runtime.a in Frameworks */,
 				3C7FA3732B68A1DE005A8441 /* libcrypto.a in Frameworks */,
 				3C7FA3742B68A1DE005A8441 /* libssl.a in Frameworks */,
 				3CA7809F2AE770EE00B7BADA /* libSDL2.a in Frameworks */,
@@ -4432,6 +4438,8 @@
 		3C98626E1D9CA4500056A045 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				3CBE6FFE2CFA183F00A1C497 /* libdora_runtime.a */,
+				3CBE70002CFA185300A1C497 /* libdora_runtime.a */,
 				3C7FA3712B68A1DD005A8441 /* libcrypto.a */,
 				3C7FA3762B68A1F0005A8441 /* libcrypto.a */,
 				3C7FA3722B68A1DD005A8441 /* libssl.a */,
@@ -6236,6 +6244,7 @@
 					"../../Source/3rdParty/SDL2/Lib/iOS-Simulator",
 					"../../Source/3rdParty/bgfx/Lib/iOS-Simulator",
 					"../../Source/3rdParty/OpenSSL/Lib/iOS-Simulator",
+					"../../Source/Rust/lib/iOS-Simulator",
 				);
 				OTHER_CFLAGS = (
 					"-Wno-ambiguous-macro",
@@ -6308,6 +6317,7 @@
 					"../../Source/3rdParty/SDL2/Lib/iOS-Simulator",
 					"../../Source/3rdParty/bgfx/Lib/iOS-Simulator",
 					"../../Source/3rdParty/OpenSSL/Lib/iOS-Simulator",
+					"../../Source/Rust/lib/iOS-Simulator",
 				);
 				OTHER_CFLAGS = (
 					"-Wno-ambiguous-macro",
@@ -6524,6 +6534,7 @@
 					../../Source/3rdParty/SDL2/Lib/iOS,
 					../../Source/3rdParty/bgfx/Lib/iOS,
 					../../Source/3rdParty/OpenSSL/Lib/iOS,
+					../../Source/Rust/lib/iOS,
 				);
 				OTHER_CFLAGS = (
 					"-Wno-ambiguous-macro",
@@ -6595,6 +6606,7 @@
 					../../Source/3rdParty/SDL2/Lib/iOS,
 					../../Source/3rdParty/bgfx/Lib/iOS,
 					../../Source/3rdParty/OpenSSL/Lib/iOS,
+					../../Source/Rust/lib/iOS,
 				);
 				OTHER_CFLAGS = (
 					"-Wno-ambiguous-macro",
