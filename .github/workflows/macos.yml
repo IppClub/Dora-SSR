@@ -14,11 +14,16 @@ jobs:
     if: "startsWith(github.ref, 'refs/tags/') || (!contains(github.event.head_commit.message, '[skip CI]') && !contains(github.event.head_commit.message, '[skip macOS]'))"
     steps:
       - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
       - name: macOS build
         if: "!startsWith(github.ref, 'refs/tags/')"
         run: |
           Tools/tolua++/build.sh
-          xcodebuild ARCHS=x86_64 ONLY_ACTIVE_ARCH=NO -project Projects/macOS/Dora.xcodeproj -target Dora
+          cd Source/Rust
+          rustup target add x86_64-apple-darwin
+          cargo build --target x86_64-apple-darwin
+          cp target/x86_64-apple-darwin/debug/libdora_runtime.a lib/macOS/libdora_runtime.a
+          xcodebuild ARCHS=x86_64 ONLY_ACTIVE_ARCH=NO -project ../../Projects/macOS/Dora.xcodeproj -target Dora -configuration Debug
       - name: Pack
         if: startsWith(github.ref, 'refs/tags/')
         run: |
@@ -28,8 +33,8 @@ jobs:
           cd Assets/www && zip -vr ../../web-ide-files.zip . && cd ../..
           cd $GITHUB_WORKSPACE
           Tools/tolua++/build.sh
-          xcodebuild archive -project Projects/macOS/Dora.xcodeproj -scheme Dora -configuration release -archivePath dora.xcarchive -arch arm64 -arch x86_64 ONLY_ACTIVE_ARCH=NO
-          cd dora.xcarchive/Products/Applications
+          Tools/build-scripts/build_macos.sh
+          cd Projects/macOS/build/Release/dora.xcarchive/Products/Applications
           zip -vr Dora.zip Dora.app
           mv Dora.zip $GITHUB_WORKSPACE/dora-ssr-${{ github.ref_name }}-macos-universal.zip
       - name: Release
