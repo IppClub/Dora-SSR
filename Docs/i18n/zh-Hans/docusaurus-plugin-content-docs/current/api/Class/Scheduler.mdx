@@ -76,3 +76,28 @@ schedule: function(self: Scheduler, job: Routine.Job)
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
 | job | Routine.Job | 要被调度的协程任务。 |
+
+## update
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;如果调度器是由用户手动创建的，则用该方法手动更新调度器。
+
+**签名：**
+```tl
+update: function(self: Scheduler, deltaTime: number): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| deltaTime | number | 自上一次更新以来的时间间隔。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 如果调度器已经停止，则返回 true。 |

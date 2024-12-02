@@ -93,16 +93,6 @@ const sidebars = {
 						},
 						{
 							type: 'doc',
-							label: 'InputAction',
-							id: 'api/Class/InputManager/InputAction',
-						},
-						{
-							type: 'doc',
-							label: 'InputContext',
-							id: 'api/Class/InputManager/InputContext',
-						},
-						{
-							type: 'doc',
 							label: 'InputManager',
 							id: 'api/Class/InputManager',
 						},

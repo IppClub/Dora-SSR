@@ -229,9 +229,9 @@ thread_local! {
 		}
 		map
 	});
+	static FUNC_MAP: RefCell<Vec<Box<dyn FnMut()>>> = RefCell::new(Vec::new());
+	static FUNC_AVAILABLE: RefCell<Vec<i32>> = RefCell::new(Vec::new());
 }
-static mut FUNC_MAP: Vec<Box<dyn FnMut()>> = Vec::new();
-static mut FUNC_AVAILABLE: Vec<i32> = Vec::new();
 
 extern "C" {
 	fn object_get_id(obj: i64) -> i32;
@@ -773,18 +773,22 @@ fn push_function(func: Box<dyn FnMut()>) -> i32 {
 	let flag = 0x01000000;
 	#[cfg(not(target_arch = "wasm32"))]
 	let flag = 0x00000000;
-	unsafe {
-		if FUNC_MAP.len() >= 0xffffff {
+	let mut ret_func_id = -1;
+	FUNC_MAP.with_borrow_mut(|map| {
+		if map.len() >= 0xffffff {
 			panic!("too many functions!");
 		}
-		if let Some(func_id) = FUNC_AVAILABLE.pop() {
-			FUNC_MAP[func_id as usize] = func;
-			func_id | flag
-		} else {
-			FUNC_MAP.push(func);
-			(FUNC_MAP.len() - 1) as i32 | flag
-		}
-	}
+		FUNC_AVAILABLE.with_borrow_mut(|available| {
+			if let Some(func_id) = available.pop() {
+				map[func_id as usize] = func;
+				ret_func_id = func_id | flag;
+			} else {
+				map.push(func);
+				ret_func_id = (map.len() - 1) as i32 | flag
+			}
+		})
+	});
+	ret_func_id
 }
 
 #[no_mangle]
@@ -798,7 +802,9 @@ pub extern fn dora_wasm_version() -> i32 {
 #[no_mangle]
 pub extern fn call_function(func_id: i32) {
 	let real_id = func_id & 0x00ffffff;
-	unsafe { FUNC_MAP[real_id as usize](); }
+	FUNC_MAP.with_borrow_mut(|map| {
+		map[real_id as usize]();
+	});
 }
 
 fn dummy_func() {
@@ -808,10 +814,12 @@ fn dummy_func() {
 #[no_mangle]
 pub extern fn deref_function(func_id: i32) {
 	let real_id = func_id & 0x00ffffff;
-	unsafe {
-		FUNC_MAP[real_id as usize] = Box::new(dummy_func);
-		FUNC_AVAILABLE.push(real_id);
-	}
+	FUNC_MAP.with_borrow_mut(|map| {
+		map[real_id as usize] = Box::new(dummy_func);
+		FUNC_AVAILABLE.with_borrow_mut(|available| {
+			available.push(real_id);
+		});
+	});
 }
 
 pub trait IObject {

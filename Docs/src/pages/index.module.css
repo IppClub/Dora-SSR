@@ -20,16 +20,17 @@
 .heroTitle {
 	font-size: 5rem;
 	color: var(--ifm-color-title);
+	padding-bottom: 1rem;
 }
 
 .heroSubtitle {
-	padding-bottom: 1rem;
+	padding-bottom: 2rem;
 	color: var(--ifm-color-subtitle);
 }
 
 @media screen and (max-width: 996px) {
 	.heroBanner {
-		padding: 2rem;
+		padding: 2rem 0;
 	}
 }
 

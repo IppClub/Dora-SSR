@@ -482,7 +482,7 @@
 		3C5937612CA4FAEF00CAF224 /* miniz.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C5937352CA4FAEF00CAF224 /* miniz.c */; };
 		3C5937622CA4FAEF00CAF224 /* compress.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C5937392CA4FAEF00CAF224 /* compress.c */; };
 		3C60DE132A2069CE007D7865 /* Doc in Resources */ = {isa = PBXBuildFile; fileRef = 3C60DE122A2069CE007D7865 /* Doc */; };
-		3C782EFC2CF9C9DA005B13E2 /* libdora_runtime.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C782EFA2CF9A5E5005B13E2 /* libdora_runtime.a */; };
+		3C76449F2CFD93D100DEDC0B /* libdora_runtime.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C76449E2CFD93D100DEDC0B /* libdora_runtime.a */; };
 		3C7FA36F2B689F7D005A8441 /* libssl.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C7FA36D2B689F7D005A8441 /* libssl.a */; };
 		3C7FA3702B689F7D005A8441 /* libcrypto.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C7FA36E2B689F7D005A8441 /* libcrypto.a */; };
 		3CA32CE926FEE8440046C13D /* GameController.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CA32CE826FEE8440046C13D /* GameController.framework */; };
@@ -1697,8 +1697,7 @@
 		3C5937502CA4FAEF00CAF224 /* zutil.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = zutil.h; sourceTree = "<group>"; };
 		3C5937512CA4FAEF00CAF224 /* zutil.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = zutil.c; sourceTree = "<group>"; };
 		3C60DE122A2069CE007D7865 /* Doc */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Doc; sourceTree = "<group>"; };
-		3C782EF82CF995E6005B13E2 /* libdora_runtime.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libdora_runtime.a; path = ../../Source/Rust/libdora_runtime.a; sourceTree = "<group>"; };
-		3C782EFA2CF9A5E5005B13E2 /* libdora_runtime.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libdora_runtime.a; path = ../../Source/Rust/lib/macOS/libdora_runtime.a; sourceTree = "<group>"; };
+		3C76449E2CFD93D100DEDC0B /* libdora_runtime.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libdora_runtime.a; path = ../../Source/Rust/lib/macOS/libdora_runtime.a; sourceTree = "<group>"; };
 		3C7FA36D2B689F7D005A8441 /* libssl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libssl.a; path = ../../Source/3rdParty/OpenSSL/Lib/macOS/libssl.a; sourceTree = "<group>"; };
 		3C7FA36E2B689F7D005A8441 /* libcrypto.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcrypto.a; path = ../../Source/3rdParty/OpenSSL/Lib/macOS/libcrypto.a; sourceTree = "<group>"; };
 		3C87085F2B5E0F56002E9658 /* ContactImpulsesFunction.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ContactImpulsesFunction.hpp; sourceTree = "<group>"; };
@@ -1967,7 +1966,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3C782EFC2CF9C9DA005B13E2 /* libdora_runtime.a in Frameworks */,
+				3C76449F2CFD93D100DEDC0B /* libdora_runtime.a in Frameworks */,
 				3C7FA36F2B689F7D005A8441 /* libssl.a in Frameworks */,
 				3C7FA3702B689F7D005A8441 /* libcrypto.a in Frameworks */,
 				3CD029141E07DD5F0016E1EC /* libbgfx.a in Frameworks */,
@@ -2248,8 +2247,7 @@
 		3C17D58D1D9C401F008758E8 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				3C782EF82CF995E6005B13E2 /* libdora_runtime.a */,
-				3C782EFA2CF9A5E5005B13E2 /* libdora_runtime.a */,
+				3C76449E2CFD93D100DEDC0B /* libdora_runtime.a */,
 				3C7FA36E2B689F7D005A8441 /* libcrypto.a */,
 				3C7FA36D2B689F7D005A8441 /* libssl.a */,
 				3CD029151E07DD720016E1EC /* libSDL2.a */,

@@ -23,10 +23,6 @@
     "message": "博客",
     "description": "The label of footer link with label=Blog linking to /blog"
   },
-  "link.item.label.GitHub": {
-    "message": "GitHub",
-    "description": "The label of footer link with label=GitHub linking to https://github.com/ippclub/Dora-SSR"
-  },
   "copyright": {
     "message": "版权所有 © 2024 Dora SSR 社区。用 Docusaurus 搭建。",
     "description": "The footer copyright"
@@ -38,5 +34,9 @@
   "link.item.label.QQ Group: 512620381": {
     "message": "QQ 群：512620381",
     "description": "The label of footer link with label=QQ Group: 512620381 linking to https://qm.qq.com/cgi-bin/qm/qr?k=7siAhjlLaSMGLHIbNctO-9AJQ0bn0G7i&jump_from=webapi&authKey=Kb6tXlvcJ2LgyTzHQzKwkMxdsQ7sjERXMJ3g10t6b+716pdKClnXqC9bAfrFUEWa"
+  },
+  "link.item.label.Example": {
+    "message": "Example",
+    "description": "The label of footer link with label=Example linking to /docs/example/First%20Game%20Tutorial/start"
   }
 }

@@ -61,14 +61,14 @@ end
 
 **Signature:**
 ```tl
-CreateManager: function(contexts: {InputContext}): InputManager
+CreateManager: function(contexts: {--[[contextName]] string: {--[[actionName]] string: Trigger}}): InputManager
 ```
 
 **Parameters:**
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| contexts | \{InputContext} | The input contexts to be created. |
+| contexts | \{string: \{string: Trigger}} | The input contexts to be created. |
 
 **Returns:**
 

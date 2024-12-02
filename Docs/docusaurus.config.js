@@ -3,7 +3,7 @@
 
 import { themes } from 'prism-react-renderer';
 
-const github = true;
+const github = process.env.ATOM === undefined;
 
 const darkCodeTheme = {
 	plain: {
@@ -214,7 +214,7 @@ const config = {
 					lastVersion: 'current',
 					versions: {
 						current: {
-							label: 'v1.5.20',
+							label: 'v1.6.1',
 						},
 					},
 				},
@@ -277,11 +277,26 @@ const config = {
 					position: 'right',
 				},
 				{
-					href: github ?
-						'https://github.com/ippclub/Dora-SSR' :
-						'https://atomgit.com/ippclub/Dora-SSR',
-					label:  github ? 'GitHub' : 'AtomGit',
+					label: 'Git',
 					position: 'right',
+					items: [
+						{
+							label: 'GitHub',
+							href: 'https://github.com/ippclub/Dora-SSR',
+						},
+						{
+							label: 'AtomGit',
+							href: 'https://atomgit.com/ippclub/Dora-SSR',
+						},
+						{
+							label: 'Gitee',
+							href: 'https://gitee.com/pig/Dora-SSR',
+						},
+						{
+							label: 'GitCode',
+							href: 'https://gitcode.com/ippclub/Dora-SSR',
+						},
+					],
 				},
 			],
 		},
@@ -322,10 +337,8 @@ const config = {
 							to: '/blog',
 						},
 						{
-							label: github ? 'GitHub' : 'AtomGit',
-							href: github ?
-								'https://github.com/ippclub/Dora-SSR' :
-								'https://atomgit.com/ippclub/Dora-SSR',
+							label: 'Example',
+							to: '/docs/example/First%20Game%20Tutorial/start',
 						},
 					],
 				},

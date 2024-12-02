@@ -14,14 +14,17 @@ jobs:
     if: "startsWith(github.ref, 'refs/tags/') || (!contains(github.event.head_commit.message, '[skip CI]') && !contains(github.event.head_commit.message, '[skip Android]'))"
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Generate Lua bindings
         run: |
           sudo apt-get install lua5.1
           sudo apt-get install -y luarocks
           sudo luarocks install luafilesystem
-          cd ./Tools/tolua++
+          cd Tools/tolua++
           lua tolua++.lua
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Build Rust lib
+        run: Tools/build-scripts/build_lib_android.sh
       - name: Set up JDK 17
         uses: actions/setup-java@v2
         with:

@@ -26,5 +26,21 @@
   "item.label.Example": {
     "message": "示例",
     "description": "Navbar item with label Example"
+  },
+  "item.label.Git": {
+    "message": "Git",
+    "description": "Navbar item with label Git"
+  },
+  "item.label.AtomGit": {
+    "message": "AtomGit",
+    "description": "Navbar item with label AtomGit"
+  },
+  "item.label.Gitee": {
+    "message": "Gitee",
+    "description": "Navbar item with label Gitee"
+  },
+  "item.label.GitCode": {
+    "message": "GitCode",
+    "description": "Navbar item with label GitCode"
   }
 }

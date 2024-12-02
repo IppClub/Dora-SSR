@@ -61,14 +61,14 @@ end
 
 **签名：**
 ```tl
-CreateManager: function(contexts: {InputContext}): InputManager
+CreateManager: function(contexts: {--[[contextName]] string: {--[[actionName]] string: Trigger}}): InputManager
 ```
 
 **参数：**
 
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
-| contexts | \{InputContext} | 要创建的一组输入上下文。 |
+| contexts | \{string: \{string: Trigger} | 要创建的一组输入上下文。 |
 
 **返回值：**
 

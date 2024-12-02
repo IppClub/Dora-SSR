@@ -4,15 +4,15 @@
     "description": "The feature title one in front page"
   },
   "feature_description_one": {
-    "message": "Dora SSR 的理念：开发游戏是一种更有深度地玩游戏的方式。",
+    "message": "开发游戏是一种更有深度地玩游戏的方式。",
     "description": "The feature description one in front page"
   },
   "feature_title_two": {
-    "message": "不限设备，不限场地",
+    "message": "不限设备，或场地",
     "description": "The feature title two in front page"
   },
   "feature_description_two": {
-    "message": "Dora SSR 的目标：在任何电子设备上极速提供开箱即用的游戏开发环境。",
+    "message": "在任何电子设备上极速提供开箱即用的游戏开发环境。",
     "description": "The feature description two in front page"
   },
   "feature_title_three": {
@@ -20,7 +20,7 @@
     "description": "The feature title three in front page"
   },
   "feature_description_three": {
-    "message": "Dora SSR 提供多元的编程语言支持，满足你多样的编程口味！",
+    "message": "提供多元的编程语言支持，满足你多样的编程口味！",
     "description": "The feature description three in front page"
   },
   "theme.ErrorPageContent.title": {
@@ -446,11 +446,11 @@
     "description": "The engine feature description Rust Scripting Support in front page"
   },
   "promotion_section_title": {
-    "message": "为什么选择 Dora SSR",
+    "message": "为什么选择 Dora",
     "description": "The promotion section title in front page"
   },
   "feature_section_title": {
-    "message": "部分引擎功能特性",
+    "message": "部分引擎功能",
     "description": "The feature section title in front page"
   },
   "engine_feature_title_cross_platform_game_dev_support": {

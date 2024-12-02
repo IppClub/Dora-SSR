@@ -18,7 +18,7 @@ function HomepageHeader() {
 				<p className={clsx('hero__subtitle', styles.heroSubtitle)}>The <strong>Dora</strong> game engine, <strong>S</strong>pecial <strong>S</strong>uper <strong>R</strong>are edition.</p>
 				<div className={styles.buttons}>
 					<Link
-						className="button button--secondary button--lg"
+						className="button button--primary button--lg"
 						to="/docs/tutorial/quick-start">
 						<Translate
 							id='dora_enter_tutorial_button'
@@ -33,7 +33,6 @@ function HomepageHeader() {
 }
 
 export default function Home(): JSX.Element {
-	const {siteConfig} = useDocusaurusContext();
 	return (
 		<Layout
 			description="Description will go into a meta tag in <head />">

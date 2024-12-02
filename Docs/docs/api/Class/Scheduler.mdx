@@ -76,3 +76,28 @@ schedule: function(self: Scheduler, job: Routine.Job)
 | Parameter | Type | Description |
 | --- | --- | --- |
 | job | Routine.Job | The coroutine job to be resumed. |
+
+## update
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Manually updates the scheduler if it is created by the user.
+
+**Signature:**
+```tl
+update: function(self: Scheduler, deltaTime: number): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| deltaTime | number | The time interval since the last update. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | Returns true if the scheduler has stopped. |
