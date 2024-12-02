@@ -13,11 +13,11 @@ jobs:
     if: "!contains(github.event.head_commit.message, '[skip CI]') && !contains(github.event.head_commit.message, '[skip Linux]')"
     steps:
     - name: Checkout repo
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
     - name: Install deps
       run: |
         sudo apt-get update
-        sudo apt-get install -y libsdl2-dev libgl1-mesa-dev libssl-dev x11proto-core-dev libx11-dev
+        sudo apt-get install -y libsdl2-dev libgl1-mesa-dev libssl-dev
     - name: Generate Lua bindings
       run: |
         sudo apt-get install lua5.1
@@ -25,6 +25,7 @@ jobs:
         sudo luarocks install luafilesystem
         cd ./Tools/tolua++
         lua tolua++.lua
+    - uses: dtolnay/rust-toolchain@stable
     - name: Make
       run: |
         cd Projects/Linux

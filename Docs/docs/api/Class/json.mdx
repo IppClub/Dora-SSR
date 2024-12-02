@@ -16,7 +16,7 @@ import "@site/src/languages/highlight";
 
 **Signature:**
 ```tl
-load: function(json: string, maxDepth?: integer): table | nil
+load: function(json: string, maxDepth?: integer): table | nil, nil | string
 ```
 
 **Parameters:**
@@ -30,7 +30,7 @@ load: function(json: string, maxDepth?: integer): table | nil
 
 | Return Type | Description |
 | --- | --- |
-| table | The table representing the JSON data, or nil if the text is not valid JSON. |
+| table \| nil, nil \| string | The table representing the JSON data, or nil with an error message if the JSON text cannot be parsed. |
 
 ## dump
 
@@ -42,7 +42,7 @@ load: function(json: string, maxDepth?: integer): table | nil
 
 **Signature:**
 ```tl
-dump: function(tab: table): string | nil
+dump: function(tab: table): string | nil, nil | string
 ```
 
 **Parameters:**
@@ -55,7 +55,7 @@ dump: function(tab: table): string | nil
 
 | Return Type | Description |
 | --- | --- |
-| string | The JSON text representing the table, or nil if the table cannot be dumped. |
+| string | The JSON text representing the table, or nil with an error message if the table cannot be dumped. |
 
 ## null
 

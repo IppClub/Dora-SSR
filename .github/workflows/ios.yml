@@ -12,9 +12,13 @@ jobs:
     runs-on: macos-15
     if: "!contains(github.event.head_commit.message, '[skip CI]') && !contains(github.event.head_commit.message, '[skip iOS]')"
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
       - name: iOS build
         run: |
           Tools/tolua++/build.sh
-          xcodebuild -project Projects/iOS/Dora.xcodeproj -configuration Debug -target Simulator -arch x86_64 -sdk iphonesimulator
-      
+          cd Source/Rust
+          rustup target add aarch64-apple-ios-sim
+          cargo build --target aarch64-apple-ios-sim
+          cp target/aarch64-apple-ios-sim/debug/libdora_runtime.a lib/iOS-Simulator/libdora_runtime.a
+          xcodebuild ARCHS=arm64 ONLY_ACTIVE_ARCH=NO -project ../../Projects/iOS/Dora.xcodeproj -configuration Debug -target Simulator -sdk iphonesimulator

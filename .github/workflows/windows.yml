@@ -13,11 +13,12 @@ jobs:
     runs-on: windows-2022
     if: "startsWith(github.ref, 'refs/tags/') || (!contains(github.event.head_commit.message, '[skip CI]') && !contains(github.event.head_commit.message, '[skip Windows]'))"
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
       - name: Setup msbuild
         uses: microsoft/setup-msbuild@v1.0.2
       - name: Windows build
-        run: msbuild Projects\Windows\Dora.sln -p:Configuration=release
+        run: Tools\build-scripts\build_windows.bat
       - name: Pack
         if: startsWith(github.ref, 'refs/tags/')
         run: |

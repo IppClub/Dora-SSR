@@ -16,13 +16,46 @@
 	--feature-card-description-color: var(--feature-card-description-color-dark);
 }
 
+.promotionFeature {
+	display: flex;
+	flex-direction: row;
+	border: 2px solid #f9d86d; /* 黄色边框 */
+	border-radius: 15px;
+	box-shadow: 0 4px 8px var(--feature-card-shadow);
+	width: 100%;
+	height: 100%;
+	padding-right: 1rem;
+	transition: transform 0.2s ease-in-out;
+}
+
+.promotionFeature:hover {
+	transform: translateY(-5px);
+}
+
+.cardText {
+	padding-top: 2rem;
+	width: 100%;
+}
+
+.cardText h3 {
+	color: var(--ifm-color-primary);
+	font-size: 20px;
+	margin-bottom: 5px;
+}
+
+.cardText p {
+	font-size: 14px;
+	line-height: 1.6;
+}
+
 .features {
-	padding: 4rem 0;
+	padding: 4rem 0 0 0;
 }
 
 .featureCard {
 	background-color: var(--feature-card-bg);
 	border-radius: 8px;
+	border: 1px solid var(--feature-card-shadow);
 	box-shadow: 0 2px 4px var(--feature-card-shadow);
 	padding: 1.5rem;
 	transition: transform 0.2s ease-in-out;
@@ -45,8 +78,8 @@
 }
 
 .featureImg {
-	height: 90%;
-	width: 90%;
+	width: 100%;
+	height: auto;
 	max-width: 500px;
 }
 
@@ -74,7 +107,7 @@
 .featureSection {
 	margin-bottom: 2rem;
 	padding-bottom: 2rem;
-	border-bottom: 1px solid #eaeaea;
+	border-bottom: 1px solid var(--feature-card-shadow);
 }
 
 .featureSection:last-of-type {
@@ -83,4 +116,8 @@
 
 .featureSection h2 {
 	margin-bottom: 1.5rem;
+}
+
+.pixImg {
+	width: 40px;
 }

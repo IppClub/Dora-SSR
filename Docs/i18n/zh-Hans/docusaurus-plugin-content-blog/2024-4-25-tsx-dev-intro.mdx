@@ -257,7 +257,7 @@ toNode(
 
 &emsp;&emsp;事实上我们写的这段游戏代码，在 Dora SSR 引擎的能力下是可以确保在跨 Linux、Android、iOS、macOS 和 Windows 获得一致的运行结果。但是为了运行这段代码，我们的 Dora SSR 引擎甚至都没有做 JavaScript 运行环境的支持……（你说什么？）
 
-&emsp;&emsp;是的，Dora SSR 的底层技术实现其实是基于 Lua 和 WASM 虚拟机作为脚本语言运行环境的。对 TypeScript 的支持其实是通过整合了 TypescriptToLua（https://github.com/TypeScriptToLua/TypeScriptToLua ）这个编译器提供的。TSTL 通过重新编写了 TypeScript 语言编译器的后端，将 TS 和 TSX 的代码编译为了等价运行的 Lua 代码，从而使得 TS 代码可以在 Dora 上加载运行。在 Dora 自带的 Web IDE 的代码编辑器下，可以帮助大家做 TS 的语言检查和补全以及 Dora 内置库 API 的提示。最终的使用体验，大家就可以不用管最后是鹿还是马，只要代码能通过了 TS 的编译检查，拉出来那都是一样的跑啦。
+&emsp;&emsp;是的，Dora SSR 的底层技术实现其实是基于 Lua 和 WASM 虚拟机作为脚本语言运行环境的。对 TypeScript 的支持其实是通过整合了 [TypescriptToLua](https://github.com/TypeScriptToLua/TypeScriptToLua) 这个编译器提供的。TSTL 通过重新编写了 TypeScript 语言编译器的后端，将 TS 和 TSX 的代码编译为了等价运行的 Lua 代码，从而使得 TS 代码可以在 Dora 上加载运行。在 Dora 自带的 Web IDE 的代码编辑器下，可以帮助大家做 TS 的语言检查和补全以及 Dora 内置库 API 的提示。最终的使用体验，大家就可以不用管最后是鹿还是马，只要代码能通过了 TS 的编译检查，拉出来那都是一样的跑啦。
 
 ### 2. 和 React 有关系吗
 

@@ -1,6 +1,6 @@
 {
   "version.label": {
-    "message": "版本 1.5.20",
+    "message": "版本 1.6.1",
     "description": "The label for version current"
   },
   "sidebar.apiSidebar.category.Class": {
@@ -606,14 +606,6 @@
   "sidebar.apiSidebar.doc.Trigger": {
     "message": "Trigger",
     "description": "The label for the doc item Trigger in sidebar apiSidebar, linking to the doc api/Class/InputManager/Trigger"
-  },
-  "sidebar.apiSidebar.doc.InputAction": {
-    "message": "InputAction",
-    "description": "The label for the doc item InputAction in sidebar apiSidebar, linking to the doc api/Class/InputManager/InputAction"
-  },
-  "sidebar.apiSidebar.doc.InputContext": {
-    "message": "InputContext",
-    "description": "The label for the doc item InputContext in sidebar apiSidebar, linking to the doc api/Class/InputManager/InputContext"
   },
   "sidebar.apiSidebar.doc.InputManager": {
     "message": "InputManager",

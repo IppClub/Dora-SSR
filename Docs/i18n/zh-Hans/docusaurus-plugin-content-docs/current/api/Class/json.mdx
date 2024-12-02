@@ -16,7 +16,7 @@ import "@site/src/languages/highlight";
 
 **签名：**
 ```tl
-load: function(json: string, maxDepth?: integer): table | nil
+load: function(json: string, maxDepth?: integer): table | nil, nil | string
 ```
 
 **参数：**
@@ -30,7 +30,7 @@ load: function(json: string, maxDepth?: integer): table | nil
 
 | 返回类型 | 描述 |
 | --- | --- |
-| table | 表示JSON数据的表，如果文本不是有效的JSON，则返回nil。 |
+| table \| nil, nil \| string | 表示JSON数据的表，如果文本不是有效的JSON，则返回nil和错误消息。 |
 
 ## dump
 
@@ -42,7 +42,7 @@ load: function(json: string, maxDepth?: integer): table | nil
 
 **签名：**
 ```tl
-dump: function(tab: table): string | nil
+dump: function(tab: table): string | nil, nil | string
 ```
 
 **参数：**
@@ -55,7 +55,7 @@ dump: function(tab: table): string | nil
 
 | 返回类型 | 描述 |
 | --- | --- |
-| string | 表示表的JSON文本，如果无法转储表，则返回nil。 |
+| string \| nil, nil \| string | 表示表的JSON文本，如果无法转储表，则返回nil和错误消息。 |
 
 ## null
 

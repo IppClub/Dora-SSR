@@ -12,14 +12,8 @@ import "@site/src/languages/highlight";
 ```tl
 local InputManager = require("InputManager")
 local inputManager = InputManager.CreateManager({
-	{
-		name = "context1",
-		actions = {
-			{
-				name = "action1",
-				trigger = Trigger.KeyDown("W")
-			},
-		}
+	context1 = {
+		action1 = Trigger.KeyDown("W"),
 	},
 })
 -- activate context1

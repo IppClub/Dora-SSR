@@ -8,7 +8,7 @@
 #ifndef CPPHTTPLIB_HTTPLIB_H
 #define CPPHTTPLIB_HTTPLIB_H
 
-#define CPPHTTPLIB_VERSION "0.18.1"
+#define CPPHTTPLIB_VERSION "0.18.3"
 
 /*
  * Configuration
@@ -613,6 +613,7 @@ using Ranges = std::vector<Range>;
 struct Request {
   std::string method;
   std::string path;
+  Params params;
   Headers headers;
   std::string body;
 
@@ -624,7 +625,6 @@ struct Request {
   // for server
   std::string version;
   std::string target;
-  Params params;
   MultipartFormDataMap files;
   Ranges ranges;
   Match matches;
@@ -2275,7 +2275,7 @@ inline std::wstring u8string_to_wstring(const char *s) {
     wlen = ::MultiByteToWideChar(
         CP_UTF8, 0, s, len,
         const_cast<LPWSTR>(reinterpret_cast<LPCWSTR>(ws.data())), wlen);
-    if (wlen != ws.size()) { ws.clear(); }
+    if (wlen != static_cast<int>(ws.size())) { ws.clear(); }
   }
   return ws;
 }
@@ -7432,9 +7432,13 @@ inline bool ClientImpl::send(Request &req, Response &res, Error &error) {
 
 #ifdef CPPHTTPLIB_OPENSSL_SUPPORT
 inline bool ClientImpl::is_ssl_peer_could_be_closed(SSL *ssl) const {
+  detail::set_nonblocking(socket_.sock, true);
+  auto se = detail::scope_exit(
+      [&]() { detail::set_nonblocking(socket_.sock, false); });
+
   char buf[1];
   return !SSL_peek(ssl, buf, 1) &&
-    SSL_get_error(ssl, 0) == SSL_ERROR_ZERO_RETURN;
+         SSL_get_error(ssl, 0) == SSL_ERROR_ZERO_RETURN;
 }
 #endif
 
@@ -7452,9 +7456,7 @@ inline bool ClientImpl::send_(Request &req, Response &res, Error &error) {
 
 #ifdef CPPHTTPLIB_OPENSSL_SUPPORT
       if (is_alive && is_ssl()) {
-        if (is_ssl_peer_could_be_closed(socket_.ssl)) {
-          is_alive = false;
-        }
+        if (is_ssl_peer_could_be_closed(socket_.ssl)) { is_alive = false; }
       }
 #endif
 
@@ -7813,7 +7815,13 @@ inline bool ClientImpl::write_request(Stream &strm, Request &req,
   {
     detail::BufferStream bstrm;
 
-    const auto &path = url_encode_ ? detail::encode_url(req.path) : req.path;
+    const auto &path_with_query =
+        req.params.empty() ? req.path
+                           : append_query_params(req.path, req.params);
+
+    const auto &path =
+        url_encode_ ? detail::encode_url(path_with_query) : path_with_query;
+
     detail::write_request_line(bstrm, req.method, path);
 
     header_writer_(bstrm, req.headers);
@@ -7972,7 +7980,9 @@ inline bool ClientImpl::process_request(Stream &strm, Request &req,
   // Body
   if ((res.status != StatusCode::NoContent_204) && req.method != "HEAD" &&
       req.method != "CONNECT") {
-    auto redirect = 300 < res.status && res.status < 400 && follow_location_;
+    auto redirect = 300 < res.status && res.status < 400 &&
+                    res.status != StatusCode::NotModified_304 &&
+                    follow_location_;
 
     if (req.response_handler && !redirect) {
       if (!req.response_handler(res)) {
@@ -7993,9 +8003,7 @@ inline bool ClientImpl::process_request(Stream &strm, Request &req,
             : static_cast<ContentReceiverWithProgress>(
                   [&](const char *buf, size_t n, uint64_t /*off*/,
                       uint64_t /*len*/) {
-                    if (res.body.size() + n > res.body.max_size()) {
-                      return false;
-                    }
+                    assert(res.body.size() + n <= res.body.max_size());
                     res.body.append(buf, n);
                     return true;
                   });
@@ -8009,18 +8017,23 @@ inline bool ClientImpl::process_request(Stream &strm, Request &req,
 
     if (res.has_header("Content-Length")) {
       if (!req.content_receiver) {
-        auto len = std::min<size_t>(res.get_header_value_u64("Content-Length"),
-                                    res.body.max_size());
-        if (len > 0) { res.body.reserve(len); }
+        auto len = res.get_header_value_u64("Content-Length");
+        if (len > res.body.max_size()) {
+          error = Error::Read;
+          return false;
+        }
+        res.body.reserve(static_cast<size_t>(len));
       }
     }
 
-    int dummy_status;
-    if (!detail::read_content(strm, res, (std::numeric_limits<size_t>::max)(),
-                              dummy_status, std::move(progress), std::move(out),
-                              decompress_)) {
-      if (error != Error::Canceled) { error = Error::Read; }
-      return false;
+    if (res.status != StatusCode::NotModified_304) {
+      int dummy_status;
+      if (!detail::read_content(strm, res, (std::numeric_limits<size_t>::max)(),
+                                dummy_status, std::move(progress),
+                                std::move(out), decompress_)) {
+        if (error != Error::Canceled) { error = Error::Read; }
+        return false;
+      }
     }
   }
 

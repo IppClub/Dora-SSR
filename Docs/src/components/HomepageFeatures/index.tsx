@@ -3,6 +3,9 @@ import clsx from 'clsx';
 import styles from './styles.module.css';
 import Translate from '@docusaurus/Translate';
 
+const pix_dora = require('@site/static/img/pix-dora.png');
+const pix_toto = require('@site/static/img/pix-toto.png');
+
 const feature_img_one = require('@site/static/img/1.png');
 const feature_img_two = require('@site/static/img/2.png');
 const feature_img_three = require('@site/static/img/3.png');
@@ -18,23 +21,6 @@ const PromotionFeatureList: FeatureItem[] = [
 	{
 		title: (
 			<Translate
-				id="feature_title_one"
-				description='The feature title one in front page'>
-				Play as You Create
-			</Translate>
-		),
-		image: <img src={feature_img_one.default} alt='feature_title_one' className={styles.featureImg}/>,
-		description: (
-			<Translate
-				id="feature_description_one"
-				description='The feature description one in front page'>
-				What Dora SSR is for: Making Game Development a New Gaming.
-			</Translate>
-		),
-	},
-	{
-		title: (
-			<Translate
 				id='feature_title_two'
 				description='The feature title two in front page'>
 				Game Dev Freedom
@@ -45,7 +31,7 @@ const PromotionFeatureList: FeatureItem[] = [
 			<Translate
 				id='feature_description_two'
 				description='The feature description two in front page'>
-				Start Developing on Portable Devices Anywhere, with Lightning Speed!
+				Developing Games on Portable Devices Anywhere, with Lightning Speed!
 			</Translate>
 		),
 	},
@@ -60,7 +46,24 @@ const PromotionFeatureList: FeatureItem[] = [
 			<Translate
 				id='feature_description_three'
 				description='The feature description three in front page'>
-				Satisfy your coding cravings with Dora SSR's versatile language support!
+				Satisfy your coding cravings with versatile language support!
+			</Translate>
+		),
+	},
+	{
+		title: (
+			<Translate
+				id="feature_title_one"
+				description='The feature title one in front page'>
+				Play as You Create
+			</Translate>
+		),
+		image: <img src={feature_img_one.default} alt='feature_title_one' className={styles.featureImg}/>,
+		description: (
+			<Translate
+				id="feature_description_one"
+				description='The feature description one in front page'>
+				Making Game Development a New Gaming.
 			</Translate>
 		),
 	},
@@ -68,13 +71,15 @@ const PromotionFeatureList: FeatureItem[] = [
 
 function PromotionFeature({title, Svg, image, description}: FeatureItem) {
 	return (
-		<div className={clsx('col col--4')}>
-			<div className="text--center">
-				{Svg ? <Svg className={styles.featureImg} role="img"/> : image}
-			</div>
-			<div className="text--center padding-horiz--md">
-				<h3>{title}</h3>
-				<p>{description}</p>
+		<div className={clsx('col col--4 padding-bottom--md')}>
+			<div className={styles.promotionFeature}>
+				<div className="padding-top--sm padding-bottom--md">
+					{Svg ? <Svg className={styles.featureImg} role="img"/> : image}
+				</div>
+				<div className={clsx('text--left', styles.cardText)}>
+					<h3>{title}</h3>
+					<p>{description}</p>
+				</div>
 			</div>
 		</div>
 	);
@@ -169,8 +174,8 @@ const EngineFeatureList: FeatureItem[] = [
 	{
 		title: (
 			<Translate
-			 id='engine_feature_platformer_game_support'
-			 description='The engine feature title Platformer Game Support in front page'>
+				id='engine_feature_platformer_game_support'
+				description='The engine feature title Platformer Game Support in front page'>
 				Platformer Game Support
 			</Translate>
 		),
@@ -363,8 +368,10 @@ export default function HomepageFeatures(): JSX.Element {
 						<Translate
 							id='promotion_section_title'
 							description='The promotion section title in front page'>
-							Why Dora SSR
+							Why Dora
 						</Translate>
+						<img src={pix_dora.default} alt='pix_dora' className={styles.pixImg}/>
+						SSR
 					</h2>
 					<div className="row">
 						{PromotionFeatureList.map((props, idx) => (
@@ -374,6 +381,7 @@ export default function HomepageFeatures(): JSX.Element {
 				</div>
 				<div className={styles.featureSection}>
 					<h2 className="text--center">
+						<img src={pix_toto.default} alt='pix_toto' className={styles.pixImg}/>
 						<Translate
 							id='feature_section_title'
 							description='The feature section title in front page'>

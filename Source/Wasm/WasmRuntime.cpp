@@ -1471,6 +1471,7 @@ int64_t director_get_post_wasm_scheduler() {
 #include "Dora/JointDefWasm.hpp"
 #include "Dora/JointWasm.hpp"
 #include "Dora/KeyboardWasm.hpp"
+#include "Dora/ControllerWasm.hpp"
 #include "Dora/LabelWasm.hpp"
 #include "Dora/LineWasm.hpp"
 #include "Dora/MLQLearnerWasm.hpp"
@@ -1576,6 +1577,7 @@ static void linkAutoModule(wasm3::module3& mod) {
 	linkCache(mod);
 	linkAudio(mod);
 	linkKeyboard(mod);
+	linkController(mod);
 	linkMouse(mod);
 	linkSVGDef(mod);
 	linkDBQuery(mod);
