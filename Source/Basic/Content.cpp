@@ -75,7 +75,7 @@ void Content::init(int argc, const char* const argv[]) {
 		if (argv[i] == "--asset"sv && i + 1 < argc) {
 			std::string assetPath = argv[++i];
 			std::error_code err;
-			std::string fullPath = fs::absolute(assetPath, err).string();
+			std::string fullPath = fs::absolute(assetPath, err).lexically_normal().string();
 			if (err) {
 				Error("got invalid asset path \"{}\"", assetPath);
 			}

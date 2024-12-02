@@ -1,0 +1,18 @@
+[package]
+name = "dora-runtime"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "dora_runtime"
+crate-type = ["staticlib"]
+
+[dependencies]
+dora-ssr = { path = "../../Tools/dora-rust/dora" }
+bitflags = "1.2"
+cfixed-string = "1.0"
+
+[profile.release]
+debug = false
+lto = true
+opt-level = 3

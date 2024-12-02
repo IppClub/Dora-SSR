@@ -39,6 +39,13 @@ union LightWasmValue {
 
 static_assert(sizeof(LightWasmValue) == sizeof(int64_t), "encode item with greater size than int64_t for wasm.");
 
+extern "C" {
+
+void call_function(int32_t func_id);
+void deref_function(int32_t func_id);
+
+} // extern "C"
+
 /* Vec2 */
 
 static inline int64_t Vec2_Retain(const Vec2& vec2) {
@@ -1406,6 +1413,24 @@ int64_t blackboard_get(int64_t b, int64_t k) {
 	}
 }
 
+// Director
+
+int64_t director_get_scheduler() {
+	return Object_From(SharedDirector.getScheduler());
+}
+
+int64_t director_get_wasm_scheduler() {
+	return Object_From(SharedWasmRuntime.getScheduler());
+}
+
+int64_t director_get_post_scheduler() {
+	return Object_From(SharedDirector.getScheduler());
+}
+
+int64_t director_get_post_wasm_scheduler() {
+	return Object_From(SharedWasmRuntime.getPostScheduler());
+}
+
 } // extern "C"
 
 #include "Dora/ActionDefWasm.hpp"
@@ -1706,6 +1731,9 @@ static void linkDoraModule(wasm3::module3& mod) {
 
 	mod.link_optional("*", "blackboard_set", blackboard_set);
 	mod.link_optional("*", "blackboard_get", blackboard_get);
+
+	mod.link_optional("*", "director_get_wasm_scheduler", director_get_wasm_scheduler);
+	mod.link_optional("*", "director_get_post_wasm_scheduler", director_get_post_wasm_scheduler);
 }
 
 int WasmRuntime::_callFromWasm = 0;
@@ -1830,7 +1858,15 @@ void WasmRuntime::executeMainFileAsync(String filename, const std::function<void
 	});
 }
 
+inline bool isStaticFunc(int32_t funcId) {
+	return funcId >> 24 == 0;
+}
+
 void WasmRuntime::invoke(int32_t funcId) {
+	if (isStaticFunc(funcId)) {
+		call_function(funcId);
+		return;
+	}
 	AssertUnless(_callFunc, "wasm module is not ready");
 	try {
 		_callFromWasm++;
@@ -1842,6 +1878,10 @@ void WasmRuntime::invoke(int32_t funcId) {
 }
 
 void WasmRuntime::deref(int32_t funcId) {
+	if (isStaticFunc(funcId)) {
+		deref_function(funcId);
+		return;
+	}
 	if (_derefFunc) {
 		_derefFunc->call(funcId);
 	}

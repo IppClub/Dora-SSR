@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.4.1)
+cmake_minimum_required(VERSION 3.5.0)
 project(Dora-SSR)
 
 set(CMAKE_CXX_STANDARD 20)
@@ -50,6 +50,12 @@ add_library(BIMGDE-lib STATIC IMPORTED)
 set_target_properties(
 	BIMGDE-lib PROPERTIES IMPORTED_LOCATION
 	${CMAKE_SOURCE_DIR}/3rdParty/libs/libbimg_decodeRelease.a
+)
+
+add_library(DORA-lib STATIC IMPORTED)
+set_target_properties(
+	DORA-lib PROPERTIES IMPORTED_LOCATION
+	${CMAKE_SOURCE_DIR}/../../Source/Rust/lib/Linux/libdora_runtime.a
 )
 
 add_definitions(-DWITH_SDL2 -DBX_CONFIG_DEBUG=0 -Dd_m3HasWASI -DLUA_USE_LINUX -DSPDLOG_FMT_EXTERNAL)
@@ -600,5 +606,5 @@ add_executable(dora-ssr
 	../../Source/3rdParty/tmxlite/detail/pugixml.cpp
 )
 
-target_link_libraries(dora-ssr z dl pthread rt ${SDL2_LIBRARIES} BGFX-lib BIMGDE-lib BIMG-lib BX-lib GL X11 OpenSSL::SSL OpenSSL::Crypto)
+target_link_libraries(dora-ssr z dl pthread rt ${SDL2_LIBRARIES} BGFX-lib BIMGDE-lib BIMG-lib BX-lib GL X11 OpenSSL::SSL OpenSSL::Crypto DORA-lib)
 

@@ -327,7 +327,7 @@ Welcome to participate in the development and maintenance of Dora SSR. Please se
 
 ## Dora SSR Joins the Open Atom Foundation
 
-We are delighted to announce that the Dora SSR project has officially become a donation and incubation preparatory project under the Open Atom Foundation. This new stage of development signifies our steadfast commitment to building a more open and collaborative gaming development environment.
+We are delighted to announce that the Dora SSR project has officially become a donation and incubation project under the Open Atom Foundation. This new stage of development signifies our steadfast commitment to building a more open and collaborative gaming development environment.
 
 ### About the Open Atom Foundation
 
