@@ -32,7 +32,8 @@ local record AlignNode
 	-- ## Other properties
 	-- * position: Sets the positioning type (absolute, relative, static).
 	-- * overflow: Sets the overflow property (visible, hidden, scroll).
-	-- * display: Controls whether to display (flex, none).
+	-- * display: Controls whether to display (flex, none, contents).
+	-- * box-sizing: Sets the box sizing type (border-box, content-box).
 	-- @usage
 	-- alignNode:css("flex-direction: column; justify-content: center; align-items: center;")
 	css: function(self: AlignNode, style: string)

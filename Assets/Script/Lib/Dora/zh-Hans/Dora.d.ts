@@ -4404,7 +4404,8 @@ class AlignNode extends Node {
 	 * ## 其他属性
 	 * * position：设定定位类型（absolute、relative、static）。
 	 * * overflow：设定溢出属性（visible、hidden、scroll）。
-	 * * display：控制是否显示（flex、none）。
+	 * * display：控制是否显示（flex、none、contents）。
+	 * * box-sizing：设定盒模型类型（border-box、content-box）。
 	 */
 	css(style: string): void;
 

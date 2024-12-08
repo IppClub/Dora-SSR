@@ -4407,7 +4407,8 @@ class AlignNode extends Node {
 	 * ## Other properties
 	 * * position: Sets the positioning type (absolute, relative, static).
 	 * * overflow: Sets the overflow property (visible, hidden, scroll).
-	 * * display: Controls whether to display (flex, none).
+	 * * display: Controls whether to display (flex, none, contents).
+	 * * box-sizing: Sets the box sizing type (border-box, content-box).
 	 */
 	css(style: string): void;
 

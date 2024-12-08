@@ -1414,6 +1414,9 @@
 		3C361E392C1AFF400079B68B /* pugixml.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pugixml.cpp; sourceTree = "<group>"; };
 		3C361E3A2C1AFF400079B68B /* pugixml.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = pugixml.hpp; sourceTree = "<group>"; };
 		3C361E722C1B47F50079B68B /* TMX */ = {isa = PBXFileReference; lastKnownFileType = folder; path = TMX; sourceTree = "<group>"; };
+		3C5323252D0606A300CCDAB7 /* BoxSizing.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BoxSizing.h; sourceTree = "<group>"; };
+		3C5323262D0606AF00CCDAB7 /* LayoutableChildren.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LayoutableChildren.h; sourceTree = "<group>"; };
+		3C5323272D0606BA00CCDAB7 /* StyleSizeLength.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleSizeLength.h; sourceTree = "<group>"; };
 		3C5399F52998DEF800E9125C /* ljson.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ljson.c; sourceTree = "<group>"; };
 		3C592B082CA4F26C00CAF224 /* Config.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Config.hpp; sourceTree = "<group>"; };
 		3C592B092CA4F26C00CAF224 /* FreeFuncs.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = FreeFuncs.hpp; sourceTree = "<group>"; };
@@ -3515,6 +3518,7 @@
 		3C592B602CA4F2F300CAF224 /* enums */ = {
 			isa = PBXGroup;
 			children = (
+				3C5323252D0606A300CCDAB7 /* BoxSizing.h */,
 				3C592B4D2CA4F2F300CAF224 /* Align.h */,
 				3C592B4E2CA4F2F300CAF224 /* Dimension.h */,
 				3C592B4F2CA4F2F300CAF224 /* Direction.h */,
@@ -3550,6 +3554,7 @@
 		3C592B692CA4F2F300CAF224 /* node */ = {
 			isa = PBXGroup;
 			children = (
+				3C5323262D0606AF00CCDAB7 /* LayoutableChildren.h */,
 				3C592B642CA4F2F300CAF224 /* CachedMeasurement.h */,
 				3C592B652CA4F2F300CAF224 /* LayoutResults.h */,
 				3C592B662CA4F2F300CAF224 /* LayoutResults.cpp */,
@@ -3571,6 +3576,7 @@
 		3C592B722CA4F2F300CAF224 /* style */ = {
 			isa = PBXGroup;
 			children = (
+				3C5323272D0606BA00CCDAB7 /* StyleSizeLength.h */,
 				3C592B6D2CA4F2F300CAF224 /* SmallValueBuffer.h */,
 				3C592B6E2CA4F2F300CAF224 /* Style.h */,
 				3C592B6F2CA4F2F300CAF224 /* StyleLength.h */,
