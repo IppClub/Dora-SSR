@@ -598,6 +598,9 @@
 		3C2F9C881E7B114B00B98D39 /* ModelDef.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ModelDef.cpp; sourceTree = "<group>"; };
 		3C361E1B2C1A94A50079B68B /* TMX */ = {isa = PBXFileReference; lastKnownFileType = folder; path = TMX; sourceTree = "<group>"; };
 		3C4B3DDF2C0709E000D778FC /* UnitMagnitudeChecker.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = UnitMagnitudeChecker.hpp; sourceTree = "<group>"; };
+		3C5323222D05E9C700CCDAB7 /* BoxSizing.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BoxSizing.h; sourceTree = "<group>"; };
+		3C5323232D05E9D200CCDAB7 /* LayoutableChildren.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LayoutableChildren.h; sourceTree = "<group>"; };
+		3C5323242D05E9DD00CCDAB7 /* StyleSizeLength.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleSizeLength.h; sourceTree = "<group>"; };
 		3C5399EA2998BAF000E9125C /* ljson.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ljson.c; sourceTree = "<group>"; };
 		3C53E8E62BE8CF1100039640 /* AbsoluteLayout.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AbsoluteLayout.cpp; sourceTree = "<group>"; };
 		3C53E8E72BE8CF1100039640 /* AbsoluteLayout.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AbsoluteLayout.h; sourceTree = "<group>"; };
@@ -2586,6 +2589,7 @@
 		3C53E9132BE8CF1100039640 /* enums */ = {
 			isa = PBXGroup;
 			children = (
+				3C5323222D05E9C700CCDAB7 /* BoxSizing.h */,
 				3C53E9002BE8CF1100039640 /* Align.h */,
 				3C53E9012BE8CF1100039640 /* Dimension.h */,
 				3C53E9022BE8CF1100039640 /* Direction.h */,
@@ -2621,6 +2625,7 @@
 		3C53E91C2BE8CF1100039640 /* node */ = {
 			isa = PBXGroup;
 			children = (
+				3C5323232D05E9D200CCDAB7 /* LayoutableChildren.h */,
 				3C53E9172BE8CF1100039640 /* CachedMeasurement.h */,
 				3C53E9182BE8CF1100039640 /* LayoutResults.cpp */,
 				3C53E9192BE8CF1100039640 /* LayoutResults.h */,
@@ -2642,6 +2647,7 @@
 		3C53E9252BE8CF1100039640 /* style */ = {
 			isa = PBXGroup;
 			children = (
+				3C5323242D05E9DD00CCDAB7 /* StyleSizeLength.h */,
 				3C53E9202BE8CF1100039640 /* SmallValueBuffer.h */,
 				3C53E9212BE8CF1100039640 /* Style.h */,
 				3C53E9222BE8CF1100039640 /* StyleLength.h */,

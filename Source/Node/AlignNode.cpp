@@ -122,8 +122,18 @@ std::optional<YGDisplay> mapDisplay(std::string_view display) {
 	switch (Switch::hash(display)) {
 		case "flex"_hash: return YGDisplayFlex;
 		case "none"_hash: return YGDisplayNone;
+		case "contents"_hash: return YGDisplayContents;
 	}
-	Warn("invalid CSS Display: \"{}\", should be one of \"flex\" and \"none\"", display);
+	Warn("invalid CSS Display: \"{}\", should be one of \"flex\", \"none\" and \"contents\"", display);
+	return std::nullopt;
+}
+
+std::optional<YGBoxSizing> mapBoxSizing(std::string_view boxSizing) {
+	switch (Switch::hash(boxSizing)) {
+		case "border-box"_hash: return YGBoxSizingBorderBox;
+		case "content-box"_hash: return YGBoxSizingContentBox;
+	}
+	Warn("invalid CSS BoxSizing: \"{}\", should be one of \"border-box\" and \"content-box\"", boxSizing);
 	return std::nullopt;
 }
 
@@ -813,6 +823,12 @@ void AlignNode::css(String css) {
 					YGNodeStyleSetAspectRatio(_yogaNode, num.value());
 				} else {
 					Warn("invalid CSS AspectRatio: \"{}\", should be a number", value);
+				}
+				break;
+			}
+			case "box-sizing"_hash: {
+				if (auto var = mapBoxSizing(value)) {
+					YGNodeStyleSetBoxSizing(_yogaNode, var.value());
 				}
 				break;
 			}

@@ -2455,6 +2455,7 @@
     <ClInclude Include="..\..\..\Source\3rdParty\yoga\debug\AssertFatal.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\yoga\debug\Log.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\yoga\enums\Align.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\enums\BoxSizing.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\yoga\enums\Dimension.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\yoga\enums\Direction.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\yoga\enums\Display.h" />
@@ -2475,6 +2476,7 @@
     <ClInclude Include="..\..\..\Source\3rdParty\yoga\enums\YogaEnums.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\yoga\event\event.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\yoga\node\CachedMeasurement.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\node\LayoutableChildren.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\yoga\node\LayoutResults.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\yoga\node\Node.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\yoga\numeric\Comparison.h" />
@@ -2482,6 +2484,7 @@
     <ClInclude Include="..\..\..\Source\3rdParty\yoga\style\SmallValueBuffer.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\yoga\style\Style.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\yoga\style\StyleLength.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\style\StyleSizeLength.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\yoga\style\StyleValueHandle.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\yoga\style\StyleValuePool.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\yoga\YGConfig.h" />

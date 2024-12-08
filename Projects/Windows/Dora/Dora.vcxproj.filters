@@ -4305,6 +4305,15 @@
     <ClInclude Include="..\..\..\Source\Input\Mouse.h">
       <Filter>Input</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\enums\BoxSizing.h">
+      <Filter>3rdParty\yoga\enums</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\node\LayoutableChildren.h">
+      <Filter>3rdParty\yoga\node</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\style\StyleSizeLength.h">
+      <Filter>3rdParty\yoga\style</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resource.rc">
