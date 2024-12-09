@@ -829,8 +829,9 @@ interface AlignStyle {
 	marginRight?: StyleValuePercentAuto;
 	marginBottom?: StyleValuePercentAuto;
 	marginLeft?: StyleValuePercentAuto;
-	marginStart?: StyleValuePercentAuto;
-	marginEnd?: StyleValuePercentAuto;
+	marginInlineStart?: StyleValuePercentAuto;
+	marginInlineEnd?: StyleValuePercentAuto;
+	marginInline?: StyleValuePercentAuto;
 	margin?: [StyleValuePercentAuto, StyleValuePercentAuto?, StyleValuePercentAuto?, StyleValuePercentAuto?] | StyleValuePercentAuto;
 	paddingTop?: StyleValuePercent;
 	paddingRight?: StyleValuePercent;

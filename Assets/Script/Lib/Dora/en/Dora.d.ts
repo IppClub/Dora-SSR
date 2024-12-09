@@ -4395,7 +4395,7 @@ class AlignNode extends Node {
 	 *
 	 * ## Margins and dimensions
 	 * * margin: Can be set by a single value or multiple values separated by commas, percentages or auto for each side.
-	 * * margin-top, margin-right, margin-bottom, margin-left, margin-start, margin-end: Sets the margin values, percentages or auto.
+	 * * margin-top, margin-right, margin-bottom, margin-left, margin-inline-start, margin-inline-end, margin-inline: Sets the margin values, percentages or auto.
 	 * * padding: Can be set by a single value or multiple values separated by commas or percentages for each side.
 	 * * padding-top, padding-right, padding-bottom, padding-left: Sets the padding values or percentages.
 	 * * border: Can be set by a single value or multiple values separated by commas for each side.

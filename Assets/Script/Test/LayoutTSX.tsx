@@ -22,8 +22,8 @@ const tests = [
 		<align-node style={{width: 250, height: 475, padding: 10}} showDebug>
 			<align-node style={{flex: 1, gap: [10, 0]}} showDebug>
 				<align-node style={{height: 60}} showDebug/>
-				<align-node style={{flex: 1, margin: 10}} showDebug/>
-				<align-node style={{flex: 2, margin: 10}} showDebug/>
+				<align-node style={{flex: 1, marginInline: 10}} showDebug/>
+				<align-node style={{flex: 2, marginInline: 10}} showDebug/>
 				<align-node showDebug
 					style={{
 						position: "absolute",
