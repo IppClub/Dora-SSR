@@ -35,31 +35,31 @@ Dora SSR is a game engine for rapid development of games on various devices. It 
 
 |Feature|Description|
 |-|-|
-|Cross-Platform|Supports native running on Linux, Android, Windows, iOS, and macOS.|
+|Cross-Platform|Native running on various platforms.<br>Supported Architectures:<br>**Android** (x86_64, armv7, arm64)<br>**Windows** (x86)<br>**Linux** (x86_64, arm64)<br>**iOS** (arm64)<br>**macOS** (x86_64, arm64)|
 |Node Based|Manages game scenes based on tree node structure.|
-|2D Platformer|Basic 2D platform game functions, including game logic and AI development framework.|
-|ECS|Easy-to-use ECS module for efficient game entity management.|
+|ECS|Easy-to-use [ECS](https://dora-ssr.net/docs/tutorial/using-ecs) module for efficient game entity management.|
 |Multi-threaded|Asynchronous processing of file read and write, resource loading and other operations.|
 |Lua|Upgraded Lua binding with support for inheriting and extending low-level C++ objects.|
-|YueScript|Supports YueScript language, strong expressive and concise Lua dialect.|
-|Teal|Supports for the Teal language, a statically typed dialect for Lua.|
-|TypeScript|Supports TypeScript, a statically typed superset of JavaScript that adds powerful type checking.|
-|TSX|Supports TSX, allows embedding XML/HTML-like text within scripts, used with TypeScript.|
-|Rust|Supports the Rust language, running on the built-in WASM runtime with Rust bindings.|
-|2D Animation|2D skeletal animations support with Spine2D, DragonBones and builtin system.|
-|2D Physics|2D physics engine support with PlayRho.|
+|YueScript|Supports [YueScript](https://yuescript.org) language, strong expressive and concise Lua dialect.|
+|Teal|Supports for the [Teal](https://github.com/teal-language/tl) language, a statically typed dialect for Lua.|
+|TypeScript|Supports [TypeScript](https://www.typescriptlang.org), a statically typed superset of JavaScript that adds powerful type checking (with [TSTL](https://typescripttolua.github.io)).|
+|TSX|Supports [TSX](https://dora-ssr.net/docs/tutorial/Language%20Tutorial/using-tsx), allows embedding XML/HTML-like text within scripts, used with TypeScript.|
+|Rust|Supports the [Rust](https://www.rust-lang.org) language, running on the built-in WASM runtime with [Rust bindings](https://lib.rs/crates/dora-ssr).|
+|2D Animation|2D skeletal animations support with [Spine2D](https://github.com/EsotericSoftware/spine-runtimes), [DragonBones](https://github.com/DragonBones/DragonBonesCPP) and a builtin system.|
+|2D Physics|2D physics engine support with [PlayRho](https://github.com/louis-langholtz/PlayRho).|
 |Web IDE|Built-in out-of-the-box Web IDE, providing file management, code inspection, completion, highlighting and definition jump. <br><br><div align='center'><img src='Docs/static/img/dora-on-android.jpg' alt='LSD' width='500px'/></div>|
-|Database|Supports asynchronous operation of SQLite for real-time query and managing large game configuration data.|
+|Database|Supports asynchronous operation of [SQLite](https://www.sqlite.org) for real-time query and managing large game configuration data.|
 |Excel|Supports reading Excel spreadsheet data and synchronizing it to SQLite tables.|
-|CSS Layout|Provides the function of adaptive Flex layout for game scenes through CSS.|
-|Effect System|Support the functions of [Effekseer](https://effekseer.github.io/en) game effects system.|
+|CSS Layout|Provides the function of adaptive Flex layout for game scenes through CSS (with [Yoga](https://github.com/facebook/yoga)).|
+|Effect System|Support the functions of [Effekseer](https://github.com/effekseer/Effekseer) game effects system.|
 |Tilemap|Supports the [Tiled Map Editor](http://www.mapeditor.org) TMX map file parsing and rendering.|
-|Yarn Spinner|Supports the Yarn Spinner language, making it easy to write complex game story systems.|
+|Yarn Spinner|Supports the [Yarn Spinner](https://www.yarnspinner.dev) language, making it easy to write complex game story systems.|
 |ML|Built-in machine learning algorithm framework for innovative gameplay.|
-|Vector Graphics|Provides vector graphics rendering API, which can directly render SVG format files without CSS.|
-|ImGui|Built-in ImGui, easy to create debugging tools and UI interface.|
+|Vector Graphics|Provides vector graphics rendering API, which can directly render SVG format files without CSS (with [NanoVG](https://github.com/memononen/nanovg)).|
+|ImGui|Built-in [ImGui](https://github.com/ocornut/imgui), easy to create debugging tools and UI interface.|
 |Audio|Supports FLAC, OGG, MP3 and WAV multi-format audio playback.|
 |True Type|Supports True Type font rendering and basic typesetting.|
+|2D Platformer|Basic [2D platformer](https://dora-ssr.net/docs/example/Platformer%20Tutorial/start) game functions, including game logic and AI development framework.|
 |L·S·D|Provides open art resources and game IPs that can be used to create your own games - ["Luv Sense Digital"](https://luv-sense-digital.readthedocs.io).<br><br><div align='center'><img src='Docs/static/img/LSD.jpg' alt='LSD' width='300px'/></div>|
 
 <br>
