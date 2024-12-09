@@ -119,7 +119,7 @@ generate = (path, file, cn)->
 							name, typ, desc = group[i]\match "^%s*@param%s*(%.%.%.)%s*%(([^%)]-)%)%s*(.+)"
 						lastParamName = name
 						print group[i] if desc == nil
-						params[] = "| #{name} | #{typ} | #{desc\gsub('\n', '')} |"
+						params[] = "| #{name} | #{typ} | #{desc\gsub('\n', '<br/>')} |"
 				elseif group[i]\match "^%s*@return"
 					if group[i]\match "^%s+@return"
 						if not subFun
@@ -135,7 +135,7 @@ generate = (path, file, cn)->
 								"| --- | --- |"
 							}
 						typ, desc = group[i]\match "^%s*@return%s*%(([^%)]-)%)%s*(.+)"
-						returns[] = "| #{typ\gsub '|', '\\|'} | #{desc\gsub('\n', '')} |"
+						returns[] = "| #{typ\gsub '|', '\\|'} | #{desc\gsub('\n', '<br/>')} |"
 			if params
 				doc[] = table.concat params, "\n"
 			if returns
