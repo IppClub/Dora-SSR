@@ -15,7 +15,7 @@ loop: function(routine: function(): boolean): Routine.Job
 
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
-| routine | function | 需要重复执行的函数，返回非 nil 或非 false 值后停止。在 routine 函数中使用`coroutine.yield(true)`或`return true`来停止执行任务。 |
+| routine | function | 需要重复执行的函数，返回非 nil 或非 false 值后停止。<br/>在 routine 函数中使用`coroutine.yield(true)`或`return true`来停止执行任务。 |
 
 **返回值：**
 

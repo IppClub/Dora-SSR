@@ -105,4 +105,4 @@ advance: function(self: YarnRunner, choice?: integer): nil | ResultType, string 
 | 返回类型 | 描述 |
 | --- | --- |
 | nil \| ResultType | 如果叙述结束则返回 nil。当 YarnRunner 仍在运行时返回 ResultType 枚举字符串结果。 |
-| string \| table | 根据叙述执行的情况，会返回一个和执行结果相关的内容：执行结果为 "Text" 时，得到 TextResult 对象执行结果为 "Option" 时，得到 OptionResult 对象执行结果为 "Error" 时，得到一个字符串错误消息。执行结果为 nil 时，得到一个表示叙述结束的字符串。 |
+| string \| table | 根据叙述执行的情况，会返回一个和执行结果相关的内容：<br/>执行结果为 "Text" 时，得到 TextResult 对象<br/>执行结果为 "Option" 时，得到 OptionResult 对象<br/>执行结果为 "Error" 时，得到一个字符串错误消息。<br/>执行结果为 nil 时，得到一个表示叙述结束的字符串。 |
