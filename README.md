@@ -35,7 +35,7 @@ Dora SSR is a game engine for rapid development of games on various devices. It 
 
 |Feature|Description|
 |-|-|
-|Cross-Platform|Native running on various platforms.<br>Supported Architectures:<br>**Android** (x86_64, armv7, arm64)<br>**Windows** (x86)<br>**Linux** (x86_64, arm64)<br>**iOS** (arm64)<br>**macOS** (x86_64, arm64)|
+|Cross-Platform|Supported native architectures:<br>**Android** (x86_64, armv7, arm64)<br>**Windows** (x86)<br>**Linux** (x86_64, arm64)<br>**iOS** (arm64)<br>**macOS** (x86_64, arm64)|
 |Node Based|Manages game scenes based on tree node structure.|
 |ECS|Easy-to-use [ECS](https://dora-ssr.net/docs/tutorial/using-ecs) module for efficient game entity management.|
 |Multi-threaded|Asynchronous processing of file read and write, resource loading and other operations.|
