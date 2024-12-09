@@ -4392,7 +4392,7 @@ class AlignNode extends Node {
 	 *
 	 * ## 边缘和尺寸
 	 * * margin：可以通过单一值或逗号分隔的多个数值、百分比或是auto来设定各个边。
-	 * * margin-top、margin-right、margin-bottom、margin-left、margin-start、margin-end：设定各个边的数值、百分比或为auto。
+	 * * margin-top、margin-right、margin-bottom、margin-left、margin-inline-start、margin-inline-end、margin-inline：设定各个边的数值、百分比或为auto。
 	 * * padding：可以通过单一值或逗号分隔的多个数值或是百分比来设定各个边。
 	 * * padding-top、padding-right、padding-bottom、padding-left：设定各个边的数值或百分比。
 	 * * border：可以通过单一值或逗号分隔的多个数值来设定各个边。

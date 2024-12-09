@@ -29,8 +29,8 @@ local tests = { -- 19
 				"align-node", -- 21
 				{style = {flex = 1, gap = {10, 0}}, showDebug = true}, -- 21
 				React.createElement("align-node", {style = {height = 60}, showDebug = true}), -- 21
-				React.createElement("align-node", {style = {flex = 1, margin = 10}, showDebug = true}), -- 21
-				React.createElement("align-node", {style = {flex = 2, margin = 10}, showDebug = true}), -- 21
+				React.createElement("align-node", {style = {flex = 1, marginInline = 10}, showDebug = true}), -- 21
+				React.createElement("align-node", {style = {flex = 2, marginInline = 10}, showDebug = true}), -- 21
 				React.createElement( -- 21
 					"align-node", -- 21
 					{showDebug = true, style = { -- 21

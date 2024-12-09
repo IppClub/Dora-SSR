@@ -718,7 +718,7 @@ void AlignNode::css(String css) {
 				}
 				break;
 			}
-			case "margin-start"_hash: {
+			case "margin-inline-start"_hash: {
 				if (!value.empty() && value.back() == '%') {
 					Slice numStr{value};
 					numStr.skipRight(1);
@@ -734,7 +734,7 @@ void AlignNode::css(String css) {
 				}
 				break;
 			}
-			case "margin-end"_hash: {
+			case "margin-inline-end"_hash: {
 				if (!value.empty() && value.back() == '%') {
 					Slice numStr{value};
 					numStr.skipRight(1);
@@ -744,6 +744,25 @@ void AlignNode::css(String css) {
 				} else if (value == "auto") {
 					YGNodeStyleSetMarginAuto(_yogaNode, YGEdgeEnd);
 				} else if (auto num = safeStringToFloat(value)) {
+					YGNodeStyleSetMargin(_yogaNode, YGEdgeEnd, num.value());
+				} else {
+					Warn("invalid CSS MarginEnd: \"{}\", should be a number, a percentage or auto", value);
+				}
+				break;
+			}
+			case "margin-inline"_hash: {
+				if (!value.empty() && value.back() == '%') {
+					Slice numStr{value};
+					numStr.skipRight(1);
+					if (auto num = safeStringToFloat(numStr.toView())) {
+						YGNodeStyleSetMarginPercent(_yogaNode, YGEdgeStart, num.value());
+						YGNodeStyleSetMarginPercent(_yogaNode, YGEdgeEnd, num.value());
+					}
+				} else if (value == "auto") {
+					YGNodeStyleSetMarginAuto(_yogaNode, YGEdgeStart);
+					YGNodeStyleSetMarginAuto(_yogaNode, YGEdgeEnd);
+				} else if (auto num = safeStringToFloat(value)) {
+					YGNodeStyleSetMargin(_yogaNode, YGEdgeStart, num.value());
 					YGNodeStyleSetMargin(_yogaNode, YGEdgeEnd, num.value());
 				} else {
 					Warn("invalid CSS MarginEnd: \"{}\", should be a number, a percentage or auto", value);
