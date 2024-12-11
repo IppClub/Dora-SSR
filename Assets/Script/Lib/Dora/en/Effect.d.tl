@@ -13,7 +13,7 @@ local record Effect
 	add: function(self: Effect, pass: Pass)
 
 	-- A function that retrieves a Pass object from this Effect by index.
-	-- @param index (integer) The index of the Pass object to retrieve.
+	-- @param index (integer) The index of the Pass object to retrieve. Starts from 1.
 	-- @return (Pass) The Pass object at the given index.
 	get: function(self: Effect, index: integer): Pass
 

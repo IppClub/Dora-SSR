@@ -2029,7 +2029,7 @@ class Effect extends Object {
 
 	/**
 	 * A function that retrieves a Pass object from this Effect by index.
-	 * @param index The index of the Pass object to retrieve.
+	 * @param index The index of the Pass object to retrieve. Starts from 1.
 	 * @returns The Pass object at the given index.
 	 */
 	get(index: number): Pass;
