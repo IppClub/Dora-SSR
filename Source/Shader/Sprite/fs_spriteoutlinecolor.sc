@@ -9,8 +9,10 @@ SAMPLER2D(s_texColor, 0);
 
 void main()
 {
-	float alphaThreshold = u_lineoffset.w;
+	float alphaThreshold = u_lineoffset.z;
 	gl_FragColor = texture2D(s_texColor, v_texcoord0);
+	ivec2 texSize = textureSize(s_texColor, 0);
+	vec2 texel = vec2(u_lineoffset.x / float(texSize.x), u_lineoffset.x / float(texSize.y));
 	if (gl_FragColor.a >= alphaThreshold)
 	{
 		gl_FragColor = v_color0 * gl_FragColor;
@@ -18,18 +20,24 @@ void main()
 	else
 	{
 		float a = 1.0;
-		float radius = min(floor(u_lineoffset.z), 10.0);
+		float radius = min(floor(u_lineoffset.y), 10.0);
 		for (float i = radius; i >= 1.0; i--)
 		{
 			float ratio = i / radius;
-			float y = u_lineoffset.y * ratio;
-			float x = u_lineoffset.x * ratio;
-			if (texture2D(s_texColor, v_texcoord0 + vec2(x, y)).a < alphaThreshold
-				&& texture2D(s_texColor, v_texcoord0 + vec2(x, -y)).a < alphaThreshold
-				&& texture2D(s_texColor, v_texcoord0 + vec2(-x, y)).a < alphaThreshold
-				&& texture2D(s_texColor, v_texcoord0 + vec2(-x, -y)).a < alphaThreshold)
+			bool hasAlpha = true;
+			for (int i = 0; i < 8; ++i)
 			{
-				a = 1.0 - i / radius;
+				float angle = float(i) * 0.785398; // 0.785398 = π/4
+				vec2 offset = normalize(vec2(cos(angle), sin(angle))) * texel * ratio;
+				if (texture2D(s_texColor, v_texcoord0 + offset).a >= alphaThreshold)
+				{
+					hasAlpha = false;
+					break;
+				}
+			}
+			if (hasAlpha)
+			{
+				a = 1.0 - ratio;
 				break;
 			}
 		}
@@ -37,4 +45,3 @@ void main()
 		gl_FragColor = v_color0 * (vec4(u_linecolor.rgb, lineAlpha) + gl_FragColor);
 	}
 }
-
