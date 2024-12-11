@@ -45,18 +45,17 @@ playable.y = 190
 playable.look = looks[1]
 playable:play(animations[1], true)
 
--- Define the post-processing size
-local width, height = 400, 600
-
 -- Create a shader effect (using the built-in outline effect)
 local effect = SpriteEffect("builtin::vs_sprite", "builtin::fs_spriteoutlinecolor")
 local pass = effect:get(1)
 pass:set("u_linecolor", Color(0xff00ffff)) -- Set outline color
-pass:set("u_lineoffset", 5 / width, 5 / height, 5, 0.1) -- Set outline parameters
+pass:set("u_lineoffset", 5, 5, 0.1) -- Set outline parameters: line width, line alpha sample level, edge alpha threshold
 
 -- Create a node and set its size
 local node = Node()
-node.size = Size(width, height)
+
+-- Set the post-processing size
+node.size = Size(400, 600)
 
 -- Get the grabber and apply the effect
 local grabber = node:grab()
@@ -90,18 +89,17 @@ if not playable is nil then
 	playable.look = looks[1]
 	playable:play(animations[1], true)
 
-	-- Define the post-processing size
-	local width, height = 400, 600
-
 	-- Create a shader effect (using the built-in outline effect)
 	local effect = SpriteEffect("builtin::vs_sprite", "builtin::fs_spriteoutlinecolor")
 	local pass = effect:get(1)
 	pass:set("u_linecolor", Color(0xff00ffff)) -- Set outline color
-	pass:set("u_lineoffset", 5 / width, 5 / height, 5, 0.1) -- Set outline parameters
+	pass:set("u_lineoffset", 5, 5, 0.1) -- Set outline parameters: line width, line alpha sample level, edge alpha threshold
 
 	-- Create a node and set its size
 	local node = Node()
-	node.size = Size(width, height)
+
+	-- Set the post-processing size
+	node.size = Size(400, 600)
 
 	-- Get the grabber and apply the effect
 	local grabber = node:grab()
@@ -132,19 +130,17 @@ if (playable) {
 	playable.look = looks[0];
 	playable.play(animations[1], true);
 
-	// Define the post-processing size
-	const width = 400;
-	const height = 600;
-
 	// Create a shader effect (using the built-in outline effect)
 	const effect = SpriteEffect("builtin::vs_sprite", "builtin::fs_spriteoutlinecolor");
 	const pass = effect.get(1);
 	pass.set("u_linecolor", Color(0xff00ffff)); // Set outline color
-	pass.set("u_lineoffset", 5 / width, 5 / height, 5, 0.1); // Set outline parameters
+	pass.set("u_lineoffset", 5, 5, 0.1); // Set outline parameters: line width, line alpha sample level, edge alpha threshold
 
 	// Create a node and set its size
 	const node = Node();
-	node.size = Size(width, height);
+
+	// Set the post-processing size
+	node.size = Size(400, 600);
 
 	// Get the grabber and apply the effect
 	const grabber = node.grab();
@@ -174,18 +170,16 @@ playable = with Spine spineStr
 	.look = looks[1]
 	\play animations[1], true
 
--- Define the post-processing size
-width, height = 400, 600
-
 -- Create a shader effect (using the built-in outline effect)
 effect = SpriteEffect "builtin::vs_sprite", "builtin::fs_spriteoutlinecolor"
 pass = effect\get 1
 pass\set "u_linecolor", Color 0xff00ffff -- Set outline color
-pass\set "u_lineoffset", 5 / width, 5 / height, 5, 0.1 -- Set outline parameters
+pass\set "u_lineoffset", 5, 5, 0.1 -- Set outline parameters: line width, line alpha sample level, edge alpha threshold
 
 -- Create a node and set its size
 node = with Node!
-	.size = Size width, height
+	-- Set the post-processing size
+	.size = Size 400, 600
 
 -- Get the grabber and apply the effect
 grabber = node\grab!

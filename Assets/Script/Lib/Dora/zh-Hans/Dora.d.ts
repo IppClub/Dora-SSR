@@ -2024,7 +2024,7 @@ class Effect extends Object {
 
 	/**
 	 * 函数，通过索引从此Effect中检索Pass对象。
-	 * @param index 要检索的Pass对象的索引。
+	 * @param index 要检索的Pass对象的索引，索引从1开始。
 	 * @returns 给定索引处的Pass对象。
 	 */
 	get(index: number): Pass;
