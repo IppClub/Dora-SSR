@@ -1801,6 +1801,12 @@ object class Label : public INode
 	common float spacing;
 	/// the gap in pixels between lines of text.
 	common float lineGap;
+	/// the color of the outline, only works with SDF label.
+	common Color outlineColor;
+	/// the width of the outline, only works with SDF label.
+	common float outlineWidth;
+	/// the smooth value of the text, only works with SDF label, default is (0.7, 0.7).
+	common Vec2 smooth;
 	/// the text to be rendered.
 	common string text;
 	void setBlendFunc @ _setBlendFunc(BlendFunc func);
@@ -1832,11 +1838,22 @@ object class Label : public INode
 	///
 	/// * `font_name` - The name of the font to use for the label. Can be font file path with or without file extension.
 	/// * `font_size` - The size of the font to use for the label.
+	/// * `sdf` - Whether to use SDF rendering or not. With SDF rendering, the outline feature will be enabled.
 	///
 	/// # Returns
 	///
 	/// * `Label` - The new Label object.
-	static optional Label* create(string fontName, uint32_t fontSize);
+	static optional Label* create(string fontName, uint32_t fontSize, bool sdf);
+	/// Creates a new Label object with the specified font string.
+	///
+	/// # Arguments
+	///
+	/// * `font_str` - The font string to use for the label. Should be in the format "fontName;fontSize;sdf", where `sdf` should be "true" or "false".
+	///
+	/// # Returns
+	///
+	/// * `Label` - The new Label object.
+	static optional Label* create @ with_str(string fontStr);
 };
 
 /// A RenderTarget is a buffer that allows you to render a Node into a texture.

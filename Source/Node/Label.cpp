@@ -65,7 +65,8 @@ TrueTypeFile* Font::getFile() const noexcept {
 /* FontCache */
 
 FontCache::FontCache()
-	: _defaultEffect(SpriteEffect::create("builtin:vs_sprite"_slice, "builtin:fs_spritewhite"_slice)) { }
+	: _defaultEffect(SpriteEffect::create("builtin:vs_sprite"_slice, "builtin:fs_spritewhite"_slice))
+	, _sdfEffect(SpriteEffect::create("builtin:vs_sprite"_slice, "builtin:fs_spritesdfoutline"_slice)) { }
 
 FontCache::~FontCache() {
 	unload();
@@ -75,16 +76,24 @@ SpriteEffect* FontCache::getDefaultEffect() const noexcept {
 	return _defaultEffect;
 }
 
-std::pair<std::string, int> FontCache::getArgsFromStr(String fontStr) {
+SpriteEffect* FontCache::getSDFEffect() const noexcept {
+	return _sdfEffect;
+}
+
+std::tuple<std::string, int, bool> FontCache::getArgsFromStr(String fontStr) {
 	auto tokens = fontStr.split(";"_slice);
-	if (tokens.size() == 2) {
+	if (tokens.size() >= 2) {
 		auto it = tokens.begin();
 		Slice fontName = *it;
 		int fontSize = (++it)->toInt();
-		return {fontName.toString(), fontSize};
+		bool sdf = false;
+		if (tokens.size() == 3 && *(++it) == "true"_slice) {
+			sdf = true;
+		}
+		return {fontName.toString(), fontSize, sdf};
 	} else {
-		Error("invalid fontStr for \"{}\".", fontStr.toString());
-		return {Slice::Empty, 0};
+		Error("invalid fontStr for \"{}\", expecting \"[fontName];[fontSize];[true or false as sdf]\".", fontStr.toString());
+		return {Slice::Empty, 0, false};
 	}
 }
 
@@ -99,8 +108,9 @@ bool FontCache::unload() {
 
 bool FontCache::unload(String fontStr) {
 	std::string fontName;
-	int fontSize;
-	std::tie(fontName, fontSize) = getArgsFromStr(fontStr);
+	int fontSize = 0;
+	bool sdf = false;
+	std::tie(fontName, fontSize, sdf) = getArgsFromStr(fontStr);
 	auto fontIt = _fonts.find(fontStr);
 	if (fontIt != _fonts.end()) {
 		TrueTypeFile* fontFile = fontIt->second->getFile();
@@ -151,15 +161,16 @@ void FontCache::removeUnused() {
 
 Font* FontCache::load(String fontStr) {
 	std::string fontName;
-	int fontSize;
-	std::tie(fontName, fontSize) = getArgsFromStr(fontStr);
+	int fontSize = 0;
+	bool sdf = false;
+	std::tie(fontName, fontSize, sdf) = getArgsFromStr(fontStr);
 	if (fontName.empty()) return nullptr;
-	return load(fontName, fontSize);
+	return load(fontName, fontSize, sdf);
 }
 
-Font* FontCache::load(String fontName, uint32_t fontSize) {
+Font* FontCache::load(String fontName, uint32_t fontSize, bool sdf) {
 	auto name = Path::getName(fontName);
-	std::string fontFaceName = fmt::format("{};{}", name, fontSize);
+	std::string fontFaceName = fmt::format("{};{};{}", name, fontSize, sdf);
 	auto fontIt = _fonts.find(fontFaceName);
 	if (fontIt != _fonts.end()) {
 		return fontIt->second;
@@ -178,7 +189,7 @@ Font* FontCache::load(String fontName, uint32_t fontSize) {
 		BLOCK_END
 		auto fileIt = _fontFiles.find(fontFile);
 		if (fileIt != _fontFiles.end()) {
-			bgfx::FontHandle fontHandle = SharedFontManager.createFontByPixelSize(fileIt->second->getHandle(), fontSize);
+			bgfx::FontHandle fontHandle = SharedFontManager.createFontByPixelSize(fileIt->second->getHandle(), fontSize, sdf);
 			Font* font = Font::create(fileIt->second.get(), fontHandle);
 			_fonts[fontFaceName] = font;
 			return font;
@@ -191,7 +202,7 @@ Font* FontCache::load(String fontName, uint32_t fontSize) {
 			bgfx::TrueTypeHandle trueTypeHandle = SharedFontManager.createTtf(data.first.get(), s_cast<uint32_t>(data.second));
 			TrueTypeFile* file = TrueTypeFile::create(trueTypeHandle);
 			_fontFiles[fontFile] = file;
-			bgfx::FontHandle fontHandle = SharedFontManager.createFontByPixelSize(trueTypeHandle, fontSize);
+			bgfx::FontHandle fontHandle = SharedFontManager.createFontByPixelSize(trueTypeHandle, fontSize, sdf);
 			Font* font = Font::create(file, fontHandle);
 			_fonts[fontFaceName] = font;
 			return font;
@@ -201,18 +212,19 @@ Font* FontCache::load(String fontName, uint32_t fontSize) {
 
 void FontCache::loadAync(String fontStr, const std::function<void(Font* fontHandle)>& callback) {
 	std::string fontName;
-	int fontSize;
-	std::tie(fontName, fontSize) = getArgsFromStr(fontStr);
+	int fontSize = 0;
+	bool sdf = false;
+	std::tie(fontName, fontSize, sdf) = getArgsFromStr(fontStr);
 	if (fontName.empty()) {
 		callback(nullptr);
 		return;
 	}
-	loadAync(fontName, fontSize, callback);
+	loadAync(fontName, fontSize, sdf, callback);
 }
 
-void FontCache::loadAync(String fontName, uint32_t fontSize, const std::function<void(Font* fontHandle)>& callback) {
+void FontCache::loadAync(String fontName, uint32_t fontSize, bool sdf, const std::function<void(Font* fontHandle)>& callback) {
 	auto name = Path::getName(fontName);
-	std::string fontFaceName = fmt::format("{};{}", name, fontSize);
+	std::string fontFaceName = fmt::format("{};{};{}", name, fontSize, sdf);
 	auto fontIt = _fonts.find(fontFaceName);
 	if (fontIt != _fonts.end()) {
 		callback(fontIt->second);
@@ -231,16 +243,16 @@ void FontCache::loadAync(String fontName, uint32_t fontSize, const std::function
 		BLOCK_END
 		auto fileIt = _fontFiles.find(fontFile);
 		if (fileIt != _fontFiles.end()) {
-			bgfx::FontHandle fontHandle = SharedFontManager.createFontByPixelSize(fileIt->second->getHandle(), fontSize);
+			bgfx::FontHandle fontHandle = SharedFontManager.createFontByPixelSize(fileIt->second->getHandle(), fontSize, sdf);
 			Font* font = Font::create(fileIt->second.get(), fontHandle);
 			_fonts[fontFaceName] = font;
 			callback(font);
 		} else {
-			SharedContent.loadAsyncUnsafe(fontFile, [this, fontFaceName, fontFile, fontSize, callback](uint8_t* data, int64_t size) {
+			SharedContent.loadAsyncUnsafe(fontFile, [this, fontFaceName, fontFile, fontSize, sdf, callback](uint8_t* data, int64_t size) {
 				bgfx::TrueTypeHandle trueTypeHandle = SharedFontManager.createTtf(data, s_cast<uint32_t>(size));
 				TrueTypeFile* file = TrueTypeFile::create(trueTypeHandle);
 				_fontFiles[fontFile] = file;
-				bgfx::FontHandle fontHandle = SharedFontManager.createFontByPixelSize(trueTypeHandle, fontSize);
+				bgfx::FontHandle fontHandle = SharedFontManager.createFontByPixelSize(trueTypeHandle, fontSize, sdf);
 				Font* font = Font::create(file, fontHandle);
 				_fonts[fontFaceName] = font;
 				callback(font);
@@ -254,7 +266,6 @@ Sprite* FontCache::createCharacter(Font* font, bgfx::CodePoint character) {
 	Rect rect;
 	std::tie(texture, rect) = getCharacterInfo(font, character);
 	Sprite* sprite = Sprite::create(texture, rect);
-	sprite->setEffect(_defaultEffect);
 	return sprite;
 }
 
@@ -262,6 +273,9 @@ std::tuple<Texture2D*, Rect> FontCache::getCharacterInfo(Font* font, bgfx::CodeP
 	const bgfx::GlyphInfo* glyphInfo = SharedFontManager.getGlyphInfo(font->getHandle(), character);
 	bgfx::Atlas* atlas = glyphInfo->atlas;
 	const bgfx::AtlasRegion& region = atlas->getRegion(glyphInfo->regionIndex);
+	if (font->getInfo().sdf) {
+		return std::make_tuple(atlas->getTexture(), Rect(region.x, region.y, region.width, region.height));
+	}
 	return std::make_tuple(atlas->getTexture(), Rect(region.x, region.y, region.width, region.height));
 }
 
@@ -283,14 +297,17 @@ const bgfx::GlyphInfo* FontCache::updateCharacter(Sprite* sp, Font* font, bgfx::
 
 const float Label::AutomaticWidth = -1.0f;
 
-Label::Label(String fontName, uint32_t fontSize)
+Label::Label(String fontName, uint32_t fontSize, bool sdf)
 	: _alphaRef(0)
 	, _spacing(0)
 	, _textWidth(Label::AutomaticWidth)
 	, _alignment(TextAlign::Center)
-	, _font(SharedFontCache.load(fontName, fontSize))
+	, _outlineColor(0x0)
+	, _outlineWidth(0.0f)
+	, _smooth{0.7f, 0.7f}
+	, _font(SharedFontCache.load(fontName, fontSize, sdf))
 	, _blendFunc(BlendFunc::Default)
-	, _effect(SharedFontCache.getDefaultEffect()) {
+	, _effect(sdf ? SharedFontCache.getSDFEffect() : SharedFontCache.getDefaultEffect()) {
 	if (_font) {
 		_lineGap = _font->getInfo().lineGap;
 		_flags.setOff(Node::TraverseEnabled);
@@ -304,11 +321,13 @@ Label::Label(String fontStr)
 	, _textWidth(Label::AutomaticWidth)
 	, _alignment(TextAlign::Center)
 	, _font(SharedFontCache.load(fontStr))
-	, _blendFunc(BlendFunc::Default)
-	, _effect(SharedFontCache.getDefaultEffect()) {
-	_lineGap = _font->getInfo().lineGap;
-	_flags.setOff(Node::TraverseEnabled);
-	_flags.setOn(Label::TextBatched);
+	, _blendFunc(BlendFunc::Default) {
+	if (_font) {
+		_effect = _font->getInfo().sdf ? SharedFontCache.getSDFEffect() : SharedFontCache.getDefaultEffect();
+		_lineGap = _font->getInfo().lineGap;
+		_flags.setOff(Node::TraverseEnabled);
+		_flags.setOn(Label::TextBatched);
+	}
 }
 
 Label::~Label() { }
@@ -451,6 +470,30 @@ bool Label::isBatched() const noexcept {
 	return _flags.isOn(Label::TextBatched);
 }
 
+void Label::setOutlineColor(Color var) {
+	_outlineColor = var;
+}
+
+Color Label::getOutlineColor() const noexcept {
+	return _outlineColor;
+}
+
+void Label::setOutlineWidth(float var) {
+	_outlineWidth = var;
+}
+
+float Label::getOutlineWidth() const noexcept {
+	return _outlineWidth;
+}
+
+void Label::setSmooth(Vec2 var) {
+	_smooth = var;
+}
+
+Vec2 Label::getSmooth() const noexcept {
+	return _smooth;
+}
+
 Sprite* Label::getCharacter(int index) const {
 	if (0 <= index && index < s_cast<int>(_text.size())) {
 		return _characters[index] ? _characters[index]->sprite : nullptr;
@@ -501,6 +544,8 @@ void Label::updateCharacters(const std::vector<uint32_t>& chars) {
 	float lineHeight = fontInfo.ascender - fontInfo.descender + _lineGap;
 	totalHeight = lineHeight * quantityOfLines - (quantityOfLines > 0 ? _lineGap : 0);
 	nextFontPositionY = lineHeight * quantityOfLines - lineHeight;
+
+	float padding = fontInfo.sdf ? fontInfo.pixelSize * SDF_FONT_BUFFER_PADDING_RATIO : 0;
 
 	const bgfx::GlyphInfo* fontDef = nullptr;
 	for (size_t i = 0; i < chars.size(); i++) {
@@ -555,8 +600,8 @@ void Label::updateCharacters(const std::vector<uint32_t>& chars) {
 
 		float yOffset = -fontDef->offset_y;
 		Vec2 fontPos = Vec2{
-			nextFontPositionX + fontDef->offset_x + fontDef->width * 0.5f + kerningAmount,
-			nextFontPositionY + yOffset - fontDef->height * 0.5f - fontInfo.descender};
+			nextFontPositionX + fontDef->offset_x + fontDef->width * 0.5f + kerningAmount - padding,
+			nextFontPositionY + yOffset - fontDef->height * 0.5f - fontInfo.descender + padding};
 		fontChar->pos = fontPos;
 		if (fontChar->sprite) {
 			fontChar->sprite->setPosition(fontPos);
@@ -925,6 +970,14 @@ const Matrix& Label::getWorld() {
 }
 
 void Label::render() {
+	if (_font && _font->getInfo().sdf && _effect) {
+		const auto& passes = _effect->getPasses();
+		if (!passes.empty()) {
+			passes.front()->set("u_smooth"sv, _smooth.x, _smooth.y, _outlineWidth, 0.0f);
+			passes.front()->set("u_outlineColor"sv, _outlineColor);
+		}
+	}
+
 	if (_flags.isOff(Label::TextBatched)) {
 		Node::render();
 		return;

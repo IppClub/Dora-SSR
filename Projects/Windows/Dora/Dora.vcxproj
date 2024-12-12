@@ -2085,6 +2085,7 @@
     <ClInclude Include="..\..\..\Source\3rdParty\Other\AcfDelegate.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\Other\atlas.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\Other\rapidxml_sax3.hpp" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Other\SdfBuilder.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\Other\utf8.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\ArrayList.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\BlockAllocator.hpp" />

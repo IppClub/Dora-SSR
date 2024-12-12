@@ -25,11 +25,36 @@ const AutomaticWidth: number
 
 **描述：**
 
+&emsp;&emsp;使用指定的字体字符串创建新的文本标签对象。
+
+**签名：**
+```tl
+metamethod __call: function(self: LabelClass, fontStr: string): Label | nil
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| fontStr | string | 用于标签的字体字符串。应该以 "fontName;fontSize;sdf" 的格式表示，其中 `sdf` 应该是 "true" 或 "false"，并且可以省略，默认是 false。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| Label \| nil | 新的文本标签对象，如果创建失败则返回 `nil`。 |
+
+## __call
+
+**类型：** 元方法。
+
+**描述：**
+
 &emsp;&emsp;使用指定的字体名称和字体大小创建新的文本标签对象。
 
 **签名：**
 ```tl
-metamethod __call: function(self: LabelClass, fontName: string, fontSize: integer): Label | nil
+metamethod __call: function(self: LabelClass, fontName: string, fontSize: integer, sdf?: boolean): Label | nil
 ```
 
 **参数：**
@@ -38,6 +63,7 @@ metamethod __call: function(self: LabelClass, fontName: string, fontSize: intege
 | --- | --- | --- |
 | fontName | string | 用于标签的字体名称。<br/>可以是带有或是不带文件扩展名的字体文件路径。 |
 | fontSize | integer | 用于标签的字体大小。 |
+| sdf | boolean | [optional] 是否启用SDF渲染。启用SDF渲染后，描边功能将生效。(默认是false) |
 
 **返回值：**
 

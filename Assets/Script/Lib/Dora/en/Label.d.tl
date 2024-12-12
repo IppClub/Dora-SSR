@@ -2,6 +2,8 @@ local Node = require("Node").Type
 local BlendFunc = require("BlendFunc").Type
 local SpriteEffect = require("SpriteEffect").Type
 local Sprite = require("Sprite").Type
+local Color = require("Color").Type
+local Vec2 = require("Vec2").Type
 
 -- A node for rendering text using a TrueType font.
 local record Label
@@ -30,6 +32,15 @@ local record Label
 
 	-- The gap in pixels between characters.
 	spacing: number
+
+	-- The width of the outline, only works with SDF label.
+	outlineWidth: number
+
+	-- The color of the outline, only works with SDF label.
+	outlineColor: Color
+
+	-- The smooth value of the text, only works with SDF label, default is (0.7, 0.7).
+	smooth: Vec2
 
 	-- The text to be rendered.
 	text: string
@@ -66,12 +77,18 @@ local record LabelClass
 	-- The value to use for automatic width calculation
 	const AutomaticWidth: number
 
+	-- Creates a new Label object with the specified font string.
+	-- @param fontStr (string) The font string to use for the label. Should be in the format "fontName;fontSize;sdf", where `sdf` should be "true" or "false" and can be omitted as default is false.
+	-- @return (Label | nil) The new Label object, or `nil` if the font could not be loaded.
+	metamethod __call: function(self: LabelClass, fontStr: string): Label | nil
+
 	-- Creates a new Label object with the specified font name and font size.
 	-- @param fontName (string) The name of the font to use for the label.
 	-- Can be font file path with or without file extension.
 	-- @param fontSize (integer) The size of the font to use for the label.
+	-- @param sdf (boolean) [optional] Whether to use SDF rendering or not. With SDF rendering, the outline feature will be enabled. (Default is false)
 	-- @return (Label | nil) The new Label object, or `nil` if the font could not be loaded.
-	metamethod __call: function(self: LabelClass, fontName: string, fontSize: integer): Label | nil
+	metamethod __call: function(self: LabelClass, fontName: string, fontSize: integer, sdf?: boolean): Label | nil
 end
 
 local labelClass: LabelClass

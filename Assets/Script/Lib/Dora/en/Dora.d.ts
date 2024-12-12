@@ -6297,6 +6297,21 @@ class Label extends Node {
 	spacing: number;
 
 	/**
+	 * The color of the outline, only works with SDF label.
+	 */
+	outlineColor: Color;
+
+	/**
+	 * The width of the outline, only works with SDF label.
+	 */
+	outlineWidth: number;
+
+	/**
+	 * The smooth value of the text, only works with SDF label, default is (0.7, 0.7).
+	 */
+	smooth: Vec2;
+
+	/**
 	 * The text to be rendered.
 	 */
 	text: string;
@@ -6354,12 +6369,20 @@ interface LabelClass {
 	readonly AutomaticWidth: number;
 
 	/**
+	 * Creates a new Label object with the specified font string.
+	 * @param fontStr The font string to use for the label. Should be in the format "fontName;fontSize;sdf", where `sdf` should be "true" or "false" and can be omitted as default is false.
+	 * @returns The new Label object. Returns `null` if the font could not be loaded.
+	 */
+	(this: void, fontStr: string): Label | null;
+
+	/**
 	 * Creates a new Label object with the specified font name and font size.
 	 * @param fontName The name of the font to use for the label. Can be a font file path with or without a file extension.
 	 * @param fontSize The size of the font to use for the label.
+	 * @param sdf [optional] Whether to use SDF rendering or not. With SDF rendering, the outline feature will be enabled. (Default is false)
 	 * @returns The new Label object. Returns `null` if the font could not be loaded.
 	 */
-	(this: void, fontName: string, fontSize: number): Label | null;
+	(this: void, fontName: string, fontSize: number, sdf?: boolean): Label | null;
 }
 
 const labelClass: LabelClass;

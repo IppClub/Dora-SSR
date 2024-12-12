@@ -573,6 +573,9 @@ class Label : public Node
 	tolua_property__common float textWidth;
 	tolua_property__common float spacing;
 	tolua_property__common float lineGap;
+	tolua_property__common float outlineWidth;
+	tolua_property__common Color outlineColor;
+	tolua_property__common Vec2 smooth;
 	tolua_property__common string text;
 	tolua_property__common BlendFunc blendFunc;
 	tolua_property__bool bool depthWrite;
@@ -581,7 +584,8 @@ class Label : public Node
 	tolua_readonly tolua_property__common int characterCount;
 	tolua_outside Sprite* Label_getCharacter @ getCharacter(int index);
 	static const float AutomaticWidth;
-	static Label* create(String fontName, uint32_t fontSize);
+	static Label* create(String fontStr);
+	static Label* create(String fontName, uint32_t fontSize, bool sdf = false);
 };
 
 class RenderTarget : public Object

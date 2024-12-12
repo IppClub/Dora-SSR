@@ -6298,6 +6298,21 @@ class Label extends Node {
 	spacing: number;
 
 	/**
+	 * 描边颜色，仅适用于SDF标签。
+	 */
+	outlineColor: Color;
+
+	/**
+	 * 描边宽度，仅适用于SDF标签
+	 */
+	outlineWidth: number;
+
+	/**
+	 * 文本的平滑值，仅适用于SDF标签，默认是 (0.7, 0.7)。
+	 */
+	smooth: Vec2;
+
+	/**
 	 * 要渲染的文本。
 	 */
 	text: string;
@@ -6355,12 +6370,20 @@ interface LabelClass {
 	readonly AutomaticWidth: number;
 
 	/**
+	 * 使用指定的字体字符串创建新的 Label 对象。
+	 * @param fontStr 用于创建 Label 对象的字体字符串。应该以 "fontName;fontSize;sdf" 的格式表示，其中 `sdf` 应该是 "true" 或 "false"，并且可以省略，默认是 false。
+	 * @returns 新的 Label 对象，如果创建失败则返回 `null`。
+	 */
+	(this: void, fontStr: string): Label | null;
+
+	/**
 	 * 使用指定的字体名称和字体大小创建新的 Label 对象。
 	 * @param fontName 用于创建 Label 对象的字体名称。可以是带有或不带有文件扩展名的字体文件路径。
 	 * @param fontSize 用于创建 Label 对象的字体大小。
+	 * @param sdf [可选] 是否启用SDF渲染。启用SDF渲染后，描边功能将生效。(默认是false)
 	 * @returns 新的 Label 对象，如果创建失败则返回 `null`。
 	 */
-	(this: void, fontName: string, fontSize: number): Label | null;
+	(this: void, fontName: string, fontSize: number, sdf?: boolean): Label | null;
 }
 
 const labelClass: LabelClass;

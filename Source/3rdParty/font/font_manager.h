@@ -15,6 +15,8 @@ class Atlas;
 #define MAX_OPENED_FILES 64
 #define MAX_OPENED_FONT 64
 #define MAX_FONT_BUFFER_SIZE 128
+#define SDF_FONT_BUFFER_PADDING_RATIO 0.125
+#define MAX_SDF_FONT_BUFFER_PADDING 16 // MAX_FONT_BUFFER_SIZE * SDF_FONT_BUFFER_PADDING_RATIO
 
 struct FontInfo {
 	/// The font height in pixel.
@@ -29,6 +31,9 @@ struct FontInfo {
 
 	/// Scale to apply to glyph data.
 	float scale;
+
+	/// Is SDF font.
+	bool sdf = false;
 };
 
 // Glyph metrics:
@@ -117,7 +122,7 @@ public:
 	void destroyTtf(TrueTypeHandle _handle);
 
 	/// Return a font whose height is a fixed pixel size.
-	FontHandle createFontByPixelSize(TrueTypeHandle _handle, uint32_t _pixelSize);
+	FontHandle createFontByPixelSize(TrueTypeHandle _handle, uint32_t _pixelSize, bool _sdf);
 
 	/// destroy a font (truetype or baked)
 	void destroyFont(FontHandle _handle);

@@ -25,11 +25,36 @@ const AutomaticWidth: number
 
 **Description:**
 
+&emsp;&emsp;Creates a new Label object with the specified font string.
+
+**Signature:**
+```tl
+metamethod __call: function(self: LabelClass, fontStr: string): Label | nil
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| fontStr | string | The font string to use for the label. Should be in the format "fontName;fontSize;sdf", where `sdf` should be "true" or "false" and can be omitted as default is false. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| Label \| nil | The new Label object, or `nil` if the font could not be loaded. |
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
 &emsp;&emsp;Creates a new Label object with the specified font name and font size.
 
 **Signature:**
 ```tl
-metamethod __call: function(self: LabelClass, fontName: string, fontSize: integer): Label | nil
+metamethod __call: function(self: LabelClass, fontName: string, fontSize: integer, sdf?: boolean): Label | nil
 ```
 
 **Parameters:**
@@ -38,6 +63,7 @@ metamethod __call: function(self: LabelClass, fontName: string, fontSize: intege
 | --- | --- | --- |
 | fontName | string | The name of the font to use for the label.<br/>Can be font file path with or without file extension. |
 | fontSize | integer | The size of the font to use for the label. |
+| sdf | boolean | [optional] Whether to use SDF rendering or not. With SDF rendering, the outline feature will be enabled. (Default is false) |
 
 **Returns:**
 
