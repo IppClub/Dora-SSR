@@ -41,6 +41,24 @@ void label_set_line_gap(int64_t self, float var) {
 float label_get_line_gap(int64_t self) {
 	return r_cast<Label*>(self)->getLineGap();
 }
+void label_set_outline_color(int64_t self, int32_t var) {
+	r_cast<Label*>(self)->setOutlineColor(Color(s_cast<uint32_t>(var)));
+}
+int32_t label_get_outline_color(int64_t self) {
+	return r_cast<Label*>(self)->getOutlineColor().toARGB();
+}
+void label_set_outline_width(int64_t self, float var) {
+	r_cast<Label*>(self)->setOutlineWidth(var);
+}
+float label_get_outline_width(int64_t self) {
+	return r_cast<Label*>(self)->getOutlineWidth();
+}
+void label_set_smooth(int64_t self, int64_t var) {
+	r_cast<Label*>(self)->setSmooth(Vec2_From(var));
+}
+int64_t label_get_smooth(int64_t self) {
+	return Vec2_Retain(r_cast<Label*>(self)->getSmooth());
+}
 void label_set_text(int64_t self, int64_t var) {
 	r_cast<Label*>(self)->setText(*Str_From(var));
 }
@@ -80,8 +98,11 @@ int64_t label_get_character(int64_t self, int32_t index) {
 float label_get_automatic_width(int64_t self) {
 	return Label::AutomaticWidth;
 }
-int64_t label_new(int64_t font_name, int32_t font_size) {
-	return Object_From(Label::create(*Str_From(font_name), s_cast<uint32_t>(font_size)));
+int64_t label_new(int64_t font_name, int32_t font_size, int32_t sdf) {
+	return Object_From(Label::create(*Str_From(font_name), s_cast<uint32_t>(font_size), sdf != 0));
+}
+int64_t label_with_str(int64_t font_str) {
+	return Object_From(Label::create(*Str_From(font_str)));
 }
 } // extern "C"
 
@@ -97,6 +118,12 @@ static void linkLabel(wasm3::module3& mod) {
 	mod.link_optional("*", "label_get_spacing", label_get_spacing);
 	mod.link_optional("*", "label_set_line_gap", label_set_line_gap);
 	mod.link_optional("*", "label_get_line_gap", label_get_line_gap);
+	mod.link_optional("*", "label_set_outline_color", label_set_outline_color);
+	mod.link_optional("*", "label_get_outline_color", label_get_outline_color);
+	mod.link_optional("*", "label_set_outline_width", label_set_outline_width);
+	mod.link_optional("*", "label_get_outline_width", label_get_outline_width);
+	mod.link_optional("*", "label_set_smooth", label_set_smooth);
+	mod.link_optional("*", "label_get_smooth", label_get_smooth);
 	mod.link_optional("*", "label_set_text", label_set_text);
 	mod.link_optional("*", "label_get_text", label_get_text);
 	mod.link_optional("*", "label__set_blend_func", label__set_blend_func);
@@ -111,4 +138,5 @@ static void linkLabel(wasm3::module3& mod) {
 	mod.link_optional("*", "label_get_character", label_get_character);
 	mod.link_optional("*", "label_get_automatic_width", label_get_automatic_width);
 	mod.link_optional("*", "label_new", label_new);
+	mod.link_optional("*", "label_with_str", label_with_str);
 }

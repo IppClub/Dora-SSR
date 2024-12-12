@@ -654,6 +654,11 @@ class Label extends Node {
 	fontSize: number;
 
 	/**
+	 * 是否启用SDF渲染。启用SDF渲染后，描边功能将生效。
+	 */
+	sdf?: boolean;
+
+	/**
 	 * 要渲染的文本。
 	 */
 	text?: string;
@@ -680,6 +685,26 @@ class Label extends Node {
 	 * 文本字符之间的间距（以像素为单位）。
 	 */
 	spacing?: number;
+
+	/**
+	 * 描边颜色，仅适用于SDF标签。
+	 */
+	outlineColor?: number;
+
+	/**
+	 * 描边宽度，仅适用于SDF标签。
+	 */
+	outlineWidth?: number;
+
+	/**
+	 * 文本的 lower 平滑值，仅适用于SDF标签，默认是 0.7。
+	 */
+	smoothLower?: number;
+
+	/**
+	 * 文本的 upper 平滑值，仅适用于SDF标签，默认是 0.7。
+	 */
+	smoothUpper?: number;
 
 	/**
 	 * 用于渲染文本的混合函数。

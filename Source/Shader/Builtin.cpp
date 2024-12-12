@@ -27,6 +27,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Shader/Sprite/fs_spriteoutlinecolor.bin.h"
 #include "Shader/Sprite/fs_spritesaturation.bin.h"
 #include "Shader/Sprite/fs_spritewhite.bin.h"
+#include "Shader/Sprite/fs_spritesdfoutline.bin.h"
 #include "Shader/Sprite/vs_sprite.bin.h"
 
 #include "Shader/efkbgfx/ad_model_distortion_ps.bin.h"
@@ -66,6 +67,7 @@ static const bgfx::EmbeddedShader doraShaders[] = {
 	BGFX_EMBEDDED_SHADER(fs_spritealphatest),
 	BGFX_EMBEDDED_SHADER(fs_spritesaturation),
 	BGFX_EMBEDDED_SHADER(fs_spriteoutlinecolor),
+	BGFX_EMBEDDED_SHADER(fs_spritesdfoutline),
 	BGFX_EMBEDDED_SHADER(ad_model_distortion_ps),
 	BGFX_EMBEDDED_SHADER(ad_model_distortion_vs),
 	BGFX_EMBEDDED_SHADER(ad_model_lit_ps),

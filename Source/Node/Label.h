@@ -57,14 +57,15 @@ protected:
 class FontCache {
 public:
 	PROPERTY_READONLY(SpriteEffect*, DefaultEffect);
+	PROPERTY_READONLY(SpriteEffect*, SDFEffect);
 	PROPERTY_READONLY(bgfx::FontManager*, Manager);
 	virtual ~FontCache();
 	void loadAync(String fontStr,
 		const std::function<void(Font* font)>& callback);
-	void loadAync(String fontName, uint32_t fontSize,
+	void loadAync(String fontName, uint32_t fontSize, bool sdf,
 		const std::function<void(Font* font)>& callback);
 	Font* load(String fontStr);
-	Font* load(String fontName, uint32_t fontSize);
+	Font* load(String fontName, uint32_t fontSize, bool sdf);
 	bool unload();
 	bool unload(String fontStr);
 	bool unload(String fontName, uint32_t fontSize);
@@ -78,8 +79,9 @@ protected:
 	FontCache();
 
 private:
-	std::pair<std::string, int> getArgsFromStr(String fontStr);
+	std::tuple<std::string, int, bool> getArgsFromStr(String fontStr);
 	Ref<SpriteEffect> _defaultEffect;
+	Ref<SpriteEffect> _sdfEffect;
 	StringMap<Ref<TrueTypeFile>> _fontFiles;
 	StringMap<Ref<Font>> _fonts;
 	SINGLETON_REF(FontCache, FontManager, BGFXDora);
@@ -106,6 +108,9 @@ public:
 	PROPERTY_CREF(BlendFunc, BlendFunc);
 	PROPERTY_BOOL(DepthWrite);
 	PROPERTY(float, AlphaRef);
+	PROPERTY(Color, OutlineColor);
+	PROPERTY(float, OutlineWidth);
+	PROPERTY(Vec2, Smooth);
 	PROPERTY_BOOL(Batched);
 	virtual void setRenderOrder(int var) override;
 	Sprite* getCharacter(int index) const;
@@ -119,7 +124,7 @@ public:
 
 protected:
 	Label(String fontStr);
-	Label(String fontName, uint32_t fontSize);
+	Label(String fontName, uint32_t fontSize, bool sdf = false);
 	void updateCharacters(const std::vector<uint32_t>& chars);
 	void updateLabel();
 	struct CharItem {
@@ -148,6 +153,9 @@ private:
 	float _spacing;
 	float _textWidth;
 	float _lineGap;
+	Color _outlineColor;
+	float _outlineWidth;
+	Vec2 _smooth;
 	Ref<Font> _font;
 	Ref<SpriteEffect> _effect;
 	BlendFunc _blendFunc;

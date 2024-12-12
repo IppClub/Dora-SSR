@@ -18,6 +18,12 @@ extern "C" {
 	fn label_get_spacing(slf: i64) -> f32;
 	fn label_set_line_gap(slf: i64, var: f32);
 	fn label_get_line_gap(slf: i64) -> f32;
+	fn label_set_outline_color(slf: i64, var: i32);
+	fn label_get_outline_color(slf: i64) -> i32;
+	fn label_set_outline_width(slf: i64, var: f32);
+	fn label_get_outline_width(slf: i64) -> f32;
+	fn label_set_smooth(slf: i64, var: i64);
+	fn label_get_smooth(slf: i64) -> i64;
 	fn label_set_text(slf: i64, var: i64);
 	fn label_get_text(slf: i64) -> i64;
 	fn label__set_blend_func(slf: i64, func: i64);
@@ -31,7 +37,8 @@ extern "C" {
 	fn label_get_character_count(slf: i64) -> i32;
 	fn label_get_character(slf: i64, index: i32) -> i64;
 	fn label_get_automatic_width() -> f32;
-	fn label_new(font_name: i64, font_size: i32) -> i64;
+	fn label_new(font_name: i64, font_size: i32, sdf: i32) -> i64;
+	fn label_with_str(font_str: i64) -> i64;
 }
 use crate::dora::IObject;
 use crate::dora::INode;
@@ -93,6 +100,30 @@ impl Label {
 	/// Gets the gap in pixels between lines of text.
 	pub fn get_line_gap(&self) -> f32 {
 		return unsafe { label_get_line_gap(self.raw()) };
+	}
+	/// Sets the color of the outline, only works with SDF label.
+	pub fn set_outline_color(&mut self, var: &crate::dora::Color) {
+		unsafe { label_set_outline_color(self.raw(), var.to_argb() as i32) };
+	}
+	/// Gets the color of the outline, only works with SDF label.
+	pub fn get_outline_color(&self) -> crate::dora::Color {
+		return unsafe { crate::dora::Color::from(label_get_outline_color(self.raw())) };
+	}
+	/// Sets the width of the outline, only works with SDF label.
+	pub fn set_outline_width(&mut self, var: f32) {
+		unsafe { label_set_outline_width(self.raw(), var) };
+	}
+	/// Gets the width of the outline, only works with SDF label.
+	pub fn get_outline_width(&self) -> f32 {
+		return unsafe { label_get_outline_width(self.raw()) };
+	}
+	/// Sets the smooth value of the text, only works with SDF label, default is (0.7, 0.7).
+	pub fn set_smooth(&mut self, var: &crate::dora::Vec2) {
+		unsafe { label_set_smooth(self.raw(), var.into_i64()) };
+	}
+	/// Gets the smooth value of the text, only works with SDF label, default is (0.7, 0.7).
+	pub fn get_smooth(&self) -> crate::dora::Vec2 {
+		return unsafe { crate::dora::Vec2::from(label_get_smooth(self.raw())) };
 	}
 	/// Sets the text to be rendered.
 	pub fn set_text(&mut self, var: &str) {
@@ -160,11 +191,24 @@ impl Label {
 	///
 	/// * `font_name` - The name of the font to use for the label. Can be font file path with or without file extension.
 	/// * `font_size` - The size of the font to use for the label.
+	/// * `sdf` - Whether to use SDF rendering or not. With SDF rendering, the outline feature will be enabled.
 	///
 	/// # Returns
 	///
 	/// * `Label` - The new Label object.
-	pub fn new(font_name: &str, font_size: i32) -> Option<Label> {
-		unsafe { return Label::from(label_new(crate::dora::from_string(font_name), font_size)); }
+	pub fn new(font_name: &str, font_size: i32, sdf: bool) -> Option<Label> {
+		unsafe { return Label::from(label_new(crate::dora::from_string(font_name), font_size, if sdf { 1 } else { 0 })); }
+	}
+	/// Creates a new Label object with the specified font string.
+	///
+	/// # Arguments
+	///
+	/// * `font_str` - The font string to use for the label. Should be in the format "fontName;fontSize;sdf", where `sdf` should be "true" or "false".
+	///
+	/// # Returns
+	///
+	/// * `Label` - The new Label object.
+	pub fn with_str(font_str: &str) -> Option<crate::dora::Label> {
+		unsafe { return crate::dora::Label::from(label_with_str(crate::dora::from_string(font_str))); }
 	}
 }

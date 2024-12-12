@@ -16,6 +16,7 @@ using namespace Dora;
 namespace stl = tinystl;
 
 #include "Other/atlas.h"
+#include "Other/SdfBuilder.h"
 
 namespace bgfx {
 
@@ -27,7 +28,7 @@ public:
 	/// Initialize from  an external buffer
 	/// @remark The ownership of the buffer is external, and you must ensure it stays valid up to this object lifetime
 	/// @return true if the initialization succeed
-	bool init(const uint8_t* _buffer, uint32_t _bufferSize, uint32_t _pixelHeight);
+	bool init(const uint8_t* _buffer, uint32_t _bufferSize, uint32_t _pixelHeight, bool _sdf);
 
 	/// return the font descriptor of the current font
 	const stbtt_fontinfo& getSTBInfo() const;
@@ -48,9 +49,9 @@ TrueTypeFont::TrueTypeFont()
 
 TrueTypeFont::~TrueTypeFont() { }
 
-bool TrueTypeFont::init(const uint8_t* _buffer, uint32_t _bufferSize, uint32_t _pixelHeight) {
+bool TrueTypeFont::init(const uint8_t* _buffer, uint32_t _bufferSize, uint32_t _pixelHeight, bool _sdf) {
 	AssertUnless(m_fontInfo.data == nullptr, "TrueTypeFont already initialized");
-	_pixelHeight = Math::clamp(_pixelHeight, 5U, 127U);
+	_pixelHeight = Math::clamp(_pixelHeight, 5U, 128U);
 
 	if (!stbtt_InitFont(&m_fontInfo, _buffer, stbtt_GetFontOffsetForIndex(_buffer, 0))) {
 		Error("stbtt_InitFont failed.");
@@ -60,6 +61,7 @@ bool TrueTypeFont::init(const uint8_t* _buffer, uint32_t _bufferSize, uint32_t _
 	float scale = stbtt_ScaleForPixelHeight(&m_fontInfo, s_cast<float>(_pixelHeight));
 	int ascent, descent, lineGap;
 	stbtt_GetFontVMetrics(&m_fontInfo, &ascent, &descent, &lineGap);
+	m_info.sdf = _sdf;
 	m_info.scale = scale;
 	m_info.ascender = ascent * scale;
 	m_info.descender = descent * scale;
@@ -77,6 +79,34 @@ const FontInfo& TrueTypeFont::getFontInfo() const {
 	return m_info;
 }
 
+static std::vector<uint8_t> padTexture(
+	const uint8_t* originalData, // Original texture data
+	int pixelHeight,
+	int originalWidth, // Original width (e.g., 128)
+	int originalHeight, // Original height (e.g., 128)
+	int& newWidth, // Reference to store new width
+	int& newHeight // Reference to store new height
+) {
+	// Calculate new dimensions
+	int padding = pixelHeight * SDF_FONT_BUFFER_PADDING_RATIO;
+	newWidth = originalWidth + 2 * padding;
+	newHeight = originalHeight + 2 * padding;
+
+	// Allocate memory for the new padded texture
+	std::vector<uint8_t> paddedData(newWidth * newHeight, 0);
+
+	// Copy the original texture data into the center of the padded texture
+	for (int y = 0; y < originalHeight; ++y) {
+		std::memcpy(
+			paddedData.data() + (y + padding) * newWidth + padding, // Destination
+			originalData + y * originalWidth, // Source
+			sizeof(uint8_t) * originalWidth // Number of bytes to copy
+		);
+	}
+
+	return paddedData;
+}
+
 bool TrueTypeFont::bakeGlyphAlpha(CodePoint _codePoint, GlyphInfo& _glyphInfo, uint8_t* _outBuffer) {
 	AssertUnless(m_fontInfo.data, "TrueTypeFont not initialized");
 	int left, top, right, bottom;
@@ -90,6 +120,14 @@ bool TrueTypeFont::bakeGlyphAlpha(CodePoint _codePoint, GlyphInfo& _glyphInfo, u
 	_glyphInfo.advance_x = (float)(advanceWidth * m_info.scale);
 	_glyphInfo.glyphIndex = stbtt_FindGlyphIndex(&m_fontInfo, _codePoint);
 	stbtt_MakeCodepointBitmap(&m_fontInfo, _outBuffer, right - left, bottom - top, right - left, m_info.scale, m_info.scale, _codePoint);
+	if (m_info.sdf && _glyphInfo.width > 0 && _glyphInfo.height > 0) {
+		int newWidth = 0, newHeight = 0;
+		auto paddingBuff = padTexture(_outBuffer, m_info.pixelSize, s_cast<int>(_glyphInfo.width), s_cast<int>(_glyphInfo.height), newWidth, newHeight);
+		auto sdfBuffer = SdfBuilder{paddingBuff.data(), newWidth, newHeight}.Build();
+		_glyphInfo.width = newWidth;
+		_glyphInfo.height = newHeight;
+		std::memcpy(_outBuffer, sdfBuffer.data(), sizeof(uint8_t) * sdfBuffer.size());
+	}
 	return true;
 }
 
@@ -114,7 +152,8 @@ FontManager::FontManager(uint16_t _textureSideWidth)
 void FontManager::init() {
 	m_cachedFiles = NewArray<CachedFile>(MAX_OPENED_FILES);
 	m_cachedFonts = NewArray<CachedFont>(MAX_OPENED_FONT);
-	m_buffer = NewArray<uint8_t>(MAX_FONT_BUFFER_SIZE * MAX_FONT_BUFFER_SIZE * 1);
+	const int bufferSize = MAX_FONT_BUFFER_SIZE + MAX_SDF_FONT_BUFFER_PADDING;
+	m_buffer = NewArray<uint8_t>(bufferSize * bufferSize);
 	auto atlas = New<Atlas>(m_textureWidth, Atlas::Gray, true);
 	m_currentAtlas = atlas.get();
 	m_atlases.push_back(std::move(atlas));
@@ -153,11 +192,11 @@ void FontManager::destroyTtf(TrueTypeHandle _handle) {
 	m_filesHandles.free(_handle.idx);
 }
 
-FontHandle FontManager::createFontByPixelSize(TrueTypeHandle _ttfHandle, uint32_t _pixelSize) {
+FontHandle FontManager::createFontByPixelSize(TrueTypeHandle _ttfHandle, uint32_t _pixelSize, bool _sdf) {
 	AssertUnless(bgfx::isValid(_ttfHandle), "Invalid handle used");
 
 	auto ttf = New<TrueTypeFont>();
-	if (!ttf->init(m_cachedFiles.get()[_ttfHandle.idx].buffer.get(), m_cachedFiles.get()[_ttfHandle.idx].bufferSize, _pixelSize)) {
+	if (!ttf->init(m_cachedFiles.get()[_ttfHandle.idx].buffer.get(), m_cachedFiles.get()[_ttfHandle.idx].bufferSize, _pixelSize, _sdf)) {
 		FontHandle invalid = BGFX_INVALID_HANDLE;
 		return invalid;
 	}

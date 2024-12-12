@@ -421,11 +421,13 @@ let getLabel: (this: void, enode: React.Element) => Dora.Label.Type | null;
 {
 	function handleLabelAttribute(this: void, cnode: Dora.Label.Type, _enode: React.Element, k: any, v: any) {
 		switch (k as keyof JSX.Label) {
-			case 'fontName': case 'fontSize': case 'text': return true;
+			case 'fontName': case 'fontSize': case 'text': case 'smoothLower': case 'smoothUpper': return true;
 			case 'alphaRef': cnode.alphaRef = v; return true;
 			case 'textWidth': cnode.textWidth = v; return true;
 			case 'lineGap': cnode.lineGap = v; return true;
 			case 'spacing': cnode.spacing = v; return true;
+			case 'outlineColor': cnode.outlineColor = Dora.Color(v); return true;
+			case 'outlineWidth': cnode.outlineWidth = v; return true;
 			case 'blendFunc': cnode.blendFunc = v; return true;
 			case 'depthWrite': cnode.depthWrite = v; return true;
 			case 'batched': cnode.batched = v; return true;
@@ -436,8 +438,12 @@ let getLabel: (this: void, enode: React.Element) => Dora.Label.Type | null;
 	}
 	getLabel = (enode: React.Element) => {
 		const label = enode.props as JSX.Label;
-		const node = Dora.Label(label.fontName, label.fontSize);
+		const node = Dora.Label(label.fontName, label.fontSize, label.sdf);
 		if (node !== null) {
+			if (label.smoothLower !== undefined || label.smoothUpper != undefined) {
+				const {x, y} = node.smooth;
+				node.smooth = Dora.Vec2(label.smoothLower ?? x, label.smoothUpper ?? y);
+			}
 			const cnode = getNode(enode, node, handleLabelAttribute);
 			const {children} = enode;
 			let text = label.text ?? '';

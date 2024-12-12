@@ -4314,6 +4314,9 @@
     <ClInclude Include="..\..\..\Source\3rdParty\yoga\style\StyleSizeLength.h">
       <Filter>3rdParty\yoga\style</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Other\SdfBuilder.h">
+      <Filter>3rdParty\Other</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resource.rc">

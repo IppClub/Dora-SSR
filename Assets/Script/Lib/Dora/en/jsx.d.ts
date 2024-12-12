@@ -654,6 +654,11 @@ class Label extends Node {
 	fontSize: number;
 
 	/**
+	 * Whether to use SDF rendering or not. With SDF rendering, the outline feature will be enabled.
+	 */
+	sdf?: boolean;
+
+	/**
 	 * The alpha threshold value. Pixels with alpha values below this value will not be drawn.
 	 * Only works with `label.effect = SpriteEffect("builtin:vs_sprite", "builtin:fs_spritealphatest")`.
 	 */
@@ -675,6 +680,26 @@ class Label extends Node {
 	 * The gap in pixels between characters.
 	 */
 	spacing?: number;
+
+	/**
+	 * The color of the outline, only works with SDF label.
+	 */
+	outlineColor?: number;
+
+	/**
+	 * The width of the outline, only works with SDF label.
+	 */
+	outlineWidth?: number;
+
+	/**
+	 * The smooth lower value of the text, only works with SDF label, default is 0.7.
+	 */
+	smoothLower?: number;
+
+	/**
+	 * The smooth upper value of the text, only works with SDF label, default is 0.7.
+	 */
+	smoothUpper?: number;
 
 	/**
 	 * The text to be rendered.
