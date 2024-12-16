@@ -79,7 +79,7 @@ const FontInfo& TrueTypeFont::getFontInfo() const {
 	return m_info;
 }
 
-static std::vector<uint8_t> padTexture(
+static std::unique_ptr<uint8_t[]> padTexture(
 	const uint8_t* originalData, // Original texture data
 	int pixelHeight,
 	int originalWidth, // Original width (e.g., 128)
@@ -93,12 +93,12 @@ static std::vector<uint8_t> padTexture(
 	newHeight = originalHeight + 2 * padding;
 
 	// Allocate memory for the new padded texture
-	std::vector<uint8_t> paddedData(newWidth * newHeight, 0);
+	auto paddedData = std::make_unique<uint8_t[]>(newWidth * newHeight);
 
 	// Copy the original texture data into the center of the padded texture
 	for (int y = 0; y < originalHeight; ++y) {
 		std::memcpy(
-			paddedData.data() + (y + padding) * newWidth + padding, // Destination
+			paddedData.get() + (y + padding) * newWidth + padding, // Destination
 			originalData + y * originalWidth, // Source
 			sizeof(uint8_t) * originalWidth // Number of bytes to copy
 		);
@@ -123,10 +123,10 @@ bool TrueTypeFont::bakeGlyphAlpha(CodePoint _codePoint, GlyphInfo& _glyphInfo, u
 	if (m_info.sdf && _glyphInfo.width > 0 && _glyphInfo.height > 0) {
 		int newWidth = 0, newHeight = 0;
 		auto paddingBuff = padTexture(_outBuffer, m_info.pixelSize, s_cast<int>(_glyphInfo.width), s_cast<int>(_glyphInfo.height), newWidth, newHeight);
-		auto sdfBuffer = sdf::sdf_gen2d{}.build(paddingBuff.data(), newWidth, newHeight);
+		auto [sdfBuffer, sdfSize] = sdf::sdf_gen2d{}.build(paddingBuff.get(), newWidth, newHeight);
 		_glyphInfo.width = newWidth;
 		_glyphInfo.height = newHeight;
-		std::memcpy(_outBuffer, sdfBuffer.data(), sizeof(uint8_t) * sdfBuffer.size());
+		std::memcpy(_outBuffer, sdfBuffer.get(), sizeof(sdfBuffer[0]) * sdfSize);
 	}
 	return true;
 }
