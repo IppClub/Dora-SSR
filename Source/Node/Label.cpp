@@ -16,6 +16,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Effect/Effect.h"
 #include "Node/Sprite.h"
 #include "Other/atlas.h"
+#include "Other/sdf_gen2d.h"
 #include "Other/utf8.h"
 #include "font/font_manager.h"
 
@@ -304,7 +305,7 @@ Label::Label(String fontName, uint32_t fontSize, bool sdf)
 	, _alignment(TextAlign::Center)
 	, _outlineColor(0x0)
 	, _outlineWidth(0.0f)
-	, _smooth{0.735f, 0.735f}
+	, _smooth{sdf::sdf_gen2d::suggested_edge_x, sdf::sdf_gen2d::suggested_edge_y}
 	, _font(SharedFontCache.load(fontName, fontSize, sdf))
 	, _blendFunc(BlendFunc::Default)
 	, _effect(sdf ? SharedFontCache.getSDFEffect() : SharedFontCache.getDefaultEffect()) {
