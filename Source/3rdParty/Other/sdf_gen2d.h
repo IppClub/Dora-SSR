@@ -27,31 +27,33 @@ public:
 
 	sdf_fgen2d() = default;
 
-	std::vector<unsigned char> build(unsigned char* bitmap, uint32_t width, uint32_t height, float dist_scale = 20.0f) {
-		m_width = width;
-		m_height = height;
-		auto m_grid_out = std::make_unique<sdf_point2d[]>(m_width * m_height);
-		auto m_grid_in = std::make_unique<sdf_point2d[]>(m_width * m_height);
+	std::pair<std::unique_ptr<uint8_t[]>, uint32_t> build(uint8_t* bitmap, int width, int height, float dist_scale = 20.0f) {
+		assert(width > 0 && height > 0);
+		m_width = static_cast<uint32_t>(width);
+		m_height = static_cast<uint32_t>(height);
+		uint32_t size = width * height;
+		auto m_grid_out = std::make_unique<sdf_point2d[]>(size);
+		auto m_grid_in = std::make_unique<sdf_point2d[]>(size);
 
-		for (int i = 0; i < m_height * m_width; ++i) {
+		for (uint32_t i = 0; i < size; ++i) {
 			m_grid_out[i] = empty;
 			m_grid_in[i] = inside;
 		}
 
-		for (int y = 1; y < m_height - 1; ++y) {
-			for (int x = 1; x < m_width - 1; ++x) {
-				unsigned char val = bitmap[y * m_width + x];
+		for (int y = 1; y < height - 1; ++y) {
+			for (int x = 1; x < width - 1; ++x) {
+				unsigned char val = bitmap[y * width + x];
 				if (val > 128) {
-					m_grid_out[y * m_width + x] = inside;
-					m_grid_out[(y - 1) * m_width + x] = inside;
-					m_grid_out[(y)*m_width + x - 1] = inside;
-					m_grid_out[(y + 1) * m_width + x] = inside;
-					m_grid_out[(y)*m_width + x + 1] = inside;
-					m_grid_out[(y - 1) * m_width + x - 1] = inside;
-					m_grid_out[(y - 1) * m_width + x + 1] = inside;
-					m_grid_out[(y + 1) * m_width + x - 1] = inside;
-					m_grid_out[(y + 1) * m_width + x + 1] = inside;
-					m_grid_in[y * m_width + x] = empty;
+					m_grid_out[y * width + x] = inside;
+					m_grid_out[(y - 1) * width + x] = inside;
+					m_grid_out[(y)*width + x - 1] = inside;
+					m_grid_out[(y + 1) * width + x] = inside;
+					m_grid_out[(y)*width + x + 1] = inside;
+					m_grid_out[(y - 1) * width + x - 1] = inside;
+					m_grid_out[(y - 1) * width + x + 1] = inside;
+					m_grid_out[(y + 1) * width + x - 1] = inside;
+					m_grid_out[(y + 1) * width + x + 1] = inside;
+					m_grid_in[y * width + x] = empty;
 				}
 			}
 		}
@@ -59,10 +61,10 @@ public:
 		generate_sdf(m_grid_out.get());
 		generate_sdf(m_grid_in.get());
 
-		std::vector<unsigned char> ret(m_width * m_height);
-		int remain = m_height * m_width % 4;
+		auto ret = std::make_unique<uint8_t[]>(size);
+		int remain = size % 4;
 
-		for (int i = 0; i < m_height * m_width - remain; i += 4) {
+		for (int i = 0; i < size - remain; i += 4) {
 			ktm::fvec4 outx = ktm::fvec4(m_grid_out[i].x, m_grid_out[i + 1].x, m_grid_out[i + 2].x, m_grid_out[i + 3].x);
 			ktm::fvec4 outy = ktm::fvec4(m_grid_out[i].y, m_grid_out[i + 1].y, m_grid_out[i + 2].y, m_grid_out[i + 3].y);
 			ktm::fvec4 dist1 = ktm::sqrt(outx * outx + outy * outy);
@@ -89,7 +91,7 @@ public:
 			ret[i] = c;
 		}
 
-		return ret;
+		return {std::move(ret), size};
 	}
 
 private:
@@ -170,7 +172,7 @@ private:
 		}
 	}
 
-	uint32_t m_width, m_height;
+	uint32_t m_width = 0, m_height = 0;
 };
 
 class sdf_igen2d {
@@ -188,13 +190,15 @@ public:
 
 	sdf_igen2d() = default;
 
-	std::vector<unsigned char> build(unsigned char* bitmap, int width, int height) {
-		m_width = width;
-		m_height = height;
-		auto m_grid_out = std::make_unique<sdf_point2d[]>(m_width * m_height);
-		auto m_grid_in = std::make_unique<sdf_point2d[]>(m_width * m_height);
+	std::pair<std::unique_ptr<uint8_t[]>, uint32_t> build(uint8_t* bitmap, int width, int height) {
+		assert(width > 0 && height > 0);
+		m_width = static_cast<uint32_t>(width);
+		m_height = static_cast<uint32_t>(height);
+		uint32_t size = width * height;
+		auto m_grid_out = std::make_unique<sdf_point2d[]>(size);
+		auto m_grid_in = std::make_unique<sdf_point2d[]>(size);
 
-		for (int i = 0; i < m_height * m_width; ++i) {
+		for (uint32_t i = 0; i < size; ++i) {
 			m_grid_out[i] = empty;
 			m_grid_in[i] = inside;
 		}
@@ -210,7 +214,7 @@ public:
 		}
 		GenerateSDF(m_grid_out.get());
 		GenerateSDF(m_grid_in.get());
-		std::vector<unsigned char> ret(width * height);
+		auto ret = std::make_unique<uint8_t[]>(size);
 		for (int y = 0; y < height; ++y) {
 			for (int x = 0; x < width; ++x) {
 				// Calculate the actual distance from the dx/dy
@@ -225,7 +229,7 @@ public:
 				ret[y * width + x] = c;
 			}
 		}
-		return ret;
+		return {std::move(ret), size};
 	}
 
 	inline sdf_point2d Get(sdf_point2d* g, int x, int y) {
@@ -287,9 +291,9 @@ public:
 	}
 
 private:
-	uint32_t m_width, m_height;
+	uint32_t m_width = 0, m_height = 0;
 };
 
-using sdf_gen2d = sdf_igen2d;
+using sdf_gen2d = sdf_igen2d; // sdf_fgen2d
 
 } // namespace sdf
