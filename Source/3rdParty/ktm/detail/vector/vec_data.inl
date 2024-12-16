@@ -26,7 +26,7 @@ private:
             return sizeof(T);
     }
 public:
-    struct alignas(align()) type { private: T e[N]; };
+    struct alignas(align()) type { T e[N]; };
 };
 
 template<size_t OSize, size_t ISize, typename T, typename Void>
