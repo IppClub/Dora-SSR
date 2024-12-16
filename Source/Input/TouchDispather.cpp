@@ -372,7 +372,7 @@ bool NodeTouchHandler::gesture(const SDL_Event& event) {
 
 UITouchHandler::UITouchHandler()
 	: _mousePos{-1.0f, -1.0f}
-	, _mouseWheel()
+	, _mouseWheel{Vec2::zero}
 	, _touchSwallowed(false)
 	, _wheelSwallowed(false)
 	, _leftButtonPressed(false)
