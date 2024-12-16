@@ -16,7 +16,7 @@ using namespace Dora;
 namespace stl = tinystl;
 
 #include "Other/atlas.h"
-#include "Other/SdfBuilder.h"
+#include "Other/sdf_gen2d.h"
 
 namespace bgfx {
 
@@ -123,7 +123,7 @@ bool TrueTypeFont::bakeGlyphAlpha(CodePoint _codePoint, GlyphInfo& _glyphInfo, u
 	if (m_info.sdf && _glyphInfo.width > 0 && _glyphInfo.height > 0) {
 		int newWidth = 0, newHeight = 0;
 		auto paddingBuff = padTexture(_outBuffer, m_info.pixelSize, s_cast<int>(_glyphInfo.width), s_cast<int>(_glyphInfo.height), newWidth, newHeight);
-		auto sdfBuffer = SdfBuilder{paddingBuff.data(), newWidth, newHeight}.Build();
+		auto sdfBuffer = sdf::sdf_gen2d{}.build(paddingBuff.data(), newWidth, newHeight, 5.0f);
 		_glyphInfo.width = newWidth;
 		_glyphInfo.height = newHeight;
 		std::memcpy(_outBuffer, sdfBuffer.data(), sizeof(uint8_t) * sdfBuffer.size());
