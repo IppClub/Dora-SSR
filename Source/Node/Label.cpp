@@ -304,7 +304,7 @@ Label::Label(String fontName, uint32_t fontSize, bool sdf)
 	, _alignment(TextAlign::Center)
 	, _outlineColor(0x0)
 	, _outlineWidth(0.0f)
-	, _smooth{0.7f, 0.7f}
+	, _smooth{0.735f, 0.735f}
 	, _font(SharedFontCache.load(fontName, fontSize, sdf))
 	, _blendFunc(BlendFunc::Default)
 	, _effect(sdf ? SharedFontCache.getSDFEffect() : SharedFontCache.getDefaultEffect()) {
