@@ -1405,7 +1405,6 @@
 		3C0FB67D2BF1970C0098E88D /* Effekseer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.h; sourceTree = "<group>"; };
 		3C0FB67E2BF1970C0098E88D /* Effekseer.Modules.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.Modules.h; sourceTree = "<group>"; };
 		3C0FB67F2BF1970C0098E88D /* Effekseer.SIMD.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.SIMD.h; sourceTree = "<group>"; };
-		3C1A452E2D0B48FF0025084B /* SdfBuilder.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SdfBuilder.h; sourceTree = "<group>"; };
 		3C1D41002703019800202534 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Assets.xcassets; path = Dora/Assets.xcassets; sourceTree = "<group>"; };
 		3C1F87C81DF7B4C5005F1B4D /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
 		3C329DDD2B39D8AC002BC023 /* Dora.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Dora.h; sourceTree = "<group>"; };
@@ -2551,6 +2550,7 @@
 		3CE331791D96D98700F9C3F6 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		3CE3317B1D96D98D00F9C3F6 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
 		3CE331831D96E19100F9C3F6 /* OpenGLES.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGLES.framework; path = System/Library/Frameworks/OpenGLES.framework; sourceTree = SDKROOT; };
+		3CE606882D1109EC0073BB73 /* sdf_gen2d.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sdf_gen2d.h; sourceTree = "<group>"; };
 		3CE994692AFB26820073A973 /* gamecontrollerdb.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = gamecontrollerdb.txt; sourceTree = "<group>"; };
 		3CFEBE4226930B91006D9974 /* DragonBones */ = {isa = PBXFileReference; lastKnownFileType = folder; path = DragonBones; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -4845,7 +4845,7 @@
 		3CDED0311E52A2D300B5E578 /* Other */ = {
 			isa = PBXGroup;
 			children = (
-				3C1A452E2D0B48FF0025084B /* SdfBuilder.h */,
+				3CE606882D1109EC0073BB73 /* sdf_gen2d.h */,
 				3C592EAF2CA4F57100CAF224 /* AcfDelegate.h */,
 				3C592EB02CA4F57100CAF224 /* atlas.h */,
 				3C592EB12CA4F57100CAF224 /* atlas.cpp */,
