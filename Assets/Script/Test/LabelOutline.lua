@@ -66,10 +66,10 @@ threadLoop(function() -- 39
 				"Edge", -- 46
 				edgeA, -- 46
 				edgeB, -- 46
-				0.01, -- 46
+				0.001, -- 46
 				0, -- 46
 				1, -- 46
-				"%.2f" -- 46
+				"%.3f" -- 46
 			) -- 46
 			if changed then -- 46
 				label.smooth = Vec2(edgeA, edgeB) -- 48
@@ -79,7 +79,8 @@ threadLoop(function() -- 39
 				scale, -- 50
 				0.1, -- 50
 				0.5, -- 50
-				20 -- 50
+				20, -- 50
+				"%.1f" -- 50
 			) -- 50
 			if changed then -- 50
 				local ____scale_2 = scale -- 52
@@ -94,7 +95,8 @@ threadLoop(function() -- 39
 				outlineWidth, -- 57
 				0.01, -- 57
 				0, -- 57
-				0.3 -- 57
+				0.3, -- 57
+				"%.2f" -- 57
 			) -- 57
 			if changed then -- 57
 				label.outlineWidth = outlineWidth -- 59
