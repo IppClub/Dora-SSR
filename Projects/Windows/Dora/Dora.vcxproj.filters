@@ -4314,7 +4314,7 @@
     <ClInclude Include="..\..\..\Source\3rdParty\yoga\style\StyleSizeLength.h">
       <Filter>3rdParty\yoga\style</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\Other\SdfBuilder.h">
+    <ClInclude Include="..\..\..\Source\3rdParty\Other\sdf_gen2d.h">
       <Filter>3rdParty\Other</Filter>
     </ClInclude>
   </ItemGroup>
