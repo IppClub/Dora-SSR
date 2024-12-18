@@ -39,6 +39,10 @@
 	--ifm-toc-border-color: rgba(0, 0, 0, 0);
 }
 
+.theme-code-block {
+	border: 0.5px solid var(--ifm-color-primary-darkest);
+}
+
 .navbar-sidebar {
 	min-height: 100vh;
 }

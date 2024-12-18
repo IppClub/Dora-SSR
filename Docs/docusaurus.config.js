@@ -79,7 +79,7 @@ const darkCodeTheme = {
 const lightCodeTheme = {
 	...themes.github,
 	styles: [
-		...themes.github.styles,
+		...themes.vsLight.styles,
 		{
 			types: ['title'],
 			style: {
@@ -124,12 +124,6 @@ const lightCodeTheme = {
 			},
 		},
 		{
-			types: ['class-name'],
-			style: {
-				color: '#af893b',
-			},
-		},
-		{
 			types: ['attr-name'],
 			style: {
 				color: '#0099CC',
@@ -144,7 +138,7 @@ const lightCodeTheme = {
 		{
 			types: ['function'],
 			style: {
-				color: '#c89c48',
+				color: '#af803b',
 			},
 		},
 		{
@@ -157,13 +151,6 @@ const lightCodeTheme = {
 			types: ['variable'],
 			style: {
 				color: '#E36209',
-			},
-		},
-		{
-			types: ['comment'],
-			style: {
-				color: '#6B6B6B',
-				fontStyle: 'normal',
 			},
 		},
 	],
@@ -214,7 +201,7 @@ const config = {
 					lastVersion: 'current',
 					versions: {
 						current: {
-							label: 'v1.6.1',
+							label: 'v1.6.2',
 						},
 					},
 				},

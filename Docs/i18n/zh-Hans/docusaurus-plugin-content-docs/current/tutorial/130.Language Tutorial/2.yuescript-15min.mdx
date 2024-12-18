@@ -199,7 +199,7 @@ doubled = [item * 2 for item in *items]
 &emsp;&emsp;使用 `when` 来筛选出需要的值。
 
 ```yue
-slice = [item for item in *items[1, 2]]
+slice = [item for item in *items[1, 2] when item % 2 == 0]
 ```
 
 &emsp;&emsp;推导中的 `for` 子句可以链式调用。
