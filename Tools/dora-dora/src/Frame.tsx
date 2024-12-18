@@ -150,7 +150,7 @@ export type PlayControlMode = "Run" | "Run This" | "Stop" | "Go to File" | "View
 
 export interface PlayControlProp {
 	width: number;
-	onClick: (mode: PlayControlMode) => void;
+	onClick: (mode: PlayControlMode, noLog?: boolean) => void;
 }
 
 export const PlayControl = memo((prop: PlayControlProp) => {

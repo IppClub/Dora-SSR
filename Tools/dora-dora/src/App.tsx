@@ -95,6 +95,7 @@ interface Modified {
 const editorBackground = <div style={{width: '100%', height: '100%', backgroundColor:'#1a1a1a'}}/>;
 
 const Editor = memo((props: {
+	hidden?: boolean,
 	width: number, height: number,
 	language: string,
 	editingFile: EditingFile,
@@ -105,6 +106,7 @@ const Editor = memo((props: {
 	onValidate: (markers: monaco.editor.IMarker[], key: string) => void,
 }) => {
 	const {
+		hidden,
 		width,
 		height,
 		language,
@@ -123,35 +125,38 @@ const Editor = memo((props: {
 		onModified(editingFile, content, ev.changes.at(-1));
 	}, [onModified, editingFile]);
 	return (
-		<MonacoEditor
-			width={width}
-			height={height}
-			language={language}
-			theme="dora-dark"
-			onMount={onMount}
-			keepCurrentModel
-			loading={editorBackground}
-			onChange={onChange}
-			onValidate={language === "typescript" ? doValidate : undefined}
-			path={monaco.Uri.file(editingFile.key).toString()}
-			options={{
-				readOnly,
-				padding: {top: 20},
-				wordWrap: 'on',
-				wordBreak: 'keepAll',
-				selectOnLineNumbers: true,
-				matchBrackets: 'near',
-				fontSize: 18,
-				useTabStops: false,
-				insertSpaces: false,
-				renderWhitespace: 'all',
-				tabSize: 2,
-				minimap: {
-					enabled: minimap,
-				},
-				definitionLinkOpensInPeek: true,
-			}}
-		/>);
+		<div hidden={hidden}>
+			<MonacoEditor
+				width={width}
+				height={height}
+				language={language}
+				theme="dora-dark"
+				onMount={onMount}
+				keepCurrentModel
+				loading={editorBackground}
+				onChange={onChange}
+				onValidate={language === "typescript" ? doValidate : undefined}
+				path={monaco.Uri.file(editingFile.key).toString()}
+				options={{
+					readOnly,
+					padding: {top: 20},
+					wordWrap: 'on',
+					wordBreak: 'keepAll',
+					selectOnLineNumbers: true,
+					matchBrackets: 'near',
+					fontSize: 18,
+					useTabStops: false,
+					insertSpaces: false,
+					renderWhitespace: 'all',
+					tabSize: 2,
+					minimap: {
+						enabled: minimap,
+					},
+					definitionLinkOpensInPeek: true,
+				}}
+			/>
+		</div>
+	);
 });
 
 interface UseResizeProps {
@@ -525,7 +530,7 @@ export default function PersistentDrawerLeft() {
 			editor.updateOptions({
 				stickyScroll: {
 					enabled: true,
-				}
+				},
 			});
 			if (currentFile.position) {
 				const {position} = currentFile;
@@ -2020,7 +2025,8 @@ export default function PersistentDrawerLeft() {
 							editor.focus();
 						}, 100);
 					}
-					return [...files];
+					setFiles([...files]);
+					return;
 				}
 			}
 		}
@@ -2360,8 +2366,10 @@ export default function PersistentDrawerLeft() {
 									variant="outlined"
 									id="popupText"
 									defaultValue={popupInfo?.msg}
-									InputProps={{
-										readOnly: true,
+									slotProps={{
+										input: {
+											readOnly: true,
+										}
 									}}
 									sx={{
 										"& .MuiOutlinedInput-notchedOutline": {
@@ -2568,6 +2576,7 @@ export default function PersistentDrawerLeft() {
 							case ".vs": visualScript = true; break;
 						}
 						const markdown = language === "markdown";
+						const hidden = markdown && !file.mdEditing;
 						const readOnly = file.readOnly || checkFileReadonly(file.key, false);
 						let parentPath;
 						if (!file.key.startsWith(treeData.at(0)?.key ?? "")) {
@@ -2668,6 +2677,7 @@ export default function PersistentDrawerLeft() {
 									}
 									return <Editor
 										key={file.key}
+										hidden={hidden}
 										editingFile={file}
 										width={editorWidth}
 										height={editorHeight}

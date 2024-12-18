@@ -114,6 +114,10 @@ thread ->
 
 In the example above, `thread(function() ... end)` creates a coroutine task, `loadAsync` asynchronously loads resources, and `sleep(2)` simulates a time-consuming operation. The coroutine ensures long-running tasks don't block the main thread, and the task's lifecycle is managed globally by the engine.
 
+:::tip Tip
+In Dora SSR, functions with the `async` suffix are asynchronous functions, such as `Content.loadAsync` and `Cache.loadAsync`, which need to be executed asynchronously in coroutine tasks.
+:::
+
 #### Example: Node-Associated Coroutine Task
 
 <Tabs groupId="language-select">
