@@ -175,9 +175,11 @@ void Entity::destroy() {
 			remove(i);
 		}
 	}
-	SharedEntityPool.availableEntities.push(MakeRef(this));
-	SharedEntityPool.entities[_index] = nullptr;
-	SharedEntityPool.usedIndices.erase(_index);
+	if (!SharedEntityPool.entities.empty()) {
+		SharedEntityPool.availableEntities.push(MakeRef(this));
+		SharedEntityPool.entities[_index] = nullptr;
+		SharedEntityPool.usedIndices.erase(_index);
+	}
 }
 
 int Entity::getIndex(String name) {
