@@ -23,7 +23,7 @@ export namespace React {
 		abstract render(): React.Element;
 	}
 
-	export const Fragment: undefined;
+	export function Fragment(): void;
 
 	/**
 	 * 创建一个 React 元素。
