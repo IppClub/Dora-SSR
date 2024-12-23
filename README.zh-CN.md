@@ -109,8 +109,7 @@
 
 - 1、下载并解压[软件](https://github.com/ippclub/Dora-SSR/releases/latest)。或者也可以通过 [Homebrew](https://brew.sh) 使用下面命令进行软件安装。
 	```sh
-	brew tap ippclub/dora-ssr
-	brew install --cask dora-ssr
+	brew install --cask ippclub/tap/dora-ssr
 	```
 - 2、运行软件，通过浏览器访问软件显示的服务器地址。
 - 3、开始游戏开发。
