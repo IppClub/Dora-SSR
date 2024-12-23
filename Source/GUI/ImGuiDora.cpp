@@ -86,8 +86,8 @@ public:
 					}
 					word_start--;
 				}
-				ImVector<const char*> candidates;
-				ImVector<const char*> commands;
+				ImVector<Slice> candidates;
+				ImVector<Slice> commands;
 				{
 					auto L = SharedLuaEngine.getState();
 					int top = lua_gettop(L);
@@ -97,20 +97,20 @@ public:
 					while (lua_next(L, 2)) {
 						lua_pushvalue(L, -2);
 						if (lua_isstring(L, -1)) {
-							auto key = lua_tostring(L, -1);
+							auto key = tolua_toslice(L, -1, nullptr);
 							commands.push_back(key);
 						}
 						lua_pop(L, 2);
 					}
 				}
 				for (int i = 0; i < commands.size(); i++) {
-					if (std::strncmp(commands[i], word_start, (int)(word_end - word_start)) == 0) {
+					if (std::strncmp(commands[i].rawData(), word_start, (int)(word_end - word_start)) == 0) {
 						candidates.push_back(commands[i]);
 					}
 				}
 				if (candidates.Size == 1) {
 					data->DeleteChars((int)(word_start - data->Buf), (int)(word_end - word_start));
-					data->InsertChars(data->CursorPos, candidates[0]);
+					data->InsertChars(data->CursorPos, candidates[0].begin(), candidates[0].end());
 				} else if (candidates.Size > 1) {
 					int match_len = (int)(word_end - word_start);
 					for (;;) {
@@ -128,7 +128,8 @@ public:
 					}
 					if (match_len > 0) {
 						data->DeleteChars((int)(word_start - data->Buf), (int)(word_end - word_start));
-						data->InsertChars(data->CursorPos, candidates[0], candidates[0] + match_len);
+						data->InsertChars(data->CursorPos, candidates[0].begin(), candidates[0].begin() + match_len);
+
 					}
 				}
 				break;
@@ -147,9 +148,9 @@ public:
 						}
 				}
 				if (prev_history_pos != _historyPos) {
-					const char* history_str = (_historyPos >= 0) ? _history[_historyPos].c_str() : "";
+					auto history_str = (_historyPos >= 0) ? Slice{_history[_historyPos]} : Slice{};
 					data->DeleteChars(0, data->BufTextLen);
-					data->InsertChars(0, history_str);
+					data->InsertChars(0, history_str.begin(), history_str.end());
 				}
 				break;
 			}
@@ -231,7 +232,7 @@ public:
 		ImGui::EndChild();
 
 		bool reclaimFocus = false;
-		ImGuiInputTextFlags inputTextFlags = ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_CallbackCompletion | ImGuiInputTextFlags_CallbackHistory;
+		ImGuiInputTextFlags inputTextFlags = ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_CallbackCompletion | ImGuiInputTextFlags_CallbackHistory | ImGuiInputTextFlags_CallbackResize;
 		ImGui::PushItemWidth(-60);
 		if (ImGui::InputText(useChinese ? r_cast<const char*>(u8"命令行") : "REPL", _buf.data(), _buf.size(), inputTextFlags, &TextEditCallbackStub, r_cast<void*>(this))) {
 			_historyPos = -1;
