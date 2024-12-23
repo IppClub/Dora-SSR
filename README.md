@@ -109,8 +109,7 @@ Dora SSR is a game engine for rapid development of games on various devices. It 
 
 - 1\. Download and decompress the [software](https://github.com/ippclub/Dora-SSR/releases/latest). Or you can get software using [Homebrew](https://brew.sh) with:
 	```sh
-	brew tap ippclub/dora-ssr
-	brew install --cask dora-ssr
+	brew install --cask ippclub/tap/dora-ssr
 	```
 - 2\. Run the software and access the server address displayed by the software through a browser.
 - 3\. Start game development.
