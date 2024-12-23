@@ -2579,10 +2579,10 @@ export default function PersistentDrawerLeft() {
 						const hidden = markdown && !file.mdEditing;
 						const readOnly = file.readOnly || checkFileReadonly(file.key, false);
 						let parentPath;
-						if (!file.key.startsWith(treeData.at(0)?.key ?? "")) {
-							parentPath = treeData.at(0)?.children?.at(0)?.key ?? "";
+						if (file.key.startsWith(writablePath)) {
+							parentPath = writablePath;
 						} else {
-							parentPath = treeData.at(0)?.key ?? "";
+							parentPath = assetPath;
 						}
 						return <Main
 							open={drawerOpen}
