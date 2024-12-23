@@ -29,6 +29,9 @@ int64_t touch_get_delta(int64_t self) {
 int64_t touch_get_location(int64_t self) {
 	return Vec2_Retain(r_cast<Touch*>(self)->getLocation());
 }
+int64_t touch_get_world_location(int64_t self) {
+	return Vec2_Retain(r_cast<Touch*>(self)->getWorldLocation());
+}
 } // extern "C"
 
 static void linkTouch(wasm3::module3& mod) {
@@ -39,4 +42,5 @@ static void linkTouch(wasm3::module3& mod) {
 	mod.link_optional("*", "touch_get_id", touch_get_id);
 	mod.link_optional("*", "touch_get_delta", touch_get_delta);
 	mod.link_optional("*", "touch_get_location", touch_get_location);
+	mod.link_optional("*", "touch_get_world_location", touch_get_world_location);
 }

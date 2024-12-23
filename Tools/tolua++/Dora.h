@@ -516,6 +516,7 @@ class Touch : public Object
 	tolua_readonly tolua_property__common int id;
 	tolua_readonly tolua_property__common Vec2 delta;
 	tolua_readonly tolua_property__common Vec2 location;
+	tolua_readonly tolua_property__common Vec2 worldLocation;
 };
 
 struct Ease

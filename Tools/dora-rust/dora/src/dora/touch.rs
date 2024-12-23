@@ -14,6 +14,7 @@ extern "C" {
 	fn touch_get_id(slf: i64) -> i32;
 	fn touch_get_delta(slf: i64) -> i64;
 	fn touch_get_location(slf: i64) -> i64;
+	fn touch_get_world_location(slf: i64) -> i64;
 }
 use crate::dora::IObject;
 /// Represents a touch input or mouse click event.
@@ -51,5 +52,9 @@ impl Touch {
 	/// Gets the location of the touch event in the node's local coordinate system.
 	pub fn get_location(&self) -> crate::dora::Vec2 {
 		return unsafe { crate::dora::Vec2::from(touch_get_location(self.raw())) };
+	}
+	/// Gets the location of the touch event in the world coordinate system.
+	pub fn get_world_location(&self) -> crate::dora::Vec2 {
+		return unsafe { crate::dora::Vec2::from(touch_get_world_location(self.raw())) };
 	}
 }

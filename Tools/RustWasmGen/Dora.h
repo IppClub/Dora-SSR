@@ -1767,6 +1767,8 @@ object class Touch
 	readonly common Vec2 delta;
 	/// the location of the touch event in the node's local coordinate system.
 	readonly common Vec2 location;
+	/// the location of the touch event in the world coordinate system.
+	readonly common Vec2 worldLocation;
 };
 
 /// A struct that defines a set of easing functions for use in animations.
