@@ -5,7 +5,7 @@ pub fn test() {
 	let mut world = PhysicsWorld::new();
 	world.set_should_contact(0, 0, true);
 	world.set_show_debug(true);
-	let mut label = match Label::new("sarasa-mono-sc-regular", 30) {
+	let mut label = match Label::new("sarasa-mono-sc-regular", 30, false) {
 		Some(label) => label,
 		None => return,
 	};

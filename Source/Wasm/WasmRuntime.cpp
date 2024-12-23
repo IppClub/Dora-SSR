@@ -19,7 +19,7 @@ NS_DORA_BEGIN
 
 #define DoraVersion(major, minor, patch) ((major) << 16 | (minor) << 8 | (patch))
 
-static const int doraWASMVersion = DoraVersion(0, 4, 15);
+static const int doraWASMVersion = DoraVersion(0, 4, 16);
 
 static std::string VersionToStr(int version) {
 	return std::to_string((version & 0x00ff0000) >> 16) + '.' + std::to_string((version & 0x0000ff00) >> 8) + '.' + std::to_string(version & 0x000000ff);
@@ -1746,6 +1746,22 @@ WasmRuntime::WasmRuntime()
 
 WasmRuntime::~WasmRuntime() { }
 
+int32_t WasmRuntime::loadFuncs() {
+	try {
+		auto versionFunc = New<wasm3::function>(_runtime->find_function("dora_wasm_version"));
+		auto version = versionFunc->call<int32_t>();
+		_callFunc = New<wasm3::function>(_runtime->find_function("call_function"));
+		_derefFunc = New<wasm3::function>(_runtime->find_function("deref_function"));
+		return version;
+	} catch (std::runtime_error&) {
+		auto versionFunc = New<wasm3::function>(_runtime->find_function("dora.WasmVersion"));
+		auto version = versionFunc->call<int32_t>();
+		_callFunc = New<wasm3::function>(_runtime->find_function("dora.CallFunction"));
+		_derefFunc = New<wasm3::function>(_runtime->find_function("dora.DerefFunction"));
+		return version;
+	}
+}
+
 bool WasmRuntime::executeMainFile(String filename) {
 	if (_wasm.first || _loading) {
 		Warn("only one WASM module can be executed");
@@ -1768,8 +1784,7 @@ bool WasmRuntime::executeMainFile(String filename) {
 			_runtime->load(mod);
 			mod.link_default();
 			linkDoraModule(mod);
-			auto versionFunc = New<wasm3::function>(_runtime->find_function("dora_wasm_version"));
-			auto version = versionFunc->call<int32_t>();
+			int32_t version = loadFuncs();
 			if (doraWASMVersion != version) {
 				_env = nullptr;
 				_runtime = nullptr;
@@ -1777,8 +1792,6 @@ bool WasmRuntime::executeMainFile(String filename) {
 				Error("expecting dora WASM version {}, got {}", VersionToStr(doraWASMVersion), VersionToStr(version));
 				return false;
 			}
-			_callFunc = New<wasm3::function>(_runtime->find_function("call_function"));
-			_derefFunc = New<wasm3::function>(_runtime->find_function("deref_function"));
 		}
 		wasm3::function mainFn = _runtime->find_function("_start");
 		scheduleUpdate();
@@ -1816,8 +1829,7 @@ void WasmRuntime::executeMainFileAsync(String filename, const std::function<void
 					_runtime->load(*mod);
 					mod->link_default();
 					linkDoraModule(*mod);
-					auto versionFunc = New<wasm3::function>(_runtime->find_function("dora_wasm_version"));
-					auto version = versionFunc->call<int32_t>();
+					auto version = loadFuncs();
 					if (doraVer != version) {
 						Error("expecting dora WASM file of version {}, got {}", VersionToStr(doraVer), VersionToStr(version));
 						_env = nullptr;
@@ -1825,8 +1837,6 @@ void WasmRuntime::executeMainFileAsync(String filename, const std::function<void
 						_wasm = {nullptr, 0};
 						return Values::alloc(Own<wasm3::module3>(), Own<wasm3::function>());
 					}
-					_callFunc = New<wasm3::function>(_runtime->find_function("call_function"));
-					_derefFunc = New<wasm3::function>(_runtime->find_function("deref_function"));
 					auto mainFn = New<wasm3::function>(_runtime->find_function("_start"));
 					return Values::alloc(std::move(mod), std::move(mainFn));
 				} catch (std::runtime_error& e) {

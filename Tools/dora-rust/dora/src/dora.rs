@@ -802,9 +802,11 @@ pub extern fn dora_wasm_version() -> i32 {
 #[no_mangle]
 pub extern fn call_function(func_id: i32) {
 	let real_id = func_id & 0x00ffffff;
+	let mut func: *mut Box<dyn FnMut()> = std::ptr::null_mut();
 	FUNC_MAP.with_borrow_mut(|map| {
-		map[real_id as usize]();
+		func = &mut map[real_id as usize];
 	});
+	unsafe { (*func)(); }
 }
 
 fn dummy_func() {
@@ -4145,15 +4147,16 @@ impl ImGui {
 	pub fn begin_ret_opts<C>(name: &str, opened: bool, windows_flags: BitFlags<ImGuiWindowFlag>, inside: C) -> (bool, bool) where C: FnOnce() {
 		let mut changed = false;
 		let mut result = false;
+		let mut res_opened = false;
 		IMGUI_STACK.with_borrow_mut(|stack| {
 			stack.push_bool(opened);
 			changed = ImGui::_begin_ret_opts(name, stack, windows_flags.bits() as i32);
-			let opened = stack.pop_bool().unwrap();
-			if opened {
-				inside();
-			}
+			res_opened = stack.pop_bool().unwrap();
 			result = stack.pop_bool().unwrap();
 		});
+		if res_opened {
+			inside();
+		}
 		ImGui::_end();
 		(changed, result)
 	}
@@ -4238,8 +4241,8 @@ impl ImGui {
 			stack.push_f32(v1);
 			stack.push_f32(v2);
 			changed = ImGui::_drag_float2_ret_opts(label, stack, v_speed, v_min, v_max, display_format, slider_flags.bits() as i32);
-			result2 = stack.pop_f32().unwrap();
 			result1 = stack.pop_f32().unwrap();
+			result2 = stack.pop_f32().unwrap();
 		});
 		(changed, result1, result2)
 	}
@@ -4254,8 +4257,8 @@ impl ImGui {
 			stack.push_i32(v1);
 			stack.push_i32(v2);
 			changed = ImGui::_drag_int2_ret_opts(label, stack, v_speed, v_min, v_max, display_format, slider_flags.bits() as i32);
-			result2 = stack.pop_i32().unwrap();
 			result1 = stack.pop_i32().unwrap();
+			result2 = stack.pop_i32().unwrap();
 		});
 		(changed, result1, result2)
 	}
@@ -4283,8 +4286,8 @@ impl ImGui {
 			stack.push_f32(v1);
 			stack.push_f32(v2);
 			changed = ImGui::_input_float2_ret_opts(label, stack, display_format, input_text_flags.bits() as i32);
-			result2 = stack.pop_f32().unwrap();
 			result1 = stack.pop_f32().unwrap();
+			result2 = stack.pop_f32().unwrap();
 		});
 		(changed, result1, result2)
 	}
@@ -4312,8 +4315,8 @@ impl ImGui {
 			stack.push_i32(v1);
 			stack.push_i32(v2);
 			changed = ImGui::_input_int2_ret_opts(label, stack, input_text_flags.bits() as i32);
-			result2 = stack.pop_i32().unwrap();
 			result1 = stack.pop_i32().unwrap();
+			result2 = stack.pop_i32().unwrap();
 		});
 		(changed, result1, result2)
 	}
@@ -4341,8 +4344,8 @@ impl ImGui {
 			stack.push_f32(v1);
 			stack.push_f32(v2);
 			changed = ImGui::_slider_float2_ret_opts(label, stack, v_min, v_max, display_format, slider_flags.bits() as i32);
-			result2 = stack.pop_f32().unwrap();
 			result1 = stack.pop_f32().unwrap();
+			result2 = stack.pop_f32().unwrap();
 		});
 		(changed, result1, result2)
 	}
@@ -4357,8 +4360,8 @@ impl ImGui {
 			stack.push_f32(v_current_min);
 			stack.push_f32(v_current_max);
 			changed = ImGui::_drag_float_range2_ret_opts(label, stack, v_speed, v_min, v_max, format, format_max, slider_flags.bits() as i32);
-			result2 = stack.pop_f32().unwrap();
 			result1 = stack.pop_f32().unwrap();
+			result2 = stack.pop_f32().unwrap();
 		});
 		(changed, result1, result2)
 	}
@@ -4386,8 +4389,8 @@ impl ImGui {
 			stack.push_i32(v_current_min);
 			stack.push_i32(v_current_max);
 			changed = ImGui::_drag_int_range2_ret_opts(label, stack, v_speed, v_min, v_max, format, format_max, slider_flags.bits() as i32);
-			result2 = stack.pop_i32().unwrap();
 			result1 = stack.pop_i32().unwrap();
+			result2 = stack.pop_i32().unwrap();
 		});
 		(changed, result1, result2)
 	}
@@ -4415,8 +4418,8 @@ impl ImGui {
 			stack.push_i32(v1);
 			stack.push_i32(v2);
 			changed = ImGui::_slider_int2_ret_opts(label, stack, v_min, v_max, display_format, slider_flags.bits() as i32);
-			result2 = stack.pop_i32().unwrap();
 			result1 = stack.pop_i32().unwrap();
+			result2 = stack.pop_i32().unwrap();
 		});
 		(changed, result1, result2)
 	}

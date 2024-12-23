@@ -7,6 +7,7 @@ pub fn test() {
 	};
 	sprite.set_scale_x(0.5);
 	sprite.set_scale_y(0.5);
+	sprite.set_show_debug(true);
 	sprite.set_touch_enabled(true);
 	let mut sp = sprite.clone();
 	sprite.slot(Slot::TAP_MOVED, Box::new(move |stack| {
