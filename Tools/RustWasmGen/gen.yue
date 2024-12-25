@@ -567,6 +567,8 @@ with io.open "Dora.h", "r"
 
 result = match File, codes
 
+toCamelCase = (name)-> table.concat [sub\lower! for sub in (name\sub(1, 1)\lower! .. name\sub(2))\gsub("%d", "_%1")\gsub("%u", "_%1")\gsub("(%d)_", "%1")\gmatch "[^_]*"], "_"
+
 if not result
 	if lastPos > #codes
 		lastPos = #codes - 1
@@ -587,10 +589,9 @@ if not result
 else
 	cppBinding = {}
 	cppLink = {}
-	rustExtern = {}
+	rustExtern = []
 	rustBinding = []
 	nameMap = {}
-	toCamelCase = (name)-> table.concat [sub\lower! for sub in (name\sub(1, 1)\lower! .. name\sub(2))\gsub("%d", "_%1")\gsub("%u", "_%1")\gsub("(%d)_", "%1")\gmatch "[^_]*"], "_"
 	getObjectType = (dataType, rustName, isCreate, isOptional)->
 		if isCreate
 			return
@@ -1159,9 +1160,9 @@ impl I#{clsNewName} for #{clsNewName} { }"
 			\write table.concat rustExtern, "\n"
 			\write "\n"
 			\write table.concat rustBinding, "\n"
-		rustExtern = {}
-		rustBinding = {}
-		cppBinding = {}
-		cppLink = {}
+		rustExtern = []
+		rustBinding = []
+		cppBinding = []
+		cppLink = []
 	print "#{clsCount} classes, #{funcCount} functions Done!"
 

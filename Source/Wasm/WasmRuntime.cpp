@@ -916,10 +916,24 @@ void str_read(void* dest, int64_t src) {
 		std::memcpy(dest, str->c_str(), str->length());
 	}
 }
+void str_read_ptr(int32_t dest, int64_t src) {
+	auto destPtr = SharedWasmRuntime.getMemoryAddress(dest);
+	auto str = r_cast<std::string*>(src);
+	if (str->length() > 0) {
+		std::memcpy(destPtr, str->c_str(), str->length());
+	}
+}
 void str_write(int64_t dest, const void* src) {
 	auto str = r_cast<std::string*>(dest);
 	if (str->length() > 0) {
 		std::memcpy(&str->front(), src, str->length());
+	}
+}
+void str_write_ptr(int64_t dest, int32_t src) {
+	auto srcPtr = SharedWasmRuntime.getMemoryAddress(src);
+	auto str = r_cast<std::string*>(dest);
+	if (str->length() > 0) {
+		std::memcpy(&str->front(), srcPtr, str->length());
 	}
 }
 void str_release(int64_t str) {
@@ -962,11 +976,31 @@ void buf_read(void* dest, int64_t src) {
 	},
 		*vec);
 }
+void buf_read_ptr(int32_t dest, int64_t src) {
+	auto destPtr = SharedWasmRuntime.getMemoryAddress(dest);
+	auto vec = r_cast<dora_vec_t*>(src);
+	std::visit([&](const auto& arg) {
+		if (arg.size() > 0) {
+			std::memcpy(destPtr, arg.data(), arg.size() * sizeof(arg[0]));
+		}
+	},
+		*vec);
+}
 void buf_write(int64_t dest, const void* src) {
 	auto vec = r_cast<dora_vec_t*>(dest);
 	std::visit([&](auto& arg) {
 		if (arg.size() > 0) {
 			std::memcpy(&arg.front(), src, arg.size() * sizeof(arg[0]));
+		}
+	},
+		*vec);
+}
+void buf_write_ptr(int64_t dest, int32_t src) {
+	auto srcPtr = SharedWasmRuntime.getMemoryAddress(src);
+	auto vec = r_cast<dora_vec_t*>(dest);
+	std::visit([&](auto& arg) {
+		if (arg.size() > 0) {
+			std::memcpy(&arg.front(), srcPtr, arg.size() * sizeof(arg[0]));
 		}
 	},
 		*vec);
@@ -1615,7 +1649,9 @@ static void linkDoraModule(wasm3::module3& mod) {
 	mod.link_optional("*", "str_new", str_new);
 	mod.link_optional("*", "str_len", str_len);
 	mod.link_optional("*", "str_read", str_read);
+	mod.link_optional("*", "str_read_ptr", str_read_ptr);
 	mod.link_optional("*", "str_write", str_write);
+	mod.link_optional("*", "str_write_ptr", str_write_ptr);
 	mod.link_optional("*", "str_release", str_release);
 
 	mod.link_optional("*", "buf_new_i32", buf_new_i32);
@@ -1624,7 +1660,9 @@ static void linkDoraModule(wasm3::module3& mod) {
 	mod.link_optional("*", "buf_new_f64", buf_new_f64);
 	mod.link_optional("*", "buf_len", buf_len);
 	mod.link_optional("*", "buf_read", buf_read);
+	mod.link_optional("*", "buf_read_ptr", buf_read_ptr);
 	mod.link_optional("*", "buf_write", buf_write);
+	mod.link_optional("*", "buf_write_ptr", buf_write_ptr);
 	mod.link_optional("*", "buf_release", buf_release);
 
 	mod.link_optional("*", "object_get_id", object_get_id);
@@ -1747,19 +1785,11 @@ WasmRuntime::WasmRuntime()
 WasmRuntime::~WasmRuntime() { }
 
 int32_t WasmRuntime::loadFuncs() {
-	try {
-		auto versionFunc = New<wasm3::function>(_runtime->find_function("dora_wasm_version"));
-		auto version = versionFunc->call<int32_t>();
-		_callFunc = New<wasm3::function>(_runtime->find_function("call_function"));
-		_derefFunc = New<wasm3::function>(_runtime->find_function("deref_function"));
-		return version;
-	} catch (std::runtime_error&) {
-		auto versionFunc = New<wasm3::function>(_runtime->find_function("dora.WasmVersion"));
-		auto version = versionFunc->call<int32_t>();
-		_callFunc = New<wasm3::function>(_runtime->find_function("dora.CallFunction"));
-		_derefFunc = New<wasm3::function>(_runtime->find_function("dora.DerefFunction"));
-		return version;
-	}
+	auto versionFunc = New<wasm3::function>(_runtime->find_function("dora_wasm_version"));
+	auto version = versionFunc->call<int32_t>();
+	_callFunc = New<wasm3::function>(_runtime->find_function("call_function"));
+	_derefFunc = New<wasm3::function>(_runtime->find_function("deref_function"));
+	return version;
 }
 
 bool WasmRuntime::executeMainFile(String filename) {
@@ -1969,6 +1999,10 @@ void WasmRuntime::clear() {
 
 bool WasmRuntime::isInWasm() {
 	return _callFromWasm > 0;
+}
+
+uint8_t* WasmRuntime::getMemoryAddress(int32_t wasmAddr) {
+	return _runtime->get_address(wasmAddr);
 }
 
 NS_DORA_END

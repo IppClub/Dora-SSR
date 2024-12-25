@@ -68,6 +68,7 @@ public:
 	void scheduleUpdate();
 	void unscheduleUpdate();
 	void clear();
+	uint8_t* getMemoryAddress(int32_t wasmAddr);
 	static bool isInWasm();
 
 protected:
