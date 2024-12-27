@@ -10,9 +10,9 @@ extern "C" {
 	fn platformer_decision_tree_type() -> i32;
 	fn platformer_decision_leaf_sel(nodes: i64) -> i64;
 	fn platformer_decision_leaf_seq(nodes: i64) -> i64;
-	fn platformer_decision_leaf_con(name: i64, func: i32, stack: i64) -> i64;
+	fn platformer_decision_leaf_con(name: i64, func0: i32, stack0: i64) -> i64;
 	fn platformer_decision_leaf_act(action_name: i64) -> i64;
-	fn platformer_decision_leaf_act_dynamic(func: i32, stack: i64) -> i64;
+	fn platformer_decision_leaf_act_dynamic(func0: i32, stack0: i64) -> i64;
 	fn platformer_decision_leaf_accept() -> i64;
 	fn platformer_decision_leaf_reject() -> i64;
 	fn platformer_decision_leaf_behave(name: i64, root: i64) -> i64;
@@ -69,13 +69,13 @@ impl Tree {
 	///
 	/// * A `Leaf` node that represents a condition check.
 	pub fn con(name: &str, mut handler: Box<dyn FnMut(&crate::dora::platformer::Unit) -> bool>) -> crate::dora::platformer::decision::Tree {
-		let mut stack = crate::dora::CallStack::new();
-		let stack_raw = stack.raw();
-		let func_id = crate::dora::push_function(Box::new(move || {
-			let result = handler(&stack.pop_cast::<crate::dora::platformer::Unit>().unwrap());
-			stack.push_bool(result);
+		let mut stack0 = crate::dora::CallStack::new();
+		let stack_raw0 = stack0.raw();
+		let func_id0 = crate::dora::push_function(Box::new(move || {
+			let result = handler(&stack0.pop_cast::<crate::dora::platformer::Unit>().unwrap());
+			stack0.push_bool(result);
 		}));
-		unsafe { return crate::dora::platformer::decision::Tree::from(platformer_decision_leaf_con(crate::dora::from_string(name), func_id, stack_raw)).unwrap(); }
+		unsafe { return crate::dora::platformer::decision::Tree::from(platformer_decision_leaf_con(crate::dora::from_string(name), func_id0, stack_raw0)).unwrap(); }
 	}
 	/// Creates an action node with the specified action name.
 	///
@@ -99,13 +99,13 @@ impl Tree {
 	///
 	/// * A `Leaf` node that represents an action.
 	pub fn act_dynamic(mut handler: Box<dyn FnMut(&crate::dora::platformer::Unit) -> String>) -> crate::dora::platformer::decision::Tree {
-		let mut stack = crate::dora::CallStack::new();
-		let stack_raw = stack.raw();
-		let func_id = crate::dora::push_function(Box::new(move || {
-			let result = handler(&stack.pop_cast::<crate::dora::platformer::Unit>().unwrap());
-			stack.push_str(result.as_str());
+		let mut stack0 = crate::dora::CallStack::new();
+		let stack_raw0 = stack0.raw();
+		let func_id0 = crate::dora::push_function(Box::new(move || {
+			let result = handler(&stack0.pop_cast::<crate::dora::platformer::Unit>().unwrap());
+			stack0.push_str(result.as_str());
 		}));
-		unsafe { return crate::dora::platformer::decision::Tree::from(platformer_decision_leaf_act_dynamic(func_id, stack_raw)).unwrap(); }
+		unsafe { return crate::dora::platformer::decision::Tree::from(platformer_decision_leaf_act_dynamic(func_id0, stack_raw0)).unwrap(); }
 	}
 	/// Creates a leaf node that represents accepting the current behavior tree.
 	///

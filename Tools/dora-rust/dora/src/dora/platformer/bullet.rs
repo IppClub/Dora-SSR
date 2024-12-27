@@ -8,14 +8,14 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 	fn platformer_bullet_type() -> i32;
-	fn platformer_bullet_set_target_allow(slf: i64, var: i32);
+	fn platformer_bullet_set_target_allow(slf: i64, val: i32);
 	fn platformer_bullet_get_target_allow(slf: i64) -> i32;
 	fn platformer_bullet_is_face_right(slf: i64) -> i32;
-	fn platformer_bullet_set_hit_stop(slf: i64, var: i32);
+	fn platformer_bullet_set_hit_stop(slf: i64, val: i32);
 	fn platformer_bullet_is_hit_stop(slf: i64) -> i32;
 	fn platformer_bullet_get_emitter(slf: i64) -> i64;
 	fn platformer_bullet_get_bullet_def(slf: i64) -> i64;
-	fn platformer_bullet_set_face(slf: i64, var: i64);
+	fn platformer_bullet_set_face(slf: i64, val: i64);
 	fn platformer_bullet_get_face(slf: i64) -> i64;
 	fn platformer_bullet_destroy(slf: i64);
 	fn platformer_bullet_new(def: i64, owner: i64) -> i64;
@@ -38,8 +38,8 @@ impl Bullet {
 		})
 	}
 	/// Sets the value from a `Platformer.TargetAllow` object for the bullet object.
-	pub fn set_target_allow(&mut self, var: i32) {
-		unsafe { platformer_bullet_set_target_allow(self.raw(), var) };
+	pub fn set_target_allow(&mut self, val: i32) {
+		unsafe { platformer_bullet_set_target_allow(self.raw(), val) };
 	}
 	/// Gets the value from a `Platformer.TargetAllow` object for the bullet object.
 	pub fn get_target_allow(&self) -> i32 {
@@ -50,8 +50,8 @@ impl Bullet {
 		return unsafe { platformer_bullet_is_face_right(self.raw()) != 0 };
 	}
 	/// Sets whether the bullet object should stop on impact.
-	pub fn set_hit_stop(&mut self, var: bool) {
-		unsafe { platformer_bullet_set_hit_stop(self.raw(), if var { 1 } else { 0 }) };
+	pub fn set_hit_stop(&mut self, val: bool) {
+		unsafe { platformer_bullet_set_hit_stop(self.raw(), if val { 1 } else { 0 }) };
 	}
 	/// Gets whether the bullet object should stop on impact.
 	pub fn is_hit_stop(&self) -> bool {
@@ -66,8 +66,8 @@ impl Bullet {
 		return unsafe { crate::dora::platformer::BulletDef::from(platformer_bullet_get_bullet_def(self.raw())).unwrap() };
 	}
 	/// Sets the `Node` object that appears as the bullet's visual item.
-	pub fn set_face(&mut self, var: &dyn crate::dora::INode) {
-		unsafe { platformer_bullet_set_face(self.raw(), var.raw()) };
+	pub fn set_face(&mut self, val: &dyn crate::dora::INode) {
+		unsafe { platformer_bullet_set_face(self.raw(), val.raw()) };
 	}
 	/// Gets the `Node` object that appears as the bullet's visual item.
 	pub fn get_face(&self) -> crate::dora::Node {

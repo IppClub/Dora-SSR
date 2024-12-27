@@ -11,14 +11,14 @@ using namespace Dora;
 int32_t line_type() {
 	return DoraType<Line>();
 }
-void line_set_depth_write(int64_t self, int32_t var) {
-	r_cast<Line*>(self)->setDepthWrite(var != 0);
+void line_set_depth_write(int64_t self, int32_t val) {
+	r_cast<Line*>(self)->setDepthWrite(val != 0);
 }
 int32_t line_is_depth_write(int64_t self) {
 	return r_cast<Line*>(self)->isDepthWrite() ? 1 : 0;
 }
-void line__set_blend_func(int64_t self, int64_t func) {
-	r_cast<Line*>(self)->setBlendFunc(BlendFunc(s_cast<uint64_t>(func)));
+void line__set_blend_func(int64_t self, int64_t blend_func) {
+	r_cast<Line*>(self)->setBlendFunc(BlendFunc(s_cast<uint64_t>(blend_func)));
 }
 int64_t line__get_blend_func(int64_t self) {
 	return s_cast<int64_t>(r_cast<Line*>(self)->getBlendFunc().toValue());

@@ -11,8 +11,8 @@ using namespace Dora;
 int32_t touch_type() {
 	return DoraType<Touch>();
 }
-void touch_set_enabled(int64_t self, int32_t var) {
-	r_cast<Touch*>(self)->setEnabled(var != 0);
+void touch_set_enabled(int64_t self, int32_t val) {
+	r_cast<Touch*>(self)->setEnabled(val != 0);
 }
 int32_t touch_is_enabled(int64_t self) {
 	return r_cast<Touch*>(self)->isEnabled() ? 1 : 0;

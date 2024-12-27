@@ -11,15 +11,15 @@ using namespace Dora;
 int32_t cache_load(int64_t filename) {
 	return Cache::load(*Str_From(filename)) ? 1 : 0;
 }
-void cache_load_async(int64_t filename, int32_t func, int64_t stack) {
-	std::shared_ptr<void> deref(nullptr, [func](auto) {
-		SharedWasmRuntime.deref(func);
+void cache_load_async(int64_t filename, int32_t func0, int64_t stack0) {
+	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
+		SharedWasmRuntime.deref(func0);
 	});
-	auto args = r_cast<CallStack*>(stack);
-	Cache::loadAsync(*Str_From(filename), [func, args, deref](bool success) {
-		args->clear();
-		args->push(success);
-		SharedWasmRuntime.invoke(func);
+	auto args0 = r_cast<CallStack*>(stack0);
+	Cache::loadAsync(*Str_From(filename), [func0, args0, deref0](bool success) {
+		args0->clear();
+		args0->push(success);
+		SharedWasmRuntime.invoke(func0);
 	});
 }
 void cache_update_item(int64_t filename, int64_t content) {

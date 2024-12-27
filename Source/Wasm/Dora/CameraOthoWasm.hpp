@@ -11,8 +11,8 @@ using namespace Dora;
 int32_t cameraotho_type() {
 	return DoraType<CameraOtho>();
 }
-void cameraotho_set_position(int64_t self, int64_t var) {
-	r_cast<CameraOtho*>(self)->setPosition(Vec2_From(var));
+void cameraotho_set_position(int64_t self, int64_t val) {
+	r_cast<CameraOtho*>(self)->setPosition(Vec2_From(val));
 }
 int64_t cameraotho_get_position(int64_t self) {
 	return Vec2_Retain(r_cast<CameraOtho*>(self)->getPosition());

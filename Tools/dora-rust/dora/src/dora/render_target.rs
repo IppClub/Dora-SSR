@@ -10,13 +10,13 @@ extern "C" {
 	fn rendertarget_type() -> i32;
 	fn rendertarget_get_width(slf: i64) -> i32;
 	fn rendertarget_get_height(slf: i64) -> i32;
-	fn rendertarget_set_camera(slf: i64, var: i64);
+	fn rendertarget_set_camera(slf: i64, val: i64);
 	fn rendertarget_get_camera(slf: i64) -> i64;
 	fn rendertarget_get_texture(slf: i64) -> i64;
 	fn rendertarget_render(slf: i64, target: i64);
 	fn rendertarget_render_clear(slf: i64, color: i32, depth: f32, stencil: i32);
 	fn rendertarget_render_clear_with_target(slf: i64, target: i64, color: i32, depth: f32, stencil: i32);
-	fn rendertarget_save_async(slf: i64, filename: i64, func: i32, stack: i64);
+	fn rendertarget_save_async(slf: i64, filename: i64, func0: i32, stack0: i64);
 	fn rendertarget_new(width: i32, height: i32) -> i64;
 }
 use crate::dora::IObject;
@@ -41,8 +41,8 @@ impl RenderTarget {
 		return unsafe { rendertarget_get_height(self.raw()) };
 	}
 	/// Sets the camera used for rendering the scene.
-	pub fn set_camera(&mut self, var: &dyn crate::dora::ICamera) {
-		unsafe { rendertarget_set_camera(self.raw(), var.raw()) };
+	pub fn set_camera(&mut self, val: &dyn crate::dora::ICamera) {
+		unsafe { rendertarget_set_camera(self.raw(), val.raw()) };
 	}
 	/// Gets the camera used for rendering the scene.
 	pub fn get_camera(&self) -> Option<crate::dora::Camera> {
@@ -88,12 +88,12 @@ impl RenderTarget {
 	/// * `filename` - The name of the file to save the contents to.
 	/// * `handler` - The function to call when the save operation is complete. The function will be passed a boolean value indicating whether the save operation was successful.
 	pub fn save_async(&mut self, filename: &str, mut handler: Box<dyn FnMut(bool)>) {
-		let mut stack = crate::dora::CallStack::new();
-		let stack_raw = stack.raw();
-		let func_id = crate::dora::push_function(Box::new(move || {
-			handler(stack.pop_bool().unwrap())
+		let mut stack0 = crate::dora::CallStack::new();
+		let stack_raw0 = stack0.raw();
+		let func_id0 = crate::dora::push_function(Box::new(move || {
+			handler(stack0.pop_bool().unwrap())
 		}));
-		unsafe { rendertarget_save_async(self.raw(), crate::dora::from_string(filename), func_id, stack_raw); }
+		unsafe { rendertarget_save_async(self.raw(), crate::dora::from_string(filename), func_id0, stack_raw0); }
 	}
 	pub fn new(width: i32, height: i32) -> RenderTarget {
 		unsafe { return RenderTarget { raw: rendertarget_new(width, height) }; }

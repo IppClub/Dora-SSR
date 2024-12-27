@@ -1,0 +1,34 @@
+/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+#wa:import dora tilenode_type
+func tilenode_type() => i32
+#wa:import dora tilenode_set_depth_write
+func tilenode_set_depth_write(slf: i64, val: i32);
+#wa:import dora tilenode_is_depth_write
+func tilenode_is_depth_write(slf: i64) => i32
+#wa:import dora tilenode__set_blend_func
+func tilenode__set_blend_func(slf: i64, blend_func: i64)
+#wa:import dora tilenode__get_blend_func
+func tilenode__get_blend_func(slf: i64) => i64
+#wa:import dora tilenode_set_effect
+func tilenode_set_effect(slf: i64, val: i64);
+#wa:import dora tilenode_get_effect
+func tilenode_get_effect(slf: i64) => i64
+#wa:import dora tilenode_set_filter
+func tilenode_set_filter(slf: i64, val: i32);
+#wa:import dora tilenode_get_filter
+func tilenode_get_filter(slf: i64) => i32
+#wa:import dora tilenode_get_layer
+func tilenode_get_layer(slf: i64, layer_name: i64) => i64
+#wa:import dora tilenode_new
+func tilenode_new(tmx_file: i64) => i64
+#wa:import dora tilenode_with_with_layer
+func tilenode_with_with_layer(tmx_file: i64, layer_name: i64) => i64
+#wa:import dora tilenode_with_with_layers
+func tilenode_with_with_layers(tmx_file: i64, layer_names: i64) => i64

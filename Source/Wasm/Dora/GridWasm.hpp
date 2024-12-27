@@ -17,32 +17,32 @@ int32_t grid_get_grid_x(int64_t self) {
 int32_t grid_get_grid_y(int64_t self) {
 	return s_cast<int32_t>(r_cast<Grid*>(self)->getGridY());
 }
-void grid_set_depth_write(int64_t self, int32_t var) {
-	r_cast<Grid*>(self)->setDepthWrite(var != 0);
+void grid_set_depth_write(int64_t self, int32_t val) {
+	r_cast<Grid*>(self)->setDepthWrite(val != 0);
 }
 int32_t grid_is_depth_write(int64_t self) {
 	return r_cast<Grid*>(self)->isDepthWrite() ? 1 : 0;
 }
-void grid__set_blend_func(int64_t self, int64_t func) {
-	r_cast<Grid*>(self)->setBlendFunc(BlendFunc(s_cast<uint64_t>(func)));
+void grid__set_blend_func(int64_t self, int64_t blend_func) {
+	r_cast<Grid*>(self)->setBlendFunc(BlendFunc(s_cast<uint64_t>(blend_func)));
 }
 int64_t grid__get_blend_func(int64_t self) {
 	return s_cast<int64_t>(r_cast<Grid*>(self)->getBlendFunc().toValue());
 }
-void grid_set_effect(int64_t self, int64_t var) {
-	r_cast<Grid*>(self)->setEffect(r_cast<SpriteEffect*>(var));
+void grid_set_effect(int64_t self, int64_t val) {
+	r_cast<Grid*>(self)->setEffect(r_cast<SpriteEffect*>(val));
 }
 int64_t grid_get_effect(int64_t self) {
 	return Object_From(r_cast<Grid*>(self)->getEffect());
 }
-void grid_set_texture_rect(int64_t self, int64_t var) {
-	r_cast<Grid*>(self)->setTextureRect(*r_cast<Rect*>(var));
+void grid_set_texture_rect(int64_t self, int64_t val) {
+	r_cast<Grid*>(self)->setTextureRect(*r_cast<Rect*>(val));
 }
 int64_t grid_get_texture_rect(int64_t self) {
 	return r_cast<int64_t>(new Rect{r_cast<Grid*>(self)->getTextureRect()});
 }
-void grid_set_texture(int64_t self, int64_t var) {
-	r_cast<Grid*>(self)->setTexture(r_cast<Texture2D*>(var));
+void grid_set_texture(int64_t self, int64_t val) {
+	r_cast<Grid*>(self)->setTexture(r_cast<Texture2D*>(val));
 }
 int64_t grid_get_texture(int64_t self) {
 	return Object_From(r_cast<Grid*>(self)->getTexture());

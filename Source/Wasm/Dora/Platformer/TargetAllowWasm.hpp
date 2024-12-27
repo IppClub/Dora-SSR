@@ -11,8 +11,8 @@ using namespace Dora;
 void platformer_targetallow_release(int64_t raw) {
 	delete r_cast<Platformer::TargetAllow*>(raw);
 }
-void platformer_targetallow_set_terrain_allowed(int64_t self, int32_t var) {
-	r_cast<Platformer::TargetAllow*>(self)->setTerrainAllowed(var != 0);
+void platformer_targetallow_set_terrain_allowed(int64_t self, int32_t val) {
+	r_cast<Platformer::TargetAllow*>(self)->setTerrainAllowed(val != 0);
 }
 int32_t platformer_targetallow_is_terrain_allowed(int64_t self) {
 	return r_cast<Platformer::TargetAllow*>(self)->isTerrainAllowed() ? 1 : 0;

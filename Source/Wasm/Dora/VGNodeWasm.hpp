@@ -14,12 +14,12 @@ int32_t vgnode_type() {
 int64_t vgnode_get_surface(int64_t self) {
 	return Object_From(r_cast<VGNode*>(self)->getSurface());
 }
-void vgnode_render(int64_t self, int32_t func) {
-	std::shared_ptr<void> deref(nullptr, [func](auto) {
-		SharedWasmRuntime.deref(func);
+void vgnode_render(int64_t self, int32_t func0) {
+	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
+		SharedWasmRuntime.deref(func0);
 	});
-	r_cast<VGNode*>(self)->render([func, deref]() {
-		SharedWasmRuntime.invoke(func);
+	r_cast<VGNode*>(self)->render([func0, deref0]() {
+		SharedWasmRuntime.invoke(func0);
 	});
 }
 int64_t vgnode_new(float width, float height, float scale, int32_t edge_aa) {

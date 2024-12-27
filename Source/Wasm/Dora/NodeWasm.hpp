@@ -11,152 +11,152 @@ using namespace Dora;
 int32_t node_type() {
 	return DoraType<Node>();
 }
-void node_set_order(int64_t self, int32_t var) {
-	r_cast<Node*>(self)->setOrder(s_cast<int>(var));
+void node_set_order(int64_t self, int32_t val) {
+	r_cast<Node*>(self)->setOrder(s_cast<int>(val));
 }
 int32_t node_get_order(int64_t self) {
 	return s_cast<int32_t>(r_cast<Node*>(self)->getOrder());
 }
-void node_set_angle(int64_t self, float var) {
-	r_cast<Node*>(self)->setAngle(var);
+void node_set_angle(int64_t self, float val) {
+	r_cast<Node*>(self)->setAngle(val);
 }
 float node_get_angle(int64_t self) {
 	return r_cast<Node*>(self)->getAngle();
 }
-void node_set_angle_x(int64_t self, float var) {
-	r_cast<Node*>(self)->setAngleX(var);
+void node_set_angle_x(int64_t self, float val) {
+	r_cast<Node*>(self)->setAngleX(val);
 }
 float node_get_angle_x(int64_t self) {
 	return r_cast<Node*>(self)->getAngleX();
 }
-void node_set_angle_y(int64_t self, float var) {
-	r_cast<Node*>(self)->setAngleY(var);
+void node_set_angle_y(int64_t self, float val) {
+	r_cast<Node*>(self)->setAngleY(val);
 }
 float node_get_angle_y(int64_t self) {
 	return r_cast<Node*>(self)->getAngleY();
 }
-void node_set_scale_x(int64_t self, float var) {
-	r_cast<Node*>(self)->setScaleX(var);
+void node_set_scale_x(int64_t self, float val) {
+	r_cast<Node*>(self)->setScaleX(val);
 }
 float node_get_scale_x(int64_t self) {
 	return r_cast<Node*>(self)->getScaleX();
 }
-void node_set_scale_y(int64_t self, float var) {
-	r_cast<Node*>(self)->setScaleY(var);
+void node_set_scale_y(int64_t self, float val) {
+	r_cast<Node*>(self)->setScaleY(val);
 }
 float node_get_scale_y(int64_t self) {
 	return r_cast<Node*>(self)->getScaleY();
 }
-void node_set_x(int64_t self, float var) {
-	r_cast<Node*>(self)->setX(var);
+void node_set_x(int64_t self, float val) {
+	r_cast<Node*>(self)->setX(val);
 }
 float node_get_x(int64_t self) {
 	return r_cast<Node*>(self)->getX();
 }
-void node_set_y(int64_t self, float var) {
-	r_cast<Node*>(self)->setY(var);
+void node_set_y(int64_t self, float val) {
+	r_cast<Node*>(self)->setY(val);
 }
 float node_get_y(int64_t self) {
 	return r_cast<Node*>(self)->getY();
 }
-void node_set_z(int64_t self, float var) {
-	r_cast<Node*>(self)->setZ(var);
+void node_set_z(int64_t self, float val) {
+	r_cast<Node*>(self)->setZ(val);
 }
 float node_get_z(int64_t self) {
 	return r_cast<Node*>(self)->getZ();
 }
-void node_set_position(int64_t self, int64_t var) {
-	r_cast<Node*>(self)->setPosition(Vec2_From(var));
+void node_set_position(int64_t self, int64_t val) {
+	r_cast<Node*>(self)->setPosition(Vec2_From(val));
 }
 int64_t node_get_position(int64_t self) {
 	return Vec2_Retain(r_cast<Node*>(self)->getPosition());
 }
-void node_set_skew_x(int64_t self, float var) {
-	r_cast<Node*>(self)->setSkewX(var);
+void node_set_skew_x(int64_t self, float val) {
+	r_cast<Node*>(self)->setSkewX(val);
 }
 float node_get_skew_x(int64_t self) {
 	return r_cast<Node*>(self)->getSkewX();
 }
-void node_set_skew_y(int64_t self, float var) {
-	r_cast<Node*>(self)->setSkewY(var);
+void node_set_skew_y(int64_t self, float val) {
+	r_cast<Node*>(self)->setSkewY(val);
 }
 float node_get_skew_y(int64_t self) {
 	return r_cast<Node*>(self)->getSkewY();
 }
-void node_set_visible(int64_t self, int32_t var) {
-	r_cast<Node*>(self)->setVisible(var != 0);
+void node_set_visible(int64_t self, int32_t val) {
+	r_cast<Node*>(self)->setVisible(val != 0);
 }
 int32_t node_is_visible(int64_t self) {
 	return r_cast<Node*>(self)->isVisible() ? 1 : 0;
 }
-void node_set_anchor(int64_t self, int64_t var) {
-	r_cast<Node*>(self)->setAnchor(Vec2_From(var));
+void node_set_anchor(int64_t self, int64_t val) {
+	r_cast<Node*>(self)->setAnchor(Vec2_From(val));
 }
 int64_t node_get_anchor(int64_t self) {
 	return Vec2_Retain(r_cast<Node*>(self)->getAnchor());
 }
-void node_set_width(int64_t self, float var) {
-	r_cast<Node*>(self)->setWidth(var);
+void node_set_width(int64_t self, float val) {
+	r_cast<Node*>(self)->setWidth(val);
 }
 float node_get_width(int64_t self) {
 	return r_cast<Node*>(self)->getWidth();
 }
-void node_set_height(int64_t self, float var) {
-	r_cast<Node*>(self)->setHeight(var);
+void node_set_height(int64_t self, float val) {
+	r_cast<Node*>(self)->setHeight(val);
 }
 float node_get_height(int64_t self) {
 	return r_cast<Node*>(self)->getHeight();
 }
-void node_set_size(int64_t self, int64_t var) {
-	r_cast<Node*>(self)->setSize(Size_From(var));
+void node_set_size(int64_t self, int64_t val) {
+	r_cast<Node*>(self)->setSize(Size_From(val));
 }
 int64_t node_get_size(int64_t self) {
 	return Size_Retain(r_cast<Node*>(self)->getSize());
 }
-void node_set_tag(int64_t self, int64_t var) {
-	r_cast<Node*>(self)->setTag(*Str_From(var));
+void node_set_tag(int64_t self, int64_t val) {
+	r_cast<Node*>(self)->setTag(*Str_From(val));
 }
 int64_t node_get_tag(int64_t self) {
 	return Str_Retain(r_cast<Node*>(self)->getTag());
 }
-void node_set_opacity(int64_t self, float var) {
-	r_cast<Node*>(self)->setOpacity(var);
+void node_set_opacity(int64_t self, float val) {
+	r_cast<Node*>(self)->setOpacity(val);
 }
 float node_get_opacity(int64_t self) {
 	return r_cast<Node*>(self)->getOpacity();
 }
-void node_set_color(int64_t self, int32_t var) {
-	r_cast<Node*>(self)->setColor(Color(s_cast<uint32_t>(var)));
+void node_set_color(int64_t self, int32_t val) {
+	r_cast<Node*>(self)->setColor(Color(s_cast<uint32_t>(val)));
 }
 int32_t node_get_color(int64_t self) {
 	return r_cast<Node*>(self)->getColor().toARGB();
 }
-void node_set_color3(int64_t self, int32_t var) {
-	r_cast<Node*>(self)->setColor3(Color3(s_cast<uint32_t>(var)));
+void node_set_color3(int64_t self, int32_t val) {
+	r_cast<Node*>(self)->setColor3(Color3(s_cast<uint32_t>(val)));
 }
 int32_t node_get_color3(int64_t self) {
 	return r_cast<Node*>(self)->getColor3().toRGB();
 }
-void node_set_pass_opacity(int64_t self, int32_t var) {
-	r_cast<Node*>(self)->setPassOpacity(var != 0);
+void node_set_pass_opacity(int64_t self, int32_t val) {
+	r_cast<Node*>(self)->setPassOpacity(val != 0);
 }
 int32_t node_is_pass_opacity(int64_t self) {
 	return r_cast<Node*>(self)->isPassOpacity() ? 1 : 0;
 }
-void node_set_pass_color3(int64_t self, int32_t var) {
-	r_cast<Node*>(self)->setPassColor3(var != 0);
+void node_set_pass_color3(int64_t self, int32_t val) {
+	r_cast<Node*>(self)->setPassColor3(val != 0);
 }
 int32_t node_is_pass_color3(int64_t self) {
 	return r_cast<Node*>(self)->isPassColor3() ? 1 : 0;
 }
-void node_set_transform_target(int64_t self, int64_t var) {
-	r_cast<Node*>(self)->setTransformTarget(r_cast<Node*>(var));
+void node_set_transform_target(int64_t self, int64_t val) {
+	r_cast<Node*>(self)->setTransformTarget(r_cast<Node*>(val));
 }
 int64_t node_get_transform_target(int64_t self) {
 	return Object_From(r_cast<Node*>(self)->getTransformTarget());
 }
-void node_set_scheduler(int64_t self, int64_t var) {
-	r_cast<Node*>(self)->setScheduler(r_cast<Scheduler*>(var));
+void node_set_scheduler(int64_t self, int64_t val) {
+	r_cast<Node*>(self)->setScheduler(r_cast<Scheduler*>(val));
 }
 int64_t node_get_scheduler(int64_t self) {
 	return Object_From(r_cast<Node*>(self)->getScheduler());
@@ -179,50 +179,50 @@ int32_t node_get_action_count(int64_t self) {
 int64_t node_get_data(int64_t self) {
 	return Object_From(r_cast<Node*>(self)->getUserData());
 }
-void node_set_touch_enabled(int64_t self, int32_t var) {
-	r_cast<Node*>(self)->setTouchEnabled(var != 0);
+void node_set_touch_enabled(int64_t self, int32_t val) {
+	r_cast<Node*>(self)->setTouchEnabled(val != 0);
 }
 int32_t node_is_touch_enabled(int64_t self) {
 	return r_cast<Node*>(self)->isTouchEnabled() ? 1 : 0;
 }
-void node_set_swallow_touches(int64_t self, int32_t var) {
-	r_cast<Node*>(self)->setSwallowTouches(var != 0);
+void node_set_swallow_touches(int64_t self, int32_t val) {
+	r_cast<Node*>(self)->setSwallowTouches(val != 0);
 }
 int32_t node_is_swallow_touches(int64_t self) {
 	return r_cast<Node*>(self)->isSwallowTouches() ? 1 : 0;
 }
-void node_set_swallow_mouse_wheel(int64_t self, int32_t var) {
-	r_cast<Node*>(self)->setSwallowMouseWheel(var != 0);
+void node_set_swallow_mouse_wheel(int64_t self, int32_t val) {
+	r_cast<Node*>(self)->setSwallowMouseWheel(val != 0);
 }
 int32_t node_is_swallow_mouse_wheel(int64_t self) {
 	return r_cast<Node*>(self)->isSwallowMouseWheel() ? 1 : 0;
 }
-void node_set_keyboard_enabled(int64_t self, int32_t var) {
-	r_cast<Node*>(self)->setKeyboardEnabled(var != 0);
+void node_set_keyboard_enabled(int64_t self, int32_t val) {
+	r_cast<Node*>(self)->setKeyboardEnabled(val != 0);
 }
 int32_t node_is_keyboard_enabled(int64_t self) {
 	return r_cast<Node*>(self)->isKeyboardEnabled() ? 1 : 0;
 }
-void node_set_controller_enabled(int64_t self, int32_t var) {
-	r_cast<Node*>(self)->setControllerEnabled(var != 0);
+void node_set_controller_enabled(int64_t self, int32_t val) {
+	r_cast<Node*>(self)->setControllerEnabled(val != 0);
 }
 int32_t node_is_controller_enabled(int64_t self) {
 	return r_cast<Node*>(self)->isControllerEnabled() ? 1 : 0;
 }
-void node_set_render_group(int64_t self, int32_t var) {
-	r_cast<Node*>(self)->setRenderGroup(var != 0);
+void node_set_render_group(int64_t self, int32_t val) {
+	r_cast<Node*>(self)->setRenderGroup(val != 0);
 }
 int32_t node_is_render_group(int64_t self) {
 	return r_cast<Node*>(self)->isRenderGroup() ? 1 : 0;
 }
-void node_set_show_debug(int64_t self, int32_t var) {
-	r_cast<Node*>(self)->setShowDebug(var != 0);
+void node_set_show_debug(int64_t self, int32_t val) {
+	r_cast<Node*>(self)->setShowDebug(val != 0);
 }
 int32_t node_is_show_debug(int64_t self) {
 	return r_cast<Node*>(self)->isShowDebug() ? 1 : 0;
 }
-void node_set_render_order(int64_t self, int32_t var) {
-	r_cast<Node*>(self)->setRenderOrder(s_cast<int>(var));
+void node_set_render_order(int64_t self, int32_t val) {
+	r_cast<Node*>(self)->setRenderOrder(s_cast<int>(val));
 }
 int32_t node_get_render_order(int64_t self) {
 	return s_cast<int32_t>(r_cast<Node*>(self)->getRenderOrder());
@@ -266,16 +266,16 @@ void node_cleanup(int64_t self) {
 int64_t node_get_child_by_tag(int64_t self, int64_t tag) {
 	return Object_From(r_cast<Node*>(self)->getChildByTag(*Str_From(tag)));
 }
-void node_schedule(int64_t self, int32_t func, int64_t stack) {
-	std::shared_ptr<void> deref(nullptr, [func](auto) {
-		SharedWasmRuntime.deref(func);
+void node_schedule(int64_t self, int32_t func0, int64_t stack0) {
+	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
+		SharedWasmRuntime.deref(func0);
 	});
-	auto args = r_cast<CallStack*>(stack);
-	r_cast<Node*>(self)->schedule([func, args, deref](double deltaTime) {
-		args->clear();
-		args->push(deltaTime);
-		SharedWasmRuntime.invoke(func);
-		return std::get<bool>(args->pop());
+	auto args0 = r_cast<CallStack*>(stack0);
+	r_cast<Node*>(self)->schedule([func0, args0, deref0](double deltaTime) {
+		args0->clear();
+		args0->push(deltaTime);
+		SharedWasmRuntime.invoke(func0);
+		return std::get<bool>(args0->pop());
 	});
 }
 void node_unschedule(int64_t self) {
@@ -287,51 +287,51 @@ int64_t node_convert_to_node_space(int64_t self, int64_t world_point) {
 int64_t node_convert_to_world_space(int64_t self, int64_t node_point) {
 	return Vec2_Retain(r_cast<Node*>(self)->convertToWorldSpace(Vec2_From(node_point)));
 }
-void node_convert_to_window_space(int64_t self, int64_t node_point, int32_t func, int64_t stack) {
-	std::shared_ptr<void> deref(nullptr, [func](auto) {
-		SharedWasmRuntime.deref(func);
+void node_convert_to_window_space(int64_t self, int64_t node_point, int32_t func0, int64_t stack0) {
+	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
+		SharedWasmRuntime.deref(func0);
 	});
-	auto args = r_cast<CallStack*>(stack);
-	r_cast<Node*>(self)->convertToWindowSpace(Vec2_From(node_point), [func, args, deref](Vec2 result) {
-		args->clear();
-		args->push(result);
-		SharedWasmRuntime.invoke(func);
+	auto args0 = r_cast<CallStack*>(stack0);
+	r_cast<Node*>(self)->convertToWindowSpace(Vec2_From(node_point), [func0, args0, deref0](Vec2 result) {
+		args0->clear();
+		args0->push(result);
+		SharedWasmRuntime.invoke(func0);
 	});
 }
-int32_t node_each_child(int64_t self, int32_t func, int64_t stack) {
-	std::shared_ptr<void> deref(nullptr, [func](auto) {
-		SharedWasmRuntime.deref(func);
+int32_t node_each_child(int64_t self, int32_t func0, int64_t stack0) {
+	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
+		SharedWasmRuntime.deref(func0);
 	});
-	auto args = r_cast<CallStack*>(stack);
-	return r_cast<Node*>(self)->eachChild([func, args, deref](Node* child) {
-		args->clear();
-		args->push(child);
-		SharedWasmRuntime.invoke(func);
-		return std::get<bool>(args->pop());
+	auto args0 = r_cast<CallStack*>(stack0);
+	return r_cast<Node*>(self)->eachChild([func0, args0, deref0](Node* child) {
+		args0->clear();
+		args0->push(child);
+		SharedWasmRuntime.invoke(func0);
+		return std::get<bool>(args0->pop());
 	}) ? 1 : 0;
 }
-int32_t node_traverse(int64_t self, int32_t func, int64_t stack) {
-	std::shared_ptr<void> deref(nullptr, [func](auto) {
-		SharedWasmRuntime.deref(func);
+int32_t node_traverse(int64_t self, int32_t func0, int64_t stack0) {
+	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
+		SharedWasmRuntime.deref(func0);
 	});
-	auto args = r_cast<CallStack*>(stack);
-	return r_cast<Node*>(self)->traverse([func, args, deref](Node* child) {
-		args->clear();
-		args->push(child);
-		SharedWasmRuntime.invoke(func);
-		return std::get<bool>(args->pop());
+	auto args0 = r_cast<CallStack*>(stack0);
+	return r_cast<Node*>(self)->traverse([func0, args0, deref0](Node* child) {
+		args0->clear();
+		args0->push(child);
+		SharedWasmRuntime.invoke(func0);
+		return std::get<bool>(args0->pop());
 	}) ? 1 : 0;
 }
-int32_t node_traverse_all(int64_t self, int32_t func, int64_t stack) {
-	std::shared_ptr<void> deref(nullptr, [func](auto) {
-		SharedWasmRuntime.deref(func);
+int32_t node_traverse_all(int64_t self, int32_t func0, int64_t stack0) {
+	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
+		SharedWasmRuntime.deref(func0);
 	});
-	auto args = r_cast<CallStack*>(stack);
-	return r_cast<Node*>(self)->traverseAll([func, args, deref](Node* child) {
-		args->clear();
-		args->push(child);
-		SharedWasmRuntime.invoke(func);
-		return std::get<bool>(args->pop());
+	auto args0 = r_cast<CallStack*>(stack0);
+	return r_cast<Node*>(self)->traverseAll([func0, args0, deref0](Node* child) {
+		args0->clear();
+		args0->push(child);
+		SharedWasmRuntime.invoke(func0);
+		return std::get<bool>(args0->pop());
 	}) ? 1 : 0;
 }
 float node_run_action_def(int64_t self, int64_t def, int32_t looped) {
@@ -391,41 +391,41 @@ void node_stop_grab(int64_t self) {
 void node_set_transform_target_null(int64_t self) {
 	Node_SetTransformTargetNullptr(r_cast<Node*>(self));
 }
-void node_slot(int64_t self, int64_t event_name, int32_t func, int64_t stack) {
-	std::shared_ptr<void> deref(nullptr, [func](auto) {
-		SharedWasmRuntime.deref(func);
+void node_slot(int64_t self, int64_t event_name, int32_t func0, int64_t stack0) {
+	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
+		SharedWasmRuntime.deref(func0);
 	});
-	auto args = r_cast<CallStack*>(stack);
-	r_cast<Node*>(self)->slot(*Str_From(event_name), [func, args, deref](Event* e) {
-		args->clear();
-		e->pushArgsToWasm(args);
-		SharedWasmRuntime.invoke(func);
+	auto args0 = r_cast<CallStack*>(stack0);
+	r_cast<Node*>(self)->slot(*Str_From(event_name), [func0, args0, deref0](Event* e) {
+		args0->clear();
+		e->pushArgsToWasm(args0);
+		SharedWasmRuntime.invoke(func0);
 	});
 }
-void node_gslot(int64_t self, int64_t event_name, int32_t func, int64_t stack) {
-	std::shared_ptr<void> deref(nullptr, [func](auto) {
-		SharedWasmRuntime.deref(func);
+void node_gslot(int64_t self, int64_t event_name, int32_t func0, int64_t stack0) {
+	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
+		SharedWasmRuntime.deref(func0);
 	});
-	auto args = r_cast<CallStack*>(stack);
-	r_cast<Node*>(self)->gslot(*Str_From(event_name), [func, args, deref](Event* e) {
-		args->clear();
-		e->pushArgsToWasm(args);
-		SharedWasmRuntime.invoke(func);
+	auto args0 = r_cast<CallStack*>(stack0);
+	r_cast<Node*>(self)->gslot(*Str_From(event_name), [func0, args0, deref0](Event* e) {
+		args0->clear();
+		e->pushArgsToWasm(args0);
+		SharedWasmRuntime.invoke(func0);
 	});
 }
 void node_emit(int64_t self, int64_t name, int64_t stack) {
 	Node_Emit(r_cast<Node*>(self), *Str_From(name), r_cast<CallStack*>(stack));
 }
-void node_on_update(int64_t self, int32_t func, int64_t stack) {
-	std::shared_ptr<void> deref(nullptr, [func](auto) {
-		SharedWasmRuntime.deref(func);
+void node_on_update(int64_t self, int32_t func0, int64_t stack0) {
+	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
+		SharedWasmRuntime.deref(func0);
 	});
-	auto args = r_cast<CallStack*>(stack);
-	r_cast<Node*>(self)->onUpdate([func, args, deref](double deltaTime) {
-		args->clear();
-		args->push(deltaTime);
-		SharedWasmRuntime.invoke(func);
-		return std::get<bool>(args->pop());
+	auto args0 = r_cast<CallStack*>(stack0);
+	r_cast<Node*>(self)->onUpdate([func0, args0, deref0](double deltaTime) {
+		args0->clear();
+		args0->push(deltaTime);
+		SharedWasmRuntime.invoke(func0);
+		return std::get<bool>(args0->pop());
 	});
 }
 int64_t node_new() {

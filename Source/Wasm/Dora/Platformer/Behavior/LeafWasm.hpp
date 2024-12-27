@@ -17,16 +17,16 @@ int64_t platformer_behavior_leaf_seq(int64_t nodes) {
 int64_t platformer_behavior_leaf_sel(int64_t nodes) {
 	return Object_From(BSel(Vec_FromBtree(nodes)));
 }
-int64_t platformer_behavior_leaf_con(int64_t name, int32_t func, int64_t stack) {
-	std::shared_ptr<void> deref(nullptr, [func](auto) {
-		SharedWasmRuntime.deref(func);
+int64_t platformer_behavior_leaf_con(int64_t name, int32_t func0, int64_t stack0) {
+	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
+		SharedWasmRuntime.deref(func0);
 	});
-	auto args = r_cast<CallStack*>(stack);
-	return Object_From(BCon(*Str_From(name), [func, args, deref](Platformer::Behavior::Blackboard* blackboard) {
-		args->clear();
-		args->push(r_cast<int64_t>(blackboard));
-		SharedWasmRuntime.invoke(func);
-		return std::get<bool>(args->pop());
+	auto args0 = r_cast<CallStack*>(stack0);
+	return Object_From(BCon(*Str_From(name), [func0, args0, deref0](Platformer::Behavior::Blackboard* blackboard) {
+		args0->clear();
+		args0->push(r_cast<int64_t>(blackboard));
+		SharedWasmRuntime.invoke(func0);
+		return std::get<bool>(args0->pop());
 	}));
 }
 int64_t platformer_behavior_leaf_act(int64_t action_name) {

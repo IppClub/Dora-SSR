@@ -8,7 +8,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 	fn buffer_type() -> i32;
-	fn buffer_set_text(slf: i64, var: i64);
+	fn buffer_set_text(slf: i64, val: i64);
 	fn buffer_get_text(slf: i64) -> i64;
 	fn buffer_resize(slf: i64, size: i32);
 	fn buffer_zero_memory(slf: i64);
@@ -26,8 +26,8 @@ impl Buffer {
 			}
 		})
 	}
-	pub fn set_text(&mut self, var: &str) {
-		unsafe { buffer_set_text(self.raw(), crate::dora::from_string(var)) };
+	pub fn set_text(&mut self, val: &str) {
+		unsafe { buffer_set_text(self.raw(), crate::dora::from_string(val)) };
 	}
 	pub fn get_text(&self) -> String {
 		return unsafe { crate::dora::to_string(buffer_get_text(self.raw())) };

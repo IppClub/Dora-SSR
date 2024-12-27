@@ -11,44 +11,44 @@ using namespace Dora;
 int32_t platformer_bulletdef_type() {
 	return DoraType<Platformer::BulletDef>();
 }
-void platformer_bulletdef_set_tag(int64_t self, int64_t var) {
-	r_cast<Platformer::BulletDef*>(self)->tag = *Str_From(var);
+void platformer_bulletdef_set_tag(int64_t self, int64_t val) {
+	r_cast<Platformer::BulletDef*>(self)->tag = *Str_From(val);
 }
 int64_t platformer_bulletdef_get_tag(int64_t self) {
 	return Str_Retain(r_cast<Platformer::BulletDef*>(self)->tag);
 }
-void platformer_bulletdef_set_end_effect(int64_t self, int64_t var) {
-	r_cast<Platformer::BulletDef*>(self)->endEffect = *Str_From(var);
+void platformer_bulletdef_set_end_effect(int64_t self, int64_t val) {
+	r_cast<Platformer::BulletDef*>(self)->endEffect = *Str_From(val);
 }
 int64_t platformer_bulletdef_get_end_effect(int64_t self) {
 	return Str_Retain(r_cast<Platformer::BulletDef*>(self)->endEffect);
 }
-void platformer_bulletdef_set_life_time(int64_t self, float var) {
-	r_cast<Platformer::BulletDef*>(self)->lifeTime = s_cast<float>(var);
+void platformer_bulletdef_set_life_time(int64_t self, float val) {
+	r_cast<Platformer::BulletDef*>(self)->lifeTime = s_cast<float>(val);
 }
 float platformer_bulletdef_get_life_time(int64_t self) {
 	return r_cast<Platformer::BulletDef*>(self)->lifeTime;
 }
-void platformer_bulletdef_set_damage_radius(int64_t self, float var) {
-	r_cast<Platformer::BulletDef*>(self)->damageRadius = s_cast<float>(var);
+void platformer_bulletdef_set_damage_radius(int64_t self, float val) {
+	r_cast<Platformer::BulletDef*>(self)->damageRadius = s_cast<float>(val);
 }
 float platformer_bulletdef_get_damage_radius(int64_t self) {
 	return r_cast<Platformer::BulletDef*>(self)->damageRadius;
 }
-void platformer_bulletdef_set_high_speed_fix(int64_t self, int32_t var) {
-	r_cast<Platformer::BulletDef*>(self)->setHighSpeedFix(var != 0);
+void platformer_bulletdef_set_high_speed_fix(int64_t self, int32_t val) {
+	r_cast<Platformer::BulletDef*>(self)->setHighSpeedFix(val != 0);
 }
 int32_t platformer_bulletdef_is_high_speed_fix(int64_t self) {
 	return r_cast<Platformer::BulletDef*>(self)->isHighSpeedFix() ? 1 : 0;
 }
-void platformer_bulletdef_set_gravity(int64_t self, int64_t var) {
-	r_cast<Platformer::BulletDef*>(self)->setGravity(Vec2_From(var));
+void platformer_bulletdef_set_gravity(int64_t self, int64_t val) {
+	r_cast<Platformer::BulletDef*>(self)->setGravity(Vec2_From(val));
 }
 int64_t platformer_bulletdef_get_gravity(int64_t self) {
 	return Vec2_Retain(r_cast<Platformer::BulletDef*>(self)->getGravity());
 }
-void platformer_bulletdef_set_face(int64_t self, int64_t var) {
-	r_cast<Platformer::BulletDef*>(self)->setFace(r_cast<Platformer::Face*>(var));
+void platformer_bulletdef_set_face(int64_t self, int64_t val) {
+	r_cast<Platformer::BulletDef*>(self)->setFace(r_cast<Platformer::Face*>(val));
 }
 int64_t platformer_bulletdef_get_face(int64_t self) {
 	return Object_From(r_cast<Platformer::BulletDef*>(self)->getFace());

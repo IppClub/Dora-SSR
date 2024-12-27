@@ -8,14 +8,14 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-void platformer_unitaction_set_reaction(int64_t self, float var) {
-	r_cast<Platformer::UnitAction*>(self)->reaction = s_cast<float>(var);
+void platformer_unitaction_set_reaction(int64_t self, float val) {
+	r_cast<Platformer::UnitAction*>(self)->reaction = s_cast<float>(val);
 }
 float platformer_unitaction_get_reaction(int64_t self) {
 	return r_cast<Platformer::UnitAction*>(self)->reaction;
 }
-void platformer_unitaction_set_recovery(int64_t self, float var) {
-	r_cast<Platformer::UnitAction*>(self)->recovery = s_cast<float>(var);
+void platformer_unitaction_set_recovery(int64_t self, float val) {
+	r_cast<Platformer::UnitAction*>(self)->recovery = s_cast<float>(val);
 }
 float platformer_unitaction_get_recovery(int64_t self) {
 	return r_cast<Platformer::UnitAction*>(self)->recovery;
@@ -35,11 +35,11 @@ float platformer_unitaction_get_elapsed_time(int64_t self) {
 void platformer_unitaction_clear() {
 	Platformer::UnitAction::clear();
 }
-void platformer_unitaction_add(int64_t name, int32_t priority, float reaction, float recovery, int32_t queued, int32_t func, int64_t stack, int32_t func1, int64_t stack1, int32_t func2, int64_t stack2) {
-	std::shared_ptr<void> deref(nullptr, [func](auto) {
-		SharedWasmRuntime.deref(func);
+void platformer_unitaction_add(int64_t name, int32_t priority, float reaction, float recovery, int32_t queued, int32_t func0, int64_t stack0, int32_t func1, int64_t stack1, int32_t func2, int64_t stack2) {
+	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
+		SharedWasmRuntime.deref(func0);
 	});
-	auto args = r_cast<CallStack*>(stack);
+	auto args0 = r_cast<CallStack*>(stack0);
 	std::shared_ptr<void> deref1(nullptr, [func1](auto) {
 		SharedWasmRuntime.deref(func1);
 	});
@@ -48,12 +48,12 @@ void platformer_unitaction_add(int64_t name, int32_t priority, float reaction, f
 		SharedWasmRuntime.deref(func2);
 	});
 	auto args2 = r_cast<CallStack*>(stack2);
-	Platformer_UnitAction_Add(*Str_From(name), s_cast<int>(priority), reaction, recovery, queued != 0, [func, args, deref](Platformer::Unit* owner, Platformer::UnitAction* action) {
-		args->clear();
-		args->push(owner);
-		args->push(r_cast<int64_t>(action));
-		SharedWasmRuntime.invoke(func);
-		return std::get<bool>(args->pop());
+	Platformer_UnitAction_Add(*Str_From(name), s_cast<int>(priority), reaction, recovery, queued != 0, [func0, args0, deref0](Platformer::Unit* owner, Platformer::UnitAction* action) {
+		args0->clear();
+		args0->push(owner);
+		args0->push(r_cast<int64_t>(action));
+		SharedWasmRuntime.invoke(func0);
+		return std::get<bool>(args0->pop());
 	}, [func1, args1, deref1](Platformer::Unit* owner, Platformer::UnitAction* action) {
 		args1->clear();
 		args1->push(owner);

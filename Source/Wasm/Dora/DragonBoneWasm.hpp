@@ -11,8 +11,8 @@ using namespace Dora;
 int32_t dragonbone_type() {
 	return DoraType<DragonBone>();
 }
-void dragonbone_set_hit_test_enabled(int64_t self, int32_t var) {
-	r_cast<DragonBone*>(self)->setHitTestEnabled(var != 0);
+void dragonbone_set_hit_test_enabled(int64_t self, int32_t val) {
+	r_cast<DragonBone*>(self)->setHitTestEnabled(val != 0);
 }
 int32_t dragonbone_is_hit_test_enabled(int64_t self) {
 	return r_cast<DragonBone*>(self)->isHitTestEnabled() ? 1 : 0;

@@ -8,13 +8,13 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 	fn playable_type() -> i32;
-	fn playable_set_look(slf: i64, var: i64);
+	fn playable_set_look(slf: i64, val: i64);
 	fn playable_get_look(slf: i64) -> i64;
-	fn playable_set_speed(slf: i64, var: f32);
+	fn playable_set_speed(slf: i64, val: f32);
 	fn playable_get_speed(slf: i64) -> f32;
-	fn playable_set_recovery(slf: i64, var: f32);
+	fn playable_set_recovery(slf: i64, val: f32);
 	fn playable_get_recovery(slf: i64) -> f32;
-	fn playable_set_fliped(slf: i64, var: i32);
+	fn playable_set_fliped(slf: i64, val: i32);
 	fn playable_is_fliped(slf: i64) -> i32;
 	fn playable_get_current(slf: i64) -> i64;
 	fn playable_get_last_completed(slf: i64) -> i64;
@@ -34,16 +34,16 @@ crate::dora_object!(Playable);
 impl IPlayable for Playable { }
 pub trait IPlayable: INode {
 	/// Sets the look of the animation.
-	fn set_look(&mut self, var: &str) {
-		unsafe { playable_set_look(self.raw(), crate::dora::from_string(var)) };
+	fn set_look(&mut self, val: &str) {
+		unsafe { playable_set_look(self.raw(), crate::dora::from_string(val)) };
 	}
 	/// Gets the look of the animation.
 	fn get_look(&self) -> String {
 		return unsafe { crate::dora::to_string(playable_get_look(self.raw())) };
 	}
 	/// Sets the play speed of the animation.
-	fn set_speed(&mut self, var: f32) {
-		unsafe { playable_set_speed(self.raw(), var) };
+	fn set_speed(&mut self, val: f32) {
+		unsafe { playable_set_speed(self.raw(), val) };
 	}
 	/// Gets the play speed of the animation.
 	fn get_speed(&self) -> f32 {
@@ -51,8 +51,8 @@ pub trait IPlayable: INode {
 	}
 	/// Sets the recovery time of the animation, in seconds.
 	/// Used for doing transitions from one animation to another animation.
-	fn set_recovery(&mut self, var: f32) {
-		unsafe { playable_set_recovery(self.raw(), var) };
+	fn set_recovery(&mut self, val: f32) {
+		unsafe { playable_set_recovery(self.raw(), val) };
 	}
 	/// Gets the recovery time of the animation, in seconds.
 	/// Used for doing transitions from one animation to another animation.
@@ -60,8 +60,8 @@ pub trait IPlayable: INode {
 		return unsafe { playable_get_recovery(self.raw()) };
 	}
 	/// Sets whether the animation is flipped horizontally.
-	fn set_fliped(&mut self, var: bool) {
-		unsafe { playable_set_fliped(self.raw(), if var { 1 } else { 0 }) };
+	fn set_fliped(&mut self, val: bool) {
+		unsafe { playable_set_fliped(self.raw(), if val { 1 } else { 0 }) };
 	}
 	/// Gets whether the animation is flipped horizontally.
 	fn is_fliped(&self) -> bool {

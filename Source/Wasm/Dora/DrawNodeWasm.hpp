@@ -11,14 +11,14 @@ using namespace Dora;
 int32_t drawnode_type() {
 	return DoraType<DrawNode>();
 }
-void drawnode_set_depth_write(int64_t self, int32_t var) {
-	r_cast<DrawNode*>(self)->setDepthWrite(var != 0);
+void drawnode_set_depth_write(int64_t self, int32_t val) {
+	r_cast<DrawNode*>(self)->setDepthWrite(val != 0);
 }
 int32_t drawnode_is_depth_write(int64_t self) {
 	return r_cast<DrawNode*>(self)->isDepthWrite() ? 1 : 0;
 }
-void drawnode__set_blend_func(int64_t self, int64_t func) {
-	r_cast<DrawNode*>(self)->setBlendFunc(BlendFunc(s_cast<uint64_t>(func)));
+void drawnode__set_blend_func(int64_t self, int64_t blend_func) {
+	r_cast<DrawNode*>(self)->setBlendFunc(BlendFunc(s_cast<uint64_t>(blend_func)));
 }
 int64_t drawnode__get_blend_func(int64_t self) {
 	return s_cast<int64_t>(r_cast<DrawNode*>(self)->getBlendFunc().toValue());

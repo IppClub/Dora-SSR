@@ -12,23 +12,23 @@ extern "C" {
 	fn body_get_body_def(slf: i64) -> i64;
 	fn body_get_mass(slf: i64) -> f32;
 	fn body_is_sensor(slf: i64) -> i32;
-	fn body_set_velocity_x(slf: i64, var: f32);
+	fn body_set_velocity_x(slf: i64, val: f32);
 	fn body_get_velocity_x(slf: i64) -> f32;
-	fn body_set_velocity_y(slf: i64, var: f32);
+	fn body_set_velocity_y(slf: i64, val: f32);
 	fn body_get_velocity_y(slf: i64) -> f32;
-	fn body_set_velocity(slf: i64, var: i64);
+	fn body_set_velocity(slf: i64, val: i64);
 	fn body_get_velocity(slf: i64) -> i64;
-	fn body_set_angular_rate(slf: i64, var: f32);
+	fn body_set_angular_rate(slf: i64, val: f32);
 	fn body_get_angular_rate(slf: i64) -> f32;
-	fn body_set_group(slf: i64, var: i32);
+	fn body_set_group(slf: i64, val: i32);
 	fn body_get_group(slf: i64) -> i32;
-	fn body_set_linear_damping(slf: i64, var: f32);
+	fn body_set_linear_damping(slf: i64, val: f32);
 	fn body_get_linear_damping(slf: i64) -> f32;
-	fn body_set_angular_damping(slf: i64, var: f32);
+	fn body_set_angular_damping(slf: i64, val: f32);
 	fn body_get_angular_damping(slf: i64) -> f32;
-	fn body_set_owner(slf: i64, var: i64);
+	fn body_set_owner(slf: i64, val: i64);
 	fn body_get_owner(slf: i64) -> i64;
-	fn body_set_receiving_contact(slf: i64, var: i32);
+	fn body_set_receiving_contact(slf: i64, val: i32);
 	fn body_is_receiving_contact(slf: i64) -> i32;
 	fn body_apply_linear_impulse(slf: i64, impulse: i64, pos: i64);
 	fn body_apply_angular_impulse(slf: i64, impulse: f32);
@@ -37,7 +37,7 @@ extern "C" {
 	fn body_remove_sensor(slf: i64, sensor: i64) -> i32;
 	fn body_attach(slf: i64, fixture_def: i64);
 	fn body_attach_sensor(slf: i64, tag: i32, fixture_def: i64) -> i64;
-	fn body_on_contact_filter(slf: i64, func: i32, stack: i64);
+	fn body_on_contact_filter(slf: i64, func0: i32, stack0: i64);
 	fn body_new(def: i64, world: i64, pos: i64, rot: f32) -> i64;
 }
 use crate::dora::IObject;
@@ -65,72 +65,72 @@ pub trait IBody: INode {
 		return unsafe { body_is_sensor(self.raw()) != 0 };
 	}
 	/// Sets the x-axis velocity of the body.
-	fn set_velocity_x(&mut self, var: f32) {
-		unsafe { body_set_velocity_x(self.raw(), var) };
+	fn set_velocity_x(&mut self, val: f32) {
+		unsafe { body_set_velocity_x(self.raw(), val) };
 	}
 	/// Gets the x-axis velocity of the body.
 	fn get_velocity_x(&self) -> f32 {
 		return unsafe { body_get_velocity_x(self.raw()) };
 	}
 	/// Sets the y-axis velocity of the body.
-	fn set_velocity_y(&mut self, var: f32) {
-		unsafe { body_set_velocity_y(self.raw(), var) };
+	fn set_velocity_y(&mut self, val: f32) {
+		unsafe { body_set_velocity_y(self.raw(), val) };
 	}
 	/// Gets the y-axis velocity of the body.
 	fn get_velocity_y(&self) -> f32 {
 		return unsafe { body_get_velocity_y(self.raw()) };
 	}
 	/// Sets the velocity of the body as a `Vec2`.
-	fn set_velocity(&mut self, var: &crate::dora::Vec2) {
-		unsafe { body_set_velocity(self.raw(), var.into_i64()) };
+	fn set_velocity(&mut self, val: &crate::dora::Vec2) {
+		unsafe { body_set_velocity(self.raw(), val.into_i64()) };
 	}
 	/// Gets the velocity of the body as a `Vec2`.
 	fn get_velocity(&self) -> crate::dora::Vec2 {
 		return unsafe { crate::dora::Vec2::from(body_get_velocity(self.raw())) };
 	}
 	/// Sets the angular rate of the body.
-	fn set_angular_rate(&mut self, var: f32) {
-		unsafe { body_set_angular_rate(self.raw(), var) };
+	fn set_angular_rate(&mut self, val: f32) {
+		unsafe { body_set_angular_rate(self.raw(), val) };
 	}
 	/// Gets the angular rate of the body.
 	fn get_angular_rate(&self) -> f32 {
 		return unsafe { body_get_angular_rate(self.raw()) };
 	}
 	/// Sets the collision group that the body belongs to.
-	fn set_group(&mut self, var: i32) {
-		unsafe { body_set_group(self.raw(), var) };
+	fn set_group(&mut self, val: i32) {
+		unsafe { body_set_group(self.raw(), val) };
 	}
 	/// Gets the collision group that the body belongs to.
 	fn get_group(&self) -> i32 {
 		return unsafe { body_get_group(self.raw()) };
 	}
 	/// Sets the linear damping of the body.
-	fn set_linear_damping(&mut self, var: f32) {
-		unsafe { body_set_linear_damping(self.raw(), var) };
+	fn set_linear_damping(&mut self, val: f32) {
+		unsafe { body_set_linear_damping(self.raw(), val) };
 	}
 	/// Gets the linear damping of the body.
 	fn get_linear_damping(&self) -> f32 {
 		return unsafe { body_get_linear_damping(self.raw()) };
 	}
 	/// Sets the angular damping of the body.
-	fn set_angular_damping(&mut self, var: f32) {
-		unsafe { body_set_angular_damping(self.raw(), var) };
+	fn set_angular_damping(&mut self, val: f32) {
+		unsafe { body_set_angular_damping(self.raw(), val) };
 	}
 	/// Gets the angular damping of the body.
 	fn get_angular_damping(&self) -> f32 {
 		return unsafe { body_get_angular_damping(self.raw()) };
 	}
 	/// Sets the reference for an owner of the body.
-	fn set_owner(&mut self, var: &dyn crate::dora::IObject) {
-		unsafe { body_set_owner(self.raw(), var.raw()) };
+	fn set_owner(&mut self, val: &dyn crate::dora::IObject) {
+		unsafe { body_set_owner(self.raw(), val.raw()) };
 	}
 	/// Gets the reference for an owner of the body.
 	fn get_owner(&self) -> crate::dora::Object {
 		return unsafe { crate::dora::Object::from(body_get_owner(self.raw())).unwrap() };
 	}
 	/// Sets whether the body is currently receiving contact events or not.
-	fn set_receiving_contact(&mut self, var: bool) {
-		unsafe { body_set_receiving_contact(self.raw(), if var { 1 } else { 0 }) };
+	fn set_receiving_contact(&mut self, val: bool) {
+		unsafe { body_set_receiving_contact(self.raw(), if val { 1 } else { 0 }) };
 	}
 	/// Gets whether the body is currently receiving contact events or not.
 	fn is_receiving_contact(&self) -> bool {
@@ -216,13 +216,13 @@ pub trait IBody: INode {
 	///
 	/// * `filter` - The filter function to set.
 	fn on_contact_filter(&mut self, mut filter: Box<dyn FnMut(&dyn crate::dora::IBody) -> bool>) {
-		let mut stack = crate::dora::CallStack::new();
-		let stack_raw = stack.raw();
-		let func_id = crate::dora::push_function(Box::new(move || {
-			let result = filter(&stack.pop_cast::<crate::dora::Body>().unwrap());
-			stack.push_bool(result);
+		let mut stack0 = crate::dora::CallStack::new();
+		let stack_raw0 = stack0.raw();
+		let func_id0 = crate::dora::push_function(Box::new(move || {
+			let result = filter(&stack0.pop_cast::<crate::dora::Body>().unwrap());
+			stack0.push_bool(result);
 		}));
-		unsafe { body_on_contact_filter(self.raw(), func_id, stack_raw); }
+		unsafe { body_on_contact_filter(self.raw(), func_id0, stack_raw0); }
 	}
 }
 impl Body {

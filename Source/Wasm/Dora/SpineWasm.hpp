@@ -11,8 +11,8 @@ using namespace Dora;
 int32_t spine_type() {
 	return DoraType<Spine>();
 }
-void spine_set_hit_test_enabled(int64_t self, int32_t var) {
-	r_cast<Spine*>(self)->setHitTestEnabled(var != 0);
+void spine_set_hit_test_enabled(int64_t self, int32_t val) {
+	r_cast<Spine*>(self)->setHitTestEnabled(val != 0);
 }
 int32_t spine_is_hit_test_enabled(int64_t self) {
 	return r_cast<Spine*>(self)->isHitTestEnabled() ? 1 : 0;

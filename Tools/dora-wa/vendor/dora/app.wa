@@ -1,0 +1,185 @@
+/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+#wa:import dora application_get_frame
+func application_get_frame() => i32
+#wa:import dora application_get_buffer_size
+func application_get_buffer_size() => i64
+#wa:import dora application_get_visual_size
+func application_get_visual_size() => i64
+#wa:import dora application_get_device_pixel_ratio
+func application_get_device_pixel_ratio() => f32
+#wa:import dora application_get_platform
+func application_get_platform() => i64
+#wa:import dora application_get_version
+func application_get_version() => i64
+#wa:import dora application_get_deps
+func application_get_deps() => i64
+#wa:import dora application_get_delta_time
+func application_get_delta_time() => f64
+#wa:import dora application_get_elapsed_time
+func application_get_elapsed_time() => f64
+#wa:import dora application_get_total_time
+func application_get_total_time() => f64
+#wa:import dora application_get_running_time
+func application_get_running_time() => f64
+#wa:import dora application_get_rand
+func application_get_rand() => i64
+#wa:import dora application_get_max_fps
+func application_get_max_fps() => i32
+#wa:import dora application_is_debugging
+func application_is_debugging() => i32
+#wa:import dora application_set_locale
+func application_set_locale(val: i64)
+#wa:import dora application_get_locale
+func application_get_locale() => i64
+#wa:import dora application_set_theme_color
+func application_set_theme_color(val: i32)
+#wa:import dora application_get_theme_color
+func application_get_theme_color() => i32
+#wa:import dora application_set_seed
+func application_set_seed(val: i32)
+#wa:import dora application_get_seed
+func application_get_seed() => i32
+#wa:import dora application_set_target_fps
+func application_set_target_fps(val: i32)
+#wa:import dora application_get_target_fps
+func application_get_target_fps() => i32
+#wa:import dora application_set_win_size
+func application_set_win_size(val: i64)
+#wa:import dora application_get_win_size
+func application_get_win_size() => i64
+#wa:import dora application_set_win_position
+func application_set_win_position(val: i64)
+#wa:import dora application_get_win_position
+func application_get_win_position() => i64
+#wa:import dora application_set_fps_limited
+func application_set_fps_limited(val: i32)
+#wa:import dora application_is_fps_limited
+func application_is_fps_limited() => i32
+#wa:import dora application_set_idled
+func application_set_idled(val: i32)
+#wa:import dora application_is_idled
+func application_is_idled() => i32
+#wa:import dora application_set_full_screen
+func application_set_full_screen(val: i32)
+#wa:import dora application_is_full_screen
+func application_is_full_screen() => i32
+#wa:import dora application_set_always_on_top
+func application_set_always_on_top(val: i32)
+#wa:import dora application_is_always_on_top
+func application_is_always_on_top() => i32
+#wa:import dora application_shutdown
+func application_shutdown()
+type _App struct { }
+global App = _App{}
+func _App.GetFrame() => i32 {
+	return application_get_frame()
+}
+func _App.GetBufferSize() => Size {
+	return SizeFromValue(application_get_buffer_size())
+}
+func _App.GetVisualSize() => Size {
+	return SizeFromValue(application_get_visual_size())
+}
+func _App.GetDevicePixelRatio() => f32 {
+	return application_get_device_pixel_ratio()
+}
+func _App.GetPlatform() => *string {
+	return FromDoraString(application_get_platform())
+}
+func _App.GetVersion() => *string {
+	return FromDoraString(application_get_version())
+}
+func _App.GetDeps() => *string {
+	return FromDoraString(application_get_deps())
+}
+func _App.GetDeltaTime() => f64 {
+	return application_get_delta_time()
+}
+func _App.GetElapsedTime() => f64 {
+	return application_get_elapsed_time()
+}
+func _App.GetTotalTime() => f64 {
+	return application_get_total_time()
+}
+func _App.GetRunningTime() => f64 {
+	return application_get_running_time()
+}
+func _App.GetRand() => i64 {
+	return application_get_rand()
+}
+func _App.GetMaxFps() => i32 {
+	return application_get_max_fps()
+}
+func _App.IsDebugging() => bool {
+	return application_is_debugging() != 0
+}
+func _App.SetLocale(val: string) {
+	application_set_locale(ToDoraString(val))
+}
+func _App.GetLocale() => *string {
+	return FromDoraString(application_get_locale())
+}
+func _App.SetThemeColor(val: Color) {
+	application_set_theme_color(val.ToARGB())
+}
+func _App.GetThemeColor() => Color {
+	return ColorFromARGB(application_get_theme_color())
+}
+func _App.SetSeed(val: i32) {
+	application_set_seed(val)
+}
+func _App.GetSeed() => i32 {
+	return application_get_seed()
+}
+func _App.SetTargetFps(val: i32) {
+	application_set_target_fps(val)
+}
+func _App.GetTargetFps() => i32 {
+	return application_get_target_fps()
+}
+func _App.SetWinSize(val: Size) {
+	application_set_win_size(val.ToValue())
+}
+func _App.GetWinSize() => Size {
+	return SizeFromValue(application_get_win_size())
+}
+func _App.SetWinPosition(val: Vec2) {
+	application_set_win_position(val.ToValue())
+}
+func _App.GetWinPosition() => Vec2 {
+	return Vec2FromValue(application_get_win_position())
+}
+func _App.SetFpsLimited(val: bool) {
+	application_set_fps_limited(ToDoraBool(val))
+}
+func _App.IsFpsLimited() => bool {
+	return application_is_fps_limited() != 0
+}
+func _App.SetIdled(val: bool) {
+	application_set_idled(ToDoraBool(val))
+}
+func _App.IsIdled() => bool {
+	return application_is_idled() != 0
+}
+func _App.SetFullScreen(val: bool) {
+	application_set_full_screen(ToDoraBool(val))
+}
+func _App.IsFullScreen() => bool {
+	return application_is_full_screen() != 0
+}
+func _App.SetAlwaysOnTop(val: bool) {
+	application_set_always_on_top(ToDoraBool(val))
+}
+func _App.IsAlwaysOnTop() => bool {
+	return application_is_always_on_top() != 0
+}
+func _App.Shutdown() {
+	application_shutdown()
+}

@@ -1,0 +1,155 @@
+/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+#wa:import dora sprite_type
+func sprite_type() => i32
+#wa:import dora sprite_set_depth_write
+func sprite_set_depth_write(slf: i64, val: i32);
+#wa:import dora sprite_is_depth_write
+func sprite_is_depth_write(slf: i64) => i32
+#wa:import dora sprite_set_alpha_ref
+func sprite_set_alpha_ref(slf: i64, val: f32);
+#wa:import dora sprite_get_alpha_ref
+func sprite_get_alpha_ref(slf: i64) => f32
+#wa:import dora sprite_set_texture_rect
+func sprite_set_texture_rect(slf: i64, val: i64);
+#wa:import dora sprite_get_texture_rect
+func sprite_get_texture_rect(slf: i64) => i64
+#wa:import dora sprite_get_texture
+func sprite_get_texture(slf: i64) => i64
+#wa:import dora sprite__set_blend_func
+func sprite__set_blend_func(slf: i64, blend_func: i64)
+#wa:import dora sprite__get_blend_func
+func sprite__get_blend_func(slf: i64) => i64
+#wa:import dora sprite_set_effect
+func sprite_set_effect(slf: i64, val: i64);
+#wa:import dora sprite_get_effect
+func sprite_get_effect(slf: i64) => i64
+#wa:import dora sprite_set_uwrap
+func sprite_set_uwrap(slf: i64, val: i32);
+#wa:import dora sprite_get_uwrap
+func sprite_get_uwrap(slf: i64) => i32
+#wa:import dora sprite_set_vwrap
+func sprite_set_vwrap(slf: i64, val: i32);
+#wa:import dora sprite_get_vwrap
+func sprite_get_vwrap(slf: i64) => i32
+#wa:import dora sprite_set_filter
+func sprite_set_filter(slf: i64, val: i32);
+#wa:import dora sprite_get_filter
+func sprite_get_filter(slf: i64) => i32
+#wa:import dora sprite_set_effect_as_default
+func sprite_set_effect_as_default(slf: i64)
+#wa:import dora sprite_new
+func sprite_new() => i64
+#wa:import dora sprite_with_texture_rect
+func sprite_with_texture_rect(texture: i64, texture_rect: i64) => i64
+#wa:import dora sprite_with_texture
+func sprite_with_texture(texture: i64) => i64
+#wa:import dora sprite_with_file
+func sprite_with_file(clip_str: i64) => i64
+type Sprite struct { Node }
+func SpriteFrom(raw: i64) => *Sprite {
+	if raw == 0 {
+		return nil
+	}
+	object := Sprite{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	result := &object
+	return result
+}
+func Sprite.GetType() => i32 {
+	return sprite_type()
+}
+func Sprite.SetDepthWrite(val: bool) {
+	sprite_set_depth_write(*this.raw, ToDoraBool(val))
+}
+func Sprite.IsDepthWrite() => bool {
+	return sprite_is_depth_write(*this.raw) != 0
+}
+func Sprite.SetAlphaRef(val: f32) {
+	sprite_set_alpha_ref(*this.raw, val)
+}
+func Sprite.GetAlphaRef() => f32 {
+	return sprite_get_alpha_ref(*this.raw)
+}
+func Sprite.SetTextureRect(val: Rect) {
+	sprite_set_texture_rect(*this.raw, val.GetRaw())
+}
+func Sprite.GetTextureRect() => Rect {
+	return *RectFrom(sprite_get_texture_rect(*this.raw))
+}
+func Sprite.GetTexture() => *Texture2D {
+	ptr_ := sprite_get_texture(*this.raw)
+	if ptr_ == 0 {
+		return nil
+	}
+	obj_ := *Texture2DFrom(ptr_)
+	return &obj_
+}
+func Sprite.SetBlendFunc(blend_func: BlendFunc) {
+	sprite__set_blend_func(*this.raw, blend_func.ToValue())
+}
+func Sprite.GetBlendFunc() => BlendFunc {
+	return BlendFuncFrom(sprite__get_blend_func(*this.raw))
+}
+func Sprite.SetEffect(val: SpriteEffect) {
+	sprite_set_effect(*this.raw, val.GetRaw())
+}
+func Sprite.GetEffect() => SpriteEffect {
+	return *SpriteEffectFrom(sprite_get_effect(*this.raw))
+}
+func Sprite.SetUwrap(val: TextureWrap) {
+	sprite_set_uwrap(*this.raw, val.ToValue())
+}
+func Sprite.GetUwrap() => TextureWrap {
+	return TextureWrap{value: sprite_get_uwrap(*this.raw)}
+}
+func Sprite.SetVwrap(val: TextureWrap) {
+	sprite_set_vwrap(*this.raw, val.ToValue())
+}
+func Sprite.GetVwrap() => TextureWrap {
+	return TextureWrap{value: sprite_get_vwrap(*this.raw)}
+}
+func Sprite.SetFilter(val: TextureFilter) {
+	sprite_set_filter(*this.raw, val.ToValue())
+}
+func Sprite.GetFilter() => TextureFilter {
+	return TextureFilter{value: sprite_get_filter(*this.raw)}
+}
+func Sprite.SetEffectAsDefault() {
+	sprite_set_effect_as_default(*this.raw)
+}
+func NewSprite() => Sprite {
+	object := Sprite{}
+	raw := sprite_new()
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return object
+}
+func NewSpriteWithTextureRect(texture: Texture2D, texture_rect: Rect) => Sprite {
+	object := Sprite{}
+	raw := sprite_with_texture_rect(texture.GetRaw(), texture_rect.GetRaw())
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return object
+}
+func NewSpriteWithTexture(texture: Texture2D) => Sprite {
+	object := Sprite{}
+	raw := sprite_with_texture(texture.GetRaw())
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return object
+}
+func NewSpriteWithFile(clip_str: string) => *Sprite {
+	object := Sprite{}
+	raw := sprite_with_file(ToDoraString(clip_str))
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return &object
+}

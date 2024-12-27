@@ -8,11 +8,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 	fn pass_type() -> i32;
-	fn pass_set_grab_pass(slf: i64, var: i32);
+	fn pass_set_grab_pass(slf: i64, val: i32);
 	fn pass_is_grab_pass(slf: i64) -> i32;
-	fn pass_set(slf: i64, name: i64, var: f32);
-	fn pass_set_vec4(slf: i64, name: i64, var_1: f32, var_2: f32, var_3: f32, var_4: f32);
-	fn pass_set_color(slf: i64, name: i64, var: i32);
+	fn pass_set(slf: i64, name: i64, val: f32);
+	fn pass_set_vec4(slf: i64, name: i64, val_1: f32, val_2: f32, val_3: f32, val_4: f32);
+	fn pass_set_color(slf: i64, name: i64, val: i32);
 	fn pass_new(vert_shader: i64, frag_shader: i64) -> i64;
 }
 use crate::dora::IObject;
@@ -31,8 +31,8 @@ impl Pass {
 	/// Sets whether this Pass should be a grab pass.
 	/// A grab pass will render a portion of game scene into a texture frame buffer.
 	/// Then use this texture frame buffer as an input for next render pass.
-	pub fn set_grab_pass(&mut self, var: bool) {
-		unsafe { pass_set_grab_pass(self.raw(), if var { 1 } else { 0 }) };
+	pub fn set_grab_pass(&mut self, val: bool) {
+		unsafe { pass_set_grab_pass(self.raw(), if val { 1 } else { 0 }) };
 	}
 	/// Gets whether this Pass should be a grab pass.
 	/// A grab pass will render a portion of game scene into a texture frame buffer.
@@ -45,21 +45,21 @@ impl Pass {
 	/// # Arguments
 	///
 	/// * `name` - The name of the parameter to set.
-	/// * `var` - The numeric value to set.
-	pub fn set(&mut self, name: &str, var: f32) {
-		unsafe { pass_set(self.raw(), crate::dora::from_string(name), var); }
+	/// * `val` - The numeric value to set.
+	pub fn set(&mut self, name: &str, val: f32) {
+		unsafe { pass_set(self.raw(), crate::dora::from_string(name), val); }
 	}
 	/// Sets the values of shader parameters.
 	///
 	/// # Arguments
 	///
 	/// * `name` - The name of the parameter to set.
-	/// * `var1` - The first numeric value to set.
-	/// * `var2` - An optional second numeric value to set.
-	/// * `var3` - An optional third numeric value to set.
-	/// * `var4` - An optional fourth numeric value to set.
-	pub fn set_vec4(&mut self, name: &str, var_1: f32, var_2: f32, var_3: f32, var_4: f32) {
-		unsafe { pass_set_vec4(self.raw(), crate::dora::from_string(name), var_1, var_2, var_3, var_4); }
+	/// * `val1` - The first numeric value to set.
+	/// * `val2` - An optional second numeric value to set.
+	/// * `val3` - An optional third numeric value to set.
+	/// * `val4` - An optional fourth numeric value to set.
+	pub fn set_vec4(&mut self, name: &str, val_1: f32, val_2: f32, val_3: f32, val_4: f32) {
+		unsafe { pass_set_vec4(self.raw(), crate::dora::from_string(name), val_1, val_2, val_3, val_4); }
 	}
 	/// Another function that sets the values of shader parameters.
 	///
@@ -69,9 +69,9 @@ impl Pass {
 	/// # Arguments
 	///
 	/// * `name` - The name of the parameter to set.
-	/// * `var` - The Color object to set.
-	pub fn set_color(&mut self, name: &str, var: &crate::dora::Color) {
-		unsafe { pass_set_color(self.raw(), crate::dora::from_string(name), var.to_argb() as i32); }
+	/// * `val` - The Color object to set.
+	pub fn set_color(&mut self, name: &str, val: &crate::dora::Color) {
+		unsafe { pass_set_color(self.raw(), crate::dora::from_string(name), val.to_argb() as i32); }
 	}
 	/// Creates a new Pass object.
 	///

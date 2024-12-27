@@ -1,0 +1,22 @@
+/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+#wa:import dora qlearner_type
+func qlearner_type() => i32
+#wa:import dora mlqlearner_update
+func mlqlearner_update(slf: i64, state: i64, action: i32, reward: f64)
+#wa:import dora mlqlearner_get_best_action
+func mlqlearner_get_best_action(slf: i64, state: i64) => i32
+#wa:import dora mlqlearner_visit_matrix
+func mlqlearner_visit_matrix(slf: i64, func0: i32, stack0: i64)
+#wa:import dora mlqlearner_pack
+func mlqlearner_pack(hints: i64, values: i64) => i64
+#wa:import dora mlqlearner_unpack
+func mlqlearner_unpack(hints: i64, state: i64) => i64
+#wa:import dora mlqlearner_new
+func mlqlearner_new(gamma: f64, alpha: f64, max_q: f64) => i64

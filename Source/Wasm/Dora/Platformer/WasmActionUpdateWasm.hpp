@@ -11,18 +11,18 @@ using namespace Dora;
 int32_t platformer_actionupdate_type() {
 	return DoraType<Platformer::WasmActionUpdate>();
 }
-int64_t platformer_wasmactionupdate_new(int32_t func, int64_t stack) {
-	std::shared_ptr<void> deref(nullptr, [func](auto) {
-		SharedWasmRuntime.deref(func);
+int64_t platformer_wasmactionupdate_new(int32_t func0, int64_t stack0) {
+	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
+		SharedWasmRuntime.deref(func0);
 	});
-	auto args = r_cast<CallStack*>(stack);
-	return Object_From(Platformer::WasmActionUpdate::create([func, args, deref](Platformer::Unit* owner, Platformer::UnitAction* action, float deltaTime) {
-		args->clear();
-		args->push(owner);
-		args->push(r_cast<int64_t>(action));
-		args->push(deltaTime);
-		SharedWasmRuntime.invoke(func);
-		return std::get<bool>(args->pop());
+	auto args0 = r_cast<CallStack*>(stack0);
+	return Object_From(Platformer::WasmActionUpdate::create([func0, args0, deref0](Platformer::Unit* owner, Platformer::UnitAction* action, float deltaTime) {
+		args0->clear();
+		args0->push(owner);
+		args0->push(r_cast<int64_t>(action));
+		args0->push(deltaTime);
+		SharedWasmRuntime.invoke(func0);
+		return std::get<bool>(args0->pop());
 	}));
 }
 } // extern "C"

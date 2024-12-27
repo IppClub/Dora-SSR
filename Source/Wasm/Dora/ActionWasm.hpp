@@ -20,14 +20,14 @@ int32_t action_is_running(int64_t self) {
 int32_t action_is_paused(int64_t self) {
 	return r_cast<Action*>(self)->isPaused() ? 1 : 0;
 }
-void action_set_reversed(int64_t self, int32_t var) {
-	r_cast<Action*>(self)->setReversed(var != 0);
+void action_set_reversed(int64_t self, int32_t val) {
+	r_cast<Action*>(self)->setReversed(val != 0);
 }
 int32_t action_is_reversed(int64_t self) {
 	return r_cast<Action*>(self)->isReversed() ? 1 : 0;
 }
-void action_set_speed(int64_t self, float var) {
-	r_cast<Action*>(self)->setSpeed(var);
+void action_set_speed(int64_t self, float val) {
+	r_cast<Action*>(self)->setSpeed(val);
 }
 float action_get_speed(int64_t self) {
 	return r_cast<Action*>(self)->getSpeed();

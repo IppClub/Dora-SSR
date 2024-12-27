@@ -11,30 +11,30 @@ using namespace Dora;
 int32_t physicsworld_type() {
 	return DoraType<PhysicsWorld>();
 }
-int32_t physicsworld_query(int64_t self, int64_t rect, int32_t func, int64_t stack) {
-	std::shared_ptr<void> deref(nullptr, [func](auto) {
-		SharedWasmRuntime.deref(func);
+int32_t physicsworld_query(int64_t self, int64_t rect, int32_t func0, int64_t stack0) {
+	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
+		SharedWasmRuntime.deref(func0);
 	});
-	auto args = r_cast<CallStack*>(stack);
-	return r_cast<PhysicsWorld*>(self)->query(*r_cast<Rect*>(rect), [func, args, deref](Body* body) {
-		args->clear();
-		args->push(body);
-		SharedWasmRuntime.invoke(func);
-		return std::get<bool>(args->pop());
+	auto args0 = r_cast<CallStack*>(stack0);
+	return r_cast<PhysicsWorld*>(self)->query(*r_cast<Rect*>(rect), [func0, args0, deref0](Body* body) {
+		args0->clear();
+		args0->push(body);
+		SharedWasmRuntime.invoke(func0);
+		return std::get<bool>(args0->pop());
 	}) ? 1 : 0;
 }
-int32_t physicsworld_raycast(int64_t self, int64_t start, int64_t stop, int32_t closest, int32_t func, int64_t stack) {
-	std::shared_ptr<void> deref(nullptr, [func](auto) {
-		SharedWasmRuntime.deref(func);
+int32_t physicsworld_raycast(int64_t self, int64_t start, int64_t stop, int32_t closest, int32_t func0, int64_t stack0) {
+	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
+		SharedWasmRuntime.deref(func0);
 	});
-	auto args = r_cast<CallStack*>(stack);
-	return r_cast<PhysicsWorld*>(self)->raycast(Vec2_From(start), Vec2_From(stop), closest != 0, [func, args, deref](Body* body, Vec2 point, Vec2 normal) {
-		args->clear();
-		args->push(body);
-		args->push(point);
-		args->push(normal);
-		SharedWasmRuntime.invoke(func);
-		return std::get<bool>(args->pop());
+	auto args0 = r_cast<CallStack*>(stack0);
+	return r_cast<PhysicsWorld*>(self)->raycast(Vec2_From(start), Vec2_From(stop), closest != 0, [func0, args0, deref0](Body* body, Vec2 point, Vec2 normal) {
+		args0->clear();
+		args0->push(body);
+		args0->push(point);
+		args0->push(normal);
+		SharedWasmRuntime.invoke(func0);
+		return std::get<bool>(args0->pop());
 	}) ? 1 : 0;
 }
 void physicsworld_set_iterations(int64_t self, int32_t velocity_iter, int32_t position_iter) {
@@ -46,10 +46,10 @@ void physicsworld_set_should_contact(int64_t self, int32_t group_a, int32_t grou
 int32_t physicsworld_get_should_contact(int64_t self, int32_t group_a, int32_t group_b) {
 	return r_cast<PhysicsWorld*>(self)->getShouldContact(s_cast<uint8_t>(group_a), s_cast<uint8_t>(group_b)) ? 1 : 0;
 }
-void physicsworld_set_scale_factor(int64_t self, float var) {
-	r_cast<PhysicsWorld*>(self)->scaleFactor = s_cast<float>(var);
+void physicsworld_set_scale_factor(float val) {
+	PhysicsWorld::scaleFactor = s_cast<float>(val);
 }
-float physicsworld_get_scale_factor(int64_t self) {
+float physicsworld_get_scale_factor() {
 	return PhysicsWorld::scaleFactor;
 }
 int64_t physicsworld_new() {

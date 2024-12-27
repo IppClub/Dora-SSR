@@ -11,44 +11,44 @@ using namespace Dora;
 int32_t platformer_platformcamera_type() {
 	return DoraType<Platformer::PlatformCamera>();
 }
-void platformer_platformcamera_set_position(int64_t self, int64_t var) {
-	r_cast<Platformer::PlatformCamera*>(self)->setPosition(Vec2_From(var));
+void platformer_platformcamera_set_position(int64_t self, int64_t val) {
+	r_cast<Platformer::PlatformCamera*>(self)->setPosition(Vec2_From(val));
 }
 int64_t platformer_platformcamera_get_position(int64_t self) {
 	return Vec2_Retain(r_cast<Platformer::PlatformCamera*>(self)->getPosition());
 }
-void platformer_platformcamera_set_rotation(int64_t self, float var) {
-	r_cast<Platformer::PlatformCamera*>(self)->setRotation(var);
+void platformer_platformcamera_set_rotation(int64_t self, float val) {
+	r_cast<Platformer::PlatformCamera*>(self)->setRotation(val);
 }
 float platformer_platformcamera_get_rotation(int64_t self) {
 	return r_cast<Platformer::PlatformCamera*>(self)->getRotation();
 }
-void platformer_platformcamera_set_zoom(int64_t self, float var) {
-	r_cast<Platformer::PlatformCamera*>(self)->setZoom(var);
+void platformer_platformcamera_set_zoom(int64_t self, float val) {
+	r_cast<Platformer::PlatformCamera*>(self)->setZoom(val);
 }
 float platformer_platformcamera_get_zoom(int64_t self) {
 	return r_cast<Platformer::PlatformCamera*>(self)->getZoom();
 }
-void platformer_platformcamera_set_boundary(int64_t self, int64_t var) {
-	r_cast<Platformer::PlatformCamera*>(self)->setBoundary(*r_cast<Rect*>(var));
+void platformer_platformcamera_set_boundary(int64_t self, int64_t val) {
+	r_cast<Platformer::PlatformCamera*>(self)->setBoundary(*r_cast<Rect*>(val));
 }
 int64_t platformer_platformcamera_get_boundary(int64_t self) {
 	return r_cast<int64_t>(new Rect{r_cast<Platformer::PlatformCamera*>(self)->getBoundary()});
 }
-void platformer_platformcamera_set_follow_ratio(int64_t self, int64_t var) {
-	r_cast<Platformer::PlatformCamera*>(self)->setFollowRatio(Vec2_From(var));
+void platformer_platformcamera_set_follow_ratio(int64_t self, int64_t val) {
+	r_cast<Platformer::PlatformCamera*>(self)->setFollowRatio(Vec2_From(val));
 }
 int64_t platformer_platformcamera_get_follow_ratio(int64_t self) {
 	return Vec2_Retain(r_cast<Platformer::PlatformCamera*>(self)->getFollowRatio());
 }
-void platformer_platformcamera_set_follow_offset(int64_t self, int64_t var) {
-	r_cast<Platformer::PlatformCamera*>(self)->setFollowOffset(Vec2_From(var));
+void platformer_platformcamera_set_follow_offset(int64_t self, int64_t val) {
+	r_cast<Platformer::PlatformCamera*>(self)->setFollowOffset(Vec2_From(val));
 }
 int64_t platformer_platformcamera_get_follow_offset(int64_t self) {
 	return Vec2_Retain(r_cast<Platformer::PlatformCamera*>(self)->getFollowOffset());
 }
-void platformer_platformcamera_set_follow_target(int64_t self, int64_t var) {
-	r_cast<Platformer::PlatformCamera*>(self)->setFollowTarget(r_cast<Node*>(var));
+void platformer_platformcamera_set_follow_target(int64_t self, int64_t val) {
+	r_cast<Platformer::PlatformCamera*>(self)->setFollowTarget(r_cast<Node*>(val));
 }
 int64_t platformer_platformcamera_get_follow_target(int64_t self) {
 	return Object_From(r_cast<Platformer::PlatformCamera*>(self)->getFollowTarget());

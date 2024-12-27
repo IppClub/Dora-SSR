@@ -8,13 +8,13 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 	fn tilenode_type() -> i32;
-	fn tilenode_set_depth_write(slf: i64, var: i32);
+	fn tilenode_set_depth_write(slf: i64, val: i32);
 	fn tilenode_is_depth_write(slf: i64) -> i32;
-	fn tilenode__set_blend_func(slf: i64, func: i64);
+	fn tilenode__set_blend_func(slf: i64, blend_func: i64);
 	fn tilenode__get_blend_func(slf: i64) -> i64;
-	fn tilenode_set_effect(slf: i64, var: i64);
+	fn tilenode_set_effect(slf: i64, val: i64);
 	fn tilenode_get_effect(slf: i64) -> i64;
-	fn tilenode_set_filter(slf: i64, var: i32);
+	fn tilenode_set_filter(slf: i64, val: i32);
 	fn tilenode_get_filter(slf: i64) -> i32;
 	fn tilenode_get_layer(slf: i64, layer_name: i64) -> i64;
 	fn tilenode_new(tmx_file: i64) -> i64;
@@ -37,30 +37,30 @@ impl TileNode {
 		})
 	}
 	/// Sets whether the depth buffer should be written to when rendering the tilemap.
-	pub fn set_depth_write(&mut self, var: bool) {
-		unsafe { tilenode_set_depth_write(self.raw(), if var { 1 } else { 0 }) };
+	pub fn set_depth_write(&mut self, val: bool) {
+		unsafe { tilenode_set_depth_write(self.raw(), if val { 1 } else { 0 }) };
 	}
 	/// Gets whether the depth buffer should be written to when rendering the tilemap.
 	pub fn is_depth_write(&self) -> bool {
 		return unsafe { tilenode_is_depth_write(self.raw()) != 0 };
 	}
-	pub(crate) fn _set_blend_func(&mut self, func: u64) {
-		unsafe { tilenode__set_blend_func(self.raw(), func as i64); }
+	pub(crate) fn _set_blend_func(&mut self, blend_func: u64) {
+		unsafe { tilenode__set_blend_func(self.raw(), blend_func as i64); }
 	}
 	pub(crate) fn _get_blend_func(&self) -> u64 {
 		unsafe { return tilenode__get_blend_func(self.raw()) as u64; }
 	}
 	/// Sets the tilemap shader effect.
-	pub fn set_effect(&mut self, var: &crate::dora::SpriteEffect) {
-		unsafe { tilenode_set_effect(self.raw(), var.raw()) };
+	pub fn set_effect(&mut self, val: &crate::dora::SpriteEffect) {
+		unsafe { tilenode_set_effect(self.raw(), val.raw()) };
 	}
 	/// Gets the tilemap shader effect.
 	pub fn get_effect(&self) -> crate::dora::SpriteEffect {
 		return unsafe { crate::dora::SpriteEffect::from(tilenode_get_effect(self.raw())).unwrap() };
 	}
 	/// Sets the texture filtering mode for the tilemap.
-	pub fn set_filter(&mut self, var: crate::dora::TextureFilter) {
-		unsafe { tilenode_set_filter(self.raw(), var as i32) };
+	pub fn set_filter(&mut self, val: crate::dora::TextureFilter) {
+		unsafe { tilenode_set_filter(self.raw(), val as i32) };
 	}
 	/// Gets the texture filtering mode for the tilemap.
 	pub fn get_filter(&self) -> crate::dora::TextureFilter {

@@ -11,7 +11,7 @@ using namespace Dora;
 int32_t entity_type() {
 	return DoraType<Entity>();
 }
-int32_t entity_get_count(int64_t self) {
+int32_t entity_get_count() {
 	return s_cast<int32_t>(Entity::getCount());
 }
 int32_t entity_get_index(int64_t self) {

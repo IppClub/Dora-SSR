@@ -8,22 +8,22 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 	fn sprite_type() -> i32;
-	fn sprite_set_depth_write(slf: i64, var: i32);
+	fn sprite_set_depth_write(slf: i64, val: i32);
 	fn sprite_is_depth_write(slf: i64) -> i32;
-	fn sprite_set_alpha_ref(slf: i64, var: f32);
+	fn sprite_set_alpha_ref(slf: i64, val: f32);
 	fn sprite_get_alpha_ref(slf: i64) -> f32;
-	fn sprite_set_texture_rect(slf: i64, var: i64);
+	fn sprite_set_texture_rect(slf: i64, val: i64);
 	fn sprite_get_texture_rect(slf: i64) -> i64;
 	fn sprite_get_texture(slf: i64) -> i64;
-	fn sprite__set_blend_func(slf: i64, func: i64);
+	fn sprite__set_blend_func(slf: i64, blend_func: i64);
 	fn sprite__get_blend_func(slf: i64) -> i64;
-	fn sprite_set_effect(slf: i64, var: i64);
+	fn sprite_set_effect(slf: i64, val: i64);
 	fn sprite_get_effect(slf: i64) -> i64;
-	fn sprite_set_uwrap(slf: i64, var: i32);
+	fn sprite_set_uwrap(slf: i64, val: i32);
 	fn sprite_get_uwrap(slf: i64) -> i32;
-	fn sprite_set_vwrap(slf: i64, var: i32);
+	fn sprite_set_vwrap(slf: i64, val: i32);
 	fn sprite_get_vwrap(slf: i64) -> i32;
-	fn sprite_set_filter(slf: i64, var: i32);
+	fn sprite_set_filter(slf: i64, val: i32);
 	fn sprite_get_filter(slf: i64) -> i32;
 	fn sprite_set_effect_as_default(slf: i64);
 	fn sprite_new() -> i64;
@@ -47,8 +47,8 @@ impl Sprite {
 		})
 	}
 	/// Sets whether the depth buffer should be written to when rendering the sprite.
-	pub fn set_depth_write(&mut self, var: bool) {
-		unsafe { sprite_set_depth_write(self.raw(), if var { 1 } else { 0 }) };
+	pub fn set_depth_write(&mut self, val: bool) {
+		unsafe { sprite_set_depth_write(self.raw(), if val { 1 } else { 0 }) };
 	}
 	/// Gets whether the depth buffer should be written to when rendering the sprite.
 	pub fn is_depth_write(&self) -> bool {
@@ -56,8 +56,8 @@ impl Sprite {
 	}
 	/// Sets the alpha reference value for alpha testing. Pixels with alpha values less than or equal to this value will be discarded.
 	/// Only works with `sprite.effect = SpriteEffect::new("builtin:vs_sprite", "builtin:fs_spritealphatest");`.
-	pub fn set_alpha_ref(&mut self, var: f32) {
-		unsafe { sprite_set_alpha_ref(self.raw(), var) };
+	pub fn set_alpha_ref(&mut self, val: f32) {
+		unsafe { sprite_set_alpha_ref(self.raw(), val) };
 	}
 	/// Gets the alpha reference value for alpha testing. Pixels with alpha values less than or equal to this value will be discarded.
 	/// Only works with `sprite.effect = SpriteEffect::new("builtin:vs_sprite", "builtin:fs_spritealphatest");`.
@@ -65,8 +65,8 @@ impl Sprite {
 		return unsafe { sprite_get_alpha_ref(self.raw()) };
 	}
 	/// Sets the texture rectangle for the sprite.
-	pub fn set_texture_rect(&mut self, var: &crate::dora::Rect) {
-		unsafe { sprite_set_texture_rect(self.raw(), var.raw()) };
+	pub fn set_texture_rect(&mut self, val: &crate::dora::Rect) {
+		unsafe { sprite_set_texture_rect(self.raw(), val.raw()) };
 	}
 	/// Gets the texture rectangle for the sprite.
 	pub fn get_texture_rect(&self) -> crate::dora::Rect {
@@ -76,39 +76,39 @@ impl Sprite {
 	pub fn get_texture(&self) -> Option<crate::dora::Texture2D> {
 		return unsafe { crate::dora::Texture2D::from(sprite_get_texture(self.raw())) };
 	}
-	pub(crate) fn _set_blend_func(&mut self, func: u64) {
-		unsafe { sprite__set_blend_func(self.raw(), func as i64); }
+	pub(crate) fn _set_blend_func(&mut self, blend_func: u64) {
+		unsafe { sprite__set_blend_func(self.raw(), blend_func as i64); }
 	}
 	pub(crate) fn _get_blend_func(&self) -> u64 {
 		unsafe { return sprite__get_blend_func(self.raw()) as u64; }
 	}
 	/// Sets the sprite shader effect.
-	pub fn set_effect(&mut self, var: &crate::dora::SpriteEffect) {
-		unsafe { sprite_set_effect(self.raw(), var.raw()) };
+	pub fn set_effect(&mut self, val: &crate::dora::SpriteEffect) {
+		unsafe { sprite_set_effect(self.raw(), val.raw()) };
 	}
 	/// Gets the sprite shader effect.
 	pub fn get_effect(&self) -> crate::dora::SpriteEffect {
 		return unsafe { crate::dora::SpriteEffect::from(sprite_get_effect(self.raw())).unwrap() };
 	}
 	/// Sets the texture wrapping mode for the U (horizontal) axis.
-	pub fn set_uwrap(&mut self, var: crate::dora::TextureWrap) {
-		unsafe { sprite_set_uwrap(self.raw(), var as i32) };
+	pub fn set_uwrap(&mut self, val: crate::dora::TextureWrap) {
+		unsafe { sprite_set_uwrap(self.raw(), val as i32) };
 	}
 	/// Gets the texture wrapping mode for the U (horizontal) axis.
 	pub fn get_uwrap(&self) -> crate::dora::TextureWrap {
 		return unsafe { core::mem::transmute(sprite_get_uwrap(self.raw())) };
 	}
 	/// Sets the texture wrapping mode for the V (vertical) axis.
-	pub fn set_vwrap(&mut self, var: crate::dora::TextureWrap) {
-		unsafe { sprite_set_vwrap(self.raw(), var as i32) };
+	pub fn set_vwrap(&mut self, val: crate::dora::TextureWrap) {
+		unsafe { sprite_set_vwrap(self.raw(), val as i32) };
 	}
 	/// Gets the texture wrapping mode for the V (vertical) axis.
 	pub fn get_vwrap(&self) -> crate::dora::TextureWrap {
 		return unsafe { core::mem::transmute(sprite_get_vwrap(self.raw())) };
 	}
 	/// Sets the texture filtering mode for the sprite.
-	pub fn set_filter(&mut self, var: crate::dora::TextureFilter) {
-		unsafe { sprite_set_filter(self.raw(), var as i32) };
+	pub fn set_filter(&mut self, val: crate::dora::TextureFilter) {
+		unsafe { sprite_set_filter(self.raw(), val as i32) };
 	}
 	/// Gets the texture filtering mode for the sprite.
 	pub fn get_filter(&self) -> crate::dora::TextureFilter {

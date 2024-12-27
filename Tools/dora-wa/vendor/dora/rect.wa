@@ -1,0 +1,203 @@
+/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+#wa:import dora rect_release
+func rect_release(raw: i64)
+#wa:import dora rect_set_origin
+func rect_set_origin(slf: i64, val: i64);
+#wa:import dora rect_get_origin
+func rect_get_origin(slf: i64) => i64
+#wa:import dora rect_set_size
+func rect_set_size(slf: i64, val: i64);
+#wa:import dora rect_get_size
+func rect_get_size(slf: i64) => i64
+#wa:import dora rect_set_x
+func rect_set_x(slf: i64, val: f32);
+#wa:import dora rect_get_x
+func rect_get_x(slf: i64) => f32
+#wa:import dora rect_set_y
+func rect_set_y(slf: i64, val: f32);
+#wa:import dora rect_get_y
+func rect_get_y(slf: i64) => f32
+#wa:import dora rect_set_width
+func rect_set_width(slf: i64, val: f32);
+#wa:import dora rect_get_width
+func rect_get_width(slf: i64) => f32
+#wa:import dora rect_set_height
+func rect_set_height(slf: i64, val: f32);
+#wa:import dora rect_get_height
+func rect_get_height(slf: i64) => f32
+#wa:import dora rect_set_left
+func rect_set_left(slf: i64, val: f32);
+#wa:import dora rect_get_left
+func rect_get_left(slf: i64) => f32
+#wa:import dora rect_set_right
+func rect_set_right(slf: i64, val: f32);
+#wa:import dora rect_get_right
+func rect_get_right(slf: i64) => f32
+#wa:import dora rect_set_center_x
+func rect_set_center_x(slf: i64, val: f32);
+#wa:import dora rect_get_center_x
+func rect_get_center_x(slf: i64) => f32
+#wa:import dora rect_set_center_y
+func rect_set_center_y(slf: i64, val: f32);
+#wa:import dora rect_get_center_y
+func rect_get_center_y(slf: i64) => f32
+#wa:import dora rect_set_bottom
+func rect_set_bottom(slf: i64, val: f32);
+#wa:import dora rect_get_bottom
+func rect_get_bottom(slf: i64) => f32
+#wa:import dora rect_set_top
+func rect_set_top(slf: i64, val: f32);
+#wa:import dora rect_get_top
+func rect_get_top(slf: i64) => f32
+#wa:import dora rect_set_lower_bound
+func rect_set_lower_bound(slf: i64, val: i64);
+#wa:import dora rect_get_lower_bound
+func rect_get_lower_bound(slf: i64) => i64
+#wa:import dora rect_set_upper_bound
+func rect_set_upper_bound(slf: i64, val: i64);
+#wa:import dora rect_get_upper_bound
+func rect_get_upper_bound(slf: i64) => i64
+#wa:import dora rect_set
+func rect_set(slf: i64, x: f32, y: f32, width: f32, height: f32)
+#wa:import dora rect_contains_point
+func rect_contains_point(slf: i64, point: i64) => i32
+#wa:import dora rect_intersects_rect
+func rect_intersects_rect(slf: i64, rect: i64) => i32
+#wa:import dora rect_equals
+func rect_equals(slf: i64, other: i64) => i32
+#wa:import dora rect_new
+func rect_new(origin: i64, size: i64) => i64
+#wa:import dora rect_zero
+func rect_zero() => i64
+type Rect struct { raw: *i64 }
+func Rect.GetRaw() => i64 {
+	return *this.raw
+}
+#wa:runtime_getter
+func _getRect(ptr: u32) => i64
+func rect_finalizer(ptr: u32) {
+	rect_release(_getRect(ptr))
+}
+func RectFrom(raw: i64) => *Rect {
+	if raw == 0 {
+		return nil
+	}
+	item := Rect{}
+	item.raw = &raw
+	setFinalizer(item.raw, rect_finalizer)
+	result := &item
+	return result
+}
+func Rect.SetOrigin(val: Vec2) {
+	rect_set_origin(*this.raw, val.ToValue())
+}
+func Rect.GetOrigin() => Vec2 {
+	return Vec2FromValue(rect_get_origin(*this.raw))
+}
+func Rect.SetSize(val: Size) {
+	rect_set_size(*this.raw, val.ToValue())
+}
+func Rect.GetSize() => Size {
+	return SizeFromValue(rect_get_size(*this.raw))
+}
+func Rect.SetX(val: f32) {
+	rect_set_x(*this.raw, val)
+}
+func Rect.GetX() => f32 {
+	return rect_get_x(*this.raw)
+}
+func Rect.SetY(val: f32) {
+	rect_set_y(*this.raw, val)
+}
+func Rect.GetY() => f32 {
+	return rect_get_y(*this.raw)
+}
+func Rect.SetWidth(val: f32) {
+	rect_set_width(*this.raw, val)
+}
+func Rect.GetWidth() => f32 {
+	return rect_get_width(*this.raw)
+}
+func Rect.SetHeight(val: f32) {
+	rect_set_height(*this.raw, val)
+}
+func Rect.GetHeight() => f32 {
+	return rect_get_height(*this.raw)
+}
+func Rect.SetLeft(val: f32) {
+	rect_set_left(*this.raw, val)
+}
+func Rect.GetLeft() => f32 {
+	return rect_get_left(*this.raw)
+}
+func Rect.SetRight(val: f32) {
+	rect_set_right(*this.raw, val)
+}
+func Rect.GetRight() => f32 {
+	return rect_get_right(*this.raw)
+}
+func Rect.SetCenterX(val: f32) {
+	rect_set_center_x(*this.raw, val)
+}
+func Rect.GetCenterX() => f32 {
+	return rect_get_center_x(*this.raw)
+}
+func Rect.SetCenterY(val: f32) {
+	rect_set_center_y(*this.raw, val)
+}
+func Rect.GetCenterY() => f32 {
+	return rect_get_center_y(*this.raw)
+}
+func Rect.SetBottom(val: f32) {
+	rect_set_bottom(*this.raw, val)
+}
+func Rect.GetBottom() => f32 {
+	return rect_get_bottom(*this.raw)
+}
+func Rect.SetTop(val: f32) {
+	rect_set_top(*this.raw, val)
+}
+func Rect.GetTop() => f32 {
+	return rect_get_top(*this.raw)
+}
+func Rect.SetLowerBound(val: Vec2) {
+	rect_set_lower_bound(*this.raw, val.ToValue())
+}
+func Rect.GetLowerBound() => Vec2 {
+	return Vec2FromValue(rect_get_lower_bound(*this.raw))
+}
+func Rect.SetUpperBound(val: Vec2) {
+	rect_set_upper_bound(*this.raw, val.ToValue())
+}
+func Rect.GetUpperBound() => Vec2 {
+	return Vec2FromValue(rect_get_upper_bound(*this.raw))
+}
+func Rect.Set(x: f32, y: f32, width: f32, height: f32) {
+	rect_set(*this.raw, x, y, width, height)
+}
+func Rect.ContainsPoint(point: Vec2) => bool {
+	return rect_contains_point(*this.raw, point.ToValue()) != 0
+}
+func Rect.IntersectsRect(rect: Rect) => bool {
+	return rect_intersects_rect(*this.raw, rect.GetRaw()) != 0
+}
+func Rect.Equals(other: Rect) => bool {
+	return rect_equals(*this.raw, other.GetRaw()) != 0
+}
+func NewRect(origin: Vec2, size: Size) => Rect {
+	object := Rect{}
+	raw := rect_new(origin.ToValue(), size.ToValue())
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return object
+}
+func RectZero() => Rect {
+	return *RectFrom(rect_zero())
+}

@@ -1,0 +1,30 @@
+/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+#wa:import dora rendertarget_type
+func rendertarget_type() => i32
+#wa:import dora rendertarget_get_width
+func rendertarget_get_width(slf: i64) => i32
+#wa:import dora rendertarget_get_height
+func rendertarget_get_height(slf: i64) => i32
+#wa:import dora rendertarget_set_camera
+func rendertarget_set_camera(slf: i64, val: i64);
+#wa:import dora rendertarget_get_camera
+func rendertarget_get_camera(slf: i64) => i64
+#wa:import dora rendertarget_get_texture
+func rendertarget_get_texture(slf: i64) => i64
+#wa:import dora rendertarget_render
+func rendertarget_render(slf: i64, target: i64)
+#wa:import dora rendertarget_render_clear
+func rendertarget_render_clear(slf: i64, color: i32, depth: f32, stencil: i32)
+#wa:import dora rendertarget_render_clear_with_target
+func rendertarget_render_clear_with_target(slf: i64, target: i64, color: i32, depth: f32, stencil: i32)
+#wa:import dora rendertarget_save_async
+func rendertarget_save_async(slf: i64, filename: i64, func0: i32, stack0: i64)
+#wa:import dora rendertarget_new
+func rendertarget_new(width: i32, height: i32) => i64
