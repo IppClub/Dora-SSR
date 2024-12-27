@@ -10,3 +10,23 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 func worksheet_release(raw: i64)
 #wa:import dora worksheet_read
 func worksheet_read(slf: i64, row: i64) => i32
+type WorkSheet struct { raw: *i64 }
+func WorkSheet.GetRaw() => i64 {
+	return *this.raw
+}
+func work_sheet_finalizer(ptr: u32) {
+	worksheet_release(GetPtr(ptr))
+}
+func WorkSheetFrom(raw: i64) => *WorkSheet {
+	if raw == 0 {
+		return nil
+	}
+	item := WorkSheet{}
+	item.raw = &raw
+	setFinalizer(item.raw, work_sheet_finalizer)
+	result := &item
+	return result
+}
+func WorkSheet.Read(row: Array) => bool {
+	return worksheet_read(*this.raw, row.GetRaw()) != 0
+}

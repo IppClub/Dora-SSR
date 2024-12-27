@@ -58,3 +58,120 @@ func content_zip_async(folder_path: i64, zip_file: i64, func0: i32, stack0: i64,
 func content_unzip_async(zip_file: i64, folder_path: i64, func0: i32, stack0: i64, func1: i32, stack1: i64)
 #wa:import dora content_load_excel
 func content_load_excel(filename: i64) => i64
+type _Content struct { }
+global Content = _Content{}
+func _Content.SetSearchPaths(val: *[]string) {
+	content_set_search_paths(ToDoraStrBuf(val))
+}
+func _Content.GetSearchPaths() => *[]string {
+	return FromDoraStrBuf(content_get_search_paths())
+}
+func _Content.GetAssetPath() => string {
+	return FromDoraString(content_get_asset_path())
+}
+func _Content.GetWritablePath() => string {
+	return FromDoraString(content_get_writable_path())
+}
+func _Content.Save(filename: string, content: string) => bool {
+	return content_save(ToDoraString(filename), ToDoraString(content)) != 0
+}
+func _Content.Exist(filename: string) => bool {
+	return content_exist(ToDoraString(filename)) != 0
+}
+func _Content.Mkdir(path: string) => bool {
+	return content_mkdir(ToDoraString(path)) != 0
+}
+func _Content.Isdir(path: string) => bool {
+	return content_isdir(ToDoraString(path)) != 0
+}
+func _Content.IsAbsolutePath(path: string) => bool {
+	return content_is_absolute_path(ToDoraString(path)) != 0
+}
+func _Content.Copy(src: string, dst: string) => bool {
+	return content_copy(ToDoraString(src), ToDoraString(dst)) != 0
+}
+func _Content.MoveTo(src: string, dst: string) => bool {
+	return content_move_to(ToDoraString(src), ToDoraString(dst)) != 0
+}
+func _Content.Remove(path: string) => bool {
+	return content_remove(ToDoraString(path)) != 0
+}
+func _Content.GetFullPath(filename: string) => string {
+	return FromDoraString(content_get_full_path(ToDoraString(filename)))
+}
+func _Content.AddSearchPath(path: string) {
+	content_add_search_path(ToDoraString(path))
+}
+func _Content.InsertSearchPath(index: i32, path: string) {
+	content_insert_search_path(index, ToDoraString(path))
+}
+func _Content.RemoveSearchPath(path: string) {
+	content_remove_search_path(ToDoraString(path))
+}
+func _Content.ClearPathCache() {
+	content_clear_path_cache()
+}
+func _Content.GetDirs(path: string) => *[]string {
+	return FromDoraStrBuf(content_get_dirs(ToDoraString(path)))
+}
+func _Content.GetFiles(path: string) => *[]string {
+	return FromDoraStrBuf(content_get_files(ToDoraString(path)))
+}
+func _Content.GetAllFiles(path: string) => *[]string {
+	return FromDoraStrBuf(content_get_all_files(ToDoraString(path)))
+}
+func _Content.LoadAsync(filename: string, callback: func(content: string)) {
+	stack0 := NewCallStack()
+	func_id0 := PushFunction(func() {
+		content, _ := stack0.PopStr()
+		callback(content)
+	})
+	content_load_async(ToDoraString(filename), func_id0, *stack0.raw)
+}
+func _Content.CopyAsync(src_file: string, target_file: string, callback: func(success: bool)) {
+	stack0 := NewCallStack()
+	func_id0 := PushFunction(func() {
+		success, _ := stack0.PopBool()
+		callback(success)
+	})
+	content_copy_async(ToDoraString(src_file), ToDoraString(target_file), func_id0, *stack0.raw)
+}
+func _Content.SaveAsync(filename: string, content: string, callback: func(success: bool)) {
+	stack0 := NewCallStack()
+	func_id0 := PushFunction(func() {
+		success, _ := stack0.PopBool()
+		callback(success)
+	})
+	content_save_async(ToDoraString(filename), ToDoraString(content), func_id0, *stack0.raw)
+}
+func _Content.ZipAsync(folder_path: string, zip_file: string, filter: func(file: string) => bool, callback: func(success: bool)) {
+	stack0 := NewCallStack()
+	func_id0 := PushFunction(func() {
+		file, _ := stack0.PopStr()
+		result_ := filter(file)
+		stack0.Push(result_)
+	})
+	stack1 := NewCallStack()
+	func_id1 := PushFunction(func() {
+		success, _ := stack1.PopBool()
+		callback(success)
+	})
+	content_zip_async(ToDoraString(folder_path), ToDoraString(zip_file), func_id0, *stack0.raw, func_id1, *stack1.raw)
+}
+func _Content.UnzipAsync(zip_file: string, folder_path: string, filter: func(file: string) => bool, callback: func(success: bool)) {
+	stack0 := NewCallStack()
+	func_id0 := PushFunction(func() {
+		file, _ := stack0.PopStr()
+		result_ := filter(file)
+		stack0.Push(result_)
+	})
+	stack1 := NewCallStack()
+	func_id1 := PushFunction(func() {
+		success, _ := stack1.PopBool()
+		callback(success)
+	})
+	content_unzip_async(ToDoraString(zip_file), ToDoraString(folder_path), func_id0, *stack0.raw, func_id1, *stack1.raw)
+}
+func _Content.LoadExcel(filename: string) => WorkBook {
+	return *WorkBookFrom(content_load_excel(ToDoraString(filename)))
+}

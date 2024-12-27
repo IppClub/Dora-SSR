@@ -22,3 +22,29 @@ func path_replace_ext(path: i64, new_ext: i64) => i64
 func path_replace_filename(path: i64, new_file: i64) => i64
 #wa:import dora path_concat
 func path_concat(paths: i64) => i64
+type _Path struct { }
+global Path = _Path{}
+func _Path.GetExt(path: string) => string {
+	return FromDoraString(path_get_ext(ToDoraString(path)))
+}
+func _Path.GetPath(path: string) => string {
+	return FromDoraString(path_get_path(ToDoraString(path)))
+}
+func _Path.GetName(path: string) => string {
+	return FromDoraString(path_get_name(ToDoraString(path)))
+}
+func _Path.GetFilename(path: string) => string {
+	return FromDoraString(path_get_filename(ToDoraString(path)))
+}
+func _Path.GetRelative(path: string, target: string) => string {
+	return FromDoraString(path_get_relative(ToDoraString(path), ToDoraString(target)))
+}
+func _Path.ReplaceExt(path: string, new_ext: string) => string {
+	return FromDoraString(path_replace_ext(ToDoraString(path), ToDoraString(new_ext)))
+}
+func _Path.ReplaceFilename(path: string, new_file: string) => string {
+	return FromDoraString(path_replace_filename(ToDoraString(path), ToDoraString(new_file)))
+}
+func _Path.Concat(paths: *[]string) => string {
+	return FromDoraString(path_concat(ToDoraStrBuf(paths)))
+}

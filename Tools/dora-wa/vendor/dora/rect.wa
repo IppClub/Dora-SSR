@@ -80,10 +80,8 @@ type Rect struct { raw: *i64 }
 func Rect.GetRaw() => i64 {
 	return *this.raw
 }
-#wa:runtime_getter
-func _getRect(ptr: u32) => i64
 func rect_finalizer(ptr: u32) {
-	rect_release(_getRect(ptr))
+	rect_release(GetPtr(ptr))
 }
 func RectFrom(raw: i64) => *Rect {
 	if raw == 0 {

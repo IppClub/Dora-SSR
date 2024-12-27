@@ -90,13 +90,13 @@ func _App.GetVisualSize() => Size {
 func _App.GetDevicePixelRatio() => f32 {
 	return application_get_device_pixel_ratio()
 }
-func _App.GetPlatform() => *string {
+func _App.GetPlatform() => string {
 	return FromDoraString(application_get_platform())
 }
-func _App.GetVersion() => *string {
+func _App.GetVersion() => string {
 	return FromDoraString(application_get_version())
 }
-func _App.GetDeps() => *string {
+func _App.GetDeps() => string {
 	return FromDoraString(application_get_deps())
 }
 func _App.GetDeltaTime() => f64 {
@@ -123,7 +123,7 @@ func _App.IsDebugging() => bool {
 func _App.SetLocale(val: string) {
 	application_set_locale(ToDoraString(val))
 }
-func _App.GetLocale() => *string {
+func _App.GetLocale() => string {
 	return FromDoraString(application_get_locale())
 }
 func _App.SetThemeColor(val: Color) {

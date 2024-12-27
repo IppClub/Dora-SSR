@@ -53,12 +53,11 @@ func ToDoraString(str: string) => i64 {
 	return ptr
 }
 
-func FromDoraString(str: i64) => *string {
+func FromDoraString(str: i64) => string {
 	length := str_len(str)
 	buf := make([]byte, length)
 	str_read_ptr(waBytesToPtr(buf), str)
-	result := string(buf)
-	return &result
+	return string(buf)
 }
 
 /* bool */
@@ -187,7 +186,7 @@ func FromDoraStrBuf(v: i64) => *[]string {
 	buf_read_ptr(waI64SliceToPtr(buf), v)
 	strs := make([]string, length)
 	for i := 0; i < int(length); i++ {
-		strs[i] = *FromDoraString(buf[i])
+		strs[i] = FromDoraString(buf[i])
 	}
 	return &strs
 }
@@ -252,10 +251,10 @@ func Object.GetRaw() => i64 {
 }
 
 #wa:runtime_getter
-func _getObjectPtr(ptr: u32) => i64
+func GetPtr(ptr: u32) => i64
 
 func ObjectFinalizer(ptr: u32) {
-	object_release(_getObjectPtr(ptr))
+	object_release(GetPtr(ptr))
 }
 
 func createObject(raw: i64) => Object {
@@ -364,9 +363,9 @@ func Value.GetF64() => (f64, bool) {
 	return value_into_f64(*this.raw), true
 }
 
-func Value.GetStr() => (*string, bool) {
+func Value.GetStr() => (string, bool) {
 	if value_is_str(*this.raw) == 0 {
-		return nil, false
+		return "", false
 	}
 	return FromDoraString(value_into_str(*this.raw)), true
 }
@@ -401,7 +400,7 @@ func Value.GetSize() => (Size, bool) {
 }
 
 func value_finalizer(ptr: u32) {
-	value_release(_getObjectPtr(ptr))
+	value_release(GetPtr(ptr))
 }
 
 func ValueFrom(ptr: i64) => Value {
@@ -552,7 +551,7 @@ func CallStack.GetRaw() => i64 {
 }
 
 func call_stack_finalizer(ptr: u32) {
-	call_stack_release(_getObjectPtr(ptr))
+	call_stack_release(GetPtr(ptr))
 }
 
 func NewCallStack() => CallStack {
@@ -631,9 +630,9 @@ func CallStack.PopF64() => (f64, bool) {
 	return call_stack_pop_f64(*this.raw), true
 }
 
-func CallStack.PopStr() => (*string, bool) {
+func CallStack.PopStr() => (string, bool) {
 	if call_stack_front_str(*this.raw) == 0 {
-		return nil, false
+		return "", false
 	}
 	return FromDoraString(call_stack_pop_str(*this.raw)), true
 }
@@ -724,7 +723,7 @@ func Println(values: ...interface{}) {
 			if !ok {
 				value, ok := v.GetStr()
 				if ok {
-					strs[i] = *value
+					strs[i] = value
 				}
 			}
 			if !ok {
