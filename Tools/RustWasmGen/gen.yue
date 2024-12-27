@@ -250,7 +250,7 @@ basicTypes =
 			convertFrom: (name)-> "FromDoraString(#{name})"
 			convertTo: (name)-> "ToDoraString(#{name})"
 			argType: "string"
-			returnType: "*string"
+			returnType: "string"
 			creturn: (name, fnArgId)-> "#{name}, _ := stack#{fnArgId}.PopStr()"
 			cpass: (name, fnArgId)-> "stack#{fnArgId}.Push(#{name})"
 		}
@@ -394,7 +394,7 @@ basicTypes =
 			convertFrom: (name)-> name
 			convertTo: (name)-> name
 			argType: "DBParams"
-			returnType: "*DBParams"
+			returnType: "DBParams"
 			creturn: (name, fnArgId)-> "#{name}, _ := DBParamsFrom(stack#{fnArgId}.PopI64())"
 			cpass: -> error "unsupported"
 		}
@@ -437,8 +437,10 @@ basicTypes =
 		* (fnArgId)-> "crate::dora::WorkBook::from(stack#{fnArgId}.pop_i64().unwrap())"
 		* -> error "unsupported"
 		* --[[10: wa type]] {
-			convertFrom: (name)-> name
-			convertTo: (name)-> name
+			convertFrom: (name)-> "*WorkBookFrom(#{name})"
+			convertTo: (name)-> "#{name}.GetRaw()"
+			argType: "WorkBook"
+			returnType: "WorkBook"
 		}
 	WorkSheet:
 		* "i64"
@@ -451,8 +453,10 @@ basicTypes =
 		* (fnArgId)-> "crate::dora::WorkSheet::from(stack#{fnArgId}.pop_i64().unwrap())"
 		* -> error "unsupported"
 		* --[[10: wa type]] {
-			convertFrom: (name)-> name
-			convertTo: (name)-> name
+			convertFrom: (name)-> "*WorkSheetFrom(#{name})"
+			convertTo: (name)-> "#{name}.GetRaw()"
+			argType: "WorkSheet"
+			returnType: "WorkSheet"
 		}
 	VecStr:
 		* "i64"
@@ -1085,10 +1089,8 @@ func #{clsNewName}.GetType() => i32 {
 func #{clsNewName}.GetRaw() => i64 {
 	return *this.raw
 }
-#wa:runtime_getter
-func _get#{clsNewName}(ptr: u32) => i64
 func #{finalizer}(ptr: u32) {
-	#{namespace}#{clsNewNameL}_release(_get#{clsNewName}(ptr))
+	#{namespace}#{clsNewNameL}_release(GetPtr(ptr))
 }
 func #{clsNewName}From(raw: i64) => *#{clsNewName} {
 	if raw == 0 {
@@ -1722,6 +1724,10 @@ func #{clsNewName}From(raw: i64) => *#{clsNewName} {
 				"rect"
 				"texture_2d"
 				"ease"
+				"path"
+				"content"
+				"work_book"
+				"work_sheet"
 			]
 				\write "\n"
 				\write table.concat waBinding, "\n"

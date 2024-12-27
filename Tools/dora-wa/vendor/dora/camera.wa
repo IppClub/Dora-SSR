@@ -24,6 +24,6 @@ func CameraFrom(raw: i64) => *Camera {
 func Camera.GetType() => i32 {
 	return camera_type()
 }
-func Camera.GetName() => *string {
+func Camera.GetName() => string {
 	return FromDoraString(camera_get_name(*this.raw))
 }

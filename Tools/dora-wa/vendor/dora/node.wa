@@ -361,7 +361,7 @@ func Node.GetSize() => Size {
 func Node.SetTag(val: string) {
 	node_set_tag(*this.raw, ToDoraString(val))
 }
-func Node.GetTag() => *string {
+func Node.GetTag() => string {
 	return FromDoraString(node_get_tag(*this.raw))
 }
 func Node.SetOpacity(val: f32) {

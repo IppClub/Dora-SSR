@@ -38,10 +38,8 @@ type ActionDef struct { raw: *i64 }
 func ActionDef.GetRaw() => i64 {
 	return *this.raw
 }
-#wa:runtime_getter
-func _getActionDef(ptr: u32) => i64
 func action_def_finalizer(ptr: u32) {
-	actiondef_release(_getActionDef(ptr))
+	actiondef_release(GetPtr(ptr))
 }
 func ActionDefFrom(raw: i64) => *ActionDef {
 	if raw == 0 {
