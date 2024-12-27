@@ -8,7 +8,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 	fn platformer_targetallow_release(raw: i64);
-	fn platformer_targetallow_set_terrain_allowed(slf: i64, var: i32);
+	fn platformer_targetallow_set_terrain_allowed(slf: i64, val: i32);
 	fn platformer_targetallow_is_terrain_allowed(slf: i64) -> i32;
 	fn platformer_targetallow_allow(slf: i64, relation: i32, allow: i32);
 	fn platformer_targetallow_is_allow(slf: i64, relation: i32) -> i32;
@@ -29,8 +29,8 @@ impl TargetAllow {
 		TargetAllow { raw: raw }
 	}
 	/// Sets whether the bullet object can collide with terrain.
-	pub fn set_terrain_allowed(&mut self, var: bool) {
-		unsafe { platformer_targetallow_set_terrain_allowed(self.raw(), if var { 1 } else { 0 }) };
+	pub fn set_terrain_allowed(&mut self, val: bool) {
+		unsafe { platformer_targetallow_set_terrain_allowed(self.raw(), if val { 1 } else { 0 }) };
 	}
 	/// Gets whether the bullet object can collide with terrain.
 	pub fn is_terrain_allowed(&self) -> bool {

@@ -11,8 +11,8 @@ using namespace Dora;
 int32_t sensor_type() {
 	return DoraType<Sensor>();
 }
-void sensor_set_enabled(int64_t self, int32_t var) {
-	r_cast<Sensor*>(self)->setEnabled(var != 0);
+void sensor_set_enabled(int64_t self, int32_t val) {
+	r_cast<Sensor*>(self)->setEnabled(val != 0);
 }
 int32_t sensor_is_enabled(int64_t self) {
 	return r_cast<Sensor*>(self)->isEnabled() ? 1 : 0;

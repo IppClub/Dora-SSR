@@ -11,26 +11,26 @@ using namespace Dora;
 int32_t tilenode_type() {
 	return DoraType<TileNode>();
 }
-void tilenode_set_depth_write(int64_t self, int32_t var) {
-	r_cast<TileNode*>(self)->setDepthWrite(var != 0);
+void tilenode_set_depth_write(int64_t self, int32_t val) {
+	r_cast<TileNode*>(self)->setDepthWrite(val != 0);
 }
 int32_t tilenode_is_depth_write(int64_t self) {
 	return r_cast<TileNode*>(self)->isDepthWrite() ? 1 : 0;
 }
-void tilenode__set_blend_func(int64_t self, int64_t func) {
-	r_cast<TileNode*>(self)->setBlendFunc(BlendFunc(s_cast<uint64_t>(func)));
+void tilenode__set_blend_func(int64_t self, int64_t blend_func) {
+	r_cast<TileNode*>(self)->setBlendFunc(BlendFunc(s_cast<uint64_t>(blend_func)));
 }
 int64_t tilenode__get_blend_func(int64_t self) {
 	return s_cast<int64_t>(r_cast<TileNode*>(self)->getBlendFunc().toValue());
 }
-void tilenode_set_effect(int64_t self, int64_t var) {
-	r_cast<TileNode*>(self)->setEffect(r_cast<SpriteEffect*>(var));
+void tilenode_set_effect(int64_t self, int64_t val) {
+	r_cast<TileNode*>(self)->setEffect(r_cast<SpriteEffect*>(val));
 }
 int64_t tilenode_get_effect(int64_t self) {
 	return Object_From(r_cast<TileNode*>(self)->getEffect());
 }
-void tilenode_set_filter(int64_t self, int32_t var) {
-	r_cast<TileNode*>(self)->setFilter(s_cast<TextureFilter>(var));
+void tilenode_set_filter(int64_t self, int32_t val) {
+	r_cast<TileNode*>(self)->setFilter(s_cast<TextureFilter>(val));
 }
 int32_t tilenode_get_filter(int64_t self) {
 	return s_cast<int32_t>(r_cast<TileNode*>(self)->getFilter());

@@ -11,8 +11,8 @@ using namespace Dora;
 int32_t buffer_type() {
 	return DoraType<Buffer>();
 }
-void buffer_set_text(int64_t self, int64_t var) {
-	r_cast<Buffer*>(self)->setText(*Str_From(var));
+void buffer_set_text(int64_t self, int64_t val) {
+	r_cast<Buffer*>(self)->setText(*Str_From(val));
 }
 int64_t buffer_get_text(int64_t self) {
 	return Str_Retain(r_cast<Buffer*>(self)->getText());

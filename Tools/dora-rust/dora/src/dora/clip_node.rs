@@ -8,11 +8,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 	fn clipnode_type() -> i32;
-	fn clipnode_set_stencil(slf: i64, var: i64);
+	fn clipnode_set_stencil(slf: i64, val: i64);
 	fn clipnode_get_stencil(slf: i64) -> i64;
-	fn clipnode_set_alpha_threshold(slf: i64, var: f32);
+	fn clipnode_set_alpha_threshold(slf: i64, val: f32);
 	fn clipnode_get_alpha_threshold(slf: i64) -> f32;
-	fn clipnode_set_inverted(slf: i64, var: i32);
+	fn clipnode_set_inverted(slf: i64, val: i32);
 	fn clipnode_is_inverted(slf: i64) -> i32;
 	fn clipnode_new(stencil: i64) -> i64;
 }
@@ -32,24 +32,24 @@ impl ClipNode {
 		})
 	}
 	/// Sets the stencil Node that defines the clipping shape.
-	pub fn set_stencil(&mut self, var: &dyn crate::dora::INode) {
-		unsafe { clipnode_set_stencil(self.raw(), var.raw()) };
+	pub fn set_stencil(&mut self, val: &dyn crate::dora::INode) {
+		unsafe { clipnode_set_stencil(self.raw(), val.raw()) };
 	}
 	/// Gets the stencil Node that defines the clipping shape.
 	pub fn get_stencil(&self) -> crate::dora::Node {
 		return unsafe { crate::dora::Node::from(clipnode_get_stencil(self.raw())).unwrap() };
 	}
 	/// Sets the minimum alpha threshold for a pixel to be visible. Value ranges from 0 to 1.
-	pub fn set_alpha_threshold(&mut self, var: f32) {
-		unsafe { clipnode_set_alpha_threshold(self.raw(), var) };
+	pub fn set_alpha_threshold(&mut self, val: f32) {
+		unsafe { clipnode_set_alpha_threshold(self.raw(), val) };
 	}
 	/// Gets the minimum alpha threshold for a pixel to be visible. Value ranges from 0 to 1.
 	pub fn get_alpha_threshold(&self) -> f32 {
 		return unsafe { clipnode_get_alpha_threshold(self.raw()) };
 	}
 	/// Sets whether to invert the clipping area.
-	pub fn set_inverted(&mut self, var: bool) {
-		unsafe { clipnode_set_inverted(self.raw(), if var { 1 } else { 0 }) };
+	pub fn set_inverted(&mut self, val: bool) {
+		unsafe { clipnode_set_inverted(self.raw(), if val { 1 } else { 0 }) };
 	}
 	/// Gets whether to invert the clipping area.
 	pub fn is_inverted(&self) -> bool {

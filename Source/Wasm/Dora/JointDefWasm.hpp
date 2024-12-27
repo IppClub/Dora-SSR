@@ -11,20 +11,20 @@ using namespace Dora;
 int32_t jointdef_type() {
 	return DoraType<JointDef>();
 }
-void jointdef_set_center(int64_t self, int64_t var) {
-	r_cast<JointDef*>(self)->center = Vec2_From(var);
+void jointdef_set_center(int64_t self, int64_t val) {
+	r_cast<JointDef*>(self)->center = Vec2_From(val);
 }
 int64_t jointdef_get_center(int64_t self) {
 	return Vec2_Retain(r_cast<JointDef*>(self)->center);
 }
-void jointdef_set_position(int64_t self, int64_t var) {
-	r_cast<JointDef*>(self)->position = Vec2_From(var);
+void jointdef_set_position(int64_t self, int64_t val) {
+	r_cast<JointDef*>(self)->position = Vec2_From(val);
 }
 int64_t jointdef_get_position(int64_t self) {
 	return Vec2_Retain(r_cast<JointDef*>(self)->position);
 }
-void jointdef_set_angle(int64_t self, float var) {
-	r_cast<JointDef*>(self)->angle = s_cast<float>(var);
+void jointdef_set_angle(int64_t self, float val) {
+	r_cast<JointDef*>(self)->angle = s_cast<float>(val);
 }
 float jointdef_get_angle(int64_t self) {
 	return r_cast<JointDef*>(self)->angle;

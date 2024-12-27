@@ -11,38 +11,38 @@ using namespace Dora;
 int32_t platformer_unit_type() {
 	return DoraType<Platformer::Unit>();
 }
-void platformer_unit_set_playable(int64_t self, int64_t var) {
-	r_cast<Platformer::Unit*>(self)->setPlayable(r_cast<Playable*>(var));
+void platformer_unit_set_playable(int64_t self, int64_t val) {
+	r_cast<Platformer::Unit*>(self)->setPlayable(r_cast<Playable*>(val));
 }
 int64_t platformer_unit_get_playable(int64_t self) {
 	return Object_From(r_cast<Platformer::Unit*>(self)->getPlayable());
 }
-void platformer_unit_set_detect_distance(int64_t self, float var) {
-	r_cast<Platformer::Unit*>(self)->setDetectDistance(var);
+void platformer_unit_set_detect_distance(int64_t self, float val) {
+	r_cast<Platformer::Unit*>(self)->setDetectDistance(val);
 }
 float platformer_unit_get_detect_distance(int64_t self) {
 	return r_cast<Platformer::Unit*>(self)->getDetectDistance();
 }
-void platformer_unit_set_attack_range(int64_t self, int64_t var) {
-	r_cast<Platformer::Unit*>(self)->setAttackRange(Size_From(var));
+void platformer_unit_set_attack_range(int64_t self, int64_t val) {
+	r_cast<Platformer::Unit*>(self)->setAttackRange(Size_From(val));
 }
 int64_t platformer_unit_get_attack_range(int64_t self) {
 	return Size_Retain(r_cast<Platformer::Unit*>(self)->getAttackRange());
 }
-void platformer_unit_set_face_right(int64_t self, int32_t var) {
-	r_cast<Platformer::Unit*>(self)->setFaceRight(var != 0);
+void platformer_unit_set_face_right(int64_t self, int32_t val) {
+	r_cast<Platformer::Unit*>(self)->setFaceRight(val != 0);
 }
 int32_t platformer_unit_is_face_right(int64_t self) {
 	return r_cast<Platformer::Unit*>(self)->isFaceRight() ? 1 : 0;
 }
-void platformer_unit_set_receiving_decision_trace(int64_t self, int32_t var) {
-	r_cast<Platformer::Unit*>(self)->setReceivingDecisionTrace(var != 0);
+void platformer_unit_set_receiving_decision_trace(int64_t self, int32_t val) {
+	r_cast<Platformer::Unit*>(self)->setReceivingDecisionTrace(val != 0);
 }
 int32_t platformer_unit_is_receiving_decision_trace(int64_t self) {
 	return r_cast<Platformer::Unit*>(self)->isReceivingDecisionTrace() ? 1 : 0;
 }
-void platformer_unit_set_decision_tree(int64_t self, int64_t var) {
-	r_cast<Platformer::Unit*>(self)->setDecisionTreeName(*Str_From(var));
+void platformer_unit_set_decision_tree(int64_t self, int64_t val) {
+	r_cast<Platformer::Unit*>(self)->setDecisionTreeName(*Str_From(val));
 }
 int64_t platformer_unit_get_decision_tree(int64_t self) {
 	return Str_Retain(r_cast<Platformer::Unit*>(self)->getDecisionTreeName());
@@ -86,15 +86,15 @@ void platformer_unit_remove_all_actions(int64_t self) {
 int64_t platformer_unit_get_action(int64_t self, int64_t name) {
 	return r_cast<int64_t>(r_cast<Platformer::Unit*>(self)->getAction(*Str_From(name)));
 }
-void platformer_unit_each_action(int64_t self, int32_t func, int64_t stack) {
-	std::shared_ptr<void> deref(nullptr, [func](auto) {
-		SharedWasmRuntime.deref(func);
+void platformer_unit_each_action(int64_t self, int32_t func0, int64_t stack0) {
+	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
+		SharedWasmRuntime.deref(func0);
 	});
-	auto args = r_cast<CallStack*>(stack);
-	r_cast<Platformer::Unit*>(self)->eachAction([func, args, deref](Platformer::UnitAction* action) {
-		args->clear();
-		args->push(r_cast<int64_t>(action));
-		SharedWasmRuntime.invoke(func);
+	auto args0 = r_cast<CallStack*>(stack0);
+	r_cast<Platformer::Unit*>(self)->eachAction([func0, args0, deref0](Platformer::UnitAction* action) {
+		args0->clear();
+		args0->push(r_cast<int64_t>(action));
+		SharedWasmRuntime.invoke(func0);
 	});
 }
 int32_t platformer_unit_start(int64_t self, int64_t name) {

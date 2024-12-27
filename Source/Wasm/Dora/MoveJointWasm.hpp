@@ -11,8 +11,8 @@ using namespace Dora;
 int32_t movejoint_type() {
 	return DoraType<MoveJoint>();
 }
-void movejoint_set_position(int64_t self, int64_t var) {
-	r_cast<MoveJoint*>(self)->setPosition(Vec2_From(var));
+void movejoint_set_position(int64_t self, int64_t val) {
+	r_cast<MoveJoint*>(self)->setPosition(Vec2_From(val));
 }
 int64_t movejoint_get_position(int64_t self) {
 	return Vec2_Retain(r_cast<MoveJoint*>(self)->getPosition());

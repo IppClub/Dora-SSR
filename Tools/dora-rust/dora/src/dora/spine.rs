@@ -8,7 +8,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 	fn spine_type() -> i32;
-	fn spine_set_hit_test_enabled(slf: i64, var: i32);
+	fn spine_set_hit_test_enabled(slf: i64, val: i32);
 	fn spine_is_hit_test_enabled(slf: i64) -> i32;
 	fn spine_set_bone_rotation(slf: i64, name: i64, rotation: f32) -> i32;
 	fn spine_contains_point(slf: i64, x: f32, y: f32) -> i64;
@@ -36,8 +36,8 @@ impl Spine {
 		})
 	}
 	/// Sets whether hit testing is enabled.
-	pub fn set_hit_test_enabled(&mut self, var: bool) {
-		unsafe { spine_set_hit_test_enabled(self.raw(), if var { 1 } else { 0 }) };
+	pub fn set_hit_test_enabled(&mut self, val: bool) {
+		unsafe { spine_set_hit_test_enabled(self.raw(), if val { 1 } else { 0 }) };
 	}
 	/// Gets whether hit testing is enabled.
 	pub fn is_hit_test_enabled(&self) -> bool {

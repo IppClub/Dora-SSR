@@ -11,14 +11,14 @@ using namespace Dora;
 int32_t scheduler_type() {
 	return DoraType<Scheduler>();
 }
-void scheduler_set_time_scale(int64_t self, float var) {
-	r_cast<Scheduler*>(self)->setTimeScale(var);
+void scheduler_set_time_scale(int64_t self, float val) {
+	r_cast<Scheduler*>(self)->setTimeScale(val);
 }
 float scheduler_get_time_scale(int64_t self) {
 	return r_cast<Scheduler*>(self)->getTimeScale();
 }
-void scheduler_set_fixed_fps(int64_t self, int32_t var) {
-	r_cast<Scheduler*>(self)->setFixedFPS(s_cast<int>(var));
+void scheduler_set_fixed_fps(int64_t self, int32_t val) {
+	r_cast<Scheduler*>(self)->setFixedFPS(s_cast<int>(val));
 }
 int32_t scheduler_get_fixed_fps(int64_t self) {
 	return s_cast<int32_t>(r_cast<Scheduler*>(self)->getFixedFPS());

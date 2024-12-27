@@ -8,12 +8,12 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 	fn physicsworld_type() -> i32;
-	fn physicsworld_query(slf: i64, rect: i64, func: i32, stack: i64) -> i32;
-	fn physicsworld_raycast(slf: i64, start: i64, stop: i64, closest: i32, func: i32, stack: i64) -> i32;
+	fn physicsworld_query(slf: i64, rect: i64, func0: i32, stack0: i64) -> i32;
+	fn physicsworld_raycast(slf: i64, start: i64, stop: i64, closest: i32, func0: i32, stack0: i64) -> i32;
 	fn physicsworld_set_iterations(slf: i64, velocity_iter: i32, position_iter: i32);
 	fn physicsworld_set_should_contact(slf: i64, group_a: i32, group_b: i32, contact: i32);
 	fn physicsworld_get_should_contact(slf: i64, group_a: i32, group_b: i32) -> i32;
-	fn physicsworld_set_scale_factor(var: f32);
+	fn physicsworld_set_scale_factor(val: f32);
 	fn physicsworld_get_scale_factor() -> f32;
 	fn physicsworld_new() -> i64;
 }
@@ -36,13 +36,13 @@ pub trait IPhysicsWorld: INode {
 	///
 	/// * `bool` - Whether the query was interrupted. `true` means interrupted, `false` otherwise.
 	fn query(&mut self, rect: &crate::dora::Rect, mut handler: Box<dyn FnMut(&dyn crate::dora::IBody) -> bool>) -> bool {
-		let mut stack = crate::dora::CallStack::new();
-		let stack_raw = stack.raw();
-		let func_id = crate::dora::push_function(Box::new(move || {
-			let result = handler(&stack.pop_cast::<crate::dora::Body>().unwrap());
-			stack.push_bool(result);
+		let mut stack0 = crate::dora::CallStack::new();
+		let stack_raw0 = stack0.raw();
+		let func_id0 = crate::dora::push_function(Box::new(move || {
+			let result = handler(&stack0.pop_cast::<crate::dora::Body>().unwrap());
+			stack0.push_bool(result);
 		}));
-		unsafe { return physicsworld_query(self.raw(), rect.raw(), func_id, stack_raw) != 0; }
+		unsafe { return physicsworld_query(self.raw(), rect.raw(), func_id0, stack_raw0) != 0; }
 	}
 	/// Casts a ray through the physics world and finds the first body that intersects with the ray.
 	///
@@ -57,13 +57,13 @@ pub trait IPhysicsWorld: INode {
 	///
 	/// * `bool` - Whether the raycast was interrupted. `true` means interrupted, `false` otherwise.
 	fn raycast(&mut self, start: &crate::dora::Vec2, stop: &crate::dora::Vec2, closest: bool, mut handler: Box<dyn FnMut(&dyn crate::dora::IBody, &crate::dora::Vec2, &crate::dora::Vec2) -> bool>) -> bool {
-		let mut stack = crate::dora::CallStack::new();
-		let stack_raw = stack.raw();
-		let func_id = crate::dora::push_function(Box::new(move || {
-			let result = handler(&stack.pop_cast::<crate::dora::Body>().unwrap(), &stack.pop_vec2().unwrap(), &stack.pop_vec2().unwrap());
-			stack.push_bool(result);
+		let mut stack0 = crate::dora::CallStack::new();
+		let stack_raw0 = stack0.raw();
+		let func_id0 = crate::dora::push_function(Box::new(move || {
+			let result = handler(&stack0.pop_cast::<crate::dora::Body>().unwrap(), &stack0.pop_vec2().unwrap(), &stack0.pop_vec2().unwrap());
+			stack0.push_bool(result);
 		}));
-		unsafe { return physicsworld_raycast(self.raw(), start.into_i64(), stop.into_i64(), if closest { 1 } else { 0 }, func_id, stack_raw) != 0; }
+		unsafe { return physicsworld_raycast(self.raw(), start.into_i64(), stop.into_i64(), if closest { 1 } else { 0 }, func_id0, stack_raw0) != 0; }
 	}
 	/// Sets the number of velocity and position iterations to perform in the physics world.
 	///
@@ -112,8 +112,8 @@ impl PhysicsWorld {
 	/// between 0.1 to 10 meters. Use value 100.0 we can simulate game objects
 	/// between 10 to 1000 pixels that suite most games.
 	/// You can change this value before any physics body creation.
-	pub fn set_scale_factor(var: f32) {
-		unsafe { physicsworld_set_scale_factor(var) };
+	pub fn set_scale_factor(val: f32) {
+		unsafe { physicsworld_set_scale_factor(val) };
 	}
 	/// Gets the factor used for converting physics engine meters value to pixel value.
 	/// Default 100.0 is a good value since the physics engine can well simulate real life objects

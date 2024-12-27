@@ -8,9 +8,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 	fn line_type() -> i32;
-	fn line_set_depth_write(slf: i64, var: i32);
+	fn line_set_depth_write(slf: i64, val: i32);
 	fn line_is_depth_write(slf: i64) -> i32;
-	fn line__set_blend_func(slf: i64, func: i64);
+	fn line__set_blend_func(slf: i64, blend_func: i64);
 	fn line__get_blend_func(slf: i64) -> i64;
 	fn line_add(slf: i64, verts: i64, color: i32);
 	fn line_set(slf: i64, verts: i64, color: i32);
@@ -34,15 +34,15 @@ impl Line {
 		})
 	}
 	/// Sets whether the depth should be written. (Default is false)
-	pub fn set_depth_write(&mut self, var: bool) {
-		unsafe { line_set_depth_write(self.raw(), if var { 1 } else { 0 }) };
+	pub fn set_depth_write(&mut self, val: bool) {
+		unsafe { line_set_depth_write(self.raw(), if val { 1 } else { 0 }) };
 	}
 	/// Gets whether the depth should be written. (Default is false)
 	pub fn is_depth_write(&self) -> bool {
 		return unsafe { line_is_depth_write(self.raw()) != 0 };
 	}
-	pub(crate) fn _set_blend_func(&mut self, func: u64) {
-		unsafe { line__set_blend_func(self.raw(), func as i64); }
+	pub(crate) fn _set_blend_func(&mut self, blend_func: u64) {
+		unsafe { line__set_blend_func(self.raw(), blend_func as i64); }
 	}
 	pub(crate) fn _get_blend_func(&self) -> u64 {
 		unsafe { return line__get_blend_func(self.raw()) as u64; }

@@ -11,9 +11,9 @@ extern "C" {
 	fn action_get_duration(slf: i64) -> f32;
 	fn action_is_running(slf: i64) -> i32;
 	fn action_is_paused(slf: i64) -> i32;
-	fn action_set_reversed(slf: i64, var: i32);
+	fn action_set_reversed(slf: i64, val: i32);
 	fn action_is_reversed(slf: i64) -> i32;
-	fn action_set_speed(slf: i64, var: f32);
+	fn action_set_speed(slf: i64, val: f32);
 	fn action_get_speed(slf: i64) -> f32;
 	fn action_pause(slf: i64);
 	fn action_resume(slf: i64);
@@ -46,8 +46,8 @@ impl Action {
 		return unsafe { action_is_paused(self.raw()) != 0 };
 	}
 	/// Sets whether the action should be run in reverse.
-	pub fn set_reversed(&mut self, var: bool) {
-		unsafe { action_set_reversed(self.raw(), if var { 1 } else { 0 }) };
+	pub fn set_reversed(&mut self, val: bool) {
+		unsafe { action_set_reversed(self.raw(), if val { 1 } else { 0 }) };
 	}
 	/// Gets whether the action should be run in reverse.
 	pub fn is_reversed(&self) -> bool {
@@ -55,8 +55,8 @@ impl Action {
 	}
 	/// Sets the speed at which the action should be run.
 	/// Set to 1.0 to get normal speed, Set to 2.0 to get two times faster.
-	pub fn set_speed(&mut self, var: f32) {
-		unsafe { action_set_speed(self.raw(), var) };
+	pub fn set_speed(&mut self, val: f32) {
+		unsafe { action_set_speed(self.raw(), val) };
 	}
 	/// Gets the speed at which the action should be run.
 	/// Set to 1.0 to get normal speed, Set to 2.0 to get two times faster.

@@ -10,7 +10,7 @@ extern "C" {
 	fn qlearner_type() -> i32;
 	fn mlqlearner_update(slf: i64, state: i64, action: i32, reward: f64);
 	fn mlqlearner_get_best_action(slf: i64, state: i64) -> i32;
-	fn mlqlearner_visit_matrix(slf: i64, func: i32, stack: i64);
+	fn mlqlearner_visit_matrix(slf: i64, func0: i32, stack0: i64);
 	fn mlqlearner_pack(hints: i64, values: i64) -> i64;
 	fn mlqlearner_unpack(hints: i64, state: i64) -> i64;
 	fn mlqlearner_new(gamma: f64, alpha: f64, max_q: f64) -> i64;
@@ -56,12 +56,12 @@ impl QLearner {
 	///
 	/// * `handler` - A function that is called for each state-action pair.
 	pub fn visit_matrix(&mut self, mut handler: Box<dyn FnMut(u64, u32, f64)>) {
-		let mut stack = crate::dora::CallStack::new();
-		let stack_raw = stack.raw();
-		let func_id = crate::dora::push_function(Box::new(move || {
-			handler(stack.pop_i64().unwrap() as u64, stack.pop_i32().unwrap() as u32, stack.pop_f64().unwrap())
+		let mut stack0 = crate::dora::CallStack::new();
+		let stack_raw0 = stack0.raw();
+		let func_id0 = crate::dora::push_function(Box::new(move || {
+			handler(stack0.pop_i64().unwrap() as u64, stack0.pop_i32().unwrap() as u32, stack0.pop_f64().unwrap())
 		}));
-		unsafe { mlqlearner_visit_matrix(self.raw(), func_id, stack_raw); }
+		unsafe { mlqlearner_visit_matrix(self.raw(), func_id0, stack_raw0); }
 	}
 	/// Constructs a state from given hints and condition values.
 	///

@@ -8,7 +8,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 	fn cameraotho_type() -> i32;
-	fn cameraotho_set_position(slf: i64, var: i64);
+	fn cameraotho_set_position(slf: i64, val: i64);
 	fn cameraotho_get_position(slf: i64) -> i64;
 	fn cameraotho_new(name: i64) -> i64;
 }
@@ -28,8 +28,8 @@ impl CameraOtho {
 		})
 	}
 	/// Sets the position of the camera in the game world.
-	pub fn set_position(&mut self, var: &crate::dora::Vec2) {
-		unsafe { cameraotho_set_position(self.raw(), var.into_i64()) };
+	pub fn set_position(&mut self, val: &crate::dora::Vec2) {
+		unsafe { cameraotho_set_position(self.raw(), val.into_i64()) };
 	}
 	/// Gets the position of the camera in the game world.
 	pub fn get_position(&self) -> crate::dora::Vec2 {

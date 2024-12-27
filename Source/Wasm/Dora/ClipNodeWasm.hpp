@@ -11,20 +11,20 @@ using namespace Dora;
 int32_t clipnode_type() {
 	return DoraType<ClipNode>();
 }
-void clipnode_set_stencil(int64_t self, int64_t var) {
-	r_cast<ClipNode*>(self)->setStencil(r_cast<Node*>(var));
+void clipnode_set_stencil(int64_t self, int64_t val) {
+	r_cast<ClipNode*>(self)->setStencil(r_cast<Node*>(val));
 }
 int64_t clipnode_get_stencil(int64_t self) {
 	return Object_From(r_cast<ClipNode*>(self)->getStencil());
 }
-void clipnode_set_alpha_threshold(int64_t self, float var) {
-	r_cast<ClipNode*>(self)->setAlphaThreshold(var);
+void clipnode_set_alpha_threshold(int64_t self, float val) {
+	r_cast<ClipNode*>(self)->setAlphaThreshold(val);
 }
 float clipnode_get_alpha_threshold(int64_t self) {
 	return r_cast<ClipNode*>(self)->getAlphaThreshold();
 }
-void clipnode_set_inverted(int64_t self, int32_t var) {
-	r_cast<ClipNode*>(self)->setInverted(var != 0);
+void clipnode_set_inverted(int64_t self, int32_t val) {
+	r_cast<ClipNode*>(self)->setInverted(val != 0);
 }
 int32_t clipnode_is_inverted(int64_t self) {
 	return r_cast<ClipNode*>(self)->isInverted() ? 1 : 0;

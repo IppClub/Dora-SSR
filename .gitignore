@@ -77,3 +77,6 @@ Projects/Linux/3rdParty/
 # Ignore rust files
 Source/Rust/lib/*
 Source/Rust/target/*
+
+# Ignore files build by Wa
+Tools/dora-wa/output

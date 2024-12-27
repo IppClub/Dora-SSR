@@ -11,20 +11,20 @@ using namespace Dora;
 int32_t sprite_type() {
 	return DoraType<Sprite>();
 }
-void sprite_set_depth_write(int64_t self, int32_t var) {
-	r_cast<Sprite*>(self)->setDepthWrite(var != 0);
+void sprite_set_depth_write(int64_t self, int32_t val) {
+	r_cast<Sprite*>(self)->setDepthWrite(val != 0);
 }
 int32_t sprite_is_depth_write(int64_t self) {
 	return r_cast<Sprite*>(self)->isDepthWrite() ? 1 : 0;
 }
-void sprite_set_alpha_ref(int64_t self, float var) {
-	r_cast<Sprite*>(self)->setAlphaRef(var);
+void sprite_set_alpha_ref(int64_t self, float val) {
+	r_cast<Sprite*>(self)->setAlphaRef(val);
 }
 float sprite_get_alpha_ref(int64_t self) {
 	return r_cast<Sprite*>(self)->getAlphaRef();
 }
-void sprite_set_texture_rect(int64_t self, int64_t var) {
-	r_cast<Sprite*>(self)->setTextureRect(*r_cast<Rect*>(var));
+void sprite_set_texture_rect(int64_t self, int64_t val) {
+	r_cast<Sprite*>(self)->setTextureRect(*r_cast<Rect*>(val));
 }
 int64_t sprite_get_texture_rect(int64_t self) {
 	return r_cast<int64_t>(new Rect{r_cast<Sprite*>(self)->getTextureRect()});
@@ -32,32 +32,32 @@ int64_t sprite_get_texture_rect(int64_t self) {
 int64_t sprite_get_texture(int64_t self) {
 	return Object_From(r_cast<Sprite*>(self)->getTexture());
 }
-void sprite__set_blend_func(int64_t self, int64_t func) {
-	r_cast<Sprite*>(self)->setBlendFunc(BlendFunc(s_cast<uint64_t>(func)));
+void sprite__set_blend_func(int64_t self, int64_t blend_func) {
+	r_cast<Sprite*>(self)->setBlendFunc(BlendFunc(s_cast<uint64_t>(blend_func)));
 }
 int64_t sprite__get_blend_func(int64_t self) {
 	return s_cast<int64_t>(r_cast<Sprite*>(self)->getBlendFunc().toValue());
 }
-void sprite_set_effect(int64_t self, int64_t var) {
-	r_cast<Sprite*>(self)->setEffect(r_cast<SpriteEffect*>(var));
+void sprite_set_effect(int64_t self, int64_t val) {
+	r_cast<Sprite*>(self)->setEffect(r_cast<SpriteEffect*>(val));
 }
 int64_t sprite_get_effect(int64_t self) {
 	return Object_From(r_cast<Sprite*>(self)->getEffect());
 }
-void sprite_set_uwrap(int64_t self, int32_t var) {
-	r_cast<Sprite*>(self)->setUWrap(s_cast<TextureWrap>(var));
+void sprite_set_uwrap(int64_t self, int32_t val) {
+	r_cast<Sprite*>(self)->setUWrap(s_cast<TextureWrap>(val));
 }
 int32_t sprite_get_uwrap(int64_t self) {
 	return s_cast<int32_t>(r_cast<Sprite*>(self)->getUWrap());
 }
-void sprite_set_vwrap(int64_t self, int32_t var) {
-	r_cast<Sprite*>(self)->setVWrap(s_cast<TextureWrap>(var));
+void sprite_set_vwrap(int64_t self, int32_t val) {
+	r_cast<Sprite*>(self)->setVWrap(s_cast<TextureWrap>(val));
 }
 int32_t sprite_get_vwrap(int64_t self) {
 	return s_cast<int32_t>(r_cast<Sprite*>(self)->getVWrap());
 }
-void sprite_set_filter(int64_t self, int32_t var) {
-	r_cast<Sprite*>(self)->setFilter(s_cast<TextureFilter>(var));
+void sprite_set_filter(int64_t self, int32_t val) {
+	r_cast<Sprite*>(self)->setFilter(s_cast<TextureFilter>(val));
 }
 int32_t sprite_get_filter(int64_t self) {
 	return s_cast<int32_t>(r_cast<Sprite*>(self)->getFilter());

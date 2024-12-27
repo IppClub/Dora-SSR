@@ -260,12 +260,12 @@ object class EntityGroup @ Group
 	///
 	/// # Arguments
 	///
-	/// * `func` - The predicate function to test each entity with.
+	/// * `predicate` - The predicate function to test each entity with.
 	///
 	/// # Returns
 	///
 	/// * `Option<Entity>` - The first entity that satisfies the predicate, or None if no entity does.
-	optional Entity* find(function<bool(Entity* e)> func) const;
+	optional Entity* find(function<bool(Entity* e)> predicate) const;
 	/// A method that creates a new group with the specified component names.
 	///
 	/// # Arguments
@@ -724,18 +724,18 @@ object class Pass
 	/// # Arguments
 	///
 	/// * `name` - The name of the parameter to set.
-	/// * `var` - The numeric value to set.
-	void set @ set(string name, float var);
+	/// * `val` - The numeric value to set.
+	void set @ set(string name, float val);
 	/// Sets the values of shader parameters.
 	///
 	/// # Arguments
 	///
 	/// * `name` - The name of the parameter to set.
-	/// * `var1` - The first numeric value to set.
-	/// * `var2` - An optional second numeric value to set.
-	/// * `var3` - An optional third numeric value to set.
-	/// * `var4` - An optional fourth numeric value to set.
-	void set @ setVec4(string name, float var1, float var2, float var3, float var4);
+	/// * `val1` - The first numeric value to set.
+	/// * `val2` - An optional second numeric value to set.
+	/// * `val3` - An optional third numeric value to set.
+	/// * `val4` - An optional fourth numeric value to set.
+	void set @ setVec4(string name, float val1, float val2, float val3, float val4);
 	/// Another function that sets the values of shader parameters.
 	///
 	/// Works the same as:
@@ -744,8 +744,8 @@ object class Pass
 	/// # Arguments
 	///
 	/// * `name` - The name of the parameter to set.
-	/// * `var` - The Color object to set.
-	void set @ setColor(string name, Color var);
+	/// * `val` - The Color object to set.
+	void set @ setColor(string name, Color val);
 	/// Creates a new Pass object.
 	///
 	/// # Arguments
@@ -837,14 +837,14 @@ singleton class Director
 	///
 	/// # Arguments
 	///
-	/// * `func` - The function to call every frame.
-	outside void Director_Schedule @ schedule(function<bool(double deltaTime)> func);
+	/// * `updateFunc` - The function to call every frame.
+	outside void Director_Schedule @ schedule(function<bool(double deltaTime)> updateFunc);
 	/// Schedule a function to be called every frame for processing post game logic.
 	///
 	/// # Arguments
 	///
 	/// * `func` - The function to call every frame.
-	outside void Director_SchedulePosted @ schedulePosted(function<bool(double deltaTime)> func);
+	outside void Director_SchedulePosted @ schedulePosted(function<bool(double deltaTime)> updateFunc);
 	/// Adds a new camera to Director's camera stack and sets it to the current camera.
 	///
 	/// # Arguments
@@ -1076,7 +1076,7 @@ object class Grabber
 	optional common Camera* camera;
 	/// the sprite effect applied to the texture.
 	optional common SpriteEffect* effect;
-	void setBlendFunc @ _setBlendFunc(BlendFunc func);
+	void setBlendFunc @ _setBlendFunc(BlendFunc blendFunc);
 	BlendFunc getBlendFunc @ _getBlendFunc() const;
 	/// the clear color used to clear the texture.
 	common Color clearColor;
@@ -1312,8 +1312,8 @@ interface object class Node
 	///
 	/// # Arguments
 	///
-	/// * `func` - The function to be called. If the function returns `true`, it will not be called again.
-	void schedule(function<bool(double deltaTime)> func);
+	/// * `updateFunc` - The function to be called. If the function returns `true`, it will not be called again.
+	void schedule(function<bool(double deltaTime)> updateFunc);
 	/// Unschedules the current node's scheduled main function.
 	void unschedule();
 	/// Converts a point from world space to node space.
@@ -1351,32 +1351,32 @@ interface object class Node
 	///
 	/// # Arguments
 	///
-	/// * `func` - The function to call for each child node. The function should return a boolean value indicating whether to continue the iteration. Return true to stop iteration.
+	/// * `visitorFunc` - The function to call for each child node. The function should return a boolean value indicating whether to continue the iteration. Return true to stop iteration.
 	///
 	/// # Returns
 	///
 	/// * `bool` - `false` if all children have been visited, `true` if the iteration was interrupted by the function.
-	bool eachChild(function<bool(Node* child)> func);
+	bool eachChild(function<bool(Node* child)> visitorFunc);
 	/// Traverses the node hierarchy starting from this node and calls the given function for each visited node. The nodes without `TraverseEnabled` flag are not visited.
 	///
 	/// # Arguments
 	///
-	/// * `func` - The function to call for each visited node. The function should return a boolean value indicating whether to continue the traversal. Return true to stop iteration.
+	/// * `visitorFunc` - The function to call for each visited node. The function should return a boolean value indicating whether to continue the traversal. Return true to stop iteration.
 	///
 	/// # Returns
 	///
 	/// * `bool` - `false` if all nodes have been visited, `true` if the traversal was interrupted by the function.
-	bool traverse(function<bool(Node* child)> func);
+	bool traverse(function<bool(Node* child)> visitorFunc);
 	/// Traverses the entire node hierarchy starting from this node and calls the given function for each visited node.
 	///
 	/// # Arguments
 	///
-	/// * `func` - The function to call for each visited node. The function should return a boolean value indicating whether to continue the traversal.
+	/// * `visitorFunc` - The function to call for each visited node. The function should return a boolean value indicating whether to continue the traversal.
 	///
 	/// # Returns
 	///
 	/// * `bool` - `false` if all nodes have been visited, `true` if the traversal was interrupted by the function.
-	bool traverseAll(function<bool(Node* child)> func);
+	bool traverseAll(function<bool(Node* child)> visitorFunc);
 	/// Runs an action defined by the given action definition on this node.
 	///
 	/// # Arguments
@@ -1530,14 +1530,14 @@ interface object class Node
 	///
 	/// * `event_name` - The name of the node event.
 	/// * `handler` - The handler function to associate with the node event.
-	void slot(string eventName, function<void(Event* e)> func);
+	void slot(string eventName, function<void(Event* e)> handler);
 	/// Associates the given handler function with a global event.
 	///
 	/// # Arguments
 	///
 	/// * `event_name` - The name of the global event.
 	/// * `handler` - The handler function to associate with the event.
-	void gslot(string eventName, function<void(Event* e)> func);
+	void gslot(string eventName, function<void(Event* e)> handler);
 	/// Emits an event to a node, triggering the event handler associated with the event name.
 	///
 	/// # Arguments
@@ -1549,8 +1549,8 @@ interface object class Node
 	///
 	/// # Arguments
 	///
-	/// * `func` - The function to run every frame. If the function returns `true`, it will not be called again.
-	void onUpdate(function<bool(double deltaTime)> func);
+	/// * `updateFunc` - The function to run every frame. If the function returns `true`, it will not be called again.
+	void onUpdate(function<bool(double deltaTime)> updateFunc);
 	/// Creates a new instance of the `Node` struct.
 	static Node* create();
 };
@@ -1586,7 +1586,7 @@ object class Sprite : public INode
 	common Rect textureRect;
 	/// the texture for the sprite.
 	optional readonly common Texture2D* texture;
-	void setBlendFunc @ _setBlendFunc(BlendFunc func);
+	void setBlendFunc @ _setBlendFunc(BlendFunc blendFunc);
 	BlendFunc getBlendFunc @ _getBlendFunc() const;
 	/// the sprite shader effect.
 	common SpriteEffect* effect;
@@ -1646,7 +1646,7 @@ object class Grid : public INode
 	readonly common uint32_t gridY;
 	/// whether depth writes are enabled.
 	boolean bool depthWrite;
-	void setBlendFunc @ _setBlendFunc(BlendFunc func);
+	void setBlendFunc @ _setBlendFunc(BlendFunc blendFunc);
 	BlendFunc getBlendFunc @ _getBlendFunc() const;
 	/// the sprite effect applied to the grid.
 	/// Default is `SpriteEffect::new("builtin:vs_sprite", "builtin:fs_sprite")`.
@@ -1811,7 +1811,7 @@ object class Label : public INode
 	common Vec2 smooth;
 	/// the text to be rendered.
 	common string text;
-	void setBlendFunc @ _setBlendFunc(BlendFunc func);
+	void setBlendFunc @ _setBlendFunc(BlendFunc blendFunc);
 	BlendFunc getBlendFunc @ _getBlendFunc() const;
 	/// whether depth writing is enabled. (Default is false)
 	boolean bool depthWrite;
@@ -1935,7 +1935,7 @@ object class DrawNode : public INode
 {
 	/// whether to write to the depth buffer when drawing (default is false).
 	boolean bool depthWrite;
-	void setBlendFunc @ _setBlendFunc(BlendFunc func);
+	void setBlendFunc @ _setBlendFunc(BlendFunc blendFunc);
 	BlendFunc getBlendFunc @ _getBlendFunc() const;
 	/// Draws a dot at a specified position with a specified radius and color.
 	///
@@ -1984,7 +1984,7 @@ object class Line : public INode
 {
 	/// whether the depth should be written. (Default is false)
 	boolean bool depthWrite;
-	void setBlendFunc @ _setBlendFunc(BlendFunc func);
+	void setBlendFunc @ _setBlendFunc(BlendFunc blendFunc);
 	BlendFunc getBlendFunc @ _getBlendFunc() const;
 	/// Adds vertices to the line.
 	///
@@ -2169,12 +2169,12 @@ object class Model : public IPlayable
 	///
 	/// # Arguments
 	///
-	/// * `func` - The function to call for each node.
+	/// * `visitorFunc` - The function to call for each node.
 	///
 	/// # Returns
 	///
 	/// * `bool` - Whether the function was called for all nodes or not.
-	bool eachNode(function<bool(Node* node)> func);
+	bool eachNode(function<bool(Node* node)> visitorFunc);
 	/// Creates a new instance of 'Model' from the specified model file.
 	///
 	/// # Arguments
@@ -2454,7 +2454,7 @@ object class TileNode : public INode
 {
 	/// whether the depth buffer should be written to when rendering the tilemap.
 	boolean bool depthWrite;
-	void setBlendFunc @ _setBlendFunc(BlendFunc func);
+	void setBlendFunc @ _setBlendFunc(BlendFunc blendFunc);
 	BlendFunc getBlendFunc @ _getBlendFunc() const;
 	/// the tilemap shader effect.
 	common SpriteEffect* effect;
@@ -2576,7 +2576,7 @@ object class FixtureDef { };
 /// A struct to describe the properties of a physics body.
 object class BodyDef
 {
-	outside void BodyDef_SetTypeEnum @ _set_type(int var);
+	outside void BodyDef_SetTypeEnum @ _set_type(int val);
 	outside int32_t BodyDef_GetTypeEnum @ _get_type() const;
 	/// define for the position of the body.
 	Vec2 offset @ position;
@@ -4628,8 +4628,8 @@ object class Unit : public IBody
 	///
 	/// # Arguments
 	///
-	/// * `func` - A function to call for each `UnitAction`.
-	void eachAction(function<void(Platformer::UnitAction action)> func);
+	/// * `visitorFunc` - A function to call for each `UnitAction`.
+	void eachAction(function<void(Platformer::UnitAction action)> visitorFunc);
 	/// Starts the `UnitAction` with the specified name, and returns true if the `UnitAction` was started successfully.
 	///
 	/// # Arguments
@@ -5154,9 +5154,9 @@ static void Binding::TableSetupColumn @ _tableSetupColumnOpts(
 	uint32_t user_id,
 	uint32_t tableColumnFlags);
 
-static void Binding::SetStyleVar @ setStyleBool(string name, bool var);
-static void Binding::SetStyleVar @ setStyleFloat(string name, float var);
-static void Binding::SetStyleVar @ setStyleVec2(string name, Vec2 var);
+static void Binding::SetStyleVar @ setStyleBool(string name, bool val);
+static void Binding::SetStyleVar @ setStyleFloat(string name, float val);
+static void Binding::SetStyleVar @ setStyleVec2(string name, Vec2 val);
 static void Binding::SetStyleColor @ setStyleColor(string name, Color color);
 
 static bool Binding::Begin @ _begin_ret_opts(
@@ -5539,7 +5539,7 @@ object class VGNode : public INode {
 	///
 	/// # Arguments
 	///
-	/// * `func` - The closure function for rendering vector graphics. You can do the rendering operations inside this closure.
+	/// * `renderFunc` - The closure function for rendering vector graphics. You can do the rendering operations inside this closure.
 	///
 	/// # Example
 	///
@@ -5552,7 +5552,7 @@ object class VGNode : public INode {
 	/// 	Nvg::stroke();
 	/// });
 	/// ```
-	void render(function<void()> func);
+	void render(function<void()> renderFunc);
 	/// Creates a new VGNode object with the specified width and height.
 	///
 	/// # Arguments

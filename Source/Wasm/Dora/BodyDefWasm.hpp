@@ -11,74 +11,74 @@ using namespace Dora;
 int32_t bodydef_type() {
 	return DoraType<BodyDef>();
 }
-void bodydef__set_type(int64_t self, int32_t var) {
-	BodyDef_SetTypeEnum(r_cast<BodyDef*>(self), s_cast<int>(var));
+void bodydef__set_type(int64_t self, int32_t val) {
+	BodyDef_SetTypeEnum(r_cast<BodyDef*>(self), s_cast<int>(val));
 }
 int32_t bodydef__get_type(int64_t self) {
 	return BodyDef_GetTypeEnum(r_cast<BodyDef*>(self));
 }
-void bodydef_set_position(int64_t self, int64_t var) {
-	r_cast<BodyDef*>(self)->offset = Vec2_From(var);
+void bodydef_set_position(int64_t self, int64_t val) {
+	r_cast<BodyDef*>(self)->offset = Vec2_From(val);
 }
 int64_t bodydef_get_position(int64_t self) {
 	return Vec2_Retain(r_cast<BodyDef*>(self)->offset);
 }
-void bodydef_set_angle(int64_t self, float var) {
-	r_cast<BodyDef*>(self)->angleOffset = s_cast<float>(var);
+void bodydef_set_angle(int64_t self, float val) {
+	r_cast<BodyDef*>(self)->angleOffset = s_cast<float>(val);
 }
 float bodydef_get_angle(int64_t self) {
 	return r_cast<BodyDef*>(self)->angleOffset;
 }
-void bodydef_set_face(int64_t self, int64_t var) {
-	r_cast<BodyDef*>(self)->face = *Str_From(var);
+void bodydef_set_face(int64_t self, int64_t val) {
+	r_cast<BodyDef*>(self)->face = *Str_From(val);
 }
 int64_t bodydef_get_face(int64_t self) {
 	return Str_Retain(r_cast<BodyDef*>(self)->face);
 }
-void bodydef_set_face_pos(int64_t self, int64_t var) {
-	r_cast<BodyDef*>(self)->facePos = Vec2_From(var);
+void bodydef_set_face_pos(int64_t self, int64_t val) {
+	r_cast<BodyDef*>(self)->facePos = Vec2_From(val);
 }
 int64_t bodydef_get_face_pos(int64_t self) {
 	return Vec2_Retain(r_cast<BodyDef*>(self)->facePos);
 }
-void bodydef_set_linear_damping(int64_t self, float var) {
-	r_cast<BodyDef*>(self)->setLinearDamping(var);
+void bodydef_set_linear_damping(int64_t self, float val) {
+	r_cast<BodyDef*>(self)->setLinearDamping(val);
 }
 float bodydef_get_linear_damping(int64_t self) {
 	return r_cast<BodyDef*>(self)->getLinearDamping();
 }
-void bodydef_set_angular_damping(int64_t self, float var) {
-	r_cast<BodyDef*>(self)->setAngularDamping(var);
+void bodydef_set_angular_damping(int64_t self, float val) {
+	r_cast<BodyDef*>(self)->setAngularDamping(val);
 }
 float bodydef_get_angular_damping(int64_t self) {
 	return r_cast<BodyDef*>(self)->getAngularDamping();
 }
-void bodydef_set_linear_acceleration(int64_t self, int64_t var) {
-	r_cast<BodyDef*>(self)->setLinearAcceleration(Vec2_From(var));
+void bodydef_set_linear_acceleration(int64_t self, int64_t val) {
+	r_cast<BodyDef*>(self)->setLinearAcceleration(Vec2_From(val));
 }
 int64_t bodydef_get_linear_acceleration(int64_t self) {
 	return Vec2_Retain(r_cast<BodyDef*>(self)->getLinearAcceleration());
 }
-void bodydef_set_fixed_rotation(int64_t self, int32_t var) {
-	r_cast<BodyDef*>(self)->setFixedRotation(var != 0);
+void bodydef_set_fixed_rotation(int64_t self, int32_t val) {
+	r_cast<BodyDef*>(self)->setFixedRotation(val != 0);
 }
 int32_t bodydef_is_fixed_rotation(int64_t self) {
 	return r_cast<BodyDef*>(self)->isFixedRotation() ? 1 : 0;
 }
-void bodydef_set_bullet(int64_t self, int32_t var) {
-	r_cast<BodyDef*>(self)->setBullet(var != 0);
+void bodydef_set_bullet(int64_t self, int32_t val) {
+	r_cast<BodyDef*>(self)->setBullet(val != 0);
 }
 int32_t bodydef_is_bullet(int64_t self) {
 	return r_cast<BodyDef*>(self)->isBullet() ? 1 : 0;
 }
 int64_t bodydef_polygon_with_center(int64_t center, float width, float height, float angle, float density, float friction, float restitution) {
-	return r_cast<int64_t>(BodyDef::polygon(Vec2_From(center), width, height, angle, density, friction, restitution));
+	return Object_From(BodyDef::polygon(Vec2_From(center), width, height, angle, density, friction, restitution));
 }
 int64_t bodydef_polygon(float width, float height, float density, float friction, float restitution) {
-	return r_cast<int64_t>(BodyDef::polygon(width, height, density, friction, restitution));
+	return Object_From(BodyDef::polygon(width, height, density, friction, restitution));
 }
 int64_t bodydef_polygon_with_vertices(int64_t vertices, float density, float friction, float restitution) {
-	return r_cast<int64_t>(BodyDef::polygon(Vec_FromVec2(vertices), density, friction, restitution));
+	return Object_From(BodyDef::polygon(Vec_FromVec2(vertices), density, friction, restitution));
 }
 void bodydef_attach_polygon_with_center(int64_t self, int64_t center, float width, float height, float angle, float density, float friction, float restitution) {
 	r_cast<BodyDef*>(self)->attachPolygon(Vec2_From(center), width, height, angle, density, friction, restitution);
@@ -90,16 +90,16 @@ void bodydef_attach_polygon_with_vertices(int64_t self, int64_t vertices, float 
 	r_cast<BodyDef*>(self)->attachPolygon(Vec_FromVec2(vertices), density, friction, restitution);
 }
 int64_t bodydef_multi(int64_t vertices, float density, float friction, float restitution) {
-	return r_cast<int64_t>(BodyDef::multi(Vec_FromVec2(vertices), density, friction, restitution));
+	return Object_From(BodyDef::multi(Vec_FromVec2(vertices), density, friction, restitution));
 }
 void bodydef_attach_multi(int64_t self, int64_t vertices, float density, float friction, float restitution) {
 	r_cast<BodyDef*>(self)->attachMulti(Vec_FromVec2(vertices), density, friction, restitution);
 }
 int64_t bodydef_disk_with_center(int64_t center, float radius, float density, float friction, float restitution) {
-	return r_cast<int64_t>(BodyDef::disk(Vec2_From(center), radius, density, friction, restitution));
+	return Object_From(BodyDef::disk(Vec2_From(center), radius, density, friction, restitution));
 }
 int64_t bodydef_disk(float radius, float density, float friction, float restitution) {
-	return r_cast<int64_t>(BodyDef::disk(radius, density, friction, restitution));
+	return Object_From(BodyDef::disk(radius, density, friction, restitution));
 }
 void bodydef_attach_disk_with_center(int64_t self, int64_t center, float radius, float density, float friction, float restitution) {
 	r_cast<BodyDef*>(self)->attachDisk(Vec2_From(center), radius, density, friction, restitution);
@@ -108,7 +108,7 @@ void bodydef_attach_disk(int64_t self, float radius, float density, float fricti
 	r_cast<BodyDef*>(self)->attachDisk(radius, density, friction, restitution);
 }
 int64_t bodydef_chain(int64_t vertices, float friction, float restitution) {
-	return r_cast<int64_t>(BodyDef::chain(Vec_FromVec2(vertices), friction, restitution));
+	return Object_From(BodyDef::chain(Vec_FromVec2(vertices), friction, restitution));
 }
 void bodydef_attach_chain(int64_t self, int64_t vertices, float friction, float restitution) {
 	r_cast<BodyDef*>(self)->attachChain(Vec_FromVec2(vertices), friction, restitution);

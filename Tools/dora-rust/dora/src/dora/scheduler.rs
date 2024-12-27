@@ -8,9 +8,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 	fn scheduler_type() -> i32;
-	fn scheduler_set_time_scale(slf: i64, var: f32);
+	fn scheduler_set_time_scale(slf: i64, val: f32);
 	fn scheduler_get_time_scale(slf: i64) -> f32;
-	fn scheduler_set_fixed_fps(slf: i64, var: i32);
+	fn scheduler_set_fixed_fps(slf: i64, val: i32);
 	fn scheduler_get_fixed_fps(slf: i64) -> i32;
 	fn scheduler_update(slf: i64, delta_time: f64) -> i32;
 	fn scheduler_new() -> i64;
@@ -30,8 +30,8 @@ impl Scheduler {
 	}
 	/// Sets the time scale factor for the scheduler.
 	/// This factor is applied to deltaTime that the scheduled functions will receive.
-	pub fn set_time_scale(&mut self, var: f32) {
-		unsafe { scheduler_set_time_scale(self.raw(), var) };
+	pub fn set_time_scale(&mut self, val: f32) {
+		unsafe { scheduler_set_time_scale(self.raw(), val) };
 	}
 	/// Gets the time scale factor for the scheduler.
 	/// This factor is applied to deltaTime that the scheduled functions will receive.
@@ -41,8 +41,8 @@ impl Scheduler {
 	/// Sets the target frame rate (in frames per second) for a fixed update mode.
 	/// The fixed update will ensure a constant frame rate, and the operation handled in a fixed update can use a constant delta time value.
 	/// It is used for preventing weird behavior of a physics engine or synchronizing some states via network communications.
-	pub fn set_fixed_fps(&mut self, var: i32) {
-		unsafe { scheduler_set_fixed_fps(self.raw(), var) };
+	pub fn set_fixed_fps(&mut self, val: i32) {
+		unsafe { scheduler_set_fixed_fps(self.raw(), val) };
 	}
 	/// Gets the target frame rate (in frames per second) for a fixed update mode.
 	/// The fixed update will ensure a constant frame rate, and the operation handled in a fixed update can use a constant delta time value.

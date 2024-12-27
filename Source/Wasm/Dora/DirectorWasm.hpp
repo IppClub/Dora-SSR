@@ -8,8 +8,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-void director_set_clear_color(int32_t var) {
-	SharedDirector.setClearColor(Color(s_cast<uint32_t>(var)));
+void director_set_clear_color(int32_t val) {
+	SharedDirector.setClearColor(Color(s_cast<uint32_t>(val)));
 }
 int32_t director_get_clear_color() {
 	return SharedDirector.getClearColor().toARGB();
@@ -29,34 +29,34 @@ int64_t director_get_post_node() {
 int64_t director_get_current_camera() {
 	return Object_From(SharedDirector.getCurrentCamera());
 }
-void director_set_frustum_culling(int32_t var) {
-	SharedDirector.setFrustumCulling(var != 0);
+void director_set_frustum_culling(int32_t val) {
+	SharedDirector.setFrustumCulling(val != 0);
 }
 int32_t director_is_frustum_culling() {
 	return SharedDirector.isFrustumCulling() ? 1 : 0;
 }
-void director_schedule(int32_t func, int64_t stack) {
-	std::shared_ptr<void> deref(nullptr, [func](auto) {
-		SharedWasmRuntime.deref(func);
+void director_schedule(int32_t func0, int64_t stack0) {
+	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
+		SharedWasmRuntime.deref(func0);
 	});
-	auto args = r_cast<CallStack*>(stack);
-	Director_Schedule([func, args, deref](double deltaTime) {
-		args->clear();
-		args->push(deltaTime);
-		SharedWasmRuntime.invoke(func);
-		return std::get<bool>(args->pop());
+	auto args0 = r_cast<CallStack*>(stack0);
+	Director_Schedule([func0, args0, deref0](double deltaTime) {
+		args0->clear();
+		args0->push(deltaTime);
+		SharedWasmRuntime.invoke(func0);
+		return std::get<bool>(args0->pop());
 	});
 }
-void director_schedule_posted(int32_t func, int64_t stack) {
-	std::shared_ptr<void> deref(nullptr, [func](auto) {
-		SharedWasmRuntime.deref(func);
+void director_schedule_posted(int32_t func0, int64_t stack0) {
+	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
+		SharedWasmRuntime.deref(func0);
 	});
-	auto args = r_cast<CallStack*>(stack);
-	Director_SchedulePosted([func, args, deref](double deltaTime) {
-		args->clear();
-		args->push(deltaTime);
-		SharedWasmRuntime.invoke(func);
-		return std::get<bool>(args->pop());
+	auto args0 = r_cast<CallStack*>(stack0);
+	Director_SchedulePosted([func0, args0, deref0](double deltaTime) {
+		args0->clear();
+		args0->push(deltaTime);
+		SharedWasmRuntime.invoke(func0);
+		return std::get<bool>(args0->pop());
 	});
 }
 void director_push_camera(int64_t camera) {

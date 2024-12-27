@@ -8,11 +8,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 	fn motorjoint_type() -> i32;
-	fn motorjoint_set_enabled(slf: i64, var: i32);
+	fn motorjoint_set_enabled(slf: i64, val: i32);
 	fn motorjoint_is_enabled(slf: i64) -> i32;
-	fn motorjoint_set_force(slf: i64, var: f32);
+	fn motorjoint_set_force(slf: i64, val: f32);
 	fn motorjoint_get_force(slf: i64) -> f32;
-	fn motorjoint_set_speed(slf: i64, var: f32);
+	fn motorjoint_set_speed(slf: i64, val: f32);
 	fn motorjoint_get_speed(slf: i64) -> f32;
 }
 use crate::dora::IObject;
@@ -31,24 +31,24 @@ impl MotorJoint {
 		})
 	}
 	/// Sets whether or not the motor joint is enabled.
-	pub fn set_enabled(&mut self, var: bool) {
-		unsafe { motorjoint_set_enabled(self.raw(), if var { 1 } else { 0 }) };
+	pub fn set_enabled(&mut self, val: bool) {
+		unsafe { motorjoint_set_enabled(self.raw(), if val { 1 } else { 0 }) };
 	}
 	/// Gets whether or not the motor joint is enabled.
 	pub fn is_enabled(&self) -> bool {
 		return unsafe { motorjoint_is_enabled(self.raw()) != 0 };
 	}
 	/// Sets the force applied to the motor joint.
-	pub fn set_force(&mut self, var: f32) {
-		unsafe { motorjoint_set_force(self.raw(), var) };
+	pub fn set_force(&mut self, val: f32) {
+		unsafe { motorjoint_set_force(self.raw(), val) };
 	}
 	/// Gets the force applied to the motor joint.
 	pub fn get_force(&self) -> f32 {
 		return unsafe { motorjoint_get_force(self.raw()) };
 	}
 	/// Sets the speed of the motor joint.
-	pub fn set_speed(&mut self, var: f32) {
-		unsafe { motorjoint_set_speed(self.raw(), var) };
+	pub fn set_speed(&mut self, val: f32) {
+		unsafe { motorjoint_set_speed(self.raw(), val) };
 	}
 	/// Gets the speed of the motor joint.
 	pub fn get_speed(&self) -> f32 {

@@ -8,7 +8,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 	fn movejoint_type() -> i32;
-	fn movejoint_set_position(slf: i64, var: i64);
+	fn movejoint_set_position(slf: i64, val: i64);
 	fn movejoint_get_position(slf: i64) -> i64;
 }
 use crate::dora::IObject;
@@ -27,8 +27,8 @@ impl MoveJoint {
 		})
 	}
 	/// Sets the current position of the move joint in the game world.
-	pub fn set_position(&mut self, var: &crate::dora::Vec2) {
-		unsafe { movejoint_set_position(self.raw(), var.into_i64()) };
+	pub fn set_position(&mut self, val: &crate::dora::Vec2) {
+		unsafe { movejoint_set_position(self.raw(), val.into_i64()) };
 	}
 	/// Gets the current position of the move joint in the game world.
 	pub fn get_position(&self) -> crate::dora::Vec2 {

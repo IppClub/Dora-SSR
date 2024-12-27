@@ -20,15 +20,15 @@ int64_t platformer_face_to_node(int64_t self) {
 int64_t platformer_face_new(int64_t face_str, int64_t point, float scale, float angle) {
 	return Object_From(Platformer::Face::create(*Str_From(face_str), Vec2_From(point), scale, angle));
 }
-int64_t platformer_face_with_func(int32_t func, int64_t stack, int64_t point, float scale, float angle) {
-	std::shared_ptr<void> deref(nullptr, [func](auto) {
-		SharedWasmRuntime.deref(func);
+int64_t platformer_face_with_func(int32_t func0, int64_t stack0, int64_t point, float scale, float angle) {
+	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
+		SharedWasmRuntime.deref(func0);
 	});
-	auto args = r_cast<CallStack*>(stack);
-	return Object_From(Platformer::Face::create([func, args, deref]() {
-		args->clear();
-		SharedWasmRuntime.invoke(func);
-		return s_cast<Node*>(std::get<Object*>(args->pop()));
+	auto args0 = r_cast<CallStack*>(stack0);
+	return Object_From(Platformer::Face::create([func0, args0, deref0]() {
+		args0->clear();
+		SharedWasmRuntime.invoke(func0);
+		return s_cast<Node*>(std::get<Object*>(args0->pop()));
 	}, Vec2_From(point), scale, angle));
 }
 } // extern "C"

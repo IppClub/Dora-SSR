@@ -11,20 +11,20 @@ using namespace Dora;
 int32_t pass_type() {
 	return DoraType<Pass>();
 }
-void pass_set_grab_pass(int64_t self, int32_t var) {
-	r_cast<Pass*>(self)->setGrabPass(var != 0);
+void pass_set_grab_pass(int64_t self, int32_t val) {
+	r_cast<Pass*>(self)->setGrabPass(val != 0);
 }
 int32_t pass_is_grab_pass(int64_t self) {
 	return r_cast<Pass*>(self)->isGrabPass() ? 1 : 0;
 }
-void pass_set(int64_t self, int64_t name, float var) {
-	r_cast<Pass*>(self)->set(*Str_From(name), var);
+void pass_set(int64_t self, int64_t name, float val) {
+	r_cast<Pass*>(self)->set(*Str_From(name), val);
 }
-void pass_set_vec4(int64_t self, int64_t name, float var_1, float var_2, float var_3, float var_4) {
-	r_cast<Pass*>(self)->set(*Str_From(name), var_1, var_2, var_3, var_4);
+void pass_set_vec4(int64_t self, int64_t name, float val_1, float val_2, float val_3, float val_4) {
+	r_cast<Pass*>(self)->set(*Str_From(name), val_1, val_2, val_3, val_4);
 }
-void pass_set_color(int64_t self, int64_t name, int32_t var) {
-	r_cast<Pass*>(self)->set(*Str_From(name), Color(s_cast<uint32_t>(var)));
+void pass_set_color(int64_t self, int64_t name, int32_t val) {
+	r_cast<Pass*>(self)->set(*Str_From(name), Color(s_cast<uint32_t>(val)));
 }
 int64_t pass_new(int64_t vert_shader, int64_t frag_shader) {
 	return Object_From(Pass::create(*Str_From(vert_shader), *Str_From(frag_shader)));

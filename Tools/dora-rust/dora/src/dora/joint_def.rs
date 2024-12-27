@@ -8,11 +8,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 	fn jointdef_type() -> i32;
-	fn jointdef_set_center(slf: i64, var: i64);
+	fn jointdef_set_center(slf: i64, val: i64);
 	fn jointdef_get_center(slf: i64) -> i64;
-	fn jointdef_set_position(slf: i64, var: i64);
+	fn jointdef_set_position(slf: i64, val: i64);
 	fn jointdef_get_position(slf: i64) -> i64;
-	fn jointdef_set_angle(slf: i64, var: f32);
+	fn jointdef_set_angle(slf: i64, val: f32);
 	fn jointdef_get_angle(slf: i64) -> f32;
 	fn jointdef_distance(collision: i32, body_a: i64, body_b: i64, anchor_a: i64, anchor_b: i64, frequency: f32, damping: f32) -> i64;
 	fn jointdef_friction(collision: i32, body_a: i64, body_b: i64, world_pos: i64, max_force: f32, max_torque: f32) -> i64;
@@ -39,24 +39,24 @@ impl JointDef {
 		})
 	}
 	/// Sets the center point of the joint, in local coordinates.
-	pub fn set_center(&mut self, var: &crate::dora::Vec2) {
-		unsafe { jointdef_set_center(self.raw(), var.into_i64()) };
+	pub fn set_center(&mut self, val: &crate::dora::Vec2) {
+		unsafe { jointdef_set_center(self.raw(), val.into_i64()) };
 	}
 	/// Gets the center point of the joint, in local coordinates.
 	pub fn get_center(&self) -> crate::dora::Vec2 {
 		return unsafe { crate::dora::Vec2::from(jointdef_get_center(self.raw())) };
 	}
 	/// Sets the position of the joint, in world coordinates.
-	pub fn set_position(&mut self, var: &crate::dora::Vec2) {
-		unsafe { jointdef_set_position(self.raw(), var.into_i64()) };
+	pub fn set_position(&mut self, val: &crate::dora::Vec2) {
+		unsafe { jointdef_set_position(self.raw(), val.into_i64()) };
 	}
 	/// Gets the position of the joint, in world coordinates.
 	pub fn get_position(&self) -> crate::dora::Vec2 {
 		return unsafe { crate::dora::Vec2::from(jointdef_get_position(self.raw())) };
 	}
 	/// Sets the angle of the joint, in degrees.
-	pub fn set_angle(&mut self, var: f32) {
-		unsafe { jointdef_set_angle(self.raw(), var) };
+	pub fn set_angle(&mut self, val: f32) {
+		unsafe { jointdef_set_angle(self.raw(), val) };
 	}
 	/// Gets the angle of the joint, in degrees.
 	pub fn get_angle(&self) -> f32 {

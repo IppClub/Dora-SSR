@@ -1,0 +1,1430 @@
+import (
+	"math"
+	"strconv"
+	"strings"
+)
+
+/* runtime */
+
+#wa:linkname $wa.runtime.i32_ref_to_ptr
+func waI32RefToPtr(p: *i32) => i32
+
+#wa:linkname $wa.runtime.i64_ref_to_ptr
+func waI64RefToPtr(p: *i64) => i32
+
+#wa:linkname $wa.runtime.string_to_ptr
+func waStringToPtr(s: string) => i32
+
+#wa:linkname $wa.runtime.slice_to_ptr
+func waBytesToPtr(s: []byte) => i32
+
+#wa:linkname $wa.runtime.slice_to_ptr
+func waI32SliceToPtr(s: []i32) => i32
+
+#wa:linkname $wa.runtime.slice_to_ptr
+func waI64SliceToPtr(s: []i64) => i32
+
+#wa:linkname $wa.runtime.slice_to_ptr
+func waF32SliceToPtr(s: []f32) => i32
+
+#wa:linkname $wa.runtime.slice_to_ptr
+func waF64SliceToPtr(s: []f64) => i32
+
+/* string */
+
+#wa:import dora str_new
+func str_new(len: i32) => i64
+
+#wa:import dora str_release
+func str_release(str: i64)
+
+#wa:import dora str_len
+func str_len(str: i64) => i32
+
+#wa:import dora str_read_ptr
+func str_read_ptr(dest: i32, src: i64)
+
+#wa:import dora str_write_ptr
+func str_write_ptr(dest: i64, src: i32)
+
+func ToDoraString(str: string) => i64 {
+	ptr := str_new(i32(len(str)))
+	str_write_ptr(ptr, waStringToPtr(str))
+	return ptr
+}
+
+func FromDoraString(str: i64) => *string {
+	length := str_len(str)
+	buf := make([]byte, length)
+	str_read_ptr(waBytesToPtr(buf), str)
+	result := string(buf)
+	return &result
+}
+
+/* bool */
+
+func ToDoraBool(v: bool) => i32 {
+	if v {
+		return 1
+	}
+	return 0
+}
+
+/* buf */
+
+#wa:import dora buf_new_i32
+func buf_new_i32(len: i32) => i64
+
+#wa:import dora buf_new_i64
+func buf_new_i64(len: i32) => i64
+
+#wa:import dora buf_new_f32
+func buf_new_f32(len: i32) => i64
+
+#wa:import dora buf_new_f64
+func buf_new_f64(len: i32) => i64
+
+#wa:import dora buf_len
+func buf_len(v: i64) => i32
+
+#wa:import dora buf_read_ptr
+func buf_read_ptr(dest: i32, src: i64)
+
+#wa:import dora buf_write_ptr
+func buf_write_ptr(dest: i64, src: i32)
+
+#wa:import dora buf_release
+func buf_release(v: i64)
+
+func ToDoraI32Buf(v: *[]i32) => i64 {
+	ptr := buf_new_i32(i32(len(*v)))
+	buf_write_ptr(ptr, waI32SliceToPtr(*v))
+	return ptr
+}
+
+func ToDoraI64Buf(v: *[]i64) => i64 {
+	ptr := buf_new_i64(i32(len(*v)))
+	buf_write_ptr(ptr, waI64SliceToPtr(*v))
+	return ptr
+}
+
+func ToDoraF32Buf(v: *[]f32) => i64 {
+	ptr := buf_new_f32(i32(len(*v)))
+	buf_write_ptr(ptr, waF32SliceToPtr(*v))
+	return ptr
+}
+
+func ToDoraF64Buf(v: *[]f64) => i64 {
+	ptr := buf_new_f64(i32(len(*v)))
+	buf_write_ptr(ptr, waF64SliceToPtr(*v))
+	return ptr
+}
+
+func ToDoraStrBuf(v: *[]string) => i64 {
+	length := len(*v)
+	ptr := buf_new_i64(i32(length))
+	strs := make([]i64, length)
+	for i := 0; i < length; i++ {
+		strs[i] = ToDoraString((*v)[i])
+	}
+	buf_write_ptr(ptr, waI64SliceToPtr(strs))
+	return ptr
+}
+
+func ToDoraVec2Buf(v: *[]Vec2) => i64 {
+	length := len(*v)
+	ptr := buf_new_i64(i32(length))
+	vecs := make([]i64, length)
+	for i := 0; i < length; i++ {
+		vecs[i] = (*v)[i].ToValue()
+	}
+	buf_write_ptr(ptr, waI64SliceToPtr(vecs))
+	return ptr
+}
+
+func ToDoraActionDefBuf(v: *[]ActionDef) => i64 {
+	length := len(*v)
+	ptr := buf_new_i64(i32(length))
+	vecs := make([]i64, length)
+	for i := 0; i < length; i++ {
+		vecs[i] = (*v)[i].GetRaw()
+	}
+	buf_write_ptr(ptr, waI64SliceToPtr(vecs))
+	return ptr
+}
+
+func FromDoraI32Buf(v: i64) => *[]i32 {
+	length := buf_len(v)
+	buf := make([]i32, length)
+	buf_read_ptr(waI32SliceToPtr(buf), v)
+	return &buf
+}
+
+func FromDoraI64Buf(v: i64) => *[]i64 {
+	length := buf_len(v)
+	buf := make([]i64, length)
+	buf_read_ptr(waI64SliceToPtr(buf), v)
+	return &buf
+}
+
+func FromDoraF32Buf(v: i64) => *[]f32 {
+	length := buf_len(v)
+	buf := make([]f32, length)
+	buf_read_ptr(waF32SliceToPtr(buf), v)
+	return &buf
+}
+
+func FromDoraF64Buf(v: i64) => *[]f64 {
+	length := buf_len(v)
+	buf := make([]f64, length)
+	buf_read_ptr(waF64SliceToPtr(buf), v)
+	return &buf
+}
+
+func FromDoraStrBuf(v: i64) => *[]string {
+	length := buf_len(v)
+	buf := make([]i64, length)
+	buf_read_ptr(waI64SliceToPtr(buf), v)
+	strs := make([]string, length)
+	for i := 0; i < int(length); i++ {
+		strs[i] = *FromDoraString(buf[i])
+	}
+	return &strs
+}
+
+func FromDoraVec2Buf(v: i64) => *[]Vec2 {
+	length := buf_len(v)
+	buf := make([]i64, length)
+	buf_read_ptr(waI64SliceToPtr(buf), v)
+	vecs := make([]Vec2, length)
+	for i := 0; i < int(length); i++ {
+		vecs[i] = Vec2FromValue(buf[i])
+	}
+	return &vecs
+}
+
+/* Object */
+
+#wa:import dora object_get_id
+func object_get_id(obj: i64) => i32
+
+#wa:import dora object_get_type
+func object_get_type(obj: i64) => i32
+
+#wa:import dora object_retain
+func object_retain(obj: i64)
+
+#wa:import dora object_release
+func object_release(obj: i64)
+
+#wa:import dora object_to_node
+func object_to_node(obj: i64) => i64
+
+#wa:import dora object_to_camera
+func object_to_camera(obj: i64) => i64
+
+#wa:import dora object_to_playable
+func object_to_playable(obj: i64) => i64
+
+#wa:import dora object_to_physics_world
+func object_to_physics_world(obj: i64) => i64
+
+#wa:import dora object_to_body
+func object_to_body(obj: i64) => i64
+
+#wa:import dora object_to_joint
+func object_to_joint(obj: i64) => i64
+
+type Object struct {
+	raw: *i64
+}
+
+func Object.GetId() => i32 {
+	return object_get_id(*this.raw)
+}
+
+func Object.GetType() => i32 {
+	return object_get_type(*this.raw)
+}
+
+func Object.GetRaw() => i64 {
+	return *this.raw
+}
+
+#wa:runtime_getter
+func _getObjectPtr(ptr: u32) => i64
+
+func ObjectFinalizer(ptr: u32) {
+	object_release(_getObjectPtr(ptr))
+}
+
+func createObject(raw: i64) => Object {
+	object := Object{raw: &raw}
+	setFinalizer(object.raw, ObjectFinalizer)
+	return object
+}
+
+/* Value */
+
+#wa:import dora value_create_i64
+func value_create_i64(value: i64) => i64
+
+#wa:import dora value_create_f64
+func value_create_f64(value: f64) => i64
+
+#wa:import dora value_create_str
+func value_create_str(value: i64) => i64
+
+#wa:import dora value_create_bool
+func value_create_bool(value: i32) => i64
+
+#wa:import dora value_create_object
+func value_create_object(value: i64) => i64
+
+#wa:import dora value_create_vec2
+func value_create_vec2(value: i64) => i64
+
+#wa:import dora value_create_size
+func value_create_size(value: i64) => i64
+
+#wa:import dora value_release
+func value_release(value: i64)
+
+#wa:import dora value_into_i64
+func value_into_i64(value: i64) => i64
+
+#wa:import dora value_into_f64
+func value_into_f64(value: i64) => f64
+
+#wa:import dora value_into_str
+func value_into_str(value: i64) => i64
+
+#wa:import dora value_into_bool
+func value_into_bool(value: i64) => i32
+
+#wa:import dora value_into_object
+func value_into_object(value: i64) => i64
+
+#wa:import dora value_into_vec2
+func value_into_vec2(value: i64) => i64
+
+#wa:import dora value_into_size
+func value_into_size(value: i64) => i64
+
+#wa:import dora value_is_i64
+func value_is_i64(value: i64) => i32
+
+#wa:import dora value_is_f64
+func value_is_f64(value: i64) => i32
+
+#wa:import dora value_is_str
+func value_is_str(value: i64) => i32
+
+#wa:import dora value_is_bool
+func value_is_bool(value: i64) => i32
+
+#wa:import dora value_is_object
+func value_is_object(value: i64) => i32
+
+#wa:import dora value_is_vec2
+func value_is_vec2(value: i64) => i32
+
+#wa:import dora value_is_size
+func value_is_size(value: i64) => i32
+
+type Value struct {
+	raw: *i64
+}
+
+func Value.GetI32() => (i32, bool) {
+	if value_is_i64(*this.raw) == 0 {
+		return 0, false
+	}
+	return i32(value_into_i64(*this.raw)), true
+}
+
+func Value.GetI64() => (i64, bool) {
+	if value_is_i64(*this.raw) == 0 {
+		return 0, false
+	}
+	return value_into_i64(*this.raw), true
+}
+
+func Value.GetF32() => (f32, bool) {
+	if value_is_f64(*this.raw) == 0 {
+		return 0, false
+	}
+	return f32(value_into_f64(*this.raw)), true
+}
+
+func Value.GetF64() => (f64, bool) {
+	if value_is_f64(*this.raw) == 0 {
+		return 0, false
+	}
+	return value_into_f64(*this.raw), true
+}
+
+func Value.GetStr() => (*string, bool) {
+	if value_is_str(*this.raw) == 0 {
+		return nil, false
+	}
+	return FromDoraString(value_into_str(*this.raw)), true
+}
+
+func Value.GetBool() => (bool, bool) {
+	if value_is_bool(*this.raw) == 0 {
+		return false, false
+	}
+	return value_into_bool(*this.raw) != 0, true
+}
+
+func Value.GetObject() => (*Object, bool) {
+	if value_is_object(*this.raw) == 0 {
+		return nil, false
+	}
+	result := createObject(value_into_object(*this.raw))
+	return &result, true
+}
+
+func Value.GetVec2() => (Vec2, bool) {
+	if value_is_vec2(*this.raw) == 0 {
+		return Vec2{}, false
+	}
+	return Vec2FromValue(value_into_vec2(*this.raw)), true
+}
+
+func Value.GetSize() => (Size, bool) {
+	if value_is_size(*this.raw) == 0 {
+		return Size{}, false
+	}
+	return SizeFromValue(value_into_size(*this.raw)), true
+}
+
+func value_finalizer(ptr: u32) {
+	value_release(_getObjectPtr(ptr))
+}
+
+func ValueFrom(ptr: i64) => Value {
+	raw := &ptr
+	value := Value{raw: raw}
+	setFinalizer(raw, value_finalizer)
+	return value
+}
+
+#wa:generic NewI32Value NewF32Value NewF64Value NewStrValue NewBoolValue NewObjectValue NewVec2Value NewSizeValue
+func NewValue(v: i64) => Value {
+	raw := value_create_i64(v)
+	value := Value{raw: &raw}
+	setFinalizer(value.raw, value_finalizer)
+	return value
+}
+
+func NewI32Value(v: i32) => Value {
+	return NewValue(i64(v))
+}
+
+func NewF32Value(v: f32) => Value {
+	return NewF64Value(f64(v))
+}
+
+func NewF64Value(v: f64) => Value {
+	raw := value_create_f64(v)
+	value := Value{raw: &raw}
+	setFinalizer(value.raw, value_finalizer)
+	return value
+}
+
+func NewStrValue(v: string) => Value {
+	raw := value_create_str(ToDoraString(v))
+	value := Value{raw: &raw}
+	setFinalizer(value.raw, value_finalizer)
+	return value
+}
+
+func NewBoolValue(v: bool) => Value {
+	raw := value_create_bool(ToDoraBool(v))
+	value := Value{raw: &raw}
+	setFinalizer(value.raw, value_finalizer)
+	return value
+}
+
+func NewObjectValue(v: Object) => Value {
+	raw := value_create_object(*v.raw)
+	value := Value{raw: &raw}
+	setFinalizer(value.raw, value_finalizer)
+	return value
+}
+
+func NewVec2Value(v: Vec2) => Value {
+	raw := value_create_vec2(v.ToValue())
+	value := Value{raw: &raw}
+	setFinalizer(value.raw, value_finalizer)
+	return value
+}
+
+func NewSizeValue(v: Size) => Value {
+	raw := value_create_size(v.ToValue())
+	value := Value{raw: &raw}
+	setFinalizer(value.raw, value_finalizer)
+	return value
+}
+
+/* CallStack */
+
+#wa:import dora call_stack_create
+func call_stack_create() => i64
+
+#wa:import dora call_stack_release
+func call_stack_release(stack: i64)
+
+#wa:import dora call_stack_push_i64
+func call_stack_push_i64(stack: i64, value: i64)
+
+#wa:import dora call_stack_push_f64
+func call_stack_push_f64(stack: i64, value: f64)
+
+#wa:import dora call_stack_push_str
+func call_stack_push_str(stack: i64, value: i64)
+
+#wa:import dora call_stack_push_bool
+func call_stack_push_bool(stack: i64, value: i32)
+
+#wa:import dora call_stack_push_object
+func call_stack_push_object(stack: i64, value: i64)
+
+#wa:import dora call_stack_push_vec2
+func call_stack_push_vec2(stack: i64, value: i64)
+
+#wa:import dora call_stack_push_size
+func call_stack_push_size(stack: i64, value: i64)
+
+#wa:import dora call_stack_pop_i64
+func call_stack_pop_i64(stack: i64) => i64
+
+#wa:import dora call_stack_pop_f64
+func call_stack_pop_f64(stack: i64) => f64
+
+#wa:import dora call_stack_pop_str
+func call_stack_pop_str(stack: i64) => i64
+
+#wa:import dora call_stack_pop_bool
+func call_stack_pop_bool(stack: i64) => i32
+
+#wa:import dora call_stack_pop_object
+func call_stack_pop_object(stack: i64) => i64
+
+#wa:import dora call_stack_pop_vec2
+func call_stack_pop_vec2(stack: i64) => i64
+
+#wa:import dora call_stack_pop_size
+func call_stack_pop_size(stack: i64) => i64
+
+#wa:import dora call_stack_pop
+func call_stack_pop(stack: i64) => i32
+
+#wa:import dora call_stack_front_i64
+func call_stack_front_i64(stack: i64) => i32
+
+#wa:import dora call_stack_front_f64
+func call_stack_front_f64(stack: i64) => i32
+
+#wa:import dora call_stack_front_bool
+func call_stack_front_bool(stack: i64) => i32
+
+#wa:import dora call_stack_front_str
+func call_stack_front_str(stack: i64) => i32
+
+#wa:import dora call_stack_front_object
+func call_stack_front_object(stack: i64) => i32
+
+#wa:import dora call_stack_front_vec2
+func call_stack_front_vec2(stack: i64) => i32
+
+#wa:import dora call_stack_front_size
+func call_stack_front_size(stack: i64) => i32
+
+type CallStack struct {
+	raw: *i64
+}
+
+func CallStack.GetRaw() => i64 {
+	return *this.raw
+}
+
+func call_stack_finalizer(ptr: u32) {
+	call_stack_release(_getObjectPtr(ptr))
+}
+
+func NewCallStack() => CallStack {
+	raw := call_stack_create()
+	callStack := CallStack{raw: &raw}
+	setFinalizer(callStack.raw, call_stack_finalizer)
+	return callStack
+}
+
+#wa:generic PushI64 PushF32 PushF64 PushStr PushBool PushObject PushVec2 PushSize
+func CallStack.Push(value: i32) {
+	call_stack_push_i64(*this.raw, i64(value))
+}
+
+func CallStack.PushI64(value: i64) {
+	call_stack_push_i64(*this.raw, value)
+}
+
+func CallStack.PushF32(value: f32) {
+	call_stack_push_f64(*this.raw, f64(value))
+}
+
+func CallStack.PushF64(value: f64) {
+	call_stack_push_f64(*this.raw, value)
+}
+
+func CallStack.PushStr(value: string) {
+	call_stack_push_str(*this.raw, ToDoraString(value))
+}
+
+func CallStack.PushBool(value: bool) {
+	call_stack_push_bool(*this.raw, ToDoraBool(value))
+}
+
+func CallStack.PushObject(value: Object) {
+	call_stack_push_object(*this.raw, *value.raw)
+}
+
+func CallStack.PushVec2(value: Vec2) {
+	call_stack_push_vec2(*this.raw, value.ToValue())
+}
+
+func CallStack.PushSize(value: Size) {
+	call_stack_push_size(*this.raw, value.ToValue())
+}
+
+func CallStack.Pop() => bool {
+	return call_stack_pop(*this.raw) != 0
+}
+
+func CallStack.PopI32() => (i32, bool) {
+	if call_stack_front_i64(*this.raw) == 0 {
+		return 0, false
+	}
+	return i32(call_stack_pop_i64(*this.raw)), true
+}
+
+func CallStack.PopI64() => (i64, bool) {
+	if call_stack_front_i64(*this.raw) == 0 {
+		return 0, false
+	}
+	return call_stack_pop_i64(*this.raw), true
+}
+
+func CallStack.PopF32() => (f32, bool) {
+	if call_stack_front_f64(*this.raw) == 0 {
+		return 0, false
+	}
+	return f32(call_stack_pop_f64(*this.raw)), true
+}
+
+func CallStack.PopF64() => (f64, bool) {
+	if call_stack_front_f64(*this.raw) == 0 {
+		return 0, false
+	}
+	return call_stack_pop_f64(*this.raw), true
+}
+
+func CallStack.PopStr() => (*string, bool) {
+	if call_stack_front_str(*this.raw) == 0 {
+		return nil, false
+	}
+	return FromDoraString(call_stack_pop_str(*this.raw)), true
+}
+
+func CallStack.PopBool() => (bool, bool) {
+	if call_stack_front_bool(*this.raw) == 0 {
+		return false, false
+	}
+	return call_stack_pop_bool(*this.raw) != 0, true
+}
+
+func CallStack.PopObject() => *Object {
+	if call_stack_front_object(*this.raw) == 0 {
+		return nil
+	}
+	object := createObject(call_stack_pop_object(*this.raw))
+	return &object
+}
+
+func CallStack.PopVec2() => (Vec2, bool) {
+	if call_stack_front_vec2(*this.raw) == 0 {
+		return Vec2{X: 0, Y: 0}, false
+	}
+	return Vec2FromValue(call_stack_pop_vec2(*this.raw)), true
+}
+
+func CallStack.PopSize() => (Size, bool) {
+	if call_stack_front_size(*this.raw) == 0 {
+		return Size{Width: 0, Height: 0}, false
+	}
+	return SizeFromValue(call_stack_pop_size(*this.raw)), true
+}
+
+/* Println */
+
+#wa:import dora dora_print
+func dora_print(v: i64)
+
+func Println(values: ...interface{}) {
+	strs := make([]string, len(values))
+	for i, value := range values {
+		switch v := value.(type) {
+		case i32: strs[i] = strconv.FormatInt(int64(v), 10)
+		case i64: strs[i] = strconv.FormatInt(v, 10)
+		case f32: strs[i] = strconv.FormatFloat(float64(v), 'f', 2, 32)
+		case f64: strs[i] = strconv.FormatFloat(v, 'f', 2, 64)
+		case string: strs[i] = v
+		case *string: strs[i] = *v
+		case bool: strs[i] = strconv.FormatBool(v)
+		case Vec2:
+			strs[i] = "Vec2(" +
+				strconv.FormatFloat(float64(v.X), 'f', 2, 32) +
+				", " +
+				strconv.FormatFloat(float64(v.Y), 'f', 2, 32) +
+				")"
+		case *Vec2:
+			strs[i] = "Vec2(" +
+				strconv.FormatFloat(float64(v.X), 'f', 2, 32) +
+				", " +
+				strconv.FormatFloat(float64(v.Y), 'f', 2, 32) +
+				")"
+		case Size:
+			strs[i] = "Size(" +
+				strconv.FormatFloat(float64(v.Width), 'f', 2, 32) +
+				", " +
+				strconv.FormatFloat(float64(v.Height), 'f', 2, 32) +
+				")"
+		case *Size:
+			strs[i] = "Size(" +
+				strconv.FormatFloat(float64(v.Width), 'f', 2, 32) +
+				", " +
+				strconv.FormatFloat(float64(v.Height), 'f', 2, 32) +
+				")"
+		case *Value:
+			ok := false
+			{
+				value, ok := v.GetI64()
+				if ok {
+					strs[i] = strconv.FormatInt(value, 10)
+				}
+			}
+			if !ok {
+				value, ok := v.GetF64()
+				if ok {
+					strs[i] = strconv.FormatFloat(value, 'f', 2, 64)
+				}
+			}
+			if !ok {
+				value, ok := v.GetStr()
+				if ok {
+					strs[i] = *value
+				}
+			}
+			if !ok {
+				value, ok := v.GetBool()
+				if ok {
+					strs[i] = strconv.FormatBool(value)
+				}
+			}
+			if !ok {
+				_, ok := v.GetObject()
+				if ok {
+					strs[i] = "Object"
+				}
+			}
+			if !ok {
+				value, ok := v.GetVec2()
+				if ok {
+					strs[i] = "Vec2(" +
+						strconv.FormatFloat(float64(value.X), 'f', 2, 32) +
+						", " +
+						strconv.FormatFloat(float64(value.Y), 'f', 2, 32) +
+						")"
+				}
+			}
+			{
+				value, ok := v.GetSize()
+				if ok {
+					strs[i] = "Size(" +
+						strconv.FormatFloat(float64(value.Width), 'f', 2, 32) +
+						", " +
+						strconv.FormatFloat(float64(value.Height), 'f', 2, 32) +
+						")"
+				}
+			}
+		case nil: strs[i] = "nil"
+		}
+	}
+	dora_print(ToDoraString(strings.Join(strs, " ")))
+}
+
+/* Vec2 */
+
+#wa:import dora vec2_add
+func vec2_add(a: i64, b: i64) => i64
+
+#wa:import dora vec2_sub
+func vec2_sub(a: i64, b: i64) => i64
+
+#wa:import dora vec2_mul
+func vec2_mul(a: i64, b: i64) => i64
+
+#wa:import dora vec2_mul_float
+func vec2_mul_float(a: i64, b: f32) => i64
+
+#wa:import dora vec2_div
+func vec2_div(a: i64, b: f32) => i64
+
+#wa:import dora vec2_distance
+func vec2_distance(a: i64, b: i64) => f32
+
+#wa:import dora vec2_distance_squared
+func vec2_distance_squared(a: i64, b: i64) => f32
+
+#wa:import dora vec2_length
+func vec2_length(a: i64) => f32
+
+#wa:import dora vec2_angle
+func vec2_angle(a: i64) => f32
+
+#wa:import dora vec2_normalize
+func vec2_normalize(a: i64) => i64
+
+#wa:import dora vec2_perp
+func vec2_perp(a: i64) => i64
+
+#wa:import dora vec2_dot
+func vec2_dot(a: i64, b: i64) => f32
+
+#wa:import dora vec2_clamp
+func vec2_clamp(a: i64, from: i64, to: i64) => i64
+
+#wa:operator + Vec2Add
+#wa:operator - Vec2Sub
+#wa:operator * Vec2Mul Vec2MulFloat Vec2MulSize
+#wa:operator / Vec2Div
+type Vec2 struct {
+	X: f32
+	Y: f32
+}
+
+global Vec2Zero = Vec2{X: 0, Y: 0}
+
+func Vec2Add(a: Vec2, b: Vec2) => Vec2 {
+	return Vec2FromValue(vec2_add(a.ToValue(), b.ToValue()))
+}
+
+func Vec2Sub(a: Vec2, b: Vec2) => Vec2 {
+	return Vec2FromValue(vec2_sub(a.ToValue(), b.ToValue()))
+}
+
+func Vec2Mul(a: Vec2, b: Vec2) => Vec2 {
+	return Vec2FromValue(vec2_mul(a.ToValue(), b.ToValue()))
+}
+
+func Vec2MulFloat(a: Vec2, b: f32) => Vec2 {
+	return Vec2FromValue(vec2_mul_float(a.ToValue(), b))
+}
+
+func Vec2MulSize(a: Vec2, b: Size) => Vec2 {
+	return Vec2{X: a.X * b.Width, Y: a.Y * b.Height}
+}
+
+func Vec2Div(a: Vec2, b: f32) => Vec2 {
+	return Vec2FromValue(vec2_div(a.ToValue(), b))
+}
+
+func Vec2.Distance(b: Vec2) => f32 {
+	return vec2_distance(this.ToValue(), b.ToValue())
+}
+
+func Vec2.DistanceSquared(b: Vec2) => f32 {
+	return vec2_distance_squared(this.ToValue(), b.ToValue())
+}
+
+func Vec2.Length() => f32 {
+	return vec2_length(this.ToValue())
+}
+
+func Vec2.Angle(a: Vec2) => f32 {
+	return vec2_angle(a.ToValue())
+}
+
+func Vec2.Normalize(a: Vec2) => Vec2 {
+	return Vec2FromValue(vec2_normalize(a.ToValue()))
+}
+
+func Vec2.Perp(a: Vec2) => Vec2 {
+	return Vec2FromValue(vec2_perp(a.ToValue()))
+}
+
+func Vec2.Dot(b: Vec2) => f32 {
+	return vec2_dot(this.ToValue(), b.ToValue())
+}
+
+func Vec2.Clamp(from: Vec2, to: Vec2) => Vec2 {
+	return Vec2FromValue(vec2_clamp(this.ToValue(), from.ToValue(), to.ToValue()))
+}
+
+func Vec2.ToValue() => i64 {
+	x := math.Float32bits(this.X)
+	y := math.Float32bits(this.Y)
+	return i64(i64(y) << 32 | i64(x))
+}
+
+func Vec2FromValue(value: i64) => Vec2 {
+	x := value & 0xFFFFFFFF
+	y := value >> 32
+	return Vec2{X: math.Float32frombits(u32(x)), Y: math.Float32frombits(u32(y))}
+}
+
+/* Size */
+
+#wa:operator * SizeMulVec2
+type Size struct {
+	Width: f32
+	Height: f32
+}
+
+global SizeZero = Size{Width: 0, Height: 0}
+
+func Size.ToValue() => i64 {
+	width := math.Float32bits(this.Width)
+	height := math.Float32bits(this.Height)
+	return i64(i64(height) << 32 | i64(width))
+}
+
+func SizeFromValue(value: i64) => Size {
+	width := value & 0xFFFFFFFF
+	height := value >> 32
+	return Size{Width: math.Float32frombits(u32(width)), Height: math.Float32frombits(u32(height))}
+}
+
+func SizeMulVec2(a: Size, b: Vec2) => Vec2 {
+	return Vec2{X: a.Width * b.X, Y: a.Height * b.Y}
+}
+
+/* Color */
+
+type Color3 struct {
+	R: u8
+	G: u8
+	B: u8
+}
+
+func Color3.ToRGB() => i32 {
+	return i32(this.R) << 16 | i32(this.G) << 8 | i32(this.B)
+}
+
+func Color3FromRGB(value: i32) => Color3 {
+	r := value >> 16
+	g := value >> 8 & 0xFF
+	b := value & 0xFF
+	return Color3{R: u8(r), G: u8(g), B: u8(b)}
+}
+
+type Color struct {
+	Color3
+	A: u8
+}
+
+func Color.ToARGB() => i32 {
+	return i32(this.A) << 24 | i32(this.Color3.ToRGB())
+}
+
+func ColorFromARGB(value: i32) => Color {
+	a := value >> 24
+	color3 := value & 0x00FFFFFF
+	return Color{Color3: Color3FromRGB(color3), A: u8(a)}
+}
+
+/* emit */
+
+#wa:import dora emit
+func emit(name: i64, callStack: i64)
+
+func Emit(name: string, callStack: CallStack) {
+	emit(ToDoraString(name), *callStack.raw)
+}
+
+/* Array */
+
+#wa:import dora array_set
+func array_set(array: i64, index: i32, v: i64) => i32
+
+#wa:import dora array_get
+func array_get(array: i64, index: i32) => i64
+
+#wa:import dora array_first
+func array_first(array: i64) => i64
+
+#wa:import dora array_last
+func array_last(array: i64) => i64
+
+#wa:import dora array_random_object
+func array_random_object(array: i64) => i64
+
+#wa:import dora array_add
+func array_add(array: i64, item: i64)
+
+#wa:import dora array_insert
+func array_insert(array: i64, index: i32, item: i64)
+
+#wa:import dora array_contains
+func array_contains(array: i64, item: i64) => i32
+
+#wa:import dora array_index
+func array_index(array: i64, item: i64) => i32
+
+#wa:import dora array_remove_last
+func array_remove_last(array: i64) => i64
+
+#wa:import dora array_fast_remove
+func array_fast_remove(array: i64, item: i64) => i32
+
+#wa:generic SetI32 SetI64 SetF32 SetF64 SetStr SetBool SetObject SetVec2 SetSize
+func Array.Set(index: i32, value: Value) {
+	array_set(*this.raw, index, *value.raw)
+}
+func Array.SetI32(index: i32, value: i32) {
+	array_set(*this.raw, index, *NewValue(value).raw)
+}
+func Array.SetI64(index: i32, value: i64) {
+	array_set(*this.raw, index, *NewValue(value).raw)
+}
+func Array.SetF32(index: i32, value: f32) {
+	array_set(*this.raw, index, *NewValue(value).raw)
+}
+func Array.SetF64(index: i32, value: f64) {
+	array_set(*this.raw, index, *NewValue(value).raw)
+}
+func Array.SetStr(index: i32, value: string) {
+	array_set(*this.raw, index, *NewValue(value).raw)
+}
+func Array.SetBool(index: i32, value: bool) {
+	array_set(*this.raw, index, *NewValue(value).raw)
+}
+func Array.SetObject(index: i32, value: Object) {
+	array_set(*this.raw, index, *NewValue(value).raw)
+}
+func Array.SetVec2(index: i32, value: Vec2) {
+	array_set(*this.raw, index, *NewValue(value).raw)
+}
+func Array.SetSize(index: i32, value: Size) {
+	array_set(*this.raw, index, *NewValue(value).raw)
+}
+
+func Array.Get(index: i32) => (*Value, bool) {
+	value := array_get(*this.raw, index)
+	if value == 0 {
+		return nil, false
+	}
+	result := ValueFrom(value)
+	return &result, true
+}
+
+func Array.First() => (*Value, bool) {
+	first := array_first(*this.raw)
+	if first == 0 {
+		return nil, false
+	}
+	result := ValueFrom(first)
+	return &result, true
+}
+
+func Array.Last() => (*Value, bool) {
+	last := array_last(*this.raw)
+	if last == 0 {
+		return nil, false
+	}
+	result := ValueFrom(last)
+	return &result, true
+}
+
+func Array.RandomObject() => (*Value, bool) {
+	random := array_random_object(*this.raw)
+	if random == 0 {
+		return nil, false
+	}
+	result := ValueFrom(random)
+	return &result, true
+}
+
+#wa:generic AddI32 AddI64 AddF32 AddF64 AddStr AddBool AddObject AddVec2 AddSize
+func Array.Add(value: Value) {
+	array_add(*this.raw, *value.raw)
+}
+func Array.AddI32(value: i32) {
+	array_add(*this.raw, *NewValue(value).raw)
+}
+func Array.AddI64(value: i64) {
+	array_add(*this.raw, *NewValue(value).raw)
+}
+func Array.AddF32(value: f32) {
+	array_add(*this.raw, *NewValue(value).raw)
+}
+func Array.AddF64(value: f64) {
+	array_add(*this.raw, *NewValue(value).raw)
+}
+func Array.AddStr(value: string) {
+	array_add(*this.raw, *NewValue(value).raw)
+}
+func Array.AddBool(value: bool) {
+	array_add(*this.raw, *NewValue(value).raw)
+}
+func Array.AddObject(value: Object) {
+	array_add(*this.raw, *NewValue(value).raw)
+}
+func Array.AddVec2(value: Vec2) {
+	array_add(*this.raw, *NewValue(value).raw)
+}
+func Array.AddSize(value: Size) {
+	array_add(*this.raw, *NewValue(value).raw)
+}
+
+#wa:generic InsertI32 InsertI64 InsertF32 InsertF64 InsertStr InsertBool InsertObject InsertVec2 InsertSize
+func Array.Insert(index: i32, value: Value) {
+	array_insert(*this.raw, index, *value.raw)
+}
+func Array.InsertI32(index: i32, value: i32) {
+	array_insert(*this.raw, index, *NewValue(value).raw)
+}
+func Array.InsertI64(index: i32, value: i64) {
+	array_insert(*this.raw, index, *NewValue(value).raw)
+}
+func Array.InsertF32(index: i32, value: f32) {
+	array_insert(*this.raw, index, *NewValue(value).raw)
+}
+func Array.InsertF64(index: i32, value: f64) {
+	array_insert(*this.raw, index, *NewValue(value).raw)
+}
+func Array.InsertStr(index: i32, value: string) {
+	array_insert(*this.raw, index, *NewValue(value).raw)
+}
+func Array.InsertBool(index: i32, value: bool) {
+	array_insert(*this.raw, index, *NewValue(value).raw)
+}
+func Array.InsertObject(index: i32, value: Object) {
+	array_insert(*this.raw, index, *NewValue(value).raw)
+}
+func Array.InsertVec2(index: i32, value: Vec2) {
+	array_insert(*this.raw, index, *NewValue(value).raw)
+}
+func Array.InsertSize(index: i32, value: Size) {
+	array_insert(*this.raw, index, *NewValue(value).raw)
+}
+
+#wa:generic ContainsI32 ContainsI64 ContainsF32 ContainsF64 ContainsStr ContainsBool ContainsObject ContainsVec2 ContainsSize
+func Array.Contains(value: Value) => bool {
+	return array_contains(*this.raw, *value.raw) != 0
+}
+func Array.ContainsI32(value: i32) => bool {
+	return array_contains(*this.raw, *NewValue(value).raw) != 0
+}
+func Array.ContainsI64(value: i64) => bool {
+	return array_contains(*this.raw, *NewValue(value).raw) != 0
+}
+func Array.ContainsF32(value: f32) => bool {
+	return array_contains(*this.raw, *NewValue(value).raw) != 0
+}
+func Array.ContainsF64(value: f64) => bool {
+	return array_contains(*this.raw, *NewValue(value).raw) != 0
+}
+func Array.ContainsStr(value: string) => bool {
+	return array_contains(*this.raw, *NewValue(value).raw) != 0
+}
+func Array.ContainsBool(value: bool) => bool {
+	return array_contains(*this.raw, *NewValue(value).raw) != 0
+}
+func Array.ContainsObject(value: Object) => bool {
+	return array_contains(*this.raw, *NewValue(value).raw) != 0
+}
+func Array.ContainsVec2(value: Vec2) => bool {
+	return array_contains(*this.raw, *NewValue(value).raw) != 0
+}
+func Array.ContainsSize(value: Size) => bool {
+	return array_contains(*this.raw, *NewValue(value).raw) != 0
+}
+
+#wa:generic IndexI32 IndexI64 IndexF32 IndexF64 IndexStr IndexBool IndexObject IndexVec2 IndexSize
+func Array.Index(value: Value) => i32 {
+	return array_index(*this.raw, *value.raw)
+}
+func Array.IndexI32(value: i32) => i32 {
+	return array_index(*this.raw, *NewValue(value).raw)
+}
+func Array.IndexI64(value: i64) => i32 {
+	return array_index(*this.raw, *NewValue(value).raw)
+}
+func Array.IndexF32(value: f32) => i32 {
+	return array_index(*this.raw, *NewValue(value).raw)
+}
+func Array.IndexF64(value: f64) => i32 {
+	return array_index(*this.raw, *NewValue(value).raw)
+}
+func Array.IndexStr(value: string) => i32 {
+	return array_index(*this.raw, *NewValue(value).raw)
+}
+func Array.IndexBool(value: bool) => i32 {
+	return array_index(*this.raw, *NewValue(value).raw)
+}
+func Array.IndexObject(value: Object) => i32 {
+	return array_index(*this.raw, *NewValue(value).raw)
+}
+func Array.IndexVec2(value: Vec2) => i32 {
+	return array_index(*this.raw, *NewValue(value).raw)
+}
+func Array.IndexSize(value: Size) => i32 {
+	return array_index(*this.raw, *NewValue(value).raw)
+}
+
+func Array.RemoveLast() => (*Value, bool) {
+	last := array_remove_last(*this.raw)
+	if last == 0 {
+		return nil, false
+	}
+	result := ValueFrom(last)
+	return &result, true
+}
+
+func Array.FastRemove(value: Value) => bool {
+	return array_fast_remove(*this.raw, *value.raw) != 0
+}
+
+/* Dictionary */
+
+#wa:import dora dictionary_set
+func dictionary_set(dict: i64, key: i64, value: i64)
+
+#wa:import dora dictionary_get
+func dictionary_get(dict: i64, key: i64) => i64
+
+#wa:generic SetI32 SetI64 SetF32 SetF64 SetStr SetBool SetObject SetVec2 SetSize
+func Dictionary.Set(key: string, value: Value) {
+	dictionary_set(*this.raw, ToDoraString(key), *value.raw)
+}
+func Dictionary.SetI32(key: string, value: i32) {
+	dictionary_set(*this.raw, ToDoraString(key), *NewValue(value).raw)
+}
+func Dictionary.SetI64(key: string, value: i64) {
+	dictionary_set(*this.raw, ToDoraString(key), *NewValue(value).raw)
+}
+func Dictionary.SetF32(key: string, value: f32) {
+	dictionary_set(*this.raw, ToDoraString(key), *NewValue(value).raw)
+}
+func Dictionary.SetF64(key: string, value: f64) {
+	dictionary_set(*this.raw, ToDoraString(key), *NewValue(value).raw)
+}
+func Dictionary.SetStr(key: string, value: string) {
+	dictionary_set(*this.raw, ToDoraString(key), *NewValue(value).raw)
+}
+func Dictionary.SetBool(key: string, value: bool) {
+	dictionary_set(*this.raw, ToDoraString(key), *NewValue(value).raw)
+}
+func Dictionary.SetObject(key: string, value: Object) {
+	dictionary_set(*this.raw, ToDoraString(key), *NewValue(value).raw)
+}
+func Dictionary.SetVec2(key: string, value: Vec2) {
+	dictionary_set(*this.raw, ToDoraString(key), *NewValue(value).raw)
+}
+func Dictionary.SetSize(key: string, value: Size) {
+	dictionary_set(*this.raw, ToDoraString(key), *NewValue(value).raw)
+}
+
+func Dictionary.Get(key: string) => (*Value, bool) {
+	value := dictionary_get(*this.raw, ToDoraString(key))
+	if value == 0 {
+		return nil, false
+	}
+	result := ValueFrom(value)
+	return &result, true
+}
+
+/* runtime */
+
+#wa:export dora_wasm_version
+func dora_wasm_version() => i32 {
+	return MajorVersion << 16 | MinorVersion << 8 | PatchVersion
+}
+
+global func_map = make([]func(), 0)
+global func_available = make([]i32, 0)
+
+func PushFunction(f: func()) => i32 {
+	flag: i32 = 0x01000000
+	if len(func_map) >= 0xffffff {
+		panic("too many functions!")
+	}
+	if len(func_available) == 0 {
+		func_map = append(func_map, f)
+		return i32(len(func_map) - 1) | flag
+	} else {
+		new_len := len(func_available) - 1
+		func_id := func_available[new_len]
+		func_map[func_id] = f
+		func_available = func_available[:new_len]
+		return func_id | flag
+	}
+}
+
+#wa:export call_function
+func CallFunction(func_id: i32) {
+	func_id = func_id & 0xffffff
+	func_map[func_id]()
+}
+
+func dummy_func() {
+	panic("the dummy function should not be called.")
+}
+
+#wa:export deref_function
+func DerefFunction(func_id: i32) {
+	func_id = func_id & 0xffffff
+	func_map[func_id] = dummy_func
+	func_available = append(func_available, func_id)
+}
+
+/* BlendFunc */
+
+type BFunc struct {
+	value: i64
+}
+func BFunc.ToValue() => i64 {
+	return this.value
+}
+global BlendFuncZero = BFunc{value: 0x0000000000001000}
+global BlendFuncOne = BFunc{value: 0x0000000000002000}
+global BlendFuncSrcColor = BFunc{value: 0x0000000000003000}
+global BlendFuncInvSrcColor = BFunc{value: 0x0000000000004000}
+global BlendFuncSrcAlpha = BFunc{value: 0x0000000000005000}
+global BlendFuncInvSrcAlpha = BFunc{value: 0x0000000000006000}
+global BlendFuncDstAlpha = BFunc{value: 0x0000000000007000}
+global BlendFuncInvDstAlpha = BFunc{value: 0x0000000000008000}
+global BlendFuncDstColor = BFunc{value: 0x0000000000009000}
+global BlendFuncInvDstColor = BFunc{value: 0x000000000000a000}
+
+type BlendFunc struct {
+	value: i64
+}
+
+func BlendFunc.ToValue() => i64 {
+	return this.value
+}
+
+func BlendFuncFrom(value: i64) => BlendFunc {
+	return BlendFunc{value: value}
+}
+
+func NewBlendFunc(src: BFunc, dst: BFunc) => BlendFunc {
+	return BlendFunc{value: src.ToValue() << 8 | dst.ToValue() << 4}
+}
+
+func NewBlendFuncSeperate(src_rgb: BFunc, dst_rgb: BFunc, src_alpha: BFunc, dst_alpha: BFunc) => BlendFunc {
+	return BlendFunc{value: (src_rgb.ToValue() << 8 | dst_rgb.ToValue() << 4 | src_alpha.ToValue() << 4 | dst_alpha.ToValue() << 4) << 8}
+}
+
+/* TextureWrap */
+
+type TextureWrap struct {
+	value: i32
+}
+func TextureWrap.ToValue() => i32 {
+	return this.value
+}
+global TextureWrapNone = TextureWrap{value: 0}
+global TextureWrapMirror = TextureWrap{value: 1}
+global TextureWrapClamp = TextureWrap{value: 2}
+global TextureWrapBorder = TextureWrap{value: 3}
+
+/* TextureFilter */
+
+type TextureFilter struct {
+	value: i32
+}
+func TextureFilter.ToValue() => i32 {
+	return this.value
+}
+global TextureFilterNone = TextureFilter{value: 0}
+global TextureFilterPoint = TextureFilter{value: 1}
+global TextureFilterAnisotropic = TextureFilter{value: 2}
+
+/* Property */
+
+type Property struct {
+	value: i32
+}
+func Property.ToValue() => i32 {
+	return this.value
+}
+global PropertyX = Property{value: 0}
+global PropertyY = Property{value: 1}
+global PropertyZ = Property{value: 2}
+global PropertyAngle = Property{value: 3}
+global PropertyAngleX = Property{value: 4}
+global PropertyAngleY = Property{value: 5}
+global PropertyScaleX = Property{value: 6}
+global PropertyScaleY = Property{value: 7}
+global PropertySkewX = Property{value: 8}
+global PropertySkewY = Property{value: 9}
+global PropertyWidth = Property{value: 10}
+global PropertyHeight = Property{value: 11}
+global PropertyAnchorX = Property{value: 12}
+global PropertyAnchorY = Property{value: 13}
+global PropertyOpacity = Property{value: 14}
+
+/* Ease */
+
+type EaseType struct {
+	value: i32
+}
+func EaseType.ToValue() => i32 {
+	return this.value
+}
+global EaseLinear = EaseType{value: 0}
+global EaseInQuad = EaseType{value: 1}
+global EaseOutQuad = EaseType{value: 2}
+global EaseInOutQuad = EaseType{value: 3}
+global EaseInCubic = EaseType{value: 4}
+global EaseOutCubic = EaseType{value: 5}
+global EaseInOutCubic = EaseType{value: 6}
+global EaseInQuart = EaseType{value: 7}
+global EaseOutQuart = EaseType{value: 8}
+global EaseInOutQuart = EaseType{value: 9}
+global EaseInQuint = EaseType{value: 10}
+global EaseOutQuint = EaseType{value: 11}
+global EaseInOutQuint = EaseType{value: 12}
+global EaseInSine = EaseType{value: 13}
+global EaseOutSine = EaseType{value: 14}
+global EaseInOutSine = EaseType{value: 15}
+global EaseInExpo = EaseType{value: 16}
+global EaseOutExpo = EaseType{value: 17}
+global EaseInOutExpo = EaseType{value: 18}
+global EaseInCirc = EaseType{value: 19}
+global EaseOutCirc = EaseType{value: 20}
+global EaseInOutCirc = EaseType{value: 21}
+global EaseInElastic = EaseType{value: 22}
+global EaseOutElastic = EaseType{value: 23}
+global EaseInOutElastic = EaseType{value: 24}
+global EaseInBack = EaseType{value: 25}
+global EaseOutBack = EaseType{value: 26}
+global EaseInOutBack = EaseType{value: 27}
+global EaseInBounce = EaseType{value: 28}
+global EaseOutBounce = EaseType{value: 29}
+global EaseInOutBounce = EaseType{value: 30}
+global EaseOutInQuad = EaseType{value: 31}
+global EaseOutInCubic = EaseType{value: 32}
+global EaseOutInQuart = EaseType{value: 33}
+global EaseOutInQuint = EaseType{value: 34}
+global EaseOutInSine = EaseType{value: 35}
+global EaseOutInExpo = EaseType{value: 36}
+global EaseOutInCirc = EaseType{value: 37}
+global EaseOutInElastic = EaseType{value: 38}
+global EaseOutInBack = EaseType{value: 39}
+global EaseOutInBounce = EaseType{value: 40}

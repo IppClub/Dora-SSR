@@ -8,7 +8,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 	fn sensor_type() -> i32;
-	fn sensor_set_enabled(slf: i64, var: i32);
+	fn sensor_set_enabled(slf: i64, val: i32);
 	fn sensor_is_enabled(slf: i64) -> i32;
 	fn sensor_get_tag(slf: i64) -> i32;
 	fn sensor_get_owner(slf: i64) -> i64;
@@ -30,8 +30,8 @@ impl Sensor {
 		})
 	}
 	/// Sets whether the sensor is currently enabled or not.
-	pub fn set_enabled(&mut self, var: bool) {
-		unsafe { sensor_set_enabled(self.raw(), if var { 1 } else { 0 }) };
+	pub fn set_enabled(&mut self, val: bool) {
+		unsafe { sensor_set_enabled(self.raw(), if val { 1 } else { 0 }) };
 	}
 	/// Gets whether the sensor is currently enabled or not.
 	pub fn is_enabled(&self) -> bool {

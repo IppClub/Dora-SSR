@@ -8,7 +8,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 	fn touch_type() -> i32;
-	fn touch_set_enabled(slf: i64, var: i32);
+	fn touch_set_enabled(slf: i64, val: i32);
 	fn touch_is_enabled(slf: i64) -> i32;
 	fn touch_is_first(slf: i64) -> i32;
 	fn touch_get_id(slf: i64) -> i32;
@@ -30,8 +30,8 @@ impl Touch {
 		})
 	}
 	/// Sets whether touch input is enabled or not.
-	pub fn set_enabled(&mut self, var: bool) {
-		unsafe { touch_set_enabled(self.raw(), if var { 1 } else { 0 }) };
+	pub fn set_enabled(&mut self, val: bool) {
+		unsafe { touch_set_enabled(self.raw(), if val { 1 } else { 0 }) };
 	}
 	/// Gets whether touch input is enabled or not.
 	pub fn is_enabled(&self) -> bool {
