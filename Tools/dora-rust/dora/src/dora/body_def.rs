@@ -8,8 +8,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 	fn bodydef_type() -> i32;
-	fn bodydef__set_type(slf: i64, val: i32);
-	fn bodydef__get_type(slf: i64) -> i32;
+	fn bodydef_set_type(slf: i64, body_type: i32);
+	fn bodydef_get_type(slf: i64) -> i32;
 	fn bodydef_set_position(slf: i64, val: i64);
 	fn bodydef_get_position(slf: i64) -> i64;
 	fn bodydef_set_angle(slf: i64, val: f32);
@@ -62,11 +62,21 @@ impl BodyDef {
 			}
 		})
 	}
-	pub(crate) fn _set_type(&mut self, val: i32) {
-		unsafe { bodydef__set_type(self.raw(), val); }
+	/// Sets the define for the type of the body.
+	///
+	/// # Arguments
+	///
+	/// * `body_type` - The type of the body.
+	pub fn set_type(&mut self, body_type: crate::dora::BodyType) {
+		unsafe { bodydef_set_type(self.raw(), body_type as i32); }
 	}
-	pub(crate) fn _get_type(&self) -> i32 {
-		unsafe { return bodydef__get_type(self.raw()); }
+	/// Gets the define for the type of the body.
+	///
+	/// # Returns
+	///
+	/// * `BodyType` - The type of the body.
+	pub fn get_type(&self) -> crate::dora::BodyType {
+		unsafe { return core::mem::transmute(bodydef_get_type(self.raw())); }
 	}
 	/// Sets define for the position of the body.
 	pub fn set_position(&mut self, val: &crate::dora::Vec2) {

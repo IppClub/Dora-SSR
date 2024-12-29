@@ -22,3 +22,34 @@ func cache_unload()
 func cache_remove_unused()
 #wa:import dora cache_remove_unused_by_type
 func cache_remove_unused_by_type(type_name: i64)
+type _Cache struct { }
+global Cache = _Cache{}
+func _Cache.Load(filename: string) => bool {
+	return cache_load(ToDoraString(filename)) != 0
+}
+func _Cache.LoadAsync(filename: string, handler: func(success: bool)) {
+	stack0 := NewCallStack()
+	func_id0 := PushFunction(func() {
+		success, _ := stack0.PopBool()
+		handler(success)
+	})
+	cache_load_async(ToDoraString(filename), func_id0, *stack0.raw)
+}
+func _Cache.UpdateItem(filename: string, content: string) {
+	cache_update_item(ToDoraString(filename), ToDoraString(content))
+}
+func _Cache.UpdateTexture(filename: string, texture: Texture2D) {
+	cache_update_texture(ToDoraString(filename), texture.GetRaw())
+}
+func _Cache.UnloadItemOrType(name: string) => bool {
+	return cache_unload_item_or_type(ToDoraString(name)) != 0
+}
+func _Cache.Unload() {
+	cache_unload()
+}
+func _Cache.RemoveUnused() {
+	cache_remove_unused()
+}
+func _Cache.RemoveUnusedByType(type_name: string) {
+	cache_remove_unused_by_type(ToDoraString(type_name))
+}

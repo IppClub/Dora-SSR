@@ -45,7 +45,7 @@ func GrabberFrom(raw: i64) => *Grabber {
 	result := &object
 	return result
 }
-func Grabber.GetType() => i32 {
+func Grabber.GetTypeId() => i32 {
 	return grabber_type()
 }
 func Grabber.SetCamera(val: Camera) {

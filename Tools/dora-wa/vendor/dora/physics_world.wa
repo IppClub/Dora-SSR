@@ -24,3 +24,59 @@ func physicsworld_set_scale_factor(val: f32);
 func physicsworld_get_scale_factor() => f32
 #wa:import dora physicsworld_new
 func physicsworld_new() => i64
+type PhysicsWorld struct { Node }
+func PhysicsWorldFrom(raw: i64) => *PhysicsWorld {
+	if raw == 0 {
+		return nil
+	}
+	object := PhysicsWorld{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	result := &object
+	return result
+}
+func PhysicsWorld.GetTypeId() => i32 {
+	return physicsworld_type()
+}
+func PhysicsWorld.Query(rect: Rect, handler: func(body: Body) => bool) => bool {
+	stack0 := NewCallStack()
+	func_id0 := PushFunction(func() {
+		body := *BodyFrom(stack0.PopObject().GetRaw())
+		result_ := handler(body)
+		stack0.Push(result_)
+	})
+	return physicsworld_query(*this.raw, rect.GetRaw(), func_id0, *stack0.raw) != 0
+}
+func PhysicsWorld.Raycast(start: Vec2, stop: Vec2, closest: bool, handler: func(body: Body, point: Vec2, normal: Vec2) => bool) => bool {
+	stack0 := NewCallStack()
+	func_id0 := PushFunction(func() {
+		body := *BodyFrom(stack0.PopObject().GetRaw())
+		point, _ := stack0.PopVec2()
+		normal, _ := stack0.PopVec2()
+		result_ := handler(body, point, normal)
+		stack0.Push(result_)
+	})
+	return physicsworld_raycast(*this.raw, start.ToValue(), stop.ToValue(), ToDoraBool(closest), func_id0, *stack0.raw) != 0
+}
+func PhysicsWorld.SetIterations(velocity_iter: i32, position_iter: i32) {
+	physicsworld_set_iterations(*this.raw, velocity_iter, position_iter)
+}
+func PhysicsWorld.SetShouldContact(group_a: i32, group_b: i32, contact: bool) {
+	physicsworld_set_should_contact(*this.raw, group_a, group_b, ToDoraBool(contact))
+}
+func PhysicsWorld.GetShouldContact(group_a: i32, group_b: i32) => bool {
+	return physicsworld_get_should_contact(*this.raw, group_a, group_b) != 0
+}
+func PhysicsWorldSetScaleFactor(val: f32) {
+	physicsworld_set_scale_factor(val)
+}
+func PhysicsWorldGetScaleFactor() => f32 {
+	return physicsworld_get_scale_factor()
+}
+func NewPhysicsWorld() => PhysicsWorld {
+	object := PhysicsWorld{}
+	raw := physicsworld_new()
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return object
+}

@@ -21,7 +21,7 @@ func CameraFrom(raw: i64) => *Camera {
 	result := &object
 	return result
 }
-func Camera.GetType() => i32 {
+func Camera.GetTypeId() => i32 {
 	return camera_type()
 }
 func Camera.GetName() => string {

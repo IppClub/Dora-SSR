@@ -27,7 +27,7 @@ func DictionaryFrom(raw: i64) => *Dictionary {
 	result := &object
 	return result
 }
-func Dictionary.GetType() => i32 {
+func Dictionary.GetTypeId() => i32 {
 	return dictionary_type()
 }
 func Dictionary.GetCount() => i32 {

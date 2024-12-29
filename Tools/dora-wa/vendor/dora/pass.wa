@@ -31,7 +31,7 @@ func PassFrom(raw: i64) => *Pass {
 	result := &object
 	return result
 }
-func Pass.GetType() => i32 {
+func Pass.GetTypeId() => i32 {
 	return pass_type()
 }
 func Pass.SetGrabPass(val: bool) {

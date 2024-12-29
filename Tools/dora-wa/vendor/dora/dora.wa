@@ -234,15 +234,24 @@ func object_to_body(obj: i64) => i64
 #wa:import dora object_to_joint
 func object_to_joint(obj: i64) => i64
 
-type Object struct {
+type Object :struct {
 	raw: *i64
+}
+
+func ObjectFrom(raw: i64) => *Object {
+	if raw == 0 {
+		return nil
+	}
+	object := Object{raw: &raw}
+	setFinalizer(object.raw, ObjectFinalizer)
+	return &object
 }
 
 func Object.GetId() => i32 {
 	return object_get_id(*this.raw)
 }
 
-func Object.GetType() => i32 {
+func Object.GetTypeId() => i32 {
 	return object_get_type(*this.raw)
 }
 
@@ -331,7 +340,7 @@ func value_is_vec2(value: i64) => i32
 #wa:import dora value_is_size
 func value_is_size(value: i64) => i32
 
-type Value struct {
+type Value :struct {
 	raw: *i64
 }
 
@@ -542,7 +551,7 @@ func call_stack_front_vec2(stack: i64) => i32
 #wa:import dora call_stack_front_size
 func call_stack_front_size(stack: i64) => i32
 
-type CallStack struct {
+type CallStack :struct {
 	raw: *i64
 }
 
@@ -675,13 +684,20 @@ func Println(values: ...interface{}) {
 	strs := make([]string, len(values))
 	for i, value := range values {
 		switch v := value.(type) {
-		case i32: strs[i] = strconv.FormatInt(int64(v), 10)
-		case i64: strs[i] = strconv.FormatInt(v, 10)
-		case f32: strs[i] = strconv.FormatFloat(float64(v), 'f', 2, 32)
-		case f64: strs[i] = strconv.FormatFloat(v, 'f', 2, 64)
-		case string: strs[i] = v
-		case *string: strs[i] = *v
-		case bool: strs[i] = strconv.FormatBool(v)
+		case i32:
+			strs[i] = strconv.FormatInt(int64(v), 10)
+		case i64:
+			strs[i] = strconv.FormatInt(v, 10)
+		case f32:
+			strs[i] = strconv.FormatFloat(float64(v), 'f', 2, 32)
+		case f64:
+			strs[i] = strconv.FormatFloat(v, 'f', 2, 64)
+		case string:
+			strs[i] = v
+		case *string:
+			strs[i] = *v
+		case bool:
+			strs[i] = strconv.FormatBool(v)
 		case Vec2:
 			strs[i] = "Vec2(" +
 				strconv.FormatFloat(float64(v.X), 'f', 2, 32) +
@@ -758,7 +774,8 @@ func Println(values: ...interface{}) {
 						")"
 				}
 			}
-		case nil: strs[i] = "nil"
+		case nil:
+			strs[i] = "nil"
 		}
 	}
 	dora_print(ToDoraString(strings.Join(strs, " ")))
@@ -809,7 +826,7 @@ func vec2_clamp(a: i64, from: i64, to: i64) => i64
 #wa:operator - Vec2Sub
 #wa:operator * Vec2Mul Vec2MulFloat Vec2MulSize
 #wa:operator / Vec2Div
-type Vec2 struct {
+type Vec2 :struct {
 	X: f32
 	Y: f32
 }
@@ -875,7 +892,7 @@ func Vec2.Clamp(from: Vec2, to: Vec2) => Vec2 {
 func Vec2.ToValue() => i64 {
 	x := math.Float32bits(this.X)
 	y := math.Float32bits(this.Y)
-	return i64(i64(y) << 32 | i64(x))
+	return i64(i64(y)<<32 | i64(x))
 }
 
 func Vec2FromValue(value: i64) => Vec2 {
@@ -887,8 +904,8 @@ func Vec2FromValue(value: i64) => Vec2 {
 /* Size */
 
 #wa:operator * SizeMulVec2
-type Size struct {
-	Width: f32
+type Size :struct {
+	Width:  f32
 	Height: f32
 }
 
@@ -897,7 +914,7 @@ global SizeZero = Size{Width: 0, Height: 0}
 func Size.ToValue() => i64 {
 	width := math.Float32bits(this.Width)
 	height := math.Float32bits(this.Height)
-	return i64(i64(height) << 32 | i64(width))
+	return i64(i64(height)<<32 | i64(width))
 }
 
 func SizeFromValue(value: i64) => Size {
@@ -912,14 +929,14 @@ func SizeMulVec2(a: Size, b: Vec2) => Vec2 {
 
 /* Color */
 
-type Color3 struct {
+type Color3 :struct {
 	R: u8
 	G: u8
 	B: u8
 }
 
 func Color3.ToRGB() => i32 {
-	return i32(this.R) << 16 | i32(this.G) << 8 | i32(this.B)
+	return i32(this.R)<<16 | i32(this.G)<<8 | i32(this.B)
 }
 
 func Color3FromRGB(value: i32) => Color3 {
@@ -929,13 +946,13 @@ func Color3FromRGB(value: i32) => Color3 {
 	return Color3{R: u8(r), G: u8(g), B: u8(b)}
 }
 
-type Color struct {
+type Color :struct {
 	Color3
 	A: u8
 }
 
 func Color.ToARGB() => i32 {
-	return i32(this.A) << 24 | i32(this.Color3.ToRGB())
+	return i32(this.A)<<24 | i32(this.Color3.ToRGB())
 }
 
 func ColorFromARGB(value: i32) => Color {
@@ -1250,7 +1267,7 @@ func Dictionary.Get(key: string) => (*Value, bool) {
 
 #wa:export dora_wasm_version
 func dora_wasm_version() => i32 {
-	return MajorVersion << 16 | MinorVersion << 8 | PatchVersion
+	return MajorVersion<<16 | MinorVersion<<8 | PatchVersion
 }
 
 global func_map = make([]func(), 0)
@@ -1263,7 +1280,7 @@ func PushFunction(f: func()) => i32 {
 	}
 	if len(func_available) == 0 {
 		func_map = append(func_map, f)
-		return i32(len(func_map) - 1) | flag
+		return i32(len(func_map)-1) | flag
 	} else {
 		new_len := len(func_available) - 1
 		func_id := func_available[new_len]
@@ -1292,12 +1309,14 @@ func DerefFunction(func_id: i32) {
 
 /* BlendFunc */
 
-type BFunc struct {
+type BFunc :struct {
 	value: i64
 }
+
 func BFunc.ToValue() => i64 {
 	return this.value
 }
+
 global BlendFuncZero = BFunc{value: 0x0000000000001000}
 global BlendFuncOne = BFunc{value: 0x0000000000002000}
 global BlendFuncSrcColor = BFunc{value: 0x0000000000003000}
@@ -1309,7 +1328,7 @@ global BlendFuncInvDstAlpha = BFunc{value: 0x0000000000008000}
 global BlendFuncDstColor = BFunc{value: 0x0000000000009000}
 global BlendFuncInvDstColor = BFunc{value: 0x000000000000a000}
 
-type BlendFunc struct {
+type BlendFunc :struct {
 	value: i64
 }
 
@@ -1322,21 +1341,23 @@ func BlendFuncFrom(value: i64) => BlendFunc {
 }
 
 func NewBlendFunc(src: BFunc, dst: BFunc) => BlendFunc {
-	return BlendFunc{value: src.ToValue() << 8 | dst.ToValue() << 4}
+	return BlendFunc{value: src.ToValue()<<8 | dst.ToValue()<<4}
 }
 
 func NewBlendFuncSeperate(src_rgb: BFunc, dst_rgb: BFunc, src_alpha: BFunc, dst_alpha: BFunc) => BlendFunc {
-	return BlendFunc{value: (src_rgb.ToValue() << 8 | dst_rgb.ToValue() << 4 | src_alpha.ToValue() << 4 | dst_alpha.ToValue() << 4) << 8}
+	return BlendFunc{value: (src_rgb.ToValue()<<8 | dst_rgb.ToValue()<<4 | src_alpha.ToValue()<<4 | dst_alpha.ToValue()<<4) << 8}
 }
 
 /* TextureWrap */
 
-type TextureWrap struct {
+type TextureWrap :struct {
 	value: i32
 }
+
 func TextureWrap.ToValue() => i32 {
 	return this.value
 }
+
 global TextureWrapNone = TextureWrap{value: 0}
 global TextureWrapMirror = TextureWrap{value: 1}
 global TextureWrapClamp = TextureWrap{value: 2}
@@ -1344,24 +1365,28 @@ global TextureWrapBorder = TextureWrap{value: 3}
 
 /* TextureFilter */
 
-type TextureFilter struct {
+type TextureFilter :struct {
 	value: i32
 }
+
 func TextureFilter.ToValue() => i32 {
 	return this.value
 }
+
 global TextureFilterNone = TextureFilter{value: 0}
 global TextureFilterPoint = TextureFilter{value: 1}
 global TextureFilterAnisotropic = TextureFilter{value: 2}
 
 /* Property */
 
-type Property struct {
+type Property :struct {
 	value: i32
 }
+
 func Property.ToValue() => i32 {
 	return this.value
 }
+
 global PropertyX = Property{value: 0}
 global PropertyY = Property{value: 1}
 global PropertyZ = Property{value: 2}
@@ -1380,12 +1405,14 @@ global PropertyOpacity = Property{value: 14}
 
 /* Ease */
 
-type EaseType struct {
+type EaseType :struct {
 	value: i32
 }
+
 func EaseType.ToValue() => i32 {
 	return this.value
 }
+
 global EaseLinear = EaseType{value: 0}
 global EaseInQuad = EaseType{value: 1}
 global EaseOutQuad = EaseType{value: 2}
@@ -1427,3 +1454,17 @@ global EaseOutInCirc = EaseType{value: 37}
 global EaseOutInElastic = EaseType{value: 38}
 global EaseOutInBack = EaseType{value: 39}
 global EaseOutInBounce = EaseType{value: 40}
+
+/* BodyType */
+
+type BodyType :struct {
+	value: i32
+}
+
+func BodyType.ToValue() => i32 {
+	return this.value
+}
+
+global BodyTypeDynamic = BodyType{value: 0}
+global BodyTypeStatic = BodyType{value: 1}
+global BodyTypeKinematic = BodyType{value: 2}

@@ -11,10 +11,10 @@ using namespace Dora;
 int32_t bodydef_type() {
 	return DoraType<BodyDef>();
 }
-void bodydef__set_type(int64_t self, int32_t val) {
-	BodyDef_SetTypeEnum(r_cast<BodyDef*>(self), s_cast<int>(val));
+void bodydef_set_type(int64_t self, int32_t body_type) {
+	BodyDef_SetTypeEnum(r_cast<BodyDef*>(self), body_type);
 }
-int32_t bodydef__get_type(int64_t self) {
+int32_t bodydef_get_type(int64_t self) {
 	return BodyDef_GetTypeEnum(r_cast<BodyDef*>(self));
 }
 void bodydef_set_position(int64_t self, int64_t val) {
@@ -135,8 +135,8 @@ int64_t bodydef_new() {
 
 static void linkBodyDef(wasm3::module3& mod) {
 	mod.link_optional("*", "bodydef_type", bodydef_type);
-	mod.link_optional("*", "bodydef__set_type", bodydef__set_type);
-	mod.link_optional("*", "bodydef__get_type", bodydef__get_type);
+	mod.link_optional("*", "bodydef_set_type", bodydef_set_type);
+	mod.link_optional("*", "bodydef_get_type", bodydef_get_type);
 	mod.link_optional("*", "bodydef_set_position", bodydef_set_position);
 	mod.link_optional("*", "bodydef_get_position", bodydef_get_position);
 	mod.link_optional("*", "bodydef_set_angle", bodydef_set_angle);

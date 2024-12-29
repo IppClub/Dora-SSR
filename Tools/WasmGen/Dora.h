@@ -2576,8 +2576,18 @@ object class FixtureDef { };
 /// A struct to describe the properties of a physics body.
 object class BodyDef
 {
-	outside void BodyDef_SetTypeEnum @ _set_type(int val);
-	outside int32_t BodyDef_GetTypeEnum @ _get_type() const;
+	/// Sets the define for the type of the body.
+	///
+	/// # Arguments
+	///
+	/// * `body_type` - The type of the body.
+	outside void BodyDef_SetTypeEnum @ set_type(BodyType body_type);
+	/// Gets the define for the type of the body.
+	///
+	/// # Returns
+	///
+	/// * `BodyType` - The type of the body.
+	outside BodyType BodyDef_GetTypeEnum @ get_type() const;
 	/// define for the position of the body.
 	Vec2 offset @ position;
 	/// define for the angle of the body.

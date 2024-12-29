@@ -253,7 +253,7 @@ func NodeFrom(raw: i64) => *Node {
 	result := &object
 	return result
 }
-func Node.GetType() => i32 {
+func Node.GetTypeId() => i32 {
 	return node_type()
 }
 func Node.SetOrder(val: i32) {

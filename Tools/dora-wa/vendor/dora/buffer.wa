@@ -18,3 +18,32 @@ func buffer_resize(slf: i64, size: i32)
 func buffer_zero_memory(slf: i64)
 #wa:import dora buffer_get_size
 func buffer_get_size(slf: i64) => i32
+type Buffer struct { Object }
+func BufferFrom(raw: i64) => *Buffer {
+	if raw == 0 {
+		return nil
+	}
+	object := Buffer{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	result := &object
+	return result
+}
+func Buffer.GetTypeId() => i32 {
+	return buffer_type()
+}
+func Buffer.SetText(val: string) {
+	buffer_set_text(*this.raw, ToDoraString(val))
+}
+func Buffer.GetText() => string {
+	return FromDoraString(buffer_get_text(*this.raw))
+}
+func Buffer.Resize(size: i32) {
+	buffer_resize(*this.raw, size)
+}
+func Buffer.ZeroMemory() {
+	buffer_zero_memory(*this.raw)
+}
+func Buffer.GetSize() => i32 {
+	return buffer_get_size(*this.raw)
+}

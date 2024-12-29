@@ -63,7 +63,7 @@ func SpriteFrom(raw: i64) => *Sprite {
 	result := &object
 	return result
 }
-func Sprite.GetType() => i32 {
+func Sprite.GetTypeId() => i32 {
 	return sprite_type()
 }
 func Sprite.SetDepthWrite(val: bool) {
