@@ -31,7 +31,7 @@ func SchedulerFrom(raw: i64) => *Scheduler {
 	result := &object
 	return result
 }
-func Scheduler.GetType() => i32 {
+func Scheduler.GetTypeId() => i32 {
 	return scheduler_type()
 }
 func Scheduler.SetTimeScale(val: f32) {

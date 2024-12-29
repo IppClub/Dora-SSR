@@ -411,6 +411,10 @@ basicTypes =
 		* --[[10: wa type]] {
 			convertFrom: (name)-> name
 			convertTo: (name)-> name
+			argType: "DBRecord"
+			returnType: "DBRecord"
+			creturn: (name, fnArgId)-> "#{name}, _ := DBRecordFrom(stack#{fnArgId}.PopI64())"
+			cpass: -> error "unsupported"
 		}
 	DBQuery:
 		* "i64"
@@ -425,6 +429,10 @@ basicTypes =
 		* --[[10: wa type]] {
 			convertFrom: (name)-> name
 			convertTo: (name)-> name
+			argType: "DBQuery"
+			returnType: "DBQuery"
+			creturn: -> error "unsupported"
+			cpass: -> error "unsupported"
 		}
 	WorkBook:
 		* "i64"
@@ -657,6 +665,10 @@ basicTypes =
 		* --[[10: wa type]] {
 			convertFrom: (name)-> name
 			convertTo: (name)-> name
+			argType: "i64"
+			returnType: "i64"
+			creturn: (name, fnArgId)-> "#{name}, _ := stack#{fnArgId}.PopI64()"
+			cpass: -> error "unsupported"
 		}
 	MLQAction:
 		* "i32"
@@ -671,6 +683,10 @@ basicTypes =
 		* --[[10: wa type]] {
 			convertFrom: (name)-> name
 			convertTo: (name)-> name
+			argType: "i32"
+			returnType: "i32"
+			creturn: (name, fnArgId)-> "#{name}, _ := stack#{fnArgId}.PopI32()"
+			cpass: -> error "unsupported"
 		}
 	"Platformer::TargetAllow":
 		* "i64"
@@ -782,6 +798,22 @@ basicTypes =
 			convertFrom: (name)-> name
 			convertTo: (name)-> name
 		}
+	BodyType:
+		* "i32"
+		* (name)-> name
+		* (name)-> name
+		* "crate::dora::BodyType"
+		* "crate::dora::BodyType"
+		* (name)-> "#{name} as i32"
+		* (name)-> "core::mem::transmute(#{name})"
+		* -> error "unsupported"
+		* -> error "unsupported"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> "BodyType{value: #{name}}"
+			convertTo: (name)-> "#{name}.ToValue()"
+			argType: "BodyType"
+			returnType: "BodyType"
+		}
 	"Platformer::Relation":
 		* "i32"
 		* (name)-> "s_cast<Platformer::Relation>(#{name})"
@@ -807,8 +839,12 @@ basicTypes =
 		* (fnArgId)-> "&crate::dora::platformer::behavior::Blackboard::from(stack#{fnArgId}.pop_i64().unwrap()).unwrap()"
 		* -> error "unsupported"
 		* --[[10: wa type]] {
-			convertFrom: (name)-> name
-			convertTo: (name)-> name
+			convertFrom: (name)-> "*BlackboardFrom(#{name})"
+			convertTo: (name)-> "#{name}.GetRaw()"
+			argType: "Blackboard"
+			returnType: "Blackboard"
+			creturn: (name, fnArgId)-> "#{name}, _ := stack#{fnArgId}.PopI64()"
+			cpass: -> error "unsupported"
 		}
 	"Platformer::UnitAction":
 		* "i64"
@@ -1077,7 +1113,7 @@ func #{clsNewName}From(raw: i64) => *#{clsNewName} {
 	result := &object
 	return result
 }
-func #{clsNewName}.GetType() => i32 {
+func #{clsNewName}.GetTypeId() => i32 {
 	return #{namespace}#{clsNewNameL}_type()
 }"
 		else
@@ -1228,6 +1264,8 @@ func #{clsNewName}From(raw: i64) => *#{clsNewName} {
 							waType = getWaType dataType, rustName
 							waBinding[] = if isSingleton
 								"func _#{clsNewName}.#{waSetterName}(val: #{waType.argType}) {\n\t#{cppSetterName}(#{waType.convertTo 'val'})\n}"
+							elseif isStatic
+								"func #{clsNewName}#{waSetterName}(val: #{waType.argType}) {\n\t#{cppSetterName}(#{waType.convertTo 'val'})\n}"
 							else
 								"func #{clsNewName}.#{waSetterName}(val: #{waType.argType}) {\n\t#{cppSetterName}(*this.raw, #{waType.convertTo 'val'})\n}"
 						docText = if #docs > 0
@@ -1290,6 +1328,9 @@ func #{clsNewName}From(raw: i64) => *#{clsNewName} {
 						waBinding[] = if isSingleton
 							item = "#{cppGetterName}()"
 							"func _#{clsNewName}.#{waGetterName}() => #{waReturnType} {\n#{waReturn item}\n}"
+						elseif isStatic
+							item = "#{cppGetterName}()"
+							"func #{clsNewName}#{waGetterName}() => #{waReturnType} {\n#{waReturn item}\n}"
 						else
 							item = "#{cppGetterName}(*this.raw)"
 							"func #{clsNewName}.#{waGetterName}() => #{waReturnType} {\n#{waReturn item}\n}"
@@ -1728,6 +1769,14 @@ func #{clsNewName}From(raw: i64) => *#{clsNewName} {
 				"content"
 				"work_book"
 				"work_sheet"
+				"body_def"
+				"body"
+				"physics_world"
+				"sensor"
+				"fixture_def"
+				"buffer"
+				"c_45"
+				"cache"
 			]
 				\write "\n"
 				\write table.concat waBinding, "\n"

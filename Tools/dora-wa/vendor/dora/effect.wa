@@ -27,7 +27,7 @@ func EffectFrom(raw: i64) => *Effect {
 	result := &object
 	return result
 }
-func Effect.GetType() => i32 {
+func Effect.GetTypeId() => i32 {
 	return effect_type()
 }
 func Effect.Add(pass: Pass) {

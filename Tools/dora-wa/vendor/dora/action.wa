@@ -41,7 +41,7 @@ func ActionFrom(raw: i64) => *Action {
 	result := &object
 	return result
 }
-func Action.GetType() => i32 {
+func Action.GetTypeId() => i32 {
 	return action_type()
 }
 func Action.GetDuration() => f32 {

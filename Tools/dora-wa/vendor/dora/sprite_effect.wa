@@ -21,7 +21,7 @@ func SpriteEffectFrom(raw: i64) => *SpriteEffect {
 	result := &object
 	return result
 }
-func SpriteEffect.GetType() => i32 {
+func SpriteEffect.GetTypeId() => i32 {
 	return spriteeffect_type()
 }
 func NewSpriteEffect(vert_shader: string, frag_shader: string) => SpriteEffect {

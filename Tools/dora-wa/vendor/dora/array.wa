@@ -41,7 +41,7 @@ func ArrayFrom(raw: i64) => *Array {
 	result := &object
 	return result
 }
-func Array.GetType() => i32 {
+func Array.GetTypeId() => i32 {
 	return array_type()
 }
 func Array.GetCount() => i64 {

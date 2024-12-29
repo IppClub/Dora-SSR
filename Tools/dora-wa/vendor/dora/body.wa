@@ -70,3 +70,120 @@ func body_attach_sensor(slf: i64, tag: i32, fixture_def: i64) => i64
 func body_on_contact_filter(slf: i64, func0: i32, stack0: i64)
 #wa:import dora body_new
 func body_new(def: i64, world: i64, pos: i64, rot: f32) => i64
+type Body struct { Node }
+func BodyFrom(raw: i64) => *Body {
+	if raw == 0 {
+		return nil
+	}
+	object := Body{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	result := &object
+	return result
+}
+func Body.GetTypeId() => i32 {
+	return body_type()
+}
+func Body.GetWorld() => PhysicsWorld {
+	return *PhysicsWorldFrom(body_get_world(*this.raw))
+}
+func Body.GetBodyDef() => BodyDef {
+	return *BodyDefFrom(body_get_body_def(*this.raw))
+}
+func Body.GetMass() => f32 {
+	return body_get_mass(*this.raw)
+}
+func Body.IsSensor() => bool {
+	return body_is_sensor(*this.raw) != 0
+}
+func Body.SetVelocityX(val: f32) {
+	body_set_velocity_x(*this.raw, val)
+}
+func Body.GetVelocityX() => f32 {
+	return body_get_velocity_x(*this.raw)
+}
+func Body.SetVelocityY(val: f32) {
+	body_set_velocity_y(*this.raw, val)
+}
+func Body.GetVelocityY() => f32 {
+	return body_get_velocity_y(*this.raw)
+}
+func Body.SetVelocity(val: Vec2) {
+	body_set_velocity(*this.raw, val.ToValue())
+}
+func Body.GetVelocity() => Vec2 {
+	return Vec2FromValue(body_get_velocity(*this.raw))
+}
+func Body.SetAngularRate(val: f32) {
+	body_set_angular_rate(*this.raw, val)
+}
+func Body.GetAngularRate() => f32 {
+	return body_get_angular_rate(*this.raw)
+}
+func Body.SetGroup(val: i32) {
+	body_set_group(*this.raw, val)
+}
+func Body.GetGroup() => i32 {
+	return body_get_group(*this.raw)
+}
+func Body.SetLinearDamping(val: f32) {
+	body_set_linear_damping(*this.raw, val)
+}
+func Body.GetLinearDamping() => f32 {
+	return body_get_linear_damping(*this.raw)
+}
+func Body.SetAngularDamping(val: f32) {
+	body_set_angular_damping(*this.raw, val)
+}
+func Body.GetAngularDamping() => f32 {
+	return body_get_angular_damping(*this.raw)
+}
+func Body.SetOwner(val: Object) {
+	body_set_owner(*this.raw, val.GetRaw())
+}
+func Body.GetOwner() => Object {
+	return *ObjectFrom(body_get_owner(*this.raw))
+}
+func Body.SetReceivingContact(val: bool) {
+	body_set_receiving_contact(*this.raw, ToDoraBool(val))
+}
+func Body.IsReceivingContact() => bool {
+	return body_is_receiving_contact(*this.raw) != 0
+}
+func Body.ApplyLinearImpulse(impulse: Vec2, pos: Vec2) {
+	body_apply_linear_impulse(*this.raw, impulse.ToValue(), pos.ToValue())
+}
+func Body.ApplyAngularImpulse(impulse: f32) {
+	body_apply_angular_impulse(*this.raw, impulse)
+}
+func Body.GetSensorByTag(tag: i32) => Sensor {
+	return *SensorFrom(body_get_sensor_by_tag(*this.raw, tag))
+}
+func Body.RemoveSensorByTag(tag: i32) => bool {
+	return body_remove_sensor_by_tag(*this.raw, tag) != 0
+}
+func Body.RemoveSensor(sensor: Sensor) => bool {
+	return body_remove_sensor(*this.raw, sensor.GetRaw()) != 0
+}
+func Body.Attach(fixture_def: FixtureDef) {
+	body_attach(*this.raw, fixture_def.GetRaw())
+}
+func Body.AttachSensor(tag: i32, fixture_def: FixtureDef) => Sensor {
+	return *SensorFrom(body_attach_sensor(*this.raw, tag, fixture_def.GetRaw()))
+}
+func Body.OnContactFilter(filter: func(body: Body) => bool) {
+	stack0 := NewCallStack()
+	func_id0 := PushFunction(func() {
+		body := *BodyFrom(stack0.PopObject().GetRaw())
+		result_ := filter(body)
+		stack0.Push(result_)
+	})
+	body_on_contact_filter(*this.raw, func_id0, *stack0.raw)
+}
+func NewBody(def: BodyDef, world: PhysicsWorld, pos: Vec2, rot: f32) => Body {
+	object := Body{}
+	raw := body_new(def.GetRaw(), world.GetRaw(), pos.ToValue(), rot)
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return object
+}

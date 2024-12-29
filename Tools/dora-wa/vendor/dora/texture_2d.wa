@@ -25,7 +25,7 @@ func Texture2DFrom(raw: i64) => *Texture2D {
 	result := &object
 	return result
 }
-func Texture2D.GetType() => i32 {
+func Texture2D.GetTypeId() => i32 {
 	return texture2d_type()
 }
 func Texture2D.GetWidth() => i32 {

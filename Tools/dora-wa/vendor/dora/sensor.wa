@@ -22,3 +22,38 @@ func sensor_is_sensed(slf: i64) => i32
 func sensor_get_sensed_bodies(slf: i64) => i64
 #wa:import dora sensor_contains
 func sensor_contains(slf: i64, body: i64) => i32
+type Sensor struct { Object }
+func SensorFrom(raw: i64) => *Sensor {
+	if raw == 0 {
+		return nil
+	}
+	object := Sensor{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	result := &object
+	return result
+}
+func Sensor.GetTypeId() => i32 {
+	return sensor_type()
+}
+func Sensor.SetEnabled(val: bool) {
+	sensor_set_enabled(*this.raw, ToDoraBool(val))
+}
+func Sensor.IsEnabled() => bool {
+	return sensor_is_enabled(*this.raw) != 0
+}
+func Sensor.GetTag() => i32 {
+	return sensor_get_tag(*this.raw)
+}
+func Sensor.GetOwner() => Body {
+	return *BodyFrom(sensor_get_owner(*this.raw))
+}
+func Sensor.IsSensed() => bool {
+	return sensor_is_sensed(*this.raw) != 0
+}
+func Sensor.GetSensedBodies() => Array {
+	return *ArrayFrom(sensor_get_sensed_bodies(*this.raw))
+}
+func Sensor.Contains(body: Body) => bool {
+	return sensor_contains(*this.raw, body.GetRaw()) != 0
+}
