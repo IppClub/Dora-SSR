@@ -22,3 +22,42 @@ func camera2d_set_position(slf: i64, val: i64);
 func camera2d_get_position(slf: i64) => i64
 #wa:import dora camera2d_new
 func camera2d_new(name: i64) => i64
+type Camera2D struct { Camera }
+func Camera2DFrom(raw: i64) => *Camera2D {
+	if raw == 0 {
+		return nil
+	}
+	object := Camera2D{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	result := &object
+	return result
+}
+func Camera2D.GetTypeId() => i32 {
+	return camera2d_type()
+}
+func Camera2D.SetRotation(val: f32) {
+	camera2d_set_rotation(*this.raw, val)
+}
+func Camera2D.GetRotation() => f32 {
+	return camera2d_get_rotation(*this.raw)
+}
+func Camera2D.SetZoom(val: f32) {
+	camera2d_set_zoom(*this.raw, val)
+}
+func Camera2D.GetZoom() => f32 {
+	return camera2d_get_zoom(*this.raw)
+}
+func Camera2D.SetPosition(val: Vec2) {
+	camera2d_set_position(*this.raw, val.ToValue())
+}
+func Camera2D.GetPosition() => Vec2 {
+	return Vec2FromValue(camera2d_get_position(*this.raw))
+}
+func NewCamera2D(name: string) => Camera2D {
+	raw := camera2d_new(ToDoraString(name))
+	object := Camera2D{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return object
+}

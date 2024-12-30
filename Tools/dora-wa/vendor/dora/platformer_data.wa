@@ -52,3 +52,74 @@ func platformer_data_is_player(body: i64) => i32
 func platformer_data_is_terrain(body: i64) => i32
 #wa:import dora platformer_data_clear
 func platformer_data_clear()
+type _PlatformerData struct { }
+global PlatformerData = _PlatformerData{}
+func _PlatformerData.GetGroupFirstPlayer() => i32 {
+	return platformer_data_get_group_first_player()
+}
+func _PlatformerData.GetGroupLastPlayer() => i32 {
+	return platformer_data_get_group_last_player()
+}
+func _PlatformerData.GetGroupHide() => i32 {
+	return platformer_data_get_group_hide()
+}
+func _PlatformerData.GetGroupDetectPlayer() => i32 {
+	return platformer_data_get_group_detect_player()
+}
+func _PlatformerData.GetGroupTerrain() => i32 {
+	return platformer_data_get_group_terrain()
+}
+func _PlatformerData.GetGroupDetection() => i32 {
+	return platformer_data_get_group_detection()
+}
+func _PlatformerData.GetStore() => Dictionary {
+	return *DictionaryFrom(platformer_data_get_store())
+}
+func _PlatformerData.SetShouldContact(group_a: i32, group_b: i32, contact: bool) {
+	platformer_data_set_should_contact(group_a, group_b, ToDoraBool(contact))
+}
+func _PlatformerData.GetShouldContact(group_a: i32, group_b: i32) => bool {
+	return platformer_data_get_should_contact(group_a, group_b) != 0
+}
+func _PlatformerData.SetRelation(group_a: i32, group_b: i32, relation: PlatformerRelation) {
+	platformer_data_set_relation(group_a, group_b, relation.ToValue())
+}
+func _PlatformerData.GetRelationByGroup(group_a: i32, group_b: i32) => PlatformerRelation {
+	return PlatformerRelation{value: platformer_data_get_relation_by_group(group_a, group_b)}
+}
+func _PlatformerData.GetRelation(body_a: Body, body_b: Body) => PlatformerRelation {
+	return PlatformerRelation{value: platformer_data_get_relation(body_a.GetRaw(), body_b.GetRaw())}
+}
+func _PlatformerData.IsEnemyGroup(group_a: i32, group_b: i32) => bool {
+	return platformer_data_is_enemy_group(group_a, group_b) != 0
+}
+func _PlatformerData.IsEnemy(body_a: Body, body_b: Body) => bool {
+	return platformer_data_is_enemy(body_a.GetRaw(), body_b.GetRaw()) != 0
+}
+func _PlatformerData.IsFriendGroup(group_a: i32, group_b: i32) => bool {
+	return platformer_data_is_friend_group(group_a, group_b) != 0
+}
+func _PlatformerData.IsFriend(body_a: Body, body_b: Body) => bool {
+	return platformer_data_is_friend(body_a.GetRaw(), body_b.GetRaw()) != 0
+}
+func _PlatformerData.IsNeutralGroup(group_a: i32, group_b: i32) => bool {
+	return platformer_data_is_neutral_group(group_a, group_b) != 0
+}
+func _PlatformerData.IsNeutral(body_a: Body, body_b: Body) => bool {
+	return platformer_data_is_neutral(body_a.GetRaw(), body_b.GetRaw()) != 0
+}
+func _PlatformerData.SetDamageFactor(damage_type: i32, defence_type: i32, bounus: f32) {
+	platformer_data_set_damage_factor(damage_type, defence_type, bounus)
+}
+func _PlatformerData.GetDamageFactor(damage_type: i32, defence_type: i32) => f32 {
+	return platformer_data_get_damage_factor(damage_type, defence_type)
+}
+func _PlatformerData.IsPlayer(body: Body) => bool {
+	return platformer_data_is_player(body.GetRaw()) != 0
+}
+func _PlatformerData.IsTerrain(body: Body) => bool {
+	return platformer_data_is_terrain(body.GetRaw()) != 0
+}
+func _PlatformerData.Clear() {
+	platformer_data_clear()
+}

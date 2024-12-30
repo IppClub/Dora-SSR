@@ -38,3 +38,65 @@ func director_remove_camera(camera: i64) => i32
 func director_clear_camera()
 #wa:import dora director_cleanup
 func director_cleanup()
+type _Director struct { }
+global Director = _Director{}
+func _Director.SetClearColor(val: Color) {
+	director_set_clear_color(val.ToARGB())
+}
+func _Director.GetClearColor() => Color {
+	return ColorFromARGB(director_get_clear_color())
+}
+func _Director.GetUi() => Node {
+	return *NodeFrom(director_get_ui())
+}
+func _Director.GetUi_3d() => Node {
+	return *NodeFrom(director_get_ui_3d())
+}
+func _Director.GetEntry() => Node {
+	return *NodeFrom(director_get_entry())
+}
+func _Director.GetPostNode() => Node {
+	return *NodeFrom(director_get_post_node())
+}
+func _Director.GetCurrentCamera() => Camera {
+	return *CameraFrom(director_get_current_camera())
+}
+func _Director.SetFrustumCulling(val: bool) {
+	director_set_frustum_culling(ToDoraBool(val))
+}
+func _Director.IsFrustumCulling() => bool {
+	return director_is_frustum_culling() != 0
+}
+func _Director.Schedule(update_func: func(delta_time: f64) => bool) {
+	stack0 := NewCallStack()
+	func_id0 := PushFunction(func() {
+		deltaTime, _ := stack0.PopF64()
+		result_ := update_func(deltaTime)
+		stack0.Push(result_)
+	})
+	director_schedule(func_id0, *stack0.raw)
+}
+func _Director.SchedulePosted(update_func: func(delta_time: f64) => bool) {
+	stack0 := NewCallStack()
+	func_id0 := PushFunction(func() {
+		deltaTime, _ := stack0.PopF64()
+		result_ := update_func(deltaTime)
+		stack0.Push(result_)
+	})
+	director_schedule_posted(func_id0, *stack0.raw)
+}
+func _Director.PushCamera(camera: Camera) {
+	director_push_camera(camera.GetRaw())
+}
+func _Director.PopCamera() {
+	director_pop_camera()
+}
+func _Director.RemoveCamera(camera: Camera) => bool {
+	return director_remove_camera(camera.GetRaw()) != 0
+}
+func _Director.ClearCamera() {
+	director_clear_camera()
+}
+func _Director.Cleanup() {
+	director_cleanup()
+}

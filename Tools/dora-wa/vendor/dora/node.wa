@@ -670,8 +670,8 @@ func Node.OnUpdate(update_func: func(delta_time: f64) => bool) {
 	node_on_update(*this.raw, func_id0, *stack0.raw)
 }
 func NewNode() => Node {
-	object := Node{}
 	raw := node_new()
+	object := Node{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)
 	return object

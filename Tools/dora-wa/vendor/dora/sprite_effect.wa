@@ -25,8 +25,8 @@ func SpriteEffect.GetTypeId() => i32 {
 	return spriteeffect_type()
 }
 func NewSpriteEffect(vert_shader: string, frag_shader: string) => SpriteEffect {
-	object := SpriteEffect{}
 	raw := spriteeffect_new(ToDoraString(vert_shader), ToDoraString(frag_shader))
+	object := SpriteEffect{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)
 	return object

@@ -20,3 +20,26 @@ func platformer_decision_ai_get_nearest_unit_distance(relation: i32) => f32
 func platformer_decision_ai_get_units_in_attack_range() => i64
 #wa:import dora platformer_decision_ai_get_bodies_in_attack_range
 func platformer_decision_ai_get_bodies_in_attack_range() => i64
+type _PlatformerDecisionAI struct { }
+global PlatformerDecisionAI = _PlatformerDecisionAI{}
+func _PlatformerDecisionAI.GetUnitsByRelation(relation: PlatformerRelation) => Array {
+	return *ArrayFrom(platformer_decision_ai_get_units_by_relation(relation.ToValue()))
+}
+func _PlatformerDecisionAI.GetDetectedUnits() => Array {
+	return *ArrayFrom(platformer_decision_ai_get_detected_units())
+}
+func _PlatformerDecisionAI.GetDetectedBodies() => Array {
+	return *ArrayFrom(platformer_decision_ai_get_detected_bodies())
+}
+func _PlatformerDecisionAI.GetNearestUnit(relation: PlatformerRelation) => PlatformerUnit {
+	return *PlatformerUnitFrom(platformer_decision_ai_get_nearest_unit(relation.ToValue()))
+}
+func _PlatformerDecisionAI.GetNearestUnitDistance(relation: PlatformerRelation) => f32 {
+	return platformer_decision_ai_get_nearest_unit_distance(relation.ToValue())
+}
+func _PlatformerDecisionAI.GetUnitsInAttackRange() => Array {
+	return *ArrayFrom(platformer_decision_ai_get_units_in_attack_range())
+}
+func _PlatformerDecisionAI.GetBodiesInAttackRange() => Array {
+	return *ArrayFrom(platformer_decision_ai_get_bodies_in_attack_range())
+}

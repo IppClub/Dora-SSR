@@ -32,3 +32,79 @@ func tilenode_new(tmx_file: i64) => i64
 func tilenode_with_with_layer(tmx_file: i64, layer_name: i64) => i64
 #wa:import dora tilenode_with_with_layers
 func tilenode_with_with_layers(tmx_file: i64, layer_names: i64) => i64
+type TileNode struct { Node }
+func TileNodeFrom(raw: i64) => *TileNode {
+	if raw == 0 {
+		return nil
+	}
+	object := TileNode{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	result := &object
+	return result
+}
+func TileNode.GetTypeId() => i32 {
+	return tilenode_type()
+}
+func TileNode.SetDepthWrite(val: bool) {
+	tilenode_set_depth_write(*this.raw, ToDoraBool(val))
+}
+func TileNode.IsDepthWrite() => bool {
+	return tilenode_is_depth_write(*this.raw) != 0
+}
+func TileNode.SetBlendFunc(blend_func: BlendFunc) {
+	tilenode__set_blend_func(*this.raw, blend_func.ToValue())
+}
+func TileNode.GetBlendFunc() => BlendFunc {
+	return BlendFuncFrom(tilenode__get_blend_func(*this.raw))
+}
+func TileNode.SetEffect(val: SpriteEffect) {
+	tilenode_set_effect(*this.raw, val.GetRaw())
+}
+func TileNode.GetEffect() => SpriteEffect {
+	return *SpriteEffectFrom(tilenode_get_effect(*this.raw))
+}
+func TileNode.SetFilter(val: TextureFilter) {
+	tilenode_set_filter(*this.raw, val.ToValue())
+}
+func TileNode.GetFilter() => TextureFilter {
+	return TextureFilter{value: tilenode_get_filter(*this.raw)}
+}
+func TileNode.GetLayer(layer_name: string) => *Dictionary {
+	ptr_ := tilenode_get_layer(*this.raw, ToDoraString(layer_name))
+	if ptr_ == 0 {
+		return nil
+	}
+	obj_ := *DictionaryFrom(ptr_)
+	return &obj_
+}
+func NewTileNode(tmx_file: string) => *TileNode {
+	raw := tilenode_new(ToDoraString(tmx_file))
+	if raw == 0 {
+		return nil
+	}
+	object := TileNode{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return &object
+}
+func NewTileNodeWithWithLayer(tmx_file: string, layer_name: string) => *TileNode {
+	raw := tilenode_with_with_layer(ToDoraString(tmx_file), ToDoraString(layer_name))
+	if raw == 0 {
+		return nil
+	}
+	object := TileNode{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return &object
+}
+func NewTileNodeWithWithLayers(tmx_file: string, layer_names: *[]string) => *TileNode {
+	raw := tilenode_with_with_layers(ToDoraString(tmx_file), ToDoraStrBuf(layer_names))
+	if raw == 0 {
+		return nil
+	}
+	object := TileNode{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return &object
+}

@@ -20,3 +20,46 @@ func mlqlearner_pack(hints: i64, values: i64) => i64
 func mlqlearner_unpack(hints: i64, state: i64) => i64
 #wa:import dora mlqlearner_new
 func mlqlearner_new(gamma: f64, alpha: f64, max_q: f64) => i64
+type QLearner struct { Object }
+func QLearnerFrom(raw: i64) => *QLearner {
+	if raw == 0 {
+		return nil
+	}
+	object := QLearner{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	result := &object
+	return result
+}
+func QLearner.GetTypeId() => i32 {
+	return qlearner_type()
+}
+func QLearner.Update(state: i64, action: i32, reward: f64) {
+	mlqlearner_update(*this.raw, state, action, reward)
+}
+func QLearner.GetBestAction(state: i64) => i32 {
+	return mlqlearner_get_best_action(*this.raw, state)
+}
+func QLearner.VisitMatrix(handler: func(state: i64, action: i32, q: f64)) {
+	stack0 := NewCallStack()
+	func_id0 := PushFunction(func() {
+		state, _ := stack0.PopI64()
+		action, _ := stack0.PopI32()
+		q, _ := stack0.PopF64()
+		handler(state, action, q)
+	})
+	mlqlearner_visit_matrix(*this.raw, func_id0, *stack0.raw)
+}
+func QLearnerPack(hints: *[]i32, values: *[]i32) => i64 {
+	return mlqlearner_pack(ToDoraI32Buf(hints), ToDoraI32Buf(values))
+}
+func QLearnerUnpack(hints: *[]i32, state: i64) => *[]i32 {
+	return FromDoraI32Buf(mlqlearner_unpack(ToDoraI32Buf(hints), state))
+}
+func NewQLearner(gamma: f64, alpha: f64, max_q: f64) => QLearner {
+	raw := mlqlearner_new(gamma, alpha, max_q)
+	object := QLearner{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return object
+}

@@ -28,3 +28,61 @@ func rendertarget_render_clear_with_target(slf: i64, target: i64, color: i32, de
 func rendertarget_save_async(slf: i64, filename: i64, func0: i32, stack0: i64)
 #wa:import dora rendertarget_new
 func rendertarget_new(width: i32, height: i32) => i64
+type RenderTarget struct { Object }
+func RenderTargetFrom(raw: i64) => *RenderTarget {
+	if raw == 0 {
+		return nil
+	}
+	object := RenderTarget{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	result := &object
+	return result
+}
+func RenderTarget.GetTypeId() => i32 {
+	return rendertarget_type()
+}
+func RenderTarget.GetWidth() => i32 {
+	return rendertarget_get_width(*this.raw)
+}
+func RenderTarget.GetHeight() => i32 {
+	return rendertarget_get_height(*this.raw)
+}
+func RenderTarget.SetCamera(val: Camera) {
+	rendertarget_set_camera(*this.raw, val.GetRaw())
+}
+func RenderTarget.GetCamera() => *Camera {
+	ptr_ := rendertarget_get_camera(*this.raw)
+	if ptr_ == 0 {
+		return nil
+	}
+	obj_ := *CameraFrom(ptr_)
+	return &obj_
+}
+func RenderTarget.GetTexture() => Texture2D {
+	return *Texture2DFrom(rendertarget_get_texture(*this.raw))
+}
+func RenderTarget.Render(target: Node) {
+	rendertarget_render(*this.raw, target.GetRaw())
+}
+func RenderTarget.RenderClear(color: Color, depth: f32, stencil: i32) {
+	rendertarget_render_clear(*this.raw, color.ToARGB(), depth, stencil)
+}
+func RenderTarget.RenderClearWithTarget(target: Node, color: Color, depth: f32, stencil: i32) {
+	rendertarget_render_clear_with_target(*this.raw, target.GetRaw(), color.ToARGB(), depth, stencil)
+}
+func RenderTarget.SaveAsync(filename: string, handler: func(success: bool)) {
+	stack0 := NewCallStack()
+	func_id0 := PushFunction(func() {
+		success, _ := stack0.PopBool()
+		handler(success)
+	})
+	rendertarget_save_async(*this.raw, ToDoraString(filename), func_id0, *stack0.raw)
+}
+func NewRenderTarget(width: i32, height: i32) => RenderTarget {
+	raw := rendertarget_new(width, height)
+	object := RenderTarget{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return object
+}

@@ -130,3 +130,191 @@ func nvg_font_face(font: i64)
 func nvg_dora_ssr()
 #wa:import dora nvg_get_dora_ssr
 func nvg_get_dora_ssr(scale: f32) => i64
+type _Nvg struct { }
+global Nvg = _Nvg{}
+func _Nvg.Save() {
+	nvg_save()
+}
+func _Nvg.Restore() {
+	nvg_restore()
+}
+func _Nvg.Reset() {
+	nvg_reset()
+}
+func _Nvg.CreateImage(w: i32, h: i32, filename: string, image_flags: i32) => i32 {
+	return nvg__create_image(w, h, ToDoraString(filename), image_flags)
+}
+func _Nvg.CreateFont(name: string) => i32 {
+	return nvg_create_font(ToDoraString(name))
+}
+func _Nvg.TextBounds(x: f32, y: f32, text: string, bounds: Rect) => f32 {
+	return nvg_text_bounds(x, y, ToDoraString(text), bounds.GetRaw())
+}
+func _Nvg.TextBoxBounds(x: f32, y: f32, break_row_width: f32, text: string) => Rect {
+	return *RectFrom(nvg_text_box_bounds(x, y, break_row_width, ToDoraString(text)))
+}
+func _Nvg.Text(x: f32, y: f32, text: string) => f32 {
+	return nvg_text(x, y, ToDoraString(text))
+}
+func _Nvg.TextBox(x: f32, y: f32, break_row_width: f32, text: string) {
+	nvg_text_box(x, y, break_row_width, ToDoraString(text))
+}
+func _Nvg.StrokeColor(color: Color) {
+	nvg_stroke_color(color.ToARGB())
+}
+func _Nvg.StrokePaint(paint: VGPaint) {
+	nvg_stroke_paint(paint.GetRaw())
+}
+func _Nvg.FillColor(color: Color) {
+	nvg_fill_color(color.ToARGB())
+}
+func _Nvg.FillPaint(paint: VGPaint) {
+	nvg_fill_paint(paint.GetRaw())
+}
+func _Nvg.MiterLimit(limit: f32) {
+	nvg_miter_limit(limit)
+}
+func _Nvg.StrokeWidth(size: f32) {
+	nvg_stroke_width(size)
+}
+func _Nvg.LineCap(cap: i32) {
+	nvg__line_cap(cap)
+}
+func _Nvg.LineJoin(join: i32) {
+	nvg__line_join(join)
+}
+func _Nvg.GlobalAlpha(alpha: f32) {
+	nvg_global_alpha(alpha)
+}
+func _Nvg.ResetTransform() {
+	nvg_reset_transform()
+}
+func _Nvg.ApplyTransform(node: Node) {
+	nvg_apply_transform(node.GetRaw())
+}
+func _Nvg.Translate(x: f32, y: f32) {
+	nvg_translate(x, y)
+}
+func _Nvg.Rotate(angle: f32) {
+	nvg_rotate(angle)
+}
+func _Nvg.SkewX(angle: f32) {
+	nvg_skew_x(angle)
+}
+func _Nvg.SkewY(angle: f32) {
+	nvg_skew_y(angle)
+}
+func _Nvg.Scale(x: f32, y: f32) {
+	nvg_scale(x, y)
+}
+func _Nvg.ImageSize(image: i32) => Size {
+	return SizeFromValue(nvg_image_size(image))
+}
+func _Nvg.DeleteImage(image: i32) {
+	nvg_delete_image(image)
+}
+func _Nvg.LinearGradient(sx: f32, sy: f32, ex: f32, ey: f32, icol: Color, ocol: Color) => VGPaint {
+	return *VGPaintFrom(nvg_linear_gradient(sx, sy, ex, ey, icol.ToARGB(), ocol.ToARGB()))
+}
+func _Nvg.BoxGradient(x: f32, y: f32, w: f32, h: f32, r: f32, f: f32, icol: Color, ocol: Color) => VGPaint {
+	return *VGPaintFrom(nvg_box_gradient(x, y, w, h, r, f, icol.ToARGB(), ocol.ToARGB()))
+}
+func _Nvg.RadialGradient(cx: f32, cy: f32, inr: f32, outr: f32, icol: Color, ocol: Color) => VGPaint {
+	return *VGPaintFrom(nvg_radial_gradient(cx, cy, inr, outr, icol.ToARGB(), ocol.ToARGB()))
+}
+func _Nvg.ImagePattern(ox: f32, oy: f32, ex: f32, ey: f32, angle: f32, image: i32, alpha: f32) => VGPaint {
+	return *VGPaintFrom(nvg_image_pattern(ox, oy, ex, ey, angle, image, alpha))
+}
+func _Nvg.Scissor(x: f32, y: f32, w: f32, h: f32) {
+	nvg_scissor(x, y, w, h)
+}
+func _Nvg.IntersectScissor(x: f32, y: f32, w: f32, h: f32) {
+	nvg_intersect_scissor(x, y, w, h)
+}
+func _Nvg.ResetScissor() {
+	nvg_reset_scissor()
+}
+func _Nvg.BeginPath() {
+	nvg_begin_path()
+}
+func _Nvg.MoveTo(x: f32, y: f32) {
+	nvg_move_to(x, y)
+}
+func _Nvg.LineTo(x: f32, y: f32) {
+	nvg_line_to(x, y)
+}
+func _Nvg.BezierTo(c_1x: f32, c_1y: f32, c_2x: f32, c_2y: f32, x: f32, y: f32) {
+	nvg_bezier_to(c_1x, c_1y, c_2x, c_2y, x, y)
+}
+func _Nvg.QuadTo(cx: f32, cy: f32, x: f32, y: f32) {
+	nvg_quad_to(cx, cy, x, y)
+}
+func _Nvg.ArcTo(x_1: f32, y_1: f32, x_2: f32, y_2: f32, radius: f32) {
+	nvg_arc_to(x_1, y_1, x_2, y_2, radius)
+}
+func _Nvg.ClosePath() {
+	nvg_close_path()
+}
+func _Nvg.PathWinding(dir: i32) {
+	nvg__path_winding(dir)
+}
+func _Nvg.Arc(cx: f32, cy: f32, r: f32, a_0: f32, a_1: f32, dir: i32) {
+	nvg__arc(cx, cy, r, a_0, a_1, dir)
+}
+func _Nvg.Rect(x: f32, y: f32, w: f32, h: f32) {
+	nvg_rect(x, y, w, h)
+}
+func _Nvg.RoundedRect(x: f32, y: f32, w: f32, h: f32, r: f32) {
+	nvg_rounded_rect(x, y, w, h, r)
+}
+func _Nvg.RoundedRectVarying(x: f32, y: f32, w: f32, h: f32, rad_top_left: f32, rad_top_right: f32, rad_bottom_right: f32, rad_bottom_left: f32) {
+	nvg_rounded_rect_varying(x, y, w, h, rad_top_left, rad_top_right, rad_bottom_right, rad_bottom_left)
+}
+func _Nvg.Ellipse(cx: f32, cy: f32, rx: f32, ry: f32) {
+	nvg_ellipse(cx, cy, rx, ry)
+}
+func _Nvg.Circle(cx: f32, cy: f32, r: f32) {
+	nvg_circle(cx, cy, r)
+}
+func _Nvg.Fill() {
+	nvg_fill()
+}
+func _Nvg.Stroke() {
+	nvg_stroke()
+}
+func _Nvg.FindFont(name: string) => i32 {
+	return nvg_find_font(ToDoraString(name))
+}
+func _Nvg.AddFallbackFontId(base_font: i32, fallback_font: i32) => i32 {
+	return nvg_add_fallback_font_id(base_font, fallback_font)
+}
+func _Nvg.AddFallbackFont(base_font: string, fallback_font: string) => i32 {
+	return nvg_add_fallback_font(ToDoraString(base_font), ToDoraString(fallback_font))
+}
+func _Nvg.FontSize(size: f32) {
+	nvg_font_size(size)
+}
+func _Nvg.FontBlur(blur: f32) {
+	nvg_font_blur(blur)
+}
+func _Nvg.TextLetterSpacing(spacing: f32) {
+	nvg_text_letter_spacing(spacing)
+}
+func _Nvg.TextLineHeight(line_height: f32) {
+	nvg_text_line_height(line_height)
+}
+func _Nvg.TextAlign(h_align: i32, v_align: i32) {
+	nvg__text_align(h_align, v_align)
+}
+func _Nvg.FontFaceId(font: i32) {
+	nvg_font_face_id(font)
+}
+func _Nvg.FontFace(font: string) {
+	nvg_font_face(ToDoraString(font))
+}
+func _Nvg.DoraSsr() {
+	nvg_dora_ssr()
+}
+func _Nvg.GetDoraSsr(scale: f32) => Texture2D {
+	return *Texture2DFrom(nvg_get_dora_ssr(scale))
+}

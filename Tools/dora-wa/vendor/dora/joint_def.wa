@@ -40,3 +40,65 @@ func jointdef_rope(collision: i32, body_a: i64, body_b: i64, anchor_a: i64, anch
 func jointdef_weld(collision: i32, body_a: i64, body_b: i64, world_pos: i64, frequency: f32, damping: f32) => i64
 #wa:import dora jointdef_wheel
 func jointdef_wheel(collision: i32, body_a: i64, body_b: i64, world_pos: i64, axis_angle: f32, max_motor_torque: f32, motor_speed: f32, frequency: f32, damping: f32) => i64
+type JointDef struct { Object }
+func JointDefFrom(raw: i64) => *JointDef {
+	if raw == 0 {
+		return nil
+	}
+	object := JointDef{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	result := &object
+	return result
+}
+func JointDef.GetTypeId() => i32 {
+	return jointdef_type()
+}
+func JointDef.SetCenter(val: Vec2) {
+	jointdef_set_center(*this.raw, val.ToValue())
+}
+func JointDef.GetCenter() => Vec2 {
+	return Vec2FromValue(jointdef_get_center(*this.raw))
+}
+func JointDef.SetPosition(val: Vec2) {
+	jointdef_set_position(*this.raw, val.ToValue())
+}
+func JointDef.GetPosition() => Vec2 {
+	return Vec2FromValue(jointdef_get_position(*this.raw))
+}
+func JointDef.SetAngle(val: f32) {
+	jointdef_set_angle(*this.raw, val)
+}
+func JointDef.GetAngle() => f32 {
+	return jointdef_get_angle(*this.raw)
+}
+func JointDefDistance(collision: bool, body_a: string, body_b: string, anchor_a: Vec2, anchor_b: Vec2, frequency: f32, damping: f32) => JointDef {
+	return *JointDefFrom(jointdef_distance(ToDoraBool(collision), ToDoraString(body_a), ToDoraString(body_b), anchor_a.ToValue(), anchor_b.ToValue(), frequency, damping))
+}
+func JointDefFriction(collision: bool, body_a: string, body_b: string, world_pos: Vec2, max_force: f32, max_torque: f32) => JointDef {
+	return *JointDefFrom(jointdef_friction(ToDoraBool(collision), ToDoraString(body_a), ToDoraString(body_b), world_pos.ToValue(), max_force, max_torque))
+}
+func JointDefGear(collision: bool, joint_a: string, joint_b: string, ratio: f32) => JointDef {
+	return *JointDefFrom(jointdef_gear(ToDoraBool(collision), ToDoraString(joint_a), ToDoraString(joint_b), ratio))
+}
+func JointDefSpring(collision: bool, body_a: string, body_b: string, linear_offset: Vec2, angular_offset: f32, max_force: f32, max_torque: f32, correction_factor: f32) => JointDef {
+	return *JointDefFrom(jointdef_spring(ToDoraBool(collision), ToDoraString(body_a), ToDoraString(body_b), linear_offset.ToValue(), angular_offset, max_force, max_torque, correction_factor))
+}
+func JointDefPrismatic(collision: bool, body_a: string, body_b: string, world_pos: Vec2, axis_angle: f32, lower_translation: f32, upper_translation: f32, max_motor_force: f32, motor_speed: f32) => JointDef {
+	return *JointDefFrom(jointdef_prismatic(ToDoraBool(collision), ToDoraString(body_a), ToDoraString(body_b), world_pos.ToValue(), axis_angle, lower_translation, upper_translation, max_motor_force, motor_speed))
+}
+func JointDefPulley(collision: bool, body_a: string, body_b: string, anchor_a: Vec2, anchor_b: Vec2, ground_anchor_a: Vec2, ground_anchor_b: Vec2, ratio: f32) => JointDef {
+	return *JointDefFrom(jointdef_pulley(ToDoraBool(collision), ToDoraString(body_a), ToDoraString(body_b), anchor_a.ToValue(), anchor_b.ToValue(), ground_anchor_a.ToValue(), ground_anchor_b.ToValue(), ratio))
+}
+func JointDefRevolute(collision: bool, body_a: string, body_b: string, world_pos: Vec2, lower_angle: f32, upper_angle: f32, max_motor_torque: f32, motor_speed: f32) => JointDef {
+	return *JointDefFrom(jointdef_revolute(ToDoraBool(collision), ToDoraString(body_a), ToDoraString(body_b), world_pos.ToValue(), lower_angle, upper_angle, max_motor_torque, motor_speed))
+}
+func JointDefRope(collision: bool, body_a: string, body_b: string, anchor_a: Vec2, anchor_b: Vec2, max_length: f32) => JointDef {
+	return *JointDefFrom(jointdef_rope(ToDoraBool(collision), ToDoraString(body_a), ToDoraString(body_b), anchor_a.ToValue(), anchor_b.ToValue(), max_length))
+}
+func JointDefWeld(collision: bool, body_a: string, body_b: string, world_pos: Vec2, frequency: f32, damping: f32) => JointDef {
+	return *JointDefFrom(jointdef_weld(ToDoraBool(collision), ToDoraString(body_a), ToDoraString(body_b), world_pos.ToValue(), frequency, damping))
+}
+func JointDefWheel(collision: bool, body_a: string, body_b: string, world_pos: Vec2, axis_angle: f32, max_motor_torque: f32, motor_speed: f32, frequency: f32, damping: f32) => JointDef {
+	return *JointDefFrom(jointdef_wheel(ToDoraBool(collision), ToDoraString(body_a), ToDoraString(body_b), world_pos.ToValue(), axis_angle, max_motor_torque, motor_speed, frequency, damping))
+}

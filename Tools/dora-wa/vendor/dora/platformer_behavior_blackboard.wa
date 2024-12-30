@@ -6,15 +6,26 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-#wa:import dora platformer_visual_type
-func platformer_visual_type() => i32
-#wa:import dora platformer_visual_is_playing
-func platformer_visual_is_playing(slf: i64) => i32
-#wa:import dora platformer_visual_start
-func platformer_visual_start(slf: i64)
-#wa:import dora platformer_visual_stop
-func platformer_visual_stop(slf: i64)
-#wa:import dora platformer_visual_auto_remove
-func platformer_visual_auto_remove(slf: i64) => i64
-#wa:import dora platformer_visual_new
-func platformer_visual_new(name: i64) => i64
+#wa:import dora platformer_behavior_blackboard_get_delta_time
+func platformer_behavior_blackboard_get_delta_time(slf: i64) => f64
+#wa:import dora platformer_behavior_blackboard_get_owner
+func platformer_behavior_blackboard_get_owner(slf: i64) => i64
+type PlatformerBehaviorBlackboard struct { raw: *i64 }
+func PlatformerBehaviorBlackboard.GetRaw() => i64 {
+	return *this.raw
+}
+func PlatformerBehaviorBlackboardFrom(raw: i64) => *PlatformerBehaviorBlackboard {
+	if raw == 0 {
+		return nil
+	}
+	item := PlatformerBehaviorBlackboard{}
+	item.raw = &raw
+	result := &item
+	return result
+}
+func PlatformerBehaviorBlackboard.GetDeltaTime() => f64 {
+	return platformer_behavior_blackboard_get_delta_time(*this.raw)
+}
+func PlatformerBehaviorBlackboard.GetOwner() => PlatformerUnit {
+	return *PlatformerUnitFrom(platformer_behavior_blackboard_get_owner(*this.raw))
+}

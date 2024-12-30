@@ -20,3 +20,39 @@ func entity_remove(slf: i64, key: i64)
 func entity_destroy(slf: i64)
 #wa:import dora entity_new
 func entity_new() => i64
+type Entity struct { Object }
+func EntityFrom(raw: i64) => *Entity {
+	if raw == 0 {
+		return nil
+	}
+	object := Entity{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	result := &object
+	return result
+}
+func Entity.GetTypeId() => i32 {
+	return entity_type()
+}
+func EntityGetCount() => i32 {
+	return entity_get_count()
+}
+func Entity.GetIndex() => i32 {
+	return entity_get_index(*this.raw)
+}
+func EntityClear() {
+	entity_clear()
+}
+func Entity.Remove(key: string) {
+	entity_remove(*this.raw, ToDoraString(key))
+}
+func Entity.Destroy() {
+	entity_destroy(*this.raw)
+}
+func NewEntity() => Entity {
+	raw := entity_new()
+	object := Entity{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return object
+}

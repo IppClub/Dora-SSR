@@ -20,3 +20,35 @@ func motorjoint_get_force(slf: i64) => f32
 func motorjoint_set_speed(slf: i64, val: f32);
 #wa:import dora motorjoint_get_speed
 func motorjoint_get_speed(slf: i64) => f32
+type MotorJoint struct { Joint }
+func MotorJointFrom(raw: i64) => *MotorJoint {
+	if raw == 0 {
+		return nil
+	}
+	object := MotorJoint{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	result := &object
+	return result
+}
+func MotorJoint.GetTypeId() => i32 {
+	return motorjoint_type()
+}
+func MotorJoint.SetEnabled(val: bool) {
+	motorjoint_set_enabled(*this.raw, ToDoraBool(val))
+}
+func MotorJoint.IsEnabled() => bool {
+	return motorjoint_is_enabled(*this.raw) != 0
+}
+func MotorJoint.SetForce(val: f32) {
+	motorjoint_set_force(*this.raw, val)
+}
+func MotorJoint.GetForce() => f32 {
+	return motorjoint_get_force(*this.raw)
+}
+func MotorJoint.SetSpeed(val: f32) {
+	motorjoint_set_speed(*this.raw, val)
+}
+func MotorJoint.GetSpeed() => f32 {
+	return motorjoint_get_speed(*this.raw)
+}

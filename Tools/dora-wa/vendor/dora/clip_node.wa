@@ -22,3 +22,42 @@ func clipnode_set_inverted(slf: i64, val: i32);
 func clipnode_is_inverted(slf: i64) => i32
 #wa:import dora clipnode_new
 func clipnode_new(stencil: i64) => i64
+type ClipNode struct { Node }
+func ClipNodeFrom(raw: i64) => *ClipNode {
+	if raw == 0 {
+		return nil
+	}
+	object := ClipNode{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	result := &object
+	return result
+}
+func ClipNode.GetTypeId() => i32 {
+	return clipnode_type()
+}
+func ClipNode.SetStencil(val: Node) {
+	clipnode_set_stencil(*this.raw, val.GetRaw())
+}
+func ClipNode.GetStencil() => Node {
+	return *NodeFrom(clipnode_get_stencil(*this.raw))
+}
+func ClipNode.SetAlphaThreshold(val: f32) {
+	clipnode_set_alpha_threshold(*this.raw, val)
+}
+func ClipNode.GetAlphaThreshold() => f32 {
+	return clipnode_get_alpha_threshold(*this.raw)
+}
+func ClipNode.SetInverted(val: bool) {
+	clipnode_set_inverted(*this.raw, ToDoraBool(val))
+}
+func ClipNode.IsInverted() => bool {
+	return clipnode_is_inverted(*this.raw) != 0
+}
+func NewClipNode(stencil: Node) => ClipNode {
+	raw := clipnode_new(stencil.GetRaw())
+	object := ClipNode{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return object
+}

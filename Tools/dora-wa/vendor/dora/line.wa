@@ -26,3 +26,52 @@ func line_clear(slf: i64)
 func line_new() => i64
 #wa:import dora line_with_vec_color
 func line_with_vec_color(verts: i64, color: i32) => i64
+type Line struct { Node }
+func LineFrom(raw: i64) => *Line {
+	if raw == 0 {
+		return nil
+	}
+	object := Line{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	result := &object
+	return result
+}
+func Line.GetTypeId() => i32 {
+	return line_type()
+}
+func Line.SetDepthWrite(val: bool) {
+	line_set_depth_write(*this.raw, ToDoraBool(val))
+}
+func Line.IsDepthWrite() => bool {
+	return line_is_depth_write(*this.raw) != 0
+}
+func Line.SetBlendFunc(blend_func: BlendFunc) {
+	line__set_blend_func(*this.raw, blend_func.ToValue())
+}
+func Line.GetBlendFunc() => BlendFunc {
+	return BlendFuncFrom(line__get_blend_func(*this.raw))
+}
+func Line.Add(verts: *[]Vec2, color: Color) {
+	line_add(*this.raw, ToDoraVec2Buf(verts), color.ToARGB())
+}
+func Line.Set(verts: *[]Vec2, color: Color) {
+	line_set(*this.raw, ToDoraVec2Buf(verts), color.ToARGB())
+}
+func Line.Clear() {
+	line_clear(*this.raw)
+}
+func NewLine() => Line {
+	raw := line_new()
+	object := Line{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return object
+}
+func NewLineWithVecColor(verts: *[]Vec2, color: Color) => Line {
+	raw := line_with_vec_color(ToDoraVec2Buf(verts), color.ToARGB())
+	object := Line{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return object
+}

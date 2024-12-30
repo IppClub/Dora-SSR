@@ -24,3 +24,55 @@ func dragonbone_new(bone_str: i64) => i64
 func dragonbone_get_looks(bone_str: i64) => i64
 #wa:import dora dragonbone_get_animations
 func dragonbone_get_animations(bone_str: i64) => i64
+type DragonBone struct { Playable }
+func DragonBoneFrom(raw: i64) => *DragonBone {
+	if raw == 0 {
+		return nil
+	}
+	object := DragonBone{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	result := &object
+	return result
+}
+func DragonBone.GetTypeId() => i32 {
+	return dragonbone_type()
+}
+func DragonBone.SetHitTestEnabled(val: bool) {
+	dragonbone_set_hit_test_enabled(*this.raw, ToDoraBool(val))
+}
+func DragonBone.IsHitTestEnabled() => bool {
+	return dragonbone_is_hit_test_enabled(*this.raw) != 0
+}
+func DragonBone.ContainsPoint(x: f32, y: f32) => string {
+	return FromDoraString(dragonbone_contains_point(*this.raw, x, y))
+}
+func DragonBone.IntersectsSegment(x_1: f32, y_1: f32, x_2: f32, y_2: f32) => string {
+	return FromDoraString(dragonbone_intersects_segment(*this.raw, x_1, y_1, x_2, y_2))
+}
+func NewDragonBoneWithFiles(bone_file: string, atlas_file: string) => *DragonBone {
+	raw := dragonbone_with_files(ToDoraString(bone_file), ToDoraString(atlas_file))
+	if raw == 0 {
+		return nil
+	}
+	object := DragonBone{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return &object
+}
+func NewDragonBone(bone_str: string) => *DragonBone {
+	raw := dragonbone_new(ToDoraString(bone_str))
+	if raw == 0 {
+		return nil
+	}
+	object := DragonBone{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return &object
+}
+func DragonBoneGetLooks(bone_str: string) => *[]string {
+	return FromDoraStrBuf(dragonbone_get_looks(ToDoraString(bone_str)))
+}
+func DragonBoneGetAnimations(bone_str: string) => *[]string {
+	return FromDoraStrBuf(dragonbone_get_animations(ToDoraString(bone_str)))
+}

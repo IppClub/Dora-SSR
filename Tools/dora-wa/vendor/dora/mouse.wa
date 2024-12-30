@@ -16,3 +16,20 @@ func mouse_is_right_button_pressed() => i32
 func mouse_is_middle_button_pressed() => i32
 #wa:import dora mouse_get_wheel
 func mouse_get_wheel() => i64
+type _Mouse struct { }
+global Mouse = _Mouse{}
+func _Mouse.GetPosition() => Vec2 {
+	return Vec2FromValue(mouse_get_position())
+}
+func _Mouse.IsLeftButtonPressed() => bool {
+	return mouse_is_left_button_pressed() != 0
+}
+func _Mouse.IsRightButtonPressed() => bool {
+	return mouse_is_right_button_pressed() != 0
+}
+func _Mouse.IsMiddleButtonPressed() => bool {
+	return mouse_is_middle_button_pressed() != 0
+}
+func _Mouse.GetWheel() => Vec2 {
+	return Vec2FromValue(mouse_get_wheel())
+}

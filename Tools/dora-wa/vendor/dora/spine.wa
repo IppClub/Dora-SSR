@@ -26,3 +26,58 @@ func spine_new(spine_str: i64) => i64
 func spine_get_looks(spine_str: i64) => i64
 #wa:import dora spine_get_animations
 func spine_get_animations(spine_str: i64) => i64
+type Spine struct { Playable }
+func SpineFrom(raw: i64) => *Spine {
+	if raw == 0 {
+		return nil
+	}
+	object := Spine{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	result := &object
+	return result
+}
+func Spine.GetTypeId() => i32 {
+	return spine_type()
+}
+func Spine.SetHitTestEnabled(val: bool) {
+	spine_set_hit_test_enabled(*this.raw, ToDoraBool(val))
+}
+func Spine.IsHitTestEnabled() => bool {
+	return spine_is_hit_test_enabled(*this.raw) != 0
+}
+func Spine.SetBoneRotation(name: string, rotation: f32) => bool {
+	return spine_set_bone_rotation(*this.raw, ToDoraString(name), rotation) != 0
+}
+func Spine.ContainsPoint(x: f32, y: f32) => string {
+	return FromDoraString(spine_contains_point(*this.raw, x, y))
+}
+func Spine.IntersectsSegment(x_1: f32, y_1: f32, x_2: f32, y_2: f32) => string {
+	return FromDoraString(spine_intersects_segment(*this.raw, x_1, y_1, x_2, y_2))
+}
+func NewSpineWithFiles(skel_file: string, atlas_file: string) => *Spine {
+	raw := spine_with_files(ToDoraString(skel_file), ToDoraString(atlas_file))
+	if raw == 0 {
+		return nil
+	}
+	object := Spine{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return &object
+}
+func NewSpine(spine_str: string) => *Spine {
+	raw := spine_new(ToDoraString(spine_str))
+	if raw == 0 {
+		return nil
+	}
+	object := Spine{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return &object
+}
+func SpineGetLooks(spine_str: string) => *[]string {
+	return FromDoraStrBuf(spine_get_looks(ToDoraString(spine_str)))
+}
+func SpineGetAnimations(spine_str: string) => *[]string {
+	return FromDoraStrBuf(spine_get_animations(ToDoraString(spine_str)))
+}

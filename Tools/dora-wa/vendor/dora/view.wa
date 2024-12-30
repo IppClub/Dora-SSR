@@ -38,3 +38,58 @@ func view_set_post_effect_null()
 func view_set_vsync(val: i32)
 #wa:import dora view_is_vsync
 func view_is_vsync() => i32
+type _View struct { }
+global View = _View{}
+func _View.GetSize() => Size {
+	return SizeFromValue(view_get_size())
+}
+func _View.GetStandardDistance() => f32 {
+	return view_get_standard_distance()
+}
+func _View.GetAspectRatio() => f32 {
+	return view_get_aspect_ratio()
+}
+func _View.SetNearPlaneDistance(val: f32) {
+	view_set_near_plane_distance(val)
+}
+func _View.GetNearPlaneDistance() => f32 {
+	return view_get_near_plane_distance()
+}
+func _View.SetFarPlaneDistance(val: f32) {
+	view_set_far_plane_distance(val)
+}
+func _View.GetFarPlaneDistance() => f32 {
+	return view_get_far_plane_distance()
+}
+func _View.SetFieldOfView(val: f32) {
+	view_set_field_of_view(val)
+}
+func _View.GetFieldOfView() => f32 {
+	return view_get_field_of_view()
+}
+func _View.SetScale(val: f32) {
+	view_set_scale(val)
+}
+func _View.GetScale() => f32 {
+	return view_get_scale()
+}
+func _View.SetPostEffect(val: SpriteEffect) {
+	view_set_post_effect(val.GetRaw())
+}
+func _View.GetPostEffect() => *SpriteEffect {
+	ptr_ := view_get_post_effect()
+	if ptr_ == 0 {
+		return nil
+	}
+	obj_ := *SpriteEffectFrom(ptr_)
+	return &obj_
+}
+func _View.SetPostEffectNull() {
+	view_set_post_effect_null()
+}
+func _View.SetVsync(val: bool) {
+	view_set_vsync(ToDoraBool(val))
+}
+func _View.IsVsync() => bool {
+	return view_is_vsync() != 0
+}
