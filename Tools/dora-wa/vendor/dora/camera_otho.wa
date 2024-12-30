@@ -14,3 +14,30 @@ func cameraotho_set_position(slf: i64, val: i64);
 func cameraotho_get_position(slf: i64) => i64
 #wa:import dora cameraotho_new
 func cameraotho_new(name: i64) => i64
+type CameraOtho struct { Camera }
+func CameraOthoFrom(raw: i64) => *CameraOtho {
+	if raw == 0 {
+		return nil
+	}
+	object := CameraOtho{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	result := &object
+	return result
+}
+func CameraOtho.GetTypeId() => i32 {
+	return cameraotho_type()
+}
+func CameraOtho.SetPosition(val: Vec2) {
+	cameraotho_set_position(*this.raw, val.ToValue())
+}
+func CameraOtho.GetPosition() => Vec2 {
+	return Vec2FromValue(cameraotho_get_position(*this.raw))
+}
+func NewCameraOtho(name: string) => CameraOtho {
+	raw := cameraotho_new(ToDoraString(name))
+	object := CameraOtho{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return object
+}

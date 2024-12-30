@@ -12,3 +12,26 @@ func dbrecord_release(raw: i64)
 func dbrecord_is_valid(slf: i64) => i32
 #wa:import dora dbrecord_read
 func dbrecord_read(slf: i64, record: i64) => i32
+type DBRecord struct { raw: *i64 }
+func DBRecord.GetRaw() => i64 {
+	return *this.raw
+}
+func d_b_record_finalizer(ptr: u32) {
+	dbrecord_release(GetPtr(ptr))
+}
+func DBRecordFrom(raw: i64) => *DBRecord {
+	if raw == 0 {
+		return nil
+	}
+	item := DBRecord{}
+	item.raw = &raw
+	setFinalizer(item.raw, d_b_record_finalizer)
+	result := &item
+	return result
+}
+func DBRecord.IsValid() => bool {
+	return dbrecord_is_valid(*this.raw) != 0
+}
+func DBRecord.Read(record: Array) => bool {
+	return dbrecord_read(*this.raw, record.GetRaw()) != 0
+}

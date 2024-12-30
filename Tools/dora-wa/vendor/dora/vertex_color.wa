@@ -18,3 +18,39 @@ func vertexcolor_set_color(slf: i64, val: i32);
 func vertexcolor_get_color(slf: i64) => i32
 #wa:import dora vertexcolor_new
 func vertexcolor_new(vec: i64, color: i32) => i64
+type VertexColor struct { raw: *i64 }
+func VertexColor.GetRaw() => i64 {
+	return *this.raw
+}
+func vertex_color_finalizer(ptr: u32) {
+	vertexcolor_release(GetPtr(ptr))
+}
+func VertexColorFrom(raw: i64) => *VertexColor {
+	if raw == 0 {
+		return nil
+	}
+	item := VertexColor{}
+	item.raw = &raw
+	setFinalizer(item.raw, vertex_color_finalizer)
+	result := &item
+	return result
+}
+func VertexColor.SetVertex(val: Vec2) {
+	vertexcolor_set_vertex(*this.raw, val.ToValue())
+}
+func VertexColor.GetVertex() => Vec2 {
+	return Vec2FromValue(vertexcolor_get_vertex(*this.raw))
+}
+func VertexColor.SetColor(val: Color) {
+	vertexcolor_set_color(*this.raw, val.ToARGB())
+}
+func VertexColor.GetColor() => Color {
+	return ColorFromARGB(vertexcolor_get_color(*this.raw))
+}
+func NewVertexColor(vec: Vec2, color: Color) => VertexColor {
+	raw := vertexcolor_new(vec.ToValue(), color.ToARGB())
+	object := VertexColor{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return object
+}

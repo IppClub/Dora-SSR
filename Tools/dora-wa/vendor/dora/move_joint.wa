@@ -12,3 +12,23 @@ func movejoint_type() => i32
 func movejoint_set_position(slf: i64, val: i64);
 #wa:import dora movejoint_get_position
 func movejoint_get_position(slf: i64) => i64
+type MoveJoint struct { Joint }
+func MoveJointFrom(raw: i64) => *MoveJoint {
+	if raw == 0 {
+		return nil
+	}
+	object := MoveJoint{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	result := &object
+	return result
+}
+func MoveJoint.GetTypeId() => i32 {
+	return movejoint_type()
+}
+func MoveJoint.SetPosition(val: Vec2) {
+	movejoint_set_position(*this.raw, val.ToValue())
+}
+func MoveJoint.GetPosition() => Vec2 {
+	return Vec2FromValue(movejoint_get_position(*this.raw))
+}

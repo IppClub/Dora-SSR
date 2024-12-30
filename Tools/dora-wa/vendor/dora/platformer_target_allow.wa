@@ -22,3 +22,49 @@ func platformer_targetallow_to_value(slf: i64) => i32
 func platformer_targetallow_new() => i64
 #wa:import dora platformer_targetallow_with_value
 func platformer_targetallow_with_value(value: i32) => i64
+type PlatformerTargetAllow struct { raw: *i64 }
+func PlatformerTargetAllow.GetRaw() => i64 {
+	return *this.raw
+}
+func platformer_target_allow_finalizer(ptr: u32) {
+	platformer_targetallow_release(GetPtr(ptr))
+}
+func PlatformerTargetAllowFrom(raw: i64) => *PlatformerTargetAllow {
+	if raw == 0 {
+		return nil
+	}
+	item := PlatformerTargetAllow{}
+	item.raw = &raw
+	setFinalizer(item.raw, platformer_target_allow_finalizer)
+	result := &item
+	return result
+}
+func PlatformerTargetAllow.SetTerrainAllowed(val: bool) {
+	platformer_targetallow_set_terrain_allowed(*this.raw, ToDoraBool(val))
+}
+func PlatformerTargetAllow.IsTerrainAllowed() => bool {
+	return platformer_targetallow_is_terrain_allowed(*this.raw) != 0
+}
+func PlatformerTargetAllow.Allow(relation: PlatformerRelation, allow: bool) {
+	platformer_targetallow_allow(*this.raw, relation.ToValue(), ToDoraBool(allow))
+}
+func PlatformerTargetAllow.IsAllow(relation: PlatformerRelation) => bool {
+	return platformer_targetallow_is_allow(*this.raw, relation.ToValue()) != 0
+}
+func PlatformerTargetAllow.ToValue() => i32 {
+	return platformer_targetallow_to_value(*this.raw)
+}
+func NewPlatformerTargetAllow() => PlatformerTargetAllow {
+	raw := platformer_targetallow_new()
+	object := PlatformerTargetAllow{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return object
+}
+func NewPlatformerTargetAllowWithValue(value: i32) => PlatformerTargetAllow {
+	raw := platformer_targetallow_with_value(value)
+	object := PlatformerTargetAllow{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return object
+}

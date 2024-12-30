@@ -75,8 +75,8 @@ func Array.FastRemoveAt(index: i32) => bool {
 	return array_fast_remove_at(*this.raw, index) != 0
 }
 func NewArray() => Array {
-	object := Array{}
 	raw := array_new()
+	object := Array{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)
 	return object

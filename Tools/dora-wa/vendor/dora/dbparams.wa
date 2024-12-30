@@ -12,3 +12,30 @@ func dbparams_release(raw: i64)
 func dbparams_add(slf: i64, params: i64)
 #wa:import dora dbparams_new
 func dbparams_new() => i64
+type DBParams struct { raw: *i64 }
+func DBParams.GetRaw() => i64 {
+	return *this.raw
+}
+func d_b_params_finalizer(ptr: u32) {
+	dbparams_release(GetPtr(ptr))
+}
+func DBParamsFrom(raw: i64) => *DBParams {
+	if raw == 0 {
+		return nil
+	}
+	item := DBParams{}
+	item.raw = &raw
+	setFinalizer(item.raw, d_b_params_finalizer)
+	result := &item
+	return result
+}
+func DBParams.Add(params: Array) {
+	dbparams_add(*this.raw, params.GetRaw())
+}
+func NewDBParams() => DBParams {
+	raw := dbparams_new()
+	object := DBParams{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return object
+}

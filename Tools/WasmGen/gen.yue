@@ -359,7 +359,11 @@ basicTypes =
 			convertTo: -> error "unsupported"
 			argType: "*string"
 			returnType: "*string"
-			creturn: (name, fnArgId) -> "#{name}, _ := stack#{fnArgId}.PopStr()"
+			creturn: (name, fnArgId) -> "#{name}: *string = nil
+		#{name}_, #{name}_ok := stack#{fnArgId}.PopStr()
+		if #{name}_ok {
+			#{name} = &#{name}_
+		}"
 			cpass: -> error "unsupported"
 		}
 	NVGpaint:
@@ -373,10 +377,10 @@ basicTypes =
 		* -> error "unsupported"
 		* -> error "unsupported"
 		* --[[10: wa type]] {
-			convertFrom: (name)-> "VGPaintFrom(#{name})"
+			convertFrom: (name)-> "*VGPaintFrom(#{name})"
 			convertTo: (name)-> "#{name}.GetRaw()"
-			argType: "NVGpaint"
-			returnType: "NVGpaint"
+			argType: "VGPaint"
+			returnType: "VGPaint"
 			creturn: -> error "unsupported"
 			cpass: -> error "unsupported"
 		}
@@ -391,11 +395,11 @@ basicTypes =
 		* (fnArgId)-> "crate::dora::DBParams::from(stack#{fnArgId}.pop_i64().unwrap())"
 		* -> error "unsupported"
 		* --[[10: wa type]] {
-			convertFrom: (name)-> name
-			convertTo: (name)-> name
+			convertFrom: (name)-> "*DBParamsFrom(#{name})"
+			convertTo: (name)-> "#{name}.GetRaw()"
 			argType: "DBParams"
 			returnType: "DBParams"
-			creturn: (name, fnArgId)-> "#{name}, _ := DBParamsFrom(stack#{fnArgId}.PopI64())"
+			creturn: (name, fnArgId)-> "#{name}_raw, _ := stack#{fnArgId}.PopI64()\n\t\t#{name} := *DBParamsFrom(#{name}_raw)"
 			cpass: -> error "unsupported"
 		}
 	DBRecord:
@@ -409,11 +413,11 @@ basicTypes =
 		* (fnArgId)-> "crate::dora::DBRecord::from(stack#{fnArgId}.pop_i64().unwrap())"
 		* -> error "unsupported"
 		* --[[10: wa type]] {
-			convertFrom: (name)-> name
-			convertTo: (name)-> name
+			convertFrom: (name)-> "*DBRecordFrom(#{name})"
+			convertTo: (name)-> "#{name}.GetRaw()"
 			argType: "DBRecord"
 			returnType: "DBRecord"
-			creturn: (name, fnArgId)-> "#{name}, _ := DBRecordFrom(stack#{fnArgId}.PopI64())"
+			creturn: (name, fnArgId)-> "#{name}_raw, _ := stack#{fnArgId}.PopI64()\n\t\t#{name} := *DBRecordFrom(#{name}_raw)"
 			cpass: -> error "unsupported"
 		}
 	DBQuery:
@@ -427,8 +431,8 @@ basicTypes =
 		* -> error "unsupported"
 		* -> error "unsupported"
 		* --[[10: wa type]] {
-			convertFrom: (name)-> name
-			convertTo: (name)-> name
+			convertFrom: (name)-> "*DBQueryFrom(#{name})"
+			convertTo: (name)-> "#{name}.GetRaw()"
 			argType: "DBQuery"
 			returnType: "DBQuery"
 			creturn: -> error "unsupported"
@@ -549,8 +553,8 @@ basicTypes =
 		* -> error "unsupported"
 		* -> error "unsupported"
 		* --[[10: wa type]] {
-			convertFrom: (name)-> name
-			convertTo: (name)-> name
+			convertFrom: (name)-> "*VertexColor(#{name})"
+			convertTo: (name)-> "#{name}.GetRaw()"
 			argType: "VertexColor"
 			returnType: "VertexColor"
 			creturn: -> error "unsupported"
@@ -567,8 +571,12 @@ basicTypes =
 		* -> error "unsupported"
 		* -> error "unsupported"
 		* --[[10: wa type]] {
-			convertFrom: (name)-> name
-			convertTo: (name)-> name
+			convertFrom: (name)-> "FromDoraVertexColorBuf(#{name})"
+			convertTo: (name)-> "ToDoraVertexColorBuf(#{name})"
+			argType: "*[]VertexColor"
+			returnType: "*[]VertexColor"
+			creturn: -> error "unsupported"
+			cpass: -> error "unsupported"
 		}
 	ActionDef:
 		* "i64"
@@ -617,8 +625,12 @@ basicTypes =
 		* -> error "unsupported"
 		* -> error "unsupported"
 		* --[[10: wa type]] {
-			convertFrom: (name)-> name
-			convertTo: (name)-> name
+			convertFrom: -> error "unsupported"
+			convertTo: (name)-> "ToDoraPlatformerBehaviorTreeBuf(#{name})"
+			argType: "*[]PlatformerBehaviorTree"
+			returnType: "*[]PlatformerBehaviorTree"
+			creturn: -> error "unsupported"
+			cpass: -> error "unsupported"
 		}
 	VecDTree:
 		* "i64"
@@ -631,8 +643,12 @@ basicTypes =
 		* -> error "unsupported"
 		* -> error "unsupported"
 		* --[[10: wa type]] {
-			convertFrom: (name)-> name
-			convertTo: (name)-> name
+			convertFrom: -> error "unsupported"
+			convertTo: (name)-> "ToDoraPlatformerDecisionTreeBuf(#{name})"
+			argType: "*[]PlatformerDecisionTree"
+			returnType: "*[]PlatformerDecisionTree"
+			creturn: -> error "unsupported"
+			cpass: -> error "unsupported"
 		}
 	BlendFunc:
 		* "i64"
@@ -688,20 +704,6 @@ basicTypes =
 			creturn: (name, fnArgId)-> "#{name}, _ := stack#{fnArgId}.PopI32()"
 			cpass: -> error "unsupported"
 		}
-	"Platformer::TargetAllow":
-		* "i64"
-		* (name)-> "*r_cast<Platformer::TargetAllow*>(#{name})"
-		* (name)-> "r_cast<int64_t>(new Platformer::TargetAllow{#{name}})"
-		* "&crate::dora::platformer::TargetAllow"
-		* "crate::dora::platformer::TargetAllow"
-		* (name)-> "#{name}.raw()"
-		* (name)-> "crate::dora::platformer::TargetAllow::from(#{name})"
-		* -> error "unsupported"
-		* -> error "unsupported"
-		* --[[10: wa type]] {
-			convertFrom: (name)-> name
-			convertTo: (name)-> name
-		}
 	EntityEvent:
 		* "i32"
 		* (name)-> "s_cast<int>(#{name})"
@@ -713,8 +715,12 @@ basicTypes =
 		* -> error "unsupported"
 		* -> error "unsupported"
 		* --[[10: wa type]] {
-			convertFrom: (name)-> name
-			convertTo: (name)-> name
+			convertFrom: (name)-> "EntityEvent{value: #{name}}"
+			convertTo: (name)-> "#{name}.ToValue()"
+			argType: "EntityEvent"
+			returnType: "EntityEvent"
+			creturn: -> error "unsupported"
+			cpass: -> error "unsupported"
 		}
 	TextureWrap:
 		* "i32"
@@ -767,6 +773,8 @@ basicTypes =
 			convertTo: (name)-> "#{name}.ToValue()"
 			argType: "EaseType"
 			returnType: "EaseType"
+			creturn: -> error "unsupported"
+			cpass: -> error "unsupported"
 		}
 	Property:
 		* "i32"
@@ -783,6 +791,8 @@ basicTypes =
 			convertTo: (name)-> "#{name}.ToValue()"
 			argType: "Property"
 			returnType: "Property"
+			creturn: -> error "unsupported"
+			cpass: -> error "unsupported"
 		}
 	TextAlign:
 		* "i32"
@@ -795,8 +805,12 @@ basicTypes =
 		* -> error "unsupported"
 		* -> error "unsupported"
 		* --[[10: wa type]] {
-			convertFrom: (name)-> name
-			convertTo: (name)-> name
+			convertFrom: (name)-> "TextAlign{value: #{name}}"
+			convertTo: (name)-> "#{name}.ToValue()"
+			argType: "TextAlign"
+			returnType: "TextAlign"
+			creturn: -> error "unsupported"
+			cpass: -> error "unsupported"
 		}
 	BodyType:
 		* "i32"
@@ -813,6 +827,8 @@ basicTypes =
 			convertTo: (name)-> "#{name}.ToValue()"
 			argType: "BodyType"
 			returnType: "BodyType"
+			creturn: -> error "unsupported"
+			cpass: -> error "unsupported"
 		}
 	"Platformer::Relation":
 		* "i32"
@@ -825,8 +841,12 @@ basicTypes =
 		* -> error "unsupported"
 		* -> error "unsupported"
 		* --[[10: wa type]] {
-			convertFrom: (name)-> name
-			convertTo: (name)-> name
+			convertFrom: (name)-> "PlatformerRelation{value: #{name}}"
+			convertTo: (name)-> "#{name}.ToValue()"
+			argType: "PlatformerRelation"
+			returnType: "PlatformerRelation"
+			creturn: -> error "unsupported"
+			cpass: -> error "unsupported"
 		}
 	"Platformer::Behavior::Blackboard":
 		* "i64"
@@ -839,11 +859,11 @@ basicTypes =
 		* (fnArgId)-> "&crate::dora::platformer::behavior::Blackboard::from(stack#{fnArgId}.pop_i64().unwrap()).unwrap()"
 		* -> error "unsupported"
 		* --[[10: wa type]] {
-			convertFrom: (name)-> "*BlackboardFrom(#{name})"
+			convertFrom: (name)-> "*PlatformerBehaviorBlackboardFrom(#{name})"
 			convertTo: (name)-> "#{name}.GetRaw()"
-			argType: "Blackboard"
-			returnType: "Blackboard"
-			creturn: (name, fnArgId)-> "#{name}, _ := stack#{fnArgId}.PopI64()"
+			argType: "PlatformerBehaviorBlackboard"
+			returnType: "PlatformerBehaviorBlackboard"
+			creturn: (name, fnArgId)-> "#{name}_raw, _ := stack#{fnArgId}.PopI64()\n\t\t#{name} := *PlatformerBehaviorBlackboardFrom(#{name}_raw)"
 			cpass: -> error "unsupported"
 		}
 	"Platformer::UnitAction":
@@ -857,10 +877,40 @@ basicTypes =
 		* (fnArgId)-> "&crate::dora::platformer::UnitAction::from(stack#{fnArgId}.pop_i64().unwrap()).unwrap()"
 		* -> error "unsupported"
 		* --[[10: wa type]] {
-			convertFrom: (name)-> name
-			convertTo: (name)-> name
+			convertFrom: (name, isOptional)-> "#{isOptional and '' or '*'}PlatformerUnitActionFrom(#{name})"
+			convertTo: (name)-> "#{name}.GetRaw()"
+			argType: "PlatformerUnitAction"
+			returnType: "PlatformerUnitAction"
+			creturn: (name, fnArgId)-> "#{name}_raw, _ := stack#{fnArgId}.PopI64()\n\t\t#{name} := *PlatformerUnitActionFrom(#{name}_raw)"
+			cpass: -> error "unsupported"
+		}
+	"Platformer::TargetAllow":
+		* "i64"
+		* (name)-> "*r_cast<Platformer::TargetAllow*>(#{name})"
+		* (name)-> "r_cast<int64_t>(new Platformer::TargetAllow{#{name}})"
+		* "&crate::dora::platformer::TargetAllow"
+		* "crate::dora::platformer::TargetAllow"
+		* (name)-> "#{name}.raw()"
+		* (name)-> "crate::dora::platformer::TargetAllow::from(#{name})"
+		* -> error "unsupported"
+		* -> error "unsupported"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> "*PlatformerTargetAllowFrom(#{name})"
+			convertTo: (name)-> "#{name}.GetRaw()"
+			argType: "PlatformerTargetAllow"
+			returnType: "PlatformerTargetAllow"
+			creturn: -> error "unsupported"
+			cpass: -> error "unsupported"
 		}
 	void: {}
+
+
+toSnakeCase = (name)-> table.concat [sub\lower! for sub in (name\sub(1, 1)\lower! .. name\sub(2))\gsub("%d", "_%1")\gsub("%u", "_%1")\gsub("(%d)_", "%1")\gmatch "[^_]*"], "_"
+
+snakeToPascal = (snakeStr)->
+	snakeStr
+		\gsub "_(%a)", (letter) -> letter\upper!
+		\gsub "^%l", (first) -> first\upper!
 
 const WaTypeIndex = 10
 getWaType = (dataType, waName): t ->
@@ -870,13 +920,17 @@ getWaType = (dataType, waName): t ->
 	if not waName
 		if "*" == dataType\sub -1
 			waName = dataType\match "[^ \t*]+"
+	if waName
+		waName = snakeToPascal waName\gsub "::", "_"
+	elseif not t
+		print "missing type def:", dataType
 	t ??= {
 		convertFrom: (name)-> "*#{waName}From(#{name})"
 		convertTo: (name)-> "#{name}.GetRaw()"
 		argType: waName
 		returnType: waName and "#{waName}" or ""
 		creturn: (name, fnArgId)-> "#{name} := *#{waName}From(stack#{fnArgId}.PopObject().GetRaw())"
-		cpass: (name, fnArgId)-> "stack#{fnArgId}.Push(#{name})"
+		cpass: (name, fnArgId)-> "stack#{fnArgId}.Push(#{name}.Object)"
 	}
 
 lastPos = 1
@@ -934,13 +988,6 @@ with io.open "Dora.h", "r"
 	\close!
 
 result = match File, codes
-
-toSnakeCase = (name)-> table.concat [sub\lower! for sub in (name\sub(1, 1)\lower! .. name\sub(2))\gsub("%d", "_%1")\gsub("%u", "_%1")\gsub("(%d)_", "%1")\gmatch "[^_]*"], "_"
-
-snakeToPascal = (snakeStr)->
-	snakeStr
-		\gsub "_(%a)", (letter) -> letter\upper!
-		\gsub "^%l", (first) -> first\upper!
 
 if not result
 	if lastPos > #codes
@@ -1010,7 +1057,7 @@ else
 			table.remove moduleScopes, #moduleScopes
 			continue
 		[_, _, clsNames] = cls
-		{clsName, clsNewName} = clsNames
+		[clsName, clsNewName] = clsNames
 		clsNewName or= clsName
 		if #moduleScopes > 0
 			moduleScope = table.concat moduleScopes, "::"
@@ -1042,6 +1089,7 @@ else
 		if clsParent
 			clsParent = nameMap[clsParent] or clsParent
 		clsNewName or= clsName
+		const waNewName = (cppNamespace .. clsNewName)\gsub "::", ""
 		isSingleton = false
 		isObject = false
 		isValue = false
@@ -1102,40 +1150,43 @@ impl I#{clsNewName} for #{clsNewName} { }"
 		unless isTrait
 			rustBinding[] = "impl #{clsNewName} {"
 		waBinding[] = if isObject
-			"type #{clsNewName} struct { #{clsParent\sub 2} }
-func #{clsNewName}From(raw: i64) => *#{clsNewName} {
+			"type #{waNewName} struct { #{clsParent\sub 2} }
+func #{waNewName}From(raw: i64) => *#{waNewName} {
 	if raw == 0 {
 		return nil
 	}
-	object := #{clsNewName}{}
+	object := #{waNewName}{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)
 	result := &object
 	return result
 }
-func #{clsNewName}.GetTypeId() => i32 {
+func #{waNewName}.GetTypeId() => i32 {
 	return #{namespace}#{clsNewNameL}_type()
 }"
 		else
 			if isStatic or isSingleton
-				"type _#{clsNewName} struct { }\nglobal #{clsNewName} = _#{clsNewName}{}"
+				"type _#{waNewName} struct { }\nglobal #{waNewName} = _#{waNewName}{}"
 			else
-				finalizer = toSnakeCase "#{clsNewName}Finalizer"
-				"type #{clsNewName} struct { raw: *i64 }
-func #{clsNewName}.GetRaw() => i64 {
-	return *this.raw
-}
-func #{finalizer}(ptr: u32) {
+				finalizer = toSnakeCase "#{waNewName}Finalizer"
+				finalizerWrapper = if isValue
+					"func #{finalizer}(ptr: u32) {
 	#{namespace}#{clsNewNameL}_release(GetPtr(ptr))
 }
-func #{clsNewName}From(raw: i64) => *#{clsNewName} {
+"
+				else ""
+				finalizerCall = if isValue then "	setFinalizer(item.raw, #{finalizer})\n" else ""
+				"type #{waNewName} struct { raw: *i64 }
+func #{waNewName}.GetRaw() => i64 {
+	return *this.raw
+}
+#{finalizerWrapper}func #{waNewName}From(raw: i64) => *#{waNewName} {
 	if raw == 0 {
 		return nil
 	}
-	item := #{clsNewName}{}
+	item := #{waNewName}{}
 	item.raw = &raw
-	setFinalizer(item.raw, #{finalizer})
-	result := &item
+#{finalizerCall}	result := &item
 	return result
 }"
 		rustExtern[] = "extern \"C\" {"
@@ -1178,7 +1229,7 @@ func #{clsNewName}From(raw: i64) => *#{clsNewName} {
 			[itemType,] = clsItem
 			switch itemType
 				when "field"
-					[_, docs, labels, dataType, name, newName] = clsItem
+					const [_, docs, labels, dataType, name, newName] = clsItem
 					funcName = name\sub(1, 1)\lower! .. name\sub 2
 					funcName = table.concat [sub\lower! for sub in funcName\gsub("%u", "_%1")\gmatch "[^_]*"], "_"
 					funcNewName = newName or name
@@ -1211,9 +1262,11 @@ func #{clsNewName}From(raw: i64) => *#{clsNewName} {
 						if funcNewName\sub(1, 1) == "_"
 							pub = "pub(crate) "
 					rustType = basicTypes[dataType]
+					waName = nil
 					if rustType == nil and "*" == dataType\sub -1
 						dataTypeName = dataType\match "[^ \t*]+"
 						rustName = nameMap[dataTypeName] or dataTypeName
+						waName = rustName
 						rustType = getObjectType dataTypeName, rustName, false, isOptional
 						if not isReadonly and not interfaces[rustName]
 							objectUsed = nil
@@ -1261,13 +1314,13 @@ func #{clsNewName}From(raw: i64) => *#{clsNewName} {
 								slfDecl = isStatic and "" or "&mut self, "
 								slf = isStatic and "" or "self.raw(), "
 								"#{docText}\t#{pub}fn #{rustSetterName}(#{slfDecl}val: #{rtTypeIn or rt}) {\n\t\tunsafe { #{cppSetterName}(#{slf}#{rtCast and rtCast('val') or 'val'}) };\n\t}"
-							waType = getWaType dataType, rustName
+							waType = getWaType dataType, waName
 							waBinding[] = if isSingleton
-								"func _#{clsNewName}.#{waSetterName}(val: #{waType.argType}) {\n\t#{cppSetterName}(#{waType.convertTo 'val'})\n}"
+								"func _#{waNewName}.#{waSetterName}(val: #{waType.argType}) {\n\t#{cppSetterName}(#{waType.convertTo 'val'})\n}"
 							elseif isStatic
-								"func #{clsNewName}#{waSetterName}(val: #{waType.argType}) {\n\t#{cppSetterName}(#{waType.convertTo 'val'})\n}"
+								"func #{waNewName}#{waSetterName}(val: #{waType.argType}) {\n\t#{cppSetterName}(#{waType.convertTo 'val'})\n}"
 							else
-								"func #{clsNewName}.#{waSetterName}(val: #{waType.argType}) {\n\t#{cppSetterName}(*this.raw, #{waType.convertTo 'val'})\n}"
+								"func #{waNewName}.#{waSetterName}(val: #{waType.argType}) {\n\t#{cppSetterName}(*this.raw, #{waType.convertTo 'val'})\n}"
 						docText = if #docs > 0
 							text = table.concat docs, '\n\t'
 							'\t' .. text\sub(1, 4) .. 'Gets' .. text\sub(4) .. '\n'
@@ -1313,7 +1366,7 @@ func #{clsNewName}From(raw: i64) => *#{clsNewName} {
 							slf = isStatic and "" or "self.raw()"
 							item = "#{cppGetterName}(#{slf})"
 							"#{docText}\t#{pub}fn #{rustGetterName}(#{slfDecl}) -> #{rtTypeOut or rt} {\n\t\treturn unsafe { #{rtCastFrom and rtCastFrom(item) or item} };\n\t}"
-						waType = assert getWaType dataType, rustName
+						waType = assert getWaType dataType, waName
 						waReturnType = isOptional and "*#{waType.returnType}" or waType.returnType
 						waReturn = (item) ->
 							if isOptional
@@ -1327,18 +1380,18 @@ func #{clsNewName}From(raw: i64) => *#{clsNewName} {
 								"\treturn #{waType.convertFrom item}"
 						waBinding[] = if isSingleton
 							item = "#{cppGetterName}()"
-							"func _#{clsNewName}.#{waGetterName}() => #{waReturnType} {\n#{waReturn item}\n}"
+							"func _#{waNewName}.#{waGetterName}() => #{waReturnType} {\n#{waReturn item}\n}"
 						elseif isStatic
 							item = "#{cppGetterName}()"
-							"func #{clsNewName}#{waGetterName}() => #{waReturnType} {\n#{waReturn item}\n}"
+							"func #{waNewName}#{waGetterName}() => #{waReturnType} {\n#{waReturn item}\n}"
 						else
 							item = "#{cppGetterName}(*this.raw)"
-							"func #{clsNewName}.#{waGetterName}() => #{waReturnType} {\n#{waReturn item}\n}"
+							"func #{waNewName}.#{waGetterName}() => #{waReturnType} {\n#{waReturn item}\n}"
 					else
 						error "\"#{dataType}\" is not supported."
 				when "method"
 					funcCount += 1
-					[_, docs, labels, dataType, name, newName, args, constFlag] = clsItem
+					const [_, docs, labels, dataType, name, newName, args, constFlag] = clsItem
 					funcNewName = newName or name
 					funcName = name\sub(1, 1)\lower! .. name\sub 2
 					funcName = table.concat [sub\lower! for sub in funcName\gsub("%u", "_%1")\gmatch "[^_]*"], "_"
@@ -1373,12 +1426,15 @@ func #{clsNewName}From(raw: i64) => *#{clsNewName} {
 						if funcNewName\sub(1,1) == "_"
 							pub = "pub(crate) "
 					rustType = basicTypes[dataType]
+					waName = nil
 					if rustType == nil and "*" == dataType\sub -1
 						dataTypeName = dataType\match "[^ \t*]+"
 						rustName = if isCreate
+							waName = (cppNamespace .. clsNewName)\gsub "::", ""
 							clsNewName
 						else
-							nameMap[dataTypeName] or dataTypeName
+							waName = nameMap[dataTypeName] or dataTypeName
+							waName
 						rustType = getObjectType dataTypeName, rustName, isCreate, isOptional
 					if rustType
 						[rt, cast, castFrom, _, rtTypeOut, _, rtCastFrom] = rustType
@@ -1394,9 +1450,9 @@ func #{clsNewName}From(raw: i64) => *#{clsNewName} {
 									rustTypeA = basicTypes[argType]
 									if rustTypeA == nil and "*" == argType\sub -1
 										argTypeName = argType\match "[^ \t*]+"
-										rustName = nameMap[argTypeName] or argTypeName
-										rustTypeA = getObjectType argTypeName, rustName
-										objectUsed = nil unless interfaces[rustName]
+										rustArgName = nameMap[argTypeName] or argTypeName
+										rustTypeA = getObjectType argTypeName, rustArgName
+										objectUsed = nil unless interfaces[rustArgName]
 									if rustTypeA
 										[rtA, castA, _, rtTypeInA, _, rtCastA] = rustTypeA
 										cppTypeA = cppTypes[rtA]
@@ -1476,8 +1532,8 @@ func #{clsNewName}From(raw: i64) => *#{clsNewName} {
 									frRetType = basicTypes[freturnType]
 									if frRetType == nil and "*" == freturnType\sub -1
 										freturnType = freturnType\sub 1, -2
-										rustName = nameMap[freturnType] or freturnType
-										frRetType = getObjectType freturnType, rustName
+										frustName = nameMap[freturnType] or freturnType
+										frRetType = getObjectType freturnType, frustName
 									if frRetType
 										{frt, _2, _3, _4, frtTypeOut, _6, _7, _8, frPush} = frRetType
 										callbackType = if frtTypeOut
@@ -1592,7 +1648,7 @@ func #{clsNewName}From(raw: i64) => *#{clsNewName} {
 								else
 									''
 								"#{docText}\t#{pub}fn #{rustFuncName}(#{argRtInDefs})#{rtOut and ' -> ' .. rtOut or ''} {\n#{argRtPrepare}\t\tunsafe { #{prefix}#{rtCastFrom and rtCastFrom(item, isOptional) or item}; }\n\t}"
-						waType = getWaType dataType, rustName
+						waType = getWaType dataType, waName
 						waReturnType = if waType
 							isOptional and " => *#{waType.returnType}" or do
 								waType.returnType == "" and "" or " => #{waType.returnType}"
@@ -1615,7 +1671,9 @@ func #{clsNewName}From(raw: i64) => *#{clsNewName} {
 							[argKind, argType, argName] = arg
 							argName = toSnakeCase argName
 							switch argKind when "variable"
-								wType = getWaType argType
+								fargTypeName = argType\match "[^ \t*]+"
+								fargTypeName = nameMap[fargTypeName] or fargTypeName
+								wType = getWaType argType, fargTypeName
 								{
 									:argName 
 									argType: wType.argType
@@ -1630,15 +1688,19 @@ func #{clsNewName}From(raw: i64) => *#{clsNewName} {
 								[_, func, fname] = arg
 								fname = toSnakeCase fname
 								[freturnType, fargs] = func
-								rtpObj = getWaType(freturnType)
+								freturnTypeName = freturnType\match "[^ \t*]+"
+								freturnName = nameMap[freturnTypeName] or freturnTypeName
+								rtpObj = getWaType freturnType, freturnName
 								rtp = freturnType == "void" and "" or " => #{rtpObj.returnType}"
-								callbackConverted = "func_id#{funcArgCount}, *stack#{funcArgCount}.raw"
+								callbackConverted = "func_id#{funcArgCount}"
+								callbackConverted ..= ", *stack#{funcArgCount}.raw" if #fargs > 0 or rtp ~= ""
 								argTypeStrs = []
 								popArgs = []
 								popArgNames = []
 								for farg in *fargs
 									[_, fargType, fargName] = farg
-									atp = switch fargType\match "[^ \t*]+"
+									fargTypeName = fargType\match "[^ \t*]+"
+									atp = switch fargTypeName
 										when "Event"
 											{
 												convertFrom: -> error "unsupported"
@@ -1648,16 +1710,10 @@ func #{clsNewName}From(raw: i64) => *#{clsNewName} {
 												creturn: (name, fnArgId)-> "#{name} := stack#{fnArgId}"
 												cpass: -> error "unsupported"
 											}
-										when "Platformer::Behavior::Blackboard", "Platformer::UnitAction"
-											getWaType fargType
-										when "DBRecord"
-											getWaType fargType
-										when "MLQState", "MLQAction"
-											getWaType fargType
 										when nil
 											error "\"#{fargType}\" is not supported."
 										else
-											getWaType fargType
+											getWaType fargType, nameMap[fargTypeName] or fargTypeName
 									argTypeStrs[] = "#{toSnakeCase fargName}: #{atp.argType}"
 									if atp.creturn == nil
 										print fargType
@@ -1670,8 +1726,9 @@ func #{clsNewName}From(raw: i64) => *#{clsNewName} {
 									"#{fname}(#{table.concat popArgNames, ', ' })"
 								else
 									"result_ := #{fname}(#{table.concat popArgNames, ', ' })\n\t\t#{rtpObj.cpass 'result_', fnArgId}"
-								prepareArgs[] = "	stack#{funcArgCount} := NewCallStack()
-	func_id#{funcArgCount} := PushFunction(func() {
+								if #fargs > 0 or rtp ~= ""
+									prepareArgs[] = "	stack#{funcArgCount} := NewCallStack()"
+								prepareArgs[] = "	func_id#{funcArgCount} := PushFunction(func() {
 #{popArgStr}		#{callFunc}
 	})"
 								callbackName = fname
@@ -1689,26 +1746,27 @@ func #{clsNewName}From(raw: i64) => *#{clsNewName} {
 						prepareStr = prepareStr == "" and "" or "#{prepareStr}\n"
 						waBinding[] = if isSingleton
 							item = "#{cppFuncName}(#{argsConverted})"
-							"func _#{clsNewName}.#{waFuncName}(#{argsList})#{waReturnType} {
+							"func _#{waNewName}.#{waFuncName}(#{argsList})#{waReturnType} {
 #{prepareStr}	#{waReturn item}
 }"
 						elseif isCreate
+							dealOptional = isOptional and "if raw == 0 {\n\t\treturn nil\n\t}\n\tobject := #{waNewName}{}" or "object := #{waNewName}{}"
 							waFuncName = if funcNewName == "new" then "" else snakeToPascal funcNewName
-							"func New#{clsNewName}#{waFuncName}(#{argsList})#{waReturnType} {
-	object := #{clsNewName}{}
-	raw := #{cppFuncName}(#{argsConverted})
+							"func New#{waNewName}#{waFuncName}(#{argsList})#{waReturnType} {
+#{prepareStr}	raw := #{cppFuncName}(#{argsConverted})
+	#{dealOptional}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)
 	return #{isOptional and '&object' or 'object'}
 }"
 						elseif isStatic
 							item = "#{cppFuncName}(#{argsConverted})"
-							"func #{clsNewName}#{waFuncName}(#{argsList})#{waReturnType} {
+							"func #{waNewName}#{waFuncName}(#{argsList})#{waReturnType} {
 #{prepareStr}	#{waReturn item}
 }"
 						else
 							item = "#{cppFuncName}(*this.raw#{argsConverted == "" and "" or ", " .. argsConverted})"
-							"func #{clsNewName}.#{waFuncName}(#{argsList})#{waReturnType} {
+							"func #{waNewName}.#{waFuncName}(#{argsList})#{waReturnType} {
 #{prepareStr}	#{waReturn item}
 }"
 					else
@@ -1744,42 +1802,13 @@ func #{clsNewName}From(raw: i64) => *#{clsNewName} {
 			\write table.concat rustExtern, "\n"
 			\write "\n"
 			\write table.concat rustBinding, "\n"
-		close _f3 = with io.open "../dora-wa/vendor/dora/#{moduleScope ~= '' and moduleScope .. "/" .. moduleName or moduleName}.wa", "w"
+		moduleScope = table.concat [toSnakeCase(mod) for mod in *moduleScopes], "_"
+		close _f3 = with io.open "../dora-wa/vendor/dora/#{moduleScope ~= '' and moduleScope .. "_" .. moduleName or moduleName}.wa", "w"
 			\write licenseText
 			\write "\n\n"
 			\write table.concat waExtern, "\n"
-			if moduleName in [
-				"array"
-				"dictionary"
-				"app"
-				"node"
-				"scheduler"
-				"action_def"
-				"action"
-				"grabber"
-				"camera"
-				"sprite_effect"
-				"effect"
-				"pass"
-				"sprite"
-				"rect"
-				"texture_2d"
-				"ease"
-				"path"
-				"content"
-				"work_book"
-				"work_sheet"
-				"body_def"
-				"body"
-				"physics_world"
-				"sensor"
-				"fixture_def"
-				"buffer"
-				"c_45"
-				"cache"
-			]
-				\write "\n"
-				\write table.concat waBinding, "\n"
+			\write "\n"
+			\write table.concat waBinding, "\n"
 		rustExtern = []
 		rustBinding = []
 		waExtern = []

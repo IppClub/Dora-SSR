@@ -152,6 +152,39 @@ func ToDoraActionDefBuf(v: *[]ActionDef) => i64 {
 	return ptr
 }
 
+func ToDoraVertexColorBuf(v: *[]VertexColor) => i64 {
+	length := len(*v)
+	ptr := buf_new_i64(i32(length))
+	vecs := make([]i64, length)
+	for i := 0; i < length; i++ {
+		vecs[i] = (*v)[i].GetRaw()
+	}
+	buf_write_ptr(ptr, waI64SliceToPtr(vecs))
+	return ptr
+}
+
+func ToDoraPlatformerBehaviorTreeBuf(v: *[]PlatformerBehaviorTree) => i64 {
+	length := len(*v)
+	ptr := buf_new_i64(i32(length))
+	vecs := make([]i64, length)
+	for i := 0; i < length; i++ {
+		vecs[i] = (*v)[i].GetRaw()
+	}
+	buf_write_ptr(ptr, waI64SliceToPtr(vecs))
+	return ptr
+}
+
+func ToDoraPlatformerDecisionTreeBuf(v: *[]PlatformerDecisionTree) => i64 {
+	length := len(*v)
+	ptr := buf_new_i64(i32(length))
+	vecs := make([]i64, length)
+	for i := 0; i < length; i++ {
+		vecs[i] = (*v)[i].GetRaw()
+	}
+	buf_write_ptr(ptr, waI64SliceToPtr(vecs))
+	return ptr
+}
+
 func FromDoraI32Buf(v: i64) => *[]i32 {
 	length := buf_len(v)
 	buf := make([]i32, length)
@@ -198,6 +231,17 @@ func FromDoraVec2Buf(v: i64) => *[]Vec2 {
 	vecs := make([]Vec2, length)
 	for i := 0; i < int(length); i++ {
 		vecs[i] = Vec2FromValue(buf[i])
+	}
+	return &vecs
+}
+
+func FromDoraVertexColorBuf(v: i64) => *[]VertexColor {
+	length := buf_len(v)
+	buf := make([]i64, length)
+	buf_read_ptr(waI64SliceToPtr(buf), v)
+	vecs := make([]VertexColor, length)
+	for i := 0; i < int(length); i++ {
+		vecs[i] = *VertexColorFrom(buf[i])
 	}
 	return &vecs
 }
@@ -1468,3 +1512,48 @@ func BodyType.ToValue() => i32 {
 global BodyTypeDynamic = BodyType{value: 0}
 global BodyTypeStatic = BodyType{value: 1}
 global BodyTypeKinematic = BodyType{value: 2}
+
+/* EntityEvent */
+
+type EntityEvent :struct {
+	value: i32
+}
+
+func EntityEvent.ToValue() => i32 {
+	return this.value
+}
+
+global EntityEventAdd = EntityEvent{value: 1}
+global EntityEventChange = EntityEvent{value: 2}
+global EntityEventAddOrChange = EntityEvent{value: 3}
+global EntityEventRemove = EntityEvent{value: 4}
+
+/* TextAlign */
+
+type TextAlign :struct {
+	value: i32
+}
+
+func TextAlign.ToValue() => i32 {
+	return this.value
+}
+
+global TextAlignLeft = TextAlign{value: 0}
+global TextAlignCenter = TextAlign{value: 1}
+global TextAlignRight = TextAlign{value: 2}
+
+/* PlatformerRelation */
+
+type PlatformerRelation :struct {
+	value: i32
+}
+
+func PlatformerRelation.ToValue() => i32 {
+	return this.value
+}
+
+global PlatformerRelationUnknown = PlatformerRelation{value: 0}
+global PlatformerRelationFriend = PlatformerRelation{value: 1}
+global PlatformerRelationNeutral = PlatformerRelation{value: 2}
+global PlatformerRelationEnemy = PlatformerRelation{value: 4}
+global PlatformerRelationAny = PlatformerRelation{value: 7}

@@ -8,3 +8,20 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #wa:import dora vgpaint_release
 func vgpaint_release(raw: i64)
+type VGPaint struct { raw: *i64 }
+func VGPaint.GetRaw() => i64 {
+	return *this.raw
+}
+func v_g_paint_finalizer(ptr: u32) {
+	vgpaint_release(GetPtr(ptr))
+}
+func VGPaintFrom(raw: i64) => *VGPaint {
+	if raw == 0 {
+		return nil
+	}
+	item := VGPaint{}
+	item.raw = &raw
+	setFinalizer(item.raw, v_g_paint_finalizer)
+	result := &item
+	return result
+}

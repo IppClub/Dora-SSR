@@ -220,8 +220,8 @@ func BodyDef.AttachDiskSensor(tag: i32, radius: f32) {
 	bodydef_attach_disk_sensor(*this.raw, tag, radius)
 }
 func NewBodyDef() => BodyDef {
-	object := BodyDef{}
 	raw := bodydef_new()
+	object := BodyDef{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)
 	return object

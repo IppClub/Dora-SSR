@@ -50,3 +50,104 @@ func grid_with_texture_rect(texture: i64, texture_rect: i64, grid_x: i32, grid_y
 func grid_with_texture(texture: i64, grid_x: i32, grid_y: i32) => i64
 #wa:import dora grid_with_file
 func grid_with_file(clip_str: i64, grid_x: i32, grid_y: i32) => i64
+type Grid struct { Node }
+func GridFrom(raw: i64) => *Grid {
+	if raw == 0 {
+		return nil
+	}
+	object := Grid{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	result := &object
+	return result
+}
+func Grid.GetTypeId() => i32 {
+	return grid_type()
+}
+func Grid.GetGridX() => i32 {
+	return grid_get_grid_x(*this.raw)
+}
+func Grid.GetGridY() => i32 {
+	return grid_get_grid_y(*this.raw)
+}
+func Grid.SetDepthWrite(val: bool) {
+	grid_set_depth_write(*this.raw, ToDoraBool(val))
+}
+func Grid.IsDepthWrite() => bool {
+	return grid_is_depth_write(*this.raw) != 0
+}
+func Grid.SetBlendFunc(blend_func: BlendFunc) {
+	grid__set_blend_func(*this.raw, blend_func.ToValue())
+}
+func Grid.GetBlendFunc() => BlendFunc {
+	return BlendFuncFrom(grid__get_blend_func(*this.raw))
+}
+func Grid.SetEffect(val: SpriteEffect) {
+	grid_set_effect(*this.raw, val.GetRaw())
+}
+func Grid.GetEffect() => SpriteEffect {
+	return *SpriteEffectFrom(grid_get_effect(*this.raw))
+}
+func Grid.SetTextureRect(val: Rect) {
+	grid_set_texture_rect(*this.raw, val.GetRaw())
+}
+func Grid.GetTextureRect() => Rect {
+	return *RectFrom(grid_get_texture_rect(*this.raw))
+}
+func Grid.SetTexture(val: Texture2D) {
+	grid_set_texture(*this.raw, val.GetRaw())
+}
+func Grid.GetTexture() => *Texture2D {
+	ptr_ := grid_get_texture(*this.raw)
+	if ptr_ == 0 {
+		return nil
+	}
+	obj_ := *Texture2DFrom(ptr_)
+	return &obj_
+}
+func Grid.SetPos(x: i32, y: i32, pos: Vec2, z: f32) {
+	grid_set_pos(*this.raw, x, y, pos.ToValue(), z)
+}
+func Grid.GetPos(x: i32, y: i32) => Vec2 {
+	return Vec2FromValue(grid_get_pos(*this.raw, x, y))
+}
+func Grid.SetColor(x: i32, y: i32, color: Color) {
+	grid_set_color(*this.raw, x, y, color.ToARGB())
+}
+func Grid.GetColor(x: i32, y: i32) => Color {
+	return ColorFromARGB(grid_get_color(*this.raw, x, y))
+}
+func Grid.MoveUv(x: i32, y: i32, offset: Vec2) {
+	grid_move_uv(*this.raw, x, y, offset.ToValue())
+}
+func NewGrid(width: f32, height: f32, grid_x: i32, grid_y: i32) => Grid {
+	raw := grid_new(width, height, grid_x, grid_y)
+	object := Grid{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return object
+}
+func NewGridWithTextureRect(texture: Texture2D, texture_rect: Rect, grid_x: i32, grid_y: i32) => Grid {
+	raw := grid_with_texture_rect(texture.GetRaw(), texture_rect.GetRaw(), grid_x, grid_y)
+	object := Grid{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return object
+}
+func NewGridWithTexture(texture: Texture2D, grid_x: i32, grid_y: i32) => Grid {
+	raw := grid_with_texture(texture.GetRaw(), grid_x, grid_y)
+	object := Grid{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return object
+}
+func NewGridWithFile(clip_str: string, grid_x: i32, grid_y: i32) => *Grid {
+	raw := grid_with_file(ToDoraString(clip_str), grid_x, grid_y)
+	if raw == 0 {
+		return nil
+	}
+	object := Grid{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return &object
+}

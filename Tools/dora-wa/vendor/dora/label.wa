@@ -70,3 +70,127 @@ func label_get_automatic_width() => f32
 func label_new(font_name: i64, font_size: i32, sdf: i32) => i64
 #wa:import dora label_with_str
 func label_with_str(font_str: i64) => i64
+type Label struct { Node }
+func LabelFrom(raw: i64) => *Label {
+	if raw == 0 {
+		return nil
+	}
+	object := Label{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	result := &object
+	return result
+}
+func Label.GetTypeId() => i32 {
+	return label_type()
+}
+func Label.SetAlignment(val: TextAlign) {
+	label_set_alignment(*this.raw, val.ToValue())
+}
+func Label.GetAlignment() => TextAlign {
+	return TextAlign{value: label_get_alignment(*this.raw)}
+}
+func Label.SetAlphaRef(val: f32) {
+	label_set_alpha_ref(*this.raw, val)
+}
+func Label.GetAlphaRef() => f32 {
+	return label_get_alpha_ref(*this.raw)
+}
+func Label.SetTextWidth(val: f32) {
+	label_set_text_width(*this.raw, val)
+}
+func Label.GetTextWidth() => f32 {
+	return label_get_text_width(*this.raw)
+}
+func Label.SetSpacing(val: f32) {
+	label_set_spacing(*this.raw, val)
+}
+func Label.GetSpacing() => f32 {
+	return label_get_spacing(*this.raw)
+}
+func Label.SetLineGap(val: f32) {
+	label_set_line_gap(*this.raw, val)
+}
+func Label.GetLineGap() => f32 {
+	return label_get_line_gap(*this.raw)
+}
+func Label.SetOutlineColor(val: Color) {
+	label_set_outline_color(*this.raw, val.ToARGB())
+}
+func Label.GetOutlineColor() => Color {
+	return ColorFromARGB(label_get_outline_color(*this.raw))
+}
+func Label.SetOutlineWidth(val: f32) {
+	label_set_outline_width(*this.raw, val)
+}
+func Label.GetOutlineWidth() => f32 {
+	return label_get_outline_width(*this.raw)
+}
+func Label.SetSmooth(val: Vec2) {
+	label_set_smooth(*this.raw, val.ToValue())
+}
+func Label.GetSmooth() => Vec2 {
+	return Vec2FromValue(label_get_smooth(*this.raw))
+}
+func Label.SetText(val: string) {
+	label_set_text(*this.raw, ToDoraString(val))
+}
+func Label.GetText() => string {
+	return FromDoraString(label_get_text(*this.raw))
+}
+func Label.SetBlendFunc(blend_func: BlendFunc) {
+	label__set_blend_func(*this.raw, blend_func.ToValue())
+}
+func Label.GetBlendFunc() => BlendFunc {
+	return BlendFuncFrom(label__get_blend_func(*this.raw))
+}
+func Label.SetDepthWrite(val: bool) {
+	label_set_depth_write(*this.raw, ToDoraBool(val))
+}
+func Label.IsDepthWrite() => bool {
+	return label_is_depth_write(*this.raw) != 0
+}
+func Label.SetBatched(val: bool) {
+	label_set_batched(*this.raw, ToDoraBool(val))
+}
+func Label.IsBatched() => bool {
+	return label_is_batched(*this.raw) != 0
+}
+func Label.SetEffect(val: SpriteEffect) {
+	label_set_effect(*this.raw, val.GetRaw())
+}
+func Label.GetEffect() => SpriteEffect {
+	return *SpriteEffectFrom(label_get_effect(*this.raw))
+}
+func Label.GetCharacterCount() => i32 {
+	return label_get_character_count(*this.raw)
+}
+func Label.GetCharacter(index: i32) => *Sprite {
+	ptr_ := label_get_character(*this.raw, index)
+	if ptr_ == 0 {
+		return nil
+	}
+	obj_ := *SpriteFrom(ptr_)
+	return &obj_
+}
+func LabelGetAutomaticWidth() => f32 {
+	return label_get_automatic_width()
+}
+func NewLabel(font_name: string, font_size: i32, sdf: bool) => *Label {
+	raw := label_new(ToDoraString(font_name), font_size, ToDoraBool(sdf))
+	if raw == 0 {
+		return nil
+	}
+	object := Label{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return &object
+}
+func LabelWithStr(font_str: string) => *Label {
+	ptr_ := label_with_str(ToDoraString(font_str))
+	if ptr_ == 0 {
+		return nil
+	}
+	obj_ := *LabelFrom(ptr_)
+	return &obj_
+}

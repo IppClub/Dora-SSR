@@ -181,8 +181,8 @@ func Body.OnContactFilter(filter: func(body: Body) => bool) {
 	body_on_contact_filter(*this.raw, func_id0, *stack0.raw)
 }
 func NewBody(def: BodyDef, world: PhysicsWorld, pos: Vec2, rot: f32) => Body {
-	object := Body{}
 	raw := body_new(def.GetRaw(), world.GetRaw(), pos.ToValue(), rot)
+	object := Body{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)
 	return object

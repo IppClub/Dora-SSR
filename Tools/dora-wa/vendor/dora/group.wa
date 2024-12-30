@@ -16,3 +16,49 @@ func entitygroup_get_first(slf: i64) => i64
 func entitygroup_find(slf: i64, func0: i32, stack0: i64) => i64
 #wa:import dora entitygroup_new
 func entitygroup_new(components: i64) => i64
+type Group struct { Object }
+func GroupFrom(raw: i64) => *Group {
+	if raw == 0 {
+		return nil
+	}
+	object := Group{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	result := &object
+	return result
+}
+func Group.GetTypeId() => i32 {
+	return group_type()
+}
+func Group.GetCount() => i32 {
+	return entitygroup_get_count(*this.raw)
+}
+func Group.GetFirst() => *Entity {
+	ptr_ := entitygroup_get_first(*this.raw)
+	if ptr_ == 0 {
+		return nil
+	}
+	obj_ := *EntityFrom(ptr_)
+	return &obj_
+}
+func Group.Find(predicate: func(e: Entity) => bool) => *Entity {
+	stack0 := NewCallStack()
+	func_id0 := PushFunction(func() {
+		e := *EntityFrom(stack0.PopObject().GetRaw())
+		result_ := predicate(e)
+		stack0.Push(result_)
+	})
+	ptr_ := entitygroup_find(*this.raw, func_id0, *stack0.raw)
+	if ptr_ == 0 {
+		return nil
+	}
+	obj_ := *EntityFrom(ptr_)
+	return &obj_
+}
+func NewGroup(components: *[]string) => Group {
+	raw := entitygroup_new(ToDoraStrBuf(components))
+	object := Group{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return object
+}

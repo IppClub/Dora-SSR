@@ -36,3 +36,63 @@ func joint_get_world(slf: i64) => i64
 func joint_destroy(slf: i64)
 #wa:import dora joint_new
 func joint_new(def: i64, item_dict: i64) => i64
+type Joint struct { Object }
+func JointFrom(raw: i64) => *Joint {
+	if raw == 0 {
+		return nil
+	}
+	object := Joint{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	result := &object
+	return result
+}
+func Joint.GetTypeId() => i32 {
+	return joint_type()
+}
+func JointDistance(collision: bool, body_a: Body, body_b: Body, anchor_a: Vec2, anchor_b: Vec2, frequency: f32, damping: f32) => Joint {
+	return *JointFrom(joint_distance(ToDoraBool(collision), body_a.GetRaw(), body_b.GetRaw(), anchor_a.ToValue(), anchor_b.ToValue(), frequency, damping))
+}
+func JointFriction(collision: bool, body_a: Body, body_b: Body, world_pos: Vec2, max_force: f32, max_torque: f32) => Joint {
+	return *JointFrom(joint_friction(ToDoraBool(collision), body_a.GetRaw(), body_b.GetRaw(), world_pos.ToValue(), max_force, max_torque))
+}
+func JointGear(collision: bool, joint_a: Joint, joint_b: Joint, ratio: f32) => Joint {
+	return *JointFrom(joint_gear(ToDoraBool(collision), joint_a.GetRaw(), joint_b.GetRaw(), ratio))
+}
+func JointSpring(collision: bool, body_a: Body, body_b: Body, linear_offset: Vec2, angular_offset: f32, max_force: f32, max_torque: f32, correction_factor: f32) => Joint {
+	return *JointFrom(joint_spring(ToDoraBool(collision), body_a.GetRaw(), body_b.GetRaw(), linear_offset.ToValue(), angular_offset, max_force, max_torque, correction_factor))
+}
+func JointMoveTarget(collision: bool, body: Body, target_pos: Vec2, max_force: f32, frequency: f32, damping: f32) => MoveJoint {
+	return *MoveJointFrom(joint_move_target(ToDoraBool(collision), body.GetRaw(), target_pos.ToValue(), max_force, frequency, damping))
+}
+func JointPrismatic(collision: bool, body_a: Body, body_b: Body, world_pos: Vec2, axis_angle: f32, lower_translation: f32, upper_translation: f32, max_motor_force: f32, motor_speed: f32) => MotorJoint {
+	return *MotorJointFrom(joint_prismatic(ToDoraBool(collision), body_a.GetRaw(), body_b.GetRaw(), world_pos.ToValue(), axis_angle, lower_translation, upper_translation, max_motor_force, motor_speed))
+}
+func JointPulley(collision: bool, body_a: Body, body_b: Body, anchor_a: Vec2, anchor_b: Vec2, ground_anchor_a: Vec2, ground_anchor_b: Vec2, ratio: f32) => Joint {
+	return *JointFrom(joint_pulley(ToDoraBool(collision), body_a.GetRaw(), body_b.GetRaw(), anchor_a.ToValue(), anchor_b.ToValue(), ground_anchor_a.ToValue(), ground_anchor_b.ToValue(), ratio))
+}
+func JointRevolute(collision: bool, body_a: Body, body_b: Body, world_pos: Vec2, lower_angle: f32, upper_angle: f32, max_motor_torque: f32, motor_speed: f32) => MotorJoint {
+	return *MotorJointFrom(joint_revolute(ToDoraBool(collision), body_a.GetRaw(), body_b.GetRaw(), world_pos.ToValue(), lower_angle, upper_angle, max_motor_torque, motor_speed))
+}
+func JointRope(collision: bool, body_a: Body, body_b: Body, anchor_a: Vec2, anchor_b: Vec2, max_length: f32) => Joint {
+	return *JointFrom(joint_rope(ToDoraBool(collision), body_a.GetRaw(), body_b.GetRaw(), anchor_a.ToValue(), anchor_b.ToValue(), max_length))
+}
+func JointWeld(collision: bool, body_a: Body, body_b: Body, world_pos: Vec2, frequency: f32, damping: f32) => Joint {
+	return *JointFrom(joint_weld(ToDoraBool(collision), body_a.GetRaw(), body_b.GetRaw(), world_pos.ToValue(), frequency, damping))
+}
+func JointWheel(collision: bool, body_a: Body, body_b: Body, world_pos: Vec2, axis_angle: f32, max_motor_torque: f32, motor_speed: f32, frequency: f32, damping: f32) => MotorJoint {
+	return *MotorJointFrom(joint_wheel(ToDoraBool(collision), body_a.GetRaw(), body_b.GetRaw(), world_pos.ToValue(), axis_angle, max_motor_torque, motor_speed, frequency, damping))
+}
+func Joint.GetWorld() => PhysicsWorld {
+	return *PhysicsWorldFrom(joint_get_world(*this.raw))
+}
+func Joint.Destroy() {
+	joint_destroy(*this.raw)
+}
+func NewJoint(def: JointDef, item_dict: Dictionary) => Joint {
+	raw := joint_new(def.GetRaw(), item_dict.GetRaw())
+	object := Joint{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return object
+}

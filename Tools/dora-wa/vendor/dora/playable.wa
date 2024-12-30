@@ -40,3 +40,77 @@ func playable_set_slot(slf: i64, name: i64, item: i64)
 func playable_get_slot(slf: i64, name: i64) => i64
 #wa:import dora playable_new
 func playable_new(filename: i64) => i64
+type Playable struct { Node }
+func PlayableFrom(raw: i64) => *Playable {
+	if raw == 0 {
+		return nil
+	}
+	object := Playable{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	result := &object
+	return result
+}
+func Playable.GetTypeId() => i32 {
+	return playable_type()
+}
+func Playable.SetLook(val: string) {
+	playable_set_look(*this.raw, ToDoraString(val))
+}
+func Playable.GetLook() => string {
+	return FromDoraString(playable_get_look(*this.raw))
+}
+func Playable.SetSpeed(val: f32) {
+	playable_set_speed(*this.raw, val)
+}
+func Playable.GetSpeed() => f32 {
+	return playable_get_speed(*this.raw)
+}
+func Playable.SetRecovery(val: f32) {
+	playable_set_recovery(*this.raw, val)
+}
+func Playable.GetRecovery() => f32 {
+	return playable_get_recovery(*this.raw)
+}
+func Playable.SetFliped(val: bool) {
+	playable_set_fliped(*this.raw, ToDoraBool(val))
+}
+func Playable.IsFliped() => bool {
+	return playable_is_fliped(*this.raw) != 0
+}
+func Playable.GetCurrent() => string {
+	return FromDoraString(playable_get_current(*this.raw))
+}
+func Playable.GetLastCompleted() => string {
+	return FromDoraString(playable_get_last_completed(*this.raw))
+}
+func Playable.GetKey(name: string) => Vec2 {
+	return Vec2FromValue(playable_get_key(*this.raw, ToDoraString(name)))
+}
+func Playable.Play(name: string, looping: bool) => f32 {
+	return playable_play(*this.raw, ToDoraString(name), ToDoraBool(looping))
+}
+func Playable.Stop() {
+	playable_stop(*this.raw)
+}
+func Playable.SetSlot(name: string, item: Node) {
+	playable_set_slot(*this.raw, ToDoraString(name), item.GetRaw())
+}
+func Playable.GetSlot(name: string) => *Node {
+	ptr_ := playable_get_slot(*this.raw, ToDoraString(name))
+	if ptr_ == 0 {
+		return nil
+	}
+	obj_ := *NodeFrom(ptr_)
+	return &obj_
+}
+func NewPlayable(filename: string) => *Playable {
+	raw := playable_new(ToDoraString(filename))
+	if raw == 0 {
+		return nil
+	}
+	object := Playable{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return &object
+}

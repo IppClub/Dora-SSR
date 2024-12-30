@@ -14,3 +14,17 @@ func controller__is_button_up(controller_id: i32, name: i64) => i32
 func controller__is_button_pressed(controller_id: i32, name: i64) => i32
 #wa:import dora controller__get_axis
 func controller__get_axis(controller_id: i32, name: i64) => f32
+type _Controller struct { }
+global Controller = _Controller{}
+func _Controller.IsButtonDown(controller_id: i32, name: string) => bool {
+	return controller__is_button_down(controller_id, ToDoraString(name)) != 0
+}
+func _Controller.IsButtonUp(controller_id: i32, name: string) => bool {
+	return controller__is_button_up(controller_id, ToDoraString(name)) != 0
+}
+func _Controller.IsButtonPressed(controller_id: i32, name: string) => bool {
+	return controller__is_button_pressed(controller_id, ToDoraString(name)) != 0
+}
+func _Controller.GetAxis(controller_id: i32, name: string) => f32 {
+	return controller__get_axis(controller_id, ToDoraString(name))
+}

@@ -44,3 +44,84 @@ func model_get_clip_file(filename: i64) => i64
 func model_get_looks(filename: i64) => i64
 #wa:import dora model_get_animations
 func model_get_animations(filename: i64) => i64
+type Model struct { Playable }
+func ModelFrom(raw: i64) => *Model {
+	if raw == 0 {
+		return nil
+	}
+	object := Model{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	result := &object
+	return result
+}
+func Model.GetTypeId() => i32 {
+	return model_type()
+}
+func Model.GetDuration() => f32 {
+	return model_get_duration(*this.raw)
+}
+func Model.SetReversed(val: bool) {
+	model_set_reversed(*this.raw, ToDoraBool(val))
+}
+func Model.IsReversed() => bool {
+	return model_is_reversed(*this.raw) != 0
+}
+func Model.IsPlaying() => bool {
+	return model_is_playing(*this.raw) != 0
+}
+func Model.IsPaused() => bool {
+	return model_is_paused(*this.raw) != 0
+}
+func Model.HasAnimation(name: string) => bool {
+	return model_has_animation(*this.raw, ToDoraString(name)) != 0
+}
+func Model.Pause() {
+	model_pause(*this.raw)
+}
+func Model.Resume() {
+	model_resume(*this.raw)
+}
+func Model.ResumeAnimation(name: string, looping: bool) {
+	model_resume_animation(*this.raw, ToDoraString(name), ToDoraBool(looping))
+}
+func Model.Reset() {
+	model_reset(*this.raw)
+}
+func Model.UpdateTo(elapsed: f32, reversed: bool) {
+	model_update_to(*this.raw, elapsed, ToDoraBool(reversed))
+}
+func Model.GetNodeByName(name: string) => Node {
+	return *NodeFrom(model_get_node_by_name(*this.raw, ToDoraString(name)))
+}
+func Model.EachNode(visitor_func: func(node: Node) => bool) => bool {
+	stack0 := NewCallStack()
+	func_id0 := PushFunction(func() {
+		node := *NodeFrom(stack0.PopObject().GetRaw())
+		result_ := visitor_func(node)
+		stack0.Push(result_)
+	})
+	return model_each_node(*this.raw, func_id0, *stack0.raw) != 0
+}
+func NewModel(filename: string) => *Model {
+	raw := model_new(ToDoraString(filename))
+	if raw == 0 {
+		return nil
+	}
+	object := Model{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return &object
+}
+func ModelDummy() => Model {
+	return *ModelFrom(model_dummy())
+}
+func ModelGetClipFile(filename: string) => string {
+	return FromDoraString(model_get_clip_file(ToDoraString(filename)))
+}
+func ModelGetLooks(filename: string) => *[]string {
+	return FromDoraStrBuf(model_get_looks(ToDoraString(filename)))
+}
+func ModelGetAnimations(filename: string) => *[]string {
+	return FromDoraStrBuf(model_get_animations(ToDoraString(filename)))
+}

@@ -30,3 +30,54 @@ func platformer_bullet_get_face(slf: i64) => i64
 func platformer_bullet_destroy(slf: i64)
 #wa:import dora platformer_bullet_new
 func platformer_bullet_new(def: i64, owner: i64) => i64
+type PlatformerBullet struct { Body }
+func PlatformerBulletFrom(raw: i64) => *PlatformerBullet {
+	if raw == 0 {
+		return nil
+	}
+	object := PlatformerBullet{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	result := &object
+	return result
+}
+func PlatformerBullet.GetTypeId() => i32 {
+	return platformer_bullet_type()
+}
+func PlatformerBullet.SetTargetAllow(val: i32) {
+	platformer_bullet_set_target_allow(*this.raw, val)
+}
+func PlatformerBullet.GetTargetAllow() => i32 {
+	return platformer_bullet_get_target_allow(*this.raw)
+}
+func PlatformerBullet.IsFaceRight() => bool {
+	return platformer_bullet_is_face_right(*this.raw) != 0
+}
+func PlatformerBullet.SetHitStop(val: bool) {
+	platformer_bullet_set_hit_stop(*this.raw, ToDoraBool(val))
+}
+func PlatformerBullet.IsHitStop() => bool {
+	return platformer_bullet_is_hit_stop(*this.raw) != 0
+}
+func PlatformerBullet.GetEmitter() => PlatformerUnit {
+	return *PlatformerUnitFrom(platformer_bullet_get_emitter(*this.raw))
+}
+func PlatformerBullet.GetBulletDef() => PlatformerBulletDef {
+	return *PlatformerBulletDefFrom(platformer_bullet_get_bullet_def(*this.raw))
+}
+func PlatformerBullet.SetFace(val: Node) {
+	platformer_bullet_set_face(*this.raw, val.GetRaw())
+}
+func PlatformerBullet.GetFace() => Node {
+	return *NodeFrom(platformer_bullet_get_face(*this.raw))
+}
+func PlatformerBullet.Destroy() {
+	platformer_bullet_destroy(*this.raw)
+}
+func NewPlatformerBullet(def: PlatformerBulletDef, owner: PlatformerUnit) => PlatformerBullet {
+	raw := platformer_bullet_new(def.GetRaw(), owner.GetRaw())
+	object := PlatformerBullet{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return object
+}

@@ -30,3 +30,54 @@ func platformer_platformworld_remove_layer(slf: i64, order: i32)
 func platformer_platformworld_remove_all_layers(slf: i64)
 #wa:import dora platformer_platformworld_new
 func platformer_platformworld_new() => i64
+type PlatformerPlatformWorld struct { PhysicsWorld }
+func PlatformerPlatformWorldFrom(raw: i64) => *PlatformerPlatformWorld {
+	if raw == 0 {
+		return nil
+	}
+	object := PlatformerPlatformWorld{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	result := &object
+	return result
+}
+func PlatformerPlatformWorld.GetTypeId() => i32 {
+	return platformer_platformworld_type()
+}
+func PlatformerPlatformWorld.GetCamera() => PlatformerPlatformCamera {
+	return *PlatformerPlatformCameraFrom(platformer_platformworld_get_camera(*this.raw))
+}
+func PlatformerPlatformWorld.MoveChild(child: Node, new_order: i32) {
+	platformer_platformworld_move_child(*this.raw, child.GetRaw(), new_order)
+}
+func PlatformerPlatformWorld.GetLayer(order: i32) => Node {
+	return *NodeFrom(platformer_platformworld_get_layer(*this.raw, order))
+}
+func PlatformerPlatformWorld.SetLayerRatio(order: i32, ratio: Vec2) {
+	platformer_platformworld_set_layer_ratio(*this.raw, order, ratio.ToValue())
+}
+func PlatformerPlatformWorld.GetLayerRatio(order: i32) => Vec2 {
+	return Vec2FromValue(platformer_platformworld_get_layer_ratio(*this.raw, order))
+}
+func PlatformerPlatformWorld.SetLayerOffset(order: i32, offset: Vec2) {
+	platformer_platformworld_set_layer_offset(*this.raw, order, offset.ToValue())
+}
+func PlatformerPlatformWorld.GetLayerOffset(order: i32) => Vec2 {
+	return Vec2FromValue(platformer_platformworld_get_layer_offset(*this.raw, order))
+}
+func PlatformerPlatformWorld.SwapLayer(order_a: i32, order_b: i32) {
+	platformer_platformworld_swap_layer(*this.raw, order_a, order_b)
+}
+func PlatformerPlatformWorld.RemoveLayer(order: i32) {
+	platformer_platformworld_remove_layer(*this.raw, order)
+}
+func PlatformerPlatformWorld.RemoveAllLayers() {
+	platformer_platformworld_remove_all_layers(*this.raw)
+}
+func NewPlatformerPlatformWorld() => PlatformerPlatformWorld {
+	raw := platformer_platformworld_new()
+	object := PlatformerPlatformWorld{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return object
+}

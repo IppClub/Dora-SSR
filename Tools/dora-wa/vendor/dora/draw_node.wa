@@ -28,3 +28,51 @@ func drawnode_draw_vertices(slf: i64, verts: i64)
 func drawnode_clear(slf: i64)
 #wa:import dora drawnode_new
 func drawnode_new() => i64
+type DrawNode struct { Node }
+func DrawNodeFrom(raw: i64) => *DrawNode {
+	if raw == 0 {
+		return nil
+	}
+	object := DrawNode{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	result := &object
+	return result
+}
+func DrawNode.GetTypeId() => i32 {
+	return drawnode_type()
+}
+func DrawNode.SetDepthWrite(val: bool) {
+	drawnode_set_depth_write(*this.raw, ToDoraBool(val))
+}
+func DrawNode.IsDepthWrite() => bool {
+	return drawnode_is_depth_write(*this.raw) != 0
+}
+func DrawNode.SetBlendFunc(blend_func: BlendFunc) {
+	drawnode__set_blend_func(*this.raw, blend_func.ToValue())
+}
+func DrawNode.GetBlendFunc() => BlendFunc {
+	return BlendFuncFrom(drawnode__get_blend_func(*this.raw))
+}
+func DrawNode.DrawDot(pos: Vec2, radius: f32, color: Color) {
+	drawnode_draw_dot(*this.raw, pos.ToValue(), radius, color.ToARGB())
+}
+func DrawNode.DrawSegment(from: Vec2, to: Vec2, radius: f32, color: Color) {
+	drawnode_draw_segment(*this.raw, from.ToValue(), to.ToValue(), radius, color.ToARGB())
+}
+func DrawNode.DrawPolygon(verts: *[]Vec2, fill_color: Color, border_width: f32, border_color: Color) {
+	drawnode_draw_polygon(*this.raw, ToDoraVec2Buf(verts), fill_color.ToARGB(), border_width, border_color.ToARGB())
+}
+func DrawNode.DrawVertices(verts: *[]VertexColor) {
+	drawnode_draw_vertices(*this.raw, ToDoraVertexColorBuf(verts))
+}
+func DrawNode.Clear() {
+	drawnode_clear(*this.raw)
+}
+func NewDrawNode() => DrawNode {
+	raw := drawnode_new()
+	object := DrawNode{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return object
+}

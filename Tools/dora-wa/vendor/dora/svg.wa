@@ -16,3 +16,36 @@ func svgdef_get_height(slf: i64) => f32
 func svgdef_render(slf: i64)
 #wa:import dora svgdef_new
 func svgdef_new(filename: i64) => i64
+type SVG struct { Object }
+func SVGFrom(raw: i64) => *SVG {
+	if raw == 0 {
+		return nil
+	}
+	object := SVG{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	result := &object
+	return result
+}
+func SVG.GetTypeId() => i32 {
+	return svg_type()
+}
+func SVG.GetWidth() => f32 {
+	return svgdef_get_width(*this.raw)
+}
+func SVG.GetHeight() => f32 {
+	return svgdef_get_height(*this.raw)
+}
+func SVG.Render() {
+	svgdef_render(*this.raw)
+}
+func NewSVG(filename: string) => *SVG {
+	raw := svgdef_new(ToDoraString(filename))
+	if raw == 0 {
+		return nil
+	}
+	object := SVG{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return &object
+}

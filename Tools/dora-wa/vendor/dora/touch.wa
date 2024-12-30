@@ -22,3 +22,38 @@ func touch_get_delta(slf: i64) => i64
 func touch_get_location(slf: i64) => i64
 #wa:import dora touch_get_world_location
 func touch_get_world_location(slf: i64) => i64
+type Touch struct { Object }
+func TouchFrom(raw: i64) => *Touch {
+	if raw == 0 {
+		return nil
+	}
+	object := Touch{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	result := &object
+	return result
+}
+func Touch.GetTypeId() => i32 {
+	return touch_type()
+}
+func Touch.SetEnabled(val: bool) {
+	touch_set_enabled(*this.raw, ToDoraBool(val))
+}
+func Touch.IsEnabled() => bool {
+	return touch_is_enabled(*this.raw) != 0
+}
+func Touch.IsFirst() => bool {
+	return touch_is_first(*this.raw) != 0
+}
+func Touch.GetId() => i32 {
+	return touch_get_id(*this.raw)
+}
+func Touch.GetDelta() => Vec2 {
+	return Vec2FromValue(touch_get_delta(*this.raw))
+}
+func Touch.GetLocation() => Vec2 {
+	return Vec2FromValue(touch_get_location(*this.raw))
+}
+func Touch.GetWorldLocation() => Vec2 {
+	return Vec2FromValue(touch_get_world_location(*this.raw))
+}

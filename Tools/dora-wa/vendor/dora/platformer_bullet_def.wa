@@ -46,3 +46,78 @@ func platformer_bulletdef_set_as_circle(slf: i64, radius: f32)
 func platformer_bulletdef_set_velocity(slf: i64, angle: f32, speed: f32)
 #wa:import dora platformer_bulletdef_new
 func platformer_bulletdef_new() => i64
+type PlatformerBulletDef struct { Object }
+func PlatformerBulletDefFrom(raw: i64) => *PlatformerBulletDef {
+	if raw == 0 {
+		return nil
+	}
+	object := PlatformerBulletDef{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	result := &object
+	return result
+}
+func PlatformerBulletDef.GetTypeId() => i32 {
+	return platformer_bulletdef_type()
+}
+func PlatformerBulletDef.SetTag(val: string) {
+	platformer_bulletdef_set_tag(*this.raw, ToDoraString(val))
+}
+func PlatformerBulletDef.GetTag() => string {
+	return FromDoraString(platformer_bulletdef_get_tag(*this.raw))
+}
+func PlatformerBulletDef.SetEndEffect(val: string) {
+	platformer_bulletdef_set_end_effect(*this.raw, ToDoraString(val))
+}
+func PlatformerBulletDef.GetEndEffect() => string {
+	return FromDoraString(platformer_bulletdef_get_end_effect(*this.raw))
+}
+func PlatformerBulletDef.SetLifeTime(val: f32) {
+	platformer_bulletdef_set_life_time(*this.raw, val)
+}
+func PlatformerBulletDef.GetLifeTime() => f32 {
+	return platformer_bulletdef_get_life_time(*this.raw)
+}
+func PlatformerBulletDef.SetDamageRadius(val: f32) {
+	platformer_bulletdef_set_damage_radius(*this.raw, val)
+}
+func PlatformerBulletDef.GetDamageRadius() => f32 {
+	return platformer_bulletdef_get_damage_radius(*this.raw)
+}
+func PlatformerBulletDef.SetHighSpeedFix(val: bool) {
+	platformer_bulletdef_set_high_speed_fix(*this.raw, ToDoraBool(val))
+}
+func PlatformerBulletDef.IsHighSpeedFix() => bool {
+	return platformer_bulletdef_is_high_speed_fix(*this.raw) != 0
+}
+func PlatformerBulletDef.SetGravity(val: Vec2) {
+	platformer_bulletdef_set_gravity(*this.raw, val.ToValue())
+}
+func PlatformerBulletDef.GetGravity() => Vec2 {
+	return Vec2FromValue(platformer_bulletdef_get_gravity(*this.raw))
+}
+func PlatformerBulletDef.SetFace(val: PlatformerFace) {
+	platformer_bulletdef_set_face(*this.raw, val.GetRaw())
+}
+func PlatformerBulletDef.GetFace() => PlatformerFace {
+	return *PlatformerFaceFrom(platformer_bulletdef_get_face(*this.raw))
+}
+func PlatformerBulletDef.GetBodyDef() => BodyDef {
+	return *BodyDefFrom(platformer_bulletdef_get_body_def(*this.raw))
+}
+func PlatformerBulletDef.GetVelocity() => Vec2 {
+	return Vec2FromValue(platformer_bulletdef_get_velocity(*this.raw))
+}
+func PlatformerBulletDef.SetAsCircle(radius: f32) {
+	platformer_bulletdef_set_as_circle(*this.raw, radius)
+}
+func PlatformerBulletDef.SetVelocity(angle: f32, speed: f32) {
+	platformer_bulletdef_set_velocity(*this.raw, angle, speed)
+}
+func NewPlatformerBulletDef() => PlatformerBulletDef {
+	raw := platformer_bulletdef_new()
+	object := PlatformerBulletDef{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return object
+}
