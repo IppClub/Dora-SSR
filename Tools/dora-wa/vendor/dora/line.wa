@@ -47,27 +47,49 @@ func ObjectAsLine(object: Object) => *Line {
 	}
 	return nil
 }
+/// Sets whether the depth should be written. (Default is false)
 func Line.SetDepthWrite(val: bool) {
 	line_set_depth_write(*this.raw, ToDoraBool(val))
 }
+/// Gets whether the depth should be written. (Default is false)
 func Line.IsDepthWrite() => bool {
 	return line_is_depth_write(*this.raw) != 0
 }
+/// Sets the blend function for the line node.
 func Line.SetBlendFunc(val: BlendFunc) {
 	line_set_blend_func(*this.raw, val.ToValue())
 }
+/// Gets the blend function for the line node.
 func Line.GetBlendFunc() => BlendFunc {
 	return BlendFuncFrom(line_get_blend_func(*this.raw))
 }
+/// Adds vertices to the line.
+///
+/// # Arguments
+///
+/// * `verts` - A vector of vertices to add to the line.
+/// * `color` - Optional. The color of the line.
 func Line.Add(verts: *[]Vec2, color: Color) {
 	line_add(*this.raw, ToDoraVec2Buf(verts), color.ToARGB())
 }
+/// Sets vertices of the line.
+///
+/// # Arguments
+///
+/// * `verts` - A vector of vertices to set.
+/// * `color` - Optional. The color of the line.
 func Line.Set(verts: *[]Vec2, color: Color) {
 	line_set(*this.raw, ToDoraVec2Buf(verts), color.ToARGB())
 }
+/// Clears all the vertices of line.
 func Line.Clear() {
 	line_clear(*this.raw)
 }
+/// Creates and returns a new empty Line object.
+///
+/// # Returns
+///
+/// * A new `Line` object.
 func NewLine() => Line {
 	raw := line_new()
 	object := Line{}
@@ -75,6 +97,16 @@ func NewLine() => Line {
 	setFinalizer(object.raw, ObjectFinalizer)
 	return object
 }
+/// Creates and returns a new Line object.
+///
+/// # Arguments
+///
+/// * `verts` - A vector of vertices to add to the line.
+/// * `color` - The color of the line.
+///
+/// # Returns
+///
+/// * A new `Line` object.
 func NewLineWithVecColor(verts: *[]Vec2, color: Color) => Line {
 	raw := line_with_vec_color(ToDoraVec2Buf(verts), color.ToARGB())
 	object := Line{}

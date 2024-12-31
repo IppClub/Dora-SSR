@@ -37,15 +37,27 @@ func ObjectAsSVG(object: Object) => *SVG {
 	}
 	return nil
 }
+/// Gets the width of the SVG object.
 func SVG.GetWidth() => f32 {
 	return svgdef_get_width(*this.raw)
 }
+/// Gets the height of the SVG object.
 func SVG.GetHeight() => f32 {
 	return svgdef_get_height(*this.raw)
 }
+/// Renders the SVG object, should be called every frame for the render result to appear.
 func SVG.Render() {
 	svgdef_render(*this.raw)
 }
+/// Creates a new SVG object from the specified SVG file.
+///
+/// # Arguments
+///
+/// * `filename` - The path to the SVG format file.
+///
+/// # Returns
+///
+/// * `Svg` - The created SVG object.
 func NewSVG(filename: string) => *SVG {
 	raw := svgdef_new(ToDoraString(filename))
 	if raw == 0 {

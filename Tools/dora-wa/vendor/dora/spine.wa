@@ -47,21 +47,65 @@ func ObjectAsSpine(object: Object) => *Spine {
 	}
 	return nil
 }
+/// Sets whether hit testing is enabled.
 func Spine.SetHitTestEnabled(val: bool) {
 	spine_set_hit_test_enabled(*this.raw, ToDoraBool(val))
 }
+/// Gets whether hit testing is enabled.
 func Spine.IsHitTestEnabled() => bool {
 	return spine_is_hit_test_enabled(*this.raw) != 0
 }
+/// Sets the rotation of a bone in the Spine skeleton.
+///
+/// # Arguments
+///
+/// * `name` - The name of the bone to rotate.
+/// * `rotation` - The amount to rotate the bone, in degrees.
+///
+/// # Returns
+///
+/// * `bool` - Whether the rotation was successfully set or not.
 func Spine.SetBoneRotation(name: string, rotation: f32) => bool {
 	return spine_set_bone_rotation(*this.raw, ToDoraString(name), rotation) != 0
 }
+/// Checks if a point in space is inside the boundaries of the Spine skeleton.
+///
+/// # Arguments
+///
+/// * `x` - The x-coordinate of the point to check.
+/// * `y` - The y-coordinate of the point to check.
+///
+/// # Returns
+///
+/// * `Option<String>` - The name of the bone at the point, or `None` if there is no bone at the point.
 func Spine.ContainsPoint(x: f32, y: f32) => string {
 	return FromDoraString(spine_contains_point(*this.raw, x, y))
 }
+/// Checks if a line segment intersects the boundaries of the instance and returns the name of the bone or slot at the intersection point, or `None` if no bone or slot is found.
+///
+/// # Arguments
+///
+/// * `x1` - The x-coordinate of the start point of the line segment.
+/// * `y1` - The y-coordinate of the start point of the line segment.
+/// * `x2` - The x-coordinate of the end point of the line segment.
+/// * `y2` - The y-coordinate of the end point of the line segment.
+///
+/// # Returns
+///
+/// * `Option<String>` - The name of the bone or slot at the intersection point, or `None` if no bone or slot is found.
 func Spine.IntersectsSegment(x_1: f32, y_1: f32, x_2: f32, y_2: f32) => string {
 	return FromDoraString(spine_intersects_segment(*this.raw, x_1, y_1, x_2, y_2))
 }
+/// Creates a new instance of 'Spine' using the specified skeleton file and atlas file.
+///
+/// # Arguments
+///
+/// * `skel_file` - The filename of the skeleton file to load.
+/// * `atlas_file` - The filename of the atlas file to load.
+///
+/// # Returns
+///
+/// * A new instance of 'Spine' with the specified skeleton file and atlas file. Returns `None` if the skeleton file or atlas file could not be loaded.
 func NewSpineWithFiles(skel_file: string, atlas_file: string) => *Spine {
 	raw := spine_with_files(ToDoraString(skel_file), ToDoraString(atlas_file))
 	if raw == 0 {
@@ -72,6 +116,15 @@ func NewSpineWithFiles(skel_file: string, atlas_file: string) => *Spine {
 	setFinalizer(object.raw, ObjectFinalizer)
 	return &object
 }
+/// Creates a new instance of 'Spine' using the specified Spine string.
+///
+/// # Arguments
+///
+/// * `spine_str` - The Spine file string for the new instance. A Spine file string can be a file path with the target file extension like "Spine/item" or file paths with all the related files like "Spine/item.skel|Spine/item.atlas" or "Spine/item.json|Spine/item.atlas".
+///
+/// # Returns
+///
+/// * A new instance of 'Spine'. Returns `None` if the Spine file could not be loaded.
 func NewSpine(spine_str: string) => *Spine {
 	raw := spine_new(ToDoraString(spine_str))
 	if raw == 0 {
@@ -82,9 +135,27 @@ func NewSpine(spine_str: string) => *Spine {
 	setFinalizer(object.raw, ObjectFinalizer)
 	return &object
 }
+/// Returns a list of available looks for the specified Spine2D file string.
+///
+/// # Arguments
+///
+/// * `spine_str` - The Spine2D file string to get the looks for.
+///
+/// # Returns
+///
+/// * A `Vec<String>` representing the available looks.
 func SpineGetLooks(spine_str: string) => *[]string {
 	return FromDoraStrBuf(spine_get_looks(ToDoraString(spine_str)))
 }
+/// Returns a list of available animations for the specified Spine2D file string.
+///
+/// # Arguments
+///
+/// * `spine_str` - The Spine2D file string to get the animations for.
+///
+/// # Returns
+///
+/// * A `Vec<String>` representing the available animations.
 func SpineGetAnimations(spine_str: string) => *[]string {
 	return FromDoraStrBuf(spine_get_animations(ToDoraString(spine_str)))
 }

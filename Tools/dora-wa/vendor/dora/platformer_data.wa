@@ -54,24 +54,31 @@ func platformer_data_is_terrain(body: i64) => i32
 func platformer_data_clear()
 type _PlatformerData struct { }
 global PlatformerData = _PlatformerData{}
+/// Gets the group key representing the first index for a player group.
 func _PlatformerData.GetGroupFirstPlayer() => i32 {
 	return platformer_data_get_group_first_player()
 }
+/// Gets the group key representing the last index for a player group.
 func _PlatformerData.GetGroupLastPlayer() => i32 {
 	return platformer_data_get_group_last_player()
 }
+/// Gets the group key that won't have any contact with other groups by default.
 func _PlatformerData.GetGroupHide() => i32 {
 	return platformer_data_get_group_hide()
 }
+/// Gets the group key that will have contacts with player groups by default.
 func _PlatformerData.GetGroupDetectPlayer() => i32 {
 	return platformer_data_get_group_detect_player()
 }
+/// Gets the group key representing terrain that will have contacts with other groups by default.
 func _PlatformerData.GetGroupTerrain() => i32 {
 	return platformer_data_get_group_terrain()
 }
+/// Gets the group key that will have contacts with other groups by default.
 func _PlatformerData.GetGroupDetection() => i32 {
 	return platformer_data_get_group_detection()
 }
+/// Gets the dictionary that can be used to store arbitrary data associated with string keys and various values globally.
 func _PlatformerData.GetStore() => Dictionary {
 	return *DictionaryFrom(platformer_data_get_store())
 }

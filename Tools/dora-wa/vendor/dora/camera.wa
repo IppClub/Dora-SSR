@@ -31,6 +31,7 @@ func ObjectAsCamera(object: Object) => *Camera {
 	}
 	return nil
 }
+/// Gets the name of the Camera.
 func Camera.GetName() => string {
 	return FromDoraString(camera_get_name(*this.raw))
 }

@@ -31,6 +31,16 @@ func ObjectAsObserver(object: Object) => *Observer {
 	}
 	return nil
 }
+/// A method that creates a new observer with the specified component filter and action to watch for.
+///
+/// # Arguments
+///
+/// * `event` - The type of event to watch for.
+/// * `components` - A vector listing the names of the components to filter entities by.
+///
+/// # Returns
+///
+/// * `Observer` - The new observer.
 func NewObserver(event: EntityEvent, components: *[]string) => Observer {
 	raw := entityobserver_new(event.ToValue(), ToDoraStrBuf(components))
 	object := Observer{}

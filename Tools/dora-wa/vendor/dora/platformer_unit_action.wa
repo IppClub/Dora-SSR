@@ -39,33 +39,58 @@ func PlatformerUnitActionFrom(raw: i64) => *PlatformerUnitAction {
 	result := &item
 	return result
 }
+/// Sets the length of the reaction time for the "UnitAction", in seconds.
+/// The reaction time will affect the AI check cycling time.
 func PlatformerUnitAction.SetReaction(val: f32) {
 	platformer_unitaction_set_reaction(*this.raw, val)
 }
+/// Gets the length of the reaction time for the "UnitAction", in seconds.
+/// The reaction time will affect the AI check cycling time.
 func PlatformerUnitAction.GetReaction() => f32 {
 	return platformer_unitaction_get_reaction(*this.raw)
 }
+/// Sets the length of the recovery time for the "UnitAction", in seconds.
+/// The recovery time will mainly affect how long the `Playable` animation model will do transitions between animations played by different actions.
 func PlatformerUnitAction.SetRecovery(val: f32) {
 	platformer_unitaction_set_recovery(*this.raw, val)
 }
+/// Gets the length of the recovery time for the "UnitAction", in seconds.
+/// The recovery time will mainly affect how long the `Playable` animation model will do transitions between animations played by different actions.
 func PlatformerUnitAction.GetRecovery() => f32 {
 	return platformer_unitaction_get_recovery(*this.raw)
 }
+/// Gets the name of the "UnitAction".
 func PlatformerUnitAction.GetName() => string {
 	return FromDoraString(platformer_unitaction_get_name(*this.raw))
 }
+/// Gets whether the "Unit" is currently performing the "UnitAction" or not.
 func PlatformerUnitAction.IsDoing() => bool {
 	return platformer_unitaction_is_doing(*this.raw) != 0
 }
+/// Gets the "Unit" that owns this "UnitAction".
 func PlatformerUnitAction.GetOwner() => PlatformerUnit {
 	return *PlatformerUnitFrom(platformer_unitaction_get_owner(*this.raw))
 }
+/// Gets the elapsed time since the "UnitAction" was started, in seconds.
 func PlatformerUnitAction.GetElapsedTime() => f32 {
 	return platformer_unitaction_get_elapsed_time(*this.raw)
 }
+/// Removes all "UnitAction" objects from the "UnitActionClass".
 func PlatformerUnitActionClear() {
 	platformer_unitaction_clear()
 }
+/// Adds a new "UnitAction" to the "UnitActionClass" with the specified name and parameters.
+///
+/// # Arguments
+///
+/// * `name` - The name of the "UnitAction".
+/// * `priority` - The priority level for the "UnitAction". `UnitAction` with higher priority (larger number) will replace the running lower priority `UnitAction`. If performing `UnitAction` having the same priority with the running `UnitAction` and the `UnitAction` to perform having the param 'queued' to be true, the running `UnitAction` won't be replaced.
+/// * `reaction` - The length of the reaction time for the "UnitAction", in seconds. The reaction time will affect the AI check cycling time. Set to 0.0 to make AI check run in every update.
+/// * `recovery` - The length of the recovery time for the "UnitAction", in seconds. The recovery time will mainly affect how long the `Playable` animation model will do transitions between animations played by different actions.
+/// * `queued` - Whether the "UnitAction" is currently queued or not. The queued "UnitAction" won't replace the running "UnitAction" with a same priority.
+/// * `available` - A function that takes a `Unit` object and a `UnitAction` object and returns a boolean value indicating whether the "UnitAction" is available to be performed.
+/// * `create` - A function that takes a `Unit` object and a `UnitAction` object and returns a `WasmActionUpdate` object that contains the update function for the "UnitAction".
+/// * `stop` - A function that takes a `Unit` object and a `UnitAction` object and stops the "UnitAction".
 func PlatformerUnitActionAdd(name: string, priority: i32, reaction: f32, recovery: f32, queued: bool, available: func(owner: PlatformerUnit, action: PlatformerUnitAction) => bool, create: func(owner: PlatformerUnit, action: PlatformerUnitAction) => PlatformerActionUpdate, stop: func(owner: PlatformerUnit, action: PlatformerUnitAction)) {
 	stack0 := NewCallStack()
 	func_id0 := PushFunction(func() {

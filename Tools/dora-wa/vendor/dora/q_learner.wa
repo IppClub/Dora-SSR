@@ -41,12 +41,33 @@ func ObjectAsQLearner(object: Object) => *QLearner {
 	}
 	return nil
 }
+/// Updates Q-value for a state-action pair based on received reward.
+///
+/// # Arguments
+///
+/// * `state` - An integer representing the state.
+/// * `action` - An integer representing the action.
+/// * `reward` - A number representing the reward received for the action in the state.
 func QLearner.Update(state: i64, action: i32, reward: f64) {
 	mlqlearner_update(*this.raw, state, action, reward)
 }
+/// Returns the best action for a given state based on the current Q-values.
+///
+/// # Arguments
+///
+/// * `state` - The current state.
+///
+/// # Returns
+///
+/// * `i32` - The action with the highest Q-value for the given state.
 func QLearner.GetBestAction(state: i64) => i32 {
 	return mlqlearner_get_best_action(*this.raw, state)
 }
+/// Visits all state-action pairs and calls the provided handler function for each pair.
+///
+/// # Arguments
+///
+/// * `handler` - A function that is called for each state-action pair.
 func QLearner.VisitMatrix(handler: func(state: i64, action: i32, q: f64)) {
 	stack0 := NewCallStack()
 	func_id0 := PushFunction(func() {
@@ -57,12 +78,43 @@ func QLearner.VisitMatrix(handler: func(state: i64, action: i32, q: f64)) {
 	})
 	mlqlearner_visit_matrix(*this.raw, func_id0, *stack0.raw)
 }
+/// Constructs a state from given hints and condition values.
+///
+/// # Arguments
+///
+/// * `hints` - A vector of integers representing the byte length of provided values.
+/// * `values` - The condition values as discrete values.
+///
+/// # Returns
+///
+/// * `i64` - The packed state value.
 func QLearnerPack(hints: *[]i32, values: *[]i32) => i64 {
 	return mlqlearner_pack(ToDoraI32Buf(hints), ToDoraI32Buf(values))
 }
+/// Deconstructs a state from given hints to get condition values.
+///
+/// # Arguments
+///
+/// * `hints` - A vector of integers representing the byte length of provided values.
+/// * `state` - The state integer to unpack.
+///
+/// # Returns
+///
+/// * `Vec<i32>` - The condition values as discrete values.
 func QLearnerUnpack(hints: *[]i32, state: i64) => *[]i32 {
 	return FromDoraI32Buf(mlqlearner_unpack(ToDoraI32Buf(hints), state))
 }
+/// Creates a new QLearner object with optional parameters for gamma, alpha, and maxQ.
+///
+/// # Arguments
+///
+/// * `gamma` - The discount factor for future rewards.
+/// * `alpha` - The learning rate for updating Q-values.
+/// * `maxQ` - The maximum Q-value. Defaults to 100.0.
+///
+/// # Returns
+///
+/// * `QLearner` - The newly created QLearner object.
 func NewQLearner(gamma: f64, alpha: f64, max_q: f64) => QLearner {
 	raw := mlqlearner_new(gamma, alpha, max_q)
 	object := QLearner{}

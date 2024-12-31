@@ -45,18 +45,52 @@ func ObjectAsDragonBone(object: Object) => *DragonBone {
 	}
 	return nil
 }
+/// Sets whether hit testing is enabled.
 func DragonBone.SetHitTestEnabled(val: bool) {
 	dragonbone_set_hit_test_enabled(*this.raw, ToDoraBool(val))
 }
+/// Gets whether hit testing is enabled.
 func DragonBone.IsHitTestEnabled() => bool {
 	return dragonbone_is_hit_test_enabled(*this.raw) != 0
 }
+/// Checks if a point is inside the boundaries of the instance and returns the name of the bone or slot at that point, or `None` if no bone or slot is found.
+///
+/// # Arguments
+///
+/// * `x` - The x-coordinate of the point to check.
+/// * `y` - The y-coordinate of the point to check.
+///
+/// # Returns
+///
+/// * `String` - The name of the bone or slot at the point.
 func DragonBone.ContainsPoint(x: f32, y: f32) => string {
 	return FromDoraString(dragonbone_contains_point(*this.raw, x, y))
 }
+/// Checks if a line segment intersects the boundaries of the instance and returns the name of the bone or slot at the intersection point, or `None` if no bone or slot is found.
+///
+/// # Arguments
+///
+/// * `x1` - The x-coordinate of the start point of the line segment.
+/// * `y1` - The y-coordinate of the start point of the line segment.
+/// * `x2` - The x-coordinate of the end point of the line segment.
+/// * `y2` - The y-coordinate of the end point of the line segment.
+///
+/// # Returns
+///
+/// * `String` - The name of the bone or slot at the intersection point.
 func DragonBone.IntersectsSegment(x_1: f32, y_1: f32, x_2: f32, y_2: f32) => string {
 	return FromDoraString(dragonbone_intersects_segment(*this.raw, x_1, y_1, x_2, y_2))
 }
+/// Creates a new instance of 'DragonBone' using the specified bone file and atlas file. This function only loads the first armature.
+///
+/// # Arguments
+///
+/// * `bone_file` - The filename of the bone file to load.
+/// * `atlas_file` - The filename of the atlas file to load.
+///
+/// # Returns
+///
+/// * A new instance of 'DragonBone' with the specified bone file and atlas file. Returns `None` if the bone file or atlas file is not found.
 func NewDragonBoneWithFiles(bone_file: string, atlas_file: string) => *DragonBone {
 	raw := dragonbone_with_files(ToDoraString(bone_file), ToDoraString(atlas_file))
 	if raw == 0 {
@@ -67,6 +101,15 @@ func NewDragonBoneWithFiles(bone_file: string, atlas_file: string) => *DragonBon
 	setFinalizer(object.raw, ObjectFinalizer)
 	return &object
 }
+/// Creates a new instance of 'DragonBone' using the specified bone string.
+///
+/// # Arguments
+///
+/// * `bone_str` - The DragonBone file string for the new instance. A DragonBone file string can be a file path with the target file extension like "DragonBone/item" or file paths with all the related files like "DragonBone/item_ske.json|DragonBone/item_tex.json". An armature name can be added following a separator of ';'. like "DragonBone/item;mainArmature" or "DragonBone/item_ske.json|DragonBone/item_tex.json;mainArmature".
+///
+/// # Returns
+///
+/// * A new instance of 'DragonBone'. Returns `None` if the bone file or atlas file is not found.
 func NewDragonBone(bone_str: string) => *DragonBone {
 	raw := dragonbone_new(ToDoraString(bone_str))
 	if raw == 0 {
@@ -77,9 +120,27 @@ func NewDragonBone(bone_str: string) => *DragonBone {
 	setFinalizer(object.raw, ObjectFinalizer)
 	return &object
 }
+/// Returns a list of available looks for the specified DragonBone file string.
+///
+/// # Arguments
+///
+/// * `bone_str` - The DragonBone file string to get the looks for.
+///
+/// # Returns
+///
+/// * A `Vec<String>` representing the available looks.
 func DragonBoneGetLooks(bone_str: string) => *[]string {
 	return FromDoraStrBuf(dragonbone_get_looks(ToDoraString(bone_str)))
 }
+/// Returns a list of available animations for the specified DragonBone file string.
+///
+/// # Arguments
+///
+/// * `bone_str` - The DragonBone file string to get the animations for.
+///
+/// # Returns
+///
+/// * A `Vec<String>` representing the available animations.
 func DragonBoneGetAnimations(bone_str: string) => *[]string {
 	return FromDoraStrBuf(dragonbone_get_animations(ToDoraString(bone_str)))
 }

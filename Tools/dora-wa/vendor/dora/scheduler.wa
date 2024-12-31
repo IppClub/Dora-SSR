@@ -41,21 +41,41 @@ func ObjectAsScheduler(object: Object) => *Scheduler {
 	}
 	return nil
 }
+/// Sets the time scale factor for the scheduler.
+/// This factor is applied to deltaTime that the scheduled functions will receive.
 func Scheduler.SetTimeScale(val: f32) {
 	scheduler_set_time_scale(*this.raw, val)
 }
+/// Gets the time scale factor for the scheduler.
+/// This factor is applied to deltaTime that the scheduled functions will receive.
 func Scheduler.GetTimeScale() => f32 {
 	return scheduler_get_time_scale(*this.raw)
 }
+/// Sets the target frame rate (in frames per second) for a fixed update mode.
+/// The fixed update will ensure a constant frame rate, and the operation handled in a fixed update can use a constant delta time value.
+/// It is used for preventing weird behavior of a physics engine or synchronizing some states via network communications.
 func Scheduler.SetFixedFps(val: i32) {
 	scheduler_set_fixed_fps(*this.raw, val)
 }
+/// Gets the target frame rate (in frames per second) for a fixed update mode.
+/// The fixed update will ensure a constant frame rate, and the operation handled in a fixed update can use a constant delta time value.
+/// It is used for preventing weird behavior of a physics engine or synchronizing some states via network communications.
 func Scheduler.GetFixedFps() => i32 {
 	return scheduler_get_fixed_fps(*this.raw)
 }
+/// Used for manually updating the scheduler if it is created by the user.
+///
+/// # Arguments
+///
+/// * `deltaTime` - The time in seconds since the last frame update.
+///
+/// # Returns
+///
+/// * `bool` - `true` if the scheduler was stoped, `false` otherwise.
 func Scheduler.Update(delta_time: f64) => bool {
 	return scheduler_update(*this.raw, delta_time) != 0
 }
+/// Creates a new Scheduler object.
 func NewScheduler() => Scheduler {
 	raw := scheduler_new()
 	object := Scheduler{}

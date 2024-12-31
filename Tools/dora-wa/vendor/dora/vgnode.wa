@@ -35,15 +35,46 @@ func ObjectAsVGNode(object: Object) => *VGNode {
 	}
 	return nil
 }
+/// Gets The surface of the node for displaying frame buffer texture that contains vector graphics.
+/// You can get the texture of the surface by calling `vgNode.get_surface().get_texture()`.
 func VGNode.GetSurface() => Sprite {
 	return *SpriteFrom(vgnode_get_surface(*this.raw))
 }
+/// The function for rendering vector graphics.
+///
+/// # Arguments
+///
+/// * `renderFunc` - The closure function for rendering vector graphics. You can do the rendering operations inside this closure.
+///
+/// # Example
+///
+/// ```
+/// vgNode.render(|| {
+/// 	Nvg::begin_path();
+/// 	Nvg::move_to(100.0, 100.0);
+/// 	Nvg::line_to(200.0, 200.0);
+/// 	Nvg::close_path();
+/// 	Nvg::stroke();
+/// });
+/// ```
 func VGNode.Render(render_func: func()) {
 	func_id0 := PushFunction(func() {
 		render_func()
 	})
 	vgnode_render(*this.raw, func_id0)
 }
+/// Creates a new VGNode object with the specified width and height.
+///
+/// # Arguments
+///
+/// * `width` - The width of the node's frame buffer texture.
+/// * `height` - The height of the node's frame buffer texture.
+/// * `scale` - The scale factor of the VGNode.
+/// * `edge_aa` - The edge anti-aliasing factor of the VGNode.
+///
+/// # Returns
+///
+/// * The newly created VGNode object.
 func NewVGNode(width: f32, height: f32, scale: f32, edge_aa: i32) => VGNode {
 	raw := vgnode_new(width, height, scale, edge_aa)
 	object := VGNode{}

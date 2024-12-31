@@ -53,30 +53,47 @@ func ObjectAsTileNode(object: Object) => *TileNode {
 	}
 	return nil
 }
+/// Sets whether the depth buffer should be written to when rendering the tilemap.
 func TileNode.SetDepthWrite(val: bool) {
 	tilenode_set_depth_write(*this.raw, ToDoraBool(val))
 }
+/// Gets whether the depth buffer should be written to when rendering the tilemap.
 func TileNode.IsDepthWrite() => bool {
 	return tilenode_is_depth_write(*this.raw) != 0
 }
+/// Sets the blend function for the tilemap.
 func TileNode.SetBlendFunc(val: BlendFunc) {
 	tilenode_set_blend_func(*this.raw, val.ToValue())
 }
+/// Gets the blend function for the tilemap.
 func TileNode.GetBlendFunc() => BlendFunc {
 	return BlendFuncFrom(tilenode_get_blend_func(*this.raw))
 }
+/// Sets the tilemap shader effect.
 func TileNode.SetEffect(val: SpriteEffect) {
 	tilenode_set_effect(*this.raw, val.GetRaw())
 }
+/// Gets the tilemap shader effect.
 func TileNode.GetEffect() => SpriteEffect {
 	return *SpriteEffectFrom(tilenode_get_effect(*this.raw))
 }
+/// Sets the texture filtering mode for the tilemap.
 func TileNode.SetFilter(val: TextureFilter) {
 	tilenode_set_filter(*this.raw, val.ToValue())
 }
+/// Gets the texture filtering mode for the tilemap.
 func TileNode.GetFilter() => TextureFilter {
 	return TextureFilter{value: tilenode_get_filter(*this.raw)}
 }
+/// Get the layer data by name from the tilemap.
+///
+/// # Arguments
+///
+/// * `layerName` - The name of the layer in the TMX file.
+///
+/// # Returns
+///
+/// * `Dictionary` - The layer data as a dictionary object.
 func TileNode.GetLayer(layer_name: string) => *Dictionary {
 	ptr_ := tilenode_get_layer(*this.raw, ToDoraString(layer_name))
 	if ptr_ == 0 {
@@ -85,6 +102,15 @@ func TileNode.GetLayer(layer_name: string) => *Dictionary {
 	obj_ := *DictionaryFrom(ptr_)
 	return &obj_
 }
+/// Creates a `TileNode` object that will render the tile layers from a TMX file.
+///
+/// # Arguments
+///
+/// * `tmxFile` - The TMX file for the tilemap. This should be a file created with the Tiled Map Editor (http://www.mapeditor.org) and must be in XML format.
+///
+/// # Returns
+///
+/// Returns a new instance of the `TileNode` class. If the tilemap file is not found, it will return `None`.
 func NewTileNode(tmx_file: string) => *TileNode {
 	raw := tilenode_new(ToDoraString(tmx_file))
 	if raw == 0 {
@@ -95,6 +121,16 @@ func NewTileNode(tmx_file: string) => *TileNode {
 	setFinalizer(object.raw, ObjectFinalizer)
 	return &object
 }
+/// Creates a `TileNode` object that will render the specified tile layer from a TMX file.
+///
+/// # Arguments
+///
+/// * `tmxFile` - The TMX file for the tilemap. This should be a file created with the Tiled Map Editor (http://www.mapeditor.org) and must be in XML format.
+/// * `layerName` - The name of the layer in the TMX file.
+///
+/// # Returns
+///
+/// Returns a new instance of the `TileNode` class. If the tilemap file is not found, it will return `None`.
 func NewTileNodeWithWithLayer(tmx_file: string, layer_name: string) => *TileNode {
 	raw := tilenode_with_with_layer(ToDoraString(tmx_file), ToDoraString(layer_name))
 	if raw == 0 {
@@ -105,6 +141,16 @@ func NewTileNodeWithWithLayer(tmx_file: string, layer_name: string) => *TileNode
 	setFinalizer(object.raw, ObjectFinalizer)
 	return &object
 }
+/// Creates a `TileNode` object that will render the specified tile layers from a TMX file.
+///
+/// # Arguments
+///
+/// * `tmxFile` - The TMX file for the tilemap. This should be a file created with the Tiled Map Editor (http://www.mapeditor.org) and must be in XML format.
+/// * `layerNames` - A vector of names of the layers in the TMX file.
+///
+/// # Returns
+///
+/// Returns a new instance of the `TileNode` class. If the tilemap file is not found, it will return `None`.
 func NewTileNodeWithWithLayers(tmx_file: string, layer_names: *[]string) => *TileNode {
 	raw := tilenode_with_with_layers(ToDoraString(tmx_file), ToDoraStrBuf(layer_names))
 	if raw == 0 {

@@ -55,9 +55,11 @@ func ObjectAsGrabber(object: Object) => *Grabber {
 	}
 	return nil
 }
+/// Sets the camera used to render the texture.
 func Grabber.SetCamera(val: Camera) {
 	grabber_set_camera(*this.raw, val.GetRaw())
 }
+/// Gets the camera used to render the texture.
 func Grabber.GetCamera() => *Camera {
 	ptr_ := grabber_get_camera(*this.raw)
 	if ptr_ == 0 {
@@ -66,9 +68,11 @@ func Grabber.GetCamera() => *Camera {
 	obj_ := *CameraFrom(ptr_)
 	return &obj_
 }
+/// Sets the sprite effect applied to the texture.
 func Grabber.SetEffect(val: SpriteEffect) {
 	grabber_set_effect(*this.raw, val.GetRaw())
 }
+/// Gets the sprite effect applied to the texture.
 func Grabber.GetEffect() => *SpriteEffect {
 	ptr_ := grabber_get_effect(*this.raw)
 	if ptr_ == 0 {
@@ -77,30 +81,76 @@ func Grabber.GetEffect() => *SpriteEffect {
 	obj_ := *SpriteEffectFrom(ptr_)
 	return &obj_
 }
+/// Sets the blend function for the grabber.
 func Grabber.SetBlendFunc(val: BlendFunc) {
 	grabber_set_blend_func(*this.raw, val.ToValue())
 }
+/// Gets the blend function for the grabber.
 func Grabber.GetBlendFunc() => BlendFunc {
 	return BlendFuncFrom(grabber_get_blend_func(*this.raw))
 }
+/// Sets the clear color used to clear the texture.
 func Grabber.SetClearColor(val: Color) {
 	grabber_set_clear_color(*this.raw, val.ToARGB())
 }
+/// Gets the clear color used to clear the texture.
 func Grabber.GetClearColor() => Color {
 	return ColorFromARGB(grabber_get_clear_color(*this.raw))
 }
+/// Sets the position of a vertex in the grabber grid.
+///
+/// # Arguments
+///
+/// * `x` - The x-index of the vertex in the grabber grid.
+/// * `y` - The y-index of the vertex in the grabber grid.
+/// * `pos` - The new position of the vertex, represented by a Vec2 object.
+/// * `z` - An optional argument representing the new z-coordinate of the vertex.
 func Grabber.SetPos(x: i32, y: i32, pos: Vec2, z: f32) {
 	grabber_set_pos(*this.raw, x, y, pos.ToValue(), z)
 }
+/// Gets the position of a vertex in the grabber grid.
+///
+/// # Arguments
+///
+/// * `x` - The x-index of the vertex in the grabber grid.
+/// * `y` - The y-index of the vertex in the grabber grid.
+///
+/// # Returns
+///
+/// * `Vec2` - The position of the vertex.
 func Grabber.GetPos(x: i32, y: i32) => Vec2 {
 	return Vec2FromValue(grabber_get_pos(*this.raw, x, y))
 }
+/// Sets the color of a vertex in the grabber grid.
+///
+/// # Arguments
+///
+/// * `x` - The x-index of the vertex in the grabber grid.
+/// * `y` - The y-index of the vertex in the grabber grid.
+/// * `color` - The new color of the vertex, represented by a Color object.
 func Grabber.SetColor(x: i32, y: i32, color: Color) {
 	grabber_set_color(*this.raw, x, y, color.ToARGB())
 }
+/// Gets the color of a vertex in the grabber grid.
+///
+/// # Arguments
+///
+/// * `x` - The x-index of the vertex in the grabber grid.
+/// * `y` - The y-index of the vertex in the grabber grid.
+///
+/// # Returns
+///
+/// * `Color` - The color of the vertex.
 func Grabber.GetColor(x: i32, y: i32) => Color {
 	return ColorFromARGB(grabber_get_color(*this.raw, x, y))
 }
+/// Sets the UV coordinates of a vertex in the grabber grid.
+///
+/// # Arguments
+///
+/// * `x` - The x-index of the vertex in the grabber grid.
+/// * `y` - The y-index of the vertex in the grabber grid.
+/// * `offset` - The new UV coordinates of the vertex, represented by a Vec2 object.
 func Grabber.MoveUv(x: i32, y: i32, offset: Vec2) {
 	grabber_move_uv(*this.raw, x, y, offset.ToValue())
 }

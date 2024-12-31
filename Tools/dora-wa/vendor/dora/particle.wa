@@ -37,15 +37,27 @@ func ObjectAsParticle(object: Object) => *Particle {
 	}
 	return nil
 }
+/// Gets whether the particle system is active.
 func Particle.IsActive() => bool {
 	return particlenode_is_active(*this.raw) != 0
 }
+/// Starts emitting particles.
 func Particle.Start() {
 	particlenode_start(*this.raw)
 }
+/// Stops emitting particles and wait for all active particles to end their lives.
 func Particle.Stop() {
 	particlenode_stop(*this.raw)
 }
+/// Creates a new Particle object from a particle system file.
+///
+/// # Arguments
+///
+/// * `filename` - The file path of the particle system file.
+///
+/// # Returns
+///
+/// * A new `Particle` object.
 func NewParticle(filename: string) => *Particle {
 	raw := particlenode_new(ToDoraString(filename))
 	if raw == 0 {

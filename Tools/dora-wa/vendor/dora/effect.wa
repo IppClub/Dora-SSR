@@ -37,9 +37,23 @@ func ObjectAsEffect(object: Object) => *Effect {
 	}
 	return nil
 }
+/// Adds a Pass object to this Effect.
+///
+/// # Arguments
+///
+/// * `pass` - The Pass object to add.
 func Effect.Add(pass: Pass) {
 	effect_add(*this.raw, pass.GetRaw())
 }
+/// Retrieves a Pass object from this Effect by index.
+///
+/// # Arguments
+///
+/// * `index` - The index of the Pass object to retrieve.
+///
+/// # Returns
+///
+/// * `Pass` - The Pass object at the given index.
 func Effect.Get(index: i64) => *Pass {
 	ptr_ := effect_get(*this.raw, index)
 	if ptr_ == 0 {
@@ -48,9 +62,22 @@ func Effect.Get(index: i64) => *Pass {
 	obj_ := *PassFrom(ptr_)
 	return &obj_
 }
+/// Removes all Pass objects from this Effect.
 func Effect.Clear() {
 	effect_clear(*this.raw)
 }
+/// A method that allows you to create a new Effect object.
+///
+/// # Arguments
+///
+/// * `vert_shader` - The vertex shader file string.
+/// * `frag_shader` - The fragment shader file string. A shader file string must be one of the formats:
+///     * "builtin:" + theBuiltinShaderName
+///     * "Shader/compiled_shader_file.bin"
+///
+/// # Returns
+///
+/// * `Effect` - A new Effect object.
 func NewEffect(vert_shader: string, frag_shader: string) => Effect {
 	raw := effect_new(ToDoraString(vert_shader), ToDoraString(frag_shader))
 	object := Effect{}

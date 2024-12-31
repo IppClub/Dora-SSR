@@ -45,6 +45,16 @@ func ObjectAsPhysicsWorld(object: Object) => *PhysicsWorld {
 	}
 	return nil
 }
+/// Queries the physics world for all bodies that intersect with the specified rectangle.
+///
+/// # Arguments
+///
+/// * `rect` - The rectangle to query for bodies.
+/// * `handler` - A function that is called for each body found in the query. The function takes a `Body` as an argument and returns a `bool` indicating whether to continue querying for more bodies. Return `false` to continue, `true` to stop.
+///
+/// # Returns
+///
+/// * `bool` - Whether the query was interrupted. `true` means interrupted, `false` otherwise.
 func PhysicsWorld.Query(rect: Rect, handler: func(body: Body) => bool) => bool {
 	stack0 := NewCallStack()
 	func_id0 := PushFunction(func() {
@@ -54,6 +64,18 @@ func PhysicsWorld.Query(rect: Rect, handler: func(body: Body) => bool) => bool {
 	})
 	return physicsworld_query(*this.raw, rect.GetRaw(), func_id0, *stack0.raw) != 0
 }
+/// Casts a ray through the physics world and finds the first body that intersects with the ray.
+///
+/// # Arguments
+///
+/// * `start` - The starting point of the ray.
+/// * `stop` - The ending point of the ray.
+/// * `closest` - Whether to stop ray casting upon the closest body that intersects with the ray. Set `closest` to `true` to get a faster ray casting search.
+/// * `handler` - A function that is called for each body found in the raycast. The function takes a `Body`, a `Vec2` representing the point where the ray intersects with the body, and a `Vec2` representing the normal vector at the point of intersection as arguments, and returns a `bool` indicating whether to continue casting the ray for more bodies. Return `false` to continue, `true` to stop.
+///
+/// # Returns
+///
+/// * `bool` - Whether the raycast was interrupted. `true` means interrupted, `false` otherwise.
 func PhysicsWorld.Raycast(start: Vec2, stop: Vec2, closest: bool, handler: func(body: Body, point: Vec2, normal: Vec2) => bool) => bool {
 	stack0 := NewCallStack()
 	func_id0 := PushFunction(func() {
@@ -65,21 +87,59 @@ func PhysicsWorld.Raycast(start: Vec2, stop: Vec2, closest: bool, handler: func(
 	})
 	return physicsworld_raycast(*this.raw, start.ToValue(), stop.ToValue(), ToDoraBool(closest), func_id0, *stack0.raw) != 0
 }
+/// Sets the number of velocity and position iterations to perform in the physics world.
+///
+/// # Arguments
+///
+/// * `velocity_iter` - The number of velocity iterations to perform.
+/// * `position_iter` - The number of position iterations to perform.
 func PhysicsWorld.SetIterations(velocity_iter: i32, position_iter: i32) {
 	physicsworld_set_iterations(*this.raw, velocity_iter, position_iter)
 }
+/// Sets whether two physics groups should make contact with each other or not.
+///
+/// # Arguments
+///
+/// * `groupA` - The first physics group.
+/// * `groupB` - The second physics group.
+/// * `contact` - Whether the two groups should make contact with each other.
 func PhysicsWorld.SetShouldContact(group_a: i32, group_b: i32, contact: bool) {
 	physicsworld_set_should_contact(*this.raw, group_a, group_b, ToDoraBool(contact))
 }
+/// Gets whether two physics groups should make contact with each other or not.
+///
+/// # Arguments
+///
+/// * `groupA` - The first physics group.
+/// * `groupB` - The second physics group.
+///
+/// # Returns
+///
+/// * `bool` - Whether the two groups should make contact with each other.
 func PhysicsWorld.GetShouldContact(group_a: i32, group_b: i32) => bool {
 	return physicsworld_get_should_contact(*this.raw, group_a, group_b) != 0
 }
+/// Sets the factor used for converting physics engine meters value to pixel value.
+/// Default 100.0 is a good value since the physics engine can well simulate real life objects
+/// between 0.1 to 10 meters. Use value 100.0 we can simulate game objects
+/// between 10 to 1000 pixels that suite most games.
+/// You can change this value before any physics body creation.
 func PhysicsWorldSetScaleFactor(val: f32) {
 	physicsworld_set_scale_factor(val)
 }
+/// Gets the factor used for converting physics engine meters value to pixel value.
+/// Default 100.0 is a good value since the physics engine can well simulate real life objects
+/// between 0.1 to 10 meters. Use value 100.0 we can simulate game objects
+/// between 10 to 1000 pixels that suite most games.
+/// You can change this value before any physics body creation.
 func PhysicsWorldGetScaleFactor() => f32 {
 	return physicsworld_get_scale_factor()
 }
+/// Creates a new `PhysicsWorld` object.
+///
+/// # Returns
+///
+/// * A new `PhysicsWorld` object.
 func NewPhysicsWorld() => PhysicsWorld {
 	raw := physicsworld_new()
 	object := PhysicsWorld{}

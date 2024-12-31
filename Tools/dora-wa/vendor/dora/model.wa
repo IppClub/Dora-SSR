@@ -65,42 +65,89 @@ func ObjectAsModel(object: Object) => *Model {
 	}
 	return nil
 }
+/// Gets the duration of the current animation.
 func Model.GetDuration() => f32 {
 	return model_get_duration(*this.raw)
 }
+/// Sets whether the animation model will be played in reverse.
 func Model.SetReversed(val: bool) {
 	model_set_reversed(*this.raw, ToDoraBool(val))
 }
+/// Gets whether the animation model will be played in reverse.
 func Model.IsReversed() => bool {
 	return model_is_reversed(*this.raw) != 0
 }
+/// Gets whether the animation model is currently playing.
 func Model.IsPlaying() => bool {
 	return model_is_playing(*this.raw) != 0
 }
+/// Gets whether the animation model is currently paused.
 func Model.IsPaused() => bool {
 	return model_is_paused(*this.raw) != 0
 }
+/// Checks if an animation exists in the model.
+///
+/// # Arguments
+///
+/// * `name` - The name of the animation to check.
+///
+/// # Returns
+///
+/// * `bool` - Whether the animation exists in the model or not.
 func Model.HasAnimation(name: string) => bool {
 	return model_has_animation(*this.raw, ToDoraString(name)) != 0
 }
+/// Pauses the currently playing animation.
 func Model.Pause() {
 	model_pause(*this.raw)
 }
+/// Resumes the currently paused animation,
 func Model.Resume() {
 	model_resume(*this.raw)
 }
+/// Resumes the currently paused animation, or plays a new animation if specified.
+///
+/// # Arguments
+///
+/// * `name` - The name of the animation to play.
+/// * `loop` - Whether to loop the animation or not.
 func Model.ResumeAnimation(name: string, looping: bool) {
 	model_resume_animation(*this.raw, ToDoraString(name), ToDoraBool(looping))
 }
+/// Resets the current animation to its initial state.
 func Model.Reset() {
 	model_reset(*this.raw)
 }
+/// Updates the animation to the specified time, and optionally in reverse.
+///
+/// # Arguments
+///
+/// * `elapsed` - The time to update to.
+/// * `reversed` - Whether to play the animation in reverse.
 func Model.UpdateTo(elapsed: f32, reversed: bool) {
 	model_update_to(*this.raw, elapsed, ToDoraBool(reversed))
 }
+/// Gets the node with the specified name.
+///
+/// # Arguments
+///
+/// * `name` - The name of the node to get.
+///
+/// # Returns
+///
+/// * The node with the specified name.
 func Model.GetNodeByName(name: string) => Node {
 	return *NodeFrom(model_get_node_by_name(*this.raw, ToDoraString(name)))
 }
+/// Calls the specified function for each node in the model, and stops if the function returns `false`.
+///
+/// # Arguments
+///
+/// * `visitorFunc` - The function to call for each node.
+///
+/// # Returns
+///
+/// * `bool` - Whether the function was called for all nodes or not.
 func Model.EachNode(visitor_func: func(node: Node) => bool) => bool {
 	stack0 := NewCallStack()
 	func_id0 := PushFunction(func() {
@@ -110,6 +157,15 @@ func Model.EachNode(visitor_func: func(node: Node) => bool) => bool {
 	})
 	return model_each_node(*this.raw, func_id0, *stack0.raw) != 0
 }
+/// Creates a new instance of 'Model' from the specified model file.
+///
+/// # Arguments
+///
+/// * `filename` - The filename of the model file to load. Can be filename with or without extension like: "Model/item" or "Model/item.model".
+///
+/// # Returns
+///
+/// * A new instance of 'Model'.
 func NewModel(filename: string) => *Model {
 	raw := model_new(ToDoraString(filename))
 	if raw == 0 {
@@ -120,15 +176,47 @@ func NewModel(filename: string) => *Model {
 	setFinalizer(object.raw, ObjectFinalizer)
 	return &object
 }
+/// Returns a new dummy instance of 'Model' that can do nothing.
+///
+/// # Returns
+///
+/// * A new dummy instance of 'Model'.
 func ModelDummy() => Model {
 	return *ModelFrom(model_dummy())
 }
+/// Gets the clip file from the specified model file.
+///
+/// # Arguments
+///
+/// * `filename` - The filename of the model file to search.
+///
+/// # Returns
+///
+/// * A `String` representing the name of the clip file.
 func ModelGetClipFile(filename: string) => string {
 	return FromDoraString(model_get_clip_file(ToDoraString(filename)))
 }
+/// Gets an array of look names from the specified model file.
+///
+/// # Arguments
+///
+/// * `filename` - The filename of the model file to search.
+///
+/// # Returns
+///
+/// * A `Vec<String>` representing an array of look names found in the model file.
 func ModelGetLooks(filename: string) => *[]string {
 	return FromDoraStrBuf(model_get_looks(ToDoraString(filename)))
 }
+/// Gets an array of animation names from the specified model file.
+///
+/// # Arguments
+///
+/// * `filename` - The filename of the model file to search.
+///
+/// # Returns
+///
+/// * A `Vec<String>` representing an array of animation names found in the model file.
 func ModelGetAnimations(filename: string) => *[]string {
 	return FromDoraStrBuf(model_get_animations(ToDoraString(filename)))
 }

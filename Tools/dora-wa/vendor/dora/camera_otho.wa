@@ -35,12 +35,23 @@ func ObjectAsCameraOtho(object: Object) => *CameraOtho {
 	}
 	return nil
 }
+/// Sets the position of the camera in the game world.
 func CameraOtho.SetPosition(val: Vec2) {
 	cameraotho_set_position(*this.raw, val.ToValue())
 }
+/// Gets the position of the camera in the game world.
 func CameraOtho.GetPosition() => Vec2 {
 	return Vec2FromValue(cameraotho_get_position(*this.raw))
 }
+/// Creates a new CameraOtho object with the given name.
+///
+/// # Arguments
+///
+/// * `name` - The name of the CameraOtho object.
+///
+/// # Returns
+///
+/// * `CameraOtho` - A new instance of the CameraOtho object.
 func NewCameraOtho(name: string) => CameraOtho {
 	raw := cameraotho_new(ToDoraString(name))
 	object := CameraOtho{}

@@ -35,12 +35,33 @@ func ObjectAsEffekNode(object: Object) => *EffekNode {
 	}
 	return nil
 }
+/// Plays an effect at the specified position.
+///
+/// # Arguments
+///
+/// * `filename` - The filename of the effect to play.
+/// * `pos` - The xy-position to play the effect at.
+/// * `z` - The z-position of the effect.
+///
+/// # Returns
+///
+/// * `int` - The handle of the effect.
 func EffekNode.Play(filename: string, pos: Vec2, z: f32) => i32 {
 	return effeknode_play(*this.raw, ToDoraString(filename), pos.ToValue(), z)
 }
+/// Stops an effect with the specified handle.
+///
+/// # Arguments
+///
+/// * `handle` - The handle of the effect to stop.
 func EffekNode.Stop(handle: i32) {
 	effeknode_stop(*this.raw, handle)
 }
+/// Creates a new EffekNode object.
+///
+/// # Returns
+///
+/// * `EffekNode` - A new EffekNode object.
 func NewEffekNode() => EffekNode {
 	raw := effeknode_new()
 	object := EffekNode{}

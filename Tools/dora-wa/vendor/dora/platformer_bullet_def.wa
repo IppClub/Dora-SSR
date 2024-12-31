@@ -67,60 +67,92 @@ func ObjectAsPlatformerBulletDef(object: Object) => *PlatformerBulletDef {
 	}
 	return nil
 }
+/// Sets the tag for the bullet object.
 func PlatformerBulletDef.SetTag(val: string) {
 	platformer_bulletdef_set_tag(*this.raw, ToDoraString(val))
 }
+/// Gets the tag for the bullet object.
 func PlatformerBulletDef.GetTag() => string {
 	return FromDoraString(platformer_bulletdef_get_tag(*this.raw))
 }
+/// Sets the effect that occurs when the bullet object ends its life.
 func PlatformerBulletDef.SetEndEffect(val: string) {
 	platformer_bulletdef_set_end_effect(*this.raw, ToDoraString(val))
 }
+/// Gets the effect that occurs when the bullet object ends its life.
 func PlatformerBulletDef.GetEndEffect() => string {
 	return FromDoraString(platformer_bulletdef_get_end_effect(*this.raw))
 }
+/// Sets the amount of time in seconds that the bullet object remains active.
 func PlatformerBulletDef.SetLifeTime(val: f32) {
 	platformer_bulletdef_set_life_time(*this.raw, val)
 }
+/// Gets the amount of time in seconds that the bullet object remains active.
 func PlatformerBulletDef.GetLifeTime() => f32 {
 	return platformer_bulletdef_get_life_time(*this.raw)
 }
+/// Sets the radius of the bullet object's damage area.
 func PlatformerBulletDef.SetDamageRadius(val: f32) {
 	platformer_bulletdef_set_damage_radius(*this.raw, val)
 }
+/// Gets the radius of the bullet object's damage area.
 func PlatformerBulletDef.GetDamageRadius() => f32 {
 	return platformer_bulletdef_get_damage_radius(*this.raw)
 }
+/// Sets whether the bullet object should be fixed for high speeds.
 func PlatformerBulletDef.SetHighSpeedFix(val: bool) {
 	platformer_bulletdef_set_high_speed_fix(*this.raw, ToDoraBool(val))
 }
+/// Gets whether the bullet object should be fixed for high speeds.
 func PlatformerBulletDef.IsHighSpeedFix() => bool {
 	return platformer_bulletdef_is_high_speed_fix(*this.raw) != 0
 }
+/// Sets the gravity vector that applies to the bullet object.
 func PlatformerBulletDef.SetGravity(val: Vec2) {
 	platformer_bulletdef_set_gravity(*this.raw, val.ToValue())
 }
+/// Gets the gravity vector that applies to the bullet object.
 func PlatformerBulletDef.GetGravity() => Vec2 {
 	return Vec2FromValue(platformer_bulletdef_get_gravity(*this.raw))
 }
+/// Sets the visual item of the bullet object.
 func PlatformerBulletDef.SetFace(val: PlatformerFace) {
 	platformer_bulletdef_set_face(*this.raw, val.GetRaw())
 }
+/// Gets the visual item of the bullet object.
 func PlatformerBulletDef.GetFace() => PlatformerFace {
 	return *PlatformerFaceFrom(platformer_bulletdef_get_face(*this.raw))
 }
+/// Gets the physics body definition for the bullet object.
 func PlatformerBulletDef.GetBodyDef() => BodyDef {
 	return *BodyDefFrom(platformer_bulletdef_get_body_def(*this.raw))
 }
+/// Gets the velocity vector of the bullet object.
 func PlatformerBulletDef.GetVelocity() => Vec2 {
 	return Vec2FromValue(platformer_bulletdef_get_velocity(*this.raw))
 }
+/// Sets the bullet object's physics body as a circle.
+///
+/// # Arguments
+///
+/// * `radius` - The radius of the circle.
 func PlatformerBulletDef.SetAsCircle(radius: f32) {
 	platformer_bulletdef_set_as_circle(*this.raw, radius)
 }
+/// Sets the velocity of the bullet object.
+///
+/// # Arguments
+///
+/// * `angle` - The angle of the velocity in degrees.
+/// * `speed` - The speed of the velocity.
 func PlatformerBulletDef.SetVelocity(angle: f32, speed: f32) {
 	platformer_bulletdef_set_velocity(*this.raw, angle, speed)
 }
+/// Creates a new bullet object definition with default settings.
+///
+/// # Returns
+///
+/// * `BulletDef` - The new bullet object definition.
 func NewPlatformerBulletDef() => PlatformerBulletDef {
 	raw := platformer_bulletdef_new()
 	object := PlatformerBulletDef{}

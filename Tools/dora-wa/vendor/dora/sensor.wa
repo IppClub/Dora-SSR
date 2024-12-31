@@ -43,24 +43,39 @@ func ObjectAsSensor(object: Object) => *Sensor {
 	}
 	return nil
 }
+/// Sets whether the sensor is currently enabled or not.
 func Sensor.SetEnabled(val: bool) {
 	sensor_set_enabled(*this.raw, ToDoraBool(val))
 }
+/// Gets whether the sensor is currently enabled or not.
 func Sensor.IsEnabled() => bool {
 	return sensor_is_enabled(*this.raw) != 0
 }
+/// Gets the tag for the sensor.
 func Sensor.GetTag() => i32 {
 	return sensor_get_tag(*this.raw)
 }
+/// Gets the "Body" object that owns the sensor.
 func Sensor.GetOwner() => Body {
 	return *BodyFrom(sensor_get_owner(*this.raw))
 }
+/// Gets whether the sensor is currently sensing any other "Body" objects in the game world.
 func Sensor.IsSensed() => bool {
 	return sensor_is_sensed(*this.raw) != 0
 }
+/// Gets the array of "Body" objects that are currently being sensed by the sensor.
 func Sensor.GetSensedBodies() => Array {
 	return *ArrayFrom(sensor_get_sensed_bodies(*this.raw))
 }
+/// Determines whether the specified `Body` object is currently being sensed by the sensor.
+///
+/// # Arguments
+///
+/// * `body` - The `Body` object to check if it is being sensed.
+///
+/// # Returns
+///
+/// * `bool` - `true` if the `Body` object is being sensed by the sensor, `false` otherwise.
 func Sensor.Contains(body: Body) => bool {
 	return sensor_contains(*this.raw, body.GetRaw()) != 0
 }
