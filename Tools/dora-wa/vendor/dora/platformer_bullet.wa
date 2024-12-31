@@ -51,36 +51,56 @@ func ObjectAsPlatformerBullet(object: Object) => *PlatformerBullet {
 	}
 	return nil
 }
+/// Sets the value from a `Platformer.TargetAllow` object for the bullet object.
 func PlatformerBullet.SetTargetAllow(val: i32) {
 	platformer_bullet_set_target_allow(*this.raw, val)
 }
+/// Gets the value from a `Platformer.TargetAllow` object for the bullet object.
 func PlatformerBullet.GetTargetAllow() => i32 {
 	return platformer_bullet_get_target_allow(*this.raw)
 }
+/// Gets whether the bullet object is facing right.
 func PlatformerBullet.IsFaceRight() => bool {
 	return platformer_bullet_is_face_right(*this.raw) != 0
 }
+/// Sets whether the bullet object should stop on impact.
 func PlatformerBullet.SetHitStop(val: bool) {
 	platformer_bullet_set_hit_stop(*this.raw, ToDoraBool(val))
 }
+/// Gets whether the bullet object should stop on impact.
 func PlatformerBullet.IsHitStop() => bool {
 	return platformer_bullet_is_hit_stop(*this.raw) != 0
 }
+/// Gets the `Unit` object that fired the bullet.
 func PlatformerBullet.GetEmitter() => PlatformerUnit {
 	return *PlatformerUnitFrom(platformer_bullet_get_emitter(*this.raw))
 }
+/// Gets the `BulletDef` object that defines the bullet's properties and behavior.
 func PlatformerBullet.GetBulletDef() => PlatformerBulletDef {
 	return *PlatformerBulletDefFrom(platformer_bullet_get_bullet_def(*this.raw))
 }
+/// Sets the `Node` object that appears as the bullet's visual item.
 func PlatformerBullet.SetFace(val: Node) {
 	platformer_bullet_set_face(*this.raw, val.GetRaw())
 }
+/// Gets the `Node` object that appears as the bullet's visual item.
 func PlatformerBullet.GetFace() => Node {
 	return *NodeFrom(platformer_bullet_get_face(*this.raw))
 }
+/// Destroys the bullet object instance.
 func PlatformerBullet.Destroy() {
 	platformer_bullet_destroy(*this.raw)
 }
+/// A method that creates a new `Bullet` object instance with the specified `BulletDef` and `Unit` objects.
+///
+/// # Arguments
+///
+/// * `def` - The `BulletDef` object that defines the bullet's properties and behavior.
+/// * `owner` - The `Unit` object that fired the bullet.
+///
+/// # Returns
+///
+/// * `Bullet` - The new `Bullet` object instance.
 func NewPlatformerBullet(def: PlatformerBulletDef, owner: PlatformerUnit) => PlatformerBullet {
 	raw := platformer_bullet_new(def.GetRaw(), owner.GetRaw())
 	object := PlatformerBullet{}

@@ -41,21 +41,63 @@ func ObjectAsPass(object: Object) => *Pass {
 	}
 	return nil
 }
+/// Sets whether this Pass should be a grab pass.
+/// A grab pass will render a portion of game scene into a texture frame buffer.
+/// Then use this texture frame buffer as an input for next render pass.
 func Pass.SetGrabPass(val: bool) {
 	pass_set_grab_pass(*this.raw, ToDoraBool(val))
 }
+/// Gets whether this Pass should be a grab pass.
+/// A grab pass will render a portion of game scene into a texture frame buffer.
+/// Then use this texture frame buffer as an input for next render pass.
 func Pass.IsGrabPass() => bool {
 	return pass_is_grab_pass(*this.raw) != 0
 }
+/// Sets the value of shader parameters.
+///
+/// # Arguments
+///
+/// * `name` - The name of the parameter to set.
+/// * `val` - The numeric value to set.
 func Pass.Set(name: string, val: f32) {
 	pass_set(*this.raw, ToDoraString(name), val)
 }
+/// Sets the values of shader parameters.
+///
+/// # Arguments
+///
+/// * `name` - The name of the parameter to set.
+/// * `val1` - The first numeric value to set.
+/// * `val2` - An optional second numeric value to set.
+/// * `val3` - An optional third numeric value to set.
+/// * `val4` - An optional fourth numeric value to set.
 func Pass.SetVec4(name: string, val_1: f32, val_2: f32, val_3: f32, val_4: f32) {
 	pass_set_vec4(*this.raw, ToDoraString(name), val_1, val_2, val_3, val_4)
 }
+/// Another function that sets the values of shader parameters.
+///
+/// Works the same as:
+/// pass.set("varName", color.r / 255.0, color.g / 255.0, color.b / 255.0, color.opacity);
+///
+/// # Arguments
+///
+/// * `name` - The name of the parameter to set.
+/// * `val` - The Color object to set.
 func Pass.SetColor(name: string, val: Color) {
 	pass_set_color(*this.raw, ToDoraString(name), val.ToARGB())
 }
+/// Creates a new Pass object.
+///
+/// # Arguments
+///
+/// * `vert_shader` - The vertex shader in binary form file string.
+/// * `frag_shader` - The fragment shader file string. A shader file string must be one of the formats:
+///     * "builtin:" + theBuiltinShaderName
+///     * "Shader/compiled_shader_file.bin"
+///
+/// # Returns
+///
+/// * `Pass` - A new Pass object.
 func NewPass(vert_shader: string, frag_shader: string) => Pass {
 	raw := pass_new(ToDoraString(vert_shader), ToDoraString(frag_shader))
 	object := Pass{}

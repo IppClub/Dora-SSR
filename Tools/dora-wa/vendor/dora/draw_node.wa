@@ -49,33 +49,71 @@ func ObjectAsDrawNode(object: Object) => *DrawNode {
 	}
 	return nil
 }
+/// Sets whether to write to the depth buffer when drawing (default is false).
 func DrawNode.SetDepthWrite(val: bool) {
 	drawnode_set_depth_write(*this.raw, ToDoraBool(val))
 }
+/// Gets whether to write to the depth buffer when drawing (default is false).
 func DrawNode.IsDepthWrite() => bool {
 	return drawnode_is_depth_write(*this.raw) != 0
 }
+/// Sets the blend function for the draw node.
 func DrawNode.SetBlendFunc(val: BlendFunc) {
 	drawnode_set_blend_func(*this.raw, val.ToValue())
 }
+/// Gets the blend function for the draw node.
 func DrawNode.GetBlendFunc() => BlendFunc {
 	return BlendFuncFrom(drawnode_get_blend_func(*this.raw))
 }
+/// Draws a dot at a specified position with a specified radius and color.
+///
+/// # Arguments
+///
+/// * `pos` - The position of the dot.
+/// * `radius` - The radius of the dot.
+/// * `color` - The color of the dot.
 func DrawNode.DrawDot(pos: Vec2, radius: f32, color: Color) {
 	drawnode_draw_dot(*this.raw, pos.ToValue(), radius, color.ToARGB())
 }
+/// Draws a line segment between two points with a specified radius and color.
+///
+/// # Arguments
+///
+/// * `from` - The starting point of the line.
+/// * `to` - The ending point of the line.
+/// * `radius` - The radius of the line.
+/// * `color` - The color of the line.
 func DrawNode.DrawSegment(from: Vec2, to: Vec2, radius: f32, color: Color) {
 	drawnode_draw_segment(*this.raw, from.ToValue(), to.ToValue(), radius, color.ToARGB())
 }
+/// Draws a polygon defined by a list of vertices with a specified fill color and border.
+///
+/// # Arguments
+///
+/// * `verts` - The vertices of the polygon.
+/// * `fill_color` - The fill color of the polygon.
+/// * `border_width` - The width of the border.
+/// * `border_color` - The color of the border.
 func DrawNode.DrawPolygon(verts: *[]Vec2, fill_color: Color, border_width: f32, border_color: Color) {
 	drawnode_draw_polygon(*this.raw, ToDoraVec2Buf(verts), fill_color.ToARGB(), border_width, border_color.ToARGB())
 }
+/// Draws a set of vertices as triangles, each vertex with its own color.
+///
+/// # Arguments
+///
+/// * `verts` - The list of vertices and their colors. Each element is a tuple where the first element is a `Vec2` and the second element is a `Color`.
 func DrawNode.DrawVertices(verts: *[]VertexColor) {
 	drawnode_draw_vertices(*this.raw, ToDoraVertexColorBuf(verts))
 }
+/// Clears all previously drawn shapes from the node.
 func DrawNode.Clear() {
 	drawnode_clear(*this.raw)
 }
+/// Creates a new DrawNode object.
+///
+/// # Returns
+///
+/// * A new `DrawNode` object.
 func NewDrawNode() => DrawNode {
 	raw := drawnode_new()
 	object := DrawNode{}

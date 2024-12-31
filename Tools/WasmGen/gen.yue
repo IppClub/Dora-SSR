@@ -1323,12 +1323,17 @@ func #{waNewName}.GetRaw() => i64 {
 								slf = isStatic and "" or "self.raw(), "
 								"#{docText}\t#{pub}fn #{rustSetterName}(#{slfDecl}val: #{rtTypeIn or rt}) {\n\t\tunsafe { #{cppSetterName}(#{slf}#{rtCast and rtCast('val') or 'val'}) };\n\t}"
 							waType = getWaType dataType, waName
-							waBinding[] = if isSingleton
-								"func _#{waNewName}.#{waSetterName}(val: #{waType.argType}) {\n\t#{cppSetterName}(#{waType.convertTo 'val'})\n}"
-							elseif isStatic
-								"func #{waNewName}#{waSetterName}(val: #{waType.argType}) {\n\t#{cppSetterName}(#{waType.convertTo 'val'})\n}"
+							waDocText = if #docs > 0
+								text = table.concat docs, '\n'
+								text\sub(1, 4) .. 'Sets' .. text\sub(4) .. '\n'
 							else
-								"func #{waNewName}.#{waSetterName}(val: #{waType.argType}) {\n\t#{cppSetterName}(*this.raw, #{waType.convertTo 'val'})\n}"
+								''
+							waBinding[] = if isSingleton
+								"#{waDocText}func _#{waNewName}.#{waSetterName}(val: #{waType.argType}) {\n\t#{cppSetterName}(#{waType.convertTo 'val'})\n}"
+							elseif isStatic
+								"#{waDocText}func #{waNewName}#{waSetterName}(val: #{waType.argType}) {\n\t#{cppSetterName}(#{waType.convertTo 'val'})\n}"
+							else
+								"#{waDocText}func #{waNewName}.#{waSetterName}(val: #{waType.argType}) {\n\t#{cppSetterName}(*this.raw, #{waType.convertTo 'val'})\n}"
 						docText = if #docs > 0
 							text = table.concat docs, '\n\t'
 							'\t' .. text\sub(1, 4) .. 'Gets' .. text\sub(4) .. '\n'
@@ -1386,15 +1391,20 @@ func #{waNewName}.GetRaw() => i64 {
 	return &obj_"
 							else
 								"\treturn #{waType.convertFrom item}"
+						waDocText = if #docs > 0
+							text = table.concat docs, '\n'
+							text\sub(1, 4) .. 'Gets' .. text\sub(4) .. '\n'
+						else
+							''
 						waBinding[] = if isSingleton
 							item = "#{cppGetterName}()"
-							"func _#{waNewName}.#{waGetterName}() => #{waReturnType} {\n#{waReturn item}\n}"
+							"#{waDocText}func _#{waNewName}.#{waGetterName}() => #{waReturnType} {\n#{waReturn item}\n}"
 						elseif isStatic
 							item = "#{cppGetterName}()"
-							"func #{waNewName}#{waGetterName}() => #{waReturnType} {\n#{waReturn item}\n}"
+							"#{waDocText}func #{waNewName}#{waGetterName}() => #{waReturnType} {\n#{waReturn item}\n}"
 						else
 							item = "#{cppGetterName}(*this.raw)"
-							"func #{waNewName}.#{waGetterName}() => #{waReturnType} {\n#{waReturn item}\n}"
+							"#{waDocText}func #{waNewName}.#{waGetterName}() => #{waReturnType} {\n#{waReturn item}\n}"
 					else
 						error "\"#{dataType}\" is not supported."
 				when "method"
@@ -1752,6 +1762,10 @@ func #{waNewName}.GetRaw() => i64 {
 						argsConverted = table.concat ["#{item.converted}" for item in *argItems], ", "
 						prepareStr = table.concat prepareArgs, "\n"
 						prepareStr = prepareStr == "" and "" or "#{prepareStr}\n"
+						waDocText = if #docs > 0
+							table.concat(docs, '\n') .. '\n'
+						else
+							''
 						waBinding[] = if isSingleton
 							item = "#{cppFuncName}(#{argsConverted})"
 							"func _#{waNewName}.#{waFuncName}(#{argsList})#{waReturnType} {
@@ -1760,7 +1774,7 @@ func #{waNewName}.GetRaw() => i64 {
 						elseif isCreate
 							dealOptional = isOptional and "if raw == 0 {\n\t\treturn nil\n\t}\n\tobject := #{waNewName}{}" or "object := #{waNewName}{}"
 							waFuncName = if funcNewName == "new" then "" else snakeToPascal funcNewName
-							"func New#{waNewName}#{waFuncName}(#{argsList})#{waReturnType} {
+							"#{waDocText}func New#{waNewName}#{waFuncName}(#{argsList})#{waReturnType} {
 #{prepareStr}	raw := #{cppFuncName}(#{argsConverted})
 	#{dealOptional}
 	object.raw = &raw
@@ -1769,12 +1783,12 @@ func #{waNewName}.GetRaw() => i64 {
 }"
 						elseif isStatic
 							item = "#{cppFuncName}(#{argsConverted})"
-							"func #{waNewName}#{waFuncName}(#{argsList})#{waReturnType} {
+							"#{waDocText}func #{waNewName}#{waFuncName}(#{argsList})#{waReturnType} {
 #{prepareStr}	#{waReturn item}
 }"
 						else
 							item = "#{cppFuncName}(*this.raw#{argsConverted == "" and "" or ", " .. argsConverted})"
-							"func #{waNewName}.#{waFuncName}(#{argsList})#{waReturnType} {
+							"#{waDocText}func #{waNewName}.#{waFuncName}(#{argsList})#{waReturnType} {
 #{prepareStr}	#{waReturn item}
 }"
 					else

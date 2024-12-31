@@ -51,36 +51,62 @@ func ObjectAsAction(object: Object) => *Action {
 	}
 	return nil
 }
+/// Gets the duration of the action.
 func Action.GetDuration() => f32 {
 	return action_get_duration(*this.raw)
 }
+/// Gets whether the action is currently running.
 func Action.IsRunning() => bool {
 	return action_is_running(*this.raw) != 0
 }
+/// Gets whether the action is currently paused.
 func Action.IsPaused() => bool {
 	return action_is_paused(*this.raw) != 0
 }
+/// Sets whether the action should be run in reverse.
 func Action.SetReversed(val: bool) {
 	action_set_reversed(*this.raw, ToDoraBool(val))
 }
+/// Gets whether the action should be run in reverse.
 func Action.IsReversed() => bool {
 	return action_is_reversed(*this.raw) != 0
 }
+/// Sets the speed at which the action should be run.
+/// Set to 1.0 to get normal speed, Set to 2.0 to get two times faster.
 func Action.SetSpeed(val: f32) {
 	action_set_speed(*this.raw, val)
 }
+/// Gets the speed at which the action should be run.
+/// Set to 1.0 to get normal speed, Set to 2.0 to get two times faster.
 func Action.GetSpeed() => f32 {
 	return action_get_speed(*this.raw)
 }
+/// Pauses the action.
 func Action.Pause() {
 	action_pause(*this.raw)
 }
+/// Resumes the action.
 func Action.Resume() {
 	action_resume(*this.raw)
 }
+/// Updates the state of the Action.
+///
+/// # Arguments
+///
+/// * `elapsed` - The amount of time in seconds that has elapsed to update action to.
+/// * `reversed` - Whether or not to update the Action in reverse.
 func Action.UpdateTo(elapsed: f32, reversed: bool) {
 	action_update_to(*this.raw, elapsed, ToDoraBool(reversed))
 }
+/// Creates a new Action object.
+///
+/// # Arguments
+///
+/// * `def` - The definition of the action.
+///
+/// # Returns
+///
+/// * `Action` - A new Action object.
 func NewAction(def: ActionDef) => Action {
 	raw := action_new(def.GetRaw())
 	object := Action{}

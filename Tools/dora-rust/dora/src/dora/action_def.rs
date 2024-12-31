@@ -33,7 +33,7 @@ impl ActionDef {
 	pub(crate) fn from(raw: i64) -> ActionDef {
 		ActionDef { raw: raw }
 	}
-	/// Creates a new Action object to change a property of a node.
+	/// Creates a new action definition object to change a property of a node.
 	///
 	/// # Arguments
 	///
@@ -45,11 +45,11 @@ impl ActionDef {
 	///
 	/// # Returns
 	///
-	/// * `Action` - A new Action object.
+	/// * `ActionDef` - A new ActionDef object.
 	pub fn prop(duration: f32, start: f32, stop: f32, prop: crate::dora::Property, easing: crate::dora::EaseType) -> crate::dora::ActionDef {
 		unsafe { return crate::dora::ActionDef::from(actiondef_prop(duration, start, stop, prop as i32, easing as i32)); }
 	}
-	/// Creates a new Action object to change the color of a node.
+	/// Creates a new action definition object to change the color of a node.
 	///
 	/// # Arguments
 	///
@@ -60,11 +60,11 @@ impl ActionDef {
 	///
 	/// # Returns
 	///
-	/// * `Action` - A new Action object.
+	/// * `ActionDef` - A new ActionDef object.
 	pub fn tint(duration: f32, start: &crate::dora::Color3, stop: &crate::dora::Color3, easing: crate::dora::EaseType) -> crate::dora::ActionDef {
 		unsafe { return crate::dora::ActionDef::from(actiondef_tint(duration, start.to_rgb() as i32, stop.to_rgb() as i32, easing as i32)); }
 	}
-	/// Creates a new Action object to rotate a node by smallest angle.
+	/// Creates a new action definition object to rotate a node by smallest angle.
 	///
 	/// # Arguments
 	///
@@ -75,11 +75,11 @@ impl ActionDef {
 	///
 	/// # Returns
 	///
-	/// * `Action` - A new Action object.
+	/// * `ActionDef` - A new ActionDef object.
 	pub fn roll(duration: f32, start: f32, stop: f32, easing: crate::dora::EaseType) -> crate::dora::ActionDef {
 		unsafe { return crate::dora::ActionDef::from(actiondef_roll(duration, start, stop, easing as i32)); }
 	}
-	/// Creates a new Action object to run a group of actions in parallel.
+	/// Creates a new action definition object to run a group of actions in parallel.
 	///
 	/// # Arguments
 	///
@@ -87,11 +87,11 @@ impl ActionDef {
 	///
 	/// # Returns
 	///
-	/// * `Action` - A new Action object.
+	/// * `ActionDef` - A new ActionDef object.
 	pub fn spawn(defs: &Vec<crate::dora::ActionDef>) -> crate::dora::ActionDef {
 		unsafe { return crate::dora::ActionDef::from(actiondef_spawn(crate::dora::Vector::from_action_def(defs))); }
 	}
-	/// Creates a new Action object to run a group of actions in sequence.
+	/// Creates a new action definition object to run a group of actions in sequence.
 	///
 	/// # Arguments
 	///
@@ -99,11 +99,11 @@ impl ActionDef {
 	///
 	/// # Returns
 	///
-	/// * `Action` - A new Action object.
+	/// * `ActionDef` - A new ActionDef object.
 	pub fn sequence(defs: &Vec<crate::dora::ActionDef>) -> crate::dora::ActionDef {
 		unsafe { return crate::dora::ActionDef::from(actiondef_sequence(crate::dora::Vector::from_action_def(defs))); }
 	}
-	/// Creates a new Action object to delay the execution of following action.
+	/// Creates a new action definition object to delay the execution of following action.
 	///
 	/// # Arguments
 	///
@@ -111,19 +111,19 @@ impl ActionDef {
 	///
 	/// # Returns
 	///
-	/// * `Action` - A new Action object.
+	/// * `ActionDef` - A new ActionDef object.
 	pub fn delay(duration: f32) -> crate::dora::ActionDef {
 		unsafe { return crate::dora::ActionDef::from(actiondef_delay(duration)); }
 	}
-	/// Creates a new Action object to show a node.
+	/// Creates a new action definition object to show a node.
 	pub fn show() -> crate::dora::ActionDef {
 		unsafe { return crate::dora::ActionDef::from(actiondef_show()); }
 	}
-	/// Creates a new Action object to hide a node.
+	/// Creates a new action definition object to hide a node.
 	pub fn hide() -> crate::dora::ActionDef {
 		unsafe { return crate::dora::ActionDef::from(actiondef_hide()); }
 	}
-	/// Creates a new Action object to emit an event.
+	/// Creates a new action definition object to emit an event.
 	///
 	/// # Arguments
 	///
@@ -132,11 +132,11 @@ impl ActionDef {
 	///
 	/// # Returns
 	///
-	/// * `Action` - A new Action object.
+	/// * `ActionDef` - A new ActionDef object.
 	pub fn event(event_name: &str, msg: &str) -> crate::dora::ActionDef {
 		unsafe { return crate::dora::ActionDef::from(actiondef_event(crate::dora::from_string(event_name), crate::dora::from_string(msg))); }
 	}
-	/// Creates a new Action object to move a node.
+	/// Creates a new action definition object to move a node.
 	///
 	/// # Arguments
 	///
@@ -147,11 +147,11 @@ impl ActionDef {
 	///
 	/// # Returns
 	///
-	/// * `Action` - A new Action object.
+	/// * `ActionDef` - A new ActionDef object.
 	pub fn move_to(duration: f32, start: &crate::dora::Vec2, stop: &crate::dora::Vec2, easing: crate::dora::EaseType) -> crate::dora::ActionDef {
 		unsafe { return crate::dora::ActionDef::from(actiondef_move_to(duration, start.into_i64(), stop.into_i64(), easing as i32)); }
 	}
-	/// Creates a new Action object to scale a node.
+	/// Creates a new action definition object to scale a node.
 	///
 	/// # Arguments
 	///
@@ -162,11 +162,11 @@ impl ActionDef {
 	///
 	/// # Returns
 	///
-	/// * `Action` - A new Action object.
+	/// * `ActionDef` - A new ActionDef object.
 	pub fn scale(duration: f32, start: f32, stop: f32, easing: crate::dora::EaseType) -> crate::dora::ActionDef {
 		unsafe { return crate::dora::ActionDef::from(actiondef_scale(duration, start, stop, easing as i32)); }
 	}
-	/// Creates a new Action object to do a frame animation. Can only be performed on a Sprite node.
+	/// Creates a new action definition object to do a frame animation. Can only be performed on a Sprite node.
 	///
 	/// # Arguments
 	///
@@ -175,11 +175,11 @@ impl ActionDef {
 	///
 	/// # Returns
 	///
-	/// * `Action` - A new Action object.
+	/// * `ActionDef` - A new ActionDef object.
 	pub fn frame(clip_str: &str, duration: f32) -> crate::dora::ActionDef {
 		unsafe { return crate::dora::ActionDef::from(actiondef_frame(crate::dora::from_string(clip_str), duration)); }
 	}
-	/// Creates a new Action object to do a frame animation with frames count for each frame. Can only be performed on a Sprite node.
+	/// Creates a new action definition object to do a frame animation with frames count for each frame. Can only be performed on a Sprite node.
 	///
 	/// # Arguments
 	///

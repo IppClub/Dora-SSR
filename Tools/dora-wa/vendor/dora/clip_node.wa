@@ -43,24 +43,39 @@ func ObjectAsClipNode(object: Object) => *ClipNode {
 	}
 	return nil
 }
+/// Sets the stencil Node that defines the clipping shape.
 func ClipNode.SetStencil(val: Node) {
 	clipnode_set_stencil(*this.raw, val.GetRaw())
 }
+/// Gets the stencil Node that defines the clipping shape.
 func ClipNode.GetStencil() => Node {
 	return *NodeFrom(clipnode_get_stencil(*this.raw))
 }
+/// Sets the minimum alpha threshold for a pixel to be visible. Value ranges from 0 to 1.
 func ClipNode.SetAlphaThreshold(val: f32) {
 	clipnode_set_alpha_threshold(*this.raw, val)
 }
+/// Gets the minimum alpha threshold for a pixel to be visible. Value ranges from 0 to 1.
 func ClipNode.GetAlphaThreshold() => f32 {
 	return clipnode_get_alpha_threshold(*this.raw)
 }
+/// Sets whether to invert the clipping area.
 func ClipNode.SetInverted(val: bool) {
 	clipnode_set_inverted(*this.raw, ToDoraBool(val))
 }
+/// Gets whether to invert the clipping area.
 func ClipNode.IsInverted() => bool {
 	return clipnode_is_inverted(*this.raw) != 0
 }
+/// Creates a new ClipNode object.
+///
+/// # Arguments
+///
+/// * `stencil` - The stencil Node that defines the clipping shape. Defaults to `None`.
+///
+/// # Returns
+///
+/// * A new `ClipNode` object.
 func NewClipNode(stencil: Node) => ClipNode {
 	raw := clipnode_new(stencil.GetRaw())
 	object := ClipNode{}

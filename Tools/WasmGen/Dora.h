@@ -895,7 +895,7 @@ singleton class View
 };
 
 value class ActionDef {
-	/// Creates a new Action object to change a property of a node.
+	/// Creates a new action definition object to change a property of a node.
 	///
 	/// # Arguments
 	///
@@ -907,9 +907,9 @@ value class ActionDef {
 	///
 	/// # Returns
 	///
-	/// * `Action` - A new Action object.
+	/// * `ActionDef` - A new ActionDef object.
 	static outside ActionDef ActionDef_Prop @ prop(float duration, float start, float stop, Property prop, EaseType easing);
-	/// Creates a new Action object to change the color of a node.
+	/// Creates a new action definition object to change the color of a node.
 	///
 	/// # Arguments
 	///
@@ -920,9 +920,9 @@ value class ActionDef {
 	///
 	/// # Returns
 	///
-	/// * `Action` - A new Action object.
+	/// * `ActionDef` - A new ActionDef object.
 	static outside ActionDef ActionDef_Tint @ tint(float duration, Color3 start, Color3 stop, EaseType easing);
-	/// Creates a new Action object to rotate a node by smallest angle.
+	/// Creates a new action definition object to rotate a node by smallest angle.
 	///
 	/// # Arguments
 	///
@@ -933,9 +933,9 @@ value class ActionDef {
 	///
 	/// # Returns
 	///
-	/// * `Action` - A new Action object.
+	/// * `ActionDef` - A new ActionDef object.
 	static outside ActionDef ActionDef_Roll @ roll(float duration, float start, float stop, EaseType easing);
-	/// Creates a new Action object to run a group of actions in parallel.
+	/// Creates a new action definition object to run a group of actions in parallel.
 	///
 	/// # Arguments
 	///
@@ -943,9 +943,9 @@ value class ActionDef {
 	///
 	/// # Returns
 	///
-	/// * `Action` - A new Action object.
+	/// * `ActionDef` - A new ActionDef object.
 	static outside ActionDef ActionDef_Spawn @ spawn(VecActionDef defs);
-	/// Creates a new Action object to run a group of actions in sequence.
+	/// Creates a new action definition object to run a group of actions in sequence.
 	///
 	/// # Arguments
 	///
@@ -953,9 +953,9 @@ value class ActionDef {
 	///
 	/// # Returns
 	///
-	/// * `Action` - A new Action object.
+	/// * `ActionDef` - A new ActionDef object.
 	static outside ActionDef ActionDef_Sequence @ sequence(VecActionDef defs);
-	/// Creates a new Action object to delay the execution of following action.
+	/// Creates a new action definition object to delay the execution of following action.
 	///
 	/// # Arguments
 	///
@@ -963,13 +963,13 @@ value class ActionDef {
 	///
 	/// # Returns
 	///
-	/// * `Action` - A new Action object.
+	/// * `ActionDef` - A new ActionDef object.
 	static outside ActionDef ActionDef_Delay @ delay(float duration);
-	/// Creates a new Action object to show a node.
+	/// Creates a new action definition object to show a node.
 	static outside ActionDef ActionDef_Show @ show();
-	/// Creates a new Action object to hide a node.
+	/// Creates a new action definition object to hide a node.
 	static outside ActionDef ActionDef_Hide @ hide();
-	/// Creates a new Action object to emit an event.
+	/// Creates a new action definition object to emit an event.
 	///
 	/// # Arguments
 	///
@@ -978,9 +978,9 @@ value class ActionDef {
 	///
 	/// # Returns
 	///
-	/// * `Action` - A new Action object.
+	/// * `ActionDef` - A new ActionDef object.
 	static outside ActionDef ActionDef_Emit @ event(string eventName, string msg);
-	/// Creates a new Action object to move a node.
+	/// Creates a new action definition object to move a node.
 	///
 	/// # Arguments
 	///
@@ -991,9 +991,9 @@ value class ActionDef {
 	///
 	/// # Returns
 	///
-	/// * `Action` - A new Action object.
+	/// * `ActionDef` - A new ActionDef object.
 	static outside ActionDef ActionDef_Move @ move_to(float duration, Vec2 start, Vec2 stop, EaseType easing);
-	/// Creates a new Action object to scale a node.
+	/// Creates a new action definition object to scale a node.
 	///
 	/// # Arguments
 	///
@@ -1004,9 +1004,9 @@ value class ActionDef {
 	///
 	/// # Returns
 	///
-	/// * `Action` - A new Action object.
+	/// * `ActionDef` - A new ActionDef object.
 	static outside ActionDef ActionDef_Scale @ scale(float duration, float start, float stop, EaseType easing);
-	/// Creates a new Action object to do a frame animation. Can only be performed on a Sprite node.
+	/// Creates a new action definition object to do a frame animation. Can only be performed on a Sprite node.
 	///
 	/// # Arguments
 	///
@@ -1015,9 +1015,9 @@ value class ActionDef {
 	///
 	/// # Returns
 	///
-	/// * `Action` - A new Action object.
+	/// * `ActionDef` - A new ActionDef object.
 	static outside ActionDef ActionDef_Frame @ frame(string clipStr, float duration);
-	/// Creates a new Action object to do a frame animation with frames count for each frame. Can only be performed on a Sprite node.
+	/// Creates a new action definition object to do a frame animation with frames count for each frame. Can only be performed on a Sprite node.
 	///
 	/// # Arguments
 	///

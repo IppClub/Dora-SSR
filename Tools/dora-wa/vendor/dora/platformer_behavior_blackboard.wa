@@ -23,9 +23,11 @@ func PlatformerBehaviorBlackboardFrom(raw: i64) => *PlatformerBehaviorBlackboard
 	result := &item
 	return result
 }
+/// Gets the time since the last frame update in seconds.
 func PlatformerBehaviorBlackboard.GetDeltaTime() => f64 {
 	return platformer_behavior_blackboard_get_delta_time(*this.raw)
 }
+/// Gets the unit that the AI agent belongs to.
 func PlatformerBehaviorBlackboard.GetOwner() => PlatformerUnit {
 	return *PlatformerUnitFrom(platformer_behavior_blackboard_get_owner(*this.raw))
 }

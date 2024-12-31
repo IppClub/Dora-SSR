@@ -31,6 +31,18 @@ func ObjectAsSpriteEffect(object: Object) => *SpriteEffect {
 	}
 	return nil
 }
+/// A method that allows you to create a new SpriteEffect object.
+///
+/// # Arguments
+///
+/// * `vert_shader` - The vertex shader file string.
+/// * `frag_shader` - The fragment shader file string. A shader file string must be one of the formats:
+///     * "builtin:" + theBuiltinShaderName
+///     * "Shader/compiled_shader_file.bin"
+///
+/// # Returns
+///
+/// * `SpriteEffect` - A new SpriteEffect object.
 func NewSpriteEffect(vert_shader: string, frag_shader: string) => SpriteEffect {
 	raw := spriteeffect_new(ToDoraString(vert_shader), ToDoraString(frag_shader))
 	object := SpriteEffect{}

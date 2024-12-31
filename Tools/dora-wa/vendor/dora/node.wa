@@ -263,147 +263,195 @@ func ObjectAsNode(object: Object) => *Node {
 	}
 	return nil
 }
+/// Sets the order of the node in the parent's children array.
 func Node.SetOrder(val: i32) {
 	node_set_order(*this.raw, val)
 }
+/// Gets the order of the node in the parent's children array.
 func Node.GetOrder() => i32 {
 	return node_get_order(*this.raw)
 }
+/// Sets the rotation angle of the node in degrees.
 func Node.SetAngle(val: f32) {
 	node_set_angle(*this.raw, val)
 }
+/// Gets the rotation angle of the node in degrees.
 func Node.GetAngle() => f32 {
 	return node_get_angle(*this.raw)
 }
+/// Sets the X-axis rotation angle of the node in degrees.
 func Node.SetAngleX(val: f32) {
 	node_set_angle_x(*this.raw, val)
 }
+/// Gets the X-axis rotation angle of the node in degrees.
 func Node.GetAngleX() => f32 {
 	return node_get_angle_x(*this.raw)
 }
+/// Sets the Y-axis rotation angle of the node in degrees.
 func Node.SetAngleY(val: f32) {
 	node_set_angle_y(*this.raw, val)
 }
+/// Gets the Y-axis rotation angle of the node in degrees.
 func Node.GetAngleY() => f32 {
 	return node_get_angle_y(*this.raw)
 }
+/// Sets the X-axis scale factor of the node.
 func Node.SetScaleX(val: f32) {
 	node_set_scale_x(*this.raw, val)
 }
+/// Gets the X-axis scale factor of the node.
 func Node.GetScaleX() => f32 {
 	return node_get_scale_x(*this.raw)
 }
+/// Sets the Y-axis scale factor of the node.
 func Node.SetScaleY(val: f32) {
 	node_set_scale_y(*this.raw, val)
 }
+/// Gets the Y-axis scale factor of the node.
 func Node.GetScaleY() => f32 {
 	return node_get_scale_y(*this.raw)
 }
+/// Sets the X-axis position of the node.
 func Node.SetX(val: f32) {
 	node_set_x(*this.raw, val)
 }
+/// Gets the X-axis position of the node.
 func Node.GetX() => f32 {
 	return node_get_x(*this.raw)
 }
+/// Sets the Y-axis position of the node.
 func Node.SetY(val: f32) {
 	node_set_y(*this.raw, val)
 }
+/// Gets the Y-axis position of the node.
 func Node.GetY() => f32 {
 	return node_get_y(*this.raw)
 }
+/// Sets the Z-axis position of the node.
 func Node.SetZ(val: f32) {
 	node_set_z(*this.raw, val)
 }
+/// Gets the Z-axis position of the node.
 func Node.GetZ() => f32 {
 	return node_get_z(*this.raw)
 }
+/// Sets the position of the node as a Vec2 object.
 func Node.SetPosition(val: Vec2) {
 	node_set_position(*this.raw, val.ToValue())
 }
+/// Gets the position of the node as a Vec2 object.
 func Node.GetPosition() => Vec2 {
 	return Vec2FromValue(node_get_position(*this.raw))
 }
+/// Sets the X-axis skew angle of the node in degrees.
 func Node.SetSkewX(val: f32) {
 	node_set_skew_x(*this.raw, val)
 }
+/// Gets the X-axis skew angle of the node in degrees.
 func Node.GetSkewX() => f32 {
 	return node_get_skew_x(*this.raw)
 }
+/// Sets the Y-axis skew angle of the node in degrees.
 func Node.SetSkewY(val: f32) {
 	node_set_skew_y(*this.raw, val)
 }
+/// Gets the Y-axis skew angle of the node in degrees.
 func Node.GetSkewY() => f32 {
 	return node_get_skew_y(*this.raw)
 }
+/// Sets whether the node is visible.
 func Node.SetVisible(val: bool) {
 	node_set_visible(*this.raw, ToDoraBool(val))
 }
+/// Gets whether the node is visible.
 func Node.IsVisible() => bool {
 	return node_is_visible(*this.raw) != 0
 }
+/// Sets the anchor point of the node as a Vec2 object.
 func Node.SetAnchor(val: Vec2) {
 	node_set_anchor(*this.raw, val.ToValue())
 }
+/// Gets the anchor point of the node as a Vec2 object.
 func Node.GetAnchor() => Vec2 {
 	return Vec2FromValue(node_get_anchor(*this.raw))
 }
+/// Sets the width of the node.
 func Node.SetWidth(val: f32) {
 	node_set_width(*this.raw, val)
 }
+/// Gets the width of the node.
 func Node.GetWidth() => f32 {
 	return node_get_width(*this.raw)
 }
+/// Sets the height of the node.
 func Node.SetHeight(val: f32) {
 	node_set_height(*this.raw, val)
 }
+/// Gets the height of the node.
 func Node.GetHeight() => f32 {
 	return node_get_height(*this.raw)
 }
+/// Sets the size of the node as a Size object.
 func Node.SetSize(val: Size) {
 	node_set_size(*this.raw, val.ToValue())
 }
+/// Gets the size of the node as a Size object.
 func Node.GetSize() => Size {
 	return SizeFromValue(node_get_size(*this.raw))
 }
+/// Sets the tag of the node as a string.
 func Node.SetTag(val: string) {
 	node_set_tag(*this.raw, ToDoraString(val))
 }
+/// Gets the tag of the node as a string.
 func Node.GetTag() => string {
 	return FromDoraString(node_get_tag(*this.raw))
 }
+/// Sets the opacity of the node, should be 0 to 1.0.
 func Node.SetOpacity(val: f32) {
 	node_set_opacity(*this.raw, val)
 }
+/// Gets the opacity of the node, should be 0 to 1.0.
 func Node.GetOpacity() => f32 {
 	return node_get_opacity(*this.raw)
 }
+/// Sets the color of the node as a Color object.
 func Node.SetColor(val: Color) {
 	node_set_color(*this.raw, val.ToARGB())
 }
+/// Gets the color of the node as a Color object.
 func Node.GetColor() => Color {
 	return ColorFromARGB(node_get_color(*this.raw))
 }
+/// Sets the color of the node as a Color3 object.
 func Node.SetColor3(val: Color3) {
 	node_set_color3(*this.raw, val.ToRGB())
 }
+/// Gets the color of the node as a Color3 object.
 func Node.GetColor3() => Color3 {
 	return Color3FromRGB(node_get_color3(*this.raw))
 }
+/// Sets whether to pass the opacity value to child nodes.
 func Node.SetPassOpacity(val: bool) {
 	node_set_pass_opacity(*this.raw, ToDoraBool(val))
 }
+/// Gets whether to pass the opacity value to child nodes.
 func Node.IsPassOpacity() => bool {
 	return node_is_pass_opacity(*this.raw) != 0
 }
+/// Sets whether to pass the color value to child nodes.
 func Node.SetPassColor3(val: bool) {
 	node_set_pass_color3(*this.raw, ToDoraBool(val))
 }
+/// Gets whether to pass the color value to child nodes.
 func Node.IsPassColor3() => bool {
 	return node_is_pass_color3(*this.raw) != 0
 }
+/// Sets the target node acts as a parent node for transforming this node.
 func Node.SetTransformTarget(val: Node) {
 	node_set_transform_target(*this.raw, val.GetRaw())
 }
+/// Gets the target node acts as a parent node for transforming this node.
 func Node.GetTransformTarget() => *Node {
 	ptr_ := node_get_transform_target(*this.raw)
 	if ptr_ == 0 {
@@ -412,12 +460,15 @@ func Node.GetTransformTarget() => *Node {
 	obj_ := *NodeFrom(ptr_)
 	return &obj_
 }
+/// Sets the scheduler used for scheduling update and action callbacks.
 func Node.SetScheduler(val: Scheduler) {
 	node_set_scheduler(*this.raw, val.GetRaw())
 }
+/// Gets the scheduler used for scheduling update and action callbacks.
 func Node.GetScheduler() => Scheduler {
 	return *SchedulerFrom(node_get_scheduler(*this.raw))
 }
+/// Gets the children of the node as an Array object, could be None.
 func Node.GetChildren() => *Array {
 	ptr_ := node_get_children(*this.raw)
 	if ptr_ == 0 {
@@ -426,6 +477,7 @@ func Node.GetChildren() => *Array {
 	obj_ := *ArrayFrom(ptr_)
 	return &obj_
 }
+/// Gets the parent of the node, could be None.
 func Node.GetParent() => *Node {
 	ptr_ := node_get_parent(*this.raw)
 	if ptr_ == 0 {
@@ -434,102 +486,207 @@ func Node.GetParent() => *Node {
 	obj_ := *NodeFrom(ptr_)
 	return &obj_
 }
+/// Gets whether the node is currently running in a scene tree.
 func Node.IsRunning() => bool {
 	return node_is_running(*this.raw) != 0
 }
+/// Gets whether the node is currently scheduling a function for updates.
 func Node.IsScheduled() => bool {
 	return node_is_scheduled(*this.raw) != 0
 }
+/// Gets the number of actions currently running on the node.
 func Node.GetActionCount() => i32 {
 	return node_get_action_count(*this.raw)
 }
+/// Gets additional data stored on the node as a Dictionary object.
 func Node.GetData() => Dictionary {
 	return *DictionaryFrom(node_get_data(*this.raw))
 }
+/// Sets whether touch events are enabled on the node.
 func Node.SetTouchEnabled(val: bool) {
 	node_set_touch_enabled(*this.raw, ToDoraBool(val))
 }
+/// Gets whether touch events are enabled on the node.
 func Node.IsTouchEnabled() => bool {
 	return node_is_touch_enabled(*this.raw) != 0
 }
+/// Sets whether the node should swallow touch events.
 func Node.SetSwallowTouches(val: bool) {
 	node_set_swallow_touches(*this.raw, ToDoraBool(val))
 }
+/// Gets whether the node should swallow touch events.
 func Node.IsSwallowTouches() => bool {
 	return node_is_swallow_touches(*this.raw) != 0
 }
+/// Sets whether the node should swallow mouse wheel events.
 func Node.SetSwallowMouseWheel(val: bool) {
 	node_set_swallow_mouse_wheel(*this.raw, ToDoraBool(val))
 }
+/// Gets whether the node should swallow mouse wheel events.
 func Node.IsSwallowMouseWheel() => bool {
 	return node_is_swallow_mouse_wheel(*this.raw) != 0
 }
+/// Sets whether keyboard events are enabled on the node.
 func Node.SetKeyboardEnabled(val: bool) {
 	node_set_keyboard_enabled(*this.raw, ToDoraBool(val))
 }
+/// Gets whether keyboard events are enabled on the node.
 func Node.IsKeyboardEnabled() => bool {
 	return node_is_keyboard_enabled(*this.raw) != 0
 }
+/// Sets whether controller events are enabled on the node.
 func Node.SetControllerEnabled(val: bool) {
 	node_set_controller_enabled(*this.raw, ToDoraBool(val))
 }
+/// Gets whether controller events are enabled on the node.
 func Node.IsControllerEnabled() => bool {
 	return node_is_controller_enabled(*this.raw) != 0
 }
+/// Sets whether to group the node's rendering with all its recursive children.
 func Node.SetRenderGroup(val: bool) {
 	node_set_render_group(*this.raw, ToDoraBool(val))
 }
+/// Gets whether to group the node's rendering with all its recursive children.
 func Node.IsRenderGroup() => bool {
 	return node_is_render_group(*this.raw) != 0
 }
+/// Sets whether debug graphic should be displayed for the node.
 func Node.SetShowDebug(val: bool) {
 	node_set_show_debug(*this.raw, ToDoraBool(val))
 }
+/// Gets whether debug graphic should be displayed for the node.
 func Node.IsShowDebug() => bool {
 	return node_is_show_debug(*this.raw) != 0
 }
+/// Sets the rendering order number for group rendering. Nodes with lower rendering orders are rendered earlier.
 func Node.SetRenderOrder(val: i32) {
 	node_set_render_order(*this.raw, val)
 }
+/// Gets the rendering order number for group rendering. Nodes with lower rendering orders are rendered earlier.
 func Node.GetRenderOrder() => i32 {
 	return node_get_render_order(*this.raw)
 }
+/// Adds a child node to the current node.
+///
+/// # Arguments
+///
+/// * `child` - The child node to add.
+/// * `order` - The drawing order of the child node.
+/// * `tag` - The tag of the child node.
 func Node.AddChildWithOrderTag(child: Node, order: i32, tag: string) {
 	node_add_child_with_order_tag(*this.raw, child.GetRaw(), order, ToDoraString(tag))
 }
+/// Adds a child node to the current node.
+///
+/// # Arguments
+///
+/// * `child` - The child node to add.
+/// * `order` - The drawing order of the child node.
 func Node.AddChildWithOrder(child: Node, order: i32) {
 	node_add_child_with_order(*this.raw, child.GetRaw(), order)
 }
+/// Adds a child node to the current node.
+///
+/// # Arguments
+///
+/// * `child` - The child node to add.
 func Node.AddChild(child: Node) {
 	node_add_child(*this.raw, child.GetRaw())
 }
+/// Adds the current node to a parent node.
+///
+/// # Arguments
+///
+/// * `parent` - The parent node to add the current node to.
+/// * `order` - The drawing order of the current node.
+/// * `tag` - The tag of the current node.
+///
+/// # Returns
+///
+/// * `Node` - The current node.
 func Node.AddToWithOrderTag(parent: Node, order: i32, tag: string) => Node {
 	return *NodeFrom(node_add_to_with_order_tag(*this.raw, parent.GetRaw(), order, ToDoraString(tag)))
 }
+/// Adds the current node to a parent node.
+///
+/// # Arguments
+///
+/// * `parent` - The parent node to add the current node to.
+/// * `order` - The drawing order of the current node.
+///
+/// # Returns
+///
+/// * `Node` - The current node.
 func Node.AddToWithOrder(parent: Node, order: i32) => Node {
 	return *NodeFrom(node_add_to_with_order(*this.raw, parent.GetRaw(), order))
 }
+/// Adds the current node to a parent node.
+///
+/// # Arguments
+///
+/// * `parent` - The parent node to add the current node to.
+///
+/// # Returns
+///
+/// * `Node` - The current node.
 func Node.AddTo(parent: Node) => Node {
 	return *NodeFrom(node_add_to(*this.raw, parent.GetRaw()))
 }
+/// Removes a child node from the current node.
+///
+/// # Arguments
+///
+/// * `child` - The child node to remove.
+/// * `cleanup` - Whether to cleanup the child node.
 func Node.RemoveChild(child: Node, cleanup: bool) {
 	node_remove_child(*this.raw, child.GetRaw(), ToDoraBool(cleanup))
 }
+/// Removes a child node from the current node by tag.
+///
+/// # Arguments
+///
+/// * `tag` - The tag of the child node to remove.
+/// * `cleanup` - Whether to cleanup the child node.
 func Node.RemoveChildByTag(tag: string, cleanup: bool) {
 	node_remove_child_by_tag(*this.raw, ToDoraString(tag), ToDoraBool(cleanup))
 }
+/// Removes all child nodes from the current node.
+///
+/// # Arguments
+///
+/// * `cleanup` - Whether to cleanup the child nodes.
 func Node.RemoveAllChildren(cleanup: bool) {
 	node_remove_all_children(*this.raw, ToDoraBool(cleanup))
 }
+/// Removes the current node from its parent node.
+///
+/// # Arguments
+///
+/// * `cleanup` - Whether to cleanup the current node.
 func Node.RemoveFromParent(cleanup: bool) {
 	node_remove_from_parent(*this.raw, ToDoraBool(cleanup))
 }
+/// Moves the current node to a new parent node without triggering node events.
+///
+/// # Arguments
+///
+/// * `parent` - The new parent node to move the current node to.
 func Node.MoveToParent(parent: Node) {
 	node_move_to_parent(*this.raw, parent.GetRaw())
 }
+/// Cleans up the current node.
 func Node.Cleanup() {
 	node_cleanup(*this.raw)
 }
+/// Gets a child node by tag.
+///
+/// # Arguments
+///
+/// * `tag` - The tag of the child node to get.
+///
+/// # Returns
+///
+/// * `Option<Node>` - The child node, or `None` if not found.
 func Node.GetChildByTag(tag: string) => *Node {
 	ptr_ := node_get_child_by_tag(*this.raw, ToDoraString(tag))
 	if ptr_ == 0 {
@@ -538,6 +695,11 @@ func Node.GetChildByTag(tag: string) => *Node {
 	obj_ := *NodeFrom(ptr_)
 	return &obj_
 }
+/// Schedules a main function to run every frame. Call this function again to replace the previous scheduled main function or coroutine.
+///
+/// # Arguments
+///
+/// * `updateFunc` - The function to be called. If the function returns `true`, it will not be called again.
 func Node.Schedule(update_func: func(delta_time: f64) => bool) {
 	stack0 := NewCallStack()
 	func_id0 := PushFunction(func() {
@@ -547,15 +709,44 @@ func Node.Schedule(update_func: func(delta_time: f64) => bool) {
 	})
 	node_schedule(*this.raw, func_id0, *stack0.raw)
 }
+/// Unschedules the current node's scheduled main function.
 func Node.Unschedule() {
 	node_unschedule(*this.raw)
 }
+/// Converts a point from world space to node space.
+///
+/// # Arguments
+///
+/// * `world_point` - The point in world space, represented by a Vec2 object.
+///
+/// # Returns
+///
+/// * `Vec2` - The converted point in world space.
 func Node.ConvertToNodeSpace(world_point: Vec2) => Vec2 {
 	return Vec2FromValue(node_convert_to_node_space(*this.raw, world_point.ToValue()))
 }
+/// Converts a point from node space to world space.
+///
+/// # Arguments
+///
+/// * `node_point` - The point in node space, represented by a Vec2 object.
+///
+/// # Returns
+///
+/// * `Vec2` - The converted point in world space.
 func Node.ConvertToWorldSpace(node_point: Vec2) => Vec2 {
 	return Vec2FromValue(node_convert_to_world_space(*this.raw, node_point.ToValue()))
 }
+/// Converts a point from node space to world space.
+///
+/// # Arguments
+///
+/// * `node_point` - The point in node space, represented by a Vec2 object.
+/// * `callback` - The function to call with the converted point in world space.
+///
+/// # Returns
+///
+/// * `Vec2` - The converted point in world space.
 func Node.ConvertToWindowSpace(node_point: Vec2, callback: func(result: Vec2)) {
 	stack0 := NewCallStack()
 	func_id0 := PushFunction(func() {
@@ -564,6 +755,15 @@ func Node.ConvertToWindowSpace(node_point: Vec2, callback: func(result: Vec2)) {
 	})
 	node_convert_to_window_space(*this.raw, node_point.ToValue(), func_id0, *stack0.raw)
 }
+/// Calls the given function for each child node of this node.
+///
+/// # Arguments
+///
+/// * `visitorFunc` - The function to call for each child node. The function should return a boolean value indicating whether to continue the iteration. Return true to stop iteration.
+///
+/// # Returns
+///
+/// * `bool` - `false` if all children have been visited, `true` if the iteration was interrupted by the function.
 func Node.EachChild(visitor_func: func(child: Node) => bool) => bool {
 	stack0 := NewCallStack()
 	func_id0 := PushFunction(func() {
@@ -573,6 +773,15 @@ func Node.EachChild(visitor_func: func(child: Node) => bool) => bool {
 	})
 	return node_each_child(*this.raw, func_id0, *stack0.raw) != 0
 }
+/// Traverses the node hierarchy starting from this node and calls the given function for each visited node. The nodes without `TraverseEnabled` flag are not visited.
+///
+/// # Arguments
+///
+/// * `visitorFunc` - The function to call for each visited node. The function should return a boolean value indicating whether to continue the traversal. Return true to stop iteration.
+///
+/// # Returns
+///
+/// * `bool` - `false` if all nodes have been visited, `true` if the traversal was interrupted by the function.
 func Node.Traverse(visitor_func: func(child: Node) => bool) => bool {
 	stack0 := NewCallStack()
 	func_id0 := PushFunction(func() {
@@ -582,6 +791,15 @@ func Node.Traverse(visitor_func: func(child: Node) => bool) => bool {
 	})
 	return node_traverse(*this.raw, func_id0, *stack0.raw) != 0
 }
+/// Traverses the entire node hierarchy starting from this node and calls the given function for each visited node.
+///
+/// # Arguments
+///
+/// * `visitorFunc` - The function to call for each visited node. The function should return a boolean value indicating whether to continue the traversal.
+///
+/// # Returns
+///
+/// * `bool` - `false` if all nodes have been visited, `true` if the traversal was interrupted by the function.
 func Node.TraverseAll(visitor_func: func(child: Node) => bool) => bool {
 	stack0 := NewCallStack()
 	func_id0 := PushFunction(func() {
@@ -591,63 +809,197 @@ func Node.TraverseAll(visitor_func: func(child: Node) => bool) => bool {
 	})
 	return node_traverse_all(*this.raw, func_id0, *stack0.raw) != 0
 }
+/// Runs an action defined by the given action definition on this node.
+///
+/// # Arguments
+///
+/// * `action_def` - The action definition to run.
+/// * `looped` - Whether to loop the action.
+///
+/// # Returns
+///
+/// * `f32` - The duration of the newly running action in seconds.
 func Node.RunActionDef(def: ActionDef, looped: bool) => f32 {
 	return node_run_action_def(*this.raw, def.GetRaw(), ToDoraBool(looped))
 }
+/// Runs an action on this node.
+///
+/// # Arguments
+///
+/// * `action` - The action to run.
+/// * `looped` - Whether to loop the action.
+///
+/// # Returns
+///
+/// * `f32` - The duration of the newly running action in seconds.
 func Node.RunAction(action: Action, looped: bool) => f32 {
 	return node_run_action(*this.raw, action.GetRaw(), ToDoraBool(looped))
 }
+/// Stops all actions running on this node.
 func Node.StopAllActions() {
 	node_stop_all_actions(*this.raw)
 }
+/// Runs an action defined by the given action definition right after clearing all the previous running actions.
+///
+/// # Arguments
+///
+/// * `action_def` - The action definition to run.
+/// * `looped` - Whether to loop the action.
+///
+/// # Returns
+///
+/// * `f32` - The duration of the newly running action in seconds.
 func Node.PerformDef(action_def: ActionDef, looped: bool) => f32 {
 	return node_perform_def(*this.raw, action_def.GetRaw(), ToDoraBool(looped))
 }
+/// Runs an action on this node right after clearing all the previous running actions.
+///
+/// # Arguments
+///
+/// * `action` - The action to run.
+/// * `looped` - Whether to loop the action.
+///
+/// # Returns
+///
+/// * `f32` - The duration of the newly running action in seconds.
 func Node.Perform(action: Action, looped: bool) => f32 {
 	return node_perform(*this.raw, action.GetRaw(), ToDoraBool(looped))
 }
+/// Stops the given action running on this node.
+///
+/// # Arguments
+///
+/// * `action` - The action to stop.
 func Node.StopAction(action: Action) {
 	node_stop_action(*this.raw, action.GetRaw())
 }
+/// Vertically aligns all child nodes within the node using the given size and padding.
+///
+/// # Arguments
+///
+/// * `padding` - The amount of padding to use between each child node.
+///
+/// # Returns
+///
+/// * `Size` - The size of the node after alignment.
 func Node.AlignItemsVertically(padding: f32) => Size {
 	return SizeFromValue(node_align_items_vertically(*this.raw, padding))
 }
+/// Vertically aligns all child nodes within the node using the given size and padding.
+///
+/// # Arguments
+///
+/// * `size` - The size to use for alignment.
+/// * `padding` - The amount of padding to use between each child node.
+///
+/// # Returns
+///
+/// * `Size` - The size of the node after alignment.
 func Node.AlignItemsVerticallyWithSize(size: Size, padding: f32) => Size {
 	return SizeFromValue(node_align_items_vertically_with_size(*this.raw, size.ToValue(), padding))
 }
+/// Horizontally aligns all child nodes within the node using the given size and padding.
+///
+/// # Arguments
+///
+/// * `padding` - The amount of padding to use between each child node.
+///
+/// # Returns
+///
+/// * `Size` - The size of the node after alignment.
 func Node.AlignItemsHorizontally(padding: f32) => Size {
 	return SizeFromValue(node_align_items_horizontally(*this.raw, padding))
 }
+/// Horizontally aligns all child nodes within the node using the given size and padding.
+///
+/// # Arguments
+///
+/// * `size` - The size to hint for alignment.
+/// * `padding` - The amount of padding to use between each child node.
+///
+/// # Returns
+///
+/// * `Size` - The size of the node after alignment.
 func Node.AlignItemsHorizontallyWithSize(size: Size, padding: f32) => Size {
 	return SizeFromValue(node_align_items_horizontally_with_size(*this.raw, size.ToValue(), padding))
 }
+/// Aligns all child nodes within the node using the given size and padding.
+///
+/// # Arguments
+///
+/// * `padding` - The amount of padding to use between each child node.
+///
+/// # Returns
+///
+/// * `Size` - The size of the node after alignment.
 func Node.AlignItems(padding: f32) => Size {
 	return SizeFromValue(node_align_items(*this.raw, padding))
 }
+/// Aligns all child nodes within the node using the given size and padding.
+///
+/// # Arguments
+///
+/// * `size` - The size to use for alignment.
+/// * `padding` - The amount of padding to use between each child node.
+///
+/// # Returns
+///
+/// * `Size` - The size of the node after alignment.
 func Node.AlignItemsWithSize(size: Size, padding: f32) => Size {
 	return SizeFromValue(node_align_items_with_size(*this.raw, size.ToValue(), padding))
 }
+/// Moves and changes child nodes' visibility based on their position in parent's area.
+///
+/// # Arguments
+///
+/// * `delta` - The distance to move its children, represented by a Vec2 object.
 func Node.MoveAndCullItems(delta: Vec2) {
 	node_move_and_cull_items(*this.raw, delta.ToValue())
 }
+/// Attaches the input method editor (IME) to the node.
+/// Makes node recieving "AttachIME", "DetachIME", "TextInput", "TextEditing" events.
 func Node.AttachIme() {
 	node_attach_ime(*this.raw)
 }
+/// Detaches the input method editor (IME) from the node.
 func Node.DetachIme() {
 	node_detach_ime(*this.raw)
 }
+/// Creates a texture grabber for the specified node.
+///
+/// # Returns
+///
+/// * `Grabber` - A Grabber object with gridX == 1 and gridY == 1.
 func Node.Grab() => Grabber {
 	return *GrabberFrom(node_grab(*this.raw))
 }
+/// Creates a texture grabber for the specified node with a specified grid size.
+///
+/// # Arguments
+///
+/// * `grid_x` - The number of horizontal grid cells to divide the grabber into.
+/// * `grid_y` - The number of vertical grid cells to divide the grabber into.
+///
+/// # Returns
+///
+/// * `Grabber` - A Grabber object.
 func Node.GrabWithSize(grid_x: i32, grid_y: i32) => Grabber {
 	return *GrabberFrom(node_grab_with_size(*this.raw, grid_x, grid_y))
 }
+/// Removes the texture grabber for the specified node.
 func Node.StopGrab() {
 	node_stop_grab(*this.raw)
 }
+/// Removes the transform target for the specified node.
 func Node.SetTransformTargetNull() {
 	node_set_transform_target_null(*this.raw)
 }
+/// Associates the given handler function with the node event.
+///
+/// # Arguments
+///
+/// * `event_name` - The name of the node event.
+/// * `handler` - The handler function to associate with the node event.
 func Node.Slot(event_name: string, handler: func(e: CallStack)) {
 	stack0 := NewCallStack()
 	func_id0 := PushFunction(func() {
@@ -656,6 +1008,12 @@ func Node.Slot(event_name: string, handler: func(e: CallStack)) {
 	})
 	node_slot(*this.raw, ToDoraString(event_name), func_id0, *stack0.raw)
 }
+/// Associates the given handler function with a global event.
+///
+/// # Arguments
+///
+/// * `event_name` - The name of the global event.
+/// * `handler` - The handler function to associate with the event.
 func Node.Gslot(event_name: string, handler: func(e: CallStack)) {
 	stack0 := NewCallStack()
 	func_id0 := PushFunction(func() {
@@ -664,9 +1022,20 @@ func Node.Gslot(event_name: string, handler: func(e: CallStack)) {
 	})
 	node_gslot(*this.raw, ToDoraString(event_name), func_id0, *stack0.raw)
 }
+/// Emits an event to a node, triggering the event handler associated with the event name.
+///
+/// # Arguments
+///
+/// * `name` - The name of the event.
+/// * `stack` - The argument stack to be passed to the event handler.
 func Node.Emit(name: string, stack: CallStack) {
 	node_emit(*this.raw, ToDoraString(name), stack.GetRaw())
 }
+/// Schedules a function to run every frame. Call this function again to schedule multiple functions.
+///
+/// # Arguments
+///
+/// * `updateFunc` - The function to run every frame. If the function returns `true`, it will not be called again.
 func Node.OnUpdate(update_func: func(delta_time: f64) => bool) {
 	stack0 := NewCallStack()
 	func_id0 := PushFunction(func() {
@@ -676,6 +1045,7 @@ func Node.OnUpdate(update_func: func(delta_time: f64) => bool) {
 	})
 	node_on_update(*this.raw, func_id0, *stack0.raw)
 }
+/// Creates a new instance of the `Node` struct.
 func NewNode() => Node {
 	raw := node_new()
 	object := Node{}

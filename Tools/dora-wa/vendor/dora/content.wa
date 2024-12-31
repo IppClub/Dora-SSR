@@ -60,15 +60,19 @@ func content_unzip_async(zip_file: i64, folder_path: i64, func0: i32, stack0: i6
 func content_load_excel(filename: i64) => i64
 type _Content struct { }
 global Content = _Content{}
+/// Sets an array of directories to search for resource files.
 func _Content.SetSearchPaths(val: *[]string) {
 	content_set_search_paths(ToDoraStrBuf(val))
 }
+/// Gets an array of directories to search for resource files.
 func _Content.GetSearchPaths() => *[]string {
 	return FromDoraStrBuf(content_get_search_paths())
 }
+/// Gets the path to the directory containing read-only resources.
 func _Content.GetAssetPath() => string {
 	return FromDoraString(content_get_asset_path())
 }
+/// Gets the path to the directory where files can be written.
 func _Content.GetWritablePath() => string {
 	return FromDoraString(content_get_writable_path())
 }

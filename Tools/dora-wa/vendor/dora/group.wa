@@ -37,9 +37,11 @@ func ObjectAsGroup(object: Object) => *Group {
 	}
 	return nil
 }
+/// Gets the number of entities in the group.
 func Group.GetCount() => i32 {
 	return entitygroup_get_count(*this.raw)
 }
+/// Gets the first entity in the group.
 func Group.GetFirst() => *Entity {
 	ptr_ := entitygroup_get_first(*this.raw)
 	if ptr_ == 0 {
@@ -48,6 +50,15 @@ func Group.GetFirst() => *Entity {
 	obj_ := *EntityFrom(ptr_)
 	return &obj_
 }
+/// Finds the first entity in the group that satisfies a predicate function.
+///
+/// # Arguments
+///
+/// * `predicate` - The predicate function to test each entity with.
+///
+/// # Returns
+///
+/// * `Option<Entity>` - The first entity that satisfies the predicate, or None if no entity does.
 func Group.Find(predicate: func(e: Entity) => bool) => *Entity {
 	stack0 := NewCallStack()
 	func_id0 := PushFunction(func() {
@@ -62,6 +73,15 @@ func Group.Find(predicate: func(e: Entity) => bool) => *Entity {
 	obj_ := *EntityFrom(ptr_)
 	return &obj_
 }
+/// A method that creates a new group with the specified component names.
+///
+/// # Arguments
+///
+/// * `components` - A vector listing the names of the components to include in the group.
+///
+/// # Returns
+///
+/// * `Group` - The new group.
 func NewGroup(components: *[]string) => Group {
 	raw := entitygroup_new(ToDoraStrBuf(components))
 	object := Group{}

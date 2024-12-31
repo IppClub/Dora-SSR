@@ -39,21 +39,44 @@ func PlatformerTargetAllowFrom(raw: i64) => *PlatformerTargetAllow {
 	result := &item
 	return result
 }
+/// Sets whether the bullet object can collide with terrain.
 func PlatformerTargetAllow.SetTerrainAllowed(val: bool) {
 	platformer_targetallow_set_terrain_allowed(*this.raw, ToDoraBool(val))
 }
+/// Gets whether the bullet object can collide with terrain.
 func PlatformerTargetAllow.IsTerrainAllowed() => bool {
 	return platformer_targetallow_is_terrain_allowed(*this.raw) != 0
 }
+/// Allows or disallows the bullet object to interact with a game object or unit, based on their relationship.
+///
+/// # Arguments
+///
+/// * `relation` - The relationship between the bullet object and the other game object or unit.
+/// * `allow` - Whether the bullet object should be allowed to interact.
 func PlatformerTargetAllow.Allow(relation: PlatformerRelation, allow: bool) {
 	platformer_targetallow_allow(*this.raw, relation.ToValue(), ToDoraBool(allow))
 }
+/// Determines whether the bullet object is allowed to interact with a game object or unit, based on their relationship.
+///
+/// # Arguments
+///
+/// * `relation` - The relationship between the bullet object and the other game object or unit.
+///
+/// # Returns
+///
+/// * `bool` - Whether the bullet object is allowed to interact.
 func PlatformerTargetAllow.IsAllow(relation: PlatformerRelation) => bool {
 	return platformer_targetallow_is_allow(*this.raw, relation.ToValue()) != 0
 }
+/// Converts the object to a value that can be used for interaction settings.
+///
+/// # Returns
+///
+/// * `usize` - The value that can be used for interaction settings.
 func PlatformerTargetAllow.ToValue() => i32 {
 	return platformer_targetallow_to_value(*this.raw)
 }
+/// Creates a new TargetAllow object with default settings.
 func NewPlatformerTargetAllow() => PlatformerTargetAllow {
 	raw := platformer_targetallow_new()
 	object := PlatformerTargetAllow{}
@@ -61,6 +84,11 @@ func NewPlatformerTargetAllow() => PlatformerTargetAllow {
 	setFinalizer(object.raw, ObjectFinalizer)
 	return object
 }
+/// Creates a new TargetAllow object with the specified value.
+///
+/// # Arguments
+///
+/// * `value` - The value to use for the new TargetAllow object.
 func NewPlatformerTargetAllowWithValue(value: i32) => PlatformerTargetAllow {
 	raw := platformer_targetallow_with_value(value)
 	object := PlatformerTargetAllow{}

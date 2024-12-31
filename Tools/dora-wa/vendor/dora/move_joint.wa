@@ -33,9 +33,11 @@ func ObjectAsMoveJoint(object: Object) => *MoveJoint {
 	}
 	return nil
 }
+/// Sets the current position of the move joint in the game world.
 func MoveJoint.SetPosition(val: Vec2) {
 	movejoint_set_position(*this.raw, val.ToValue())
 }
+/// Gets the current position of the move joint in the game world.
 func MoveJoint.GetPosition() => Vec2 {
 	return Vec2FromValue(movejoint_get_position(*this.raw))
 }

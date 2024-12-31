@@ -41,21 +41,33 @@ func ObjectAsEntity(object: Object) => *Entity {
 	}
 	return nil
 }
+/// Gets the number of all running entities.
 func EntityGetCount() => i32 {
 	return entity_get_count()
 }
+/// Gets the index of the entity.
 func Entity.GetIndex() => i32 {
 	return entity_get_index(*this.raw)
 }
+/// Clears all entities.
 func EntityClear() {
 	entity_clear()
 }
+/// Removes a property of the entity.
+///
+/// This function will trigger events for Observer objects.
+///
+/// # Arguments
+///
+/// * `key` - The name of the property to remove.
 func Entity.Remove(key: string) {
 	entity_remove(*this.raw, ToDoraString(key))
 }
+/// Destroys the entity.
 func Entity.Destroy() {
 	entity_destroy(*this.raw)
 }
+/// Creates a new entity.
 func NewEntity() => Entity {
 	raw := entity_new()
 	object := Entity{}

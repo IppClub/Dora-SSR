@@ -35,12 +35,23 @@ func ObjectAsTexture2D(object: Object) => *Texture2D {
 	}
 	return nil
 }
+/// Gets the width of the texture, in pixels.
 func Texture2D.GetWidth() => i32 {
 	return texture2d_get_width(*this.raw)
 }
+/// Gets the height of the texture, in pixels.
 func Texture2D.GetHeight() => i32 {
 	return texture2d_get_height(*this.raw)
 }
+/// Creates a texture object from the given file.
+///
+/// # Arguments
+///
+/// * `filename` - The file name of the texture.
+///
+/// # Returns
+///
+/// * `Texture2D` - The texture object.
 func NewTexture2DWithFile(filename: string) => *Texture2D {
 	raw := texture2d_with_file(ToDoraString(filename))
 	if raw == 0 {

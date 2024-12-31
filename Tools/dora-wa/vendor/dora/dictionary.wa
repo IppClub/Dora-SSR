@@ -37,15 +37,19 @@ func ObjectAsDictionary(object: Object) => *Dictionary {
 	}
 	return nil
 }
+/// Gets the number of items in the dictionary.
 func Dictionary.GetCount() => i32 {
 	return dictionary_get_count(*this.raw)
 }
+/// Gets the keys of the items in the dictionary.
 func Dictionary.GetKeys() => *[]string {
 	return FromDoraStrBuf(dictionary_get_keys(*this.raw))
 }
+/// Removes all the items from the dictionary.
 func Dictionary.Clear() {
 	dictionary_clear(*this.raw)
 }
+/// Creates instance of the "Dictionary".
 func NewDictionary() => Dictionary {
 	raw := dictionary_new()
 	object := Dictionary{}
