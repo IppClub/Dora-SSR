@@ -21,6 +21,7 @@ func DictionaryFrom(raw: i64) => *Dictionary {
 	if raw == 0 {
 		return nil
 	}
+	ObjectRetain(raw)
 	object := Dictionary{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)
@@ -29,6 +30,12 @@ func DictionaryFrom(raw: i64) => *Dictionary {
 }
 func Dictionary.GetTypeId() => i32 {
 	return dictionary_type()
+}
+func ObjectAsDictionary(object: Object) => *Dictionary {
+	if object.GetTypeId() == dictionary_type() {
+		return DictionaryFrom(object.GetRaw())
+	}
+	return nil
 }
 func Dictionary.GetCount() => i32 {
 	return dictionary_get_count(*this.raw)

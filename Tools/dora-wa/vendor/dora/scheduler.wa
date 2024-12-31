@@ -25,6 +25,7 @@ func SchedulerFrom(raw: i64) => *Scheduler {
 	if raw == 0 {
 		return nil
 	}
+	ObjectRetain(raw)
 	object := Scheduler{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)
@@ -33,6 +34,12 @@ func SchedulerFrom(raw: i64) => *Scheduler {
 }
 func Scheduler.GetTypeId() => i32 {
 	return scheduler_type()
+}
+func ObjectAsScheduler(object: Object) => *Scheduler {
+	if object.GetTypeId() == scheduler_type() {
+		return SchedulerFrom(object.GetRaw())
+	}
+	return nil
 }
 func Scheduler.SetTimeScale(val: f32) {
 	scheduler_set_time_scale(*this.raw, val)

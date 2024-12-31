@@ -12,10 +12,10 @@ func tilenode_type() => i32
 func tilenode_set_depth_write(slf: i64, val: i32);
 #wa:import dora tilenode_is_depth_write
 func tilenode_is_depth_write(slf: i64) => i32
-#wa:import dora tilenode__set_blend_func
-func tilenode__set_blend_func(slf: i64, blend_func: i64)
-#wa:import dora tilenode__get_blend_func
-func tilenode__get_blend_func(slf: i64) => i64
+#wa:import dora tilenode_set_blend_func
+func tilenode_set_blend_func(slf: i64, val: i64);
+#wa:import dora tilenode_get_blend_func
+func tilenode_get_blend_func(slf: i64) => i64
 #wa:import dora tilenode_set_effect
 func tilenode_set_effect(slf: i64, val: i64);
 #wa:import dora tilenode_get_effect
@@ -37,6 +37,7 @@ func TileNodeFrom(raw: i64) => *TileNode {
 	if raw == 0 {
 		return nil
 	}
+	ObjectRetain(raw)
 	object := TileNode{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)
@@ -46,17 +47,23 @@ func TileNodeFrom(raw: i64) => *TileNode {
 func TileNode.GetTypeId() => i32 {
 	return tilenode_type()
 }
+func ObjectAsTileNode(object: Object) => *TileNode {
+	if object.GetTypeId() == tilenode_type() {
+		return TileNodeFrom(object.GetRaw())
+	}
+	return nil
+}
 func TileNode.SetDepthWrite(val: bool) {
 	tilenode_set_depth_write(*this.raw, ToDoraBool(val))
 }
 func TileNode.IsDepthWrite() => bool {
 	return tilenode_is_depth_write(*this.raw) != 0
 }
-func TileNode.SetBlendFunc(blend_func: BlendFunc) {
-	tilenode__set_blend_func(*this.raw, blend_func.ToValue())
+func TileNode.SetBlendFunc(val: BlendFunc) {
+	tilenode_set_blend_func(*this.raw, val.ToValue())
 }
 func TileNode.GetBlendFunc() => BlendFunc {
-	return BlendFuncFrom(tilenode__get_blend_func(*this.raw))
+	return BlendFuncFrom(tilenode_get_blend_func(*this.raw))
 }
 func TileNode.SetEffect(val: SpriteEffect) {
 	tilenode_set_effect(*this.raw, val.GetRaw())

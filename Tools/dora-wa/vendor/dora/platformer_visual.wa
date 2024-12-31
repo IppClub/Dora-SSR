@@ -23,6 +23,7 @@ func PlatformerVisualFrom(raw: i64) => *PlatformerVisual {
 	if raw == 0 {
 		return nil
 	}
+	ObjectRetain(raw)
 	object := PlatformerVisual{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)
@@ -31,6 +32,12 @@ func PlatformerVisualFrom(raw: i64) => *PlatformerVisual {
 }
 func PlatformerVisual.GetTypeId() => i32 {
 	return platformer_visual_type()
+}
+func ObjectAsPlatformerVisual(object: Object) => *PlatformerVisual {
+	if object.GetTypeId() == platformer_visual_type() {
+		return PlatformerVisualFrom(object.GetRaw())
+	}
+	return nil
 }
 func PlatformerVisual.IsPlaying() => bool {
 	return platformer_visual_is_playing(*this.raw) != 0

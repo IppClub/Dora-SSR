@@ -45,6 +45,7 @@ func JointDefFrom(raw: i64) => *JointDef {
 	if raw == 0 {
 		return nil
 	}
+	ObjectRetain(raw)
 	object := JointDef{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)
@@ -53,6 +54,12 @@ func JointDefFrom(raw: i64) => *JointDef {
 }
 func JointDef.GetTypeId() => i32 {
 	return jointdef_type()
+}
+func ObjectAsJointDef(object: Object) => *JointDef {
+	if object.GetTypeId() == jointdef_type() {
+		return JointDefFrom(object.GetRaw())
+	}
+	return nil
 }
 func JointDef.SetCenter(val: Vec2) {
 	jointdef_set_center(*this.raw, val.ToValue())

@@ -45,6 +45,7 @@ func PlatformerPlatformCameraFrom(raw: i64) => *PlatformerPlatformCamera {
 	if raw == 0 {
 		return nil
 	}
+	ObjectRetain(raw)
 	object := PlatformerPlatformCamera{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)
@@ -53,6 +54,12 @@ func PlatformerPlatformCameraFrom(raw: i64) => *PlatformerPlatformCamera {
 }
 func PlatformerPlatformCamera.GetTypeId() => i32 {
 	return platformer_platformcamera_type()
+}
+func ObjectAsPlatformerPlatformCamera(object: Object) => *PlatformerPlatformCamera {
+	if object.GetTypeId() == platformer_platformcamera_type() {
+		return PlatformerPlatformCameraFrom(object.GetRaw())
+	}
+	return nil
 }
 func PlatformerPlatformCamera.SetPosition(val: Vec2) {
 	platformer_platformcamera_set_position(*this.raw, val.ToValue())

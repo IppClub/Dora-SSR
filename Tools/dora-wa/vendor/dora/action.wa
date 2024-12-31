@@ -35,6 +35,7 @@ func ActionFrom(raw: i64) => *Action {
 	if raw == 0 {
 		return nil
 	}
+	ObjectRetain(raw)
 	object := Action{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)
@@ -43,6 +44,12 @@ func ActionFrom(raw: i64) => *Action {
 }
 func Action.GetTypeId() => i32 {
 	return action_type()
+}
+func ObjectAsAction(object: Object) => *Action {
+	if object.GetTypeId() == action_type() {
+		return ActionFrom(object.GetRaw())
+	}
+	return nil
 }
 func Action.GetDuration() => f32 {
 	return action_get_duration(*this.raw)

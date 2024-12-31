@@ -23,10 +23,10 @@ void grid_set_depth_write(int64_t self, int32_t val) {
 int32_t grid_is_depth_write(int64_t self) {
 	return r_cast<Grid*>(self)->isDepthWrite() ? 1 : 0;
 }
-void grid__set_blend_func(int64_t self, int64_t blend_func) {
-	r_cast<Grid*>(self)->setBlendFunc(BlendFunc(s_cast<uint64_t>(blend_func)));
+void grid_set_blend_func(int64_t self, int64_t val) {
+	r_cast<Grid*>(self)->setBlendFunc(BlendFunc(s_cast<uint64_t>(val)));
 }
-int64_t grid__get_blend_func(int64_t self) {
+int64_t grid_get_blend_func(int64_t self) {
 	return s_cast<int64_t>(r_cast<Grid*>(self)->getBlendFunc().toValue());
 }
 void grid_set_effect(int64_t self, int64_t val) {
@@ -82,8 +82,8 @@ static void linkGrid(wasm3::module3& mod) {
 	mod.link_optional("*", "grid_get_grid_y", grid_get_grid_y);
 	mod.link_optional("*", "grid_set_depth_write", grid_set_depth_write);
 	mod.link_optional("*", "grid_is_depth_write", grid_is_depth_write);
-	mod.link_optional("*", "grid__set_blend_func", grid__set_blend_func);
-	mod.link_optional("*", "grid__get_blend_func", grid__get_blend_func);
+	mod.link_optional("*", "grid_set_blend_func", grid_set_blend_func);
+	mod.link_optional("*", "grid_get_blend_func", grid_get_blend_func);
 	mod.link_optional("*", "grid_set_effect", grid_set_effect);
 	mod.link_optional("*", "grid_get_effect", grid_get_effect);
 	mod.link_optional("*", "grid_set_texture_rect", grid_set_texture_rect);

@@ -19,6 +19,7 @@ func VGNodeFrom(raw: i64) => *VGNode {
 	if raw == 0 {
 		return nil
 	}
+	ObjectRetain(raw)
 	object := VGNode{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)
@@ -27,6 +28,12 @@ func VGNodeFrom(raw: i64) => *VGNode {
 }
 func VGNode.GetTypeId() => i32 {
 	return vgnode_type()
+}
+func ObjectAsVGNode(object: Object) => *VGNode {
+	if object.GetTypeId() == vgnode_type() {
+		return VGNodeFrom(object.GetRaw())
+	}
+	return nil
 }
 func VGNode.GetSurface() => Sprite {
 	return *SpriteFrom(vgnode_get_surface(*this.raw))

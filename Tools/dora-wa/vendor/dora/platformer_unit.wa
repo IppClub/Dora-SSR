@@ -75,6 +75,7 @@ func PlatformerUnitFrom(raw: i64) => *PlatformerUnit {
 	if raw == 0 {
 		return nil
 	}
+	ObjectRetain(raw)
 	object := PlatformerUnit{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)
@@ -83,6 +84,12 @@ func PlatformerUnitFrom(raw: i64) => *PlatformerUnit {
 }
 func PlatformerUnit.GetTypeId() => i32 {
 	return platformer_unit_type()
+}
+func ObjectAsPlatformerUnit(object: Object) => *PlatformerUnit {
+	if object.GetTypeId() == platformer_unit_type() {
+		return PlatformerUnitFrom(object.GetRaw())
+	}
+	return nil
 }
 func PlatformerUnit.SetPlayable(val: Playable) {
 	platformer_unit_set_playable(*this.raw, val.GetRaw())

@@ -25,6 +25,7 @@ func EntityFrom(raw: i64) => *Entity {
 	if raw == 0 {
 		return nil
 	}
+	ObjectRetain(raw)
 	object := Entity{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)
@@ -33,6 +34,12 @@ func EntityFrom(raw: i64) => *Entity {
 }
 func Entity.GetTypeId() => i32 {
 	return entity_type()
+}
+func ObjectAsEntity(object: Object) => *Entity {
+	if object.GetTypeId() == entity_type() {
+		return EntityFrom(object.GetRaw())
+	}
+	return nil
 }
 func EntityGetCount() => i32 {
 	return entity_get_count()

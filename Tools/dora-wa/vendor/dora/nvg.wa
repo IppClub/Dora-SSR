@@ -141,7 +141,7 @@ func _Nvg.Restore() {
 func _Nvg.Reset() {
 	nvg_reset()
 }
-func _Nvg.CreateImage(w: i32, h: i32, filename: string, image_flags: i32) => i32 {
+func _Nvg._CreateImage(w: i32, h: i32, filename: string, image_flags: i32) => i32 {
 	return nvg__create_image(w, h, ToDoraString(filename), image_flags)
 }
 func _Nvg.CreateFont(name: string) => i32 {
@@ -177,10 +177,10 @@ func _Nvg.MiterLimit(limit: f32) {
 func _Nvg.StrokeWidth(size: f32) {
 	nvg_stroke_width(size)
 }
-func _Nvg.LineCap(cap: i32) {
+func _Nvg._LineCap(cap: i32) {
 	nvg__line_cap(cap)
 }
-func _Nvg.LineJoin(join: i32) {
+func _Nvg._LineJoin(join: i32) {
 	nvg__line_join(join)
 }
 func _Nvg.GlobalAlpha(alpha: f32) {
@@ -255,10 +255,10 @@ func _Nvg.ArcTo(x_1: f32, y_1: f32, x_2: f32, y_2: f32, radius: f32) {
 func _Nvg.ClosePath() {
 	nvg_close_path()
 }
-func _Nvg.PathWinding(dir: i32) {
+func _Nvg._PathWinding(dir: i32) {
 	nvg__path_winding(dir)
 }
-func _Nvg.Arc(cx: f32, cy: f32, r: f32, a_0: f32, a_1: f32, dir: i32) {
+func _Nvg._Arc(cx: f32, cy: f32, r: f32, a_0: f32, a_1: f32, dir: i32) {
 	nvg__arc(cx, cy, r, a_0, a_1, dir)
 }
 func _Nvg.Rect(x: f32, y: f32, w: f32, h: f32) {
@@ -303,7 +303,7 @@ func _Nvg.TextLetterSpacing(spacing: f32) {
 func _Nvg.TextLineHeight(line_height: f32) {
 	nvg_text_line_height(line_height)
 }
-func _Nvg.TextAlign(h_align: i32, v_align: i32) {
+func _Nvg._TextAlign(h_align: i32, v_align: i32) {
 	nvg__text_align(h_align, v_align)
 }
 func _Nvg.FontFaceId(font: i32) {

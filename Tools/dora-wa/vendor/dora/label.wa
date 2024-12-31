@@ -44,10 +44,10 @@ func label_get_smooth(slf: i64) => i64
 func label_set_text(slf: i64, val: i64);
 #wa:import dora label_get_text
 func label_get_text(slf: i64) => i64
-#wa:import dora label__set_blend_func
-func label__set_blend_func(slf: i64, blend_func: i64)
-#wa:import dora label__get_blend_func
-func label__get_blend_func(slf: i64) => i64
+#wa:import dora label_set_blend_func
+func label_set_blend_func(slf: i64, val: i64);
+#wa:import dora label_get_blend_func
+func label_get_blend_func(slf: i64) => i64
 #wa:import dora label_set_depth_write
 func label_set_depth_write(slf: i64, val: i32);
 #wa:import dora label_is_depth_write
@@ -75,6 +75,7 @@ func LabelFrom(raw: i64) => *Label {
 	if raw == 0 {
 		return nil
 	}
+	ObjectRetain(raw)
 	object := Label{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)
@@ -83,6 +84,12 @@ func LabelFrom(raw: i64) => *Label {
 }
 func Label.GetTypeId() => i32 {
 	return label_type()
+}
+func ObjectAsLabel(object: Object) => *Label {
+	if object.GetTypeId() == label_type() {
+		return LabelFrom(object.GetRaw())
+	}
+	return nil
 }
 func Label.SetAlignment(val: TextAlign) {
 	label_set_alignment(*this.raw, val.ToValue())
@@ -138,11 +145,11 @@ func Label.SetText(val: string) {
 func Label.GetText() => string {
 	return FromDoraString(label_get_text(*this.raw))
 }
-func Label.SetBlendFunc(blend_func: BlendFunc) {
-	label__set_blend_func(*this.raw, blend_func.ToValue())
+func Label.SetBlendFunc(val: BlendFunc) {
+	label_set_blend_func(*this.raw, val.ToValue())
 }
 func Label.GetBlendFunc() => BlendFunc {
-	return BlendFuncFrom(label__get_blend_func(*this.raw))
+	return BlendFuncFrom(label_get_blend_func(*this.raw))
 }
 func Label.SetDepthWrite(val: bool) {
 	label_set_depth_write(*this.raw, ToDoraBool(val))

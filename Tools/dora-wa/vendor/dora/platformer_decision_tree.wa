@@ -29,6 +29,7 @@ func PlatformerDecisionTreeFrom(raw: i64) => *PlatformerDecisionTree {
 	if raw == 0 {
 		return nil
 	}
+	ObjectRetain(raw)
 	object := PlatformerDecisionTree{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)
@@ -37,6 +38,12 @@ func PlatformerDecisionTreeFrom(raw: i64) => *PlatformerDecisionTree {
 }
 func PlatformerDecisionTree.GetTypeId() => i32 {
 	return platformer_decision_tree_type()
+}
+func ObjectAsPlatformerDecisionTree(object: Object) => *PlatformerDecisionTree {
+	if object.GetTypeId() == platformer_decision_tree_type() {
+		return PlatformerDecisionTreeFrom(object.GetRaw())
+	}
+	return nil
 }
 func PlatformerDecisionTreeSel(nodes: *[]PlatformerDecisionTree) => PlatformerDecisionTree {
 	return *PlatformerDecisionTreeFrom(platformer_decision_leaf_sel(ToDoraPlatformerDecisionTreeBuf(nodes)))

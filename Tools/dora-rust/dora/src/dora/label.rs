@@ -26,8 +26,8 @@ extern "C" {
 	fn label_get_smooth(slf: i64) -> i64;
 	fn label_set_text(slf: i64, val: i64);
 	fn label_get_text(slf: i64) -> i64;
-	fn label__set_blend_func(slf: i64, blend_func: i64);
-	fn label__get_blend_func(slf: i64) -> i64;
+	fn label_set_blend_func(slf: i64, val: i64);
+	fn label_get_blend_func(slf: i64) -> i64;
 	fn label_set_depth_write(slf: i64, val: i32);
 	fn label_is_depth_write(slf: i64) -> i32;
 	fn label_set_batched(slf: i64, val: i32);
@@ -133,11 +133,13 @@ impl Label {
 	pub fn get_text(&self) -> String {
 		return unsafe { crate::dora::to_string(label_get_text(self.raw())) };
 	}
-	pub(crate) fn _set_blend_func(&mut self, blend_func: u64) {
-		unsafe { label__set_blend_func(self.raw(), blend_func as i64); }
+	/// Sets the blend function for the label.
+	pub fn set_blend_func(&mut self, val: crate::dora::BlendFunc) {
+		unsafe { label_set_blend_func(self.raw(), val.to_value()) };
 	}
-	pub(crate) fn _get_blend_func(&self) -> u64 {
-		unsafe { return label__get_blend_func(self.raw()) as u64; }
+	/// Gets the blend function for the label.
+	pub fn get_blend_func(&self) -> crate::dora::BlendFunc {
+		return unsafe { crate::dora::BlendFunc::from(label_get_blend_func(self.raw())) };
 	}
 	/// Sets whether depth writing is enabled. (Default is false)
 	pub fn set_depth_write(&mut self, val: bool) {

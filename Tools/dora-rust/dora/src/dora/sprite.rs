@@ -15,8 +15,8 @@ extern "C" {
 	fn sprite_set_texture_rect(slf: i64, val: i64);
 	fn sprite_get_texture_rect(slf: i64) -> i64;
 	fn sprite_get_texture(slf: i64) -> i64;
-	fn sprite__set_blend_func(slf: i64, blend_func: i64);
-	fn sprite__get_blend_func(slf: i64) -> i64;
+	fn sprite_set_blend_func(slf: i64, val: i64);
+	fn sprite_get_blend_func(slf: i64) -> i64;
 	fn sprite_set_effect(slf: i64, val: i64);
 	fn sprite_get_effect(slf: i64) -> i64;
 	fn sprite_set_uwrap(slf: i64, val: i32);
@@ -76,11 +76,13 @@ impl Sprite {
 	pub fn get_texture(&self) -> Option<crate::dora::Texture2D> {
 		return unsafe { crate::dora::Texture2D::from(sprite_get_texture(self.raw())) };
 	}
-	pub(crate) fn _set_blend_func(&mut self, blend_func: u64) {
-		unsafe { sprite__set_blend_func(self.raw(), blend_func as i64); }
+	/// Sets the blend function for the sprite.
+	pub fn set_blend_func(&mut self, val: crate::dora::BlendFunc) {
+		unsafe { sprite_set_blend_func(self.raw(), val.to_value()) };
 	}
-	pub(crate) fn _get_blend_func(&self) -> u64 {
-		unsafe { return sprite__get_blend_func(self.raw()) as u64; }
+	/// Gets the blend function for the sprite.
+	pub fn get_blend_func(&self) -> crate::dora::BlendFunc {
+		return unsafe { crate::dora::BlendFunc::from(sprite_get_blend_func(self.raw())) };
 	}
 	/// Sets the sprite shader effect.
 	pub fn set_effect(&mut self, val: &crate::dora::SpriteEffect) {

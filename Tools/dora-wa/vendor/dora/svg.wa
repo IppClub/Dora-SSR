@@ -21,6 +21,7 @@ func SVGFrom(raw: i64) => *SVG {
 	if raw == 0 {
 		return nil
 	}
+	ObjectRetain(raw)
 	object := SVG{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)
@@ -29,6 +30,12 @@ func SVGFrom(raw: i64) => *SVG {
 }
 func SVG.GetTypeId() => i32 {
 	return svg_type()
+}
+func ObjectAsSVG(object: Object) => *SVG {
+	if object.GetTypeId() == svg_type() {
+		return SVGFrom(object.GetRaw())
+	}
+	return nil
 }
 func SVG.GetWidth() => f32 {
 	return svgdef_get_width(*this.raw)

@@ -16,10 +16,10 @@ func grabber_get_camera(slf: i64) => i64
 func grabber_set_effect(slf: i64, val: i64);
 #wa:import dora grabber_get_effect
 func grabber_get_effect(slf: i64) => i64
-#wa:import dora grabber__set_blend_func
-func grabber__set_blend_func(slf: i64, blend_func: i64)
-#wa:import dora grabber__get_blend_func
-func grabber__get_blend_func(slf: i64) => i64
+#wa:import dora grabber_set_blend_func
+func grabber_set_blend_func(slf: i64, val: i64);
+#wa:import dora grabber_get_blend_func
+func grabber_get_blend_func(slf: i64) => i64
 #wa:import dora grabber_set_clear_color
 func grabber_set_clear_color(slf: i64, val: i32);
 #wa:import dora grabber_get_clear_color
@@ -39,6 +39,7 @@ func GrabberFrom(raw: i64) => *Grabber {
 	if raw == 0 {
 		return nil
 	}
+	ObjectRetain(raw)
 	object := Grabber{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)
@@ -47,6 +48,12 @@ func GrabberFrom(raw: i64) => *Grabber {
 }
 func Grabber.GetTypeId() => i32 {
 	return grabber_type()
+}
+func ObjectAsGrabber(object: Object) => *Grabber {
+	if object.GetTypeId() == grabber_type() {
+		return GrabberFrom(object.GetRaw())
+	}
+	return nil
 }
 func Grabber.SetCamera(val: Camera) {
 	grabber_set_camera(*this.raw, val.GetRaw())
@@ -70,11 +77,11 @@ func Grabber.GetEffect() => *SpriteEffect {
 	obj_ := *SpriteEffectFrom(ptr_)
 	return &obj_
 }
-func Grabber.SetBlendFunc(blend_func: BlendFunc) {
-	grabber__set_blend_func(*this.raw, blend_func.ToValue())
+func Grabber.SetBlendFunc(val: BlendFunc) {
+	grabber_set_blend_func(*this.raw, val.ToValue())
 }
 func Grabber.GetBlendFunc() => BlendFunc {
-	return BlendFuncFrom(grabber__get_blend_func(*this.raw))
+	return BlendFuncFrom(grabber_get_blend_func(*this.raw))
 }
 func Grabber.SetClearColor(val: Color) {
 	grabber_set_clear_color(*this.raw, val.ToARGB())

@@ -35,7 +35,7 @@ pub fn test() {
 		ImGui::begin_opts("Hello World", windows_flags, || {
 			ImGui::text("Hello World (Rust)");
 			ImGui::separator();
-			ImGui::text_wrapped("Basic Dora schedule and signal function usage. Written in Yuescript. View outputs in log window!");
+			ImGui::text_wrapped("Basic Dora schedule and signal function usage. View outputs in log window!");
 		});
 		false
 	}));

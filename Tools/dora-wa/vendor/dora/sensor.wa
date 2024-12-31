@@ -27,6 +27,7 @@ func SensorFrom(raw: i64) => *Sensor {
 	if raw == 0 {
 		return nil
 	}
+	ObjectRetain(raw)
 	object := Sensor{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)
@@ -35,6 +36,12 @@ func SensorFrom(raw: i64) => *Sensor {
 }
 func Sensor.GetTypeId() => i32 {
 	return sensor_type()
+}
+func ObjectAsSensor(object: Object) => *Sensor {
+	if object.GetTypeId() == sensor_type() {
+		return SensorFrom(object.GetRaw())
+	}
+	return nil
 }
 func Sensor.SetEnabled(val: bool) {
 	sensor_set_enabled(*this.raw, ToDoraBool(val))

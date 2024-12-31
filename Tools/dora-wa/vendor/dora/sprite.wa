@@ -22,10 +22,10 @@ func sprite_set_texture_rect(slf: i64, val: i64);
 func sprite_get_texture_rect(slf: i64) => i64
 #wa:import dora sprite_get_texture
 func sprite_get_texture(slf: i64) => i64
-#wa:import dora sprite__set_blend_func
-func sprite__set_blend_func(slf: i64, blend_func: i64)
-#wa:import dora sprite__get_blend_func
-func sprite__get_blend_func(slf: i64) => i64
+#wa:import dora sprite_set_blend_func
+func sprite_set_blend_func(slf: i64, val: i64);
+#wa:import dora sprite_get_blend_func
+func sprite_get_blend_func(slf: i64) => i64
 #wa:import dora sprite_set_effect
 func sprite_set_effect(slf: i64, val: i64);
 #wa:import dora sprite_get_effect
@@ -57,6 +57,7 @@ func SpriteFrom(raw: i64) => *Sprite {
 	if raw == 0 {
 		return nil
 	}
+	ObjectRetain(raw)
 	object := Sprite{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)
@@ -65,6 +66,12 @@ func SpriteFrom(raw: i64) => *Sprite {
 }
 func Sprite.GetTypeId() => i32 {
 	return sprite_type()
+}
+func ObjectAsSprite(object: Object) => *Sprite {
+	if object.GetTypeId() == sprite_type() {
+		return SpriteFrom(object.GetRaw())
+	}
+	return nil
 }
 func Sprite.SetDepthWrite(val: bool) {
 	sprite_set_depth_write(*this.raw, ToDoraBool(val))
@@ -92,11 +99,11 @@ func Sprite.GetTexture() => *Texture2D {
 	obj_ := *Texture2DFrom(ptr_)
 	return &obj_
 }
-func Sprite.SetBlendFunc(blend_func: BlendFunc) {
-	sprite__set_blend_func(*this.raw, blend_func.ToValue())
+func Sprite.SetBlendFunc(val: BlendFunc) {
+	sprite_set_blend_func(*this.raw, val.ToValue())
 }
 func Sprite.GetBlendFunc() => BlendFunc {
-	return BlendFuncFrom(sprite__get_blend_func(*this.raw))
+	return BlendFuncFrom(sprite_get_blend_func(*this.raw))
 }
 func Sprite.SetEffect(val: SpriteEffect) {
 	sprite_set_effect(*this.raw, val.GetRaw())

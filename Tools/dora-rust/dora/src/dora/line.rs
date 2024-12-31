@@ -10,8 +10,8 @@ extern "C" {
 	fn line_type() -> i32;
 	fn line_set_depth_write(slf: i64, val: i32);
 	fn line_is_depth_write(slf: i64) -> i32;
-	fn line__set_blend_func(slf: i64, blend_func: i64);
-	fn line__get_blend_func(slf: i64) -> i64;
+	fn line_set_blend_func(slf: i64, val: i64);
+	fn line_get_blend_func(slf: i64) -> i64;
 	fn line_add(slf: i64, verts: i64, color: i32);
 	fn line_set(slf: i64, verts: i64, color: i32);
 	fn line_clear(slf: i64);
@@ -41,11 +41,13 @@ impl Line {
 	pub fn is_depth_write(&self) -> bool {
 		return unsafe { line_is_depth_write(self.raw()) != 0 };
 	}
-	pub(crate) fn _set_blend_func(&mut self, blend_func: u64) {
-		unsafe { line__set_blend_func(self.raw(), blend_func as i64); }
+	/// Sets the blend function for the line node.
+	pub fn set_blend_func(&mut self, val: crate::dora::BlendFunc) {
+		unsafe { line_set_blend_func(self.raw(), val.to_value()) };
 	}
-	pub(crate) fn _get_blend_func(&self) -> u64 {
-		unsafe { return line__get_blend_func(self.raw()) as u64; }
+	/// Gets the blend function for the line node.
+	pub fn get_blend_func(&self) -> crate::dora::BlendFunc {
+		return unsafe { crate::dora::BlendFunc::from(line_get_blend_func(self.raw())) };
 	}
 	/// Adds vertices to the line.
 	///

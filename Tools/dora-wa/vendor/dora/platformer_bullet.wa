@@ -35,6 +35,7 @@ func PlatformerBulletFrom(raw: i64) => *PlatformerBullet {
 	if raw == 0 {
 		return nil
 	}
+	ObjectRetain(raw)
 	object := PlatformerBullet{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)
@@ -43,6 +44,12 @@ func PlatformerBulletFrom(raw: i64) => *PlatformerBullet {
 }
 func PlatformerBullet.GetTypeId() => i32 {
 	return platformer_bullet_type()
+}
+func ObjectAsPlatformerBullet(object: Object) => *PlatformerBullet {
+	if object.GetTypeId() == platformer_bullet_type() {
+		return PlatformerBulletFrom(object.GetRaw())
+	}
+	return nil
 }
 func PlatformerBullet.SetTargetAllow(val: i32) {
 	platformer_bullet_set_target_allow(*this.raw, val)

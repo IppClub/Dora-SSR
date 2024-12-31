@@ -51,6 +51,7 @@ func PlatformerBulletDefFrom(raw: i64) => *PlatformerBulletDef {
 	if raw == 0 {
 		return nil
 	}
+	ObjectRetain(raw)
 	object := PlatformerBulletDef{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)
@@ -59,6 +60,12 @@ func PlatformerBulletDefFrom(raw: i64) => *PlatformerBulletDef {
 }
 func PlatformerBulletDef.GetTypeId() => i32 {
 	return platformer_bulletdef_type()
+}
+func ObjectAsPlatformerBulletDef(object: Object) => *PlatformerBulletDef {
+	if object.GetTypeId() == platformer_bulletdef_type() {
+		return PlatformerBulletDefFrom(object.GetRaw())
+	}
+	return nil
 }
 func PlatformerBulletDef.SetTag(val: string) {
 	platformer_bulletdef_set_tag(*this.raw, ToDoraString(val))

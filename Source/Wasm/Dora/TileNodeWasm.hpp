@@ -17,10 +17,10 @@ void tilenode_set_depth_write(int64_t self, int32_t val) {
 int32_t tilenode_is_depth_write(int64_t self) {
 	return r_cast<TileNode*>(self)->isDepthWrite() ? 1 : 0;
 }
-void tilenode__set_blend_func(int64_t self, int64_t blend_func) {
-	r_cast<TileNode*>(self)->setBlendFunc(BlendFunc(s_cast<uint64_t>(blend_func)));
+void tilenode_set_blend_func(int64_t self, int64_t val) {
+	r_cast<TileNode*>(self)->setBlendFunc(BlendFunc(s_cast<uint64_t>(val)));
 }
-int64_t tilenode__get_blend_func(int64_t self) {
+int64_t tilenode_get_blend_func(int64_t self) {
 	return s_cast<int64_t>(r_cast<TileNode*>(self)->getBlendFunc().toValue());
 }
 void tilenode_set_effect(int64_t self, int64_t val) {
@@ -53,8 +53,8 @@ static void linkTileNode(wasm3::module3& mod) {
 	mod.link_optional("*", "tilenode_type", tilenode_type);
 	mod.link_optional("*", "tilenode_set_depth_write", tilenode_set_depth_write);
 	mod.link_optional("*", "tilenode_is_depth_write", tilenode_is_depth_write);
-	mod.link_optional("*", "tilenode__set_blend_func", tilenode__set_blend_func);
-	mod.link_optional("*", "tilenode__get_blend_func", tilenode__get_blend_func);
+	mod.link_optional("*", "tilenode_set_blend_func", tilenode_set_blend_func);
+	mod.link_optional("*", "tilenode_get_blend_func", tilenode_get_blend_func);
 	mod.link_optional("*", "tilenode_set_effect", tilenode_set_effect);
 	mod.link_optional("*", "tilenode_get_effect", tilenode_get_effect);
 	mod.link_optional("*", "tilenode_set_filter", tilenode_set_filter);

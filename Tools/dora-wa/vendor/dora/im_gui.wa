@@ -437,85 +437,85 @@ func _ImGui.ShowStats() {
 func _ImGui.ShowConsole() {
 	imgui_show_console()
 }
-func _ImGui.BeginOpts(name: string, windows_flags: i32) => bool {
+func _ImGui._BeginOpts(name: string, windows_flags: i32) => bool {
 	return imgui__begin_opts(ToDoraString(name), windows_flags) != 0
 }
-func _ImGui.End() {
+func _ImGui._End() {
 	imgui__end()
 }
-func _ImGui.BeginChildOpts(str_id: string, size: Vec2, child_flags: i32, window_flags: i32) => bool {
+func _ImGui._BeginChildOpts(str_id: string, size: Vec2, child_flags: i32, window_flags: i32) => bool {
 	return imgui__begin_child_opts(ToDoraString(str_id), size.ToValue(), child_flags, window_flags) != 0
 }
-func _ImGui.BeginChildWithIdOpts(id: i32, size: Vec2, child_flags: i32, window_flags: i32) => bool {
+func _ImGui._BeginChildWithIdOpts(id: i32, size: Vec2, child_flags: i32, window_flags: i32) => bool {
 	return imgui__begin_child_with_id_opts(id, size.ToValue(), child_flags, window_flags) != 0
 }
-func _ImGui.EndChild() {
+func _ImGui._EndChild() {
 	imgui__end_child()
 }
-func _ImGui.SetNextWindowPosCenterOpts(set_cond: i32) {
+func _ImGui._SetNextWindowPosCenterOpts(set_cond: i32) {
 	imgui__set_next_window_pos_center_opts(set_cond)
 }
-func _ImGui.SetNextWindowSizeOpts(size: Vec2, set_cond: i32) {
+func _ImGui._SetNextWindowSizeOpts(size: Vec2, set_cond: i32) {
 	imgui__set_next_window_size_opts(size.ToValue(), set_cond)
 }
-func _ImGui.SetNextWindowCollapsedOpts(collapsed: bool, set_cond: i32) {
+func _ImGui._SetNextWindowCollapsedOpts(collapsed: bool, set_cond: i32) {
 	imgui__set_next_window_collapsed_opts(ToDoraBool(collapsed), set_cond)
 }
-func _ImGui.SetWindowPosOpts(name: string, pos: Vec2, set_cond: i32) {
+func _ImGui._SetWindowPosOpts(name: string, pos: Vec2, set_cond: i32) {
 	imgui__set_window_pos_opts(ToDoraString(name), pos.ToValue(), set_cond)
 }
-func _ImGui.SetWindowSizeOpts(name: string, size: Vec2, set_cond: i32) {
+func _ImGui._SetWindowSizeOpts(name: string, size: Vec2, set_cond: i32) {
 	imgui__set_window_size_opts(ToDoraString(name), size.ToValue(), set_cond)
 }
-func _ImGui.SetWindowCollapsedOpts(name: string, collapsed: bool, set_cond: i32) {
+func _ImGui._SetWindowCollapsedOpts(name: string, collapsed: bool, set_cond: i32) {
 	imgui__set_window_collapsed_opts(ToDoraString(name), ToDoraBool(collapsed), set_cond)
 }
-func _ImGui.SetColorEditOptions(color_edit_flags: i32) {
+func _ImGui._SetColorEditOptions(color_edit_flags: i32) {
 	imgui__set_color_edit_options(color_edit_flags)
 }
-func _ImGui.InputTextOpts(label: string, buffer: Buffer, input_text_flags: i32) => bool {
+func _ImGui._InputTextOpts(label: string, buffer: Buffer, input_text_flags: i32) => bool {
 	return imgui__input_text_opts(ToDoraString(label), buffer.GetRaw(), input_text_flags) != 0
 }
-func _ImGui.InputTextMultilineOpts(label: string, buffer: Buffer, size: Vec2, input_text_flags: i32) => bool {
+func _ImGui._InputTextMultilineOpts(label: string, buffer: Buffer, size: Vec2, input_text_flags: i32) => bool {
 	return imgui__input_text_multiline_opts(ToDoraString(label), buffer.GetRaw(), size.ToValue(), input_text_flags) != 0
 }
-func _ImGui.TreeNodeExOpts(label: string, tree_node_flags: i32) => bool {
+func _ImGui._TreeNodeExOpts(label: string, tree_node_flags: i32) => bool {
 	return imgui__tree_node_ex_opts(ToDoraString(label), tree_node_flags) != 0
 }
-func _ImGui.TreeNodeExWithIdOpts(str_id: string, text: string, tree_node_flags: i32) => bool {
+func _ImGui._TreeNodeExWithIdOpts(str_id: string, text: string, tree_node_flags: i32) => bool {
 	return imgui__tree_node_ex_with_id_opts(ToDoraString(str_id), ToDoraString(text), tree_node_flags) != 0
 }
-func _ImGui.SetNextItemOpenOpts(is_open: bool, set_cond: i32) {
+func _ImGui._SetNextItemOpenOpts(is_open: bool, set_cond: i32) {
 	imgui__set_next_item_open_opts(ToDoraBool(is_open), set_cond)
 }
-func _ImGui.CollapsingHeaderOpts(label: string, tree_node_flags: i32) => bool {
+func _ImGui._CollapsingHeaderOpts(label: string, tree_node_flags: i32) => bool {
 	return imgui__collapsing_header_opts(ToDoraString(label), tree_node_flags) != 0
 }
-func _ImGui.SelectableOpts(label: string, selectable_flags: i32) => bool {
+func _ImGui._SelectableOpts(label: string, selectable_flags: i32) => bool {
 	return imgui__selectable_opts(ToDoraString(label), selectable_flags) != 0
 }
-func _ImGui.BeginPopupModalOpts(name: string, windows_flags: i32) => bool {
+func _ImGui._BeginPopupModalOpts(name: string, windows_flags: i32) => bool {
 	return imgui__begin_popup_modal_opts(ToDoraString(name), windows_flags) != 0
 }
-func _ImGui.BeginPopupModalRetOpts(name: string, stack: CallStack, windows_flags: i32) => bool {
+func _ImGui._BeginPopupModalRetOpts(name: string, stack: CallStack, windows_flags: i32) => bool {
 	return imgui__begin_popup_modal_ret_opts(ToDoraString(name), stack.GetRaw(), windows_flags) != 0
 }
-func _ImGui.BeginPopupContextItemOpts(name: string, popup_flags: i32) => bool {
+func _ImGui._BeginPopupContextItemOpts(name: string, popup_flags: i32) => bool {
 	return imgui__begin_popup_context_item_opts(ToDoraString(name), popup_flags) != 0
 }
-func _ImGui.BeginPopupContextWindowOpts(name: string, popup_flags: i32) => bool {
+func _ImGui._BeginPopupContextWindowOpts(name: string, popup_flags: i32) => bool {
 	return imgui__begin_popup_context_window_opts(ToDoraString(name), popup_flags) != 0
 }
-func _ImGui.BeginPopupContextVoidOpts(name: string, popup_flags: i32) => bool {
+func _ImGui._BeginPopupContextVoidOpts(name: string, popup_flags: i32) => bool {
 	return imgui__begin_popup_context_void_opts(ToDoraString(name), popup_flags) != 0
 }
-func _ImGui.PushStyleColor(name: i32, color: Color) {
+func _ImGui._PushStyleColor(name: i32, color: Color) {
 	imgui__push_style_color(name, color.ToARGB())
 }
-func _ImGui.PushStyleFloat(name: i32, val: f32) {
+func _ImGui._PushStyleFloat(name: i32, val: f32) {
 	imgui__push_style_float(name, val)
 }
-func _ImGui.PushStyleVec2(name: i32, val: Vec2) {
+func _ImGui._PushStyleVec2(name: i32, val: Vec2) {
 	imgui__push_style_vec2(name, val.ToValue())
 }
 func _ImGui.Text(text: string) {
@@ -536,7 +536,7 @@ func _ImGui.LabelText(label: string, text: string) {
 func _ImGui.BulletText(text: string) {
 	imgui_bullet_text(ToDoraString(text))
 }
-func _ImGui.TreeNode(str_id: string, text: string) => bool {
+func _ImGui._TreeNode(str_id: string, text: string) => bool {
 	return imgui__tree_node(ToDoraString(str_id), ToDoraString(text)) != 0
 }
 func _ImGui.SetTooltip(text: string) {
@@ -548,7 +548,7 @@ func _ImGui.ImageOpts(clip_str: string, size: Vec2, tint_col: Color, border_col:
 func _ImGui.ImageButtonOpts(str_id: string, clip_str: string, size: Vec2, bg_col: Color, tint_col: Color) => bool {
 	return imgui_image_button_opts(ToDoraString(str_id), ToDoraString(clip_str), size.ToValue(), bg_col.ToARGB(), tint_col.ToARGB()) != 0
 }
-func _ImGui.ColorButtonOpts(desc_id: string, col: Color, color_edit_flags: i32, size: Vec2) => bool {
+func _ImGui._ColorButtonOpts(desc_id: string, col: Color, color_edit_flags: i32, size: Vec2) => bool {
 	return imgui__color_button_opts(ToDoraString(desc_id), col.ToARGB(), color_edit_flags, size.ToValue()) != 0
 }
 func _ImGui.Columns(count: i32) {
@@ -557,13 +557,13 @@ func _ImGui.Columns(count: i32) {
 func _ImGui.ColumnsOpts(count: i32, border: bool, str_id: string) {
 	imgui_columns_opts(count, ToDoraBool(border), ToDoraString(str_id))
 }
-func _ImGui.BeginTableOpts(str_id: string, column: i32, outer_size: Vec2, inner_width: f32, table_flags: i32) => bool {
+func _ImGui._BeginTableOpts(str_id: string, column: i32, outer_size: Vec2, inner_width: f32, table_flags: i32) => bool {
 	return imgui__begin_table_opts(ToDoraString(str_id), column, outer_size.ToValue(), inner_width, table_flags) != 0
 }
-func _ImGui.TableNextRowOpts(min_row_height: f32, table_row_flag: i32) {
+func _ImGui._TableNextRowOpts(min_row_height: f32, table_row_flag: i32) {
 	imgui__table_next_row_opts(min_row_height, table_row_flag)
 }
-func _ImGui.TableSetupColumnOpts(label: string, init_width_or_weight: f32, user_id: i32, table_column_flags: i32) {
+func _ImGui._TableSetupColumnOpts(label: string, init_width_or_weight: f32, user_id: i32, table_column_flags: i32) {
 	imgui__table_setup_column_opts(ToDoraString(label), init_width_or_weight, user_id, table_column_flags)
 }
 func _ImGui.SetStyleBool(name: string, val: bool) {
@@ -578,76 +578,76 @@ func _ImGui.SetStyleVec2(name: string, val: Vec2) {
 func _ImGui.SetStyleColor(name: string, color: Color) {
 	imgui_set_style_color(ToDoraString(name), color.ToARGB())
 }
-func _ImGui.BeginRetOpts(name: string, stack: CallStack, windows_flags: i32) => bool {
+func _ImGui._BeginRetOpts(name: string, stack: CallStack, windows_flags: i32) => bool {
 	return imgui__begin_ret_opts(ToDoraString(name), stack.GetRaw(), windows_flags) != 0
 }
-func _ImGui.CollapsingHeaderRetOpts(label: string, stack: CallStack, tree_node_flags: i32) => bool {
+func _ImGui._CollapsingHeaderRetOpts(label: string, stack: CallStack, tree_node_flags: i32) => bool {
 	return imgui__collapsing_header_ret_opts(ToDoraString(label), stack.GetRaw(), tree_node_flags) != 0
 }
-func _ImGui.SelectableRetOpts(label: string, stack: CallStack, size: Vec2, selectable_flags: i32) => bool {
+func _ImGui._SelectableRetOpts(label: string, stack: CallStack, size: Vec2, selectable_flags: i32) => bool {
 	return imgui__selectable_ret_opts(ToDoraString(label), stack.GetRaw(), size.ToValue(), selectable_flags) != 0
 }
-func _ImGui.ComboRetOpts(label: string, stack: CallStack, items: *[]string, height_in_items: i32) => bool {
+func _ImGui._ComboRetOpts(label: string, stack: CallStack, items: *[]string, height_in_items: i32) => bool {
 	return imgui__combo_ret_opts(ToDoraString(label), stack.GetRaw(), ToDoraStrBuf(items), height_in_items) != 0
 }
-func _ImGui.DragFloatRetOpts(label: string, stack: CallStack, v_speed: f32, v_min: f32, v_max: f32, display_format: string, slider_flags: i32) => bool {
+func _ImGui._DragFloatRetOpts(label: string, stack: CallStack, v_speed: f32, v_min: f32, v_max: f32, display_format: string, slider_flags: i32) => bool {
 	return imgui__drag_float_ret_opts(ToDoraString(label), stack.GetRaw(), v_speed, v_min, v_max, ToDoraString(display_format), slider_flags) != 0
 }
-func _ImGui.DragFloat2RetOpts(label: string, stack: CallStack, v_speed: f32, v_min: f32, v_max: f32, display_format: string, slider_flags: i32) => bool {
+func _ImGui._DragFloat2RetOpts(label: string, stack: CallStack, v_speed: f32, v_min: f32, v_max: f32, display_format: string, slider_flags: i32) => bool {
 	return imgui__drag_float2_ret_opts(ToDoraString(label), stack.GetRaw(), v_speed, v_min, v_max, ToDoraString(display_format), slider_flags) != 0
 }
-func _ImGui.DragIntRetOpts(label: string, stack: CallStack, v_speed: f32, v_min: i32, v_max: i32, display_format: string, slider_flags: i32) => bool {
+func _ImGui._DragIntRetOpts(label: string, stack: CallStack, v_speed: f32, v_min: i32, v_max: i32, display_format: string, slider_flags: i32) => bool {
 	return imgui__drag_int_ret_opts(ToDoraString(label), stack.GetRaw(), v_speed, v_min, v_max, ToDoraString(display_format), slider_flags) != 0
 }
-func _ImGui.DragInt2RetOpts(label: string, stack: CallStack, v_speed: f32, v_min: i32, v_max: i32, display_format: string, slider_flags: i32) => bool {
+func _ImGui._DragInt2RetOpts(label: string, stack: CallStack, v_speed: f32, v_min: i32, v_max: i32, display_format: string, slider_flags: i32) => bool {
 	return imgui__drag_int2_ret_opts(ToDoraString(label), stack.GetRaw(), v_speed, v_min, v_max, ToDoraString(display_format), slider_flags) != 0
 }
-func _ImGui.InputFloatRetOpts(label: string, stack: CallStack, step: f32, step_fast: f32, display_format: string, input_text_flags: i32) => bool {
+func _ImGui._InputFloatRetOpts(label: string, stack: CallStack, step: f32, step_fast: f32, display_format: string, input_text_flags: i32) => bool {
 	return imgui__input_float_ret_opts(ToDoraString(label), stack.GetRaw(), step, step_fast, ToDoraString(display_format), input_text_flags) != 0
 }
-func _ImGui.InputFloat2RetOpts(label: string, stack: CallStack, display_format: string, input_text_flags: i32) => bool {
+func _ImGui._InputFloat2RetOpts(label: string, stack: CallStack, display_format: string, input_text_flags: i32) => bool {
 	return imgui__input_float2_ret_opts(ToDoraString(label), stack.GetRaw(), ToDoraString(display_format), input_text_flags) != 0
 }
-func _ImGui.InputIntRetOpts(label: string, stack: CallStack, step: i32, step_fast: i32, input_text_flags: i32) => bool {
+func _ImGui._InputIntRetOpts(label: string, stack: CallStack, step: i32, step_fast: i32, input_text_flags: i32) => bool {
 	return imgui__input_int_ret_opts(ToDoraString(label), stack.GetRaw(), step, step_fast, input_text_flags) != 0
 }
-func _ImGui.InputInt2RetOpts(label: string, stack: CallStack, input_text_flags: i32) => bool {
+func _ImGui._InputInt2RetOpts(label: string, stack: CallStack, input_text_flags: i32) => bool {
 	return imgui__input_int2_ret_opts(ToDoraString(label), stack.GetRaw(), input_text_flags) != 0
 }
-func _ImGui.SliderFloatRetOpts(label: string, stack: CallStack, v_min: f32, v_max: f32, display_format: string, slider_flags: i32) => bool {
+func _ImGui._SliderFloatRetOpts(label: string, stack: CallStack, v_min: f32, v_max: f32, display_format: string, slider_flags: i32) => bool {
 	return imgui__slider_float_ret_opts(ToDoraString(label), stack.GetRaw(), v_min, v_max, ToDoraString(display_format), slider_flags) != 0
 }
-func _ImGui.SliderFloat2RetOpts(label: string, stack: CallStack, v_min: f32, v_max: f32, display_format: string, slider_flags: i32) => bool {
+func _ImGui._SliderFloat2RetOpts(label: string, stack: CallStack, v_min: f32, v_max: f32, display_format: string, slider_flags: i32) => bool {
 	return imgui__slider_float2_ret_opts(ToDoraString(label), stack.GetRaw(), v_min, v_max, ToDoraString(display_format), slider_flags) != 0
 }
-func _ImGui.SliderIntRetOpts(label: string, stack: CallStack, v_min: i32, v_max: i32, format: string, slider_flags: i32) => bool {
+func _ImGui._SliderIntRetOpts(label: string, stack: CallStack, v_min: i32, v_max: i32, format: string, slider_flags: i32) => bool {
 	return imgui__slider_int_ret_opts(ToDoraString(label), stack.GetRaw(), v_min, v_max, ToDoraString(format), slider_flags) != 0
 }
-func _ImGui.SliderInt2RetOpts(label: string, stack: CallStack, v_min: i32, v_max: i32, display_format: string, slider_flags: i32) => bool {
+func _ImGui._SliderInt2RetOpts(label: string, stack: CallStack, v_min: i32, v_max: i32, display_format: string, slider_flags: i32) => bool {
 	return imgui__slider_int2_ret_opts(ToDoraString(label), stack.GetRaw(), v_min, v_max, ToDoraString(display_format), slider_flags) != 0
 }
-func _ImGui.DragFloatRange2RetOpts(label: string, stack: CallStack, v_speed: f32, v_min: f32, v_max: f32, format: string, format_max: string, slider_flags: i32) => bool {
+func _ImGui._DragFloatRange2RetOpts(label: string, stack: CallStack, v_speed: f32, v_min: f32, v_max: f32, format: string, format_max: string, slider_flags: i32) => bool {
 	return imgui__drag_float_range2_ret_opts(ToDoraString(label), stack.GetRaw(), v_speed, v_min, v_max, ToDoraString(format), ToDoraString(format_max), slider_flags) != 0
 }
-func _ImGui.DragIntRange2RetOpts(label: string, stack: CallStack, v_speed: f32, v_min: i32, v_max: i32, format: string, format_max: string, slider_flags: i32) => bool {
+func _ImGui._DragIntRange2RetOpts(label: string, stack: CallStack, v_speed: f32, v_min: i32, v_max: i32, format: string, format_max: string, slider_flags: i32) => bool {
 	return imgui__drag_int_range2_ret_opts(ToDoraString(label), stack.GetRaw(), v_speed, v_min, v_max, ToDoraString(format), ToDoraString(format_max), slider_flags) != 0
 }
-func _ImGui.VSliderFloatRetOpts(label: string, size: Vec2, stack: CallStack, v_min: f32, v_max: f32, format: string, slider_flags: i32) => bool {
+func _ImGui._VSliderFloatRetOpts(label: string, size: Vec2, stack: CallStack, v_min: f32, v_max: f32, format: string, slider_flags: i32) => bool {
 	return imgui__v_slider_float_ret_opts(ToDoraString(label), size.ToValue(), stack.GetRaw(), v_min, v_max, ToDoraString(format), slider_flags) != 0
 }
-func _ImGui.VSliderIntRetOpts(label: string, size: Vec2, stack: CallStack, v_min: i32, v_max: i32, format: string, slider_flags: i32) => bool {
+func _ImGui._VSliderIntRetOpts(label: string, size: Vec2, stack: CallStack, v_min: i32, v_max: i32, format: string, slider_flags: i32) => bool {
 	return imgui__v_slider_int_ret_opts(ToDoraString(label), size.ToValue(), stack.GetRaw(), v_min, v_max, ToDoraString(format), slider_flags) != 0
 }
-func _ImGui.ColorEdit3RetOpts(label: string, stack: CallStack, color_edit_flags: i32) => bool {
+func _ImGui._ColorEdit3RetOpts(label: string, stack: CallStack, color_edit_flags: i32) => bool {
 	return imgui__color_edit3_ret_opts(ToDoraString(label), stack.GetRaw(), color_edit_flags) != 0
 }
-func _ImGui.ColorEdit4RetOpts(label: string, stack: CallStack, color_edit_flags: i32) => bool {
+func _ImGui._ColorEdit4RetOpts(label: string, stack: CallStack, color_edit_flags: i32) => bool {
 	return imgui__color_edit4_ret_opts(ToDoraString(label), stack.GetRaw(), color_edit_flags) != 0
 }
 func _ImGui.ScrollWhenDraggingOnVoid() {
 	imgui_scroll_when_dragging_on_void()
 }
-func _ImGui.SetNextWindowPosOpts(pos: Vec2, set_cond: i32, pivot: Vec2) {
+func _ImGui._SetNextWindowPosOpts(pos: Vec2, set_cond: i32, pivot: Vec2) {
 	imgui__set_next_window_pos_opts(pos.ToValue(), set_cond, pivot.ToValue())
 }
 func _ImGui.SetNextWindowBgAlpha(alpha: f32) {
@@ -713,34 +713,34 @@ func _ImGui.SetScrollFromPosY(pos_y: f32, center_y_ratio: f32) {
 func _ImGui.SetKeyboardFocusHere(offset: i32) {
 	imgui_set_keyboard_focus_here(offset)
 }
-func _ImGui.PopStyleColor(count: i32) {
+func _ImGui._PopStyleColor(count: i32) {
 	imgui__pop_style_color(count)
 }
-func _ImGui.PopStyleVar(count: i32) {
+func _ImGui._PopStyleVar(count: i32) {
 	imgui__pop_style_var(count)
 }
 func _ImGui.SetNextItemWidth(item_width: f32) {
 	imgui_set_next_item_width(item_width)
 }
-func _ImGui.PushItemWidth(item_width: f32) {
+func _ImGui._PushItemWidth(item_width: f32) {
 	imgui__push_item_width(item_width)
 }
-func _ImGui.PopItemWidth() {
+func _ImGui._PopItemWidth() {
 	imgui__pop_item_width()
 }
 func _ImGui.CalcItemWidth() => f32 {
 	return imgui_calc_item_width()
 }
-func _ImGui.PushTextWrapPos(wrap_pos_x: f32) {
+func _ImGui._PushTextWrapPos(wrap_pos_x: f32) {
 	imgui__push_text_wrap_pos(wrap_pos_x)
 }
-func _ImGui.PopTextWrapPos() {
+func _ImGui._PopTextWrapPos() {
 	imgui__pop_text_wrap_pos()
 }
-func _ImGui.PushItemFlag(flag: i32, enabled: bool) {
+func _ImGui._PushItemFlag(flag: i32, enabled: bool) {
 	imgui__push_item_flag(flag, ToDoraBool(enabled))
 }
-func _ImGui.PopItemFlag() {
+func _ImGui._PopItemFlag() {
 	imgui__pop_item_flag()
 }
 func _ImGui.Separator() {
@@ -764,10 +764,10 @@ func _ImGui.Indent(indent_w: f32) {
 func _ImGui.Unindent(indent_w: f32) {
 	imgui_unindent(indent_w)
 }
-func _ImGui.BeginGroup() {
+func _ImGui._BeginGroup() {
 	imgui__begin_group()
 }
-func _ImGui.EndGroup() {
+func _ImGui._EndGroup() {
 	imgui__end_group()
 }
 func _ImGui.GetCursorPos() => Vec2 {
@@ -824,7 +824,7 @@ func _ImGui.GetColumnWidth(column_index: i32) => f32 {
 func _ImGui.GetColumnsCount() => i32 {
 	return imgui_get_columns_count()
 }
-func _ImGui.EndTable() {
+func _ImGui._EndTable() {
 	imgui__end_table()
 }
 func _ImGui.TableNextColumn() => bool {
@@ -857,10 +857,10 @@ func _ImGui.SeparatorText(text: string) {
 func _ImGui.TableHeader(label: string) {
 	imgui_table_header(ToDoraString(label))
 }
-func _ImGui.PushId(str_id: string) {
+func _ImGui._PushId(str_id: string) {
 	imgui__push_id(ToDoraString(str_id))
 }
-func _ImGui.PopId() {
+func _ImGui._PopId() {
 	imgui__pop_id()
 }
 func _ImGui.GetId(str_id: string) => i32 {
@@ -875,10 +875,10 @@ func _ImGui.SmallButton(label: string) => bool {
 func _ImGui.InvisibleButton(str_id: string, size: Vec2) => bool {
 	return imgui_invisible_button(ToDoraString(str_id), size.ToValue()) != 0
 }
-func _ImGui.CheckboxRet(label: string, stack: CallStack) => bool {
+func _ImGui._CheckboxRet(label: string, stack: CallStack) => bool {
 	return imgui__checkbox_ret(ToDoraString(label), stack.GetRaw()) != 0
 }
-func _ImGui.RadioButtonRet(label: string, stack: CallStack, v_button: i32) => bool {
+func _ImGui._RadioButtonRet(label: string, stack: CallStack, v_button: i32) => bool {
 	return imgui__radio_button_ret(ToDoraString(label), stack.GetRaw(), v_button) != 0
 }
 func _ImGui.PlotLines(label: string, values: *[]f32) {
@@ -899,16 +899,16 @@ func _ImGui.ProgressBar(fraction: f32) {
 func _ImGui.ProgressBarOpts(fraction: f32, size_arg: Vec2, overlay: string) {
 	imgui_progress_bar_opts(fraction, size_arg.ToValue(), ToDoraString(overlay))
 }
-func _ImGui.ListBoxRetOpts(label: string, stack: CallStack, items: *[]string, height_in_items: i32) => bool {
+func _ImGui._ListBoxRetOpts(label: string, stack: CallStack, items: *[]string, height_in_items: i32) => bool {
 	return imgui__list_box_ret_opts(ToDoraString(label), stack.GetRaw(), ToDoraStrBuf(items), height_in_items) != 0
 }
-func _ImGui.SliderAngleRet(label: string, stack: CallStack, v_degrees_min: f32, v_degrees_max: f32) => bool {
+func _ImGui._SliderAngleRet(label: string, stack: CallStack, v_degrees_min: f32, v_degrees_max: f32) => bool {
 	return imgui__slider_angle_ret(ToDoraString(label), stack.GetRaw(), v_degrees_min, v_degrees_max) != 0
 }
-func _ImGui.TreePush(str_id: string) {
+func _ImGui._TreePush(str_id: string) {
 	imgui__tree_push(ToDoraString(str_id))
 }
-func _ImGui.TreePop() {
+func _ImGui._TreePop() {
 	imgui__tree_pop()
 }
 func _ImGui.Value(prefix: string, b: bool) {
@@ -920,58 +920,58 @@ func _ImGui.MenuItem(label: string, shortcut: string, selected: bool, enabled: b
 func _ImGui.OpenPopup(str_id: string) {
 	imgui_open_popup(ToDoraString(str_id))
 }
-func _ImGui.BeginPopup(str_id: string) => bool {
+func _ImGui._BeginPopup(str_id: string) => bool {
 	return imgui__begin_popup(ToDoraString(str_id)) != 0
 }
-func _ImGui.EndPopup() {
+func _ImGui._EndPopup() {
 	imgui__end_popup()
 }
 func _ImGui.GetTreeNodeToLabelSpacing() => f32 {
 	return imgui_get_tree_node_to_label_spacing()
 }
-func _ImGui.BeginListBox(label: string, size: Vec2) => bool {
+func _ImGui._BeginListBox(label: string, size: Vec2) => bool {
 	return imgui__begin_list_box(ToDoraString(label), size.ToValue()) != 0
 }
-func _ImGui.EndListBox() {
+func _ImGui._EndListBox() {
 	imgui__end_list_box()
 }
-func _ImGui.BeginDisabled() {
+func _ImGui._BeginDisabled() {
 	imgui__begin_disabled()
 }
-func _ImGui.EndDisabled() {
+func _ImGui._EndDisabled() {
 	imgui__end_disabled()
 }
-func _ImGui.BeginTooltip() => bool {
+func _ImGui._BeginTooltip() => bool {
 	return imgui__begin_tooltip() != 0
 }
-func _ImGui.EndTooltip() {
+func _ImGui._EndTooltip() {
 	imgui__end_tooltip()
 }
-func _ImGui.BeginMainMenuBar() => bool {
+func _ImGui._BeginMainMenuBar() => bool {
 	return imgui__begin_main_menu_bar() != 0
 }
-func _ImGui.EndMainMenuBar() {
+func _ImGui._EndMainMenuBar() {
 	imgui__end_main_menu_bar()
 }
-func _ImGui.BeginMenuBar() => bool {
+func _ImGui._BeginMenuBar() => bool {
 	return imgui__begin_menu_bar() != 0
 }
-func _ImGui.EndMenuBar() {
+func _ImGui._EndMenuBar() {
 	imgui__end_menu_bar()
 }
-func _ImGui.BeginMenu(label: string, enabled: bool) => bool {
+func _ImGui._BeginMenu(label: string, enabled: bool) => bool {
 	return imgui__begin_menu(ToDoraString(label), ToDoraBool(enabled)) != 0
 }
-func _ImGui.EndMenu() {
+func _ImGui._EndMenu() {
 	imgui__end_menu()
 }
 func _ImGui.CloseCurrentPopup() {
 	imgui_close_current_popup()
 }
-func _ImGui.PushClipRect(clip_rect_min: Vec2, clip_rect_max: Vec2, intersect_with_current_clip_rect: bool) {
+func _ImGui._PushClipRect(clip_rect_min: Vec2, clip_rect_max: Vec2, intersect_with_current_clip_rect: bool) {
 	imgui__push_clip_rect(clip_rect_min.ToValue(), clip_rect_max.ToValue(), ToDoraBool(intersect_with_current_clip_rect))
 }
-func _ImGui.PopClipRect() {
+func _ImGui._PopClipRect() {
 	imgui__pop_clip_rect()
 }
 func _ImGui.IsItemHovered() => bool {

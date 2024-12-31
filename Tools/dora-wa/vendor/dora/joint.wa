@@ -41,6 +41,7 @@ func JointFrom(raw: i64) => *Joint {
 	if raw == 0 {
 		return nil
 	}
+	ObjectRetain(raw)
 	object := Joint{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)
@@ -49,6 +50,12 @@ func JointFrom(raw: i64) => *Joint {
 }
 func Joint.GetTypeId() => i32 {
 	return joint_type()
+}
+func ObjectAsJoint(object: Object) => *Joint {
+	if object.GetTypeId() == joint_type() {
+		return JointFrom(object.GetRaw())
+	}
+	return nil
 }
 func JointDistance(collision: bool, body_a: Body, body_b: Body, anchor_a: Vec2, anchor_b: Vec2, frequency: f32, damping: f32) => Joint {
 	return *JointFrom(joint_distance(ToDoraBool(collision), body_a.GetRaw(), body_b.GetRaw(), anchor_a.ToValue(), anchor_b.ToValue(), frequency, damping))

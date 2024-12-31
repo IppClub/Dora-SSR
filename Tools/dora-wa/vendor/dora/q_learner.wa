@@ -25,6 +25,7 @@ func QLearnerFrom(raw: i64) => *QLearner {
 	if raw == 0 {
 		return nil
 	}
+	ObjectRetain(raw)
 	object := QLearner{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)
@@ -33,6 +34,12 @@ func QLearnerFrom(raw: i64) => *QLearner {
 }
 func QLearner.GetTypeId() => i32 {
 	return qlearner_type()
+}
+func ObjectAsQLearner(object: Object) => *QLearner {
+	if object.GetTypeId() == qlearner_type() {
+		return QLearnerFrom(object.GetRaw())
+	}
+	return nil
 }
 func QLearner.Update(state: i64, action: i32, reward: f64) {
 	mlqlearner_update(*this.raw, state, action, reward)

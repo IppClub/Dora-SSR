@@ -10,8 +10,8 @@ extern "C" {
 	fn tilenode_type() -> i32;
 	fn tilenode_set_depth_write(slf: i64, val: i32);
 	fn tilenode_is_depth_write(slf: i64) -> i32;
-	fn tilenode__set_blend_func(slf: i64, blend_func: i64);
-	fn tilenode__get_blend_func(slf: i64) -> i64;
+	fn tilenode_set_blend_func(slf: i64, val: i64);
+	fn tilenode_get_blend_func(slf: i64) -> i64;
 	fn tilenode_set_effect(slf: i64, val: i64);
 	fn tilenode_get_effect(slf: i64) -> i64;
 	fn tilenode_set_filter(slf: i64, val: i32);
@@ -44,11 +44,13 @@ impl TileNode {
 	pub fn is_depth_write(&self) -> bool {
 		return unsafe { tilenode_is_depth_write(self.raw()) != 0 };
 	}
-	pub(crate) fn _set_blend_func(&mut self, blend_func: u64) {
-		unsafe { tilenode__set_blend_func(self.raw(), blend_func as i64); }
+	/// Sets the blend function for the tilemap.
+	pub fn set_blend_func(&mut self, val: crate::dora::BlendFunc) {
+		unsafe { tilenode_set_blend_func(self.raw(), val.to_value()) };
 	}
-	pub(crate) fn _get_blend_func(&self) -> u64 {
-		unsafe { return tilenode__get_blend_func(self.raw()) as u64; }
+	/// Gets the blend function for the tilemap.
+	pub fn get_blend_func(&self) -> crate::dora::BlendFunc {
+		return unsafe { crate::dora::BlendFunc::from(tilenode_get_blend_func(self.raw())) };
 	}
 	/// Sets the tilemap shader effect.
 	pub fn set_effect(&mut self, val: &crate::dora::SpriteEffect) {

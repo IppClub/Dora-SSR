@@ -27,6 +27,7 @@ func ClipNodeFrom(raw: i64) => *ClipNode {
 	if raw == 0 {
 		return nil
 	}
+	ObjectRetain(raw)
 	object := ClipNode{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)
@@ -35,6 +36,12 @@ func ClipNodeFrom(raw: i64) => *ClipNode {
 }
 func ClipNode.GetTypeId() => i32 {
 	return clipnode_type()
+}
+func ObjectAsClipNode(object: Object) => *ClipNode {
+	if object.GetTypeId() == clipnode_type() {
+		return ClipNodeFrom(object.GetRaw())
+	}
+	return nil
 }
 func ClipNode.SetStencil(val: Node) {
 	clipnode_set_stencil(*this.raw, val.GetRaw())

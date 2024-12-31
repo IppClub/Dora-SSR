@@ -12,8 +12,8 @@ extern "C" {
 	fn grabber_get_camera(slf: i64) -> i64;
 	fn grabber_set_effect(slf: i64, val: i64);
 	fn grabber_get_effect(slf: i64) -> i64;
-	fn grabber__set_blend_func(slf: i64, blend_func: i64);
-	fn grabber__get_blend_func(slf: i64) -> i64;
+	fn grabber_set_blend_func(slf: i64, val: i64);
+	fn grabber_get_blend_func(slf: i64) -> i64;
 	fn grabber_set_clear_color(slf: i64, val: i32);
 	fn grabber_get_clear_color(slf: i64) -> i32;
 	fn grabber_set_pos(slf: i64, x: i32, y: i32, pos: i64, z: f32);
@@ -52,11 +52,13 @@ impl Grabber {
 	pub fn get_effect(&self) -> Option<crate::dora::SpriteEffect> {
 		return unsafe { crate::dora::SpriteEffect::from(grabber_get_effect(self.raw())) };
 	}
-	pub(crate) fn _set_blend_func(&mut self, blend_func: u64) {
-		unsafe { grabber__set_blend_func(self.raw(), blend_func as i64); }
+	/// Sets the blend function for the grabber.
+	pub fn set_blend_func(&mut self, val: crate::dora::BlendFunc) {
+		unsafe { grabber_set_blend_func(self.raw(), val.to_value()) };
 	}
-	pub(crate) fn _get_blend_func(&self) -> u64 {
-		unsafe { return grabber__get_blend_func(self.raw()) as u64; }
+	/// Gets the blend function for the grabber.
+	pub fn get_blend_func(&self) -> crate::dora::BlendFunc {
+		return unsafe { crate::dora::BlendFunc::from(grabber_get_blend_func(self.raw())) };
 	}
 	/// Sets the clear color used to clear the texture.
 	pub fn set_clear_color(&mut self, val: &crate::dora::Color) {
