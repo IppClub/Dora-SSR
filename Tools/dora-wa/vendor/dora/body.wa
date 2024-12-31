@@ -75,6 +75,7 @@ func BodyFrom(raw: i64) => *Body {
 	if raw == 0 {
 		return nil
 	}
+	ObjectRetain(raw)
 	object := Body{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)
@@ -83,6 +84,12 @@ func BodyFrom(raw: i64) => *Body {
 }
 func Body.GetTypeId() => i32 {
 	return body_type()
+}
+func ObjectAsBody(object: Object) => *Body {
+	if object.GetTypeId() == body_type() {
+		return BodyFrom(object.GetRaw())
+	}
+	return nil
 }
 func Body.GetWorld() => PhysicsWorld {
 	return *PhysicsWorldFrom(body_get_world(*this.raw))

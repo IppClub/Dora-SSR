@@ -49,6 +49,7 @@ func ModelFrom(raw: i64) => *Model {
 	if raw == 0 {
 		return nil
 	}
+	ObjectRetain(raw)
 	object := Model{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)
@@ -57,6 +58,12 @@ func ModelFrom(raw: i64) => *Model {
 }
 func Model.GetTypeId() => i32 {
 	return model_type()
+}
+func ObjectAsModel(object: Object) => *Model {
+	if object.GetTypeId() == model_type() {
+		return ModelFrom(object.GetRaw())
+	}
+	return nil
 }
 func Model.GetDuration() => f32 {
 	return model_get_duration(*this.raw)

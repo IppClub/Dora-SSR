@@ -93,6 +93,7 @@ func BodyDefFrom(raw: i64) => *BodyDef {
 	if raw == 0 {
 		return nil
 	}
+	ObjectRetain(raw)
 	object := BodyDef{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)
@@ -101,6 +102,12 @@ func BodyDefFrom(raw: i64) => *BodyDef {
 }
 func BodyDef.GetTypeId() => i32 {
 	return bodydef_type()
+}
+func ObjectAsBodyDef(object: Object) => *BodyDef {
+	if object.GetTypeId() == bodydef_type() {
+		return BodyDefFrom(object.GetRaw())
+	}
+	return nil
 }
 func BodyDef.SetType(body_type: BodyType) {
 	bodydef_set_type(*this.raw, body_type.ToValue())

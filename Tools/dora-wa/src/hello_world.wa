@@ -1,0 +1,56 @@
+import "dora"
+
+func test_hello_world() {
+	node := dora.NewNode()
+	node.OnEnter(func() {
+		dora.Println("on enter event")
+	})
+	node.OnExit(func() {
+		dora.Println("on exit event")
+	})
+	node.OnCleanup(func() {
+		dora.Println("on node destoyed event")
+	})
+
+	time := 0.0
+	count_down := 5
+	node.Schedule(func(delta_time: f64) => bool {
+		time += delta_time
+		if time >= 1.0 {
+			time = 0.0
+			if count_down > 0 {
+				dora.Println(count_down)
+			}
+			count_down -= 1
+		}
+		if count_down < 0 {
+			dora.Println("Hello World!")
+			return true
+		}
+		return false
+	})
+
+	imgui_node := dora.NewNode()
+	imgui_node.Schedule(func(delta_time: f64) => bool {
+		width := dora.App.GetVisualSize().Width
+		dora.ImGui.SetNextWindowBgAlpha(0.35)
+		dora.ImGui.SetNextWindowPosOpts(
+			dora.Vec2{X: width - 10.0, Y: 10.0},
+			dora.ImGuiCondAlways,
+			dora.Vec2{X: 1.0, Y: 0.0},
+		)
+		dora.ImGui.SetNextWindowSizeOpts(
+			dora.Vec2{X: 240.0, Y: 0.0},
+			dora.ImGuiCondFirstUseEver,
+		)
+		dora.ImGui.BeginOpts("Hello World",
+			dora.ImGuiWindowFlags(dora.ImGuiWindowNoSavedSettings),
+			func() {
+				dora.ImGui.Text("Hello World (Wa)")
+				dora.ImGui.Separator()
+				dora.ImGui.TextWrapped("Basic Dora schedule and signal function usage. View outputs in log window!")
+			},
+		)
+		return false
+	})
+}

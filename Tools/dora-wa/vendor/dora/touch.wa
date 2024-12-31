@@ -27,6 +27,7 @@ func TouchFrom(raw: i64) => *Touch {
 	if raw == 0 {
 		return nil
 	}
+	ObjectRetain(raw)
 	object := Touch{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)
@@ -35,6 +36,12 @@ func TouchFrom(raw: i64) => *Touch {
 }
 func Touch.GetTypeId() => i32 {
 	return touch_type()
+}
+func ObjectAsTouch(object: Object) => *Touch {
+	if object.GetTypeId() == touch_type() {
+		return TouchFrom(object.GetRaw())
+	}
+	return nil
 }
 func Touch.SetEnabled(val: bool) {
 	touch_set_enabled(*this.raw, ToDoraBool(val))

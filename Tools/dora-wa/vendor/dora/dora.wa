@@ -303,6 +303,10 @@ func Object.GetRaw() => i64 {
 	return *this.raw
 }
 
+func ObjectRetain(ptr: i64) {
+	object_retain(ptr)
+}
+
 #wa:runtime_getter
 func GetPtr(ptr: u32) => i64
 
@@ -314,6 +318,48 @@ func createObject(raw: i64) => Object {
 	object := Object{raw: &raw}
 	setFinalizer(object.raw, ObjectFinalizer)
 	return object
+}
+
+func ObjectCastToNode(object: Object) => *Node {
+	if object_to_node(*object.raw) == 0 {
+		return nil
+	}
+	return NodeFrom(object_to_node(*object.raw))
+}
+
+func ObjectCastToCamera(object: Object) => *Camera {
+	if object_to_camera(*object.raw) == 0 {
+		return nil
+	}
+	return CameraFrom(object_to_camera(*object.raw))
+}
+
+func ObjectCastToPlayable(object: Object) => *Playable {
+	if object_to_playable(*object.raw) == 0 {
+		return nil
+	}
+	return PlayableFrom(object_to_playable(*object.raw))
+}
+
+func ObjectCastToBody(object: Object) => *Body {
+	if object_to_body(*object.raw) == 0 {
+		return nil
+	}
+	return BodyFrom(object_to_body(*object.raw))
+}
+
+func ObjectCastToJoint(object: Object) => *Joint {
+	if object_to_joint(*object.raw) == 0 {
+		return nil
+	}
+	return JointFrom(object_to_joint(*object.raw))
+}
+
+func ObjectCastToPhysicsWorld(object: Object) => *PhysicsWorld {
+	if object_to_physics_world(*object.raw) == 0 {
+		return nil
+	}
+	return PhysicsWorldFrom(object_to_physics_world(*object.raw))
 }
 
 /* Value */
@@ -820,6 +866,8 @@ func Println(values: ...interface{}) {
 			}
 		case nil:
 			strs[i] = "nil"
+		default:
+			strs[i] = "unknown"
 		}
 	}
 	dora_print(ToDoraString(strings.Join(strs, " ")))
@@ -1005,12 +1053,46 @@ func ColorFromARGB(value: i32) => Color {
 	return Color{Color3: Color3FromRGB(color3), A: u8(a)}
 }
 
+global ColorWhite = Color{Color3: Color3{R: 255, G: 255, B: 255}, A: 255}
+global ColorTransparent = Color{Color3: Color3{R: 0, G: 0, B: 0}, A: 0}
+
 /* emit */
 
 #wa:import dora emit
 func emit(name: i64, callStack: i64)
 
-func Emit(name: string, callStack: CallStack) {
+func Emit(name: string, args: ...interface{}) {
+	callStack := NewCallStack()
+	for _, arg := range args {
+		switch v := arg.(type) {
+		case i32:
+			callStack.Push(v)
+		case i64:
+			callStack.Push(v)
+		case f32:
+			callStack.Push(v)
+		case f64:
+			callStack.Push(v)
+		case string:
+			callStack.Push(v)
+		case bool:
+			callStack.Push(v)
+		case Vec2:
+			callStack.Push(v)
+		case Size:
+			callStack.Push(v)
+		case Object:
+			callStack.Push(v)
+		case *Object:
+			callStack.Push(*v)
+		case *Vec2:
+			callStack.Push(*v)
+		case *Size:
+			callStack.Push(*v)
+		default:
+			panic("unsupported type")
+		}
+	}
 	emit(ToDoraString(name), *callStack.raw)
 }
 
@@ -1307,6 +1389,205 @@ func Dictionary.Get(key: string) => (*Value, bool) {
 	return &result, true
 }
 
+/* Content */
+
+#wa:import dora content_load
+func content_load(filename: i64) => i64
+
+func _Content.Load(filename: string) => *string {
+	content := content_load(ToDoraString(filename))
+	if content == 0 {
+		return nil
+	}
+	result := FromDoraString(content)
+	return &result
+}
+
+/* Entity */
+
+#wa:import dora entity_set
+func entity_set(e: i64, k: i64, v: i64)
+
+#wa:import dora entity_get
+func entity_get(e: i64, k: i64) => i64
+
+#wa:import dora entity_get_old
+func entity_get_old(e: i64, k: i64) => i64
+
+#wa:generic SetI32 SetI64 SetF32 SetF64 SetStr SetBool SetObject SetVec2 SetSize
+func Entity.Set(key: string, value: Value) {
+	entity_set(*this.raw, ToDoraString(key), *value.raw)
+}
+func Entity.SetI32(key: string, value: i32) {
+	entity_set(*this.raw, ToDoraString(key), *NewValue(value).raw)
+}
+func Entity.SetI64(key: string, value: i64) {
+	entity_set(*this.raw, ToDoraString(key), *NewValue(value).raw)
+}
+func Entity.SetF32(key: string, value: f32) {
+	entity_set(*this.raw, ToDoraString(key), *NewValue(value).raw)
+}
+func Entity.SetF64(key: string, value: f64) {
+	entity_set(*this.raw, ToDoraString(key), *NewValue(value).raw)
+}
+func Entity.SetStr(key: string, value: string) {
+	entity_set(*this.raw, ToDoraString(key), *NewValue(value).raw)
+}
+func Entity.SetBool(key: string, value: bool) {
+	entity_set(*this.raw, ToDoraString(key), *NewValue(value).raw)
+}
+func Entity.SetObject(key: string, value: Object) {
+	entity_set(*this.raw, ToDoraString(key), *NewValue(value).raw)
+}
+func Entity.SetVec2(key: string, value: Vec2) {
+	entity_set(*this.raw, ToDoraString(key), *NewValue(value).raw)
+}
+func Entity.SetSize(key: string, value: Size) {
+	entity_set(*this.raw, ToDoraString(key), *NewValue(value).raw)
+}
+
+func Entity.Get(key: string) => *Value {
+	value := entity_get(*this.raw, ToDoraString(key))
+	if value == 0 {
+		return nil
+	}
+	result := ValueFrom(value)
+	return &result
+}
+
+func Entity.GetOld(key: string) => *Value {
+	value := entity_get_old(*this.raw, ToDoraString(key))
+	if value == 0 {
+		return nil
+	}
+	result := ValueFrom(value)
+	return &result
+}
+
+/* Group */
+
+#wa:import dora group_watch
+func group_watch(group: i64, callback: i32, stack: i64)
+
+func Group.Watch(callback: func(stack: CallStack) => bool) {
+	stack := NewCallStack()
+	group_watch(*this.raw, PushFunction(func() {
+		result := callback(stack)
+		stack.Push(result)
+	}), *stack.raw)
+}
+
+func Group.Each(visitor: func(e: Entity) => bool) => bool {
+	return this.Find(visitor) != nil
+}
+
+/* Observer */
+
+#wa:import dora observer_watch
+func observer_watch(observer: i64, callback: i32, stack: i64)
+
+func Observer.Watch(callback: func(stack: CallStack) => bool) {
+	stack := NewCallStack()
+	observer_watch(*this.raw, PushFunction(func() {
+		result := callback(stack)
+		stack.Push(result)
+	}), *stack.raw)
+}
+
+/* Director */
+
+#wa:import dora director_get_wasm_scheduler
+func director_get_wasm_scheduler() => i64
+
+#wa:import dora director_get_post_wasm_scheduler
+func director_get_post_wasm_scheduler() => i64
+
+func _Director.GetScheduler() => Scheduler {
+	return *SchedulerFrom(director_get_wasm_scheduler())
+}
+
+func _Director.GetPostScheduler() => Scheduler {
+	return *SchedulerFrom(director_get_post_wasm_scheduler())
+}
+
+/* Blackboard */
+
+#wa:import dora blackboard_set
+func blackboard_set(b: i64, k: i64, v: i64)
+
+#wa:import dora blackboard_get
+func blackboard_get(b: i64, k: i64) => i64
+
+#wa:generic SetI32 SetI64 SetF32 SetF64 SetStr SetBool SetObject SetVec2 SetSize
+func PlatformerBehaviorBlackboard.Set(key: string, value: Value) {
+	blackboard_set(*this.raw, ToDoraString(key), *value.raw)
+}
+func PlatformerBehaviorBlackboard.SetI32(key: string, value: i32) {
+	blackboard_set(*this.raw, ToDoraString(key), *NewValue(value).raw)
+}
+func PlatformerBehaviorBlackboard.SetI64(key: string, value: i64) {
+	blackboard_set(*this.raw, ToDoraString(key), *NewValue(value).raw)
+}
+func PlatformerBehaviorBlackboard.SetF32(key: string, value: f32) {
+	blackboard_set(*this.raw, ToDoraString(key), *NewValue(value).raw)
+}
+func PlatformerBehaviorBlackboard.SetF64(key: string, value: f64) {
+	blackboard_set(*this.raw, ToDoraString(key), *NewValue(value).raw)
+}
+func PlatformerBehaviorBlackboard.SetStr(key: string, value: string) {
+	blackboard_set(*this.raw, ToDoraString(key), *NewValue(value).raw)
+}
+func PlatformerBehaviorBlackboard.SetBool(key: string, value: bool) {
+	blackboard_set(*this.raw, ToDoraString(key), *NewValue(value).raw)
+}
+func PlatformerBehaviorBlackboard.SetObject(key: string, value: Object) {
+	blackboard_set(*this.raw, ToDoraString(key), *NewValue(value).raw)
+}
+func PlatformerBehaviorBlackboard.SetVec2(key: string, value: Vec2) {
+	blackboard_set(*this.raw, ToDoraString(key), *NewValue(value).raw)
+}
+func PlatformerBehaviorBlackboard.SetSize(key: string, value: Size) {
+	blackboard_set(*this.raw, ToDoraString(key), *NewValue(value).raw)
+}
+
+func PlatformerBehaviorBlackboard.Get(key: string) => *Value {
+	value := blackboard_get(*this.raw, ToDoraString(key))
+	if value == 0 {
+		return nil
+	}
+	result := ValueFrom(value)
+	return &result
+}
+
+/* Controller */
+
+func _Controller.IsButtonDown(controller_id: i32, name: ButtonName) => bool {
+	return this._IsButtonDown(controller_id, name.ToValue())
+}
+func _Controller.IsButtonUp(controller_id: i32, name: ButtonName) => bool {
+	return this._IsButtonUp(controller_id, name.ToValue())
+}
+func _Controller.IsButtonPressed(controller_id: i32, name: ButtonName) => bool {
+	return this._IsButtonPressed(controller_id, name.ToValue())
+}
+func _Controller.GetAxis(controller_id: i32, name: AxisName) => f32 {
+	return this._GetAxis(controller_id, name.ToValue())
+}
+
+/* Keyboard */
+
+func _Keyboard.IsKeyDown(key: KeyName) => bool {
+	return this._IsKeyDown(key.ToValue())
+}
+
+func _Keyboard.IsKeyUp(key: KeyName) => bool {
+	return this._IsKeyUp(key.ToValue())
+}
+
+func _Keyboard.IsKeyPressed(key: KeyName) => bool {
+	return this._IsKeyPressed(key.ToValue())
+}
+
 /* runtime */
 
 #wa:export dora_wasm_version
@@ -1349,6 +1630,374 @@ func DerefFunction(func_id: i32) {
 	func_id = func_id & 0xffffff
 	func_map[func_id] = dummy_func
 	func_available = append(func_available, func_id)
+}
+
+/* onEvent */
+
+func Node.OnActionEnd(callback: func(action: Action, node: Node)) {
+	this.Slot("ActionEnd", func(stack: CallStack) {
+		action := *ObjectAsAction(*stack.PopObject())
+		node := *ObjectCastToNode(*stack.PopObject())
+		callback(action, node)
+	})
+}
+
+func Node.OnTapFilter(callback: func(touch: Touch)) {
+	this.SetTouchEnabled(true)
+	this.Slot("TapFilter", func(stack: CallStack) {
+		touch := *ObjectAsTouch(*stack.PopObject())
+		callback(touch)
+	})
+}
+
+func Node.OnTapBegan(callback: func(touch: Touch)) {
+	this.SetTouchEnabled(true)
+	this.Slot("TapBegan", func(stack: CallStack) {
+		touch := *ObjectAsTouch(*stack.PopObject())
+		callback(touch)
+	})
+}
+
+func Node.OnTapEnded(callback: func(touch: Touch)) {
+	this.SetTouchEnabled(true)
+	this.Slot("TapEnded", func(stack: CallStack) {
+		touch := *ObjectAsTouch(*stack.PopObject())
+		callback(touch)
+	})
+}
+
+func Node.OnTapped(callback: func(touch: Touch)) {
+	this.SetTouchEnabled(true)
+	this.Slot("Tapped", func(stack: CallStack) {
+		touch := *ObjectAsTouch(*stack.PopObject())
+		callback(touch)
+	})
+}
+
+func Node.OnTapMoved(callback: func(touch: Touch)) {
+	this.SetTouchEnabled(true)
+	this.Slot("TapMoved", func(stack: CallStack) {
+		touch := *ObjectAsTouch(*stack.PopObject())
+		callback(touch)
+	})
+}
+
+func Node.OnMouseWheel(callback: func(delta: Vec2)) {
+	this.SetTouchEnabled(true)
+	this.Slot("MouseWheel", func(stack: CallStack) {
+		delta, ok := stack.PopVec2()
+		if !ok {
+			panic("invalid mouse wheel event")
+		}
+		callback(delta)
+	})
+}
+
+func Node.OnGesture(callback: func(center: Vec2, num_fingers: i32, delta_dist: f32, delta_angle: f32)) {
+	this.SetTouchEnabled(true)
+	this.Slot("Gesture", func(stack: CallStack) {
+		center, ok := stack.PopVec2()
+		if !ok {
+			panic("invalid gesture event")
+		}
+		num_fingers, ok := stack.PopI32()
+		if !ok {
+			panic("invalid gesture event")
+		}
+		delta_dist, ok := stack.PopF32()
+		if !ok {
+			panic("invalid gesture event")
+		}
+		delta_angle, ok := stack.PopF32()
+		if !ok {
+			panic("invalid gesture event")
+		}
+		callback(center, num_fingers, delta_dist, delta_angle)
+	})
+}
+
+func Node.OnEnter(callback: func()) {
+	this.Slot("Enter", func(stack: CallStack) {
+		callback()
+	})
+}
+
+func Node.OnExit(callback: func()) {
+	this.Slot("Exit", func(stack: CallStack) {
+		callback()
+	})
+}
+
+func Node.OnCleanup(callback: func()) {
+	this.Slot("Cleanup", func(stack: CallStack) {
+		callback()
+	})
+}
+
+func Node.OnKeyDown(callback: func(key: KeyName)) {
+	this.SetKeyboardEnabled(true)
+	this.Slot("KeyDown", func(stack: CallStack) {
+		key, ok := stack.PopStr()
+		if !ok {
+			panic("invalid key down event")
+		}
+		callback(KeyName{value: key})
+	})
+}
+
+func Node.OnKeyUp(callback: func(key: KeyName)) {
+	this.SetKeyboardEnabled(true)
+	this.Slot("KeyUp", func(stack: CallStack) {
+		key, ok := stack.PopStr()
+		if !ok {
+			panic("invalid key up event")
+		}
+		callback(KeyName{value: key})
+	})
+}
+
+func Node.OnKeyPressed(callback: func(key: KeyName)) {
+	this.SetKeyboardEnabled(true)
+	this.Slot("KeyPressed", func(stack: CallStack) {
+		key, ok := stack.PopStr()
+		if !ok {
+			panic("invalid key pressed event")
+		}
+		callback(KeyName{value: key})
+	})
+}
+
+func Node.OnAttachIme(callback: func()) {
+	this.Slot("AttachIME", func(stack: CallStack) {
+		callback()
+	})
+}
+
+func Node.OnDetachIme(callback: func()) {
+	this.Slot("DetachIME", func(stack: CallStack) {
+		callback()
+	})
+}
+
+func Node.OnTextInput(callback: func(text: string)) {
+	this.Slot("TextInput", func(stack: CallStack) {
+		text, ok := stack.PopStr()
+		if !ok {
+			panic("invalid text input event")
+		}
+		callback(text)
+	})
+}
+
+func Node.OnTextEditing(callback: func(text: string, start_pos: i32)) {
+	this.Slot("TextEditing", func(stack: CallStack) {
+		text, ok := stack.PopStr()
+		if !ok {
+			panic("invalid text editing event")
+		}
+		start_pos, ok := stack.PopI32()
+		if !ok {
+			panic("invalid text editing event")
+		}
+		callback(text, start_pos)
+	})
+}
+
+func Node.OnButtonDown(callback: func(controller_id: i32, button: ButtonName)) {
+	this.SetControllerEnabled(true)
+	this.Slot("ButtonDown", func(stack: CallStack) {
+		button, ok := stack.PopStr()
+		if !ok {
+			panic("invalid button down event")
+		}
+		controller_id, ok := stack.PopI32()
+		if !ok {
+			panic("invalid button down event")
+		}
+		callback(controller_id, ButtonName{value: button})
+	})
+}
+
+func Node.OnButtonUp(callback: func(controller_id: i32, button: ButtonName)) {
+	this.SetControllerEnabled(true)
+	this.Slot("ButtonUp", func(stack: CallStack) {
+		button, ok := stack.PopStr()
+		if !ok {
+			panic("invalid button up event")
+		}
+		controller_id, ok := stack.PopI32()
+		if !ok {
+			panic("invalid button up event")
+		}
+		callback(controller_id, ButtonName{value: button})
+	})
+}
+
+func Node.OnButtonPressed(callback: func(controller_id: i32, button: ButtonName)) {
+	this.SetControllerEnabled(true)
+	this.Slot("ButtonPressed", func(stack: CallStack) {
+		button, ok := stack.PopStr()
+		if !ok {
+			panic("invalid button pressed event")
+		}
+		controller_id, ok := stack.PopI32()
+		if !ok {
+			panic("invalid button pressed event")
+		}
+		callback(controller_id, ButtonName{value: button})
+	})
+}
+
+func Node.OnAxis(callback: func(controller_id: i32, axis: AxisName, value: f32)) {
+	this.SetControllerEnabled(true)
+	this.Slot("Axis", func(stack: CallStack) {
+		axis, ok := stack.PopStr()
+		if !ok {
+			panic("invalid axis event")
+		}
+		value, ok := stack.PopF32()
+		if !ok {
+			panic("invalid axis event")
+		}
+		controller_id, ok := stack.PopI32()
+		if !ok {
+			panic("invalid axis event")
+		}
+		callback(controller_id, AxisName{value: axis}, value)
+	})
+}
+
+func Playable.OnAnimationEnd(callback: func(animation_name: string, target: Playable)) {
+	this.Slot("AnimationEnd", func(stack: CallStack) {
+		animation_name, ok := stack.PopStr()
+		if !ok {
+			panic("invalid animation end event")
+		}
+		target := *ObjectCastToPlayable(*stack.PopObject())
+		callback(animation_name, target)
+	})
+}
+
+func Body.OnBodyEnter(callback: func(other: Body, sensor_tag: i32)) {
+	this.Slot("BodyEnter", func(stack: CallStack) {
+		other := *ObjectCastToBody(*stack.PopObject())
+		sensor_tag, ok := stack.PopI32()
+		if !ok {
+			panic("invalid body enter event")
+		}
+		callback(other, sensor_tag)
+	})
+}
+
+func Body.OnBodyLeave(callback: func(other: Body, sensor_tag: i32)) {
+	this.Slot("BodyLeave", func(stack: CallStack) {
+		other := *ObjectCastToBody(*stack.PopObject())
+		sensor_tag, ok := stack.PopI32()
+		if !ok {
+			panic("invalid body leave event")
+		}
+		callback(other, sensor_tag)
+	})
+}
+
+func Body.OnContactStart(callback: func(other: Body, point: Vec2, normal: Vec2, enabled: bool)) {
+	this.SetReceivingContact(true)
+	this.Slot("ContactStart", func(stack: CallStack) {
+		other := *ObjectCastToBody(*stack.PopObject())
+		point, ok := stack.PopVec2()
+		if !ok {
+			panic("invalid contact start event")
+		}
+		normal, ok := stack.PopVec2()
+		if !ok {
+			panic("invalid contact start event")
+		}
+		enabled, ok := stack.PopBool()
+		if !ok {
+			panic("invalid contact start event")
+		}
+		callback(other, point, normal, enabled)
+	})
+}
+
+func Body.OnContactEnd(callback: func(other: Body, point: Vec2, normal: Vec2)) {
+	this.SetReceivingContact(true)
+	this.Slot("ContactEnd", func(stack: CallStack) {
+		other := *ObjectCastToBody(*stack.PopObject())
+		point, ok := stack.PopVec2()
+		if !ok {
+			panic("invalid contact end event")
+		}
+		normal, ok := stack.PopVec2()
+		if !ok {
+			panic("invalid contact end event")
+		}
+		callback(other, point, normal)
+	})
+}
+
+func Particle.OnFinished(callback: func()) {
+	this.Slot("Finished", func(stack: CallStack) {
+		callback()
+	})
+}
+
+func AlignNode.OnAlignLayout(callback: func(width: f32, height: f32)) {
+	this.Slot("AlignLayout", func(stack: CallStack) {
+		width, ok := stack.PopF32()
+		if !ok {
+			panic("invalid align layout event")
+		}
+		height, ok := stack.PopF32()
+		if !ok {
+			panic("invalid align layout event")
+		}
+		callback(width, height)
+	})
+}
+
+func EffekNode.OnEffekEnd(callback: func(handle: i32)) {
+	this.Slot("EffekEnd", func(stack: CallStack) {
+		handle, ok := stack.PopI32()
+		if !ok {
+			panic("invalid effek end event")
+		}
+		callback(handle)
+	})
+}
+
+func Node.OnAppEvent(callback: func(event_type: string)) {
+	this.Slot("AppEvent", func(stack: CallStack) {
+		event_type, ok := stack.PopStr()
+		if !ok {
+			panic("invalid app event")
+		}
+		callback(event_type)
+	})
+}
+
+func Node.OnAppChange(callback: func(setting_name: string)) {
+	this.Slot("AppChange", func(stack: CallStack) {
+		setting_name, ok := stack.PopStr()
+		if !ok {
+			panic("invalid app change event")
+		}
+		callback(setting_name)
+	})
+}
+
+func Node.OnAppWs(callback: func(event_type: string, msg: string)) {
+	this.Slot("AppWs", func(stack: CallStack) {
+		event_type, ok := stack.PopStr()
+		if !ok {
+			panic("invalid app ws event")
+		}
+		msg, ok := stack.PopStr()
+		if !ok {
+			panic("invalid app ws event")
+		}
+		callback(event_type, msg)
+	})
 }
 
 /* BlendFunc */
@@ -1557,3 +2206,1533 @@ global PlatformerRelationFriend = PlatformerRelation{value: 1}
 global PlatformerRelationNeutral = PlatformerRelation{value: 2}
 global PlatformerRelationEnemy = PlatformerRelation{value: 4}
 global PlatformerRelationAny = PlatformerRelation{value: 7}
+
+/* KeyName */
+
+type KeyName :struct {
+	value: string
+}
+
+func KeyName.ToValue() => string {
+	return this.value
+}
+
+global KeyReturn = KeyName{value: "Return"}
+global KeyEscape = KeyName{value: "Escape"}
+global KeyBackSpace = KeyName{value: "BackSpace"}
+global KeyTab = KeyName{value: "Tab"}
+global KeySpace = KeyName{value: "Space"}
+global KeyExclamation = KeyName{value: "!"}
+global KeyDoubleQuote = KeyName{value: "\""}
+global KeyHash = KeyName{value: "#"}
+global KeyPercent = KeyName{value: "%"}
+global KeyDollar = KeyName{value: "$"}
+global KeyAmpersand = KeyName{value: "&"}
+global KeySingleQuote = KeyName{value: "'"}
+global KeyLeftParen = KeyName{value: "("}
+global KeyRightParen = KeyName{value: ")"}
+global KeyAsterisk = KeyName{value: "*"}
+global KeyPlus = KeyName{value: "+"}
+global KeyComma = KeyName{value: ","}
+global KeyMinus = KeyName{value: "-"}
+global KeyDot = KeyName{value: "."}
+global KeySlash = KeyName{value: "/"}
+global Key1 = KeyName{value: "1"}
+global Key2 = KeyName{value: "2"}
+global Key3 = KeyName{value: "3"}
+global Key4 = KeyName{value: "4"}
+global Key5 = KeyName{value: "5"}
+global Key6 = KeyName{value: "6"}
+global Key7 = KeyName{value: "7"}
+global Key8 = KeyName{value: "8"}
+global Key9 = KeyName{value: "9"}
+global Key0 = KeyName{value: "0"}
+global KeyColon = KeyName{value: ":"}
+global KeySemicolon = KeyName{value: ";"}
+global KeyLessThan = KeyName{value: "<"}
+global KeyEqual = KeyName{value: "="}
+global KeyGreaterThan = KeyName{value: ">"}
+global KeyQuestion = KeyName{value: "?"}
+global KeyAt = KeyName{value: "@"}
+global KeyLeftBracket = KeyName{value: "["}
+global KeyBackslash = KeyName{value: "\\"}
+global KeyRightBracket = KeyName{value: "]"}
+global KeyCaret = KeyName{value: "^"}
+global KeyUnderscore = KeyName{value: "_"}
+global KeyBacktick = KeyName{value: "`"}
+global KeyA = KeyName{value: "A"}
+global KeyB = KeyName{value: "B"}
+global KeyC = KeyName{value: "C"}
+global KeyD = KeyName{value: "D"}
+global KeyE = KeyName{value: "E"}
+global KeyF = KeyName{value: "F"}
+global KeyG = KeyName{value: "G"}
+global KeyH = KeyName{value: "H"}
+global KeyI = KeyName{value: "I"}
+global KeyJ = KeyName{value: "J"}
+global KeyK = KeyName{value: "K"}
+global KeyL = KeyName{value: "L"}
+global KeyM = KeyName{value: "M"}
+global KeyN = KeyName{value: "N"}
+global KeyO = KeyName{value: "O"}
+global KeyP = KeyName{value: "P"}
+global KeyQ = KeyName{value: "Q"}
+global KeyR = KeyName{value: "R"}
+global KeyS = KeyName{value: "S"}
+global KeyT = KeyName{value: "T"}
+global KeyU = KeyName{value: "U"}
+global KeyV = KeyName{value: "V"}
+global KeyW = KeyName{value: "W"}
+global KeyX = KeyName{value: "X"}
+global KeyY = KeyName{value: "Y"}
+global KeyZ = KeyName{value: "Z"}
+global KeyDelete = KeyName{value: "Delete"}
+global KeyCapsLock = KeyName{value: "CapsLock"}
+global KeyF1 = KeyName{value: "F1"}
+global KeyF2 = KeyName{value: "F2"}
+global KeyF3 = KeyName{value: "F3"}
+global KeyF4 = KeyName{value: "F4"}
+global KeyF5 = KeyName{value: "F5"}
+global KeyF6 = KeyName{value: "F6"}
+global KeyF7 = KeyName{value: "F7"}
+global KeyF8 = KeyName{value: "F8"}
+global KeyF9 = KeyName{value: "F9"}
+global KeyF10 = KeyName{value: "F10"}
+global KeyF11 = KeyName{value: "F11"}
+global KeyF12 = KeyName{value: "F12"}
+global KeyPrintScreen = KeyName{value: "PrintScreen"}
+global KeyScrollLock = KeyName{value: "ScrollLock"}
+global KeyPause = KeyName{value: "Pause"}
+global KeyInsert = KeyName{value: "Insert"}
+global KeyHome = KeyName{value: "Home"}
+global KeyPageUp = KeyName{value: "PageUp"}
+global KeyEnd = KeyName{value: "End"}
+global KeyPageDown = KeyName{value: "PageDown"}
+global KeyRight = KeyName{value: "Right"}
+global KeyLeft = KeyName{value: "Left"}
+global KeyDown = KeyName{value: "Down"}
+global KeyUp = KeyName{value: "Up"}
+global KeyApplication = KeyName{value: "Application"}
+global KeyLCtrl = KeyName{value: "LCtrl"}
+global KeyLShift = KeyName{value: "LShift"}
+global KeyLAlt = KeyName{value: "LAlt"}
+global KeyLGui = KeyName{value: "LGui"}
+global KeyRCtrl = KeyName{value: "RCtrl"}
+global KeyRShift = KeyName{value: "RShift"}
+global KeyRAlt = KeyName{value: "RAlt"}
+global KeyRGui = KeyName{value: "RGui"}
+
+/* AxisName */
+
+type AxisName :struct {
+	value: string
+}
+
+func AxisName.ToValue() => string {
+	return this.value
+}
+
+global AxisLeftX = AxisName{value: "leftx"}
+global AxisLeftY = AxisName{value: "lefty"}
+global AxisRightX = AxisName{value: "rightx"}
+global AxisRightY = AxisName{value: "righty"}
+global AxisLeftTrigger = AxisName{value: "lefttrigger"}
+global AxisRightTrigger = AxisName{value: "righttrigger"}
+
+/* ButtonName */
+
+type ButtonName :struct {
+	value: string
+}
+
+func ButtonName.ToValue() => string {
+	return this.value
+}
+
+global ButtonA = ButtonName{value: "a"}
+global ButtonB = ButtonName{value: "b"}
+global ButtonBack = ButtonName{value: "back"}
+global ButtonDPDown = ButtonName{value: "dpdown"}
+global ButtonDPLeft = ButtonName{value: "dpleft"}
+global ButtonDPRight = ButtonName{value: "dpright"}
+global ButtonDPUp = ButtonName{value: "dpup"}
+global ButtonLeftShoulder = ButtonName{value: "leftshoulder"}
+global ButtonLeftStick = ButtonName{value: "leftstick"}
+global ButtonRightShoulder = ButtonName{value: "rightshoulder"}
+global ButtonRightStick = ButtonName{value: "rightstick"}
+global ButtonStart = ButtonName{value: "start"}
+global ButtonX = ButtonName{value: "x"}
+global ButtonY = ButtonName{value: "y"}
+
+/* nvg */
+
+type _NvgImageFlag :struct {
+	value: i32
+}
+
+global NvgImageFlagGenerateMipmaps = _NvgImageFlag{value: 1 << 0}
+global NvgImageFlagRepeatX = _NvgImageFlag{value: 1 << 1}
+global NvgImageFlagRepeatY = _NvgImageFlag{value: 1 << 2}
+global NvgImageFlagFlipY = _NvgImageFlag{value: 1 << 3}
+global NvgImageFlagPremultiplied = _NvgImageFlag{value: 1 << 4}
+global NvgImageFlagNearest = _NvgImageFlag{value: 1 << 5}
+
+func _Nvg.CreateImage(w: i32, h: i32, filename: string, flags: ..._NvgImageFlag) => i32 {
+	flags_value: i32 = 0
+	for _, value := range flags {
+		flags_value |= value.value
+	}
+	return this._CreateImage(w, h, filename, flags_value)
+}
+
+type NvgLineCap :struct {
+	value: i32
+}
+
+global NvgLineCapButt = NvgLineCap{value: 0}
+global NvgLineCapRound = NvgLineCap{value: 1}
+global NvgLineCapSquare = NvgLineCap{value: 2}
+
+func _Nvg.LineCap(cap: NvgLineCap) {
+	this._LineCap(cap.value)
+}
+
+type NvgLineJoin :struct {
+	value: i32
+}
+
+global NvgLineJoinRound = NvgLineJoin{value: 1}
+global NvgLineJoinBevel = NvgLineJoin{value: 3}
+global NvgLineJoinMiter = NvgLineJoin{value: 4}
+
+func _Nvg.LineJoin(join: NvgLineJoin) {
+	this._LineJoin(join.value)
+}
+
+type NvgWinding :struct {
+	value: i32
+}
+
+global NvgWindingCCW = NvgWinding{value: 1}
+global NvgWindingCW = NvgWinding{value: 2}
+global NvgWindingSolid = NvgWinding{value: 1}
+global NvgWindingHole = NvgWinding{value: 2}
+
+func _Nvg.PathWinding(winding: NvgWinding) {
+	this._PathWinding(winding.value)
+}
+
+type NvgArcDir :struct {
+	value: i32
+}
+
+global NvgArcDirCCW = NvgArcDir{value: 1}
+global NvgArcDirCW = NvgArcDir{value: 2}
+
+func _Nvg.Arc(cx: f32, cy: f32, r: f32, a_0: f32, a_1: f32, dir: NvgArcDir) {
+	this._Arc(cx, cy, r, a_0, a_1, dir.value)
+}
+
+type NvgHAlign :struct {
+	value: i32
+}
+
+global NvgHAlignLeft = NvgHAlign{value: 1 << 0}
+global NvgHAlignCenter = NvgHAlign{value: 1 << 1}
+global NvgHAlignRight = NvgHAlign{value: 1 << 2}
+
+type NvgVAlign :struct {
+	value: i32
+}
+
+global NvgVAlignTop = NvgVAlign{value: 1 << 3}
+global NvgVAlignMiddle = NvgVAlign{value: 1 << 4}
+global NvgVAlignBottom = NvgVAlign{value: 1 << 5}
+global NvgVAlignBaseLine = NvgVAlign{value: 1 << 6}
+
+func _Nvg.TextAlign(h_align: NvgHAlign, v_align: NvgVAlign) {
+	this._TextAlign(h_align.value, v_align.value)
+}
+
+/* ImGui */
+
+global imgui_stack = NewCallStack()
+
+type _ImGuiWindowFlag :struct {
+	value: i32
+}
+
+global ImGuiWindowNoTitleBar = _ImGuiWindowFlag{value: 1 << 0}
+global ImGuiWindowNoResize = _ImGuiWindowFlag{value: 1 << 1}
+global ImGuiWindowNoMove = _ImGuiWindowFlag{value: 1 << 2}
+global ImGuiWindowNoScrollbar = _ImGuiWindowFlag{value: 1 << 3}
+global ImGuiWindowNoScrollWithMouse = _ImGuiWindowFlag{value: 1 << 4}
+global ImGuiWindowNoCollapse = _ImGuiWindowFlag{value: 1 << 5}
+global ImGuiWindowAlwaysAutoResize = _ImGuiWindowFlag{value: 1 << 6}
+global ImGuiWindowNoBackground = _ImGuiWindowFlag{value: 1 << 7}
+global ImGuiWindowNoSavedSettings = _ImGuiWindowFlag{value: 1 << 8}
+global ImGuiWindowNoMouseInputs = _ImGuiWindowFlag{value: 1 << 9}
+global ImGuiWindowMenuBar = _ImGuiWindowFlag{value: 1 << 10}
+global ImGuiWindowHorizontalScrollbar = _ImGuiWindowFlag{value: 1 << 11}
+global ImGuiWindowNoFocusOnAppearing = _ImGuiWindowFlag{value: 1 << 12}
+global ImGuiWindowNoBringToFrontOnFocus = _ImGuiWindowFlag{value: 1 << 13}
+global ImGuiWindowAlwaysVerticalScrollbar = _ImGuiWindowFlag{value: 1 << 14}
+global ImGuiWindowAlwaysHorizontalScrollbar = _ImGuiWindowFlag{value: 1 << 15}
+global ImGuiWindowNoNavInputs = _ImGuiWindowFlag{value: 1 << 16}
+global ImGuiWindowNoNavFocus = _ImGuiWindowFlag{value: 1 << 17}
+global ImGuiWindowUnsavedDocument = _ImGuiWindowFlag{value: 1 << 18}
+global ImGuiWindowNoNav = _ImGuiWindowFlag{value: ImGuiWindowNoNavInputs.value | ImGuiWindowNoNavFocus.value}
+global ImGuiWindowNoDecoration = _ImGuiWindowFlag{value: ImGuiWindowNoTitleBar.value | ImGuiWindowNoResize.value | ImGuiWindowNoScrollbar.value | ImGuiWindowNoCollapse.value}
+global ImGuiWindowNoInputs = _ImGuiWindowFlag{value: ImGuiWindowNoMouseInputs.value | ImGuiWindowNoNavInputs.value | ImGuiWindowNoNavFocus.value}
+
+type _ImGuiWindowFlags :struct {
+	value: i32
+}
+
+func ImGuiWindowFlags(flags: ..._ImGuiWindowFlag) => _ImGuiWindowFlags {
+	flags_value: i32 = 0
+	for _, value := range flags {
+		flags_value |= value.value
+	}
+	return _ImGuiWindowFlags{value: flags_value}
+}
+
+func _ImGui.Begin(name: string, inside: func()) {
+	this.BeginOpts(name, _ImGuiWindowFlags{value: 0}, inside)
+}
+
+func _ImGui.BeginOpts(name: string, windows_flags: _ImGuiWindowFlags, inside: func()) {
+	if this._BeginOpts(name, windows_flags.value) {
+		inside()
+	}
+	this._End()
+}
+
+func _ImGui.BeginRet(name: string, opened: bool, inside: func()) => (bool, bool) {
+	return this.BeginRetOpts(name, opened, _ImGuiWindowFlags{value: 0}, inside)
+}
+
+func _ImGui.BeginRetOpts(name: string, opened: bool, window_flags: _ImGuiWindowFlags, inside: func()) => (bool, bool) {
+	imgui_stack.Push(opened)
+	changed := this._BeginRetOpts(name, imgui_stack, window_flags.value)
+	res_opened, ok := imgui_stack.PopBool()
+	if !ok {
+		panic("failed to pop bool")
+	}
+	if res_opened {
+		inside()
+	}
+	this._End()
+	return changed, res_opened
+}
+
+type _ImGuiChildFlag :struct {
+	value: i32
+}
+
+global ImGuiChildBorders = _ImGuiChildFlag{value: 1 << 0}
+global ImGuiChildAlwaysUseWindowPadding = _ImGuiChildFlag{value: 1 << 1}
+global ImGuiChildResizeX = _ImGuiChildFlag{value: 1 << 2}
+global ImGuiChildResizeY = _ImGuiChildFlag{value: 1 << 3}
+global ImGuiChildAutoResizeX = _ImGuiChildFlag{value: 1 << 4}
+global ImGuiChildAutoResizeY = _ImGuiChildFlag{value: 1 << 5}
+global ImGuiChildAlwaysAutoResize = _ImGuiChildFlag{value: 1 << 6}
+global ImGuiChildFrameStyle = _ImGuiChildFlag{value: 1 << 7}
+
+type _ImGuiChildFlags :struct {
+	value: i32
+}
+
+func ImGuiChildFlags(flags: ..._ImGuiChildFlag) => _ImGuiChildFlags {
+	flags_value: i32 = 0
+	for _, value := range flags {
+		flags_value |= value.value
+	}
+	return _ImGuiChildFlags{value: flags_value}
+}
+
+func _ImGui.BeginChild(str_id: string, size: Vec2, inside: func()) {
+	this.BeginChildOpts(str_id, size, _ImGuiChildFlags{value: 0}, _ImGuiWindowFlags{value: 0}, inside)
+}
+
+func _ImGui.BeginChildOpts(str_id: string, size: Vec2, child_flags: _ImGuiChildFlags, window_flags: _ImGuiWindowFlags, inside: func()) {
+	if this._BeginChildOpts(str_id, size, child_flags.value, window_flags.value) {
+		inside()
+	}
+	this._EndChild()
+}
+
+func _ImGui.BeginChildWithId(id: i32, size: Vec2, inside: func()) {
+	this.BeginChildWithIdOpts(id, size, _ImGuiChildFlags{value: 0}, _ImGuiWindowFlags{value: 0}, inside)
+}
+
+func _ImGui.BeginChildWithIdOpts(id: i32, size: Vec2, child_flags: _ImGuiChildFlags, window_flags: _ImGuiWindowFlags, inside: func()) {
+	if this._BeginChildWithIdOpts(id, size, child_flags.value, window_flags.value) {
+		inside()
+	}
+	this._EndChild()
+}
+
+type _ImGuiTreeNodeFlag :struct {
+	value: i32
+}
+
+global ImGuiTreeNodeSelected = _ImGuiTreeNodeFlag{value: 1 << 0}
+global ImGuiTreeNodeFramed = _ImGuiTreeNodeFlag{value: 1 << 1}
+global ImGuiTreeNodeAllowOverlap = _ImGuiTreeNodeFlag{value: 1 << 2}
+global ImGuiTreeNodeNoTreePushOnOpen = _ImGuiTreeNodeFlag{value: 1 << 3}
+global ImGuiTreeNodeNoAutoOpenOnLog = _ImGuiTreeNodeFlag{value: 1 << 4}
+global ImGuiTreeNodeDefaultOpen = _ImGuiTreeNodeFlag{value: 1 << 5}
+global ImGuiTreeNodeOpenOnDoubleClick = _ImGuiTreeNodeFlag{value: 1 << 6}
+global ImGuiTreeNodeOpenOnArrow = _ImGuiTreeNodeFlag{value: 1 << 7}
+global ImGuiTreeNodeLeaf = _ImGuiTreeNodeFlag{value: 1 << 8}
+global ImGuiTreeNodeBullet = _ImGuiTreeNodeFlag{value: 1 << 9}
+global ImGuiTreeNodeFramePadding = _ImGuiTreeNodeFlag{value: 1 << 10}
+global ImGuiTreeNodeSpanAvailWidth = _ImGuiTreeNodeFlag{value: 1 << 11}
+global ImGuiTreeNodeSpanFullWidth = _ImGuiTreeNodeFlag{value: 1 << 12}
+global ImGuiTreeNodeSpanAllColumns = _ImGuiTreeNodeFlag{value: 1 << 13}
+global ImGuiTreeNodeNavLeftJumpsBackHere = _ImGuiTreeNodeFlag{value: 1 << 14}
+global ImGuiTreeNodeCollapsingHeader = _ImGuiTreeNodeFlag{value: ImGuiTreeNodeFramed.value | ImGuiTreeNodeNoTreePushOnOpen.value | ImGuiTreeNodeNoAutoOpenOnLog.value}
+
+type _ImGuiTreeNodeFlags :struct {
+	value: i32
+}
+
+func ImGuiTreeNodeFlags(flags: ..._ImGuiTreeNodeFlag) => _ImGuiTreeNodeFlags {
+	flags_value: i32 = 0
+	for _, value := range flags {
+		flags_value |= value.value
+	}
+	return _ImGuiTreeNodeFlags{value: flags_value}
+}
+
+func _ImGui.CollapsingHeaderRet(label: string, opened: bool) => (bool, bool) {
+	return this.CollapsingHeaderRetOpts(label, opened, _ImGuiTreeNodeFlags{value: 0})
+}
+
+func _ImGui.CollapsingHeaderRetOpts(label: string, opened: bool, tree_node_flags: _ImGuiTreeNodeFlags) => (bool, bool) {
+	imgui_stack.Push(opened)
+	changed := this._CollapsingHeaderRetOpts(label, imgui_stack, tree_node_flags.value)
+	res_opened, ok := imgui_stack.PopBool()
+	if !ok {
+		panic("failed to pop bool")
+	}
+	return changed, res_opened
+}
+
+type _ImGuiSelectableFlag :struct {
+	value: i32
+}
+
+global ImGuiSelectableDontClosePopups = _ImGuiSelectableFlag{value: 1 << 0}
+global ImGuiSelectableSpanAllColumns = _ImGuiSelectableFlag{value: 1 << 1}
+global ImGuiSelectableAllowDoubleClick = _ImGuiSelectableFlag{value: 1 << 2}
+global ImGuiSelectableDisabled = _ImGuiSelectableFlag{value: 1 << 3}
+global ImGuiSelectableAllowOverlap = _ImGuiSelectableFlag{value: 1 << 4}
+
+type _ImGuiSelectableFlags :struct {
+	value: i32
+}
+
+func ImGuiSelectableFlags(flags: ..._ImGuiSelectableFlag) => _ImGuiSelectableFlags {
+	flags_value: i32 = 0
+	for _, value := range flags {
+		flags_value |= value.value
+	}
+	return _ImGuiSelectableFlags{value: flags_value}
+}
+
+func _ImGui.SelectableRet(label: string, selected: bool) => (bool, bool) {
+	return this.SelectableRetOpts(label, selected, Vec2Zero, _ImGuiSelectableFlags{value: 0})
+}
+
+func _ImGui.SelectableRetOpts(label: string, selected: bool, size: Vec2, selectable_flags: _ImGuiSelectableFlags) => (bool, bool) {
+	imgui_stack.Push(selected)
+	changed := this._SelectableRetOpts(label, imgui_stack, size, selectable_flags.value)
+	res_selected, ok := imgui_stack.PopBool()
+	if !ok {
+		panic("failed to pop bool")
+	}
+	return changed, res_selected
+}
+
+func _ImGui.ComboRet(label: string, current_item: i32, items: *[]string) => (bool, i32) {
+	return this.ComboRetOpts(label, current_item, items, -1)
+}
+
+func _ImGui.ComboRetOpts(label: string, current_item: i32, items: *[]string, height_in_items: i32) => (bool, i32) {
+	imgui_stack.Push(current_item)
+	changed := this._ComboRetOpts(label, imgui_stack, items, height_in_items)
+	res_current_item, ok := imgui_stack.PopI32()
+	if !ok {
+		panic("failed to pop int")
+	}
+	return changed, res_current_item
+}
+
+type _ImGuiSliderFlag :struct {
+	value: i32
+}
+
+global ImGuiSliderLogarithmic = _ImGuiSliderFlag{value: 1 << 5}
+global ImGuiSliderNoRoundToFormat = _ImGuiSliderFlag{value: 1 << 6}
+global ImGuiSliderNoInput = _ImGuiSliderFlag{value: 1 << 7}
+global ImGuiSliderWrapAround = _ImGuiSliderFlag{value: 1 << 8}
+global ImGuiSliderClampOnInput = _ImGuiSliderFlag{value: 1 << 9}
+global ImGuiSliderClampZeroRange = _ImGuiSliderFlag{value: 1 << 10}
+global ImGuiSliderAlwaysClamp = _ImGuiSliderFlag{value: ImGuiSliderClampOnInput.value | ImGuiSliderClampZeroRange.value}
+
+type _ImGuiSliderFlags :struct {
+	value: i32
+}
+
+func ImGuiSliderFlags(flags: ..._ImGuiSliderFlag) => _ImGuiSliderFlags {
+	flags_value: i32 = 0
+	for _, value := range flags {
+		flags_value |= value.value
+	}
+	return _ImGuiSliderFlags{value: flags_value}
+}
+
+func _ImGui.DragFloatRet(label: string, v: f32, v_speed: f32, v_min: f32, v_max: f32) => (bool, f32) {
+	return this.DragFloatRetOpts(label, v, v_speed, v_min, v_max, "%.3f", _ImGuiSliderFlags{value: 0})
+}
+
+func _ImGui.DragFloatRetOpts(label: string, v: f32, v_speed: f32, v_min: f32, v_max: f32, display_format: string, slider_flags: _ImGuiSliderFlags) => (bool, f32) {
+	imgui_stack.Push(v)
+	changed := this._DragFloatRetOpts(label, imgui_stack, v_speed, v_min, v_max, display_format, slider_flags.value)
+	res_v, ok := imgui_stack.PopF32()
+	if !ok {
+		panic("failed to pop float")
+	}
+	return changed, res_v
+}
+
+func _ImGui.DragFloat2Ret(label: string, v1: f32, v2: f32, v_speed: f32, v_min: f32, v_max: f32) => (bool, f32, f32) {
+	return this.DragFloat2RetOpts(label, v1, v2, v_speed, v_min, v_max, "%.3f", _ImGuiSliderFlags{value: 0})
+}
+
+func _ImGui.DragFloat2RetOpts(label: string, v1: f32, v2: f32, v_speed: f32, v_min: f32, v_max: f32, display_format: string, slider_flags: _ImGuiSliderFlags) => (bool, f32, f32) {
+	imgui_stack.Push(v1)
+	imgui_stack.Push(v2)
+	changed := this._DragFloat2RetOpts(label, imgui_stack, v_speed, v_min, v_max, display_format, slider_flags.value)
+	res_v1, ok := imgui_stack.PopF32()
+	if !ok {
+		panic("failed to pop float")
+	}
+	res_v2, ok := imgui_stack.PopF32()
+	if !ok {
+		panic("failed to pop float")
+	}
+	return changed, res_v1, res_v2
+}
+
+// drag_int2_ret
+
+func _ImGui.DragInt2Ret(label: string, v1: i32, v2: i32, v_speed: f32, v_min: i32, v_max: i32) => (bool, i32, i32) {
+	return this.DragInt2RetOpts(label, v1, v2, v_speed, v_min, v_max, "%d", _ImGuiSliderFlags{value: 0})
+}
+
+func _ImGui.DragInt2RetOpts(label: string, v1: i32, v2: i32, v_speed: f32, v_min: i32, v_max: i32, display_format: string, slider_flags: _ImGuiSliderFlags) => (bool, i32, i32) {
+	imgui_stack.Push(v1)
+	imgui_stack.Push(v2)
+	changed := this._DragInt2RetOpts(label, imgui_stack, v_speed, v_min, v_max, display_format, slider_flags.value)
+	res_v1, ok := imgui_stack.PopI32()
+	if !ok {
+		panic("failed to pop int")
+	}
+	res_v2, ok := imgui_stack.PopI32()
+	if !ok {
+		panic("failed to pop int")
+	}
+	return changed, res_v1, res_v2
+}
+
+type _ImGuiInputTextFlag :struct {
+	value: i32
+}
+
+global ImGuiInputTextCharsDecimal = _ImGuiInputTextFlag{value: 1 << 0}
+global ImGuiInputTextCharsHexadecimal = _ImGuiInputTextFlag{value: 1 << 1}
+global ImGuiInputTextCharsScientific = _ImGuiInputTextFlag{value: 1 << 2}
+global ImGuiInputTextCharsUppercase = _ImGuiInputTextFlag{value: 1 << 3}
+global ImGuiInputTextCharsNoBlank = _ImGuiInputTextFlag{value: 1 << 4}
+global ImGuiInputTextAllowTabInput = _ImGuiInputTextFlag{value: 1 << 5}
+global ImGuiInputTextEnterReturnsTrue = _ImGuiInputTextFlag{value: 1 << 6}
+global ImGuiInputTextEscapeClearsAll = _ImGuiInputTextFlag{value: 1 << 7}
+global ImGuiInputTextCtrlEnterForNewLine = _ImGuiInputTextFlag{value: 1 << 8}
+global ImGuiInputTextReadOnly = _ImGuiInputTextFlag{value: 1 << 9}
+global ImGuiInputTextPassword = _ImGuiInputTextFlag{value: 1 << 10}
+global ImGuiInputTextAlwaysOverwrite = _ImGuiInputTextFlag{value: 1 << 11}
+global ImGuiInputTextAutoSelectAll = _ImGuiInputTextFlag{value: 1 << 12}
+global ImGuiInputTextParseEmptyRefVal = _ImGuiInputTextFlag{value: 1 << 13}
+global ImGuiInputTextDisplayEmptyRefVal = _ImGuiInputTextFlag{value: 1 << 14}
+global ImGuiInputTextNoHorizontalScroll = _ImGuiInputTextFlag{value: 1 << 15}
+global ImGuiInputTextNoUndoRedo = _ImGuiInputTextFlag{value: 1 << 16}
+global ImGuiInputTextCallbackCompletion = _ImGuiInputTextFlag{value: 1 << 17}
+global ImGuiInputTextCallbackHistory = _ImGuiInputTextFlag{value: 1 << 18}
+global ImGuiInputTextCallbackAlways = _ImGuiInputTextFlag{value: 1 << 19}
+global ImGuiInputTextCallbackCharFilter = _ImGuiInputTextFlag{value: 1 << 20}
+global ImGuiInputTextCallbackResize = _ImGuiInputTextFlag{value: 1 << 21}
+global ImGuiInputTextCallbackEdit = _ImGuiInputTextFlag{value: 1 << 22}
+
+type _ImGuiInputTextFlags :struct {
+	value: i32
+}
+
+func ImGuiInputTextFlags(flags: ..._ImGuiInputTextFlag) => _ImGuiInputTextFlags {
+	flags_value: i32 = 0
+	for _, value := range flags {
+		flags_value |= value.value
+	}
+	return _ImGuiInputTextFlags{value: flags_value}
+}
+
+func _ImGui.InputFloatRet(label: string, v: f32) => (bool, f32) {
+	return this.InputFloatRetOpts(label, v, 0.0, 0.0, "%.3f", _ImGuiInputTextFlags{value: 0})
+}
+
+func _ImGui.InputFloatRetOpts(label: string, v: f32, step: f32, step_fast: f32, display_format: string, input_text_flags: _ImGuiInputTextFlags) => (bool, f32) {
+	imgui_stack.Push(v)
+	changed := this._InputFloatRetOpts(label, imgui_stack, step, step_fast, display_format, input_text_flags.value)
+	res_v, ok := imgui_stack.PopF32()
+	if !ok {
+		panic("failed to pop float")
+	}
+	return changed, res_v
+}
+
+func _ImGui.InputFloat2Ret(label: string, v1: f32, v2: f32) => (bool, f32, f32) {
+	return this.InputFloat2RetOpts(label, v1, v2, "%.3f", _ImGuiInputTextFlags{value: 0})
+}
+
+func _ImGui.InputFloat2RetOpts(label: string, v1: f32, v2: f32, display_format: string, input_text_flags: _ImGuiInputTextFlags) => (bool, f32, f32) {
+	imgui_stack.Push(v1)
+	imgui_stack.Push(v2)
+	changed := this._InputFloat2RetOpts(label, imgui_stack, display_format, input_text_flags.value)
+	res_v1, ok := imgui_stack.PopF32()
+	if !ok {
+		panic("failed to pop float")
+	}
+	res_v2, ok := imgui_stack.PopF32()
+	if !ok {
+		panic("failed to pop float")
+	}
+	return changed, res_v1, res_v2
+}
+
+// input_int_ret
+
+func _ImGui.InputIntRet(label: string, v: i32) => (bool, i32) {
+	return this.InputIntRetOpts(label, v, 1, 100, _ImGuiInputTextFlags{value: 0})
+}
+
+func _ImGui.InputIntRetOpts(label: string, v: i32, step: i32, step_fast: i32, input_text_flags: _ImGuiInputTextFlags) => (bool, i32) {
+	imgui_stack.Push(v)
+	changed := this._InputIntRetOpts(label, imgui_stack, step, step_fast, input_text_flags.value)
+	res_v, ok := imgui_stack.PopI32()
+	if !ok {
+		panic("failed to pop int")
+	}
+	return changed, res_v
+}
+
+// input_int2_ret
+
+func _ImGui.InputInt2Ret(label: string, v1: i32, v2: i32) => (bool, i32, i32) {
+	return this.InputInt2RetOpts(label, v1, v2, _ImGuiInputTextFlags{value: 0})
+}
+
+func _ImGui.InputInt2RetOpts(label: string, v1: i32, v2: i32, input_text_flags: _ImGuiInputTextFlags) => (bool, i32, i32) {
+	imgui_stack.Push(v1)
+	imgui_stack.Push(v2)
+	changed := this._InputInt2RetOpts(label, imgui_stack, input_text_flags.value)
+	res_v1, ok := imgui_stack.PopI32()
+	if !ok {
+		panic("failed to pop int")
+	}
+	res_v2, ok := imgui_stack.PopI32()
+	if !ok {
+		panic("failed to pop int")
+	}
+	return changed, res_v1, res_v2
+}
+
+// slider_float_ret
+
+func _ImGui.SliderFloatRet(label: string, v: f32, v_min: f32, v_max: f32) => (bool, f32) {
+	return this.SliderFloatRetOpts(label, v, v_min, v_max, "%.3f", _ImGuiSliderFlags{value: 0})
+}
+
+func _ImGui.SliderFloatRetOpts(label: string, v: f32, v_min: f32, v_max: f32, display_format: string, slider_flags: _ImGuiSliderFlags) => (bool, f32) {
+	imgui_stack.Push(v)
+	changed := this._SliderFloatRetOpts(label, imgui_stack, v_min, v_max, display_format, slider_flags.value)
+	res_v, ok := imgui_stack.PopF32()
+	if !ok {
+		panic("failed to pop float")
+	}
+	return changed, res_v
+}
+
+// slider_float2_ret
+
+func _ImGui.SliderFloat2Ret(label: string, v1: f32, v2: f32, v_min: f32, v_max: f32) => (bool, f32, f32) {
+	return this.SliderFloat2RetOpts(label, v1, v2, v_min, v_max, "%.3f", _ImGuiSliderFlags{value: 0})
+}
+
+func _ImGui.SliderFloat2RetOpts(label: string, v1: f32, v2: f32, v_min: f32, v_max: f32, display_format: string, slider_flags: _ImGuiSliderFlags) => (bool, f32, f32) {
+	imgui_stack.Push(v1)
+	imgui_stack.Push(v2)
+	changed := this._SliderFloat2RetOpts(label, imgui_stack, v_min, v_max, display_format, slider_flags.value)
+	res_v1, ok := imgui_stack.PopF32()
+	if !ok {
+		panic("failed to pop float")
+	}
+	res_v2, ok := imgui_stack.PopF32()
+	if !ok {
+		panic("failed to pop float")
+	}
+	return changed, res_v1, res_v2
+}
+
+// drag_float_range2_ret
+
+func _ImGui.DragFloatRange2Ret(label: string, v_current_min: f32, v_current_max: f32, v_speed: f32, v_min: f32, v_max: f32) => (bool, f32, f32) {
+	return this.DragFloatRange2RetOpts(label, v_current_min, v_current_max, v_speed, v_min, v_max, "%.3f", "%.3f", _ImGuiSliderFlags{value: 0})
+}
+
+func _ImGui.DragFloatRange2RetOpts(label: string, v_current_min: f32, v_current_max: f32, v_speed: f32, v_min: f32, v_max: f32, display_format_min: string, display_format_max: string, slider_flags: _ImGuiSliderFlags) => (bool, f32, f32) {
+	imgui_stack.Push(v_current_min)
+	imgui_stack.Push(v_current_max)
+	changed := this._DragFloatRange2RetOpts(label, imgui_stack, v_speed, v_min, v_max, display_format_min, display_format_max, slider_flags.value)
+	res_v_current_min, ok := imgui_stack.PopF32()
+	if !ok {
+		panic("failed to pop float")
+	}
+	res_v_current_max, ok := imgui_stack.PopF32()
+	if !ok {
+		panic("failed to pop float")
+	}
+	return changed, res_v_current_min, res_v_current_max
+}
+
+// drag_int_ret
+
+func _ImGui.DragIntRet(label: string, v: i32, v_speed: f32, v_min: i32, v_max: i32) => (bool, i32) {
+	return this.DragIntRetOpts(label, v, v_speed, v_min, v_max, "%d", _ImGuiSliderFlags{value: 0})
+}
+
+func _ImGui.DragIntRetOpts(label: string, v: i32, v_speed: f32, v_min: i32, v_max: i32, display_format: string, slider_flags: _ImGuiSliderFlags) => (bool, i32) {
+	imgui_stack.Push(v)
+	changed := this._DragIntRetOpts(label, imgui_stack, v_speed, v_min, v_max, display_format, slider_flags.value)
+	res_v, ok := imgui_stack.PopI32()
+	if !ok {
+		panic("failed to pop int")
+	}
+	return changed, res_v
+}
+
+// drag_int_range2_ret
+
+func _ImGui.DragIntRange2Ret(label: string, v_current_min: i32, v_current_max: i32, v_speed: f32, v_min: i32, v_max: i32) => (bool, i32, i32) {
+	return this.DragIntRange2RetOpts(label, v_current_min, v_current_max, v_speed, v_min, v_max, "%d", "%d", _ImGuiSliderFlags{value: 0})
+}
+
+func _ImGui.DragIntRange2RetOpts(label: string, v_current_min: i32, v_current_max: i32, v_speed: f32, v_min: i32, v_max: i32, display_format_min: string, display_format_max: string, slider_flags: _ImGuiSliderFlags) => (bool, i32, i32) {
+	imgui_stack.Push(v_current_min)
+	imgui_stack.Push(v_current_max)
+	changed := this._DragIntRange2RetOpts(label, imgui_stack, v_speed, v_min, v_max, display_format_min, display_format_max, slider_flags.value)
+	res_v_current_min, ok := imgui_stack.PopI32()
+	if !ok {
+		panic("failed to pop int")
+	}
+	res_v_current_max, ok := imgui_stack.PopI32()
+	if !ok {
+		panic("failed to pop int")
+	}
+	return changed, res_v_current_min, res_v_current_max
+}
+
+func _ImGui.SliderIntRet(label: string, v: i32, v_min: i32, v_max: i32) => (bool, i32) {
+	return this.SliderIntRetOpts(label, v, v_min, v_max, "%d", _ImGuiSliderFlags{value: 0})
+}
+
+func _ImGui.SliderIntRetOpts(label: string, v: i32, v_min: i32, v_max: i32, display_format: string, slider_flags: _ImGuiSliderFlags) => (bool, i32) {
+	imgui_stack.Push(v)
+	changed := this._SliderIntRetOpts(label, imgui_stack, v_min, v_max, display_format, slider_flags.value)
+	res_v, ok := imgui_stack.PopI32()
+	if !ok {
+		panic("failed to pop int")
+	}
+	return changed, res_v
+}
+
+func _ImGui.SliderInt2Ret(label: string, v1: i32, v2: i32, v_min: i32, v_max: i32) => (bool, i32, i32) {
+	return this.SliderInt2RetOpts(label, v1, v2, v_min, v_max, "%d", _ImGuiSliderFlags{value: 0})
+}
+
+func _ImGui.SliderInt2RetOpts(label: string, v1: i32, v2: i32, v_min: i32, v_max: i32, display_format: string, slider_flags: _ImGuiSliderFlags) => (bool, i32, i32) {
+	imgui_stack.Push(v1)
+	imgui_stack.Push(v2)
+	changed := this._SliderInt2RetOpts(label, imgui_stack, v_min, v_max, display_format, slider_flags.value)
+	res_v1, ok := imgui_stack.PopI32()
+	if !ok {
+		panic("failed to pop int")
+	}
+	res_v2, ok := imgui_stack.PopI32()
+	if !ok {
+		panic("failed to pop int")
+	}
+	return changed, res_v1, res_v2
+}
+
+func _ImGui.VSliderFloatRet(label: string, size: Vec2, v: f32, v_min: f32, v_max: f32) => (bool, f32) {
+	return this.VSliderFloatRetOpts(label, size, v, v_min, v_max, "%.3f", _ImGuiSliderFlags{value: 0})
+}
+
+func _ImGui.VSliderFloatRetOpts(label: string, size: Vec2, v: f32, v_min: f32, v_max: f32, display_format: string, slider_flags: _ImGuiSliderFlags) => (bool, f32) {
+	imgui_stack.Push(v)
+	changed := this._VSliderFloatRetOpts(label, size, imgui_stack, v_min, v_max, display_format, slider_flags.value)
+	res_v, ok := imgui_stack.PopF32()
+	if !ok {
+		panic("failed to pop float")
+	}
+	return changed, res_v
+}
+
+func _ImGui.VSliderIntRet(label: string, size: Vec2, v: i32, v_min: i32, v_max: i32) => (bool, i32) {
+	return this.VSliderIntRetOpts(label, size, v, v_min, v_max, "%d", _ImGuiSliderFlags{value: 0})
+}
+
+func _ImGui.VSliderIntRetOpts(label: string, size: Vec2, v: i32, v_min: i32, v_max: i32, display_format: string, slider_flags: _ImGuiSliderFlags) => (bool, i32) {
+	imgui_stack.Push(v)
+	changed := this._VSliderIntRetOpts(label, size, imgui_stack, v_min, v_max, display_format, slider_flags.value)
+	res_v, ok := imgui_stack.PopI32()
+	if !ok {
+		panic("failed to pop int")
+	}
+	return changed, res_v
+}
+
+type _ImGuiColorEditFlag :struct {
+	value: i32
+}
+
+global ImGuiColorEditNoAlpha = _ImGuiColorEditFlag{value: 1 << 1}
+global ImGuiColorEditNoPicker = _ImGuiColorEditFlag{value: 1 << 2}
+global ImGuiColorEditNoOptions = _ImGuiColorEditFlag{value: 1 << 3}
+global ImGuiColorEditNoSmallPreview = _ImGuiColorEditFlag{value: 1 << 4}
+global ImGuiColorEditNoInputs = _ImGuiColorEditFlag{value: 1 << 5}
+global ImGuiColorEditNoTooltip = _ImGuiColorEditFlag{value: 1 << 6}
+global ImGuiColorEditNoLabel = _ImGuiColorEditFlag{value: 1 << 7}
+global ImGuiColorEditNoSidePreview = _ImGuiColorEditFlag{value: 1 << 8}
+global ImGuiColorEditNoDragDrop = _ImGuiColorEditFlag{value: 1 << 9}
+global ImGuiColorEditNoBorder = _ImGuiColorEditFlag{value: 1 << 10}
+global ImGuiColorEditAlphaBar = _ImGuiColorEditFlag{value: 1 << 16}
+global ImGuiColorEditAlphaPreview = _ImGuiColorEditFlag{value: 1 << 17}
+global ImGuiColorEditAlphaPreviewHalf = _ImGuiColorEditFlag{value: 1 << 18}
+global ImGuiColorEditHDR = _ImGuiColorEditFlag{value: 1 << 19}
+global ImGuiColorEditDisplayRGB = _ImGuiColorEditFlag{value: 1 << 20}
+global ImGuiColorEditDisplayHSV = _ImGuiColorEditFlag{value: 1 << 21}
+global ImGuiColorEditDisplayHex = _ImGuiColorEditFlag{value: 1 << 22}
+global ImGuiColorEditUint8 = _ImGuiColorEditFlag{value: 1 << 23}
+global ImGuiColorEditFloat = _ImGuiColorEditFlag{value: 1 << 24}
+global ImGuiColorEditPickerHueBar = _ImGuiColorEditFlag{value: 1 << 25}
+global ImGuiColorEditPickerHueWheel = _ImGuiColorEditFlag{value: 1 << 26}
+global ImGuiColorEditInputRGB = _ImGuiColorEditFlag{value: 1 << 27}
+global ImGuiColorEditInputHSV = _ImGuiColorEditFlag{value: 1 << 28}
+global ImGuiColorEditDefaultOptions = _ImGuiColorEditFlags{value: ImGuiColorEditUint8.value | ImGuiColorEditDisplayRGB.value | ImGuiColorEditInputRGB.value | ImGuiColorEditPickerHueBar.value}
+
+type _ImGuiColorEditFlags :struct {
+	value: i32
+}
+
+func ImGuiColorEditFlags(flags: ..._ImGuiColorEditFlag) => _ImGuiColorEditFlags {
+	flags_value: i32 = 0
+	for _, value := range flags {
+		flags_value |= value.value
+	}
+	return _ImGuiColorEditFlags{value: flags_value}
+}
+
+func _ImGui.ColorEdit3Ret(label: string, color: Color3) => (bool, Color3) {
+	return this.ColorEdit3RetOpts(label, color, _ImGuiColorEditFlags{value: 0})
+}
+
+func _ImGui.ColorEdit3RetOpts(label: string, color: Color3, color_edit_flags: _ImGuiColorEditFlags) => (bool, Color3) {
+	imgui_stack.Push(color.ToRGB())
+	changed := this._ColorEdit3RetOpts(label, imgui_stack, color_edit_flags.value)
+	res_color, ok := imgui_stack.PopI32()
+	if !ok {
+		panic("failed to pop int")
+	}
+	return changed, Color3FromRGB(res_color)
+}
+
+func _ImGui.ColorEdit4Ret(label: string, color: Color) => (bool, Color) {
+	return this.ColorEdit4RetOpts(label, color, _ImGuiColorEditFlags{value: 0})
+}
+
+func _ImGui.ColorEdit4RetOpts(label: string, color: Color, color_edit_flags: _ImGuiColorEditFlags) => (bool, Color) {
+	imgui_stack.Push(color.ToARGB())
+	changed := this._ColorEdit4RetOpts(label, imgui_stack, color_edit_flags.value)
+	res_color, ok := imgui_stack.PopI32()
+	if !ok {
+		panic("failed to pop int")
+	}
+	return changed, ColorFromARGB(res_color)
+}
+
+func _ImGui.CheckboxRet(label: string, checked: bool) => (bool, bool) {
+	imgui_stack.Push(checked)
+	changed := this._CheckboxRet(label, imgui_stack)
+	res_checked, ok := imgui_stack.PopBool()
+	if !ok {
+		panic("failed to pop bool")
+	}
+	return changed, res_checked
+}
+
+func _ImGui.RadioButtonRet(label: string, v: i32, v_button: i32) => (bool, i32) {
+	imgui_stack.Push(v)
+	changed := this._RadioButtonRet(label, imgui_stack, v_button)
+	res_v, ok := imgui_stack.PopI32()
+	if !ok {
+		panic("failed to pop int")
+	}
+	return changed, res_v
+}
+
+func _ImGui.ListBoxRet(label: string, current_item: i32, items: *[]string) => (bool, i32) {
+	return this.ListBoxRetOpts(label, current_item, items, -1)
+}
+
+func _ImGui.ListBoxRetOpts(label: string, current_item: i32, items: *[]string, height_in_items: i32) => (bool, i32) {
+	imgui_stack.Push(current_item)
+	changed := this._ListBoxRetOpts(label, imgui_stack, items, height_in_items)
+	res_current_item, ok := imgui_stack.PopI32()
+	if !ok {
+		panic("failed to pop int")
+	}
+	return changed, res_current_item
+}
+
+type _ImGuiCond :struct {
+	value: i32
+}
+
+global ImGuiCondAlways = _ImGuiCond{value: 1 << 0}
+global ImGuiCondOnce = _ImGuiCond{value: 1 << 1}
+global ImGuiCondFirstUseEver = _ImGuiCond{value: 1 << 2}
+global ImGuiCondAppearing = _ImGuiCond{value: 1 << 3}
+
+func _ImGui.SetNextWindowPosCenter() {
+	this._SetNextWindowPosCenterOpts(ImGuiCondAlways.value)
+}
+
+func _ImGui.SetNextWindowPosCenterOpts(set_cond: _ImGuiCond) {
+	this._SetNextWindowPosCenterOpts(set_cond.value)
+}
+
+func _ImGui.SetNextWindowSize(size: Vec2) {
+	this._SetNextWindowSizeOpts(size, ImGuiCondAlways.value)
+}
+
+func _ImGui.SetNextWindowSizeOpts(size: Vec2, set_cond: _ImGuiCond) {
+	this._SetNextWindowSizeOpts(size, set_cond.value)
+}
+
+func _ImGui.SetNextWindowCollapsed(collapsed: bool) {
+	this._SetNextWindowCollapsedOpts(collapsed, ImGuiCondAlways.value)
+}
+
+func _ImGui.SetNextWindowCollapsedOpts(collapsed: bool, set_cond: _ImGuiCond) {
+	this._SetNextWindowCollapsedOpts(collapsed, set_cond.value)
+}
+
+func _ImGui.SetWindowPos(name: string, pos: Vec2) {
+	this._SetWindowPosOpts(name, pos, ImGuiCondAlways.value)
+}
+
+func _ImGui.SetWindowPosOpts(name: string, pos: Vec2, set_cond: _ImGuiCond) {
+	this._SetWindowPosOpts(name, pos, set_cond.value)
+}
+
+func _ImGui.SetWindowSize(name: string, size: Vec2) {
+	this._SetWindowSizeOpts(name, size, ImGuiCondAlways.value)
+}
+
+func _ImGui.SetWindowSizeOpts(name: string, size: Vec2, set_cond: _ImGuiCond) {
+	this._SetWindowSizeOpts(name, size, set_cond.value)
+}
+
+func _ImGui.SetWindowCollapsed(name: string, collapsed: bool) {
+	this._SetWindowCollapsedOpts(name, collapsed, ImGuiCondAlways.value)
+}
+
+func _ImGui.SetWindowCollapsedOpts(name: string, collapsed: bool, set_cond: _ImGuiCond) {
+	this._SetWindowCollapsedOpts(name, collapsed, set_cond.value)
+}
+
+func _ImGui.SetColorEditOptions(color_edit_flags: _ImGuiColorEditFlags) {
+	this._SetColorEditOptions(color_edit_flags.value)
+}
+
+func _ImGui.InputText(label: string, buffer: Buffer) => bool {
+	return this.InputTextOpts(label, buffer, _ImGuiInputTextFlags{value: 0})
+}
+
+func _ImGui.InputTextOpts(label: string, buffer: Buffer, input_text_flags: _ImGuiInputTextFlags) => bool {
+	return this._InputTextOpts(label, buffer, input_text_flags.value)
+}
+
+func _ImGui.InputTextMultiline(label: string, buffer: Buffer, size: Vec2) => bool {
+	return this.InputTextMultilineOpts(label, buffer, size, _ImGuiInputTextFlags{value: 0})
+}
+
+func _ImGui.InputTextMultilineOpts(label: string, buffer: Buffer, size: Vec2, input_text_flags: _ImGuiInputTextFlags) => bool {
+	return this._InputTextMultilineOpts(label, buffer, size, input_text_flags.value)
+}
+
+func _ImGui.TreePush(str_id: string, inside: func()) {
+	this._TreePush(str_id)
+	inside()
+	this._TreePop()
+}
+
+func _ImGui.TreeNode(str_id: string, text: string, inside: func()) {
+	if this._TreeNode(str_id, text) {
+		inside()
+		this._TreePop()
+	}
+}
+
+func _ImGui.TreeNodeEx(text: string, inside: func()) {
+	this.TreeNodeExOpts(text, inside, _ImGuiTreeNodeFlags{value: 0})
+}
+
+func _ImGui.TreeNodeExOpts(label: string, inside: func(), tree_node_flags: _ImGuiTreeNodeFlags) {
+	if this._TreeNodeExOpts(label, tree_node_flags.value) {
+		inside()
+		this._TreePop()
+	}
+}
+
+func _ImGui.TreeNodeExWithId(str_id: string, text: string, inside: func()) {
+	this.TreeNodeExWithIdOpts(str_id, text, inside, _ImGuiTreeNodeFlags{value: 0})
+}
+
+func _ImGui.TreeNodeExWithIdOpts(str_id: string, text: string, inside: func(), tree_node_flags: _ImGuiTreeNodeFlags) {
+	if this._TreeNodeExWithIdOpts(str_id, text, tree_node_flags.value) {
+		inside()
+		this._TreePop()
+	}
+}
+
+func _ImGui.SetNextItemOpen(is_open: bool) {
+	this._SetNextItemOpenOpts(is_open, ImGuiCondAlways.value)
+}
+
+func _ImGui.SetNextItemOpenOpts(is_open: bool, set_cond: _ImGuiCond) {
+	this._SetNextItemOpenOpts(is_open, set_cond.value)
+}
+
+func _ImGui.CollapsingHeader(label: string) => bool {
+	return this.CollapsingHeaderOpts(label, _ImGuiTreeNodeFlags{value: 0})
+}
+
+func _ImGui.CollapsingHeaderOpts(label: string, tree_node_flags: _ImGuiTreeNodeFlags) => bool {
+	return this._CollapsingHeaderOpts(label, tree_node_flags.value)
+}
+
+func _ImGui.Selectable(label: string) => bool {
+	return this.SelectableOpts(label, _ImGuiSelectableFlags{value: 0})
+}
+
+func _ImGui.SelectableOpts(label: string, selectable_flags: _ImGuiSelectableFlags) => bool {
+	return this._SelectableOpts(label, selectable_flags.value)
+}
+
+func _ImGui.BeginPopup(str_id: string, inside: func()) {
+	if this._BeginPopup(str_id) {
+		inside()
+		this._EndPopup()
+	}
+}
+
+func _ImGui.BeginPopupModal(name: string, inside: func()) {
+	this.BeginPopupModalOpts(name, inside, _ImGuiWindowFlags{value: 0})
+}
+
+func _ImGui.BeginPopupModalOpts(name: string, inside: func(), window_flags: _ImGuiWindowFlags) {
+	if this._BeginPopupModalOpts(name, window_flags.value) {
+		inside()
+		this._EndPopup()
+	}
+}
+
+func _ImGui.BeginPopupModalRet(name: string, opened: bool) => (bool, bool) {
+	return this.BeginPopupModalRetOpts(name, opened, _ImGuiWindowFlags{value: 0})
+}
+
+func _ImGui.BeginPopupModalRetOpts(name: string, opened: bool, window_flags: _ImGuiWindowFlags) => (bool, bool) {
+	imgui_stack.Push(opened)
+	changed := this._BeginPopupModalRetOpts(name, imgui_stack, window_flags.value)
+	res_opened, ok := imgui_stack.PopBool()
+	if !ok {
+		panic("failed to pop bool")
+	}
+	return changed, res_opened
+}
+
+type _ImGuiMouseButton :struct {
+	value: i32
+}
+
+global ImGuiMouseButtonLeft = _ImGuiMouseButton{value: 0}
+global ImGuiMouseButtonRight = _ImGuiMouseButton{value: 1}
+global ImGuiMouseButtonMiddle = _ImGuiMouseButton{value: 2}
+
+type _ImGuiPopupFlag :struct {
+	value: i32
+}
+
+global ImGuiPopupNoReopen = _ImGuiPopupFlag{value: 1 << 5}
+global ImGuiPopupNoOpenOverExistingPopup = _ImGuiPopupFlag{value: 1 << 7}
+global ImGuiPopupNoOpenOverItems = _ImGuiPopupFlag{value: 1 << 8}
+global ImGuiPopupAnyPopupId = _ImGuiPopupFlag{value: 1 << 10}
+global ImGuiPopupAnyPopupLevel = _ImGuiPopupFlag{value: 1 << 11}
+global ImGuiPopupAnyPopup = _ImGuiPopupFlag{value: ImGuiPopupAnyPopupId.value | ImGuiPopupAnyPopupLevel.value}
+
+type _ImGuiPopupFlags :struct {
+	value: i32
+}
+
+func ImGuiPopupFlags(flags: ..._ImGuiPopupFlag) => _ImGuiPopupFlags {
+	flags_value: i32 = 0
+	for _, value := range flags {
+		flags_value |= value.value
+	}
+	return _ImGuiPopupFlags{value: flags_value}
+}
+
+func _ImGui.BeginPopupContextItem(name: string, inside: func()) {
+	this.BeginPopupContextItemOpts(name, ImGuiMouseButtonLeft, _ImGuiPopupFlags{value: 0}, inside)
+}
+
+func _ImGui.BeginPopupContextItemOpts(name: string, button: _ImGuiMouseButton, popup_flags: _ImGuiPopupFlags, inside: func()) {
+	if this._BeginPopupContextItemOpts(name, button.value|popup_flags.value) {
+		inside()
+		this._EndPopup()
+	}
+}
+
+func _ImGui.BeginPopupContextWindow(name: string, inside: func()) {
+	this.BeginPopupContextWindowOpts(name, ImGuiMouseButtonRight, _ImGuiPopupFlags{value: 0}, inside)
+}
+
+func _ImGui.BeginPopupContextWindowOpts(name: string, button: _ImGuiMouseButton, popup_flags: _ImGuiPopupFlags, inside: func()) {
+	if this._BeginPopupContextWindowOpts(name, button.value|popup_flags.value) {
+		inside()
+		this._EndPopup()
+	}
+}
+
+func _ImGui.BeginPopupContextVoid(name: string, inside: func()) {
+	this.BeginPopupContextVoidOpts(name, ImGuiMouseButtonRight, _ImGuiPopupFlags{value: 0}, inside)
+}
+
+func _ImGui.BeginPopupContextVoidOpts(name: string, button: _ImGuiMouseButton, popup_flags: _ImGuiPopupFlags, inside: func()) {
+	if this._BeginPopupContextVoidOpts(name, button.value|popup_flags.value) {
+		inside()
+		this._EndPopup()
+	}
+}
+
+type _ImGuiTableFlag :struct {
+	value: i32
+}
+
+global ImGuiTableResizable = _ImGuiTableFlag{value: 1 << 0}
+global ImGuiTableReorderable = _ImGuiTableFlag{value: 1 << 1}
+global ImGuiTableHideable = _ImGuiTableFlag{value: 1 << 2}
+global ImGuiTableSortable = _ImGuiTableFlag{value: 1 << 3}
+global ImGuiTableNoSavedSettings = _ImGuiTableFlag{value: 1 << 4}
+global ImGuiTableContextMenuInBody = _ImGuiTableFlag{value: 1 << 5}
+global ImGuiTableRowBg = _ImGuiTableFlag{value: 1 << 6}
+global ImGuiTableBordersInnerH = _ImGuiTableFlag{value: 1 << 7}
+global ImGuiTableBordersOuterH = _ImGuiTableFlag{value: 1 << 8}
+global ImGuiTableBordersInnerV = _ImGuiTableFlag{value: 1 << 9}
+global ImGuiTableBordersOuterV = _ImGuiTableFlag{value: 1 << 10}
+global ImGuiTableNoBordersInBody = _ImGuiTableFlag{value: 1 << 11}
+global ImGuiTableNoBordersInBodyUntilResize = _ImGuiTableFlag{value: 1 << 12}
+global ImGuiTableSizingFixedFit = _ImGuiTableFlag{value: 1 << 13}
+global ImGuiTableSizingFixedSame = _ImGuiTableFlag{value: 1 << 14}
+global ImGuiTableSizingStretchSame = _ImGuiTableFlag{value: 1 << 15}
+global ImGuiTableNoHostExtendX = _ImGuiTableFlag{value: 1 << 16}
+global ImGuiTableNoHostExtendY = _ImGuiTableFlag{value: 1 << 17}
+global ImGuiTableNoKeepColumnsVisible = _ImGuiTableFlag{value: 1 << 18}
+global ImGuiTablePreciseWidths = _ImGuiTableFlag{value: 1 << 19}
+global ImGuiTableNoClip = _ImGuiTableFlag{value: 1 << 20}
+global ImGuiTablePadOuterX = _ImGuiTableFlag{value: 1 << 21}
+global ImGuiTableNoPadOuterX = _ImGuiTableFlag{value: 1 << 22}
+global ImGuiTableNoPadInnerX = _ImGuiTableFlag{value: 1 << 23}
+global ImGuiTableScrollX = _ImGuiTableFlag{value: 1 << 24}
+global ImGuiTableScrollY = _ImGuiTableFlag{value: 1 << 25}
+global ImGuiTableSortMulti = _ImGuiTableFlag{value: 1 << 26}
+global ImGuiTableSortTristate = _ImGuiTableFlag{value: 1 << 27}
+global ImGuiTableHighlightHoveredColumn = _ImGuiTableFlag{value: 1 << 28}
+global ImGuiTableBordersH = _ImGuiTableFlag{value: ImGuiTableBordersInnerH.value | ImGuiTableBordersOuterH.value}
+global ImGuiTableBordersV = _ImGuiTableFlag{value: ImGuiTableBordersInnerV.value | ImGuiTableBordersOuterV.value}
+global ImGuiTableBordersInner = _ImGuiTableFlag{value: ImGuiTableBordersInnerH.value | ImGuiTableBordersInnerV.value}
+global ImGuiTableBordersOuter = _ImGuiTableFlag{value: ImGuiTableBordersOuterH.value | ImGuiTableBordersOuterV.value}
+global ImGuiTableBorders = _ImGuiTableFlag{value: ImGuiTableBordersInnerH.value | ImGuiTableBordersInnerV.value | ImGuiTableBordersOuterH.value | ImGuiTableBordersOuterV.value}
+global ImGuiTableSizingStretchProp = _ImGuiTableFlag{value: ImGuiTableSizingFixedFit.value | ImGuiTableSizingFixedSame.value}
+
+type _ImGuiTableFlags :struct {
+	value: i32
+}
+
+func ImGuiTableFlags(flags: ..._ImGuiTableFlag) => _ImGuiTableFlags {
+	flags_value: i32 = 0
+	for _, value := range flags {
+		flags_value |= value.value
+	}
+	return _ImGuiTableFlags{value: flags_value}
+}
+
+func _ImGui.BeginTable(str_id: string, column: i32, inside: func()) {
+	this.BeginTableOpts(str_id, column, Vec2Zero, -1.0, _ImGuiTableFlags{value: 0}, inside)
+}
+
+func _ImGui.BeginTableOpts(str_id: string, column: i32, outer_size: Vec2, inner_width: f32, table_flags: _ImGuiTableFlags, inside: func()) {
+	if this._BeginTableOpts(str_id, column, outer_size, inner_width, table_flags.value) {
+		inside()
+		this._EndTable()
+	}
+}
+
+type _ImGuiTableColumnFlag :struct {
+	value: i32
+}
+
+global ImGuiTableColumnDisabled = _ImGuiTableColumnFlag{value: 1 << 0}
+global ImGuiTableColumnDefaultHide = _ImGuiTableColumnFlag{value: 1 << 1}
+global ImGuiTableColumnDefaultSort = _ImGuiTableColumnFlag{value: 1 << 2}
+global ImGuiTableColumnWidthStretch = _ImGuiTableColumnFlag{value: 1 << 3}
+global ImGuiTableColumnWidthFixed = _ImGuiTableColumnFlag{value: 1 << 4}
+global ImGuiTableColumnNoResize = _ImGuiTableColumnFlag{value: 1 << 5}
+global ImGuiTableColumnNoReorder = _ImGuiTableColumnFlag{value: 1 << 6}
+global ImGuiTableColumnNoHide = _ImGuiTableColumnFlag{value: 1 << 7}
+global ImGuiTableColumnNoClip = _ImGuiTableColumnFlag{value: 1 << 8}
+global ImGuiTableColumnNoSort = _ImGuiTableColumnFlag{value: 1 << 9}
+global ImGuiTableColumnNoSortAscending = _ImGuiTableColumnFlag{value: 1 << 10}
+global ImGuiTableColumnNoSortDescending = _ImGuiTableColumnFlag{value: 1 << 11}
+global ImGuiTableColumnNoHeaderLabel = _ImGuiTableColumnFlag{value: 1 << 12}
+global ImGuiTableColumnNoHeaderWidth = _ImGuiTableColumnFlag{value: 1 << 13}
+global ImGuiTableColumnPreferSortAscending = _ImGuiTableColumnFlag{value: 1 << 14}
+global ImGuiTableColumnPreferSortDescending = _ImGuiTableColumnFlag{value: 1 << 15}
+global ImGuiTableColumnIndentEnable = _ImGuiTableColumnFlag{value: 1 << 16}
+global ImGuiTableColumnIndentDisable = _ImGuiTableColumnFlag{value: 1 << 17}
+global ImGuiTableColumnAngledHeader = _ImGuiTableColumnFlag{value: 1 << 18}
+global ImGuiTableColumnIsEnabled = _ImGuiTableColumnFlag{value: 1 << 24}
+global ImGuiTableColumnIsVisible = _ImGuiTableColumnFlag{value: 1 << 25}
+global ImGuiTableColumnIsSorted = _ImGuiTableColumnFlag{value: 1 << 26}
+global ImGuiTableColumnIsHovered = _ImGuiTableColumnFlag{value: 1 << 27}
+
+type _ImGuiTableColumnFlags :struct {
+	value: i32
+}
+
+func ImGuiTableColumnFlags(flags: ..._ImGuiTableColumnFlag) => _ImGuiTableColumnFlags {
+	flags_value: i32 = 0
+	for _, value := range flags {
+		flags_value |= value.value
+	}
+	return _ImGuiTableColumnFlags{value: flags_value}
+}
+
+func _ImGui.TableSetupColumn(label: string, init_width_or_weight: f32) {
+	this.TableSetupColumnOpts(label, init_width_or_weight, 0, _ImGuiTableColumnFlags{value: 0})
+}
+
+func _ImGui.TableSetupColumnOpts(label: string, init_width_or_weight: f32, user_id: i32, table_column_flags: _ImGuiTableColumnFlags) {
+	this._TableSetupColumnOpts(label, init_width_or_weight, user_id, table_column_flags.value)
+}
+
+func _ImGui.SetNextWindowPos(pos: Vec2) {
+	this.SetNextWindowPosOpts(pos, ImGuiCondAlways, Vec2Zero)
+}
+
+func _ImGui.SetNextWindowPosOpts(pos: Vec2, set_cond: _ImGuiCond, pivot: Vec2) {
+	this._SetNextWindowPosOpts(pos, set_cond.value, pivot)
+}
+
+type _ImGuiCol :struct {
+	value: i32
+}
+
+global ImGuiColText = _ImGuiCol{value: 0}
+global ImGuiColTextDisabled = _ImGuiCol{value: 1}
+global ImGuiColWindowBg = _ImGuiCol{value: 2}
+global ImGuiColChildBg = _ImGuiCol{value: 3}
+global ImGuiColPopupBg = _ImGuiCol{value: 4}
+global ImGuiColBorder = _ImGuiCol{value: 5}
+global ImGuiColBorderShadow = _ImGuiCol{value: 6}
+global ImGuiColFrameBg = _ImGuiCol{value: 7}
+global ImGuiColFrameBgHovered = _ImGuiCol{value: 8}
+global ImGuiColFrameBgActive = _ImGuiCol{value: 9}
+global ImGuiColTitleBg = _ImGuiCol{value: 10}
+global ImGuiColTitleBgActive = _ImGuiCol{value: 11}
+global ImGuiColTitleBgCollapsed = _ImGuiCol{value: 12}
+global ImGuiColMenuBarBg = _ImGuiCol{value: 13}
+global ImGuiColScrollbarBg = _ImGuiCol{value: 14}
+global ImGuiColScrollbarGrab = _ImGuiCol{value: 15}
+global ImGuiColScrollbarGrabHovered = _ImGuiCol{value: 16}
+global ImGuiColScrollbarGrabActive = _ImGuiCol{value: 17}
+global ImGuiColCheckMark = _ImGuiCol{value: 18}
+global ImGuiColSliderGrab = _ImGuiCol{value: 19}
+global ImGuiColSliderGrabActive = _ImGuiCol{value: 20}
+global ImGuiColButton = _ImGuiCol{value: 21}
+global ImGuiColButtonHovered = _ImGuiCol{value: 22}
+global ImGuiColButtonActive = _ImGuiCol{value: 23}
+global ImGuiColHeader = _ImGuiCol{value: 24}
+global ImGuiColHeaderHovered = _ImGuiCol{value: 25}
+global ImGuiColHeaderActive = _ImGuiCol{value: 26}
+global ImGuiColSeparator = _ImGuiCol{value: 27}
+global ImGuiColSeparatorHovered = _ImGuiCol{value: 28}
+global ImGuiColSeparatorActive = _ImGuiCol{value: 29}
+global ImGuiColResizeGrip = _ImGuiCol{value: 30}
+global ImGuiColResizeGripHovered = _ImGuiCol{value: 31}
+global ImGuiColResizeGripActive = _ImGuiCol{value: 32}
+global ImGuiColTabHovered = _ImGuiCol{value: 33}
+global ImGuiColTab = _ImGuiCol{value: 34}
+global ImGuiColTabSelected = _ImGuiCol{value: 35}
+global ImGuiColTabSelectedOverline = _ImGuiCol{value: 36}
+global ImGuiColTabDimmed = _ImGuiCol{value: 37}
+global ImGuiColTabDimmedSelected = _ImGuiCol{value: 38}
+global ImGuiColTabDimmedSelectedOverline = _ImGuiCol{value: 39}
+global ImGuiColPlotLinesHovered = _ImGuiCol{value: 40}
+global ImGuiColPlotHistogram = _ImGuiCol{value: 41}
+global ImGuiColPlotHistogramHovered = _ImGuiCol{value: 42}
+global ImGuiColTableHeaderBg = _ImGuiCol{value: 43}
+global ImGuiColTableBorderStrong = _ImGuiCol{value: 44}
+global ImGuiColTableBorderLight = _ImGuiCol{value: 45}
+global ImGuiColTableRowBg = _ImGuiCol{value: 46}
+global ImGuiColTableRowBgAlt = _ImGuiCol{value: 47}
+global ImGuiColTextLink = _ImGuiCol{value: 48}
+global ImGuiColTextSelectedBg = _ImGuiCol{value: 49}
+global ImGuiColDragDropTarget = _ImGuiCol{value: 50}
+global ImGuiColNavCursor = _ImGuiCol{value: 51}
+global ImGuiColNavWindowingHighlight = _ImGuiCol{value: 52}
+global ImGuiColNavWindowingDimBg = _ImGuiCol{value: 53}
+global ImGuiColModalWindowDimBg = _ImGuiCol{value: 54}
+
+func _ImGui.PushStyleColor(col: _ImGuiCol, color: Color, inside: func()) {
+	this._PushStyleColor(col.value, color)
+	inside()
+	this._PopStyleColor(1)
+}
+
+type _ImGuiStyleVar :struct {
+	value: i32
+}
+
+global ImGuiStyleVarAlpha = _ImGuiStyleVar{value: 0}
+global ImGuiStyleVarDisabledAlpha = _ImGuiStyleVar{value: 1}
+global ImGuiStyleVarWindowRounding = _ImGuiStyleVar{value: 3}
+global ImGuiStyleVarWindowBorderSize = _ImGuiStyleVar{value: 4}
+global ImGuiStyleVarChildRounding = _ImGuiStyleVar{value: 7}
+global ImGuiStyleVarChildBorderSize = _ImGuiStyleVar{value: 8}
+global ImGuiStyleVarPopupRounding = _ImGuiStyleVar{value: 9}
+global ImGuiStyleVarPopupBorderSize = _ImGuiStyleVar{value: 10}
+global ImGuiStyleVarFrameRounding = _ImGuiStyleVar{value: 12}
+global ImGuiStyleVarFrameBorderSize = _ImGuiStyleVar{value: 13}
+global ImGuiStyleVarIndentSpacing = _ImGuiStyleVar{value: 16}
+global ImGuiStyleVarScrollbarSize = _ImGuiStyleVar{value: 18}
+global ImGuiStyleVarScrollbarRounding = _ImGuiStyleVar{value: 19}
+global ImGuiStyleVarGrabMinSize = _ImGuiStyleVar{value: 20}
+global ImGuiStyleVarGrabRounding = _ImGuiStyleVar{value: 21}
+global ImGuiStyleVarTabRounding = _ImGuiStyleVar{value: 22}
+global ImGuiStyleVarTabBarBorderSize = _ImGuiStyleVar{value: 23}
+global ImGuiStyleVarSeparatorTextBorderSize = _ImGuiStyleVar{value: 26}
+
+func _ImGui.PushStyleFloat(style: _ImGuiStyleVar, val: f32, inside: func()) {
+	this._PushStyleFloat(style.value, val)
+	inside()
+	this._PopStyleVar(1)
+}
+
+type _ImGuiStyleVec2 :struct {
+	value: i32
+}
+
+global ImGuiStyleVec2WindowPadding = _ImGuiStyleVec2{value: 2}
+global ImGuiStyleVec2WindowMinSize = _ImGuiStyleVec2{value: 5}
+global ImGuiStyleVec2WindowTitleAlign = _ImGuiStyleVec2{value: 6}
+global ImGuiStyleVec2FramePadding = _ImGuiStyleVec2{value: 11}
+global ImGuiStyleVec2ItemSpacing = _ImGuiStyleVec2{value: 14}
+global ImGuiStyleVec2ItemInnerSpacing = _ImGuiStyleVec2{value: 15}
+global ImGuiStyleVec2CellPadding = _ImGuiStyleVec2{value: 17}
+global ImGuiStyleVec2ButtonTextAlign = _ImGuiStyleVec2{value: 24}
+global ImGuiStyleVec2SelectableTextAlign = _ImGuiStyleVec2{value: 25}
+global ImGuiStyleVec2SeparatorTextAlign = _ImGuiStyleVec2{value: 27}
+global ImGuiStyleVec2SeparatorTextPadding = _ImGuiStyleVec2{value: 28}
+
+func _ImGui.PushStyleVec2(style: _ImGuiStyleVec2, val: Vec2, inside: func()) {
+	this._PushStyleVec2(style.value, val)
+	inside()
+	this._PopStyleVar(1)
+}
+
+func _ImGui.ColorButton(desc_id: string, color: Color) => bool {
+	return this.ColorButtonOpts(desc_id, color, _ImGuiColorEditFlags{value: 0}, Vec2Zero)
+}
+
+func _ImGui.ColorButtonOpts(desc_id: string, color: Color, color_edit_flags: _ImGuiColorEditFlags, size: Vec2) => bool {
+	return this._ColorButtonOpts(desc_id, color, color_edit_flags.value, size)
+}
+
+func _ImGui.SliderAngleRet(label: string, v: f32, v_degrees_min: f32, v_degrees_max: f32) => (bool, f32) {
+	imgui_stack.PushF32(v)
+	changed := this._SliderAngleRet(label, imgui_stack, v_degrees_min, v_degrees_max)
+	res_v, ok := imgui_stack.PopF32()
+	if !ok {
+		panic("Failed to pop f32 from stack")
+	}
+	return changed, res_v
+}
+
+func _ImGui.Image(clip_str: string, size: Vec2) {
+	this.ImageOpts(clip_str, size, ColorWhite, ColorTransparent)
+}
+
+func _ImGui.ImageButton(str_id: string, clip_str: string, size: Vec2) => bool {
+	return this.ImageButtonOpts(str_id, clip_str, size, ColorTransparent, ColorWhite)
+}
+
+type _ImGuiTableRowFlag :struct {
+	value: i32
+}
+
+global ImGuiTableRowFlagHeaders = _ImGuiTableRowFlag{value: 1 << 0}
+
+type _ImGuiTableRowFlags :struct {
+	value: i32
+}
+
+func ImGuiTableRowFlags(flags: ..._ImGuiTableRowFlag) => _ImGuiTableRowFlags {
+	flags_value: i32 = 0
+	for _, value := range flags {
+		flags_value |= value.value
+	}
+	return _ImGuiTableRowFlags{value: flags_value}
+}
+
+func _ImGui.TableNextRow(min_row_height: f32) {
+	this.TableNextRowOpts(min_row_height, _ImGuiTableRowFlags{value: 0})
+}
+
+func _ImGui.TableNextRowOpts(min_row_height: f32, table_row_flags: _ImGuiTableRowFlags) {
+	this._TableNextRowOpts(min_row_height, table_row_flags.value)
+}
+
+func _ImGui.BeginListBox(label: string, size: Vec2, inside: func()) {
+	if this._BeginListBox(label, size) {
+		inside()
+		this._EndListBox()
+	}
+}
+
+func _ImGui.BeginGroup(inside: func()) {
+	this._BeginGroup()
+	inside()
+	this._EndGroup()
+}
+
+func _ImGui.BeginDisabled(inside: func()) {
+	this._BeginDisabled()
+	inside()
+	this._EndDisabled()
+}
+
+func _ImGui.BeginTooltip(inside: func()) {
+	if this._BeginTooltip() {
+		inside()
+		this._EndTooltip()
+	}
+}
+
+func _ImGui.BeginMainMenuBar(inside: func()) {
+	if this._BeginMainMenuBar() {
+		inside()
+		this._EndMainMenuBar()
+	}
+}
+
+func _ImGui.BeginMenuBar(inside: func()) {
+	if this._BeginMenuBar() {
+		inside()
+		this._EndMenuBar()
+	}
+}
+
+func _ImGui.BeginMenu(label: string, enabled: bool, inside: func()) {
+	if this._BeginMenu(label, enabled) {
+		inside()
+		this._EndMenu()
+	}
+}
+
+func _ImGui.PushItemWidth(width: f32, inside: func()) {
+	this._PushItemWidth(width)
+	inside()
+	this._PopItemWidth()
+}
+
+func _ImGui.PushTextWrapPos(wrap_pos_x: f32, inside: func()) {
+	this._PushTextWrapPos(wrap_pos_x)
+	inside()
+	this._PopTextWrapPos()
+}
+
+type _ImGuiItemFlag :struct {
+	value: i32
+}
+
+global ImGuiItemNoTabStop = _ImGuiItemFlag{value: 1 << 0}
+global ImGuiItemNoNav = _ImGuiItemFlag{value: 1 << 1}
+global ImGuiItemNoNavDefaultFocus = _ImGuiItemFlag{value: 1 << 2}
+global ImGuiItemButtonRepeat = _ImGuiItemFlag{value: 1 << 3}
+global ImGuiItemAutoClosePopups = _ImGuiItemFlag{value: 1 << 4}
+global ImGuiItemAllowDuplicateId = _ImGuiItemFlag{value: 1 << 5}
+
+type _ImGuiItemFlags :struct {
+	value: i32
+}
+
+func ImGuiItemFlags(flags: ..._ImGuiItemFlag) => _ImGuiItemFlags {
+	flags_value: i32 = 0
+	for _, value := range flags {
+		flags_value |= value.value
+	}
+	return _ImGuiItemFlags{value: flags_value}
+}
+
+func _ImGui.PushItemFlag(flags: _ImGuiItemFlags, v: bool, inside: func()) {
+	this._PushItemFlag(flags.value, v)
+	inside()
+	this._PopItemFlag()
+}
+
+func _ImGui.PushId(str_id: string, inside: func()) {
+	this._PushId(str_id)
+	inside()
+	this._PopId()
+}
+
+func _ImGui.PushClipRect(clip_rect_min: Vec2, clip_rect_max: Vec2, intersect_with_current_clip_rect: bool, inside: func()) {
+	this._PushClipRect(clip_rect_min, clip_rect_max, intersect_with_current_clip_rect)
+	inside()
+	this._PopClipRect()
+}

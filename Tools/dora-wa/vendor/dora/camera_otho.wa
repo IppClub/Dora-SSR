@@ -19,6 +19,7 @@ func CameraOthoFrom(raw: i64) => *CameraOtho {
 	if raw == 0 {
 		return nil
 	}
+	ObjectRetain(raw)
 	object := CameraOtho{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)
@@ -27,6 +28,12 @@ func CameraOthoFrom(raw: i64) => *CameraOtho {
 }
 func CameraOtho.GetTypeId() => i32 {
 	return cameraotho_type()
+}
+func ObjectAsCameraOtho(object: Object) => *CameraOtho {
+	if object.GetTypeId() == cameraotho_type() {
+		return CameraOthoFrom(object.GetRaw())
+	}
+	return nil
 }
 func CameraOtho.SetPosition(val: Vec2) {
 	cameraotho_set_position(*this.raw, val.ToValue())

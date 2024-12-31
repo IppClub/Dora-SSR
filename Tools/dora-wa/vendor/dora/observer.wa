@@ -15,6 +15,7 @@ func ObserverFrom(raw: i64) => *Observer {
 	if raw == 0 {
 		return nil
 	}
+	ObjectRetain(raw)
 	object := Observer{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)
@@ -23,6 +24,12 @@ func ObserverFrom(raw: i64) => *Observer {
 }
 func Observer.GetTypeId() => i32 {
 	return observer_type()
+}
+func ObjectAsObserver(object: Object) => *Observer {
+	if object.GetTypeId() == observer_type() {
+		return ObserverFrom(object.GetRaw())
+	}
+	return nil
 }
 func NewObserver(event: EntityEvent, components: *[]string) => Observer {
 	raw := entityobserver_new(event.ToValue(), ToDoraStrBuf(components))

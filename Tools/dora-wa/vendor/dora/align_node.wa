@@ -17,6 +17,7 @@ func AlignNodeFrom(raw: i64) => *AlignNode {
 	if raw == 0 {
 		return nil
 	}
+	ObjectRetain(raw)
 	object := AlignNode{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)
@@ -25,6 +26,12 @@ func AlignNodeFrom(raw: i64) => *AlignNode {
 }
 func AlignNode.GetTypeId() => i32 {
 	return alignnode_type()
+}
+func ObjectAsAlignNode(object: Object) => *AlignNode {
+	if object.GetTypeId() == alignnode_type() {
+		return AlignNodeFrom(object.GetRaw())
+	}
+	return nil
 }
 func AlignNode.Css(style: string) {
 	alignnode_css(*this.raw, ToDoraString(style))

@@ -21,6 +21,7 @@ func PlatformerFaceFrom(raw: i64) => *PlatformerFace {
 	if raw == 0 {
 		return nil
 	}
+	ObjectRetain(raw)
 	object := PlatformerFace{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)
@@ -29,6 +30,12 @@ func PlatformerFaceFrom(raw: i64) => *PlatformerFace {
 }
 func PlatformerFace.GetTypeId() => i32 {
 	return platformer_face_type()
+}
+func ObjectAsPlatformerFace(object: Object) => *PlatformerFace {
+	if object.GetTypeId() == platformer_face_type() {
+		return PlatformerFaceFrom(object.GetRaw())
+	}
+	return nil
 }
 func PlatformerFace.AddChild(face: PlatformerFace) {
 	platformer_face_add_child(*this.raw, face.GetRaw())

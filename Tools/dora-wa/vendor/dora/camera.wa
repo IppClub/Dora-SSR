@@ -15,6 +15,7 @@ func CameraFrom(raw: i64) => *Camera {
 	if raw == 0 {
 		return nil
 	}
+	ObjectRetain(raw)
 	object := Camera{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)
@@ -23,6 +24,12 @@ func CameraFrom(raw: i64) => *Camera {
 }
 func Camera.GetTypeId() => i32 {
 	return camera_type()
+}
+func ObjectAsCamera(object: Object) => *Camera {
+	if object.GetTypeId() == camera_type() {
+		return CameraFrom(object.GetRaw())
+	}
+	return nil
 }
 func Camera.GetName() => string {
 	return FromDoraString(camera_get_name(*this.raw))

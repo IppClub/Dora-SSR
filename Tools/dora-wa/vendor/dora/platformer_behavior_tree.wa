@@ -37,6 +37,7 @@ func PlatformerBehaviorTreeFrom(raw: i64) => *PlatformerBehaviorTree {
 	if raw == 0 {
 		return nil
 	}
+	ObjectRetain(raw)
 	object := PlatformerBehaviorTree{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)
@@ -45,6 +46,12 @@ func PlatformerBehaviorTreeFrom(raw: i64) => *PlatformerBehaviorTree {
 }
 func PlatformerBehaviorTree.GetTypeId() => i32 {
 	return platformer_behavior_tree_type()
+}
+func ObjectAsPlatformerBehaviorTree(object: Object) => *PlatformerBehaviorTree {
+	if object.GetTypeId() == platformer_behavior_tree_type() {
+		return PlatformerBehaviorTreeFrom(object.GetRaw())
+	}
+	return nil
 }
 func PlatformerBehaviorTreeSeq(nodes: *[]PlatformerBehaviorTree) => PlatformerBehaviorTree {
 	return *PlatformerBehaviorTreeFrom(platformer_behavior_leaf_seq(ToDoraPlatformerBehaviorTreeBuf(nodes)))

@@ -21,6 +21,7 @@ func EffectFrom(raw: i64) => *Effect {
 	if raw == 0 {
 		return nil
 	}
+	ObjectRetain(raw)
 	object := Effect{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)
@@ -29,6 +30,12 @@ func EffectFrom(raw: i64) => *Effect {
 }
 func Effect.GetTypeId() => i32 {
 	return effect_type()
+}
+func ObjectAsEffect(object: Object) => *Effect {
+	if object.GetTypeId() == effect_type() {
+		return EffectFrom(object.GetRaw())
+	}
+	return nil
 }
 func Effect.Add(pass: Pass) {
 	effect_add(*this.raw, pass.GetRaw())

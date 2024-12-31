@@ -25,6 +25,7 @@ func PassFrom(raw: i64) => *Pass {
 	if raw == 0 {
 		return nil
 	}
+	ObjectRetain(raw)
 	object := Pass{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)
@@ -33,6 +34,12 @@ func PassFrom(raw: i64) => *Pass {
 }
 func Pass.GetTypeId() => i32 {
 	return pass_type()
+}
+func ObjectAsPass(object: Object) => *Pass {
+	if object.GetTypeId() == pass_type() {
+		return PassFrom(object.GetRaw())
+	}
+	return nil
 }
 func Pass.SetGrabPass(val: bool) {
 	pass_set_grab_pass(*this.raw, ToDoraBool(val))

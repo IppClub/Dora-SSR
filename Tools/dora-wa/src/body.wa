@@ -1,0 +1,79 @@
+import "dora"
+
+func test_body() {
+	gravity := dora.Vec2{X: 0.0, Y: -10.0}
+	const (
+		group_zero = 0
+		group_one  = 1
+		group_two  = 2
+	)
+
+	terrain_def := dora.NewBodyDef()
+	terrain_def.SetType(dora.BodyTypeStatic)
+	terrain_def.AttachPolygon(800.0, 10.0, 1.0, 0.8, 0.2)
+
+	polygon_def := dora.NewBodyDef()
+	polygon_def.SetType(dora.BodyTypeDynamic)
+	polygon_def.SetLinearAcceleration(gravity)
+	polygon_def.AttachPolygonWithVertices(&[]dora.Vec2{
+		dora.Vec2{X: 60.0, Y: 0.0},
+		dora.Vec2{X: 30.0, Y: -30.0},
+		dora.Vec2{X: -30.0, Y: -30.0},
+		dora.Vec2{X: -60.0, Y: 0.0},
+		dora.Vec2{X: -30.0, Y: 30.0},
+		dora.Vec2{X: 30.0, Y: 30.0},
+	}, 1.0, 0.4, 0.4)
+
+	disk_def := dora.NewBodyDef()
+	disk_def.SetType(dora.BodyTypeDynamic)
+	disk_def.SetLinearAcceleration(gravity)
+	disk_def.AttachDisk(60.0, 1.0, 0.4, 0.4)
+
+	world := dora.NewPhysicsWorld()
+	world.SetY(-200.0)
+	world.SetShouldContact(group_zero, group_one, false)
+	world.SetShouldContact(group_zero, group_two, true)
+	world.SetShouldContact(group_one, group_two, true)
+	world.SetShowDebug(true)
+
+	body := dora.NewBody(terrain_def, world, dora.Vec2{X: 0.0, Y: 0.0}, 0.0)
+	body.SetGroup(group_two)
+	world.AddChild(body.Node)
+
+	body_p := dora.NewBody(polygon_def, world, dora.Vec2{X: 0.0, Y: 500.0}, 15.0)
+	body_p.SetGroup(group_one)
+	world.AddChild(body_p.Node)
+
+	body_d := dora.NewBody(disk_def, world, dora.Vec2{X: 50.0, Y: 800.0}, 0.0)
+	body_d.SetGroup(group_zero)
+	body_d.SetAngularRate(90.0)
+	world.AddChild(body_d.Node)
+
+	windows_flags := dora.ImGuiWindowFlags(
+		dora.ImGuiWindowNoSavedSettings,
+		dora.ImGuiWindowAlwaysAutoResize,
+		dora.ImGuiWindowNoFocusOnAppearing,
+		dora.ImGuiWindowNoNav,
+		dora.ImGuiWindowNoMove,
+	)
+	imgui_node := dora.NewNode()
+	imgui_node.Schedule(func(delta_time: f64) => bool {
+		width := dora.App.GetVisualSize().Width
+		dora.ImGui.SetNextWindowBgAlpha(0.35)
+		dora.ImGui.SetNextWindowPosOpts(
+			dora.Vec2{X: width - 10.0, Y: 10.0},
+			dora.ImGuiCondAlways,
+			dora.Vec2{X: 1.0, Y: 0.0},
+		)
+		dora.ImGui.SetNextWindowSizeOpts(
+			dora.Vec2{X: 240.0, Y: 0.0},
+			dora.ImGuiCondFirstUseEver,
+		)
+		dora.ImGui.BeginOpts("Body", windows_flags, func() {
+			dora.ImGui.Text("Body (Wa)")
+			dora.ImGui.Separator()
+			dora.ImGui.TextWrapped("Basic usage to create physics bodies!")
+		})
+		return false
+	})
+}

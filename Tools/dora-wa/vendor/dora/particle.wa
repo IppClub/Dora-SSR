@@ -21,6 +21,7 @@ func ParticleFrom(raw: i64) => *Particle {
 	if raw == 0 {
 		return nil
 	}
+	ObjectRetain(raw)
 	object := Particle{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)
@@ -29,6 +30,12 @@ func ParticleFrom(raw: i64) => *Particle {
 }
 func Particle.GetTypeId() => i32 {
 	return particle_type()
+}
+func ObjectAsParticle(object: Object) => *Particle {
+	if object.GetTypeId() == particle_type() {
+		return ParticleFrom(object.GetRaw())
+	}
+	return nil
 }
 func Particle.IsActive() => bool {
 	return particlenode_is_active(*this.raw) != 0

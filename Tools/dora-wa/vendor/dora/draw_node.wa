@@ -12,10 +12,10 @@ func drawnode_type() => i32
 func drawnode_set_depth_write(slf: i64, val: i32);
 #wa:import dora drawnode_is_depth_write
 func drawnode_is_depth_write(slf: i64) => i32
-#wa:import dora drawnode__set_blend_func
-func drawnode__set_blend_func(slf: i64, blend_func: i64)
-#wa:import dora drawnode__get_blend_func
-func drawnode__get_blend_func(slf: i64) => i64
+#wa:import dora drawnode_set_blend_func
+func drawnode_set_blend_func(slf: i64, val: i64);
+#wa:import dora drawnode_get_blend_func
+func drawnode_get_blend_func(slf: i64) => i64
 #wa:import dora drawnode_draw_dot
 func drawnode_draw_dot(slf: i64, pos: i64, radius: f32, color: i32)
 #wa:import dora drawnode_draw_segment
@@ -33,6 +33,7 @@ func DrawNodeFrom(raw: i64) => *DrawNode {
 	if raw == 0 {
 		return nil
 	}
+	ObjectRetain(raw)
 	object := DrawNode{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)
@@ -42,17 +43,23 @@ func DrawNodeFrom(raw: i64) => *DrawNode {
 func DrawNode.GetTypeId() => i32 {
 	return drawnode_type()
 }
+func ObjectAsDrawNode(object: Object) => *DrawNode {
+	if object.GetTypeId() == drawnode_type() {
+		return DrawNodeFrom(object.GetRaw())
+	}
+	return nil
+}
 func DrawNode.SetDepthWrite(val: bool) {
 	drawnode_set_depth_write(*this.raw, ToDoraBool(val))
 }
 func DrawNode.IsDepthWrite() => bool {
 	return drawnode_is_depth_write(*this.raw) != 0
 }
-func DrawNode.SetBlendFunc(blend_func: BlendFunc) {
-	drawnode__set_blend_func(*this.raw, blend_func.ToValue())
+func DrawNode.SetBlendFunc(val: BlendFunc) {
+	drawnode_set_blend_func(*this.raw, val.ToValue())
 }
 func DrawNode.GetBlendFunc() => BlendFunc {
-	return BlendFuncFrom(drawnode__get_blend_func(*this.raw))
+	return BlendFuncFrom(drawnode_get_blend_func(*this.raw))
 }
 func DrawNode.DrawDot(pos: Vec2, radius: f32, color: Color) {
 	drawnode_draw_dot(*this.raw, pos.ToValue(), radius, color.ToARGB())

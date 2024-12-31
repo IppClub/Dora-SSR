@@ -12,8 +12,8 @@ extern "C" {
 	fn grid_get_grid_y(slf: i64) -> i32;
 	fn grid_set_depth_write(slf: i64, val: i32);
 	fn grid_is_depth_write(slf: i64) -> i32;
-	fn grid__set_blend_func(slf: i64, blend_func: i64);
-	fn grid__get_blend_func(slf: i64) -> i64;
+	fn grid_set_blend_func(slf: i64, val: i64);
+	fn grid_get_blend_func(slf: i64) -> i64;
 	fn grid_set_effect(slf: i64, val: i64);
 	fn grid_get_effect(slf: i64) -> i64;
 	fn grid_set_texture_rect(slf: i64, val: i64);
@@ -61,11 +61,13 @@ impl Grid {
 	pub fn is_depth_write(&self) -> bool {
 		return unsafe { grid_is_depth_write(self.raw()) != 0 };
 	}
-	pub(crate) fn _set_blend_func(&mut self, blend_func: u64) {
-		unsafe { grid__set_blend_func(self.raw(), blend_func as i64); }
+	/// Sets the blend function for the grid.
+	pub fn set_blend_func(&mut self, val: crate::dora::BlendFunc) {
+		unsafe { grid_set_blend_func(self.raw(), val.to_value()) };
 	}
-	pub(crate) fn _get_blend_func(&self) -> u64 {
-		unsafe { return grid__get_blend_func(self.raw()) as u64; }
+	/// Gets the blend function for the grid.
+	pub fn get_blend_func(&self) -> crate::dora::BlendFunc {
+		return unsafe { crate::dora::BlendFunc::from(grid_get_blend_func(self.raw())) };
 	}
 	/// Sets the sprite effect applied to the grid.
 	/// Default is `SpriteEffect::new("builtin:vs_sprite", "builtin:fs_sprite")`.

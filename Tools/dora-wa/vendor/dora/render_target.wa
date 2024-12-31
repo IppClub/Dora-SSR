@@ -33,6 +33,7 @@ func RenderTargetFrom(raw: i64) => *RenderTarget {
 	if raw == 0 {
 		return nil
 	}
+	ObjectRetain(raw)
 	object := RenderTarget{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)
@@ -41,6 +42,12 @@ func RenderTargetFrom(raw: i64) => *RenderTarget {
 }
 func RenderTarget.GetTypeId() => i32 {
 	return rendertarget_type()
+}
+func ObjectAsRenderTarget(object: Object) => *RenderTarget {
+	if object.GetTypeId() == rendertarget_type() {
+		return RenderTargetFrom(object.GetRaw())
+	}
+	return nil
 }
 func RenderTarget.GetWidth() => i32 {
 	return rendertarget_get_width(*this.raw)

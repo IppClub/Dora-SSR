@@ -1076,8 +1076,8 @@ object class Grabber
 	optional common Camera* camera;
 	/// the sprite effect applied to the texture.
 	optional common SpriteEffect* effect;
-	void setBlendFunc @ _setBlendFunc(BlendFunc blendFunc);
-	BlendFunc getBlendFunc @ _getBlendFunc() const;
+	/// the blend function for the grabber.
+	common BlendFunc blendFunc;
 	/// the clear color used to clear the texture.
 	common Color clearColor;
 	/// Sets the position of a vertex in the grabber grid.
@@ -1586,8 +1586,8 @@ object class Sprite : public INode
 	common Rect textureRect;
 	/// the texture for the sprite.
 	optional readonly common Texture2D* texture;
-	void setBlendFunc @ _setBlendFunc(BlendFunc blendFunc);
-	BlendFunc getBlendFunc @ _getBlendFunc() const;
+	/// the blend function for the sprite.
+	common BlendFunc blendFunc;
 	/// the sprite shader effect.
 	common SpriteEffect* effect;
 	/// the texture wrapping mode for the U (horizontal) axis.
@@ -1646,8 +1646,8 @@ object class Grid : public INode
 	readonly common uint32_t gridY;
 	/// whether depth writes are enabled.
 	boolean bool depthWrite;
-	void setBlendFunc @ _setBlendFunc(BlendFunc blendFunc);
-	BlendFunc getBlendFunc @ _getBlendFunc() const;
+	/// the blend function for the grid.
+	common BlendFunc blendFunc;
 	/// the sprite effect applied to the grid.
 	/// Default is `SpriteEffect::new("builtin:vs_sprite", "builtin:fs_sprite")`.
 	common SpriteEffect* effect;
@@ -1811,8 +1811,8 @@ object class Label : public INode
 	common Vec2 smooth;
 	/// the text to be rendered.
 	common string text;
-	void setBlendFunc @ _setBlendFunc(BlendFunc blendFunc);
-	BlendFunc getBlendFunc @ _getBlendFunc() const;
+	/// the blend function for the label.
+	common BlendFunc blendFunc;
 	/// whether depth writing is enabled. (Default is false)
 	boolean bool depthWrite;
 	/// whether the label is using batched rendering.
@@ -1935,8 +1935,8 @@ object class DrawNode : public INode
 {
 	/// whether to write to the depth buffer when drawing (default is false).
 	boolean bool depthWrite;
-	void setBlendFunc @ _setBlendFunc(BlendFunc blendFunc);
-	BlendFunc getBlendFunc @ _getBlendFunc() const;
+	/// the blend function for the draw node.
+	common BlendFunc blendFunc;
 	/// Draws a dot at a specified position with a specified radius and color.
 	///
 	/// # Arguments
@@ -1984,8 +1984,8 @@ object class Line : public INode
 {
 	/// whether the depth should be written. (Default is false)
 	boolean bool depthWrite;
-	void setBlendFunc @ _setBlendFunc(BlendFunc blendFunc);
-	BlendFunc getBlendFunc @ _getBlendFunc() const;
+	/// the blend function for the line node.
+	common BlendFunc blendFunc;
 	/// Adds vertices to the line.
 	///
 	/// # Arguments
@@ -2454,8 +2454,8 @@ object class TileNode : public INode
 {
 	/// whether the depth buffer should be written to when rendering the tilemap.
 	boolean bool depthWrite;
-	void setBlendFunc @ _setBlendFunc(BlendFunc blendFunc);
-	BlendFunc getBlendFunc @ _getBlendFunc() const;
+	/// the blend function for the tilemap.
+	common BlendFunc blendFunc;
 	/// the tilemap shader effect.
 	common SpriteEffect* effect;
 	/// the texture filtering mode for the tilemap.

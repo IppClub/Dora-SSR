@@ -29,6 +29,7 @@ func PhysicsWorldFrom(raw: i64) => *PhysicsWorld {
 	if raw == 0 {
 		return nil
 	}
+	ObjectRetain(raw)
 	object := PhysicsWorld{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)
@@ -37,6 +38,12 @@ func PhysicsWorldFrom(raw: i64) => *PhysicsWorld {
 }
 func PhysicsWorld.GetTypeId() => i32 {
 	return physicsworld_type()
+}
+func ObjectAsPhysicsWorld(object: Object) => *PhysicsWorld {
+	if object.GetTypeId() == physicsworld_type() {
+		return PhysicsWorldFrom(object.GetRaw())
+	}
+	return nil
 }
 func PhysicsWorld.Query(rect: Rect, handler: func(body: Body) => bool) => bool {
 	stack0 := NewCallStack()

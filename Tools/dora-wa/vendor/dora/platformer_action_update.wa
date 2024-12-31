@@ -15,6 +15,7 @@ func PlatformerActionUpdateFrom(raw: i64) => *PlatformerActionUpdate {
 	if raw == 0 {
 		return nil
 	}
+	ObjectRetain(raw)
 	object := PlatformerActionUpdate{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)
@@ -23,6 +24,12 @@ func PlatformerActionUpdateFrom(raw: i64) => *PlatformerActionUpdate {
 }
 func PlatformerActionUpdate.GetTypeId() => i32 {
 	return platformer_actionupdate_type()
+}
+func ObjectAsPlatformerActionUpdate(object: Object) => *PlatformerActionUpdate {
+	if object.GetTypeId() == platformer_actionupdate_type() {
+		return PlatformerActionUpdateFrom(object.GetRaw())
+	}
+	return nil
 }
 func NewPlatformerActionUpdate(update: func(owner: PlatformerUnit, action: PlatformerUnitAction, delta_time: f32) => bool) => PlatformerActionUpdate {
 	stack0 := NewCallStack()

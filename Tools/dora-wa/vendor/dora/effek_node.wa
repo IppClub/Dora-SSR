@@ -19,6 +19,7 @@ func EffekNodeFrom(raw: i64) => *EffekNode {
 	if raw == 0 {
 		return nil
 	}
+	ObjectRetain(raw)
 	object := EffekNode{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)
@@ -27,6 +28,12 @@ func EffekNodeFrom(raw: i64) => *EffekNode {
 }
 func EffekNode.GetTypeId() => i32 {
 	return effeknode_type()
+}
+func ObjectAsEffekNode(object: Object) => *EffekNode {
+	if object.GetTypeId() == effeknode_type() {
+		return EffekNodeFrom(object.GetRaw())
+	}
+	return nil
 }
 func EffekNode.Play(filename: string, pos: Vec2, z: f32) => i32 {
 	return effeknode_play(*this.raw, ToDoraString(filename), pos.ToValue(), z)

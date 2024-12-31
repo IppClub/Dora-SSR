@@ -29,6 +29,7 @@ func DragonBoneFrom(raw: i64) => *DragonBone {
 	if raw == 0 {
 		return nil
 	}
+	ObjectRetain(raw)
 	object := DragonBone{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)
@@ -37,6 +38,12 @@ func DragonBoneFrom(raw: i64) => *DragonBone {
 }
 func DragonBone.GetTypeId() => i32 {
 	return dragonbone_type()
+}
+func ObjectAsDragonBone(object: Object) => *DragonBone {
+	if object.GetTypeId() == dragonbone_type() {
+		return DragonBoneFrom(object.GetRaw())
+	}
+	return nil
 }
 func DragonBone.SetHitTestEnabled(val: bool) {
 	dragonbone_set_hit_test_enabled(*this.raw, ToDoraBool(val))

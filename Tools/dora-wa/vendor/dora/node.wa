@@ -247,6 +247,7 @@ func NodeFrom(raw: i64) => *Node {
 	if raw == 0 {
 		return nil
 	}
+	ObjectRetain(raw)
 	object := Node{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)
@@ -255,6 +256,12 @@ func NodeFrom(raw: i64) => *Node {
 }
 func Node.GetTypeId() => i32 {
 	return node_type()
+}
+func ObjectAsNode(object: Object) => *Node {
+	if object.GetTypeId() == node_type() {
+		return NodeFrom(object.GetRaw())
+	}
+	return nil
 }
 func Node.SetOrder(val: i32) {
 	node_set_order(*this.raw, val)

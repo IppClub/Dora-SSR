@@ -17,10 +17,10 @@ void line_set_depth_write(int64_t self, int32_t val) {
 int32_t line_is_depth_write(int64_t self) {
 	return r_cast<Line*>(self)->isDepthWrite() ? 1 : 0;
 }
-void line__set_blend_func(int64_t self, int64_t blend_func) {
-	r_cast<Line*>(self)->setBlendFunc(BlendFunc(s_cast<uint64_t>(blend_func)));
+void line_set_blend_func(int64_t self, int64_t val) {
+	r_cast<Line*>(self)->setBlendFunc(BlendFunc(s_cast<uint64_t>(val)));
 }
-int64_t line__get_blend_func(int64_t self) {
+int64_t line_get_blend_func(int64_t self) {
 	return s_cast<int64_t>(r_cast<Line*>(self)->getBlendFunc().toValue());
 }
 void line_add(int64_t self, int64_t verts, int32_t color) {
@@ -44,8 +44,8 @@ static void linkLine(wasm3::module3& mod) {
 	mod.link_optional("*", "line_type", line_type);
 	mod.link_optional("*", "line_set_depth_write", line_set_depth_write);
 	mod.link_optional("*", "line_is_depth_write", line_is_depth_write);
-	mod.link_optional("*", "line__set_blend_func", line__set_blend_func);
-	mod.link_optional("*", "line__get_blend_func", line__get_blend_func);
+	mod.link_optional("*", "line_set_blend_func", line_set_blend_func);
+	mod.link_optional("*", "line_get_blend_func", line_get_blend_func);
 	mod.link_optional("*", "line_add", line_add);
 	mod.link_optional("*", "line_set", line_set);
 	mod.link_optional("*", "line_clear", line_clear);

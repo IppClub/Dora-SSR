@@ -21,6 +21,7 @@ func GroupFrom(raw: i64) => *Group {
 	if raw == 0 {
 		return nil
 	}
+	ObjectRetain(raw)
 	object := Group{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)
@@ -29,6 +30,12 @@ func GroupFrom(raw: i64) => *Group {
 }
 func Group.GetTypeId() => i32 {
 	return group_type()
+}
+func ObjectAsGroup(object: Object) => *Group {
+	if object.GetTypeId() == group_type() {
+		return GroupFrom(object.GetRaw())
+	}
+	return nil
 }
 func Group.GetCount() => i32 {
 	return entitygroup_get_count(*this.raw)

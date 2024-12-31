@@ -16,13 +16,13 @@ func keyboard__is_key_pressed(name: i64) => i32
 func keyboard_update_ime_pos_hint(win_pos: i64)
 type _Keyboard struct { }
 global Keyboard = _Keyboard{}
-func _Keyboard.IsKeyDown(name: string) => bool {
+func _Keyboard._IsKeyDown(name: string) => bool {
 	return keyboard__is_key_down(ToDoraString(name)) != 0
 }
-func _Keyboard.IsKeyUp(name: string) => bool {
+func _Keyboard._IsKeyUp(name: string) => bool {
 	return keyboard__is_key_up(ToDoraString(name)) != 0
 }
-func _Keyboard.IsKeyPressed(name: string) => bool {
+func _Keyboard._IsKeyPressed(name: string) => bool {
 	return keyboard__is_key_pressed(ToDoraString(name)) != 0
 }
 func _Keyboard.UpdateImePosHint(win_pos: Vec2) {

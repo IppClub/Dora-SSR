@@ -19,6 +19,7 @@ func Texture2DFrom(raw: i64) => *Texture2D {
 	if raw == 0 {
 		return nil
 	}
+	ObjectRetain(raw)
 	object := Texture2D{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)
@@ -27,6 +28,12 @@ func Texture2DFrom(raw: i64) => *Texture2D {
 }
 func Texture2D.GetTypeId() => i32 {
 	return texture2d_type()
+}
+func ObjectAsTexture2D(object: Object) => *Texture2D {
+	if object.GetTypeId() == texture2d_type() {
+		return Texture2DFrom(object.GetRaw())
+	}
+	return nil
 }
 func Texture2D.GetWidth() => i32 {
 	return texture2d_get_width(*this.raw)

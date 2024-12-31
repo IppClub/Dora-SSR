@@ -31,6 +31,7 @@ func SpineFrom(raw: i64) => *Spine {
 	if raw == 0 {
 		return nil
 	}
+	ObjectRetain(raw)
 	object := Spine{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)
@@ -39,6 +40,12 @@ func SpineFrom(raw: i64) => *Spine {
 }
 func Spine.GetTypeId() => i32 {
 	return spine_type()
+}
+func ObjectAsSpine(object: Object) => *Spine {
+	if object.GetTypeId() == spine_type() {
+		return SpineFrom(object.GetRaw())
+	}
+	return nil
 }
 func Spine.SetHitTestEnabled(val: bool) {
 	spine_set_hit_test_enabled(*this.raw, ToDoraBool(val))

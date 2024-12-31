@@ -45,6 +45,7 @@ func PlayableFrom(raw: i64) => *Playable {
 	if raw == 0 {
 		return nil
 	}
+	ObjectRetain(raw)
 	object := Playable{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)
@@ -53,6 +54,12 @@ func PlayableFrom(raw: i64) => *Playable {
 }
 func Playable.GetTypeId() => i32 {
 	return playable_type()
+}
+func ObjectAsPlayable(object: Object) => *Playable {
+	if object.GetTypeId() == playable_type() {
+		return PlayableFrom(object.GetRaw())
+	}
+	return nil
 }
 func Playable.SetLook(val: string) {
 	playable_set_look(*this.raw, ToDoraString(val))

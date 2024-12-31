@@ -1,94 +1,71 @@
 import "dora"
 
+func all_clear() {
+	dora.Director.Cleanup()
+	dora.Cache.Unload()
+	dora.EntityClear()
+	dora.PlatformerData.Clear()
+	dora.PlatformerUnitActionClear()
+}
+
 func init {
-	s := "凹语言 x Dora"
-	hello := "你好，凹语言！"
-	dora.Println(hello, s)
-
-	blend_func := dora.NewBlendFunc(dora.BlendFuncSrcColor, dora.BlendFuncInvSrcColor)
-	dora.Println(blend_func.ToValue())
-
-	cs := dora.NewCallStack()
-	cs.Push(123)
-	cs.Push("456")
-	cs.Push(789)
-	cs.Push(true)
-	cs.Push(101.0)
-	cs.Push(102.0)
-
-	val := dora.NewValue("hello")
-	str, ok := val.GetStr()
-	if ok {
-		dora.Println(str)
-	}
-
-	vec2 := dora.Vec2{X: 1.0, Y: 2.0}
-	v1 := (vec2 + dora.Vec2{X: 3.0, Y: 4.0}) * 2.0
-	cs.Push(v1)
-
-	func_id: i32
-	func_id = dora.PushFunction(func() {
-		dora.Println("closure", vec2, v1, func_id)
-	})
-	dora.CallFunction(func_id)
-	dora.DerefFunction(func_id)
-
-	arr := dora.NewArray()
-	dora.Println(arr.IsEmpty(), arr.GetCount())
-	arr.Add(1)
-	arr.Add("hello")
-	arr.Add(true)
-	arr.Add(101.0)
-	arr.Add(102.0)
-	arr.Add(dora.Vec2{X: 1.0, Y: 2.0})
-	arr.Add(dora.Size{Width: 1.0, Height: 2.0})
-	dora.Println(arr.Get(0))
-
-	dict := dora.NewDictionary()
-	dict.Set("hello", "world")
-	dict.Set("foo", 123)
-	dict.Set("bar", dora.Vec2{X: 1.0, Y: 2.0})
-	dict.Set("baz", dora.Size{Width: 1.0, Height: 2.0})
-	dora.Println(dict.Get("hello"))
-	dora.Println(dict.Get("foo"))
-	dora.Println(dict.Get("bar"))
-	dora.Println(dict.Get("baz"))
-
-	sprite := dora.NewSpriteWithFile("Image/logo.png")
-	dora.Println(sprite.GetAnchor())
-	sprite.SetUwrap(dora.TextureWrapClamp)
-	sprite.SetFilter(dora.TextureFilterPoint)
-	sprite.SetX(-200)
-	sprite.SetScaleX(0.2)
-	sprite.SetScaleY(0.2)
-	sprite.SetAngle(90.0)
-	sprite.SetColor(dora.Color{Color3: dora.Color3{R: 0, G: 255, B: 255}, A: 255})
-	total: f64 = 0.0
-	sprite.Schedule(func(delta_time: f64) => bool {
-		total += delta_time
-		dora.Println(total)
-		if total >= 1.0 {
-			return true
-		}
+	dora.Director.SchedulePosted(func(_: f64) => bool {
+		size := dora.App.GetVisualSize()
+		dora.ImGui.SetNextWindowSizeOpts(
+			dora.Vec2{X: 260, Y: 300},
+			dora.ImGuiCondFirstUseEver,
+		)
+		dora.ImGui.SetNextWindowPosOpts(
+			dora.Vec2{X: size.Width / 2.0, Y: size.Height / 2.0},
+			dora.ImGuiCondFirstUseEver,
+			dora.Vec2{X: 0.5, Y: 0.5},
+		)
+		dora.ImGui.BeginOpts("Wa Tests",
+			dora.ImGuiWindowFlags(dora.ImGuiWindowNoSavedSettings),
+			func() {
+				button_size := dora.Vec2{X: 200, Y: 0}
+				if dora.ImGui.Button("Hello World", button_size) {
+					all_clear()
+					test_hello_world()
+				}
+				if dora.ImGui.Button("Quick Start", button_size) {
+					all_clear()
+					test_quick_start()
+				}
+				if dora.ImGui.Button("Body", button_size) {
+					all_clear()
+					test_body()
+				}
+				/*
+					if dora.ImGui.Button("Entity Move", button_size) {
+						all_clear()
+					}
+					if dora.ImGui.Button("SQLite", button_size) {
+						all_clear()
+					}
+					if dora.ImGui.Button("Contact", button_size) {
+						all_clear()
+					}
+					if dora.ImGui.Button("Sprite", button_size) {
+						all_clear()
+					}
+					if dora.ImGui.Button("Model", button_size) {
+						all_clear()
+					}
+					if dora.ImGui.Button("Render Target", button_size) {
+						all_clear()
+					}
+					if dora.ImGui.Button("Excel Test", button_size) {
+						all_clear()
+					}
+					if dora.ImGui.Button("Layout", button_size) {
+						all_clear()
+					}
+					if dora.ImGui.Button("VG Button", button_size) {
+						all_clear()
+					}
+				*/
+			})
 		return false
 	})
-	sprite.PerformDef(
-		dora.ActionDefSequence(
-			&[]dora.ActionDef{
-				dora.ActionDefMoveTo(
-					1,
-					dora.Vec2Zero,
-					dora.Vec2{X: -200, Y: 0},
-					dora.EaseOutInQuad,
-				),
-				dora.ActionDefMoveTo(
-					1,
-					dora.Vec2{X: -200, Y: 0},
-					dora.Vec2Zero,
-					dora.EaseOutInQuad,
-				),
-			},
-		),
-		true,
-	)
 }

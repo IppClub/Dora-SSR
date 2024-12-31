@@ -19,7 +19,7 @@ NS_DORA_BEGIN
 
 #define DoraVersion(major, minor, patch) ((major) << 16 | (minor) << 8 | (patch))
 
-static const int doraWASMVersion = DoraVersion(0, 4, 17);
+static const int doraWASMVersion = DoraVersion(0, 4, 18);
 
 static std::string VersionToStr(int version) {
 	return std::to_string((version & 0x00ff0000) >> 16) + '.' + std::to_string((version & 0x0000ff00) >> 8) + '.' + std::to_string(version & 0x000000ff);
@@ -1400,18 +1400,6 @@ void group_watch(int64_t group, int32_t func, int64_t stack) {
 		return std::get<bool>(args->pop());
 	});
 }
-int64_t group_find(int64_t group, int32_t func, int64_t stack) {
-	std::shared_ptr<void> deref(nullptr, [func](auto) {
-		SharedWasmRuntime.deref(func);
-	});
-	auto args = r_cast<CallStack*>(stack);
-	return Object_From(r_cast<EntityGroup*>(group)->find([func, args, deref](Entity* e) {
-		args->clear();
-		args->push(e);
-		SharedWasmRuntime.invoke(func);
-		return std::get<bool>(args->pop());
-	}));
-}
 
 // EntityObserver
 
@@ -1765,7 +1753,6 @@ static void linkDoraModule(wasm3::module3& mod) {
 	mod.link_optional("*", "entity_get_old", entity_get_old);
 
 	mod.link_optional("*", "group_watch", group_watch);
-	mod.link_optional("*", "group_find", group_find);
 
 	mod.link_optional("*", "observer_watch", observer_watch);
 

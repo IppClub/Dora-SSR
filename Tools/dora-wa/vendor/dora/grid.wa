@@ -16,10 +16,10 @@ func grid_get_grid_y(slf: i64) => i32
 func grid_set_depth_write(slf: i64, val: i32);
 #wa:import dora grid_is_depth_write
 func grid_is_depth_write(slf: i64) => i32
-#wa:import dora grid__set_blend_func
-func grid__set_blend_func(slf: i64, blend_func: i64)
-#wa:import dora grid__get_blend_func
-func grid__get_blend_func(slf: i64) => i64
+#wa:import dora grid_set_blend_func
+func grid_set_blend_func(slf: i64, val: i64);
+#wa:import dora grid_get_blend_func
+func grid_get_blend_func(slf: i64) => i64
 #wa:import dora grid_set_effect
 func grid_set_effect(slf: i64, val: i64);
 #wa:import dora grid_get_effect
@@ -55,6 +55,7 @@ func GridFrom(raw: i64) => *Grid {
 	if raw == 0 {
 		return nil
 	}
+	ObjectRetain(raw)
 	object := Grid{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)
@@ -63,6 +64,12 @@ func GridFrom(raw: i64) => *Grid {
 }
 func Grid.GetTypeId() => i32 {
 	return grid_type()
+}
+func ObjectAsGrid(object: Object) => *Grid {
+	if object.GetTypeId() == grid_type() {
+		return GridFrom(object.GetRaw())
+	}
+	return nil
 }
 func Grid.GetGridX() => i32 {
 	return grid_get_grid_x(*this.raw)
@@ -76,11 +83,11 @@ func Grid.SetDepthWrite(val: bool) {
 func Grid.IsDepthWrite() => bool {
 	return grid_is_depth_write(*this.raw) != 0
 }
-func Grid.SetBlendFunc(blend_func: BlendFunc) {
-	grid__set_blend_func(*this.raw, blend_func.ToValue())
+func Grid.SetBlendFunc(val: BlendFunc) {
+	grid_set_blend_func(*this.raw, val.ToValue())
 }
 func Grid.GetBlendFunc() => BlendFunc {
-	return BlendFuncFrom(grid__get_blend_func(*this.raw))
+	return BlendFuncFrom(grid_get_blend_func(*this.raw))
 }
 func Grid.SetEffect(val: SpriteEffect) {
 	grid_set_effect(*this.raw, val.GetRaw())

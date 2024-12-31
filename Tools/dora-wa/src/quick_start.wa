@@ -1,0 +1,19 @@
+import "dora"
+
+func test_quick_start() {
+	// 创建图片精灵
+	sprite := dora.NewSpriteWithFile("Image/logo.png")
+	// 创建游戏场景树根节点
+	root := dora.NewNode()
+	// 挂载图片精灵到游戏场景树根节点
+	root.AddChild(sprite.Node)
+	// 接收并处理点击事件移动图片精灵
+	root.OnTapBegan(func(touch: dora.Touch) {
+		sprite.PerformDef(dora.ActionDefMoveTo(
+			1.0,                  // 持续时间，单位为秒
+			sprite.GetPosition(), // 开始位置
+			touch.GetLocation(),  // 结束位置
+			dora.EaseOutBack,     // 缓动函数
+		), false)
+	})
+}

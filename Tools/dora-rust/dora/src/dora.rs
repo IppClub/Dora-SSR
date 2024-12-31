@@ -2146,7 +2146,6 @@ impl Slot {
 	/// * callback: F - The callback to be called when the event is triggered with the following arguments:
 	/// 	* text: String - The text that was input.
 	pub fn on_text_input<F>(node: &mut dyn INode, mut callback: F) where F: FnMut(/*text*/ String) + 'static {
-		node.attach_ime();
 		node.slot(Slot::TEXT_INPUT, Box::new(move |stack| {
 			let text = match stack.pop_str() {
 				Some(text) => text,
@@ -2164,7 +2163,6 @@ impl Slot {
 	/// 	* text: String - The text that is being edited.
 	/// 	* start_pos: i32 - The starting position of the text being edited.
 	pub fn on_text_editing<F>(node: &mut dyn INode, mut callback: F) where F: FnMut(/*text*/ String, /*start_pos*/ i32) + 'static {
-		node.attach_ime();
 		node.slot(Slot::TEXT_EDITING, Box::new(move |stack| {
 			let (
 				text,
@@ -2814,16 +2812,16 @@ impl Group {
 	///
 	/// # Arguments
 	///
-	/// * `func` - The function to call when an entity is added or changed. Returns true to stop watching.
+	/// * `callback` - The function to call when an entity is added or changed. Returns true to stop watching.
 	///
 	/// # Returns
 	///
 	/// * `Group` - The same group, for method chaining.
-	pub fn watch(&mut self, mut func: Box<dyn FnMut(&mut CallStack) -> bool>) -> &mut Group {
+	pub fn watch(&mut self, mut callback: Box<dyn FnMut(&mut CallStack) -> bool>) -> &mut Group {
 		let mut stack = CallStack::new();
 		let stack_raw = stack.raw();
 		let func_id = push_function(Box::new(move || {
-			let result = func(&mut stack);
+			let result = callback(&mut stack);
 			stack.push_bool(result);
 		}));
 		unsafe { group_watch(self.raw(), func_id, stack_raw); }
@@ -2833,13 +2831,13 @@ impl Group {
 	///
 	/// # Arguments
 	///
-	/// * `func` - The function to call for each entity. Returning true inside the function will stop iteration.
+	/// * `visitor` - The function to call for each entity. Returning true inside the function will stop iteration.
 	///
 	/// # Returns
 	///
 	/// * `bool` - Returns false if all entities were processed, true if the iteration was interrupted.
-	pub fn each(&self, func: Box<dyn FnMut(&Entity) -> bool>) -> bool {
-		match self.find(func) {
+	pub fn each(&self, visitor: Box<dyn FnMut(&Entity) -> bool>) -> bool {
+		match self.find(visitor) {
 			Some(_) => true,
 			None => false
 		}
@@ -2866,16 +2864,16 @@ impl Observer {
 	///
 	/// # Arguments
 	///
-	/// * `func` - The function to call when a change occurs. Returns true to stop watching.
+	/// * `callback` - The function to call when a change occurs. Returns true to stop watching.
 	///
 	/// # Returns
 	///
 	/// * `Observer` - The same observer, for method chaining.
-	pub fn watch(&mut self, mut func: Box<dyn FnMut(&mut CallStack) -> bool>) -> &mut Observer {
+	pub fn watch(&mut self, mut callback: Box<dyn FnMut(&mut CallStack) -> bool>) -> &mut Observer {
 		let mut stack = CallStack::new();
 		let stack_raw = stack.raw();
 		let func_id = push_function(Box::new(move || {
-			let result = func(&mut stack);
+			let result = callback(&mut stack);
 			stack.push_bool(result);
 		}));
 		unsafe { observer_watch(self.raw(), func_id, stack_raw); }
@@ -3104,99 +3102,13 @@ impl BlendFunc {
 	pub fn new(src: BFunc, dst: BFunc) -> Self {
 		BlendFunc::new_seperate(src, dst, src, dst)
 	}
-	pub (crate) fn to_value(&self) -> u64 {
-		self.value
-	}
-}
-
-impl Sprite {
-	/// Sets the blend function for the sprite.
-	pub fn set_blend_func(&mut self, blend_func: BlendFunc) {
-		self._set_blend_func(blend_func.to_value());
-	}
-	/// Gets the blend function for the sprite.
-	pub fn get_blend_func(&self) -> BlendFunc {
+	pub fn from(value: i64) -> Self {
 		BlendFunc {
-			value: self._get_blend_func()
+			value: value as u64
 		}
 	}
-}
-
-impl Grid {
-	/// Sets the blend function for the grid.
-	pub fn set_blend_func(&mut self, blend_func: BlendFunc) {
-		self._set_blend_func(blend_func.to_value());
-	}
-	/// Gets the blend function for the grid.
-	pub fn get_blend_func(&self) -> BlendFunc {
-		BlendFunc {
-			value: self._get_blend_func()
-		}
-	}
-}
-
-impl Label {
-	/// Sets the blend function for the label.
-	pub fn set_blend_func(&mut self, blend_func: BlendFunc) {
-		self._set_blend_func(blend_func.to_value());
-	}
-	/// Gets the blend function for the label.
-	pub fn get_blend_func(&self) -> BlendFunc {
-		BlendFunc {
-			value: self._get_blend_func()
-		}
-	}
-}
-
-impl DrawNode {
-	/// Sets the blend function used to draw the shape.
-	pub fn set_blend_func(&mut self, blend_func: BlendFunc) {
-		self._set_blend_func(blend_func.to_value());
-	}
-	/// Gets the blend function used to draw the shape.
-	pub fn get_blend_func(&self) -> BlendFunc {
-		BlendFunc {
-			value: self._get_blend_func()
-		}
-	}
-}
-
-impl Line {
-	/// Sets the blend function used for rendering the line.
-	pub fn set_blend_func(&mut self, blend_func: BlendFunc) {
-		self._set_blend_func(blend_func.to_value());
-	}
-	/// Gets the blend function used for rendering the line.
-	pub fn get_blend_func(&self) -> BlendFunc {
-		BlendFunc {
-			value: self._get_blend_func()
-		}
-	}
-}
-
-impl TileNode {
-	/// Sets the blend function for the tilemap.
-	pub fn set_blend_func(&mut self, blend_func: BlendFunc) {
-		self._set_blend_func(blend_func.to_value());
-	}
-	/// Gets the blend function for the tilemap.
-	pub fn get_blend_func(&self) -> BlendFunc {
-		BlendFunc {
-			value: self._get_blend_func()
-		}
-	}
-}
-
-impl Grabber {
-	/// Sets the blend function applied to the texture.
-	pub fn set_blend_func(&mut self, blend_func: BlendFunc) {
-		self._set_blend_func(blend_func.to_value());
-	}
-	/// Gets the blend function applied to the texture.
-	pub fn get_blend_func(&self) -> BlendFunc {
-		BlendFunc {
-			value: self._get_blend_func()
-		}
+	pub (crate) fn to_value(&self) -> i64 {
+		self.value as i64
 	}
 }
 
@@ -4124,14 +4036,12 @@ impl ImGui {
 	pub fn begin_ret_opts<C>(name: &str, opened: bool, windows_flags: BitFlags<ImGuiWindowFlag>, inside: C) -> (bool, bool) where C: FnOnce() {
 		let mut changed = false;
 		let mut result = false;
-		let mut res_opened = false;
 		IMGUI_STACK.with_borrow_mut(|stack| {
 			stack.push_bool(opened);
 			changed = ImGui::_begin_ret_opts(name, stack, windows_flags.bits() as i32);
-			res_opened = stack.pop_bool().unwrap();
 			result = stack.pop_bool().unwrap();
 		});
-		if res_opened {
+		if result {
 			inside();
 		}
 		ImGui::_end();

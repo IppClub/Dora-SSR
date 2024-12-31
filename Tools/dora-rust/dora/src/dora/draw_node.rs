@@ -10,8 +10,8 @@ extern "C" {
 	fn drawnode_type() -> i32;
 	fn drawnode_set_depth_write(slf: i64, val: i32);
 	fn drawnode_is_depth_write(slf: i64) -> i32;
-	fn drawnode__set_blend_func(slf: i64, blend_func: i64);
-	fn drawnode__get_blend_func(slf: i64) -> i64;
+	fn drawnode_set_blend_func(slf: i64, val: i64);
+	fn drawnode_get_blend_func(slf: i64) -> i64;
 	fn drawnode_draw_dot(slf: i64, pos: i64, radius: f32, color: i32);
 	fn drawnode_draw_segment(slf: i64, from: i64, to: i64, radius: f32, color: i32);
 	fn drawnode_draw_polygon(slf: i64, verts: i64, fill_color: i32, border_width: f32, border_color: i32);
@@ -42,11 +42,13 @@ impl DrawNode {
 	pub fn is_depth_write(&self) -> bool {
 		return unsafe { drawnode_is_depth_write(self.raw()) != 0 };
 	}
-	pub(crate) fn _set_blend_func(&mut self, blend_func: u64) {
-		unsafe { drawnode__set_blend_func(self.raw(), blend_func as i64); }
+	/// Sets the blend function for the draw node.
+	pub fn set_blend_func(&mut self, val: crate::dora::BlendFunc) {
+		unsafe { drawnode_set_blend_func(self.raw(), val.to_value()) };
 	}
-	pub(crate) fn _get_blend_func(&self) -> u64 {
-		unsafe { return drawnode__get_blend_func(self.raw()) as u64; }
+	/// Gets the blend function for the draw node.
+	pub fn get_blend_func(&self) -> crate::dora::BlendFunc {
+		return unsafe { crate::dora::BlendFunc::from(drawnode_get_blend_func(self.raw())) };
 	}
 	/// Draws a dot at a specified position with a specified radius and color.
 	///

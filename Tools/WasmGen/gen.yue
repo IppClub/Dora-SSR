@@ -654,10 +654,10 @@ basicTypes =
 		* "i64"
 		* (name)-> "BlendFunc(s_cast<uint64_t>(#{name}))"
 		* (name)-> "s_cast<int64_t>(#{name}.toValue())"
-		* "u64"
-		* "u64"
-		* (name)-> "#{name} as i64"
-		* (name)-> "#{name} as u64"
+		* "crate::dora::BlendFunc"
+		* "crate::dora::BlendFunc"
+		* (name)-> "#{name}.to_value()"
+		* (name)-> "crate::dora::BlendFunc::from(#{name})"
 		* -> error "unsupported"
 		* -> error "unsupported"
 		* --[[10: wa type]] {
@@ -908,7 +908,8 @@ basicTypes =
 toSnakeCase = (name)-> table.concat [sub\lower! for sub in (name\sub(1, 1)\lower! .. name\sub(2))\gsub("%d", "_%1")\gsub("%u", "_%1")\gsub("(%d)_", "%1")\gmatch "[^_]*"], "_"
 
 snakeToPascal = (snakeStr)->
-	snakeStr
+	prefix = if "_" == snakeStr\sub 1,1 then "_" else ""
+	prefix .. snakeStr
 		\gsub "_(%a)", (letter) -> letter\upper!
 		\gsub "^%l", (first) -> first\upper!
 
@@ -1155,6 +1156,7 @@ func #{waNewName}From(raw: i64) => *#{waNewName} {
 	if raw == 0 {
 		return nil
 	}
+	ObjectRetain(raw)
 	object := #{waNewName}{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)
@@ -1163,6 +1165,12 @@ func #{waNewName}From(raw: i64) => *#{waNewName} {
 }
 func #{waNewName}.GetTypeId() => i32 {
 	return #{namespace}#{clsNewNameL}_type()
+}
+func ObjectAs#{waNewName}(object: Object) => *#{waNewName} {
+	if object.GetTypeId() == #{namespace}#{clsNewNameL}_type() {
+		return #{waNewName}From(object.GetRaw())
+	}
+	return nil
 }"
 		else
 			if isStatic or isSingleton
