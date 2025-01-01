@@ -27,7 +27,6 @@ func TouchFrom(raw: i64) => *Touch {
 	if raw == 0 {
 		return nil
 	}
-	ObjectRetain(raw)
 	object := Touch{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)

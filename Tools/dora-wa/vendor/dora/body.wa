@@ -75,7 +75,6 @@ func BodyFrom(raw: i64) => *Body {
 	if raw == 0 {
 		return nil
 	}
-	ObjectRetain(raw)
 	object := Body{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)
@@ -261,7 +260,9 @@ func Body.AttachSensor(tag: i32, fixture_def: FixtureDef) => Sensor {
 func Body.OnContactFilter(filter: func(body: Body) => bool) {
 	stack0 := NewCallStack()
 	func_id0 := PushFunction(func() {
-		body := *BodyFrom(stack0.PopObject().GetRaw())
+		body_obj := stack0.PopObject()
+		ObjectRetain(body_obj.GetRaw())
+		body := *BodyFrom(body_obj.GetRaw())
 		result_ := filter(body)
 		stack0.Push(result_)
 	})

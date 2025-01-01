@@ -29,7 +29,6 @@ func PhysicsWorldFrom(raw: i64) => *PhysicsWorld {
 	if raw == 0 {
 		return nil
 	}
-	ObjectRetain(raw)
 	object := PhysicsWorld{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)
@@ -58,7 +57,9 @@ func ObjectAsPhysicsWorld(object: Object) => *PhysicsWorld {
 func PhysicsWorld.Query(rect: Rect, handler: func(body: Body) => bool) => bool {
 	stack0 := NewCallStack()
 	func_id0 := PushFunction(func() {
-		body := *BodyFrom(stack0.PopObject().GetRaw())
+		body_obj := stack0.PopObject()
+		ObjectRetain(body_obj.GetRaw())
+		body := *BodyFrom(body_obj.GetRaw())
 		result_ := handler(body)
 		stack0.Push(result_)
 	})
@@ -79,7 +80,9 @@ func PhysicsWorld.Query(rect: Rect, handler: func(body: Body) => bool) => bool {
 func PhysicsWorld.Raycast(start: Vec2, stop: Vec2, closest: bool, handler: func(body: Body, point: Vec2, normal: Vec2) => bool) => bool {
 	stack0 := NewCallStack()
 	func_id0 := PushFunction(func() {
-		body := *BodyFrom(stack0.PopObject().GetRaw())
+		body_obj := stack0.PopObject()
+		ObjectRetain(body_obj.GetRaw())
+		body := *BodyFrom(body_obj.GetRaw())
 		point, _ := stack0.PopVec2()
 		normal, _ := stack0.PopVec2()
 		result_ := handler(body, point, normal)

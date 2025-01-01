@@ -17,7 +17,6 @@ func MoveJointFrom(raw: i64) => *MoveJoint {
 	if raw == 0 {
 		return nil
 	}
-	ObjectRetain(raw)
 	object := MoveJoint{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)

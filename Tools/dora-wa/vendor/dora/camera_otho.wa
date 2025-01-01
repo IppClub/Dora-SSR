@@ -19,7 +19,6 @@ func CameraOthoFrom(raw: i64) => *CameraOtho {
 	if raw == 0 {
 		return nil
 	}
-	ObjectRetain(raw)
 	object := CameraOtho{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)

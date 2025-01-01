@@ -15,7 +15,6 @@ func CameraFrom(raw: i64) => *Camera {
 	if raw == 0 {
 		return nil
 	}
-	ObjectRetain(raw)
 	object := Camera{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)

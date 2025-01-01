@@ -19,7 +19,6 @@ func VGNodeFrom(raw: i64) => *VGNode {
 	if raw == 0 {
 		return nil
 	}
-	ObjectRetain(raw)
 	object := VGNode{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)

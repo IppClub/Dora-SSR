@@ -25,7 +25,6 @@ func MotorJointFrom(raw: i64) => *MotorJoint {
 	if raw == 0 {
 		return nil
 	}
-	ObjectRetain(raw)
 	object := MotorJoint{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)

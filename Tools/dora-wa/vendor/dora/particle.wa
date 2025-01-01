@@ -21,7 +21,6 @@ func ParticleFrom(raw: i64) => *Particle {
 	if raw == 0 {
 		return nil
 	}
-	ObjectRetain(raw)
 	object := Particle{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)

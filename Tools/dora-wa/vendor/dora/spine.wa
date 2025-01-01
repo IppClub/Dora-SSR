@@ -31,7 +31,6 @@ func SpineFrom(raw: i64) => *Spine {
 	if raw == 0 {
 		return nil
 	}
-	ObjectRetain(raw)
 	object := Spine{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)

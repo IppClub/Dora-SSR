@@ -27,7 +27,6 @@ func ClipNodeFrom(raw: i64) => *ClipNode {
 	if raw == 0 {
 		return nil
 	}
-	ObjectRetain(raw)
 	object := ClipNode{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)

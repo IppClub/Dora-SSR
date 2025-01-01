@@ -57,7 +57,6 @@ func SpriteFrom(raw: i64) => *Sprite {
 	if raw == 0 {
 		return nil
 	}
-	ObjectRetain(raw)
 	object := Sprite{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)

@@ -321,45 +321,57 @@ func createObject(raw: i64) => Object {
 }
 
 func ObjectCastToNode(object: Object) => *Node {
-	if object_to_node(*object.raw) == 0 {
+	raw := object_to_node(*object.raw)
+	if raw == 0 {
 		return nil
 	}
-	return NodeFrom(object_to_node(*object.raw))
+	ObjectRetain(raw)
+	return NodeFrom(raw)
 }
 
 func ObjectCastToCamera(object: Object) => *Camera {
-	if object_to_camera(*object.raw) == 0 {
+	raw := object_to_camera(*object.raw)
+	if raw == 0 {
 		return nil
 	}
-	return CameraFrom(object_to_camera(*object.raw))
+	ObjectRetain(raw)
+	return CameraFrom(raw)
 }
 
 func ObjectCastToPlayable(object: Object) => *Playable {
-	if object_to_playable(*object.raw) == 0 {
+	raw := object_to_playable(*object.raw)
+	if raw == 0 {
 		return nil
 	}
-	return PlayableFrom(object_to_playable(*object.raw))
+	ObjectRetain(raw)
+	return PlayableFrom(raw)
 }
 
 func ObjectCastToBody(object: Object) => *Body {
-	if object_to_body(*object.raw) == 0 {
+	raw := object_to_body(*object.raw)
+	if raw == 0 {
 		return nil
 	}
-	return BodyFrom(object_to_body(*object.raw))
+	ObjectRetain(raw)
+	return BodyFrom(raw)
 }
 
 func ObjectCastToJoint(object: Object) => *Joint {
-	if object_to_joint(*object.raw) == 0 {
+	raw := object_to_joint(*object.raw)
+	if raw == 0 {
 		return nil
 	}
-	return JointFrom(object_to_joint(*object.raw))
+	ObjectRetain(raw)
+	return JointFrom(raw)
 }
 
 func ObjectCastToPhysicsWorld(object: Object) => *PhysicsWorld {
-	if object_to_physics_world(*object.raw) == 0 {
+	raw := object_to_physics_world(*object.raw)
+	if raw == 0 {
 		return nil
 	}
-	return PhysicsWorldFrom(object_to_physics_world(*object.raw))
+	ObjectRetain(raw)
+	return PhysicsWorldFrom(raw)
 }
 
 /* Value */

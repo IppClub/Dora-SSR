@@ -930,7 +930,9 @@ getWaType = (dataType, waName): t ->
 		convertTo: (name)-> "#{name}.GetRaw()"
 		argType: waName
 		returnType: waName and "#{waName}" or ""
-		creturn: (name, fnArgId)-> "#{name} := *#{waName}From(stack#{fnArgId}.PopObject().GetRaw())"
+		creturn: (name, fnArgId)-> "#{name}_obj := stack#{fnArgId}.PopObject()
+		ObjectRetain(#{name}_obj.GetRaw())
+		#{name} := *#{waName}From(#{name}_obj.GetRaw())"
 		cpass: (name, fnArgId)-> "stack#{fnArgId}.Push(#{name}.Object)"
 	}
 
@@ -1156,7 +1158,6 @@ func #{waNewName}From(raw: i64) => *#{waNewName} {
 	if raw == 0 {
 		return nil
 	}
-	ObjectRetain(raw)
 	object := #{waNewName}{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)

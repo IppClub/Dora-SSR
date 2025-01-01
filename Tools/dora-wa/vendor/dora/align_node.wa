@@ -17,7 +17,6 @@ func AlignNodeFrom(raw: i64) => *AlignNode {
 	if raw == 0 {
 		return nil
 	}
-	ObjectRetain(raw)
 	object := AlignNode{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)

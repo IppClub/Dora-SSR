@@ -37,7 +37,6 @@ func PlatformerBehaviorTreeFrom(raw: i64) => *PlatformerBehaviorTree {
 	if raw == 0 {
 		return nil
 	}
-	ObjectRetain(raw)
 	object := PlatformerBehaviorTree{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)

@@ -25,7 +25,6 @@ func QLearnerFrom(raw: i64) => *QLearner {
 	if raw == 0 {
 		return nil
 	}
-	ObjectRetain(raw)
 	object := QLearner{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)

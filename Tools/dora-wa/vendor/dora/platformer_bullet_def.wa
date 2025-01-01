@@ -51,7 +51,6 @@ func PlatformerBulletDefFrom(raw: i64) => *PlatformerBulletDef {
 	if raw == 0 {
 		return nil
 	}
-	ObjectRetain(raw)
 	object := PlatformerBulletDef{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)

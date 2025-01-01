@@ -19,7 +19,6 @@ func EffekNodeFrom(raw: i64) => *EffekNode {
 	if raw == 0 {
 		return nil
 	}
-	ObjectRetain(raw)
 	object := EffekNode{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)
