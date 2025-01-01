@@ -39,7 +39,6 @@ func GrabberFrom(raw: i64) => *Grabber {
 	if raw == 0 {
 		return nil
 	}
-	ObjectRetain(raw)
 	object := Grabber{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)

@@ -45,7 +45,6 @@ func PlatformerPlatformCameraFrom(raw: i64) => *PlatformerPlatformCamera {
 	if raw == 0 {
 		return nil
 	}
-	ObjectRetain(raw)
 	object := PlatformerPlatformCamera{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)

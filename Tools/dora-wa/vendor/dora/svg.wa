@@ -21,7 +21,6 @@ func SVGFrom(raw: i64) => *SVG {
 	if raw == 0 {
 		return nil
 	}
-	ObjectRetain(raw)
 	object := SVG{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)

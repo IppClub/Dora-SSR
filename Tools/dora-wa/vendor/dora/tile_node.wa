@@ -37,7 +37,6 @@ func TileNodeFrom(raw: i64) => *TileNode {
 	if raw == 0 {
 		return nil
 	}
-	ObjectRetain(raw)
 	object := TileNode{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)

@@ -247,7 +247,6 @@ func NodeFrom(raw: i64) => *Node {
 	if raw == 0 {
 		return nil
 	}
-	ObjectRetain(raw)
 	object := Node{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)
@@ -767,7 +766,9 @@ func Node.ConvertToWindowSpace(node_point: Vec2, callback: func(result: Vec2)) {
 func Node.EachChild(visitor_func: func(child: Node) => bool) => bool {
 	stack0 := NewCallStack()
 	func_id0 := PushFunction(func() {
-		child := *NodeFrom(stack0.PopObject().GetRaw())
+		child_obj := stack0.PopObject()
+		ObjectRetain(child_obj.GetRaw())
+		child := *NodeFrom(child_obj.GetRaw())
 		result_ := visitor_func(child)
 		stack0.Push(result_)
 	})
@@ -785,7 +786,9 @@ func Node.EachChild(visitor_func: func(child: Node) => bool) => bool {
 func Node.Traverse(visitor_func: func(child: Node) => bool) => bool {
 	stack0 := NewCallStack()
 	func_id0 := PushFunction(func() {
-		child := *NodeFrom(stack0.PopObject().GetRaw())
+		child_obj := stack0.PopObject()
+		ObjectRetain(child_obj.GetRaw())
+		child := *NodeFrom(child_obj.GetRaw())
 		result_ := visitor_func(child)
 		stack0.Push(result_)
 	})
@@ -803,7 +806,9 @@ func Node.Traverse(visitor_func: func(child: Node) => bool) => bool {
 func Node.TraverseAll(visitor_func: func(child: Node) => bool) => bool {
 	stack0 := NewCallStack()
 	func_id0 := PushFunction(func() {
-		child := *NodeFrom(stack0.PopObject().GetRaw())
+		child_obj := stack0.PopObject()
+		ObjectRetain(child_obj.GetRaw())
+		child := *NodeFrom(child_obj.GetRaw())
 		result_ := visitor_func(child)
 		stack0.Push(result_)
 	})

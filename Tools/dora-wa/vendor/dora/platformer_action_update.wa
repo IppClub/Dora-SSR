@@ -15,7 +15,6 @@ func PlatformerActionUpdateFrom(raw: i64) => *PlatformerActionUpdate {
 	if raw == 0 {
 		return nil
 	}
-	ObjectRetain(raw)
 	object := PlatformerActionUpdate{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)
@@ -34,7 +33,9 @@ func ObjectAsPlatformerActionUpdate(object: Object) => *PlatformerActionUpdate {
 func NewPlatformerActionUpdate(update: func(owner: PlatformerUnit, action: PlatformerUnitAction, delta_time: f32) => bool) => PlatformerActionUpdate {
 	stack0 := NewCallStack()
 	func_id0 := PushFunction(func() {
-		owner := *PlatformerUnitFrom(stack0.PopObject().GetRaw())
+		owner_obj := stack0.PopObject()
+		ObjectRetain(owner_obj.GetRaw())
+		owner := *PlatformerUnitFrom(owner_obj.GetRaw())
 		action_raw, _ := stack0.PopI64()
 		action := *PlatformerUnitActionFrom(action_raw)
 		deltaTime, _ := stack0.PopF32()

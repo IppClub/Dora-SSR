@@ -36,14 +36,15 @@ func init {
 					all_clear()
 					test_body()
 				}
+				if dora.ImGui.Button("Contact", button_size) {
+					all_clear()
+					test_contact()
+				}
 				/*
 					if dora.ImGui.Button("Entity Move", button_size) {
 						all_clear()
 					}
 					if dora.ImGui.Button("SQLite", button_size) {
-						all_clear()
-					}
-					if dora.ImGui.Button("Contact", button_size) {
 						all_clear()
 					}
 					if dora.ImGui.Button("Sprite", button_size) {

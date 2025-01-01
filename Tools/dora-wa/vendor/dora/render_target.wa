@@ -33,7 +33,6 @@ func RenderTargetFrom(raw: i64) => *RenderTarget {
 	if raw == 0 {
 		return nil
 	}
-	ObjectRetain(raw)
 	object := RenderTarget{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)

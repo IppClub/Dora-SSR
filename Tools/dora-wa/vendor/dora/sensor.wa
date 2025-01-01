@@ -27,7 +27,6 @@ func SensorFrom(raw: i64) => *Sensor {
 	if raw == 0 {
 		return nil
 	}
-	ObjectRetain(raw)
 	object := Sensor{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)

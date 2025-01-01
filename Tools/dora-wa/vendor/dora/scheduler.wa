@@ -25,7 +25,6 @@ func SchedulerFrom(raw: i64) => *Scheduler {
 	if raw == 0 {
 		return nil
 	}
-	ObjectRetain(raw)
 	object := Scheduler{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)

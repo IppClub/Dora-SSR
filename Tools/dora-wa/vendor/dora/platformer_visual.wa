@@ -23,7 +23,6 @@ func PlatformerVisualFrom(raw: i64) => *PlatformerVisual {
 	if raw == 0 {
 		return nil
 	}
-	ObjectRetain(raw)
 	object := PlatformerVisual{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)

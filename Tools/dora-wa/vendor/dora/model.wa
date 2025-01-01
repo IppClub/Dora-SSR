@@ -49,7 +49,6 @@ func ModelFrom(raw: i64) => *Model {
 	if raw == 0 {
 		return nil
 	}
-	ObjectRetain(raw)
 	object := Model{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)
@@ -151,7 +150,9 @@ func Model.GetNodeByName(name: string) => Node {
 func Model.EachNode(visitor_func: func(node: Node) => bool) => bool {
 	stack0 := NewCallStack()
 	func_id0 := PushFunction(func() {
-		node := *NodeFrom(stack0.PopObject().GetRaw())
+		node_obj := stack0.PopObject()
+		ObjectRetain(node_obj.GetRaw())
+		node := *NodeFrom(node_obj.GetRaw())
 		result_ := visitor_func(node)
 		stack0.Push(result_)
 	})

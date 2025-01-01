@@ -49,7 +49,7 @@ func test_body() {
 	body_d.SetAngularRate(90.0)
 	world.AddChild(body_d.Node)
 
-	windows_flags := dora.ImGuiWindowFlags(
+	window_flags := dora.ImGuiWindowFlags(
 		dora.ImGuiWindowNoSavedSettings,
 		dora.ImGuiWindowAlwaysAutoResize,
 		dora.ImGuiWindowNoFocusOnAppearing,
@@ -69,7 +69,7 @@ func test_body() {
 			dora.Vec2{X: 240.0, Y: 0.0},
 			dora.ImGuiCondFirstUseEver,
 		)
-		dora.ImGui.BeginOpts("Body", windows_flags, func() {
+		dora.ImGui.BeginOpts("Body", window_flags, func() {
 			dora.ImGui.Text("Body (Wa)")
 			dora.ImGui.Separator()
 			dora.ImGui.TextWrapped("Basic usage to create physics bodies!")

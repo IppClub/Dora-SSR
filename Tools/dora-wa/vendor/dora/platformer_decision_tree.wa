@@ -29,7 +29,6 @@ func PlatformerDecisionTreeFrom(raw: i64) => *PlatformerDecisionTree {
 	if raw == 0 {
 		return nil
 	}
-	ObjectRetain(raw)
 	object := PlatformerDecisionTree{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)
@@ -86,7 +85,9 @@ func PlatformerDecisionTreeSeq(nodes: *[]PlatformerDecisionTree) => PlatformerDe
 func PlatformerDecisionTreeCon(name: string, handler: func(unit: PlatformerUnit) => bool) => PlatformerDecisionTree {
 	stack0 := NewCallStack()
 	func_id0 := PushFunction(func() {
-		unit := *PlatformerUnitFrom(stack0.PopObject().GetRaw())
+		unit_obj := stack0.PopObject()
+		ObjectRetain(unit_obj.GetRaw())
+		unit := *PlatformerUnitFrom(unit_obj.GetRaw())
 		result_ := handler(unit)
 		stack0.Push(result_)
 	})
@@ -116,7 +117,9 @@ func PlatformerDecisionTreeAct(action_name: string) => PlatformerDecisionTree {
 func PlatformerDecisionTreeActDynamic(handler: func(unit: PlatformerUnit) => string) => PlatformerDecisionTree {
 	stack0 := NewCallStack()
 	func_id0 := PushFunction(func() {
-		unit := *PlatformerUnitFrom(stack0.PopObject().GetRaw())
+		unit_obj := stack0.PopObject()
+		ObjectRetain(unit_obj.GetRaw())
+		unit := *PlatformerUnitFrom(unit_obj.GetRaw())
 		result_ := handler(unit)
 		stack0.Push(result_)
 	})

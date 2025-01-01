@@ -21,7 +21,6 @@ func GroupFrom(raw: i64) => *Group {
 	if raw == 0 {
 		return nil
 	}
-	ObjectRetain(raw)
 	object := Group{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)
@@ -62,7 +61,9 @@ func Group.GetFirst() => *Entity {
 func Group.Find(predicate: func(e: Entity) => bool) => *Entity {
 	stack0 := NewCallStack()
 	func_id0 := PushFunction(func() {
-		e := *EntityFrom(stack0.PopObject().GetRaw())
+		e_obj := stack0.PopObject()
+		ObjectRetain(e_obj.GetRaw())
+		e := *EntityFrom(e_obj.GetRaw())
 		result_ := predicate(e)
 		stack0.Push(result_)
 	})

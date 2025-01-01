@@ -55,7 +55,6 @@ func GridFrom(raw: i64) => *Grid {
 	if raw == 0 {
 		return nil
 	}
-	ObjectRetain(raw)
 	object := Grid{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)

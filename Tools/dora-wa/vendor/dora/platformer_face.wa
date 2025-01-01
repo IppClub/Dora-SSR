@@ -21,7 +21,6 @@ func PlatformerFaceFrom(raw: i64) => *PlatformerFace {
 	if raw == 0 {
 		return nil
 	}
-	ObjectRetain(raw)
 	object := PlatformerFace{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)

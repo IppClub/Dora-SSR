@@ -75,7 +75,6 @@ func PlatformerUnitFrom(raw: i64) => *PlatformerUnit {
 	if raw == 0 {
 		return nil
 	}
-	ObjectRetain(raw)
 	object := PlatformerUnit{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)

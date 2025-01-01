@@ -45,7 +45,6 @@ func JointDefFrom(raw: i64) => *JointDef {
 	if raw == 0 {
 		return nil
 	}
-	ObjectRetain(raw)
 	object := JointDef{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)

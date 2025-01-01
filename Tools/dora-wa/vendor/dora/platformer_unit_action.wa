@@ -94,7 +94,9 @@ func PlatformerUnitActionClear() {
 func PlatformerUnitActionAdd(name: string, priority: i32, reaction: f32, recovery: f32, queued: bool, available: func(owner: PlatformerUnit, action: PlatformerUnitAction) => bool, create: func(owner: PlatformerUnit, action: PlatformerUnitAction) => PlatformerActionUpdate, stop: func(owner: PlatformerUnit, action: PlatformerUnitAction)) {
 	stack0 := NewCallStack()
 	func_id0 := PushFunction(func() {
-		owner := *PlatformerUnitFrom(stack0.PopObject().GetRaw())
+		owner_obj := stack0.PopObject()
+		ObjectRetain(owner_obj.GetRaw())
+		owner := *PlatformerUnitFrom(owner_obj.GetRaw())
 		action_raw, _ := stack0.PopI64()
 		action := *PlatformerUnitActionFrom(action_raw)
 		result_ := available(owner, action)
@@ -102,7 +104,9 @@ func PlatformerUnitActionAdd(name: string, priority: i32, reaction: f32, recover
 	})
 	stack1 := NewCallStack()
 	func_id1 := PushFunction(func() {
-		owner := *PlatformerUnitFrom(stack1.PopObject().GetRaw())
+		owner_obj := stack1.PopObject()
+		ObjectRetain(owner_obj.GetRaw())
+		owner := *PlatformerUnitFrom(owner_obj.GetRaw())
 		action_raw, _ := stack1.PopI64()
 		action := *PlatformerUnitActionFrom(action_raw)
 		result_ := create(owner, action)
@@ -110,7 +114,9 @@ func PlatformerUnitActionAdd(name: string, priority: i32, reaction: f32, recover
 	})
 	stack2 := NewCallStack()
 	func_id2 := PushFunction(func() {
-		owner := *PlatformerUnitFrom(stack2.PopObject().GetRaw())
+		owner_obj := stack2.PopObject()
+		ObjectRetain(owner_obj.GetRaw())
+		owner := *PlatformerUnitFrom(owner_obj.GetRaw())
 		action_raw, _ := stack2.PopI64()
 		action := *PlatformerUnitActionFrom(action_raw)
 		stop(owner, action)

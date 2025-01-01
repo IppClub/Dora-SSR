@@ -31,7 +31,6 @@ func LineFrom(raw: i64) => *Line {
 	if raw == 0 {
 		return nil
 	}
-	ObjectRetain(raw)
 	object := Line{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)

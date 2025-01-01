@@ -1,0 +1,86 @@
+import "dora"
+import "math"
+import "strconv"
+
+func test_contact() {
+	gravity := dora.Vec2{X: 0.0, Y: -10.0}
+	world := dora.NewPhysicsWorld()
+	world.SetShouldContact(0, 0, true)
+	world.SetShowDebug(true)
+
+	label := dora.NewLabel("sarasa-mono-sc-regular", 30, false)
+	label.AddTo(world.Node)
+
+	terrain_def := dora.NewBodyDef()
+	count := 50
+	radius: f32 = 300.0
+	vertices := []dora.Vec2{}
+	for i := 0; i <= count; i++ {
+		angle := 2.0 * math.Pi * f32(i) / f32(count)
+		vertices = append(vertices, dora.Vec2{X: radius * math.Cos(angle), Y: radius * math.Sin(angle)})
+	}
+	terrain_def.AttachChain(&vertices, 0.4, 0.0)
+	terrain_def.AttachDiskWithCenter(dora.Vec2{X: 0.0, Y: -270.0}, 30.0, 1.0, 0.0, 1.0)
+	terrain := dora.NewBody(terrain_def, world, dora.Vec2{X: 0.0, Y: 0.0}, 0.0)
+	terrain.AddTo(world.Node)
+
+	platform_def := dora.NewBodyDef()
+	platform_def.AttachPolygonWithCenter(dora.Vec2{X: 0.0, Y: -80.0}, 120.0, 30.0, 0.0, 1.0, 0.0, 1.0)
+	platform := dora.NewBody(platform_def, world, dora.Vec2{X: 0.0, Y: 0.0}, 0.0)
+	platform.OnContactFilter(func(other: dora.Body) => bool {
+		return other.GetVelocityY() < 0.0
+	})
+	platform.AddTo(world.Node)
+
+	draw_node := dora.NewLineWithVecColor(&[]dora.Vec2{
+		dora.Vec2{X: -20.0, Y: 0.0},
+		dora.Vec2{X: 20.0, Y: 0.0},
+		dora.Vec2Zero,
+		dora.Vec2{X: 0.0, Y: -20.0},
+		dora.Vec2{X: 0.0, Y: 20.0},
+	}, dora.App.GetThemeColor())
+	draw_node.AddTo(world.Node)
+
+	disk_def := dora.NewBodyDef()
+	disk_def.SetType(dora.BodyTypeDynamic)
+	disk_def.SetLinearAcceleration(gravity)
+	disk_def.AttachDisk(20.0, 5.0, 0.8, 1.0)
+	disk := dora.NewBody(disk_def, world, dora.Vec2{X: 100.0, Y: 200.0}, 0.0)
+	disk.AddTo(world.Node)
+	disk.SetAngularRate(-1800.0)
+	disk.OnContactStart(func(other: dora.Body, point: dora.Vec2, normal: dora.Vec2, enabled: bool) {
+		if enabled {
+			draw_node.SetPosition(point)
+			label.SetText("Contact: [" + strconv.FormatFloat(f64(point.X), 'f', 2, 32) + "," + strconv.FormatFloat(f64(point.Y), 'f', 2, 32) + "]")
+		}
+	})
+
+	window_flags := dora.ImGuiWindowFlags(
+		dora.ImGuiWindowNoDecoration,
+		dora.ImGuiWindowAlwaysAutoResize,
+		dora.ImGuiWindowNoSavedSettings,
+		dora.ImGuiWindowNoFocusOnAppearing,
+		dora.ImGuiWindowNoNav,
+		dora.ImGuiWindowNoMove,
+	)
+	imgui_node := dora.NewNode()
+	imgui_node.Schedule(func(delta_time: f64) => bool {
+		width := dora.App.GetVisualSize().Width
+		dora.ImGui.SetNextWindowBgAlpha(0.35)
+		dora.ImGui.SetNextWindowPosOpts(
+			dora.Vec2{X: width - 10.0, Y: 10.0},
+			dora.ImGuiCondAlways,
+			dora.Vec2{X: 1.0, Y: 0.0},
+		)
+		dora.ImGui.SetNextWindowSizeOpts(
+			dora.Vec2{X: 240.0, Y: 0.0},
+			dora.ImGuiCondFirstUseEver,
+		)
+		dora.ImGui.BeginOpts("Contact", window_flags, func() {
+			dora.ImGui.Text("Contact (Wa)")
+			dora.ImGui.Separator()
+			dora.ImGui.TextWrapped("Receive events when physics bodies contact.")
+		})
+		return false
+	})
+}

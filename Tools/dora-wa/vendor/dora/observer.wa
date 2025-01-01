@@ -15,7 +15,6 @@ func ObserverFrom(raw: i64) => *Observer {
 	if raw == 0 {
 		return nil
 	}
-	ObjectRetain(raw)
 	object := Observer{}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)
