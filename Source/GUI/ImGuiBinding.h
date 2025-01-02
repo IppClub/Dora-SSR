@@ -348,7 +348,7 @@ bool DragFloat(
 	float v_speed,
 	float v_min,
 	float v_max,
-	const char* display_format = "%.3f",
+	const char* display_format = "%.2f",
 	Slice* flags = nullptr,
 	int flagCount = 0);
 
@@ -358,7 +358,7 @@ bool DragFloat(
 	float v_speed,
 	float v_min,
 	float v_max,
-	const std::string& display_format = "%.3f"s,
+	const std::string& display_format = "%.2f"s,
 	uint32_t sliderFlags = 0); //
 
 bool DragFloat2(
@@ -368,7 +368,7 @@ bool DragFloat2(
 	float v_speed,
 	float v_min,
 	float v_max,
-	const char* display_format = "%.3f",
+	const char* display_format = "%.2f",
 	Slice* flags = nullptr,
 	int flagCount = 0);
 
@@ -378,7 +378,7 @@ bool DragFloat2(
 	float v_speed,
 	float v_min,
 	float v_max,
-	const std::string& display_format = "%.3f"s,
+	const std::string& display_format = "%.2f"s,
 	uint32_t sliderFlags = 0); //
 
 bool DragInt(
@@ -425,7 +425,7 @@ bool InputFloat(
 	float* v,
 	float step = 0.0f,
 	float step_fast = 0.0f,
-	const char* format = "%.3f",
+	const char* format = "%.2f",
 	Slice* flags = nullptr,
 	int flagCount = 0);
 
@@ -434,21 +434,21 @@ bool InputFloat(
 	CallStack* stack, // v
 	float step = 0.0f,
 	float step_fast = 0.0f,
-	const std::string& format = "%.3f"s,
+	const std::string& format = "%.2f"s,
 	uint32_t inputTextFlags = 0); //
 
 bool InputFloat2(
 	const char* label,
 	float* v1,
 	float* v2,
-	const char* format = "%.1f",
+	const char* format = "%.2f",
 	Slice* flags = nullptr,
 	int flagCount = 0);
 
 bool InputFloat2(
 	const std::string& label,
 	CallStack* stack, // v1, v2
-	const std::string& format = "%.1f"s,
+	const std::string& format = "%.2f"s,
 	uint32_t inputTextFlags = 0); //
 
 bool InputInt(
@@ -483,7 +483,7 @@ bool SliderFloat(
 	float* v,
 	float v_min,
 	float v_max,
-	const char* format = "%.3f",
+	const char* format = "%.2f",
 	Slice* flags = nullptr,
 	int flagCount = 0);
 
@@ -492,7 +492,7 @@ bool SliderFloat(
 	CallStack* stack, // v
 	float v_min,
 	float v_max,
-	const std::string& format = "%.3f"s,
+	const std::string& format = "%.2f"s,
 	uint32_t sliderFlags = 0); //
 
 bool SliderFloat2(
@@ -501,7 +501,7 @@ bool SliderFloat2(
 	float* v2,
 	float v_min,
 	float v_max,
-	const char* display_format = "%.3f",
+	const char* display_format = "%.2f",
 	Slice* flags = nullptr,
 	int flagCount = 0);
 
@@ -510,7 +510,7 @@ bool SliderFloat2(
 	CallStack* stack, // v1, v2
 	float v_min,
 	float v_max,
-	const std::string& display_format = "%.3f"s,
+	const std::string& display_format = "%.2f"s,
 	uint32_t sliderFlags = 0); //
 
 bool SliderInt(
@@ -536,7 +536,7 @@ bool SliderInt2(
 	int* v2,
 	int v_min,
 	int v_max,
-	const char* display_format = "%.0f",
+	const char* display_format = "%d",
 	Slice* flags = nullptr,
 	int flagCount = 0);
 
@@ -545,7 +545,7 @@ bool SliderInt2(
 	CallStack* stack, // v1, v2
 	int v_min,
 	int v_max,
-	const std::string& display_format = "%.0f"s,
+	const std::string& display_format = "%d"s,
 	uint32_t sliderFlags = 0); //
 
 bool DragFloatRange2(
@@ -555,7 +555,7 @@ bool DragFloatRange2(
 	float v_speed = 1.0f,
 	float v_min = 0.0f,
 	float v_max = 0.0f,
-	const char* format = "%.3f",
+	const char* format = "%.2f",
 	const char* format_max = nullptr,
 	Slice* flags = nullptr,
 	int flagCount = 0);
@@ -566,7 +566,7 @@ bool DragFloatRange2(
 	float v_speed,
 	float v_min,
 	float v_max,
-	const std::string& format = "%.3f"s,
+	const std::string& format = "%.2f"s,
 	const std::string& format_max = nullptr,
 	uint32_t sliderFlags = 0); //
 
@@ -598,7 +598,7 @@ bool VSliderFloat(
 	float* v,
 	float v_min,
 	float v_max,
-	const char* format = "%.3f",
+	const char* format = "%.2f",
 	Slice* flags = nullptr,
 	int flagCount = 0);
 
@@ -608,7 +608,7 @@ bool VSliderFloat(
 	CallStack* stack, // v
 	float v_min,
 	float v_max,
-	const std::string& format = "%.3f"s,
+	const std::string& format = "%.2f"s,
 	uint32_t sliderFlags = 0); //
 
 bool VSliderInt(

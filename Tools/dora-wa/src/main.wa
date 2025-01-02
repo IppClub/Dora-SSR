@@ -44,26 +44,32 @@ func init {
 					all_clear()
 					test_contact()
 				}
+				if dora.ImGui.Button("SQLite", button_size) {
+					all_clear()
+					test_sqlite()
+				}
+				if dora.ImGui.Button("Sprite", button_size) {
+					all_clear()
+					test_sprite()
+				}
+				if dora.ImGui.Button("Model", button_size) {
+					all_clear()
+					test_model()
+				}
+				if dora.ImGui.Button("Render Target", button_size) {
+					all_clear()
+					test_render_target()
+				}
+				if dora.ImGui.Button("VG Button", button_size) {
+					all_clear()
+					test_vg_button()
+				}
+				if dora.ImGui.Button("Layout", button_size) {
+					all_clear()
+					test_layout()
+				}
 				/*
-					if dora.ImGui.Button("SQLite", button_size) {
-						all_clear()
-					}
-					if dora.ImGui.Button("Sprite", button_size) {
-						all_clear()
-					}
-					if dora.ImGui.Button("Model", button_size) {
-						all_clear()
-					}
-					if dora.ImGui.Button("Render Target", button_size) {
-						all_clear()
-					}
 					if dora.ImGui.Button("Excel Test", button_size) {
-						all_clear()
-					}
-					if dora.ImGui.Button("Layout", button_size) {
-						all_clear()
-					}
-					if dora.ImGui.Button("VG Button", button_size) {
 						all_clear()
 					}
 				*/

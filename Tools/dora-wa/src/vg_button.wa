@@ -1,0 +1,42 @@
+import "dora"
+
+func test_vg_button() {
+	node := dora.NewNode()
+	node.SetSize(dora.Size{Width: 100.0, Height: 100.0})
+	font_id := dora.Nvg.CreateFont("sarasa-mono-sc-regular")
+	light := dora.Nvg.LinearGradient(0.0, 60.0, 0.0, 0.0, dora.NewColor(0xffffffff), dora.NewColor(0xff00ffff))
+	dark := dora.Nvg.LinearGradient(0.0, 60.0, 0.0, 0.0, dora.NewColor(0xffffffff), dora.NewColor(0xfffbc400))
+
+	paint := light
+	node.Schedule(func(_: f64) => bool {
+		dora.Nvg.ApplyTransform(node)
+		dora.Nvg.BeginPath()
+		dora.Nvg.RoundedRect(0.0, 0.0, 100.0, 100.0, 10.0)
+		dora.Nvg.StrokeColor(dora.NewColor(0xffffffff))
+		dora.Nvg.StrokeWidth(5.0)
+		dora.Nvg.Stroke()
+		dora.Nvg.FillPaint(paint)
+		dora.Nvg.Fill()
+		dora.Nvg.ClosePath()
+		dora.Nvg.FontFaceId(font_id)
+		dora.Nvg.FontSize(32.0)
+		dora.Nvg.FillColor(dora.NewColor(0xff000000))
+		dora.Nvg.Scale(1.0, -1.0)
+		dora.Nvg.Text(50.0, -30.0, "OK")
+		return false
+	})
+	node.PerformDef(dora.ActionDefSequence(&[]dora.ActionDef{
+		dora.ActionDefProp(1.0, 0.0, 200.0, dora.PropertyX, dora.EaseLinear),
+		dora.ActionDefProp(1.0, 0.0, 360.0, dora.PropertyAngle, dora.EaseLinear),
+		dora.ActionDefScale(1.0, 1.0, 4.0, dora.EaseLinear),
+	}), false)
+	node.OnTapBegan(func(_: dora.Touch) {
+		paint = dark
+	})
+	node.OnTapEnded(func(_: dora.Touch) {
+		paint = light
+	})
+	node.OnTapped(func(_: dora.Touch) {
+		dora.Println("Clicked!")
+	})
+}

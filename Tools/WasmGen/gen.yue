@@ -301,7 +301,7 @@ basicTypes =
 		* -> error "unsupported"
 		* -> error "unsupported"
 		* --[[10: wa type]] {
-			convertFrom: (name)-> "ColorFromARGB(#{name})"
+			convertFrom: (name)-> "NewColor(#{name})"
 			convertTo: (name)-> "#{name}.ToARGB()"
 			argType: "Color"
 			returnType: "Color"
@@ -319,7 +319,7 @@ basicTypes =
 		* -> error "unsupported"
 		* -> error "unsupported"
 		* --[[10: wa type]] {
-			convertFrom: (name)-> "Color3FromRGB(#{name})"
+			convertFrom: (name)-> "NewColor3(#{name})"
 			convertTo: (name)-> "#{name}.ToRGB()"
 			argType: "Color3"
 			returnType: "Color3"
@@ -1776,11 +1776,21 @@ func #{waNewName}.GetRaw() => i64 {
 						elseif isCreate
 							dealOptional = isOptional and "if raw == 0 {\n\t\treturn nil\n\t}\n\tobject := #{waNewName}{}" or "object := #{waNewName}{}"
 							waFuncName = if funcNewName == "new" then "" else snakeToPascal funcNewName
-							"#{waDocText}func New#{waNewName}#{waFuncName}(#{argsList})#{waReturnType} {
+							if isObject
+								"#{waDocText}func New#{waNewName}#{waFuncName}(#{argsList})#{waReturnType} {
 #{prepareStr}	raw := #{cppFuncName}(#{argsConverted})
 	#{dealOptional}
 	object.raw = &raw
 	setFinalizer(object.raw, ObjectFinalizer)
+	return #{isOptional and '&object' or 'object'}
+}"
+							elseif isValue
+								finalizer = toSnakeCase "#{waNewName}Finalizer"
+								"#{waDocText}func New#{waNewName}#{waFuncName}(#{argsList})#{waReturnType} {
+#{prepareStr}	raw := #{cppFuncName}(#{argsConverted})
+	#{dealOptional}
+	object.raw = &raw
+	setFinalizer(object.raw, #{finalizer})
 	return #{isOptional and '&object' or 'object'}
 }"
 						elseif isStatic

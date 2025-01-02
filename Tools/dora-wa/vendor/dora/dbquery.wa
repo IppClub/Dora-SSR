@@ -41,6 +41,6 @@ func NewDBQuery() => DBQuery {
 	raw := dbquery_new()
 	object := DBQuery{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	setFinalizer(object.raw, d_b_query_finalizer)
 	return object
 }

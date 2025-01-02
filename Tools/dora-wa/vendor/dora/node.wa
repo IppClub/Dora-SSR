@@ -421,7 +421,7 @@ func Node.SetColor(val: Color) {
 }
 /// Gets the color of the node as a Color object.
 func Node.GetColor() => Color {
-	return ColorFromARGB(node_get_color(*this.raw))
+	return NewColor(node_get_color(*this.raw))
 }
 /// Sets the color of the node as a Color3 object.
 func Node.SetColor3(val: Color3) {
@@ -429,7 +429,7 @@ func Node.SetColor3(val: Color3) {
 }
 /// Gets the color of the node as a Color3 object.
 func Node.GetColor3() => Color3 {
-	return Color3FromRGB(node_get_color3(*this.raw))
+	return NewColor3(node_get_color3(*this.raw))
 }
 /// Sets whether to pass the opacity value to child nodes.
 func Node.SetPassOpacity(val: bool) {

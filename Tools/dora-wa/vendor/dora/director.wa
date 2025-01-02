@@ -46,7 +46,7 @@ func _Director.SetClearColor(val: Color) {
 }
 /// Gets the background color for the game world.
 func _Director.GetClearColor() => Color {
-	return ColorFromARGB(director_get_clear_color())
+	return NewColor(director_get_clear_color())
 }
 /// Gets the root node for 2D user interface elements like buttons and labels.
 func _Director.GetUi() => Node {

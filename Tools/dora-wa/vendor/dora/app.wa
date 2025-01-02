@@ -156,7 +156,7 @@ func _App.SetThemeColor(val: Color) {
 }
 /// Gets the theme color for Dora SSR.
 func _App.GetThemeColor() => Color {
-	return ColorFromARGB(application_get_theme_color())
+	return NewColor(application_get_theme_color())
 }
 /// Sets the random number seed.
 func _App.SetSeed(val: i32) {

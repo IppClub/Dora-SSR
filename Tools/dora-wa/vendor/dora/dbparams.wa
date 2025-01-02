@@ -36,6 +36,6 @@ func NewDBParams() => DBParams {
 	raw := dbparams_new()
 	object := DBParams{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	setFinalizer(object.raw, d_b_params_finalizer)
 	return object
 }

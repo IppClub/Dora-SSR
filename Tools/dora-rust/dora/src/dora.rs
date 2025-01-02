@@ -4105,7 +4105,7 @@ impl ImGui {
 		(changed, result)
 	}
 	pub fn drag_float_ret(label: &str, v: f32, v_speed: f32, v_min: f32, v_max: f32) -> (bool, f32) {
-		ImGui::drag_float_ret_opts(label, v, v_speed, v_min, v_max, "%.3f", BitFlags::default())
+		ImGui::drag_float_ret_opts(label, v, v_speed, v_min, v_max, "%.2f", BitFlags::default())
 	}
 	pub fn drag_float_ret_opts(label: &str, v: f32, v_speed: f32, v_min: f32, v_max: f32, display_format: &str, slider_flags: BitFlags<ImGuiSliderFlag>) -> (bool, f32) {
 		let mut changed = false;
@@ -4118,7 +4118,7 @@ impl ImGui {
 		(changed, result)
 	}
 	pub fn drag_float2_ret(label: &str, v1: f32, v2: f32, v_speed: f32, v_min: f32, v_max: f32) -> (bool, f32, f32) {
-		ImGui::drag_float2_ret_opts(label, v1, v2, v_speed, v_min, v_max, "%.3f", BitFlags::default())
+		ImGui::drag_float2_ret_opts(label, v1, v2, v_speed, v_min, v_max, "%.2f", BitFlags::default())
 	}
 	pub fn drag_float2_ret_opts(label: &str, v1: f32, v2: f32, v_speed: f32, v_min: f32, v_max: f32, display_format: &str, slider_flags: BitFlags<ImGuiSliderFlag>) -> (bool, f32, f32) {
 		let mut changed = false;
@@ -4150,7 +4150,7 @@ impl ImGui {
 		(changed, result1, result2)
 	}
 	pub fn input_float_ret(label: &str, v: f32) -> (bool, f32) {
-		ImGui::input_float_ret_opts(label, v, 0.0, 0.0, "%.3f", BitFlags::default())
+		ImGui::input_float_ret_opts(label, v, 0.0, 0.0, "%.2f", BitFlags::default())
 	}
 	pub fn input_float_ret_opts(label: &str, v: f32, step: f32, step_fast: f32, display_format: &str, input_text_flags: BitFlags<ImGuiInputTextFlag>) -> (bool, f32) {
 		let mut changed = false;
@@ -4163,7 +4163,7 @@ impl ImGui {
 		(changed, result)
 	}
 	pub fn input_float2_ret(label: &str, v1: f32, v2: f32) -> (bool, f32, f32) {
-		ImGui::input_float2_ret_opts(label, v1, v2, "%.3f", BitFlags::default())
+		ImGui::input_float2_ret_opts(label, v1, v2, "%.2f", BitFlags::default())
 	}
 	pub fn input_float2_ret_opts(label: &str, v1: f32, v2: f32, display_format: &str, input_text_flags: BitFlags<ImGuiInputTextFlag>) -> (bool, f32, f32) {
 		let mut changed = false;
@@ -4208,7 +4208,7 @@ impl ImGui {
 		(changed, result1, result2)
 	}
 	pub fn slider_float_ret(label: &str, v: f32, v_min: f32, v_max: f32) -> (bool, f32) {
-		ImGui::slider_float_ret_opts(label, v, v_min, v_max, "%.3f", BitFlags::default())
+		ImGui::slider_float_ret_opts(label, v, v_min, v_max, "%.2f", BitFlags::default())
 	}
 	pub fn slider_float_ret_opts(label: &str, v: f32, v_min: f32, v_max: f32, display_format: &str, slider_flags: BitFlags<ImGuiSliderFlag>) -> (bool, f32) {
 		let mut changed = false;
@@ -4221,7 +4221,7 @@ impl ImGui {
 		(changed, result)
 	}
 	pub fn slider_float2_ret(label: &str, v1: f32, v2: f32, v_min: f32, v_max: f32) -> (bool, f32, f32) {
-		ImGui::slider_float2_ret_opts(label, v1, v2, v_min, v_max, "%.3f", BitFlags::default())
+		ImGui::slider_float2_ret_opts(label, v1, v2, v_min, v_max, "%.2f", BitFlags::default())
 	}
 	pub fn slider_float2_ret_opts(label: &str, v1: f32, v2: f32, v_min: f32, v_max: f32, display_format: &str, slider_flags: BitFlags<ImGuiSliderFlag>) -> (bool, f32, f32) {
 		let mut changed = false;
@@ -4237,7 +4237,7 @@ impl ImGui {
 		(changed, result1, result2)
 	}
 	pub fn drag_float_range2_ret(label: &str, v_current_min: f32, v_current_max: f32, v_speed: f32, v_min: f32, v_max: f32) -> (bool, f32, f32) {
-		ImGui::drag_float_range2_ret_opts(label, v_current_min, v_current_max, v_speed, v_min, v_max, "%.3f", "%.3f", BitFlags::default())
+		ImGui::drag_float_range2_ret_opts(label, v_current_min, v_current_max, v_speed, v_min, v_max, "%.2f", "%.2f", BitFlags::default())
 	}
 	pub fn drag_float_range2_ret_opts(label: &str, v_current_min: f32, v_current_max: f32, v_speed: f32, v_min: f32, v_max: f32, format: &str, format_max: &str, slider_flags: BitFlags<ImGuiSliderFlag>) -> (bool, f32, f32) {
 		let mut changed = false;
@@ -4311,7 +4311,7 @@ impl ImGui {
 		(changed, result1, result2)
 	}
 	pub fn v_slider_float_ret(label: &str, size: &crate::dora::Vec2, v: f32, v_min: f32, v_max: f32) -> (bool, f32) {
-		ImGui::v_slider_float_ret_opts(label, size, v, v_min, v_max, "%.3f", BitFlags::default())
+		ImGui::v_slider_float_ret_opts(label, size, v, v_min, v_max, "%.2f", BitFlags::default())
 	}
 	pub fn v_slider_float_ret_opts(label: &str, size: &crate::dora::Vec2, v: f32, v_min: f32, v_max: f32, format: &str, slider_flags: BitFlags<ImGuiSliderFlag>) -> (bool, f32) {
 		let mut changed = false;

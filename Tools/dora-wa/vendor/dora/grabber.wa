@@ -95,7 +95,7 @@ func Grabber.SetClearColor(val: Color) {
 }
 /// Gets the clear color used to clear the texture.
 func Grabber.GetClearColor() => Color {
-	return ColorFromARGB(grabber_get_clear_color(*this.raw))
+	return NewColor(grabber_get_clear_color(*this.raw))
 }
 /// Sets the position of a vertex in the grabber grid.
 ///
@@ -142,7 +142,7 @@ func Grabber.SetColor(x: i32, y: i32, color: Color) {
 ///
 /// * `Color` - The color of the vertex.
 func Grabber.GetColor(x: i32, y: i32) => Color {
-	return ColorFromARGB(grabber_get_color(*this.raw, x, y))
+	return NewColor(grabber_get_color(*this.raw, x, y))
 }
 /// Sets the UV coordinates of a vertex in the grabber grid.
 ///

@@ -45,12 +45,12 @@ func VertexColor.SetColor(val: Color) {
 	vertexcolor_set_color(*this.raw, val.ToARGB())
 }
 func VertexColor.GetColor() => Color {
-	return ColorFromARGB(vertexcolor_get_color(*this.raw))
+	return NewColor(vertexcolor_get_color(*this.raw))
 }
 func NewVertexColor(vec: Vec2, color: Color) => VertexColor {
 	raw := vertexcolor_new(vec.ToValue(), color.ToARGB())
 	object := VertexColor{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	setFinalizer(object.raw, vertex_color_finalizer)
 	return object
 }
