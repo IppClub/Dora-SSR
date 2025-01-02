@@ -24,6 +24,7 @@ func FixtureDef.GetTypeId() => i32 {
 }
 func ObjectAsFixtureDef(object: Object) => *FixtureDef {
 	if object.GetTypeId() == fixturedef_type() {
+		ObjectRetain(object.GetRaw())
 		return FixtureDefFrom(object.GetRaw())
 	}
 	return nil

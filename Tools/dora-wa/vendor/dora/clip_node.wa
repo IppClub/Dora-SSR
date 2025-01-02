@@ -38,6 +38,7 @@ func ClipNode.GetTypeId() => i32 {
 }
 func ObjectAsClipNode(object: Object) => *ClipNode {
 	if object.GetTypeId() == clipnode_type() {
+		ObjectRetain(object.GetRaw())
 		return ClipNodeFrom(object.GetRaw())
 	}
 	return nil

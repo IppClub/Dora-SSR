@@ -26,6 +26,7 @@ func SpriteEffect.GetTypeId() => i32 {
 }
 func ObjectAsSpriteEffect(object: Object) => *SpriteEffect {
 	if object.GetTypeId() == spriteeffect_type() {
+		ObjectRetain(object.GetRaw())
 		return SpriteEffectFrom(object.GetRaw())
 	}
 	return nil

@@ -42,6 +42,7 @@ func Line.GetTypeId() => i32 {
 }
 func ObjectAsLine(object: Object) => *Line {
 	if object.GetTypeId() == line_type() {
+		ObjectRetain(object.GetRaw())
 		return LineFrom(object.GetRaw())
 	}
 	return nil

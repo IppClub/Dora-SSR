@@ -26,6 +26,7 @@ func PlatformerActionUpdate.GetTypeId() => i32 {
 }
 func ObjectAsPlatformerActionUpdate(object: Object) => *PlatformerActionUpdate {
 	if object.GetTypeId() == platformer_actionupdate_type() {
+		ObjectRetain(object.GetRaw())
 		return PlatformerActionUpdateFrom(object.GetRaw())
 	}
 	return nil

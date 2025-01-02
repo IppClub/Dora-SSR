@@ -56,6 +56,7 @@ func JointDef.GetTypeId() => i32 {
 }
 func ObjectAsJointDef(object: Object) => *JointDef {
 	if object.GetTypeId() == jointdef_type() {
+		ObjectRetain(object.GetRaw())
 		return JointDefFrom(object.GetRaw())
 	}
 	return nil

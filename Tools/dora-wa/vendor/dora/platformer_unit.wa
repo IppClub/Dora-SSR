@@ -86,6 +86,7 @@ func PlatformerUnit.GetTypeId() => i32 {
 }
 func ObjectAsPlatformerUnit(object: Object) => *PlatformerUnit {
 	if object.GetTypeId() == platformer_unit_type() {
+		ObjectRetain(object.GetRaw())
 		return PlatformerUnitFrom(object.GetRaw())
 	}
 	return nil

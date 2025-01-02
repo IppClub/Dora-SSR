@@ -36,6 +36,7 @@ func QLearner.GetTypeId() => i32 {
 }
 func ObjectAsQLearner(object: Object) => *QLearner {
 	if object.GetTypeId() == qlearner_type() {
+		ObjectRetain(object.GetRaw())
 		return QLearnerFrom(object.GetRaw())
 	}
 	return nil

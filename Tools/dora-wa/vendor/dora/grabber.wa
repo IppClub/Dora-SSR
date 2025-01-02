@@ -50,6 +50,7 @@ func Grabber.GetTypeId() => i32 {
 }
 func ObjectAsGrabber(object: Object) => *Grabber {
 	if object.GetTypeId() == grabber_type() {
+		ObjectRetain(object.GetRaw())
 		return GrabberFrom(object.GetRaw())
 	}
 	return nil

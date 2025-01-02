@@ -86,6 +86,7 @@ func Label.GetTypeId() => i32 {
 }
 func ObjectAsLabel(object: Object) => *Label {
 	if object.GetTypeId() == label_type() {
+		ObjectRetain(object.GetRaw())
 		return LabelFrom(object.GetRaw())
 	}
 	return nil

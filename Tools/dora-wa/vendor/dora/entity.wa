@@ -36,6 +36,7 @@ func Entity.GetTypeId() => i32 {
 }
 func ObjectAsEntity(object: Object) => *Entity {
 	if object.GetTypeId() == entity_type() {
+		ObjectRetain(object.GetRaw())
 		return EntityFrom(object.GetRaw())
 	}
 	return nil

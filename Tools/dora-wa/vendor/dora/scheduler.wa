@@ -36,6 +36,7 @@ func Scheduler.GetTypeId() => i32 {
 }
 func ObjectAsScheduler(object: Object) => *Scheduler {
 	if object.GetTypeId() == scheduler_type() {
+		ObjectRetain(object.GetRaw())
 		return SchedulerFrom(object.GetRaw())
 	}
 	return nil

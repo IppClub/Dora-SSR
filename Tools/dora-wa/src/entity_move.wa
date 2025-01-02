@@ -1,0 +1,219 @@
+import "dora"
+
+func test_entity_move() {
+	/*
+		let window_flags =
+			ImGuiWindowFlag::NO_DECORATION |
+			ImGuiWindowFlag::AlwaysAutoResize |
+			ImGuiWindowFlag::NoSavedSettings |
+			ImGuiWindowFlag::NoFocusOnAppearing |
+			ImGuiWindowFlag::NO_NAV |
+			ImGuiWindowFlag::NoMove;
+		let mut imgui_node = Node::new();
+		imgui_node.schedule(Box::new(move |_| {
+			let width = App::get_visual_size().width;
+			ImGui::set_next_window_bg_alpha(0.35);
+			ImGui::set_next_window_pos_opts(&Vec2::new(width - 10.0, 10.0), ImGuiCond::Always, &Vec2::new(1.0, 0.0));
+			ImGui::set_next_window_size_opts(&Vec2::new(240.0, 0.0), ImGuiCond::FirstUseEver);
+			ImGui::begin_opts("ECS System", window_flags, || {
+				ImGui::text("ECS System (Rust)");
+				ImGui::separator();
+				ImGui::text_wrapped("Tap any place to move entities.");
+				if ImGui::button("Create Random Entity", &Vec2::zero()) {
+					let mut entity = Entity::new();
+					entity.set("image", "Image/logo.png");
+					entity.set("position", Vec2::new(
+						6.0 * (App::get_rand() % 100) as f32,
+						6.0 * (App::get_rand() % 100) as f32));
+					entity.set("direction", 1.0 * (App::get_rand() % 360) as f32);
+					let speed = 1.0 * (App::get_rand() % 20 + 1) as f32;
+					entity.set("speed", speed);
+				}
+				if ImGui::button("Destroy An Entity", &Vec2::zero()) {
+					let group = Group::new(&vec!["sprite", "position"]);
+					group.each(Box::new(|entity| {
+						let mut entity = entity.clone();
+						entity.remove("position");
+						let get_sprite = |e: &Entity| e.get("sprite")?.cast::<Sprite>();
+						if let Some(mut sprite) = get_sprite(&entity) {
+							sprite.run_action_def(
+								ActionDef::sequence(&vec![
+									ActionDef::scale(0.5, 0.5, 0.0, EaseType::InBack),
+									ActionDef::event("Destroy", "")
+								]), false);
+							sprite.slot("Destroy", Box::new(move |_| {
+								entity.destroy();
+							}));
+						}
+						true
+					}));
+				}
+			});
+			false
+		}));
+	*/
+
+	scene_group := dora.NewGroup(&[]string{"scene"})
+	position_group := dora.NewGroup(&[]string{"position"})
+	{
+		observer := dora.NewObserver(dora.EntityEventAdd, &[]string{"scene"})
+		observer.Watch(func(stack: dora.CallStack) => bool {
+			stack.Pop()
+			scene := dora.ObjectCastToNode(*stack.PopObject())
+			scene.OnTapBegan(func(touch: dora.Touch) {
+				location := touch.GetLocation()
+				position_group.Each(func(entity: dora.Entity) => bool {
+					entity.Set("target", location)
+					return false
+				})
+			})
+			return false
+		})
+	}
+	{
+		observer := dora.NewObserver(dora.EntityEventAdd, &[]string{"image"})
+		observer.Watch(func(stack: dora.CallStack) => bool {
+			entity := dora.ObjectAsEntity(*stack.PopObject())
+			image, _ := stack.PopStr()
+			first := scene_group.GetFirst()
+			scene := dora.ObjectCastToNode(*first.Get("scene").GetObject())
+			sprite := dora.NewSpriteWithFile(image)
+			sprite.SetWidth(300)
+			sprite.SetHeight(300)
+			sprite.AddTo(*scene)
+			sprite.RunActionDef(dora.ActionDefScale(0.5, 0.0, 1, dora.EaseOutBack), false)
+			entity.Set("sprite", sprite.Object)
+			return false
+		})
+	}
+	{
+		observer := dora.NewObserver(dora.EntityEventRemove, &[]string{"sprite"})
+		observer.Watch(func(stack: dora.CallStack) => bool {
+			entity := dora.ObjectAsEntity(*stack.PopObject())
+			sprite := dora.ObjectCastToNode(*entity.GetOld("sprite").GetObject())
+			sprite.RemoveFromParent(true)
+			return false
+		})
+	}
+	{
+		observer := dora.NewObserver(dora.EntityEventRemove, &[]string{"target"})
+		observer.Watch(func(stack: dora.CallStack) => bool {
+			entity := dora.ObjectAsEntity(*stack.PopObject())
+			dora.Println("remove target from entity", entity.GetIndex())
+			return false
+		})
+	}
+	{
+		group := dora.NewGroup(&[]string{"position", "direction", "speed", "target"})
+		group.Watch(func(stack: dora.CallStack) => bool {
+			entity := dora.ObjectAsEntity(*stack.PopObject())
+			position, _ := stack.PopVec2()
+			/* direction */ stack.PopF32()
+			speed, _ := stack.PopF32()
+			target, _ := stack.PopVec2()
+			if target == position {
+				return false
+			}
+			dir := target - position
+			dir = dir.Normalize()
+			angle := dora.Math.Deg(dora.Math.Atan2(dir.X, dir.Y))
+			new_pos := position + (dir * speed)
+			new_pos = new_pos.Clamp(position, target)
+			entity.Set("position", new_pos)
+			entity.Set("direction", angle)
+			if new_pos == target {
+				entity.Remove("target")
+			}
+			return false
+		})
+	}
+	{
+		observer := dora.NewObserver(dora.EntityEventAddOrChange, &[]string{"position", "direction", "sprite"})
+		observer.Watch(func(stack: dora.CallStack) => bool {
+			entity := dora.ObjectAsEntity(*stack.PopObject())
+			position, _ := stack.PopVec2()
+			direction, _ := stack.PopF32()
+			sprite := dora.ObjectCastToNode(*stack.PopObject())
+			sprite.SetPosition(position)
+			old_value := entity.GetOld("direction")
+			old_direction: f32 = sprite.GetAngle()
+			if old_value != nil {
+				old_d, _ := old_value.GetF32()
+				old_direction = old_d
+			}
+			if dora.Math.Abs(direction-old_direction) > 1.0 {
+				sprite.RunActionDef(dora.ActionDefRoll(0.3, old_direction, direction, dora.EaseInOutSine), false)
+			}
+			return false
+		})
+	}
+	{
+		entity := dora.NewEntity()
+		entity.Set("scene", dora.NewNode().Object)
+	}
+	{
+		entity := dora.NewEntity()
+		entity.Set("image", "Image/logo.png")
+		entity.Set("position", dora.Vec2{X: 0.0, Y: 0.0})
+		entity.Set("direction", 45.0)
+		entity.Set("speed", 4.0)
+	}
+	{
+		entity := dora.NewEntity()
+		entity.Set("image", "Image/logo.png")
+		entity.Set("position", dora.Vec2{X: -100.0, Y: 200.0})
+		entity.Set("direction", 90.0)
+		entity.Set("speed", 10.0)
+	}
+
+	window_flags := dora.ImGuiWindowFlags(
+		dora.ImGuiWindowNoDecoration,
+		dora.ImGuiWindowAlwaysAutoResize,
+		dora.ImGuiWindowNoSavedSettings,
+		dora.ImGuiWindowNoFocusOnAppearing,
+		dora.ImGuiWindowNoNav,
+		dora.ImGuiWindowNoMove,
+	)
+	imgui_node := dora.NewNode()
+	imgui_node.Schedule(func(delta_time: f64) => bool {
+		width := dora.App.GetVisualSize().Width
+		dora.ImGui.SetNextWindowBgAlpha(0.35)
+		dora.ImGui.SetNextWindowPosOpts(
+			dora.Vec2{X: width - 10.0, Y: 10.0},
+			dora.ImGuiCondAlways,
+			dora.Vec2{X: 1.0, Y: 0.0},
+		)
+		dora.ImGui.SetNextWindowSizeOpts(
+			dora.Vec2{X: 240.0, Y: 0.0},
+			dora.ImGuiCondFirstUseEver,
+		)
+		dora.ImGui.BeginOpts("ECS System", window_flags, func() {
+			dora.ImGui.Text("ECS System (Wa)")
+			dora.ImGui.Separator()
+			dora.ImGui.TextWrapped("Tap any place to move entities.")
+			if dora.ImGui.Button("Create Random Entity", dora.Vec2{X: 0.0, Y: 0.0}) {
+				entity := dora.NewEntity()
+				entity.Set("image", "Image/logo.png")
+				entity.Set("position", dora.Vec2{X: 6.0 * f32(dora.App.GetRand()%100), Y: 6.0 * f32(dora.App.GetRand()%100)})
+				entity.Set("direction", 1.0*f32(dora.App.GetRand()%360))
+				entity.Set("speed", 1.0*f32(dora.App.GetRand()%20+1))
+			}
+			if dora.ImGui.Button("Destroy An Entity", dora.Vec2{X: 0.0, Y: 0.0}) {
+				group := dora.NewGroup(&[]string{"sprite", "position"})
+				group.Each(func(entity: dora.Entity) => bool {
+					entity.Remove("position")
+					sprite := dora.ObjectCastToNode(*entity.Get("sprite").GetObject())
+					sprite.RunActionDef(dora.ActionDefSequence(&[]dora.ActionDef{
+						dora.ActionDefScale(0.5, 1, 0, dora.EaseInBack),
+						dora.ActionDefEvent("Destroy", ""),
+					}), false)
+					sprite.Slot("Destroy", func(_: dora.CallStack) {
+						entity.Destroy()
+					})
+					return true
+				})
+			}
+		})
+		return false
+	})
+}

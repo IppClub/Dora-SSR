@@ -46,6 +46,7 @@ func PlatformerPlatformWorld.GetTypeId() => i32 {
 }
 func ObjectAsPlatformerPlatformWorld(object: Object) => *PlatformerPlatformWorld {
 	if object.GetTypeId() == platformer_platformworld_type() {
+		ObjectRetain(object.GetRaw())
 		return PlatformerPlatformWorldFrom(object.GetRaw())
 	}
 	return nil

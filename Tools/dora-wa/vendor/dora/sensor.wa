@@ -38,6 +38,7 @@ func Sensor.GetTypeId() => i32 {
 }
 func ObjectAsSensor(object: Object) => *Sensor {
 	if object.GetTypeId() == sensor_type() {
+		ObjectRetain(object.GetRaw())
 		return SensorFrom(object.GetRaw())
 	}
 	return nil

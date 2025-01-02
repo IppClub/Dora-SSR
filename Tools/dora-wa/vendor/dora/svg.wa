@@ -32,6 +32,7 @@ func SVG.GetTypeId() => i32 {
 }
 func ObjectAsSVG(object: Object) => *SVG {
 	if object.GetTypeId() == svg_type() {
+		ObjectRetain(object.GetRaw())
 		return SVGFrom(object.GetRaw())
 	}
 	return nil

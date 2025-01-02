@@ -40,6 +40,7 @@ func PlatformerDecisionTree.GetTypeId() => i32 {
 }
 func ObjectAsPlatformerDecisionTree(object: Object) => *PlatformerDecisionTree {
 	if object.GetTypeId() == platformer_decision_tree_type() {
+		ObjectRetain(object.GetRaw())
 		return PlatformerDecisionTreeFrom(object.GetRaw())
 	}
 	return nil

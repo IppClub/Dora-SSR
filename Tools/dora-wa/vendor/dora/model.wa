@@ -60,6 +60,7 @@ func Model.GetTypeId() => i32 {
 }
 func ObjectAsModel(object: Object) => *Model {
 	if object.GetTypeId() == model_type() {
+		ObjectRetain(object.GetRaw())
 		return ModelFrom(object.GetRaw())
 	}
 	return nil

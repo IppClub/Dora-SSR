@@ -1,5 +1,4 @@
 import "dora"
-import "math"
 import "strconv"
 
 func test_contact() {
@@ -16,8 +15,8 @@ func test_contact() {
 	radius: f32 = 300.0
 	vertices := []dora.Vec2{}
 	for i := 0; i <= count; i++ {
-		angle := 2.0 * math.Pi * f32(i) / f32(count)
-		vertices = append(vertices, dora.Vec2{X: radius * math.Cos(angle), Y: radius * math.Sin(angle)})
+		angle := 2.0 * dora.Math.Pi * f32(i) / f32(count)
+		vertices = append(vertices, dora.Vec2{X: radius * dora.Math.Cos(angle), Y: radius * dora.Math.Sin(angle)})
 	}
 	terrain_def.AttachChain(&vertices, 0.4, 0.0)
 	terrain_def.AttachDiskWithCenter(dora.Vec2{X: 0.0, Y: -270.0}, 30.0, 1.0, 0.0, 1.0)

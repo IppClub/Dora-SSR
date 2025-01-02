@@ -32,6 +32,7 @@ func PlatformerFace.GetTypeId() => i32 {
 }
 func ObjectAsPlatformerFace(object: Object) => *PlatformerFace {
 	if object.GetTypeId() == platformer_face_type() {
+		ObjectRetain(object.GetRaw())
 		return PlatformerFaceFrom(object.GetRaw())
 	}
 	return nil

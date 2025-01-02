@@ -32,6 +32,7 @@ func Effect.GetTypeId() => i32 {
 }
 func ObjectAsEffect(object: Object) => *Effect {
 	if object.GetTypeId() == effect_type() {
+		ObjectRetain(object.GetRaw())
 		return EffectFrom(object.GetRaw())
 	}
 	return nil

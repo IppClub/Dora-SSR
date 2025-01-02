@@ -1453,6 +1453,25 @@ int64_t director_get_post_wasm_scheduler() {
 	return Object_From(SharedWasmRuntime.getPostScheduler());
 }
 
+// math
+
+double math_abs(double v) { return std::abs(v); }
+float math_acos(float v) { return std::acos(v); }
+float math_asin(float v) { return std::asin(v); }
+float math_atan(float v) { return std::atan(v); }
+float math_atan2(float y, float x) { return std::atan2(y, x); }
+float math_ceil(float v) { return std::ceil(v); }
+float math_cos(float v) { return std::cos(v); }
+float math_deg(float v) { return bx::toDeg(v); }
+float math_exp(float v) { return std::exp(v); }
+float math_floor(float v) { return std::floor(v); }
+float math_fmod(float x, float y) { return std::fmod(x, y); }
+float math_log(float v) { return std::log(v); }
+float math_rad(float v) { return bx::toRad(v); }
+float math_sin(float v) { return std::sin(v); }
+float math_sqrt(float v) { return std::sqrt(v); }
+float math_tan(float v) { return std::tan(v); }
+
 } // extern "C"
 
 #include "Dora/ActionDefWasm.hpp"
@@ -1761,6 +1780,23 @@ static void linkDoraModule(wasm3::module3& mod) {
 
 	mod.link_optional("*", "director_get_wasm_scheduler", director_get_wasm_scheduler);
 	mod.link_optional("*", "director_get_post_wasm_scheduler", director_get_post_wasm_scheduler);
+
+	mod.link_optional("*", "math_abs", math_abs);
+	mod.link_optional("*", "math_acos", math_acos);
+	mod.link_optional("*", "math_asin", math_asin);
+	mod.link_optional("*", "math_atan", math_asin);
+	mod.link_optional("*", "math_atan2", math_atan2);
+	mod.link_optional("*", "math_ceil", math_ceil);
+	mod.link_optional("*", "math_cos", math_cos);
+	mod.link_optional("*", "math_deg", math_deg);
+	mod.link_optional("*", "math_exp", math_exp);
+	mod.link_optional("*", "math_floor", math_floor);
+	mod.link_optional("*", "math_fmod", math_fmod);
+	mod.link_optional("*", "math_log", math_log);
+	mod.link_optional("*", "math_rad", math_rad);
+	mod.link_optional("*", "math_sin", math_sin);
+	mod.link_optional("*", "math_sqrt", math_sqrt);
+	mod.link_optional("*", "math_tan", math_tan);
 }
 
 int WasmRuntime::_callFromWasm = 0;

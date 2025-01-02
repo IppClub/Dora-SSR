@@ -46,6 +46,7 @@ func Action.GetTypeId() => i32 {
 }
 func ObjectAsAction(object: Object) => *Action {
 	if object.GetTypeId() == action_type() {
+		ObjectRetain(object.GetRaw())
 		return ActionFrom(object.GetRaw())
 	}
 	return nil

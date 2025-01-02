@@ -258,6 +258,7 @@ func Node.GetTypeId() => i32 {
 }
 func ObjectAsNode(object: Object) => *Node {
 	if object.GetTypeId() == node_type() {
+		ObjectRetain(object.GetRaw())
 		return NodeFrom(object.GetRaw())
 	}
 	return nil

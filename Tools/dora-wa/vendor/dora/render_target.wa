@@ -44,6 +44,7 @@ func RenderTarget.GetTypeId() => i32 {
 }
 func ObjectAsRenderTarget(object: Object) => *RenderTarget {
 	if object.GetTypeId() == rendertarget_type() {
+		ObjectRetain(object.GetRaw())
 		return RenderTargetFrom(object.GetRaw())
 	}
 	return nil

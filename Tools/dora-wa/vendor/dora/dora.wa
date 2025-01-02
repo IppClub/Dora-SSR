@@ -488,12 +488,12 @@ func Value.GetBool() => (bool, bool) {
 	return value_into_bool(*this.raw) != 0, true
 }
 
-func Value.GetObject() => (*Object, bool) {
+func Value.GetObject() => *Object {
 	if value_is_object(*this.raw) == 0 {
-		return nil, false
+		return nil
 	}
 	result := createObject(value_into_object(*this.raw))
-	return &result, true
+	return &result
 }
 
 func Value.GetVec2() => (Vec2, bool) {
@@ -851,8 +851,8 @@ func Println(values: ...interface{}) {
 				}
 			}
 			if !ok {
-				_, ok := v.GetObject()
-				if ok {
+				object := v.GetObject()
+				if object != nil {
 					strs[i] = "Object"
 				}
 			}
@@ -973,16 +973,16 @@ func Vec2.Length() => f32 {
 	return vec2_length(this.ToValue())
 }
 
-func Vec2.Angle(a: Vec2) => f32 {
-	return vec2_angle(a.ToValue())
+func Vec2.Angle() => f32 {
+	return vec2_angle(this.ToValue())
 }
 
-func Vec2.Normalize(a: Vec2) => Vec2 {
-	return Vec2FromValue(vec2_normalize(a.ToValue()))
+func Vec2.Normalize() => Vec2 {
+	return Vec2FromValue(vec2_normalize(this.ToValue()))
 }
 
-func Vec2.Perp(a: Vec2) => Vec2 {
-	return Vec2FromValue(vec2_perp(a.ToValue()))
+func Vec2.Perp() => Vec2 {
+	return Vec2FromValue(vec2_perp(this.ToValue()))
 }
 
 func Vec2.Dot(b: Vec2) => f32 {
@@ -3747,4 +3747,137 @@ func _ImGui.PushClipRect(clip_rect_min: Vec2, clip_rect_max: Vec2, intersect_wit
 	this._PushClipRect(clip_rect_min, clip_rect_max, intersect_with_current_clip_rect)
 	inside()
 	this._PopClipRect()
+}
+
+// math
+
+#wa:import dora math_abs
+func math_abs(v: f64) => f64
+
+#wa:import dora math_acos
+func math_acos(v: f32) => f32
+
+#wa:import dora math_asin
+func math_asin(v: f32) => f32
+
+#wa:import dora math_atan
+func math_atan(v: f32) => f32
+
+#wa:import dora math_atan2
+func math_atan2(y: f32, x: f32) => f32
+
+#wa:import dora math_ceil
+func math_ceil(v: f32) => f32
+
+#wa:import dora math_cos
+func math_cos(v: f32) => f32
+
+#wa:import dora math_deg
+func math_deg(v: f32) => f32
+
+#wa:import dora math_exp
+func math_exp(v: f32) => f32
+
+#wa:import dora math_floor
+func math_floor(v: f32) => f32
+
+#wa:import dora math_fmod
+func math_fmod(x: f32, y: f32) => f32
+
+#wa:import dora math_log
+func math_log(v: f32) => f32
+
+#wa:import dora math_rad
+func math_rad(v: f32) => f32
+
+#wa:import dora math_sin
+func math_sin(v: f32) => f32
+
+#wa:import dora math_sqrt
+func math_sqrt(v: f32) => f32
+
+#wa:import dora math_tan
+func math_tan(v: f32) => f32
+
+type _Math :struct {
+	Pi: f32
+}
+
+global Math = _Math{Pi: math.Pi}
+
+#wa:generic AbsF64 AbsI64 AbsI32
+func _Math.Abs(v: f32) => f32 {
+	return f32(math_abs(f64(v)))
+}
+
+func _Math.AbsF64(v: f64) => f64 {
+	return math_abs(v)
+}
+
+func _Math.AbsI64(v: i64) => i64 {
+	return i64(math_abs(f64(v)))
+}
+
+func _Math.AbsI32(v: i32) => i32 {
+	return i32(math_abs(f64(v)))
+}
+
+func _Math.Acos(v: f32) => f32 {
+	return math_acos(v)
+}
+
+func _Math.Asin(v: f32) => f32 {
+	return math_asin(v)
+}
+
+func _Math.Atan(v: f32) => f32 {
+	return math_atan(v)
+}
+
+func _Math.Atan2(y: f32, x: f32) => f32 {
+	return math_atan2(y, x)
+}
+
+func _Math.Ceil(v: f32) => f32 {
+	return math_ceil(v)
+}
+
+func _Math.Cos(v: f32) => f32 {
+	return math_cos(v)
+}
+
+func _Math.Deg(v: f32) => f32 {
+	return math_deg(v)
+}
+
+func _Math.Exp(v: f32) => f32 {
+	return math_exp(v)
+}
+
+func _Math.Floor(v: f32) => f32 {
+	return math_floor(v)
+}
+
+func _Math.Fmod(x: f32, y: f32) => f32 {
+	return math_fmod(x, y)
+}
+
+func _Math.Log(v: f32) => f32 {
+	return math_log(v)
+}
+
+func _Math.Rad(v: f32) => f32 {
+	return math_rad(v)
+}
+
+func _Math.Sin(v: f32) => f32 {
+	return math_sin(v)
+}
+
+func _Math.Sqrt(v: f32) => f32 {
+	return math_sqrt(v)
+}
+
+func _Math.Tan(v: f32) => f32 {
+	return math_tan(v)
 }

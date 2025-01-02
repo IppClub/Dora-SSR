@@ -46,6 +46,7 @@ func PlatformerBullet.GetTypeId() => i32 {
 }
 func ObjectAsPlatformerBullet(object: Object) => *PlatformerBullet {
 	if object.GetTypeId() == platformer_bullet_type() {
+		ObjectRetain(object.GetRaw())
 		return PlatformerBulletFrom(object.GetRaw())
 	}
 	return nil

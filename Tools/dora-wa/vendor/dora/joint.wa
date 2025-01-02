@@ -52,6 +52,7 @@ func Joint.GetTypeId() => i32 {
 }
 func ObjectAsJoint(object: Object) => *Joint {
 	if object.GetTypeId() == joint_type() {
+		ObjectRetain(object.GetRaw())
 		return JointFrom(object.GetRaw())
 	}
 	return nil

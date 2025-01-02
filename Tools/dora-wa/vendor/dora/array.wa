@@ -46,6 +46,7 @@ func Array.GetTypeId() => i32 {
 }
 func ObjectAsArray(object: Object) => *Array {
 	if object.GetTypeId() == array_type() {
+		ObjectRetain(object.GetRaw())
 		return ArrayFrom(object.GetRaw())
 	}
 	return nil

@@ -36,6 +36,7 @@ func MotorJoint.GetTypeId() => i32 {
 }
 func ObjectAsMotorJoint(object: Object) => *MotorJoint {
 	if object.GetTypeId() == motorjoint_type() {
+		ObjectRetain(object.GetRaw())
 		return MotorJointFrom(object.GetRaw())
 	}
 	return nil
