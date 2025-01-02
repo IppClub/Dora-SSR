@@ -1,0 +1,181 @@
+import "dora"
+
+/*
+	let model_file = "Model/xiaoli.model";
+
+	let mut looks = Model::get_looks(model_file);
+	if looks.len() == 0 {
+		looks.push("".to_string());
+	}
+
+	let mut animations = Model::get_animations(model_file);
+	if animations.len() == 0 {
+		animations.push("".to_string());
+	}
+
+	let mut current_look = looks.iter().position(|x| x == "happy").unwrap_or(0);
+	current_look = current_look.max(0);
+	let mut current_anim = animations.iter().position(|x| x == "idle").unwrap_or(0);
+	current_anim = current_anim.max(0);
+
+	let mut model = match Model::new(model_file) {
+		Some(model) => model,
+		None => return,
+	};
+	model.set_recovery(0.2);
+	model.set_look(&looks[current_look]);
+	model.play(&animations[current_anim], true);
+	Slot::on_animation_end(&mut model, |name, _| {
+		p!("{} end", name);
+	});
+
+	let mut loop_ = true;
+	let window_flags =
+		ImGuiWindowFlag::NoResize |
+		ImGuiWindowFlag::NoSavedSettings;
+	let mut imgui_node = Node::new();
+	let mut model = model.clone();
+	imgui_node.schedule(Box::new(move |_| {
+		let width = App::get_visual_size().width;
+		ImGui::set_next_window_pos_opts(&Vec2::new(width - 250.0, 10.0), ImGuiCond::FirstUseEver, &Vec2::zero());
+		ImGui::set_next_window_size_opts(&Vec2::new(240.0, 325.0), ImGuiCond::FirstUseEver);
+		ImGui::begin_opts("Model", window_flags, || {
+			ImGui::text("Model (Rust)");
+			let looks_str: Vec<&str> = looks.iter().map(AsRef::as_ref).collect();
+			let (changed, current_look_temp) = ImGui::combo_ret("Look", current_look as i32, &looks_str);
+			if changed {
+				current_look = current_look_temp as usize;
+				model.set_look(&looks[current_look as usize]);
+			}
+			let animations_str: Vec<&str> = animations.iter().map(AsRef::as_ref).collect();
+			let (changed, current_anim_temp) = ImGui::combo_ret("Anim", current_anim as i32, &animations_str);
+			if changed {
+				current_anim = current_anim_temp as usize;
+				model.play(&animations[current_anim as usize], loop_);
+			}
+			let (changed, loop_temp) = ImGui::checkbox_ret("Loop", loop_);
+			loop_ = loop_temp;
+			if changed {
+				model.play(&animations[current_anim as usize], loop_);
+			}
+			ImGui::same_line(0.0, 10.0);
+			let (changed, reversed) = ImGui::checkbox_ret("Reversed", model.is_reversed());
+			if changed {
+				model.set_reversed(reversed);
+				model.play(&animations[current_anim as usize], loop_);
+			}
+			ImGui::push_item_width(-70.0, || {
+				let (changed, speed) = ImGui::drag_float_ret_opts("Speed", model.get_speed(), 0.01, 0.0, 10.0, "%.2f", ImGuiSliderFlag::ALWAYS_CLAMP.into());
+				if changed {
+					model.set_speed(speed);
+				}
+				let (changed, recovery) = ImGui::drag_float_ret_opts("Recovery", model.get_recovery(), 0.01, 0.0, 10.0, "%.2f", ImGuiSliderFlag::ALWAYS_CLAMP.into());
+				if changed {
+					model.set_recovery(recovery);
+				}
+				let (changed, scale) = ImGui::drag_float_ret_opts("Scale", model.get_scale_x(), 0.01, 0.5, 2.0, "%.2f", ImGuiSliderFlag::ALWAYS_CLAMP.into());
+				if changed {
+					model.set_scale_x(scale);
+					model.set_scale_y(scale);
+				}
+			});
+			if ImGui::button("Play", &Vec2::new(140.0, 30.0)) {
+				model.play(&animations[current_anim as usize], loop_);
+			}
+		});
+		false
+	}));
+*/
+
+func test_model() {
+	model_file := "Model/xiaoli.model"
+
+	looks := dora.ModelGetLooks(model_file)
+	if len(*looks) == 0 {
+		*looks = append(*looks, "")
+	}
+
+	animations := dora.ModelGetAnimations(model_file)
+	if len(*animations) == 0 {
+		*animations = append(*animations, "")
+	}
+
+	current_look: i32 = 0
+	for i, look := range *looks {
+		if look == "happy" {
+			current_look = i32(i)
+			break
+		}
+	}
+
+	current_anim: i32 = 0
+	for i, anim := range *animations {
+		if anim == "idle" {
+			current_anim = i32(i)
+			break
+		}
+	}
+
+	model := dora.NewModel(model_file)
+	model.SetRecovery(0.2)
+	model.SetLook((*looks)[current_look])
+	model.Play((*animations)[current_anim], true)
+	model.OnAnimationEnd(func(name: string, _: dora.Playable) {
+		dora.Println(name, "end")
+	})
+
+	loop := true
+	window_flags := dora.ImGuiWindowFlags(
+		dora.ImGuiWindowNoResize,
+		dora.ImGuiWindowNoSavedSettings,
+	)
+	imgui_node := dora.NewNode()
+	imgui_node.Schedule(func(_: f64) => bool {
+		width := dora.App.GetVisualSize().Width
+		dora.ImGui.SetNextWindowPosOpts(dora.Vec2{width - 250.0, 10.0}, dora.ImGuiCondFirstUseEver, dora.Vec2Zero)
+		dora.ImGui.SetNextWindowSizeOpts(dora.Vec2{240.0, 325.0}, dora.ImGuiCondAlways)
+		dora.ImGui.BeginOpts("Model", window_flags, func() {
+			dora.ImGui.Text("Model (Wa)")
+			changed, current_look_temp := dora.ImGui.ComboRet("Look", current_look, looks)
+			if changed {
+				current_look = current_look_temp
+				model.SetLook((*looks)[current_look])
+			}
+			changed, current_anim_temp := dora.ImGui.ComboRet("Anim", current_anim, animations)
+			if changed {
+				current_anim = current_anim_temp
+				model.Play((*animations)[current_anim], loop)
+			}
+			changed, loop_temp := dora.ImGui.CheckboxRet("Loop", loop)
+			if changed {
+				loop = loop_temp
+				model.Play((*animations)[current_anim], loop)
+			}
+			dora.ImGui.SameLine(0.0, 10.0)
+			changed, reversed := dora.ImGui.CheckboxRet("Reversed", model.IsReversed())
+			if changed {
+				model.SetReversed(reversed)
+				model.Play((*animations)[current_anim], loop)
+			}
+			dora.ImGui.PushItemWidth(-70.0, func() {
+				changed, speed := dora.ImGui.DragFloatRetOpts("Speed", model.GetSpeed(), 0.01, 0.0, 10.0, "%.2f", dora.ImGuiSliderFlags(dora.ImGuiSliderAlwaysClamp))
+				if changed {
+					model.SetSpeed(speed)
+				}
+				changed, recovery := dora.ImGui.DragFloatRetOpts("Recovery", model.GetRecovery(), 0.01, 0.0, 10.0, "%.2f", dora.ImGuiSliderFlags(dora.ImGuiSliderAlwaysClamp))
+				if changed {
+					model.SetRecovery(recovery)
+				}
+				changed, scale := dora.ImGui.DragFloatRetOpts("Scale", model.GetScaleX(), 0.01, 0.5, 2.0, "%.2f", dora.ImGuiSliderFlags(dora.ImGuiSliderAlwaysClamp))
+				if changed {
+					model.SetScaleX(scale)
+					model.SetScaleY(scale)
+				}
+			})
+			if dora.ImGui.Button("Play", dora.Vec2{140.0, 30.0}) {
+				model.Play((*animations)[current_anim], loop)
+			}
+		})
+		return false
+	})
+}

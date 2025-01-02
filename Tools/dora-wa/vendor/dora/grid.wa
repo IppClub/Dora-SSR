@@ -171,7 +171,7 @@ func Grid.SetColor(x: i32, y: i32, color: Color) {
 ///
 /// * `Color` - The current color of the vertex.
 func Grid.GetColor(x: i32, y: i32) => Color {
-	return ColorFromARGB(grid_get_color(*this.raw, x, y))
+	return NewColor(grid_get_color(*this.raw, x, y))
 }
 /// Moves the UV coordinates of a vertex in the grid.
 ///

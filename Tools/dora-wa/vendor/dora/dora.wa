@@ -1043,11 +1043,18 @@ func Color3.ToRGB() => i32 {
 	return i32(this.R)<<16 | i32(this.G)<<8 | i32(this.B)
 }
 
-func Color3FromRGB(value: i32) => Color3 {
+#wa:generic NewColor3WithRGB NewColor3WithRGBI
+func NewColor3(r: u8, g: u8, b: u8) => Color3 {
+	return Color3{R: r, G: g, B: b}
+}
+func NewColor3WithRGB(value: u32) => Color3 {
 	r := value >> 16
 	g := value >> 8 & 0xFF
 	b := value & 0xFF
 	return Color3{R: u8(r), G: u8(g), B: u8(b)}
+}
+func NewColor3WithRGBI(value: i32) => Color3 {
+	return NewColor3WithRGB(u32(value))
 }
 
 type Color :struct {
@@ -1059,10 +1066,17 @@ func Color.ToARGB() => i32 {
 	return i32(this.A)<<24 | i32(this.Color3.ToRGB())
 }
 
-func ColorFromARGB(value: i32) => Color {
+#wa:generic NewColorWithARGB NewColorWithARGBI
+func NewColor(r: u8, g: u8, b: u8, a: u8) => Color {
+	return Color{Color3: Color3{R: r, G: g, B: b}, A: a}
+}
+func NewColorWithARGB(value: u32) => Color {
 	a := value >> 24
 	color3 := value & 0x00FFFFFF
-	return Color{Color3: Color3FromRGB(color3), A: u8(a)}
+	return Color{Color3: NewColor3(color3), A: u8(a)}
+}
+func NewColorWithARGBI(value: i32) => Color {
+	return NewColorWithARGB(u32(value))
 }
 
 global ColorWhite = Color{Color3: Color3{R: 255, G: 255, B: 255}, A: 255}
@@ -1175,72 +1189,82 @@ func Array.SetSize(index: i32, value: Size) {
 	array_set(*this.raw, index, *NewValue(value).raw)
 }
 
-func Array.Get(index: i32) => (*Value, bool) {
+func Array.Get(index: i32) => *Value {
 	value := array_get(*this.raw, index)
 	if value == 0 {
-		return nil, false
+		return nil
 	}
 	result := ValueFrom(value)
-	return &result, true
+	return &result
 }
 
-func Array.First() => (*Value, bool) {
+func Array.First() => *Value {
 	first := array_first(*this.raw)
 	if first == 0 {
-		return nil, false
+		return nil
 	}
 	result := ValueFrom(first)
-	return &result, true
+	return &result
 }
 
-func Array.Last() => (*Value, bool) {
+func Array.Last() => *Value {
 	last := array_last(*this.raw)
 	if last == 0 {
-		return nil, false
+		return nil
 	}
 	result := ValueFrom(last)
-	return &result, true
+	return &result
 }
 
-func Array.RandomObject() => (*Value, bool) {
+func Array.RandomObject() => *Value {
 	random := array_random_object(*this.raw)
 	if random == 0 {
-		return nil, false
+		return nil
 	}
 	result := ValueFrom(random)
-	return &result, true
+	return &result
 }
 
 #wa:generic AddI32 AddI64 AddF32 AddF64 AddStr AddBool AddObject AddVec2 AddSize
-func Array.Add(value: Value) {
+func Array.Add(value: Value) => *Array {
 	array_add(*this.raw, *value.raw)
+	return this
 }
-func Array.AddI32(value: i32) {
+func Array.AddI32(value: i32) => *Array {
 	array_add(*this.raw, *NewValue(value).raw)
+	return this
 }
-func Array.AddI64(value: i64) {
+func Array.AddI64(value: i64) => *Array {
 	array_add(*this.raw, *NewValue(value).raw)
+	return this
 }
-func Array.AddF32(value: f32) {
+func Array.AddF32(value: f32) => *Array {
 	array_add(*this.raw, *NewValue(value).raw)
+	return this
 }
-func Array.AddF64(value: f64) {
+func Array.AddF64(value: f64) => *Array {
 	array_add(*this.raw, *NewValue(value).raw)
+	return this
 }
-func Array.AddStr(value: string) {
+func Array.AddStr(value: string) => *Array {
 	array_add(*this.raw, *NewValue(value).raw)
+	return this
 }
-func Array.AddBool(value: bool) {
+func Array.AddBool(value: bool) => *Array {
 	array_add(*this.raw, *NewValue(value).raw)
+	return this
 }
-func Array.AddObject(value: Object) {
+func Array.AddObject(value: Object) => *Array {
 	array_add(*this.raw, *NewValue(value).raw)
+	return this
 }
-func Array.AddVec2(value: Vec2) {
+func Array.AddVec2(value: Vec2) => *Array {
 	array_add(*this.raw, *NewValue(value).raw)
+	return this
 }
-func Array.AddSize(value: Size) {
+func Array.AddSize(value: Size) => *Array {
 	array_add(*this.raw, *NewValue(value).raw)
+	return this
 }
 
 #wa:generic InsertI32 InsertI64 InsertF32 InsertF64 InsertStr InsertBool InsertObject InsertVec2 InsertSize
@@ -2501,6 +2525,8 @@ type _ImGuiWindowFlags :struct {
 	value: i32
 }
 
+global ImGuiWindowDefault = _ImGuiWindowFlags{value: 0}
+
 func ImGuiWindowFlags(flags: ..._ImGuiWindowFlag) => _ImGuiWindowFlags {
 	flags_value: i32 = 0
 	for _, value := range flags {
@@ -2510,7 +2536,7 @@ func ImGuiWindowFlags(flags: ..._ImGuiWindowFlag) => _ImGuiWindowFlags {
 }
 
 func _ImGui.Begin(name: string, inside: func()) {
-	this.BeginOpts(name, _ImGuiWindowFlags{value: 0}, inside)
+	this.BeginOpts(name, ImGuiWindowDefault, inside)
 }
 
 func _ImGui.BeginOpts(name: string, windows_flags: _ImGuiWindowFlags, inside: func()) {
@@ -2521,7 +2547,7 @@ func _ImGui.BeginOpts(name: string, windows_flags: _ImGuiWindowFlags, inside: fu
 }
 
 func _ImGui.BeginRet(name: string, opened: bool, inside: func()) => (bool, bool) {
-	return this.BeginRetOpts(name, opened, _ImGuiWindowFlags{value: 0}, inside)
+	return this.BeginRetOpts(name, opened, ImGuiWindowDefault, inside)
 }
 
 func _ImGui.BeginRetOpts(name: string, opened: bool, window_flags: _ImGuiWindowFlags, inside: func()) => (bool, bool) {
@@ -2555,6 +2581,8 @@ type _ImGuiChildFlags :struct {
 	value: i32
 }
 
+global ImGuiChildDefault = _ImGuiChildFlags{value: 0}
+
 func ImGuiChildFlags(flags: ..._ImGuiChildFlag) => _ImGuiChildFlags {
 	flags_value: i32 = 0
 	for _, value := range flags {
@@ -2564,7 +2592,7 @@ func ImGuiChildFlags(flags: ..._ImGuiChildFlag) => _ImGuiChildFlags {
 }
 
 func _ImGui.BeginChild(str_id: string, size: Vec2, inside: func()) {
-	this.BeginChildOpts(str_id, size, _ImGuiChildFlags{value: 0}, _ImGuiWindowFlags{value: 0}, inside)
+	this.BeginChildOpts(str_id, size, ImGuiChildDefault, ImGuiWindowDefault, inside)
 }
 
 func _ImGui.BeginChildOpts(str_id: string, size: Vec2, child_flags: _ImGuiChildFlags, window_flags: _ImGuiWindowFlags, inside: func()) {
@@ -2575,7 +2603,7 @@ func _ImGui.BeginChildOpts(str_id: string, size: Vec2, child_flags: _ImGuiChildF
 }
 
 func _ImGui.BeginChildWithId(id: i32, size: Vec2, inside: func()) {
-	this.BeginChildWithIdOpts(id, size, _ImGuiChildFlags{value: 0}, _ImGuiWindowFlags{value: 0}, inside)
+	this.BeginChildWithIdOpts(id, size, ImGuiChildDefault, ImGuiWindowDefault, inside)
 }
 
 func _ImGui.BeginChildWithIdOpts(id: i32, size: Vec2, child_flags: _ImGuiChildFlags, window_flags: _ImGuiWindowFlags, inside: func()) {
@@ -2610,6 +2638,8 @@ type _ImGuiTreeNodeFlags :struct {
 	value: i32
 }
 
+global ImGuiTreeNodeDefault = _ImGuiTreeNodeFlags{value: 0}
+
 func ImGuiTreeNodeFlags(flags: ..._ImGuiTreeNodeFlag) => _ImGuiTreeNodeFlags {
 	flags_value: i32 = 0
 	for _, value := range flags {
@@ -2619,7 +2649,7 @@ func ImGuiTreeNodeFlags(flags: ..._ImGuiTreeNodeFlag) => _ImGuiTreeNodeFlags {
 }
 
 func _ImGui.CollapsingHeaderRet(label: string, opened: bool) => (bool, bool) {
-	return this.CollapsingHeaderRetOpts(label, opened, _ImGuiTreeNodeFlags{value: 0})
+	return this.CollapsingHeaderRetOpts(label, opened, ImGuiTreeNodeDefault)
 }
 
 func _ImGui.CollapsingHeaderRetOpts(label: string, opened: bool, tree_node_flags: _ImGuiTreeNodeFlags) => (bool, bool) {
@@ -2646,6 +2676,8 @@ type _ImGuiSelectableFlags :struct {
 	value: i32
 }
 
+global ImGuiSelectableDefault = _ImGuiSelectableFlags{value: 0}
+
 func ImGuiSelectableFlags(flags: ..._ImGuiSelectableFlag) => _ImGuiSelectableFlags {
 	flags_value: i32 = 0
 	for _, value := range flags {
@@ -2655,7 +2687,7 @@ func ImGuiSelectableFlags(flags: ..._ImGuiSelectableFlag) => _ImGuiSelectableFla
 }
 
 func _ImGui.SelectableRet(label: string, selected: bool) => (bool, bool) {
-	return this.SelectableRetOpts(label, selected, Vec2Zero, _ImGuiSelectableFlags{value: 0})
+	return this.SelectableRetOpts(label, selected, Vec2Zero, ImGuiSelectableDefault)
 }
 
 func _ImGui.SelectableRetOpts(label: string, selected: bool, size: Vec2, selectable_flags: _ImGuiSelectableFlags) => (bool, bool) {
@@ -2698,6 +2730,8 @@ type _ImGuiSliderFlags :struct {
 	value: i32
 }
 
+global ImGuiSliderDefault = _ImGuiSliderFlags{value: 0}
+
 func ImGuiSliderFlags(flags: ..._ImGuiSliderFlag) => _ImGuiSliderFlags {
 	flags_value: i32 = 0
 	for _, value := range flags {
@@ -2707,7 +2741,7 @@ func ImGuiSliderFlags(flags: ..._ImGuiSliderFlag) => _ImGuiSliderFlags {
 }
 
 func _ImGui.DragFloatRet(label: string, v: f32, v_speed: f32, v_min: f32, v_max: f32) => (bool, f32) {
-	return this.DragFloatRetOpts(label, v, v_speed, v_min, v_max, "%.3f", _ImGuiSliderFlags{value: 0})
+	return this.DragFloatRetOpts(label, v, v_speed, v_min, v_max, "%.2f", ImGuiSliderDefault)
 }
 
 func _ImGui.DragFloatRetOpts(label: string, v: f32, v_speed: f32, v_min: f32, v_max: f32, display_format: string, slider_flags: _ImGuiSliderFlags) => (bool, f32) {
@@ -2721,7 +2755,7 @@ func _ImGui.DragFloatRetOpts(label: string, v: f32, v_speed: f32, v_min: f32, v_
 }
 
 func _ImGui.DragFloat2Ret(label: string, v1: f32, v2: f32, v_speed: f32, v_min: f32, v_max: f32) => (bool, f32, f32) {
-	return this.DragFloat2RetOpts(label, v1, v2, v_speed, v_min, v_max, "%.3f", _ImGuiSliderFlags{value: 0})
+	return this.DragFloat2RetOpts(label, v1, v2, v_speed, v_min, v_max, "%.2f", ImGuiSliderDefault)
 }
 
 func _ImGui.DragFloat2RetOpts(label: string, v1: f32, v2: f32, v_speed: f32, v_min: f32, v_max: f32, display_format: string, slider_flags: _ImGuiSliderFlags) => (bool, f32, f32) {
@@ -2742,7 +2776,7 @@ func _ImGui.DragFloat2RetOpts(label: string, v1: f32, v2: f32, v_speed: f32, v_m
 // drag_int2_ret
 
 func _ImGui.DragInt2Ret(label: string, v1: i32, v2: i32, v_speed: f32, v_min: i32, v_max: i32) => (bool, i32, i32) {
-	return this.DragInt2RetOpts(label, v1, v2, v_speed, v_min, v_max, "%d", _ImGuiSliderFlags{value: 0})
+	return this.DragInt2RetOpts(label, v1, v2, v_speed, v_min, v_max, "%d", ImGuiSliderDefault)
 }
 
 func _ImGui.DragInt2RetOpts(label: string, v1: i32, v2: i32, v_speed: f32, v_min: i32, v_max: i32, display_format: string, slider_flags: _ImGuiSliderFlags) => (bool, i32, i32) {
@@ -2792,6 +2826,8 @@ type _ImGuiInputTextFlags :struct {
 	value: i32
 }
 
+global ImGuiInputTextDefault = _ImGuiInputTextFlags{value: 0}
+
 func ImGuiInputTextFlags(flags: ..._ImGuiInputTextFlag) => _ImGuiInputTextFlags {
 	flags_value: i32 = 0
 	for _, value := range flags {
@@ -2801,7 +2837,7 @@ func ImGuiInputTextFlags(flags: ..._ImGuiInputTextFlag) => _ImGuiInputTextFlags 
 }
 
 func _ImGui.InputFloatRet(label: string, v: f32) => (bool, f32) {
-	return this.InputFloatRetOpts(label, v, 0.0, 0.0, "%.3f", _ImGuiInputTextFlags{value: 0})
+	return this.InputFloatRetOpts(label, v, 0.0, 0.0, "%.2f", ImGuiInputTextDefault)
 }
 
 func _ImGui.InputFloatRetOpts(label: string, v: f32, step: f32, step_fast: f32, display_format: string, input_text_flags: _ImGuiInputTextFlags) => (bool, f32) {
@@ -2815,7 +2851,7 @@ func _ImGui.InputFloatRetOpts(label: string, v: f32, step: f32, step_fast: f32, 
 }
 
 func _ImGui.InputFloat2Ret(label: string, v1: f32, v2: f32) => (bool, f32, f32) {
-	return this.InputFloat2RetOpts(label, v1, v2, "%.3f", _ImGuiInputTextFlags{value: 0})
+	return this.InputFloat2RetOpts(label, v1, v2, "%.2f", ImGuiInputTextDefault)
 }
 
 func _ImGui.InputFloat2RetOpts(label: string, v1: f32, v2: f32, display_format: string, input_text_flags: _ImGuiInputTextFlags) => (bool, f32, f32) {
@@ -2836,7 +2872,7 @@ func _ImGui.InputFloat2RetOpts(label: string, v1: f32, v2: f32, display_format: 
 // input_int_ret
 
 func _ImGui.InputIntRet(label: string, v: i32) => (bool, i32) {
-	return this.InputIntRetOpts(label, v, 1, 100, _ImGuiInputTextFlags{value: 0})
+	return this.InputIntRetOpts(label, v, 1, 100, ImGuiInputTextDefault)
 }
 
 func _ImGui.InputIntRetOpts(label: string, v: i32, step: i32, step_fast: i32, input_text_flags: _ImGuiInputTextFlags) => (bool, i32) {
@@ -2852,7 +2888,7 @@ func _ImGui.InputIntRetOpts(label: string, v: i32, step: i32, step_fast: i32, in
 // input_int2_ret
 
 func _ImGui.InputInt2Ret(label: string, v1: i32, v2: i32) => (bool, i32, i32) {
-	return this.InputInt2RetOpts(label, v1, v2, _ImGuiInputTextFlags{value: 0})
+	return this.InputInt2RetOpts(label, v1, v2, ImGuiInputTextDefault)
 }
 
 func _ImGui.InputInt2RetOpts(label: string, v1: i32, v2: i32, input_text_flags: _ImGuiInputTextFlags) => (bool, i32, i32) {
@@ -2873,7 +2909,7 @@ func _ImGui.InputInt2RetOpts(label: string, v1: i32, v2: i32, input_text_flags: 
 // slider_float_ret
 
 func _ImGui.SliderFloatRet(label: string, v: f32, v_min: f32, v_max: f32) => (bool, f32) {
-	return this.SliderFloatRetOpts(label, v, v_min, v_max, "%.3f", _ImGuiSliderFlags{value: 0})
+	return this.SliderFloatRetOpts(label, v, v_min, v_max, "%.2f", ImGuiSliderDefault)
 }
 
 func _ImGui.SliderFloatRetOpts(label: string, v: f32, v_min: f32, v_max: f32, display_format: string, slider_flags: _ImGuiSliderFlags) => (bool, f32) {
@@ -2889,7 +2925,7 @@ func _ImGui.SliderFloatRetOpts(label: string, v: f32, v_min: f32, v_max: f32, di
 // slider_float2_ret
 
 func _ImGui.SliderFloat2Ret(label: string, v1: f32, v2: f32, v_min: f32, v_max: f32) => (bool, f32, f32) {
-	return this.SliderFloat2RetOpts(label, v1, v2, v_min, v_max, "%.3f", _ImGuiSliderFlags{value: 0})
+	return this.SliderFloat2RetOpts(label, v1, v2, v_min, v_max, "%.2f", ImGuiSliderDefault)
 }
 
 func _ImGui.SliderFloat2RetOpts(label: string, v1: f32, v2: f32, v_min: f32, v_max: f32, display_format: string, slider_flags: _ImGuiSliderFlags) => (bool, f32, f32) {
@@ -2910,7 +2946,7 @@ func _ImGui.SliderFloat2RetOpts(label: string, v1: f32, v2: f32, v_min: f32, v_m
 // drag_float_range2_ret
 
 func _ImGui.DragFloatRange2Ret(label: string, v_current_min: f32, v_current_max: f32, v_speed: f32, v_min: f32, v_max: f32) => (bool, f32, f32) {
-	return this.DragFloatRange2RetOpts(label, v_current_min, v_current_max, v_speed, v_min, v_max, "%.3f", "%.3f", _ImGuiSliderFlags{value: 0})
+	return this.DragFloatRange2RetOpts(label, v_current_min, v_current_max, v_speed, v_min, v_max, "%.2f", "%.2f", ImGuiSliderDefault)
 }
 
 func _ImGui.DragFloatRange2RetOpts(label: string, v_current_min: f32, v_current_max: f32, v_speed: f32, v_min: f32, v_max: f32, display_format_min: string, display_format_max: string, slider_flags: _ImGuiSliderFlags) => (bool, f32, f32) {
@@ -2931,7 +2967,7 @@ func _ImGui.DragFloatRange2RetOpts(label: string, v_current_min: f32, v_current_
 // drag_int_ret
 
 func _ImGui.DragIntRet(label: string, v: i32, v_speed: f32, v_min: i32, v_max: i32) => (bool, i32) {
-	return this.DragIntRetOpts(label, v, v_speed, v_min, v_max, "%d", _ImGuiSliderFlags{value: 0})
+	return this.DragIntRetOpts(label, v, v_speed, v_min, v_max, "%d", ImGuiSliderDefault)
 }
 
 func _ImGui.DragIntRetOpts(label: string, v: i32, v_speed: f32, v_min: i32, v_max: i32, display_format: string, slider_flags: _ImGuiSliderFlags) => (bool, i32) {
@@ -2947,7 +2983,7 @@ func _ImGui.DragIntRetOpts(label: string, v: i32, v_speed: f32, v_min: i32, v_ma
 // drag_int_range2_ret
 
 func _ImGui.DragIntRange2Ret(label: string, v_current_min: i32, v_current_max: i32, v_speed: f32, v_min: i32, v_max: i32) => (bool, i32, i32) {
-	return this.DragIntRange2RetOpts(label, v_current_min, v_current_max, v_speed, v_min, v_max, "%d", "%d", _ImGuiSliderFlags{value: 0})
+	return this.DragIntRange2RetOpts(label, v_current_min, v_current_max, v_speed, v_min, v_max, "%d", "%d", ImGuiSliderDefault)
 }
 
 func _ImGui.DragIntRange2RetOpts(label: string, v_current_min: i32, v_current_max: i32, v_speed: f32, v_min: i32, v_max: i32, display_format_min: string, display_format_max: string, slider_flags: _ImGuiSliderFlags) => (bool, i32, i32) {
@@ -2966,7 +3002,7 @@ func _ImGui.DragIntRange2RetOpts(label: string, v_current_min: i32, v_current_ma
 }
 
 func _ImGui.SliderIntRet(label: string, v: i32, v_min: i32, v_max: i32) => (bool, i32) {
-	return this.SliderIntRetOpts(label, v, v_min, v_max, "%d", _ImGuiSliderFlags{value: 0})
+	return this.SliderIntRetOpts(label, v, v_min, v_max, "%d", ImGuiSliderDefault)
 }
 
 func _ImGui.SliderIntRetOpts(label: string, v: i32, v_min: i32, v_max: i32, display_format: string, slider_flags: _ImGuiSliderFlags) => (bool, i32) {
@@ -2980,7 +3016,7 @@ func _ImGui.SliderIntRetOpts(label: string, v: i32, v_min: i32, v_max: i32, disp
 }
 
 func _ImGui.SliderInt2Ret(label: string, v1: i32, v2: i32, v_min: i32, v_max: i32) => (bool, i32, i32) {
-	return this.SliderInt2RetOpts(label, v1, v2, v_min, v_max, "%d", _ImGuiSliderFlags{value: 0})
+	return this.SliderInt2RetOpts(label, v1, v2, v_min, v_max, "%d", ImGuiSliderDefault)
 }
 
 func _ImGui.SliderInt2RetOpts(label: string, v1: i32, v2: i32, v_min: i32, v_max: i32, display_format: string, slider_flags: _ImGuiSliderFlags) => (bool, i32, i32) {
@@ -2999,7 +3035,7 @@ func _ImGui.SliderInt2RetOpts(label: string, v1: i32, v2: i32, v_min: i32, v_max
 }
 
 func _ImGui.VSliderFloatRet(label: string, size: Vec2, v: f32, v_min: f32, v_max: f32) => (bool, f32) {
-	return this.VSliderFloatRetOpts(label, size, v, v_min, v_max, "%.3f", _ImGuiSliderFlags{value: 0})
+	return this.VSliderFloatRetOpts(label, size, v, v_min, v_max, "%.2f", ImGuiSliderDefault)
 }
 
 func _ImGui.VSliderFloatRetOpts(label: string, size: Vec2, v: f32, v_min: f32, v_max: f32, display_format: string, slider_flags: _ImGuiSliderFlags) => (bool, f32) {
@@ -3013,7 +3049,7 @@ func _ImGui.VSliderFloatRetOpts(label: string, size: Vec2, v: f32, v_min: f32, v
 }
 
 func _ImGui.VSliderIntRet(label: string, size: Vec2, v: i32, v_min: i32, v_max: i32) => (bool, i32) {
-	return this.VSliderIntRetOpts(label, size, v, v_min, v_max, "%d", _ImGuiSliderFlags{value: 0})
+	return this.VSliderIntRetOpts(label, size, v, v_min, v_max, "%d", ImGuiSliderDefault)
 }
 
 func _ImGui.VSliderIntRetOpts(label: string, size: Vec2, v: i32, v_min: i32, v_max: i32, display_format: string, slider_flags: _ImGuiSliderFlags) => (bool, i32) {
@@ -3053,11 +3089,12 @@ global ImGuiColorEditPickerHueBar = _ImGuiColorEditFlag{value: 1 << 25}
 global ImGuiColorEditPickerHueWheel = _ImGuiColorEditFlag{value: 1 << 26}
 global ImGuiColorEditInputRGB = _ImGuiColorEditFlag{value: 1 << 27}
 global ImGuiColorEditInputHSV = _ImGuiColorEditFlag{value: 1 << 28}
-global ImGuiColorEditDefaultOptions = _ImGuiColorEditFlags{value: ImGuiColorEditUint8.value | ImGuiColorEditDisplayRGB.value | ImGuiColorEditInputRGB.value | ImGuiColorEditPickerHueBar.value}
 
 type _ImGuiColorEditFlags :struct {
 	value: i32
 }
+
+global ImGuiColorEditDefault = _ImGuiColorEditFlags{value: ImGuiColorEditUint8.value | ImGuiColorEditDisplayRGB.value | ImGuiColorEditInputRGB.value | ImGuiColorEditPickerHueBar.value}
 
 func ImGuiColorEditFlags(flags: ..._ImGuiColorEditFlag) => _ImGuiColorEditFlags {
 	flags_value: i32 = 0
@@ -3068,7 +3105,7 @@ func ImGuiColorEditFlags(flags: ..._ImGuiColorEditFlag) => _ImGuiColorEditFlags 
 }
 
 func _ImGui.ColorEdit3Ret(label: string, color: Color3) => (bool, Color3) {
-	return this.ColorEdit3RetOpts(label, color, _ImGuiColorEditFlags{value: 0})
+	return this.ColorEdit3RetOpts(label, color, ImGuiColorEditDefault)
 }
 
 func _ImGui.ColorEdit3RetOpts(label: string, color: Color3, color_edit_flags: _ImGuiColorEditFlags) => (bool, Color3) {
@@ -3078,11 +3115,11 @@ func _ImGui.ColorEdit3RetOpts(label: string, color: Color3, color_edit_flags: _I
 	if !ok {
 		panic("failed to pop int")
 	}
-	return changed, Color3FromRGB(res_color)
+	return changed, NewColor3(res_color)
 }
 
 func _ImGui.ColorEdit4Ret(label: string, color: Color) => (bool, Color) {
-	return this.ColorEdit4RetOpts(label, color, _ImGuiColorEditFlags{value: 0})
+	return this.ColorEdit4RetOpts(label, color, ImGuiColorEditDefault)
 }
 
 func _ImGui.ColorEdit4RetOpts(label: string, color: Color, color_edit_flags: _ImGuiColorEditFlags) => (bool, Color) {
@@ -3092,7 +3129,7 @@ func _ImGui.ColorEdit4RetOpts(label: string, color: Color, color_edit_flags: _Im
 	if !ok {
 		panic("failed to pop int")
 	}
-	return changed, ColorFromARGB(res_color)
+	return changed, NewColor(res_color)
 }
 
 func _ImGui.CheckboxRet(label: string, checked: bool) => (bool, bool) {
@@ -3191,7 +3228,7 @@ func _ImGui.SetColorEditOptions(color_edit_flags: _ImGuiColorEditFlags) {
 }
 
 func _ImGui.InputText(label: string, buffer: Buffer) => bool {
-	return this.InputTextOpts(label, buffer, _ImGuiInputTextFlags{value: 0})
+	return this.InputTextOpts(label, buffer, ImGuiInputTextDefault)
 }
 
 func _ImGui.InputTextOpts(label: string, buffer: Buffer, input_text_flags: _ImGuiInputTextFlags) => bool {
@@ -3199,7 +3236,7 @@ func _ImGui.InputTextOpts(label: string, buffer: Buffer, input_text_flags: _ImGu
 }
 
 func _ImGui.InputTextMultiline(label: string, buffer: Buffer, size: Vec2) => bool {
-	return this.InputTextMultilineOpts(label, buffer, size, _ImGuiInputTextFlags{value: 0})
+	return this.InputTextMultilineOpts(label, buffer, size, ImGuiInputTextDefault)
 }
 
 func _ImGui.InputTextMultilineOpts(label: string, buffer: Buffer, size: Vec2, input_text_flags: _ImGuiInputTextFlags) => bool {
@@ -3220,7 +3257,7 @@ func _ImGui.TreeNode(str_id: string, text: string, inside: func()) {
 }
 
 func _ImGui.TreeNodeEx(text: string, inside: func()) {
-	this.TreeNodeExOpts(text, inside, _ImGuiTreeNodeFlags{value: 0})
+	this.TreeNodeExOpts(text, inside, ImGuiTreeNodeDefault)
 }
 
 func _ImGui.TreeNodeExOpts(label: string, inside: func(), tree_node_flags: _ImGuiTreeNodeFlags) {
@@ -3231,7 +3268,7 @@ func _ImGui.TreeNodeExOpts(label: string, inside: func(), tree_node_flags: _ImGu
 }
 
 func _ImGui.TreeNodeExWithId(str_id: string, text: string, inside: func()) {
-	this.TreeNodeExWithIdOpts(str_id, text, inside, _ImGuiTreeNodeFlags{value: 0})
+	this.TreeNodeExWithIdOpts(str_id, text, inside, ImGuiTreeNodeDefault)
 }
 
 func _ImGui.TreeNodeExWithIdOpts(str_id: string, text: string, inside: func(), tree_node_flags: _ImGuiTreeNodeFlags) {
@@ -3250,7 +3287,7 @@ func _ImGui.SetNextItemOpenOpts(is_open: bool, set_cond: _ImGuiCond) {
 }
 
 func _ImGui.CollapsingHeader(label: string) => bool {
-	return this.CollapsingHeaderOpts(label, _ImGuiTreeNodeFlags{value: 0})
+	return this.CollapsingHeaderOpts(label, ImGuiTreeNodeDefault)
 }
 
 func _ImGui.CollapsingHeaderOpts(label: string, tree_node_flags: _ImGuiTreeNodeFlags) => bool {
@@ -3258,7 +3295,7 @@ func _ImGui.CollapsingHeaderOpts(label: string, tree_node_flags: _ImGuiTreeNodeF
 }
 
 func _ImGui.Selectable(label: string) => bool {
-	return this.SelectableOpts(label, _ImGuiSelectableFlags{value: 0})
+	return this.SelectableOpts(label, ImGuiSelectableDefault)
 }
 
 func _ImGui.SelectableOpts(label: string, selectable_flags: _ImGuiSelectableFlags) => bool {
@@ -3273,7 +3310,7 @@ func _ImGui.BeginPopup(str_id: string, inside: func()) {
 }
 
 func _ImGui.BeginPopupModal(name: string, inside: func()) {
-	this.BeginPopupModalOpts(name, inside, _ImGuiWindowFlags{value: 0})
+	this.BeginPopupModalOpts(name, inside, ImGuiWindowDefault)
 }
 
 func _ImGui.BeginPopupModalOpts(name: string, inside: func(), window_flags: _ImGuiWindowFlags) {
@@ -3284,7 +3321,7 @@ func _ImGui.BeginPopupModalOpts(name: string, inside: func(), window_flags: _ImG
 }
 
 func _ImGui.BeginPopupModalRet(name: string, opened: bool) => (bool, bool) {
-	return this.BeginPopupModalRetOpts(name, opened, _ImGuiWindowFlags{value: 0})
+	return this.BeginPopupModalRetOpts(name, opened, ImGuiWindowDefault)
 }
 
 func _ImGui.BeginPopupModalRetOpts(name: string, opened: bool, window_flags: _ImGuiWindowFlags) => (bool, bool) {
@@ -3320,6 +3357,8 @@ type _ImGuiPopupFlags :struct {
 	value: i32
 }
 
+global ImGuiPopupDefault = _ImGuiPopupFlags{value: 0}
+
 func ImGuiPopupFlags(flags: ..._ImGuiPopupFlag) => _ImGuiPopupFlags {
 	flags_value: i32 = 0
 	for _, value := range flags {
@@ -3329,7 +3368,7 @@ func ImGuiPopupFlags(flags: ..._ImGuiPopupFlag) => _ImGuiPopupFlags {
 }
 
 func _ImGui.BeginPopupContextItem(name: string, inside: func()) {
-	this.BeginPopupContextItemOpts(name, ImGuiMouseButtonLeft, _ImGuiPopupFlags{value: 0}, inside)
+	this.BeginPopupContextItemOpts(name, ImGuiMouseButtonLeft, ImGuiPopupDefault, inside)
 }
 
 func _ImGui.BeginPopupContextItemOpts(name: string, button: _ImGuiMouseButton, popup_flags: _ImGuiPopupFlags, inside: func()) {
@@ -3340,7 +3379,7 @@ func _ImGui.BeginPopupContextItemOpts(name: string, button: _ImGuiMouseButton, p
 }
 
 func _ImGui.BeginPopupContextWindow(name: string, inside: func()) {
-	this.BeginPopupContextWindowOpts(name, ImGuiMouseButtonRight, _ImGuiPopupFlags{value: 0}, inside)
+	this.BeginPopupContextWindowOpts(name, ImGuiMouseButtonRight, ImGuiPopupDefault, inside)
 }
 
 func _ImGui.BeginPopupContextWindowOpts(name: string, button: _ImGuiMouseButton, popup_flags: _ImGuiPopupFlags, inside: func()) {
@@ -3405,6 +3444,8 @@ type _ImGuiTableFlags :struct {
 	value: i32
 }
 
+global ImGuiTableDefault = _ImGuiTableFlags{value: 0}
+
 func ImGuiTableFlags(flags: ..._ImGuiTableFlag) => _ImGuiTableFlags {
 	flags_value: i32 = 0
 	for _, value := range flags {
@@ -3414,7 +3455,7 @@ func ImGuiTableFlags(flags: ..._ImGuiTableFlag) => _ImGuiTableFlags {
 }
 
 func _ImGui.BeginTable(str_id: string, column: i32, inside: func()) {
-	this.BeginTableOpts(str_id, column, Vec2Zero, -1.0, _ImGuiTableFlags{value: 0}, inside)
+	this.BeginTableOpts(str_id, column, Vec2Zero, -1.0, ImGuiTableDefault, inside)
 }
 
 func _ImGui.BeginTableOpts(str_id: string, column: i32, outer_size: Vec2, inner_width: f32, table_flags: _ImGuiTableFlags, inside: func()) {
@@ -3456,6 +3497,8 @@ type _ImGuiTableColumnFlags :struct {
 	value: i32
 }
 
+global ImGuiTableColumnDefault = _ImGuiTableColumnFlags{value: 0}
+
 func ImGuiTableColumnFlags(flags: ..._ImGuiTableColumnFlag) => _ImGuiTableColumnFlags {
 	flags_value: i32 = 0
 	for _, value := range flags {
@@ -3465,7 +3508,7 @@ func ImGuiTableColumnFlags(flags: ..._ImGuiTableColumnFlag) => _ImGuiTableColumn
 }
 
 func _ImGui.TableSetupColumn(label: string, init_width_or_weight: f32) {
-	this.TableSetupColumnOpts(label, init_width_or_weight, 0, _ImGuiTableColumnFlags{value: 0})
+	this.TableSetupColumnOpts(label, init_width_or_weight, 0, ImGuiTableColumnDefault)
 }
 
 func _ImGui.TableSetupColumnOpts(label: string, init_width_or_weight: f32, user_id: i32, table_column_flags: _ImGuiTableColumnFlags) {
@@ -3598,7 +3641,7 @@ func _ImGui.PushStyleVec2(style: _ImGuiStyleVec2, val: Vec2, inside: func()) {
 }
 
 func _ImGui.ColorButton(desc_id: string, color: Color) => bool {
-	return this.ColorButtonOpts(desc_id, color, _ImGuiColorEditFlags{value: 0}, Vec2Zero)
+	return this.ColorButtonOpts(desc_id, color, ImGuiColorEditDefault, Vec2Zero)
 }
 
 func _ImGui.ColorButtonOpts(desc_id: string, color: Color, color_edit_flags: _ImGuiColorEditFlags, size: Vec2) => bool {
@@ -3633,6 +3676,8 @@ type _ImGuiTableRowFlags :struct {
 	value: i32
 }
 
+global ImGuiTableRowDefault = _ImGuiTableRowFlags{value: 0}
+
 func ImGuiTableRowFlags(flags: ..._ImGuiTableRowFlag) => _ImGuiTableRowFlags {
 	flags_value: i32 = 0
 	for _, value := range flags {
@@ -3642,7 +3687,7 @@ func ImGuiTableRowFlags(flags: ..._ImGuiTableRowFlag) => _ImGuiTableRowFlags {
 }
 
 func _ImGui.TableNextRow(min_row_height: f32) {
-	this.TableNextRowOpts(min_row_height, _ImGuiTableRowFlags{value: 0})
+	this.TableNextRowOpts(min_row_height, ImGuiTableRowDefault)
 }
 
 func _ImGui.TableNextRowOpts(min_row_height: f32, table_row_flags: _ImGuiTableRowFlags) {
@@ -3722,6 +3767,8 @@ global ImGuiItemAllowDuplicateId = _ImGuiItemFlag{value: 1 << 5}
 type _ImGuiItemFlags :struct {
 	value: i32
 }
+
+global ImGuiItemDefault = _ImGuiItemFlags{value: 0}
 
 func ImGuiItemFlags(flags: ..._ImGuiItemFlag) => _ImGuiItemFlags {
 	flags_value: i32 = 0

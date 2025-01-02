@@ -143,7 +143,7 @@ func Label.SetOutlineColor(val: Color) {
 }
 /// Gets the color of the outline, only works with SDF label.
 func Label.GetOutlineColor() => Color {
-	return ColorFromARGB(label_get_outline_color(*this.raw))
+	return NewColor(label_get_outline_color(*this.raw))
 }
 /// Sets the width of the outline, only works with SDF label.
 func Label.SetOutlineWidth(val: f32) {

@@ -1,0 +1,101 @@
+import "dora"
+
+func test_sprite() {
+	sprite: dora.Sprite
+	create_sprite := func() {
+		sprite = *dora.NewSpriteWithFile("Image/logo.png")
+		sprite.SetScaleX(0.5)
+		sprite.SetScaleY(0.5)
+		sprite.SetShowDebug(true)
+		sprite.SetTouchEnabled(true)
+		sprite.OnTapMoved(func(touch: dora.Touch) {
+			if !touch.IsFirst() {
+				return
+			}
+			sprite.SetPosition(sprite.GetPosition() + touch.GetDelta())
+		})
+	}
+	create_sprite()
+
+	windows_flags := dora.ImGuiWindowFlags(
+		dora.ImGuiWindowNoDecoration,
+		dora.ImGuiWindowAlwaysAutoResize,
+		dora.ImGuiWindowNoSavedSettings,
+	)
+	imgui_node := dora.NewNode()
+	imgui_node.Schedule(func(_: f64) => bool {
+		size := dora.App.GetVisualSize()
+		dora.ImGui.SetNextWindowBgAlpha(0.35)
+		dora.ImGui.SetNextWindowPosOpts(dora.Vec2{size.Width - 10.0, 10.0}, dora.ImGuiCondFirstUseEver, dora.Vec2{1.0, 0.0})
+		dora.ImGui.SetNextWindowSizeOpts(dora.Vec2{240.0, 520.0}, dora.ImGuiCondAlways)
+		dora.ImGui.BeginOpts("Sprite", windows_flags, func() {
+			dora.ImGui.Text("Sprite (Wa)")
+			dora.ImGui.BeginChild("SpriteSetting", dora.Vec2{-1.0, -40.0}, func() {
+				changed, z := dora.ImGui.DragFloatRet("Z", sprite.GetZ(), 1.0, -1000.0, 1000.0)
+				if changed {
+					sprite.SetZ(z)
+				}
+				anchor := sprite.GetAnchor()
+				changed, anchor.X, anchor.Y = dora.ImGui.DragFloat2Ret("Anchor", anchor.X, anchor.Y, 0.01, 0.0, 1.0)
+				if changed {
+					sprite.SetAnchor(anchor)
+				}
+				size := sprite.GetSize()
+				changed, size.Width, size.Height = dora.ImGui.DragFloat2RetOpts("Size", size.Width, size.Height, 1, 0.0, 1500.0, "%.f", dora.ImGuiSliderDefault)
+				if changed {
+					sprite.SetSize(size)
+				}
+				scaleX := sprite.GetScaleX()
+				scaleY := sprite.GetScaleY()
+				changed, scaleX, scaleY = dora.ImGui.DragFloat2Ret("Scale", scaleX, scaleY, 0.01, -2.0, 2.0)
+				if changed {
+					sprite.SetScaleX(scaleX)
+					sprite.SetScaleY(scaleY)
+				}
+				dora.ImGui.PushItemWidth(-60.0, func() {
+					angle := i32(sprite.GetAngle())
+					changed, angle = dora.ImGui.DragIntRet("Angle", angle, 1.0, -360, 360)
+					if changed {
+						sprite.SetAngle(f32(angle))
+					}
+					angleX := i32(sprite.GetAngleX())
+					changed, angleX = dora.ImGui.DragIntRet("AngleX", angleX, 1.0, -360, 360)
+					if changed {
+						sprite.SetAngleX(f32(angleX))
+					}
+					angleY := i32(sprite.GetAngleY())
+					changed, angleY = dora.ImGui.DragIntRet("AngleY", angleY, 1.0, -360, 360)
+					if changed {
+						sprite.SetAngleY(f32(angleY))
+					}
+					skewX := i32(sprite.GetSkewX())
+					skewY := i32(sprite.GetSkewY())
+					changed, skewX, skewY = dora.ImGui.DragInt2Ret("Skew", skewX, skewY, 1.0, -360, 360)
+					if changed {
+						sprite.SetSkewX(f32(skewX))
+						sprite.SetSkewY(f32(skewY))
+					}
+				})
+				dora.ImGui.PushItemWidth(-70.0, func() {
+					opacity := sprite.GetOpacity()
+					changed, opacity = dora.ImGui.DragFloatRet("Opacity", opacity, 0.01, 0.0, 1.0)
+					if changed {
+						sprite.SetOpacity(opacity)
+					}
+				})
+				dora.ImGui.PushItemWidth(-60.0, func() {
+					color3 := sprite.GetColor3()
+					changed, color3 = dora.ImGui.ColorEdit3RetOpts("Color", color3, dora.ImGuiColorEditFlags(dora.ImGuiColorEditDisplayRGB))
+					if changed {
+						sprite.SetColor3(color3)
+					}
+				})
+				if dora.ImGui.Button("Reset", dora.Vec2{140.0, 30.0}) {
+					sprite.RemoveFromParent(true)
+					create_sprite()
+				}
+			})
+		})
+		return false
+	})
+}

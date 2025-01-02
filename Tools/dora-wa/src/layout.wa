@@ -1,0 +1,28 @@
+import "dora"
+
+func test_layout() {
+	root := dora.NewAlignNode(true)
+	root.SetShowDebug(true)
+
+	node1 := dora.NewAlignNode(false)
+	node1.Css(`
+		height: 50%;
+		margin: 10;
+		padding: 10;
+		align-items: flex-start;
+		flex-wrap: wrap;
+	`)
+	node1.SetShowDebug(true)
+	node1.AddTo(root.Node)
+
+	for i := 0; i < 10; i++ {
+		node := dora.NewAlignNode(false)
+		node.Css(`
+			margin: 5;
+			height: 50;
+			width: 50;
+		`)
+		node.SetShowDebug(true)
+		node.AddTo(node1.Node)
+	}
+}

@@ -6,7 +6,7 @@ pub fn test() {
 
 	let mut node1 = AlignNode::new(false);
 	node1.css(r#"
-		height: 250;
+		height: 50%;
 		margin: 10;
 		padding: 10;
 		align-items: flex-start;

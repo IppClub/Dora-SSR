@@ -266,7 +266,7 @@ func NewRect(origin: Vec2, size: Size) => Rect {
 	raw := rect_new(origin.ToValue(), size.ToValue())
 	object := Rect{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	setFinalizer(object.raw, rect_finalizer)
 	return object
 }
 /// Gets a rectangle object with all properties set to 0.

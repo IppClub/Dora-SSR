@@ -1,0 +1,68 @@
+import "dora"
+
+func test_render_target() {
+	root := dora.NewNode()
+	node := dora.NewNode()
+	node.SetOrder(1)
+	node.AddTo(root)
+
+	spine := dora.NewSpine("Spine/moling")
+	spine.AddTo(node)
+	spine.SetY(-200.0)
+	spine.SetScaleX(1.2)
+	spine.SetScaleY(1.2)
+	spine.SetFliped(false)
+	spine.Play("fmove", true)
+	spine.RunActionDef(dora.ActionDefSequence(&[]dora.ActionDef{
+		dora.ActionDefProp(2.0, -150.0, 250.0, dora.PropertyX, dora.EaseInOutSine),
+		dora.ActionDefEvent("Turn", ""),
+		dora.ActionDefProp(2.0, 250.0, -150.0, dora.PropertyX, dora.EaseInOutSine),
+		dora.ActionDefEvent("Turn", ""),
+	}), true)
+	spine.Slot("Turn", func(_: dora.CallStack) {
+		spine.SetFliped(!spine.IsFliped())
+	})
+
+	render_target := dora.NewRenderTarget(300, 400)
+	render_target.RenderClear(dora.NewColor(0xff8a8a8a), 1.0, 0)
+	texture := render_target.GetTexture()
+	surface := dora.NewSpriteWithTexture(texture)
+	surface.AddTo(root)
+	surface.SetZ(300.0)
+	surface.SetAngleY(25.0)
+	surface.AddChild(dora.NewLineWithVecColor(&[]dora.Vec2{
+		dora.Vec2Zero,
+		dora.Vec2{300.0, 0.0},
+		dora.Vec2{300.0, 400.0},
+		dora.Vec2{0.0, 400.0},
+		dora.Vec2Zero,
+	}, dora.App.GetThemeColor()).Node)
+	surface.Schedule(func(_: f64) => bool {
+		node.SetY(200.0)
+		render_target.RenderClearWithTarget(node, dora.NewColor(0xff8a8a8a), 1.0, 0)
+		node.SetY(0.0)
+		return false
+	})
+
+	window_flags := dora.ImGuiWindowFlags(
+		dora.ImGuiWindowNoDecoration,
+		dora.ImGuiWindowAlwaysAutoResize,
+		dora.ImGuiWindowNoSavedSettings,
+		dora.ImGuiWindowNoFocusOnAppearing,
+		dora.ImGuiWindowNoNav,
+		dora.ImGuiWindowNoMove,
+	)
+	imgui_node := dora.NewNode()
+	imgui_node.Schedule(func(_: f64) => bool {
+		size := dora.App.GetVisualSize()
+		dora.ImGui.SetNextWindowBgAlpha(0.35)
+		dora.ImGui.SetNextWindowPosOpts(dora.Vec2{size.Width - 10.0, 10.0}, dora.ImGuiCondAlways, dora.Vec2{1.0, 0.0})
+		dora.ImGui.SetNextWindowSizeOpts(dora.Vec2{240.0, 0.0}, dora.ImGuiCondFirstUseEver)
+		dora.ImGui.BeginOpts("Render Target", window_flags, func() {
+			dora.ImGui.Text("Render Target (Wa)")
+			dora.ImGui.Separator()
+			dora.ImGui.TextWrapped("Use render target node as a mirror!")
+		})
+		return false
+	})
+}
