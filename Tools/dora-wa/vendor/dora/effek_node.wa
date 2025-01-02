@@ -30,6 +30,7 @@ func EffekNode.GetTypeId() => i32 {
 }
 func ObjectAsEffekNode(object: Object) => *EffekNode {
 	if object.GetTypeId() == effeknode_type() {
+		ObjectRetain(object.GetRaw())
 		return EffekNodeFrom(object.GetRaw())
 	}
 	return nil

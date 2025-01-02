@@ -30,6 +30,7 @@ func CameraOtho.GetTypeId() => i32 {
 }
 func ObjectAsCameraOtho(object: Object) => *CameraOtho {
 	if object.GetTypeId() == cameraotho_type() {
+		ObjectRetain(object.GetRaw())
 		return CameraOthoFrom(object.GetRaw())
 	}
 	return nil

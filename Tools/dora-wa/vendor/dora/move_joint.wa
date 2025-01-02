@@ -28,6 +28,7 @@ func MoveJoint.GetTypeId() => i32 {
 }
 func ObjectAsMoveJoint(object: Object) => *MoveJoint {
 	if object.GetTypeId() == movejoint_type() {
+		ObjectRetain(object.GetRaw())
 		return MoveJointFrom(object.GetRaw())
 	}
 	return nil

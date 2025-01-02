@@ -26,6 +26,7 @@ func Observer.GetTypeId() => i32 {
 }
 func ObjectAsObserver(object: Object) => *Observer {
 	if object.GetTypeId() == observer_type() {
+		ObjectRetain(object.GetRaw())
 		return ObserverFrom(object.GetRaw())
 	}
 	return nil

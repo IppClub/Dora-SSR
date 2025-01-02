@@ -28,6 +28,7 @@ func AlignNode.GetTypeId() => i32 {
 }
 func ObjectAsAlignNode(object: Object) => *AlignNode {
 	if object.GetTypeId() == alignnode_type() {
+		ObjectRetain(object.GetRaw())
 		return AlignNodeFrom(object.GetRaw())
 	}
 	return nil

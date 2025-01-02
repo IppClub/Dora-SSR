@@ -32,6 +32,7 @@ func Group.GetTypeId() => i32 {
 }
 func ObjectAsGroup(object: Object) => *Group {
 	if object.GetTypeId() == group_type() {
+		ObjectRetain(object.GetRaw())
 		return GroupFrom(object.GetRaw())
 	}
 	return nil

@@ -62,6 +62,7 @@ func PlatformerBulletDef.GetTypeId() => i32 {
 }
 func ObjectAsPlatformerBulletDef(object: Object) => *PlatformerBulletDef {
 	if object.GetTypeId() == platformer_bulletdef_type() {
+		ObjectRetain(object.GetRaw())
 		return PlatformerBulletDefFrom(object.GetRaw())
 	}
 	return nil

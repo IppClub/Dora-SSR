@@ -44,6 +44,7 @@ func DrawNode.GetTypeId() => i32 {
 }
 func ObjectAsDrawNode(object: Object) => *DrawNode {
 	if object.GetTypeId() == drawnode_type() {
+		ObjectRetain(object.GetRaw())
 		return DrawNodeFrom(object.GetRaw())
 	}
 	return nil

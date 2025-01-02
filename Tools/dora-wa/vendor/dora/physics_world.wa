@@ -40,6 +40,7 @@ func PhysicsWorld.GetTypeId() => i32 {
 }
 func ObjectAsPhysicsWorld(object: Object) => *PhysicsWorld {
 	if object.GetTypeId() == physicsworld_type() {
+		ObjectRetain(object.GetRaw())
 		return PhysicsWorldFrom(object.GetRaw())
 	}
 	return nil

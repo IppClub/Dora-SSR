@@ -32,6 +32,7 @@ func Particle.GetTypeId() => i32 {
 }
 func ObjectAsParticle(object: Object) => *Particle {
 	if object.GetTypeId() == particle_type() {
+		ObjectRetain(object.GetRaw())
 		return ParticleFrom(object.GetRaw())
 	}
 	return nil

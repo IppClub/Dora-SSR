@@ -38,6 +38,7 @@ func Touch.GetTypeId() => i32 {
 }
 func ObjectAsTouch(object: Object) => *Touch {
 	if object.GetTypeId() == touch_type() {
+		ObjectRetain(object.GetRaw())
 		return TouchFrom(object.GetRaw())
 	}
 	return nil

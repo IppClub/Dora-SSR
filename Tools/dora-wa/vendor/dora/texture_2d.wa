@@ -30,6 +30,7 @@ func Texture2D.GetTypeId() => i32 {
 }
 func ObjectAsTexture2D(object: Object) => *Texture2D {
 	if object.GetTypeId() == texture2d_type() {
+		ObjectRetain(object.GetRaw())
 		return Texture2DFrom(object.GetRaw())
 	}
 	return nil

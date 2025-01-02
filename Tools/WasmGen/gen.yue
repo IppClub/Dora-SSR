@@ -1169,6 +1169,7 @@ func #{waNewName}.GetTypeId() => i32 {
 }
 func ObjectAs#{waNewName}(object: Object) => *#{waNewName} {
 	if object.GetTypeId() == #{namespace}#{clsNewNameL}_type() {
+		ObjectRetain(object.GetRaw())
 		return #{waNewName}From(object.GetRaw())
 	}
 	return nil

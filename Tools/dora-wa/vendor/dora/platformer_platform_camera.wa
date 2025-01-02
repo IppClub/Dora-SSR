@@ -56,6 +56,7 @@ func PlatformerPlatformCamera.GetTypeId() => i32 {
 }
 func ObjectAsPlatformerPlatformCamera(object: Object) => *PlatformerPlatformCamera {
 	if object.GetTypeId() == platformer_platformcamera_type() {
+		ObjectRetain(object.GetRaw())
 		return PlatformerPlatformCameraFrom(object.GetRaw())
 	}
 	return nil

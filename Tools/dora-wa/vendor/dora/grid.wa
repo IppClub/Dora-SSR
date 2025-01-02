@@ -66,6 +66,7 @@ func Grid.GetTypeId() => i32 {
 }
 func ObjectAsGrid(object: Object) => *Grid {
 	if object.GetTypeId() == grid_type() {
+		ObjectRetain(object.GetRaw())
 		return GridFrom(object.GetRaw())
 	}
 	return nil

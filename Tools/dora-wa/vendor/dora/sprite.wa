@@ -68,6 +68,7 @@ func Sprite.GetTypeId() => i32 {
 }
 func ObjectAsSprite(object: Object) => *Sprite {
 	if object.GetTypeId() == sprite_type() {
+		ObjectRetain(object.GetRaw())
 		return SpriteFrom(object.GetRaw())
 	}
 	return nil

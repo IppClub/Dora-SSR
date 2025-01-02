@@ -48,6 +48,7 @@ func TileNode.GetTypeId() => i32 {
 }
 func ObjectAsTileNode(object: Object) => *TileNode {
 	if object.GetTypeId() == tilenode_type() {
+		ObjectRetain(object.GetRaw())
 		return TileNodeFrom(object.GetRaw())
 	}
 	return nil

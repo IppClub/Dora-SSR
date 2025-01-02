@@ -40,6 +40,7 @@ func DragonBone.GetTypeId() => i32 {
 }
 func ObjectAsDragonBone(object: Object) => *DragonBone {
 	if object.GetTypeId() == dragonbone_type() {
+		ObjectRetain(object.GetRaw())
 		return DragonBoneFrom(object.GetRaw())
 	}
 	return nil

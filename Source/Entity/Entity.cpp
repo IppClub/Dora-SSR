@@ -177,7 +177,6 @@ void Entity::destroy() {
 	}
 	if (!SharedEntityPool.entities.empty()) {
 		SharedEntityPool.availableEntities.push(MakeRef(this));
-		SharedEntityPool.entities[_index] = nullptr;
 		SharedEntityPool.usedIndices.erase(_index);
 	}
 }

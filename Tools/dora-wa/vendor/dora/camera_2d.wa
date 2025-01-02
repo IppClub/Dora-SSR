@@ -38,6 +38,7 @@ func Camera2D.GetTypeId() => i32 {
 }
 func ObjectAsCamera2D(object: Object) => *Camera2D {
 	if object.GetTypeId() == camera2d_type() {
+		ObjectRetain(object.GetRaw())
 		return Camera2DFrom(object.GetRaw())
 	}
 	return nil

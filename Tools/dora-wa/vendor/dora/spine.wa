@@ -42,6 +42,7 @@ func Spine.GetTypeId() => i32 {
 }
 func ObjectAsSpine(object: Object) => *Spine {
 	if object.GetTypeId() == spine_type() {
+		ObjectRetain(object.GetRaw())
 		return SpineFrom(object.GetRaw())
 	}
 	return nil

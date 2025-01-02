@@ -56,6 +56,7 @@ func Playable.GetTypeId() => i32 {
 }
 func ObjectAsPlayable(object: Object) => *Playable {
 	if object.GetTypeId() == playable_type() {
+		ObjectRetain(object.GetRaw())
 		return PlayableFrom(object.GetRaw())
 	}
 	return nil

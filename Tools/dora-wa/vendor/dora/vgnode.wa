@@ -30,6 +30,7 @@ func VGNode.GetTypeId() => i32 {
 }
 func ObjectAsVGNode(object: Object) => *VGNode {
 	if object.GetTypeId() == vgnode_type() {
+		ObjectRetain(object.GetRaw())
 		return VGNodeFrom(object.GetRaw())
 	}
 	return nil

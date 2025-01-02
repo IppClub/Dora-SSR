@@ -104,6 +104,7 @@ func BodyDef.GetTypeId() => i32 {
 }
 func ObjectAsBodyDef(object: Object) => *BodyDef {
 	if object.GetTypeId() == bodydef_type() {
+		ObjectRetain(object.GetRaw())
 		return BodyDefFrom(object.GetRaw())
 	}
 	return nil

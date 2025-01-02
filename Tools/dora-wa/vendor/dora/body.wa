@@ -86,6 +86,7 @@ func Body.GetTypeId() => i32 {
 }
 func ObjectAsBody(object: Object) => *Body {
 	if object.GetTypeId() == body_type() {
+		ObjectRetain(object.GetRaw())
 		return BodyFrom(object.GetRaw())
 	}
 	return nil

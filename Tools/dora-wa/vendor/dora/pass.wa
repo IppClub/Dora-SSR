@@ -36,6 +36,7 @@ func Pass.GetTypeId() => i32 {
 }
 func ObjectAsPass(object: Object) => *Pass {
 	if object.GetTypeId() == pass_type() {
+		ObjectRetain(object.GetRaw())
 		return PassFrom(object.GetRaw())
 	}
 	return nil
