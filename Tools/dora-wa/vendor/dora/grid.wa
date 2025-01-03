@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2025 Li Jin, dragon-fly@qq.com
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -50,7 +50,7 @@ func grid_with_texture_rect(texture: i64, texture_rect: i64, grid_x: i32, grid_y
 func grid_with_texture(texture: i64, grid_x: i32, grid_y: i32) => i64
 #wa:import dora grid_with_file
 func grid_with_file(clip_str: i64, grid_x: i32, grid_y: i32) => i64
-type Grid struct { Node }
+type Grid :struct { Node }
 func GridFrom(raw: i64) => *Grid {
 	if raw == 0 {
 		return nil

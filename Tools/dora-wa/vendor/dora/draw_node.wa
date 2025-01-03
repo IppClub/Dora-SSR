@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2025 Li Jin, dragon-fly@qq.com
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -28,7 +28,7 @@ func drawnode_draw_vertices(slf: i64, verts: i64)
 func drawnode_clear(slf: i64)
 #wa:import dora drawnode_new
 func drawnode_new() => i64
-type DrawNode struct { Node }
+type DrawNode :struct { Node }
 func DrawNodeFrom(raw: i64) => *DrawNode {
 	if raw == 0 {
 		return nil

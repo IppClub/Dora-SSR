@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2025 Li Jin, dragon-fly@qq.com
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -30,7 +30,7 @@ func db_query_with_params_async(sql: i64, params: i64, with_columns: i32, func0:
 func db_insert_async(table_name: i64, values: i64, func0: i32, stack0: i64)
 #wa:import dora db_exec_async
 func db_exec_async(sql: i64, values: i64, func0: i32, stack0: i64)
-type _DB struct { }
+type _DB :struct { }
 global DB = _DB{}
 func _DB.Exist(table_name: string) => bool {
 	return db_exist(ToDoraString(table_name)) != 0

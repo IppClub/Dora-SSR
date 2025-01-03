@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2025 Li Jin, dragon-fly@qq.com
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -34,7 +34,7 @@ func grabber_set_color(slf: i64, x: i32, y: i32, color: i32)
 func grabber_get_color(slf: i64, x: i32, y: i32) => i32
 #wa:import dora grabber_move_uv
 func grabber_move_uv(slf: i64, x: i32, y: i32, offset: i64)
-type Grabber struct { Object }
+type Grabber :struct { Object }
 func GrabberFrom(raw: i64) => *Grabber {
 	if raw == 0 {
 		return nil

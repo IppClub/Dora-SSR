@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2025 Li Jin, dragon-fly@qq.com
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -40,7 +40,7 @@ func jointdef_rope(collision: i32, body_a: i64, body_b: i64, anchor_a: i64, anch
 func jointdef_weld(collision: i32, body_a: i64, body_b: i64, world_pos: i64, frequency: f32, damping: f32) => i64
 #wa:import dora jointdef_wheel
 func jointdef_wheel(collision: i32, body_a: i64, body_b: i64, world_pos: i64, axis_angle: f32, max_motor_torque: f32, motor_speed: f32, frequency: f32, damping: f32) => i64
-type JointDef struct { Object }
+type JointDef :struct { Object }
 func JointDefFrom(raw: i64) => *JointDef {
 	if raw == 0 {
 		return nil

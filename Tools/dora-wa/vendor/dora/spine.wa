@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2025 Li Jin, dragon-fly@qq.com
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -26,7 +26,7 @@ func spine_new(spine_str: i64) => i64
 func spine_get_looks(spine_str: i64) => i64
 #wa:import dora spine_get_animations
 func spine_get_animations(spine_str: i64) => i64
-type Spine struct { Playable }
+type Spine :struct { Playable }
 func SpineFrom(raw: i64) => *Spine {
 	if raw == 0 {
 		return nil
