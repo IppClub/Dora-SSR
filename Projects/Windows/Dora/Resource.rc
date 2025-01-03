@@ -81,7 +81,7 @@ BEGIN
             VALUE "FileDescription", "A game engine for rapid game development."
             VALUE "FileVersion", "1.6.3.0"
             VALUE "InternalName", "Dora.exe"
-            VALUE "LegalCopyright", "Copyright (C) 2024"
+            VALUE "LegalCopyright", "Copyright (C) 2025"
             VALUE "OriginalFilename", "Dora.exe"
             VALUE "ProductName", "Dora SSR"
             VALUE "ProductVersion", "1.6.3.0"
