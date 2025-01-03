@@ -2,7 +2,7 @@ import "dora"
 
 func test_vg_button() {
 	node := dora.NewNode()
-	node.SetSize(dora.Size{Width: 100.0, Height: 100.0})
+	node.SetSize(dora.NewSize(100.0, 100.0))
 	font_id := dora.Nvg.CreateFont("sarasa-mono-sc-regular")
 	light := dora.Nvg.LinearGradient(0.0, 60.0, 0.0, 0.0, dora.NewColor(0xffffffff), dora.NewColor(0xff00ffff))
 	dark := dora.Nvg.LinearGradient(0.0, 60.0, 0.0, 0.0, dora.NewColor(0xffffffff), dora.NewColor(0xfffbc400))

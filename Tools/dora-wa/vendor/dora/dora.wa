@@ -765,14 +765,14 @@ func CallStack.PopObject() => *Object {
 
 func CallStack.PopVec2() => (Vec2, bool) {
 	if call_stack_front_vec2(*this.raw) == 0 {
-		return Vec2{X: 0, Y: 0}, false
+		return Vec2Zero, false
 	}
 	return Vec2FromValue(call_stack_pop_vec2(*this.raw)), true
 }
 
 func CallStack.PopSize() => (Size, bool) {
 	if call_stack_front_size(*this.raw) == 0 {
-		return Size{Width: 0, Height: 0}, false
+		return SizeZero, false
 	}
 	return SizeFromValue(call_stack_pop_size(*this.raw)), true
 }
@@ -937,6 +937,10 @@ type Vec2 :struct {
 
 global Vec2Zero = Vec2{X: 0, Y: 0}
 
+func NewVec2(x: f32, y: f32) => Vec2 {
+	return Vec2{X: x, Y: y}
+}
+
 func Vec2Add(a: Vec2, b: Vec2) => Vec2 {
 	return Vec2FromValue(vec2_add(a.ToValue(), b.ToValue()))
 }
@@ -1014,6 +1018,10 @@ type Size :struct {
 }
 
 global SizeZero = Size{Width: 0, Height: 0}
+
+func NewSize(width: f32, height: f32) => Size {
+	return Size{Width: width, Height: height}
+}
 
 func Size.ToValue() => i64 {
 	width := math.Float32bits(this.Width)
@@ -1416,13 +1424,13 @@ func Dictionary.SetSize(key: string, value: Size) {
 	dictionary_set(*this.raw, ToDoraString(key), *NewValue(value).raw)
 }
 
-func Dictionary.Get(key: string) => (*Value, bool) {
+func Dictionary.Get(key: string) => *Value {
 	value := dictionary_get(*this.raw, ToDoraString(key))
 	if value == 0 {
-		return nil, false
+		return nil
 	}
 	result := ValueFrom(value)
-	return &result, true
+	return &result
 }
 
 /* Content */
@@ -2003,7 +2011,7 @@ func EffekNode.OnEffekEnd(callback: func(handle: i32)) {
 }
 
 func Node.OnAppEvent(callback: func(event_type: string)) {
-	this.Slot("AppEvent", func(stack: CallStack) {
+	this.Gslot("AppEvent", func(stack: CallStack) {
 		event_type, ok := stack.PopStr()
 		if !ok {
 			panic("invalid app event")
@@ -2013,7 +2021,7 @@ func Node.OnAppEvent(callback: func(event_type: string)) {
 }
 
 func Node.OnAppChange(callback: func(setting_name: string)) {
-	this.Slot("AppChange", func(stack: CallStack) {
+	this.Gslot("AppChange", func(stack: CallStack) {
 		setting_name, ok := stack.PopStr()
 		if !ok {
 			panic("invalid app change event")
@@ -2023,7 +2031,7 @@ func Node.OnAppChange(callback: func(setting_name: string)) {
 }
 
 func Node.OnAppWs(callback: func(event_type: string, msg: string)) {
-	this.Slot("AppWs", func(stack: CallStack) {
+	this.Gslot("AppWS", func(stack: CallStack) {
 		event_type, ok := stack.PopStr()
 		if !ok {
 			panic("invalid app ws event")

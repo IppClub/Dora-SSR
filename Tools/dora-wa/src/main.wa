@@ -12,18 +12,18 @@ func init {
 	dora.Director.SchedulePosted(func(_: f64) => bool {
 		size := dora.App.GetVisualSize()
 		dora.ImGui.SetNextWindowSizeOpts(
-			dora.Vec2{X: 260, Y: 300},
+			dora.NewVec2(260, 300),
 			dora.ImGuiCondFirstUseEver,
 		)
 		dora.ImGui.SetNextWindowPosOpts(
-			dora.Vec2{X: size.Width / 2.0, Y: size.Height / 2.0},
+			dora.NewVec2(size.Width/2.0, size.Height/2.0),
 			dora.ImGuiCondFirstUseEver,
-			dora.Vec2{X: 0.5, Y: 0.5},
+			dora.NewVec2(0.5, 0.5),
 		)
 		dora.ImGui.BeginOpts("Wa Tests",
 			dora.ImGuiWindowFlags(dora.ImGuiWindowNoSavedSettings),
 			func() {
-				button_size := dora.Vec2{X: 200, Y: 0}
+				button_size := dora.NewVec2(200, 0)
 				if dora.ImGui.Button("Hello World", button_size) {
 					all_clear()
 					test_hello_world()
@@ -68,11 +68,10 @@ func init {
 					all_clear()
 					test_layout()
 				}
-				/*
-					if dora.ImGui.Button("Excel Test", button_size) {
-						all_clear()
-					}
-				*/
+				if dora.ImGui.Button("Excel Test", button_size) {
+					all_clear()
+					test_excel_test()
+				}
 			})
 		return false
 	})

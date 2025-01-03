@@ -1,58 +1,6 @@
 import "dora"
 
 func test_entity_move() {
-	/*
-		let window_flags =
-			ImGuiWindowFlag::NO_DECORATION |
-			ImGuiWindowFlag::AlwaysAutoResize |
-			ImGuiWindowFlag::NoSavedSettings |
-			ImGuiWindowFlag::NoFocusOnAppearing |
-			ImGuiWindowFlag::NO_NAV |
-			ImGuiWindowFlag::NoMove;
-		let mut imgui_node = Node::new();
-		imgui_node.schedule(Box::new(move |_| {
-			let width = App::get_visual_size().width;
-			ImGui::set_next_window_bg_alpha(0.35);
-			ImGui::set_next_window_pos_opts(&Vec2::new(width - 10.0, 10.0), ImGuiCond::Always, &Vec2::new(1.0, 0.0));
-			ImGui::set_next_window_size_opts(&Vec2::new(240.0, 0.0), ImGuiCond::FirstUseEver);
-			ImGui::begin_opts("ECS System", window_flags, || {
-				ImGui::text("ECS System (Rust)");
-				ImGui::separator();
-				ImGui::text_wrapped("Tap any place to move entities.");
-				if ImGui::button("Create Random Entity", &Vec2::zero()) {
-					let mut entity = Entity::new();
-					entity.set("image", "Image/logo.png");
-					entity.set("position", Vec2::new(
-						6.0 * (App::get_rand() % 100) as f32,
-						6.0 * (App::get_rand() % 100) as f32));
-					entity.set("direction", 1.0 * (App::get_rand() % 360) as f32);
-					let speed = 1.0 * (App::get_rand() % 20 + 1) as f32;
-					entity.set("speed", speed);
-				}
-				if ImGui::button("Destroy An Entity", &Vec2::zero()) {
-					let group = Group::new(&vec!["sprite", "position"]);
-					group.each(Box::new(|entity| {
-						let mut entity = entity.clone();
-						entity.remove("position");
-						let get_sprite = |e: &Entity| e.get("sprite")?.cast::<Sprite>();
-						if let Some(mut sprite) = get_sprite(&entity) {
-							sprite.run_action_def(
-								ActionDef::sequence(&vec![
-									ActionDef::scale(0.5, 0.5, 0.0, EaseType::InBack),
-									ActionDef::event("Destroy", "")
-								]), false);
-							sprite.slot("Destroy", Box::new(move |_| {
-								entity.destroy();
-							}));
-						}
-						true
-					}));
-				}
-			});
-			false
-		}));
-	*/
-
 	scene_group := dora.NewGroup(&[]string{"scene"})
 	position_group := dora.NewGroup(&[]string{"position"})
 	{
@@ -154,14 +102,14 @@ func test_entity_move() {
 	{
 		entity := dora.NewEntity()
 		entity.Set("image", "Image/logo.png")
-		entity.Set("position", dora.Vec2{X: 0.0, Y: 0.0})
+		entity.Set("position", dora.Vec2Zero)
 		entity.Set("direction", 45.0)
 		entity.Set("speed", 4.0)
 	}
 	{
 		entity := dora.NewEntity()
 		entity.Set("image", "Image/logo.png")
-		entity.Set("position", dora.Vec2{X: -100.0, Y: 200.0})
+		entity.Set("position", dora.NewVec2(-100.0, 200.0))
 		entity.Set("direction", 90.0)
 		entity.Set("speed", 10.0)
 	}
@@ -179,26 +127,26 @@ func test_entity_move() {
 		width := dora.App.GetVisualSize().Width
 		dora.ImGui.SetNextWindowBgAlpha(0.35)
 		dora.ImGui.SetNextWindowPosOpts(
-			dora.Vec2{X: width - 10.0, Y: 10.0},
+			dora.NewVec2(width-10.0, 10.0),
 			dora.ImGuiCondAlways,
-			dora.Vec2{X: 1.0, Y: 0.0},
+			dora.NewVec2(1.0, 0.0),
 		)
 		dora.ImGui.SetNextWindowSizeOpts(
-			dora.Vec2{X: 240.0, Y: 0.0},
+			dora.NewVec2(240.0, 0.0),
 			dora.ImGuiCondFirstUseEver,
 		)
 		dora.ImGui.BeginOpts("ECS System", window_flags, func() {
 			dora.ImGui.Text("ECS System (Wa)")
 			dora.ImGui.Separator()
 			dora.ImGui.TextWrapped("Tap any place to move entities.")
-			if dora.ImGui.Button("Create Random Entity", dora.Vec2{X: 0.0, Y: 0.0}) {
+			if dora.ImGui.Button("Create Random Entity", dora.Vec2Zero) {
 				entity := dora.NewEntity()
 				entity.Set("image", "Image/logo.png")
-				entity.Set("position", dora.Vec2{X: 6.0 * f32(dora.App.GetRand()%100), Y: 6.0 * f32(dora.App.GetRand()%100)})
+				entity.Set("position", dora.NewVec2(6.0*f32(dora.App.GetRand()%100), 6.0*f32(dora.App.GetRand()%100)))
 				entity.Set("direction", 1.0*f32(dora.App.GetRand()%360))
 				entity.Set("speed", 1.0*f32(dora.App.GetRand()%20+1))
 			}
-			if dora.ImGui.Button("Destroy An Entity", dora.Vec2{X: 0.0, Y: 0.0}) {
+			if dora.ImGui.Button("Destroy An Entity", dora.Vec2Zero) {
 				group := dora.NewGroup(&[]string{"sprite", "position"})
 				group.Each(func(entity: dora.Entity) => bool {
 					entity.Remove("position")
