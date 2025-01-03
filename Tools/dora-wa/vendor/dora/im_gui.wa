@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2025 Li Jin, dragon-fly@qq.com
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -418,7 +418,7 @@ func imgui_get_mouse_pos_on_opening_current_popup() => i64
 func imgui_get_mouse_drag_delta(button: i32, lock_threshold: f32) => i64
 #wa:import dora imgui_reset_mouse_drag_delta
 func imgui_reset_mouse_drag_delta(button: i32)
-type _ImGui struct { }
+type _ImGui :struct { }
 global ImGui = _ImGui{}
 func _ImGui.LoadFontTtfAsync(ttf_font_file: string, font_size: f32, glyph_ranges: string, handler: func(success: bool)) {
 	stack0 := NewCallStack()

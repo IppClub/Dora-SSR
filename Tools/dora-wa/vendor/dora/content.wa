@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2025 Li Jin, dragon-fly@qq.com
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -58,7 +58,7 @@ func content_zip_async(folder_path: i64, zip_file: i64, func0: i32, stack0: i64,
 func content_unzip_async(zip_file: i64, folder_path: i64, func0: i32, stack0: i64, func1: i32, stack1: i64)
 #wa:import dora content_load_excel
 func content_load_excel(filename: i64) => i64
-type _Content struct { }
+type _Content :struct { }
 global Content = _Content{}
 /// Sets an array of directories to search for resource files.
 func _Content.SetSearchPaths(val: *[]string) {

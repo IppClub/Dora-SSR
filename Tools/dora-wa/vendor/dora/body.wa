@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2025 Li Jin, dragon-fly@qq.com
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -70,7 +70,7 @@ func body_attach_sensor(slf: i64, tag: i32, fixture_def: i64) => i64
 func body_on_contact_filter(slf: i64, func0: i32, stack0: i64)
 #wa:import dora body_new
 func body_new(def: i64, world: i64, pos: i64, rot: f32) => i64
-type Body struct { Node }
+type Body :struct { Node }
 func BodyFrom(raw: i64) => *Body {
 	if raw == 0 {
 		return nil

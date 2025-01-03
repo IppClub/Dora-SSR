@@ -6,8 +6,8 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-use std::{ffi::c_void, any::Any};
-use std::cell::{RefCell, LazyCell};
+use std::cell::{LazyCell, RefCell};
+use std::{any::Any, ffi::c_void};
 
 mod rect;
 pub use rect::Rect;
@@ -32,7 +32,7 @@ pub use content::Content;
 mod scheduler;
 pub use scheduler::Scheduler;
 mod camera;
-pub use camera::{ICamera, Camera};
+pub use camera::{Camera, ICamera};
 mod camera_2d;
 pub use camera_2d::Camera2D;
 mod camera_otho;
@@ -40,7 +40,7 @@ pub use camera_otho::CameraOtho;
 mod pass;
 pub use pass::Pass;
 mod effect;
-pub use effect::{IEffect, Effect};
+pub use effect::{Effect, IEffect};
 mod sprite_effect;
 pub use sprite_effect::SpriteEffect;
 mod view;
@@ -100,7 +100,7 @@ pub use body_def::BodyDef;
 mod sensor;
 pub use sensor::Sensor;
 mod body;
-pub use body::{IBody, Body};
+pub use body::{Body, IBody};
 mod joint_def;
 pub use joint_def::JointDef;
 mod joint;
@@ -141,8 +141,8 @@ pub mod ml {
 }
 mod http_client;
 pub use http_client::HttpClient;
-pub mod platformer;
 mod buffer;
+pub mod platformer;
 pub use buffer::Buffer;
 mod im_gui;
 pub use im_gui::ImGui;
@@ -329,7 +329,9 @@ extern "C" {
 }
 
 pub fn print(msg: &str) {
-	unsafe { dora_print(from_string(msg)); }
+	unsafe {
+		dora_print(from_string(msg));
+	}
 }
 
 /// Emits a global event with the given name and arguments to all listeners registered by `node.gslot()` function.
@@ -354,7 +356,9 @@ pub fn print(msg: &str) {
 /// emit("MyGlobalEvent", args!("Hello", 123));
 /// ```
 pub fn emit(name: &str, stack: CallStack) {
-	unsafe { dora_emit(from_string(name), stack.raw()); }
+	unsafe {
+		dora_emit(from_string(name), stack.raw());
+	}
 }
 
 #[macro_export]
@@ -369,11 +373,10 @@ macro_rules! p {
 
 /// A record representing a 2D vector with an x and y component.
 #[repr(C)]
-#[derive(Clone, Copy)]
-#[derive(PartialEq)]
+#[derive(Clone, Copy, PartialEq)]
 pub struct Vec2 {
 	pub x: f32,
-	pub y: f32
+	pub y: f32,
 }
 
 impl Vec2 {
@@ -456,11 +459,10 @@ impl std::ops::Div<f32> for Vec2 {
 
 /// A size object with a given width and height.
 #[repr(C)]
-#[derive(Clone, Copy)]
-#[derive(PartialEq)]
+#[derive(Clone, Copy, PartialEq)]
 pub struct Size {
 	pub width: f32,
-	pub height: f32
+	pub height: f32,
 }
 
 impl Size {
@@ -495,7 +497,7 @@ pub struct Color {
 	pub b: u8,
 	pub g: u8,
 	pub r: u8,
-	pub a: u8
+	pub a: u8,
 }
 
 #[repr(C)]
@@ -516,7 +518,7 @@ impl Color {
 		Color { r: r as u8, g: g as u8, b: b as u8, a: a as u8 }
 	}
 	pub fn from(argb: i32) -> Color {
-		unsafe { ColorValue{ value: argb }.color }
+		unsafe { ColorValue { value: argb }.color }
 	}
 	pub fn to_argb(&self) -> u32 {
 		(self.a as u32) << 24 | (self.r as u32) << 16 | (self.g as u32) << 8 | self.b as u32
@@ -532,14 +534,14 @@ impl Color {
 pub struct Color3 {
 	pub b: u8,
 	pub g: u8,
-	pub r: u8
+	pub r: u8,
 }
 
 #[repr(C)]
 #[derive(Clone, Copy)]
 struct Color3a {
 	color3: Color3,
-	a: u8
+	a: u8,
 }
 
 #[repr(C)]
@@ -642,7 +644,10 @@ impl IBuf for Vec<f64> {
 pub(crate) struct Vector;
 
 impl Vector {
-	pub fn to_num<T>(v: i64) -> Vec<T> where T: Clone + Default {
+	pub fn to_num<T>(v: i64) -> Vec<T>
+	where
+		T: Clone + Default,
+	{
 		unsafe {
 			let len = buf_len(v) as usize;
 			let mut vec: Vec<T> = Vec::with_capacity(len as usize);
@@ -753,18 +758,16 @@ impl Vector {
 
 fn into_object(raw: i64) -> Option<Box<dyn IObject>> {
 	let mut converted: Option<Box<dyn IObject>> = None;
-	OBJECT_MAP.with(|map| {
-		converted = map[unsafe { object_get_type(raw) } as usize](raw)
-	});
+	OBJECT_MAP.with(|map| converted = map[unsafe { object_get_type(raw) } as usize](raw));
 	converted
 }
 
 fn new_object(raw: i64) -> Option<Box<dyn IObject>> {
-	unsafe { object_retain(raw); }
+	unsafe {
+		object_retain(raw);
+	}
 	let mut converted: Option<Box<dyn IObject>> = None;
-	OBJECT_MAP.with(|map| {
-		converted = map[unsafe { object_get_type(raw) } as usize](raw)
-	});
+	OBJECT_MAP.with(|map| converted = map[unsafe { object_get_type(raw) } as usize](raw));
 	converted
 }
 
@@ -792,21 +795,25 @@ fn push_function(func: Box<dyn FnMut()>) -> i32 {
 }
 
 #[no_mangle]
-pub extern fn dora_wasm_version() -> i32 {
+pub extern "C" fn dora_wasm_version() -> i32 {
 	const MAJOR: &str = env!("CARGO_PKG_VERSION_MAJOR");
 	const MINOR: &str = env!("CARGO_PKG_VERSION_MINOR");
 	const PATCH: &str = env!("CARGO_PKG_VERSION_PATCH");
-	(MAJOR.parse::<i32>().unwrap() << 16) | (MINOR.parse::<i32>().unwrap() << 8) | PATCH.parse::<i32>().unwrap()
+	(MAJOR.parse::<i32>().unwrap() << 16)
+		| (MINOR.parse::<i32>().unwrap() << 8)
+		| PATCH.parse::<i32>().unwrap()
 }
 
 #[no_mangle]
-pub extern fn call_function(func_id: i32) {
+pub extern "C" fn call_function(func_id: i32) {
 	let real_id = func_id & 0x00ffffff;
 	let mut func: *mut Box<dyn FnMut()> = std::ptr::null_mut();
 	FUNC_MAP.with_borrow_mut(|map| {
 		func = &mut map[real_id as usize];
 	});
-	unsafe { (*func)(); }
+	unsafe {
+		(*func)();
+	}
 }
 
 fn dummy_func() {
@@ -814,7 +821,7 @@ fn dummy_func() {
 }
 
 #[no_mangle]
-pub extern fn deref_function(func_id: i32) {
+pub extern "C" fn deref_function(func_id: i32) {
 	let real_id = func_id & 0x00ffffff;
 	FUNC_MAP.with_borrow_mut(|map| {
 		map[real_id as usize] = Box::new(dummy_func);
@@ -827,22 +834,38 @@ pub extern fn deref_function(func_id: i32) {
 pub trait IObject {
 	fn raw(&self) -> i64;
 	fn obj(&self) -> &dyn IObject;
-	fn get_id(&self) -> i32 { unsafe { object_get_id(self.raw()) } }
+	fn get_id(&self) -> i32 {
+		unsafe { object_get_id(self.raw()) }
+	}
 	fn as_any(&self) -> &dyn Any;
 }
 
-pub struct Object { raw: i64 }
+pub struct Object {
+	raw: i64,
+}
 impl IObject for Object {
-	fn raw(&self) -> i64 { self.raw }
-	fn obj(&self) -> &dyn IObject { self }
-	fn as_any(&self) -> &dyn std::any::Any { self }
+	fn raw(&self) -> i64 {
+		self.raw
+	}
+	fn obj(&self) -> &dyn IObject {
+		self
+	}
+	fn as_any(&self) -> &dyn std::any::Any {
+		self
+	}
 }
 impl Drop for Object {
-	fn drop(&mut self) { unsafe { crate::dora::object_release(self.raw); } }
+	fn drop(&mut self) {
+		unsafe {
+			crate::dora::object_release(self.raw);
+		}
+	}
 }
 impl Clone for Object {
 	fn clone(&self) -> Object {
-		unsafe { crate::dora::object_retain(self.raw); }
+		unsafe {
+			crate::dora::object_retain(self.raw);
+		}
 		Object { raw: self.raw }
 	}
 }
@@ -850,7 +873,7 @@ impl Object {
 	pub(crate) fn from(raw: i64) -> Option<Object> {
 		match raw {
 			0 => None,
-			_ => Some(Object { raw: raw })
+			_ => Some(Object { raw: raw }),
 		}
 	}
 }
@@ -861,7 +884,9 @@ pub fn cast<T: Clone + 'static>(obj: &dyn IObject) -> Option<T> {
 
 /// An argument stack for passing values to a function.
 /// The stack is used to pass arguments to a function and to receive return values from a function.
-pub struct CallStack { raw: i64 }
+pub struct CallStack {
+	raw: i64,
+}
 
 pub enum DoraValue<'a> {
 	I32(i32),
@@ -883,79 +908,97 @@ pub trait IntoValue<'a> {
 impl<'a> DoraValue<'a> {
 	pub fn push(self, info: &mut CallStack) {
 		match self {
-			DoraValue::I32(x) => { info.push_i32(x); },
-			DoraValue::I64(x) => { info.push_i64(x); },
-			DoraValue::F32(x) => { info.push_f32(x); },
-			DoraValue::F64(x) => { info.push_f64(x); },
-			DoraValue::Bool(x) => { info.push_bool(x); },
-			DoraValue::Str(x) => { info.push_str(x); },
-			DoraValue::Object(x) => { info.push_object(x); },
-			DoraValue::Vec2(x) => { info.push_vec2(&x); },
-			DoraValue::Size(x) => { info.push_size(&x); },
+			DoraValue::I32(x) => info.push_i32(x),
+			DoraValue::I64(x) => info.push_i64(x),
+			DoraValue::F32(x) => info.push_f32(x),
+			DoraValue::F64(x) => info.push_f64(x),
+			DoraValue::Bool(x) => info.push_bool(x),
+			DoraValue::Str(x) => info.push_str(x),
+			DoraValue::Object(x) => info.push_object(x),
+			DoraValue::Vec2(x) => info.push_vec2(&x),
+			DoraValue::Size(x) => info.push_size(&x),
 		}
 	}
 }
 
 impl<'a> IntoValue<'a> for i32 {
-	fn dora_val(self) -> DoraValue<'a> { DoraValue::I32(self) }
+	fn dora_val(self) -> DoraValue<'a> {
+		DoraValue::I32(self)
+	}
 	fn val(self) -> Value {
-		unsafe { Value{ raw: value_create_i64(self as i64) } }
+		unsafe { Value { raw: value_create_i64(self as i64) } }
 	}
 }
 
 impl<'a> IntoValue<'a> for i64 {
-	fn dora_val(self) -> DoraValue<'a> { DoraValue::I64(self) }
+	fn dora_val(self) -> DoraValue<'a> {
+		DoraValue::I64(self)
+	}
 	fn val(self) -> Value {
-		unsafe { Value{ raw: value_create_i64(self) } }
+		unsafe { Value { raw: value_create_i64(self) } }
 	}
 }
 
 impl<'a> IntoValue<'a> for f32 {
-	fn dora_val(self) -> DoraValue<'a> { DoraValue::F32(self) }
+	fn dora_val(self) -> DoraValue<'a> {
+		DoraValue::F32(self)
+	}
 	fn val(self) -> Value {
-		unsafe { Value{ raw: value_create_f64(self as f64) } }
+		unsafe { Value { raw: value_create_f64(self as f64) } }
 	}
 }
 
 impl<'a> IntoValue<'a> for f64 {
-	fn dora_val(self) -> DoraValue<'a> { DoraValue::F64(self) }
+	fn dora_val(self) -> DoraValue<'a> {
+		DoraValue::F64(self)
+	}
 	fn val(self) -> Value {
-		unsafe { Value{ raw: value_create_f64(self) } }
+		unsafe { Value { raw: value_create_f64(self) } }
 	}
 }
 
 impl<'a> IntoValue<'a> for bool {
-	fn dora_val(self) -> DoraValue<'a> { DoraValue::Bool(self) }
+	fn dora_val(self) -> DoraValue<'a> {
+		DoraValue::Bool(self)
+	}
 	fn val(self) -> Value {
-		unsafe { Value{ raw: value_create_bool(if self { 1 } else { 0 }) } }
+		unsafe { Value { raw: value_create_bool(if self { 1 } else { 0 }) } }
 	}
 }
 
 impl<'a> IntoValue<'a> for &'a str {
-	fn dora_val(self) -> DoraValue<'a> { DoraValue::Str(self) }
+	fn dora_val(self) -> DoraValue<'a> {
+		DoraValue::Str(self)
+	}
 	fn val(self) -> Value {
-		unsafe { Value{ raw: value_create_str(from_string(self)) } }
+		unsafe { Value { raw: value_create_str(from_string(self)) } }
 	}
 }
 
 impl<'a> IntoValue<'a> for &'a dyn IObject {
-	fn dora_val(self) -> DoraValue<'a> { DoraValue::Object(self) }
+	fn dora_val(self) -> DoraValue<'a> {
+		DoraValue::Object(self)
+	}
 	fn val(self) -> Value {
-		unsafe { Value{ raw: value_create_object(self.raw()) } }
+		unsafe { Value { raw: value_create_object(self.raw()) } }
 	}
 }
 
 impl<'a> IntoValue<'a> for Vec2 {
-	fn dora_val(self) -> DoraValue<'a> { DoraValue::Vec2(self) }
+	fn dora_val(self) -> DoraValue<'a> {
+		DoraValue::Vec2(self)
+	}
 	fn val(self) -> Value {
-		unsafe { Value{ raw: value_create_vec2(self.into_i64()) } }
+		unsafe { Value { raw: value_create_vec2(self.into_i64()) } }
 	}
 }
 
 impl<'a> IntoValue<'a> for Size {
-	fn dora_val(self) -> DoraValue<'a> { DoraValue::Size(self) }
+	fn dora_val(self) -> DoraValue<'a> {
+		DoraValue::Size(self)
+	}
 	fn val(self) -> Value {
-		unsafe { Value{ raw: value_create_size(self.into_i64()) } }
+		unsafe { Value { raw: value_create_size(self.into_i64()) } }
 	}
 }
 
@@ -1005,67 +1048,87 @@ macro_rules! dora_object {
 
 // Value
 
-pub struct Value { raw: i64 }
+pub struct Value {
+	raw: i64,
+}
 
 impl Value {
 	pub fn new<'a, A>(value: A) -> DoraValue<'a>
-		where A: IntoValue<'a> {
+	where
+		A: IntoValue<'a>,
+	{
 		value.dora_val()
 	}
 	fn from(raw: i64) -> Option<Value> {
 		match raw {
-			0 => { None },
-			_ => { Some(Value { raw: raw }) }
+			0 => None,
+			_ => Some(Value { raw: raw }),
 		}
 	}
-	pub fn raw(&self) -> i64 { self.raw }
+	pub fn raw(&self) -> i64 {
+		self.raw
+	}
 	pub fn into_i32(&self) -> Option<i32> {
 		unsafe {
 			if value_is_i64(self.raw) != 0 {
 				Some(value_into_i64(self.raw) as i32)
-			} else { None }
+			} else {
+				None
+			}
 		}
 	}
 	pub fn into_i64(&self) -> Option<i64> {
 		unsafe {
 			if value_is_i64(self.raw) != 0 {
 				Some(value_into_i64(self.raw))
-			} else { None }
+			} else {
+				None
+			}
 		}
 	}
 	pub fn into_f32(&self) -> Option<f32> {
 		unsafe {
 			if value_is_f64(self.raw) != 0 {
 				Some(value_into_f64(self.raw) as f32)
-			} else { None }
+			} else {
+				None
+			}
 		}
 	}
 	pub fn into_f64(&self) -> Option<f64> {
 		unsafe {
 			if value_is_f64(self.raw) != 0 {
 				Some(value_into_f64(self.raw))
-			} else { None }
+			} else {
+				None
+			}
 		}
 	}
 	pub fn into_bool(&self) -> Option<bool> {
 		unsafe {
 			if value_is_bool(self.raw) != 0 {
 				Some(value_into_bool(self.raw) != 0)
-			} else { None }
+			} else {
+				None
+			}
 		}
 	}
 	pub fn into_str(&self) -> Option<String> {
 		unsafe {
 			if value_is_str(self.raw) != 0 {
 				Some(to_string(value_into_str(self.raw)))
-			} else { None }
+			} else {
+				None
+			}
 		}
 	}
 	pub fn into_object(&self) -> Option<Box<dyn IObject>> {
 		unsafe {
 			if value_is_object(self.raw) != 0 {
 				into_object(value_into_object(self.raw))
-			} else { None }
+			} else {
+				None
+			}
 		}
 	}
 	pub fn into_node(&self) -> Option<Node> {
@@ -1090,14 +1153,18 @@ impl Value {
 		unsafe {
 			if value_is_vec2(self.raw) != 0 {
 				Some(Vec2::from(value_into_vec2(self.raw)))
-			} else { None }
+			} else {
+				None
+			}
 		}
 	}
 	pub fn into_size(&self) -> Option<Size> {
 		unsafe {
 			if value_is_size(self.raw) != 0 {
 				Some(Size::from(value_into_size(self.raw)))
-			} else { None }
+			} else {
+				None
+			}
 		}
 	}
 	pub fn cast<T: Clone + 'static>(&self) -> Option<T> {
@@ -1106,7 +1173,11 @@ impl Value {
 }
 
 impl Drop for Value {
-	fn drop(&mut self) { unsafe { value_release(self.raw); } }
+	fn drop(&mut self) {
+		unsafe {
+			value_release(self.raw);
+		}
+	}
 }
 
 // CallStack
@@ -1119,38 +1190,58 @@ impl CallStack {
 		CallStack { raw: unsafe { call_stack_create() } }
 	}
 	pub fn push_i32(&mut self, value: i32) {
-		unsafe { call_stack_push_i64(self.raw, value as i64); }
+		unsafe {
+			call_stack_push_i64(self.raw, value as i64);
+		}
 	}
 	pub fn push_i64(&mut self, value: i64) {
-		unsafe { call_stack_push_i64(self.raw, value); }
+		unsafe {
+			call_stack_push_i64(self.raw, value);
+		}
 	}
 	pub fn push_f32(&mut self, value: f32) {
-		unsafe { call_stack_push_f64(self.raw, value as f64); }
+		unsafe {
+			call_stack_push_f64(self.raw, value as f64);
+		}
 	}
 	pub fn push_f64(&mut self, value: f64) {
-		unsafe { call_stack_push_f64(self.raw, value); }
+		unsafe {
+			call_stack_push_f64(self.raw, value);
+		}
 	}
 	pub fn push_str(&mut self, value: &str) {
-		unsafe { call_stack_push_str(self.raw, from_string(value)); }
+		unsafe {
+			call_stack_push_str(self.raw, from_string(value));
+		}
 	}
 	pub fn push_bool(&mut self, value: bool) {
-		unsafe { call_stack_push_bool(self.raw, if value { 1 } else { 0 }); }
+		unsafe {
+			call_stack_push_bool(self.raw, if value { 1 } else { 0 });
+		}
 	}
 	pub fn push_object(&mut self, value: &dyn IObject) {
-		unsafe { call_stack_push_object(self.raw, value.raw()); }
+		unsafe {
+			call_stack_push_object(self.raw, value.raw());
+		}
 	}
 	pub fn push_vec2(&mut self, value: &Vec2) {
-		unsafe { call_stack_push_vec2(self.raw, value.into_i64()); }
+		unsafe {
+			call_stack_push_vec2(self.raw, value.into_i64());
+		}
 	}
 	pub fn push_size(&mut self, value: &Size) {
-		unsafe { call_stack_push_size(self.raw, value.into_i64()); }
+		unsafe {
+			call_stack_push_size(self.raw, value.into_i64());
+		}
 	}
 	/// Pops the value from the stack if it is a i32.
 	pub fn pop_i32(&mut self) -> Option<i32> {
 		unsafe {
 			if call_stack_front_i64(self.raw) != 0 {
 				Some(call_stack_pop_i64(self.raw) as i32)
-			} else { None }
+			} else {
+				None
+			}
 		}
 	}
 	/// Pops the value from the stack if it is a i64.
@@ -1158,7 +1249,9 @@ impl CallStack {
 		unsafe {
 			if call_stack_front_i64(self.raw) != 0 {
 				Some(call_stack_pop_i64(self.raw))
-			} else { None }
+			} else {
+				None
+			}
 		}
 	}
 	/// Pops the value from the stack if it is a f32.
@@ -1166,7 +1259,9 @@ impl CallStack {
 		unsafe {
 			if call_stack_front_f64(self.raw) != 0 {
 				Some(call_stack_pop_f64(self.raw) as f32)
-			} else { None }
+			} else {
+				None
+			}
 		}
 	}
 	/// Pops the value from the stack if it is a f64.
@@ -1174,7 +1269,9 @@ impl CallStack {
 		unsafe {
 			if call_stack_front_f64(self.raw) != 0 {
 				Some(call_stack_pop_f64(self.raw))
-			} else { None }
+			} else {
+				None
+			}
 		}
 	}
 	/// Pops the value from the stack if it is a string.
@@ -1182,7 +1279,9 @@ impl CallStack {
 		unsafe {
 			if call_stack_front_str(self.raw) != 0 {
 				Some(to_string(call_stack_pop_str(self.raw)))
-			} else { None }
+			} else {
+				None
+			}
 		}
 	}
 	/// Pops the value from the stack if it is a bool.
@@ -1190,7 +1289,9 @@ impl CallStack {
 		unsafe {
 			if call_stack_front_bool(self.raw) != 0 {
 				Some(call_stack_pop_bool(self.raw) != 0)
-			} else { None }
+			} else {
+				None
+			}
 		}
 	}
 	/// Pops the value from the stack if it is a Vec2 object.
@@ -1198,7 +1299,9 @@ impl CallStack {
 		unsafe {
 			if call_stack_front_vec2(self.raw) != 0 {
 				Some(Vec2::from(call_stack_pop_vec2(self.raw)))
-			} else { None }
+			} else {
+				None
+			}
 		}
 	}
 	/// Pops the value from the stack if it is a Size object.
@@ -1206,7 +1309,9 @@ impl CallStack {
 		unsafe {
 			if call_stack_front_size(self.raw) != 0 {
 				Some(Size::from(call_stack_pop_size(self.raw)))
-			} else { None }
+			} else {
+				None
+			}
 		}
 	}
 	/// Pops the value from the stack if it is an object.
@@ -1215,7 +1320,9 @@ impl CallStack {
 			if call_stack_front_object(self.raw) != 0 {
 				let raw = call_stack_pop_object(self.raw);
 				into_object(raw)
-			} else { None }
+			} else {
+				None
+			}
 		}
 	}
 	/// Pops the value from the stack and then converts it to a Node. If the value on the stack is not a object or the object can not be converted to a Node, this function returns None.
@@ -1264,11 +1371,15 @@ impl CallStack {
 }
 
 impl Drop for CallStack {
-	fn drop(&mut self) { unsafe { call_stack_release(self.raw); } }
+	fn drop(&mut self) {
+		unsafe {
+			call_stack_release(self.raw);
+		}
+	}
 }
 
 /// An interface for providing Dora SSR built-in node event names.
-pub struct Slot { }
+pub struct Slot {}
 impl Slot {
 	/// The ActionEnd slot is triggered when an action is finished.
 	/// Triggers after calling `node.run_action()`, `node.perform()`, `node.run_action_def()` and `node.perform_def()`.
@@ -1881,20 +1992,20 @@ impl Slot {
 	/// * callback: F - The callback to be called when the event is triggered with the following arguments:
 	/// 	* action: Action - The finished action.
 	/// 	* target: Node - The node that finished the action.
-	pub fn on_action_end<F>(node: &mut dyn INode, mut callback: F) where F: FnMut(/*action*/ Action, /*node*/ Node) + 'static {
-		node.slot(Slot::ACTION_END, Box::new(move |stack| {
-			let (
-				action,
-				node
-			) = match (
-				stack.pop_cast::<Action>(),
-				stack.pop_into_node()
-			) {
-				(Some(action), Some(node)) => (action, node),
-				_ => return,
-			};
-			callback(action, node);
-		}));
+	pub fn on_action_end<F>(node: &mut dyn INode, mut callback: F)
+	where
+		F: FnMut(/*action*/ Action, /*node*/ Node) + 'static,
+	{
+		node.slot(
+			Slot::ACTION_END,
+			Box::new(move |stack| {
+				let (action, node) = match (stack.pop_cast::<Action>(), stack.pop_into_node()) {
+					(Some(action), Some(node)) => (action, node),
+					_ => return,
+				};
+				callback(action, node);
+			}),
+		);
 	}
 	/// Registers a callback for event triggered when a tap is detected and can be used to filter out certain taps.
 	///
@@ -1903,15 +2014,21 @@ impl Slot {
 	/// * node: &mut dyn INode - The node to register the callback on.
 	/// * callback: F - The callback to be called when the event is triggered with the following arguments:
 	/// 	* touch: Touch - The touch that triggered the tap.
-	pub fn on_tap_filter<F>(node: &mut dyn INode, mut callback: F) where F: FnMut(/*touch*/ Touch) + 'static {
+	pub fn on_tap_filter<F>(node: &mut dyn INode, mut callback: F)
+	where
+		F: FnMut(/*touch*/ Touch) + 'static,
+	{
 		node.set_touch_enabled(true);
-		node.slot(Slot::TAP_FILTER, Box::new(move |stack| {
-			let touch = match stack.pop_cast::<Touch>() {
-				Some(touch) => touch,
-				None => return,
-			};
-			callback(touch);
-		}));
+		node.slot(
+			Slot::TAP_FILTER,
+			Box::new(move |stack| {
+				let touch = match stack.pop_cast::<Touch>() {
+					Some(touch) => touch,
+					None => return,
+				};
+				callback(touch);
+			}),
+		);
 	}
 	/// Registers a callback for event triggered when a tap is detected.
 	///
@@ -1920,15 +2037,21 @@ impl Slot {
 	/// * node: &mut dyn INode - The node to register the callback on.
 	/// * callback: F - The callback to be called when the event is triggered with the following arguments:
 	/// 	* touch: Touch - The touch that triggered the tap.
-	pub fn on_tap_began<F>(node: &mut dyn INode, mut callback: F) where F: FnMut(/*touch*/ Touch) + 'static {
+	pub fn on_tap_began<F>(node: &mut dyn INode, mut callback: F)
+	where
+		F: FnMut(/*touch*/ Touch) + 'static,
+	{
 		node.set_touch_enabled(true);
-		node.slot(Slot::TAP_BEGAN, Box::new(move |stack| {
-			let touch = match stack.pop_cast::<Touch>() {
-				Some(touch) => touch,
-				None => return,
-			};
-			callback(touch);
-		}));
+		node.slot(
+			Slot::TAP_BEGAN,
+			Box::new(move |stack| {
+				let touch = match stack.pop_cast::<Touch>() {
+					Some(touch) => touch,
+					None => return,
+				};
+				callback(touch);
+			}),
+		);
 	}
 	/// Registers a callback for event triggered when a tap ends.
 	///
@@ -1937,15 +2060,21 @@ impl Slot {
 	/// * node: &mut dyn INode - The node to register the callback on.
 	/// * callback: F - The callback to be called when the event is triggered with the following arguments:
 	/// 	* touch: Touch - The touch that triggered the tap.
-	pub fn on_tap_ended<F>(node: &mut dyn INode, mut callback: F) where F: FnMut(/*touch*/ Touch) + 'static {
+	pub fn on_tap_ended<F>(node: &mut dyn INode, mut callback: F)
+	where
+		F: FnMut(/*touch*/ Touch) + 'static,
+	{
 		node.set_touch_enabled(true);
-		node.slot(Slot::TAP_ENDED, Box::new(move |stack| {
-			let touch = match stack.pop_cast::<Touch>() {
-				Some(touch) => touch,
-				None => return,
-			};
-			callback(touch);
-		}));
+		node.slot(
+			Slot::TAP_ENDED,
+			Box::new(move |stack| {
+				let touch = match stack.pop_cast::<Touch>() {
+					Some(touch) => touch,
+					None => return,
+				};
+				callback(touch);
+			}),
+		);
 	}
 	/// Registers a callback for event triggered when a tap is detected and has ended.
 	///
@@ -1954,15 +2083,21 @@ impl Slot {
 	/// * node: &mut dyn INode - The node to register the callback on.
 	/// * callback: F - The callback to be called when the event is triggered with the following arguments:
 	/// 	* touch: Touch - The touch that triggered the tap.
-	pub fn on_tapped<F>(node: &mut dyn INode, mut callback: F) where F: FnMut(/*touch*/ Touch) + 'static {
+	pub fn on_tapped<F>(node: &mut dyn INode, mut callback: F)
+	where
+		F: FnMut(/*touch*/ Touch) + 'static,
+	{
 		node.set_touch_enabled(true);
-		node.slot(Slot::TAPPED, Box::new(move |stack| {
-			let touch = match stack.pop_cast::<Touch>() {
-				Some(touch) => touch,
-				None => return,
-			};
-			callback(touch);
-		}));
+		node.slot(
+			Slot::TAPPED,
+			Box::new(move |stack| {
+				let touch = match stack.pop_cast::<Touch>() {
+					Some(touch) => touch,
+					None => return,
+				};
+				callback(touch);
+			}),
+		);
 	}
 	/// Registers a callback for event triggered when a tap moves.
 	///
@@ -1971,15 +2106,21 @@ impl Slot {
 	/// * node: &mut dyn INode - The node to register the callback on.
 	/// * callback: F - The callback to be called when the event is triggered with the following arguments:
 	/// 	* touch: Touch - The touch that triggered the tap.
-	pub fn on_tap_moved<F>(node: &mut dyn INode, mut callback: F) where F: FnMut(/*touch*/ Touch) + 'static {
+	pub fn on_tap_moved<F>(node: &mut dyn INode, mut callback: F)
+	where
+		F: FnMut(/*touch*/ Touch) + 'static,
+	{
 		node.set_touch_enabled(true);
-		node.slot(Slot::TAP_MOVED, Box::new(move |stack| {
-			let touch = match stack.pop_cast::<Touch>() {
-				Some(touch) => touch,
-				None => return,
-			};
-			callback(touch);
-		}));
+		node.slot(
+			Slot::TAP_MOVED,
+			Box::new(move |stack| {
+				let touch = match stack.pop_cast::<Touch>() {
+					Some(touch) => touch,
+					None => return,
+				};
+				callback(touch);
+			}),
+		);
 	}
 	/// Registers a callback for event triggered when the mouse wheel is scrolled.
 	///
@@ -1988,15 +2129,21 @@ impl Slot {
 	/// * node: &mut dyn INode - The node to register the callback on.
 	/// * callback: F - The callback to be called when the event is triggered with the following arguments:
 	/// 	* delta: Vec2 - The amount of scrolling that occurred.
-	pub fn on_mouse_wheel<F>(node: &mut dyn INode, mut callback: F) where F: FnMut(/*delta*/ Vec2) + 'static {
+	pub fn on_mouse_wheel<F>(node: &mut dyn INode, mut callback: F)
+	where
+		F: FnMut(/*delta*/ Vec2) + 'static,
+	{
 		node.set_touch_enabled(true);
-		node.slot(Slot::MOUSE_WHEEL, Box::new(move |stack| {
-			let delta = match stack.pop_vec2() {
-				Some(delta) => delta,
-				None => return,
-			};
-			callback(delta);
-		}));
+		node.slot(
+			Slot::MOUSE_WHEEL,
+			Box::new(move |stack| {
+				let delta = match stack.pop_vec2() {
+					Some(delta) => delta,
+					None => return,
+				};
+				callback(delta);
+			}),
+		);
 	}
 	/// Registers a callback for event triggered when a multi-touch gesture is recognized.
 	///
@@ -2008,25 +2155,29 @@ impl Slot {
 	/// 	* num_fingers: i32 - The number of fingers involved in the gesture.
 	/// 	* delta_dist: f32 - The distance the gesture has moved.
 	/// 	* delta_angle: f32 - The angle of the gesture.
-	pub fn on_gesture<F>(node: &mut dyn INode, mut callback: F) where F: FnMut(/*center*/ Vec2, /*num_fingers*/ i32, /*delta_dist*/ f32, /*delta_angle*/ f32) + 'static {
+	pub fn on_gesture<F>(node: &mut dyn INode, mut callback: F)
+	where
+		F: FnMut(
+				/*center*/ Vec2,
+				/*num_fingers*/ i32,
+				/*delta_dist*/ f32,
+				/*delta_angle*/ f32,
+			) + 'static,
+	{
 		node.set_touch_enabled(true);
-		node.slot(Slot::GESTURE, Box::new(move |stack| {
-			let (
-				center,
-				num_fingers,
-				delta_dist,
-				delta_angle
-			) = match (
-				stack.pop_vec2(),
-				stack.pop_i32(),
-				stack.pop_f32(),
-				stack.pop_f32()
-			) {
-				(Some(center), Some(num_fingers), Some(delta_dist), Some(delta_angle)) => (center, num_fingers, delta_dist, delta_angle),
-				_ => return,
-			};
-			callback(center, num_fingers, delta_dist, delta_angle);
-		}));
+		node.slot(
+			Slot::GESTURE,
+			Box::new(move |stack| {
+				let (center, num_fingers, delta_dist, delta_angle) =
+					match (stack.pop_vec2(), stack.pop_i32(), stack.pop_f32(), stack.pop_f32()) {
+						(Some(center), Some(num_fingers), Some(delta_dist), Some(delta_angle)) => {
+							(center, num_fingers, delta_dist, delta_angle)
+						}
+						_ => return,
+					};
+				callback(center, num_fingers, delta_dist, delta_angle);
+			}),
+		);
 	}
 	/// Registers a callback for event triggered when a node is added to the scene graph.
 	///
@@ -2034,10 +2185,16 @@ impl Slot {
 	///
 	/// * node: &mut dyn INode - The node to register the callback on.
 	/// * callback: F - The callback to be called when the event is triggered.
-	pub fn on_enter<F>(node: &mut dyn INode, mut callback: F) where F: FnMut() + 'static {
-		node.slot(Slot::ENTER, Box::new(move |_| {
-			callback();
-		}));
+	pub fn on_enter<F>(node: &mut dyn INode, mut callback: F)
+	where
+		F: FnMut() + 'static,
+	{
+		node.slot(
+			Slot::ENTER,
+			Box::new(move |_| {
+				callback();
+			}),
+		);
 	}
 	/// Registers a callback for event triggered when a node is removed from the scene graph.
 	///
@@ -2045,10 +2202,16 @@ impl Slot {
 	///
 	/// * node: &mut dyn INode - The node to register the callback on.
 	/// * callback: F - The callback to be called when the event is triggered.
-	pub fn on_exit<F>(node: &mut dyn INode, mut callback: F) where F: FnMut() + 'static {
-		node.slot(Slot::EXIT, Box::new(move |_| {
-			callback();
-		}));
+	pub fn on_exit<F>(node: &mut dyn INode, mut callback: F)
+	where
+		F: FnMut() + 'static,
+	{
+		node.slot(
+			Slot::EXIT,
+			Box::new(move |_| {
+				callback();
+			}),
+		);
 	}
 	/// Registers a callback for event triggered when a node is cleaned up.
 	///
@@ -2056,10 +2219,16 @@ impl Slot {
 	///
 	/// * node: &mut dyn INode - The node to register the callback on.
 	/// * callback: F - The callback to be called when the event is triggered.
-	pub fn on_cleanup<F>(node: &mut dyn INode, mut callback: F) where F: FnMut() + 'static {
-		node.slot(Slot::CLEANUP, Box::new(move |_| {
-			callback();
-		}));
+	pub fn on_cleanup<F>(node: &mut dyn INode, mut callback: F)
+	where
+		F: FnMut() + 'static,
+	{
+		node.slot(
+			Slot::CLEANUP,
+			Box::new(move |_| {
+				callback();
+			}),
+		);
 	}
 	/// Registers a callback for event triggered when a key is pressed down.
 	///
@@ -2068,17 +2237,23 @@ impl Slot {
 	/// * node: &mut dyn INode - The node to register the callback on.
 	/// * key: KeyName - The key to trigger the callback on.
 	/// * callback: F - The callback to be called when the event is triggered.
-	pub fn on_key_down<F>(node: &mut dyn INode, key: KeyName, mut callback: F) where F: FnMut() + 'static {
+	pub fn on_key_down<F>(node: &mut dyn INode, key: KeyName, mut callback: F)
+	where
+		F: FnMut() + 'static,
+	{
 		node.set_keyboard_enabled(true);
-		node.slot(Slot::KEY_DOWN, Box::new(move |stack| {
-			let key_name = match stack.pop_str() {
-				Some(key_name) => key_name,
-				None => return,
-			};
-			if key.as_ref() == key_name {
-				callback();
-			}
-		}));
+		node.slot(
+			Slot::KEY_DOWN,
+			Box::new(move |stack| {
+				let key_name = match stack.pop_str() {
+					Some(key_name) => key_name,
+					None => return,
+				};
+				if key.as_ref() == key_name {
+					callback();
+				}
+			}),
+		);
 	}
 	/// Registers a callback for event triggered when a key is released.
 	///
@@ -2086,17 +2261,23 @@ impl Slot {
 	///
 	/// * node: &mut dyn INode - The node to register the callback on.
 	/// * key: KeyName - The key to trigger the callback on.
-	pub fn on_key_up<F>(node: &mut dyn INode, key: KeyName, mut callback: F) where F: FnMut() + 'static {
+	pub fn on_key_up<F>(node: &mut dyn INode, key: KeyName, mut callback: F)
+	where
+		F: FnMut() + 'static,
+	{
 		node.set_keyboard_enabled(true);
-		node.slot(Slot::KEY_UP, Box::new(move |stack| {
-			let key_name = match stack.pop_str() {
-				Some(key_name) => key_name,
-				None => return,
-			};
-			if key.as_ref() == key_name {
-				callback();
-			}
-		}));
+		node.slot(
+			Slot::KEY_UP,
+			Box::new(move |stack| {
+				let key_name = match stack.pop_str() {
+					Some(key_name) => key_name,
+					None => return,
+				};
+				if key.as_ref() == key_name {
+					callback();
+				}
+			}),
+		);
 	}
 	/// Registers a callback for event triggered when a key is pressed.
 	///
@@ -2104,17 +2285,23 @@ impl Slot {
 	///
 	/// * node: &mut dyn INode - The node to register the callback on.
 	/// * key: KeyName - The key to trigger the callback on.
-	pub fn on_key_pressed<F>(node: &mut dyn INode, key: KeyName, mut callback: F) where F: FnMut() + 'static {
+	pub fn on_key_pressed<F>(node: &mut dyn INode, key: KeyName, mut callback: F)
+	where
+		F: FnMut() + 'static,
+	{
 		node.set_keyboard_enabled(true);
-		node.slot(Slot::KEY_PRESSED, Box::new(move |stack| {
-			let key_name = match stack.pop_str() {
-				Some(key_name) => key_name,
-				None => return,
-			};
-			if key.as_ref() == key_name {
-				callback();
-			}
-		}));
+		node.slot(
+			Slot::KEY_PRESSED,
+			Box::new(move |stack| {
+				let key_name = match stack.pop_str() {
+					Some(key_name) => key_name,
+					None => return,
+				};
+				if key.as_ref() == key_name {
+					callback();
+				}
+			}),
+		);
 	}
 	/// Registers a callback for event triggered when the input method editor (IME) is attached.
 	///
@@ -2122,10 +2309,16 @@ impl Slot {
 	///
 	/// * node: &mut dyn INode - The node to register the callback on.
 	/// * callback: F - The callback to be called when the event is triggered.
-	pub fn on_attach_ime<F>(node: &mut dyn INode, mut callback: F) where F: FnMut() + 'static {
-		node.slot(Slot::ATTACH_IME, Box::new(move |_| {
-			callback();
-		}));
+	pub fn on_attach_ime<F>(node: &mut dyn INode, mut callback: F)
+	where
+		F: FnMut() + 'static,
+	{
+		node.slot(
+			Slot::ATTACH_IME,
+			Box::new(move |_| {
+				callback();
+			}),
+		);
 	}
 	/// Registers a callback for event triggered when the input method editor (IME) is detached.
 	///
@@ -2133,10 +2326,16 @@ impl Slot {
 	///
 	/// * node: &mut dyn INode - The node to register the callback on.
 	/// * callback: F - The callback to be called when the event is triggered.
-	pub fn on_detach_ime<F>(node: &mut dyn INode, mut callback: F) where F: FnMut() + 'static {
-		node.slot(Slot::DETACH_IME, Box::new(move |_| {
-			callback();
-		}));
+	pub fn on_detach_ime<F>(node: &mut dyn INode, mut callback: F)
+	where
+		F: FnMut() + 'static,
+	{
+		node.slot(
+			Slot::DETACH_IME,
+			Box::new(move |_| {
+				callback();
+			}),
+		);
 	}
 	/// Registers a callback for event triggered when text input is received.
 	///
@@ -2145,14 +2344,20 @@ impl Slot {
 	/// * node: &mut dyn INode - The node to register the callback on.
 	/// * callback: F - The callback to be called when the event is triggered with the following arguments:
 	/// 	* text: String - The text that was input.
-	pub fn on_text_input<F>(node: &mut dyn INode, mut callback: F) where F: FnMut(/*text*/ String) + 'static {
-		node.slot(Slot::TEXT_INPUT, Box::new(move |stack| {
-			let text = match stack.pop_str() {
-				Some(text) => text,
-				None => return,
-			};
-			callback(text);
-		}));
+	pub fn on_text_input<F>(node: &mut dyn INode, mut callback: F)
+	where
+		F: FnMut(/*text*/ String) + 'static,
+	{
+		node.slot(
+			Slot::TEXT_INPUT,
+			Box::new(move |stack| {
+				let text = match stack.pop_str() {
+					Some(text) => text,
+					None => return,
+				};
+				callback(text);
+			}),
+		);
 	}
 	/// Registers a callback for event triggered when text is being edited.
 	///
@@ -2162,20 +2367,20 @@ impl Slot {
 	/// * callback: F - The callback to be called when the event is triggered with the following arguments:
 	/// 	* text: String - The text that is being edited.
 	/// 	* start_pos: i32 - The starting position of the text being edited.
-	pub fn on_text_editing<F>(node: &mut dyn INode, mut callback: F) where F: FnMut(/*text*/ String, /*start_pos*/ i32) + 'static {
-		node.slot(Slot::TEXT_EDITING, Box::new(move |stack| {
-			let (
-				text,
-				start_pos
-			) = match (
-				stack.pop_str(),
-				stack.pop_i32()
-			) {
-				(Some(text), Some(start_pos)) => (text, start_pos),
-				_ => return,
-			};
-			callback(text, start_pos);
-		}));
+	pub fn on_text_editing<F>(node: &mut dyn INode, mut callback: F)
+	where
+		F: FnMut(/*text*/ String, /*start_pos*/ i32) + 'static,
+	{
+		node.slot(
+			Slot::TEXT_EDITING,
+			Box::new(move |stack| {
+				let (text, start_pos) = match (stack.pop_str(), stack.pop_i32()) {
+					(Some(text), Some(start_pos)) => (text, start_pos),
+					_ => return,
+				};
+				callback(text, start_pos);
+			}),
+		);
 	}
 	/// Registers a callback for event triggered when a game controller button is pressed down.
 	///
@@ -2185,23 +2390,23 @@ impl Slot {
 	/// * button: ButtonName - The button to trigger the callback on.
 	/// * callback: F - The callback to be called when the event is triggered with the following arguments:
 	/// 	* controller_id: i32 - The controller id, incrementing from 0 when multiple controllers connected.
-	pub fn on_button_down<F>(node: &mut dyn INode, button: ButtonName, mut callback: F) where F: FnMut(/*controller_id*/ i32) + 'static {
+	pub fn on_button_down<F>(node: &mut dyn INode, button: ButtonName, mut callback: F)
+	where
+		F: FnMut(/*controller_id*/ i32) + 'static,
+	{
 		node.set_controller_enabled(true);
-		node.slot(Slot::BUTTON_DOWN, Box::new(move |stack| {
-			let (
-				controller_id,
-				button_name
-			) = match (
-				stack.pop_i32(),
-				stack.pop_str()
-			) {
-				(Some(controller_id), Some(button_name)) => (controller_id, button_name),
-				_ => return,
-			};
-			if button.as_ref() == button_name {
-				callback(controller_id);
-			}
-		}));
+		node.slot(
+			Slot::BUTTON_DOWN,
+			Box::new(move |stack| {
+				let (controller_id, button_name) = match (stack.pop_i32(), stack.pop_str()) {
+					(Some(controller_id), Some(button_name)) => (controller_id, button_name),
+					_ => return,
+				};
+				if button.as_ref() == button_name {
+					callback(controller_id);
+				}
+			}),
+		);
 	}
 	/// Registers a callback for event triggered when a game controller button is released.
 	///
@@ -2211,23 +2416,23 @@ impl Slot {
 	/// * button: ButtonName - The button to trigger the callback on.
 	/// * callback: F - The callback to be called when the event is triggered with the following arguments:
 	/// 	* controller_id: i32 - The controller id, incrementing from 0 when multiple controllers connected.
-	pub fn on_button_up<F>(node: &mut dyn INode, button: ButtonName, mut callback: F) where F: FnMut(/*controller_id*/ i32) + 'static {
+	pub fn on_button_up<F>(node: &mut dyn INode, button: ButtonName, mut callback: F)
+	where
+		F: FnMut(/*controller_id*/ i32) + 'static,
+	{
 		node.set_controller_enabled(true);
-		node.slot(Slot::BUTTON_UP, Box::new(move |stack| {
-			let (
-				controller_id,
-				button_name
-			) = match (
-				stack.pop_i32(),
-				stack.pop_str()
-			) {
-				(Some(controller_id), Some(button_name)) => (controller_id, button_name),
-				_ => return,
-			};
-			if button.as_ref() == button_name {
-				callback(controller_id);
-			}
-		}));
+		node.slot(
+			Slot::BUTTON_UP,
+			Box::new(move |stack| {
+				let (controller_id, button_name) = match (stack.pop_i32(), stack.pop_str()) {
+					(Some(controller_id), Some(button_name)) => (controller_id, button_name),
+					_ => return,
+				};
+				if button.as_ref() == button_name {
+					callback(controller_id);
+				}
+			}),
+		);
 	}
 	/// Registers a callback for event triggered when a game controller button is being pressed.
 	/// This slot is triggered every frame while the button is being pressed.
@@ -2238,23 +2443,23 @@ impl Slot {
 	/// * button: ButtonName - The button to trigger the callback on.
 	/// * callback: F - The callback to be called when the event is triggered with the following arguments:
 	/// 	* controller_id: i32 - The controller id, incrementing from 0 when multiple controllers connected.
-	pub fn on_button_pressed<F>(node: &mut dyn INode, button: ButtonName, mut callback: F) where F: FnMut(/*controller_id*/ i32) + 'static {
+	pub fn on_button_pressed<F>(node: &mut dyn INode, button: ButtonName, mut callback: F)
+	where
+		F: FnMut(/*controller_id*/ i32) + 'static,
+	{
 		node.set_controller_enabled(true);
-		node.slot(Slot::BUTTON_PRESSED, Box::new(move |stack| {
-			let (
-				controller_id,
-				button_name
-			) = match (
-				stack.pop_i32(),
-				stack.pop_str()
-			) {
-				(Some(controller_id), Some(button_name)) => (controller_id, button_name),
-				_ => return,
-			};
-			if button.as_ref() == button_name {
-				callback(controller_id);
-			}
-		}));
+		node.slot(
+			Slot::BUTTON_PRESSED,
+			Box::new(move |stack| {
+				let (controller_id, button_name) = match (stack.pop_i32(), stack.pop_str()) {
+					(Some(controller_id), Some(button_name)) => (controller_id, button_name),
+					_ => return,
+				};
+				if button.as_ref() == button_name {
+					callback(controller_id);
+				}
+			}),
+		);
 	}
 	/// Registers a callback for event triggered when a game controller axis changed.
 	/// This slot is triggered every frame while the axis value changes.
@@ -2266,25 +2471,26 @@ impl Slot {
 	/// * axis: AxisName - The axis to trigger the callback on.
 	/// * callback: F - The callback to be called when the event is triggered with the following arguments:
 	/// 	* controller_id: i32 - The controller id, incrementing from 0 when multiple controllers connected.
-	pub fn on_axis<F>(node: &mut dyn INode, axis: AxisName, mut callback: F) where F: FnMut(/*controller_id*/ i32, /*axis_value*/ f32) + 'static {
+	pub fn on_axis<F>(node: &mut dyn INode, axis: AxisName, mut callback: F)
+	where
+		F: FnMut(/*controller_id*/ i32, /*axis_value*/ f32) + 'static,
+	{
 		node.set_controller_enabled(true);
-		node.slot(Slot::AXIS, Box::new(move |stack| {
-			let (
-				controller_id,
-				axis_name,
-				axis_value
-			) = match (
-				stack.pop_i32(),
-				stack.pop_str(),
-				stack.pop_f32()
-			) {
-				(Some(controller_id), Some(axis_name), Some(axis_value)) => (controller_id, axis_name, axis_value),
-				_ => return,
-			};
-			if axis.as_ref() == axis_name {
-				callback(controller_id, axis_value);
-			}
-		}));
+		node.slot(
+			Slot::AXIS,
+			Box::new(move |stack| {
+				let (controller_id, axis_name, axis_value) =
+					match (stack.pop_i32(), stack.pop_str(), stack.pop_f32()) {
+						(Some(controller_id), Some(axis_name), Some(axis_value)) => {
+							(controller_id, axis_name, axis_value)
+						}
+						_ => return,
+					};
+				if axis.as_ref() == axis_name {
+					callback(controller_id, axis_value);
+				}
+			}),
+		);
 	}
 	/// Registers a callback for event triggered when an animation has ended on a Playable instance.
 	///
@@ -2294,20 +2500,21 @@ impl Slot {
 	/// * callback: F - The callback to be called when the event is triggered with the following arguments:
 	/// 	* animation_name: String - The name of the animation that ended.
 	/// 	* target: Playable - The Playable instance that the animation was played on.
-	pub fn on_animation_end<F>(node: &mut dyn IPlayable, mut callback: F) where F: FnMut(/*animation_name*/ String, /*target*/ Playable) + 'static {
-		node.slot(Slot::ANIMATION_END, Box::new(move |stack| {
-			let (
-				animation_name,
-				playable
-			) = match (
-				stack.pop_str(),
-				stack.pop_into_playable()
-			) {
-				(Some(animation_name), Some(playable)) => (animation_name, playable),
-				_ => return,
-			};
-			callback(animation_name, playable);
-		}));
+	pub fn on_animation_end<F>(node: &mut dyn IPlayable, mut callback: F)
+	where
+		F: FnMut(/*animation_name*/ String, /*target*/ Playable) + 'static,
+	{
+		node.slot(
+			Slot::ANIMATION_END,
+			Box::new(move |stack| {
+				let (animation_name, playable) = match (stack.pop_str(), stack.pop_into_playable())
+				{
+					(Some(animation_name), Some(playable)) => (animation_name, playable),
+					_ => return,
+				};
+				callback(animation_name, playable);
+			}),
+		);
 	}
 	/// Registers a callback for event triggered when a Body object collides with a sensor object.
 	///
@@ -2317,20 +2524,20 @@ impl Slot {
 	/// * callback: F - The callback to be called when the event is triggered with the following arguments:
 	/// 	* other: Body - The other Body object that the current Body is colliding with.
 	/// 	* sensor_tag: i32 - The tag of the sensor that triggered this collision.
-	pub fn on_body_enter<F>(node: &mut dyn IBody, mut callback: F) where F: FnMut(/*other*/ Body, /*sensor_tag*/ i32) + 'static {
-		node.slot(Slot::BODY_ENTER, Box::new(move |stack| {
-			let (
-				other,
-				sensor_tag
-			) = match (
-				stack.pop_into_body(),
-				stack.pop_i32()
-			) {
-				(Some(other), Some(sensor_tag)) => (other, sensor_tag),
-				_ => return,
-			};
-			callback(other, sensor_tag);
-		}));
+	pub fn on_body_enter<F>(node: &mut dyn IBody, mut callback: F)
+	where
+		F: FnMut(/*other*/ Body, /*sensor_tag*/ i32) + 'static,
+	{
+		node.slot(
+			Slot::BODY_ENTER,
+			Box::new(move |stack| {
+				let (other, sensor_tag) = match (stack.pop_into_body(), stack.pop_i32()) {
+					(Some(other), Some(sensor_tag)) => (other, sensor_tag),
+					_ => return,
+				};
+				callback(other, sensor_tag);
+			}),
+		);
 	}
 	/// Registers a callback for event triggered when a Body object is no longer colliding with a sensor object.
 	///
@@ -2340,20 +2547,20 @@ impl Slot {
 	/// * callback: F - The callback to be called when the event is triggered with the following arguments:
 	/// 	* other: Body - The other Body object that the current Body is no longer colliding with.
 	/// 	* sensor_tag: i32 - The tag of the sensor that triggered this collision.
-	pub fn on_body_leave<F>(node: &mut dyn IBody, mut callback: F) where F: FnMut(/*other*/ Body, /*sensor_tag*/ i32) + 'static {
-		node.slot(Slot::BODY_LEAVE, Box::new(move |stack| {
-			let (
-				other,
-				sensor_tag
-			) = match (
-				stack.pop_into_body(),
-				stack.pop_i32()
-			) {
-				(Some(other), Some(sensor_tag)) => (other, sensor_tag),
-				_ => return,
-			};
-			callback(other, sensor_tag);
-		}));
+	pub fn on_body_leave<F>(node: &mut dyn IBody, mut callback: F)
+	where
+		F: FnMut(/*other*/ Body, /*sensor_tag*/ i32) + 'static,
+	{
+		node.slot(
+			Slot::BODY_LEAVE,
+			Box::new(move |stack| {
+				let (other, sensor_tag) = match (stack.pop_into_body(), stack.pop_i32()) {
+					(Some(other), Some(sensor_tag)) => (other, sensor_tag),
+					_ => return,
+				};
+				callback(other, sensor_tag);
+			}),
+		);
 	}
 	/// Registers a callback for event triggered when a Body object starts to collide with another object.
 	///
@@ -2365,25 +2572,33 @@ impl Slot {
 	/// 	* point: Vec2 - The point of collision in world coordinates.
 	/// 	* normal: Vec2 - The normal vector of the contact surface in world coordinates.
 	/// 	* enabled: bool - Whether the contact is enabled or not. Collisions that are filtered out will still trigger this event, but the enabled state will be false.
-	pub fn on_contact_start<F>(node: &mut dyn IBody, mut callback: F) where F: FnMut(/*other*/ Body, /*point*/ Vec2, /*normal*/ Vec2, /*enabled*/ bool) + 'static {
+	pub fn on_contact_start<F>(node: &mut dyn IBody, mut callback: F)
+	where
+		F: FnMut(
+				/*other*/ Body,
+				/*point*/ Vec2,
+				/*normal*/ Vec2,
+				/*enabled*/ bool,
+			) + 'static,
+	{
 		node.set_receiving_contact(true);
-		node.slot(Slot::CONTACT_START, Box::new(move |stack| {
-			let (
-				other,
-				point,
-				normal,
-				enabled
-			) = match (
-				stack.pop_into_body(),
-				stack.pop_vec2(),
-				stack.pop_vec2(),
-				stack.pop_bool()
-			) {
-				(Some(other), Some(point), Some(normal), Some(enabled)) => (other, point, normal, enabled),
-				_ => return,
-			};
-			callback(other, point, normal, enabled);
-		}));
+		node.slot(
+			Slot::CONTACT_START,
+			Box::new(move |stack| {
+				let (other, point, normal, enabled) = match (
+					stack.pop_into_body(),
+					stack.pop_vec2(),
+					stack.pop_vec2(),
+					stack.pop_bool(),
+				) {
+					(Some(other), Some(point), Some(normal), Some(enabled)) => {
+						(other, point, normal, enabled)
+					}
+					_ => return,
+				};
+				callback(other, point, normal, enabled);
+			}),
+		);
 	}
 	/// Registers a callback for event triggered when a Body object stops colliding with another object.
 	///
@@ -2394,23 +2609,22 @@ impl Slot {
 	/// 	* other: Body - The other Body object that the current Body is no longer colliding with.
 	/// 	* point: Vec2 - The point of collision in world coordinates.
 	/// 	* normal: Vec2 - The normal vector of the contact surface in world coordinates.
-	pub fn on_contact_end<F>(node: &mut dyn IBody, mut callback: F) where F: FnMut(/*other*/ Body, /*point*/ Vec2, /*normal*/ Vec2) + 'static {
+	pub fn on_contact_end<F>(node: &mut dyn IBody, mut callback: F)
+	where
+		F: FnMut(/*other*/ Body, /*point*/ Vec2, /*normal*/ Vec2) + 'static,
+	{
 		node.set_receiving_contact(true);
-		node.slot(Slot::CONTACT_END, Box::new(move |stack| {
-			let (
-				other,
-				point,
-				normal
-			) = match (
-				stack.pop_into_body(),
-				stack.pop_vec2(),
-				stack.pop_vec2()
-			) {
-				(Some(other), Some(point), Some(normal)) => (other, point, normal),
-				_ => return,
-			};
-			callback(other, point, normal);
-		}));
+		node.slot(
+			Slot::CONTACT_END,
+			Box::new(move |stack| {
+				let (other, point, normal) =
+					match (stack.pop_into_body(), stack.pop_vec2(), stack.pop_vec2()) {
+						(Some(other), Some(point), Some(normal)) => (other, point, normal),
+						_ => return,
+					};
+				callback(other, point, normal);
+			}),
+		);
 	}
 	/// Registers a callback for event triggered when a Particle node starts a stop action and then all the active particles end their lives.
 	///
@@ -2418,10 +2632,16 @@ impl Slot {
 	///
 	/// * node: &mut Particle - The node to register the callback on.
 	/// * callback: F - The callback to be called when the event is triggered.
-	pub fn on_finished<F>(node: &mut Particle, mut callback: F) where F: FnMut() + 'static {
-		node.slot(Slot::FINISHED, Box::new(move |_| {
-			callback();
-		}));
+	pub fn on_finished<F>(node: &mut Particle, mut callback: F)
+	where
+		F: FnMut() + 'static,
+	{
+		node.slot(
+			Slot::FINISHED,
+			Box::new(move |_| {
+				callback();
+			}),
+		);
 	}
 	/// Registers a callback for event triggered when the layout of the AlignNode is updated.
 	///
@@ -2431,20 +2651,20 @@ impl Slot {
 	/// * callback: F - The callback to be called when the event is triggered with the following arguments:
 	/// 	* width: f32 - The width of the AlignNode.
 	/// 	* height: f32 - The height of the AlignNode.
-	pub fn on_align_layout<F>(node: &mut AlignNode, mut callback: F) where F: FnMut(/*width*/ f32, /*height*/ f32) + 'static {
-		node.slot(Slot::ALIGN_LAYOUT, Box::new(move |stack| {
-			let (
-				width,
-				height
-			) = match (
-				stack.pop_f32(),
-				stack.pop_f32()
-			) {
-				(Some(width), Some(height)) => (width, height),
-				_ => return,
-			};
-			callback(width, height);
-		}));
+	pub fn on_align_layout<F>(node: &mut AlignNode, mut callback: F)
+	where
+		F: FnMut(/*width*/ f32, /*height*/ f32) + 'static,
+	{
+		node.slot(
+			Slot::ALIGN_LAYOUT,
+			Box::new(move |stack| {
+				let (width, height) = match (stack.pop_f32(), stack.pop_f32()) {
+					(Some(width), Some(height)) => (width, height),
+					_ => return,
+				};
+				callback(width, height);
+			}),
+		);
 	}
 	/// Registers a callback for event triggered when the EffekseerNode finishes playing an effect.
 	///
@@ -2453,19 +2673,25 @@ impl Slot {
 	/// * node: &mut EffekNode - The node to register the callback on.
 	/// * callback: F - The callback to be called when the event is triggered with the following arguments:
 	/// 	* handle: i32 - The handle of the effect that finished playing.
-	pub fn on_effek_end<F>(node: &mut EffekNode, mut callback: F) where F: FnMut(/*handle*/ i32) + 'static {
-		node.slot(Slot::EFFEK_END, Box::new(move |stack| {
-			let handle = match stack.pop_i32() {
-				Some(handle) => handle,
-				None => return,
-			};
-			callback(handle);
-		}));
+	pub fn on_effek_end<F>(node: &mut EffekNode, mut callback: F)
+	where
+		F: FnMut(/*handle*/ i32) + 'static,
+	{
+		node.slot(
+			Slot::EFFEK_END,
+			Box::new(move |stack| {
+				let handle = match stack.pop_i32() {
+					Some(handle) => handle,
+					None => return,
+				};
+				callback(handle);
+			}),
+		);
 	}
 }
 
 /// An interface for providing Dora SSR built-in global event names.
-pub struct GSlot { }
+pub struct GSlot {}
 impl GSlot {
 	/// Triggers when the application receives an event.
 	///
@@ -2532,14 +2758,20 @@ impl GSlot {
 	/// * node: &mut dyn INode - The node to register the callback on.
 	/// * callback: F - The callback to be called when the event is triggered with the following arguments:
 	/// 	* event_type: String - The type of the application event. The event type could be "Quit", "LowMemory", "WillEnterBackground", "DidEnterBackground", "WillEnterForeground", "DidEnterForeground".
-	pub fn on_app_event<F>(node: &mut dyn INode, mut callback: F) where F: FnMut(/*event_type*/ String) + 'static {
-		node.gslot(GSlot::APP_EVENT, Box::new(move |stack| {
-			let event_type = match stack.pop_str() {
-				Some(event_type) => event_type,
-				None => return,
-			};
-			callback(event_type);
-		}));
+	pub fn on_app_event<F>(node: &mut dyn INode, mut callback: F)
+	where
+		F: FnMut(/*event_type*/ String) + 'static,
+	{
+		node.gslot(
+			GSlot::APP_EVENT,
+			Box::new(move |stack| {
+				let event_type = match stack.pop_str() {
+					Some(event_type) => event_type,
+					None => return,
+				};
+				callback(event_type);
+			}),
+		);
 	}
 	/// Registers a callback for event triggered when the application settings change.
 	///
@@ -2548,14 +2780,20 @@ impl GSlot {
 	/// * node: &mut dyn INode - The node to register the callback on.
 	/// * callback: F - The callback to be called when the event is triggered with the following arguments:
 	/// 	* setting_name: String - The name of the setting that changed. Could be "Locale", "Theme", "FullScreen", "Position", "Size".
-	pub fn on_app_change<F>(node: &mut dyn INode, mut callback: F) where F: FnMut(/*setting_name*/ String) + 'static {
-		node.gslot(GSlot::APP_CHANGE, Box::new(move |stack| {
-			let setting_name = match stack.pop_str() {
-				Some(setting_name) => setting_name,
-				None => return,
-			};
-			callback(setting_name);
-		}));
+	pub fn on_app_change<F>(node: &mut dyn INode, mut callback: F)
+	where
+		F: FnMut(/*setting_name*/ String) + 'static,
+	{
+		node.gslot(
+			GSlot::APP_CHANGE,
+			Box::new(move |stack| {
+				let setting_name = match stack.pop_str() {
+					Some(setting_name) => setting_name,
+					None => return,
+				};
+				callback(setting_name);
+			}),
+		);
 	}
 	/// Registers a callback for event triggered when gets an event from a websocket connection.
 	///
@@ -2565,20 +2803,20 @@ impl GSlot {
 	/// * callback: F - The callback to be called when the event is triggered with the following arguments:
 	/// 	* event_type: String - The event type of the message received. Could be "Open", "Close", "Send", "Receive".
 	/// 	* msg: String - The message received.
-	pub fn on_app_ws<F>(node: &mut dyn INode, mut callback: F) where F: FnMut(/*event_type*/ String, /*msg*/ String) + 'static {
-		node.gslot(GSlot::APP_WS, Box::new(move |stack| {
-			let (
-				event_type,
-				msg
-			) = match (
-				stack.pop_str(),
-				stack.pop_str()
-			) {
-				(Some(event_type), Some(msg)) => (event_type, msg),
-				_ => return,
-			};
-			callback(event_type, msg);
-		}));
+	pub fn on_app_ws<F>(node: &mut dyn INode, mut callback: F)
+	where
+		F: FnMut(/*event_type*/ String, /*msg*/ String) + 'static,
+	{
+		node.gslot(
+			GSlot::APP_WS,
+			Box::new(move |stack| {
+				let (event_type, msg) = match (stack.pop_str(), stack.pop_str()) {
+					(Some(event_type), Some(msg)) => (event_type, msg),
+					_ => return,
+				};
+				callback(event_type, msg);
+			}),
+		);
 	}
 }
 
@@ -2631,7 +2869,10 @@ impl Array {
 	///
 	/// * `index` - The index to set, should be 0 based.
 	/// * `item` - The new item value.
-	pub fn set<'a, T>(&mut self, index: i32, v: T) where T: IntoValue<'a> {
+	pub fn set<'a, T>(&mut self, index: i32, v: T)
+	where
+		T: IntoValue<'a>,
+	{
 		if unsafe { array_set(self.raw(), index, v.val().raw()) == 0 } {
 			panic!("Out of bounds, expecting [0, {}), got {}", self.get_count(), index);
 		}
@@ -2665,8 +2906,13 @@ impl Array {
 	/// # Arguments
 	///
 	/// * `item` - The item to add.
-	pub fn add<'a, T>(&mut self, v: T) -> &mut Self where T: IntoValue<'a> {
-		unsafe { array_add(self.raw(), v.val().raw()); }
+	pub fn add<'a, T>(&mut self, v: T) -> &mut Self
+	where
+		T: IntoValue<'a>,
+	{
+		unsafe {
+			array_add(self.raw(), v.val().raw());
+		}
 		self
 	}
 	/// Inserts an item at the given index, shifting other items to the right.
@@ -2675,8 +2921,13 @@ impl Array {
 	///
 	/// * `index` - The index to insert at.
 	/// * `item` - The item to insert.
-	pub fn insert<'a, T>(&mut self, index: i32, v: T) where T: IntoValue<'a> {
-		unsafe { array_insert(self.raw(), index, v.val().raw()); }
+	pub fn insert<'a, T>(&mut self, index: i32, v: T)
+	where
+		T: IntoValue<'a>,
+	{
+		unsafe {
+			array_insert(self.raw(), index, v.val().raw());
+		}
 	}
 	/// Checks whether the array contains a given item.
 	///
@@ -2687,7 +2938,10 @@ impl Array {
 	/// # Returns
 	///
 	/// * `bool` - True if the item is found, false otherwise.
-	pub fn contains<'a, T>(&self, v: T) -> bool where T: IntoValue<'a> {
+	pub fn contains<'a, T>(&self, v: T) -> bool
+	where
+		T: IntoValue<'a>,
+	{
 		unsafe { array_contains(self.raw(), v.val().raw()) != 0 }
 	}
 	/// Gets the index of a given item.
@@ -2699,7 +2953,10 @@ impl Array {
 	/// # Returns
 	///
 	/// * `i32` - The index of the item, or -1 if it is not found.
-	pub fn index<'a, T>(&self, v: T) -> i32 where T: IntoValue<'a> {
+	pub fn index<'a, T>(&self, v: T) -> i32
+	where
+		T: IntoValue<'a>,
+	{
 		unsafe { array_index(self.raw(), v.val().raw()) }
 	}
 	/// Removes and returns the last item in the array.
@@ -2719,7 +2976,10 @@ impl Array {
 	/// # Returns
 	///
 	/// * `bool` - True if the item was found and removed, false otherwise.
-	pub fn fast_remove<'a, T>(&mut self, v: T) -> bool where T: IntoValue<'a> {
+	pub fn fast_remove<'a, T>(&mut self, v: T) -> bool
+	where
+		T: IntoValue<'a>,
+	{
 		unsafe { array_fast_remove(self.raw(), v.val().raw()) != 0 }
 	}
 }
@@ -2738,8 +2998,13 @@ impl Dictionary {
 	///
 	/// * `key` - The key of the item to set.
 	/// * `item` - The Item to set for the given key, set to None to delete this key-value pair.
-	pub fn set<'a, T>(&mut self, key: &str, v: T) where T: IntoValue<'a> {
-		unsafe { dictionary_set(self.raw(), from_string(key), v.val().raw()); }
+	pub fn set<'a, T>(&mut self, key: &str, v: T)
+	where
+		T: IntoValue<'a>,
+	{
+		unsafe {
+			dictionary_set(self.raw(), from_string(key), v.val().raw());
+		}
 	}
 	/// A method for accessing items in the dictionary.
 	///
@@ -2771,8 +3036,13 @@ impl Entity {
 	///
 	/// * `key` - The name of the property to set.
 	/// * `item` - The value to set the property to.
-	pub fn set<'a, T>(&mut self, key: &str, value: T) where T: IntoValue<'a> {
-		unsafe { entity_set(self.raw(), from_string(key), value.val().raw()); }
+	pub fn set<'a, T>(&mut self, key: &str, value: T)
+	where
+		T: IntoValue<'a>,
+	{
+		unsafe {
+			entity_set(self.raw(), from_string(key), value.val().raw());
+		}
 	}
 	/// Retrieves the value of a property of the entity.
 	///
@@ -2824,7 +3094,9 @@ impl Group {
 			let result = callback(&mut stack);
 			stack.push_bool(result);
 		}));
-		unsafe { group_watch(self.raw(), func_id, stack_raw); }
+		unsafe {
+			group_watch(self.raw(), func_id, stack_raw);
+		}
 		self
 	}
 	/// Calls a function for each entity in the group.
@@ -2839,7 +3111,7 @@ impl Group {
 	pub fn each(&self, visitor: Box<dyn FnMut(&Entity) -> bool>) -> bool {
 		match self.find(visitor) {
 			Some(_) => true,
-			None => false
+			None => false,
 		}
 	}
 }
@@ -2856,7 +3128,7 @@ pub enum EntityEvent {
 	Add = 1,
 	Change = 2,
 	AddOrChange = 3,
-	Remove = 4
+	Remove = 4,
 }
 
 impl Observer {
@@ -2876,7 +3148,9 @@ impl Observer {
 			let result = callback(&mut stack);
 			stack.push_bool(result);
 		}));
-		unsafe { observer_watch(self.raw(), func_id, stack_raw); }
+		unsafe {
+			observer_watch(self.raw(), func_id, stack_raw);
+		}
 		self
 	}
 }
@@ -2945,7 +3219,9 @@ impl Node {
 	pub fn cast(obj: &dyn IObject) -> Option<Node> {
 		let node = Node::from(unsafe { object_to_node(obj.raw()) });
 		if node.is_some() {
-			unsafe { object_retain(obj.raw()); }
+			unsafe {
+				object_retain(obj.raw());
+			}
 		}
 		node
 	}
@@ -2966,7 +3242,9 @@ impl Camera {
 	pub fn cast(obj: &dyn IObject) -> Option<Camera> {
 		let camera = Camera::from(unsafe { object_to_camera(obj.raw()) });
 		if camera.is_some() {
-			unsafe { object_retain(obj.raw()); }
+			unsafe {
+				object_retain(obj.raw());
+			}
 		}
 		camera
 	}
@@ -2987,7 +3265,9 @@ impl Playable {
 	pub fn cast(obj: &dyn IObject) -> Option<Playable> {
 		let playable = Playable::from(unsafe { object_to_playable(obj.raw()) });
 		if playable.is_some() {
-			unsafe { object_retain(obj.raw()); }
+			unsafe {
+				object_retain(obj.raw());
+			}
 		}
 		playable
 	}
@@ -3008,7 +3288,9 @@ impl Body {
 	pub fn cast(obj: &dyn IObject) -> Option<Body> {
 		let body = Body::from(unsafe { object_to_body(obj.raw()) });
 		if body.is_some() {
-			unsafe { object_retain(obj.raw()); }
+			unsafe {
+				object_retain(obj.raw());
+			}
 		}
 		body
 	}
@@ -3029,7 +3311,9 @@ impl Joint {
 	pub fn cast(obj: &dyn IObject) -> Option<Joint> {
 		let joint = Joint::from(unsafe { object_to_joint(obj.raw()) });
 		if joint.is_some() {
-			unsafe { object_retain(obj.raw()); }
+			unsafe {
+				object_retain(obj.raw());
+			}
 		}
 		joint
 	}
@@ -3050,7 +3334,9 @@ impl PhysicsWorld {
 	pub fn cast(obj: &dyn IObject) -> Option<PhysicsWorld> {
 		let physics_world = PhysicsWorld::from(unsafe { object_to_physics_world(obj.raw()) });
 		if physics_world.is_some() {
-			unsafe { object_retain(obj.raw()); }
+			unsafe {
+				object_retain(obj.raw());
+			}
 		}
 		physics_world
 	}
@@ -3086,28 +3372,35 @@ pub enum BFunc {
 	DstAlpha = 0x0000000000007000,
 	InvDstAlpha = 0x0000000000008000,
 	DstColor = 0x0000000000009000,
-	InvDstColor = 0x000000000000a000
+	InvDstColor = 0x000000000000a000,
 }
 
 pub struct BlendFunc {
-	value: u64
+	value: u64,
 }
 
 impl BlendFunc {
-	pub fn new_seperate(src_rgb: BFunc, dst_rgb: BFunc, src_alpha: BFunc, dst_alpha: BFunc) -> Self {
+	pub fn new_seperate(
+		src_rgb: BFunc,
+		dst_rgb: BFunc,
+		src_alpha: BFunc,
+		dst_alpha: BFunc,
+	) -> Self {
 		BlendFunc {
-			value: (src_rgb as u64 | (dst_rgb as u64) << 4 | src_alpha as u64 | (dst_alpha as u64) << 4) << 8
+			value: (src_rgb as u64
+				| (dst_rgb as u64) << 4
+				| src_alpha as u64
+				| (dst_alpha as u64) << 4)
+				<< 8,
 		}
 	}
 	pub fn new(src: BFunc, dst: BFunc) -> Self {
 		BlendFunc::new_seperate(src, dst, src, dst)
 	}
 	pub fn from(value: i64) -> Self {
-		BlendFunc {
-			value: value as u64
-		}
+		BlendFunc { value: value as u64 }
 	}
-	pub (crate) fn to_value(&self) -> i64 {
+	pub(crate) fn to_value(&self) -> i64 {
 		self.value as i64
 	}
 }
@@ -3417,7 +3710,7 @@ impl AsRef<str> for KeyName {
 			KeyName::RShift => "RShift",
 			KeyName::RAlt => "RAlt",
 			KeyName::RGui => "RGui",
-		 }
+		}
 	}
 }
 
@@ -3583,9 +3876,7 @@ impl Controller {
 
 impl platformer::ActionUpdate {
 	pub fn from_update(mut update: Box<dyn FnMut(f64) -> bool>) -> platformer::ActionUpdate {
-		platformer::ActionUpdate::new(Box::new(move |_, _, dt| {
-			update(dt as f64)
-		}))
+		platformer::ActionUpdate::new(Box::new(move |_, _, dt| update(dt as f64)))
 	}
 }
 
@@ -3608,8 +3899,13 @@ impl platformer::behavior::Blackboard {
 	/// ```
 	/// blackboard.set("score", 100);
 	/// ```
-	pub fn set<'a, T>(&mut self, key: &str, value: T) where T: IntoValue<'a> {
-		unsafe { blackboard_set(self.raw(), from_string(key), value.val().raw()); }
+	pub fn set<'a, T>(&mut self, key: &str, value: T)
+	where
+		T: IntoValue<'a>,
+	{
+		unsafe {
+			blackboard_set(self.raw(), from_string(key), value.val().raw());
+		}
 	}
 	/// Retrieves a value from the blackboard.
 	///
@@ -3635,8 +3931,8 @@ impl platformer::behavior::Blackboard {
 	}
 }
 
-use enumflags2::{bitflags, make_bitflags};
 pub use enumflags2::BitFlags;
+use enumflags2::{bitflags, make_bitflags};
 
 #[bitflags]
 #[repr(u32)]
@@ -3672,17 +3968,19 @@ pub enum ImGuiWindowFlag {
 	HorizontalScrollbar = 1 << 11,
 	NoFocusOnAppearing = 1 << 12,
 	NoBringToFrontOnFocus = 1 << 13,
-	AlwaysVerticalScrollbar= 1 << 14,
-	AlwaysHorizontalScrollbar= 1<< 15,
+	AlwaysVerticalScrollbar = 1 << 14,
+	AlwaysHorizontalScrollbar = 1 << 15,
 	NoNavInputs = 1 << 16,
 	NoNavFocus = 1 << 17,
-	UnsavedDocument = 1 << 18
+	UnsavedDocument = 1 << 18,
 }
 
 impl ImGuiWindowFlag {
 	pub const NO_NAV: BitFlags<Self> = make_bitflags!(Self::{NoNavInputs | NoNavFocus});
-	pub const NO_DECORATION: BitFlags<Self> = make_bitflags!(Self::{NoTitleBar | NoResize | NoScrollbar | NoCollapse});
-	pub const NO_INPUTS: BitFlags<Self> = make_bitflags!(Self::{NoMouseInputs | NoNavInputs | NoNavFocus});
+	pub const NO_DECORATION: BitFlags<Self> =
+		make_bitflags!(Self::{NoTitleBar | NoResize | NoScrollbar | NoCollapse});
+	pub const NO_INPUTS: BitFlags<Self> =
+		make_bitflags!(Self::{NoMouseInputs | NoNavInputs | NoNavFocus});
 }
 
 #[bitflags]
@@ -3696,7 +3994,7 @@ pub enum ImGuiChildFlag {
 	AutoResizeX = 1 << 4,
 	AutoResizeY = 1 << 5,
 	AlwaysAutoResize = 1 << 6,
-	FrameStyle = 1 << 7
+	FrameStyle = 1 << 7,
 }
 
 #[bitflags]
@@ -3725,7 +4023,7 @@ pub enum ImGuiInputTextFlag {
 	CallbackAlways = 1 << 19,
 	CallbackCharFilter = 1 << 20,
 	CallbackResize = 1 << 21,
-	CallbackEdit = 1 << 22
+	CallbackEdit = 1 << 22,
 }
 
 #[bitflags]
@@ -3746,11 +4044,12 @@ pub enum ImGuiTreeNodeFlag {
 	SpanAvailWidth = 1 << 11,
 	SpanFullWidth = 1 << 12,
 	SpanAllColumns = 1 << 13,
-	NavLeftJumpsBackHere = 1 << 14
+	NavLeftJumpsBackHere = 1 << 14,
 }
 
 impl ImGuiTreeNodeFlag {
-	pub const COLLAPSING_HEADER: BitFlags<Self> = make_bitflags!(Self::{Framed | NoTreePushOnOpen | NoAutoOpenOnLog});
+	pub const COLLAPSING_HEADER: BitFlags<Self> =
+		make_bitflags!(Self::{Framed | NoTreePushOnOpen | NoAutoOpenOnLog});
 }
 
 #[bitflags]
@@ -3761,7 +4060,7 @@ pub enum ImGuiSelectableFlag {
 	SpanAllColumns = 1 << 1,
 	AllowDoubleClick = 1 << 2,
 	Disabled = 1 << 3,
-	AllowOverlap = 1 << 4
+	AllowOverlap = 1 << 4,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -3821,7 +4120,7 @@ pub enum ImGuiCol {
 	NavCursor,
 	NavWindowingHighlight,
 	NavWindowingDimBg,
-	ModalWindowDimBg
+	ModalWindowDimBg,
 }
 
 #[bitflags]
@@ -3850,11 +4149,12 @@ pub enum ImGuiColorEditFlag {
 	PickerHueBar = 1 << 25,
 	PickerHueWheel = 1 << 26,
 	InputRGB = 1 << 27,
-	InputHSV = 1 << 28
+	InputHSV = 1 << 28,
 }
 
 impl ImGuiColorEditFlag {
-	pub const DEFAULT_OPTIONS: BitFlags<Self> = make_bitflags!(Self::{Uint8 | DisplayRGB | InputRGB | PickerHueBar});
+	pub const DEFAULT_OPTIONS: BitFlags<Self> =
+		make_bitflags!(Self::{Uint8 | DisplayRGB | InputRGB | PickerHueBar});
 }
 
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -3897,7 +4197,7 @@ pub enum ImGuiTableFlag {
 	ScrollY = 1 << 25,
 	SortMulti = 1 << 26,
 	SortTristate = 1 << 27,
-	HighlightHoveredColumn = 1 << 28
+	HighlightHoveredColumn = 1 << 28,
 }
 
 impl ImGuiTableFlag {
@@ -3905,8 +4205,10 @@ impl ImGuiTableFlag {
 	pub const BORDERS_V: BitFlags<Self> = make_bitflags!(Self::{BordersInnerV | BordersOuterV});
 	pub const BORDERS_INNER: BitFlags<Self> = make_bitflags!(Self::{BordersInnerV | BordersInnerH});
 	pub const BORDERS_OUTER: BitFlags<Self> = make_bitflags!(Self::{BordersOuterV | BordersOuterH});
-	pub const BORDERS: BitFlags<Self> = make_bitflags!(Self::{BordersInnerV | BordersInnerH | BordersOuterV | BordersOuterH});
-	pub const SIZING_STRETCH_PROP: BitFlags<Self> = make_bitflags!(Self::{SizingFixedFit | SizingFixedSame});
+	pub const BORDERS: BitFlags<Self> =
+		make_bitflags!(Self::{BordersInnerV | BordersInnerH | BordersOuterV | BordersOuterH});
+	pub const SIZING_STRETCH_PROP: BitFlags<Self> =
+		make_bitflags!(Self::{SizingFixedFit | SizingFixedSame});
 }
 
 #[bitflags]
@@ -3935,14 +4237,14 @@ pub enum ImGuiTableColumnFlag {
 	IsEnabled = 1 << 24,
 	IsVisible = 1 << 25,
 	IsSorted = 1 << 26,
-	IsHovered = 1 << 27
+	IsHovered = 1 << 27,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum ImGuiPopupButton {
 	MouseButtonLeft = 0,
 	MouseButtonRight = 1,
-	MouseButtonMiddle = 2
+	MouseButtonMiddle = 2,
 }
 
 #[bitflags]
@@ -3953,7 +4255,7 @@ pub enum ImGuiPopupFlag {
 	NoOpenOverExistingPopup = 1 << 7,
 	NoOpenOverItems = 1 << 8,
 	AnyPopupId = 1 << 10,
-	AnyPopupLevel = 1 << 11
+	AnyPopupLevel = 1 << 11,
 }
 
 impl ImGuiPopupFlag {
@@ -3994,7 +4296,7 @@ pub enum ImGuiStyleVec2 {
 	ButtonTextAlign = 24,
 	SelectableTextAlign = 25,
 	SeparatorTextAlign = 27,
-	SeparatorTextPadding = 28
+	SeparatorTextPadding = 28,
 }
 
 #[bitflags]
@@ -4006,14 +4308,14 @@ pub enum ImGuiItemFlags {
 	NoNavDefaultFocus = 1 << 2,
 	ButtonRepeat = 1 << 3,
 	AutoClosePopups = 1 << 4,
-	AllowDuplicateId = 1 << 5
+	AllowDuplicateId = 1 << 5,
 }
 
 #[bitflags]
 #[repr(u8)]
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum ImGuiTableRowFlag {
-	Headers = 1 << 0
+	Headers = 1 << 0,
 }
 
 thread_local! {
@@ -4021,19 +4323,36 @@ thread_local! {
 }
 
 impl ImGui {
-	pub fn begin<C>(name: &str, inside: C) where C: FnOnce() {
+	pub fn begin<C>(name: &str, inside: C)
+	where
+		C: FnOnce(),
+	{
 		ImGui::begin_opts(name, BitFlags::default(), inside);
 	}
-	pub fn begin_opts<C>(name: &str, windows_flags: BitFlags<ImGuiWindowFlag>, inside: C) where C: FnOnce() {
+	pub fn begin_opts<C>(name: &str, windows_flags: BitFlags<ImGuiWindowFlag>, inside: C)
+	where
+		C: FnOnce(),
+	{
 		if ImGui::_begin_opts(name, windows_flags.bits() as i32) {
 			inside();
 		}
 		ImGui::_end();
 	}
-	pub fn begin_ret<C>(name: &str, opened: bool, inside: C) -> (bool, bool) where C: FnOnce() {
+	pub fn begin_ret<C>(name: &str, opened: bool, inside: C) -> (bool, bool)
+	where
+		C: FnOnce(),
+	{
 		ImGui::begin_ret_opts(name, opened, BitFlags::default(), inside)
 	}
-	pub fn begin_ret_opts<C>(name: &str, opened: bool, windows_flags: BitFlags<ImGuiWindowFlag>, inside: C) -> (bool, bool) where C: FnOnce() {
+	pub fn begin_ret_opts<C>(
+		name: &str,
+		opened: bool,
+		windows_flags: BitFlags<ImGuiWindowFlag>,
+		inside: C,
+	) -> (bool, bool)
+	where
+		C: FnOnce(),
+	{
 		let mut changed = false;
 		let mut result = false;
 		IMGUI_STACK.with_borrow_mut(|stack| {
@@ -4047,20 +4366,64 @@ impl ImGui {
 		ImGui::_end();
 		(changed, result)
 	}
-	pub fn begin_child<C>(str_id: &str, inside: C) where C: FnOnce() {
-		ImGui::begin_child_opts(str_id, &Vec2::zero(), BitFlags::default(), BitFlags::default(), inside);
+	pub fn begin_child<C>(str_id: &str, inside: C)
+	where
+		C: FnOnce(),
+	{
+		ImGui::begin_child_opts(
+			str_id,
+			&Vec2::zero(),
+			BitFlags::default(),
+			BitFlags::default(),
+			inside,
+		);
 	}
-	pub fn begin_child_opts<C>(str_id: &str, size: &crate::dora::Vec2, child_flags: BitFlags<ImGuiChildFlag>, window_flags: BitFlags<ImGuiWindowFlag>, inside: C) where C: FnOnce() {
-		if ImGui::_begin_child_opts(str_id, size, child_flags.bits() as i32, window_flags.bits() as i32) {
+	pub fn begin_child_opts<C>(
+		str_id: &str,
+		size: &crate::dora::Vec2,
+		child_flags: BitFlags<ImGuiChildFlag>,
+		window_flags: BitFlags<ImGuiWindowFlag>,
+		inside: C,
+	) where
+		C: FnOnce(),
+	{
+		if ImGui::_begin_child_opts(
+			str_id,
+			size,
+			child_flags.bits() as i32,
+			window_flags.bits() as i32,
+		) {
 			inside();
 		}
 		ImGui::_end_child();
 	}
-	pub fn begin_child_with_id<C>(id: i32, inside: C) where C: FnOnce() {
-		ImGui::begin_child_with_id_opts(id, &Vec2::zero(), BitFlags::default(), BitFlags::default(), inside);
+	pub fn begin_child_with_id<C>(id: i32, inside: C)
+	where
+		C: FnOnce(),
+	{
+		ImGui::begin_child_with_id_opts(
+			id,
+			&Vec2::zero(),
+			BitFlags::default(),
+			BitFlags::default(),
+			inside,
+		);
 	}
-	pub fn begin_child_with_id_opts<C>(id: i32, size: &crate::dora::Vec2, child_flags: BitFlags<ImGuiChildFlag>, window_flags: BitFlags<ImGuiWindowFlag>, inside: C) where C: FnOnce() {
-		if ImGui::_begin_child_with_id_opts(id, size, child_flags.bits() as i32, window_flags.bits() as i32) {
+	pub fn begin_child_with_id_opts<C>(
+		id: i32,
+		size: &crate::dora::Vec2,
+		child_flags: BitFlags<ImGuiChildFlag>,
+		window_flags: BitFlags<ImGuiWindowFlag>,
+		inside: C,
+	) where
+		C: FnOnce(),
+	{
+		if ImGui::_begin_child_with_id_opts(
+			id,
+			size,
+			child_flags.bits() as i32,
+			window_flags.bits() as i32,
+		) {
 			inside();
 		}
 		ImGui::_end_child();
@@ -4068,12 +4431,17 @@ impl ImGui {
 	pub fn collapsing_header_ret(label: &str, opened: bool) -> (bool, bool) {
 		ImGui::collapsing_header_ret_opts(label, opened, BitFlags::default())
 	}
-	pub fn collapsing_header_ret_opts(label: &str, opened: bool, tree_node_flags: BitFlags<ImGuiTreeNodeFlag>) -> (bool, bool) {
+	pub fn collapsing_header_ret_opts(
+		label: &str,
+		opened: bool,
+		tree_node_flags: BitFlags<ImGuiTreeNodeFlag>,
+	) -> (bool, bool) {
 		let mut changed = false;
 		let mut result = false;
 		IMGUI_STACK.with_borrow_mut(|stack| {
 			stack.push_bool(opened);
-			changed = ImGui::_collapsing_header_ret_opts(label, stack, tree_node_flags.bits() as i32);
+			changed =
+				ImGui::_collapsing_header_ret_opts(label, stack, tree_node_flags.bits() as i32);
 			result = stack.pop_bool().unwrap();
 		});
 		(changed, result)
@@ -4081,12 +4449,18 @@ impl ImGui {
 	pub fn selectable_ret(label: &str, selected: bool) -> (bool, bool) {
 		ImGui::selectable_ret_opts(label, selected, &Vec2::zero(), BitFlags::default())
 	}
-	pub fn selectable_ret_opts(label: &str, selected: bool, size: &crate::dora::Vec2, selectable_flags: BitFlags<ImGuiSelectableFlag>) -> (bool, bool) {
+	pub fn selectable_ret_opts(
+		label: &str,
+		selected: bool,
+		size: &crate::dora::Vec2,
+		selectable_flags: BitFlags<ImGuiSelectableFlag>,
+	) -> (bool, bool) {
 		let mut changed = false;
 		let mut result = false;
 		IMGUI_STACK.with_borrow_mut(|stack| {
 			stack.push_bool(selected);
-			changed = ImGui::_selectable_ret_opts(label, stack, size, selectable_flags.bits() as i32);
+			changed =
+				ImGui::_selectable_ret_opts(label, stack, size, selectable_flags.bits() as i32);
 			result = stack.pop_bool().unwrap();
 		});
 		(changed, result)
@@ -4094,7 +4468,12 @@ impl ImGui {
 	pub fn combo_ret(label: &str, current_item: i32, items: &Vec<&str>) -> (bool, i32) {
 		ImGui::combo_ret_opts(label, current_item, items, -1)
 	}
-	pub fn combo_ret_opts(label: &str, current_item: i32, items: &Vec<&str>, height_in_items: i32) -> (bool, i32) {
+	pub fn combo_ret_opts(
+		label: &str,
+		current_item: i32,
+		items: &Vec<&str>,
+		height_in_items: i32,
+	) -> (bool, i32) {
 		let mut changed = false;
 		let mut result = 0_i32;
 		IMGUI_STACK.with_borrow_mut(|stack| {
@@ -4104,46 +4483,125 @@ impl ImGui {
 		});
 		(changed, result)
 	}
-	pub fn drag_float_ret(label: &str, v: f32, v_speed: f32, v_min: f32, v_max: f32) -> (bool, f32) {
+	pub fn drag_float_ret(
+		label: &str,
+		v: f32,
+		v_speed: f32,
+		v_min: f32,
+		v_max: f32,
+	) -> (bool, f32) {
 		ImGui::drag_float_ret_opts(label, v, v_speed, v_min, v_max, "%.2f", BitFlags::default())
 	}
-	pub fn drag_float_ret_opts(label: &str, v: f32, v_speed: f32, v_min: f32, v_max: f32, display_format: &str, slider_flags: BitFlags<ImGuiSliderFlag>) -> (bool, f32) {
+	pub fn drag_float_ret_opts(
+		label: &str,
+		v: f32,
+		v_speed: f32,
+		v_min: f32,
+		v_max: f32,
+		display_format: &str,
+		slider_flags: BitFlags<ImGuiSliderFlag>,
+	) -> (bool, f32) {
 		let mut changed = false;
 		let mut result = 0_f32;
 		IMGUI_STACK.with_borrow_mut(|stack| {
 			stack.push_f32(v);
-			changed = ImGui::_drag_float_ret_opts(label, stack, v_speed, v_min, v_max, display_format, slider_flags.bits() as i32);
+			changed = ImGui::_drag_float_ret_opts(
+				label,
+				stack,
+				v_speed,
+				v_min,
+				v_max,
+				display_format,
+				slider_flags.bits() as i32,
+			);
 			result = stack.pop_f32().unwrap();
 		});
 		(changed, result)
 	}
-	pub fn drag_float2_ret(label: &str, v1: f32, v2: f32, v_speed: f32, v_min: f32, v_max: f32) -> (bool, f32, f32) {
-		ImGui::drag_float2_ret_opts(label, v1, v2, v_speed, v_min, v_max, "%.2f", BitFlags::default())
+	pub fn drag_float2_ret(
+		label: &str,
+		v1: f32,
+		v2: f32,
+		v_speed: f32,
+		v_min: f32,
+		v_max: f32,
+	) -> (bool, f32, f32) {
+		ImGui::drag_float2_ret_opts(
+			label,
+			v1,
+			v2,
+			v_speed,
+			v_min,
+			v_max,
+			"%.2f",
+			BitFlags::default(),
+		)
 	}
-	pub fn drag_float2_ret_opts(label: &str, v1: f32, v2: f32, v_speed: f32, v_min: f32, v_max: f32, display_format: &str, slider_flags: BitFlags<ImGuiSliderFlag>) -> (bool, f32, f32) {
+	pub fn drag_float2_ret_opts(
+		label: &str,
+		v1: f32,
+		v2: f32,
+		v_speed: f32,
+		v_min: f32,
+		v_max: f32,
+		display_format: &str,
+		slider_flags: BitFlags<ImGuiSliderFlag>,
+	) -> (bool, f32, f32) {
 		let mut changed = false;
 		let mut result1 = 0_f32;
 		let mut result2 = 0_f32;
 		IMGUI_STACK.with_borrow_mut(|stack| {
 			stack.push_f32(v1);
 			stack.push_f32(v2);
-			changed = ImGui::_drag_float2_ret_opts(label, stack, v_speed, v_min, v_max, display_format, slider_flags.bits() as i32);
+			changed = ImGui::_drag_float2_ret_opts(
+				label,
+				stack,
+				v_speed,
+				v_min,
+				v_max,
+				display_format,
+				slider_flags.bits() as i32,
+			);
 			result1 = stack.pop_f32().unwrap();
 			result2 = stack.pop_f32().unwrap();
 		});
 		(changed, result1, result2)
 	}
-	pub fn drag_int2_ret(label: &str, v1: i32, v2: i32, v_speed: f32, v_min: i32, v_max: i32) -> (bool, i32, i32) {
+	pub fn drag_int2_ret(
+		label: &str,
+		v1: i32,
+		v2: i32,
+		v_speed: f32,
+		v_min: i32,
+		v_max: i32,
+	) -> (bool, i32, i32) {
 		ImGui::drag_int2_ret_opts(label, v1, v2, v_speed, v_min, v_max, "%d", BitFlags::default())
 	}
-	pub fn drag_int2_ret_opts(label: &str, v1: i32, v2: i32, v_speed: f32, v_min: i32, v_max: i32, display_format: &str, slider_flags: BitFlags<ImGuiSliderFlag>) -> (bool, i32, i32) {
+	pub fn drag_int2_ret_opts(
+		label: &str,
+		v1: i32,
+		v2: i32,
+		v_speed: f32,
+		v_min: i32,
+		v_max: i32,
+		display_format: &str,
+		slider_flags: BitFlags<ImGuiSliderFlag>,
+	) -> (bool, i32, i32) {
 		let mut changed = false;
 		let mut result1 = 0_i32;
 		let mut result2 = 0_i32;
 		IMGUI_STACK.with_borrow_mut(|stack| {
 			stack.push_i32(v1);
 			stack.push_i32(v2);
-			changed = ImGui::_drag_int2_ret_opts(label, stack, v_speed, v_min, v_max, display_format, slider_flags.bits() as i32);
+			changed = ImGui::_drag_int2_ret_opts(
+				label,
+				stack,
+				v_speed,
+				v_min,
+				v_max,
+				display_format,
+				slider_flags.bits() as i32,
+			);
 			result1 = stack.pop_i32().unwrap();
 			result2 = stack.pop_i32().unwrap();
 		});
@@ -4152,12 +4610,26 @@ impl ImGui {
 	pub fn input_float_ret(label: &str, v: f32) -> (bool, f32) {
 		ImGui::input_float_ret_opts(label, v, 0.0, 0.0, "%.2f", BitFlags::default())
 	}
-	pub fn input_float_ret_opts(label: &str, v: f32, step: f32, step_fast: f32, display_format: &str, input_text_flags: BitFlags<ImGuiInputTextFlag>) -> (bool, f32) {
+	pub fn input_float_ret_opts(
+		label: &str,
+		v: f32,
+		step: f32,
+		step_fast: f32,
+		display_format: &str,
+		input_text_flags: BitFlags<ImGuiInputTextFlag>,
+	) -> (bool, f32) {
 		let mut changed = false;
 		let mut result = 0_f32;
 		IMGUI_STACK.with_borrow_mut(|stack| {
 			stack.push_f32(v);
-			changed = ImGui::_input_float_ret_opts(label, stack, step, step_fast, display_format, input_text_flags.bits() as i32);
+			changed = ImGui::_input_float_ret_opts(
+				label,
+				stack,
+				step,
+				step_fast,
+				display_format,
+				input_text_flags.bits() as i32,
+			);
 			result = stack.pop_f32().unwrap();
 		});
 		(changed, result)
@@ -4165,14 +4637,25 @@ impl ImGui {
 	pub fn input_float2_ret(label: &str, v1: f32, v2: f32) -> (bool, f32, f32) {
 		ImGui::input_float2_ret_opts(label, v1, v2, "%.2f", BitFlags::default())
 	}
-	pub fn input_float2_ret_opts(label: &str, v1: f32, v2: f32, display_format: &str, input_text_flags: BitFlags<ImGuiInputTextFlag>) -> (bool, f32, f32) {
+	pub fn input_float2_ret_opts(
+		label: &str,
+		v1: f32,
+		v2: f32,
+		display_format: &str,
+		input_text_flags: BitFlags<ImGuiInputTextFlag>,
+	) -> (bool, f32, f32) {
 		let mut changed = false;
 		let mut result1 = 0_f32;
 		let mut result2 = 0_f32;
 		IMGUI_STACK.with_borrow_mut(|stack| {
 			stack.push_f32(v1);
 			stack.push_f32(v2);
-			changed = ImGui::_input_float2_ret_opts(label, stack, display_format, input_text_flags.bits() as i32);
+			changed = ImGui::_input_float2_ret_opts(
+				label,
+				stack,
+				display_format,
+				input_text_flags.bits() as i32,
+			);
 			result1 = stack.pop_f32().unwrap();
 			result2 = stack.pop_f32().unwrap();
 		});
@@ -4181,12 +4664,24 @@ impl ImGui {
 	pub fn input_int_ret(label: &str, v: i32) -> (bool, i32) {
 		ImGui::input_int_ret_opts(label, v, 1, 100, BitFlags::default())
 	}
-	pub fn input_int_ret_opts(label: &str, v: i32, step: i32, step_fast: i32, input_text_flags: BitFlags<ImGuiInputTextFlag>) -> (bool, i32) {
+	pub fn input_int_ret_opts(
+		label: &str,
+		v: i32,
+		step: i32,
+		step_fast: i32,
+		input_text_flags: BitFlags<ImGuiInputTextFlag>,
+	) -> (bool, i32) {
 		let mut changed = false;
 		let mut result = 0_i32;
 		IMGUI_STACK.with_borrow_mut(|stack| {
 			stack.push_i32(v);
-			changed = ImGui::_input_int_ret_opts(label, stack, step, step_fast, input_text_flags.bits() as i32);
+			changed = ImGui::_input_int_ret_opts(
+				label,
+				stack,
+				step,
+				step_fast,
+				input_text_flags.bits() as i32,
+			);
 			result = stack.pop_i32().unwrap();
 		});
 		(changed, result)
@@ -4194,7 +4689,12 @@ impl ImGui {
 	pub fn input_int2_ret(label: &str, v1: i32, v2: i32) -> (bool, i32, i32) {
 		ImGui::input_int2_ret_opts(label, v1, v2, BitFlags::default())
 	}
-	pub fn input_int2_ret_opts(label: &str, v1: i32, v2: i32, input_text_flags: BitFlags<ImGuiInputTextFlag>) -> (bool, i32, i32) {
+	pub fn input_int2_ret_opts(
+		label: &str,
+		v1: i32,
+		v2: i32,
+		input_text_flags: BitFlags<ImGuiInputTextFlag>,
+	) -> (bool, i32, i32) {
 		let mut changed = false;
 		let mut result1 = 0_i32;
 		let mut result2 = 0_i32;
@@ -4210,72 +4710,201 @@ impl ImGui {
 	pub fn slider_float_ret(label: &str, v: f32, v_min: f32, v_max: f32) -> (bool, f32) {
 		ImGui::slider_float_ret_opts(label, v, v_min, v_max, "%.2f", BitFlags::default())
 	}
-	pub fn slider_float_ret_opts(label: &str, v: f32, v_min: f32, v_max: f32, display_format: &str, slider_flags: BitFlags<ImGuiSliderFlag>) -> (bool, f32) {
+	pub fn slider_float_ret_opts(
+		label: &str,
+		v: f32,
+		v_min: f32,
+		v_max: f32,
+		display_format: &str,
+		slider_flags: BitFlags<ImGuiSliderFlag>,
+	) -> (bool, f32) {
 		let mut changed = false;
 		let mut result = 0_f32;
 		IMGUI_STACK.with_borrow_mut(|stack| {
 			stack.push_f32(v);
-			changed = ImGui::_slider_float_ret_opts(label, stack, v_min, v_max, display_format, slider_flags.bits() as i32);
+			changed = ImGui::_slider_float_ret_opts(
+				label,
+				stack,
+				v_min,
+				v_max,
+				display_format,
+				slider_flags.bits() as i32,
+			);
 			result = stack.pop_f32().unwrap();
 		});
 		(changed, result)
 	}
-	pub fn slider_float2_ret(label: &str, v1: f32, v2: f32, v_min: f32, v_max: f32) -> (bool, f32, f32) {
+	pub fn slider_float2_ret(
+		label: &str,
+		v1: f32,
+		v2: f32,
+		v_min: f32,
+		v_max: f32,
+	) -> (bool, f32, f32) {
 		ImGui::slider_float2_ret_opts(label, v1, v2, v_min, v_max, "%.2f", BitFlags::default())
 	}
-	pub fn slider_float2_ret_opts(label: &str, v1: f32, v2: f32, v_min: f32, v_max: f32, display_format: &str, slider_flags: BitFlags<ImGuiSliderFlag>) -> (bool, f32, f32) {
+	pub fn slider_float2_ret_opts(
+		label: &str,
+		v1: f32,
+		v2: f32,
+		v_min: f32,
+		v_max: f32,
+		display_format: &str,
+		slider_flags: BitFlags<ImGuiSliderFlag>,
+	) -> (bool, f32, f32) {
 		let mut changed = false;
 		let mut result1 = 0_f32;
 		let mut result2 = 0_f32;
 		IMGUI_STACK.with_borrow_mut(|stack| {
 			stack.push_f32(v1);
 			stack.push_f32(v2);
-			changed = ImGui::_slider_float2_ret_opts(label, stack, v_min, v_max, display_format, slider_flags.bits() as i32);
+			changed = ImGui::_slider_float2_ret_opts(
+				label,
+				stack,
+				v_min,
+				v_max,
+				display_format,
+				slider_flags.bits() as i32,
+			);
 			result1 = stack.pop_f32().unwrap();
 			result2 = stack.pop_f32().unwrap();
 		});
 		(changed, result1, result2)
 	}
-	pub fn drag_float_range2_ret(label: &str, v_current_min: f32, v_current_max: f32, v_speed: f32, v_min: f32, v_max: f32) -> (bool, f32, f32) {
-		ImGui::drag_float_range2_ret_opts(label, v_current_min, v_current_max, v_speed, v_min, v_max, "%.2f", "%.2f", BitFlags::default())
+	pub fn drag_float_range2_ret(
+		label: &str,
+		v_current_min: f32,
+		v_current_max: f32,
+		v_speed: f32,
+		v_min: f32,
+		v_max: f32,
+	) -> (bool, f32, f32) {
+		ImGui::drag_float_range2_ret_opts(
+			label,
+			v_current_min,
+			v_current_max,
+			v_speed,
+			v_min,
+			v_max,
+			"%.2f",
+			"%.2f",
+			BitFlags::default(),
+		)
 	}
-	pub fn drag_float_range2_ret_opts(label: &str, v_current_min: f32, v_current_max: f32, v_speed: f32, v_min: f32, v_max: f32, format: &str, format_max: &str, slider_flags: BitFlags<ImGuiSliderFlag>) -> (bool, f32, f32) {
+	pub fn drag_float_range2_ret_opts(
+		label: &str,
+		v_current_min: f32,
+		v_current_max: f32,
+		v_speed: f32,
+		v_min: f32,
+		v_max: f32,
+		format: &str,
+		format_max: &str,
+		slider_flags: BitFlags<ImGuiSliderFlag>,
+	) -> (bool, f32, f32) {
 		let mut changed = false;
 		let mut result1 = 0_f32;
 		let mut result2 = 0_f32;
 		IMGUI_STACK.with_borrow_mut(|stack| {
 			stack.push_f32(v_current_min);
 			stack.push_f32(v_current_max);
-			changed = ImGui::_drag_float_range2_ret_opts(label, stack, v_speed, v_min, v_max, format, format_max, slider_flags.bits() as i32);
+			changed = ImGui::_drag_float_range2_ret_opts(
+				label,
+				stack,
+				v_speed,
+				v_min,
+				v_max,
+				format,
+				format_max,
+				slider_flags.bits() as i32,
+			);
 			result1 = stack.pop_f32().unwrap();
 			result2 = stack.pop_f32().unwrap();
 		});
 		(changed, result1, result2)
 	}
-	pub fn drag_int_ret(label: &str, value: i32, v_speed: f32, v_min: i32, v_max: i32) -> (bool, i32) {
+	pub fn drag_int_ret(
+		label: &str,
+		value: i32,
+		v_speed: f32,
+		v_min: i32,
+		v_max: i32,
+	) -> (bool, i32) {
 		ImGui::drag_int_ret_opts(label, value, v_speed, v_min, v_max, "%d", BitFlags::default())
 	}
-	pub fn drag_int_ret_opts(label: &str, value: i32, v_speed: f32, v_min: i32, v_max: i32, display_format: &str, slider_flags: BitFlags<ImGuiSliderFlag>) -> (bool, i32) {
+	pub fn drag_int_ret_opts(
+		label: &str,
+		value: i32,
+		v_speed: f32,
+		v_min: i32,
+		v_max: i32,
+		display_format: &str,
+		slider_flags: BitFlags<ImGuiSliderFlag>,
+	) -> (bool, i32) {
 		let mut changed = false;
 		let mut result = 0_i32;
 		IMGUI_STACK.with_borrow_mut(|stack| {
 			stack.push_i32(value);
-			changed = ImGui::_drag_int_ret_opts(label, stack, v_speed, v_min, v_max, display_format, slider_flags.bits() as i32);
+			changed = ImGui::_drag_int_ret_opts(
+				label,
+				stack,
+				v_speed,
+				v_min,
+				v_max,
+				display_format,
+				slider_flags.bits() as i32,
+			);
 			result = stack.pop_i32().unwrap();
 		});
 		(changed, result)
 	}
-	pub fn drag_int_range2_ret(label: &str, v_current_min: i32, v_current_max: i32, v_speed: f32, v_min: i32, v_max: i32) -> (bool, i32, i32) {
-		ImGui::drag_int_range2_ret_opts(label, v_current_min, v_current_max, v_speed, v_min, v_max, "%d", "%d", BitFlags::default())
+	pub fn drag_int_range2_ret(
+		label: &str,
+		v_current_min: i32,
+		v_current_max: i32,
+		v_speed: f32,
+		v_min: i32,
+		v_max: i32,
+	) -> (bool, i32, i32) {
+		ImGui::drag_int_range2_ret_opts(
+			label,
+			v_current_min,
+			v_current_max,
+			v_speed,
+			v_min,
+			v_max,
+			"%d",
+			"%d",
+			BitFlags::default(),
+		)
 	}
-	pub fn drag_int_range2_ret_opts(label: &str, v_current_min: i32, v_current_max: i32, v_speed: f32, v_min: i32, v_max: i32, format: &str, format_max: &str, slider_flags: BitFlags<ImGuiSliderFlag>) -> (bool, i32, i32) {
+	pub fn drag_int_range2_ret_opts(
+		label: &str,
+		v_current_min: i32,
+		v_current_max: i32,
+		v_speed: f32,
+		v_min: i32,
+		v_max: i32,
+		format: &str,
+		format_max: &str,
+		slider_flags: BitFlags<ImGuiSliderFlag>,
+	) -> (bool, i32, i32) {
 		let mut changed = false;
 		let mut result1 = 0_i32;
 		let mut result2 = 0_i32;
 		IMGUI_STACK.with_borrow_mut(|stack| {
 			stack.push_i32(v_current_min);
 			stack.push_i32(v_current_max);
-			changed = ImGui::_drag_int_range2_ret_opts(label, stack, v_speed, v_min, v_max, format, format_max, slider_flags.bits() as i32);
+			changed = ImGui::_drag_int_range2_ret_opts(
+				label,
+				stack,
+				v_speed,
+				v_min,
+				v_max,
+				format,
+				format_max,
+				slider_flags.bits() as i32,
+			);
 			result1 = stack.pop_i32().unwrap();
 			result2 = stack.pop_i32().unwrap();
 		});
@@ -4284,54 +4913,133 @@ impl ImGui {
 	pub fn slider_int_ret(label: &str, value: i32, v_min: i32, v_max: i32) -> (bool, i32) {
 		ImGui::slider_int_ret_opts(label, value, v_min, v_max, "%d", BitFlags::default())
 	}
-	pub fn slider_int_ret_opts(label: &str, value: i32, v_min: i32, v_max: i32, format: &str, slider_flags: BitFlags<ImGuiSliderFlag>) -> (bool, i32) {
+	pub fn slider_int_ret_opts(
+		label: &str,
+		value: i32,
+		v_min: i32,
+		v_max: i32,
+		format: &str,
+		slider_flags: BitFlags<ImGuiSliderFlag>,
+	) -> (bool, i32) {
 		let mut changed = false;
 		let mut result = 0_i32;
 		IMGUI_STACK.with_borrow_mut(|stack| {
 			stack.push_i32(value);
-			changed = ImGui::_slider_int_ret_opts(label, stack, v_min, v_max, format, slider_flags.bits() as i32);
+			changed = ImGui::_slider_int_ret_opts(
+				label,
+				stack,
+				v_min,
+				v_max,
+				format,
+				slider_flags.bits() as i32,
+			);
 			result = stack.pop_i32().unwrap();
 		});
 		(changed, result)
 	}
-	pub fn slider_int2_ret(label: &str, v1: i32, v2: i32, v_min: i32, v_max: i32) -> (bool, i32, i32) {
+	pub fn slider_int2_ret(
+		label: &str,
+		v1: i32,
+		v2: i32,
+		v_min: i32,
+		v_max: i32,
+	) -> (bool, i32, i32) {
 		ImGui::slider_int2_ret_opts(label, v1, v2, v_min, v_max, "%d", BitFlags::default())
 	}
-	pub fn slider_int2_ret_opts(label: &str, v1: i32, v2: i32, v_min: i32, v_max: i32, display_format: &str, slider_flags: BitFlags<ImGuiSliderFlag>) -> (bool, i32, i32) {
+	pub fn slider_int2_ret_opts(
+		label: &str,
+		v1: i32,
+		v2: i32,
+		v_min: i32,
+		v_max: i32,
+		display_format: &str,
+		slider_flags: BitFlags<ImGuiSliderFlag>,
+	) -> (bool, i32, i32) {
 		let mut changed = false;
 		let mut result1 = 0_i32;
 		let mut result2 = 0_i32;
 		IMGUI_STACK.with_borrow_mut(|stack| {
 			stack.push_i32(v1);
 			stack.push_i32(v2);
-			changed = ImGui::_slider_int2_ret_opts(label, stack, v_min, v_max, display_format, slider_flags.bits() as i32);
+			changed = ImGui::_slider_int2_ret_opts(
+				label,
+				stack,
+				v_min,
+				v_max,
+				display_format,
+				slider_flags.bits() as i32,
+			);
 			result1 = stack.pop_i32().unwrap();
 			result2 = stack.pop_i32().unwrap();
 		});
 		(changed, result1, result2)
 	}
-	pub fn v_slider_float_ret(label: &str, size: &crate::dora::Vec2, v: f32, v_min: f32, v_max: f32) -> (bool, f32) {
+	pub fn v_slider_float_ret(
+		label: &str,
+		size: &crate::dora::Vec2,
+		v: f32,
+		v_min: f32,
+		v_max: f32,
+	) -> (bool, f32) {
 		ImGui::v_slider_float_ret_opts(label, size, v, v_min, v_max, "%.2f", BitFlags::default())
 	}
-	pub fn v_slider_float_ret_opts(label: &str, size: &crate::dora::Vec2, v: f32, v_min: f32, v_max: f32, format: &str, slider_flags: BitFlags<ImGuiSliderFlag>) -> (bool, f32) {
+	pub fn v_slider_float_ret_opts(
+		label: &str,
+		size: &crate::dora::Vec2,
+		v: f32,
+		v_min: f32,
+		v_max: f32,
+		format: &str,
+		slider_flags: BitFlags<ImGuiSliderFlag>,
+	) -> (bool, f32) {
 		let mut changed = false;
 		let mut result = 0_f32;
 		IMGUI_STACK.with_borrow_mut(|stack| {
 			stack.push_f32(v);
-			changed = ImGui::_v_slider_float_ret_opts(label, size, stack, v_min, v_max, format, slider_flags.bits() as i32);
+			changed = ImGui::_v_slider_float_ret_opts(
+				label,
+				size,
+				stack,
+				v_min,
+				v_max,
+				format,
+				slider_flags.bits() as i32,
+			);
 			result = stack.pop_f32().unwrap();
 		});
 		(changed, result)
 	}
-	pub fn v_slider_int_ret(label: &str, size: &crate::dora::Vec2, v: i32, v_min: i32, v_max: i32) -> (bool, i32) {
+	pub fn v_slider_int_ret(
+		label: &str,
+		size: &crate::dora::Vec2,
+		v: i32,
+		v_min: i32,
+		v_max: i32,
+	) -> (bool, i32) {
 		ImGui::v_slider_int_ret_opts(label, size, v, v_min, v_max, "%d", BitFlags::default())
 	}
-	pub fn v_slider_int_ret_opts(label: &str, size: &crate::dora::Vec2, v: i32, v_min: i32, v_max: i32, format: &str, slider_flags: BitFlags<ImGuiSliderFlag>) -> (bool, i32) {
+	pub fn v_slider_int_ret_opts(
+		label: &str,
+		size: &crate::dora::Vec2,
+		v: i32,
+		v_min: i32,
+		v_max: i32,
+		format: &str,
+		slider_flags: BitFlags<ImGuiSliderFlag>,
+	) -> (bool, i32) {
 		let mut changed = false;
 		let mut result = 0_i32;
 		IMGUI_STACK.with_borrow_mut(|stack| {
 			stack.push_i32(v);
-			changed = ImGui::_v_slider_int_ret_opts(label, size, stack, v_min, v_max, format, slider_flags.bits() as i32);
+			changed = ImGui::_v_slider_int_ret_opts(
+				label,
+				size,
+				stack,
+				v_min,
+				v_max,
+				format,
+				slider_flags.bits() as i32,
+			);
 			result = stack.pop_i32().unwrap();
 		});
 		(changed, result)
@@ -4339,7 +5047,11 @@ impl ImGui {
 	pub fn color_edit3_ret(label: &str, color3: &Color3) -> (bool, Color3) {
 		ImGui::color_edit3_ret_opts(label, color3, BitFlags::default())
 	}
-	pub fn color_edit3_ret_opts(label: &str, color3: &Color3, color_edit_flags: BitFlags<ImGuiColorEditFlag>) -> (bool, Color3) {
+	pub fn color_edit3_ret_opts(
+		label: &str,
+		color3: &Color3,
+		color_edit_flags: BitFlags<ImGuiColorEditFlag>,
+	) -> (bool, Color3) {
 		let mut changed = false;
 		let mut result = 0_i32;
 		IMGUI_STACK.with_borrow_mut(|stack| {
@@ -4352,7 +5064,11 @@ impl ImGui {
 	pub fn color_edit4_ret(label: &str, color: &Color) -> (bool, Color) {
 		ImGui::color_edit4_ret_opts(label, color, BitFlags::default())
 	}
-	pub fn color_edit4_ret_opts(label: &str, color: &Color, color_edit_flags: BitFlags<ImGuiColorEditFlag>) -> (bool, Color) {
+	pub fn color_edit4_ret_opts(
+		label: &str,
+		color: &Color,
+		color_edit_flags: BitFlags<ImGuiColorEditFlag>,
+	) -> (bool, Color) {
 		let mut changed = false;
 		let mut result = 0_i32;
 		IMGUI_STACK.with_borrow_mut(|stack| {
@@ -4385,7 +5101,12 @@ impl ImGui {
 	pub fn list_box_ret(label: &str, current_item: i32, items: &Vec<&str>) -> (bool, i32) {
 		ImGui::list_box_ret_opts(label, current_item, items, -1)
 	}
-	pub fn list_box_ret_opts(label: &str, current_item: i32, items: &Vec<&str>, height_in_items: i32) -> (bool, i32) {
+	pub fn list_box_ret_opts(
+		label: &str,
+		current_item: i32,
+		items: &Vec<&str>,
+		height_in_items: i32,
+	) -> (bool, i32) {
 		let mut changed = false;
 		let mut result = 0_i32;
 		IMGUI_STACK.with_borrow_mut(|stack| {
@@ -4437,39 +5158,77 @@ impl ImGui {
 	pub fn input_text(label: &str, buffer: &crate::dora::Buffer) -> bool {
 		ImGui::input_text_opts(label, buffer, BitFlags::default())
 	}
-	pub fn input_text_opts(label: &str, buffer: &crate::dora::Buffer, input_text_flags: BitFlags<ImGuiInputTextFlag>) -> bool {
+	pub fn input_text_opts(
+		label: &str,
+		buffer: &crate::dora::Buffer,
+		input_text_flags: BitFlags<ImGuiInputTextFlag>,
+	) -> bool {
 		ImGui::_input_text_opts(label, buffer, input_text_flags.bits() as i32)
 	}
-	pub fn input_text_multiline(label: &str, buffer: &crate::dora::Buffer, size: &crate::dora::Vec2) -> bool {
+	pub fn input_text_multiline(
+		label: &str,
+		buffer: &crate::dora::Buffer,
+		size: &crate::dora::Vec2,
+	) -> bool {
 		ImGui::input_text_multiline_opts(label, buffer, size, BitFlags::default())
 	}
-	pub fn input_text_multiline_opts(label: &str, buffer: &crate::dora::Buffer, size: &crate::dora::Vec2, input_text_flags: BitFlags<ImGuiInputTextFlag>) -> bool {
+	pub fn input_text_multiline_opts(
+		label: &str,
+		buffer: &crate::dora::Buffer,
+		size: &crate::dora::Vec2,
+		input_text_flags: BitFlags<ImGuiInputTextFlag>,
+	) -> bool {
 		ImGui::_input_text_multiline_opts(label, buffer, size, input_text_flags.bits() as i32)
 	}
-	pub fn tree_push<C>(str_id: &str, inside: C) where C: FnOnce() {
+	pub fn tree_push<C>(str_id: &str, inside: C)
+	where
+		C: FnOnce(),
+	{
 		ImGui::_tree_push(str_id);
 		inside();
 		ImGui::_tree_pop();
 	}
-	pub fn tree_node<C>(str_id: &str, text: &str, inside: C) where C: FnOnce() {
+	pub fn tree_node<C>(str_id: &str, text: &str, inside: C)
+	where
+		C: FnOnce(),
+	{
 		if ImGui::_tree_node(str_id, text) {
 			inside();
 			ImGui::_tree_pop();
 		}
 	}
-	pub fn tree_node_ex<C>(label: &str, inside: C) where C: FnOnce() {
+	pub fn tree_node_ex<C>(label: &str, inside: C)
+	where
+		C: FnOnce(),
+	{
 		ImGui::tree_node_ex_opts(label, BitFlags::default(), inside)
 	}
-	pub fn tree_node_ex_opts<C>(label: &str, tree_node_flags: BitFlags<ImGuiTreeNodeFlag>, inside: C) where C: FnOnce() {
+	pub fn tree_node_ex_opts<C>(
+		label: &str,
+		tree_node_flags: BitFlags<ImGuiTreeNodeFlag>,
+		inside: C,
+	) where
+		C: FnOnce(),
+	{
 		if ImGui::_tree_node_ex_opts(label, tree_node_flags.bits() as i32) {
 			inside();
 			ImGui::_tree_pop();
 		}
 	}
-	pub fn tree_node_ex_with_id<C>(str_id: &str, text: &str, inside: C) where C: FnOnce() {
+	pub fn tree_node_ex_with_id<C>(str_id: &str, text: &str, inside: C)
+	where
+		C: FnOnce(),
+	{
 		ImGui::tree_node_ex_with_id_opts(str_id, text, BitFlags::default(), inside);
 	}
-	pub fn tree_node_ex_with_id_opts<C>(str_id: &str, text: &str, tree_node_flags: BitFlags<ImGuiTreeNodeFlag>, inside: C) where C: FnOnce() {
+	pub fn tree_node_ex_with_id_opts<C>(
+		str_id: &str,
+		text: &str,
+		tree_node_flags: BitFlags<ImGuiTreeNodeFlag>,
+		inside: C,
+	) where
+		C: FnOnce(),
+	{
 		if ImGui::_tree_node_ex_with_id_opts(str_id, text, tree_node_flags.bits() as i32) {
 			inside();
 			ImGui::_tree_pop();
@@ -4484,7 +5243,10 @@ impl ImGui {
 	pub fn collapsing_header(label: &str) -> bool {
 		ImGui::collapsing_header_opts(label, BitFlags::default())
 	}
-	pub fn collapsing_header_opts(label: &str, tree_node_flags: BitFlags<ImGuiTreeNodeFlag>) -> bool {
+	pub fn collapsing_header_opts(
+		label: &str,
+		tree_node_flags: BitFlags<ImGuiTreeNodeFlag>,
+	) -> bool {
 		ImGui::_collapsing_header_opts(label, tree_node_flags.bits() as i32)
 	}
 	pub fn selectable(label: &str) -> bool {
@@ -4493,16 +5255,28 @@ impl ImGui {
 	pub fn selectable_opts(label: &str, selectable_flags: BitFlags<ImGuiSelectableFlag>) -> bool {
 		ImGui::_selectable_opts(label, selectable_flags.bits() as i32)
 	}
-	pub fn begin_popup<C>(str_id: &str, inside: C) where C: FnOnce() {
+	pub fn begin_popup<C>(str_id: &str, inside: C)
+	where
+		C: FnOnce(),
+	{
 		if ImGui::_begin_popup(str_id) {
 			inside();
 			ImGui::_end_popup();
 		}
 	}
-	pub fn begin_popup_modal<C>(name: &str, inside: C) where C: FnOnce() {
+	pub fn begin_popup_modal<C>(name: &str, inside: C)
+	where
+		C: FnOnce(),
+	{
 		ImGui::begin_popup_modal_opts(name, BitFlags::default(), inside);
 	}
-	pub fn begin_popup_modal_opts<C>(name: &str, windows_flags: BitFlags<ImGuiWindowFlag>, inside: C) where C: FnOnce() {
+	pub fn begin_popup_modal_opts<C>(
+		name: &str,
+		windows_flags: BitFlags<ImGuiWindowFlag>,
+		inside: C,
+	) where
+		C: FnOnce(),
+	{
 		if ImGui::_begin_popup_modal_opts(name, windows_flags.bits() as i32) {
 			inside();
 			ImGui::_end_popup();
@@ -4511,7 +5285,11 @@ impl ImGui {
 	pub fn begin_popup_modal_ret(name: &str, opened: bool) -> (bool, bool) {
 		ImGui::begin_popup_modal_ret_opts(name, opened, BitFlags::default())
 	}
-	pub fn begin_popup_modal_ret_opts(name: &str, opened: bool, windows_flags: BitFlags<ImGuiWindowFlag>) -> (bool, bool) {
+	pub fn begin_popup_modal_ret_opts(
+		name: &str,
+		opened: bool,
+		windows_flags: BitFlags<ImGuiWindowFlag>,
+	) -> (bool, bool) {
 		let mut changed = false;
 		let mut result = false;
 		IMGUI_STACK.with_borrow_mut(|stack| {
@@ -4521,38 +5299,106 @@ impl ImGui {
 		});
 		(changed, result)
 	}
-	pub fn begin_popup_context_item<C>(name: &str, inside: C) where C: FnOnce() {
-		ImGui::begin_popup_context_item_opts(name, ImGuiPopupButton::MouseButtonRight, BitFlags::default(), inside);
+	pub fn begin_popup_context_item<C>(name: &str, inside: C)
+	where
+		C: FnOnce(),
+	{
+		ImGui::begin_popup_context_item_opts(
+			name,
+			ImGuiPopupButton::MouseButtonRight,
+			BitFlags::default(),
+			inside,
+		);
 	}
-	pub fn begin_popup_context_item_opts<C>(name: &str, button: ImGuiPopupButton, popup_flags: BitFlags<ImGuiPopupFlag>, inside: C) where C: FnOnce() {
-		if ImGui::_begin_popup_context_item_opts(name, (button as u32 | popup_flags.bits()) as i32) {
+	pub fn begin_popup_context_item_opts<C>(
+		name: &str,
+		button: ImGuiPopupButton,
+		popup_flags: BitFlags<ImGuiPopupFlag>,
+		inside: C,
+	) where
+		C: FnOnce(),
+	{
+		if ImGui::_begin_popup_context_item_opts(name, (button as u32 | popup_flags.bits()) as i32)
+		{
 			inside();
 			ImGui::_end_popup();
 		}
 	}
-	pub fn begin_popup_context_window<C>(name: &str, inside: C) where C: FnOnce() {
-		ImGui::begin_popup_context_window_opts(name, ImGuiPopupButton::MouseButtonRight, BitFlags::default(), inside);
+	pub fn begin_popup_context_window<C>(name: &str, inside: C)
+	where
+		C: FnOnce(),
+	{
+		ImGui::begin_popup_context_window_opts(
+			name,
+			ImGuiPopupButton::MouseButtonRight,
+			BitFlags::default(),
+			inside,
+		);
 	}
-	pub fn begin_popup_context_window_opts<C>(name: &str, button: ImGuiPopupButton, popup_flags: BitFlags<ImGuiPopupFlag>, inside: C) where C: FnOnce() {
-		if ImGui::_begin_popup_context_window_opts(name, (button as u32 | popup_flags.bits()) as i32) {
+	pub fn begin_popup_context_window_opts<C>(
+		name: &str,
+		button: ImGuiPopupButton,
+		popup_flags: BitFlags<ImGuiPopupFlag>,
+		inside: C,
+	) where
+		C: FnOnce(),
+	{
+		if ImGui::_begin_popup_context_window_opts(
+			name,
+			(button as u32 | popup_flags.bits()) as i32,
+		) {
 			inside();
 			ImGui::_end_popup();
 		}
 	}
-	pub fn begin_popup_context_void<C>(name: &str, inside: C) where C: FnOnce() {
-		ImGui::begin_popup_context_void_opts(name, ImGuiPopupButton::MouseButtonRight, BitFlags::default(), inside);
+	pub fn begin_popup_context_void<C>(name: &str, inside: C)
+	where
+		C: FnOnce(),
+	{
+		ImGui::begin_popup_context_void_opts(
+			name,
+			ImGuiPopupButton::MouseButtonRight,
+			BitFlags::default(),
+			inside,
+		);
 	}
-	pub fn begin_popup_context_void_opts<C>(name: &str, button: ImGuiPopupButton, popup_flags: BitFlags<ImGuiPopupFlag>, inside: C) where C: FnOnce() {
-		if ImGui::_begin_popup_context_void_opts(name, (button as u32 | popup_flags.bits()) as i32) {
+	pub fn begin_popup_context_void_opts<C>(
+		name: &str,
+		button: ImGuiPopupButton,
+		popup_flags: BitFlags<ImGuiPopupFlag>,
+		inside: C,
+	) where
+		C: FnOnce(),
+	{
+		if ImGui::_begin_popup_context_void_opts(name, (button as u32 | popup_flags.bits()) as i32)
+		{
 			inside();
 			ImGui::_end_popup();
 		}
 	}
-	pub fn begin_table<C>(str_id: &str, column: i32, inside: C) where C: FnOnce() {
+	pub fn begin_table<C>(str_id: &str, column: i32, inside: C)
+	where
+		C: FnOnce(),
+	{
 		ImGui::begin_table_opts(str_id, column, &Vec2::zero(), -1.0, BitFlags::default(), inside);
 	}
-	pub fn begin_table_opts<C>(str_id: &str, column: i32, outer_size: &crate::dora::Vec2, inner_width: f32, table_flags: BitFlags<ImGuiTableFlag>, inside: C) where C: FnOnce() {
-		if ImGui::_begin_table_opts(str_id, column, outer_size, inner_width, table_flags.bits() as i32) {
+	pub fn begin_table_opts<C>(
+		str_id: &str,
+		column: i32,
+		outer_size: &crate::dora::Vec2,
+		inner_width: f32,
+		table_flags: BitFlags<ImGuiTableFlag>,
+		inside: C,
+	) where
+		C: FnOnce(),
+	{
+		if ImGui::_begin_table_opts(
+			str_id,
+			column,
+			outer_size,
+			inner_width,
+			table_flags.bits() as i32,
+		) {
 			inside();
 			ImGui::_end_table();
 		}
@@ -4560,26 +5406,49 @@ impl ImGui {
 	pub fn table_setup_column(label: &str, init_width_or_weight: f32) {
 		ImGui::table_setup_column_opts(label, init_width_or_weight, 0, BitFlags::default())
 	}
-	pub fn table_setup_column_opts(label: &str, init_width_or_weight: f32, user_id: i32, table_column_flags: BitFlags<ImGuiTableColumnFlag>) {
-		ImGui::_table_setup_column_opts(label, init_width_or_weight, user_id, table_column_flags.bits() as i32);
+	pub fn table_setup_column_opts(
+		label: &str,
+		init_width_or_weight: f32,
+		user_id: i32,
+		table_column_flags: BitFlags<ImGuiTableColumnFlag>,
+	) {
+		ImGui::_table_setup_column_opts(
+			label,
+			init_width_or_weight,
+			user_id,
+			table_column_flags.bits() as i32,
+		);
 	}
 	pub fn set_next_window_pos(pos: &crate::dora::Vec2) {
 		ImGui::set_next_window_pos_opts(pos, ImGuiCond::Always, &Vec2::zero());
 	}
-	pub fn set_next_window_pos_opts(pos: &crate::dora::Vec2, set_cond: ImGuiCond, pivot: &crate::dora::Vec2) {
+	pub fn set_next_window_pos_opts(
+		pos: &crate::dora::Vec2,
+		set_cond: ImGuiCond,
+		pivot: &crate::dora::Vec2,
+	) {
 		ImGui::_set_next_window_pos_opts(pos, set_cond as i32, pivot);
 	}
-	pub fn push_style_color<C>(col: ImGuiCol, color: &crate::dora::Color, inside: C) where C: FnOnce() {
+	pub fn push_style_color<C>(col: ImGuiCol, color: &crate::dora::Color, inside: C)
+	where
+		C: FnOnce(),
+	{
 		ImGui::_push_style_color(col as i32, color);
 		inside();
 		ImGui::_pop_style_color(1);
 	}
-	pub fn push_style_float<C>(style: ImGuiStyleVar, val: f32, inside: C) where C: FnOnce() {
+	pub fn push_style_float<C>(style: ImGuiStyleVar, val: f32, inside: C)
+	where
+		C: FnOnce(),
+	{
 		ImGui::_push_style_float(style as i32, val);
 		inside();
 		ImGui::_pop_style_var(1);
 	}
-	pub fn push_style_vec2<C>(style: ImGuiStyleVec2, val: &crate::dora::Vec2, inside: C) where C: FnOnce() {
+	pub fn push_style_vec2<C>(style: ImGuiStyleVec2, val: &crate::dora::Vec2, inside: C)
+	where
+		C: FnOnce(),
+	{
 		ImGui::_push_style_vec2(style as i32, val);
 		inside();
 		ImGui::_pop_style_var(1);
@@ -4587,10 +5456,20 @@ impl ImGui {
 	pub fn color_button(desc_id: &str, col: &crate::dora::Color) -> bool {
 		ImGui::color_button_opts(desc_id, col, BitFlags::default(), &Vec2::zero())
 	}
-	pub fn color_button_opts(desc_id: &str, col: &crate::dora::Color, color_edit_flags: BitFlags<ImGuiColorEditFlag>, size: &crate::dora::Vec2) -> bool {
+	pub fn color_button_opts(
+		desc_id: &str,
+		col: &crate::dora::Color,
+		color_edit_flags: BitFlags<ImGuiColorEditFlag>,
+		size: &crate::dora::Vec2,
+	) -> bool {
 		ImGui::_color_button_opts(desc_id, col, color_edit_flags.bits() as i32, size)
 	}
-	pub fn slider_angle_ret(label: &str, v: f32, v_degrees_min: f32, v_degrees_max: f32) -> (bool, f32) {
+	pub fn slider_angle_ret(
+		label: &str,
+		v: f32,
+		v_degrees_min: f32,
+		v_degrees_max: f32,
+	) -> (bool, f32) {
 		let mut changed = false;
 		let mut result = 0_f32;
 		IMGUI_STACK.with_borrow_mut(|stack| {
@@ -4612,73 +5491,112 @@ impl ImGui {
 	pub fn table_next_row_opts(min_row_height: f32, table_row_flags: BitFlags<ImGuiTableRowFlag>) {
 		ImGui::_table_next_row_opts(min_row_height, table_row_flags.bits() as i32);
 	}
-	pub fn begin_list_box<C>(label: &str, size: &crate::dora::Vec2, inside: C) where C: FnOnce() {
+	pub fn begin_list_box<C>(label: &str, size: &crate::dora::Vec2, inside: C)
+	where
+		C: FnOnce(),
+	{
 		if ImGui::_begin_list_box(label, size) {
 			inside();
 			ImGui::_end_list_box();
 		}
 	}
-	pub fn begin_group<C>(inside: C) where C: FnOnce() {
+	pub fn begin_group<C>(inside: C)
+	where
+		C: FnOnce(),
+	{
 		ImGui::_begin_group();
 		inside();
 		ImGui::_end_group();
 	}
-	pub fn begin_disabled<C>(inside: C) where C: FnOnce() {
+	pub fn begin_disabled<C>(inside: C)
+	where
+		C: FnOnce(),
+	{
 		ImGui::_begin_disabled();
 		inside();
 		ImGui::_end_disabled();
 	}
-	pub fn begin_tooltip<C>(inside: C) where C: FnOnce() {
+	pub fn begin_tooltip<C>(inside: C)
+	where
+		C: FnOnce(),
+	{
 		if ImGui::_begin_tooltip() {
 			inside();
 			ImGui::_end_tooltip();
 		}
 	}
-	pub fn begin_main_menu_bar<C>(inside: C) where C: FnOnce() {
+	pub fn begin_main_menu_bar<C>(inside: C)
+	where
+		C: FnOnce(),
+	{
 		if ImGui::_begin_main_menu_bar() {
 			inside();
 			ImGui::_end_main_menu_bar();
 		}
 	}
-	pub fn begin_menu_bar<C>(inside: C) where C: FnOnce() {
+	pub fn begin_menu_bar<C>(inside: C)
+	where
+		C: FnOnce(),
+	{
 		if ImGui::_begin_menu_bar() {
 			inside();
 			ImGui::_end_menu_bar();
 		}
 	}
-	pub fn begin_menu<C>(label: &str, enabled: bool, inside: C) where C: FnOnce() {
+	pub fn begin_menu<C>(label: &str, enabled: bool, inside: C)
+	where
+		C: FnOnce(),
+	{
 		if ImGui::_begin_menu(label, enabled) {
 			inside();
 			ImGui::_end_menu();
 		}
 	}
-	pub fn push_item_width<C>(width: f32, inside: C) where C: FnOnce() {
+	pub fn push_item_width<C>(width: f32, inside: C)
+	where
+		C: FnOnce(),
+	{
 		ImGui::_push_item_width(width);
 		inside();
 		ImGui::_pop_item_width();
 	}
-	pub fn push_text_wrap_pos<C>(wrap_pos_x: f32, inside: C) where C: FnOnce() {
+	pub fn push_text_wrap_pos<C>(wrap_pos_x: f32, inside: C)
+	where
+		C: FnOnce(),
+	{
 		ImGui::_push_text_wrap_pos(wrap_pos_x);
 		inside();
 		ImGui::_pop_text_wrap_pos();
 	}
-	pub fn push_item_flag<C>(flags: BitFlags<ImGuiItemFlags>, v: bool, inside: C) where C: FnOnce() {
+	pub fn push_item_flag<C>(flags: BitFlags<ImGuiItemFlags>, v: bool, inside: C)
+	where
+		C: FnOnce(),
+	{
 		ImGui::_push_item_flag(flags.bits() as i32, v);
 		inside();
 		ImGui::_pop_item_flag();
 	}
-	pub fn push_id<C>(str_id: &str, inside: C) where C: FnOnce() {
+	pub fn push_id<C>(str_id: &str, inside: C)
+	where
+		C: FnOnce(),
+	{
 		ImGui::_push_id(str_id);
 		inside();
 		ImGui::_pop_id();
 	}
-	pub fn push_clip_rect<C>(clip_rect_min: &crate::dora::Vec2, clip_rect_max: &crate::dora::Vec2, intersect_with_current_clip_rect: bool, inside: C) where C: FnOnce() {
+	pub fn push_clip_rect<C>(
+		clip_rect_min: &crate::dora::Vec2,
+		clip_rect_max: &crate::dora::Vec2,
+		intersect_with_current_clip_rect: bool,
+		inside: C,
+	) where
+		C: FnOnce(),
+	{
 		ImGui::_push_clip_rect(clip_rect_min, clip_rect_max, intersect_with_current_clip_rect);
 		inside();
 		ImGui::_pop_clip_rect();
 	}
 }
-
 
 #[bitflags]
 #[repr(u32)]
@@ -4755,11 +5673,16 @@ pub enum NvgVAlign {
 	/// Align text vertically to bottom.
 	Bottom = 1 << 5,
 	/// Default, align text vertically to baseline.
-	BaseLine	= 1 << 6,
+	BaseLine = 1 << 6,
 }
 
 impl Nvg {
-	pub fn create_image(w: i32, h: i32, filename: &str, image_flags: BitFlags<NvgImageFlag>) -> i32 {
+	pub fn create_image(
+		w: i32,
+		h: i32,
+		filename: &str,
+		image_flags: BitFlags<NvgImageFlag>,
+	) -> i32 {
 		Nvg::_create_image(w, h, filename, image_flags.bits() as i32)
 	}
 	pub fn line_cap(cap: NvgLineCap) {
@@ -4781,7 +5704,7 @@ impl Nvg {
 
 use std::future::Future;
 use std::pin::Pin;
-use std::task::{Poll, Context};
+use std::task::{Context, Poll};
 
 enum State {
 	Halted,
@@ -4806,7 +5729,7 @@ impl<'a> Future for Waiter<'a> {
 	type Output = ();
 
 	fn poll(mut self: Pin<&mut Self>, _cx: &mut Context) -> Poll<Self::Output> {
-		 match self.co.state {
+		match self.co.state {
 			State::Halted => {
 				self.co.state = State::Running;
 				Poll::Ready(())
@@ -4815,7 +5738,7 @@ impl<'a> Future for Waiter<'a> {
 				self.co.state = State::Halted;
 				Poll::Pending
 			}
-		 }
+		}
 	}
 }
 
@@ -4828,87 +5751,81 @@ fn create_waker() -> Waker {
 const RAW_WAKER: RawWaker = RawWaker::new(std::ptr::null(), &VTABLE);
 const VTABLE: RawWakerVTable = RawWakerVTable::new(clone, wake, wake_by_ref, drop);
 
-unsafe fn clone(_: *const ()) -> RawWaker { RAW_WAKER }
-unsafe fn wake(_: *const ()) { }
-unsafe fn wake_by_ref(_: *const ()) { }
-unsafe fn drop(_: *const ()) { }
+unsafe fn clone(_: *const ()) -> RawWaker {
+	RAW_WAKER
+}
+unsafe fn wake(_: *const ()) {}
+unsafe fn wake_by_ref(_: *const ()) {}
+unsafe fn drop(_: *const ()) {}
 
 struct Executor {
-	co: Pin<Box<dyn Future<Output=()>>>,
+	co: Pin<Box<dyn Future<Output = ()>>>,
 }
 
 impl Executor {
-	fn new<C, F>(closure: C) -> Self where
-		F: Future<Output=()> + 'static,
-		C: FnOnce(Coroutine) -> F, {
+	fn new<C, F>(closure: C) -> Self
+	where
+		F: Future<Output = ()> + 'static,
+		C: FnOnce(Coroutine) -> F,
+	{
 		let co = Coroutine { state: State::Running };
-		Executor {
-			co: Box::pin(closure(co)),
-		}
+		Executor { co: Box::pin(closure(co)) }
 	}
 
 	fn update(&mut self) -> bool {
 		let waker = create_waker();
 		let mut context = Context::from_waker(&waker);
 		match self.co.as_mut().poll(&mut context) {
-			Poll::Pending => {
-				false
-			},
-			Poll::Ready(()) => {
-				true
-			},
+			Poll::Pending => false,
+			Poll::Ready(()) => true,
 		}
 	}
 }
 
-pub fn once<C, F>(closure: C) -> Box<dyn FnMut(f64) -> bool> where
-	F: Future<Output=()> + 'static,
-	C: FnOnce(Coroutine) -> F, {
+pub fn once<C, F>(closure: C) -> Box<dyn FnMut(f64) -> bool>
+where
+	F: Future<Output = ()> + 'static,
+	C: FnOnce(Coroutine) -> F,
+{
 	let mut executor = Executor::new(closure);
-	Box::new(move |_| {
-		executor.update()
-	})
+	Box::new(move |_| executor.update())
 }
 
-pub fn thread<C, F>(closure: C) where
-	F: Future<Output=()> + 'static,
-	C: FnOnce(Coroutine) -> F, {
+pub fn thread<C, F>(closure: C)
+where
+	F: Future<Output = ()> + 'static,
+	C: FnOnce(Coroutine) -> F,
+{
 	let mut executor = Executor::new(closure);
-	Director::schedule_posted(Box::new(move |_| {
-		executor.update()
-	}));
+	Director::schedule_posted(Box::new(move |_| executor.update()));
 }
 
 #[macro_export]
 macro_rules! sleep {
-	($co:expr, $time:expr) => {
-		{
-			let total = $time;
-			let mut time: f32 = 0.0;
-			while time <= total {
-				time += dora_ssr::App::get_delta_time() as f32;
-				$co.waiter().await;
-			}
+	($co:expr, $time:expr) => {{
+		let total = $time;
+		let mut time: f32 = 0.0;
+		while time <= total {
+			time += dora_ssr::App::get_delta_time() as f32;
+			$co.waiter().await;
 		}
-	};
+	}};
 }
 
 #[macro_export]
 macro_rules! cycle {
-	($co:expr, $time:expr, $closure:expr) => {
-		{
-			let total = $time;
-			let mut time: f32 = 0.0;
-			loop {
-				$closure(f32::min(time / $time, 1.0));
-				if time >= total {
-					break;
-				}
-				$co.waiter().await;
-				time += dora_ssr::App::get_delta_time() as f32;
+	($co:expr, $time:expr, $closure:expr) => {{
+		let total = $time;
+		let mut time: f32 = 0.0;
+		loop {
+			$closure(f32::min(time / $time, 1.0));
+			if time >= total {
+				break;
 			}
+			$co.waiter().await;
+			time += dora_ssr::App::get_delta_time() as f32;
 		}
-	};
+	}};
 }
 
 #[macro_export]

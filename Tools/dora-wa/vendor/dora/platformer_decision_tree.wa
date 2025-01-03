@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2025 Li Jin, dragon-fly@qq.com
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -24,7 +24,7 @@ func platformer_decision_leaf_accept() => i64
 func platformer_decision_leaf_reject() => i64
 #wa:import dora platformer_decision_leaf_behave
 func platformer_decision_leaf_behave(name: i64, root: i64) => i64
-type PlatformerDecisionTree struct { Object }
+type PlatformerDecisionTree :struct { Object }
 func PlatformerDecisionTreeFrom(raw: i64) => *PlatformerDecisionTree {
 	if raw == 0 {
 		return nil

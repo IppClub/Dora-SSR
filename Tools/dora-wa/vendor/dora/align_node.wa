@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2025 Li Jin, dragon-fly@qq.com
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -12,7 +12,7 @@ func alignnode_type() => i32
 func alignnode_css(slf: i64, style: i64)
 #wa:import dora alignnode_new
 func alignnode_new(is_window_root: i32) => i64
-type AlignNode struct { Node }
+type AlignNode :struct { Node }
 func AlignNodeFrom(raw: i64) => *AlignNode {
 	if raw == 0 {
 		return nil

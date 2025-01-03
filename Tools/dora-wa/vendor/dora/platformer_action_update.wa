@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2025 Li Jin, dragon-fly@qq.com
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -10,7 +10,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 func platformer_actionupdate_type() => i32
 #wa:import dora platformer_wasmactionupdate_new
 func platformer_wasmactionupdate_new(func0: i32, stack0: i64) => i64
-type PlatformerActionUpdate struct { Object }
+type PlatformerActionUpdate :struct { Object }
 func PlatformerActionUpdateFrom(raw: i64) => *PlatformerActionUpdate {
 	if raw == 0 {
 		return nil

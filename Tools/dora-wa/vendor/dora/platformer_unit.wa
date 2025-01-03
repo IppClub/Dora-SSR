@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2025 Li Jin, dragon-fly@qq.com
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -70,7 +70,7 @@ func platformer_unit_is_doing(slf: i64, name: i64) => i32
 func platformer_unit_new(unit_def: i64, physics_world: i64, entity: i64, pos: i64, rot: f32) => i64
 #wa:import dora platformer_unit_with_store
 func platformer_unit_with_store(unit_def_name: i64, physics_world_name: i64, entity: i64, pos: i64, rot: f32) => i64
-type PlatformerUnit struct { Body }
+type PlatformerUnit :struct { Body }
 func PlatformerUnitFrom(raw: i64) => *PlatformerUnit {
 	if raw == 0 {
 		return nil

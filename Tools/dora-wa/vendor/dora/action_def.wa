@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2025 Li Jin, dragon-fly@qq.com
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -34,7 +34,7 @@ func actiondef_scale(duration: f32, start: f32, stop: f32, easing: i32) => i64
 func actiondef_frame(clip_str: i64, duration: f32) => i64
 #wa:import dora actiondef_frame_with_frames
 func actiondef_frame_with_frames(clip_str: i64, duration: f32, frames: i64) => i64
-type ActionDef struct { raw: *i64 }
+type ActionDef :struct { raw: *i64 }
 func ActionDef.GetRaw() => i64 {
 	return *this.raw
 }

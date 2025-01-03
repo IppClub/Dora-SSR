@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2025 Li Jin, dragon-fly@qq.com
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -14,7 +14,7 @@ func httpclient_post_with_headers_async(url: i64, headers: i64, json: i64, timeo
 func httpclient_get_async(url: i64, timeout: f32, func0: i32, stack0: i64)
 #wa:import dora httpclient_download_async
 func httpclient_download_async(url: i64, full_path: i64, timeout: f32, func0: i32, stack0: i64)
-type _HttpClient struct { }
+type _HttpClient :struct { }
 global HttpClient = _HttpClient{}
 func _HttpClient.PostAsync(url: string, json: string, timeout: f32, callback: func(body: *string)) {
 	stack0 := NewCallStack()

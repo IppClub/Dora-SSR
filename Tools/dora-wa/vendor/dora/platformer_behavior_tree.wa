@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2025 Li Jin, dragon-fly@qq.com
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -32,7 +32,7 @@ func platformer_behavior_leaf_repeat_forever(node: i64) => i64
 func platformer_behavior_leaf_retry(times: i32, node: i64) => i64
 #wa:import dora platformer_behavior_leaf_retry_until_pass
 func platformer_behavior_leaf_retry_until_pass(node: i64) => i64
-type PlatformerBehaviorTree struct { Object }
+type PlatformerBehaviorTree :struct { Object }
 func PlatformerBehaviorTreeFrom(raw: i64) => *PlatformerBehaviorTree {
 	if raw == 0 {
 		return nil
