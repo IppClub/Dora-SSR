@@ -81,10 +81,10 @@ UnitAction.add("idle", {
 		playable.speed = 1.0;
 		playable.play("idle", true);
 		const playIdleSpecial = loop(() => {
-				sleep(3);
-				sleep(playable.play("idle1"));
-				playable.play("idle", true);
-				return false;
+			sleep(3);
+			sleep(playable.play("idle1"));
+			playable.play("idle", true);
+			return false;
 		});
 		self.data.playIdleSpecial = playIdleSpecial;
 		return owner => {
@@ -146,14 +146,13 @@ UnitAction.add("fallOff", {
 		return !self.onSurface;
 	},
 	create: self => {
-		if (self.playable.current !== "jumping") {
-			const {playable} = self;
+		const {playable} = self;
+		if (playable.current !== "jumping") {
 			playable.speed = 1;
 			playable.play("jumping", true);
 		}
 		return loop(() => {
 			if (self.onSurface) {
-				const {playable} = self;
 				playable.speed = 1;
 				sleep(playable.play("landing", false));
 				return true;
