@@ -1,0 +1,571 @@
+import "dora"
+import "math"
+import "strconv"
+
+func test_excel_test() {
+	const (
+		TERRAIN_LAYER = 0
+		PLAYER_LAYER  = 1
+		ITEM_LAYER    = 2
+	)
+
+	player_group := dora.PlatformerData.GetGroupFirstPlayer()
+	item_group := player_group + 1
+	terrain_group := dora.PlatformerData.GetGroupTerrain()
+
+	dora.PlatformerData.SetShouldContact(player_group, item_group, true)
+
+	theme_color := dora.App.GetThemeColor()
+	fill_color := dora.NewColor(
+		theme_color.R,
+		theme_color.G,
+		theme_color.B,
+		0x66,
+	)
+	border_color := theme_color
+	const DESIGN_WIDTH = 1000.0
+
+	world := dora.NewPlatformerPlatformWorld()
+	camera := world.GetCamera()
+	camera.SetBoundary(
+		dora.NewRect(
+			dora.NewVec2(-1250.0, -500.0),
+			dora.NewSize(2500.0, 1000.0),
+		),
+	)
+	camera.SetFollowRatio(dora.NewVec2(0.02, 0.02))
+	camera.SetZoom(dora.App.GetVisualSize().Width / DESIGN_WIDTH)
+	world.OnAppChange(func(setting_name: string) {
+		if setting_name == "Size" {
+			camera.SetZoom(
+				dora.App.GetVisualSize().Width / DESIGN_WIDTH,
+			)
+		}
+	})
+
+	terrain_def := dora.NewBodyDef()
+	terrain_def.SetType(dora.BodyTypeStatic)
+	terrain_def.AttachPolygonWithCenter(
+		dora.NewVec2(0.0, -500.0), 2500.0, 10.0,
+		0.0, 1.0, 1.0, 0.0,
+	)
+	terrain_def.AttachPolygonWithCenter(
+		dora.NewVec2(0.0, 500.0), 2500.0, 10.0,
+		0.0, 1.0, 1.0, 0.0,
+	)
+	terrain_def.AttachPolygonWithCenter(
+		dora.NewVec2(1250.0, 0.0), 10.0, 1000.0,
+		0.0, 1.0, 1.0, 0.0,
+	)
+	terrain_def.AttachPolygonWithCenter(
+		dora.NewVec2(-1250.0, 0.0), 10.0, 1000.0,
+		0.0, 1.0, 1.0, 0.0,
+	)
+
+	terrain := dora.NewBody(terrain_def, world.PhysicsWorld, dora.Vec2Zero, 0.0)
+	terrain.SetOrder(TERRAIN_LAYER)
+	terrain.SetGroup(terrain_group)
+
+	new_rectangle := func(x: f32, y: f32, width: f32, height: f32, fill_color: dora.Color, border_color: dora.Color) => dora.Node {
+		hh := height / 2.0
+		hw := width / 2.0
+		draw_node := dora.NewDrawNode()
+		draw_node.DrawPolygon(
+			&[]dora.Vec2{
+				dora.NewVec2(x-hw, y-hh),
+				dora.NewVec2(x-hw, y+hh),
+				dora.NewVec2(x+hw, y+hh),
+				dora.NewVec2(x+hw, y-hh),
+			},
+			fill_color, 1.0, border_color,
+		)
+		return draw_node.Node
+	}
+
+	terrain.AddChild(new_rectangle(
+		0.0, -500.0, 2500.0, 10.0,
+		fill_color, border_color,
+	))
+	terrain.AddChild(new_rectangle(
+		1250.0, 0.0, 10.0, 1000.0,
+		fill_color, border_color,
+	))
+	terrain.AddChild(new_rectangle(
+		-1250.0, 0.0, 10.0, 1000.0,
+		fill_color, border_color,
+	))
+	world.AddChild(terrain.Node)
+
+	dora.PlatformerUnitActionAdd("idle",
+		1,
+		2.0,
+		0.2,
+		false,
+		func(
+			unit: dora.PlatformerUnit,
+			action: dora.PlatformerUnitAction,
+		) => bool {
+			return unit.IsOnSurface()
+		},
+		func(
+			unit: dora.PlatformerUnit,
+			action: dora.PlatformerUnitAction,
+		) => dora.PlatformerActionUpdate {
+			playable := unit.GetPlayable()
+			playable.SetSpeed(1.0)
+			playable.Play("idle", true)
+			total_time: f32 = 0.0
+			idle1_count_down: f32 = 0.0
+			return dora.NewPlatformerActionUpdate(
+				func(
+					unit: dora.PlatformerUnit,
+					action: dora.PlatformerUnitAction,
+					delta_time: f32,
+				) => bool {
+					if idle1_count_down <= 0.0 {
+						total_time += delta_time
+						if total_time > 3.0 {
+							total_time = 0.0
+							idle1_count_down = playable.Play("idle1", false)
+						}
+					} else {
+						idle1_count_down -= delta_time
+						if idle1_count_down <= 0.0 {
+							playable.Play("idle", true)
+						}
+					}
+					return !unit.IsOnSurface()
+				})
+		},
+		func(
+			unit: dora.PlatformerUnit,
+			action: dora.PlatformerUnitAction,
+		) {
+		},
+	)
+
+	dora.PlatformerUnitActionAdd("move",
+		1,
+		2.0,
+		0.2,
+		false,
+		func(
+			unit: dora.PlatformerUnit,
+			action: dora.PlatformerUnitAction,
+		) => bool {
+			return unit.IsOnSurface()
+		},
+		func(
+			unit: dora.PlatformerUnit,
+			action: dora.PlatformerUnitAction,
+		) => dora.PlatformerActionUpdate {
+			playable := unit.GetPlayable()
+			playable.SetSpeed(1.0)
+			playable.Play("fmove", true)
+			return dora.NewPlatformerActionUpdate(
+				func(
+					unit: dora.PlatformerUnit,
+					action: dora.PlatformerUnitAction,
+					delta_time: f32,
+				) => bool {
+					elapsed_time := action.GetElapsedTime()
+					recovery := action.GetRecovery() * 2.0
+					unit_def := unit.GetUnitDef()
+					movement, _ := unit_def.Get("move").GetF32()
+					move_speed: f32 = 1.0
+					if elapsed_time < recovery {
+						move_speed = elapsed_time / recovery
+						move_speed = f32(math.Min(f64(move_speed), 1.0))
+					}
+					if unit.IsFaceRight() {
+						move_speed *= movement
+					} else {
+						move_speed *= -movement
+					}
+					unit.SetVelocityX(move_speed)
+					return !unit.IsOnSurface()
+				})
+		},
+		func(
+			unit: dora.PlatformerUnit,
+			action: dora.PlatformerUnitAction,
+		) {
+		},
+	)
+
+	dora.PlatformerUnitActionAdd("jump",
+		3,
+		2.0,
+		0.1,
+		true,
+		func(
+			unit: dora.PlatformerUnit,
+			action: dora.PlatformerUnitAction,
+		) => bool {
+			return unit.IsOnSurface()
+		},
+		func(
+			unit: dora.PlatformerUnit,
+			action: dora.PlatformerUnitAction,
+		) => dora.PlatformerActionUpdate {
+			playable := unit.GetPlayable()
+			playable.SetSpeed(1.0)
+			playable.Play("jump", false)
+			unit_def := unit.GetUnitDef()
+			jump, _ := unit_def.Get("jump").GetF32()
+			unit.SetVelocityY(jump)
+			return dora.NewPlatformerActionUpdate(
+				func(
+					unit: dora.PlatformerUnit,
+					action: dora.PlatformerUnitAction,
+					delta_time: f32,
+				) => bool {
+					return playable.GetCurrent() != "jump"
+				})
+		},
+		func(
+			unit: dora.PlatformerUnit,
+			action: dora.PlatformerUnitAction,
+		) {
+		},
+	)
+
+	dora.PlatformerUnitActionAdd("fallOff",
+		2,
+		-1.0,
+		0.3,
+		false,
+		func(
+			unit: dora.PlatformerUnit,
+			action: dora.PlatformerUnitAction,
+		) => bool {
+			return !unit.IsOnSurface()
+		},
+		func(
+			unit: dora.PlatformerUnit,
+			action: dora.PlatformerUnitAction,
+		) => dora.PlatformerActionUpdate {
+			playable := unit.GetPlayable()
+			if playable.GetCurrent() != "jumping" {
+				playable.SetSpeed(1.0)
+				playable.Play("jumping", true)
+			}
+			count_down: f32 = 0.0
+			landing := false
+			return dora.NewPlatformerActionUpdate(
+				func(
+					unit: dora.PlatformerUnit,
+					action: dora.PlatformerUnitAction,
+					delta_time: f32,
+				) => bool {
+					if !landing {
+						if unit.IsOnSurface() {
+							landing = true
+							count_down = playable.Play("landing", false)
+						}
+					} else {
+						count_down -= delta_time
+						if count_down <= 0.0 {
+							return true
+						}
+					}
+					return false
+				})
+		},
+		func(
+			unit: dora.PlatformerUnit,
+			action: dora.PlatformerUnitAction,
+		) {
+		},
+	)
+
+	sel := dora.PlatformerDecisionTreeSel
+	seq := dora.PlatformerDecisionTreeSeq
+	con := dora.PlatformerDecisionTreeCon
+	act := dora.PlatformerDecisionTreeAct
+
+	tree := sel(&[]dora.PlatformerDecisionTree{
+		seq(&[]dora.PlatformerDecisionTree{
+			con("fmove key down", func(unit: dora.PlatformerUnit) => bool {
+				entity := unit.GetEntity()
+				key_left_val := entity.Get("keyLeft")
+				if key_left_val == nil {
+					return false
+				}
+				key_left, _ := key_left_val.GetBool()
+				key_right_val := entity.Get("keyRight")
+				if key_right_val == nil {
+					return false
+				}
+				key_right, _ := key_right_val.GetBool()
+				return key_left != key_right && ((key_left && unit.IsFaceRight()) || (key_right && !unit.IsFaceRight()))
+			}),
+			act("turn"),
+		}),
+		seq(&[]dora.PlatformerDecisionTree{
+			con("is falling", func(unit: dora.PlatformerUnit) => bool {
+				return !unit.IsOnSurface()
+			}),
+			act("fallOff"),
+		}),
+		seq(&[]dora.PlatformerDecisionTree{
+			con("jump key down", func(unit: dora.PlatformerUnit) => bool {
+				entity := unit.GetEntity()
+				key_jump_val := entity.Get("keyJump")
+				if key_jump_val == nil {
+					return false
+				}
+				key_jump, _ := key_jump_val.GetBool()
+				return key_jump
+			}),
+			act("jump"),
+		}),
+		seq(&[]dora.PlatformerDecisionTree{
+			con("fmove key down", func(unit: dora.PlatformerUnit) => bool {
+				entity := unit.GetEntity()
+				key_left_val := entity.Get("keyLeft")
+				if key_left_val == nil {
+					return false
+				}
+				key_left, _ := key_left_val.GetBool()
+				key_right_val := entity.Get("keyRight")
+				if key_right_val == nil {
+					return false
+				}
+				key_right, _ := key_right_val.GetBool()
+				return key_left || key_right
+			}),
+			act("move"),
+		}),
+		act("idle"),
+	})
+	store := dora.PlatformerData.GetStore()
+	store.Set("AI:playerControl", tree.Object)
+
+	unit_def := dora.NewDictionary()
+	unit_def.Set("linearAcceleration", dora.NewVec2(0.0, -15.0))
+	unit_def.Set("bodyType", "Dynamic")
+	unit_def.Set("scale", 1.0)
+	unit_def.Set("density", 1.0)
+	unit_def.Set("friction", 1.0)
+	unit_def.Set("restitution", 0.0)
+	unit_def.Set("playable", "spine:Spine/moling")
+	unit_def.Set("defaultFaceRight", true)
+	unit_def.Set("size", dora.NewSize(60.0, 300.0))
+	unit_def.Set("sensity", 0)
+	unit_def.Set("move", 300.0)
+	unit_def.Set("jump", 1000.0)
+	unit_def.Set("detectDistance", 350.0)
+	unit_def.Set("hp", 5.0)
+	unit_def.Set("tag", "player")
+	unit_def.Set("decisionTree", "AI:playerControl")
+	unit_def.Set("usePreciseHit", false)
+	arr := dora.NewArray()
+	arr.Add("idle").Add("turn")
+	arr.Add("move").Add("jump")
+	arr.Add("fallOff").Add("cancel")
+	unit_def.Set("actions", arr.Object)
+
+	{
+		observer := dora.NewObserver(dora.EntityEventAdd, &[]string{"player"})
+		observer.Watch(func(stack: dora.CallStack) => bool {
+			entity := *dora.ObjectAsEntity(*stack.PopObject())
+			unit := dora.NewPlatformerUnit(unit_def, world.PhysicsWorld, entity, dora.NewVec2(300.0, -350.0), 0.0)
+			unit.SetOrder(PLAYER_LAYER)
+			unit.SetGroup(player_group)
+			playable := unit.GetPlayable()
+			playable.SetPosition(dora.NewVec2(0.0, -150.0))
+			playable.Play("idle", true)
+			world.AddChild(unit.Node)
+			camera := world.GetCamera()
+			camera.SetFollowTarget(unit.Node)
+			return false
+		})
+	}
+
+	{
+		observer := dora.NewObserver(dora.EntityEventRemove, &[]string{"body"})
+		observer.Watch(func(stack: dora.CallStack) => bool {
+			entity := *dora.ObjectAsEntity(*stack.PopObject())
+			body_val := entity.Get("body")
+			if body_val == nil {
+				return false
+			}
+			body := *dora.ObjectAsBody(*body_val.GetObject())
+			body.RemoveFromParent(true)
+			return false
+		})
+	}
+
+	players := dora.NewGroup(&[]string{"player"})
+	update_player_control := func(key: string, flag: bool) {
+		players.Each(func(entity: dora.Entity) => bool {
+			entity.Set(key, flag)
+			return false
+		})
+	}
+
+	node := dora.NewNode()
+	node.Schedule(func(delta_time: f64) => bool {
+		update_player_control("keyLeft", dora.Keyboard.IsKeyPressed(dora.KeyA))
+		update_player_control("keyRight", dora.Keyboard.IsKeyPressed(dora.KeyD))
+		update_player_control("keyJump", dora.Keyboard.IsKeyPressed(dora.KeyJ))
+		return false
+	})
+
+	entity := dora.NewEntity()
+	entity.Set("player", true)
+
+	{
+		observer := dora.NewObserver(dora.EntityEventAdd, &[]string{"x", "icon"})
+		observer.Watch(func(stack: dora.CallStack) => bool {
+			entity := *dora.ObjectAsEntity(*stack.PopObject())
+			x, _ := stack.PopF32()
+			icon, _ := stack.PopStr()
+			sprite := dora.NewSpriteWithFile(icon)
+			sprite.RunActionDef(dora.ActionDefSpawn(&[]dora.ActionDef{
+				dora.ActionDefProp(5.0, 0.0, 360.0, dora.PropertyAngleY, dora.EaseLinear),
+				dora.ActionDefSequence(&[]dora.ActionDef{
+					dora.ActionDefProp(2.5, 0.0, 40.0, dora.PropertyY, dora.EaseOutQuad),
+					dora.ActionDefProp(2.5, 40.0, 0.0, dora.PropertyY, dora.EaseInQuad),
+				}),
+			}), true)
+			body_def := dora.NewBodyDef()
+			body_def.SetType(dora.BodyTypeDynamic)
+			body_def.SetLinearAcceleration(dora.NewVec2(0.0, -10.0))
+			body_def.AttachPolygon(sprite.GetWidth()*0.5, sprite.GetHeight(), 1.0, 1.0, 0.0)
+			body_def.AttachPolygonSensor(0, sprite.GetWidth(), sprite.GetHeight())
+			body := dora.NewBody(body_def, world.PhysicsWorld, dora.NewVec2(x, 0.0), 0.0)
+			body.SetOrder(ITEM_LAYER)
+			body.SetGroup(item_group)
+			body.AddChild(sprite.Node)
+
+			body.OnBodyEnter(func(other: dora.Body, sensor_tag: i32) {
+				if other.GetGroup() == player_group {
+					body.SetGroup(dora.PlatformerData.GetGroupHide())
+					entity.Set("picked", true)
+					sprite.RunActionDef(dora.ActionDefSpawn(&[]dora.ActionDef{
+						dora.ActionDefScale(0.2, 1.0, 1.3, dora.EaseOutBack),
+						dora.ActionDefProp(0.2, 1.0, 0.0, dora.PropertyOpacity, dora.EaseLinear),
+					}), false)
+				}
+			})
+			world.AddChild(body.Node)
+			entity.Set("body", body.Object)
+			return false
+		})
+	}
+
+	load_excel := func() {
+		item_group := dora.NewGroup(&[]string{"item"})
+		item_group.Each(func(entity: dora.Entity) => bool {
+			entity.Destroy()
+			return false
+		})
+		work_book := dora.Content.LoadExcel("Data/items.xlsx")
+		work_sheet := work_book.GetSheet("items")
+		arr := dora.NewArray()
+		get_str := func(index: i32) => string {
+			value := arr.Get(index)
+			str, _ := value.GetStr()
+			return str
+		}
+		get_f64 := func(index: i32) => f64 {
+			value := arr.Get(index)
+			num, _ := value.GetF64()
+			return num
+		}
+		work_sheet.Read(arr)
+		work_sheet.Read(arr)
+		for work_sheet.Read(arr) {
+			entity := dora.NewEntity()
+			entity.Set("item", true)
+			if arr.GetCount() >= 7 {
+				entity.Set("no", get_f64(1))
+				entity.Set("name", get_str(2))
+				entity.Set("x", get_f64(3))
+				entity.Set("num", get_f64(4))
+				entity.Set("icon", get_str(5))
+				entity.Set("desc", get_str(6))
+			}
+		}
+	}
+
+	load_excel()
+
+	picked_item_group := dora.NewGroup(&[]string{"picked"})
+	window_flags := dora.ImGuiWindowFlags(
+		dora.ImGuiWindowNoDecoration,
+		dora.ImGuiWindowAlwaysAutoResize,
+		dora.ImGuiWindowNoSavedSettings,
+		dora.ImGuiWindowNoFocusOnAppearing,
+		dora.ImGuiWindowNoNav,
+		dora.ImGuiWindowNoMove,
+	)
+	imgui_node := dora.NewNode()
+	imgui_node.Schedule(func(delta_time: f64) => bool {
+		dora.ImGui.SetNextWindowBgAlpha(0.35)
+		dora.ImGui.SetNextWindowPosOpts(dora.NewVec2(dora.App.GetVisualSize().Width-10.0, 10.0), dora.ImGuiCondAlways, dora.NewVec2(1.0, 0.0))
+		dora.ImGui.SetNextWindowSizeOpts(dora.NewVec2(100.0, 300.0), dora.ImGuiCondFirstUseEver)
+		dora.ImGui.BeginOpts("BackPack", window_flags, func() {
+			if dora.ImGui.Button("重新加载Excel", dora.Vec2Zero) {
+				load_excel()
+			}
+			dora.ImGui.Separator()
+			dora.ImGui.Text("背包 (Wa)")
+			dora.ImGui.Text("左(A) 右(D) 跳(J)")
+			dora.ImGui.Separator()
+			dora.ImGui.ColumnsOpts(3, false, "BackPackColumns")
+			picked_item_group.Each(func(entity: dora.Entity) => bool {
+				get_str := func(key: string) => string {
+					value := entity.Get(key)
+					str, _ := value.GetStr()
+					return str
+				}
+				get_f64 := func(key: string) => f64 {
+					value := entity.Get(key)
+					num, _ := value.GetF64()
+					return num
+				}
+				no := get_f64("no")
+				icon := get_str("icon")
+				num := get_f64("num")
+				name := get_str("name")
+				desc := get_str("desc")
+				if num > 0.0 {
+					if dora.ImGui.ImageButton("item "+strconv.Itoa(int(no)), icon, dora.NewVec2(50.0, 50.0)) {
+						entity.Set("num", num-1.0)
+						player := players.GetFirst()
+						unit_val := player.Get("unit")
+						unit := *dora.ObjectAsPlatformerUnit(*unit_val.GetObject())
+						sprite := dora.NewSpriteWithFile(icon)
+						sprite.SetScaleX(0.5)
+						sprite.SetScaleY(0.5)
+						sprite.PerformDef(dora.ActionDefSpawn(&[]dora.ActionDef{
+							dora.ActionDefProp(1.0, 1.0, 0.0, dora.PropertyOpacity, dora.EaseLinear),
+							dora.ActionDefProp(1.0, 150.0, 250.0, dora.PropertyY, dora.EaseLinear),
+						}), false)
+						sprite.OnActionEnd(func(action: dora.Action, node: dora.Node) {
+							sprite.RemoveFromParent(true)
+						})
+						unit.AddChild(sprite.Node)
+					}
+					if dora.ImGui.IsItemHovered() {
+						dora.ImGui.BeginTooltip(func() {
+							dora.ImGui.Text(name)
+							dora.ImGui.Text("数量：")
+							dora.ImGui.SameLine(0.0, 10.0)
+							dora.ImGui.Text(strconv.Itoa(int(num)))
+							dora.ImGui.Text("描述：")
+							dora.ImGui.SameLine(0.0, 10.0)
+							dora.ImGui.Text(desc)
+						})
+					}
+					dora.ImGui.NextColumn()
+				}
+				return false
+			})
+		})
+		return false
+	})
+}

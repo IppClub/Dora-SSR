@@ -1,7 +1,7 @@
 import "dora"
 
 func test_body() {
-	gravity := dora.Vec2{X: 0.0, Y: -10.0}
+	gravity := dora.NewVec2(0.0, -10.0)
 	const (
 		group_zero = 0
 		group_one  = 1
@@ -16,12 +16,12 @@ func test_body() {
 	polygon_def.SetType(dora.BodyTypeDynamic)
 	polygon_def.SetLinearAcceleration(gravity)
 	polygon_def.AttachPolygonWithVertices(&[]dora.Vec2{
-		dora.Vec2{X: 60.0, Y: 0.0},
-		dora.Vec2{X: 30.0, Y: -30.0},
-		dora.Vec2{X: -30.0, Y: -30.0},
-		dora.Vec2{X: -60.0, Y: 0.0},
-		dora.Vec2{X: -30.0, Y: 30.0},
-		dora.Vec2{X: 30.0, Y: 30.0},
+		dora.NewVec2(60.0, 0.0),
+		dora.NewVec2(30.0, -30.0),
+		dora.NewVec2(-30.0, -30.0),
+		dora.NewVec2(-60.0, 0.0),
+		dora.NewVec2(-30.0, 30.0),
+		dora.NewVec2(30.0, 30.0),
 	}, 1.0, 0.4, 0.4)
 
 	disk_def := dora.NewBodyDef()
@@ -36,15 +36,15 @@ func test_body() {
 	world.SetShouldContact(group_one, group_two, true)
 	world.SetShowDebug(true)
 
-	body := dora.NewBody(terrain_def, world, dora.Vec2{X: 0.0, Y: 0.0}, 0.0)
+	body := dora.NewBody(terrain_def, world, dora.Vec2Zero, 0.0)
 	body.SetGroup(group_two)
 	world.AddChild(body.Node)
 
-	body_p := dora.NewBody(polygon_def, world, dora.Vec2{X: 0.0, Y: 500.0}, 15.0)
+	body_p := dora.NewBody(polygon_def, world, dora.NewVec2(0.0, 500.0), 15.0)
 	body_p.SetGroup(group_one)
 	world.AddChild(body_p.Node)
 
-	body_d := dora.NewBody(disk_def, world, dora.Vec2{X: 50.0, Y: 800.0}, 0.0)
+	body_d := dora.NewBody(disk_def, world, dora.NewVec2(50.0, 800.0), 0.0)
 	body_d.SetGroup(group_zero)
 	body_d.SetAngularRate(90.0)
 	world.AddChild(body_d.Node)
@@ -61,12 +61,12 @@ func test_body() {
 		width := dora.App.GetVisualSize().Width
 		dora.ImGui.SetNextWindowBgAlpha(0.35)
 		dora.ImGui.SetNextWindowPosOpts(
-			dora.Vec2{X: width - 10.0, Y: 10.0},
+			dora.NewVec2(width-10.0, 10.0),
 			dora.ImGuiCondAlways,
-			dora.Vec2{X: 1.0, Y: 0.0},
+			dora.NewVec2(1.0, 0.0),
 		)
 		dora.ImGui.SetNextWindowSizeOpts(
-			dora.Vec2{X: 240.0, Y: 0.0},
+			dora.NewVec2(240.0, 0.0),
 			dora.ImGuiCondFirstUseEver,
 		)
 		dora.ImGui.BeginOpts("Body", window_flags, func() {

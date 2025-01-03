@@ -422,6 +422,9 @@ void DragonBone::DBArmatureProxy::dispatchDBEvent(const std::string& type, db::E
 		const std::string& animationName = value->animationState->getName();
 		_parent->emit("AnimationEnd"_slice, animationName, s_cast<Playable*>(_parent));
 		_parent->_lastCompletedAnimationName = animationName;
+		if (_parent->_currentAnimationName == animationName) {
+			_parent->_currentAnimationName.clear();
+		}
 	} else if (type == db::EventObject::LOOP_COMPLETE) {
 		auto animationName = value->animationState->getName();
 		_parent->emit("AnimationEnd"_slice, animationName, s_cast<Playable*>(_parent));

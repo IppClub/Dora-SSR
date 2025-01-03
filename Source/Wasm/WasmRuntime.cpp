@@ -243,6 +243,7 @@ static Own<Value> Value_To(const dora_val_t& v) {
 }
 
 static int64_t Value_From(Value* v) {
+	if (!v) return 0;
 	switch (v->getType()) {
 		case ValueType::Integral:
 			return r_cast<int64_t>(new dora_val_t(v->toVal<int64_t>()));

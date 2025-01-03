@@ -35,12 +35,12 @@ func test_hello_world() {
 		width := dora.App.GetVisualSize().Width
 		dora.ImGui.SetNextWindowBgAlpha(0.35)
 		dora.ImGui.SetNextWindowPosOpts(
-			dora.Vec2{X: width - 10.0, Y: 10.0},
+			dora.NewVec2(width-10.0, 10.0),
 			dora.ImGuiCondAlways,
-			dora.Vec2{X: 1.0, Y: 0.0},
+			dora.NewVec2(1.0, 0.0),
 		)
 		dora.ImGui.SetNextWindowSizeOpts(
-			dora.Vec2{X: 240.0, Y: 0.0},
+			dora.NewVec2(240.0, 0.0),
 			dora.ImGuiCondFirstUseEver,
 		)
 		dora.ImGui.BeginOpts("Hello World",

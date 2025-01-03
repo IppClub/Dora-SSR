@@ -2,7 +2,7 @@ import "dora"
 import "strconv"
 
 func test_contact() {
-	gravity := dora.Vec2{X: 0.0, Y: -10.0}
+	gravity := dora.NewVec2(0.0, -10.0)
 	world := dora.NewPhysicsWorld()
 	world.SetShouldContact(0, 0, true)
 	world.SetShowDebug(true)
@@ -16,27 +16,27 @@ func test_contact() {
 	vertices := []dora.Vec2{}
 	for i := 0; i <= count; i++ {
 		angle := 2.0 * dora.Math.Pi * f32(i) / f32(count)
-		vertices = append(vertices, dora.Vec2{X: radius * dora.Math.Cos(angle), Y: radius * dora.Math.Sin(angle)})
+		vertices = append(vertices, dora.NewVec2(radius*dora.Math.Cos(angle), radius*dora.Math.Sin(angle)))
 	}
 	terrain_def.AttachChain(&vertices, 0.4, 0.0)
-	terrain_def.AttachDiskWithCenter(dora.Vec2{X: 0.0, Y: -270.0}, 30.0, 1.0, 0.0, 1.0)
-	terrain := dora.NewBody(terrain_def, world, dora.Vec2{X: 0.0, Y: 0.0}, 0.0)
+	terrain_def.AttachDiskWithCenter(dora.NewVec2(0.0, -270.0), 30.0, 1.0, 0.0, 1.0)
+	terrain := dora.NewBody(terrain_def, world, dora.NewVec2(0.0, 0.0), 0.0)
 	terrain.AddTo(world.Node)
 
 	platform_def := dora.NewBodyDef()
-	platform_def.AttachPolygonWithCenter(dora.Vec2{X: 0.0, Y: -80.0}, 120.0, 30.0, 0.0, 1.0, 0.0, 1.0)
-	platform := dora.NewBody(platform_def, world, dora.Vec2{X: 0.0, Y: 0.0}, 0.0)
+	platform_def.AttachPolygonWithCenter(dora.NewVec2(0.0, -80.0), 120.0, 30.0, 0.0, 1.0, 0.0, 1.0)
+	platform := dora.NewBody(platform_def, world, dora.NewVec2(0.0, 0.0), 0.0)
 	platform.OnContactFilter(func(other: dora.Body) => bool {
 		return other.GetVelocityY() < 0.0
 	})
 	platform.AddTo(world.Node)
 
 	draw_node := dora.NewLineWithVecColor(&[]dora.Vec2{
-		dora.Vec2{X: -20.0, Y: 0.0},
-		dora.Vec2{X: 20.0, Y: 0.0},
+		dora.NewVec2(-20.0, 0.0),
+		dora.NewVec2(20.0, 0.0),
 		dora.Vec2Zero,
-		dora.Vec2{X: 0.0, Y: -20.0},
-		dora.Vec2{X: 0.0, Y: 20.0},
+		dora.NewVec2(0.0, -20.0),
+		dora.NewVec2(0.0, 20.0),
 	}, dora.App.GetThemeColor())
 	draw_node.AddTo(world.Node)
 
@@ -44,7 +44,7 @@ func test_contact() {
 	disk_def.SetType(dora.BodyTypeDynamic)
 	disk_def.SetLinearAcceleration(gravity)
 	disk_def.AttachDisk(20.0, 5.0, 0.8, 1.0)
-	disk := dora.NewBody(disk_def, world, dora.Vec2{X: 100.0, Y: 200.0}, 0.0)
+	disk := dora.NewBody(disk_def, world, dora.NewVec2(100.0, 200.0), 0.0)
 	disk.AddTo(world.Node)
 	disk.SetAngularRate(-1800.0)
 	disk.OnContactStart(func(other: dora.Body, point: dora.Vec2, normal: dora.Vec2, enabled: bool) {
@@ -67,12 +67,12 @@ func test_contact() {
 		width := dora.App.GetVisualSize().Width
 		dora.ImGui.SetNextWindowBgAlpha(0.35)
 		dora.ImGui.SetNextWindowPosOpts(
-			dora.Vec2{X: width - 10.0, Y: 10.0},
+			dora.NewVec2(width-10.0, 10.0),
 			dora.ImGuiCondAlways,
-			dora.Vec2{X: 1.0, Y: 0.0},
+			dora.NewVec2(1.0, 0.0),
 		)
 		dora.ImGui.SetNextWindowSizeOpts(
-			dora.Vec2{X: 240.0, Y: 0.0},
+			dora.NewVec2(240.0, 0.0),
 			dora.ImGuiCondFirstUseEver,
 		)
 		dora.ImGui.BeginOpts("Contact", window_flags, func() {
