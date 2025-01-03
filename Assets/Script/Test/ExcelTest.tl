@@ -174,20 +174,19 @@ UnitAction:add("fallOff", {
 			function(owner: UnitType, action: UnitAction.Type, deltaTime: number): (boolean)
 			| Routine.Job
 		)
-		if self.playable.current ~= "jumping" then
-			local playable = self.playable
+		local playable = self.playable
+		if playable.current ~= "jumping" then
 			playable.speed = 1
 			playable:play("jumping", true)
 		end
 		return loop(function(self: UnitType): boolean
 			if self.onSurface then
-					local playable = self.playable
-					playable.speed = 1
-					sleep(playable:play("landing", false))
-					return true
-				else
-					return false
-				end
+				playable.speed = 1
+				sleep(playable:play("landing", false))
+				return true
+			else
+				return false
+			end
 		end)
 	end
 })

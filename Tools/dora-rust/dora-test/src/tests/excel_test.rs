@@ -466,6 +466,9 @@ pub fn test() {
 								ActionDef::prop(1.0, 1.0, 0.0, Property::Opacity, EaseType::Linear),
 								ActionDef::prop(1.0, 150.0, 250.0, Property::Y, EaseType::Linear)
 							]), false);
+							Slot::on_action_end(&mut sprite, move |_action, mut node| {
+								node.remove_from_parent(true);
+							});
 							unit.add_child(&sprite);
 						}
 					}
