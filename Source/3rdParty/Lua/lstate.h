@@ -210,33 +210,46 @@ struct CallInfo {
 
 
 /*
+** Maximum expected number of results from a function
+** (must fit in CIST_NRESULTS).
+*/
+#define MAXRESULTS	250
+
+
+/*
 ** Bits in CallInfo status
 */
 /* bits 0-7 are the expected number of results from this function + 1 */
-#define CIST_NRESULTS	0xff
-/* original value of 'allowhook' */
-#define CIST_OAH	(cast(l_uint32, 1) << 8)
-/* call is running a C function */
-#define CIST_C		(cast(l_uint32, 1) << 9)
+#define CIST_NRESULTS	0xffu
+
+/* bits 8-11 count call metamethods (and their extra arguments) */
+#define CIST_CCMT	8  /* the offset, not the mask */
+#define MAX_CCMT	(0xfu << CIST_CCMT)
+
+/* Bits 12-14 are used for CIST_RECST (see below) */
+#define CIST_RECST	12  /* the offset, not the mask */
+
+/* call is running a C function (still in first 16 bits) */
+#define CIST_C		(1u << (CIST_RECST + 3))
 /* call is on a fresh "luaV_execute" frame */
-#define CIST_FRESH	(cast(l_uint32, 1) << 10)
+#define CIST_FRESH	cast(l_uint32, CIST_C << 1)
+/* function is closing tbc variables */
+#define CIST_CLSRET	(CIST_FRESH << 1)
+/* original value of 'allowhook' */
+#define CIST_OAH	(CIST_CLSRET << 1)
 /* call is running a debug hook */
-#define CIST_HOOKED	(cast(l_uint32, 1) << 11)
+#define CIST_HOOKED	(CIST_OAH << 1)
 /* doing a yieldable protected call */
-#define CIST_YPCALL	(cast(l_uint32, 1) << 12)
+#define CIST_YPCALL	(CIST_HOOKED << 1)
 /* call was tail called */
-#define CIST_TAIL	(cast(l_uint32, 1) << 13)
+#define CIST_TAIL	(CIST_YPCALL << 1)
 /* last hook called yielded */
-#define CIST_HOOKYIELD	(cast(l_uint32, 1) << 14)
+#define CIST_HOOKYIELD	(CIST_TAIL << 1)
 /* function "called" a finalizer */
-#define CIST_FIN	(cast(l_uint32, 1) << 15)
- /* function is closing tbc variables */
-#define CIST_CLSRET	(cast(l_uint32, 1) << 16)
-/* Bits 17-19 are used for CIST_RECST (see below) */
-#define CIST_RECST	17  /* the offset, not the mask */
+#define CIST_FIN	(CIST_HOOKYIELD << 1)
 #if defined(LUA_COMPAT_LT_LE)
 /* using __lt for __le */
-#define CIST_LEQ	(cast(l_uint32, 1) << 20)
+#define CIST_LEQ	(CIST_FIN << 1)
 #endif
 
 
@@ -416,7 +429,7 @@ union GCUnion {
 
 LUAI_FUNC void luaE_setdebt (global_State *g, l_mem debt);
 LUAI_FUNC void luaE_freethread (lua_State *L, lua_State *L1);
-LUAI_FUNC size_t luaE_threadsize (lua_State *L);
+LUAI_FUNC lu_mem luaE_threadsize (lua_State *L);
 LUAI_FUNC CallInfo *luaE_extendCI (lua_State *L);
 LUAI_FUNC void luaE_shrinkCI (lua_State *L);
 LUAI_FUNC void luaE_checkcstack (lua_State *L);
