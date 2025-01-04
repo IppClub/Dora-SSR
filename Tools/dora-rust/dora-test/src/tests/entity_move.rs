@@ -31,8 +31,9 @@ pub fn test() {
 			get_scene()
 		) {
 			if let Some(mut sprite) = Sprite::with_file(&image) {
+				sprite.set_size(&Size::new(300.0, 300.0));
 				sprite.add_to(&scene);
-				sprite.run_action_def(ActionDef::scale(0.5, 0.0, 0.5, EaseType::OutBack), false);
+				sprite.run_action_def(ActionDef::scale(0.5, 0.0, 1.0, EaseType::OutBack), false);
 				entity.set("sprite", sprite.obj());
 			}
 		}
@@ -73,7 +74,7 @@ pub fn test() {
 				return false;
 			}
 			let dir = (target - position).normalize();
-			let angle = dir.x.atan2(dir.y).to_degrees();
+			let angle = Math::deg(Math::atan2(dir.x, dir.y));
 			let new_pos = position + dir * speed;
 			let new_pos = new_pos.clamp(&position, &target);
 			entity.set("position", new_pos);
@@ -162,7 +163,7 @@ pub fn test() {
 					if let Some(mut sprite) = get_sprite(&entity) {
 						sprite.run_action_def(
 							ActionDef::sequence(&vec![
-								ActionDef::scale(0.5, 0.5, 0.0, EaseType::InBack),
+								ActionDef::scale(0.5, 1.0, 0.0, EaseType::InBack),
 								ActionDef::event("Destroy", "")
 							]), false);
 						sprite.slot("Destroy", Box::new(move |_| {
