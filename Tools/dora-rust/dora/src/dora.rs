@@ -5702,6 +5702,81 @@ impl Nvg {
 	}
 }
 
+// math
+
+extern "C" {
+	fn math_abs(v: f64) -> f64;
+	fn math_acos(v: f32) -> f32;
+	fn math_asin(v: f32) -> f32;
+	fn math_atan(v: f32) -> f32;
+	fn math_atan2(y: f32, x: f32) -> f32;
+	fn math_ceil(v: f32) -> f32;
+	fn math_cos(v: f32) -> f32;
+	fn math_deg(v: f32) -> f32;
+	fn math_exp(v: f32) -> f32;
+	fn math_floor(v: f32) -> f32;
+	fn math_fmod(x: f32, y: f32) -> f32;
+	fn math_log(v: f32) -> f32;
+	fn math_rad(v: f32) -> f32;
+	fn math_sin(v: f32) -> f32;
+	fn math_sqrt(v: f32) -> f32;
+	fn math_tan(v: f32) -> f32;
+}
+
+pub struct Math {}
+
+impl Math {
+	pub const PI: f32 = std::f32::consts::PI;
+	pub fn abs(v: f64) -> f64 {
+		unsafe { math_abs(v) }
+	}
+	pub fn acos(v: f32) -> f32 {
+		unsafe { math_acos(v) }
+	}
+	pub fn asin(v: f32) -> f32 {
+		unsafe { math_asin(v) }
+	}
+	pub fn atan(v: f32) -> f32 {
+		unsafe { math_atan(v) }
+	}
+	pub fn atan2(y: f32, x: f32) -> f32 {
+		unsafe { math_atan2(y, x) }
+	}
+	pub fn ceil(v: f32) -> f32 {
+		unsafe { math_ceil(v) }
+	}
+	pub fn cos(v: f32) -> f32 {
+		unsafe { math_cos(v) }
+	}
+	pub fn deg(v: f32) -> f32 {
+		unsafe { math_deg(v) }
+	}
+	pub fn exp(v: f32) -> f32 {
+		unsafe { math_exp(v) }
+	}
+	pub fn floor(v: f32) -> f32 {
+		unsafe { math_floor(v) }
+	}
+	pub fn fmod(x: f32, y: f32) -> f32 {
+		unsafe { math_fmod(x, y) }
+	}
+	pub fn log(v: f32) -> f32 {
+		unsafe { math_log(v) }
+	}
+	pub fn rad(v: f32) -> f32 {
+		unsafe { math_rad(v) }
+	}
+	pub fn sin(v: f32) -> f32 {
+		unsafe { math_sin(v) }
+	}
+	pub fn sqrt(v: f32) -> f32 {
+		unsafe { math_sqrt(v) }
+	}
+	pub fn tan(v: f32) -> f32 {
+		unsafe { math_tan(v) }
+	}
+}
+
 use std::future::Future;
 use std::pin::Pin;
 use std::task::{Context, Poll};

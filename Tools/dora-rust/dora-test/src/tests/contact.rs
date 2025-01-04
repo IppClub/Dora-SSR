@@ -15,8 +15,8 @@ pub fn test() {
 	let radius = 300.0;
 	let mut vertices = vec![];
 	for i in 0..=count {
-		let angle = 2.0 * std::f32::consts::PI * i as f32 / count as f32;
-		vertices.push(Vec2::new(radius * angle.cos(), radius * angle.sin()));
+		let angle = 2.0 * Math::PI * i as f32 / count as f32;
+		vertices.push(Vec2::new(radius * Math::cos(angle), radius * Math::sin(angle)));
 	}
 	terrain_def.attach_chain(&vertices, 0.4, 0.0);
 	terrain_def.attach_disk_with_center(&Vec2::new(0.0, -270.0), 30.0, 1.0, 0.0, 1.0);
