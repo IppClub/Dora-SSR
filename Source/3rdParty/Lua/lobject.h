@@ -750,10 +750,9 @@ typedef union Node {
 
 
 /* copy a value into a key */
-#define setnodekey(L,node,obj) \
+#define setnodekey(node,obj) \
 	{ Node *n_=(node); const TValue *io_=(obj); \
-	  n_->u.key_val = io_->value_; n_->u.key_tt = io_->tt_; \
-	  checkliveness(L,io_); }
+	  n_->u.key_val = io_->value_; n_->u.key_tt = io_->tt_; }
 
 
 /* copy a value from a key */
@@ -763,24 +762,12 @@ typedef union Node {
 	  checkliveness(L,io_); }
 
 
-/*
-** About 'alimit': if 'isrealasize(t)' is true, then 'alimit' is the
-** real size of 'array'. Otherwise, the real size of 'array' is the
-** smallest power of two not smaller than 'alimit' (or zero iff 'alimit'
-** is zero); 'alimit' is then used as a hint for #t.
-*/
-
-#define BITRAS		(1 << 7)
-#define isrealasize(t)		(!((t)->flags & BITRAS))
-#define setrealasize(t)		((t)->flags &= cast_byte(~BITRAS))
-#define setnorealasize(t)	((t)->flags |= BITRAS)
-
 
 typedef struct Table {
   CommonHeader;
   lu_byte flags;  /* 1<<p means tagmethod(p) is not present */
-  lu_byte lsizenode;  /* log2 of size of 'node' array */
-  unsigned int alimit;  /* "limit" of 'array' array */
+  lu_byte lsizenode;  /* log2 of number of slots of 'node' array */
+  unsigned int asize;  /* number of slots in 'array' array */
   Value *array;  /* array part */
   Node *node;
   struct Table *metatable;
