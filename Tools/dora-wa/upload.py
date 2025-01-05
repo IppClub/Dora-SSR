@@ -29,7 +29,7 @@ try:
     # Compile the WA project
     print("Compiling WA project...")
     try:
-        subprocess.run(["wa", "build", "-optimize"], check=True)
+        subprocess.run(["wa", "build", "--target", "wasi", "-optimize"], check=True)
         print("Compilation complete.")
     except subprocess.CalledProcessError as e:
         print(f"Error during compilation.")
