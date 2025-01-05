@@ -647,7 +647,7 @@ int Application::mainLogic(bx::Thread* thread, void* userData) {
 	Application* app = r_cast<Application*>(userData);
 	try {
 		return mainLogic(app);
-	} catch (const std::runtime_error& e) {
+	} catch (const std::exception& e) {
 		LogError(e.what());
 		std::abort();
 	}
