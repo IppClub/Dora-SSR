@@ -21,7 +21,6 @@ export default function prismIncludeLanguages(
 	globalThis.Prism = PrismObject;
 
 	additionalLanguages.forEach((lang) => {
-		console.log(lang);
 		switch (lang) {
 			case 'lua':
 				// eslint-disable-next-line global-require
