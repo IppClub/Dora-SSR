@@ -142,3 +142,7 @@
 	overflow: hidden;
 	text-overflow: ellipsis;
 }
+
+.footer-logo {
+	margin-top: 2em;
+}
