@@ -387,7 +387,7 @@ func test_excel_test() {
 		observer := dora.NewObserver(dora.EntityEventRemove, &[]string{"body"})
 		observer.Watch(func(stack: dora.CallStack) => bool {
 			entity := *dora.ObjectAsEntity(*stack.PopObject())
-			body_val := entity.Get("body")
+			body_val := entity.GetOld("body")
 			if body_val == nil {
 				return false
 			}

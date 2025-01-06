@@ -43,9 +43,9 @@ bool IsInLuaOrWasm();
 #define WarnIf(...) DORA_DUMMY
 #define ErrorIf(...) DORA_DUMMY
 #else
-#define Info(...) LogInfoThreaded(fmt::format(__VA_ARGS__))
-#define Warn(...) LogWarnThreaded(fmt::format(__VA_ARGS__))
-#define Error(...) LogErrorThreaded(fmt::format(__VA_ARGS__))
+#define Info(...) Dora::LogInfoThreaded(fmt::format(__VA_ARGS__))
+#define Warn(...) Dora::LogWarnThreaded(fmt::format(__VA_ARGS__))
+#define Error(...) Dora::LogErrorThreaded(fmt::format(__VA_ARGS__))
 #define InfoIf(cond, ...) \
 	if (cond) { \
 		Info(__VA_ARGS__); \

@@ -44,7 +44,7 @@ void director_schedule(int32_t func0, int64_t stack0) {
 		args0->clear();
 		args0->push(deltaTime);
 		SharedWasmRuntime.invoke(func0);
-		return std::get<bool>(args0->pop());
+		return args0->pop_bool_or(true);
 	});
 }
 void director_schedule_posted(int32_t func0, int64_t stack0) {
@@ -56,7 +56,7 @@ void director_schedule_posted(int32_t func0, int64_t stack0) {
 		args0->clear();
 		args0->push(deltaTime);
 		SharedWasmRuntime.invoke(func0);
-		return std::get<bool>(args0->pop());
+		return args0->pop_bool_or(true);
 	});
 }
 void director_push_camera(int64_t camera) {

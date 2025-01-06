@@ -20,7 +20,7 @@ int32_t physicsworld_query(int64_t self, int64_t rect, int32_t func0, int64_t st
 		args0->clear();
 		args0->push(body);
 		SharedWasmRuntime.invoke(func0);
-		return std::get<bool>(args0->pop());
+		return args0->pop_bool_or(false);
 	}) ? 1 : 0;
 }
 int32_t physicsworld_raycast(int64_t self, int64_t start, int64_t stop, int32_t closest, int32_t func0, int64_t stack0) {
@@ -34,7 +34,7 @@ int32_t physicsworld_raycast(int64_t self, int64_t start, int64_t stop, int32_t 
 		args0->push(point);
 		args0->push(normal);
 		SharedWasmRuntime.invoke(func0);
-		return std::get<bool>(args0->pop());
+		return args0->pop_bool_or(false);
 	}) ? 1 : 0;
 }
 void physicsworld_set_iterations(int64_t self, int32_t velocity_iter, int32_t position_iter) {

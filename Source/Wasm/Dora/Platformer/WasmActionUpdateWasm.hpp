@@ -22,7 +22,7 @@ int64_t platformer_wasmactionupdate_new(int32_t func0, int64_t stack0) {
 		args0->push(r_cast<int64_t>(action));
 		args0->push(deltaTime);
 		SharedWasmRuntime.invoke(func0);
-		return std::get<bool>(args0->pop());
+		return args0->pop_bool_or(true);
 	}));
 }
 } // extern "C"

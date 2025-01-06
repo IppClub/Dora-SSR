@@ -26,7 +26,7 @@ int64_t platformer_behavior_leaf_con(int64_t name, int32_t func0, int64_t stack0
 		args0->clear();
 		args0->push(r_cast<int64_t>(blackboard));
 		SharedWasmRuntime.invoke(func0);
-		return std::get<bool>(args0->pop());
+		return args0->pop_bool_or(false);
 	}));
 }
 int64_t platformer_behavior_leaf_act(int64_t action_name) {

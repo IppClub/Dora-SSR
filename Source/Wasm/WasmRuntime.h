@@ -49,6 +49,7 @@ public:
 	bool empty() const;
 	dora_val_t pop();
 	dora_val_t& front();
+	bool pop_bool_or(bool def);
 	void clear();
 
 private:
