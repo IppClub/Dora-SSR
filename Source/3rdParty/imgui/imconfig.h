@@ -176,5 +176,4 @@ namespace ImGui
 
 #define IMGUI_DISABLE_OBSOLETE_KEYIO
 #define IMGUI_DEFINE_MATH_OPERATORS
-
-#define IMGUI_DEBUG_PRINTF(_FMT,...) Dora::LogErrorThreaded(Dora::sprintf(_FMT, __VA_ARGS__))
+#define IMGUI_DEBUG_PRINTF(_FMT,...) Dora::LogErrorThreaded(Slice(Dora::sprintf(_FMT, __VA_ARGS__)).trimSpace().toString())
