@@ -137,7 +137,7 @@
 	width: 18px;
 }
 
-.navbar__item {
+.navbar__link {
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
