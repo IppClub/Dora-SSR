@@ -225,6 +225,18 @@ dora_val_t CallStack::pop() {
 	return var;
 }
 
+bool CallStack::pop_bool_or(bool def) {
+	if (_stack.empty()) {
+		return def;
+	}
+	auto var = _stack.front();
+	_stack.pop_front();
+	if (std::holds_alternative<bool>(var)) {
+		return std::get<bool>(var);
+	}
+	return def;
+}
+
 dora_val_t& CallStack::front() {
 	return _stack.front();
 }
@@ -1939,7 +1951,7 @@ void WasmRuntime::invoke(int32_t funcId) {
 		DEFER(_callFromWasm--);
 		_callFunc->call(funcId);
 	} catch (std::runtime_error& e) {
-		Error("failed to execute wasm module due to: {}{}", e.what(), _runtime->get_error_message() == Slice::Empty ? Slice::Empty : ": "s + _runtime->get_error_message());
+		Error("failed to execute wasm callback due to: {}{}", e.what(), _runtime->get_error_message() == Slice::Empty ? Slice::Empty : ": "s + _runtime->get_error_message());
 	}
 }
 

@@ -56,7 +56,7 @@ int32_t model_each_node(int64_t self, int32_t func0, int64_t stack0) {
 		args0->clear();
 		args0->push(node);
 		SharedWasmRuntime.invoke(func0);
-		return std::get<bool>(args0->pop());
+		return args0->pop_bool_or(false);
 	}) ? 1 : 0;
 }
 int64_t model_new(int64_t filename) {

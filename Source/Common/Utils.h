@@ -532,4 +532,6 @@ std::function<bool(double)> loop(const std::function<Job()>& work);
 void thread(const std::function<Job()>& work);
 void threadLoop(const std::function<Job()>& work);
 
+std::string sprintf(const char* fmt, ...);
+
 NS_DORA_END

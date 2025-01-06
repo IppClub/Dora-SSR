@@ -26,7 +26,7 @@ int64_t platformer_decision_leaf_con(int64_t name, int32_t func0, int64_t stack0
 		args0->clear();
 		args0->push(unit);
 		SharedWasmRuntime.invoke(func0);
-		return std::get<bool>(args0->pop());
+		return args0->pop_bool_or(false);
 	}));
 }
 int64_t platformer_decision_leaf_act(int64_t action_name) {
@@ -41,7 +41,7 @@ int64_t platformer_decision_leaf_act_dynamic(int32_t func0, int64_t stack0) {
 		args0->clear();
 		args0->push(unit);
 		SharedWasmRuntime.invoke(func0);
-		return std::get<std::string>(args0->pop());
+		return args0->empty() ? ""s : std::get<std::string>(args0->pop());
 	}));
 }
 int64_t platformer_decision_leaf_accept() {

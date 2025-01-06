@@ -107,7 +107,7 @@ void body_on_contact_filter(int64_t self, int32_t func0, int64_t stack0) {
 		args0->clear();
 		args0->push(body);
 		SharedWasmRuntime.invoke(func0);
-		return std::get<bool>(args0->pop());
+		return args0->pop_bool_or(false);
 	});
 }
 int64_t body_new(int64_t def, int64_t world, int64_t pos, float rot) {

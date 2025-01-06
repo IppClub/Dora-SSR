@@ -110,15 +110,17 @@ public:
 	}
 
 	void log(spdlog::level::level_enum level, const std::string& msg) {
-		_logger->log(level, msg);
+		auto m = Slice(msg).trimSpace().toString();
+		_logger->log(level, m);
 	}
 
 	void logAsync(spdlog::level::level_enum level, const std::string& msg) {
+		auto m = Slice(msg).trimSpace().toString();
 		if (Singleton<AsyncThread>::isDisposed()) {
-			_logger->log(level, msg);
+			_logger->log(level, m);
 		} else {
-			_thread->run([this, level, msg]() {
-				_logger->log(level, msg);
+			_thread->run([this, level, m]() {
+				_logger->log(level, m);
 			});
 		}
 	}

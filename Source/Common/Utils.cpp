@@ -195,4 +195,36 @@ void threadLoop(const std::function<Job()>& work) {
 	SharedDirector.getScheduler()->schedule(loop(work));
 }
 
+std::string sprintf(const char* fmt, ...) {
+	int size = 1024;
+	std::vector<char> buffer(size);
+
+	va_list args;
+	va_start(args, fmt);
+	int n = vsnprintf(buffer.data(), size, fmt, args);
+	va_end(args);
+
+	if (n < 0) {
+		// vsnprintf 失败
+		return "";
+	} else if (n < size) {
+		// 格式化后的字符串已成功放入缓冲区
+		return std::string(buffer.data(), n);
+	} else {
+		// 缓冲区不足，需要重新分配
+		size = n + 1;
+		buffer.resize(size);
+
+		va_start(args, fmt);
+		n = vsnprintf(buffer.data(), size, fmt, args);
+		va_end(args);
+
+		if (n < 0 || n >= size) {
+			return "";
+		}
+
+		return std::string(buffer.data(), n);
+	}
+}
+
 NS_DORA_END

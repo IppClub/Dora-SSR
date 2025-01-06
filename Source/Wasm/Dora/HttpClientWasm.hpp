@@ -52,7 +52,7 @@ void httpclient_download_async(int64_t url, int64_t full_path, float timeout, in
 		args0->push(current);
 		args0->push(total);
 		SharedWasmRuntime.invoke(func0);
-		return std::get<bool>(args0->pop());
+		return args0->pop_bool_or(true);
 	});
 }
 } // extern "C"

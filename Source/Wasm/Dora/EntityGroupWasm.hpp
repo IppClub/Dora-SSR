@@ -26,7 +26,7 @@ int64_t entitygroup_find(int64_t self, int32_t func0, int64_t stack0) {
 		args0->clear();
 		args0->push(e);
 		SharedWasmRuntime.invoke(func0);
-		return std::get<bool>(args0->pop());
+		return args0->pop_bool_or(false);
 	}));
 }
 int64_t entitygroup_new(int64_t components) {

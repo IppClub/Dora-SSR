@@ -265,7 +265,7 @@ object class EntityGroup @ Group
 	/// # Returns
 	///
 	/// * `Option<Entity>` - The first entity that satisfies the predicate, or None if no entity does.
-	optional Entity* find(function<bool(Entity* e)> predicate) const;
+	optional Entity* find(function<def_false bool(Entity* e)> predicate) const;
 	/// A method that creates a new group with the specified component names.
 	///
 	/// # Arguments
@@ -625,7 +625,7 @@ singleton class Content
 	/// # Returns
 	///
 	/// * `bool` - `true` if the folder was compressed successfully, `false` otherwise.
-	void zipAsync(string folderPath, string zipFile, function<bool(string file)> filter, function<void(bool success)> callback);
+	void zipAsync(string folderPath, string zipFile, function<def_false bool(string file)> filter, function<void(bool success)> callback);
 	/// Asynchronously decompresses a ZIP archive to the specified folder.
 	///
 	/// # Arguments
@@ -638,7 +638,7 @@ singleton class Content
 	/// # Returns
 	///
 	/// * `bool` - `true` if the folder was decompressed successfully, `false` otherwise.
-	void unzipAsync(string zipFile, string folderPath, function<bool(string file)> filter, function<void(bool success)> callback);
+	void unzipAsync(string zipFile, string folderPath, function<def_false bool(string file)> filter, function<void(bool success)> callback);
 
 	outside WorkBook content_wasm_load_excel @ load_excel(string filename);
 };
@@ -838,13 +838,13 @@ singleton class Director
 	/// # Arguments
 	///
 	/// * `updateFunc` - The function to call every frame.
-	outside void Director_Schedule @ schedule(function<bool(double deltaTime)> updateFunc);
+	outside void Director_Schedule @ schedule(function<def_true bool(double deltaTime)> updateFunc);
 	/// Schedule a function to be called every frame for processing post game logic.
 	///
 	/// # Arguments
 	///
 	/// * `func` - The function to call every frame.
-	outside void Director_SchedulePosted @ schedulePosted(function<bool(double deltaTime)> updateFunc);
+	outside void Director_SchedulePosted @ schedulePosted(function<def_true bool(double deltaTime)> updateFunc);
 	/// Adds a new camera to Director's camera stack and sets it to the current camera.
 	///
 	/// # Arguments
@@ -1313,7 +1313,7 @@ interface object class Node
 	/// # Arguments
 	///
 	/// * `updateFunc` - The function to be called. If the function returns `true`, it will not be called again.
-	void schedule(function<bool(double deltaTime)> updateFunc);
+	void schedule(function<def_true bool(double deltaTime)> updateFunc);
 	/// Unschedules the current node's scheduled main function.
 	void unschedule();
 	/// Converts a point from world space to node space.
@@ -1356,7 +1356,7 @@ interface object class Node
 	/// # Returns
 	///
 	/// * `bool` - `false` if all children have been visited, `true` if the iteration was interrupted by the function.
-	bool eachChild(function<bool(Node* child)> visitorFunc);
+	bool eachChild(function<def_true bool(Node* child)> visitorFunc);
 	/// Traverses the node hierarchy starting from this node and calls the given function for each visited node. The nodes without `TraverseEnabled` flag are not visited.
 	///
 	/// # Arguments
@@ -1366,7 +1366,7 @@ interface object class Node
 	/// # Returns
 	///
 	/// * `bool` - `false` if all nodes have been visited, `true` if the traversal was interrupted by the function.
-	bool traverse(function<bool(Node* child)> visitorFunc);
+	bool traverse(function<def_true bool(Node* child)> visitorFunc);
 	/// Traverses the entire node hierarchy starting from this node and calls the given function for each visited node.
 	///
 	/// # Arguments
@@ -1376,7 +1376,7 @@ interface object class Node
 	/// # Returns
 	///
 	/// * `bool` - `false` if all nodes have been visited, `true` if the traversal was interrupted by the function.
-	bool traverseAll(function<bool(Node* child)> visitorFunc);
+	bool traverseAll(function<def_true bool(Node* child)> visitorFunc);
 	/// Runs an action defined by the given action definition on this node.
 	///
 	/// # Arguments
@@ -1550,7 +1550,7 @@ interface object class Node
 	/// # Arguments
 	///
 	/// * `updateFunc` - The function to run every frame. If the function returns `true`, it will not be called again.
-	void onUpdate(function<bool(double deltaTime)> updateFunc);
+	void onUpdate(function<def_true bool(double deltaTime)> updateFunc);
 	/// Creates a new instance of the `Node` struct.
 	static Node* create();
 };
@@ -2174,7 +2174,7 @@ object class Model : public IPlayable
 	/// # Returns
 	///
 	/// * `bool` - Whether the function was called for all nodes or not.
-	bool eachNode(function<bool(Node* node)> visitorFunc);
+	bool eachNode(function<def_false bool(Node* node)> visitorFunc);
 	/// Creates a new instance of 'Model' from the specified model file.
 	///
 	/// # Arguments
@@ -2517,7 +2517,7 @@ interface object class PhysicsWorld : public INode
 	/// # Returns
 	///
 	/// * `bool` - Whether the query was interrupted. `true` means interrupted, `false` otherwise.
-	bool query(Rect rect, function<bool(Body* body)> handler);
+	bool query(Rect rect, function<def_false bool(Body* body)> handler);
 	/// Casts a ray through the physics world and finds the first body that intersects with the ray.
 	///
 	/// # Arguments
@@ -2530,7 +2530,7 @@ interface object class PhysicsWorld : public INode
 	/// # Returns
 	///
 	/// * `bool` - Whether the raycast was interrupted. `true` means interrupted, `false` otherwise.
-	bool raycast(Vec2 start, Vec2 stop, bool closest, function<bool(Body* body, Vec2 point, Vec2 normal)> handler);
+	bool raycast(Vec2 start, Vec2 stop, bool closest, function<def_false bool(Body* body, Vec2 point, Vec2 normal)> handler);
 	/// Sets the number of velocity and position iterations to perform in the physics world.
 	///
 	/// # Arguments
@@ -3003,7 +3003,7 @@ interface object class Body : public INode
 	/// # Arguments
 	///
 	/// * `filter` - The filter function to set.
-	void onContactFilter(function<bool(Body* body)> filter);
+	void onContactFilter(function<def_false bool(Body* body)> filter);
 	/// Creates a new instance of `Body`.
 	///
 	/// # Arguments
@@ -4047,7 +4047,7 @@ singleton class HttpClient
 	/// * `timeout` - The timeout in seconds for the request.
 	/// * `progress` - A callback function that is called periodically to report the download progress.
 	///   The function receives three parameters: `interrupted` (a boolean value indicating whether the download was interrupted), `current` (the number of bytes downloaded so far) and `total` (the total number of bytes to be downloaded).
-	void downloadAsync(string url, string fullPath, float timeout, function<bool(bool interrupted, uint64_t current, uint64_t total)> progress);
+	void downloadAsync(string url, string fullPath, float timeout, function<def_true bool(bool interrupted, uint64_t current, uint64_t total)> progress);
 };
 
 namespace Platformer {
@@ -4276,7 +4276,7 @@ object class Leaf @ Tree
 	/// # Returns
 	///
 	/// * `Leaf` - A new condition node.
-	static outside Platformer::Behavior::Leaf* BCon @ con(string name, function<bool(Platformer::Behavior::Blackboard blackboard)> handler);
+	static outside Platformer::Behavior::Leaf* BCon @ con(string name, function<def_false bool(Platformer::Behavior::Blackboard blackboard)> handler);
 	/// Creates a new action node that executes an action when executed.
 	/// This node will block the execution until the action finishes.
 	///
@@ -4416,7 +4416,7 @@ object class Leaf @ Tree
 	/// # Returns
 	///
 	/// * A `Leaf` node that represents a condition check.
-	static outside Platformer::Decision::Leaf* DCon @ con(string name, function<bool(Platformer::Unit* unit)> handler);
+	static outside Platformer::Decision::Leaf* DCon @ con(string name, function<def_false bool(Platformer::Unit* unit)> handler);
 	/// Creates an action node with the specified action name.
 	///
 	/// # Arguments
@@ -4531,7 +4531,7 @@ singleton class AI
 
 object class WasmActionUpdate @ ActionUpdate
 {
-	static WasmActionUpdate* create(function<bool(Platformer::Unit* owner, Platformer::UnitAction action, float deltaTime)> update);
+	static WasmActionUpdate* create(function<def_true bool(Platformer::Unit* owner, Platformer::UnitAction action, float deltaTime)> update);
 };
 
 /// A struct that represents an action that can be performed by a "Unit".
@@ -4567,7 +4567,7 @@ class UnitAction
 	/// * `stop` - A function that takes a `Unit` object and a `UnitAction` object and stops the "UnitAction".
 	static outside void Platformer_UnitAction_Add @ add(
 		string name, int priority, float reaction, float recovery, bool queued,
-		function<bool(Platformer::Unit* owner, Platformer::UnitAction action)> available,
+		function<def_false bool(Platformer::Unit* owner, Platformer::UnitAction action)> available,
 		function<Platformer::WasmActionUpdate*(Platformer::Unit* owner, Platformer::UnitAction action)> create,
 		function<void(Platformer::Unit* owner, Platformer::UnitAction action)> stop);
 };

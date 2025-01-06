@@ -53,13 +53,13 @@ void platformer_unitaction_add(int64_t name, int32_t priority, float reaction, f
 		args0->push(owner);
 		args0->push(r_cast<int64_t>(action));
 		SharedWasmRuntime.invoke(func0);
-		return std::get<bool>(args0->pop());
+		return args0->pop_bool_or(false);
 	}, [func1, args1, deref1](Platformer::Unit* owner, Platformer::UnitAction* action) {
 		args1->clear();
 		args1->push(owner);
 		args1->push(r_cast<int64_t>(action));
 		SharedWasmRuntime.invoke(func1);
-		return s_cast<Platformer::WasmActionUpdate*>(std::get<Object*>(args1->pop()));
+		return args1->empty()? Platformer::WasmActionUpdate::create([](Platformer::Unit*, Platformer::UnitAction*, float) { return true; }) : s_cast<Platformer::WasmActionUpdate*>(std::get<Object*>(args1->pop()));
 	}, [func2, args2, deref2](Platformer::Unit* owner, Platformer::UnitAction* action) {
 		args2->clear();
 		args2->push(owner);

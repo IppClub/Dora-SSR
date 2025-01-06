@@ -958,6 +958,8 @@ FieldLabel = C(P"static")^-1 * White * C(P"optional")^-1 * White * C(P"readonly"
 
 MethodLabel = C(P"static")^-1 * White * C(P"outside")^-1 * White * C(P"optional")^-1
 
+FuncLabel = C(P"def_true" + P"def_false" + P"")^-1
+
 Type = C (Indent * White * P"::" * White)^0 * Indent * (White * P"*")^-1
 
 Doc = C P"///" * (-Newline * P(1))^0
@@ -969,7 +971,7 @@ mark = (name) -> (...) -> {name, ...}
 Param = P {
 	"Param"
 	Param: V"Func" * White * Name / mark"callback" + Type * White * Name / mark"variable"
-	Func: Ct P"function<" * White * Type * White * Ct P"(" * White * (V"Param" * (White * P"," * White * V"Param")^0 * White)^-1 * P")" * White * P">"
+	Func: Ct P"function<" * White * FuncLabel * White * Type * White * Ct P"(" * White * (V"Param" * (White * P"," * White * V"Param")^0 * White)^-1 * P")" * White * P">"
 }
 
 Method = Docs * Ct(White * MethodLabel) * White * Type * White * (C(P"operator==") + Name) * White * (P"@" * White * Name + Cc false) * White * Ct(P"(" * White * (Param * (White * P"," * White * Param)^0 * White)^-1 * P")") * White * C(P"const")^-1 * White * P";" / mark"method"
@@ -1490,7 +1492,7 @@ func #{waNewName}.GetRaw() => i64 {
 									fnArgId = tostring funcArgCount
 									[_, func, fname] = arg
 									fname = toSnakeCase fname
-									[freturnType, fargs] = func
+									[flabel, freturnType, fargs] = func
 									items = for farg in *fargs
 										[fargKind, fargType, fargName] = farg
 										if fargKind ~= "variable"
@@ -1563,12 +1565,23 @@ func #{waNewName}.GetRaw() => i64 {
 										if frCppType := cppTypes[frt]
 											callbackReturn = switch freturnType
 												when "Node"
-													"\t\treturn s_cast<Node*>(std::get<Object*>(args#{fnArgId}->pop()));\n"
+													"\t\treturn args#{fnArgId}->empty() ? Node::create() : s_cast<Node*>(std::get<Object*>(args#{fnArgId}->pop()));\n"
 												when "string"
-													"\t\treturn std::get<std::string>(args#{fnArgId}->pop());\n"
+													"\t\treturn args#{fnArgId}->empty() ? \"\"s : std::get<std::string>(args#{fnArgId}->pop());\n"
 												when "Platformer::WasmActionUpdate"
-													"\t\treturn s_cast<Platformer::WasmActionUpdate*>(std::get<Object*>(args#{fnArgId}->pop()));\n"
+													defItem = "Platformer::WasmActionUpdate::create([](Platformer::Unit*, Platformer::UnitAction*, float) { return true; })"
+													"\t\treturn args#{fnArgId}->empty()? #{defItem} : s_cast<Platformer::WasmActionUpdate*>(std::get<Object*>(args#{fnArgId}->pop()));\n"
+												when "bool"
+													switch flabel
+														when "def_true"
+															"\t\treturn args#{fnArgId}->pop_bool_or(true);\n"
+														when "def_false"
+															"\t\treturn args#{fnArgId}->pop_bool_or(false);\n"
+														else
+															print "missing [def_true|def_false] for callback return in #{funcNewName}"
+															"\t\treturn args#{fnArgId}->pop_bool_or(false);\n"
 												else
+													print "callback return type \"#{freturnType}\" not handled in #{funcNewName}"
 													"\t\treturn std::get<#{freturnType}>(args#{fnArgId}->pop());\n"
 											callback = "let result = #{callback};\n\t\t\t#{frPush 'result', fnArgId}"
 											argPassed = true
@@ -1707,7 +1720,7 @@ func #{waNewName}.GetRaw() => i64 {
 								fnArgId = tostring funcArgCount
 								[_, func, fname] = arg
 								fname = toSnakeCase fname
-								[freturnType, fargs] = func
+								[flabel, freturnType, fargs] = func
 								freturnTypeName = freturnType\match "[^ \t*]+"
 								freturnName = nameMap[freturnTypeName] or freturnTypeName
 								rtpObj = getWaType freturnType, freturnName

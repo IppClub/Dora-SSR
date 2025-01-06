@@ -114,7 +114,7 @@ void content_zip_async(int64_t folder_path, int64_t zip_file, int32_t func0, int
 		args0->clear();
 		args0->push(file);
 		SharedWasmRuntime.invoke(func0);
-		return std::get<bool>(args0->pop());
+		return args0->pop_bool_or(false);
 	}, [func1, args1, deref1](bool success) {
 		args1->clear();
 		args1->push(success);
@@ -134,7 +134,7 @@ void content_unzip_async(int64_t zip_file, int64_t folder_path, int32_t func0, i
 		args0->clear();
 		args0->push(file);
 		SharedWasmRuntime.invoke(func0);
-		return std::get<bool>(args0->pop());
+		return args0->pop_bool_or(false);
 	}, [func1, args1, deref1](bool success) {
 		args1->clear();
 		args1->push(success);

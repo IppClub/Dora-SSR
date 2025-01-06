@@ -28,7 +28,7 @@ int64_t platformer_face_with_func(int32_t func0, int64_t stack0, int64_t point, 
 	return Object_From(Platformer::Face::create([func0, args0, deref0]() {
 		args0->clear();
 		SharedWasmRuntime.invoke(func0);
-		return s_cast<Node*>(std::get<Object*>(args0->pop()));
+		return args0->empty() ? Node::create() : s_cast<Node*>(std::get<Object*>(args0->pop()));
 	}, Vec2_From(point), scale, angle));
 }
 } // extern "C"

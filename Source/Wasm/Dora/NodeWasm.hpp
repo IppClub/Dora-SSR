@@ -275,7 +275,7 @@ void node_schedule(int64_t self, int32_t func0, int64_t stack0) {
 		args0->clear();
 		args0->push(deltaTime);
 		SharedWasmRuntime.invoke(func0);
-		return std::get<bool>(args0->pop());
+		return args0->pop_bool_or(true);
 	});
 }
 void node_unschedule(int64_t self) {
@@ -307,7 +307,7 @@ int32_t node_each_child(int64_t self, int32_t func0, int64_t stack0) {
 		args0->clear();
 		args0->push(child);
 		SharedWasmRuntime.invoke(func0);
-		return std::get<bool>(args0->pop());
+		return args0->pop_bool_or(true);
 	}) ? 1 : 0;
 }
 int32_t node_traverse(int64_t self, int32_t func0, int64_t stack0) {
@@ -319,7 +319,7 @@ int32_t node_traverse(int64_t self, int32_t func0, int64_t stack0) {
 		args0->clear();
 		args0->push(child);
 		SharedWasmRuntime.invoke(func0);
-		return std::get<bool>(args0->pop());
+		return args0->pop_bool_or(true);
 	}) ? 1 : 0;
 }
 int32_t node_traverse_all(int64_t self, int32_t func0, int64_t stack0) {
@@ -331,7 +331,7 @@ int32_t node_traverse_all(int64_t self, int32_t func0, int64_t stack0) {
 		args0->clear();
 		args0->push(child);
 		SharedWasmRuntime.invoke(func0);
-		return std::get<bool>(args0->pop());
+		return args0->pop_bool_or(true);
 	}) ? 1 : 0;
 }
 float node_run_action_def(int64_t self, int64_t def, int32_t looped) {
@@ -425,7 +425,7 @@ void node_on_update(int64_t self, int32_t func0, int64_t stack0) {
 		args0->clear();
 		args0->push(deltaTime);
 		SharedWasmRuntime.invoke(func0);
-		return std::get<bool>(args0->pop());
+		return args0->pop_bool_or(true);
 	});
 }
 int64_t node_new() {
