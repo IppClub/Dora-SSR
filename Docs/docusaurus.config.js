@@ -328,6 +328,15 @@ const config = {
 					],
 				},
 			],
+			logo: {
+				alt: 'Dora SSR Logo',
+				src: 'img/logo.svg',
+				href: '/',
+				width: 100,
+				height: 100,
+				target: '_self',
+				className: 'footer-logo',
+			},
 			copyright: `Copyright © ${new Date().getFullYear()} Dora SSR Community. Built with Docusaurus.`,
 		},
 		colorMode: {
