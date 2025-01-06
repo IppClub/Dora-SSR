@@ -205,13 +205,13 @@ std::string sprintf(const char* fmt, ...) {
 	va_end(args);
 
 	if (n < 0) {
-		// vsnprintf 失败
+		// vsnprintf failed
 		return "";
 	} else if (n < size) {
-		// 格式化后的字符串已成功放入缓冲区
+		// formatted string successfully placed in buffer
 		return std::string(buffer.data(), n);
 	} else {
-		// 缓冲区不足，需要重新分配
+		// buffer is not enough, need to reallocate
 		size = n + 1;
 		buffer.resize(size);
 
