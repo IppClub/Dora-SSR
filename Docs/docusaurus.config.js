@@ -260,30 +260,28 @@ const config = {
 					position: 'right',
 				},
 				{
-					type: 'localeDropdown',
-					position: 'right',
+					href: "https://github.com/ippclub/Dora-SSR",
+					position: "right",
+					className: "header-github-link",
 				},
 				{
-					label: 'Git',
+					href: "https://gitee.com/ippclub/Dora-SSR",
+					position: "right",
+					className: "header-gitee-link",
+				},
+				{
+					href: "https://atomgit.com/ippclub/Dora-SSR",
+					position: "right",
+					className: "header-atomgit-link",
+				},
+				{
+					href: "https://gitcode.com/ippclub/Dora-SSR",
+					position: "right",
+					className: "header-gitcode-link",
+				},
+				{
+					type: 'localeDropdown',
 					position: 'right',
-					items: [
-						{
-							label: 'GitHub',
-							href: 'https://github.com/ippclub/Dora-SSR',
-						},
-						{
-							label: 'AtomGit',
-							href: 'https://atomgit.com/ippclub/Dora-SSR',
-						},
-						{
-							label: 'Gitee',
-							href: 'https://gitee.com/pig/Dora-SSR',
-						},
-						{
-							label: 'GitCode',
-							href: 'https://gitcode.com/ippclub/Dora-SSR',
-						},
-					],
 				},
 			],
 		},
@@ -339,7 +337,7 @@ const config = {
 		prism: {
 			theme: lightCodeTheme,
 			darkTheme: darkCodeTheme,
-			additionalLanguages: ['bash'],
+			additionalLanguages: ['bash', 'yue', 'teal', 'lua',],
 		},
 		docs: {
 			sidebar: {

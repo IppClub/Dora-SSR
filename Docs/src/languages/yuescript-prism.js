@@ -1,7 +1,4 @@
-module.exports = yuescript
-yuescript.displayName = 'yuescript'
-yuescript.aliases = ['yue']
-function yuescript(Prism) {
+(function (Prism) {
 	Prism.languages.yuescript = {
 		comment: /--.*/,
 		string: [
@@ -60,4 +57,4 @@ function yuescript(Prism) {
 	}
 	Prism.languages.yuescript.string[1].inside.interpolation.inside.yuescript.inside = Prism.languages.yuescript
 	Prism.languages.yue = Prism.languages.yuescript
-}
+})(Prism);

@@ -1,4 +1,4 @@
---[[ Copyright (c) 2024 Jin Li, dragon-fly@qq.com
+--[[ Copyright (c) 2025 Jin Li, dragon-fly@qq.com
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -246,8 +246,6 @@ gen = (docPath, target, cn)->
 	globalEvents = {}
 	modules = {}
 
-	mdPrefix = 'import "@site/src/languages/highlight";\n\n'
-
 	files = Content\getAllFiles docPath
 	for file in *files
 		switch file
@@ -271,7 +269,7 @@ gen = (docPath, target, cn)->
 		for i = 1, #doc
 			if not doc[i]\match "```tl"
 				doc[i] = doc[i]\gsub "{", "\\{"
-		Content\save namePath, mdPrefix .. table.concat doc, "\n\n"
+		Content\save namePath, table.concat doc, "\n\n"
 
 	targetPath = Path Content.writablePath, target, "Class Object"
 
@@ -282,7 +280,7 @@ gen = (docPath, target, cn)->
 		for i = 1, #doc
 			if not doc[i]\match "```tl"
 				doc[i] = doc[i]\gsub "{", "\\{"
-		Content\save namePath, mdPrefix .. table.concat doc, "\n\n"
+		Content\save namePath, table.concat doc, "\n\n"
 
 	targetPath = Path Content.writablePath, target, "Module"
 
@@ -293,7 +291,7 @@ gen = (docPath, target, cn)->
 		for i = 1, #doc
 			if not doc[i]\match "```tl"
 				doc[i] = doc[i]\gsub "{", "\\{"
-		Content\save namePath, mdPrefix .. table.concat doc, "\n\n"
+		Content\save namePath, table.concat doc, "\n\n"
 
 	targetPath = Path Content.writablePath, target, "Node Event"
 
@@ -304,7 +302,7 @@ gen = (docPath, target, cn)->
 		for i = 1, #doc
 			if not doc[i]\match "```tl"
 				doc[i] = doc[i]\gsub "{", "\\{"
-		Content\save namePath, mdPrefix .. table.concat doc, "\n\n"
+		Content\save namePath, table.concat doc, "\n\n"
 
 	targetPath = Path Content.writablePath, target, "Global Event"
 
@@ -315,7 +313,7 @@ gen = (docPath, target, cn)->
 		for i = 1, #doc
 			if not doc[i]\match "```tl"
 				doc[i] = doc[i]\gsub "{", "\\{"
-		Content\save namePath, mdPrefix .. table.concat doc, "\n\n"
+		Content\save namePath, table.concat doc, "\n\n"
 
 docPath = Path Content.assetPath, "Script", "Lib", "Dora", "en"
 gen docPath, ".doc", false
