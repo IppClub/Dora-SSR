@@ -17,7 +17,8 @@ Dora SSR 引擎的功能丰富，主要特性包括（可点击链接前往教�
 - 支持 [Teal](https://ippclub.atomgit.net/Dora-SSR/zh-Hans/docs/tutorial/Language%20Tutorial/teal-tutorial) 语言，编译到 Lua 的静态类型语言。
 - 支持 [TypeScript](https://ippclub.atomgit.net/Dora-SSR/zh-Hans/docs/tutorial/Language%20Tutorial/Using%20TypeScript%20in%20Dora/try-tstl) 语言，一门静态类型的 JavaScript 语言的超集，添加了强大的类型检查功能。
 - 支持 [TSX](https://ippclub.atomgit.net/Dora-SSR/zh-Hans/docs/tutorial/Language%20Tutorial/using-tsx)，允许在脚本中嵌入类似 XML/HTML 的文本，与 TypeScript 一起使用。
-- 支持 [Rust](https://ippclub.atomgit.net/Dora-SSR/zh-Hans/blog/2024/4/15/rusty-game-dev) 语言，运行在内置的 WASM 绑定和 VM 上。
+- 支持 [Wa](https://wa-lang.org) 语言，一门简单、可靠、静态类型的语言，运行在内置的 [WASM 绑定](https://github.com/IppClub/Dora-SSR/tree/main/Tools/dora-wa) 和运行时上。
+- 支持 [Rust](https://ippclub.atomgit.net/Dora-SSR/zh-Hans/blog/2024/4/15/rusty-game-dev) 语言，运行在内置的 WASM 绑定和运行时上。
 - 2D [骨骼动画](https://ippclub.atomgit.net/Dora-SSR/zh-Hans/docs/tutorial/Using%20Nodes/using-playable)和[物理引擎](https://ippclub.atomgit.net/Dora-SSR/zh-Hans/docs/tutorial/Using%20Nodes/using-physics-1)支持。
 - 内置开箱即用的 Web IDE，提供文件管理，代码检查、补全、高亮和定义跳转。
 - 支持异步操作 [SQLite](https://ippclub.atomgit.net/Dora-SSR/zh-Hans/docs/tutorial/Managing%20Game%20Data/using-database)，进行大量游戏配置数据的实时查询和写入。

@@ -38,5 +38,9 @@
   "link.item.label.Example": {
     "message": "示例",
     "description": "The label of footer link with label=Example linking to /docs/example/First%20Game%20Tutorial/start"
+  },
+  "logo.alt": {
+    "message": "Dora SSR Logo",
+    "description": "The alt text of footer logo"
   }
 }

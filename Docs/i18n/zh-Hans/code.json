@@ -500,5 +500,13 @@
   "theme.blog.author.noPosts": {
     "message": "This author has not written any posts yet.",
     "description": "The text for authors with 0 blog post"
+  },
+  "engine_feature_wa_scripting_support": {
+    "message": "Wa 脚本支持",
+    "description": "The engine feature title Wa Scripting Support in front page"
+  },
+  "engine_feature_description_wa_scripting_support": {
+    "message": "Dora SSR 支持 Wa 语言，一门简单、可靠且静态类型的语言，运行在内置的 WASM 绑定和 VM 上。适合作为便捷易上手的高性能 WASM 语言开发游戏。",
+    "description": "The engine feature description Wa Scripting Support in front page"
   }
 }
