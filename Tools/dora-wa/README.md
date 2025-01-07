@@ -35,7 +35,7 @@ This repo provides language bindings and a testing project to demonstrate Wa-lan
 
     - Launch Dora SSR software and open the Web IDE in the browser.
 
-    - In the game resource tree on the left side of the Dora Web IDE, open the right-click menu of the game resource tree.
+    - In the game resource tree on the left side, open the right-click menu of the game resource tree.
 
     - Click on the menu item `New` and choose to create a new folder named `Hello`.
 
@@ -48,7 +48,9 @@ This repo provides language bindings and a testing project to demonstrate Wa-lan
       cd hello_dora
       ```
 
-    - Copy the whole module from `this-repo/vendor/dora` to `hello_dora/vendor/dora`.
+    - Change the `name` field in `hello_dora/wa.mod` to `init`.
+
+    - Copy the whole module from `this_repo/vendor/dora` to `hello_dora/vendor/dora`.
 
     - Write code in `src/main.wa`.
 
@@ -58,10 +60,13 @@ This repo provides language bindings and a testing project to demonstrate Wa-lan
         func main() {
             // create a sprite
             sprite := dora.NewSpriteWithFile("Image/logo.png")
+
             // create a root node of the game scene tree
             root := dora.NewNode()
+
             // mount the sprite to the root node of the game scene tree
             root.AddChild(sprite.Node)
+
             // receive and process tap event to move the sprite
             root.OnTapBegan(func(touch: dora.Touch) {
                 sprite.PerformDef(dora.ActionDefMoveTo(
@@ -80,9 +85,9 @@ This repo provides language bindings and a testing project to demonstrate Wa-lan
       wa build -optimize
       ```
 
-    - Upload it to engine to run. From Dora SSR Web IDE, Open the right-click menu of the game resource tree on the created folder `Hello`. Click on the menu item `Upload` and choose the compiled WASM file named `init.wasm` to upload.
+    - Upload it to engine to run. From Dora SSR Web IDE, Open the right-click menu of the game resource tree on the created folder `Hello`. Click on the menu item `Upload` and choose the compiled WASM file named `output/init.wasm` to upload.
 
-    - Or use a helper script [upload.py](https://github.com/IppClub/Dora-SSR/blob/main/Tools/dora-rust/dora-test/upload.py) with commad `python3 upload.py 192.168.3.1 Hello` inside your Wa project folder to upload WASM file. The IP address is the Dora SSR Web IDE address.
+    - Or use the helper script [upload.py](upload.py) with commad `python3 upload.py 192.168.3.1 Hello` inside your Wa project folder to upload WASM file. The IP address is the Dora SSR Web IDE address.
 
 3. Step 3: Run the game
 
@@ -98,7 +103,6 @@ This repo provides language bindings and a testing project to demonstrate Wa-lan
 
 - [Dora SSR Documentation](https://github.com/ippclub/dora-ssr)
 - [Wa-lang Documentation](https://wa-lang.org)
-- [Integration Guide](link-to-your-docs)
 
 ## Development Status
 
@@ -124,4 +128,4 @@ MIT
 
 - For Dora SSR related questions: [Dora SSR GitHub Issues](https://github.com/ippclub/dora-ssr)
 - For Wa-lang related questions: [Wa-lang GitHub Issues](https://github.com/wa-lang/wa)
-- For binding specific issues: [Create an issue in this repository]
+- For binding specific issues: Create an issue in this repository.
