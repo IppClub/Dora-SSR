@@ -17,6 +17,7 @@
 - Supports for the [Teal](https://dora-ssr.net/docs/tutorial/Language%20Tutorial/teal-tutorial) language, a statically typed dialect for Lua.
 - Supports [TypeScript](https://dora-ssr.net/docs/tutorial/Language%20Tutorial/Using%20TypeScript%20in%20Dora/try-tstl), a statically typed superset of JavaScript that adds powerful type checking.
 - Supports [TSX](https://dora-ssr.net/docs/tutorial/Language%20Tutorial/using-tsx), allows embedding XML/HTML-like text within scripts, used with TypeScript.
+- Supports the [Wa](https://wa-lang.org) language, a simple, reliable, and statically typed language running on the built-in WASM runtime with [Wa bindings](https://github.com/IppClub/Dora-SSR/tree/main/Tools/dora-wa).
 - Supports the [Rust](https://dora-ssr.net/blog/2024/4/15/rusty-game-dev) language, running on the built-in WASM runtime with Rust bindings.
 - 2D [skeletal animation](https://dora-ssr.net/docs/tutorial/Using%20Nodes/using-playable) and [physics engine](https://dora-ssr.net/docs/tutorial/Using%20Nodes/using-physics-1) support.
 - Built-in out-of-the-box Web IDE, providing file management, code inspection, completion, highlighting and definition jump.

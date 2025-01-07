@@ -15,10 +15,6 @@
     "message": "博客",
     "description": "Navbar item with label Blog"
   },
-  "item.label.GitHub": {
-    "message": "GitHub",
-    "description": "Navbar item with label GitHub"
-  },
   "item.label.Reference": {
     "message": "参考手册",
     "description": "Navbar item with label Reference"
@@ -26,21 +22,5 @@
   "item.label.Example": {
     "message": "示例",
     "description": "Navbar item with label Example"
-  },
-  "item.label.Git": {
-    "message": "Git",
-    "description": "Navbar item with label Git"
-  },
-  "item.label.AtomGit": {
-    "message": "AtomGit",
-    "description": "Navbar item with label AtomGit"
-  },
-  "item.label.Gitee": {
-    "message": "Gitee",
-    "description": "Navbar item with label Gitee"
-  },
-  "item.label.GitCode": {
-    "message": "GitCode",
-    "description": "Navbar item with label GitCode"
   }
 }

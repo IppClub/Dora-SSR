@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { JSX } from 'react';
 import clsx from 'clsx';
 import styles from './styles.module.css';
 import Translate from '@docusaurus/Translate';
@@ -9,6 +9,7 @@ const pix_toto = require('@site/static/img/pix-toto.png');
 const feature_img_one = require('@site/static/img/1.png');
 const feature_img_two = require('@site/static/img/2.png');
 const feature_img_three = require('@site/static/img/3.png');
+import WaImg from '@site/static/img/wa.svg';
 
 type FeatureItem = {
 	title: JSX.Element;
@@ -327,6 +328,23 @@ const EngineFeatureList: FeatureItem[] = [
 	{
 		title: (
 			<Translate
+				id='engine_feature_wa_scripting_support'
+				description='The engine feature title Wa Scripting Support in front page'>
+				Wa Scripting Support
+			</Translate>
+		),
+		image: <div className={styles.featureImgFixed} style={{padding: 40}}><WaImg style={{width: '100%', height: '100%'}} /></div>,
+		description: (
+			<Translate
+				id='engine_feature_description_wa_scripting_support'
+				description='The engine feature description Wa Scripting Support in front page'>
+				Dora SSR supports the Wa language, a simple, reliable, and statically typed language running on the built-in WASM runtime with Wa bindings.
+			</Translate>
+		),
+	},
+	{
+		title: (
+			<Translate
 				id='engine_feature_rust_scripting_support'
 				description='The engine feature title Rust Scripting Support in front page'>
 				Rust Scripting Support
@@ -337,7 +355,7 @@ const EngineFeatureList: FeatureItem[] = [
 			<Translate
 				id='engine_feature_description_rust_scripting_support'
 				description='The engine feature description Rust Scripting Support in front page'>
-				Dora SSR supports the Rust language, running on the built-in WASM runtime with Rust bindings.
+				Dora SSR supports the Rust language, running on the built-in WASM runtime with Rust bindings. Provides a high-performance and secure programming experience.
 			</Translate>
 		),
 	},
