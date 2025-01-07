@@ -8,19 +8,27 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #wa:import dora qlearner_type
 func qlearner_type() => i32
+
 #wa:import dora mlqlearner_update
 func mlqlearner_update(slf: i64, state: i64, action: i32, reward: f64)
+
 #wa:import dora mlqlearner_get_best_action
 func mlqlearner_get_best_action(slf: i64, state: i64) => i32
+
 #wa:import dora mlqlearner_visit_matrix
 func mlqlearner_visit_matrix(slf: i64, func0: i32, stack0: i64)
+
 #wa:import dora mlqlearner_pack
 func mlqlearner_pack(hints: i64, values: i64) => i64
+
 #wa:import dora mlqlearner_unpack
 func mlqlearner_unpack(hints: i64, state: i64) => i64
+
 #wa:import dora mlqlearner_new
 func mlqlearner_new(gamma: f64, alpha: f64, max_q: f64) => i64
-type QLearner :struct { Object }
+
+type QLearner :struct{ Object }
+
 func QLearnerFrom(raw: i64) => *QLearner {
 	if raw == 0 {
 		return nil
@@ -41,6 +49,7 @@ func ObjectAsQLearner(object: Object) => *QLearner {
 	}
 	return nil
 }
+
 /// Updates Q-value for a state-action pair based on received reward.
 ///
 /// # Arguments
@@ -51,6 +60,7 @@ func ObjectAsQLearner(object: Object) => *QLearner {
 func QLearner.Update(state: i64, action: i32, reward: f64) {
 	mlqlearner_update(*this.raw, state, action, reward)
 }
+
 /// Returns the best action for a given state based on the current Q-values.
 ///
 /// # Arguments
@@ -63,6 +73,7 @@ func QLearner.Update(state: i64, action: i32, reward: f64) {
 func QLearner.GetBestAction(state: i64) => i32 {
 	return mlqlearner_get_best_action(*this.raw, state)
 }
+
 /// Visits all state-action pairs and calls the provided handler function for each pair.
 ///
 /// # Arguments
@@ -78,6 +89,7 @@ func QLearner.VisitMatrix(handler: func(state: i64, action: i32, q: f64)) {
 	})
 	mlqlearner_visit_matrix(*this.raw, func_id0, *stack0.raw)
 }
+
 /// Constructs a state from given hints and condition values.
 ///
 /// # Arguments
@@ -91,6 +103,7 @@ func QLearner.VisitMatrix(handler: func(state: i64, action: i32, q: f64)) {
 func QLearnerPack(hints: *[]i32, values: *[]i32) => i64 {
 	return mlqlearner_pack(ToDoraI32Buf(hints), ToDoraI32Buf(values))
 }
+
 /// Deconstructs a state from given hints to get condition values.
 ///
 /// # Arguments
@@ -104,6 +117,7 @@ func QLearnerPack(hints: *[]i32, values: *[]i32) => i64 {
 func QLearnerUnpack(hints: *[]i32, state: i64) => *[]i32 {
 	return FromDoraI32Buf(mlqlearner_unpack(ToDoraI32Buf(hints), state))
 }
+
 /// Creates a new QLearner object with optional parameters for gamma, alpha, and maxQ.
 ///
 /// # Arguments

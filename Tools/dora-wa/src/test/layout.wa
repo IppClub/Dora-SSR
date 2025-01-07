@@ -6,31 +6,31 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-#wa:import dora keyboard__is_key_down
-func keyboard__is_key_down(name: i64) => i32
+import "dora"
 
-#wa:import dora keyboard__is_key_up
-func keyboard__is_key_up(name: i64) => i32
+func TestLayout() {
+	root := dora.NewAlignNode(true)
+	root.SetShowDebug(true)
 
-#wa:import dora keyboard__is_key_pressed
-func keyboard__is_key_pressed(name: i64) => i32
+	node1 := dora.NewAlignNode(false)
+	node1.Css(`
+		height: 50%;
+		margin: 10;
+		padding: 10;
+		align-items: flex-start;
+		flex-wrap: wrap;
+	`)
+	node1.SetShowDebug(true)
+	node1.AddTo(root.Node)
 
-#wa:import dora keyboard_update_ime_pos_hint
-func keyboard_update_ime_pos_hint(win_pos: i64)
-
-type _Keyboard :struct{}
-
-global Keyboard = _Keyboard{}
-
-func _Keyboard._IsKeyDown(name: string) => bool {
-	return keyboard__is_key_down(ToDoraString(name)) != 0
-}
-func _Keyboard._IsKeyUp(name: string) => bool {
-	return keyboard__is_key_up(ToDoraString(name)) != 0
-}
-func _Keyboard._IsKeyPressed(name: string) => bool {
-	return keyboard__is_key_pressed(ToDoraString(name)) != 0
-}
-func _Keyboard.UpdateImePosHint(win_pos: Vec2) {
-	keyboard_update_ime_pos_hint(win_pos.ToValue())
+	for i := 0; i < 10; i++ {
+		node := dora.NewAlignNode(false)
+		node.Css(`
+			margin: 5;
+			height: 50;
+			width: 50;
+		`)
+		node.SetShowDebug(true)
+		node.AddTo(node1.Node)
+	}
 }

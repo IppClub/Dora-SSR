@@ -8,11 +8,15 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #wa:import dora dbrecord_release
 func dbrecord_release(raw: i64)
+
 #wa:import dora dbrecord_is_valid
 func dbrecord_is_valid(slf: i64) => i32
+
 #wa:import dora dbrecord_read
 func dbrecord_read(slf: i64, record: i64) => i32
-type DBRecord :struct { raw: *i64 }
+
+type DBRecord :struct{ raw: *i64 }
+
 func DBRecord.GetRaw() => i64 {
 	return *this.raw
 }

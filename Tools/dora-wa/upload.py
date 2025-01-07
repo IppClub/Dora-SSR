@@ -16,71 +16,76 @@ from glob import glob
 import sys
 
 try:
-    # Initialize the argument parser
-    parser = argparse.ArgumentParser(description="Compile WA project and upload .wasm file to Dora SSR")
+	# Initialize the argument parser
+	parser = argparse.ArgumentParser(description="Compile WA project and upload .wasm file to Dora SSR")
 
-    # Add command line arguments
-    parser.add_argument('upload_url', type=str, help='Server IP address')
-    parser.add_argument('target_path', type=str, help='Upload target file path')
+	# Add command line arguments
+	parser.add_argument('upload_url', type=str, help='Server IP address')
+	parser.add_argument('target_path', type=str, help='Upload target file path')
 
-    # Parse command line arguments
-    args = parser.parse_args()
+	# Parse command line arguments
+	args = parser.parse_args()
 
-    # Compile the WA project
-    print("Compiling WA project...")
-    try:
-        subprocess.run(["wa", "build", "--target", "wasi", "-optimize"], check=True)
-        print("Compilation complete.")
-    except subprocess.CalledProcessError as e:
-        print(f"Error during compilation.")
-        sys.exit(1)
+	# Compile the WA project
+	print("Compiling WA project...")
+	try:
+		subprocess.run(["wa", "build", "--target", "wasi", "-optimize"], check=True)
+		print("Compilation complete.")
+	except subprocess.CalledProcessError as e:
+		print(f"Error during compilation.")
+		sys.exit(1)
 
-    # Find the latest .wasm file
-    build_directory = "output/"
-    wasm_files = glob(os.path.join(build_directory, "**/*.wasm"), recursive=True)
+	# Find the latest .wasm file
+	build_directory = "output/"
+	wasm_files = glob(os.path.join(build_directory, "**/*.wasm"), recursive=True)
 
-    if not wasm_files:
-        raise FileNotFoundError("No .wasm file found. Please check if the compilation was successful.")
+	if not wasm_files:
+		raise FileNotFoundError("No .wasm file found. Please check if the compilation was successful.")
 
-    # Assume we want to upload the latest .wasm file
-    latest_wasm_file = max(wasm_files, key=os.path.getmtime)
-    print(f"Found .wasm file: {latest_wasm_file}")
+	# Assume we want to upload the latest .wasm file
+	latest_wasm_file = max(wasm_files, key=os.path.getmtime)
+	print(f"Found .wasm file: {latest_wasm_file}")
 
-    # Construct the full URL and query parameters
-    upload_url = args.upload_url
-    target_path = args.target_path
-    url = f"http://{upload_url}:8866/upload"
-    params = {'path': args.target_path}
+	# Construct the full URL and query parameters
+	upload_url = args.upload_url
+	target_path = args.target_path
+	url = f"http://{upload_url}:8866/upload"
+	params = {'path': args.target_path}
 
-    # Send the request
-    with open(latest_wasm_file, 'rb') as f:
-        files = {'file': (os.path.basename(latest_wasm_file), f)}
-        print("Uploading .wasm file...")
-        try:
-            response = requests.post(url, params=params, files=files)
-            response.raise_for_status()
-        except requests.RequestException as e:
-            print(f"Failed to upload file.")
-            sys.exit(1)
+	# Send the request
+	with open(latest_wasm_file, 'rb') as f:
+		files = {'file': (os.path.basename(latest_wasm_file), f)}
+		print("Uploading .wasm file...")
+		try:
+			response = requests.post(url, params=params, files=files)
+			response.raise_for_status()
+		except requests.RequestException as e:
+			print(f"Failed to upload file.")
+			sys.exit(1)
 
-        print("File uploaded.")
-        try:
-            response = requests.post(f"http://{upload_url}:8866/run",
-                                     json={'file': os.path.join(args.target_path, os.path.basename(latest_wasm_file)), 'asProj': False})
-            response.raise_for_status()
-            if response.json().get("success"):
-                print("Started running.")
-            else:
-                print("Failed to run.")
-                sys.exit(1)
-        except requests.RequestException as e:
-            print(f"Error during run request.")
-            sys.exit(1)
-        except ValueError as e:
-            print(f"Invalid response format.")
-            sys.exit(1)
+		print("File uploaded.")
+		try:
+			response = requests.post(
+				f"http://{upload_url}:8866/run",
+				json={
+					'file': os.path.join(args.target_path, os.path.basename(latest_wasm_file)),
+					'asProj': False
+				}
+			)
+			response.raise_for_status()
+			if response.json().get("success"):
+				print("Started running.")
+			else:
+				print("Failed to run.")
+				sys.exit(1)
+		except requests.RequestException as e:
+			print(f"Error during run request.")
+			sys.exit(1)
+		except ValueError as e:
+			print(f"Invalid response format.")
+			sys.exit(1)
 
 except Exception as e:
-    print(f"An unexpected error occurred: {e}")
-    sys.exit(1)
+	print(f"An unexpected error occurred: {e}")
+	sys.exit(1)
 

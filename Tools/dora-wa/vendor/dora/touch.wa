@@ -8,21 +8,30 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #wa:import dora touch_type
 func touch_type() => i32
+
 #wa:import dora touch_set_enabled
-func touch_set_enabled(slf: i64, val: i32);
+func touch_set_enabled(slf: i64, val: i32)
+
 #wa:import dora touch_is_enabled
 func touch_is_enabled(slf: i64) => i32
+
 #wa:import dora touch_is_first
 func touch_is_first(slf: i64) => i32
+
 #wa:import dora touch_get_id
 func touch_get_id(slf: i64) => i32
+
 #wa:import dora touch_get_delta
 func touch_get_delta(slf: i64) => i64
+
 #wa:import dora touch_get_location
 func touch_get_location(slf: i64) => i64
+
 #wa:import dora touch_get_world_location
 func touch_get_world_location(slf: i64) => i64
-type Touch :struct { Object }
+
+type Touch :struct{ Object }
+
 func TouchFrom(raw: i64) => *Touch {
 	if raw == 0 {
 		return nil
@@ -43,30 +52,37 @@ func ObjectAsTouch(object: Object) => *Touch {
 	}
 	return nil
 }
+
 /// Sets whether touch input is enabled or not.
 func Touch.SetEnabled(val: bool) {
 	touch_set_enabled(*this.raw, ToDoraBool(val))
 }
+
 /// Gets whether touch input is enabled or not.
 func Touch.IsEnabled() => bool {
 	return touch_is_enabled(*this.raw) != 0
 }
+
 /// Gets whether this is the first touch event when multi-touches exist.
 func Touch.IsFirst() => bool {
 	return touch_is_first(*this.raw) != 0
 }
+
 /// Gets the unique identifier assigned to this touch event.
 func Touch.GetId() => i32 {
 	return touch_get_id(*this.raw)
 }
+
 /// Gets the amount and direction of movement since the last touch event.
 func Touch.GetDelta() => Vec2 {
 	return Vec2FromValue(touch_get_delta(*this.raw))
 }
+
 /// Gets the location of the touch event in the node's local coordinate system.
 func Touch.GetLocation() => Vec2 {
 	return Vec2FromValue(touch_get_location(*this.raw))
 }
+
 /// Gets the location of the touch event in the world coordinate system.
 func Touch.GetWorldLocation() => Vec2 {
 	return Vec2FromValue(touch_get_world_location(*this.raw))

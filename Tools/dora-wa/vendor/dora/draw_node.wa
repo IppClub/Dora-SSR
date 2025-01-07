@@ -8,27 +8,39 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #wa:import dora drawnode_type
 func drawnode_type() => i32
+
 #wa:import dora drawnode_set_depth_write
-func drawnode_set_depth_write(slf: i64, val: i32);
+func drawnode_set_depth_write(slf: i64, val: i32)
+
 #wa:import dora drawnode_is_depth_write
 func drawnode_is_depth_write(slf: i64) => i32
+
 #wa:import dora drawnode_set_blend_func
-func drawnode_set_blend_func(slf: i64, val: i64);
+func drawnode_set_blend_func(slf: i64, val: i64)
+
 #wa:import dora drawnode_get_blend_func
 func drawnode_get_blend_func(slf: i64) => i64
+
 #wa:import dora drawnode_draw_dot
 func drawnode_draw_dot(slf: i64, pos: i64, radius: f32, color: i32)
+
 #wa:import dora drawnode_draw_segment
 func drawnode_draw_segment(slf: i64, from: i64, to: i64, radius: f32, color: i32)
+
 #wa:import dora drawnode_draw_polygon
 func drawnode_draw_polygon(slf: i64, verts: i64, fill_color: i32, border_width: f32, border_color: i32)
+
 #wa:import dora drawnode_draw_vertices
 func drawnode_draw_vertices(slf: i64, verts: i64)
+
 #wa:import dora drawnode_clear
 func drawnode_clear(slf: i64)
+
 #wa:import dora drawnode_new
 func drawnode_new() => i64
-type DrawNode :struct { Node }
+
+type DrawNode :struct{ Node }
+
 func DrawNodeFrom(raw: i64) => *DrawNode {
 	if raw == 0 {
 		return nil
@@ -49,22 +61,27 @@ func ObjectAsDrawNode(object: Object) => *DrawNode {
 	}
 	return nil
 }
+
 /// Sets whether to write to the depth buffer when drawing (default is false).
 func DrawNode.SetDepthWrite(val: bool) {
 	drawnode_set_depth_write(*this.raw, ToDoraBool(val))
 }
+
 /// Gets whether to write to the depth buffer when drawing (default is false).
 func DrawNode.IsDepthWrite() => bool {
 	return drawnode_is_depth_write(*this.raw) != 0
 }
+
 /// Sets the blend function for the draw node.
 func DrawNode.SetBlendFunc(val: BlendFunc) {
 	drawnode_set_blend_func(*this.raw, val.ToValue())
 }
+
 /// Gets the blend function for the draw node.
 func DrawNode.GetBlendFunc() => BlendFunc {
 	return BlendFuncFrom(drawnode_get_blend_func(*this.raw))
 }
+
 /// Draws a dot at a specified position with a specified radius and color.
 ///
 /// # Arguments
@@ -75,6 +92,7 @@ func DrawNode.GetBlendFunc() => BlendFunc {
 func DrawNode.DrawDot(pos: Vec2, radius: f32, color: Color) {
 	drawnode_draw_dot(*this.raw, pos.ToValue(), radius, color.ToARGB())
 }
+
 /// Draws a line segment between two points with a specified radius and color.
 ///
 /// # Arguments
@@ -86,6 +104,7 @@ func DrawNode.DrawDot(pos: Vec2, radius: f32, color: Color) {
 func DrawNode.DrawSegment(from: Vec2, to: Vec2, radius: f32, color: Color) {
 	drawnode_draw_segment(*this.raw, from.ToValue(), to.ToValue(), radius, color.ToARGB())
 }
+
 /// Draws a polygon defined by a list of vertices with a specified fill color and border.
 ///
 /// # Arguments
@@ -97,6 +116,7 @@ func DrawNode.DrawSegment(from: Vec2, to: Vec2, radius: f32, color: Color) {
 func DrawNode.DrawPolygon(verts: *[]Vec2, fill_color: Color, border_width: f32, border_color: Color) {
 	drawnode_draw_polygon(*this.raw, ToDoraVec2Buf(verts), fill_color.ToARGB(), border_width, border_color.ToARGB())
 }
+
 /// Draws a set of vertices as triangles, each vertex with its own color.
 ///
 /// # Arguments
@@ -105,10 +125,12 @@ func DrawNode.DrawPolygon(verts: *[]Vec2, fill_color: Color, border_width: f32, 
 func DrawNode.DrawVertices(verts: *[]VertexColor) {
 	drawnode_draw_vertices(*this.raw, ToDoraVertexColorBuf(verts))
 }
+
 /// Clears all previously drawn shapes from the node.
 func DrawNode.Clear() {
 	drawnode_clear(*this.raw)
 }
+
 /// Creates a new DrawNode object.
 ///
 /// # Returns

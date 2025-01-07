@@ -8,19 +8,27 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #wa:import dora motorjoint_type
 func motorjoint_type() => i32
+
 #wa:import dora motorjoint_set_enabled
-func motorjoint_set_enabled(slf: i64, val: i32);
+func motorjoint_set_enabled(slf: i64, val: i32)
+
 #wa:import dora motorjoint_is_enabled
 func motorjoint_is_enabled(slf: i64) => i32
+
 #wa:import dora motorjoint_set_force
-func motorjoint_set_force(slf: i64, val: f32);
+func motorjoint_set_force(slf: i64, val: f32)
+
 #wa:import dora motorjoint_get_force
 func motorjoint_get_force(slf: i64) => f32
+
 #wa:import dora motorjoint_set_speed
-func motorjoint_set_speed(slf: i64, val: f32);
+func motorjoint_set_speed(slf: i64, val: f32)
+
 #wa:import dora motorjoint_get_speed
 func motorjoint_get_speed(slf: i64) => f32
-type MotorJoint :struct { Joint }
+
+type MotorJoint :struct{ Joint }
+
 func MotorJointFrom(raw: i64) => *MotorJoint {
 	if raw == 0 {
 		return nil
@@ -41,26 +49,32 @@ func ObjectAsMotorJoint(object: Object) => *MotorJoint {
 	}
 	return nil
 }
+
 /// Sets whether or not the motor joint is enabled.
 func MotorJoint.SetEnabled(val: bool) {
 	motorjoint_set_enabled(*this.raw, ToDoraBool(val))
 }
+
 /// Gets whether or not the motor joint is enabled.
 func MotorJoint.IsEnabled() => bool {
 	return motorjoint_is_enabled(*this.raw) != 0
 }
+
 /// Sets the force applied to the motor joint.
 func MotorJoint.SetForce(val: f32) {
 	motorjoint_set_force(*this.raw, val)
 }
+
 /// Gets the force applied to the motor joint.
 func MotorJoint.GetForce() => f32 {
 	return motorjoint_get_force(*this.raw)
 }
+
 /// Sets the speed of the motor joint.
 func MotorJoint.SetSpeed(val: f32) {
 	motorjoint_set_speed(*this.raw, val)
 }
+
 /// Gets the speed of the motor joint.
 func MotorJoint.GetSpeed() => f32 {
 	return motorjoint_get_speed(*this.raw)

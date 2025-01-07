@@ -8,70 +8,96 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #wa:import dora director_set_clear_color
 func director_set_clear_color(val: i32)
+
 #wa:import dora director_get_clear_color
 func director_get_clear_color() => i32
+
 #wa:import dora director_get_ui
 func director_get_ui() => i64
+
 #wa:import dora director_get_ui_3d
 func director_get_ui_3d() => i64
+
 #wa:import dora director_get_entry
 func director_get_entry() => i64
+
 #wa:import dora director_get_post_node
 func director_get_post_node() => i64
+
 #wa:import dora director_get_current_camera
 func director_get_current_camera() => i64
+
 #wa:import dora director_set_frustum_culling
 func director_set_frustum_culling(val: i32)
+
 #wa:import dora director_is_frustum_culling
 func director_is_frustum_culling() => i32
+
 #wa:import dora director_schedule
 func director_schedule(func0: i32, stack0: i64)
+
 #wa:import dora director_schedule_posted
 func director_schedule_posted(func0: i32, stack0: i64)
+
 #wa:import dora director_push_camera
 func director_push_camera(camera: i64)
+
 #wa:import dora director_pop_camera
 func director_pop_camera()
+
 #wa:import dora director_remove_camera
 func director_remove_camera(camera: i64) => i32
+
 #wa:import dora director_clear_camera
 func director_clear_camera()
+
 #wa:import dora director_cleanup
 func director_cleanup()
-type _Director :struct { }
+
+type _Director :struct{}
+
 global Director = _Director{}
+
 /// Sets the background color for the game world.
 func _Director.SetClearColor(val: Color) {
 	director_set_clear_color(val.ToARGB())
 }
+
 /// Gets the background color for the game world.
 func _Director.GetClearColor() => Color {
 	return NewColor(director_get_clear_color())
 }
+
 /// Gets the root node for 2D user interface elements like buttons and labels.
 func _Director.GetUi() => Node {
 	return *NodeFrom(director_get_ui())
 }
+
 /// Gets the root node for 3D user interface elements with 3D projection effect.
 func _Director.GetUi_3d() => Node {
 	return *NodeFrom(director_get_ui_3d())
 }
+
 /// Gets the root node for the starting point of a game.
 func _Director.GetEntry() => Node {
 	return *NodeFrom(director_get_entry())
 }
+
 /// Gets the root node for post-rendering scene tree.
 func _Director.GetPostNode() => Node {
 	return *NodeFrom(director_get_post_node())
 }
+
 /// Gets the current active camera in Director's camera stack.
 func _Director.GetCurrentCamera() => Camera {
 	return *CameraFrom(director_get_current_camera())
 }
+
 /// Sets whether or not to enable frustum culling.
 func _Director.SetFrustumCulling(val: bool) {
 	director_set_frustum_culling(ToDoraBool(val))
 }
+
 /// Gets whether or not to enable frustum culling.
 func _Director.IsFrustumCulling() => bool {
 	return director_is_frustum_culling() != 0

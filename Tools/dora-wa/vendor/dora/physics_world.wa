@@ -8,23 +8,33 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #wa:import dora physicsworld_type
 func physicsworld_type() => i32
+
 #wa:import dora physicsworld_query
 func physicsworld_query(slf: i64, rect: i64, func0: i32, stack0: i64) => i32
+
 #wa:import dora physicsworld_raycast
 func physicsworld_raycast(slf: i64, start: i64, stop: i64, closest: i32, func0: i32, stack0: i64) => i32
+
 #wa:import dora physicsworld_set_iterations
 func physicsworld_set_iterations(slf: i64, velocity_iter: i32, position_iter: i32)
+
 #wa:import dora physicsworld_set_should_contact
 func physicsworld_set_should_contact(slf: i64, group_a: i32, group_b: i32, contact: i32)
+
 #wa:import dora physicsworld_get_should_contact
 func physicsworld_get_should_contact(slf: i64, group_a: i32, group_b: i32) => i32
+
 #wa:import dora physicsworld_set_scale_factor
-func physicsworld_set_scale_factor(val: f32);
+func physicsworld_set_scale_factor(val: f32)
+
 #wa:import dora physicsworld_get_scale_factor
 func physicsworld_get_scale_factor() => f32
+
 #wa:import dora physicsworld_new
 func physicsworld_new() => i64
-type PhysicsWorld :struct { Node }
+
+type PhysicsWorld :struct{ Node }
+
 func PhysicsWorldFrom(raw: i64) => *PhysicsWorld {
 	if raw == 0 {
 		return nil
@@ -45,6 +55,7 @@ func ObjectAsPhysicsWorld(object: Object) => *PhysicsWorld {
 	}
 	return nil
 }
+
 /// Queries the physics world for all bodies that intersect with the specified rectangle.
 ///
 /// # Arguments
@@ -66,6 +77,7 @@ func PhysicsWorld.Query(rect: Rect, handler: func(body: Body) => bool) => bool {
 	})
 	return physicsworld_query(*this.raw, rect.GetRaw(), func_id0, *stack0.raw) != 0
 }
+
 /// Casts a ray through the physics world and finds the first body that intersects with the ray.
 ///
 /// # Arguments
@@ -91,6 +103,7 @@ func PhysicsWorld.Raycast(start: Vec2, stop: Vec2, closest: bool, handler: func(
 	})
 	return physicsworld_raycast(*this.raw, start.ToValue(), stop.ToValue(), ToDoraBool(closest), func_id0, *stack0.raw) != 0
 }
+
 /// Sets the number of velocity and position iterations to perform in the physics world.
 ///
 /// # Arguments
@@ -100,6 +113,7 @@ func PhysicsWorld.Raycast(start: Vec2, stop: Vec2, closest: bool, handler: func(
 func PhysicsWorld.SetIterations(velocity_iter: i32, position_iter: i32) {
 	physicsworld_set_iterations(*this.raw, velocity_iter, position_iter)
 }
+
 /// Sets whether two physics groups should make contact with each other or not.
 ///
 /// # Arguments
@@ -110,6 +124,7 @@ func PhysicsWorld.SetIterations(velocity_iter: i32, position_iter: i32) {
 func PhysicsWorld.SetShouldContact(group_a: i32, group_b: i32, contact: bool) {
 	physicsworld_set_should_contact(*this.raw, group_a, group_b, ToDoraBool(contact))
 }
+
 /// Gets whether two physics groups should make contact with each other or not.
 ///
 /// # Arguments
@@ -123,6 +138,7 @@ func PhysicsWorld.SetShouldContact(group_a: i32, group_b: i32, contact: bool) {
 func PhysicsWorld.GetShouldContact(group_a: i32, group_b: i32) => bool {
 	return physicsworld_get_should_contact(*this.raw, group_a, group_b) != 0
 }
+
 /// Sets the factor used for converting physics engine meters value to pixel value.
 /// Default 100.0 is a good value since the physics engine can well simulate real life objects
 /// between 0.1 to 10 meters. Use value 100.0 we can simulate game objects
@@ -131,6 +147,7 @@ func PhysicsWorld.GetShouldContact(group_a: i32, group_b: i32) => bool {
 func PhysicsWorldSetScaleFactor(val: f32) {
 	physicsworld_set_scale_factor(val)
 }
+
 /// Gets the factor used for converting physics engine meters value to pixel value.
 /// Default 100.0 is a good value since the physics engine can well simulate real life objects
 /// between 0.1 to 10 meters. Use value 100.0 we can simulate game objects
@@ -139,6 +156,7 @@ func PhysicsWorldSetScaleFactor(val: f32) {
 func PhysicsWorldGetScaleFactor() => f32 {
 	return physicsworld_get_scale_factor()
 }
+
 /// Creates a new `PhysicsWorld` object.
 ///
 /// # Returns

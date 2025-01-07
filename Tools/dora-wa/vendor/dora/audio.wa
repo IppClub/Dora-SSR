@@ -8,14 +8,20 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #wa:import dora audio_play
 func audio_play(filename: i64, looping: i32) => i32
+
 #wa:import dora audio_stop
 func audio_stop(handle: i32)
+
 #wa:import dora audio_play_stream
 func audio_play_stream(filename: i64, looping: i32, cross_fade_time: f32)
+
 #wa:import dora audio_stop_stream
 func audio_stop_stream(fade_time: f32)
-type _Audio :struct { }
+
+type _Audio :struct{}
+
 global Audio = _Audio{}
+
 func _Audio.Play(filename: string, looping: bool) => i32 {
 	return audio_play(ToDoraString(filename), ToDoraBool(looping))
 }

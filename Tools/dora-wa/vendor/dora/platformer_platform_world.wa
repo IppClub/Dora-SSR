@@ -8,29 +8,42 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #wa:import dora platformer_platformworld_type
 func platformer_platformworld_type() => i32
+
 #wa:import dora platformer_platformworld_get_camera
 func platformer_platformworld_get_camera(slf: i64) => i64
+
 #wa:import dora platformer_platformworld_move_child
 func platformer_platformworld_move_child(slf: i64, child: i64, new_order: i32)
+
 #wa:import dora platformer_platformworld_get_layer
 func platformer_platformworld_get_layer(slf: i64, order: i32) => i64
+
 #wa:import dora platformer_platformworld_set_layer_ratio
 func platformer_platformworld_set_layer_ratio(slf: i64, order: i32, ratio: i64)
+
 #wa:import dora platformer_platformworld_get_layer_ratio
 func platformer_platformworld_get_layer_ratio(slf: i64, order: i32) => i64
+
 #wa:import dora platformer_platformworld_set_layer_offset
 func platformer_platformworld_set_layer_offset(slf: i64, order: i32, offset: i64)
+
 #wa:import dora platformer_platformworld_get_layer_offset
 func platformer_platformworld_get_layer_offset(slf: i64, order: i32) => i64
+
 #wa:import dora platformer_platformworld_swap_layer
 func platformer_platformworld_swap_layer(slf: i64, order_a: i32, order_b: i32)
+
 #wa:import dora platformer_platformworld_remove_layer
 func platformer_platformworld_remove_layer(slf: i64, order: i32)
+
 #wa:import dora platformer_platformworld_remove_all_layers
 func platformer_platformworld_remove_all_layers(slf: i64)
+
 #wa:import dora platformer_platformworld_new
 func platformer_platformworld_new() => i64
-type PlatformerPlatformWorld :struct { PhysicsWorld }
+
+type PlatformerPlatformWorld :struct{ PhysicsWorld }
+
 func PlatformerPlatformWorldFrom(raw: i64) => *PlatformerPlatformWorld {
 	if raw == 0 {
 		return nil
@@ -51,10 +64,12 @@ func ObjectAsPlatformerPlatformWorld(object: Object) => *PlatformerPlatformWorld
 	}
 	return nil
 }
+
 /// Gets the camera used to control the view of the game world.
 func PlatformerPlatformWorld.GetCamera() => PlatformerPlatformCamera {
 	return *PlatformerPlatformCameraFrom(platformer_platformworld_get_camera(*this.raw))
 }
+
 /// Moves a child node to a new order for a different layer.
 ///
 /// # Arguments
@@ -64,6 +79,7 @@ func PlatformerPlatformWorld.GetCamera() => PlatformerPlatformCamera {
 func PlatformerPlatformWorld.MoveChild(child: Node, new_order: i32) {
 	platformer_platformworld_move_child(*this.raw, child.GetRaw(), new_order)
 }
+
 /// Gets the layer node at a given order.
 ///
 /// # Arguments
@@ -76,6 +92,7 @@ func PlatformerPlatformWorld.MoveChild(child: Node, new_order: i32) {
 func PlatformerPlatformWorld.GetLayer(order: i32) => Node {
 	return *NodeFrom(platformer_platformworld_get_layer(*this.raw, order))
 }
+
 /// Sets the parallax moving ratio for a given layer to simulate 3D projection effect.
 ///
 /// # Arguments
@@ -85,6 +102,7 @@ func PlatformerPlatformWorld.GetLayer(order: i32) => Node {
 func PlatformerPlatformWorld.SetLayerRatio(order: i32, ratio: Vec2) {
 	platformer_platformworld_set_layer_ratio(*this.raw, order, ratio.ToValue())
 }
+
 /// Gets the parallax moving ratio for a given layer.
 ///
 /// # Arguments
@@ -97,6 +115,7 @@ func PlatformerPlatformWorld.SetLayerRatio(order: i32, ratio: Vec2) {
 func PlatformerPlatformWorld.GetLayerRatio(order: i32) => Vec2 {
 	return Vec2FromValue(platformer_platformworld_get_layer_ratio(*this.raw, order))
 }
+
 /// Sets the position offset for a given layer.
 ///
 /// # Arguments
@@ -106,6 +125,7 @@ func PlatformerPlatformWorld.GetLayerRatio(order: i32) => Vec2 {
 func PlatformerPlatformWorld.SetLayerOffset(order: i32, offset: Vec2) {
 	platformer_platformworld_set_layer_offset(*this.raw, order, offset.ToValue())
 }
+
 /// Gets the position offset for a given layer.
 ///
 /// # Arguments
@@ -118,6 +138,7 @@ func PlatformerPlatformWorld.SetLayerOffset(order: i32, offset: Vec2) {
 func PlatformerPlatformWorld.GetLayerOffset(order: i32) => Vec2 {
 	return Vec2FromValue(platformer_platformworld_get_layer_offset(*this.raw, order))
 }
+
 /// Swaps the positions of two layers.
 ///
 /// # Arguments
@@ -127,6 +148,7 @@ func PlatformerPlatformWorld.GetLayerOffset(order: i32) => Vec2 {
 func PlatformerPlatformWorld.SwapLayer(order_a: i32, order_b: i32) {
 	platformer_platformworld_swap_layer(*this.raw, order_a, order_b)
 }
+
 /// Removes a layer from the game world.
 ///
 /// # Arguments
@@ -135,10 +157,12 @@ func PlatformerPlatformWorld.SwapLayer(order_a: i32, order_b: i32) {
 func PlatformerPlatformWorld.RemoveLayer(order: i32) {
 	platformer_platformworld_remove_layer(*this.raw, order)
 }
+
 /// Removes all layers from the game world.
 func PlatformerPlatformWorld.RemoveAllLayers() {
 	platformer_platformworld_remove_all_layers(*this.raw)
 }
+
 /// The method to create a new instance of `PlatformWorld`.
 ///
 /// # Returns

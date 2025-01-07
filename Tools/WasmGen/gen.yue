@@ -1857,8 +1857,8 @@ func #{waNewName}.GetRaw() => i64 {
 			\write table.concat waExtern, "\n"
 			\write "\n"
 			\write table.concat waBinding, "\n"
-		--close _f4 = with io.popen "wa fmt #{waFile}"
-		--	\read "*a"
+		close _f4 = with io.popen "wa fmt #{waFile}"
+			\read "*a"
 		rustExtern = []
 		rustBinding = []
 		waExtern = []

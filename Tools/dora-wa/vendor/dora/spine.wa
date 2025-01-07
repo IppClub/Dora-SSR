@@ -8,25 +8,36 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #wa:import dora spine_type
 func spine_type() => i32
+
 #wa:import dora spine_set_hit_test_enabled
-func spine_set_hit_test_enabled(slf: i64, val: i32);
+func spine_set_hit_test_enabled(slf: i64, val: i32)
+
 #wa:import dora spine_is_hit_test_enabled
 func spine_is_hit_test_enabled(slf: i64) => i32
+
 #wa:import dora spine_set_bone_rotation
 func spine_set_bone_rotation(slf: i64, name: i64, rotation: f32) => i32
+
 #wa:import dora spine_contains_point
 func spine_contains_point(slf: i64, x: f32, y: f32) => i64
+
 #wa:import dora spine_intersects_segment
 func spine_intersects_segment(slf: i64, x_1: f32, y_1: f32, x_2: f32, y_2: f32) => i64
+
 #wa:import dora spine_with_files
 func spine_with_files(skel_file: i64, atlas_file: i64) => i64
+
 #wa:import dora spine_new
 func spine_new(spine_str: i64) => i64
+
 #wa:import dora spine_get_looks
 func spine_get_looks(spine_str: i64) => i64
+
 #wa:import dora spine_get_animations
 func spine_get_animations(spine_str: i64) => i64
-type Spine :struct { Playable }
+
+type Spine :struct{ Playable }
+
 func SpineFrom(raw: i64) => *Spine {
 	if raw == 0 {
 		return nil
@@ -47,14 +58,17 @@ func ObjectAsSpine(object: Object) => *Spine {
 	}
 	return nil
 }
+
 /// Sets whether hit testing is enabled.
 func Spine.SetHitTestEnabled(val: bool) {
 	spine_set_hit_test_enabled(*this.raw, ToDoraBool(val))
 }
+
 /// Gets whether hit testing is enabled.
 func Spine.IsHitTestEnabled() => bool {
 	return spine_is_hit_test_enabled(*this.raw) != 0
 }
+
 /// Sets the rotation of a bone in the Spine skeleton.
 ///
 /// # Arguments
@@ -68,6 +82,7 @@ func Spine.IsHitTestEnabled() => bool {
 func Spine.SetBoneRotation(name: string, rotation: f32) => bool {
 	return spine_set_bone_rotation(*this.raw, ToDoraString(name), rotation) != 0
 }
+
 /// Checks if a point in space is inside the boundaries of the Spine skeleton.
 ///
 /// # Arguments
@@ -81,6 +96,7 @@ func Spine.SetBoneRotation(name: string, rotation: f32) => bool {
 func Spine.ContainsPoint(x: f32, y: f32) => string {
 	return FromDoraString(spine_contains_point(*this.raw, x, y))
 }
+
 /// Checks if a line segment intersects the boundaries of the instance and returns the name of the bone or slot at the intersection point, or `None` if no bone or slot is found.
 ///
 /// # Arguments
@@ -96,6 +112,7 @@ func Spine.ContainsPoint(x: f32, y: f32) => string {
 func Spine.IntersectsSegment(x_1: f32, y_1: f32, x_2: f32, y_2: f32) => string {
 	return FromDoraString(spine_intersects_segment(*this.raw, x_1, y_1, x_2, y_2))
 }
+
 /// Creates a new instance of 'Spine' using the specified skeleton file and atlas file.
 ///
 /// # Arguments
@@ -116,6 +133,7 @@ func NewSpineWithFiles(skel_file: string, atlas_file: string) => *Spine {
 	setFinalizer(object.raw, ObjectFinalizer)
 	return &object
 }
+
 /// Creates a new instance of 'Spine' using the specified Spine string.
 ///
 /// # Arguments
@@ -135,6 +153,7 @@ func NewSpine(spine_str: string) => *Spine {
 	setFinalizer(object.raw, ObjectFinalizer)
 	return &object
 }
+
 /// Returns a list of available looks for the specified Spine2D file string.
 ///
 /// # Arguments
@@ -147,6 +166,7 @@ func NewSpine(spine_str: string) => *Spine {
 func SpineGetLooks(spine_str: string) => *[]string {
 	return FromDoraStrBuf(spine_get_looks(ToDoraString(spine_str)))
 }
+
 /// Returns a list of available animations for the specified Spine2D file string.
 ///
 /// # Arguments

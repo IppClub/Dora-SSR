@@ -8,15 +8,21 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #wa:import dora dictionary_type
 func dictionary_type() => i32
+
 #wa:import dora dictionary_get_count
 func dictionary_get_count(slf: i64) => i32
+
 #wa:import dora dictionary_get_keys
 func dictionary_get_keys(slf: i64) => i64
+
 #wa:import dora dictionary_clear
 func dictionary_clear(slf: i64)
+
 #wa:import dora dictionary_new
 func dictionary_new() => i64
-type Dictionary :struct { Object }
+
+type Dictionary :struct{ Object }
+
 func DictionaryFrom(raw: i64) => *Dictionary {
 	if raw == 0 {
 		return nil
@@ -37,18 +43,22 @@ func ObjectAsDictionary(object: Object) => *Dictionary {
 	}
 	return nil
 }
+
 /// Gets the number of items in the dictionary.
 func Dictionary.GetCount() => i32 {
 	return dictionary_get_count(*this.raw)
 }
+
 /// Gets the keys of the items in the dictionary.
 func Dictionary.GetKeys() => *[]string {
 	return FromDoraStrBuf(dictionary_get_keys(*this.raw))
 }
+
 /// Removes all the items from the dictionary.
 func Dictionary.Clear() {
 	dictionary_clear(*this.raw)
 }
+
 /// Creates instance of the "Dictionary".
 func NewDictionary() => Dictionary {
 	raw := dictionary_new()

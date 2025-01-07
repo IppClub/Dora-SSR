@@ -8,17 +8,24 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #wa:import dora vertexcolor_release
 func vertexcolor_release(raw: i64)
+
 #wa:import dora vertexcolor_set_vertex
-func vertexcolor_set_vertex(slf: i64, val: i64);
+func vertexcolor_set_vertex(slf: i64, val: i64)
+
 #wa:import dora vertexcolor_get_vertex
 func vertexcolor_get_vertex(slf: i64) => i64
+
 #wa:import dora vertexcolor_set_color
-func vertexcolor_set_color(slf: i64, val: i32);
+func vertexcolor_set_color(slf: i64, val: i32)
+
 #wa:import dora vertexcolor_get_color
 func vertexcolor_get_color(slf: i64) => i32
+
 #wa:import dora vertexcolor_new
 func vertexcolor_new(vec: i64, color: i32) => i64
-type VertexColor :struct { raw: *i64 }
+
+type VertexColor :struct{ raw: *i64 }
+
 func VertexColor.GetRaw() => i64 {
 	return *this.raw
 }

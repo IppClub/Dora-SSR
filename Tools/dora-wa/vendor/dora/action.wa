@@ -8,29 +8,42 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #wa:import dora action_type
 func action_type() => i32
+
 #wa:import dora action_get_duration
 func action_get_duration(slf: i64) => f32
+
 #wa:import dora action_is_running
 func action_is_running(slf: i64) => i32
+
 #wa:import dora action_is_paused
 func action_is_paused(slf: i64) => i32
+
 #wa:import dora action_set_reversed
-func action_set_reversed(slf: i64, val: i32);
+func action_set_reversed(slf: i64, val: i32)
+
 #wa:import dora action_is_reversed
 func action_is_reversed(slf: i64) => i32
+
 #wa:import dora action_set_speed
-func action_set_speed(slf: i64, val: f32);
+func action_set_speed(slf: i64, val: f32)
+
 #wa:import dora action_get_speed
 func action_get_speed(slf: i64) => f32
+
 #wa:import dora action_pause
 func action_pause(slf: i64)
+
 #wa:import dora action_resume
 func action_resume(slf: i64)
+
 #wa:import dora action_update_to
 func action_update_to(slf: i64, elapsed: f32, reversed: i32)
+
 #wa:import dora action_new
 func action_new(def: i64) => i64
-type Action :struct { Object }
+
+type Action :struct{ Object }
+
 func ActionFrom(raw: i64) => *Action {
 	if raw == 0 {
 		return nil
@@ -51,44 +64,54 @@ func ObjectAsAction(object: Object) => *Action {
 	}
 	return nil
 }
+
 /// Gets the duration of the action.
 func Action.GetDuration() => f32 {
 	return action_get_duration(*this.raw)
 }
+
 /// Gets whether the action is currently running.
 func Action.IsRunning() => bool {
 	return action_is_running(*this.raw) != 0
 }
+
 /// Gets whether the action is currently paused.
 func Action.IsPaused() => bool {
 	return action_is_paused(*this.raw) != 0
 }
+
 /// Sets whether the action should be run in reverse.
 func Action.SetReversed(val: bool) {
 	action_set_reversed(*this.raw, ToDoraBool(val))
 }
+
 /// Gets whether the action should be run in reverse.
 func Action.IsReversed() => bool {
 	return action_is_reversed(*this.raw) != 0
 }
+
 /// Sets the speed at which the action should be run.
 /// Set to 1.0 to get normal speed, Set to 2.0 to get two times faster.
 func Action.SetSpeed(val: f32) {
 	action_set_speed(*this.raw, val)
 }
+
 /// Gets the speed at which the action should be run.
 /// Set to 1.0 to get normal speed, Set to 2.0 to get two times faster.
 func Action.GetSpeed() => f32 {
 	return action_get_speed(*this.raw)
 }
+
 /// Pauses the action.
 func Action.Pause() {
 	action_pause(*this.raw)
 }
+
 /// Resumes the action.
 func Action.Resume() {
 	action_resume(*this.raw)
 }
+
 /// Updates the state of the Action.
 ///
 /// # Arguments
@@ -98,6 +121,7 @@ func Action.Resume() {
 func Action.UpdateTo(elapsed: f32, reversed: bool) {
 	action_update_to(*this.raw, elapsed, ToDoraBool(reversed))
 }
+
 /// Creates a new Action object.
 ///
 /// # Arguments

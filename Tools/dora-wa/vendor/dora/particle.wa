@@ -8,15 +8,21 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #wa:import dora particle_type
 func particle_type() => i32
+
 #wa:import dora particlenode_is_active
 func particlenode_is_active(slf: i64) => i32
+
 #wa:import dora particlenode_start
 func particlenode_start(slf: i64)
+
 #wa:import dora particlenode_stop
 func particlenode_stop(slf: i64)
+
 #wa:import dora particlenode_new
 func particlenode_new(filename: i64) => i64
-type Particle :struct { Node }
+
+type Particle :struct{ Node }
+
 func ParticleFrom(raw: i64) => *Particle {
 	if raw == 0 {
 		return nil
@@ -37,18 +43,22 @@ func ObjectAsParticle(object: Object) => *Particle {
 	}
 	return nil
 }
+
 /// Gets whether the particle system is active.
 func Particle.IsActive() => bool {
 	return particlenode_is_active(*this.raw) != 0
 }
+
 /// Starts emitting particles.
 func Particle.Start() {
 	particlenode_start(*this.raw)
 }
+
 /// Stops emitting particles and wait for all active particles to end their lives.
 func Particle.Stop() {
 	particlenode_stop(*this.raw)
 }
+
 /// Creates a new Particle object from a particle system file.
 ///
 /// # Arguments

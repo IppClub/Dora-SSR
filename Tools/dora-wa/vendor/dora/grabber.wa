@@ -8,33 +8,48 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #wa:import dora grabber_type
 func grabber_type() => i32
+
 #wa:import dora grabber_set_camera
-func grabber_set_camera(slf: i64, val: i64);
+func grabber_set_camera(slf: i64, val: i64)
+
 #wa:import dora grabber_get_camera
 func grabber_get_camera(slf: i64) => i64
+
 #wa:import dora grabber_set_effect
-func grabber_set_effect(slf: i64, val: i64);
+func grabber_set_effect(slf: i64, val: i64)
+
 #wa:import dora grabber_get_effect
 func grabber_get_effect(slf: i64) => i64
+
 #wa:import dora grabber_set_blend_func
-func grabber_set_blend_func(slf: i64, val: i64);
+func grabber_set_blend_func(slf: i64, val: i64)
+
 #wa:import dora grabber_get_blend_func
 func grabber_get_blend_func(slf: i64) => i64
+
 #wa:import dora grabber_set_clear_color
-func grabber_set_clear_color(slf: i64, val: i32);
+func grabber_set_clear_color(slf: i64, val: i32)
+
 #wa:import dora grabber_get_clear_color
 func grabber_get_clear_color(slf: i64) => i32
+
 #wa:import dora grabber_set_pos
 func grabber_set_pos(slf: i64, x: i32, y: i32, pos: i64, z: f32)
+
 #wa:import dora grabber_get_pos
 func grabber_get_pos(slf: i64, x: i32, y: i32) => i64
+
 #wa:import dora grabber_set_color
 func grabber_set_color(slf: i64, x: i32, y: i32, color: i32)
+
 #wa:import dora grabber_get_color
 func grabber_get_color(slf: i64, x: i32, y: i32) => i32
+
 #wa:import dora grabber_move_uv
 func grabber_move_uv(slf: i64, x: i32, y: i32, offset: i64)
-type Grabber :struct { Object }
+
+type Grabber :struct{ Object }
+
 func GrabberFrom(raw: i64) => *Grabber {
 	if raw == 0 {
 		return nil
@@ -55,10 +70,12 @@ func ObjectAsGrabber(object: Object) => *Grabber {
 	}
 	return nil
 }
+
 /// Sets the camera used to render the texture.
 func Grabber.SetCamera(val: Camera) {
 	grabber_set_camera(*this.raw, val.GetRaw())
 }
+
 /// Gets the camera used to render the texture.
 func Grabber.GetCamera() => *Camera {
 	ptr_ := grabber_get_camera(*this.raw)
@@ -68,10 +85,12 @@ func Grabber.GetCamera() => *Camera {
 	obj_ := *CameraFrom(ptr_)
 	return &obj_
 }
+
 /// Sets the sprite effect applied to the texture.
 func Grabber.SetEffect(val: SpriteEffect) {
 	grabber_set_effect(*this.raw, val.GetRaw())
 }
+
 /// Gets the sprite effect applied to the texture.
 func Grabber.GetEffect() => *SpriteEffect {
 	ptr_ := grabber_get_effect(*this.raw)
@@ -81,22 +100,27 @@ func Grabber.GetEffect() => *SpriteEffect {
 	obj_ := *SpriteEffectFrom(ptr_)
 	return &obj_
 }
+
 /// Sets the blend function for the grabber.
 func Grabber.SetBlendFunc(val: BlendFunc) {
 	grabber_set_blend_func(*this.raw, val.ToValue())
 }
+
 /// Gets the blend function for the grabber.
 func Grabber.GetBlendFunc() => BlendFunc {
 	return BlendFuncFrom(grabber_get_blend_func(*this.raw))
 }
+
 /// Sets the clear color used to clear the texture.
 func Grabber.SetClearColor(val: Color) {
 	grabber_set_clear_color(*this.raw, val.ToARGB())
 }
+
 /// Gets the clear color used to clear the texture.
 func Grabber.GetClearColor() => Color {
 	return NewColor(grabber_get_clear_color(*this.raw))
 }
+
 /// Sets the position of a vertex in the grabber grid.
 ///
 /// # Arguments
@@ -108,6 +132,7 @@ func Grabber.GetClearColor() => Color {
 func Grabber.SetPos(x: i32, y: i32, pos: Vec2, z: f32) {
 	grabber_set_pos(*this.raw, x, y, pos.ToValue(), z)
 }
+
 /// Gets the position of a vertex in the grabber grid.
 ///
 /// # Arguments
@@ -121,6 +146,7 @@ func Grabber.SetPos(x: i32, y: i32, pos: Vec2, z: f32) {
 func Grabber.GetPos(x: i32, y: i32) => Vec2 {
 	return Vec2FromValue(grabber_get_pos(*this.raw, x, y))
 }
+
 /// Sets the color of a vertex in the grabber grid.
 ///
 /// # Arguments
@@ -131,6 +157,7 @@ func Grabber.GetPos(x: i32, y: i32) => Vec2 {
 func Grabber.SetColor(x: i32, y: i32, color: Color) {
 	grabber_set_color(*this.raw, x, y, color.ToARGB())
 }
+
 /// Gets the color of a vertex in the grabber grid.
 ///
 /// # Arguments
@@ -144,6 +171,7 @@ func Grabber.SetColor(x: i32, y: i32, color: Color) {
 func Grabber.GetColor(x: i32, y: i32) => Color {
 	return NewColor(grabber_get_color(*this.raw, x, y))
 }
+
 /// Sets the UV coordinates of a vertex in the grabber grid.
 ///
 /// # Arguments

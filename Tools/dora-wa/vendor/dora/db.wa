@@ -8,30 +8,44 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #wa:import dora db_exist
 func db_exist(table_name: i64) => i32
+
 #wa:import dora db_exist_schema
 func db_exist_schema(table_name: i64, schema: i64) => i32
+
 #wa:import dora db_exec
 func db_exec(sql: i64) => i32
+
 #wa:import dora db_transaction
 func db_transaction(query: i64) => i32
+
 #wa:import dora db_transaction_async
 func db_transaction_async(query: i64, func0: i32, stack0: i64)
+
 #wa:import dora db_query
 func db_query(sql: i64, with_columns: i32) => i64
+
 #wa:import dora db_query_with_params
 func db_query_with_params(sql: i64, params: i64, with_columns: i32) => i64
+
 #wa:import dora db_insert
 func db_insert(table_name: i64, values: i64)
+
 #wa:import dora db_exec_with_records
 func db_exec_with_records(sql: i64, values: i64) => i32
+
 #wa:import dora db_query_with_params_async
 func db_query_with_params_async(sql: i64, params: i64, with_columns: i32, func0: i32, stack0: i64)
+
 #wa:import dora db_insert_async
 func db_insert_async(table_name: i64, values: i64, func0: i32, stack0: i64)
+
 #wa:import dora db_exec_async
 func db_exec_async(sql: i64, values: i64, func0: i32, stack0: i64)
-type _DB :struct { }
+
+type _DB :struct{}
+
 global DB = _DB{}
+
 func _DB.Exist(table_name: string) => bool {
 	return db_exist(ToDoraString(table_name)) != 0
 }

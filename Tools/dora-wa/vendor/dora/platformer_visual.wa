@@ -8,17 +8,24 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #wa:import dora platformer_visual_type
 func platformer_visual_type() => i32
+
 #wa:import dora platformer_visual_is_playing
 func platformer_visual_is_playing(slf: i64) => i32
+
 #wa:import dora platformer_visual_start
 func platformer_visual_start(slf: i64)
+
 #wa:import dora platformer_visual_stop
 func platformer_visual_stop(slf: i64)
+
 #wa:import dora platformer_visual_auto_remove
 func platformer_visual_auto_remove(slf: i64) => i64
+
 #wa:import dora platformer_visual_new
 func platformer_visual_new(name: i64) => i64
-type PlatformerVisual :struct { Node }
+
+type PlatformerVisual :struct{ Node }
+
 func PlatformerVisualFrom(raw: i64) => *PlatformerVisual {
 	if raw == 0 {
 		return nil
@@ -39,18 +46,22 @@ func ObjectAsPlatformerVisual(object: Object) => *PlatformerVisual {
 	}
 	return nil
 }
+
 /// Gets whether the visual effect is currently playing or not.
 func PlatformerVisual.IsPlaying() => bool {
 	return platformer_visual_is_playing(*this.raw) != 0
 }
+
 /// Starts playing the visual effect.
 func PlatformerVisual.Start() {
 	platformer_visual_start(*this.raw)
 }
+
 /// Stops playing the visual effect.
 func PlatformerVisual.Stop() {
 	platformer_visual_stop(*this.raw)
 }
+
 /// Automatically removes the visual effect from the game world when it finishes playing.
 ///
 /// # Returns
@@ -59,6 +70,7 @@ func PlatformerVisual.Stop() {
 func PlatformerVisual.AutoRemove() => PlatformerVisual {
 	return *PlatformerVisualFrom(platformer_visual_auto_remove(*this.raw))
 }
+
 /// Creates a new `Visual` object with the specified name.
 ///
 /// # Arguments

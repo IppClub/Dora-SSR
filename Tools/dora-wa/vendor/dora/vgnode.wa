@@ -8,13 +8,18 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #wa:import dora vgnode_type
 func vgnode_type() => i32
+
 #wa:import dora vgnode_get_surface
 func vgnode_get_surface(slf: i64) => i64
+
 #wa:import dora vgnode_render
 func vgnode_render(slf: i64, func0: i32)
+
 #wa:import dora vgnode_new
 func vgnode_new(width: f32, height: f32, scale: f32, edge_aa: i32) => i64
-type VGNode :struct { Node }
+
+type VGNode :struct{ Node }
+
 func VGNodeFrom(raw: i64) => *VGNode {
 	if raw == 0 {
 		return nil
@@ -35,11 +40,13 @@ func ObjectAsVGNode(object: Object) => *VGNode {
 	}
 	return nil
 }
+
 /// Gets The surface of the node for displaying frame buffer texture that contains vector graphics.
 /// You can get the texture of the surface by calling `vgNode.get_surface().get_texture()`.
 func VGNode.GetSurface() => Sprite {
 	return *SpriteFrom(vgnode_get_surface(*this.raw))
 }
+
 /// The function for rendering vector graphics.
 ///
 /// # Arguments
@@ -63,6 +70,7 @@ func VGNode.Render(render_func: func()) {
 	})
 	vgnode_render(*this.raw, func_id0)
 }
+
 /// Creates a new VGNode object with the specified width and height.
 ///
 /// # Arguments

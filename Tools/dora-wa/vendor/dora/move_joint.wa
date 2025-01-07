@@ -8,11 +8,15 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #wa:import dora movejoint_type
 func movejoint_type() => i32
+
 #wa:import dora movejoint_set_position
-func movejoint_set_position(slf: i64, val: i64);
+func movejoint_set_position(slf: i64, val: i64)
+
 #wa:import dora movejoint_get_position
 func movejoint_get_position(slf: i64) => i64
-type MoveJoint :struct { Joint }
+
+type MoveJoint :struct{ Joint }
+
 func MoveJointFrom(raw: i64) => *MoveJoint {
 	if raw == 0 {
 		return nil
@@ -33,10 +37,12 @@ func ObjectAsMoveJoint(object: Object) => *MoveJoint {
 	}
 	return nil
 }
+
 /// Sets the current position of the move joint in the game world.
 func MoveJoint.SetPosition(val: Vec2) {
 	movejoint_set_position(*this.raw, val.ToValue())
 }
+
 /// Gets the current position of the move joint in the game world.
 func MoveJoint.GetPosition() => Vec2 {
 	return Vec2FromValue(movejoint_get_position(*this.raw))

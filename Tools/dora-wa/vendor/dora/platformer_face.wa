@@ -8,15 +8,21 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #wa:import dora platformer_face_type
 func platformer_face_type() => i32
+
 #wa:import dora platformer_face_add_child
 func platformer_face_add_child(slf: i64, face: i64)
+
 #wa:import dora platformer_face_to_node
 func platformer_face_to_node(slf: i64) => i64
+
 #wa:import dora platformer_face_new
 func platformer_face_new(face_str: i64, point: i64, scale: f32, angle: f32) => i64
+
 #wa:import dora platformer_face_with_func
 func platformer_face_with_func(func0: i32, stack0: i64, point: i64, scale: f32, angle: f32) => i64
-type PlatformerFace :struct { Object }
+
+type PlatformerFace :struct{ Object }
+
 func PlatformerFaceFrom(raw: i64) => *PlatformerFace {
 	if raw == 0 {
 		return nil
@@ -37,6 +43,7 @@ func ObjectAsPlatformerFace(object: Object) => *PlatformerFace {
 	}
 	return nil
 }
+
 /// Adds a child `Face` definition to it.
 ///
 /// # Arguments
@@ -45,6 +52,7 @@ func ObjectAsPlatformerFace(object: Object) => *PlatformerFace {
 func PlatformerFace.AddChild(face: PlatformerFace) {
 	platformer_face_add_child(*this.raw, face.GetRaw())
 }
+
 /// Returns a node that can be added to a scene tree for rendering.
 ///
 /// # Returns
@@ -53,6 +61,7 @@ func PlatformerFace.AddChild(face: PlatformerFace) {
 func PlatformerFace.ToNode() => Node {
 	return *NodeFrom(platformer_face_to_node(*this.raw))
 }
+
 /// Creates a new `Face` definition using the specified attributes.
 ///
 /// # Arguments
@@ -72,6 +81,7 @@ func NewPlatformerFace(face_str: string, point: Vec2, scale: f32, angle: f32) =>
 	setFinalizer(object.raw, ObjectFinalizer)
 	return object
 }
+
 /// Creates a new `Face` definition using the specified attributes.
 ///
 /// # Arguments

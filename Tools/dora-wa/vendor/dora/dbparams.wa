@@ -8,11 +8,15 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #wa:import dora dbparams_release
 func dbparams_release(raw: i64)
+
 #wa:import dora dbparams_add
 func dbparams_add(slf: i64, params: i64)
+
 #wa:import dora dbparams_new
 func dbparams_new() => i64
-type DBParams :struct { raw: *i64 }
+
+type DBParams :struct{ raw: *i64 }
+
 func DBParams.GetRaw() => i64 {
 	return *this.raw
 }

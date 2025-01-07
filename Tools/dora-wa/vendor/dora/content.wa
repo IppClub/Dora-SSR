@@ -8,70 +8,101 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #wa:import dora content_set_search_paths
 func content_set_search_paths(val: i64)
+
 #wa:import dora content_get_search_paths
 func content_get_search_paths() => i64
+
 #wa:import dora content_get_asset_path
 func content_get_asset_path() => i64
+
 #wa:import dora content_get_writable_path
 func content_get_writable_path() => i64
+
 #wa:import dora content_save
 func content_save(filename: i64, content: i64) => i32
+
 #wa:import dora content_exist
 func content_exist(filename: i64) => i32
+
 #wa:import dora content_mkdir
 func content_mkdir(path: i64) => i32
+
 #wa:import dora content_isdir
 func content_isdir(path: i64) => i32
+
 #wa:import dora content_is_absolute_path
 func content_is_absolute_path(path: i64) => i32
+
 #wa:import dora content_copy
 func content_copy(src: i64, dst: i64) => i32
+
 #wa:import dora content_move_to
 func content_move_to(src: i64, dst: i64) => i32
+
 #wa:import dora content_remove
 func content_remove(path: i64) => i32
+
 #wa:import dora content_get_full_path
 func content_get_full_path(filename: i64) => i64
+
 #wa:import dora content_add_search_path
 func content_add_search_path(path: i64)
+
 #wa:import dora content_insert_search_path
 func content_insert_search_path(index: i32, path: i64)
+
 #wa:import dora content_remove_search_path
 func content_remove_search_path(path: i64)
+
 #wa:import dora content_clear_path_cache
 func content_clear_path_cache()
+
 #wa:import dora content_get_dirs
 func content_get_dirs(path: i64) => i64
+
 #wa:import dora content_get_files
 func content_get_files(path: i64) => i64
+
 #wa:import dora content_get_all_files
 func content_get_all_files(path: i64) => i64
+
 #wa:import dora content_load_async
 func content_load_async(filename: i64, func0: i32, stack0: i64)
+
 #wa:import dora content_copy_async
 func content_copy_async(src_file: i64, target_file: i64, func0: i32, stack0: i64)
+
 #wa:import dora content_save_async
 func content_save_async(filename: i64, content: i64, func0: i32, stack0: i64)
+
 #wa:import dora content_zip_async
 func content_zip_async(folder_path: i64, zip_file: i64, func0: i32, stack0: i64, func1: i32, stack1: i64)
+
 #wa:import dora content_unzip_async
 func content_unzip_async(zip_file: i64, folder_path: i64, func0: i32, stack0: i64, func1: i32, stack1: i64)
+
 #wa:import dora content_load_excel
 func content_load_excel(filename: i64) => i64
-type _Content :struct { }
+
+type _Content :struct{}
+
 global Content = _Content{}
+
 /// Sets an array of directories to search for resource files.
 func _Content.SetSearchPaths(val: *[]string) {
 	content_set_search_paths(ToDoraStrBuf(val))
 }
+
 /// Gets an array of directories to search for resource files.
 func _Content.GetSearchPaths() => *[]string {
 	return FromDoraStrBuf(content_get_search_paths())
 }
+
 /// Gets the path to the directory containing read-only resources.
 func _Content.GetAssetPath() => string {
 	return FromDoraString(content_get_asset_path())
 }
+
 /// Gets the path to the directory where files can be written.
 func _Content.GetWritablePath() => string {
 	return FromDoraString(content_get_writable_path())

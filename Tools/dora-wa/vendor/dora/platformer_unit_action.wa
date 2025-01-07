@@ -7,26 +7,37 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 #wa:import dora platformer_unitaction_set_reaction
-func platformer_unitaction_set_reaction(slf: i64, val: f32);
+func platformer_unitaction_set_reaction(slf: i64, val: f32)
+
 #wa:import dora platformer_unitaction_get_reaction
 func platformer_unitaction_get_reaction(slf: i64) => f32
+
 #wa:import dora platformer_unitaction_set_recovery
-func platformer_unitaction_set_recovery(slf: i64, val: f32);
+func platformer_unitaction_set_recovery(slf: i64, val: f32)
+
 #wa:import dora platformer_unitaction_get_recovery
 func platformer_unitaction_get_recovery(slf: i64) => f32
+
 #wa:import dora platformer_unitaction_get_name
 func platformer_unitaction_get_name(slf: i64) => i64
+
 #wa:import dora platformer_unitaction_is_doing
 func platformer_unitaction_is_doing(slf: i64) => i32
+
 #wa:import dora platformer_unitaction_get_owner
 func platformer_unitaction_get_owner(slf: i64) => i64
+
 #wa:import dora platformer_unitaction_get_elapsed_time
 func platformer_unitaction_get_elapsed_time(slf: i64) => f32
+
 #wa:import dora platformer_unitaction_clear
 func platformer_unitaction_clear()
+
 #wa:import dora platformer_unitaction_add
 func platformer_unitaction_add(name: i64, priority: i32, reaction: f32, recovery: f32, queued: i32, func0: i32, stack0: i64, func1: i32, stack1: i64, func2: i32, stack2: i64)
-type PlatformerUnitAction :struct { raw: *i64 }
+
+type PlatformerUnitAction :struct{ raw: *i64 }
+
 func PlatformerUnitAction.GetRaw() => i64 {
 	return *this.raw
 }
@@ -39,46 +50,56 @@ func PlatformerUnitActionFrom(raw: i64) => *PlatformerUnitAction {
 	result := &item
 	return result
 }
+
 /// Sets the length of the reaction time for the "UnitAction", in seconds.
 /// The reaction time will affect the AI check cycling time.
 func PlatformerUnitAction.SetReaction(val: f32) {
 	platformer_unitaction_set_reaction(*this.raw, val)
 }
+
 /// Gets the length of the reaction time for the "UnitAction", in seconds.
 /// The reaction time will affect the AI check cycling time.
 func PlatformerUnitAction.GetReaction() => f32 {
 	return platformer_unitaction_get_reaction(*this.raw)
 }
+
 /// Sets the length of the recovery time for the "UnitAction", in seconds.
 /// The recovery time will mainly affect how long the `Playable` animation model will do transitions between animations played by different actions.
 func PlatformerUnitAction.SetRecovery(val: f32) {
 	platformer_unitaction_set_recovery(*this.raw, val)
 }
+
 /// Gets the length of the recovery time for the "UnitAction", in seconds.
 /// The recovery time will mainly affect how long the `Playable` animation model will do transitions between animations played by different actions.
 func PlatformerUnitAction.GetRecovery() => f32 {
 	return platformer_unitaction_get_recovery(*this.raw)
 }
+
 /// Gets the name of the "UnitAction".
 func PlatformerUnitAction.GetName() => string {
 	return FromDoraString(platformer_unitaction_get_name(*this.raw))
 }
+
 /// Gets whether the "Unit" is currently performing the "UnitAction" or not.
 func PlatformerUnitAction.IsDoing() => bool {
 	return platformer_unitaction_is_doing(*this.raw) != 0
 }
+
 /// Gets the "Unit" that owns this "UnitAction".
 func PlatformerUnitAction.GetOwner() => PlatformerUnit {
 	return *PlatformerUnitFrom(platformer_unitaction_get_owner(*this.raw))
 }
+
 /// Gets the elapsed time since the "UnitAction" was started, in seconds.
 func PlatformerUnitAction.GetElapsedTime() => f32 {
 	return platformer_unitaction_get_elapsed_time(*this.raw)
 }
+
 /// Removes all "UnitAction" objects from the "UnitActionClass".
 func PlatformerUnitActionClear() {
 	platformer_unitaction_clear()
 }
+
 /// Adds a new "UnitAction" to the "UnitActionClass" with the specified name and parameters.
 ///
 /// # Arguments

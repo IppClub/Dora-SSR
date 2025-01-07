@@ -8,15 +8,21 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #wa:import dora group_type
 func group_type() => i32
+
 #wa:import dora entitygroup_get_count
 func entitygroup_get_count(slf: i64) => i32
+
 #wa:import dora entitygroup_get_first
 func entitygroup_get_first(slf: i64) => i64
+
 #wa:import dora entitygroup_find
 func entitygroup_find(slf: i64, func0: i32, stack0: i64) => i64
+
 #wa:import dora entitygroup_new
 func entitygroup_new(components: i64) => i64
-type Group :struct { Object }
+
+type Group :struct{ Object }
+
 func GroupFrom(raw: i64) => *Group {
 	if raw == 0 {
 		return nil
@@ -37,10 +43,12 @@ func ObjectAsGroup(object: Object) => *Group {
 	}
 	return nil
 }
+
 /// Gets the number of entities in the group.
 func Group.GetCount() => i32 {
 	return entitygroup_get_count(*this.raw)
 }
+
 /// Gets the first entity in the group.
 func Group.GetFirst() => *Entity {
 	ptr_ := entitygroup_get_first(*this.raw)
@@ -50,6 +58,7 @@ func Group.GetFirst() => *Entity {
 	obj_ := *EntityFrom(ptr_)
 	return &obj_
 }
+
 /// Finds the first entity in the group that satisfies a predicate function.
 ///
 /// # Arguments
@@ -75,6 +84,7 @@ func Group.Find(predicate: func(e: Entity) => bool) => *Entity {
 	obj_ := *EntityFrom(ptr_)
 	return &obj_
 }
+
 /// A method that creates a new group with the specified component names.
 ///
 /// # Arguments
