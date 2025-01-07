@@ -8,9 +8,12 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #wa:import dora workbook_release
 func workbook_release(raw: i64)
+
 #wa:import dora workbook_get_sheet
 func workbook_get_sheet(slf: i64, name: i64) => i64
-type WorkBook :struct { raw: *i64 }
+
+type WorkBook :struct{ raw: *i64 }
+
 func WorkBook.GetRaw() => i64 {
 	return *this.raw
 }

@@ -8,16 +8,23 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #wa:import dora mouse_get_position
 func mouse_get_position() => i64
+
 #wa:import dora mouse_is_left_button_pressed
 func mouse_is_left_button_pressed() => i32
+
 #wa:import dora mouse_is_right_button_pressed
 func mouse_is_right_button_pressed() => i32
+
 #wa:import dora mouse_is_middle_button_pressed
 func mouse_is_middle_button_pressed() => i32
+
 #wa:import dora mouse_get_wheel
 func mouse_get_wheel() => i64
-type _Mouse :struct { }
+
+type _Mouse :struct{}
+
 global Mouse = _Mouse{}
+
 func _Mouse.GetPosition() => Vec2 {
 	return Vec2FromValue(mouse_get_position())
 }

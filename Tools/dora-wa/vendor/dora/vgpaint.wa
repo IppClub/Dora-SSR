@@ -8,7 +8,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #wa:import dora vgpaint_release
 func vgpaint_release(raw: i64)
-type VGPaint :struct { raw: *i64 }
+
+type VGPaint :struct{ raw: *i64 }
+
 func VGPaint.GetRaw() => i64 {
 	return *this.raw
 }

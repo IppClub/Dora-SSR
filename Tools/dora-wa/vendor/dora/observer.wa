@@ -8,9 +8,12 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #wa:import dora observer_type
 func observer_type() => i32
+
 #wa:import dora entityobserver_new
 func entityobserver_new(event: i32, components: i64) => i64
-type Observer :struct { Object }
+
+type Observer :struct{ Object }
+
 func ObserverFrom(raw: i64) => *Observer {
 	if raw == 0 {
 		return nil
@@ -31,6 +34,7 @@ func ObjectAsObserver(object: Object) => *Observer {
 	}
 	return nil
 }
+
 /// A method that creates a new observer with the specified component filter and action to watch for.
 ///
 /// # Arguments

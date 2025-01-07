@@ -8,21 +8,30 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #wa:import dora sensor_type
 func sensor_type() => i32
+
 #wa:import dora sensor_set_enabled
-func sensor_set_enabled(slf: i64, val: i32);
+func sensor_set_enabled(slf: i64, val: i32)
+
 #wa:import dora sensor_is_enabled
 func sensor_is_enabled(slf: i64) => i32
+
 #wa:import dora sensor_get_tag
 func sensor_get_tag(slf: i64) => i32
+
 #wa:import dora sensor_get_owner
 func sensor_get_owner(slf: i64) => i64
+
 #wa:import dora sensor_is_sensed
 func sensor_is_sensed(slf: i64) => i32
+
 #wa:import dora sensor_get_sensed_bodies
 func sensor_get_sensed_bodies(slf: i64) => i64
+
 #wa:import dora sensor_contains
 func sensor_contains(slf: i64, body: i64) => i32
-type Sensor :struct { Object }
+
+type Sensor :struct{ Object }
+
 func SensorFrom(raw: i64) => *Sensor {
 	if raw == 0 {
 		return nil
@@ -43,30 +52,37 @@ func ObjectAsSensor(object: Object) => *Sensor {
 	}
 	return nil
 }
+
 /// Sets whether the sensor is currently enabled or not.
 func Sensor.SetEnabled(val: bool) {
 	sensor_set_enabled(*this.raw, ToDoraBool(val))
 }
+
 /// Gets whether the sensor is currently enabled or not.
 func Sensor.IsEnabled() => bool {
 	return sensor_is_enabled(*this.raw) != 0
 }
+
 /// Gets the tag for the sensor.
 func Sensor.GetTag() => i32 {
 	return sensor_get_tag(*this.raw)
 }
+
 /// Gets the "Body" object that owns the sensor.
 func Sensor.GetOwner() => Body {
 	return *BodyFrom(sensor_get_owner(*this.raw))
 }
+
 /// Gets whether the sensor is currently sensing any other "Body" objects in the game world.
 func Sensor.IsSensed() => bool {
 	return sensor_is_sensed(*this.raw) != 0
 }
+
 /// Gets the array of "Body" objects that are currently being sensed by the sensor.
 func Sensor.GetSensedBodies() => Array {
 	return *ArrayFrom(sensor_get_sensed_bodies(*this.raw))
 }
+
 /// Determines whether the specified `Body` object is currently being sensed by the sensor.
 ///
 /// # Arguments

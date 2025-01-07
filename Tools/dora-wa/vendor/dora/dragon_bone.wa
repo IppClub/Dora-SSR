@@ -8,23 +8,33 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #wa:import dora dragonbone_type
 func dragonbone_type() => i32
+
 #wa:import dora dragonbone_set_hit_test_enabled
-func dragonbone_set_hit_test_enabled(slf: i64, val: i32);
+func dragonbone_set_hit_test_enabled(slf: i64, val: i32)
+
 #wa:import dora dragonbone_is_hit_test_enabled
 func dragonbone_is_hit_test_enabled(slf: i64) => i32
+
 #wa:import dora dragonbone_contains_point
 func dragonbone_contains_point(slf: i64, x: f32, y: f32) => i64
+
 #wa:import dora dragonbone_intersects_segment
 func dragonbone_intersects_segment(slf: i64, x_1: f32, y_1: f32, x_2: f32, y_2: f32) => i64
+
 #wa:import dora dragonbone_with_files
 func dragonbone_with_files(bone_file: i64, atlas_file: i64) => i64
+
 #wa:import dora dragonbone_new
 func dragonbone_new(bone_str: i64) => i64
+
 #wa:import dora dragonbone_get_looks
 func dragonbone_get_looks(bone_str: i64) => i64
+
 #wa:import dora dragonbone_get_animations
 func dragonbone_get_animations(bone_str: i64) => i64
-type DragonBone :struct { Playable }
+
+type DragonBone :struct{ Playable }
+
 func DragonBoneFrom(raw: i64) => *DragonBone {
 	if raw == 0 {
 		return nil
@@ -45,14 +55,17 @@ func ObjectAsDragonBone(object: Object) => *DragonBone {
 	}
 	return nil
 }
+
 /// Sets whether hit testing is enabled.
 func DragonBone.SetHitTestEnabled(val: bool) {
 	dragonbone_set_hit_test_enabled(*this.raw, ToDoraBool(val))
 }
+
 /// Gets whether hit testing is enabled.
 func DragonBone.IsHitTestEnabled() => bool {
 	return dragonbone_is_hit_test_enabled(*this.raw) != 0
 }
+
 /// Checks if a point is inside the boundaries of the instance and returns the name of the bone or slot at that point, or `None` if no bone or slot is found.
 ///
 /// # Arguments
@@ -66,6 +79,7 @@ func DragonBone.IsHitTestEnabled() => bool {
 func DragonBone.ContainsPoint(x: f32, y: f32) => string {
 	return FromDoraString(dragonbone_contains_point(*this.raw, x, y))
 }
+
 /// Checks if a line segment intersects the boundaries of the instance and returns the name of the bone or slot at the intersection point, or `None` if no bone or slot is found.
 ///
 /// # Arguments
@@ -81,6 +95,7 @@ func DragonBone.ContainsPoint(x: f32, y: f32) => string {
 func DragonBone.IntersectsSegment(x_1: f32, y_1: f32, x_2: f32, y_2: f32) => string {
 	return FromDoraString(dragonbone_intersects_segment(*this.raw, x_1, y_1, x_2, y_2))
 }
+
 /// Creates a new instance of 'DragonBone' using the specified bone file and atlas file. This function only loads the first armature.
 ///
 /// # Arguments
@@ -101,6 +116,7 @@ func NewDragonBoneWithFiles(bone_file: string, atlas_file: string) => *DragonBon
 	setFinalizer(object.raw, ObjectFinalizer)
 	return &object
 }
+
 /// Creates a new instance of 'DragonBone' using the specified bone string.
 ///
 /// # Arguments
@@ -120,6 +136,7 @@ func NewDragonBone(bone_str: string) => *DragonBone {
 	setFinalizer(object.raw, ObjectFinalizer)
 	return &object
 }
+
 /// Returns a list of available looks for the specified DragonBone file string.
 ///
 /// # Arguments
@@ -132,6 +149,7 @@ func NewDragonBone(bone_str: string) => *DragonBone {
 func DragonBoneGetLooks(bone_str: string) => *[]string {
 	return FromDoraStrBuf(dragonbone_get_looks(ToDoraString(bone_str)))
 }
+
 /// Returns a list of available animations for the specified DragonBone file string.
 ///
 /// # Arguments

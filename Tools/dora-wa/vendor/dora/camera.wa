@@ -8,9 +8,12 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #wa:import dora camera_type
 func camera_type() => i32
+
 #wa:import dora camera_get_name
 func camera_get_name(slf: i64) => i64
-type Camera :struct { Object }
+
+type Camera :struct{ Object }
+
 func CameraFrom(raw: i64) => *Camera {
 	if raw == 0 {
 		return nil
@@ -31,6 +34,7 @@ func ObjectAsCamera(object: Object) => *Camera {
 	}
 	return nil
 }
+
 /// Gets the name of the Camera.
 func Camera.GetName() => string {
 	return FromDoraString(camera_get_name(*this.raw))

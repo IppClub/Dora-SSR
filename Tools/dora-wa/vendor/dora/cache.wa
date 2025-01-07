@@ -8,22 +8,32 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #wa:import dora cache_load
 func cache_load(filename: i64) => i32
+
 #wa:import dora cache_load_async
 func cache_load_async(filename: i64, func0: i32, stack0: i64)
+
 #wa:import dora cache_update_item
 func cache_update_item(filename: i64, content: i64)
+
 #wa:import dora cache_update_texture
 func cache_update_texture(filename: i64, texture: i64)
+
 #wa:import dora cache_unload_item_or_type
 func cache_unload_item_or_type(name: i64) => i32
+
 #wa:import dora cache_unload
 func cache_unload()
+
 #wa:import dora cache_remove_unused
 func cache_remove_unused()
+
 #wa:import dora cache_remove_unused_by_type
 func cache_remove_unused_by_type(type_name: i64)
-type _Cache :struct { }
+
+type _Cache :struct{}
+
 global Cache = _Cache{}
+
 func _Cache.Load(filename: string) => bool {
 	return cache_load(ToDoraString(filename)) != 0
 }

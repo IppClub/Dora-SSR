@@ -8,35 +8,51 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #wa:import dora joint_type
 func joint_type() => i32
+
 #wa:import dora joint_distance
 func joint_distance(collision: i32, body_a: i64, body_b: i64, anchor_a: i64, anchor_b: i64, frequency: f32, damping: f32) => i64
+
 #wa:import dora joint_friction
 func joint_friction(collision: i32, body_a: i64, body_b: i64, world_pos: i64, max_force: f32, max_torque: f32) => i64
+
 #wa:import dora joint_gear
 func joint_gear(collision: i32, joint_a: i64, joint_b: i64, ratio: f32) => i64
+
 #wa:import dora joint_spring
 func joint_spring(collision: i32, body_a: i64, body_b: i64, linear_offset: i64, angular_offset: f32, max_force: f32, max_torque: f32, correction_factor: f32) => i64
+
 #wa:import dora joint_move_target
 func joint_move_target(collision: i32, body: i64, target_pos: i64, max_force: f32, frequency: f32, damping: f32) => i64
+
 #wa:import dora joint_prismatic
 func joint_prismatic(collision: i32, body_a: i64, body_b: i64, world_pos: i64, axis_angle: f32, lower_translation: f32, upper_translation: f32, max_motor_force: f32, motor_speed: f32) => i64
+
 #wa:import dora joint_pulley
 func joint_pulley(collision: i32, body_a: i64, body_b: i64, anchor_a: i64, anchor_b: i64, ground_anchor_a: i64, ground_anchor_b: i64, ratio: f32) => i64
+
 #wa:import dora joint_revolute
 func joint_revolute(collision: i32, body_a: i64, body_b: i64, world_pos: i64, lower_angle: f32, upper_angle: f32, max_motor_torque: f32, motor_speed: f32) => i64
+
 #wa:import dora joint_rope
 func joint_rope(collision: i32, body_a: i64, body_b: i64, anchor_a: i64, anchor_b: i64, max_length: f32) => i64
+
 #wa:import dora joint_weld
 func joint_weld(collision: i32, body_a: i64, body_b: i64, world_pos: i64, frequency: f32, damping: f32) => i64
+
 #wa:import dora joint_wheel
 func joint_wheel(collision: i32, body_a: i64, body_b: i64, world_pos: i64, axis_angle: f32, max_motor_torque: f32, motor_speed: f32, frequency: f32, damping: f32) => i64
+
 #wa:import dora joint_get_world
 func joint_get_world(slf: i64) => i64
+
 #wa:import dora joint_destroy
 func joint_destroy(slf: i64)
+
 #wa:import dora joint_new
 func joint_new(def: i64, item_dict: i64) => i64
-type Joint :struct { Object }
+
+type Joint :struct{ Object }
+
 func JointFrom(raw: i64) => *Joint {
 	if raw == 0 {
 		return nil
@@ -57,6 +73,7 @@ func ObjectAsJoint(object: Object) => *Joint {
 	}
 	return nil
 }
+
 /// Creates a distance joint between two physics bodies.
 ///
 /// # Arguments
@@ -75,6 +92,7 @@ func ObjectAsJoint(object: Object) => *Joint {
 func JointDistance(collision: bool, body_a: Body, body_b: Body, anchor_a: Vec2, anchor_b: Vec2, frequency: f32, damping: f32) => Joint {
 	return *JointFrom(joint_distance(ToDoraBool(collision), body_a.GetRaw(), body_b.GetRaw(), anchor_a.ToValue(), anchor_b.ToValue(), frequency, damping))
 }
+
 /// Creates a friction joint between two physics bodies.
 ///
 /// # Arguments
@@ -92,6 +110,7 @@ func JointDistance(collision: bool, body_a: Body, body_b: Body, anchor_a: Vec2, 
 func JointFriction(collision: bool, body_a: Body, body_b: Body, world_pos: Vec2, max_force: f32, max_torque: f32) => Joint {
 	return *JointFrom(joint_friction(ToDoraBool(collision), body_a.GetRaw(), body_b.GetRaw(), world_pos.ToValue(), max_force, max_torque))
 }
+
 /// Creates a gear joint between two other joints.
 ///
 /// # Arguments
@@ -107,6 +126,7 @@ func JointFriction(collision: bool, body_a: Body, body_b: Body, world_pos: Vec2,
 func JointGear(collision: bool, joint_a: Joint, joint_b: Joint, ratio: f32) => Joint {
 	return *JointFrom(joint_gear(ToDoraBool(collision), joint_a.GetRaw(), joint_b.GetRaw(), ratio))
 }
+
 /// Creates a new spring joint between the two specified bodies.
 ///
 /// # Arguments
@@ -126,6 +146,7 @@ func JointGear(collision: bool, joint_a: Joint, joint_b: Joint, ratio: f32) => J
 func JointSpring(collision: bool, body_a: Body, body_b: Body, linear_offset: Vec2, angular_offset: f32, max_force: f32, max_torque: f32, correction_factor: f32) => Joint {
 	return *JointFrom(joint_spring(ToDoraBool(collision), body_a.GetRaw(), body_b.GetRaw(), linear_offset.ToValue(), angular_offset, max_force, max_torque, correction_factor))
 }
+
 /// Creates a new move joint for the specified body.
 ///
 /// # Arguments
@@ -143,6 +164,7 @@ func JointSpring(collision: bool, body_a: Body, body_b: Body, linear_offset: Vec
 func JointMoveTarget(collision: bool, body: Body, target_pos: Vec2, max_force: f32, frequency: f32, damping: f32) => MoveJoint {
 	return *MoveJointFrom(joint_move_target(ToDoraBool(collision), body.GetRaw(), target_pos.ToValue(), max_force, frequency, damping))
 }
+
 /// Creates a new prismatic joint between the two specified bodies.
 ///
 /// # Arguments
@@ -163,6 +185,7 @@ func JointMoveTarget(collision: bool, body: Body, target_pos: Vec2, max_force: f
 func JointPrismatic(collision: bool, body_a: Body, body_b: Body, world_pos: Vec2, axis_angle: f32, lower_translation: f32, upper_translation: f32, max_motor_force: f32, motor_speed: f32) => MotorJoint {
 	return *MotorJointFrom(joint_prismatic(ToDoraBool(collision), body_a.GetRaw(), body_b.GetRaw(), world_pos.ToValue(), axis_angle, lower_translation, upper_translation, max_motor_force, motor_speed))
 }
+
 /// Creates a pulley joint between two physics bodies.
 ///
 /// # Arguments
@@ -182,6 +205,7 @@ func JointPrismatic(collision: bool, body_a: Body, body_b: Body, world_pos: Vec2
 func JointPulley(collision: bool, body_a: Body, body_b: Body, anchor_a: Vec2, anchor_b: Vec2, ground_anchor_a: Vec2, ground_anchor_b: Vec2, ratio: f32) => Joint {
 	return *JointFrom(joint_pulley(ToDoraBool(collision), body_a.GetRaw(), body_b.GetRaw(), anchor_a.ToValue(), anchor_b.ToValue(), ground_anchor_a.ToValue(), ground_anchor_b.ToValue(), ratio))
 }
+
 /// Creates a revolute joint between two physics bodies.
 ///
 /// # Arguments
@@ -201,6 +225,7 @@ func JointPulley(collision: bool, body_a: Body, body_b: Body, anchor_a: Vec2, an
 func JointRevolute(collision: bool, body_a: Body, body_b: Body, world_pos: Vec2, lower_angle: f32, upper_angle: f32, max_motor_torque: f32, motor_speed: f32) => MotorJoint {
 	return *MotorJointFrom(joint_revolute(ToDoraBool(collision), body_a.GetRaw(), body_b.GetRaw(), world_pos.ToValue(), lower_angle, upper_angle, max_motor_torque, motor_speed))
 }
+
 /// Creates a rope joint between two physics bodies.
 ///
 /// # Arguments
@@ -218,6 +243,7 @@ func JointRevolute(collision: bool, body_a: Body, body_b: Body, world_pos: Vec2,
 func JointRope(collision: bool, body_a: Body, body_b: Body, anchor_a: Vec2, anchor_b: Vec2, max_length: f32) => Joint {
 	return *JointFrom(joint_rope(ToDoraBool(collision), body_a.GetRaw(), body_b.GetRaw(), anchor_a.ToValue(), anchor_b.ToValue(), max_length))
 }
+
 /// Creates a weld joint between two bodies.
 ///
 /// # Arguments
@@ -235,6 +261,7 @@ func JointRope(collision: bool, body_a: Body, body_b: Body, anchor_a: Vec2, anch
 func JointWeld(collision: bool, body_a: Body, body_b: Body, world_pos: Vec2, frequency: f32, damping: f32) => Joint {
 	return *JointFrom(joint_weld(ToDoraBool(collision), body_a.GetRaw(), body_b.GetRaw(), world_pos.ToValue(), frequency, damping))
 }
+
 /// Creates a wheel joint between two bodies.
 ///
 /// # Arguments
@@ -255,14 +282,17 @@ func JointWeld(collision: bool, body_a: Body, body_b: Body, world_pos: Vec2, fre
 func JointWheel(collision: bool, body_a: Body, body_b: Body, world_pos: Vec2, axis_angle: f32, max_motor_torque: f32, motor_speed: f32, frequency: f32, damping: f32) => MotorJoint {
 	return *MotorJointFrom(joint_wheel(ToDoraBool(collision), body_a.GetRaw(), body_b.GetRaw(), world_pos.ToValue(), axis_angle, max_motor_torque, motor_speed, frequency, damping))
 }
+
 /// Gets the physics world that the joint belongs to.
 func Joint.GetWorld() => PhysicsWorld {
 	return *PhysicsWorldFrom(joint_get_world(*this.raw))
 }
+
 /// Destroys the joint and removes it from the physics simulation.
 func Joint.Destroy() {
 	joint_destroy(*this.raw)
 }
+
 /// Creates a joint instance based on the given joint definition and item dictionary containing physics bodies to be connected by joint.
 ///
 /// # Arguments

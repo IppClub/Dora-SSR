@@ -8,9 +8,12 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #wa:import dora spriteeffect_type
 func spriteeffect_type() => i32
+
 #wa:import dora spriteeffect_new
 func spriteeffect_new(vert_shader: i64, frag_shader: i64) => i64
-type SpriteEffect :struct { Effect }
+
+type SpriteEffect :struct{ Effect }
+
 func SpriteEffectFrom(raw: i64) => *SpriteEffect {
 	if raw == 0 {
 		return nil
@@ -31,6 +34,7 @@ func ObjectAsSpriteEffect(object: Object) => *SpriteEffect {
 	}
 	return nil
 }
+
 /// A method that allows you to create a new SpriteEffect object.
 ///
 /// # Arguments

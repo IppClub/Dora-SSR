@@ -8,418 +8,626 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #wa:import dora imgui_load_font_ttf_async
 func imgui_load_font_ttf_async(ttf_font_file: i64, font_size: f32, glyph_ranges: i64, func0: i32, stack0: i64)
+
 #wa:import dora imgui_is_font_loaded
 func imgui_is_font_loaded() => i32
+
 #wa:import dora imgui_show_stats
 func imgui_show_stats()
+
 #wa:import dora imgui_show_console
 func imgui_show_console()
+
 #wa:import dora imgui__begin_opts
 func imgui__begin_opts(name: i64, windows_flags: i32) => i32
+
 #wa:import dora imgui__end
 func imgui__end()
+
 #wa:import dora imgui__begin_child_opts
 func imgui__begin_child_opts(str_id: i64, size: i64, child_flags: i32, window_flags: i32) => i32
+
 #wa:import dora imgui__begin_child_with_id_opts
 func imgui__begin_child_with_id_opts(id: i32, size: i64, child_flags: i32, window_flags: i32) => i32
+
 #wa:import dora imgui__end_child
 func imgui__end_child()
+
 #wa:import dora imgui__set_next_window_pos_center_opts
 func imgui__set_next_window_pos_center_opts(set_cond: i32)
+
 #wa:import dora imgui__set_next_window_size_opts
 func imgui__set_next_window_size_opts(size: i64, set_cond: i32)
+
 #wa:import dora imgui__set_next_window_collapsed_opts
 func imgui__set_next_window_collapsed_opts(collapsed: i32, set_cond: i32)
+
 #wa:import dora imgui__set_window_pos_opts
 func imgui__set_window_pos_opts(name: i64, pos: i64, set_cond: i32)
+
 #wa:import dora imgui__set_window_size_opts
 func imgui__set_window_size_opts(name: i64, size: i64, set_cond: i32)
+
 #wa:import dora imgui__set_window_collapsed_opts
 func imgui__set_window_collapsed_opts(name: i64, collapsed: i32, set_cond: i32)
+
 #wa:import dora imgui__set_color_edit_options
 func imgui__set_color_edit_options(color_edit_flags: i32)
+
 #wa:import dora imgui__input_text_opts
 func imgui__input_text_opts(label: i64, buffer: i64, input_text_flags: i32) => i32
+
 #wa:import dora imgui__input_text_multiline_opts
 func imgui__input_text_multiline_opts(label: i64, buffer: i64, size: i64, input_text_flags: i32) => i32
+
 #wa:import dora imgui__tree_node_ex_opts
 func imgui__tree_node_ex_opts(label: i64, tree_node_flags: i32) => i32
+
 #wa:import dora imgui__tree_node_ex_with_id_opts
 func imgui__tree_node_ex_with_id_opts(str_id: i64, text: i64, tree_node_flags: i32) => i32
+
 #wa:import dora imgui__set_next_item_open_opts
 func imgui__set_next_item_open_opts(is_open: i32, set_cond: i32)
+
 #wa:import dora imgui__collapsing_header_opts
 func imgui__collapsing_header_opts(label: i64, tree_node_flags: i32) => i32
+
 #wa:import dora imgui__selectable_opts
 func imgui__selectable_opts(label: i64, selectable_flags: i32) => i32
+
 #wa:import dora imgui__begin_popup_modal_opts
 func imgui__begin_popup_modal_opts(name: i64, windows_flags: i32) => i32
+
 #wa:import dora imgui__begin_popup_modal_ret_opts
 func imgui__begin_popup_modal_ret_opts(name: i64, stack: i64, windows_flags: i32) => i32
+
 #wa:import dora imgui__begin_popup_context_item_opts
 func imgui__begin_popup_context_item_opts(name: i64, popup_flags: i32) => i32
+
 #wa:import dora imgui__begin_popup_context_window_opts
 func imgui__begin_popup_context_window_opts(name: i64, popup_flags: i32) => i32
+
 #wa:import dora imgui__begin_popup_context_void_opts
 func imgui__begin_popup_context_void_opts(name: i64, popup_flags: i32) => i32
+
 #wa:import dora imgui__push_style_color
 func imgui__push_style_color(name: i32, color: i32)
+
 #wa:import dora imgui__push_style_float
 func imgui__push_style_float(name: i32, val: f32)
+
 #wa:import dora imgui__push_style_vec2
 func imgui__push_style_vec2(name: i32, val: i64)
+
 #wa:import dora imgui_text
 func imgui_text(text: i64)
+
 #wa:import dora imgui_text_colored
 func imgui_text_colored(color: i32, text: i64)
+
 #wa:import dora imgui_text_disabled
 func imgui_text_disabled(text: i64)
+
 #wa:import dora imgui_text_wrapped
 func imgui_text_wrapped(text: i64)
+
 #wa:import dora imgui_label_text
 func imgui_label_text(label: i64, text: i64)
+
 #wa:import dora imgui_bullet_text
 func imgui_bullet_text(text: i64)
+
 #wa:import dora imgui__tree_node
 func imgui__tree_node(str_id: i64, text: i64) => i32
+
 #wa:import dora imgui_set_tooltip
 func imgui_set_tooltip(text: i64)
+
 #wa:import dora imgui_image_opts
 func imgui_image_opts(clip_str: i64, size: i64, tint_col: i32, border_col: i32)
+
 #wa:import dora imgui_image_button_opts
 func imgui_image_button_opts(str_id: i64, clip_str: i64, size: i64, bg_col: i32, tint_col: i32) => i32
+
 #wa:import dora imgui__color_button_opts
 func imgui__color_button_opts(desc_id: i64, col: i32, color_edit_flags: i32, size: i64) => i32
+
 #wa:import dora imgui_columns
 func imgui_columns(count: i32)
+
 #wa:import dora imgui_columns_opts
 func imgui_columns_opts(count: i32, border: i32, str_id: i64)
+
 #wa:import dora imgui__begin_table_opts
 func imgui__begin_table_opts(str_id: i64, column: i32, outer_size: i64, inner_width: f32, table_flags: i32) => i32
+
 #wa:import dora imgui__table_next_row_opts
 func imgui__table_next_row_opts(min_row_height: f32, table_row_flag: i32)
+
 #wa:import dora imgui__table_setup_column_opts
 func imgui__table_setup_column_opts(label: i64, init_width_or_weight: f32, user_id: i32, table_column_flags: i32)
+
 #wa:import dora imgui_set_style_bool
 func imgui_set_style_bool(name: i64, val: i32)
+
 #wa:import dora imgui_set_style_float
 func imgui_set_style_float(name: i64, val: f32)
+
 #wa:import dora imgui_set_style_vec2
 func imgui_set_style_vec2(name: i64, val: i64)
+
 #wa:import dora imgui_set_style_color
 func imgui_set_style_color(name: i64, color: i32)
+
 #wa:import dora imgui__begin_ret_opts
 func imgui__begin_ret_opts(name: i64, stack: i64, windows_flags: i32) => i32
+
 #wa:import dora imgui__collapsing_header_ret_opts
 func imgui__collapsing_header_ret_opts(label: i64, stack: i64, tree_node_flags: i32) => i32
+
 #wa:import dora imgui__selectable_ret_opts
 func imgui__selectable_ret_opts(label: i64, stack: i64, size: i64, selectable_flags: i32) => i32
+
 #wa:import dora imgui__combo_ret_opts
 func imgui__combo_ret_opts(label: i64, stack: i64, items: i64, height_in_items: i32) => i32
+
 #wa:import dora imgui__drag_float_ret_opts
 func imgui__drag_float_ret_opts(label: i64, stack: i64, v_speed: f32, v_min: f32, v_max: f32, display_format: i64, slider_flags: i32) => i32
+
 #wa:import dora imgui__drag_float2_ret_opts
 func imgui__drag_float2_ret_opts(label: i64, stack: i64, v_speed: f32, v_min: f32, v_max: f32, display_format: i64, slider_flags: i32) => i32
+
 #wa:import dora imgui__drag_int_ret_opts
 func imgui__drag_int_ret_opts(label: i64, stack: i64, v_speed: f32, v_min: i32, v_max: i32, display_format: i64, slider_flags: i32) => i32
+
 #wa:import dora imgui__drag_int2_ret_opts
 func imgui__drag_int2_ret_opts(label: i64, stack: i64, v_speed: f32, v_min: i32, v_max: i32, display_format: i64, slider_flags: i32) => i32
+
 #wa:import dora imgui__input_float_ret_opts
 func imgui__input_float_ret_opts(label: i64, stack: i64, step: f32, step_fast: f32, display_format: i64, input_text_flags: i32) => i32
+
 #wa:import dora imgui__input_float2_ret_opts
 func imgui__input_float2_ret_opts(label: i64, stack: i64, display_format: i64, input_text_flags: i32) => i32
+
 #wa:import dora imgui__input_int_ret_opts
 func imgui__input_int_ret_opts(label: i64, stack: i64, step: i32, step_fast: i32, input_text_flags: i32) => i32
+
 #wa:import dora imgui__input_int2_ret_opts
 func imgui__input_int2_ret_opts(label: i64, stack: i64, input_text_flags: i32) => i32
+
 #wa:import dora imgui__slider_float_ret_opts
 func imgui__slider_float_ret_opts(label: i64, stack: i64, v_min: f32, v_max: f32, display_format: i64, slider_flags: i32) => i32
+
 #wa:import dora imgui__slider_float2_ret_opts
 func imgui__slider_float2_ret_opts(label: i64, stack: i64, v_min: f32, v_max: f32, display_format: i64, slider_flags: i32) => i32
+
 #wa:import dora imgui__slider_int_ret_opts
 func imgui__slider_int_ret_opts(label: i64, stack: i64, v_min: i32, v_max: i32, format: i64, slider_flags: i32) => i32
+
 #wa:import dora imgui__slider_int2_ret_opts
 func imgui__slider_int2_ret_opts(label: i64, stack: i64, v_min: i32, v_max: i32, display_format: i64, slider_flags: i32) => i32
+
 #wa:import dora imgui__drag_float_range2_ret_opts
 func imgui__drag_float_range2_ret_opts(label: i64, stack: i64, v_speed: f32, v_min: f32, v_max: f32, format: i64, format_max: i64, slider_flags: i32) => i32
+
 #wa:import dora imgui__drag_int_range2_ret_opts
 func imgui__drag_int_range2_ret_opts(label: i64, stack: i64, v_speed: f32, v_min: i32, v_max: i32, format: i64, format_max: i64, slider_flags: i32) => i32
+
 #wa:import dora imgui__v_slider_float_ret_opts
 func imgui__v_slider_float_ret_opts(label: i64, size: i64, stack: i64, v_min: f32, v_max: f32, format: i64, slider_flags: i32) => i32
+
 #wa:import dora imgui__v_slider_int_ret_opts
 func imgui__v_slider_int_ret_opts(label: i64, size: i64, stack: i64, v_min: i32, v_max: i32, format: i64, slider_flags: i32) => i32
+
 #wa:import dora imgui__color_edit3_ret_opts
 func imgui__color_edit3_ret_opts(label: i64, stack: i64, color_edit_flags: i32) => i32
+
 #wa:import dora imgui__color_edit4_ret_opts
 func imgui__color_edit4_ret_opts(label: i64, stack: i64, color_edit_flags: i32) => i32
+
 #wa:import dora imgui_scroll_when_dragging_on_void
 func imgui_scroll_when_dragging_on_void()
+
 #wa:import dora imgui__set_next_window_pos_opts
 func imgui__set_next_window_pos_opts(pos: i64, set_cond: i32, pivot: i64)
+
 #wa:import dora imgui_set_next_window_bg_alpha
 func imgui_set_next_window_bg_alpha(alpha: f32)
+
 #wa:import dora imgui_show_demo_window
 func imgui_show_demo_window()
+
 #wa:import dora imgui_get_content_region_avail
 func imgui_get_content_region_avail() => i64
+
 #wa:import dora imgui_get_window_pos
 func imgui_get_window_pos() => i64
+
 #wa:import dora imgui_get_window_size
 func imgui_get_window_size() => i64
+
 #wa:import dora imgui_get_window_width
 func imgui_get_window_width() => f32
+
 #wa:import dora imgui_get_window_height
 func imgui_get_window_height() => f32
+
 #wa:import dora imgui_is_window_collapsed
 func imgui_is_window_collapsed() => i32
+
 #wa:import dora imgui_set_window_font_scale
 func imgui_set_window_font_scale(scale: f32)
+
 #wa:import dora imgui_set_next_window_size_constraints
 func imgui_set_next_window_size_constraints(size_min: i64, size_max: i64)
+
 #wa:import dora imgui_set_next_window_content_size
 func imgui_set_next_window_content_size(size: i64)
+
 #wa:import dora imgui_set_next_window_focus
 func imgui_set_next_window_focus()
+
 #wa:import dora imgui_get_scroll_x
 func imgui_get_scroll_x() => f32
+
 #wa:import dora imgui_get_scroll_y
 func imgui_get_scroll_y() => f32
+
 #wa:import dora imgui_get_scroll_max_x
 func imgui_get_scroll_max_x() => f32
+
 #wa:import dora imgui_get_scroll_max_y
 func imgui_get_scroll_max_y() => f32
+
 #wa:import dora imgui_set_scroll_x
 func imgui_set_scroll_x(scroll_x: f32)
+
 #wa:import dora imgui_set_scroll_y
 func imgui_set_scroll_y(scroll_y: f32)
+
 #wa:import dora imgui_set_scroll_here_y
 func imgui_set_scroll_here_y(center_y_ratio: f32)
+
 #wa:import dora imgui_set_scroll_from_pos_y
 func imgui_set_scroll_from_pos_y(pos_y: f32, center_y_ratio: f32)
+
 #wa:import dora imgui_set_keyboard_focus_here
 func imgui_set_keyboard_focus_here(offset: i32)
+
 #wa:import dora imgui__pop_style_color
 func imgui__pop_style_color(count: i32)
+
 #wa:import dora imgui__pop_style_var
 func imgui__pop_style_var(count: i32)
+
 #wa:import dora imgui_set_next_item_width
 func imgui_set_next_item_width(item_width: f32)
+
 #wa:import dora imgui__push_item_width
 func imgui__push_item_width(item_width: f32)
+
 #wa:import dora imgui__pop_item_width
 func imgui__pop_item_width()
+
 #wa:import dora imgui_calc_item_width
 func imgui_calc_item_width() => f32
+
 #wa:import dora imgui__push_text_wrap_pos
 func imgui__push_text_wrap_pos(wrap_pos_x: f32)
+
 #wa:import dora imgui__pop_text_wrap_pos
 func imgui__pop_text_wrap_pos()
+
 #wa:import dora imgui__push_item_flag
 func imgui__push_item_flag(flag: i32, enabled: i32)
+
 #wa:import dora imgui__pop_item_flag
 func imgui__pop_item_flag()
+
 #wa:import dora imgui_separator
 func imgui_separator()
+
 #wa:import dora imgui_same_line
 func imgui_same_line(pos_x: f32, spacing_w: f32)
+
 #wa:import dora imgui_new_line
 func imgui_new_line()
+
 #wa:import dora imgui_spacing
 func imgui_spacing()
+
 #wa:import dora imgui_dummy
 func imgui_dummy(size: i64)
+
 #wa:import dora imgui_indent
 func imgui_indent(indent_w: f32)
+
 #wa:import dora imgui_unindent
 func imgui_unindent(indent_w: f32)
+
 #wa:import dora imgui__begin_group
 func imgui__begin_group()
+
 #wa:import dora imgui__end_group
 func imgui__end_group()
+
 #wa:import dora imgui_get_cursor_pos
 func imgui_get_cursor_pos() => i64
+
 #wa:import dora imgui_get_cursor_pos_x
 func imgui_get_cursor_pos_x() => f32
+
 #wa:import dora imgui_get_cursor_pos_y
 func imgui_get_cursor_pos_y() => f32
+
 #wa:import dora imgui_set_cursor_pos
 func imgui_set_cursor_pos(local_pos: i64)
+
 #wa:import dora imgui_set_cursor_pos_x
 func imgui_set_cursor_pos_x(x: f32)
+
 #wa:import dora imgui_set_cursor_pos_y
 func imgui_set_cursor_pos_y(y: f32)
+
 #wa:import dora imgui_get_cursor_start_pos
 func imgui_get_cursor_start_pos() => i64
+
 #wa:import dora imgui_get_cursor_screen_pos
 func imgui_get_cursor_screen_pos() => i64
+
 #wa:import dora imgui_set_cursor_screen_pos
 func imgui_set_cursor_screen_pos(pos: i64)
+
 #wa:import dora imgui_align_text_to_frame_padding
 func imgui_align_text_to_frame_padding()
+
 #wa:import dora imgui_get_text_line_height
 func imgui_get_text_line_height() => f32
+
 #wa:import dora imgui_get_text_line_height_with_spacing
 func imgui_get_text_line_height_with_spacing() => f32
+
 #wa:import dora imgui_next_column
 func imgui_next_column()
+
 #wa:import dora imgui_get_column_index
 func imgui_get_column_index() => i32
+
 #wa:import dora imgui_get_column_offset
 func imgui_get_column_offset(column_index: i32) => f32
+
 #wa:import dora imgui_set_column_offset
 func imgui_set_column_offset(column_index: i32, offset_x: f32)
+
 #wa:import dora imgui_get_column_width
 func imgui_get_column_width(column_index: i32) => f32
+
 #wa:import dora imgui_get_columns_count
 func imgui_get_columns_count() => i32
+
 #wa:import dora imgui__end_table
 func imgui__end_table()
+
 #wa:import dora imgui_table_next_column
 func imgui_table_next_column() => i32
+
 #wa:import dora imgui_table_set_column_index
 func imgui_table_set_column_index(column_n: i32) => i32
+
 #wa:import dora imgui_table_setup_scroll_freeze
 func imgui_table_setup_scroll_freeze(cols: i32, rows: i32)
+
 #wa:import dora imgui_table_headers_row
 func imgui_table_headers_row()
+
 #wa:import dora imgui_bullet_item
 func imgui_bullet_item()
+
 #wa:import dora imgui_text_link
 func imgui_text_link(label: i64) => i32
+
 #wa:import dora imgui_text_link_open_url
 func imgui_text_link_open_url(label: i64, url: i64)
+
 #wa:import dora imgui_set_window_focus
 func imgui_set_window_focus(name: i64)
+
 #wa:import dora imgui_separator_text
 func imgui_separator_text(text: i64)
+
 #wa:import dora imgui_table_header
 func imgui_table_header(label: i64)
+
 #wa:import dora imgui__push_id
 func imgui__push_id(str_id: i64)
+
 #wa:import dora imgui__pop_id
 func imgui__pop_id()
+
 #wa:import dora imgui_get_id
 func imgui_get_id(str_id: i64) => i32
+
 #wa:import dora imgui_button
 func imgui_button(label: i64, size: i64) => i32
+
 #wa:import dora imgui_small_button
 func imgui_small_button(label: i64) => i32
+
 #wa:import dora imgui_invisible_button
 func imgui_invisible_button(str_id: i64, size: i64) => i32
+
 #wa:import dora imgui__checkbox_ret
 func imgui__checkbox_ret(label: i64, stack: i64) => i32
+
 #wa:import dora imgui__radio_button_ret
 func imgui__radio_button_ret(label: i64, stack: i64, v_button: i32) => i32
+
 #wa:import dora imgui_plot_lines
 func imgui_plot_lines(label: i64, values: i64)
+
 #wa:import dora imgui_plot_lines_opts
 func imgui_plot_lines_opts(label: i64, values: i64, values_offset: i32, overlay_text: i64, scale_min: f32, scale_max: f32, graph_size: i64)
+
 #wa:import dora imgui_plot_histogram
 func imgui_plot_histogram(label: i64, values: i64)
+
 #wa:import dora imgui_plot_histogram_opts
 func imgui_plot_histogram_opts(label: i64, values: i64, values_offset: i32, overlay_text: i64, scale_min: f32, scale_max: f32, graph_size: i64)
+
 #wa:import dora imgui_progress_bar
 func imgui_progress_bar(fraction: f32)
+
 #wa:import dora imgui_progress_bar_opts
 func imgui_progress_bar_opts(fraction: f32, size_arg: i64, overlay: i64)
+
 #wa:import dora imgui__list_box_ret_opts
 func imgui__list_box_ret_opts(label: i64, stack: i64, items: i64, height_in_items: i32) => i32
+
 #wa:import dora imgui__slider_angle_ret
 func imgui__slider_angle_ret(label: i64, stack: i64, v_degrees_min: f32, v_degrees_max: f32) => i32
+
 #wa:import dora imgui__tree_push
 func imgui__tree_push(str_id: i64)
+
 #wa:import dora imgui__tree_pop
 func imgui__tree_pop()
+
 #wa:import dora imgui_value
 func imgui_value(prefix: i64, b: i32)
+
 #wa:import dora imgui_menu_item
 func imgui_menu_item(label: i64, shortcut: i64, selected: i32, enabled: i32) => i32
+
 #wa:import dora imgui_open_popup
 func imgui_open_popup(str_id: i64)
+
 #wa:import dora imgui__begin_popup
 func imgui__begin_popup(str_id: i64) => i32
+
 #wa:import dora imgui__end_popup
 func imgui__end_popup()
+
 #wa:import dora imgui_get_tree_node_to_label_spacing
 func imgui_get_tree_node_to_label_spacing() => f32
+
 #wa:import dora imgui__begin_list_box
 func imgui__begin_list_box(label: i64, size: i64) => i32
+
 #wa:import dora imgui__end_list_box
 func imgui__end_list_box()
+
 #wa:import dora imgui__begin_disabled
 func imgui__begin_disabled()
+
 #wa:import dora imgui__end_disabled
 func imgui__end_disabled()
+
 #wa:import dora imgui__begin_tooltip
 func imgui__begin_tooltip() => i32
+
 #wa:import dora imgui__end_tooltip
 func imgui__end_tooltip()
+
 #wa:import dora imgui__begin_main_menu_bar
 func imgui__begin_main_menu_bar() => i32
+
 #wa:import dora imgui__end_main_menu_bar
 func imgui__end_main_menu_bar()
+
 #wa:import dora imgui__begin_menu_bar
 func imgui__begin_menu_bar() => i32
+
 #wa:import dora imgui__end_menu_bar
 func imgui__end_menu_bar()
+
 #wa:import dora imgui__begin_menu
 func imgui__begin_menu(label: i64, enabled: i32) => i32
+
 #wa:import dora imgui__end_menu
 func imgui__end_menu()
+
 #wa:import dora imgui_close_current_popup
 func imgui_close_current_popup()
+
 #wa:import dora imgui__push_clip_rect
 func imgui__push_clip_rect(clip_rect_min: i64, clip_rect_max: i64, intersect_with_current_clip_rect: i32)
+
 #wa:import dora imgui__pop_clip_rect
 func imgui__pop_clip_rect()
+
 #wa:import dora imgui_is_item_hovered
 func imgui_is_item_hovered() => i32
+
 #wa:import dora imgui_is_item_active
 func imgui_is_item_active() => i32
+
 #wa:import dora imgui_is_item_clicked
 func imgui_is_item_clicked(mouse_button: i32) => i32
+
 #wa:import dora imgui_is_item_visible
 func imgui_is_item_visible() => i32
+
 #wa:import dora imgui_is_any_item_hovered
 func imgui_is_any_item_hovered() => i32
+
 #wa:import dora imgui_is_any_item_active
 func imgui_is_any_item_active() => i32
+
 #wa:import dora imgui_get_item_rect_min
 func imgui_get_item_rect_min() => i64
+
 #wa:import dora imgui_get_item_rect_max
 func imgui_get_item_rect_max() => i64
+
 #wa:import dora imgui_get_item_rect_size
 func imgui_get_item_rect_size() => i64
+
 #wa:import dora imgui_set_next_item_allow_overlap
 func imgui_set_next_item_allow_overlap()
+
 #wa:import dora imgui_is_window_hovered
 func imgui_is_window_hovered() => i32
+
 #wa:import dora imgui_is_window_focused
 func imgui_is_window_focused() => i32
+
 #wa:import dora imgui_is_rect_visible
 func imgui_is_rect_visible(size: i64) => i32
+
 #wa:import dora imgui_is_mouse_down
 func imgui_is_mouse_down(button: i32) => i32
+
 #wa:import dora imgui_is_mouse_clicked
 func imgui_is_mouse_clicked(button: i32, repeat: i32) => i32
+
 #wa:import dora imgui_is_mouse_double_clicked
 func imgui_is_mouse_double_clicked(button: i32) => i32
+
 #wa:import dora imgui_is_mouse_released
 func imgui_is_mouse_released(button: i32) => i32
+
 #wa:import dora imgui_is_mouse_hovering_rect
 func imgui_is_mouse_hovering_rect(r_min: i64, r_max: i64, clip: i32) => i32
+
 #wa:import dora imgui_is_mouse_dragging
 func imgui_is_mouse_dragging(button: i32, lock_threshold: f32) => i32
+
 #wa:import dora imgui_get_mouse_pos
 func imgui_get_mouse_pos() => i64
+
 #wa:import dora imgui_get_mouse_pos_on_opening_current_popup
 func imgui_get_mouse_pos_on_opening_current_popup() => i64
+
 #wa:import dora imgui_get_mouse_drag_delta
 func imgui_get_mouse_drag_delta(button: i32, lock_threshold: f32) => i64
+
 #wa:import dora imgui_reset_mouse_drag_delta
 func imgui_reset_mouse_drag_delta(button: i32)
-type _ImGui :struct { }
+
+type _ImGui :struct{}
+
 global ImGui = _ImGui{}
+
 func _ImGui.LoadFontTtfAsync(ttf_font_file: string, font_size: f32, glyph_ranges: string, handler: func(success: bool)) {
 	stack0 := NewCallStack()
 	func_id0 := PushFunction(func() {

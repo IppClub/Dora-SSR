@@ -8,31 +8,45 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #wa:import dora tilenode_type
 func tilenode_type() => i32
+
 #wa:import dora tilenode_set_depth_write
-func tilenode_set_depth_write(slf: i64, val: i32);
+func tilenode_set_depth_write(slf: i64, val: i32)
+
 #wa:import dora tilenode_is_depth_write
 func tilenode_is_depth_write(slf: i64) => i32
+
 #wa:import dora tilenode_set_blend_func
-func tilenode_set_blend_func(slf: i64, val: i64);
+func tilenode_set_blend_func(slf: i64, val: i64)
+
 #wa:import dora tilenode_get_blend_func
 func tilenode_get_blend_func(slf: i64) => i64
+
 #wa:import dora tilenode_set_effect
-func tilenode_set_effect(slf: i64, val: i64);
+func tilenode_set_effect(slf: i64, val: i64)
+
 #wa:import dora tilenode_get_effect
 func tilenode_get_effect(slf: i64) => i64
+
 #wa:import dora tilenode_set_filter
-func tilenode_set_filter(slf: i64, val: i32);
+func tilenode_set_filter(slf: i64, val: i32)
+
 #wa:import dora tilenode_get_filter
 func tilenode_get_filter(slf: i64) => i32
+
 #wa:import dora tilenode_get_layer
 func tilenode_get_layer(slf: i64, layer_name: i64) => i64
+
 #wa:import dora tilenode_new
 func tilenode_new(tmx_file: i64) => i64
+
 #wa:import dora tilenode_with_with_layer
 func tilenode_with_with_layer(tmx_file: i64, layer_name: i64) => i64
+
 #wa:import dora tilenode_with_with_layers
 func tilenode_with_with_layers(tmx_file: i64, layer_names: i64) => i64
-type TileNode :struct { Node }
+
+type TileNode :struct{ Node }
+
 func TileNodeFrom(raw: i64) => *TileNode {
 	if raw == 0 {
 		return nil
@@ -53,38 +67,47 @@ func ObjectAsTileNode(object: Object) => *TileNode {
 	}
 	return nil
 }
+
 /// Sets whether the depth buffer should be written to when rendering the tilemap.
 func TileNode.SetDepthWrite(val: bool) {
 	tilenode_set_depth_write(*this.raw, ToDoraBool(val))
 }
+
 /// Gets whether the depth buffer should be written to when rendering the tilemap.
 func TileNode.IsDepthWrite() => bool {
 	return tilenode_is_depth_write(*this.raw) != 0
 }
+
 /// Sets the blend function for the tilemap.
 func TileNode.SetBlendFunc(val: BlendFunc) {
 	tilenode_set_blend_func(*this.raw, val.ToValue())
 }
+
 /// Gets the blend function for the tilemap.
 func TileNode.GetBlendFunc() => BlendFunc {
 	return BlendFuncFrom(tilenode_get_blend_func(*this.raw))
 }
+
 /// Sets the tilemap shader effect.
 func TileNode.SetEffect(val: SpriteEffect) {
 	tilenode_set_effect(*this.raw, val.GetRaw())
 }
+
 /// Gets the tilemap shader effect.
 func TileNode.GetEffect() => SpriteEffect {
 	return *SpriteEffectFrom(tilenode_get_effect(*this.raw))
 }
+
 /// Sets the texture filtering mode for the tilemap.
 func TileNode.SetFilter(val: TextureFilter) {
 	tilenode_set_filter(*this.raw, val.ToValue())
 }
+
 /// Gets the texture filtering mode for the tilemap.
 func TileNode.GetFilter() => TextureFilter {
 	return TextureFilter{value: tilenode_get_filter(*this.raw)}
 }
+
 /// Get the layer data by name from the tilemap.
 ///
 /// # Arguments
@@ -102,6 +125,7 @@ func TileNode.GetLayer(layer_name: string) => *Dictionary {
 	obj_ := *DictionaryFrom(ptr_)
 	return &obj_
 }
+
 /// Creates a `TileNode` object that will render the tile layers from a TMX file.
 ///
 /// # Arguments
@@ -121,6 +145,7 @@ func NewTileNode(tmx_file: string) => *TileNode {
 	setFinalizer(object.raw, ObjectFinalizer)
 	return &object
 }
+
 /// Creates a `TileNode` object that will render the specified tile layer from a TMX file.
 ///
 /// # Arguments
@@ -141,6 +166,7 @@ func NewTileNodeWithWithLayer(tmx_file: string, layer_name: string) => *TileNode
 	setFinalizer(object.raw, ObjectFinalizer)
 	return &object
 }
+
 /// Creates a `TileNode` object that will render the specified tile layers from a TMX file.
 ///
 /// # Arguments

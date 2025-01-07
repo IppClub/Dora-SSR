@@ -8,9 +8,12 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #wa:import dora platformer_actionupdate_type
 func platformer_actionupdate_type() => i32
+
 #wa:import dora platformer_wasmactionupdate_new
 func platformer_wasmactionupdate_new(func0: i32, stack0: i64) => i64
-type PlatformerActionUpdate :struct { Object }
+
+type PlatformerActionUpdate :struct{ Object }
+
 func PlatformerActionUpdateFrom(raw: i64) => *PlatformerActionUpdate {
 	if raw == 0 {
 		return nil

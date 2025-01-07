@@ -8,13 +8,18 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #wa:import dora cameraotho_type
 func cameraotho_type() => i32
+
 #wa:import dora cameraotho_set_position
-func cameraotho_set_position(slf: i64, val: i64);
+func cameraotho_set_position(slf: i64, val: i64)
+
 #wa:import dora cameraotho_get_position
 func cameraotho_get_position(slf: i64) => i64
+
 #wa:import dora cameraotho_new
 func cameraotho_new(name: i64) => i64
-type CameraOtho :struct { Camera }
+
+type CameraOtho :struct{ Camera }
+
 func CameraOthoFrom(raw: i64) => *CameraOtho {
 	if raw == 0 {
 		return nil
@@ -35,14 +40,17 @@ func ObjectAsCameraOtho(object: Object) => *CameraOtho {
 	}
 	return nil
 }
+
 /// Sets the position of the camera in the game world.
 func CameraOtho.SetPosition(val: Vec2) {
 	cameraotho_set_position(*this.raw, val.ToValue())
 }
+
 /// Gets the position of the camera in the game world.
 func CameraOtho.GetPosition() => Vec2 {
 	return Vec2FromValue(cameraotho_get_position(*this.raw))
 }
+
 /// Creates a new CameraOtho object with the given name.
 ///
 /// # Arguments

@@ -8,33 +8,48 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #wa:import dora actiondef_release
 func actiondef_release(raw: i64)
+
 #wa:import dora actiondef_prop
 func actiondef_prop(duration: f32, start: f32, stop: f32, prop: i32, easing: i32) => i64
+
 #wa:import dora actiondef_tint
 func actiondef_tint(duration: f32, start: i32, stop: i32, easing: i32) => i64
+
 #wa:import dora actiondef_roll
 func actiondef_roll(duration: f32, start: f32, stop: f32, easing: i32) => i64
+
 #wa:import dora actiondef_spawn
 func actiondef_spawn(defs: i64) => i64
+
 #wa:import dora actiondef_sequence
 func actiondef_sequence(defs: i64) => i64
+
 #wa:import dora actiondef_delay
 func actiondef_delay(duration: f32) => i64
+
 #wa:import dora actiondef_show
 func actiondef_show() => i64
+
 #wa:import dora actiondef_hide
 func actiondef_hide() => i64
+
 #wa:import dora actiondef_event
 func actiondef_event(event_name: i64, msg: i64) => i64
+
 #wa:import dora actiondef_move_to
 func actiondef_move_to(duration: f32, start: i64, stop: i64, easing: i32) => i64
+
 #wa:import dora actiondef_scale
 func actiondef_scale(duration: f32, start: f32, stop: f32, easing: i32) => i64
+
 #wa:import dora actiondef_frame
 func actiondef_frame(clip_str: i64, duration: f32) => i64
+
 #wa:import dora actiondef_frame_with_frames
 func actiondef_frame_with_frames(clip_str: i64, duration: f32, frames: i64) => i64
-type ActionDef :struct { raw: *i64 }
+
+type ActionDef :struct{ raw: *i64 }
+
 func ActionDef.GetRaw() => i64 {
 	return *this.raw
 }
@@ -51,6 +66,7 @@ func ActionDefFrom(raw: i64) => *ActionDef {
 	result := &item
 	return result
 }
+
 /// Creates a new action definition object to change a property of a node.
 ///
 /// # Arguments
@@ -67,6 +83,7 @@ func ActionDefFrom(raw: i64) => *ActionDef {
 func ActionDefProp(duration: f32, start: f32, stop: f32, prop: Property, easing: EaseType) => ActionDef {
 	return *ActionDefFrom(actiondef_prop(duration, start, stop, prop.ToValue(), easing.ToValue()))
 }
+
 /// Creates a new action definition object to change the color of a node.
 ///
 /// # Arguments
@@ -82,6 +99,7 @@ func ActionDefProp(duration: f32, start: f32, stop: f32, prop: Property, easing:
 func ActionDefTint(duration: f32, start: Color3, stop: Color3, easing: EaseType) => ActionDef {
 	return *ActionDefFrom(actiondef_tint(duration, start.ToRGB(), stop.ToRGB(), easing.ToValue()))
 }
+
 /// Creates a new action definition object to rotate a node by smallest angle.
 ///
 /// # Arguments
@@ -97,6 +115,7 @@ func ActionDefTint(duration: f32, start: Color3, stop: Color3, easing: EaseType)
 func ActionDefRoll(duration: f32, start: f32, stop: f32, easing: EaseType) => ActionDef {
 	return *ActionDefFrom(actiondef_roll(duration, start, stop, easing.ToValue()))
 }
+
 /// Creates a new action definition object to run a group of actions in parallel.
 ///
 /// # Arguments
@@ -109,6 +128,7 @@ func ActionDefRoll(duration: f32, start: f32, stop: f32, easing: EaseType) => Ac
 func ActionDefSpawn(defs: *[]ActionDef) => ActionDef {
 	return *ActionDefFrom(actiondef_spawn(ToDoraActionDefBuf(defs)))
 }
+
 /// Creates a new action definition object to run a group of actions in sequence.
 ///
 /// # Arguments
@@ -121,6 +141,7 @@ func ActionDefSpawn(defs: *[]ActionDef) => ActionDef {
 func ActionDefSequence(defs: *[]ActionDef) => ActionDef {
 	return *ActionDefFrom(actiondef_sequence(ToDoraActionDefBuf(defs)))
 }
+
 /// Creates a new action definition object to delay the execution of following action.
 ///
 /// # Arguments
@@ -133,14 +154,17 @@ func ActionDefSequence(defs: *[]ActionDef) => ActionDef {
 func ActionDefDelay(duration: f32) => ActionDef {
 	return *ActionDefFrom(actiondef_delay(duration))
 }
+
 /// Creates a new action definition object to show a node.
 func ActionDefShow() => ActionDef {
 	return *ActionDefFrom(actiondef_show())
 }
+
 /// Creates a new action definition object to hide a node.
 func ActionDefHide() => ActionDef {
 	return *ActionDefFrom(actiondef_hide())
 }
+
 /// Creates a new action definition object to emit an event.
 ///
 /// # Arguments
@@ -154,6 +178,7 @@ func ActionDefHide() => ActionDef {
 func ActionDefEvent(event_name: string, msg: string) => ActionDef {
 	return *ActionDefFrom(actiondef_event(ToDoraString(event_name), ToDoraString(msg)))
 }
+
 /// Creates a new action definition object to move a node.
 ///
 /// # Arguments
@@ -169,6 +194,7 @@ func ActionDefEvent(event_name: string, msg: string) => ActionDef {
 func ActionDefMoveTo(duration: f32, start: Vec2, stop: Vec2, easing: EaseType) => ActionDef {
 	return *ActionDefFrom(actiondef_move_to(duration, start.ToValue(), stop.ToValue(), easing.ToValue()))
 }
+
 /// Creates a new action definition object to scale a node.
 ///
 /// # Arguments
@@ -184,6 +210,7 @@ func ActionDefMoveTo(duration: f32, start: Vec2, stop: Vec2, easing: EaseType) =
 func ActionDefScale(duration: f32, start: f32, stop: f32, easing: EaseType) => ActionDef {
 	return *ActionDefFrom(actiondef_scale(duration, start, stop, easing.ToValue()))
 }
+
 /// Creates a new action definition object to do a frame animation. Can only be performed on a Sprite node.
 ///
 /// # Arguments
@@ -197,6 +224,7 @@ func ActionDefScale(duration: f32, start: f32, stop: f32, easing: EaseType) => A
 func ActionDefFrame(clip_str: string, duration: f32) => ActionDef {
 	return *ActionDefFrom(actiondef_frame(ToDoraString(clip_str), duration))
 }
+
 /// Creates a new action definition object to do a frame animation with frames count for each frame. Can only be performed on a Sprite node.
 ///
 /// # Arguments

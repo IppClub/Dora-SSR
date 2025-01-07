@@ -8,11 +8,15 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #wa:import dora alignnode_type
 func alignnode_type() => i32
+
 #wa:import dora alignnode_css
 func alignnode_css(slf: i64, style: i64)
+
 #wa:import dora alignnode_new
 func alignnode_new(is_window_root: i32) => i64
-type AlignNode :struct { Node }
+
+type AlignNode :struct{ Node }
+
 func AlignNodeFrom(raw: i64) => *AlignNode {
 	if raw == 0 {
 		return nil
@@ -33,6 +37,7 @@ func ObjectAsAlignNode(object: Object) => *AlignNode {
 	}
 	return nil
 }
+
 /// Sets the layout style of the node.
 ///
 /// # Arguments
@@ -66,6 +71,7 @@ func ObjectAsAlignNode(object: Object) => *AlignNode {
 func AlignNode.Css(style: string) {
 	alignnode_css(*this.raw, ToDoraString(style))
 }
+
 /// Creates a new AlignNode object.
 ///
 /// # Arguments

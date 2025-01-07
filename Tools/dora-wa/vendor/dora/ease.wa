@@ -8,8 +8,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #wa:import dora ease_func
 func ease_func(easing: i32, time: f32) => f32
-type _Ease :struct { }
+
+type _Ease :struct{}
+
 global Ease = _Ease{}
+
 func _Ease.Func(easing: EaseType, time: f32) => f32 {
 	return ease_func(easing.ToValue(), time)
 }

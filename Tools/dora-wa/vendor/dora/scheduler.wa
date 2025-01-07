@@ -8,19 +8,27 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #wa:import dora scheduler_type
 func scheduler_type() => i32
+
 #wa:import dora scheduler_set_time_scale
-func scheduler_set_time_scale(slf: i64, val: f32);
+func scheduler_set_time_scale(slf: i64, val: f32)
+
 #wa:import dora scheduler_get_time_scale
 func scheduler_get_time_scale(slf: i64) => f32
+
 #wa:import dora scheduler_set_fixed_fps
-func scheduler_set_fixed_fps(slf: i64, val: i32);
+func scheduler_set_fixed_fps(slf: i64, val: i32)
+
 #wa:import dora scheduler_get_fixed_fps
 func scheduler_get_fixed_fps(slf: i64) => i32
+
 #wa:import dora scheduler_update
 func scheduler_update(slf: i64, delta_time: f64) => i32
+
 #wa:import dora scheduler_new
 func scheduler_new() => i64
-type Scheduler :struct { Object }
+
+type Scheduler :struct{ Object }
+
 func SchedulerFrom(raw: i64) => *Scheduler {
 	if raw == 0 {
 		return nil
@@ -41,28 +49,33 @@ func ObjectAsScheduler(object: Object) => *Scheduler {
 	}
 	return nil
 }
+
 /// Sets the time scale factor for the scheduler.
 /// This factor is applied to deltaTime that the scheduled functions will receive.
 func Scheduler.SetTimeScale(val: f32) {
 	scheduler_set_time_scale(*this.raw, val)
 }
+
 /// Gets the time scale factor for the scheduler.
 /// This factor is applied to deltaTime that the scheduled functions will receive.
 func Scheduler.GetTimeScale() => f32 {
 	return scheduler_get_time_scale(*this.raw)
 }
+
 /// Sets the target frame rate (in frames per second) for a fixed update mode.
 /// The fixed update will ensure a constant frame rate, and the operation handled in a fixed update can use a constant delta time value.
 /// It is used for preventing weird behavior of a physics engine or synchronizing some states via network communications.
 func Scheduler.SetFixedFps(val: i32) {
 	scheduler_set_fixed_fps(*this.raw, val)
 }
+
 /// Gets the target frame rate (in frames per second) for a fixed update mode.
 /// The fixed update will ensure a constant frame rate, and the operation handled in a fixed update can use a constant delta time value.
 /// It is used for preventing weird behavior of a physics engine or synchronizing some states via network communications.
 func Scheduler.GetFixedFps() => i32 {
 	return scheduler_get_fixed_fps(*this.raw)
 }
+
 /// Used for manually updating the scheduler if it is created by the user.
 ///
 /// # Arguments
@@ -75,6 +88,7 @@ func Scheduler.GetFixedFps() => i32 {
 func Scheduler.Update(delta_time: f64) => bool {
 	return scheduler_update(*this.raw, delta_time) != 0
 }
+
 /// Creates a new Scheduler object.
 func NewScheduler() => Scheduler {
 	raw := scheduler_new()

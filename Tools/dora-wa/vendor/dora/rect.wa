@@ -8,75 +8,111 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #wa:import dora rect_release
 func rect_release(raw: i64)
+
 #wa:import dora rect_set_origin
-func rect_set_origin(slf: i64, val: i64);
+func rect_set_origin(slf: i64, val: i64)
+
 #wa:import dora rect_get_origin
 func rect_get_origin(slf: i64) => i64
+
 #wa:import dora rect_set_size
-func rect_set_size(slf: i64, val: i64);
+func rect_set_size(slf: i64, val: i64)
+
 #wa:import dora rect_get_size
 func rect_get_size(slf: i64) => i64
+
 #wa:import dora rect_set_x
-func rect_set_x(slf: i64, val: f32);
+func rect_set_x(slf: i64, val: f32)
+
 #wa:import dora rect_get_x
 func rect_get_x(slf: i64) => f32
+
 #wa:import dora rect_set_y
-func rect_set_y(slf: i64, val: f32);
+func rect_set_y(slf: i64, val: f32)
+
 #wa:import dora rect_get_y
 func rect_get_y(slf: i64) => f32
+
 #wa:import dora rect_set_width
-func rect_set_width(slf: i64, val: f32);
+func rect_set_width(slf: i64, val: f32)
+
 #wa:import dora rect_get_width
 func rect_get_width(slf: i64) => f32
+
 #wa:import dora rect_set_height
-func rect_set_height(slf: i64, val: f32);
+func rect_set_height(slf: i64, val: f32)
+
 #wa:import dora rect_get_height
 func rect_get_height(slf: i64) => f32
+
 #wa:import dora rect_set_left
-func rect_set_left(slf: i64, val: f32);
+func rect_set_left(slf: i64, val: f32)
+
 #wa:import dora rect_get_left
 func rect_get_left(slf: i64) => f32
+
 #wa:import dora rect_set_right
-func rect_set_right(slf: i64, val: f32);
+func rect_set_right(slf: i64, val: f32)
+
 #wa:import dora rect_get_right
 func rect_get_right(slf: i64) => f32
+
 #wa:import dora rect_set_center_x
-func rect_set_center_x(slf: i64, val: f32);
+func rect_set_center_x(slf: i64, val: f32)
+
 #wa:import dora rect_get_center_x
 func rect_get_center_x(slf: i64) => f32
+
 #wa:import dora rect_set_center_y
-func rect_set_center_y(slf: i64, val: f32);
+func rect_set_center_y(slf: i64, val: f32)
+
 #wa:import dora rect_get_center_y
 func rect_get_center_y(slf: i64) => f32
+
 #wa:import dora rect_set_bottom
-func rect_set_bottom(slf: i64, val: f32);
+func rect_set_bottom(slf: i64, val: f32)
+
 #wa:import dora rect_get_bottom
 func rect_get_bottom(slf: i64) => f32
+
 #wa:import dora rect_set_top
-func rect_set_top(slf: i64, val: f32);
+func rect_set_top(slf: i64, val: f32)
+
 #wa:import dora rect_get_top
 func rect_get_top(slf: i64) => f32
+
 #wa:import dora rect_set_lower_bound
-func rect_set_lower_bound(slf: i64, val: i64);
+func rect_set_lower_bound(slf: i64, val: i64)
+
 #wa:import dora rect_get_lower_bound
 func rect_get_lower_bound(slf: i64) => i64
+
 #wa:import dora rect_set_upper_bound
-func rect_set_upper_bound(slf: i64, val: i64);
+func rect_set_upper_bound(slf: i64, val: i64)
+
 #wa:import dora rect_get_upper_bound
 func rect_get_upper_bound(slf: i64) => i64
+
 #wa:import dora rect_set
 func rect_set(slf: i64, x: f32, y: f32, width: f32, height: f32)
+
 #wa:import dora rect_contains_point
 func rect_contains_point(slf: i64, point: i64) => i32
+
 #wa:import dora rect_intersects_rect
 func rect_intersects_rect(slf: i64, rect: i64) => i32
+
 #wa:import dora rect_equals
 func rect_equals(slf: i64, other: i64) => i32
+
 #wa:import dora rect_new
 func rect_new(origin: i64, size: i64) => i64
+
 #wa:import dora rect_zero
 func rect_zero() => i64
-type Rect :struct { raw: *i64 }
+
+type Rect :struct{ raw: *i64 }
+
 func Rect.GetRaw() => i64 {
 	return *this.raw
 }
@@ -93,118 +129,147 @@ func RectFrom(raw: i64) => *Rect {
 	result := &item
 	return result
 }
+
 /// Sets the position of the origin of the rectangle.
 func Rect.SetOrigin(val: Vec2) {
 	rect_set_origin(*this.raw, val.ToValue())
 }
+
 /// Gets the position of the origin of the rectangle.
 func Rect.GetOrigin() => Vec2 {
 	return Vec2FromValue(rect_get_origin(*this.raw))
 }
+
 /// Sets the dimensions of the rectangle.
 func Rect.SetSize(val: Size) {
 	rect_set_size(*this.raw, val.ToValue())
 }
+
 /// Gets the dimensions of the rectangle.
 func Rect.GetSize() => Size {
 	return SizeFromValue(rect_get_size(*this.raw))
 }
+
 /// Sets the x-coordinate of the origin of the rectangle.
 func Rect.SetX(val: f32) {
 	rect_set_x(*this.raw, val)
 }
+
 /// Gets the x-coordinate of the origin of the rectangle.
 func Rect.GetX() => f32 {
 	return rect_get_x(*this.raw)
 }
+
 /// Sets the y-coordinate of the origin of the rectangle.
 func Rect.SetY(val: f32) {
 	rect_set_y(*this.raw, val)
 }
+
 /// Gets the y-coordinate of the origin of the rectangle.
 func Rect.GetY() => f32 {
 	return rect_get_y(*this.raw)
 }
+
 /// Sets the width of the rectangle.
 func Rect.SetWidth(val: f32) {
 	rect_set_width(*this.raw, val)
 }
+
 /// Gets the width of the rectangle.
 func Rect.GetWidth() => f32 {
 	return rect_get_width(*this.raw)
 }
+
 /// Sets the height of the rectangle.
 func Rect.SetHeight(val: f32) {
 	rect_set_height(*this.raw, val)
 }
+
 /// Gets the height of the rectangle.
 func Rect.GetHeight() => f32 {
 	return rect_get_height(*this.raw)
 }
+
 /// Sets the left edge in x-axis of the rectangle.
 func Rect.SetLeft(val: f32) {
 	rect_set_left(*this.raw, val)
 }
+
 /// Gets the left edge in x-axis of the rectangle.
 func Rect.GetLeft() => f32 {
 	return rect_get_left(*this.raw)
 }
+
 /// Sets the right edge in x-axis of the rectangle.
 func Rect.SetRight(val: f32) {
 	rect_set_right(*this.raw, val)
 }
+
 /// Gets the right edge in x-axis of the rectangle.
 func Rect.GetRight() => f32 {
 	return rect_get_right(*this.raw)
 }
+
 /// Sets the x-coordinate of the center of the rectangle.
 func Rect.SetCenterX(val: f32) {
 	rect_set_center_x(*this.raw, val)
 }
+
 /// Gets the x-coordinate of the center of the rectangle.
 func Rect.GetCenterX() => f32 {
 	return rect_get_center_x(*this.raw)
 }
+
 /// Sets the y-coordinate of the center of the rectangle.
 func Rect.SetCenterY(val: f32) {
 	rect_set_center_y(*this.raw, val)
 }
+
 /// Gets the y-coordinate of the center of the rectangle.
 func Rect.GetCenterY() => f32 {
 	return rect_get_center_y(*this.raw)
 }
+
 /// Sets the bottom edge in y-axis of the rectangle.
 func Rect.SetBottom(val: f32) {
 	rect_set_bottom(*this.raw, val)
 }
+
 /// Gets the bottom edge in y-axis of the rectangle.
 func Rect.GetBottom() => f32 {
 	return rect_get_bottom(*this.raw)
 }
+
 /// Sets the top edge in y-axis of the rectangle.
 func Rect.SetTop(val: f32) {
 	rect_set_top(*this.raw, val)
 }
+
 /// Gets the top edge in y-axis of the rectangle.
 func Rect.GetTop() => f32 {
 	return rect_get_top(*this.raw)
 }
+
 /// Sets the lower bound (left-bottom) of the rectangle.
 func Rect.SetLowerBound(val: Vec2) {
 	rect_set_lower_bound(*this.raw, val.ToValue())
 }
+
 /// Gets the lower bound (left-bottom) of the rectangle.
 func Rect.GetLowerBound() => Vec2 {
 	return Vec2FromValue(rect_get_lower_bound(*this.raw))
 }
+
 /// Sets the upper bound (right-top) of the rectangle.
 func Rect.SetUpperBound(val: Vec2) {
 	rect_set_upper_bound(*this.raw, val.ToValue())
 }
+
 /// Gets the upper bound (right-top) of the rectangle.
 func Rect.GetUpperBound() => Vec2 {
 	return Vec2FromValue(rect_get_upper_bound(*this.raw))
 }
+
 /// Sets the properties of the rectangle.
 ///
 /// # Arguments
@@ -216,6 +281,7 @@ func Rect.GetUpperBound() => Vec2 {
 func Rect.Set(x: f32, y: f32, width: f32, height: f32) {
 	rect_set(*this.raw, x, y, width, height)
 }
+
 /// Checks if a point is inside the rectangle.
 ///
 /// # Arguments
@@ -228,6 +294,7 @@ func Rect.Set(x: f32, y: f32, width: f32, height: f32) {
 func Rect.ContainsPoint(point: Vec2) => bool {
 	return rect_contains_point(*this.raw, point.ToValue()) != 0
 }
+
 /// Checks if the rectangle intersects with another rectangle.
 ///
 /// # Arguments
@@ -240,6 +307,7 @@ func Rect.ContainsPoint(point: Vec2) => bool {
 func Rect.IntersectsRect(rect: Rect) => bool {
 	return rect_intersects_rect(*this.raw, rect.GetRaw()) != 0
 }
+
 /// Checks if two rectangles are equal.
 ///
 /// # Arguments
@@ -252,6 +320,7 @@ func Rect.IntersectsRect(rect: Rect) => bool {
 func Rect.Equals(other: Rect) => bool {
 	return rect_equals(*this.raw, other.GetRaw()) != 0
 }
+
 /// Creates a new rectangle object using a Vec2 object for the origin and a Size object for the size.
 ///
 /// # Arguments
@@ -269,6 +338,7 @@ func NewRect(origin: Vec2, size: Size) => Rect {
 	setFinalizer(object.raw, rect_finalizer)
 	return object
 }
+
 /// Gets a rectangle object with all properties set to 0.
 func RectZero() => Rect {
 	return *RectFrom(rect_zero())

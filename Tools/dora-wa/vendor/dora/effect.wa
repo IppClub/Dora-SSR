@@ -8,15 +8,21 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #wa:import dora effect_type
 func effect_type() => i32
+
 #wa:import dora effect_add
 func effect_add(slf: i64, pass: i64)
+
 #wa:import dora effect_get
 func effect_get(slf: i64, index: i64) => i64
+
 #wa:import dora effect_clear
 func effect_clear(slf: i64)
+
 #wa:import dora effect_new
 func effect_new(vert_shader: i64, frag_shader: i64) => i64
-type Effect :struct { Object }
+
+type Effect :struct{ Object }
+
 func EffectFrom(raw: i64) => *Effect {
 	if raw == 0 {
 		return nil
@@ -37,6 +43,7 @@ func ObjectAsEffect(object: Object) => *Effect {
 	}
 	return nil
 }
+
 /// Adds a Pass object to this Effect.
 ///
 /// # Arguments
@@ -45,6 +52,7 @@ func ObjectAsEffect(object: Object) => *Effect {
 func Effect.Add(pass: Pass) {
 	effect_add(*this.raw, pass.GetRaw())
 }
+
 /// Retrieves a Pass object from this Effect by index.
 ///
 /// # Arguments
@@ -62,10 +70,12 @@ func Effect.Get(index: i64) => *Pass {
 	obj_ := *PassFrom(ptr_)
 	return &obj_
 }
+
 /// Removes all Pass objects from this Effect.
 func Effect.Clear() {
 	effect_clear(*this.raw)
 }
+
 /// A method that allows you to create a new Effect object.
 ///
 /// # Arguments

@@ -8,13 +8,18 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #wa:import dora texture2d_type
 func texture2d_type() => i32
+
 #wa:import dora texture2d_get_width
 func texture2d_get_width(slf: i64) => i32
+
 #wa:import dora texture2d_get_height
 func texture2d_get_height(slf: i64) => i32
+
 #wa:import dora texture2d_with_file
 func texture2d_with_file(filename: i64) => i64
-type Texture2D :struct { Object }
+
+type Texture2D :struct{ Object }
+
 func Texture2DFrom(raw: i64) => *Texture2D {
 	if raw == 0 {
 		return nil
@@ -35,14 +40,17 @@ func ObjectAsTexture2D(object: Object) => *Texture2D {
 	}
 	return nil
 }
+
 /// Gets the width of the texture, in pixels.
 func Texture2D.GetWidth() => i32 {
 	return texture2d_get_width(*this.raw)
 }
+
 /// Gets the height of the texture, in pixels.
 func Texture2D.GetHeight() => i32 {
 	return texture2d_get_height(*this.raw)
 }
+
 /// Creates a texture object from the given file.
 ///
 /// # Arguments

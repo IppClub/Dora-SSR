@@ -8,14 +8,20 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #wa:import dora httpclient_post_async
 func httpclient_post_async(url: i64, json: i64, timeout: f32, func0: i32, stack0: i64)
+
 #wa:import dora httpclient_post_with_headers_async
 func httpclient_post_with_headers_async(url: i64, headers: i64, json: i64, timeout: f32, func0: i32, stack0: i64)
+
 #wa:import dora httpclient_get_async
 func httpclient_get_async(url: i64, timeout: f32, func0: i32, stack0: i64)
+
 #wa:import dora httpclient_download_async
 func httpclient_download_async(url: i64, full_path: i64, timeout: f32, func0: i32, stack0: i64)
-type _HttpClient :struct { }
+
+type _HttpClient :struct{}
+
 global HttpClient = _HttpClient{}
+
 func _HttpClient.PostAsync(url: string, json: string, timeout: f32, callback: func(body: *string)) {
 	stack0 := NewCallStack()
 	func_id0 := PushFunction(func() {

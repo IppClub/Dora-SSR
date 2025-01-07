@@ -8,19 +8,27 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #wa:import dora entity_type
 func entity_type() => i32
+
 #wa:import dora entity_get_count
 func entity_get_count() => i32
+
 #wa:import dora entity_get_index
 func entity_get_index(slf: i64) => i32
+
 #wa:import dora entity_clear
 func entity_clear()
+
 #wa:import dora entity_remove
 func entity_remove(slf: i64, key: i64)
+
 #wa:import dora entity_destroy
 func entity_destroy(slf: i64)
+
 #wa:import dora entity_new
 func entity_new() => i64
-type Entity :struct { Object }
+
+type Entity :struct{ Object }
+
 func EntityFrom(raw: i64) => *Entity {
 	if raw == 0 {
 		return nil
@@ -41,18 +49,22 @@ func ObjectAsEntity(object: Object) => *Entity {
 	}
 	return nil
 }
+
 /// Gets the number of all running entities.
 func EntityGetCount() => i32 {
 	return entity_get_count()
 }
+
 /// Gets the index of the entity.
 func Entity.GetIndex() => i32 {
 	return entity_get_index(*this.raw)
 }
+
 /// Clears all entities.
 func EntityClear() {
 	entity_clear()
 }
+
 /// Removes a property of the entity.
 ///
 /// This function will trigger events for Observer objects.
@@ -63,10 +75,12 @@ func EntityClear() {
 func Entity.Remove(key: string) {
 	entity_remove(*this.raw, ToDoraString(key))
 }
+
 /// Destroys the entity.
 func Entity.Destroy() {
 	entity_destroy(*this.raw)
 }
+
 /// Creates a new entity.
 func NewEntity() => Entity {
 	raw := entity_new()

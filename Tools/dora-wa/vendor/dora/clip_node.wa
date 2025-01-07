@@ -8,21 +8,30 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #wa:import dora clipnode_type
 func clipnode_type() => i32
+
 #wa:import dora clipnode_set_stencil
-func clipnode_set_stencil(slf: i64, val: i64);
+func clipnode_set_stencil(slf: i64, val: i64)
+
 #wa:import dora clipnode_get_stencil
 func clipnode_get_stencil(slf: i64) => i64
+
 #wa:import dora clipnode_set_alpha_threshold
-func clipnode_set_alpha_threshold(slf: i64, val: f32);
+func clipnode_set_alpha_threshold(slf: i64, val: f32)
+
 #wa:import dora clipnode_get_alpha_threshold
 func clipnode_get_alpha_threshold(slf: i64) => f32
+
 #wa:import dora clipnode_set_inverted
-func clipnode_set_inverted(slf: i64, val: i32);
+func clipnode_set_inverted(slf: i64, val: i32)
+
 #wa:import dora clipnode_is_inverted
 func clipnode_is_inverted(slf: i64) => i32
+
 #wa:import dora clipnode_new
 func clipnode_new(stencil: i64) => i64
-type ClipNode :struct { Node }
+
+type ClipNode :struct{ Node }
+
 func ClipNodeFrom(raw: i64) => *ClipNode {
 	if raw == 0 {
 		return nil
@@ -43,30 +52,37 @@ func ObjectAsClipNode(object: Object) => *ClipNode {
 	}
 	return nil
 }
+
 /// Sets the stencil Node that defines the clipping shape.
 func ClipNode.SetStencil(val: Node) {
 	clipnode_set_stencil(*this.raw, val.GetRaw())
 }
+
 /// Gets the stencil Node that defines the clipping shape.
 func ClipNode.GetStencil() => Node {
 	return *NodeFrom(clipnode_get_stencil(*this.raw))
 }
+
 /// Sets the minimum alpha threshold for a pixel to be visible. Value ranges from 0 to 1.
 func ClipNode.SetAlphaThreshold(val: f32) {
 	clipnode_set_alpha_threshold(*this.raw, val)
 }
+
 /// Gets the minimum alpha threshold for a pixel to be visible. Value ranges from 0 to 1.
 func ClipNode.GetAlphaThreshold() => f32 {
 	return clipnode_get_alpha_threshold(*this.raw)
 }
+
 /// Sets whether to invert the clipping area.
 func ClipNode.SetInverted(val: bool) {
 	clipnode_set_inverted(*this.raw, ToDoraBool(val))
 }
+
 /// Gets whether to invert the clipping area.
 func ClipNode.IsInverted() => bool {
 	return clipnode_is_inverted(*this.raw) != 0
 }
+
 /// Creates a new ClipNode object.
 ///
 /// # Arguments

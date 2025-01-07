@@ -8,15 +8,21 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #wa:import dora svg_type
 func svg_type() => i32
+
 #wa:import dora svgdef_get_width
 func svgdef_get_width(slf: i64) => f32
+
 #wa:import dora svgdef_get_height
 func svgdef_get_height(slf: i64) => f32
+
 #wa:import dora svgdef_render
 func svgdef_render(slf: i64)
+
 #wa:import dora svgdef_new
 func svgdef_new(filename: i64) => i64
-type SVG :struct { Object }
+
+type SVG :struct{ Object }
+
 func SVGFrom(raw: i64) => *SVG {
 	if raw == 0 {
 		return nil
@@ -37,18 +43,22 @@ func ObjectAsSVG(object: Object) => *SVG {
 	}
 	return nil
 }
+
 /// Gets the width of the SVG object.
 func SVG.GetWidth() => f32 {
 	return svgdef_get_width(*this.raw)
 }
+
 /// Gets the height of the SVG object.
 func SVG.GetHeight() => f32 {
 	return svgdef_get_height(*this.raw)
 }
+
 /// Renders the SVG object, should be called every frame for the render result to appear.
 func SVG.Render() {
 	svgdef_render(*this.raw)
 }
+
 /// Creates a new SVG object from the specified SVG file.
 ///
 /// # Arguments

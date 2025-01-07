@@ -8,43 +8,63 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #wa:import dora model_type
 func model_type() => i32
+
 #wa:import dora model_get_duration
 func model_get_duration(slf: i64) => f32
+
 #wa:import dora model_set_reversed
-func model_set_reversed(slf: i64, val: i32);
+func model_set_reversed(slf: i64, val: i32)
+
 #wa:import dora model_is_reversed
 func model_is_reversed(slf: i64) => i32
+
 #wa:import dora model_is_playing
 func model_is_playing(slf: i64) => i32
+
 #wa:import dora model_is_paused
 func model_is_paused(slf: i64) => i32
+
 #wa:import dora model_has_animation
 func model_has_animation(slf: i64, name: i64) => i32
+
 #wa:import dora model_pause
 func model_pause(slf: i64)
+
 #wa:import dora model_resume
 func model_resume(slf: i64)
+
 #wa:import dora model_resume_animation
 func model_resume_animation(slf: i64, name: i64, looping: i32)
+
 #wa:import dora model_reset
 func model_reset(slf: i64)
+
 #wa:import dora model_update_to
 func model_update_to(slf: i64, elapsed: f32, reversed: i32)
+
 #wa:import dora model_get_node_by_name
 func model_get_node_by_name(slf: i64, name: i64) => i64
+
 #wa:import dora model_each_node
 func model_each_node(slf: i64, func0: i32, stack0: i64) => i32
+
 #wa:import dora model_new
 func model_new(filename: i64) => i64
+
 #wa:import dora model_dummy
 func model_dummy() => i64
+
 #wa:import dora model_get_clip_file
 func model_get_clip_file(filename: i64) => i64
+
 #wa:import dora model_get_looks
 func model_get_looks(filename: i64) => i64
+
 #wa:import dora model_get_animations
 func model_get_animations(filename: i64) => i64
-type Model :struct { Playable }
+
+type Model :struct{ Playable }
+
 func ModelFrom(raw: i64) => *Model {
 	if raw == 0 {
 		return nil
@@ -65,26 +85,32 @@ func ObjectAsModel(object: Object) => *Model {
 	}
 	return nil
 }
+
 /// Gets the duration of the current animation.
 func Model.GetDuration() => f32 {
 	return model_get_duration(*this.raw)
 }
+
 /// Sets whether the animation model will be played in reverse.
 func Model.SetReversed(val: bool) {
 	model_set_reversed(*this.raw, ToDoraBool(val))
 }
+
 /// Gets whether the animation model will be played in reverse.
 func Model.IsReversed() => bool {
 	return model_is_reversed(*this.raw) != 0
 }
+
 /// Gets whether the animation model is currently playing.
 func Model.IsPlaying() => bool {
 	return model_is_playing(*this.raw) != 0
 }
+
 /// Gets whether the animation model is currently paused.
 func Model.IsPaused() => bool {
 	return model_is_paused(*this.raw) != 0
 }
+
 /// Checks if an animation exists in the model.
 ///
 /// # Arguments
@@ -97,14 +123,17 @@ func Model.IsPaused() => bool {
 func Model.HasAnimation(name: string) => bool {
 	return model_has_animation(*this.raw, ToDoraString(name)) != 0
 }
+
 /// Pauses the currently playing animation.
 func Model.Pause() {
 	model_pause(*this.raw)
 }
+
 /// Resumes the currently paused animation,
 func Model.Resume() {
 	model_resume(*this.raw)
 }
+
 /// Resumes the currently paused animation, or plays a new animation if specified.
 ///
 /// # Arguments
@@ -114,10 +143,12 @@ func Model.Resume() {
 func Model.ResumeAnimation(name: string, looping: bool) {
 	model_resume_animation(*this.raw, ToDoraString(name), ToDoraBool(looping))
 }
+
 /// Resets the current animation to its initial state.
 func Model.Reset() {
 	model_reset(*this.raw)
 }
+
 /// Updates the animation to the specified time, and optionally in reverse.
 ///
 /// # Arguments
@@ -127,6 +158,7 @@ func Model.Reset() {
 func Model.UpdateTo(elapsed: f32, reversed: bool) {
 	model_update_to(*this.raw, elapsed, ToDoraBool(reversed))
 }
+
 /// Gets the node with the specified name.
 ///
 /// # Arguments
@@ -139,6 +171,7 @@ func Model.UpdateTo(elapsed: f32, reversed: bool) {
 func Model.GetNodeByName(name: string) => Node {
 	return *NodeFrom(model_get_node_by_name(*this.raw, ToDoraString(name)))
 }
+
 /// Calls the specified function for each node in the model, and stops if the function returns `false`.
 ///
 /// # Arguments
@@ -159,6 +192,7 @@ func Model.EachNode(visitor_func: func(node: Node) => bool) => bool {
 	})
 	return model_each_node(*this.raw, func_id0, *stack0.raw) != 0
 }
+
 /// Creates a new instance of 'Model' from the specified model file.
 ///
 /// # Arguments
@@ -178,6 +212,7 @@ func NewModel(filename: string) => *Model {
 	setFinalizer(object.raw, ObjectFinalizer)
 	return &object
 }
+
 /// Returns a new dummy instance of 'Model' that can do nothing.
 ///
 /// # Returns
@@ -186,6 +221,7 @@ func NewModel(filename: string) => *Model {
 func ModelDummy() => Model {
 	return *ModelFrom(model_dummy())
 }
+
 /// Gets the clip file from the specified model file.
 ///
 /// # Arguments
@@ -198,6 +234,7 @@ func ModelDummy() => Model {
 func ModelGetClipFile(filename: string) => string {
 	return FromDoraString(model_get_clip_file(ToDoraString(filename)))
 }
+
 /// Gets an array of look names from the specified model file.
 ///
 /// # Arguments
@@ -210,6 +247,7 @@ func ModelGetClipFile(filename: string) => string {
 func ModelGetLooks(filename: string) => *[]string {
 	return FromDoraStrBuf(model_get_looks(ToDoraString(filename)))
 }
+
 /// Gets an array of animation names from the specified model file.
 ///
 /// # Arguments

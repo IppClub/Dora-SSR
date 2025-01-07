@@ -8,17 +8,24 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #wa:import dora buffer_type
 func buffer_type() => i32
+
 #wa:import dora buffer_set_text
-func buffer_set_text(slf: i64, val: i64);
+func buffer_set_text(slf: i64, val: i64)
+
 #wa:import dora buffer_get_text
 func buffer_get_text(slf: i64) => i64
+
 #wa:import dora buffer_resize
 func buffer_resize(slf: i64, size: i32)
+
 #wa:import dora buffer_zero_memory
 func buffer_zero_memory(slf: i64)
+
 #wa:import dora buffer_get_size
 func buffer_get_size(slf: i64) => i32
-type Buffer :struct { Object }
+
+type Buffer :struct{ Object }
+
 func BufferFrom(raw: i64) => *Buffer {
 	if raw == 0 {
 		return nil

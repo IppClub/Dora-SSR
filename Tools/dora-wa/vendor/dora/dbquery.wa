@@ -8,13 +8,18 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #wa:import dora dbquery_release
 func dbquery_release(raw: i64)
+
 #wa:import dora dbquery_add_with_params
 func dbquery_add_with_params(slf: i64, sql: i64, params: i64)
+
 #wa:import dora dbquery_add
 func dbquery_add(slf: i64, sql: i64)
+
 #wa:import dora dbquery_new
 func dbquery_new() => i64
-type DBQuery :struct { raw: *i64 }
+
+type DBQuery :struct{ raw: *i64 }
+
 func DBQuery.GetRaw() => i64 {
 	return *this.raw
 }

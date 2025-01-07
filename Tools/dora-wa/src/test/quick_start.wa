@@ -6,31 +6,22 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-#wa:import dora keyboard__is_key_down
-func keyboard__is_key_down(name: i64) => i32
+import "dora"
 
-#wa:import dora keyboard__is_key_up
-func keyboard__is_key_up(name: i64) => i32
-
-#wa:import dora keyboard__is_key_pressed
-func keyboard__is_key_pressed(name: i64) => i32
-
-#wa:import dora keyboard_update_ime_pos_hint
-func keyboard_update_ime_pos_hint(win_pos: i64)
-
-type _Keyboard :struct{}
-
-global Keyboard = _Keyboard{}
-
-func _Keyboard._IsKeyDown(name: string) => bool {
-	return keyboard__is_key_down(ToDoraString(name)) != 0
-}
-func _Keyboard._IsKeyUp(name: string) => bool {
-	return keyboard__is_key_up(ToDoraString(name)) != 0
-}
-func _Keyboard._IsKeyPressed(name: string) => bool {
-	return keyboard__is_key_pressed(ToDoraString(name)) != 0
-}
-func _Keyboard.UpdateImePosHint(win_pos: Vec2) {
-	keyboard_update_ime_pos_hint(win_pos.ToValue())
+func TestQuickStart() {
+	// 创建图片精灵
+	sprite := dora.NewSpriteWithFile("Image/logo.png")
+	// 创建游戏场景树根节点
+	root := dora.NewNode()
+	// 挂载图片精灵到游戏场景树根节点
+	root.AddChild(sprite.Node)
+	// 接收并处理点击事件移动图片精灵
+	root.OnTapBegan(func(touch: dora.Touch) {
+		sprite.PerformDef(dora.ActionDefMoveTo(
+			1.0,                  // 持续时间，单位为秒
+			sprite.GetPosition(), // 开始位置
+			touch.GetLocation(),  // 结束位置
+			dora.EaseOutBack,     // 缓动函数
+		), false)
+	})
 }

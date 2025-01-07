@@ -8,7 +8,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #wa:import dora fixturedef_type
 func fixturedef_type() => i32
-type FixtureDef :struct { Object }
+
+type FixtureDef :struct{ Object }
+
 func FixtureDefFrom(raw: i64) => *FixtureDef {
 	if raw == 0 {
 		return nil

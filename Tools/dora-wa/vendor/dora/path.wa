@@ -8,22 +8,32 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #wa:import dora path_get_ext
 func path_get_ext(path: i64) => i64
+
 #wa:import dora path_get_path
 func path_get_path(path: i64) => i64
+
 #wa:import dora path_get_name
 func path_get_name(path: i64) => i64
+
 #wa:import dora path_get_filename
 func path_get_filename(path: i64) => i64
+
 #wa:import dora path_get_relative
 func path_get_relative(path: i64, target: i64) => i64
+
 #wa:import dora path_replace_ext
 func path_replace_ext(path: i64, new_ext: i64) => i64
+
 #wa:import dora path_replace_filename
 func path_replace_filename(path: i64, new_file: i64) => i64
+
 #wa:import dora path_concat
 func path_concat(paths: i64) => i64
-type _Path :struct { }
+
+type _Path :struct{}
+
 global Path = _Path{}
+
 func _Path.GetExt(path: string) => string {
 	return FromDoraString(path_get_ext(ToDoraString(path)))
 }

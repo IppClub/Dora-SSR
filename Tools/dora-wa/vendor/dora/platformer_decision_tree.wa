@@ -8,23 +8,33 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #wa:import dora platformer_decision_tree_type
 func platformer_decision_tree_type() => i32
+
 #wa:import dora platformer_decision_leaf_sel
 func platformer_decision_leaf_sel(nodes: i64) => i64
+
 #wa:import dora platformer_decision_leaf_seq
 func platformer_decision_leaf_seq(nodes: i64) => i64
+
 #wa:import dora platformer_decision_leaf_con
 func platformer_decision_leaf_con(name: i64, func0: i32, stack0: i64) => i64
+
 #wa:import dora platformer_decision_leaf_act
 func platformer_decision_leaf_act(action_name: i64) => i64
+
 #wa:import dora platformer_decision_leaf_act_dynamic
 func platformer_decision_leaf_act_dynamic(func0: i32, stack0: i64) => i64
+
 #wa:import dora platformer_decision_leaf_accept
 func platformer_decision_leaf_accept() => i64
+
 #wa:import dora platformer_decision_leaf_reject
 func platformer_decision_leaf_reject() => i64
+
 #wa:import dora platformer_decision_leaf_behave
 func platformer_decision_leaf_behave(name: i64, root: i64) => i64
-type PlatformerDecisionTree :struct { Object }
+
+type PlatformerDecisionTree :struct{ Object }
+
 func PlatformerDecisionTreeFrom(raw: i64) => *PlatformerDecisionTree {
 	if raw == 0 {
 		return nil
@@ -45,6 +55,7 @@ func ObjectAsPlatformerDecisionTree(object: Object) => *PlatformerDecisionTree {
 	}
 	return nil
 }
+
 /// Creates a selector node with the specified child nodes.
 ///
 /// A selector node will go through the child nodes until one succeeds.
@@ -59,6 +70,7 @@ func ObjectAsPlatformerDecisionTree(object: Object) => *PlatformerDecisionTree {
 func PlatformerDecisionTreeSel(nodes: *[]PlatformerDecisionTree) => PlatformerDecisionTree {
 	return *PlatformerDecisionTreeFrom(platformer_decision_leaf_sel(ToDoraPlatformerDecisionTreeBuf(nodes)))
 }
+
 /// Creates a sequence node with the specified child nodes.
 ///
 /// A sequence node will go through the child nodes until all nodes succeed.
@@ -73,6 +85,7 @@ func PlatformerDecisionTreeSel(nodes: *[]PlatformerDecisionTree) => PlatformerDe
 func PlatformerDecisionTreeSeq(nodes: *[]PlatformerDecisionTree) => PlatformerDecisionTree {
 	return *PlatformerDecisionTreeFrom(platformer_decision_leaf_seq(ToDoraPlatformerDecisionTreeBuf(nodes)))
 }
+
 /// Creates a condition node with the specified name and handler function.
 ///
 /// # Arguments
@@ -94,6 +107,7 @@ func PlatformerDecisionTreeCon(name: string, handler: func(unit: PlatformerUnit)
 	})
 	return *PlatformerDecisionTreeFrom(platformer_decision_leaf_con(ToDoraString(name), func_id0, *stack0.raw))
 }
+
 /// Creates an action node with the specified action name.
 ///
 /// # Arguments
@@ -106,6 +120,7 @@ func PlatformerDecisionTreeCon(name: string, handler: func(unit: PlatformerUnit)
 func PlatformerDecisionTreeAct(action_name: string) => PlatformerDecisionTree {
 	return *PlatformerDecisionTreeFrom(platformer_decision_leaf_act(ToDoraString(action_name)))
 }
+
 /// Creates an action node with the specified handler function.
 ///
 /// # Arguments
@@ -126,6 +141,7 @@ func PlatformerDecisionTreeActDynamic(handler: func(unit: PlatformerUnit) => str
 	})
 	return *PlatformerDecisionTreeFrom(platformer_decision_leaf_act_dynamic(func_id0, *stack0.raw))
 }
+
 /// Creates a leaf node that represents accepting the current behavior tree.
 ///
 /// Always get success result from this node.
@@ -136,6 +152,7 @@ func PlatformerDecisionTreeActDynamic(handler: func(unit: PlatformerUnit) => str
 func PlatformerDecisionTreeAccept() => PlatformerDecisionTree {
 	return *PlatformerDecisionTreeFrom(platformer_decision_leaf_accept())
 }
+
 /// Creates a leaf node that represents rejecting the current behavior tree.
 ///
 /// Always get failure result from this node.
@@ -146,6 +163,7 @@ func PlatformerDecisionTreeAccept() => PlatformerDecisionTree {
 func PlatformerDecisionTreeReject() => PlatformerDecisionTree {
 	return *PlatformerDecisionTreeFrom(platformer_decision_leaf_reject())
 }
+
 /// Creates a leaf node with the specified behavior tree as its root.
 ///
 /// It is possible to include a Behavior Tree as a node in a Decision Tree by using the Behave() function. This allows the AI to use a combination of decision-making and behavior execution to achieve its goals.

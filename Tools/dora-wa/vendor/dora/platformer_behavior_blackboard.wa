@@ -8,9 +8,12 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #wa:import dora platformer_behavior_blackboard_get_delta_time
 func platformer_behavior_blackboard_get_delta_time(slf: i64) => f64
+
 #wa:import dora platformer_behavior_blackboard_get_owner
 func platformer_behavior_blackboard_get_owner(slf: i64) => i64
-type PlatformerBehaviorBlackboard :struct { raw: *i64 }
+
+type PlatformerBehaviorBlackboard :struct{ raw: *i64 }
+
 func PlatformerBehaviorBlackboard.GetRaw() => i64 {
 	return *this.raw
 }
@@ -23,10 +26,12 @@ func PlatformerBehaviorBlackboardFrom(raw: i64) => *PlatformerBehaviorBlackboard
 	result := &item
 	return result
 }
+
 /// Gets the time since the last frame update in seconds.
 func PlatformerBehaviorBlackboard.GetDeltaTime() => f64 {
 	return platformer_behavior_blackboard_get_delta_time(*this.raw)
 }
+
 /// Gets the unit that the AI agent belongs to.
 func PlatformerBehaviorBlackboard.GetOwner() => PlatformerUnit {
 	return *PlatformerUnitFrom(platformer_behavior_blackboard_get_owner(*this.raw))

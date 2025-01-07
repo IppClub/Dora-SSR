@@ -1,4 +1,13 @@
+/* Copyright (c) 2025 Li Jin, dragon-fly@qq.com
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
 import "dora"
+import "dora_test/test"
 
 func all_clear() {
 	dora.Director.Cleanup()
@@ -26,51 +35,51 @@ func init {
 				button_size := dora.NewVec2(200, 0)
 				if dora.ImGui.Button("Hello World", button_size) {
 					all_clear()
-					test_hello_world()
+					test.TestHelloWorld()
 				}
 				if dora.ImGui.Button("Quick Start", button_size) {
 					all_clear()
-					test_quick_start()
+					test.TestQuickStart()
 				}
 				if dora.ImGui.Button("Body", button_size) {
 					all_clear()
-					test_body()
+					test.TestBody()
 				}
 				if dora.ImGui.Button("Entity Move", button_size) {
 					all_clear()
-					test_entity_move()
+					test.TestEntityMove()
 				}
 				if dora.ImGui.Button("Contact", button_size) {
 					all_clear()
-					test_contact()
+					test.TestContact()
 				}
 				if dora.ImGui.Button("SQLite", button_size) {
 					all_clear()
-					test_sqlite()
+					test.TestSqlite()
 				}
 				if dora.ImGui.Button("Sprite", button_size) {
 					all_clear()
-					test_sprite()
+					test.TestSprite()
 				}
 				if dora.ImGui.Button("Model", button_size) {
 					all_clear()
-					test_model()
+					test.TestModel()
 				}
 				if dora.ImGui.Button("Render Target", button_size) {
 					all_clear()
-					test_render_target()
+					test.TestRenderTarget()
 				}
 				if dora.ImGui.Button("VG Button", button_size) {
 					all_clear()
-					test_vg_button()
+					test.TestVgButton()
 				}
 				if dora.ImGui.Button("Layout", button_size) {
 					all_clear()
-					test_layout()
+					test.TestLayout()
 				}
 				if dora.ImGui.Button("Excel Test", button_size) {
 					all_clear()
-					test_excel_test()
+					test.TestExcelTest()
 				}
 			})
 		return false
