@@ -57,7 +57,7 @@ This repo provides language bindings and a testing project to demonstrate Wa-lan
         ```wa
         import "dora"
 
-        func main() {
+        func init() {
             // create a sprite
             sprite := dora.NewSpriteWithFile("Image/logo.png")
 
