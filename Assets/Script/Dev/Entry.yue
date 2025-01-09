@@ -818,10 +818,7 @@ footerWindow = threadLoop ->
 				enterDemoEntry ["SelfUpdater", Path Content.assetPath, "Script", "Tools", "SelfUpdater"]
 		unless isInEntry
 			SameLine!
-			if Button zh and "主页" or "Home", Vec2 70, 30
-				allClear!
-				isInEntry = true
-				currentEntry = nil
+			back = Button zh and "主页" or "Home", Vec2 70, 30
 			currentIndex = nil
 			for i, entry in ipairs allEntries
 				if currentEntry == entry
@@ -840,6 +837,10 @@ footerWindow = threadLoop ->
 			SameLine!
 			if Button zh and "刷新" or "Reload", Vec2 70, 30
 				reloadCurrentEntry!
+			if back
+				allClear!
+				isInEntry = true
+				currentEntry = nil
 		<- PushStyleVar "WindowPadding", Vec2 10, 10
 		if showStats
 			SetNextWindowPos Vec2(10, 50), $SetCond FirstUseEver
