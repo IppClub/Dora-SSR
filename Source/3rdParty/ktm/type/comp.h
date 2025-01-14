@@ -23,17 +23,17 @@ namespace ktm
 {
 
 template <class Child>
-using comp_father_type = single_extends_t<Child, icomp_data, icomp_make, icomp_array, icomp_mul, 
-    iarray_io, iarray_madd_scalar, iarray_mul_scalar, iarray_add, iarray_util>;
+using comp_father_type = single_extends_t<Child, icomp_data, icomp_make, icomp_array, icomp_mul, iarray_io,
+                                          iarray_madd_scalar, iarray_mul_scalar, iarray_add, iarray_util>;
 
-template<typename T>
+template <typename T>
 struct comp<T> : comp_father_type<comp<T>>
 {
     using fater_type = comp_father_type<comp<T>>;
     using fater_type::fater_type;
 };
 
-}
+} // namespace ktm
 
 #include "../detail/complex/comp_mul.inl"
 #include "../detail/complex/comp_mul_simd.inl"

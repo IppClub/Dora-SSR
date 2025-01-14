@@ -5,19 +5,20 @@
 //  Created by 有个小小杜
 //
 
-#ifndef _KTM_MATRIX_SIMD_INL_
-#define _KTM_MATRIX_SIMD_INL_
+#ifndef _KTM_MATRIX_ALGEBRA_SIMD_INL_
+#define _KTM_MATRIX_ALGEBRA_SIMD_INL_
 
-#include "matrix_fwd.h"
+#include "matrix_algebra_fwd.h"
 #include "../../simd/skv.h"
 
 #if KTM_SIMD_ENABLE(KTM_SIMD_NEON | KTM_SIMD_SSE | KTM_SIMD_WASM)
 
-template<>
-struct ktm::detail::matrix_implement::transpose<2, 2, float>
+template <>
+struct ktm::detail::matrix_algebra_implement::transpose<2, 2, float>
 {
     using M = mat<2, 2, float>;
     using RetM = M;
+
     static KTM_INLINE RetM call(const M& m) noexcept
     {
         RetM ret;
@@ -28,11 +29,12 @@ struct ktm::detail::matrix_implement::transpose<2, 2, float>
     }
 };
 
-template<>
-struct ktm::detail::matrix_implement::transpose<3, 3, float>
+template <>
+struct ktm::detail::matrix_algebra_implement::transpose<3, 3, float>
 {
     using M = mat<3, 3, float>;
     using RetM = M;
+
     static KTM_INLINE RetM call(const M& m) noexcept
     {
         RetM ret;
@@ -49,11 +51,12 @@ struct ktm::detail::matrix_implement::transpose<3, 3, float>
     }
 };
 
-template<>
-struct ktm::detail::matrix_implement::transpose<4, 4, float>
+template <>
+struct ktm::detail::matrix_algebra_implement::transpose<4, 4, float>
 {
     using M = mat<4, 4, float>;
     using RetM = M;
+
     static KTM_INLINE RetM call(const M& m) noexcept
     {
         RetM ret;
@@ -73,13 +76,15 @@ struct ktm::detail::matrix_implement::transpose<4, 4, float>
     }
 };
 
-template<size_t N, typename T>
-struct ktm::detail::matrix_implement::transpose<N, N, T, std::enable_if_t<sizeof(T) == sizeof(float) && !std::is_same_v<T, float> && N >= 2 && N <=4>>
+template <size_t N, typename T>
+struct ktm::detail::matrix_algebra_implement::transpose<
+    N, N, T, std::enable_if_t<sizeof(T) == sizeof(float) && !std::is_same_v<T, float> && N >= 2 && N <= 4>>
 {
     using M = mat<N, N, T>;
     using RetM = M;
     using FM = mat<N, N, float>;
     using FRetM = FM;
+
     static KTM_INLINE RetM call(const M& m) noexcept
     {
         FRetM ret = transpose<N, N, float>::call(reinterpret_cast<const FM&>(m));
@@ -87,10 +92,11 @@ struct ktm::detail::matrix_implement::transpose<N, N, T, std::enable_if_t<sizeof
     }
 };
 
-template<>
-struct ktm::detail::matrix_implement::determinant<3, float>
+template <>
+struct ktm::detail::matrix_algebra_implement::determinant<3, float>
 {
     using M = mat<3, 3, float>;
+
     static KTM_INLINE float call(const M& m) noexcept
     {
         const skv::fv4& c_0 = m[0].st;
@@ -98,16 +104,17 @@ struct ktm::detail::matrix_implement::determinant<3, float>
         const skv::fv4& c_2 = m[2].st;
         skv::fv4 mul_00 = _mul128_f32(_shufft128_f32(c_1, c_1, 3, 0, 2, 1), _shufft128_f32(c_2, c_2, 3, 1, 0, 2));
         skv::fv4 mul_01 = _mul128_f32(_shufft128_f32(c_1, c_1, 3, 1, 0, 2), _shufft128_f32(c_2, c_2, 3, 0, 2, 1));
-        skv::fv4 sub_0 = _sub128_f32(mul_00, mul_01);  
-        
-        return skv::radd_fv3(_mul128_f32(c_0, sub_0)); 
+        skv::fv4 sub_0 = _sub128_f32(mul_00, mul_01);
+
+        return skv::radd_fv3(_mul128_f32(c_0, sub_0));
     }
 };
 
-template<>
-struct ktm::detail::matrix_implement::determinant<4, float>
+template <>
+struct ktm::detail::matrix_algebra_implement::determinant<4, float>
 {
     using M = mat<4, 4, float>;
+
     static KTM_INLINE float call(const M& m) noexcept
     {
         const skv::fv4& c_0 = m[0].st;
@@ -138,16 +145,17 @@ struct ktm::detail::matrix_implement::determinant<4, float>
             skv::fv4 sub_0 = _sub128_f32(mul_00, mul_01);
             mul_2 = _mul128_f32(_shuffo128_f32(c_1, 2, 1, 0, 3), sub_0);
         }
-        
+
         skv::fv4 mul_3 = _mul128_f32(c_0, _add128_f32(_add128_f32(mul_0, mul_1), mul_2));
         return skv::rsub_fv4(mul_3);
     }
 };
 
-template<>
-struct ktm::detail::matrix_implement::inverse<4, float>
+template <>
+struct ktm::detail::matrix_algebra_implement::inverse<4, float>
 {
     using M = mat<4, 4, float>;
+
     static KTM_INLINE M call(const M& m) noexcept
     {
         const skv::fv4& c_0 = m[0].st;
@@ -245,10 +253,15 @@ struct ktm::detail::matrix_implement::inverse<4, float>
             fac_5 = _sub128_f32(mul_00, mul_01);
         }
 
-        constexpr union { unsigned int i; float f; } neg { 0x80000000 };
+        constexpr union
+        {
+            unsigned int i;
+            float f;
+        } neg { 0x80000000 };
+
         skv::fv4 sign_a = _set128_f32(0, neg.f, 0.f, neg.f);
         skv::fv4 sign_b = _set128_f32(neg.f, 0.f, neg.f, 0.f);
-    
+
         // v_0 = { m[1][0], m[0][0], m[0][0], m[0][0] }
         skv::fv4 tmp_0 = _shufft128_f32(c_1, c_0, 0, 0, 0, 0);
         skv::fv4 v_0 = _shuffo128_f32(tmp_0, 2, 2, 2, 0);
@@ -270,11 +283,11 @@ struct ktm::detail::matrix_implement::inverse<4, float>
         // - (v_1[1] * fac_0[1] - v_2[1] * fac_1[1] + v_3[1] * fac_2[1])
         // + (v_1[2] * fac_0[2] - v_2[2] * fac_1[2] + v_3[2] * fac_2[2])
         // - (v_1[3] * fac_0[3] - v_2[3] * fac_1[3] + v_3[3] * fac_2[3])
-        skv::fv4 inv_0; 
+        skv::fv4 inv_0;
         {
             // sign_b * (v_1 * fac_0 - v_2 * fac_1 + v_3 * fac_2)
             skv::fv4 mul_00 = _mul128_f32(v_1, fac_0);
-            skv::fv4 mul_01 = _mul128_f32(v_2, fac_1); 
+            skv::fv4 mul_01 = _mul128_f32(v_2, fac_1);
             skv::fv4 mul_02 = _mul128_f32(v_3, fac_2);
             skv::fv4 sum_0 = _add128_f32(_sub128_f32(mul_00, mul_01), mul_02);
             inv_0 = _xor128_f32(sign_b, sum_0);
@@ -289,7 +302,7 @@ struct ktm::detail::matrix_implement::inverse<4, float>
         {
             // sign_a * (v_0 * fac_0 - v_2 * fac_3 + v_3 * fac_4)
             skv::fv4 mul_00 = _mul128_f32(v_0, fac_0);
-            skv::fv4 mul_01 = _mul128_f32(v_2, fac_3); 
+            skv::fv4 mul_01 = _mul128_f32(v_2, fac_3);
             skv::fv4 mul_02 = _mul128_f32(v_3, fac_4);
             skv::fv4 sum_0 = _add128_f32(_sub128_f32(mul_00, mul_01), mul_02);
             inv_1 = _xor128_f32(sign_a, sum_0);
@@ -304,7 +317,7 @@ struct ktm::detail::matrix_implement::inverse<4, float>
         {
             // sign_b * (v_0 * fac_1 - v_1 * fac_3 + v_3 * fac_5)
             skv::fv4 mul_00 = _mul128_f32(v_0, fac_1);
-            skv::fv4 mul_01 = _mul128_f32(v_1, fac_3); 
+            skv::fv4 mul_01 = _mul128_f32(v_1, fac_3);
             skv::fv4 mul_02 = _mul128_f32(v_3, fac_5);
             skv::fv4 sum_0 = _add128_f32(_sub128_f32(mul_00, mul_01), mul_02);
             inv_2 = _xor128_f32(sign_b, sum_0);
@@ -319,7 +332,7 @@ struct ktm::detail::matrix_implement::inverse<4, float>
         {
             // sign_a * (v_0 * fac_2 - v_1 * fac_4 + v_2 * fac_5)
             skv::fv4 mul_00 = _mul128_f32(v_0, fac_2);
-            skv::fv4 mul_01 = _mul128_f32(v_1, fac_4); 
+            skv::fv4 mul_01 = _mul128_f32(v_1, fac_4);
             skv::fv4 mul_02 = _mul128_f32(v_2, fac_5);
             skv::fv4 sum_0 = _add128_f32(_sub128_f32(mul_00, mul_01), mul_02);
             inv_3 = _xor128_f32(sign_a, sum_0);
@@ -335,7 +348,7 @@ struct ktm::detail::matrix_implement::inverse<4, float>
         skv::fv4 i_row_0 = _shufft128_f32(i_tmp_0, i_tmp_1, 3, 1, 3, 1);
         skv::fv4 i_dot = skv::dot_fv4(c_0, i_row_0);
         skv::fv4 recip_det = _reciph128_f32(i_dot);
-        
+
         M ret;
         ret[0].st = _mul128_f32(inv_0, recip_det);
         ret[1].st = _mul128_f32(inv_1, recip_det);
@@ -349,10 +362,11 @@ struct ktm::detail::matrix_implement::inverse<4, float>
 
 #if KTM_SIMD_ENABLE(KTM_SIMD_NEON | KTM_SIMD_SSE4_1 | KTM_SIMD_WASM)
 
-template<>
-struct ktm::detail::matrix_implement::determinant<3, int>
+template <>
+struct ktm::detail::matrix_algebra_implement::determinant<3, int>
 {
     using M = mat<3, 3, int>;
+
     static KTM_INLINE int call(const M& m) noexcept
     {
         const skv::sv4& c_0 = m[0].st;
@@ -360,15 +374,16 @@ struct ktm::detail::matrix_implement::determinant<3, int>
         const skv::sv4& c_2 = m[2].st;
         skv::sv4 mul_00 = _mul128_s32(_shuffo128_s32(c_1, 3, 0, 2, 1), _shuffo128_s32(c_2, 3, 1, 0, 2));
         skv::sv4 mul_01 = _mul128_s32(_shuffo128_s32(c_1, 3, 1, 0, 2), _shuffo128_s32(c_2, 3, 0, 2, 1));
-        skv::sv4 sub_0 = _sub128_s32(mul_00, mul_01);  
-        return skv::radd_sv3(_mul128_s32(c_0, sub_0)); 
+        skv::sv4 sub_0 = _sub128_s32(mul_00, mul_01);
+        return skv::radd_sv3(_mul128_s32(c_0, sub_0));
     }
 };
 
-template<>
-struct ktm::detail::matrix_implement::determinant<4, int>
+template <>
+struct ktm::detail::matrix_algebra_implement::determinant<4, int>
 {
     using M = mat<4, 4, int>;
+
     static KTM_INLINE int call(const M& m) noexcept
     {
         const skv::sv4& c_0 = m[0].st;
@@ -399,7 +414,7 @@ struct ktm::detail::matrix_implement::determinant<4, int>
             skv::sv4 sub_0 = _sub128_s32(mul_00, mul_01);
             mul_2 = _mul128_s32(_shuffo128_s32(c_1, 2, 1, 0, 3), sub_0);
         }
-        
+
         skv::sv4 mul_3 = _mul128_s32(c_0, _add128_s32(_add128_s32(mul_0, mul_1), mul_2));
         return skv::rsub_sv4(mul_3);
     }

@@ -17,26 +17,26 @@ namespace detail
 namespace exponential_implement
 {
 
-template<typename T, typename = std::enable_if_t<std::is_floating_point_v<T>>>
+template <typename T, typename = std::enable_if_t<std::is_floating_point_v<T>>>
 struct sqrt;
 
-template<typename T, typename = std::enable_if_t<std::is_floating_point_v<T>>>
+template <typename T, typename = std::enable_if_t<std::is_floating_point_v<T>>>
 struct rsqrt;
 
-template<typename T, typename = std::enable_if_t<std::is_floating_point_v<T>>>
+template <typename T, typename = std::enable_if_t<std::is_floating_point_v<T>>>
 struct recip;
 
-template<typename T, typename = std::enable_if_t<std::is_exist_same_vs<float, double, T>>>
+template <typename T, typename = std::enable_if_t<std::is_exist_same_vs<float, double, T>>>
 struct fast_sqrt;
 
-template<typename T, typename = std::enable_if_t<std::is_exist_same_vs<float, double, T>>>
+template <typename T, typename = std::enable_if_t<std::is_exist_same_vs<float, double, T>>>
 struct fast_rsqrt;
 
-template<typename T, typename = std::enable_if_t<std::is_exist_same_vs<float, double, T>>>
+template <typename T, typename = std::enable_if_t<std::is_exist_same_vs<float, double, T>>>
 struct fast_recip;
 
-}
-}   
-}
+} // namespace exponential_implement
+} // namespace detail
+} // namespace ktm
 
 #endif

@@ -17,17 +17,11 @@
 #include "type_comp.h"
 #include "type_affine.h"
 
-#include "function/arithmetic.h"
-#include "function/trigonometric.h"
-#include "function/exponential.h"
 #include "function/common.h"
 #include "function/geometric.h"
 #include "function/compare.h"
 #include "function/random.h"
 #include "function/matrix.h"
-#include "function/matrix_decompose.h"
-#include "function/matrix_transform2d.h"
-#include "function/matrix_transform3d.h"
 #include "function/quaternion.h"
 #include "function/complex.h"
 

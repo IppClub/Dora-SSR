@@ -13,30 +13,31 @@
 
 #if KTM_SIMD_ENABLE(KTM_SIMD_NEON | KTM_SIMD_SSE | KTM_SIMD_WASM)
 
-template<>
+template <>
 struct ktm::detail::vec_data_implement::vec_storage<2, float>
 {
     typedef skv::fv2 type;
 };
 
-template<>
+template <>
 struct ktm::detail::vec_data_implement::vec_storage<3, float>
 {
     typedef skv::fv4 type;
 };
 
-template<>
+template <>
 struct ktm::detail::vec_data_implement::vec_storage<4, float>
 {
     typedef skv::fv4 type;
 };
 
-template<size_t ISize>
+template <size_t ISize>
 struct ktm::detail::vec_data_implement::vec_swizzle<3, ISize, float, std::enable_if_t<ISize == 3 || ISize == 4>>
 {
     using V = vec<ISize, float>;
     using RetV = vec<3, float>;
-    template<size_t S0, size_t S1, size_t S2>
+
+    template <size_t S0, size_t S1, size_t S2>
     static KTM_INLINE RetV call(const V& v) noexcept
     {
         RetV ret;
@@ -45,27 +46,30 @@ struct ktm::detail::vec_data_implement::vec_swizzle<3, ISize, float, std::enable
     }
 };
 
-template<size_t ISize, typename T>
-struct ktm::detail::vec_data_implement::vec_swizzle<3, ISize, T, std::enable_if_t<sizeof(T) == sizeof(float) && !std::is_same_v<T, float> && ISize >=3 && ISize <= 4>>
+template <size_t ISize, typename T>
+struct ktm::detail::vec_data_implement::vec_swizzle<
+    3, ISize, T, std::enable_if_t<sizeof(T) == sizeof(float) && !std::is_same_v<T, float> && ISize >= 3 && ISize <= 4>>
 {
     using V = vec<ISize, T>;
     using RetV = vec<3, T>;
     using FV = vec<ISize, float>;
     using FRetV = vec<3, float>;
-    template<size_t S0, size_t S1, size_t S2>
+
+    template <size_t S0, size_t S1, size_t S2>
     static KTM_INLINE RetV call(const V& v) noexcept
     {
-        FRetV ret = vec_swizzle<3, ISize, float>::template call<S0, S1, S2>(reinterpret_cast<const FV&>(v)); 
+        FRetV ret = vec_swizzle<3, ISize, float>::template call<S0, S1, S2>(reinterpret_cast<const FV&>(v));
         return *reinterpret_cast<RetV*>(&ret);
     }
 };
 
-template<>
+template <>
 struct ktm::detail::vec_data_implement::vec_swizzle<4, 4, float>
 {
     using V = vec<4, float>;
     using RetV = vec<4, float>;
-    template<size_t S0, size_t S1, size_t S2, size_t S3>
+
+    template <size_t S0, size_t S1, size_t S2, size_t S3>
     static KTM_INLINE RetV call(const V& v) noexcept
     {
         RetV ret;
@@ -74,22 +78,24 @@ struct ktm::detail::vec_data_implement::vec_swizzle<4, 4, float>
     }
 };
 
-template<typename T>
-struct ktm::detail::vec_data_implement::vec_swizzle<4, 4, T, std::enable_if_t<sizeof(T) == sizeof(float) && !std::is_same_v<T, float>>>
+template <typename T>
+struct ktm::detail::vec_data_implement::vec_swizzle<
+    4, 4, T, std::enable_if_t<sizeof(T) == sizeof(float) && !std::is_same_v<T, float>>>
 {
     using V = vec<4, T>;
     using RetV = vec<4, T>;
     using FV = vec<4, float>;
     using FRetV = vec<4, float>;
-    template<size_t S0, size_t S1, size_t S2, size_t S3>
+
+    template <size_t S0, size_t S1, size_t S2, size_t S3>
     static KTM_INLINE RetV call(const V& v) noexcept
     {
-        FRetV ret = vec_swizzle<4, 4, float>::template call<S0, S1, S2, S3>(reinterpret_cast<const FV&>(v)); 
+        FRetV ret = vec_swizzle<4, 4, float>::template call<S0, S1, S2, S3>(reinterpret_cast<const FV&>(v));
         return *reinterpret_cast<RetV*>(&ret);
     }
 };
 
-template<>
+template <>
 struct ktm::detail::vec_data_implement::vec_storage<2, int>
 {
     typedef skv::sv2 type;
@@ -99,13 +105,13 @@ struct ktm::detail::vec_data_implement::vec_storage<2, int>
 
 #if KTM_SIMD_ENABLE(KTM_SIMD_NEON | KTM_SIMD_SSE2 | KTM_SIMD_WASM)
 
-template<>
+template <>
 struct ktm::detail::vec_data_implement::vec_storage<3, int>
 {
     typedef skv::sv4 type;
 };
 
-template<>
+template <>
 struct ktm::detail::vec_data_implement::vec_storage<4, int>
 {
     typedef skv::sv4 type;
@@ -115,12 +121,13 @@ struct ktm::detail::vec_data_implement::vec_storage<4, int>
 
 #if KTM_SIMD_ENABLE(KTM_SIMD_NEON)
 
-template<>
+template <>
 struct ktm::detail::vec_data_implement::vec_swizzle<2, 2, float>
 {
     using V = vec<2, float>;
     using RetV = vec<2, float>;
-    template<size_t S0, size_t S1>
+
+    template <size_t S0, size_t S1>
     static KTM_INLINE RetV call(const V& v) noexcept
     {
         RetV ret;
@@ -129,12 +136,13 @@ struct ktm::detail::vec_data_implement::vec_swizzle<2, 2, float>
     }
 };
 
-template<size_t ISize>
+template <size_t ISize>
 struct ktm::detail::vec_data_implement::vec_swizzle<2, ISize, float, std::enable_if_t<ISize == 3 || ISize == 4>>
 {
     using V = vec<ISize, float>;
     using RetV = vec<2, float>;
-    template<size_t S0, size_t S1>
+
+    template <size_t S0, size_t S1>
     static KTM_INLINE RetV call(const V& v) noexcept
     {
         RetV ret;
@@ -143,17 +151,19 @@ struct ktm::detail::vec_data_implement::vec_swizzle<2, ISize, float, std::enable
     }
 };
 
-template<size_t ISize, typename T>
-struct ktm::detail::vec_data_implement::vec_swizzle<2, ISize, T, std::enable_if_t<sizeof(T) == sizeof(float) && !std::is_same_v<T, float> && ISize >=2 && ISize <= 4>>
+template <size_t ISize, typename T>
+struct ktm::detail::vec_data_implement::vec_swizzle<
+    2, ISize, T, std::enable_if_t<sizeof(T) == sizeof(float) && !std::is_same_v<T, float> && ISize >= 2 && ISize <= 4>>
 {
     using V = vec<ISize, T>;
     using RetV = vec<2, T>;
     using FV = vec<ISize, float>;
     using FRetV = vec<2, float>;
-    template<size_t S0, size_t S1>
+
+    template <size_t S0, size_t S1>
     static KTM_INLINE RetV call(const V& v) noexcept
     {
-        FRetV ret = vec_swizzle<2, ISize, float>::template call<S0, S1>(reinterpret_cast<const FV&>(v)); 
+        FRetV ret = vec_swizzle<2, ISize, float>::template call<S0, S1>(reinterpret_cast<const FV&>(v));
         return *reinterpret_cast<RetV*>(&ret);
     }
 };
