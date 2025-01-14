@@ -16,6 +16,6 @@ namespace ktm
 using fcomp = comp<float>;
 using dcomp = comp<double>;
 
-}
+} // namespace ktm
 
 #endif

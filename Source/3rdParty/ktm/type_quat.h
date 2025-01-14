@@ -16,6 +16,6 @@ namespace ktm
 using fquat = quat<float>;
 using dquat = quat<double>;
 
-}
+} // namespace ktm
 
 #endif

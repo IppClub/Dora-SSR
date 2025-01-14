@@ -18,14 +18,15 @@ namespace detail
 namespace vec_data_implement
 {
 
-template<size_t N, typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
+template <size_t N, typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
 struct vec_storage;
 
-template<size_t OSize, size_t ISize, typename T, typename = std::enable_if_t<std::is_arithmetic_v<T> && OSize <= ISize>>
+template <size_t OSize, size_t ISize, typename T,
+          typename = std::enable_if_t<std::is_arithmetic_v<T> && OSize <= ISize>>
 struct vec_swizzle;
 
-};
-}
-}
+}; // namespace vec_data_implement
+} // namespace detail
+} // namespace ktm
 
 #endif

@@ -20,6 +20,6 @@ using daffine2d = affine2d<double>;
 using faffine3d = affine3d<float>;
 using daffine3d = affine3d<double>;
 
-}
+} // namespace ktm
 
 #endif

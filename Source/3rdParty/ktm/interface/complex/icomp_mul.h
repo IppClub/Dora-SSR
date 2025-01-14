@@ -14,16 +14,16 @@
 namespace ktm
 {
 
-template<class Father, class Child>
+template <class Father, class Child>
 struct icomp_mul;
 
-template<class Father,typename T>
+template <class Father, typename T>
 struct icomp_mul<Father, comp<T>> : Father
 {
-    using Father::Father; 
+    using Father::Father;
 
-    friend KTM_INLINE comp<T> operator*(const comp<T>& x, const comp<T>& y) noexcept 
-    { 
+    friend KTM_INLINE comp<T> operator*(const comp<T>& x, const comp<T>& y) noexcept
+    {
         comp<T> ret;
         detail::comp_mul_implement::mul<T>(ret, x, y);
         return ret;
@@ -35,7 +35,7 @@ struct icomp_mul<Father, comp<T>> : Father
         return x;
     }
 
-    friend KTM_INLINE vec<2, T> operator*(const comp<T>& q, const vec<2, T>& v) noexcept 
+    friend KTM_INLINE vec<2, T> operator*(const comp<T>& q, const vec<2, T>& v) noexcept
     {
         vec<2, T> ret;
         detail::comp_mul_implement::act<T>(ret, q, v);
@@ -43,6 +43,6 @@ struct icomp_mul<Father, comp<T>> : Father
     }
 };
 
-}
+} // namespace ktm
 
 #endif
