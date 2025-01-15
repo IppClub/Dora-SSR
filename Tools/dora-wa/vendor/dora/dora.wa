@@ -2638,8 +2638,10 @@ global ImGuiTreeNodeBullet = _ImGuiTreeNodeFlag{value: 1 << 9}
 global ImGuiTreeNodeFramePadding = _ImGuiTreeNodeFlag{value: 1 << 10}
 global ImGuiTreeNodeSpanAvailWidth = _ImGuiTreeNodeFlag{value: 1 << 11}
 global ImGuiTreeNodeSpanFullWidth = _ImGuiTreeNodeFlag{value: 1 << 12}
-global ImGuiTreeNodeSpanAllColumns = _ImGuiTreeNodeFlag{value: 1 << 13}
-global ImGuiTreeNodeNavLeftJumpsBackHere = _ImGuiTreeNodeFlag{value: 1 << 14}
+global ImGuiTreeNodeSpanLabelWidth = _ImGuiTreeNodeFlag{value: 1 << 13}
+global ImGuiTreeNodeSpanAllColumns = _ImGuiTreeNodeFlag{value: 1 << 14}
+global ImGuiTreeNodeLabelSpanAllColumns = _ImGuiTreeNodeFlag{value: 1 << 15}
+global ImGuiTreeNodeNavLeftJumpsBackHere = _ImGuiTreeNodeFlag{value: 1 << 17}
 global ImGuiTreeNodeCollapsingHeader = _ImGuiTreeNodeFlag{value: ImGuiTreeNodeFramed.value | ImGuiTreeNodeNoTreePushOnOpen.value | ImGuiTreeNodeNoAutoOpenOnLog.value}
 
 type _ImGuiTreeNodeFlags :struct {
@@ -2823,12 +2825,13 @@ global ImGuiInputTextParseEmptyRefVal = _ImGuiInputTextFlag{value: 1 << 13}
 global ImGuiInputTextDisplayEmptyRefVal = _ImGuiInputTextFlag{value: 1 << 14}
 global ImGuiInputTextNoHorizontalScroll = _ImGuiInputTextFlag{value: 1 << 15}
 global ImGuiInputTextNoUndoRedo = _ImGuiInputTextFlag{value: 1 << 16}
-global ImGuiInputTextCallbackCompletion = _ImGuiInputTextFlag{value: 1 << 17}
-global ImGuiInputTextCallbackHistory = _ImGuiInputTextFlag{value: 1 << 18}
-global ImGuiInputTextCallbackAlways = _ImGuiInputTextFlag{value: 1 << 19}
-global ImGuiInputTextCallbackCharFilter = _ImGuiInputTextFlag{value: 1 << 20}
-global ImGuiInputTextCallbackResize = _ImGuiInputTextFlag{value: 1 << 21}
-global ImGuiInputTextCallbackEdit = _ImGuiInputTextFlag{value: 1 << 22}
+global ImGuiInputTextElideLeft = _ImGuiInputTextFlag{value: 1 << 17}
+global ImGuiInputTextCallbackCompletion = _ImGuiInputTextFlag{value: 1 << 18}
+global ImGuiInputTextCallbackHistory = _ImGuiInputTextFlag{value: 1 << 19}
+global ImGuiInputTextCallbackAlways = _ImGuiInputTextFlag{value: 1 << 20}
+global ImGuiInputTextCallbackCharFilter = _ImGuiInputTextFlag{value: 1 << 21}
+global ImGuiInputTextCallbackResize = _ImGuiInputTextFlag{value: 1 << 22}
+global ImGuiInputTextCallbackEdit = _ImGuiInputTextFlag{value: 1 << 23}
 
 type _ImGuiInputTextFlags :struct {
 	value: i32

@@ -180,6 +180,7 @@ static ImGuiInputTextFlags_ getInputTextFlag(String flag) {
 		case "DisplayEmptyRefVal"_hash: return ImGuiInputTextFlags_DisplayEmptyRefVal;
 		case "NoHorizontalScroll"_hash: return ImGuiInputTextFlags_NoHorizontalScroll;
 		case "NoUndoRedo"_hash: return ImGuiInputTextFlags_NoUndoRedo;
+		case "ElideLeft"_hash: return ImGuiInputTextFlags_ElideLeft;
 		case "CallbackCompletion"_hash: return ImGuiInputTextFlags_CallbackCompletion;
 		case "CallbackHistory"_hash: return ImGuiInputTextFlags_CallbackHistory;
 		case "CallbackAlways"_hash: return ImGuiInputTextFlags_CallbackAlways;
@@ -216,7 +217,9 @@ static ImGuiTreeNodeFlags_ getTreeNodeFlag(String flag) {
 		case "FramePadding"_hash: return ImGuiTreeNodeFlags_FramePadding;
 		case "SpanAvailWidth"_hash: return ImGuiTreeNodeFlags_SpanAvailWidth;
 		case "SpanFullWidth"_hash: return ImGuiTreeNodeFlags_SpanFullWidth;
+		case "SpanLabelWidth"_hash: return ImGuiTreeNodeFlags_SpanLabelWidth;
 		case "SpanAllColumns"_hash: return ImGuiTreeNodeFlags_SpanAllColumns;
+		case "LabelSpanAllColumns"_hash: return ImGuiTreeNodeFlags_LabelSpanAllColumns;
 		case "NavLeftJumpsBackHere"_hash: return ImGuiTreeNodeFlags_NavLeftJumpsBackHere;
 		case "CollapsingHeader"_hash: return ImGuiTreeNodeFlags_CollapsingHeader;
 		case ""_hash: return ImGuiTreeNodeFlags_(0);

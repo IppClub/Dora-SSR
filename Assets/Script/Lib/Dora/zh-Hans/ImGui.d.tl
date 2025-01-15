@@ -180,6 +180,7 @@ local record ImGui
 		"DisplayEmptyRefVal"
 		"NoHorizontalScroll"
 		"NoUndoRedo"
+		"ElideLeft"
 		"CallbackCompletion"
 		"CallbackHistory"
 		"CallbackAlways"
@@ -202,7 +203,9 @@ local record ImGui
 		"FramePadding"
 		"SpanAvailWidth"
 		"SpanFullWidth"
+		"SpanLabelWidth"
 		"SpanAllColumns"
+		"LabelSpanAllColumns"
 		"NavLeftJumpsBackHere"
 		"CollapsingHeader"
 	end

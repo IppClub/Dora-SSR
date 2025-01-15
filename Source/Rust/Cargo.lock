@@ -25,7 +25,7 @@ dependencies = [
 
 [[package]]
 name = "dora-ssr"
-version = "0.4.18"
+version = "0.4.19"
 dependencies = [
  "enumflags2",
  "paste",
