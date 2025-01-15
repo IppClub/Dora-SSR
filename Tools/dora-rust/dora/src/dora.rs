@@ -4018,12 +4018,13 @@ pub enum ImGuiInputTextFlag {
 	DisplayEmptyRefVal = 1 << 14,
 	NoHorizontalScroll = 1 << 15,
 	NoUndoRedo = 1 << 16,
-	CallbackCompletion = 1 << 17,
-	CallbackHistory = 1 << 18,
-	CallbackAlways = 1 << 19,
-	CallbackCharFilter = 1 << 20,
-	CallbackResize = 1 << 21,
-	CallbackEdit = 1 << 22,
+	ElideLeft = 1 << 17,
+	CallbackCompletion = 1 << 18,
+	CallbackHistory = 1 << 19,
+	CallbackAlways = 1 << 20,
+	CallbackCharFilter = 1 << 21,
+	CallbackResize = 1 << 22,
+	CallbackEdit = 1 << 23,
 }
 
 #[bitflags]
@@ -4043,8 +4044,10 @@ pub enum ImGuiTreeNodeFlag {
 	FramePadding = 1 << 10,
 	SpanAvailWidth = 1 << 11,
 	SpanFullWidth = 1 << 12,
-	SpanAllColumns = 1 << 13,
-	NavLeftJumpsBackHere = 1 << 14,
+	SpanLabelWidth = 1 << 13,
+	SpanAllColumns = 1 << 14,
+	LabelSpanAllColumns = 1 << 15,
+	NavLeftJumpsBackHere = 1 << 17,
 }
 
 impl ImGuiTreeNodeFlag {

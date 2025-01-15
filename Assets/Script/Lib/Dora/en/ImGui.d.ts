@@ -199,6 +199,7 @@ export const enum InputTextFlag {
 	DisplayEmptyRefVal = "DisplayEmptyRefVal",
 	NoHorizontalScroll = "NoHorizontalScroll",
 	NoUndoRedo = "NoUndoRedo",
+	ElideLeft = "ElideLeft",
 	CallbackCompletion = "CallbackCompletion",
 	CallbackHistory = "CallbackHistory",
 	CallbackAlways = "CallbackAlways",
@@ -222,7 +223,9 @@ export const enum TreeNodeFlag {
 	FramePadding = "FramePadding",
 	SpanAvailWidth = "SpanAvailWidth",
 	SpanFullWidth = "SpanFullWidth",
+	SpanLabelWidth = "SpanLabelWidth",
 	SpanAllColumns = "SpanAllColumns",
+	LabelSpanAllColumns = "LabelSpanAllColumns",
 	NavLeftJumpsBackHere = "NavLeftJumpsBackHere",
 	CollapsingHeader = "CollapsingHeader"
 }
