@@ -1245,6 +1245,14 @@ void dora_print(int64_t var) {
 	LogInfoThreaded(*Str_From(var));
 }
 
+void dora_print_warning(int64_t var) {
+	LogWarnThreaded(*Str_From(var));
+}
+
+void dora_print_error(int64_t var) {
+	LogErrorThreaded(*Str_From(var));
+}
+
 /* Vec2 */
 
 int64_t vec2_add(int64_t a, int64_t b) {
@@ -1746,6 +1754,8 @@ static void linkDoraModule(wasm3::module3& mod) {
 	mod.link_optional("*", "call_stack_front_size", call_stack_front_size);
 
 	mod.link_optional("*", "dora_print", dora_print);
+	mod.link_optional("*", "dora_print_warning", dora_print_warning);
+	mod.link_optional("*", "dora_print_error", dora_print_error);
 
 	mod.link_optional("*", "vec2_add", vec2_add);
 	mod.link_optional("*", "vec2_sub", vec2_sub);

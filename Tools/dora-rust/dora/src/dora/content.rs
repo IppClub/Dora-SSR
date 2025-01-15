@@ -9,7 +9,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 extern "C" {
 	fn content_set_search_paths(val: i64);
 	fn content_get_search_paths() -> i64;
+	fn content_set_asset_path(val: i64);
 	fn content_get_asset_path() -> i64;
+	fn content_set_writable_path(val: i64);
 	fn content_get_writable_path() -> i64;
 	fn content_save(filename: i64, content: i64) -> i32;
 	fn content_exist(filename: i64) -> i32;
@@ -46,11 +48,19 @@ impl Content {
 	pub fn get_search_paths() -> Vec<String> {
 		return unsafe { crate::dora::Vector::to_str(content_get_search_paths()) };
 	}
-	/// Gets the path to the directory containing read-only resources.
+	/// Sets the path to the directory containing read-only resources. Can only be altered by the user on platform Windows, MacOS and Linux.
+	pub fn set_asset_path(val: &str) {
+		unsafe { content_set_asset_path(crate::dora::from_string(val)) };
+	}
+	/// Gets the path to the directory containing read-only resources. Can only be altered by the user on platform Windows, MacOS and Linux.
 	pub fn get_asset_path() -> String {
 		return unsafe { crate::dora::to_string(content_get_asset_path()) };
 	}
-	/// Gets the path to the directory where files can be written.
+	/// Sets the path to the directory where files can be written. Can only be altered by the user on platform Windows, MacOS and Linux.
+	pub fn set_writable_path(val: &str) {
+		unsafe { content_set_writable_path(crate::dora::from_string(val)) };
+	}
+	/// Gets the path to the directory where files can be written. Can only be altered by the user on platform Windows, MacOS and Linux.
 	pub fn get_writable_path() -> String {
 		return unsafe { crate::dora::to_string(content_get_writable_path()) };
 	}

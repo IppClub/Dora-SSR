@@ -207,8 +207,8 @@ struct Path
 
 class Content
 {
-	tolua_readonly tolua_property__common string assetPath;
-	tolua_readonly tolua_property__common string writablePath;
+	tolua_property__common string assetPath;
+	tolua_property__common string writablePath;
 	bool save(String filename, String content);
 	bool exist(String filename);
 	bool createFolder @ mkdir(String path);

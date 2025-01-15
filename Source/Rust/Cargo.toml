@@ -11,6 +11,7 @@ crate-type = ["staticlib"]
 dora-ssr = { path = "../../Tools/dora-rust/dora" }
 bitflags = "1.2"
 cfixed-string = "1.0"
+clap = { version = "4.5.26", features = ["derive"] }
 
 [profile.release]
 debug = false

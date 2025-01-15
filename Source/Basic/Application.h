@@ -65,7 +65,7 @@ public:
 	PROPERTY_BOOL(AlwaysOnTop);
 	SDLEventHandler eventHandler;
 	QuitHandler quitHandler;
-	int run(int argc, const char* const argv[]);
+	int run();
 	void shutdown();
 	void invokeInRender(const std::function<void()>& func);
 	void invokeInLogic(const std::function<void()>& func);

@@ -3470,11 +3470,11 @@ class Content {
 	/** 用于搜索资源文件的目录数组。 */
 	searchPaths: string[];
 
-	/** 包含只读资源的目录的路径。 */
-	readonly assetPath: string;
+	/** 包含只读资源的目录的路径。只有在平台 Windows、MacOS 和 Linux 上能被设置为新路径。 */
+	assetPath: string;
 
-	/** 可以写入文件的目录的路径。 */
-	readonly writablePath: string;
+	/** 可以写入文件的目录的路径。只有在平台 Windows、MacOS 和 Linux 上能被设置为新路径。 */
+	writablePath: string;
 
 	/**
 	 * 加载具有指定文件名的文件的内容。

@@ -9,11 +9,11 @@ local record Content
 	-- An array of directories to search for resource files.
 	searchPaths: {string}
 
-	-- The path to the directory containing read-only resources.
-	const assetPath: string
+	-- The path to the directory containing read-only resources. Can only be altered by the user on platform Windows, MacOS and Linux.
+	assetPath: string
 
-	-- The path to the directory where files can be written.
-	const writablePath: string
+	-- The path to the directory where files can be written. Can only be altered by the user on platform Windows, MacOS and Linux.
+	writablePath: string
 
 	-- Loads the content of the file with the specified filename.
 	-- @param filename (string) The name of the file to load.

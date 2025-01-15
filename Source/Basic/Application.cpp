@@ -282,9 +282,8 @@ bool Application::isAlwaysOnTop() const noexcept {
 }
 
 // This function runs in main (render) thread, and do render work
-int Application::run(int argc, const char* const argv[]) {
+int Application::run() {
 	Application::setSeed(s_cast<uint32_t>(std::time(nullptr)));
-	SharedContent.init(argc, argv);
 
 	if (SDL_Init(SDL_INIT_GAMECONTROLLER) != 0) {
 		Error("SDL failed to initialize! {}", SDL_GetError());
@@ -799,7 +798,7 @@ NS_DORA_END
 // Entry functions needed by SDL2
 #if BX_PLATFORM_OSX || BX_PLATFORM_ANDROID || BX_PLATFORM_IOS || BX_PLATFORM_LINUX
 extern "C" int main(int argc, char* argv[]) {
-	return SharedApplication.run(argc, argv);
+	return SharedApplication.run();
 }
 #endif // BX_PLATFORM_OSX || BX_PLATFORM_ANDROID || BX_PLATFORM_IOS || BX_PLATFORM_LINUX
 
