@@ -61,5 +61,5 @@ We warmly invite everyone passionate about game development to join us. Whether 
 ## Project Links
 
 - Game Engine: [Dora-SSR on GitHub](https://github.com/IppClub/Dora-SSR)
-- YueScript Language: [YueScript on GitHub](https://github.com/pigpigyyy/YueScript)
+- YueScript Language: [YueScript on GitHub](https://github.com/IppClub/YueScript)
 - "Luv Sense Digital" Open Source Game Project: [Documentation](https://luv-sense-digital.readthedocs.io)

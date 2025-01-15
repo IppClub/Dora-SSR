@@ -62,6 +62,6 @@ tags: [Dora SSR, YueScript, Auspice Gear, Game LSD]
 
 * 游戏引擎：https://github.com/IppClub/Dora-SSR
 
-* YueScript语言：https://github.com/pigpigyyy/YueScript
+* YueScript语言：https://github.com/IppClub/YueScript
 
 * 《灵数奇缘》开源游戏项目：https://luv-sense-digital.readthedocs.io
