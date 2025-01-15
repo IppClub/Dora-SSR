@@ -310,6 +310,8 @@ extern "C" {
 	fn call_stack_front_size(info: i64) -> i32;
 
 	fn dora_print(msg: i64);
+	fn dora_print_warning(msg: i64);
+	fn dora_print_error(msg: i64);
 
 	fn vec2_add(a: i64, b: i64) -> i64;
 	fn vec2_sub(a: i64, b: i64) -> i64;
@@ -331,6 +333,18 @@ extern "C" {
 pub fn print(msg: &str) {
 	unsafe {
 		dora_print(from_string(msg));
+	}
+}
+
+pub fn print_warning(msg: &str) {
+	unsafe {
+		dora_print_warning(from_string(msg));
+	}
+}
+
+pub fn print_error(msg: &str) {
+	unsafe {
+		dora_print_error(from_string(msg));
 	}
 }
 

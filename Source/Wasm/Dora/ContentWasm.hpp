@@ -14,8 +14,14 @@ void content_set_search_paths(int64_t val) {
 int64_t content_get_search_paths() {
 	return Vec_To(SharedContent.getSearchPaths());
 }
+void content_set_asset_path(int64_t val) {
+	SharedContent.setAssetPath(*Str_From(val));
+}
 int64_t content_get_asset_path() {
 	return Str_Retain(SharedContent.getAssetPath());
+}
+void content_set_writable_path(int64_t val) {
+	SharedContent.setWritablePath(*Str_From(val));
 }
 int64_t content_get_writable_path() {
 	return Str_Retain(SharedContent.getWritablePath());
@@ -149,7 +155,9 @@ int64_t content_load_excel(int64_t filename) {
 static void linkContent(wasm3::module3& mod) {
 	mod.link_optional("*", "content_set_search_paths", content_set_search_paths);
 	mod.link_optional("*", "content_get_search_paths", content_get_search_paths);
+	mod.link_optional("*", "content_set_asset_path", content_set_asset_path);
 	mod.link_optional("*", "content_get_asset_path", content_get_asset_path);
+	mod.link_optional("*", "content_set_writable_path", content_set_writable_path);
 	mod.link_optional("*", "content_get_writable_path", content_get_writable_path);
 	mod.link_optional("*", "content_save", content_save);
 	mod.link_optional("*", "content_exist", content_exist);

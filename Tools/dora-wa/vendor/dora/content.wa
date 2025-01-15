@@ -12,8 +12,14 @@ func content_set_search_paths(val: i64)
 #wa:import dora content_get_search_paths
 func content_get_search_paths() => i64
 
+#wa:import dora content_set_asset_path
+func content_set_asset_path(val: i64)
+
 #wa:import dora content_get_asset_path
 func content_get_asset_path() => i64
+
+#wa:import dora content_set_writable_path
+func content_set_writable_path(val: i64)
 
 #wa:import dora content_get_writable_path
 func content_get_writable_path() => i64
@@ -98,12 +104,22 @@ func _Content.GetSearchPaths() => *[]string {
 	return FromDoraStrBuf(content_get_search_paths())
 }
 
-/// Gets the path to the directory containing read-only resources.
+/// Sets the path to the directory containing read-only resources. Can only be altered by the user on platform Windows, MacOS and Linux.
+func _Content.SetAssetPath(val: string) {
+	content_set_asset_path(ToDoraString(val))
+}
+
+/// Gets the path to the directory containing read-only resources. Can only be altered by the user on platform Windows, MacOS and Linux.
 func _Content.GetAssetPath() => string {
 	return FromDoraString(content_get_asset_path())
 }
 
-/// Gets the path to the directory where files can be written.
+/// Sets the path to the directory where files can be written. Can only be altered by the user on platform Windows, MacOS and Linux.
+func _Content.SetWritablePath(val: string) {
+	content_set_writable_path(ToDoraString(val))
+}
+
+/// Gets the path to the directory where files can be written. Can only be altered by the user on platform Windows, MacOS and Linux.
 func _Content.GetWritablePath() => string {
 	return FromDoraString(content_get_writable_path())
 }

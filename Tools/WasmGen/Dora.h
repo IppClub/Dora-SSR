@@ -430,10 +430,10 @@ singleton class Content
 {
 	/// an array of directories to search for resource files.
 	common VecStr searchPaths;
-	/// the path to the directory containing read-only resources.
-	readonly common string assetPath;
-	/// the path to the directory where files can be written.
-	readonly common string writablePath;
+	/// the path to the directory containing read-only resources. Can only be altered by the user on platform Windows, MacOS and Linux.
+	common string assetPath;
+	/// the path to the directory where files can be written. Can only be altered by the user on platform Windows, MacOS and Linux.
+	common string writablePath;
 	/// Saves the specified content to a file with the specified filename.
 	///
 	/// # Arguments

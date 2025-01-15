@@ -70,23 +70,48 @@ static void trimTrailingSlashes(std::string& str) {
 	}
 }
 
-void Content::init(int argc, const char* const argv[]) {
-	for (int i = 0; i < argc; i++) {
-		if (argv[i] == "--asset"sv && i + 1 < argc) {
-			std::string assetPath = argv[++i];
-			std::error_code err;
-			std::string fullPath = fs::absolute(assetPath, err).lexically_normal().string();
-			if (err) {
-				Error("got invalid asset path \"{}\"", assetPath);
-			}
-			if (fs::exists(fullPath, err)) {
-				_assetPath = fullPath;
-				trimTrailingSlashes(_assetPath);
-			} else {
-				Error("got invalid asset path \"{}\"", assetPath);
-			}
-		}
+void Content::setAssetPath(String assetPath) {
+#if BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS || BX_PLATFORM_LINUX
+	std::error_code err;
+	std::string fullPath = fs::absolute(assetPath.toString(), err).lexically_normal().string();
+	if (err) {
+		Issue("got invalid asset path \"{}\"", assetPath.toString());
 	}
+	if (fs::exists(fullPath, err)) {
+		_assetPath = fullPath;
+		trimTrailingSlashes(_assetPath);
+	} else {
+		Issue("got invalid asset path \"{}\"", assetPath.toString());
+	}
+#else
+	Issue("changing asset path is not supported on platform \"{}\"", SharedApplication.getPlatform().toString());
+#endif
+}
+
+const std::string& Content::getAssetPath() const noexcept {
+	return _assetPath;
+}
+
+void Content::setWritablePath(String writablePath) {
+#if BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS || BX_PLATFORM_LINUX
+	std::error_code err;
+	std::string fullPath = fs::absolute(writablePath.toString(), err).lexically_normal().string();
+	if (err) {
+		Issue("got invalid writable path \"{}\"", writablePath.toString());
+	}
+	if (fs::exists(fullPath, err)) {
+		_writablePath = fullPath;
+		trimTrailingSlashes(_writablePath);
+	} else {
+		Issue("got invalid writable path \"{}\"", writablePath.toString());
+	}
+#else
+	Issue("changing writable path is not supported on platform \"{}\"", SharedApplication.getPlatform().toString());
+#endif
+}
+
+const std::string& Content::getWritablePath() const noexcept {
+	return _writablePath;
 }
 
 Async* Content::getThread() const noexcept {
@@ -226,14 +251,6 @@ bool Content::visitDir(String path, const std::function<bool(String, String)>& f
 		return false;
 	};
 	return visit(path);
-}
-
-const std::string& Content::getAssetPath() const noexcept {
-	return _assetPath;
-}
-
-const std::string& Content::getWritablePath() const noexcept {
-	return _writablePath;
 }
 
 static std::tuple<std::string, std::string> splitDirectoryAndFilename(const std::string& filePath) {
