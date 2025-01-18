@@ -814,7 +814,9 @@ void Application::openFileDialog(bool folderOnly, const std::function<void(std::
 		} else if (result == NFD_ERROR){
 			Error("failed to pick a folder due to: {}", NFD::GetError());
 		}
-		callback(std::move(path));
+		invokeInLogic([callback, path]() {
+			callback(std::move(path));
+		});
 	});
 #else
 	Issue("Application.openFileDialog() is not unsupported on this platform");
