@@ -69,11 +69,15 @@ config = Config(
 	"lastUpdateCheck"
 	"updateNotification"
 	"writablePath"
+	"webIDEConnected"
 )
 config\load!
 
-unless config.writablePath
+unless config.writablePath?
 	config.writablePath = Content.appPath
+
+unless config.webIDEConnected?
+	config.webIDEConnected = false
 
 if config.fpsLimited?
 	App.fpsLimited = config.fpsLimited
@@ -177,6 +181,12 @@ export.getConfig = -> config
 export.getEngineDev = ->
 	return false unless App.debugging
 	config.engineDev
+
+export.connectWebIDE = ->
+	unless config.webIDEConnected
+		config.webIDEConnected = true
+		if App.platform in ["Windows", "Linux", "macOS"]
+			App.winSize = Size 640, 480
 
 updateCheck = -> thread ->
 	if res := HttpClient\getAsync "https://api.github.com/repos/IppClub/Dora-SSR/releases/latest"
