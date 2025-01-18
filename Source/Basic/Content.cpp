@@ -12,6 +12,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Basic/Application.h"
 #include "Common/Async.h"
+#include "Event/Event.h"
 #include "Render/VGRender.h"
 
 #include <fstream>
@@ -92,8 +93,15 @@ const std::string& Content::getAssetPath() const noexcept {
 	return _assetPath;
 }
 
+const std::string& Content::getAppPath() const noexcept {
+	return _appPath;
+}
+
 void Content::setWritablePath(String writablePath) {
 #if BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS || BX_PLATFORM_LINUX
+	if (_writablePath == writablePath) {
+		return;
+	}
 	std::error_code err;
 	std::string fullPath = fs::absolute(writablePath.toString(), err).lexically_normal().string();
 	if (err) {
@@ -746,18 +754,23 @@ void Content::clearPathCache() {
 	_fullPathCache.clear();
 }
 
+static std::string getPrefPath() {
+	char* prefPath = SDL_GetPrefPath(DORA_DEFAULT_ORG_NAME, DORA_DEFAULT_APP_NAME);
+	std::string appPath = prefPath;
+	trimTrailingSlashes(appPath);
+	SDL_free(prefPath);
+	return appPath;
+}
+
 #if BX_PLATFORM_ANDROID
 Content::Content()
-	: _thread(SharedAsyncThread.newThread()) {
+	: _thread(SharedAsyncThread.newThread())
+	, _appPath(getPrefPath()) {
 	_apkFilter = "assets/"s;
 	_assetPath = SharedApplication.getAPKPath() + '/' + _apkFilter;
 	trimTrailingSlashes(_assetPath);
 	_apkFile = New<ZipFile>(SharedApplication.getAPKPath(), _apkFilter);
-
-	char* prefPath = SDL_GetPrefPath(DORA_DEFAULT_ORG_NAME, DORA_DEFAULT_APP_NAME);
-	_writablePath = prefPath;
-	trimTrailingSlashes(_writablePath);
-	SDL_free(prefPath);
+	_writablePath = _appPath;
 }
 
 uint8_t* Content::loadUnsafe(String filename, int64_t& size) {
@@ -886,14 +899,11 @@ bool Content::isAbsolutePath(String strPath) {
 
 #if BX_PLATFORM_WINDOWS || BX_PLATFORM_LINUX
 Content::Content()
-	: _thread(SharedAsyncThread.newThread()) {
+	: _thread(SharedAsyncThread.newThread())
+	, _appPath(getPrefPath()) {
 	_assetPath = fs::current_path().string();
 	trimTrailingSlashes(_assetPath);
-
-	char* prefPath = SDL_GetPrefPath(DORA_DEFAULT_ORG_NAME, DORA_DEFAULT_APP_NAME);
-	_writablePath = prefPath;
-	trimTrailingSlashes(_writablePath);
-	SDL_free(prefPath);
+	_writablePath = _appPath;
 }
 
 bool Content::isFileExist(String filePath) {
@@ -908,16 +918,13 @@ bool Content::isFileExist(String filePath) {
 
 #if BX_PLATFORM_OSX || BX_PLATFORM_IOS
 Content::Content()
-	: _thread(SharedAsyncThread.newThread()) {
+	: _thread(SharedAsyncThread.newThread())
+	, _appPath(getPrefPath()) {
 	char* currentPath = SDL_GetBasePath();
 	_assetPath = currentPath;
 	trimTrailingSlashes(_assetPath);
 	SDL_free(currentPath);
-
-	char* prefPath = SDL_GetPrefPath(DORA_DEFAULT_ORG_NAME, DORA_DEFAULT_APP_NAME);
-	_writablePath = prefPath;
-	trimTrailingSlashes(_writablePath);
-	SDL_free(prefPath);
+	_writablePath = _appPath;
 }
 #endif // BX_PLATFORM_OSX || BX_PLATFORM_IOS
 

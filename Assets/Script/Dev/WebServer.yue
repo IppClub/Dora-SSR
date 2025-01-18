@@ -10,7 +10,7 @@ _ENV = Dora
 
 HttpServer\stop!
 
-HttpServer.wwwPath = Path Content.writablePath, ".www"
+HttpServer.wwwPath = Path Content.appPath, ".www"
 
 from "Utils" import LintYueGlobals
 
@@ -497,7 +497,7 @@ HttpServer\upload(
 	"/upload"
 	(req, filename): nil ->
 		switch req when {params: {:path}}
-			uploadPath = Path Content.writablePath, ".upload"
+			uploadPath = Path Content.appPath, ".upload"
 			if not Content\exist uploadPath
 				Content\mkdir uploadPath
 			targetPath = Path uploadPath, filename
@@ -505,9 +505,9 @@ HttpServer\upload(
 			return targetPath
 	(req, file): false ->
 		switch req when {params: {:path}}
-			path = Path Content.writablePath, path
+			path = Path Content.appPath, path
 			if Content\exist path
-				uploadPath = Path Content.writablePath, ".upload"
+				uploadPath = Path Content.appPath, ".upload"
 				targetPath = Path path, Path\getRelative file, uploadPath
 				Content\mkdir Path\getPath targetPath
 				if Content\move file, targetPath
@@ -749,13 +749,17 @@ extentionLevels =
 	lua: 0
 
 HttpServer\post "/assets", ->
+	import "Enum" as :$Enum
+	macro Tag = $Enum Workspace, Builtin
 	import "Script.Dev.Entry"
 	engineDev = Entry.getEngineDev!
-	visitAssets = (path, root) ->
+	visitAssets = (path, tag) ->
+		isWorkspace = tag == $Tag Workspace
+		builtin = if tag == $Tag Builtin then true else nil
 		children = nil
 		dirs = Content\getDirs path
 		for dir in *dirs
-			if root then switch dir when ".upload", ".download", ".www", ".build", ".git"
+			if isWorkspace then switch dir when ".upload", ".download", ".www", ".build", ".git"
 				continue
 			elseif dir == ".git"
 				continue
@@ -787,6 +791,7 @@ HttpServer\post "/assets", ->
 				key: Path path, file
 				dir: false
 				title: file
+				:builtin
 			}
 		if children
 			table.sort children, (a, b) ->
@@ -794,42 +799,45 @@ HttpServer\post "/assets", ->
 					a.title < b.title
 				else
 					a.dir
-		if root
+		if isWorkspace and children
 			children
 		else
 			{
 				key: path
 				dir: true
 				title: Path\getFilename path
+				:builtin
 				:children
 			}
 	zh = App.locale\match("^zh")?
 	{
 		key: Content.writablePath
 		dir: true
+		root: true
 		title: "Assets"
 		children: [
 			{
 				key: Path Content.assetPath
 				dir: true
+				builtin: true
 				title: zh and "内置资源" or "Built-in"
 				children: [
-					with visitAssets Path Content.assetPath, "Doc", zh and "zh-Hans" or "en"
+					with visitAssets (Path Content.assetPath, "Doc", zh and "zh-Hans" or "en"), $Tag Builtin
 						.title = zh and "说明文档" or "Readme"
-					with visitAssets Path Content.assetPath, "Script", "Lib", "Dora", zh and "zh-Hans" or "en"
+					with visitAssets (Path Content.assetPath, "Script", "Lib", "Dora", zh and "zh-Hans" or "en"), $Tag Builtin
 						.title = zh and "接口文档" or "API Doc"
-					with visitAssets Path Content.assetPath, "Script", "Tools"
+					with visitAssets (Path Content.assetPath, "Script", "Tools"), $Tag Builtin
 						.title = zh and "开发工具" or "Tools"
-					with visitAssets Path Content.assetPath, "Script", "Example"
+					with visitAssets (Path Content.assetPath, "Script", "Example"), $Tag Builtin
 						.title = zh and "代码示例" or "Example"
-					with visitAssets Path Content.assetPath, "Script", "Game"
+					with visitAssets (Path Content.assetPath, "Script", "Game"), $Tag Builtin
 						.title = zh and "游戏演示" or "Demo Game"
-					with visitAssets Path Content.assetPath, "Script", "Test"
+					with visitAssets (Path Content.assetPath, "Script", "Test"), $Tag Builtin
 						.title = zh and "功能测试" or "Test"
-					visitAssets Path Content.assetPath, "Image"
-					visitAssets Path Content.assetPath, "Spine"
-					visitAssets Path Content.assetPath, "Font"
-					with visitAssets Path Content.assetPath, "Script", "Lib"
+					visitAssets (Path Content.assetPath, "Image"), $Tag Builtin
+					visitAssets (Path Content.assetPath, "Spine"), $Tag Builtin
+					visitAssets (Path Content.assetPath, "Font"), $Tag Builtin
+					with visitAssets (Path Content.assetPath, "Script", "Lib"), $Tag Builtin
 						if engineDev
 							for child in *.children
 								continue unless child.title == "Dora"
@@ -839,15 +847,16 @@ HttpServer\post "/assets", ->
 						else
 							.children = [child for child in *.children when child.title ~= "Dora"]
 					if engineDev
-						with visitAssets Path Content.assetPath, "Script", "Dev"
+						with visitAssets (Path Content.assetPath, "Script", "Dev"), $Tag Builtin
 							.children[] = {
 								key: Path Content.assetPath, "Script", "init.yue"
 								dir: false
+								builtin: true
 								title: "init.yue"
 							}
 				]
 			}
-			...visitAssets Content.writablePath, true
+			...visitAssets Content.writablePath, $Tag Workspace
 		]
 	}
 
@@ -921,9 +930,9 @@ HttpServer\postSchedule "/zip", (req): success: false ->
 		goto failed unless Content\exist path
 		Content\mkdir Path\getPath zipFile
 		if obfuscated
-			scriptPath = Path Content.writablePath, ".download", ".script"
-			obfuscatedPath = Path Content.writablePath, ".download", ".obfuscated"
-			tempPath = Path Content.writablePath, ".download", ".temp"
+			scriptPath = Path Content.appPath, ".download", ".script"
+			obfuscatedPath = Path Content.appPath, ".download", ".obfuscated"
+			tempPath = Path Content.appPath, ".download", ".temp"
 			Content\remove scriptPath
 			Content\remove obfuscatedPath
 			Content\remove tempPath
@@ -979,7 +988,7 @@ HttpServer\post "/command", (req): success: false ->
 HttpServer\post "/saveLog", (): success: false ->
 	folder = ".download"
 	fullLogFile = "dora_full_logs.txt"
-	fullFolder = Path Content.writablePath, folder
+	fullFolder = Path Content.appPath, folder
 	Content\mkdir fullFolder
 	logPath = Path fullFolder, fullLogFile
 	if App\saveLog logPath
@@ -990,16 +999,16 @@ export default status
 
 thread ->
 	doraWeb = Path Content.assetPath, "www", "index.html"
-	doraReady = Path Content.writablePath, ".www", "dora-ready"
+	doraReady = Path Content.appPath, ".www", "dora-ready"
 	if Content\exist doraWeb
 		needReload = if Content\exist doraReady
 			App.version ~= Content\load doraReady
 		else true
 		if needReload
-			Content\remove Path Content.writablePath, ".www"
+			Content\remove Path Content.appPath, ".www"
 			Content\copyAsync(
 				Path Content.assetPath, "www"
-				Path Content.writablePath, ".www"
+				Path Content.appPath, ".www"
 			)
 			Content\save doraReady, App.version
 			print "Dora Dora is ready!"

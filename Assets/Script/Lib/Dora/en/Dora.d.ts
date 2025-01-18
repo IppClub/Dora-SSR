@@ -696,6 +696,13 @@ interface App {
 	saveLog(path: string): boolean;
 
 	/**
+	 * A function that opens a file dialog.
+	 * @param folderOnly Whether the file dialog is only for selecting folders.
+	 * @param callback The callback function to be called when the file dialog is closed. The callback function should accept a string parameter which is the path of the selected file or folder. Get empty string if the user canceled the dialog.
+	 */
+	openFileDialog(folderOnly: boolean, callback: (path: string) => void): void;
+
+	/**
 	 * A function that shuts down the game engine.
 	 * It is not working and acts as a dummy function for platform Android and iOS to follow the specification of how mobile platform applications should operate.
 	 */
@@ -3476,8 +3483,11 @@ class Content {
 	/** The path to the directory containing read-only resources. Can only be altered by the user on platform Windows, MacOS and Linux. */
 	assetPath: string;
 
-	/** The path to the directory where files can be written. Can only be altered by the user on platform Windows, MacOS and Linux. */
+	/** The path to the directory where files can be written. Can only be altered by the user on platform Windows, MacOS and Linux. Default is the same as the `appPath`. */
 	writablePath: string;
+
+	/** The path to the directory for the application storage. */
+	appPath: string;
 
 	/**
 	 * Loads the content of the file with the specified filename.

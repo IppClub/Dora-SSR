@@ -1013,7 +1013,7 @@ bool ImGuiDora::init() {
 	platformIO.Platform_ClipboardUserData = nullptr;
 
 	ImGuiIO& io = ImGui::GetIO();
-	_iniFilePath = Path::concat({SharedContent.getWritablePath(), "imgui.ini"sv});
+	_iniFilePath = Path::concat({SharedContent.getAppPath(), "imgui.ini"sv});
 	io.IniFilename = _iniFilePath.c_str();
 
 	io.ConfigErrorRecoveryEnableAssert = false;
@@ -1029,7 +1029,7 @@ bool ImGuiDora::init() {
 		"builtin:vs_ocornut_imgui"_slice,
 		"builtin:fs_ocornut_imgui_image"_slice);
 
-	uint8_t* texData;
+	uint8_t* texData = nullptr;
 	int width;
 	int height;
 	io.Fonts->GetTexDataAsAlpha8(&texData, &width, &height);

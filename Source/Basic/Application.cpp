@@ -12,13 +12,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Basic/AutoreleasePool.h"
 #include "Basic/Content.h"
-#include "Basic/Database.h"
 #include "Basic/Director.h"
-#include "Basic/Scheduler.h"
 #include "Common/Async.h"
+#include "Event/Event.h"
 #include "Input/Controller.h"
-#include "Physics/PhysicsWorld.h"
-#include "Render/View.h"
+#include "Basic/Database.h"
 
 #include "Other/utf8.h"
 
@@ -66,6 +64,11 @@ extern "C" int Android_JNI_SendMessage(int command, int param);
 #define DEFAULT_WIN_DPI 96
 #include <shellapi.h>
 #endif // BX_PLATFORM_WINDOWS
+
+#if BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX || BX_PLATFORM_LINUX
+#include "nfd/nfd.hpp"
+#include "nfd/nfd_sdl2.h"
+#endif // BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX || BX_PLATFORM_LINUX
 
 NS_DORA_BEGIN
 
@@ -203,7 +206,7 @@ void Application::setWinSize(Size var) {
 		SDL_SetWindowSize(_sdlWindow, s_cast<int>(var.width), s_cast<int>(var.height));
 		SDL_SetWindowPosition(_sdlWindow, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 	});
-	_winPosition = {s_cast<float>(SDL_WINDOWPOS_CENTERED), s_cast<float>(SDL_WINDOWPOS_CENTERED)};
+	_winPosition = {-1.0f, -1.0f};
 	_fullScreen = false;
 	Event::send("AppChange"_slice, "Position"s);
 	Event::send("AppChange"_slice, "FullScreen"s);
@@ -222,7 +225,11 @@ void Application::setWinPosition(const Vec2& var) {
 	_winPosition = var;
 	invokeInRender([&, var]() {
 		SDL_SetWindowFullscreen(_sdlWindow, 0);
-		SDL_SetWindowPosition(_sdlWindow, s_cast<int>(var.x), s_cast<int>(var.y));
+		int posX = s_cast<int>(var.x);
+		int posY = s_cast<int>(var.y);
+		if (posX < 0) posX = SDL_WINDOWPOS_CENTERED;
+		if (posY < 0) posY = SDL_WINDOWPOS_CENTERED;
+		SDL_SetWindowPosition(_sdlWindow, posX, posY);
 	});
 	Event::send("AppChange"_slice, "Position"s);
 }
@@ -793,6 +800,27 @@ bool Application::saveLog(String filename) {
 	return LogSaveAs(filename.toView());
 }
 
+void Application::openFileDialog(bool folderOnly, const std::function<void(std::string)>& callback) {
+#if BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX || BX_PLATFORM_LINUX
+	invokeInRender([this, callback]() {
+		std::string path;
+		NFD::Guard nfdGuard;
+		NFD::UniquePath outPath;
+		nfdwindowhandle_t parentWindow{};
+		NFD_GetNativeWindowFromSDLWindow(_sdlWindow, &parentWindow);
+		nfdresult_t result = NFD::PickFolder(outPath, nullptr, parentWindow);
+		if (result == NFD_OKAY) {
+			path = outPath.get();
+		} else if (result == NFD_ERROR){
+			Error("failed to pick a folder due to: {}", NFD::GetError());
+		}
+		callback(std::move(path));
+	});
+#else
+	Issue("Application.openFileDialog() is not unsupported on this platform");
+#endif
+}
+
 NS_DORA_END
 
 // Entry functions needed by SDL2
@@ -839,7 +867,7 @@ int CALLBACK WinMain(
 #if DORA_WIN_CONSOLE
 	SharedConsole.init();
 #endif
-	return SharedApplication.run(__argc, __argv);
+	return SharedApplication.run();
 }
 #endif // BX_PLATFORM_WINDOWS
 
@@ -850,11 +878,11 @@ int CALLBACK WinMain(
 #include "implot.h"
 #include "playrho/Defines.hpp"
 #include "soloud.h"
+#include "spdlog/version.h"
 #include "spine/Version.h"
 #include "sqlite3.h"
 #include "wasm3.h"
 #include "yuescript/yue_compiler.h"
-#include "spdlog/version.h"
 
 std::string Dora::Application::getDeps() const noexcept {
 	return fmt::format(

@@ -127,6 +127,11 @@ local record App
 	-- @return (boolean) 日志文件是否保存成功。
 	saveLog: function(self: App, path: string): boolean
 
+	-- 打开一个文件对话框。
+	-- @param folderOnly (boolean) 是否仅允许选择文件夹。
+	-- @param callback (function) 当文件对话框关闭时调用的回调函数。回调函数应接受一个字符串参数，该参数为选中的文件或文件夹的路径。如果用户取消对话框，则返回空字符串。
+	openFileDialog: function(self: App, folderOnly: boolean, callback: function(path: string))
+
 	-- 关闭游戏引擎。
 	-- 该函数在Android和iOS平台不会生效，以遵循移动平台上应用程序规范。
 	shutdown: function(self: App)

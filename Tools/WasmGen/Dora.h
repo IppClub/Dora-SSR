@@ -432,8 +432,10 @@ singleton class Content
 	common VecStr searchPaths;
 	/// the path to the directory containing read-only resources. Can only be altered by the user on platform Windows, MacOS and Linux.
 	common string assetPath;
-	/// the path to the directory where files can be written. Can only be altered by the user on platform Windows, MacOS and Linux.
+	/// the path to the directory where files can be written. Can only be altered by the user on platform Windows, MacOS and Linux. Default is the same as `appPath`.
 	common string writablePath;
+	/// the path to the directory for the application storage.
+	readonly common string appPath;
 	/// Saves the specified content to a file with the specified filename.
 	///
 	/// # Arguments

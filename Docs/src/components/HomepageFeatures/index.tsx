@@ -6,9 +6,9 @@ import Translate from '@docusaurus/Translate';
 const pix_dora = require('@site/static/img/pix-dora.png');
 const pix_toto = require('@site/static/img/pix-toto.png');
 
-const feature_img_one = require('@site/static/img/1.png');
-const feature_img_two = require('@site/static/img/2.png');
-const feature_img_three = require('@site/static/img/3.png');
+const feature_img_one = require('@site/static/img/1-chunjie.png');
+const feature_img_two = require('@site/static/img/2-chunjie.png');
+const feature_img_three = require('@site/static/img/3-chunjie.png');
 import WaImg from '@site/static/img/wa.svg';
 
 type FeatureItem = {
