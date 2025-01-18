@@ -543,6 +543,7 @@ HttpServer\post "/info", ->
 	import "Script.Dev.Entry"
 	:webProfiler, :drawerWidth = Entry.getConfig!
 	engineDev = Entry.getEngineDev!
+	Entry.connectWebIDE!
 	return
 		platform: App.platform
 		locale: App.locale
