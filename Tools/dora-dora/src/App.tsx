@@ -70,6 +70,14 @@ window.onbeforeunload = (event: BeforeUnloadEvent) => {
 	}
 };
 
+const isChildFolder = (child: string, parent: string) => {
+	if (!child.startsWith(parent)) return false;
+	if (path.relative(parent, child).startsWith("..")) {
+		return false;
+	}
+	return true;
+};
+
 interface EditingFile {
 	key: string;
 	title: string;
@@ -435,8 +443,8 @@ export default function PersistentDrawerLeft() {
 
 	const checkFileReadonly = useCallback((key: string, withPrompt: boolean) => {
 		if (Info.engineDev) return false;
-		if (key === "" ||assetPath === "") return true;
-		if (!path.relative(assetPath, key).startsWith("..")) {
+		if (key === "" || assetPath === "") return true;
+		if (isChildFolder(key, assetPath)) {
 			if (withPrompt) {
 				addAlert(t("alert.builtin"), "info");
 			}
@@ -1281,7 +1289,6 @@ export default function PersistentDrawerLeft() {
 	const onTreeMenuClick = useCallback((event: TreeMenuEvent, data?: TreeDataType)=> {
 		if (event === "Cancel") return;
 		if (data === undefined) return;
-		if (checkFileReadonly(data.key, true)) return;
 		switch (event) {
 			case "New": {
 				setOpenNewFile(data);
@@ -1292,7 +1299,7 @@ export default function PersistentDrawerLeft() {
 				const rootNode = treeData.at(0);
 				if (rootNode === undefined) break;
 				const {key, title} = data;
-				if (path.relative(rootNode.key, key).startsWith("..")) {
+				if (!isChildFolder(key, rootNode.key)) {
 					addAlert(t("alert.downloadFailed"), "error");
 					break;
 				}
@@ -1502,8 +1509,10 @@ export default function PersistentDrawerLeft() {
 			}
 			case "Copy Path": {
 				const writablePath = treeData.at(0)?.key ?? "";
-				let relativePath = path.relative(writablePath, data.key);
-				if (relativePath.startsWith("..")) {
+				let relativePath: string;
+				if (isChildFolder(data.key, writablePath)) {
+					relativePath = path.relative(writablePath, data.key);
+				} else {
 					relativePath = path.relative(assetPath, data.key);
 				}
 				if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -2226,8 +2235,8 @@ export default function PersistentDrawerLeft() {
 			const toolPath = path.join(assetPath, "Script", "Tools");
 			const visitNode = (node: TreeDataType) => {
 				if (!node.dir) {
-					const isWritableFile = path.relative(assetPath, node.key).startsWith("..");
-					let isToolFile = !path.relative(toolPath, node.key).startsWith("..");
+					const isWritableFile = isChildFolder(node.key, writablePath);
+					let isToolFile = isChildFolder(node.key, toolPath);
 					if (isToolFile) {
 						if (path.dirname(node.key) !== toolPath) {
 							isToolFile = false;
@@ -2583,10 +2592,10 @@ export default function PersistentDrawerLeft() {
 						const hidden = markdown && !file.mdEditing;
 						const readOnly = file.readOnly || checkFileReadonly(file.key, false);
 						let parentPath;
-						if (path.relative(assetPath, file.key).startsWith("..")) {
-							parentPath = writablePath;
-						} else {
+						if (isChildFolder(file.key, assetPath)) {
 							parentPath = assetPath;
+						} else {
+							parentPath = writablePath;
 						}
 						return <Main
 							open={drawerOpen}
@@ -2695,8 +2704,8 @@ export default function PersistentDrawerLeft() {
 								} else if (file.folder) {
 									const rootNode = treeData.at(0);
 									if (rootNode === undefined) return null;
-									let target = path.relative(writablePath, file.key);
-									if (target.startsWith("..")) {
+									let target: string;
+									if (isChildFolder(file.key, assetPath)) {
 										target = path.relative(parentPath, file.key);
 										target = path.join(t("tree.builtin"), target);
 									} else {
