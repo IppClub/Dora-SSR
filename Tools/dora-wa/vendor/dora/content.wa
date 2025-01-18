@@ -24,6 +24,9 @@ func content_set_writable_path(val: i64)
 #wa:import dora content_get_writable_path
 func content_get_writable_path() => i64
 
+#wa:import dora content_get_app_path
+func content_get_app_path() => i64
+
 #wa:import dora content_save
 func content_save(filename: i64, content: i64) => i32
 
@@ -114,14 +117,19 @@ func _Content.GetAssetPath() => string {
 	return FromDoraString(content_get_asset_path())
 }
 
-/// Sets the path to the directory where files can be written. Can only be altered by the user on platform Windows, MacOS and Linux.
+/// Sets the path to the directory where files can be written. Can only be altered by the user on platform Windows, MacOS and Linux. Default is the same as `appPath`.
 func _Content.SetWritablePath(val: string) {
 	content_set_writable_path(ToDoraString(val))
 }
 
-/// Gets the path to the directory where files can be written. Can only be altered by the user on platform Windows, MacOS and Linux.
+/// Gets the path to the directory where files can be written. Can only be altered by the user on platform Windows, MacOS and Linux. Default is the same as `appPath`.
 func _Content.GetWritablePath() => string {
 	return FromDoraString(content_get_writable_path())
+}
+
+/// Gets the path to the directory for the application storage.
+func _Content.GetAppPath() => string {
+	return FromDoraString(content_get_app_path())
 }
 func _Content.Save(filename: string, content: string) => bool {
 	return content_save(ToDoraString(filename), ToDoraString(content)) != 0

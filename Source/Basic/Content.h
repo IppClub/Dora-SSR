@@ -18,6 +18,7 @@ class Content : public NonCopyable {
 public:
 	PROPERTY_STRING(AssetPath);
 	PROPERTY_STRING(WritablePath);
+	PROPERTY_CREF(std::string, AppPath);
 	PROPERTY_CREF(std::vector<std::string>, SearchPaths);
 	PROPERTY_READONLY(Async*, Thread);
 	virtual ~Content();
@@ -74,6 +75,7 @@ protected:
 	SearchPath getFullPathAndPackage(String filename);
 
 private:
+	const std::string _appPath;
 	std::string _assetPath;
 	std::string _writablePath;
 #if BX_PLATFORM_ANDROID

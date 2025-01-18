@@ -38,8 +38,12 @@ if DB\exist "Config"
 		when [ [locale,], ] then if App.locale ~= locale
 			App.locale = locale
 			updateLocale!
+	switch DB\query "select value_str from Config where name = 'writablePath'"
+		when [ [writablePath,], ]
+			Content.writablePath = writablePath
 
 import "Config"
+
 config = Config(
 	""
 	"fpsLimited"
@@ -64,8 +68,13 @@ config = Config(
 	"drawerWidth"
 	"lastUpdateCheck"
 	"updateNotification"
+	"writablePath"
 )
 config\load!
+
+unless config.writablePath
+	config.writablePath = Content.appPath
+
 if config.fpsLimited?
 	App.fpsLimited = config.fpsLimited
 else
@@ -106,11 +115,11 @@ if App.platform in ["Linux", "Windows", "macOS"]
 		if config.winX?
 			winX = config.winX
 		else
-			config.winX = 0
+			config.winX = -1
 		if config.winY?
 			winY = config.winY
 		else
-			config.winY = 0
+			config.winY = -1
 		App.winPosition = Vec2 winX, winY
 	if config.alwaysOnTop?
 		App.alwaysOnTop = config.alwaysOnTop
@@ -536,6 +545,30 @@ clearTempFiles = ->
 	Content\remove Path writablePath, ".upload"
 	Content\remove Path writablePath, ".download"
 
+waitForWebStart = true
+thread ->
+	sleep 2
+	waitForWebStart = false
+
+reloadDevEntry = -> thread ->
+	waitForWebStart = true
+	doClean!
+	allClear!
+	_G.require = oldRequire
+	Dora.require = oldRequire
+	package.loaded["Script.Dev.Entry"] = nil
+	Director.systemScheduler\schedule ->
+		Routine\clear!
+		oldRequire "Script.Dev.Entry"
+		true
+
+setWorkspace = (path) ->
+	Content.writablePath = path
+	config.writablePath = Content.writablePath
+	thread ->
+		sleep!
+		reloadDevEntry!
+
 setupEventHandlers = ->
 	with Director.postNode
 		\onAppEvent (eventType) -> if eventType == "Quit"
@@ -635,23 +668,6 @@ reloadCurrentEntry = ->
 
 Director.clearColor = Color 0xff1a1a1a
 
-waitForWebStart = true
-thread ->
-	sleep 2
-	waitForWebStart = false
-
-reloadDevEntry = -> thread ->
-	waitForWebStart = true
-	doClean!
-	allClear!
-	_G.require = oldRequire
-	Dora.require = oldRequire
-	package.loaded["Script.Dev.Entry"] = nil
-	Director.systemScheduler\schedule ->
-		Routine\clear!
-		oldRequire "Script.Dev.Entry"
-		true
-
 isOSSLicenseExist = Content\exist "LICENSES"
 ossLicenses = nil
 ossLicenseOpen = false
@@ -659,10 +675,21 @@ ossLicenseOpen = false
 extraOperations = ->
 	zh = useChinese and isChineseSupported
 	if App.platform not in ["Android", "iOS"]
-		:alwaysOnTop = config
+		:themeColor = App
+		:alwaysOnTop, :writablePath = config
 		if changed, alwaysOnTop := Checkbox zh and "窗口置顶" or "Always On Top", alwaysOnTop
 			App.alwaysOnTop = alwaysOnTop
 			config.alwaysOnTop = alwaysOnTop
+		SeparatorText zh and "工作目录" or "Workspace"
+		PushTextWrapPos 400, ->
+			TextColored themeColor, writablePath
+		if Button zh and "改变目录" or "Set Folder"
+			App\openFileDialog true, (path) ->
+				setWorkspace path if path ~= ""
+		SameLine!
+		if Button zh and "使用默认" or "Use Default"
+			setWorkspace Content.appPath
+		Separator!
 	if isOSSLicenseExist
 		if Button zh and '开源协议' or 'OSS Licenses'
 			unless ossLicenses

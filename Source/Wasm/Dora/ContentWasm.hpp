@@ -26,6 +26,9 @@ void content_set_writable_path(int64_t val) {
 int64_t content_get_writable_path() {
 	return Str_Retain(SharedContent.getWritablePath());
 }
+int64_t content_get_app_path() {
+	return Str_Retain(SharedContent.getAppPath());
+}
 int32_t content_save(int64_t filename, int64_t content) {
 	return SharedContent.save(*Str_From(filename), *Str_From(content)) ? 1 : 0;
 }
@@ -159,6 +162,7 @@ static void linkContent(wasm3::module3& mod) {
 	mod.link_optional("*", "content_get_asset_path", content_get_asset_path);
 	mod.link_optional("*", "content_set_writable_path", content_set_writable_path);
 	mod.link_optional("*", "content_get_writable_path", content_get_writable_path);
+	mod.link_optional("*", "content_get_app_path", content_get_app_path);
 	mod.link_optional("*", "content_save", content_save);
 	mod.link_optional("*", "content_exist", content_exist);
 	mod.link_optional("*", "content_mkdir", content_mkdir);

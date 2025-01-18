@@ -700,6 +700,13 @@ interface App {
 	saveLog(path: string): boolean;
 
 	/**
+	 * 打开一个文件对话框。
+	 * @param folderOnly 是否仅允许选择文件夹。
+	 * @param callback 当文件对话框关闭时调用的回调函数。回调函数应接受一个字符串参数，该参数为选中的文件或文件夹的路径。如果用户取消对话框，则返回空字符串。
+	 */
+	openFileDialog(folderOnly: boolean, callback: (path: string) => void): void;
+
+	/**
 	 * 关闭游戏引擎。
 	 * 该函数在Android和iOS平台不会生效，以遵循移动平台上应用程序规范。
 	 */
@@ -3473,8 +3480,11 @@ class Content {
 	/** 包含只读资源的目录的路径。只有在平台 Windows、MacOS 和 Linux 上能被设置为新路径。 */
 	assetPath: string;
 
-	/** 可以写入文件的目录的路径。只有在平台 Windows、MacOS 和 Linux 上能被设置为新路径。 */
+	/** 可以写入文件的目录的路径。只有在平台 Windows、MacOS 和 Linux 上能被设置为新路径。 默认与 `appPath` 相同。 */
 	writablePath: string;
+
+	/** 游戏引擎应用程序存储目录的路径。 */
+	appPath: string;
 
 	/**
 	 * 加载具有指定文件名的文件的内容。

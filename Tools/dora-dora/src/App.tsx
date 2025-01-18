@@ -435,14 +435,15 @@ export default function PersistentDrawerLeft() {
 
 	const checkFileReadonly = useCallback((key: string, withPrompt: boolean) => {
 		if (Info.engineDev) return false;
-		if (!key.startsWith(writablePath)) {
+		if (key === "" ||assetPath === "") return true;
+		if (!path.relative(assetPath, key).startsWith("..")) {
 			if (withPrompt) {
 				addAlert(t("alert.builtin"), "info");
 			}
 			return true;
 		}
 		return false;
-	}, [writablePath, t]);
+	}, [assetPath, t]);
 
 	const onModified = useCallback((editingFile: EditingFile, content: string, lastChange?: monaco.editor.IModelContentChange) => {
 		setModified({key: editingFile.key, content});
@@ -1501,7 +1502,10 @@ export default function PersistentDrawerLeft() {
 			}
 			case "Copy Path": {
 				const writablePath = treeData.at(0)?.key ?? "";
-				const relativePath = path.relative(writablePath, data.key);
+				let relativePath = path.relative(writablePath, data.key);
+				if (relativePath.startsWith("..")) {
+					relativePath = path.relative(assetPath, data.key);
+				}
 				if (navigator.clipboard && navigator.clipboard.writeText) {
 					navigator.clipboard.writeText(relativePath).then(() => {
 						addAlert(t("alert.copied", {title: data.title}), "success");
@@ -1519,7 +1523,7 @@ export default function PersistentDrawerLeft() {
 				break;
 			}
 		}
-	}, [checkFileReadonly, loadAssets, t, files, deleteFile, treeData, openFileInTab]);
+	}, [checkFileReadonly, loadAssets, t, files, deleteFile, treeData, openFileInTab, assetPath]);
 
 	const onNewFileClose = (item?: DoraFileType) => {
 		let ext: string | null = null;
@@ -2222,8 +2226,8 @@ export default function PersistentDrawerLeft() {
 			const toolPath = path.join(assetPath, "Script", "Tools");
 			const visitNode = (node: TreeDataType) => {
 				if (!node.dir) {
-					const isWritableFile = node.key.startsWith(writablePath);
-					let isToolFile = node.key.startsWith(toolPath);
+					const isWritableFile = path.relative(assetPath, node.key).startsWith("..");
+					let isToolFile = !path.relative(toolPath, node.key).startsWith("..");
 					if (isToolFile) {
 						if (path.dirname(node.key) !== toolPath) {
 							isToolFile = false;
@@ -2579,7 +2583,7 @@ export default function PersistentDrawerLeft() {
 						const hidden = markdown && !file.mdEditing;
 						const readOnly = file.readOnly || checkFileReadonly(file.key, false);
 						let parentPath;
-						if (file.key.startsWith(writablePath)) {
+						if (path.relative(assetPath, file.key).startsWith("..")) {
 							parentPath = writablePath;
 						} else {
 							parentPath = assetPath;

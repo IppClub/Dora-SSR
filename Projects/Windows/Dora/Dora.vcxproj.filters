@@ -328,6 +328,9 @@
     <Filter Include="Render">
       <UniqueIdentifier>{ce2b8137-61bd-4efb-8cf9-01a03ac12dec}</UniqueIdentifier>
     </Filter>
+    <Filter Include="3rdParty\nfd">
+      <UniqueIdentifier>{eed2b039-f653-4258-8fe3-ab9a8c84399d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\Source\3rdParty\silly\Slice.cpp">
@@ -1943,6 +1946,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\Source\Input\Mouse.cpp">
       <Filter>Input</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\nfd\nfd_win.cpp">
+      <Filter>3rdParty\nfd</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -4316,6 +4322,12 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\Other\sdf_gen2d.h">
       <Filter>3rdParty\Other</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\nfd\nfd.h">
+      <Filter>3rdParty\nfd</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\nfd\nfd.hpp">
+      <Filter>3rdParty\nfd</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

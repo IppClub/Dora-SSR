@@ -570,6 +570,8 @@
 		3CC81FF61D966770008C8B77 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3CC81FF51D966770008C8B77 /* Assets.xcassets */; };
 		3CD029141E07DD5F0016E1EC /* libbgfx.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CD029131E07DD5F0016E1EC /* libbgfx.a */; };
 		3CD029161E07DD720016E1EC /* libSDL2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CD029151E07DD720016E1EC /* libSDL2.a */; };
+		3CD470AD2D3A4C91000E59A7 /* nfd_cocoa.m in Sources */ = {isa = PBXBuildFile; fileRef = 3CD470A42D3A4C91000E59A7 /* nfd_cocoa.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		3CD470AE2D3A4C91000E59A7 /* LICENSE in Resources */ = {isa = PBXBuildFile; fileRef = 3CD470A12D3A4C91000E59A7 /* LICENSE */; };
 		3CE331411D96CFF700F9C3F6 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE331401D96CFF700F9C3F6 /* Cocoa.framework */; };
 		3CE331431D96D00000F9C3F6 /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE331421D96D00000F9C3F6 /* CoreVideo.framework */; };
 		3CE331451D96D01200F9C3F6 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE331441D96D01200F9C3F6 /* CoreAudio.framework */; };
@@ -596,6 +598,7 @@
 		3C1D40EF2702FD7C00202534 /* Initialization.lua */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Initialization.lua; sourceTree = "<group>"; };
 		3C1D40F02702FD7C00202534 /* tl.lua */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = tl.lua; sourceTree = "<group>"; };
 		3C2F9C881E7B114B00B98D39 /* ModelDef.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ModelDef.cpp; sourceTree = "<group>"; };
+		3C338EEE2D3BFBC300074E88 /* nfd_sdl2.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = nfd_sdl2.h; sourceTree = "<group>"; };
 		3C361E1B2C1A94A50079B68B /* TMX */ = {isa = PBXFileReference; lastKnownFileType = folder; path = TMX; sourceTree = "<group>"; };
 		3C4B3DDF2C0709E000D778FC /* UnitMagnitudeChecker.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = UnitMagnitudeChecker.hpp; sourceTree = "<group>"; };
 		3C5323222D05E9C700CCDAB7 /* BoxSizing.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BoxSizing.h; sourceTree = "<group>"; };
@@ -1947,6 +1950,10 @@
 		3CC81FFA1D966770008C8B77 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Info.plist; path = Dora/Info.plist; sourceTree = "<group>"; };
 		3CD029131E07DD5F0016E1EC /* libbgfx.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbgfx.a; path = ../../Source/3rdParty/BGFX/Lib/macOS/libbgfx.a; sourceTree = "<group>"; };
 		3CD029151E07DD720016E1EC /* libSDL2.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libSDL2.a; path = ../../Source/3rdParty/SDL2/Lib/macOS/libSDL2.a; sourceTree = "<group>"; };
+		3CD470A12D3A4C91000E59A7 /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
+		3CD470A22D3A4C91000E59A7 /* nfd.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = nfd.h; sourceTree = "<group>"; };
+		3CD470A32D3A4C91000E59A7 /* nfd.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = nfd.hpp; sourceTree = "<group>"; };
+		3CD470A42D3A4C91000E59A7 /* nfd_cocoa.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = nfd_cocoa.m; sourceTree = "<group>"; };
 		3CE331401D96CFF700F9C3F6 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		3CE331421D96D00000F9C3F6 /* CoreVideo.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreVideo.framework; path = System/Library/Frameworks/CoreVideo.framework; sourceTree = SDKROOT; };
 		3CE331441D96D01200F9C3F6 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
@@ -2365,6 +2372,7 @@
 		3C291D371E0264510098C860 /* 3rdParty */ = {
 			isa = PBXGroup;
 			children = (
+				3CD470A92D3A4C91000E59A7 /* nfd */,
 				3CC15E052C19902A004763E7 /* tmxlite */,
 				3C0FB33A2BEEF0230098E88D /* Effekseer */,
 				3C53E9362BE8CF1100039640 /* yoga */,
@@ -4083,6 +4091,18 @@
 			path = GUI;
 			sourceTree = "<group>";
 		};
+		3CD470A92D3A4C91000E59A7 /* nfd */ = {
+			isa = PBXGroup;
+			children = (
+				3CD470A12D3A4C91000E59A7 /* LICENSE */,
+				3CD470A22D3A4C91000E59A7 /* nfd.h */,
+				3C338EEE2D3BFBC300074E88 /* nfd_sdl2.h */,
+				3CD470A32D3A4C91000E59A7 /* nfd.hpp */,
+				3CD470A42D3A4C91000E59A7 /* nfd_cocoa.m */,
+			);
+			path = nfd;
+			sourceTree = "<group>";
+		};
 		3CDA2E0D24C20ADD009B0AA5 /* ML */ = {
 			isa = PBXGroup;
 			children = (
@@ -4369,6 +4389,7 @@
 				3CE994642AFA43680073A973 /* gamecontrollerdb.txt in Resources */,
 				3CBC784B24CE7528003C9E83 /* Image in Resources */,
 				3CBC785224CE7528003C9E83 /* Font in Resources */,
+				3CD470AE2D3A4C91000E59A7 /* LICENSE in Resources */,
 				3CC81FF61D966770008C8B77 /* Assets.xcassets in Resources */,
 				3CBC784D24CE7528003C9E83 /* Script in Resources */,
 				3C60DE132A2069CE007D7865 /* Doc in Resources */,
@@ -4760,6 +4781,7 @@
 				3C5935532CA4F97500CAF224 /* InheritTimeline.cpp in Sources */,
 				3C5935542CA4F97500CAF224 /* SkeletonData.cpp in Sources */,
 				3C5935552CA4F97500CAF224 /* SpineObject.cpp in Sources */,
+				3CD470AD2D3A4C91000E59A7 /* nfd_cocoa.m in Sources */,
 				3C5935562CA4F97500CAF224 /* AtlasAttachmentLoader.cpp in Sources */,
 				3C5935572CA4F97500CAF224 /* Atlas.cpp in Sources */,
 				3C5935582CA4F97500CAF224 /* SkeletonJson.cpp in Sources */,

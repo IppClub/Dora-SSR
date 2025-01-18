@@ -13,6 +13,7 @@ extern "C" {
 	fn content_get_asset_path() -> i64;
 	fn content_set_writable_path(val: i64);
 	fn content_get_writable_path() -> i64;
+	fn content_get_app_path() -> i64;
 	fn content_save(filename: i64, content: i64) -> i32;
 	fn content_exist(filename: i64) -> i32;
 	fn content_mkdir(path: i64) -> i32;
@@ -56,13 +57,17 @@ impl Content {
 	pub fn get_asset_path() -> String {
 		return unsafe { crate::dora::to_string(content_get_asset_path()) };
 	}
-	/// Sets the path to the directory where files can be written. Can only be altered by the user on platform Windows, MacOS and Linux.
+	/// Sets the path to the directory where files can be written. Can only be altered by the user on platform Windows, MacOS and Linux. Default is the same as `appPath`.
 	pub fn set_writable_path(val: &str) {
 		unsafe { content_set_writable_path(crate::dora::from_string(val)) };
 	}
-	/// Gets the path to the directory where files can be written. Can only be altered by the user on platform Windows, MacOS and Linux.
+	/// Gets the path to the directory where files can be written. Can only be altered by the user on platform Windows, MacOS and Linux. Default is the same as `appPath`.
 	pub fn get_writable_path() -> String {
 		return unsafe { crate::dora::to_string(content_get_writable_path()) };
+	}
+	/// Gets the path to the directory for the application storage.
+	pub fn get_app_path() -> String {
+		return unsafe { crate::dora::to_string(content_get_app_path()) };
 	}
 	/// Saves the specified content to a file with the specified filename.
 	///

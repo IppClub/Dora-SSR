@@ -126,6 +126,11 @@ local record App
 	-- @return (boolean) Whether the log file was saved successfully.
 	saveLog: function(self: App, path: string): boolean
 
+	-- A function that opens a file dialog.
+	-- @param folderOnly (boolean) Whether the file dialog is only for selecting folders.
+	-- @param callback (function) The callback function to be called when the file dialog is closed. The callback function should accept a string parameter which is the path of the selected file or folder. Get empty string if the user canceled the dialog.
+	openFileDialog: function(self: App, folderOnly: boolean, callback: function(path: string))
+
 	-- A function that shuts down the game engine.
 	-- It is not working and acts as a dummy function for platform Android and iOS to follow the specification of how mobile platform applications should operate.
 	shutdown: function(self: App)

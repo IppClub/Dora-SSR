@@ -77,7 +77,7 @@ public:
 	}
 
 	std::string getFilename() const {
-		return Path::concat({SharedContent.getWritablePath(), "log.txt"sv});
+		return Path::concat({SharedContent.getAppPath(), "log.txt"sv});
 	}
 
 	int getMaxFileSize() const {

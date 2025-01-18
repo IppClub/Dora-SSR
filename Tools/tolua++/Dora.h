@@ -130,6 +130,7 @@ class Application
 	void openURL(String url);
 	void install(String path);
 	bool saveLog(String filename);
+	void openFileDialog(bool folderOnly, tolua_function_void callback);
 	void shutdown();
 	static tolua_outside Application* Application_shared @ create();
 };
@@ -209,6 +210,7 @@ class Content
 {
 	tolua_property__common string assetPath;
 	tolua_property__common string writablePath;
+	tolua_readonly tolua_property__common string appPath;
 	bool save(String filename, String content);
 	bool exist(String filename);
 	bool createFolder @ mkdir(String path);
