@@ -186,7 +186,8 @@ export.connectWebIDE = ->
 	unless config.webIDEConnected
 		config.webIDEConnected = true
 		if App.platform in ["Windows", "Linux", "macOS"]
-			App.winSize = Size 640, 480
+			ratio = App.winSize.width / App.visualSize.width
+			App.winSize = Size 640 * ratio, 480 * ratio
 
 updateCheck = -> thread ->
 	if res := HttpClient\getAsync "https://api.github.com/repos/IppClub/Dora-SSR/releases/latest"
