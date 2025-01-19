@@ -101,7 +101,7 @@
 
 1. Step 1: Create a new project
 
-    - In the browser, open the right-click menu of the game resource tree on the left side of the Dora Dora editor.
+    - In the browser, open the right-click menu of `Workspace` on the left side of the Dora Dora editor.
 
     - Click on the menu item `New` and choose to create a new folder named `Hello`.
 
