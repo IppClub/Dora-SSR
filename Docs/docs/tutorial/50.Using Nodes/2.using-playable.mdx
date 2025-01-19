@@ -15,17 +15,130 @@ In game development, animations are crucial for bringing characters and scenes t
 	- The animation system of the well-known commercial software Spine2D.
 	- Animation models are generally composed of a `.json` (or `.skel`) file, an `.atlas` file, and a `.png` file.
 
-This tutorial will guide you on how to use the Playable node in your program, covering everything from loading animations to controlling playback.
+This tutorial will guide you on how to use various nodes in your program, covering everything from loading animations to controlling playback.
 
-## 1. Creating a Playable Instance
+## 1. Creating an Animation Node Instance
 
-To use the Playable node, you first need to create an instance. Playable supports three animation systems, and the typical loading methods are as follows:
+### 1.1 Creating a Model Animation Node
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local Model <const> = require("Model")
+local character = Model("assets/character")
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local Model <const> = require("Model")
+local character = Model("assets/character")
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { Model } from "Dora";
+const character = Model("assets/character");
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+character = Model "assets/character"
+```
+
+</TabItem>
+</Tabs>
+
+### 1.2 Creating a DragonBone Animation Node
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local DragonBone <const> = require("DragonBone")
+local dragon = DragonBone("assets/dragon")
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local DragonBone <const> = require("DragonBone")
+local dragon = DragonBone("assets/dragon")
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { DragonBone } from "Dora";
+const dragon = DragonBone("assets/dragon");
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+dragon = DragonBone "assets/dragon"
+```
+
+</TabItem>
+</Tabs>
+
+### 1.3 Creating a Spine Animation Node
+
+<Tabs groupId="language-select">
+<TabItem value="lua" label="Lua">
+
+```lua
+local Spine <const> = require("Spine")
+local monster = Spine("assets/monster")
+```
+
+</TabItem>
+<TabItem value="tl" label="Teal">
+
+```tl
+local Spine <const> = require("Spine")
+local monster = Spine("assets/monster")
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```ts
+import { Spine } from "Dora";
+const monster = Spine("assets/monster");
+```
+
+</TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue
+_ENV = Dora
+monster = Spine "assets/monster"
+```
+
+</TabItem>
+</Tabs>
+
+## 2. Creating a Playable Instance
+
+Playable is a node that provides a unified animation interface. To use the Playable node, you first need to create an instance. Playable supports loading three animation systems, and the typical loading methods are as follows:
 
 - **Model files**: `"model:"` prefix + the model file path without the suffix.
 - **Spine files**: `"spine:"` prefix + the Spine file path without the suffix.
 - **DragonBones files**: `"bone:"` prefix + the DragonBones file path without the suffix.
 
-### 1.1 Example: Loading a Model Animation
+### 2.1 Example: Loading a Model Animation
 
 <Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
@@ -39,7 +152,6 @@ local character = Playable(modelPath)
 
 if character then
 	character.position = Vec2(100, 200)
-	stage:addChild(character)
 else
 	print("Failed to load Model animation!")
 end
@@ -57,7 +169,6 @@ local character = Playable(modelPath)
 
 if not character is nil then
 	character.position = Vec2(100, 200)
-	stage:addChild(character)
 else
 	print("Failed to load Model animation!")
 end
@@ -75,7 +186,6 @@ const character = Playable(modelPath);
 
 if (character) {
 	character.position = Vec2(100, 200);
-	stage.addChild(character);
 } else {
 	print("Failed to load Model animation!");
 }
@@ -92,9 +202,7 @@ modelPath = "model:assets/character"
 character = Playable modelPath
 
 if character
-	with character
-		.position = Vec2 100, 200
-		\addTo stage
+	character.position = Vec2 100, 200
 else
 	print "Failed to load Model animation!"
 ```
@@ -102,7 +210,7 @@ else
 </TabItem>
 </Tabs>
 
-### 1.2 Example: Loading a Spine Animation
+### 2.2 Example: Loading a Spine Animation
 
 <Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
@@ -116,7 +224,6 @@ local monster = Playable(spinePath)
 
 if monster then
 	monster.position = Vec2(300, 200)
-	stage:addChild(monster)
 else
 	print("Failed to load Spine animation!")
 end
@@ -134,7 +241,6 @@ local monster = Playable(spinePath)
 
 if not monster is nil then
 	monster.position = Vec2(300, 200)
-	stage:addChild(monster)
 else
 	print("Failed to load Spine animation!")
 end
@@ -152,7 +258,6 @@ const monster = Playable(spinePath);
 
 if (monster) {
 	monster.position = Vec2(300, 200);
-	stage.addChild(monster);
 } else {
 	print("Failed to load Spine animation!");
 }
@@ -169,9 +274,7 @@ spinePath = "spine:assets/monster"
 monster = Playable spinePath
 
 if monster
-	with monster
-		.position = Vec2 300, 200
-		\addTo stage
+	monster.position = Vec2 300, 200
 else
 	print "Failed to load Spine animation!"
 ```
@@ -179,7 +282,7 @@ else
 </TabItem>
 </Tabs>
 
-### 1.3 Example: Loading DragonBones Animation
+### 2.3 Example: Loading DragonBones Animation
 
 <Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
@@ -193,7 +296,6 @@ local dragon = Playable(dragonBonePath)
 
 if dragon then
 	dragon.position = Vec2(500, 200)
-	stage:addChild(dragon)
 else
 	print("Failed to load DragonBones animation!")
 end
@@ -211,7 +313,6 @@ local dragon = Playable(dragonBonePath)
 
 if not dragon is nil then
 	dragon.position = Vec2(500, 200)
-	stage:addChild(dragon)
 else
 	print("Failed to load DragonBones animation!")
 end
@@ -229,7 +330,6 @@ const dragon = Playable(dragonBonePath);
 
 if (dragon) {
 	dragon.position = Vec2(500, 200);
-	stage.addChild(dragon);
 } else {
 	print("Failed to load DragonBones animation!");
 }
@@ -246,9 +346,7 @@ dragonBonePath = "bone:assets/dragon"
 dragon = Playable dragonBonePath
 
 if dragon
-	with dragon
-		.position = Vec2 500, 200
-		\addTo stage
+	dragon.position = Vec2 500, 200
 else
 	print "Failed to load DragonBones animation!"
 ```
@@ -256,7 +354,7 @@ else
 </TabItem>
 </Tabs>
 
-### 1.4 Example: Asynchronous Animation Loading
+### 2.4 Example: Asynchronous Animation Loading
 
 In real-world development, loading animations may take some time. You can use the `Cache:loadAsync()` method to load animations asynchronously, executing a callback function upon completion.
 
@@ -273,7 +371,6 @@ thread(function()
 	if Cache:loadAsync(modelPath) then
 		local character = Playable(modelPath)
 		character.position = Vec2(100, 200)
-		stage:addChild(character)
 	else
 		print("Failed to load Model animation asynchronously!")
 	end
@@ -294,7 +391,6 @@ thread(function()
 		local character = Playable(modelPath)
 		if not character is nil then
 			character.position = Vec2(100, 200)
-			stage:addChild(character)
 		end
 	else
 		print("Failed to load Model animation asynchronously!")
@@ -315,7 +411,6 @@ thread(() => {
 		const character = Playable(modelPath);
 		if (character) {
 			character.position = Vec2(100, 200);
-			stage.addChild(character);
 		}
 	} else {
 		print("Failed to load Model animation asynchronously!");
@@ -335,9 +430,6 @@ thread ->
 	if Cache\loadAsync modelPath
 		with Playable modelPath
 			.position = Vec2 100, 200
-
-
-	\addTo stage
 	else
 		print "Failed to load Model animation asynchronously!"
 ```
@@ -345,7 +437,7 @@ thread ->
 </TabItem>
 </Tabs>
 
-## 2. Playing Animations
+## 3. Playing Animations
 
 Once you have created an instance, you can play a specific animation using the `play` method.
 
@@ -389,7 +481,7 @@ duration = character\play "run", true
     - `loop` (optional): Whether to loop the animation, default is `false`.
 - **Return Value**: The duration of the animation (in seconds).
 
-## 3. Stopping Animations
+## 4. Stopping Animations
 
 Use the `stop` method to stop the currently playing animation.
 
@@ -428,7 +520,7 @@ character\stop()
 </TabItem>
 </Tabs>
 
-## 4. Setting Playback Speed
+## 5. Setting Playback Speed
 
 You can change the animation playback speed by adjusting the `speed` property.
 
@@ -469,7 +561,7 @@ character.speed = 2.0
 
 - **Note**: The default value of `speed` is `1.0`.
 
-## 5. Flipping Animations
+## 6. Flipping Animations
 
 You can flip the animation horizontally by using the `fliped` property, which is often used for character direction changes.
 
@@ -510,7 +602,7 @@ character.fliped = true
 
 - **`fliped`**: `true` means flipped, `false` means normal.
 
-## 6. Getting Keypoint Coordinates
+## 7. Getting Keypoint Coordinates
 
 The `getKey` method is used to get the coordinates of keypoints on the model, such as the character's hand or foot positions. In the Model animation system, keypoints are specific points set on the model. In DragonBone, keypoints are bone positions. In Spine2D, keypoints are vertex attachment positions.
 
@@ -556,7 +648,7 @@ print "Right hand coordinates:", handPosition.x, handPosition.y
 - **Parameters**: The name of the keypoint (string).
 - **Return Value**: `Vec2`, representing the coordinates of the keypoint.
 
-## 7. Adding Child Nodes to Slots
+## 8. Adding Child Nodes to Slots
 
 The `setSlot` method allows you to add child nodes to specific slots on the model, such as adding a weapon or equipment to a character.
 
@@ -611,7 +703,7 @@ character\setSlot "right_hand", sword
     - `name`: The name of the slot.
     - `item`: The node object to be added.
 
-## 8. Getting Child Nodes from Slots
+## 9. Getting Child Nodes from Slots
 
 You can retrieve the child node from a specific slot using the `getSlot` method.
 
@@ -671,7 +763,7 @@ else
 
 - **Return Value**: A `Node` object or `nil`.
 
-## 9. Listening for Animation End Events
+## 10. Listening for Animation End Events
 
 You can register a callback function using the `onAnimationEnd` method, which triggers when the animation playback ends.
 
@@ -724,7 +816,7 @@ character\onAnimationEnd (animationName, target) ->
 - **Parameters**:
 	- `callback`: A callback function that accepts two parameters: `animationName` and `target`.
 
-## 10. Comprehensive Example
+## 11. Comprehensive Example
 
 The following is a comprehensive example that demonstrates how to create a character, play animations, equip items, and handle animation end events.
 
@@ -888,7 +980,7 @@ with Playable "model:assets/hero.model"
 </TabItem>
 </Tabs>
 
-## 11. Conclusion
+## 12. Conclusion
 
 Through this tutorial, you have learned how to use the Playable node class in Dora SSR to load and control various animation models. Playable offers a rich set of interfaces, supporting multiple animation systems, making it easy to add complex animation effects to your game.
 

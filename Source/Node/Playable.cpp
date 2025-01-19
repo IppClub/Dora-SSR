@@ -68,7 +68,7 @@ Playable* Playable::create(String filename) {
 		case "spine"_hash: return Spine::create(tokens.back());
 		case "bone"_hash: return DragonBone::create(tokens.back());
 		default:
-			Error("playable str flag must be \"model\", \"spine\" and \"bone\" (dragonbones)");
+			Error("playable str flag must be of \"model\", \"spine\" and \"bone\", got \"{}\"", tokens.front().toString());
 			return nullptr;
 	}
 }
