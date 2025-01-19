@@ -126,7 +126,7 @@ local record App
 	-- @return (boolean) Whether the log file was saved successfully.
 	saveLog: function(self: App, path: string): boolean
 
-	-- A function that opens a file dialog.
+	-- A function that opens a file dialog. Only works on Windows, macOS and Linux.
 	-- @param folderOnly (boolean) Whether the file dialog is only for selecting folders.
 	-- @param callback (function) The callback function to be called when the file dialog is closed. The callback function should accept a string parameter which is the path of the selected file or folder. Get empty string if the user canceled the dialog.
 	openFileDialog: function(self: App, folderOnly: boolean, callback: function(path: string))

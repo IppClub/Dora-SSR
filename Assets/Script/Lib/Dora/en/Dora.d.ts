@@ -696,7 +696,7 @@ interface App {
 	saveLog(path: string): boolean;
 
 	/**
-	 * A function that opens a file dialog.
+	 * A function that opens a file dialog. Only works on Windows, macOS and Linux.
 	 * @param folderOnly Whether the file dialog is only for selecting folders.
 	 * @param callback The callback function to be called when the file dialog is closed. The callback function should accept a string parameter which is the path of the selected file or folder. Get empty string if the user canceled the dialog.
 	 */
