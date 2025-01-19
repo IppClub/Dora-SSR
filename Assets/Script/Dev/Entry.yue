@@ -33,14 +33,17 @@ updateLocale = ->
 	searchPaths[#searchPaths] = Path Content.assetPath, "Script", "Lib", "Dora", useChinese and "zh-Hans" or "en"
 	Content.searchPaths = searchPaths
 
+isDesktop = App.platform in ["Windows", "macOS", "Linux"]
+
 if DB\exist "Config"
 	switch DB\query "select value_str from Config where name = 'locale'"
 		when [ [locale,], ] then if App.locale ~= locale
 			App.locale = locale
 			updateLocale!
-	switch DB\query "select value_str from Config where name = 'writablePath'"
-		when [ [writablePath,], ]
-			Content.writablePath = writablePath
+	if isDesktop
+		switch DB\query "select value_str from Config where name = 'writablePath'"
+			when [ [writablePath,], ]
+				Content.writablePath = writablePath
 
 import "Config"
 
@@ -685,7 +688,7 @@ ossLicenseOpen = false
 
 extraOperations = ->
 	zh = useChinese and isChineseSupported
-	if App.platform not in ["Android", "iOS"]
+	if isDesktop
 		:themeColor = App
 		:alwaysOnTop, :writablePath = config
 		if changed, alwaysOnTop := Checkbox zh and "窗口置顶" or "Always On Top", alwaysOnTop
