@@ -35,7 +35,7 @@ This repo provides language bindings and a testing project to demonstrate Wa-lan
 
     - Launch Dora SSR software and open the Web IDE in the browser.
 
-    - In the game resource tree on the left side, open the right-click menu of the game resource tree.
+    - In the game resource tree on the left side, open the right-click menu of the `Workspace`.
 
     - Click on the menu item `New` and choose to create a new folder named `Hello`.
 
