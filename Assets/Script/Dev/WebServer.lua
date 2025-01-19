@@ -1224,7 +1224,7 @@ end, function(req, file) -- 506
 				end -- 514
 			end -- 514
 			if path ~= nil then -- 507
-				path = Path(Content.appPath, path) -- 508
+				path = Path(Content.writablePath, path) -- 508
 				if Content:exist(path) then -- 509
 					local uploadPath = Path(Content.appPath, ".upload") -- 510
 					local targetPath = Path(path, Path:getRelative(file, uploadPath)) -- 511

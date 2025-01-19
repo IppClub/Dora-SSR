@@ -505,7 +505,7 @@ HttpServer\upload(
 			return targetPath
 	(req, file): false ->
 		switch req when {params: {:path}}
-			path = Path Content.appPath, path
+			path = Path Content.writablePath, path
 			if Content\exist path
 				uploadPath = Path Content.appPath, ".upload"
 				targetPath = Path path, Path\getRelative file, uploadPath
