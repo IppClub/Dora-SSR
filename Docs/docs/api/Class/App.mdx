@@ -454,6 +454,26 @@ saveLog: function(self: App, path: string): boolean
 | --- | --- |
 | boolean | Whether the log file was saved successfully. |
 
+## openFileDialog
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;A function that opens a file dialog. Only works on Windows, macOS and Linux.
+
+**Signature:**
+```tl
+openFileDialog: function(self: App, folderOnly: boolean, callback: function(path: string))
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| folderOnly | boolean | Whether the file dialog is only for selecting folders. |
+| callback | function | The callback function to be called when the file dialog is closed. The callback function should accept a string parameter which is the path of the selected file or folder. Get empty string if the user canceled the dialog. |
+
 ## shutdown
 
 **Type:** Function.
