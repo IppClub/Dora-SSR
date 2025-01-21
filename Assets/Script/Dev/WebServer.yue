@@ -16,9 +16,9 @@ from "Utils" import LintYueGlobals
 
 getProjectDirFromFile = (file) ->
 	:writablePath, :assetPath = Content
-	parent, current = if writablePath == file\sub 1, #writablePath
+	parent, current = if (".." ~= Path\getRelative(file, writablePath)\sub 1, 2) and writablePath == file\sub 1, #writablePath
 		writablePath, Path\getRelative file, writablePath
-	elseif assetPath == file\sub 1, #assetPath
+	elseif (".." ~= Path\getRelative(file, assetPath)\sub 1, 2) and assetPath == file\sub 1, #assetPath
 		dir = Path assetPath, "Script"
 		dir, Path\getRelative file, dir
 	else
@@ -681,9 +681,9 @@ compileFileAsync = (inputFile, sourceCodes): nil ->
 		file = Path\getRelative inputFile, Path Content.writablePath, dir
 		Path(dir, "Script", "?.lua") .. ";" .. Path dir, "?.lua"
 	else
-		file = Path\getRelative inputFile, Path Content.writablePath
+		file = Path\getRelative inputFile, Content.writablePath
 		if file\sub(1, 2) == ".."
-			file = Path\getRelative inputFile, Path Content.assetPath
+			file = Path\getRelative inputFile, Content.assetPath
 		""
 	outputFile = Path\replaceExt inputFile, "lua"
 	options: {extension: yueext} = yue

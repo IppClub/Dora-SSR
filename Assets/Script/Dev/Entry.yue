@@ -358,7 +358,7 @@ doCompile = (minify) ->
 	:writablePath = Content
 	buildPaths = [
 		[
-			Path Content.assetPath
+			Content.assetPath
 			Path writablePath, ".build"
 			""
 		],

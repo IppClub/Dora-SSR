@@ -2728,7 +2728,7 @@ export default function PersistentDrawerLeft() {
 				{files.length > 0 ? null :
 					<KeyboardShortcuts/>
 				}
-				<div style={{position: 'fixed', left: drawerWidth, bottom: 0, width: editorWidth, zIndex: 998}} hidden={!openBottomLog}>
+				<div style={{position: 'fixed', left: winSize.width - editorWidth, bottom: 0, width: editorWidth, zIndex: 998, transition: 'all 0.2s'}} hidden={!openBottomLog}>
 					<BottomLog height={editorHeight * 0.3}/>
 				</div>
 				<div style={{zIndex: 999}}>

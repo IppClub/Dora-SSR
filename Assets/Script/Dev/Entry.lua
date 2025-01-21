@@ -1,4 +1,4 @@
--- [yue]: Dev/Entry.yue
+-- [yue]: Script/Dev/Entry.yue
 local App = Dora.App -- 1
 local _module_0 = Dora.ImGui -- 1
 local ShowConsole = _module_0.ShowConsole -- 1
@@ -617,7 +617,7 @@ doCompile = function(minify) -- 350
 	local writablePath = Content.writablePath -- 358
 	local buildPaths = { -- 360
 		{ -- 361
-			Path(Content.assetPath), -- 361
+			Content.assetPath, -- 361
 			Path(writablePath, ".build"), -- 362
 			"" -- 363
 		} -- 360

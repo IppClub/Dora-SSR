@@ -1,4 +1,4 @@
--- [yue]: Dev/WebServer.yue
+-- [yue]: Script/Dev/WebServer.yue
 local HttpServer = Dora.HttpServer -- 1
 local Path = Dora.Path -- 1
 local Content = Dora.Content -- 1
@@ -37,9 +37,9 @@ getProjectDirFromFile = function(file) -- 17
 		writablePath, assetPath = _obj_0.writablePath, _obj_0.assetPath -- 18
 	end -- 18
 	local parent, current -- 19
-	if writablePath == file:sub(1, #writablePath) then -- 19
+	if (".." ~= Path:getRelative(file, writablePath):sub(1, 2)) and writablePath == file:sub(1, #writablePath) then -- 19
 		parent, current = writablePath, Path:getRelative(file, writablePath) -- 20
-	elseif assetPath == file:sub(1, #assetPath) then -- 21
+	elseif (".." ~= Path:getRelative(file, assetPath):sub(1, 2)) and assetPath == file:sub(1, #assetPath) then -- 21
 		local dir = Path(assetPath, "Script") -- 22
 		parent, current = dir, Path:getRelative(file, dir) -- 23
 	else -- 25
@@ -1731,9 +1731,9 @@ compileFileAsync = function(inputFile, sourceCodes) -- 678
 			file = Path:getRelative(inputFile, Path(Content.writablePath, dir)) -- 681
 			searchPath = Path(dir, "Script", "?.lua") .. ";" .. Path(dir, "?.lua") -- 682
 		else -- 684
-			file = Path:getRelative(inputFile, Path(Content.writablePath)) -- 684
+			file = Path:getRelative(inputFile, Content.writablePath) -- 684
 			if file:sub(1, 2) == ".." then -- 685
-				file = Path:getRelative(inputFile, Path(Content.assetPath)) -- 686
+				file = Path:getRelative(inputFile, Content.assetPath) -- 686
 			end -- 685
 			searchPath = "" -- 687
 		end -- 680
