@@ -344,7 +344,10 @@ bool HttpServer::start(int port) {
 		if (!_wwwPath.empty()) {
 			server.set_mount_point("/", _wwwPath);
 		}
-		server.set_mount_point("/", SharedContent.getWritablePath());
+		server.set_mount_point("/", SharedContent.getAppPath());
+		if (SharedContent.getWritablePath() != SharedContent.getAppPath()) {
+			server.set_mount_point("/", SharedContent.getWritablePath());
+		}
 		for (const auto& post : _posts) {
 			server.Post(post.pattern, [this, &post](const httplib::Request& req, httplib::Response& res) {
 				HttpServer::Request request;
