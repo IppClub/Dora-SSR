@@ -704,8 +704,15 @@ void Application::setupSdlWindow() {
 #elif BX_PLATFORM_ANDROID
 	_platformData.nwh = wmi.info.android.window;
 #elif BX_PLATFORM_LINUX
-	_platformData.ndt = wmi.info.x11.display;
-	_platformData.nwh = r_cast<void*>(wmi.info.x11.window);
+	if (wmi.subsystem == SDL_SYSWM_WAYLAND) {
+		_platformData.ndt = wmi.info.wl.display;
+		_platformData.nwh = r_cast<void*>(wmi.info.wl.surface);
+		_platformData.type = bgfx::NativeWindowHandleType::Wayland;
+	} else {
+		_platformData.ndt = wmi.info.x11.display;
+		_platformData.nwh = r_cast<void*>(wmi.info.x11.window);
+		_platformData.type = bgfx::NativeWindowHandleType::Default;
+	}
 #endif // BX_PLATFORM
 #if BX_PLATFORM_WINDOWS
 	int displayIndex = SDL_GetWindowDisplayIndex(_sdlWindow);
