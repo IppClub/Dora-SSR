@@ -22,14 +22,13 @@ struct SpriteVertex {
 	float u;
 	float v;
 	uint32_t abgr;
-	uint8_t padding[4];
+	inline Vec4 toVec4() const { return {x, y, z, w}; }
 	struct Init {
 		Init() {
 			ms_layout.begin()
 				.add(bgfx::Attrib::Position, 4, bgfx::AttribType::Float)
 				.add(bgfx::Attrib::TexCoord0, 2, bgfx::AttribType::Float)
 				.add(bgfx::Attrib::Color0, 4, bgfx::AttribType::Uint8, true)
-				.skip(sizeof(padding))
 				.end();
 		}
 	};
