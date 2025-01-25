@@ -556,14 +556,10 @@ void ParticleNode::render() {
 	const auto& transform = SharedDirector.getViewProjection();
 	for (size_t i = 0; i < _quads.size(); i++) {
 		auto& quad = _quads[i];
-		Vec4 v4 = *r_cast<Vec4*>(&quad.lb.x);
-		Matrix::mulVec4(&quad.lb.x, transform, v4);
-		v4 = *r_cast<Vec4*>(&quad.rb.x);
-		Matrix::mulVec4(&quad.rb.x, transform, v4);
-		v4 = *r_cast<Vec4*>(&quad.lt.x);
-		Matrix::mulVec4(&quad.lt.x, transform, v4);
-		v4 = *r_cast<Vec4*>(&quad.rt.x);
-		Matrix::mulVec4(&quad.rt.x, transform, v4);
+		Matrix::mulVec4(&quad.lb.x, transform, quad.lb.toVec4());
+		Matrix::mulVec4(&quad.rb.x, transform, quad.rb.toVec4());
+		Matrix::mulVec4(&quad.lt.x, transform, quad.lt.toVec4());
+		Matrix::mulVec4(&quad.rt.x, transform, quad.rt.toVec4());
 	}
 
 	BlendFunc blendFunc{_particleDef->blendFuncSource, _particleDef->blendFuncDestination};
