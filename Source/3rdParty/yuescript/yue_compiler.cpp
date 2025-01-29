@@ -75,7 +75,7 @@ static std::unordered_set<std::string> Metamethods = {
 	"close"s // Lua 5.4
 };
 
-const std::string_view version = "0.26.1"sv;
+const std::string_view version = "0.26.2"sv;
 const std::string_view extension = "yue"sv;
 
 class CompileError : public std::logic_error {
@@ -7078,7 +7078,7 @@ private:
 				} else {
 					for (const auto& exp : tmp) {
 						_buf << exp << " == "sv << varName;
-						if (exp != tmp.back()) {
+						if (&exp != &tmp.back()) {
 							_buf << " or "sv;
 						}
 					}
@@ -9053,7 +9053,7 @@ private:
 			if (selfItem) {
 				type = MemType::Property;
 				auto name = ast_cast<SelfName_t>(selfItem->name);
-				if (!name) throw CompileError("invalid class poperty name"sv, selfItem->name);
+				if (!name) throw CompileError("invalid class property name"sv, selfItem->name);
 				if (name->name.is<UnicodeName_t>()) {
 					newSuperCall = classVar + ".__parent[\""s + _parser.toString(name->name) + "\"]"s;
 				} else {
