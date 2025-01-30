@@ -24,6 +24,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 #include "lauxlib.h"
+#include "lparser.h"
 #include "lua.h"
 #include "lualib.h"
 } // extern "C"
@@ -75,7 +76,7 @@ static std::unordered_set<std::string> Metamethods = {
 	"close"s // Lua 5.4
 };
 
-const std::string_view version = "0.26.2"sv;
+const std::string_view version = "0.26.3"sv;
 const std::string_view extension = "yue"sv;
 
 class CompileError : public std::logic_error {
@@ -6272,6 +6273,9 @@ private:
 				case id<TableAppendingOp_t>():
 					transform_table_appending_op(static_cast<TableAppendingOp_t*>(item), temp);
 					break;
+				case id<PlainItem_t>():
+					temp.push_back(_parser.toString(item));
+					break;
 				default: YUEE("AST node mismatch", item); break;
 			}
 		}
@@ -6519,24 +6523,26 @@ private:
 				throw CompileError("macro table must contain field \"type\" of value \"lua\" or \"text\""sv, x);
 			}
 			lua_pop(L, 1); // cur tab
-			lua_getfield(L, -1, "locals"); // cur tab locals
-			if (lua_istable(L, -1) != 0) {
-				for (int i = 0; i < static_cast<int>(lua_objlen(L, -1)); i++) {
-					lua_rawgeti(L, -1, i + 1); // cur tab locals item
-					size_t len = 0;
-					if (lua_isstring(L, -1) == 0) {
-						throw CompileError("macro table field \"locals\" must be a table of strings"sv, x);
+			if (type == "text"sv) {
+				lua_getfield(L, -1, "locals"); // cur tab locals
+				if (lua_istable(L, -1) != 0) {
+					for (int i = 0; i < static_cast<int>(lua_objlen(L, -1)); i++) {
+						lua_rawgeti(L, -1, i + 1); // cur tab locals item
+						size_t len = 0;
+						if (lua_isstring(L, -1) == 0) {
+							throw CompileError("macro table field \"locals\" must be a table of strings"sv, x);
+						}
+						auto name = lua_tolstring(L, -1, &len);
+						if (auto varNode = toAst<Variable_t>({name, len}, x)) {
+							localVars.push_back(variableToString(varNode));
+						} else {
+							throw CompileError("macro table field \"locals\" must contain names for local variables, got \""s + std::string(name, len) + '"', x);
+						}
+						lua_pop(L, 1); // cur tab locals
 					}
-					auto name = lua_tolstring(L, -1, &len);
-					if (auto varNode = toAst<Variable_t>({name, len}, x)) {
-						localVars.push_back(variableToString(varNode));
-					} else {
-						throw CompileError("macro table field \"locals\" must contain names for local variables, got \""s + std::string(name, len) + '"', x);
-					}
-					lua_pop(L, 1); // cur tab locals
 				}
+				lua_pop(L, 1); // cur tab
 			}
-			lua_pop(L, 1); // cur tab
 		} else { // cur code
 			codes = lua_tostring(L, -1);
 		}
@@ -6554,23 +6560,49 @@ private:
 		bool isBlock = (usage == ExpUsage::Common) && (chainList.size() < 2 || (chainList.size() == 2 && ast_is<Invoke_t, InvokeArgs_t>(chainList.back())));
 		ParseInfo info;
 		if (type == "lua"sv) {
-			if (!isBlock) {
-				throw CompileError("lua macro can only be placed where block macro is allowed"sv, x);
-			}
 			auto macroChunk = "=(macro "s + _parser.toString(x->name) + ')';
 			int top = lua_gettop(L);
 			DEFER(lua_settop(L, top));
-			if (luaL_loadbuffer(L, codes.c_str(), codes.size(), macroChunk.c_str()) != 0) {
-				std::string err = lua_tostring(L, -1);
-				throw CompileError(err, x);
-			}
-			if (!codes.empty()) {
-				if (_config.reserveLineNumber) {
-					codes.insert(0, nll(chainValue).substr(1));
+			if (isBlock) {
+				if (luaL_loadbuffer(L, codes.c_str(), codes.size(), macroChunk.c_str()) != 0) {
+					std::string err = lua_tostring(L, -1);
+					throw CompileError("lua macro is not expanding to valid block\n"s + err, x);
+				} else {
+					Proto* f = ((LClosure*)lua_topointer(L, -1))->p;
+					for (int i = 0; i < f->sizelocvars; i++) {
+						localVars.push_back(getstr(f->locvars[i].varname));
+					}
 				}
-				codes.append(nlr(chainValue));
+				if (!codes.empty()) {
+					if (_config.reserveLineNumber) {
+						codes.insert(0, nll(chainValue).substr(1));
+					}
+					codes.append(nlr(chainValue));
+				}
+				return {nullptr, nullptr, std::move(codes), std::move(localVars)};
+			} else {
+				auto expCode = "return ("s + codes + ')';
+				if (luaL_loadbuffer(L, expCode.c_str(), expCode.size(), macroChunk.c_str()) != 0) {
+					std::string err = lua_tostring(L, -1);
+					throw CompileError("lua macro is not expanding to valid expression\n"s + err, x);
+				}
+				Utils::trim(codes);
+				codes = '(' + codes + ')';
+				auto plainItem = toAst<PlainItem_t>(codes, x);
+				auto newChain = x->new_ptr<ChainValue_t>();
+				newChain->items.push_back(plainItem);
+				ast_ptr<false, ast_node> exp;
+				exp.set(newExp(newChain, x));
+				if (chainList.size() > 2 || (chainList.size() == 2 && !ast_is<Invoke_t, InvokeArgs_t>(chainList.back()))) {
+					auto it = chainList.begin();
+					it++;
+					if (chainList.size() > 1 && ast_is<Invoke_t, InvokeArgs_t>(*it)) it++;
+					for (; it != chainList.end(); ++it) {
+						newChain->items.push_back(*it);
+					}
+				}
+				return {exp, nullptr, Empty, std::move(localVars)};
 			}
-			return {nullptr, nullptr, std::move(codes), std::move(localVars)};
 		} else if (type == "text"sv) {
 			if (!isBlock) {
 				throw CompileError("text macro can only be placed where block macro is allowed"sv, x);
@@ -7031,7 +7063,7 @@ private:
 				} else {
 					for (const auto& exp : tmp) {
 						_buf << exp << " == "sv << newVar;
-						if (exp != tmp.back()) {
+						if (&exp != &tmp.back()) {
 							_buf << " or "sv;
 						}
 					}

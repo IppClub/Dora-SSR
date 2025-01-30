@@ -167,6 +167,9 @@ std::string ExistentialOp_t::to_string(void*) const {
 std::string TableAppendingOp_t::to_string(void*) const {
 	return "[]"s;
 }
+std::string PlainItem_t::to_string(void *) const {
+	return {};
+}
 std::string GlobalOp_t::to_string(void* ud) const {
 	auto info = reinterpret_cast<YueFormat*>(ud);
 	return info->convert(this);

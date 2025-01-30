@@ -653,6 +653,8 @@ YueParser::YueParser() {
 
 	ExistentialOp = '?' >> not_('?');
 	TableAppendingOp = and_('[') >> ("[]" | brackets_expression_error);
+	PlainItem = +any_char;
+
 	chain_call = (
 		Callable >> -ExistentialOp >> -chain_items
 	) | (
