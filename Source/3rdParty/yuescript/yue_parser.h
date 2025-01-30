@@ -381,6 +381,7 @@ private:
 	AST_RULE(Invoke);
 	AST_RULE(ExistentialOp);
 	AST_RULE(TableAppendingOp);
+	AST_RULE(PlainItem);
 	AST_RULE(SpreadExp);
 	AST_RULE(SpreadListExp);
 	AST_RULE(TableLit);

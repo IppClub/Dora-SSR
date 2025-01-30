@@ -635,9 +635,13 @@ AST_END(ExistentialOp)
 AST_LEAF(TableAppendingOp)
 AST_END(TableAppendingOp)
 
+AST_LEAF(PlainItem)
+AST_END(PlainItem)
+
 AST_NODE(ChainValue)
 	ast_ptr<true, Seperator_t> sep;
-	ast_sel_list<true, Callable_t, Invoke_t, DotChainItem_t, ColonChainItem_t, Slice_t, Exp_t, String_t, InvokeArgs_t, ExistentialOp_t, TableAppendingOp_t> items;
+	ast_sel_list<true, Callable_t, Invoke_t, DotChainItem_t, ColonChainItem_t, Slice_t, Exp_t, String_t, InvokeArgs_t, ExistentialOp_t, TableAppendingOp_t,
+		/*non-syntax-rule*/ PlainItem_t> items;
 	AST_MEMBER(ChainValue, &sep, &items)
 AST_END(ChainValue)
 
