@@ -24,7 +24,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 #include "lauxlib.h"
-#include "lparser.h"
 #include "lua.h"
 #include "lualib.h"
 } // extern "C"
@@ -76,7 +75,7 @@ static std::unordered_set<std::string> Metamethods = {
 	"close"s // Lua 5.4
 };
 
-const std::string_view version = "0.26.3"sv;
+const std::string_view version = "0.27.0"sv;
 const std::string_view extension = "yue"sv;
 
 class CompileError : public std::logic_error {
@@ -6567,17 +6566,10 @@ private:
 				if (luaL_loadbuffer(L, codes.c_str(), codes.size(), macroChunk.c_str()) != 0) {
 					std::string err = lua_tostring(L, -1);
 					throw CompileError("lua macro is not expanding to valid block\n"s + err, x);
-				} else {
-					Proto* f = ((LClosure*)lua_topointer(L, -1))->p;
-					for (int i = 0; i < f->sizelocvars; i++) {
-						localVars.push_back(getstr(f->locvars[i].varname));
-					}
 				}
 				if (!codes.empty()) {
-					if (_config.reserveLineNumber) {
-						codes.insert(0, nll(chainValue).substr(1));
-					}
-					codes.append(nlr(chainValue));
+					codes.insert(0, indent() + "do"s + nll(chainValue));
+					codes.append(_newLine + indent() + "end"s + nlr(chainValue));
 				}
 				return {nullptr, nullptr, std::move(codes), std::move(localVars)};
 			} else {
