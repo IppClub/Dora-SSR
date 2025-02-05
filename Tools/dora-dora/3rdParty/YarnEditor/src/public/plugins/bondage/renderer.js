@@ -348,7 +348,6 @@ export var yarnRender = function(app) {
 				variableStorage: variables,
 				handleCommand: (result) => {
 					vnResult = result;
-					this.paused = true;
 					emiter.emit('commandCall', result.command);
 				},
 			});
