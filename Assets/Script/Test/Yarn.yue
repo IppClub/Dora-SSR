@@ -84,7 +84,7 @@ advance = (option) ->
 		if result.marks
 			for mark in *result.marks
 				switch mark when {name: attr, attrs: {:name}}
-					charName = "#{name}: " if attr == "char"
+					charName = "#{name}: " if attr == "Character"
 		texts[] = charName .. result.text
 		if result.optionsFollowed
 			advance!

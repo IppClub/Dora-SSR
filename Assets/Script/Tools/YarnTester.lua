@@ -135,7 +135,7 @@ advance = function(option) -- 108
 		local charName = "" -- 111
 		if result.marks ~= nil then -- 111
 			for ____, mark in ipairs(result.marks) do -- 113
-				if mark.name == "char" and mark.attrs ~= nil then -- 113
+				if (mark.name == "Character" or mark.name == "char") and mark.attrs ~= nil then -- 113
 					charName = tostring(mark.attrs.name) .. ": " -- 115
 				end -- 115
 			end -- 115
