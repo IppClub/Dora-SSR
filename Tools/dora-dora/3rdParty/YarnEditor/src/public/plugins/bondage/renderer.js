@@ -35,7 +35,11 @@ export var yarnRender = function(app) {
 		} catch (err) {
 			vnResult = null;
 			this.paused = true;
-			emiter.emit('errorResult', err.message);
+			let errorMessage = 'string' === typeof err ? err : err.message;
+			if (errorMessage.includes("Parse error")) {
+				errorMessage = "Syntax error";
+			}
+			emiter.emit('errorResult', errorMessage);
 		}
 	};
 
@@ -50,7 +54,7 @@ export var yarnRender = function(app) {
 		this.advanceRunner(this.vnSelectedChoice);
 		this.goToNext();
 		this.changeText();
-		if (vnResult && vnResult.text === undefined && vnResult.isDialogueEnd && !this.paused) {
+		if (vnResult && vnResult.isDialogueEnd && !this.paused) {
 			this.finished = true;
 		}
 		vnChoices = undefined;
@@ -103,7 +107,7 @@ export var yarnRender = function(app) {
 			this.goToNext();
 		}
 		this.changeText();
-		if (vnResult && vnResult.text === undefined && vnResult.isDialogueEnd && !this.paused) {
+		if (vnResult && vnResult.isDialogueEnd && !this.paused) {
 			this.finished = true;
 		}
 		if (this.paused) {
@@ -136,12 +140,9 @@ export var yarnRender = function(app) {
 		if (!vnResult) return;
 		if (vnResult && vnResult.markup) {
 			let text = vnResult.text;
-			if (text === "" && vnResult.markup.length > 0 && vnResult.markup[0].name === "separator") {
+			if (text === "" && vnResult.markup.length > 0 && vnResult.markup[0].name === "separator_") {
 				this.advanceRunner();
 				this.goToNext();
-				if (vnResult && vnResult.text === undefined && vnResult.isDialogueEnd && !this.paused) {
-					this.emiter.emit('finished');
-				}
 				return;
 			}
 			for (let i = vnResult.markup.length - 1; i >= 0; i--) {
@@ -304,7 +305,9 @@ export var yarnRender = function(app) {
 		} else return;
 
 		for (let node of this.jsonData) {
-			node.body = node.body.replace(/\n\s*\n/g, "\n//\n").replace("<<endif>>", "<<endif>>[separator][/separator]");
+			node.body = node.body.trim().replace(/\n\s*\n/g, "\n//\n").replace(/(^\s*)(<<.*?>>)/gm, (match, indent, content) => {
+				return `${indent}${content}\n${indent}[separator_/]`;
+			 });
 		}
 
 		const variables = new Map();
@@ -347,18 +350,21 @@ export var yarnRender = function(app) {
 				startAt: storyChapter,
 				variableStorage: variables,
 				handleCommand: (result) => {
-					vnResult = result;
 					emiter.emit('commandCall', result.command);
 				},
 			});
 		} catch (err) {
 			vnResult = null;
 			this.paused = true;
-			emiter.emit('errorResult', 'string' === typeof err ? err : err.message);
+			let errorMessage = 'string' === typeof err ? err : err.message;
+			if (errorMessage.includes("Parse error")) {
+				errorMessage = "Syntax error";
+			}
+			emiter.emit('errorResult', errorMessage);
 		}
 		this.goToNext();
 		this.changeText();
-		if (vnResult && vnResult.text === undefined && vnResult.isDialogueEnd && !this.paused) {
+		if (vnResult && vnResult.isDialogueEnd && !this.paused) {
 			this.finished = true;
 		}
 	};

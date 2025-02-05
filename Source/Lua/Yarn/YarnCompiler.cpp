@@ -1020,7 +1020,9 @@ public:
 		}
 		_buf << '{' << nl(x);
 		incIndentOffset();
-		_buf << indent() << "text = \""sv << join(texts) << "\","sv << nl(x);
+		auto textStr = join(texts);
+		Utils::replace(textStr, "\""sv, "\\\""sv);
+		_buf << indent() << "text = \""sv << textStr << "\","sv << nl(x);
 		_buf << indent() << "title = title,"sv << nl(x);
 		if (!markups.empty()) {
 			_buf << indent() << "marks = {"sv << nl(x);
@@ -1028,7 +1030,9 @@ public:
 			for (const auto& markup : markups) {
 				_buf << indent() << '{' << nl(x);
 				incIndentOffset();
-				_buf << indent() << "name = \""sv << markup.name << "\","sv << nl(x);
+				auto markUpName = markup.name;
+				Utils::replace(markUpName, "\""sv, "\\\""sv);
+				_buf << indent() << "name = \""sv << markUpName << "\","sv << nl(x);
 				if (!markup.begin.empty()) {
 					_buf << indent() << "start = "sv << markup.begin << " + 1,"sv << nl(x);
 				}
