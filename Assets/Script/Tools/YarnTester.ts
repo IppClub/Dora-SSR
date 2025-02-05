@@ -111,7 +111,7 @@ const advance = (option?: number) => {
 		let charName = "";
 		if (result.marks !== null) {
 			for (let mark of result.marks) {
-				if (mark.name === "char" && mark.attrs !== undefined) {
+				if ((mark.name === "Character" || mark.name === "char") && mark.attrs !== undefined) {
 					charName = `${mark.attrs.name}: `;
 				}
 			}

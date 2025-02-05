@@ -178,7 +178,7 @@ advance = function(option) -- 80
 						end -- 87
 					end -- 87
 					if attr ~= nil and name ~= nil then -- 86
-						if attr == "char" then -- 87
+						if attr == "Character" then -- 87
 							charName = tostring(name) .. ": " -- 87
 						end -- 87
 					end -- 86
