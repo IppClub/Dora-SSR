@@ -332,8 +332,9 @@ static uint32_t getColorEditFlag(String mode) {
 		case "NoSidePreview"_hash: return ImGuiColorEditFlags_NoSidePreview;
 		case "NoDragDrop"_hash: return ImGuiColorEditFlags_NoDragDrop;
 		case "NoBorder"_hash: return ImGuiColorEditFlags_NoBorder;
+		case "AlphaOpaque"_hash: return ImGuiColorEditFlags_AlphaOpaque;
+		case "AlphaNoBg"_hash: return ImGuiColorEditFlags_AlphaNoBg;
 		case "AlphaBar"_hash: return ImGuiColorEditFlags_AlphaBar;
-		case "AlphaPreview"_hash: return ImGuiColorEditFlags_AlphaPreview;
 		case "AlphaPreviewHalf"_hash: return ImGuiColorEditFlags_AlphaPreviewHalf;
 		case "HDR"_hash: return ImGuiColorEditFlags_HDR;
 		case "DisplayRGB"_hash: return ImGuiColorEditFlags_DisplayRGB;
