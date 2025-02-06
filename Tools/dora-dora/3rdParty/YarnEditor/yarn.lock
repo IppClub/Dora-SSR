@@ -10920,10 +10920,10 @@ yargs@^16.1.0:
     y18n "^5.0.5"
     yargs-parser "^20.2.2"
 
-yarn-bound@^0.5.4:
-  version "0.5.4"
-  resolved "https://registry.npmmirror.com/yarn-bound/-/yarn-bound-0.5.4.tgz#8a9e43c69d0e0d08ddf571f090a47893f3898c07"
-  integrity sha512-fgydFtorwRutUWJXDTZF1xWLoYTNVQL2GCxVvC0t/0XnQZdN+0y1/SGLaYq+IMpX3If2lgLE7f99IhvDhCx6nQ==
+yarn-bound@^0.5.5:
+  version "0.5.5"
+  resolved "https://registry.npmmirror.com/yarn-bound/-/yarn-bound-0.5.5.tgz#2d713776cf819d0ddb066a954645bb7e8e1ec240"
+  integrity sha512-gik+zKSNHDwFvPE7Cp5is4aCcWzMGQarVBB4Ms+qT/1JgVtiFB65y4yOfecFWRiVZYNgyNSep/3ofalsKgq6dg==
   dependencies:
     "@mnbroatch/bondage" "4.2.4"
 

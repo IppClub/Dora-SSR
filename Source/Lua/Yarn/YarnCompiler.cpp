@@ -561,7 +561,7 @@ public:
 
 		Goto = key("jump") >> space >> Title;
 
-		Call = not_((expr("endif") | "else" | "elseif") >> not_alpha_num) >> Name >> space >> Seperator >> -(Exp >> *(space >> ',' >> space >> Exp));
+		Call = not_((expr("endif") | "if" | "else" | "elseif" | "jump" | "set") >> not_alpha_num) >> Name >> space >> Seperator >> -(Exp >> *(space >> ',' >> space >> Exp));
 
 		Command = "<<" >> space >> (
 			If |

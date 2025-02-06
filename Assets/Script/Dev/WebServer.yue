@@ -995,6 +995,17 @@ HttpServer\post "/saveLog", (): success: false ->
 	if App\saveLog logPath
 		return success: true, path: Path folder, fullLogFile
 
+HttpServer\post "/checkYarn", (req): success: false ->
+	import "yarncompile"
+	switch req when {body: {:code}}
+		if jsonObject := json.load code
+			errors = []
+			for node in *jsonObject.nodes
+				:title, :body = node
+				unless luaCode, err := yarncompile body
+					errors[] = title .. ":" .. err
+			return success: true, syntaxError: table.concat errors, "\n\n"
+
 status = {}
 export default status
 
