@@ -1,14 +1,14 @@
 //
 //  httplib.h
 //
-//  Copyright (c) 2024 Yuji Hirose. All rights reserved.
+//  Copyright (c) 2025 Yuji Hirose. All rights reserved.
 //  MIT License
 //
 
 #ifndef CPPHTTPLIB_HTTPLIB_H
 #define CPPHTTPLIB_HTTPLIB_H
 
-#define CPPHTTPLIB_VERSION "0.18.5"
+#define CPPHTTPLIB_VERSION "0.18.6"
 
 /*
  * Configuration
@@ -219,7 +219,9 @@ using socket_t = SOCKET;
 #include <csignal>
 #include <pthread.h>
 #include <sys/mman.h>
+#ifndef __VMS
 #include <sys/select.h>
+#endif
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <unistd.h>
@@ -2551,7 +2553,7 @@ inline bool is_obs_text(char c) { return 128 <= static_cast<unsigned char>(c); }
 inline bool is_field_vchar(char c) { return is_vchar(c) || is_obs_text(c); }
 
 inline bool is_field_content(const std::string &s) {
-  if (s.empty()) { return false; }
+  if (s.empty()) { return true; }
 
   if (s.size() == 1) {
     return is_field_vchar(s[0]);
@@ -4216,22 +4218,21 @@ inline bool parse_header(const char *beg, const char *end, T fn) {
     if (!key_len) { return false; }
 
     auto key = std::string(beg, key_end);
-    auto val = case_ignore::equal(key, "Location")
-                   ? std::string(p, end)
-                   : decode_url(std::string(p, end), false);
+    // auto val = (case_ignore::equal(key, "Location") ||
+    //             case_ignore::equal(key, "Referer"))
+    //                ? std::string(p, end)
+    //                : decode_url(std::string(p, end), false);
+    auto val = std::string(p, end);
 
-    // NOTE: From RFC 9110:
-    // Field values containing CR, LF, or NUL characters are
-    // invalid and dangerous, due to the varying ways that
-    // implementations might parse and interpret those
-    // characters; a recipient of CR, LF, or NUL within a field
-    // value MUST either reject the message or replace each of
-    // those characters with SP before further processing or
-    // forwarding of that message.
-    static const std::string CR_LF_NUL("\r\n\0", 3);
-    if (val.find_first_of(CR_LF_NUL) != std::string::npos) { return false; }
+    if (!detail::fields::is_field_value(val)) { return false; }
 
-    fn(key, val);
+    if (case_ignore::equal(key, "Location") ||
+        case_ignore::equal(key, "Referer")) {
+      fn(key, val);
+    } else {
+      fn(key, decode_url(val, false));
+    }
+
     return true;
   }
 
@@ -4267,7 +4268,7 @@ inline bool read_headers(Stream &strm, Headers &headers) {
     auto end = line_reader.ptr() + line_reader.size() - line_terminator_len;
 
     if (!parse_header(line_reader.ptr(), end,
-                      [&](const std::string &key, std::string &val) {
+                      [&](const std::string &key, const std::string &val) {
                         headers.emplace(key, val);
                       })) {
       return false;
@@ -4460,9 +4461,9 @@ bool read_content(Stream &strm, T &x, size_t payload_max_length, int &status,
           ret = read_content_without_length(strm, out);
         } else {
           auto is_invalid_value = false;
-          auto len = get_header_value_u64(x.headers, "Content-Length",
-                                          std::numeric_limits<uint64_t>::max(),
-                                          0, is_invalid_value);
+          auto len = get_header_value_u64(
+              x.headers, "Content-Length",
+              (std::numeric_limits<uint64_t>::max)(), 0, is_invalid_value);
 
           if (is_invalid_value) {
             ret = false;
