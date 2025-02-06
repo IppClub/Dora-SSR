@@ -482,3 +482,18 @@ export type SaveLogResponse = {
 export const saveLog = () => {
 	return post<SaveLogResponse>("/saveLog", {});
 };
+
+// checkYarn
+
+export interface CheckYarnRequest {
+	code: string;
+}
+export type CheckYarnResponse = {
+	success: true;
+	syntaxError: string;
+} | {
+	success: false;
+};
+export const checkYarn = (req: CheckYarnRequest) => {
+	return post<CheckYarnResponse>("/checkYarn", req);
+};

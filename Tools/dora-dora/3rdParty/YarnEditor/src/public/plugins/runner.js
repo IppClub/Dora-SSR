@@ -163,17 +163,26 @@ export var Runner = function({
 				});
 				const localVariables = getPluginStore(self.name);
 				app.data.getSaveData('json').then(saveData => {
-					self.previewStory.initYarn(
-						JSON.parse(saveData),
-						app
-							.editing()
-							.title()
-							.trim(),
-						'NVrichTextLabel',
-						false,
-						'commandDebugLabel',
-						localVariables.variables || []
-					);
+					let listener = (e) => {
+						let syntaxError = e.syntaxError;
+						window.document.removeEventListener("YarnChecked", listener);
+						self.previewStory.initYarn(
+							JSON.parse(saveData),
+							app
+								.editing()
+								.title()
+								.trim(),
+							'NVrichTextLabel',
+							false,
+							'commandDebugLabel',
+							localVariables.variables || [],
+							syntaxError
+						);
+					};
+					window.document.addEventListener("YarnChecked", listener);
+					let event = new Event("YarnCheckSyntax");
+					event.code = saveData;
+					window.document.dispatchEvent(event);
 				});
 			} else {
 				//edit mode

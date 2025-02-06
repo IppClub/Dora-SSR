@@ -7,7 +7,7 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 import { memo } from "react";
-
+import * as Service from "./Service";
 export interface YarnEditorData {
 	warpToFocusedNode: () => void;
 	getJSONData: () => Promise<string>;
@@ -36,6 +36,22 @@ const YarnEditor = memo((props: YarnEditorProps) => {
 				});
 				win.app.data.startNewFile(props.title, props.defaultValue);
 				props.onLoad(win.app.data as YarnEditorData);
+				win.document.addEventListener("YarnCheckSyntax", (e: { code: string }) => {
+					Service.checkYarn({ code: e.code }).then((res) => {
+						let event = new Event("YarnChecked");
+						if (res.success) {
+							(event as any).syntaxError = res.syntaxError;
+							win.document.dispatchEvent(event);
+						} else {
+							(event as any).syntaxError = "Failed to check syntax";
+							win.document.dispatchEvent(event);
+						}
+					}).catch(() => {
+						let event = new Event("YarnChecked");
+						(event as any).syntaxError = "Failed to check syntax";
+						win.document.dispatchEvent(event);
+					});
+				});
 				win.document.addEventListener("keydown", (event: KeyboardEvent) => {
 					if (event.ctrlKey || event.altKey || event.metaKey) {
 						switch (event.key) {

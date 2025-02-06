@@ -2502,35 +2502,74 @@ HttpServer:post("/saveLog", function() -- 989
 		success = false -- 989
 	} -- 996
 end) -- 989
-local status = { } -- 998
-_module_0 = status -- 999
-thread(function() -- 1001
-	local doraWeb = Path(Content.assetPath, "www", "index.html") -- 1002
-	local doraReady = Path(Content.appPath, ".www", "dora-ready") -- 1003
-	if Content:exist(doraWeb) then -- 1004
-		local needReload -- 1005
-		if Content:exist(doraReady) then -- 1005
-			needReload = App.version ~= Content:load(doraReady) -- 1006
-		else -- 1007
-			needReload = true -- 1007
-		end -- 1005
-		if needReload then -- 1008
-			Content:remove(Path(Content.appPath, ".www")) -- 1009
-			Content:copyAsync(Path(Content.assetPath, "www"), Path(Content.appPath, ".www")) -- 1010
-			Content:save(doraReady, App.version) -- 1014
-			print("Dora Dora is ready!") -- 1015
-		end -- 1008
-	end -- 1004
-	if HttpServer:start(8866) then -- 1016
-		local localIP = HttpServer.localIP -- 1017
-		if localIP == "" then -- 1018
-			localIP = "localhost" -- 1018
-		end -- 1018
-		status.url = "http://" .. tostring(localIP) .. ":8866" -- 1019
-		return HttpServer:startWS(8868) -- 1020
-	else -- 1022
-		status.url = nil -- 1022
-		return print("8866 Port not available!") -- 1023
-	end -- 1016
-end) -- 1001
-return _module_0 -- 1023
+HttpServer:post("/checkYarn", function(req) -- 998
+	local yarncompile = require("yarncompile") -- 999
+	do -- 1000
+		local _type_0 = type(req) -- 1000
+		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 1000
+		if _tab_0 then -- 1000
+			local code -- 1000
+			do -- 1000
+				local _obj_0 = req.body -- 1000
+				local _type_1 = type(_obj_0) -- 1000
+				if "table" == _type_1 or "userdata" == _type_1 then -- 1000
+					code = _obj_0.code -- 1000
+				end -- 1007
+			end -- 1007
+			if code ~= nil then -- 1000
+				local jsonObject = json.load(code) -- 1001
+				if jsonObject then -- 1001
+					local errors = { } -- 1002
+					local _list_0 = jsonObject.nodes -- 1003
+					for _index_0 = 1, #_list_0 do -- 1003
+						local node = _list_0[_index_0] -- 1003
+						local title, body = node.title, node.body -- 1004
+						local luaCode, err = yarncompile(body) -- 1005
+						if not luaCode then -- 1005
+							errors[#errors + 1] = title .. ":" .. err -- 1006
+						end -- 1005
+					end -- 1006
+					return { -- 1007
+						success = true, -- 1007
+						syntaxError = table.concat(errors, "\n\n") -- 1007
+					} -- 1007
+				end -- 1001
+			end -- 1000
+		end -- 1007
+	end -- 1007
+	return { -- 998
+		success = false -- 998
+	} -- 1007
+end) -- 998
+local status = { } -- 1009
+_module_0 = status -- 1010
+thread(function() -- 1012
+	local doraWeb = Path(Content.assetPath, "www", "index.html") -- 1013
+	local doraReady = Path(Content.appPath, ".www", "dora-ready") -- 1014
+	if Content:exist(doraWeb) then -- 1015
+		local needReload -- 1016
+		if Content:exist(doraReady) then -- 1016
+			needReload = App.version ~= Content:load(doraReady) -- 1017
+		else -- 1018
+			needReload = true -- 1018
+		end -- 1016
+		if needReload then -- 1019
+			Content:remove(Path(Content.appPath, ".www")) -- 1020
+			Content:copyAsync(Path(Content.assetPath, "www"), Path(Content.appPath, ".www")) -- 1021
+			Content:save(doraReady, App.version) -- 1025
+			print("Dora Dora is ready!") -- 1026
+		end -- 1019
+	end -- 1015
+	if HttpServer:start(8866) then -- 1027
+		local localIP = HttpServer.localIP -- 1028
+		if localIP == "" then -- 1029
+			localIP = "localhost" -- 1029
+		end -- 1029
+		status.url = "http://" .. tostring(localIP) .. ":8866" -- 1030
+		return HttpServer:startWS(8868) -- 1031
+	else -- 1033
+		status.url = nil -- 1033
+		return print("8866 Port not available!") -- 1034
+	end -- 1027
+end) -- 1012
+return _module_0 -- 1034

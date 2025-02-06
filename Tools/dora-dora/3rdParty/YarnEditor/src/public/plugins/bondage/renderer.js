@@ -226,7 +226,8 @@ export var yarnRender = function(app) {
 		htmlIdToAttachTo,
 		resourcesPath,
 		debugLabelId,
-		playtestVariables
+		playtestVariables,
+		syntaxError
 	) => {
 		debugLabelIdToAttachTo = debugLabelId;
 		htmIDtoAttachYarnTo = htmlIdToAttachTo;
@@ -236,6 +237,13 @@ export var yarnRender = function(app) {
 		this.finished = false;
 		document.getElementById(debugLabelIdToAttachTo).innerHTML =
 			"<br/><font color='#fbc400'>Press Z or Click to advance</font><br/>";
+		if (syntaxError && syntaxError.length > 0) {
+			const div = document.createElement("div");
+			div.textContent = syntaxError;
+			document.getElementById(
+				debugLabelIdToAttachTo
+			).innerHTML += `<pre class="story-playtest-bubble" style="color: #f05050;">${div.innerHTML}</pre>`;
+		}
 		emiter.on('startedNode', function(nodeData) {
 			document.getElementById(debugLabelIdToAttachTo).innerHTML +=
 				"<br/><font color='CADETBLUE'>Title: " +
@@ -309,7 +317,6 @@ export var yarnRender = function(app) {
 				return `${indent}${content}\n${indent}[separator_/]`;
 			 });
 		}
-
 		const variables = new Map();
 		playtestVariables.forEach(function(variable) {
 			const numVar = Number.parseFloat(variable.value);
