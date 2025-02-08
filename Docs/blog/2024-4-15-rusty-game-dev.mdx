@@ -9,7 +9,7 @@ tags: [Rust, WASM]
 
 Ever since I was captivated by the magic of Warcraft III MODs in my childhood, I've held a special fondness for game scripting languages. Reflecting back on those days, using Blizzard's JASS language to create levels in Warcraft III was quite basic by today's standards—being statically typed with no garbage collection—but it represented a bold experiment in the early days of game development standards.
 
-<!-- truncate -->
+{/* truncate */}
 
 ### Why Use Scripting Languages for Game Development?
 
@@ -30,7 +30,7 @@ Rust offers unparalleled memory safety guarantees and operates without the need 
 Before diving into development, we need to install the Dora SSR game engine. This engine supports multiple platforms including Windows, Linux, macOS, iOS, and Android. For specific installation steps and requirements, please refer to the official Quick Start Guide: [Dora SSR Quick Start](https://dora-ssr.net/docs/tutorial/quick-start).
 
 <p align="center">
-  <img src='/img/article/rusty-0.jpg' alt='Dora SSR v1.3.17 running on macOS'/>
+  <img src={require('@site/static/img/article/rusty-0.jpg').default} alt='Dora SSR v1.3.17 running on macOS'/>
    Dora SSR v1.3.17 running on macOS
 </p>
 
@@ -39,7 +39,7 @@ Before diving into development, we need to install the Dora SSR game engine. Thi
 Once the Dora SSR engine is running, open the Dora SSR Web IDE in your browser, right-click on the left-side game resource tree, and choose 'New' to create a new folder named 'Hello'.
 
 <p align="center">
-  <img src='/img/article/rusty-1.jpg' alt="Accessing Dora SSR's Web IDE and creating a new folder in the browser"/>
+  <img src={require('@site/static/img/article/rusty-1.jpg').default} alt="Accessing Dora SSR's Web IDE and creating a new folder in the browser"/>
    Accessing Dora SSR's Web IDE and creating a new folder in the browser
 </p>
 
@@ -90,7 +90,7 @@ cargo build --release --target wasm32-wasip1
 In the Dora SSR Web IDE, right-click the newly created 'Hello' folder, select 'Upload', and upload the compiled WASM file `init.wasm`.
 
 <p align="center">
-  <img src='/img/article/rusty-2.jpg' alt="Uploading files through the Web IDE"/>
+  <img src={require('@site/static/img/article/rusty-2.jpg').default} alt="Uploading files through the Web IDE"/>
    Uploading files through the Web IDE
 </p>
 
@@ -101,7 +101,7 @@ python3 upload.py "192.168.3.1" "Hello"
 ```
 
 <p align="center">
-  <img src='/img/article/rusty-3.jpg' alt="Using a script for one-click compile, upload, and run"/>
+  <img src={require('@site/static/img/article/rusty-3.jpg').default} alt="Using a script for one-click compile, upload, and run"/>
    Using a script for one-click compile, upload, and run
 </p>
 
