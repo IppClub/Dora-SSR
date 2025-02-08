@@ -8,7 +8,7 @@
 	text-align: center;
 	position: relative;
 	overflow: hidden;
-	background-image: url('@site/static/img/art/derivative/dora-toto.jpg');
+	background-image: url('/static/img/art/derivative/dora-toto.jpg');
 	background-size: cover;
 	background-position: center;
 	background-position-y: calc(0% + 15%);
