@@ -3,13 +3,13 @@ import clsx from 'clsx';
 import styles from './styles.module.css';
 import Translate from '@docusaurus/Translate';
 
-const pix_dora = require('@site/static/img/pix-dora.png');
-const pix_toto = require('@site/static/img/pix-toto.png');
+const pix_dora = require('@site/static/img/art/pixel/dora.png');
+const pix_toto = require('@site/static/img/art/pixel/toto.png');
 
-const feature_img_one = require('@site/static/img/1-chunjie.png');
-const feature_img_two = require('@site/static/img/2-chunjie.png');
-const feature_img_three = require('@site/static/img/3-chunjie.png');
-import WaImg from '@site/static/img/wa.svg';
+const feature_img_one = require('@site/static/img/art/chunjie/1.png');
+const feature_img_two = require('@site/static/img/art/chunjie/2.png');
+const feature_img_three = require('@site/static/img/art/chunjie/3.png');
+import WaImg from '@site/static/img/lang/wa.svg';
 
 type FeatureItem = {
 	title: JSX.Element;
@@ -95,7 +95,7 @@ const EngineFeatureList: FeatureItem[] = [
 				Powerful Code Editor
 			</Translate>
 		),
-		image: <img src={require('@site/static/img/showcase1.jpg').default} alt='Powerful Code Editor' className={styles.featureImgFixed}/>,
+		image: <img src={require('@site/static/img/showcase/1.jpg').default} alt='Powerful Code Editor' className={styles.featureImgFixed}/>,
 		description: (
 			<Translate
 				id='engine_feature_description_code_editor'
@@ -112,7 +112,7 @@ const EngineFeatureList: FeatureItem[] = [
 				Intuitive Yarn Spinner Script Editor
 			</Translate>
 		),
-		image: <img src={require('@site/static/img/showcase2.jpg').default} alt='Intuitive Yarn Spinner Script Editor' className={styles.featureImgFixed}/>,
+		image: <img src={require('@site/static/img/showcase/2.jpg').default} alt='Intuitive Yarn Spinner Script Editor' className={styles.featureImgFixed}/>,
 		description: (
 			<Translate
 				id='engine_feature_description_yarn_spinner_editor'
@@ -129,7 +129,7 @@ const EngineFeatureList: FeatureItem[] = [
 				Visual Script Editor for Beginners
 			</Translate>
 		),
-		image: <img src={require('@site/static/img/showcase3.jpg').default} alt='Visual Script Editor for Beginners' className={styles.featureImgFixed}/>,
+		image: <img src={require('@site/static/img/showcase/3.jpg').default} alt='Visual Script Editor for Beginners' className={styles.featureImgFixed}/>,
 		description: (
 			<Translate
 				id='engine_feature_description_visual_script_editor'
@@ -146,7 +146,7 @@ const EngineFeatureList: FeatureItem[] = [
 				Skeletal Animation Support
 			</Translate>
 		),
-		image: <img src={require('@site/static/img/showcase4.jpg').default} alt='Skeletal Animation Support' className={styles.featureImgFixed}/>,
+		image: <img src={require('@site/static/img/showcase/4.jpg').default} alt='Skeletal Animation Support' className={styles.featureImgFixed}/>,
 		description: (
 			<Translate
 				id='engine_feature_description_skeletal_animation'
@@ -163,7 +163,7 @@ const EngineFeatureList: FeatureItem[] = [
 				Profiling and Debugging Tools
 			</Translate>
 		),
-		image: <img src={require('@site/static/img/showcase6.jpg').default} alt='Profiling and Debugging Tools' className={styles.featureImgFixed}/>,
+		image: <img src={require('@site/static/img/showcase/6.jpg').default} alt='Profiling and Debugging Tools' className={styles.featureImgFixed}/>,
 		description: (
 			<Translate
 				id='engine_feature_description_profiling_and_debugging_tools'
@@ -180,7 +180,7 @@ const EngineFeatureList: FeatureItem[] = [
 				Platformer Game Support
 			</Translate>
 		),
-		image: <img src={require('@site/static/img/LoliWar.gif').default} alt='Platformer Game Support' className={styles.featureImgFixed}/>,
+		image: <img src={require('@site/static/img/showcase/LoliWar.gif').default} alt='Platformer Game Support' className={styles.featureImgFixed}/>,
 		description: (
 			<Translate
 				id='engine_feature_description_platformer_game_support'
@@ -197,7 +197,7 @@ const EngineFeatureList: FeatureItem[] = [
 				Tiled Map Rendering Support
 			</Translate>
 		),
-		image: <img src={require('@site/static/img/showcase5.jpg').default} alt='Tiled Map Rendering Support' className={styles.featureImgFixed}/>,
+		image: <img src={require('@site/static/img/showcase/5.jpg').default} alt='Tiled Map Rendering Support' className={styles.featureImgFixed}/>,
 		description: (
 			<Translate
 				id='engine_feature_description_tiled_map'
@@ -214,7 +214,7 @@ const EngineFeatureList: FeatureItem[] = [
 				Built-in ML and AI Framework
 			</Translate>
 		),
-		image: <img src={require('@site/static/img/ZombieEscape.png').default} alt='Built-in ML and AI Framework' className={styles.featureImgFixed}/>,
+		image: <img src={require('@site/static/img/showcase/ZombieEscape.png').default} alt='Built-in ML and AI Framework' className={styles.featureImgFixed}/>,
 		description: (
 			<Translate
 				id='engine_feature_description_ml_and_ai_framework'
@@ -231,7 +231,7 @@ const EngineFeatureList: FeatureItem[] = [
 				Open Art Assets and Game IP
 			</Translate>
 		),
-		image: <img src={require('@site/static/img/LuvSenseDigital.png').default} alt='Open Art Assets and Game IP' className={styles.featureImgFixed}/>,
+		image: <img src={require('@site/static/img/showcase/LuvSenseDigital.png').default} alt='Open Art Assets and Game IP' className={styles.featureImgFixed}/>,
 		description: (
 			<Translate
 				id='engine_feature_description_open_art_assets_and_game_ip'
@@ -248,7 +248,7 @@ const EngineFeatureList: FeatureItem[] = [
 				Cross-Platform Game Dev Support
 			</Translate>
 		),
-		image: <img src={require('@site/static/img/dev-everywhere.jpg').default} alt='Cross-Platform Game Dev Support' className={styles.featureImgFixed}/>,
+		image: <img src={require('@site/static/img/showcase/dev-everywhere.jpg').default} alt='Cross-Platform Game Dev Support' className={styles.featureImgFixed}/>,
 		description: (
 			<Translate
 				id='engine_feature_description_cross_platform_game_dev_support'
@@ -265,7 +265,7 @@ const EngineFeatureList: FeatureItem[] = [
 				Lua Scripting Support
 			</Translate>
 		),
-		image: <img src={require('@site/static/img/lua.png').default} alt='Lua Scripting Support' className={styles.featureImgFixed} style={{padding: 20}}/>,
+		image: <img src={require('@site/static/img/lang/lua.png').default} alt='Lua Scripting Support' className={styles.featureImgFixed} style={{padding: 20}}/>,
 		description: (
 			<Translate
 				id='engine_feature_description_lua_scripting_support'
@@ -282,7 +282,7 @@ const EngineFeatureList: FeatureItem[] = [
 				YueScript Scripting Support
 			</Translate>
 		),
-		image: <img src={require('@site/static/img/yuescript.png').default} alt='YueScript Scripting Support' className={styles.featureImgFixed} style={{padding: 40}}/>,
+		image: <img src={require('@site/static/img/lang/yuescript.png').default} alt='YueScript Scripting Support' className={styles.featureImgFixed} style={{padding: 40}}/>,
 		description: (
 			<Translate
 				id='engine_feature_description_yuescript_scripting_support'
@@ -299,7 +299,7 @@ const EngineFeatureList: FeatureItem[] = [
 				Teal Scripting Support
 			</Translate>
 		),
-		image: <img src={require('@site/static/img/teal.png').default} alt='Teal Scripting Support' className={styles.featureImgFixed} style={{padding: 40}}/>,
+		image: <img src={require('@site/static/img/lang/teal.png').default} alt='Teal Scripting Support' className={styles.featureImgFixed} style={{padding: 40}}/>,
 		description: (
 			<Translate
 				id='engine_feature_description_teal_scripting_support'
@@ -316,7 +316,7 @@ const EngineFeatureList: FeatureItem[] = [
 				TypeScript Scripting Support
 			</Translate>
 		),
-		image: <img src={require('@site/static/img/typescript.png').default} alt='TypeScript Scripting Support' className={styles.featureImgFixed} style={{padding: 40}}/>,
+		image: <img src={require('@site/static/img/lang/typescript.png').default} alt='TypeScript Scripting Support' className={styles.featureImgFixed} style={{padding: 40}}/>,
 		description: (
 			<Translate
 				id='engine_feature_description_typescript_scripting_support'
@@ -350,7 +350,7 @@ const EngineFeatureList: FeatureItem[] = [
 				Rust Scripting Support
 			</Translate>
 		),
-		image: <img src={require('@site/static/img/rust.png').default} alt='Rust Scripting Support' className={styles.featureImgFixed} style={{padding: 40}}/>,
+		image: <img src={require('@site/static/img/lang/rust.png').default} alt='Rust Scripting Support' className={styles.featureImgFixed} style={{padding: 40}}/>,
 		description: (
 			<Translate
 				id='engine_feature_description_rust_scripting_support'

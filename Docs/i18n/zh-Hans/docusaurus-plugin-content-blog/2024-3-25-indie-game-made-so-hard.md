@@ -14,7 +14,7 @@ tags: [Dora SSR, YueScript, Auspice Gear, Game LSD]
 ## 游戏脚本语言的乐趣与挑战
 
 <p align="center">
-  <img src={require('@site/static/img/3.png').default} alt='编程语言游乐场！' height='400px'/>
+  <img src={require('@site/static/img/art/casual/3.png').default} alt='编程语言游乐场！' height='400px'/>
    编程语言游乐场！
 </p>
 
@@ -23,7 +23,7 @@ tags: [Dora SSR, YueScript, Auspice Gear, Game LSD]
 ## 游戏引擎的创新之路
 
 <p align="center">
-  <img src={require('@site/static/img/2.png').default} alt='随时随地用任何设备制作游戏！' height='400px'/>
+  <img src={require('@site/static/img/art/casual/2.png').default} alt='随时随地用任何设备制作游戏！' height='400px'/>
    随时随地用任何设备制作游戏！
 </p>
 
@@ -34,21 +34,21 @@ tags: [Dora SSR, YueScript, Auspice Gear, Game LSD]
 ## 向着自由开放的游戏掌机梦想迈进
 
 <p align="center">
-  <img src={require('@site/static/img/1.png').default} alt='开源开放？软件和硬件全都要！' height='400px'/>
+  <img src={require('@site/static/img/art/casual/1.png').default} alt='开源开放？软件和硬件全都要！' height='400px'/>
    开源开放？软件和硬件全都要！
 </p>
 
 &emsp;&emsp;到此我觉得对游戏开发能力的自由和开放体验的追求还远不到尽头。作为喜好各式掌机的老玩家，在体验了诸多国产开源掌机的商业产品后，我感觉深深的不满足。用掌上游戏机玩游戏目前还是在卷硬件参数和外观设计来提供体验的差别，而我期待的掌机并不只是玩游戏上的体验，还应该是一个可以用来自由的开发、运行甚至发行自制游戏的设备。很多掌机厂商都有自己的商业化模式和获得盈利的闭环，所以不会允许硬件设备获得太多可编程定制的能力。于是和同样对硬件发烧的伙伴一起研究构建完全自由开放的掌机设备。并尽可能提供包括机器的计算核心、外设和外观均可进行模块化的定制和更换的能力（使科技不再以换壳为本）于是又有了“吉祥机”的项目。
 
 <p align="center">
-  <img src={require('@site/static/img/auspice-gear.png').default} alt='吉祥机 + Dora SSR 游戏引擎'/>
+  <img src={require('@site/static/img/article/auspice-gear.png').default} alt='吉祥机 + Dora SSR 游戏引擎'/>
   吉祥机 + Dora SSR 游戏引擎
 </p>
 
 ## 回到制作游戏的初心
 
 <p align="center">
-  <img src={require('@site/static/img/lsd-banner.jpg').default} alt='社区在做的开源独立游戏项目《灵数奇缘》'/>
+  <img src={require('@site/static/img/article/lsd-banner.jpg').default} alt='社区在做的开源独立游戏项目《灵数奇缘》'/>
    社区在做的开源独立游戏项目《灵数奇缘》
 </p>
 

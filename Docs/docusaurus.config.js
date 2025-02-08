@@ -160,7 +160,7 @@ const lightCodeTheme = {
 const config = {
 	title: 'Dora SSR',
 	tagline: 'The Dora project, Special Super Rare edition.',
-	favicon: 'img/favicon.ico',
+	favicon: 'img/site/favicon.ico',
 
 	// Set the production url of your site here
 	url: github ? 'https://dora-ssr.net' : 'https://ippclub.atomgit.net',
@@ -224,12 +224,12 @@ const config = {
 	/** @type {import('@docusaurus/preset-classic').ThemeConfig} */
 	({
 		// Replace with your project's social card
-		image: 'img/dora-ssr-social-card.jpg',
+		image: 'img/site/dora-ssr-social-card.jpg',
 		navbar: {
 			title: 'Dora SSR',
 			logo: {
 				alt: 'Dora SSR Logo',
-				src: 'img/logo.svg',
+				src: 'img/site/logo.svg',
 			},
 			items: [
 				{
@@ -254,6 +254,12 @@ const config = {
 					to: '/blog',
 					label: 'Blog',
 					position: 'left'
+				},
+				{
+					type: 'docSidebar',
+					sidebarId: 'creativeSidebar',
+					label: 'Creative',
+					position: 'left',
 				},
 				{
 					type: 'docsVersionDropdown',
@@ -330,7 +336,7 @@ const config = {
 			],
 			logo: {
 				alt: 'Dora SSR Logo',
-				src: 'img/cheer.png',
+				src: 'img/art/casual/cheer.png',
 				height: 200,
 				className: 'footer-logo',
 			},

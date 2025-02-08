@@ -14,7 +14,7 @@ Developing my own games has been a dream since childhood, particularly fueled by
 ## The Fun and Challenges of Game Scripting Languages
 
 <p align="center">
-  <img src='/img/3.png' alt='Multilingual Playground!' height='400px'/>
+  <img src='/img/art/casual/3.png' alt='Multilingual Playground!' height='400px'/>
    Multilingual Playground!
 </p>
 
@@ -23,7 +23,7 @@ Programming in various languages is exhilarating, as each language offers unique
 ## Innovating with Game Engines
 
 <p align="center">
-  <img src='/img/2.png' alt='Game creation at your fingertips!' height='400px'/>
+  <img src='/img/art/casual/2.png' alt='Game creation at your fingertips!' height='400px'/>
    Game creation at your fingertips!
 </p>
 
@@ -34,21 +34,21 @@ Dora SSR features a built-in Web IDE server within the game engine runtime, enab
 ## Pursuing the Dream of a Free and Open Gaming Handheld
 
 <p align="center">
-  <img src='/img/1.png' alt='Open source everything?' height='400px'/>
+  <img src='/img/art/casual/1.png' alt='Open source everything?' height='400px'/>
    Open source everything? Want it for both software and hardware!
 </p>
 
 Despite the progress, the pursuit of an unrestricted and open gaming development experience is far from over. As a veteran handheld gaming enthusiast dissatisfied with many commercial open-source handhelds, I envisioned a device not just for playing games but also for freely developing, running, and even distributing homemade games. Many manufacturers restrict programmability for profit, so with like-minded hardware enthusiasts, we developed the fully open "Auspice Gear", offering modular customization of its core components and design.
 
 <p align="center">
-  <img src='/img/auspice-gear.png' alt='Auspice Gear + Dora SSR'/>
+  <img src='/img/article/auspice-gear.png' alt='Auspice Gear + Dora SSR'/>
   Auspice Gear + Dora SSR
 </p>
 
 ## Returning to the Essence of Game Creation
 
 <p align="center">
-  <img src='/img/lsd-banner.jpg' alt='An open-source indie game project'/>
+  <img src='/img/article/lsd-banner.jpg' alt='An open-source indie game project'/>
    An open-source indie game project made by the community called 'Luv Sense Digital'
 </p>
 

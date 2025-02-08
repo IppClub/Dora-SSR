@@ -22,5 +22,9 @@
   "item.label.Example": {
     "message": "示例",
     "description": "Navbar item with label Example"
+  },
+  "item.label.Creative": {
+    "message": "文创",
+    "description": "Navbar item with label Creative"
   }
 }
