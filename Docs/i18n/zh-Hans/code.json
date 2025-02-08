@@ -299,7 +299,7 @@
     "description": "The search page title for empty query"
   },
   "theme.SearchPage.searchContext.everywhere": {
-    "message": "everywhere"
+    "message": "任何位置"
   },
   "theme.SearchPage.documentsFound.plurals": {
     "message": "共找到 {count} 篇文档",
@@ -316,10 +316,10 @@
     "message": "查看全部结果"
   },
   "theme.SearchBar.seeAllOutsideContext": {
-    "message": "See results outside {context}"
+    "message": "在 {context} 以外搜索"
   },
   "theme.SearchBar.searchInContext": {
-    "message": "See all results in {context}"
+    "message": "在 {context} 中搜索"
   },
   "theme.SearchBar.label": {
     "message": "搜索",
@@ -474,11 +474,11 @@
     "description": "The title of the page for a blog author"
   },
   "theme.blog.authorsList.pageTitle": {
-    "message": "Authors",
+    "message": "作者",
     "description": "The title of the authors page"
   },
   "theme.blog.authorsList.viewAll": {
-    "message": "View All Authors",
+    "message": "查看所有作者",
     "description": "The label of the link targeting the blog authors page"
   },
   "theme.contentVisibility.unlistedBanner.title": {
@@ -490,15 +490,15 @@
     "description": "The unlisted content banner message"
   },
   "theme.contentVisibility.draftBanner.title": {
-    "message": "Draft page",
+    "message": "草稿页面",
     "description": "The draft content banner title"
   },
   "theme.contentVisibility.draftBanner.message": {
-    "message": "This page is a draft. It will only be visible in dev and be excluded from the production build.",
+    "message": "此页面是草稿。它仅在开发环境中可见，并将在生产构建中被排除。",
     "description": "The draft content banner message"
   },
   "theme.blog.author.noPosts": {
-    "message": "This author has not written any posts yet.",
+    "message": "此作者尚未发表任何博文。",
     "description": "The text for authors with 0 blog post"
   },
   "engine_feature_wa_scripting_support": {
@@ -508,5 +508,13 @@
   "engine_feature_description_wa_scripting_support": {
     "message": "Dora SSR 支持 Wa 语言，一门简单、可靠且静态类型的语言，运行在内置的 WASM 绑定和 VM 上。适合作为便捷易上手的高性能 WASM 语言开发游戏。",
     "description": "The engine feature description Wa Scripting Support in front page"
+  },
+  "hero_title": {
+    "message": "多萝珍奇",
+    "description": "The title in front page"
+  },
+  "hero_subtitle": {
+    "message": "游戏引擎",
+    "description": "The subtitle in front page"
   }
 }
