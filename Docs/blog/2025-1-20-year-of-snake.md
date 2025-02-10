@@ -14,19 +14,25 @@ In this series of illustrations, a blonde little girl and a cute bear joyfully w
 
 They carry luggage and backpacks, boarding trains to return home or embark on new journeys;
 
-![Spring Festival Travel](@site/static/img/art/chunjie/2.png)
+<p align="center">
+  <img src={require('@site/static/img/art/chunjie/2.png').default} alt='Spring Festival Travel' width='600px'/>
+</p>
 
 ### Red Envelopes
 
 Holding bright red envelopes, they share the good fortune and joy of the New Year with everyone;
 
-![Red Envelopes](@site/static/img/art/chunjie/1.png)
+<p align="center">
+  <img src={require('@site/static/img/art/chunjie/1.png').default} alt='Red Envelopes' width='600px'/>
+</p>
 
 ### Fireworks
 
 Fireworks light up the sky and firecrackers sound, symbolizing renewal and eager anticipation for the future. There are details representing programming languages like C++, Rust, and Lua, signifying our continued exploration of different technological fields in the new year, bringing more surprises and possibilities to Dora SSR.
 
-![Fireworks](@site/static/img/art/chunjie/3.png)
+<p align="center">
+	<img src={require('@site/static/img/art/chunjie/3.png').default} alt='Fireworks' width='600px'/>
+</p>
 
 Reflecting on the past year, we have helped each other and progressed together in the community, allowing Dora SSR to grow from an inspiration into a vibrant and evolving open-source game engine. The participation of every enthusiastic contributor, developer, and player is our driving force. Just like the joyful and lively atmosphere in the illustrations, the new year will also be a brand new journey full of opportunities and challenges.
 
