@@ -89,7 +89,7 @@ template <typename T>
 KTM_INLINE void ktm::detail::vec_calc_implement::div_scalar(vec<3, T>& out, const vec<3, T>& x, T scalar) noexcept
 {
     if constexpr (std::is_floating_point_v<T>)
-        mul(out, x, one<T> / scalar);
+        mul_scalar(out, x, one<T> / scalar);
     else
     {
         out.x = x.x / scalar;

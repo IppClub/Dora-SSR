@@ -38,9 +38,8 @@ struct imat_data<Father, mat<Row, Col, T>> : Father
             columns[i] = li.begin()[i];
     }
 
-    template <typename... ColVs,
-              typename = std::enable_if_t<sizeof...(ColVs) == Row &&
-                                          std::is_same_vs<vec<Col, T>, std::extract_type_t<ColVs>...>>>
+    template <typename... ColVs, typename = std::enable_if_t<sizeof...(ColVs) == Row &&
+                                                             std::is_same_vs<vec<Col, T>, std::decay_t<ColVs>...>>>
     KTM_FUNC constexpr imat_data(ColVs&&... cols) noexcept : columns { std::forward<ColVs>(cols)... }
     {
     }

@@ -49,15 +49,9 @@ struct iarray_util : Father
 
     KTM_FUNC const auto crend() const noexcept { return rend(); }
 
-    KTM_FUNC constexpr size_t size() const noexcept
-    {
-        return std::tuple_size_v<std::extract_type_t<decltype(to_array())>>;
-    }
+    KTM_FUNC constexpr size_t size() const noexcept { return std::tuple_size_v<std::decay_t<decltype(to_array())>>; }
 
-    KTM_FUNC constexpr size_t max_size() const noexcept
-    {
-        return std::tuple_size_v<std::extract_type_t<decltype(to_array())>>;
-    }
+    KTM_FUNC constexpr size_t max_size() const noexcept { return size(); }
 
     KTM_FUNC constexpr bool empty() const noexcept { return false; }
 

@@ -38,7 +38,7 @@
 #define KTM_DETAIL_ARRAY_CALC_LOOP_OPERATION_BINARY_SCALAR(impl_name, type, num, ...) \
     [&scalar](std::array<type, num>& out, const std::array<type, num>& x) -> void     \
     {                                                                                 \
-            impl_name<type, num>::call(out, x, scalar);                               \
+        impl_name<type, num>::call(out, x, scalar);                                   \
     }
 #define KTM_DETAIL_ARRAY_CALC_LOOP_PARAMS_BINARY_SCALAR(cast_type, index, ...) \
     KTM_DETAIL_ARRAY_CALC_LOOP_PARAMS_UNARY(cast_type, index)
@@ -50,7 +50,7 @@
 #define KTM_DETAIL_ARRAY_CALC_LOOP_OPERATION_TERNARY_SCALAR(impl_name, type, num, ...)                            \
     [&scalar](std::array<type, num>& out, const std::array<type, num>& x, const std::array<type, num>& y) -> void \
     {                                                                                                             \
-            impl_name<type, num>::call(out, x, y, scalar);                                                        \
+        impl_name<type, num>::call(out, x, y, scalar);                                                            \
     }
 #define KTM_DETAIL_ARRAY_CALC_LOOP_PARAMS_TERNARY_SCALAR(cast_type, index, ...) \
     KTM_DETAIL_ARRAY_CALC_LOOP_PARAMS_BINARY(cast_type, index)
