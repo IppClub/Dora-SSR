@@ -138,8 +138,7 @@ struct ktm::detail::vector_arithmetic_implement::lerp
     static KTM_INLINE V call(const V& x, const V& y, T t) noexcept
     {
         V ret;
-        loop_op<N, V>::call(
-            ret, [&t](const T& x, const T& y) -> T { return ktm::lerp<T>(x, y, t); }, x, y);
+        loop_op<N, V>::call(ret, [&t](const T& x, const T& y) -> T { return ktm::lerp<T>(x, y, t); }, x, y);
         return ret;
     }
 };
