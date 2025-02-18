@@ -82,7 +82,7 @@ public:
             ret[i + 3] = group_c[3];
         }
 
-        for (int i = 0; i < remain; ++i)
+        for (int i = m_height * m_width - remain; i < m_height * m_width; ++i)
         {
             float dist1 = sqrtf(static_cast<float>(dist_square(m_grid_out[i])));
             float dist2 = sqrtf(static_cast<float>(dist_square(m_grid_in[i])));
