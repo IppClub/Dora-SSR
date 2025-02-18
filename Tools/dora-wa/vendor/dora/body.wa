@@ -1,0 +1,354 @@
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+#wa:import dora body_type
+func body_type() => i32
+
+#wa:import dora body_get_world
+func body_get_world(slf: i64) => i64
+
+#wa:import dora body_get_body_def
+func body_get_body_def(slf: i64) => i64
+
+#wa:import dora body_get_mass
+func body_get_mass(slf: i64) => f32
+
+#wa:import dora body_is_sensor
+func body_is_sensor(slf: i64) => i32
+
+#wa:import dora body_set_velocity_x
+func body_set_velocity_x(slf: i64, val: f32)
+
+#wa:import dora body_get_velocity_x
+func body_get_velocity_x(slf: i64) => f32
+
+#wa:import dora body_set_velocity_y
+func body_set_velocity_y(slf: i64, val: f32)
+
+#wa:import dora body_get_velocity_y
+func body_get_velocity_y(slf: i64) => f32
+
+#wa:import dora body_set_velocity
+func body_set_velocity(slf: i64, val: i64)
+
+#wa:import dora body_get_velocity
+func body_get_velocity(slf: i64) => i64
+
+#wa:import dora body_set_angular_rate
+func body_set_angular_rate(slf: i64, val: f32)
+
+#wa:import dora body_get_angular_rate
+func body_get_angular_rate(slf: i64) => f32
+
+#wa:import dora body_set_group
+func body_set_group(slf: i64, val: i32)
+
+#wa:import dora body_get_group
+func body_get_group(slf: i64) => i32
+
+#wa:import dora body_set_linear_damping
+func body_set_linear_damping(slf: i64, val: f32)
+
+#wa:import dora body_get_linear_damping
+func body_get_linear_damping(slf: i64) => f32
+
+#wa:import dora body_set_angular_damping
+func body_set_angular_damping(slf: i64, val: f32)
+
+#wa:import dora body_get_angular_damping
+func body_get_angular_damping(slf: i64) => f32
+
+#wa:import dora body_set_owner
+func body_set_owner(slf: i64, val: i64)
+
+#wa:import dora body_get_owner
+func body_get_owner(slf: i64) => i64
+
+#wa:import dora body_set_receiving_contact
+func body_set_receiving_contact(slf: i64, val: i32)
+
+#wa:import dora body_is_receiving_contact
+func body_is_receiving_contact(slf: i64) => i32
+
+#wa:import dora body_apply_linear_impulse
+func body_apply_linear_impulse(slf: i64, impulse: i64, pos: i64)
+
+#wa:import dora body_apply_angular_impulse
+func body_apply_angular_impulse(slf: i64, impulse: f32)
+
+#wa:import dora body_get_sensor_by_tag
+func body_get_sensor_by_tag(slf: i64, tag: i32) => i64
+
+#wa:import dora body_remove_sensor_by_tag
+func body_remove_sensor_by_tag(slf: i64, tag: i32) => i32
+
+#wa:import dora body_remove_sensor
+func body_remove_sensor(slf: i64, sensor: i64) => i32
+
+#wa:import dora body_attach
+func body_attach(slf: i64, fixture_def: i64)
+
+#wa:import dora body_attach_sensor
+func body_attach_sensor(slf: i64, tag: i32, fixture_def: i64) => i64
+
+#wa:import dora body_on_contact_filter
+func body_on_contact_filter(slf: i64, func0: i32, stack0: i64)
+
+#wa:import dora body_new
+func body_new(def: i64, world: i64, pos: i64, rot: f32) => i64
+
+type Body :struct{ Node }
+
+func BodyFrom(raw: i64) => *Body {
+	if raw == 0 {
+		return nil
+	}
+	object := Body{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	result := &object
+	return result
+}
+func Body.GetTypeId() => i32 {
+	return body_type()
+}
+func ObjectAsBody(object: Object) => *Body {
+	if object.GetTypeId() == body_type() {
+		ObjectRetain(object.GetRaw())
+		return BodyFrom(object.GetRaw())
+	}
+	return nil
+}
+
+/// Gets the physics world that the body belongs to.
+func Body.GetWorld() => PhysicsWorld {
+	return *PhysicsWorldFrom(body_get_world(*this.raw))
+}
+
+/// Gets the definition of the body.
+func Body.GetBodyDef() => BodyDef {
+	return *BodyDefFrom(body_get_body_def(*this.raw))
+}
+
+/// Gets the mass of the body.
+func Body.GetMass() => f32 {
+	return body_get_mass(*this.raw)
+}
+
+/// Gets whether the body is used as a sensor or not.
+func Body.IsSensor() => bool {
+	return body_is_sensor(*this.raw) != 0
+}
+
+/// Sets the x-axis velocity of the body.
+func Body.SetVelocityX(val: f32) {
+	body_set_velocity_x(*this.raw, val)
+}
+
+/// Gets the x-axis velocity of the body.
+func Body.GetVelocityX() => f32 {
+	return body_get_velocity_x(*this.raw)
+}
+
+/// Sets the y-axis velocity of the body.
+func Body.SetVelocityY(val: f32) {
+	body_set_velocity_y(*this.raw, val)
+}
+
+/// Gets the y-axis velocity of the body.
+func Body.GetVelocityY() => f32 {
+	return body_get_velocity_y(*this.raw)
+}
+
+/// Sets the velocity of the body as a `Vec2`.
+func Body.SetVelocity(val: Vec2) {
+	body_set_velocity(*this.raw, val.ToValue())
+}
+
+/// Gets the velocity of the body as a `Vec2`.
+func Body.GetVelocity() => Vec2 {
+	return Vec2FromValue(body_get_velocity(*this.raw))
+}
+
+/// Sets the angular rate of the body.
+func Body.SetAngularRate(val: f32) {
+	body_set_angular_rate(*this.raw, val)
+}
+
+/// Gets the angular rate of the body.
+func Body.GetAngularRate() => f32 {
+	return body_get_angular_rate(*this.raw)
+}
+
+/// Sets the collision group that the body belongs to.
+func Body.SetGroup(val: i32) {
+	body_set_group(*this.raw, val)
+}
+
+/// Gets the collision group that the body belongs to.
+func Body.GetGroup() => i32 {
+	return body_get_group(*this.raw)
+}
+
+/// Sets the linear damping of the body.
+func Body.SetLinearDamping(val: f32) {
+	body_set_linear_damping(*this.raw, val)
+}
+
+/// Gets the linear damping of the body.
+func Body.GetLinearDamping() => f32 {
+	return body_get_linear_damping(*this.raw)
+}
+
+/// Sets the angular damping of the body.
+func Body.SetAngularDamping(val: f32) {
+	body_set_angular_damping(*this.raw, val)
+}
+
+/// Gets the angular damping of the body.
+func Body.GetAngularDamping() => f32 {
+	return body_get_angular_damping(*this.raw)
+}
+
+/// Sets the reference for an owner of the body.
+func Body.SetOwner(val: Object) {
+	body_set_owner(*this.raw, val.GetRaw())
+}
+
+/// Gets the reference for an owner of the body.
+func Body.GetOwner() => Object {
+	return *ObjectFrom(body_get_owner(*this.raw))
+}
+
+/// Sets whether the body is currently receiving contact events or not.
+func Body.SetReceivingContact(val: bool) {
+	body_set_receiving_contact(*this.raw, ToDoraBool(val))
+}
+
+/// Gets whether the body is currently receiving contact events or not.
+func Body.IsReceivingContact() => bool {
+	return body_is_receiving_contact(*this.raw) != 0
+}
+
+/// Applies a linear impulse to the body at a specified position.
+///
+/// # Arguments
+///
+/// * `impulse` - The linear impulse to apply.
+/// * `pos` - The position at which to apply the impulse.
+func Body.ApplyLinearImpulse(impulse: Vec2, pos: Vec2) {
+	body_apply_linear_impulse(*this.raw, impulse.ToValue(), pos.ToValue())
+}
+
+/// Applies an angular impulse to the body.
+///
+/// # Arguments
+///
+/// * `impulse` - The angular impulse to apply.
+func Body.ApplyAngularImpulse(impulse: f32) {
+	body_apply_angular_impulse(*this.raw, impulse)
+}
+
+/// Returns the sensor with the given tag.
+///
+/// # Arguments
+///
+/// * `tag` - The tag of the sensor to get.
+///
+/// # Returns
+///
+/// * `Sensor` - The sensor with the given tag.
+func Body.GetSensorByTag(tag: i32) => Sensor {
+	return *SensorFrom(body_get_sensor_by_tag(*this.raw, tag))
+}
+
+/// Removes the sensor with the specified tag from the body.
+///
+/// # Arguments
+///
+/// * `tag` - The tag of the sensor to remove.
+///
+/// # Returns
+///
+/// * `bool` - Whether a sensor with the specified tag was found and removed.
+func Body.RemoveSensorByTag(tag: i32) => bool {
+	return body_remove_sensor_by_tag(*this.raw, tag) != 0
+}
+
+/// Removes the given sensor from the body's sensor list.
+///
+/// # Arguments
+///
+/// * `sensor` - The sensor to remove.
+///
+/// # Returns
+///
+/// * `bool` - `true` if the sensor was successfully removed, `false` otherwise.
+func Body.RemoveSensor(sensor: Sensor) => bool {
+	return body_remove_sensor(*this.raw, sensor.GetRaw()) != 0
+}
+
+/// Attaches a fixture to the body.
+///
+/// # Arguments
+///
+/// * `fixture_def` - The fixture definition for the fixture to attach.
+func Body.Attach(fixture_def: FixtureDef) {
+	body_attach(*this.raw, fixture_def.GetRaw())
+}
+
+/// Attaches a new sensor with the given tag and fixture definition to the body.
+///
+/// # Arguments
+///
+/// * `tag` - The tag of the sensor to attach.
+/// * `fixture_def` - The fixture definition of the sensor.
+///
+/// # Returns
+///
+/// * `Sensor` - The newly attached sensor.
+func Body.AttachSensor(tag: i32, fixture_def: FixtureDef) => Sensor {
+	return *SensorFrom(body_attach_sensor(*this.raw, tag, fixture_def.GetRaw()))
+}
+
+/// Registers a function to be called when the body begins to receive contact events. Return `false` from this function to prevent colliding.
+///
+/// # Arguments
+///
+/// * `filter` - The filter function to set.
+func Body.OnContactFilter(filter: func(body: Body) => bool) {
+	stack0 := NewCallStack()
+	func_id0 := PushFunction(func() {
+		body_obj := stack0.PopObject()
+		ObjectRetain(body_obj.GetRaw())
+		body := *BodyFrom(body_obj.GetRaw())
+		result_ := filter(body)
+		stack0.Push(result_)
+	})
+	body_on_contact_filter(*this.raw, func_id0, *stack0.raw)
+}
+
+/// Creates a new instance of `Body`.
+///
+/// # Arguments
+///
+/// * `def` - The definition for the body to be created.
+/// * `world` - The physics world where the body belongs.
+/// * `pos` - The initial position of the body.
+/// * `rot` - The initial rotation angle of the body in degrees.
+///
+/// # Returns
+///
+/// * A new `Body` instance.
+func NewBody(def: BodyDef, world: PhysicsWorld, pos: Vec2, rot: f32) => Body {
+	raw := body_new(def.GetRaw(), world.GetRaw(), pos.ToValue(), rot)
+	object := Body{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return object
+}

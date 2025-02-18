@@ -174,14 +174,13 @@ UnitAction:add("fallOff", {
 
 
 
-		if self.playable.current ~= "jumping" then
-			local playable = self.playable
+		local playable = self.playable
+		if playable.current ~= "jumping" then
 			playable.speed = 1
 			playable:play("jumping", true)
 		end
 		return loop(function(self)
 			if self.onSurface then
-				local playable = self.playable
 				playable.speed = 1
 				sleep(playable:play("landing", false))
 				return true

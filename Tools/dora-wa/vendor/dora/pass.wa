@@ -1,0 +1,121 @@
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+#wa:import dora pass_type
+func pass_type() => i32
+
+#wa:import dora pass_set_grab_pass
+func pass_set_grab_pass(slf: i64, val: i32)
+
+#wa:import dora pass_is_grab_pass
+func pass_is_grab_pass(slf: i64) => i32
+
+#wa:import dora pass_set
+func pass_set(slf: i64, name: i64, val: f32)
+
+#wa:import dora pass_set_vec4
+func pass_set_vec4(slf: i64, name: i64, val_1: f32, val_2: f32, val_3: f32, val_4: f32)
+
+#wa:import dora pass_set_color
+func pass_set_color(slf: i64, name: i64, val: i32)
+
+#wa:import dora pass_new
+func pass_new(vert_shader: i64, frag_shader: i64) => i64
+
+type Pass :struct{ Object }
+
+func PassFrom(raw: i64) => *Pass {
+	if raw == 0 {
+		return nil
+	}
+	object := Pass{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	result := &object
+	return result
+}
+func Pass.GetTypeId() => i32 {
+	return pass_type()
+}
+func ObjectAsPass(object: Object) => *Pass {
+	if object.GetTypeId() == pass_type() {
+		ObjectRetain(object.GetRaw())
+		return PassFrom(object.GetRaw())
+	}
+	return nil
+}
+
+/// Sets whether this Pass should be a grab pass.
+/// A grab pass will render a portion of game scene into a texture frame buffer.
+/// Then use this texture frame buffer as an input for next render pass.
+func Pass.SetGrabPass(val: bool) {
+	pass_set_grab_pass(*this.raw, ToDoraBool(val))
+}
+
+/// Gets whether this Pass should be a grab pass.
+/// A grab pass will render a portion of game scene into a texture frame buffer.
+/// Then use this texture frame buffer as an input for next render pass.
+func Pass.IsGrabPass() => bool {
+	return pass_is_grab_pass(*this.raw) != 0
+}
+
+/// Sets the value of shader parameters.
+///
+/// # Arguments
+///
+/// * `name` - The name of the parameter to set.
+/// * `val` - The numeric value to set.
+func Pass.Set(name: string, val: f32) {
+	pass_set(*this.raw, ToDoraString(name), val)
+}
+
+/// Sets the values of shader parameters.
+///
+/// # Arguments
+///
+/// * `name` - The name of the parameter to set.
+/// * `val1` - The first numeric value to set.
+/// * `val2` - An optional second numeric value to set.
+/// * `val3` - An optional third numeric value to set.
+/// * `val4` - An optional fourth numeric value to set.
+func Pass.SetVec4(name: string, val_1: f32, val_2: f32, val_3: f32, val_4: f32) {
+	pass_set_vec4(*this.raw, ToDoraString(name), val_1, val_2, val_3, val_4)
+}
+
+/// Another function that sets the values of shader parameters.
+///
+/// Works the same as:
+/// pass.set("varName", color.r / 255.0, color.g / 255.0, color.b / 255.0, color.opacity);
+///
+/// # Arguments
+///
+/// * `name` - The name of the parameter to set.
+/// * `val` - The Color object to set.
+func Pass.SetColor(name: string, val: Color) {
+	pass_set_color(*this.raw, ToDoraString(name), val.ToARGB())
+}
+
+/// Creates a new Pass object.
+///
+/// # Arguments
+///
+/// * `vert_shader` - The vertex shader in binary form file string.
+/// * `frag_shader` - The fragment shader file string. A shader file string must be one of the formats:
+///     * "builtin:" + theBuiltinShaderName
+///     * "Shader/compiled_shader_file.bin"
+///
+/// # Returns
+///
+/// * `Pass` - A new Pass object.
+func NewPass(vert_shader: string, frag_shader: string) => Pass {
+	raw := pass_new(ToDoraString(vert_shader), ToDoraString(frag_shader))
+	object := Pass{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return object
+}

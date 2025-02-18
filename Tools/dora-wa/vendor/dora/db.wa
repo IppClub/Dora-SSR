@@ -1,0 +1,105 @@
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+#wa:import dora db_exist
+func db_exist(table_name: i64) => i32
+
+#wa:import dora db_exist_schema
+func db_exist_schema(table_name: i64, schema: i64) => i32
+
+#wa:import dora db_exec
+func db_exec(sql: i64) => i32
+
+#wa:import dora db_transaction
+func db_transaction(query: i64) => i32
+
+#wa:import dora db_transaction_async
+func db_transaction_async(query: i64, func0: i32, stack0: i64)
+
+#wa:import dora db_query
+func db_query(sql: i64, with_columns: i32) => i64
+
+#wa:import dora db_query_with_params
+func db_query_with_params(sql: i64, params: i64, with_columns: i32) => i64
+
+#wa:import dora db_insert
+func db_insert(table_name: i64, values: i64)
+
+#wa:import dora db_exec_with_records
+func db_exec_with_records(sql: i64, values: i64) => i32
+
+#wa:import dora db_query_with_params_async
+func db_query_with_params_async(sql: i64, params: i64, with_columns: i32, func0: i32, stack0: i64)
+
+#wa:import dora db_insert_async
+func db_insert_async(table_name: i64, values: i64, func0: i32, stack0: i64)
+
+#wa:import dora db_exec_async
+func db_exec_async(sql: i64, values: i64, func0: i32, stack0: i64)
+
+type _DB :struct{}
+
+global DB = _DB{}
+
+func _DB.Exist(table_name: string) => bool {
+	return db_exist(ToDoraString(table_name)) != 0
+}
+func _DB.ExistSchema(table_name: string, schema: string) => bool {
+	return db_exist_schema(ToDoraString(table_name), ToDoraString(schema)) != 0
+}
+func _DB.Exec(sql: string) => i32 {
+	return db_exec(ToDoraString(sql))
+}
+func _DB.Transaction(query: DBQuery) => bool {
+	return db_transaction(query.GetRaw()) != 0
+}
+func _DB.TransactionAsync(query: DBQuery, callback: func(result: bool)) {
+	stack0 := NewCallStack()
+	func_id0 := PushFunction(func() {
+		result, _ := stack0.PopBool()
+		callback(result)
+	})
+	db_transaction_async(query.GetRaw(), func_id0, *stack0.raw)
+}
+func _DB.Query(sql: string, with_columns: bool) => DBRecord {
+	return *DBRecordFrom(db_query(ToDoraString(sql), ToDoraBool(with_columns)))
+}
+func _DB.QueryWithParams(sql: string, params: Array, with_columns: bool) => DBRecord {
+	return *DBRecordFrom(db_query_with_params(ToDoraString(sql), params.GetRaw(), ToDoraBool(with_columns)))
+}
+func _DB.Insert(table_name: string, values: DBParams) {
+	db_insert(ToDoraString(table_name), values.GetRaw())
+}
+func _DB.ExecWithRecords(sql: string, values: DBParams) => i32 {
+	return db_exec_with_records(ToDoraString(sql), values.GetRaw())
+}
+func _DB.QueryWithParamsAsync(sql: string, params: Array, with_columns: bool, callback: func(result: DBRecord)) {
+	stack0 := NewCallStack()
+	func_id0 := PushFunction(func() {
+		result_raw, _ := stack0.PopI64()
+		result := *DBRecordFrom(result_raw)
+		callback(result)
+	})
+	db_query_with_params_async(ToDoraString(sql), params.GetRaw(), ToDoraBool(with_columns), func_id0, *stack0.raw)
+}
+func _DB.InsertAsync(table_name: string, values: DBParams, callback: func(result: bool)) {
+	stack0 := NewCallStack()
+	func_id0 := PushFunction(func() {
+		result, _ := stack0.PopBool()
+		callback(result)
+	})
+	db_insert_async(ToDoraString(table_name), values.GetRaw(), func_id0, *stack0.raw)
+}
+func _DB.ExecAsync(sql: string, values: DBParams, callback: func(row_changes: i64)) {
+	stack0 := NewCallStack()
+	func_id0 := PushFunction(func() {
+		rowChanges, _ := stack0.PopI64()
+		callback(rowChanges)
+	})
+	db_exec_async(ToDoraString(sql), values.GetRaw(), func_id0, *stack0.raw)
+}

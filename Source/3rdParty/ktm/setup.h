@@ -10,43 +10,43 @@
 
 // c++ compiler config
 #if defined(__clang__) && defined(__GNUC__)
-	#define KTM_COMPILER_CLANG
+#    define KTM_COMPILER_CLANG
 #elif defined(__GNUC__) || defined(__MINGW32__)
-	#define KTM_COMPILER_GCC
+#    define KTM_COMPILER_GCC
 #elif defined(_MSC_VER)
-	#define KTM_COMPILER_MSVC
+#    define KTM_COMPILER_MSVC
 #else
-	#error "ktm only support clang++, g++ and visual c++"
+#    error "ktm only support clang++, g++ and visual c++"
 #endif
 
 #if defined(KTM_COMPILER_CLANG) || defined(KTM_COMPILER_GCC)
-	#define KTM_CPP_STANDARD __cplusplus
+#    define KTM_CPP_STANDARD __cplusplus
 #elif defined(KTM_COMPILER_MSVC)
-	#define KTM_CPP_STANDARD _MSVC_LANG
+#    define KTM_CPP_STANDARD _MSVC_LANG
 #endif
 
 #if KTM_CPP_STANDARD < 201703L
-	#error "ktm only support cpp's version > c++17"
+#    error "ktm only support cpp's version > c++17"
 #endif
 
 // debug state
 #ifndef NDEBUG
-	#define KTM_DEFAULT_CONSTRUCT_INIT
+#    define KTM_DEFAULT_CONSTRUCT_INIT
 #endif
 
 // function Function config
 #if defined(KTM_COMPILER_CLANG)
-	#define KTM_INLINE __inline__ __attribute__((always_inline))
-	#define KTM_NOINLINE __attribute__((noinline))
-	#define KTM_FUNC __inline__ __attribute__((always_inline, nothrow, nodebug))
+#    define KTM_INLINE __inline__ __attribute__((always_inline))
+#    define KTM_NOINLINE __attribute__((noinline))
+#    define KTM_FUNC __inline__ __attribute__((always_inline, nothrow, nodebug))
 #elif defined(KTM_COMPILER_GCC)
-	#define KTM_INLINE __inline__ __attribute__((__always_inline__))
-	#define KTM_NOINLINE __attribute__((__noinline__))
-	#define KTM_FUNC __inline__ __attribute__((__always_inline__, __nothrow__, __artificial__))
+#    define KTM_INLINE __inline__ __attribute__((__always_inline__))
+#    define KTM_NOINLINE __attribute__((__noinline__))
+#    define KTM_FUNC __inline__ __attribute__((__always_inline__, __nothrow__, __artificial__))
 #elif defined(KTM_COMPILER_MSVC)
-	#define KTM_INLINE __forceinline
-	#define KTM_NOINLINE __declspec(noinline)
-	#define KTM_FUNC __forceinline __declspec(nothrow)
+#    define KTM_INLINE __forceinline
+#    define KTM_NOINLINE __declspec(noinline)
+#    define KTM_FUNC __forceinline __declspec(nothrow)
 #endif
 
 #endif

@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -556,14 +556,10 @@ void ParticleNode::render() {
 	const auto& transform = SharedDirector.getViewProjection();
 	for (size_t i = 0; i < _quads.size(); i++) {
 		auto& quad = _quads[i];
-		Vec4 v4 = *r_cast<Vec4*>(&quad.lb.x);
-		Matrix::mulVec4(&quad.lb.x, transform, v4);
-		v4 = *r_cast<Vec4*>(&quad.rb.x);
-		Matrix::mulVec4(&quad.rb.x, transform, v4);
-		v4 = *r_cast<Vec4*>(&quad.lt.x);
-		Matrix::mulVec4(&quad.lt.x, transform, v4);
-		v4 = *r_cast<Vec4*>(&quad.rt.x);
-		Matrix::mulVec4(&quad.rt.x, transform, v4);
+		Matrix::mulVec4(&quad.lb.x, transform, quad.lb.toVec4());
+		Matrix::mulVec4(&quad.rb.x, transform, quad.rb.toVec4());
+		Matrix::mulVec4(&quad.lt.x, transform, quad.lt.toVec4());
+		Matrix::mulVec4(&quad.rt.x, transform, quad.rt.toVec4());
 	}
 
 	BlendFunc blendFunc{_particleDef->blendFuncSource, _particleDef->blendFuncDestination};

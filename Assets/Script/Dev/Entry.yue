@@ -1,4 +1,4 @@
---[[ Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+--[[ Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -33,13 +33,20 @@ updateLocale = ->
 	searchPaths[#searchPaths] = Path Content.assetPath, "Script", "Lib", "Dora", useChinese and "zh-Hans" or "en"
 	Content.searchPaths = searchPaths
 
+isDesktop = App.platform in ["Windows", "macOS", "Linux"]
+
 if DB\exist "Config"
 	switch DB\query "select value_str from Config where name = 'locale'"
 		when [ [locale,], ] then if App.locale ~= locale
 			App.locale = locale
 			updateLocale!
+	if isDesktop
+		switch DB\query "select value_str from Config where name = 'writablePath'"
+			when [ [writablePath,], ]
+				Content.writablePath = writablePath
 
 import "Config"
+
 config = Config(
 	""
 	"fpsLimited"
@@ -64,8 +71,17 @@ config = Config(
 	"drawerWidth"
 	"lastUpdateCheck"
 	"updateNotification"
+	"writablePath"
+	"webIDEConnected"
 )
 config\load!
+
+unless config.writablePath?
+	config.writablePath = Content.appPath
+
+unless config.webIDEConnected?
+	config.webIDEConnected = false
+
 if config.fpsLimited?
 	App.fpsLimited = config.fpsLimited
 else
@@ -106,11 +122,11 @@ if App.platform in ["Linux", "Windows", "macOS"]
 		if config.winX?
 			winX = config.winX
 		else
-			config.winX = 0
+			config.winX = -1
 		if config.winY?
 			winY = config.winY
 		else
-			config.winY = 0
+			config.winY = -1
 		App.winPosition = Vec2 winX, winY
 	if config.alwaysOnTop?
 		App.alwaysOnTop = config.alwaysOnTop
@@ -168,6 +184,13 @@ export.getConfig = -> config
 export.getEngineDev = ->
 	return false unless App.debugging
 	config.engineDev
+
+export.connectWebIDE = ->
+	unless config.webIDEConnected
+		config.webIDEConnected = true
+		if App.platform in ["Windows", "Linux", "macOS"]
+			ratio = App.winSize.width / App.visualSize.width
+			App.winSize = Size 640 * ratio, 480 * ratio
 
 updateCheck = -> thread ->
 	if res := HttpClient\getAsync "https://api.github.com/repos/IppClub/Dora-SSR/releases/latest"
@@ -335,7 +358,7 @@ doCompile = (minify) ->
 	:writablePath = Content
 	buildPaths = [
 		[
-			Path Content.assetPath
+			Content.assetPath
 			Path writablePath, ".build"
 			""
 		],
@@ -536,6 +559,30 @@ clearTempFiles = ->
 	Content\remove Path writablePath, ".upload"
 	Content\remove Path writablePath, ".download"
 
+waitForWebStart = true
+thread ->
+	sleep 2
+	waitForWebStart = false
+
+reloadDevEntry = -> thread ->
+	waitForWebStart = true
+	doClean!
+	allClear!
+	_G.require = oldRequire
+	Dora.require = oldRequire
+	package.loaded["Script.Dev.Entry"] = nil
+	Director.systemScheduler\schedule ->
+		Routine\clear!
+		oldRequire "Script.Dev.Entry"
+		true
+
+setWorkspace = (path) ->
+	Content.writablePath = path
+	config.writablePath = Content.writablePath
+	thread ->
+		sleep!
+		reloadDevEntry!
+
 setupEventHandlers = ->
 	with Director.postNode
 		\onAppEvent (eventType) -> if eventType == "Quit"
@@ -635,34 +682,28 @@ reloadCurrentEntry = ->
 
 Director.clearColor = Color 0xff1a1a1a
 
-waitForWebStart = true
-thread ->
-	sleep 2
-	waitForWebStart = false
-
-reloadDevEntry = -> thread ->
-	waitForWebStart = true
-	doClean!
-	allClear!
-	_G.require = oldRequire
-	Dora.require = oldRequire
-	package.loaded["Script.Dev.Entry"] = nil
-	Director.systemScheduler\schedule ->
-		Routine\clear!
-		oldRequire "Script.Dev.Entry"
-		true
-
 isOSSLicenseExist = Content\exist "LICENSES"
 ossLicenses = nil
 ossLicenseOpen = false
 
 extraOperations = ->
 	zh = useChinese and isChineseSupported
-	if App.platform not in ["Android", "iOS"]
-		:alwaysOnTop = config
+	if isDesktop
+		:themeColor = App
+		:alwaysOnTop, :writablePath = config
 		if changed, alwaysOnTop := Checkbox zh and "窗口置顶" or "Always On Top", alwaysOnTop
 			App.alwaysOnTop = alwaysOnTop
 			config.alwaysOnTop = alwaysOnTop
+		SeparatorText zh and "工作目录" or "Workspace"
+		PushTextWrapPos 400, ->
+			TextColored themeColor, writablePath
+		if Button zh and "改变目录" or "Set Folder"
+			App\openFileDialog true, (path) ->
+				setWorkspace path if path ~= ""
+		SameLine!
+		if Button zh and "使用默认" or "Use Default"
+			setWorkspace Content.appPath
+		Separator!
 	if isOSSLicenseExist
 		if Button zh and '开源协议' or 'OSS Licenses'
 			unless ossLicenses
@@ -814,13 +855,11 @@ footerWindow = threadLoop ->
 			SameLine!
 			if ImGui.Button zh and "更新可用" or "Update Available"
 				config.updateNotification = false
+				allClear!
 				enterDemoEntry ["SelfUpdater", Path Content.assetPath, "Script", "Tools", "SelfUpdater"]
 		unless isInEntry
 			SameLine!
-			if Button zh and "主页" or "Home", Vec2 70, 30
-				allClear!
-				isInEntry = true
-				currentEntry = nil
+			back = Button zh and "主页" or "Home", Vec2 70, 30
 			currentIndex = nil
 			for i, entry in ipairs allEntries
 				if currentEntry == entry
@@ -839,6 +878,10 @@ footerWindow = threadLoop ->
 			SameLine!
 			if Button zh and "刷新" or "Reload", Vec2 70, 30
 				reloadCurrentEntry!
+			if back
+				allClear!
+				isInEntry = true
+				currentEntry = nil
 		<- PushStyleVar "WindowPadding", Vec2 10, 10
 		if showStats
 			SetNextWindowPos Vec2(10, 50), $SetCond FirstUseEver

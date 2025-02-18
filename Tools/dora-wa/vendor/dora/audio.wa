@@ -1,0 +1,36 @@
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+#wa:import dora audio_play
+func audio_play(filename: i64, looping: i32) => i32
+
+#wa:import dora audio_stop
+func audio_stop(handle: i32)
+
+#wa:import dora audio_play_stream
+func audio_play_stream(filename: i64, looping: i32, cross_fade_time: f32)
+
+#wa:import dora audio_stop_stream
+func audio_stop_stream(fade_time: f32)
+
+type _Audio :struct{}
+
+global Audio = _Audio{}
+
+func _Audio.Play(filename: string, looping: bool) => i32 {
+	return audio_play(ToDoraString(filename), ToDoraBool(looping))
+}
+func _Audio.Stop(handle: i32) {
+	audio_stop(handle)
+}
+func _Audio.PlayStream(filename: string, looping: bool, cross_fade_time: f32) {
+	audio_play_stream(ToDoraString(filename), ToDoraBool(looping), cross_fade_time)
+}
+func _Audio.StopStream(fade_time: f32) {
+	audio_stop_stream(fade_time)
+}

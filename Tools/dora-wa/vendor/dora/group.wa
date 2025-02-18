@@ -1,0 +1,103 @@
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+#wa:import dora group_type
+func group_type() => i32
+
+#wa:import dora entitygroup_get_count
+func entitygroup_get_count(slf: i64) => i32
+
+#wa:import dora entitygroup_get_first
+func entitygroup_get_first(slf: i64) => i64
+
+#wa:import dora entitygroup_find
+func entitygroup_find(slf: i64, func0: i32, stack0: i64) => i64
+
+#wa:import dora entitygroup_new
+func entitygroup_new(components: i64) => i64
+
+type Group :struct{ Object }
+
+func GroupFrom(raw: i64) => *Group {
+	if raw == 0 {
+		return nil
+	}
+	object := Group{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	result := &object
+	return result
+}
+func Group.GetTypeId() => i32 {
+	return group_type()
+}
+func ObjectAsGroup(object: Object) => *Group {
+	if object.GetTypeId() == group_type() {
+		ObjectRetain(object.GetRaw())
+		return GroupFrom(object.GetRaw())
+	}
+	return nil
+}
+
+/// Gets the number of entities in the group.
+func Group.GetCount() => i32 {
+	return entitygroup_get_count(*this.raw)
+}
+
+/// Gets the first entity in the group.
+func Group.GetFirst() => *Entity {
+	ptr_ := entitygroup_get_first(*this.raw)
+	if ptr_ == 0 {
+		return nil
+	}
+	obj_ := *EntityFrom(ptr_)
+	return &obj_
+}
+
+/// Finds the first entity in the group that satisfies a predicate function.
+///
+/// # Arguments
+///
+/// * `predicate` - The predicate function to test each entity with.
+///
+/// # Returns
+///
+/// * `Option<Entity>` - The first entity that satisfies the predicate, or None if no entity does.
+func Group.Find(predicate: func(e: Entity) => bool) => *Entity {
+	stack0 := NewCallStack()
+	func_id0 := PushFunction(func() {
+		e_obj := stack0.PopObject()
+		ObjectRetain(e_obj.GetRaw())
+		e := *EntityFrom(e_obj.GetRaw())
+		result_ := predicate(e)
+		stack0.Push(result_)
+	})
+	ptr_ := entitygroup_find(*this.raw, func_id0, *stack0.raw)
+	if ptr_ == 0 {
+		return nil
+	}
+	obj_ := *EntityFrom(ptr_)
+	return &obj_
+}
+
+/// A method that creates a new group with the specified component names.
+///
+/// # Arguments
+///
+/// * `components` - A vector listing the names of the components to include in the group.
+///
+/// # Returns
+///
+/// * `Group` - The new group.
+func NewGroup(components: *[]string) => Group {
+	raw := entitygroup_new(ToDoraStrBuf(components))
+	object := Group{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return object
+}

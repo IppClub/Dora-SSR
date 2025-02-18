@@ -1,0 +1,114 @@
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+#wa:import dora platformer_targetallow_release
+func platformer_targetallow_release(raw: i64)
+
+#wa:import dora platformer_targetallow_set_terrain_allowed
+func platformer_targetallow_set_terrain_allowed(slf: i64, val: i32)
+
+#wa:import dora platformer_targetallow_is_terrain_allowed
+func platformer_targetallow_is_terrain_allowed(slf: i64) => i32
+
+#wa:import dora platformer_targetallow_allow
+func platformer_targetallow_allow(slf: i64, relation: i32, allow: i32)
+
+#wa:import dora platformer_targetallow_is_allow
+func platformer_targetallow_is_allow(slf: i64, relation: i32) => i32
+
+#wa:import dora platformer_targetallow_to_value
+func platformer_targetallow_to_value(slf: i64) => i32
+
+#wa:import dora platformer_targetallow_new
+func platformer_targetallow_new() => i64
+
+#wa:import dora platformer_targetallow_with_value
+func platformer_targetallow_with_value(value: i32) => i64
+
+type PlatformerTargetAllow :struct{ raw: *i64 }
+
+func PlatformerTargetAllow.GetRaw() => i64 {
+	return *this.raw
+}
+func platformer_target_allow_finalizer(ptr: u32) {
+	platformer_targetallow_release(GetPtr(ptr))
+}
+func PlatformerTargetAllowFrom(raw: i64) => *PlatformerTargetAllow {
+	if raw == 0 {
+		return nil
+	}
+	item := PlatformerTargetAllow{}
+	item.raw = &raw
+	setFinalizer(item.raw, platformer_target_allow_finalizer)
+	result := &item
+	return result
+}
+
+/// Sets whether the bullet object can collide with terrain.
+func PlatformerTargetAllow.SetTerrainAllowed(val: bool) {
+	platformer_targetallow_set_terrain_allowed(*this.raw, ToDoraBool(val))
+}
+
+/// Gets whether the bullet object can collide with terrain.
+func PlatformerTargetAllow.IsTerrainAllowed() => bool {
+	return platformer_targetallow_is_terrain_allowed(*this.raw) != 0
+}
+
+/// Allows or disallows the bullet object to interact with a game object or unit, based on their relationship.
+///
+/// # Arguments
+///
+/// * `relation` - The relationship between the bullet object and the other game object or unit.
+/// * `allow` - Whether the bullet object should be allowed to interact.
+func PlatformerTargetAllow.Allow(relation: PlatformerRelation, allow: bool) {
+	platformer_targetallow_allow(*this.raw, relation.ToValue(), ToDoraBool(allow))
+}
+
+/// Determines whether the bullet object is allowed to interact with a game object or unit, based on their relationship.
+///
+/// # Arguments
+///
+/// * `relation` - The relationship between the bullet object and the other game object or unit.
+///
+/// # Returns
+///
+/// * `bool` - Whether the bullet object is allowed to interact.
+func PlatformerTargetAllow.IsAllow(relation: PlatformerRelation) => bool {
+	return platformer_targetallow_is_allow(*this.raw, relation.ToValue()) != 0
+}
+
+/// Converts the object to a value that can be used for interaction settings.
+///
+/// # Returns
+///
+/// * `usize` - The value that can be used for interaction settings.
+func PlatformerTargetAllow.ToValue() => i32 {
+	return platformer_targetallow_to_value(*this.raw)
+}
+
+/// Creates a new TargetAllow object with default settings.
+func NewPlatformerTargetAllow() => PlatformerTargetAllow {
+	raw := platformer_targetallow_new()
+	object := PlatformerTargetAllow{}
+	object.raw = &raw
+	setFinalizer(object.raw, platformer_target_allow_finalizer)
+	return object
+}
+
+/// Creates a new TargetAllow object with the specified value.
+///
+/// # Arguments
+///
+/// * `value` - The value to use for the new TargetAllow object.
+func NewPlatformerTargetAllowWithValue(value: i32) => PlatformerTargetAllow {
+	raw := platformer_targetallow_with_value(value)
+	object := PlatformerTargetAllow{}
+	object.raw = &raw
+	setFinalizer(object.raw, platformer_target_allow_finalizer)
+	return object
+}

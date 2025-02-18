@@ -1,3 +1,11 @@
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
 use dora_ssr::*;
 
 pub fn test() {
@@ -31,8 +39,9 @@ pub fn test() {
 			get_scene()
 		) {
 			if let Some(mut sprite) = Sprite::with_file(&image) {
+				sprite.set_size(&Size::new(300.0, 300.0));
 				sprite.add_to(&scene);
-				sprite.run_action_def(ActionDef::scale(0.5, 0.0, 0.5, EaseType::OutBack), false);
+				sprite.run_action_def(ActionDef::scale(0.5, 0.0, 1.0, EaseType::OutBack), false);
 				entity.set("sprite", sprite.obj());
 			}
 		}
@@ -73,7 +82,7 @@ pub fn test() {
 				return false;
 			}
 			let dir = (target - position).normalize();
-			let angle = dir.x.atan2(dir.y).to_degrees();
+			let angle = Math::deg(Math::atan2(dir.x, dir.y));
 			let new_pos = position + dir * speed;
 			let new_pos = new_pos.clamp(&position, &target);
 			entity.set("position", new_pos);
@@ -162,7 +171,7 @@ pub fn test() {
 					if let Some(mut sprite) = get_sprite(&entity) {
 						sprite.run_action_def(
 							ActionDef::sequence(&vec![
-								ActionDef::scale(0.5, 0.5, 0.0, EaseType::InBack),
+								ActionDef::scale(0.5, 1.0, 0.0, EaseType::InBack),
 								ActionDef::event("Destroy", "")
 							]), false);
 						sprite.slot("Destroy", Box::new(move |_| {

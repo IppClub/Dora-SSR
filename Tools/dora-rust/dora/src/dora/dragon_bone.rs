@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -8,7 +8,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 	fn dragonbone_type() -> i32;
-	fn dragonbone_set_hit_test_enabled(slf: i64, var: i32);
+	fn dragonbone_set_hit_test_enabled(slf: i64, val: i32);
 	fn dragonbone_is_hit_test_enabled(slf: i64) -> i32;
 	fn dragonbone_contains_point(slf: i64, x: f32, y: f32) -> i64;
 	fn dragonbone_intersects_segment(slf: i64, x_1: f32, y_1: f32, x_2: f32, y_2: f32) -> i64;
@@ -35,8 +35,8 @@ impl DragonBone {
 		})
 	}
 	/// Sets whether hit testing is enabled.
-	pub fn set_hit_test_enabled(&mut self, var: bool) {
-		unsafe { dragonbone_set_hit_test_enabled(self.raw(), if var { 1 } else { 0 }) };
+	pub fn set_hit_test_enabled(&mut self, val: bool) {
+		unsafe { dragonbone_set_hit_test_enabled(self.raw(), if val { 1 } else { 0 }) };
 	}
 	/// Gets whether hit testing is enabled.
 	pub fn is_hit_test_enabled(&self) -> bool {

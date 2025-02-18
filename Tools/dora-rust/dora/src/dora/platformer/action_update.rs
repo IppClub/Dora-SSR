@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -8,7 +8,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 	fn platformer_actionupdate_type() -> i32;
-	fn platformer_wasmactionupdate_new(func: i32, stack: i64) -> i64;
+	fn platformer_wasmactionupdate_new(func0: i32, stack0: i64) -> i64;
 }
 use crate::dora::IObject;
 pub struct ActionUpdate { raw: i64 }
@@ -23,12 +23,12 @@ impl ActionUpdate {
 		})
 	}
 	pub fn new(mut update: Box<dyn FnMut(&crate::dora::platformer::Unit, &crate::dora::platformer::UnitAction, f32) -> bool>) -> ActionUpdate {
-		let mut stack = crate::dora::CallStack::new();
-		let stack_raw = stack.raw();
-		let func_id = crate::dora::push_function(Box::new(move || {
-			let result = update(&stack.pop_cast::<crate::dora::platformer::Unit>().unwrap(), &crate::dora::platformer::UnitAction::from(stack.pop_i64().unwrap()).unwrap(), stack.pop_f32().unwrap());
-			stack.push_bool(result);
+		let mut stack0 = crate::dora::CallStack::new();
+		let stack_raw0 = stack0.raw();
+		let func_id0 = crate::dora::push_function(Box::new(move || {
+			let result = update(&stack0.pop_cast::<crate::dora::platformer::Unit>().unwrap(), &crate::dora::platformer::UnitAction::from(stack0.pop_i64().unwrap()).unwrap(), stack0.pop_f32().unwrap());
+			stack0.push_bool(result);
 		}));
-		unsafe { return ActionUpdate { raw: platformer_wasmactionupdate_new(func_id, stack_raw) }; }
+		unsafe { return ActionUpdate { raw: platformer_wasmactionupdate_new(func_id0, stack_raw0) }; }
 	}
 }

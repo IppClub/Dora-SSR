@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -10,7 +10,7 @@ extern "C" {
 	fn group_type() -> i32;
 	fn entitygroup_get_count(slf: i64) -> i32;
 	fn entitygroup_get_first(slf: i64) -> i64;
-	fn entitygroup_find(slf: i64, func: i32, stack: i64) -> i64;
+	fn entitygroup_find(slf: i64, func0: i32, stack0: i64) -> i64;
 	fn entitygroup_new(components: i64) -> i64;
 }
 use crate::dora::IObject;
@@ -38,19 +38,19 @@ impl Group {
 	///
 	/// # Arguments
 	///
-	/// * `func` - The predicate function to test each entity with.
+	/// * `predicate` - The predicate function to test each entity with.
 	///
 	/// # Returns
 	///
 	/// * `Option<Entity>` - The first entity that satisfies the predicate, or None if no entity does.
-	pub fn find(&self, mut func: Box<dyn FnMut(&crate::dora::Entity) -> bool>) -> Option<crate::dora::Entity> {
-		let mut stack = crate::dora::CallStack::new();
-		let stack_raw = stack.raw();
-		let func_id = crate::dora::push_function(Box::new(move || {
-			let result = func(&stack.pop_cast::<crate::dora::Entity>().unwrap());
-			stack.push_bool(result);
+	pub fn find(&self, mut predicate: Box<dyn FnMut(&crate::dora::Entity) -> bool>) -> Option<crate::dora::Entity> {
+		let mut stack0 = crate::dora::CallStack::new();
+		let stack_raw0 = stack0.raw();
+		let func_id0 = crate::dora::push_function(Box::new(move || {
+			let result = predicate(&stack0.pop_cast::<crate::dora::Entity>().unwrap());
+			stack0.push_bool(result);
 		}));
-		unsafe { return crate::dora::Entity::from(entitygroup_find(self.raw(), func_id, stack_raw)); }
+		unsafe { return crate::dora::Entity::from(entitygroup_find(self.raw(), func_id0, stack_raw0)); }
 	}
 	/// A method that creates a new group with the specified component names.
 	///

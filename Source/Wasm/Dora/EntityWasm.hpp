@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -11,7 +11,7 @@ using namespace Dora;
 int32_t entity_type() {
 	return DoraType<Entity>();
 }
-int32_t entity_get_count(int64_t self) {
+int32_t entity_get_count() {
 	return s_cast<int32_t>(Entity::getCount());
 }
 int32_t entity_get_index(int64_t self) {

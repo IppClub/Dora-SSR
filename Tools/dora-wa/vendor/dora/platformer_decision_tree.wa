@@ -1,0 +1,181 @@
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+#wa:import dora platformer_decision_tree_type
+func platformer_decision_tree_type() => i32
+
+#wa:import dora platformer_decision_leaf_sel
+func platformer_decision_leaf_sel(nodes: i64) => i64
+
+#wa:import dora platformer_decision_leaf_seq
+func platformer_decision_leaf_seq(nodes: i64) => i64
+
+#wa:import dora platformer_decision_leaf_con
+func platformer_decision_leaf_con(name: i64, func0: i32, stack0: i64) => i64
+
+#wa:import dora platformer_decision_leaf_act
+func platformer_decision_leaf_act(action_name: i64) => i64
+
+#wa:import dora platformer_decision_leaf_act_dynamic
+func platformer_decision_leaf_act_dynamic(func0: i32, stack0: i64) => i64
+
+#wa:import dora platformer_decision_leaf_accept
+func platformer_decision_leaf_accept() => i64
+
+#wa:import dora platformer_decision_leaf_reject
+func platformer_decision_leaf_reject() => i64
+
+#wa:import dora platformer_decision_leaf_behave
+func platformer_decision_leaf_behave(name: i64, root: i64) => i64
+
+type PlatformerDecisionTree :struct{ Object }
+
+func PlatformerDecisionTreeFrom(raw: i64) => *PlatformerDecisionTree {
+	if raw == 0 {
+		return nil
+	}
+	object := PlatformerDecisionTree{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	result := &object
+	return result
+}
+func PlatformerDecisionTree.GetTypeId() => i32 {
+	return platformer_decision_tree_type()
+}
+func ObjectAsPlatformerDecisionTree(object: Object) => *PlatformerDecisionTree {
+	if object.GetTypeId() == platformer_decision_tree_type() {
+		ObjectRetain(object.GetRaw())
+		return PlatformerDecisionTreeFrom(object.GetRaw())
+	}
+	return nil
+}
+
+/// Creates a selector node with the specified child nodes.
+///
+/// A selector node will go through the child nodes until one succeeds.
+///
+/// # Arguments
+///
+/// * `nodes` - An array of `Leaf` nodes.
+///
+/// # Returns
+///
+/// * A `Leaf` node that represents a selector.
+func PlatformerDecisionTreeSel(nodes: *[]PlatformerDecisionTree) => PlatformerDecisionTree {
+	return *PlatformerDecisionTreeFrom(platformer_decision_leaf_sel(ToDoraPlatformerDecisionTreeBuf(nodes)))
+}
+
+/// Creates a sequence node with the specified child nodes.
+///
+/// A sequence node will go through the child nodes until all nodes succeed.
+///
+/// # Arguments
+///
+/// * `nodes` - An array of `Leaf` nodes.
+///
+/// # Returns
+///
+/// * A `Leaf` node that represents a sequence.
+func PlatformerDecisionTreeSeq(nodes: *[]PlatformerDecisionTree) => PlatformerDecisionTree {
+	return *PlatformerDecisionTreeFrom(platformer_decision_leaf_seq(ToDoraPlatformerDecisionTreeBuf(nodes)))
+}
+
+/// Creates a condition node with the specified name and handler function.
+///
+/// # Arguments
+///
+/// * `name` - The name of the condition.
+/// * `check` - The check function that takes a `Unit` parameter and returns a boolean result.
+///
+/// # Returns
+///
+/// * A `Leaf` node that represents a condition check.
+func PlatformerDecisionTreeCon(name: string, handler: func(unit: PlatformerUnit) => bool) => PlatformerDecisionTree {
+	stack0 := NewCallStack()
+	func_id0 := PushFunction(func() {
+		unit_obj := stack0.PopObject()
+		ObjectRetain(unit_obj.GetRaw())
+		unit := *PlatformerUnitFrom(unit_obj.GetRaw())
+		result_ := handler(unit)
+		stack0.Push(result_)
+	})
+	return *PlatformerDecisionTreeFrom(platformer_decision_leaf_con(ToDoraString(name), func_id0, *stack0.raw))
+}
+
+/// Creates an action node with the specified action name.
+///
+/// # Arguments
+///
+/// * `action_name` - The name of the action to perform.
+///
+/// # Returns
+///
+/// * A `Leaf` node that represents an action.
+func PlatformerDecisionTreeAct(action_name: string) => PlatformerDecisionTree {
+	return *PlatformerDecisionTreeFrom(platformer_decision_leaf_act(ToDoraString(action_name)))
+}
+
+/// Creates an action node with the specified handler function.
+///
+/// # Arguments
+///
+/// * `handler` - The handler function that takes a `Unit` parameter which is the running AI agent and returns an action.
+///
+/// # Returns
+///
+/// * A `Leaf` node that represents an action.
+func PlatformerDecisionTreeActDynamic(handler: func(unit: PlatformerUnit) => string) => PlatformerDecisionTree {
+	stack0 := NewCallStack()
+	func_id0 := PushFunction(func() {
+		unit_obj := stack0.PopObject()
+		ObjectRetain(unit_obj.GetRaw())
+		unit := *PlatformerUnitFrom(unit_obj.GetRaw())
+		result_ := handler(unit)
+		stack0.Push(result_)
+	})
+	return *PlatformerDecisionTreeFrom(platformer_decision_leaf_act_dynamic(func_id0, *stack0.raw))
+}
+
+/// Creates a leaf node that represents accepting the current behavior tree.
+///
+/// Always get success result from this node.
+///
+/// # Returns
+///
+/// * A `Leaf` node.
+func PlatformerDecisionTreeAccept() => PlatformerDecisionTree {
+	return *PlatformerDecisionTreeFrom(platformer_decision_leaf_accept())
+}
+
+/// Creates a leaf node that represents rejecting the current behavior tree.
+///
+/// Always get failure result from this node.
+///
+/// # Returns
+///
+/// * A `Leaf` node.
+func PlatformerDecisionTreeReject() => PlatformerDecisionTree {
+	return *PlatformerDecisionTreeFrom(platformer_decision_leaf_reject())
+}
+
+/// Creates a leaf node with the specified behavior tree as its root.
+///
+/// It is possible to include a Behavior Tree as a node in a Decision Tree by using the Behave() function. This allows the AI to use a combination of decision-making and behavior execution to achieve its goals.
+///
+/// # Arguments
+///
+/// * `name` - The name of the behavior tree.
+/// * `root` - The root node of the behavior tree.
+///
+/// # Returns
+///
+/// * A `Leaf` node.
+func PlatformerDecisionTreeBehave(name: string, root: PlatformerBehaviorTree) => PlatformerDecisionTree {
+	return *PlatformerDecisionTreeFrom(platformer_decision_leaf_behave(ToDoraString(name), root.GetRaw()))
+}

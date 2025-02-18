@@ -1,0 +1,54 @@
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+#wa:import dora platformer_decision_ai_get_units_by_relation
+func platformer_decision_ai_get_units_by_relation(relation: i32) => i64
+
+#wa:import dora platformer_decision_ai_get_detected_units
+func platformer_decision_ai_get_detected_units() => i64
+
+#wa:import dora platformer_decision_ai_get_detected_bodies
+func platformer_decision_ai_get_detected_bodies() => i64
+
+#wa:import dora platformer_decision_ai_get_nearest_unit
+func platformer_decision_ai_get_nearest_unit(relation: i32) => i64
+
+#wa:import dora platformer_decision_ai_get_nearest_unit_distance
+func platformer_decision_ai_get_nearest_unit_distance(relation: i32) => f32
+
+#wa:import dora platformer_decision_ai_get_units_in_attack_range
+func platformer_decision_ai_get_units_in_attack_range() => i64
+
+#wa:import dora platformer_decision_ai_get_bodies_in_attack_range
+func platformer_decision_ai_get_bodies_in_attack_range() => i64
+
+type _PlatformerDecisionAI :struct{}
+
+global PlatformerDecisionAI = _PlatformerDecisionAI{}
+
+func _PlatformerDecisionAI.GetUnitsByRelation(relation: PlatformerRelation) => Array {
+	return *ArrayFrom(platformer_decision_ai_get_units_by_relation(relation.ToValue()))
+}
+func _PlatformerDecisionAI.GetDetectedUnits() => Array {
+	return *ArrayFrom(platformer_decision_ai_get_detected_units())
+}
+func _PlatformerDecisionAI.GetDetectedBodies() => Array {
+	return *ArrayFrom(platformer_decision_ai_get_detected_bodies())
+}
+func _PlatformerDecisionAI.GetNearestUnit(relation: PlatformerRelation) => PlatformerUnit {
+	return *PlatformerUnitFrom(platformer_decision_ai_get_nearest_unit(relation.ToValue()))
+}
+func _PlatformerDecisionAI.GetNearestUnitDistance(relation: PlatformerRelation) => f32 {
+	return platformer_decision_ai_get_nearest_unit_distance(relation.ToValue())
+}
+func _PlatformerDecisionAI.GetUnitsInAttackRange() => Array {
+	return *ArrayFrom(platformer_decision_ai_get_units_in_attack_range())
+}
+func _PlatformerDecisionAI.GetBodiesInAttackRange() => Array {
+	return *ArrayFrom(platformer_decision_ai_get_bodies_in_attack_range())
+}

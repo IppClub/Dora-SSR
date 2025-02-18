@@ -1,0 +1,315 @@
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+#wa:import dora application_get_frame
+func application_get_frame() => i32
+
+#wa:import dora application_get_buffer_size
+func application_get_buffer_size() => i64
+
+#wa:import dora application_get_visual_size
+func application_get_visual_size() => i64
+
+#wa:import dora application_get_device_pixel_ratio
+func application_get_device_pixel_ratio() => f32
+
+#wa:import dora application_get_platform
+func application_get_platform() => i64
+
+#wa:import dora application_get_version
+func application_get_version() => i64
+
+#wa:import dora application_get_deps
+func application_get_deps() => i64
+
+#wa:import dora application_get_delta_time
+func application_get_delta_time() => f64
+
+#wa:import dora application_get_elapsed_time
+func application_get_elapsed_time() => f64
+
+#wa:import dora application_get_total_time
+func application_get_total_time() => f64
+
+#wa:import dora application_get_running_time
+func application_get_running_time() => f64
+
+#wa:import dora application_get_rand
+func application_get_rand() => i64
+
+#wa:import dora application_get_max_fps
+func application_get_max_fps() => i32
+
+#wa:import dora application_is_debugging
+func application_is_debugging() => i32
+
+#wa:import dora application_set_locale
+func application_set_locale(val: i64)
+
+#wa:import dora application_get_locale
+func application_get_locale() => i64
+
+#wa:import dora application_set_theme_color
+func application_set_theme_color(val: i32)
+
+#wa:import dora application_get_theme_color
+func application_get_theme_color() => i32
+
+#wa:import dora application_set_seed
+func application_set_seed(val: i32)
+
+#wa:import dora application_get_seed
+func application_get_seed() => i32
+
+#wa:import dora application_set_target_fps
+func application_set_target_fps(val: i32)
+
+#wa:import dora application_get_target_fps
+func application_get_target_fps() => i32
+
+#wa:import dora application_set_win_size
+func application_set_win_size(val: i64)
+
+#wa:import dora application_get_win_size
+func application_get_win_size() => i64
+
+#wa:import dora application_set_win_position
+func application_set_win_position(val: i64)
+
+#wa:import dora application_get_win_position
+func application_get_win_position() => i64
+
+#wa:import dora application_set_fps_limited
+func application_set_fps_limited(val: i32)
+
+#wa:import dora application_is_fps_limited
+func application_is_fps_limited() => i32
+
+#wa:import dora application_set_idled
+func application_set_idled(val: i32)
+
+#wa:import dora application_is_idled
+func application_is_idled() => i32
+
+#wa:import dora application_set_full_screen
+func application_set_full_screen(val: i32)
+
+#wa:import dora application_is_full_screen
+func application_is_full_screen() => i32
+
+#wa:import dora application_set_always_on_top
+func application_set_always_on_top(val: i32)
+
+#wa:import dora application_is_always_on_top
+func application_is_always_on_top() => i32
+
+#wa:import dora application_shutdown
+func application_shutdown()
+
+type _App :struct{}
+
+global App = _App{}
+
+/// Gets the current passed frame number.
+func _App.GetFrame() => i32 {
+	return application_get_frame()
+}
+
+/// Gets the size of the main frame buffer texture used for rendering.
+func _App.GetBufferSize() => Size {
+	return SizeFromValue(application_get_buffer_size())
+}
+
+/// Gets the logic visual size of the screen.
+/// The visual size only changes when application window size changes.
+/// And it won't be affacted by the view buffer scaling factor.
+func _App.GetVisualSize() => Size {
+	return SizeFromValue(application_get_visual_size())
+}
+
+/// Gets the ratio of the pixel density displayed by the device
+/// Can be calculated as the size of the rendering buffer divided by the size of the application window.
+func _App.GetDevicePixelRatio() => f32 {
+	return application_get_device_pixel_ratio()
+}
+
+/// Gets the platform the game engine is running on.
+func _App.GetPlatform() => string {
+	return FromDoraString(application_get_platform())
+}
+
+/// Gets the version string of the game engine.
+/// Should be in format of "v0.0.0".
+func _App.GetVersion() => string {
+	return FromDoraString(application_get_version())
+}
+
+/// Gets the dependencies of the game engine.
+func _App.GetDeps() => string {
+	return FromDoraString(application_get_deps())
+}
+
+/// Gets the time in seconds since the last frame update.
+func _App.GetDeltaTime() => f64 {
+	return application_get_delta_time()
+}
+
+/// Gets the elapsed time since current frame was started, in seconds.
+func _App.GetElapsedTime() => f64 {
+	return application_get_elapsed_time()
+}
+
+/// Gets the total time the game engine has been running until last frame ended, in seconds.
+/// Should be a contant number when invoked in a same frame for multiple times.
+func _App.GetTotalTime() => f64 {
+	return application_get_total_time()
+}
+
+/// Gets the total time the game engine has been running until this field being accessed, in seconds.
+/// Should be a increasing number when invoked in a same frame for multiple times.
+func _App.GetRunningTime() => f64 {
+	return application_get_running_time()
+}
+
+/// Gets a random number generated by a random number engine based on Mersenne Twister algorithm.
+/// So that the random number generated by a same seed should be consistent on every platform.
+func _App.GetRand() => i64 {
+	return application_get_rand()
+}
+
+/// Gets the maximum valid frames per second the game engine is allowed to run at.
+/// The max FPS is being inferred by the device screen max refresh rate.
+func _App.GetMaxFps() => i32 {
+	return application_get_max_fps()
+}
+
+/// Gets whether the game engine is running in debug mode.
+func _App.IsDebugging() => bool {
+	return application_is_debugging() != 0
+}
+
+/// Sets the system locale string, in format like: `zh-Hans`, `en`.
+func _App.SetLocale(val: string) {
+	application_set_locale(ToDoraString(val))
+}
+
+/// Gets the system locale string, in format like: `zh-Hans`, `en`.
+func _App.GetLocale() => string {
+	return FromDoraString(application_get_locale())
+}
+
+/// Sets the theme color for Dora SSR.
+func _App.SetThemeColor(val: Color) {
+	application_set_theme_color(val.ToARGB())
+}
+
+/// Gets the theme color for Dora SSR.
+func _App.GetThemeColor() => Color {
+	return NewColor(application_get_theme_color())
+}
+
+/// Sets the random number seed.
+func _App.SetSeed(val: i32) {
+	application_set_seed(val)
+}
+
+/// Gets the random number seed.
+func _App.GetSeed() => i32 {
+	return application_get_seed()
+}
+
+/// Sets the target frames per second the game engine is supposed to run at.
+/// Only works when `fpsLimited` is set to true.
+func _App.SetTargetFps(val: i32) {
+	application_set_target_fps(val)
+}
+
+/// Gets the target frames per second the game engine is supposed to run at.
+/// Only works when `fpsLimited` is set to true.
+func _App.GetTargetFps() => i32 {
+	return application_get_target_fps()
+}
+
+/// Sets the application window size.
+/// May differ from visual size due to the different DPIs of display devices.
+/// It is not available to set this property on platform Android and iOS.
+func _App.SetWinSize(val: Size) {
+	application_set_win_size(val.ToValue())
+}
+
+/// Gets the application window size.
+/// May differ from visual size due to the different DPIs of display devices.
+/// It is not available to set this property on platform Android and iOS.
+func _App.GetWinSize() => Size {
+	return SizeFromValue(application_get_win_size())
+}
+
+/// Sets the application window position.
+/// It is not available to set this property on platform Android and iOS.
+func _App.SetWinPosition(val: Vec2) {
+	application_set_win_position(val.ToValue())
+}
+
+/// Gets the application window position.
+/// It is not available to set this property on platform Android and iOS.
+func _App.GetWinPosition() => Vec2 {
+	return Vec2FromValue(application_get_win_position())
+}
+
+/// Sets whether the game engine is limiting the frames per second.
+/// Set `fpsLimited` to true, will make engine run in a busy loop to track the  precise frame time to switch to the next frame. And this behavior can lead to 100% CPU usage. This is usually common practice on Windows PCs for better CPU usage occupation. But it also results in extra heat and power consumption.
+func _App.SetFpsLimited(val: bool) {
+	application_set_fps_limited(ToDoraBool(val))
+}
+
+/// Gets whether the game engine is limiting the frames per second.
+/// Set `fpsLimited` to true, will make engine run in a busy loop to track the  precise frame time to switch to the next frame. And this behavior can lead to 100% CPU usage. This is usually common practice on Windows PCs for better CPU usage occupation. But it also results in extra heat and power consumption.
+func _App.IsFpsLimited() => bool {
+	return application_is_fps_limited() != 0
+}
+
+/// Sets whether the game engine is currently idled.
+/// Set `idled` to true, will make game logic thread use a sleep time and going idled for next frame to come. Due to the imprecision in sleep time. This idled state may cause game engine over slept for a few frames to lost.
+/// `idled` state can reduce some CPU usage.
+func _App.SetIdled(val: bool) {
+	application_set_idled(ToDoraBool(val))
+}
+
+/// Gets whether the game engine is currently idled.
+/// Set `idled` to true, will make game logic thread use a sleep time and going idled for next frame to come. Due to the imprecision in sleep time. This idled state may cause game engine over slept for a few frames to lost.
+/// `idled` state can reduce some CPU usage.
+func _App.IsIdled() => bool {
+	return application_is_idled() != 0
+}
+
+/// Sets whether the game engine is running in full screen mode.
+/// It is not available to set this property on platform Android and iOS.
+func _App.SetFullScreen(val: bool) {
+	application_set_full_screen(ToDoraBool(val))
+}
+
+/// Gets whether the game engine is running in full screen mode.
+/// It is not available to set this property on platform Android and iOS.
+func _App.IsFullScreen() => bool {
+	return application_is_full_screen() != 0
+}
+
+/// Sets whether the game engine window is always on top. Default is true.
+/// It is not available to set this property on platform Android and iOS.
+func _App.SetAlwaysOnTop(val: bool) {
+	application_set_always_on_top(ToDoraBool(val))
+}
+
+/// Gets whether the game engine window is always on top. Default is true.
+/// It is not available to set this property on platform Android and iOS.
+func _App.IsAlwaysOnTop() => bool {
+	return application_is_always_on_top() != 0
+}
+func _App.Shutdown() {
+	application_shutdown()
+}

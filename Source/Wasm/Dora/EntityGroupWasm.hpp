@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -17,16 +17,16 @@ int32_t entitygroup_get_count(int64_t self) {
 int64_t entitygroup_get_first(int64_t self) {
 	return Object_From(r_cast<EntityGroup*>(self)->getFirst());
 }
-int64_t entitygroup_find(int64_t self, int32_t func, int64_t stack) {
-	std::shared_ptr<void> deref(nullptr, [func](auto) {
-		SharedWasmRuntime.deref(func);
+int64_t entitygroup_find(int64_t self, int32_t func0, int64_t stack0) {
+	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
+		SharedWasmRuntime.deref(func0);
 	});
-	auto args = r_cast<CallStack*>(stack);
-	return Object_From(r_cast<EntityGroup*>(self)->find([func, args, deref](Entity* e) {
-		args->clear();
-		args->push(e);
-		SharedWasmRuntime.invoke(func);
-		return std::get<bool>(args->pop());
+	auto args0 = r_cast<CallStack*>(stack0);
+	return Object_From(r_cast<EntityGroup*>(self)->find([func0, args0, deref0](Entity* e) {
+		args0->clear();
+		args0->push(e);
+		SharedWasmRuntime.invoke(func0);
+		return args0->pop_bool_or(false);
 	}));
 }
 int64_t entitygroup_new(int64_t components) {

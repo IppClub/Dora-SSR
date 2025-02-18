@@ -1,0 +1,1253 @@
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+#wa:import dora imgui_load_font_ttf_async
+func imgui_load_font_ttf_async(ttf_font_file: i64, font_size: f32, glyph_ranges: i64, func0: i32, stack0: i64)
+
+#wa:import dora imgui_is_font_loaded
+func imgui_is_font_loaded() => i32
+
+#wa:import dora imgui_show_stats
+func imgui_show_stats()
+
+#wa:import dora imgui_show_console
+func imgui_show_console()
+
+#wa:import dora imgui__begin_opts
+func imgui__begin_opts(name: i64, windows_flags: i32) => i32
+
+#wa:import dora imgui__end
+func imgui__end()
+
+#wa:import dora imgui__begin_child_opts
+func imgui__begin_child_opts(str_id: i64, size: i64, child_flags: i32, window_flags: i32) => i32
+
+#wa:import dora imgui__begin_child_with_id_opts
+func imgui__begin_child_with_id_opts(id: i32, size: i64, child_flags: i32, window_flags: i32) => i32
+
+#wa:import dora imgui__end_child
+func imgui__end_child()
+
+#wa:import dora imgui__set_next_window_pos_center_opts
+func imgui__set_next_window_pos_center_opts(set_cond: i32)
+
+#wa:import dora imgui__set_next_window_size_opts
+func imgui__set_next_window_size_opts(size: i64, set_cond: i32)
+
+#wa:import dora imgui__set_next_window_collapsed_opts
+func imgui__set_next_window_collapsed_opts(collapsed: i32, set_cond: i32)
+
+#wa:import dora imgui__set_window_pos_opts
+func imgui__set_window_pos_opts(name: i64, pos: i64, set_cond: i32)
+
+#wa:import dora imgui__set_window_size_opts
+func imgui__set_window_size_opts(name: i64, size: i64, set_cond: i32)
+
+#wa:import dora imgui__set_window_collapsed_opts
+func imgui__set_window_collapsed_opts(name: i64, collapsed: i32, set_cond: i32)
+
+#wa:import dora imgui__set_color_edit_options
+func imgui__set_color_edit_options(color_edit_flags: i32)
+
+#wa:import dora imgui__input_text_opts
+func imgui__input_text_opts(label: i64, buffer: i64, input_text_flags: i32) => i32
+
+#wa:import dora imgui__input_text_multiline_opts
+func imgui__input_text_multiline_opts(label: i64, buffer: i64, size: i64, input_text_flags: i32) => i32
+
+#wa:import dora imgui__tree_node_ex_opts
+func imgui__tree_node_ex_opts(label: i64, tree_node_flags: i32) => i32
+
+#wa:import dora imgui__tree_node_ex_with_id_opts
+func imgui__tree_node_ex_with_id_opts(str_id: i64, text: i64, tree_node_flags: i32) => i32
+
+#wa:import dora imgui__set_next_item_open_opts
+func imgui__set_next_item_open_opts(is_open: i32, set_cond: i32)
+
+#wa:import dora imgui__collapsing_header_opts
+func imgui__collapsing_header_opts(label: i64, tree_node_flags: i32) => i32
+
+#wa:import dora imgui__selectable_opts
+func imgui__selectable_opts(label: i64, selectable_flags: i32) => i32
+
+#wa:import dora imgui__begin_popup_modal_opts
+func imgui__begin_popup_modal_opts(name: i64, windows_flags: i32) => i32
+
+#wa:import dora imgui__begin_popup_modal_ret_opts
+func imgui__begin_popup_modal_ret_opts(name: i64, stack: i64, windows_flags: i32) => i32
+
+#wa:import dora imgui__begin_popup_context_item_opts
+func imgui__begin_popup_context_item_opts(name: i64, popup_flags: i32) => i32
+
+#wa:import dora imgui__begin_popup_context_window_opts
+func imgui__begin_popup_context_window_opts(name: i64, popup_flags: i32) => i32
+
+#wa:import dora imgui__begin_popup_context_void_opts
+func imgui__begin_popup_context_void_opts(name: i64, popup_flags: i32) => i32
+
+#wa:import dora imgui__push_style_color
+func imgui__push_style_color(name: i32, color: i32)
+
+#wa:import dora imgui__push_style_float
+func imgui__push_style_float(name: i32, val: f32)
+
+#wa:import dora imgui__push_style_vec2
+func imgui__push_style_vec2(name: i32, val: i64)
+
+#wa:import dora imgui_text
+func imgui_text(text: i64)
+
+#wa:import dora imgui_text_colored
+func imgui_text_colored(color: i32, text: i64)
+
+#wa:import dora imgui_text_disabled
+func imgui_text_disabled(text: i64)
+
+#wa:import dora imgui_text_wrapped
+func imgui_text_wrapped(text: i64)
+
+#wa:import dora imgui_label_text
+func imgui_label_text(label: i64, text: i64)
+
+#wa:import dora imgui_bullet_text
+func imgui_bullet_text(text: i64)
+
+#wa:import dora imgui__tree_node
+func imgui__tree_node(str_id: i64, text: i64) => i32
+
+#wa:import dora imgui_set_tooltip
+func imgui_set_tooltip(text: i64)
+
+#wa:import dora imgui_image_opts
+func imgui_image_opts(clip_str: i64, size: i64, tint_col: i32, border_col: i32)
+
+#wa:import dora imgui_image_button_opts
+func imgui_image_button_opts(str_id: i64, clip_str: i64, size: i64, bg_col: i32, tint_col: i32) => i32
+
+#wa:import dora imgui__color_button_opts
+func imgui__color_button_opts(desc_id: i64, col: i32, color_edit_flags: i32, size: i64) => i32
+
+#wa:import dora imgui_columns
+func imgui_columns(count: i32)
+
+#wa:import dora imgui_columns_opts
+func imgui_columns_opts(count: i32, border: i32, str_id: i64)
+
+#wa:import dora imgui__begin_table_opts
+func imgui__begin_table_opts(str_id: i64, column: i32, outer_size: i64, inner_width: f32, table_flags: i32) => i32
+
+#wa:import dora imgui__table_next_row_opts
+func imgui__table_next_row_opts(min_row_height: f32, table_row_flag: i32)
+
+#wa:import dora imgui__table_setup_column_opts
+func imgui__table_setup_column_opts(label: i64, init_width_or_weight: f32, user_id: i32, table_column_flags: i32)
+
+#wa:import dora imgui_set_style_bool
+func imgui_set_style_bool(name: i64, val: i32)
+
+#wa:import dora imgui_set_style_float
+func imgui_set_style_float(name: i64, val: f32)
+
+#wa:import dora imgui_set_style_vec2
+func imgui_set_style_vec2(name: i64, val: i64)
+
+#wa:import dora imgui_set_style_color
+func imgui_set_style_color(name: i64, color: i32)
+
+#wa:import dora imgui__begin_ret_opts
+func imgui__begin_ret_opts(name: i64, stack: i64, windows_flags: i32) => i32
+
+#wa:import dora imgui__collapsing_header_ret_opts
+func imgui__collapsing_header_ret_opts(label: i64, stack: i64, tree_node_flags: i32) => i32
+
+#wa:import dora imgui__selectable_ret_opts
+func imgui__selectable_ret_opts(label: i64, stack: i64, size: i64, selectable_flags: i32) => i32
+
+#wa:import dora imgui__combo_ret_opts
+func imgui__combo_ret_opts(label: i64, stack: i64, items: i64, height_in_items: i32) => i32
+
+#wa:import dora imgui__drag_float_ret_opts
+func imgui__drag_float_ret_opts(label: i64, stack: i64, v_speed: f32, v_min: f32, v_max: f32, display_format: i64, slider_flags: i32) => i32
+
+#wa:import dora imgui__drag_float2_ret_opts
+func imgui__drag_float2_ret_opts(label: i64, stack: i64, v_speed: f32, v_min: f32, v_max: f32, display_format: i64, slider_flags: i32) => i32
+
+#wa:import dora imgui__drag_int_ret_opts
+func imgui__drag_int_ret_opts(label: i64, stack: i64, v_speed: f32, v_min: i32, v_max: i32, display_format: i64, slider_flags: i32) => i32
+
+#wa:import dora imgui__drag_int2_ret_opts
+func imgui__drag_int2_ret_opts(label: i64, stack: i64, v_speed: f32, v_min: i32, v_max: i32, display_format: i64, slider_flags: i32) => i32
+
+#wa:import dora imgui__input_float_ret_opts
+func imgui__input_float_ret_opts(label: i64, stack: i64, step: f32, step_fast: f32, display_format: i64, input_text_flags: i32) => i32
+
+#wa:import dora imgui__input_float2_ret_opts
+func imgui__input_float2_ret_opts(label: i64, stack: i64, display_format: i64, input_text_flags: i32) => i32
+
+#wa:import dora imgui__input_int_ret_opts
+func imgui__input_int_ret_opts(label: i64, stack: i64, step: i32, step_fast: i32, input_text_flags: i32) => i32
+
+#wa:import dora imgui__input_int2_ret_opts
+func imgui__input_int2_ret_opts(label: i64, stack: i64, input_text_flags: i32) => i32
+
+#wa:import dora imgui__slider_float_ret_opts
+func imgui__slider_float_ret_opts(label: i64, stack: i64, v_min: f32, v_max: f32, display_format: i64, slider_flags: i32) => i32
+
+#wa:import dora imgui__slider_float2_ret_opts
+func imgui__slider_float2_ret_opts(label: i64, stack: i64, v_min: f32, v_max: f32, display_format: i64, slider_flags: i32) => i32
+
+#wa:import dora imgui__slider_int_ret_opts
+func imgui__slider_int_ret_opts(label: i64, stack: i64, v_min: i32, v_max: i32, format: i64, slider_flags: i32) => i32
+
+#wa:import dora imgui__slider_int2_ret_opts
+func imgui__slider_int2_ret_opts(label: i64, stack: i64, v_min: i32, v_max: i32, display_format: i64, slider_flags: i32) => i32
+
+#wa:import dora imgui__drag_float_range2_ret_opts
+func imgui__drag_float_range2_ret_opts(label: i64, stack: i64, v_speed: f32, v_min: f32, v_max: f32, format: i64, format_max: i64, slider_flags: i32) => i32
+
+#wa:import dora imgui__drag_int_range2_ret_opts
+func imgui__drag_int_range2_ret_opts(label: i64, stack: i64, v_speed: f32, v_min: i32, v_max: i32, format: i64, format_max: i64, slider_flags: i32) => i32
+
+#wa:import dora imgui__v_slider_float_ret_opts
+func imgui__v_slider_float_ret_opts(label: i64, size: i64, stack: i64, v_min: f32, v_max: f32, format: i64, slider_flags: i32) => i32
+
+#wa:import dora imgui__v_slider_int_ret_opts
+func imgui__v_slider_int_ret_opts(label: i64, size: i64, stack: i64, v_min: i32, v_max: i32, format: i64, slider_flags: i32) => i32
+
+#wa:import dora imgui__color_edit3_ret_opts
+func imgui__color_edit3_ret_opts(label: i64, stack: i64, color_edit_flags: i32) => i32
+
+#wa:import dora imgui__color_edit4_ret_opts
+func imgui__color_edit4_ret_opts(label: i64, stack: i64, color_edit_flags: i32) => i32
+
+#wa:import dora imgui_scroll_when_dragging_on_void
+func imgui_scroll_when_dragging_on_void()
+
+#wa:import dora imgui__set_next_window_pos_opts
+func imgui__set_next_window_pos_opts(pos: i64, set_cond: i32, pivot: i64)
+
+#wa:import dora imgui_set_next_window_bg_alpha
+func imgui_set_next_window_bg_alpha(alpha: f32)
+
+#wa:import dora imgui_show_demo_window
+func imgui_show_demo_window()
+
+#wa:import dora imgui_get_content_region_avail
+func imgui_get_content_region_avail() => i64
+
+#wa:import dora imgui_get_window_pos
+func imgui_get_window_pos() => i64
+
+#wa:import dora imgui_get_window_size
+func imgui_get_window_size() => i64
+
+#wa:import dora imgui_get_window_width
+func imgui_get_window_width() => f32
+
+#wa:import dora imgui_get_window_height
+func imgui_get_window_height() => f32
+
+#wa:import dora imgui_is_window_collapsed
+func imgui_is_window_collapsed() => i32
+
+#wa:import dora imgui_set_window_font_scale
+func imgui_set_window_font_scale(scale: f32)
+
+#wa:import dora imgui_set_next_window_size_constraints
+func imgui_set_next_window_size_constraints(size_min: i64, size_max: i64)
+
+#wa:import dora imgui_set_next_window_content_size
+func imgui_set_next_window_content_size(size: i64)
+
+#wa:import dora imgui_set_next_window_focus
+func imgui_set_next_window_focus()
+
+#wa:import dora imgui_get_scroll_x
+func imgui_get_scroll_x() => f32
+
+#wa:import dora imgui_get_scroll_y
+func imgui_get_scroll_y() => f32
+
+#wa:import dora imgui_get_scroll_max_x
+func imgui_get_scroll_max_x() => f32
+
+#wa:import dora imgui_get_scroll_max_y
+func imgui_get_scroll_max_y() => f32
+
+#wa:import dora imgui_set_scroll_x
+func imgui_set_scroll_x(scroll_x: f32)
+
+#wa:import dora imgui_set_scroll_y
+func imgui_set_scroll_y(scroll_y: f32)
+
+#wa:import dora imgui_set_scroll_here_y
+func imgui_set_scroll_here_y(center_y_ratio: f32)
+
+#wa:import dora imgui_set_scroll_from_pos_y
+func imgui_set_scroll_from_pos_y(pos_y: f32, center_y_ratio: f32)
+
+#wa:import dora imgui_set_keyboard_focus_here
+func imgui_set_keyboard_focus_here(offset: i32)
+
+#wa:import dora imgui__pop_style_color
+func imgui__pop_style_color(count: i32)
+
+#wa:import dora imgui__pop_style_var
+func imgui__pop_style_var(count: i32)
+
+#wa:import dora imgui_set_next_item_width
+func imgui_set_next_item_width(item_width: f32)
+
+#wa:import dora imgui__push_item_width
+func imgui__push_item_width(item_width: f32)
+
+#wa:import dora imgui__pop_item_width
+func imgui__pop_item_width()
+
+#wa:import dora imgui_calc_item_width
+func imgui_calc_item_width() => f32
+
+#wa:import dora imgui__push_text_wrap_pos
+func imgui__push_text_wrap_pos(wrap_pos_x: f32)
+
+#wa:import dora imgui__pop_text_wrap_pos
+func imgui__pop_text_wrap_pos()
+
+#wa:import dora imgui__push_item_flag
+func imgui__push_item_flag(flag: i32, enabled: i32)
+
+#wa:import dora imgui__pop_item_flag
+func imgui__pop_item_flag()
+
+#wa:import dora imgui_separator
+func imgui_separator()
+
+#wa:import dora imgui_same_line
+func imgui_same_line(pos_x: f32, spacing_w: f32)
+
+#wa:import dora imgui_new_line
+func imgui_new_line()
+
+#wa:import dora imgui_spacing
+func imgui_spacing()
+
+#wa:import dora imgui_dummy
+func imgui_dummy(size: i64)
+
+#wa:import dora imgui_indent
+func imgui_indent(indent_w: f32)
+
+#wa:import dora imgui_unindent
+func imgui_unindent(indent_w: f32)
+
+#wa:import dora imgui__begin_group
+func imgui__begin_group()
+
+#wa:import dora imgui__end_group
+func imgui__end_group()
+
+#wa:import dora imgui_get_cursor_pos
+func imgui_get_cursor_pos() => i64
+
+#wa:import dora imgui_get_cursor_pos_x
+func imgui_get_cursor_pos_x() => f32
+
+#wa:import dora imgui_get_cursor_pos_y
+func imgui_get_cursor_pos_y() => f32
+
+#wa:import dora imgui_set_cursor_pos
+func imgui_set_cursor_pos(local_pos: i64)
+
+#wa:import dora imgui_set_cursor_pos_x
+func imgui_set_cursor_pos_x(x: f32)
+
+#wa:import dora imgui_set_cursor_pos_y
+func imgui_set_cursor_pos_y(y: f32)
+
+#wa:import dora imgui_get_cursor_start_pos
+func imgui_get_cursor_start_pos() => i64
+
+#wa:import dora imgui_get_cursor_screen_pos
+func imgui_get_cursor_screen_pos() => i64
+
+#wa:import dora imgui_set_cursor_screen_pos
+func imgui_set_cursor_screen_pos(pos: i64)
+
+#wa:import dora imgui_align_text_to_frame_padding
+func imgui_align_text_to_frame_padding()
+
+#wa:import dora imgui_get_text_line_height
+func imgui_get_text_line_height() => f32
+
+#wa:import dora imgui_get_text_line_height_with_spacing
+func imgui_get_text_line_height_with_spacing() => f32
+
+#wa:import dora imgui_next_column
+func imgui_next_column()
+
+#wa:import dora imgui_get_column_index
+func imgui_get_column_index() => i32
+
+#wa:import dora imgui_get_column_offset
+func imgui_get_column_offset(column_index: i32) => f32
+
+#wa:import dora imgui_set_column_offset
+func imgui_set_column_offset(column_index: i32, offset_x: f32)
+
+#wa:import dora imgui_get_column_width
+func imgui_get_column_width(column_index: i32) => f32
+
+#wa:import dora imgui_get_columns_count
+func imgui_get_columns_count() => i32
+
+#wa:import dora imgui__end_table
+func imgui__end_table()
+
+#wa:import dora imgui_table_next_column
+func imgui_table_next_column() => i32
+
+#wa:import dora imgui_table_set_column_index
+func imgui_table_set_column_index(column_n: i32) => i32
+
+#wa:import dora imgui_table_setup_scroll_freeze
+func imgui_table_setup_scroll_freeze(cols: i32, rows: i32)
+
+#wa:import dora imgui_table_headers_row
+func imgui_table_headers_row()
+
+#wa:import dora imgui_bullet_item
+func imgui_bullet_item()
+
+#wa:import dora imgui_text_link
+func imgui_text_link(label: i64) => i32
+
+#wa:import dora imgui_text_link_open_url
+func imgui_text_link_open_url(label: i64, url: i64)
+
+#wa:import dora imgui_set_window_focus
+func imgui_set_window_focus(name: i64)
+
+#wa:import dora imgui_separator_text
+func imgui_separator_text(text: i64)
+
+#wa:import dora imgui_table_header
+func imgui_table_header(label: i64)
+
+#wa:import dora imgui__push_id
+func imgui__push_id(str_id: i64)
+
+#wa:import dora imgui__pop_id
+func imgui__pop_id()
+
+#wa:import dora imgui_get_id
+func imgui_get_id(str_id: i64) => i32
+
+#wa:import dora imgui_button
+func imgui_button(label: i64, size: i64) => i32
+
+#wa:import dora imgui_small_button
+func imgui_small_button(label: i64) => i32
+
+#wa:import dora imgui_invisible_button
+func imgui_invisible_button(str_id: i64, size: i64) => i32
+
+#wa:import dora imgui__checkbox_ret
+func imgui__checkbox_ret(label: i64, stack: i64) => i32
+
+#wa:import dora imgui__radio_button_ret
+func imgui__radio_button_ret(label: i64, stack: i64, v_button: i32) => i32
+
+#wa:import dora imgui_plot_lines
+func imgui_plot_lines(label: i64, values: i64)
+
+#wa:import dora imgui_plot_lines_opts
+func imgui_plot_lines_opts(label: i64, values: i64, values_offset: i32, overlay_text: i64, scale_min: f32, scale_max: f32, graph_size: i64)
+
+#wa:import dora imgui_plot_histogram
+func imgui_plot_histogram(label: i64, values: i64)
+
+#wa:import dora imgui_plot_histogram_opts
+func imgui_plot_histogram_opts(label: i64, values: i64, values_offset: i32, overlay_text: i64, scale_min: f32, scale_max: f32, graph_size: i64)
+
+#wa:import dora imgui_progress_bar
+func imgui_progress_bar(fraction: f32)
+
+#wa:import dora imgui_progress_bar_opts
+func imgui_progress_bar_opts(fraction: f32, size_arg: i64, overlay: i64)
+
+#wa:import dora imgui__list_box_ret_opts
+func imgui__list_box_ret_opts(label: i64, stack: i64, items: i64, height_in_items: i32) => i32
+
+#wa:import dora imgui__slider_angle_ret
+func imgui__slider_angle_ret(label: i64, stack: i64, v_degrees_min: f32, v_degrees_max: f32) => i32
+
+#wa:import dora imgui__tree_push
+func imgui__tree_push(str_id: i64)
+
+#wa:import dora imgui__tree_pop
+func imgui__tree_pop()
+
+#wa:import dora imgui_value
+func imgui_value(prefix: i64, b: i32)
+
+#wa:import dora imgui_menu_item
+func imgui_menu_item(label: i64, shortcut: i64, selected: i32, enabled: i32) => i32
+
+#wa:import dora imgui_open_popup
+func imgui_open_popup(str_id: i64)
+
+#wa:import dora imgui__begin_popup
+func imgui__begin_popup(str_id: i64) => i32
+
+#wa:import dora imgui__end_popup
+func imgui__end_popup()
+
+#wa:import dora imgui_get_tree_node_to_label_spacing
+func imgui_get_tree_node_to_label_spacing() => f32
+
+#wa:import dora imgui__begin_list_box
+func imgui__begin_list_box(label: i64, size: i64) => i32
+
+#wa:import dora imgui__end_list_box
+func imgui__end_list_box()
+
+#wa:import dora imgui__begin_disabled
+func imgui__begin_disabled()
+
+#wa:import dora imgui__end_disabled
+func imgui__end_disabled()
+
+#wa:import dora imgui__begin_tooltip
+func imgui__begin_tooltip() => i32
+
+#wa:import dora imgui__end_tooltip
+func imgui__end_tooltip()
+
+#wa:import dora imgui__begin_main_menu_bar
+func imgui__begin_main_menu_bar() => i32
+
+#wa:import dora imgui__end_main_menu_bar
+func imgui__end_main_menu_bar()
+
+#wa:import dora imgui__begin_menu_bar
+func imgui__begin_menu_bar() => i32
+
+#wa:import dora imgui__end_menu_bar
+func imgui__end_menu_bar()
+
+#wa:import dora imgui__begin_menu
+func imgui__begin_menu(label: i64, enabled: i32) => i32
+
+#wa:import dora imgui__end_menu
+func imgui__end_menu()
+
+#wa:import dora imgui_close_current_popup
+func imgui_close_current_popup()
+
+#wa:import dora imgui__push_clip_rect
+func imgui__push_clip_rect(clip_rect_min: i64, clip_rect_max: i64, intersect_with_current_clip_rect: i32)
+
+#wa:import dora imgui__pop_clip_rect
+func imgui__pop_clip_rect()
+
+#wa:import dora imgui_is_item_hovered
+func imgui_is_item_hovered() => i32
+
+#wa:import dora imgui_is_item_active
+func imgui_is_item_active() => i32
+
+#wa:import dora imgui_is_item_clicked
+func imgui_is_item_clicked(mouse_button: i32) => i32
+
+#wa:import dora imgui_is_item_visible
+func imgui_is_item_visible() => i32
+
+#wa:import dora imgui_is_any_item_hovered
+func imgui_is_any_item_hovered() => i32
+
+#wa:import dora imgui_is_any_item_active
+func imgui_is_any_item_active() => i32
+
+#wa:import dora imgui_get_item_rect_min
+func imgui_get_item_rect_min() => i64
+
+#wa:import dora imgui_get_item_rect_max
+func imgui_get_item_rect_max() => i64
+
+#wa:import dora imgui_get_item_rect_size
+func imgui_get_item_rect_size() => i64
+
+#wa:import dora imgui_set_next_item_allow_overlap
+func imgui_set_next_item_allow_overlap()
+
+#wa:import dora imgui_is_window_hovered
+func imgui_is_window_hovered() => i32
+
+#wa:import dora imgui_is_window_focused
+func imgui_is_window_focused() => i32
+
+#wa:import dora imgui_is_rect_visible
+func imgui_is_rect_visible(size: i64) => i32
+
+#wa:import dora imgui_is_mouse_down
+func imgui_is_mouse_down(button: i32) => i32
+
+#wa:import dora imgui_is_mouse_clicked
+func imgui_is_mouse_clicked(button: i32, repeat: i32) => i32
+
+#wa:import dora imgui_is_mouse_double_clicked
+func imgui_is_mouse_double_clicked(button: i32) => i32
+
+#wa:import dora imgui_is_mouse_released
+func imgui_is_mouse_released(button: i32) => i32
+
+#wa:import dora imgui_is_mouse_hovering_rect
+func imgui_is_mouse_hovering_rect(r_min: i64, r_max: i64, clip: i32) => i32
+
+#wa:import dora imgui_is_mouse_dragging
+func imgui_is_mouse_dragging(button: i32, lock_threshold: f32) => i32
+
+#wa:import dora imgui_get_mouse_pos
+func imgui_get_mouse_pos() => i64
+
+#wa:import dora imgui_get_mouse_pos_on_opening_current_popup
+func imgui_get_mouse_pos_on_opening_current_popup() => i64
+
+#wa:import dora imgui_get_mouse_drag_delta
+func imgui_get_mouse_drag_delta(button: i32, lock_threshold: f32) => i64
+
+#wa:import dora imgui_reset_mouse_drag_delta
+func imgui_reset_mouse_drag_delta(button: i32)
+
+type _ImGui :struct{}
+
+global ImGui = _ImGui{}
+
+func _ImGui.LoadFontTtfAsync(ttf_font_file: string, font_size: f32, glyph_ranges: string, handler: func(success: bool)) {
+	stack0 := NewCallStack()
+	func_id0 := PushFunction(func() {
+		success, _ := stack0.PopBool()
+		handler(success)
+	})
+	imgui_load_font_ttf_async(ToDoraString(ttf_font_file), font_size, ToDoraString(glyph_ranges), func_id0, *stack0.raw)
+}
+func _ImGui.IsFontLoaded() => bool {
+	return imgui_is_font_loaded() != 0
+}
+func _ImGui.ShowStats() {
+	imgui_show_stats()
+}
+func _ImGui.ShowConsole() {
+	imgui_show_console()
+}
+func _ImGui._BeginOpts(name: string, windows_flags: i32) => bool {
+	return imgui__begin_opts(ToDoraString(name), windows_flags) != 0
+}
+func _ImGui._End() {
+	imgui__end()
+}
+func _ImGui._BeginChildOpts(str_id: string, size: Vec2, child_flags: i32, window_flags: i32) => bool {
+	return imgui__begin_child_opts(ToDoraString(str_id), size.ToValue(), child_flags, window_flags) != 0
+}
+func _ImGui._BeginChildWithIdOpts(id: i32, size: Vec2, child_flags: i32, window_flags: i32) => bool {
+	return imgui__begin_child_with_id_opts(id, size.ToValue(), child_flags, window_flags) != 0
+}
+func _ImGui._EndChild() {
+	imgui__end_child()
+}
+func _ImGui._SetNextWindowPosCenterOpts(set_cond: i32) {
+	imgui__set_next_window_pos_center_opts(set_cond)
+}
+func _ImGui._SetNextWindowSizeOpts(size: Vec2, set_cond: i32) {
+	imgui__set_next_window_size_opts(size.ToValue(), set_cond)
+}
+func _ImGui._SetNextWindowCollapsedOpts(collapsed: bool, set_cond: i32) {
+	imgui__set_next_window_collapsed_opts(ToDoraBool(collapsed), set_cond)
+}
+func _ImGui._SetWindowPosOpts(name: string, pos: Vec2, set_cond: i32) {
+	imgui__set_window_pos_opts(ToDoraString(name), pos.ToValue(), set_cond)
+}
+func _ImGui._SetWindowSizeOpts(name: string, size: Vec2, set_cond: i32) {
+	imgui__set_window_size_opts(ToDoraString(name), size.ToValue(), set_cond)
+}
+func _ImGui._SetWindowCollapsedOpts(name: string, collapsed: bool, set_cond: i32) {
+	imgui__set_window_collapsed_opts(ToDoraString(name), ToDoraBool(collapsed), set_cond)
+}
+func _ImGui._SetColorEditOptions(color_edit_flags: i32) {
+	imgui__set_color_edit_options(color_edit_flags)
+}
+func _ImGui._InputTextOpts(label: string, buffer: Buffer, input_text_flags: i32) => bool {
+	return imgui__input_text_opts(ToDoraString(label), buffer.GetRaw(), input_text_flags) != 0
+}
+func _ImGui._InputTextMultilineOpts(label: string, buffer: Buffer, size: Vec2, input_text_flags: i32) => bool {
+	return imgui__input_text_multiline_opts(ToDoraString(label), buffer.GetRaw(), size.ToValue(), input_text_flags) != 0
+}
+func _ImGui._TreeNodeExOpts(label: string, tree_node_flags: i32) => bool {
+	return imgui__tree_node_ex_opts(ToDoraString(label), tree_node_flags) != 0
+}
+func _ImGui._TreeNodeExWithIdOpts(str_id: string, text: string, tree_node_flags: i32) => bool {
+	return imgui__tree_node_ex_with_id_opts(ToDoraString(str_id), ToDoraString(text), tree_node_flags) != 0
+}
+func _ImGui._SetNextItemOpenOpts(is_open: bool, set_cond: i32) {
+	imgui__set_next_item_open_opts(ToDoraBool(is_open), set_cond)
+}
+func _ImGui._CollapsingHeaderOpts(label: string, tree_node_flags: i32) => bool {
+	return imgui__collapsing_header_opts(ToDoraString(label), tree_node_flags) != 0
+}
+func _ImGui._SelectableOpts(label: string, selectable_flags: i32) => bool {
+	return imgui__selectable_opts(ToDoraString(label), selectable_flags) != 0
+}
+func _ImGui._BeginPopupModalOpts(name: string, windows_flags: i32) => bool {
+	return imgui__begin_popup_modal_opts(ToDoraString(name), windows_flags) != 0
+}
+func _ImGui._BeginPopupModalRetOpts(name: string, stack: CallStack, windows_flags: i32) => bool {
+	return imgui__begin_popup_modal_ret_opts(ToDoraString(name), stack.GetRaw(), windows_flags) != 0
+}
+func _ImGui._BeginPopupContextItemOpts(name: string, popup_flags: i32) => bool {
+	return imgui__begin_popup_context_item_opts(ToDoraString(name), popup_flags) != 0
+}
+func _ImGui._BeginPopupContextWindowOpts(name: string, popup_flags: i32) => bool {
+	return imgui__begin_popup_context_window_opts(ToDoraString(name), popup_flags) != 0
+}
+func _ImGui._BeginPopupContextVoidOpts(name: string, popup_flags: i32) => bool {
+	return imgui__begin_popup_context_void_opts(ToDoraString(name), popup_flags) != 0
+}
+func _ImGui._PushStyleColor(name: i32, color: Color) {
+	imgui__push_style_color(name, color.ToARGB())
+}
+func _ImGui._PushStyleFloat(name: i32, val: f32) {
+	imgui__push_style_float(name, val)
+}
+func _ImGui._PushStyleVec2(name: i32, val: Vec2) {
+	imgui__push_style_vec2(name, val.ToValue())
+}
+func _ImGui.Text(text: string) {
+	imgui_text(ToDoraString(text))
+}
+func _ImGui.TextColored(color: Color, text: string) {
+	imgui_text_colored(color.ToARGB(), ToDoraString(text))
+}
+func _ImGui.TextDisabled(text: string) {
+	imgui_text_disabled(ToDoraString(text))
+}
+func _ImGui.TextWrapped(text: string) {
+	imgui_text_wrapped(ToDoraString(text))
+}
+func _ImGui.LabelText(label: string, text: string) {
+	imgui_label_text(ToDoraString(label), ToDoraString(text))
+}
+func _ImGui.BulletText(text: string) {
+	imgui_bullet_text(ToDoraString(text))
+}
+func _ImGui._TreeNode(str_id: string, text: string) => bool {
+	return imgui__tree_node(ToDoraString(str_id), ToDoraString(text)) != 0
+}
+func _ImGui.SetTooltip(text: string) {
+	imgui_set_tooltip(ToDoraString(text))
+}
+func _ImGui.ImageOpts(clip_str: string, size: Vec2, tint_col: Color, border_col: Color) {
+	imgui_image_opts(ToDoraString(clip_str), size.ToValue(), tint_col.ToARGB(), border_col.ToARGB())
+}
+func _ImGui.ImageButtonOpts(str_id: string, clip_str: string, size: Vec2, bg_col: Color, tint_col: Color) => bool {
+	return imgui_image_button_opts(ToDoraString(str_id), ToDoraString(clip_str), size.ToValue(), bg_col.ToARGB(), tint_col.ToARGB()) != 0
+}
+func _ImGui._ColorButtonOpts(desc_id: string, col: Color, color_edit_flags: i32, size: Vec2) => bool {
+	return imgui__color_button_opts(ToDoraString(desc_id), col.ToARGB(), color_edit_flags, size.ToValue()) != 0
+}
+func _ImGui.Columns(count: i32) {
+	imgui_columns(count)
+}
+func _ImGui.ColumnsOpts(count: i32, border: bool, str_id: string) {
+	imgui_columns_opts(count, ToDoraBool(border), ToDoraString(str_id))
+}
+func _ImGui._BeginTableOpts(str_id: string, column: i32, outer_size: Vec2, inner_width: f32, table_flags: i32) => bool {
+	return imgui__begin_table_opts(ToDoraString(str_id), column, outer_size.ToValue(), inner_width, table_flags) != 0
+}
+func _ImGui._TableNextRowOpts(min_row_height: f32, table_row_flag: i32) {
+	imgui__table_next_row_opts(min_row_height, table_row_flag)
+}
+func _ImGui._TableSetupColumnOpts(label: string, init_width_or_weight: f32, user_id: i32, table_column_flags: i32) {
+	imgui__table_setup_column_opts(ToDoraString(label), init_width_or_weight, user_id, table_column_flags)
+}
+func _ImGui.SetStyleBool(name: string, val: bool) {
+	imgui_set_style_bool(ToDoraString(name), ToDoraBool(val))
+}
+func _ImGui.SetStyleFloat(name: string, val: f32) {
+	imgui_set_style_float(ToDoraString(name), val)
+}
+func _ImGui.SetStyleVec2(name: string, val: Vec2) {
+	imgui_set_style_vec2(ToDoraString(name), val.ToValue())
+}
+func _ImGui.SetStyleColor(name: string, color: Color) {
+	imgui_set_style_color(ToDoraString(name), color.ToARGB())
+}
+func _ImGui._BeginRetOpts(name: string, stack: CallStack, windows_flags: i32) => bool {
+	return imgui__begin_ret_opts(ToDoraString(name), stack.GetRaw(), windows_flags) != 0
+}
+func _ImGui._CollapsingHeaderRetOpts(label: string, stack: CallStack, tree_node_flags: i32) => bool {
+	return imgui__collapsing_header_ret_opts(ToDoraString(label), stack.GetRaw(), tree_node_flags) != 0
+}
+func _ImGui._SelectableRetOpts(label: string, stack: CallStack, size: Vec2, selectable_flags: i32) => bool {
+	return imgui__selectable_ret_opts(ToDoraString(label), stack.GetRaw(), size.ToValue(), selectable_flags) != 0
+}
+func _ImGui._ComboRetOpts(label: string, stack: CallStack, items: *[]string, height_in_items: i32) => bool {
+	return imgui__combo_ret_opts(ToDoraString(label), stack.GetRaw(), ToDoraStrBuf(items), height_in_items) != 0
+}
+func _ImGui._DragFloatRetOpts(label: string, stack: CallStack, v_speed: f32, v_min: f32, v_max: f32, display_format: string, slider_flags: i32) => bool {
+	return imgui__drag_float_ret_opts(ToDoraString(label), stack.GetRaw(), v_speed, v_min, v_max, ToDoraString(display_format), slider_flags) != 0
+}
+func _ImGui._DragFloat2RetOpts(label: string, stack: CallStack, v_speed: f32, v_min: f32, v_max: f32, display_format: string, slider_flags: i32) => bool {
+	return imgui__drag_float2_ret_opts(ToDoraString(label), stack.GetRaw(), v_speed, v_min, v_max, ToDoraString(display_format), slider_flags) != 0
+}
+func _ImGui._DragIntRetOpts(label: string, stack: CallStack, v_speed: f32, v_min: i32, v_max: i32, display_format: string, slider_flags: i32) => bool {
+	return imgui__drag_int_ret_opts(ToDoraString(label), stack.GetRaw(), v_speed, v_min, v_max, ToDoraString(display_format), slider_flags) != 0
+}
+func _ImGui._DragInt2RetOpts(label: string, stack: CallStack, v_speed: f32, v_min: i32, v_max: i32, display_format: string, slider_flags: i32) => bool {
+	return imgui__drag_int2_ret_opts(ToDoraString(label), stack.GetRaw(), v_speed, v_min, v_max, ToDoraString(display_format), slider_flags) != 0
+}
+func _ImGui._InputFloatRetOpts(label: string, stack: CallStack, step: f32, step_fast: f32, display_format: string, input_text_flags: i32) => bool {
+	return imgui__input_float_ret_opts(ToDoraString(label), stack.GetRaw(), step, step_fast, ToDoraString(display_format), input_text_flags) != 0
+}
+func _ImGui._InputFloat2RetOpts(label: string, stack: CallStack, display_format: string, input_text_flags: i32) => bool {
+	return imgui__input_float2_ret_opts(ToDoraString(label), stack.GetRaw(), ToDoraString(display_format), input_text_flags) != 0
+}
+func _ImGui._InputIntRetOpts(label: string, stack: CallStack, step: i32, step_fast: i32, input_text_flags: i32) => bool {
+	return imgui__input_int_ret_opts(ToDoraString(label), stack.GetRaw(), step, step_fast, input_text_flags) != 0
+}
+func _ImGui._InputInt2RetOpts(label: string, stack: CallStack, input_text_flags: i32) => bool {
+	return imgui__input_int2_ret_opts(ToDoraString(label), stack.GetRaw(), input_text_flags) != 0
+}
+func _ImGui._SliderFloatRetOpts(label: string, stack: CallStack, v_min: f32, v_max: f32, display_format: string, slider_flags: i32) => bool {
+	return imgui__slider_float_ret_opts(ToDoraString(label), stack.GetRaw(), v_min, v_max, ToDoraString(display_format), slider_flags) != 0
+}
+func _ImGui._SliderFloat2RetOpts(label: string, stack: CallStack, v_min: f32, v_max: f32, display_format: string, slider_flags: i32) => bool {
+	return imgui__slider_float2_ret_opts(ToDoraString(label), stack.GetRaw(), v_min, v_max, ToDoraString(display_format), slider_flags) != 0
+}
+func _ImGui._SliderIntRetOpts(label: string, stack: CallStack, v_min: i32, v_max: i32, format: string, slider_flags: i32) => bool {
+	return imgui__slider_int_ret_opts(ToDoraString(label), stack.GetRaw(), v_min, v_max, ToDoraString(format), slider_flags) != 0
+}
+func _ImGui._SliderInt2RetOpts(label: string, stack: CallStack, v_min: i32, v_max: i32, display_format: string, slider_flags: i32) => bool {
+	return imgui__slider_int2_ret_opts(ToDoraString(label), stack.GetRaw(), v_min, v_max, ToDoraString(display_format), slider_flags) != 0
+}
+func _ImGui._DragFloatRange2RetOpts(label: string, stack: CallStack, v_speed: f32, v_min: f32, v_max: f32, format: string, format_max: string, slider_flags: i32) => bool {
+	return imgui__drag_float_range2_ret_opts(ToDoraString(label), stack.GetRaw(), v_speed, v_min, v_max, ToDoraString(format), ToDoraString(format_max), slider_flags) != 0
+}
+func _ImGui._DragIntRange2RetOpts(label: string, stack: CallStack, v_speed: f32, v_min: i32, v_max: i32, format: string, format_max: string, slider_flags: i32) => bool {
+	return imgui__drag_int_range2_ret_opts(ToDoraString(label), stack.GetRaw(), v_speed, v_min, v_max, ToDoraString(format), ToDoraString(format_max), slider_flags) != 0
+}
+func _ImGui._VSliderFloatRetOpts(label: string, size: Vec2, stack: CallStack, v_min: f32, v_max: f32, format: string, slider_flags: i32) => bool {
+	return imgui__v_slider_float_ret_opts(ToDoraString(label), size.ToValue(), stack.GetRaw(), v_min, v_max, ToDoraString(format), slider_flags) != 0
+}
+func _ImGui._VSliderIntRetOpts(label: string, size: Vec2, stack: CallStack, v_min: i32, v_max: i32, format: string, slider_flags: i32) => bool {
+	return imgui__v_slider_int_ret_opts(ToDoraString(label), size.ToValue(), stack.GetRaw(), v_min, v_max, ToDoraString(format), slider_flags) != 0
+}
+func _ImGui._ColorEdit3RetOpts(label: string, stack: CallStack, color_edit_flags: i32) => bool {
+	return imgui__color_edit3_ret_opts(ToDoraString(label), stack.GetRaw(), color_edit_flags) != 0
+}
+func _ImGui._ColorEdit4RetOpts(label: string, stack: CallStack, color_edit_flags: i32) => bool {
+	return imgui__color_edit4_ret_opts(ToDoraString(label), stack.GetRaw(), color_edit_flags) != 0
+}
+func _ImGui.ScrollWhenDraggingOnVoid() {
+	imgui_scroll_when_dragging_on_void()
+}
+func _ImGui._SetNextWindowPosOpts(pos: Vec2, set_cond: i32, pivot: Vec2) {
+	imgui__set_next_window_pos_opts(pos.ToValue(), set_cond, pivot.ToValue())
+}
+func _ImGui.SetNextWindowBgAlpha(alpha: f32) {
+	imgui_set_next_window_bg_alpha(alpha)
+}
+func _ImGui.ShowDemoWindow() {
+	imgui_show_demo_window()
+}
+func _ImGui.GetContentRegionAvail() => Vec2 {
+	return Vec2FromValue(imgui_get_content_region_avail())
+}
+func _ImGui.GetWindowPos() => Vec2 {
+	return Vec2FromValue(imgui_get_window_pos())
+}
+func _ImGui.GetWindowSize() => Vec2 {
+	return Vec2FromValue(imgui_get_window_size())
+}
+func _ImGui.GetWindowWidth() => f32 {
+	return imgui_get_window_width()
+}
+func _ImGui.GetWindowHeight() => f32 {
+	return imgui_get_window_height()
+}
+func _ImGui.IsWindowCollapsed() => bool {
+	return imgui_is_window_collapsed() != 0
+}
+func _ImGui.SetWindowFontScale(scale: f32) {
+	imgui_set_window_font_scale(scale)
+}
+func _ImGui.SetNextWindowSizeConstraints(size_min: Vec2, size_max: Vec2) {
+	imgui_set_next_window_size_constraints(size_min.ToValue(), size_max.ToValue())
+}
+func _ImGui.SetNextWindowContentSize(size: Vec2) {
+	imgui_set_next_window_content_size(size.ToValue())
+}
+func _ImGui.SetNextWindowFocus() {
+	imgui_set_next_window_focus()
+}
+func _ImGui.GetScrollX() => f32 {
+	return imgui_get_scroll_x()
+}
+func _ImGui.GetScrollY() => f32 {
+	return imgui_get_scroll_y()
+}
+func _ImGui.GetScrollMaxX() => f32 {
+	return imgui_get_scroll_max_x()
+}
+func _ImGui.GetScrollMaxY() => f32 {
+	return imgui_get_scroll_max_y()
+}
+func _ImGui.SetScrollX(scroll_x: f32) {
+	imgui_set_scroll_x(scroll_x)
+}
+func _ImGui.SetScrollY(scroll_y: f32) {
+	imgui_set_scroll_y(scroll_y)
+}
+func _ImGui.SetScrollHereY(center_y_ratio: f32) {
+	imgui_set_scroll_here_y(center_y_ratio)
+}
+func _ImGui.SetScrollFromPosY(pos_y: f32, center_y_ratio: f32) {
+	imgui_set_scroll_from_pos_y(pos_y, center_y_ratio)
+}
+func _ImGui.SetKeyboardFocusHere(offset: i32) {
+	imgui_set_keyboard_focus_here(offset)
+}
+func _ImGui._PopStyleColor(count: i32) {
+	imgui__pop_style_color(count)
+}
+func _ImGui._PopStyleVar(count: i32) {
+	imgui__pop_style_var(count)
+}
+func _ImGui.SetNextItemWidth(item_width: f32) {
+	imgui_set_next_item_width(item_width)
+}
+func _ImGui._PushItemWidth(item_width: f32) {
+	imgui__push_item_width(item_width)
+}
+func _ImGui._PopItemWidth() {
+	imgui__pop_item_width()
+}
+func _ImGui.CalcItemWidth() => f32 {
+	return imgui_calc_item_width()
+}
+func _ImGui._PushTextWrapPos(wrap_pos_x: f32) {
+	imgui__push_text_wrap_pos(wrap_pos_x)
+}
+func _ImGui._PopTextWrapPos() {
+	imgui__pop_text_wrap_pos()
+}
+func _ImGui._PushItemFlag(flag: i32, enabled: bool) {
+	imgui__push_item_flag(flag, ToDoraBool(enabled))
+}
+func _ImGui._PopItemFlag() {
+	imgui__pop_item_flag()
+}
+func _ImGui.Separator() {
+	imgui_separator()
+}
+func _ImGui.SameLine(pos_x: f32, spacing_w: f32) {
+	imgui_same_line(pos_x, spacing_w)
+}
+func _ImGui.NewLine() {
+	imgui_new_line()
+}
+func _ImGui.Spacing() {
+	imgui_spacing()
+}
+func _ImGui.Dummy(size: Vec2) {
+	imgui_dummy(size.ToValue())
+}
+func _ImGui.Indent(indent_w: f32) {
+	imgui_indent(indent_w)
+}
+func _ImGui.Unindent(indent_w: f32) {
+	imgui_unindent(indent_w)
+}
+func _ImGui._BeginGroup() {
+	imgui__begin_group()
+}
+func _ImGui._EndGroup() {
+	imgui__end_group()
+}
+func _ImGui.GetCursorPos() => Vec2 {
+	return Vec2FromValue(imgui_get_cursor_pos())
+}
+func _ImGui.GetCursorPosX() => f32 {
+	return imgui_get_cursor_pos_x()
+}
+func _ImGui.GetCursorPosY() => f32 {
+	return imgui_get_cursor_pos_y()
+}
+func _ImGui.SetCursorPos(local_pos: Vec2) {
+	imgui_set_cursor_pos(local_pos.ToValue())
+}
+func _ImGui.SetCursorPosX(x: f32) {
+	imgui_set_cursor_pos_x(x)
+}
+func _ImGui.SetCursorPosY(y: f32) {
+	imgui_set_cursor_pos_y(y)
+}
+func _ImGui.GetCursorStartPos() => Vec2 {
+	return Vec2FromValue(imgui_get_cursor_start_pos())
+}
+func _ImGui.GetCursorScreenPos() => Vec2 {
+	return Vec2FromValue(imgui_get_cursor_screen_pos())
+}
+func _ImGui.SetCursorScreenPos(pos: Vec2) {
+	imgui_set_cursor_screen_pos(pos.ToValue())
+}
+func _ImGui.AlignTextToFramePadding() {
+	imgui_align_text_to_frame_padding()
+}
+func _ImGui.GetTextLineHeight() => f32 {
+	return imgui_get_text_line_height()
+}
+func _ImGui.GetTextLineHeightWithSpacing() => f32 {
+	return imgui_get_text_line_height_with_spacing()
+}
+func _ImGui.NextColumn() {
+	imgui_next_column()
+}
+func _ImGui.GetColumnIndex() => i32 {
+	return imgui_get_column_index()
+}
+func _ImGui.GetColumnOffset(column_index: i32) => f32 {
+	return imgui_get_column_offset(column_index)
+}
+func _ImGui.SetColumnOffset(column_index: i32, offset_x: f32) {
+	imgui_set_column_offset(column_index, offset_x)
+}
+func _ImGui.GetColumnWidth(column_index: i32) => f32 {
+	return imgui_get_column_width(column_index)
+}
+func _ImGui.GetColumnsCount() => i32 {
+	return imgui_get_columns_count()
+}
+func _ImGui._EndTable() {
+	imgui__end_table()
+}
+func _ImGui.TableNextColumn() => bool {
+	return imgui_table_next_column() != 0
+}
+func _ImGui.TableSetColumnIndex(column_n: i32) => bool {
+	return imgui_table_set_column_index(column_n) != 0
+}
+func _ImGui.TableSetupScrollFreeze(cols: i32, rows: i32) {
+	imgui_table_setup_scroll_freeze(cols, rows)
+}
+func _ImGui.TableHeadersRow() {
+	imgui_table_headers_row()
+}
+func _ImGui.BulletItem() {
+	imgui_bullet_item()
+}
+func _ImGui.TextLink(label: string) => bool {
+	return imgui_text_link(ToDoraString(label)) != 0
+}
+func _ImGui.TextLinkOpenUrl(label: string, url: string) {
+	imgui_text_link_open_url(ToDoraString(label), ToDoraString(url))
+}
+func _ImGui.SetWindowFocus(name: string) {
+	imgui_set_window_focus(ToDoraString(name))
+}
+func _ImGui.SeparatorText(text: string) {
+	imgui_separator_text(ToDoraString(text))
+}
+func _ImGui.TableHeader(label: string) {
+	imgui_table_header(ToDoraString(label))
+}
+func _ImGui._PushId(str_id: string) {
+	imgui__push_id(ToDoraString(str_id))
+}
+func _ImGui._PopId() {
+	imgui__pop_id()
+}
+func _ImGui.GetId(str_id: string) => i32 {
+	return imgui_get_id(ToDoraString(str_id))
+}
+func _ImGui.Button(label: string, size: Vec2) => bool {
+	return imgui_button(ToDoraString(label), size.ToValue()) != 0
+}
+func _ImGui.SmallButton(label: string) => bool {
+	return imgui_small_button(ToDoraString(label)) != 0
+}
+func _ImGui.InvisibleButton(str_id: string, size: Vec2) => bool {
+	return imgui_invisible_button(ToDoraString(str_id), size.ToValue()) != 0
+}
+func _ImGui._CheckboxRet(label: string, stack: CallStack) => bool {
+	return imgui__checkbox_ret(ToDoraString(label), stack.GetRaw()) != 0
+}
+func _ImGui._RadioButtonRet(label: string, stack: CallStack, v_button: i32) => bool {
+	return imgui__radio_button_ret(ToDoraString(label), stack.GetRaw(), v_button) != 0
+}
+func _ImGui.PlotLines(label: string, values: *[]f32) {
+	imgui_plot_lines(ToDoraString(label), ToDoraF32Buf(values))
+}
+func _ImGui.PlotLinesOpts(label: string, values: *[]f32, values_offset: i32, overlay_text: string, scale_min: f32, scale_max: f32, graph_size: Vec2) {
+	imgui_plot_lines_opts(ToDoraString(label), ToDoraF32Buf(values), values_offset, ToDoraString(overlay_text), scale_min, scale_max, graph_size.ToValue())
+}
+func _ImGui.PlotHistogram(label: string, values: *[]f32) {
+	imgui_plot_histogram(ToDoraString(label), ToDoraF32Buf(values))
+}
+func _ImGui.PlotHistogramOpts(label: string, values: *[]f32, values_offset: i32, overlay_text: string, scale_min: f32, scale_max: f32, graph_size: Vec2) {
+	imgui_plot_histogram_opts(ToDoraString(label), ToDoraF32Buf(values), values_offset, ToDoraString(overlay_text), scale_min, scale_max, graph_size.ToValue())
+}
+func _ImGui.ProgressBar(fraction: f32) {
+	imgui_progress_bar(fraction)
+}
+func _ImGui.ProgressBarOpts(fraction: f32, size_arg: Vec2, overlay: string) {
+	imgui_progress_bar_opts(fraction, size_arg.ToValue(), ToDoraString(overlay))
+}
+func _ImGui._ListBoxRetOpts(label: string, stack: CallStack, items: *[]string, height_in_items: i32) => bool {
+	return imgui__list_box_ret_opts(ToDoraString(label), stack.GetRaw(), ToDoraStrBuf(items), height_in_items) != 0
+}
+func _ImGui._SliderAngleRet(label: string, stack: CallStack, v_degrees_min: f32, v_degrees_max: f32) => bool {
+	return imgui__slider_angle_ret(ToDoraString(label), stack.GetRaw(), v_degrees_min, v_degrees_max) != 0
+}
+func _ImGui._TreePush(str_id: string) {
+	imgui__tree_push(ToDoraString(str_id))
+}
+func _ImGui._TreePop() {
+	imgui__tree_pop()
+}
+func _ImGui.Value(prefix: string, b: bool) {
+	imgui_value(ToDoraString(prefix), ToDoraBool(b))
+}
+func _ImGui.MenuItem(label: string, shortcut: string, selected: bool, enabled: bool) => bool {
+	return imgui_menu_item(ToDoraString(label), ToDoraString(shortcut), ToDoraBool(selected), ToDoraBool(enabled)) != 0
+}
+func _ImGui.OpenPopup(str_id: string) {
+	imgui_open_popup(ToDoraString(str_id))
+}
+func _ImGui._BeginPopup(str_id: string) => bool {
+	return imgui__begin_popup(ToDoraString(str_id)) != 0
+}
+func _ImGui._EndPopup() {
+	imgui__end_popup()
+}
+func _ImGui.GetTreeNodeToLabelSpacing() => f32 {
+	return imgui_get_tree_node_to_label_spacing()
+}
+func _ImGui._BeginListBox(label: string, size: Vec2) => bool {
+	return imgui__begin_list_box(ToDoraString(label), size.ToValue()) != 0
+}
+func _ImGui._EndListBox() {
+	imgui__end_list_box()
+}
+func _ImGui._BeginDisabled() {
+	imgui__begin_disabled()
+}
+func _ImGui._EndDisabled() {
+	imgui__end_disabled()
+}
+func _ImGui._BeginTooltip() => bool {
+	return imgui__begin_tooltip() != 0
+}
+func _ImGui._EndTooltip() {
+	imgui__end_tooltip()
+}
+func _ImGui._BeginMainMenuBar() => bool {
+	return imgui__begin_main_menu_bar() != 0
+}
+func _ImGui._EndMainMenuBar() {
+	imgui__end_main_menu_bar()
+}
+func _ImGui._BeginMenuBar() => bool {
+	return imgui__begin_menu_bar() != 0
+}
+func _ImGui._EndMenuBar() {
+	imgui__end_menu_bar()
+}
+func _ImGui._BeginMenu(label: string, enabled: bool) => bool {
+	return imgui__begin_menu(ToDoraString(label), ToDoraBool(enabled)) != 0
+}
+func _ImGui._EndMenu() {
+	imgui__end_menu()
+}
+func _ImGui.CloseCurrentPopup() {
+	imgui_close_current_popup()
+}
+func _ImGui._PushClipRect(clip_rect_min: Vec2, clip_rect_max: Vec2, intersect_with_current_clip_rect: bool) {
+	imgui__push_clip_rect(clip_rect_min.ToValue(), clip_rect_max.ToValue(), ToDoraBool(intersect_with_current_clip_rect))
+}
+func _ImGui._PopClipRect() {
+	imgui__pop_clip_rect()
+}
+func _ImGui.IsItemHovered() => bool {
+	return imgui_is_item_hovered() != 0
+}
+func _ImGui.IsItemActive() => bool {
+	return imgui_is_item_active() != 0
+}
+func _ImGui.IsItemClicked(mouse_button: i32) => bool {
+	return imgui_is_item_clicked(mouse_button) != 0
+}
+func _ImGui.IsItemVisible() => bool {
+	return imgui_is_item_visible() != 0
+}
+func _ImGui.IsAnyItemHovered() => bool {
+	return imgui_is_any_item_hovered() != 0
+}
+func _ImGui.IsAnyItemActive() => bool {
+	return imgui_is_any_item_active() != 0
+}
+func _ImGui.GetItemRectMin() => Vec2 {
+	return Vec2FromValue(imgui_get_item_rect_min())
+}
+func _ImGui.GetItemRectMax() => Vec2 {
+	return Vec2FromValue(imgui_get_item_rect_max())
+}
+func _ImGui.GetItemRectSize() => Vec2 {
+	return Vec2FromValue(imgui_get_item_rect_size())
+}
+func _ImGui.SetNextItemAllowOverlap() {
+	imgui_set_next_item_allow_overlap()
+}
+func _ImGui.IsWindowHovered() => bool {
+	return imgui_is_window_hovered() != 0
+}
+func _ImGui.IsWindowFocused() => bool {
+	return imgui_is_window_focused() != 0
+}
+func _ImGui.IsRectVisible(size: Vec2) => bool {
+	return imgui_is_rect_visible(size.ToValue()) != 0
+}
+func _ImGui.IsMouseDown(button: i32) => bool {
+	return imgui_is_mouse_down(button) != 0
+}
+func _ImGui.IsMouseClicked(button: i32, repeat: bool) => bool {
+	return imgui_is_mouse_clicked(button, ToDoraBool(repeat)) != 0
+}
+func _ImGui.IsMouseDoubleClicked(button: i32) => bool {
+	return imgui_is_mouse_double_clicked(button) != 0
+}
+func _ImGui.IsMouseReleased(button: i32) => bool {
+	return imgui_is_mouse_released(button) != 0
+}
+func _ImGui.IsMouseHoveringRect(r_min: Vec2, r_max: Vec2, clip: bool) => bool {
+	return imgui_is_mouse_hovering_rect(r_min.ToValue(), r_max.ToValue(), ToDoraBool(clip)) != 0
+}
+func _ImGui.IsMouseDragging(button: i32, lock_threshold: f32) => bool {
+	return imgui_is_mouse_dragging(button, lock_threshold) != 0
+}
+func _ImGui.GetMousePos() => Vec2 {
+	return Vec2FromValue(imgui_get_mouse_pos())
+}
+func _ImGui.GetMousePosOnOpeningCurrentPopup() => Vec2 {
+	return Vec2FromValue(imgui_get_mouse_pos_on_opening_current_popup())
+}
+func _ImGui.GetMouseDragDelta(button: i32, lock_threshold: f32) => Vec2 {
+	return Vec2FromValue(imgui_get_mouse_drag_delta(button, lock_threshold))
+}
+func _ImGui.ResetMouseDragDelta(button: i32) {
+	imgui_reset_mouse_drag_delta(button)
+}

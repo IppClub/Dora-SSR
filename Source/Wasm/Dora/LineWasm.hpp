@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -11,16 +11,16 @@ using namespace Dora;
 int32_t line_type() {
 	return DoraType<Line>();
 }
-void line_set_depth_write(int64_t self, int32_t var) {
-	r_cast<Line*>(self)->setDepthWrite(var != 0);
+void line_set_depth_write(int64_t self, int32_t val) {
+	r_cast<Line*>(self)->setDepthWrite(val != 0);
 }
 int32_t line_is_depth_write(int64_t self) {
 	return r_cast<Line*>(self)->isDepthWrite() ? 1 : 0;
 }
-void line__set_blend_func(int64_t self, int64_t func) {
-	r_cast<Line*>(self)->setBlendFunc(BlendFunc(s_cast<uint64_t>(func)));
+void line_set_blend_func(int64_t self, int64_t val) {
+	r_cast<Line*>(self)->setBlendFunc(BlendFunc(s_cast<uint64_t>(val)));
 }
-int64_t line__get_blend_func(int64_t self) {
+int64_t line_get_blend_func(int64_t self) {
 	return s_cast<int64_t>(r_cast<Line*>(self)->getBlendFunc().toValue());
 }
 void line_add(int64_t self, int64_t verts, int32_t color) {
@@ -44,8 +44,8 @@ static void linkLine(wasm3::module3& mod) {
 	mod.link_optional("*", "line_type", line_type);
 	mod.link_optional("*", "line_set_depth_write", line_set_depth_write);
 	mod.link_optional("*", "line_is_depth_write", line_is_depth_write);
-	mod.link_optional("*", "line__set_blend_func", line__set_blend_func);
-	mod.link_optional("*", "line__get_blend_func", line__get_blend_func);
+	mod.link_optional("*", "line_set_blend_func", line_set_blend_func);
+	mod.link_optional("*", "line_get_blend_func", line_get_blend_func);
 	mod.link_optional("*", "line_add", line_add);
 	mod.link_optional("*", "line_set", line_set);
 	mod.link_optional("*", "line_clear", line_clear);

@@ -1,0 +1,89 @@
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+#wa:import dora platformer_visual_type
+func platformer_visual_type() => i32
+
+#wa:import dora platformer_visual_is_playing
+func platformer_visual_is_playing(slf: i64) => i32
+
+#wa:import dora platformer_visual_start
+func platformer_visual_start(slf: i64)
+
+#wa:import dora platformer_visual_stop
+func platformer_visual_stop(slf: i64)
+
+#wa:import dora platformer_visual_auto_remove
+func platformer_visual_auto_remove(slf: i64) => i64
+
+#wa:import dora platformer_visual_new
+func platformer_visual_new(name: i64) => i64
+
+type PlatformerVisual :struct{ Node }
+
+func PlatformerVisualFrom(raw: i64) => *PlatformerVisual {
+	if raw == 0 {
+		return nil
+	}
+	object := PlatformerVisual{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	result := &object
+	return result
+}
+func PlatformerVisual.GetTypeId() => i32 {
+	return platformer_visual_type()
+}
+func ObjectAsPlatformerVisual(object: Object) => *PlatformerVisual {
+	if object.GetTypeId() == platformer_visual_type() {
+		ObjectRetain(object.GetRaw())
+		return PlatformerVisualFrom(object.GetRaw())
+	}
+	return nil
+}
+
+/// Gets whether the visual effect is currently playing or not.
+func PlatformerVisual.IsPlaying() => bool {
+	return platformer_visual_is_playing(*this.raw) != 0
+}
+
+/// Starts playing the visual effect.
+func PlatformerVisual.Start() {
+	platformer_visual_start(*this.raw)
+}
+
+/// Stops playing the visual effect.
+func PlatformerVisual.Stop() {
+	platformer_visual_stop(*this.raw)
+}
+
+/// Automatically removes the visual effect from the game world when it finishes playing.
+///
+/// # Returns
+///
+/// * `Visual` - The same `Visual` object that was passed in as a parameter.
+func PlatformerVisual.AutoRemove() => PlatformerVisual {
+	return *PlatformerVisualFrom(platformer_visual_auto_remove(*this.raw))
+}
+
+/// Creates a new `Visual` object with the specified name.
+///
+/// # Arguments
+///
+/// * `name` - The name of the new `Visual` object. Could be a particle file, a frame animation file or an image file.
+///
+/// # Returns
+///
+/// * `Visual` - The new `Visual` object.
+func NewPlatformerVisual(name: string) => PlatformerVisual {
+	raw := platformer_visual_new(ToDoraString(name))
+	object := PlatformerVisual{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return object
+}

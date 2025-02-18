@@ -15,29 +15,24 @@
 namespace ktm
 {
 
-template<class Father, class Child>
+template <class Father, class Child>
 struct iquat_array;
 
-template<class Father,typename T>
+template <class Father, typename T>
 struct iquat_array<Father, quat<T>> : Father
 {
     using Father::Father;
     using array_type = std::array<T, 4>;
+
 private:
-    template<class F, class C>
+    template <class F, class C>
     friend struct iarray_util;
 
-    KTM_FUNC array_type& to_array_impl() noexcept
-    {
-        return reinterpret_cast<array_type&>(*this);
-    }
-    
-    KTM_FUNC const array_type& to_array_impl() const noexcept
-    {
-        return reinterpret_cast<const array_type&>(*this);
-    }
+    KTM_FUNC array_type& to_array_impl() noexcept { return reinterpret_cast<array_type&>(*this); }
+
+    KTM_FUNC const array_type& to_array_impl() const noexcept { return reinterpret_cast<const array_type&>(*this); }
 };
 
-}
+} // namespace ktm
 
 #endif

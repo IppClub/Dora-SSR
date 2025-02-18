@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -10,15 +10,15 @@ extern "C" {
 	fn grid_type() -> i32;
 	fn grid_get_grid_x(slf: i64) -> i32;
 	fn grid_get_grid_y(slf: i64) -> i32;
-	fn grid_set_depth_write(slf: i64, var: i32);
+	fn grid_set_depth_write(slf: i64, val: i32);
 	fn grid_is_depth_write(slf: i64) -> i32;
-	fn grid__set_blend_func(slf: i64, func: i64);
-	fn grid__get_blend_func(slf: i64) -> i64;
-	fn grid_set_effect(slf: i64, var: i64);
+	fn grid_set_blend_func(slf: i64, val: i64);
+	fn grid_get_blend_func(slf: i64) -> i64;
+	fn grid_set_effect(slf: i64, val: i64);
 	fn grid_get_effect(slf: i64) -> i64;
-	fn grid_set_texture_rect(slf: i64, var: i64);
+	fn grid_set_texture_rect(slf: i64, val: i64);
 	fn grid_get_texture_rect(slf: i64) -> i64;
-	fn grid_set_texture(slf: i64, var: i64);
+	fn grid_set_texture(slf: i64, val: i64);
 	fn grid_get_texture(slf: i64) -> i64;
 	fn grid_set_pos(slf: i64, x: i32, y: i32, pos: i64, z: f32);
 	fn grid_get_pos(slf: i64, x: i32, y: i32) -> i64;
@@ -54,23 +54,25 @@ impl Grid {
 		return unsafe { grid_get_grid_y(self.raw()) };
 	}
 	/// Sets whether depth writes are enabled.
-	pub fn set_depth_write(&mut self, var: bool) {
-		unsafe { grid_set_depth_write(self.raw(), if var { 1 } else { 0 }) };
+	pub fn set_depth_write(&mut self, val: bool) {
+		unsafe { grid_set_depth_write(self.raw(), if val { 1 } else { 0 }) };
 	}
 	/// Gets whether depth writes are enabled.
 	pub fn is_depth_write(&self) -> bool {
 		return unsafe { grid_is_depth_write(self.raw()) != 0 };
 	}
-	pub(crate) fn _set_blend_func(&mut self, func: u64) {
-		unsafe { grid__set_blend_func(self.raw(), func as i64); }
+	/// Sets the blend function for the grid.
+	pub fn set_blend_func(&mut self, val: crate::dora::BlendFunc) {
+		unsafe { grid_set_blend_func(self.raw(), val.to_value()) };
 	}
-	pub(crate) fn _get_blend_func(&self) -> u64 {
-		unsafe { return grid__get_blend_func(self.raw()) as u64; }
+	/// Gets the blend function for the grid.
+	pub fn get_blend_func(&self) -> crate::dora::BlendFunc {
+		return unsafe { crate::dora::BlendFunc::from(grid_get_blend_func(self.raw())) };
 	}
 	/// Sets the sprite effect applied to the grid.
 	/// Default is `SpriteEffect::new("builtin:vs_sprite", "builtin:fs_sprite")`.
-	pub fn set_effect(&mut self, var: &crate::dora::SpriteEffect) {
-		unsafe { grid_set_effect(self.raw(), var.raw()) };
+	pub fn set_effect(&mut self, val: &crate::dora::SpriteEffect) {
+		unsafe { grid_set_effect(self.raw(), val.raw()) };
 	}
 	/// Gets the sprite effect applied to the grid.
 	/// Default is `SpriteEffect::new("builtin:vs_sprite", "builtin:fs_sprite")`.
@@ -78,16 +80,16 @@ impl Grid {
 		return unsafe { crate::dora::SpriteEffect::from(grid_get_effect(self.raw())).unwrap() };
 	}
 	/// Sets the rectangle within the texture that is used for the grid.
-	pub fn set_texture_rect(&mut self, var: &crate::dora::Rect) {
-		unsafe { grid_set_texture_rect(self.raw(), var.raw()) };
+	pub fn set_texture_rect(&mut self, val: &crate::dora::Rect) {
+		unsafe { grid_set_texture_rect(self.raw(), val.raw()) };
 	}
 	/// Gets the rectangle within the texture that is used for the grid.
 	pub fn get_texture_rect(&self) -> crate::dora::Rect {
 		return unsafe { crate::dora::Rect::from(grid_get_texture_rect(self.raw())) };
 	}
 	/// Sets the texture used for the grid.
-	pub fn set_texture(&mut self, var: &crate::dora::Texture2D) {
-		unsafe { grid_set_texture(self.raw(), var.raw()) };
+	pub fn set_texture(&mut self, val: &crate::dora::Texture2D) {
+		unsafe { grid_set_texture(self.raw(), val.raw()) };
 	}
 	/// Gets the texture used for the grid.
 	pub fn get_texture(&self) -> Option<crate::dora::Texture2D> {

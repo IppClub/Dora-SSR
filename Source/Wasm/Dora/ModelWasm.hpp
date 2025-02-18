@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -14,8 +14,8 @@ int32_t model_type() {
 float model_get_duration(int64_t self) {
 	return r_cast<Model*>(self)->getDuration();
 }
-void model_set_reversed(int64_t self, int32_t var) {
-	r_cast<Model*>(self)->setReversed(var != 0);
+void model_set_reversed(int64_t self, int32_t val) {
+	r_cast<Model*>(self)->setReversed(val != 0);
 }
 int32_t model_is_reversed(int64_t self) {
 	return r_cast<Model*>(self)->isReversed() ? 1 : 0;
@@ -47,16 +47,16 @@ void model_update_to(int64_t self, float elapsed, int32_t reversed) {
 int64_t model_get_node_by_name(int64_t self, int64_t name) {
 	return Object_From(r_cast<Model*>(self)->getNodeByName(*Str_From(name)));
 }
-int32_t model_each_node(int64_t self, int32_t func, int64_t stack) {
-	std::shared_ptr<void> deref(nullptr, [func](auto) {
-		SharedWasmRuntime.deref(func);
+int32_t model_each_node(int64_t self, int32_t func0, int64_t stack0) {
+	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
+		SharedWasmRuntime.deref(func0);
 	});
-	auto args = r_cast<CallStack*>(stack);
-	return r_cast<Model*>(self)->eachNode([func, args, deref](Node* node) {
-		args->clear();
-		args->push(node);
-		SharedWasmRuntime.invoke(func);
-		return std::get<bool>(args->pop());
+	auto args0 = r_cast<CallStack*>(stack0);
+	return r_cast<Model*>(self)->eachNode([func0, args0, deref0](Node* node) {
+		args0->clear();
+		args0->push(node);
+		SharedWasmRuntime.invoke(func0);
+		return args0->pop_bool_or(false);
 	}) ? 1 : 0;
 }
 int64_t model_new(int64_t filename) {

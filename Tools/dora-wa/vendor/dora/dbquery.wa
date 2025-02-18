@@ -1,0 +1,51 @@
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+#wa:import dora dbquery_release
+func dbquery_release(raw: i64)
+
+#wa:import dora dbquery_add_with_params
+func dbquery_add_with_params(slf: i64, sql: i64, params: i64)
+
+#wa:import dora dbquery_add
+func dbquery_add(slf: i64, sql: i64)
+
+#wa:import dora dbquery_new
+func dbquery_new() => i64
+
+type DBQuery :struct{ raw: *i64 }
+
+func DBQuery.GetRaw() => i64 {
+	return *this.raw
+}
+func d_b_query_finalizer(ptr: u32) {
+	dbquery_release(GetPtr(ptr))
+}
+func DBQueryFrom(raw: i64) => *DBQuery {
+	if raw == 0 {
+		return nil
+	}
+	item := DBQuery{}
+	item.raw = &raw
+	setFinalizer(item.raw, d_b_query_finalizer)
+	result := &item
+	return result
+}
+func DBQuery.AddWithParams(sql: string, params: DBParams) {
+	dbquery_add_with_params(*this.raw, ToDoraString(sql), params.GetRaw())
+}
+func DBQuery.Add(sql: string) {
+	dbquery_add(*this.raw, ToDoraString(sql))
+}
+func NewDBQuery() => DBQuery {
+	raw := dbquery_new()
+	object := DBQuery{}
+	object.raw = &raw
+	setFinalizer(object.raw, d_b_query_finalizer)
+	return object
+}

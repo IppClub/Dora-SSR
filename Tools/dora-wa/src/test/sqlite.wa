@@ -1,0 +1,104 @@
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+import "dora"
+
+func TestSqlite() {
+	sqls := dora.NewDBQuery()
+	sqls.Add("DROP TABLE IF EXISTS test")
+	sqls.Add("CREATE TABLE test (id INTEGER PRIMARY KEY, value TEXT)")
+	params := dora.NewDBParams()
+	arr := dora.NewArray()
+	data := []string{"hello", "world", "ok"}
+	for _, value := range data {
+		arr.Add(false).AddStr(value)
+		params.Add(arr)
+		arr.Clear()
+	}
+	sqls.AddWithParams("INSERT INTO test VALUES(?, ?)", params)
+
+	result := dora.DB.Transaction(sqls)
+	dora.Println("transaction result:", result)
+	dora.Println("table test exist:", dora.DB.Exist("test"))
+
+	records := dora.DB.Query("SELECT * FROM test", true)
+	arr = dora.NewArray()
+	records.Read(arr)
+	i: i32 = 0
+	columnNames := ""
+	for i < i32(arr.GetCount()) {
+		value, _ := arr.Get(i).GetStr()
+		columnNames += value
+		if i < i32(arr.GetCount())-1 {
+			columnNames += ", "
+		}
+		i += 1
+	}
+	dora.Println("column names:", columnNames)
+
+	count := 0
+	for records.Read(arr) {
+		id, _ := arr.Get(0).GetI32()
+		value, _ := arr.Get(1).GetStr()
+		dora.Println(id, value)
+		count += 1
+	}
+	dora.Println("result count:", count)
+
+	dora.Println("row deleted:", dora.DB.Exec("DELETE FROM test WHERE id > 2"))
+	params = dora.NewDBParams()
+	arr = dora.NewArray()
+	arr.AddStr("hello world!")
+	params.Add(arr)
+	dora.Println("row updated:", dora.DB.ExecWithRecords("UPDATE test SET value = ? WHERE id = 1", params))
+
+	dora.Println("insert async")
+	params = dora.NewDBParams()
+	data = []string{"B", "A", "D", "C", "F", "E"}
+	for _, value := range data {
+		arr.Clear()
+		arr.Add(false).AddStr(value)
+		params.Add(arr)
+	}
+	dora.DB.InsertAsync("test", params, func(result: bool) {
+		dora.Println("insert async result:", result)
+		dora.Println("query async...")
+	})
+
+	dora.DB.QueryWithParamsAsync("SELECT value FROM test WHERE value NOT LIKE 'hello%' ORDER BY value ASC", dora.NewArray(), true, func(result: dora.DBRecord) {
+		arr := dora.NewArray()
+		for result.Read(arr) {
+			value, _ := arr.Get(0).GetStr()
+			dora.Println(value)
+		}
+	})
+
+	dora.Println("OK")
+
+	window_flags := dora.ImGuiWindowFlags(
+		dora.ImGuiWindowNoDecoration,
+		dora.ImGuiWindowAlwaysAutoResize,
+		dora.ImGuiWindowNoSavedSettings,
+		dora.ImGuiWindowNoFocusOnAppearing,
+		dora.ImGuiWindowNoNav,
+		dora.ImGuiWindowNoMove,
+	)
+	imgui_node := dora.NewNode()
+	imgui_node.Schedule(func(_: f64) => bool {
+		size := dora.App.GetVisualSize()
+		dora.ImGui.SetNextWindowBgAlpha(0.35)
+		dora.ImGui.SetNextWindowPosOpts(dora.Vec2{size.Width - 10.0, 10.0}, dora.ImGuiCondAlways, dora.Vec2{1.0, 0.0})
+		dora.ImGui.SetNextWindowSizeOpts(dora.Vec2{240.0, 0.0}, dora.ImGuiCondFirstUseEver)
+		dora.ImGui.BeginOpts("SQLite", window_flags, func() {
+			dora.ImGui.Text("SQLite (Wa)")
+			dora.ImGui.Separator()
+			dora.ImGui.TextWrapped("Doing database operations in synchronous and asynchronous ways.")
+		})
+		return false
+	})
+}

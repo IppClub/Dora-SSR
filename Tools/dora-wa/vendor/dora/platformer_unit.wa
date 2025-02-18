@@ -1,0 +1,366 @@
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+#wa:import dora platformer_unit_type
+func platformer_unit_type() => i32
+
+#wa:import dora platformer_unit_set_playable
+func platformer_unit_set_playable(slf: i64, val: i64)
+
+#wa:import dora platformer_unit_get_playable
+func platformer_unit_get_playable(slf: i64) => i64
+
+#wa:import dora platformer_unit_set_detect_distance
+func platformer_unit_set_detect_distance(slf: i64, val: f32)
+
+#wa:import dora platformer_unit_get_detect_distance
+func platformer_unit_get_detect_distance(slf: i64) => f32
+
+#wa:import dora platformer_unit_set_attack_range
+func platformer_unit_set_attack_range(slf: i64, val: i64)
+
+#wa:import dora platformer_unit_get_attack_range
+func platformer_unit_get_attack_range(slf: i64) => i64
+
+#wa:import dora platformer_unit_set_face_right
+func platformer_unit_set_face_right(slf: i64, val: i32)
+
+#wa:import dora platformer_unit_is_face_right
+func platformer_unit_is_face_right(slf: i64) => i32
+
+#wa:import dora platformer_unit_set_receiving_decision_trace
+func platformer_unit_set_receiving_decision_trace(slf: i64, val: i32)
+
+#wa:import dora platformer_unit_is_receiving_decision_trace
+func platformer_unit_is_receiving_decision_trace(slf: i64) => i32
+
+#wa:import dora platformer_unit_set_decision_tree
+func platformer_unit_set_decision_tree(slf: i64, val: i64)
+
+#wa:import dora platformer_unit_get_decision_tree
+func platformer_unit_get_decision_tree(slf: i64) => i64
+
+#wa:import dora platformer_unit_is_on_surface
+func platformer_unit_is_on_surface(slf: i64) => i32
+
+#wa:import dora platformer_unit_get_ground_sensor
+func platformer_unit_get_ground_sensor(slf: i64) => i64
+
+#wa:import dora platformer_unit_get_detect_sensor
+func platformer_unit_get_detect_sensor(slf: i64) => i64
+
+#wa:import dora platformer_unit_get_attack_sensor
+func platformer_unit_get_attack_sensor(slf: i64) => i64
+
+#wa:import dora platformer_unit_get_unit_def
+func platformer_unit_get_unit_def(slf: i64) => i64
+
+#wa:import dora platformer_unit_get_current_action
+func platformer_unit_get_current_action(slf: i64) => i64
+
+#wa:import dora platformer_unit_get_width
+func platformer_unit_get_width(slf: i64) => f32
+
+#wa:import dora platformer_unit_get_height
+func platformer_unit_get_height(slf: i64) => f32
+
+#wa:import dora platformer_unit_get_entity
+func platformer_unit_get_entity(slf: i64) => i64
+
+#wa:import dora platformer_unit_attach_action
+func platformer_unit_attach_action(slf: i64, name: i64) => i64
+
+#wa:import dora platformer_unit_remove_action
+func platformer_unit_remove_action(slf: i64, name: i64)
+
+#wa:import dora platformer_unit_remove_all_actions
+func platformer_unit_remove_all_actions(slf: i64)
+
+#wa:import dora platformer_unit_get_action
+func platformer_unit_get_action(slf: i64, name: i64) => i64
+
+#wa:import dora platformer_unit_each_action
+func platformer_unit_each_action(slf: i64, func0: i32, stack0: i64)
+
+#wa:import dora platformer_unit_start
+func platformer_unit_start(slf: i64, name: i64) => i32
+
+#wa:import dora platformer_unit_stop
+func platformer_unit_stop(slf: i64)
+
+#wa:import dora platformer_unit_is_doing
+func platformer_unit_is_doing(slf: i64, name: i64) => i32
+
+#wa:import dora platformer_unit_new
+func platformer_unit_new(unit_def: i64, physics_world: i64, entity: i64, pos: i64, rot: f32) => i64
+
+#wa:import dora platformer_unit_with_store
+func platformer_unit_with_store(unit_def_name: i64, physics_world_name: i64, entity: i64, pos: i64, rot: f32) => i64
+
+type PlatformerUnit :struct{ Body }
+
+func PlatformerUnitFrom(raw: i64) => *PlatformerUnit {
+	if raw == 0 {
+		return nil
+	}
+	object := PlatformerUnit{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	result := &object
+	return result
+}
+func PlatformerUnit.GetTypeId() => i32 {
+	return platformer_unit_type()
+}
+func ObjectAsPlatformerUnit(object: Object) => *PlatformerUnit {
+	if object.GetTypeId() == platformer_unit_type() {
+		ObjectRetain(object.GetRaw())
+		return PlatformerUnitFrom(object.GetRaw())
+	}
+	return nil
+}
+
+/// Sets the property that references a "Playable" object for managing the animation state and playback of the "Unit".
+func PlatformerUnit.SetPlayable(val: Playable) {
+	platformer_unit_set_playable(*this.raw, val.GetRaw())
+}
+
+/// Gets the property that references a "Playable" object for managing the animation state and playback of the "Unit".
+func PlatformerUnit.GetPlayable() => Playable {
+	return *PlayableFrom(platformer_unit_get_playable(*this.raw))
+}
+
+/// Sets the property that specifies the maximum distance at which the "Unit" can detect other "Unit" or objects.
+func PlatformerUnit.SetDetectDistance(val: f32) {
+	platformer_unit_set_detect_distance(*this.raw, val)
+}
+
+/// Gets the property that specifies the maximum distance at which the "Unit" can detect other "Unit" or objects.
+func PlatformerUnit.GetDetectDistance() => f32 {
+	return platformer_unit_get_detect_distance(*this.raw)
+}
+
+/// Sets the property that specifies the size of the attack range for the "Unit".
+func PlatformerUnit.SetAttackRange(val: Size) {
+	platformer_unit_set_attack_range(*this.raw, val.ToValue())
+}
+
+/// Gets the property that specifies the size of the attack range for the "Unit".
+func PlatformerUnit.GetAttackRange() => Size {
+	return SizeFromValue(platformer_unit_get_attack_range(*this.raw))
+}
+
+/// Sets the boolean property that specifies whether the "Unit" is facing right or not.
+func PlatformerUnit.SetFaceRight(val: bool) {
+	platformer_unit_set_face_right(*this.raw, ToDoraBool(val))
+}
+
+/// Gets the boolean property that specifies whether the "Unit" is facing right or not.
+func PlatformerUnit.IsFaceRight() => bool {
+	return platformer_unit_is_face_right(*this.raw) != 0
+}
+
+/// Sets the boolean property that specifies whether the "Unit" is receiving a trace of the decision tree for debugging purposes.
+func PlatformerUnit.SetReceivingDecisionTrace(val: bool) {
+	platformer_unit_set_receiving_decision_trace(*this.raw, ToDoraBool(val))
+}
+
+/// Gets the boolean property that specifies whether the "Unit" is receiving a trace of the decision tree for debugging purposes.
+func PlatformerUnit.IsReceivingDecisionTrace() => bool {
+	return platformer_unit_is_receiving_decision_trace(*this.raw) != 0
+}
+
+/// Sets the string property that specifies the decision tree to use for the "Unit's" AI behavior.
+/// the decision tree object will be searched in The singleton instance Data.store.
+func PlatformerUnit.SetDecisionTree(val: string) {
+	platformer_unit_set_decision_tree(*this.raw, ToDoraString(val))
+}
+
+/// Gets the string property that specifies the decision tree to use for the "Unit's" AI behavior.
+/// the decision tree object will be searched in The singleton instance Data.store.
+func PlatformerUnit.GetDecisionTree() => string {
+	return FromDoraString(platformer_unit_get_decision_tree(*this.raw))
+}
+
+/// Gets whether the "Unit" is currently on a surface or not.
+func PlatformerUnit.IsOnSurface() => bool {
+	return platformer_unit_is_on_surface(*this.raw) != 0
+}
+
+/// Gets the "Sensor" object for detecting ground surfaces.
+func PlatformerUnit.GetGroundSensor() => Sensor {
+	return *SensorFrom(platformer_unit_get_ground_sensor(*this.raw))
+}
+
+/// Gets the "Sensor" object for detecting other "Unit" objects or physics bodies in the game world.
+func PlatformerUnit.GetDetectSensor() => Sensor {
+	return *SensorFrom(platformer_unit_get_detect_sensor(*this.raw))
+}
+
+/// Gets the "Sensor" object for detecting other "Unit" objects within the attack senser area.
+func PlatformerUnit.GetAttackSensor() => Sensor {
+	return *SensorFrom(platformer_unit_get_attack_sensor(*this.raw))
+}
+
+/// Gets the "Dictionary" object for defining the properties and behavior of the "Unit".
+func PlatformerUnit.GetUnitDef() => Dictionary {
+	return *DictionaryFrom(platformer_unit_get_unit_def(*this.raw))
+}
+
+/// Gets the property that specifies the current action being performed by the "Unit".
+func PlatformerUnit.GetCurrentAction() => PlatformerUnitAction {
+	return *PlatformerUnitActionFrom(platformer_unit_get_current_action(*this.raw))
+}
+
+/// Gets the width of the "Unit".
+func PlatformerUnit.GetWidth() => f32 {
+	return platformer_unit_get_width(*this.raw)
+}
+
+/// Gets the height of the "Unit".
+func PlatformerUnit.GetHeight() => f32 {
+	return platformer_unit_get_height(*this.raw)
+}
+
+/// Gets the "Entity" object for representing the "Unit" in the ECS system.
+func PlatformerUnit.GetEntity() => Entity {
+	return *EntityFrom(platformer_unit_get_entity(*this.raw))
+}
+
+/// Adds a new `UnitAction` to the `Unit` with the specified name, and returns the new `UnitAction`.
+///
+/// # Arguments
+///
+/// * `name` - The name of the new `UnitAction`.
+///
+/// # Returns
+///
+/// * The newly created `UnitAction`.
+func PlatformerUnit.AttachAction(name: string) => PlatformerUnitAction {
+	return *PlatformerUnitActionFrom(platformer_unit_attach_action(*this.raw, ToDoraString(name)))
+}
+
+/// Removes the `UnitAction` with the specified name from the `Unit`.
+///
+/// # Arguments
+///
+/// * `name` - The name of the `UnitAction` to remove.
+func PlatformerUnit.RemoveAction(name: string) {
+	platformer_unit_remove_action(*this.raw, ToDoraString(name))
+}
+
+/// Removes all "UnitAction" objects from the "Unit".
+func PlatformerUnit.RemoveAllActions() {
+	platformer_unit_remove_all_actions(*this.raw)
+}
+
+/// Returns the `UnitAction` with the specified name, or `None` if the `UnitAction` does not exist.
+///
+/// # Arguments
+///
+/// * `name` - The name of the `UnitAction` to retrieve.
+///
+/// # Returns
+///
+/// * The `UnitAction` with the specified name, or `None`.
+func PlatformerUnit.GetAction(name: string) => *PlatformerUnitAction {
+	ptr_ := platformer_unit_get_action(*this.raw, ToDoraString(name))
+	if ptr_ == 0 {
+		return nil
+	}
+	obj_ := *PlatformerUnitActionFrom(ptr_)
+	return &obj_
+}
+
+/// Calls the specified function for each `UnitAction` attached to the `Unit`.
+///
+/// # Arguments
+///
+/// * `visitorFunc` - A function to call for each `UnitAction`.
+func PlatformerUnit.EachAction(visitor_func: func(action: PlatformerUnitAction)) {
+	stack0 := NewCallStack()
+	func_id0 := PushFunction(func() {
+		action_raw, _ := stack0.PopI64()
+		action := *PlatformerUnitActionFrom(action_raw)
+		visitor_func(action)
+	})
+	platformer_unit_each_action(*this.raw, func_id0, *stack0.raw)
+}
+
+/// Starts the `UnitAction` with the specified name, and returns true if the `UnitAction` was started successfully.
+///
+/// # Arguments
+///
+/// * `name` - The name of the `UnitAction` to start.
+///
+/// # Returns
+///
+/// * `true` if the `UnitAction` was started successfully, `false` otherwise.
+func PlatformerUnit.Start(name: string) => bool {
+	return platformer_unit_start(*this.raw, ToDoraString(name)) != 0
+}
+
+/// Stops the currently running "UnitAction".
+func PlatformerUnit.Stop() {
+	platformer_unit_stop(*this.raw)
+}
+
+/// Returns true if the `Unit` is currently performing the specified `UnitAction`, false otherwise.
+///
+/// # Arguments
+///
+/// * `name` - The name of the `UnitAction` to check.
+///
+/// # Returns
+///
+/// * `true` if the `Unit` is currently performing the specified `UnitAction`, `false` otherwise.
+func PlatformerUnit.IsDoing(name: string) => bool {
+	return platformer_unit_is_doing(*this.raw, ToDoraString(name)) != 0
+}
+
+/// A method that creates a new `Unit` object.
+///
+/// # Arguments
+///
+/// * `unit_def` - A `Dictionary` object that defines the properties and behavior of the `Unit`.
+/// * `physics_world` - A `PhysicsWorld` object that represents the physics simulation world.
+/// * `entity` - An `Entity` object that represents the `Unit` in ECS system.
+/// * `pos` - A `Vec2` object that specifies the initial position of the `Unit`.
+/// * `rot` - A number that specifies the initial rotation of the `Unit`.
+///
+/// # Returns
+///
+/// * The newly created `Unit` object.
+func NewPlatformerUnit(unit_def: Dictionary, physics_world: PhysicsWorld, entity: Entity, pos: Vec2, rot: f32) => PlatformerUnit {
+	raw := platformer_unit_new(unit_def.GetRaw(), physics_world.GetRaw(), entity.GetRaw(), pos.ToValue(), rot)
+	object := PlatformerUnit{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return object
+}
+
+/// A method that creates a new `Unit` object.
+///
+/// # Arguments
+///
+/// * `unit_def_name` - A string that specifies the name of the `Unit` definition to retrieve from `Data.store` table.
+/// * `physics_world_name` - A string that specifies the name of the `PhysicsWorld` object to retrieve from `Data.store` table.
+/// * `entity` - An `Entity` object that represents the `Unit` in ECS system.
+/// * `pos` - A `Vec2` object that specifies the initial position of the `Unit`.
+/// * `rot` - An optional number that specifies the initial rotation of the `Unit` (default is 0.0).
+///
+/// # Returns
+///
+/// * The newly created `Unit` object.
+func NewPlatformerUnitWithStore(unit_def_name: string, physics_world_name: string, entity: Entity, pos: Vec2, rot: f32) => PlatformerUnit {
+	raw := platformer_unit_with_store(ToDoraString(unit_def_name), ToDoraString(physics_world_name), entity.GetRaw(), pos.ToValue(), rot)
+	object := PlatformerUnit{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return object
+}

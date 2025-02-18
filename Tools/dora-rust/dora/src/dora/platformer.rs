@@ -8,9 +8,9 @@ mod bullet;
 pub use bullet::Bullet;
 mod visual;
 pub use visual::Visual;
+mod action_update;
 pub mod behavior;
 pub mod decision;
-mod action_update;
 pub use action_update::ActionUpdate;
 mod unit_action;
 pub use unit_action::UnitAction;
@@ -29,5 +29,5 @@ pub enum Relation {
 	Friend = 1 << 0,
 	Neutral = 1 << 1,
 	Enemy = 1 << 2,
-	Any = (Relation::Friend as u32 | Relation::Neutral as u32 | Relation::Enemy as u32) as i32
+	Any = (Relation::Friend as u32 | Relation::Neutral as u32 | Relation::Enemy as u32) as i32,
 }

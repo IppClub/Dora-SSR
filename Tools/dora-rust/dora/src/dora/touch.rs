@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -8,12 +8,13 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 	fn touch_type() -> i32;
-	fn touch_set_enabled(slf: i64, var: i32);
+	fn touch_set_enabled(slf: i64, val: i32);
 	fn touch_is_enabled(slf: i64) -> i32;
 	fn touch_is_first(slf: i64) -> i32;
 	fn touch_get_id(slf: i64) -> i32;
 	fn touch_get_delta(slf: i64) -> i64;
 	fn touch_get_location(slf: i64) -> i64;
+	fn touch_get_world_location(slf: i64) -> i64;
 }
 use crate::dora::IObject;
 /// Represents a touch input or mouse click event.
@@ -29,8 +30,8 @@ impl Touch {
 		})
 	}
 	/// Sets whether touch input is enabled or not.
-	pub fn set_enabled(&mut self, var: bool) {
-		unsafe { touch_set_enabled(self.raw(), if var { 1 } else { 0 }) };
+	pub fn set_enabled(&mut self, val: bool) {
+		unsafe { touch_set_enabled(self.raw(), if val { 1 } else { 0 }) };
 	}
 	/// Gets whether touch input is enabled or not.
 	pub fn is_enabled(&self) -> bool {
@@ -51,5 +52,9 @@ impl Touch {
 	/// Gets the location of the touch event in the node's local coordinate system.
 	pub fn get_location(&self) -> crate::dora::Vec2 {
 		return unsafe { crate::dora::Vec2::from(touch_get_location(self.raw())) };
+	}
+	/// Gets the location of the touch event in the world coordinate system.
+	pub fn get_world_location(&self) -> crate::dora::Vec2 {
+		return unsafe { crate::dora::Vec2::from(touch_get_world_location(self.raw())) };
 	}
 }

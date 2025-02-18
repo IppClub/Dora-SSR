@@ -1,0 +1,92 @@
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+#wa:import dora vgnode_type
+func vgnode_type() => i32
+
+#wa:import dora vgnode_get_surface
+func vgnode_get_surface(slf: i64) => i64
+
+#wa:import dora vgnode_render
+func vgnode_render(slf: i64, func0: i32)
+
+#wa:import dora vgnode_new
+func vgnode_new(width: f32, height: f32, scale: f32, edge_aa: i32) => i64
+
+type VGNode :struct{ Node }
+
+func VGNodeFrom(raw: i64) => *VGNode {
+	if raw == 0 {
+		return nil
+	}
+	object := VGNode{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	result := &object
+	return result
+}
+func VGNode.GetTypeId() => i32 {
+	return vgnode_type()
+}
+func ObjectAsVGNode(object: Object) => *VGNode {
+	if object.GetTypeId() == vgnode_type() {
+		ObjectRetain(object.GetRaw())
+		return VGNodeFrom(object.GetRaw())
+	}
+	return nil
+}
+
+/// Gets The surface of the node for displaying frame buffer texture that contains vector graphics.
+/// You can get the texture of the surface by calling `vgNode.get_surface().get_texture()`.
+func VGNode.GetSurface() => Sprite {
+	return *SpriteFrom(vgnode_get_surface(*this.raw))
+}
+
+/// The function for rendering vector graphics.
+///
+/// # Arguments
+///
+/// * `renderFunc` - The closure function for rendering vector graphics. You can do the rendering operations inside this closure.
+///
+/// # Example
+///
+/// ```
+/// vgNode.render(|| {
+/// 	Nvg::begin_path();
+/// 	Nvg::move_to(100.0, 100.0);
+/// 	Nvg::line_to(200.0, 200.0);
+/// 	Nvg::close_path();
+/// 	Nvg::stroke();
+/// });
+/// ```
+func VGNode.Render(render_func: func()) {
+	func_id0 := PushFunction(func() {
+		render_func()
+	})
+	vgnode_render(*this.raw, func_id0)
+}
+
+/// Creates a new VGNode object with the specified width and height.
+///
+/// # Arguments
+///
+/// * `width` - The width of the node's frame buffer texture.
+/// * `height` - The height of the node's frame buffer texture.
+/// * `scale` - The scale factor of the VGNode.
+/// * `edge_aa` - The edge anti-aliasing factor of the VGNode.
+///
+/// # Returns
+///
+/// * The newly created VGNode object.
+func NewVGNode(width: f32, height: f32, scale: f32, edge_aa: i32) => VGNode {
+	raw := vgnode_new(width, height, scale, edge_aa)
+	object := VGNode{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return object
+}

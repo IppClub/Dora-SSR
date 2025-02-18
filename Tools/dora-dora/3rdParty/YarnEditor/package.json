@@ -42,7 +42,7 @@
     "spectrum-colorpicker": "^1.8.0",
     "sweetalert2": "^9.10.13",
     "synonyms": "^1.0.1",
-    "yarn-bound": "^0.5.4"
+    "yarn-bound": "^0.5.5"
   },
   "devDependencies": {
     "@babel/core": "^7.4.5",

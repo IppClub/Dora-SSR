@@ -1,0 +1,332 @@
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+#wa:import dora label_type
+func label_type() => i32
+
+#wa:import dora label_set_alignment
+func label_set_alignment(slf: i64, val: i32)
+
+#wa:import dora label_get_alignment
+func label_get_alignment(slf: i64) => i32
+
+#wa:import dora label_set_alpha_ref
+func label_set_alpha_ref(slf: i64, val: f32)
+
+#wa:import dora label_get_alpha_ref
+func label_get_alpha_ref(slf: i64) => f32
+
+#wa:import dora label_set_text_width
+func label_set_text_width(slf: i64, val: f32)
+
+#wa:import dora label_get_text_width
+func label_get_text_width(slf: i64) => f32
+
+#wa:import dora label_set_spacing
+func label_set_spacing(slf: i64, val: f32)
+
+#wa:import dora label_get_spacing
+func label_get_spacing(slf: i64) => f32
+
+#wa:import dora label_set_line_gap
+func label_set_line_gap(slf: i64, val: f32)
+
+#wa:import dora label_get_line_gap
+func label_get_line_gap(slf: i64) => f32
+
+#wa:import dora label_set_outline_color
+func label_set_outline_color(slf: i64, val: i32)
+
+#wa:import dora label_get_outline_color
+func label_get_outline_color(slf: i64) => i32
+
+#wa:import dora label_set_outline_width
+func label_set_outline_width(slf: i64, val: f32)
+
+#wa:import dora label_get_outline_width
+func label_get_outline_width(slf: i64) => f32
+
+#wa:import dora label_set_smooth
+func label_set_smooth(slf: i64, val: i64)
+
+#wa:import dora label_get_smooth
+func label_get_smooth(slf: i64) => i64
+
+#wa:import dora label_set_text
+func label_set_text(slf: i64, val: i64)
+
+#wa:import dora label_get_text
+func label_get_text(slf: i64) => i64
+
+#wa:import dora label_set_blend_func
+func label_set_blend_func(slf: i64, val: i64)
+
+#wa:import dora label_get_blend_func
+func label_get_blend_func(slf: i64) => i64
+
+#wa:import dora label_set_depth_write
+func label_set_depth_write(slf: i64, val: i32)
+
+#wa:import dora label_is_depth_write
+func label_is_depth_write(slf: i64) => i32
+
+#wa:import dora label_set_batched
+func label_set_batched(slf: i64, val: i32)
+
+#wa:import dora label_is_batched
+func label_is_batched(slf: i64) => i32
+
+#wa:import dora label_set_effect
+func label_set_effect(slf: i64, val: i64)
+
+#wa:import dora label_get_effect
+func label_get_effect(slf: i64) => i64
+
+#wa:import dora label_get_character_count
+func label_get_character_count(slf: i64) => i32
+
+#wa:import dora label_get_character
+func label_get_character(slf: i64, index: i32) => i64
+
+#wa:import dora label_get_automatic_width
+func label_get_automatic_width() => f32
+
+#wa:import dora label_new
+func label_new(font_name: i64, font_size: i32, sdf: i32) => i64
+
+#wa:import dora label_with_str
+func label_with_str(font_str: i64) => i64
+
+type Label :struct{ Node }
+
+func LabelFrom(raw: i64) => *Label {
+	if raw == 0 {
+		return nil
+	}
+	object := Label{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	result := &object
+	return result
+}
+func Label.GetTypeId() => i32 {
+	return label_type()
+}
+func ObjectAsLabel(object: Object) => *Label {
+	if object.GetTypeId() == label_type() {
+		ObjectRetain(object.GetRaw())
+		return LabelFrom(object.GetRaw())
+	}
+	return nil
+}
+
+/// Sets the text alignment setting.
+func Label.SetAlignment(val: TextAlign) {
+	label_set_alignment(*this.raw, val.ToValue())
+}
+
+/// Gets the text alignment setting.
+func Label.GetAlignment() => TextAlign {
+	return TextAlign{value: label_get_alignment(*this.raw)}
+}
+
+/// Sets the alpha threshold value. Pixels with alpha values below this value will not be drawn.
+/// Only works with `label.effect = SpriteEffect::new("builtin:vs_sprite", "builtin:fs_spritealphatest")`.
+func Label.SetAlphaRef(val: f32) {
+	label_set_alpha_ref(*this.raw, val)
+}
+
+/// Gets the alpha threshold value. Pixels with alpha values below this value will not be drawn.
+/// Only works with `label.effect = SpriteEffect::new("builtin:vs_sprite", "builtin:fs_spritealphatest")`.
+func Label.GetAlphaRef() => f32 {
+	return label_get_alpha_ref(*this.raw)
+}
+
+/// Sets the width of the text used for text wrapping.
+/// Set to `Label::AutomaticWidth` to disable wrapping.
+/// Default is `Label::AutomaticWidth`.
+func Label.SetTextWidth(val: f32) {
+	label_set_text_width(*this.raw, val)
+}
+
+/// Gets the width of the text used for text wrapping.
+/// Set to `Label::AutomaticWidth` to disable wrapping.
+/// Default is `Label::AutomaticWidth`.
+func Label.GetTextWidth() => f32 {
+	return label_get_text_width(*this.raw)
+}
+
+/// Sets the gap in pixels between characters.
+func Label.SetSpacing(val: f32) {
+	label_set_spacing(*this.raw, val)
+}
+
+/// Gets the gap in pixels between characters.
+func Label.GetSpacing() => f32 {
+	return label_get_spacing(*this.raw)
+}
+
+/// Sets the gap in pixels between lines of text.
+func Label.SetLineGap(val: f32) {
+	label_set_line_gap(*this.raw, val)
+}
+
+/// Gets the gap in pixels between lines of text.
+func Label.GetLineGap() => f32 {
+	return label_get_line_gap(*this.raw)
+}
+
+/// Sets the color of the outline, only works with SDF label.
+func Label.SetOutlineColor(val: Color) {
+	label_set_outline_color(*this.raw, val.ToARGB())
+}
+
+/// Gets the color of the outline, only works with SDF label.
+func Label.GetOutlineColor() => Color {
+	return NewColor(label_get_outline_color(*this.raw))
+}
+
+/// Sets the width of the outline, only works with SDF label.
+func Label.SetOutlineWidth(val: f32) {
+	label_set_outline_width(*this.raw, val)
+}
+
+/// Gets the width of the outline, only works with SDF label.
+func Label.GetOutlineWidth() => f32 {
+	return label_get_outline_width(*this.raw)
+}
+
+/// Sets the smooth value of the text, only works with SDF label, default is (0.7, 0.7).
+func Label.SetSmooth(val: Vec2) {
+	label_set_smooth(*this.raw, val.ToValue())
+}
+
+/// Gets the smooth value of the text, only works with SDF label, default is (0.7, 0.7).
+func Label.GetSmooth() => Vec2 {
+	return Vec2FromValue(label_get_smooth(*this.raw))
+}
+
+/// Sets the text to be rendered.
+func Label.SetText(val: string) {
+	label_set_text(*this.raw, ToDoraString(val))
+}
+
+/// Gets the text to be rendered.
+func Label.GetText() => string {
+	return FromDoraString(label_get_text(*this.raw))
+}
+
+/// Sets the blend function for the label.
+func Label.SetBlendFunc(val: BlendFunc) {
+	label_set_blend_func(*this.raw, val.ToValue())
+}
+
+/// Gets the blend function for the label.
+func Label.GetBlendFunc() => BlendFunc {
+	return BlendFuncFrom(label_get_blend_func(*this.raw))
+}
+
+/// Sets whether depth writing is enabled. (Default is false)
+func Label.SetDepthWrite(val: bool) {
+	label_set_depth_write(*this.raw, ToDoraBool(val))
+}
+
+/// Gets whether depth writing is enabled. (Default is false)
+func Label.IsDepthWrite() => bool {
+	return label_is_depth_write(*this.raw) != 0
+}
+
+/// Sets whether the label is using batched rendering.
+/// When using batched rendering the `label.get_character()` function will no longer work, but it provides better rendering performance. Default is true.
+func Label.SetBatched(val: bool) {
+	label_set_batched(*this.raw, ToDoraBool(val))
+}
+
+/// Gets whether the label is using batched rendering.
+/// When using batched rendering the `label.get_character()` function will no longer work, but it provides better rendering performance. Default is true.
+func Label.IsBatched() => bool {
+	return label_is_batched(*this.raw) != 0
+}
+
+/// Sets the sprite effect used to render the text.
+func Label.SetEffect(val: SpriteEffect) {
+	label_set_effect(*this.raw, val.GetRaw())
+}
+
+/// Gets the sprite effect used to render the text.
+func Label.GetEffect() => SpriteEffect {
+	return *SpriteEffectFrom(label_get_effect(*this.raw))
+}
+
+/// Gets the number of characters in the label.
+func Label.GetCharacterCount() => i32 {
+	return label_get_character_count(*this.raw)
+}
+
+/// Returns the sprite for the character at the specified index.
+///
+/// # Arguments
+///
+/// * `index` - The index of the character sprite to retrieve.
+///
+/// # Returns
+///
+/// * `Option<Sprite>` - The sprite for the character, or `None` if the index is out of range.
+func Label.GetCharacter(index: i32) => *Sprite {
+	ptr_ := label_get_character(*this.raw, index)
+	if ptr_ == 0 {
+		return nil
+	}
+	obj_ := *SpriteFrom(ptr_)
+	return &obj_
+}
+
+/// Gets the value to use for automatic width calculation
+func LabelGetAutomaticWidth() => f32 {
+	return label_get_automatic_width()
+}
+
+/// Creates a new Label object with the specified font name and font size.
+///
+/// # Arguments
+///
+/// * `font_name` - The name of the font to use for the label. Can be font file path with or without file extension.
+/// * `font_size` - The size of the font to use for the label.
+/// * `sdf` - Whether to use SDF rendering or not. With SDF rendering, the outline feature will be enabled.
+///
+/// # Returns
+///
+/// * `Label` - The new Label object.
+func NewLabel(font_name: string, font_size: i32, sdf: bool) => *Label {
+	raw := label_new(ToDoraString(font_name), font_size, ToDoraBool(sdf))
+	if raw == 0 {
+		return nil
+	}
+	object := Label{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return &object
+}
+
+/// Creates a new Label object with the specified font string.
+///
+/// # Arguments
+///
+/// * `font_str` - The font string to use for the label. Should be in the format "fontName;fontSize;sdf", where `sdf` should be "true" or "false".
+///
+/// # Returns
+///
+/// * `Label` - The new Label object.
+func LabelWithStr(font_str: string) => *Label {
+	ptr_ := label_with_str(ToDoraString(font_str))
+	if ptr_ == 0 {
+		return nil
+	}
+	obj_ := *LabelFrom(ptr_)
+	return &obj_
+}

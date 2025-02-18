@@ -79,7 +79,7 @@ const darkCodeTheme = {
 const lightCodeTheme = {
 	...themes.github,
 	styles: [
-		...themes.github.styles,
+		...themes.vsLight.styles,
 		{
 			types: ['title'],
 			style: {
@@ -124,12 +124,6 @@ const lightCodeTheme = {
 			},
 		},
 		{
-			types: ['class-name'],
-			style: {
-				color: '#af893b',
-			},
-		},
-		{
 			types: ['attr-name'],
 			style: {
 				color: '#0099CC',
@@ -144,7 +138,7 @@ const lightCodeTheme = {
 		{
 			types: ['function'],
 			style: {
-				color: '#c89c48',
+				color: '#af803b',
 			},
 		},
 		{
@@ -159,13 +153,6 @@ const lightCodeTheme = {
 				color: '#E36209',
 			},
 		},
-		{
-			types: ['comment'],
-			style: {
-				color: '#6B6B6B',
-				fontStyle: 'normal',
-			},
-		},
 	],
 };
 
@@ -173,7 +160,7 @@ const lightCodeTheme = {
 const config = {
 	title: 'Dora SSR',
 	tagline: 'The Dora project, Special Super Rare edition.',
-	favicon: 'img/favicon.ico',
+	favicon: 'img/site/favicon.ico',
 
 	// Set the production url of your site here
 	url: github ? 'https://dora-ssr.net' : 'https://ippclub.atomgit.net',
@@ -214,7 +201,7 @@ const config = {
 					lastVersion: 'current',
 					versions: {
 						current: {
-							label: 'v1.6.1',
+							label: 'v1.6.5',
 						},
 					},
 				},
@@ -237,12 +224,12 @@ const config = {
 	/** @type {import('@docusaurus/preset-classic').ThemeConfig} */
 	({
 		// Replace with your project's social card
-		image: 'img/dora-ssr-social-card.jpg',
+		image: 'img/site/dora-ssr-social-card.jpg',
 		navbar: {
 			title: 'Dora SSR',
 			logo: {
 				alt: 'Dora SSR Logo',
-				src: 'img/logo.svg',
+				src: 'img/site/logo.svg',
 			},
 			items: [
 				{
@@ -269,34 +256,38 @@ const config = {
 					position: 'left'
 				},
 				{
+					type: 'docSidebar',
+					sidebarId: 'creativeSidebar',
+					label: 'Creative',
+					position: 'left',
+				},
+				{
 					type: 'docsVersionDropdown',
 					position: 'right',
 				},
 				{
-					type: 'localeDropdown',
-					position: 'right',
+					href: "https://github.com/ippclub/Dora-SSR",
+					position: "right",
+					className: "header-github-link",
 				},
 				{
-					label: 'Git',
+					href: "https://gitee.com/ippclub/Dora-SSR",
+					position: "right",
+					className: "header-gitee-link",
+				},
+				{
+					href: "https://atomgit.com/ippclub/Dora-SSR",
+					position: "right",
+					className: "header-atomgit-link",
+				},
+				{
+					href: "https://gitcode.com/ippclub/Dora-SSR",
+					position: "right",
+					className: "header-gitcode-link",
+				},
+				{
+					type: 'localeDropdown',
 					position: 'right',
-					items: [
-						{
-							label: 'GitHub',
-							href: 'https://github.com/ippclub/Dora-SSR',
-						},
-						{
-							label: 'AtomGit',
-							href: 'https://atomgit.com/ippclub/Dora-SSR',
-						},
-						{
-							label: 'Gitee',
-							href: 'https://gitee.com/pig/Dora-SSR',
-						},
-						{
-							label: 'GitCode',
-							href: 'https://gitcode.com/ippclub/Dora-SSR',
-						},
-					],
 				},
 			],
 		},
@@ -343,6 +334,12 @@ const config = {
 					],
 				},
 			],
+			logo: {
+				alt: 'Dora SSR Logo',
+				src: 'img/art/casual/cheer.png',
+				height: 200,
+				className: 'footer-logo',
+			},
 			copyright: `Copyright © ${new Date().getFullYear()} Dora SSR Community. Built with Docusaurus.`,
 		},
 		colorMode: {
@@ -352,7 +349,7 @@ const config = {
 		prism: {
 			theme: lightCodeTheme,
 			darkTheme: darkCodeTheme,
-			additionalLanguages: ['bash'],
+			additionalLanguages: ['bash', 'yue', 'teal', 'lua',],
 		},
 		docs: {
 			sidebar: {

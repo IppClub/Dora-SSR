@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -17,32 +17,32 @@ float view_get_standard_distance() {
 float view_get_aspect_ratio() {
 	return SharedView.getAspectRatio();
 }
-void view_set_near_plane_distance(float var) {
-	SharedView.setNearPlaneDistance(var);
+void view_set_near_plane_distance(float val) {
+	SharedView.setNearPlaneDistance(val);
 }
 float view_get_near_plane_distance() {
 	return SharedView.getNearPlaneDistance();
 }
-void view_set_far_plane_distance(float var) {
-	SharedView.setFarPlaneDistance(var);
+void view_set_far_plane_distance(float val) {
+	SharedView.setFarPlaneDistance(val);
 }
 float view_get_far_plane_distance() {
 	return SharedView.getFarPlaneDistance();
 }
-void view_set_field_of_view(float var) {
-	SharedView.setFieldOfView(var);
+void view_set_field_of_view(float val) {
+	SharedView.setFieldOfView(val);
 }
 float view_get_field_of_view() {
 	return SharedView.getFieldOfView();
 }
-void view_set_scale(float var) {
-	SharedView.setScale(var);
+void view_set_scale(float val) {
+	SharedView.setScale(val);
 }
 float view_get_scale() {
 	return SharedView.getScale();
 }
-void view_set_post_effect(int64_t var) {
-	SharedView.setPostEffect(r_cast<SpriteEffect*>(var));
+void view_set_post_effect(int64_t val) {
+	SharedView.setPostEffect(r_cast<SpriteEffect*>(val));
 }
 int64_t view_get_post_effect() {
 	return Object_From(SharedView.getPostEffect());
@@ -50,8 +50,8 @@ int64_t view_get_post_effect() {
 void view_set_post_effect_null() {
 	View_SetPostEffectNullptr();
 }
-void view_set_vsync(int32_t var) {
-	SharedView.setVSync(var != 0);
+void view_set_vsync(int32_t val) {
+	SharedView.setVSync(val != 0);
 }
 int32_t view_is_vsync() {
 	return SharedView.isVSync() ? 1 : 0;

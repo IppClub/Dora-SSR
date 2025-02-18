@@ -1,0 +1,163 @@
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+#wa:import dora platformer_data_get_group_first_player
+func platformer_data_get_group_first_player() => i32
+
+#wa:import dora platformer_data_get_group_last_player
+func platformer_data_get_group_last_player() => i32
+
+#wa:import dora platformer_data_get_group_hide
+func platformer_data_get_group_hide() => i32
+
+#wa:import dora platformer_data_get_group_detect_player
+func platformer_data_get_group_detect_player() => i32
+
+#wa:import dora platformer_data_get_group_terrain
+func platformer_data_get_group_terrain() => i32
+
+#wa:import dora platformer_data_get_group_detection
+func platformer_data_get_group_detection() => i32
+
+#wa:import dora platformer_data_get_store
+func platformer_data_get_store() => i64
+
+#wa:import dora platformer_data_set_should_contact
+func platformer_data_set_should_contact(group_a: i32, group_b: i32, contact: i32)
+
+#wa:import dora platformer_data_get_should_contact
+func platformer_data_get_should_contact(group_a: i32, group_b: i32) => i32
+
+#wa:import dora platformer_data_set_relation
+func platformer_data_set_relation(group_a: i32, group_b: i32, relation: i32)
+
+#wa:import dora platformer_data_get_relation_by_group
+func platformer_data_get_relation_by_group(group_a: i32, group_b: i32) => i32
+
+#wa:import dora platformer_data_get_relation
+func platformer_data_get_relation(body_a: i64, body_b: i64) => i32
+
+#wa:import dora platformer_data_is_enemy_group
+func platformer_data_is_enemy_group(group_a: i32, group_b: i32) => i32
+
+#wa:import dora platformer_data_is_enemy
+func platformer_data_is_enemy(body_a: i64, body_b: i64) => i32
+
+#wa:import dora platformer_data_is_friend_group
+func platformer_data_is_friend_group(group_a: i32, group_b: i32) => i32
+
+#wa:import dora platformer_data_is_friend
+func platformer_data_is_friend(body_a: i64, body_b: i64) => i32
+
+#wa:import dora platformer_data_is_neutral_group
+func platformer_data_is_neutral_group(group_a: i32, group_b: i32) => i32
+
+#wa:import dora platformer_data_is_neutral
+func platformer_data_is_neutral(body_a: i64, body_b: i64) => i32
+
+#wa:import dora platformer_data_set_damage_factor
+func platformer_data_set_damage_factor(damage_type: i32, defence_type: i32, bounus: f32)
+
+#wa:import dora platformer_data_get_damage_factor
+func platformer_data_get_damage_factor(damage_type: i32, defence_type: i32) => f32
+
+#wa:import dora platformer_data_is_player
+func platformer_data_is_player(body: i64) => i32
+
+#wa:import dora platformer_data_is_terrain
+func platformer_data_is_terrain(body: i64) => i32
+
+#wa:import dora platformer_data_clear
+func platformer_data_clear()
+
+type _PlatformerData :struct{}
+
+global PlatformerData = _PlatformerData{}
+
+/// Gets the group key representing the first index for a player group.
+func _PlatformerData.GetGroupFirstPlayer() => i32 {
+	return platformer_data_get_group_first_player()
+}
+
+/// Gets the group key representing the last index for a player group.
+func _PlatformerData.GetGroupLastPlayer() => i32 {
+	return platformer_data_get_group_last_player()
+}
+
+/// Gets the group key that won't have any contact with other groups by default.
+func _PlatformerData.GetGroupHide() => i32 {
+	return platformer_data_get_group_hide()
+}
+
+/// Gets the group key that will have contacts with player groups by default.
+func _PlatformerData.GetGroupDetectPlayer() => i32 {
+	return platformer_data_get_group_detect_player()
+}
+
+/// Gets the group key representing terrain that will have contacts with other groups by default.
+func _PlatformerData.GetGroupTerrain() => i32 {
+	return platformer_data_get_group_terrain()
+}
+
+/// Gets the group key that will have contacts with other groups by default.
+func _PlatformerData.GetGroupDetection() => i32 {
+	return platformer_data_get_group_detection()
+}
+
+/// Gets the dictionary that can be used to store arbitrary data associated with string keys and various values globally.
+func _PlatformerData.GetStore() => Dictionary {
+	return *DictionaryFrom(platformer_data_get_store())
+}
+func _PlatformerData.SetShouldContact(group_a: i32, group_b: i32, contact: bool) {
+	platformer_data_set_should_contact(group_a, group_b, ToDoraBool(contact))
+}
+func _PlatformerData.GetShouldContact(group_a: i32, group_b: i32) => bool {
+	return platformer_data_get_should_contact(group_a, group_b) != 0
+}
+func _PlatformerData.SetRelation(group_a: i32, group_b: i32, relation: PlatformerRelation) {
+	platformer_data_set_relation(group_a, group_b, relation.ToValue())
+}
+func _PlatformerData.GetRelationByGroup(group_a: i32, group_b: i32) => PlatformerRelation {
+	return PlatformerRelation{value: platformer_data_get_relation_by_group(group_a, group_b)}
+}
+func _PlatformerData.GetRelation(body_a: Body, body_b: Body) => PlatformerRelation {
+	return PlatformerRelation{value: platformer_data_get_relation(body_a.GetRaw(), body_b.GetRaw())}
+}
+func _PlatformerData.IsEnemyGroup(group_a: i32, group_b: i32) => bool {
+	return platformer_data_is_enemy_group(group_a, group_b) != 0
+}
+func _PlatformerData.IsEnemy(body_a: Body, body_b: Body) => bool {
+	return platformer_data_is_enemy(body_a.GetRaw(), body_b.GetRaw()) != 0
+}
+func _PlatformerData.IsFriendGroup(group_a: i32, group_b: i32) => bool {
+	return platformer_data_is_friend_group(group_a, group_b) != 0
+}
+func _PlatformerData.IsFriend(body_a: Body, body_b: Body) => bool {
+	return platformer_data_is_friend(body_a.GetRaw(), body_b.GetRaw()) != 0
+}
+func _PlatformerData.IsNeutralGroup(group_a: i32, group_b: i32) => bool {
+	return platformer_data_is_neutral_group(group_a, group_b) != 0
+}
+func _PlatformerData.IsNeutral(body_a: Body, body_b: Body) => bool {
+	return platformer_data_is_neutral(body_a.GetRaw(), body_b.GetRaw()) != 0
+}
+func _PlatformerData.SetDamageFactor(damage_type: i32, defence_type: i32, bounus: f32) {
+	platformer_data_set_damage_factor(damage_type, defence_type, bounus)
+}
+func _PlatformerData.GetDamageFactor(damage_type: i32, defence_type: i32) => f32 {
+	return platformer_data_get_damage_factor(damage_type, defence_type)
+}
+func _PlatformerData.IsPlayer(body: Body) => bool {
+	return platformer_data_is_player(body.GetRaw()) != 0
+}
+func _PlatformerData.IsTerrain(body: Body) => bool {
+	return platformer_data_is_terrain(body.GetRaw()) != 0
+}
+func _PlatformerData.Clear() {
+	platformer_data_clear()
+}

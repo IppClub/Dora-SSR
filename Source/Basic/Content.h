@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -16,12 +16,12 @@ class Async;
 
 class Content : public NonCopyable {
 public:
-	PROPERTY_READONLY_CREF(std::string, AssetPath);
-	PROPERTY_READONLY_CREF(std::string, WritablePath);
+	PROPERTY_STRING(AssetPath);
+	PROPERTY_STRING(WritablePath);
+	PROPERTY_CREF(std::string, AppPath);
 	PROPERTY_CREF(std::vector<std::string>, SearchPaths);
 	PROPERTY_READONLY(Async*, Thread);
 	virtual ~Content();
-	void init(int argc, const char* const argv[]);
 	bool exist(String filename);
 	bool isFolder(String path);
 	bool isAbsolutePath(String strPath);
@@ -75,6 +75,7 @@ protected:
 	SearchPath getFullPathAndPackage(String filename);
 
 private:
+	const std::string _appPath;
 	std::string _assetPath;
 	std::string _writablePath;
 #if BX_PLATFORM_ANDROID

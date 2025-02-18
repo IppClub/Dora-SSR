@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -20,15 +20,15 @@ int32_t db_exec(int64_t sql) {
 int32_t db_transaction(int64_t query) {
 	return DB_Transaction(*r_cast<DBQuery*>(query)) ? 1 : 0;
 }
-void db_transaction_async(int64_t query, int32_t func, int64_t stack) {
-	std::shared_ptr<void> deref(nullptr, [func](auto) {
-		SharedWasmRuntime.deref(func);
+void db_transaction_async(int64_t query, int32_t func0, int64_t stack0) {
+	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
+		SharedWasmRuntime.deref(func0);
 	});
-	auto args = r_cast<CallStack*>(stack);
-	DB_TransactionAsync(*r_cast<DBQuery*>(query), [func, args, deref](bool result) {
-		args->clear();
-		args->push(result);
-		SharedWasmRuntime.invoke(func);
+	auto args0 = r_cast<CallStack*>(stack0);
+	DB_TransactionAsync(*r_cast<DBQuery*>(query), [func0, args0, deref0](bool result) {
+		args0->clear();
+		args0->push(result);
+		SharedWasmRuntime.invoke(func0);
 	});
 }
 int64_t db_query(int64_t sql, int32_t with_columns) {
@@ -43,37 +43,37 @@ void db_insert(int64_t table_name, int64_t values) {
 int32_t db_exec_with_records(int64_t sql, int64_t values) {
 	return DB_ExecWithRecords(*Str_From(sql), *r_cast<DBParams*>(values));
 }
-void db_query_with_params_async(int64_t sql, int64_t params, int32_t with_columns, int32_t func, int64_t stack) {
-	std::shared_ptr<void> deref(nullptr, [func](auto) {
-		SharedWasmRuntime.deref(func);
+void db_query_with_params_async(int64_t sql, int64_t params, int32_t with_columns, int32_t func0, int64_t stack0) {
+	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
+		SharedWasmRuntime.deref(func0);
 	});
-	auto args = r_cast<CallStack*>(stack);
-	DB_QueryWithParamsAsync(*Str_From(sql), r_cast<Array*>(params), with_columns != 0, [func, args, deref](DBRecord& result) {
-		args->clear();
-		args->push(r_cast<int64_t>(new DBRecord{std::move(result)}));
-		SharedWasmRuntime.invoke(func);
-	});
-}
-void db_insert_async(int64_t table_name, int64_t values, int32_t func, int64_t stack) {
-	std::shared_ptr<void> deref(nullptr, [func](auto) {
-		SharedWasmRuntime.deref(func);
-	});
-	auto args = r_cast<CallStack*>(stack);
-	DB_InsertAsync(*Str_From(table_name), *r_cast<DBParams*>(values), [func, args, deref](bool result) {
-		args->clear();
-		args->push(result);
-		SharedWasmRuntime.invoke(func);
+	auto args0 = r_cast<CallStack*>(stack0);
+	DB_QueryWithParamsAsync(*Str_From(sql), r_cast<Array*>(params), with_columns != 0, [func0, args0, deref0](DBRecord& result) {
+		args0->clear();
+		args0->push(r_cast<int64_t>(new DBRecord{std::move(result)}));
+		SharedWasmRuntime.invoke(func0);
 	});
 }
-void db_exec_async(int64_t sql, int64_t values, int32_t func, int64_t stack) {
-	std::shared_ptr<void> deref(nullptr, [func](auto) {
-		SharedWasmRuntime.deref(func);
+void db_insert_async(int64_t table_name, int64_t values, int32_t func0, int64_t stack0) {
+	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
+		SharedWasmRuntime.deref(func0);
 	});
-	auto args = r_cast<CallStack*>(stack);
-	DB_ExecAsync(*Str_From(sql), *r_cast<DBParams*>(values), [func, args, deref](int64_t rowChanges) {
-		args->clear();
-		args->push(rowChanges);
-		SharedWasmRuntime.invoke(func);
+	auto args0 = r_cast<CallStack*>(stack0);
+	DB_InsertAsync(*Str_From(table_name), *r_cast<DBParams*>(values), [func0, args0, deref0](bool result) {
+		args0->clear();
+		args0->push(result);
+		SharedWasmRuntime.invoke(func0);
+	});
+}
+void db_exec_async(int64_t sql, int64_t values, int32_t func0, int64_t stack0) {
+	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
+		SharedWasmRuntime.deref(func0);
+	});
+	auto args0 = r_cast<CallStack*>(stack0);
+	DB_ExecAsync(*Str_From(sql), *r_cast<DBParams*>(values), [func0, args0, deref0](int64_t rowChanges) {
+		args0->clear();
+		args0->push(rowChanges);
+		SharedWasmRuntime.invoke(func0);
 	});
 }
 } // extern "C"

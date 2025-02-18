@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -7,7 +7,7 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 extern "C" {
-	fn imgui_load_font_ttf_async(ttf_font_file: i64, font_size: f32, glyph_ranges: i64, func: i32, stack: i64);
+	fn imgui_load_font_ttf_async(ttf_font_file: i64, font_size: f32, glyph_ranges: i64, func0: i32, stack0: i64);
 	fn imgui_is_font_loaded() -> i32;
 	fn imgui_show_stats();
 	fn imgui_show_console();
@@ -54,9 +54,9 @@ extern "C" {
 	fn imgui__begin_table_opts(str_id: i64, column: i32, outer_size: i64, inner_width: f32, table_flags: i32) -> i32;
 	fn imgui__table_next_row_opts(min_row_height: f32, table_row_flag: i32);
 	fn imgui__table_setup_column_opts(label: i64, init_width_or_weight: f32, user_id: i32, table_column_flags: i32);
-	fn imgui_set_style_bool(name: i64, var: i32);
-	fn imgui_set_style_float(name: i64, var: f32);
-	fn imgui_set_style_vec2(name: i64, var: i64);
+	fn imgui_set_style_bool(name: i64, val: i32);
+	fn imgui_set_style_float(name: i64, val: f32);
+	fn imgui_set_style_vec2(name: i64, val: i64);
 	fn imgui_set_style_color(name: i64, color: i32);
 	fn imgui__begin_ret_opts(name: i64, stack: i64, windows_flags: i32) -> i32;
 	fn imgui__collapsing_header_ret_opts(label: i64, stack: i64, tree_node_flags: i32) -> i32;
@@ -218,12 +218,12 @@ use crate::dora::IObject;
 pub struct ImGui { }
 impl ImGui {
 	pub fn load_font_ttf_async(ttf_font_file: &str, font_size: f32, glyph_ranges: &str, mut handler: Box<dyn FnMut(bool)>) {
-		let mut stack = crate::dora::CallStack::new();
-		let stack_raw = stack.raw();
-		let func_id = crate::dora::push_function(Box::new(move || {
-			handler(stack.pop_bool().unwrap())
+		let mut stack0 = crate::dora::CallStack::new();
+		let stack_raw0 = stack0.raw();
+		let func_id0 = crate::dora::push_function(Box::new(move || {
+			handler(stack0.pop_bool().unwrap())
 		}));
-		unsafe { imgui_load_font_ttf_async(crate::dora::from_string(ttf_font_file), font_size, crate::dora::from_string(glyph_ranges), func_id, stack_raw); }
+		unsafe { imgui_load_font_ttf_async(crate::dora::from_string(ttf_font_file), font_size, crate::dora::from_string(glyph_ranges), func_id0, stack_raw0); }
 	}
 	pub fn is_font_loaded() -> bool {
 		unsafe { return imgui_is_font_loaded() != 0; }
@@ -363,14 +363,14 @@ impl ImGui {
 	pub(crate) fn _table_setup_column_opts(label: &str, init_width_or_weight: f32, user_id: i32, table_column_flags: i32) {
 		unsafe { imgui__table_setup_column_opts(crate::dora::from_string(label), init_width_or_weight, user_id, table_column_flags); }
 	}
-	pub fn set_style_bool(name: &str, var: bool) {
-		unsafe { imgui_set_style_bool(crate::dora::from_string(name), if var { 1 } else { 0 }); }
+	pub fn set_style_bool(name: &str, val: bool) {
+		unsafe { imgui_set_style_bool(crate::dora::from_string(name), if val { 1 } else { 0 }); }
 	}
-	pub fn set_style_float(name: &str, var: f32) {
-		unsafe { imgui_set_style_float(crate::dora::from_string(name), var); }
+	pub fn set_style_float(name: &str, val: f32) {
+		unsafe { imgui_set_style_float(crate::dora::from_string(name), val); }
 	}
-	pub fn set_style_vec2(name: &str, var: &crate::dora::Vec2) {
-		unsafe { imgui_set_style_vec2(crate::dora::from_string(name), var.into_i64()); }
+	pub fn set_style_vec2(name: &str, val: &crate::dora::Vec2) {
+		unsafe { imgui_set_style_vec2(crate::dora::from_string(name), val.into_i64()); }
 	}
 	pub fn set_style_color(name: &str, color: &crate::dora::Color) {
 		unsafe { imgui_set_style_color(crate::dora::from_string(name), color.to_argb() as i32); }

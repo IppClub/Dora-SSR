@@ -1,0 +1,69 @@
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+#wa:import dora cameraotho_type
+func cameraotho_type() => i32
+
+#wa:import dora cameraotho_set_position
+func cameraotho_set_position(slf: i64, val: i64)
+
+#wa:import dora cameraotho_get_position
+func cameraotho_get_position(slf: i64) => i64
+
+#wa:import dora cameraotho_new
+func cameraotho_new(name: i64) => i64
+
+type CameraOtho :struct{ Camera }
+
+func CameraOthoFrom(raw: i64) => *CameraOtho {
+	if raw == 0 {
+		return nil
+	}
+	object := CameraOtho{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	result := &object
+	return result
+}
+func CameraOtho.GetTypeId() => i32 {
+	return cameraotho_type()
+}
+func ObjectAsCameraOtho(object: Object) => *CameraOtho {
+	if object.GetTypeId() == cameraotho_type() {
+		ObjectRetain(object.GetRaw())
+		return CameraOthoFrom(object.GetRaw())
+	}
+	return nil
+}
+
+/// Sets the position of the camera in the game world.
+func CameraOtho.SetPosition(val: Vec2) {
+	cameraotho_set_position(*this.raw, val.ToValue())
+}
+
+/// Gets the position of the camera in the game world.
+func CameraOtho.GetPosition() => Vec2 {
+	return Vec2FromValue(cameraotho_get_position(*this.raw))
+}
+
+/// Creates a new CameraOtho object with the given name.
+///
+/// # Arguments
+///
+/// * `name` - The name of the CameraOtho object.
+///
+/// # Returns
+///
+/// * `CameraOtho` - A new instance of the CameraOtho object.
+func NewCameraOtho(name: string) => CameraOtho {
+	raw := cameraotho_new(ToDoraString(name))
+	object := CameraOtho{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return object
+}

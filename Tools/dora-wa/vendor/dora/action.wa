@@ -1,0 +1,140 @@
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+#wa:import dora action_type
+func action_type() => i32
+
+#wa:import dora action_get_duration
+func action_get_duration(slf: i64) => f32
+
+#wa:import dora action_is_running
+func action_is_running(slf: i64) => i32
+
+#wa:import dora action_is_paused
+func action_is_paused(slf: i64) => i32
+
+#wa:import dora action_set_reversed
+func action_set_reversed(slf: i64, val: i32)
+
+#wa:import dora action_is_reversed
+func action_is_reversed(slf: i64) => i32
+
+#wa:import dora action_set_speed
+func action_set_speed(slf: i64, val: f32)
+
+#wa:import dora action_get_speed
+func action_get_speed(slf: i64) => f32
+
+#wa:import dora action_pause
+func action_pause(slf: i64)
+
+#wa:import dora action_resume
+func action_resume(slf: i64)
+
+#wa:import dora action_update_to
+func action_update_to(slf: i64, elapsed: f32, reversed: i32)
+
+#wa:import dora action_new
+func action_new(def: i64) => i64
+
+type Action :struct{ Object }
+
+func ActionFrom(raw: i64) => *Action {
+	if raw == 0 {
+		return nil
+	}
+	object := Action{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	result := &object
+	return result
+}
+func Action.GetTypeId() => i32 {
+	return action_type()
+}
+func ObjectAsAction(object: Object) => *Action {
+	if object.GetTypeId() == action_type() {
+		ObjectRetain(object.GetRaw())
+		return ActionFrom(object.GetRaw())
+	}
+	return nil
+}
+
+/// Gets the duration of the action.
+func Action.GetDuration() => f32 {
+	return action_get_duration(*this.raw)
+}
+
+/// Gets whether the action is currently running.
+func Action.IsRunning() => bool {
+	return action_is_running(*this.raw) != 0
+}
+
+/// Gets whether the action is currently paused.
+func Action.IsPaused() => bool {
+	return action_is_paused(*this.raw) != 0
+}
+
+/// Sets whether the action should be run in reverse.
+func Action.SetReversed(val: bool) {
+	action_set_reversed(*this.raw, ToDoraBool(val))
+}
+
+/// Gets whether the action should be run in reverse.
+func Action.IsReversed() => bool {
+	return action_is_reversed(*this.raw) != 0
+}
+
+/// Sets the speed at which the action should be run.
+/// Set to 1.0 to get normal speed, Set to 2.0 to get two times faster.
+func Action.SetSpeed(val: f32) {
+	action_set_speed(*this.raw, val)
+}
+
+/// Gets the speed at which the action should be run.
+/// Set to 1.0 to get normal speed, Set to 2.0 to get two times faster.
+func Action.GetSpeed() => f32 {
+	return action_get_speed(*this.raw)
+}
+
+/// Pauses the action.
+func Action.Pause() {
+	action_pause(*this.raw)
+}
+
+/// Resumes the action.
+func Action.Resume() {
+	action_resume(*this.raw)
+}
+
+/// Updates the state of the Action.
+///
+/// # Arguments
+///
+/// * `elapsed` - The amount of time in seconds that has elapsed to update action to.
+/// * `reversed` - Whether or not to update the Action in reverse.
+func Action.UpdateTo(elapsed: f32, reversed: bool) {
+	action_update_to(*this.raw, elapsed, ToDoraBool(reversed))
+}
+
+/// Creates a new Action object.
+///
+/// # Arguments
+///
+/// * `def` - The definition of the action.
+///
+/// # Returns
+///
+/// * `Action` - A new Action object.
+func NewAction(def: ActionDef) => Action {
+	raw := action_new(def.GetRaw())
+	object := Action{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return object
+}

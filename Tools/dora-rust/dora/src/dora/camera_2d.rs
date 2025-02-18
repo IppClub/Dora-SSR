@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -8,11 +8,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 	fn camera2d_type() -> i32;
-	fn camera2d_set_rotation(slf: i64, var: f32);
+	fn camera2d_set_rotation(slf: i64, val: f32);
 	fn camera2d_get_rotation(slf: i64) -> f32;
-	fn camera2d_set_zoom(slf: i64, var: f32);
+	fn camera2d_set_zoom(slf: i64, val: f32);
 	fn camera2d_get_zoom(slf: i64) -> f32;
-	fn camera2d_set_position(slf: i64, var: i64);
+	fn camera2d_set_position(slf: i64, val: i64);
 	fn camera2d_get_position(slf: i64) -> i64;
 	fn camera2d_new(name: i64) -> i64;
 }
@@ -32,24 +32,24 @@ impl Camera2D {
 		})
 	}
 	/// Sets the rotation angle of the camera in degrees.
-	pub fn set_rotation(&mut self, var: f32) {
-		unsafe { camera2d_set_rotation(self.raw(), var) };
+	pub fn set_rotation(&mut self, val: f32) {
+		unsafe { camera2d_set_rotation(self.raw(), val) };
 	}
 	/// Gets the rotation angle of the camera in degrees.
 	pub fn get_rotation(&self) -> f32 {
 		return unsafe { camera2d_get_rotation(self.raw()) };
 	}
 	/// Sets the factor by which to zoom the camera. If set to 1.0, the view is normal sized. If set to 2.0, items will appear double in size.
-	pub fn set_zoom(&mut self, var: f32) {
-		unsafe { camera2d_set_zoom(self.raw(), var) };
+	pub fn set_zoom(&mut self, val: f32) {
+		unsafe { camera2d_set_zoom(self.raw(), val) };
 	}
 	/// Gets the factor by which to zoom the camera. If set to 1.0, the view is normal sized. If set to 2.0, items will appear double in size.
 	pub fn get_zoom(&self) -> f32 {
 		return unsafe { camera2d_get_zoom(self.raw()) };
 	}
 	/// Sets the position of the camera in the game world.
-	pub fn set_position(&mut self, var: &crate::dora::Vec2) {
-		unsafe { camera2d_set_position(self.raw(), var.into_i64()) };
+	pub fn set_position(&mut self, val: &crate::dora::Vec2) {
+		unsafe { camera2d_set_position(self.raw(), val.into_i64()) };
 	}
 	/// Gets the position of the camera in the game world.
 	pub fn get_position(&self) -> crate::dora::Vec2 {

@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -8,7 +8,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 	fn buffer_type() -> i32;
-	fn buffer_set_text(slf: i64, var: i64);
+	fn buffer_set_text(slf: i64, val: i64);
 	fn buffer_get_text(slf: i64) -> i64;
 	fn buffer_resize(slf: i64, size: i32);
 	fn buffer_zero_memory(slf: i64);
@@ -26,8 +26,8 @@ impl Buffer {
 			}
 		})
 	}
-	pub fn set_text(&mut self, var: &str) {
-		unsafe { buffer_set_text(self.raw(), crate::dora::from_string(var)) };
+	pub fn set_text(&mut self, val: &str) {
+		unsafe { buffer_set_text(self.raw(), crate::dora::from_string(val)) };
 	}
 	pub fn get_text(&self) -> String {
 		return unsafe { crate::dora::to_string(buffer_get_text(self.raw())) };

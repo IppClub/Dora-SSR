@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -8,17 +8,17 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 	fn platformer_unit_type() -> i32;
-	fn platformer_unit_set_playable(slf: i64, var: i64);
+	fn platformer_unit_set_playable(slf: i64, val: i64);
 	fn platformer_unit_get_playable(slf: i64) -> i64;
-	fn platformer_unit_set_detect_distance(slf: i64, var: f32);
+	fn platformer_unit_set_detect_distance(slf: i64, val: f32);
 	fn platformer_unit_get_detect_distance(slf: i64) -> f32;
-	fn platformer_unit_set_attack_range(slf: i64, var: i64);
+	fn platformer_unit_set_attack_range(slf: i64, val: i64);
 	fn platformer_unit_get_attack_range(slf: i64) -> i64;
-	fn platformer_unit_set_face_right(slf: i64, var: i32);
+	fn platformer_unit_set_face_right(slf: i64, val: i32);
 	fn platformer_unit_is_face_right(slf: i64) -> i32;
-	fn platformer_unit_set_receiving_decision_trace(slf: i64, var: i32);
+	fn platformer_unit_set_receiving_decision_trace(slf: i64, val: i32);
 	fn platformer_unit_is_receiving_decision_trace(slf: i64) -> i32;
-	fn platformer_unit_set_decision_tree(slf: i64, var: i64);
+	fn platformer_unit_set_decision_tree(slf: i64, val: i64);
 	fn platformer_unit_get_decision_tree(slf: i64) -> i64;
 	fn platformer_unit_is_on_surface(slf: i64) -> i32;
 	fn platformer_unit_get_ground_sensor(slf: i64) -> i64;
@@ -33,7 +33,7 @@ extern "C" {
 	fn platformer_unit_remove_action(slf: i64, name: i64);
 	fn platformer_unit_remove_all_actions(slf: i64);
 	fn platformer_unit_get_action(slf: i64, name: i64) -> i64;
-	fn platformer_unit_each_action(slf: i64, func: i32, stack: i64);
+	fn platformer_unit_each_action(slf: i64, func0: i32, stack0: i64);
 	fn platformer_unit_start(slf: i64, name: i64) -> i32;
 	fn platformer_unit_stop(slf: i64);
 	fn platformer_unit_is_doing(slf: i64, name: i64) -> i32;
@@ -58,40 +58,40 @@ impl Unit {
 		})
 	}
 	/// Sets the property that references a "Playable" object for managing the animation state and playback of the "Unit".
-	pub fn set_playable(&mut self, var: &dyn crate::dora::IPlayable) {
-		unsafe { platformer_unit_set_playable(self.raw(), var.raw()) };
+	pub fn set_playable(&mut self, val: &dyn crate::dora::IPlayable) {
+		unsafe { platformer_unit_set_playable(self.raw(), val.raw()) };
 	}
 	/// Gets the property that references a "Playable" object for managing the animation state and playback of the "Unit".
 	pub fn get_playable(&self) -> crate::dora::Playable {
 		return unsafe { crate::dora::Playable::from(platformer_unit_get_playable(self.raw())).unwrap() };
 	}
 	/// Sets the property that specifies the maximum distance at which the "Unit" can detect other "Unit" or objects.
-	pub fn set_detect_distance(&mut self, var: f32) {
-		unsafe { platformer_unit_set_detect_distance(self.raw(), var) };
+	pub fn set_detect_distance(&mut self, val: f32) {
+		unsafe { platformer_unit_set_detect_distance(self.raw(), val) };
 	}
 	/// Gets the property that specifies the maximum distance at which the "Unit" can detect other "Unit" or objects.
 	pub fn get_detect_distance(&self) -> f32 {
 		return unsafe { platformer_unit_get_detect_distance(self.raw()) };
 	}
 	/// Sets the property that specifies the size of the attack range for the "Unit".
-	pub fn set_attack_range(&mut self, var: &crate::dora::Size) {
-		unsafe { platformer_unit_set_attack_range(self.raw(), var.into_i64()) };
+	pub fn set_attack_range(&mut self, val: &crate::dora::Size) {
+		unsafe { platformer_unit_set_attack_range(self.raw(), val.into_i64()) };
 	}
 	/// Gets the property that specifies the size of the attack range for the "Unit".
 	pub fn get_attack_range(&self) -> crate::dora::Size {
 		return unsafe { crate::dora::Size::from(platformer_unit_get_attack_range(self.raw())) };
 	}
 	/// Sets the boolean property that specifies whether the "Unit" is facing right or not.
-	pub fn set_face_right(&mut self, var: bool) {
-		unsafe { platformer_unit_set_face_right(self.raw(), if var { 1 } else { 0 }) };
+	pub fn set_face_right(&mut self, val: bool) {
+		unsafe { platformer_unit_set_face_right(self.raw(), if val { 1 } else { 0 }) };
 	}
 	/// Gets the boolean property that specifies whether the "Unit" is facing right or not.
 	pub fn is_face_right(&self) -> bool {
 		return unsafe { platformer_unit_is_face_right(self.raw()) != 0 };
 	}
 	/// Sets the boolean property that specifies whether the "Unit" is receiving a trace of the decision tree for debugging purposes.
-	pub fn set_receiving_decision_trace(&mut self, var: bool) {
-		unsafe { platformer_unit_set_receiving_decision_trace(self.raw(), if var { 1 } else { 0 }) };
+	pub fn set_receiving_decision_trace(&mut self, val: bool) {
+		unsafe { platformer_unit_set_receiving_decision_trace(self.raw(), if val { 1 } else { 0 }) };
 	}
 	/// Gets the boolean property that specifies whether the "Unit" is receiving a trace of the decision tree for debugging purposes.
 	pub fn is_receiving_decision_trace(&self) -> bool {
@@ -99,8 +99,8 @@ impl Unit {
 	}
 	/// Sets the string property that specifies the decision tree to use for the "Unit's" AI behavior.
 	/// the decision tree object will be searched in The singleton instance Data.store.
-	pub fn set_decision_tree(&mut self, var: &str) {
-		unsafe { platformer_unit_set_decision_tree(self.raw(), crate::dora::from_string(var)) };
+	pub fn set_decision_tree(&mut self, val: &str) {
+		unsafe { platformer_unit_set_decision_tree(self.raw(), crate::dora::from_string(val)) };
 	}
 	/// Gets the string property that specifies the decision tree to use for the "Unit's" AI behavior.
 	/// the decision tree object will be searched in The singleton instance Data.store.
@@ -183,14 +183,14 @@ impl Unit {
 	///
 	/// # Arguments
 	///
-	/// * `func` - A function to call for each `UnitAction`.
-	pub fn each_action(&mut self, mut func: Box<dyn FnMut(&crate::dora::platformer::UnitAction)>) {
-		let mut stack = crate::dora::CallStack::new();
-		let stack_raw = stack.raw();
-		let func_id = crate::dora::push_function(Box::new(move || {
-			func(&crate::dora::platformer::UnitAction::from(stack.pop_i64().unwrap()).unwrap())
+	/// * `visitorFunc` - A function to call for each `UnitAction`.
+	pub fn each_action(&mut self, mut visitor_func: Box<dyn FnMut(&crate::dora::platformer::UnitAction)>) {
+		let mut stack0 = crate::dora::CallStack::new();
+		let stack_raw0 = stack0.raw();
+		let func_id0 = crate::dora::push_function(Box::new(move || {
+			visitor_func(&crate::dora::platformer::UnitAction::from(stack0.pop_i64().unwrap()).unwrap())
 		}));
-		unsafe { platformer_unit_each_action(self.raw(), func_id, stack_raw); }
+		unsafe { platformer_unit_each_action(self.raw(), func_id0, stack_raw0); }
 	}
 	/// Starts the `UnitAction` with the specified name, and returns true if the `UnitAction` was started successfully.
 	///

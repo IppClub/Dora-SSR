@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -29,7 +29,9 @@ uint32_t Touch::_source =
 #endif
 
 Touch::Touch(int id)
-	: _flags(Touch::Enabled)
+	: _worldLocation{Vec2::zero}
+	, _worldPreLocation{Vec2::zero}
+	, _flags(Touch::Enabled)
 	, _id(id) { }
 
 void Touch::setEnabled(bool var) {
@@ -49,7 +51,7 @@ int Touch::getId() const noexcept {
 }
 
 Vec2 Touch::getDelta() const noexcept {
-	return _location - _preLocation;
+	return _worldLocation - _worldPreLocation;
 }
 
 const Vec2& Touch::getLocation() const noexcept {
@@ -58,6 +60,14 @@ const Vec2& Touch::getLocation() const noexcept {
 
 const Vec2& Touch::getPreLocation() const noexcept {
 	return _preLocation;
+}
+
+const Vec2& Touch::getWorldLocation() const noexcept {
+	return _worldLocation;
+}
+
+const Vec2& Touch::getWorldPreLocation() const noexcept {
+	return _worldPreLocation;
 }
 
 uint32_t Touch::getSource() {
@@ -256,6 +266,7 @@ bool NodeTouchHandler::down(const SDL_Event& event) {
 	Touch* touch = alloc(id);
 	if (_target->getSize() == Size::zero || Rect(Vec2::zero, _target->getSize()).containsPoint(pos)) {
 		touch->_preLocation = touch->_location = pos;
+		touch->_worldPreLocation = touch->_worldLocation = _target->convertToWorldSpace(pos);
 		touch->_flags.setOn(Touch::Selected);
 		_target->emit("TapFilter"_slice, touch);
 		if (touch->isEnabled()) {
@@ -290,6 +301,8 @@ bool NodeTouchHandler::up(const SDL_Event& event) {
 			Vec2 pos = getPos(event);
 			touch->_preLocation = touch->_location;
 			touch->_location = pos;
+			touch->_worldPreLocation = touch->_worldLocation;
+			touch->_worldLocation = _target->convertToWorldSpace(pos);
 			if (touch->_flags.isOn(Touch::Selected)) {
 				_target->emit("TapEnded"_slice, touch);
 				_target->emit("Tapped"_slice, touch);
@@ -322,6 +335,8 @@ bool NodeTouchHandler::move(const SDL_Event& event) {
 		Vec2 pos = getPos(event);
 		touch->_preLocation = touch->_location;
 		touch->_location = pos;
+		touch->_worldPreLocation = touch->_worldLocation;
+		touch->_worldLocation = _target->convertToWorldSpace(pos);
 		_target->emit("TapMoved"_slice, touch);
 		if (_target->getSize() != Size::zero) {
 			bool inBound = Rect(Vec2::zero, _target->getSize()).containsPoint(pos);

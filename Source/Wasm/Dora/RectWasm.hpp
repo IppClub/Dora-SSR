@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -11,86 +11,86 @@ using namespace Dora;
 void rect_release(int64_t raw) {
 	delete r_cast<Rect*>(raw);
 }
-void rect_set_origin(int64_t self, int64_t var) {
-	r_cast<Rect*>(self)->origin = Vec2_From(var);
+void rect_set_origin(int64_t self, int64_t val) {
+	r_cast<Rect*>(self)->origin = Vec2_From(val);
 }
 int64_t rect_get_origin(int64_t self) {
 	return Vec2_Retain(r_cast<Rect*>(self)->origin);
 }
-void rect_set_size(int64_t self, int64_t var) {
-	r_cast<Rect*>(self)->size = Size_From(var);
+void rect_set_size(int64_t self, int64_t val) {
+	r_cast<Rect*>(self)->size = Size_From(val);
 }
 int64_t rect_get_size(int64_t self) {
 	return Size_Retain(r_cast<Rect*>(self)->size);
 }
-void rect_set_x(int64_t self, float var) {
-	r_cast<Rect*>(self)->setX(var);
+void rect_set_x(int64_t self, float val) {
+	r_cast<Rect*>(self)->setX(val);
 }
 float rect_get_x(int64_t self) {
 	return r_cast<Rect*>(self)->getX();
 }
-void rect_set_y(int64_t self, float var) {
-	r_cast<Rect*>(self)->setY(var);
+void rect_set_y(int64_t self, float val) {
+	r_cast<Rect*>(self)->setY(val);
 }
 float rect_get_y(int64_t self) {
 	return r_cast<Rect*>(self)->getY();
 }
-void rect_set_width(int64_t self, float var) {
-	r_cast<Rect*>(self)->setWidth(var);
+void rect_set_width(int64_t self, float val) {
+	r_cast<Rect*>(self)->setWidth(val);
 }
 float rect_get_width(int64_t self) {
 	return r_cast<Rect*>(self)->getWidth();
 }
-void rect_set_height(int64_t self, float var) {
-	r_cast<Rect*>(self)->setHeight(var);
+void rect_set_height(int64_t self, float val) {
+	r_cast<Rect*>(self)->setHeight(val);
 }
 float rect_get_height(int64_t self) {
 	return r_cast<Rect*>(self)->getHeight();
 }
-void rect_set_left(int64_t self, float var) {
-	r_cast<Rect*>(self)->setLeft(var);
+void rect_set_left(int64_t self, float val) {
+	r_cast<Rect*>(self)->setLeft(val);
 }
 float rect_get_left(int64_t self) {
 	return r_cast<Rect*>(self)->getLeft();
 }
-void rect_set_right(int64_t self, float var) {
-	r_cast<Rect*>(self)->setRight(var);
+void rect_set_right(int64_t self, float val) {
+	r_cast<Rect*>(self)->setRight(val);
 }
 float rect_get_right(int64_t self) {
 	return r_cast<Rect*>(self)->getRight();
 }
-void rect_set_center_x(int64_t self, float var) {
-	r_cast<Rect*>(self)->setCenterX(var);
+void rect_set_center_x(int64_t self, float val) {
+	r_cast<Rect*>(self)->setCenterX(val);
 }
 float rect_get_center_x(int64_t self) {
 	return r_cast<Rect*>(self)->getCenterX();
 }
-void rect_set_center_y(int64_t self, float var) {
-	r_cast<Rect*>(self)->setCenterY(var);
+void rect_set_center_y(int64_t self, float val) {
+	r_cast<Rect*>(self)->setCenterY(val);
 }
 float rect_get_center_y(int64_t self) {
 	return r_cast<Rect*>(self)->getCenterY();
 }
-void rect_set_bottom(int64_t self, float var) {
-	r_cast<Rect*>(self)->setBottom(var);
+void rect_set_bottom(int64_t self, float val) {
+	r_cast<Rect*>(self)->setBottom(val);
 }
 float rect_get_bottom(int64_t self) {
 	return r_cast<Rect*>(self)->getBottom();
 }
-void rect_set_top(int64_t self, float var) {
-	r_cast<Rect*>(self)->setTop(var);
+void rect_set_top(int64_t self, float val) {
+	r_cast<Rect*>(self)->setTop(val);
 }
 float rect_get_top(int64_t self) {
 	return r_cast<Rect*>(self)->getTop();
 }
-void rect_set_lower_bound(int64_t self, int64_t var) {
-	r_cast<Rect*>(self)->setLowerBound(Vec2_From(var));
+void rect_set_lower_bound(int64_t self, int64_t val) {
+	r_cast<Rect*>(self)->setLowerBound(Vec2_From(val));
 }
 int64_t rect_get_lower_bound(int64_t self) {
 	return Vec2_Retain(r_cast<Rect*>(self)->getLowerBound());
 }
-void rect_set_upper_bound(int64_t self, int64_t var) {
-	r_cast<Rect*>(self)->setUpperBound(Vec2_From(var));
+void rect_set_upper_bound(int64_t self, int64_t val) {
+	r_cast<Rect*>(self)->setUpperBound(Vec2_From(val));
 }
 int64_t rect_get_upper_bound(int64_t self) {
 	return Vec2_Retain(r_cast<Rect*>(self)->getUpperBound());

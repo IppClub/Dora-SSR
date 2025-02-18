@@ -164,23 +164,20 @@ local function yue_traceback(err, level)
 	stp.simplified = yue.options.simplified
 	return stp.stacktrace(err, level)
 end
-local function yue_require(name)
-	insert_loader()
-	local success, res = xpcall(function()
-		return require(name)
-	end, function(err)
-		return yue_traceback(err, 3)
-	end)
-	if success then
-		return res
-	else
-		print(res)
-		return nil
-	end
-end
 setmetatable(yue, {
 	__call = function(self, name)
-		return self.require(name)
+		insert_loader()
+		local success, res = xpcall(function()
+			return require(name)
+		end, function(err)
+			return yue_traceback(err, 3)
+		end)
+		if success then
+			return res
+		else
+			print(res)
+			return nil
+		end
 	end
 })
 local function dump(what)

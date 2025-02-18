@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -65,11 +65,12 @@ public:
 	PROPERTY_BOOL(AlwaysOnTop);
 	SDLEventHandler eventHandler;
 	QuitHandler quitHandler;
-	int run(int argc, const char* const argv[]);
+	int run();
 	void shutdown();
 	void invokeInRender(const std::function<void()>& func);
 	void invokeInLogic(const std::function<void()>& func);
 	void openURL(String url);
+	void openFileDialog(bool folderOnly, const std::function<void(std::string)>& callback);
 	void install(String path);
 	bool saveLog(String filename);
 	static int mainLogic(bx::Thread* thread, void* userData);

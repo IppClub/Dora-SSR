@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -10,7 +10,7 @@ extern "C" {
 	fn platformer_behavior_tree_type() -> i32;
 	fn platformer_behavior_leaf_seq(nodes: i64) -> i64;
 	fn platformer_behavior_leaf_sel(nodes: i64) -> i64;
-	fn platformer_behavior_leaf_con(name: i64, func: i32, stack: i64) -> i64;
+	fn platformer_behavior_leaf_con(name: i64, func0: i32, stack0: i64) -> i64;
 	fn platformer_behavior_leaf_act(action_name: i64) -> i64;
 	fn platformer_behavior_leaf_command(action_name: i64) -> i64;
 	fn platformer_behavior_leaf_wait(duration: f64) -> i64;
@@ -69,13 +69,13 @@ impl Tree {
 	///
 	/// * `Leaf` - A new condition node.
 	pub fn con(name: &str, mut handler: Box<dyn FnMut(&crate::dora::platformer::behavior::Blackboard) -> bool>) -> crate::dora::platformer::behavior::Tree {
-		let mut stack = crate::dora::CallStack::new();
-		let stack_raw = stack.raw();
-		let func_id = crate::dora::push_function(Box::new(move || {
-			let result = handler(&crate::dora::platformer::behavior::Blackboard::from(stack.pop_i64().unwrap()).unwrap());
-			stack.push_bool(result);
+		let mut stack0 = crate::dora::CallStack::new();
+		let stack_raw0 = stack0.raw();
+		let func_id0 = crate::dora::push_function(Box::new(move || {
+			let result = handler(&crate::dora::platformer::behavior::Blackboard::from(stack0.pop_i64().unwrap()).unwrap());
+			stack0.push_bool(result);
 		}));
-		unsafe { return crate::dora::platformer::behavior::Tree::from(platformer_behavior_leaf_con(crate::dora::from_string(name), func_id, stack_raw)).unwrap(); }
+		unsafe { return crate::dora::platformer::behavior::Tree::from(platformer_behavior_leaf_con(crate::dora::from_string(name), func_id0, stack_raw0)).unwrap(); }
 	}
 	/// Creates a new action node that executes an action when executed.
 	/// This node will block the execution until the action finishes.

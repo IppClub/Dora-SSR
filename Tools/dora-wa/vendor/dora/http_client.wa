@@ -1,0 +1,71 @@
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+#wa:import dora httpclient_post_async
+func httpclient_post_async(url: i64, json: i64, timeout: f32, func0: i32, stack0: i64)
+
+#wa:import dora httpclient_post_with_headers_async
+func httpclient_post_with_headers_async(url: i64, headers: i64, json: i64, timeout: f32, func0: i32, stack0: i64)
+
+#wa:import dora httpclient_get_async
+func httpclient_get_async(url: i64, timeout: f32, func0: i32, stack0: i64)
+
+#wa:import dora httpclient_download_async
+func httpclient_download_async(url: i64, full_path: i64, timeout: f32, func0: i32, stack0: i64)
+
+type _HttpClient :struct{}
+
+global HttpClient = _HttpClient{}
+
+func _HttpClient.PostAsync(url: string, json: string, timeout: f32, callback: func(body: *string)) {
+	stack0 := NewCallStack()
+	func_id0 := PushFunction(func() {
+		body: *string = nil
+		body_, body_ok := stack0.PopStr()
+		if body_ok {
+			body = &body_
+		}
+		callback(body)
+	})
+	httpclient_post_async(ToDoraString(url), ToDoraString(json), timeout, func_id0, *stack0.raw)
+}
+func _HttpClient.PostWithHeadersAsync(url: string, headers: *[]string, json: string, timeout: f32, callback: func(body: *string)) {
+	stack0 := NewCallStack()
+	func_id0 := PushFunction(func() {
+		body: *string = nil
+		body_, body_ok := stack0.PopStr()
+		if body_ok {
+			body = &body_
+		}
+		callback(body)
+	})
+	httpclient_post_with_headers_async(ToDoraString(url), ToDoraStrBuf(headers), ToDoraString(json), timeout, func_id0, *stack0.raw)
+}
+func _HttpClient.GetAsync(url: string, timeout: f32, callback: func(body: *string)) {
+	stack0 := NewCallStack()
+	func_id0 := PushFunction(func() {
+		body: *string = nil
+		body_, body_ok := stack0.PopStr()
+		if body_ok {
+			body = &body_
+		}
+		callback(body)
+	})
+	httpclient_get_async(ToDoraString(url), timeout, func_id0, *stack0.raw)
+}
+func _HttpClient.DownloadAsync(url: string, full_path: string, timeout: f32, progress: func(interrupted: bool, current: i64, total: i64) => bool) {
+	stack0 := NewCallStack()
+	func_id0 := PushFunction(func() {
+		interrupted, _ := stack0.PopBool()
+		current, _ := stack0.PopI64()
+		total, _ := stack0.PopI64()
+		result_ := progress(interrupted, current, total)
+		stack0.Push(result_)
+	})
+	httpclient_download_async(ToDoraString(url), ToDoraString(full_path), timeout, func_id0, *stack0.raw)
+}

@@ -1,10 +1,19 @@
-import "@site/src/languages/highlight";
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
 # Dora Start!
 
-## 1. Installation
+## 1. What is Dora SSR?
+
+<div style={{margin: '30px', width: '200px', height: '200px'}}>
+![Dora SSR Logo](@site/static/img/site/dora.svg)
+</div>
+
+:::info A Short Introduction
+Dora SSR is a game engine for rapid development of games on various devices. It has a built-in easy-to-use Web IDE development tool chain that supports direct game development on mobile phones, open source handhelds and other devices.
+:::
+
+## 2. Installation
 
 ### Android
 
@@ -23,8 +32,7 @@ import TabItem from '@theme/TabItem';
 
 - 1. Download and run the [software](https://github.com/ippclub/Dora-SSR/releases/latest). You may see a prompt saying "Dora cannot be opened" when you first run the software. Please go to "System Preferences" > "Security & Privacy" and click "Open Anyway". Or you can install with [Homebrew](https://brew.sh) using:
 	```sh
-	brew tap ippclub/dora-ssr
-	brew install --cask dora-ssr
+	brew install --cask ippclub/tap/dora-ssr
 	```
 - 2. Access the server address displayed by the software through a browser.
 - 3. Start game development.
@@ -48,10 +56,10 @@ import TabItem from '@theme/TabItem';
 - 2. Run the software and access the server address displayed by the software through a browser.
 - 3. Start game development.
 
-## 2. Write the Game
+## 3. Write the Game
 
 1. Step One: Create a new project
-	- In the browser, right click on the menu "Assets" of the resource tree on the left side of the Dora Dora editor.
+	- In the browser, right click on the menu "Workspace" of the resource tree on the left side of the Dora Dora editor.
 	- Click the `New` menu item, select "New Folder", and name it `Hello`.
 2. Step Two: Write the game code
 	- Create a new game entry code file in the project folder, select the Lua language (or Teal, TypeScript, YueScript), and name it `init`.
@@ -222,7 +230,7 @@ with Node!
 
 Click the `🎮` icon in the lower right corner of the editor, then click the `Run` menu item. Alternatively, press the `Ctrl + r` key combination.
 
-## 3. Publish the Game
+## 4. Publish the Game
 
 1. Open the right-click menu of the newly created project folder in the game resource tree on the left side of the editor.
 2. Click the `Download` option and wait for the browser to prompt for downloading the packaged project file.

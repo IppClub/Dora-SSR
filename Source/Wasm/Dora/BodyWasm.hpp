@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -23,56 +23,56 @@ float body_get_mass(int64_t self) {
 int32_t body_is_sensor(int64_t self) {
 	return r_cast<Body*>(self)->isSensor() ? 1 : 0;
 }
-void body_set_velocity_x(int64_t self, float var) {
-	r_cast<Body*>(self)->setVelocityX(var);
+void body_set_velocity_x(int64_t self, float val) {
+	r_cast<Body*>(self)->setVelocityX(val);
 }
 float body_get_velocity_x(int64_t self) {
 	return r_cast<Body*>(self)->getVelocityX();
 }
-void body_set_velocity_y(int64_t self, float var) {
-	r_cast<Body*>(self)->setVelocityY(var);
+void body_set_velocity_y(int64_t self, float val) {
+	r_cast<Body*>(self)->setVelocityY(val);
 }
 float body_get_velocity_y(int64_t self) {
 	return r_cast<Body*>(self)->getVelocityY();
 }
-void body_set_velocity(int64_t self, int64_t var) {
-	r_cast<Body*>(self)->setVelocity(Vec2_From(var));
+void body_set_velocity(int64_t self, int64_t val) {
+	r_cast<Body*>(self)->setVelocity(Vec2_From(val));
 }
 int64_t body_get_velocity(int64_t self) {
 	return Vec2_Retain(r_cast<Body*>(self)->getVelocity());
 }
-void body_set_angular_rate(int64_t self, float var) {
-	r_cast<Body*>(self)->setAngularRate(var);
+void body_set_angular_rate(int64_t self, float val) {
+	r_cast<Body*>(self)->setAngularRate(val);
 }
 float body_get_angular_rate(int64_t self) {
 	return r_cast<Body*>(self)->getAngularRate();
 }
-void body_set_group(int64_t self, int32_t var) {
-	r_cast<Body*>(self)->setGroup(s_cast<uint8_t>(var));
+void body_set_group(int64_t self, int32_t val) {
+	r_cast<Body*>(self)->setGroup(s_cast<uint8_t>(val));
 }
 int32_t body_get_group(int64_t self) {
 	return s_cast<int32_t>(r_cast<Body*>(self)->getGroup());
 }
-void body_set_linear_damping(int64_t self, float var) {
-	r_cast<Body*>(self)->setLinearDamping(var);
+void body_set_linear_damping(int64_t self, float val) {
+	r_cast<Body*>(self)->setLinearDamping(val);
 }
 float body_get_linear_damping(int64_t self) {
 	return r_cast<Body*>(self)->getLinearDamping();
 }
-void body_set_angular_damping(int64_t self, float var) {
-	r_cast<Body*>(self)->setAngularDamping(var);
+void body_set_angular_damping(int64_t self, float val) {
+	r_cast<Body*>(self)->setAngularDamping(val);
 }
 float body_get_angular_damping(int64_t self) {
 	return r_cast<Body*>(self)->getAngularDamping();
 }
-void body_set_owner(int64_t self, int64_t var) {
-	r_cast<Body*>(self)->setOwner(r_cast<Object*>(var));
+void body_set_owner(int64_t self, int64_t val) {
+	r_cast<Body*>(self)->setOwner(r_cast<Object*>(val));
 }
 int64_t body_get_owner(int64_t self) {
 	return Object_From(r_cast<Body*>(self)->getOwner());
 }
-void body_set_receiving_contact(int64_t self, int32_t var) {
-	r_cast<Body*>(self)->setReceivingContact(var != 0);
+void body_set_receiving_contact(int64_t self, int32_t val) {
+	r_cast<Body*>(self)->setReceivingContact(val != 0);
 }
 int32_t body_is_receiving_contact(int64_t self) {
 	return r_cast<Body*>(self)->isReceivingContact() ? 1 : 0;
@@ -98,16 +98,16 @@ void body_attach(int64_t self, int64_t fixture_def) {
 int64_t body_attach_sensor(int64_t self, int32_t tag, int64_t fixture_def) {
 	return Object_From(r_cast<Body*>(self)->attachSensor(s_cast<int>(tag), r_cast<FixtureDef*>(fixture_def)));
 }
-void body_on_contact_filter(int64_t self, int32_t func, int64_t stack) {
-	std::shared_ptr<void> deref(nullptr, [func](auto) {
-		SharedWasmRuntime.deref(func);
+void body_on_contact_filter(int64_t self, int32_t func0, int64_t stack0) {
+	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
+		SharedWasmRuntime.deref(func0);
 	});
-	auto args = r_cast<CallStack*>(stack);
-	r_cast<Body*>(self)->onContactFilter([func, args, deref](Body* body) {
-		args->clear();
-		args->push(body);
-		SharedWasmRuntime.invoke(func);
-		return std::get<bool>(args->pop());
+	auto args0 = r_cast<CallStack*>(stack0);
+	r_cast<Body*>(self)->onContactFilter([func0, args0, deref0](Body* body) {
+		args0->clear();
+		args0->push(body);
+		SharedWasmRuntime.invoke(func0);
+		return args0->pop_bool_or(false);
 	});
 }
 int64_t body_new(int64_t def, int64_t world, int64_t pos, float rot) {

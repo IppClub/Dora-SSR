@@ -1,0 +1,137 @@
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+#wa:import dora director_set_clear_color
+func director_set_clear_color(val: i32)
+
+#wa:import dora director_get_clear_color
+func director_get_clear_color() => i32
+
+#wa:import dora director_get_ui
+func director_get_ui() => i64
+
+#wa:import dora director_get_ui_3d
+func director_get_ui_3d() => i64
+
+#wa:import dora director_get_entry
+func director_get_entry() => i64
+
+#wa:import dora director_get_post_node
+func director_get_post_node() => i64
+
+#wa:import dora director_get_current_camera
+func director_get_current_camera() => i64
+
+#wa:import dora director_set_frustum_culling
+func director_set_frustum_culling(val: i32)
+
+#wa:import dora director_is_frustum_culling
+func director_is_frustum_culling() => i32
+
+#wa:import dora director_schedule
+func director_schedule(func0: i32, stack0: i64)
+
+#wa:import dora director_schedule_posted
+func director_schedule_posted(func0: i32, stack0: i64)
+
+#wa:import dora director_push_camera
+func director_push_camera(camera: i64)
+
+#wa:import dora director_pop_camera
+func director_pop_camera()
+
+#wa:import dora director_remove_camera
+func director_remove_camera(camera: i64) => i32
+
+#wa:import dora director_clear_camera
+func director_clear_camera()
+
+#wa:import dora director_cleanup
+func director_cleanup()
+
+type _Director :struct{}
+
+global Director = _Director{}
+
+/// Sets the background color for the game world.
+func _Director.SetClearColor(val: Color) {
+	director_set_clear_color(val.ToARGB())
+}
+
+/// Gets the background color for the game world.
+func _Director.GetClearColor() => Color {
+	return NewColor(director_get_clear_color())
+}
+
+/// Gets the root node for 2D user interface elements like buttons and labels.
+func _Director.GetUi() => Node {
+	return *NodeFrom(director_get_ui())
+}
+
+/// Gets the root node for 3D user interface elements with 3D projection effect.
+func _Director.GetUi_3d() => Node {
+	return *NodeFrom(director_get_ui_3d())
+}
+
+/// Gets the root node for the starting point of a game.
+func _Director.GetEntry() => Node {
+	return *NodeFrom(director_get_entry())
+}
+
+/// Gets the root node for post-rendering scene tree.
+func _Director.GetPostNode() => Node {
+	return *NodeFrom(director_get_post_node())
+}
+
+/// Gets the current active camera in Director's camera stack.
+func _Director.GetCurrentCamera() => Camera {
+	return *CameraFrom(director_get_current_camera())
+}
+
+/// Sets whether or not to enable frustum culling.
+func _Director.SetFrustumCulling(val: bool) {
+	director_set_frustum_culling(ToDoraBool(val))
+}
+
+/// Gets whether or not to enable frustum culling.
+func _Director.IsFrustumCulling() => bool {
+	return director_is_frustum_culling() != 0
+}
+func _Director.Schedule(update_func: func(delta_time: f64) => bool) {
+	stack0 := NewCallStack()
+	func_id0 := PushFunction(func() {
+		deltaTime, _ := stack0.PopF64()
+		result_ := update_func(deltaTime)
+		stack0.Push(result_)
+	})
+	director_schedule(func_id0, *stack0.raw)
+}
+func _Director.SchedulePosted(update_func: func(delta_time: f64) => bool) {
+	stack0 := NewCallStack()
+	func_id0 := PushFunction(func() {
+		deltaTime, _ := stack0.PopF64()
+		result_ := update_func(deltaTime)
+		stack0.Push(result_)
+	})
+	director_schedule_posted(func_id0, *stack0.raw)
+}
+func _Director.PushCamera(camera: Camera) {
+	director_push_camera(camera.GetRaw())
+}
+func _Director.PopCamera() {
+	director_pop_camera()
+}
+func _Director.RemoveCamera(camera: Camera) => bool {
+	return director_remove_camera(camera.GetRaw()) != 0
+}
+func _Director.ClearCamera() {
+	director_clear_camera()
+}
+func _Director.Cleanup() {
+	director_cleanup()
+}

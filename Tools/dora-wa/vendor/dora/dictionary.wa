@@ -1,0 +1,69 @@
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+#wa:import dora dictionary_type
+func dictionary_type() => i32
+
+#wa:import dora dictionary_get_count
+func dictionary_get_count(slf: i64) => i32
+
+#wa:import dora dictionary_get_keys
+func dictionary_get_keys(slf: i64) => i64
+
+#wa:import dora dictionary_clear
+func dictionary_clear(slf: i64)
+
+#wa:import dora dictionary_new
+func dictionary_new() => i64
+
+type Dictionary :struct{ Object }
+
+func DictionaryFrom(raw: i64) => *Dictionary {
+	if raw == 0 {
+		return nil
+	}
+	object := Dictionary{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	result := &object
+	return result
+}
+func Dictionary.GetTypeId() => i32 {
+	return dictionary_type()
+}
+func ObjectAsDictionary(object: Object) => *Dictionary {
+	if object.GetTypeId() == dictionary_type() {
+		ObjectRetain(object.GetRaw())
+		return DictionaryFrom(object.GetRaw())
+	}
+	return nil
+}
+
+/// Gets the number of items in the dictionary.
+func Dictionary.GetCount() => i32 {
+	return dictionary_get_count(*this.raw)
+}
+
+/// Gets the keys of the items in the dictionary.
+func Dictionary.GetKeys() => *[]string {
+	return FromDoraStrBuf(dictionary_get_keys(*this.raw))
+}
+
+/// Removes all the items from the dictionary.
+func Dictionary.Clear() {
+	dictionary_clear(*this.raw)
+}
+
+/// Creates instance of the "Dictionary".
+func NewDictionary() => Dictionary {
+	raw := dictionary_new()
+	object := Dictionary{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return object
+}

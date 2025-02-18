@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2017-2025 Li Jin <dragon-fly@qq.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -381,6 +381,7 @@ private:
 	AST_RULE(Invoke);
 	AST_RULE(ExistentialOp);
 	AST_RULE(TableAppendingOp);
+	AST_RULE(PlainItem);
 	AST_RULE(SpreadExp);
 	AST_RULE(SpreadListExp);
 	AST_RULE(TableLit);

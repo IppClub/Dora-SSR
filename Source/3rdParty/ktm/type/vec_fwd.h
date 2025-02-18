@@ -11,10 +11,10 @@
 #include <cstddef>
 #include <type_traits>
 
-namespace ktm 
+namespace ktm
 {
-    
-template<size_t N, typename T, typename = std::enable_if_t<(N > 1) && std::is_arithmetic_v<T>>> 
+
+template <size_t N, typename T, typename = std::enable_if_t<(N > 1) && std::is_arithmetic_v<T>>>
 struct vec;
 
 }

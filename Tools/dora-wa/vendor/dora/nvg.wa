@@ -1,0 +1,384 @@
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+#wa:import dora nvg_save
+func nvg_save()
+
+#wa:import dora nvg_restore
+func nvg_restore()
+
+#wa:import dora nvg_reset
+func nvg_reset()
+
+#wa:import dora nvg__create_image
+func nvg__create_image(w: i32, h: i32, filename: i64, image_flags: i32) => i32
+
+#wa:import dora nvg_create_font
+func nvg_create_font(name: i64) => i32
+
+#wa:import dora nvg_text_bounds
+func nvg_text_bounds(x: f32, y: f32, text: i64, bounds: i64) => f32
+
+#wa:import dora nvg_text_box_bounds
+func nvg_text_box_bounds(x: f32, y: f32, break_row_width: f32, text: i64) => i64
+
+#wa:import dora nvg_text
+func nvg_text(x: f32, y: f32, text: i64) => f32
+
+#wa:import dora nvg_text_box
+func nvg_text_box(x: f32, y: f32, break_row_width: f32, text: i64)
+
+#wa:import dora nvg_stroke_color
+func nvg_stroke_color(color: i32)
+
+#wa:import dora nvg_stroke_paint
+func nvg_stroke_paint(paint: i64)
+
+#wa:import dora nvg_fill_color
+func nvg_fill_color(color: i32)
+
+#wa:import dora nvg_fill_paint
+func nvg_fill_paint(paint: i64)
+
+#wa:import dora nvg_miter_limit
+func nvg_miter_limit(limit: f32)
+
+#wa:import dora nvg_stroke_width
+func nvg_stroke_width(size: f32)
+
+#wa:import dora nvg__line_cap
+func nvg__line_cap(cap: i32)
+
+#wa:import dora nvg__line_join
+func nvg__line_join(join: i32)
+
+#wa:import dora nvg_global_alpha
+func nvg_global_alpha(alpha: f32)
+
+#wa:import dora nvg_reset_transform
+func nvg_reset_transform()
+
+#wa:import dora nvg_apply_transform
+func nvg_apply_transform(node: i64)
+
+#wa:import dora nvg_translate
+func nvg_translate(x: f32, y: f32)
+
+#wa:import dora nvg_rotate
+func nvg_rotate(angle: f32)
+
+#wa:import dora nvg_skew_x
+func nvg_skew_x(angle: f32)
+
+#wa:import dora nvg_skew_y
+func nvg_skew_y(angle: f32)
+
+#wa:import dora nvg_scale
+func nvg_scale(x: f32, y: f32)
+
+#wa:import dora nvg_image_size
+func nvg_image_size(image: i32) => i64
+
+#wa:import dora nvg_delete_image
+func nvg_delete_image(image: i32)
+
+#wa:import dora nvg_linear_gradient
+func nvg_linear_gradient(sx: f32, sy: f32, ex: f32, ey: f32, icol: i32, ocol: i32) => i64
+
+#wa:import dora nvg_box_gradient
+func nvg_box_gradient(x: f32, y: f32, w: f32, h: f32, r: f32, f: f32, icol: i32, ocol: i32) => i64
+
+#wa:import dora nvg_radial_gradient
+func nvg_radial_gradient(cx: f32, cy: f32, inr: f32, outr: f32, icol: i32, ocol: i32) => i64
+
+#wa:import dora nvg_image_pattern
+func nvg_image_pattern(ox: f32, oy: f32, ex: f32, ey: f32, angle: f32, image: i32, alpha: f32) => i64
+
+#wa:import dora nvg_scissor
+func nvg_scissor(x: f32, y: f32, w: f32, h: f32)
+
+#wa:import dora nvg_intersect_scissor
+func nvg_intersect_scissor(x: f32, y: f32, w: f32, h: f32)
+
+#wa:import dora nvg_reset_scissor
+func nvg_reset_scissor()
+
+#wa:import dora nvg_begin_path
+func nvg_begin_path()
+
+#wa:import dora nvg_move_to
+func nvg_move_to(x: f32, y: f32)
+
+#wa:import dora nvg_line_to
+func nvg_line_to(x: f32, y: f32)
+
+#wa:import dora nvg_bezier_to
+func nvg_bezier_to(c_1x: f32, c_1y: f32, c_2x: f32, c_2y: f32, x: f32, y: f32)
+
+#wa:import dora nvg_quad_to
+func nvg_quad_to(cx: f32, cy: f32, x: f32, y: f32)
+
+#wa:import dora nvg_arc_to
+func nvg_arc_to(x_1: f32, y_1: f32, x_2: f32, y_2: f32, radius: f32)
+
+#wa:import dora nvg_close_path
+func nvg_close_path()
+
+#wa:import dora nvg__path_winding
+func nvg__path_winding(dir: i32)
+
+#wa:import dora nvg__arc
+func nvg__arc(cx: f32, cy: f32, r: f32, a_0: f32, a_1: f32, dir: i32)
+
+#wa:import dora nvg_rect
+func nvg_rect(x: f32, y: f32, w: f32, h: f32)
+
+#wa:import dora nvg_rounded_rect
+func nvg_rounded_rect(x: f32, y: f32, w: f32, h: f32, r: f32)
+
+#wa:import dora nvg_rounded_rect_varying
+func nvg_rounded_rect_varying(x: f32, y: f32, w: f32, h: f32, rad_top_left: f32, rad_top_right: f32, rad_bottom_right: f32, rad_bottom_left: f32)
+
+#wa:import dora nvg_ellipse
+func nvg_ellipse(cx: f32, cy: f32, rx: f32, ry: f32)
+
+#wa:import dora nvg_circle
+func nvg_circle(cx: f32, cy: f32, r: f32)
+
+#wa:import dora nvg_fill
+func nvg_fill()
+
+#wa:import dora nvg_stroke
+func nvg_stroke()
+
+#wa:import dora nvg_find_font
+func nvg_find_font(name: i64) => i32
+
+#wa:import dora nvg_add_fallback_font_id
+func nvg_add_fallback_font_id(base_font: i32, fallback_font: i32) => i32
+
+#wa:import dora nvg_add_fallback_font
+func nvg_add_fallback_font(base_font: i64, fallback_font: i64) => i32
+
+#wa:import dora nvg_font_size
+func nvg_font_size(size: f32)
+
+#wa:import dora nvg_font_blur
+func nvg_font_blur(blur: f32)
+
+#wa:import dora nvg_text_letter_spacing
+func nvg_text_letter_spacing(spacing: f32)
+
+#wa:import dora nvg_text_line_height
+func nvg_text_line_height(line_height: f32)
+
+#wa:import dora nvg__text_align
+func nvg__text_align(h_align: i32, v_align: i32)
+
+#wa:import dora nvg_font_face_id
+func nvg_font_face_id(font: i32)
+
+#wa:import dora nvg_font_face
+func nvg_font_face(font: i64)
+
+#wa:import dora nvg_dora_ssr
+func nvg_dora_ssr()
+
+#wa:import dora nvg_get_dora_ssr
+func nvg_get_dora_ssr(scale: f32) => i64
+
+type _Nvg :struct{}
+
+global Nvg = _Nvg{}
+
+func _Nvg.Save() {
+	nvg_save()
+}
+func _Nvg.Restore() {
+	nvg_restore()
+}
+func _Nvg.Reset() {
+	nvg_reset()
+}
+func _Nvg._CreateImage(w: i32, h: i32, filename: string, image_flags: i32) => i32 {
+	return nvg__create_image(w, h, ToDoraString(filename), image_flags)
+}
+func _Nvg.CreateFont(name: string) => i32 {
+	return nvg_create_font(ToDoraString(name))
+}
+func _Nvg.TextBounds(x: f32, y: f32, text: string, bounds: Rect) => f32 {
+	return nvg_text_bounds(x, y, ToDoraString(text), bounds.GetRaw())
+}
+func _Nvg.TextBoxBounds(x: f32, y: f32, break_row_width: f32, text: string) => Rect {
+	return *RectFrom(nvg_text_box_bounds(x, y, break_row_width, ToDoraString(text)))
+}
+func _Nvg.Text(x: f32, y: f32, text: string) => f32 {
+	return nvg_text(x, y, ToDoraString(text))
+}
+func _Nvg.TextBox(x: f32, y: f32, break_row_width: f32, text: string) {
+	nvg_text_box(x, y, break_row_width, ToDoraString(text))
+}
+func _Nvg.StrokeColor(color: Color) {
+	nvg_stroke_color(color.ToARGB())
+}
+func _Nvg.StrokePaint(paint: VGPaint) {
+	nvg_stroke_paint(paint.GetRaw())
+}
+func _Nvg.FillColor(color: Color) {
+	nvg_fill_color(color.ToARGB())
+}
+func _Nvg.FillPaint(paint: VGPaint) {
+	nvg_fill_paint(paint.GetRaw())
+}
+func _Nvg.MiterLimit(limit: f32) {
+	nvg_miter_limit(limit)
+}
+func _Nvg.StrokeWidth(size: f32) {
+	nvg_stroke_width(size)
+}
+func _Nvg._LineCap(cap: i32) {
+	nvg__line_cap(cap)
+}
+func _Nvg._LineJoin(join: i32) {
+	nvg__line_join(join)
+}
+func _Nvg.GlobalAlpha(alpha: f32) {
+	nvg_global_alpha(alpha)
+}
+func _Nvg.ResetTransform() {
+	nvg_reset_transform()
+}
+func _Nvg.ApplyTransform(node: Node) {
+	nvg_apply_transform(node.GetRaw())
+}
+func _Nvg.Translate(x: f32, y: f32) {
+	nvg_translate(x, y)
+}
+func _Nvg.Rotate(angle: f32) {
+	nvg_rotate(angle)
+}
+func _Nvg.SkewX(angle: f32) {
+	nvg_skew_x(angle)
+}
+func _Nvg.SkewY(angle: f32) {
+	nvg_skew_y(angle)
+}
+func _Nvg.Scale(x: f32, y: f32) {
+	nvg_scale(x, y)
+}
+func _Nvg.ImageSize(image: i32) => Size {
+	return SizeFromValue(nvg_image_size(image))
+}
+func _Nvg.DeleteImage(image: i32) {
+	nvg_delete_image(image)
+}
+func _Nvg.LinearGradient(sx: f32, sy: f32, ex: f32, ey: f32, icol: Color, ocol: Color) => VGPaint {
+	return *VGPaintFrom(nvg_linear_gradient(sx, sy, ex, ey, icol.ToARGB(), ocol.ToARGB()))
+}
+func _Nvg.BoxGradient(x: f32, y: f32, w: f32, h: f32, r: f32, f: f32, icol: Color, ocol: Color) => VGPaint {
+	return *VGPaintFrom(nvg_box_gradient(x, y, w, h, r, f, icol.ToARGB(), ocol.ToARGB()))
+}
+func _Nvg.RadialGradient(cx: f32, cy: f32, inr: f32, outr: f32, icol: Color, ocol: Color) => VGPaint {
+	return *VGPaintFrom(nvg_radial_gradient(cx, cy, inr, outr, icol.ToARGB(), ocol.ToARGB()))
+}
+func _Nvg.ImagePattern(ox: f32, oy: f32, ex: f32, ey: f32, angle: f32, image: i32, alpha: f32) => VGPaint {
+	return *VGPaintFrom(nvg_image_pattern(ox, oy, ex, ey, angle, image, alpha))
+}
+func _Nvg.Scissor(x: f32, y: f32, w: f32, h: f32) {
+	nvg_scissor(x, y, w, h)
+}
+func _Nvg.IntersectScissor(x: f32, y: f32, w: f32, h: f32) {
+	nvg_intersect_scissor(x, y, w, h)
+}
+func _Nvg.ResetScissor() {
+	nvg_reset_scissor()
+}
+func _Nvg.BeginPath() {
+	nvg_begin_path()
+}
+func _Nvg.MoveTo(x: f32, y: f32) {
+	nvg_move_to(x, y)
+}
+func _Nvg.LineTo(x: f32, y: f32) {
+	nvg_line_to(x, y)
+}
+func _Nvg.BezierTo(c_1x: f32, c_1y: f32, c_2x: f32, c_2y: f32, x: f32, y: f32) {
+	nvg_bezier_to(c_1x, c_1y, c_2x, c_2y, x, y)
+}
+func _Nvg.QuadTo(cx: f32, cy: f32, x: f32, y: f32) {
+	nvg_quad_to(cx, cy, x, y)
+}
+func _Nvg.ArcTo(x_1: f32, y_1: f32, x_2: f32, y_2: f32, radius: f32) {
+	nvg_arc_to(x_1, y_1, x_2, y_2, radius)
+}
+func _Nvg.ClosePath() {
+	nvg_close_path()
+}
+func _Nvg._PathWinding(dir: i32) {
+	nvg__path_winding(dir)
+}
+func _Nvg._Arc(cx: f32, cy: f32, r: f32, a_0: f32, a_1: f32, dir: i32) {
+	nvg__arc(cx, cy, r, a_0, a_1, dir)
+}
+func _Nvg.Rect(x: f32, y: f32, w: f32, h: f32) {
+	nvg_rect(x, y, w, h)
+}
+func _Nvg.RoundedRect(x: f32, y: f32, w: f32, h: f32, r: f32) {
+	nvg_rounded_rect(x, y, w, h, r)
+}
+func _Nvg.RoundedRectVarying(x: f32, y: f32, w: f32, h: f32, rad_top_left: f32, rad_top_right: f32, rad_bottom_right: f32, rad_bottom_left: f32) {
+	nvg_rounded_rect_varying(x, y, w, h, rad_top_left, rad_top_right, rad_bottom_right, rad_bottom_left)
+}
+func _Nvg.Ellipse(cx: f32, cy: f32, rx: f32, ry: f32) {
+	nvg_ellipse(cx, cy, rx, ry)
+}
+func _Nvg.Circle(cx: f32, cy: f32, r: f32) {
+	nvg_circle(cx, cy, r)
+}
+func _Nvg.Fill() {
+	nvg_fill()
+}
+func _Nvg.Stroke() {
+	nvg_stroke()
+}
+func _Nvg.FindFont(name: string) => i32 {
+	return nvg_find_font(ToDoraString(name))
+}
+func _Nvg.AddFallbackFontId(base_font: i32, fallback_font: i32) => i32 {
+	return nvg_add_fallback_font_id(base_font, fallback_font)
+}
+func _Nvg.AddFallbackFont(base_font: string, fallback_font: string) => i32 {
+	return nvg_add_fallback_font(ToDoraString(base_font), ToDoraString(fallback_font))
+}
+func _Nvg.FontSize(size: f32) {
+	nvg_font_size(size)
+}
+func _Nvg.FontBlur(blur: f32) {
+	nvg_font_blur(blur)
+}
+func _Nvg.TextLetterSpacing(spacing: f32) {
+	nvg_text_letter_spacing(spacing)
+}
+func _Nvg.TextLineHeight(line_height: f32) {
+	nvg_text_line_height(line_height)
+}
+func _Nvg._TextAlign(h_align: i32, v_align: i32) {
+	nvg__text_align(h_align, v_align)
+}
+func _Nvg.FontFaceId(font: i32) {
+	nvg_font_face_id(font)
+}
+func _Nvg.FontFace(font: string) {
+	nvg_font_face(ToDoraString(font))
+}
+func _Nvg.DoraSsr() {
+	nvg_dora_ssr()
+}
+func _Nvg.GetDoraSsr(scale: f32) => Texture2D {
+	return *Texture2DFrom(nvg_get_dora_ssr(scale))
+}

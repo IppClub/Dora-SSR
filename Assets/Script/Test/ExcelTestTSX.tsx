@@ -137,14 +137,13 @@ UnitAction.add("fallOff", {
 	recovery: 0.3,
 	available: self => !self.onSurface,
 	create: self => {
-		if (self.playable.current !== "jumping") {
-			const {playable} = self;
+		const {playable} = self;
+		if (playable.current !== "jumping") {
 			playable.speed = 1;
 			playable.play("jumping", true);
 		}
 		return loop(() => {
 			if (self.onSurface) {
-				const {playable} = self;
 				playable.speed = 1;
 				sleep(playable.play("landing", false));
 				return true;

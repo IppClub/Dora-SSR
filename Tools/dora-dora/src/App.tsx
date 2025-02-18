@@ -70,6 +70,14 @@ window.onbeforeunload = (event: BeforeUnloadEvent) => {
 	}
 };
 
+const isChildFolder = (child: string, parent: string) => {
+	if (!child.startsWith(parent)) return false;
+	if (path.relative(parent, child).startsWith("..")) {
+		return false;
+	}
+	return true;
+};
+
 interface EditingFile {
 	key: string;
 	title: string;
@@ -95,6 +103,7 @@ interface Modified {
 const editorBackground = <div style={{width: '100%', height: '100%', backgroundColor:'#1a1a1a'}}/>;
 
 const Editor = memo((props: {
+	hidden?: boolean,
 	width: number, height: number,
 	language: string,
 	editingFile: EditingFile,
@@ -105,6 +114,7 @@ const Editor = memo((props: {
 	onValidate: (markers: monaco.editor.IMarker[], key: string) => void,
 }) => {
 	const {
+		hidden,
 		width,
 		height,
 		language,
@@ -123,35 +133,38 @@ const Editor = memo((props: {
 		onModified(editingFile, content, ev.changes.at(-1));
 	}, [onModified, editingFile]);
 	return (
-		<MonacoEditor
-			width={width}
-			height={height}
-			language={language}
-			theme="dora-dark"
-			onMount={onMount}
-			keepCurrentModel
-			loading={editorBackground}
-			onChange={onChange}
-			onValidate={language === "typescript" ? doValidate : undefined}
-			path={monaco.Uri.file(editingFile.key).toString()}
-			options={{
-				readOnly,
-				padding: {top: 20},
-				wordWrap: 'on',
-				wordBreak: 'keepAll',
-				selectOnLineNumbers: true,
-				matchBrackets: 'near',
-				fontSize: 18,
-				useTabStops: false,
-				insertSpaces: false,
-				renderWhitespace: 'all',
-				tabSize: 2,
-				minimap: {
-					enabled: minimap,
-				},
-				definitionLinkOpensInPeek: true,
-			}}
-		/>);
+		<div hidden={hidden}>
+			<MonacoEditor
+				width={width}
+				height={height}
+				language={language}
+				theme="dora-dark"
+				onMount={onMount}
+				keepCurrentModel
+				loading={editorBackground}
+				onChange={onChange}
+				onValidate={language === "typescript" ? doValidate : undefined}
+				path={monaco.Uri.file(editingFile.key).toString()}
+				options={{
+					readOnly,
+					padding: {top: 20},
+					wordWrap: 'on',
+					wordBreak: 'keepAll',
+					selectOnLineNumbers: true,
+					matchBrackets: 'near',
+					fontSize: 18,
+					useTabStops: false,
+					insertSpaces: false,
+					renderWhitespace: 'all',
+					tabSize: 2,
+					minimap: {
+						enabled: minimap,
+					},
+					definitionLinkOpensInPeek: true,
+				}}
+			/>
+		</div>
+	);
 });
 
 interface UseResizeProps {
@@ -430,14 +443,15 @@ export default function PersistentDrawerLeft() {
 
 	const checkFileReadonly = useCallback((key: string, withPrompt: boolean) => {
 		if (Info.engineDev) return false;
-		if (!key.startsWith(writablePath)) {
+		if (key === "" || assetPath === "") return true;
+		if (isChildFolder(key, assetPath)) {
 			if (withPrompt) {
 				addAlert(t("alert.builtin"), "info");
 			}
 			return true;
 		}
 		return false;
-	}, [writablePath, t]);
+	}, [assetPath, t]);
 
 	const onModified = useCallback((editingFile: EditingFile, content: string, lastChange?: monaco.editor.IModelContentChange) => {
 		setModified({key: editingFile.key, content});
@@ -525,7 +539,7 @@ export default function PersistentDrawerLeft() {
 			editor.updateOptions({
 				stickyScroll: {
 					enabled: true,
-				}
+				},
 			});
 			if (currentFile.position) {
 				const {position} = currentFile;
@@ -1275,7 +1289,6 @@ export default function PersistentDrawerLeft() {
 	const onTreeMenuClick = useCallback((event: TreeMenuEvent, data?: TreeDataType)=> {
 		if (event === "Cancel") return;
 		if (data === undefined) return;
-		if (checkFileReadonly(data.key, true)) return;
 		switch (event) {
 			case "New": {
 				setOpenNewFile(data);
@@ -1286,7 +1299,7 @@ export default function PersistentDrawerLeft() {
 				const rootNode = treeData.at(0);
 				if (rootNode === undefined) break;
 				const {key, title} = data;
-				if (path.relative(rootNode.key, key).startsWith("..")) {
+				if (!isChildFolder(key, rootNode.key)) {
 					addAlert(t("alert.downloadFailed"), "error");
 					break;
 				}
@@ -1496,7 +1509,12 @@ export default function PersistentDrawerLeft() {
 			}
 			case "Copy Path": {
 				const writablePath = treeData.at(0)?.key ?? "";
-				const relativePath = path.relative(writablePath, data.key);
+				let relativePath: string;
+				if (isChildFolder(data.key, writablePath)) {
+					relativePath = path.relative(writablePath, data.key);
+				} else {
+					relativePath = path.relative(assetPath, data.key);
+				}
 				if (navigator.clipboard && navigator.clipboard.writeText) {
 					navigator.clipboard.writeText(relativePath).then(() => {
 						addAlert(t("alert.copied", {title: data.title}), "success");
@@ -1514,7 +1532,7 @@ export default function PersistentDrawerLeft() {
 				break;
 			}
 		}
-	}, [checkFileReadonly, loadAssets, t, files, deleteFile, treeData, openFileInTab]);
+	}, [checkFileReadonly, loadAssets, t, files, deleteFile, treeData, openFileInTab, assetPath]);
 
 	const onNewFileClose = (item?: DoraFileType) => {
 		let ext: string | null = null;
@@ -2020,7 +2038,8 @@ export default function PersistentDrawerLeft() {
 							editor.focus();
 						}, 100);
 					}
-					return [...files];
+					setFiles([...files]);
+					return;
 				}
 			}
 		}
@@ -2216,8 +2235,8 @@ export default function PersistentDrawerLeft() {
 			const toolPath = path.join(assetPath, "Script", "Tools");
 			const visitNode = (node: TreeDataType) => {
 				if (!node.dir) {
-					const isWritableFile = node.key.startsWith(writablePath);
-					let isToolFile = node.key.startsWith(toolPath);
+					const isWritableFile = isChildFolder(node.key, writablePath);
+					let isToolFile = isChildFolder(node.key, toolPath);
 					if (isToolFile) {
 						if (path.dirname(node.key) !== toolPath) {
 							isToolFile = false;
@@ -2360,8 +2379,10 @@ export default function PersistentDrawerLeft() {
 									variant="outlined"
 									id="popupText"
 									defaultValue={popupInfo?.msg}
-									InputProps={{
-										readOnly: true,
+									slotProps={{
+										input: {
+											readOnly: true,
+										}
 									}}
 									sx={{
 										"& .MuiOutlinedInput-notchedOutline": {
@@ -2568,12 +2589,13 @@ export default function PersistentDrawerLeft() {
 							case ".vs": visualScript = true; break;
 						}
 						const markdown = language === "markdown";
+						const hidden = markdown && !file.mdEditing;
 						const readOnly = file.readOnly || checkFileReadonly(file.key, false);
 						let parentPath;
-						if (!file.key.startsWith(treeData.at(0)?.key ?? "")) {
-							parentPath = treeData.at(0)?.children?.at(0)?.key ?? "";
+						if (isChildFolder(file.key, assetPath)) {
+							parentPath = assetPath;
 						} else {
-							parentPath = treeData.at(0)?.key ?? "";
+							parentPath = writablePath;
 						}
 						return <Main
 							open={drawerOpen}
@@ -2668,6 +2690,7 @@ export default function PersistentDrawerLeft() {
 									}
 									return <Editor
 										key={file.key}
+										hidden={hidden}
 										editingFile={file}
 										width={editorWidth}
 										height={editorHeight}
@@ -2681,8 +2704,8 @@ export default function PersistentDrawerLeft() {
 								} else if (file.folder) {
 									const rootNode = treeData.at(0);
 									if (rootNode === undefined) return null;
-									let target = path.relative(writablePath, file.key);
-									if (target.startsWith("..")) {
+									let target: string;
+									if (isChildFolder(file.key, assetPath)) {
 										target = path.relative(parentPath, file.key);
 										target = path.join(t("tree.builtin"), target);
 									} else {
@@ -2705,7 +2728,7 @@ export default function PersistentDrawerLeft() {
 				{files.length > 0 ? null :
 					<KeyboardShortcuts/>
 				}
-				<div style={{position: 'fixed', left: drawerWidth, bottom: 0, width: editorWidth, zIndex: 998}} hidden={!openBottomLog}>
+				<div style={{position: 'fixed', left: winSize.width - editorWidth, bottom: 0, width: editorWidth, zIndex: 998, transition: 'all 0.2s'}} hidden={!openBottomLog}>
 					<BottomLog height={editorHeight * 0.3}/>
 				</div>
 				<div style={{zIndex: 999}}>

@@ -1,7 +1,3 @@
-// [DEAR IMGUI]
-// This is a slightly modified version of stb_rect_pack.h 1.01.
-// Grep for [DEAR IMGUI] to find the changes.
-// 
 // stb_rect_pack.h - v1.01 - public domain - rectangle packing
 // Sean Barrett 2014
 //
@@ -429,7 +425,7 @@ static stbrp__findresult stbrp__skyline_find_best_pos(stbrp_context *c, int widt
             if (y <= best_y) {
                if (y < best_y || waste < best_waste || (waste==best_waste && xpos < best_x)) {
                   best_x = xpos;
-                  //STBRP_ASSERT(y <= best_y); [DEAR IMGUI]
+                  STBRP_ASSERT(y <= best_y);
                   best_y = y;
                   best_waste = waste;
                   best = prev;

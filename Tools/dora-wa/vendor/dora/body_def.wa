@@ -1,0 +1,523 @@
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+#wa:import dora bodydef_type
+func bodydef_type() => i32
+
+#wa:import dora bodydef_set_type
+func bodydef_set_type(slf: i64, body_type: i32)
+
+#wa:import dora bodydef_get_type
+func bodydef_get_type(slf: i64) => i32
+
+#wa:import dora bodydef_set_position
+func bodydef_set_position(slf: i64, val: i64)
+
+#wa:import dora bodydef_get_position
+func bodydef_get_position(slf: i64) => i64
+
+#wa:import dora bodydef_set_angle
+func bodydef_set_angle(slf: i64, val: f32)
+
+#wa:import dora bodydef_get_angle
+func bodydef_get_angle(slf: i64) => f32
+
+#wa:import dora bodydef_set_face
+func bodydef_set_face(slf: i64, val: i64)
+
+#wa:import dora bodydef_get_face
+func bodydef_get_face(slf: i64) => i64
+
+#wa:import dora bodydef_set_face_pos
+func bodydef_set_face_pos(slf: i64, val: i64)
+
+#wa:import dora bodydef_get_face_pos
+func bodydef_get_face_pos(slf: i64) => i64
+
+#wa:import dora bodydef_set_linear_damping
+func bodydef_set_linear_damping(slf: i64, val: f32)
+
+#wa:import dora bodydef_get_linear_damping
+func bodydef_get_linear_damping(slf: i64) => f32
+
+#wa:import dora bodydef_set_angular_damping
+func bodydef_set_angular_damping(slf: i64, val: f32)
+
+#wa:import dora bodydef_get_angular_damping
+func bodydef_get_angular_damping(slf: i64) => f32
+
+#wa:import dora bodydef_set_linear_acceleration
+func bodydef_set_linear_acceleration(slf: i64, val: i64)
+
+#wa:import dora bodydef_get_linear_acceleration
+func bodydef_get_linear_acceleration(slf: i64) => i64
+
+#wa:import dora bodydef_set_fixed_rotation
+func bodydef_set_fixed_rotation(slf: i64, val: i32)
+
+#wa:import dora bodydef_is_fixed_rotation
+func bodydef_is_fixed_rotation(slf: i64) => i32
+
+#wa:import dora bodydef_set_bullet
+func bodydef_set_bullet(slf: i64, val: i32)
+
+#wa:import dora bodydef_is_bullet
+func bodydef_is_bullet(slf: i64) => i32
+
+#wa:import dora bodydef_polygon_with_center
+func bodydef_polygon_with_center(center: i64, width: f32, height: f32, angle: f32, density: f32, friction: f32, restitution: f32) => i64
+
+#wa:import dora bodydef_polygon
+func bodydef_polygon(width: f32, height: f32, density: f32, friction: f32, restitution: f32) => i64
+
+#wa:import dora bodydef_polygon_with_vertices
+func bodydef_polygon_with_vertices(vertices: i64, density: f32, friction: f32, restitution: f32) => i64
+
+#wa:import dora bodydef_attach_polygon_with_center
+func bodydef_attach_polygon_with_center(slf: i64, center: i64, width: f32, height: f32, angle: f32, density: f32, friction: f32, restitution: f32)
+
+#wa:import dora bodydef_attach_polygon
+func bodydef_attach_polygon(slf: i64, width: f32, height: f32, density: f32, friction: f32, restitution: f32)
+
+#wa:import dora bodydef_attach_polygon_with_vertices
+func bodydef_attach_polygon_with_vertices(slf: i64, vertices: i64, density: f32, friction: f32, restitution: f32)
+
+#wa:import dora bodydef_multi
+func bodydef_multi(vertices: i64, density: f32, friction: f32, restitution: f32) => i64
+
+#wa:import dora bodydef_attach_multi
+func bodydef_attach_multi(slf: i64, vertices: i64, density: f32, friction: f32, restitution: f32)
+
+#wa:import dora bodydef_disk_with_center
+func bodydef_disk_with_center(center: i64, radius: f32, density: f32, friction: f32, restitution: f32) => i64
+
+#wa:import dora bodydef_disk
+func bodydef_disk(radius: f32, density: f32, friction: f32, restitution: f32) => i64
+
+#wa:import dora bodydef_attach_disk_with_center
+func bodydef_attach_disk_with_center(slf: i64, center: i64, radius: f32, density: f32, friction: f32, restitution: f32)
+
+#wa:import dora bodydef_attach_disk
+func bodydef_attach_disk(slf: i64, radius: f32, density: f32, friction: f32, restitution: f32)
+
+#wa:import dora bodydef_chain
+func bodydef_chain(vertices: i64, friction: f32, restitution: f32) => i64
+
+#wa:import dora bodydef_attach_chain
+func bodydef_attach_chain(slf: i64, vertices: i64, friction: f32, restitution: f32)
+
+#wa:import dora bodydef_attach_polygon_sensor
+func bodydef_attach_polygon_sensor(slf: i64, tag: i32, width: f32, height: f32)
+
+#wa:import dora bodydef_attach_polygon_sensor_with_center
+func bodydef_attach_polygon_sensor_with_center(slf: i64, tag: i32, center: i64, width: f32, height: f32, angle: f32)
+
+#wa:import dora bodydef_attach_polygon_sensor_with_vertices
+func bodydef_attach_polygon_sensor_with_vertices(slf: i64, tag: i32, vertices: i64)
+
+#wa:import dora bodydef_attach_disk_sensor_with_center
+func bodydef_attach_disk_sensor_with_center(slf: i64, tag: i32, center: i64, radius: f32)
+
+#wa:import dora bodydef_attach_disk_sensor
+func bodydef_attach_disk_sensor(slf: i64, tag: i32, radius: f32)
+
+#wa:import dora bodydef_new
+func bodydef_new() => i64
+
+type BodyDef :struct{ Object }
+
+func BodyDefFrom(raw: i64) => *BodyDef {
+	if raw == 0 {
+		return nil
+	}
+	object := BodyDef{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	result := &object
+	return result
+}
+func BodyDef.GetTypeId() => i32 {
+	return bodydef_type()
+}
+func ObjectAsBodyDef(object: Object) => *BodyDef {
+	if object.GetTypeId() == bodydef_type() {
+		ObjectRetain(object.GetRaw())
+		return BodyDefFrom(object.GetRaw())
+	}
+	return nil
+}
+
+/// Sets the define for the type of the body.
+///
+/// # Arguments
+///
+/// * `body_type` - The type of the body.
+func BodyDef.SetType(body_type: BodyType) {
+	bodydef_set_type(*this.raw, body_type.ToValue())
+}
+
+/// Gets the define for the type of the body.
+///
+/// # Returns
+///
+/// * `BodyType` - The type of the body.
+func BodyDef.GetType() => BodyType {
+	return BodyType{value: bodydef_get_type(*this.raw)}
+}
+
+/// Sets define for the position of the body.
+func BodyDef.SetPosition(val: Vec2) {
+	bodydef_set_position(*this.raw, val.ToValue())
+}
+
+/// Gets define for the position of the body.
+func BodyDef.GetPosition() => Vec2 {
+	return Vec2FromValue(bodydef_get_position(*this.raw))
+}
+
+/// Sets define for the angle of the body.
+func BodyDef.SetAngle(val: f32) {
+	bodydef_set_angle(*this.raw, val)
+}
+
+/// Gets define for the angle of the body.
+func BodyDef.GetAngle() => f32 {
+	return bodydef_get_angle(*this.raw)
+}
+
+/// Sets define for the face image or other items accepted by creating `Face` for the body.
+func BodyDef.SetFace(val: string) {
+	bodydef_set_face(*this.raw, ToDoraString(val))
+}
+
+/// Gets define for the face image or other items accepted by creating `Face` for the body.
+func BodyDef.GetFace() => string {
+	return FromDoraString(bodydef_get_face(*this.raw))
+}
+
+/// Sets define for the face position of the body.
+func BodyDef.SetFacePos(val: Vec2) {
+	bodydef_set_face_pos(*this.raw, val.ToValue())
+}
+
+/// Gets define for the face position of the body.
+func BodyDef.GetFacePos() => Vec2 {
+	return Vec2FromValue(bodydef_get_face_pos(*this.raw))
+}
+
+/// Sets define for linear damping of the body.
+func BodyDef.SetLinearDamping(val: f32) {
+	bodydef_set_linear_damping(*this.raw, val)
+}
+
+/// Gets define for linear damping of the body.
+func BodyDef.GetLinearDamping() => f32 {
+	return bodydef_get_linear_damping(*this.raw)
+}
+
+/// Sets define for angular damping of the body.
+func BodyDef.SetAngularDamping(val: f32) {
+	bodydef_set_angular_damping(*this.raw, val)
+}
+
+/// Gets define for angular damping of the body.
+func BodyDef.GetAngularDamping() => f32 {
+	return bodydef_get_angular_damping(*this.raw)
+}
+
+/// Sets define for initial linear acceleration of the body.
+func BodyDef.SetLinearAcceleration(val: Vec2) {
+	bodydef_set_linear_acceleration(*this.raw, val.ToValue())
+}
+
+/// Gets define for initial linear acceleration of the body.
+func BodyDef.GetLinearAcceleration() => Vec2 {
+	return Vec2FromValue(bodydef_get_linear_acceleration(*this.raw))
+}
+
+/// Sets whether the body's rotation is fixed or not.
+func BodyDef.SetFixedRotation(val: bool) {
+	bodydef_set_fixed_rotation(*this.raw, ToDoraBool(val))
+}
+
+/// Gets whether the body's rotation is fixed or not.
+func BodyDef.IsFixedRotation() => bool {
+	return bodydef_is_fixed_rotation(*this.raw) != 0
+}
+
+/// Sets whether the body is a bullet or not.
+/// Set to true to add extra bullet movement check for the body.
+func BodyDef.SetBullet(val: bool) {
+	bodydef_set_bullet(*this.raw, ToDoraBool(val))
+}
+
+/// Gets whether the body is a bullet or not.
+/// Set to true to add extra bullet movement check for the body.
+func BodyDef.IsBullet() => bool {
+	return bodydef_is_bullet(*this.raw) != 0
+}
+
+/// Creates a polygon fixture definition with the specified dimensions and center position.
+///
+/// # Arguments
+///
+/// * `center` - The center point of the polygon.
+/// * `width` - The width of the polygon.
+/// * `height` - The height of the polygon.
+/// * `angle` - The angle of the polygon.
+/// * `density` - The density of the polygon.
+/// * `friction` - The friction of the polygon. Should be between 0 and 1.0.
+/// * `restitution` - The restitution of the polygon. Should be between 0 and 1.
+func BodyDefPolygonWithCenter(center: Vec2, width: f32, height: f32, angle: f32, density: f32, friction: f32, restitution: f32) => FixtureDef {
+	return *FixtureDefFrom(bodydef_polygon_with_center(center.ToValue(), width, height, angle, density, friction, restitution))
+}
+
+/// Creates a polygon fixture definition with the specified dimensions.
+///
+/// # Arguments
+///
+/// * `width` - The width of the polygon.
+/// * `height` - The height of the polygon.
+/// * `density` - The density of the polygon.
+/// * `friction` - The friction of the polygon. Should be between 0 and 1.0.
+/// * `restitution` - The restitution of the polygon. Should be between 0 and 1.
+func BodyDefPolygon(width: f32, height: f32, density: f32, friction: f32, restitution: f32) => FixtureDef {
+	return *FixtureDefFrom(bodydef_polygon(width, height, density, friction, restitution))
+}
+
+/// Creates a polygon fixture definition with the specified vertices.
+///
+/// # Arguments
+///
+/// * `vertices` - The vertices of the polygon.
+/// * `density` - The density of the polygon.
+/// * `friction` - The friction of the polygon. Should be between 0 and 1.0.
+/// * `restitution` - The restitution of the polygon. Should be between 0 and 1.0.
+func BodyDefPolygonWithVertices(vertices: *[]Vec2, density: f32, friction: f32, restitution: f32) => FixtureDef {
+	return *FixtureDefFrom(bodydef_polygon_with_vertices(ToDoraVec2Buf(vertices), density, friction, restitution))
+}
+
+/// Attaches a polygon fixture definition to the body.
+///
+/// # Arguments
+///
+/// * `center` - The center point of the polygon.
+/// * `width` - The width of the polygon.
+/// * `height` - The height of the polygon.
+/// * `angle` - The angle of the polygon.
+/// * `density` - The density of the polygon.
+/// * `friction` - The friction of the polygon. Should be between 0 and 1.0.
+/// * `restitution` - The restitution of the polygon. Should be between 0 and 1.0.
+func BodyDef.AttachPolygonWithCenter(center: Vec2, width: f32, height: f32, angle: f32, density: f32, friction: f32, restitution: f32) {
+	bodydef_attach_polygon_with_center(*this.raw, center.ToValue(), width, height, angle, density, friction, restitution)
+}
+
+/// Attaches a polygon fixture definition to the body.
+///
+/// # Arguments
+///
+/// * `width` - The width of the polygon.
+/// * `height` - The height of the polygon.
+/// * `density` - The density of the polygon.
+/// * `friction` - The friction of the polygon. Should be between 0 and 1.0.
+/// * `restitution` - The restitution of the polygon. Should be between 0 and 1.0.
+func BodyDef.AttachPolygon(width: f32, height: f32, density: f32, friction: f32, restitution: f32) {
+	bodydef_attach_polygon(*this.raw, width, height, density, friction, restitution)
+}
+
+/// Attaches a polygon fixture definition to the body.
+///
+/// # Arguments
+///
+/// * `vertices` - The vertices of the polygon.
+/// * `density` - The density of the polygon.
+/// * `friction` - The friction of the polygon. Should be between 0 and 1.0.
+/// * `restitution` - The restitution of the polygon. Should be between 0 and 1.0.
+func BodyDef.AttachPolygonWithVertices(vertices: *[]Vec2, density: f32, friction: f32, restitution: f32) {
+	bodydef_attach_polygon_with_vertices(*this.raw, ToDoraVec2Buf(vertices), density, friction, restitution)
+}
+
+/// Creates a concave shape definition made of multiple convex shapes.
+///
+/// # Arguments
+///
+/// * `vertices` - A vector containing the vertices of each convex shape that makes up the concave shape. Each convex shape in the vertices vector should end with a `Vec2(0.0, 0.0)` as separator.
+/// * `density` - The density of the shape.
+/// * `friction` - The friction coefficient of the shape. Should be between 0.0 and 1.0.
+/// * `restitution` - The restitution (elasticity) of the shape. Should be between 0.0 and 1.0.
+///
+/// # Returns
+///
+/// * `FixtureDef` - The resulting fixture definition.
+func BodyDefMulti(vertices: *[]Vec2, density: f32, friction: f32, restitution: f32) => FixtureDef {
+	return *FixtureDefFrom(bodydef_multi(ToDoraVec2Buf(vertices), density, friction, restitution))
+}
+
+/// Attaches a concave shape definition made of multiple convex shapes to the body.
+///
+/// # Arguments
+///
+/// * `vertices` - A vector containing the vertices of each convex shape that makes up the concave shape. Each convex shape in the vertices vector should end with a `Vec2(0.0, 0.0)` as separator.
+/// * `density` - The density of the concave shape.
+/// * `friction` - The friction of the concave shape. Should be between 0.0 and 1.0.
+/// * `restitution` - The restitution of the concave shape. Should be between 0.0 and 1.0.
+func BodyDef.AttachMulti(vertices: *[]Vec2, density: f32, friction: f32, restitution: f32) {
+	bodydef_attach_multi(*this.raw, ToDoraVec2Buf(vertices), density, friction, restitution)
+}
+
+/// Creates a Disk-shape fixture definition.
+///
+/// # Arguments
+///
+/// * `center` - The center of the circle.
+/// * `radius` - The radius of the circle.
+/// * `density` - The density of the circle.
+/// * `friction` - The friction coefficient of the circle. Should be between 0.0 and 1.0.
+/// * `restitution` - The restitution (elasticity) of the circle. Should be between 0.0 and 1.0.
+///
+/// # Returns
+///
+/// * `FixtureDef` - The resulting fixture definition.
+func BodyDefDiskWithCenter(center: Vec2, radius: f32, density: f32, friction: f32, restitution: f32) => FixtureDef {
+	return *FixtureDefFrom(bodydef_disk_with_center(center.ToValue(), radius, density, friction, restitution))
+}
+
+/// Creates a Disk-shape fixture definition.
+///
+/// # Arguments
+///
+/// * `radius` - The radius of the circle.
+/// * `density` - The density of the circle.
+/// * `friction` - The friction coefficient of the circle. Should be between 0.0 and 1.0.
+/// * `restitution` - The restitution (elasticity) of the circle. Should be between 0.0 and 1.0.
+///
+/// # Returns
+///
+/// * `FixtureDef` - The resulting fixture definition.
+func BodyDefDisk(radius: f32, density: f32, friction: f32, restitution: f32) => FixtureDef {
+	return *FixtureDefFrom(bodydef_disk(radius, density, friction, restitution))
+}
+
+/// Attaches a disk fixture definition to the body.
+///
+/// # Arguments
+///
+/// * `center` - The center point of the disk.
+/// * `radius` - The radius of the disk.
+/// * `density` - The density of the disk.
+/// * `friction` - The friction of the disk. Should be between 0.0 and 1.0.
+/// * `restitution` - The restitution of the disk. Should be between 0.0 and 1.0.
+func BodyDef.AttachDiskWithCenter(center: Vec2, radius: f32, density: f32, friction: f32, restitution: f32) {
+	bodydef_attach_disk_with_center(*this.raw, center.ToValue(), radius, density, friction, restitution)
+}
+
+/// Attaches a disk fixture definition to the body.
+///
+/// # Arguments
+///
+/// * `radius` - The radius of the disk.
+/// * `density` - The density of the disk.
+/// * `friction` - The friction of the disk. Should be between 0.0 and 1.0.
+/// * `restitution` - The restitution of the disk. Should be between 0.0 and 1.0.
+func BodyDef.AttachDisk(radius: f32, density: f32, friction: f32, restitution: f32) {
+	bodydef_attach_disk(*this.raw, radius, density, friction, restitution)
+}
+
+/// Creates a Chain-shape fixture definition. This fixture is a free form sequence of line segments that has two-sided collision.
+///
+/// # Arguments
+///
+/// * `vertices` - The vertices of the chain.
+/// * `friction` - The friction coefficient of the chain. Should be between 0.0 and 1.0.
+/// * `restitution` - The restitution (elasticity) of the chain. Should be between 0.0 and 1.0.
+///
+/// # Returns
+///
+/// * `FixtureDef` - The resulting fixture definition.
+func BodyDefChain(vertices: *[]Vec2, friction: f32, restitution: f32) => FixtureDef {
+	return *FixtureDefFrom(bodydef_chain(ToDoraVec2Buf(vertices), friction, restitution))
+}
+
+/// Attaches a chain fixture definition to the body. The Chain fixture is a free form sequence of line segments that has two-sided collision.
+///
+/// # Arguments
+///
+/// * `vertices` - The vertices of the chain.
+/// * `friction` - The friction of the chain. Should be between 0.0 and 1.0.
+/// * `restitution` - The restitution of the chain. Should be between 0.0 and 1.0.
+func BodyDef.AttachChain(vertices: *[]Vec2, friction: f32, restitution: f32) {
+	bodydef_attach_chain(*this.raw, ToDoraVec2Buf(vertices), friction, restitution)
+}
+
+/// Attaches a polygon sensor fixture definition to the body.
+///
+/// # Arguments
+///
+/// * `tag` - An integer tag for the sensor.
+/// * `width` - The width of the polygon.
+/// * `height` - The height of the polygon.
+func BodyDef.AttachPolygonSensor(tag: i32, width: f32, height: f32) {
+	bodydef_attach_polygon_sensor(*this.raw, tag, width, height)
+}
+
+/// Attaches a polygon sensor fixture definition to the body.
+///
+/// # Arguments
+///
+/// * `tag` - An integer tag for the sensor.
+/// * `center` - The center point of the polygon.
+/// * `width` - The width of the polygon.
+/// * `height` - The height of the polygon.
+/// * `angle` - Optional. The angle of the polygon.
+func BodyDef.AttachPolygonSensorWithCenter(tag: i32, center: Vec2, width: f32, height: f32, angle: f32) {
+	bodydef_attach_polygon_sensor_with_center(*this.raw, tag, center.ToValue(), width, height, angle)
+}
+
+/// Attaches a polygon sensor fixture definition to the body.
+///
+/// # Arguments
+///
+/// * `tag` - An integer tag for the sensor.
+/// * `vertices` - A vector containing the vertices of the polygon.
+func BodyDef.AttachPolygonSensorWithVertices(tag: i32, vertices: *[]Vec2) {
+	bodydef_attach_polygon_sensor_with_vertices(*this.raw, tag, ToDoraVec2Buf(vertices))
+}
+
+/// Attaches a disk sensor fixture definition to the body.
+///
+/// # Arguments
+///
+/// * `tag` - An integer tag for the sensor.
+/// * `center` - The center of the disk.
+/// * `radius` - The radius of the disk.
+func BodyDef.AttachDiskSensorWithCenter(tag: i32, center: Vec2, radius: f32) {
+	bodydef_attach_disk_sensor_with_center(*this.raw, tag, center.ToValue(), radius)
+}
+
+/// Attaches a disk sensor fixture definition to the body.
+///
+/// # Arguments
+///
+/// * `tag` - An integer tag for the sensor.
+/// * `radius` - The radius of the disk.
+func BodyDef.AttachDiskSensor(tag: i32, radius: f32) {
+	bodydef_attach_disk_sensor(*this.raw, tag, radius)
+}
+
+/// Creates a new instance of `BodyDef` class.
+///
+/// # Returns
+///
+/// * A new `BodyDef` object.
+func NewBodyDef() => BodyDef {
+	raw := bodydef_new()
+	object := BodyDef{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return object
+}

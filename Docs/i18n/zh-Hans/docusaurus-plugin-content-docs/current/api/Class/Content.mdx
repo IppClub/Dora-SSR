@@ -1,5 +1,3 @@
-import "@site/src/languages/highlight";
-
 # Content
 
 **描述：**
@@ -27,28 +25,41 @@ searchPaths: {string}
 
 ## assetPath
 
-**类型：** 只读成员变量。
+**类型：** 成员变量。
 
 **描述：**
 
-&emsp;&emsp;游戏引擎只读资源所在目录的路径。
+&emsp;&emsp;游戏引擎只读资源所在目录的路径。只有在平台 Windows、MacOS 和 Linux 上能被设置为新路径。
 
 **签名：**
 ```tl
-const assetPath: string
+assetPath: string
 ```
 
 ## writablePath
 
-**类型：** 只读成员变量。
+**类型：** 成员变量。
 
 **描述：**
 
-&emsp;&emsp;游戏引擎可以做写入操作的文件路径。
+&emsp;&emsp;游戏引擎可以做写入操作的文件路径。只有在平台 Windows、MacOS 和 Linux 上能被设置为新路径。默认与 `appPath` 相同。
 
 **签名：**
 ```tl
-const writablePath: string
+writablePath: string
+```
+
+## appPath
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;游戏引擎应用程序存储目录的路径。
+
+**签名：**
+```tl
+appPath: string
 ```
 
 ## load

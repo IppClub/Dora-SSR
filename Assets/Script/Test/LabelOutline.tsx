@@ -43,18 +43,18 @@ threadLoop(() => {
 	ImGui.Begin("SDF", windowFlags, () => {
 		ImGui.Text("SDF Label");
 		let changed = false;
-		[changed, edgeA, edgeB] = ImGui.DragFloat2("Edge", edgeA, edgeB, 0.01, 0, 1, "%.2f");
+		[changed, edgeA, edgeB] = ImGui.DragFloat2("Edge", edgeA, edgeB, 0.001, 0, 1, "%.3f");
 		if (changed) {
 			label.smooth = Vec2(edgeA, edgeB);
 		}
-		[changed, scale] = ImGui.DragFloat("Scale", scale, 0.1, 0.5, 20);
+		[changed, scale] = ImGui.DragFloat("Scale", scale, 0.1, 0.5, 20, "%.1f");
 		if (changed) {
 			label.scaleX = label.scaleY = scale;
 		}
 		if (ImGui.ColorEdit4("LColor", outlineColor)) {
 			label.outlineColor = outlineColor;
 		}
-		[changed, outlineWidth] = ImGui.DragFloat("LWidth", outlineWidth, 0.01, 0, 0.3);
+		[changed, outlineWidth] = ImGui.DragFloat("LWidth", outlineWidth, 0.01, 0, 0.3, "%.2f");
 		if (changed) {
 			label.outlineWidth = outlineWidth;
 		}

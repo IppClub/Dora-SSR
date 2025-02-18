@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -46,6 +46,8 @@ public:
 	PROPERTY_READONLY(Vec2, Delta);
 	PROPERTY_READONLY_CREF(Vec2, Location);
 	PROPERTY_READONLY_CREF(Vec2, PreLocation);
+	PROPERTY_READONLY_CREF(Vec2, WorldLocation);
+	PROPERTY_READONLY_CREF(Vec2, WorldPreLocation);
 	PROPERTY_READONLY_CLASS(uint32_t, Source);
 	CREATE_FUNC_NOT_NULL(Touch);
 
@@ -57,6 +59,8 @@ private:
 	int _id;
 	Vec2 _location;
 	Vec2 _preLocation;
+	Vec2 _worldLocation;
+	Vec2 _worldPreLocation;
 	enum {
 		Enabled = 1,
 		Selected = 1 << 1,

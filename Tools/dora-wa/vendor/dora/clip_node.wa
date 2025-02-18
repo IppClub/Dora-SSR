@@ -1,0 +1,101 @@
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+#wa:import dora clipnode_type
+func clipnode_type() => i32
+
+#wa:import dora clipnode_set_stencil
+func clipnode_set_stencil(slf: i64, val: i64)
+
+#wa:import dora clipnode_get_stencil
+func clipnode_get_stencil(slf: i64) => i64
+
+#wa:import dora clipnode_set_alpha_threshold
+func clipnode_set_alpha_threshold(slf: i64, val: f32)
+
+#wa:import dora clipnode_get_alpha_threshold
+func clipnode_get_alpha_threshold(slf: i64) => f32
+
+#wa:import dora clipnode_set_inverted
+func clipnode_set_inverted(slf: i64, val: i32)
+
+#wa:import dora clipnode_is_inverted
+func clipnode_is_inverted(slf: i64) => i32
+
+#wa:import dora clipnode_new
+func clipnode_new(stencil: i64) => i64
+
+type ClipNode :struct{ Node }
+
+func ClipNodeFrom(raw: i64) => *ClipNode {
+	if raw == 0 {
+		return nil
+	}
+	object := ClipNode{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	result := &object
+	return result
+}
+func ClipNode.GetTypeId() => i32 {
+	return clipnode_type()
+}
+func ObjectAsClipNode(object: Object) => *ClipNode {
+	if object.GetTypeId() == clipnode_type() {
+		ObjectRetain(object.GetRaw())
+		return ClipNodeFrom(object.GetRaw())
+	}
+	return nil
+}
+
+/// Sets the stencil Node that defines the clipping shape.
+func ClipNode.SetStencil(val: Node) {
+	clipnode_set_stencil(*this.raw, val.GetRaw())
+}
+
+/// Gets the stencil Node that defines the clipping shape.
+func ClipNode.GetStencil() => Node {
+	return *NodeFrom(clipnode_get_stencil(*this.raw))
+}
+
+/// Sets the minimum alpha threshold for a pixel to be visible. Value ranges from 0 to 1.
+func ClipNode.SetAlphaThreshold(val: f32) {
+	clipnode_set_alpha_threshold(*this.raw, val)
+}
+
+/// Gets the minimum alpha threshold for a pixel to be visible. Value ranges from 0 to 1.
+func ClipNode.GetAlphaThreshold() => f32 {
+	return clipnode_get_alpha_threshold(*this.raw)
+}
+
+/// Sets whether to invert the clipping area.
+func ClipNode.SetInverted(val: bool) {
+	clipnode_set_inverted(*this.raw, ToDoraBool(val))
+}
+
+/// Gets whether to invert the clipping area.
+func ClipNode.IsInverted() => bool {
+	return clipnode_is_inverted(*this.raw) != 0
+}
+
+/// Creates a new ClipNode object.
+///
+/// # Arguments
+///
+/// * `stencil` - The stencil Node that defines the clipping shape. Defaults to `None`.
+///
+/// # Returns
+///
+/// * A new `ClipNode` object.
+func NewClipNode(stencil: Node) => ClipNode {
+	raw := clipnode_new(stencil.GetRaw())
+	object := ClipNode{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return object
+}

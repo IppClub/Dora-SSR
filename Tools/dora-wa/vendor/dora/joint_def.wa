@@ -1,0 +1,302 @@
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+#wa:import dora jointdef_type
+func jointdef_type() => i32
+
+#wa:import dora jointdef_set_center
+func jointdef_set_center(slf: i64, val: i64)
+
+#wa:import dora jointdef_get_center
+func jointdef_get_center(slf: i64) => i64
+
+#wa:import dora jointdef_set_position
+func jointdef_set_position(slf: i64, val: i64)
+
+#wa:import dora jointdef_get_position
+func jointdef_get_position(slf: i64) => i64
+
+#wa:import dora jointdef_set_angle
+func jointdef_set_angle(slf: i64, val: f32)
+
+#wa:import dora jointdef_get_angle
+func jointdef_get_angle(slf: i64) => f32
+
+#wa:import dora jointdef_distance
+func jointdef_distance(collision: i32, body_a: i64, body_b: i64, anchor_a: i64, anchor_b: i64, frequency: f32, damping: f32) => i64
+
+#wa:import dora jointdef_friction
+func jointdef_friction(collision: i32, body_a: i64, body_b: i64, world_pos: i64, max_force: f32, max_torque: f32) => i64
+
+#wa:import dora jointdef_gear
+func jointdef_gear(collision: i32, joint_a: i64, joint_b: i64, ratio: f32) => i64
+
+#wa:import dora jointdef_spring
+func jointdef_spring(collision: i32, body_a: i64, body_b: i64, linear_offset: i64, angular_offset: f32, max_force: f32, max_torque: f32, correction_factor: f32) => i64
+
+#wa:import dora jointdef_prismatic
+func jointdef_prismatic(collision: i32, body_a: i64, body_b: i64, world_pos: i64, axis_angle: f32, lower_translation: f32, upper_translation: f32, max_motor_force: f32, motor_speed: f32) => i64
+
+#wa:import dora jointdef_pulley
+func jointdef_pulley(collision: i32, body_a: i64, body_b: i64, anchor_a: i64, anchor_b: i64, ground_anchor_a: i64, ground_anchor_b: i64, ratio: f32) => i64
+
+#wa:import dora jointdef_revolute
+func jointdef_revolute(collision: i32, body_a: i64, body_b: i64, world_pos: i64, lower_angle: f32, upper_angle: f32, max_motor_torque: f32, motor_speed: f32) => i64
+
+#wa:import dora jointdef_rope
+func jointdef_rope(collision: i32, body_a: i64, body_b: i64, anchor_a: i64, anchor_b: i64, max_length: f32) => i64
+
+#wa:import dora jointdef_weld
+func jointdef_weld(collision: i32, body_a: i64, body_b: i64, world_pos: i64, frequency: f32, damping: f32) => i64
+
+#wa:import dora jointdef_wheel
+func jointdef_wheel(collision: i32, body_a: i64, body_b: i64, world_pos: i64, axis_angle: f32, max_motor_torque: f32, motor_speed: f32, frequency: f32, damping: f32) => i64
+
+type JointDef :struct{ Object }
+
+func JointDefFrom(raw: i64) => *JointDef {
+	if raw == 0 {
+		return nil
+	}
+	object := JointDef{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	result := &object
+	return result
+}
+func JointDef.GetTypeId() => i32 {
+	return jointdef_type()
+}
+func ObjectAsJointDef(object: Object) => *JointDef {
+	if object.GetTypeId() == jointdef_type() {
+		ObjectRetain(object.GetRaw())
+		return JointDefFrom(object.GetRaw())
+	}
+	return nil
+}
+
+/// Sets the center point of the joint, in local coordinates.
+func JointDef.SetCenter(val: Vec2) {
+	jointdef_set_center(*this.raw, val.ToValue())
+}
+
+/// Gets the center point of the joint, in local coordinates.
+func JointDef.GetCenter() => Vec2 {
+	return Vec2FromValue(jointdef_get_center(*this.raw))
+}
+
+/// Sets the position of the joint, in world coordinates.
+func JointDef.SetPosition(val: Vec2) {
+	jointdef_set_position(*this.raw, val.ToValue())
+}
+
+/// Gets the position of the joint, in world coordinates.
+func JointDef.GetPosition() => Vec2 {
+	return Vec2FromValue(jointdef_get_position(*this.raw))
+}
+
+/// Sets the angle of the joint, in degrees.
+func JointDef.SetAngle(val: f32) {
+	jointdef_set_angle(*this.raw, val)
+}
+
+/// Gets the angle of the joint, in degrees.
+func JointDef.GetAngle() => f32 {
+	return jointdef_get_angle(*this.raw)
+}
+
+/// Creates a distance joint definition.
+///
+/// # Arguments
+///
+/// * `can_collide` - Whether or not the physics body connected to joint will collide with each other.
+/// * `body_a` - The name of first physics body to connect with the joint.
+/// * `body_b` - The name of second physics body to connect with the joint.
+/// * `anchor_a` - The position of the joint on the first physics body.
+/// * `anchor_b` - The position of the joint on the second physics body.
+/// * `frequency` - The frequency of the joint, in Hertz.
+/// * `damping` - The damping ratio of the joint.
+///
+/// # Returns
+///
+/// * `JointDef` - The new joint definition.
+func JointDefDistance(collision: bool, body_a: string, body_b: string, anchor_a: Vec2, anchor_b: Vec2, frequency: f32, damping: f32) => JointDef {
+	return *JointDefFrom(jointdef_distance(ToDoraBool(collision), ToDoraString(body_a), ToDoraString(body_b), anchor_a.ToValue(), anchor_b.ToValue(), frequency, damping))
+}
+
+/// Creates a friction joint definition.
+///
+/// # Arguments
+///
+/// * `can_collide` - Whether or not the physics body connected to joint will collide with each other.
+/// * `body_a` - The first physics body to connect with the joint.
+/// * `body_b` - The second physics body to connect with the joint.
+/// * `world_pos` - The position of the joint in the game world.
+/// * `max_force` - The maximum force that can be applied to the joint.
+/// * `max_torque` - The maximum torque that can be applied to the joint.
+///
+/// # Returns
+///
+/// * `Joint` - The new friction joint definition.
+func JointDefFriction(collision: bool, body_a: string, body_b: string, world_pos: Vec2, max_force: f32, max_torque: f32) => JointDef {
+	return *JointDefFrom(jointdef_friction(ToDoraBool(collision), ToDoraString(body_a), ToDoraString(body_b), world_pos.ToValue(), max_force, max_torque))
+}
+
+/// Creates a gear joint definition.
+///
+/// # Arguments
+///
+/// * `can_collide` - Whether or not the physics bodies connected to the joint can collide with each other.
+/// * `joint_a` - The first joint to connect with the gear joint.
+/// * `joint_b` - The second joint to connect with the gear joint.
+/// * `ratio` - The gear ratio.
+///
+/// # Returns
+///
+/// * `Joint` - The new gear joint definition.
+func JointDefGear(collision: bool, joint_a: string, joint_b: string, ratio: f32) => JointDef {
+	return *JointDefFrom(jointdef_gear(ToDoraBool(collision), ToDoraString(joint_a), ToDoraString(joint_b), ratio))
+}
+
+/// Creates a new spring joint definition.
+///
+/// # Arguments
+///
+/// * `can_collide` - Whether the connected bodies should collide with each other.
+/// * `body_a` - The first body connected to the joint.
+/// * `body_b` - The second body connected to the joint.
+/// * `linear_offset` - Position of body-B minus the position of body-A, in body-A's frame.
+/// * `angular_offset` - Angle of body-B minus angle of body-A.
+/// * `max_force` - The maximum force the joint can exert.
+/// * `max_torque` - The maximum torque the joint can exert.
+/// * `correction_factor` - Correction factor. 0.0 = no correction, 1.0 = full correction.
+///
+/// # Returns
+///
+/// * `Joint` - The created joint definition.
+func JointDefSpring(collision: bool, body_a: string, body_b: string, linear_offset: Vec2, angular_offset: f32, max_force: f32, max_torque: f32, correction_factor: f32) => JointDef {
+	return *JointDefFrom(jointdef_spring(ToDoraBool(collision), ToDoraString(body_a), ToDoraString(body_b), linear_offset.ToValue(), angular_offset, max_force, max_torque, correction_factor))
+}
+
+/// Creates a new prismatic joint definition.
+///
+/// # Arguments
+///
+/// * `can_collide` - Whether the connected bodies should collide with each other.
+/// * `body_a` - The first body connected to the joint.
+/// * `body_b` - The second body connected to the joint.
+/// * `world_pos` - The world position of the joint.
+/// * `axis_angle` - The axis angle of the joint.
+/// * `lower_translation` - Lower translation limit.
+/// * `upper_translation` - Upper translation limit.
+/// * `max_motor_force` - Maximum motor force.
+/// * `motor_speed` - Motor speed.
+///
+/// # Returns
+///
+/// * `MotorJoint` - The created prismatic joint definition.
+func JointDefPrismatic(collision: bool, body_a: string, body_b: string, world_pos: Vec2, axis_angle: f32, lower_translation: f32, upper_translation: f32, max_motor_force: f32, motor_speed: f32) => JointDef {
+	return *JointDefFrom(jointdef_prismatic(ToDoraBool(collision), ToDoraString(body_a), ToDoraString(body_b), world_pos.ToValue(), axis_angle, lower_translation, upper_translation, max_motor_force, motor_speed))
+}
+
+/// Creates a pulley joint definition.
+///
+/// # Arguments
+///
+/// * `can_collide` - Whether or not the connected bodies will collide with each other.
+/// * `body_a` - The first physics body to connect.
+/// * `body_b` - The second physics body to connect.
+/// * `anchor_a` - The position of the anchor point on the first body.
+/// * `anchor_b` - The position of the anchor point on the second body.
+/// * `ground_anchor_a` - The position of the ground anchor point on the first body in world coordinates.
+/// * `ground_anchor_b` - The position of the ground anchor point on the second body in world coordinates.
+/// * `ratio` - The pulley ratio.
+///
+/// # Returns
+///
+/// * `Joint` - The pulley joint definition.
+func JointDefPulley(collision: bool, body_a: string, body_b: string, anchor_a: Vec2, anchor_b: Vec2, ground_anchor_a: Vec2, ground_anchor_b: Vec2, ratio: f32) => JointDef {
+	return *JointDefFrom(jointdef_pulley(ToDoraBool(collision), ToDoraString(body_a), ToDoraString(body_b), anchor_a.ToValue(), anchor_b.ToValue(), ground_anchor_a.ToValue(), ground_anchor_b.ToValue(), ratio))
+}
+
+/// Creates a revolute joint definition.
+///
+/// # Arguments
+///
+/// * `can_collide` - Whether or not the connected bodies will collide with each other.
+/// * `body_a` - The first physics body to connect.
+/// * `body_b` - The second physics body to connect.
+/// * `world_pos` - The position in world coordinates where the joint will be created.
+/// * `lower_angle` - The lower angle limit in radians.
+/// * `upper_angle` - The upper angle limit in radians.
+/// * `max_motor_torque` - The maximum torque that can be applied to the joint to achieve the target speed.
+/// * `motor_speed` - The desired speed of the joint.
+///
+/// # Returns
+///
+/// * `MotorJoint` - The revolute joint definition.
+func JointDefRevolute(collision: bool, body_a: string, body_b: string, world_pos: Vec2, lower_angle: f32, upper_angle: f32, max_motor_torque: f32, motor_speed: f32) => JointDef {
+	return *JointDefFrom(jointdef_revolute(ToDoraBool(collision), ToDoraString(body_a), ToDoraString(body_b), world_pos.ToValue(), lower_angle, upper_angle, max_motor_torque, motor_speed))
+}
+
+/// Creates a rope joint definition.
+///
+/// # Arguments
+///
+/// * `can_collide` - Whether or not the connected bodies will collide with each other.
+/// * `body_a` - The first physics body to connect.
+/// * `body_b` - The second physics body to connect.
+/// * `anchor_a` - The position of the anchor point on the first body.
+/// * `anchor_b` - The position of the anchor point on the second body.
+/// * `max_length` - The maximum distance between the anchor points.
+///
+/// # Returns
+///
+/// * `Joint` - The rope joint definition.
+func JointDefRope(collision: bool, body_a: string, body_b: string, anchor_a: Vec2, anchor_b: Vec2, max_length: f32) => JointDef {
+	return *JointDefFrom(jointdef_rope(ToDoraBool(collision), ToDoraString(body_a), ToDoraString(body_b), anchor_a.ToValue(), anchor_b.ToValue(), max_length))
+}
+
+/// Creates a weld joint definition.
+///
+/// # Arguments
+///
+/// * `can_collide` - Whether or not the bodies connected to the joint can collide with each other.
+/// * `body_a` - The first body to be connected by the joint.
+/// * `body_b` - The second body to be connected by the joint.
+/// * `world_pos` - The position in the world to connect the bodies together.
+/// * `frequency` - The frequency at which the joint should be stiff.
+/// * `damping` - The damping rate of the joint.
+///
+/// # Returns
+///
+/// * `Joint` - The newly created weld joint definition.
+func JointDefWeld(collision: bool, body_a: string, body_b: string, world_pos: Vec2, frequency: f32, damping: f32) => JointDef {
+	return *JointDefFrom(jointdef_weld(ToDoraBool(collision), ToDoraString(body_a), ToDoraString(body_b), world_pos.ToValue(), frequency, damping))
+}
+
+/// Creates a wheel joint definition.
+///
+/// # Arguments
+///
+/// * `can_collide` - Whether or not the bodies connected to the joint can collide with each other.
+/// * `body_a` - The first body to be connected by the joint.
+/// * `body_b` - The second body to be connected by the joint.
+/// * `world_pos` - The position in the world to connect the bodies together.
+/// * `axis_angle` - The angle of the joint axis in radians.
+/// * `max_motor_torque` - The maximum torque the joint motor can exert.
+/// * `motor_speed` - The target speed of the joint motor.
+/// * `frequency` - The frequency at which the joint should be stiff.
+/// * `damping` - The damping rate of the joint.
+///
+/// # Returns
+///
+/// * `MotorJoint` - The newly created wheel joint definition.
+func JointDefWheel(collision: bool, body_a: string, body_b: string, world_pos: Vec2, axis_angle: f32, max_motor_torque: f32, motor_speed: f32, frequency: f32, damping: f32) => JointDef {
+	return *JointDefFrom(jointdef_wheel(ToDoraBool(collision), ToDoraString(body_a), ToDoraString(body_b), world_pos.ToValue(), axis_angle, max_motor_torque, motor_speed, frequency, damping))
+}

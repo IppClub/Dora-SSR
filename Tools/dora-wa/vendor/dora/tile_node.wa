@@ -1,0 +1,189 @@
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+#wa:import dora tilenode_type
+func tilenode_type() => i32
+
+#wa:import dora tilenode_set_depth_write
+func tilenode_set_depth_write(slf: i64, val: i32)
+
+#wa:import dora tilenode_is_depth_write
+func tilenode_is_depth_write(slf: i64) => i32
+
+#wa:import dora tilenode_set_blend_func
+func tilenode_set_blend_func(slf: i64, val: i64)
+
+#wa:import dora tilenode_get_blend_func
+func tilenode_get_blend_func(slf: i64) => i64
+
+#wa:import dora tilenode_set_effect
+func tilenode_set_effect(slf: i64, val: i64)
+
+#wa:import dora tilenode_get_effect
+func tilenode_get_effect(slf: i64) => i64
+
+#wa:import dora tilenode_set_filter
+func tilenode_set_filter(slf: i64, val: i32)
+
+#wa:import dora tilenode_get_filter
+func tilenode_get_filter(slf: i64) => i32
+
+#wa:import dora tilenode_get_layer
+func tilenode_get_layer(slf: i64, layer_name: i64) => i64
+
+#wa:import dora tilenode_new
+func tilenode_new(tmx_file: i64) => i64
+
+#wa:import dora tilenode_with_with_layer
+func tilenode_with_with_layer(tmx_file: i64, layer_name: i64) => i64
+
+#wa:import dora tilenode_with_with_layers
+func tilenode_with_with_layers(tmx_file: i64, layer_names: i64) => i64
+
+type TileNode :struct{ Node }
+
+func TileNodeFrom(raw: i64) => *TileNode {
+	if raw == 0 {
+		return nil
+	}
+	object := TileNode{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	result := &object
+	return result
+}
+func TileNode.GetTypeId() => i32 {
+	return tilenode_type()
+}
+func ObjectAsTileNode(object: Object) => *TileNode {
+	if object.GetTypeId() == tilenode_type() {
+		ObjectRetain(object.GetRaw())
+		return TileNodeFrom(object.GetRaw())
+	}
+	return nil
+}
+
+/// Sets whether the depth buffer should be written to when rendering the tilemap.
+func TileNode.SetDepthWrite(val: bool) {
+	tilenode_set_depth_write(*this.raw, ToDoraBool(val))
+}
+
+/// Gets whether the depth buffer should be written to when rendering the tilemap.
+func TileNode.IsDepthWrite() => bool {
+	return tilenode_is_depth_write(*this.raw) != 0
+}
+
+/// Sets the blend function for the tilemap.
+func TileNode.SetBlendFunc(val: BlendFunc) {
+	tilenode_set_blend_func(*this.raw, val.ToValue())
+}
+
+/// Gets the blend function for the tilemap.
+func TileNode.GetBlendFunc() => BlendFunc {
+	return BlendFuncFrom(tilenode_get_blend_func(*this.raw))
+}
+
+/// Sets the tilemap shader effect.
+func TileNode.SetEffect(val: SpriteEffect) {
+	tilenode_set_effect(*this.raw, val.GetRaw())
+}
+
+/// Gets the tilemap shader effect.
+func TileNode.GetEffect() => SpriteEffect {
+	return *SpriteEffectFrom(tilenode_get_effect(*this.raw))
+}
+
+/// Sets the texture filtering mode for the tilemap.
+func TileNode.SetFilter(val: TextureFilter) {
+	tilenode_set_filter(*this.raw, val.ToValue())
+}
+
+/// Gets the texture filtering mode for the tilemap.
+func TileNode.GetFilter() => TextureFilter {
+	return TextureFilter{value: tilenode_get_filter(*this.raw)}
+}
+
+/// Get the layer data by name from the tilemap.
+///
+/// # Arguments
+///
+/// * `layerName` - The name of the layer in the TMX file.
+///
+/// # Returns
+///
+/// * `Dictionary` - The layer data as a dictionary object.
+func TileNode.GetLayer(layer_name: string) => *Dictionary {
+	ptr_ := tilenode_get_layer(*this.raw, ToDoraString(layer_name))
+	if ptr_ == 0 {
+		return nil
+	}
+	obj_ := *DictionaryFrom(ptr_)
+	return &obj_
+}
+
+/// Creates a `TileNode` object that will render the tile layers from a TMX file.
+///
+/// # Arguments
+///
+/// * `tmxFile` - The TMX file for the tilemap. This should be a file created with the Tiled Map Editor (http://www.mapeditor.org) and must be in XML format.
+///
+/// # Returns
+///
+/// Returns a new instance of the `TileNode` class. If the tilemap file is not found, it will return `None`.
+func NewTileNode(tmx_file: string) => *TileNode {
+	raw := tilenode_new(ToDoraString(tmx_file))
+	if raw == 0 {
+		return nil
+	}
+	object := TileNode{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return &object
+}
+
+/// Creates a `TileNode` object that will render the specified tile layer from a TMX file.
+///
+/// # Arguments
+///
+/// * `tmxFile` - The TMX file for the tilemap. This should be a file created with the Tiled Map Editor (http://www.mapeditor.org) and must be in XML format.
+/// * `layerName` - The name of the layer in the TMX file.
+///
+/// # Returns
+///
+/// Returns a new instance of the `TileNode` class. If the tilemap file is not found, it will return `None`.
+func NewTileNodeWithWithLayer(tmx_file: string, layer_name: string) => *TileNode {
+	raw := tilenode_with_with_layer(ToDoraString(tmx_file), ToDoraString(layer_name))
+	if raw == 0 {
+		return nil
+	}
+	object := TileNode{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return &object
+}
+
+/// Creates a `TileNode` object that will render the specified tile layers from a TMX file.
+///
+/// # Arguments
+///
+/// * `tmxFile` - The TMX file for the tilemap. This should be a file created with the Tiled Map Editor (http://www.mapeditor.org) and must be in XML format.
+/// * `layerNames` - A vector of names of the layers in the TMX file.
+///
+/// # Returns
+///
+/// Returns a new instance of the `TileNode` class. If the tilemap file is not found, it will return `None`.
+func NewTileNodeWithWithLayers(tmx_file: string, layer_names: *[]string) => *TileNode {
+	raw := tilenode_with_with_layers(ToDoraString(tmx_file), ToDoraStrBuf(layer_names))
+	if raw == 0 {
+		return nil
+	}
+	object := TileNode{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return &object
+}

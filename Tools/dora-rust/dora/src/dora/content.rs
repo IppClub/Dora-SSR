@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -7,10 +7,13 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 extern "C" {
-	fn content_set_search_paths(var: i64);
+	fn content_set_search_paths(val: i64);
 	fn content_get_search_paths() -> i64;
+	fn content_set_asset_path(val: i64);
 	fn content_get_asset_path() -> i64;
+	fn content_set_writable_path(val: i64);
 	fn content_get_writable_path() -> i64;
+	fn content_get_app_path() -> i64;
 	fn content_save(filename: i64, content: i64) -> i32;
 	fn content_exist(filename: i64) -> i32;
 	fn content_mkdir(path: i64) -> i32;
@@ -27,11 +30,11 @@ extern "C" {
 	fn content_get_dirs(path: i64) -> i64;
 	fn content_get_files(path: i64) -> i64;
 	fn content_get_all_files(path: i64) -> i64;
-	fn content_load_async(filename: i64, func: i32, stack: i64);
-	fn content_copy_async(src_file: i64, target_file: i64, func: i32, stack: i64);
-	fn content_save_async(filename: i64, content: i64, func: i32, stack: i64);
-	fn content_zip_async(folder_path: i64, zip_file: i64, func: i32, stack: i64, func1: i32, stack1: i64);
-	fn content_unzip_async(zip_file: i64, folder_path: i64, func: i32, stack: i64, func1: i32, stack1: i64);
+	fn content_load_async(filename: i64, func0: i32, stack0: i64);
+	fn content_copy_async(src_file: i64, target_file: i64, func0: i32, stack0: i64);
+	fn content_save_async(filename: i64, content: i64, func0: i32, stack0: i64);
+	fn content_zip_async(folder_path: i64, zip_file: i64, func0: i32, stack0: i64, func1: i32, stack1: i64);
+	fn content_unzip_async(zip_file: i64, folder_path: i64, func0: i32, stack0: i64, func1: i32, stack1: i64);
 	fn content_load_excel(filename: i64) -> i64;
 }
 /// The `Content` is a static struct that manages file searching,
@@ -39,20 +42,32 @@ extern "C" {
 pub struct Content { }
 impl Content {
 	/// Sets an array of directories to search for resource files.
-	pub fn set_search_paths(var: &Vec<&str>) {
-		unsafe { content_set_search_paths(crate::dora::Vector::from_str(var)) };
+	pub fn set_search_paths(val: &Vec<&str>) {
+		unsafe { content_set_search_paths(crate::dora::Vector::from_str(val)) };
 	}
 	/// Gets an array of directories to search for resource files.
 	pub fn get_search_paths() -> Vec<String> {
 		return unsafe { crate::dora::Vector::to_str(content_get_search_paths()) };
 	}
-	/// Gets the path to the directory containing read-only resources.
+	/// Sets the path to the directory containing read-only resources. Can only be altered by the user on platform Windows, MacOS and Linux.
+	pub fn set_asset_path(val: &str) {
+		unsafe { content_set_asset_path(crate::dora::from_string(val)) };
+	}
+	/// Gets the path to the directory containing read-only resources. Can only be altered by the user on platform Windows, MacOS and Linux.
 	pub fn get_asset_path() -> String {
 		return unsafe { crate::dora::to_string(content_get_asset_path()) };
 	}
-	/// Gets the path to the directory where files can be written.
+	/// Sets the path to the directory where files can be written. Can only be altered by the user on platform Windows, MacOS and Linux. Default is the same as `appPath`.
+	pub fn set_writable_path(val: &str) {
+		unsafe { content_set_writable_path(crate::dora::from_string(val)) };
+	}
+	/// Gets the path to the directory where files can be written. Can only be altered by the user on platform Windows, MacOS and Linux. Default is the same as `appPath`.
 	pub fn get_writable_path() -> String {
 		return unsafe { crate::dora::to_string(content_get_writable_path()) };
+	}
+	/// Gets the path to the directory for the application storage.
+	pub fn get_app_path() -> String {
+		return unsafe { crate::dora::to_string(content_get_app_path()) };
 	}
 	/// Saves the specified content to a file with the specified filename.
 	///
@@ -241,12 +256,12 @@ impl Content {
 	///
 	/// * `String` - The content of the loaded file.
 	pub fn load_async(filename: &str, mut callback: Box<dyn FnMut(&str)>) {
-		let mut stack = crate::dora::CallStack::new();
-		let stack_raw = stack.raw();
-		let func_id = crate::dora::push_function(Box::new(move || {
-			callback(stack.pop_str().unwrap().as_str())
+		let mut stack0 = crate::dora::CallStack::new();
+		let stack_raw0 = stack0.raw();
+		let func_id0 = crate::dora::push_function(Box::new(move || {
+			callback(stack0.pop_str().unwrap().as_str())
 		}));
-		unsafe { content_load_async(crate::dora::from_string(filename), func_id, stack_raw); }
+		unsafe { content_load_async(crate::dora::from_string(filename), func_id0, stack_raw0); }
 	}
 	/// Asynchronously copies a file or a folder from the source path to the destination path.
 	///
@@ -260,12 +275,12 @@ impl Content {
 	///
 	/// * `bool` - `true` if the file or folder was copied successfully, `false` otherwise.
 	pub fn copy_async(src_file: &str, target_file: &str, mut callback: Box<dyn FnMut(bool)>) {
-		let mut stack = crate::dora::CallStack::new();
-		let stack_raw = stack.raw();
-		let func_id = crate::dora::push_function(Box::new(move || {
-			callback(stack.pop_bool().unwrap())
+		let mut stack0 = crate::dora::CallStack::new();
+		let stack_raw0 = stack0.raw();
+		let func_id0 = crate::dora::push_function(Box::new(move || {
+			callback(stack0.pop_bool().unwrap())
 		}));
-		unsafe { content_copy_async(crate::dora::from_string(src_file), crate::dora::from_string(target_file), func_id, stack_raw); }
+		unsafe { content_copy_async(crate::dora::from_string(src_file), crate::dora::from_string(target_file), func_id0, stack_raw0); }
 	}
 	/// Asynchronously saves the specified content to a file with the specified filename.
 	///
@@ -279,12 +294,12 @@ impl Content {
 	///
 	/// * `bool` - `true` if the content was saved successfully, `false` otherwise.
 	pub fn save_async(filename: &str, content: &str, mut callback: Box<dyn FnMut(bool)>) {
-		let mut stack = crate::dora::CallStack::new();
-		let stack_raw = stack.raw();
-		let func_id = crate::dora::push_function(Box::new(move || {
-			callback(stack.pop_bool().unwrap())
+		let mut stack0 = crate::dora::CallStack::new();
+		let stack_raw0 = stack0.raw();
+		let func_id0 = crate::dora::push_function(Box::new(move || {
+			callback(stack0.pop_bool().unwrap())
 		}));
-		unsafe { content_save_async(crate::dora::from_string(filename), crate::dora::from_string(content), func_id, stack_raw); }
+		unsafe { content_save_async(crate::dora::from_string(filename), crate::dora::from_string(content), func_id0, stack_raw0); }
 	}
 	/// Asynchronously compresses the specified folder to a ZIP archive with the specified filename.
 	///
@@ -299,18 +314,18 @@ impl Content {
 	///
 	/// * `bool` - `true` if the folder was compressed successfully, `false` otherwise.
 	pub fn zip_async(folder_path: &str, zip_file: &str, mut filter: Box<dyn FnMut(&str) -> bool>, mut callback: Box<dyn FnMut(bool)>) {
-		let mut stack = crate::dora::CallStack::new();
-		let stack_raw = stack.raw();
-		let func_id = crate::dora::push_function(Box::new(move || {
-			let result = filter(stack.pop_str().unwrap().as_str());
-			stack.push_bool(result);
+		let mut stack0 = crate::dora::CallStack::new();
+		let stack_raw0 = stack0.raw();
+		let func_id0 = crate::dora::push_function(Box::new(move || {
+			let result = filter(stack0.pop_str().unwrap().as_str());
+			stack0.push_bool(result);
 		}));
 		let mut stack1 = crate::dora::CallStack::new();
 		let stack_raw1 = stack1.raw();
 		let func_id1 = crate::dora::push_function(Box::new(move || {
 			callback(stack1.pop_bool().unwrap())
 		}));
-		unsafe { content_zip_async(crate::dora::from_string(folder_path), crate::dora::from_string(zip_file), func_id, stack_raw, func_id1, stack_raw1); }
+		unsafe { content_zip_async(crate::dora::from_string(folder_path), crate::dora::from_string(zip_file), func_id0, stack_raw0, func_id1, stack_raw1); }
 	}
 	/// Asynchronously decompresses a ZIP archive to the specified folder.
 	///
@@ -325,18 +340,18 @@ impl Content {
 	///
 	/// * `bool` - `true` if the folder was decompressed successfully, `false` otherwise.
 	pub fn unzip_async(zip_file: &str, folder_path: &str, mut filter: Box<dyn FnMut(&str) -> bool>, mut callback: Box<dyn FnMut(bool)>) {
-		let mut stack = crate::dora::CallStack::new();
-		let stack_raw = stack.raw();
-		let func_id = crate::dora::push_function(Box::new(move || {
-			let result = filter(stack.pop_str().unwrap().as_str());
-			stack.push_bool(result);
+		let mut stack0 = crate::dora::CallStack::new();
+		let stack_raw0 = stack0.raw();
+		let func_id0 = crate::dora::push_function(Box::new(move || {
+			let result = filter(stack0.pop_str().unwrap().as_str());
+			stack0.push_bool(result);
 		}));
 		let mut stack1 = crate::dora::CallStack::new();
 		let stack_raw1 = stack1.raw();
 		let func_id1 = crate::dora::push_function(Box::new(move || {
 			callback(stack1.pop_bool().unwrap())
 		}));
-		unsafe { content_unzip_async(crate::dora::from_string(zip_file), crate::dora::from_string(folder_path), func_id, stack_raw, func_id1, stack_raw1); }
+		unsafe { content_unzip_async(crate::dora::from_string(zip_file), crate::dora::from_string(folder_path), func_id0, stack_raw0, func_id1, stack_raw1); }
 	}
 	pub fn load_excel(filename: &str) -> crate::dora::WorkBook {
 		unsafe { return crate::dora::WorkBook::from(content_load_excel(crate::dora::from_string(filename))); }

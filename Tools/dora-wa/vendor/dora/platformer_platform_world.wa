@@ -1,0 +1,177 @@
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+#wa:import dora platformer_platformworld_type
+func platformer_platformworld_type() => i32
+
+#wa:import dora platformer_platformworld_get_camera
+func platformer_platformworld_get_camera(slf: i64) => i64
+
+#wa:import dora platformer_platformworld_move_child
+func platformer_platformworld_move_child(slf: i64, child: i64, new_order: i32)
+
+#wa:import dora platformer_platformworld_get_layer
+func platformer_platformworld_get_layer(slf: i64, order: i32) => i64
+
+#wa:import dora platformer_platformworld_set_layer_ratio
+func platformer_platformworld_set_layer_ratio(slf: i64, order: i32, ratio: i64)
+
+#wa:import dora platformer_platformworld_get_layer_ratio
+func platformer_platformworld_get_layer_ratio(slf: i64, order: i32) => i64
+
+#wa:import dora platformer_platformworld_set_layer_offset
+func platformer_platformworld_set_layer_offset(slf: i64, order: i32, offset: i64)
+
+#wa:import dora platformer_platformworld_get_layer_offset
+func platformer_platformworld_get_layer_offset(slf: i64, order: i32) => i64
+
+#wa:import dora platformer_platformworld_swap_layer
+func platformer_platformworld_swap_layer(slf: i64, order_a: i32, order_b: i32)
+
+#wa:import dora platformer_platformworld_remove_layer
+func platformer_platformworld_remove_layer(slf: i64, order: i32)
+
+#wa:import dora platformer_platformworld_remove_all_layers
+func platformer_platformworld_remove_all_layers(slf: i64)
+
+#wa:import dora platformer_platformworld_new
+func platformer_platformworld_new() => i64
+
+type PlatformerPlatformWorld :struct{ PhysicsWorld }
+
+func PlatformerPlatformWorldFrom(raw: i64) => *PlatformerPlatformWorld {
+	if raw == 0 {
+		return nil
+	}
+	object := PlatformerPlatformWorld{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	result := &object
+	return result
+}
+func PlatformerPlatformWorld.GetTypeId() => i32 {
+	return platformer_platformworld_type()
+}
+func ObjectAsPlatformerPlatformWorld(object: Object) => *PlatformerPlatformWorld {
+	if object.GetTypeId() == platformer_platformworld_type() {
+		ObjectRetain(object.GetRaw())
+		return PlatformerPlatformWorldFrom(object.GetRaw())
+	}
+	return nil
+}
+
+/// Gets the camera used to control the view of the game world.
+func PlatformerPlatformWorld.GetCamera() => PlatformerPlatformCamera {
+	return *PlatformerPlatformCameraFrom(platformer_platformworld_get_camera(*this.raw))
+}
+
+/// Moves a child node to a new order for a different layer.
+///
+/// # Arguments
+///
+/// * `child` - The child node to be moved.
+/// * `new_order` - The new order of the child node.
+func PlatformerPlatformWorld.MoveChild(child: Node, new_order: i32) {
+	platformer_platformworld_move_child(*this.raw, child.GetRaw(), new_order)
+}
+
+/// Gets the layer node at a given order.
+///
+/// # Arguments
+///
+/// * `order` - The order of the layer node to get.
+///
+/// # Returns
+///
+/// * The layer node at the given order.
+func PlatformerPlatformWorld.GetLayer(order: i32) => Node {
+	return *NodeFrom(platformer_platformworld_get_layer(*this.raw, order))
+}
+
+/// Sets the parallax moving ratio for a given layer to simulate 3D projection effect.
+///
+/// # Arguments
+///
+/// * `order` - The order of the layer to set the ratio for.
+/// * `ratio` - The new parallax ratio for the layer.
+func PlatformerPlatformWorld.SetLayerRatio(order: i32, ratio: Vec2) {
+	platformer_platformworld_set_layer_ratio(*this.raw, order, ratio.ToValue())
+}
+
+/// Gets the parallax moving ratio for a given layer.
+///
+/// # Arguments
+///
+/// * `order` - The order of the layer to get the ratio for.
+///
+/// # Returns
+///
+/// * A `Vec2` representing the parallax ratio for the layer.
+func PlatformerPlatformWorld.GetLayerRatio(order: i32) => Vec2 {
+	return Vec2FromValue(platformer_platformworld_get_layer_ratio(*this.raw, order))
+}
+
+/// Sets the position offset for a given layer.
+///
+/// # Arguments
+///
+/// * `order` - The order of the layer to set the offset for.
+/// * `offset` - A `Vec2` representing the new position offset for the layer.
+func PlatformerPlatformWorld.SetLayerOffset(order: i32, offset: Vec2) {
+	platformer_platformworld_set_layer_offset(*this.raw, order, offset.ToValue())
+}
+
+/// Gets the position offset for a given layer.
+///
+/// # Arguments
+///
+/// * `order` - The order of the layer to get the offset for.
+///
+/// # Returns
+///
+/// * A `Vec2` representing the position offset for the layer.
+func PlatformerPlatformWorld.GetLayerOffset(order: i32) => Vec2 {
+	return Vec2FromValue(platformer_platformworld_get_layer_offset(*this.raw, order))
+}
+
+/// Swaps the positions of two layers.
+///
+/// # Arguments
+///
+/// * `order_a` - The order of the first layer to swap.
+/// * `order_b` - The order of the second layer to swap.
+func PlatformerPlatformWorld.SwapLayer(order_a: i32, order_b: i32) {
+	platformer_platformworld_swap_layer(*this.raw, order_a, order_b)
+}
+
+/// Removes a layer from the game world.
+///
+/// # Arguments
+///
+/// * `order` - The order of the layer to remove.
+func PlatformerPlatformWorld.RemoveLayer(order: i32) {
+	platformer_platformworld_remove_layer(*this.raw, order)
+}
+
+/// Removes all layers from the game world.
+func PlatformerPlatformWorld.RemoveAllLayers() {
+	platformer_platformworld_remove_all_layers(*this.raw)
+}
+
+/// The method to create a new instance of `PlatformWorld`.
+///
+/// # Returns
+///
+/// * A new instance of `PlatformWorld`.
+func NewPlatformerPlatformWorld() => PlatformerPlatformWorld {
+	raw := platformer_platformworld_new()
+	object := PlatformerPlatformWorld{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return object
+}

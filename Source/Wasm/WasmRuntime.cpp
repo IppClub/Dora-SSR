@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -19,7 +19,7 @@ NS_DORA_BEGIN
 
 #define DoraVersion(major, minor, patch) ((major) << 16 | (minor) << 8 | (patch))
 
-static const int doraWASMVersion = DoraVersion(0, 4, 15);
+static const int doraWASMVersion = DoraVersion(0, 4, 20);
 
 static std::string VersionToStr(int version) {
 	return std::to_string((version & 0x00ff0000) >> 16) + '.' + std::to_string((version & 0x0000ff00) >> 8) + '.' + std::to_string(version & 0x000000ff);
@@ -225,6 +225,18 @@ dora_val_t CallStack::pop() {
 	return var;
 }
 
+bool CallStack::pop_bool_or(bool def) {
+	if (_stack.empty()) {
+		return def;
+	}
+	auto var = _stack.front();
+	_stack.pop_front();
+	if (std::holds_alternative<bool>(var)) {
+		return std::get<bool>(var);
+	}
+	return def;
+}
+
 dora_val_t& CallStack::front() {
 	return _stack.front();
 }
@@ -243,6 +255,7 @@ static Own<Value> Value_To(const dora_val_t& v) {
 }
 
 static int64_t Value_From(Value* v) {
+	if (!v) return 0;
 	switch (v->getType()) {
 		case ValueType::Integral:
 			return r_cast<int64_t>(new dora_val_t(v->toVal<int64_t>()));
@@ -916,10 +929,24 @@ void str_read(void* dest, int64_t src) {
 		std::memcpy(dest, str->c_str(), str->length());
 	}
 }
+void str_read_ptr(int32_t dest, int64_t src) {
+	auto destPtr = SharedWasmRuntime.getMemoryAddress(dest);
+	auto str = r_cast<std::string*>(src);
+	if (str->length() > 0) {
+		std::memcpy(destPtr, str->c_str(), str->length());
+	}
+}
 void str_write(int64_t dest, const void* src) {
 	auto str = r_cast<std::string*>(dest);
 	if (str->length() > 0) {
 		std::memcpy(&str->front(), src, str->length());
+	}
+}
+void str_write_ptr(int64_t dest, int32_t src) {
+	auto srcPtr = SharedWasmRuntime.getMemoryAddress(src);
+	auto str = r_cast<std::string*>(dest);
+	if (str->length() > 0) {
+		std::memcpy(&str->front(), srcPtr, str->length());
 	}
 }
 void str_release(int64_t str) {
@@ -962,11 +989,31 @@ void buf_read(void* dest, int64_t src) {
 	},
 		*vec);
 }
+void buf_read_ptr(int32_t dest, int64_t src) {
+	auto destPtr = SharedWasmRuntime.getMemoryAddress(dest);
+	auto vec = r_cast<dora_vec_t*>(src);
+	std::visit([&](const auto& arg) {
+		if (arg.size() > 0) {
+			std::memcpy(destPtr, arg.data(), arg.size() * sizeof(arg[0]));
+		}
+	},
+		*vec);
+}
 void buf_write(int64_t dest, const void* src) {
 	auto vec = r_cast<dora_vec_t*>(dest);
 	std::visit([&](auto& arg) {
 		if (arg.size() > 0) {
 			std::memcpy(&arg.front(), src, arg.size() * sizeof(arg[0]));
+		}
+	},
+		*vec);
+}
+void buf_write_ptr(int64_t dest, int32_t src) {
+	auto srcPtr = SharedWasmRuntime.getMemoryAddress(src);
+	auto vec = r_cast<dora_vec_t*>(dest);
+	std::visit([&](auto& arg) {
+		if (arg.size() > 0) {
+			std::memcpy(&arg.front(), srcPtr, arg.size() * sizeof(arg[0]));
 		}
 	},
 		*vec);
@@ -1198,6 +1245,14 @@ void dora_print(int64_t var) {
 	LogInfoThreaded(*Str_From(var));
 }
 
+void dora_print_warning(int64_t var) {
+	LogWarnThreaded(*Str_From(var));
+}
+
+void dora_print_error(int64_t var) {
+	LogErrorThreaded(*Str_From(var));
+}
+
 /* Vec2 */
 
 int64_t vec2_add(int64_t a, int64_t b) {
@@ -1366,18 +1421,6 @@ void group_watch(int64_t group, int32_t func, int64_t stack) {
 		return std::get<bool>(args->pop());
 	});
 }
-int64_t group_find(int64_t group, int32_t func, int64_t stack) {
-	std::shared_ptr<void> deref(nullptr, [func](auto) {
-		SharedWasmRuntime.deref(func);
-	});
-	auto args = r_cast<CallStack*>(stack);
-	return Object_From(r_cast<EntityGroup*>(group)->find([func, args, deref](Entity* e) {
-		args->clear();
-		args->push(e);
-		SharedWasmRuntime.invoke(func);
-		return std::get<bool>(args->pop());
-	}));
-}
 
 // EntityObserver
 
@@ -1430,6 +1473,25 @@ int64_t director_get_post_scheduler() {
 int64_t director_get_post_wasm_scheduler() {
 	return Object_From(SharedWasmRuntime.getPostScheduler());
 }
+
+// math
+
+double math_abs(double v) { return std::abs(v); }
+float math_acos(float v) { return std::acos(v); }
+float math_asin(float v) { return std::asin(v); }
+float math_atan(float v) { return std::atan(v); }
+float math_atan2(float y, float x) { return std::atan2(y, x); }
+float math_ceil(float v) { return std::ceil(v); }
+float math_cos(float v) { return std::cos(v); }
+float math_deg(float v) { return bx::toDeg(v); }
+float math_exp(float v) { return std::exp(v); }
+float math_floor(float v) { return std::floor(v); }
+float math_fmod(float x, float y) { return std::fmod(x, y); }
+float math_log(float v) { return std::log(v); }
+float math_rad(float v) { return bx::toRad(v); }
+float math_sin(float v) { return std::sin(v); }
+float math_sqrt(float v) { return std::sqrt(v); }
+float math_tan(float v) { return std::tan(v); }
 
 } // extern "C"
 
@@ -1615,7 +1677,9 @@ static void linkDoraModule(wasm3::module3& mod) {
 	mod.link_optional("*", "str_new", str_new);
 	mod.link_optional("*", "str_len", str_len);
 	mod.link_optional("*", "str_read", str_read);
+	mod.link_optional("*", "str_read_ptr", str_read_ptr);
 	mod.link_optional("*", "str_write", str_write);
+	mod.link_optional("*", "str_write_ptr", str_write_ptr);
 	mod.link_optional("*", "str_release", str_release);
 
 	mod.link_optional("*", "buf_new_i32", buf_new_i32);
@@ -1624,7 +1688,9 @@ static void linkDoraModule(wasm3::module3& mod) {
 	mod.link_optional("*", "buf_new_f64", buf_new_f64);
 	mod.link_optional("*", "buf_len", buf_len);
 	mod.link_optional("*", "buf_read", buf_read);
+	mod.link_optional("*", "buf_read_ptr", buf_read_ptr);
 	mod.link_optional("*", "buf_write", buf_write);
+	mod.link_optional("*", "buf_write_ptr", buf_write_ptr);
 	mod.link_optional("*", "buf_release", buf_release);
 
 	mod.link_optional("*", "object_get_id", object_get_id);
@@ -1688,6 +1754,8 @@ static void linkDoraModule(wasm3::module3& mod) {
 	mod.link_optional("*", "call_stack_front_size", call_stack_front_size);
 
 	mod.link_optional("*", "dora_print", dora_print);
+	mod.link_optional("*", "dora_print_warning", dora_print_warning);
+	mod.link_optional("*", "dora_print_error", dora_print_error);
 
 	mod.link_optional("*", "vec2_add", vec2_add);
 	mod.link_optional("*", "vec2_sub", vec2_sub);
@@ -1727,7 +1795,6 @@ static void linkDoraModule(wasm3::module3& mod) {
 	mod.link_optional("*", "entity_get_old", entity_get_old);
 
 	mod.link_optional("*", "group_watch", group_watch);
-	mod.link_optional("*", "group_find", group_find);
 
 	mod.link_optional("*", "observer_watch", observer_watch);
 
@@ -1736,6 +1803,23 @@ static void linkDoraModule(wasm3::module3& mod) {
 
 	mod.link_optional("*", "director_get_wasm_scheduler", director_get_wasm_scheduler);
 	mod.link_optional("*", "director_get_post_wasm_scheduler", director_get_post_wasm_scheduler);
+
+	mod.link_optional("*", "math_abs", math_abs);
+	mod.link_optional("*", "math_acos", math_acos);
+	mod.link_optional("*", "math_asin", math_asin);
+	mod.link_optional("*", "math_atan", math_asin);
+	mod.link_optional("*", "math_atan2", math_atan2);
+	mod.link_optional("*", "math_ceil", math_ceil);
+	mod.link_optional("*", "math_cos", math_cos);
+	mod.link_optional("*", "math_deg", math_deg);
+	mod.link_optional("*", "math_exp", math_exp);
+	mod.link_optional("*", "math_floor", math_floor);
+	mod.link_optional("*", "math_fmod", math_fmod);
+	mod.link_optional("*", "math_log", math_log);
+	mod.link_optional("*", "math_rad", math_rad);
+	mod.link_optional("*", "math_sin", math_sin);
+	mod.link_optional("*", "math_sqrt", math_sqrt);
+	mod.link_optional("*", "math_tan", math_tan);
 }
 
 int WasmRuntime::_callFromWasm = 0;
@@ -1745,6 +1829,14 @@ WasmRuntime::WasmRuntime()
 }
 
 WasmRuntime::~WasmRuntime() { }
+
+int32_t WasmRuntime::loadFuncs() {
+	auto versionFunc = New<wasm3::function>(_runtime->find_function("dora_wasm_version"));
+	auto version = versionFunc->call<int32_t>();
+	_callFunc = New<wasm3::function>(_runtime->find_function("call_function"));
+	_derefFunc = New<wasm3::function>(_runtime->find_function("deref_function"));
+	return version;
+}
 
 bool WasmRuntime::executeMainFile(String filename) {
 	if (_wasm.first || _loading) {
@@ -1768,8 +1860,7 @@ bool WasmRuntime::executeMainFile(String filename) {
 			_runtime->load(mod);
 			mod.link_default();
 			linkDoraModule(mod);
-			auto versionFunc = New<wasm3::function>(_runtime->find_function("dora_wasm_version"));
-			auto version = versionFunc->call<int32_t>();
+			int32_t version = loadFuncs();
 			if (doraWASMVersion != version) {
 				_env = nullptr;
 				_runtime = nullptr;
@@ -1777,8 +1868,6 @@ bool WasmRuntime::executeMainFile(String filename) {
 				Error("expecting dora WASM version {}, got {}", VersionToStr(doraWASMVersion), VersionToStr(version));
 				return false;
 			}
-			_callFunc = New<wasm3::function>(_runtime->find_function("call_function"));
-			_derefFunc = New<wasm3::function>(_runtime->find_function("deref_function"));
 		}
 		wasm3::function mainFn = _runtime->find_function("_start");
 		scheduleUpdate();
@@ -1816,8 +1905,7 @@ void WasmRuntime::executeMainFileAsync(String filename, const std::function<void
 					_runtime->load(*mod);
 					mod->link_default();
 					linkDoraModule(*mod);
-					auto versionFunc = New<wasm3::function>(_runtime->find_function("dora_wasm_version"));
-					auto version = versionFunc->call<int32_t>();
+					auto version = loadFuncs();
 					if (doraVer != version) {
 						Error("expecting dora WASM file of version {}, got {}", VersionToStr(doraVer), VersionToStr(version));
 						_env = nullptr;
@@ -1825,8 +1913,6 @@ void WasmRuntime::executeMainFileAsync(String filename, const std::function<void
 						_wasm = {nullptr, 0};
 						return Values::alloc(Own<wasm3::module3>(), Own<wasm3::function>());
 					}
-					_callFunc = New<wasm3::function>(_runtime->find_function("call_function"));
-					_derefFunc = New<wasm3::function>(_runtime->find_function("deref_function"));
 					auto mainFn = New<wasm3::function>(_runtime->find_function("_start"));
 					return Values::alloc(std::move(mod), std::move(mainFn));
 				} catch (std::runtime_error& e) {
@@ -1875,7 +1961,7 @@ void WasmRuntime::invoke(int32_t funcId) {
 		DEFER(_callFromWasm--);
 		_callFunc->call(funcId);
 	} catch (std::runtime_error& e) {
-		Error("failed to execute wasm module due to: {}{}", e.what(), _runtime->get_error_message() == Slice::Empty ? Slice::Empty : ": "s + _runtime->get_error_message());
+		Error("failed to execute wasm callback due to: {}{}", e.what(), _runtime->get_error_message() == Slice::Empty ? Slice::Empty : ": "s + _runtime->get_error_message());
 	}
 }
 
@@ -1959,6 +2045,10 @@ void WasmRuntime::clear() {
 
 bool WasmRuntime::isInWasm() {
 	return _callFromWasm > 0;
+}
+
+uint8_t* WasmRuntime::getMemoryAddress(int32_t wasmAddr) {
+	return _runtime->get_address(wasmAddr);
 }
 
 NS_DORA_END
