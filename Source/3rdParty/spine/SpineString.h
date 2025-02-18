@@ -235,7 +235,7 @@ namespace spine {
 			if (a._buffer == b._buffer) return true;
 			if (a._length != b._length) return false;
 			if (a._buffer && b._buffer) {
-				return strcmp(a._buffer, b._buffer) == 0;
+				return strncmp(a._buffer, b._buffer, a._length) == 0;
 			} else {
 				return false;
 			}

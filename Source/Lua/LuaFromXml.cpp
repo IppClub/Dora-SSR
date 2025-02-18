@@ -975,10 +975,10 @@ static const char* _toBoolean(const char* str) {
 #define Playable_Create \
 	fmt::format_to(std::back_inserter(stream), "local {} = Playable({}){}"sv, self, toText(filename), nl());
 #define Playable_Handle \
-	Node_Handle if (look) fmt::format_to(std::back_inserter(stream), "{}.look = \"{}\"{}"sv, self, Val(look), nl()); \
+	Node_Handle if (look) fmt::format_to(std::back_inserter(stream), "{}.look = {}{}"sv, self, toText(look), nl()); \
 	if (fliped) fmt::format_to(std::back_inserter(stream), "{}.fliped = {}{}"sv, self, toBoolean(fliped), nl()); \
 	if (speed) fmt::format_to(std::back_inserter(stream), "{}.speed = {}{}"sv, self, Val(speed), nl()); \
-	if (play) fmt::format_to(std::back_inserter(stream), "{}:play(\"{}\"{}){}"sv, self, Val(play), loop ? std::string(",") + toBoolean(loop) : std::string(), nl());
+	if (play) fmt::format_to(std::back_inserter(stream), "{}:play({}{}){}"sv, self, toText(play), loop ? std::string(",") + toBoolean(loop) : std::string(), nl());
 #define Playable_Finish \
 	Add_To_Parent
 
@@ -1223,7 +1223,7 @@ static const char* _toBoolean(const char* str) {
 #define NodeItem_Create \
 	if (tag) { \
 		if (!self) self = tag; \
-		fmt::format_to(std::back_inserter(stream), "local {} = {}:getChildByTag(\"{}\"){}"sv, Val(self), elementStack.top().name, Val(tag), nl()); \
+		fmt::format_to(std::back_inserter(stream), "local {} = {}:getChildByTag({}){}"sv, Val(self), elementStack.top().name, toText(tag), nl()); \
 	} else { \
 		fmt::format_to(std::back_inserter(stream), "local {} = {}.{}{}"sv, Val(self), elementStack.top().name, Val(self), nl()); \
 	} \
