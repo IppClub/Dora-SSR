@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -11,8 +11,8 @@ using namespace Dora;
 int32_t sensor_type() {
 	return DoraType<Sensor>();
 }
-void sensor_set_enabled(int64_t self, int32_t var) {
-	r_cast<Sensor*>(self)->setEnabled(var != 0);
+void sensor_set_enabled(int64_t self, int32_t val) {
+	r_cast<Sensor*>(self)->setEnabled(val != 0);
 }
 int32_t sensor_is_enabled(int64_t self) {
 	return r_cast<Sensor*>(self)->isEnabled() ? 1 : 0;

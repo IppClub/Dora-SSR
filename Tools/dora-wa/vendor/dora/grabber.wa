@@ -1,0 +1,184 @@
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+#wa:import dora grabber_type
+func grabber_type() => i32
+
+#wa:import dora grabber_set_camera
+func grabber_set_camera(slf: i64, val: i64)
+
+#wa:import dora grabber_get_camera
+func grabber_get_camera(slf: i64) => i64
+
+#wa:import dora grabber_set_effect
+func grabber_set_effect(slf: i64, val: i64)
+
+#wa:import dora grabber_get_effect
+func grabber_get_effect(slf: i64) => i64
+
+#wa:import dora grabber_set_blend_func
+func grabber_set_blend_func(slf: i64, val: i64)
+
+#wa:import dora grabber_get_blend_func
+func grabber_get_blend_func(slf: i64) => i64
+
+#wa:import dora grabber_set_clear_color
+func grabber_set_clear_color(slf: i64, val: i32)
+
+#wa:import dora grabber_get_clear_color
+func grabber_get_clear_color(slf: i64) => i32
+
+#wa:import dora grabber_set_pos
+func grabber_set_pos(slf: i64, x: i32, y: i32, pos: i64, z: f32)
+
+#wa:import dora grabber_get_pos
+func grabber_get_pos(slf: i64, x: i32, y: i32) => i64
+
+#wa:import dora grabber_set_color
+func grabber_set_color(slf: i64, x: i32, y: i32, color: i32)
+
+#wa:import dora grabber_get_color
+func grabber_get_color(slf: i64, x: i32, y: i32) => i32
+
+#wa:import dora grabber_move_uv
+func grabber_move_uv(slf: i64, x: i32, y: i32, offset: i64)
+
+type Grabber :struct{ Object }
+
+func GrabberFrom(raw: i64) => *Grabber {
+	if raw == 0 {
+		return nil
+	}
+	object := Grabber{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	result := &object
+	return result
+}
+func Grabber.GetTypeId() => i32 {
+	return grabber_type()
+}
+func ObjectAsGrabber(object: Object) => *Grabber {
+	if object.GetTypeId() == grabber_type() {
+		ObjectRetain(object.GetRaw())
+		return GrabberFrom(object.GetRaw())
+	}
+	return nil
+}
+
+/// Sets the camera used to render the texture.
+func Grabber.SetCamera(val: Camera) {
+	grabber_set_camera(*this.raw, val.GetRaw())
+}
+
+/// Gets the camera used to render the texture.
+func Grabber.GetCamera() => *Camera {
+	ptr_ := grabber_get_camera(*this.raw)
+	if ptr_ == 0 {
+		return nil
+	}
+	obj_ := *CameraFrom(ptr_)
+	return &obj_
+}
+
+/// Sets the sprite effect applied to the texture.
+func Grabber.SetEffect(val: SpriteEffect) {
+	grabber_set_effect(*this.raw, val.GetRaw())
+}
+
+/// Gets the sprite effect applied to the texture.
+func Grabber.GetEffect() => *SpriteEffect {
+	ptr_ := grabber_get_effect(*this.raw)
+	if ptr_ == 0 {
+		return nil
+	}
+	obj_ := *SpriteEffectFrom(ptr_)
+	return &obj_
+}
+
+/// Sets the blend function for the grabber.
+func Grabber.SetBlendFunc(val: BlendFunc) {
+	grabber_set_blend_func(*this.raw, val.ToValue())
+}
+
+/// Gets the blend function for the grabber.
+func Grabber.GetBlendFunc() => BlendFunc {
+	return BlendFuncFrom(grabber_get_blend_func(*this.raw))
+}
+
+/// Sets the clear color used to clear the texture.
+func Grabber.SetClearColor(val: Color) {
+	grabber_set_clear_color(*this.raw, val.ToARGB())
+}
+
+/// Gets the clear color used to clear the texture.
+func Grabber.GetClearColor() => Color {
+	return NewColor(grabber_get_clear_color(*this.raw))
+}
+
+/// Sets the position of a vertex in the grabber grid.
+///
+/// # Arguments
+///
+/// * `x` - The x-index of the vertex in the grabber grid.
+/// * `y` - The y-index of the vertex in the grabber grid.
+/// * `pos` - The new position of the vertex, represented by a Vec2 object.
+/// * `z` - An optional argument representing the new z-coordinate of the vertex.
+func Grabber.SetPos(x: i32, y: i32, pos: Vec2, z: f32) {
+	grabber_set_pos(*this.raw, x, y, pos.ToValue(), z)
+}
+
+/// Gets the position of a vertex in the grabber grid.
+///
+/// # Arguments
+///
+/// * `x` - The x-index of the vertex in the grabber grid.
+/// * `y` - The y-index of the vertex in the grabber grid.
+///
+/// # Returns
+///
+/// * `Vec2` - The position of the vertex.
+func Grabber.GetPos(x: i32, y: i32) => Vec2 {
+	return Vec2FromValue(grabber_get_pos(*this.raw, x, y))
+}
+
+/// Sets the color of a vertex in the grabber grid.
+///
+/// # Arguments
+///
+/// * `x` - The x-index of the vertex in the grabber grid.
+/// * `y` - The y-index of the vertex in the grabber grid.
+/// * `color` - The new color of the vertex, represented by a Color object.
+func Grabber.SetColor(x: i32, y: i32, color: Color) {
+	grabber_set_color(*this.raw, x, y, color.ToARGB())
+}
+
+/// Gets the color of a vertex in the grabber grid.
+///
+/// # Arguments
+///
+/// * `x` - The x-index of the vertex in the grabber grid.
+/// * `y` - The y-index of the vertex in the grabber grid.
+///
+/// # Returns
+///
+/// * `Color` - The color of the vertex.
+func Grabber.GetColor(x: i32, y: i32) => Color {
+	return NewColor(grabber_get_color(*this.raw, x, y))
+}
+
+/// Sets the UV coordinates of a vertex in the grabber grid.
+///
+/// # Arguments
+///
+/// * `x` - The x-index of the vertex in the grabber grid.
+/// * `y` - The y-index of the vertex in the grabber grid.
+/// * `offset` - The new UV coordinates of the vertex, represented by a Vec2 object.
+func Grabber.MoveUv(x: i32, y: i32, offset: Vec2) {
+	grabber_move_uv(*this.raw, x, y, offset.ToValue())
+}

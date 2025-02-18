@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -11,14 +11,14 @@ extern "C" {
 	fn db_exist_schema(table_name: i64, schema: i64) -> i32;
 	fn db_exec(sql: i64) -> i32;
 	fn db_transaction(query: i64) -> i32;
-	fn db_transaction_async(query: i64, func: i32, stack: i64);
+	fn db_transaction_async(query: i64, func0: i32, stack0: i64);
 	fn db_query(sql: i64, with_columns: i32) -> i64;
 	fn db_query_with_params(sql: i64, params: i64, with_columns: i32) -> i64;
 	fn db_insert(table_name: i64, values: i64);
 	fn db_exec_with_records(sql: i64, values: i64) -> i32;
-	fn db_query_with_params_async(sql: i64, params: i64, with_columns: i32, func: i32, stack: i64);
-	fn db_insert_async(table_name: i64, values: i64, func: i32, stack: i64);
-	fn db_exec_async(sql: i64, values: i64, func: i32, stack: i64);
+	fn db_query_with_params_async(sql: i64, params: i64, with_columns: i32, func0: i32, stack0: i64);
+	fn db_insert_async(table_name: i64, values: i64, func0: i32, stack0: i64);
+	fn db_exec_async(sql: i64, values: i64, func0: i32, stack0: i64);
 }
 use crate::dora::IObject;
 /// A struct that represents a database.
@@ -84,12 +84,12 @@ impl DB {
 	///
 	/// * `bool` - `true` if the transaction was successful, `false` otherwise.
 	pub fn transaction_async(query: crate::dora::DBQuery, mut callback: Box<dyn FnMut(bool)>) {
-		let mut stack = crate::dora::CallStack::new();
-		let stack_raw = stack.raw();
-		let func_id = crate::dora::push_function(Box::new(move || {
-			callback(stack.pop_bool().unwrap())
+		let mut stack0 = crate::dora::CallStack::new();
+		let stack_raw0 = stack0.raw();
+		let func_id0 = crate::dora::push_function(Box::new(move || {
+			callback(stack0.pop_bool().unwrap())
 		}));
-		unsafe { db_transaction_async(query.raw(), func_id, stack_raw); }
+		unsafe { db_transaction_async(query.raw(), func_id0, stack_raw0); }
 	}
 	/// Executes an SQL query and returns the results as a list of rows.
 	///
@@ -153,12 +153,12 @@ impl DB {
 	/// * `with_column` - Optional. Whether to include column names in the result. Default is `false`.
 	/// * `callback` - A callback function that is invoked when the query is executed, receiving the results as a list of rows.
 	pub fn query_with_params_async(sql: &str, params: &crate::dora::Array, with_columns: bool, mut callback: Box<dyn FnMut(crate::dora::DBRecord)>) {
-		let mut stack = crate::dora::CallStack::new();
-		let stack_raw = stack.raw();
-		let func_id = crate::dora::push_function(Box::new(move || {
-			callback(crate::dora::DBRecord::from(stack.pop_i64().unwrap()))
+		let mut stack0 = crate::dora::CallStack::new();
+		let stack_raw0 = stack0.raw();
+		let func_id0 = crate::dora::push_function(Box::new(move || {
+			callback(crate::dora::DBRecord::from(stack0.pop_i64().unwrap()))
 		}));
-		unsafe { db_query_with_params_async(crate::dora::from_string(sql), params.raw(), if with_columns { 1 } else { 0 }, func_id, stack_raw); }
+		unsafe { db_query_with_params_async(crate::dora::from_string(sql), params.raw(), if with_columns { 1 } else { 0 }, func_id0, stack_raw0); }
 	}
 	/// Inserts a row of data into a table within a transaction asynchronously.
 	///
@@ -168,12 +168,12 @@ impl DB {
 	/// * `values` - The values to insert into the table.
 	/// * `callback` - A callback function that is invoked when the insertion is executed, receiving the result of the insertion.
 	pub fn insert_async(table_name: &str, values: crate::dora::DBParams, mut callback: Box<dyn FnMut(bool)>) {
-		let mut stack = crate::dora::CallStack::new();
-		let stack_raw = stack.raw();
-		let func_id = crate::dora::push_function(Box::new(move || {
-			callback(stack.pop_bool().unwrap())
+		let mut stack0 = crate::dora::CallStack::new();
+		let stack_raw0 = stack0.raw();
+		let func_id0 = crate::dora::push_function(Box::new(move || {
+			callback(stack0.pop_bool().unwrap())
 		}));
-		unsafe { db_insert_async(crate::dora::from_string(table_name), values.raw(), func_id, stack_raw); }
+		unsafe { db_insert_async(crate::dora::from_string(table_name), values.raw(), func_id0, stack_raw0); }
 	}
 	/// Executes an SQL statement with a list of values within a transaction asynchronously and returns the number of rows affected.
 	///
@@ -183,11 +183,11 @@ impl DB {
 	/// * `values` - A list of values to substitute into the SQL statement.
 	/// * `callback` - A callback function that is invoked when the statement is executed, recieving the number of rows affected.
 	pub fn exec_async(sql: &str, values: crate::dora::DBParams, mut callback: Box<dyn FnMut(i64)>) {
-		let mut stack = crate::dora::CallStack::new();
-		let stack_raw = stack.raw();
-		let func_id = crate::dora::push_function(Box::new(move || {
-			callback(stack.pop_i64().unwrap())
+		let mut stack0 = crate::dora::CallStack::new();
+		let stack_raw0 = stack0.raw();
+		let func_id0 = crate::dora::push_function(Box::new(move || {
+			callback(stack0.pop_i64().unwrap())
 		}));
-		unsafe { db_exec_async(crate::dora::from_string(sql), values.raw(), func_id, stack_raw); }
+		unsafe { db_exec_async(crate::dora::from_string(sql), values.raw(), func_id0, stack_raw0); }
 	}
 }

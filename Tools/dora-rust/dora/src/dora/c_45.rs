@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -7,7 +7,7 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 extern "C" {
-	fn c45_build_decision_tree_async(data: i64, max_depth: i32, func: i32, stack: i64);
+	fn c45_build_decision_tree_async(data: i64, max_depth: i32, func0: i32, stack0: i64);
 }
 /// An interface for machine learning algorithms.
 pub struct C45 { }
@@ -25,11 +25,11 @@ impl C45 {
 	///     * `op` - The comparison operator used for splitting the data at the current node.
 	///     * `value` - The value used for splitting the data at the current node.
 	pub fn build_decision_tree_async(data: &str, max_depth: i32, mut tree_visitor: Box<dyn FnMut(f64, &str, &str, &str)>) {
-		let mut stack = crate::dora::CallStack::new();
-		let stack_raw = stack.raw();
-		let func_id = crate::dora::push_function(Box::new(move || {
-			tree_visitor(stack.pop_f64().unwrap(), stack.pop_str().unwrap().as_str(), stack.pop_str().unwrap().as_str(), stack.pop_str().unwrap().as_str())
+		let mut stack0 = crate::dora::CallStack::new();
+		let stack_raw0 = stack0.raw();
+		let func_id0 = crate::dora::push_function(Box::new(move || {
+			tree_visitor(stack0.pop_f64().unwrap(), stack0.pop_str().unwrap().as_str(), stack0.pop_str().unwrap().as_str(), stack0.pop_str().unwrap().as_str())
 		}));
-		unsafe { c45_build_decision_tree_async(crate::dora::from_string(data), max_depth, func_id, stack_raw); }
+		unsafe { c45_build_decision_tree_async(crate::dora::from_string(data), max_depth, func_id0, stack_raw0); }
 	}
 }

@@ -1,0 +1,241 @@
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+#wa:import dora actiondef_release
+func actiondef_release(raw: i64)
+
+#wa:import dora actiondef_prop
+func actiondef_prop(duration: f32, start: f32, stop: f32, prop: i32, easing: i32) => i64
+
+#wa:import dora actiondef_tint
+func actiondef_tint(duration: f32, start: i32, stop: i32, easing: i32) => i64
+
+#wa:import dora actiondef_roll
+func actiondef_roll(duration: f32, start: f32, stop: f32, easing: i32) => i64
+
+#wa:import dora actiondef_spawn
+func actiondef_spawn(defs: i64) => i64
+
+#wa:import dora actiondef_sequence
+func actiondef_sequence(defs: i64) => i64
+
+#wa:import dora actiondef_delay
+func actiondef_delay(duration: f32) => i64
+
+#wa:import dora actiondef_show
+func actiondef_show() => i64
+
+#wa:import dora actiondef_hide
+func actiondef_hide() => i64
+
+#wa:import dora actiondef_event
+func actiondef_event(event_name: i64, msg: i64) => i64
+
+#wa:import dora actiondef_move_to
+func actiondef_move_to(duration: f32, start: i64, stop: i64, easing: i32) => i64
+
+#wa:import dora actiondef_scale
+func actiondef_scale(duration: f32, start: f32, stop: f32, easing: i32) => i64
+
+#wa:import dora actiondef_frame
+func actiondef_frame(clip_str: i64, duration: f32) => i64
+
+#wa:import dora actiondef_frame_with_frames
+func actiondef_frame_with_frames(clip_str: i64, duration: f32, frames: i64) => i64
+
+type ActionDef :struct{ raw: *i64 }
+
+func ActionDef.GetRaw() => i64 {
+	return *this.raw
+}
+func action_def_finalizer(ptr: u32) {
+	actiondef_release(GetPtr(ptr))
+}
+func ActionDefFrom(raw: i64) => *ActionDef {
+	if raw == 0 {
+		return nil
+	}
+	item := ActionDef{}
+	item.raw = &raw
+	setFinalizer(item.raw, action_def_finalizer)
+	result := &item
+	return result
+}
+
+/// Creates a new action definition object to change a property of a node.
+///
+/// # Arguments
+///
+/// * `duration` - The duration of the action.
+/// * `start` - The starting value of the property.
+/// * `stop` - The ending value of the property.
+/// * `prop` - The property to change.
+/// * `easing` - The easing function to use.
+///
+/// # Returns
+///
+/// * `ActionDef` - A new ActionDef object.
+func ActionDefProp(duration: f32, start: f32, stop: f32, prop: Property, easing: EaseType) => ActionDef {
+	return *ActionDefFrom(actiondef_prop(duration, start, stop, prop.ToValue(), easing.ToValue()))
+}
+
+/// Creates a new action definition object to change the color of a node.
+///
+/// # Arguments
+///
+/// * `duration` - The duration of the action.
+/// * `start` - The starting color.
+/// * `stop` - The ending color.
+/// * `easing` - The easing function to use.
+///
+/// # Returns
+///
+/// * `ActionDef` - A new ActionDef object.
+func ActionDefTint(duration: f32, start: Color3, stop: Color3, easing: EaseType) => ActionDef {
+	return *ActionDefFrom(actiondef_tint(duration, start.ToRGB(), stop.ToRGB(), easing.ToValue()))
+}
+
+/// Creates a new action definition object to rotate a node by smallest angle.
+///
+/// # Arguments
+///
+/// * `duration` - The duration of the action.
+/// * `start` - The starting angle.
+/// * `stop` - The ending angle.
+/// * `easing` - The easing function to use.
+///
+/// # Returns
+///
+/// * `ActionDef` - A new ActionDef object.
+func ActionDefRoll(duration: f32, start: f32, stop: f32, easing: EaseType) => ActionDef {
+	return *ActionDefFrom(actiondef_roll(duration, start, stop, easing.ToValue()))
+}
+
+/// Creates a new action definition object to run a group of actions in parallel.
+///
+/// # Arguments
+///
+/// * `defs` - The actions to run in parallel.
+///
+/// # Returns
+///
+/// * `ActionDef` - A new ActionDef object.
+func ActionDefSpawn(defs: *[]ActionDef) => ActionDef {
+	return *ActionDefFrom(actiondef_spawn(ToDoraActionDefBuf(defs)))
+}
+
+/// Creates a new action definition object to run a group of actions in sequence.
+///
+/// # Arguments
+///
+/// * `defs` - The actions to run in sequence.
+///
+/// # Returns
+///
+/// * `ActionDef` - A new ActionDef object.
+func ActionDefSequence(defs: *[]ActionDef) => ActionDef {
+	return *ActionDefFrom(actiondef_sequence(ToDoraActionDefBuf(defs)))
+}
+
+/// Creates a new action definition object to delay the execution of following action.
+///
+/// # Arguments
+///
+/// * `duration` - The duration of the delay.
+///
+/// # Returns
+///
+/// * `ActionDef` - A new ActionDef object.
+func ActionDefDelay(duration: f32) => ActionDef {
+	return *ActionDefFrom(actiondef_delay(duration))
+}
+
+/// Creates a new action definition object to show a node.
+func ActionDefShow() => ActionDef {
+	return *ActionDefFrom(actiondef_show())
+}
+
+/// Creates a new action definition object to hide a node.
+func ActionDefHide() => ActionDef {
+	return *ActionDefFrom(actiondef_hide())
+}
+
+/// Creates a new action definition object to emit an event.
+///
+/// # Arguments
+///
+/// * `eventName` - The name of the event to emit.
+/// * `msg` - The message to send with the event.
+///
+/// # Returns
+///
+/// * `ActionDef` - A new ActionDef object.
+func ActionDefEvent(event_name: string, msg: string) => ActionDef {
+	return *ActionDefFrom(actiondef_event(ToDoraString(event_name), ToDoraString(msg)))
+}
+
+/// Creates a new action definition object to move a node.
+///
+/// # Arguments
+///
+/// * `duration` - The duration of the action.
+/// * `start` - The starting position.
+/// * `stop` - The ending position.
+/// * `easing` - The easing function to use.
+///
+/// # Returns
+///
+/// * `ActionDef` - A new ActionDef object.
+func ActionDefMoveTo(duration: f32, start: Vec2, stop: Vec2, easing: EaseType) => ActionDef {
+	return *ActionDefFrom(actiondef_move_to(duration, start.ToValue(), stop.ToValue(), easing.ToValue()))
+}
+
+/// Creates a new action definition object to scale a node.
+///
+/// # Arguments
+///
+/// * `duration` - The duration of the action.
+/// * `start` - The starting scale.
+/// * `stop` - The ending scale.
+/// * `easing` - The easing function to use.
+///
+/// # Returns
+///
+/// * `ActionDef` - A new ActionDef object.
+func ActionDefScale(duration: f32, start: f32, stop: f32, easing: EaseType) => ActionDef {
+	return *ActionDefFrom(actiondef_scale(duration, start, stop, easing.ToValue()))
+}
+
+/// Creates a new action definition object to do a frame animation. Can only be performed on a Sprite node.
+///
+/// # Arguments
+///
+/// * `clipStr` - The name of the image clip, which is a sprite sheet. Can be "Image/file.png" and "Image/items.clip|itemA". Supports image file format: jpg, png, dds, pvr, ktx.
+/// * `duration` - The duration of the action.
+///
+/// # Returns
+///
+/// * `ActionDef` - A new ActionDef object.
+func ActionDefFrame(clip_str: string, duration: f32) => ActionDef {
+	return *ActionDefFrom(actiondef_frame(ToDoraString(clip_str), duration))
+}
+
+/// Creates a new action definition object to do a frame animation with frames count for each frame. Can only be performed on a Sprite node.
+///
+/// # Arguments
+///
+/// * `clipStr` - The name of the image clip, which is a sprite sheet. Can be "Image/file.png" and "Image/items.clip|itemA". Supports image file format: jpg, png, dds, pvr, ktx.
+/// * `duration` - The duration of the action.
+/// * `frames` - The number of frames for each frame.
+///
+/// # Returns
+///
+/// * `Action` - A new Action object.
+func ActionDefFrameWithFrames(clip_str: string, duration: f32, frames: *[]i32) => ActionDef {
+	return *ActionDefFrom(actiondef_frame_with_frames(ToDoraString(clip_str), duration, ToDoraI32Buf(frames)))
+}

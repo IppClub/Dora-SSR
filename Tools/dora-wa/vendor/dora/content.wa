@@ -1,0 +1,236 @@
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+#wa:import dora content_set_search_paths
+func content_set_search_paths(val: i64)
+
+#wa:import dora content_get_search_paths
+func content_get_search_paths() => i64
+
+#wa:import dora content_set_asset_path
+func content_set_asset_path(val: i64)
+
+#wa:import dora content_get_asset_path
+func content_get_asset_path() => i64
+
+#wa:import dora content_set_writable_path
+func content_set_writable_path(val: i64)
+
+#wa:import dora content_get_writable_path
+func content_get_writable_path() => i64
+
+#wa:import dora content_get_app_path
+func content_get_app_path() => i64
+
+#wa:import dora content_save
+func content_save(filename: i64, content: i64) => i32
+
+#wa:import dora content_exist
+func content_exist(filename: i64) => i32
+
+#wa:import dora content_mkdir
+func content_mkdir(path: i64) => i32
+
+#wa:import dora content_isdir
+func content_isdir(path: i64) => i32
+
+#wa:import dora content_is_absolute_path
+func content_is_absolute_path(path: i64) => i32
+
+#wa:import dora content_copy
+func content_copy(src: i64, dst: i64) => i32
+
+#wa:import dora content_move_to
+func content_move_to(src: i64, dst: i64) => i32
+
+#wa:import dora content_remove
+func content_remove(path: i64) => i32
+
+#wa:import dora content_get_full_path
+func content_get_full_path(filename: i64) => i64
+
+#wa:import dora content_add_search_path
+func content_add_search_path(path: i64)
+
+#wa:import dora content_insert_search_path
+func content_insert_search_path(index: i32, path: i64)
+
+#wa:import dora content_remove_search_path
+func content_remove_search_path(path: i64)
+
+#wa:import dora content_clear_path_cache
+func content_clear_path_cache()
+
+#wa:import dora content_get_dirs
+func content_get_dirs(path: i64) => i64
+
+#wa:import dora content_get_files
+func content_get_files(path: i64) => i64
+
+#wa:import dora content_get_all_files
+func content_get_all_files(path: i64) => i64
+
+#wa:import dora content_load_async
+func content_load_async(filename: i64, func0: i32, stack0: i64)
+
+#wa:import dora content_copy_async
+func content_copy_async(src_file: i64, target_file: i64, func0: i32, stack0: i64)
+
+#wa:import dora content_save_async
+func content_save_async(filename: i64, content: i64, func0: i32, stack0: i64)
+
+#wa:import dora content_zip_async
+func content_zip_async(folder_path: i64, zip_file: i64, func0: i32, stack0: i64, func1: i32, stack1: i64)
+
+#wa:import dora content_unzip_async
+func content_unzip_async(zip_file: i64, folder_path: i64, func0: i32, stack0: i64, func1: i32, stack1: i64)
+
+#wa:import dora content_load_excel
+func content_load_excel(filename: i64) => i64
+
+type _Content :struct{}
+
+global Content = _Content{}
+
+/// Sets an array of directories to search for resource files.
+func _Content.SetSearchPaths(val: *[]string) {
+	content_set_search_paths(ToDoraStrBuf(val))
+}
+
+/// Gets an array of directories to search for resource files.
+func _Content.GetSearchPaths() => *[]string {
+	return FromDoraStrBuf(content_get_search_paths())
+}
+
+/// Sets the path to the directory containing read-only resources. Can only be altered by the user on platform Windows, MacOS and Linux.
+func _Content.SetAssetPath(val: string) {
+	content_set_asset_path(ToDoraString(val))
+}
+
+/// Gets the path to the directory containing read-only resources. Can only be altered by the user on platform Windows, MacOS and Linux.
+func _Content.GetAssetPath() => string {
+	return FromDoraString(content_get_asset_path())
+}
+
+/// Sets the path to the directory where files can be written. Can only be altered by the user on platform Windows, MacOS and Linux. Default is the same as `appPath`.
+func _Content.SetWritablePath(val: string) {
+	content_set_writable_path(ToDoraString(val))
+}
+
+/// Gets the path to the directory where files can be written. Can only be altered by the user on platform Windows, MacOS and Linux. Default is the same as `appPath`.
+func _Content.GetWritablePath() => string {
+	return FromDoraString(content_get_writable_path())
+}
+
+/// Gets the path to the directory for the application storage.
+func _Content.GetAppPath() => string {
+	return FromDoraString(content_get_app_path())
+}
+func _Content.Save(filename: string, content: string) => bool {
+	return content_save(ToDoraString(filename), ToDoraString(content)) != 0
+}
+func _Content.Exist(filename: string) => bool {
+	return content_exist(ToDoraString(filename)) != 0
+}
+func _Content.Mkdir(path: string) => bool {
+	return content_mkdir(ToDoraString(path)) != 0
+}
+func _Content.Isdir(path: string) => bool {
+	return content_isdir(ToDoraString(path)) != 0
+}
+func _Content.IsAbsolutePath(path: string) => bool {
+	return content_is_absolute_path(ToDoraString(path)) != 0
+}
+func _Content.Copy(src: string, dst: string) => bool {
+	return content_copy(ToDoraString(src), ToDoraString(dst)) != 0
+}
+func _Content.MoveTo(src: string, dst: string) => bool {
+	return content_move_to(ToDoraString(src), ToDoraString(dst)) != 0
+}
+func _Content.Remove(path: string) => bool {
+	return content_remove(ToDoraString(path)) != 0
+}
+func _Content.GetFullPath(filename: string) => string {
+	return FromDoraString(content_get_full_path(ToDoraString(filename)))
+}
+func _Content.AddSearchPath(path: string) {
+	content_add_search_path(ToDoraString(path))
+}
+func _Content.InsertSearchPath(index: i32, path: string) {
+	content_insert_search_path(index, ToDoraString(path))
+}
+func _Content.RemoveSearchPath(path: string) {
+	content_remove_search_path(ToDoraString(path))
+}
+func _Content.ClearPathCache() {
+	content_clear_path_cache()
+}
+func _Content.GetDirs(path: string) => *[]string {
+	return FromDoraStrBuf(content_get_dirs(ToDoraString(path)))
+}
+func _Content.GetFiles(path: string) => *[]string {
+	return FromDoraStrBuf(content_get_files(ToDoraString(path)))
+}
+func _Content.GetAllFiles(path: string) => *[]string {
+	return FromDoraStrBuf(content_get_all_files(ToDoraString(path)))
+}
+func _Content.LoadAsync(filename: string, callback: func(content: string)) {
+	stack0 := NewCallStack()
+	func_id0 := PushFunction(func() {
+		content, _ := stack0.PopStr()
+		callback(content)
+	})
+	content_load_async(ToDoraString(filename), func_id0, *stack0.raw)
+}
+func _Content.CopyAsync(src_file: string, target_file: string, callback: func(success: bool)) {
+	stack0 := NewCallStack()
+	func_id0 := PushFunction(func() {
+		success, _ := stack0.PopBool()
+		callback(success)
+	})
+	content_copy_async(ToDoraString(src_file), ToDoraString(target_file), func_id0, *stack0.raw)
+}
+func _Content.SaveAsync(filename: string, content: string, callback: func(success: bool)) {
+	stack0 := NewCallStack()
+	func_id0 := PushFunction(func() {
+		success, _ := stack0.PopBool()
+		callback(success)
+	})
+	content_save_async(ToDoraString(filename), ToDoraString(content), func_id0, *stack0.raw)
+}
+func _Content.ZipAsync(folder_path: string, zip_file: string, filter: func(file: string) => bool, callback: func(success: bool)) {
+	stack0 := NewCallStack()
+	func_id0 := PushFunction(func() {
+		file, _ := stack0.PopStr()
+		result_ := filter(file)
+		stack0.Push(result_)
+	})
+	stack1 := NewCallStack()
+	func_id1 := PushFunction(func() {
+		success, _ := stack1.PopBool()
+		callback(success)
+	})
+	content_zip_async(ToDoraString(folder_path), ToDoraString(zip_file), func_id0, *stack0.raw, func_id1, *stack1.raw)
+}
+func _Content.UnzipAsync(zip_file: string, folder_path: string, filter: func(file: string) => bool, callback: func(success: bool)) {
+	stack0 := NewCallStack()
+	func_id0 := PushFunction(func() {
+		file, _ := stack0.PopStr()
+		result_ := filter(file)
+		stack0.Push(result_)
+	})
+	stack1 := NewCallStack()
+	func_id1 := PushFunction(func() {
+		success, _ := stack1.PopBool()
+		callback(success)
+	})
+	content_unzip_async(ToDoraString(zip_file), ToDoraString(folder_path), func_id0, *stack0.raw, func_id1, *stack1.raw)
+}
+func _Content.LoadExcel(filename: string) => WorkBook {
+	return *WorkBookFrom(content_load_excel(ToDoraString(filename)))
+}

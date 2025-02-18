@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -505,7 +505,7 @@ public:
 
 		UnaryOperator =
 			'-' >> not_(set(">=") | space_one) |
-			'#' |
+			'#' | '!' |
 			'~' >> not_('=' | space_one) |
 			key("not");
 
@@ -515,7 +515,7 @@ public:
 			key("or") |
 			key("and") |
 			"<=" | ">=" | "~=" | "!=" | "==" |
-			".." | "<<" | ">>" | "//" |
+			".." | "&&" | "||" | "//" |
 			set("+-*/%><|&~");
 
 		ExpOpValue = BinaryOperator >> *space_break >> space >> UnaryExp;
@@ -561,7 +561,7 @@ public:
 
 		Goto = key("jump") >> space >> Title;
 
-		Call = not_((expr("endif") | "else" | "elseif") >> not_alpha_num) >> Name >> space >> Seperator >> -(Exp >> *(space >> ',' >> space >> Exp));
+		Call = not_((expr("endif") | "if" | "else" | "elseif" | "jump" | "set") >> not_alpha_num) >> Name >> space >> Seperator >> -(Exp >> *(space >> ',' >> space >> Exp));
 
 		Command = "<<" >> space >> (
 			If |
@@ -964,7 +964,9 @@ public:
 				case id<Text_t>(): {
 					auto text = static_cast<Text_t*>(token);
 					length += " + "s + std::to_string(static_cast<int>(std::distance(token->m_begin.m_it, token->m_end.m_it)));
-					texts.push_back(_parser.toString(text));
+					auto textStr = _parser.toString(text);
+					Utils::replace(textStr, "\""sv, "\\\""sv);
+					texts.push_back(textStr);
 					break;
 				}
 				case id<Exp_t>(): {
@@ -1197,6 +1199,7 @@ public:
 		std::string unaryOp;
 		for (auto op_ : unaryExp->ops.objects()) {
 			std::string op = _parser.toString(op_);
+			if (op == "!"sv) op = "not"s;
 			unaryOp.append(op == "not"sv ? op + ' ' : op);
 		}
 		str_list temp;
@@ -1215,6 +1218,10 @@ public:
 			auto opStr = _parser.toString(opValue->op);
 			if (opStr == "!="sv) {
 				opStr = "~="s;
+			} else if (opStr == "&&"sv) {
+				opStr = "and"s;
+			} else if (opStr == "||"sv) {
+				opStr = "or"s;
 			}
 			temp.push_back(opStr);
 			transformUnaryExp(opValue->expr, temp);

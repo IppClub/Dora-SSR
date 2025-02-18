@@ -1,0 +1,306 @@
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+#wa:import dora grid_type
+func grid_type() => i32
+
+#wa:import dora grid_get_grid_x
+func grid_get_grid_x(slf: i64) => i32
+
+#wa:import dora grid_get_grid_y
+func grid_get_grid_y(slf: i64) => i32
+
+#wa:import dora grid_set_depth_write
+func grid_set_depth_write(slf: i64, val: i32)
+
+#wa:import dora grid_is_depth_write
+func grid_is_depth_write(slf: i64) => i32
+
+#wa:import dora grid_set_blend_func
+func grid_set_blend_func(slf: i64, val: i64)
+
+#wa:import dora grid_get_blend_func
+func grid_get_blend_func(slf: i64) => i64
+
+#wa:import dora grid_set_effect
+func grid_set_effect(slf: i64, val: i64)
+
+#wa:import dora grid_get_effect
+func grid_get_effect(slf: i64) => i64
+
+#wa:import dora grid_set_texture_rect
+func grid_set_texture_rect(slf: i64, val: i64)
+
+#wa:import dora grid_get_texture_rect
+func grid_get_texture_rect(slf: i64) => i64
+
+#wa:import dora grid_set_texture
+func grid_set_texture(slf: i64, val: i64)
+
+#wa:import dora grid_get_texture
+func grid_get_texture(slf: i64) => i64
+
+#wa:import dora grid_set_pos
+func grid_set_pos(slf: i64, x: i32, y: i32, pos: i64, z: f32)
+
+#wa:import dora grid_get_pos
+func grid_get_pos(slf: i64, x: i32, y: i32) => i64
+
+#wa:import dora grid_set_color
+func grid_set_color(slf: i64, x: i32, y: i32, color: i32)
+
+#wa:import dora grid_get_color
+func grid_get_color(slf: i64, x: i32, y: i32) => i32
+
+#wa:import dora grid_move_uv
+func grid_move_uv(slf: i64, x: i32, y: i32, offset: i64)
+
+#wa:import dora grid_new
+func grid_new(width: f32, height: f32, grid_x: i32, grid_y: i32) => i64
+
+#wa:import dora grid_with_texture_rect
+func grid_with_texture_rect(texture: i64, texture_rect: i64, grid_x: i32, grid_y: i32) => i64
+
+#wa:import dora grid_with_texture
+func grid_with_texture(texture: i64, grid_x: i32, grid_y: i32) => i64
+
+#wa:import dora grid_with_file
+func grid_with_file(clip_str: i64, grid_x: i32, grid_y: i32) => i64
+
+type Grid :struct{ Node }
+
+func GridFrom(raw: i64) => *Grid {
+	if raw == 0 {
+		return nil
+	}
+	object := Grid{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	result := &object
+	return result
+}
+func Grid.GetTypeId() => i32 {
+	return grid_type()
+}
+func ObjectAsGrid(object: Object) => *Grid {
+	if object.GetTypeId() == grid_type() {
+		ObjectRetain(object.GetRaw())
+		return GridFrom(object.GetRaw())
+	}
+	return nil
+}
+
+/// Gets the number of columns in the grid. And there are `gridX + 1` vertices horizontally for rendering.
+func Grid.GetGridX() => i32 {
+	return grid_get_grid_x(*this.raw)
+}
+
+/// Gets the number of rows in the grid. And there are `gridY + 1` vertices vertically for rendering.
+func Grid.GetGridY() => i32 {
+	return grid_get_grid_y(*this.raw)
+}
+
+/// Sets whether depth writes are enabled.
+func Grid.SetDepthWrite(val: bool) {
+	grid_set_depth_write(*this.raw, ToDoraBool(val))
+}
+
+/// Gets whether depth writes are enabled.
+func Grid.IsDepthWrite() => bool {
+	return grid_is_depth_write(*this.raw) != 0
+}
+
+/// Sets the blend function for the grid.
+func Grid.SetBlendFunc(val: BlendFunc) {
+	grid_set_blend_func(*this.raw, val.ToValue())
+}
+
+/// Gets the blend function for the grid.
+func Grid.GetBlendFunc() => BlendFunc {
+	return BlendFuncFrom(grid_get_blend_func(*this.raw))
+}
+
+/// Sets the sprite effect applied to the grid.
+/// Default is `SpriteEffect::new("builtin:vs_sprite", "builtin:fs_sprite")`.
+func Grid.SetEffect(val: SpriteEffect) {
+	grid_set_effect(*this.raw, val.GetRaw())
+}
+
+/// Gets the sprite effect applied to the grid.
+/// Default is `SpriteEffect::new("builtin:vs_sprite", "builtin:fs_sprite")`.
+func Grid.GetEffect() => SpriteEffect {
+	return *SpriteEffectFrom(grid_get_effect(*this.raw))
+}
+
+/// Sets the rectangle within the texture that is used for the grid.
+func Grid.SetTextureRect(val: Rect) {
+	grid_set_texture_rect(*this.raw, val.GetRaw())
+}
+
+/// Gets the rectangle within the texture that is used for the grid.
+func Grid.GetTextureRect() => Rect {
+	return *RectFrom(grid_get_texture_rect(*this.raw))
+}
+
+/// Sets the texture used for the grid.
+func Grid.SetTexture(val: Texture2D) {
+	grid_set_texture(*this.raw, val.GetRaw())
+}
+
+/// Gets the texture used for the grid.
+func Grid.GetTexture() => *Texture2D {
+	ptr_ := grid_get_texture(*this.raw)
+	if ptr_ == 0 {
+		return nil
+	}
+	obj_ := *Texture2DFrom(ptr_)
+	return &obj_
+}
+
+/// Sets the position of a vertex in the grid.
+///
+/// # Arguments
+///
+/// * `x` - The x-coordinate of the vertex in the grid.
+/// * `y` - The y-coordinate of the vertex in the grid.
+/// * `pos` - The new position of the vertex, represented by a Vec2 object.
+/// * `z` - The new z-coordinate of the vertex.
+func Grid.SetPos(x: i32, y: i32, pos: Vec2, z: f32) {
+	grid_set_pos(*this.raw, x, y, pos.ToValue(), z)
+}
+
+/// Gets the position of a vertex in the grid.
+///
+/// # Arguments
+///
+/// * `x` - The x-coordinate of the vertex in the grid.
+/// * `y` - The y-coordinate of the vertex in the grid.
+///
+/// # Returns
+///
+/// * `Vec2` - The current position of the vertex.
+func Grid.GetPos(x: i32, y: i32) => Vec2 {
+	return Vec2FromValue(grid_get_pos(*this.raw, x, y))
+}
+
+/// Sets the color of a vertex in the grid.
+///
+/// # Arguments
+///
+/// * `x` - The x-coordinate of the vertex in the grid.
+/// * `y` - The y-coordinate of the vertex in the grid.
+/// * `color` - The new color of the vertex, represented by a Color object.
+func Grid.SetColor(x: i32, y: i32, color: Color) {
+	grid_set_color(*this.raw, x, y, color.ToARGB())
+}
+
+/// Gets the color of a vertex in the grid.
+///
+/// # Arguments
+///
+/// * `x` - The x-coordinate of the vertex in the grid.
+/// * `y` - The y-coordinate of the vertex in the grid.
+///
+/// # Returns
+///
+/// * `Color` - The current color of the vertex.
+func Grid.GetColor(x: i32, y: i32) => Color {
+	return NewColor(grid_get_color(*this.raw, x, y))
+}
+
+/// Moves the UV coordinates of a vertex in the grid.
+///
+/// # Arguments
+///
+/// * `x` - The x-coordinate of the vertex in the grid.
+/// * `y` - The y-coordinate of the vertex in the grid.
+/// * `offset` - The offset by which to move the UV coordinates, represented by a Vec2 object.
+func Grid.MoveUv(x: i32, y: i32, offset: Vec2) {
+	grid_move_uv(*this.raw, x, y, offset.ToValue())
+}
+
+/// Creates a new Grid with the specified dimensions and grid size.
+///
+/// # Arguments
+///
+/// * `width` - The width of the grid.
+/// * `height` - The height of the grid.
+/// * `grid_x` - The number of columns in the grid.
+/// * `grid_y` - The number of rows in the grid.
+///
+/// # Returns
+///
+/// * `Grid` - The new Grid instance.
+func NewGrid(width: f32, height: f32, grid_x: i32, grid_y: i32) => Grid {
+	raw := grid_new(width, height, grid_x, grid_y)
+	object := Grid{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return object
+}
+
+/// Creates a new Grid with the specified texture, texture rectangle, and grid size.
+///
+/// # Arguments
+///
+/// * `texture` - The texture to use for the grid.
+/// * `texture_rect` - The rectangle within the texture to use for the grid.
+/// * `grid_x` - The number of columns in the grid.
+/// * `grid_y` - The number of rows in the grid.
+///
+/// # Returns
+///
+/// * `Grid` - The new Grid instance.
+func NewGridWithTextureRect(texture: Texture2D, texture_rect: Rect, grid_x: i32, grid_y: i32) => Grid {
+	raw := grid_with_texture_rect(texture.GetRaw(), texture_rect.GetRaw(), grid_x, grid_y)
+	object := Grid{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return object
+}
+
+/// Creates a new Grid with the specified texture, texture rectangle, and grid size.
+///
+/// # Arguments
+///
+/// * `texture` - The texture to use for the grid.
+/// * `grid_x` - The number of columns in the grid.
+/// * `grid_y` - The number of rows in the grid.
+///
+/// # Returns
+///
+/// * `Grid` - The new Grid instance.
+func NewGridWithTexture(texture: Texture2D, grid_x: i32, grid_y: i32) => Grid {
+	raw := grid_with_texture(texture.GetRaw(), grid_x, grid_y)
+	object := Grid{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return object
+}
+
+/// Creates a new Grid with the specified clip string and grid size.
+///
+/// # Arguments
+///
+/// * `clip_str` - The clip string to use for the grid. Can be "Image/file.png" and "Image/items.clip|itemA".
+/// * `grid_x` - The number of columns in the grid.
+/// * `grid_y` - The number of rows in the grid.
+///
+/// # Returns
+///
+/// * `Grid` - The new Grid instance.
+func NewGridWithFile(clip_str: string, grid_x: i32, grid_y: i32) => *Grid {
+	raw := grid_with_file(ToDoraString(clip_str), grid_x, grid_y)
+	if raw == 0 {
+		return nil
+	}
+	object := Grid{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return &object
+}

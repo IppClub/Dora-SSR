@@ -1,9 +1,7 @@
-import "@site/src/languages/highlight";
-
 # 15 分钟掌握 YueScript
 
 :::tip 提示
-&emsp;&emsp;本教程提供了 YueScript 的快速概览，它是一种 Lua 的现代替代方案。YueScript 继承了 Lua 的特性，同时引入了语法糖和类似 Python 的编码风格。因为 YueScript 是 MoonScript 的方言，本教程修改自["15 分钟掌握 MoonScript"](https://github.com/leafo/moonscript/wiki/Learn-MoonScript-in-15-Minutes)，并假设你有一定的编程经验并熟悉 Lua。
+&emsp;&emsp;本教程提供了 [YueScript](https://yuescript.org) 的快速概览，它是一种 Lua 的现代替代方案。YueScript 继承了 Lua 的特性，同时引入了语法糖和类似 Python 的编码风格。因为 YueScript 是 MoonScript 的方言，本教程修改自["15 分钟掌握 MoonScript"](https://github.com/leafo/moonscript/wiki/Learn-MoonScript-in-15-Minutes)，并假设你有一定的编程经验并熟悉 Lua。如果你还不熟悉 Lua，可以参考 [Lua 官方文档](https://lua-users.lua.ac.cn/wiki/TutorialDirectory) 进行学习。
 :::
 
 &emsp;&emsp;与 Lua 不同，YueScript 不使用 `do`、`then` 或 `end`，而是采用类似 Python 的缩进语法。
@@ -199,7 +197,7 @@ doubled = [item * 2 for item in *items]
 &emsp;&emsp;使用 `when` 来筛选出需要的值。
 
 ```yue
-slice = [item for item in *items[1, 2]]
+slice = [item for item in *items[1, 2] when item % 2 == 0]
 ```
 
 &emsp;&emsp;推导中的 `for` 子句可以链式调用。

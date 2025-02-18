@@ -1,0 +1,97 @@
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+#wa:import dora effect_type
+func effect_type() => i32
+
+#wa:import dora effect_add
+func effect_add(slf: i64, pass: i64)
+
+#wa:import dora effect_get
+func effect_get(slf: i64, index: i64) => i64
+
+#wa:import dora effect_clear
+func effect_clear(slf: i64)
+
+#wa:import dora effect_new
+func effect_new(vert_shader: i64, frag_shader: i64) => i64
+
+type Effect :struct{ Object }
+
+func EffectFrom(raw: i64) => *Effect {
+	if raw == 0 {
+		return nil
+	}
+	object := Effect{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	result := &object
+	return result
+}
+func Effect.GetTypeId() => i32 {
+	return effect_type()
+}
+func ObjectAsEffect(object: Object) => *Effect {
+	if object.GetTypeId() == effect_type() {
+		ObjectRetain(object.GetRaw())
+		return EffectFrom(object.GetRaw())
+	}
+	return nil
+}
+
+/// Adds a Pass object to this Effect.
+///
+/// # Arguments
+///
+/// * `pass` - The Pass object to add.
+func Effect.Add(pass: Pass) {
+	effect_add(*this.raw, pass.GetRaw())
+}
+
+/// Retrieves a Pass object from this Effect by index.
+///
+/// # Arguments
+///
+/// * `index` - The index of the Pass object to retrieve.
+///
+/// # Returns
+///
+/// * `Pass` - The Pass object at the given index.
+func Effect.Get(index: i64) => *Pass {
+	ptr_ := effect_get(*this.raw, index)
+	if ptr_ == 0 {
+		return nil
+	}
+	obj_ := *PassFrom(ptr_)
+	return &obj_
+}
+
+/// Removes all Pass objects from this Effect.
+func Effect.Clear() {
+	effect_clear(*this.raw)
+}
+
+/// A method that allows you to create a new Effect object.
+///
+/// # Arguments
+///
+/// * `vert_shader` - The vertex shader file string.
+/// * `frag_shader` - The fragment shader file string. A shader file string must be one of the formats:
+///     * "builtin:" + theBuiltinShaderName
+///     * "Shader/compiled_shader_file.bin"
+///
+/// # Returns
+///
+/// * `Effect` - A new Effect object.
+func NewEffect(vert_shader: string, frag_shader: string) => Effect {
+	raw := effect_new(ToDoraString(vert_shader), ToDoraString(frag_shader))
+	object := Effect{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return object
+}

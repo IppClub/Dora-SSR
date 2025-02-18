@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -11,16 +11,16 @@ using namespace Dora;
 int32_t drawnode_type() {
 	return DoraType<DrawNode>();
 }
-void drawnode_set_depth_write(int64_t self, int32_t var) {
-	r_cast<DrawNode*>(self)->setDepthWrite(var != 0);
+void drawnode_set_depth_write(int64_t self, int32_t val) {
+	r_cast<DrawNode*>(self)->setDepthWrite(val != 0);
 }
 int32_t drawnode_is_depth_write(int64_t self) {
 	return r_cast<DrawNode*>(self)->isDepthWrite() ? 1 : 0;
 }
-void drawnode__set_blend_func(int64_t self, int64_t func) {
-	r_cast<DrawNode*>(self)->setBlendFunc(BlendFunc(s_cast<uint64_t>(func)));
+void drawnode_set_blend_func(int64_t self, int64_t val) {
+	r_cast<DrawNode*>(self)->setBlendFunc(BlendFunc(s_cast<uint64_t>(val)));
 }
-int64_t drawnode__get_blend_func(int64_t self) {
+int64_t drawnode_get_blend_func(int64_t self) {
 	return s_cast<int64_t>(r_cast<DrawNode*>(self)->getBlendFunc().toValue());
 }
 void drawnode_draw_dot(int64_t self, int64_t pos, float radius, int32_t color) {
@@ -47,8 +47,8 @@ static void linkDrawNode(wasm3::module3& mod) {
 	mod.link_optional("*", "drawnode_type", drawnode_type);
 	mod.link_optional("*", "drawnode_set_depth_write", drawnode_set_depth_write);
 	mod.link_optional("*", "drawnode_is_depth_write", drawnode_is_depth_write);
-	mod.link_optional("*", "drawnode__set_blend_func", drawnode__set_blend_func);
-	mod.link_optional("*", "drawnode__get_blend_func", drawnode__get_blend_func);
+	mod.link_optional("*", "drawnode_set_blend_func", drawnode_set_blend_func);
+	mod.link_optional("*", "drawnode_get_blend_func", drawnode_get_blend_func);
 	mod.link_optional("*", "drawnode_draw_dot", drawnode_draw_dot);
 	mod.link_optional("*", "drawnode_draw_segment", drawnode_draw_segment);
 	mod.link_optional("*", "drawnode_draw_polygon", drawnode_draw_polygon);

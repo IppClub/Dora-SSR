@@ -1,0 +1,72 @@
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+#wa:import dora texture2d_type
+func texture2d_type() => i32
+
+#wa:import dora texture2d_get_width
+func texture2d_get_width(slf: i64) => i32
+
+#wa:import dora texture2d_get_height
+func texture2d_get_height(slf: i64) => i32
+
+#wa:import dora texture2d_with_file
+func texture2d_with_file(filename: i64) => i64
+
+type Texture2D :struct{ Object }
+
+func Texture2DFrom(raw: i64) => *Texture2D {
+	if raw == 0 {
+		return nil
+	}
+	object := Texture2D{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	result := &object
+	return result
+}
+func Texture2D.GetTypeId() => i32 {
+	return texture2d_type()
+}
+func ObjectAsTexture2D(object: Object) => *Texture2D {
+	if object.GetTypeId() == texture2d_type() {
+		ObjectRetain(object.GetRaw())
+		return Texture2DFrom(object.GetRaw())
+	}
+	return nil
+}
+
+/// Gets the width of the texture, in pixels.
+func Texture2D.GetWidth() => i32 {
+	return texture2d_get_width(*this.raw)
+}
+
+/// Gets the height of the texture, in pixels.
+func Texture2D.GetHeight() => i32 {
+	return texture2d_get_height(*this.raw)
+}
+
+/// Creates a texture object from the given file.
+///
+/// # Arguments
+///
+/// * `filename` - The file name of the texture.
+///
+/// # Returns
+///
+/// * `Texture2D` - The texture object.
+func NewTexture2DWithFile(filename: string) => *Texture2D {
+	raw := texture2d_with_file(ToDoraString(filename))
+	if raw == 0 {
+		return nil
+	}
+	object := Texture2D{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return &object
+}

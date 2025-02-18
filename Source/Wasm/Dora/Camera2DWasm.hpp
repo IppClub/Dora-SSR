@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -11,20 +11,20 @@ using namespace Dora;
 int32_t camera2d_type() {
 	return DoraType<Camera2D>();
 }
-void camera2d_set_rotation(int64_t self, float var) {
-	r_cast<Camera2D*>(self)->setRotation(var);
+void camera2d_set_rotation(int64_t self, float val) {
+	r_cast<Camera2D*>(self)->setRotation(val);
 }
 float camera2d_get_rotation(int64_t self) {
 	return r_cast<Camera2D*>(self)->getRotation();
 }
-void camera2d_set_zoom(int64_t self, float var) {
-	r_cast<Camera2D*>(self)->setZoom(var);
+void camera2d_set_zoom(int64_t self, float val) {
+	r_cast<Camera2D*>(self)->setZoom(val);
 }
 float camera2d_get_zoom(int64_t self) {
 	return r_cast<Camera2D*>(self)->getZoom();
 }
-void camera2d_set_position(int64_t self, int64_t var) {
-	r_cast<Camera2D*>(self)->setPosition(Vec2_From(var));
+void camera2d_set_position(int64_t self, int64_t val) {
+	r_cast<Camera2D*>(self)->setPosition(Vec2_From(val));
 }
 int64_t camera2d_get_position(int64_t self) {
 	return Vec2_Retain(r_cast<Camera2D*>(self)->getPosition());

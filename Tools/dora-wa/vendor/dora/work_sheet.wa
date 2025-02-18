@@ -1,0 +1,35 @@
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+#wa:import dora worksheet_release
+func worksheet_release(raw: i64)
+
+#wa:import dora worksheet_read
+func worksheet_read(slf: i64, row: i64) => i32
+
+type WorkSheet :struct{ raw: *i64 }
+
+func WorkSheet.GetRaw() => i64 {
+	return *this.raw
+}
+func work_sheet_finalizer(ptr: u32) {
+	worksheet_release(GetPtr(ptr))
+}
+func WorkSheetFrom(raw: i64) => *WorkSheet {
+	if raw == 0 {
+		return nil
+	}
+	item := WorkSheet{}
+	item.raw = &raw
+	setFinalizer(item.raw, work_sheet_finalizer)
+	result := &item
+	return result
+}
+func WorkSheet.Read(row: Array) => bool {
+	return worksheet_read(*this.raw, row.GetRaw()) != 0
+}

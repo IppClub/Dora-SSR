@@ -1,0 +1,146 @@
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+#wa:import dora platformer_unitaction_set_reaction
+func platformer_unitaction_set_reaction(slf: i64, val: f32)
+
+#wa:import dora platformer_unitaction_get_reaction
+func platformer_unitaction_get_reaction(slf: i64) => f32
+
+#wa:import dora platformer_unitaction_set_recovery
+func platformer_unitaction_set_recovery(slf: i64, val: f32)
+
+#wa:import dora platformer_unitaction_get_recovery
+func platformer_unitaction_get_recovery(slf: i64) => f32
+
+#wa:import dora platformer_unitaction_get_name
+func platformer_unitaction_get_name(slf: i64) => i64
+
+#wa:import dora platformer_unitaction_is_doing
+func platformer_unitaction_is_doing(slf: i64) => i32
+
+#wa:import dora platformer_unitaction_get_owner
+func platformer_unitaction_get_owner(slf: i64) => i64
+
+#wa:import dora platformer_unitaction_get_elapsed_time
+func platformer_unitaction_get_elapsed_time(slf: i64) => f32
+
+#wa:import dora platformer_unitaction_clear
+func platformer_unitaction_clear()
+
+#wa:import dora platformer_unitaction_add
+func platformer_unitaction_add(name: i64, priority: i32, reaction: f32, recovery: f32, queued: i32, func0: i32, stack0: i64, func1: i32, stack1: i64, func2: i32, stack2: i64)
+
+type PlatformerUnitAction :struct{ raw: *i64 }
+
+func PlatformerUnitAction.GetRaw() => i64 {
+	return *this.raw
+}
+func PlatformerUnitActionFrom(raw: i64) => *PlatformerUnitAction {
+	if raw == 0 {
+		return nil
+	}
+	item := PlatformerUnitAction{}
+	item.raw = &raw
+	result := &item
+	return result
+}
+
+/// Sets the length of the reaction time for the "UnitAction", in seconds.
+/// The reaction time will affect the AI check cycling time.
+func PlatformerUnitAction.SetReaction(val: f32) {
+	platformer_unitaction_set_reaction(*this.raw, val)
+}
+
+/// Gets the length of the reaction time for the "UnitAction", in seconds.
+/// The reaction time will affect the AI check cycling time.
+func PlatformerUnitAction.GetReaction() => f32 {
+	return platformer_unitaction_get_reaction(*this.raw)
+}
+
+/// Sets the length of the recovery time for the "UnitAction", in seconds.
+/// The recovery time will mainly affect how long the `Playable` animation model will do transitions between animations played by different actions.
+func PlatformerUnitAction.SetRecovery(val: f32) {
+	platformer_unitaction_set_recovery(*this.raw, val)
+}
+
+/// Gets the length of the recovery time for the "UnitAction", in seconds.
+/// The recovery time will mainly affect how long the `Playable` animation model will do transitions between animations played by different actions.
+func PlatformerUnitAction.GetRecovery() => f32 {
+	return platformer_unitaction_get_recovery(*this.raw)
+}
+
+/// Gets the name of the "UnitAction".
+func PlatformerUnitAction.GetName() => string {
+	return FromDoraString(platformer_unitaction_get_name(*this.raw))
+}
+
+/// Gets whether the "Unit" is currently performing the "UnitAction" or not.
+func PlatformerUnitAction.IsDoing() => bool {
+	return platformer_unitaction_is_doing(*this.raw) != 0
+}
+
+/// Gets the "Unit" that owns this "UnitAction".
+func PlatformerUnitAction.GetOwner() => PlatformerUnit {
+	return *PlatformerUnitFrom(platformer_unitaction_get_owner(*this.raw))
+}
+
+/// Gets the elapsed time since the "UnitAction" was started, in seconds.
+func PlatformerUnitAction.GetElapsedTime() => f32 {
+	return platformer_unitaction_get_elapsed_time(*this.raw)
+}
+
+/// Removes all "UnitAction" objects from the "UnitActionClass".
+func PlatformerUnitActionClear() {
+	platformer_unitaction_clear()
+}
+
+/// Adds a new "UnitAction" to the "UnitActionClass" with the specified name and parameters.
+///
+/// # Arguments
+///
+/// * `name` - The name of the "UnitAction".
+/// * `priority` - The priority level for the "UnitAction". `UnitAction` with higher priority (larger number) will replace the running lower priority `UnitAction`. If performing `UnitAction` having the same priority with the running `UnitAction` and the `UnitAction` to perform having the param 'queued' to be true, the running `UnitAction` won't be replaced.
+/// * `reaction` - The length of the reaction time for the "UnitAction", in seconds. The reaction time will affect the AI check cycling time. Set to 0.0 to make AI check run in every update.
+/// * `recovery` - The length of the recovery time for the "UnitAction", in seconds. The recovery time will mainly affect how long the `Playable` animation model will do transitions between animations played by different actions.
+/// * `queued` - Whether the "UnitAction" is currently queued or not. The queued "UnitAction" won't replace the running "UnitAction" with a same priority.
+/// * `available` - A function that takes a `Unit` object and a `UnitAction` object and returns a boolean value indicating whether the "UnitAction" is available to be performed.
+/// * `create` - A function that takes a `Unit` object and a `UnitAction` object and returns a `WasmActionUpdate` object that contains the update function for the "UnitAction".
+/// * `stop` - A function that takes a `Unit` object and a `UnitAction` object and stops the "UnitAction".
+func PlatformerUnitActionAdd(name: string, priority: i32, reaction: f32, recovery: f32, queued: bool, available: func(owner: PlatformerUnit, action: PlatformerUnitAction) => bool, create: func(owner: PlatformerUnit, action: PlatformerUnitAction) => PlatformerActionUpdate, stop: func(owner: PlatformerUnit, action: PlatformerUnitAction)) {
+	stack0 := NewCallStack()
+	func_id0 := PushFunction(func() {
+		owner_obj := stack0.PopObject()
+		ObjectRetain(owner_obj.GetRaw())
+		owner := *PlatformerUnitFrom(owner_obj.GetRaw())
+		action_raw, _ := stack0.PopI64()
+		action := *PlatformerUnitActionFrom(action_raw)
+		result_ := available(owner, action)
+		stack0.Push(result_)
+	})
+	stack1 := NewCallStack()
+	func_id1 := PushFunction(func() {
+		owner_obj := stack1.PopObject()
+		ObjectRetain(owner_obj.GetRaw())
+		owner := *PlatformerUnitFrom(owner_obj.GetRaw())
+		action_raw, _ := stack1.PopI64()
+		action := *PlatformerUnitActionFrom(action_raw)
+		result_ := create(owner, action)
+		stack1.Push(result_.Object)
+	})
+	stack2 := NewCallStack()
+	func_id2 := PushFunction(func() {
+		owner_obj := stack2.PopObject()
+		ObjectRetain(owner_obj.GetRaw())
+		owner := *PlatformerUnitFrom(owner_obj.GetRaw())
+		action_raw, _ := stack2.PopI64()
+		action := *PlatformerUnitActionFrom(action_raw)
+		stop(owner, action)
+	})
+	platformer_unitaction_add(ToDoraString(name), priority, reaction, recovery, ToDoraBool(queued), func_id0, *stack0.raw, func_id1, *stack1.raw, func_id2, *stack2.raw)
+}

@@ -50,6 +50,7 @@ export interface TreeDataType extends DataNode {
 	key: string;
 	dir: boolean;
 	root?: boolean;
+	builtin?: boolean;
 	title: string;
 	children?: TreeDataType[];
 };
@@ -155,6 +156,7 @@ export interface FileTreeProps {
 export default memo(function FileTree(props: FileTreeProps) {
 	const {treeData, expandedKeys, selectedKeys} = props;
 	const [anchorItem, setAnchorItem] = useState<null | {target: Element, data: TreeDataType}>(null);
+	const [menuOpen, setMenuOpen] = useState(false);
 	const {t} = useTranslation();
 
 	function onRightClick(info: {
@@ -162,11 +164,12 @@ export default memo(function FileTree(props: FileTreeProps) {
 		node: EventDataNode<TreeDataType>;
 	}) {
 		setAnchorItem({target: info.event.currentTarget, data: info.node});
+		setMenuOpen(true);
 	}
 
 	const handleClose = (event: TreeMenuEvent, data?: TreeDataType) => {
 		props.onMenuClick(event, data);
-		setAnchorItem(null);
+		setMenuOpen(false);
 	};
 
 	const onSelect = (_keys: Key[], info: {selectedNodes: TreeDataType[]}) => {
@@ -187,6 +190,17 @@ export default memo(function FileTree(props: FileTreeProps) {
 	};
 
 	const ext = anchorItem ? Info.path.extname(anchorItem.data.key).toLowerCase() : "";
+	const isRoot = anchorItem?.data.root ?? false;
+	const isBuiltin = anchorItem?.data.builtin ?? false;
+	const enableNew = isRoot || !isBuiltin;
+	const enableDelete = !isRoot && !isBuiltin;
+	const enableRename = !isRoot && !isBuiltin;
+	const enableDownload = isRoot || !isBuiltin;
+	const enableCopyPath = !isRoot || isBuiltin;
+	const enableUnzip = !isRoot && !isBuiltin;
+	const enableBuild = isRoot || !isBuiltin;
+	const enableObfuscate = isRoot || !isBuiltin;
+	const enableViewCompiled = !isRoot && !isBuiltin;
 
 	return (
 		<MacScrollbar
@@ -204,42 +218,58 @@ export default memo(function FileTree(props: FileTreeProps) {
 				anchorEl={anchorItem?.target}
 				keepMounted
 				autoFocus={false}
-				open={Boolean(anchorItem?.target)}
+				open={menuOpen}
 				onClose={() => handleClose("Cancel", anchorItem?.data)}
+				TransitionProps={{
+					onExited: () => setAnchorItem(null),
+				}}
 			>
-				<StyledMenuItem onClick={() => handleClose("New", anchorItem?.data)}>
-					<ListItemIcon>
-						<AiOutlineFileAdd/>
-					</ListItemIcon>
-					<ListItemText primary={ t("menu.new") }/>
-					<div style={{fontSize: 10, color: Color.TextSecondary}}>Mod+Shift+N</div>
-				</StyledMenuItem>
-				<StyledMenuItem onClick={() => handleClose("Delete", anchorItem?.data)}>
-					<ListItemIcon>
-						<AiOutlineDelete/>
-					</ListItemIcon>
-					<ListItemText primary={ t("menu.delete") }/>
-					<div style={{fontSize: 10, color: Color.TextSecondary}}>Mod+Shift+D</div>
-				</StyledMenuItem>
-				<StyledMenuItem onClick={() => handleClose("Rename", anchorItem?.data)}>
-					<ListItemIcon>
-						<AiOutlineEdit/>
-					</ListItemIcon>
-					<ListItemText primary={ t("menu.rename") }/>
-				</StyledMenuItem>
-				<StyledMenuItem onClick={() => handleClose("Download", anchorItem?.data)}>
-					<ListItemIcon>
-						<AiOutlineDownload/>
-					</ListItemIcon>
-					<ListItemText primary={ t("menu.download") }/>
-				</StyledMenuItem>
-				<StyledMenuItem onClick={() => handleClose("Copy Path", anchorItem?.data)}>
-					<ListItemIcon>
-						<RxClipboardCopy/>
-					</ListItemIcon>
-					<ListItemText primary={ t("menu.copyPath") }/>
-				</StyledMenuItem>
-				{anchorItem && ext === ".zip" ?
+				{enableNew ?
+					<StyledMenuItem onClick={() => handleClose("New", anchorItem?.data)}>
+						<ListItemIcon>
+							<AiOutlineFileAdd/>
+						</ListItemIcon>
+						<ListItemText primary={ t("menu.new") }/>
+						<div style={{fontSize: 10, color: Color.TextSecondary}}>Mod+Shift+N</div>
+					</StyledMenuItem> : null
+				}
+				{enableDelete ?
+					<StyledMenuItem onClick={() => handleClose("Delete", anchorItem?.data)}>
+						<ListItemIcon>
+							<AiOutlineDelete/>
+						</ListItemIcon>
+						<ListItemText primary={ t("menu.delete") }/>
+						<div style={{fontSize: 10, color: Color.TextSecondary}}>Mod+Shift+D</div>
+					</StyledMenuItem> : null
+				}
+				{enableRename ?
+					<StyledMenuItem onClick={() => handleClose("Rename", anchorItem?.data)}>
+						<ListItemIcon>
+							<AiOutlineEdit/>
+						</ListItemIcon>
+						<ListItemText primary={ t("menu.rename") }/>
+						<div style={{fontSize: 10, color: Color.TextSecondary}}>Mod+Shift+R</div>
+					</StyledMenuItem> : null
+				}
+				{enableDownload ?
+					<StyledMenuItem onClick={() => handleClose("Download", anchorItem?.data)}>
+						<ListItemIcon>
+							<AiOutlineDownload/>
+						</ListItemIcon>
+						<ListItemText primary={ t("menu.download") }/>
+						<div style={{fontSize: 10, color: Color.TextSecondary}}>Mod+Shift+D</div>
+					</StyledMenuItem> : null
+				}
+				{enableCopyPath ?
+					<StyledMenuItem onClick={() => handleClose("Copy Path", anchorItem?.data)}>
+						<ListItemIcon>
+							<RxClipboardCopy/>
+						</ListItemIcon>
+						<ListItemText primary={ t("menu.copyPath") }/>
+						<div style={{fontSize: 10, color: Color.TextSecondary}}>Mod+Shift+C</div>
+					</StyledMenuItem> : null
+				}
+				{enableUnzip && anchorItem && ext === ".zip" ?
 					<StyledMenuItem onClick={() => handleClose("Unzip", anchorItem?.data)}>
 						<ListItemIcon>
 							<AiOutlineFolderOpen/>
@@ -247,7 +277,7 @@ export default memo(function FileTree(props: FileTreeProps) {
 						<ListItemText primary={ t("menu.extract") }/>
 					</StyledMenuItem> : null
 				}
-				{anchorItem &&
+				{enableBuild && anchorItem &&
 					((Info.path.extname(
 						Info.path.basename(anchorItem.data.key, ext)
 					) === "" &&
@@ -265,7 +295,7 @@ export default memo(function FileTree(props: FileTreeProps) {
 						<ListItemText primary={ t("menu.build") }/>
 					</StyledMenuItem> : null
 				}
-				{anchorItem && anchorItem.data.dir ?
+				{enableObfuscate && anchorItem && anchorItem.data.dir ?
 					<StyledMenuItem onClick={() => handleClose("Obfuscate", anchorItem?.data)}>
 						<ListItemIcon>
 							<TbMoodConfuzed/>
@@ -273,7 +303,7 @@ export default memo(function FileTree(props: FileTreeProps) {
 						<ListItemText primary={ t("menu.obfuscate") }/>
 					</StyledMenuItem> : null
 				}
-				{anchorItem &&
+				{enableViewCompiled && anchorItem &&
 					Info.path.extname(
 						Info.path.basename(anchorItem.data.key, ext)
 					) === "" &&

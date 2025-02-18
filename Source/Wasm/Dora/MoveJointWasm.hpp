@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -11,8 +11,8 @@ using namespace Dora;
 int32_t movejoint_type() {
 	return DoraType<MoveJoint>();
 }
-void movejoint_set_position(int64_t self, int64_t var) {
-	r_cast<MoveJoint*>(self)->setPosition(Vec2_From(var));
+void movejoint_set_position(int64_t self, int64_t val) {
+	r_cast<MoveJoint*>(self)->setPosition(Vec2_From(val));
 }
 int64_t movejoint_get_position(int64_t self) {
 	return Vec2_Retain(r_cast<MoveJoint*>(self)->getPosition());

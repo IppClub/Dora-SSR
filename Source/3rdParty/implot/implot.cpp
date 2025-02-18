@@ -125,8 +125,11 @@ You can read releases logs https://github.com/epezent/implot/releases for more d
 
 */
 
+#ifndef IMGUI_DEFINE_MATH_OPERATORS
 #define IMGUI_DEFINE_MATH_OPERATORS
+#endif
 #include "implot.h"
+#ifndef IMGUI_DISABLE
 #include "implot_internal.h"
 
 #include <stdlib.h>
@@ -947,20 +950,6 @@ tm* GetLocTime(const ImPlotTime& t, tm* ptm) {
 #endif
 }
 
-inline ImPlotTime MkTime(struct tm *ptm) {
-    if (GetStyle().UseLocalTime)
-        return MkLocTime(ptm);
-    else
-        return MkGmtTime(ptm);
-}
-
-inline tm* GetTime(const ImPlotTime& t, tm* ptm) {
-    if (GetStyle().UseLocalTime)
-        return GetLocTime(t,ptm);
-    else
-        return GetGmtTime(t,ptm);
-}
-
 ImPlotTime MakeTime(int year, int month, int day, int hour, int min, int sec, int us) {
     tm& Tm = GImPlot->Tm;
 
@@ -988,6 +977,12 @@ int GetYear(const ImPlotTime& t) {
     tm& Tm = GImPlot->Tm;
     GetTime(t, &Tm);
     return Tm.tm_year + 1900;
+}
+
+int GetMonth(const ImPlotTime& t) {
+    tm& Tm = GImPlot->Tm;
+    ImPlot::GetTime(t, &Tm);
+    return Tm.tm_mon;
 }
 
 ImPlotTime AddTime(const ImPlotTime& t, ImPlotTimeUnit unit, int count) {
@@ -5010,9 +5005,15 @@ void ShowStyleEditor(ImPlotStyle* ref) {
             filter.Draw("Filter colors", ImGui::GetFontSize() * 16);
 
             static ImGuiColorEditFlags alpha_flags = ImGuiColorEditFlags_AlphaPreviewHalf;
+#if IMGUI_VERSION_NUM < 19173
             if (ImGui::RadioButton("Opaque", alpha_flags == ImGuiColorEditFlags_None))             { alpha_flags = ImGuiColorEditFlags_None; } ImGui::SameLine();
             if (ImGui::RadioButton("Alpha",  alpha_flags == ImGuiColorEditFlags_AlphaPreview))     { alpha_flags = ImGuiColorEditFlags_AlphaPreview; } ImGui::SameLine();
             if (ImGui::RadioButton("Both",   alpha_flags == ImGuiColorEditFlags_AlphaPreviewHalf)) { alpha_flags = ImGuiColorEditFlags_AlphaPreviewHalf; } ImGui::SameLine();
+#else
+            if (ImGui::RadioButton("Opaque", alpha_flags == ImGuiColorEditFlags_AlphaOpaque))      { alpha_flags = ImGuiColorEditFlags_AlphaOpaque; } ImGui::SameLine();
+            if (ImGui::RadioButton("Alpha",  alpha_flags == ImGuiColorEditFlags_None))             { alpha_flags = ImGuiColorEditFlags_None; } ImGui::SameLine();
+            if (ImGui::RadioButton("Both",   alpha_flags == ImGuiColorEditFlags_AlphaPreviewHalf)) { alpha_flags = ImGuiColorEditFlags_AlphaPreviewHalf; } ImGui::SameLine();
+#endif
             HelpMarker(
                 "In the color list:\n"
                 "Left-click on colored square to open color picker,\n"
@@ -5171,7 +5172,7 @@ void ShowUserGuide() {
     ImGui::Indent();
         ImGui::BulletText("Left-click drag on axis labels to pan an individual axis.");
     ImGui::Unindent();
-    ImGui::BulletText("Scroll in the plot area to zoom both X any Y axes.");
+    ImGui::BulletText("Scroll in the plot area to zoom both X and Y axes.");
     ImGui::Indent();
         ImGui::BulletText("Scroll on axis labels to zoom an individual axis.");
     ImGui::Unindent();
@@ -5883,3 +5884,5 @@ bool BeginPlot(const char* title, const char* x_label, const char* y1_label, con
 #endif
 
 }  // namespace ImPlot
+
+#endif // #ifndef IMGUI_DISABLE

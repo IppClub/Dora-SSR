@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -43,9 +43,9 @@ bool IsInLuaOrWasm();
 #define WarnIf(...) DORA_DUMMY
 #define ErrorIf(...) DORA_DUMMY
 #else
-#define Info(...) LogInfoThreaded(fmt::format(__VA_ARGS__))
-#define Warn(...) LogWarnThreaded(fmt::format(__VA_ARGS__))
-#define Error(...) LogErrorThreaded(fmt::format(__VA_ARGS__))
+#define Info(...) Dora::LogInfoThreaded(fmt::format(__VA_ARGS__))
+#define Warn(...) Dora::LogWarnThreaded(fmt::format(__VA_ARGS__))
+#define Error(...) Dora::LogErrorThreaded(fmt::format(__VA_ARGS__))
 #define InfoIf(cond, ...) \
 	if (cond) { \
 		Info(__VA_ARGS__); \

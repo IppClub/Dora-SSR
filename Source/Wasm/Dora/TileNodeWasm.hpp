@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -11,26 +11,26 @@ using namespace Dora;
 int32_t tilenode_type() {
 	return DoraType<TileNode>();
 }
-void tilenode_set_depth_write(int64_t self, int32_t var) {
-	r_cast<TileNode*>(self)->setDepthWrite(var != 0);
+void tilenode_set_depth_write(int64_t self, int32_t val) {
+	r_cast<TileNode*>(self)->setDepthWrite(val != 0);
 }
 int32_t tilenode_is_depth_write(int64_t self) {
 	return r_cast<TileNode*>(self)->isDepthWrite() ? 1 : 0;
 }
-void tilenode__set_blend_func(int64_t self, int64_t func) {
-	r_cast<TileNode*>(self)->setBlendFunc(BlendFunc(s_cast<uint64_t>(func)));
+void tilenode_set_blend_func(int64_t self, int64_t val) {
+	r_cast<TileNode*>(self)->setBlendFunc(BlendFunc(s_cast<uint64_t>(val)));
 }
-int64_t tilenode__get_blend_func(int64_t self) {
+int64_t tilenode_get_blend_func(int64_t self) {
 	return s_cast<int64_t>(r_cast<TileNode*>(self)->getBlendFunc().toValue());
 }
-void tilenode_set_effect(int64_t self, int64_t var) {
-	r_cast<TileNode*>(self)->setEffect(r_cast<SpriteEffect*>(var));
+void tilenode_set_effect(int64_t self, int64_t val) {
+	r_cast<TileNode*>(self)->setEffect(r_cast<SpriteEffect*>(val));
 }
 int64_t tilenode_get_effect(int64_t self) {
 	return Object_From(r_cast<TileNode*>(self)->getEffect());
 }
-void tilenode_set_filter(int64_t self, int32_t var) {
-	r_cast<TileNode*>(self)->setFilter(s_cast<TextureFilter>(var));
+void tilenode_set_filter(int64_t self, int32_t val) {
+	r_cast<TileNode*>(self)->setFilter(s_cast<TextureFilter>(val));
 }
 int32_t tilenode_get_filter(int64_t self) {
 	return s_cast<int32_t>(r_cast<TileNode*>(self)->getFilter());
@@ -53,8 +53,8 @@ static void linkTileNode(wasm3::module3& mod) {
 	mod.link_optional("*", "tilenode_type", tilenode_type);
 	mod.link_optional("*", "tilenode_set_depth_write", tilenode_set_depth_write);
 	mod.link_optional("*", "tilenode_is_depth_write", tilenode_is_depth_write);
-	mod.link_optional("*", "tilenode__set_blend_func", tilenode__set_blend_func);
-	mod.link_optional("*", "tilenode__get_blend_func", tilenode__get_blend_func);
+	mod.link_optional("*", "tilenode_set_blend_func", tilenode_set_blend_func);
+	mod.link_optional("*", "tilenode_get_blend_func", tilenode_get_blend_func);
 	mod.link_optional("*", "tilenode_set_effect", tilenode_set_effect);
 	mod.link_optional("*", "tilenode_get_effect", tilenode_get_effect);
 	mod.link_optional("*", "tilenode_set_filter", tilenode_set_filter);

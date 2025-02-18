@@ -1,4 +1,3 @@
-import "@site/src/languages/highlight";
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
@@ -113,6 +112,10 @@ thread ->
 </Tabs>
 
 &emsp;&emsp;在上述示例中，`thread(function() ... end)` 创建了一个协程任务，`loadAsync` 异步加载资源，`sleep(2)` 模拟耗时操作。协程使得长时间运行的任务不会阻塞主线程，任务的生命周期由引擎全局管理。
+
+:::tip 提示
+&emsp;&emsp;在 Dora SSR 中，通常带有 `async` 后缀的函数都是异步函数，例如 `Content.loadAsync` 和 `Cache.loadAsync`，需要放在协程任务中来异步执行。
+:::
 
 #### 示例：节点关联的协程任务
 

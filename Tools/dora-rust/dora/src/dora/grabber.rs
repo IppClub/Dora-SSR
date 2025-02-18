@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -8,13 +8,13 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 	fn grabber_type() -> i32;
-	fn grabber_set_camera(slf: i64, var: i64);
+	fn grabber_set_camera(slf: i64, val: i64);
 	fn grabber_get_camera(slf: i64) -> i64;
-	fn grabber_set_effect(slf: i64, var: i64);
+	fn grabber_set_effect(slf: i64, val: i64);
 	fn grabber_get_effect(slf: i64) -> i64;
-	fn grabber__set_blend_func(slf: i64, func: i64);
-	fn grabber__get_blend_func(slf: i64) -> i64;
-	fn grabber_set_clear_color(slf: i64, var: i32);
+	fn grabber_set_blend_func(slf: i64, val: i64);
+	fn grabber_get_blend_func(slf: i64) -> i64;
+	fn grabber_set_clear_color(slf: i64, val: i32);
 	fn grabber_get_clear_color(slf: i64) -> i32;
 	fn grabber_set_pos(slf: i64, x: i32, y: i32, pos: i64, z: f32);
 	fn grabber_get_pos(slf: i64, x: i32, y: i32) -> i64;
@@ -37,30 +37,32 @@ impl Grabber {
 		})
 	}
 	/// Sets the camera used to render the texture.
-	pub fn set_camera(&mut self, var: &dyn crate::dora::ICamera) {
-		unsafe { grabber_set_camera(self.raw(), var.raw()) };
+	pub fn set_camera(&mut self, val: &dyn crate::dora::ICamera) {
+		unsafe { grabber_set_camera(self.raw(), val.raw()) };
 	}
 	/// Gets the camera used to render the texture.
 	pub fn get_camera(&self) -> Option<crate::dora::Camera> {
 		return unsafe { crate::dora::Camera::from(grabber_get_camera(self.raw())) };
 	}
 	/// Sets the sprite effect applied to the texture.
-	pub fn set_effect(&mut self, var: &crate::dora::SpriteEffect) {
-		unsafe { grabber_set_effect(self.raw(), var.raw()) };
+	pub fn set_effect(&mut self, val: &crate::dora::SpriteEffect) {
+		unsafe { grabber_set_effect(self.raw(), val.raw()) };
 	}
 	/// Gets the sprite effect applied to the texture.
 	pub fn get_effect(&self) -> Option<crate::dora::SpriteEffect> {
 		return unsafe { crate::dora::SpriteEffect::from(grabber_get_effect(self.raw())) };
 	}
-	pub(crate) fn _set_blend_func(&mut self, func: u64) {
-		unsafe { grabber__set_blend_func(self.raw(), func as i64); }
+	/// Sets the blend function for the grabber.
+	pub fn set_blend_func(&mut self, val: crate::dora::BlendFunc) {
+		unsafe { grabber_set_blend_func(self.raw(), val.to_value()) };
 	}
-	pub(crate) fn _get_blend_func(&self) -> u64 {
-		unsafe { return grabber__get_blend_func(self.raw()) as u64; }
+	/// Gets the blend function for the grabber.
+	pub fn get_blend_func(&self) -> crate::dora::BlendFunc {
+		return unsafe { crate::dora::BlendFunc::from(grabber_get_blend_func(self.raw())) };
 	}
 	/// Sets the clear color used to clear the texture.
-	pub fn set_clear_color(&mut self, var: &crate::dora::Color) {
-		unsafe { grabber_set_clear_color(self.raw(), var.to_argb() as i32) };
+	pub fn set_clear_color(&mut self, val: &crate::dora::Color) {
+		unsafe { grabber_set_clear_color(self.raw(), val.to_argb() as i32) };
 	}
 	/// Gets the clear color used to clear the texture.
 	pub fn get_clear_color(&self) -> crate::dora::Color {

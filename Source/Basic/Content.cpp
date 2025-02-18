@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -12,6 +12,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Basic/Application.h"
 #include "Common/Async.h"
+#include "Event/Event.h"
 #include "Render/VGRender.h"
 
 #include <fstream>
@@ -70,23 +71,55 @@ static void trimTrailingSlashes(std::string& str) {
 	}
 }
 
-void Content::init(int argc, const char* const argv[]) {
-	for (int i = 0; i < argc; i++) {
-		if (argv[i] == "--asset"sv && i + 1 < argc) {
-			std::string assetPath = argv[++i];
-			std::error_code err;
-			std::string fullPath = fs::absolute(assetPath, err).lexically_normal().string();
-			if (err) {
-				Error("got invalid asset path \"{}\"", assetPath);
-			}
-			if (fs::exists(fullPath, err)) {
-				_assetPath = fullPath;
-				trimTrailingSlashes(_assetPath);
-			} else {
-				Error("got invalid asset path \"{}\"", assetPath);
-			}
-		}
+void Content::setAssetPath(String assetPath) {
+#if BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS || BX_PLATFORM_LINUX
+	std::error_code err;
+	std::string fullPath = fs::absolute(assetPath.toString(), err).lexically_normal().string();
+	if (err) {
+		Issue("got invalid asset path \"{}\"", assetPath.toString());
 	}
+	if (fs::exists(fullPath, err)) {
+		_assetPath = fullPath;
+		trimTrailingSlashes(_assetPath);
+	} else {
+		Issue("got invalid asset path \"{}\"", assetPath.toString());
+	}
+#else
+	Issue("changing asset path is not supported on platform \"{}\"", SharedApplication.getPlatform().toString());
+#endif
+}
+
+const std::string& Content::getAssetPath() const noexcept {
+	return _assetPath;
+}
+
+const std::string& Content::getAppPath() const noexcept {
+	return _appPath;
+}
+
+void Content::setWritablePath(String writablePath) {
+#if BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS || BX_PLATFORM_LINUX
+	if (_writablePath == writablePath) {
+		return;
+	}
+	std::error_code err;
+	std::string fullPath = fs::absolute(writablePath.toString(), err).lexically_normal().string();
+	if (err) {
+		Issue("got invalid writable path \"{}\"", writablePath.toString());
+	}
+	if (fs::exists(fullPath, err)) {
+		_writablePath = fullPath;
+		trimTrailingSlashes(_writablePath);
+	} else {
+		Issue("got invalid writable path \"{}\"", writablePath.toString());
+	}
+#else
+	Issue("changing writable path is not supported on platform \"{}\"", SharedApplication.getPlatform().toString());
+#endif
+}
+
+const std::string& Content::getWritablePath() const noexcept {
+	return _writablePath;
 }
 
 Async* Content::getThread() const noexcept {
@@ -226,14 +259,6 @@ bool Content::visitDir(String path, const std::function<bool(String, String)>& f
 		return false;
 	};
 	return visit(path);
-}
-
-const std::string& Content::getAssetPath() const noexcept {
-	return _assetPath;
-}
-
-const std::string& Content::getWritablePath() const noexcept {
-	return _writablePath;
 }
 
 static std::tuple<std::string, std::string> splitDirectoryAndFilename(const std::string& filePath) {
@@ -729,18 +754,23 @@ void Content::clearPathCache() {
 	_fullPathCache.clear();
 }
 
+static std::string getPrefPath() {
+	char* prefPath = SDL_GetPrefPath(DORA_DEFAULT_ORG_NAME, DORA_DEFAULT_APP_NAME);
+	std::string appPath = prefPath;
+	trimTrailingSlashes(appPath);
+	SDL_free(prefPath);
+	return appPath;
+}
+
 #if BX_PLATFORM_ANDROID
 Content::Content()
-	: _thread(SharedAsyncThread.newThread()) {
+	: _thread(SharedAsyncThread.newThread())
+	, _appPath(getPrefPath()) {
 	_apkFilter = "assets/"s;
 	_assetPath = SharedApplication.getAPKPath() + '/' + _apkFilter;
 	trimTrailingSlashes(_assetPath);
 	_apkFile = New<ZipFile>(SharedApplication.getAPKPath(), _apkFilter);
-
-	char* prefPath = SDL_GetPrefPath(DORA_DEFAULT_ORG_NAME, DORA_DEFAULT_APP_NAME);
-	_writablePath = prefPath;
-	trimTrailingSlashes(_writablePath);
-	SDL_free(prefPath);
+	_writablePath = _appPath;
 }
 
 uint8_t* Content::loadUnsafe(String filename, int64_t& size) {
@@ -869,14 +899,11 @@ bool Content::isAbsolutePath(String strPath) {
 
 #if BX_PLATFORM_WINDOWS || BX_PLATFORM_LINUX
 Content::Content()
-	: _thread(SharedAsyncThread.newThread()) {
+	: _thread(SharedAsyncThread.newThread())
+	, _appPath(getPrefPath()) {
 	_assetPath = fs::current_path().string();
 	trimTrailingSlashes(_assetPath);
-
-	char* prefPath = SDL_GetPrefPath(DORA_DEFAULT_ORG_NAME, DORA_DEFAULT_APP_NAME);
-	_writablePath = prefPath;
-	trimTrailingSlashes(_writablePath);
-	SDL_free(prefPath);
+	_writablePath = _appPath;
 }
 
 bool Content::isFileExist(String filePath) {
@@ -891,16 +918,13 @@ bool Content::isFileExist(String filePath) {
 
 #if BX_PLATFORM_OSX || BX_PLATFORM_IOS
 Content::Content()
-	: _thread(SharedAsyncThread.newThread()) {
+	: _thread(SharedAsyncThread.newThread())
+	, _appPath(getPrefPath()) {
 	char* currentPath = SDL_GetBasePath();
 	_assetPath = currentPath;
 	trimTrailingSlashes(_assetPath);
 	SDL_free(currentPath);
-
-	char* prefPath = SDL_GetPrefPath(DORA_DEFAULT_ORG_NAME, DORA_DEFAULT_APP_NAME);
-	_writablePath = prefPath;
-	trimTrailingSlashes(_writablePath);
-	SDL_free(prefPath);
+	_writablePath = _appPath;
 }
 #endif // BX_PLATFORM_OSX || BX_PLATFORM_IOS
 

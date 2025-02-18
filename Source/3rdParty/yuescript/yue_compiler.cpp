@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2017-2025 Li Jin <dragon-fly@qq.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -75,7 +75,7 @@ static std::unordered_set<std::string> Metamethods = {
 	"close"s // Lua 5.4
 };
 
-const std::string_view version = "0.26.0"sv;
+const std::string_view version = "0.27.0"sv;
 const std::string_view extension = "yue"sv;
 
 class CompileError : public std::logic_error {
@@ -6272,6 +6272,9 @@ private:
 				case id<TableAppendingOp_t>():
 					transform_table_appending_op(static_cast<TableAppendingOp_t*>(item), temp);
 					break;
+				case id<PlainItem_t>():
+					temp.push_back(_parser.toString(item));
+					break;
 				default: YUEE("AST node mismatch", item); break;
 			}
 		}
@@ -6519,24 +6522,26 @@ private:
 				throw CompileError("macro table must contain field \"type\" of value \"lua\" or \"text\""sv, x);
 			}
 			lua_pop(L, 1); // cur tab
-			lua_getfield(L, -1, "locals"); // cur tab locals
-			if (lua_istable(L, -1) != 0) {
-				for (int i = 0; i < static_cast<int>(lua_objlen(L, -1)); i++) {
-					lua_rawgeti(L, -1, i + 1); // cur tab locals item
-					size_t len = 0;
-					if (lua_isstring(L, -1) == 0) {
-						throw CompileError("macro table field \"locals\" must be a table of strings"sv, x);
+			if (type == "text"sv) {
+				lua_getfield(L, -1, "locals"); // cur tab locals
+				if (lua_istable(L, -1) != 0) {
+					for (int i = 0; i < static_cast<int>(lua_objlen(L, -1)); i++) {
+						lua_rawgeti(L, -1, i + 1); // cur tab locals item
+						size_t len = 0;
+						if (lua_isstring(L, -1) == 0) {
+							throw CompileError("macro table field \"locals\" must be a table of strings"sv, x);
+						}
+						auto name = lua_tolstring(L, -1, &len);
+						if (auto varNode = toAst<Variable_t>({name, len}, x)) {
+							localVars.push_back(variableToString(varNode));
+						} else {
+							throw CompileError("macro table field \"locals\" must contain names for local variables, got \""s + std::string(name, len) + '"', x);
+						}
+						lua_pop(L, 1); // cur tab locals
 					}
-					auto name = lua_tolstring(L, -1, &len);
-					if (auto varNode = toAst<Variable_t>({name, len}, x)) {
-						localVars.push_back(variableToString(varNode));
-					} else {
-						throw CompileError("macro table field \"locals\" must contain names for local variables, got \""s + std::string(name, len) + '"', x);
-					}
-					lua_pop(L, 1); // cur tab locals
 				}
+				lua_pop(L, 1); // cur tab
 			}
-			lua_pop(L, 1); // cur tab
 		} else { // cur code
 			codes = lua_tostring(L, -1);
 		}
@@ -6554,23 +6559,42 @@ private:
 		bool isBlock = (usage == ExpUsage::Common) && (chainList.size() < 2 || (chainList.size() == 2 && ast_is<Invoke_t, InvokeArgs_t>(chainList.back())));
 		ParseInfo info;
 		if (type == "lua"sv) {
-			if (!isBlock) {
-				throw CompileError("lua macro can only be placed where block macro is allowed"sv, x);
-			}
 			auto macroChunk = "=(macro "s + _parser.toString(x->name) + ')';
 			int top = lua_gettop(L);
 			DEFER(lua_settop(L, top));
-			if (luaL_loadbuffer(L, codes.c_str(), codes.size(), macroChunk.c_str()) != 0) {
-				std::string err = lua_tostring(L, -1);
-				throw CompileError(err, x);
-			}
-			if (!codes.empty()) {
-				if (_config.reserveLineNumber) {
-					codes.insert(0, nll(chainValue).substr(1));
+			if (isBlock) {
+				if (luaL_loadbuffer(L, codes.c_str(), codes.size(), macroChunk.c_str()) != 0) {
+					std::string err = lua_tostring(L, -1);
+					throw CompileError("lua macro is not expanding to valid block\n"s + err, x);
 				}
-				codes.append(nlr(chainValue));
+				if (!codes.empty()) {
+					codes.insert(0, indent() + "do"s + nll(chainValue));
+					codes.append(_newLine + indent() + "end"s + nlr(chainValue));
+				}
+				return {nullptr, nullptr, std::move(codes), std::move(localVars)};
+			} else {
+				auto expCode = "return ("s + codes + ')';
+				if (luaL_loadbuffer(L, expCode.c_str(), expCode.size(), macroChunk.c_str()) != 0) {
+					std::string err = lua_tostring(L, -1);
+					throw CompileError("lua macro is not expanding to valid expression\n"s + err, x);
+				}
+				Utils::trim(codes);
+				codes = '(' + codes + ')';
+				auto plainItem = toAst<PlainItem_t>(codes, x);
+				auto newChain = x->new_ptr<ChainValue_t>();
+				newChain->items.push_back(plainItem);
+				ast_ptr<false, ast_node> exp;
+				exp.set(newExp(newChain, x));
+				if (chainList.size() > 2 || (chainList.size() == 2 && !ast_is<Invoke_t, InvokeArgs_t>(chainList.back()))) {
+					auto it = chainList.begin();
+					it++;
+					if (chainList.size() > 1 && ast_is<Invoke_t, InvokeArgs_t>(*it)) it++;
+					for (; it != chainList.end(); ++it) {
+						newChain->items.push_back(*it);
+					}
+				}
+				return {exp, nullptr, Empty, std::move(localVars)};
 			}
-			return {nullptr, nullptr, std::move(codes), std::move(localVars)};
 		} else if (type == "text"sv) {
 			if (!isBlock) {
 				throw CompileError("text macro can only be placed where block macro is allowed"sv, x);
@@ -7031,7 +7055,7 @@ private:
 				} else {
 					for (const auto& exp : tmp) {
 						_buf << exp << " == "sv << newVar;
-						if (exp != tmp.back()) {
+						if (&exp != &tmp.back()) {
 							_buf << " or "sv;
 						}
 					}
@@ -7078,7 +7102,7 @@ private:
 				} else {
 					for (const auto& exp : tmp) {
 						_buf << exp << " == "sv << varName;
-						if (exp != tmp.back()) {
+						if (&exp != &tmp.back()) {
 							_buf << " or "sv;
 						}
 					}
@@ -8701,12 +8725,15 @@ private:
 		auto classVar = getUnusedName("_class_"sv);
 		addToScope(classVar);
 		temp.push_back(indent() + "local "s + classVar + nll(classDecl));
+		auto block = classDecl->new_ptr<Block_t>();
+		str_list classConstVars;
 		if (body) {
 			str_list varDefs;
 			for (auto item : body->contents.objects()) {
 				if (auto statement = ast_cast<Statement_t>(item)) {
 					ClassDecl_t* clsDecl = nullptr;
 					if (auto assignment = assignmentFrom(statement)) {
+						block->statements.push_back(statement);
 						auto names = transformAssignDefs(assignment->expList.get(), DefOp::Mark);
 						for (const auto& name : names) {
 							varDefs.push_back(name.first);
@@ -8736,9 +8763,85 @@ private:
 						clsDecl = value->get_by_path<SimpleValue_t, ClassDecl_t>();
 						BLOCK_END
 					} else if (auto expList = expListFrom(statement)) {
+						block->statements.push_back(statement);
 						if (auto value = singleValueFrom(expList)) {
 							clsDecl = value->get_by_path<SimpleValue_t, ClassDecl_t>();
 						}
+					} else if (auto local = statement->content.as<Local_t>()) {
+						block->statements.push_back(statement);
+						if (auto values = local->item.as<LocalValues_t>()) {
+							for (auto name : values->nameList->names.objects()) {
+								auto varName = variableToString(static_cast<Variable_t*>(name));
+								forceAddToScope(varName);
+								varDefs.push_back(varName);
+							}
+						}
+					} else if (auto localAttrib = statement->content.as<LocalAttrib_t>()) {
+						auto explist = localAttrib->new_ptr<ExpList_t>();
+						for (auto item : localAttrib->leftList.objects()) {
+							auto value = item->new_ptr<Value_t>();
+							switch (item->get_id()) {
+								case id<Variable_t>(): {
+									auto callable = item->new_ptr<Callable_t>();
+									callable->item.set(item);
+									auto chainValue = item->new_ptr<ChainValue_t>();
+									chainValue->items.push_back(callable);
+									value->item.set(chainValue);
+									break;
+								}
+								case id<SimpleTable_t>():
+									value->item.set(item);
+									break;
+								case id<TableLit_t>():
+								case id<Comprehension_t>(): {
+									auto simpleValue = item->new_ptr<SimpleValue_t>();
+									simpleValue->value.set(item);
+									value->item.set(simpleValue);
+									break;
+								}
+								default: YUEE("AST node mismatch", item); break;
+							}
+							explist->exprs.push_back(newExp(value, value));
+						}
+						auto assignment = localAttrib->new_ptr<ExpListAssign_t>();
+						assignment->expList.set(explist);
+						assignment->action.set(localAttrib->assign);
+						auto names = transformAssignDefs(assignment->expList.get(), DefOp::Get);
+						for (const auto& name : names) {
+							forceAddToScope(name.first);
+							markVarConst(name.first);
+							varDefs.push_back(name.first);
+							classConstVars.push_back(name.first);
+						}
+						auto info = extractDestructureInfo(assignment, true, false);
+						if (!info.destructures.empty()) {
+							for (const auto& des : info.destructures) {
+								if (std::holds_alternative<AssignmentPtr>(des)) {
+									continue;
+								}
+								const auto& destruct = std::get<Destructure>(des);
+								for (const auto& item : destruct.items) {
+									if (!item.targetVar.empty()) {
+										forceAddToScope(item.targetVar);
+										markVarConst(item.targetVar);
+										varDefs.push_back(item.targetVar);
+										classConstVars.push_back(item.targetVar);
+									}
+								}
+							}
+						}
+						auto stmt = statement->new_ptr<Statement_t>();
+						stmt->comments.dup(statement->comments);
+						auto newAttrib = localAttrib->new_ptr<LocalAttrib_t>();
+						newAttrib->attrib.set(localAttrib->attrib);
+						newAttrib->leftList.dup(localAttrib->leftList);
+						newAttrib->assign.set(localAttrib->assign);
+						newAttrib->forceLocal = false;
+						stmt->content.set(newAttrib);
+						stmt->appendix.set(statement->appendix);
+						block->statements.push_back(stmt);
+					} else if (statement->content.is<Global_t>()) {
+						throw CompileError("global statement is not allowed here"sv, statement->content);
 					}
 					if (clsDecl) {
 						std::string clsName;
@@ -8786,11 +8889,16 @@ private:
 						}
 						break;
 					}
-					case id<Statement_t>():
-						transformStatement(static_cast<Statement_t*>(content), statements);
-						break;
+					case id<Statement_t>(): break;
 					default: YUEE("AST node mismatch", content); break;
 				}
+			}
+			for (const auto& classVar : classConstVars) {
+				auto& scope = _scopes.back();
+				scope.vars->insert_or_assign(classVar, VarType::Local);
+			}
+			for (auto stmt_ : block->statements.objects()) {
+				transformStatement(static_cast<Statement_t*>(stmt_), statements);
 			}
 			for (auto& member : members) {
 				switch (member.type) {
@@ -8969,7 +9077,7 @@ private:
 			if (selfItem) {
 				type = MemType::Property;
 				auto name = ast_cast<SelfName_t>(selfItem->name);
-				if (!name) throw CompileError("invalid class poperty name"sv, selfItem->name);
+				if (!name) throw CompileError("invalid class property name"sv, selfItem->name);
 				if (name->name.is<UnicodeName_t>()) {
 					newSuperCall = classVar + ".__parent[\""s + _parser.toString(name->name) + "\"]"s;
 				} else {
@@ -10608,6 +10716,7 @@ private:
 
 	void transformLocalAttrib(LocalAttrib_t* localAttrib, str_list& out) {
 		auto x = localAttrib;
+		bool forceLocal = localAttrib->forceLocal;
 		if (x->leftList.size() < x->assign->values.size()) {
 			auto num = x->leftList.size();
 			if (num > 1) {
@@ -10652,7 +10761,7 @@ private:
 			++i;
 			if (j != je) ++j;
 		}
-		bool checkValuesLater = false;
+		bool checkValuesLater = !forceLocal;
 		for (ast_node* value : assignA->values.objects()) {
 			if (ast_is<Exp_t>(value)) {
 				if (auto sVal = singleValueFrom(value)) {
@@ -10744,7 +10853,9 @@ private:
 				}
 			}
 			str_list temp;
-			temp.push_back(indent() + "local "s + join(vars, ", "sv) + nll(x));
+			if (localAttrib->forceLocal) {
+				temp.push_back(indent() + "local "s + join(vars, ", "sv) + nll(x));
+			}
 			transformAssignment(assignment, temp);
 			for (const auto& name : vars) {
 				markVarConst(name);

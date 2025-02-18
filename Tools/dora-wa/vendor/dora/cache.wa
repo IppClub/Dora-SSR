@@ -1,0 +1,65 @@
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+#wa:import dora cache_load
+func cache_load(filename: i64) => i32
+
+#wa:import dora cache_load_async
+func cache_load_async(filename: i64, func0: i32, stack0: i64)
+
+#wa:import dora cache_update_item
+func cache_update_item(filename: i64, content: i64)
+
+#wa:import dora cache_update_texture
+func cache_update_texture(filename: i64, texture: i64)
+
+#wa:import dora cache_unload_item_or_type
+func cache_unload_item_or_type(name: i64) => i32
+
+#wa:import dora cache_unload
+func cache_unload()
+
+#wa:import dora cache_remove_unused
+func cache_remove_unused()
+
+#wa:import dora cache_remove_unused_by_type
+func cache_remove_unused_by_type(type_name: i64)
+
+type _Cache :struct{}
+
+global Cache = _Cache{}
+
+func _Cache.Load(filename: string) => bool {
+	return cache_load(ToDoraString(filename)) != 0
+}
+func _Cache.LoadAsync(filename: string, handler: func(success: bool)) {
+	stack0 := NewCallStack()
+	func_id0 := PushFunction(func() {
+		success, _ := stack0.PopBool()
+		handler(success)
+	})
+	cache_load_async(ToDoraString(filename), func_id0, *stack0.raw)
+}
+func _Cache.UpdateItem(filename: string, content: string) {
+	cache_update_item(ToDoraString(filename), ToDoraString(content))
+}
+func _Cache.UpdateTexture(filename: string, texture: Texture2D) {
+	cache_update_texture(ToDoraString(filename), texture.GetRaw())
+}
+func _Cache.UnloadItemOrType(name: string) => bool {
+	return cache_unload_item_or_type(ToDoraString(name)) != 0
+}
+func _Cache.Unload() {
+	cache_unload()
+}
+func _Cache.RemoveUnused() {
+	cache_remove_unused()
+}
+func _Cache.RemoveUnusedByType(type_name: string) {
+	cache_remove_unused_by_type(ToDoraString(type_name))
+}

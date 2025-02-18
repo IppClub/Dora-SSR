@@ -1,0 +1,182 @@
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+#wa:import dora platformer_platformcamera_type
+func platformer_platformcamera_type() => i32
+
+#wa:import dora platformer_platformcamera_set_position
+func platformer_platformcamera_set_position(slf: i64, val: i64)
+
+#wa:import dora platformer_platformcamera_get_position
+func platformer_platformcamera_get_position(slf: i64) => i64
+
+#wa:import dora platformer_platformcamera_set_rotation
+func platformer_platformcamera_set_rotation(slf: i64, val: f32)
+
+#wa:import dora platformer_platformcamera_get_rotation
+func platformer_platformcamera_get_rotation(slf: i64) => f32
+
+#wa:import dora platformer_platformcamera_set_zoom
+func platformer_platformcamera_set_zoom(slf: i64, val: f32)
+
+#wa:import dora platformer_platformcamera_get_zoom
+func platformer_platformcamera_get_zoom(slf: i64) => f32
+
+#wa:import dora platformer_platformcamera_set_boundary
+func platformer_platformcamera_set_boundary(slf: i64, val: i64)
+
+#wa:import dora platformer_platformcamera_get_boundary
+func platformer_platformcamera_get_boundary(slf: i64) => i64
+
+#wa:import dora platformer_platformcamera_set_follow_ratio
+func platformer_platformcamera_set_follow_ratio(slf: i64, val: i64)
+
+#wa:import dora platformer_platformcamera_get_follow_ratio
+func platformer_platformcamera_get_follow_ratio(slf: i64) => i64
+
+#wa:import dora platformer_platformcamera_set_follow_offset
+func platformer_platformcamera_set_follow_offset(slf: i64, val: i64)
+
+#wa:import dora platformer_platformcamera_get_follow_offset
+func platformer_platformcamera_get_follow_offset(slf: i64) => i64
+
+#wa:import dora platformer_platformcamera_set_follow_target
+func platformer_platformcamera_set_follow_target(slf: i64, val: i64)
+
+#wa:import dora platformer_platformcamera_get_follow_target
+func platformer_platformcamera_get_follow_target(slf: i64) => i64
+
+#wa:import dora platformer_platformcamera_set_follow_target_null
+func platformer_platformcamera_set_follow_target_null(slf: i64)
+
+#wa:import dora platformer_platformcamera_new
+func platformer_platformcamera_new(name: i64) => i64
+
+type PlatformerPlatformCamera :struct{ Camera }
+
+func PlatformerPlatformCameraFrom(raw: i64) => *PlatformerPlatformCamera {
+	if raw == 0 {
+		return nil
+	}
+	object := PlatformerPlatformCamera{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	result := &object
+	return result
+}
+func PlatformerPlatformCamera.GetTypeId() => i32 {
+	return platformer_platformcamera_type()
+}
+func ObjectAsPlatformerPlatformCamera(object: Object) => *PlatformerPlatformCamera {
+	if object.GetTypeId() == platformer_platformcamera_type() {
+		ObjectRetain(object.GetRaw())
+		return PlatformerPlatformCameraFrom(object.GetRaw())
+	}
+	return nil
+}
+
+/// Sets The camera's position.
+func PlatformerPlatformCamera.SetPosition(val: Vec2) {
+	platformer_platformcamera_set_position(*this.raw, val.ToValue())
+}
+
+/// Gets The camera's position.
+func PlatformerPlatformCamera.GetPosition() => Vec2 {
+	return Vec2FromValue(platformer_platformcamera_get_position(*this.raw))
+}
+
+/// Sets The camera's rotation in degrees.
+func PlatformerPlatformCamera.SetRotation(val: f32) {
+	platformer_platformcamera_set_rotation(*this.raw, val)
+}
+
+/// Gets The camera's rotation in degrees.
+func PlatformerPlatformCamera.GetRotation() => f32 {
+	return platformer_platformcamera_get_rotation(*this.raw)
+}
+
+/// Sets The camera's zoom factor, 1.0 means the normal size, 2.0 mean zoom to doubled size.
+func PlatformerPlatformCamera.SetZoom(val: f32) {
+	platformer_platformcamera_set_zoom(*this.raw, val)
+}
+
+/// Gets The camera's zoom factor, 1.0 means the normal size, 2.0 mean zoom to doubled size.
+func PlatformerPlatformCamera.GetZoom() => f32 {
+	return platformer_platformcamera_get_zoom(*this.raw)
+}
+
+/// Sets The rectangular area within which the camera is allowed to view.
+func PlatformerPlatformCamera.SetBoundary(val: Rect) {
+	platformer_platformcamera_set_boundary(*this.raw, val.GetRaw())
+}
+
+/// Gets The rectangular area within which the camera is allowed to view.
+func PlatformerPlatformCamera.GetBoundary() => Rect {
+	return *RectFrom(platformer_platformcamera_get_boundary(*this.raw))
+}
+
+/// Sets the ratio at which the camera should move to keep up with the target's position.
+/// For example, set to `Vec2(1.0, 1.0)`, then the camera will keep up to the target's position right away.
+/// Set to Vec2(0.5, 0.5) or smaller value, then the camera will move halfway to the target's position each frame, resulting in a smooth and gradual movement.
+func PlatformerPlatformCamera.SetFollowRatio(val: Vec2) {
+	platformer_platformcamera_set_follow_ratio(*this.raw, val.ToValue())
+}
+
+/// Gets the ratio at which the camera should move to keep up with the target's position.
+/// For example, set to `Vec2(1.0, 1.0)`, then the camera will keep up to the target's position right away.
+/// Set to Vec2(0.5, 0.5) or smaller value, then the camera will move halfway to the target's position each frame, resulting in a smooth and gradual movement.
+func PlatformerPlatformCamera.GetFollowRatio() => Vec2 {
+	return Vec2FromValue(platformer_platformcamera_get_follow_ratio(*this.raw))
+}
+
+/// Sets the offset at which the camera should follow the target.
+func PlatformerPlatformCamera.SetFollowOffset(val: Vec2) {
+	platformer_platformcamera_set_follow_offset(*this.raw, val.ToValue())
+}
+
+/// Gets the offset at which the camera should follow the target.
+func PlatformerPlatformCamera.GetFollowOffset() => Vec2 {
+	return Vec2FromValue(platformer_platformcamera_get_follow_offset(*this.raw))
+}
+
+/// Sets the game unit that the camera should track.
+func PlatformerPlatformCamera.SetFollowTarget(val: Node) {
+	platformer_platformcamera_set_follow_target(*this.raw, val.GetRaw())
+}
+
+/// Gets the game unit that the camera should track.
+func PlatformerPlatformCamera.GetFollowTarget() => *Node {
+	ptr_ := platformer_platformcamera_get_follow_target(*this.raw)
+	if ptr_ == 0 {
+		return nil
+	}
+	obj_ := *NodeFrom(ptr_)
+	return &obj_
+}
+
+/// Removes the target that the camera is following.
+func PlatformerPlatformCamera.SetFollowTargetNull() {
+	platformer_platformcamera_set_follow_target_null(*this.raw)
+}
+
+/// Creates a new instance of `PlatformCamera`.
+///
+/// # Arguments
+///
+/// * `name` - An optional string that specifies the name of the new instance. Default is an empty string.
+///
+/// # Returns
+///
+/// * A new `PlatformCamera` instance.
+func NewPlatformerPlatformCamera(name: string) => PlatformerPlatformCamera {
+	raw := platformer_platformcamera_new(ToDoraString(name))
+	object := PlatformerPlatformCamera{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return object
+}

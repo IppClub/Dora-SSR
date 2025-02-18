@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -8,31 +8,31 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 	fn label_type() -> i32;
-	fn label_set_alignment(slf: i64, var: i32);
+	fn label_set_alignment(slf: i64, val: i32);
 	fn label_get_alignment(slf: i64) -> i32;
-	fn label_set_alpha_ref(slf: i64, var: f32);
+	fn label_set_alpha_ref(slf: i64, val: f32);
 	fn label_get_alpha_ref(slf: i64) -> f32;
-	fn label_set_text_width(slf: i64, var: f32);
+	fn label_set_text_width(slf: i64, val: f32);
 	fn label_get_text_width(slf: i64) -> f32;
-	fn label_set_spacing(slf: i64, var: f32);
+	fn label_set_spacing(slf: i64, val: f32);
 	fn label_get_spacing(slf: i64) -> f32;
-	fn label_set_line_gap(slf: i64, var: f32);
+	fn label_set_line_gap(slf: i64, val: f32);
 	fn label_get_line_gap(slf: i64) -> f32;
-	fn label_set_outline_color(slf: i64, var: i32);
+	fn label_set_outline_color(slf: i64, val: i32);
 	fn label_get_outline_color(slf: i64) -> i32;
-	fn label_set_outline_width(slf: i64, var: f32);
+	fn label_set_outline_width(slf: i64, val: f32);
 	fn label_get_outline_width(slf: i64) -> f32;
-	fn label_set_smooth(slf: i64, var: i64);
+	fn label_set_smooth(slf: i64, val: i64);
 	fn label_get_smooth(slf: i64) -> i64;
-	fn label_set_text(slf: i64, var: i64);
+	fn label_set_text(slf: i64, val: i64);
 	fn label_get_text(slf: i64) -> i64;
-	fn label__set_blend_func(slf: i64, func: i64);
-	fn label__get_blend_func(slf: i64) -> i64;
-	fn label_set_depth_write(slf: i64, var: i32);
+	fn label_set_blend_func(slf: i64, val: i64);
+	fn label_get_blend_func(slf: i64) -> i64;
+	fn label_set_depth_write(slf: i64, val: i32);
 	fn label_is_depth_write(slf: i64) -> i32;
-	fn label_set_batched(slf: i64, var: i32);
+	fn label_set_batched(slf: i64, val: i32);
 	fn label_is_batched(slf: i64) -> i32;
-	fn label_set_effect(slf: i64, var: i64);
+	fn label_set_effect(slf: i64, val: i64);
 	fn label_get_effect(slf: i64) -> i64;
 	fn label_get_character_count(slf: i64) -> i32;
 	fn label_get_character(slf: i64, index: i32) -> i64;
@@ -56,8 +56,8 @@ impl Label {
 		})
 	}
 	/// Sets the text alignment setting.
-	pub fn set_alignment(&mut self, var: crate::dora::TextAlign) {
-		unsafe { label_set_alignment(self.raw(), var as i32) };
+	pub fn set_alignment(&mut self, val: crate::dora::TextAlign) {
+		unsafe { label_set_alignment(self.raw(), val as i32) };
 	}
 	/// Gets the text alignment setting.
 	pub fn get_alignment(&self) -> crate::dora::TextAlign {
@@ -65,8 +65,8 @@ impl Label {
 	}
 	/// Sets the alpha threshold value. Pixels with alpha values below this value will not be drawn.
 	/// Only works with `label.effect = SpriteEffect::new("builtin:vs_sprite", "builtin:fs_spritealphatest")`.
-	pub fn set_alpha_ref(&mut self, var: f32) {
-		unsafe { label_set_alpha_ref(self.raw(), var) };
+	pub fn set_alpha_ref(&mut self, val: f32) {
+		unsafe { label_set_alpha_ref(self.raw(), val) };
 	}
 	/// Gets the alpha threshold value. Pixels with alpha values below this value will not be drawn.
 	/// Only works with `label.effect = SpriteEffect::new("builtin:vs_sprite", "builtin:fs_spritealphatest")`.
@@ -76,8 +76,8 @@ impl Label {
 	/// Sets the width of the text used for text wrapping.
 	/// Set to `Label::AutomaticWidth` to disable wrapping.
 	/// Default is `Label::AutomaticWidth`.
-	pub fn set_text_width(&mut self, var: f32) {
-		unsafe { label_set_text_width(self.raw(), var) };
+	pub fn set_text_width(&mut self, val: f32) {
+		unsafe { label_set_text_width(self.raw(), val) };
 	}
 	/// Gets the width of the text used for text wrapping.
 	/// Set to `Label::AutomaticWidth` to disable wrapping.
@@ -86,62 +86,64 @@ impl Label {
 		return unsafe { label_get_text_width(self.raw()) };
 	}
 	/// Sets the gap in pixels between characters.
-	pub fn set_spacing(&mut self, var: f32) {
-		unsafe { label_set_spacing(self.raw(), var) };
+	pub fn set_spacing(&mut self, val: f32) {
+		unsafe { label_set_spacing(self.raw(), val) };
 	}
 	/// Gets the gap in pixels between characters.
 	pub fn get_spacing(&self) -> f32 {
 		return unsafe { label_get_spacing(self.raw()) };
 	}
 	/// Sets the gap in pixels between lines of text.
-	pub fn set_line_gap(&mut self, var: f32) {
-		unsafe { label_set_line_gap(self.raw(), var) };
+	pub fn set_line_gap(&mut self, val: f32) {
+		unsafe { label_set_line_gap(self.raw(), val) };
 	}
 	/// Gets the gap in pixels between lines of text.
 	pub fn get_line_gap(&self) -> f32 {
 		return unsafe { label_get_line_gap(self.raw()) };
 	}
 	/// Sets the color of the outline, only works with SDF label.
-	pub fn set_outline_color(&mut self, var: &crate::dora::Color) {
-		unsafe { label_set_outline_color(self.raw(), var.to_argb() as i32) };
+	pub fn set_outline_color(&mut self, val: &crate::dora::Color) {
+		unsafe { label_set_outline_color(self.raw(), val.to_argb() as i32) };
 	}
 	/// Gets the color of the outline, only works with SDF label.
 	pub fn get_outline_color(&self) -> crate::dora::Color {
 		return unsafe { crate::dora::Color::from(label_get_outline_color(self.raw())) };
 	}
 	/// Sets the width of the outline, only works with SDF label.
-	pub fn set_outline_width(&mut self, var: f32) {
-		unsafe { label_set_outline_width(self.raw(), var) };
+	pub fn set_outline_width(&mut self, val: f32) {
+		unsafe { label_set_outline_width(self.raw(), val) };
 	}
 	/// Gets the width of the outline, only works with SDF label.
 	pub fn get_outline_width(&self) -> f32 {
 		return unsafe { label_get_outline_width(self.raw()) };
 	}
 	/// Sets the smooth value of the text, only works with SDF label, default is (0.7, 0.7).
-	pub fn set_smooth(&mut self, var: &crate::dora::Vec2) {
-		unsafe { label_set_smooth(self.raw(), var.into_i64()) };
+	pub fn set_smooth(&mut self, val: &crate::dora::Vec2) {
+		unsafe { label_set_smooth(self.raw(), val.into_i64()) };
 	}
 	/// Gets the smooth value of the text, only works with SDF label, default is (0.7, 0.7).
 	pub fn get_smooth(&self) -> crate::dora::Vec2 {
 		return unsafe { crate::dora::Vec2::from(label_get_smooth(self.raw())) };
 	}
 	/// Sets the text to be rendered.
-	pub fn set_text(&mut self, var: &str) {
-		unsafe { label_set_text(self.raw(), crate::dora::from_string(var)) };
+	pub fn set_text(&mut self, val: &str) {
+		unsafe { label_set_text(self.raw(), crate::dora::from_string(val)) };
 	}
 	/// Gets the text to be rendered.
 	pub fn get_text(&self) -> String {
 		return unsafe { crate::dora::to_string(label_get_text(self.raw())) };
 	}
-	pub(crate) fn _set_blend_func(&mut self, func: u64) {
-		unsafe { label__set_blend_func(self.raw(), func as i64); }
+	/// Sets the blend function for the label.
+	pub fn set_blend_func(&mut self, val: crate::dora::BlendFunc) {
+		unsafe { label_set_blend_func(self.raw(), val.to_value()) };
 	}
-	pub(crate) fn _get_blend_func(&self) -> u64 {
-		unsafe { return label__get_blend_func(self.raw()) as u64; }
+	/// Gets the blend function for the label.
+	pub fn get_blend_func(&self) -> crate::dora::BlendFunc {
+		return unsafe { crate::dora::BlendFunc::from(label_get_blend_func(self.raw())) };
 	}
 	/// Sets whether depth writing is enabled. (Default is false)
-	pub fn set_depth_write(&mut self, var: bool) {
-		unsafe { label_set_depth_write(self.raw(), if var { 1 } else { 0 }) };
+	pub fn set_depth_write(&mut self, val: bool) {
+		unsafe { label_set_depth_write(self.raw(), if val { 1 } else { 0 }) };
 	}
 	/// Gets whether depth writing is enabled. (Default is false)
 	pub fn is_depth_write(&self) -> bool {
@@ -149,8 +151,8 @@ impl Label {
 	}
 	/// Sets whether the label is using batched rendering.
 	/// When using batched rendering the `label.get_character()` function will no longer work, but it provides better rendering performance. Default is true.
-	pub fn set_batched(&mut self, var: bool) {
-		unsafe { label_set_batched(self.raw(), if var { 1 } else { 0 }) };
+	pub fn set_batched(&mut self, val: bool) {
+		unsafe { label_set_batched(self.raw(), if val { 1 } else { 0 }) };
 	}
 	/// Gets whether the label is using batched rendering.
 	/// When using batched rendering the `label.get_character()` function will no longer work, but it provides better rendering performance. Default is true.
@@ -158,8 +160,8 @@ impl Label {
 		return unsafe { label_is_batched(self.raw()) != 0 };
 	}
 	/// Sets the sprite effect used to render the text.
-	pub fn set_effect(&mut self, var: &crate::dora::SpriteEffect) {
-		unsafe { label_set_effect(self.raw(), var.raw()) };
+	pub fn set_effect(&mut self, val: &crate::dora::SpriteEffect) {
+		unsafe { label_set_effect(self.raw(), val.raw()) };
 	}
 	/// Gets the sprite effect used to render the text.
 	pub fn get_effect(&self) -> crate::dora::SpriteEffect {

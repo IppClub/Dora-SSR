@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -50,62 +50,62 @@ int32_t application_get_max_fps() {
 int32_t application_is_debugging() {
 	return SharedApplication.isDebugging() ? 1 : 0;
 }
-void application_set_locale(int64_t var) {
-	SharedApplication.setLocale(*Str_From(var));
+void application_set_locale(int64_t val) {
+	SharedApplication.setLocale(*Str_From(val));
 }
 int64_t application_get_locale() {
 	return Str_Retain(SharedApplication.getLocale());
 }
-void application_set_theme_color(int32_t var) {
-	SharedApplication.setThemeColor(Color(s_cast<uint32_t>(var)));
+void application_set_theme_color(int32_t val) {
+	SharedApplication.setThemeColor(Color(s_cast<uint32_t>(val)));
 }
 int32_t application_get_theme_color() {
 	return SharedApplication.getThemeColor().toARGB();
 }
-void application_set_seed(int32_t var) {
-	SharedApplication.setSeed(s_cast<uint32_t>(var));
+void application_set_seed(int32_t val) {
+	SharedApplication.setSeed(s_cast<uint32_t>(val));
 }
 int32_t application_get_seed() {
 	return s_cast<int32_t>(SharedApplication.getSeed());
 }
-void application_set_target_fps(int32_t var) {
-	SharedApplication.setTargetFPS(s_cast<uint32_t>(var));
+void application_set_target_fps(int32_t val) {
+	SharedApplication.setTargetFPS(s_cast<uint32_t>(val));
 }
 int32_t application_get_target_fps() {
 	return s_cast<int32_t>(SharedApplication.getTargetFPS());
 }
-void application_set_win_size(int64_t var) {
-	SharedApplication.setWinSize(Size_From(var));
+void application_set_win_size(int64_t val) {
+	SharedApplication.setWinSize(Size_From(val));
 }
 int64_t application_get_win_size() {
 	return Size_Retain(SharedApplication.getWinSize());
 }
-void application_set_win_position(int64_t var) {
-	SharedApplication.setWinPosition(Vec2_From(var));
+void application_set_win_position(int64_t val) {
+	SharedApplication.setWinPosition(Vec2_From(val));
 }
 int64_t application_get_win_position() {
 	return Vec2_Retain(SharedApplication.getWinPosition());
 }
-void application_set_fps_limited(int32_t var) {
-	SharedApplication.setFPSLimited(var != 0);
+void application_set_fps_limited(int32_t val) {
+	SharedApplication.setFPSLimited(val != 0);
 }
 int32_t application_is_fps_limited() {
 	return SharedApplication.isFPSLimited() ? 1 : 0;
 }
-void application_set_idled(int32_t var) {
-	SharedApplication.setIdled(var != 0);
+void application_set_idled(int32_t val) {
+	SharedApplication.setIdled(val != 0);
 }
 int32_t application_is_idled() {
 	return SharedApplication.isIdled() ? 1 : 0;
 }
-void application_set_full_screen(int32_t var) {
-	SharedApplication.setFullScreen(var != 0);
+void application_set_full_screen(int32_t val) {
+	SharedApplication.setFullScreen(val != 0);
 }
 int32_t application_is_full_screen() {
 	return SharedApplication.isFullScreen() ? 1 : 0;
 }
-void application_set_always_on_top(int32_t var) {
-	SharedApplication.setAlwaysOnTop(var != 0);
+void application_set_always_on_top(int32_t val) {
+	SharedApplication.setAlwaysOnTop(val != 0);
 }
 int32_t application_is_always_on_top() {
 	return SharedApplication.isAlwaysOnTop() ? 1 : 0;

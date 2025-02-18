@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -9,7 +9,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 extern "C" {
 	fn vgnode_type() -> i32;
 	fn vgnode_get_surface(slf: i64) -> i64;
-	fn vgnode_render(slf: i64, func: i32);
+	fn vgnode_render(slf: i64, func0: i32);
 	fn vgnode_new(width: f32, height: f32, scale: f32, edge_aa: i32) -> i64;
 }
 use crate::dora::IObject;
@@ -36,7 +36,7 @@ impl VGNode {
 	///
 	/// # Arguments
 	///
-	/// * `func` - The closure function for rendering vector graphics. You can do the rendering operations inside this closure.
+	/// * `renderFunc` - The closure function for rendering vector graphics. You can do the rendering operations inside this closure.
 	///
 	/// # Example
 	///
@@ -49,11 +49,11 @@ impl VGNode {
 	/// 	Nvg::stroke();
 	/// });
 	/// ```
-	pub fn render(&mut self, mut func: Box<dyn FnMut()>) {
-		let func_id = crate::dora::push_function(Box::new(move || {
-			func()
+	pub fn render(&mut self, mut render_func: Box<dyn FnMut()>) {
+		let func_id0 = crate::dora::push_function(Box::new(move || {
+			render_func()
 		}));
-		unsafe { vgnode_render(self.raw(), func_id); }
+		unsafe { vgnode_render(self.raw(), func_id0); }
 	}
 	/// Creates a new VGNode object with the specified width and height.
 	///

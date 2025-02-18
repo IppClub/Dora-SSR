@@ -1,3 +1,11 @@
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
 use dora_ssr::*;
 
 pub fn test() {
@@ -5,7 +13,7 @@ pub fn test() {
 	let mut world = PhysicsWorld::new();
 	world.set_should_contact(0, 0, true);
 	world.set_show_debug(true);
-	let mut label = match Label::new("sarasa-mono-sc-regular", 30) {
+	let mut label = match Label::new("sarasa-mono-sc-regular", 30, false) {
 		Some(label) => label,
 		None => return,
 	};
@@ -15,8 +23,8 @@ pub fn test() {
 	let radius = 300.0;
 	let mut vertices = vec![];
 	for i in 0..=count {
-		let angle = 2.0 * std::f32::consts::PI * i as f32 / count as f32;
-		vertices.push(Vec2::new(radius * angle.cos(), radius * angle.sin()));
+		let angle = 2.0 * Math::PI * i as f32 / count as f32;
+		vertices.push(Vec2::new(radius * Math::cos(angle), radius * Math::sin(angle)));
 	}
 	terrain_def.attach_chain(&vertices, 0.4, 0.0);
 	terrain_def.attach_disk_with_center(&Vec2::new(0.0, -270.0), 30.0, 1.0, 0.0, 1.0);

@@ -19,8 +19,8 @@ i18n
 						load: "failed to load {{file}}",
 					},
 					tree: {
-						assets: "Assets",
-						builtin: "Builtin",
+						assets: "Workspace",
+						builtin: "Built-in",
 					},
 					alert: {
 						assetLoad: "failed to load assets",
@@ -92,6 +92,7 @@ i18n
 						"reload": "Reload",
 						"clear": "Clear",
 						"close": "Close",
+						"apply": "Apply",
 					},
 					file: {
 						new: "New File",
@@ -207,8 +208,8 @@ i18n
 						load: "加载 {{file}} 失败",
 					},
 					tree: {
-						assets: "资源根目录",
-						builtin: "内置资源目录",
+						assets: "工作空间",
+						builtin: "内置资源",
 					},
 					alert: {
 						assetLoad: "资源加载失败",
@@ -280,6 +281,7 @@ i18n
 						"reload": "重载",
 						"clear": "清空",
 						"close": "关闭",
+						"apply": "应用",
 					},
 					file: {
 						new: "新建文件",

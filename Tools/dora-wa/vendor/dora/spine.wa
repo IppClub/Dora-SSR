@@ -1,0 +1,181 @@
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+#wa:import dora spine_type
+func spine_type() => i32
+
+#wa:import dora spine_set_hit_test_enabled
+func spine_set_hit_test_enabled(slf: i64, val: i32)
+
+#wa:import dora spine_is_hit_test_enabled
+func spine_is_hit_test_enabled(slf: i64) => i32
+
+#wa:import dora spine_set_bone_rotation
+func spine_set_bone_rotation(slf: i64, name: i64, rotation: f32) => i32
+
+#wa:import dora spine_contains_point
+func spine_contains_point(slf: i64, x: f32, y: f32) => i64
+
+#wa:import dora spine_intersects_segment
+func spine_intersects_segment(slf: i64, x_1: f32, y_1: f32, x_2: f32, y_2: f32) => i64
+
+#wa:import dora spine_with_files
+func spine_with_files(skel_file: i64, atlas_file: i64) => i64
+
+#wa:import dora spine_new
+func spine_new(spine_str: i64) => i64
+
+#wa:import dora spine_get_looks
+func spine_get_looks(spine_str: i64) => i64
+
+#wa:import dora spine_get_animations
+func spine_get_animations(spine_str: i64) => i64
+
+type Spine :struct{ Playable }
+
+func SpineFrom(raw: i64) => *Spine {
+	if raw == 0 {
+		return nil
+	}
+	object := Spine{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	result := &object
+	return result
+}
+func Spine.GetTypeId() => i32 {
+	return spine_type()
+}
+func ObjectAsSpine(object: Object) => *Spine {
+	if object.GetTypeId() == spine_type() {
+		ObjectRetain(object.GetRaw())
+		return SpineFrom(object.GetRaw())
+	}
+	return nil
+}
+
+/// Sets whether hit testing is enabled.
+func Spine.SetHitTestEnabled(val: bool) {
+	spine_set_hit_test_enabled(*this.raw, ToDoraBool(val))
+}
+
+/// Gets whether hit testing is enabled.
+func Spine.IsHitTestEnabled() => bool {
+	return spine_is_hit_test_enabled(*this.raw) != 0
+}
+
+/// Sets the rotation of a bone in the Spine skeleton.
+///
+/// # Arguments
+///
+/// * `name` - The name of the bone to rotate.
+/// * `rotation` - The amount to rotate the bone, in degrees.
+///
+/// # Returns
+///
+/// * `bool` - Whether the rotation was successfully set or not.
+func Spine.SetBoneRotation(name: string, rotation: f32) => bool {
+	return spine_set_bone_rotation(*this.raw, ToDoraString(name), rotation) != 0
+}
+
+/// Checks if a point in space is inside the boundaries of the Spine skeleton.
+///
+/// # Arguments
+///
+/// * `x` - The x-coordinate of the point to check.
+/// * `y` - The y-coordinate of the point to check.
+///
+/// # Returns
+///
+/// * `Option<String>` - The name of the bone at the point, or `None` if there is no bone at the point.
+func Spine.ContainsPoint(x: f32, y: f32) => string {
+	return FromDoraString(spine_contains_point(*this.raw, x, y))
+}
+
+/// Checks if a line segment intersects the boundaries of the instance and returns the name of the bone or slot at the intersection point, or `None` if no bone or slot is found.
+///
+/// # Arguments
+///
+/// * `x1` - The x-coordinate of the start point of the line segment.
+/// * `y1` - The y-coordinate of the start point of the line segment.
+/// * `x2` - The x-coordinate of the end point of the line segment.
+/// * `y2` - The y-coordinate of the end point of the line segment.
+///
+/// # Returns
+///
+/// * `Option<String>` - The name of the bone or slot at the intersection point, or `None` if no bone or slot is found.
+func Spine.IntersectsSegment(x_1: f32, y_1: f32, x_2: f32, y_2: f32) => string {
+	return FromDoraString(spine_intersects_segment(*this.raw, x_1, y_1, x_2, y_2))
+}
+
+/// Creates a new instance of 'Spine' using the specified skeleton file and atlas file.
+///
+/// # Arguments
+///
+/// * `skel_file` - The filename of the skeleton file to load.
+/// * `atlas_file` - The filename of the atlas file to load.
+///
+/// # Returns
+///
+/// * A new instance of 'Spine' with the specified skeleton file and atlas file. Returns `None` if the skeleton file or atlas file could not be loaded.
+func NewSpineWithFiles(skel_file: string, atlas_file: string) => *Spine {
+	raw := spine_with_files(ToDoraString(skel_file), ToDoraString(atlas_file))
+	if raw == 0 {
+		return nil
+	}
+	object := Spine{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return &object
+}
+
+/// Creates a new instance of 'Spine' using the specified Spine string.
+///
+/// # Arguments
+///
+/// * `spine_str` - The Spine file string for the new instance. A Spine file string can be a file path with the target file extension like "Spine/item" or file paths with all the related files like "Spine/item.skel|Spine/item.atlas" or "Spine/item.json|Spine/item.atlas".
+///
+/// # Returns
+///
+/// * A new instance of 'Spine'. Returns `None` if the Spine file could not be loaded.
+func NewSpine(spine_str: string) => *Spine {
+	raw := spine_new(ToDoraString(spine_str))
+	if raw == 0 {
+		return nil
+	}
+	object := Spine{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return &object
+}
+
+/// Returns a list of available looks for the specified Spine2D file string.
+///
+/// # Arguments
+///
+/// * `spine_str` - The Spine2D file string to get the looks for.
+///
+/// # Returns
+///
+/// * A `Vec<String>` representing the available looks.
+func SpineGetLooks(spine_str: string) => *[]string {
+	return FromDoraStrBuf(spine_get_looks(ToDoraString(spine_str)))
+}
+
+/// Returns a list of available animations for the specified Spine2D file string.
+///
+/// # Arguments
+///
+/// * `spine_str` - The Spine2D file string to get the animations for.
+///
+/// # Returns
+///
+/// * A `Vec<String>` representing the available animations.
+func SpineGetAnimations(spine_str: string) => *[]string {
+	return FromDoraStrBuf(spine_get_animations(ToDoraString(spine_str)))
+}

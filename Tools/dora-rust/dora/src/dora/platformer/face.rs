@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -11,7 +11,7 @@ extern "C" {
 	fn platformer_face_add_child(slf: i64, face: i64);
 	fn platformer_face_to_node(slf: i64) -> i64;
 	fn platformer_face_new(face_str: i64, point: i64, scale: f32, angle: f32) -> i64;
-	fn platformer_face_with_func(func: i32, stack: i64, point: i64, scale: f32, angle: f32) -> i64;
+	fn platformer_face_with_func(func0: i32, stack0: i64, point: i64, scale: f32, angle: f32) -> i64;
 }
 use crate::dora::IObject;
 /// Represents a definition for a visual component of a game bullet or other visual item.
@@ -70,12 +70,12 @@ impl Face {
 	///
 	/// * `Face` - The new `Face` component.
 	pub fn with_func(mut create_func: Box<dyn FnMut() -> crate::dora::Node>, point: &crate::dora::Vec2, scale: f32, angle: f32) -> Face {
-		let mut stack = crate::dora::CallStack::new();
-		let stack_raw = stack.raw();
-		let func_id = crate::dora::push_function(Box::new(move || {
+		let mut stack0 = crate::dora::CallStack::new();
+		let stack_raw0 = stack0.raw();
+		let func_id0 = crate::dora::push_function(Box::new(move || {
 			let result = create_func();
-			stack.push_object(&result);
+			stack0.push_object(&result);
 		}));
-		unsafe { return Face { raw: platformer_face_with_func(func_id, stack_raw, point.into_i64(), scale, angle) }; }
+		unsafe { return Face { raw: platformer_face_with_func(func_id0, stack_raw0, point.into_i64(), scale, angle) }; }
 	}
 }

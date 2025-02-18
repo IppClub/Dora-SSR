@@ -19,14 +19,14 @@ namespace detail
 namespace comp_mul_implement
 {
 
-template<typename T>
+template <typename T>
 KTM_INLINE void mul(comp<T>& out, const comp<T>& x, const comp<T>& y) noexcept;
 
-template<typename T>
+template <typename T>
 KTM_INLINE void act(vec<2, T>& out, const comp<T>& c, const vec<2, T>& v) noexcept;
 
-}
-}
-}
+} // namespace comp_mul_implement
+} // namespace detail
+} // namespace ktm
 
 #endif

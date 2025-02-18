@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -8,17 +8,26 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-void content_set_search_paths(int64_t var) {
-	SharedContent.setSearchPaths(Vec_FromStr(var));
+void content_set_search_paths(int64_t val) {
+	SharedContent.setSearchPaths(Vec_FromStr(val));
 }
 int64_t content_get_search_paths() {
 	return Vec_To(SharedContent.getSearchPaths());
 }
+void content_set_asset_path(int64_t val) {
+	SharedContent.setAssetPath(*Str_From(val));
+}
 int64_t content_get_asset_path() {
 	return Str_Retain(SharedContent.getAssetPath());
 }
+void content_set_writable_path(int64_t val) {
+	SharedContent.setWritablePath(*Str_From(val));
+}
 int64_t content_get_writable_path() {
 	return Str_Retain(SharedContent.getWritablePath());
+}
+int64_t content_get_app_path() {
+	return Str_Retain(SharedContent.getAppPath());
 }
 int32_t content_save(int64_t filename, int64_t content) {
 	return SharedContent.save(*Str_From(filename), *Str_From(content)) ? 1 : 0;
@@ -68,73 +77,73 @@ int64_t content_get_files(int64_t path) {
 int64_t content_get_all_files(int64_t path) {
 	return Vec_To(SharedContent.getAllFiles(*Str_From(path)));
 }
-void content_load_async(int64_t filename, int32_t func, int64_t stack) {
-	std::shared_ptr<void> deref(nullptr, [func](auto) {
-		SharedWasmRuntime.deref(func);
+void content_load_async(int64_t filename, int32_t func0, int64_t stack0) {
+	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
+		SharedWasmRuntime.deref(func0);
 	});
-	auto args = r_cast<CallStack*>(stack);
-	SharedContent.loadAsync(*Str_From(filename), [func, args, deref](String content) {
-		args->clear();
-		args->push(content);
-		SharedWasmRuntime.invoke(func);
-	});
-}
-void content_copy_async(int64_t src_file, int64_t target_file, int32_t func, int64_t stack) {
-	std::shared_ptr<void> deref(nullptr, [func](auto) {
-		SharedWasmRuntime.deref(func);
-	});
-	auto args = r_cast<CallStack*>(stack);
-	SharedContent.copyAsync(*Str_From(src_file), *Str_From(target_file), [func, args, deref](bool success) {
-		args->clear();
-		args->push(success);
-		SharedWasmRuntime.invoke(func);
+	auto args0 = r_cast<CallStack*>(stack0);
+	SharedContent.loadAsync(*Str_From(filename), [func0, args0, deref0](String content) {
+		args0->clear();
+		args0->push(content);
+		SharedWasmRuntime.invoke(func0);
 	});
 }
-void content_save_async(int64_t filename, int64_t content, int32_t func, int64_t stack) {
-	std::shared_ptr<void> deref(nullptr, [func](auto) {
-		SharedWasmRuntime.deref(func);
+void content_copy_async(int64_t src_file, int64_t target_file, int32_t func0, int64_t stack0) {
+	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
+		SharedWasmRuntime.deref(func0);
 	});
-	auto args = r_cast<CallStack*>(stack);
-	SharedContent.saveAsync(*Str_From(filename), *Str_From(content), [func, args, deref](bool success) {
-		args->clear();
-		args->push(success);
-		SharedWasmRuntime.invoke(func);
+	auto args0 = r_cast<CallStack*>(stack0);
+	SharedContent.copyAsync(*Str_From(src_file), *Str_From(target_file), [func0, args0, deref0](bool success) {
+		args0->clear();
+		args0->push(success);
+		SharedWasmRuntime.invoke(func0);
 	});
 }
-void content_zip_async(int64_t folder_path, int64_t zip_file, int32_t func, int64_t stack, int32_t func1, int64_t stack1) {
-	std::shared_ptr<void> deref(nullptr, [func](auto) {
-		SharedWasmRuntime.deref(func);
+void content_save_async(int64_t filename, int64_t content, int32_t func0, int64_t stack0) {
+	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
+		SharedWasmRuntime.deref(func0);
 	});
-	auto args = r_cast<CallStack*>(stack);
+	auto args0 = r_cast<CallStack*>(stack0);
+	SharedContent.saveAsync(*Str_From(filename), *Str_From(content), [func0, args0, deref0](bool success) {
+		args0->clear();
+		args0->push(success);
+		SharedWasmRuntime.invoke(func0);
+	});
+}
+void content_zip_async(int64_t folder_path, int64_t zip_file, int32_t func0, int64_t stack0, int32_t func1, int64_t stack1) {
+	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
+		SharedWasmRuntime.deref(func0);
+	});
+	auto args0 = r_cast<CallStack*>(stack0);
 	std::shared_ptr<void> deref1(nullptr, [func1](auto) {
 		SharedWasmRuntime.deref(func1);
 	});
 	auto args1 = r_cast<CallStack*>(stack1);
-	SharedContent.zipAsync(*Str_From(folder_path), *Str_From(zip_file), [func, args, deref](String file) {
-		args->clear();
-		args->push(file);
-		SharedWasmRuntime.invoke(func);
-		return std::get<bool>(args->pop());
+	SharedContent.zipAsync(*Str_From(folder_path), *Str_From(zip_file), [func0, args0, deref0](String file) {
+		args0->clear();
+		args0->push(file);
+		SharedWasmRuntime.invoke(func0);
+		return args0->pop_bool_or(false);
 	}, [func1, args1, deref1](bool success) {
 		args1->clear();
 		args1->push(success);
 		SharedWasmRuntime.invoke(func1);
 	});
 }
-void content_unzip_async(int64_t zip_file, int64_t folder_path, int32_t func, int64_t stack, int32_t func1, int64_t stack1) {
-	std::shared_ptr<void> deref(nullptr, [func](auto) {
-		SharedWasmRuntime.deref(func);
+void content_unzip_async(int64_t zip_file, int64_t folder_path, int32_t func0, int64_t stack0, int32_t func1, int64_t stack1) {
+	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
+		SharedWasmRuntime.deref(func0);
 	});
-	auto args = r_cast<CallStack*>(stack);
+	auto args0 = r_cast<CallStack*>(stack0);
 	std::shared_ptr<void> deref1(nullptr, [func1](auto) {
 		SharedWasmRuntime.deref(func1);
 	});
 	auto args1 = r_cast<CallStack*>(stack1);
-	SharedContent.unzipAsync(*Str_From(zip_file), *Str_From(folder_path), [func, args, deref](String file) {
-		args->clear();
-		args->push(file);
-		SharedWasmRuntime.invoke(func);
-		return std::get<bool>(args->pop());
+	SharedContent.unzipAsync(*Str_From(zip_file), *Str_From(folder_path), [func0, args0, deref0](String file) {
+		args0->clear();
+		args0->push(file);
+		SharedWasmRuntime.invoke(func0);
+		return args0->pop_bool_or(false);
 	}, [func1, args1, deref1](bool success) {
 		args1->clear();
 		args1->push(success);
@@ -149,8 +158,11 @@ int64_t content_load_excel(int64_t filename) {
 static void linkContent(wasm3::module3& mod) {
 	mod.link_optional("*", "content_set_search_paths", content_set_search_paths);
 	mod.link_optional("*", "content_get_search_paths", content_get_search_paths);
+	mod.link_optional("*", "content_set_asset_path", content_set_asset_path);
 	mod.link_optional("*", "content_get_asset_path", content_get_asset_path);
+	mod.link_optional("*", "content_set_writable_path", content_set_writable_path);
 	mod.link_optional("*", "content_get_writable_path", content_get_writable_path);
+	mod.link_optional("*", "content_get_app_path", content_get_app_path);
 	mod.link_optional("*", "content_save", content_save);
 	mod.link_optional("*", "content_exist", content_exist);
 	mod.link_optional("*", "content_mkdir", content_mkdir);

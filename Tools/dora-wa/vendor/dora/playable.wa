@@ -1,0 +1,217 @@
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+#wa:import dora playable_type
+func playable_type() => i32
+
+#wa:import dora playable_set_look
+func playable_set_look(slf: i64, val: i64)
+
+#wa:import dora playable_get_look
+func playable_get_look(slf: i64) => i64
+
+#wa:import dora playable_set_speed
+func playable_set_speed(slf: i64, val: f32)
+
+#wa:import dora playable_get_speed
+func playable_get_speed(slf: i64) => f32
+
+#wa:import dora playable_set_recovery
+func playable_set_recovery(slf: i64, val: f32)
+
+#wa:import dora playable_get_recovery
+func playable_get_recovery(slf: i64) => f32
+
+#wa:import dora playable_set_fliped
+func playable_set_fliped(slf: i64, val: i32)
+
+#wa:import dora playable_is_fliped
+func playable_is_fliped(slf: i64) => i32
+
+#wa:import dora playable_get_current
+func playable_get_current(slf: i64) => i64
+
+#wa:import dora playable_get_last_completed
+func playable_get_last_completed(slf: i64) => i64
+
+#wa:import dora playable_get_key
+func playable_get_key(slf: i64, name: i64) => i64
+
+#wa:import dora playable_play
+func playable_play(slf: i64, name: i64, looping: i32) => f32
+
+#wa:import dora playable_stop
+func playable_stop(slf: i64)
+
+#wa:import dora playable_set_slot
+func playable_set_slot(slf: i64, name: i64, item: i64)
+
+#wa:import dora playable_get_slot
+func playable_get_slot(slf: i64, name: i64) => i64
+
+#wa:import dora playable_new
+func playable_new(filename: i64) => i64
+
+type Playable :struct{ Node }
+
+func PlayableFrom(raw: i64) => *Playable {
+	if raw == 0 {
+		return nil
+	}
+	object := Playable{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	result := &object
+	return result
+}
+func Playable.GetTypeId() => i32 {
+	return playable_type()
+}
+func ObjectAsPlayable(object: Object) => *Playable {
+	if object.GetTypeId() == playable_type() {
+		ObjectRetain(object.GetRaw())
+		return PlayableFrom(object.GetRaw())
+	}
+	return nil
+}
+
+/// Sets the look of the animation.
+func Playable.SetLook(val: string) {
+	playable_set_look(*this.raw, ToDoraString(val))
+}
+
+/// Gets the look of the animation.
+func Playable.GetLook() => string {
+	return FromDoraString(playable_get_look(*this.raw))
+}
+
+/// Sets the play speed of the animation.
+func Playable.SetSpeed(val: f32) {
+	playable_set_speed(*this.raw, val)
+}
+
+/// Gets the play speed of the animation.
+func Playable.GetSpeed() => f32 {
+	return playable_get_speed(*this.raw)
+}
+
+/// Sets the recovery time of the animation, in seconds.
+/// Used for doing transitions from one animation to another animation.
+func Playable.SetRecovery(val: f32) {
+	playable_set_recovery(*this.raw, val)
+}
+
+/// Gets the recovery time of the animation, in seconds.
+/// Used for doing transitions from one animation to another animation.
+func Playable.GetRecovery() => f32 {
+	return playable_get_recovery(*this.raw)
+}
+
+/// Sets whether the animation is flipped horizontally.
+func Playable.SetFliped(val: bool) {
+	playable_set_fliped(*this.raw, ToDoraBool(val))
+}
+
+/// Gets whether the animation is flipped horizontally.
+func Playable.IsFliped() => bool {
+	return playable_is_fliped(*this.raw) != 0
+}
+
+/// Gets the current playing animation name.
+func Playable.GetCurrent() => string {
+	return FromDoraString(playable_get_current(*this.raw))
+}
+
+/// Gets the last completed animation name.
+func Playable.GetLastCompleted() => string {
+	return FromDoraString(playable_get_last_completed(*this.raw))
+}
+
+/// Gets a key point on the animation model by its name.
+///
+/// # Arguments
+///
+/// * `name` - The name of the key point to get.
+///
+/// # Returns
+///
+/// * A `Vec2` representing the key point value.
+func Playable.GetKey(name: string) => Vec2 {
+	return Vec2FromValue(playable_get_key(*this.raw, ToDoraString(name)))
+}
+
+/// Plays an animation from the model.
+///
+/// # Arguments
+///
+/// * `name` - The name of the animation to play.
+/// * `loop` - Whether to loop the animation or not.
+///
+/// # Returns
+///
+/// * The duration of the animation in seconds.
+func Playable.Play(name: string, looping: bool) => f32 {
+	return playable_play(*this.raw, ToDoraString(name), ToDoraBool(looping))
+}
+
+/// Stops the currently playing animation.
+func Playable.Stop() {
+	playable_stop(*this.raw)
+}
+
+/// Attaches a child node to a slot on the animation model.
+///
+/// # Arguments
+///
+/// * `name` - The name of the slot to set.
+/// * `item` - The node to set the slot to.
+func Playable.SetSlot(name: string, item: Node) {
+	playable_set_slot(*this.raw, ToDoraString(name), item.GetRaw())
+}
+
+/// Gets the child node attached to the animation model.
+///
+/// # Arguments
+///
+/// * `name` - The name of the slot to get.
+///
+/// # Returns
+///
+/// * The node in the slot, or `None` if there is no node in the slot.
+func Playable.GetSlot(name: string) => *Node {
+	ptr_ := playable_get_slot(*this.raw, ToDoraString(name))
+	if ptr_ == 0 {
+		return nil
+	}
+	obj_ := *NodeFrom(ptr_)
+	return &obj_
+}
+
+/// Creates a new instance of 'Playable' from the specified animation file.
+///
+/// # Arguments
+///
+/// * `filename` - The filename of the animation file to load. Supports DragonBone, Spine2D and Dora Model files.
+/// Should be one of the formats below:
+///     * "model:" + modelFile
+///     * "spine:" + spineStr
+///     * "bone:" + dragonBoneStr
+///
+/// # Returns
+///
+/// * A new instance of 'Playable'. If the file could not be loaded, then `None` is returned.
+func NewPlayable(filename: string) => *Playable {
+	raw := playable_new(ToDoraString(filename))
+	if raw == 0 {
+		return nil
+	}
+	object := Playable{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return &object
+}

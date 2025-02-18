@@ -1,0 +1,80 @@
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+#wa:import dora svg_type
+func svg_type() => i32
+
+#wa:import dora svgdef_get_width
+func svgdef_get_width(slf: i64) => f32
+
+#wa:import dora svgdef_get_height
+func svgdef_get_height(slf: i64) => f32
+
+#wa:import dora svgdef_render
+func svgdef_render(slf: i64)
+
+#wa:import dora svgdef_new
+func svgdef_new(filename: i64) => i64
+
+type SVG :struct{ Object }
+
+func SVGFrom(raw: i64) => *SVG {
+	if raw == 0 {
+		return nil
+	}
+	object := SVG{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	result := &object
+	return result
+}
+func SVG.GetTypeId() => i32 {
+	return svg_type()
+}
+func ObjectAsSVG(object: Object) => *SVG {
+	if object.GetTypeId() == svg_type() {
+		ObjectRetain(object.GetRaw())
+		return SVGFrom(object.GetRaw())
+	}
+	return nil
+}
+
+/// Gets the width of the SVG object.
+func SVG.GetWidth() => f32 {
+	return svgdef_get_width(*this.raw)
+}
+
+/// Gets the height of the SVG object.
+func SVG.GetHeight() => f32 {
+	return svgdef_get_height(*this.raw)
+}
+
+/// Renders the SVG object, should be called every frame for the render result to appear.
+func SVG.Render() {
+	svgdef_render(*this.raw)
+}
+
+/// Creates a new SVG object from the specified SVG file.
+///
+/// # Arguments
+///
+/// * `filename` - The path to the SVG format file.
+///
+/// # Returns
+///
+/// * `Svg` - The created SVG object.
+func NewSVG(filename: string) => *SVG {
+	raw := svgdef_new(ToDoraString(filename))
+	if raw == 0 {
+		return nil
+	}
+	object := SVG{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return &object
+}

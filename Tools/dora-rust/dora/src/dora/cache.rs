@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -8,7 +8,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 	fn cache_load(filename: i64) -> i32;
-	fn cache_load_async(filename: i64, func: i32, stack: i64);
+	fn cache_load_async(filename: i64, func0: i32, stack0: i64);
 	fn cache_update_item(filename: i64, content: i64);
 	fn cache_update_texture(filename: i64, texture: i64);
 	fn cache_unload_item_or_type(name: i64) -> i32;
@@ -39,12 +39,12 @@ impl Cache {
 	/// * `filenames` - The name of the file(s) to load. This can be a single string or a vector of strings.
 	/// * `handler` - A callback function that is invoked when the file is loaded.
 	pub fn load_async(filename: &str, mut handler: Box<dyn FnMut(bool)>) {
-		let mut stack = crate::dora::CallStack::new();
-		let stack_raw = stack.raw();
-		let func_id = crate::dora::push_function(Box::new(move || {
-			handler(stack.pop_bool().unwrap())
+		let mut stack0 = crate::dora::CallStack::new();
+		let stack_raw0 = stack0.raw();
+		let func_id0 = crate::dora::push_function(Box::new(move || {
+			handler(stack0.pop_bool().unwrap())
 		}));
-		unsafe { cache_load_async(crate::dora::from_string(filename), func_id, stack_raw); }
+		unsafe { cache_load_async(crate::dora::from_string(filename), func_id0, stack_raw0); }
 	}
 	/// Updates the content of a file loaded in the cache.
 	/// If the item of filename does not exist in the cache, a new file content will be added into the cache.

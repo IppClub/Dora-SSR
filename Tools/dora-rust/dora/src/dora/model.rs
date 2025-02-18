@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -9,7 +9,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 extern "C" {
 	fn model_type() -> i32;
 	fn model_get_duration(slf: i64) -> f32;
-	fn model_set_reversed(slf: i64, var: i32);
+	fn model_set_reversed(slf: i64, val: i32);
 	fn model_is_reversed(slf: i64) -> i32;
 	fn model_is_playing(slf: i64) -> i32;
 	fn model_is_paused(slf: i64) -> i32;
@@ -20,7 +20,7 @@ extern "C" {
 	fn model_reset(slf: i64);
 	fn model_update_to(slf: i64, elapsed: f32, reversed: i32);
 	fn model_get_node_by_name(slf: i64, name: i64) -> i64;
-	fn model_each_node(slf: i64, func: i32, stack: i64) -> i32;
+	fn model_each_node(slf: i64, func0: i32, stack0: i64) -> i32;
 	fn model_new(filename: i64) -> i64;
 	fn model_dummy() -> i64;
 	fn model_get_clip_file(filename: i64) -> i64;
@@ -49,8 +49,8 @@ impl Model {
 		return unsafe { model_get_duration(self.raw()) };
 	}
 	/// Sets whether the animation model will be played in reverse.
-	pub fn set_reversed(&mut self, var: bool) {
-		unsafe { model_set_reversed(self.raw(), if var { 1 } else { 0 }) };
+	pub fn set_reversed(&mut self, val: bool) {
+		unsafe { model_set_reversed(self.raw(), if val { 1 } else { 0 }) };
 	}
 	/// Gets whether the animation model will be played in reverse.
 	pub fn is_reversed(&self) -> bool {
@@ -122,19 +122,19 @@ impl Model {
 	///
 	/// # Arguments
 	///
-	/// * `func` - The function to call for each node.
+	/// * `visitorFunc` - The function to call for each node.
 	///
 	/// # Returns
 	///
 	/// * `bool` - Whether the function was called for all nodes or not.
-	pub fn each_node(&mut self, mut func: Box<dyn FnMut(&dyn crate::dora::INode) -> bool>) -> bool {
-		let mut stack = crate::dora::CallStack::new();
-		let stack_raw = stack.raw();
-		let func_id = crate::dora::push_function(Box::new(move || {
-			let result = func(&stack.pop_cast::<crate::dora::Node>().unwrap());
-			stack.push_bool(result);
+	pub fn each_node(&mut self, mut visitor_func: Box<dyn FnMut(&dyn crate::dora::INode) -> bool>) -> bool {
+		let mut stack0 = crate::dora::CallStack::new();
+		let stack_raw0 = stack0.raw();
+		let func_id0 = crate::dora::push_function(Box::new(move || {
+			let result = visitor_func(&stack0.pop_cast::<crate::dora::Node>().unwrap());
+			stack0.push_bool(result);
 		}));
-		unsafe { return model_each_node(self.raw(), func_id, stack_raw) != 0; }
+		unsafe { return model_each_node(self.raw(), func_id0, stack_raw0) != 0; }
 	}
 	/// Creates a new instance of 'Model' from the specified model file.
 	///

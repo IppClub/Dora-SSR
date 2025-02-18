@@ -907,6 +907,9 @@ interface Array<T> {
 }
 
 interface ArrayConstructor {
+	new (): any[];
+	new <T>(): T[];
+	new <T>(...items: T[]): T[];
 	isArray(arg: any): arg is any[];
 }
 

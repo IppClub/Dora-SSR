@@ -1,0 +1,35 @@
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+#wa:import dora workbook_release
+func workbook_release(raw: i64)
+
+#wa:import dora workbook_get_sheet
+func workbook_get_sheet(slf: i64, name: i64) => i64
+
+type WorkBook :struct{ raw: *i64 }
+
+func WorkBook.GetRaw() => i64 {
+	return *this.raw
+}
+func work_book_finalizer(ptr: u32) {
+	workbook_release(GetPtr(ptr))
+}
+func WorkBookFrom(raw: i64) => *WorkBook {
+	if raw == 0 {
+		return nil
+	}
+	item := WorkBook{}
+	item.raw = &raw
+	setFinalizer(item.raw, work_book_finalizer)
+	result := &item
+	return result
+}
+func WorkBook.GetSheet(name: string) => WorkSheet {
+	return *WorkSheetFrom(workbook_get_sheet(*this.raw, ToDoraString(name)))
+}

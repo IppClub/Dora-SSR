@@ -1,0 +1,138 @@
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+#wa:import dora qlearner_type
+func qlearner_type() => i32
+
+#wa:import dora mlqlearner_update
+func mlqlearner_update(slf: i64, state: i64, action: i32, reward: f64)
+
+#wa:import dora mlqlearner_get_best_action
+func mlqlearner_get_best_action(slf: i64, state: i64) => i32
+
+#wa:import dora mlqlearner_visit_matrix
+func mlqlearner_visit_matrix(slf: i64, func0: i32, stack0: i64)
+
+#wa:import dora mlqlearner_pack
+func mlqlearner_pack(hints: i64, values: i64) => i64
+
+#wa:import dora mlqlearner_unpack
+func mlqlearner_unpack(hints: i64, state: i64) => i64
+
+#wa:import dora mlqlearner_new
+func mlqlearner_new(gamma: f64, alpha: f64, max_q: f64) => i64
+
+type QLearner :struct{ Object }
+
+func QLearnerFrom(raw: i64) => *QLearner {
+	if raw == 0 {
+		return nil
+	}
+	object := QLearner{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	result := &object
+	return result
+}
+func QLearner.GetTypeId() => i32 {
+	return qlearner_type()
+}
+func ObjectAsQLearner(object: Object) => *QLearner {
+	if object.GetTypeId() == qlearner_type() {
+		ObjectRetain(object.GetRaw())
+		return QLearnerFrom(object.GetRaw())
+	}
+	return nil
+}
+
+/// Updates Q-value for a state-action pair based on received reward.
+///
+/// # Arguments
+///
+/// * `state` - An integer representing the state.
+/// * `action` - An integer representing the action.
+/// * `reward` - A number representing the reward received for the action in the state.
+func QLearner.Update(state: i64, action: i32, reward: f64) {
+	mlqlearner_update(*this.raw, state, action, reward)
+}
+
+/// Returns the best action for a given state based on the current Q-values.
+///
+/// # Arguments
+///
+/// * `state` - The current state.
+///
+/// # Returns
+///
+/// * `i32` - The action with the highest Q-value for the given state.
+func QLearner.GetBestAction(state: i64) => i32 {
+	return mlqlearner_get_best_action(*this.raw, state)
+}
+
+/// Visits all state-action pairs and calls the provided handler function for each pair.
+///
+/// # Arguments
+///
+/// * `handler` - A function that is called for each state-action pair.
+func QLearner.VisitMatrix(handler: func(state: i64, action: i32, q: f64)) {
+	stack0 := NewCallStack()
+	func_id0 := PushFunction(func() {
+		state, _ := stack0.PopI64()
+		action, _ := stack0.PopI32()
+		q, _ := stack0.PopF64()
+		handler(state, action, q)
+	})
+	mlqlearner_visit_matrix(*this.raw, func_id0, *stack0.raw)
+}
+
+/// Constructs a state from given hints and condition values.
+///
+/// # Arguments
+///
+/// * `hints` - A vector of integers representing the byte length of provided values.
+/// * `values` - The condition values as discrete values.
+///
+/// # Returns
+///
+/// * `i64` - The packed state value.
+func QLearnerPack(hints: *[]i32, values: *[]i32) => i64 {
+	return mlqlearner_pack(ToDoraI32Buf(hints), ToDoraI32Buf(values))
+}
+
+/// Deconstructs a state from given hints to get condition values.
+///
+/// # Arguments
+///
+/// * `hints` - A vector of integers representing the byte length of provided values.
+/// * `state` - The state integer to unpack.
+///
+/// # Returns
+///
+/// * `Vec<i32>` - The condition values as discrete values.
+func QLearnerUnpack(hints: *[]i32, state: i64) => *[]i32 {
+	return FromDoraI32Buf(mlqlearner_unpack(ToDoraI32Buf(hints), state))
+}
+
+/// Creates a new QLearner object with optional parameters for gamma, alpha, and maxQ.
+///
+/// # Arguments
+///
+/// * `gamma` - The discount factor for future rewards.
+/// * `alpha` - The learning rate for updating Q-values.
+/// * `maxQ` - The maximum Q-value. Defaults to 100.0.
+///
+/// # Returns
+///
+/// * `QLearner` - The newly created QLearner object.
+func NewQLearner(gamma: f64, alpha: f64, max_q: f64) => QLearner {
+	raw := mlqlearner_new(gamma, alpha, max_q)
+	object := QLearner{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return object
+}

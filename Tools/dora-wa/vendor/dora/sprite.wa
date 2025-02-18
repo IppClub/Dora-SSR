@@ -1,0 +1,264 @@
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+#wa:import dora sprite_type
+func sprite_type() => i32
+
+#wa:import dora sprite_set_depth_write
+func sprite_set_depth_write(slf: i64, val: i32)
+
+#wa:import dora sprite_is_depth_write
+func sprite_is_depth_write(slf: i64) => i32
+
+#wa:import dora sprite_set_alpha_ref
+func sprite_set_alpha_ref(slf: i64, val: f32)
+
+#wa:import dora sprite_get_alpha_ref
+func sprite_get_alpha_ref(slf: i64) => f32
+
+#wa:import dora sprite_set_texture_rect
+func sprite_set_texture_rect(slf: i64, val: i64)
+
+#wa:import dora sprite_get_texture_rect
+func sprite_get_texture_rect(slf: i64) => i64
+
+#wa:import dora sprite_get_texture
+func sprite_get_texture(slf: i64) => i64
+
+#wa:import dora sprite_set_blend_func
+func sprite_set_blend_func(slf: i64, val: i64)
+
+#wa:import dora sprite_get_blend_func
+func sprite_get_blend_func(slf: i64) => i64
+
+#wa:import dora sprite_set_effect
+func sprite_set_effect(slf: i64, val: i64)
+
+#wa:import dora sprite_get_effect
+func sprite_get_effect(slf: i64) => i64
+
+#wa:import dora sprite_set_uwrap
+func sprite_set_uwrap(slf: i64, val: i32)
+
+#wa:import dora sprite_get_uwrap
+func sprite_get_uwrap(slf: i64) => i32
+
+#wa:import dora sprite_set_vwrap
+func sprite_set_vwrap(slf: i64, val: i32)
+
+#wa:import dora sprite_get_vwrap
+func sprite_get_vwrap(slf: i64) => i32
+
+#wa:import dora sprite_set_filter
+func sprite_set_filter(slf: i64, val: i32)
+
+#wa:import dora sprite_get_filter
+func sprite_get_filter(slf: i64) => i32
+
+#wa:import dora sprite_set_effect_as_default
+func sprite_set_effect_as_default(slf: i64)
+
+#wa:import dora sprite_new
+func sprite_new() => i64
+
+#wa:import dora sprite_with_texture_rect
+func sprite_with_texture_rect(texture: i64, texture_rect: i64) => i64
+
+#wa:import dora sprite_with_texture
+func sprite_with_texture(texture: i64) => i64
+
+#wa:import dora sprite_with_file
+func sprite_with_file(clip_str: i64) => i64
+
+type Sprite :struct{ Node }
+
+func SpriteFrom(raw: i64) => *Sprite {
+	if raw == 0 {
+		return nil
+	}
+	object := Sprite{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	result := &object
+	return result
+}
+func Sprite.GetTypeId() => i32 {
+	return sprite_type()
+}
+func ObjectAsSprite(object: Object) => *Sprite {
+	if object.GetTypeId() == sprite_type() {
+		ObjectRetain(object.GetRaw())
+		return SpriteFrom(object.GetRaw())
+	}
+	return nil
+}
+
+/// Sets whether the depth buffer should be written to when rendering the sprite.
+func Sprite.SetDepthWrite(val: bool) {
+	sprite_set_depth_write(*this.raw, ToDoraBool(val))
+}
+
+/// Gets whether the depth buffer should be written to when rendering the sprite.
+func Sprite.IsDepthWrite() => bool {
+	return sprite_is_depth_write(*this.raw) != 0
+}
+
+/// Sets the alpha reference value for alpha testing. Pixels with alpha values less than or equal to this value will be discarded.
+/// Only works with `sprite.effect = SpriteEffect::new("builtin:vs_sprite", "builtin:fs_spritealphatest");`.
+func Sprite.SetAlphaRef(val: f32) {
+	sprite_set_alpha_ref(*this.raw, val)
+}
+
+/// Gets the alpha reference value for alpha testing. Pixels with alpha values less than or equal to this value will be discarded.
+/// Only works with `sprite.effect = SpriteEffect::new("builtin:vs_sprite", "builtin:fs_spritealphatest");`.
+func Sprite.GetAlphaRef() => f32 {
+	return sprite_get_alpha_ref(*this.raw)
+}
+
+/// Sets the texture rectangle for the sprite.
+func Sprite.SetTextureRect(val: Rect) {
+	sprite_set_texture_rect(*this.raw, val.GetRaw())
+}
+
+/// Gets the texture rectangle for the sprite.
+func Sprite.GetTextureRect() => Rect {
+	return *RectFrom(sprite_get_texture_rect(*this.raw))
+}
+
+/// Gets the texture for the sprite.
+func Sprite.GetTexture() => *Texture2D {
+	ptr_ := sprite_get_texture(*this.raw)
+	if ptr_ == 0 {
+		return nil
+	}
+	obj_ := *Texture2DFrom(ptr_)
+	return &obj_
+}
+
+/// Sets the blend function for the sprite.
+func Sprite.SetBlendFunc(val: BlendFunc) {
+	sprite_set_blend_func(*this.raw, val.ToValue())
+}
+
+/// Gets the blend function for the sprite.
+func Sprite.GetBlendFunc() => BlendFunc {
+	return BlendFuncFrom(sprite_get_blend_func(*this.raw))
+}
+
+/// Sets the sprite shader effect.
+func Sprite.SetEffect(val: SpriteEffect) {
+	sprite_set_effect(*this.raw, val.GetRaw())
+}
+
+/// Gets the sprite shader effect.
+func Sprite.GetEffect() => SpriteEffect {
+	return *SpriteEffectFrom(sprite_get_effect(*this.raw))
+}
+
+/// Sets the texture wrapping mode for the U (horizontal) axis.
+func Sprite.SetUwrap(val: TextureWrap) {
+	sprite_set_uwrap(*this.raw, val.ToValue())
+}
+
+/// Gets the texture wrapping mode for the U (horizontal) axis.
+func Sprite.GetUwrap() => TextureWrap {
+	return TextureWrap{value: sprite_get_uwrap(*this.raw)}
+}
+
+/// Sets the texture wrapping mode for the V (vertical) axis.
+func Sprite.SetVwrap(val: TextureWrap) {
+	sprite_set_vwrap(*this.raw, val.ToValue())
+}
+
+/// Gets the texture wrapping mode for the V (vertical) axis.
+func Sprite.GetVwrap() => TextureWrap {
+	return TextureWrap{value: sprite_get_vwrap(*this.raw)}
+}
+
+/// Sets the texture filtering mode for the sprite.
+func Sprite.SetFilter(val: TextureFilter) {
+	sprite_set_filter(*this.raw, val.ToValue())
+}
+
+/// Gets the texture filtering mode for the sprite.
+func Sprite.GetFilter() => TextureFilter {
+	return TextureFilter{value: sprite_get_filter(*this.raw)}
+}
+
+/// Removes the sprite effect and sets the default effect.
+func Sprite.SetEffectAsDefault() {
+	sprite_set_effect_as_default(*this.raw)
+}
+
+/// A method for creating a Sprite object.
+///
+/// # Returns
+///
+/// * `Sprite` - A new instance of the Sprite class.
+func NewSprite() => Sprite {
+	raw := sprite_new()
+	object := Sprite{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return object
+}
+
+/// A method for creating a Sprite object.
+///
+/// # Arguments
+///
+/// * `texture` - The texture to be used for the sprite.
+/// * `texture_rect` - An optional rectangle defining the portion of the texture to use for the sprite. If not provided, the whole texture will be used for rendering.
+///
+/// # Returns
+///
+/// * `Sprite` - A new instance of the Sprite class.
+func NewSpriteWithTextureRect(texture: Texture2D, texture_rect: Rect) => Sprite {
+	raw := sprite_with_texture_rect(texture.GetRaw(), texture_rect.GetRaw())
+	object := Sprite{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return object
+}
+
+/// A method for creating a Sprite object.
+///
+/// # Arguments
+///
+/// * `texture` - The texture to be used for the sprite.
+///
+/// # Returns
+///
+/// * `Sprite` - A new instance of the Sprite class.
+func NewSpriteWithTexture(texture: Texture2D) => Sprite {
+	raw := sprite_with_texture(texture.GetRaw())
+	object := Sprite{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return object
+}
+
+/// A method for creating a Sprite object.
+///
+/// # Arguments
+///
+/// * `clip_str` - The string containing format for loading a texture file. Can be "Image/file.png" and "Image/items.clip|itemA". Supports image file format: jpg, png, dds, pvr, ktx.
+///
+/// # Returns
+///
+/// * `Option<Sprite>` - A new instance of the Sprite class. If the texture file is not found, it will return `None`.
+func NewSpriteWithFile(clip_str: string) => *Sprite {
+	raw := sprite_with_file(ToDoraString(clip_str))
+	if raw == 0 {
+		return nil
+	}
+	object := Sprite{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return &object
+}

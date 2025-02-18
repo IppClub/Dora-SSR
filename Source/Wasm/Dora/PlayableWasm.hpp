@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -11,26 +11,26 @@ using namespace Dora;
 int32_t playable_type() {
 	return DoraType<Playable>();
 }
-void playable_set_look(int64_t self, int64_t var) {
-	r_cast<Playable*>(self)->setLook(*Str_From(var));
+void playable_set_look(int64_t self, int64_t val) {
+	r_cast<Playable*>(self)->setLook(*Str_From(val));
 }
 int64_t playable_get_look(int64_t self) {
 	return Str_Retain(r_cast<Playable*>(self)->getLook());
 }
-void playable_set_speed(int64_t self, float var) {
-	r_cast<Playable*>(self)->setSpeed(var);
+void playable_set_speed(int64_t self, float val) {
+	r_cast<Playable*>(self)->setSpeed(val);
 }
 float playable_get_speed(int64_t self) {
 	return r_cast<Playable*>(self)->getSpeed();
 }
-void playable_set_recovery(int64_t self, float var) {
-	r_cast<Playable*>(self)->setRecovery(var);
+void playable_set_recovery(int64_t self, float val) {
+	r_cast<Playable*>(self)->setRecovery(val);
 }
 float playable_get_recovery(int64_t self) {
 	return r_cast<Playable*>(self)->getRecovery();
 }
-void playable_set_fliped(int64_t self, int32_t var) {
-	r_cast<Playable*>(self)->setFliped(var != 0);
+void playable_set_fliped(int64_t self, int32_t val) {
+	r_cast<Playable*>(self)->setFliped(val != 0);
 }
 int32_t playable_is_fliped(int64_t self) {
 	return r_cast<Playable*>(self)->isFliped() ? 1 : 0;

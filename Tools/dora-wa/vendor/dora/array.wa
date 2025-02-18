@@ -1,0 +1,155 @@
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+#wa:import dora array_type
+func array_type() => i32
+
+#wa:import dora array_get_count
+func array_get_count(slf: i64) => i64
+
+#wa:import dora array_is_empty
+func array_is_empty(slf: i64) => i32
+
+#wa:import dora array_add_range
+func array_add_range(slf: i64, other: i64)
+
+#wa:import dora array_remove_from
+func array_remove_from(slf: i64, other: i64)
+
+#wa:import dora array_clear
+func array_clear(slf: i64)
+
+#wa:import dora array_reverse
+func array_reverse(slf: i64)
+
+#wa:import dora array_shrink
+func array_shrink(slf: i64)
+
+#wa:import dora array_swap
+func array_swap(slf: i64, index_a: i32, index_b: i32)
+
+#wa:import dora array_remove_at
+func array_remove_at(slf: i64, index: i32) => i32
+
+#wa:import dora array_fast_remove_at
+func array_fast_remove_at(slf: i64, index: i32) => i32
+
+#wa:import dora array_new
+func array_new() => i64
+
+type Array :struct{ Object }
+
+func ArrayFrom(raw: i64) => *Array {
+	if raw == 0 {
+		return nil
+	}
+	object := Array{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	result := &object
+	return result
+}
+func Array.GetTypeId() => i32 {
+	return array_type()
+}
+func ObjectAsArray(object: Object) => *Array {
+	if object.GetTypeId() == array_type() {
+		ObjectRetain(object.GetRaw())
+		return ArrayFrom(object.GetRaw())
+	}
+	return nil
+}
+
+/// Gets the number of items in the array.
+func Array.GetCount() => i64 {
+	return array_get_count(*this.raw)
+}
+
+/// Gets whether the array is empty or not.
+func Array.IsEmpty() => bool {
+	return array_is_empty(*this.raw) != 0
+}
+
+/// Adds all items from another array to the end of this array.
+///
+/// # Arguments
+///
+/// * `other` - Another array object.
+func Array.AddRange(other: Array) {
+	array_add_range(*this.raw, other.GetRaw())
+}
+
+/// Removes all items from this array that are also in another array.
+///
+/// # Arguments
+///
+/// * `other` - Another array object.
+func Array.RemoveFrom(other: Array) {
+	array_remove_from(*this.raw, other.GetRaw())
+}
+
+/// Removes all items from the array.
+func Array.Clear() {
+	array_clear(*this.raw)
+}
+
+/// Reverses the order of the items in the array.
+func Array.Reverse() {
+	array_reverse(*this.raw)
+}
+
+/// Removes any empty slots from the end of the array.
+/// This method is used to release the unused memory this array holds.
+func Array.Shrink() {
+	array_shrink(*this.raw)
+}
+
+/// Swaps the items at two given indices.
+///
+/// # Arguments
+///
+/// * `index_a` - The first index.
+/// * `index_b` - The second index.
+func Array.Swap(index_a: i32, index_b: i32) {
+	array_swap(*this.raw, index_a, index_b)
+}
+
+/// Removes the item at the given index.
+///
+/// # Arguments
+///
+/// * `index` - The index to remove.
+///
+/// # Returns
+///
+/// * `bool` - `true` if an item was removed, `false` otherwise.
+func Array.RemoveAt(index: i32) => bool {
+	return array_remove_at(*this.raw, index) != 0
+}
+
+/// Removes the item at the given index without preserving the order of the array.
+///
+/// # Arguments
+///
+/// * `index` - The index to remove.
+///
+/// # Returns
+///
+/// * `bool` - `true` if an item was removed, `false` otherwise.
+func Array.FastRemoveAt(index: i32) => bool {
+	return array_fast_remove_at(*this.raw, index) != 0
+}
+
+/// Creates a new array object
+func NewArray() => Array {
+	raw := array_new()
+	object := Array{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return object
+}

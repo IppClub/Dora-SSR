@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -8,25 +8,25 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 	fn bodydef_type() -> i32;
-	fn bodydef__set_type(slf: i64, var: i32);
-	fn bodydef__get_type(slf: i64) -> i32;
-	fn bodydef_set_position(slf: i64, var: i64);
+	fn bodydef_set_type(slf: i64, body_type: i32);
+	fn bodydef_get_type(slf: i64) -> i32;
+	fn bodydef_set_position(slf: i64, val: i64);
 	fn bodydef_get_position(slf: i64) -> i64;
-	fn bodydef_set_angle(slf: i64, var: f32);
+	fn bodydef_set_angle(slf: i64, val: f32);
 	fn bodydef_get_angle(slf: i64) -> f32;
-	fn bodydef_set_face(slf: i64, var: i64);
+	fn bodydef_set_face(slf: i64, val: i64);
 	fn bodydef_get_face(slf: i64) -> i64;
-	fn bodydef_set_face_pos(slf: i64, var: i64);
+	fn bodydef_set_face_pos(slf: i64, val: i64);
 	fn bodydef_get_face_pos(slf: i64) -> i64;
-	fn bodydef_set_linear_damping(slf: i64, var: f32);
+	fn bodydef_set_linear_damping(slf: i64, val: f32);
 	fn bodydef_get_linear_damping(slf: i64) -> f32;
-	fn bodydef_set_angular_damping(slf: i64, var: f32);
+	fn bodydef_set_angular_damping(slf: i64, val: f32);
 	fn bodydef_get_angular_damping(slf: i64) -> f32;
-	fn bodydef_set_linear_acceleration(slf: i64, var: i64);
+	fn bodydef_set_linear_acceleration(slf: i64, val: i64);
 	fn bodydef_get_linear_acceleration(slf: i64) -> i64;
-	fn bodydef_set_fixed_rotation(slf: i64, var: i32);
+	fn bodydef_set_fixed_rotation(slf: i64, val: i32);
 	fn bodydef_is_fixed_rotation(slf: i64) -> i32;
-	fn bodydef_set_bullet(slf: i64, var: i32);
+	fn bodydef_set_bullet(slf: i64, val: i32);
 	fn bodydef_is_bullet(slf: i64) -> i32;
 	fn bodydef_polygon_with_center(center: i64, width: f32, height: f32, angle: f32, density: f32, friction: f32, restitution: f32) -> i64;
 	fn bodydef_polygon(width: f32, height: f32, density: f32, friction: f32, restitution: f32) -> i64;
@@ -62,71 +62,81 @@ impl BodyDef {
 			}
 		})
 	}
-	pub(crate) fn _set_type(&mut self, var: i32) {
-		unsafe { bodydef__set_type(self.raw(), var); }
+	/// Sets the define for the type of the body.
+	///
+	/// # Arguments
+	///
+	/// * `body_type` - The type of the body.
+	pub fn set_type(&mut self, body_type: crate::dora::BodyType) {
+		unsafe { bodydef_set_type(self.raw(), body_type as i32); }
 	}
-	pub(crate) fn _get_type(&self) -> i32 {
-		unsafe { return bodydef__get_type(self.raw()); }
+	/// Gets the define for the type of the body.
+	///
+	/// # Returns
+	///
+	/// * `BodyType` - The type of the body.
+	pub fn get_type(&self) -> crate::dora::BodyType {
+		unsafe { return core::mem::transmute(bodydef_get_type(self.raw())); }
 	}
 	/// Sets define for the position of the body.
-	pub fn set_position(&mut self, var: &crate::dora::Vec2) {
-		unsafe { bodydef_set_position(self.raw(), var.into_i64()) };
+	pub fn set_position(&mut self, val: &crate::dora::Vec2) {
+		unsafe { bodydef_set_position(self.raw(), val.into_i64()) };
 	}
 	/// Gets define for the position of the body.
 	pub fn get_position(&self) -> crate::dora::Vec2 {
 		return unsafe { crate::dora::Vec2::from(bodydef_get_position(self.raw())) };
 	}
 	/// Sets define for the angle of the body.
-	pub fn set_angle(&mut self, var: f32) {
-		unsafe { bodydef_set_angle(self.raw(), var) };
+	pub fn set_angle(&mut self, val: f32) {
+		unsafe { bodydef_set_angle(self.raw(), val) };
 	}
 	/// Gets define for the angle of the body.
 	pub fn get_angle(&self) -> f32 {
 		return unsafe { bodydef_get_angle(self.raw()) };
 	}
 	/// Sets define for the face image or other items accepted by creating `Face` for the body.
-	pub fn set_face(&mut self, var: &str) {
-		unsafe { bodydef_set_face(self.raw(), crate::dora::from_string(var)) };
+	pub fn set_face(&mut self, val: &str) {
+		unsafe { bodydef_set_face(self.raw(), crate::dora::from_string(val)) };
 	}
 	/// Gets define for the face image or other items accepted by creating `Face` for the body.
 	pub fn get_face(&self) -> String {
 		return unsafe { crate::dora::to_string(bodydef_get_face(self.raw())) };
 	}
 	/// Sets define for the face position of the body.
-	pub fn set_face_pos(&mut self, var: &crate::dora::Vec2) {
-		unsafe { bodydef_set_face_pos(self.raw(), var.into_i64()) };
+	pub fn set_face_pos(&mut self, val: &crate::dora::Vec2) {
+		unsafe { bodydef_set_face_pos(self.raw(), val.into_i64()) };
 	}
 	/// Gets define for the face position of the body.
 	pub fn get_face_pos(&self) -> crate::dora::Vec2 {
 		return unsafe { crate::dora::Vec2::from(bodydef_get_face_pos(self.raw())) };
 	}
 	/// Sets define for linear damping of the body.
-	pub fn set_linear_damping(&mut self, var: f32) {
-		unsafe { bodydef_set_linear_damping(self.raw(), var) };
+	pub fn set_linear_damping(&mut self, val: f32) {
+		unsafe { bodydef_set_linear_damping(self.raw(), val) };
 	}
 	/// Gets define for linear damping of the body.
 	pub fn get_linear_damping(&self) -> f32 {
 		return unsafe { bodydef_get_linear_damping(self.raw()) };
 	}
 	/// Sets define for angular damping of the body.
-	pub fn set_angular_damping(&mut self, var: f32) {
-		unsafe { bodydef_set_angular_damping(self.raw(), var) };
+	pub fn set_angular_damping(&mut self, val: f32) {
+		unsafe { bodydef_set_angular_damping(self.raw(), val) };
 	}
 	/// Gets define for angular damping of the body.
 	pub fn get_angular_damping(&self) -> f32 {
 		return unsafe { bodydef_get_angular_damping(self.raw()) };
 	}
 	/// Sets define for initial linear acceleration of the body.
-	pub fn set_linear_acceleration(&mut self, var: &crate::dora::Vec2) {
-		unsafe { bodydef_set_linear_acceleration(self.raw(), var.into_i64()) };
+	pub fn set_linear_acceleration(&mut self, val: &crate::dora::Vec2) {
+		unsafe { bodydef_set_linear_acceleration(self.raw(), val.into_i64()) };
 	}
 	/// Gets define for initial linear acceleration of the body.
 	pub fn get_linear_acceleration(&self) -> crate::dora::Vec2 {
 		return unsafe { crate::dora::Vec2::from(bodydef_get_linear_acceleration(self.raw())) };
 	}
 	/// Sets whether the body's rotation is fixed or not.
-	pub fn set_fixed_rotation(&mut self, var: bool) {
-		unsafe { bodydef_set_fixed_rotation(self.raw(), if var { 1 } else { 0 }) };
+	pub fn set_fixed_rotation(&mut self, val: bool) {
+		unsafe { bodydef_set_fixed_rotation(self.raw(), if val { 1 } else { 0 }) };
 	}
 	/// Gets whether the body's rotation is fixed or not.
 	pub fn is_fixed_rotation(&self) -> bool {
@@ -134,8 +144,8 @@ impl BodyDef {
 	}
 	/// Sets whether the body is a bullet or not.
 	/// Set to true to add extra bullet movement check for the body.
-	pub fn set_bullet(&mut self, var: bool) {
-		unsafe { bodydef_set_bullet(self.raw(), if var { 1 } else { 0 }) };
+	pub fn set_bullet(&mut self, val: bool) {
+		unsafe { bodydef_set_bullet(self.raw(), if val { 1 } else { 0 }) };
 	}
 	/// Gets whether the body is a bullet or not.
 	/// Set to true to add extra bullet movement check for the body.

@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -16,6 +16,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Effect/Effect.h"
 #include "Node/Sprite.h"
 #include "Other/atlas.h"
+#include "Other/sdf_gen2d.h"
 #include "Other/utf8.h"
 #include "font/font_manager.h"
 
@@ -304,7 +305,7 @@ Label::Label(String fontName, uint32_t fontSize, bool sdf)
 	, _alignment(TextAlign::Center)
 	, _outlineColor(0x0)
 	, _outlineWidth(0.0f)
-	, _smooth{0.7f, 0.7f}
+	, _smooth{sdf::sdf_gen2d::suggested_edge_x, sdf::sdf_gen2d::suggested_edge_y}
 	, _font(SharedFontCache.load(fontName, fontSize, sdf))
 	, _blendFunc(BlendFunc::Default)
 	, _effect(sdf ? SharedFontCache.getSDFEffect() : SharedFontCache.getDefaultEffect()) {

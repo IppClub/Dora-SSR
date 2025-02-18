@@ -130,6 +130,7 @@ class Application
 	void openURL(String url);
 	void install(String path);
 	bool saveLog(String filename);
+	void openFileDialog(bool folderOnly, tolua_function_void callback);
 	void shutdown();
 	static tolua_outside Application* Application_shared @ create();
 };
@@ -207,8 +208,9 @@ struct Path
 
 class Content
 {
-	tolua_readonly tolua_property__common string assetPath;
-	tolua_readonly tolua_property__common string writablePath;
+	tolua_property__common string assetPath;
+	tolua_property__common string writablePath;
+	tolua_readonly tolua_property__common string appPath;
 	bool save(String filename, String content);
 	bool exist(String filename);
 	bool createFolder @ mkdir(String path);
@@ -516,6 +518,7 @@ class Touch : public Object
 	tolua_readonly tolua_property__common int id;
 	tolua_readonly tolua_property__common Vec2 delta;
 	tolua_readonly tolua_property__common Vec2 location;
+	tolua_readonly tolua_property__common Vec2 worldLocation;
 };
 
 struct Ease

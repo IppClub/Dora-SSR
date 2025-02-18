@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -21,25 +21,25 @@ extern "C" {
 	fn application_get_rand() -> i64;
 	fn application_get_max_fps() -> i32;
 	fn application_is_debugging() -> i32;
-	fn application_set_locale(var: i64);
+	fn application_set_locale(val: i64);
 	fn application_get_locale() -> i64;
-	fn application_set_theme_color(var: i32);
+	fn application_set_theme_color(val: i32);
 	fn application_get_theme_color() -> i32;
-	fn application_set_seed(var: i32);
+	fn application_set_seed(val: i32);
 	fn application_get_seed() -> i32;
-	fn application_set_target_fps(var: i32);
+	fn application_set_target_fps(val: i32);
 	fn application_get_target_fps() -> i32;
-	fn application_set_win_size(var: i64);
+	fn application_set_win_size(val: i64);
 	fn application_get_win_size() -> i64;
-	fn application_set_win_position(var: i64);
+	fn application_set_win_position(val: i64);
 	fn application_get_win_position() -> i64;
-	fn application_set_fps_limited(var: i32);
+	fn application_set_fps_limited(val: i32);
 	fn application_is_fps_limited() -> i32;
-	fn application_set_idled(var: i32);
+	fn application_set_idled(val: i32);
 	fn application_is_idled() -> i32;
-	fn application_set_full_screen(var: i32);
+	fn application_set_full_screen(val: i32);
 	fn application_is_full_screen() -> i32;
-	fn application_set_always_on_top(var: i32);
+	fn application_set_always_on_top(val: i32);
 	fn application_is_always_on_top() -> i32;
 	fn application_shutdown();
 }
@@ -111,24 +111,24 @@ impl App {
 		return unsafe { application_is_debugging() != 0 };
 	}
 	/// Sets the system locale string, in format like: `zh-Hans`, `en`.
-	pub fn set_locale(var: &str) {
-		unsafe { application_set_locale(crate::dora::from_string(var)) };
+	pub fn set_locale(val: &str) {
+		unsafe { application_set_locale(crate::dora::from_string(val)) };
 	}
 	/// Gets the system locale string, in format like: `zh-Hans`, `en`.
 	pub fn get_locale() -> String {
 		return unsafe { crate::dora::to_string(application_get_locale()) };
 	}
 	/// Sets the theme color for Dora SSR.
-	pub fn set_theme_color(var: &crate::dora::Color) {
-		unsafe { application_set_theme_color(var.to_argb() as i32) };
+	pub fn set_theme_color(val: &crate::dora::Color) {
+		unsafe { application_set_theme_color(val.to_argb() as i32) };
 	}
 	/// Gets the theme color for Dora SSR.
 	pub fn get_theme_color() -> crate::dora::Color {
 		return unsafe { crate::dora::Color::from(application_get_theme_color()) };
 	}
 	/// Sets the random number seed.
-	pub fn set_seed(var: i32) {
-		unsafe { application_set_seed(var) };
+	pub fn set_seed(val: i32) {
+		unsafe { application_set_seed(val) };
 	}
 	/// Gets the random number seed.
 	pub fn get_seed() -> i32 {
@@ -136,8 +136,8 @@ impl App {
 	}
 	/// Sets the target frames per second the game engine is supposed to run at.
 	/// Only works when `fpsLimited` is set to true.
-	pub fn set_target_fps(var: i32) {
-		unsafe { application_set_target_fps(var) };
+	pub fn set_target_fps(val: i32) {
+		unsafe { application_set_target_fps(val) };
 	}
 	/// Gets the target frames per second the game engine is supposed to run at.
 	/// Only works when `fpsLimited` is set to true.
@@ -147,8 +147,8 @@ impl App {
 	/// Sets the application window size.
 	/// May differ from visual size due to the different DPIs of display devices.
 	/// It is not available to set this property on platform Android and iOS.
-	pub fn set_win_size(var: &crate::dora::Size) {
-		unsafe { application_set_win_size(var.into_i64()) };
+	pub fn set_win_size(val: &crate::dora::Size) {
+		unsafe { application_set_win_size(val.into_i64()) };
 	}
 	/// Gets the application window size.
 	/// May differ from visual size due to the different DPIs of display devices.
@@ -158,8 +158,8 @@ impl App {
 	}
 	/// Sets the application window position.
 	/// It is not available to set this property on platform Android and iOS.
-	pub fn set_win_position(var: &crate::dora::Vec2) {
-		unsafe { application_set_win_position(var.into_i64()) };
+	pub fn set_win_position(val: &crate::dora::Vec2) {
+		unsafe { application_set_win_position(val.into_i64()) };
 	}
 	/// Gets the application window position.
 	/// It is not available to set this property on platform Android and iOS.
@@ -168,8 +168,8 @@ impl App {
 	}
 	/// Sets whether the game engine is limiting the frames per second.
 	/// Set `fpsLimited` to true, will make engine run in a busy loop to track the  precise frame time to switch to the next frame. And this behavior can lead to 100% CPU usage. This is usually common practice on Windows PCs for better CPU usage occupation. But it also results in extra heat and power consumption.
-	pub fn set_fps_limited(var: bool) {
-		unsafe { application_set_fps_limited(if var { 1 } else { 0 }) };
+	pub fn set_fps_limited(val: bool) {
+		unsafe { application_set_fps_limited(if val { 1 } else { 0 }) };
 	}
 	/// Gets whether the game engine is limiting the frames per second.
 	/// Set `fpsLimited` to true, will make engine run in a busy loop to track the  precise frame time to switch to the next frame. And this behavior can lead to 100% CPU usage. This is usually common practice on Windows PCs for better CPU usage occupation. But it also results in extra heat and power consumption.
@@ -179,8 +179,8 @@ impl App {
 	/// Sets whether the game engine is currently idled.
 	/// Set `idled` to true, will make game logic thread use a sleep time and going idled for next frame to come. Due to the imprecision in sleep time. This idled state may cause game engine over slept for a few frames to lost.
 	/// `idled` state can reduce some CPU usage.
-	pub fn set_idled(var: bool) {
-		unsafe { application_set_idled(if var { 1 } else { 0 }) };
+	pub fn set_idled(val: bool) {
+		unsafe { application_set_idled(if val { 1 } else { 0 }) };
 	}
 	/// Gets whether the game engine is currently idled.
 	/// Set `idled` to true, will make game logic thread use a sleep time and going idled for next frame to come. Due to the imprecision in sleep time. This idled state may cause game engine over slept for a few frames to lost.
@@ -190,8 +190,8 @@ impl App {
 	}
 	/// Sets whether the game engine is running in full screen mode.
 	/// It is not available to set this property on platform Android and iOS.
-	pub fn set_full_screen(var: bool) {
-		unsafe { application_set_full_screen(if var { 1 } else { 0 }) };
+	pub fn set_full_screen(val: bool) {
+		unsafe { application_set_full_screen(if val { 1 } else { 0 }) };
 	}
 	/// Gets whether the game engine is running in full screen mode.
 	/// It is not available to set this property on platform Android and iOS.
@@ -200,8 +200,8 @@ impl App {
 	}
 	/// Sets whether the game engine window is always on top. Default is true.
 	/// It is not available to set this property on platform Android and iOS.
-	pub fn set_always_on_top(var: bool) {
-		unsafe { application_set_always_on_top(if var { 1 } else { 0 }) };
+	pub fn set_always_on_top(val: bool) {
+		unsafe { application_set_always_on_top(if val { 1 } else { 0 }) };
 	}
 	/// Gets whether the game engine window is always on top. Default is true.
 	/// It is not available to set this property on platform Android and iOS.

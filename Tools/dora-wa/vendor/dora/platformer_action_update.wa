@@ -1,0 +1,54 @@
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+#wa:import dora platformer_actionupdate_type
+func platformer_actionupdate_type() => i32
+
+#wa:import dora platformer_wasmactionupdate_new
+func platformer_wasmactionupdate_new(func0: i32, stack0: i64) => i64
+
+type PlatformerActionUpdate :struct{ Object }
+
+func PlatformerActionUpdateFrom(raw: i64) => *PlatformerActionUpdate {
+	if raw == 0 {
+		return nil
+	}
+	object := PlatformerActionUpdate{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	result := &object
+	return result
+}
+func PlatformerActionUpdate.GetTypeId() => i32 {
+	return platformer_actionupdate_type()
+}
+func ObjectAsPlatformerActionUpdate(object: Object) => *PlatformerActionUpdate {
+	if object.GetTypeId() == platformer_actionupdate_type() {
+		ObjectRetain(object.GetRaw())
+		return PlatformerActionUpdateFrom(object.GetRaw())
+	}
+	return nil
+}
+func NewPlatformerActionUpdate(update: func(owner: PlatformerUnit, action: PlatformerUnitAction, delta_time: f32) => bool) => PlatformerActionUpdate {
+	stack0 := NewCallStack()
+	func_id0 := PushFunction(func() {
+		owner_obj := stack0.PopObject()
+		ObjectRetain(owner_obj.GetRaw())
+		owner := *PlatformerUnitFrom(owner_obj.GetRaw())
+		action_raw, _ := stack0.PopI64()
+		action := *PlatformerUnitActionFrom(action_raw)
+		deltaTime, _ := stack0.PopF32()
+		result_ := update(owner, action, deltaTime)
+		stack0.Push(result_)
+	})
+	raw := platformer_wasmactionupdate_new(func_id0, *stack0.raw)
+	object := PlatformerActionUpdate{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return object
+}

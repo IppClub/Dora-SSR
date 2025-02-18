@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -8,15 +8,15 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-void imgui_load_font_ttf_async(int64_t ttf_font_file, float font_size, int64_t glyph_ranges, int32_t func, int64_t stack) {
-	std::shared_ptr<void> deref(nullptr, [func](auto) {
-		SharedWasmRuntime.deref(func);
+void imgui_load_font_ttf_async(int64_t ttf_font_file, float font_size, int64_t glyph_ranges, int32_t func0, int64_t stack0) {
+	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
+		SharedWasmRuntime.deref(func0);
 	});
-	auto args = r_cast<CallStack*>(stack);
-	ImGui::Binding::LoadFontTTFAsync(*Str_From(ttf_font_file), font_size, *Str_From(glyph_ranges), [func, args, deref](bool success) {
-		args->clear();
-		args->push(success);
-		SharedWasmRuntime.invoke(func);
+	auto args0 = r_cast<CallStack*>(stack0);
+	ImGui::Binding::LoadFontTTFAsync(*Str_From(ttf_font_file), font_size, *Str_From(glyph_ranges), [func0, args0, deref0](bool success) {
+		args0->clear();
+		args0->push(success);
+		SharedWasmRuntime.invoke(func0);
 	});
 }
 int32_t imgui_is_font_loaded() {
@@ -157,14 +157,14 @@ void imgui__table_next_row_opts(float min_row_height, int32_t table_row_flag) {
 void imgui__table_setup_column_opts(int64_t label, float init_width_or_weight, int32_t user_id, int32_t table_column_flags) {
 	ImGui::Binding::TableSetupColumn(*Str_From(label), init_width_or_weight, s_cast<uint32_t>(user_id), s_cast<uint32_t>(table_column_flags));
 }
-void imgui_set_style_bool(int64_t name, int32_t var) {
-	ImGui::Binding::SetStyleVar(*Str_From(name), var != 0);
+void imgui_set_style_bool(int64_t name, int32_t val) {
+	ImGui::Binding::SetStyleVar(*Str_From(name), val != 0);
 }
-void imgui_set_style_float(int64_t name, float var) {
-	ImGui::Binding::SetStyleVar(*Str_From(name), var);
+void imgui_set_style_float(int64_t name, float val) {
+	ImGui::Binding::SetStyleVar(*Str_From(name), val);
 }
-void imgui_set_style_vec2(int64_t name, int64_t var) {
-	ImGui::Binding::SetStyleVar(*Str_From(name), Vec2_From(var));
+void imgui_set_style_vec2(int64_t name, int64_t val) {
+	ImGui::Binding::SetStyleVar(*Str_From(name), Vec2_From(val));
 }
 void imgui_set_style_color(int64_t name, int32_t color) {
 	ImGui::Binding::SetStyleColor(*Str_From(name), Color(s_cast<uint32_t>(color)));

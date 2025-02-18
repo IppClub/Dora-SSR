@@ -624,6 +624,10 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\nfd\nfd_win.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\Other\atlas.cpp" />
     <ClCompile Include="..\..\..\Source\3rdParty\Other\utf8.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
@@ -2082,10 +2086,12 @@
     <ClInclude Include="..\..\..\Source\3rdParty\nanovg\nanovg.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\nanovg\nanovg_bgfx.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\nanovg\vs_nanovg_fill.bin.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\nfd\nfd.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\nfd\nfd.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\Other\AcfDelegate.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\Other\atlas.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\Other\rapidxml_sax3.hpp" />
-    <ClInclude Include="..\..\..\Source\3rdParty\Other\SdfBuilder.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\Other\sdf_gen2d.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\Other\utf8.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\ArrayList.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\BlockAllocator.hpp" />

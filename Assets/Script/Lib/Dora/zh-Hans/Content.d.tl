@@ -8,11 +8,14 @@ local record Content
 	-- 用于搜索资源文件的文件路径列表。
 	searchPaths: {string}
 
-	-- 游戏引擎只读资源所在目录的路径。
-	const assetPath: string
+	-- 游戏引擎只读资源所在目录的路径。只有在平台 Windows、MacOS 和 Linux 上能被设置为新路径。
+	assetPath: string
 
-	-- 游戏引擎可以做写入操作的文件路径。
-	const writablePath: string
+	-- 游戏引擎可以做写入操作的文件路径。只有在平台 Windows、MacOS 和 Linux 上能被设置为新路径。默认与 `appPath` 相同。
+	writablePath: string
+
+	-- 游戏引擎应用程序存储目录的路径。
+	appPath: string
 
 	-- 以阻塞的方式读取文件内容。
 	-- @param filename (string) 要读取的文件名。

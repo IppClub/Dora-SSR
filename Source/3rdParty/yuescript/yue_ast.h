@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2017-2025 Li Jin <dragon-fly@qq.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -52,7 +52,6 @@ std::string_view ast_name() { return {}; }
 namespace yue {
 class ExpListLow_t;
 class TableBlock_t;
-class Attrib_t;
 class SimpleTable_t;
 class TableLit_t;
 class Assign_t;
@@ -181,6 +180,7 @@ AST_NODE(LocalAttrib)
 	ast_ptr<true, Seperator_t> sep;
 	ast_sel_list<true, Variable_t, SimpleTable_t, TableLit_t, Comprehension_t> leftList;
 	ast_ptr<true, Assign_t> assign;
+	bool forceLocal = true;
 	AST_MEMBER(LocalAttrib, &attrib, &sep, &leftList, &assign)
 AST_END(LocalAttrib)
 
@@ -635,9 +635,13 @@ AST_END(ExistentialOp)
 AST_LEAF(TableAppendingOp)
 AST_END(TableAppendingOp)
 
+AST_LEAF(PlainItem)
+AST_END(PlainItem)
+
 AST_NODE(ChainValue)
 	ast_ptr<true, Seperator_t> sep;
-	ast_sel_list<true, Callable_t, Invoke_t, DotChainItem_t, ColonChainItem_t, Slice_t, Exp_t, String_t, InvokeArgs_t, ExistentialOp_t, TableAppendingOp_t> items;
+	ast_sel_list<true, Callable_t, Invoke_t, DotChainItem_t, ColonChainItem_t, Slice_t, Exp_t, String_t, InvokeArgs_t, ExistentialOp_t, TableAppendingOp_t,
+		/*non-syntax-rule*/ PlainItem_t> items;
 	AST_MEMBER(ChainValue, &sep, &items)
 AST_END(ChainValue)
 

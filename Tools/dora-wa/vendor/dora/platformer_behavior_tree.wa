@@ -1,0 +1,239 @@
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+#wa:import dora platformer_behavior_tree_type
+func platformer_behavior_tree_type() => i32
+
+#wa:import dora platformer_behavior_leaf_seq
+func platformer_behavior_leaf_seq(nodes: i64) => i64
+
+#wa:import dora platformer_behavior_leaf_sel
+func platformer_behavior_leaf_sel(nodes: i64) => i64
+
+#wa:import dora platformer_behavior_leaf_con
+func platformer_behavior_leaf_con(name: i64, func0: i32, stack0: i64) => i64
+
+#wa:import dora platformer_behavior_leaf_act
+func platformer_behavior_leaf_act(action_name: i64) => i64
+
+#wa:import dora platformer_behavior_leaf_command
+func platformer_behavior_leaf_command(action_name: i64) => i64
+
+#wa:import dora platformer_behavior_leaf_wait
+func platformer_behavior_leaf_wait(duration: f64) => i64
+
+#wa:import dora platformer_behavior_leaf_countdown
+func platformer_behavior_leaf_countdown(time: f64, node: i64) => i64
+
+#wa:import dora platformer_behavior_leaf_timeout
+func platformer_behavior_leaf_timeout(time: f64, node: i64) => i64
+
+#wa:import dora platformer_behavior_leaf_repeat
+func platformer_behavior_leaf_repeat(times: i32, node: i64) => i64
+
+#wa:import dora platformer_behavior_leaf_repeat_forever
+func platformer_behavior_leaf_repeat_forever(node: i64) => i64
+
+#wa:import dora platformer_behavior_leaf_retry
+func platformer_behavior_leaf_retry(times: i32, node: i64) => i64
+
+#wa:import dora platformer_behavior_leaf_retry_until_pass
+func platformer_behavior_leaf_retry_until_pass(node: i64) => i64
+
+type PlatformerBehaviorTree :struct{ Object }
+
+func PlatformerBehaviorTreeFrom(raw: i64) => *PlatformerBehaviorTree {
+	if raw == 0 {
+		return nil
+	}
+	object := PlatformerBehaviorTree{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	result := &object
+	return result
+}
+func PlatformerBehaviorTree.GetTypeId() => i32 {
+	return platformer_behavior_tree_type()
+}
+func ObjectAsPlatformerBehaviorTree(object: Object) => *PlatformerBehaviorTree {
+	if object.GetTypeId() == platformer_behavior_tree_type() {
+		ObjectRetain(object.GetRaw())
+		return PlatformerBehaviorTreeFrom(object.GetRaw())
+	}
+	return nil
+}
+
+/// Creates a new sequence node that executes an array of child nodes in order.
+///
+/// # Arguments
+///
+/// * `nodes` - A vector of child nodes.
+///
+/// # Returns
+///
+/// * `Leaf` - A new sequence node.
+func PlatformerBehaviorTreeSeq(nodes: *[]PlatformerBehaviorTree) => PlatformerBehaviorTree {
+	return *PlatformerBehaviorTreeFrom(platformer_behavior_leaf_seq(ToDoraPlatformerBehaviorTreeBuf(nodes)))
+}
+
+/// Creates a new selector node that selects and executes one of its child nodes that will succeed.
+///
+/// # Arguments
+///
+/// * `nodes` - A vector of child nodes.
+///
+/// # Returns
+///
+/// * `Leaf` - A new selector node.
+func PlatformerBehaviorTreeSel(nodes: *[]PlatformerBehaviorTree) => PlatformerBehaviorTree {
+	return *PlatformerBehaviorTreeFrom(platformer_behavior_leaf_sel(ToDoraPlatformerBehaviorTreeBuf(nodes)))
+}
+
+/// Creates a new condition node that executes a check handler function when executed.
+///
+/// # Arguments
+///
+/// * `name` - The name of the condition.
+/// * `check` - A function that takes a blackboard object and returns a boolean value.
+///
+/// # Returns
+///
+/// * `Leaf` - A new condition node.
+func PlatformerBehaviorTreeCon(name: string, handler: func(blackboard: PlatformerBehaviorBlackboard) => bool) => PlatformerBehaviorTree {
+	stack0 := NewCallStack()
+	func_id0 := PushFunction(func() {
+		blackboard_raw, _ := stack0.PopI64()
+		blackboard := *PlatformerBehaviorBlackboardFrom(blackboard_raw)
+		result_ := handler(blackboard)
+		stack0.Push(result_)
+	})
+	return *PlatformerBehaviorTreeFrom(platformer_behavior_leaf_con(ToDoraString(name), func_id0, *stack0.raw))
+}
+
+/// Creates a new action node that executes an action when executed.
+/// This node will block the execution until the action finishes.
+///
+/// # Arguments
+///
+/// * `action_name` - The name of the action to execute.
+///
+/// # Returns
+///
+/// * `Leaf` - A new action node.
+func PlatformerBehaviorTreeAct(action_name: string) => PlatformerBehaviorTree {
+	return *PlatformerBehaviorTreeFrom(platformer_behavior_leaf_act(ToDoraString(action_name)))
+}
+
+/// Creates a new command node that executes a command when executed.
+/// This node will return right after the action starts.
+///
+/// # Arguments
+///
+/// * `action_name` - The name of the command to execute.
+///
+/// # Returns
+///
+/// * `Leaf` - A new command node.
+func PlatformerBehaviorTreeCommand(action_name: string) => PlatformerBehaviorTree {
+	return *PlatformerBehaviorTreeFrom(platformer_behavior_leaf_command(ToDoraString(action_name)))
+}
+
+/// Creates a new wait node that waits for a specified duration when executed.
+///
+/// # Arguments
+///
+/// * `duration` - The duration to wait in seconds.
+///
+/// # Returns
+///
+/// * A new wait node of type `Leaf`.
+func PlatformerBehaviorTreeWait(duration: f64) => PlatformerBehaviorTree {
+	return *PlatformerBehaviorTreeFrom(platformer_behavior_leaf_wait(duration))
+}
+
+/// Creates a new countdown node that executes a child node continuously until a timer runs out.
+///
+/// # Arguments
+///
+/// * `time` - The time limit in seconds.
+/// * `node` - The child node to execute.
+///
+/// # Returns
+///
+/// * A new countdown node of type `Leaf`.
+func PlatformerBehaviorTreeCountdown(time: f64, node: PlatformerBehaviorTree) => PlatformerBehaviorTree {
+	return *PlatformerBehaviorTreeFrom(platformer_behavior_leaf_countdown(time, node.GetRaw()))
+}
+
+/// Creates a new timeout node that executes a child node until a timer runs out.
+///
+/// # Arguments
+///
+/// * `time` - The time limit in seconds.
+/// * `node` - The child node to execute.
+///
+/// # Returns
+///
+/// * A new timeout node of type `Leaf`.
+func PlatformerBehaviorTreeTimeout(time: f64, node: PlatformerBehaviorTree) => PlatformerBehaviorTree {
+	return *PlatformerBehaviorTreeFrom(platformer_behavior_leaf_timeout(time, node.GetRaw()))
+}
+
+/// Creates a new repeat node that executes a child node a specified number of times.
+///
+/// # Arguments
+///
+/// * `times` - The number of times to execute the child node.
+/// * `node` - The child node to execute.
+///
+/// # Returns
+///
+/// * A new repeat node of type `Leaf`.
+func PlatformerBehaviorTreeRepeat(times: i32, node: PlatformerBehaviorTree) => PlatformerBehaviorTree {
+	return *PlatformerBehaviorTreeFrom(platformer_behavior_leaf_repeat(times, node.GetRaw()))
+}
+
+/// Creates a new repeat node that executes a child node repeatedly.
+///
+/// # Arguments
+///
+/// * `node` - The child node to execute.
+///
+/// # Returns
+///
+/// * A new repeat node of type `Leaf`.
+func PlatformerBehaviorTreeRepeatForever(node: PlatformerBehaviorTree) => PlatformerBehaviorTree {
+	return *PlatformerBehaviorTreeFrom(platformer_behavior_leaf_repeat_forever(node.GetRaw()))
+}
+
+/// Creates a new retry node that executes a child node repeatedly until it succeeds or a maximum number of retries is reached.
+///
+/// # Arguments
+///
+/// * `times` - The maximum number of retries.
+/// * `node` - The child node to execute.
+///
+/// # Returns
+///
+/// * A new retry node of type `Leaf`.
+func PlatformerBehaviorTreeRetry(times: i32, node: PlatformerBehaviorTree) => PlatformerBehaviorTree {
+	return *PlatformerBehaviorTreeFrom(platformer_behavior_leaf_retry(times, node.GetRaw()))
+}
+
+/// Creates a new retry node that executes a child node repeatedly until it succeeds.
+///
+/// # Arguments
+///
+/// * `node` - The child node to execute.
+///
+/// # Returns
+///
+/// * A new retry node of type `Leaf`.
+func PlatformerBehaviorTreeRetryUntilPass(node: PlatformerBehaviorTree) => PlatformerBehaviorTree {
+	return *PlatformerBehaviorTreeFrom(platformer_behavior_leaf_retry_until_pass(node.GetRaw()))
+}

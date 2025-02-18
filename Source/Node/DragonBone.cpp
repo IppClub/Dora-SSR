@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -422,6 +422,9 @@ void DragonBone::DBArmatureProxy::dispatchDBEvent(const std::string& type, db::E
 		const std::string& animationName = value->animationState->getName();
 		_parent->emit("AnimationEnd"_slice, animationName, s_cast<Playable*>(_parent));
 		_parent->_lastCompletedAnimationName = animationName;
+		if (_parent->_currentAnimationName == animationName) {
+			_parent->_currentAnimationName.clear();
+		}
 	} else if (type == db::EventObject::LOOP_COMPLETE) {
 		auto animationName = value->animationState->getName();
 		_parent->emit("AnimationEnd"_slice, animationName, s_cast<Playable*>(_parent));

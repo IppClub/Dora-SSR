@@ -20,18 +20,17 @@
 namespace ktm
 {
 
-template<class Child>
-using vec_fater_type = single_extends_t<Child, ivec_data, ivec_array, ivec_calc, 
-    iarray_io, iarray_calc, iarray_util>;
+template <class Child>
+using vec_fater_type = single_extends_t<Child, ivec_data, ivec_array, ivec_calc, iarray_io, iarray_calc, iarray_util>;
 
-template<size_t N, typename T>
+template <size_t N, typename T>
 struct vec<N, T> : vec_fater_type<vec<N, T>>
 {
     using fater_type = vec_fater_type<vec<N, T>>;
     using fater_type::fater_type;
 };
 
-}
+} // namespace ktm
 
 #include "../detail/vector/vec_data.inl"
 #include "../detail/vector/vec_data_simd.inl"

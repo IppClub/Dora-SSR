@@ -1,5 +1,3 @@
-import "@site/src/languages/highlight";
-
 # Content
 
 **Description:**
@@ -28,28 +26,41 @@ searchPaths: {string}
 
 ## assetPath
 
-**Type:** Readonly Field.
+**Type:** Field.
 
 **Description:**
 
-&emsp;&emsp;The path to the directory containing read-only resources.
+&emsp;&emsp;The path to the directory containing read-only resources. Can only be altered by the user on platform Windows, MacOS and Linux.
 
 **Signature:**
 ```tl
-const assetPath: string
+assetPath: string
 ```
 
 ## writablePath
 
-**Type:** Readonly Field.
+**Type:** Field.
 
 **Description:**
 
-&emsp;&emsp;The path to the directory where files can be written.
+&emsp;&emsp;The path to the directory where files can be written. Can only be altered by the user on platform Windows, MacOS and Linux. Default is the same as the `appPath`.
 
 **Signature:**
 ```tl
-const writablePath: string
+writablePath: string
+```
+
+## appPath
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The path to the directory for the application storage.
+
+**Signature:**
+```tl
+appPath: string
 ```
 
 ## load

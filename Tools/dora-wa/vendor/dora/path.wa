@@ -1,0 +1,60 @@
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+#wa:import dora path_get_ext
+func path_get_ext(path: i64) => i64
+
+#wa:import dora path_get_path
+func path_get_path(path: i64) => i64
+
+#wa:import dora path_get_name
+func path_get_name(path: i64) => i64
+
+#wa:import dora path_get_filename
+func path_get_filename(path: i64) => i64
+
+#wa:import dora path_get_relative
+func path_get_relative(path: i64, target: i64) => i64
+
+#wa:import dora path_replace_ext
+func path_replace_ext(path: i64, new_ext: i64) => i64
+
+#wa:import dora path_replace_filename
+func path_replace_filename(path: i64, new_file: i64) => i64
+
+#wa:import dora path_concat
+func path_concat(paths: i64) => i64
+
+type _Path :struct{}
+
+global Path = _Path{}
+
+func _Path.GetExt(path: string) => string {
+	return FromDoraString(path_get_ext(ToDoraString(path)))
+}
+func _Path.GetPath(path: string) => string {
+	return FromDoraString(path_get_path(ToDoraString(path)))
+}
+func _Path.GetName(path: string) => string {
+	return FromDoraString(path_get_name(ToDoraString(path)))
+}
+func _Path.GetFilename(path: string) => string {
+	return FromDoraString(path_get_filename(ToDoraString(path)))
+}
+func _Path.GetRelative(path: string, target: string) => string {
+	return FromDoraString(path_get_relative(ToDoraString(path), ToDoraString(target)))
+}
+func _Path.ReplaceExt(path: string, new_ext: string) => string {
+	return FromDoraString(path_replace_ext(ToDoraString(path), ToDoraString(new_ext)))
+}
+func _Path.ReplaceFilename(path: string, new_file: string) => string {
+	return FromDoraString(path_replace_filename(ToDoraString(path), ToDoraString(new_file)))
+}
+func _Path.Concat(paths: *[]string) => string {
+	return FromDoraString(path_concat(ToDoraStrBuf(paths)))
+}

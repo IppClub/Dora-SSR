@@ -1,4 +1,4 @@
-/* Copyright (c) 2024 Li Jin, dragon-fly@qq.com
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -17,17 +17,17 @@ void mlqlearner_update(int64_t self, int64_t state, int32_t action, double rewar
 int32_t mlqlearner_get_best_action(int64_t self, int64_t state) {
 	return s_cast<int32_t>(r_cast<MLQLearner*>(self)->getBestAction(s_cast<MLQState>(state)));
 }
-void mlqlearner_visit_matrix(int64_t self, int32_t func, int64_t stack) {
-	std::shared_ptr<void> deref(nullptr, [func](auto) {
-		SharedWasmRuntime.deref(func);
+void mlqlearner_visit_matrix(int64_t self, int32_t func0, int64_t stack0) {
+	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
+		SharedWasmRuntime.deref(func0);
 	});
-	auto args = r_cast<CallStack*>(stack);
-	ML_QLearnerVisitStateActionQ(r_cast<MLQLearner*>(self), [func, args, deref](MLQState state, MLQAction action, double q) {
-		args->clear();
-		args->push(s_cast<int64_t>(state));
-		args->push(s_cast<int64_t>(action));
-		args->push(q);
-		SharedWasmRuntime.invoke(func);
+	auto args0 = r_cast<CallStack*>(stack0);
+	ML_QLearnerVisitStateActionQ(r_cast<MLQLearner*>(self), [func0, args0, deref0](MLQState state, MLQAction action, double q) {
+		args0->clear();
+		args0->push(s_cast<int64_t>(state));
+		args0->push(s_cast<int64_t>(action));
+		args0->push(q);
+		SharedWasmRuntime.invoke(func0);
 	});
 }
 int64_t mlqlearner_pack(int64_t hints, int64_t values) {

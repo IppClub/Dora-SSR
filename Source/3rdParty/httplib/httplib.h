@@ -1,14 +1,14 @@
 //
 //  httplib.h
 //
-//  Copyright (c) 2024 Yuji Hirose. All rights reserved.
+//  Copyright (c) 2025 Yuji Hirose. All rights reserved.
 //  MIT License
 //
 
 #ifndef CPPHTTPLIB_HTTPLIB_H
 #define CPPHTTPLIB_HTTPLIB_H
 
-#define CPPHTTPLIB_VERSION "0.18.3"
+#define CPPHTTPLIB_VERSION "0.18.7"
 
 /*
  * Configuration
@@ -219,7 +219,9 @@ using socket_t = SOCKET;
 #include <csignal>
 #include <pthread.h>
 #include <sys/mman.h>
+#ifndef __VMS
 #include <sys/select.h>
+#endif
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <unistd.h>
@@ -629,6 +631,7 @@ struct Request {
   Ranges ranges;
   Match matches;
   std::unordered_map<std::string, std::string> path_params;
+  std::function<bool()> is_connection_closed = []() { return true; };
 
   // for client
   ResponseHandler response_handler;
@@ -2016,16 +2019,32 @@ inline void duration_to_sec_and_usec(const T &duration, U callback) {
   callback(static_cast<time_t>(sec), static_cast<time_t>(usec));
 }
 
+inline bool is_numeric(const std::string &str) {
+  return !str.empty() && std::all_of(str.begin(), str.end(), ::isdigit);
+}
+
 inline uint64_t get_header_value_u64(const Headers &headers,
                                      const std::string &key, uint64_t def,
-                                     size_t id) {
+                                     size_t id, bool &is_invalid_value) {
+  is_invalid_value = false;
   auto rng = headers.equal_range(key);
   auto it = rng.first;
   std::advance(it, static_cast<ssize_t>(id));
   if (it != rng.second) {
-    return std::strtoull(it->second.data(), nullptr, 10);
+    if (is_numeric(it->second)) {
+      return std::strtoull(it->second.data(), nullptr, 10);
+    } else {
+      is_invalid_value = true;
+    }
   }
   return def;
+}
+
+inline uint64_t get_header_value_u64(const Headers &headers,
+                                     const std::string &key, uint64_t def,
+                                     size_t id) {
+  bool dummy = false;
+  return get_header_value_u64(headers, key, def, id, dummy);
 }
 
 } // namespace detail
@@ -2044,8 +2063,6 @@ inline void default_socket_options(socket_t sock) {
   int opt = 1;
 #ifdef _WIN32
   setsockopt(sock, SOL_SOCKET, SO_REUSEADDR,
-             reinterpret_cast<const char *>(&opt), sizeof(opt));
-  setsockopt(sock, SOL_SOCKET, SO_EXCLUSIVEADDRUSE,
              reinterpret_cast<const char *>(&opt), sizeof(opt));
 #else
 #ifdef SO_REUSEPORT
@@ -2509,6 +2526,60 @@ private:
   void *addr_ = nullptr;
   bool is_open_empty_file = false;
 };
+
+// NOTE: https://www.rfc-editor.org/rfc/rfc9110#section-5
+namespace fields {
+
+inline bool is_token_char(char c) {
+  return std::isalnum(c) || c == '!' || c == '#' || c == '$' || c == '%' ||
+         c == '&' || c == '\'' || c == '*' || c == '+' || c == '-' ||
+         c == '.' || c == '^' || c == '_' || c == '`' || c == '|' || c == '~';
+}
+
+inline bool is_token(const std::string &s) {
+  if (s.empty()) { return false; }
+  for (auto c : s) {
+    if (!is_token_char(c)) { return false; }
+  }
+  return true;
+}
+
+inline bool is_field_name(const std::string &s) { return is_token(s); }
+
+inline bool is_vchar(char c) { return c >= 33 && c <= 126; }
+
+inline bool is_obs_text(char c) { return 128 <= static_cast<unsigned char>(c); }
+
+inline bool is_field_vchar(char c) { return is_vchar(c) || is_obs_text(c); }
+
+inline bool is_field_content(const std::string &s) {
+  if (s.empty()) { return true; }
+
+  if (s.size() == 1) {
+    return is_field_vchar(s[0]);
+  } else if (s.size() == 2) {
+    return is_field_vchar(s[0]) && is_field_vchar(s[1]);
+  } else {
+    size_t i = 0;
+
+    if (!is_field_vchar(s[i])) { return false; }
+    i++;
+
+    while (i < s.size() - 1) {
+      auto c = s[i++];
+      if (c == ' ' || c == '\t' || is_field_vchar(c)) {
+      } else {
+        return false;
+      }
+    }
+
+    return is_field_vchar(s[i]);
+  }
+}
+
+inline bool is_field_value(const std::string &s) { return is_field_content(s); }
+
+} // namespace fields
 
 } // namespace detail
 
@@ -4147,22 +4218,21 @@ inline bool parse_header(const char *beg, const char *end, T fn) {
     if (!key_len) { return false; }
 
     auto key = std::string(beg, key_end);
-    auto val = case_ignore::equal(key, "Location")
-                   ? std::string(p, end)
-                   : decode_url(std::string(p, end), false);
+    // auto val = (case_ignore::equal(key, "Location") ||
+    //             case_ignore::equal(key, "Referer"))
+    //                ? std::string(p, end)
+    //                : decode_url(std::string(p, end), false);
+    auto val = std::string(p, end);
 
-    // NOTE: From RFC 9110:
-    // Field values containing CR, LF, or NUL characters are
-    // invalid and dangerous, due to the varying ways that
-    // implementations might parse and interpret those
-    // characters; a recipient of CR, LF, or NUL within a field
-    // value MUST either reject the message or replace each of
-    // those characters with SP before further processing or
-    // forwarding of that message.
-    static const std::string CR_LF_NUL("\r\n\0", 3);
-    if (val.find_first_of(CR_LF_NUL) != std::string::npos) { return false; }
+    if (!detail::fields::is_field_value(val)) { return false; }
 
-    fn(key, val);
+    if (case_ignore::equal(key, "Location") ||
+        case_ignore::equal(key, "Referer")) {
+      fn(key, val);
+    } else {
+      fn(key, decode_url(val, false));
+    }
+
     return true;
   }
 
@@ -4198,7 +4268,7 @@ inline bool read_headers(Stream &strm, Headers &headers) {
     auto end = line_reader.ptr() + line_reader.size() - line_terminator_len;
 
     if (!parse_header(line_reader.ptr(), end,
-                      [&](const std::string &key, std::string &val) {
+                      [&](const std::string &key, const std::string &val) {
                         headers.emplace(key, val);
                       })) {
       return false;
@@ -4390,8 +4460,14 @@ bool read_content(Stream &strm, T &x, size_t payload_max_length, int &status,
         } else if (!has_header(x.headers, "Content-Length")) {
           ret = read_content_without_length(strm, out);
         } else {
-          auto len = get_header_value_u64(x.headers, "Content-Length", 0, 0);
-          if (len > payload_max_length) {
+          auto is_invalid_value = false;
+          auto len = get_header_value_u64(
+              x.headers, "Content-Length",
+              (std::numeric_limits<uint64_t>::max)(), 0, is_invalid_value);
+
+          if (is_invalid_value) {
+            ret = false;
+          } else if (len > payload_max_length) {
             exceed_payload_max_length = true;
             skip_content_with_length(strm, len);
             ret = false;
@@ -5160,7 +5236,18 @@ inline bool range_error(Request &req, Response &res) {
         last_pos = contant_len - 1;
       }
 
-      if (last_pos == -1) { last_pos = contant_len - 1; }
+      // NOTE: RFC-9110 '14.1.2. Byte Ranges':
+      // A client can limit the number of bytes requested without knowing the
+      // size of the selected representation. If the last-pos value is absent,
+      // or if the value is greater than or equal to the current length of the
+      // representation data, the byte range is interpreted as the remainder of
+      // the representation (i.e., the server replaces the value of last-pos
+      // with a value that is one less than the current length of the selected
+      // representation).
+      // https://www.rfc-editor.org/rfc/rfc9110.html#section-14.1.2-6
+      if (last_pos == -1 || last_pos >= contant_len) {
+        last_pos = contant_len - 1;
+      }
 
       // Range must be within content length
       if (!(0 <= first_pos && first_pos <= last_pos &&
@@ -5298,10 +5385,14 @@ write_multipart_ranges_data(Stream &strm, const Request &req, Response &res,
 
 inline bool expect_content(const Request &req) {
   if (req.method == "POST" || req.method == "PUT" || req.method == "PATCH" ||
-      req.method == "PRI" || req.method == "DELETE") {
+      req.method == "DELETE") {
     return true;
   }
-  // TODO: check if Content-Length is set
+  if (req.has_header("Content-Length") &&
+      req.get_header_value_u64("Content-Length") > 0) {
+    return true;
+  }
+  if (is_chunked_transfer_encoding(req.headers)) { return true; }
   return false;
 }
 
@@ -5692,7 +5783,8 @@ inline size_t Request::get_header_value_count(const std::string &key) const {
 
 inline void Request::set_header(const std::string &key,
                                 const std::string &val) {
-  if (!detail::has_crlf(key) && !detail::has_crlf(val)) {
+  if (detail::fields::is_field_name(key) &&
+      detail::fields::is_field_value(val)) {
     headers.emplace(key, val);
   }
 }
@@ -5758,13 +5850,14 @@ inline size_t Response::get_header_value_count(const std::string &key) const {
 
 inline void Response::set_header(const std::string &key,
                                  const std::string &val) {
-  if (!detail::has_crlf(key) && !detail::has_crlf(val)) {
+  if (detail::fields::is_field_name(key) &&
+      detail::fields::is_field_value(val)) {
     headers.emplace(key, val);
   }
 }
 
 inline void Response::set_redirect(const std::string &url, int stat) {
-  if (!detail::has_crlf(url)) {
+  if (detail::fields::is_field_value(url)) {
     set_header("Location", url);
     if (300 <= stat && stat < 400) {
       this->status = stat;
@@ -7144,6 +7237,11 @@ Server::process_request(Stream &strm, const std::string &remote_addr,
     }
   }
 
+  // Setup `is_connection_closed` method
+  req.is_connection_closed = [&]() {
+    return !detail::is_socket_alive(strm.socket());
+  };
+
   // Routing
   auto routed = false;
 #ifdef CPPHTTPLIB_NO_EXCEPTIONS
@@ -7186,14 +7284,6 @@ Server::process_request(Stream &strm, const std::string &remote_addr,
                                       : StatusCode::PartialContent_206;
     }
 
-    if (detail::range_error(req, res)) {
-      res.body.clear();
-      res.content_length_ = 0;
-      res.content_provider_ = nullptr;
-      res.status = StatusCode::RangeNotSatisfiable_416;
-      return write_response(strm, close_connection, req, res);
-    }
-
     // Serve file content by using a content provider
     if (!res.file_content_path_.empty()) {
       const auto &path = res.file_content_path_;
@@ -7218,6 +7308,14 @@ Server::process_request(Stream &strm, const std::string &remote_addr,
             sink.write(mm->data() + offset, length);
             return true;
           });
+    }
+
+    if (detail::range_error(req, res)) {
+      res.body.clear();
+      res.content_length_ = 0;
+      res.content_provider_ = nullptr;
+      res.status = StatusCode::RangeNotSatisfiable_416;
+      return write_response(strm, close_connection, req, res);
     }
 
     return write_response_with_content(strm, close_connection, req, res);
@@ -8922,6 +9020,7 @@ inline void ssl_delete(std::mutex &ctx_mutex, SSL *ssl, socket_t sock,
   // best-efforts.
   if (shutdown_gracefully) {
 #ifdef _WIN32
+    (void)(sock);
     SSL_shutdown(ssl);
 #else
     timeval tv;

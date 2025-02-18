@@ -1,0 +1,3942 @@
+import (
+	"math"
+	"strconv"
+	"strings"
+)
+
+/* runtime */
+
+#wa:linkname $wa.runtime.i32_ref_to_ptr
+func waI32RefToPtr(p: *i32) => i32
+
+#wa:linkname $wa.runtime.i64_ref_to_ptr
+func waI64RefToPtr(p: *i64) => i32
+
+#wa:linkname $wa.runtime.string_to_ptr
+func waStringToPtr(s: string) => i32
+
+#wa:linkname $wa.runtime.slice_to_ptr
+func waBytesToPtr(s: []byte) => i32
+
+#wa:linkname $wa.runtime.slice_to_ptr
+func waI32SliceToPtr(s: []i32) => i32
+
+#wa:linkname $wa.runtime.slice_to_ptr
+func waI64SliceToPtr(s: []i64) => i32
+
+#wa:linkname $wa.runtime.slice_to_ptr
+func waF32SliceToPtr(s: []f32) => i32
+
+#wa:linkname $wa.runtime.slice_to_ptr
+func waF64SliceToPtr(s: []f64) => i32
+
+/* string */
+
+#wa:import dora str_new
+func str_new(len: i32) => i64
+
+#wa:import dora str_release
+func str_release(str: i64)
+
+#wa:import dora str_len
+func str_len(str: i64) => i32
+
+#wa:import dora str_read_ptr
+func str_read_ptr(dest: i32, src: i64)
+
+#wa:import dora str_write_ptr
+func str_write_ptr(dest: i64, src: i32)
+
+func ToDoraString(str: string) => i64 {
+	ptr := str_new(i32(len(str)))
+	str_write_ptr(ptr, waStringToPtr(str))
+	return ptr
+}
+
+func FromDoraString(str: i64) => string {
+	length := str_len(str)
+	buf := make([]byte, length)
+	str_read_ptr(waBytesToPtr(buf), str)
+	return string(buf)
+}
+
+/* bool */
+
+func ToDoraBool(v: bool) => i32 {
+	if v {
+		return 1
+	}
+	return 0
+}
+
+/* buf */
+
+#wa:import dora buf_new_i32
+func buf_new_i32(len: i32) => i64
+
+#wa:import dora buf_new_i64
+func buf_new_i64(len: i32) => i64
+
+#wa:import dora buf_new_f32
+func buf_new_f32(len: i32) => i64
+
+#wa:import dora buf_new_f64
+func buf_new_f64(len: i32) => i64
+
+#wa:import dora buf_len
+func buf_len(v: i64) => i32
+
+#wa:import dora buf_read_ptr
+func buf_read_ptr(dest: i32, src: i64)
+
+#wa:import dora buf_write_ptr
+func buf_write_ptr(dest: i64, src: i32)
+
+#wa:import dora buf_release
+func buf_release(v: i64)
+
+func ToDoraI32Buf(v: *[]i32) => i64 {
+	ptr := buf_new_i32(i32(len(*v)))
+	buf_write_ptr(ptr, waI32SliceToPtr(*v))
+	return ptr
+}
+
+func ToDoraI64Buf(v: *[]i64) => i64 {
+	ptr := buf_new_i64(i32(len(*v)))
+	buf_write_ptr(ptr, waI64SliceToPtr(*v))
+	return ptr
+}
+
+func ToDoraF32Buf(v: *[]f32) => i64 {
+	ptr := buf_new_f32(i32(len(*v)))
+	buf_write_ptr(ptr, waF32SliceToPtr(*v))
+	return ptr
+}
+
+func ToDoraF64Buf(v: *[]f64) => i64 {
+	ptr := buf_new_f64(i32(len(*v)))
+	buf_write_ptr(ptr, waF64SliceToPtr(*v))
+	return ptr
+}
+
+func ToDoraStrBuf(v: *[]string) => i64 {
+	length := len(*v)
+	ptr := buf_new_i64(i32(length))
+	strs := make([]i64, length)
+	for i := 0; i < length; i++ {
+		strs[i] = ToDoraString((*v)[i])
+	}
+	buf_write_ptr(ptr, waI64SliceToPtr(strs))
+	return ptr
+}
+
+func ToDoraVec2Buf(v: *[]Vec2) => i64 {
+	length := len(*v)
+	ptr := buf_new_i64(i32(length))
+	vecs := make([]i64, length)
+	for i := 0; i < length; i++ {
+		vecs[i] = (*v)[i].ToValue()
+	}
+	buf_write_ptr(ptr, waI64SliceToPtr(vecs))
+	return ptr
+}
+
+func ToDoraActionDefBuf(v: *[]ActionDef) => i64 {
+	length := len(*v)
+	ptr := buf_new_i64(i32(length))
+	vecs := make([]i64, length)
+	for i := 0; i < length; i++ {
+		vecs[i] = (*v)[i].GetRaw()
+	}
+	buf_write_ptr(ptr, waI64SliceToPtr(vecs))
+	return ptr
+}
+
+func ToDoraVertexColorBuf(v: *[]VertexColor) => i64 {
+	length := len(*v)
+	ptr := buf_new_i64(i32(length))
+	vecs := make([]i64, length)
+	for i := 0; i < length; i++ {
+		vecs[i] = (*v)[i].GetRaw()
+	}
+	buf_write_ptr(ptr, waI64SliceToPtr(vecs))
+	return ptr
+}
+
+func ToDoraPlatformerBehaviorTreeBuf(v: *[]PlatformerBehaviorTree) => i64 {
+	length := len(*v)
+	ptr := buf_new_i64(i32(length))
+	vecs := make([]i64, length)
+	for i := 0; i < length; i++ {
+		vecs[i] = (*v)[i].GetRaw()
+	}
+	buf_write_ptr(ptr, waI64SliceToPtr(vecs))
+	return ptr
+}
+
+func ToDoraPlatformerDecisionTreeBuf(v: *[]PlatformerDecisionTree) => i64 {
+	length := len(*v)
+	ptr := buf_new_i64(i32(length))
+	vecs := make([]i64, length)
+	for i := 0; i < length; i++ {
+		vecs[i] = (*v)[i].GetRaw()
+	}
+	buf_write_ptr(ptr, waI64SliceToPtr(vecs))
+	return ptr
+}
+
+func FromDoraI32Buf(v: i64) => *[]i32 {
+	length := buf_len(v)
+	buf := make([]i32, length)
+	buf_read_ptr(waI32SliceToPtr(buf), v)
+	return &buf
+}
+
+func FromDoraI64Buf(v: i64) => *[]i64 {
+	length := buf_len(v)
+	buf := make([]i64, length)
+	buf_read_ptr(waI64SliceToPtr(buf), v)
+	return &buf
+}
+
+func FromDoraF32Buf(v: i64) => *[]f32 {
+	length := buf_len(v)
+	buf := make([]f32, length)
+	buf_read_ptr(waF32SliceToPtr(buf), v)
+	return &buf
+}
+
+func FromDoraF64Buf(v: i64) => *[]f64 {
+	length := buf_len(v)
+	buf := make([]f64, length)
+	buf_read_ptr(waF64SliceToPtr(buf), v)
+	return &buf
+}
+
+func FromDoraStrBuf(v: i64) => *[]string {
+	length := buf_len(v)
+	buf := make([]i64, length)
+	buf_read_ptr(waI64SliceToPtr(buf), v)
+	strs := make([]string, length)
+	for i := 0; i < int(length); i++ {
+		strs[i] = FromDoraString(buf[i])
+	}
+	return &strs
+}
+
+func FromDoraVec2Buf(v: i64) => *[]Vec2 {
+	length := buf_len(v)
+	buf := make([]i64, length)
+	buf_read_ptr(waI64SliceToPtr(buf), v)
+	vecs := make([]Vec2, length)
+	for i := 0; i < int(length); i++ {
+		vecs[i] = Vec2FromValue(buf[i])
+	}
+	return &vecs
+}
+
+func FromDoraVertexColorBuf(v: i64) => *[]VertexColor {
+	length := buf_len(v)
+	buf := make([]i64, length)
+	buf_read_ptr(waI64SliceToPtr(buf), v)
+	vecs := make([]VertexColor, length)
+	for i := 0; i < int(length); i++ {
+		vecs[i] = *VertexColorFrom(buf[i])
+	}
+	return &vecs
+}
+
+/* Object */
+
+#wa:import dora object_get_id
+func object_get_id(obj: i64) => i32
+
+#wa:import dora object_get_type
+func object_get_type(obj: i64) => i32
+
+#wa:import dora object_retain
+func object_retain(obj: i64)
+
+#wa:import dora object_release
+func object_release(obj: i64)
+
+#wa:import dora object_to_node
+func object_to_node(obj: i64) => i64
+
+#wa:import dora object_to_camera
+func object_to_camera(obj: i64) => i64
+
+#wa:import dora object_to_playable
+func object_to_playable(obj: i64) => i64
+
+#wa:import dora object_to_physics_world
+func object_to_physics_world(obj: i64) => i64
+
+#wa:import dora object_to_body
+func object_to_body(obj: i64) => i64
+
+#wa:import dora object_to_joint
+func object_to_joint(obj: i64) => i64
+
+type Object :struct {
+	raw: *i64
+}
+
+func ObjectFrom(raw: i64) => *Object {
+	if raw == 0 {
+		return nil
+	}
+	object := Object{raw: &raw}
+	setFinalizer(object.raw, ObjectFinalizer)
+	return &object
+}
+
+func Object.GetId() => i32 {
+	return object_get_id(*this.raw)
+}
+
+func Object.GetTypeId() => i32 {
+	return object_get_type(*this.raw)
+}
+
+func Object.GetRaw() => i64 {
+	return *this.raw
+}
+
+func ObjectRetain(ptr: i64) {
+	object_retain(ptr)
+}
+
+#wa:runtime_getter
+func GetPtr(ptr: u32) => i64
+
+func ObjectFinalizer(ptr: u32) {
+	object_release(GetPtr(ptr))
+}
+
+func createObject(raw: i64) => Object {
+	object := Object{raw: &raw}
+	setFinalizer(object.raw, ObjectFinalizer)
+	return object
+}
+
+func ObjectCastToNode(object: Object) => *Node {
+	raw := object_to_node(*object.raw)
+	if raw == 0 {
+		return nil
+	}
+	ObjectRetain(raw)
+	return NodeFrom(raw)
+}
+
+func ObjectCastToCamera(object: Object) => *Camera {
+	raw := object_to_camera(*object.raw)
+	if raw == 0 {
+		return nil
+	}
+	ObjectRetain(raw)
+	return CameraFrom(raw)
+}
+
+func ObjectCastToPlayable(object: Object) => *Playable {
+	raw := object_to_playable(*object.raw)
+	if raw == 0 {
+		return nil
+	}
+	ObjectRetain(raw)
+	return PlayableFrom(raw)
+}
+
+func ObjectCastToBody(object: Object) => *Body {
+	raw := object_to_body(*object.raw)
+	if raw == 0 {
+		return nil
+	}
+	ObjectRetain(raw)
+	return BodyFrom(raw)
+}
+
+func ObjectCastToJoint(object: Object) => *Joint {
+	raw := object_to_joint(*object.raw)
+	if raw == 0 {
+		return nil
+	}
+	ObjectRetain(raw)
+	return JointFrom(raw)
+}
+
+func ObjectCastToPhysicsWorld(object: Object) => *PhysicsWorld {
+	raw := object_to_physics_world(*object.raw)
+	if raw == 0 {
+		return nil
+	}
+	ObjectRetain(raw)
+	return PhysicsWorldFrom(raw)
+}
+
+/* Value */
+
+#wa:import dora value_create_i64
+func value_create_i64(value: i64) => i64
+
+#wa:import dora value_create_f64
+func value_create_f64(value: f64) => i64
+
+#wa:import dora value_create_str
+func value_create_str(value: i64) => i64
+
+#wa:import dora value_create_bool
+func value_create_bool(value: i32) => i64
+
+#wa:import dora value_create_object
+func value_create_object(value: i64) => i64
+
+#wa:import dora value_create_vec2
+func value_create_vec2(value: i64) => i64
+
+#wa:import dora value_create_size
+func value_create_size(value: i64) => i64
+
+#wa:import dora value_release
+func value_release(value: i64)
+
+#wa:import dora value_into_i64
+func value_into_i64(value: i64) => i64
+
+#wa:import dora value_into_f64
+func value_into_f64(value: i64) => f64
+
+#wa:import dora value_into_str
+func value_into_str(value: i64) => i64
+
+#wa:import dora value_into_bool
+func value_into_bool(value: i64) => i32
+
+#wa:import dora value_into_object
+func value_into_object(value: i64) => i64
+
+#wa:import dora value_into_vec2
+func value_into_vec2(value: i64) => i64
+
+#wa:import dora value_into_size
+func value_into_size(value: i64) => i64
+
+#wa:import dora value_is_i64
+func value_is_i64(value: i64) => i32
+
+#wa:import dora value_is_f64
+func value_is_f64(value: i64) => i32
+
+#wa:import dora value_is_str
+func value_is_str(value: i64) => i32
+
+#wa:import dora value_is_bool
+func value_is_bool(value: i64) => i32
+
+#wa:import dora value_is_object
+func value_is_object(value: i64) => i32
+
+#wa:import dora value_is_vec2
+func value_is_vec2(value: i64) => i32
+
+#wa:import dora value_is_size
+func value_is_size(value: i64) => i32
+
+type Value :struct {
+	raw: *i64
+}
+
+func Value.GetI32() => (i32, bool) {
+	if value_is_i64(*this.raw) == 0 {
+		return 0, false
+	}
+	return i32(value_into_i64(*this.raw)), true
+}
+
+func Value.GetI64() => (i64, bool) {
+	if value_is_i64(*this.raw) == 0 {
+		return 0, false
+	}
+	return value_into_i64(*this.raw), true
+}
+
+func Value.GetF32() => (f32, bool) {
+	if value_is_f64(*this.raw) == 0 {
+		return 0, false
+	}
+	return f32(value_into_f64(*this.raw)), true
+}
+
+func Value.GetF64() => (f64, bool) {
+	if value_is_f64(*this.raw) == 0 {
+		return 0, false
+	}
+	return value_into_f64(*this.raw), true
+}
+
+func Value.GetStr() => (string, bool) {
+	if value_is_str(*this.raw) == 0 {
+		return "", false
+	}
+	return FromDoraString(value_into_str(*this.raw)), true
+}
+
+func Value.GetBool() => (bool, bool) {
+	if value_is_bool(*this.raw) == 0 {
+		return false, false
+	}
+	return value_into_bool(*this.raw) != 0, true
+}
+
+func Value.GetObject() => *Object {
+	if value_is_object(*this.raw) == 0 {
+		return nil
+	}
+	result := createObject(value_into_object(*this.raw))
+	return &result
+}
+
+func Value.GetVec2() => (Vec2, bool) {
+	if value_is_vec2(*this.raw) == 0 {
+		return Vec2{}, false
+	}
+	return Vec2FromValue(value_into_vec2(*this.raw)), true
+}
+
+func Value.GetSize() => (Size, bool) {
+	if value_is_size(*this.raw) == 0 {
+		return Size{}, false
+	}
+	return SizeFromValue(value_into_size(*this.raw)), true
+}
+
+func value_finalizer(ptr: u32) {
+	value_release(GetPtr(ptr))
+}
+
+func ValueFrom(ptr: i64) => Value {
+	raw := &ptr
+	value := Value{raw: raw}
+	setFinalizer(raw, value_finalizer)
+	return value
+}
+
+#wa:generic NewI32Value NewF32Value NewF64Value NewStrValue NewBoolValue NewObjectValue NewVec2Value NewSizeValue
+func NewValue(v: i64) => Value {
+	raw := value_create_i64(v)
+	value := Value{raw: &raw}
+	setFinalizer(value.raw, value_finalizer)
+	return value
+}
+
+func NewI32Value(v: i32) => Value {
+	return NewValue(i64(v))
+}
+
+func NewF32Value(v: f32) => Value {
+	return NewF64Value(f64(v))
+}
+
+func NewF64Value(v: f64) => Value {
+	raw := value_create_f64(v)
+	value := Value{raw: &raw}
+	setFinalizer(value.raw, value_finalizer)
+	return value
+}
+
+func NewStrValue(v: string) => Value {
+	raw := value_create_str(ToDoraString(v))
+	value := Value{raw: &raw}
+	setFinalizer(value.raw, value_finalizer)
+	return value
+}
+
+func NewBoolValue(v: bool) => Value {
+	raw := value_create_bool(ToDoraBool(v))
+	value := Value{raw: &raw}
+	setFinalizer(value.raw, value_finalizer)
+	return value
+}
+
+func NewObjectValue(v: Object) => Value {
+	raw := value_create_object(*v.raw)
+	value := Value{raw: &raw}
+	setFinalizer(value.raw, value_finalizer)
+	return value
+}
+
+func NewVec2Value(v: Vec2) => Value {
+	raw := value_create_vec2(v.ToValue())
+	value := Value{raw: &raw}
+	setFinalizer(value.raw, value_finalizer)
+	return value
+}
+
+func NewSizeValue(v: Size) => Value {
+	raw := value_create_size(v.ToValue())
+	value := Value{raw: &raw}
+	setFinalizer(value.raw, value_finalizer)
+	return value
+}
+
+/* CallStack */
+
+#wa:import dora call_stack_create
+func call_stack_create() => i64
+
+#wa:import dora call_stack_release
+func call_stack_release(stack: i64)
+
+#wa:import dora call_stack_push_i64
+func call_stack_push_i64(stack: i64, value: i64)
+
+#wa:import dora call_stack_push_f64
+func call_stack_push_f64(stack: i64, value: f64)
+
+#wa:import dora call_stack_push_str
+func call_stack_push_str(stack: i64, value: i64)
+
+#wa:import dora call_stack_push_bool
+func call_stack_push_bool(stack: i64, value: i32)
+
+#wa:import dora call_stack_push_object
+func call_stack_push_object(stack: i64, value: i64)
+
+#wa:import dora call_stack_push_vec2
+func call_stack_push_vec2(stack: i64, value: i64)
+
+#wa:import dora call_stack_push_size
+func call_stack_push_size(stack: i64, value: i64)
+
+#wa:import dora call_stack_pop_i64
+func call_stack_pop_i64(stack: i64) => i64
+
+#wa:import dora call_stack_pop_f64
+func call_stack_pop_f64(stack: i64) => f64
+
+#wa:import dora call_stack_pop_str
+func call_stack_pop_str(stack: i64) => i64
+
+#wa:import dora call_stack_pop_bool
+func call_stack_pop_bool(stack: i64) => i32
+
+#wa:import dora call_stack_pop_object
+func call_stack_pop_object(stack: i64) => i64
+
+#wa:import dora call_stack_pop_vec2
+func call_stack_pop_vec2(stack: i64) => i64
+
+#wa:import dora call_stack_pop_size
+func call_stack_pop_size(stack: i64) => i64
+
+#wa:import dora call_stack_pop
+func call_stack_pop(stack: i64) => i32
+
+#wa:import dora call_stack_front_i64
+func call_stack_front_i64(stack: i64) => i32
+
+#wa:import dora call_stack_front_f64
+func call_stack_front_f64(stack: i64) => i32
+
+#wa:import dora call_stack_front_bool
+func call_stack_front_bool(stack: i64) => i32
+
+#wa:import dora call_stack_front_str
+func call_stack_front_str(stack: i64) => i32
+
+#wa:import dora call_stack_front_object
+func call_stack_front_object(stack: i64) => i32
+
+#wa:import dora call_stack_front_vec2
+func call_stack_front_vec2(stack: i64) => i32
+
+#wa:import dora call_stack_front_size
+func call_stack_front_size(stack: i64) => i32
+
+type CallStack :struct {
+	raw: *i64
+}
+
+func CallStack.GetRaw() => i64 {
+	return *this.raw
+}
+
+func call_stack_finalizer(ptr: u32) {
+	call_stack_release(GetPtr(ptr))
+}
+
+func NewCallStack() => CallStack {
+	raw := call_stack_create()
+	callStack := CallStack{raw: &raw}
+	setFinalizer(callStack.raw, call_stack_finalizer)
+	return callStack
+}
+
+#wa:generic PushI64 PushF32 PushF64 PushStr PushBool PushObject PushVec2 PushSize
+func CallStack.Push(value: i32) {
+	call_stack_push_i64(*this.raw, i64(value))
+}
+
+func CallStack.PushI64(value: i64) {
+	call_stack_push_i64(*this.raw, value)
+}
+
+func CallStack.PushF32(value: f32) {
+	call_stack_push_f64(*this.raw, f64(value))
+}
+
+func CallStack.PushF64(value: f64) {
+	call_stack_push_f64(*this.raw, value)
+}
+
+func CallStack.PushStr(value: string) {
+	call_stack_push_str(*this.raw, ToDoraString(value))
+}
+
+func CallStack.PushBool(value: bool) {
+	call_stack_push_bool(*this.raw, ToDoraBool(value))
+}
+
+func CallStack.PushObject(value: Object) {
+	call_stack_push_object(*this.raw, *value.raw)
+}
+
+func CallStack.PushVec2(value: Vec2) {
+	call_stack_push_vec2(*this.raw, value.ToValue())
+}
+
+func CallStack.PushSize(value: Size) {
+	call_stack_push_size(*this.raw, value.ToValue())
+}
+
+func CallStack.Pop() => bool {
+	return call_stack_pop(*this.raw) != 0
+}
+
+func CallStack.PopI32() => (i32, bool) {
+	if call_stack_front_i64(*this.raw) == 0 {
+		return 0, false
+	}
+	return i32(call_stack_pop_i64(*this.raw)), true
+}
+
+func CallStack.PopI64() => (i64, bool) {
+	if call_stack_front_i64(*this.raw) == 0 {
+		return 0, false
+	}
+	return call_stack_pop_i64(*this.raw), true
+}
+
+func CallStack.PopF32() => (f32, bool) {
+	if call_stack_front_f64(*this.raw) == 0 {
+		return 0, false
+	}
+	return f32(call_stack_pop_f64(*this.raw)), true
+}
+
+func CallStack.PopF64() => (f64, bool) {
+	if call_stack_front_f64(*this.raw) == 0 {
+		return 0, false
+	}
+	return call_stack_pop_f64(*this.raw), true
+}
+
+func CallStack.PopStr() => (string, bool) {
+	if call_stack_front_str(*this.raw) == 0 {
+		return "", false
+	}
+	return FromDoraString(call_stack_pop_str(*this.raw)), true
+}
+
+func CallStack.PopBool() => (bool, bool) {
+	if call_stack_front_bool(*this.raw) == 0 {
+		return false, false
+	}
+	return call_stack_pop_bool(*this.raw) != 0, true
+}
+
+func CallStack.PopObject() => *Object {
+	if call_stack_front_object(*this.raw) == 0 {
+		return nil
+	}
+	object := createObject(call_stack_pop_object(*this.raw))
+	return &object
+}
+
+func CallStack.PopVec2() => (Vec2, bool) {
+	if call_stack_front_vec2(*this.raw) == 0 {
+		return Vec2Zero, false
+	}
+	return Vec2FromValue(call_stack_pop_vec2(*this.raw)), true
+}
+
+func CallStack.PopSize() => (Size, bool) {
+	if call_stack_front_size(*this.raw) == 0 {
+		return SizeZero, false
+	}
+	return SizeFromValue(call_stack_pop_size(*this.raw)), true
+}
+
+/* Println */
+
+#wa:import dora dora_print
+func dora_print(v: i64)
+
+func Println(values: ...interface{}) {
+	strs := make([]string, len(values))
+	for i, value := range values {
+		switch v := value.(type) {
+		case i32:
+			strs[i] = strconv.FormatInt(int64(v), 10)
+		case i64:
+			strs[i] = strconv.FormatInt(v, 10)
+		case f32:
+			strs[i] = strconv.FormatFloat(float64(v), 'f', 2, 32)
+		case f64:
+			strs[i] = strconv.FormatFloat(v, 'f', 2, 64)
+		case string:
+			strs[i] = v
+		case *string:
+			strs[i] = *v
+		case bool:
+			strs[i] = strconv.FormatBool(v)
+		case Vec2:
+			strs[i] = "Vec2(" +
+				strconv.FormatFloat(float64(v.X), 'f', 2, 32) +
+				", " +
+				strconv.FormatFloat(float64(v.Y), 'f', 2, 32) +
+				")"
+		case *Vec2:
+			strs[i] = "Vec2(" +
+				strconv.FormatFloat(float64(v.X), 'f', 2, 32) +
+				", " +
+				strconv.FormatFloat(float64(v.Y), 'f', 2, 32) +
+				")"
+		case Size:
+			strs[i] = "Size(" +
+				strconv.FormatFloat(float64(v.Width), 'f', 2, 32) +
+				", " +
+				strconv.FormatFloat(float64(v.Height), 'f', 2, 32) +
+				")"
+		case *Size:
+			strs[i] = "Size(" +
+				strconv.FormatFloat(float64(v.Width), 'f', 2, 32) +
+				", " +
+				strconv.FormatFloat(float64(v.Height), 'f', 2, 32) +
+				")"
+		case *Value:
+			ok := false
+			{
+				value, ok := v.GetI64()
+				if ok {
+					strs[i] = strconv.FormatInt(value, 10)
+				}
+			}
+			if !ok {
+				value, ok := v.GetF64()
+				if ok {
+					strs[i] = strconv.FormatFloat(value, 'f', 2, 64)
+				}
+			}
+			if !ok {
+				value, ok := v.GetStr()
+				if ok {
+					strs[i] = value
+				}
+			}
+			if !ok {
+				value, ok := v.GetBool()
+				if ok {
+					strs[i] = strconv.FormatBool(value)
+				}
+			}
+			if !ok {
+				object := v.GetObject()
+				if object != nil {
+					strs[i] = "Object"
+				}
+			}
+			if !ok {
+				value, ok := v.GetVec2()
+				if ok {
+					strs[i] = "Vec2(" +
+						strconv.FormatFloat(float64(value.X), 'f', 2, 32) +
+						", " +
+						strconv.FormatFloat(float64(value.Y), 'f', 2, 32) +
+						")"
+				}
+			}
+			{
+				value, ok := v.GetSize()
+				if ok {
+					strs[i] = "Size(" +
+						strconv.FormatFloat(float64(value.Width), 'f', 2, 32) +
+						", " +
+						strconv.FormatFloat(float64(value.Height), 'f', 2, 32) +
+						")"
+				}
+			}
+		case nil:
+			strs[i] = "nil"
+		default:
+			strs[i] = "unknown"
+		}
+	}
+	dora_print(ToDoraString(strings.Join(strs, " ")))
+}
+
+/* Vec2 */
+
+#wa:import dora vec2_add
+func vec2_add(a: i64, b: i64) => i64
+
+#wa:import dora vec2_sub
+func vec2_sub(a: i64, b: i64) => i64
+
+#wa:import dora vec2_mul
+func vec2_mul(a: i64, b: i64) => i64
+
+#wa:import dora vec2_mul_float
+func vec2_mul_float(a: i64, b: f32) => i64
+
+#wa:import dora vec2_div
+func vec2_div(a: i64, b: f32) => i64
+
+#wa:import dora vec2_distance
+func vec2_distance(a: i64, b: i64) => f32
+
+#wa:import dora vec2_distance_squared
+func vec2_distance_squared(a: i64, b: i64) => f32
+
+#wa:import dora vec2_length
+func vec2_length(a: i64) => f32
+
+#wa:import dora vec2_angle
+func vec2_angle(a: i64) => f32
+
+#wa:import dora vec2_normalize
+func vec2_normalize(a: i64) => i64
+
+#wa:import dora vec2_perp
+func vec2_perp(a: i64) => i64
+
+#wa:import dora vec2_dot
+func vec2_dot(a: i64, b: i64) => f32
+
+#wa:import dora vec2_clamp
+func vec2_clamp(a: i64, from: i64, to: i64) => i64
+
+#wa:operator + Vec2Add
+#wa:operator - Vec2Sub
+#wa:operator * Vec2Mul Vec2MulFloat Vec2MulSize
+#wa:operator / Vec2Div
+type Vec2 :struct {
+	X: f32
+	Y: f32
+}
+
+global Vec2Zero = Vec2{X: 0, Y: 0}
+
+func NewVec2(x: f32, y: f32) => Vec2 {
+	return Vec2{X: x, Y: y}
+}
+
+func Vec2Add(a: Vec2, b: Vec2) => Vec2 {
+	return Vec2FromValue(vec2_add(a.ToValue(), b.ToValue()))
+}
+
+func Vec2Sub(a: Vec2, b: Vec2) => Vec2 {
+	return Vec2FromValue(vec2_sub(a.ToValue(), b.ToValue()))
+}
+
+func Vec2Mul(a: Vec2, b: Vec2) => Vec2 {
+	return Vec2FromValue(vec2_mul(a.ToValue(), b.ToValue()))
+}
+
+func Vec2MulFloat(a: Vec2, b: f32) => Vec2 {
+	return Vec2FromValue(vec2_mul_float(a.ToValue(), b))
+}
+
+func Vec2MulSize(a: Vec2, b: Size) => Vec2 {
+	return Vec2{X: a.X * b.Width, Y: a.Y * b.Height}
+}
+
+func Vec2Div(a: Vec2, b: f32) => Vec2 {
+	return Vec2FromValue(vec2_div(a.ToValue(), b))
+}
+
+func Vec2.Distance(b: Vec2) => f32 {
+	return vec2_distance(this.ToValue(), b.ToValue())
+}
+
+func Vec2.DistanceSquared(b: Vec2) => f32 {
+	return vec2_distance_squared(this.ToValue(), b.ToValue())
+}
+
+func Vec2.Length() => f32 {
+	return vec2_length(this.ToValue())
+}
+
+func Vec2.Angle() => f32 {
+	return vec2_angle(this.ToValue())
+}
+
+func Vec2.Normalize() => Vec2 {
+	return Vec2FromValue(vec2_normalize(this.ToValue()))
+}
+
+func Vec2.Perp() => Vec2 {
+	return Vec2FromValue(vec2_perp(this.ToValue()))
+}
+
+func Vec2.Dot(b: Vec2) => f32 {
+	return vec2_dot(this.ToValue(), b.ToValue())
+}
+
+func Vec2.Clamp(from: Vec2, to: Vec2) => Vec2 {
+	return Vec2FromValue(vec2_clamp(this.ToValue(), from.ToValue(), to.ToValue()))
+}
+
+func Vec2.ToValue() => i64 {
+	x := math.Float32bits(this.X)
+	y := math.Float32bits(this.Y)
+	return i64(i64(y)<<32 | i64(x))
+}
+
+func Vec2FromValue(value: i64) => Vec2 {
+	x := value & 0xFFFFFFFF
+	y := value >> 32
+	return Vec2{X: math.Float32frombits(u32(x)), Y: math.Float32frombits(u32(y))}
+}
+
+/* Size */
+
+#wa:operator * SizeMulVec2
+type Size :struct {
+	Width:  f32
+	Height: f32
+}
+
+global SizeZero = Size{Width: 0, Height: 0}
+
+func NewSize(width: f32, height: f32) => Size {
+	return Size{Width: width, Height: height}
+}
+
+func Size.ToValue() => i64 {
+	width := math.Float32bits(this.Width)
+	height := math.Float32bits(this.Height)
+	return i64(i64(height)<<32 | i64(width))
+}
+
+func SizeFromValue(value: i64) => Size {
+	width := value & 0xFFFFFFFF
+	height := value >> 32
+	return Size{Width: math.Float32frombits(u32(width)), Height: math.Float32frombits(u32(height))}
+}
+
+func SizeMulVec2(a: Size, b: Vec2) => Vec2 {
+	return Vec2{X: a.Width * b.X, Y: a.Height * b.Y}
+}
+
+/* Color */
+
+type Color3 :struct {
+	R: u8
+	G: u8
+	B: u8
+}
+
+func Color3.ToRGB() => i32 {
+	return i32(this.R)<<16 | i32(this.G)<<8 | i32(this.B)
+}
+
+#wa:generic NewColor3WithRGB NewColor3WithRGBI
+func NewColor3(r: u8, g: u8, b: u8) => Color3 {
+	return Color3{R: r, G: g, B: b}
+}
+func NewColor3WithRGB(value: u32) => Color3 {
+	r := value >> 16
+	g := value >> 8 & 0xFF
+	b := value & 0xFF
+	return Color3{R: u8(r), G: u8(g), B: u8(b)}
+}
+func NewColor3WithRGBI(value: i32) => Color3 {
+	return NewColor3WithRGB(u32(value))
+}
+
+type Color :struct {
+	Color3
+	A: u8
+}
+
+func Color.ToARGB() => i32 {
+	return i32(this.A)<<24 | i32(this.Color3.ToRGB())
+}
+
+#wa:generic NewColorWithARGB NewColorWithARGBI
+func NewColor(r: u8, g: u8, b: u8, a: u8) => Color {
+	return Color{Color3: Color3{R: r, G: g, B: b}, A: a}
+}
+func NewColorWithARGB(value: u32) => Color {
+	a := value >> 24
+	color3 := value & 0x00FFFFFF
+	return Color{Color3: NewColor3(color3), A: u8(a)}
+}
+func NewColorWithARGBI(value: i32) => Color {
+	return NewColorWithARGB(u32(value))
+}
+
+global ColorWhite = Color{Color3: Color3{R: 255, G: 255, B: 255}, A: 255}
+global ColorTransparent = Color{Color3: Color3{R: 0, G: 0, B: 0}, A: 0}
+
+/* emit */
+
+#wa:import dora emit
+func emit(name: i64, callStack: i64)
+
+func Emit(name: string, args: ...interface{}) {
+	callStack := NewCallStack()
+	for _, arg := range args {
+		switch v := arg.(type) {
+		case i32:
+			callStack.Push(v)
+		case i64:
+			callStack.Push(v)
+		case f32:
+			callStack.Push(v)
+		case f64:
+			callStack.Push(v)
+		case string:
+			callStack.Push(v)
+		case bool:
+			callStack.Push(v)
+		case Vec2:
+			callStack.Push(v)
+		case Size:
+			callStack.Push(v)
+		case Object:
+			callStack.Push(v)
+		case *Object:
+			callStack.Push(*v)
+		case *Vec2:
+			callStack.Push(*v)
+		case *Size:
+			callStack.Push(*v)
+		default:
+			panic("unsupported type")
+		}
+	}
+	emit(ToDoraString(name), *callStack.raw)
+}
+
+/* Array */
+
+#wa:import dora array_set
+func array_set(array: i64, index: i32, v: i64) => i32
+
+#wa:import dora array_get
+func array_get(array: i64, index: i32) => i64
+
+#wa:import dora array_first
+func array_first(array: i64) => i64
+
+#wa:import dora array_last
+func array_last(array: i64) => i64
+
+#wa:import dora array_random_object
+func array_random_object(array: i64) => i64
+
+#wa:import dora array_add
+func array_add(array: i64, item: i64)
+
+#wa:import dora array_insert
+func array_insert(array: i64, index: i32, item: i64)
+
+#wa:import dora array_contains
+func array_contains(array: i64, item: i64) => i32
+
+#wa:import dora array_index
+func array_index(array: i64, item: i64) => i32
+
+#wa:import dora array_remove_last
+func array_remove_last(array: i64) => i64
+
+#wa:import dora array_fast_remove
+func array_fast_remove(array: i64, item: i64) => i32
+
+#wa:generic SetI32 SetI64 SetF32 SetF64 SetStr SetBool SetObject SetVec2 SetSize
+func Array.Set(index: i32, value: Value) {
+	array_set(*this.raw, index, *value.raw)
+}
+func Array.SetI32(index: i32, value: i32) {
+	array_set(*this.raw, index, *NewValue(value).raw)
+}
+func Array.SetI64(index: i32, value: i64) {
+	array_set(*this.raw, index, *NewValue(value).raw)
+}
+func Array.SetF32(index: i32, value: f32) {
+	array_set(*this.raw, index, *NewValue(value).raw)
+}
+func Array.SetF64(index: i32, value: f64) {
+	array_set(*this.raw, index, *NewValue(value).raw)
+}
+func Array.SetStr(index: i32, value: string) {
+	array_set(*this.raw, index, *NewValue(value).raw)
+}
+func Array.SetBool(index: i32, value: bool) {
+	array_set(*this.raw, index, *NewValue(value).raw)
+}
+func Array.SetObject(index: i32, value: Object) {
+	array_set(*this.raw, index, *NewValue(value).raw)
+}
+func Array.SetVec2(index: i32, value: Vec2) {
+	array_set(*this.raw, index, *NewValue(value).raw)
+}
+func Array.SetSize(index: i32, value: Size) {
+	array_set(*this.raw, index, *NewValue(value).raw)
+}
+
+func Array.Get(index: i32) => *Value {
+	value := array_get(*this.raw, index)
+	if value == 0 {
+		return nil
+	}
+	result := ValueFrom(value)
+	return &result
+}
+
+func Array.First() => *Value {
+	first := array_first(*this.raw)
+	if first == 0 {
+		return nil
+	}
+	result := ValueFrom(first)
+	return &result
+}
+
+func Array.Last() => *Value {
+	last := array_last(*this.raw)
+	if last == 0 {
+		return nil
+	}
+	result := ValueFrom(last)
+	return &result
+}
+
+func Array.RandomObject() => *Value {
+	random := array_random_object(*this.raw)
+	if random == 0 {
+		return nil
+	}
+	result := ValueFrom(random)
+	return &result
+}
+
+#wa:generic AddI32 AddI64 AddF32 AddF64 AddStr AddBool AddObject AddVec2 AddSize
+func Array.Add(value: Value) => *Array {
+	array_add(*this.raw, *value.raw)
+	return this
+}
+func Array.AddI32(value: i32) => *Array {
+	array_add(*this.raw, *NewValue(value).raw)
+	return this
+}
+func Array.AddI64(value: i64) => *Array {
+	array_add(*this.raw, *NewValue(value).raw)
+	return this
+}
+func Array.AddF32(value: f32) => *Array {
+	array_add(*this.raw, *NewValue(value).raw)
+	return this
+}
+func Array.AddF64(value: f64) => *Array {
+	array_add(*this.raw, *NewValue(value).raw)
+	return this
+}
+func Array.AddStr(value: string) => *Array {
+	array_add(*this.raw, *NewValue(value).raw)
+	return this
+}
+func Array.AddBool(value: bool) => *Array {
+	array_add(*this.raw, *NewValue(value).raw)
+	return this
+}
+func Array.AddObject(value: Object) => *Array {
+	array_add(*this.raw, *NewValue(value).raw)
+	return this
+}
+func Array.AddVec2(value: Vec2) => *Array {
+	array_add(*this.raw, *NewValue(value).raw)
+	return this
+}
+func Array.AddSize(value: Size) => *Array {
+	array_add(*this.raw, *NewValue(value).raw)
+	return this
+}
+
+#wa:generic InsertI32 InsertI64 InsertF32 InsertF64 InsertStr InsertBool InsertObject InsertVec2 InsertSize
+func Array.Insert(index: i32, value: Value) {
+	array_insert(*this.raw, index, *value.raw)
+}
+func Array.InsertI32(index: i32, value: i32) {
+	array_insert(*this.raw, index, *NewValue(value).raw)
+}
+func Array.InsertI64(index: i32, value: i64) {
+	array_insert(*this.raw, index, *NewValue(value).raw)
+}
+func Array.InsertF32(index: i32, value: f32) {
+	array_insert(*this.raw, index, *NewValue(value).raw)
+}
+func Array.InsertF64(index: i32, value: f64) {
+	array_insert(*this.raw, index, *NewValue(value).raw)
+}
+func Array.InsertStr(index: i32, value: string) {
+	array_insert(*this.raw, index, *NewValue(value).raw)
+}
+func Array.InsertBool(index: i32, value: bool) {
+	array_insert(*this.raw, index, *NewValue(value).raw)
+}
+func Array.InsertObject(index: i32, value: Object) {
+	array_insert(*this.raw, index, *NewValue(value).raw)
+}
+func Array.InsertVec2(index: i32, value: Vec2) {
+	array_insert(*this.raw, index, *NewValue(value).raw)
+}
+func Array.InsertSize(index: i32, value: Size) {
+	array_insert(*this.raw, index, *NewValue(value).raw)
+}
+
+#wa:generic ContainsI32 ContainsI64 ContainsF32 ContainsF64 ContainsStr ContainsBool ContainsObject ContainsVec2 ContainsSize
+func Array.Contains(value: Value) => bool {
+	return array_contains(*this.raw, *value.raw) != 0
+}
+func Array.ContainsI32(value: i32) => bool {
+	return array_contains(*this.raw, *NewValue(value).raw) != 0
+}
+func Array.ContainsI64(value: i64) => bool {
+	return array_contains(*this.raw, *NewValue(value).raw) != 0
+}
+func Array.ContainsF32(value: f32) => bool {
+	return array_contains(*this.raw, *NewValue(value).raw) != 0
+}
+func Array.ContainsF64(value: f64) => bool {
+	return array_contains(*this.raw, *NewValue(value).raw) != 0
+}
+func Array.ContainsStr(value: string) => bool {
+	return array_contains(*this.raw, *NewValue(value).raw) != 0
+}
+func Array.ContainsBool(value: bool) => bool {
+	return array_contains(*this.raw, *NewValue(value).raw) != 0
+}
+func Array.ContainsObject(value: Object) => bool {
+	return array_contains(*this.raw, *NewValue(value).raw) != 0
+}
+func Array.ContainsVec2(value: Vec2) => bool {
+	return array_contains(*this.raw, *NewValue(value).raw) != 0
+}
+func Array.ContainsSize(value: Size) => bool {
+	return array_contains(*this.raw, *NewValue(value).raw) != 0
+}
+
+#wa:generic IndexI32 IndexI64 IndexF32 IndexF64 IndexStr IndexBool IndexObject IndexVec2 IndexSize
+func Array.Index(value: Value) => i32 {
+	return array_index(*this.raw, *value.raw)
+}
+func Array.IndexI32(value: i32) => i32 {
+	return array_index(*this.raw, *NewValue(value).raw)
+}
+func Array.IndexI64(value: i64) => i32 {
+	return array_index(*this.raw, *NewValue(value).raw)
+}
+func Array.IndexF32(value: f32) => i32 {
+	return array_index(*this.raw, *NewValue(value).raw)
+}
+func Array.IndexF64(value: f64) => i32 {
+	return array_index(*this.raw, *NewValue(value).raw)
+}
+func Array.IndexStr(value: string) => i32 {
+	return array_index(*this.raw, *NewValue(value).raw)
+}
+func Array.IndexBool(value: bool) => i32 {
+	return array_index(*this.raw, *NewValue(value).raw)
+}
+func Array.IndexObject(value: Object) => i32 {
+	return array_index(*this.raw, *NewValue(value).raw)
+}
+func Array.IndexVec2(value: Vec2) => i32 {
+	return array_index(*this.raw, *NewValue(value).raw)
+}
+func Array.IndexSize(value: Size) => i32 {
+	return array_index(*this.raw, *NewValue(value).raw)
+}
+
+func Array.RemoveLast() => (*Value, bool) {
+	last := array_remove_last(*this.raw)
+	if last == 0 {
+		return nil, false
+	}
+	result := ValueFrom(last)
+	return &result, true
+}
+
+func Array.FastRemove(value: Value) => bool {
+	return array_fast_remove(*this.raw, *value.raw) != 0
+}
+
+/* Dictionary */
+
+#wa:import dora dictionary_set
+func dictionary_set(dict: i64, key: i64, value: i64)
+
+#wa:import dora dictionary_get
+func dictionary_get(dict: i64, key: i64) => i64
+
+#wa:generic SetI32 SetI64 SetF32 SetF64 SetStr SetBool SetObject SetVec2 SetSize
+func Dictionary.Set(key: string, value: Value) {
+	dictionary_set(*this.raw, ToDoraString(key), *value.raw)
+}
+func Dictionary.SetI32(key: string, value: i32) {
+	dictionary_set(*this.raw, ToDoraString(key), *NewValue(value).raw)
+}
+func Dictionary.SetI64(key: string, value: i64) {
+	dictionary_set(*this.raw, ToDoraString(key), *NewValue(value).raw)
+}
+func Dictionary.SetF32(key: string, value: f32) {
+	dictionary_set(*this.raw, ToDoraString(key), *NewValue(value).raw)
+}
+func Dictionary.SetF64(key: string, value: f64) {
+	dictionary_set(*this.raw, ToDoraString(key), *NewValue(value).raw)
+}
+func Dictionary.SetStr(key: string, value: string) {
+	dictionary_set(*this.raw, ToDoraString(key), *NewValue(value).raw)
+}
+func Dictionary.SetBool(key: string, value: bool) {
+	dictionary_set(*this.raw, ToDoraString(key), *NewValue(value).raw)
+}
+func Dictionary.SetObject(key: string, value: Object) {
+	dictionary_set(*this.raw, ToDoraString(key), *NewValue(value).raw)
+}
+func Dictionary.SetVec2(key: string, value: Vec2) {
+	dictionary_set(*this.raw, ToDoraString(key), *NewValue(value).raw)
+}
+func Dictionary.SetSize(key: string, value: Size) {
+	dictionary_set(*this.raw, ToDoraString(key), *NewValue(value).raw)
+}
+
+func Dictionary.Get(key: string) => *Value {
+	value := dictionary_get(*this.raw, ToDoraString(key))
+	if value == 0 {
+		return nil
+	}
+	result := ValueFrom(value)
+	return &result
+}
+
+/* Content */
+
+#wa:import dora content_load
+func content_load(filename: i64) => i64
+
+func _Content.Load(filename: string) => *string {
+	content := content_load(ToDoraString(filename))
+	if content == 0 {
+		return nil
+	}
+	result := FromDoraString(content)
+	return &result
+}
+
+/* Entity */
+
+#wa:import dora entity_set
+func entity_set(e: i64, k: i64, v: i64)
+
+#wa:import dora entity_get
+func entity_get(e: i64, k: i64) => i64
+
+#wa:import dora entity_get_old
+func entity_get_old(e: i64, k: i64) => i64
+
+#wa:generic SetI32 SetI64 SetF32 SetF64 SetStr SetBool SetObject SetVec2 SetSize
+func Entity.Set(key: string, value: Value) {
+	entity_set(*this.raw, ToDoraString(key), *value.raw)
+}
+func Entity.SetI32(key: string, value: i32) {
+	entity_set(*this.raw, ToDoraString(key), *NewValue(value).raw)
+}
+func Entity.SetI64(key: string, value: i64) {
+	entity_set(*this.raw, ToDoraString(key), *NewValue(value).raw)
+}
+func Entity.SetF32(key: string, value: f32) {
+	entity_set(*this.raw, ToDoraString(key), *NewValue(value).raw)
+}
+func Entity.SetF64(key: string, value: f64) {
+	entity_set(*this.raw, ToDoraString(key), *NewValue(value).raw)
+}
+func Entity.SetStr(key: string, value: string) {
+	entity_set(*this.raw, ToDoraString(key), *NewValue(value).raw)
+}
+func Entity.SetBool(key: string, value: bool) {
+	entity_set(*this.raw, ToDoraString(key), *NewValue(value).raw)
+}
+func Entity.SetObject(key: string, value: Object) {
+	entity_set(*this.raw, ToDoraString(key), *NewValue(value).raw)
+}
+func Entity.SetVec2(key: string, value: Vec2) {
+	entity_set(*this.raw, ToDoraString(key), *NewValue(value).raw)
+}
+func Entity.SetSize(key: string, value: Size) {
+	entity_set(*this.raw, ToDoraString(key), *NewValue(value).raw)
+}
+
+func Entity.Get(key: string) => *Value {
+	value := entity_get(*this.raw, ToDoraString(key))
+	if value == 0 {
+		return nil
+	}
+	result := ValueFrom(value)
+	return &result
+}
+
+func Entity.GetOld(key: string) => *Value {
+	value := entity_get_old(*this.raw, ToDoraString(key))
+	if value == 0 {
+		return nil
+	}
+	result := ValueFrom(value)
+	return &result
+}
+
+/* Group */
+
+#wa:import dora group_watch
+func group_watch(group: i64, callback: i32, stack: i64)
+
+func Group.Watch(callback: func(stack: CallStack) => bool) {
+	stack := NewCallStack()
+	group_watch(*this.raw, PushFunction(func() {
+		result := callback(stack)
+		stack.Push(result)
+	}), *stack.raw)
+}
+
+func Group.Each(visitor: func(e: Entity) => bool) => bool {
+	return this.Find(visitor) != nil
+}
+
+/* Observer */
+
+#wa:import dora observer_watch
+func observer_watch(observer: i64, callback: i32, stack: i64)
+
+func Observer.Watch(callback: func(stack: CallStack) => bool) {
+	stack := NewCallStack()
+	observer_watch(*this.raw, PushFunction(func() {
+		result := callback(stack)
+		stack.Push(result)
+	}), *stack.raw)
+}
+
+/* Director */
+
+#wa:import dora director_get_wasm_scheduler
+func director_get_wasm_scheduler() => i64
+
+#wa:import dora director_get_post_wasm_scheduler
+func director_get_post_wasm_scheduler() => i64
+
+func _Director.GetScheduler() => Scheduler {
+	return *SchedulerFrom(director_get_wasm_scheduler())
+}
+
+func _Director.GetPostScheduler() => Scheduler {
+	return *SchedulerFrom(director_get_post_wasm_scheduler())
+}
+
+/* Blackboard */
+
+#wa:import dora blackboard_set
+func blackboard_set(b: i64, k: i64, v: i64)
+
+#wa:import dora blackboard_get
+func blackboard_get(b: i64, k: i64) => i64
+
+#wa:generic SetI32 SetI64 SetF32 SetF64 SetStr SetBool SetObject SetVec2 SetSize
+func PlatformerBehaviorBlackboard.Set(key: string, value: Value) {
+	blackboard_set(*this.raw, ToDoraString(key), *value.raw)
+}
+func PlatformerBehaviorBlackboard.SetI32(key: string, value: i32) {
+	blackboard_set(*this.raw, ToDoraString(key), *NewValue(value).raw)
+}
+func PlatformerBehaviorBlackboard.SetI64(key: string, value: i64) {
+	blackboard_set(*this.raw, ToDoraString(key), *NewValue(value).raw)
+}
+func PlatformerBehaviorBlackboard.SetF32(key: string, value: f32) {
+	blackboard_set(*this.raw, ToDoraString(key), *NewValue(value).raw)
+}
+func PlatformerBehaviorBlackboard.SetF64(key: string, value: f64) {
+	blackboard_set(*this.raw, ToDoraString(key), *NewValue(value).raw)
+}
+func PlatformerBehaviorBlackboard.SetStr(key: string, value: string) {
+	blackboard_set(*this.raw, ToDoraString(key), *NewValue(value).raw)
+}
+func PlatformerBehaviorBlackboard.SetBool(key: string, value: bool) {
+	blackboard_set(*this.raw, ToDoraString(key), *NewValue(value).raw)
+}
+func PlatformerBehaviorBlackboard.SetObject(key: string, value: Object) {
+	blackboard_set(*this.raw, ToDoraString(key), *NewValue(value).raw)
+}
+func PlatformerBehaviorBlackboard.SetVec2(key: string, value: Vec2) {
+	blackboard_set(*this.raw, ToDoraString(key), *NewValue(value).raw)
+}
+func PlatformerBehaviorBlackboard.SetSize(key: string, value: Size) {
+	blackboard_set(*this.raw, ToDoraString(key), *NewValue(value).raw)
+}
+
+func PlatformerBehaviorBlackboard.Get(key: string) => *Value {
+	value := blackboard_get(*this.raw, ToDoraString(key))
+	if value == 0 {
+		return nil
+	}
+	result := ValueFrom(value)
+	return &result
+}
+
+/* Controller */
+
+func _Controller.IsButtonDown(controller_id: i32, name: ButtonName) => bool {
+	return this._IsButtonDown(controller_id, name.ToValue())
+}
+func _Controller.IsButtonUp(controller_id: i32, name: ButtonName) => bool {
+	return this._IsButtonUp(controller_id, name.ToValue())
+}
+func _Controller.IsButtonPressed(controller_id: i32, name: ButtonName) => bool {
+	return this._IsButtonPressed(controller_id, name.ToValue())
+}
+func _Controller.GetAxis(controller_id: i32, name: AxisName) => f32 {
+	return this._GetAxis(controller_id, name.ToValue())
+}
+
+/* Keyboard */
+
+func _Keyboard.IsKeyDown(key: KeyName) => bool {
+	return this._IsKeyDown(key.ToValue())
+}
+
+func _Keyboard.IsKeyUp(key: KeyName) => bool {
+	return this._IsKeyUp(key.ToValue())
+}
+
+func _Keyboard.IsKeyPressed(key: KeyName) => bool {
+	return this._IsKeyPressed(key.ToValue())
+}
+
+/* runtime */
+
+#wa:export dora_wasm_version
+func dora_wasm_version() => i32 {
+	return MajorVersion<<16 | MinorVersion<<8 | PatchVersion
+}
+
+global func_map = make([]func(), 0)
+global func_available = make([]i32, 0)
+
+func PushFunction(f: func()) => i32 {
+	flag: i32 = 0x01000000
+	if len(func_map) >= 0xffffff {
+		panic("too many functions!")
+	}
+	if len(func_available) == 0 {
+		func_map = append(func_map, f)
+		return i32(len(func_map)-1) | flag
+	} else {
+		new_len := len(func_available) - 1
+		func_id := func_available[new_len]
+		func_map[func_id] = f
+		func_available = func_available[:new_len]
+		return func_id | flag
+	}
+}
+
+#wa:export call_function
+func CallFunction(func_id: i32) {
+	func_id = func_id & 0xffffff
+	func_map[func_id]()
+}
+
+func dummy_func() {
+	panic("the dummy function should not be called.")
+}
+
+#wa:export deref_function
+func DerefFunction(func_id: i32) {
+	func_id = func_id & 0xffffff
+	func_map[func_id] = dummy_func
+	func_available = append(func_available, func_id)
+}
+
+/* onEvent */
+
+func Node.OnActionEnd(callback: func(action: Action, node: Node)) {
+	this.Slot("ActionEnd", func(stack: CallStack) {
+		action := *ObjectAsAction(*stack.PopObject())
+		node := *ObjectCastToNode(*stack.PopObject())
+		callback(action, node)
+	})
+}
+
+func Node.OnTapFilter(callback: func(touch: Touch)) {
+	this.SetTouchEnabled(true)
+	this.Slot("TapFilter", func(stack: CallStack) {
+		touch := *ObjectAsTouch(*stack.PopObject())
+		callback(touch)
+	})
+}
+
+func Node.OnTapBegan(callback: func(touch: Touch)) {
+	this.SetTouchEnabled(true)
+	this.Slot("TapBegan", func(stack: CallStack) {
+		touch := *ObjectAsTouch(*stack.PopObject())
+		callback(touch)
+	})
+}
+
+func Node.OnTapEnded(callback: func(touch: Touch)) {
+	this.SetTouchEnabled(true)
+	this.Slot("TapEnded", func(stack: CallStack) {
+		touch := *ObjectAsTouch(*stack.PopObject())
+		callback(touch)
+	})
+}
+
+func Node.OnTapped(callback: func(touch: Touch)) {
+	this.SetTouchEnabled(true)
+	this.Slot("Tapped", func(stack: CallStack) {
+		touch := *ObjectAsTouch(*stack.PopObject())
+		callback(touch)
+	})
+}
+
+func Node.OnTapMoved(callback: func(touch: Touch)) {
+	this.SetTouchEnabled(true)
+	this.Slot("TapMoved", func(stack: CallStack) {
+		touch := *ObjectAsTouch(*stack.PopObject())
+		callback(touch)
+	})
+}
+
+func Node.OnMouseWheel(callback: func(delta: Vec2)) {
+	this.SetTouchEnabled(true)
+	this.Slot("MouseWheel", func(stack: CallStack) {
+		delta, ok := stack.PopVec2()
+		if !ok {
+			panic("invalid mouse wheel event")
+		}
+		callback(delta)
+	})
+}
+
+func Node.OnGesture(callback: func(center: Vec2, num_fingers: i32, delta_dist: f32, delta_angle: f32)) {
+	this.SetTouchEnabled(true)
+	this.Slot("Gesture", func(stack: CallStack) {
+		center, ok := stack.PopVec2()
+		if !ok {
+			panic("invalid gesture event")
+		}
+		num_fingers, ok := stack.PopI32()
+		if !ok {
+			panic("invalid gesture event")
+		}
+		delta_dist, ok := stack.PopF32()
+		if !ok {
+			panic("invalid gesture event")
+		}
+		delta_angle, ok := stack.PopF32()
+		if !ok {
+			panic("invalid gesture event")
+		}
+		callback(center, num_fingers, delta_dist, delta_angle)
+	})
+}
+
+func Node.OnEnter(callback: func()) {
+	this.Slot("Enter", func(stack: CallStack) {
+		callback()
+	})
+}
+
+func Node.OnExit(callback: func()) {
+	this.Slot("Exit", func(stack: CallStack) {
+		callback()
+	})
+}
+
+func Node.OnCleanup(callback: func()) {
+	this.Slot("Cleanup", func(stack: CallStack) {
+		callback()
+	})
+}
+
+func Node.OnKeyDown(callback: func(key: KeyName)) {
+	this.SetKeyboardEnabled(true)
+	this.Slot("KeyDown", func(stack: CallStack) {
+		key, ok := stack.PopStr()
+		if !ok {
+			panic("invalid key down event")
+		}
+		callback(KeyName{value: key})
+	})
+}
+
+func Node.OnKeyUp(callback: func(key: KeyName)) {
+	this.SetKeyboardEnabled(true)
+	this.Slot("KeyUp", func(stack: CallStack) {
+		key, ok := stack.PopStr()
+		if !ok {
+			panic("invalid key up event")
+		}
+		callback(KeyName{value: key})
+	})
+}
+
+func Node.OnKeyPressed(callback: func(key: KeyName)) {
+	this.SetKeyboardEnabled(true)
+	this.Slot("KeyPressed", func(stack: CallStack) {
+		key, ok := stack.PopStr()
+		if !ok {
+			panic("invalid key pressed event")
+		}
+		callback(KeyName{value: key})
+	})
+}
+
+func Node.OnAttachIme(callback: func()) {
+	this.Slot("AttachIME", func(stack: CallStack) {
+		callback()
+	})
+}
+
+func Node.OnDetachIme(callback: func()) {
+	this.Slot("DetachIME", func(stack: CallStack) {
+		callback()
+	})
+}
+
+func Node.OnTextInput(callback: func(text: string)) {
+	this.Slot("TextInput", func(stack: CallStack) {
+		text, ok := stack.PopStr()
+		if !ok {
+			panic("invalid text input event")
+		}
+		callback(text)
+	})
+}
+
+func Node.OnTextEditing(callback: func(text: string, start_pos: i32)) {
+	this.Slot("TextEditing", func(stack: CallStack) {
+		text, ok := stack.PopStr()
+		if !ok {
+			panic("invalid text editing event")
+		}
+		start_pos, ok := stack.PopI32()
+		if !ok {
+			panic("invalid text editing event")
+		}
+		callback(text, start_pos)
+	})
+}
+
+func Node.OnButtonDown(callback: func(controller_id: i32, button: ButtonName)) {
+	this.SetControllerEnabled(true)
+	this.Slot("ButtonDown", func(stack: CallStack) {
+		button, ok := stack.PopStr()
+		if !ok {
+			panic("invalid button down event")
+		}
+		controller_id, ok := stack.PopI32()
+		if !ok {
+			panic("invalid button down event")
+		}
+		callback(controller_id, ButtonName{value: button})
+	})
+}
+
+func Node.OnButtonUp(callback: func(controller_id: i32, button: ButtonName)) {
+	this.SetControllerEnabled(true)
+	this.Slot("ButtonUp", func(stack: CallStack) {
+		button, ok := stack.PopStr()
+		if !ok {
+			panic("invalid button up event")
+		}
+		controller_id, ok := stack.PopI32()
+		if !ok {
+			panic("invalid button up event")
+		}
+		callback(controller_id, ButtonName{value: button})
+	})
+}
+
+func Node.OnButtonPressed(callback: func(controller_id: i32, button: ButtonName)) {
+	this.SetControllerEnabled(true)
+	this.Slot("ButtonPressed", func(stack: CallStack) {
+		button, ok := stack.PopStr()
+		if !ok {
+			panic("invalid button pressed event")
+		}
+		controller_id, ok := stack.PopI32()
+		if !ok {
+			panic("invalid button pressed event")
+		}
+		callback(controller_id, ButtonName{value: button})
+	})
+}
+
+func Node.OnAxis(callback: func(controller_id: i32, axis: AxisName, value: f32)) {
+	this.SetControllerEnabled(true)
+	this.Slot("Axis", func(stack: CallStack) {
+		axis, ok := stack.PopStr()
+		if !ok {
+			panic("invalid axis event")
+		}
+		value, ok := stack.PopF32()
+		if !ok {
+			panic("invalid axis event")
+		}
+		controller_id, ok := stack.PopI32()
+		if !ok {
+			panic("invalid axis event")
+		}
+		callback(controller_id, AxisName{value: axis}, value)
+	})
+}
+
+func Playable.OnAnimationEnd(callback: func(animation_name: string, target: Playable)) {
+	this.Slot("AnimationEnd", func(stack: CallStack) {
+		animation_name, ok := stack.PopStr()
+		if !ok {
+			panic("invalid animation end event")
+		}
+		target := *ObjectCastToPlayable(*stack.PopObject())
+		callback(animation_name, target)
+	})
+}
+
+func Body.OnBodyEnter(callback: func(other: Body, sensor_tag: i32)) {
+	this.Slot("BodyEnter", func(stack: CallStack) {
+		other := *ObjectCastToBody(*stack.PopObject())
+		sensor_tag, ok := stack.PopI32()
+		if !ok {
+			panic("invalid body enter event")
+		}
+		callback(other, sensor_tag)
+	})
+}
+
+func Body.OnBodyLeave(callback: func(other: Body, sensor_tag: i32)) {
+	this.Slot("BodyLeave", func(stack: CallStack) {
+		other := *ObjectCastToBody(*stack.PopObject())
+		sensor_tag, ok := stack.PopI32()
+		if !ok {
+			panic("invalid body leave event")
+		}
+		callback(other, sensor_tag)
+	})
+}
+
+func Body.OnContactStart(callback: func(other: Body, point: Vec2, normal: Vec2, enabled: bool)) {
+	this.SetReceivingContact(true)
+	this.Slot("ContactStart", func(stack: CallStack) {
+		other := *ObjectCastToBody(*stack.PopObject())
+		point, ok := stack.PopVec2()
+		if !ok {
+			panic("invalid contact start event")
+		}
+		normal, ok := stack.PopVec2()
+		if !ok {
+			panic("invalid contact start event")
+		}
+		enabled, ok := stack.PopBool()
+		if !ok {
+			panic("invalid contact start event")
+		}
+		callback(other, point, normal, enabled)
+	})
+}
+
+func Body.OnContactEnd(callback: func(other: Body, point: Vec2, normal: Vec2)) {
+	this.SetReceivingContact(true)
+	this.Slot("ContactEnd", func(stack: CallStack) {
+		other := *ObjectCastToBody(*stack.PopObject())
+		point, ok := stack.PopVec2()
+		if !ok {
+			panic("invalid contact end event")
+		}
+		normal, ok := stack.PopVec2()
+		if !ok {
+			panic("invalid contact end event")
+		}
+		callback(other, point, normal)
+	})
+}
+
+func Particle.OnFinished(callback: func()) {
+	this.Slot("Finished", func(stack: CallStack) {
+		callback()
+	})
+}
+
+func AlignNode.OnAlignLayout(callback: func(width: f32, height: f32)) {
+	this.Slot("AlignLayout", func(stack: CallStack) {
+		width, ok := stack.PopF32()
+		if !ok {
+			panic("invalid align layout event")
+		}
+		height, ok := stack.PopF32()
+		if !ok {
+			panic("invalid align layout event")
+		}
+		callback(width, height)
+	})
+}
+
+func EffekNode.OnEffekEnd(callback: func(handle: i32)) {
+	this.Slot("EffekEnd", func(stack: CallStack) {
+		handle, ok := stack.PopI32()
+		if !ok {
+			panic("invalid effek end event")
+		}
+		callback(handle)
+	})
+}
+
+func Node.OnAppEvent(callback: func(event_type: string)) {
+	this.Gslot("AppEvent", func(stack: CallStack) {
+		event_type, ok := stack.PopStr()
+		if !ok {
+			panic("invalid app event")
+		}
+		callback(event_type)
+	})
+}
+
+func Node.OnAppChange(callback: func(setting_name: string)) {
+	this.Gslot("AppChange", func(stack: CallStack) {
+		setting_name, ok := stack.PopStr()
+		if !ok {
+			panic("invalid app change event")
+		}
+		callback(setting_name)
+	})
+}
+
+func Node.OnAppWs(callback: func(event_type: string, msg: string)) {
+	this.Gslot("AppWS", func(stack: CallStack) {
+		event_type, ok := stack.PopStr()
+		if !ok {
+			panic("invalid app ws event")
+		}
+		msg, ok := stack.PopStr()
+		if !ok {
+			panic("invalid app ws event")
+		}
+		callback(event_type, msg)
+	})
+}
+
+/* BlendFunc */
+
+type BFunc :struct {
+	value: i64
+}
+
+func BFunc.ToValue() => i64 {
+	return this.value
+}
+
+global BlendFuncZero = BFunc{value: 0x0000000000001000}
+global BlendFuncOne = BFunc{value: 0x0000000000002000}
+global BlendFuncSrcColor = BFunc{value: 0x0000000000003000}
+global BlendFuncInvSrcColor = BFunc{value: 0x0000000000004000}
+global BlendFuncSrcAlpha = BFunc{value: 0x0000000000005000}
+global BlendFuncInvSrcAlpha = BFunc{value: 0x0000000000006000}
+global BlendFuncDstAlpha = BFunc{value: 0x0000000000007000}
+global BlendFuncInvDstAlpha = BFunc{value: 0x0000000000008000}
+global BlendFuncDstColor = BFunc{value: 0x0000000000009000}
+global BlendFuncInvDstColor = BFunc{value: 0x000000000000a000}
+
+type BlendFunc :struct {
+	value: i64
+}
+
+func BlendFunc.ToValue() => i64 {
+	return this.value
+}
+
+func BlendFuncFrom(value: i64) => BlendFunc {
+	return BlendFunc{value: value}
+}
+
+func NewBlendFunc(src: BFunc, dst: BFunc) => BlendFunc {
+	return BlendFunc{value: src.ToValue()<<8 | dst.ToValue()<<4}
+}
+
+func NewBlendFuncSeperate(src_rgb: BFunc, dst_rgb: BFunc, src_alpha: BFunc, dst_alpha: BFunc) => BlendFunc {
+	return BlendFunc{value: (src_rgb.ToValue()<<8 | dst_rgb.ToValue()<<4 | src_alpha.ToValue()<<4 | dst_alpha.ToValue()<<4) << 8}
+}
+
+/* TextureWrap */
+
+type TextureWrap :struct {
+	value: i32
+}
+
+func TextureWrap.ToValue() => i32 {
+	return this.value
+}
+
+global TextureWrapNone = TextureWrap{value: 0}
+global TextureWrapMirror = TextureWrap{value: 1}
+global TextureWrapClamp = TextureWrap{value: 2}
+global TextureWrapBorder = TextureWrap{value: 3}
+
+/* TextureFilter */
+
+type TextureFilter :struct {
+	value: i32
+}
+
+func TextureFilter.ToValue() => i32 {
+	return this.value
+}
+
+global TextureFilterNone = TextureFilter{value: 0}
+global TextureFilterPoint = TextureFilter{value: 1}
+global TextureFilterAnisotropic = TextureFilter{value: 2}
+
+/* Property */
+
+type Property :struct {
+	value: i32
+}
+
+func Property.ToValue() => i32 {
+	return this.value
+}
+
+global PropertyX = Property{value: 0}
+global PropertyY = Property{value: 1}
+global PropertyZ = Property{value: 2}
+global PropertyAngle = Property{value: 3}
+global PropertyAngleX = Property{value: 4}
+global PropertyAngleY = Property{value: 5}
+global PropertyScaleX = Property{value: 6}
+global PropertyScaleY = Property{value: 7}
+global PropertySkewX = Property{value: 8}
+global PropertySkewY = Property{value: 9}
+global PropertyWidth = Property{value: 10}
+global PropertyHeight = Property{value: 11}
+global PropertyAnchorX = Property{value: 12}
+global PropertyAnchorY = Property{value: 13}
+global PropertyOpacity = Property{value: 14}
+
+/* Ease */
+
+type EaseType :struct {
+	value: i32
+}
+
+func EaseType.ToValue() => i32 {
+	return this.value
+}
+
+global EaseLinear = EaseType{value: 0}
+global EaseInQuad = EaseType{value: 1}
+global EaseOutQuad = EaseType{value: 2}
+global EaseInOutQuad = EaseType{value: 3}
+global EaseInCubic = EaseType{value: 4}
+global EaseOutCubic = EaseType{value: 5}
+global EaseInOutCubic = EaseType{value: 6}
+global EaseInQuart = EaseType{value: 7}
+global EaseOutQuart = EaseType{value: 8}
+global EaseInOutQuart = EaseType{value: 9}
+global EaseInQuint = EaseType{value: 10}
+global EaseOutQuint = EaseType{value: 11}
+global EaseInOutQuint = EaseType{value: 12}
+global EaseInSine = EaseType{value: 13}
+global EaseOutSine = EaseType{value: 14}
+global EaseInOutSine = EaseType{value: 15}
+global EaseInExpo = EaseType{value: 16}
+global EaseOutExpo = EaseType{value: 17}
+global EaseInOutExpo = EaseType{value: 18}
+global EaseInCirc = EaseType{value: 19}
+global EaseOutCirc = EaseType{value: 20}
+global EaseInOutCirc = EaseType{value: 21}
+global EaseInElastic = EaseType{value: 22}
+global EaseOutElastic = EaseType{value: 23}
+global EaseInOutElastic = EaseType{value: 24}
+global EaseInBack = EaseType{value: 25}
+global EaseOutBack = EaseType{value: 26}
+global EaseInOutBack = EaseType{value: 27}
+global EaseInBounce = EaseType{value: 28}
+global EaseOutBounce = EaseType{value: 29}
+global EaseInOutBounce = EaseType{value: 30}
+global EaseOutInQuad = EaseType{value: 31}
+global EaseOutInCubic = EaseType{value: 32}
+global EaseOutInQuart = EaseType{value: 33}
+global EaseOutInQuint = EaseType{value: 34}
+global EaseOutInSine = EaseType{value: 35}
+global EaseOutInExpo = EaseType{value: 36}
+global EaseOutInCirc = EaseType{value: 37}
+global EaseOutInElastic = EaseType{value: 38}
+global EaseOutInBack = EaseType{value: 39}
+global EaseOutInBounce = EaseType{value: 40}
+
+/* BodyType */
+
+type BodyType :struct {
+	value: i32
+}
+
+func BodyType.ToValue() => i32 {
+	return this.value
+}
+
+global BodyTypeDynamic = BodyType{value: 0}
+global BodyTypeStatic = BodyType{value: 1}
+global BodyTypeKinematic = BodyType{value: 2}
+
+/* EntityEvent */
+
+type EntityEvent :struct {
+	value: i32
+}
+
+func EntityEvent.ToValue() => i32 {
+	return this.value
+}
+
+global EntityEventAdd = EntityEvent{value: 1}
+global EntityEventChange = EntityEvent{value: 2}
+global EntityEventAddOrChange = EntityEvent{value: 3}
+global EntityEventRemove = EntityEvent{value: 4}
+
+/* TextAlign */
+
+type TextAlign :struct {
+	value: i32
+}
+
+func TextAlign.ToValue() => i32 {
+	return this.value
+}
+
+global TextAlignLeft = TextAlign{value: 0}
+global TextAlignCenter = TextAlign{value: 1}
+global TextAlignRight = TextAlign{value: 2}
+
+/* PlatformerRelation */
+
+type PlatformerRelation :struct {
+	value: i32
+}
+
+func PlatformerRelation.ToValue() => i32 {
+	return this.value
+}
+
+global PlatformerRelationUnknown = PlatformerRelation{value: 0}
+global PlatformerRelationFriend = PlatformerRelation{value: 1}
+global PlatformerRelationNeutral = PlatformerRelation{value: 2}
+global PlatformerRelationEnemy = PlatformerRelation{value: 4}
+global PlatformerRelationAny = PlatformerRelation{value: 7}
+
+/* KeyName */
+
+type KeyName :struct {
+	value: string
+}
+
+func KeyName.ToValue() => string {
+	return this.value
+}
+
+global KeyReturn = KeyName{value: "Return"}
+global KeyEscape = KeyName{value: "Escape"}
+global KeyBackSpace = KeyName{value: "BackSpace"}
+global KeyTab = KeyName{value: "Tab"}
+global KeySpace = KeyName{value: "Space"}
+global KeyExclamation = KeyName{value: "!"}
+global KeyDoubleQuote = KeyName{value: "\""}
+global KeyHash = KeyName{value: "#"}
+global KeyPercent = KeyName{value: "%"}
+global KeyDollar = KeyName{value: "$"}
+global KeyAmpersand = KeyName{value: "&"}
+global KeySingleQuote = KeyName{value: "'"}
+global KeyLeftParen = KeyName{value: "("}
+global KeyRightParen = KeyName{value: ")"}
+global KeyAsterisk = KeyName{value: "*"}
+global KeyPlus = KeyName{value: "+"}
+global KeyComma = KeyName{value: ","}
+global KeyMinus = KeyName{value: "-"}
+global KeyDot = KeyName{value: "."}
+global KeySlash = KeyName{value: "/"}
+global Key1 = KeyName{value: "1"}
+global Key2 = KeyName{value: "2"}
+global Key3 = KeyName{value: "3"}
+global Key4 = KeyName{value: "4"}
+global Key5 = KeyName{value: "5"}
+global Key6 = KeyName{value: "6"}
+global Key7 = KeyName{value: "7"}
+global Key8 = KeyName{value: "8"}
+global Key9 = KeyName{value: "9"}
+global Key0 = KeyName{value: "0"}
+global KeyColon = KeyName{value: ":"}
+global KeySemicolon = KeyName{value: ";"}
+global KeyLessThan = KeyName{value: "<"}
+global KeyEqual = KeyName{value: "="}
+global KeyGreaterThan = KeyName{value: ">"}
+global KeyQuestion = KeyName{value: "?"}
+global KeyAt = KeyName{value: "@"}
+global KeyLeftBracket = KeyName{value: "["}
+global KeyBackslash = KeyName{value: "\\"}
+global KeyRightBracket = KeyName{value: "]"}
+global KeyCaret = KeyName{value: "^"}
+global KeyUnderscore = KeyName{value: "_"}
+global KeyBacktick = KeyName{value: "`"}
+global KeyA = KeyName{value: "A"}
+global KeyB = KeyName{value: "B"}
+global KeyC = KeyName{value: "C"}
+global KeyD = KeyName{value: "D"}
+global KeyE = KeyName{value: "E"}
+global KeyF = KeyName{value: "F"}
+global KeyG = KeyName{value: "G"}
+global KeyH = KeyName{value: "H"}
+global KeyI = KeyName{value: "I"}
+global KeyJ = KeyName{value: "J"}
+global KeyK = KeyName{value: "K"}
+global KeyL = KeyName{value: "L"}
+global KeyM = KeyName{value: "M"}
+global KeyN = KeyName{value: "N"}
+global KeyO = KeyName{value: "O"}
+global KeyP = KeyName{value: "P"}
+global KeyQ = KeyName{value: "Q"}
+global KeyR = KeyName{value: "R"}
+global KeyS = KeyName{value: "S"}
+global KeyT = KeyName{value: "T"}
+global KeyU = KeyName{value: "U"}
+global KeyV = KeyName{value: "V"}
+global KeyW = KeyName{value: "W"}
+global KeyX = KeyName{value: "X"}
+global KeyY = KeyName{value: "Y"}
+global KeyZ = KeyName{value: "Z"}
+global KeyDelete = KeyName{value: "Delete"}
+global KeyCapsLock = KeyName{value: "CapsLock"}
+global KeyF1 = KeyName{value: "F1"}
+global KeyF2 = KeyName{value: "F2"}
+global KeyF3 = KeyName{value: "F3"}
+global KeyF4 = KeyName{value: "F4"}
+global KeyF5 = KeyName{value: "F5"}
+global KeyF6 = KeyName{value: "F6"}
+global KeyF7 = KeyName{value: "F7"}
+global KeyF8 = KeyName{value: "F8"}
+global KeyF9 = KeyName{value: "F9"}
+global KeyF10 = KeyName{value: "F10"}
+global KeyF11 = KeyName{value: "F11"}
+global KeyF12 = KeyName{value: "F12"}
+global KeyPrintScreen = KeyName{value: "PrintScreen"}
+global KeyScrollLock = KeyName{value: "ScrollLock"}
+global KeyPause = KeyName{value: "Pause"}
+global KeyInsert = KeyName{value: "Insert"}
+global KeyHome = KeyName{value: "Home"}
+global KeyPageUp = KeyName{value: "PageUp"}
+global KeyEnd = KeyName{value: "End"}
+global KeyPageDown = KeyName{value: "PageDown"}
+global KeyRight = KeyName{value: "Right"}
+global KeyLeft = KeyName{value: "Left"}
+global KeyDown = KeyName{value: "Down"}
+global KeyUp = KeyName{value: "Up"}
+global KeyApplication = KeyName{value: "Application"}
+global KeyLCtrl = KeyName{value: "LCtrl"}
+global KeyLShift = KeyName{value: "LShift"}
+global KeyLAlt = KeyName{value: "LAlt"}
+global KeyLGui = KeyName{value: "LGui"}
+global KeyRCtrl = KeyName{value: "RCtrl"}
+global KeyRShift = KeyName{value: "RShift"}
+global KeyRAlt = KeyName{value: "RAlt"}
+global KeyRGui = KeyName{value: "RGui"}
+
+/* AxisName */
+
+type AxisName :struct {
+	value: string
+}
+
+func AxisName.ToValue() => string {
+	return this.value
+}
+
+global AxisLeftX = AxisName{value: "leftx"}
+global AxisLeftY = AxisName{value: "lefty"}
+global AxisRightX = AxisName{value: "rightx"}
+global AxisRightY = AxisName{value: "righty"}
+global AxisLeftTrigger = AxisName{value: "lefttrigger"}
+global AxisRightTrigger = AxisName{value: "righttrigger"}
+
+/* ButtonName */
+
+type ButtonName :struct {
+	value: string
+}
+
+func ButtonName.ToValue() => string {
+	return this.value
+}
+
+global ButtonA = ButtonName{value: "a"}
+global ButtonB = ButtonName{value: "b"}
+global ButtonBack = ButtonName{value: "back"}
+global ButtonDPDown = ButtonName{value: "dpdown"}
+global ButtonDPLeft = ButtonName{value: "dpleft"}
+global ButtonDPRight = ButtonName{value: "dpright"}
+global ButtonDPUp = ButtonName{value: "dpup"}
+global ButtonLeftShoulder = ButtonName{value: "leftshoulder"}
+global ButtonLeftStick = ButtonName{value: "leftstick"}
+global ButtonRightShoulder = ButtonName{value: "rightshoulder"}
+global ButtonRightStick = ButtonName{value: "rightstick"}
+global ButtonStart = ButtonName{value: "start"}
+global ButtonX = ButtonName{value: "x"}
+global ButtonY = ButtonName{value: "y"}
+
+/* nvg */
+
+type _NvgImageFlag :struct {
+	value: i32
+}
+
+global NvgImageFlagGenerateMipmaps = _NvgImageFlag{value: 1 << 0}
+global NvgImageFlagRepeatX = _NvgImageFlag{value: 1 << 1}
+global NvgImageFlagRepeatY = _NvgImageFlag{value: 1 << 2}
+global NvgImageFlagFlipY = _NvgImageFlag{value: 1 << 3}
+global NvgImageFlagPremultiplied = _NvgImageFlag{value: 1 << 4}
+global NvgImageFlagNearest = _NvgImageFlag{value: 1 << 5}
+
+func _Nvg.CreateImage(w: i32, h: i32, filename: string, flags: ..._NvgImageFlag) => i32 {
+	flags_value: i32 = 0
+	for _, value := range flags {
+		flags_value |= value.value
+	}
+	return this._CreateImage(w, h, filename, flags_value)
+}
+
+type NvgLineCap :struct {
+	value: i32
+}
+
+global NvgLineCapButt = NvgLineCap{value: 0}
+global NvgLineCapRound = NvgLineCap{value: 1}
+global NvgLineCapSquare = NvgLineCap{value: 2}
+
+func _Nvg.LineCap(cap: NvgLineCap) {
+	this._LineCap(cap.value)
+}
+
+type NvgLineJoin :struct {
+	value: i32
+}
+
+global NvgLineJoinRound = NvgLineJoin{value: 1}
+global NvgLineJoinBevel = NvgLineJoin{value: 3}
+global NvgLineJoinMiter = NvgLineJoin{value: 4}
+
+func _Nvg.LineJoin(join: NvgLineJoin) {
+	this._LineJoin(join.value)
+}
+
+type NvgWinding :struct {
+	value: i32
+}
+
+global NvgWindingCCW = NvgWinding{value: 1}
+global NvgWindingCW = NvgWinding{value: 2}
+global NvgWindingSolid = NvgWinding{value: 1}
+global NvgWindingHole = NvgWinding{value: 2}
+
+func _Nvg.PathWinding(winding: NvgWinding) {
+	this._PathWinding(winding.value)
+}
+
+type NvgArcDir :struct {
+	value: i32
+}
+
+global NvgArcDirCCW = NvgArcDir{value: 1}
+global NvgArcDirCW = NvgArcDir{value: 2}
+
+func _Nvg.Arc(cx: f32, cy: f32, r: f32, a_0: f32, a_1: f32, dir: NvgArcDir) {
+	this._Arc(cx, cy, r, a_0, a_1, dir.value)
+}
+
+type NvgHAlign :struct {
+	value: i32
+}
+
+global NvgHAlignLeft = NvgHAlign{value: 1 << 0}
+global NvgHAlignCenter = NvgHAlign{value: 1 << 1}
+global NvgHAlignRight = NvgHAlign{value: 1 << 2}
+
+type NvgVAlign :struct {
+	value: i32
+}
+
+global NvgVAlignTop = NvgVAlign{value: 1 << 3}
+global NvgVAlignMiddle = NvgVAlign{value: 1 << 4}
+global NvgVAlignBottom = NvgVAlign{value: 1 << 5}
+global NvgVAlignBaseLine = NvgVAlign{value: 1 << 6}
+
+func _Nvg.TextAlign(h_align: NvgHAlign, v_align: NvgVAlign) {
+	this._TextAlign(h_align.value, v_align.value)
+}
+
+/* ImGui */
+
+global imgui_stack = NewCallStack()
+
+type _ImGuiWindowFlag :struct {
+	value: i32
+}
+
+global ImGuiWindowNoTitleBar = _ImGuiWindowFlag{value: 1 << 0}
+global ImGuiWindowNoResize = _ImGuiWindowFlag{value: 1 << 1}
+global ImGuiWindowNoMove = _ImGuiWindowFlag{value: 1 << 2}
+global ImGuiWindowNoScrollbar = _ImGuiWindowFlag{value: 1 << 3}
+global ImGuiWindowNoScrollWithMouse = _ImGuiWindowFlag{value: 1 << 4}
+global ImGuiWindowNoCollapse = _ImGuiWindowFlag{value: 1 << 5}
+global ImGuiWindowAlwaysAutoResize = _ImGuiWindowFlag{value: 1 << 6}
+global ImGuiWindowNoBackground = _ImGuiWindowFlag{value: 1 << 7}
+global ImGuiWindowNoSavedSettings = _ImGuiWindowFlag{value: 1 << 8}
+global ImGuiWindowNoMouseInputs = _ImGuiWindowFlag{value: 1 << 9}
+global ImGuiWindowMenuBar = _ImGuiWindowFlag{value: 1 << 10}
+global ImGuiWindowHorizontalScrollbar = _ImGuiWindowFlag{value: 1 << 11}
+global ImGuiWindowNoFocusOnAppearing = _ImGuiWindowFlag{value: 1 << 12}
+global ImGuiWindowNoBringToFrontOnFocus = _ImGuiWindowFlag{value: 1 << 13}
+global ImGuiWindowAlwaysVerticalScrollbar = _ImGuiWindowFlag{value: 1 << 14}
+global ImGuiWindowAlwaysHorizontalScrollbar = _ImGuiWindowFlag{value: 1 << 15}
+global ImGuiWindowNoNavInputs = _ImGuiWindowFlag{value: 1 << 16}
+global ImGuiWindowNoNavFocus = _ImGuiWindowFlag{value: 1 << 17}
+global ImGuiWindowUnsavedDocument = _ImGuiWindowFlag{value: 1 << 18}
+global ImGuiWindowNoNav = _ImGuiWindowFlag{value: ImGuiWindowNoNavInputs.value | ImGuiWindowNoNavFocus.value}
+global ImGuiWindowNoDecoration = _ImGuiWindowFlag{value: ImGuiWindowNoTitleBar.value | ImGuiWindowNoResize.value | ImGuiWindowNoScrollbar.value | ImGuiWindowNoCollapse.value}
+global ImGuiWindowNoInputs = _ImGuiWindowFlag{value: ImGuiWindowNoMouseInputs.value | ImGuiWindowNoNavInputs.value | ImGuiWindowNoNavFocus.value}
+
+type _ImGuiWindowFlags :struct {
+	value: i32
+}
+
+global ImGuiWindowDefault = _ImGuiWindowFlags{value: 0}
+
+func ImGuiWindowFlags(flags: ..._ImGuiWindowFlag) => _ImGuiWindowFlags {
+	flags_value: i32 = 0
+	for _, value := range flags {
+		flags_value |= value.value
+	}
+	return _ImGuiWindowFlags{value: flags_value}
+}
+
+func _ImGui.Begin(name: string, inside: func()) {
+	this.BeginOpts(name, ImGuiWindowDefault, inside)
+}
+
+func _ImGui.BeginOpts(name: string, windows_flags: _ImGuiWindowFlags, inside: func()) {
+	if this._BeginOpts(name, windows_flags.value) {
+		inside()
+	}
+	this._End()
+}
+
+func _ImGui.BeginRet(name: string, opened: bool, inside: func()) => (bool, bool) {
+	return this.BeginRetOpts(name, opened, ImGuiWindowDefault, inside)
+}
+
+func _ImGui.BeginRetOpts(name: string, opened: bool, window_flags: _ImGuiWindowFlags, inside: func()) => (bool, bool) {
+	imgui_stack.Push(opened)
+	changed := this._BeginRetOpts(name, imgui_stack, window_flags.value)
+	res_opened, ok := imgui_stack.PopBool()
+	if !ok {
+		panic("failed to pop bool")
+	}
+	if res_opened {
+		inside()
+	}
+	this._End()
+	return changed, res_opened
+}
+
+type _ImGuiChildFlag :struct {
+	value: i32
+}
+
+global ImGuiChildBorders = _ImGuiChildFlag{value: 1 << 0}
+global ImGuiChildAlwaysUseWindowPadding = _ImGuiChildFlag{value: 1 << 1}
+global ImGuiChildResizeX = _ImGuiChildFlag{value: 1 << 2}
+global ImGuiChildResizeY = _ImGuiChildFlag{value: 1 << 3}
+global ImGuiChildAutoResizeX = _ImGuiChildFlag{value: 1 << 4}
+global ImGuiChildAutoResizeY = _ImGuiChildFlag{value: 1 << 5}
+global ImGuiChildAlwaysAutoResize = _ImGuiChildFlag{value: 1 << 6}
+global ImGuiChildFrameStyle = _ImGuiChildFlag{value: 1 << 7}
+
+type _ImGuiChildFlags :struct {
+	value: i32
+}
+
+global ImGuiChildDefault = _ImGuiChildFlags{value: 0}
+
+func ImGuiChildFlags(flags: ..._ImGuiChildFlag) => _ImGuiChildFlags {
+	flags_value: i32 = 0
+	for _, value := range flags {
+		flags_value |= value.value
+	}
+	return _ImGuiChildFlags{value: flags_value}
+}
+
+func _ImGui.BeginChild(str_id: string, size: Vec2, inside: func()) {
+	this.BeginChildOpts(str_id, size, ImGuiChildDefault, ImGuiWindowDefault, inside)
+}
+
+func _ImGui.BeginChildOpts(str_id: string, size: Vec2, child_flags: _ImGuiChildFlags, window_flags: _ImGuiWindowFlags, inside: func()) {
+	if this._BeginChildOpts(str_id, size, child_flags.value, window_flags.value) {
+		inside()
+	}
+	this._EndChild()
+}
+
+func _ImGui.BeginChildWithId(id: i32, size: Vec2, inside: func()) {
+	this.BeginChildWithIdOpts(id, size, ImGuiChildDefault, ImGuiWindowDefault, inside)
+}
+
+func _ImGui.BeginChildWithIdOpts(id: i32, size: Vec2, child_flags: _ImGuiChildFlags, window_flags: _ImGuiWindowFlags, inside: func()) {
+	if this._BeginChildWithIdOpts(id, size, child_flags.value, window_flags.value) {
+		inside()
+	}
+	this._EndChild()
+}
+
+type _ImGuiTreeNodeFlag :struct {
+	value: i32
+}
+
+global ImGuiTreeNodeSelected = _ImGuiTreeNodeFlag{value: 1 << 0}
+global ImGuiTreeNodeFramed = _ImGuiTreeNodeFlag{value: 1 << 1}
+global ImGuiTreeNodeAllowOverlap = _ImGuiTreeNodeFlag{value: 1 << 2}
+global ImGuiTreeNodeNoTreePushOnOpen = _ImGuiTreeNodeFlag{value: 1 << 3}
+global ImGuiTreeNodeNoAutoOpenOnLog = _ImGuiTreeNodeFlag{value: 1 << 4}
+global ImGuiTreeNodeDefaultOpen = _ImGuiTreeNodeFlag{value: 1 << 5}
+global ImGuiTreeNodeOpenOnDoubleClick = _ImGuiTreeNodeFlag{value: 1 << 6}
+global ImGuiTreeNodeOpenOnArrow = _ImGuiTreeNodeFlag{value: 1 << 7}
+global ImGuiTreeNodeLeaf = _ImGuiTreeNodeFlag{value: 1 << 8}
+global ImGuiTreeNodeBullet = _ImGuiTreeNodeFlag{value: 1 << 9}
+global ImGuiTreeNodeFramePadding = _ImGuiTreeNodeFlag{value: 1 << 10}
+global ImGuiTreeNodeSpanAvailWidth = _ImGuiTreeNodeFlag{value: 1 << 11}
+global ImGuiTreeNodeSpanFullWidth = _ImGuiTreeNodeFlag{value: 1 << 12}
+global ImGuiTreeNodeSpanLabelWidth = _ImGuiTreeNodeFlag{value: 1 << 13}
+global ImGuiTreeNodeSpanAllColumns = _ImGuiTreeNodeFlag{value: 1 << 14}
+global ImGuiTreeNodeLabelSpanAllColumns = _ImGuiTreeNodeFlag{value: 1 << 15}
+global ImGuiTreeNodeNavLeftJumpsBackHere = _ImGuiTreeNodeFlag{value: 1 << 17}
+global ImGuiTreeNodeCollapsingHeader = _ImGuiTreeNodeFlag{value: ImGuiTreeNodeFramed.value | ImGuiTreeNodeNoTreePushOnOpen.value | ImGuiTreeNodeNoAutoOpenOnLog.value}
+
+type _ImGuiTreeNodeFlags :struct {
+	value: i32
+}
+
+global ImGuiTreeNodeDefault = _ImGuiTreeNodeFlags{value: 0}
+
+func ImGuiTreeNodeFlags(flags: ..._ImGuiTreeNodeFlag) => _ImGuiTreeNodeFlags {
+	flags_value: i32 = 0
+	for _, value := range flags {
+		flags_value |= value.value
+	}
+	return _ImGuiTreeNodeFlags{value: flags_value}
+}
+
+func _ImGui.CollapsingHeaderRet(label: string, opened: bool) => (bool, bool) {
+	return this.CollapsingHeaderRetOpts(label, opened, ImGuiTreeNodeDefault)
+}
+
+func _ImGui.CollapsingHeaderRetOpts(label: string, opened: bool, tree_node_flags: _ImGuiTreeNodeFlags) => (bool, bool) {
+	imgui_stack.Push(opened)
+	changed := this._CollapsingHeaderRetOpts(label, imgui_stack, tree_node_flags.value)
+	res_opened, ok := imgui_stack.PopBool()
+	if !ok {
+		panic("failed to pop bool")
+	}
+	return changed, res_opened
+}
+
+type _ImGuiSelectableFlag :struct {
+	value: i32
+}
+
+global ImGuiSelectableDontClosePopups = _ImGuiSelectableFlag{value: 1 << 0}
+global ImGuiSelectableSpanAllColumns = _ImGuiSelectableFlag{value: 1 << 1}
+global ImGuiSelectableAllowDoubleClick = _ImGuiSelectableFlag{value: 1 << 2}
+global ImGuiSelectableDisabled = _ImGuiSelectableFlag{value: 1 << 3}
+global ImGuiSelectableAllowOverlap = _ImGuiSelectableFlag{value: 1 << 4}
+
+type _ImGuiSelectableFlags :struct {
+	value: i32
+}
+
+global ImGuiSelectableDefault = _ImGuiSelectableFlags{value: 0}
+
+func ImGuiSelectableFlags(flags: ..._ImGuiSelectableFlag) => _ImGuiSelectableFlags {
+	flags_value: i32 = 0
+	for _, value := range flags {
+		flags_value |= value.value
+	}
+	return _ImGuiSelectableFlags{value: flags_value}
+}
+
+func _ImGui.SelectableRet(label: string, selected: bool) => (bool, bool) {
+	return this.SelectableRetOpts(label, selected, Vec2Zero, ImGuiSelectableDefault)
+}
+
+func _ImGui.SelectableRetOpts(label: string, selected: bool, size: Vec2, selectable_flags: _ImGuiSelectableFlags) => (bool, bool) {
+	imgui_stack.Push(selected)
+	changed := this._SelectableRetOpts(label, imgui_stack, size, selectable_flags.value)
+	res_selected, ok := imgui_stack.PopBool()
+	if !ok {
+		panic("failed to pop bool")
+	}
+	return changed, res_selected
+}
+
+func _ImGui.ComboRet(label: string, current_item: i32, items: *[]string) => (bool, i32) {
+	return this.ComboRetOpts(label, current_item, items, -1)
+}
+
+func _ImGui.ComboRetOpts(label: string, current_item: i32, items: *[]string, height_in_items: i32) => (bool, i32) {
+	imgui_stack.Push(current_item)
+	changed := this._ComboRetOpts(label, imgui_stack, items, height_in_items)
+	res_current_item, ok := imgui_stack.PopI32()
+	if !ok {
+		panic("failed to pop int")
+	}
+	return changed, res_current_item
+}
+
+type _ImGuiSliderFlag :struct {
+	value: i32
+}
+
+global ImGuiSliderLogarithmic = _ImGuiSliderFlag{value: 1 << 5}
+global ImGuiSliderNoRoundToFormat = _ImGuiSliderFlag{value: 1 << 6}
+global ImGuiSliderNoInput = _ImGuiSliderFlag{value: 1 << 7}
+global ImGuiSliderWrapAround = _ImGuiSliderFlag{value: 1 << 8}
+global ImGuiSliderClampOnInput = _ImGuiSliderFlag{value: 1 << 9}
+global ImGuiSliderClampZeroRange = _ImGuiSliderFlag{value: 1 << 10}
+global ImGuiSliderAlwaysClamp = _ImGuiSliderFlag{value: ImGuiSliderClampOnInput.value | ImGuiSliderClampZeroRange.value}
+
+type _ImGuiSliderFlags :struct {
+	value: i32
+}
+
+global ImGuiSliderDefault = _ImGuiSliderFlags{value: 0}
+
+func ImGuiSliderFlags(flags: ..._ImGuiSliderFlag) => _ImGuiSliderFlags {
+	flags_value: i32 = 0
+	for _, value := range flags {
+		flags_value |= value.value
+	}
+	return _ImGuiSliderFlags{value: flags_value}
+}
+
+func _ImGui.DragFloatRet(label: string, v: f32, v_speed: f32, v_min: f32, v_max: f32) => (bool, f32) {
+	return this.DragFloatRetOpts(label, v, v_speed, v_min, v_max, "%.2f", ImGuiSliderDefault)
+}
+
+func _ImGui.DragFloatRetOpts(label: string, v: f32, v_speed: f32, v_min: f32, v_max: f32, display_format: string, slider_flags: _ImGuiSliderFlags) => (bool, f32) {
+	imgui_stack.Push(v)
+	changed := this._DragFloatRetOpts(label, imgui_stack, v_speed, v_min, v_max, display_format, slider_flags.value)
+	res_v, ok := imgui_stack.PopF32()
+	if !ok {
+		panic("failed to pop float")
+	}
+	return changed, res_v
+}
+
+func _ImGui.DragFloat2Ret(label: string, v1: f32, v2: f32, v_speed: f32, v_min: f32, v_max: f32) => (bool, f32, f32) {
+	return this.DragFloat2RetOpts(label, v1, v2, v_speed, v_min, v_max, "%.2f", ImGuiSliderDefault)
+}
+
+func _ImGui.DragFloat2RetOpts(label: string, v1: f32, v2: f32, v_speed: f32, v_min: f32, v_max: f32, display_format: string, slider_flags: _ImGuiSliderFlags) => (bool, f32, f32) {
+	imgui_stack.Push(v1)
+	imgui_stack.Push(v2)
+	changed := this._DragFloat2RetOpts(label, imgui_stack, v_speed, v_min, v_max, display_format, slider_flags.value)
+	res_v1, ok := imgui_stack.PopF32()
+	if !ok {
+		panic("failed to pop float")
+	}
+	res_v2, ok := imgui_stack.PopF32()
+	if !ok {
+		panic("failed to pop float")
+	}
+	return changed, res_v1, res_v2
+}
+
+// drag_int2_ret
+
+func _ImGui.DragInt2Ret(label: string, v1: i32, v2: i32, v_speed: f32, v_min: i32, v_max: i32) => (bool, i32, i32) {
+	return this.DragInt2RetOpts(label, v1, v2, v_speed, v_min, v_max, "%d", ImGuiSliderDefault)
+}
+
+func _ImGui.DragInt2RetOpts(label: string, v1: i32, v2: i32, v_speed: f32, v_min: i32, v_max: i32, display_format: string, slider_flags: _ImGuiSliderFlags) => (bool, i32, i32) {
+	imgui_stack.Push(v1)
+	imgui_stack.Push(v2)
+	changed := this._DragInt2RetOpts(label, imgui_stack, v_speed, v_min, v_max, display_format, slider_flags.value)
+	res_v1, ok := imgui_stack.PopI32()
+	if !ok {
+		panic("failed to pop int")
+	}
+	res_v2, ok := imgui_stack.PopI32()
+	if !ok {
+		panic("failed to pop int")
+	}
+	return changed, res_v1, res_v2
+}
+
+type _ImGuiInputTextFlag :struct {
+	value: i32
+}
+
+global ImGuiInputTextCharsDecimal = _ImGuiInputTextFlag{value: 1 << 0}
+global ImGuiInputTextCharsHexadecimal = _ImGuiInputTextFlag{value: 1 << 1}
+global ImGuiInputTextCharsScientific = _ImGuiInputTextFlag{value: 1 << 2}
+global ImGuiInputTextCharsUppercase = _ImGuiInputTextFlag{value: 1 << 3}
+global ImGuiInputTextCharsNoBlank = _ImGuiInputTextFlag{value: 1 << 4}
+global ImGuiInputTextAllowTabInput = _ImGuiInputTextFlag{value: 1 << 5}
+global ImGuiInputTextEnterReturnsTrue = _ImGuiInputTextFlag{value: 1 << 6}
+global ImGuiInputTextEscapeClearsAll = _ImGuiInputTextFlag{value: 1 << 7}
+global ImGuiInputTextCtrlEnterForNewLine = _ImGuiInputTextFlag{value: 1 << 8}
+global ImGuiInputTextReadOnly = _ImGuiInputTextFlag{value: 1 << 9}
+global ImGuiInputTextPassword = _ImGuiInputTextFlag{value: 1 << 10}
+global ImGuiInputTextAlwaysOverwrite = _ImGuiInputTextFlag{value: 1 << 11}
+global ImGuiInputTextAutoSelectAll = _ImGuiInputTextFlag{value: 1 << 12}
+global ImGuiInputTextParseEmptyRefVal = _ImGuiInputTextFlag{value: 1 << 13}
+global ImGuiInputTextDisplayEmptyRefVal = _ImGuiInputTextFlag{value: 1 << 14}
+global ImGuiInputTextNoHorizontalScroll = _ImGuiInputTextFlag{value: 1 << 15}
+global ImGuiInputTextNoUndoRedo = _ImGuiInputTextFlag{value: 1 << 16}
+global ImGuiInputTextElideLeft = _ImGuiInputTextFlag{value: 1 << 17}
+global ImGuiInputTextCallbackCompletion = _ImGuiInputTextFlag{value: 1 << 18}
+global ImGuiInputTextCallbackHistory = _ImGuiInputTextFlag{value: 1 << 19}
+global ImGuiInputTextCallbackAlways = _ImGuiInputTextFlag{value: 1 << 20}
+global ImGuiInputTextCallbackCharFilter = _ImGuiInputTextFlag{value: 1 << 21}
+global ImGuiInputTextCallbackResize = _ImGuiInputTextFlag{value: 1 << 22}
+global ImGuiInputTextCallbackEdit = _ImGuiInputTextFlag{value: 1 << 23}
+
+type _ImGuiInputTextFlags :struct {
+	value: i32
+}
+
+global ImGuiInputTextDefault = _ImGuiInputTextFlags{value: 0}
+
+func ImGuiInputTextFlags(flags: ..._ImGuiInputTextFlag) => _ImGuiInputTextFlags {
+	flags_value: i32 = 0
+	for _, value := range flags {
+		flags_value |= value.value
+	}
+	return _ImGuiInputTextFlags{value: flags_value}
+}
+
+func _ImGui.InputFloatRet(label: string, v: f32) => (bool, f32) {
+	return this.InputFloatRetOpts(label, v, 0.0, 0.0, "%.2f", ImGuiInputTextDefault)
+}
+
+func _ImGui.InputFloatRetOpts(label: string, v: f32, step: f32, step_fast: f32, display_format: string, input_text_flags: _ImGuiInputTextFlags) => (bool, f32) {
+	imgui_stack.Push(v)
+	changed := this._InputFloatRetOpts(label, imgui_stack, step, step_fast, display_format, input_text_flags.value)
+	res_v, ok := imgui_stack.PopF32()
+	if !ok {
+		panic("failed to pop float")
+	}
+	return changed, res_v
+}
+
+func _ImGui.InputFloat2Ret(label: string, v1: f32, v2: f32) => (bool, f32, f32) {
+	return this.InputFloat2RetOpts(label, v1, v2, "%.2f", ImGuiInputTextDefault)
+}
+
+func _ImGui.InputFloat2RetOpts(label: string, v1: f32, v2: f32, display_format: string, input_text_flags: _ImGuiInputTextFlags) => (bool, f32, f32) {
+	imgui_stack.Push(v1)
+	imgui_stack.Push(v2)
+	changed := this._InputFloat2RetOpts(label, imgui_stack, display_format, input_text_flags.value)
+	res_v1, ok := imgui_stack.PopF32()
+	if !ok {
+		panic("failed to pop float")
+	}
+	res_v2, ok := imgui_stack.PopF32()
+	if !ok {
+		panic("failed to pop float")
+	}
+	return changed, res_v1, res_v2
+}
+
+// input_int_ret
+
+func _ImGui.InputIntRet(label: string, v: i32) => (bool, i32) {
+	return this.InputIntRetOpts(label, v, 1, 100, ImGuiInputTextDefault)
+}
+
+func _ImGui.InputIntRetOpts(label: string, v: i32, step: i32, step_fast: i32, input_text_flags: _ImGuiInputTextFlags) => (bool, i32) {
+	imgui_stack.Push(v)
+	changed := this._InputIntRetOpts(label, imgui_stack, step, step_fast, input_text_flags.value)
+	res_v, ok := imgui_stack.PopI32()
+	if !ok {
+		panic("failed to pop int")
+	}
+	return changed, res_v
+}
+
+// input_int2_ret
+
+func _ImGui.InputInt2Ret(label: string, v1: i32, v2: i32) => (bool, i32, i32) {
+	return this.InputInt2RetOpts(label, v1, v2, ImGuiInputTextDefault)
+}
+
+func _ImGui.InputInt2RetOpts(label: string, v1: i32, v2: i32, input_text_flags: _ImGuiInputTextFlags) => (bool, i32, i32) {
+	imgui_stack.Push(v1)
+	imgui_stack.Push(v2)
+	changed := this._InputInt2RetOpts(label, imgui_stack, input_text_flags.value)
+	res_v1, ok := imgui_stack.PopI32()
+	if !ok {
+		panic("failed to pop int")
+	}
+	res_v2, ok := imgui_stack.PopI32()
+	if !ok {
+		panic("failed to pop int")
+	}
+	return changed, res_v1, res_v2
+}
+
+// slider_float_ret
+
+func _ImGui.SliderFloatRet(label: string, v: f32, v_min: f32, v_max: f32) => (bool, f32) {
+	return this.SliderFloatRetOpts(label, v, v_min, v_max, "%.2f", ImGuiSliderDefault)
+}
+
+func _ImGui.SliderFloatRetOpts(label: string, v: f32, v_min: f32, v_max: f32, display_format: string, slider_flags: _ImGuiSliderFlags) => (bool, f32) {
+	imgui_stack.Push(v)
+	changed := this._SliderFloatRetOpts(label, imgui_stack, v_min, v_max, display_format, slider_flags.value)
+	res_v, ok := imgui_stack.PopF32()
+	if !ok {
+		panic("failed to pop float")
+	}
+	return changed, res_v
+}
+
+// slider_float2_ret
+
+func _ImGui.SliderFloat2Ret(label: string, v1: f32, v2: f32, v_min: f32, v_max: f32) => (bool, f32, f32) {
+	return this.SliderFloat2RetOpts(label, v1, v2, v_min, v_max, "%.2f", ImGuiSliderDefault)
+}
+
+func _ImGui.SliderFloat2RetOpts(label: string, v1: f32, v2: f32, v_min: f32, v_max: f32, display_format: string, slider_flags: _ImGuiSliderFlags) => (bool, f32, f32) {
+	imgui_stack.Push(v1)
+	imgui_stack.Push(v2)
+	changed := this._SliderFloat2RetOpts(label, imgui_stack, v_min, v_max, display_format, slider_flags.value)
+	res_v1, ok := imgui_stack.PopF32()
+	if !ok {
+		panic("failed to pop float")
+	}
+	res_v2, ok := imgui_stack.PopF32()
+	if !ok {
+		panic("failed to pop float")
+	}
+	return changed, res_v1, res_v2
+}
+
+// drag_float_range2_ret
+
+func _ImGui.DragFloatRange2Ret(label: string, v_current_min: f32, v_current_max: f32, v_speed: f32, v_min: f32, v_max: f32) => (bool, f32, f32) {
+	return this.DragFloatRange2RetOpts(label, v_current_min, v_current_max, v_speed, v_min, v_max, "%.2f", "%.2f", ImGuiSliderDefault)
+}
+
+func _ImGui.DragFloatRange2RetOpts(label: string, v_current_min: f32, v_current_max: f32, v_speed: f32, v_min: f32, v_max: f32, display_format_min: string, display_format_max: string, slider_flags: _ImGuiSliderFlags) => (bool, f32, f32) {
+	imgui_stack.Push(v_current_min)
+	imgui_stack.Push(v_current_max)
+	changed := this._DragFloatRange2RetOpts(label, imgui_stack, v_speed, v_min, v_max, display_format_min, display_format_max, slider_flags.value)
+	res_v_current_min, ok := imgui_stack.PopF32()
+	if !ok {
+		panic("failed to pop float")
+	}
+	res_v_current_max, ok := imgui_stack.PopF32()
+	if !ok {
+		panic("failed to pop float")
+	}
+	return changed, res_v_current_min, res_v_current_max
+}
+
+// drag_int_ret
+
+func _ImGui.DragIntRet(label: string, v: i32, v_speed: f32, v_min: i32, v_max: i32) => (bool, i32) {
+	return this.DragIntRetOpts(label, v, v_speed, v_min, v_max, "%d", ImGuiSliderDefault)
+}
+
+func _ImGui.DragIntRetOpts(label: string, v: i32, v_speed: f32, v_min: i32, v_max: i32, display_format: string, slider_flags: _ImGuiSliderFlags) => (bool, i32) {
+	imgui_stack.Push(v)
+	changed := this._DragIntRetOpts(label, imgui_stack, v_speed, v_min, v_max, display_format, slider_flags.value)
+	res_v, ok := imgui_stack.PopI32()
+	if !ok {
+		panic("failed to pop int")
+	}
+	return changed, res_v
+}
+
+// drag_int_range2_ret
+
+func _ImGui.DragIntRange2Ret(label: string, v_current_min: i32, v_current_max: i32, v_speed: f32, v_min: i32, v_max: i32) => (bool, i32, i32) {
+	return this.DragIntRange2RetOpts(label, v_current_min, v_current_max, v_speed, v_min, v_max, "%d", "%d", ImGuiSliderDefault)
+}
+
+func _ImGui.DragIntRange2RetOpts(label: string, v_current_min: i32, v_current_max: i32, v_speed: f32, v_min: i32, v_max: i32, display_format_min: string, display_format_max: string, slider_flags: _ImGuiSliderFlags) => (bool, i32, i32) {
+	imgui_stack.Push(v_current_min)
+	imgui_stack.Push(v_current_max)
+	changed := this._DragIntRange2RetOpts(label, imgui_stack, v_speed, v_min, v_max, display_format_min, display_format_max, slider_flags.value)
+	res_v_current_min, ok := imgui_stack.PopI32()
+	if !ok {
+		panic("failed to pop int")
+	}
+	res_v_current_max, ok := imgui_stack.PopI32()
+	if !ok {
+		panic("failed to pop int")
+	}
+	return changed, res_v_current_min, res_v_current_max
+}
+
+func _ImGui.SliderIntRet(label: string, v: i32, v_min: i32, v_max: i32) => (bool, i32) {
+	return this.SliderIntRetOpts(label, v, v_min, v_max, "%d", ImGuiSliderDefault)
+}
+
+func _ImGui.SliderIntRetOpts(label: string, v: i32, v_min: i32, v_max: i32, display_format: string, slider_flags: _ImGuiSliderFlags) => (bool, i32) {
+	imgui_stack.Push(v)
+	changed := this._SliderIntRetOpts(label, imgui_stack, v_min, v_max, display_format, slider_flags.value)
+	res_v, ok := imgui_stack.PopI32()
+	if !ok {
+		panic("failed to pop int")
+	}
+	return changed, res_v
+}
+
+func _ImGui.SliderInt2Ret(label: string, v1: i32, v2: i32, v_min: i32, v_max: i32) => (bool, i32, i32) {
+	return this.SliderInt2RetOpts(label, v1, v2, v_min, v_max, "%d", ImGuiSliderDefault)
+}
+
+func _ImGui.SliderInt2RetOpts(label: string, v1: i32, v2: i32, v_min: i32, v_max: i32, display_format: string, slider_flags: _ImGuiSliderFlags) => (bool, i32, i32) {
+	imgui_stack.Push(v1)
+	imgui_stack.Push(v2)
+	changed := this._SliderInt2RetOpts(label, imgui_stack, v_min, v_max, display_format, slider_flags.value)
+	res_v1, ok := imgui_stack.PopI32()
+	if !ok {
+		panic("failed to pop int")
+	}
+	res_v2, ok := imgui_stack.PopI32()
+	if !ok {
+		panic("failed to pop int")
+	}
+	return changed, res_v1, res_v2
+}
+
+func _ImGui.VSliderFloatRet(label: string, size: Vec2, v: f32, v_min: f32, v_max: f32) => (bool, f32) {
+	return this.VSliderFloatRetOpts(label, size, v, v_min, v_max, "%.2f", ImGuiSliderDefault)
+}
+
+func _ImGui.VSliderFloatRetOpts(label: string, size: Vec2, v: f32, v_min: f32, v_max: f32, display_format: string, slider_flags: _ImGuiSliderFlags) => (bool, f32) {
+	imgui_stack.Push(v)
+	changed := this._VSliderFloatRetOpts(label, size, imgui_stack, v_min, v_max, display_format, slider_flags.value)
+	res_v, ok := imgui_stack.PopF32()
+	if !ok {
+		panic("failed to pop float")
+	}
+	return changed, res_v
+}
+
+func _ImGui.VSliderIntRet(label: string, size: Vec2, v: i32, v_min: i32, v_max: i32) => (bool, i32) {
+	return this.VSliderIntRetOpts(label, size, v, v_min, v_max, "%d", ImGuiSliderDefault)
+}
+
+func _ImGui.VSliderIntRetOpts(label: string, size: Vec2, v: i32, v_min: i32, v_max: i32, display_format: string, slider_flags: _ImGuiSliderFlags) => (bool, i32) {
+	imgui_stack.Push(v)
+	changed := this._VSliderIntRetOpts(label, size, imgui_stack, v_min, v_max, display_format, slider_flags.value)
+	res_v, ok := imgui_stack.PopI32()
+	if !ok {
+		panic("failed to pop int")
+	}
+	return changed, res_v
+}
+
+type _ImGuiColorEditFlag :struct {
+	value: i32
+}
+
+global ImGuiColorEditNoAlpha = _ImGuiColorEditFlag{value: 1 << 1}
+global ImGuiColorEditNoPicker = _ImGuiColorEditFlag{value: 1 << 2}
+global ImGuiColorEditNoOptions = _ImGuiColorEditFlag{value: 1 << 3}
+global ImGuiColorEditNoSmallPreview = _ImGuiColorEditFlag{value: 1 << 4}
+global ImGuiColorEditNoInputs = _ImGuiColorEditFlag{value: 1 << 5}
+global ImGuiColorEditNoTooltip = _ImGuiColorEditFlag{value: 1 << 6}
+global ImGuiColorEditNoLabel = _ImGuiColorEditFlag{value: 1 << 7}
+global ImGuiColorEditNoSidePreview = _ImGuiColorEditFlag{value: 1 << 8}
+global ImGuiColorEditNoDragDrop = _ImGuiColorEditFlag{value: 1 << 9}
+global ImGuiColorEditNoBorder = _ImGuiColorEditFlag{value: 1 << 10}
+global ImGuiColorEditAlphaOpaque = _ImGuiColorEditFlag{value: 1 << 11}
+global ImGuiColorEditAlphaNoBg = _ImGuiColorEditFlag{value: 1 << 12}
+global ImGuiColorEditAlphaPreviewHalf = _ImGuiColorEditFlag{value: 1 << 13}
+global ImGuiColorEditAlphaBar = _ImGuiColorEditFlag{value: 1 << 16}
+global ImGuiColorEditHDR = _ImGuiColorEditFlag{value: 1 << 19}
+global ImGuiColorEditDisplayRGB = _ImGuiColorEditFlag{value: 1 << 20}
+global ImGuiColorEditDisplayHSV = _ImGuiColorEditFlag{value: 1 << 21}
+global ImGuiColorEditDisplayHex = _ImGuiColorEditFlag{value: 1 << 22}
+global ImGuiColorEditUint8 = _ImGuiColorEditFlag{value: 1 << 23}
+global ImGuiColorEditFloat = _ImGuiColorEditFlag{value: 1 << 24}
+global ImGuiColorEditPickerHueBar = _ImGuiColorEditFlag{value: 1 << 25}
+global ImGuiColorEditPickerHueWheel = _ImGuiColorEditFlag{value: 1 << 26}
+global ImGuiColorEditInputRGB = _ImGuiColorEditFlag{value: 1 << 27}
+global ImGuiColorEditInputHSV = _ImGuiColorEditFlag{value: 1 << 28}
+
+type _ImGuiColorEditFlags :struct {
+	value: i32
+}
+
+global ImGuiColorEditDefault = _ImGuiColorEditFlags{value: ImGuiColorEditUint8.value | ImGuiColorEditDisplayRGB.value | ImGuiColorEditInputRGB.value | ImGuiColorEditPickerHueBar.value}
+
+func ImGuiColorEditFlags(flags: ..._ImGuiColorEditFlag) => _ImGuiColorEditFlags {
+	flags_value: i32 = 0
+	for _, value := range flags {
+		flags_value |= value.value
+	}
+	return _ImGuiColorEditFlags{value: flags_value}
+}
+
+func _ImGui.ColorEdit3Ret(label: string, color: Color3) => (bool, Color3) {
+	return this.ColorEdit3RetOpts(label, color, ImGuiColorEditDefault)
+}
+
+func _ImGui.ColorEdit3RetOpts(label: string, color: Color3, color_edit_flags: _ImGuiColorEditFlags) => (bool, Color3) {
+	imgui_stack.Push(color.ToRGB())
+	changed := this._ColorEdit3RetOpts(label, imgui_stack, color_edit_flags.value)
+	res_color, ok := imgui_stack.PopI32()
+	if !ok {
+		panic("failed to pop int")
+	}
+	return changed, NewColor3(res_color)
+}
+
+func _ImGui.ColorEdit4Ret(label: string, color: Color) => (bool, Color) {
+	return this.ColorEdit4RetOpts(label, color, ImGuiColorEditDefault)
+}
+
+func _ImGui.ColorEdit4RetOpts(label: string, color: Color, color_edit_flags: _ImGuiColorEditFlags) => (bool, Color) {
+	imgui_stack.Push(color.ToARGB())
+	changed := this._ColorEdit4RetOpts(label, imgui_stack, color_edit_flags.value)
+	res_color, ok := imgui_stack.PopI32()
+	if !ok {
+		panic("failed to pop int")
+	}
+	return changed, NewColor(res_color)
+}
+
+func _ImGui.CheckboxRet(label: string, checked: bool) => (bool, bool) {
+	imgui_stack.Push(checked)
+	changed := this._CheckboxRet(label, imgui_stack)
+	res_checked, ok := imgui_stack.PopBool()
+	if !ok {
+		panic("failed to pop bool")
+	}
+	return changed, res_checked
+}
+
+func _ImGui.RadioButtonRet(label: string, v: i32, v_button: i32) => (bool, i32) {
+	imgui_stack.Push(v)
+	changed := this._RadioButtonRet(label, imgui_stack, v_button)
+	res_v, ok := imgui_stack.PopI32()
+	if !ok {
+		panic("failed to pop int")
+	}
+	return changed, res_v
+}
+
+func _ImGui.ListBoxRet(label: string, current_item: i32, items: *[]string) => (bool, i32) {
+	return this.ListBoxRetOpts(label, current_item, items, -1)
+}
+
+func _ImGui.ListBoxRetOpts(label: string, current_item: i32, items: *[]string, height_in_items: i32) => (bool, i32) {
+	imgui_stack.Push(current_item)
+	changed := this._ListBoxRetOpts(label, imgui_stack, items, height_in_items)
+	res_current_item, ok := imgui_stack.PopI32()
+	if !ok {
+		panic("failed to pop int")
+	}
+	return changed, res_current_item
+}
+
+type _ImGuiCond :struct {
+	value: i32
+}
+
+global ImGuiCondAlways = _ImGuiCond{value: 1 << 0}
+global ImGuiCondOnce = _ImGuiCond{value: 1 << 1}
+global ImGuiCondFirstUseEver = _ImGuiCond{value: 1 << 2}
+global ImGuiCondAppearing = _ImGuiCond{value: 1 << 3}
+
+func _ImGui.SetNextWindowPosCenter() {
+	this._SetNextWindowPosCenterOpts(ImGuiCondAlways.value)
+}
+
+func _ImGui.SetNextWindowPosCenterOpts(set_cond: _ImGuiCond) {
+	this._SetNextWindowPosCenterOpts(set_cond.value)
+}
+
+func _ImGui.SetNextWindowSize(size: Vec2) {
+	this._SetNextWindowSizeOpts(size, ImGuiCondAlways.value)
+}
+
+func _ImGui.SetNextWindowSizeOpts(size: Vec2, set_cond: _ImGuiCond) {
+	this._SetNextWindowSizeOpts(size, set_cond.value)
+}
+
+func _ImGui.SetNextWindowCollapsed(collapsed: bool) {
+	this._SetNextWindowCollapsedOpts(collapsed, ImGuiCondAlways.value)
+}
+
+func _ImGui.SetNextWindowCollapsedOpts(collapsed: bool, set_cond: _ImGuiCond) {
+	this._SetNextWindowCollapsedOpts(collapsed, set_cond.value)
+}
+
+func _ImGui.SetWindowPos(name: string, pos: Vec2) {
+	this._SetWindowPosOpts(name, pos, ImGuiCondAlways.value)
+}
+
+func _ImGui.SetWindowPosOpts(name: string, pos: Vec2, set_cond: _ImGuiCond) {
+	this._SetWindowPosOpts(name, pos, set_cond.value)
+}
+
+func _ImGui.SetWindowSize(name: string, size: Vec2) {
+	this._SetWindowSizeOpts(name, size, ImGuiCondAlways.value)
+}
+
+func _ImGui.SetWindowSizeOpts(name: string, size: Vec2, set_cond: _ImGuiCond) {
+	this._SetWindowSizeOpts(name, size, set_cond.value)
+}
+
+func _ImGui.SetWindowCollapsed(name: string, collapsed: bool) {
+	this._SetWindowCollapsedOpts(name, collapsed, ImGuiCondAlways.value)
+}
+
+func _ImGui.SetWindowCollapsedOpts(name: string, collapsed: bool, set_cond: _ImGuiCond) {
+	this._SetWindowCollapsedOpts(name, collapsed, set_cond.value)
+}
+
+func _ImGui.SetColorEditOptions(color_edit_flags: _ImGuiColorEditFlags) {
+	this._SetColorEditOptions(color_edit_flags.value)
+}
+
+func _ImGui.InputText(label: string, buffer: Buffer) => bool {
+	return this.InputTextOpts(label, buffer, ImGuiInputTextDefault)
+}
+
+func _ImGui.InputTextOpts(label: string, buffer: Buffer, input_text_flags: _ImGuiInputTextFlags) => bool {
+	return this._InputTextOpts(label, buffer, input_text_flags.value)
+}
+
+func _ImGui.InputTextMultiline(label: string, buffer: Buffer, size: Vec2) => bool {
+	return this.InputTextMultilineOpts(label, buffer, size, ImGuiInputTextDefault)
+}
+
+func _ImGui.InputTextMultilineOpts(label: string, buffer: Buffer, size: Vec2, input_text_flags: _ImGuiInputTextFlags) => bool {
+	return this._InputTextMultilineOpts(label, buffer, size, input_text_flags.value)
+}
+
+func _ImGui.TreePush(str_id: string, inside: func()) {
+	this._TreePush(str_id)
+	inside()
+	this._TreePop()
+}
+
+func _ImGui.TreeNode(str_id: string, text: string, inside: func()) {
+	if this._TreeNode(str_id, text) {
+		inside()
+		this._TreePop()
+	}
+}
+
+func _ImGui.TreeNodeEx(text: string, inside: func()) {
+	this.TreeNodeExOpts(text, inside, ImGuiTreeNodeDefault)
+}
+
+func _ImGui.TreeNodeExOpts(label: string, inside: func(), tree_node_flags: _ImGuiTreeNodeFlags) {
+	if this._TreeNodeExOpts(label, tree_node_flags.value) {
+		inside()
+		this._TreePop()
+	}
+}
+
+func _ImGui.TreeNodeExWithId(str_id: string, text: string, inside: func()) {
+	this.TreeNodeExWithIdOpts(str_id, text, inside, ImGuiTreeNodeDefault)
+}
+
+func _ImGui.TreeNodeExWithIdOpts(str_id: string, text: string, inside: func(), tree_node_flags: _ImGuiTreeNodeFlags) {
+	if this._TreeNodeExWithIdOpts(str_id, text, tree_node_flags.value) {
+		inside()
+		this._TreePop()
+	}
+}
+
+func _ImGui.SetNextItemOpen(is_open: bool) {
+	this._SetNextItemOpenOpts(is_open, ImGuiCondAlways.value)
+}
+
+func _ImGui.SetNextItemOpenOpts(is_open: bool, set_cond: _ImGuiCond) {
+	this._SetNextItemOpenOpts(is_open, set_cond.value)
+}
+
+func _ImGui.CollapsingHeader(label: string) => bool {
+	return this.CollapsingHeaderOpts(label, ImGuiTreeNodeDefault)
+}
+
+func _ImGui.CollapsingHeaderOpts(label: string, tree_node_flags: _ImGuiTreeNodeFlags) => bool {
+	return this._CollapsingHeaderOpts(label, tree_node_flags.value)
+}
+
+func _ImGui.Selectable(label: string) => bool {
+	return this.SelectableOpts(label, ImGuiSelectableDefault)
+}
+
+func _ImGui.SelectableOpts(label: string, selectable_flags: _ImGuiSelectableFlags) => bool {
+	return this._SelectableOpts(label, selectable_flags.value)
+}
+
+func _ImGui.BeginPopup(str_id: string, inside: func()) {
+	if this._BeginPopup(str_id) {
+		inside()
+		this._EndPopup()
+	}
+}
+
+func _ImGui.BeginPopupModal(name: string, inside: func()) {
+	this.BeginPopupModalOpts(name, inside, ImGuiWindowDefault)
+}
+
+func _ImGui.BeginPopupModalOpts(name: string, inside: func(), window_flags: _ImGuiWindowFlags) {
+	if this._BeginPopupModalOpts(name, window_flags.value) {
+		inside()
+		this._EndPopup()
+	}
+}
+
+func _ImGui.BeginPopupModalRet(name: string, opened: bool) => (bool, bool) {
+	return this.BeginPopupModalRetOpts(name, opened, ImGuiWindowDefault)
+}
+
+func _ImGui.BeginPopupModalRetOpts(name: string, opened: bool, window_flags: _ImGuiWindowFlags) => (bool, bool) {
+	imgui_stack.Push(opened)
+	changed := this._BeginPopupModalRetOpts(name, imgui_stack, window_flags.value)
+	res_opened, ok := imgui_stack.PopBool()
+	if !ok {
+		panic("failed to pop bool")
+	}
+	return changed, res_opened
+}
+
+type _ImGuiMouseButton :struct {
+	value: i32
+}
+
+global ImGuiMouseButtonLeft = _ImGuiMouseButton{value: 0}
+global ImGuiMouseButtonRight = _ImGuiMouseButton{value: 1}
+global ImGuiMouseButtonMiddle = _ImGuiMouseButton{value: 2}
+
+type _ImGuiPopupFlag :struct {
+	value: i32
+}
+
+global ImGuiPopupNoReopen = _ImGuiPopupFlag{value: 1 << 5}
+global ImGuiPopupNoOpenOverExistingPopup = _ImGuiPopupFlag{value: 1 << 7}
+global ImGuiPopupNoOpenOverItems = _ImGuiPopupFlag{value: 1 << 8}
+global ImGuiPopupAnyPopupId = _ImGuiPopupFlag{value: 1 << 10}
+global ImGuiPopupAnyPopupLevel = _ImGuiPopupFlag{value: 1 << 11}
+global ImGuiPopupAnyPopup = _ImGuiPopupFlag{value: ImGuiPopupAnyPopupId.value | ImGuiPopupAnyPopupLevel.value}
+
+type _ImGuiPopupFlags :struct {
+	value: i32
+}
+
+global ImGuiPopupDefault = _ImGuiPopupFlags{value: 0}
+
+func ImGuiPopupFlags(flags: ..._ImGuiPopupFlag) => _ImGuiPopupFlags {
+	flags_value: i32 = 0
+	for _, value := range flags {
+		flags_value |= value.value
+	}
+	return _ImGuiPopupFlags{value: flags_value}
+}
+
+func _ImGui.BeginPopupContextItem(name: string, inside: func()) {
+	this.BeginPopupContextItemOpts(name, ImGuiMouseButtonLeft, ImGuiPopupDefault, inside)
+}
+
+func _ImGui.BeginPopupContextItemOpts(name: string, button: _ImGuiMouseButton, popup_flags: _ImGuiPopupFlags, inside: func()) {
+	if this._BeginPopupContextItemOpts(name, button.value|popup_flags.value) {
+		inside()
+		this._EndPopup()
+	}
+}
+
+func _ImGui.BeginPopupContextWindow(name: string, inside: func()) {
+	this.BeginPopupContextWindowOpts(name, ImGuiMouseButtonRight, ImGuiPopupDefault, inside)
+}
+
+func _ImGui.BeginPopupContextWindowOpts(name: string, button: _ImGuiMouseButton, popup_flags: _ImGuiPopupFlags, inside: func()) {
+	if this._BeginPopupContextWindowOpts(name, button.value|popup_flags.value) {
+		inside()
+		this._EndPopup()
+	}
+}
+
+func _ImGui.BeginPopupContextVoid(name: string, inside: func()) {
+	this.BeginPopupContextVoidOpts(name, ImGuiMouseButtonRight, _ImGuiPopupFlags{value: 0}, inside)
+}
+
+func _ImGui.BeginPopupContextVoidOpts(name: string, button: _ImGuiMouseButton, popup_flags: _ImGuiPopupFlags, inside: func()) {
+	if this._BeginPopupContextVoidOpts(name, button.value|popup_flags.value) {
+		inside()
+		this._EndPopup()
+	}
+}
+
+type _ImGuiTableFlag :struct {
+	value: i32
+}
+
+global ImGuiTableResizable = _ImGuiTableFlag{value: 1 << 0}
+global ImGuiTableReorderable = _ImGuiTableFlag{value: 1 << 1}
+global ImGuiTableHideable = _ImGuiTableFlag{value: 1 << 2}
+global ImGuiTableSortable = _ImGuiTableFlag{value: 1 << 3}
+global ImGuiTableNoSavedSettings = _ImGuiTableFlag{value: 1 << 4}
+global ImGuiTableContextMenuInBody = _ImGuiTableFlag{value: 1 << 5}
+global ImGuiTableRowBg = _ImGuiTableFlag{value: 1 << 6}
+global ImGuiTableBordersInnerH = _ImGuiTableFlag{value: 1 << 7}
+global ImGuiTableBordersOuterH = _ImGuiTableFlag{value: 1 << 8}
+global ImGuiTableBordersInnerV = _ImGuiTableFlag{value: 1 << 9}
+global ImGuiTableBordersOuterV = _ImGuiTableFlag{value: 1 << 10}
+global ImGuiTableNoBordersInBody = _ImGuiTableFlag{value: 1 << 11}
+global ImGuiTableNoBordersInBodyUntilResize = _ImGuiTableFlag{value: 1 << 12}
+global ImGuiTableSizingFixedFit = _ImGuiTableFlag{value: 1 << 13}
+global ImGuiTableSizingFixedSame = _ImGuiTableFlag{value: 1 << 14}
+global ImGuiTableSizingStretchSame = _ImGuiTableFlag{value: 1 << 15}
+global ImGuiTableNoHostExtendX = _ImGuiTableFlag{value: 1 << 16}
+global ImGuiTableNoHostExtendY = _ImGuiTableFlag{value: 1 << 17}
+global ImGuiTableNoKeepColumnsVisible = _ImGuiTableFlag{value: 1 << 18}
+global ImGuiTablePreciseWidths = _ImGuiTableFlag{value: 1 << 19}
+global ImGuiTableNoClip = _ImGuiTableFlag{value: 1 << 20}
+global ImGuiTablePadOuterX = _ImGuiTableFlag{value: 1 << 21}
+global ImGuiTableNoPadOuterX = _ImGuiTableFlag{value: 1 << 22}
+global ImGuiTableNoPadInnerX = _ImGuiTableFlag{value: 1 << 23}
+global ImGuiTableScrollX = _ImGuiTableFlag{value: 1 << 24}
+global ImGuiTableScrollY = _ImGuiTableFlag{value: 1 << 25}
+global ImGuiTableSortMulti = _ImGuiTableFlag{value: 1 << 26}
+global ImGuiTableSortTristate = _ImGuiTableFlag{value: 1 << 27}
+global ImGuiTableHighlightHoveredColumn = _ImGuiTableFlag{value: 1 << 28}
+global ImGuiTableBordersH = _ImGuiTableFlag{value: ImGuiTableBordersInnerH.value | ImGuiTableBordersOuterH.value}
+global ImGuiTableBordersV = _ImGuiTableFlag{value: ImGuiTableBordersInnerV.value | ImGuiTableBordersOuterV.value}
+global ImGuiTableBordersInner = _ImGuiTableFlag{value: ImGuiTableBordersInnerH.value | ImGuiTableBordersInnerV.value}
+global ImGuiTableBordersOuter = _ImGuiTableFlag{value: ImGuiTableBordersOuterH.value | ImGuiTableBordersOuterV.value}
+global ImGuiTableBorders = _ImGuiTableFlag{value: ImGuiTableBordersInnerH.value | ImGuiTableBordersInnerV.value | ImGuiTableBordersOuterH.value | ImGuiTableBordersOuterV.value}
+global ImGuiTableSizingStretchProp = _ImGuiTableFlag{value: ImGuiTableSizingFixedFit.value | ImGuiTableSizingFixedSame.value}
+
+type _ImGuiTableFlags :struct {
+	value: i32
+}
+
+global ImGuiTableDefault = _ImGuiTableFlags{value: 0}
+
+func ImGuiTableFlags(flags: ..._ImGuiTableFlag) => _ImGuiTableFlags {
+	flags_value: i32 = 0
+	for _, value := range flags {
+		flags_value |= value.value
+	}
+	return _ImGuiTableFlags{value: flags_value}
+}
+
+func _ImGui.BeginTable(str_id: string, column: i32, inside: func()) {
+	this.BeginTableOpts(str_id, column, Vec2Zero, -1.0, ImGuiTableDefault, inside)
+}
+
+func _ImGui.BeginTableOpts(str_id: string, column: i32, outer_size: Vec2, inner_width: f32, table_flags: _ImGuiTableFlags, inside: func()) {
+	if this._BeginTableOpts(str_id, column, outer_size, inner_width, table_flags.value) {
+		inside()
+		this._EndTable()
+	}
+}
+
+type _ImGuiTableColumnFlag :struct {
+	value: i32
+}
+
+global ImGuiTableColumnDisabled = _ImGuiTableColumnFlag{value: 1 << 0}
+global ImGuiTableColumnDefaultHide = _ImGuiTableColumnFlag{value: 1 << 1}
+global ImGuiTableColumnDefaultSort = _ImGuiTableColumnFlag{value: 1 << 2}
+global ImGuiTableColumnWidthStretch = _ImGuiTableColumnFlag{value: 1 << 3}
+global ImGuiTableColumnWidthFixed = _ImGuiTableColumnFlag{value: 1 << 4}
+global ImGuiTableColumnNoResize = _ImGuiTableColumnFlag{value: 1 << 5}
+global ImGuiTableColumnNoReorder = _ImGuiTableColumnFlag{value: 1 << 6}
+global ImGuiTableColumnNoHide = _ImGuiTableColumnFlag{value: 1 << 7}
+global ImGuiTableColumnNoClip = _ImGuiTableColumnFlag{value: 1 << 8}
+global ImGuiTableColumnNoSort = _ImGuiTableColumnFlag{value: 1 << 9}
+global ImGuiTableColumnNoSortAscending = _ImGuiTableColumnFlag{value: 1 << 10}
+global ImGuiTableColumnNoSortDescending = _ImGuiTableColumnFlag{value: 1 << 11}
+global ImGuiTableColumnNoHeaderLabel = _ImGuiTableColumnFlag{value: 1 << 12}
+global ImGuiTableColumnNoHeaderWidth = _ImGuiTableColumnFlag{value: 1 << 13}
+global ImGuiTableColumnPreferSortAscending = _ImGuiTableColumnFlag{value: 1 << 14}
+global ImGuiTableColumnPreferSortDescending = _ImGuiTableColumnFlag{value: 1 << 15}
+global ImGuiTableColumnIndentEnable = _ImGuiTableColumnFlag{value: 1 << 16}
+global ImGuiTableColumnIndentDisable = _ImGuiTableColumnFlag{value: 1 << 17}
+global ImGuiTableColumnAngledHeader = _ImGuiTableColumnFlag{value: 1 << 18}
+global ImGuiTableColumnIsEnabled = _ImGuiTableColumnFlag{value: 1 << 24}
+global ImGuiTableColumnIsVisible = _ImGuiTableColumnFlag{value: 1 << 25}
+global ImGuiTableColumnIsSorted = _ImGuiTableColumnFlag{value: 1 << 26}
+global ImGuiTableColumnIsHovered = _ImGuiTableColumnFlag{value: 1 << 27}
+
+type _ImGuiTableColumnFlags :struct {
+	value: i32
+}
+
+global ImGuiTableColumnDefault = _ImGuiTableColumnFlags{value: 0}
+
+func ImGuiTableColumnFlags(flags: ..._ImGuiTableColumnFlag) => _ImGuiTableColumnFlags {
+	flags_value: i32 = 0
+	for _, value := range flags {
+		flags_value |= value.value
+	}
+	return _ImGuiTableColumnFlags{value: flags_value}
+}
+
+func _ImGui.TableSetupColumn(label: string, init_width_or_weight: f32) {
+	this.TableSetupColumnOpts(label, init_width_or_weight, 0, ImGuiTableColumnDefault)
+}
+
+func _ImGui.TableSetupColumnOpts(label: string, init_width_or_weight: f32, user_id: i32, table_column_flags: _ImGuiTableColumnFlags) {
+	this._TableSetupColumnOpts(label, init_width_or_weight, user_id, table_column_flags.value)
+}
+
+func _ImGui.SetNextWindowPos(pos: Vec2) {
+	this.SetNextWindowPosOpts(pos, ImGuiCondAlways, Vec2Zero)
+}
+
+func _ImGui.SetNextWindowPosOpts(pos: Vec2, set_cond: _ImGuiCond, pivot: Vec2) {
+	this._SetNextWindowPosOpts(pos, set_cond.value, pivot)
+}
+
+type _ImGuiCol :struct {
+	value: i32
+}
+
+global ImGuiColText = _ImGuiCol{value: 0}
+global ImGuiColTextDisabled = _ImGuiCol{value: 1}
+global ImGuiColWindowBg = _ImGuiCol{value: 2}
+global ImGuiColChildBg = _ImGuiCol{value: 3}
+global ImGuiColPopupBg = _ImGuiCol{value: 4}
+global ImGuiColBorder = _ImGuiCol{value: 5}
+global ImGuiColBorderShadow = _ImGuiCol{value: 6}
+global ImGuiColFrameBg = _ImGuiCol{value: 7}
+global ImGuiColFrameBgHovered = _ImGuiCol{value: 8}
+global ImGuiColFrameBgActive = _ImGuiCol{value: 9}
+global ImGuiColTitleBg = _ImGuiCol{value: 10}
+global ImGuiColTitleBgActive = _ImGuiCol{value: 11}
+global ImGuiColTitleBgCollapsed = _ImGuiCol{value: 12}
+global ImGuiColMenuBarBg = _ImGuiCol{value: 13}
+global ImGuiColScrollbarBg = _ImGuiCol{value: 14}
+global ImGuiColScrollbarGrab = _ImGuiCol{value: 15}
+global ImGuiColScrollbarGrabHovered = _ImGuiCol{value: 16}
+global ImGuiColScrollbarGrabActive = _ImGuiCol{value: 17}
+global ImGuiColCheckMark = _ImGuiCol{value: 18}
+global ImGuiColSliderGrab = _ImGuiCol{value: 19}
+global ImGuiColSliderGrabActive = _ImGuiCol{value: 20}
+global ImGuiColButton = _ImGuiCol{value: 21}
+global ImGuiColButtonHovered = _ImGuiCol{value: 22}
+global ImGuiColButtonActive = _ImGuiCol{value: 23}
+global ImGuiColHeader = _ImGuiCol{value: 24}
+global ImGuiColHeaderHovered = _ImGuiCol{value: 25}
+global ImGuiColHeaderActive = _ImGuiCol{value: 26}
+global ImGuiColSeparator = _ImGuiCol{value: 27}
+global ImGuiColSeparatorHovered = _ImGuiCol{value: 28}
+global ImGuiColSeparatorActive = _ImGuiCol{value: 29}
+global ImGuiColResizeGrip = _ImGuiCol{value: 30}
+global ImGuiColResizeGripHovered = _ImGuiCol{value: 31}
+global ImGuiColResizeGripActive = _ImGuiCol{value: 32}
+global ImGuiColTabHovered = _ImGuiCol{value: 33}
+global ImGuiColTab = _ImGuiCol{value: 34}
+global ImGuiColTabSelected = _ImGuiCol{value: 35}
+global ImGuiColTabSelectedOverline = _ImGuiCol{value: 36}
+global ImGuiColTabDimmed = _ImGuiCol{value: 37}
+global ImGuiColTabDimmedSelected = _ImGuiCol{value: 38}
+global ImGuiColTabDimmedSelectedOverline = _ImGuiCol{value: 39}
+global ImGuiColPlotLinesHovered = _ImGuiCol{value: 40}
+global ImGuiColPlotHistogram = _ImGuiCol{value: 41}
+global ImGuiColPlotHistogramHovered = _ImGuiCol{value: 42}
+global ImGuiColTableHeaderBg = _ImGuiCol{value: 43}
+global ImGuiColTableBorderStrong = _ImGuiCol{value: 44}
+global ImGuiColTableBorderLight = _ImGuiCol{value: 45}
+global ImGuiColTableRowBg = _ImGuiCol{value: 46}
+global ImGuiColTableRowBgAlt = _ImGuiCol{value: 47}
+global ImGuiColTextLink = _ImGuiCol{value: 48}
+global ImGuiColTextSelectedBg = _ImGuiCol{value: 49}
+global ImGuiColDragDropTarget = _ImGuiCol{value: 50}
+global ImGuiColNavCursor = _ImGuiCol{value: 51}
+global ImGuiColNavWindowingHighlight = _ImGuiCol{value: 52}
+global ImGuiColNavWindowingDimBg = _ImGuiCol{value: 53}
+global ImGuiColModalWindowDimBg = _ImGuiCol{value: 54}
+
+func _ImGui.PushStyleColor(col: _ImGuiCol, color: Color, inside: func()) {
+	this._PushStyleColor(col.value, color)
+	inside()
+	this._PopStyleColor(1)
+}
+
+type _ImGuiStyleVar :struct {
+	value: i32
+}
+
+global ImGuiStyleVarAlpha = _ImGuiStyleVar{value: 0}
+global ImGuiStyleVarDisabledAlpha = _ImGuiStyleVar{value: 1}
+global ImGuiStyleVarWindowRounding = _ImGuiStyleVar{value: 3}
+global ImGuiStyleVarWindowBorderSize = _ImGuiStyleVar{value: 4}
+global ImGuiStyleVarChildRounding = _ImGuiStyleVar{value: 7}
+global ImGuiStyleVarChildBorderSize = _ImGuiStyleVar{value: 8}
+global ImGuiStyleVarPopupRounding = _ImGuiStyleVar{value: 9}
+global ImGuiStyleVarPopupBorderSize = _ImGuiStyleVar{value: 10}
+global ImGuiStyleVarFrameRounding = _ImGuiStyleVar{value: 12}
+global ImGuiStyleVarFrameBorderSize = _ImGuiStyleVar{value: 13}
+global ImGuiStyleVarIndentSpacing = _ImGuiStyleVar{value: 16}
+global ImGuiStyleVarScrollbarSize = _ImGuiStyleVar{value: 18}
+global ImGuiStyleVarScrollbarRounding = _ImGuiStyleVar{value: 19}
+global ImGuiStyleVarGrabMinSize = _ImGuiStyleVar{value: 20}
+global ImGuiStyleVarGrabRounding = _ImGuiStyleVar{value: 21}
+global ImGuiStyleVarTabRounding = _ImGuiStyleVar{value: 22}
+global ImGuiStyleVarTabBarBorderSize = _ImGuiStyleVar{value: 23}
+global ImGuiStyleVarSeparatorTextBorderSize = _ImGuiStyleVar{value: 26}
+
+func _ImGui.PushStyleFloat(style: _ImGuiStyleVar, val: f32, inside: func()) {
+	this._PushStyleFloat(style.value, val)
+	inside()
+	this._PopStyleVar(1)
+}
+
+type _ImGuiStyleVec2 :struct {
+	value: i32
+}
+
+global ImGuiStyleVec2WindowPadding = _ImGuiStyleVec2{value: 2}
+global ImGuiStyleVec2WindowMinSize = _ImGuiStyleVec2{value: 5}
+global ImGuiStyleVec2WindowTitleAlign = _ImGuiStyleVec2{value: 6}
+global ImGuiStyleVec2FramePadding = _ImGuiStyleVec2{value: 11}
+global ImGuiStyleVec2ItemSpacing = _ImGuiStyleVec2{value: 14}
+global ImGuiStyleVec2ItemInnerSpacing = _ImGuiStyleVec2{value: 15}
+global ImGuiStyleVec2CellPadding = _ImGuiStyleVec2{value: 17}
+global ImGuiStyleVec2ButtonTextAlign = _ImGuiStyleVec2{value: 24}
+global ImGuiStyleVec2SelectableTextAlign = _ImGuiStyleVec2{value: 25}
+global ImGuiStyleVec2SeparatorTextAlign = _ImGuiStyleVec2{value: 27}
+global ImGuiStyleVec2SeparatorTextPadding = _ImGuiStyleVec2{value: 28}
+
+func _ImGui.PushStyleVec2(style: _ImGuiStyleVec2, val: Vec2, inside: func()) {
+	this._PushStyleVec2(style.value, val)
+	inside()
+	this._PopStyleVar(1)
+}
+
+func _ImGui.ColorButton(desc_id: string, color: Color) => bool {
+	return this.ColorButtonOpts(desc_id, color, ImGuiColorEditDefault, Vec2Zero)
+}
+
+func _ImGui.ColorButtonOpts(desc_id: string, color: Color, color_edit_flags: _ImGuiColorEditFlags, size: Vec2) => bool {
+	return this._ColorButtonOpts(desc_id, color, color_edit_flags.value, size)
+}
+
+func _ImGui.SliderAngleRet(label: string, v: f32, v_degrees_min: f32, v_degrees_max: f32) => (bool, f32) {
+	imgui_stack.PushF32(v)
+	changed := this._SliderAngleRet(label, imgui_stack, v_degrees_min, v_degrees_max)
+	res_v, ok := imgui_stack.PopF32()
+	if !ok {
+		panic("Failed to pop f32 from stack")
+	}
+	return changed, res_v
+}
+
+func _ImGui.Image(clip_str: string, size: Vec2) {
+	this.ImageOpts(clip_str, size, ColorWhite, ColorTransparent)
+}
+
+func _ImGui.ImageButton(str_id: string, clip_str: string, size: Vec2) => bool {
+	return this.ImageButtonOpts(str_id, clip_str, size, ColorTransparent, ColorWhite)
+}
+
+type _ImGuiTableRowFlag :struct {
+	value: i32
+}
+
+global ImGuiTableRowFlagHeaders = _ImGuiTableRowFlag{value: 1 << 0}
+
+type _ImGuiTableRowFlags :struct {
+	value: i32
+}
+
+global ImGuiTableRowDefault = _ImGuiTableRowFlags{value: 0}
+
+func ImGuiTableRowFlags(flags: ..._ImGuiTableRowFlag) => _ImGuiTableRowFlags {
+	flags_value: i32 = 0
+	for _, value := range flags {
+		flags_value |= value.value
+	}
+	return _ImGuiTableRowFlags{value: flags_value}
+}
+
+func _ImGui.TableNextRow(min_row_height: f32) {
+	this.TableNextRowOpts(min_row_height, ImGuiTableRowDefault)
+}
+
+func _ImGui.TableNextRowOpts(min_row_height: f32, table_row_flags: _ImGuiTableRowFlags) {
+	this._TableNextRowOpts(min_row_height, table_row_flags.value)
+}
+
+func _ImGui.BeginListBox(label: string, size: Vec2, inside: func()) {
+	if this._BeginListBox(label, size) {
+		inside()
+		this._EndListBox()
+	}
+}
+
+func _ImGui.BeginGroup(inside: func()) {
+	this._BeginGroup()
+	inside()
+	this._EndGroup()
+}
+
+func _ImGui.BeginDisabled(inside: func()) {
+	this._BeginDisabled()
+	inside()
+	this._EndDisabled()
+}
+
+func _ImGui.BeginTooltip(inside: func()) {
+	if this._BeginTooltip() {
+		inside()
+		this._EndTooltip()
+	}
+}
+
+func _ImGui.BeginMainMenuBar(inside: func()) {
+	if this._BeginMainMenuBar() {
+		inside()
+		this._EndMainMenuBar()
+	}
+}
+
+func _ImGui.BeginMenuBar(inside: func()) {
+	if this._BeginMenuBar() {
+		inside()
+		this._EndMenuBar()
+	}
+}
+
+func _ImGui.BeginMenu(label: string, enabled: bool, inside: func()) {
+	if this._BeginMenu(label, enabled) {
+		inside()
+		this._EndMenu()
+	}
+}
+
+func _ImGui.PushItemWidth(width: f32, inside: func()) {
+	this._PushItemWidth(width)
+	inside()
+	this._PopItemWidth()
+}
+
+func _ImGui.PushTextWrapPos(wrap_pos_x: f32, inside: func()) {
+	this._PushTextWrapPos(wrap_pos_x)
+	inside()
+	this._PopTextWrapPos()
+}
+
+type _ImGuiItemFlag :struct {
+	value: i32
+}
+
+global ImGuiItemNoTabStop = _ImGuiItemFlag{value: 1 << 0}
+global ImGuiItemNoNav = _ImGuiItemFlag{value: 1 << 1}
+global ImGuiItemNoNavDefaultFocus = _ImGuiItemFlag{value: 1 << 2}
+global ImGuiItemButtonRepeat = _ImGuiItemFlag{value: 1 << 3}
+global ImGuiItemAutoClosePopups = _ImGuiItemFlag{value: 1 << 4}
+global ImGuiItemAllowDuplicateId = _ImGuiItemFlag{value: 1 << 5}
+
+type _ImGuiItemFlags :struct {
+	value: i32
+}
+
+global ImGuiItemDefault = _ImGuiItemFlags{value: 0}
+
+func ImGuiItemFlags(flags: ..._ImGuiItemFlag) => _ImGuiItemFlags {
+	flags_value: i32 = 0
+	for _, value := range flags {
+		flags_value |= value.value
+	}
+	return _ImGuiItemFlags{value: flags_value}
+}
+
+func _ImGui.PushItemFlag(flags: _ImGuiItemFlags, v: bool, inside: func()) {
+	this._PushItemFlag(flags.value, v)
+	inside()
+	this._PopItemFlag()
+}
+
+func _ImGui.PushId(str_id: string, inside: func()) {
+	this._PushId(str_id)
+	inside()
+	this._PopId()
+}
+
+func _ImGui.PushClipRect(clip_rect_min: Vec2, clip_rect_max: Vec2, intersect_with_current_clip_rect: bool, inside: func()) {
+	this._PushClipRect(clip_rect_min, clip_rect_max, intersect_with_current_clip_rect)
+	inside()
+	this._PopClipRect()
+}
+
+// math
+
+#wa:import dora math_abs
+func math_abs(v: f64) => f64
+
+#wa:import dora math_acos
+func math_acos(v: f32) => f32
+
+#wa:import dora math_asin
+func math_asin(v: f32) => f32
+
+#wa:import dora math_atan
+func math_atan(v: f32) => f32
+
+#wa:import dora math_atan2
+func math_atan2(y: f32, x: f32) => f32
+
+#wa:import dora math_ceil
+func math_ceil(v: f32) => f32
+
+#wa:import dora math_cos
+func math_cos(v: f32) => f32
+
+#wa:import dora math_deg
+func math_deg(v: f32) => f32
+
+#wa:import dora math_exp
+func math_exp(v: f32) => f32
+
+#wa:import dora math_floor
+func math_floor(v: f32) => f32
+
+#wa:import dora math_fmod
+func math_fmod(x: f32, y: f32) => f32
+
+#wa:import dora math_log
+func math_log(v: f32) => f32
+
+#wa:import dora math_rad
+func math_rad(v: f32) => f32
+
+#wa:import dora math_sin
+func math_sin(v: f32) => f32
+
+#wa:import dora math_sqrt
+func math_sqrt(v: f32) => f32
+
+#wa:import dora math_tan
+func math_tan(v: f32) => f32
+
+type _Math :struct {
+	Pi: f32
+}
+
+global Math = _Math{Pi: math.Pi}
+
+#wa:generic AbsF64 AbsI64 AbsI32
+func _Math.Abs(v: f32) => f32 {
+	return f32(math_abs(f64(v)))
+}
+
+func _Math.AbsF64(v: f64) => f64 {
+	return math_abs(v)
+}
+
+func _Math.AbsI64(v: i64) => i64 {
+	return i64(math_abs(f64(v)))
+}
+
+func _Math.AbsI32(v: i32) => i32 {
+	return i32(math_abs(f64(v)))
+}
+
+func _Math.Acos(v: f32) => f32 {
+	return math_acos(v)
+}
+
+func _Math.Asin(v: f32) => f32 {
+	return math_asin(v)
+}
+
+func _Math.Atan(v: f32) => f32 {
+	return math_atan(v)
+}
+
+func _Math.Atan2(y: f32, x: f32) => f32 {
+	return math_atan2(y, x)
+}
+
+func _Math.Ceil(v: f32) => f32 {
+	return math_ceil(v)
+}
+
+func _Math.Cos(v: f32) => f32 {
+	return math_cos(v)
+}
+
+func _Math.Deg(v: f32) => f32 {
+	return math_deg(v)
+}
+
+func _Math.Exp(v: f32) => f32 {
+	return math_exp(v)
+}
+
+func _Math.Floor(v: f32) => f32 {
+	return math_floor(v)
+}
+
+func _Math.Fmod(x: f32, y: f32) => f32 {
+	return math_fmod(x, y)
+}
+
+func _Math.Log(v: f32) => f32 {
+	return math_log(v)
+}
+
+func _Math.Rad(v: f32) => f32 {
+	return math_rad(v)
+}
+
+func _Math.Sin(v: f32) => f32 {
+	return math_sin(v)
+}
+
+func _Math.Sqrt(v: f32) => f32 {
+	return math_sqrt(v)
+}
+
+func _Math.Tan(v: f32) => f32 {
+	return math_tan(v)
+}

@@ -5,9 +5,12 @@ set(CMAKE_CXX_STANDARD 20)
 
 find_package(SDL2 REQUIRED)
 find_package(OpenSSL REQUIRED)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(DBUS REQUIRED dbus-1)
 
 include_directories(
 	${SDL2_INCLUDE_DIRS}
+	${DBUS_INCLUDE_DIRS}
 	3rdParty/bgfx/include
 	3rdParty/bimg/include
 	3rdParty/bx/include
@@ -604,7 +607,8 @@ add_executable(dora-ssr
 	../../Source/3rdParty/tmxlite/Map.cpp
 	../../Source/3rdParty/tmxlite/ImageLayer.cpp
 	../../Source/3rdParty/tmxlite/detail/pugixml.cpp
+	../../Source/3rdParty/nfd/nfd_portal.cpp
 )
 
-target_link_libraries(dora-ssr z dl pthread rt ${SDL2_LIBRARIES} BGFX-lib BIMGDE-lib BIMG-lib BX-lib GL X11 OpenSSL::SSL OpenSSL::Crypto DORA-lib)
+target_link_libraries(dora-ssr z dl pthread rt ${SDL2_LIBRARIES} BGFX-lib BIMGDE-lib BIMG-lib BX-lib GL X11 OpenSSL::SSL OpenSSL::Crypto ${DBUS_LINK_LIBRARIES} DORA-lib)
 
