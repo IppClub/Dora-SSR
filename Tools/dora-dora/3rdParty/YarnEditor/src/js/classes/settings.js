@@ -178,7 +178,7 @@ export const Settings = function(app) {
 		.observable(
 			storage.getItem('editorSplit') !== null
 				? storage.getItem('editorSplit') === 'true'
-				: false
+				: true
 		)
 		.extend({ persist: 'editorSplit' });
 

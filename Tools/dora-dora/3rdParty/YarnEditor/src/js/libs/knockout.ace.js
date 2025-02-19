@@ -29,6 +29,7 @@
 			editor.gotoLine(0);
 			editor.setShowPrintMargin(false);
 			editor.getSession().setUseWrapMode(true);
+			editor.getSession().setUndoManager(new ace.UndoManager());
 
 			editor.getSession().on('change', function(delta) {
 				if (ko.isWriteableObservable(valueAccessor())) {
