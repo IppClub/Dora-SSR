@@ -1094,6 +1094,11 @@ do
         end
         if __TS__StringIncludes(_VERSION, "Lua 5.0") then
             return debug.traceback(("[Level " .. tostring(level)) .. "]")
+        elseif _VERSION == "Lua 5.1" then
+            return string.sub(
+                debug.traceback("", level),
+                2
+            )
         else
             return debug.traceback(nil, level)
         end
@@ -1102,7 +1107,7 @@ do
         return function(self)
             local description = getDescription(self)
             local caller = debug.getinfo(3, "f")
-            local isClassicLua = __TS__StringIncludes(_VERSION, "Lua 5.0") or _VERSION == "Lua 5.1"
+            local isClassicLua = __TS__StringIncludes(_VERSION, "Lua 5.0")
             if isClassicLua or caller and caller.func ~= error then
                 return description
             else
@@ -1126,7 +1131,7 @@ do
         end
         self.message = message
         self.name = "Error"
-        self.stack = getErrorStack(nil, self.constructor.new)
+        self.stack = getErrorStack(nil, __TS__New)
         local metatable = getmetatable(self)
         if metatable and not metatable.__errorToStringPatched then
             metatable.__errorToStringPatched = true
@@ -1634,23 +1639,17 @@ local function __TS__ObjectDefineProperty(target, key, desc)
         local valueExists = value ~= nil
         local ____desc_set_4 = desc.set
         local ____desc_get_5 = desc.get
-        local ____temp_0
-        if desc.configurable ~= nil then
-            ____temp_0 = desc.configurable
-        else
-            ____temp_0 = valueExists
+        local ____desc_configurable_0 = desc.configurable
+        if ____desc_configurable_0 == nil then
+            ____desc_configurable_0 = valueExists
         end
-        local ____temp_1
-        if desc.enumerable ~= nil then
-            ____temp_1 = desc.enumerable
-        else
-            ____temp_1 = valueExists
+        local ____desc_enumerable_1 = desc.enumerable
+        if ____desc_enumerable_1 == nil then
+            ____desc_enumerable_1 = valueExists
         end
-        local ____temp_2
-        if desc.writable ~= nil then
-            ____temp_2 = desc.writable
-        else
-            ____temp_2 = valueExists
+        local ____desc_writable_2 = desc.writable
+        if ____desc_writable_2 == nil then
+            ____desc_writable_2 = valueExists
         end
         local ____temp_3
         if desc.value ~= nil then
@@ -1661,9 +1660,9 @@ local function __TS__ObjectDefineProperty(target, key, desc)
         descriptor = {
             set = ____desc_set_4,
             get = ____desc_get_5,
-            configurable = ____temp_0,
-            enumerable = ____temp_1,
-            writable = ____temp_2,
+            configurable = ____desc_configurable_0,
+            enumerable = ____desc_enumerable_1,
+            writable = ____desc_writable_2,
             value = ____temp_3
         }
     end
