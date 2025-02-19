@@ -1223,8 +1223,14 @@ public:
 			} else if (opStr == "||"sv) {
 				opStr = "or"s;
 			}
-			temp.push_back(opStr);
+			if (opStr == "+"sv && !temp.empty() && temp.back()[0] == '"') {
+				opStr = ".."s;
+			}
+			auto& lastOP = temp.emplace_back(opStr);
 			transformUnaryExp(opValue->expr, temp);
+			if (lastOP == "+"sv && temp.back()[0] == '"') {
+				lastOP = ".."s;
+			}
 		}
 		out.push_back(join(temp, " "sv));
 	}
@@ -1263,10 +1269,13 @@ public:
 	}
 
 	void transformSingleString(SingleString_t* singleString, str_list& out) {
+		throw CompileError("single quote string is not supported"sv, singleString);
+		/*
 		auto str = _parser.toString(singleString);
 		Utils::replace(str, "\r\n"sv, "\n");
 		Utils::replace(str, "\n"sv, "\\n"sv);
 		out.push_back(str);
+		*/
 	}
 
 	void transformDoubleString(DoubleString_t* doubleString, str_list& out) {
