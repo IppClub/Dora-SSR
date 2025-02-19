@@ -96,7 +96,7 @@ typedef union {
 ** between 2^MAXHBITS and the maximum size such that, measured in bytes,
 ** it fits in a 'size_t'.
 */
-#define MAXHSIZE	luaM_limitN(1u << MAXHBITS, Node)
+#define MAXHSIZE	luaM_limitN(1 << MAXHBITS, Node)
 
 
 /*
@@ -123,7 +123,7 @@ typedef union {
 
 /*
 ** Common hash part for tables with empty hash parts. That allows all
-** tables to have a hash part, avoding an extra check ("is there a hash
+** tables to have a hash part, avoiding an extra check ("is there a hash
 ** part?") when indexing. Its sole node has an empty value and a key
 ** (DEADKEY, NULL) that is different from any valid TValue.
 */
@@ -598,7 +598,7 @@ static void setnodevector (lua_State *L, Table *t, unsigned size) {
   else {
     int i;
     int lsize = luaO_ceillog2(size);
-    if (lsize > MAXHBITS || (1u << lsize) > MAXHSIZE)
+    if (lsize > MAXHBITS || (1 << lsize) > MAXHSIZE)
       luaG_runerror(L, "table overflow");
     size = twoto(lsize);
     if (lsize < LIMFORLAST)  /* no 'lastfree' field? */
@@ -699,7 +699,7 @@ static void clearNewSlice (Table *t, unsigned oldasize, unsigned newasize) {
 ** into the table, initializes the new part of the array (if any) with
 ** nils and reinserts the elements of the old hash back into the new
 ** parts of the table.
-** Note that if the new size for the arry part ('newasize') is equal to
+** Note that if the new size for the array part ('newasize') is equal to
 ** the old one ('oldasize'), this function will do nothing with that
 ** part.
 */
@@ -774,7 +774,7 @@ static void rehash (lua_State *L, Table *t, const TValue *ek) {
   nsize = ct.total - ct.na;
   if (ct.deleted) {  /* table has deleted entries? */
     /* insertion-deletion-insertion: give hash some extra size to
-       avoid constant resizings */
+       avoid repeated resizings */
     nsize += nsize >> 2;
   }
   /* resize the table to new computed sizes */
@@ -910,6 +910,8 @@ static void luaH_newkey (lua_State *L, Table *t, const TValue *key,
       newcheckedkey(t, key, value);  /* insert key in grown table */
     }
     luaC_barrierback(L, obj2gco(t), key);
+    /* for debugging only: any new key may force an emergency collection */
+    condchangemem(L, (void)0, (void)0, 1);
   }
 }
 
@@ -962,7 +964,7 @@ lu_byte luaH_getint (Table *t, lua_Integer key, TValue *res) {
 */
 const TValue *luaH_Hgetshortstr (Table *t, TString *key) {
   Node *n = hashstr(t, key);
-  lua_assert(key->tt == LUA_VSHRSTR);
+  lua_assert(strisshr(key));
   for (;;) {  /* check whether 'key' is somewhere in the chain */
     if (keyisshrstr(n) && eqshrstr(keystrval(n), key))
       return gval(n);  /* that's it */
@@ -981,28 +983,24 @@ lu_byte luaH_getshortstr (Table *t, TString *key, TValue *res) {
 }
 
 
+static const TValue *Hgetlongstr (Table *t, TString *key) {
+  TValue ko;
+  lua_assert(!strisshr(key));
+  setsvalue(cast(lua_State *, NULL), &ko, key);
+  return getgeneric(t, &ko, 0);  /* for long strings, use generic case */
+}
+
+
 static const TValue *Hgetstr (Table *t, TString *key) {
-  if (key->tt == LUA_VSHRSTR)
+  if (strisshr(key))
     return luaH_Hgetshortstr(t, key);
-  else {  /* for long strings, use generic case */
-    TValue ko;
-    setsvalue(cast(lua_State *, NULL), &ko, key);
-    return getgeneric(t, &ko, 0);
-  }
+  else
+    return Hgetlongstr(t, key);
 }
 
 
 lu_byte luaH_getstr (Table *t, TString *key, TValue *res) {
   return finishnodeget(Hgetstr(t, key), res);
-}
-
-
-TString *luaH_getstrkey (Table *t, TString *key) {
-  const TValue *o = Hgetstr(t, key);
-  if (!isabstkey(o))  /* string already present? */
-    return keystrval(nodefromval(o));  /* get saved copy */
-  else
-    return NULL;
 }
 
 
@@ -1034,15 +1032,25 @@ lu_byte luaH_get (Table *t, const TValue *key, TValue *res) {
 }
 
 
+/*
+** When a 'pset' cannot be completed, this function returns an encoding
+** of its result, to be used by 'luaH_finishset'.
+*/
+static int retpsetcode (Table *t, const TValue *slot) {
+  if (isabstkey(slot))
+    return HNOTFOUND;  /* no slot with that key */
+  else  /* return node encoded */
+    return cast_int((cast(Node*, slot) - t->node)) + HFIRSTNODE;
+}
+
+
 static int finishnodeset (Table *t, const TValue *slot, TValue *val) {
   if (!ttisnil(slot)) {
     setobj(((lua_State*)NULL), cast(TValue*, slot), val);
     return HOK;  /* success */
   }
-  else if (isabstkey(slot))
-    return HNOTFOUND;  /* no slot with that key */
-  else  /* return node encoded */
-    return cast_int((cast(Node*, slot) - t->node)) + HFIRSTNODE;
+  else
+    return retpsetcode(t, slot);
 }
 
 
@@ -1069,13 +1077,45 @@ static int psetint (Table *t, lua_Integer key, TValue *val) {
 }
 
 
+/*
+** This function could be just this:
+**    return finishnodeset(t, luaH_Hgetshortstr(t, key), val);
+** However, it optimizes the common case created by constructors (e.g.,
+** {x=1, y=2}), which creates a key in a table that has no metatable,
+** it is not old/black, and it already has space for the key.
+*/
+
 int luaH_psetshortstr (Table *t, TString *key, TValue *val) {
-  return finishnodeset(t, luaH_Hgetshortstr(t, key), val);
+  const TValue *slot = luaH_Hgetshortstr(t, key);
+  if (!ttisnil(slot)) {  /* key already has a value? (all too common) */
+    setobj(((lua_State*)NULL), cast(TValue*, slot), val);  /* update it */
+    return HOK;  /* done */
+  }
+  else if (checknoTM(t->metatable, TM_NEWINDEX)) {  /* no metamethod? */
+    if (ttisnil(val))  /* new value is nil? */
+      return HOK;  /* done (value is already nil/absent) */
+    if (isabstkey(slot) &&  /* key is absent? */
+       !(isblack(t) && iswhite(key))) {  /* and don't need barrier? */
+      TValue tk;  /* key as a TValue */
+      setsvalue(cast(lua_State *, NULL), &tk, key);
+      if (insertkey(t, &tk, val)) {  /* insert key, if there is space */
+        invalidateTMcache(t);
+        return HOK;
+      }
+    }
+  }
+  /* Else, either table has new-index metamethod, or it needs barrier,
+     or it needs to rehash for the new key. In any of these cases, the
+     operation cannot be completed here. Return a code for the caller. */
+  return retpsetcode(t, slot);
 }
 
 
 int luaH_psetstr (Table *t, TString *key, TValue *val) {
-  return finishnodeset(t, Hgetstr(t, key), val);
+  if (strisshr(key))
+    return luaH_psetshortstr(t, key, val);
+  else
+    return finishnodeset(t, Hgetlongstr(t, key), val);
 }
 
 
@@ -1096,13 +1136,11 @@ int luaH_pset (Table *t, const TValue *key, TValue *val) {
 }
 
 /*
-** Finish a raw "set table" operation, where 'slot' is where the value
-** should have been (the result of a previous "get table").
-** Beware: when using this function you probably need to check a GC
-** barrier and invalidate the TM cache.
+** Finish a raw "set table" operation, where 'hres' encodes where the
+** value should have been (the result of a previous 'pset' operation).
+** Beware: when using this function the caller probably need to check a
+** GC barrier and invalidate the TM cache.
 */
-
-
 void luaH_finishset (lua_State *L, Table *t, const TValue *key,
                                     TValue *value, int hres) {
   lua_assert(hres != HOK);
@@ -1262,7 +1300,7 @@ lua_Unsigned luaH_getn (Table *t) {
         return newhint(t, binsearch(t, limit, asize));
       }
     }
-    /* last element non empty; set a hint to speed up findind that again */
+    /* last element non empty; set a hint to speed up finding that again */
     /* (keys in the hash part cannot be hints) */
     *lenhint(t) = asize;
   }

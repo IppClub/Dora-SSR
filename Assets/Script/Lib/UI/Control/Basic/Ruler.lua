@@ -335,7 +335,7 @@ _module_0 = Class(Ruler, { -- 14
 			elseif _v ~= 0 then -- 249
 				return self:schedule(updatePos) -- 250
 			end -- 247
-		end) -- 251
+		end) -- 250
 	end, -- 14
 	value = property(function(self) -- 252
 		return self:getValue() -- 252
