@@ -186,7 +186,7 @@ typedef struct stringtable {
 */
 struct CallInfo {
   StkIdRel func;  /* function index in the stack */
-  StkIdRel	top;  /* top for this function */
+  StkIdRel top;  /* top for this function */
   struct CallInfo *previous, *next;  /* dynamic call link */
   union {
     struct {  /* only for Lua functions */
@@ -235,8 +235,10 @@ struct CallInfo {
 #define CIST_FRESH	cast(l_uint32, CIST_C << 1)
 /* function is closing tbc variables */
 #define CIST_CLSRET	(CIST_FRESH << 1)
+/* function has tbc variables to close */
+#define CIST_TBC	(CIST_CLSRET << 1)
 /* original value of 'allowhook' */
-#define CIST_OAH	(CIST_CLSRET << 1)
+#define CIST_OAH	(CIST_TBC << 1)
 /* call is running a debug hook */
 #define CIST_HOOKED	(CIST_OAH << 1)
 /* doing a yieldable protected call */

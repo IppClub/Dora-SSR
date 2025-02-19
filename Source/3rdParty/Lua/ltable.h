@@ -58,7 +58,7 @@
   { Table *h = t; lua_Unsigned u = l_castS2U(k) - 1u; \
     if ((u < h->asize)) { \
       lu_byte *tag = getArrTag(h, u); \
-      if (h->metatable == NULL || !tagisempty(*tag)) \
+      if (checknoTM(h->metatable, TM_NEWINDEX) || !tagisempty(*tag)) \
         { fval2arr(h, u, tag, val); hres = HOK; } \
       else hres = ~cast_int(u); } \
     else { hres = luaH_psetint(h, k, val); }}
@@ -153,8 +153,6 @@ LUAI_FUNC lu_byte luaH_getint (Table *t, lua_Integer key, TValue *res);
 
 /* Special get for metamethods */
 LUAI_FUNC const TValue *luaH_Hgetshortstr (Table *t, TString *key);
-
-LUAI_FUNC TString *luaH_getstrkey (Table *t, TString *key);
 
 LUAI_FUNC int luaH_psetint (Table *t, lua_Integer key, TValue *val);
 LUAI_FUNC int luaH_psetshortstr (Table *t, TString *key, TValue *val);

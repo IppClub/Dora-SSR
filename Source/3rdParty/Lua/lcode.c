@@ -537,38 +537,44 @@ static void freeexps (FuncState *fs, expdesc *e1, expdesc *e2) {
 
 /*
 ** Add constant 'v' to prototype's list of constants (field 'k').
+*/
+static int addk (FuncState *fs, Proto *f, TValue *v) {
+  lua_State *L = fs->ls->L;
+  int oldsize = f->sizek;
+  int k = fs->nk;
+  luaM_growvector(L, f->k, k, f->sizek, TValue, MAXARG_Ax, "constants");
+  while (oldsize < f->sizek)
+    setnilvalue(&f->k[oldsize++]);
+  setobj(L, &f->k[k], v);
+  fs->nk++;
+  luaC_barrier(L, f, v);
+  return k;
+}
+
+
+/*
 ** Use scanner's table to cache position of constants in constant list
 ** and try to reuse constants. Because some values should not be used
 ** as keys (nil cannot be a key, integer keys can collapse with float
 ** keys), the caller must provide a useful 'key' for indexing the cache.
-** Note that all functions share the same table, so entering or exiting
-** a function can make some indices wrong.
 */
-static int addk (FuncState *fs, TValue *key, TValue *v) {
+static int k2proto (FuncState *fs, TValue *key, TValue *v) {
   TValue val;
-  lua_State *L = fs->ls->L;
   Proto *f = fs->f;
-  int tag = luaH_get(fs->ls->h, key, &val);  /* query scanner table */
-  int k, oldsize;
-  if (tag == LUA_VNUMINT) {  /* is there an index there? */
+  int tag = luaH_get(fs->kcache, key, &val);  /* query scanner table */
+  int k;
+  if (!tagisempty(tag)) {  /* is there an index there? */
     k = cast_int(ivalue(&val));
-    /* correct value? (warning: must distinguish floats from integers!) */
-    if (k < fs->nk && ttypetag(&f->k[k]) == ttypetag(v) &&
-                      luaV_rawequalobj(&f->k[k], v))
-      return k;  /* reuse index */
+    /* collisions can happen only for float keys */
+    lua_assert(ttisfloat(key) || luaV_rawequalobj(&f->k[k], v));
+    return k;  /* reuse index */
   }
   /* constant not found; create a new entry */
-  oldsize = f->sizek;
-  k = fs->nk;
-  /* numerical value does not need GC barrier;
-     table has no metatable, so it does not need to invalidate cache */
+  k = addk(fs, f, v);
+  /* cache it for reuse; numerical value does not need GC barrier;
+     table is not a metatable, so it does not need to invalidate cache */
   setivalue(&val, k);
-  luaH_set(L, fs->ls->h, key, &val);
-  luaM_growvector(L, f->k, k, f->sizek, TValue, MAXARG_Ax, "constants");
-  while (oldsize < f->sizek) setnilvalue(&f->k[oldsize++]);
-  setobj(L, &f->k[k], v);
-  fs->nk++;
-  luaC_barrier(L, f, v);
+  luaH_set(fs->ls->L, fs->kcache, key, &val);
   return k;
 }
 
@@ -579,7 +585,7 @@ static int addk (FuncState *fs, TValue *key, TValue *v) {
 static int stringK (FuncState *fs, TString *s) {
   TValue o;
   setsvalue(fs->ls->L, &o, s);
-  return addk(fs, &o, &o);  /* use string itself as key */
+  return k2proto(fs, &o, &o);  /* use string itself as key */
 }
 
 
@@ -589,7 +595,7 @@ static int stringK (FuncState *fs, TString *s) {
 static int luaK_intK (FuncState *fs, lua_Integer n) {
   TValue o;
   setivalue(&o, n);
-  return addk(fs, &o, &o);  /* use integer itself as key */
+  return k2proto(fs, &o, &o);  /* use integer itself as key */
 }
 
 /*
@@ -598,27 +604,32 @@ static int luaK_intK (FuncState *fs, lua_Integer n) {
 ** with actual integers. To that, we add to the number its smaller
 ** power-of-two fraction that is still significant in its scale.
 ** For doubles, that would be 1/2^52.
-** (This method is not bulletproof: there may be another float
-** with that value, and for floats larger than 2^53 the result is
-** still an integer. At worst, this only wastes an entry with
-** a duplicate.)
+** This method is not bulletproof: different numbers may generate the
+** same key (e.g., very large numbers will overflow to 'inf') and for
+** floats larger than 2^53 the result is still an integer. At worst,
+** this only wastes an entry with a duplicate.
 */
 static int luaK_numberK (FuncState *fs, lua_Number r) {
-  TValue o;
-  lua_Integer ik;
-  setfltvalue(&o, r);
-  if (!luaV_flttointeger(r, &ik, F2Ieq))  /* not an integral value? */
-    return addk(fs, &o, &o);  /* use number itself as key */
-  else {  /* must build an alternative key */
+  TValue o, kv;
+  setfltvalue(&o, r);  /* value as a TValue */
+  if (r == 0) {  /* handle zero as a special case */
+    setpvalue(&kv, fs);  /* use FuncState as index */
+    return k2proto(fs, &kv, &o);  /* cannot collide */
+  }
+  else {
     const int nbm = l_floatatt(MANT_DIG);
     const lua_Number q = l_mathop(ldexp)(l_mathop(1.0), -nbm + 1);
-    const lua_Number k = (ik == 0) ? q : r + r*q;  /* new key */
-    TValue kv;
-    setfltvalue(&kv, k);
-    /* result is not an integral value, unless value is too large */
-    lua_assert(!luaV_flttointeger(k, &ik, F2Ieq) ||
-                l_mathop(fabs)(r) >= l_mathop(1e6));
-    return addk(fs, &kv, &o);
+    const lua_Number k =  r * (1 + q);  /* key */
+    lua_Integer ik;
+    setfltvalue(&kv, k);  /* key as a TValue */
+    if (!luaV_flttointeger(k, &ik, F2Ieq)) {  /* not an integral value? */
+      int n = k2proto(fs, &kv, &o);  /* use key */
+      if (luaV_rawequalobj(&fs->f->k[n], &o))  /* correct value? */
+        return n;
+    }
+    /* else, either key is still an integer or there was a collision;
+       anyway, do not try to reuse constant; instead, create a new one */
+    return addk(fs, fs->f, &o);
   }
 }
 
@@ -629,7 +640,7 @@ static int luaK_numberK (FuncState *fs, lua_Number r) {
 static int boolF (FuncState *fs) {
   TValue o;
   setbfvalue(&o);
-  return addk(fs, &o, &o);  /* use boolean itself as key */
+  return k2proto(fs, &o, &o);  /* use boolean itself as key */
 }
 
 
@@ -639,7 +650,7 @@ static int boolF (FuncState *fs) {
 static int boolT (FuncState *fs) {
   TValue o;
   setbtvalue(&o);
-  return addk(fs, &o, &o);  /* use boolean itself as key */
+  return k2proto(fs, &o, &o);  /* use boolean itself as key */
 }
 
 
@@ -649,9 +660,9 @@ static int boolT (FuncState *fs) {
 static int nilK (FuncState *fs) {
   TValue k, v;
   setnilvalue(&v);
-  /* cannot use nil as key; instead use table itself to represent nil */
-  sethvalue(fs->ls->L, &k, fs->ls->h);
-  return addk(fs, &k, &v);
+  /* cannot use nil as key; instead use table itself */
+  sethvalue(fs->ls->L, &k, fs->kcache);
+  return k2proto(fs, &k, &v);
 }
 
 
@@ -1086,22 +1097,6 @@ void luaK_storevar (FuncState *fs, expdesc *var, expdesc *ex) {
 
 
 /*
-** Emit SELF instruction (convert expression 'e' into 'e:key(e,').
-*/
-void luaK_self (FuncState *fs, expdesc *e, expdesc *key) {
-  int ereg;
-  luaK_exp2anyreg(fs, e);
-  ereg = e->u.info;  /* register where 'e' was placed */
-  freeexp(fs, e);
-  e->u.info = fs->freereg;  /* base register for op_self */
-  e->k = VNONRELOC;  /* self expression has a fixed register */
-  luaK_reserveregs(fs, 2);  /* function and 'self' produced by op_self */
-  codeABRK(fs, OP_SELF, e->u.info, ereg, key);
-  freeexp(fs, key);
-}
-
-
-/*
 ** Negate condition 'e' (where 'e' is a comparison).
 */
 static void negatecondition (FuncState *fs, expdesc *e) {
@@ -1276,6 +1271,33 @@ static int isSCnumber (expdesc *e, int *pi, int *isfloat) {
 
 
 /*
+** Emit SELF instruction or equivalent: the code will convert
+** expression 'e' into 'e.key(e,'.
+*/
+void luaK_self (FuncState *fs, expdesc *e, expdesc *key) {
+  int ereg, base;
+  luaK_exp2anyreg(fs, e);
+  ereg = e->u.info;  /* register where 'e' (the receiver) was placed */
+  freeexp(fs, e);
+  base = e->u.info = fs->freereg;  /* base register for op_self */
+  e->k = VNONRELOC;  /* self expression has a fixed register */
+  luaK_reserveregs(fs, 2);  /* method and 'self' produced by op_self */
+  lua_assert(key->k == VKSTR);
+  /* is method name a short string in a valid K index? */
+  if (strisshr(key->u.strval) && luaK_exp2K(fs, key)) {
+    /* can use 'self' opcode */
+    luaK_codeABCk(fs, OP_SELF, base, ereg, key->u.info, 0);
+  }
+  else {  /* cannot use 'self' opcode; use move+gettable */
+    luaK_exp2anyreg(fs, key);  /* put method name in a register */
+    luaK_codeABC(fs, OP_MOVE, base + 1, ereg, 0);  /* copy self to base+1 */
+    luaK_codeABC(fs, OP_GETTABLE, base, ereg, key->u.info);  /* get method */
+  }
+  freeexp(fs, key);
+}
+
+
+/*
 ** Create expression 't[k]'. 't' must have its final result already in a
 ** register or upvalue. Upvalues can only be indexed by literal strings.
 ** Keys can be literal strings in the constant table or arbitrary
@@ -1417,7 +1439,7 @@ static void finishbinexpval (FuncState *fs, expdesc *e1, expdesc *e2,
   e1->u.info = pc;
   e1->k = VRELOC;  /* all those operations are relocatable */
   luaK_fixline(fs, line);
-  luaK_codeABCk(fs, mmop, v1, v2, event, flip);  /* to call metamethod */
+  luaK_codeABCk(fs, mmop, v1, v2, cast_int(event), flip);  /* metamethod */
   luaK_fixline(fs, line);
 }
 

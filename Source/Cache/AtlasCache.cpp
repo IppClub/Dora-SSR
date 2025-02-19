@@ -55,10 +55,14 @@ Atlas* AtlasCache::load(String filename) {
 	if (it != _atlas.end()) {
 		return it->second;
 	}
-	Atlas* atlas = Atlas::create(New<spine::Atlas>(fullPath.c_str(), getTextureLoader()));
-	if (atlas->get()) {
-		_atlas[fullPath] = atlas;
-		return atlas;
+	auto data = SharedContent.load(fullPath);
+	if (data.first) {
+		auto dir = Path::getPath(fullPath);
+		Atlas* atlas = Atlas::create(New<spine::Atlas>(r_cast<char*>(data.first.get()), s_cast<int>(data.second), dir.c_str(), getTextureLoader()));
+		if (atlas->get()) {
+			_atlas[fullPath] = atlas;
+			return atlas;
+		}
 	}
 	Error("failed to load atlas \"{}\".", filename.toString());
 	return nullptr;

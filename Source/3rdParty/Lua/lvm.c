@@ -127,8 +127,8 @@ int luaV_flttointeger (lua_Number n, lua_Integer *p, F2Imod mode) {
   lua_Number f = l_floor(n);
   if (n != f) {  /* not an integral value? */
     if (mode == F2Ieq) return 0;  /* fails if mode demands integral value */
-    else if (mode == F2Iceil)  /* needs ceil? */
-      f += 1;  /* convert floor to ceil (remember: n != f) */
+    else if (mode == F2Iceil)  /* needs ceiling? */
+      f += 1;  /* convert floor to ceiling (remember: n != f) */
   }
   return lua_numbertointeger(f, p);
 }
@@ -1175,8 +1175,12 @@ void luaV_execute (lua_State *L, CallInfo *ci) {
     Instruction i;  /* instruction being executed */
     vmfetch();
     #if 0
-      /* low-level line tracing for debugging Lua */
-      printf("line: %d\n", luaG_getfuncline(cl->p, pcRel(pc, cl->p)));
+    { /* low-level line tracing for debugging Lua */
+      #include "lopnames.h"
+      int pcrel = pcRel(pc, cl->p);
+      printf("line: %d; %s (%d)\n", luaG_getfuncline(cl->p, pcrel),
+             opnames[GET_OPCODE(i)], pcrel);
+    }
     #endif
     lua_assert(base == ci->func.p + 1);
     lua_assert(base <= L->top.p && L->top.p <= L->stack_last.p);
@@ -1382,10 +1386,10 @@ void luaV_execute (lua_State *L, CallInfo *ci) {
         StkId ra = RA(i);
         lu_byte tag;
         TValue *rb = vRB(i);
-        TValue *rc = RKC(i);
-        TString *key = tsvalue(rc);  /* key must be a string */
+        TValue *rc = KC(i);
+        TString *key = tsvalue(rc);  /* key must be a short string */
         setobj2s(L, ra + 1, rb);
-        luaV_fastget(rb, key, s2v(ra), luaH_getstr, tag);
+        luaV_fastget(rb, key, s2v(ra), luaH_getshortstr, tag);
         if (tagisempty(tag))
           Protect(luaV_finishget(L, rb, rc, ra, tag));
         vmbreak;
@@ -1586,6 +1590,7 @@ void luaV_execute (lua_State *L, CallInfo *ci) {
       }
       vmcase(OP_CLOSE) {
         StkId ra = RA(i);
+        lua_assert(!GETARG_B(i));  /* 'close must be alive */
         Protect(luaF_close(L, ra, LUA_OK, 1));
         vmbreak;
       }

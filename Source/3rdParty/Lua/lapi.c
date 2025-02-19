@@ -40,10 +40,8 @@ const char lua_ident[] =
 
 /*
 ** Test for a valid index (one that is not the 'nilvalue').
-** '!ttisnil(o)' implies 'o != &G(L)->nilvalue', so it is not needed.
-** However, it covers the most common cases in a faster way.
 */
-#define isvalid(L, o)	(!ttisnil(o) || o != &G(L)->nilvalue)
+#define isvalid(L, o)	((o) != &G(L)->nilvalue)
 
 
 /* test for pseudo index */
@@ -197,7 +195,7 @@ LUA_API void lua_settop (lua_State *L, int idx) {
   }
   newtop = L->top.p + diff;
   if (diff < 0 && L->tbclist.p >= newtop) {
-    lua_assert(ci->callstatus & CIST_CLSRET);
+    lua_assert(ci->callstatus & CIST_TBC);
     newtop = luaF_close(L, newtop, CLOSEKTOP, 0);
   }
   L->top.p = newtop;  /* correct top only after closing any upvalue */
@@ -209,7 +207,7 @@ LUA_API void lua_closeslot (lua_State *L, int idx) {
   StkId level;
   lua_lock(L);
   level = index2stack(L, idx);
-  api_check(L, (L->ci->callstatus & CIST_CLSRET) && L->tbclist.p == level,
+  api_check(L, (L->ci->callstatus & CIST_TBC) && (L->tbclist.p == level),
      "no variable to close at given level");
   level = luaF_close(L, level, CLOSEKTOP, 0);
   setnilvalue(s2v(level));
@@ -368,7 +366,7 @@ LUA_API int lua_compare (lua_State *L, int index1, int index2, int op) {
 }
 
 
-LUA_API unsigned (lua_numbertostrbuff) (lua_State *L, int idx, char *buff) {
+LUA_API unsigned (lua_numbertocstring) (lua_State *L, int idx, char *buff) {
   const TValue *o = index2value(L, idx);
   if (ttisnumber(o)) {
     unsigned len = luaO_tostringbuff(o, buff);
@@ -557,7 +555,7 @@ LUA_API const char *lua_pushlstring (lua_State *L, const char *s, size_t len) {
 }
 
 
-LUA_API const char *lua_pushextlstring (lua_State *L,
+LUA_API const char *lua_pushexternalstring (lua_State *L,
 	        const char *s, size_t len, lua_Alloc falloc, void *ud) {
   TString *ts;
   lua_lock(L);
@@ -688,9 +686,8 @@ static int auxgetstr (lua_State *L, const TValue *t, const char *k) {
   lu_byte tag;
   TString *str = luaS_new(L, k);
   luaV_fastget(t, str, s2v(L->top.p), luaH_getstr, tag);
-  if (!tagisempty(tag)) {
+  if (!tagisempty(tag))
     api_incr_top(L);
-  }
   else {
     setsvalue2s(L, L->top.p, str);
     api_incr_top(L);
@@ -802,14 +799,14 @@ LUA_API int lua_rawgetp (lua_State *L, int idx, const void *p) {
 }
 
 
-LUA_API void lua_createtable (lua_State *L, unsigned narray, unsigned nrec) {
+LUA_API void lua_createtable (lua_State *L, int narray, int nrec) {
   Table *t;
   lua_lock(L);
   t = luaH_new(L);
   sethvalue2s(L, L->top.p, t);
   api_incr_top(L);
   if (narray > 0 || nrec > 0)
-    luaH_resize(L, t, narray, nrec);
+    luaH_resize(L, t, cast_uint(narray), cast_uint(nrec));
   luaC_checkGC(L);
   lua_unlock(L);
 }
@@ -1300,7 +1297,7 @@ LUA_API void lua_toclose (lua_State *L, int idx) {
   o = index2stack(L, idx);
   api_check(L, L->tbclist.p < o, "given index below or equal a marked one");
   luaF_newtbcupval(L, o);  /* create new to-be-closed upvalue */
-  L->ci->callstatus |= CIST_CLSRET;  /* mark that function has TBC slots */
+  L->ci->callstatus |= CIST_TBC;  /* mark that function has TBC slots */
   lua_unlock(L);
 }
 
