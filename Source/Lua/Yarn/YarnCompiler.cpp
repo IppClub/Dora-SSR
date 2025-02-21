@@ -369,6 +369,24 @@ struct identity {
 	inline rule& getRule(identity<type##_t>) { return type; }
 #endif // NDEBUG
 
+static std::string toLuaString(const std::string& input) {
+	std::string luaStr = "\"";
+	for (char c : input) {
+		switch (c) {
+			case '\"': luaStr += "\\\""; break;
+			case '\\': luaStr += "\\\\"; break;
+			case '\n': luaStr += "\\n"; break;
+			case '\r': luaStr += "\\r"; break;
+			case '\t': luaStr += "\\t"; break;
+			default:
+				luaStr += c;
+				break;
+		}
+	}
+	luaStr += "\"";
+	return luaStr;
+}
+
 class YarnParser {
 public:
 	class ParserError : public std::logic_error {
@@ -929,7 +947,7 @@ public:
 				transformString(static_cast<String_t*>(value), out);
 				break;
 			case id<AttributeValue_t>():
-				out.push_back("[==========["s + _parser.toString(value) + "]==========]"s);
+				out.push_back(toLuaString(_parser.toString(value)));
 				break;
 			default: YUEE("AST node mismatch", value); break;
 		}
@@ -945,7 +963,7 @@ public:
 			markup.name = "Character"s;
 			auto& attr = markup.attrs.emplace_back();
 			attr.name = "name"s;
-			attr.value = "[==========["s + _parser.toString(dialog->character->name) + "]==========]"s;
+			attr.value = toLuaString(_parser.toString(dialog->character->name));
 		}
 		std::list<TagIf_t*> ifTags;
 		for (auto tag : dialog->tags.objects()) {
@@ -1119,7 +1137,7 @@ public:
 	}
 
 	void transformGoto(Goto_t* gotoNode, str_list& out) {
-		out.push_back(indent() + "gotoStory([==========["s + _parser.toString(gotoNode->title) + "]==========])"s + nl(gotoNode) + indent() + "coroutine.yield(\"Goto\")"s + nl(gotoNode));
+		out.push_back(indent() + "gotoStory("s + toLuaString(_parser.toString(gotoNode->title)) + ")"s + nl(gotoNode) + indent() + "coroutine.yield(\"Goto\")"s + nl(gotoNode));
 	}
 
 	void transformCall(Call_t* call, str_list& out) {
@@ -1128,7 +1146,7 @@ public:
 			auto exp = static_cast<Exp_t*>(arg);
 			transformExp(exp, temp);
 		}
-		out.push_back(indent() + "command[\""s + _parser.toString(call->name) + "\"]("s + join(temp, ","sv) + ')' + nl(call));
+		out.push_back(indent() + "command[\""s + _parser.toString(call->name) + "\"]("s + join(temp, ", "sv) + ')' + nl(call));
 	}
 
 	void transformIf(If_t* ifNode, str_list& out) {
