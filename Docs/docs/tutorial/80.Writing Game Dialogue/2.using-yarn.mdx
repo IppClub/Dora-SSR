@@ -65,7 +65,8 @@ local runner = YarnRunner("tutorial.yarn", "Start")
 First, make sure you have imported all the necessary modules. Here's the list of modules we will use in this example:
 
 ```ts title="init.ts"
-import { Content, Path, Node, Director, YarnRunner } from "Dora";
+import { Content, Path, Node, Director } from "Dora";
+import * as YarnRunner from "YarnRunner";
 ```
 
 To ensure we can locate the Yarn script, we need to set the correct search path. If the Yarn script and program modules are in the same directory, you can add the following code:
