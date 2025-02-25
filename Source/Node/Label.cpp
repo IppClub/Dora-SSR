@@ -553,6 +553,11 @@ void Label::updateCharacters(const std::vector<uint32_t>& chars) {
 		uint32_t ch = chars[i];
 		CharItem* fontChar = _characters[i].get();
 
+		bool isTab = ch == '\t';
+		if (isTab) {
+			ch = ' ';
+		}
+
 		if (ch == '\n') {
 			nextFontPositionX = 0;
 			nextFontPositionY -= lineHeight;
@@ -609,7 +614,7 @@ void Label::updateCharacters(const std::vector<uint32_t>& chars) {
 		}
 
 		// update kerning
-		nextFontPositionX += fontDef->advance_x + kerningAmount;
+		nextFontPositionX += fontDef->advance_x * (isTab ? 2 : 1) + kerningAmount;
 		prev = ch;
 		if (longestLine < nextFontPositionX) {
 			longestLine = nextFontPositionX;
@@ -636,16 +641,7 @@ void Label::updateCharacters(const std::vector<uint32_t>& chars) {
 
 void Label::updateLabel() {
 	if (!_font) return;
-	auto text = utf8_get_characters(_textUTF8.c_str());
-	_text.clear();
-	for (auto elem : text) {
-		if (elem == '\t') {
-			_text.push_back(' ');
-			_text.push_back(' ');
-		} else {
-			_text.push_back(elem);
-		}
-	}
+	_text = utf8_get_characters(_textUTF8.c_str());
 	_text.push_back('\0');
 
 	if (_flags.isOn(Label::TextBatched)) {
