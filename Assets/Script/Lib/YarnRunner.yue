@@ -29,6 +29,13 @@ class YarnRunner
 		storyFunc = @funcs[title]
 		unless storyFunc
 			yarnCode = @codes[title]
+			unless yarnCode
+				err = "node \"#{title}\" is not exist"
+				if @startTitle
+					return false, err
+				else
+					coroutine.yield "Error", err
+					return
 			luaCode, err = yarncompile yarnCode
 			unless luaCode
 				if @startTitle

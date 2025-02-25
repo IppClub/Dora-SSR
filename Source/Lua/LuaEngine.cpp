@@ -20,7 +20,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Lua/Xml/DoraTag.h"
 #include "Lua/Xml/XmlResolver.h"
-#include "Lua/Yarn/YarnCompiler.h"
+#include "yarnflow/yarn_compiler.h"
 
 extern "C" {
 int luaopen_yue(lua_State* L);
@@ -807,7 +807,7 @@ static int dora_yarn_compile(lua_State* L) {
 	size_t len = 0;
 	const char* str = luaL_checklstring(L, 1, &len);
 	Slice codes{str, len};
-	auto res = yarn::compile({codes.rawData(), codes.size()});
+	auto res = yarnflow::compile({codes.rawData(), codes.size()});
 	if (res.error) {
 		const auto& error = res.error.value();
 		lua_pushnil(L);

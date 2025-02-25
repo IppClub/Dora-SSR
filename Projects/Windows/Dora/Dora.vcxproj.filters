@@ -208,9 +208,6 @@
     <Filter Include="Lua\Xml">
       <UniqueIdentifier>{0103014a-643f-4f1c-83c2-7f0593043ea4}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Lua\Yarn">
-      <UniqueIdentifier>{6a97e199-f34a-4842-9583-d63dbc7d146d}</UniqueIdentifier>
-    </Filter>
     <Filter Include="3rdParty\playrho">
       <UniqueIdentifier>{56b26ce6-81c4-418e-bcad-05697cd94a25}</UniqueIdentifier>
     </Filter>
@@ -330,6 +327,9 @@
     </Filter>
     <Filter Include="3rdParty\nfd">
       <UniqueIdentifier>{eed2b039-f653-4258-8fe3-ab9a8c84399d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\yarnflow">
+      <UniqueIdentifier>{793abd5f-da71-4806-aa5e-b27b9e514e5b}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -1133,9 +1133,6 @@
     </ClCompile>
     <ClCompile Include="..\..\..\Source\Lua\Xml\XmlResolver.cpp">
       <Filter>Lua\Xml</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\Lua\Yarn\YarnCompiler.cpp">
-      <Filter>Lua\Yarn</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\yuescript\yue_ast.cpp">
       <Filter>3rdParty\yuescript</Filter>
@@ -1949,6 +1946,9 @@
     </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\nfd\nfd_win.cpp">
       <Filter>3rdParty\nfd</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yarnflow\yarn_compiler.cpp">
+      <Filter>3rdParty\yarnflow</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -2824,9 +2824,6 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Lua\Xml\XmlResolver.h">
       <Filter>Lua\Xml</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\Lua\Yarn\YarnCompiler.h">
-      <Filter>Lua\Yarn</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\part\Compositor.hpp">
       <Filter>3rdParty\playrho\d2\part</Filter>
@@ -4328,6 +4325,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\nfd\nfd.hpp">
       <Filter>3rdParty\nfd</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yarnflow\yarn_compiler.h">
+      <Filter>3rdParty\yarnflow</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

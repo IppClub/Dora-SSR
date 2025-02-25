@@ -179,7 +179,6 @@ add_library(main SHARED
 	src/main/cpp/Lua/ToLua/tolua_is.cpp
 	src/main/cpp/Lua/Xml/DoraTag.cpp
 	src/main/cpp/Lua/Xml/XmlResolver.cpp
-	src/main/cpp/Lua/Yarn/YarnCompiler.cpp
 	src/main/cpp/Test/Test.cpp
 	src/main/cpp/Test/HelloWorldCpp.cpp
 	src/main/cpp/3rdParty/yuescript/yue_compiler.cpp
@@ -188,6 +187,7 @@ add_library(main SHARED
 	src/main/cpp/3rdParty/yuescript/yue_parser.cpp
 	src/main/cpp/3rdParty/yuescript/yuescript.cpp
 	src/main/cpp/3rdParty/yuescript/parser.cpp
+	src/main/cpp/3rdParty/yarnflow/yarn_compiler.cpp
 	src/main/cpp/3rdParty/implot/implot.cpp
 	src/main/cpp/3rdParty/implot/implot_items.cpp
 	src/main/cpp/3rdParty/implot/implot_demo.cpp

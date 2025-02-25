@@ -1553,6 +1553,10 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yarnflow\yarn_compiler.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\yoga\algorithm\AbsoluteLayout.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
@@ -1776,7 +1780,6 @@
     <ClCompile Include="..\..\..\Source\Lua\ToLua\tolua_to.cpp" />
     <ClCompile Include="..\..\..\Source\Lua\Xml\DoraTag.cpp" />
     <ClCompile Include="..\..\..\Source\Lua\Xml\XmlResolver.cpp" />
-    <ClCompile Include="..\..\..\Source\Lua\Yarn\YarnCompiler.cpp" />
     <ClCompile Include="..\..\..\Source\ML\ML.cpp" />
     <ClCompile Include="..\..\..\Source\Node\AlignNode.cpp" />
     <ClCompile Include="..\..\..\Source\Node\ClipNode.cpp" />
@@ -2447,6 +2450,7 @@
     <ClInclude Include="..\..\..\Source\3rdParty\wasm3\wasm3.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\wasm3\wasm3_cpp.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\wasm3\wasm3_defs.h" />
+    <ClInclude Include="..\..\..\Source\3rdParty\yarnflow\yarn_compiler.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\yoga\algorithm\AbsoluteLayout.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\yoga\algorithm\Align.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\yoga\algorithm\Baseline.h" />
@@ -2581,7 +2585,6 @@
     <ClInclude Include="..\..\..\Source\Lua\Xml\DoraTag.h" />
     <ClInclude Include="..\..\..\Source\Lua\Xml\DoraTagText.hpp" />
     <ClInclude Include="..\..\..\Source\Lua\Xml\XmlResolver.h" />
-    <ClInclude Include="..\..\..\Source\Lua\Yarn\YarnCompiler.h" />
     <ClInclude Include="..\..\..\Source\ML\ML.h" />
     <ClInclude Include="..\..\..\Source\Node\AlignNode.h" />
     <ClInclude Include="..\..\..\Source\Node\ClipNode.h" />
