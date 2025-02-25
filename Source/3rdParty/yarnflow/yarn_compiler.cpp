@@ -6,12 +6,13 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-#include "Const/Header.h"
-#include "Lua/Yarn/YarnCompiler.h"
+#include "yarnflow/yarn_compiler.h"
 
 #include "yuescript/ast.hpp"
+
 #include <memory>
 #include <sstream>
+#include <stack>
 
 namespace pl = parserlib;
 
@@ -42,14 +43,14 @@ namespace parserlib {
 
 #define AST_LEAF(type) \
 	COUNTER_INC; \
-	namespace yarn { \
+	namespace yarnflow { \
 	class type##_t : public ast_node { \
 	public: \
 		virtual int get_id() const override { return COUNTER_READ; }
 
 #define AST_NODE(type) \
 	COUNTER_INC; \
-	namespace yarn { \
+	namespace yarnflow { \
 	class type##_t : public ast_container { \
 	public: \
 		virtual int get_id() const override { return COUNTER_READ; }
@@ -65,17 +66,17 @@ namespace parserlib {
 	; \
 	} \
 	template <> \
-	constexpr int id<yarn::type##_t>() { return COUNTER_READ; }
+	constexpr int id<yarnflow::type##_t>() { return COUNTER_READ; }
 
 } // namespace parserlib
 
 namespace parserlib {
 
-namespace yarn {
+namespace yarnflow {
 class Block_t;
 class Exp_t;
 class Value_t;
-} // namespace yarn
+} // namespace yarnflow
 
 // clang-format off
 
@@ -273,11 +274,11 @@ AST_END(File, "file"sv)
 
 } // namespace parserlib
 
-namespace yarn {
+namespace yarnflow {
 using namespace std::string_view_literals;
 using namespace std::string_literals;
 using namespace parserlib;
-using namespace parserlib::yarn;
+using namespace parserlib::yarnflow;
 
 class CompileError : public std::logic_error {
 public:
@@ -651,7 +652,7 @@ protected:
 		error_list errors;
 		try {
 			State state;
-			res.node.set(::yarn::parse(*(res.codes), r, errors, &state));
+			res.node.set(::yarnflow::parse(*(res.codes), r, errors, &state));
 		} catch (const ParserError& err) {
 			res.error = {err.what(), err.line, err.col};
 			return res;
@@ -1334,4 +1335,4 @@ CompileInfo compile(std::string_view codes) {
 	return YarnCompiler{}.compile(codes);
 }
 
-} // namespace yarn
+} // namespace yarnflow

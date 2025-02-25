@@ -172,6 +172,8 @@
 		3C0FB71A2BF1970C0098E88D /* VertexBuffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB6762BF1970C0098E88D /* VertexBuffer.cpp */; };
 		3C0FB71B2BF1970C0098E88D /* bgfxrenderer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB6792BF1970C0098E88D /* bgfxrenderer.cpp */; };
 		3C0FB71C2BF1970C0098E88D /* bgfxrenderer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB6792BF1970C0098E88D /* bgfxrenderer.cpp */; };
+		3C12442E2D6D9A3800FD1346 /* yarn_compiler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C12442C2D6D9A3800FD1346 /* yarn_compiler.cpp */; };
+		3C12442F2D6D9A3800FD1346 /* yarn_compiler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C12442C2D6D9A3800FD1346 /* yarn_compiler.cpp */; };
 		3C1F87C91DF7B4C5005F1B4D /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C1F87C81DF7B4C5005F1B4D /* AVFoundation.framework */; };
 		3C361E532C1AFF400079B68B /* pugixml.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C361E392C1AFF400079B68B /* pugixml.cpp */; };
 		3C361E542C1AFF400079B68B /* pugixml.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C361E392C1AFF400079B68B /* pugixml.cpp */; };
@@ -732,7 +734,6 @@
 		3C59316D2CA4F67300CAF224 /* Bullet.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5930632CA4F67300CAF224 /* Bullet.cpp */; };
 		3C59316E2CA4F67300CAF224 /* MemoryPool.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592FD92CA4F67300CAF224 /* MemoryPool.cpp */; };
 		3C59316F2CA4F67300CAF224 /* Cache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592FBB2CA4F67300CAF224 /* Cache.cpp */; };
-		3C5931702CA4F67300CAF224 /* YarnCompiler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C59301C2CA4F67300CAF224 /* YarnCompiler.cpp */; };
 		3C5931712CA4F67300CAF224 /* Test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5930EB2CA4F67300CAF224 /* Test.cpp */; };
 		3C5931722CA4F67300CAF224 /* EventQueue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592FF02CA4F67300CAF224 /* EventQueue.cpp */; };
 		3C5931732CA4F67300CAF224 /* Particle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5930432CA4F67300CAF224 /* Particle.cpp */; };
@@ -843,7 +844,6 @@
 		3C59324A2CA4F67300CAF224 /* Bullet.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5930632CA4F67300CAF224 /* Bullet.cpp */; };
 		3C59324B2CA4F67300CAF224 /* MemoryPool.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592FD92CA4F67300CAF224 /* MemoryPool.cpp */; };
 		3C59324C2CA4F67300CAF224 /* Cache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592FBB2CA4F67300CAF224 /* Cache.cpp */; };
-		3C59324D2CA4F67300CAF224 /* YarnCompiler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C59301C2CA4F67300CAF224 /* YarnCompiler.cpp */; };
 		3C59324E2CA4F67300CAF224 /* Test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5930EB2CA4F67300CAF224 /* Test.cpp */; };
 		3C59324F2CA4F67300CAF224 /* EventQueue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592FF02CA4F67300CAF224 /* EventQueue.cpp */; };
 		3C5932502CA4F67300CAF224 /* Particle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5930432CA4F67300CAF224 /* Particle.cpp */; };
@@ -1405,6 +1405,8 @@
 		3C0FB67D2BF1970C0098E88D /* Effekseer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.h; sourceTree = "<group>"; };
 		3C0FB67E2BF1970C0098E88D /* Effekseer.Modules.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.Modules.h; sourceTree = "<group>"; };
 		3C0FB67F2BF1970C0098E88D /* Effekseer.SIMD.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effekseer.SIMD.h; sourceTree = "<group>"; };
+		3C12442B2D6D9A3800FD1346 /* yarn_compiler.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = yarn_compiler.h; sourceTree = "<group>"; };
+		3C12442C2D6D9A3800FD1346 /* yarn_compiler.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = yarn_compiler.cpp; sourceTree = "<group>"; };
 		3C1D41002703019800202534 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Assets.xcassets; path = Dora/Assets.xcassets; sourceTree = "<group>"; };
 		3C1F87C81DF7B4C5005F1B4D /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
 		3C329DDD2B39D8AC002BC023 /* Dora.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Dora.h; sourceTree = "<group>"; };
@@ -2133,8 +2135,6 @@
 		3C5930172CA4F67300CAF224 /* DoraTagText.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = DoraTagText.hpp; sourceTree = "<group>"; };
 		3C5930182CA4F67300CAF224 /* XmlResolver.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = XmlResolver.h; sourceTree = "<group>"; };
 		3C5930192CA4F67300CAF224 /* XmlResolver.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = XmlResolver.cpp; sourceTree = "<group>"; };
-		3C59301B2CA4F67300CAF224 /* YarnCompiler.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = YarnCompiler.h; sourceTree = "<group>"; };
-		3C59301C2CA4F67300CAF224 /* YarnCompiler.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = YarnCompiler.cpp; sourceTree = "<group>"; };
 		3C59301E2CA4F67300CAF224 /* LuaBinding.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LuaBinding.h; sourceTree = "<group>"; };
 		3C59301F2CA4F67300CAF224 /* LuaBinding.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = LuaBinding.cpp; sourceTree = "<group>"; };
 		3C5930202CA4F67300CAF224 /* LuaCode.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = LuaCode.cpp; sourceTree = "<group>"; };
@@ -3012,6 +3012,15 @@
 				3C0FB67F2BF1970C0098E88D /* Effekseer.SIMD.h */,
 			);
 			path = Effekseer;
+			sourceTree = "<group>";
+		};
+		3C12442D2D6D9A3800FD1346 /* yarnflow */ = {
+			isa = PBXGroup;
+			children = (
+				3C12442B2D6D9A3800FD1346 /* yarn_compiler.h */,
+				3C12442C2D6D9A3800FD1346 /* yarn_compiler.cpp */,
+			);
+			path = yarnflow;
 			sourceTree = "<group>";
 		};
 		3C1676B42212C0FD00892CD4 /* playrho */ = {
@@ -4157,22 +4166,12 @@
 			path = Xml;
 			sourceTree = "<group>";
 		};
-		3C59301D2CA4F67300CAF224 /* Yarn */ = {
-			isa = PBXGroup;
-			children = (
-				3C59301B2CA4F67300CAF224 /* YarnCompiler.h */,
-				3C59301C2CA4F67300CAF224 /* YarnCompiler.cpp */,
-			);
-			path = Yarn;
-			sourceTree = "<group>";
-		};
 		3C59302A2CA4F67300CAF224 /* Lua */ = {
 			isa = PBXGroup;
 			children = (
 				3C59300B2CA4F67300CAF224 /* Builtin */,
 				3C5930142CA4F67300CAF224 /* ToLua */,
 				3C59301A2CA4F67300CAF224 /* Xml */,
-				3C59301D2CA4F67300CAF224 /* Yarn */,
 				3C59301E2CA4F67300CAF224 /* LuaBinding.h */,
 				3C59301F2CA4F67300CAF224 /* LuaBinding.cpp */,
 				3C5930202CA4F67300CAF224 /* LuaCode.cpp */,
@@ -4700,6 +4699,7 @@
 				3CFEA12D285B8706002D106F /* wasm3 */,
 				3C41D60721490CCD003FDDFE /* nanovg */,
 				3C25B863257A7F71002DD8E1 /* yuescript */,
+				3C12442D2D6D9A3800FD1346 /* yarnflow */,
 				3CB410351E05B17F00A8804D /* Zip */,
 				3CB410231E05B0A200A8804D /* silly */,
 			);
@@ -5429,7 +5429,6 @@
 				3C59324A2CA4F67300CAF224 /* Bullet.cpp in Sources */,
 				3C59324B2CA4F67300CAF224 /* MemoryPool.cpp in Sources */,
 				3C59324C2CA4F67300CAF224 /* Cache.cpp in Sources */,
-				3C59324D2CA4F67300CAF224 /* YarnCompiler.cpp in Sources */,
 				3C59324E2CA4F67300CAF224 /* Test.cpp in Sources */,
 				3C59324F2CA4F67300CAF224 /* EventQueue.cpp in Sources */,
 				3C5932502CA4F67300CAF224 /* Particle.cpp in Sources */,
@@ -5481,6 +5480,7 @@
 				3C59327E2CA4F67300CAF224 /* Playable.cpp in Sources */,
 				3C59327F2CA4F67300CAF224 /* VGNode.cpp in Sources */,
 				3C5932802CA4F67300CAF224 /* Sound.cpp in Sources */,
+				3C12442E2D6D9A3800FD1346 /* yarn_compiler.cpp in Sources */,
 				3C5932812CA4F67300CAF224 /* tolua_map.cpp in Sources */,
 				3C5932822CA4F67300CAF224 /* Content.cpp in Sources */,
 				3C5932832CA4F67300CAF224 /* Content.mm in Sources */,
@@ -5978,7 +5978,6 @@
 				3C59316D2CA4F67300CAF224 /* Bullet.cpp in Sources */,
 				3C59316E2CA4F67300CAF224 /* MemoryPool.cpp in Sources */,
 				3C59316F2CA4F67300CAF224 /* Cache.cpp in Sources */,
-				3C5931702CA4F67300CAF224 /* YarnCompiler.cpp in Sources */,
 				3C5931712CA4F67300CAF224 /* Test.cpp in Sources */,
 				3C5931722CA4F67300CAF224 /* EventQueue.cpp in Sources */,
 				3C5931732CA4F67300CAF224 /* Particle.cpp in Sources */,
@@ -6030,6 +6029,7 @@
 				3C5931A12CA4F67300CAF224 /* Playable.cpp in Sources */,
 				3C5931A22CA4F67300CAF224 /* VGNode.cpp in Sources */,
 				3C5931A32CA4F67300CAF224 /* Sound.cpp in Sources */,
+				3C12442F2D6D9A3800FD1346 /* yarn_compiler.cpp in Sources */,
 				3C5931A42CA4F67300CAF224 /* tolua_map.cpp in Sources */,
 				3C5931A52CA4F67300CAF224 /* Content.cpp in Sources */,
 				3C5931A62CA4F67300CAF224 /* Content.mm in Sources */,

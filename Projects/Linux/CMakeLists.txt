@@ -174,7 +174,6 @@ add_executable(dora-ssr
 	../../Source/Lua/ToLua/tolua_is.cpp
 	../../Source/Lua/Xml/DoraTag.cpp
 	../../Source/Lua/Xml/XmlResolver.cpp
-	../../Source/Lua/Yarn/YarnCompiler.cpp
 	../../Source/Test/Test.cpp
 	../../Source/Test/HelloWorldCpp.cpp
 	../../Source/3rdParty/yuescript/yue_compiler.cpp
@@ -183,6 +182,7 @@ add_executable(dora-ssr
 	../../Source/3rdParty/yuescript/yue_parser.cpp
 	../../Source/3rdParty/yuescript/yuescript.cpp
 	../../Source/3rdParty/yuescript/parser.cpp
+	../../Source/3rdParty/yarnflow/yarn_compiler.cpp
 	../../Source/3rdParty/implot/implot.cpp
 	../../Source/3rdParty/implot/implot_items.cpp
 	../../Source/3rdParty/implot/implot_demo.cpp

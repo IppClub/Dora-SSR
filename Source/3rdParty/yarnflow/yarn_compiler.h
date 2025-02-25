@@ -8,7 +8,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #pragma once
 
-namespace yarn {
+#include <string>
+#include <optional>
+
+namespace yarnflow {
 
 struct CompileInfo {
 	std::string codes;
@@ -23,4 +26,4 @@ struct CompileInfo {
 
 CompileInfo compile(std::string_view codes);
 
-} // namespace yarn
+} // namespace yarnflow
