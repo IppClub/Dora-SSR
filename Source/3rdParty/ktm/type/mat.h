@@ -35,5 +35,6 @@ struct mat<Row, Col, T> : mat_father_type<mat<Row, Col, T>>
 } // namespace ktm
 
 #include "../detail/matrix/mat_mul.inl"
+#include "../detail/matrix/mat_mul_simd.inl"
 
 #endif

@@ -11,88 +11,6 @@
 #include "vector_exponential_fwd.h"
 #include "../../simd/skv.h"
 
-#if KTM_SIMD_ENABLE(KTM_SIMD_NEON | KTM_SIMD_SSE | KTM_SIMD_WASM)
-
-template <size_t N>
-struct ktm::detail::vector_exponential_implement::sqrt<N, float, std::enable_if_t<N == 3 || N == 4>>
-{
-    using V = vec<N, float>;
-
-    static KTM_INLINE V call(const V& x) noexcept
-    {
-        V ret;
-        ret.st = _sqrth128_f32(x.st);
-        return ret;
-    }
-};
-
-template <size_t N>
-struct ktm::detail::vector_exponential_implement::rsqrt<N, float, std::enable_if_t<N == 3 || N == 4>>
-{
-    using V = vec<N, float>;
-
-    static KTM_INLINE V call(const V& x) noexcept
-    {
-        V ret;
-        ret.st = _rsqrth128_f32(x.st);
-        return ret;
-    }
-};
-
-template <size_t N>
-struct ktm::detail::vector_exponential_implement::recip<N, float, std::enable_if_t<N == 3 || N == 4>>
-{
-    using V = vec<N, float>;
-
-    static KTM_INLINE V call(const V& x) noexcept
-    {
-        V ret;
-        ret.st = _reciph128_f32(x.st);
-        return ret;
-    }
-};
-
-template <size_t N>
-struct ktm::detail::vector_exponential_implement::fast_sqrt<N, float, std::enable_if_t<N == 3 || N == 4>>
-{
-    using V = vec<N, float>;
-
-    static KTM_INLINE V call(const V& x) noexcept
-    {
-        V ret;
-        ret.st = _sqrtl128_f32(x.st);
-        return ret;
-    }
-};
-
-template <size_t N>
-struct ktm::detail::vector_exponential_implement::fast_rsqrt<N, float, std::enable_if_t<N == 3 || N == 4>>
-{
-    using V = vec<N, float>;
-
-    static KTM_INLINE V call(const V& x) noexcept
-    {
-        V ret;
-        ret.st = _rsqrtl128_f32(x.st);
-        return ret;
-    }
-};
-
-template <size_t N>
-struct ktm::detail::vector_exponential_implement::fast_recip<N, float, std::enable_if_t<N == 3 || N == 4>>
-{
-    using V = vec<N, float>;
-
-    static KTM_INLINE V call(const V& x) noexcept
-    {
-        V ret;
-        ret.st = _recipl128_f32(x.st);
-        return ret;
-    }
-};
-
-#endif // KTM_SIMD_ENABLE(KTM_SIMD_NEON | KTM_SIMD_SSE | KTM_SIMD_WASM)
-
 #if KTM_SIMD_ENABLE(KTM_SIMD_NEON)
 
 template <>
@@ -174,5 +92,87 @@ struct ktm::detail::vector_exponential_implement::fast_recip<2, float>
 };
 
 #endif // KTM_SIMD_ENABLE(KTM_SIMD_NEON)
+
+#if KTM_SIMD_ENABLE(KTM_SIMD_NEON | KTM_SIMD_SSE | KTM_SIMD_WASM)
+
+template <size_t N>
+struct ktm::detail::vector_exponential_implement::sqrt<N, float, std::enable_if_t<N == 3 || N == 4>>
+{
+    using V = vec<N, float>;
+
+    static KTM_INLINE V call(const V& x) noexcept
+    {
+        V ret;
+        ret.st = _sqrth128_f32(x.st);
+        return ret;
+    }
+};
+
+template <size_t N>
+struct ktm::detail::vector_exponential_implement::rsqrt<N, float, std::enable_if_t<N == 3 || N == 4>>
+{
+    using V = vec<N, float>;
+
+    static KTM_INLINE V call(const V& x) noexcept
+    {
+        V ret;
+        ret.st = _rsqrth128_f32(x.st);
+        return ret;
+    }
+};
+
+template <size_t N>
+struct ktm::detail::vector_exponential_implement::recip<N, float, std::enable_if_t<N == 3 || N == 4>>
+{
+    using V = vec<N, float>;
+
+    static KTM_INLINE V call(const V& x) noexcept
+    {
+        V ret;
+        ret.st = _reciph128_f32(x.st);
+        return ret;
+    }
+};
+
+template <size_t N>
+struct ktm::detail::vector_exponential_implement::fast_sqrt<N, float, std::enable_if_t<N == 3 || N == 4>>
+{
+    using V = vec<N, float>;
+
+    static KTM_INLINE V call(const V& x) noexcept
+    {
+        V ret;
+        ret.st = _sqrtl128_f32(x.st);
+        return ret;
+    }
+};
+
+template <size_t N>
+struct ktm::detail::vector_exponential_implement::fast_rsqrt<N, float, std::enable_if_t<N == 3 || N == 4>>
+{
+    using V = vec<N, float>;
+
+    static KTM_INLINE V call(const V& x) noexcept
+    {
+        V ret;
+        ret.st = _rsqrtl128_f32(x.st);
+        return ret;
+    }
+};
+
+template <size_t N>
+struct ktm::detail::vector_exponential_implement::fast_recip<N, float, std::enable_if_t<N == 3 || N == 4>>
+{
+    using V = vec<N, float>;
+
+    static KTM_INLINE V call(const V& x) noexcept
+    {
+        V ret;
+        ret.st = _recipl128_f32(x.st);
+        return ret;
+    }
+};
+
+#endif // KTM_SIMD_ENABLE(KTM_SIMD_NEON | KTM_SIMD_SSE | KTM_SIMD_WASM)
 
 #endif

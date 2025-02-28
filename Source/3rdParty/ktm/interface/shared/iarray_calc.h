@@ -329,12 +329,9 @@ struct iarray_madd : Father
     using Father::child_ptr;
     using Father::Father;
 
-    friend KTM_FUNC Child ktm_operator_madd(const Child& x, const Child& y, const Child& z) noexcept
-    {
-        return x.madd(y, z);
-    }
+    friend KTM_FUNC Child ktm_op_madd(const Child& x, const Child& y, const Child& z) noexcept { return x.madd(y, z); }
 
-    friend KTM_FUNC Child ktm_operator_smadd(Child& x, const Child& y, const Child& z) noexcept
+    friend KTM_FUNC Child ktm_op_smadd(Child& x, const Child& y, const Child& z) noexcept
     {
         return x.madd_to_self(y, z);
     }
@@ -375,22 +372,22 @@ struct iarray_madd_scalar : Father
     using Father::Father;
     using ScalarT = typename math_traits<Child>::base_type;
 
-    friend KTM_FUNC Child ktm_operator_madd(const Child& x, const Child& y, ScalarT scalar) noexcept
+    friend KTM_FUNC Child ktm_op_madd(const Child& x, const Child& y, ScalarT scalar) noexcept
     {
         return x.madd_scalar(y, scalar);
     }
 
-    friend KTM_FUNC Child ktm_operator_madd(const Child& x, ScalarT scalar, const Child& z) noexcept
+    friend KTM_FUNC Child ktm_op_madd(const Child& x, ScalarT scalar, const Child& z) noexcept
     {
         return x.madd_scalar(z, scalar);
     }
 
-    friend KTM_FUNC Child ktm_operator_smadd(Child& x, const Child& y, ScalarT scalar) noexcept
+    friend KTM_FUNC Child ktm_op_smadd(Child& x, const Child& y, ScalarT scalar) noexcept
     {
         return x.madd_scalar_to_self(y, scalar);
     }
 
-    friend KTM_FUNC Child ktm_operator_smadd(Child& x, ScalarT scalar, const Child& z) noexcept
+    friend KTM_FUNC Child ktm_op_smadd(Child& x, ScalarT scalar, const Child& z) noexcept
     {
         return x.madd_scalar_to_self(z, scalar);
     }

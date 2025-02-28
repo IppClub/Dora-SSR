@@ -20,15 +20,15 @@ typedef int32x2_t sv2;
 typedef float32x4_t fv4;
 typedef int32x4_t sv4;
 #elif KTM_SIMD_ENABLE(KTM_SIMD_SSE)
-typedef uint64_t fv2;
-typedef uint64_t sv2;
 typedef __m128 fv4;
 #    if KTM_SIMD_ENABLE(KTM_SIMD_SSE2)
 typedef __m128i sv4;
 #    endif
+#    if KTM_SIMD_ENABLE(KTM_SIMD_AVX)
+typedef __m256 fv8;
+typedef __m256i sv8;
+#    endif
 #elif KTM_SIMD_ENABLE(KTM_SIMD_WASM)
-typedef uint64_t fv2;
-typedef uint64_t sv2;
 typedef v128_t fv4;
 typedef v128_t sv4;
 #endif

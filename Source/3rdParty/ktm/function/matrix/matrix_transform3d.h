@@ -180,7 +180,7 @@ KTM_INLINE std::enable_if_t<std::is_floating_point_v<T>, mat<4, 4, T>> rotate3d_
                                                                                      const vec<3, T>& axis) noexcept
 {
     mat<4, 4, T> ret;
-    detail::matrix_transform3d_implement::rotate3d_normal(ret, sin(angle), cos(angle), axis);
+    detail::matrix_transform3d_implement::rotate3d_normal(ret, sin(angle), cos(angle), axis, 0);
     return ret;
 }
 
@@ -191,7 +191,7 @@ KTM_INLINE std::enable_if_t<std::is_floating_point_v<T>, mat<4, 4, T>> rotate3d_
     T cos_theta = dot(from, to);
     T sin_theta = sqrt(one<T> - cos_theta * cos_theta);
     mat<4, 4, T> ret;
-    detail::matrix_transform3d_implement::rotate3d_normal(ret, sin_theta, cos_theta, normalize(cross(from, to)));
+    detail::matrix_transform3d_implement::rotate3d_normal(ret, sin_theta, cos_theta, normalize(cross(from, to)), 0);
     return ret;
 }
 
@@ -200,7 +200,7 @@ KTM_INLINE std::enable_if_t<std::is_floating_point_v<T>, mat<4, 4, T>>
 rotate3d_any_axis(T angle, const vec<3, T>& axis_start, const vec<3, T>& axis) noexcept
 {
     mat<4, 4, T> ret;
-    detail::matrix_transform3d_implement::rotate3d_normal(ret, sin(angle), cos(angle), axis, &axis_start);
+    detail::matrix_transform3d_implement::rotate3d_normal(ret, sin(angle), cos(angle), axis, axis_start);
     return ret;
 }
 

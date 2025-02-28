@@ -71,8 +71,7 @@ struct ktm::detail::array_calc_implement::madd
 
     static KTM_INLINE void call(A& out, const A& x, const A& y, const A& z) noexcept
     {
-        loop_op<N, A>::call(out, [](const T& x, const T& y, const T& z) -> T { return ktm_operator_madd(x, y, z); }, x,
-                            y, z);
+        loop_op<N, A>::call(out, [](const T& x, const T& y, const T& z) -> T { return ktm_op_madd(x, y, z); }, x, y, z);
     }
 };
 
@@ -135,8 +134,7 @@ struct ktm::detail::array_calc_implement::madd_scalar
     template <typename S>
     static KTM_INLINE std::enable_if_t<std::is_arithmetic_v<S>> call(A& out, const A& x, const A& y, S scalar) noexcept
     {
-        loop_op<N, A>::call(out, [&scalar](const T& x, const T& y) -> T { return ktm_operator_madd(x, y, scalar); }, x,
-                            y);
+        loop_op<N, A>::call(out, [&scalar](const T& x, const T& y) -> T { return ktm_op_madd(x, y, scalar); }, x, y);
     }
 };
 

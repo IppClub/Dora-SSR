@@ -48,9 +48,9 @@ template <typename T>
 KTM_INLINE void ktm::detail::vec_calc_implement::madd(vec<3, T>& out, const vec<3, T>& x, const vec<3, T>& y,
                                                       const vec<3, T>& z) noexcept
 {
-    out.x = ktm_operator_madd(x.x, y.x, z.x);
-    out.y = ktm_operator_madd(x.y, y.y, z.y);
-    out.z = ktm_operator_madd(x.z, y.z, z.z);
+    out.x = ktm_op_madd(x.x, y.x, z.x);
+    out.y = ktm_op_madd(x.y, y.y, z.y);
+    out.z = ktm_op_madd(x.z, y.z, z.z);
 }
 
 template <typename T>
@@ -102,9 +102,9 @@ template <typename T>
 KTM_INLINE void ktm::detail::vec_calc_implement::madd_scalar(vec<3, T>& out, const vec<3, T>& x, const vec<3, T>& y,
                                                              T scalar) noexcept
 {
-    out.x = ktm_operator_madd(x.x, y.x, scalar);
-    out.y = ktm_operator_madd(x.y, y.y, scalar);
-    out.z = ktm_operator_madd(x.z, y.z, scalar);
+    out.x = ktm_op_madd(x.x, y.x, scalar);
+    out.y = ktm_op_madd(x.y, y.y, scalar);
+    out.z = ktm_op_madd(x.z, y.z, scalar);
 }
 
 #endif

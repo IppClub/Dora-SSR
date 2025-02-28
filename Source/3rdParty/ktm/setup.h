@@ -29,12 +29,7 @@
 #    error "ktm only support cpp's version > c++17"
 #endif
 
-// debug state
-#ifndef NDEBUG
-#    define KTM_DEFAULT_CONSTRUCT_INIT
-#endif
-
-// function Function config
+// function config
 #if defined(KTM_COMPILER_CLANG)
 #    define KTM_INLINE __inline__ __attribute__((always_inline))
 #    define KTM_NOINLINE __attribute__((noinline))

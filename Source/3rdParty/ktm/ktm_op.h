@@ -5,15 +5,15 @@
 //  Created by 有个小小杜
 //
 
-#ifndef _KTM_OPERATOR_H_
-#define _KTM_OPERATOR_H_
+#ifndef _KTM_OP_H_
+#define _KTM_OP_H_
 
 #include <cmath>
 #include <type_traits>
 #include "setup.h"
 
 template <typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-KTM_FUNC constexpr T ktm_operator_madd(T x, T y, T z) noexcept
+KTM_FUNC T ktm_op_madd(T x, T y, T z) noexcept
 {
     if constexpr (std::is_floating_point_v<T>)
         return std::fma(y, z, x);
@@ -21,7 +21,7 @@ KTM_FUNC constexpr T ktm_operator_madd(T x, T y, T z) noexcept
 }
 
 template <typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-KTM_FUNC constexpr T ktm_operator_smadd(T& x, T y, T z) noexcept
+KTM_FUNC T& ktm_op_smadd(T& x, T y, T z) noexcept
 {
     if constexpr (std::is_floating_point_v<T>)
         x = std::fma(y, z, x);
@@ -33,8 +33,8 @@ KTM_FUNC constexpr T ktm_operator_smadd(T& x, T y, T z) noexcept
 namespace ktm
 {
 
-using ::ktm_operator_madd;
-using ::ktm_operator_smadd;
+using ::ktm_op_madd;
+using ::ktm_op_smadd;
 
 } // namespace ktm
 
