@@ -17,6 +17,7 @@
 
 namespace ktm
 {
+
 template <class Father, class Child>
 struct imat_make;
 

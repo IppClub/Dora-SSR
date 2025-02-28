@@ -11,11 +11,10 @@
 #include "matrix_transform3d_fwd.h"
 #include "../../type/basic.h"
 
-template <typename T>
+template <typename T, typename StartV, typename Void>
 KTM_NOINLINE std::enable_if_t<std::is_floating_point_v<T>>
 ktm::detail::matrix_transform3d_implement::rotate3d_normal(ktm::mat<4, 4, T>& out, T sin_theta, T cos_theta,
-                                                           const vec<3, T>& normal,
-                                                           const vec<3, T>* normal_start_ptr) noexcept
+                                                           const vec<3, T>& normal, StartV&& normal_start) noexcept
 {
     T one_minus_cos_theta = one<T> - cos_theta;
     T xx_one_minus_cos = normal[0] * normal[0] * one_minus_cos_theta;
@@ -28,9 +27,9 @@ ktm::detail::matrix_transform3d_implement::rotate3d_normal(ktm::mat<4, 4, T>& ou
     out[0] = { xx_one_minus_cos + cos_theta, xy_one_minus_cos + z_sin, xz_one_minus_cos - y_sin, zero<T> };
     out[1] = { xy_one_minus_cos - z_sin, yy_one_minus_cos + cos_theta, yz_one_minus_cos + x_sin, zero<T> };
     out[2] = { xz_one_minus_cos + y_sin, yz_one_minus_cos - x_sin, zz_one_minus_cos + cos_theta, zero<T> };
-    if (normal_start_ptr)
+    if constexpr (std::is_same_v<StartV, ktm::vec<3, T>>)
     {
-        T a = (*normal_start_ptr)[0], b = (*normal_start_ptr)[1], c = (*normal_start_ptr)[2];
+        T a = normal_start[0], b = normal_start[1], c = normal_start[2];
         out[3] = { a * (one_minus_cos_theta - xx_one_minus_cos) + b * (z_sin - xy_one_minus_cos) -
                        c * (y_sin + xz_one_minus_cos),
                    b * (one_minus_cos_theta - yy_one_minus_cos) + c * (x_sin - yz_one_minus_cos) -

@@ -18,7 +18,7 @@ KTM_INLINE void ktm::detail::mat_mul_implement::mat_mul_vec(vec<Col, T>& out, co
 {
     out = m[0] * v[0];
     loop_op<Row - 1, void>::call([&out](const vec<Col, T>& m_col, const T& v_val) -> void
-    { ktm_operator_smadd(out, m_col, v_val); }, &m[1], &v[1]);
+    { ktm_op_smadd(out, m_col, v_val); }, &m[1], &v[1]);
 }
 
 template <size_t Row, size_t Col, typename T>

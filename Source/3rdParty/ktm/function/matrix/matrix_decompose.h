@@ -38,13 +38,13 @@ reduce_hessenberg(const M& m) noexcept
         T length = zero<T>;
         for (int j = v_start; j < N; ++j)
         {
-            length += a[i][j] * a[i][j];
+            ktm_op_smadd(length, a[i][j], a[i][j]);
         }
         if (equal(length, abs(a[i][v_start])))
             continue;
         length = std::copysign(sqrt(length), -a[i][v_start]);
 
-        T recip_h = recip(length * (length - a[i][v_start]));
+        T recip_h = recip(ktm_op_madd(-length * a[i][v_start], length, length));
         a[i][v_start] = (a[i][v_start] - length);
 
         for (int k = i + 1; k < N; ++k)
@@ -52,12 +52,12 @@ reduce_hessenberg(const M& m) noexcept
             T ta = zero<T>;
             for (int j = v_start; j < N; ++j)
             {
-                ta += a[i][j] * a[k][j];
+                ktm_op_smadd(ta, a[i][j], a[k][j]);
             }
             ta *= recip_h;
             for (int j = v_start; j < N; ++j)
             {
-                a[k][j] -= ta * a[i][j];
+                ktm_op_smadd(a[k][j], -ta, a[i][j]);
             }
         }
         for (int k = 0; k < N; ++k)
@@ -66,15 +66,15 @@ reduce_hessenberg(const M& m) noexcept
             T tt = zero<T>;
             for (int j = v_start; j < N; ++j)
             {
-                ta += a[i][j] * a[j][k];
-                tt += a[i][j] * trans[j][k];
+                ktm_op_smadd(ta, a[i][j], a[j][k]);
+                ktm_op_smadd(tt, a[i][j], trans[j][k]);
             }
             ta *= recip_h;
             tt *= recip_h;
             for (int j = v_start; j < N; ++j)
             {
-                a[j][k] -= ta * a[i][j];
-                trans[j][k] -= tt * a[i][j];
+                ktm_op_smadd(a[j][k], -ta, a[i][j]);
+                ktm_op_smadd(trans[j][k], -tt, a[i][j]);
             }
         }
 
@@ -103,7 +103,7 @@ reduce_tridiagonal(const M& m) noexcept
         T length = zero<T>;
         for (int j = v_start; j < N; ++j)
         {
-            length += a[i][j] * a[i][j];
+            ktm_op_smadd(length, a[i][j], a[i][j]);
         }
         if (equal(length, abs(a[i][v_start])))
             continue;
@@ -116,20 +116,20 @@ reduce_tridiagonal(const M& m) noexcept
             u[j] = a[i][j];
         }
 
-        T recip_h = recip(length * (length - a[i][v_start]));
+        T recip_h = recip(ktm_op_madd(-length * a[i][v_start], length, length));
         vec<N, T> q {};
         for (int j = v_start; j < N; ++j)
         {
-            q += a[j] * u[j];
+            ktm_op_smadd(q, a[j], u[j]);
         }
         q *= recip_h;
 
         T dot_qu = zero<T>;
         for (int j = v_start; j < N; ++j)
         {
-            dot_qu += q[j] * u[j];
+            ktm_op_smadd(dot_qu, q[j], u[j]);
         }
-        q -= dot_qu * static_cast<T>(0.5) * recip_h * u;
+        ktm_op_smadd(q, dot_qu * static_cast<T>(-0.5) * recip_h, vec<N, T>(u));
 
         a[i][v_start] = length;
         a[v_start][i] = length;
@@ -140,10 +140,10 @@ reduce_tridiagonal(const M& m) noexcept
         }
         for (int k = i + 1; k < N; ++k)
         {
-            a[k][k] -= u[k] * q[k] + q[k] * u[k];
+            a[k][k] -= ktm_op_madd(u[k] * q[k], q[k], u[k]);
             for (int j = k + 1; j < N; ++j)
             {
-                a[k][j] -= u[j] * q[k] + q[j] * u[k];
+                a[k][j] -= ktm_op_madd(u[j] * q[k], q[j], u[k]);
                 a[j][k] = a[k][j];
             }
         }
@@ -153,12 +153,12 @@ reduce_tridiagonal(const M& m) noexcept
             T tt = zero<T>;
             for (int j = v_start; j < N; ++j)
             {
-                tt += u[j] * trans[j][k];
+                ktm_op_smadd(tt, u[j], trans[j][k]);
             }
             tt *= recip_h;
             for (int j = v_start; j < N; ++j)
             {
-                trans[j][k] -= tt * u[j];
+                ktm_op_smadd(trans[j][k], -tt, u[j]);
             }
         }
     }
@@ -184,7 +184,7 @@ decompose_lu_doolittle(const M& m) noexcept
             u[i][j] = zero<T>;
             for (int k = i + 1; k < N; ++k)
             {
-                u[k][j] -= l[i][j] * u[k][i];
+                ktm_op_smadd(u[k][j], -l[i][j], u[k][i]);
             }
         }
     }
@@ -211,7 +211,7 @@ decompose_lu_crout(const M& m) noexcept
             l[j][i] = zero<T>;
             for (int k = i + 1; k < N; ++k)
             {
-                l[j][k] -= l[i][k] * u[j][i];
+                ktm_op_smadd(l[j][k], -l[i][k], u[j][i]);
             }
         }
     }
@@ -236,7 +236,7 @@ decompose_lu_cholesky(const M& m) noexcept
             T mij = m[i][j];
             for (int k = 0; k < j; ++k)
             {
-                mij -= u[i][k] * u[j][k];
+                ktm_op_smadd(mij, -u[i][k], u[j][k]);
             }
 
             if (i == j)
@@ -268,13 +268,13 @@ decompose_qr_householder(const M& m) noexcept
         T length = zero<T>;
         for (int j = i; j < N; ++j)
         {
-            length += r[i][j] * r[i][j];
+            ktm_op_smadd(length, r[i][j], r[i][j]);
         }
         if (equal(length, abs(r[i][i])))
             continue;
         length = std::copysign(sqrt(length), -r[i][i]);
 
-        T recip_h = recip(length * (length - r[i][i]));
+        T recip_h = recip(ktm_op_madd(-length * r[i][i], length, length));
         r[i][i] = (r[i][i] - length);
 
         for (int k = 0; k <= i; ++k)
@@ -282,12 +282,12 @@ decompose_qr_householder(const M& m) noexcept
             T tq = zero<T>;
             for (int j = i; j < N; ++j)
             {
-                tq += r[i][j] * q[j][k];
+                ktm_op_smadd(tq, r[i][j], q[j][k]);
             }
             tq *= recip_h;
             for (int j = i; j < N; ++j)
             {
-                q[j][k] -= tq * r[i][j];
+                ktm_op_smadd(q[j][k], -tq, r[i][j]);
             }
         }
         for (int k = i + 1; k < N; ++k)
@@ -296,15 +296,15 @@ decompose_qr_householder(const M& m) noexcept
             T tr = zero<T>;
             for (int j = i; j < N; ++j)
             {
-                tq += r[i][j] * q[j][k];
-                tr += r[i][j] * r[k][j];
+                ktm_op_smadd(tq, r[i][j], q[j][k]);
+                ktm_op_smadd(tr, r[i][j], r[k][j]);
             }
             tq *= recip_h;
             tr *= recip_h;
             for (int j = i; j < N; ++j)
             {
-                q[j][k] -= tq * r[i][j];
-                r[k][j] -= tr * r[i][j];
+                ktm_op_smadd(q[j][k], -tq, r[i][j]);
+                ktm_op_smadd(r[k][j], -tr, r[i][j]);
             }
         }
 
@@ -337,12 +337,12 @@ decompose_qr_givens(const M& m) noexcept
                 for (int k = 0; k < N; ++k)
                 {
                     T tmp = r[k][j - 1];
-                    r[k][j - 1] = cos_sin[0] * tmp + cos_sin[1] * r[k][j];
-                    r[k][j] = cos_sin[0] * r[k][j] - cos_sin[1] * tmp;
+                    r[k][j - 1] = ktm_op_madd(cos_sin[0] * tmp, cos_sin[1], r[k][j]);
+                    r[k][j] = ktm_op_madd(cos_sin[1] * -tmp, cos_sin[0], r[k][j]);
 
                     tmp = q[j - 1][k];
-                    q[j - 1][k] = cos_sin[0] * tmp + cos_sin[1] * q[j][k];
-                    q[j][k] = cos_sin[0] * q[j][k] - cos_sin[1] * tmp;
+                    q[j - 1][k] = ktm_op_madd(cos_sin[0] * tmp, cos_sin[1], q[j][k]);
+                    q[j][k] = ktm_op_madd(cos_sin[1] * -tmp, cos_sin[0], q[j][k]);
                 }
             }
         }
@@ -368,7 +368,7 @@ decompose_qr_schmitd(const M& m) noexcept
         for (int j = i + 1; j < N; ++j)
         {
             r[j][i] += dot(a[j], q[i]);
-            a[j] -= r[j][i] * q[i];
+            ktm_op_smadd(a[j], -r[j][i], q[i]);
         }
     }
     return { q, r };
@@ -386,25 +386,25 @@ decompose_qr_on_hessenberg(const M& m) noexcept
 
     for (int i = 0; i < N - 1; ++i)
     {
-        T length = length = r[i][i] * r[i][i] + r[i][i + 1] * r[i][i + 1];
+        T length = ktm_op_madd(r[i][i] * r[i][i], r[i][i + 1], r[i][i + 1]);
         if (equal(length, abs(r[i][i])))
             continue;
         length = std::copysign(sqrt(length), -r[i][i]);
 
-        T recip_h = recip(length * (length - r[i][i]));
+        T recip_h = recip(ktm_op_madd(-length * r[i][i], length, length));
         r[i][i] = (r[i][i] - length);
 
         for (int k = 0; k <= i + 1; ++k)
         {
-            T tq = recip_h * (r[i][i] * q[i][k] + r[i][i + 1] * q[i + 1][k]);
-            q[i][k] -= tq * r[i][i];
-            q[i + 1][k] -= tq * r[i][i + 1];
+            T tq = recip_h * ktm_op_madd(r[i][i] * q[i][k], r[i][i + 1], q[i + 1][k]);
+            ktm_op_smadd(q[i][k], -tq, r[i][i]);
+            ktm_op_smadd(q[i + 1][k], -tq, r[i][i + 1]);
         }
         for (int k = i + 1; k < N; ++k)
         {
-            T tr = recip_h * (r[i][i] * r[k][i] + r[i][i + 1] * r[k][i + 1]);
-            r[k][i] -= tr * r[i][i];
-            r[k][i + 1] -= tr * r[i][i + 1];
+            T tr = recip_h * ktm_op_madd(r[i][i] * r[k][i], r[i][i + 1], r[k][i + 1]);
+            ktm_op_smadd(r[k][i], -tr, r[i][i]);
+            ktm_op_smadd(r[k][i + 1], -tr, r[i][i + 1]);
         }
 
         r[i][i] = length;
@@ -431,14 +431,14 @@ decompose_qr_on_tridiagonal(const M& m) noexcept
             for (int k = i; k < N && k < i + 3; ++k)
             {
                 T tmp = r[k][i];
-                r[k][i] = cos_sin[0] * tmp + cos_sin[1] * r[k][i + 1];
-                r[k][i + 1] = cos_sin[0] * r[k][i + 1] - cos_sin[1] * tmp;
+                r[k][i] = ktm_op_madd(cos_sin[0] * tmp, cos_sin[1], r[k][i + 1]);
+                r[k][i + 1] = ktm_op_madd(cos_sin[1] * -tmp, cos_sin[0], r[k][i + 1]);
             }
             for (int k = 0; k <= i + 1; ++k)
             {
                 T tmp = q[i][k];
-                q[i][k] = cos_sin[0] * tmp + cos_sin[1] * q[i + 1][k];
-                q[i + 1][k] = cos_sin[0] * q[i + 1][k] - cos_sin[1] * tmp;
+                q[i][k] = ktm_op_madd(cos_sin[0] * tmp, cos_sin[1], q[i + 1][k]);
+                q[i + 1][k] = ktm_op_madd(cos_sin[1] * -tmp, cos_sin[0], q[i + 1][k]);
             }
         }
     }
@@ -461,7 +461,7 @@ decompose_edv_shiftqr(const M& m) noexcept
     for (int it = 0; it < KTM_MATRIX_DECOMPOSE_ITERATION_MAX; ++it)
     {
         T delta = (a[step - 1][step - 1] - a[step][step]) * static_cast<T>(0.5);
-        T diff = sqrt(delta * delta + a[step][step - 1] * a[step][step - 1]);
+        T diff = sqrt(ktm_op_madd(delta * delta, a[step][step - 1], a[step][step - 1]));
         T step_value = a[step][step] + delta - std::copysign(diff, delta);
         for (int i = 0; i < N; ++i)
         {
@@ -549,14 +549,14 @@ decompose_edv_jacobi(const M& m) noexcept
             sin_theta = sin(theta);
             cos_theta = cos(theta);
             sin_two_theta = static_cast<T>(2) * sin_theta * cos_theta;
-            cos_two_theta = cos_theta * cos_theta - sin_theta * sin_theta;
+            cos_two_theta = ktm_op_madd(-sin_theta * sin_theta, cos_theta, cos_theta);
         }
 
         T sin_theta_square = pow2(sin_theta);
         T cos_theta_square = pow2(cos_theta);
-        a[col][col] = acc * cos_theta_square + arr * sin_theta_square + acr * sin_two_theta;
-        a[row][row] = acc * sin_theta_square + arr * cos_theta_square - acr * sin_two_theta;
-        a[col][row] = static_cast<T>(0.5) * (arr - acc) * sin_two_theta + acr * cos_two_theta;
+        a[col][col] = ktm_op_madd(ktm_op_madd(acr * sin_two_theta, arr, sin_theta_square), acc, cos_theta_square);
+        a[row][row] = ktm_op_madd(ktm_op_madd(-acr * sin_two_theta, arr, cos_theta_square), acc, sin_theta_square);
+        a[col][row] = ktm_op_madd(acr * cos_two_theta, static_cast<T>(0.5) * (arr - acc), sin_two_theta);
         a[row][col] = a[col][row];
 
         // givens rotate
@@ -567,8 +567,8 @@ decompose_edv_jacobi(const M& m) noexcept
                 T aci = a[col][i];
                 T ari = a[row][i];
 
-                a[col][i] = cos_theta * aci + sin_theta * ari;
-                a[row][i] = cos_theta * ari - sin_theta * aci;
+                a[col][i] = ktm_op_madd(sin_theta * ari, cos_theta, aci);
+                a[row][i] = ktm_op_madd(-sin_theta * aci, cos_theta, ari);
                 a[i][col] = a[col][i];
                 a[i][row] = a[row][i];
             }
@@ -579,8 +579,8 @@ decompose_edv_jacobi(const M& m) noexcept
             T eci = eigen_vec[col][i];
             T eri = eigen_vec[row][i];
 
-            eigen_vec[col][i] = cos_theta * eci + sin_theta * eri;
-            eigen_vec[row][i] = cos_theta * eri - sin_theta * eci;
+            eigen_vec[col][i] = ktm_op_madd(sin_theta * eri, cos_theta, eci);
+            eigen_vec[row][i] = ktm_op_madd(-sin_theta * eci, cos_theta, eri);
         }
     }
     eigen_value = diagonal(a);

@@ -8,7 +8,7 @@
 #ifndef _KTM_H_
 #define _KTM_H_
 
-#include "ktm_operator.h"
+#include "ktm_op.h"
 
 #include "type/basic.h"
 #include "type_vec.h"
