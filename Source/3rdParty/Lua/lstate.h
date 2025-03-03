@@ -284,6 +284,48 @@ struct CallInfo {
 
 
 /*
+** 'per thread' state
+*/
+struct lua_State {
+  CommonHeader;
+  lu_byte allowhook;
+  TStatus status;
+  StkIdRel top;  /* first free slot in the stack */
+  struct global_State *l_G;
+  CallInfo *ci;  /* call info for current function */
+  StkIdRel stack_last;  /* end of stack (last element + 1) */
+  StkIdRel stack;  /* stack base */
+  UpVal *openupval;  /* list of open upvalues in this stack */
+  StkIdRel tbclist;  /* list of to-be-closed variables */
+  GCObject *gclist;
+  struct lua_State *twups;  /* list of threads with open upvalues */
+  struct lua_longjmp *errorJmp;  /* current error recover point */
+  CallInfo base_ci;  /* CallInfo for first level (C host) */
+  volatile lua_Hook hook;
+  ptrdiff_t errfunc;  /* current error handling function (stack index) */
+  l_uint32 nCcalls;  /* number of nested non-yieldable or C calls */
+  int oldpc;  /* last pc traced */
+  int nci;  /* number of items in 'ci' list */
+  int basehookcount;
+  int hookcount;
+  volatile l_signalT hookmask;
+  struct {  /* info about transferred values (for call/return hooks) */
+    int ftransfer;  /* offset of first value transferred */
+    int ntransfer;  /* number of values transferred */
+  } transferinfo;
+};
+
+
+/*
+** thread state + extra space
+*/
+typedef struct LX {
+  lu_byte extra_[LUA_EXTRASPACE];
+  lua_State l;
+} LX;
+
+
+/*
 ** 'global state', shared by all threads of this state
 */
 typedef struct global_State {
@@ -324,50 +366,18 @@ typedef struct global_State {
   GCObject *finobjrold;  /* list of really old objects with finalizers */
   struct lua_State *twups;  /* list of threads with open upvalues */
   lua_CFunction panic;  /* to be called in unprotected errors */
-  struct lua_State *mainthread;
   TString *memerrmsg;  /* message for memory-allocation errors */
   TString *tmname[TM_N];  /* array with tag-method names */
   struct Table *mt[LUA_NUMTYPES];  /* metatables for basic types */
   TString *strcache[STRCACHE_N][STRCACHE_M];  /* cache for strings in API */
   lua_WarnFunction warnf;  /* warning function */
   void *ud_warn;         /* auxiliary data to 'warnf' */
+  LX mainth;  /* main thread of this state */
 } global_State;
 
 
-/*
-** 'per thread' state
-*/
-struct lua_State {
-  CommonHeader;
-  lu_byte status;
-  lu_byte allowhook;
-  unsigned short nci;  /* number of items in 'ci' list */
-  StkIdRel top;  /* first free slot in the stack */
-  global_State *l_G;
-  CallInfo *ci;  /* call info for current function */
-  StkIdRel stack_last;  /* end of stack (last element + 1) */
-  StkIdRel stack;  /* stack base */
-  UpVal *openupval;  /* list of open upvalues in this stack */
-  StkIdRel tbclist;  /* list of to-be-closed variables */
-  GCObject *gclist;
-  struct lua_State *twups;  /* list of threads with open upvalues */
-  struct lua_longjmp *errorJmp;  /* current error recover point */
-  CallInfo base_ci;  /* CallInfo for first level (C calling Lua) */
-  volatile lua_Hook hook;
-  ptrdiff_t errfunc;  /* current error handling function (stack index) */
-  l_uint32 nCcalls;  /* number of nested (non-yieldable | C)  calls */
-  int oldpc;  /* last pc traced */
-  int basehookcount;
-  int hookcount;
-  volatile l_signalT hookmask;
-  struct {  /* info about transferred values (for call/return hooks) */
-    int ftransfer;  /* offset of first value transferred */
-    int ntransfer;  /* number of values transferred */
-  } transferinfo;
-};
-
-
 #define G(L)	(L->l_G)
+#define mainthread(G)	(&(G)->mainth.l)
 
 /*
 ** 'g->nilvalue' being a nil value flags that the state was completely
@@ -438,7 +448,7 @@ LUAI_FUNC void luaE_checkcstack (lua_State *L);
 LUAI_FUNC void luaE_incCstack (lua_State *L);
 LUAI_FUNC void luaE_warning (lua_State *L, const char *msg, int tocont);
 LUAI_FUNC void luaE_warnerror (lua_State *L, const char *where);
-LUAI_FUNC int luaE_resetthread (lua_State *L, int status);
+LUAI_FUNC TStatus luaE_resetthread (lua_State *L, TStatus status);
 
 
 #endif
