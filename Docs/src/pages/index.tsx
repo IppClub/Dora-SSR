@@ -28,7 +28,7 @@ function HomepageHeader() {
 					<Translate
 						id='dora_enter_tutorial_button'
 						description='The tutorial button in front page'>
-						[Start]
+						[Start &lt;]
 					</Translate>
 				</Link></strong></p>
 			</div>
