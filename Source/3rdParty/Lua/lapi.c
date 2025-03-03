@@ -672,7 +672,7 @@ LUA_API int lua_pushthread (lua_State *L) {
   setthvalue(L, s2v(L->top.p), L);
   api_incr_top(L);
   lua_unlock(L);
-  return (G(L)->mainthread == L);
+  return (mainthread(G(L)) == L);
 }
 
 
@@ -1087,7 +1087,7 @@ static void f_call (lua_State *L, void *ud) {
 LUA_API int lua_pcallk (lua_State *L, int nargs, int nresults, int errfunc,
                         lua_KContext ctx, lua_KFunction k) {
   struct CallS c;
-  int status;
+  TStatus status;
   ptrdiff_t func;
   lua_lock(L);
   api_check(L, k == NULL || !isLua(L->ci),
@@ -1124,14 +1124,14 @@ LUA_API int lua_pcallk (lua_State *L, int nargs, int nresults, int errfunc,
   }
   adjustresults(L, nresults);
   lua_unlock(L);
-  return status;
+  return APIstatus(status);
 }
 
 
 LUA_API int lua_load (lua_State *L, lua_Reader reader, void *data,
                       const char *chunkname, const char *mode) {
   ZIO z;
-  int status;
+  TStatus status;
   lua_lock(L);
   if (!chunkname) chunkname = "?";
   luaZ_init(L, &z, reader, data);
@@ -1148,7 +1148,7 @@ LUA_API int lua_load (lua_State *L, lua_Reader reader, void *data,
     }
   }
   lua_unlock(L);
-  return status;
+  return APIstatus(status);
 }
 
 
@@ -1171,7 +1171,7 @@ LUA_API int lua_dump (lua_State *L, lua_Writer writer, void *data, int strip) {
 
 
 LUA_API int lua_status (lua_State *L) {
-  return L->status;
+  return APIstatus(L->status);
 }
 
 
