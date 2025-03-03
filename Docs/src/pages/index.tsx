@@ -1,11 +1,13 @@
-import React, { JSX } from 'react';
+import React, { lazy, Suspense, JSX } from 'react';
 import clsx from 'clsx';
 import Link from '@docusaurus/Link';
+import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Layout from '@theme/Layout';
-import HomepageFeatures from '@site/src/components/HomepageFeatures';
-
 import styles from './index.module.css';
+
+const HomepageFeatures = lazy(() => import('@site/src/components/HomepageFeatures'));
 import Translate from '@docusaurus/Translate';
+
 function HomepageHeader() {
 	return (
 		<header className={clsx('hero hero--primary', styles.heroBanner)}>
@@ -35,12 +37,17 @@ function HomepageHeader() {
 }
 
 export default function Home(): JSX.Element {
+	const {siteConfig} = useDocusaurusContext();
+
 	return (
 		<Layout
+			title={`Hello from ${siteConfig.title}`}
 			description="Description will go into a meta tag in <head />">
 			<HomepageHeader />
 			<main>
-				<HomepageFeatures />
+				<Suspense fallback={<div className="container text--center padding-vert--xl">Loading...</div>}>
+					<HomepageFeatures />
+				</Suspense>
 			</main>
 		</Layout>
 	);
