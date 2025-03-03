@@ -14,6 +14,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <sstream>
 #include <stack>
 
+using namespace std::string_view_literals;
+
 namespace pl = parserlib;
 
 #define _DEFER(code, line) std::shared_ptr<void> _defer_##line(nullptr, [&](auto) { \
