@@ -4,7 +4,7 @@
  */
 
 .heroBanner {
-	padding: 10rem 0;
+	padding: 15rem 0;
 	text-align: center;
 	position: relative;
 	overflow: hidden;
@@ -20,7 +20,7 @@
 .heroTitle {
 	font-size: 5rem;
 	color: var(--ifm-color-title);
-	padding-bottom: 2rem;
+	padding-bottom: 1rem;
 }
 
 .heroSubtitle {
