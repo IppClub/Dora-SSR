@@ -8,6 +8,7 @@ import CardHeader from '@site/src/components/Card/CardHeader';
 import CardImage from '@site/src/components/Card/CardImage';
 import Columns from '@site/src/components/Column/Columns';
 import Column from '@site/src/components/Column';
+import Collapse from '@site/src/components/Collapse';
 export default {
 	// Reusing the default mapping
 	...MDXComponents,
@@ -18,4 +19,5 @@ export default {
 	CardImage,
 	Columns,
 	Column,
+	Collapse,
 };

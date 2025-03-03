@@ -15,30 +15,34 @@ import TabItem from '@theme/TabItem';
 
 ## 2. 安装
 
-### Android
+<Tabs groupId="platform-select">
+<TabItem value="android" label="Android">
 
-- 1、在游戏的运行终端下载并安装 [APK](https://github.com/ippclub/Dora-SSR/releases/latest) 包。
-- 2、运行软件，通过局域网内的 PC（平板或其他开发设备）的浏览器访问软件显示的服务器地址。
-- 3、开始游戏开发。
+1. 在游戏的运行终端下载并安装 [APK](https://github.com/ippclub/Dora-SSR/releases/latest) 包。
+2. 运行软件，通过局域网内的 PC（平板或其他开发设备）的浏览器访问软件显示的服务器地址。
+3. 开始游戏开发。
 
-### Windows
+</TabItem>
+<TabItem value="windows" label="Windows">
 
-- 1、从[这里](https://github.com/ippclub/Dora-SSR/releases/latest)下载并运行软件。请确保您已安装 Visual Studio 2022 的 X86 Visual C++ 可再发行组件包（即包含 MSVC 编译的程序所需运行时的 vc_redist.x86 补丁），以运行此应用程序。您可以从[微软网站](https://learn.microsoft.com/zh-cn/cpp/windows/latest-supported-vc-redist?view=msvc-170)下载。
-- 2、通过浏览器访问软件显示的服务器地址。
-- 3、开始游戏开发。
+1. 从[这里](https://github.com/ippclub/Dora-SSR/releases/latest)下载并运行软件。请确保您已安装 Visual Studio 2022 的 X86 Visual C++ 可再发行组件包（即包含 MSVC 编译的程序所需运行时的 vc_redist.x86 补丁），以运行此应用程序。您可以从[微软网站](https://learn.microsoft.com/zh-cn/cpp/windows/latest-supported-vc-redist?view=msvc-170)下载。
+2. 通过浏览器访问软件显示的服务器地址。
+3. 开始游戏开发。
 
-### macOS
+</TabItem>
+<TabItem value="macos" label="macOS">
 
-- 1、从[这里](https://github.com/ippclub/Dora-SSR/releases/latest)下载并运行软件。在首次运行时可能会弹出“无法打开 Dora”的提示，请在“系统偏好设置”中点击“安全性与隐私”，然后点击“仍要打开”。也可以通过 [Homebrew](https://brew.sh) 使用以下命令安装：
+1. 从[这里](https://github.com/ippclub/Dora-SSR/releases/latest)下载并运行软件。在首次运行时可能会弹出“无法打开 Dora”的提示，请在“系统偏好设置”中点击“安全性与隐私”，然后点击“仍要打开”。也可以通过 [Homebrew](https://brew.sh) 使用以下命令安装：
 	```sh
 	brew install --cask ippclub/tap/dora-ssr
 	```
-- 2、通过浏览器访问软件显示的服务器地址。
-- 3、开始游戏开发。
+2. 通过浏览器访问软件显示的服务器地址。
+3. 开始游戏开发。
 
-### Linux
+</TabItem>
+<TabItem value="linux" label="Linux">
 
-- 1、安装软件：
+1. 安装软件：
 	- Ubuntu
 		```sh
 		sudo add-apt-repository ppa:ippclub/dora-ssr
@@ -52,8 +56,11 @@ import TabItem from '@theme/TabItem';
 		sudo apt update
 		sudo apt install dora-ssr
 		```
-- 2、运行软件，通过浏览器访问软件显示的服务器地址。
-- 3、开始游戏开发。
+2. 运行软件，通过浏览器访问软件显示的服务器地址。
+3. 开始游戏开发。
+
+</TabItem>
+</Tabs>
 
 ## 2. 编写游戏
 
