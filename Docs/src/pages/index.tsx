@@ -41,8 +41,8 @@ export default function Home(): JSX.Element {
 
 	return (
 		<Layout
-			title={`Hello from ${siteConfig.title}`}
-			description="Description will go into a meta tag in <head />">
+			title={`${siteConfig.title}`}
+			description="A game engine for rapid development across devices, featuring a built-in Web IDE with intuitive toolchain.">
 			<HomepageHeader />
 			<main>
 				<Suspense fallback={<div className="container text--center padding-vert--xl">Loading...</div>}>
