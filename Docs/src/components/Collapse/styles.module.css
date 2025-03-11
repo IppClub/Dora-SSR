@@ -1,0 +1,42 @@
+.collapse {
+	margin-bottom: 1rem;
+	border: 1px solid var(--ifm-color-emphasis-300);
+	border-radius: var(--ifm-global-radius);
+	overflow: hidden;
+}
+
+.collapseButton {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	width: 100%;
+	background-color: var(--ifm-color-emphasis-100);
+	border: none;
+	cursor: pointer;
+	text-align: left;
+	font-weight: var(--ifm-font-weight-bold);
+	color: var(--ifm-color-emphasis-800);
+	transition: background-color 0.2s;
+}
+
+.collapseButton:hover {
+	background-color: var(--ifm-color-emphasis-200);
+}
+
+.collapseContent {
+	padding: 1rem;
+	background-color: var(--ifm-background-color);
+}
+
+.arrow {
+	font-size: 0.75rem;
+	transition: transform 0.2s;
+}
+
+.arrowUp {
+	transform: rotate(0);
+}
+
+.arrowDown {
+	transform: rotate(0);
+}

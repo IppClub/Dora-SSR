@@ -1,12 +1,11 @@
-import React, { lazy, Suspense, JSX } from 'react';
+import React, { JSX } from 'react';
 import clsx from 'clsx';
 import Link from '@docusaurus/Link';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Layout from '@theme/Layout';
 import styles from './index.module.css';
-
-const HomepageFeatures = lazy(() => import('@site/src/components/HomepageFeatures'));
 import Translate from '@docusaurus/Translate';
+import HomepageFeatures from '@site/src/components/HomepageFeatures';
 
 function HomepageHeader() {
 	return (
@@ -45,9 +44,7 @@ export default function Home(): JSX.Element {
 			description="A game engine for rapid development across devices, featuring a built-in Web IDE with intuitive toolchain.">
 			<HomepageHeader />
 			<main>
-				<Suspense fallback={<div className="container text--center padding-vert--xl">Loading...</div>}>
-					<HomepageFeatures />
-				</Suspense>
+				<HomepageFeatures />
 			</main>
 		</Layout>
 	);

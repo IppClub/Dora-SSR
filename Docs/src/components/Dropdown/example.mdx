@@ -1,0 +1,61 @@
+---
+title: Dropdown 组件示例
+---
+
+import Dropdown from '@site/src/components/Dropdown';
+
+# Dropdown 组件示例
+
+下面是一个简单的下拉菜单示例：
+
+<Dropdown
+  label="产品文档"
+  items={[
+    { label: '快速开始', to: '/docs/getting-started' },
+    { label: 'API参考', to: '/docs/api' },
+    { label: '教程', to: '/docs/tutorials' },
+    { label: '常见问题', to: '/docs/faq' },
+  ]}
+/>
+
+## 带有外部链接的下拉菜单
+
+<Dropdown
+  label="相关资源"
+  items={[
+    { label: 'GitHub', to: 'https://github.com/your-repo', target: '_blank' },
+    { label: '官方网站', to: 'https://your-website.com', target: '_blank' },
+    { label: '社区论坛', to: 'https://your-forum.com', target: '_blank' },
+  ]}
+/>
+
+## 自定义样式
+
+您可以通过className属性添加自定义样式：
+
+```jsx
+<Dropdown
+  label="自定义样式"
+  className="custom-dropdown"
+  items={[
+    { label: '选项1', to: '/option1' },
+    { label: '选项2', to: '/option2' },
+  ]}
+/>
+```
+
+## 组件属性
+
+| 属性 | 类型 | 必填 | 描述 |
+| --- | --- | --- | --- |
+| label | string | 是 | 下拉菜单的标签文本 |
+| items | DropdownItem[] | 是 | 下拉菜单项数组 |
+| className | string | 否 | 自定义CSS类名 |
+
+### DropdownItem 类型
+
+| 属性 | 类型 | 必填 | 描述 |
+| --- | --- | --- | --- |
+| label | string | 是 | 菜单项的显示文本 |
+| to | string | 是 | 链接地址 |
+| target | '_blank' \| '_self' \| '_parent' \| '_top' | 否 | 链接打开方式，默认为'_self' |
