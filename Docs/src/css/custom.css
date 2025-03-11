@@ -30,6 +30,7 @@
 	--navbar-bg: #ffffff1a;
 	--navbar-item-color: #ffffff;
 	--navbar-item-hover-bg: rgba(250, 192, 61, 0.9);
+	--dropdown-bg: #fff;
 }
 
 .table-of-contents__left-border {
@@ -78,6 +79,7 @@
 	--navbar-bg: #0000003a;
 	--navbar-item-color: #1a1a1a;
 	--navbar-item-hover-bg: rgba(250, 192, 61, 0.7);
+	--dropdown-bg: var(--ifm-background-color);
 }
 
 .header-github-link:hover {

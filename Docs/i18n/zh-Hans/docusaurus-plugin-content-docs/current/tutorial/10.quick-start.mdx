@@ -18,24 +18,58 @@ import TabItem from '@theme/TabItem';
 <Tabs groupId="platform-select">
 <TabItem value="android" label="Android">
 
-1. 在游戏的运行终端下载并安装 [APK](https://github.com/ippclub/Dora-SSR/releases/latest) 包。
+1. 在游戏的运行终端下载并安装 APK 包。
+
+	<Dropdown
+		label="下载 APK"
+		items={[
+			{ label: 'GitHub', to: 'https://github.com/ippclub/Dora-SSR/releases/latest', target: '_blank' },
+			{ label: 'Gitee', to: 'https://gitee.com/ippclub/Dora-SSR/releases/latest', target: '_blank' },
+			{ label: 'AtomGit', to: 'https://atomgit.com/ippclub/Dora-SSR/tags?tab=release', target: '_blank' },
+			{ label: 'GitCode', to: 'https://gitcode.com/ippclub/Dora-SSR/releases', target: '_blank' },
+	]}/>
+
 2. 运行软件，通过局域网内的 PC（平板或其他开发设备）的浏览器访问软件显示的服务器地址。
 3. 开始游戏开发。
 
 </TabItem>
 <TabItem value="windows" label="Windows">
 
-1. 从[这里](https://github.com/ippclub/Dora-SSR/releases/latest)下载并运行软件。请确保您已安装 Visual Studio 2022 的 X86 Visual C++ 可再发行组件包（即包含 MSVC 编译的程序所需运行时的 vc_redist.x86 补丁），以运行此应用程序。您可以从[微软网站](https://learn.microsoft.com/zh-cn/cpp/windows/latest-supported-vc-redist?view=msvc-170)下载。
+1. 下载并运行软件。请确保您已安装 Visual Studio 2022 的 X86 Visual C++ 可再发行组件包（即包含 MSVC 编译的程序所需运行时的 vc_redist.x86 补丁），以运行此应用程序。您可以从[微软网站](https://learn.microsoft.com/zh-cn/cpp/windows/latest-supported-vc-redist?view=msvc-170)下载。
+
+	<Dropdown
+		label="下载软件"
+		items={[
+			{ label: 'GitHub', to: 'https://github.com/ippclub/Dora-SSR/releases/latest', target: '_blank' },
+			{ label: 'Gitee', to: 'https://gitee.com/ippclub/Dora-SSR/releases/latest', target: '_blank' },
+			{ label: 'AtomGit', to: 'https://atomgit.com/ippclub/Dora-SSR/tags?tab=release', target: '_blank' },
+			{ label: 'GitCode', to: 'https://gitcode.com/ippclub/Dora-SSR/releases', target: '_blank' },
+	]}/>
+
 2. 通过浏览器访问软件显示的服务器地址。
 3. 开始游戏开发。
 
 </TabItem>
 <TabItem value="macos" label="macOS">
 
-1. 从[这里](https://github.com/ippclub/Dora-SSR/releases/latest)下载并运行软件。在首次运行时可能会弹出“无法打开 Dora”的提示，请在“系统偏好设置”中点击“安全性与隐私”，然后点击“仍要打开”。也可以通过 [Homebrew](https://brew.sh) 使用以下命令安装：
+1. 下载并运行软件。
+
+	<Dropdown
+		label="下载软件"
+		items={[
+			{ label: 'GitHub', to: 'https://github.com/ippclub/Dora-SSR/releases/latest', target: '_blank' },
+			{ label: 'Gitee', to: 'https://gitee.com/ippclub/Dora-SSR/releases/latest', target: '_blank' },
+			{ label: 'AtomGit', to: 'https://atomgit.com/ippclub/Dora-SSR/tags?tab=release', target: '_blank' },
+			{ label: 'GitCode', to: 'https://gitcode.com/ippclub/Dora-SSR/releases', target: '_blank' },
+	]}/>
+
+	或者您也可以通过 [Homebrew](https://brew.sh) 使用以下命令安装：
 	```sh
 	brew install --cask ippclub/tap/dora-ssr
 	```
+
+	首次运行软件时，您可能会看到“Dora 无法打开”的提示。请前往“系统偏好设置” > “安全性与隐私”并点击“仍要打开”。
+
 2. 通过浏览器访问软件显示的服务器地址。
 3. 开始游戏开发。
 

@@ -1,0 +1,95 @@
+---
+sidebar_position: 1
+title: Collapse 组件示例
+---
+
+# Collapse 组件示例
+
+Collapse 组件允许您在 MDX 文档中创建可折叠的下拉列表，非常适合组织内容和创建交互式文档。
+
+## 基本用法
+
+<Collapse title="点击展开基本示例">
+  这是一个基本的 Collapse 组件示例。您可以在这里放置任何 Markdown 或 JSX 内容。
+
+  - 列表项 1
+  - 列表项 2
+  - 列表项 3
+</Collapse>
+
+## 默认展开
+
+您可以设置 `defaultOpen` 属性为 `true`，使下拉列表默认展开：
+
+<Collapse title="默认展开的下拉列表" defaultOpen={true}>
+  这个下拉列表在页面加载时默认是展开的。
+
+  ```jsx
+  // 示例代码
+  function Example() {
+    return <div>Hello World</div>;
+  }
+  ```
+</Collapse>
+
+## 自定义样式
+
+您可以通过 `className` 属性添加自定义样式：
+
+<Collapse title="自定义样式示例" className="custom-Collapse">
+  这个下拉列表使用了自定义样式类。
+
+  > 这是一个引用块，展示 Collapse 内部可以使用各种 Markdown 语法。
+
+  ### 子标题也可以使用
+
+  甚至可以在下拉列表中嵌套其他组件。
+</Collapse>
+
+## 嵌套下拉列表
+
+Collapse 组件可以嵌套使用：
+
+<Collapse title="父级下拉列表">
+  这是父级下拉列表的内容。
+
+  <Collapse title="子级下拉列表">
+    这是嵌套在父级下拉列表中的子级下拉列表。
+  </Collapse>
+</Collapse>
+
+## 与其他组件结合使用
+
+Collapse 组件可以与其他 MDX 组件结合使用：
+
+<Collapse title="与其他组件结合">
+  <Columns>
+    <Column>
+      ### 第一列
+      这是第一列的内容。
+    </Column>
+    <Column>
+      ### 第二列
+      这是第二列的内容。
+    </Column>
+  </Columns>
+</Collapse>
+
+## 如何在您的 MDX 文件中使用
+
+要在您的 MDX 文件中使用 Collapse 组件，只需按照以下语法：
+
+```jsx
+<Collapse title="下拉列表标题">
+  这里是下拉列表的内容。
+  可以包含任何 Markdown 或 JSX 内容。
+</Collapse>
+```
+
+### 可用属性
+
+| 属性 | 类型 | 默认值 | 描述 |
+|------|------|--------|------|
+| `title` | string | 必填 | 下拉列表的标题 |
+| `defaultOpen` | boolean | false | 是否默认展开下拉列表 |
+| `className` | string | '' | 自定义 CSS 类名 |
