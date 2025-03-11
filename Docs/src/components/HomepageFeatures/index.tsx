@@ -1,4 +1,4 @@
-import React, { JSX } from 'react';
+import React, { JSX, useEffect, useRef, useState } from 'react';
 import clsx from 'clsx';
 import styles from './styles.module.css';
 import Translate from '@docusaurus/Translate';
@@ -18,6 +18,57 @@ type FeatureItem = {
 	description: JSX.Element;
 };
 
+// LazyImage component for lazy loading images
+function LazyImage({ src, alt, className, style = {} }) {
+	const imgRef = useRef(null);
+	const [isLoaded, setIsLoaded] = useState(false);
+
+	useEffect(() => {
+		const observer = new IntersectionObserver((entries) => {
+			entries.forEach(entry => {
+				if (entry.isIntersecting) {
+					setIsLoaded(true);
+					observer.unobserve(entry.target);
+				}
+			});
+		}, {
+			rootMargin: '100px', // Load images when they are 100px from viewport
+			threshold: 0.1
+		});
+
+		if (imgRef.current) {
+			observer.observe(imgRef.current);
+		}
+
+		return () => {
+			if (imgRef.current) {
+				observer.unobserve(imgRef.current);
+			}
+		};
+	}, []);
+
+	return (
+		<div ref={imgRef} className={className} style={style}>
+			{isLoaded ? (
+				<img src={src} alt={alt} className={className} style={style} />
+			) : (
+				<div
+					className={className}
+					style={{
+						...style,
+						background: '#f0f0f0',
+						display: 'flex',
+						justifyContent: 'center',
+						alignItems: 'center'
+					}}
+				>
+					<span>Loading...</span>
+				</div>
+			)}
+		</div>
+	);
+}
+
 const PromotionFeatureList: FeatureItem[] = [
 	{
 		title: (
@@ -27,7 +78,7 @@ const PromotionFeatureList: FeatureItem[] = [
 				Game Dev Freedom
 			</Translate>
 		),
-		image: <img src={feature_img_two.default} alt='feature_title_two' className={styles.featureImg}/>,
+		image: <LazyImage src={feature_img_two.default} alt='feature_title_two' className={styles.featureImg}/>,
 		description: (
 			<Translate
 				id='feature_description_two'
@@ -42,7 +93,7 @@ const PromotionFeatureList: FeatureItem[] = [
 				Multilingual Playground
 			</Translate>
 		),
-		image: <img src={feature_img_three.default} alt='feature_title_three' className={styles.featureImg}/>,
+		image: <LazyImage src={feature_img_three.default} alt='feature_title_three' className={styles.featureImg}/>,
 		description: (
 			<Translate
 				id='feature_description_three'
@@ -59,7 +110,7 @@ const PromotionFeatureList: FeatureItem[] = [
 				Play as You Create
 			</Translate>
 		),
-		image: <img src={feature_img_one.default} alt='feature_title_one' className={styles.featureImg}/>,
+		image: <LazyImage src={feature_img_one.default} alt='feature_title_one' className={styles.featureImg}/>,
 		description: (
 			<Translate
 				id="feature_description_one"
@@ -95,7 +146,7 @@ const EngineFeatureList: FeatureItem[] = [
 				Powerful Code Editor
 			</Translate>
 		),
-		image: <img src={require('@site/static/img/showcase/1.jpg').default} alt='Powerful Code Editor' className={styles.featureImgFixed}/>,
+		image: <LazyImage src={require('@site/static/img/showcase/1.jpg').default} alt='Powerful Code Editor' className={styles.featureImgFixed}/>,
 		description: (
 			<Translate
 				id='engine_feature_description_code_editor'
@@ -112,7 +163,7 @@ const EngineFeatureList: FeatureItem[] = [
 				Intuitive Yarn Spinner Script Editor
 			</Translate>
 		),
-		image: <img src={require('@site/static/img/showcase/2.jpg').default} alt='Intuitive Yarn Spinner Script Editor' className={styles.featureImgFixed}/>,
+		image: <LazyImage src={require('@site/static/img/showcase/2.jpg').default} alt='Intuitive Yarn Spinner Script Editor' className={styles.featureImgFixed}/>,
 		description: (
 			<Translate
 				id='engine_feature_description_yarn_spinner_editor'
@@ -129,7 +180,7 @@ const EngineFeatureList: FeatureItem[] = [
 				Visual Script Editor for Beginners
 			</Translate>
 		),
-		image: <img src={require('@site/static/img/showcase/3.jpg').default} alt='Visual Script Editor for Beginners' className={styles.featureImgFixed}/>,
+		image: <LazyImage src={require('@site/static/img/showcase/3.jpg').default} alt='Visual Script Editor for Beginners' className={styles.featureImgFixed}/>,
 		description: (
 			<Translate
 				id='engine_feature_description_visual_script_editor'
@@ -146,7 +197,7 @@ const EngineFeatureList: FeatureItem[] = [
 				Skeletal Animation Support
 			</Translate>
 		),
-		image: <img src={require('@site/static/img/showcase/4.jpg').default} alt='Skeletal Animation Support' className={styles.featureImgFixed}/>,
+		image: <LazyImage src={require('@site/static/img/showcase/4.jpg').default} alt='Skeletal Animation Support' className={styles.featureImgFixed}/>,
 		description: (
 			<Translate
 				id='engine_feature_description_skeletal_animation'
@@ -163,7 +214,7 @@ const EngineFeatureList: FeatureItem[] = [
 				Profiling and Debugging Tools
 			</Translate>
 		),
-		image: <img src={require('@site/static/img/showcase/6.jpg').default} alt='Profiling and Debugging Tools' className={styles.featureImgFixed}/>,
+		image: <LazyImage src={require('@site/static/img/showcase/6.jpg').default} alt='Profiling and Debugging Tools' className={styles.featureImgFixed}/>,
 		description: (
 			<Translate
 				id='engine_feature_description_profiling_and_debugging_tools'
@@ -180,7 +231,7 @@ const EngineFeatureList: FeatureItem[] = [
 				Platformer Game Support
 			</Translate>
 		),
-		image: <img src={require('@site/static/img/showcase/LoliWar.gif').default} alt='Platformer Game Support' className={styles.featureImgFixed}/>,
+		image: <LazyImage src={require('@site/static/img/showcase/LoliWar.gif').default} alt='Platformer Game Support' className={styles.featureImgFixed}/>,
 		description: (
 			<Translate
 				id='engine_feature_description_platformer_game_support'
@@ -197,7 +248,7 @@ const EngineFeatureList: FeatureItem[] = [
 				Tiled Map Rendering Support
 			</Translate>
 		),
-		image: <img src={require('@site/static/img/showcase/5.jpg').default} alt='Tiled Map Rendering Support' className={styles.featureImgFixed}/>,
+		image: <LazyImage src={require('@site/static/img/showcase/5.jpg').default} alt='Tiled Map Rendering Support' className={styles.featureImgFixed}/>,
 		description: (
 			<Translate
 				id='engine_feature_description_tiled_map'
@@ -214,7 +265,7 @@ const EngineFeatureList: FeatureItem[] = [
 				Built-in ML and AI Framework
 			</Translate>
 		),
-		image: <img src={require('@site/static/img/showcase/ZombieEscape.png').default} alt='Built-in ML and AI Framework' className={styles.featureImgFixed}/>,
+		image: <LazyImage src={require('@site/static/img/showcase/ZombieEscape.png').default} alt='Built-in ML and AI Framework' className={styles.featureImgFixed}/>,
 		description: (
 			<Translate
 				id='engine_feature_description_ml_and_ai_framework'
@@ -231,7 +282,7 @@ const EngineFeatureList: FeatureItem[] = [
 				Open Art Assets and Game IP
 			</Translate>
 		),
-		image: <img src={require('@site/static/img/showcase/LuvSenseDigital.png').default} alt='Open Art Assets and Game IP' className={styles.featureImgFixed}/>,
+		image: <LazyImage src={require('@site/static/img/showcase/LuvSenseDigital.png').default} alt='Open Art Assets and Game IP' className={styles.featureImgFixed}/>,
 		description: (
 			<Translate
 				id='engine_feature_description_open_art_assets_and_game_ip'
@@ -248,7 +299,7 @@ const EngineFeatureList: FeatureItem[] = [
 				Cross-Platform Game Dev Support
 			</Translate>
 		),
-		image: <img src={require('@site/static/img/showcase/dev-everywhere.jpg').default} alt='Cross-Platform Game Dev Support' className={styles.featureImgFixed}/>,
+		image: <LazyImage src={require('@site/static/img/showcase/dev-everywhere.jpg').default} alt='Cross-Platform Game Dev Support' className={styles.featureImgFixed}/>,
 		description: (
 			<Translate
 				id='engine_feature_description_cross_platform_game_dev_support'
@@ -265,7 +316,7 @@ const EngineFeatureList: FeatureItem[] = [
 				Lua Scripting Support
 			</Translate>
 		),
-		image: <img src={require('@site/static/img/lang/lua.png').default} alt='Lua Scripting Support' className={styles.featureImgFixed} style={{padding: 20}}/>,
+		image: <LazyImage src={require('@site/static/img/lang/lua.png').default} alt='Lua Scripting Support' className={styles.featureImgFixed} style={{padding: 20}}/>,
 		description: (
 			<Translate
 				id='engine_feature_description_lua_scripting_support'
@@ -282,7 +333,7 @@ const EngineFeatureList: FeatureItem[] = [
 				YueScript Scripting Support
 			</Translate>
 		),
-		image: <img src={require('@site/static/img/lang/yuescript.png').default} alt='YueScript Scripting Support' className={styles.featureImgFixed} style={{padding: 40}}/>,
+		image: <LazyImage src={require('@site/static/img/lang/yuescript.png').default} alt='YueScript Scripting Support' className={styles.featureImgFixed} style={{padding: 40}}/>,
 		description: (
 			<Translate
 				id='engine_feature_description_yuescript_scripting_support'
@@ -299,7 +350,7 @@ const EngineFeatureList: FeatureItem[] = [
 				Teal Scripting Support
 			</Translate>
 		),
-		image: <img src={require('@site/static/img/lang/teal.png').default} alt='Teal Scripting Support' className={styles.featureImgFixed} style={{padding: 40}}/>,
+		image: <LazyImage src={require('@site/static/img/lang/teal.png').default} alt='Teal Scripting Support' className={styles.featureImgFixed} style={{padding: 40}}/>,
 		description: (
 			<Translate
 				id='engine_feature_description_teal_scripting_support'
@@ -316,7 +367,7 @@ const EngineFeatureList: FeatureItem[] = [
 				TypeScript Scripting Support
 			</Translate>
 		),
-		image: <img src={require('@site/static/img/lang/typescript.png').default} alt='TypeScript Scripting Support' className={styles.featureImgFixed} style={{padding: 40}}/>,
+		image: <LazyImage src={require('@site/static/img/lang/typescript.png').default} alt='TypeScript Scripting Support' className={styles.featureImgFixed} style={{padding: 40}}/>,
 		description: (
 			<Translate
 				id='engine_feature_description_typescript_scripting_support'
@@ -350,7 +401,7 @@ const EngineFeatureList: FeatureItem[] = [
 				Rust Scripting Support
 			</Translate>
 		),
-		image: <img src={require('@site/static/img/lang/rust.png').default} alt='Rust Scripting Support' className={styles.featureImgFixed} style={{padding: 40}}/>,
+		image: <LazyImage src={require('@site/static/img/lang/rust.png').default} alt='Rust Scripting Support' className={styles.featureImgFixed} style={{padding: 40}}/>,
 		description: (
 			<Translate
 				id='engine_feature_description_rust_scripting_support'
