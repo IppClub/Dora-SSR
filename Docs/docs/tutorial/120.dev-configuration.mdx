@@ -1,14 +1,48 @@
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # How to Build Dora SSR Engine
 
 ## 1. Get the Source
+
+<Tabs groupId="git-select">
+<TabItem value="github" label="GitHub">
 
 ```sh
 git clone https://github.com/ippclub/Dora-SSR.git
 ```
 
-## 2. Game Engine Runtime Development
+</TabItem>
+<TabItem value="atomgit" label="AtomGit">
 
-### 2.1 Windows
+```sh
+git clone https://atomgit.com/ippclub/Dora-SSR.git
+```
+
+</TabItem>
+<TabItem value="gitee" label="Gitee">
+
+```sh
+git clone https://gitee.com/ippclub/Dora-SSR.git
+```
+
+</TabItem>
+<TabItem value="gitcode" label="GitCode">
+
+```sh
+git clone https://gitcode.com/ippclub/Dora-SSR.git
+```
+
+</TabItem>
+</Tabs>
+
+
+## 2. Build Game Engine Runtime
+
+Please select the target platform you want to build for.
+
+<Tabs groupId="platform-select">
+<TabItem value="windows" label="Windows">
 
 1. Install **Rust** compiler.
 
@@ -23,7 +57,8 @@ git clone https://github.com/ippclub/Dora-SSR.git
 
 5. Compile, debug, and run the project.
 
-### 2.2 macOS
+</TabItem>
+<TabItem value="macos" label="macOS">
 
 1. Install **Rust** compiler.
 
@@ -38,8 +73,8 @@ git clone https://github.com/ippclub/Dora-SSR.git
 
 5. Compile, debug, and run the project.
 
-### 2.3 iOS
-
+</TabItem>
+<TabItem value="ios" label="iOS">
 
 1. Install **Rust** compiler.
 
@@ -54,7 +89,8 @@ git clone https://github.com/ippclub/Dora-SSR.git
 
 5. Compile, debug, and run the project.
 
-### 2.4 Android
+</TabItem>
+<TabItem value="android" label="Android">
 
 1. Install **Rust** compiler.
 
@@ -65,18 +101,18 @@ git clone https://github.com/ippclub/Dora-SSR.git
 
 3. Manually generate Lua bindings.
 	```sh
-	# ubuntu
+	# Build on Ubuntu
 	sudo apt-get install lua5.1
 	sudo apt-get install -y luarocks
 	sudo luarocks install luafilesystem
 	cd Tools/tolua++
 	lua tolua++.lua
 
-	# macOS
+	# Build on macOS
 	cd Tools/tolua++
 	./build.sh
 
-	# Windows
+	# Build on Windows
 	cd Tools\tolua++
 	build.bat
 	```
@@ -87,9 +123,8 @@ git clone https://github.com/ippclub/Dora-SSR.git
 
 6. Compile, debug, and run the project.
 
-### 2.5 Linux
-
-#### Ubuntu, Debian
+</TabItem>
+<TabItem value="linux" label="Linux">
 
 1. Install **Rust** compiler.
 
@@ -102,7 +137,15 @@ git clone https://github.com/ippclub/Dora-SSR.git
 	Tools/build-scripts/build_lib_linux_aarch64.sh
 	```
 
-3. Manually generate Lua bindings.
+<Tabs groupId="linux-distribution-select">
+<TabItem value="ubuntu" label="Ubuntu/Debian">
+
+3. Install dependent packages.
+	```sh
+	sudo apt-get install -y libsdl2-dev libgl1-mesa-dev libssl-dev
+	```
+
+4. Manually generate Lua bindings.
 	```sh
 	sudo apt-get install lua5.1
 	sudo apt-get install -y luarocks
@@ -111,51 +154,8 @@ git clone https://github.com/ippclub/Dora-SSR.git
 	lua tolua++.lua
 	```
 
-4. Install dependent packages.
-	```sh
-	sudo apt-get install -y libsdl2-dev libgl1-mesa-dev libssl-dev
-	```
-
-5. Run the compile scripts.
-
-	- For the first time build
-		```sh title="For ARM architecture"
-		cd Projects/Linux
-		make arm
-		```
-
-		```sh title="For x86_64 architecture"
-		cd Projects/Linux
-		make x86_64
-		```
-
-	- For incremental build
-		```sh
-		cd Projects/Linux
-		make
-		```
-
-6. Run the generated software.
-	```sh
-	cd Assets
-	../Projects/Linux/build/dora-ssr
-
-	# Or specify the resource directory with command line arguments
-	./Projects/Linux/build/dora-ssr --asset Assets
-	```
-
-#### Arch Linux
-
-1. Install **Rust** compiler.
-
-2. Run the following script to generate the engine's dependent libraries.
-	```sh title="For x86_64 architecture"
-	Tools/build-scripts/build_lib_linux_x86_64.sh
-	```
-
-	```sh title="For ARM64 architecture"
-	Tools/build-scripts/build_lib_linux_aarch64.sh
-	```
+</TabItem>
+<TabItem value="arch-linux" label="Arch Linux">
 
 3. Install dependent packages.
 	```sh
@@ -172,6 +172,9 @@ git clone https://github.com/ippclub/Dora-SSR.git
 	lua5.1 tolua++.lua
 	```
 
+</TabItem>
+</Tabs>
+
 5. Run the compile scripts.
 
 	- For the first time build
@@ -200,51 +203,81 @@ git clone https://github.com/ippclub/Dora-SSR.git
 	./Projects/Linux/build/dora-ssr --asset Assets
 	```
 
-## 3. Web IDE Development
+</TabItem>
+</Tabs>
+
+## 3. Build Web IDE
 
 1. Compile and run the Dora SSR engine.
 
 2. Install the latest version of **Node.js**.
 
 3. Initialize the project and enter the Dora Dora editor development mode.
+
+	Please select the platform you are building with.
+
+<Tabs groupId="platform-select">
+<TabItem value="macos" label="macOS">
+
 	```sh
-	# macOS
 	cd Tools/dora-dora/3rdParty/YarnEditor && yarn && yarn build
 	rm -rf ../../public/yarn-editor
 	mv dist ../../public/yarn-editor
 	cd ../.. && yarn
 	yarn start
 	```
-	```sh
-	# Linux
-	cd Tools/dora-dora/3rdParty/YarnEditor && yarn && yarn build-linux
-	rm -rf ../../public/yarn-editor
-	mv dist ../../public/yarn-editor
-	cd ../.. && yarn
-	yarn start
-	```
-	```sh
-	# Windows
-	cd Tools\dora-dora\3rdParty\YarnEditor && yarn && yarn build-win
-	rmdir /Q /S ..\..\public\yarn-editor
-	move dist ..\..\public\yarn-editor
-	cd ..\.. && yarn install --network-timeout 1000000
-	yarn start
-	```
+
 	Alternatively, you can generate the Web IDE release files, copy them to the project's `Assets/www` directory, and then start the Dora SSR engine to test the full project functionality.
+
 	```sh
-	# macOS, Linux
 	# Ensure the previous steps of compiling and copying YarnEditor are completed
 	cd Tools/dora-dora
 	yarn build
 	rm -rf ../../Assets/www
 	mv build ../../Assets/www
 	```
+
+	</TabItem>
+	<TabItem value="linux" label="Linux">
+
 	```sh
-	# Windows
+	cd Tools/dora-dora/3rdParty/YarnEditor && yarn && yarn build-linux
+	rm -rf ../../public/yarn-editor
+	mv dist ../../public/yarn-editor
+	cd ../.. && yarn
+	yarn start
+	```
+
+	Alternatively, you can generate the Web IDE release files, copy them to the project's `Assets/www` directory, and then start the Dora SSR engine to test the full project functionality.
+
+	```sh
+	# Ensure the previous steps of compiling and copying YarnEditor are completed
+	cd Tools/dora-dora
+	yarn build
+	rm -rf ../../Assets/www
+	mv build ../../Assets/www
+	```
+
+</TabItem>
+<TabItem value="windows" label="Windows">
+
+	```sh
+	cd Tools\dora-dora\3rdParty\YarnEditor && yarn && yarn build-win
+	rmdir /Q /S ..\..\public\yarn-editor
+	move dist ..\..\public\yarn-editor
+	cd ..\.. && yarn install --network-timeout 1000000
+	yarn start
+	```
+
+	Alternatively, you can generate the Web IDE release files, copy them to the project's `Assets/www` directory, and then start the Dora SSR engine to test the full project functionality.
+
+	```sh
 	# Ensure the previous steps of compiling and copying YarnEditor are completed
 	cd Tools\dora-dora
 	yarn build
 	rmdir /Q /S ..\..\Assets\www
 	move build ..\..\Assets\www
 	```
+
+</TabItem>
+</Tabs>

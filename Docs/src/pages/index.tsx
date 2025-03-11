@@ -23,7 +23,7 @@ function HomepageHeader() {
 					id='hero_subtitle'
 					description='The subtitle in front page'>
 					Game Engine
-				</Translate></strong> <strong><Link
+				</Translate></strong><br/><strong><Link
 					to="/docs/tutorial/quick-start">
 					<Translate
 						id='dora_enter_tutorial_button'
