@@ -200,7 +200,7 @@ with Sprite "Image/logo.png"
 - **TypeScript**
 
 ```typescript
-import {Sprite, Ease, Scale, Sequence, sleep} from 'Dora';
+import { Sprite, Ease, Scale, Sequence, sleep } from 'Dora';
 
 const sprite = Sprite("Image/logo.png");
 if (sprite) {
@@ -223,32 +223,23 @@ if (sprite) {
 &emsp;&emsp;使用 TSX 语言来创建 Dora SSR 的游戏场景是一个比较容易上手的选择。新手教程可以参见[这里](https://dora-ssr.net/zh-Hans/blog/2024/4/25/tsx-dev-intro)。
 
 ```tsx
-import {React, toNode, toAction, useRef} from 'DoraX';
-import {Ease, Sprite, once, sleep} from 'Dora';
+import { React, toNode } from 'DoraX';
+import { Ease } from 'Dora';
 
-const sprite = useRef<Sprite.Type>();
-
-const onUpdate = once(() => {
-  for (let i of $range(3, 1, -1)) {
-    print(i);
-    sleep(1);
-  }
-  print("Hello World");
-  sprite.current?.perform(toAction(
+toNode(
+  <sprite file='Image/logo.png'>
     <sequence>
+      <event name="Count" param="3"/>
+      <delay time={1}/>
+      <event name="Count" param="2"/>
+      <delay time={1}/>
+      <event name="Count" param="1"/>
+      <delay time={1}/>
       <scale time={0.1} start={1} stop={0.5}/>
       <scale time={0.5} start={0.5} stop={1} easing={Ease.OutBack}/>
     </sequence>
-  ));
-});
-
-toNode(
-  <sprite
-    ref={sprite}
-    file='Image/logo.png'
-    onUpdate={onUpdate}
-  />
-);
+  </sprite>
+)?.slot("Count", (_, param) => print(param));
 ```
 
 - **Rust**
