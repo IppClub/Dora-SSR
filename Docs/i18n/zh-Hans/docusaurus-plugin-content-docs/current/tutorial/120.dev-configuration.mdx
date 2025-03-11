@@ -1,14 +1,47 @@
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # 如何构建 Dora SSR 引擎
 
 ## 1. 获取项目源码
+
+<Tabs groupId="git-select">
+<TabItem value="github" label="GitHub">
 
 ```sh
 git clone https://github.com/ippclub/Dora-SSR.git
 ```
 
-## 2. 进行游戏引擎运行时的开发配置
+</TabItem>
+<TabItem value="atomgit" label="AtomGit">
 
-### 2.1 Windows
+```sh
+git clone https://atomgit.com/ippclub/Dora-SSR.git
+```
+
+</TabItem>
+<TabItem value="gitee" label="Gitee">
+
+```sh
+git clone https://gitee.com/ippclub/Dora-SSR.git
+```
+
+</TabItem>
+<TabItem value="gitcode" label="GitCode">
+
+```sh
+git clone https://gitcode.com/ippclub/Dora-SSR.git
+```
+
+</TabItem>
+</Tabs>
+
+## 2. 构建游戏引擎运行时
+
+&emsp;&emsp;请选择你想要构建的目标平台。
+
+<Tabs groupId="platform-select">
+<TabItem value="windows" label="Windows">
 
 1. 安装 **Rust** 语言环境。
 
@@ -23,7 +56,8 @@ git clone https://github.com/ippclub/Dora-SSR.git
 
 5. 进行编译. 调试和运行。
 
-### 2.2 macOS
+</TabItem>
+<TabItem value="macos" label="macOS">
 
 1. 安装 **Rust** 语言环境。
 
@@ -38,7 +72,8 @@ git clone https://github.com/ippclub/Dora-SSR.git
 
 5. 进行编译. 调试和运行。
 
-### 2.3 iOS
+</TabItem>
+<TabItem value="ios" label="iOS">
 
 1. 安装 **Rust** 语言环境。
 
@@ -53,7 +88,8 @@ git clone https://github.com/ippclub/Dora-SSR.git
 
 5. 进行编译. 调试和运行。
 
-### 2.4 Android
+</TabItem>
+<TabItem value="android" label="Android">
 
 1. 安装 **Rust** 语言环境。
 
@@ -64,18 +100,18 @@ git clone https://github.com/ippclub/Dora-SSR.git
 
 3. 手动生成 Lua 绑定。
 	```sh
-	# ubuntu
+	# 在 Ubuntu 系统上构建
 	sudo apt-get install lua5.1
 	sudo apt-get install -y luarocks
 	sudo luarocks install luafilesystem
 	cd Tools/tolua++
 	lua tolua++.lua
 
-	# macOS
+	# 在 macOS 系统上构建
 	cd Tools/tolua++
 	./build.sh
 
-	# Windows
+	# 在 Windows 系统上构建
 	cd Tools\tolua++
 	build.bat
 	```
@@ -84,9 +120,8 @@ git clone https://github.com/ippclub/Dora-SSR.git
 5. 在 IDE 打开工程目录：**Projects/Android/Dora**。
 6. 进行编译. 调试和运行。
 
-### 2.5 Linux
-
-#### Ubuntu, Debian
+</TabItem>
+<TabItem value="linux" label="Linux">
 
 1. 安装 **Rust** 语言环境。
 
@@ -99,7 +134,15 @@ git clone https://github.com/ippclub/Dora-SSR.git
 	Tools/build-scripts/build_lib_linux_aarch64.sh
 	```
 
-3. 手动生成 Lua 绑定。
+<Tabs groupId="linux-distribution-select">
+<TabItem value="ubuntu" label="Ubuntu/Debian">
+
+3. 安装依赖包。
+	```sh
+	sudo apt-get install -y libsdl2-dev libgl1-mesa-dev libssl-dev
+	```
+
+4. 手动生成 Lua 绑定。
 	```sh
 	sudo apt-get install lua5.1
 	sudo apt-get install -y luarocks
@@ -108,51 +151,8 @@ git clone https://github.com/ippclub/Dora-SSR.git
 	lua tolua++.lua
 	```
 
-4. 安装依赖包。
-	```sh
-	sudo apt-get install -y libsdl2-dev libgl1-mesa-dev libssl-dev
-	```
-
-5. 运行编译脚本。
-
-	- 进行首次编译
-		```sh title="在 ARM 架构上"
-		cd Projects/Linux
-		make arm
-		```
-
-		```sh title="在 x86_64 架构上"
-		cd Projects/Linux
-		make x86_64
-		```
-
-	- 进行后续增量编译
-		```sh
-		cd Projects/Linux
-		make
-		```
-
-6. 运行生成的软件。
-	```sh
-	cd Assets
-	../Projects/Linux/build/dora-ssr
-
-	# 或者用命令行参数指定资源目录
-	./Projects/Linux/build/dora-ssr --asset Assets
-	```
-
-#### Arch Linux
-
-1. 安装 **Rust** 语言环境。
-
-2. 执行下面的脚本，生成引擎的依赖库。
-	```sh title="在 x86_64 架构上"
-	Tools/build-scripts/build_lib_linux_x86_64.sh
-	```
-
-	```sh title="在 ARM64 架构上"
-	Tools/build-scripts/build_lib_linux_aarch64.sh
-	```
+</TabItem>
+<TabItem value="arch-linux" label="Arch Linux">
 
 3. 安装依赖包。
 	```sh
@@ -169,6 +169,9 @@ git clone https://github.com/ippclub/Dora-SSR.git
 	lua5.1 tolua++.lua
 	```
 
+</TabItem>
+</Tabs>
+
 5. 运行编译脚本。
 
 	- 进行首次编译
@@ -197,49 +200,78 @@ git clone https://github.com/ippclub/Dora-SSR.git
 	./Projects/Linux/build/dora-ssr --asset Assets
 	```
 
-## 3. 进行 Web IDE 的开发和运行
+</TabItem>
+</Tabs>
+
+## 3. 构建 Web IDE
 
 1. 编译并运行 Dora SSR 引擎。
 2. 安装最新版的 **Node.js**。
 3. 初始化项目并进入 Dora Dora 编辑器开发模式。
+
+	请选择你在进行 Web IDE 开发的平台。
+
+<Tabs groupId="platform-select">
+<TabItem value="macos" label="macOS">
+
 	```sh
-	# macOS
 	cd Tools/dora-dora/3rdParty/YarnEditor && yarn && yarn build
 	rm -rf ../../public/yarn-editor
 	mv dist ../../public/yarn-editor
 	cd ../.. && yarn
 	yarn start
 	```
-	```sh
-	# Linux
-	cd Tools/dora-dora/3rdParty/YarnEditor && yarn && yarn build-linux
-	rm -rf ../../public/yarn-editor
-	mv dist ../../public/yarn-editor
-	cd ../.. && yarn
-	yarn start
-	```
-	```sh
-	# Windows
-	cd Tools\dora-dora\3rdParty\YarnEditor && yarn && yarn build-win
-	rmdir /Q /S ..\..\public\yarn-editor
-	move dist ..\..\public\yarn-editor
-	cd ..\.. && yarn install --network-timeout 1000000
-	yarn start
-	```
+
 	&emsp;&emsp;或者你可以将 Web IDE 发布文件进行生成后，复制到项目的 `Assets/www` 下面，然后再启动 Dora SSR 引擎，进行完整项目功能的测试使用。
+
 	```sh
-	# macOS, Linux
 	# 确保之前步骤里的 YarnEditor 的编译和文件复制已完成
 	cd Tools/dora-dora
 	yarn build
 	rm -rf ../../Assets/www
 	mv build ../../Assets/www
 	```
+
+</TabItem>
+<TabItem value="linux" label="Linux">
+
 	```sh
-	# Windows
+	cd Tools/dora-dora/3rdParty/YarnEditor && yarn && yarn build-linux
+	rm -rf ../../public/yarn-editor
+	mv dist ../../public/yarn-editor
+	cd ../.. && yarn
+	yarn start
+	```
+
+	&emsp;&emsp;或者你可以将 Web IDE 发布文件进行生成后，复制到项目的 `Assets/www` 下面，然后再启动 Dora SSR 引擎，进行完整项目功能的测试使用。
+
+	```sh
+	# 确保之前步骤里的 YarnEditor 的编译和文件复制已完成
+	cd Tools/dora-dora
+	yarn build
+	rm -rf ../../Assets/www
+	mv build ../../Assets/www
+	```
+
+</TabItem>
+<TabItem value="windows" label="Windows">
+
+	```sh
+	cd Tools\dora-dora\3rdParty\YarnEditor && yarn && yarn build-win
+	rmdir /Q /S ..\..\public\yarn-editor
+	move dist ..\..\public\yarn-editor
+	cd ..\.. && yarn install --network-timeout 1000000
+	yarn start
+	```
+
+	&emsp;&emsp;或者你可以将 Web IDE 发布文件进行生成后，复制到项目的 `Assets/www` 下面，然后再启动 Dora SSR 引擎，进行完整项目功能的测试使用。
+
+	```sh
 	# 确保之前步骤里的 YarnEditor 的编译和文件复制已完成
 	cd Tools\dora-dora
 	yarn build
 	rmdir /Q /S ..\..\Assets\www
 	move build ..\..\Assets\www
 	```
+</TabItem>
+</Tabs>
