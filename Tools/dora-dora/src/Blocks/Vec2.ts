@@ -8,14 +8,30 @@ const vec2Category = {
 	kind: 'category',
 	name: zh ? '向量' : 'Vec2',
 	categorystyle: 'math_category',
-	contents: [] as {kind: string, type: string}[],
+	contents: [] as {kind: string, type: string, inputs?: any}[],
 };
 export default vec2Category;
+
+// Zero vec2
+const vec2ZeroBlock = {
+	type: 'vec2_zero',
+	message0: zh ? '零二维向量' : 'Vec2 Zero',
+	output: 'Vec2',
+	style: 'math_blocks',
+};
+Blockly.Blocks['vec2_zero'] = { init: function() { this.jsonInit(vec2ZeroBlock); } };
+luaGenerator.forBlock['vec2_zero'] = function(_block: Blockly.Block) {
+	return [`Vec2.zero`, Order.ATOMIC];
+};
+vec2Category.contents.push({
+	kind: 'block',
+	type: 'vec2_zero',
+});
 
 // Create vec2
 const vec2CreateBlock = {
 	type: 'vec2_create',
-	message0: zh ? '创建向量 (%1, %2)' : 'Create vec2 (%1, %2)',
+	message0: zh ? '二维向量(%1, %2)' : 'Vec2(%1, %2)',
 	args0: [
 		{
 			type: 'input_value',
@@ -40,12 +56,30 @@ luaGenerator.forBlock['vec2_create'] = function(block: Blockly.Block) {
 vec2Category.contents.push({
 	kind: 'block',
 	type: 'vec2_create',
+	inputs: {
+		X: {
+			shadow: {
+				type: 'math_number',
+				fields: {
+					NUM: 0,
+				},
+			},
+		},
+		Y: {
+			shadow: {
+				type: 'math_number',
+				fields: {
+					NUM: 0,
+				},
+			},
+		},
+	},
 });
 
 // Get vec2 component
 const vec2GetComponentBlock = {
 	type: 'vec2_get_component',
-	message0: zh ? '获取向量 %1 的 %2 分量' : 'Get vec2 %1 %2 component',
+	message0: zh ? '获取二维向量 %1 的 %2 分量' : 'Get vec2 %1 %2 component',
 	args0: [
 		{
 			type: 'field_variable',
@@ -55,10 +89,7 @@ const vec2GetComponentBlock = {
 		{
 			type: 'field_dropdown',
 			name: 'COMPONENT',
-			options: zh ? [
-				['X 坐标', 'x'],
-				['Y 坐标', 'y'],
-			] : [
+			options: [
 				['X', 'x'],
 				['Y', 'y'],
 			],
@@ -81,7 +112,7 @@ vec2Category.contents.push({
 // Binary operation
 const vec2BinaryOperationBlock = {
 	type: 'vec2_binary_operation',
-	message0: zh ? '向量 %1\n%2\n向量 %3' : 'Vec2 %1\n%2\nVec2 %3',
+	message0: zh ? '%1\n%2\n%3' : '%1\n%2\n%3',
 	args0: [
 		{
 			type: 'input_value',
@@ -126,12 +157,60 @@ luaGenerator.forBlock['vec2_binary_operation'] = function(block: Blockly.Block) 
 vec2Category.contents.push({
 	kind: 'block',
 	type: 'vec2_binary_operation',
+	inputs: {
+		VEC2_1: {
+			shadow: {
+				type: 'vec2_create',
+				inputs: {
+					X: {
+						shadow: {
+							type: 'math_number',
+							fields: {
+								NUM: 0,
+							},
+						},
+					},
+					Y: {
+						shadow: {
+							type: 'math_number',
+							fields: {
+								NUM: 0,
+							},
+						},
+					},
+				},
+			},
+		},
+		VEC2_2: {
+			shadow: {
+				type: 'vec2_create',
+				inputs: {
+					X: {
+						shadow: {
+							type: 'math_number',
+							fields: {
+								NUM: 0,
+							},
+						},
+					},
+					Y: {
+						shadow: {
+							type: 'math_number',
+							fields: {
+								NUM: 0,
+							},
+						},
+					},
+				},
+			},
+		},
+	},
 });
 
 // Get vec2 property
 const vec2GetPropertyBlock = {
 	type: 'vec2_get_property',
-	message0: zh ? '获取向量 %1 的 %2 属性' : 'Get vec2 %1 %2 property',
+	message0: zh ? '获取二维向量 %1 的 %2 属性' : 'Get vec2 %1 %2 property',
 	args0: [
 		{
 			type: 'field_variable',

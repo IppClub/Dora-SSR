@@ -8,7 +8,7 @@ const eventCategory = {
 	kind: 'category',
 	name: zh ? '事件' : 'Event',
 	categorystyle: 'dora_category',
-	contents: [] as {kind: string, type: string}[],
+	contents: [] as {kind: string, type: string, inputs?: any}[],
 };
 export default eventCategory;
 
@@ -51,7 +51,7 @@ eventCategory.contents.push({
 // onTapEvent
 const onTapEventBlock = {
 	type: 'on_tap_event',
-	message0: zh ? '当节点 %1 的 %2 事件发生，接收到 %3\n做 %4' : 'When node %1 %2 event occurs, receive %3\nDo %4',
+	message0: zh ? '当节点 %1 的 %2 事件发生\n接收到参数 %3\n做 %4' : 'When node %1 %2 event occurs\nReceive parameter %3\nDo %4',
 	args0: [
 		{
 			type: 'field_variable',
@@ -61,12 +61,17 @@ const onTapEventBlock = {
 		{
 			type: 'field_dropdown',
 			name: 'EVENT',
-			options: [
-				[zh ? '点击过滤' : 'Tap Filter', 'TapFilter'],
-				[zh ? '点击开始' : 'Tap Began', 'TapBegan'],
-				[zh ? '点击结束' : 'Tap Ended', 'TapEnded'],
-				[zh ? '点击完成' : 'Tapped', 'Tapped'],
-			]
+			options: zh ? [
+				['点击开始', 'TapBegan'],
+				['点击过滤', 'TapFilter'],
+				['点击结束', 'TapEnded'],
+				['点击完成', 'Tapped'],
+			] : [
+				['Tap Began', 'TapBegan'],
+				['Tap Filter', 'TapFilter'],
+				['Tap Ended', 'TapEnded'],
+				['Tapped', 'Tapped'],
+			],
 		},
 		{
 			type: 'field_variable',
@@ -186,10 +191,223 @@ eventCategory.contents.push({
 	type: 'get_touch_number_attribute',
 });
 
+const keyNameOptions = zh ? [
+	['回车', 'Return'],
+	['ESC', 'Escape'],
+	['退格', 'BackSpace'],
+	['Tab', 'Tab'],
+	['空格', 'Space'],
+	['!', '!'],
+	['"', '"'],
+	['#', '#'],
+	['%', '%'],
+	['$', '$'],
+	['&', '&'],
+	['\'', '\''],
+	['(', '('],
+	[')', ')'],
+	['*', '*'],
+	['+', '+'],
+	[',', ','],
+	['-', '-'],
+	['.', '.'],
+	['/', '/'],
+	['1', '1'],
+	['2', '2'],
+	['3', '3'],
+	['4', '4'],
+	['5', '5'],
+	['6', '6'],
+	['7', '7'],
+	['8', '8'],
+	['9', '9'],
+	['0', '0'],
+	[':', ':'],
+	[';', ';'],
+	['<', '<'],
+	['=', '='],
+	['>', '>'],
+	['?', '?'],
+	['@', '@'],
+	['[', '['],
+	['\\', '\\'],
+	[']', ']'],
+	['^', '^'],
+	['_', '_'],
+	['`', '`'],
+	['A', 'A'],
+	['B', 'B'],
+	['C', 'C'],
+	['D', 'D'],
+	['E', 'E'],
+	['F', 'F'],
+	['G', 'G'],
+	['H', 'H'],
+	['I', 'I'],
+	['J', 'J'],
+	['K', 'K'],
+	['L', 'L'],
+	['M', 'M'],
+	['N', 'N'],
+	['O', 'O'],
+	['P', 'P'],
+	['Q', 'Q'],
+	['R', 'R'],
+	['S', 'S'],
+	['T', 'T'],
+	['U', 'U'],
+	['V', 'V'],
+	['W', 'W'],
+	['X', 'X'],
+	['Y', 'Y'],
+	['Z', 'Z'],
+	['删除', 'Delete'],
+	['CapsLock', 'CapsLock'],
+	['F1', 'F1'],
+	['F2', 'F2'],
+	['F3', 'F3'],
+	['F4', 'F4'],
+	['F5', 'F5'],
+	['F6', 'F6'],
+	['F7', 'F7'],
+	['F8', 'F8'],
+	['F9', 'F9'],
+	['F10', 'F10'],
+	['F11', 'F11'],
+	['F12', 'F12'],
+	['PrintScreen', 'PrintScreen'],
+	['ScrollLock', 'ScrollLock'],
+	['Pause', 'Pause'],
+	['Insert', 'Insert'],
+	['Home', 'Home'],
+	['PageUp', 'PageUp'],
+	['End', 'End'],
+	['PageDown', 'PageDown'],
+	['右', 'Right'],
+	['左', 'Left'],
+	['下', 'Down'],
+	['上', 'Up'],
+	['系统键', 'Application'],
+	['左Ctrl', 'LCtrl'],
+	['左Shift', 'LShift'],
+	['左Alt', 'LAlt'],
+	['左Gui', 'LGui'],
+	['右Ctrl', 'RCtrl'],
+	['右Shift', 'RShift'],
+	['右Alt', 'RAlt'],
+	['右Gui', 'RGui'],
+] : [
+	['Return', 'Return'],
+	['Escape', 'Escape'],
+	['BackSpace', 'BackSpace'],
+	['Tab', 'Tab'],
+	['Space', 'Space'],
+	['!', '!'],
+	['"', '"'],
+	['#', '#'],
+	['%', '%'],
+	['$', '$'],
+	['&', '&'],
+	['\'', '\''],
+	['(', '('],
+	[')', ')'],
+	['*', '*'],
+	['+', '+'],
+	[',', ','],
+	['-', '-'],
+	['.', '.'],
+	['/', '/'],
+	['1', '1'],
+	['2', '2'],
+	['3', '3'],
+	['4', '4'],
+	['5', '5'],
+	['6', '6'],
+	['7', '7'],
+	['8', '8'],
+	['9', '9'],
+	['0', '0'],
+	[':', ':'],
+	[';', ';'],
+	['<', '<'],
+	['=', '='],
+	['>', '>'],
+	['?', '?'],
+	['@', '@'],
+	['[', '['],
+	['\\', '\\'],
+	[']', ']'],
+	['^', '^'],
+	['_', '_'],
+	['`', '`'],
+	['A', 'A'],
+	['B', 'B'],
+	['C', 'C'],
+	['D', 'D'],
+	['E', 'E'],
+	['F', 'F'],
+	['G', 'G'],
+	['H', 'H'],
+	['I', 'I'],
+	['J', 'J'],
+	['K', 'K'],
+	['L', 'L'],
+	['M', 'M'],
+	['N', 'N'],
+	['O', 'O'],
+	['P', 'P'],
+	['Q', 'Q'],
+	['R', 'R'],
+	['S', 'S'],
+	['T', 'T'],
+	['U', 'U'],
+	['V', 'V'],
+	['W', 'W'],
+	['X', 'X'],
+	['Y', 'Y'],
+	['Z', 'Z'],
+	['Delete', 'Delete'],
+	['CapsLock', 'CapsLock'],
+	['F1', 'F1'],
+	['F2', 'F2'],
+	['F3', 'F3'],
+	['F4', 'F4'],
+	['F5', 'F5'],
+	['F6', 'F6'],
+	['F7', 'F7'],
+	['F8', 'F8'],
+	['F9', 'F9'],
+	['F10', 'F10'],
+	['F11', 'F11'],
+	['F12', 'F12'],
+	['PrintScreen', 'PrintScreen'],
+	['ScrollLock', 'ScrollLock'],
+	['Pause', 'Pause'],
+	['Insert', 'Insert'],
+	['Home', 'Home'],
+	['PageUp', 'PageUp'],
+	['Delete', 'Delete'],
+	['End', 'End'],
+	['PageDown', 'PageDown'],
+	['Right', 'Right'],
+	['Left', 'Left'],
+	['Down', 'Down'],
+	['Up', 'Up'],
+	['Application', 'Application'],
+	['LCtrl', 'LCtrl'],
+	['LShift', 'LShift'],
+	['LAlt', 'LAlt'],
+	['LGui', 'LGui'],
+	['RCtrl', 'RCtrl'],
+	['RShift', 'RShift'],
+	['RAlt', 'RAlt'],
+	['RGui', 'RGui'],
+];
+
 // onKeyboardEvent
 const onKeyboardEventBlock = {
 	type: 'on_keyboard_event',
-	message0: zh ? '当节点 %1 的 %2 事件发生，接收到 %3\n做 %4' : 'When node %1 %2 event occurs, receive %3\nDo %4',
+	message0: zh ? '当节点 %1 的 %2 事件发生\n触发按键为 %3\n做 %4' : 'When node %1 %2 event occurs\nTrigger key is %3\nDo %4',
 	args0: [
 		{
 			type: 'field_variable',
@@ -210,9 +428,9 @@ const onKeyboardEventBlock = {
 			],
 		},
 		{
-			type: 'field_variable',
+			type: 'field_dropdown',
 			name: 'KEY',
-			variable: 'key',
+			options: keyNameOptions,
 		},
 		{
 			type: 'input_statement',
@@ -227,155 +445,90 @@ Blockly.Blocks['on_keyboard_event'] = { init: function() { this.jsonInit(onKeybo
 luaGenerator.forBlock['on_keyboard_event'] = function(block: Blockly.Block) {
 	const node = luaGenerator.getVariableName(block.getFieldValue('NODE'));
 	const event = block.getFieldValue('EVENT');
-	const key = luaGenerator.getVariableName(block.getFieldValue('KEY'));
+	const key = luaGenerator.quote_(block.getFieldValue('KEY'));
 	const action = luaGenerator.statementToCode(block, 'ACTION');
-	return `${node}:on${event}(function(${key})\n${action}end)\n`;
+	const keyName = luaGenerator.nameDB_?.getDistinctName('key', Blockly.Names.NameType.VARIABLE) ?? 'key_';
+	return `${node}:on${event}(function(${keyName}) if ${keyName} == ${key} then\n${action}end end)\n`;
 };
 eventCategory.contents.push({
 	kind: 'block',
 	type: 'on_keyboard_event',
 });
 
-// compare key
-const compareKeyBlock = {
-	type: 'compare_key',
-	message0: zh ? '键盘按键 %1 是 %2' : 'Keyboard %1 is %2',
+// check key
+const checkKeyBlock = {
+	type: 'check_key',
+	message0: zh ? '检测到键盘按键 %1 状态为 %2' : 'Checked if keyboard %1 is %2',
 	args0: [
 		{
-			type: 'field_variable',
+			type: 'field_dropdown',
 			name: 'KEY',
-			variable: 'key',
+			options: keyNameOptions,
 		},
 		{
 			type: 'field_dropdown',
-			name: 'KEY_NAME',
-			options: [
-				['Return', 'Return'],
-				['Escape', 'Escape'],
-				['BackSpace', 'BackSpace'],
-				['Tab', 'Tab'],
-				['Space', 'Space'],
-				['!', '!'],
-				['"', '"'],
-				['#', '#'],
-				['%', '%'],
-				['$', '$'],
-				['&', '&'],
-				['\'', '\''],
-				['(', '('],
-				[')', ')'],
-				['*', '*'],
-				['+', '+'],
-				[',', ','],
-				['-', '-'],
-				['.', '.'],
-				['/', '/'],
-				['1', '1'],
-				['2', '2'],
-				['3', '3'],
-				['4', '4'],
-				['5', '5'],
-				['6', '6'],
-				['7', '7'],
-				['8', '8'],
-				['9', '9'],
-				['0', '0'],
-				[':', ':'],
-				[';', ';'],
-				['<', '<'],
-				['=', '='],
-				['>', '>'],
-				['?', '?'],
-				['@', '@'],
-				['[', '['],
-				['\\', '\\'],
-				[']', ']'],
-				['^', '^'],
-				['_', '_'],
-				['`', '`'],
-				['A', 'A'],
-				['B', 'B'],
-				['C', 'C'],
-				['D', 'D'],
-				['E', 'E'],
-				['F', 'F'],
-				['G', 'G'],
-				['H', 'H'],
-				['I', 'I'],
-				['J', 'J'],
-				['K', 'K'],
-				['L', 'L'],
-				['M', 'M'],
-				['N', 'N'],
-				['O', 'O'],
-				['P', 'P'],
-				['Q', 'Q'],
-				['R', 'R'],
-				['S', 'S'],
-				['T', 'T'],
-				['U', 'U'],
-				['V', 'V'],
-				['W', 'W'],
-				['X', 'X'],
-				['Y', 'Y'],
-				['Z', 'Z'],
-				['Delete', 'Delete'],
-				['CapsLock', 'CapsLock'],
-				['F1', 'F1'],
-				['F2', 'F2'],
-				['F3', 'F3'],
-				['F4', 'F4'],
-				['F5', 'F5'],
-				['F6', 'F6'],
-				['F7', 'F7'],
-				['F8', 'F8'],
-				['F9', 'F9'],
-				['F10', 'F10'],
-				['F11', 'F11'],
-				['F12', 'F12'],
-				['PrintScreen', 'PrintScreen'],
-				['ScrollLock', 'ScrollLock'],
-				['Pause', 'Pause'],
-				['Insert', 'Insert'],
-				['Home', 'Home'],
-				['PageUp', 'PageUp'],
-				['Delete', 'Delete'],
-				['End', 'End'],
-				['PageDown', 'PageDown'],
-				['Right', 'Right'],
-				['Left', 'Left'],
-				['Down', 'Down'],
-				['Up', 'Up'],
-				['Application', 'Application'],
-				['LCtrl', 'LCtrl'],
-				['LShift', 'LShift'],
-				['LAlt', 'LAlt'],
-				['LGui', 'LGui'],
-				['RCtrl', 'RCtrl'],
-				['RShift', 'RShift'],
-				['RAlt', 'RAlt'],
-				['RGui', 'RGui'],
+			name: 'KEY_STATE',
+			options: zh ? [
+				['按下', 'KeyDown'],
+				['抬起', 'KeyUp'],
+				['按住', 'KeyPressed'],
+			] : [
+				['Down', 'KeyDown'],
+				['Up', 'KeyUp'],
+				['Pressed', 'KeyPressed'],
 			],
 		},
 	],
 	output: 'Boolean',
-	style: 'logic_blocks',
+	style: 'math_blocks',
 };
-Blockly.Blocks['compare_key'] = { init: function() { this.jsonInit(compareKeyBlock); } };
-luaGenerator.forBlock['compare_key'] = function(block: Blockly.Block) {
-	const key = luaGenerator.getVariableName(block.getFieldValue('KEY'));
-	const keyName = luaGenerator.quote_(block.getFieldValue('KEY_NAME'));
-	return [`${key} == ${keyName}`, Order.RELATIONAL];
+Blockly.Blocks['check_key'] = { init: function() { this.jsonInit(checkKeyBlock); } };
+luaGenerator.forBlock['check_key'] = function(block: Blockly.Block) {
+	const key = luaGenerator.quote_(block.getFieldValue('KEY'));
+	const keyState = block.getFieldValue('KEY_STATE');
+	return [`Keyboard:is${keyState}(${key})`, Order.ATOMIC];
 };
 eventCategory.contents.push({
 	kind: 'block',
-	type: 'compare_key',
+	type: 'check_key',
 });
+
+const controllerButtonOptions = zh ? [
+	['A', 'a'],
+	['B', 'b'],
+	['X', 'x'],
+	['Y', 'y'],
+	['开始', 'start'],
+	['返回', 'back'],
+	['上', 'dpup'],
+	['下', 'dpdown'],
+	['左', 'dpleft'],
+	['右', 'dpright'],
+	['左肩键', 'leftshoulder'],
+	['左摇杆', 'leftstick'],
+	['右肩键', 'rightshoulder'],
+	['右摇杆', 'rightstick'],
+] : [
+	['A', 'a'],
+	['B', 'b'],
+	['X', 'x'],
+	['Y', 'y'],
+	['Start', 'start'],
+	['Back', 'back'],
+	['Up', 'dpup'],
+	['Down', 'dpdown'],
+	['Left', 'dpleft'],
+	['Right', 'dpright'],
+	['LeftShoulder', 'leftshoulder'],
+	['LeftStick', 'leftstick'],
+	['RightShoulder', 'rightshoulder'],
+	['RightStick', 'rightstick'],
+];
 
 // onButtonEvent
 const onButtonEventBlock = {
 	type: 'on_button_event',
-	message0: zh ? '当节点 %1 的 %2 事件发生，接收到 %3 和 %4\n做 %5' : 'When node %1 %2 event occurs, receive %3 and %4\nDo %5',
+	message0: zh ? '当节点 %1 的 %2 事件发生\n控制器编号为 %3\n触发按钮为 %4\n做 %5' : 'When node %1 %2 event occurs\nController id is %3\nTrigger button is %4\nDo %5',
 	args0: [
 		{
 			type: 'field_variable',
@@ -392,14 +545,14 @@ const onButtonEventBlock = {
 			],
 		},
 		{
-			type: 'field_variable',
+			type: 'input_value',
 			name: 'CONTROLLER_ID',
-			variable: 'id',
+			check: 'Number',
 		},
 		{
-			type: 'field_variable',
+			type: 'field_dropdown',
 			name: 'BUTTON',
-			variable: 'button',
+			options: controllerButtonOptions,
 		},
 		{
 			type: 'input_statement',
@@ -414,57 +567,78 @@ Blockly.Blocks['on_button_event'] = { init: function() { this.jsonInit(onButtonE
 luaGenerator.forBlock['on_button_event'] = function(block: Blockly.Block) {
 	const node = luaGenerator.getVariableName(block.getFieldValue('NODE'));
 	const event = block.getFieldValue('EVENT');
-	const id = luaGenerator.getVariableName(block.getFieldValue('CONTROLLER_ID'));
-	const button = luaGenerator.getVariableName(block.getFieldValue('BUTTON'));
+	const id = luaGenerator.valueToCode(block, 'CONTROLLER_ID', Order.ATOMIC);
+	const button = luaGenerator.quote_(block.getFieldValue('BUTTON'));
 	const action = luaGenerator.statementToCode(block, 'ACTION');
-	return `${node}:on${event}(function(${id}, ${button})\n${action}end)\n`;
+	const idName = luaGenerator.nameDB_?.getDistinctName('id', Blockly.Names.NameType.VARIABLE) ?? 'id_';
+	const buttonName = luaGenerator.nameDB_?.getDistinctName('button', Blockly.Names.NameType.VARIABLE) ?? 'button_';
+	return `${node}:on${event}(function(${idName}, ${buttonName}) if ${idName} == ${id === '' ? '0' : id} and ${buttonName} == ${button} then\n${action}end end)\n`;
 };
 eventCategory.contents.push({
 	kind: 'block',
 	type: 'on_button_event',
+	inputs: {
+		CONTROLLER_ID: {
+			shadow: {
+				type: 'math_number',
+				fields: {
+					NUM: 0,
+				},
+			},
+		},
+	},
 });
 
-// compare controller button
-const compareControllerButtonBlock = {
-	type: 'compare_controller_button',
-	message0: zh ? '控制器按钮 %1 是 %2' : 'Controller button %1 is %2',
+// check controller button
+const checkControllerButtonBlock = {
+	type: 'check_controller_button',
+	message0: zh ? '检测到控制器编号为 %1 的按钮 %2 状态为 %3' : 'Checked if controller with id %1 button %2 is %3',
 	args0: [
 		{
-			type: 'field_variable',
-			name: 'BUTTON',
-			variable: 'button',
+			type: 'input_value',
+			name: 'CONTROLLER_ID',
+			check: 'Number',
 		},
 		{
 			type: 'field_dropdown',
-			name: 'BUTTON_NAME',
-			options: [
-				['A', 'a'],
-				['B', 'b'],
-				['X', 'x'],
-				['Y', 'y'],
-				['Start', 'start'],
-				['Back', 'back'],
-				['Up', 'dpup'],
-				['Down', 'dpdown'],
-				['Left', 'dpleft'],
-				['Right', 'dpright'],
-				['LeftShoulder', 'leftshoulder'],
-				['LeftStick', 'leftstick'],
-				['RightShoulder', 'rightshoulder'],
-				['RightStick', 'rightstick'],
-			]
+			name: 'BUTTON',
+			options: controllerButtonOptions,
+		},
+		{
+			type: 'field_dropdown',
+			name: 'STATE',
+			options: zh ? [
+				['按下', 'ButtonDown'],
+				['抬起', 'ButtonUp'],
+				['按住', 'ButtonPressed'],
+			] : [
+				['Down', 'ButtonDown'],
+				['Up', 'ButtonUp'],
+				['Pressed', 'ButtonPressed'],
+			],
 		},
 	],
 	output: 'Boolean',
-	style: 'logic_blocks',
+	style: 'math_blocks',
 };
-Blockly.Blocks['compare_controller_button'] = { init: function() { this.jsonInit(compareControllerButtonBlock); } };
-luaGenerator.forBlock['compare_controller_button'] = function(block: Blockly.Block) {
-	const button = luaGenerator.getVariableName(block.getFieldValue('BUTTON'));
-	const buttonName = luaGenerator.quote_(block.getFieldValue('BUTTON_NAME'));
-	return [`${button} == ${buttonName}`, Order.RELATIONAL];
+Blockly.Blocks['check_controller_button'] = { init: function() { this.jsonInit(checkControllerButtonBlock); } };
+luaGenerator.forBlock['check_controller_button'] = function(block: Blockly.Block) {
+	const id = luaGenerator.valueToCode(block, 'CONTROLLER_ID', Order.ATOMIC);
+	const button = luaGenerator.quote_(block.getFieldValue('BUTTON'));
+	const state = block.getFieldValue('STATE');
+	return [`Controller:is${state}(${id === '' ? '0' : id}, ${button})`, Order.ATOMIC];
 };
 eventCategory.contents.push({
 	kind: 'block',
-	type: 'compare_controller_button',
+	type: 'check_controller_button',
+	inputs: {
+		CONTROLLER_ID: {
+			shadow: {
+				type: 'math_number',
+				fields: {
+					NUM: 0,
+				},
+			},
+		},
+	},
 });

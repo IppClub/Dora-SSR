@@ -8,7 +8,7 @@ const graphicCategory = {
 	kind: 'category',
 	name: zh ? '图形' : 'Graphic',
 	categorystyle: 'logic_category',
-	contents: [] as {kind: string, type: string}[],
+	contents: [] as {kind: string, type: string, inputs?: any}[],
 };
 export default graphicCategory;
 
@@ -34,6 +34,16 @@ luaGenerator.forBlock['sprite_create'] = function(block: Blockly.Block) {
 graphicCategory.contents.push({
 	kind: 'block',
 	type: 'sprite_create',
+	inputs: {
+		FILE: {
+			shadow: {
+				type: 'text',
+				fields: {
+					TEXT: 'Image/logo.png',
+				},
+			},
+		},
+	},
 });
 
 // Create label
@@ -42,9 +52,9 @@ const labelCreateBlock = {
 	message0: zh ? '创建文字节点\n字体为 %1\n大小为 %2' : 'Create label node\nFont is %1\nSize is %2',
 	args0: [
 		{
-			type: 'field_input',
+			type: 'input_value',
 			name: 'FONT',
-			text: 'sarasa-mono-sc-regular',
+			check: "String",
 		},
 		{
 			type: 'input_value',
@@ -57,13 +67,31 @@ const labelCreateBlock = {
 };
 Blockly.Blocks['label_create'] = { init: function() { this.jsonInit(labelCreateBlock); } };
 luaGenerator.forBlock['label_create'] = function(block: Blockly.Block) {
-	const font = luaGenerator.quote_(block.getFieldValue('FONT'));
+	const font = luaGenerator.valueToCode(block, 'FONT', Order.ATOMIC);
 	const size = luaGenerator.valueToCode(block, 'SIZE', Order.ATOMIC);
 	return [`Label(${font}, ${size === '' ? '16' : size})`, Order.ATOMIC];
 };
 graphicCategory.contents.push({
 	kind: 'block',
 	type: 'label_create',
+	inputs: {
+		FONT: {
+			shadow: {
+				type: 'text',
+				fields: {
+					TEXT: 'sarasa-mono-sc-regular',
+				},
+			},
+		},
+		SIZE: {
+			shadow: {
+				type: 'math_number',
+				fields: {
+					NUM: 16,
+				},
+			},
+		},
+	},
 });
 
 // Set label text
@@ -95,4 +123,14 @@ luaGenerator.forBlock['label_set_text'] = function(block: Blockly.Block) {
 graphicCategory.contents.push({
 	kind: 'block',
 	type: 'label_set_text',
+	inputs: {
+		TEXT: {
+			shadow: {
+				type: 'text',
+				fields: {
+					TEXT: '',
+				},
+			},
+		},
+	},
 });

@@ -8,7 +8,7 @@ const declareCategory = {
 	kind: 'category',
 	name: zh ? '声明' : 'Declare',
 	categorystyle: 'variable_category',
-	contents: [] as {kind: string, type: string}[],
+	contents: [] as {kind: string, type: string, inputs?: any}[],
 };
 export default declareCategory;
 
@@ -44,4 +44,107 @@ luaGenerator.forBlock['declare_variable'] = function(block: Blockly.Block) {
 declareCategory.contents.push({
 	kind: 'block',
 	type: 'declare_variable',
+});
+declareCategory.contents.push({
+	kind: 'block',
+	type: 'declare_variable',
+	inputs: {
+		VALUE: {
+			shadow: {
+				type: 'math_number',
+				fields: {
+					NUM: 0,
+				},
+			},
+		},
+	},
+});
+declareCategory.contents.push({
+	kind: 'block',
+	type: 'declare_variable',
+	inputs: {
+		VALUE: {
+			shadow: {
+				type: 'logic_boolean',
+				fields: {
+					BOOL: 'FALSE',
+				},
+			},
+		},
+	},
+});
+declareCategory.contents.push({
+	kind: 'block',
+	type: 'declare_variable',
+	inputs: {
+		VALUE: {
+			shadow: {
+				type: 'text',
+				fields: {
+					TEXT: '',
+				},
+			},
+		},
+	},
+});
+declareCategory.contents.push({
+	kind: 'block',
+	type: 'declare_variable',
+	inputs: {
+		VALUE: {
+			shadow: {
+				type: 'node_create',
+			},
+		},
+	},
+});
+declareCategory.contents.push({
+	kind: 'block',
+	type: 'declare_variable',
+	inputs: {
+		VALUE: {
+			shadow: {
+				type: 'sprite_create',
+				inputs: {
+					FILE: {
+						shadow: {
+							type: 'text',
+							fields: {
+								TEXT: 'Image/logo.png',
+							},
+						},
+					},
+				},
+			},
+		},
+	},
+});
+declareCategory.contents.push({
+	kind: 'block',
+	type: 'declare_variable',
+	inputs: {
+		VALUE: {
+			shadow: {
+				type: 'label_create',
+				inputs: {
+					FONT: {
+						shadow: {
+							type: 'text',
+							fields: {
+								TEXT: 'sarasa-mono-sc-regular',
+							},
+						},
+					},
+					SIZE: {
+						shadow: {
+							type: 'math_number',
+							fields: {
+								NUM: 16,
+							},
+						},
+					},
+				},
+			},
+		},
+	},
 });

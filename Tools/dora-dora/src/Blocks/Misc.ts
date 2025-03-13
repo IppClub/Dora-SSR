@@ -8,7 +8,7 @@ const miscCategory = {
 	kind: 'category',
 	name: zh ? '杂项' : 'Misc',
 	categorystyle: 'colour_category',
-	contents: [] as {kind: string, type: string}[],
+	contents: [] as {kind: string, type: string, inputs?: any}[],
 };
 export default miscCategory;
 
@@ -34,6 +34,16 @@ luaGenerator.forBlock['print_block'] = function(block: Blockly.Block) {
 miscCategory.contents.push({
 	kind: 'block',
 	type: 'print_block',
+	inputs: {
+		ITEM: {
+			shadow: {
+				type: 'text',
+				fields: {
+					TEXT: '',
+				},
+			},
+		},
+	},
 });
 
 // Comment
@@ -44,7 +54,7 @@ const commentBlock = {
 		{
 			type: 'field_input',
 			name: 'NOTE',
-			text: '',
+			text: '@preview-project on nolog clear',
 		},
 	],
 	previousStatement: null,
