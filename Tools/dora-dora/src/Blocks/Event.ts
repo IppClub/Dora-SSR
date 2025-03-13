@@ -7,7 +7,7 @@ const zh = Info.locale.match(/^zh/) !== null;
 const eventCategory = {
 	kind: 'category',
 	name: zh ? '事件' : 'Event',
-	categorystyle: 'event_category',
+	categorystyle: 'dora_category',
 	contents: [] as {kind: string, type: string}[],
 };
 export default eventCategory;
