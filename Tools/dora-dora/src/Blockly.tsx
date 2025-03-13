@@ -82,6 +82,18 @@ const BlocklyComponent: React.FC<BlocklyProps> = ({
 							colourSecondary: '#b8860b',
 							colourTertiary: '#8b6508',
 						},
+						math_blocks: {
+							colourSecondary: '#5b67a5',
+						},
+						text_blocks: {
+							colourSecondary: '#5ba58c',
+						},
+						logic_blocks: {
+							colourSecondary: '#5b80a5',
+						},
+						colour_blocks: {
+							colourSecondary: '#a5745b',
+						},
 					},
 					categoryStyles: {
 						dora_category: {

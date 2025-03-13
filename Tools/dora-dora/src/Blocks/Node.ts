@@ -8,7 +8,7 @@ const nodeCategory = {
 	kind: 'category',
 	name: zh ? '节点' : 'Node',
 	categorystyle: 'logic_category',
-	contents: [] as {kind: string, type: string}[],
+	contents: [] as {kind: string, type: string, inputs?: any}[],
 };
 export default nodeCategory;
 
@@ -116,6 +116,31 @@ luaGenerator.forBlock['node_set_vec2_attribute'] = function(block: Blockly.Block
 nodeCategory.contents.push({
 	kind: 'block',
 	type: 'node_set_vec2_attribute',
+	inputs: {
+		VEC2: {
+			shadow: {
+				type: 'vec2_create',
+				inputs: {
+					X: {
+						shadow: {
+							type: 'math_number',
+							fields: {
+								NUM: 0,
+							},
+						},
+					},
+					Y: {
+						shadow: {
+							type: 'math_number',
+							fields: {
+								NUM: 0,
+							},
+						},
+					},
+				},
+			},
+		},
+	},
 });
 
 // Set boolean attribute
@@ -159,6 +184,16 @@ luaGenerator.forBlock['node_set_boolean_attribute'] = function(block: Blockly.Bl
 nodeCategory.contents.push({
 	kind: 'block',
 	type: 'node_set_boolean_attribute',
+	inputs: {
+		VALUE: {
+			shadow: {
+				type: 'logic_boolean',
+				fields: {
+					BOOL: 'TRUE',
+				},
+			},
+		},
+	},
 });
 
 // Set number attribute
@@ -220,12 +255,22 @@ luaGenerator.forBlock['node_set_number_attribute'] = function(block: Blockly.Blo
 nodeCategory.contents.push({
 	kind: 'block',
 	type: 'node_set_number_attribute',
+	inputs: {
+		VALUE: {
+			shadow: {
+				type: 'math_number',
+				fields: {
+					NUM: 0,
+				},
+			},
+		},
+	},
 });
 
 // Set color
 const nodeSetColorBlock = {
 	type: 'node_set_color',
-	message0: zh ? '设置 %1 颜色为 %2' : 'Set %1 color to %2',
+	message0: zh ? '设置 %1 的颜色为 %2' : 'Set %1 color to %2',
 	args0: [
 		{
 			type: 'field_variable',
@@ -251,6 +296,16 @@ luaGenerator.forBlock['node_set_color'] = function(block: Blockly.Block) {
 nodeCategory.contents.push({
 	kind: 'block',
 	type: 'node_set_color',
+	inputs: {
+		COLOR: {
+			shadow: {
+				type: 'colour_hsv_sliders',
+				fields: {
+					COLOUR: '#fac03d',
+				},
+			},
+		},
+	},
 });
 
 // Get vec2 attribute

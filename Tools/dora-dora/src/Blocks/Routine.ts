@@ -8,7 +8,7 @@ const routineCategory = {
 	kind: 'category',
 	name: zh ? '协程' : 'Routine',
 	categorystyle: 'dora_category',
-	contents: [] as {kind: string, type: string}[],
+	contents: [] as {kind: string, type: string, inputs?: any}[],
 };
 export default routineCategory;
 
@@ -64,6 +64,16 @@ luaGenerator.forBlock['sleep'] = function(block: Blockly.Block) {
 routineCategory.contents.push({
 	kind: 'block',
 	type: 'sleep',
+	inputs: {
+		TIME: {
+			shadow: {
+				type: 'math_number',
+				fields: {
+					NUM: 1,
+				},
+			},
+		},
+	},
 });
 
 // wait condition
@@ -91,4 +101,14 @@ luaGenerator.forBlock['wait'] = function(block: Blockly.Block) {
 routineCategory.contents.push({
 	kind: 'block',
 	type: 'wait',
+	inputs: {
+		CONDITION: {
+			shadow: {
+				type: 'logic_boolean',
+				fields: {
+					BOOL: 'TRUE',
+				},
+			},
+		},
+	},
 });

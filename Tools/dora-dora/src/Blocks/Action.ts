@@ -8,7 +8,7 @@ const actionCategory = {
 	kind: 'category',
 	name: zh ? '动作' : 'Action',
 	categorystyle: 'logic_category',
-	contents: [] as {kind: string, type: string}[],
+	contents: [] as {kind: string, type: string, inputs?: any}[],
 };
 export default actionCategory;
 
@@ -160,7 +160,7 @@ const easingOptions = [
 // Property action
 const propertyActionBlock = {
 	type: 'property_action',
-	message0: zh ? '在 %1 秒内，持续改变 %2\n从 %3\n到 %4\n应用缓动 %5' : 'In %1 seconds, change %2\nFrom %3\nTo %4\nApply easing %5',
+	message0: zh ? '在 %1 秒内，持续改变 %2\n从 %3 到 %4\n应用缓动 %5' : 'In %1 seconds, change %2\nFrom %3 to %4\nApply easing %5',
 	args0: [
 		{
 			type: 'input_value',
@@ -230,6 +230,32 @@ luaGenerator.forBlock['property_action'] = function(block: Blockly.Block) {
 actionCategory.contents.push({
 	kind: 'block',
 	type: 'property_action',
+	inputs: {
+		TIME: {
+			shadow: {
+				type: 'math_number',
+				fields: {
+					NUM: 1,
+				},
+			},
+		},
+		START: {
+			shadow: {
+				type: 'math_number',
+				fields: {
+					NUM: 0,
+				},
+			},
+		},
+		STOP: {
+			shadow: {
+				type: 'math_number',
+				fields: {
+					NUM: 100,
+				},
+			},
+		},
+	},
 });
 
 // Move action
@@ -274,6 +300,62 @@ luaGenerator.forBlock['move_action'] = function(block: Blockly.Block) {
 actionCategory.contents.push({
 	kind: 'block',
 	type: 'move_action',
+	inputs: {
+		TIME: {
+			shadow: {
+				type: 'math_number',
+				fields: {
+					NUM: 1,
+				},
+			},
+		},
+		START: {
+			shadow: {
+				type: 'vec2_create',
+				inputs: {
+					X: {
+						shadow: {
+							type: 'math_number',
+							fields: {
+								NUM: 0,
+							},
+						},
+					},
+					Y: {
+						shadow: {
+							type: 'math_number',
+							fields: {
+								NUM: 0,
+							},
+						},
+					},
+				},
+			},
+		},
+		STOP: {
+			shadow: {
+				type: 'vec2_create',
+				inputs: {
+					X: {
+						shadow: {
+							type: 'math_number',
+							fields: {
+								NUM: 0,
+							},
+						},
+					},
+					Y: {
+						shadow: {
+							type: 'math_number',
+							fields: {
+								NUM: 0,
+							},
+						},
+					},
+				},
+			},
+		},
+	},
 });
 
 // Delay action
@@ -300,6 +382,16 @@ luaGenerator.forBlock['delay_action'] = function(block: Blockly.Block) {
 actionCategory.contents.push({
 	kind: 'block',
 	type: 'delay_action',
+	inputs: {
+		TIME: {
+			shadow: {
+				type: 'math_number',
+				fields: {
+					NUM: 1,
+				},
+			},
+		},
+	},
 });
 
 // Visible action
