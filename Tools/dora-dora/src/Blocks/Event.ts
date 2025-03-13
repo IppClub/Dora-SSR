@@ -98,7 +98,7 @@ eventCategory.contents.push({
 // Get touch vec2 attribute
 const getTouchVec2AttributeBlock = {
 	type: 'get_touch_vec2_attribute',
-	message0: zh ? '获取点击 %1 的 %2' : 'Get touch %1 %2',
+	message0: zh ? '获取点击 %1 的 %2 向量' : 'Get touch %1 %2 Vec2',
 	args0: [
 		{
 			type: 'field_variable',

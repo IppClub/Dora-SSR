@@ -113,10 +113,54 @@ actionCategory.contents.push({
 	type: 'spawn_action',
 });
 
+const easingOptions = [
+	['Linear', 'Linear'],
+	['InQuad', 'InQuad'],
+	['OutQuad', 'OutQuad'],
+	['InOutQuad', 'InOutQuad'],
+	['OutInQuad', 'OutInQuad'],
+	['InCubic', 'InCubic'],
+	['OutCubic', 'OutCubic'],
+	['InOutCubic', 'InOutCubic'],
+	['OutInCubic', 'OutInCubic'],
+	['InQuart', 'InQuart'],
+	['OutQuart', 'OutQuart'],
+	['InOutQuart', 'InOutQuart'],
+	['OutInQuart', 'OutInQuart'],
+	['InQuint', 'InQuint'],
+	['OutQuint', 'OutQuint'],
+	['InOutQuint', 'InOutQuint'],
+	['OutInQuint', 'OutInQuint'],
+	['InSine', 'InSine'],
+	['OutSine', 'OutSine'],
+	['InOutSine', 'InOutSine'],
+	['OutInSine', 'OutInSine'],
+	['InExpo', 'InExpo'],
+	['OutExpo', 'OutExpo'],
+	['InOutExpo', 'InOutExpo'],
+	['OutInExpo', 'OutInExpo'],
+	['InCirc', 'InCirc'],
+	['OutCirc', 'OutCirc'],
+	['InOutCirc', 'InOutCirc'],
+	['OutInCirc', 'OutInCirc'],
+	['InElastic', 'InElastic'],
+	['OutElastic', 'OutElastic'],
+	['InOutElastic', 'InOutElastic'],
+	['OutInElastic', 'OutInElastic'],
+	['InBack', 'InBack'],
+	['OutBack', 'OutBack'],
+	['InOutBack', 'InOutBack'],
+	['OutInBack', 'OutInBack'],
+	['InBounce', 'InBounce'],
+	['OutBounce', 'OutBounce'],
+	['InOutBounce', 'InOutBounce'],
+	['OutInBounce', 'OutInBounce'],
+];
+
 // Property action
 const propertyActionBlock = {
 	type: 'property_action',
-	message0: zh ? '在 %1 秒内，持续改变 %2 从 %3 到 %4\n应用缓动 %5' : 'In %1 seconds, change %2 from %3 to %4\nApply easing %5',
+	message0: zh ? '在 %1 秒内，持续改变 %2\n从 %3\n到 %4\n应用缓动 %5' : 'In %1 seconds, change %2\nFrom %3\nTo %4\nApply easing %5',
 	args0: [
 		{
 			type: 'input_value',
@@ -166,49 +210,7 @@ const propertyActionBlock = {
 		{
 			type: 'field_dropdown',
 			name: 'EASING',
-			options: [
-				['Linear', 'Linear'],
-				['InQuad', 'InQuad'],
-				['OutQuad', 'OutQuad'],
-				['InOutQuad', 'InOutQuad'],
-				['OutInQuad', 'OutInQuad'],
-				['InCubic', 'InCubic'],
-				['OutCubic', 'OutCubic'],
-				['InOutCubic', 'InOutCubic'],
-				['OutInCubic', 'OutInCubic'],
-				['InQuart', 'InQuart'],
-				['OutQuart', 'OutQuart'],
-				['InOutQuart', 'InOutQuart'],
-				['OutInQuart', 'OutInQuart'],
-				['InQuint', 'InQuint'],
-				['OutQuint', 'OutQuint'],
-				['InOutQuint', 'InOutQuint'],
-				['OutInQuint', 'OutInQuint'],
-				['InSine', 'InSine'],
-				['OutSine', 'OutSine'],
-				['InOutSine', 'InOutSine'],
-				['OutInSine', 'OutInSine'],
-				['InExpo', 'InExpo'],
-				['OutExpo', 'OutExpo'],
-				['InOutExpo', 'InOutExpo'],
-				['OutInExpo', 'OutInExpo'],
-				['InCirc', 'InCirc'],
-				['OutCirc', 'OutCirc'],
-				['InOutCirc', 'InOutCirc'],
-				['OutInCirc', 'OutInCirc'],
-				['InElastic', 'InElastic'],
-				['OutElastic', 'OutElastic'],
-				['InOutElastic', 'InOutElastic'],
-				['OutInElastic', 'OutInElastic'],
-				['InBack', 'InBack'],
-				['OutBack', 'OutBack'],
-				['InOutBack', 'InOutBack'],
-				['OutInBack', 'OutInBack'],
-				['InBounce', 'InBounce'],
-				['OutBounce', 'OutBounce'],
-				['InOutBounce', 'InOutBounce'],
-				['OutInBounce', 'OutInBounce'],
-			],
+			options: easingOptions,
 		},
 	],
 	output: 'Action',
@@ -228,6 +230,50 @@ luaGenerator.forBlock['property_action'] = function(block: Blockly.Block) {
 actionCategory.contents.push({
 	kind: 'block',
 	type: 'property_action',
+});
+
+// Move action
+const moveActionBlock = {
+	type: 'move_action',
+	message0: zh ? '在 %1 秒内\n从坐标 %2\n移动到坐标 %3\n应用缓动 %4' : 'In %1 seconds\nMove from point %2\nTo point %3\nApply easing %4',
+	args0: [
+		{
+			type: 'input_value',
+			name: 'TIME',
+			check: 'Number',
+		},
+		{
+			type: 'input_value',
+			name: 'START',
+			check: 'Vec2',
+		},
+		{
+			type: 'input_value',
+			name: 'STOP',
+			check: 'Vec2',
+		},
+		{
+			type: 'field_dropdown',
+			name: 'EASING',
+			options: easingOptions,
+		},
+	],
+	output: 'Action',
+	style: 'logic_blocks',
+};
+Blockly.Blocks['move_action'] = {
+	init: function() { this.jsonInit(moveActionBlock); },
+};
+luaGenerator.forBlock['move_action'] = function(block: Blockly.Block) {
+	const time = luaGenerator.valueToCode(block, 'TIME', Order.NONE);
+	const start = luaGenerator.valueToCode(block, 'START', Order.NONE);
+	const stop = luaGenerator.valueToCode(block, 'STOP', Order.NONE);
+	const easing = block.getFieldValue('EASING');
+	return [`Move(${time === '' ? '0' : time}, ${start === '' ? 'Vec2.zero' : start}, ${stop === '' ? 'Vec2.zero' : stop}, Ease.${easing})`, Order.ATOMIC];
+};
+actionCategory.contents.push({
+	kind: 'block',
+	type: 'move_action',
 });
 
 // Delay action
