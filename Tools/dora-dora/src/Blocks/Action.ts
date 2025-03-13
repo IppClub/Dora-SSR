@@ -54,7 +54,7 @@ luaGenerator.forBlock['perform_action'] = function(block: Blockly.Block) {
 	if (block.outputConnection?.targetConnection) {
 		return [`${node}:perform(${action === '' ? 'nil' : action}, ${mode})`, Order.ATOMIC];
 	}
-	return `${node}:perform(${action === '' ? 'nil' : action}, ${mode})`;
+	return `${node}:perform(${action === '' ? 'nil' : action}, ${mode})\n`;
 };
 actionCategory.contents.push({
 	kind: 'block',
