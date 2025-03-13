@@ -15,6 +15,7 @@ import Dialog from '@mui/material/Dialog';
 import luaLogo from './lua.png';
 import yueLogo from './yuescript.png';
 import tealLogo from './teal.png';
+import blocklyLogo from './blockly.png';
 import typescriptLogo from './typescript.png';
 import yarnLogo from './yarn.png';
 import { AiFillFolderAdd } from 'react-icons/ai';
@@ -24,7 +25,7 @@ import { VscMarkdown } from 'react-icons/vsc';
 import { useTranslation } from 'react-i18next';
 import { DialogActions, Grid2 } from '@mui/material';
 
-export type DoraFileType = "Lua" | "Yuescript" | "Teal" | "Typescript" | "Dora XML" | "Markdown" | "Yarn" | "Visual Script" | "Folder"
+export type DoraFileType = "Lua" | "Yuescript" | "Teal" | "Typescript" | "Dora XML" | "Markdown" | "Yarn" | "Visual Script" | "Blockly" | "Folder"
 
 interface FileType {
 	icon: React.ReactNode;
@@ -81,6 +82,12 @@ const fileTypes: FileType[] = [
 		name: "Visual Script",
 		desc: "file.visualScript",
 		padding: '25px'
+	},
+	{
+		icon: <img src={blocklyLogo} alt="Blockly" width="40px" height="40px" style={{marginLeft: '8px'}}/>,
+		name: "Blockly",
+		desc: "file.blockly",
+		padding: '22px'
 	},
 	{
 		icon: <AiFillFolderAdd size={50} style={{marginLeft: '0px'}}/>,

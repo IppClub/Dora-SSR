@@ -36,6 +36,7 @@ import luaLogo from './lua.png';
 import yueLogo from './yuescript.png';
 import tealLogo from './teal.png';
 import typescriptLogo from './typescript.png';
+import blocklyLogo from './blockly.png';
 import spineLogo from './spine.png';
 import { DiCode } from 'react-icons/di';
 import { TbMoodConfuzed, TbSql } from 'react-icons/tb';
@@ -111,6 +112,8 @@ const fileIcon = (props: TreeNodeProps) => {
 					return <img src={spineLogo} alt="spine" width="14px" height="14px"/>;
 				case ".yarn":
 					return <img src="yarn-editor/icon_96x96.png" alt="yarn" width="14px" height="14px"/>;
+				case ".bl":
+					return <img src={blocklyLogo} alt="blockly" width="12px" height="12px"/>;
 				case ".vs":
 					return <SiNodered size={12}/>;
 				case ".zip":

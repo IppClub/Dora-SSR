@@ -48,3 +48,15 @@ code {
 .react-lazylog-searchbar {
 	background-color: #181818 !important;
 }
+
+.blocklyMainBackground {
+	stroke: unset !important;
+}
+
+.fieldColourSliderLabel {
+	color: #222 !important;
+}
+
+.fieldColourEyedropper {
+	color: #222 !important;
+}

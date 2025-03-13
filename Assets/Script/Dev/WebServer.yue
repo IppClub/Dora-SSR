@@ -569,7 +569,7 @@ HttpServer\post "/new", (req): success: false ->
 				for file in *files
 					if name == Path\getName(file)\lower!
 						ext = Path\getExt file
-						if ext not in ["tl", "yue", "ts", "tsx", "vs", "xml", "lua"]
+						if ext not in ["tl", "yue", "ts", "tsx", "vs", "bl", "xml", "lua"]
 							continue
 						elseif ("d" == Path\getExt name) and (ext ~= Path\getExt path)
 							continue
@@ -588,7 +588,7 @@ HttpServer\post "/delete", (req): success: false ->
 				if name == Path\getName(file)\lower!
 					switch Path\getExt file when "tl" then if ext in ["vs",]
 						Content\remove Path parent, file
-					when "lua" then if ext in ["tl", "yue", "ts", "tsx", "vs", "xml"]
+					when "lua" then if ext in ["tl", "yue", "ts", "tsx", "vs", "bl", "xml"]
 						Content\remove Path parent, file
 			if Content\remove path
 				return success: true
@@ -608,7 +608,7 @@ HttpServer\post "/rename", (req): success: false ->
 				ext = Path\getExt new
 				for file in *files
 					if name == Path\getName(file)\lower!
-						if ext not in ["tl", "yue", "ts", "tsx", "vs", "xml", "lua"]
+						if ext not in ["tl", "yue", "ts", "tsx", "vs", "bl", "xml", "lua"]
 							continue
 						elseif ("d" == Path\getExt name) and (Path\getExt(file) ~= ext)
 							continue
@@ -625,7 +625,7 @@ HttpServer\post "/rename", (req): success: false ->
 					if name == Path\getName(file)\lower!
 						switch Path\getExt file when "tl" then if ext in ["vs",]
 							Content\move Path(parent, file), Path newParent, newName .. ".tl"
-						when "lua" then if ext in ["tl", "yue", "ts", "tsx", "vs", "xml"]
+						when "lua" then if ext in ["tl", "yue", "ts", "tsx", "vs", "bl", "xml"]
 							Content\move Path(parent, file), Path newParent, newName .. ".lua"
 				return success: true
 
@@ -742,6 +742,7 @@ HttpServer\postSchedule "/build", (req): success: false ->
 
 extentionLevels =
 	vs: 2
+	bl: 2
 	ts: 1
 	tsx: 1
 	tl: 1
@@ -943,7 +944,7 @@ HttpServer\postSchedule "/zip", (req): success: false ->
 			goto failed unless Content\copyAsync path, tempPath
 			import "Script.Dev.Entry"
 			luaFiles = minifyAsync tempPath, obfuscatedPath
-			scriptFiles = Entry.getAllFiles tempPath, ["tl", "yue", "lua", "ts", "tsx", "vs", "xml"], true
+			scriptFiles = Entry.getAllFiles tempPath, ["tl", "yue", "lua", "ts", "tsx", "vs", "bl", "xml"], true
 			for file in *scriptFiles
 				Content\remove Path tempPath, file
 			for file in *luaFiles
