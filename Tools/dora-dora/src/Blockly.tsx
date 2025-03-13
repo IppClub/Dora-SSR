@@ -12,6 +12,8 @@ import SpriteCategory from './Blocks/Graphic';
 import MiscCategory from './Blocks/Misc';
 import EventCategory from './Blocks/Event';
 import Vec2Category from './Blocks/Vec2';
+import ActionCategory from './Blocks/Action';
+import RoutineCategory from './Blocks/Routine';
 
 interface BlocklyProps {
 	/**
@@ -74,8 +76,15 @@ const BlocklyComponent: React.FC<BlocklyProps> = ({
 				theme: {
 					name: 'DoraTheme',
 					base: Blockly.Themes.Classic,
+					blockStyles: {
+						dora_blocks: {
+							colourPrimary: '#d2970d',
+							colourSecondary: '#b8860b',
+							colourTertiary: '#8b6508',
+						},
+					},
 					categoryStyles: {
-						event_category: {
+						dora_category: {
 							colour: '#d2970d',
 						},
 					},
@@ -701,7 +710,12 @@ const BlocklyComponent: React.FC<BlocklyProps> = ({
 						{
 							kind: 'sep',
 						},
+						ActionCategory,
 						EventCategory,
+						{
+							kind: 'sep',
+						},
+						RoutineCategory,
 						{
 							kind: 'sep',
 						},

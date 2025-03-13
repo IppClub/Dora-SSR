@@ -39,7 +39,7 @@ graphicCategory.contents.push({
 // Create label
 const labelCreateBlock = {
 	type: 'label_create',
-	message0: zh ? '创建文字节点\n字体为 %1\n大小为 %2' : 'Create label node\nfont is %1\nsize is %2',
+	message0: zh ? '创建文字节点\n字体为 %1\n大小为 %2' : 'Create label node\nFont is %1\nSize is %2',
 	args0: [
 		{
 			type: 'field_input',
