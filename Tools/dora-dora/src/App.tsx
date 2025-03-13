@@ -44,6 +44,7 @@ import BottomLog from './BottomLog';
 const SpinePlayer = React.lazy(() => import('./SpinePlayer'));
 const Markdown = React.lazy(() => import('./Markdown'));
 const LogView = React.lazy(() => import('./LogView'));
+const Blockly = React.lazy(() => import('./Blockly'));
 
 const { path } = Info;
 
@@ -90,6 +91,7 @@ interface EditingFile {
 	mdEditing?: boolean;
 	yarnData?: YarnEditorData;
 	codeWireData?: CodeWireData;
+	blocklyData?: string;
 	sortIndex?: number;
 	readOnly?: boolean;
 	status: TabStatus;
@@ -98,6 +100,7 @@ interface EditingFile {
 interface Modified {
 	key: string;
 	content: string;
+	blocklyCode?: string;
 };
 
 const editorBackground = <div style={{width: '100%', height: '100%', backgroundColor:'#1a1a1a'}}/>;
@@ -431,6 +434,9 @@ export default function PersistentDrawerLeft() {
 			if (file.key === modified.key) {
 				if (modified.content !== file.content || file.yarnData || file.codeWireData) {
 					file.contentModified = modified.content;
+					if (modified.blocklyCode !== undefined) {
+						file.blocklyData = modified.blocklyCode;
+					}
 				} else {
 					file.contentModified = null;
 				}
@@ -747,6 +753,7 @@ export default function PersistentDrawerLeft() {
 					resolve(newFile);
 					break;
 				}
+				case ".bl":
 				case ".lua":
 				case ".tl":
 				case ".yue":
@@ -913,6 +920,7 @@ export default function PersistentDrawerLeft() {
 			case ".wasm":
 			case ".yarn":
 			case ".vs":
+			case ".bl":
 			case "": {
 				if (ext === ".yarn" && !asProj) {
 					break;
@@ -983,10 +991,13 @@ export default function PersistentDrawerLeft() {
 								resolve(extraFile !== undefined ? [file, extraFile] : [file]);
 							}
 							switch (ext) {
-								case ".ts": case ".tsx": case ".lua": case ".tl": case ".yue": case ".xml": {
+								case ".ts": case ".tsx": case ".lua": case ".tl": case ".yue": case ".xml": case ".bl": {
 									let index = contentModified.search(/@preview-file on\b/);
 									if (preview && index >= 0) {
-										const lineEnd = contentModified.indexOf("\n", index);
+										let lineEnd: number | undefined = contentModified.indexOf("\n", index);
+										if (lineEnd === -1) {
+											lineEnd = undefined;
+										}
 										const line = contentModified.substring(index, lineEnd);
 										if (line.search(/\bclear\b/) >= 0) {
 											Service.clearLog();
@@ -996,7 +1007,10 @@ export default function PersistentDrawerLeft() {
 									} else {
 										index = contentModified.search(/@preview-project on\b/);
 										if (preview && index >= 0) {
-											const lineEnd = contentModified.indexOf("\n", index);
+											let lineEnd: number | undefined = contentModified.indexOf("\n", index);
+											if (lineEnd === -1) {
+												lineEnd = undefined;
+											}
 											const line = contentModified.substring(index, lineEnd);
 											if (line.search(/\bclear\b/) >= 0) {
 												Service.clearLog();
@@ -1075,6 +1089,24 @@ export default function PersistentDrawerLeft() {
 						reject("failed to save file");
 					});
 				}
+			} else if (file.blocklyData !== undefined) {
+				const {key, blocklyData} = file;
+				const extname = path.extname(key);
+				const name = path.basename(key, extname);
+				const luaFile = path.join(path.dirname(key), name + ".lua");
+				const fileInTab = files.find(f => path.relative(f.key, luaFile) === "");
+				if (fileInTab !== undefined) {
+					fileInTab.content = blocklyData;
+					const model = monaco.editor.getModel(monaco.Uri.parse(luaFile));
+					if (model) {
+						model.setValue(blocklyData);
+					}
+				}
+				Service.write({path: luaFile, content: blocklyData}).then((res) => {
+					if (res.success) {
+						saveFile();
+					}
+				});
 			} else {
 				const ext = path.extname(file.key).toLowerCase();
 				if (file.contentModified !== null && (ext === '.ts' || ext === '.tsx') && !file.key.toLocaleLowerCase().endsWith(".d.ts")) {
@@ -1544,6 +1576,7 @@ export default function PersistentDrawerLeft() {
 			case "Markdown": ext = ".md"; break;
 			case "Yarn": ext = ".yarn"; break;
 			case "Visual Script": ext = ".vs"; break;
+			case "Blockly": ext = ".bl"; break;
 			case "Folder": ext = ""; break;
 			case "Typescript": ext = ".tsx"; break;
 		}
@@ -1683,6 +1716,9 @@ export default function PersistentDrawerLeft() {
 							lineNumber: 3,
 							column: 2
 						};
+						break;
+					case ".bl":
+						content = '{"blocks":{"blocks":[{"type":"comment_block","fields":{"NOTE":"@preview-file on clear"}}]}}';
 						break;
 					default:
 						break;
@@ -2575,6 +2611,7 @@ export default function PersistentDrawerLeft() {
 						let spine = false;
 						let yarn = false;
 						let visualScript = false;
+						let blockly = false;
 						switch (ext.toLowerCase()) {
 							case ".lua": language = "lua"; break;
 							case ".tl": language = "tl"; break;
@@ -2586,6 +2623,7 @@ export default function PersistentDrawerLeft() {
 							case ".png": image = true; break;
 							case ".skel": spine = true; break;
 							case ".yarn": yarn = true; break;
+							case ".bl": blockly = true; break;
 							case ".vs": visualScript = true; break;
 						}
 						const markdown = language === "markdown";
@@ -2638,6 +2676,54 @@ export default function PersistentDrawerLeft() {
 										setKeyEvent(e);
 									}}
 								/> : null
+							}
+							{blockly ?
+								<div style={{display: 'flex'}}>
+									<Blockly
+										initialJson={file.content}
+										onChange={(json, blocklyCode) => {
+											setModified({key: file.key, content: json, blocklyCode});
+											const extname = path.extname(file.key);
+											const name = path.basename(file.key, extname);
+											const luaFile = path.join(path.dirname(file.key), name + ".lua");
+											const model = monaco.editor.getModel(monaco.Uri.parse(luaFile));
+											if (model) {
+												model.setValue(blocklyCode);
+											} else {
+												monaco.editor.createModel(blocklyCode, "lua", monaco.Uri.parse(luaFile));
+											}
+										}}
+										style={{
+											height: tabIndex === index ? editorHeight : 0,
+											width: editorWidth * 0.6
+										}}
+									/>
+									<MonacoEditor
+										width={editorWidth * 0.4}
+										height={editorHeight}
+										language='lua'
+										theme="dora-dark"
+										keepCurrentModel
+										loading={editorBackground}
+										path={monaco.Uri.file(path.join(path.dirname(file.key), path.basename(file.key, path.extname(file.key)) + '.lua')).toString()}
+										options={{
+											readOnly: true,
+											padding: {top: 16},
+											wordWrap: 'on',
+											wordBreak: 'keepAll',
+											selectOnLineNumbers: true,
+											matchBrackets: 'near',
+											fontSize: 16,
+											useTabStops: false,
+											insertSpaces: false,
+											renderWhitespace: 'all',
+											tabSize: 2,
+											minimap: {
+												enabled: false,
+											},
+										}}
+									/>
+								</div> : null
 							}
 							{markdown ?
 								<MacScrollbar skin='dark' hidden={file.mdEditing} style={{height: editorHeight}}>

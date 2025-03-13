@@ -1,0 +1,806 @@
+import React, { useEffect, useRef, useState } from 'react';
+import * as Blockly from 'blockly';
+import '@blockly/field-colour-hsv-sliders';
+import { luaGenerator } from 'blockly/lua';
+import * as Zh from 'blockly/msg/zh-hans';
+import * as En from 'blockly/msg/en';
+import Info from './Info';
+import { useTranslation } from 'react-i18next';
+import DeclareCategory from './Blocks/Declare';
+import NodeCategory from './Blocks/Node';
+import SpriteCategory from './Blocks/Graphic';
+import MiscCategory from './Blocks/Misc';
+import EventCategory from './Blocks/Event';
+import Vec2Category from './Blocks/Vec2';
+
+interface BlocklyProps {
+	/**
+	 * Initial JSON configuration for the Blockly workspace
+	 */
+	initialJson?: string;
+
+	/**
+	 * Callback function triggered when the workspace content changes
+	 * @param json - The JSON representation of the current workspace
+	 * @param code - The Lua code generated from the current workspace
+	 */
+	onChange?: (json: string, code: string) => void;
+
+	/**
+	 * Additional configuration options for the Blockly workspace
+	 */
+	options?: Blockly.BlocklyOptions;
+
+	/**
+	 * CSS class name for the container div
+	 */
+	className?: string;
+
+	/**
+	 * Style object for the container div
+	 */
+	style?: React.CSSProperties;
+}
+
+/**
+ * A React component that wraps the Blockly library
+ */
+const BlocklyComponent: React.FC<BlocklyProps> = ({
+	initialJson,
+	onChange,
+	options = {},
+	className = '',
+	style = { height: '600px', width: '100%' },
+}) => {
+	const blocklyDiv = useRef<HTMLDivElement>(null);
+	const workspaceRef = useRef<Blockly.WorkspaceSvg | null>(null);
+	const [firstView, setFirstView] = useState(true);
+	const {t} = useTranslation();
+
+	// Initialize Blockly workspace
+	useEffect(() => {
+		const zh = Info.locale.match(/^zh/) !== null;
+
+		if (blocklyDiv.current && !workspaceRef.current) {
+			if (zh) {
+				Blockly.setLocale(Zh as any);
+			} else {
+				Blockly.setLocale(En as any);
+			}
+			// Default options
+			const defaultOptions: Blockly.BlocklyOptions = {
+				sounds: false,
+				media: '/',
+				theme: {
+					name: 'DoraTheme',
+					base: Blockly.Themes.Classic,
+					categoryStyles: {
+						event_category: {
+							colour: '#d2970d',
+						},
+					},
+					componentStyles: {
+						workspaceBackgroundColour: '#1e1e1e',
+						toolboxBackgroundColour: '#333',
+						toolboxForegroundColour: '#fff',
+						flyoutBackgroundColour: '#252526',
+						flyoutForegroundColour: '#ccc',
+						flyoutOpacity: 0.9,
+						scrollbarColour: '#797979',
+						insertionMarkerColour: '#fff',
+						insertionMarkerOpacity: 0.3,
+						scrollbarOpacity: 0.1,
+						cursorColour: '#d0d0d0',
+					}
+				},
+				toolbox: {
+					kind: 'categoryToolbox',
+					contents: [
+						{
+							kind: 'category',
+							name: t('blockly.logic'),
+							categorystyle: 'logic_category',
+							contents: [
+								{
+									kind: 'block',
+									type: 'controls_if',
+								},
+								{
+									kind: 'block',
+									type: 'logic_compare',
+								},
+								{
+									kind: 'block',
+									type: 'logic_operation',
+								},
+								{
+									kind: 'block',
+									type: 'logic_negate',
+								},
+								{
+									kind: 'block',
+									type: 'logic_boolean',
+								},
+								{
+									kind: 'block',
+									type: 'logic_null',
+								},
+								{
+									kind: 'block',
+									type: 'logic_ternary',
+								},
+							],
+						},
+						{
+							kind: 'category',
+							name: t('blockly.loops'),
+							categorystyle: 'loop_category',
+							contents: [
+								{
+									kind: 'block',
+									type: 'controls_repeat_ext',
+									inputs: {
+										TIMES: {
+											shadow: {
+												type: 'math_number',
+												fields: {
+													NUM: 10,
+												},
+											},
+										},
+									},
+								},
+								{
+									kind: 'block',
+									type: 'controls_whileUntil',
+								},
+								{
+									kind: 'block',
+									type: 'controls_for',
+									inputs: {
+										FROM: {
+											shadow: {
+												type: 'math_number',
+												fields: {
+													NUM: 1,
+												},
+											},
+										},
+										TO: {
+											shadow: {
+												type: 'math_number',
+												fields: {
+													NUM: 10,
+												},
+											},
+										},
+										BY: {
+											shadow: {
+												type: 'math_number',
+												fields: {
+													NUM: 1,
+												},
+											},
+										},
+									},
+								},
+								{
+									kind: 'block',
+									type: 'controls_forEach',
+								},
+								{
+									kind: 'block',
+									type: 'controls_flow_statements',
+								},
+							],
+						},
+						{
+							kind: 'category',
+							name: t('blockly.math'),
+							categorystyle: 'math_category',
+							contents: [
+								{
+									kind: 'block',
+									type: 'math_number',
+									fields: {
+										NUM: 123,
+									},
+								},
+								{
+									kind: 'block',
+									type: 'math_arithmetic',
+									inputs: {
+										A: {
+											shadow: {
+												type: 'math_number',
+												fields: {
+													NUM: 1,
+												},
+											},
+										},
+										B: {
+											shadow: {
+												type: 'math_number',
+												fields: {
+													NUM: 1,
+												},
+											},
+										},
+									},
+								},
+								{
+									kind: 'block',
+									type: 'math_single',
+									inputs: {
+										NUM: {
+											shadow: {
+												type: 'math_number',
+												fields: {
+													NUM: 9,
+												},
+											},
+										},
+									},
+								},
+								{
+									kind: 'block',
+									type: 'math_trig',
+									inputs: {
+										NUM: {
+											shadow: {
+												type: 'math_number',
+												fields: {
+													NUM: 45,
+												},
+											},
+										},
+									},
+								},
+								{
+									kind: 'block',
+									type: 'math_constant',
+								},
+								{
+									kind: 'block',
+									type: 'math_number_property',
+									inputs: {
+										NUMBER_TO_CHECK: {
+											shadow: {
+												type: 'math_number',
+												fields: {
+													NUM: 0,
+												},
+											},
+										},
+									},
+								},
+								{
+									kind: 'block',
+									type: 'math_round',
+									fields: {
+										OP: 'ROUND',
+									},
+									inputs: {
+										NUM: {
+											shadow: {
+												type: 'math_number',
+												fields: {
+													NUM: 3.1,
+												},
+											},
+										},
+									},
+								},
+								{
+									kind: 'block',
+									type: 'math_on_list',
+									fields: {
+										OP: 'SUM',
+									},
+								},
+								{
+									kind: 'block',
+									type: 'math_modulo',
+									inputs: {
+										DIVIDEND: {
+											shadow: {
+												type: 'math_number',
+												fields: {
+													NUM: 64,
+												},
+											},
+										},
+										DIVISOR: {
+											shadow: {
+												type: 'math_number',
+												fields: {
+													NUM: 10,
+												},
+											},
+										},
+									},
+								},
+								{
+									kind: 'block',
+									type: 'math_constrain',
+									inputs: {
+										VALUE: {
+											shadow: {
+												type: 'math_number',
+												fields: {
+													NUM: 50,
+												},
+											},
+										},
+										LOW: {
+											shadow: {
+												type: 'math_number',
+												fields: {
+													NUM: 1,
+												},
+											},
+										},
+										HIGH: {
+											shadow: {
+												type: 'math_number',
+												fields: {
+													NUM: 100,
+												},
+											},
+										},
+									},
+								},
+								{
+									kind: 'block',
+									type: 'math_random_int',
+									inputs: {
+										FROM: {
+											shadow: {
+												type: 'math_number',
+												fields: {
+													NUM: 1,
+												},
+											},
+										},
+										TO: {
+											shadow: {
+												type: 'math_number',
+												fields: {
+													NUM: 100,
+												},
+											},
+										},
+									},
+								},
+								{
+									kind: 'block',
+									type: 'math_random_float',
+								},
+								{
+									kind: 'block',
+									type: 'math_atan2',
+									inputs: {
+										X: {
+											shadow: {
+												type: 'math_number',
+												fields: {
+													NUM: 1,
+												},
+											},
+										},
+										Y: {
+											shadow: {
+												type: 'math_number',
+												fields: {
+													NUM: 1,
+												},
+											},
+										},
+									},
+								},
+							],
+						},
+						{
+							kind: 'category',
+							name: t('blockly.text'),
+							categorystyle: 'text_category',
+							contents: [
+								{
+									kind: 'block',
+									type: 'text',
+								},
+								{
+									kind: 'block',
+									type: 'text_join',
+								},
+								{
+									kind: 'block',
+									type: 'text_append',
+									inputs: {
+										TEXT: {
+											shadow: {
+												type: 'text',
+												fields: {
+													TEXT: '',
+												},
+											},
+										},
+									},
+								},
+								{
+									kind: 'block',
+									type: 'text_length',
+									inputs: {
+										VALUE: {
+											shadow: {
+												type: 'text',
+												fields: {
+													TEXT: 'abc',
+												},
+											},
+										},
+									},
+								},
+								{
+									kind: 'block',
+									type: 'text_isEmpty',
+									inputs: {
+										VALUE: {
+											shadow: {
+												type: 'text',
+												fields: {
+													TEXT: '',
+												},
+											},
+										},
+									},
+								},
+								{
+									kind: 'block',
+									type: 'text_indexOf',
+									inputs: {
+										VALUE: {
+											block: {
+												type: 'variables_get',
+											},
+										},
+										FIND: {
+											shadow: {
+												type: 'text',
+												fields: {
+													TEXT: 'abc',
+												},
+											},
+										},
+									},
+								},
+								{
+									kind: 'block',
+									type: 'text_charAt',
+									inputs: {
+										VALUE: {
+											block: {
+												type: 'variables_get',
+											},
+										},
+									},
+								},
+								{
+									kind: 'block',
+									type: 'text_getSubstring',
+									inputs: {
+										STRING: {
+											block: {
+												type: 'variables_get',
+											},
+										},
+									},
+								},
+								{
+									kind: 'block',
+									type: 'text_changeCase',
+									inputs: {
+										TEXT: {
+											shadow: {
+												type: 'text',
+												fields: {
+													TEXT: 'abc',
+												},
+											},
+										},
+									},
+								},
+								{
+									kind: 'block',
+									type: 'text_trim',
+									inputs: {
+										TEXT: {
+											shadow: {
+												type: 'text',
+												fields: {
+													TEXT: 'abc',
+												},
+											},
+										},
+									},
+								},
+								{
+									kind: 'block',
+									type: 'text_count',
+									inputs: {
+										SUB: {
+											shadow: {
+												type: 'text',
+											},
+										},
+										TEXT: {
+											shadow: {
+												type: 'text',
+											},
+										},
+									},
+								},
+								{
+									kind: 'block',
+									type: 'text_replace',
+									inputs: {
+										FROM: {
+											shadow: {
+												type: 'text',
+											},
+										},
+										TO: {
+											shadow: {
+												type: 'text',
+											},
+										},
+										TEXT: {
+											shadow: {
+												type: 'text',
+											},
+										},
+									},
+								},
+								{
+									kind: 'block',
+									type: 'text_reverse',
+									inputs: {
+										TEXT: {
+											shadow: {
+												type: 'text',
+											},
+										},
+									},
+								},
+							],
+						},
+						{
+							kind: 'category',
+							name: t('blockly.lists'),
+							categorystyle: 'list_category',
+							contents: [
+								{
+									kind: 'block',
+									type: 'lists_create_with',
+								},
+								{
+									kind: 'block',
+									type: 'lists_repeat',
+									inputs: {
+										NUM: {
+											shadow: {
+												type: 'math_number',
+												fields: {
+													NUM: 5,
+												},
+											},
+										},
+									},
+								},
+								{
+									kind: 'block',
+									type: 'lists_length',
+								},
+								{
+									kind: 'block',
+									type: 'lists_isEmpty',
+								},
+								{
+									kind: 'block',
+									type: 'lists_indexOf',
+									inputs: {
+										VALUE: {
+											block: {
+												type: 'variables_get',
+											},
+										},
+									},
+								},
+								{
+									kind: 'block',
+									type: 'lists_getIndex',
+									inputs: {
+										VALUE: {
+											block: {
+												type: 'variables_get',
+											},
+										},
+									},
+								},
+								{
+									kind: 'block',
+									type: 'lists_setIndex',
+									inputs: {
+										LIST: {
+											block: {
+												type: 'variables_get',
+											},
+										},
+									},
+								},
+								{
+									kind: 'block',
+									type: 'lists_getSublist',
+									inputs: {
+										LIST: {
+											block: {
+												type: 'variables_get',
+											},
+										},
+									},
+								},
+								{
+									kind: 'block',
+									type: 'lists_split',
+									inputs: {
+										DELIM: {
+											shadow: {
+												type: 'text',
+												fields: {
+													TEXT: ',',
+												},
+											},
+										},
+									},
+								},
+								{
+									kind: 'block',
+									type: 'lists_sort',
+								},
+								{
+									kind: 'block',
+									type: 'lists_reverse',
+								},
+							],
+						},
+						{
+							kind: 'sep',
+						},
+						DeclareCategory,
+						{
+							kind: 'category',
+							name: t('blockly.variables'),
+							categorystyle: 'variable_category',
+							custom: 'VARIABLE',
+						},
+						{
+							kind: 'category',
+							name: t('blockly.functions'),
+							categorystyle: 'procedure_category',
+							custom: 'PROCEDURE',
+						},
+						{
+							kind: 'sep',
+						},
+						Vec2Category,
+						{
+							kind: 'sep',
+						},
+						NodeCategory,
+						SpriteCategory,
+						{
+							kind: 'sep',
+						},
+						EventCategory,
+						{
+							kind: 'sep',
+						},
+						MiscCategory,
+					],
+				},
+				grid: {
+					spacing: 20,
+					length: 3,
+					colour: '#666',
+					snap: true,
+				},
+				move: {
+					scrollbars: true,
+					drag: true,
+					wheel: true,
+				},
+				zoom: {
+					controls: true,
+					wheel: true,
+					startScale: 1.0,
+					maxScale: 3,
+					minScale: 0.3,
+					scaleSpeed: 1.2,
+				},
+				trashcan: true,
+			};
+
+			// Merge default options with user-provided options
+			const mergedOptions = { ...defaultOptions, ...options };
+
+			// Create the Blockly workspace
+			workspaceRef.current = Blockly.inject(blocklyDiv.current, mergedOptions);
+
+			// Load initial JSON if provided
+			if (initialJson) {
+				try {
+					const jsonObj = JSON.parse(initialJson);
+					Blockly.serialization.workspaces.load(jsonObj, workspaceRef.current);
+				} catch (e) {
+					console.error('Error loading initial JSON:', e);
+				}
+			}
+
+			// Add change listener to the workspace
+			if (onChange) {
+				let isLoading = true;
+				workspaceRef.current.addChangeListener((action) => {
+					if (action.type === Blockly.Events.FINISHED_LOADING) {
+						isLoading = false;
+					}
+					if (action.isUiEvent || isLoading) {
+						return;
+					}
+					if (workspaceRef.current) {
+						const json = JSON.stringify(
+							Blockly.serialization.workspaces.save(workspaceRef.current)
+						);
+						const code = "_ENV = Dora\n" + luaGenerator.workspaceToCode(workspaceRef.current);
+						const modifiedCode = code.replace(/^function /gm, 'local function ');
+						onChange(json, modifiedCode);
+					}
+				});
+			}
+		}
+
+		// Cleanup function
+		return () => {
+			if (workspaceRef.current) {
+				workspaceRef.current.dispose();
+				workspaceRef.current = null;
+			}
+		};
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
+
+	// Handle window resize
+	useEffect(() => {
+		if (blocklyDiv.current && workspaceRef.current && typeof style.height === 'number' && style.height > 0) {
+			const {scrollX, scrollY} = workspaceRef.current;
+			Blockly.svgResize(workspaceRef.current);
+			workspaceRef.current.scroll(scrollX, scrollY);
+		}
+	}, [style.height, style.width]);
+
+	useEffect(() => {
+		if (firstView && workspaceRef.current && typeof style.height === 'number' && style.height > 0) {
+			setFirstView(false);
+			workspaceRef.current.scrollCenter();
+		}
+	}, [firstView, style.height, workspaceRef]);
+
+	return (
+		<div
+			ref={blocklyDiv}
+			className={`blockly-component ${className}`}
+			style={style}
+		/>
+	);
+};
+
+export default BlocklyComponent;

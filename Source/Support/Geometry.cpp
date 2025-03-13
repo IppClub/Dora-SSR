@@ -118,7 +118,7 @@ float Vec2::lengthSquared() const {
 }
 
 float Vec2::angle() const {
-	return bx::atan2(y, x);
+	return bx::toDeg(bx::atan2(y, x));
 }
 
 void Vec2::normalize() {
