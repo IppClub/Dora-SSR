@@ -95,6 +95,44 @@ eventCategory.contents.push({
 	type: 'on_tap_event',
 });
 
+// Get touch vec2 attribute
+const getTouchVec2AttributeBlock = {
+	type: 'get_touch_vec2_attribute',
+	message0: zh ? '获取点击 %1 的 %2' : 'Get touch %1 %2',
+	args0: [
+		{
+			type: 'field_variable',
+			name: 'TOUCH',
+			variable: 'touch',
+		},
+		{
+			type: 'field_dropdown',
+			name: 'ATTRIBUTE',
+			options: zh ? [
+				['本地坐标', 'location'],
+				['世界坐标', 'worldLocation'],
+				['位移量', 'delta'],
+			] : [
+				['Location', 'location'],
+				['World location', 'worldLocation'],
+				['Delta move', 'delta'],
+			],
+		},
+	],
+	output: 'Vec2',
+	style: 'math_blocks',
+};
+Blockly.Blocks['get_touch_vec2_attribute'] = { init: function() { this.jsonInit(getTouchVec2AttributeBlock); } };
+luaGenerator.forBlock['get_touch_vec2_attribute'] = function(block: Blockly.Block) {
+	const touch = luaGenerator.getVariableName(block.getFieldValue('TOUCH'));
+	const attribute = block.getFieldValue('ATTRIBUTE');
+	return [`${touch}.${attribute}`, Order.ATOMIC];
+};
+eventCategory.contents.push({
+	kind: 'block',
+	type: 'get_touch_vec2_attribute',
+});
+
 // Get touch number attribute
 const getTouchNumberAttributeBlock = {
 	type: 'get_touch_number_attribute',
@@ -109,17 +147,17 @@ const getTouchNumberAttributeBlock = {
 			type: 'field_dropdown',
 			name: 'ATTRIBUTE',
 			options: zh ? [
-				[zh ? 'X 坐标' : 'X', 'x'],
-				[zh ? 'Y 坐标' : 'Y', 'y'],
-				[zh ? '世界 X 坐标' : 'World X', 'worldX'],
-				[zh ? '世界 Y 坐标' : 'World Y', 'worldY'],
-				[zh ? '编号' : 'ID', 'id'],
+				['编号', 'id'],
+				['X 坐标', 'x'],
+				['Y 坐标', 'y'],
+				['世界 X 坐标', 'worldX'],
+				['世界 Y 坐标', 'worldY'],
 			] : [
+				['ID', 'id'],
 				['X', 'x'],
 				['Y', 'y'],
 				['World X', 'worldX'],
 				['World Y', 'worldY'],
-				['ID', 'id'],
 			],
 		},
 	],
