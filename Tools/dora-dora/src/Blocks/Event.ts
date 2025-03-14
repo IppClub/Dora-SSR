@@ -448,7 +448,7 @@ luaGenerator.forBlock['on_keyboard_event'] = function(block: Blockly.Block) {
 	const key = luaGenerator.quote_(block.getFieldValue('KEY'));
 	const action = luaGenerator.statementToCode(block, 'ACTION');
 	const keyName = luaGenerator.nameDB_?.getDistinctName('key', Blockly.Names.NameType.VARIABLE) ?? 'key_';
-	return `${node}:on${event}(function(${keyName}) if ${keyName} == ${key} then\n${action}end end)\n`;
+	return `${node}:on${event}(function(${keyName})\n  if ${keyName} == ${key} then\n${action}  end\nend)\n`;
 };
 eventCategory.contents.push({
 	kind: 'block',
@@ -572,7 +572,7 @@ luaGenerator.forBlock['on_button_event'] = function(block: Blockly.Block) {
 	const action = luaGenerator.statementToCode(block, 'ACTION');
 	const idName = luaGenerator.nameDB_?.getDistinctName('id', Blockly.Names.NameType.VARIABLE) ?? 'id_';
 	const buttonName = luaGenerator.nameDB_?.getDistinctName('button', Blockly.Names.NameType.VARIABLE) ?? 'button_';
-	return `${node}:on${event}(function(${idName}, ${buttonName}) if ${idName} == ${id === '' ? '0' : id} and ${buttonName} == ${button} then\n${action}end end)\n`;
+	return `${node}:on${event}(function(${idName}, ${buttonName})\n  if ${idName} == ${id === '' ? '0' : id} and ${buttonName} == ${button} then\n${action}  end\nend)\n`;
 };
 eventCategory.contents.push({
 	kind: 'block',
