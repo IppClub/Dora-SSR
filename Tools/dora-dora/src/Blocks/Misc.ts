@@ -98,7 +98,7 @@ miscCategory.contents.push({
 // require
 const requireBlock = {
 	type: 'require_block',
-	message0: zh ? '引入模块 %1' : 'Require module %1',
+	message0: zh ? '导入模块 %1' : 'Require module %1',
 	args0: [
 		{
 			type: 'input_value',
@@ -132,4 +132,66 @@ miscCategory.contents.push({
 			},
 		},
 	},
+});
+
+export type ExportBlock = Blockly.Block & ExportMixin;
+interface ExportMixin extends ExportMixinType {
+  hasReturnValue_: boolean;
+}
+type ExportMixinType = typeof PROCEDURES_EXPORT;
+
+const PROCEDURES_EXPORT = {
+	init: function (this: ExportBlock) {
+		this.appendValueInput('VALUE').appendField(
+			zh ? '从模块导出' : 'Module export',
+		);
+		this.setInputsInline(true);
+		this.setPreviousStatement(true);
+		this.setNextStatement(false);
+		this.setStyle('procedure_blocks');
+	},
+
+	onchange: function (this: ExportBlock, e: Blockly.Events.Abstract) {
+		if (
+			((this.workspace as Blockly.WorkspaceSvg).isDragging &&
+			(this.workspace as Blockly.WorkspaceSvg).isDragging()) ||
+			(e.type !== Blockly.Events.BLOCK_MOVE && e.type !== Blockly.Events.BLOCK_CREATE)
+		) {
+			return;
+		}
+		let legal = true;
+		// Is the block nested in a procedure?
+		let block = this; // eslint-disable-line @typescript-eslint/no-this-alias
+		do {
+			if (this.FUNCTION_TYPES.includes(block.type)) {
+				legal = false;
+				break;
+			}
+			block = block.getSurroundParent()!;
+		} while (block);
+		if (legal) {
+			this.setWarningText(null);
+		} else {
+			this.setWarningText(zh ? '导出块不能嵌套在函数块中' : 'Export block cannot be nested in a function block');
+		}
+
+		if (!this.isInFlyout) {
+			try {
+				Blockly.Events.setRecordUndo(false);
+				this.setDisabledReason(!legal, 'UNPARENTED_EXPORT');
+			} finally {
+				Blockly.Events.setRecordUndo(true);
+			}
+		}
+	},
+	FUNCTION_TYPES: ['procedures_defnoreturn', 'procedures_defreturn'],
+};
+Blockly.Blocks['export_block'] = PROCEDURES_EXPORT;
+luaGenerator.forBlock['export_block'] = function(block: Blockly.Block) {
+	const value = luaGenerator.valueToCode(block, 'VALUE', Order.NONE);
+	return `return ${value}`;
+};
+miscCategory.contents.push({
+	kind: 'block',
+	type: 'export_block',
 });
