@@ -94,3 +94,42 @@ miscCategory.contents.push({
 	kind: 'block',
 	type: 'colour_hsv_sliders',
 });
+
+// require
+const requireBlock = {
+	type: 'require_block',
+	message0: zh ? '引入模块 %1' : 'Require module %1',
+	args0: [
+		{
+			type: 'input_value',
+			name: 'MODULE',
+			check: "String",
+		},
+	],
+	output: 'Module',
+	previousStatement: null,
+	nextStatement: null,
+	style: 'logic_blocks',
+};
+Blockly.Blocks['require_block'] = { init: function() { this.jsonInit(requireBlock); } };
+luaGenerator.forBlock['require_block'] = function(block: Blockly.Block) {
+	const module = luaGenerator.valueToCode(block, 'MODULE', Order.NONE);
+	if (block.outputConnection?.targetConnection) {
+		return [`require(${module})`, Order.ATOMIC];
+	}
+	return `require(${module})\n`;
+};
+miscCategory.contents.push({
+	kind: 'block',
+	type: 'require_block',
+	inputs: {
+		MODULE: {
+			shadow: {
+				type: 'text',
+				fields: {
+					TEXT: 'module',
+				},
+			},
+		},
+	},
+});

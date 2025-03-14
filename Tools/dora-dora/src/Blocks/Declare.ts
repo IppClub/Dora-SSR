@@ -93,6 +93,28 @@ declareCategory.contents.push({
 	inputs: {
 		VALUE: {
 			block: {
+				type: 'lists_create_with',
+			},
+		},
+	},
+});
+declareCategory.contents.push({
+	kind: 'block',
+	type: 'declare_variable',
+	inputs: {
+		VALUE: {
+			block: {
+				type: 'dict_create',
+			},
+		},
+	},
+});
+declareCategory.contents.push({
+	kind: 'block',
+	type: 'declare_variable',
+	inputs: {
+		VALUE: {
+			block: {
 				type: 'node_create',
 			},
 		},
