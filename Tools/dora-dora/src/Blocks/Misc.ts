@@ -184,12 +184,22 @@ const PROCEDURES_EXPORT = {
 			}
 		}
 	},
-	FUNCTION_TYPES: ['procedures_defnoreturn', 'procedures_defreturn'],
+	FUNCTION_TYPES: [
+		'procedures_defnoreturn',
+		'procedures_defreturn',
+		'on_button_event',
+		'on_keyboard_event',
+		'on_tap_event',
+		'on_update',
+		'node_register_global_event',
+		'thread',
+		'nvg_begin_painting'
+	],
 };
 Blockly.Blocks['export_block'] = PROCEDURES_EXPORT;
 luaGenerator.forBlock['export_block'] = function(block: Blockly.Block) {
 	const value = luaGenerator.valueToCode(block, 'VALUE', Order.NONE);
-	return `return ${value}`;
+	return `return ${value}\n`;
 };
 miscCategory.contents.push({
 	kind: 'block',
