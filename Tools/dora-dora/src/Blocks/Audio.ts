@@ -1,0 +1,196 @@
+import * as Blockly from 'blockly';
+import { luaGenerator, Order } from 'blockly/lua';
+import Info from '../Info';
+
+const zh = Info.locale.match(/^zh/) !== null;
+
+const audioCategory = {
+	kind: 'category',
+	name: zh ? '音频' : 'Audio',
+	categorystyle: 'logic_category',
+	contents: [] as {kind: string, type: string, inputs?: any}[],
+};
+export default audioCategory;
+
+// playStream
+const playStreamBlock = {
+	type: 'play_stream',
+	message0: zh ? '播放音乐 %1\n循环 %2\n交叉淡入时间 %3' : 'Play Music %1\nLoop %2\nCross Fade Time %3',
+	args0: [
+		{
+			type: 'input_value',
+			name: 'FILE',
+			check: 'String',
+		},
+		{
+			type: 'input_value',
+			name: 'LOOP',
+			check: 'Boolean',
+		},
+		{
+			type: 'input_value',
+			name: 'CROSS_FADE_TIME',
+			check: 'Number',
+		},
+	],
+	previousStatement: null,
+	nextStatement: null,
+	style: 'logic_blocks',
+};
+Blockly.Blocks['play_stream'] = { init: function() { this.jsonInit(playStreamBlock); } };
+luaGenerator.forBlock['play_stream'] = function(block: Blockly.Block) {
+	const file = luaGenerator.valueToCode(block, 'FILE', Order.ATOMIC);
+	const loop = luaGenerator.valueToCode(block, 'LOOP', Order.ATOMIC);
+	const crossFadeTime = luaGenerator.valueToCode(block, 'CROSS_FADE_TIME', Order.ATOMIC);
+	return `Audio:playStream(${file === '' ? 'nil' : file}, ${loop === '' ? 'false' : loop}, ${crossFadeTime === '' ? '0' : crossFadeTime})\n`;
+};
+audioCategory.contents.push({
+	kind: 'block',
+	type: 'play_stream',
+	inputs: {
+		FILE: {
+			shadow: {
+				type: 'text',
+				fields: {
+					TEXT: 'Audio/Dismantlism Space.ogg',
+				},
+			},
+		},
+		LOOP: {
+			shadow: {
+				type: 'logic_boolean',
+				fields: {
+					BOOL: 'FALSE',
+				},
+			},
+		},
+		CROSS_FADE_TIME: {
+			shadow: {
+				type: 'math_number',
+				fields: {
+					NUM: '0',
+				},
+			},
+		},
+	},
+});
+
+// stopStream
+const stopStreamBlock = {
+	type: 'stop_stream',
+	message0: zh ? '停止音乐\n淡出时间 %1' : 'Stop Music\nFade Time %1',
+	args0: [
+		{
+			type: 'input_value',
+			name: 'FADE_TIME',
+			check: 'Number',
+		},
+	],
+	previousStatement: null,
+	nextStatement: null,
+	style: 'logic_blocks',
+};
+Blockly.Blocks['stop_stream'] = { init: function() { this.jsonInit(stopStreamBlock); } };
+luaGenerator.forBlock['stop_stream'] = function(block: Blockly.Block) {
+	const fadeTime = luaGenerator.valueToCode(block, 'FADE_TIME', Order.ATOMIC);
+	return `Audio:stopStream(${fadeTime === '' ? '0' : fadeTime})\n`;
+};
+audioCategory.contents.push({
+	kind: 'block',
+	type: 'stop_stream',
+	inputs: {
+		FADE_TIME: {
+			shadow: {
+				type: 'math_number',
+				fields: {
+					NUM: '0',
+				},
+			},
+		},
+	},
+});
+
+// playSound
+const playSoundBlock = {
+	type: 'play_sound',
+	message0: zh ? '播放音效 %1\n循环 %2\n返回音频控制编号' : 'Play Sound %1\nLoop %2\nReturn Audio Control ID',
+	args0: [
+		{
+			type: 'input_value',
+			name: 'FILE',
+			check: 'String',
+		},
+		{
+			type: 'input_value',
+			name: 'LOOP',
+			check: 'Boolean',
+		},
+	],
+	output: 'Number',
+	previousStatement: null,
+	nextStatement: null,
+	style: 'logic_blocks',
+};
+Blockly.Blocks['play_sound'] = { init: function() { this.jsonInit(playSoundBlock); } };
+luaGenerator.forBlock['play_sound'] = function(block: Blockly.Block) {
+	const file = luaGenerator.valueToCode(block, 'FILE', Order.ATOMIC);
+	const loop = luaGenerator.valueToCode(block, 'LOOP', Order.ATOMIC);
+	if (block.outputConnection?.targetConnection) {
+		return [`Audio:playSound(${file === '' ? 'nil' : file}, ${loop === '' ? 'false' : loop})`, Order.ATOMIC];
+	}
+	return `Audio:play(${file === '' ? 'nil' : file}, ${loop === '' ? 'false' : loop})\n`;
+};
+audioCategory.contents.push({
+	kind: 'block',
+	type: 'play_sound',
+	inputs: {
+		FILE: {
+			shadow: {
+				type: 'text',
+				fields: {
+					TEXT: 'Audio/hero_win.wav',
+				},
+			},
+		},
+		LOOP: {
+			shadow: {
+				type: 'logic_boolean',
+				fields: {
+					BOOL: 'FALSE',
+				},
+			},
+		},
+	},
+});
+
+// stopSound
+const stopSoundBlock = {
+	type: 'stop_sound',
+	message0: zh ? '停止音效 %1' : 'Stop Sound %1',
+	args0: [
+		{
+			type: 'input_value',
+			name: 'AUDIO_CONTROL_ID',
+			check: 'Number',
+		},
+	],
+	previousStatement: null,
+	nextStatement: null,
+	style: 'logic_blocks',
+};
+Blockly.Blocks['stop_sound'] = { init: function() { this.jsonInit(stopSoundBlock); } };
+luaGenerator.forBlock['stop_sound'] = function(block: Blockly.Block) {
+	const audioControlId = luaGenerator.valueToCode(block, 'AUDIO_CONTROL_ID', Order.ATOMIC);
+	return `Audio:stop(${audioControlId === '' ? 'nil' : audioControlId})\n`;
+};
+audioCategory.contents.push({
+	kind: 'block',
+	type: 'stop_sound',
+	inputs: {
+		AUDIO_CONTROL_ID: {
+			shadow: {
+				type: 'variables_get',
+			},
+		},
+	},
+});

@@ -1,4 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
+import MonacoEditor from "@monaco-editor/react";
+import * as monaco from 'monaco-editor';
 import * as Blockly from 'blockly';
 import '@blockly/field-colour-hsv-sliders';
 import { luaGenerator } from 'blockly/lua';
@@ -8,14 +10,26 @@ import Info from './Info';
 import { useTranslation } from 'react-i18next';
 import DeclareCategory from './Blocks/Declare';
 import NodeCategory from './Blocks/Node';
-import SpriteCategory from './Blocks/Graphic';
+import GraphicCategory from './Blocks/Graphic';
 import MiscCategory from './Blocks/Misc';
 import EventCategory from './Blocks/Event';
 import Vec2Category from './Blocks/Vec2';
 import ActionCategory from './Blocks/Action';
 import RoutineCategory from './Blocks/Routine';
+import CanvasCategory from './Blocks/Canvas';
+import AudioCategory from './Blocks/Audio';
+import path from './3rdParty/Path';
+import { IconButton, Tooltip } from '@mui/material';
+import CodeIcon from '@mui/icons-material/Code';
+import CodeOffIcon from '@mui/icons-material/CodeOff';
+
+const editorBackground = <div style={{width: '100%', height: '100%', backgroundColor:'#1a1a1a'}}/>;
 
 interface BlocklyProps {
+	width: number;
+	height: number;
+	file: string;
+
 	/**
 	 * Initial JSON configuration for the Blockly workspace
 	 */
@@ -32,32 +46,24 @@ interface BlocklyProps {
 	 * Additional configuration options for the Blockly workspace
 	 */
 	options?: Blockly.BlocklyOptions;
-
-	/**
-	 * CSS class name for the container div
-	 */
-	className?: string;
-
-	/**
-	 * Style object for the container div
-	 */
-	style?: React.CSSProperties;
 }
 
 /**
  * A React component that wraps the Blockly library
  */
 const BlocklyComponent: React.FC<BlocklyProps> = ({
+	file,
+	width,
+	height,
 	initialJson,
 	onChange,
 	options = {},
-	className = '',
-	style = { height: '600px', width: '100%' },
 }) => {
 	const blocklyDiv = useRef<HTMLDivElement>(null);
 	const workspaceRef = useRef<Blockly.WorkspaceSvg | null>(null);
 	const [firstView, setFirstView] = useState(true);
 	const {t} = useTranslation();
+	const [showEditor, setShowEditor] = useState(true);
 
 	// Initialize Blockly workspace
 	useEffect(() => {
@@ -718,12 +724,14 @@ const BlocklyComponent: React.FC<BlocklyProps> = ({
 							kind: 'sep',
 						},
 						NodeCategory,
-						SpriteCategory,
+						GraphicCategory,
+						CanvasCategory,
 						{
 							kind: 'sep',
 						},
 						ActionCategory,
 						EventCategory,
+						AudioCategory,
 						{
 							kind: 'sep',
 						},
@@ -806,26 +814,76 @@ const BlocklyComponent: React.FC<BlocklyProps> = ({
 
 	// Handle window resize
 	useEffect(() => {
-		if (blocklyDiv.current && workspaceRef.current && typeof style.height === 'number' && style.height > 0) {
+		if (blocklyDiv.current && workspaceRef.current && typeof height === 'number' && height > 0) {
 			const {scrollX, scrollY} = workspaceRef.current;
 			Blockly.svgResize(workspaceRef.current);
 			workspaceRef.current.scroll(scrollX, scrollY);
 		}
-	}, [style.height, style.width]);
+	}, [showEditor, height, width]);
 
 	useEffect(() => {
-		if (firstView && workspaceRef.current && typeof style.height === 'number' && style.height > 0) {
+		if (firstView && workspaceRef.current && height > 0) {
 			setFirstView(false);
 			workspaceRef.current.scrollCenter();
 		}
-	}, [firstView, style.height, workspaceRef]);
+	}, [firstView, height, workspaceRef]);
 
 	return (
-		<div
-			ref={blocklyDiv}
-			className={`blockly-component ${className}`}
-			style={style}
-		/>
+		<div style={{display: 'flex', position: 'relative'}}>
+			<div
+				ref={blocklyDiv}
+				className={`blockly-component`}
+				style={{width: showEditor ? width * 0.6 : width, height}}
+			/>
+			{showEditor && (
+				<MonacoEditor
+					width={width * 0.4}
+					height={height}
+					language='lua'
+					theme="dora-dark"
+					keepCurrentModel
+					loading={editorBackground}
+					path={monaco.Uri.file(path.join(path.dirname(file), path.basename(file, path.extname(file)) + '.lua')).toString()}
+					options={{
+						readOnly: true,
+						padding: {top: 16},
+						wordWrap: 'on',
+						wordBreak: 'keepAll',
+						selectOnLineNumbers: true,
+						matchBrackets: 'near',
+						fontSize: 16,
+						useTabStops: false,
+						insertSpaces: false,
+						renderWhitespace: 'all',
+						tabSize: 2,
+						minimap: {
+							enabled: false,
+						},
+					}}
+				/>
+			)}
+			<div style={{
+				position: 'absolute',
+				left: '85px',
+				bottom: '15px',
+				zIndex: 100
+			}}>
+				<Tooltip title={showEditor ? t('blockly.hideCode') : t('blockly.showCode')}>
+					<IconButton
+						onClick={() => setShowEditor(!showEditor)}
+						sx={{
+							backgroundColor: 'rgba(50, 50, 50, 0.7)',
+							color: 'white',
+							'&:hover': {
+								backgroundColor: 'rgba(70, 70, 70, 0.9)',
+							}
+						}}
+					>
+						{showEditor ? <CodeOffIcon /> : <CodeIcon />}
+					</IconButton>
+				</Tooltip>
+			</div>
+		</div>
 	);
 };
 

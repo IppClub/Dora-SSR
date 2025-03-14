@@ -85,6 +85,13 @@ luaGenerator.forBlock['sequence_action'] = function(block: Blockly.Block) {
 actionCategory.contents.push({
 	kind: 'block',
 	type: 'sequence_action',
+	inputs: {
+		ACTION: {
+			block: {
+				type: 'lists_create_with',
+			},
+		},
+	},
 });
 
 // Spawn
@@ -111,6 +118,13 @@ luaGenerator.forBlock['spawn_action'] = function(block: Blockly.Block) {
 actionCategory.contents.push({
 	kind: 'block',
 	type: 'spawn_action',
+	inputs: {
+		ACTION: {
+			block: {
+				type: 'lists_create_with',
+			},
+		},
+	},
 });
 
 const easingOptions = [

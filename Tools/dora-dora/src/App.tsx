@@ -2678,52 +2678,24 @@ export default function PersistentDrawerLeft() {
 								/> : null
 							}
 							{blockly ?
-								<div style={{display: 'flex'}}>
-									<Blockly
-										initialJson={file.content}
-										onChange={(json, blocklyCode) => {
-											setModified({key: file.key, content: json, blocklyCode});
-											const extname = path.extname(file.key);
-											const name = path.basename(file.key, extname);
-											const luaFile = path.join(path.dirname(file.key), name + ".lua");
-											const model = monaco.editor.getModel(monaco.Uri.parse(luaFile));
-											if (model) {
-												model.setValue(blocklyCode);
-											} else {
-												monaco.editor.createModel(blocklyCode, "lua", monaco.Uri.parse(luaFile));
-											}
-										}}
-										style={{
-											height: tabIndex === index ? editorHeight : 0,
-											width: editorWidth * 0.6
-										}}
-									/>
-									<MonacoEditor
-										width={editorWidth * 0.4}
-										height={editorHeight}
-										language='lua'
-										theme="dora-dark"
-										keepCurrentModel
-										loading={editorBackground}
-										path={monaco.Uri.file(path.join(path.dirname(file.key), path.basename(file.key, path.extname(file.key)) + '.lua')).toString()}
-										options={{
-											readOnly: true,
-											padding: {top: 16},
-											wordWrap: 'on',
-											wordBreak: 'keepAll',
-											selectOnLineNumbers: true,
-											matchBrackets: 'near',
-											fontSize: 16,
-											useTabStops: false,
-											insertSpaces: false,
-											renderWhitespace: 'all',
-											tabSize: 2,
-											minimap: {
-												enabled: false,
-											},
-										}}
-									/>
-								</div> : null
+								<Blockly
+									width={editorWidth}
+									height={tabIndex === index ? editorHeight : 0}
+									file={file.key}
+									initialJson={file.content}
+									onChange={(json, blocklyCode) => {
+										setModified({key: file.key, content: json, blocklyCode});
+										const extname = path.extname(file.key);
+										const name = path.basename(file.key, extname);
+										const luaFile = path.join(path.dirname(file.key), name + ".lua");
+										const model = monaco.editor.getModel(monaco.Uri.parse(luaFile));
+										if (model) {
+											model.setValue(blocklyCode);
+										} else {
+											monaco.editor.createModel(blocklyCode, "lua", monaco.Uri.parse(luaFile));
+										}
+									}}
+								/> : null
 							}
 							{markdown ?
 								<MacScrollbar skin='dark' hidden={file.mdEditing} style={{height: editorHeight}}>

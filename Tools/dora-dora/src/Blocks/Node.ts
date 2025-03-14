@@ -28,6 +28,31 @@ nodeCategory.contents.push({
 	type: 'node_create',
 });
 
+// Remove node
+const nodeRemoveBlock = {
+	type: 'node_remove',
+	message0: zh ? '删除节点 %1' : 'Remove node %1',
+	args0: [
+		{
+			type: 'field_variable',
+			name: 'NODE',
+			variable: 'temp',
+		},
+	],
+	previousStatement: null,
+	nextStatement: null,
+	style: 'logic_blocks',
+};
+Blockly.Blocks['node_remove'] = { init: function() { this.jsonInit(nodeRemoveBlock); } };
+luaGenerator.forBlock['node_remove'] = function(block: Blockly.Block) {
+	const node = luaGenerator.getVariableName(block.getFieldValue('NODE'));
+	return `${node}:removeFromParent()\n`;
+};
+nodeCategory.contents.push({
+	kind: 'block',
+	type: 'node_remove',
+});
+
 // Add child
 const nodeAddChildBlock = {
 	type: 'node_add_child',
@@ -218,6 +243,7 @@ const nodeSetNumberAttributeBlock = {
 				['角度', 'angle'],
 				['X 角度', 'angleX'],
 				['Y 角度', 'angleY'],
+				['缩放', 'scale'],
 				['X 缩放', 'scaleX'],
 				['Y 缩放', 'scaleY'],
 				['不透明度', 'opacity'],
@@ -230,6 +256,7 @@ const nodeSetNumberAttributeBlock = {
 				['Angle', 'angle'],
 				['AngleX', 'angleX'],
 				['AngleY', 'angleY'],
+				['Scale', 'scale'],
 				['ScaleX', 'scaleX'],
 				['ScaleY', 'scaleY'],
 				['Opacity', 'opacity'],
@@ -250,7 +277,12 @@ luaGenerator.forBlock['node_set_number_attribute'] = function(block: Blockly.Blo
 	const node = luaGenerator.getVariableName(block.getFieldValue('NODE'));
 	const attribute = block.getFieldValue('ATTRIBUTE');
 	const value = luaGenerator.valueToCode(block, 'VALUE', Order.ATOMIC);
-	return `${node}.${attribute} = ${value === '' ? '0' : value}\n`;
+	if (attribute === 'scale') {
+		const scaleVar = luaGenerator.nameDB_?.getDistinctName("scale", Blockly.Names.NameType.VARIABLE);
+		return `local ${scaleVar} = ${value === '' ? '0' : value}\n${node}.scaleX = ${scaleVar}\n${node}.scaleY = ${scaleVar}\n`;
+	} else {
+		return `${node}.${attribute} = ${value === '' ? '0' : value}\n`;
+	}
 };
 nodeCategory.contents.push({
 	kind: 'block',
@@ -300,9 +332,6 @@ nodeCategory.contents.push({
 		COLOR: {
 			shadow: {
 				type: 'colour_hsv_sliders',
-				fields: {
-					COLOUR: '#fac03d',
-				},
 			},
 		},
 	},
