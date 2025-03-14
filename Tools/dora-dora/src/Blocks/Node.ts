@@ -514,3 +514,102 @@ nodeCategory.contents.push({
 	kind: 'block',
 	type: 'node_get_color',
 });
+
+// Register global event
+const nodeRegisterGlobalEventBlock = {
+	type: 'node_register_global_event',
+	message0: zh ? '在节点 %1 上监听全局事件 %2\n接收参数列表 %3\n处理 %4' : 'On node %1 listen for global event %2\nReceive list %3\nProcess %4',
+	args0: [
+		{
+			type: 'field_variable',
+			name: 'NODE',
+			variable: 'temp',
+		},
+		{
+			type: 'input_value',
+			name: 'EVENT',
+			check: "String",
+		},
+		{
+			type: 'field_variable',
+			name: 'PARAMS',
+			variable: 'args',
+		},
+		{
+			type: 'input_statement',
+			name: 'ACTION',
+		},
+	],
+	previousStatement: null,
+	nextStatement: null,
+	style: 'logic_blocks',
+};
+Blockly.Blocks['node_register_global_event'] = { init: function() { this.jsonInit(nodeRegisterGlobalEventBlock); } };
+luaGenerator.forBlock['node_register_global_event'] = function(block: Blockly.Block) {
+	const node = luaGenerator.getVariableName(block.getFieldValue('NODE'));
+	const event = luaGenerator.valueToCode(block, 'EVENT', Order.NONE);
+	const params = luaGenerator.getVariableName(block.getFieldValue('PARAMS'));
+	const action = luaGenerator.statementToCode(block, 'ACTION');
+	return `${node}:gslot(${event}, function(...)\n  local ${params} = {...}\n${action}end)\n`;
+};
+nodeCategory.contents.push({
+	kind: 'block',
+	type: 'node_register_global_event',
+	inputs: {
+		EVENT: {
+			shadow: {
+				type: 'text',
+				fields: {
+					TEXT: 'event',
+				},
+			},
+		},
+	},
+});
+
+// emit global event
+const nodeEmitGlobalEventBlock = {
+	type: 'node_emit_global_event',
+	message0: zh ? '发送全局事件 %1 发送参数列表 %2' : 'Emit global event %1\nSend list\n%2',
+	args0: [
+		{
+			type: 'input_value',
+			name: 'EVENT',
+			check: "String",
+		},
+		{
+			type: 'input_value',
+			name: 'PARAMS',
+			check: "Array",
+		},
+	],
+	inputsInline: false,
+	previousStatement: null,
+	nextStatement: null,
+	style: 'logic_blocks',
+};
+Blockly.Blocks['node_emit_global_event'] = { init: function() { this.jsonInit(nodeEmitGlobalEventBlock); } };
+luaGenerator.forBlock['node_emit_global_event'] = function(block: Blockly.Block) {
+	const event = luaGenerator.valueToCode(block, 'EVENT', Order.NONE);
+	const params = luaGenerator.valueToCode(block, 'PARAMS', Order.NONE);
+	return `emit(${event}, table.unpack(${params}))\n`;
+};
+nodeCategory.contents.push({
+	kind: 'block',
+	type: 'node_emit_global_event',
+	inputs: {
+		EVENT: {
+			shadow: {
+				type: 'text',
+				fields: {
+					TEXT: 'event',
+				},
+			},
+		},
+		PARAMS: {
+			block: {
+				type: 'lists_create_with',
+			},
+		},
+	},
+});

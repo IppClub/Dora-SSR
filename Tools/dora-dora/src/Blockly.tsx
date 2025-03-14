@@ -18,6 +18,7 @@ import ActionCategory from './Blocks/Action';
 import RoutineCategory from './Blocks/Routine';
 import CanvasCategory from './Blocks/Canvas';
 import AudioCategory from './Blocks/Audio';
+import DictCategory from './Blocks/Dict';
 import path from './3rdParty/Path';
 import { IconButton, Tooltip } from '@mui/material';
 import CodeIcon from '@mui/icons-material/Code';
@@ -75,6 +76,8 @@ const BlocklyComponent: React.FC<BlocklyProps> = ({
 			} else {
 				Blockly.setLocale(En as any);
 			}
+			Blockly.Msg['VARIABLES_DEFAULT_NAME'] = 'temp';
+
 			// Default options
 			const defaultOptions: Blockly.BlocklyOptions = {
 				sounds: false,
@@ -99,6 +102,9 @@ const BlocklyComponent: React.FC<BlocklyProps> = ({
 						},
 						colour_blocks: {
 							colourSecondary: '#a5745b',
+						},
+						variable_blocks: {
+							colourSecondary: '#a55b80',
 						},
 					},
 					categoryStyles: {
@@ -214,6 +220,13 @@ const BlocklyComponent: React.FC<BlocklyProps> = ({
 								{
 									kind: 'block',
 									type: 'controls_forEach',
+									inputs: {
+										LIST: {
+											shadow: {
+												type: 'variables_get',
+											},
+										},
+									},
 								},
 								{
 									kind: 'block',
@@ -510,6 +523,14 @@ const BlocklyComponent: React.FC<BlocklyProps> = ({
 												type: 'variables_get',
 											},
 										},
+										AT: {
+											shadow: {
+												type: 'math_number',
+												fields: {
+													NUM: 1,
+												},
+											},
+										},
 									},
 								},
 								{
@@ -519,6 +540,22 @@ const BlocklyComponent: React.FC<BlocklyProps> = ({
 										STRING: {
 											block: {
 												type: 'variables_get',
+											},
+										},
+										AT1: {
+											shadow: {
+												type: 'math_number',
+												fields: {
+													NUM: 1,
+												},
+											},
+										},
+										AT2: {
+											shadow: {
+												type: 'math_number',
+												fields: {
+													NUM: 1,
+												},
 											},
 										},
 									},
@@ -614,6 +651,11 @@ const BlocklyComponent: React.FC<BlocklyProps> = ({
 									kind: 'block',
 									type: 'lists_repeat',
 									inputs: {
+										ITEM: {
+											shadow: {
+												type: 'variables_get',
+											},
+										},
 										NUM: {
 											shadow: {
 												type: 'math_number',
@@ -627,10 +669,24 @@ const BlocklyComponent: React.FC<BlocklyProps> = ({
 								{
 									kind: 'block',
 									type: 'lists_length',
+									inputs: {
+										VALUE: {
+											block: {
+												type: 'variables_get',
+											},
+										},
+									},
 								},
 								{
 									kind: 'block',
 									type: 'lists_isEmpty',
+									inputs: {
+										VALUE: {
+											block: {
+												type: 'variables_get',
+											},
+										},
+									},
 								},
 								{
 									kind: 'block',
@@ -652,6 +708,14 @@ const BlocklyComponent: React.FC<BlocklyProps> = ({
 												type: 'variables_get',
 											},
 										},
+										AT: {
+											shadow: {
+												type: 'math_number',
+												fields: {
+													NUM: 1,
+												},
+											},
+										},
 									},
 								},
 								{
@@ -661,6 +725,14 @@ const BlocklyComponent: React.FC<BlocklyProps> = ({
 										LIST: {
 											block: {
 												type: 'variables_get',
+											},
+										},
+										AT: {
+											shadow: {
+												type: 'math_number',
+												fields: {
+													NUM: 1,
+												},
 											},
 										},
 									},
@@ -674,12 +746,36 @@ const BlocklyComponent: React.FC<BlocklyProps> = ({
 												type: 'variables_get',
 											},
 										},
+										AT1: {
+											shadow: {
+												type: 'math_number',
+												fields: {
+													NUM: 1,
+												},
+											},
+										},
+										AT2: {
+											shadow: {
+												type: 'math_number',
+												fields: {
+													NUM: 1,
+												},
+											},
+										},
 									},
 								},
 								{
 									kind: 'block',
 									type: 'lists_split',
 									inputs: {
+										INPUT: {
+											shadow: {
+												type: 'text',
+												fields: {
+													TEXT: 'item1,item2,item3',
+												},
+											},
+										},
 										DELIM: {
 											shadow: {
 												type: 'text',
@@ -697,9 +793,17 @@ const BlocklyComponent: React.FC<BlocklyProps> = ({
 								{
 									kind: 'block',
 									type: 'lists_reverse',
+									inputs: {
+										LIST: {
+											block: {
+												type: 'variables_get',
+											},
+										},
+									},
 								},
 							],
 						},
+						DictCategory,
 						{
 							kind: 'sep',
 						},
