@@ -50,7 +50,7 @@ declareCategory.contents.push({
 	type: 'declare_variable',
 	inputs: {
 		VALUE: {
-			shadow: {
+			block: {
 				type: 'math_number',
 				fields: {
 					NUM: 0,
@@ -64,7 +64,7 @@ declareCategory.contents.push({
 	type: 'declare_variable',
 	inputs: {
 		VALUE: {
-			shadow: {
+			block: {
 				type: 'logic_boolean',
 				fields: {
 					BOOL: 'FALSE',
@@ -78,7 +78,7 @@ declareCategory.contents.push({
 	type: 'declare_variable',
 	inputs: {
 		VALUE: {
-			shadow: {
+			block: {
 				type: 'text',
 				fields: {
 					TEXT: '',
@@ -92,7 +92,7 @@ declareCategory.contents.push({
 	type: 'declare_variable',
 	inputs: {
 		VALUE: {
-			shadow: {
+			block: {
 				type: 'node_create',
 			},
 		},
@@ -103,7 +103,7 @@ declareCategory.contents.push({
 	type: 'declare_variable',
 	inputs: {
 		VALUE: {
-			shadow: {
+			block: {
 				type: 'sprite_create',
 				inputs: {
 					FILE: {
@@ -124,7 +124,7 @@ declareCategory.contents.push({
 	type: 'declare_variable',
 	inputs: {
 		VALUE: {
-			shadow: {
+			block: {
 				type: 'label_create',
 				inputs: {
 					FONT: {

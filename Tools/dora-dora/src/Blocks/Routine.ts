@@ -15,9 +15,20 @@ export default routineCategory;
 // thread
 const threadBlock = {
 	type: 'thread',
-	message0: zh ? '创建线程 %1' : 'Create thread %1',
+	message0: zh ? '创建 %1 的线程 %2' : 'Create %1 thread %2',
 	inputsInline: false,
 	args0: [
+		{
+			type: 'field_dropdown',
+			name: 'TYPE',
+			options: zh ? [
+				['执行一次', 'thread'],
+				['循环执行', 'threadLoop'],
+			] : [
+				['Once', 'thread'],
+				['Loop', 'threadLoop'],
+			],
+		},
 		{
 			type: 'input_statement',
 			name: 'ACTION',
@@ -31,12 +42,30 @@ Blockly.Blocks['thread'] = {
 	init: function() { this.jsonInit(threadBlock); },
 };
 luaGenerator.forBlock['thread'] = function(block: Blockly.Block) {
+	const type = block.getFieldValue('TYPE');
 	const action = luaGenerator.statementToCode(block, 'ACTION');
-	return `thread(function()\n${action}end)`;
+	return `${type}(function()\n${action}end)\n`;
 };
 routineCategory.contents.push({
 	kind: 'block',
 	type: 'thread',
+	inputs: {
+		ACTION: {
+			block: {
+				type: 'sleep',
+				inputs: {
+					TIME: {
+						shadow: {
+							type: 'math_number',
+							fields: {
+								NUM: 1,
+							},
+						},
+					},
+				},
+			},
+		},
+	},
 });
 
 // sleep
