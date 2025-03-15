@@ -2683,6 +2683,7 @@ export default function PersistentDrawerLeft() {
 									height={tabIndex === index ? editorHeight : 0}
 									file={file.key}
 									initialJson={file.content}
+									onSave={saveCurrentTab}
 									onChange={(json, blocklyCode) => {
 										setModified({key: file.key, content: json, blocklyCode});
 										const extname = path.extname(file.key);
@@ -2791,7 +2792,7 @@ export default function PersistentDrawerLeft() {
 				</div>
 				<div style={{zIndex: 999}}>
 					<PlayControl width={editorWidth} onClick={onPlayControlClick}/>
-					<StyledStack open={drawerOpen} drawerWidth={drawerWidth}>
+					<StyledStack>
 						<TransitionGroup>
 							{alerts.map((item) => (
 								<Collapse key={item.key}>

@@ -90,28 +90,18 @@ export const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open
 	}),
 }));
 
-export const StyledStack = styled(Stack, { shouldForwardProp: (prop) => prop !== 'open' && prop !== 'drawerWidth' })<{
-	open?: boolean;
-	drawerWidth: number;
-}>(({ theme, open, drawerWidth }) => ({
+export const StyledStack = styled(Stack)(({ theme }) => ({
 	zIndex: 999,
-	width: '350px',
-	bottom: 5,
+	width: 'fit-content',
+	top: 55,
 	flexGrow: 1,
 	position: 'fixed',
 	padding: theme.spacing(0),
-	transition: theme.transitions.create('left', {
+	transition: theme.transitions.create('right', {
 		easing: theme.transitions.easing.sharp,
 		duration: theme.transitions.duration.leavingScreen,
 	}),
-	left: 5,
-	...(open && {
-		transition: theme.transitions.create('left', {
-			easing: theme.transitions.easing.easeOut,
-			duration: theme.transitions.duration.enteringScreen,
-		}),
-		left: drawerWidth + 5,
-	}),
+	right: 5,
 }));
 
 export interface AppBarProps extends MuiAppBarProps {

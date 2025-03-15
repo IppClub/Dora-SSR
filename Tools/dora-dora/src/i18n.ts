@@ -211,6 +211,7 @@ i18n
 						functions: "Functions",
 						showCode: "Show Code",
 						hideCode: "Hide Code",
+						save: "Save",
 					},
 				}
 			},
@@ -412,6 +413,7 @@ i18n
 						functions: "函数",
 						showCode: "显示代码",
 						hideCode: "隐藏代码",
+						save: "保存",
 					},
 				}
 			},
