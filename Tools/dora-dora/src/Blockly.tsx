@@ -20,9 +20,10 @@ import CanvasCategory from './Blocks/Canvas';
 import AudioCategory from './Blocks/Audio';
 import DictCategory from './Blocks/Dict';
 import path from './3rdParty/Path';
-import { IconButton, Tooltip } from '@mui/material';
+import { IconButton, Tooltip, Stack } from '@mui/material';
 import CodeIcon from '@mui/icons-material/Code';
 import CodeOffIcon from '@mui/icons-material/CodeOff';
+import SaveIcon from '@mui/icons-material/Save';
 
 const editorBackground = <div style={{width: '100%', height: '100%', backgroundColor:'#1a1a1a'}}/>;
 
@@ -44,6 +45,11 @@ interface BlocklyProps {
 	onChange?: (json: string, code: string) => void;
 
 	/**
+	 * Callback function triggered when the save button is clicked
+	 */
+	onSave?: () => void;
+
+	/**
 	 * Additional configuration options for the Blockly workspace
 	 */
 	options?: Blockly.BlocklyOptions;
@@ -58,6 +64,7 @@ const BlocklyComponent: React.FC<BlocklyProps> = ({
 	height,
 	initialJson,
 	onChange,
+	onSave,
 	options = {},
 }) => {
 	const blocklyDiv = useRef<HTMLDivElement>(null);
@@ -878,7 +885,16 @@ const BlocklyComponent: React.FC<BlocklyProps> = ({
 			if (initialJson) {
 				try {
 					const jsonObj = JSON.parse(initialJson);
+					if (jsonObj.showEditor) {
+						setShowEditor(true);
+					} else {
+						setShowEditor(false);
+					}
+					(workspaceRef.current as any).showEditor = jsonObj.showEditor;
 					Blockly.serialization.workspaces.load(jsonObj, workspaceRef.current);
+					setTimeout(() => {
+						workspaceRef.current?.scrollCenter();
+					}, 100);
 				} catch (e) {
 					console.error('Error loading initial JSON:', e);
 				}
@@ -895,9 +911,9 @@ const BlocklyComponent: React.FC<BlocklyProps> = ({
 						return;
 					}
 					if (workspaceRef.current) {
-						const json = JSON.stringify(
-							Blockly.serialization.workspaces.save(workspaceRef.current)
-						);
+						const jsonObj = Blockly.serialization.workspaces.save(workspaceRef.current);
+						jsonObj.showEditor = (workspaceRef.current as any).showEditor;
+						const json = JSON.stringify(jsonObj);
 						const code = "_ENV = Dora\n" + luaGenerator.workspaceToCode(workspaceRef.current);
 						const modifiedCode = code.replace(/^function /gm, 'local function ');
 						onChange(json, modifiedCode);
@@ -972,20 +988,44 @@ const BlocklyComponent: React.FC<BlocklyProps> = ({
 				bottom: '15px',
 				zIndex: 100
 			}}>
-				<Tooltip title={showEditor ? t('blockly.hideCode') : t('blockly.showCode')}>
-					<IconButton
-						onClick={() => setShowEditor(!showEditor)}
-						sx={{
-							backgroundColor: 'rgba(50, 50, 50, 0.7)',
-							color: 'white',
-							'&:hover': {
-								backgroundColor: 'rgba(70, 70, 70, 0.9)',
-							}
-						}}
-					>
-						{showEditor ? <CodeOffIcon /> : <CodeIcon />}
-					</IconButton>
-				</Tooltip>
+				<Stack direction="row" spacing={1}>
+					<Tooltip title={showEditor ? t('blockly.hideCode') : t('blockly.showCode')}>
+						<IconButton
+							onClick={() => {
+								setShowEditor(!showEditor);
+								if (workspaceRef.current) {
+									(workspaceRef.current as any).showEditor = !showEditor;
+								}
+								setTimeout(() => {
+									workspaceRef.current?.fireChangeListener(new Blockly.Events.BlockChange());
+								}, 100);
+							}}
+							sx={{
+								backgroundColor: 'rgba(50, 50, 50, 0.7)',
+								color: 'rgba(255, 255, 255, 0.4)',
+								'&:hover': {
+									backgroundColor: 'rgba(70, 70, 70, 0.9)',
+								}
+							}}
+						>
+							{showEditor ? <CodeOffIcon /> : <CodeIcon />}
+						</IconButton>
+					</Tooltip>
+					<Tooltip title={t('blockly.save') || "保存"}>
+						<IconButton
+							onClick={onSave}
+							sx={{
+								backgroundColor: 'rgba(50, 50, 50, 0.7)',
+								color: 'rgba(255, 255, 255, 0.4)',
+								'&:hover': {
+									backgroundColor: 'rgba(70, 70, 70, 0.9)',
+								}
+							}}
+						>
+							<SaveIcon />
+						</IconButton>
+					</Tooltip>
+				</Stack>
 			</div>
 		</div>
 	);
