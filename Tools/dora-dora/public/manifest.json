@@ -1,6 +1,6 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "Dora SSR",
+  "name": "Dora SSR Web IDE",
   "icons": [
     {
       "src": "favicon.ico",
