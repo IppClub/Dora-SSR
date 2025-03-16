@@ -71,7 +71,7 @@ const BlocklyComponent: React.FC<BlocklyProps> = ({
 	const workspaceRef = useRef<Blockly.WorkspaceSvg | null>(null);
 	const [firstView, setFirstView] = useState(true);
 	const {t} = useTranslation();
-	const [showEditor, setShowEditor] = useState(true);
+	const [showEditor, setShowEditor] = useState(false);
 
 	// Initialize Blockly workspace
 	useEffect(() => {
@@ -99,19 +99,19 @@ const BlocklyComponent: React.FC<BlocklyProps> = ({
 							colourTertiary: '#8b6508',
 						},
 						math_blocks: {
-							colourSecondary: '#5b67a5',
+							colourSecondary: Blockly.utils.colour.blend('#5b67a5', '#000000', 0.8) || '#5b67a5',
 						},
 						text_blocks: {
-							colourSecondary: '#5ba58c',
+							colourSecondary: Blockly.utils.colour.blend('#5ba58c', '#000000', 0.8) || '#5ba58c',
 						},
 						logic_blocks: {
-							colourSecondary: '#5b80a5',
+							colourSecondary: Blockly.utils.colour.blend('#5b80a5', '#000000', 0.8) || '#5b80a5',
 						},
 						colour_blocks: {
-							colourSecondary: '#a5745b',
+							colourSecondary: Blockly.utils.colour.blend('#a5745b', '#000000', 0.8) || '#a5745b',
 						},
 						variable_blocks: {
-							colourSecondary: '#a55b80',
+							colourSecondary: Blockly.utils.colour.blend('#a55b80', '#000000', 0.8) || '#a55b80',
 						},
 					},
 					categoryStyles: {
@@ -885,18 +885,17 @@ const BlocklyComponent: React.FC<BlocklyProps> = ({
 			if (initialJson) {
 				try {
 					const jsonObj = JSON.parse(initialJson);
-					if (jsonObj.showEditor) {
-						setShowEditor(true);
-					} else {
-						setShowEditor(false);
-					}
 					(workspaceRef.current as any).showEditor = jsonObj.showEditor;
 					Blockly.serialization.workspaces.load(jsonObj, workspaceRef.current);
-					setTimeout(() => {
-						workspaceRef.current?.scrollCenter();
-					}, 100);
+					if (jsonObj.showEditor) {
+						setShowEditor(true);
+						setTimeout(() => {
+							workspaceRef.current?.scrollCenter();
+						}, 100);
+					}
 				} catch (e) {
 					console.error('Error loading initial JSON:', e);
+					Blockly.serialization.workspaces.load({}, workspaceRef.current);
 				}
 			}
 

@@ -61,70 +61,303 @@ actionCategory.contents.push({
 	type: 'perform_action',
 });
 
-// Sequence
-const sequenceActionBlock = {
-	type: 'sequence_action',
-	message0: zh ? '顺序动作列表 %1' : 'Sequence action list %1',
-	args0: [
-		{
-			type: 'input_value',
-			name: 'ACTION',
-			check: 'Array',
-		},
-	],
-	output: 'Action',
-	style: 'logic_blocks',
+
+type AnyDuringMigration = any;
+
+/**
+ * Type of a 'sequence_create_with' block.
+ *
+ * @internal
+ */
+export type SequenceCreateWithBlock = Blockly.Block & SequenceCreateWithMixin;
+interface SequenceCreateWithMixin extends SequenceCreateWithMixinType {
+  itemCount_: number;
+}
+type SequenceCreateWithMixinType = typeof SEQUENCE_CREATE_WITH;
+
+const SEQUENCE_CREATE_WITH = {
+	init: function (this: SequenceCreateWithBlock) {
+		this.setStyle('logic_blocks');
+		this.itemCount_ = 3;
+		this.updateShape_();
+		this.setOutput(true, 'Action');
+		this.setMutator(
+			new Blockly.icons.MutatorIcon(['action_create_with_item'], this as unknown as Blockly.BlockSvg),
+		); // BUG(#6905)
+	},
+	mutationToDom: function (this: SequenceCreateWithBlock): Element {
+		const container = Blockly.utils.xml.createElement('mutation');
+		container.setAttribute('items', String(this.itemCount_));
+		return container;
+	},
+	domToMutation: function (this: SequenceCreateWithBlock, xmlElement: Element) {
+		const items = xmlElement.getAttribute('items');
+		if (!items) throw new TypeError('element did not have items');
+		this.itemCount_ = parseInt(items, 10);
+		this.updateShape_();
+	},
+	saveExtraState: function (this: SequenceCreateWithBlock): {itemCount: number} {
+		return {
+			'itemCount': this.itemCount_,
+		};
+	},
+	loadExtraState: function (this: SequenceCreateWithBlock, state: AnyDuringMigration) {
+		this.itemCount_ = state['itemCount'];
+		this.updateShape_();
+	},
+	decompose: function (
+		this: SequenceCreateWithBlock,
+		workspace: Blockly.Workspace,
+	): ContainerBlock {
+		const containerBlock = workspace.newBlock(
+			'action_create_with_container',
+		) as ContainerBlock;
+		(containerBlock as Blockly.BlockSvg).initSvg();
+		let connection = containerBlock.getInput('STACK')!.connection;
+		for (let i = 0; i < this.itemCount_; i++) {
+			const itemBlock = workspace.newBlock(
+				'action_create_with_item',
+			) as ItemBlock;
+			(itemBlock as Blockly.BlockSvg).initSvg();
+			if (!itemBlock.previousConnection) {
+				throw new Error('itemBlock has no previousConnection');
+			}
+			connection!.connect(itemBlock.previousConnection);
+			connection = itemBlock.nextConnection;
+		}
+		return containerBlock;
+	},
+	compose: function (this: SequenceCreateWithBlock, containerBlock: Blockly.Block) {
+		let itemBlock: ItemBlock | null = containerBlock.getInputTargetBlock(
+			'STACK',
+		) as ItemBlock;
+		// Count number of inputs.
+		const connections: Blockly.Connection[] = [];
+		while (itemBlock) {
+			if (itemBlock.isInsertionMarker()) {
+				itemBlock = itemBlock.getNextBlock() as ItemBlock | null;
+				continue;
+			}
+			connections.push(itemBlock.valueConnection_ as Blockly.Connection);
+			itemBlock = itemBlock.getNextBlock() as ItemBlock | null;
+		}
+		// Disconnect any children that don't belong.
+		for (let i = 0; i < this.itemCount_; i++) {
+			const connection = this.getInput('ADD' + i)!.connection!.targetConnection;
+			if (connection && !connections.includes(connection)) {
+				connection.disconnect();
+			}
+		}
+		this.itemCount_ = connections.length;
+		this.updateShape_();
+		// Reconnect any child blocks.
+		for (let i = 0; i < this.itemCount_; i++) {
+			connections[i]?.reconnect(this, 'ADD' + i);
+		}
+	},
+	saveConnections: function (this: SequenceCreateWithBlock, containerBlock: Blockly.Block) {
+		let itemBlock: ItemBlock | null = containerBlock.getInputTargetBlock(
+			'STACK',
+		) as ItemBlock;
+		let i = 0;
+		while (itemBlock) {
+			if (itemBlock.isInsertionMarker()) {
+				itemBlock = itemBlock.getNextBlock() as ItemBlock | null;
+				continue;
+			}
+			const input = this.getInput('ADD' + i);
+			itemBlock.valueConnection_ = input?.connection!
+			.targetConnection as Blockly.Connection;
+			itemBlock = itemBlock.getNextBlock() as ItemBlock | null;
+			i++;
+		}
+	},
+	updateShape_: function (this: SequenceCreateWithBlock) {
+		if (this.itemCount_ && this.getInput('EMPTY')) {
+			this.removeInput('EMPTY');
+		} else if (!this.itemCount_ && !this.getInput('EMPTY')) {
+			this.appendDummyInput('EMPTY').appendField(
+				zh ? '空序列动作列表' : 'Empty sequence action list',
+			);
+		}
+		// Add new inputs.
+		for (let i = 0; i < this.itemCount_; i++) {
+			if (!this.getInput('ADD' + i)) {
+				const input = this.appendValueInput('ADD' + i).setAlign(Blockly.inputs.Align.RIGHT);
+				input.setCheck('Action');
+				if (i === 0) {
+					input.appendField(zh ? '序列动作列表' : 'Sequence action list');
+				}
+			}
+		}
+		// Remove deleted inputs.
+		for (let i = this.itemCount_; this.getInput('ADD' + i); i++) {
+			this.removeInput('ADD' + i);
+		}
+	},
 };
-Blockly.Blocks['sequence_action'] = {
-	init: function() { this.jsonInit(sequenceActionBlock); },
-};
-luaGenerator.forBlock['sequence_action'] = function(block: Blockly.Block) {
-	const action = luaGenerator.valueToCode(block, 'ACTION', Order.NONE);
-	return [`Sequence(table.unpack(${action}))`, Order.ATOMIC];
+Blockly.Blocks['sequence_create_with'] = SEQUENCE_CREATE_WITH;
+luaGenerator.forBlock['sequence_create_with'] = function(block: Blockly.Block) {
+	const items = [];
+	for (let i = 0; i < (block as SequenceCreateWithBlock).itemCount_; i++) {
+		const item = luaGenerator.valueToCode(block, 'ADD' + i, Order.NONE);
+		if (item !== '') {
+			items.push(item);
+		}
+	}
+	return [`Sequence(${items.join(', ')})`, Order.ATOMIC];
 };
 actionCategory.contents.push({
 	kind: 'block',
-	type: 'sequence_action',
-	inputs: {
-		ACTION: {
-			block: {
-				type: 'lists_create_with',
-			},
-		},
-	},
+	type: 'sequence_create_with',
 });
 
-// Spawn
-const spawnActionBlock = {
-	type: 'spawn_action',
-	message0: zh ? '并行动作列表 %1' : 'Spawn action list %1',
-	args0: [
-		{
-			type: 'input_value',
-			name: 'ACTION',
-			check: 'Array',
-		},
-	],
-	output: 'Action',
-	style: 'logic_blocks',
+/**
+ * Type of a 'spawn_create_with' block.
+ *
+ * @internal
+ */
+export type SpawnCreateWithBlock = Blockly.Block & SpawnCreateWithMixin;
+interface SpawnCreateWithMixin extends SpawnCreateWithMixinType {
+  itemCount_: number;
+}
+type SpawnCreateWithMixinType = typeof SPAWN_CREATE_WITH;
+
+const SPAWN_CREATE_WITH = {
+	init: function (this: SpawnCreateWithBlock) {
+		this.setStyle('logic_blocks');
+		this.itemCount_ = 3;
+		this.updateShape_();
+		this.setOutput(true, 'Action');
+		this.setMutator(
+			new Blockly.icons.MutatorIcon(['action_create_with_item'], this as unknown as Blockly.BlockSvg),
+		); // BUG(#6905)
+	},
+	mutationToDom: function (this: SpawnCreateWithBlock): Element {
+		const container = Blockly.utils.xml.createElement('mutation');
+		container.setAttribute('items', String(this.itemCount_));
+		return container;
+	},
+	domToMutation: function (this: SpawnCreateWithBlock, xmlElement: Element) {
+		const items = xmlElement.getAttribute('items');
+		if (!items) throw new TypeError('element did not have items');
+		this.itemCount_ = parseInt(items, 10);
+		this.updateShape_();
+	},
+	saveExtraState: function (this: SpawnCreateWithBlock): {itemCount: number} {
+		return {
+			'itemCount': this.itemCount_,
+		};
+	},
+	loadExtraState: function (this: SpawnCreateWithBlock, state: AnyDuringMigration) {
+		this.itemCount_ = state['itemCount'];
+		this.updateShape_();
+	},
+	decompose: function (
+		this: SpawnCreateWithBlock,
+		workspace: Blockly.Workspace,
+	): ContainerBlock {
+		const containerBlock = workspace.newBlock(
+			'action_create_with_container',
+		) as ContainerBlock;
+		(containerBlock as Blockly.BlockSvg).initSvg();
+		let connection = containerBlock.getInput('STACK')!.connection;
+		for (let i = 0; i < this.itemCount_; i++) {
+			const itemBlock = workspace.newBlock(
+				'action_create_with_item',
+			) as ItemBlock;
+			(itemBlock as Blockly.BlockSvg).initSvg();
+			if (!itemBlock.previousConnection) {
+				throw new Error('itemBlock has no previousConnection');
+			}
+			connection!.connect(itemBlock.previousConnection);
+			connection = itemBlock.nextConnection;
+		}
+		return containerBlock;
+	},
+	compose: function (this: SpawnCreateWithBlock, containerBlock: Blockly.Block) {
+		let itemBlock: ItemBlock | null = containerBlock.getInputTargetBlock(
+			'STACK',
+		) as ItemBlock;
+		// Count number of inputs.
+		const connections: Blockly.Connection[] = [];
+		while (itemBlock) {
+			if (itemBlock.isInsertionMarker()) {
+				itemBlock = itemBlock.getNextBlock() as ItemBlock | null;
+				continue;
+			}
+			connections.push(itemBlock.valueConnection_ as Blockly.Connection);
+			itemBlock = itemBlock.getNextBlock() as ItemBlock | null;
+		}
+		// Disconnect any children that don't belong.
+		for (let i = 0; i < this.itemCount_; i++) {
+			const connection = this.getInput('ADD' + i)!.connection!.targetConnection;
+			if (connection && !connections.includes(connection)) {
+				connection.disconnect();
+			}
+		}
+		this.itemCount_ = connections.length;
+		this.updateShape_();
+		// Reconnect any child blocks.
+		for (let i = 0; i < this.itemCount_; i++) {
+			connections[i]?.reconnect(this, 'ADD' + i);
+		}
+	},
+	saveConnections: function (this: SpawnCreateWithBlock, containerBlock: Blockly.Block) {
+		let itemBlock: ItemBlock | null = containerBlock.getInputTargetBlock(
+			'STACK',
+		) as ItemBlock;
+		let i = 0;
+		while (itemBlock) {
+			if (itemBlock.isInsertionMarker()) {
+				itemBlock = itemBlock.getNextBlock() as ItemBlock | null;
+				continue;
+			}
+			const input = this.getInput('ADD' + i);
+			itemBlock.valueConnection_ = input?.connection!
+			.targetConnection as Blockly.Connection;
+			itemBlock = itemBlock.getNextBlock() as ItemBlock | null;
+			i++;
+		}
+	},
+	updateShape_: function (this: SpawnCreateWithBlock) {
+		if (this.itemCount_ && this.getInput('EMPTY')) {
+			this.removeInput('EMPTY');
+		} else if (!this.itemCount_ && !this.getInput('EMPTY')) {
+			this.appendDummyInput('EMPTY').appendField(
+				zh ? '空并行动作列表' : 'Empty parallel action list',
+			);
+		}
+		// Add new inputs.
+		for (let i = 0; i < this.itemCount_; i++) {
+			if (!this.getInput('ADD' + i)) {
+				const input = this.appendValueInput('ADD' + i).setAlign(Blockly.inputs.Align.RIGHT);
+				input.setCheck('Action');
+				if (i === 0) {
+					input.appendField(zh ? '并行动作列表' : 'Parallel action list');
+				}
+			}
+		}
+		// Remove deleted inputs.
+		for (let i = this.itemCount_; this.getInput('ADD' + i); i++) {
+			this.removeInput('ADD' + i);
+		}
+	},
 };
-Blockly.Blocks['spawn_action'] = {
-	init: function() { this.jsonInit(spawnActionBlock); },
-};
-luaGenerator.forBlock['spawn_action'] = function(block: Blockly.Block) {
-	const action = luaGenerator.valueToCode(block, 'ACTION', Order.NONE);
-	return [`Spawn(table.unpack(${action}))`, Order.ATOMIC];
+Blockly.Blocks['spawn_create_with'] = SPAWN_CREATE_WITH;
+luaGenerator.forBlock['spawn_create_with'] = function(block: Blockly.Block) {
+	const items = [];
+	for (let i = 0; i < (block as SpawnCreateWithBlock).itemCount_; i++) {
+		const item = luaGenerator.valueToCode(block, 'ADD' + i, Order.NONE);
+		if (item !== '') {
+			items.push(item);
+		}
+	}
+	return [`Spawn(${items.join(', ')})`, Order.ATOMIC];
 };
 actionCategory.contents.push({
 	kind: 'block',
-	type: 'spawn_action',
-	inputs: {
-		ACTION: {
-			block: {
-				type: 'lists_create_with',
-			},
-		},
-	},
+	type: 'spawn_create_with',
 });
 
 const easingOptions = [
@@ -439,3 +672,36 @@ actionCategory.contents.push({
 	kind: 'block',
 	type: 'visible_action',
 });
+
+type ContainerBlock = Blockly.Block & ContainerMutator;
+interface ContainerMutator extends ContainerMutatorType {}
+type ContainerMutatorType = typeof ACTION_CREATE_WITH_CONTAINER;
+
+const ACTION_CREATE_WITH_CONTAINER = {
+	init: function (this: ContainerBlock) {
+		this.setStyle('list_blocks');
+		this.appendDummyInput().appendField(
+			zh ? '动作列表' : 'Action list',
+		);
+		this.appendStatementInput('STACK');
+		this.contextMenu = false;
+	},
+};
+Blockly.Blocks['action_create_with_container'] = ACTION_CREATE_WITH_CONTAINER;
+
+type ItemBlock = Blockly.Block & ItemMutator;
+interface ItemMutator extends ItemMutatorType {
+  valueConnection_?: Blockly.Connection;
+}
+type ItemMutatorType = typeof ACTION_CREATE_WITH_ITEM;
+
+const ACTION_CREATE_WITH_ITEM = {
+	init: function (this: ItemBlock) {
+		this.setStyle('list_blocks');
+		this.appendDummyInput().appendField(zh ? '动作' : 'Action');
+		this.setPreviousStatement(true);
+		this.setNextStatement(true);
+		this.contextMenu = false;
+	},
+};
+Blockly.Blocks['action_create_with_item'] = ACTION_CREATE_WITH_ITEM;
