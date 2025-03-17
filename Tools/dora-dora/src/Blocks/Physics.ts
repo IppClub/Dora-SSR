@@ -103,8 +103,8 @@ Blockly.Blocks['set_group_collision_enabled'] = {
 };
 luaGenerator.forBlock['set_group_collision_enabled'] = function(block: Blockly.Block) {
 	const world = luaGenerator.getVariableName(block.getFieldValue('WORLD'));
-	const group1 = luaGenerator.valueToCode(block, 'GROUP1', Order.ATOMIC);
-	const group2 = luaGenerator.valueToCode(block, 'GROUP2', Order.ATOMIC);
+	const group1 = luaGenerator.valueToCode(block, 'GROUP1', Order.NONE);
+	const group2 = luaGenerator.valueToCode(block, 'GROUP2', Order.NONE);
 	const enabled = block.getFieldValue('ENABLED');
 	return `${world}:setShouldContact(${group1}, ${group2}, ${enabled})\n`;
 };
@@ -236,10 +236,10 @@ Blockly.Blocks['body_create'] = {
 luaGenerator.forBlock['body_create'] = function(block: Blockly.Block) {
 	const world = luaGenerator.getVariableName(block.getFieldValue('WORLD'));
 	const type = luaGenerator.quote_(block.getFieldValue('TYPE'));
-	const position = luaGenerator.valueToCode(block, 'POSITION', Order.ATOMIC);
-	const angle = luaGenerator.valueToCode(block, 'ANGLE', Order.ATOMIC);
-	const group = luaGenerator.valueToCode(block, 'GROUP', Order.ATOMIC);
-	const gravity = luaGenerator.valueToCode(block, 'GRAVITY', Order.ATOMIC);
+	const position = luaGenerator.valueToCode(block, 'POSITION', Order.NONE);
+	const angle = luaGenerator.valueToCode(block, 'ANGLE', Order.NONE);
+	const group = luaGenerator.valueToCode(block, 'GROUP', Order.NONE);
+	const gravity = luaGenerator.valueToCode(block, 'GRAVITY', Order.NONE);
 	const fixtures = luaGenerator.statementToCode(block, 'FIXTURES');
 	return [`(function()
   local bodyDef = BodyDef()
@@ -383,14 +383,14 @@ Blockly.Blocks['rectangle_fixture'] = {
 	}
 };
 luaGenerator.forBlock['rectangle_fixture'] = function(block: Blockly.Block) {
-	const center = luaGenerator.valueToCode(block, 'CENTER', Order.ATOMIC);
-	const width = luaGenerator.valueToCode(block, 'WIDTH', Order.ATOMIC);
-	const height = luaGenerator.valueToCode(block, 'HEIGHT', Order.ATOMIC);
-	const angle = luaGenerator.valueToCode(block, 'ANGLE', Order.ATOMIC);
-	const density = luaGenerator.valueToCode(block, 'DENSITY', Order.ATOMIC);
-	const friction = luaGenerator.valueToCode(block, 'FRICTION', Order.ATOMIC);
-	const restitution = luaGenerator.valueToCode(block, 'RESTITUTION', Order.ATOMIC);
-	const sensorTag = luaGenerator.valueToCode(block, 'SENSOR_TAG', Order.ATOMIC);
+	const center = luaGenerator.valueToCode(block, 'CENTER', Order.NONE);
+	const width = luaGenerator.valueToCode(block, 'WIDTH', Order.NONE);
+	const height = luaGenerator.valueToCode(block, 'HEIGHT', Order.NONE);
+	const angle = luaGenerator.valueToCode(block, 'ANGLE', Order.NONE);
+	const density = luaGenerator.valueToCode(block, 'DENSITY', Order.NONE);
+	const friction = luaGenerator.valueToCode(block, 'FRICTION', Order.NONE);
+	const restitution = luaGenerator.valueToCode(block, 'RESTITUTION', Order.NONE);
+	const sensorTag = luaGenerator.valueToCode(block, 'SENSOR_TAG', Order.NONE);
 	if (sensorTag === '' || sensorTag === 'nil') {
 		return `bodyDef:attachPolygon(${center}, ${width}, ${height}, ${angle}, ${density}, ${friction}, ${restitution})\n`;
 	} else {
@@ -535,12 +535,12 @@ Blockly.Blocks['disk_fixture'] = {
 	}
 };
 luaGenerator.forBlock['disk_fixture'] = function(block: Blockly.Block) {
-	const center = luaGenerator.valueToCode(block, 'CENTER', Order.ATOMIC);
-	const radius = luaGenerator.valueToCode(block, 'RADIUS', Order.ATOMIC);
-	const density = luaGenerator.valueToCode(block, 'DENSITY', Order.ATOMIC);
-	const friction = luaGenerator.valueToCode(block, 'FRICTION', Order.ATOMIC);
-	const restitution = luaGenerator.valueToCode(block, 'RESTITUTION', Order.ATOMIC);
-	const sensorTag = luaGenerator.valueToCode(block, 'SENSOR_TAG', Order.ATOMIC);
+	const center = luaGenerator.valueToCode(block, 'CENTER', Order.NONE);
+	const radius = luaGenerator.valueToCode(block, 'RADIUS', Order.NONE);
+	const density = luaGenerator.valueToCode(block, 'DENSITY', Order.NONE);
+	const friction = luaGenerator.valueToCode(block, 'FRICTION', Order.NONE);
+	const restitution = luaGenerator.valueToCode(block, 'RESTITUTION', Order.NONE);
+	const sensorTag = luaGenerator.valueToCode(block, 'SENSOR_TAG', Order.NONE);
 	if (sensorTag === '' || sensorTag === 'nil') {
 		return `bodyDef:attachDisk(${center}, ${radius}, ${density}, ${friction}, ${restitution})\n`;
 	} else {
@@ -664,11 +664,11 @@ Blockly.Blocks['polygon_fixture'] = {
 	}
 };
 luaGenerator.forBlock['polygon_fixture'] = function(block: Blockly.Block) {
-	const vertices = luaGenerator.valueToCode(block, 'VERTICES', Order.ATOMIC);
-	const density = luaGenerator.valueToCode(block, 'DENSITY', Order.ATOMIC);
-	const friction = luaGenerator.valueToCode(block, 'FRICTION', Order.ATOMIC);
-	const restitution = luaGenerator.valueToCode(block, 'RESTITUTION', Order.ATOMIC);
-	const sensorTag = luaGenerator.valueToCode(block, 'SENSOR_TAG', Order.ATOMIC);
+	const vertices = luaGenerator.valueToCode(block, 'VERTICES', Order.NONE);
+	const density = luaGenerator.valueToCode(block, 'DENSITY', Order.NONE);
+	const friction = luaGenerator.valueToCode(block, 'FRICTION', Order.NONE);
+	const restitution = luaGenerator.valueToCode(block, 'RESTITUTION', Order.NONE);
+	const sensorTag = luaGenerator.valueToCode(block, 'SENSOR_TAG', Order.NONE);
 	if (sensorTag === '' || sensorTag === 'nil') {
 		return `bodyDef:attachPolygon(${vertices === '' ? 'nil' : vertices}, ${density}, ${friction}, ${restitution})\n`;
 	} else {
@@ -793,9 +793,9 @@ Blockly.Blocks['chain_fixture'] = {
 	}
 };
 luaGenerator.forBlock['chain_fixture'] = function(block: Blockly.Block) {
-	const vertices = luaGenerator.valueToCode(block, 'VERTICES', Order.ATOMIC);
-	const friction = luaGenerator.valueToCode(block, 'FRICTION', Order.ATOMIC);
-	const restitution = luaGenerator.valueToCode(block, 'RESTITUTION', Order.ATOMIC);
+	const vertices = luaGenerator.valueToCode(block, 'VERTICES', Order.NONE);
+	const friction = luaGenerator.valueToCode(block, 'FRICTION', Order.NONE);
+	const restitution = luaGenerator.valueToCode(block, 'RESTITUTION', Order.NONE);
 	return `bodyDef:attachChain(${vertices === '' ? 'nil' : vertices}, ${friction}, ${restitution})\n`;
 };
 physicsCategory.contents.push({

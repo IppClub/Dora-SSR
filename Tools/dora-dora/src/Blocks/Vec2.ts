@@ -50,8 +50,8 @@ const vec2CreateBlock = {
 };
 Blockly.Blocks['vec2_create'] = { init: function() { this.jsonInit(vec2CreateBlock); } };
 luaGenerator.forBlock['vec2_create'] = function(block: Blockly.Block) {
-	const x = luaGenerator.valueToCode(block, 'X', Order.ATOMIC);
-	const y = luaGenerator.valueToCode(block, 'Y', Order.ATOMIC);
+	const x = luaGenerator.valueToCode(block, 'X', Order.NONE);
+	const y = luaGenerator.valueToCode(block, 'Y', Order.NONE);
 	return [`Vec2(${x === '' ? '0' : x}, ${y === '' ? '0' : y})`, Order.ATOMIC];
 };
 vec2Category.contents.push({

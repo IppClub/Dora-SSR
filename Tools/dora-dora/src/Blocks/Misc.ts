@@ -29,7 +29,7 @@ const printBlock = {
 };
 Blockly.Blocks['print_block'] = { init: function() { this.jsonInit(printBlock); } };
 luaGenerator.forBlock['print_block'] = function(block: Blockly.Block) {
-	const item = luaGenerator.valueToCode(block, 'ITEM', Order.ATOMIC);
+	const item = luaGenerator.valueToCode(block, 'ITEM', Order.NONE);
 	return `p(${item === '' ? '""' : item})\n`;
 };
 miscCategory.contents.push({

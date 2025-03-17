@@ -567,7 +567,7 @@ Blockly.Blocks['on_button_event'] = { init: function() { this.jsonInit(onButtonE
 luaGenerator.forBlock['on_button_event'] = function(block: Blockly.Block) {
 	const node = luaGenerator.getVariableName(block.getFieldValue('NODE'));
 	const event = block.getFieldValue('EVENT');
-	const id = luaGenerator.valueToCode(block, 'CONTROLLER_ID', Order.ATOMIC);
+	const id = luaGenerator.valueToCode(block, 'CONTROLLER_ID', Order.NONE);
 	const button = luaGenerator.quote_(block.getFieldValue('BUTTON'));
 	const action = luaGenerator.statementToCode(block, 'ACTION');
 	const idName = luaGenerator.nameDB_?.getDistinctName('id', Blockly.Names.NameType.VARIABLE) ?? 'id_';
@@ -623,7 +623,7 @@ const checkControllerButtonBlock = {
 };
 Blockly.Blocks['check_controller_button'] = { init: function() { this.jsonInit(checkControllerButtonBlock); } };
 luaGenerator.forBlock['check_controller_button'] = function(block: Blockly.Block) {
-	const id = luaGenerator.valueToCode(block, 'CONTROLLER_ID', Order.ATOMIC);
+	const id = luaGenerator.valueToCode(block, 'CONTROLLER_ID', Order.NONE);
 	const button = luaGenerator.quote_(block.getFieldValue('BUTTON'));
 	const state = block.getFieldValue('STATE');
 	return [`Controller:is${state}(${id === '' ? '0' : id}, ${button})`, Order.ATOMIC];
