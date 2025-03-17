@@ -56,7 +56,7 @@ nodeCategory.contents.push({
 // Add child
 const nodeAddChildBlock = {
 	type: 'node_add_child',
-	message0: zh ? '添加子节点 %1 到 %2' : 'Add child %1 to %2',
+	message0: zh ? '添加子节点 %1 到父节点 %2 顺序为 %3' : 'Add child node %1 to parent %2 order %3',
 	args0: [
 		{
 			type: 'field_variable',
@@ -66,7 +66,12 @@ const nodeAddChildBlock = {
 		{
 			type: 'field_variable',
 			name: 'PARENT',
-			variable: 'temp',
+			variable: 'parent',
+		},
+		{
+			type: 'input_value',
+			name: 'ORDER',
+			check: 'Number',
 		},
 	],
 	previousStatement: null,
@@ -77,11 +82,22 @@ Blockly.Blocks['node_add_child'] = { init: function() { this.jsonInit(nodeAddChi
 luaGenerator.forBlock['node_add_child'] = function(block: Blockly.Block) {
 	const child = luaGenerator.getVariableName(block.getFieldValue('CHILD'));
 	const parent = luaGenerator.getVariableName(block.getFieldValue('PARENT'));
-	return `${parent}:addChild(${child})\n`;
+	const order = luaGenerator.valueToCode(block, 'ORDER', Order.ATOMIC);
+	return `${child}:addTo(${parent}, ${order})\n`;
 };
 nodeCategory.contents.push({
 	kind: 'block',
 	type: 'node_add_child',
+	inputs: {
+		ORDER: {
+			shadow: {
+				type: 'math_number',
+				fields: {
+					NUM: 0,
+				},
+			},
+		},
+	},
 });
 
 // Set vec2 attribute
@@ -514,373 +530,3 @@ nodeCategory.contents.push({
 	kind: 'block',
 	type: 'node_get_color',
 });
-
-type AnyDuringMigration = any;
-
-export type NodeRegisterGlobalEventWithBlock = Blockly.Block & NodeRegisterGlobalEventWithMixin;
-interface NodeRegisterGlobalEventWithMixin extends NodeRegisterGlobalEventWithMixinType {
-	argCount_: number;
-}
-type NodeRegisterGlobalEventWithMixinType = typeof NODE_REGISTER_GLOBAL_EVENT;
-
-const NODE_REGISTER_GLOBAL_EVENT = {
-	init: function (this: NodeRegisterGlobalEventWithBlock) {
-		this.setStyle('logic_blocks');
-		this.argCount_ = 3;
-		this.updateShape_();
-		this.setPreviousStatement(true);
-		this.setNextStatement(true);
-		this.setOutput(false);
-		this.setMutator(
-			new Blockly.icons.MutatorIcon(['arg_create_with_item'], this as unknown as Blockly.BlockSvg),
-		);
-	},
-	mutationToDom: function (this: NodeRegisterGlobalEventWithBlock): Element {
-		const container = Blockly.utils.xml.createElement('mutation');
-		container.setAttribute('args', String(this.argCount_));
-		return container;
-	},
-	domToMutation: function (this: NodeRegisterGlobalEventWithBlock, xmlElement: Element) {
-		const args = xmlElement.getAttribute('args');
-		if (!args) throw new TypeError('element did not have args');
-		this.argCount_ = parseInt(args, 10);
-		this.updateShape_();
-	},
-	saveExtraState: function (this: NodeRegisterGlobalEventWithBlock): {argCount: number} {
-		return {
-			'argCount': this.argCount_,
-		};
-	},
-	loadExtraState: function (this: NodeRegisterGlobalEventWithBlock, state: AnyDuringMigration) {
-		this.argCount_ = state['argCount'];
-		this.updateShape_();
-	},
-	decompose: function (
-		this: NodeRegisterGlobalEventWithBlock,
-		workspace: Blockly.Workspace,
-	): ArgContainerBlock {
-		const containerBlock = workspace.newBlock(
-			'arg_create_with_container',
-		) as ArgContainerBlock;
-		(containerBlock as Blockly.BlockSvg).initSvg();
-		let connection = containerBlock.getInput('STACK')!.connection;
-		for (let i = 0; i < this.argCount_; i++) {
-			const argBlock = workspace.newBlock(
-				'arg_create_with_item',
-			) as ArgBlock;
-			(argBlock as Blockly.BlockSvg).initSvg();
-			if (!argBlock.previousConnection) {
-				throw new Error('argBlock has no previousConnection');
-			}
-			connection!.connect(argBlock.previousConnection);
-			connection = argBlock.nextConnection;
-		}
-		return containerBlock;
-	},
-	compose: function (this: NodeRegisterGlobalEventWithBlock, containerBlock: ArgContainerBlock) {
-		let argBlock: ArgBlock | null = containerBlock.getInputTargetBlock(
-			'STACK',
-		) as ArgBlock;
-		const connections: Blockly.Connection[] = [];
-		while (argBlock) {
-			if (argBlock.isInsertionMarker()) {
-				argBlock = argBlock.getNextBlock() as ArgBlock | null;
-				continue;
-			}
-			connections.push(argBlock.valueConnection_ as Blockly.Connection);
-			argBlock = argBlock.getNextBlock() as ArgBlock | null;
-		}
-		for (let i = 0; i < this.argCount_; i++) {
-			const connection = this.getInput('ADD_SHADOW' + i)!.connection!.targetConnection;
-			if (connection && !connections.includes(connection)) {
-				connection.disconnect();
-			}
-		}
-		this.argCount_ = connections.length;
-		this.updateShape_();
-		for (let i = 0; i < this.argCount_; i++) {
-			connections[i]?.reconnect(this, 'ADD_SHADOW' + i);
-		}
-	},
-	saveConnections: function (this: NodeRegisterGlobalEventWithBlock, containerBlock: Blockly.Block) {
-		let argBlock: ArgBlock | null = containerBlock.getInputTargetBlock(
-			'STACK',
-		) as ArgBlock;
-		let i = 0;
-		while (argBlock) {
-			if (argBlock.isInsertionMarker()) {
-				argBlock = argBlock.getNextBlock() as ArgBlock | null;
-				continue;
-			}
-			const input = this.getInput('ADD_SHADOW' + i);
-			argBlock.valueConnection_ = input?.connection!
-			.targetConnection as Blockly.Connection;
-			argBlock = argBlock.getNextBlock() as ArgBlock | null;
-			i++;
-		}
-	},
-	updateShape_: function (this: NodeRegisterGlobalEventWithBlock) {
-		if (!this.getInput('EVENT')) {
-			this.appendDummyInput()
-				.appendField(zh ? '在节点' : 'On node')
-				.appendField(Blockly.FieldVariable.fromJson({
-					variable: 'temp',
-				}), 'NODE');
-			this.appendValueInput('EVENT').appendField(zh ? '上监听' : 'listen for');
-			this.appendDummyInput('EVENT_TYPE')
-				.appendField(Blockly.FieldDropdown.fromJson({
-					options: zh ? [
-						['全局事件', 'gslot'],
-						['节点事件', 'slot'],
-					] : [
-						['Global event', 'gslot'],
-						['Node event', 'slot'],
-					],
-				}), 'EVENT_TYPE');
-		}
-		if (!this.getInput('NEWLINE')) {
-			this.appendEndRowInput('NEWLINE');
-		}
-		if (this.argCount_ && this.getInput('EMPTY')) {
-			this.removeInput('EMPTY');
-		} else if (!this.argCount_ && !this.getInput('EMPTY')) {
-			this.appendDummyInput('EMPTY').appendField(
-				zh ? '空参数列表' : 'Empty arguments list',
-			);
-		}
-		for (let i = 0; i < this.argCount_; i++) {
-			if (!this.getInput('ADD' + i)) {
-				this.appendValueInput('ADD_SHADOW' + i).setVisible(false);
-				const input = this.appendDummyInput('ADD' + i);
-				if (i === 0) {
-					input.appendField(zh ? '接收参数列表' : 'Receive arguments list');
-				}
-				input.appendField(Blockly.FieldVariable.fromJson({
-					variable: 'arg' + i,
-				}), 'ADD' + i);
-			}
-		}
-		for (let i = this.argCount_; this.getInput('ADD' + i); i++) {
-			this.removeInput('ADD' + i);
-			this.removeInput('ADD_SHADOW' + i);
-		}
-		if (!this.getInput('ACTION')) {
-			this.appendStatementInput('ACTION').appendField(zh ? '处理' : 'Process');
-		}
-		this.moveInputBefore('ACTION', null);
-	},
-};
-Blockly.Blocks['node_register_global_event'] = NODE_REGISTER_GLOBAL_EVENT;
-luaGenerator.forBlock['node_register_global_event'] = function(block: Blockly.Block) {
-	const node = luaGenerator.getVariableName(block.getFieldValue('NODE'));
-	const event = luaGenerator.valueToCode(block, 'EVENT', Order.NONE);
-	const eventType = block.getFieldValue('EVENT_TYPE');
-	const args = [];
-	for (let i = 0; i < (block as NodeRegisterGlobalEventWithBlock).argCount_; i++) {
-		const arg = luaGenerator.getVariableName(block.getFieldValue('ADD' + i));
-		if (arg !== '') {
-			args.push(arg);
-		}
-	}
-	const action = luaGenerator.statementToCode(block, 'ACTION');
-	return `${node}:${eventType}(${event}, function(${args.join(', ')})\n${action}end)\n`;
-};
-nodeCategory.contents.push({
-	kind: 'block',
-	type: 'node_register_global_event',
-	inputs: {
-		EVENT: {
-			shadow: {
-				type: 'text',
-				fields: {
-					TEXT: 'event',
-				},
-			},
-		},
-	},
-});
-
-export type EmitGlobalEventWithBlock = Blockly.Block & EmitGlobalEventWithMixin;
-interface EmitGlobalEventWithMixin extends EmitGlobalEventWithMixinType {
-	argCount_: number;
-}
-type EmitGlobalEventWithMixinType = typeof EMIT_GLOBAL_EVENT;
-
-const EMIT_GLOBAL_EVENT = {
-	init: function (this: EmitGlobalEventWithBlock) {
-		this.setStyle('logic_blocks');
-		this.argCount_ = 1;
-		this.updateShape_();
-		this.setPreviousStatement(true);
-		this.setNextStatement(true);
-		this.setOutput(false);
-		this.setInputsInline(false);
-		this.setMutator(
-			new Blockly.icons.MutatorIcon(['arg_create_with_item'], this as unknown as Blockly.BlockSvg),
-		);
-	},
-	mutationToDom: function (this: EmitGlobalEventWithBlock): Element {
-		const container = Blockly.utils.xml.createElement('mutation');
-		container.setAttribute('args', String(this.argCount_));
-		return container;
-	},
-	domToMutation: function (this: EmitGlobalEventWithBlock, xmlElement: Element) {
-		const args = xmlElement.getAttribute('args');
-		if (!args) throw new TypeError('element did not have args');
-		this.argCount_ = parseInt(args, 10);
-		this.updateShape_();
-	},
-	saveExtraState: function (this: EmitGlobalEventWithBlock): {argCount: number} {
-		return {
-			'argCount': this.argCount_,
-		};
-	},
-	loadExtraState: function (this: EmitGlobalEventWithBlock, state: AnyDuringMigration) {
-		this.argCount_ = state['argCount'];
-		this.updateShape_();
-	},
-	decompose: function (
-		this: EmitGlobalEventWithBlock,
-		workspace: Blockly.Workspace,
-	): ArgContainerBlock {
-		const containerBlock = workspace.newBlock(
-			'arg_create_with_container',
-		) as ArgContainerBlock;
-		(containerBlock as Blockly.BlockSvg).initSvg();
-		let connection = containerBlock.getInput('STACK')!.connection;
-		for (let i = 0; i < this.argCount_; i++) {
-			const argBlock = workspace.newBlock(
-				'arg_create_with_item',
-			) as ArgBlock;
-			(argBlock as Blockly.BlockSvg).initSvg();
-			if (!argBlock.previousConnection) {
-				throw new Error('argBlock has no previousConnection');
-			}
-			connection!.connect(argBlock.previousConnection);
-			connection = argBlock.nextConnection;
-		}
-		return containerBlock;
-	},
-	compose: function (this: EmitGlobalEventWithBlock, containerBlock: ArgContainerBlock) {
-		let argBlock: ArgBlock | null = containerBlock.getInputTargetBlock(
-			'STACK',
-		) as ArgBlock;
-		const connections: Blockly.Connection[] = [];
-		while (argBlock) {
-			if (argBlock.isInsertionMarker()) {
-				argBlock = argBlock.getNextBlock() as ArgBlock | null;
-				continue;
-			}
-			connections.push(argBlock.valueConnection_ as Blockly.Connection);
-			argBlock = argBlock.getNextBlock() as ArgBlock | null;
-		}
-		for (let i = 0; i < this.argCount_; i++) {
-			const connection = this.getInput('ADD' + i)!.connection!.targetConnection;
-			if (connection && !connections.includes(connection)) {
-				connection.disconnect();
-			}
-		}
-		this.argCount_ = connections.length;
-		this.updateShape_();
-		for (let i = 0; i < this.argCount_; i++) {
-			connections[i]?.reconnect(this, 'ADD' + i);
-		}
-	},
-	saveConnections: function (this: EmitGlobalEventWithBlock, containerBlock: Blockly.Block) {
-		let argBlock: ArgBlock | null = containerBlock.getInputTargetBlock(
-			'STACK',
-		) as ArgBlock;
-		let i = 0;
-		while (argBlock) {
-			if (argBlock.isInsertionMarker()) {
-				argBlock = argBlock.getNextBlock() as ArgBlock | null;
-				continue;
-			}
-			const input = this.getInput('ADD' + i);
-			argBlock.valueConnection_ = input?.connection!
-			.targetConnection as Blockly.Connection;
-			argBlock = argBlock.getNextBlock() as ArgBlock | null;
-			i++;
-		}
-	},
-	updateShape_: function (this: EmitGlobalEventWithBlock) {
-		if (!this.getInput('EVENT')) {
-			this.appendValueInput('EVENT').appendField(zh ? '发送全局事件' : 'Emit global event');
-		}
-		if (this.argCount_ && this.getInput('EMPTY')) {
-			this.removeInput('EMPTY');
-		} else if (!this.argCount_ && !this.getInput('EMPTY')) {
-			this.appendDummyInput('EMPTY').appendField(
-				zh ? '无参数' : 'No arguments',
-			);
-		}
-		for (let i = 0; i < this.argCount_; i++) {
-			if (!this.getInput('ADD' + i)) {
-				const input = this.appendValueInput('ADD' + i).setAlign(Blockly.inputs.Align.RIGHT);
-				if (i === 0) {
-					input.appendField(zh ? '参数' : 'Arg');
-				}
-			}
-		}
-		for (let i = this.argCount_; this.getInput('ADD' + i); i++) {
-			this.removeInput('ADD' + i);
-		}
-	},
-};
-Blockly.Blocks['emit_global_event'] = EMIT_GLOBAL_EVENT;
-luaGenerator.forBlock['emit_global_event'] = function(block: Blockly.Block) {
-	const event = luaGenerator.valueToCode(block, 'EVENT', Order.NONE);
-	const args = [event];
-	for (let i = 0; i < (block as EmitGlobalEventWithBlock).argCount_; i++) {
-		const arg = luaGenerator.valueToCode(block, 'ADD' + i, Order.NONE);
-		args.push(arg === '' ? 'nil' : arg);
-	}
-	return `emit(${args.join(', ')})\n`;
-};
-nodeCategory.contents.push({
-	kind: 'block',
-	type: 'emit_global_event',
-	inputs: {
-		EVENT: {
-			shadow: {
-				type: 'text',
-				fields: {
-					TEXT: 'event',
-				},
-			},
-		},
-	},
-});
-
-type ArgContainerBlock = Blockly.Block & ArgContainerMutator;
-interface ArgContainerMutator extends ArgContainerMutatorType {}
-type ArgContainerMutatorType = typeof ARG_CREATE_WITH_CONTAINER;
-
-const ARG_CREATE_WITH_CONTAINER = {
-	init: function (this: ArgContainerBlock) {
-		this.setStyle('list_blocks');
-		this.appendDummyInput().appendField(
-			zh ? '参数列表' : 'Args list',
-		);
-		this.appendStatementInput('STACK');
-		this.contextMenu = false;
-	},
-};
-Blockly.Blocks['arg_create_with_container'] = ARG_CREATE_WITH_CONTAINER;
-
-type ArgBlock = Blockly.Block & ArgMutator;
-interface ArgMutator extends ArgMutatorType {
-  valueConnection_?: Blockly.Connection;
-}
-type ArgMutatorType = typeof ARG_CREATE_WITH_ITEM;
-
-const ARG_CREATE_WITH_ITEM = {
-	init: function (this: ArgBlock) {
-		this.setStyle('list_blocks');
-		this.appendDummyInput().appendField(zh ? '参数' : 'Arg');
-		this.setPreviousStatement(true);
-		this.setNextStatement(true);
-		this.contextMenu = false;
-	},
-};
-Blockly.Blocks['arg_create_with_item'] = ARG_CREATE_WITH_ITEM;

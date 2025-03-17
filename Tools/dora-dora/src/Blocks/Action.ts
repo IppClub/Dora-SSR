@@ -61,14 +61,9 @@ actionCategory.contents.push({
 	type: 'perform_action',
 });
 
-
 type AnyDuringMigration = any;
 
-/**
- * Type of a 'sequence_create_with' block.
- *
- * @internal
- */
+// sequence_create_with
 export type SequenceCreateWithBlock = Blockly.Block & SequenceCreateWithMixin;
 interface SequenceCreateWithMixin extends SequenceCreateWithMixinType {
   itemCount_: number;
@@ -83,7 +78,7 @@ const SEQUENCE_CREATE_WITH = {
 		this.setOutput(true, 'Action');
 		this.setMutator(
 			new Blockly.icons.MutatorIcon(['action_create_with_item'], this as unknown as Blockly.BlockSvg),
-		); // BUG(#6905)
+		);
 	},
 	mutationToDom: function (this: SequenceCreateWithBlock): Element {
 		const container = Blockly.utils.xml.createElement('mutation');
@@ -131,7 +126,6 @@ const SEQUENCE_CREATE_WITH = {
 		let itemBlock: ItemBlock | null = containerBlock.getInputTargetBlock(
 			'STACK',
 		) as ItemBlock;
-		// Count number of inputs.
 		const connections: Blockly.Connection[] = [];
 		while (itemBlock) {
 			if (itemBlock.isInsertionMarker()) {
@@ -141,7 +135,6 @@ const SEQUENCE_CREATE_WITH = {
 			connections.push(itemBlock.valueConnection_ as Blockly.Connection);
 			itemBlock = itemBlock.getNextBlock() as ItemBlock | null;
 		}
-		// Disconnect any children that don't belong.
 		for (let i = 0; i < this.itemCount_; i++) {
 			const connection = this.getInput('ADD' + i)!.connection!.targetConnection;
 			if (connection && !connections.includes(connection)) {
@@ -150,7 +143,6 @@ const SEQUENCE_CREATE_WITH = {
 		}
 		this.itemCount_ = connections.length;
 		this.updateShape_();
-		// Reconnect any child blocks.
 		for (let i = 0; i < this.itemCount_; i++) {
 			connections[i]?.reconnect(this, 'ADD' + i);
 		}
@@ -180,7 +172,6 @@ const SEQUENCE_CREATE_WITH = {
 				zh ? '空序列动作列表' : 'Empty sequence action list',
 			);
 		}
-		// Add new inputs.
 		for (let i = 0; i < this.itemCount_; i++) {
 			if (!this.getInput('ADD' + i)) {
 				const input = this.appendValueInput('ADD' + i).setAlign(Blockly.inputs.Align.RIGHT);
@@ -190,7 +181,6 @@ const SEQUENCE_CREATE_WITH = {
 				}
 			}
 		}
-		// Remove deleted inputs.
 		for (let i = this.itemCount_; this.getInput('ADD' + i); i++) {
 			this.removeInput('ADD' + i);
 		}
@@ -212,14 +202,10 @@ actionCategory.contents.push({
 	type: 'sequence_create_with',
 });
 
-/**
- * Type of a 'spawn_create_with' block.
- *
- * @internal
- */
+// spawn_create_with
 export type SpawnCreateWithBlock = Blockly.Block & SpawnCreateWithMixin;
 interface SpawnCreateWithMixin extends SpawnCreateWithMixinType {
-  itemCount_: number;
+	itemCount_: number;
 }
 type SpawnCreateWithMixinType = typeof SPAWN_CREATE_WITH;
 
@@ -231,7 +217,7 @@ const SPAWN_CREATE_WITH = {
 		this.setOutput(true, 'Action');
 		this.setMutator(
 			new Blockly.icons.MutatorIcon(['action_create_with_item'], this as unknown as Blockly.BlockSvg),
-		); // BUG(#6905)
+		);
 	},
 	mutationToDom: function (this: SpawnCreateWithBlock): Element {
 		const container = Blockly.utils.xml.createElement('mutation');
@@ -279,7 +265,6 @@ const SPAWN_CREATE_WITH = {
 		let itemBlock: ItemBlock | null = containerBlock.getInputTargetBlock(
 			'STACK',
 		) as ItemBlock;
-		// Count number of inputs.
 		const connections: Blockly.Connection[] = [];
 		while (itemBlock) {
 			if (itemBlock.isInsertionMarker()) {
@@ -289,7 +274,6 @@ const SPAWN_CREATE_WITH = {
 			connections.push(itemBlock.valueConnection_ as Blockly.Connection);
 			itemBlock = itemBlock.getNextBlock() as ItemBlock | null;
 		}
-		// Disconnect any children that don't belong.
 		for (let i = 0; i < this.itemCount_; i++) {
 			const connection = this.getInput('ADD' + i)!.connection!.targetConnection;
 			if (connection && !connections.includes(connection)) {
@@ -298,7 +282,6 @@ const SPAWN_CREATE_WITH = {
 		}
 		this.itemCount_ = connections.length;
 		this.updateShape_();
-		// Reconnect any child blocks.
 		for (let i = 0; i < this.itemCount_; i++) {
 			connections[i]?.reconnect(this, 'ADD' + i);
 		}
@@ -328,7 +311,6 @@ const SPAWN_CREATE_WITH = {
 				zh ? '空并行动作列表' : 'Empty parallel action list',
 			);
 		}
-		// Add new inputs.
 		for (let i = 0; i < this.itemCount_; i++) {
 			if (!this.getInput('ADD' + i)) {
 				const input = this.appendValueInput('ADD' + i).setAlign(Blockly.inputs.Align.RIGHT);
@@ -338,7 +320,6 @@ const SPAWN_CREATE_WITH = {
 				}
 			}
 		}
-		// Remove deleted inputs.
 		for (let i = this.itemCount_; this.getInput('ADD' + i); i++) {
 			this.removeInput('ADD' + i);
 		}
