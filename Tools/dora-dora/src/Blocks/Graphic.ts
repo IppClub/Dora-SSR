@@ -28,7 +28,7 @@ const spriteCreateBlock = {
 };
 Blockly.Blocks['sprite_create'] = { init: function() { this.jsonInit(spriteCreateBlock); } };
 luaGenerator.forBlock['sprite_create'] = function(block: Blockly.Block) {
-	const file = luaGenerator.valueToCode(block, 'FILE', Order.ATOMIC);
+	const file = luaGenerator.valueToCode(block, 'FILE', Order.NONE);
 	return [`Sprite(${file})`, Order.ATOMIC];
 };
 graphicCategory.contents.push({
@@ -67,8 +67,8 @@ const labelCreateBlock = {
 };
 Blockly.Blocks['label_create'] = { init: function() { this.jsonInit(labelCreateBlock); } };
 luaGenerator.forBlock['label_create'] = function(block: Blockly.Block) {
-	const font = luaGenerator.valueToCode(block, 'FONT', Order.ATOMIC);
-	const size = luaGenerator.valueToCode(block, 'SIZE', Order.ATOMIC);
+	const font = luaGenerator.valueToCode(block, 'FONT', Order.NONE);
+	const size = luaGenerator.valueToCode(block, 'SIZE', Order.NONE);
 	return [`Label(${font}, ${size === '' ? '16' : size})`, Order.ATOMIC];
 };
 graphicCategory.contents.push({
@@ -117,7 +117,7 @@ const labelSetTextBlock = {
 Blockly.Blocks['label_set_text'] = { init: function() { this.jsonInit(labelSetTextBlock); } };
 luaGenerator.forBlock['label_set_text'] = function(block: Blockly.Block) {
 	const label = luaGenerator.getVariableName(block.getFieldValue('LABEL'));
-	const text = luaGenerator.valueToCode(block, 'TEXT', Order.ATOMIC);
+	const text = luaGenerator.valueToCode(block, 'TEXT', Order.NONE);
 	return `${label}.text = ${text === '' ? '""' : text}\n`;
 };
 graphicCategory.contents.push({

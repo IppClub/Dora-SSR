@@ -82,7 +82,7 @@ Blockly.Blocks['node_add_child'] = { init: function() { this.jsonInit(nodeAddChi
 luaGenerator.forBlock['node_add_child'] = function(block: Blockly.Block) {
 	const child = luaGenerator.getVariableName(block.getFieldValue('CHILD'));
 	const parent = luaGenerator.getVariableName(block.getFieldValue('PARENT'));
-	const order = luaGenerator.valueToCode(block, 'ORDER', Order.ATOMIC);
+	const order = luaGenerator.valueToCode(block, 'ORDER', Order.NONE);
 	return `${child}:addTo(${parent}, ${order})\n`;
 };
 nodeCategory.contents.push({
@@ -139,7 +139,7 @@ Blockly.Blocks['node_set_vec2_attribute'] = { init: function() { this.jsonInit(n
 luaGenerator.forBlock['node_set_vec2_attribute'] = function(block: Blockly.Block) {
 	const node = luaGenerator.getVariableName(block.getFieldValue('NODE'));
 	const attribute = block.getFieldValue('ATTRIBUTE');
-	let vec2 = luaGenerator.valueToCode(block, 'VEC2', Order.HIGH);
+	let vec2 = luaGenerator.valueToCode(block, 'VEC2', Order.NONE);
 	if (vec2 === '') {
 		vec2 = 'Vec2.zero';
 	}
@@ -148,7 +148,8 @@ luaGenerator.forBlock['node_set_vec2_attribute'] = function(block: Blockly.Block
 	} else if (attribute === 'size') {
 		return `${node}.size = Size(${vec2})\n`;
 	} else if (attribute === 'scale') {
-		return `${node}.scaleX = ${vec2}.x\n${node}.scaleY = ${vec2}.y\n`;
+		const scaleVar = luaGenerator.nameDB_?.getDistinctName("scale", Blockly.Names.NameType.VARIABLE);
+		return `local ${scaleVar} = ${vec2}\n${node}.scaleX = ${scaleVar}.x\n${node}.scaleY = ${scaleVar}.y\n`;
 	} else if (attribute === 'anchor') {
 		return `${node}.anchor = ${vec2}\n`;
 	}
@@ -219,7 +220,7 @@ Blockly.Blocks['node_set_boolean_attribute'] = { init: function() { this.jsonIni
 luaGenerator.forBlock['node_set_boolean_attribute'] = function(block: Blockly.Block) {
 	const node = luaGenerator.getVariableName(block.getFieldValue('NODE'));
 	const attribute = block.getFieldValue('ATTRIBUTE');
-	const value = luaGenerator.valueToCode(block, 'VALUE', Order.ATOMIC);
+	const value = luaGenerator.valueToCode(block, 'VALUE', Order.NONE);
 	return `${node}.${attribute} = ${value === '' ? 'true' : value}\n`;
 };
 nodeCategory.contents.push({
@@ -292,7 +293,7 @@ Blockly.Blocks['node_set_number_attribute'] = { init: function() { this.jsonInit
 luaGenerator.forBlock['node_set_number_attribute'] = function(block: Blockly.Block) {
 	const node = luaGenerator.getVariableName(block.getFieldValue('NODE'));
 	const attribute = block.getFieldValue('ATTRIBUTE');
-	const value = luaGenerator.valueToCode(block, 'VALUE', Order.ATOMIC);
+	const value = luaGenerator.valueToCode(block, 'VALUE', Order.NONE);
 	if (attribute === 'scale') {
 		const scaleVar = luaGenerator.nameDB_?.getDistinctName("scale", Blockly.Names.NameType.VARIABLE);
 		return `local ${scaleVar} = ${value === '' ? '0' : value}\n${node}.scaleX = ${scaleVar}\n${node}.scaleY = ${scaleVar}\n`;
@@ -338,7 +339,7 @@ const nodeSetColorBlock = {
 Blockly.Blocks['node_set_color'] = { init: function() { this.jsonInit(nodeSetColorBlock); } };
 luaGenerator.forBlock['node_set_color'] = function(block: Blockly.Block) {
 	const node = luaGenerator.getVariableName(block.getFieldValue('NODE'));
-	const color = luaGenerator.valueToCode(block, 'COLOR', Order.ATOMIC);
+	const color = luaGenerator.valueToCode(block, 'COLOR', Order.NONE);
 	return `${node}.color3 = ${color === '' ? 'Color3(0xffffff)' : color}\n`;
 };
 nodeCategory.contents.push({

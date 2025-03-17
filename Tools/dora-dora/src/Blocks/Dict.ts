@@ -50,8 +50,8 @@ const dictGetBlock = {
 };
 Blockly.Blocks['dict_get'] = { init: function() { this.jsonInit(dictGetBlock); } };
 luaGenerator.forBlock['dict_get'] = function(block: Blockly.Block) {
-	const dict = luaGenerator.valueToCode(block, 'DICT', Order.HIGH);
-	const key = luaGenerator.valueToCode(block, 'KEY', Order.ATOMIC);
+	const dict = luaGenerator.valueToCode(block, 'DICT', Order.ATOMIC);
+	const key = luaGenerator.valueToCode(block, 'KEY', Order.NONE);
 	return [`${dict}[${key}]`, Order.HIGH];
 };
 dictCategory.contents.push({
@@ -101,9 +101,9 @@ const dictSetBlock = {
 };
 Blockly.Blocks['dict_set'] = { init: function() { this.jsonInit(dictSetBlock); } };
 luaGenerator.forBlock['dict_set'] = function(block: Blockly.Block) {
-	const dict = luaGenerator.valueToCode(block, 'DICT', Order.HIGH);
-	const key = luaGenerator.valueToCode(block, 'KEY', Order.ATOMIC);
-	const value = luaGenerator.valueToCode(block, 'VALUE', Order.ATOMIC);
+	const dict = luaGenerator.valueToCode(block, 'DICT', Order.ATOMIC);
+	const key = luaGenerator.valueToCode(block, 'KEY', Order.NONE);
+	const value = luaGenerator.valueToCode(block, 'VALUE', Order.NONE);
 	return `${dict}[${key}] = ${value || 'nil'}\n`;
 };
 dictCategory.contents.push({
@@ -156,9 +156,9 @@ const dictHasKeyBlock = {
 };
 Blockly.Blocks['dict_has_key'] = { init: function() { this.jsonInit(dictHasKeyBlock); } };
 luaGenerator.forBlock['dict_has_key'] = function(block: Blockly.Block) {
-	const dict = luaGenerator.valueToCode(block, 'DICT', Order.HIGH);
-	const key = luaGenerator.valueToCode(block, 'KEY', Order.ATOMIC);
-	return [`${dict}[${key}] ~= nil`, Order.NONE];
+	const dict = luaGenerator.valueToCode(block, 'DICT', Order.ATOMIC);
+	const key = luaGenerator.valueToCode(block, 'KEY', Order.NONE);
+	return [`${dict}[${key}] ~= nil`, Order.RELATIONAL];
 };
 dictCategory.contents.push({
 	kind: 'block',
@@ -203,8 +203,8 @@ const dictRemoveKeyBlock = {
 };
 Blockly.Blocks['dict_remove_key'] = { init: function() { this.jsonInit(dictRemoveKeyBlock); } };
 luaGenerator.forBlock['dict_remove_key'] = function(block: Blockly.Block) {
-	const dict = luaGenerator.valueToCode(block, 'DICT', Order.HIGH);
-	const key = luaGenerator.valueToCode(block, 'KEY', Order.ATOMIC);
+	const dict = luaGenerator.valueToCode(block, 'DICT', Order.ATOMIC);
+	const key = luaGenerator.valueToCode(block, 'KEY', Order.NONE);
 	return `${dict}[${key}] = nil\n`;
 };
 dictCategory.contents.push({

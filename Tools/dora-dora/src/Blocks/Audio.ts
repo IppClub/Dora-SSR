@@ -39,9 +39,9 @@ const playStreamBlock = {
 };
 Blockly.Blocks['play_stream'] = { init: function() { this.jsonInit(playStreamBlock); } };
 luaGenerator.forBlock['play_stream'] = function(block: Blockly.Block) {
-	const file = luaGenerator.valueToCode(block, 'FILE', Order.ATOMIC);
-	const loop = luaGenerator.valueToCode(block, 'LOOP', Order.ATOMIC);
-	const crossFadeTime = luaGenerator.valueToCode(block, 'CROSS_FADE_TIME', Order.ATOMIC);
+	const file = luaGenerator.valueToCode(block, 'FILE', Order.NONE);
+	const loop = luaGenerator.valueToCode(block, 'LOOP', Order.NONE);
+	const crossFadeTime = luaGenerator.valueToCode(block, 'CROSS_FADE_TIME', Order.NONE);
 	return `Audio:playStream(${file === '' ? 'nil' : file}, ${loop === '' ? 'false' : loop}, ${crossFadeTime === '' ? '0' : crossFadeTime})\n`;
 };
 audioCategory.contents.push({
@@ -92,7 +92,7 @@ const stopStreamBlock = {
 };
 Blockly.Blocks['stop_stream'] = { init: function() { this.jsonInit(stopStreamBlock); } };
 luaGenerator.forBlock['stop_stream'] = function(block: Blockly.Block) {
-	const fadeTime = luaGenerator.valueToCode(block, 'FADE_TIME', Order.ATOMIC);
+	const fadeTime = luaGenerator.valueToCode(block, 'FADE_TIME', Order.NONE);
 	return `Audio:stopStream(${fadeTime === '' ? '0' : fadeTime})\n`;
 };
 audioCategory.contents.push({
@@ -133,8 +133,8 @@ const playSoundBlock = {
 };
 Blockly.Blocks['play_sound'] = { init: function() { this.jsonInit(playSoundBlock); } };
 luaGenerator.forBlock['play_sound'] = function(block: Blockly.Block) {
-	const file = luaGenerator.valueToCode(block, 'FILE', Order.ATOMIC);
-	const loop = luaGenerator.valueToCode(block, 'LOOP', Order.ATOMIC);
+	const file = luaGenerator.valueToCode(block, 'FILE', Order.NONE);
+	const loop = luaGenerator.valueToCode(block, 'LOOP', Order.NONE);
 	if (block.outputConnection?.targetConnection) {
 		return [`Audio:playSound(${file === '' ? 'nil' : file}, ${loop === '' ? 'false' : loop})`, Order.ATOMIC];
 	}
@@ -180,7 +180,7 @@ const stopSoundBlock = {
 };
 Blockly.Blocks['stop_sound'] = { init: function() { this.jsonInit(stopSoundBlock); } };
 luaGenerator.forBlock['stop_sound'] = function(block: Blockly.Block) {
-	const audioControlId = luaGenerator.valueToCode(block, 'AUDIO_CONTROL_ID', Order.ATOMIC);
+	const audioControlId = luaGenerator.valueToCode(block, 'AUDIO_CONTROL_ID', Order.NONE);
 	return `Audio:stop(${audioControlId === '' ? 'nil' : audioControlId})\n`;
 };
 audioCategory.contents.push({

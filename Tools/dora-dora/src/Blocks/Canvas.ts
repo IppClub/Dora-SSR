@@ -108,8 +108,8 @@ const nvgMoveToBlock = {
 };
 Blockly.Blocks['nvg_move_to'] = { init: function() { this.jsonInit(nvgMoveToBlock); } };
 luaGenerator.forBlock['nvg_move_to'] = function(block: Blockly.Block) {
-	const x = luaGenerator.valueToCode(block, 'X', Order.ATOMIC);
-	const y = luaGenerator.valueToCode(block, 'Y', Order.ATOMIC);
+	const x = luaGenerator.valueToCode(block, 'X', Order.NONE);
+	const y = luaGenerator.valueToCode(block, 'Y', Order.NONE);
 	return `nvg.MoveTo(${x === '' ? '0' : x}, ${y === '' ? '0' : y})\n`;
 };
 canvasCategory.contents.push({
@@ -143,8 +143,8 @@ const nvgLineToBlock = {
 };
 Blockly.Blocks['nvg_line_to'] = { init: function() { this.jsonInit(nvgLineToBlock); } };
 luaGenerator.forBlock['nvg_line_to'] = function(block: Blockly.Block) {
-	const x = luaGenerator.valueToCode(block, 'X', Order.ATOMIC);
-	const y = luaGenerator.valueToCode(block, 'Y', Order.ATOMIC);
+	const x = luaGenerator.valueToCode(block, 'X', Order.NONE);
+	const y = luaGenerator.valueToCode(block, 'Y', Order.NONE);
 	return `nvg.LineTo(${x === '' ? '0' : x}, ${y === '' ? '0' : y})\n`;
 };
 canvasCategory.contents.push({
@@ -200,12 +200,12 @@ const nvgBezierToBlock = {
 };
 Blockly.Blocks['nvg_bezier_to'] = { init: function() { this.jsonInit(nvgBezierToBlock); } };
 luaGenerator.forBlock['nvg_bezier_to'] = function(block: Blockly.Block) {
-	const c1x = luaGenerator.valueToCode(block, 'C1X', Order.ATOMIC);
-	const c1y = luaGenerator.valueToCode(block, 'C1Y', Order.ATOMIC);
-	const c2x = luaGenerator.valueToCode(block, 'C2X', Order.ATOMIC);
-	const c2y = luaGenerator.valueToCode(block, 'C2Y', Order.ATOMIC);
-	const x = luaGenerator.valueToCode(block, 'X', Order.ATOMIC);
-	const y = luaGenerator.valueToCode(block, 'Y', Order.ATOMIC);
+	const c1x = luaGenerator.valueToCode(block, 'C1X', Order.NONE);
+	const c1y = luaGenerator.valueToCode(block, 'C1Y', Order.NONE);
+	const c2x = luaGenerator.valueToCode(block, 'C2X', Order.NONE);
+	const c2y = luaGenerator.valueToCode(block, 'C2Y', Order.NONE);
+	const x = luaGenerator.valueToCode(block, 'X', Order.NONE);
+	const y = luaGenerator.valueToCode(block, 'Y', Order.NONE);
 	return `nvg.BezierTo(${c1x === '' ? '0' : c1x}, ${c1y === '' ? '0' : c1y}, ${c2x === '' ? '0' : c2x}, ${c2y === '' ? '0' : c2y}, ${x === '' ? '0' : x}, ${y === '' ? '0' : y})\n`;
 };
 canvasCategory.contents.push({
@@ -260,8 +260,8 @@ const nvgFillColorBlock = {
 };
 Blockly.Blocks['nvg_fill_color'] = { init: function() { this.jsonInit(nvgFillColorBlock); } };
 luaGenerator.forBlock['nvg_fill_color'] = function(block: Blockly.Block) {
-	const color = luaGenerator.valueToCode(block, 'COLOR', Order.ATOMIC);
-	const opacity = luaGenerator.valueToCode(block, 'OPACITY', Order.ATOMIC);
+	const color = luaGenerator.valueToCode(block, 'COLOR', Order.NONE);
+	const opacity = luaGenerator.valueToCode(block, 'OPACITY', Order.MULTIPLICATIVE);
 	return `nvg.FillColor(Color(${color === '' ? 'Color3()' : color}, math.floor(${opacity === '' ? '1' : opacity} * 255 + 0.5)))\n`;
 };
 canvasCategory.contents.push({
@@ -316,8 +316,8 @@ const nvgStrokeColorBlock = {
 };
 Blockly.Blocks['nvg_stroke_color'] = { init: function() { this.jsonInit(nvgStrokeColorBlock); } };
 luaGenerator.forBlock['nvg_stroke_color'] = function(block: Blockly.Block) {
-	const color = luaGenerator.valueToCode(block, 'COLOR', Order.ATOMIC);
-	const opacity = luaGenerator.valueToCode(block, 'OPACITY', Order.ATOMIC);
+	const color = luaGenerator.valueToCode(block, 'COLOR', Order.NONE);
+	const opacity = luaGenerator.valueToCode(block, 'OPACITY', Order.MULTIPLICATIVE);
 	return `nvg.StrokeColor(Color(${color === '' ? 'Color3()' : color}, math.floor(${opacity === '' ? '1' : opacity} * 255 + 0.5)))\n`;
 };
 canvasCategory.contents.push({
@@ -350,7 +350,7 @@ const nvgStrokeWidthBlock = {
 };
 Blockly.Blocks['nvg_stroke_width'] = { init: function() { this.jsonInit(nvgStrokeWidthBlock); } };
 luaGenerator.forBlock['nvg_stroke_width'] = function(block: Blockly.Block) {
-	const width = luaGenerator.valueToCode(block, 'WIDTH', Order.ATOMIC);
+	const width = luaGenerator.valueToCode(block, 'WIDTH', Order.NONE);
 	return `nvg.StrokeWidth(${width === '' ? '1' : width})\n`;
 };
 canvasCategory.contents.push({
@@ -410,10 +410,10 @@ const nvgRectBlock = {
 };
 Blockly.Blocks['nvg_rect'] = { init: function() { this.jsonInit(nvgRectBlock); } };
 luaGenerator.forBlock['nvg_rect'] = function(block: Blockly.Block) {
-	const x = luaGenerator.valueToCode(block, 'X', Order.ATOMIC);
-	const y = luaGenerator.valueToCode(block, 'Y', Order.ATOMIC);
-	const width = luaGenerator.valueToCode(block, 'WIDTH', Order.ATOMIC);
-	const height = luaGenerator.valueToCode(block, 'HEIGHT', Order.ATOMIC);
+	const x = luaGenerator.valueToCode(block, 'X', Order.NONE);
+	const y = luaGenerator.valueToCode(block, 'Y', Order.NONE);
+	const width = luaGenerator.valueToCode(block, 'WIDTH', Order.NONE);
+	const height = luaGenerator.valueToCode(block, 'HEIGHT', Order.NONE);
 	return `nvg.Rect(${x === '' ? '0' : x}, ${y === '' ? '0' : y}, ${width === '' ? '0' : width}, ${height === '' ? '0' : height})\n`;
 };
 canvasCategory.contents.push({
@@ -466,11 +466,11 @@ const nvgRoundedRectBlock = {
 };
 Blockly.Blocks['nvg_rounded_rect'] = { init: function() { this.jsonInit(nvgRoundedRectBlock); } };
 luaGenerator.forBlock['nvg_rounded_rect'] = function(block: Blockly.Block) {
-	const x = luaGenerator.valueToCode(block, 'X', Order.ATOMIC);
-	const y = luaGenerator.valueToCode(block, 'Y', Order.ATOMIC);
-	const width = luaGenerator.valueToCode(block, 'WIDTH', Order.ATOMIC);
-	const height = luaGenerator.valueToCode(block, 'HEIGHT', Order.ATOMIC);
-	const radius = luaGenerator.valueToCode(block, 'RADIUS', Order.ATOMIC);
+	const x = luaGenerator.valueToCode(block, 'X', Order.NONE);
+	const y = luaGenerator.valueToCode(block, 'Y', Order.NONE);
+	const width = luaGenerator.valueToCode(block, 'WIDTH', Order.NONE);
+	const height = luaGenerator.valueToCode(block, 'HEIGHT', Order.NONE);
+	const radius = luaGenerator.valueToCode(block, 'RADIUS', Order.NONE);
 	return `nvg.RoundedRect(${x === '' ? '0' : x}, ${y === '' ? '0' : y}, ${width === '' ? '0' : width}, ${height === '' ? '0' : height}, ${radius === '' ? '0' : radius})\n`;
 };
 canvasCategory.contents.push({
@@ -519,10 +519,10 @@ const nvgEllipseBlock = {
 };
 Blockly.Blocks['nvg_ellipse'] = { init: function() { this.jsonInit(nvgEllipseBlock); } };
 luaGenerator.forBlock['nvg_ellipse'] = function(block: Blockly.Block) {
-	const cx = luaGenerator.valueToCode(block, 'CX', Order.ATOMIC);
-	const cy = luaGenerator.valueToCode(block, 'CY', Order.ATOMIC);
-	const rx = luaGenerator.valueToCode(block, 'RX', Order.ATOMIC);
-	const ry = luaGenerator.valueToCode(block, 'RY', Order.ATOMIC);
+	const cx = luaGenerator.valueToCode(block, 'CX', Order.NONE);
+	const cy = luaGenerator.valueToCode(block, 'CY', Order.NONE);
+	const rx = luaGenerator.valueToCode(block, 'RX', Order.NONE);
+	const ry = luaGenerator.valueToCode(block, 'RY', Order.NONE);
 	return `nvg.Ellipse(${cx === '' ? '0' : cx}, ${cy === '' ? '0' : cy}, ${rx === '' ? '0' : rx}, ${ry === '' ? '0' : ry})\n`;
 };
 canvasCategory.contents.push({
@@ -565,9 +565,9 @@ const nvgCircleBlock = {
 };
 Blockly.Blocks['nvg_circle'] = { init: function() { this.jsonInit(nvgCircleBlock); } };
 luaGenerator.forBlock['nvg_circle'] = function(block: Blockly.Block) {
-	const cx = luaGenerator.valueToCode(block, 'CX', Order.ATOMIC);
-	const cy = luaGenerator.valueToCode(block, 'CY', Order.ATOMIC);
-	const radius = luaGenerator.valueToCode(block, 'RADIUS', Order.ATOMIC);
+	const cx = luaGenerator.valueToCode(block, 'CX', Order.NONE);
+	const cy = luaGenerator.valueToCode(block, 'CY', Order.NONE);
+	const radius = luaGenerator.valueToCode(block, 'RADIUS', Order.NONE);
 	return `nvg.Circle(${cx === '' ? '0' : cx}, ${cy === '' ? '0' : cy}, ${radius === '' ? '0' : radius})\n`;
 };
 canvasCategory.contents.push({
