@@ -12,6 +12,34 @@ const physicsCategory = {
 };
 export default physicsCategory;
 
+const newVec2 = (x: number, y: number, shadow: boolean) => {
+	return {
+		[shadow ? 'shadow' : 'block']: {
+			type: 'vec2_create',
+			inputs: {
+				X: {
+					shadow: {
+						type: 'math_number',
+						fields: {
+							NUM: x,
+						},
+					},
+				},
+				Y: {
+					shadow: {
+						type: 'math_number',
+						fields: {
+							NUM: y,
+						},
+					},
+				},
+			},
+		},
+	};
+};
+
+const shadowVec2Zero = newVec2(0, 0, true);
+
 // physics_world_create
 const physicsWorldCreateBlock = {
 	type: 'physics_world_create',
@@ -225,11 +253,7 @@ physicsCategory.contents.push({
 	kind: 'block',
 	type: 'body_create',
 	inputs: {
-		POSITION: {
-			shadow: {
-				type: 'vec2_zero',
-			}
-		},
+		POSITION: shadowVec2Zero,
 		ANGLE: {
 			shadow: {
 				type: 'math_number',
@@ -377,11 +401,7 @@ physicsCategory.contents.push({
 	kind: 'block',
 	type: 'rectangle_fixture',
 	inputs: {
-		CENTER: {
-			shadow: {
-				type: 'vec2_zero',
-			}
-		},
+		CENTER: shadowVec2Zero,
 		WIDTH: {
 			shadow: {
 				type: 'math_number',
@@ -531,11 +551,7 @@ physicsCategory.contents.push({
 	kind: 'block',
 	type: 'disk_fixture',
 	inputs: {
-		CENTER: {
-			shadow: {
-				type: 'vec2_zero',
-			}
-		},
+		CENTER: shadowVec2Zero,
 		RADIUS: {
 			shadow: {
 				type: 'math_number',
@@ -659,31 +675,6 @@ luaGenerator.forBlock['polygon_fixture'] = function(block: Blockly.Block) {
 		return `bodyDef:attachPolygonSensor(${sensorTag}, ${vertices === '' ? 'nil' : vertices})\n`;
 	}
 };
-const newShadowVec2 = (x: number, y: number) => {
-	return {
-		block: {
-			type: 'vec2_create',
-			inputs: {
-			X: {
-				shadow: {
-					type: 'math_number',
-					fields: {
-						NUM: x,
-					},
-				},
-			},
-			Y: {
-				shadow: {
-					type: 'math_number',
-					fields: {
-						NUM: y,
-					},
-				},
-			},
-		},
-		},
-	};
-};
 physicsCategory.contents.push({
 	kind: 'block',
 	type: 'polygon_fixture',
@@ -695,10 +686,10 @@ physicsCategory.contents.push({
 					itemCount: 4,
 				},
 				inputs: {
-					ADD0: newShadowVec2(-100, -50),
-					ADD1: newShadowVec2(-100, 0),
-					ADD2: newShadowVec2(100, 0),
-					ADD3: newShadowVec2(100, -50),
+					ADD0: newVec2(-100, -50, false),
+					ADD1: newVec2(-100, 0, false),
+					ADD2: newVec2(100, 0, false),
+					ADD3: newVec2(100, -50, false),
 				},
 			},
 		},
@@ -818,8 +809,8 @@ physicsCategory.contents.push({
 					itemCount: 2,
 				},
 				inputs: {
-					ADD0: newShadowVec2(0, 0),
-					ADD1: newShadowVec2(100, 0),
+					ADD0: newVec2(0, 0, false),
+					ADD1: newVec2(100, 0, false),
 				},
 			},
 		},

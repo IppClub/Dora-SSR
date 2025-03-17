@@ -44,6 +44,7 @@ const vec2CreateBlock = {
 			check: 'Number',
 		},
 	],
+	inputsInline: true,
 	output: 'Vec2',
 	style: 'math_blocks',
 };
