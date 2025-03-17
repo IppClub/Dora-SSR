@@ -41,7 +41,6 @@ local temp = (function()
   bodyDef.group = 0
   bodyDef.linearAcceleration = Vec2(0, (-9.8))
   bodyDef:attachPolygon(({Vec2((-100), (-50)), Vec2((-80), 0), Vec2(80, 0), Vec2(100, (-50))}), 1, 0.4, 0.4)
-  return Body(bodyDef, world, Vec2.zero, 0)
+  return Body(bodyDef, world, Vec2(0, (-200)), 0)
 end)()
-temp.position = Vec2(0, (-200))
 return 123

@@ -87,8 +87,8 @@ const setGroupCollisionEnabledBlock = {
 				['会碰撞', 'true'],
 				['不会碰撞', 'false'],
 			] : [
-				['Contact Enabled', 'true'],
-				['Contact Disabled', 'false'],
+				['contact Enabled', 'true'],
+				['contact Disabled', 'false'],
 			],
 		},
 	],
@@ -134,7 +134,7 @@ physicsCategory.contents.push({
 // body_create
 const bodyCreateBlock = {
 	type: 'body_create',
-	message0: zh ? '为物理世界节点 %1 创建 %2 刚体节点\n在位置 %3 角度 %4 分组为 %5\n重力为 %6\n组成形状包括 %7' : 'For world node %1\ncreate %2 Body node\nAt position %3 angle %4\nGroup %5\nGravity is %6\nWith shapes %7',
+	message0: zh ? '为物理世界节点 %1 创建 %2 刚体节点\n在位置 %3 角度 %4 \n重力系数为 %5 分组为 %6\n组成形状包括 %7' : 'For world node %1\ncreate %2 body node\nat position %3 angle %4\ngravity %5 group %6\nwith shapes %7',
 	args0: [
 		{
 			type: 'field_variable',
@@ -166,13 +166,13 @@ const bodyCreateBlock = {
 		},
 		{
 			type: 'input_value',
-			name: 'GROUP',
-			check: 'Number',
+			name: 'GRAVITY',
+			check: 'Vec2',
 		},
 		{
 			type: 'input_value',
-			name: 'GRAVITY',
-			check: 'Vec2',
+			name: 'GROUP',
+			check: 'Number',
 		},
 		{
 			type: 'input_statement',
@@ -299,7 +299,7 @@ physicsCategory.contents.push({
 // rectangle_fixture
 const rectangleFixtureBlock = {
 	type: 'rectangle_fixture',
-	message0: zh ? '矩形\n中心 %1\n宽度 %2 高度 %3 角度 %4\n密度 %5 摩擦力 %6 弹性 %7\n用作感应器的编号为 %8' : 'Rectangle\nCenter %1\nWidth %2 Height %3 Angle %4\nDensity %5 Friction %6 Restitution %7\nAs sensor with tag %8',
+	message0: zh ? '矩形\n中心 %1\n宽度 %2 高度 %3 角度 %4\n密度 %5 摩擦力 %6 弹性 %7\n用作感应器的编号为 %8' : 'Rectangle\ncenter %1\nwidth %2 height %3 angle %4\ndensity %5 friction %6 restitution %7\nas sensor with tag %8',
 	args0: [
 		{
 			type: 'input_value',
@@ -461,7 +461,7 @@ physicsCategory.contents.push({
 // disk_fixture
 const diskFixtureBlock = {
 	type: 'disk_fixture',
-	message0: zh ? '圆形\n中心 %1\n半径 %2\n密度 %3 摩擦力 %4 弹性 %5\n用作感应器的编号为 %6' : 'Circle\nCenter %1\nRadius %2\nDensity %3 Friction %4 Restitution %5\nAs sensor with tag %6',
+	message0: zh ? '圆形\n中心 %1\n半径 %2\n密度 %3 摩擦力 %4 弹性 %5\n用作感应器的编号为 %6' : 'Circle\ncenter %1\nradius %2\ndensity %3 friction %4 restitution %5\nas sensor with tag %6',
 	args0: [
 		{
 			type: 'input_value',
@@ -595,7 +595,7 @@ physicsCategory.contents.push({
 // polygon_fixture
 const polygonFixtureBlock = {
 	type: 'polygon_fixture',
-	message0: zh ? '多边形\n顶点 %1\n密度 %2 摩擦力 %3 弹性 %4\n用作感应器的编号为 %5' : 'Polygon\nVertices %1\nDensity %2 Friction %3 Restitution %4\nAs sensor with tag %5',
+	message0: zh ? '多边形\n顶点 %1\n密度 %2 摩擦力 %3 弹性 %4\n用作感应器的编号为 %5' : 'Polygon\nvertices %1\ndensity %2 friction %3 restitution %4\nas sensor with tag %5',
 	args0: [
 		{
 			type: 'input_value',
@@ -728,7 +728,7 @@ physicsCategory.contents.push({
 // chain_fixture
 const chainFixtureBlock = {
 	type: 'chain_fixture',
-	message0: zh ? '链条形\n顶点 %1\n摩擦力 %2 弹性 %3' : 'Chain\nVertices %1\nFriction %2 Restitution %3',
+	message0: zh ? '链条形\n顶点 %1\n摩擦力 %2 弹性 %3' : 'Chain\nvertices %1\nfriction %2 restitution %3',
 	args0: [
 		{
 			type: 'input_value',

@@ -15,7 +15,7 @@ export default actionCategory;
 // 执行动作
 const performActionBlock = {
 	type: 'perform_action',
-	message0: zh ? '为节点 %1 %2 动作 %3 返回执行一次的时间' : 'For node %1 %2 execute action %3 Return time of an execution',
+	message0: zh ? '为节点 %1 %2 动作 %3 返回执行一次的时间' : 'For node %1 %2 execute action %3 return time of an execution',
 	inputsInline: false,
 	args0: [
 		{
@@ -169,7 +169,7 @@ const SEQUENCE_CREATE_WITH = {
 			this.removeInput('EMPTY');
 		} else if (!this.itemCount_ && !this.getInput('EMPTY')) {
 			this.appendDummyInput('EMPTY').appendField(
-				zh ? '空序列动作列表' : 'Empty sequence action list',
+				zh ? '空序列动作列表' : 'empty sequence action list',
 			);
 		}
 		for (let i = 0; i < this.itemCount_; i++) {
@@ -308,7 +308,7 @@ const SPAWN_CREATE_WITH = {
 			this.removeInput('EMPTY');
 		} else if (!this.itemCount_ && !this.getInput('EMPTY')) {
 			this.appendDummyInput('EMPTY').appendField(
-				zh ? '空并行动作列表' : 'Empty parallel action list',
+				zh ? '空并行动作列表' : 'empty parallel action list',
 			);
 		}
 		for (let i = 0; i < this.itemCount_; i++) {
@@ -388,7 +388,7 @@ const easingOptions = [
 // Property action
 const propertyActionBlock = {
 	type: 'property_action',
-	message0: zh ? '在 %1 秒内，持续改变 %2\n从 %3 到 %4\n应用缓动 %5' : 'In %1 seconds, change %2\nFrom %3 to %4\nApply easing %5',
+	message0: zh ? '在 %1 秒内，持续改变 %2\n从 %3 到 %4\n应用缓动 %5' : 'In %1 seconds, change %2\nfrom %3 to %4\napply easing %5',
 	args0: [
 		{
 			type: 'input_value',
@@ -489,7 +489,7 @@ actionCategory.contents.push({
 // Move action
 const moveActionBlock = {
 	type: 'move_action',
-	message0: zh ? '在 %1 秒内\n从坐标 %2\n移动到坐标 %3\n应用缓动 %4' : 'In %1 seconds\nMove from point %2\nTo point %3\nApply easing %4',
+	message0: zh ? '在 %1 秒内\n从坐标 %2\n移动到坐标 %3\n应用缓动 %4' : 'In %1 seconds\nmove from point %2\nto point %3\napply easing %4',
 	args0: [
 		{
 			type: 'input_value',
