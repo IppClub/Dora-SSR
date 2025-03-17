@@ -15,7 +15,7 @@ export default eventCategory;
 // onUpdate
 const onUpdateBlock = {
 	type: 'on_update',
-	message0: zh ? '当节点 %1 更新时，更新间隔为 %2\n做 %3' : 'When node %1 updates, the delta time is %2\nDo %3',
+	message0: zh ? '当节点 %1 更新时，更新间隔为 %2\n做 %3' : 'When node %1 updates, the delta time is %2\ndo %3',
 	args0: [
 		{
 			type: 'field_variable',
@@ -51,7 +51,7 @@ eventCategory.contents.push({
 // onTapEvent
 const onTapEventBlock = {
 	type: 'on_tap_event',
-	message0: zh ? '当节点 %1 的 %2 事件发生\n接收到参数 %3\n做 %4' : 'When node %1 %2 event occurs\nReceive parameter %3\nDo %4',
+	message0: zh ? '当节点 %1 的 %2 事件发生\n接收到参数 %3\n做 %4' : 'When node %1 %2 event occurs\nreceive parameter %3\ndo %4',
 	args0: [
 		{
 			type: 'field_variable',
@@ -407,7 +407,7 @@ const keyNameOptions = zh ? [
 // onKeyboardEvent
 const onKeyboardEventBlock = {
 	type: 'on_keyboard_event',
-	message0: zh ? '当节点 %1 的 %2 事件发生\n触发按键为 %3\n做 %4' : 'When node %1 %2 event occurs\nTrigger key is %3\nDo %4',
+	message0: zh ? '当节点 %1 的 %2 事件发生\n触发按键为 %3\n做 %4' : 'When node %1 %2 event occurs\ntrigger key is %3\ndo %4',
 	args0: [
 		{
 			type: 'field_variable',
@@ -528,7 +528,7 @@ const controllerButtonOptions = zh ? [
 // onButtonEvent
 const onButtonEventBlock = {
 	type: 'on_button_event',
-	message0: zh ? '当节点 %1 的 %2 事件发生\n控制器编号为 %3\n触发按钮为 %4\n做 %5' : 'When node %1 %2 event occurs\nController id is %3\nTrigger button is %4\nDo %5',
+	message0: zh ? '当节点 %1 的 %2 事件发生\n控制器编号为 %3\n触发按钮为 %4\n做 %5' : 'When node %1 %2 event occurs\ncontroller id is %3\ntrigger button is %4\ndo %5',
 	args0: [
 		{
 			type: 'field_variable',
@@ -646,7 +646,7 @@ eventCategory.contents.push({
 // onSensorEnter
 const onSensorEnterBlock = {
 	type: 'on_sensor_enter',
-	message0: zh ? '当节点 %1 的 %2 事件发生\n接收到触发刚体为 %3 感应器编号为 %4\n做 %5' : 'When node %1 %2 event occurs\nReceive trigger body %3 sensor tag %4\nDo %5',
+	message0: zh ? '当节点 %1 的 %2 事件发生\n接收到触发刚体为 %3 感应器编号为 %4\n做 %5' : 'When node %1 %2 event occurs\nreceive trigger body %3 sensor tag %4\ndo %5',
 	args0: [
 		{
 			type: 'field_variable',
@@ -701,7 +701,7 @@ eventCategory.contents.push({
 // other: Body, point: Vec2, normal: Vec2, enabled: boolean
 const onContactEventBlock = {
 	type: 'on_contact_event',
-	message0: zh ? '当节点 %1 的 %2 事件发生\n接收到接触刚体为 %3 接触点为 %4 法向量为 %5 是否启用为 %6\n做 %7' : 'When node %1 %2 event occurs\nReceive contact body %3 contact point %4 normal vector %5 enabled %6\nDo %7',
+	message0: zh ? '当节点 %1 的 %2 事件发生\n接收到接触刚体为 %3 接触点为 %4 法向量为 %5 是否启用为 %6\n做 %7' : 'When node %1 %2 event occurs\nreceive contact body %3 contact point %4 normal vector %5 enabled %6\ndo %7',
 	args0: [
 		{
 			type: 'field_variable',
@@ -895,7 +895,7 @@ const NODE_REGISTER_GLOBAL_EVENT = {
 			this.removeInput('EMPTY');
 		} else if (!this.argCount_ && !this.getInput('EMPTY')) {
 			this.appendDummyInput('EMPTY').appendField(
-				zh ? '空参数列表' : 'Empty arguments list',
+				zh ? '空参数列表' : 'empty arguments list',
 			);
 		}
 		for (let i = 0; i < this.argCount_; i++) {
@@ -903,7 +903,7 @@ const NODE_REGISTER_GLOBAL_EVENT = {
 				this.appendValueInput('ADD_SHADOW' + i).setVisible(false);
 				const input = this.appendDummyInput('ADD' + i);
 				if (i === 0) {
-					input.appendField(zh ? '接收参数列表' : 'Receive arguments list');
+					input.appendField(zh ? '接收参数列表' : 'receive arguments list');
 				}
 				input.appendField(Blockly.FieldVariable.fromJson({
 					variable: 'arg' + i,
@@ -915,7 +915,7 @@ const NODE_REGISTER_GLOBAL_EVENT = {
 			this.removeInput('ADD_SHADOW' + i);
 		}
 		if (!this.getInput('ACTION')) {
-			this.appendStatementInput('ACTION').appendField(zh ? '处理' : 'Process');
+			this.appendStatementInput('ACTION').appendField(zh ? '处理' : 'process');
 		}
 		this.moveInputBefore('ACTION', null);
 	},
@@ -1061,14 +1061,14 @@ const EMIT_GLOBAL_EVENT = {
 			this.removeInput('EMPTY');
 		} else if (!this.argCount_ && !this.getInput('EMPTY')) {
 			this.appendDummyInput('EMPTY').appendField(
-				zh ? '无参数' : 'No arguments',
+				zh ? '无参数' : 'no arguments',
 			);
 		}
 		for (let i = 0; i < this.argCount_; i++) {
 			if (!this.getInput('ADD' + i)) {
 				const input = this.appendValueInput('ADD' + i).setAlign(Blockly.inputs.Align.RIGHT);
 				if (i === 0) {
-					input.appendField(zh ? '参数' : 'Arg');
+					input.appendField(zh ? '参数' : 'arguments');
 				}
 			}
 		}
@@ -1110,7 +1110,7 @@ const ARG_CREATE_WITH_CONTAINER = {
 	init: function (this: ArgContainerBlock) {
 		this.setStyle('list_blocks');
 		this.appendDummyInput().appendField(
-			zh ? '参数列表' : 'Args list',
+			zh ? '参数列表' : 'Argument list',
 		);
 		this.appendStatementInput('STACK');
 		this.contextMenu = false;
@@ -1127,7 +1127,7 @@ type ArgMutatorType = typeof ARG_CREATE_WITH_ITEM;
 const ARG_CREATE_WITH_ITEM = {
 	init: function (this: ArgBlock) {
 		this.setStyle('list_blocks');
-		this.appendDummyInput().appendField(zh ? '参数' : 'Arg');
+		this.appendDummyInput().appendField(zh ? '参数' : 'Argument');
 		this.setPreviousStatement(true);
 		this.setNextStatement(true);
 		this.contextMenu = false;

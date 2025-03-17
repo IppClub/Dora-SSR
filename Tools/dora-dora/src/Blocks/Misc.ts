@@ -194,7 +194,8 @@ const PROCEDURES_EXPORT = {
 		'on_update',
 		'node_register_global_event',
 		'thread',
-		'nvg_begin_painting'
+		'nvg_begin_painting',
+		'body_create',
 	],
 };
 Blockly.Blocks['export_block'] = PROCEDURES_EXPORT;
@@ -325,14 +326,14 @@ const INVOKE = {
 			this.removeInput('EMPTY');
 		} else if (!this.argCount_ && !this.getInput('EMPTY')) {
 			this.appendDummyInput('EMPTY').appendField(
-				zh ? '无参数' : 'No arguments',
+				zh ? '无参数' : 'no arguments',
 			);
 		}
 		for (let i = 0; i < this.argCount_; i++) {
 			if (!this.getInput('ADD' + i)) {
 				const input = this.appendValueInput('ADD' + i).setAlign(Blockly.inputs.Align.RIGHT);
 				if (i === 0) {
-					input.appendField(zh ? '参数' : 'Arg');
+					input.appendField(zh ? '参数' : 'arguments');
 				}
 			}
 		}

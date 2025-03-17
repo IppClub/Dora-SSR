@@ -381,7 +381,7 @@ canvasCategory.contents.push({
 // Rect block
 const nvgRectBlock = {
 	type: 'nvg_rect',
-	message0: zh ? '画矩形\nX %1 Y %2\n宽 %3 高 %4' : 'Draw rectangle\nX %1 Y %2\nWidth %3 Height %4',
+	message0: zh ? '画矩形\nX %1 Y %2\n宽 %3 高 %4' : 'Draw rectangle\nX %1 Y %2\nwidth %3 height %4',
 	args0: [
 		{
 			type: 'input_value',
@@ -432,7 +432,7 @@ const nvgRoundedRectBlock = {
 	type: 'nvg_rounded_rect',
 	message0: zh ?
 		'画圆角矩形\nX %1 Y %2\n宽 %3 高 %4\n圆角 %5' :
-		'Draw rounded rectangle\nX %1 Y %2\nWidth %3 Height %4\nRadius %5',
+		'Draw rounded rectangle\nX %1 Y %2\nwidth %3 height %4\nradius %5',
 	args0: [
 		{
 			type: 'input_value',
@@ -490,7 +490,7 @@ const nvgEllipseBlock = {
 	type: 'nvg_ellipse',
 	message0: zh ?
 		'画椭圆\n中心 X %1 中心 Y %2\n半径 X %3 半径 Y %4' :
-		'Draw ellipse\nCenter X %1 Center Y %2\nRadius X %3 Radius Y %4',
+		'Draw ellipse\ncenter X %1 center Y %2\nradius X %3 radius Y %4',
 	args0: [
 		{
 			type: 'input_value',
@@ -541,7 +541,7 @@ const nvgCircleBlock = {
 	type: 'nvg_circle',
 	message0: zh ?
 		'画圆\n中心 X %1 中心 Y %2\n半径 %3' :
-		'Draw circle\nCenter X %1 Center Y %2\nRadius %3',
+		'Draw circle\ncenter X %1 center Y %2\nradius %3',
 	args0: [
 		{
 			type: 'input_value',

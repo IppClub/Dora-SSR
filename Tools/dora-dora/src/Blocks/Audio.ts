@@ -15,7 +15,7 @@ export default audioCategory;
 // playStream
 const playStreamBlock = {
 	type: 'play_stream',
-	message0: zh ? '播放音乐 %1\n循环 %2\n交叉淡入时间 %3' : 'Play Music %1\nLoop %2\nCross Fade Time %3',
+	message0: zh ? '播放音乐 %1\n循环 %2\n交叉淡入时间 %3' : 'Play music %1\nloop %2\ncross fade time %3',
 	args0: [
 		{
 			type: 'input_value',
@@ -78,7 +78,7 @@ audioCategory.contents.push({
 // stopStream
 const stopStreamBlock = {
 	type: 'stop_stream',
-	message0: zh ? '停止音乐\n淡出时间 %1' : 'Stop Music\nFade Time %1',
+	message0: zh ? '停止音乐\n淡出时间 %1' : 'Stop music\nfade time %1',
 	args0: [
 		{
 			type: 'input_value',
@@ -113,7 +113,7 @@ audioCategory.contents.push({
 // playSound
 const playSoundBlock = {
 	type: 'play_sound',
-	message0: zh ? '播放音效 %1\n循环 %2\n返回音频控制编号' : 'Play Sound %1\nLoop %2\nReturn Audio Control ID',
+	message0: zh ? '播放音效 %1\n循环 %2\n返回音频控制编号' : 'Play sound %1\nloop %2\nreturn audio control ID',
 	args0: [
 		{
 			type: 'input_value',
@@ -166,7 +166,7 @@ audioCategory.contents.push({
 // stopSound
 const stopSoundBlock = {
 	type: 'stop_sound',
-	message0: zh ? '停止音效 %1' : 'Stop Sound %1',
+	message0: zh ? '停止音效 %1' : 'Stop sound %1',
 	args0: [
 		{
 			type: 'input_value',
