@@ -6,12 +6,16 @@ import '@blockly/field-colour-hsv-sliders';
 import { luaGenerator } from 'blockly/lua';
 import * as Zh from 'blockly/msg/zh-hans';
 import * as En from 'blockly/msg/en';
-import Info from './Info';
 import { useTranslation } from 'react-i18next';
+import { IconButton, Tooltip, Stack } from '@mui/material';
+import CodeIcon from '@mui/icons-material/Code';
+import CodeOffIcon from '@mui/icons-material/CodeOff';
+import SaveIcon from '@mui/icons-material/Save';
+import Info from './Info';
+import path from './3rdParty/Path';
 import DeclareCategory from './Blocks/Declare';
 import NodeCategory from './Blocks/Node';
 import GraphicCategory from './Blocks/Graphic';
-import MiscCategory from './Blocks/Misc';
 import EventCategory from './Blocks/Event';
 import Vec2Category from './Blocks/Vec2';
 import ActionCategory from './Blocks/Action';
@@ -19,11 +23,8 @@ import RoutineCategory from './Blocks/Routine';
 import CanvasCategory from './Blocks/Canvas';
 import AudioCategory from './Blocks/Audio';
 import DictCategory from './Blocks/Dict';
-import path from './3rdParty/Path';
-import { IconButton, Tooltip, Stack } from '@mui/material';
-import CodeIcon from '@mui/icons-material/Code';
-import CodeOffIcon from '@mui/icons-material/CodeOff';
-import SaveIcon from '@mui/icons-material/Save';
+import PhysicsCategory from './Blocks/Physics';
+import MiscCategory from './Blocks/Misc';
 
 const editorBackground = <div style={{width: '100%', height: '100%', backgroundColor:'#1a1a1a'}}/>;
 
@@ -837,6 +838,7 @@ const BlocklyComponent: React.FC<BlocklyProps> = ({
 						NodeCategory,
 						GraphicCategory,
 						CanvasCategory,
+						PhysicsCategory,
 						{
 							kind: 'sep',
 						},

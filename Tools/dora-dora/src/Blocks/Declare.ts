@@ -170,3 +170,72 @@ declareCategory.contents.push({
 		},
 	},
 });
+declareCategory.contents.push({
+	kind: 'block',
+	type: 'declare_variable',
+	inputs: {
+		VALUE: {
+			block: {
+				type: 'physics_world_create',
+			},
+		},
+	},
+});
+declareCategory.contents.push({
+	kind: 'block',
+	type: 'declare_variable',
+	inputs: {
+		VALUE: {
+			block: {
+				type: 'body_create',
+				inputs: {
+					POSITION: {
+						shadow: {
+							type: 'vec2_zero',
+						}
+					},
+					ANGLE: {
+						shadow: {
+							type: 'math_number',
+							fields: {
+								NUM: 0,
+							},
+						},
+					},
+					GROUP: {
+						shadow: {
+							type: 'math_number',
+							fields: {
+								NUM: 0,
+							},
+						},
+					},
+					GRAVITY: {
+						shadow: {
+							type: 'vec2_create',
+							inputs: {
+								X: {
+									shadow: {
+										type: 'math_number',
+										fields: {
+											NUM: 0,
+										},
+									},
+								},
+								Y: {
+									shadow: {
+										type: 'math_number',
+										fields: {
+											NUM: -9.8,
+										},
+									},
+								},
+							},
+						},
+					},
+				}
+			},
+		},
+	},
+});
+

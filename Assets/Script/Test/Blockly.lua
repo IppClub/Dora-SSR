@@ -24,4 +24,24 @@ end)
 Audio:play('Audio/hero_win.wav', false)
 Audio:playStream('Audio/Dismantlism Space.ogg', false, 0)
 emit('MyEvent', 998, 'Hello')
+temp.position = Vec2(0, 0)
+local world = PhysicsWorld()
+world.showDebug = true
+local temp = (function()
+  local bodyDef = BodyDef()
+  bodyDef.type = 'Dynamic'
+  bodyDef.group = 0
+  bodyDef.linearAcceleration = Vec2(0, (-9.8))
+  bodyDef:attachPolygon(Vec2.zero, 100, 100, 0, 1, 0.4, 0.4)
+  return Body(bodyDef, world, Vec2.zero, 0)
+end)()
+local temp = (function()
+  local bodyDef = BodyDef()
+  bodyDef.type = 'Static'
+  bodyDef.group = 0
+  bodyDef.linearAcceleration = Vec2(0, (-9.8))
+  bodyDef:attachPolygon(({Vec2((-100), (-50)), Vec2((-80), 0), Vec2(80, 0), Vec2(100, (-50))}), 1, 0.4, 0.4)
+  return Body(bodyDef, world, Vec2.zero, 0)
+end)()
+temp.position = Vec2(0, (-200))
 return 123
