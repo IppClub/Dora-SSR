@@ -32,8 +32,8 @@ local temp = (function()
   bodyDef.type = 'Dynamic'
   bodyDef.group = 0
   bodyDef.linearAcceleration = Vec2(0, (-9.8))
-  bodyDef:attachPolygon(Vec2.zero, 100, 100, 0, 1, 0.4, 0.4)
-  return Body(bodyDef, world, Vec2.zero, 0)
+  bodyDef:attachPolygon(Vec2(0, 150), 80, 80, 0, 1, 0.4, 0)
+  return Body(bodyDef, world, Vec2(0, 0), 0)
 end)()
 local temp = (function()
   local bodyDef = BodyDef()
