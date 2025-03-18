@@ -1,3 +1,11 @@
+/* Copyright (c) 2017-2025 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
 import * as Blockly from 'blockly';
 import { luaGenerator, Order } from 'blockly/lua';
 import Info from '../Info';
@@ -8,7 +16,7 @@ const zh = Info.locale.match(/^zh/) !== null;
 const eventCategory = {
 	kind: 'category',
 	name: zh ? '事件' : 'Event',
-	categorystyle: 'dora_category',
+	categorystyle: 'procedure_category',
 	contents: [] as {kind: string, type: string, inputs?: any}[],
 };
 export default eventCategory;
@@ -33,9 +41,10 @@ const onUpdateBlock = {
 			name: 'ACTION',
 		},
 	],
+	tooltip: zh ? '注册节点更新事件，每帧执行一次，在更新处理中返回 true 来停止。' : 'Register node update event, execute once per frame, return true in update processing to stop.',
 	previousStatement: null,
 	nextStatement: null,
-	style: 'logic_blocks',
+	style: 'procedure_blocks',
 };
 Blockly.Blocks['on_update'] = { init: function() { this.jsonInit(onUpdateBlock); } };
 luaGenerator.forBlock['on_update'] = function(block: Blockly.Block) {
@@ -86,7 +95,7 @@ const onTapEventBlock = {
 	],
 	previousStatement: null,
 	nextStatement: null,
-	style: 'logic_blocks',
+	style: 'procedure_blocks',
 };
 Blockly.Blocks['on_tap_event'] = { init: function() { this.jsonInit(onTapEventBlock); } };
 luaGenerator.forBlock['on_tap_event'] = function(block: Blockly.Block) {
@@ -440,7 +449,7 @@ const onKeyboardEventBlock = {
 	],
 	previousStatement: null,
 	nextStatement: null,
-	style: 'logic_blocks',
+	style: 'procedure_blocks',
 };
 Blockly.Blocks['on_keyboard_event'] = { init: function() { this.jsonInit(onKeyboardEventBlock); } };
 luaGenerator.forBlock['on_keyboard_event'] = function(block: Blockly.Block) {
@@ -563,7 +572,7 @@ const onButtonEventBlock = {
 	],
 	previousStatement: null,
 	nextStatement: null,
-	style: 'logic_blocks',
+	style: 'procedure_blocks',
 };
 Blockly.Blocks['on_button_event'] = { init: function() { this.jsonInit(onButtonEventBlock); } };
 luaGenerator.forBlock['on_button_event'] = function(block: Blockly.Block) {
@@ -649,7 +658,7 @@ eventCategory.contents.push({
 // onSensorEnter
 const onSensorEnterBlock = {
 	type: 'on_sensor_enter',
-	message0: zh ? '当节点 %1 的 %2 事件发生\n接收到触发刚体为 %3 感应器编号为 %4\n做 %5' : 'When node %1 %2 event occurs\nreceive trigger body %3 sensor tag %4\ndo %5',
+	message0: zh ? '当刚体节点 %1 的 %2 事件发生\n接收到触发刚体为 %3 感应器编号为 %4\n做 %5' : 'When body node %1 %2 event occurs\nreceive trigger body %3 sensor tag %4\ndo %5',
 	args0: [
 		{
 			type: 'field_variable',
@@ -675,7 +684,7 @@ const onSensorEnterBlock = {
 		{
 			type: 'field_variable',
 			name: 'SENSOR_TAG',
-			variable: 'sensorTag',
+			variable: 'tag',
 		},
 		{
 			type: 'input_statement',
@@ -684,7 +693,7 @@ const onSensorEnterBlock = {
 	],
 	previousStatement: null,
 	nextStatement: null,
-	style: 'logic_blocks',
+	style: 'procedure_blocks',
 };
 Blockly.Blocks['on_sensor_enter'] = { init: function() { this.jsonInit(onSensorEnterBlock); } };
 luaGenerator.forBlock['on_sensor_enter'] = function(block: Blockly.Block) {
@@ -700,11 +709,60 @@ eventCategory.contents.push({
 	type: 'on_sensor_enter',
 });
 
+// onContactFilter: function(self: Body, filter: function(other: Body): boolean)
+const onContactFilterBlock = {
+	type: 'on_contact_filter',
+	message0: zh ? '当刚体节点 %1 的接触过滤事件发生\n接收到接触刚体为 %2\n做 %3' : 'When body node %1 contact filter event occurs\nreceive contact body %2\ndo %3',
+	args0: [
+		{
+			type: 'field_variable',
+			name: 'BODY',
+			variable: 'temp',
+		},
+		{
+			type: 'field_variable',
+			name: 'OTHER',
+			variable: 'other',
+		},
+		{
+			type: 'input_statement',
+			name: 'ACTION',
+		},
+	],
+	previousStatement: null,
+	nextStatement: null,
+	style: 'procedure_blocks',
+};
+Blockly.Blocks['on_contact_filter'] = { init: function() { this.jsonInit(onContactFilterBlock); } };
+luaGenerator.forBlock['on_contact_filter'] = function(block: Blockly.Block) {
+	const body = luaGenerator.getVariableName(block.getFieldValue('BODY'));
+	const other = luaGenerator.getVariableName(block.getFieldValue('OTHER'));
+	const action = luaGenerator.statementToCode(block, 'ACTION');
+	return `${body}:onContactFilter(function(${other})\n${action}end)\n`;
+};
+eventCategory.contents.push({
+	kind: 'block',
+	type: 'on_contact_filter',
+	inputs: {
+		ACTION: {
+			block: {
+				type: 'return_block',
+				inputs: {
+					VALUE: {
+						shadow: {
+							type: 'logic_boolean',
+						},
+					},
+				},
+			},
+		},
+	},
+});
+
 // onContactEvent
-// other: Body, point: Vec2, normal: Vec2, enabled: boolean
 const onContactEventBlock = {
 	type: 'on_contact_event',
-	message0: zh ? '当节点 %1 的 %2 事件发生\n接收到接触刚体为 %3 接触点为 %4 法向量为 %5 是否启用为 %6\n做 %7' : 'When node %1 %2 event occurs\nreceive contact body %3 contact point %4 normal vector %5 enabled %6\ndo %7',
+	message0: zh ? '当刚体节点 %1 的 %2 事件发生\n接收到接触刚体为 %3 接触点为 %4 法向量为 %5 是否启用为 %6\n做 %7' : 'When body node %1 %2 event occurs\nreceive contact body %3 contact point %4 normal vector %5 enabled %6\ndo %7',
 	args0: [
 		{
 			type: 'field_variable',
@@ -749,7 +807,7 @@ const onContactEventBlock = {
 	],
 	previousStatement: null,
 	nextStatement: null,
-	style: 'logic_blocks',
+	style: 'procedure_blocks',
 };
 Blockly.Blocks['on_contact_event'] = { init: function() { this.jsonInit(onContactEventBlock); } };
 luaGenerator.forBlock['on_contact_event'] = function(block: Blockly.Block) {
@@ -767,7 +825,6 @@ eventCategory.contents.push({
 	type: 'on_contact_event',
 });
 
-
 type AnyDuringMigration = any;
 
 export type NodeRegisterGlobalEventWithBlock = Blockly.Block & NodeRegisterGlobalEventWithMixin;
@@ -778,7 +835,7 @@ type NodeRegisterGlobalEventWithMixinType = typeof NODE_REGISTER_GLOBAL_EVENT;
 
 const NODE_REGISTER_GLOBAL_EVENT = {
 	init: function (this: NodeRegisterGlobalEventWithBlock) {
-		this.setStyle('logic_blocks');
+		this.setStyle('procedure_blocks');
 		this.argCount_ = 3;
 		this.updateShape_();
 		this.setPreviousStatement(true);

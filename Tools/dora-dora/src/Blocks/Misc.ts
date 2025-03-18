@@ -1,8 +1,17 @@
+/* Copyright (c) 2017-2025 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
 import * as Blockly from 'blockly';
 import { luaGenerator, Order } from 'blockly/lua';
 import Info from '../Info';
 import { ArgBlock, ArgContainerBlock } from './Event';
 import Require from './Require';
+
 const zh = Info.locale.match(/^zh/) !== null;
 
 const miscCategory = {
@@ -136,10 +145,23 @@ miscCategory.contents.push({
 	},
 });
 
+const CLOSURE_BLOCKS: string[] = [
+	'procedures_defnoreturn',
+	'procedures_defreturn',
+	'on_sensor_enter',
+	'on_contact_filter',
+	'on_contact_event',
+	'on_button_event',
+	'on_keyboard_event',
+	'on_tap_event',
+	'on_update',
+	'node_register_global_event',
+	'thread',
+	'nvg_begin_painting',
+];
+
 export type ExportBlock = Blockly.Block & ExportMixin;
-interface ExportMixin extends ExportMixinType {
-  hasReturnValue_: boolean;
-}
+interface ExportMixin extends ExportMixinType { }
 type ExportMixinType = typeof PROCEDURES_EXPORT;
 
 const PROCEDURES_EXPORT = {
@@ -147,7 +169,7 @@ const PROCEDURES_EXPORT = {
 		this.appendValueInput('VALUE').appendField(
 			zh ? '从模块导出' : 'Module export',
 		);
-		this.setInputsInline(true);
+		this.setInputsInline(false);
 		this.setPreviousStatement(true);
 		this.setNextStatement(false);
 		this.setStyle('procedure_blocks');
@@ -165,7 +187,7 @@ const PROCEDURES_EXPORT = {
 		// Is the block nested in a procedure?
 		let block = this; // eslint-disable-line @typescript-eslint/no-this-alias
 		do {
-			if (this.FUNCTION_TYPES.includes(block.type)) {
+			if (CLOSURE_BLOCKS.includes(block.type)) {
 				legal = false;
 				break;
 			}
@@ -186,27 +208,90 @@ const PROCEDURES_EXPORT = {
 			}
 		}
 	},
-	FUNCTION_TYPES: [
-		'procedures_defnoreturn',
-		'procedures_defreturn',
-		'on_button_event',
-		'on_keyboard_event',
-		'on_tap_event',
-		'on_update',
-		'node_register_global_event',
-		'thread',
-		'nvg_begin_painting',
-		'body_create',
-	],
 };
 Blockly.Blocks['export_block'] = PROCEDURES_EXPORT;
 luaGenerator.forBlock['export_block'] = function(block: Blockly.Block) {
 	const value = luaGenerator.valueToCode(block, 'VALUE', Order.NONE);
-	return `return ${value}\n`;
+	return `return ${value === '' ? 'nil' : value}\n`;
 };
 miscCategory.contents.push({
 	kind: 'block',
 	type: 'export_block',
+	inputs: {
+		VALUE: {
+			shadow: {
+				type: 'logic_null',
+			},
+		},
+	},
+});
+
+export type ReturnBlock = Blockly.Block & ReturnMixin;
+interface ReturnMixin extends ReturnMixinType { }
+type ReturnMixinType = typeof RETURN;
+const RETURN = {
+	init: function (this: ReturnBlock) {
+		this.appendValueInput('VALUE').appendField(
+			zh ? '过程返回' : 'Procedure return',
+		);
+		this.setInputsInline(false);
+		this.setPreviousStatement(true);
+		this.setNextStatement(false);
+		this.setStyle('procedure_blocks');
+	},
+
+	onchange: function (this: ReturnBlock, e: Blockly.Events.Abstract) {
+		if (
+			((this.workspace as Blockly.WorkspaceSvg).isDragging &&
+			(this.workspace as Blockly.WorkspaceSvg).isDragging()) ||
+			(e.type !== Blockly.Events.BLOCK_MOVE && e.type !== Blockly.Events.BLOCK_CREATE)
+		) {
+			return;
+		}
+		let legal = false;
+		// Is the block nested in a procedure?
+		let block = this; // eslint-disable-line @typescript-eslint/no-this-alias
+		do {
+			if (CLOSURE_BLOCKS.includes(block.type)) {
+				legal = true;
+				break;
+			}
+			block = block.getSurroundParent()!;
+		} while (block);
+		if (legal) {
+			this.setWarningText(null);
+		} else {
+			this.setWarningText(zh ? '返回值块需要嵌套在函数块中' : 'Return block must be nested in a function block');
+		}
+
+		if (!this.isInFlyout) {
+			try {
+				Blockly.Events.setRecordUndo(false);
+				this.setDisabledReason(!legal, 'UNPARENTED_RETURN');
+			} finally {
+				Blockly.Events.setRecordUndo(true);
+			}
+		}
+	},
+};
+Blockly.Blocks['return_block'] = RETURN;
+luaGenerator.forBlock['return_block'] = function(block: Blockly.Block) {
+	const value = luaGenerator.valueToCode(block, 'VALUE', Order.NONE);
+	if (value === '') {
+		return `return\n`;
+	}
+	return `return ${value}\n`;
+};
+miscCategory.contents.push({
+	kind: 'block',
+	type: 'return_block',
+	inputs: {
+		VALUE: {
+			block: {
+				type: 'logic_boolean',
+			},
+		},
+	},
 });
 
 export type InvokeBlock = Blockly.Block & InvokeMixin;
