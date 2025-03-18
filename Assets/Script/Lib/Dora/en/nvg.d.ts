@@ -73,8 +73,10 @@ export function TextBounds(this: void, x: number, y: number, text: string, bound
 export function TextBoxBounds(this: void, x: number, y: number, breakRowWidth: number, text: string): Rect;
 export function Text(this: void, x: number, y: number, text: string): number;
 export function TextBox(this: void, x: number, y: number, breakRowWidth: number, text: string): void;
+export function StrokeColor(this: void, color: number): void;
 export function StrokeColor(this: void, color: Color): void;
 export function StrokePaint(this: void, paint: VGPaint): void;
+export function FillColor(this: void, color: number): void;
 export function FillColor(this: void, color: Color): void;
 export function FillPaint(this: void, paint: VGPaint): void;
 export function MiterLimit(this: void, limit: number): void;
