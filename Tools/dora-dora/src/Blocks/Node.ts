@@ -1,3 +1,11 @@
+/* Copyright (c) 2017-2025 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
 import * as Blockly from 'blockly';
 import { luaGenerator, Order } from 'blockly/lua';
 import Info from '../Info';
@@ -102,10 +110,10 @@ nodeCategory.contents.push({
 	},
 });
 
-// Set vec2 attribute
-const nodeSetVec2AttributeBlock = {
-	type: 'node_set_vec2_attribute',
-	message0: zh ? '设置 %1 的 %2 向量为 %3' : 'Set %1 %2 Vec2 to %3',
+// Set number attribute
+const nodeSetNumberAttributeBlock = {
+	type: 'node_set_number_attribute',
+	message0: zh ? '设置 %1 的 %2 数值为 %3' : 'Set %1 %2 number to %3',
 	args0: [
 		{
 			type: 'field_variable',
@@ -116,73 +124,76 @@ const nodeSetVec2AttributeBlock = {
 			type: 'field_dropdown',
 			name: 'ATTRIBUTE',
 			options: zh ? [
-				['位置', 'position'],
-				['大小', 'size'],
+				['X 坐标', 'x'],
+				['Y 坐标', 'y'],
+				['Z 坐标', 'z'],
+				['宽度', 'width'],
+				['高度', 'height'],
+				['角度', 'angle'],
+				['X 角度', 'angleX'],
+				['Y 角度', 'angleY'],
 				['缩放', 'scale'],
-				['锚点', 'anchor'],
+				['X 缩放', 'scaleX'],
+				['Y 缩放', 'scaleY'],
+				['不透明度', 'opacity'],
+				['[刚体节点] 速度 X', 'velocityX'],
+				['[刚体节点] 速度 Y', 'velocityY'],
+				['[刚体节点] 角速度', 'angularRate'],
+				['[刚体节点] 分组', 'group'],
+				['[刚体节点] 线性阻尼', 'linearDamping'],
+				['[刚体节点] 角阻尼', 'angularDamping'],
 			] : [
-				['Position', 'position'],
-				['Size', 'size'],
+				['X', 'x'],
+				['Y', 'y'],
+				['Z', 'z'],
+				['Width', 'width'],
+				['Height', 'height'],
+				['Angle', 'angle'],
+				['AngleX', 'angleX'],
+				['AngleY', 'angleY'],
 				['Scale', 'scale'],
-				['Anchor', 'anchor'],
+				['ScaleX', 'scaleX'],
+				['ScaleY', 'scaleY'],
+				['Opacity', 'opacity'],
+				['[Body] VelocityX', 'velocityX'],
+				['[Body] VelocityY', 'velocityY'],
+				['[Body] AngularRate', 'angularRate'],
+				['[Body] Group', 'group'],
+				['[Body] LinearDamping', 'linearDamping'],
+				['[Body] AngularDamping', 'angularDamping'],
 			],
 		},
 		{
 			type: 'input_value',
-			name: 'VEC2',
-			check: "Vec2",
+			name: 'VALUE',
+			check: "Number",
 		},
 	],
 	previousStatement: null,
 	nextStatement: null,
 	style: 'logic_blocks',
 };
-Blockly.Blocks['node_set_vec2_attribute'] = { init: function() { this.jsonInit(nodeSetVec2AttributeBlock); } };
-luaGenerator.forBlock['node_set_vec2_attribute'] = function(block: Blockly.Block) {
+Blockly.Blocks['node_set_number_attribute'] = { init: function() { this.jsonInit(nodeSetNumberAttributeBlock); } };
+luaGenerator.forBlock['node_set_number_attribute'] = function(block: Blockly.Block) {
 	const node = luaGenerator.getVariableName(block.getFieldValue('NODE'));
 	const attribute = block.getFieldValue('ATTRIBUTE');
-	let vec2 = luaGenerator.valueToCode(block, 'VEC2', Order.NONE);
-	if (vec2 === '') {
-		Require.add('Vec2');
-		vec2 = 'Vec2.zero';
-	}
-	if (attribute === 'position') {
-		return `${node}.position = ${vec2}\n`;
-	} else if (attribute === 'size') {
-		Require.add('Size');
-		return `${node}.size = Size(${vec2})\n`;
-	} else if (attribute === 'scale') {
+	const value = luaGenerator.valueToCode(block, 'VALUE', Order.NONE);
+	if (attribute === 'scale') {
 		const scaleVar = luaGenerator.nameDB_?.getDistinctName("scale", Blockly.Names.NameType.VARIABLE);
-		return `local ${scaleVar} = ${vec2}\n${node}.scaleX = ${scaleVar}.x\n${node}.scaleY = ${scaleVar}.y\n`;
-	} else if (attribute === 'anchor') {
-		return `${node}.anchor = ${vec2}\n`;
+		return `local ${scaleVar} = ${value === '' ? '0' : value}\n${node}.scaleX = ${scaleVar}\n${node}.scaleY = ${scaleVar}\n`;
+	} else {
+		return `${node}.${attribute} = ${value === '' ? '0' : value}\n`;
 	}
-	return '';
 };
 nodeCategory.contents.push({
 	kind: 'block',
-	type: 'node_set_vec2_attribute',
+	type: 'node_set_number_attribute',
 	inputs: {
-		VEC2: {
+		VALUE: {
 			shadow: {
-				type: 'vec2_create',
-				inputs: {
-					X: {
-						shadow: {
-							type: 'math_number',
-							fields: {
-								NUM: 0,
-							},
-						},
-					},
-					Y: {
-						shadow: {
-							type: 'math_number',
-							fields: {
-								NUM: 0,
-							},
-						},
-					},
+				type: 'math_number',
+				fields: {
+					NUM: 0,
 				},
 			},
 		},
@@ -242,10 +253,11 @@ nodeCategory.contents.push({
 	},
 });
 
-// Set number attribute
-const nodeSetNumberAttributeBlock = {
-	type: 'node_set_number_attribute',
-	message0: zh ? '设置 %1 的 %2 数值为 %3' : 'Set %1 %2 number to %3',
+
+// Set vec2 attribute
+const nodeSetVec2AttributeBlock = {
+	type: 'node_set_vec2_attribute',
+	message0: zh ? '设置 %1 的 %2 向量为 %3' : 'Set %1 %2 Vec2 to %3',
 	args0: [
 		{
 			type: 'field_variable',
@@ -256,64 +268,71 @@ const nodeSetNumberAttributeBlock = {
 			type: 'field_dropdown',
 			name: 'ATTRIBUTE',
 			options: zh ? [
-				['X 坐标', 'x'],
-				['Y 坐标', 'y'],
-				['Z 坐标', 'z'],
-				['宽度', 'width'],
-				['高度', 'height'],
-				['角度', 'angle'],
-				['X 角度', 'angleX'],
-				['Y 角度', 'angleY'],
+				['位置', 'position'],
+				['大小', 'size'],
 				['缩放', 'scale'],
-				['X 缩放', 'scaleX'],
-				['Y 缩放', 'scaleY'],
-				['不透明度', 'opacity'],
+				['锚点', 'anchor'],
+				['[刚体节点] 速度', 'velocity'],
 			] : [
-				['X', 'x'],
-				['Y', 'y'],
-				['Z', 'z'],
-				['Width', 'width'],
-				['Height', 'height'],
-				['Angle', 'angle'],
-				['AngleX', 'angleX'],
-				['AngleY', 'angleY'],
+				['Position', 'position'],
+				['Size', 'size'],
 				['Scale', 'scale'],
-				['ScaleX', 'scaleX'],
-				['ScaleY', 'scaleY'],
-				['Opacity', 'opacity'],
+				['Anchor', 'anchor'],
+				['[Body] Velocity', 'velocity'],
 			],
 		},
 		{
 			type: 'input_value',
-			name: 'VALUE',
-			check: "Number",
+			name: 'VEC2',
+			check: "Vec2",
 		},
 	],
 	previousStatement: null,
 	nextStatement: null,
 	style: 'logic_blocks',
 };
-Blockly.Blocks['node_set_number_attribute'] = { init: function() { this.jsonInit(nodeSetNumberAttributeBlock); } };
-luaGenerator.forBlock['node_set_number_attribute'] = function(block: Blockly.Block) {
+Blockly.Blocks['node_set_vec2_attribute'] = { init: function() { this.jsonInit(nodeSetVec2AttributeBlock); } };
+luaGenerator.forBlock['node_set_vec2_attribute'] = function(block: Blockly.Block) {
 	const node = luaGenerator.getVariableName(block.getFieldValue('NODE'));
 	const attribute = block.getFieldValue('ATTRIBUTE');
-	const value = luaGenerator.valueToCode(block, 'VALUE', Order.NONE);
-	if (attribute === 'scale') {
-		const scaleVar = luaGenerator.nameDB_?.getDistinctName("scale", Blockly.Names.NameType.VARIABLE);
-		return `local ${scaleVar} = ${value === '' ? '0' : value}\n${node}.scaleX = ${scaleVar}\n${node}.scaleY = ${scaleVar}\n`;
-	} else {
-		return `${node}.${attribute} = ${value === '' ? '0' : value}\n`;
+	let vec2 = luaGenerator.valueToCode(block, 'VEC2', Order.NONE);
+	if (vec2 === '') {
+		Require.add('Vec2');
+		vec2 = 'Vec2.zero';
 	}
+	if (attribute === 'size') {
+		Require.add('Size');
+		return `${node}.size = Size(${vec2})\n`;
+	} else if (attribute === 'scale') {
+		const scaleVar = luaGenerator.nameDB_?.getDistinctName("scale", Blockly.Names.NameType.VARIABLE);
+		return `local ${scaleVar} = ${vec2}\n${node}.scaleX = ${scaleVar}.x\n${node}.scaleY = ${scaleVar}.y\n`;
+	}
+	return `${node}.${attribute} = ${vec2}\n`;
 };
 nodeCategory.contents.push({
 	kind: 'block',
-	type: 'node_set_number_attribute',
+	type: 'node_set_vec2_attribute',
 	inputs: {
-		VALUE: {
+		VEC2: {
 			shadow: {
-				type: 'math_number',
-				fields: {
-					NUM: 0,
+				type: 'vec2_create',
+				inputs: {
+					X: {
+						shadow: {
+							type: 'math_number',
+							fields: {
+								NUM: 0,
+							},
+						},
+					},
+					Y: {
+						shadow: {
+							type: 'math_number',
+							fields: {
+								NUM: 0,
+							},
+						},
+					},
 				},
 			},
 		},
@@ -361,10 +380,10 @@ nodeCategory.contents.push({
 	},
 });
 
-// Get vec2 attribute
-const nodeGetVec2AttributeBlock = {
-	type: 'node_get_vec2_attribute',
-	message0: zh ? '获取 %1 的 %2 向量' : 'Get %1 %2 Vec2',
+// Get number attribute
+const nodeGetNumberAttributeBlock = {
+	type: 'node_get_number_attribute',
+	message0: zh ? '获取 %1 的 %2 数值' : 'Get %1 %2 number',
 	args0: [
 		{
 			type: 'field_variable',
@@ -375,42 +394,67 @@ const nodeGetVec2AttributeBlock = {
 			type: 'field_dropdown',
 			name: 'ATTRIBUTE',
 			options: zh ? [
-				['位置', 'position'],
-				['大小', 'size'],
-				['缩放', 'scale'],
-				['锚点', 'anchor'],
+				['X 坐标', 'x'],
+				['Y 坐标', 'y'],
+				['Z 坐标', 'z'],
+				['宽度', 'width'],
+				['高度', 'height'],
+				['角度', 'angle'],
+				['X 角度', 'angleX'],
+				['Y 角度', 'angleY'],
+				['X 缩放', 'scaleX'],
+				['Y 缩放', 'scaleY'],
+				['X 锚点', 'anchorX'],
+				['Y 锚点', 'anchorY'],
+				['不透明度', 'opacity'],
+				['[刚体节点] 速度 X', 'velocityX'],
+				['[刚体节点] 速度 Y', 'velocityY'],
+				['[刚体节点] 角速度', 'angularRate'],
+				['[刚体节点] 分组', 'group'],
+				['[刚体节点] 线性阻尼', 'linearDamping'],
+				['[刚体节点] 角阻尼', 'angularDamping'],
+				['[刚体节点] 质量', 'mass'],
 			] : [
-				['Position', 'position'],
-				['Size', 'size'],
-				['Scale', 'scale'],
-				['Anchor', 'anchor'],
+				['X', 'x'],
+				['Y', 'y'],
+				['Z', 'z'],
+				['Width', 'width'],
+				['Height', 'height'],
+				['Angle', 'angle'],
+				['AngleX', 'angleX'],
+				['AngleY', 'angleY'],
+				['ScaleX', 'scaleX'],
+				['ScaleY', 'scaleY'],
+				['AnchorX', 'anchorX'],
+				['AnchorY', 'anchorY'],
+				['Opacity', 'opacity'],
+				['[Body] VelocityX', 'velocityX'],
+				['[Body] VelocityY', 'velocityY'],
+				['[Body] AngularRate', 'angularRate'],
+				['[Body] Group', 'group'],
+				['[Body] LinearDamping', 'linearDamping'],
+				['[Body] AngularDamping', 'angularDamping'],
+				['[Body] Mass', 'mass'],
 			],
 		},
 	],
-	output: 'Vec2',
+	output: 'Number',
 	style: 'math_blocks',
 };
-Blockly.Blocks['node_get_vec2_attribute'] = { init: function() { this.jsonInit(nodeGetVec2AttributeBlock); } };
-luaGenerator.forBlock['node_get_vec2_attribute'] = function(block: Blockly.Block) {
+Blockly.Blocks['node_get_number_attribute'] = { init: function() { this.jsonInit(nodeGetNumberAttributeBlock); } };
+luaGenerator.forBlock['node_get_number_attribute'] = function(block: Blockly.Block) {
 	const node = luaGenerator.getVariableName(block.getFieldValue('NODE'));
 	const attribute = block.getFieldValue('ATTRIBUTE');
-	if (attribute === 'position') {
-		return [`${node}.position`, Order.ATOMIC];
-	} else if (attribute === 'size') {
-		Require.add('Vec2');
-		return [`Vec2(${node}.size)`, Order.ATOMIC];
-	} else if (attribute === 'scale') {
-		Require.add('Vec2');
-		return [`Vec2(${node}.scaleX, ${node}.scaleY)`, Order.ATOMIC];
-	} else if (attribute === 'anchor') {
-		return [`${node}.anchor`, Order.ATOMIC];
+	if (attribute === 'anchorX') {
+		return [`${node}.anchor.x`, Order.ATOMIC];
+	} else if (attribute === 'anchorY') {
+		return [`${node}.anchor.y`, Order.ATOMIC];
 	}
-	Require.add('Vec2');
-	return ['Vec2.zero', Order.ATOMIC];
+	return [`${node}.${attribute}`, Order.ATOMIC];
 };
 nodeCategory.contents.push({
 	kind: 'block',
-	type: 'node_get_vec2_attribute',
+	type: 'node_get_number_attribute',
 });
 
 // Get boolean attribute
@@ -442,22 +486,17 @@ Blockly.Blocks['node_get_boolean_attribute'] = { init: function() { this.jsonIni
 luaGenerator.forBlock['node_get_boolean_attribute'] = function(block: Blockly.Block) {
 	const node = luaGenerator.getVariableName(block.getFieldValue('NODE'));
 	const attribute = block.getFieldValue('ATTRIBUTE');
-	if (attribute === 'visible') {
-		return [`${node}.visible`, Order.ATOMIC];
-	} else if (attribute === 'showDebug') {
-		return [`${node}.showDebug`, Order.ATOMIC];
-	}
-	return ['false', Order.ATOMIC];
+	return [`${node}.${attribute}`, Order.ATOMIC];
 };
 nodeCategory.contents.push({
 	kind: 'block',
 	type: 'node_get_boolean_attribute',
 });
 
-// Get number attribute
-const nodeGetNumberAttributeBlock = {
-	type: 'node_get_number_attribute',
-	message0: zh ? '获取 %1 的 %2 数值' : 'Get %1 %2 number',
+// Get vec2 attribute
+const nodeGetVec2AttributeBlock = {
+	type: 'node_get_vec2_attribute',
+	message0: zh ? '获取 %1 的 %2 向量' : 'Get %1 %2 Vec2',
 	args0: [
 		{
 			type: 'field_variable',
@@ -468,54 +507,39 @@ const nodeGetNumberAttributeBlock = {
 			type: 'field_dropdown',
 			name: 'ATTRIBUTE',
 			options: zh ? [
-				['X 坐标', 'x'],
-				['Y 坐标', 'y'],
-				['Z 坐标', 'z'],
-				['宽度', 'width'],
-				['高度', 'height'],
-				['角度', 'angle'],
-				['X 角度', 'angleX'],
-				['Y 角度', 'angleY'],
-				['X 缩放', 'scaleX'],
-				['Y 缩放', 'scaleY'],
-				['X 锚点', 'anchorX'],
-				['Y 锚点', 'anchorY'],
-				['不透明度', 'opacity'],
+				['位置', 'position'],
+				['大小', 'size'],
+				['缩放', 'scale'],
+				['锚点', 'anchor'],
+				['[刚体节点] 速度', 'velocity'],
 			] : [
-				['X', 'x'],
-				['Y', 'y'],
-				['Z', 'z'],
-				['Width', 'width'],
-				['Height', 'height'],
-				['Angle', 'angle'],
-				['AngleX', 'angleX'],
-				['AngleY', 'angleY'],
-				['ScaleX', 'scaleX'],
-				['ScaleY', 'scaleY'],
-				['AnchorX', 'anchorX'],
-				['AnchorY', 'anchorY'],
-				['Opacity', 'opacity'],
+				['Position', 'position'],
+				['Size', 'size'],
+				['Scale', 'scale'],
+				['Anchor', 'anchor'],
+				['[Body] Velocity', 'velocity'],
 			],
 		},
 	],
-	output: 'Number',
+	output: 'Vec2',
 	style: 'math_blocks',
 };
-Blockly.Blocks['node_get_number_attribute'] = { init: function() { this.jsonInit(nodeGetNumberAttributeBlock); } };
-luaGenerator.forBlock['node_get_number_attribute'] = function(block: Blockly.Block) {
+Blockly.Blocks['node_get_vec2_attribute'] = { init: function() { this.jsonInit(nodeGetVec2AttributeBlock); } };
+luaGenerator.forBlock['node_get_vec2_attribute'] = function(block: Blockly.Block) {
 	const node = luaGenerator.getVariableName(block.getFieldValue('NODE'));
 	const attribute = block.getFieldValue('ATTRIBUTE');
-	if (attribute === 'anchorX') {
-		return [`${node}.anchor.x`, Order.ATOMIC];
-	} else if (attribute === 'anchorY') {
-		return [`${node}.anchor.y`, Order.ATOMIC];
-	} else {
-		return [`${node}.${attribute}`, Order.ATOMIC];
+	if (attribute === 'size') {
+		Require.add('Vec2');
+		return [`Vec2(${node}.size)`, Order.ATOMIC];
+	} else if (attribute === 'scale') {
+		Require.add('Vec2');
+		return [`Vec2(${node}.scaleX, ${node}.scaleY)`, Order.ATOMIC];
 	}
+	return [`${node}.${attribute}`, Order.ATOMIC];
 };
 nodeCategory.contents.push({
 	kind: 'block',
-	type: 'node_get_number_attribute',
+	type: 'node_get_vec2_attribute',
 });
 
 // Get color
