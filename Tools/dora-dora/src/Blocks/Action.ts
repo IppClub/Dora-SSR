@@ -1,7 +1,7 @@
 import * as Blockly from 'blockly';
 import { luaGenerator, Order } from 'blockly/lua';
 import Info from '../Info';
-
+import Require from './Require';
 const zh = Info.locale.match(/^zh/) !== null;
 
 const actionCategory = {
@@ -195,6 +195,7 @@ luaGenerator.forBlock['sequence_create_with'] = function(block: Blockly.Block) {
 			items.push(item);
 		}
 	}
+	Require.add('Sequence');
 	return [`Sequence(${items.join(', ')})`, Order.ATOMIC];
 };
 actionCategory.contents.push({
@@ -334,6 +335,7 @@ luaGenerator.forBlock['spawn_create_with'] = function(block: Blockly.Block) {
 			items.push(item);
 		}
 	}
+	Require.add('Spawn');
 	return [`Spawn(${items.join(', ')})`, Order.ATOMIC];
 };
 actionCategory.contents.push({
@@ -453,6 +455,8 @@ luaGenerator.forBlock['property_action'] = function(block: Blockly.Block) {
 	const start = luaGenerator.valueToCode(block, 'START', Order.NONE);
 	const stop = luaGenerator.valueToCode(block, 'STOP', Order.NONE);
 	const easing = block.getFieldValue('EASING');
+	Require.add(property);
+	Require.add('Ease');
 	return [`${property}(${time === '' ? '0' : time}, ${start === '' ? '0' : start}, ${stop === '' ? '0' : stop}, Ease.${easing})`, Order.ATOMIC];
 };
 actionCategory.contents.push({
@@ -523,6 +527,11 @@ luaGenerator.forBlock['move_action'] = function(block: Blockly.Block) {
 	const start = luaGenerator.valueToCode(block, 'START', Order.NONE);
 	const stop = luaGenerator.valueToCode(block, 'STOP', Order.NONE);
 	const easing = block.getFieldValue('EASING');
+	Require.add('Move');
+	Require.add('Ease');
+	if (start === '' || stop === '') {
+		Require.add('Vec2');
+	}
 	return [`Move(${time === '' ? '0' : time}, ${start === '' ? 'Vec2.zero' : start}, ${stop === '' ? 'Vec2.zero' : stop}, Ease.${easing})`, Order.ATOMIC];
 };
 actionCategory.contents.push({
@@ -605,6 +614,7 @@ Blockly.Blocks['delay_action'] = {
 };
 luaGenerator.forBlock['delay_action'] = function(block: Blockly.Block) {
 	const time = luaGenerator.valueToCode(block, 'TIME', Order.NONE);
+	Require.add('Delay');
 	return [`Delay(${time === '' ? '0' : time})`, Order.ATOMIC];
 };
 actionCategory.contents.push({
@@ -647,6 +657,7 @@ Blockly.Blocks['visible_action'] = {
 };
 luaGenerator.forBlock['visible_action'] = function(block: Blockly.Block) {
 	const visible = block.getFieldValue('VISIBLE');
+	Require.add(visible);
 	return [`${visible}()`, Order.ATOMIC];
 };
 actionCategory.contents.push({

@@ -1,6 +1,7 @@
 import * as Blockly from 'blockly';
 import { luaGenerator, Order } from 'blockly/lua';
 import Info from '../Info';
+import Require from './Require';
 
 const zh = Info.locale.match(/^zh/) !== null;
 
@@ -21,6 +22,7 @@ const vec2ZeroBlock = {
 };
 Blockly.Blocks['vec2_zero'] = { init: function() { this.jsonInit(vec2ZeroBlock); } };
 luaGenerator.forBlock['vec2_zero'] = function(_block: Blockly.Block) {
+	Require.add('Vec2');
 	return [`Vec2.zero`, Order.ATOMIC];
 };
 vec2Category.contents.push({
@@ -52,6 +54,7 @@ Blockly.Blocks['vec2_create'] = { init: function() { this.jsonInit(vec2CreateBlo
 luaGenerator.forBlock['vec2_create'] = function(block: Blockly.Block) {
 	const x = luaGenerator.valueToCode(block, 'X', Order.NONE);
 	const y = luaGenerator.valueToCode(block, 'Y', Order.NONE);
+	Require.add('Vec2');
 	return [`Vec2(${x === '' ? '0' : x}, ${y === '' ? '0' : y})`, Order.ATOMIC];
 };
 vec2Category.contents.push({

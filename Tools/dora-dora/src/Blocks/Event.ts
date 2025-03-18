@@ -1,6 +1,7 @@
 import * as Blockly from 'blockly';
 import { luaGenerator, Order } from 'blockly/lua';
 import Info from '../Info';
+import Require from './Require';
 
 const zh = Info.locale.match(/^zh/) !== null;
 
@@ -486,6 +487,7 @@ Blockly.Blocks['check_key'] = { init: function() { this.jsonInit(checkKeyBlock);
 luaGenerator.forBlock['check_key'] = function(block: Blockly.Block) {
 	const key = luaGenerator.quote_(block.getFieldValue('KEY'));
 	const keyState = block.getFieldValue('KEY_STATE');
+	Require.add('Keyboard');
 	return [`Keyboard:is${keyState}(${key})`, Order.ATOMIC];
 };
 eventCategory.contents.push({
@@ -626,6 +628,7 @@ luaGenerator.forBlock['check_controller_button'] = function(block: Blockly.Block
 	const id = luaGenerator.valueToCode(block, 'CONTROLLER_ID', Order.NONE);
 	const button = luaGenerator.quote_(block.getFieldValue('BUTTON'));
 	const state = block.getFieldValue('STATE');
+	Require.add('Controller');
 	return [`Controller:is${state}(${id === '' ? '0' : id}, ${button})`, Order.ATOMIC];
 };
 eventCategory.contents.push({
@@ -1085,6 +1088,7 @@ luaGenerator.forBlock['emit_global_event'] = function(block: Blockly.Block) {
 		const arg = luaGenerator.valueToCode(block, 'ADD' + i, Order.NONE);
 		args.push(arg === '' ? 'nil' : arg);
 	}
+	Require.add('emit');
 	return `emit(${args.join(', ')})\n`;
 };
 eventCategory.contents.push({

@@ -1,6 +1,7 @@
 import * as Blockly from 'blockly';
 import { luaGenerator, Order } from 'blockly/lua';
 import Info from '../Info';
+import Require from './Require';
 
 const zh = Info.locale.match(/^zh/) !== null;
 
@@ -44,6 +45,7 @@ Blockly.Blocks['thread'] = {
 luaGenerator.forBlock['thread'] = function(block: Blockly.Block) {
 	const type = block.getFieldValue('TYPE');
 	const action = luaGenerator.statementToCode(block, 'ACTION');
+	Require.add(type);
 	return `${type}(function()\n${action}end)\n`;
 };
 routineCategory.contents.push({
@@ -88,6 +90,7 @@ Blockly.Blocks['sleep'] = {
 };
 luaGenerator.forBlock['sleep'] = function(block: Blockly.Block) {
 	const time = luaGenerator.valueToCode(block, 'TIME', Order.NONE);
+	Require.add('sleep');
 	return `sleep(${time === '' ? '0' : time})\n`;
 };
 routineCategory.contents.push({
@@ -125,6 +128,7 @@ Blockly.Blocks['wait'] = {
 };
 luaGenerator.forBlock['wait'] = function(block: Blockly.Block) {
 	const condition = luaGenerator.valueToCode(block, 'CONDITION', Order.NONE);
+	Require.add('wait');
 	return `wait(function() return ${condition === '' ? 'true' : condition} end)\n`;
 };
 routineCategory.contents.push({

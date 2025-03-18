@@ -1,6 +1,7 @@
 import * as Blockly from 'blockly';
 import { luaGenerator, Order } from 'blockly/lua';
 import Info from '../Info';
+import Require from './Require';
 
 const zh = Info.locale.match(/^zh/) !== null;
 
@@ -21,6 +22,7 @@ const nodeCreateBlock = {
 };
 Blockly.Blocks['node_create'] = { init: function() { this.jsonInit(nodeCreateBlock); } };
 luaGenerator.forBlock['node_create'] = function(block: Blockly.Block) {
+	Require.add('Node');
 	return [`Node()`, Order.ATOMIC];
 };
 nodeCategory.contents.push({
@@ -141,11 +143,13 @@ luaGenerator.forBlock['node_set_vec2_attribute'] = function(block: Blockly.Block
 	const attribute = block.getFieldValue('ATTRIBUTE');
 	let vec2 = luaGenerator.valueToCode(block, 'VEC2', Order.NONE);
 	if (vec2 === '') {
+		Require.add('Vec2');
 		vec2 = 'Vec2.zero';
 	}
 	if (attribute === 'position') {
 		return `${node}.position = ${vec2}\n`;
 	} else if (attribute === 'size') {
+		Require.add('Size');
 		return `${node}.size = Size(${vec2})\n`;
 	} else if (attribute === 'scale') {
 		const scaleVar = luaGenerator.nameDB_?.getDistinctName("scale", Blockly.Names.NameType.VARIABLE);
@@ -340,6 +344,9 @@ Blockly.Blocks['node_set_color'] = { init: function() { this.jsonInit(nodeSetCol
 luaGenerator.forBlock['node_set_color'] = function(block: Blockly.Block) {
 	const node = luaGenerator.getVariableName(block.getFieldValue('NODE'));
 	const color = luaGenerator.valueToCode(block, 'COLOR', Order.NONE);
+	if (color === '') {
+		Require.add('Color3');
+	}
 	return `${node}.color3 = ${color === '' ? 'Color3(0xffffff)' : color}\n`;
 };
 nodeCategory.contents.push({
@@ -390,12 +397,15 @@ luaGenerator.forBlock['node_get_vec2_attribute'] = function(block: Blockly.Block
 	if (attribute === 'position') {
 		return [`${node}.position`, Order.ATOMIC];
 	} else if (attribute === 'size') {
+		Require.add('Vec2');
 		return [`Vec2(${node}.size)`, Order.ATOMIC];
 	} else if (attribute === 'scale') {
+		Require.add('Vec2');
 		return [`Vec2(${node}.scaleX, ${node}.scaleY)`, Order.ATOMIC];
 	} else if (attribute === 'anchor') {
 		return [`${node}.anchor`, Order.ATOMIC];
 	}
+	Require.add('Vec2');
 	return ['Vec2.zero', Order.ATOMIC];
 };
 nodeCategory.contents.push({
