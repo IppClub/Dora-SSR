@@ -2,7 +2,7 @@ import * as Blockly from 'blockly';
 import { luaGenerator, Order } from 'blockly/lua';
 import Info from '../Info';
 import { ArgBlock, ArgContainerBlock } from './Event';
-
+import Require from './Require';
 const zh = Info.locale.match(/^zh/) !== null;
 
 const miscCategory = {
@@ -89,6 +89,7 @@ const colourHsvSlidersBlock = {
 Blockly.Blocks['colour_hsv_sliders'] = { init: function() { this.jsonInit(colourHsvSlidersBlock); } };
 luaGenerator.forBlock['colour_hsv_sliders'] = function(block: Blockly.Block) {
 	const colour = block.getFieldValue('COLOUR');
+	Require.add('Color3');
 	return [`Color3(0x${colour.substring(1)})`, Order.ATOMIC];
 };
 miscCategory.contents.push({

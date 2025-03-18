@@ -1,7 +1,7 @@
 import * as Blockly from 'blockly';
 import { luaGenerator, Order } from 'blockly/lua';
 import Info from '../Info';
-
+import Require from './Require';
 const zh = Info.locale.match(/^zh/) !== null;
 
 const graphicCategory = {
@@ -29,6 +29,7 @@ const spriteCreateBlock = {
 Blockly.Blocks['sprite_create'] = { init: function() { this.jsonInit(spriteCreateBlock); } };
 luaGenerator.forBlock['sprite_create'] = function(block: Blockly.Block) {
 	const file = luaGenerator.valueToCode(block, 'FILE', Order.NONE);
+	Require.add('Sprite');
 	return [`Sprite(${file})`, Order.ATOMIC];
 };
 graphicCategory.contents.push({
@@ -69,6 +70,7 @@ Blockly.Blocks['label_create'] = { init: function() { this.jsonInit(labelCreateB
 luaGenerator.forBlock['label_create'] = function(block: Blockly.Block) {
 	const font = luaGenerator.valueToCode(block, 'FONT', Order.NONE);
 	const size = luaGenerator.valueToCode(block, 'SIZE', Order.NONE);
+	Require.add('Label');
 	return [`Label(${font}, ${size === '' ? '16' : size})`, Order.ATOMIC];
 };
 graphicCategory.contents.push({

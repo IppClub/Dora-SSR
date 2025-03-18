@@ -1,4 +1,18 @@
-_ENV = Dora
+local Node <const> = require("Node")
+local Sprite <const> = require("Sprite")
+local Vec2 <const> = require("Vec2")
+local Size <const> = require("Size")
+local Move <const> = require("Move")
+local Ease <const> = require("Ease")
+local nvg <const> = require("nvg")
+local Color3 <const> = require("Color3")
+local sleep <const> = require("sleep")
+local threadLoop <const> = require("threadLoop")
+local Audio <const> = require("Audio")
+local emit <const> = require("emit")
+local PhysicsWorld <const> = require("PhysicsWorld")
+local BodyDef <const> = require("BodyDef")
+local Body <const> = require("Body")
 -- @preview-file on clear
 local root = Node()
 local sprite = Sprite('Image/logo.png')
@@ -36,11 +50,11 @@ local temp = (function()
   return Body(bodyDef, world, Vec2(0, 0), 0)
 end)()
 local temp = (function()
-  local bodyDef = BodyDef()
-  bodyDef.type = 'Static'
-  bodyDef.group = 0
-  bodyDef.linearAcceleration = Vec2(0, -9.8)
-  bodyDef:attachPolygon({Vec2(-100, -50), Vec2(-80, 0), Vec2(80, 0), Vec2(100, -50)}, 1, 0.4, 0.4)
-  return Body(bodyDef, world, Vec2(0, -200), 0)
+  local bodyDef2 = BodyDef()
+  bodyDef2.type = 'Static'
+  bodyDef2.group = 0
+  bodyDef2.linearAcceleration = Vec2(0, -9.8)
+  bodyDef2:attachPolygon({Vec2(-100, -50), Vec2(-80, 0), Vec2(80, 0), Vec2(100, -50)}, 1, 0.4, 0.4)
+  return Body(bodyDef2, world, Vec2(0, -200), 0)
 end)()
 return 123

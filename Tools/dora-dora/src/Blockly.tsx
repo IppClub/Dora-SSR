@@ -13,6 +13,7 @@ import CodeOffIcon from '@mui/icons-material/CodeOff';
 import SaveIcon from '@mui/icons-material/Save';
 import Info from './Info';
 import path from './3rdParty/Path';
+import Require from './Blocks/Require';
 import DeclareCategory from './Blocks/Declare';
 import NodeCategory from './Blocks/Node';
 import GraphicCategory from './Blocks/Graphic';
@@ -915,9 +916,11 @@ const BlocklyComponent: React.FC<BlocklyProps> = ({
 						const jsonObj = Blockly.serialization.workspaces.save(workspaceRef.current);
 						jsonObj.showEditor = (workspaceRef.current as any).showEditor;
 						const json = JSON.stringify(jsonObj);
-						const code = "_ENV = Dora\n" + luaGenerator.workspaceToCode(workspaceRef.current);
-						const modifiedCode = code.replace(/^function /gm, 'local function ');
-						onChange(json, modifiedCode);
+						Require.clear();
+						const luaCode = luaGenerator.workspaceToCode(workspaceRef.current);
+						const modifiedCode = luaCode.replace(/^function /gm, 'local function ');
+						const code = Require.getCode() + "\n" + modifiedCode;
+						onChange(json, code);
 					}
 				});
 			}

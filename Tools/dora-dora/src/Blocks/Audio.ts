@@ -1,6 +1,7 @@
 import * as Blockly from 'blockly';
 import { luaGenerator, Order } from 'blockly/lua';
 import Info from '../Info';
+import Require from './Require';
 
 const zh = Info.locale.match(/^zh/) !== null;
 
@@ -42,6 +43,7 @@ luaGenerator.forBlock['play_stream'] = function(block: Blockly.Block) {
 	const file = luaGenerator.valueToCode(block, 'FILE', Order.NONE);
 	const loop = luaGenerator.valueToCode(block, 'LOOP', Order.NONE);
 	const crossFadeTime = luaGenerator.valueToCode(block, 'CROSS_FADE_TIME', Order.NONE);
+	Require.add('Audio');
 	return `Audio:playStream(${file === '' ? 'nil' : file}, ${loop === '' ? 'false' : loop}, ${crossFadeTime === '' ? '0' : crossFadeTime})\n`;
 };
 audioCategory.contents.push({
@@ -93,6 +95,7 @@ const stopStreamBlock = {
 Blockly.Blocks['stop_stream'] = { init: function() { this.jsonInit(stopStreamBlock); } };
 luaGenerator.forBlock['stop_stream'] = function(block: Blockly.Block) {
 	const fadeTime = luaGenerator.valueToCode(block, 'FADE_TIME', Order.NONE);
+	Require.add('Audio');
 	return `Audio:stopStream(${fadeTime === '' ? '0' : fadeTime})\n`;
 };
 audioCategory.contents.push({
@@ -135,6 +138,7 @@ Blockly.Blocks['play_sound'] = { init: function() { this.jsonInit(playSoundBlock
 luaGenerator.forBlock['play_sound'] = function(block: Blockly.Block) {
 	const file = luaGenerator.valueToCode(block, 'FILE', Order.NONE);
 	const loop = luaGenerator.valueToCode(block, 'LOOP', Order.NONE);
+	Require.add('Audio');
 	if (block.outputConnection?.targetConnection) {
 		return [`Audio:playSound(${file === '' ? 'nil' : file}, ${loop === '' ? 'false' : loop})`, Order.ATOMIC];
 	}
@@ -181,6 +185,7 @@ const stopSoundBlock = {
 Blockly.Blocks['stop_sound'] = { init: function() { this.jsonInit(stopSoundBlock); } };
 luaGenerator.forBlock['stop_sound'] = function(block: Blockly.Block) {
 	const audioControlId = luaGenerator.valueToCode(block, 'AUDIO_CONTROL_ID', Order.NONE);
+	Require.add('Audio');
 	return `Audio:stop(${audioControlId === '' ? 'nil' : audioControlId})\n`;
 };
 audioCategory.contents.push({

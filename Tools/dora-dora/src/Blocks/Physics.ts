@@ -1,6 +1,7 @@
 import * as Blockly from 'blockly';
 import { luaGenerator, Order } from 'blockly/lua';
 import Info from '../Info';
+import Require from './Require';
 
 const zh = Info.locale.match(/^zh/) !== null;
 
@@ -53,6 +54,7 @@ Blockly.Blocks['physics_world_create'] = {
 	},
 };
 luaGenerator.forBlock['physics_world_create'] = function(block: Blockly.Block) {
+	Require.add('PhysicsWorld');
 	return [`PhysicsWorld()`, Order.ATOMIC];
 };
 physicsCategory.contents.push({
@@ -245,6 +247,8 @@ luaGenerator.forBlock['body_create'] = function(block: Blockly.Block) {
 	const gravity = luaGenerator.valueToCode(block, 'GRAVITY', Order.NONE);
 	const fixtures = luaGenerator.statementToCode(block, 'FIXTURES');
 	bodyDefStack.pop();
+	Require.add('BodyDef');
+	Require.add('Body');
 	return [`(function()
   local ${bodyDefVar} = BodyDef()
   ${bodyDefVar}.type = ${type}
