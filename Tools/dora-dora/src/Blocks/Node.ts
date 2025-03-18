@@ -363,10 +363,8 @@ Blockly.Blocks['node_set_color'] = { init: function() { this.jsonInit(nodeSetCol
 luaGenerator.forBlock['node_set_color'] = function(block: Blockly.Block) {
 	const node = luaGenerator.getVariableName(block.getFieldValue('NODE'));
 	const color = luaGenerator.valueToCode(block, 'COLOR', Order.NONE);
-	if (color === '') {
-		Require.add('Color3');
-	}
-	return `${node}.color3 = ${color === '' ? 'Color3(0xffffff)' : color}\n`;
+	Require.add('Color3');
+	return `${node}.color3 = Color3(${color === '' ? '0xffffff' : color})\n`;
 };
 nodeCategory.contents.push({
 	kind: 'block',
@@ -559,7 +557,7 @@ const nodeGetColorBlock = {
 Blockly.Blocks['node_get_color'] = { init: function() { this.jsonInit(nodeGetColorBlock); } };
 luaGenerator.forBlock['node_get_color'] = function(block: Blockly.Block) {
 	const node = luaGenerator.getVariableName(block.getFieldValue('NODE'));
-	return [`${node}.color3`, Order.ATOMIC];
+	return [`${node}.color3:toRGB()`, Order.ATOMIC];
 };
 nodeCategory.contents.push({
 	kind: 'block',

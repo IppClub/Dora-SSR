@@ -109,8 +109,7 @@ const BlocklyComponent: React.FC<BlocklyProps> = ({
 					blockStyles: {
 						dora_blocks: {
 							colourPrimary: '#d2970d',
-							colourSecondary: '#b8860b',
-							colourTertiary: '#8b6508',
+							colourSecondary: Blockly.utils.colour.blend('#d2970d', '#000000', 0.8) || '#d2970d',
 						},
 						math_blocks: {
 							colourSecondary: Blockly.utils.colour.blend('#5b67a5', '#000000', 0.8) || '#5b67a5',
@@ -121,10 +120,17 @@ const BlocklyComponent: React.FC<BlocklyProps> = ({
 						logic_blocks: {
 							colourSecondary: Blockly.utils.colour.blend('#5b80a5', '#000000', 0.8) || '#5b80a5',
 						},
+						procedure_blocks: {
+							colourPrimary: '#995ba5',
+							colourSecondary: Blockly.utils.colour.blend('#995ba5', '#000000', 0.8) || '#995ba5',
+						},
 						colour_blocks: {
 							colourSecondary: Blockly.utils.colour.blend('#a5745b', '#000000', 0.8) || '#a5745b',
 						},
 						variable_blocks: {
+							colourSecondary: Blockly.utils.colour.blend('#a55b80', '#000000', 0.8) || '#a55b80',
+						},
+						variable_dynamic_blocks: {
 							colourSecondary: Blockly.utils.colour.blend('#a55b80', '#000000', 0.8) || '#a55b80',
 						},
 					},
@@ -1014,7 +1020,7 @@ const BlocklyComponent: React.FC<BlocklyProps> = ({
 								}
 								setTimeout(() => {
 									workspaceRef.current?.fireChangeListener(new Blockly.Events.BlockChange());
-								}, 100);
+								}, 200);
 							}}
 							sx={{
 								backgroundColor: 'rgba(50, 50, 50, 0.7)',

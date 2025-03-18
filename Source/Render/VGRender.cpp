@@ -120,12 +120,20 @@ void nvg::StrokeColor(Color color) {
 	nvgStrokeColor(Context(), nvgColor(color));
 }
 
+void nvg::StrokeColor(uint32_t color) {
+	nvgStrokeColor(Context(), nvgColor(Color(color)));
+}
+
 void nvg::StrokePaint(const NVGpaint& paint) {
 	nvgStrokePaint(Context(), paint);
 }
 
 void nvg::FillColor(Color color) {
 	nvgFillColor(Context(), nvgColor(color));
+}
+
+void nvg::FillColor(uint32_t color) {
+	nvgFillColor(Context(), nvgColor(Color(color)));
 }
 
 void nvg::FillPaint(const NVGpaint& paint) {

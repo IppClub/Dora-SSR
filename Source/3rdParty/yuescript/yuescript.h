@@ -187,10 +187,10 @@ local function dump(what)
 		depth = depth or 0
 		local t = type(what)
 		if "string" == t then
-			return "\"" .. tostring(what) .. "\"\n"
+			return "\"" .. tostring(what) .. "\""
 		elseif "table" == t then
 			if seen[what] then
-				return "recursion(" .. tostring(what) .. ")...\n"
+				return "recursion(" .. tostring(what) .. ")..."
 			end
 			seen[what] = true
 			depth = depth + 1
@@ -199,9 +199,9 @@ local function dump(what)
 				insert(lines, ('\t'):rep(depth) .. "[" .. tostring(k) .. "] = " .. _dump(v, depth))
 			end
 			seen[what] = false
-			return "{\n" .. concat(lines) .. ('\t'):rep(depth - 1) .. "}\n"
+			return "{\n" .. concat(lines, "\n") .. "\n" .. ('\t'):rep(depth - 1) .. "}"
 		else
-			return tostring(what) .. "\n"
+			return tostring(what)
 		end
 	end
 	return _dump(what)

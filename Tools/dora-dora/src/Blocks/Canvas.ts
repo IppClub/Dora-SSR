@@ -278,10 +278,7 @@ luaGenerator.forBlock['nvg_fill_color'] = function(block: Blockly.Block) {
 	const color = luaGenerator.valueToCode(block, 'COLOR', Order.NONE);
 	const opacity = luaGenerator.valueToCode(block, 'OPACITY', Order.MULTIPLICATIVE);
 	Require.add('nvg');
-	if (color === '') {
-		Require.add('Color3');
-	}
-	return `nvg.FillColor(Color(${color === '' ? 'Color3()' : color}, math.floor(${opacity === '' ? '1' : opacity} * 255 + 0.5)))\n`;
+	return `nvg.FillColor(${color === '' ? '0x0' : color} | math.floor(${opacity === '' ? '1' : opacity} * 255 + 0.5) << 24)\n`;
 };
 canvasCategory.contents.push({
 	kind: 'block',
@@ -339,10 +336,7 @@ luaGenerator.forBlock['nvg_stroke_color'] = function(block: Blockly.Block) {
 	const color = luaGenerator.valueToCode(block, 'COLOR', Order.NONE);
 	const opacity = luaGenerator.valueToCode(block, 'OPACITY', Order.MULTIPLICATIVE);
 	Require.add('nvg');
-	if (color === '') {
-		Require.add('Color3');
-	}
-	return `nvg.StrokeColor(Color(${color === '' ? 'Color3()' : color}, math.floor(${opacity === '' ? '1' : opacity} * 255 + 0.5)))\n`;
+	return `nvg.StrokeColor(${color === '' ? '0x0' : color} | math.floor(${opacity === '' ? '1' : opacity} * 255 + 0.5) << 24)\n`;
 };
 canvasCategory.contents.push({
 	kind: 'block',

@@ -15,8 +15,10 @@ namespace nvg
 	Rect TextBoxBounds(float x, float y, float breakRowWidth, String text);
 	float Text(float x, float y, String text);
 	void TextBox(float x, float y, float breakRowWidth, String text);
+	void StrokeColor(uint32_t color);
 	void StrokeColor(Color color);
 	void StrokePaint(NVGpaint paint);
+	void FillColor(uint32_t color);
 	void FillColor(Color color);
 	void FillPaint(NVGpaint paint);
 	void MiterLimit(float limit);

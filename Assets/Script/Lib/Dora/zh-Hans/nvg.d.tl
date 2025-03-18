@@ -53,8 +53,10 @@ local record nvg
 	TextBoxBounds: function(x: number, y: number, breakRowWidth: number, text: string): Rect
 	Text: function(x: number, y: number, text: string): number
 	TextBox: function(x: number, y: number, breakRowWidth: number, text: string)
+	StrokeColor: function(color: integer)
 	StrokeColor: function(color: Color)
 	StrokePaint: function(paint: VGPaint)
+	FillColor: function(color: integer)
 	FillColor: function(color: Color)
 	FillPaint: function(paint: VGPaint)
 	MiterLimit: function(limit: number)

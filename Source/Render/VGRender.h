@@ -53,8 +53,10 @@ struct nvg {
 	static float Text(float x, float y, String text);
 	static void TextBox(float x, float y, float breakRowWidth, String text);
 	static void StrokeColor(Color color);
+	static void StrokeColor(uint32_t color);
 	static void StrokePaint(const NVGpaint& paint);
 	static void FillColor(Color color);
+	static void FillColor(uint32_t color);
 	static void FillPaint(const NVGpaint& paint);
 	static void MiterLimit(float limit);
 	static void StrokeWidth(float size);
