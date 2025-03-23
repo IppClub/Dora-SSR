@@ -35,7 +35,7 @@ THE OPEN SOURCE SOFTWARE IN THIS PRODUCT IS DISTRIBUTED IN THE HOPE THAT IT WILL
 - [tinyxml2](https://github.com/leethomason/tinyxml2): [zlib License](Source/3rdParty/tinyxml2/LICENSE.txt)
 - [wasm3](https://github.com/wasm3/wasm3): [MIT License](Source/3rdParty/wasm3/LICENSE)
 - [Yard](https://sourceforge.net/projects/yard-parser): [Public Domain](https://sourceforge.net/projects/yard-parser)
-- [Yuescript](https://github.com/pigpigyyy/Yuescript): [MIT License](Source/3rdParty/yuescript/LICENSE)
+- [YueScript](https://github.com/ippclub/YueScript): [MIT License](Source/3rdParty/yuescript/LICENSE)
 - [richgel999/miniz](https://github.com/richgel999/miniz): [MIT License](Source/3rdParty/Zip/LICENSE-miniz)
 - [zlib](https://www.zlib.net): [zlib License](Source/3rdParty/Zip/zlib/LICENSE)
 - [concurrentqueue](https://github.com/cameron314/concurrentqueue): [BSD-2 License](Source/3rdParty/Other/LICENSE-concurrentqueue)

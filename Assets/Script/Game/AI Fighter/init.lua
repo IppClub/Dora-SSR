@@ -1683,8 +1683,7 @@ UnitAction:add("spearAttack", { -- 1174
 			sleep(50.0 / 60.0) -- 1191
 			local dir = self.faceRight and 0 or -900 -- 1192
 			local origin = self.position - Vec2(0, 205) + Vec2(dir, 0) -- 1193
-			local size -- 1194
-			size = Size(900, 40) -- 1194
+			local size = Size(900, 40) -- 1194
 			world:query(Rect(origin, size), function(body) -- 1195
 				local entity = body.entity -- 1196
 				if entity and Data:isEnemy(body, self) then -- 1197

@@ -75,7 +75,7 @@ static std::unordered_set<std::string> Metamethods = {
 	"close"s // Lua 5.4
 };
 
-const std::string_view version = "0.27.0"sv;
+const std::string_view version = "0.27.1"sv;
 const std::string_view extension = "yue"sv;
 
 class CompileError : public std::logic_error {
@@ -1486,7 +1486,7 @@ private:
 		}
 	}
 
-	bool isPureBackcall(Exp_t* exp) const {
+	bool isPurePipeChain(Exp_t* exp) const {
 		return exp->opValues.empty() && exp->pipeExprs.size() > 1;
 	}
 
@@ -1869,7 +1869,7 @@ private:
 						}
 					} else if (expList->exprs.size() == 1) {
 						auto exp = static_cast<Exp_t*>(expList->exprs.back());
-						if (isPureBackcall(exp)) {
+						if (isPurePipeChain(exp)) {
 							transformExp(exp, out, ExpUsage::Common);
 							break;
 						}
@@ -2061,7 +2061,7 @@ private:
 		}
 	}
 
-	void transformAssignment(ExpListAssign_t* assignment, str_list& out, bool optionalDestruct = false) {
+	bool transformAssignment(ExpListAssign_t* assignment, str_list& out, bool optionalDestruct = false) {
 		checkAssignable(assignment->expList);
 		BLOCK_START
 		auto assign = ast_cast<Assign_t>(assignment->action);
@@ -2176,7 +2176,7 @@ private:
 				temp.push_back(indent() + "end"s + nll(assignment));
 			}
 			out.push_back(join(temp));
-			return;
+			return false;
 			BLOCK_END
 		}
 		{
@@ -2248,7 +2248,7 @@ private:
 						transformAssignment(afterAssignment, temp);
 					}
 					out.push_back(join(temp));
-					return;
+					return false;
 				} else if (ast_is<TableAppendingOp_t>(chainValue->items.back())) {
 					str_list temp;
 					auto [beforeAssignment, afterAssignment] = splitAssignment();
@@ -2300,7 +2300,7 @@ private:
 						transformAssignment(afterAssignment, temp);
 					}
 					out.push_back(join(temp));
-					return;
+					return false;
 				} else {
 					break;
 				}
@@ -2322,7 +2322,7 @@ private:
 				std::string preDefine = getPreDefineLine(assignment);
 				transformIf(ifNode, out, ExpUsage::Assignment, assignList);
 				out.back().insert(0, preDefine);
-				return;
+				return false;
 			}
 			case id<Switch_t>(): {
 				auto switchNode = static_cast<Switch_t*>(value);
@@ -2330,7 +2330,7 @@ private:
 				std::string preDefine = getPreDefineLine(assignment);
 				transformSwitch(switchNode, out, ExpUsage::Assignment, assignList);
 				out.back().insert(0, preDefine);
-				return;
+				return false;
 			}
 			case id<With_t>(): {
 				auto withNode = static_cast<With_t*>(value);
@@ -2338,7 +2338,7 @@ private:
 				std::string preDefine = getPreDefineLine(assignment);
 				transformWith(withNode, out, expList);
 				out.back().insert(0, preDefine);
-				return;
+				return false;
 			}
 			case id<Do_t>(): {
 				auto expList = assignment->expList.get();
@@ -2346,7 +2346,7 @@ private:
 				std::string preDefine = getPreDefineLine(assignment);
 				transformDo(doNode, out, ExpUsage::Assignment, expList);
 				out.back().insert(0, preDefine);
-				return;
+				return false;
 			}
 			case id<Comprehension_t>(): {
 				auto comp = static_cast<Comprehension_t*>(value);
@@ -2358,42 +2358,42 @@ private:
 				} else {
 					transformComprehension(comp, out, ExpUsage::Assignment, expList);
 				}
-				return;
+				return false;
 			}
 			case id<TblComprehension_t>(): {
 				auto expList = assignment->expList.get();
 				std::string preDefine = getPreDefineLine(assignment);
 				transformTblComprehension(static_cast<TblComprehension_t*>(value), out, ExpUsage::Assignment, expList);
 				out.back().insert(0, preDefine);
-				return;
+				return false;
 			}
 			case id<For_t>(): {
 				auto expList = assignment->expList.get();
 				std::string preDefine = getPreDefineLine(assignment);
 				transformForInPlace(static_cast<For_t*>(value), out, expList);
 				out.back().insert(0, preDefine);
-				return;
+				return false;
 			}
 			case id<ForEach_t>(): {
 				auto expList = assignment->expList.get();
 				std::string preDefine = getPreDefineLine(assignment);
 				transformForEachInPlace(static_cast<ForEach_t*>(value), out, expList);
 				out.back().insert(0, preDefine);
-				return;
+				return false;
 			}
 			case id<ClassDecl_t>(): {
 				auto expList = assignment->expList.get();
 				std::string preDefine = getPreDefineLine(assignment);
 				transformClassDecl(static_cast<ClassDecl_t*>(value), out, ExpUsage::Assignment, expList);
 				out.back().insert(0, preDefine);
-				return;
+				return false;
 			}
 			case id<While_t>(): {
 				auto expList = assignment->expList.get();
 				std::string preDefine = getPreDefineLine(assignment);
 				transformWhileInPlace(static_cast<While_t*>(value), out, expList);
 				out.back().insert(0, preDefine);
-				return;
+				return false;
 			}
 			case id<TableLit_t>(): {
 				auto tableLit = static_cast<TableLit_t*>(value);
@@ -2402,7 +2402,7 @@ private:
 					std::string preDefine = getPreDefineLine(assignment);
 					transformSpreadTable(tableLit->values.objects(), out, ExpUsage::Assignment, expList, false);
 					out.back().insert(0, preDefine);
-					return;
+					return false;
 				}
 				break;
 			}
@@ -2413,31 +2413,31 @@ private:
 					std::string preDefine = getPreDefineLine(assignment);
 					transformSpreadTable(tableBlock->values.objects(), out, ExpUsage::Assignment, expList, false);
 					out.back().insert(0, preDefine);
-					return;
+					return false;
 				}
 				break;
 			}
 		}
 		auto exp = ast_cast<Exp_t>(value);
 		BREAK_IF(!exp);
-		if (isPureBackcall(exp)) {
+		if (isPurePipeChain(exp)) {
 			auto expList = assignment->expList.get();
 			transformExp(exp, out, ExpUsage::Assignment, expList);
-			return;
+			return false;
 		} else if (isPureNilCoalesed(exp)) {
 			auto expList = assignment->expList.get();
 			transformNilCoalesedExp(exp, out, ExpUsage::Assignment, expList);
-			return;
+			return false;
 		} else if (auto unary = unaryGeneratingAnonFunc(exp)) {
 			std::string preDefine = getPreDefineLine(assignment);
 			auto expList = assignment->expList.get();
 			transformUnaryExp(unary, out, ExpUsage::Assignment, expList);
 			out.back().insert(0, preDefine);
-			return;
+			return false;
 		} else if (isConditionChaining(exp)) {
 			auto expList = assignment->expList.get();
 			transformExp(exp, out, ExpUsage::Assignment, expList);
-			return;
+			return false;
 		}
 		auto singleVal = singleValueFrom(exp);
 		BREAK_IF(!singleVal);
@@ -2451,13 +2451,13 @@ private:
 					std::string preDefine = getPreDefineLine(assignment);
 					transformChainValue(chainValue, out, ExpUsage::Assignment, expList, false, optionalDestruct);
 					out.back().insert(0, preDefine);
-					return;
+					return false;
 				}
 				case ChainType::HasKeyword:
 				case ChainType::HasUnicode:
 				case ChainType::Macro:
 					transformChainValue(chainValue, out, ExpUsage::Assignment, expList);
-					return;
+					return false;
 				case ChainType::Common:
 				case ChainType::EndWithEOP:
 				case ChainType::Metatable:
@@ -2468,6 +2468,7 @@ private:
 		auto info = extractDestructureInfo(assignment, false, optionalDestruct);
 		if (info.destructures.empty()) {
 			transformAssignmentCommon(assignment, out);
+			return true;
 		} else {
 			auto x = assignment;
 			str_list temp;
@@ -2733,6 +2734,7 @@ private:
 			}
 			out.push_back(join(temp));
 		}
+		return false;
 	}
 
 	void transformAssignItem(ast_node* value, str_list& out) {
@@ -5313,7 +5315,7 @@ private:
 		if (auto valueList = returnNode->valueList.as<ExpListLow_t>()) {
 			if (valueList->exprs.size() == 1) {
 				auto exp = static_cast<Exp_t*>(valueList->exprs.back());
-				if (isPureBackcall(exp)) {
+				if (isPurePipeChain(exp)) {
 					transformExp(exp, out, ExpUsage::Return);
 					return;
 				} else if (isPureNilCoalesed(exp)) {
@@ -10676,6 +10678,7 @@ private:
 
 	void transformLocal(Local_t* local, str_list& out) {
 		str_list temp;
+		bool defined = local->defined;
 		if (!local->defined) {
 			local->defined = true;
 			transformLocalDef(local, temp);
@@ -10704,7 +10707,26 @@ private:
 						assign->values.push_back(tableBlock);
 					}
 					assignment->action.set(assign);
-					transformAssignment(assignment, temp);
+					bool oneLined = transformAssignment(assignment, temp);
+					for (auto val : assign->values.objects()) {
+						if (auto value = singleValueFrom(val)) {
+							if (auto spValue = value->item.as<SimpleValue_t>()) {
+								if (auto funLit = spValue->value.as<FunLit_t>()) {
+									if (!funLit->noRecursion) {
+										oneLined = false;
+									}
+									break;
+								}
+							}
+						}
+					}
+					if (!defined && oneLined && temp.size() == 2) {
+						auto pos = temp.back().find_first_not_of(" \t"sv);
+						if (pos != std::string::npos) {
+							temp.back().insert(pos, "local ");
+							temp.pop_front();
+						}
+					}
 				}
 				break;
 			}
