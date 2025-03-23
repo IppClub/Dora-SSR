@@ -20,7 +20,7 @@ import FileTabBar, { TabMenuEvent, TabStatus } from './FileTabBar';
 import Info from './Info';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
-import { Alert, AlertColor, Button, Collapse, DialogActions, DialogContent, DialogContentText, InputAdornment, TextField, Container, Link } from '@mui/material';
+import { Alert, AlertColor, Button, Collapse, DialogActions, DialogContent, DialogContentText, InputAdornment, TextField, Container, Link, Typography } from '@mui/material';
 import NewFileDialog, { DoraFileType } from './NewFileDialog';
 import logo from './logo.svg';
 import DoraUpload from './Upload';
@@ -40,6 +40,7 @@ import { TbSwitchVertical } from "react-icons/tb";
 import './Editor';
 import KeyboardShortcuts from './KeyboardShortcuts';
 import BottomLog from './BottomLog';
+import Modal from '@mui/material/Modal';
 
 const SpinePlayer = React.lazy(() => import('./SpinePlayer'));
 const Markdown = React.lazy(() => import('./Markdown'));
@@ -304,6 +305,8 @@ export default function PersistentDrawerLeft() {
 		}, 5000);
 	};
 
+	const [disconnected, setDisconnected] = useState(true);
+
 	const loadAssets = useCallback(() => {
 		return Service.assets().then((res: TreeDataType) => {
 			res.root = true;
@@ -366,9 +369,11 @@ export default function PersistentDrawerLeft() {
 		});
 		Service.addWSOpenListener(() => {
 			addAlert(t("log.open"), "success");
+			setDisconnected(false);
 		});
 		Service.addWSCloseListener(() => {
 			addAlert(t("log.close"), "error");
+			setDisconnected(true);
 		});
 		Service.openWebSocket();
 		monaco.languages.typescript.typescriptDefaults.setExtraLibs([]);
@@ -2179,6 +2184,9 @@ export default function PersistentDrawerLeft() {
 	}, [switchTab, t, files, tabIndex]);
 
 	const onKeyDown = (event: KeyboardEvent) => {
+		if (disconnected) {
+			return;
+		}
 		if (event.ctrlKey || event.altKey || event.metaKey) {
 			switch (event.key) {
 				case 'N': case 'n': {
@@ -2808,6 +2816,37 @@ export default function PersistentDrawerLeft() {
 						</TransitionGroup>
 					</StyledStack>
 				</div>
+				<Modal
+					open={disconnected}
+					disableAutoFocus
+					disableEnforceFocus
+					disablePortal
+					disableScrollLock
+					disableEscapeKeyDown
+					hideBackdrop={false}
+					style={{
+						display: 'flex',
+						alignItems: 'center',
+						justifyContent: 'center',
+						backgroundColor: 'rgba(0, 0, 0, 0.7)',
+					}}
+				>
+					<Box sx={{
+						backgroundColor: Color.BackgroundDark,
+						border: `1px solid ${Color.Line}`,
+						borderRadius: 1,
+						p: 4,
+						textAlign: 'center',
+						color: Color.Primary,
+					}}>
+						<Typography variant="h6" component="div" gutterBottom>
+							{t("alert.disconnected")}
+						</Typography>
+						<Typography variant="body2" color="text.secondary">
+							{t("alert.reconnecting")}
+						</Typography>
+					</Box>
+				</Modal>
 			</Box>
 		</Entry>
 	);

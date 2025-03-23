@@ -23,6 +23,8 @@ i18n
 						builtin: "Built-in",
 					},
 					alert: {
+						disconnected: "Dora SSR engine is disconnected",
+						reconnecting: "Reconnecting...",
 						assetLoad: "failed to load assets",
 						platform: "Dora SSR is running on {{platform}}",
 						getInfo: "failed to get basic info",
@@ -225,6 +227,8 @@ i18n
 						builtin: "内置资源",
 					},
 					alert: {
+						disconnected: "Dora SSR 引擎已断开连接",
+						reconnecting: "正在重新连接...",
 						assetLoad: "资源加载失败",
 						platform: "Dora SSR 正运行于 {{platform}} 平台",
 						getInfo: "获取基本信息失败",

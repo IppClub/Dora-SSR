@@ -519,7 +519,7 @@ YueParser::YueParser() {
 	UpdateOp =
 		expr("..") | "//" | "or" | "and" |
 		">>" | "<<" | "??" |
-		set("+-*/%&|");
+		set("+-*/%&|^");
 
 	Update = UpdateOp >> '=' >> space >> Exp;
 
