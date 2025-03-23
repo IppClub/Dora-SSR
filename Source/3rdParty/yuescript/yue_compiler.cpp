@@ -75,7 +75,7 @@ static std::unordered_set<std::string> Metamethods = {
 	"close"s // Lua 5.4
 };
 
-const std::string_view version = "0.27.1"sv;
+const std::string_view version = "0.27.2"sv;
 const std::string_view extension = "yue"sv;
 
 class CompileError : public std::logic_error {
@@ -437,7 +437,6 @@ private:
 #endif
 		std::unique_ptr<std::unordered_map<std::string, VarType>> vars;
 		std::unique_ptr<std::unordered_set<std::string>> allows;
-		std::unique_ptr<std::unordered_set<std::string>> globals;
 	};
 	std::list<Scope> _scopes;
 	static const std::string Empty;
@@ -516,10 +515,8 @@ private:
 		int mode = int(std::isupper(name[0]) ? GlobalMode::Capital : GlobalMode::Any);
 		const auto& current = _scopes.back();
 		if (int(current.mode) >= mode) {
-			if (!current.globals) {
-				isDefined = true;
-				current.vars->insert_or_assign(name, VarType::Global);
-			}
+			isDefined = true;
+			current.vars->insert_or_assign(name, VarType::Global);
 		}
 		decltype(_scopes.back().allows.get()) allows = nullptr;
 		for (auto it = _scopes.rbegin(); it != _scopes.rend(); ++it) {
@@ -892,10 +889,6 @@ private:
 	void addGlobalVar(const std::string& name, ast_node* x) {
 		if (isLocal(name)) throw CompileError("can not declare a local variable to be global"sv, x);
 		auto& scope = _scopes.back();
-		if (!scope.globals) {
-			scope.globals = std::make_unique<std::unordered_set<std::string>>();
-		}
-		scope.globals->insert(name);
 		scope.vars->insert_or_assign(name, VarType::Global);
 	}
 
@@ -9401,7 +9394,6 @@ private:
 				auto classDecl = static_cast<ClassDecl_t*>(item);
 				if (classDecl->name) {
 					if (auto var = classDecl->name->item.as<Variable_t>()) {
-						markVarsGlobal(GlobalMode::Any);
 						addGlobalVar(variableToString(var), classDecl->name->item);
 					}
 				}
@@ -9416,7 +9408,6 @@ private:
 				}
 				break;
 			case id<GlobalValues_t>(): {
-				markVarsGlobal(GlobalMode::Any);
 				auto values = global->item.to<GlobalValues_t>();
 				if (values->valueList) {
 					auto expList = x->new_ptr<ExpList_t>();
