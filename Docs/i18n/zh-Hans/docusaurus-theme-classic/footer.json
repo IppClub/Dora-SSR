@@ -42,5 +42,9 @@
   "logo.alt": {
     "message": "Dora SSR Logo",
     "description": "The alt text of footer logo"
+  },
+  "link.item.label.Creative": {
+    "message": "文创",
+    "description": "The label of footer link with label=Creative linking to /docs/creative/art"
   }
 }
