@@ -26,5 +26,9 @@
   "item.label.Creative": {
     "message": "文创",
     "description": "Navbar item with label Creative"
+  },
+  "item.label.Git": {
+    "message": "Git",
+    "description": "Navbar item with label Git"
   }
 }

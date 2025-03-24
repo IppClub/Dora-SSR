@@ -201,7 +201,7 @@ const config = {
 					lastVersion: 'current',
 					versions: {
 						current: {
-							label: 'v1.6.6',
+							label: 'v1.6.7',
 						},
 					},
 				},
@@ -266,24 +266,27 @@ const config = {
 					position: 'right',
 				},
 				{
-					href: "https://github.com/ippclub/Dora-SSR",
-					position: "right",
-					className: "header-github-link",
-				},
-				{
-					href: "https://gitee.com/ippclub/Dora-SSR",
-					position: "right",
-					className: "header-gitee-link",
-				},
-				{
-					href: "https://atomgit.com/ippclub/Dora-SSR",
-					position: "right",
-					className: "header-atomgit-link",
-				},
-				{
-					href: "https://gitcode.com/ippclub/Dora-SSR",
-					position: "right",
-					className: "header-gitcode-link",
+					type: 'dropdown',
+					label: 'Git',
+					position: 'right',
+					items: [
+						{
+							type: 'html',
+							value: '<a href="https://github.com/ippclub/Dora-SSR" target="_blank"><div><div class="header-github-link"/></div></a>',
+						},
+						{
+							type: 'html',
+							value: '<a href="https://gitee.com/ippclub/Dora-SSR" target="_blank"><div><div class="header-gitee-link"/></div></a>',
+						},
+						{
+							type: 'html',
+							value: '<a href="https://atomgit.com/ippclub/Dora-SSR" target="_blank"><div><div class="header-atomgit-link"/></div></a>',
+						},
+						{
+							type: 'html',
+							value: '<a href="https://gitcode.com/ippclub/Dora-SSR" target="_blank"><div><div class="header-gitcode-link"/></div></a>',
+						},
+					]
 				},
 				{
 					type: 'localeDropdown',
@@ -304,6 +307,10 @@ const config = {
 						{
 							label: 'API Reference',
 							to: '/docs/api/intro',
+						},
+						{
+							label: 'Example',
+							to: '/docs/example/First%20Game%20Tutorial/start',
 						},
 					],
 				},
@@ -328,8 +335,8 @@ const config = {
 							to: '/blog',
 						},
 						{
-							label: 'Example',
-							to: '/docs/example/First%20Game%20Tutorial/start',
+							label: 'Creative',
+							to: '/docs/creative/art',
 						},
 					],
 				},
