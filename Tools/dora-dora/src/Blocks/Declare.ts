@@ -199,7 +199,25 @@ declareCategory.contents.push({
 				inputs: {
 					POSITION: {
 						shadow: {
-							type: 'vec2_zero',
+							type: 'vec2_create',
+							inputs: {
+								X: {
+									shadow: {
+										type: 'math_number',
+										fields: {
+											NUM: 0,
+										},
+									},
+								},
+								Y: {
+									shadow: {
+										type: 'math_number',
+										fields: {
+											NUM: 0,
+										},
+									},
+								},
+							},
 						}
 					},
 					ANGLE: {
