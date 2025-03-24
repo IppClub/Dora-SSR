@@ -2690,6 +2690,7 @@ export default function PersistentDrawerLeft() {
 									width={editorWidth}
 									height={tabIndex === index ? editorHeight : 0}
 									file={file.key}
+									readOnly={readOnly}
 									initialJson={file.content}
 									onSave={saveCurrentTab}
 									onChange={(json, blocklyCode) => {
