@@ -854,8 +854,8 @@ footerWindow = threadLoop ->
 		if config.updateNotification
 			SameLine!
 			if ImGui.Button zh and "更新可用" or "Update Available"
-				config.updateNotification = false
 				allClear!
+				config.updateNotification = false
 				enterDemoEntry ["SelfUpdater", Path Content.assetPath, "Script", "Tools", "SelfUpdater"]
 		unless isInEntry
 			SameLine!
