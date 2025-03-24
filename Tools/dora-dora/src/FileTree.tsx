@@ -251,7 +251,6 @@ export default memo(function FileTree(props: FileTreeProps) {
 							<AiOutlineEdit/>
 						</ListItemIcon>
 						<ListItemText primary={ t("menu.rename") }/>
-						<div style={{fontSize: 10, color: Color.TextSecondary}}>Mod+Shift+R</div>
 					</StyledMenuItem> : null
 				}
 				{enableDownload ?
@@ -260,7 +259,6 @@ export default memo(function FileTree(props: FileTreeProps) {
 							<AiOutlineDownload/>
 						</ListItemIcon>
 						<ListItemText primary={ t("menu.download") }/>
-						<div style={{fontSize: 10, color: Color.TextSecondary}}>Mod+Shift+D</div>
 					</StyledMenuItem> : null
 				}
 				{enableCopyPath ?
@@ -269,7 +267,6 @@ export default memo(function FileTree(props: FileTreeProps) {
 							<RxClipboardCopy/>
 						</ListItemIcon>
 						<ListItemText primary={ t("menu.copyPath") }/>
-						<div style={{fontSize: 10, color: Color.TextSecondary}}>Mod+Shift+C</div>
 					</StyledMenuItem> : null
 				}
 				{enableUnzip && anchorItem && ext === ".zip" ?

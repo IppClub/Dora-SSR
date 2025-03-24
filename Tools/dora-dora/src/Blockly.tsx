@@ -41,6 +41,7 @@ interface BlocklyProps {
 	width: number;
 	height: number;
 	file: string;
+	readOnly?: boolean;
 
 	/**
 	 * Initial JSON configuration for the Blockly workspace
@@ -72,6 +73,7 @@ const BlocklyComponent: React.FC<BlocklyProps> = ({
 	file,
 	width,
 	height,
+	readOnly = false,
 	initialJson,
 	onChange,
 	onSave,
@@ -99,6 +101,7 @@ const BlocklyComponent: React.FC<BlocklyProps> = ({
 			const defaultOptions: Blockly.BlocklyOptions = {
 				sounds: false,
 				media: '/',
+				readOnly,
 				theme: {
 					name: 'DoraTheme',
 					base: Blockly.Themes.Classic,
@@ -1004,7 +1007,7 @@ const BlocklyComponent: React.FC<BlocklyProps> = ({
 					}}
 				/>
 			)}
-			<div style={{
+			<div hidden={readOnly} style={{
 				position: 'absolute',
 				left: '85px',
 				bottom: '15px',
