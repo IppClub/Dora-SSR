@@ -195,15 +195,15 @@ export default memo(function FileTree(props: FileTreeProps) {
 	const ext = anchorItem ? Info.path.extname(anchorItem.data.key).toLowerCase() : "";
 	const isRoot = anchorItem?.data.root ?? false;
 	const isBuiltin = anchorItem?.data.builtin ?? false;
-	const enableNew = isRoot || !isBuiltin;
-	const enableDelete = !isRoot && !isBuiltin;
-	const enableRename = !isRoot && !isBuiltin;
+	const enableNew = (isRoot || !isBuiltin) || Info.engineDev;
+	const enableDelete = (!isRoot && !isBuiltin) || Info.engineDev;
+	const enableRename = (!isRoot && !isBuiltin) || Info.engineDev;
 	const enableDownload = isRoot || !isBuiltin;
-	const enableCopyPath = !isRoot || isBuiltin;
+	const enableCopyPath = (!isRoot || isBuiltin) || Info.engineDev;
 	const enableUnzip = !isRoot && !isBuiltin;
-	const enableBuild = isRoot || !isBuiltin;
-	const enableObfuscate = isRoot || !isBuiltin;
-	const enableViewCompiled = !isRoot && !isBuiltin;
+	const enableBuild = (isRoot || !isBuiltin) || Info.engineDev;
+	const enableObfuscate = (isRoot || !isBuiltin) || Info.engineDev;
+	const enableViewCompiled = (!isRoot && !isBuiltin) || Info.engineDev;
 
 	return (
 		<MacScrollbar

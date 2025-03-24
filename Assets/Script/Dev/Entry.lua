@@ -1427,8 +1427,8 @@ footerWindow = threadLoop(function() -- 776
 				if config.updateNotification then -- 854
 					SameLine() -- 855
 					if ImGui.Button(zh and "更新可用" or "Update Available") then -- 856
-						config.updateNotification = false -- 857
-						allClear() -- 858
+						allClear() -- 857
+						config.updateNotification = false -- 858
 						enterDemoEntry({ -- 859
 							"SelfUpdater", -- 859
 							Path(Content.assetPath, "Script", "Tools", "SelfUpdater") -- 859
