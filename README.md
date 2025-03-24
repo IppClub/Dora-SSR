@@ -10,6 +10,8 @@ Dora SSR is a game engine for rapid development of games on various devices. It 
 
 <div align='center'><img src='Docs/static/img/article/detail.svg' alt='intro' width='700px'/></div>
 
+<br/>
+
 | Category | Badges |
 | - | - |
 | Provided Game Dev Tools | ![Static Badge](https://img.shields.io/badge/C%2B%2B20-Game_Engine-d5a64c?logo=c%2B%2B)<br>![Static Badge](https://img.shields.io/badge/Rust-Game_Engine-d5a64c?logo=rust)<br>![Static Badge](https://img.shields.io/badge/ReactJS-Web_IDE-00d8ff?logo=react) |

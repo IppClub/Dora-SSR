@@ -10,6 +10,8 @@
 
 <div align='center'><img src='Docs/static/img/article/detail-zh.svg' alt='intro' width='700px'/></div>
 
+<br/>
+
 | 类别 | 徽章 |
 | - | - |
 | 提供游戏开发工具 | ![Static Badge](https://img.shields.io/badge/C%2B%2B20-Game_Engine-d5a64c?logo=c%2B%2B)<br>![Static Badge](https://img.shields.io/badge/Rust-Game_Engine-d5a64c?logo=rust)<br>![Static Badge](https://img.shields.io/badge/ReactJS-Web_IDE-00d8ff?logo=react) |
