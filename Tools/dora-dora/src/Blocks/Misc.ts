@@ -300,7 +300,7 @@ type InvokeMixinType = typeof INVOKE;
 
 const INVOKE = {
 	init: function (this: InvokeBlock) {
-		this.setStyle('logic_blocks');
+		this.setStyle('procedure_blocks');
 		this.argCount_ = 1;
 		this.updateShape_();
 		this.setPreviousStatement(true);

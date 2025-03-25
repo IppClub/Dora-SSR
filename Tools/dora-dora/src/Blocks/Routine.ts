@@ -21,11 +21,86 @@ const routineCategory = {
 };
 export default routineCategory;
 
+// node thread
+const nodeThreadBlock = {
+	type: 'nodeThread',
+	message0: zh ? '在节点 %1 上创建 %2 的 %3 线程\n%4' : 'For %1 node, create %2 %3 thread\n%4',
+	inputsInline: true,
+	args0: [
+		{
+			type: 'field_variable',
+			name: 'NODE',
+			variable: 'temp',
+		},
+		{
+			type: 'field_dropdown',
+			name: 'TYPE',
+			options: zh ? [
+				['执行一次', 'once'],
+				['循环执行', 'loop'],
+			] : [
+				['Once', 'once'],
+				['Loop', 'loop'],
+			],
+		},
+		{
+			type: 'field_dropdown',
+			name: 'MODE',
+			options: zh ? [
+				['主', 'schedule'],
+				['子', 'onUpdate'],
+			] : [
+				['Main', 'schedule'],
+				['Sub', 'onUpdate'],
+			],
+		},
+		{
+			type: 'input_statement',
+			name: 'ACTION',
+		},
+	],
+	previousStatement: null,
+	nextStatement: null,
+	style: 'dora_blocks',
+};
+Blockly.Blocks['nodeThread'] = {
+	init: function() { this.jsonInit(nodeThreadBlock); },
+};
+luaGenerator.forBlock['nodeThread'] = function(block: Blockly.Block) {
+	const node = luaGenerator.getVariableName(block.getFieldValue('NODE'));
+	const mode = block.getFieldValue('MODE');
+	const type = block.getFieldValue('TYPE');
+	const action = luaGenerator.statementToCode(block, 'ACTION');
+	Require.add(type);
+	return `${node}:${mode}(${type}(function()\n${action}end))\n`;
+};
+routineCategory.contents.push({
+	kind: 'block',
+	type: 'nodeThread',
+	inputs: {
+		ACTION: {
+			block: {
+				type: 'sleep',
+				inputs: {
+					TIME: {
+						shadow: {
+							type: 'math_number',
+							fields: {
+								NUM: 1,
+							},
+						},
+					},
+				},
+			},
+		},
+	},
+});
+
 // thread
 const threadBlock = {
 	type: 'thread',
-	message0: zh ? '创建 %1 的线程 %2' : 'Create %1 thread %2',
-	inputsInline: false,
+	message0: zh ? '创建 %1 的线程\n%2' : 'Create %1 thread\n%2',
+	inputsInline: true,
 	args0: [
 		{
 			type: 'field_dropdown',

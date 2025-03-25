@@ -21,6 +21,30 @@ const vec2Category = {
 };
 export default vec2Category;
 
+const shadowVec2Zero = {
+	shadow: {
+		type: 'vec2_create',
+		inputs: {
+			X: {
+				shadow: {
+					type: 'math_number',
+					fields: {
+						NUM: 0,
+					},
+				},
+			},
+			Y: {
+				shadow: {
+					type: 'math_number',
+					fields: {
+						NUM: 0,
+					},
+				},
+			},
+		},
+	},
+};
+
 // Zero vec2
 const vec2ZeroBlock = {
 	type: 'vec2_zero',
@@ -88,10 +112,10 @@ vec2Category.contents.push({
 	},
 });
 
-// Get vec2 component
-const vec2GetComponentBlock = {
-	type: 'vec2_get_component',
-	message0: zh ? '获取二维向量 %1 的 %2 分量' : 'Get vec2 %1 %2 component',
+// Get vec2 property
+const vec2GetPropertyBlock = {
+	type: 'vec2_get_property',
+	message0: zh ? '获取二维向量 %1 的 %2' : 'Get vec2 %1 %2',
 	args0: [
 		{
 			type: 'field_variable',
@@ -100,25 +124,63 @@ const vec2GetComponentBlock = {
 		},
 		{
 			type: 'field_dropdown',
-			name: 'COMPONENT',
-			options: [
-				['X', 'x'],
-				['Y', 'y'],
+			name: 'PROPERTY',
+			options: zh ? [
+				['X 分量', 'x'],
+				['Y 分量', 'y'],
+				['长度', 'length'],
+				['角度', 'angle'],
+			] : [
+				['X component', 'x'],
+				['Y component', 'y'],
+				['Length', 'length'],
+				['Angle', 'angle'],
 			],
 		},
 	],
 	output: 'Number',
 	style: 'math_blocks',
 };
-Blockly.Blocks['vec2_get_component'] = { init: function() { this.jsonInit(vec2GetComponentBlock); } };
-luaGenerator.forBlock['vec2_get_component'] = function(block: Blockly.Block) {
+Blockly.Blocks['vec2_get_property'] = { init: function() { this.jsonInit(vec2GetPropertyBlock); } };
+luaGenerator.forBlock['vec2_get_property'] = function(block: Blockly.Block) {
 	const vec2 = luaGenerator.getVariableName(block.getFieldValue('VEC2'));
-	const component = block.getFieldValue('COMPONENT');
-	return [`${vec2}.${component}`, Order.ATOMIC];
+	const property = block.getFieldValue('PROPERTY');
+	return [`${vec2}.${property}`, Order.ATOMIC];
 };
 vec2Category.contents.push({
 	kind: 'block',
-	type: 'vec2_get_component',
+	type: 'vec2_get_property',
+});
+
+// Get normalized vec2
+const vec2GetNormalizedBlock = {
+	type: 'vec2_get_normalized',
+	message0: zh ? '获取二维向量 %1 的归一化向量' : 'Get normalized vec2 %1',
+	args0: [
+		{
+			type: 'input_value',
+			name: 'VEC2',
+			check: 'Vec2',
+		},
+	],
+	output: 'Vec2',
+	style: 'math_blocks',
+};
+Blockly.Blocks['vec2_get_normalized'] = { init: function() { this.jsonInit(vec2GetNormalizedBlock); } };
+luaGenerator.forBlock['vec2_get_normalized'] = function(block: Blockly.Block) {
+	const vec2 = luaGenerator.valueToCode(block, 'VEC2', Order.HIGH);
+	return [`${vec2}:normalize()`, Order.ATOMIC];
+};
+vec2Category.contents.push({
+	kind: 'block',
+	type: 'vec2_get_normalized',
+	inputs: {
+		VEC2: {
+			shadow: {
+				type: 'variables_get',
+			},
+		},
+	},
 });
 
 // Binary operation
@@ -170,84 +232,144 @@ vec2Category.contents.push({
 	kind: 'block',
 	type: 'vec2_binary_operation',
 	inputs: {
-		VEC2_1: {
-			shadow: {
-				type: 'vec2_create',
-				inputs: {
-					X: {
-						shadow: {
-							type: 'math_number',
-							fields: {
-								NUM: 0,
-							},
-						},
-					},
-					Y: {
-						shadow: {
-							type: 'math_number',
-							fields: {
-								NUM: 0,
-							},
-						},
-					},
-				},
-			},
+		VEC2_1: shadowVec2Zero,
+		VEC2_2: shadowVec2Zero,
+	},
+});
+
+// Binary op number
+const vec2BinaryOpNumberBlock = {
+	type: 'vec2_binary_op_number',
+	message0: zh ? '%1\n%2\n%3' : '%1\n%2\n%3',
+	args0: [
+		{
+			type: 'input_value',
+			name: 'VEC2',
+			check: 'Vec2',
 		},
-		VEC2_2: {
+		{
+			type: 'field_dropdown',
+			name: 'OPERATION',
+			options: [
+				['*', '*'],
+				['/', '/'],
+			],
+		},
+		{
+			type: 'input_value',
+			name: 'NUMBER',
+			check: 'Number',
+		},
+	],
+	output: 'Vec2',
+	style: 'math_blocks',
+};
+Blockly.Blocks['vec2_binary_op_number'] = { init: function() { this.jsonInit(vec2BinaryOpNumberBlock); } };
+luaGenerator.forBlock['vec2_binary_op_number'] = function(block: Blockly.Block) {
+	const vec2 = luaGenerator.valueToCode(block, 'VEC2', Order.HIGH);
+	const operation = block.getFieldValue('OPERATION');
+	const number = luaGenerator.valueToCode(block, 'NUMBER', Order.HIGH);
+	return [`${vec2} ${operation} ${number}`, Order.MULTIPLICATIVE];
+};
+vec2Category.contents.push({
+	kind: 'block',
+	type: 'vec2_binary_op_number',
+	inputs: {
+		VEC2: shadowVec2Zero,
+		NUMBER: {
 			shadow: {
-				type: 'vec2_create',
-				inputs: {
-					X: {
-						shadow: {
-							type: 'math_number',
-							fields: {
-								NUM: 0,
-							},
-						},
-					},
-					Y: {
-						shadow: {
-							type: 'math_number',
-							fields: {
-								NUM: 0,
-							},
-						},
-					},
+				type: 'math_number',
+				fields: {
+					NUM: 1,
 				},
 			},
 		},
 	},
 });
 
-// Get vec2 property
-const vec2GetPropertyBlock = {
-	type: 'vec2_get_property',
-	message0: zh ? '获取二维向量 %1 的 %2 属性' : 'Get vec2 %1 %2 property',
+// Clamp vec2
+const vec2ClampBlock = {
+	type: 'vec2_clamp',
+	message0: zh ? '限制二维向量 %1\n在 %2\n和 %3\n之间' : 'Clamp vec2 %1\nbetween %2\nand %3',
 	args0: [
 		{
-			type: 'field_variable',
+			type: 'input_value',
 			name: 'VEC2',
-			variable: 'temp',
+			check: 'Vec2',
+		},
+		{
+			type: 'input_value',
+			name: 'MIN',
+			check: 'Vec2',
+		},
+		{
+			type: 'input_value',
+			name: 'MAX',
+			check: 'Vec2',
+		},
+	],
+	output: 'Vec2',
+	style: 'math_blocks',
+};
+Blockly.Blocks['vec2_clamp'] = { init: function() { this.jsonInit(vec2ClampBlock); } };
+luaGenerator.forBlock['vec2_clamp'] = function(block: Blockly.Block) {
+	const vec2 = luaGenerator.valueToCode(block, 'VEC2', Order.HIGH);
+	const min = luaGenerator.valueToCode(block, 'MIN', Order.HIGH);
+	const max = luaGenerator.valueToCode(block, 'MAX', Order.HIGH);
+	return [`${vec2}:clamp(${min}, ${max})`, Order.ATOMIC];
+};
+vec2Category.contents.push({
+	kind: 'block',
+	type: 'vec2_clamp',
+	inputs: {
+		VEC2: shadowVec2Zero,
+		MIN: shadowVec2Zero,
+		MAX: shadowVec2Zero,
+	},
+});
+
+// Calculate between two vec2
+const vec2CalculateBlock = {
+	type: 'vec2_calculate',
+	message0: zh ? '计算二维向量 %1\n和 %2\n的 %3' : 'Between\n%1\nand %2\ncalculate %3',
+	args0: [
+		{
+			type: 'input_value',
+			name: 'VEC2_1',
+			check: 'Vec2',
+		},
+		{
+			type: 'input_value',
+			name: 'VEC2_2',
+			check: 'Vec2',
 		},
 		{
 			type: 'field_dropdown',
-			name: 'PROPERTY',
-			options: [
-				['长度', 'length'],
-				['角度', 'angle'],
+			name: 'CALCULATE',
+			options: zh ? [
+				['距离', 'distance'],
+				['点积', 'dot'],
+			] : [
+				['Distance', 'distance'],
+				['Dot Product', 'dot'],
 			],
 		},
 	],
 	output: 'Number',
 	style: 'math_blocks',
 };
-Blockly.Blocks['vec2_get_property'] = { init: function() { this.jsonInit(vec2GetPropertyBlock); } };
-luaGenerator.forBlock['vec2_get_property'] = function(block: Blockly.Block) {
-	const vec2 = luaGenerator.getVariableName(block.getFieldValue('VEC2'));
-	const property = block.getFieldValue('PROPERTY');
-	return [`${vec2}.${property}`, Order.ATOMIC];
+Blockly.Blocks['vec2_calculate'] = { init: function() { this.jsonInit(vec2CalculateBlock); } };
+luaGenerator.forBlock['vec2_calculate'] = function(block: Blockly.Block) {
+	const vec2_1 = luaGenerator.valueToCode(block, 'VEC2_1', Order.HIGH);
+	const vec2_2 = luaGenerator.valueToCode(block, 'VEC2_2', Order.HIGH);
+	const calculate = block.getFieldValue('CALCULATE');
+	return [`${vec2_1}:${calculate}(${vec2_2})`, Order.ATOMIC];
 };
 vec2Category.contents.push({
 	kind: 'block',
-	type: 'vec2_get_property',
+	type: 'vec2_calculate',
+	inputs: {
+		VEC2_1: shadowVec2Zero,
+		VEC2_2: shadowVec2Zero,
+	},
 });
