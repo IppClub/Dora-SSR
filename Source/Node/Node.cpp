@@ -882,7 +882,7 @@ void Node::visit() {
 }
 
 void Node::render() {
-	if (isShowDebug() && getSize() != Size::zero) {
+	if (isShowDebug()) {
 		Matrix transform;
 		Matrix::mulMtx(transform, SharedDirector.getViewProjection(), _world);
 		float w = getWidth();
@@ -914,7 +914,9 @@ void Node::render() {
 			Matrix::mulVec4(&verts[i].x, transform, positions[i]);
 		}
 		SharedRendererManager.setCurrent(SharedLineRenderer.getTarget());
-		SharedLineRenderer.pushRect(verts);
+		if (getSize() != Size::zero) {
+			SharedLineRenderer.pushRect(verts);
+		}
 		SharedLineRenderer.pushSegment(verts + 4);
 		SharedLineRenderer.pushSegment(verts + 6);
 	}
