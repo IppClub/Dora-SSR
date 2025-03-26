@@ -75,7 +75,7 @@ static std::unordered_set<std::string> Metamethods = {
 	"close"s // Lua 5.4
 };
 
-const std::string_view version = "0.27.2"sv;
+const std::string_view version = "0.27.3"sv;
 const std::string_view extension = "yue"sv;
 
 class CompileError : public std::logic_error {
@@ -4795,8 +4795,8 @@ private:
 					auto varName = variableToString(ast_to<Variable_t>(var));
 					auto closeVar = getUnusedName("_close_"sv);
 					addToScope(closeVar);
-					getCloses.push_back(closeVar + "=assert "s + varName + ".<close>"s);
-					doCloses.push_front(closeVar + ' ' + varName);
+					getCloses.push_back(closeVar + "=if type("s + varName + ") in ['table', 'userdata'] then assert "s + varName + ".<> and "s + varName +".<close>, \""s + "variable '"s + varName + "' got a non-closable value\" elseif "s + varName + " == nil then nil else error \""s + "variable '"s + varName + "' got a non-closable value\"");
+					doCloses.push_front(closeVar + "? "s + varName);
 				}
 				popScope();
 				auto okVar = getUnusedName("_ok_"sv);
