@@ -23,8 +23,8 @@ export default actionCategory;
 // 执行动作
 const performActionBlock = {
 	type: 'perform_action',
-	message0: zh ? '为节点 %1 %2 动作 %3 返回执行一次的时间' : 'For node %1 %2 execute action %3 return time of an execution',
-	inputsInline: false,
+	message0: zh ? '为节点 %1 %2 动作\n%3\n返回执行一次的时间' : 'For node %1 %2 execute action\n%3\nreturn time of an execution',
+	inputsInline: true,
 	args0: [
 		{
 			type: 'field_variable',
@@ -35,7 +35,7 @@ const performActionBlock = {
 			type: 'field_dropdown',
 			name: 'MODE',
 			options: zh ? [
-				['只执行一次', 'ONCE'],
+				['执行一次', 'ONCE'],
 				['重复执行', 'REPEATED'],
 			] : [
 				['Once', 'ONCE'],
