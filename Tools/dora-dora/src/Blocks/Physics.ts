@@ -144,7 +144,7 @@ physicsCategory.contents.push({
 // body_create
 const bodyCreateBlock = {
 	type: 'body_create',
-	message0: zh ? '为物理世界节点 %1 创建 %2 刚体节点\n在位置 %3 角度 %4 \n重力系数为 %5 分组为 %6\n组成形状包括 %7' : 'For world node %1\ncreate %2 body node\nat position %3 angle %4\ngravity %5 group %6\nwith shapes %7',
+	message0: zh ? '为物理世界节点 %1 创建 %2 %3 的刚体节点\n在位置 %4 角度 %5 \n重力系数为 %6 分组为 %7\n组成形状包括 %8' : 'For world node %1\ncreate %2 %3 body node\nat position %4 angle %5\ngravity %6 group %7\nwith shapes %8',
 	args0: [
 		{
 			type: 'field_variable',
@@ -162,6 +162,17 @@ const bodyCreateBlock = {
 				['Static', 'Static'],
 				['Dynamic', 'Dynamic'],
 				['Kinematic', 'Kinematic'],
+			],
+		},
+		{
+			type: 'field_dropdown',
+			name: 'FIXED',
+			options: zh ? [
+				['可旋转', 'false'],
+				['固定旋转', 'true'],
+			] : [
+				['Rotatable', 'false'],
+				['Fixed', 'true'],
 			],
 		},
 		{
@@ -249,6 +260,7 @@ luaGenerator.forBlock['body_create'] = function(block: Blockly.Block) {
 	bodyDefStack.push(bodyDefVar);
 	const world = luaGenerator.getVariableName(block.getFieldValue('WORLD'));
 	const type = luaGenerator.quote_(block.getFieldValue('TYPE'));
+	const fixed = block.getFieldValue('FIXED');
 	const position = luaGenerator.valueToCode(block, 'POSITION', Order.NONE);
 	const angle = luaGenerator.valueToCode(block, 'ANGLE', Order.NONE);
 	const group = luaGenerator.valueToCode(block, 'GROUP', Order.NONE);
@@ -260,6 +272,7 @@ luaGenerator.forBlock['body_create'] = function(block: Blockly.Block) {
 	return [`(function()
   local ${bodyDefVar} = BodyDef()
   ${bodyDefVar}.type = ${type}
+  ${bodyDefVar}.fixedRotation = ${fixed}
   ${bodyDefVar}.group = ${group}
   ${bodyDefVar}.linearAcceleration = ${gravity}
 ${fixtures}  return Body(${bodyDefVar}, ${world}, ${position}, ${angle})
