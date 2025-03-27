@@ -43,6 +43,7 @@ world.showDebug = true
 local temp = (function()
   local bodyDef = BodyDef()
   bodyDef.type = 'Dynamic'
+  bodyDef.fixedRotation = false
   bodyDef.group = 0
   bodyDef.linearAcceleration = Vec2(0, -9.8)
   bodyDef:attachPolygon(Vec2(0, 150), 80, 80, 0, 1, 0.4, 0)
@@ -51,6 +52,7 @@ end)()
 local temp = (function()
   local bodyDef2 = BodyDef()
   bodyDef2.type = 'Static'
+  bodyDef2.fixedRotation = false
   bodyDef2.group = 0
   bodyDef2.linearAcceleration = Vec2(0, -9.8)
   bodyDef2:attachPolygon({Vec2(-100, -50), Vec2(-80, 0), Vec2(80, 0), Vec2(100, -50)}, 1, 0.4, 0.4)
