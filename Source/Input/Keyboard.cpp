@@ -235,30 +235,32 @@ void Keyboard::handleEvent(const SDL_Event& event) {
 			if (event.key.keysym.scancode != SDL_SCANCODE_UNKNOWN) {
 				int key = event.key.keysym.scancode;
 				Slice name = _codeNames[key];
-				if (name.empty()) break;
-				bool oldDown = _oldCodeStates[key];
-				_newCodeStates[key] = true;
-				if (!oldDown) {
-					_changedKeys.push_back(event.key.keysym.sym);
-					EventArgs<Slice> keyDown("KeyDown"_slice, name);
-					handler(&keyDown);
+				if (!name.empty()) {
+					bool oldDown = _oldCodeStates[key];
+					_newCodeStates[key] = true;
+					if (!oldDown) {
+						_changedKeys.push_back(event.key.keysym.sym);
+						EventArgs<Slice> keyDown("KeyDown"_slice, name);
+						handler(&keyDown);
+					}
+					EventArgs<Slice> keyPressed("KeyPressed"_slice, name);
+					handler(&keyPressed);
 				}
-				EventArgs<Slice> keyPressed("KeyPressed"_slice, name);
-				handler(&keyPressed);
 			}
 			if (event.key.keysym.sym != SDLK_UNKNOWN && event.key.keysym.sym < SDL_NUM_SCANCODES) {
 				int key = event.key.keysym.sym;
 				Slice name = _keyNames[key];
-				if (name.empty()) break;
-				bool oldDown = _oldKeyStates[key];
-				_newKeyStates[key] = true;
-				if (!oldDown) {
-					_changedKeys.push_back(event.key.keysym.sym);
-					EventArgs<Slice> keyDown("KeyDown"_slice, name);
-					handler(&keyDown);
+				if (!name.empty()) {
+					bool oldDown = _oldKeyStates[key];
+					_newKeyStates[key] = true;
+					if (!oldDown) {
+						_changedKeys.push_back(event.key.keysym.sym);
+						EventArgs<Slice> keyDown("KeyDown"_slice, name);
+						handler(&keyDown);
+					}
+					EventArgs<Slice> keyPressed("KeyPressed"_slice, name);
+					handler(&keyPressed);
 				}
-				EventArgs<Slice> keyPressed("KeyPressed"_slice, name);
-				handler(&keyPressed);
 			}
 			break;
 		}
@@ -266,25 +268,27 @@ void Keyboard::handleEvent(const SDL_Event& event) {
 			if (event.key.keysym.scancode != SDL_SCANCODE_UNKNOWN) {
 				int key = event.key.keysym.scancode;
 				Slice name = _codeNames[key];
-				if (name.empty()) break;
-				bool oldDown = _oldCodeStates[key];
-				_newCodeStates[key] = false;
-				if (oldDown) {
-					_changedKeys.push_back(event.key.keysym.sym);
-					EventArgs<Slice> keyUp("KeyUp"_slice, name);
-					handler(&keyUp);
+				if (!name.empty()) {
+					bool oldDown = _oldCodeStates[key];
+					_newCodeStates[key] = false;
+					if (oldDown) {
+						_changedKeys.push_back(event.key.keysym.sym);
+						EventArgs<Slice> keyUp("KeyUp"_slice, name);
+						handler(&keyUp);
+					}
 				}
 			}
 			if (event.key.keysym.sym != SDLK_UNKNOWN && event.key.keysym.sym < SDL_NUM_SCANCODES) {
 				int key = event.key.keysym.sym;
 				Slice name = _keyNames[key];
-				if (name.empty()) break;
-				bool oldDown = _oldKeyStates[key];
-				_newKeyStates[key] = false;
-				if (oldDown) {
-					_changedKeys.push_back(event.key.keysym.sym);
-					EventArgs<Slice> keyUp("KeyUp"_slice, name);
-					handler(&keyUp);
+				if (!name.empty()) {
+					bool oldDown = _oldKeyStates[key];
+					_newKeyStates[key] = false;
+					if (oldDown) {
+						_changedKeys.push_back(event.key.keysym.sym);
+						EventArgs<Slice> keyUp("KeyUp"_slice, name);
+						handler(&keyUp);
+					}
 				}
 			}
 			break;
