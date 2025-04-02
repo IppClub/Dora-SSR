@@ -595,7 +595,9 @@ void HttpClient::postAsync(String url, std::span<Slice> headers, String json, fl
 			postHeaders.emplace(parts.front(), parts.back());
 		}
 	}
-	_requestThread->run([schemeHostPort, json = json.toString(), timeout, urlStr = url.toString(), callback, pathToGet, headers = std::move(postHeaders)]() {
+	using ContentHandler = std::function<void(std::optional<Slice>)>;
+	auto callbackFunc = std::make_shared<ContentHandler>(callback);
+	_requestThread->run([schemeHostPort, json = json.toString(), timeout, urlStr = url.toString(), callbackFunc, pathToGet, headers = std::move(postHeaders)]() {
 		try {
 			httplib::Client client(schemeHostPort);
 			client.enable_server_certificate_verification(false);
@@ -604,21 +606,24 @@ void HttpClient::postAsync(String url, std::span<Slice> headers, String json, fl
 			auto result = client.Post(pathToGet, headers, json, "application/json"s);
 			if (!result || result.error() != httplib::Error::Success) {
 				Info("failed to do HTTP POST \"{}\" due to {}", urlStr, httplib::to_string(result.error()));
-				SharedApplication.invokeInLogic([callback]() {
-					callback(std::nullopt);
+				SharedApplication.invokeInLogic([callbackFunc]() {
+					(*callbackFunc)(std::nullopt);
 				});
 			} else {
-				SharedApplication.invokeInLogic([callback, body = std::move(result.value().body)]() {
-					callback(body);
+				SharedApplication.invokeInLogic([callbackFunc, body = std::move(result.value().body)]() {
+					(*callbackFunc)(body);
 				});
 			}
 		} catch (const std::invalid_argument& ex) {
 			Error("invalid url \"{}\" to do HTTP POST due to: {}", urlStr, ex.what());
-			SharedApplication.invokeInLogic([callback]() {
-				callback(Slice::Empty);
+			SharedApplication.invokeInLogic([callbackFunc]() {
+				(*callbackFunc)(Slice::Empty);
 			});
 		}
-	});
+		return nullptr;
+	},
+		[callbackFunc](Own<Values>) {
+		});
 }
 
 void HttpClient::postAsync(String url, const std::vector<std::string>& headers, String json, float timeout, const std::function<void(std::optional<Slice>)>& callback) {
