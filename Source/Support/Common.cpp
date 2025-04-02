@@ -27,6 +27,11 @@ Color3::Color3(uint8_t r, uint8_t g, uint8_t b)
 	, g(g)
 	, b(b) { }
 
+Color3::Color3(float r, float g, float b)
+	: r(s_cast<uint8_t>(std::round(r)))
+	, g(s_cast<uint8_t>(std::round(g)))
+	, b(s_cast<uint8_t>(std::round(b))) { }
+
 Color3::Color3(const Vec3& vec)
 	: r(s_cast<uint8_t>(std::round(vec.x * 255.0f)))
 	, g(s_cast<uint8_t>(std::round(vec.y * 255.0f)))
@@ -52,6 +57,12 @@ Color::Color(Color3 color, uint8_t a)
 	, g(color.g)
 	, b(color.b) { }
 
+Color::Color(Color3 color, float a)
+	: a(s_cast<uint8_t>(std::round(a)))
+	, r(s_cast<uint8_t>(std::round(color.r)))
+	, g(s_cast<uint8_t>(std::round(color.g)))
+	, b(s_cast<uint8_t>(std::round(color.b))) { }
+
 Color::Color(uint32_t argb)
 	: a(argb >> 24)
 	, r((argb & 0x00ff0000) >> 16)
@@ -63,6 +74,12 @@ Color::Color(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
 	, g(g)
 	, b(b)
 	, a(a) { }
+
+Color::Color(float r, float g, float b, float a)
+	: r(s_cast<uint8_t>(r))
+	, g(s_cast<uint8_t>(g))
+	, b(s_cast<uint8_t>(b))
+	, a(s_cast<uint8_t>(a)) { }
 
 Color::Color(const Vec4& vec)
 	: r(s_cast<uint8_t>(std::round(vec.x * 255.0f)))
