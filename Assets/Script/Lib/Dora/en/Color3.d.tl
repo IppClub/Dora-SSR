@@ -31,11 +31,11 @@ local record Color3Class
 	metamethod __call: function(self: Color3Class, rgb: integer): Color3
 
 	-- Creates a new `Color3` object from RGB color channel values.
-	-- @param r (integer) The red channel value (0-255).
-	-- @param g (integer) The green channel value (0-255).
-	-- @param b (integer) The blue channel value (0-255).
+	-- @param r (number) The red channel value (0-255).
+	-- @param g (number) The green channel value (0-255).
+	-- @param b (number) The blue channel value (0-255).
 	-- @return (Color) A new `Color3` object.
-	metamethod __call: function(self: Color3Class, r: integer, g: integer, b: integer): Color3
+	metamethod __call: function(self: Color3Class, r: number, g: number, b: number): Color3
 end
 
 local color3Class: Color3Class

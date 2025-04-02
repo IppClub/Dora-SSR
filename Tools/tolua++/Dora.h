@@ -13,7 +13,7 @@ struct Color3
 	uint8_t b;
 	Color3();
 	Color3(uint32_t rgb);
-	Color3(uint8_t r, uint8_t g, uint8_t b);
+	Color3(float r, float g, float b);
 	~Color3();
 	uint32_t toRGB();
 };
@@ -26,9 +26,9 @@ struct Color
 	uint8_t a;
 	tolua_property__common float opacity;
 	Color();
-	Color(Color3 color, uint8_t a = 0);
+	Color(Color3 color, float a = 0.0f);
 	Color(uint32_t argb);
-	Color(uint8_t r, uint8_t g, uint8_t b, uint8_t a);
+	Color(float r, float g, float b, float a);
 	~Color();
 	Color3 toColor3();
 	uint32_t toARGB();
