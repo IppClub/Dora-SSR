@@ -4972,7 +4972,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 1520;
+				LastUpgradeCheck = 1630;
 				ORGANIZATIONNAME = IppClub;
 				TargetAttributes = {
 					3CBE0DF526087F7B003F4F45 = {
@@ -6226,7 +6226,6 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = M44UFM3UW4;
 				EMBED_ASSET_PACKS_IN_PRODUCT_BUNDLE = YES;
 				ENABLE_BITCODE = NO;
 				ENABLE_ON_DEMAND_RESOURCES = NO;
@@ -6259,7 +6258,10 @@
 					"-Wno-unreachable-code",
 					"-Wno-conditional-uninitialized",
 				);
-				OTHER_CPLUSPLUSFLAGS = "-Wno-deprecated-declarations";
+				OTHER_CPLUSPLUSFLAGS = (
+					"-Wno-deprecated-declarations",
+					"-Wno-missing-template-arg-list-after-template-kw",
+				);
 				OTHER_LDFLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = IppClub.DoraSSR;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -6298,7 +6300,6 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = M44UFM3UW4;
 				EMBED_ASSET_PACKS_IN_PRODUCT_BUNDLE = YES;
 				ENABLE_BITCODE = NO;
 				ENABLE_ON_DEMAND_RESOURCES = NO;
@@ -6332,7 +6333,10 @@
 					"-Wno-unreachable-code",
 					"-Wno-conditional-uninitialized",
 				);
-				OTHER_CPLUSPLUSFLAGS = "-Wno-deprecated-declarations";
+				OTHER_CPLUSPLUSFLAGS = (
+					"-Wno-deprecated-declarations",
+					"-Wno-missing-template-arg-list-after-template-kw",
+				);
 				OTHER_LDFLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = IppClub.DoraSSR;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -6394,6 +6398,7 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = M44UFM3UW4;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -6469,6 +6474,7 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = M44UFM3UW4;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -6515,7 +6521,6 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = M44UFM3UW4;
 				EMBED_ASSET_PACKS_IN_PRODUCT_BUNDLE = YES;
 				ENABLE_BITCODE = NO;
 				ENABLE_ON_DEMAND_RESOURCES = NO;
@@ -6549,7 +6554,10 @@
 					"-Wno-unreachable-code",
 					"-Wno-conditional-uninitialized",
 				);
-				OTHER_CPLUSPLUSFLAGS = "-Wno-deprecated-declarations";
+				OTHER_CPLUSPLUSFLAGS = (
+					"-Wno-deprecated-declarations",
+					"-Wno-missing-template-arg-list-after-template-kw",
+				);
 				OTHER_LDFLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = IppClub.DoraSSR;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -6588,7 +6596,6 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = M44UFM3UW4;
 				EMBED_ASSET_PACKS_IN_PRODUCT_BUNDLE = YES;
 				ENABLE_BITCODE = NO;
 				ENABLE_ON_DEMAND_RESOURCES = NO;
@@ -6621,7 +6628,10 @@
 					"-Wno-unreachable-code",
 					"-Wno-conditional-uninitialized",
 				);
-				OTHER_CPLUSPLUSFLAGS = "-Wno-deprecated-declarations";
+				OTHER_CPLUSPLUSFLAGS = (
+					"-Wno-deprecated-declarations",
+					"-Wno-missing-template-arg-list-after-template-kw",
+				);
 				OTHER_LDFLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = IppClub.DoraSSR;
 				PRODUCT_NAME = "$(TARGET_NAME)";

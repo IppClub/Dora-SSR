@@ -5132,7 +5132,10 @@
 					"-Wno-unreachable-code",
 					"-Wno-conditional-uninitialized",
 				);
-				OTHER_CPLUSPLUSFLAGS = "-Wno-deprecated-declarations";
+				OTHER_CPLUSPLUSFLAGS = (
+					"-Wno-deprecated-declarations",
+					"-Wno-missing-template-arg-list-after-template-kw",
+				);
 				OTHER_LDFLAGS = "";
 				OTHER_LIBTOOLFLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = IppClub.DoraSSR;
@@ -5205,7 +5208,10 @@
 					"-Wno-unreachable-code",
 					"-Wno-conditional-uninitialized",
 				);
-				OTHER_CPLUSPLUSFLAGS = "-Wno-deprecated-declarations";
+				OTHER_CPLUSPLUSFLAGS = (
+					"-Wno-deprecated-declarations",
+					"-Wno-missing-template-arg-list-after-template-kw",
+				);
 				OTHER_LDFLAGS = "";
 				OTHER_LIBTOOLFLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = IppClub.DoraSSR;

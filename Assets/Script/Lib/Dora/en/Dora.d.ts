@@ -7201,9 +7201,10 @@ interface HttpClient {
 	 * @param headers The headers to send with the request. Each header should be a string in the format "name: value".
 	 * @param json The JSON data to send in the request body.
 	 * @param timeout [optional] The timeout in seconds for the request. Defaults to 5.
+	 * @param partCallback [optional] A callback function that is called periodically to get part of the response content.
 	 * @returns The response body text, or `null` if the request failed.
 	 */
-	postAsync(url: string, headers: string[], json: string, timeout?: number): string | null;
+	postAsync(url: string, headers: string[], json: string, timeout?: number, partCallback?: (this: void, data: string) => void): string | null;
 	/**
 	 * Sends a GET request to the specified URL and returns the response body.
 	 * @param url The URL to send the request to.

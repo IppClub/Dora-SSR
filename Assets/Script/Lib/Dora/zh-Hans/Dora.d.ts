@@ -7200,9 +7200,10 @@ interface HttpClient {
 	 * @param headers 要发送的请求头。每个头部应该以 "name: value" 的格式。
 	 * @param json 要发送的JSON文本。
 	 * @param timeout [可选] 请求的超时时间（以秒为单位）。默认为5。
+	 * @param partCallback [可选] 一个定期报告部分接收到的响应内容的回调函数。
 	 * @returns 响应文本，如果请求失败则返回 `null`。
 	 */
-	postAsync(url: string, headers: string[], json: string, timeout?: number): string | null;
+	postAsync(url: string, headers: string[], json: string, timeout?: number, partCallback?: (this: void,data: string) => void): string | null;
 	/**
 	 * 向指定的URL异步发送GET请求，并返回响应文本。
 	 * @param url 要发送请求的URL。

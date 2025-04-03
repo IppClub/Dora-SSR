@@ -567,7 +567,7 @@ do
 	local HttpClient_postAsync = HttpClient.postAsync
 	HttpClient.postAsync = function(self, url, ...)
 		local args = {...}
-		if type(args[#args]) ~= "number" then
+		if #args < 4 and type(args[#args]) ~= "number" then
 			args[#args + 1] = 5
 		end
 		local _, mainThread = coroutine.running()
