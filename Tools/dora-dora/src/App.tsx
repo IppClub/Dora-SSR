@@ -770,10 +770,7 @@ export default function PersistentDrawerLeft() {
 				case ".tsx": {
 					Service.read({path: key}).then((res) => {
 						if (res.success && res.content !== undefined) {
-							let {content} = res;
-							if (ext === ".yarn") {
-								content = JSON.stringify(Yarn.convertYarnTextToJson(content));
-							}
+							const {content} = res;
 							const newFile: EditingFile = {
 								key,
 								title,

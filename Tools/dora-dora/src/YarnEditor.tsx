@@ -34,7 +34,15 @@ const YarnEditor = memo((props: YarnEditorProps) => {
 				win.addEventListener("yarnSavedStateToLocalStorage", () => {
 					props.onChange();
 				});
-				win.app.data.startNewFile(props.title, props.defaultValue);
+				let defaultValue: string | undefined = undefined;
+				if (props.defaultValue !== undefined) {
+					try {
+						defaultValue = JSON.stringify(convertYarnTextToJson(props.defaultValue));
+					} catch (e) {
+						console.error(e);
+					}
+				}
+				win.app.data.startNewFile(props.title, defaultValue);
 				props.onLoad(win.app.data as YarnEditorData);
 				win.document.addEventListener("YarnCheckSyntax", (e: { code: string }) => {
 					Service.checkYarn({ code: e.code }).then((res) => {
