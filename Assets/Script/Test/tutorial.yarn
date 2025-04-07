@@ -1,54 +1,69 @@
-{
-	"header": {
-		"lastSavedUnix": "2023-11-27T09:49:28.955Z",
-		"language": "en-GB",
-		"documentType": "yarn",
-		"markupLanguage": "bbcode",
-		"filetypeVersion": "2",
-		"pluginStorage": {
-			"Runner": {}
-		}
-	},
-	"nodes": [
-		{
-			"title": "Start",
-			"tags": "",
-			"body": "Alex, you've finally decided to join the rebellion against the Cybertech Corp. The future of humanity is at stake!\n\n-> Continue\n\nDo you want to:\n-> Infiltrate the Cybertech Corp headquarters.\n    Start infiltrating...\n    <<jump Infiltrate>>\n-> Spread propaganda against cybernetics.\n    Taking action...\n    <<jump Propaganda>>",
-			"position": {
-				"x": -80,
-				"y": -560
-			},
-			"colorID": 0
-		},
-		{
-			"title": "Infiltrate",
-			"tags": "",
-			"body": "<<set $infiltrate = true>>\n\nYou've decided to infiltrate the Cybertech Corp. This is risky, but if successful, it could end their reign.\n\n-> Continue\n\n<<jump Outcome>>",
-			"position": {
-				"x": -240,
-				"y": -160
-			},
-			"colorID": 0
-		},
-		{
-			"title": "Propaganda",
-			"tags": "",
-			"body": "<<set $infiltrate = false>>\n\nYou've chosen to spread the word about the dangers of Cybertech's cybernetics. Information is power.\n\n-> Continue\n\n<<jump Outcome>>",
-			"position": {
-				"x": 40,
-				"y": -160
-			},
-			"colorID": 0
-		},
-		{
-			"title": "Outcome",
-			"tags": "",
-			"body": "<<if $infiltrate>>\nYou sneak into the Cybertech Corp's main facility. It's eerily quiet.\n-> Attempt to hack their mainframe.\n    Hacking...\n-> Search for documents.\n    Searching...\n<<else>>\nYou start broadcasting messages across the city, warning citizens. The resistance grows stronger every day.\n-> Organize a protest.\n    Actioning...\n-> Stay underground and plan.\n    Planing...\n<<endif>>\n\n-> to be continued",
-			"position": {
-				"x": -80,
-				"y": 240
-			},
-			"colorID": 0
-		}
-	]
-}
+// lastSavedUnix: 2025-04-07T09:07:05.077Z
+
+title: Start
+tags: 
+position: -80,-560
+colorID: 0
+---
+Alex, you've finally decided to join the rebellion against the Cybertech Corp. The future of humanity is at stake!
+
+-> Continue
+
+Do you want to:
+-> Infiltrate the Cybertech Corp headquarters.
+    Start infiltrating...
+    <<jump Infiltrate>>
+-> Spread propaganda against cybernetics.
+    Taking action...
+    <<jump Propaganda>>
+===
+
+title: Infiltrate
+tags: 
+position: -240,-160
+colorID: 0
+---
+<<set $infiltrate = true>>
+
+You've decided to infiltrate the Cybertech Corp. This is risky, but if successful, it could end their reign.
+
+-> Continue
+
+<<jump Outcome>>
+===
+
+title: Propaganda
+tags: 
+position: 40,-160
+colorID: 0
+---
+<<set $infiltrate = false>>
+
+You've chosen to spread the word about the dangers of Cybertech's cybernetics. Information is power.
+
+-> Continue
+
+<<jump Outcome>>
+===
+
+title: Outcome
+tags: 
+position: -80,240
+colorID: 0
+---
+<<if $infiltrate>>
+You sneak into the Cybertech Corp's main facility. It's eerily quiet.
+-> Attempt to hack their mainframe.
+    Hacking...
+-> Search for documents.
+    Searching...
+<<else>>
+You start broadcasting messages across the city, warning citizens. The resistance grows stronger every day.
+-> Organize a protest.
+    Actioning...
+-> Stay underground and plan.
+    Planing...
+<<endif>>
+
+-> to be continued
+===
