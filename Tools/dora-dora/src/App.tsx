@@ -33,7 +33,7 @@ import 'mac-scrollbar/dist/mac-scrollbar.css';
 import FileFilter, { FilterOption } from './FileFilter';
 import { useTranslation } from 'react-i18next';
 import { Image } from 'antd';
-import YarnEditor, { YarnEditorData } from './YarnEditor';
+import YarnEditor, * as Yarn from './YarnEditor';
 import CodeWire, { CodeWireData } from './CodeWire';
 import { AutoTypings } from './3rdParty/monaco-editor-auto-typings';
 import { TbSwitchVertical } from "react-icons/tb";
@@ -90,7 +90,7 @@ interface EditingFile {
 	editor?: monaco.editor.IStandaloneCodeEditor;
 	position?: monaco.IPosition;
 	mdEditing?: boolean;
-	yarnData?: YarnEditorData;
+	yarnData?: Yarn.YarnEditorData;
 	codeWireData?: CodeWireData;
 	blocklyData?: string;
 	sortIndex?: number;
@@ -770,7 +770,10 @@ export default function PersistentDrawerLeft() {
 				case ".tsx": {
 					Service.read({path: key}).then((res) => {
 						if (res.success && res.content !== undefined) {
-							const {content} = res;
+							let {content} = res;
+							if (ext === ".yarn") {
+								content = JSON.stringify(Yarn.convertYarnTextToJson(content));
+							}
 							const newFile: EditingFile = {
 								key,
 								title,
@@ -1039,7 +1042,8 @@ export default function PersistentDrawerLeft() {
 			};
 			if (file.yarnData !== undefined) {
 				file.yarnData.getJSONData().then((value) => {
-					file.contentModified = value;
+					const text = Yarn.convertYarnJsonToText(JSON.parse(value));
+					file.contentModified = text;
 					saveFile();
 				}).catch(() => {
 					addAlert(t("alert.saveCurrent"), "error");
