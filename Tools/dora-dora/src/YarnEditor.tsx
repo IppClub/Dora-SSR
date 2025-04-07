@@ -115,7 +115,7 @@ function generateYamlHeader(header: any): string {
 }
 
 function convertBodyToYarn(body: string): string {
-	return body.replace(/\r\n/g, '\n'); // normalize line endings
+	return body.replace(/\r\n/g, '\n');
 }
 
 function convertNodeToYarn(node: YarnSpinnerJSON['nodes'][0]): string {
@@ -150,11 +150,11 @@ function parseYamlHeader(lines: string[]): any {
 	const header: any = {};
 	const variables: { key: string; value: any }[] = [];
 
-	let inVariables = false
+	let inVariables = false;
 	let currentVar: { key?: string; value?: any } = {};
 
 	for (const line of lines) {
-		const raw = line.replace(/^\/\/\s?/, '').trim();
+		const raw = line.replace(/^\/\/\s?/, '').trim().replace(/\s+/, ' ');
 
 		if (raw.startsWith('lastSavedUnix:')) {
 			header.lastSavedUnix = raw.slice('lastSavedUnix:'.length).trim();
@@ -193,7 +193,7 @@ function parseYarnNodes(content: string): YarnNode[] {
 	return nodeChunks.map((chunk) => {
 		const [metaPart, ...bodyParts] = chunk.split(/^---\s*$/m);
 		const metaLines = metaPart.split('\n').map(line => line.trim());
-		const body = bodyParts.join('\n').trim(); // 保留格式
+		const body = bodyParts.join('\n').trim();
 
 		let title = '';
 		let tags = '';
@@ -220,22 +220,25 @@ function parseYarnNodes(content: string): YarnNode[] {
 export function convertYarnTextToJson(yarnText: string): YarnSpinnerJSON {
 	const lines = yarnText.replace(/\r\n/g, '\n').split('\n');
 
-	// 获取文件最开头连续的注释行作为 header
 	const headerLines: string[] = [];
 	let index = 0;
-	while (index < lines.length && lines[index].trim().startsWith('//')) {
-		headerLines.push(lines[index]);
+	while (index < lines.length) {
+		const line = lines[index].trim();
+		if (line.startsWith('//')) {
+			headerLines.push(line);
+		} else {
+			break;
+		}
 		index++;
 	}
 
-	// 剩余部分为 Yarn 节点文本
 	const contentLines = lines.slice(index);
 
 	let header = undefined;
 	try {
 		header = parseYamlHeader(headerLines);
 	} catch (e) {
-		console.log(e);
+		console.error(e);
 	}
 	header ??= {};
 	const content = contentLines.join('\n');
@@ -243,7 +246,7 @@ export function convertYarnTextToJson(yarnText: string): YarnSpinnerJSON {
 	try {
 		nodes = parseYarnNodes(content);
 	} catch (e) {
-		console.log(e);
+		console.error(e);
 	}
 	nodes ??= [];
 	return { header, nodes };
