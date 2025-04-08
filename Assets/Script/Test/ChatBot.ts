@@ -68,7 +68,7 @@ class ChatNode extends Node {
 						return;
 					}
 					for (let [item] of string.gmatch(data, 'data:%s*(%b{})')) {
-						const [res] = json.load(item)
+						const [res] = json.load(item);
 						if (res) {
 							str += (res as any)['choices'][1]['delta']['content'] as string;
 						}

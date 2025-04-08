@@ -94,14 +94,14 @@ static int pushglobalfuncname (lua_State *L, lua_Debug *ar) {
 
 
 static void pushfuncname (lua_State *L, lua_Debug *ar) {
-  if (pushglobalfuncname(L, ar)) {  /* try first a global name */
-    lua_pushfstring(L, "function '%s'", lua_tostring(L, -1));
-    lua_remove(L, -2);  /* remove name */
-  }
-  else if (*ar->namewhat != '\0')  /* is there a name from code? */
+  if (*ar->namewhat != '\0')  /* is there a name from code? */
     lua_pushfstring(L, "%s '%s'", ar->namewhat, ar->name);  /* use it */
   else if (*ar->what == 'm')  /* main? */
       lua_pushliteral(L, "main chunk");
+  else if (pushglobalfuncname(L, ar)) {  /* try a global name */
+    lua_pushfstring(L, "function '%s'", lua_tostring(L, -1));
+    lua_remove(L, -2);  /* remove name */
+  }
   else if (*ar->what != 'C')  /* for Lua functions, use <file:line> */
     lua_pushfstring(L, "function <%s:%d>", ar->short_src, ar->linedefined);
   else  /* nothing left... */
@@ -541,17 +541,17 @@ static void newbox (lua_State *L) {
 
 /*
 ** Compute new size for buffer 'B', enough to accommodate extra 'sz'
-** bytes plus one for a terminating zero. (The test for "not big enough"
-** also gets the case when the computation of 'newsize' overflows.)
+** bytes plus one for a terminating zero.
 */
 static size_t newbuffsize (luaL_Buffer *B, size_t sz) {
-  size_t newsize = (B->size / 2) * 3;  /* buffer size * 1.5 */
-  if (l_unlikely(sz > MAX_SIZE - B->n - 1))
+  size_t newsize = B->size;
+  if (l_unlikely(sz >= MAX_SIZE - B->n))
     return cast_sizet(luaL_error(B->L, "resulting string too large"));
-  if (newsize < B->n + sz + 1 || newsize > MAX_SIZE) {
-    /* newsize was not big enough or too big */
+  /* else  B->n + sz + 1 <= MAX_SIZE */
+  if (newsize <= MAX_SIZE/3 * 2)  /* no overflow? */
+    newsize += (newsize >> 1);  /* new size *= 1.5 */
+  if (newsize < B->n + sz + 1)  /* not big enough? */
     newsize = B->n + sz + 1;
-  }
   return newsize;
 }
 

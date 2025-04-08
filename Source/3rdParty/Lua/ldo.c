@@ -199,7 +199,7 @@ l_noret luaD_errerr (lua_State *L) {
 ** The following macro chooses how strict is the code.
 */
 #if !defined(LUAI_STRICT_ADDRESS)
-#define LUAI_STRICT_ADDRESS	0
+#define LUAI_STRICT_ADDRESS	1
 #endif
 
 #if LUAI_STRICT_ADDRESS
@@ -319,7 +319,7 @@ int luaD_growstack (lua_State *L, int n, int raiseerror) {
     return 0;  /* if not 'raiseerror', just signal it */
   }
   else if (n < MAXSTACK) {  /* avoids arithmetic overflows */
-    int newsize = 2 * size;  /* tentative new size */
+    int newsize = size + (size >> 1);  /* tentative new size (size * 1.5) */
     int needed = cast_int(L->top.p - L->stack.p) + n;
     if (newsize > MAXSTACK)  /* cannot cross the limit */
       newsize = MAXSTACK;
