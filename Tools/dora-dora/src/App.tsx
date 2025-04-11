@@ -60,11 +60,50 @@ document.addEventListener("contextmenu", (event) => {
 
 let contentModified = false;
 let waitingForDownload = false;
-let beforeUnload: () => void = () => {};
+
+let saveEditingInfo: () => void = () => {};
+let lastSaveEditingInfoTime = Date.now();
+const saveEditingInfoInterval = 10000;
+let lastEditingInfo: Service.EditingInfo | null = null;
+
+const areEditingInfosEqual = (a: Service.EditingInfo | null, b: Service.EditingInfo | null): boolean => {
+	if (a === null && b === null) return true;
+	if (a === null || b === null) return false;
+
+	if (a.index !== b.index) return false;
+	if (a.files.length !== b.files.length) return false;
+
+	for (let i = 0; i < a.files.length; i++) {
+		const fileA = a.files[i];
+		const fileB = b.files[i];
+
+		if (fileA.key !== fileB.key) return false;
+		if (fileA.title !== fileB.title) return false;
+		if (fileA.mdEditing !== fileB.mdEditing) return false;
+		if (fileA.readOnly !== fileB.readOnly) return false;
+		if (fileA.folder !== fileB.folder) return false;
+
+		if (fileA.position && fileB.position) {
+			if (fileA.position.lineNumber !== fileB.position.lineNumber) return false;
+			if (fileA.position.column !== fileB.position.column) return false;
+		} else if (fileA.position !== fileB.position) {
+			return false;
+		}
+	}
+	return true;
+};
+
+setInterval(() => {
+	const now = Date.now();
+	if (now - lastSaveEditingInfoTime >= saveEditingInfoInterval) {
+		saveEditingInfo();
+		lastSaveEditingInfoTime = now;
+	}
+}, saveEditingInfoInterval);
 
 window.onbeforeunload = (event: BeforeUnloadEvent) => {
 	if (Info.version !== undefined) {
-		beforeUnload();
+		saveEditingInfo();
 		if (contentModified) {
 			event.returnValue = "Please save before leaving!";
 			return "Please save before leaving!";
@@ -2311,7 +2350,7 @@ export default function PersistentDrawerLeft() {
 		addAlert(message, 'error');
 	}, []);
 
-	beforeUnload = () => {
+	saveEditingInfo = () => {
 		const editingInfo: Service.EditingInfo = {
 			index: tabIndex ?? 0,
 			files: files.map(f => {
@@ -2323,6 +2362,10 @@ export default function PersistentDrawerLeft() {
 				return {key, title, mdEditing, position, readOnly, folder};
 			})
 		};
+		if (areEditingInfosEqual(editingInfo, lastEditingInfo)) {
+			return;
+		}
+		lastEditingInfo = editingInfo;
 		Service.editingInfo({
 			editingInfo: editingInfo.files.length > 0 ? JSON.stringify(editingInfo) : ""
 		}).catch(reason => {
