@@ -153,13 +153,10 @@ pub use nvg::Nvg;
 mod vgnode;
 pub use vgnode::VGNode;
 
-fn none_type(_: i64) -> Option<Box<dyn IObject>> {
-	panic!("'none_type' should not be called!");
-}
+type ObjectFunc = fn(i64) -> Option<Box<dyn IObject>>;
 
 thread_local! {
-	static OBJECT_MAP: LazyCell<Vec<fn(i64) -> Option<Box<dyn IObject>>>> = LazyCell::new(|| {
-		let mut map: Vec<fn(i64) -> Option<Box<dyn IObject>>> = Vec::new();
+	static OBJECT_MAP: LazyCell<Vec<Option<ObjectFunc>>> = LazyCell::new(|| {
 		let type_funcs = [
 			Array::type_info(),
 			Dictionary::type_info(),
@@ -217,15 +214,16 @@ thread_local! {
 			Buffer::type_info(),
 			VGNode::type_info(),
 		];
+		let mut map: Vec<Option<ObjectFunc>> = Vec::new();
 		for pair in type_funcs.iter() {
 			let t = pair.0 as usize;
 			if map.len() < t + 1 {
-				map.resize(t + 1, none_type);
+				map.resize(t + 1, None);
 			}
-			if map[t] != none_type {
+			if map[t].is_some() {
 				panic!("cpp object type id {} duplicated!", t);
 			}
-			map[t] = pair.1;
+			map[t] = Some(pair.1);
 		}
 		map
 	});
@@ -772,7 +770,7 @@ impl Vector {
 
 fn into_object(raw: i64) -> Option<Box<dyn IObject>> {
 	let mut converted: Option<Box<dyn IObject>> = None;
-	OBJECT_MAP.with(|map| converted = map[unsafe { object_get_type(raw) } as usize](raw));
+	OBJECT_MAP.with(|map| converted = map[unsafe { object_get_type(raw) } as usize].unwrap()(raw));
 	converted
 }
 
@@ -781,7 +779,7 @@ fn new_object(raw: i64) -> Option<Box<dyn IObject>> {
 		object_retain(raw);
 	}
 	let mut converted: Option<Box<dyn IObject>> = None;
-	OBJECT_MAP.with(|map| converted = map[unsafe { object_get_type(raw) } as usize](raw));
+	OBJECT_MAP.with(|map| converted = map[unsafe { object_get_type(raw) } as usize].unwrap()(raw));
 	converted
 }
 

@@ -75,7 +75,7 @@ static std::unordered_set<std::string> Metamethods = {
 	"close"s // Lua 5.4
 };
 
-const std::string_view version = "0.27.3"sv;
+const std::string_view version = "0.27.4"sv;
 const std::string_view extension = "yue"sv;
 
 class CompileError : public std::logic_error {
@@ -1080,8 +1080,8 @@ private:
 			if (unary->ops.empty()) {
 				Value_t* value = static_cast<Value_t*>(unary->expos.back());
 				if (auto chain = ast_cast<ChainValue_t>(value->item); chain && chain->items.size() == 1) {
-					if (auto exp = chain->get_by_path<Callable_t, Parens_t, Exp_t>()) {
-						if (auto insideValue = singleValueFrom(exp)) {
+					if (auto parens = chain->get_by_path<Callable_t, Parens_t>(); parens && parens->extra) {
+						if (auto insideValue = singleValueFrom(parens->expr)) {
 							return insideValue;
 						}
 					}
@@ -3262,6 +3262,7 @@ private:
 							} else if (destruct.items.size() == 1 && !singleValueFrom(*j)) {
 								auto p = destruct.value.get();
 								auto parens = p->new_ptr<Parens_t>();
+								parens->extra = true;
 								if (auto tableBlock = ast_cast<TableBlock_t>(p)) {
 									auto tableLit = p->new_ptr<TableLit_t>();
 									tableLit->values.dup(tableBlock->values);
@@ -4750,6 +4751,7 @@ private:
 				newSimpleValue->value.set(funLit);
 				auto newExpInParens = newExp(newSimpleValue, x);
 				auto newParens = x->new_ptr<Parens_t>();
+				newParens->extra = true;
 				newParens->expr.set(newExpInParens);
 				auto newCallable = x->new_ptr<Callable_t>();
 				newCallable->item.set(newParens);
@@ -5570,6 +5572,7 @@ private:
 		auto x = chainList.front();
 		if (ast_is<ExistentialOp_t>(chainList.back())) {
 			auto parens = x->new_ptr<Parens_t>();
+			parens->extra = true;
 			{
 				auto chainValue = x->new_ptr<ChainValue_t>();
 				for (auto item : chainList) {
@@ -6163,6 +6166,7 @@ private:
 								++next;
 								if (next != chainList.end()) {
 									auto paren = x->new_ptr<Parens_t>();
+									paren->extra = true;
 									paren->expr.set(newExp(chainValue, x));
 									auto ncallable = x->new_ptr<Callable_t>();
 									ncallable->item.set(paren);
@@ -6215,6 +6219,7 @@ private:
 							simpleValue->value.set(funLit);
 							auto exp = newExp(simpleValue, x);
 							auto paren = x->new_ptr<Parens_t>();
+							paren->extra = true;
 							paren->expr.set(exp);
 							auto callable = x->new_ptr<Callable_t>();
 							callable->item.set(paren);
@@ -6631,6 +6636,7 @@ private:
 					exp.set(info.node);
 					if (!exp->opValues.empty() || (chainList.size() > 2 || (chainList.size() == 2 && !ast_is<Invoke_t, InvokeArgs_t>(chainList.back())))) {
 						auto paren = x->new_ptr<Parens_t>();
+						paren->extra = true;
 						paren->expr.set(exp);
 						auto callable = x->new_ptr<Callable_t>();
 						callable->item.set(paren);

@@ -620,6 +620,7 @@ AST_END(Slice)
 
 AST_NODE(Parens)
 	ast_ptr<true, Exp_t> expr;
+	bool extra = false;
 	AST_MEMBER(Parens, &expr)
 AST_END(Parens)
 
