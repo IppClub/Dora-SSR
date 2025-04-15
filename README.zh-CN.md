@@ -183,9 +183,9 @@ if not sprite is nil then
 end
 ```
 
-- **Yuescript**
+- **YueScript**
 
-&emsp;&emsp;有关 Dora SSR 所支持的 Yuescript 这门小众语言的故事在[这里](https://dora-ssr.net/zh-Hans/blog/2024/4/17/a-moon-script-tale)。
+&emsp;&emsp;有关 Dora SSR 所支持的 YueScript 这门小众语言的故事在[这里](https://dora-ssr.net/zh-Hans/blog/2024/4/17/a-moon-script-tale)。
 ```moonscript
 _ENV = Dora
 

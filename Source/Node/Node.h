@@ -175,7 +175,7 @@ public:
 		if (_children && !_children->isEmpty()) {
 			sortAllChildren();
 			return _children->each([&](Value* value) {
-				return func(value->to<Node>());
+				return value ? func(value->to<Node>()) : false;
 			});
 		}
 		return false;

@@ -47,6 +47,8 @@ public:
 public:
 	template <class Func>
 	bool each(const Func& handler) {
+		_traversing = true;
+		DEFER(_traversing = false);
 		for (const auto& item : _data) {
 			if (handler(item.get())) return true;
 		}
@@ -54,6 +56,7 @@ public:
 	}
 	template <class Cond>
 	void removeIf(const Cond& cond) {
+		AssertIf(_traversing, "Can not remove item from array while traversing");
 		_data.erase(std::remove_if(_data.begin(), _data.end(), cond), _data.end());
 	}
 
@@ -63,22 +66,27 @@ protected:
 	Array(size_t capacity);
 
 private:
+	bool _traversing = false;
 	std::vector<Own<Value>> _data;
 	DORA_TYPE_OVERRIDE(Array);
 };
 
 #define ARRAY_START_VAL(type, varName, array) \
 	if (array && !array->isEmpty()) { \
-		for (const auto& _item_ : array->data()) { \
-			type varName = _item_->toVal<type>();
+		array->each([&](Value* _item_) { \
+			do { \
+				type varName = _item_->toVal<type>();
 
 #define ARRAY_START(type, varName, array) \
 	if (array && !array->isEmpty()) { \
-		for (const auto& _item_ : array->data()) { \
-			type* varName = _item_->to<type>();
+		array->each([&](Value* _item_) { \
+			do { \
+				type* varName = _item_->to<type>();
 
 #define ARRAY_END \
-	} \
+			} while (false); \
+			return false; \
+		}); \
 	}
 
 NS_DORA_END
