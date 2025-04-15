@@ -55,28 +55,33 @@ bool Array::contains(NotNull<Value, 1> value) const {
 }
 
 void Array::add(Own<Value>&& value) {
+	AssertIf(_traversing, "Can not add item to array while traversing");
 	_data.push_back(std::move(value));
 }
 
 void Array::addRange(NotNull<Array, 1> other) {
+	AssertIf(_traversing, "Can not add range to array while traversing");
 	for (const auto& item : other->_data) {
 		_data.push_back(item->clone());
 	}
 }
 
 void Array::removeFrom(NotNull<Array, 1> other) {
+	AssertIf(_traversing, "Can not remove item from array while traversing");
 	for (const auto& it : other->_data) {
 		Array::remove(it.get());
 	}
 }
 
 Own<Value> Array::removeLast() {
+	AssertIf(_traversing, "Can not remove item from array while traversing");
 	auto value = _data.back()->clone();
 	_data.pop_back();
 	return value;
 }
 
 bool Array::remove(NotNull<Value, 1> value) {
+	AssertIf(_traversing, "Can not remove item from array while traversing");
 	auto it = std::remove_if(_data.begin(), _data.end(), [&](Own<Value>& item) {
 		return item->equals(value);
 	});
@@ -86,10 +91,12 @@ bool Array::remove(NotNull<Value, 1> value) {
 }
 
 void Array::clear() {
+	AssertIf(_traversing, "Can not clear array while traversing");
 	_data.clear();
 }
 
 bool Array::fastRemove(NotNull<Value, 1> value) {
+	AssertIf(_traversing, "Can not remove item from array while traversing");
 	size_t ind = index(value);
 	if (ind < _data.size()) {
 		_data.at(ind) = std::move(_data.back());
@@ -108,10 +115,12 @@ void Array::swap(size_t indexA, size_t indexB) {
 }
 
 void Array::reverse() {
+	AssertIf(_traversing, "Can not reverse array while traversing");
 	std::reverse(_data.begin(), _data.end());
 }
 
 void Array::shrink() {
+	AssertIf(_traversing, "Can not shrink array while traversing");
 	_data.shrink_to_fit();
 }
 
@@ -138,10 +147,12 @@ const Own<Value>& Array::get(size_t index) const {
 }
 
 void Array::insert(size_t index, Own<Value>&& value) {
+	AssertIf(_traversing, "Can not insert item to array while traversing");
 	_data.insert(_data.begin() + index, std::move(value));
 }
 
 bool Array::removeAt(size_t index) {
+	AssertIf(_traversing, "Can not remove item from array while traversing");
 	if (index < _data.size()) {
 		_data.erase(_data.begin() + index);
 		return true;
@@ -150,6 +161,7 @@ bool Array::removeAt(size_t index) {
 }
 
 bool Array::fastRemoveAt(size_t index) {
+	AssertIf(_traversing, "Can not remove item from array while traversing");
 	if (index < _data.size()) {
 		_data[index] = std::move(_data.back());
 		_data.pop_back();

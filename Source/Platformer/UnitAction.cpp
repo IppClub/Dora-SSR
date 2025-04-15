@@ -438,7 +438,7 @@ void MeleeAttack::onAttack() {
 				float damage = Attack::getDamage(target);
 				entity->set(ActionSetting::HP, entity->get<double>(ActionSetting::HP) - damage);
 				auto attackTarget = _owner->getEntity()->get(ActionSetting::AttackTarget, Slice::Empty);
-				if (attackTarget == "Single"_slice) return;
+				if (attackTarget == "Single"_slice) return true;
 			}
 			BLOCK_END
 		}

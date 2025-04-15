@@ -109,13 +109,15 @@ pr::BodyID Body::getPrBody() const noexcept {
 }
 
 Sensor* Body::getSensorByTag(int tag) {
+	Sensor* target = nullptr;
 	ARRAY_START(Sensor, sensor, _sensors) {
 		if (sensor->getTag() == tag) {
-			return sensor;
+			target = sensor;
+			return true;
 		}
 	}
 	ARRAY_END
-	return nullptr;
+	return target;
 }
 
 bool Body::removeSensorByTag(int tag) {
