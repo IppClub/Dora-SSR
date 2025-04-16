@@ -121,177 +121,178 @@ local function setButtons(options) -- 91
 				radius = 30, -- 98
 				fontSize = 20 -- 99
 			}):addTo(menu) -- 99
-			circleButton:onTapped(function() -- 101
-				advance(options) -- 102
-			end) -- 101
+			local choice = options and i or nil -- 101
+			circleButton:onTapped(function() -- 102
+				advance(choice) -- 103
+			end) -- 102
 			i = i + 1 -- 95
 		end -- 95
 	end -- 95
-	menu:alignItems() -- 105
+	menu:alignItems() -- 106
 end -- 91
-advance = function(option) -- 108
-	local action, result = runner:advance(option) -- 109
-	if action == "Text" then -- 109
-		local charName = "" -- 111
-		if result.marks ~= nil then -- 111
-			for ____, mark in ipairs(result.marks) do -- 113
-				if (mark.name == "Character" or mark.name == "char") and mark.attrs ~= nil then -- 113
-					charName = tostring(mark.attrs.name) .. ": " -- 115
-				end -- 115
-			end -- 115
-		end -- 115
-		texts[#texts + 1] = charName .. result.text -- 119
-		if result.optionsFollowed then -- 119
-			advance() -- 121
-		else -- 121
-			setButtons() -- 123
-		end -- 123
-	elseif action == "Option" then -- 123
-		for i, op in ipairs(result) do -- 126
-			if type(op) ~= "boolean" then -- 126
-				texts[#texts + 1] = (("[" .. tostring(i)) .. "]: ") .. op.text -- 128
-			end -- 128
-		end -- 128
-		setButtons(#result) -- 131
-	elseif action == "Command" then -- 131
-		texts[#texts + 1] = result -- 133
-		setButtons() -- 134
-	else -- 134
-		menu:removeAllChildren() -- 136
-		texts[#texts + 1] = result -- 137
-	end -- 137
-	label.text = table.concat(texts, "\n") -- 139
-	scroll:adjustSizeWithAlign("Auto", 10) -- 140
-	thread(function() -- 141
-		scroll:scrollToPosY(label.y - label.height / 2) -- 142
-	end) -- 141
-end -- 108
-advance() -- 146
-local testFilePaths = {testFile} -- 148
-local testFileNames = {"Test/tutorial.yarn"} -- 149
-for ____, file in ipairs(Content:getAllFiles(Content.writablePath)) do -- 150
-	do -- 150
-		if "yarn" ~= Path:getExt(file) then -- 150
-			goto __continue26 -- 152
-		end -- 152
-		testFilePaths[#testFilePaths + 1] = Path(Content.writablePath, file) -- 154
-		testFileNames[#testFileNames + 1] = Path:getFilename(file) -- 155
-	end -- 155
-	::__continue26:: -- 155
-end -- 155
-local filteredPaths = testFilePaths -- 158
-local filteredNames = testFileNames -- 159
-local currentFile = 1 -- 161
-local filterBuf = Buffer(20) -- 162
-local windowFlags = { -- 163
-	"NoDecoration", -- 164
-	"NoSavedSettings", -- 165
-	"NoFocusOnAppearing", -- 166
-	"NoNav", -- 167
-	"NoMove" -- 168
-} -- 168
-local inputTextFlags = {"AutoSelectAll"} -- 170
-threadLoop(function() -- 171
-	local ____App_visualSize_5 = App.visualSize -- 172
-	local width = ____App_visualSize_5.width -- 172
-	ImGui.SetNextWindowPos( -- 173
-		Vec2(width - 10, 10), -- 173
-		"Always", -- 173
-		Vec2(1, 0) -- 173
-	) -- 173
-	ImGui.SetNextWindowSize( -- 174
-		Vec2(230, 0), -- 174
-		"Always" -- 174
+advance = function(option) -- 109
+	local action, result = runner:advance(option) -- 110
+	if action == "Text" then -- 110
+		local charName = "" -- 112
+		if result.marks ~= nil then -- 112
+			for ____, mark in ipairs(result.marks) do -- 114
+				if (mark.name == "Character" or mark.name == "char") and mark.attrs ~= nil then -- 114
+					charName = tostring(mark.attrs.name) .. ": " -- 116
+				end -- 116
+			end -- 116
+		end -- 116
+		texts[#texts + 1] = charName .. result.text -- 120
+		if result.optionsFollowed then -- 120
+			advance() -- 122
+		else -- 122
+			setButtons() -- 124
+		end -- 124
+	elseif action == "Option" then -- 124
+		for i, op in ipairs(result) do -- 127
+			if type(op) ~= "boolean" then -- 127
+				texts[#texts + 1] = (("[" .. tostring(i)) .. "]: ") .. op.text -- 129
+			end -- 129
+		end -- 129
+		setButtons(#result) -- 132
+	elseif action == "Command" then -- 132
+		texts[#texts + 1] = result -- 134
+		setButtons() -- 135
+	else -- 135
+		menu:removeAllChildren() -- 137
+		texts[#texts + 1] = result -- 138
+	end -- 138
+	label.text = table.concat(texts, "\n") -- 140
+	scroll:adjustSizeWithAlign("Auto", 10) -- 141
+	thread(function() -- 142
+		scroll:scrollToPosY(label.y - label.height / 2) -- 143
+	end) -- 142
+end -- 109
+advance() -- 147
+local testFilePaths = {testFile} -- 149
+local testFileNames = {"Test/tutorial.yarn"} -- 150
+for ____, file in ipairs(Content:getAllFiles(Content.writablePath)) do -- 151
+	do -- 151
+		if "yarn" ~= Path:getExt(file) then -- 151
+			goto __continue26 -- 153
+		end -- 153
+		testFilePaths[#testFilePaths + 1] = Path(Content.writablePath, file) -- 155
+		testFileNames[#testFileNames + 1] = Path:getFilename(file) -- 156
+	end -- 156
+	::__continue26:: -- 156
+end -- 156
+local filteredPaths = testFilePaths -- 159
+local filteredNames = testFileNames -- 160
+local currentFile = 1 -- 162
+local filterBuf = Buffer(20) -- 163
+local windowFlags = { -- 164
+	"NoDecoration", -- 165
+	"NoSavedSettings", -- 166
+	"NoFocusOnAppearing", -- 167
+	"NoNav", -- 168
+	"NoMove" -- 169
+} -- 169
+local inputTextFlags = {"AutoSelectAll"} -- 171
+threadLoop(function() -- 172
+	local ____App_visualSize_5 = App.visualSize -- 173
+	local width = ____App_visualSize_5.width -- 173
+	ImGui.SetNextWindowPos( -- 174
+		Vec2(width - 10, 10), -- 174
+		"Always", -- 174
+		Vec2(1, 0) -- 174
 	) -- 174
-	ImGui.Begin( -- 175
-		"Yarn Tester", -- 175
-		windowFlags, -- 175
-		function() -- 175
-			ImGui.Text(zh and "Yarn 测试工具" or "Yarn Tester") -- 176
-			ImGui.SameLine() -- 177
-			ImGui.TextDisabled("(?)") -- 178
-			if ImGui.IsItemHovered() then -- 178
-				ImGui.BeginTooltip(function() -- 180
-					ImGui.PushTextWrapPos( -- 181
-						300, -- 181
-						function() -- 181
-							ImGui.Text(zh and "重新加载 Yarn 测试工具，以检测任何新添加的以 '.yarn' 结尾的 Yarn Spinner 文件。" or "Reload Yarn Tester to detect any newly added Yarn Spinner files with a '.yarn' extension.") -- 182
-						end -- 181
-					) -- 181
-				end) -- 180
-			end -- 180
-			ImGui.Separator() -- 186
-			ImGui.InputText("##FilterInput", filterBuf, inputTextFlags) -- 187
-			ImGui.SameLine() -- 188
-			local function runFile() -- 189
-				do -- 189
-					local function ____catch(err) -- 189
-						label.text = (("failed to load file " .. filteredPaths[currentFile]) .. "\n") .. tostring(err) -- 195
-						scroll:adjustSizeWithAlign("Auto", 10) -- 196
-					end -- 196
-					local ____try, ____hasReturned = pcall(function() -- 196
-						runner = YarnRunner( -- 191
-							filteredPaths[currentFile], -- 191
-							"Start", -- 191
-							{}, -- 191
-							commands, -- 191
-							true -- 191
-						) -- 191
-						texts = {} -- 192
-						advance() -- 193
-					end) -- 193
-					if not ____try then -- 193
-						____catch(____hasReturned) -- 193
-					end -- 193
-				end -- 193
-			end -- 189
-			if ImGui.Button(zh and "筛选" or "Filter") then -- 189
-				local filterText = string.lower(filterBuf.text) -- 200
-				local filtered = __TS__ArrayFilter( -- 201
-					__TS__ArrayMap( -- 201
-						testFileNames, -- 201
-						function(____, n, i) return {n, testFilePaths[i + 1]} end -- 201
-					), -- 201
-					function(____, it, i) -- 201
-						local matched = string.match( -- 202
-							string.lower(it[1]), -- 202
-							filterText -- 202
-						) -- 202
-						if matched ~= nil then -- 202
-							return true -- 204
-						end -- 204
-						return false -- 206
-					end -- 201
-				) -- 201
-				filteredNames = __TS__ArrayMap( -- 208
-					filtered, -- 208
-					function(____, f) return f[1] end -- 208
-				) -- 208
-				filteredPaths = __TS__ArrayMap( -- 209
-					filtered, -- 209
-					function(____, f) return f[2] end -- 209
-				) -- 209
-				currentFile = 1 -- 210
-				if #filteredPaths > 0 then -- 210
-					runFile() -- 212
-				end -- 212
-			end -- 212
-			local changed = false -- 215
-			changed, currentFile = ImGui.Combo(zh and "文件" or "File", currentFile, filteredNames) -- 216
-			if changed then -- 216
-				runFile() -- 218
-			end -- 218
-			if ImGui.Button(zh and "重载" or "Reload") then -- 218
-				runFile() -- 221
-			end -- 221
-			ImGui.SameLine() -- 223
-			ImGui.Text(zh and "变量：" or "Variables:") -- 224
-			ImGui.Separator() -- 225
-			for k, v in pairs(runner.state) do -- 226
-				ImGui.Text((k .. ": ") .. tostring(v)) -- 227
-			end -- 227
-		end -- 175
+	ImGui.SetNextWindowSize( -- 175
+		Vec2(230, 0), -- 175
+		"Always" -- 175
 	) -- 175
-	return false -- 230
-end) -- 171
-return ____exports -- 171
+	ImGui.Begin( -- 176
+		"Yarn Tester", -- 176
+		windowFlags, -- 176
+		function() -- 176
+			ImGui.Text(zh and "Yarn 测试工具" or "Yarn Tester") -- 177
+			ImGui.SameLine() -- 178
+			ImGui.TextDisabled("(?)") -- 179
+			if ImGui.IsItemHovered() then -- 179
+				ImGui.BeginTooltip(function() -- 181
+					ImGui.PushTextWrapPos( -- 182
+						300, -- 182
+						function() -- 182
+							ImGui.Text(zh and "重新加载 Yarn 测试工具，以检测任何新添加的以 '.yarn' 结尾的 Yarn Spinner 文件。" or "Reload Yarn Tester to detect any newly added Yarn Spinner files with a '.yarn' extension.") -- 183
+						end -- 182
+					) -- 182
+				end) -- 181
+			end -- 181
+			ImGui.Separator() -- 187
+			ImGui.InputText("##FilterInput", filterBuf, inputTextFlags) -- 188
+			ImGui.SameLine() -- 189
+			local function runFile() -- 190
+				do -- 190
+					local function ____catch(err) -- 190
+						label.text = (("failed to load file " .. filteredPaths[currentFile]) .. "\n") .. tostring(err) -- 196
+						scroll:adjustSizeWithAlign("Auto", 10) -- 197
+					end -- 197
+					local ____try, ____hasReturned = pcall(function() -- 197
+						runner = YarnRunner( -- 192
+							filteredPaths[currentFile], -- 192
+							"Start", -- 192
+							{}, -- 192
+							commands, -- 192
+							true -- 192
+						) -- 192
+						texts = {} -- 193
+						advance() -- 194
+					end) -- 194
+					if not ____try then -- 194
+						____catch(____hasReturned) -- 194
+					end -- 194
+				end -- 194
+			end -- 190
+			if ImGui.Button(zh and "筛选" or "Filter") then -- 190
+				local filterText = string.lower(filterBuf.text) -- 201
+				local filtered = __TS__ArrayFilter( -- 202
+					__TS__ArrayMap( -- 202
+						testFileNames, -- 202
+						function(____, n, i) return {n, testFilePaths[i + 1]} end -- 202
+					), -- 202
+					function(____, it, i) -- 202
+						local matched = string.match( -- 203
+							string.lower(it[1]), -- 203
+							filterText -- 203
+						) -- 203
+						if matched ~= nil then -- 203
+							return true -- 205
+						end -- 205
+						return false -- 207
+					end -- 202
+				) -- 202
+				filteredNames = __TS__ArrayMap( -- 209
+					filtered, -- 209
+					function(____, f) return f[1] end -- 209
+				) -- 209
+				filteredPaths = __TS__ArrayMap( -- 210
+					filtered, -- 210
+					function(____, f) return f[2] end -- 210
+				) -- 210
+				currentFile = 1 -- 211
+				if #filteredPaths > 0 then -- 211
+					runFile() -- 213
+				end -- 213
+			end -- 213
+			local changed = false -- 216
+			changed, currentFile = ImGui.Combo(zh and "文件" or "File", currentFile, filteredNames) -- 217
+			if changed then -- 217
+				runFile() -- 219
+			end -- 219
+			if ImGui.Button(zh and "重载" or "Reload") then -- 219
+				runFile() -- 222
+			end -- 222
+			ImGui.SameLine() -- 224
+			ImGui.Text(zh and "变量：" or "Variables:") -- 225
+			ImGui.Separator() -- 226
+			for k, v in pairs(runner.state) do -- 227
+				ImGui.Text((k .. ": ") .. tostring(v)) -- 228
+			end -- 228
+		end -- 176
+	) -- 176
+	return false -- 231
+end) -- 172
+return ____exports -- 172
