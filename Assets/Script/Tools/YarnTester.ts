@@ -98,8 +98,9 @@ const setButtons = (options?: number) => {
 			radius: 30,
 			fontSize: 20
 		}).addTo(menu);
+		const choice = options ? i : undefined;
 		circleButton.onTapped(() => {
-			advance(options);
+			advance(choice);
 		});
 	}
 	menu.alignItems();

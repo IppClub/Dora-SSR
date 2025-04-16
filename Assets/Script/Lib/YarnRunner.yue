@@ -28,7 +28,6 @@ parseVariables = (yarnText): variables ->
 	in_variables = false
 	current_var = {}
 	for line in yarnText\gmatch "([^\r\n]*)\r?\n?"
-		print line
 		break unless line\match "^%s*//"
 		raw = line\gsub("^%s*//%s*", "")\gsub "%s+$", ""
 		if raw == "variables:"
