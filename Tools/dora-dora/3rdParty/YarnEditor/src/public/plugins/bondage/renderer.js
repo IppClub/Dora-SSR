@@ -315,7 +315,18 @@ export var yarnRender = function(app) {
 		for (let node of this.jsonData) {
 			node.body = node.body.trim().replace(/\n\s*\n/g, "\n//\n").replace(/(^\s*)(<<.*?>>)/gm, (match, indent, content) => {
 				return `${indent}${content}\n${indent}[separator_/]`;
-			 });
+			});
+			const operatorMap = {
+				'+=': '+',
+				'-=': '-',
+				'*=': '*',
+				'/=': '/',
+				'%=': '%'
+			};
+			// Replace shorthand operators (+=, -=, *=, /=, %=) with their full form
+			node.body = node.body.replace(/<<set\s+(\$[\w_]+)\s*(\+=|\-=|\*=|\/=|%=)\s*(.+?)>>/g, (match, variable, operator, value) => {
+				return `<<set ${variable} = ${variable} ${operatorMap[operator]} ${value}>>`;
+			});
 		}
 		const variables = new Map();
 		playtestVariables.forEach(function(variable) {
