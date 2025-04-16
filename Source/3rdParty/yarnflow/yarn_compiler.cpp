@@ -239,10 +239,17 @@ AST_NODE(Exp)
 	AST_MEMBER(Exp, &expr, &opValues)
 AST_END(Exp, "exp"sv)
 
+AST_LEAF(AssignmentOp)
+AST_END(AssignmentOp, "assignment_op"sv)
+
+AST_LEAF(UpdateOp)
+AST_END(UpdateOp, "update_op"sv)
+
 AST_NODE(Assignment)
 	ast_ptr<true, Variable_t> variable;
+	ast_sel<true, AssignmentOp_t, UpdateOp_t> op;
 	ast_ptr<true, Exp_t> value;
-	AST_MEMBER(Assignment, &variable, &value)
+	AST_MEMBER(Assignment, &variable, &op, &value)
 AST_END(Assignment, "assignment"sv)
 
 AST_NODE(If)
@@ -575,8 +582,11 @@ public:
 
 		OptionGroup = Seperator >> Option >> *(line_break >> *(empty_line_break >> line_break) >> check_indent >> Option);
 
+		AssignmentOp = '=' | key("to");
+		UpdateOp = set("+-*/%&|^");
+
 		Assignment =
-			key("set") >> space >> Variable >> space >> ('=' | key("to")) >> space >> Exp;
+			key("set") >> space >> Variable >> space >> (AssignmentOp | UpdateOp >> '=') >> space >> Exp;
 
 		Title = (range('a', 'z') | range('A', 'Z') | '_') >> *alpha_num;
 
@@ -774,6 +784,8 @@ private:
 	AST_RULE(DoubleStringContent);
 	AST_RULE(DoubleString);
 	AST_RULE(String);
+	AST_RULE(AssignmentOp);
+	AST_RULE(UpdateOp);
 };
 
 using str_list = std::list<std::string>;
@@ -1131,8 +1143,17 @@ public:
 
 	void transformAssignment(Assignment_t* assignment, str_list& out) {
 		str_list temp;
-		temp.push_back("state[\""s + _parser.toString(assignment->variable->name) + "\"] = "s);
-		transformExp(assignment->value.get(), temp);
+		temp.push_back("state[\""s + _parser.toString(assignment->variable->name) + "\"]"s);
+		if (auto update = assignment->op.as<UpdateOp_t>()) {
+			auto op = _parser.toString(update);
+			temp.push_back(" = "s);
+			temp.push_back(temp.front());
+			temp.push_back(" "s + op + " "s);
+			transformExp(assignment->value.get(), temp);
+		} else {
+			temp.push_back(" = "s);
+			transformExp(assignment->value.get(), temp);
+		}
 		out.push_back(indent() + join(temp) + nl(assignment));
 	}
 
