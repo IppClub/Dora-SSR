@@ -259,18 +259,19 @@ local record Node
 	-- @param callback (function) 接收转换后的操作系统窗口空间中的点点坐标的回调函数。
 	convertToWindowSpace: function(self: Node, nodePoint: Vec2, callback: function(Vec2))
 
-	-- 对该节点的每个子节点调用给定的函数。
+	-- 对该节点的每个子节点调用给定的函数。在迭代过程中，子节点不能被添加或删除。
 	-- @param func (function) 对每个子节点要调用的函数。该函数应返回一个布尔值，指示是否继续迭代。返回 true 以停止迭代。
 	-- @return (boolean) 如果已访问所有子节点，则为false；如果函数中断了迭代，则为true。
 	eachChild: function(self: Node, func: function(Node): boolean): boolean
 
 	-- 从此节点开始遍历场景树结构，并对每个访问的节点调用给定的函数。
-	-- 未开启`TraverseEnabled`标志的节点不会被访问。
+	-- 未开启`TraverseEnabled`标志的节点不会被访问。在迭代过程中，子节点不能被添加或删除。
 	-- @param func (function) 对于每个被访问的节点调用的函数。该函数应返回一个布尔值，指示是否继续遍历。返回true停止迭代。
 	-- @return (boolean) 如果访问了所有节点，则为false，如果函数中断了遍历，则为true。
 	traverse: function(self: Node, func: function(Node): boolean): boolean
 
 	-- 从此节点开始遍历整个节点层次结构，并对每个访问的节点调用给定的函数。
+	-- 未开启`TraverseEnabled`标志的节点也会被访问。在迭代过程中，子节点不能被添加或删除。
 	-- @param func (function) 对于每个访问的节点调用的函数。该函数应返回一个布尔值，指示是否继续遍历。
 	-- @return (boolean) 如果访问了所有节点，则为true，如果函数中断了遍历，则为false。
 	traverseAll: function(self: Node, func: function(Node): boolean): boolean

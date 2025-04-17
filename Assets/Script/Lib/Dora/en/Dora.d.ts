@@ -1326,7 +1326,7 @@ class Array extends Object {
 	fastRemoveAt(index: number): boolean;
 
 	/**
-	 * Calls a given function for each item in the array.
+	 * Calls a given function for each item in the array. The items in the array can not be added or removed during the iteration.
 	 * Should return false to continue iteration, true to stop.
 	 * @param func The function to call for each item.
 	 * @returns False if the iteration completed, true if it was interrupted by the function.
@@ -1752,7 +1752,7 @@ class Dictionary extends Object {
 	set(key: string, item: Item | null | undefined): void;
 
 	/**
-	 * A function that iterates over each item in the dictionary and calls a given function with the item and its key.
+	 * A function that iterates over each item in the dictionary and calls a given function with the item and its key. The items in the dictionary can not be added or removed during the iteration.
 	 * This function should take an Item and a string as arguments and return a boolean. Returns true to stop iteration, false to continue.
 	 * @param func The function to call for each item in the dictionary.
 	 * @returns Returns false if the iteration completed successfully, true otherwise.
@@ -2963,21 +2963,21 @@ class Node extends Object {
 	convertToWindowSpace(nodePoint: Vec2, callback: (this: void, windowPoint: Vec2) => void): void;
 
 	/**
-	 * Calls the given function for each child node of this node.
+	 * Calls the given function for each child node of this node. The child nodes can not be added or removed during the iteration.
 	 * @param func The function to call for each child node. The function should return a boolean value indicating whether to continue the iteration. Return true to stop iteration.
 	 * @returns False if all children have been visited, true if the iteration was interrupted by the function.
 	 */
 	eachChild(func: (this: void, child: Node) => boolean): boolean;
 
 	/**
-	 * Traverses the node hierarchy starting from this node and calls the given function for each visited node. The nodes without `TraverseEnabled` flag are not visited.
+	 * Traverses the node hierarchy starting from this node and calls the given function for each visited node. The nodes without `TraverseEnabled` flag are not visited. The nodes can not be added or removed during the iteration.
 	 * @param func The function to call for each visited node. The function should return a boolean value indicating whether to continue the traversal. Return true to stop iteration.
 	 * @returns False if all nodes have been visited, true if the traversal was interrupted by the function.
 	 */
 	traverse(func: (this: void, node: Node) => boolean): boolean;
 
 	/**
-	 * Traverses the entire node hierarchy starting from this node and calls the given function for each visited node.
+	 * Traverses the entire node hierarchy starting from this node and calls the given function for each visited node. The nodes without `TraverseEnabled` flag are also visited. The nodes can not be added or removed during the iteration.
 	 * @param func The function to call for each visited node. The function should return a boolean value indicating whether to continue the traversal.
 	 * @returns True if all nodes have been visited, false if the traversal was interrupted by the function.
 	 */
@@ -4258,7 +4258,7 @@ class Model extends Playable {
 	getNodeByName(name: string): Node;
 
 	/**
-	 * Calls the specified function for each node in the model, and stops if the function returns false.
+	 * Calls the specified function for each node in the model, and stops if the function returns false. The nodes can not be added or removed during the iteration.
 	 * @param func The function to call for each node.
 	 * @returns Whether the function was called for all nodes or not.
 	 */

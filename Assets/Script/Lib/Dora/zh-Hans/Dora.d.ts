@@ -1331,6 +1331,7 @@ class Array extends Object {
 	/**
 	 * 对数组中的每个元素调用给定的函数。
 	 * 应返回false以继续迭代，返回true以停止。
+	 * 在迭代过程中，数组中的元素不能被添加或删除。
 	 * @param func 要为每个元素调用的函数。
 	 * @returns 如果迭代完成，则返回false，如果被函数中断，则返回true。
 	 */
@@ -1748,6 +1749,7 @@ class Dictionary extends Object {
 
 	/**
 	 * 遍历字典中每个键值对并调用处理函数。
+	 * 在迭代过程中，字典中的键值对不能被添加或删除。
 	 * @param func 对字典中每个键值对调用的函数。
 	 * 此函数会接收值对象Item和字符串的键作为参数，并需要返回布尔值。返回true停止遍历，false继续。
 	 * @returns 如果遍历成功完成，则返回false，否则返回true。
@@ -2959,21 +2961,21 @@ class Node extends Object {
 	convertToWindowSpace(nodePoint: Vec2, callback: (this: void, windowPoint: Vec2) => void): void;
 
 	/**
-	 * 为此节点的每个子节点调用给定的函数。
+	 * 为此节点的每个子节点调用给定的函数。在迭代过程中，子节点不能被添加或删除。
 	 * @param func 为每个子节点调用的函数。该函数应返回布尔值，表示是否继续迭代。返回true以停止迭代。
 	 * @returns 如果所有子节点都已访问，则为False，如果函数中断了迭代，则为true。
 	 */
 	eachChild(func: (this: void, child: Node) => boolean): boolean;
 
 	/**
-	 * 从此节点开始遍历节点层次结构，并为每个访问的节点调用给定的函数。没有`TraverseEnabled`标志的节点不会被访问。
+	 * 从此节点开始遍历节点层次结构，并为每个访问的节点调用给定的函数。没有`TraverseEnabled`标志的节点不会被访问。在迭代过程中，子节点不能被添加或删除。
 	 * @param func 为每个访问的节点调用的函数。该函数应返回布尔值，表示是否继续遍历。返回true以停止迭代。
 	 * @returns 如果所有节点都已访问，则为False，如果函数中断了遍历，则为true。
 	 */
 	traverse(func: (this: void, node: Node) => boolean): boolean;
 
 	/**
-	 * 遍历从此节点开始的整个节点层次结构，并为每个访问的节点调用给定的函数。
+	 * 遍历从此节点开始的整个节点层次结构，并为每个访问的节点调用给定的函数。没有设置 `TraverseEnabled` 标志的节点也会被访问。在迭代过程中，子节点不能被添加或删除。
 	 * @param func 为每个访问的节点调用的函数。该函数应返回布尔值，表示是否继续遍历。
 	 * @returns 如果所有节点都已访问，则为True，如果函数中断了遍历，则为false。
 	 */
@@ -4255,7 +4257,7 @@ class Model extends Playable {
 	getNodeByName(name: string): Node;
 
 	/**
-	 * 对模型中的每个节点调用指定的函数，并在函数返回false时停止。
+	 * 对模型中的每个节点调用指定的函数，并在函数返回false时停止。在迭代过程中，节点不能被添加或删除。
 	 * @param func 要对每个节点调用的函数。
 	 * @returns 函数是否被调用了所有节点。
 	 */

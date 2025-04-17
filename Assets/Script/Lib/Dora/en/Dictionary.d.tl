@@ -24,7 +24,7 @@ local record Dictionary
 	-- @param item (Item) The Item to set for the given key, set to nil to delete this key-value pair.
 	set: function(self: Dictionary, key: string, item: Item)
 
-	-- A function that iterates over each item in the dictionary and calls a given function with the item and its key.
+	-- A function that iterates over each item in the dictionary and calls a given function with the item and its key. The items in the dictionary can not be added or removed during the iteration.
 	-- @param func (function) The function to call for each item in the dictionary.
 	-- This function should take an Item and a string as arguments and return a boolean. Returns true to stop iteration, false to continue.
 	-- @return (boolean) Returns false if the iteration completed successfully, true otherwise.

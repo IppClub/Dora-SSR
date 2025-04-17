@@ -53,7 +53,7 @@ local record Model
 	-- @return (Node) The node with the specified name.
 	getNodeByName: function(self: Model, name: string): Node
 
-	-- Calls the specified function for each node in the model, and stops if the function returns false.
+	-- Calls the specified function for each node in the model, and stops if the function returns false. The nodes can not be added or removed during the iteration.
 	-- @param func (function) The function to call for each node.
 	-- @return (boolean) Whether the function was called for all nodes or not.
 	eachNode: function(self: Model, func: function(Node): boolean): boolean

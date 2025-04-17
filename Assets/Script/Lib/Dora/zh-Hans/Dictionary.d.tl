@@ -25,6 +25,7 @@ local record Dictionary
 	set: function(self: Dictionary, key: string, item: Item)
 
 	-- 遍历字典中每个键值对并调用处理函数。
+	-- 在迭代过程中，字典中的键值对不能被添加或删除。
 	-- @param func (function) 对字典中每个键值对调用的函数。
 	-- 此函数会接收一个值对象Item和一个字符串的键作为参数，并需要返回一个布尔值。返回true停止遍历，false继续。
 	-- @return (boolean) 如果遍历成功完成，则返回false，否则返回true。

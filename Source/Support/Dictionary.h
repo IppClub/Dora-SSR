@@ -42,6 +42,8 @@ public:
 
 	template <typename Func>
 	bool each(const Func& func) {
+		_traversing = true;
+		DEFER(_traversing = false);
 		for (const auto& item : _dict) {
 			if (func(item.second.get(), item.first)) {
 				return true;
@@ -53,6 +55,7 @@ public:
 	CREATE_FUNC_NOT_NULL(Dictionary);
 
 private:
+	bool _traversing = false;
 	StringMap<Own<Value>> _dict;
 	DORA_TYPE_OVERRIDE(Dictionary);
 };

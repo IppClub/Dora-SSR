@@ -44,13 +44,16 @@ const Own<Value>& Dictionary::get(String key) const {
 }
 
 void Dictionary::set(String key, Own<Value>&& value) {
+	AssertIf(_traversing, "can not set value when traversing a dictionary");
 	if (value) {
 		_dict[key.toString()] = std::move(value);
-	} else
+	} else {
 		remove(key);
+	}
 }
 
 bool Dictionary::remove(String key) {
+	AssertIf(_traversing, "can not remove value when traversing a dictionary");
 	auto it = _dict.find(key);
 	if (it != _dict.end()) {
 		_dict.erase(it);
@@ -60,6 +63,7 @@ bool Dictionary::remove(String key) {
 }
 
 void Dictionary::clear() {
+	AssertIf(_traversing, "can not clear dictionary when traversing");
 	_dict.clear();
 }
 
