@@ -7,9 +7,12 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.*/
 
 #include <chrono>
+#include <cmath>
+#include <iomanip>
 #include <memory>
 #include <optional>
 #include <set>
+#include <sstream>
 #include <stack>
 #include <string>
 #include <unordered_map>
@@ -75,7 +78,7 @@ static std::unordered_set<std::string> Metamethods = {
 	"close"s // Lua 5.4
 };
 
-const std::string_view version = "0.27.4"sv;
+const std::string_view version = "0.27.5"sv;
 const std::string_view extension = "yue"sv;
 
 class CompileError : public std::logic_error {
@@ -4797,7 +4800,7 @@ private:
 					auto varName = variableToString(ast_to<Variable_t>(var));
 					auto closeVar = getUnusedName("_close_"sv);
 					addToScope(closeVar);
-					getCloses.push_back(closeVar + "=if type("s + varName + ") in ['table', 'userdata'] then assert "s + varName + ".<> and "s + varName +".<close>, \""s + "variable '"s + varName + "' got a non-closable value\" elseif "s + varName + " == nil then nil else error \""s + "variable '"s + varName + "' got a non-closable value\"");
+					getCloses.push_back(closeVar + "=if type("s + varName + ") in ['table', 'userdata'] then assert "s + varName + ".<> and "s + varName + ".<close>, \""s + "variable '"s + varName + "' got a non-closable value\" elseif "s + varName + " == nil then nil else error \""s + "variable '"s + varName + "' got a non-closable value\"");
 					doCloses.push_front(closeVar + "? "s + varName);
 				}
 				popScope();
@@ -7144,6 +7147,33 @@ private:
 	void transformNum(Num_t* num, str_list& out) {
 		std::string numStr = _parser.toString(num);
 		numStr.erase(std::remove(numStr.begin(), numStr.end(), '_'), numStr.end());
+		if (numStr.size() > 2 && numStr[0] == '0') {
+			if (numStr[1] == 'b' || numStr[1] == 'B') {
+				std::string binaryPart = numStr.substr(2);
+				try {
+					unsigned long long value = std::stoull(binaryPart, nullptr, 2);
+					numStr = std::to_string(value);
+				} catch (const std::exception& e) {
+					throw CompileError("invalid binary literal"sv, num);
+				}
+			} else if (getLuaTarget(num) < 502) {
+				if (numStr[1] == 'x' || numStr[1] == 'X') {
+					if (numStr.find_first_of(".-"sv) != std::string::npos) {
+						std::stringstream ss(numStr);
+						double v;
+						ss >> std::hexfloat >> v;
+						if (ss.fail() || !std::isfinite(v)) {
+							throw CompileError("invalid hex‑float literal"sv, num);
+						}
+						std::ostringstream outSs;
+						outSs << std::setprecision(17) << v;
+						numStr = outSs.str();
+					} else {
+						numStr.erase(std::remove(numStr.begin(), numStr.end(), '+'), numStr.end());
+					}
+				}
+			}
+		}
 		out.push_back(numStr);
 	}
 

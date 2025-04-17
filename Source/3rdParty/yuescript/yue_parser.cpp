@@ -67,24 +67,28 @@ YueParser::YueParser() {
 	num_char = range('0', '9') >> *(range('0', '9') | '_' >> and_(range('0', '9')));
 	num_char_hex = range('0', '9') | range('a', 'f') | range('A', 'F');
 	num_lit = num_char_hex >> *(num_char_hex | '_' >> and_(num_char_hex));
+	num_bin_lit = set("01") >> *(set("01") | '_' >> and_(set("01")));
 	Num =
-		"0x" >> (
-			+num_lit >> (
-				'.' >> +num_lit >> -num_expo_hex |
-				num_expo_hex |
-				lj_num |
-				true_()
-			) | (
-				'.' >> +num_lit >> -num_expo_hex
-			)
+		'0' >> (
+			set("xX") >> (
+				num_lit >> (
+					'.' >> num_lit >> -num_expo_hex |
+					num_expo_hex |
+					lj_num |
+					true_()
+				) | (
+					'.' >> num_lit >> -num_expo_hex
+				)
+			) |
+			set("bB") >> num_bin_lit
 		) |
-		+num_char >> (
-			'.' >> +num_char >> -num_expo |
+		num_char >> (
+			'.' >> num_char >> -num_expo |
 			num_expo |
 			lj_num |
 			true_()
 		) |
-		'.' >> +num_char >> -num_expo;
+		'.' >> num_char >> -num_expo;
 
 	cut = false_();
 	Seperator = true_();
