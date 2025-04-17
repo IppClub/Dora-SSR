@@ -53,7 +53,7 @@ local record Model
 	-- @return (Node) 具有指定名称的节点。
 	getNodeByName: function(self: Model, name: string): Node
 
-	-- 对模型中的每个节点调用指定的函数，并在函数返回 false 时停止。
+	-- 对模型中的每个节点调用指定的函数，并在函数返回 false 时停止。在迭代过程中，节点不能被添加或删除。
 	-- @param func (function) 要为每个节点调用的函数。
 	-- @return (boolean) 是否为所有节点调用了函数。
 	eachNode: function(self: Model, func: function(Node): boolean): boolean

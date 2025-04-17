@@ -259,17 +259,17 @@ local record Node
 	-- @param callback (function) The callback function to receive the converted point in window space.
 	convertToWindowSpace: function(self: Node, nodePoint: Vec2, callback: function(Vec2))
 
-	-- Calls the given function for each child node of this node.
+	-- Calls the given function for each child node of this node. The child nodes can not be added or removed during the iteration.
 	-- @param func (function) The function to call for each child node. The function should return a boolean value indicating whether to continue the iteration. Return true to stop iteration.
 	-- @return (boolean) False if all children have been visited, true if the iteration was interrupted by the function.
 	eachChild: function(self: Node, func: function(Node): boolean): boolean
 
-	-- Traverses the node hierarchy starting from this node and calls the given function for each visited node. The nodes without `TraverseEnabled` flag are not visited.
+	-- Traverses the node hierarchy starting from this node and calls the given function for each visited node. The nodes without `TraverseEnabled` flag are not visited. The nodes can not be added or removed during the iteration.
 	-- @param func (function) The function to call for each visited node. The function should return a boolean value indicating whether to continue the traversal. Return true to stop iteration.
 	-- @return (boolean) False if all nodes have been visited, true if the traversal was interrupted by the function.
 	traverse: function(self: Node, func: function(Node): boolean): boolean
 
-	-- Traverses the entire node hierarchy starting from this node and calls the given function for each visited node.
+	-- Traverses the entire node hierarchy starting from this node and calls the given function for each visited node. The nodes without `TraverseEnabled` flag are also visited. The nodes can not be added or removed during the iteration.
 	-- @param func (function) The function to call for each visited node. The function should return a boolean value indicating whether to continue the traversal.
 	-- @return (boolean) True if all nodes have been visited, false if the traversal was interrupted by the function.
 	traverseAll: function(self: Node, func: function(Node): boolean): boolean

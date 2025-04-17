@@ -52,6 +52,7 @@ local record Array
 	fastRemoveAt: function(self: Array, index: integer): boolean
 
 	-- Calls a given function for each item in the array.
+	-- The items in the array can not be added or removed during the iteration.
 	-- @param func (function) The function to call for each item.
 	-- Should return false to continue iteration, true to stop.
 	-- @return (boolean) False if the iteration completed, true if it was interrupted by the function.

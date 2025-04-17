@@ -53,6 +53,7 @@ local record Array
 	fastRemoveAt: function(self: Array, index: integer): boolean
 
 	-- 对数组中的每个对象调用处理函数。
+	-- 在迭代过程中，数组中的对象不能被添加或删除。
 	-- @param func (function) 要为每个对象调用的函数。
 	-- 如果返回false则继续迭代，返回true则停止。
 	-- @return (boolean) 如果迭代完成则返回false，如果处理函数中断了迭代则返回true。
