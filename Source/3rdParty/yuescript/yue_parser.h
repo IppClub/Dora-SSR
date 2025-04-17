@@ -164,6 +164,7 @@ private:
 	NONE_AST_RULE(num_char);
 	NONE_AST_RULE(num_char_hex);
 	NONE_AST_RULE(num_lit);
+	NONE_AST_RULE(num_bin_lit);
 	NONE_AST_RULE(num_expo);
 	NONE_AST_RULE(num_expo_hex);
 	NONE_AST_RULE(lj_num);

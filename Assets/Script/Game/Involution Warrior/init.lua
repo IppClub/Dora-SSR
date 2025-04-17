@@ -989,391 +989,389 @@ do -- 742
 		if group == EnemyGroup then -- 746
 			self.enemy = true -- 746
 		end -- 746
-		do -- 747
-			local _with_1 -- 747
-			if self.boss then -- 747
-				_with_1 = GetBoss(self, position, group == EnemyGroup) -- 748
-			else -- 750
-				_with_1 = GetUnit(self, position, group == EnemyGroup) -- 750
-			end -- 747
-			_with_1.group = group -- 751
-			_with_1.order = order -- 752
-			_with_1.playable:runAction(Action(Scale(0.5, 0, self.unit.unitDef.scale, Ease.OutBack))) -- 753
-			_with_1.faceRight = faceRight -- 754
-			_with_1:addTo(world) -- 755
+		local unit -- 747
+		if self.boss then -- 747
+			unit = GetBoss(self, position, group == EnemyGroup) -- 748
+		else -- 750
+			unit = GetUnit(self, position, group == EnemyGroup) -- 750
 		end -- 747
-		return false -- 755
+		unit.group = group -- 752
+		unit.order = order -- 753
+		unit.playable:runAction(Action(Scale(0.5, 0, self.unit.unitDef.scale, Ease.OutBack))) -- 754
+		unit.faceRight = faceRight -- 755
+		unit:addTo(world) -- 756
+		return false -- 756
 	end) -- 743
 end -- 742
-do -- 757
-	local _with_0 = Observer("Change", { -- 757
-		"hp", -- 757
-		"unit" -- 757
-	}) -- 757
-	_with_0:watch(function(self, hp, unit) -- 758
-		local boss = self.boss -- 759
-		local lastHp = self.oldValues.hp -- 760
-		if hp < lastHp then -- 761
-			if not boss and unit:isDoing("hit") then -- 762
-				unit:start("cancel") -- 762
-			end -- 762
-			do -- 763
-				local _with_1 = Label("sarasa-mono-sc-regular", 30) -- 763
-				_with_1.order = PlayerLayer -- 764
-				_with_1.color = Color(0xffff0000) -- 765
-				_with_1.position = unit.position + Vec2(0, 40) -- 766
-				_with_1.text = "-" .. tostring(lastHp - hp) -- 767
-				_with_1:runAction(Action(Sequence(Y(0.5, _with_1.y, _with_1.y + 100), Opacity(0.2, 1, 0), Event("End")))) -- 768
-				_with_1:slot("End", function() -- 773
-					return _with_1:removeFromParent() -- 773
-				end) -- 773
-				_with_1:addTo(world) -- 774
+do -- 758
+	local _with_0 = Observer("Change", { -- 758
+		"hp", -- 758
+		"unit" -- 758
+	}) -- 758
+	_with_0:watch(function(self, hp, unit) -- 759
+		local boss = self.boss -- 760
+		local lastHp = self.oldValues.hp -- 761
+		if hp < lastHp then -- 762
+			if not boss and unit:isDoing("hit") then -- 763
+				unit:start("cancel") -- 763
 			end -- 763
-			if boss then -- 775
-				local _with_1 = Visual("Particle/bloodp.par") -- 776
-				_with_1.position = unit.data.hitPoint -- 777
-				_with_1:addTo(world, unit.order) -- 778
-				_with_1:autoRemove() -- 779
-				_with_1:start() -- 780
-			end -- 775
-			if hp > 0 then -- 781
-				unit:start("hit") -- 782
-			else -- 784
-				unit:start("cancel") -- 784
-				unit:start("hit") -- 785
-				unit:start("fall") -- 786
-				unit.group = Data.groupHide -- 787
-				unit:schedule(once(function() -- 788
-					sleep(3) -- 789
-					unit:removeFromParent() -- 790
-					if not Group({ -- 791
-						"unit" -- 791
-					}):each(function(self) -- 791
-						return self.group == PlayerGroup -- 791
-					end) then -- 791
-						return emit("Lost") -- 792
-					elseif not Group({ -- 793
-						"unit" -- 793
-					}):each(function(self) -- 793
-						return self.group == EnemyGroup -- 793
-					end) then -- 793
-						return emit("Win") -- 794
-					end -- 791
-				end)) -- 788
-			end -- 781
-		end -- 761
-		return false -- 794
-	end) -- 758
-end -- 757
-local WaitForSignal -- 796
-WaitForSignal = function(text, duration) -- 796
-	local _with_0 = Label("sarasa-mono-sc-regular", 100) -- 797
-	_with_0.color = themeColor -- 798
-	_with_0.text = text -- 799
-	_with_0:runAction(Spawn(Scale(0.5, 0.3, 1, Ease.OutBack), Opacity(0.3, 0, 1))) -- 800
-	sleep(duration - 0.3) -- 804
-	_with_0:runAction(Spawn(Scale(0.3, 1, 1.5, Ease.OutQuad), Opacity(0.3, 1, 0, Ease.OutQuad))) -- 805
-	sleep(0.3) -- 809
-	_with_0:removeFromParent() -- 810
-	return _with_0 -- 797
-end -- 796
-local GameScore = 20 -- 812
-local _anon_func_3 = function(Delay, Ease, Event, Label, Opacity, Scale, Sequence, Spawn, _with_2, string, themeColor, tostring, value) -- 837
-	local _with_0 = Label("sarasa-mono-sc-regular", 32) -- 822
-	_with_0.color = themeColor -- 823
-	_with_0.text = string.format(tostring(value > 0 and '+' or '') .. "%d", value) -- 824
-	_with_0:runAction(Sequence(Spawn(Scale(0.5, 0.3, 1, Ease.OutBack), Opacity(0.5, 0, 1)), Delay(0.5), Spawn(Scale(0.3, 1, 1.5, Ease.OutQuad), Opacity(0.3, 1, 0, Ease.OutQuad)), Event("End"))) -- 825
-	_with_0:slot("End", function() -- 837
-		return _with_0:removeFromParent() -- 837
-	end) -- 837
-	return _with_0 -- 822
-end -- 822
-Director.ui:addChild((function() -- 814
-	local _with_0 = AlignNode(true) -- 814
-	_with_0:css('flex-direction: row') -- 815
-	_with_0:addChild((function() -- 816
-		local _with_1 = AlignNode() -- 816
-		_with_1:css('width: 30%') -- 817
-		_with_1:addChild((function() -- 818
-			local _with_2 = AlignNode() -- 818
-			_with_2:css('margin-left: 165; margin-top: 40; width: 0; height: 1') -- 819
-			_with_2:gslot("AddScore", function(value) -- 820
-				if value < 0 and GameScore == 0 then -- 821
-					return -- 821
-				end -- 821
-				_with_2:addChild(_anon_func_3(Delay, Ease, Event, Label, Opacity, Scale, Sequence, Spawn, _with_2, string, themeColor, tostring, value)) -- 822
-				GameScore = math.max(0, GameScore + value) -- 838
-				if GameScore == 0 then -- 839
-					return _with_2:schedule(once(function() -- 840
-						Audio:play("Audio/game_over.wav") -- 841
-						WaitForSignal("FOREVER LOST!", 3) -- 842
-						return emit("GameLost") -- 843
-					end)) -- 843
-				end -- 839
-			end) -- 820
-			return _with_2 -- 818
-		end)()) -- 818
-		return _with_1 -- 816
-	end)()) -- 816
-	_with_0:addChild((function() -- 844
-		local _with_1 = AlignNode() -- 844
-		_with_1:css('width: 40%; flex-direction: row; justify-content: center; align-items: center') -- 845
-		_with_1:addChild((function() -- 846
-			local _with_2 = AlignNode() -- 846
-			_with_2:css('height: 1; width: 0; margin-top: 200; margin-right: 80') -- 847
-			_with_2:addChild((function() -- 848
-				local _with_3 = CircleButton({ -- 849
-					text = "FIGHT", -- 849
-					radius = 40, -- 850
-					fontName = "sarasa-mono-sc-regular", -- 851
-					fontSize = 24 -- 852
-				}) -- 848
-				_with_3:slot("Tapped", function() -- 854
-					if GameScore <= 0 then -- 855
-						return -- 855
-					end -- 855
-					GamePaused = false -- 856
-					return _with_3.parent:schedule(once(function() -- 857
-						emit("Fight") -- 858
-						Audio:play("Audio/choose.wav") -- 859
-						return WaitForSignal("FIGHT!", 1) -- 860
-					end)) -- 860
-				end) -- 854
-				return _with_3 -- 848
-			end)()) -- 848
-			return _with_2 -- 846
-		end)()) -- 846
-		_with_1:addChild((function() -- 861
-			local _with_2 = AlignNode() -- 861
-			_with_2:css('height: 1; width: 0; margin-top: 200') -- 862
-			_with_2:addChild((function() -- 863
-				local _with_3 = CircleButton({ -- 864
-					text = "STRIKE\nBACK", -- 864
-					radius = 40, -- 865
-					fontName = "sarasa-mono-sc-regular", -- 866
-					fontSize = 24 -- 867
-				}) -- 863
-				_with_3.visible = false -- 869
-				_with_3:gslot("GameLost", function() -- 870
-					_with_3.visible = true -- 871
-					_with_3.parent.visible = true -- 872
-					_with_3.touchEnabled = true -- 873
-				end) -- 870
-				_with_3:slot("Tapped", function() -- 874
-					_with_3.touchEnabled = false -- 875
-					Audio:play("Audio/v_att.wav") -- 876
-					return _with_3:schedule(once(function() -- 877
-						sleep(0.5) -- 878
-						_with_3.visible = false -- 879
-						emit("AddScore", 20) -- 880
-						return emit("Start") -- 881
-					end)) -- 881
-				end) -- 874
-				return _with_3 -- 863
-			end)()) -- 863
-			return _with_2 -- 861
-		end)()) -- 861
-		_with_1:addChild((function() -- 882
-			local _with_2 = AlignNode() -- 882
-			_with_2:css('height: 1; width: 0; margin-top: 200; margin-left: 80') -- 883
-			_with_2:addChild((function() -- 884
-				local _with_3 = CircleButton({ -- 885
-					text = "ANOTHER\nWAY", -- 885
-					radius = 40, -- 886
-					fontName = "sarasa-mono-sc-regular", -- 887
-					fontSize = 24 -- 888
-				}) -- 884
-				_with_3:slot("Tapped", function() -- 890
-					Audio:play("Audio/switch.wav") -- 891
-					if GameScore <= 5 then -- 892
-						local _with_4 = _with_3.parent.parent -- 893
-						_with_4:eachChild(function(self) -- 894
-							self.visible = false -- 894
-						end) -- 894
-						_with_4:unschedule() -- 895
-					end -- 892
-					emit("AddScore", -5) -- 896
-					return emit("Start") -- 897
-				end) -- 890
-				return _with_3 -- 884
-			end)()) -- 884
-			return _with_2 -- 882
-		end)()) -- 882
-		_with_1:gslot("Lost", function() -- 898
-			return _with_1:schedule(once(function() -- 899
-				emit("AddScore", -(10 + math.floor(GameScore / 20) * 5)) -- 900
-				if GameScore == 0 then -- 901
-					return -- 901
-				end -- 901
-				Audio:play("Audio/hero_fall.wav") -- 902
-				WaitForSignal("LOST!", 1.5) -- 903
-				return emit("Start") -- 904
-			end)) -- 904
-		end) -- 898
-		_with_1:gslot("Win", function() -- 905
-			return _with_1:schedule(once(function() -- 906
-				local score = 5 * Group({ -- 907
-					"player" -- 907
-				}).count -- 907
-				emit("AddScore", score) -- 908
-				Audio:play("Audio/hero_win.wav") -- 909
-				WaitForSignal("WIN!", 1.5) -- 910
-				return emit("Start") -- 911
-			end)) -- 911
-		end) -- 905
-		_with_1:gslot("Wasted", function() -- 912
-			_with_1:eachChild(function(self) -- 913
-				self.visible = false -- 914
-			end) -- 913
-			return emit("AddScore", -20) -- 915
-		end) -- 912
-		_with_1:gslot("Fight", function() -- 916
-			_with_1:eachChild(function(self) -- 917
-				self.visible = false -- 917
-			end) -- 917
-			return _with_1:unschedule() -- 918
-		end) -- 916
-		_with_1:gslot("Start", function() -- 919
-			if GameScore == 0 then -- 920
-				return -- 920
-			end -- 920
-			GamePaused = true -- 921
-			_with_1:eachChild(function(self) -- 922
-				self.visible = true -- 922
-			end) -- 922
-			Group({ -- 923
-				"unit" -- 923
-			}):each(function(self) -- 923
-				return self.unit:removeFromParent() -- 923
+			do -- 764
+				local _with_1 = Label("sarasa-mono-sc-regular", 30) -- 764
+				_with_1.order = PlayerLayer -- 765
+				_with_1.color = Color(0xffff0000) -- 766
+				_with_1.position = unit.position + Vec2(0, 40) -- 767
+				_with_1.text = "-" .. tostring(lastHp - hp) -- 768
+				_with_1:runAction(Action(Sequence(Y(0.5, _with_1.y, _with_1.y + 100), Opacity(0.2, 1, 0), Event("End")))) -- 769
+				_with_1:slot("End", function() -- 774
+					return _with_1:removeFromParent() -- 774
+				end) -- 774
+				_with_1:addTo(world) -- 775
+			end -- 764
+			if boss then -- 776
+				local _with_1 = Visual("Particle/bloodp.par") -- 777
+				_with_1.position = unit.data.hitPoint -- 778
+				_with_1:addTo(world, unit.order) -- 779
+				_with_1:autoRemove() -- 780
+				_with_1:start() -- 781
+			end -- 776
+			if hp > 0 then -- 782
+				unit:start("hit") -- 783
+			else -- 785
+				unit:start("cancel") -- 785
+				unit:start("hit") -- 786
+				unit:start("fall") -- 787
+				unit.group = Data.groupHide -- 788
+				unit:schedule(once(function() -- 789
+					sleep(3) -- 790
+					unit:removeFromParent() -- 791
+					if not Group({ -- 792
+						"unit" -- 792
+					}):each(function(self) -- 792
+						return self.group == PlayerGroup -- 792
+					end) then -- 792
+						return emit("Lost") -- 793
+					elseif not Group({ -- 794
+						"unit" -- 794
+					}):each(function(self) -- 794
+						return self.group == EnemyGroup -- 794
+					end) then -- 794
+						return emit("Win") -- 795
+					end -- 792
+				end)) -- 789
+			end -- 782
+		end -- 762
+		return false -- 795
+	end) -- 759
+end -- 758
+local WaitForSignal -- 797
+WaitForSignal = function(text, duration) -- 797
+	local _with_0 = Label("sarasa-mono-sc-regular", 100) -- 798
+	_with_0.color = themeColor -- 799
+	_with_0.text = text -- 800
+	_with_0:runAction(Spawn(Scale(0.5, 0.3, 1, Ease.OutBack), Opacity(0.3, 0, 1))) -- 801
+	sleep(duration - 0.3) -- 805
+	_with_0:runAction(Spawn(Scale(0.3, 1, 1.5, Ease.OutQuad), Opacity(0.3, 1, 0, Ease.OutQuad))) -- 806
+	sleep(0.3) -- 810
+	_with_0:removeFromParent() -- 811
+	return _with_0 -- 798
+end -- 797
+local GameScore = 20 -- 813
+local _anon_func_3 = function(Delay, Ease, Event, Label, Opacity, Scale, Sequence, Spawn, _with_2, string, themeColor, tostring, value) -- 838
+	local _with_0 = Label("sarasa-mono-sc-regular", 32) -- 823
+	_with_0.color = themeColor -- 824
+	_with_0.text = string.format(tostring(value > 0 and '+' or '') .. "%d", value) -- 825
+	_with_0:runAction(Sequence(Spawn(Scale(0.5, 0.3, 1, Ease.OutBack), Opacity(0.5, 0, 1)), Delay(0.5), Spawn(Scale(0.3, 1, 1.5, Ease.OutQuad), Opacity(0.3, 1, 0, Ease.OutQuad)), Event("End"))) -- 826
+	_with_0:slot("End", function() -- 838
+		return _with_0:removeFromParent() -- 838
+	end) -- 838
+	return _with_0 -- 823
+end -- 823
+Director.ui:addChild((function() -- 815
+	local _with_0 = AlignNode(true) -- 815
+	_with_0:css('flex-direction: row') -- 816
+	_with_0:addChild((function() -- 817
+		local _with_1 = AlignNode() -- 817
+		_with_1:css('width: 30%') -- 818
+		_with_1:addChild((function() -- 819
+			local _with_2 = AlignNode() -- 819
+			_with_2:css('margin-left: 165; margin-top: 40; width: 0; height: 1') -- 820
+			_with_2:gslot("AddScore", function(value) -- 821
+				if value < 0 and GameScore == 0 then -- 822
+					return -- 822
+				end -- 822
+				_with_2:addChild(_anon_func_3(Delay, Ease, Event, Label, Opacity, Scale, Sequence, Spawn, _with_2, string, themeColor, tostring, value)) -- 823
+				GameScore = math.max(0, GameScore + value) -- 839
+				if GameScore == 0 then -- 840
+					return _with_2:schedule(once(function() -- 841
+						Audio:play("Audio/game_over.wav") -- 842
+						WaitForSignal("FOREVER LOST!", 3) -- 843
+						return emit("GameLost") -- 844
+					end)) -- 844
+				end -- 840
+			end) -- 821
+			return _with_2 -- 819
+		end)()) -- 819
+		return _with_1 -- 817
+	end)()) -- 817
+	_with_0:addChild((function() -- 845
+		local _with_1 = AlignNode() -- 845
+		_with_1:css('width: 40%; flex-direction: row; justify-content: center; align-items: center') -- 846
+		_with_1:addChild((function() -- 847
+			local _with_2 = AlignNode() -- 847
+			_with_2:css('height: 1; width: 0; margin-top: 200; margin-right: 80') -- 848
+			_with_2:addChild((function() -- 849
+				local _with_3 = CircleButton({ -- 850
+					text = "FIGHT", -- 850
+					radius = 40, -- 851
+					fontName = "sarasa-mono-sc-regular", -- 852
+					fontSize = 24 -- 853
+				}) -- 849
+				_with_3:slot("Tapped", function() -- 855
+					if GameScore <= 0 then -- 856
+						return -- 856
+					end -- 856
+					GamePaused = false -- 857
+					return _with_3.parent:schedule(once(function() -- 858
+						emit("Fight") -- 859
+						Audio:play("Audio/choose.wav") -- 860
+						return WaitForSignal("FIGHT!", 1) -- 861
+					end)) -- 861
+				end) -- 855
+				return _with_3 -- 849
+			end)()) -- 849
+			return _with_2 -- 847
+		end)()) -- 847
+		_with_1:addChild((function() -- 862
+			local _with_2 = AlignNode() -- 862
+			_with_2:css('height: 1; width: 0; margin-top: 200') -- 863
+			_with_2:addChild((function() -- 864
+				local _with_3 = CircleButton({ -- 865
+					text = "STRIKE\nBACK", -- 865
+					radius = 40, -- 866
+					fontName = "sarasa-mono-sc-regular", -- 867
+					fontSize = 24 -- 868
+				}) -- 864
+				_with_3.visible = false -- 870
+				_with_3:gslot("GameLost", function() -- 871
+					_with_3.visible = true -- 872
+					_with_3.parent.visible = true -- 873
+					_with_3.touchEnabled = true -- 874
+				end) -- 871
+				_with_3:slot("Tapped", function() -- 875
+					_with_3.touchEnabled = false -- 876
+					Audio:play("Audio/v_att.wav") -- 877
+					return _with_3:schedule(once(function() -- 878
+						sleep(0.5) -- 879
+						_with_3.visible = false -- 880
+						emit("AddScore", 20) -- 881
+						return emit("Start") -- 882
+					end)) -- 882
+				end) -- 875
+				return _with_3 -- 864
+			end)()) -- 864
+			return _with_2 -- 862
+		end)()) -- 862
+		_with_1:addChild((function() -- 883
+			local _with_2 = AlignNode() -- 883
+			_with_2:css('height: 1; width: 0; margin-top: 200; margin-left: 80') -- 884
+			_with_2:addChild((function() -- 885
+				local _with_3 = CircleButton({ -- 886
+					text = "ANOTHER\nWAY", -- 886
+					radius = 40, -- 887
+					fontName = "sarasa-mono-sc-regular", -- 888
+					fontSize = 24 -- 889
+				}) -- 885
+				_with_3:slot("Tapped", function() -- 891
+					Audio:play("Audio/switch.wav") -- 892
+					if GameScore <= 5 then -- 893
+						local _with_4 = _with_3.parent.parent -- 894
+						_with_4:eachChild(function(self) -- 895
+							self.visible = false -- 895
+						end) -- 895
+						_with_4:unschedule() -- 896
+					end -- 893
+					emit("AddScore", -5) -- 897
+					return emit("Start") -- 898
+				end) -- 891
+				return _with_3 -- 885
+			end)()) -- 885
+			return _with_2 -- 883
+		end)()) -- 883
+		_with_1:gslot("Lost", function() -- 899
+			return _with_1:schedule(once(function() -- 900
+				emit("AddScore", -(10 + math.floor(GameScore / 20) * 5)) -- 901
+				if GameScore == 0 then -- 902
+					return -- 902
+				end -- 902
+				Audio:play("Audio/hero_fall.wav") -- 903
+				WaitForSignal("LOST!", 1.5) -- 904
+				return emit("Start") -- 905
+			end)) -- 905
+		end) -- 899
+		_with_1:gslot("Win", function() -- 906
+			return _with_1:schedule(once(function() -- 907
+				local score = 5 * Group({ -- 908
+					"player" -- 908
+				}).count -- 908
+				emit("AddScore", score) -- 909
+				Audio:play("Audio/hero_win.wav") -- 910
+				WaitForSignal("WIN!", 1.5) -- 911
+				return emit("Start") -- 912
+			end)) -- 912
+		end) -- 906
+		_with_1:gslot("Wasted", function() -- 913
+			_with_1:eachChild(function(self) -- 914
+				self.visible = false -- 915
+			end) -- 914
+			return emit("AddScore", -20) -- 916
+		end) -- 913
+		_with_1:gslot("Fight", function() -- 917
+			_with_1:eachChild(function(self) -- 918
+				self.visible = false -- 918
+			end) -- 918
+			return _with_1:unschedule() -- 919
+		end) -- 917
+		_with_1:gslot("Start", function() -- 920
+			if GameScore == 0 then -- 921
+				return -- 921
+			end -- 921
+			GamePaused = true -- 922
+			_with_1:eachChild(function(self) -- 923
+				self.visible = true -- 923
 			end) -- 923
-			local unitCount -- 924
-			if GameScore < 40 then -- 924
-				unitCount = 1 + math.min(2, math.floor(math.max(0, GameScore - 20) / 5)) -- 925
-			else -- 927
-				unitCount = 3 + math.min(3, math.floor(GameScore / 35)) -- 927
-			end -- 924
-			if math.random(1, 100) == 1 then -- 928
-				Entity({ -- 930
-					position = Vec2(-200, 100), -- 930
-					order = PlayerLayer, -- 931
-					group = PlayerGroup, -- 932
-					boss = true, -- 933
-					faceRight = true -- 934
-				}) -- 929
-			else -- 936
-				for i = 1, unitCount do -- 936
-					Entity({ -- 938
-						position = Vec2(-100 * i, 100), -- 938
-						order = PlayerLayer, -- 939
-						group = PlayerGroup, -- 940
-						faceRight = true -- 941
-					}) -- 937
-				end -- 941
-			end -- 928
-			if math.random(1, 100) == 1 then -- 942
-				Entity({ -- 944
-					position = Vec2(200, 100), -- 944
-					order = EnemyLayer, -- 945
-					group = EnemyGroup, -- 946
-					boss = true, -- 947
-					faceRight = false -- 948
-				}) -- 943
-			else -- 950
-				for i = 1, unitCount do -- 950
-					Entity({ -- 952
-						position = Vec2(100 * i, 100), -- 952
-						order = EnemyLayer, -- 953
-						group = EnemyGroup, -- 954
-						faceRight = false -- 955
-					}) -- 951
-				end -- 955
-			end -- 942
-			return _with_1:schedule(once(function() -- 956
-				local time = 2 -- 957
-				cycle(time, function(dt) -- 958
-					local width, height -- 959
-					do -- 959
-						local _obj_0 = App.visualSize -- 959
-						width, height = _obj_0.width, _obj_0.height -- 959
-					end -- 959
-					SetNextWindowPos(Vec2(width / 2 - 150, height / 2)) -- 960
-					SetNextWindowSize(Vec2(300, 50), "FirstUseEver") -- 961
-					return Begin("CountDown", { -- 962
-						"NoResize", -- 962
-						"NoSavedSettings", -- 962
-						"NoTitleBar", -- 962
-						"NoMove" -- 962
-					}, function() -- 962
-						return ProgressBar(1.0 - dt, Vec2(-1, 30), string.format("%.2fs", (1 - dt) * time)) -- 963
-					end) -- 963
-				end) -- 958
-				emit("Wasted") -- 964
-				if GameScore == 0 then -- 965
-					return -- 965
-				end -- 965
-				Audio:play("Audio/choose.wav") -- 966
-				WaitForSignal("WASTED!", 1.5) -- 967
-				return emit("Start") -- 968
-			end)) -- 968
-		end) -- 919
-		_with_1:addChild((function() -- 969
-			local _with_2 = Node() -- 969
-			_with_2:schedule(function() -- 970
-				SetNextWindowPos(Vec2(20, 20)) -- 971
-				SetNextWindowSize(Vec2(120, 280), "FirstUseEver") -- 972
-				return PushStyleVar("ItemSpacing", Vec2.zero, function() -- 973
-					return Begin("Stats", { -- 974
-						"NoResize", -- 974
-						"NoSavedSettings", -- 974
-						"NoTitleBar", -- 974
-						"NoMove" -- 974
-					}, function() -- 974
-						Text("VALUE: " .. tostring(GameScore)) -- 975
-						Image("Model/patreon.clip|character_handGreen", Vec2(30, 30)) -- 976
-						SameLine() -- 977
-						Text("->") -- 978
-						SameLine() -- 979
-						Image("Model/patreon.clip|character_handRed", Vec2(30, 30)) -- 980
-						SameLine() -- 981
-						Text("x3") -- 982
-						Image("Model/patreon.clip|character_handRed", Vec2(30, 30)) -- 983
-						SameLine() -- 984
-						Text("->") -- 985
-						SameLine() -- 986
-						Image("Model/patreon.clip|character_handYellow", Vec2(30, 30)) -- 987
-						SameLine() -- 988
-						Text("x3") -- 989
-						Image("Model/patreon.clip|character_handYellow", Vec2(30, 30)) -- 990
-						SameLine() -- 991
-						Text("->") -- 992
-						SameLine() -- 993
-						Image("Model/patreon.clip|character_handGreen", Vec2(30, 30)) -- 994
-						SameLine() -- 995
-						Text("x3") -- 996
-						Image("Model/patreon.clip|item_bow", Vec2(30, 30)) -- 997
-						SameLine() -- 998
-						Text(">") -- 999
-						SameLine() -- 1000
-						Image("Model/patreon.clip|item_sword", Vec2(30, 30)) -- 1001
-						Image("Model/patreon.clip|item_hatTop", Vec2(30, 30)) -- 1002
-						SameLine() -- 1003
-						Text("dodge") -- 1004
-						Image("Model/patreon.clip|item_helmet", Vec2(30, 30)) -- 1005
-						SameLine() -- 1006
-						Text("rush") -- 1007
-						Image("Model/patreon.clip|item_rod", Vec2(30, 30)) -- 1008
-						SameLine() -- 1009
-						Text("knock") -- 1010
-						Image("Model/patreon.clip|tile_heart", Vec2(30, 30)) -- 1011
-						SameLine() -- 1012
-						return Text("bash") -- 1013
-					end) -- 1013
-				end) -- 1013
-			end) -- 970
-			return _with_2 -- 969
-		end)()) -- 969
-		return _with_1 -- 844
-	end)()) -- 844
-	return _with_0 -- 814
-end)()) -- 814
-return emit("Start") -- 1015
+			Group({ -- 924
+				"unit" -- 924
+			}):each(function(self) -- 924
+				return self.unit:removeFromParent() -- 924
+			end) -- 924
+			local unitCount -- 925
+			if GameScore < 40 then -- 925
+				unitCount = 1 + math.min(2, math.floor(math.max(0, GameScore - 20) / 5)) -- 926
+			else -- 928
+				unitCount = 3 + math.min(3, math.floor(GameScore / 35)) -- 928
+			end -- 925
+			if math.random(1, 100) == 1 then -- 929
+				Entity({ -- 931
+					position = Vec2(-200, 100), -- 931
+					order = PlayerLayer, -- 932
+					group = PlayerGroup, -- 933
+					boss = true, -- 934
+					faceRight = true -- 935
+				}) -- 930
+			else -- 937
+				for i = 1, unitCount do -- 937
+					Entity({ -- 939
+						position = Vec2(-100 * i, 100), -- 939
+						order = PlayerLayer, -- 940
+						group = PlayerGroup, -- 941
+						faceRight = true -- 942
+					}) -- 938
+				end -- 942
+			end -- 929
+			if math.random(1, 100) == 1 then -- 943
+				Entity({ -- 945
+					position = Vec2(200, 100), -- 945
+					order = EnemyLayer, -- 946
+					group = EnemyGroup, -- 947
+					boss = true, -- 948
+					faceRight = false -- 949
+				}) -- 944
+			else -- 951
+				for i = 1, unitCount do -- 951
+					Entity({ -- 953
+						position = Vec2(100 * i, 100), -- 953
+						order = EnemyLayer, -- 954
+						group = EnemyGroup, -- 955
+						faceRight = false -- 956
+					}) -- 952
+				end -- 956
+			end -- 943
+			return _with_1:schedule(once(function() -- 957
+				local time = 2 -- 958
+				cycle(time, function(dt) -- 959
+					local width, height -- 960
+					do -- 960
+						local _obj_0 = App.visualSize -- 960
+						width, height = _obj_0.width, _obj_0.height -- 960
+					end -- 960
+					SetNextWindowPos(Vec2(width / 2 - 150, height / 2)) -- 961
+					SetNextWindowSize(Vec2(300, 50), "FirstUseEver") -- 962
+					return Begin("CountDown", { -- 963
+						"NoResize", -- 963
+						"NoSavedSettings", -- 963
+						"NoTitleBar", -- 963
+						"NoMove" -- 963
+					}, function() -- 963
+						return ProgressBar(1.0 - dt, Vec2(-1, 30), string.format("%.2fs", (1 - dt) * time)) -- 964
+					end) -- 964
+				end) -- 959
+				emit("Wasted") -- 965
+				if GameScore == 0 then -- 966
+					return -- 966
+				end -- 966
+				Audio:play("Audio/choose.wav") -- 967
+				WaitForSignal("WASTED!", 1.5) -- 968
+				return emit("Start") -- 969
+			end)) -- 969
+		end) -- 920
+		_with_1:addChild((function() -- 970
+			local _with_2 = Node() -- 970
+			_with_2:schedule(function() -- 971
+				SetNextWindowPos(Vec2(20, 20)) -- 972
+				SetNextWindowSize(Vec2(120, 280), "FirstUseEver") -- 973
+				return PushStyleVar("ItemSpacing", Vec2.zero, function() -- 974
+					return Begin("Stats", { -- 975
+						"NoResize", -- 975
+						"NoSavedSettings", -- 975
+						"NoTitleBar", -- 975
+						"NoMove" -- 975
+					}, function() -- 975
+						Text("VALUE: " .. tostring(GameScore)) -- 976
+						Image("Model/patreon.clip|character_handGreen", Vec2(30, 30)) -- 977
+						SameLine() -- 978
+						Text("->") -- 979
+						SameLine() -- 980
+						Image("Model/patreon.clip|character_handRed", Vec2(30, 30)) -- 981
+						SameLine() -- 982
+						Text("x3") -- 983
+						Image("Model/patreon.clip|character_handRed", Vec2(30, 30)) -- 984
+						SameLine() -- 985
+						Text("->") -- 986
+						SameLine() -- 987
+						Image("Model/patreon.clip|character_handYellow", Vec2(30, 30)) -- 988
+						SameLine() -- 989
+						Text("x3") -- 990
+						Image("Model/patreon.clip|character_handYellow", Vec2(30, 30)) -- 991
+						SameLine() -- 992
+						Text("->") -- 993
+						SameLine() -- 994
+						Image("Model/patreon.clip|character_handGreen", Vec2(30, 30)) -- 995
+						SameLine() -- 996
+						Text("x3") -- 997
+						Image("Model/patreon.clip|item_bow", Vec2(30, 30)) -- 998
+						SameLine() -- 999
+						Text(">") -- 1000
+						SameLine() -- 1001
+						Image("Model/patreon.clip|item_sword", Vec2(30, 30)) -- 1002
+						Image("Model/patreon.clip|item_hatTop", Vec2(30, 30)) -- 1003
+						SameLine() -- 1004
+						Text("dodge") -- 1005
+						Image("Model/patreon.clip|item_helmet", Vec2(30, 30)) -- 1006
+						SameLine() -- 1007
+						Text("rush") -- 1008
+						Image("Model/patreon.clip|item_rod", Vec2(30, 30)) -- 1009
+						SameLine() -- 1010
+						Text("knock") -- 1011
+						Image("Model/patreon.clip|tile_heart", Vec2(30, 30)) -- 1012
+						SameLine() -- 1013
+						return Text("bash") -- 1014
+					end) -- 1014
+				end) -- 1014
+			end) -- 971
+			return _with_2 -- 970
+		end)()) -- 970
+		return _with_1 -- 845
+	end)()) -- 845
+	return _with_0 -- 815
+end)()) -- 815
+return emit("Start") -- 1016

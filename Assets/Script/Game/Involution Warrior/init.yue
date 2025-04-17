@@ -744,10 +744,11 @@ with Observer "Add", ["position", "order", "group", "faceRight"]
 		:world = Store
 		@player = true if group == PlayerGroup
 		@enemy = true if group == EnemyGroup
-		with (if @boss
+		unit = if @boss
 			GetBoss @,position,group == EnemyGroup
 		else
-			GetUnit @,position,group == EnemyGroup)
+			GetUnit @,position,group == EnemyGroup
+		with unit
 			.group = group
 			.order = order
 			.playable\runAction Action Scale 0.5, 0, @unit.unitDef.scale, Ease.OutBack
