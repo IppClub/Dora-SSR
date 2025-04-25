@@ -639,6 +639,10 @@ void HttpClient::postAsync(String url, std::span<Slice> headers, String json, fl
 }
 
 void HttpClient::postAsync(String url, const std::vector<std::string>& headers, String json, float timeout, const ContentHandler& callback) {
+	postAsync(url, headers, json, timeout, nullptr, callback);
+}
+
+void HttpClient::postAsync(String url, const std::vector<std::string>& headers, String json, float timeout, const ContentHandler& partCallback, const ContentHandler& callback) {
 	std::vector<Slice> headerArray(headers.size());
 	for (size_t i = 0; i < headers.size(); i++) {
 		headerArray[i] = headers[i];

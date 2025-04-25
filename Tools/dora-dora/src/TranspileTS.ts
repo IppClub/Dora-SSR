@@ -10,7 +10,7 @@ import * as monaco from 'monaco-editor';
 import * as tstl from './3rdParty/tstl';
 import * as ts from 'typescript';
 import { createEmitOutputCollector } from './3rdParty/tstl/transpilation/output-collector';
-import {SourceMapConsumer} from 'source-map';
+import { SourceMapConsumer } from 'source-map';
 import Info from './Info';
 import * as Service from './Service';
 
@@ -30,8 +30,9 @@ const tstlOptions: tstl.CompilerOptions = {
 	module: moduleKind,
 };
 
-function createTypescriptProgram(rootFileName: string, content: string): ts.Program {
+function createCompilerHost(rootFileName: string, content: string): [ts.CompilerHost, Map<string, string>] {
 	const currentDirectory = Info.path.dirname(rootFileName);
+	const writeFiles = new Map<string, string>();
 	const pathMap = new Map<string, monaco.Uri>();
 	const compilerHost: ts.CompilerHost = {
 		fileExists: fileName => {
@@ -143,7 +144,9 @@ function createTypescriptProgram(rootFileName: string, content: string): ts.Prog
 		},
 		getNewLine: () => "\n",
 		useCaseSensitiveFileNames: () => true,
-		writeFile: () => { },
+		writeFile: (fileName, content) => {
+			writeFiles.set(fileName, content);
+		},
 		getSourceFile(fileName) {
 			fileName = Info.path.normalize(fileName);
 			const baseName = Info.path.basename(fileName);
@@ -194,6 +197,11 @@ function createTypescriptProgram(rootFileName: string, content: string): ts.Prog
 			}
 		},
 	};
+	return [compilerHost, writeFiles];
+}
+
+function createTypescriptProgram(rootFileName: string, content: string): ts.Program {
+	const [compilerHost] = createCompilerHost(rootFileName, content);
 	return ts.createProgram([rootFileName], tstlOptions, compilerHost);
 }
 
@@ -308,4 +316,33 @@ export function addDiagnosticToLog(fileName: string, diagnostics: readonly ts.Di
 			getNewLine: () => "\n"
 		});
 	Service.command({code: `Log "Error", [===========[${message}]===========]`, log: false});
+}
+
+const options: ts.CompilerOptions = {
+	declaration: true,
+	emitDeclarationOnly: true,
+	strict: true,
+	jsx: ts.JsxEmit.React,
+	sourceMap: true,
+	moduleResolution: ts.ModuleResolutionKind.Classic,
+	target: scriptTarget,
+	module: moduleKind,
+};
+
+export function getDeclarationFile(fileName: string, content: string) {
+	const [host, writeFiles] = createCompilerHost(fileName, content);
+	const program = ts.createProgram([fileName], options, host);
+	const result = program.emit();
+	addDiagnosticToLog(fileName, result.diagnostics);
+	const baseName = Info.path.basename(fileName, Info.path.extname(fileName));
+	for (const [outputFileName, outputContent] of writeFiles.entries()) {
+		const outputBaseName = Info.path.basename(outputFileName, '.d.ts');
+		if (outputBaseName === baseName && outputFileName.endsWith('.d.ts')) {
+			return {
+				fileName: outputFileName,
+				content: outputContent
+			};
+		}
+	}
+	return null;
 }

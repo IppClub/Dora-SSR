@@ -23,6 +23,7 @@ import {
 	AiOutlineDownload,
 	AiFillFileZip,
 } from 'react-icons/ai';
+import { RiListIndefinite } from "react-icons/ri";
 import { RxClipboardCopy } from "react-icons/rx";
 import { GoFileCode, GoChecklist } from "react-icons/go";
 import { FcImageFile } from 'react-icons/fc';
@@ -144,7 +145,7 @@ const motion = {
 	onLeaveActive: () => ({ height: 0 }),
 };
 
-export type TreeMenuEvent = "New" | "Rename" | "Delete" | "Download" | "Cancel" | "Unzip" | "View Compiled" | "Copy Path" | "Build" | "Obfuscate";
+export type TreeMenuEvent = "New" | "Rename" | "Delete" | "Download" | "Cancel" | "Unzip" | "View Compiled" | "Copy Path" | "Build" | "Obfuscate" | "Declaration";
 
 export interface FileTreeProps {
 	selectedKeys: string[];
@@ -204,6 +205,7 @@ export default memo(function FileTree(props: FileTreeProps) {
 	const enableBuild = (isRoot || !isBuiltin) || Info.engineDev;
 	const enableObfuscate = (isRoot || !isBuiltin) || Info.engineDev;
 	const enableViewCompiled = (!isRoot && !isBuiltin) || Info.engineDev;
+	const enableDeclaration = (!isRoot && !isBuiltin && (ext === ".ts" || ext === ".tsx")) || Info.engineDev;
 
 	return (
 		<MacScrollbar
@@ -293,6 +295,14 @@ export default memo(function FileTree(props: FileTreeProps) {
 							<GoChecklist/>
 						</ListItemIcon>
 						<ListItemText primary={ t("menu.build") }/>
+					</StyledMenuItem> : null
+				}
+				{enableDeclaration && anchorItem ?
+					<StyledMenuItem onClick={() => handleClose("Declaration", anchorItem.data)}>
+						<ListItemIcon>
+							<RiListIndefinite/>
+						</ListItemIcon>
+						<ListItemText primary={ t("menu.declaration") }/>
 					</StyledMenuItem> : null
 				}
 				{enableObfuscate && anchorItem && anchorItem.data.dir ?

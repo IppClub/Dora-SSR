@@ -4032,6 +4032,17 @@ singleton class HttpClient
 	/// * `timeout` - The timeout in seconds for the request.
 	/// * `callback` - A callback function that is called when the request is complete. The function receives the response body as a parameter.
 	void postAsync @ postWithHeadersAsync(string url, VecStr headers, string json, float timeout, function<void(OptString body)> callback);
+	/// Sends a POST request to the specified URL with custom headers and returns the response body.
+	///
+	/// # Arguments
+	///
+	/// * `url` - The URL to send the request to.
+	/// * `headers` - A vector of headers to include in the request. Each header should be in the format `key: value`.
+	/// * `json` - The JSON data to send in the request body.
+	/// * `timeout` - The timeout in seconds for the request.
+	/// * `part_callback` - A callback function that is called periodically to get part of the response content.
+	/// * `callback` - A callback function that is called when the request is complete. The function receives the response body as a parameter.
+	void postAsync @ postWithHeadersPartAsync(string url, VecStr headers, string json, float timeout, function<void(OptString body)> partCallback, function<void(OptString body)> callback);
 	/// Sends a GET request to the specified URL and returns the response body.
 	///
 	/// # Arguments

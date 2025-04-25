@@ -1460,7 +1460,7 @@ export function preloadAsync(this: void, enode: React.Element | React.Element[],
 	Dora.Cache.loadAsync(preloadList, handler);
 }
 
-export function toAction(this: void, enode: React.Element) {
+export function toAction(this: void, enode: React.Element): Dora.ActionDef.Type {
 	const actionDef = useRef<Dora.ActionDef.Type>();
 	toNode(React.createElement('action', {ref: actionDef}, enode));
 	if (!actionDef.current) error('failed to create action');

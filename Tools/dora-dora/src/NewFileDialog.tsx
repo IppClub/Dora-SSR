@@ -25,7 +25,7 @@ import { VscMarkdown } from 'react-icons/vsc';
 import { useTranslation } from 'react-i18next';
 import { DialogActions, Grid2 } from '@mui/material';
 
-export type DoraFileType = "Lua" | "Yuescript" | "Teal" | "Typescript" | "Dora XML" | "Markdown" | "Yarn" | "Visual Script" | "Blockly" | "Folder"
+export type DoraFileType = "Lua" | "YueScript" | "Teal" | "TypeScript" | "Dora XML" | "Markdown" | "Yarn" | "Visual Script" | "Blockly" | "Folder"
 
 interface FileType {
 	icon: React.ReactNode;
@@ -42,8 +42,8 @@ const fileTypes: FileType[] = [
 		padding: '20px'
 	},
 	{
-		icon: <img src={yueLogo} alt="Yuescript" width="60px" height="60px" style={{marginLeft: '-5px'}}/>,
-		name: "Yuescript",
+		icon: <img src={yueLogo} alt="YueScript" width="60px" height="60px" style={{marginLeft: '-5px'}}/>,
+		name: "YueScript",
 		desc: "file.yuescript",
 		padding: '10px'
 	},
@@ -54,8 +54,8 @@ const fileTypes: FileType[] = [
 		padding: '20px'
 	},
 	{
-		icon: <img src={typescriptLogo} alt="Typescript" width="40px" height="40px" style={{marginLeft: '5px'}}/>,
-		name: "Typescript",
+		icon: <img src={typescriptLogo} alt="TypeScript" width="40px" height="40px" style={{marginLeft: '5px'}}/>,
+		name: "TypeScript",
 		desc: "file.typescript",
 		padding: '20px'
 	},

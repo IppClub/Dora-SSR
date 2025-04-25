@@ -1464,6 +1464,107 @@ export default function PersistentDrawerLeft() {
 				})
 				break;
 			}
+			case "Declaration": {
+				const {key} = data;
+				Service.read({path: key}).then((res) => {
+					if (res.success && res.content !== undefined) {
+						import('./TranspileTS').then(({getDeclarationFile}) => {
+							const declaration = getDeclarationFile(key, res.content);
+							if (declaration !== null) {
+								const uri = monaco.Uri.parse(declaration.fileName);
+								const model = monaco.editor.getModel(uri);
+								if (model !== null) {
+									model.setValue(declaration.content);
+								}
+								Service.exist({file: declaration.fileName}).then((res) => {
+									const fileExists = res.success;
+									Service.write({path: declaration.fileName, content: declaration.content}).then((res) => {
+										if (res.success) {
+										} else {
+											addAlert(t("alert.noDeclaration", {title: path.basename(key)}), "error");
+										}
+									});
+									if (!fileExists) {
+										const rootNode = treeData.at(0);
+										if (rootNode === undefined) return;
+										const newNode: TreeDataType = {
+											key: declaration.fileName,
+											title: path.basename(declaration.fileName),
+											dir: false,
+										};
+										const visitData = (node: TreeDataType) => {
+											if (node.key === key) return "find";
+											if (node.children) {
+												for (let i = 0; i < node.children.length; i++) {
+													const res = visitData(node.children[i]);
+													if (res === "find") {
+														const child = node.children[i];
+														let parent = child;
+														if (child.dir) {
+															if (child.children === undefined) {
+																child.children = [];
+															}
+															child.children.push(newNode);
+														} else {
+															parent = node;
+															node.children.push(newNode);
+														}
+														if (expandedKeys.find(k => parent.key === k) === undefined) {
+															expandedKeys.push(parent.key);
+															setExpandedKeys(expandedKeys);
+														}
+														return "stop";
+													} else if (res === "stop") {
+														return "stop";
+													}
+												}
+											}
+											return "continue";
+										};
+										if (visitData(rootNode) === "find") {
+											if (rootNode.children === undefined) {
+												rootNode.children = [];
+											}
+											rootNode.children.push(newNode);
+											if (expandedKeys.find(k => rootNode.key === k) === undefined) {
+												expandedKeys.push(rootNode.key);
+												setExpandedKeys(expandedKeys);
+											}
+										}
+										if (rootNode && rootNode.children?.at(0)?.key === '...') {
+											rootNode.children?.splice(0, 1);
+											setExpandedKeys([...expandedKeys]);
+										}
+										setTreeData([rootNode]);
+										setSelectedKeys([declaration.fileName]);
+										setSelectedNode(newNode);
+										const index = files.length;
+										const newItem: EditingFile = {
+											key: declaration.fileName,
+											title: path.basename(declaration.fileName),
+											folder: false,
+											content: declaration.content,
+											contentModified: null,
+											status: "normal",
+											onMount: () => {},
+										};
+										newItem.onMount = onEditorDidMount(newItem);
+										setFiles([...files, newItem]);
+										switchTab(index, newItem);
+									} else {
+										openFileInTab(declaration.fileName, path.basename(declaration.fileName), false, undefined, false);
+									}
+								}).catch(() => {
+									addAlert(t("alert.noDeclaration", {title: path.basename(key)}), "error");
+								});
+							} else {
+								addAlert(t("alert.noDeclaration", {title: path.basename(key)}), "error");
+							}
+						});
+					}
+				});
+				break;
+			}
 			case "Build": {
 				const {key} = data;
 				const buildFile = async (key: string, preferLog: boolean) => {
@@ -1609,21 +1710,21 @@ export default function PersistentDrawerLeft() {
 				break;
 			}
 		}
-	}, [checkFileReadonly, loadAssets, t, files, deleteFile, treeData, openFileInTab, assetPath]);
+	}, [checkFileReadonly, loadAssets, t, files, deleteFile, treeData, openFileInTab, assetPath, expandedKeys, onEditorDidMount, switchTab]);
 
 	const onNewFileClose = (item?: DoraFileType) => {
 		let ext: string | null = null;
 		switch (item) {
 			case "Lua": ext = ".lua"; break;
 			case "Teal": ext = ".tl"; break;
-			case "Yuescript": ext = ".yue"; break;
+			case "YueScript": ext = ".yue"; break;
 			case "Dora XML": ext = ".xml"; break;
 			case "Markdown": ext = ".md"; break;
 			case "Yarn": ext = ".yarn"; break;
 			case "Visual Script": ext = ".vs"; break;
 			case "Blockly": ext = ".bl"; break;
 			case "Folder": ext = ""; break;
-			case "Typescript": ext = ".tsx"; break;
+			case "TypeScript": ext = ".tsx"; break;
 		}
 		if (ext !== null) {
 			setFileInfo({
