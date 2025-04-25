@@ -23,7 +23,8 @@ import { SiNodered } from 'react-icons/si';
 import { DiCode } from 'react-icons/di';
 import { VscMarkdown } from 'react-icons/vsc';
 import { useTranslation } from 'react-i18next';
-import { DialogActions, Grid2 } from '@mui/material';
+import { DialogActions } from '@mui/material';
+import Grid from '@mui/material/Grid';
 
 export type DoraFileType = "Lua" | "YueScript" | "Teal" | "TypeScript" | "Dora XML" | "Markdown" | "Yarn" | "Visual Script" | "Blockly" | "Folder"
 
@@ -128,10 +129,10 @@ function NewFileDialog(props: NewFileDialogProps) {
 			transitionDuration={0}
 			TransitionProps={transitionProps}>
 			<DialogTitle>{t("file.new")}</DialogTitle>
-			<Grid2 container columns={2}>
+			<Grid container columns={2}>
 			{
 				fileTypes.map((fileType) => (
-					<Grid2 key={fileType.name} size={1}>
+					<Grid key={fileType.name} size={1}>
 						<ListItem>
 							<ListItemButton sx={{height:"90px"}}
 								onClick={() => handleListItemClick(fileType.name)}
@@ -141,10 +142,10 @@ function NewFileDialog(props: NewFileDialogProps) {
 								<ListItemText primary={fileType.name} secondary={t(fileType.desc)} sx={{paddingLeft: fileType.padding}}/>
 							</ListItemButton>
 						</ListItem>
-					</Grid2>
+					</Grid>
 				))
 			}
-			</Grid2>
+			</Grid>
 			<DialogActions/>
 		</Dialog>
 	);
