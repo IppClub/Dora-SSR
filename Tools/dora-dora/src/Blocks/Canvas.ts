@@ -82,7 +82,7 @@ canvasCategory.contents.push({
 // BeginPath block
 const nvgBeginPathBlock = {
 	type: 'nvg_begin_path',
-	message0: zh ? '开始画新图形' : 'Begin path',
+	message0: zh ? '开始画新路径' : 'Begin path',
 	previousStatement: null,
 	nextStatement: null,
 	style: 'loop_blocks',
@@ -238,7 +238,7 @@ canvasCategory.contents.push({
 // ClosePath block
 const nvgClosePathBlock = {
 	type: 'nvg_close_path',
-	message0: zh ? '闭合画的图形' : 'Close path',
+	message0: zh ? '闭合当前路径' : 'Close path',
 	previousStatement: null,
 	nextStatement: null,
 	style: 'loop_blocks',

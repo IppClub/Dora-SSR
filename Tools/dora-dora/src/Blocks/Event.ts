@@ -74,11 +74,13 @@ const onTapEventBlock = {
 			options: zh ? [
 				['点击开始', 'TapBegan'],
 				['点击过滤', 'TapFilter'],
+				['点击移动', 'TapMoved'],
 				['点击结束', 'TapEnded'],
 				['点击完成', 'Tapped'],
 			] : [
 				['Tap Began', 'TapBegan'],
 				['Tap Filter', 'TapFilter'],
+				['Tap Moved', 'TapMoved'],
 				['Tap Ended', 'TapEnded'],
 				['Tapped', 'Tapped'],
 			],
@@ -199,6 +201,31 @@ luaGenerator.forBlock['get_touch_number_attribute'] = function(block: Blockly.Bl
 eventCategory.contents.push({
 	kind: 'block',
 	type: 'get_touch_number_attribute',
+});
+
+// Disable Touch
+const disableTouchBlock = {
+	type: 'disable_touch',
+	message0: zh ? '禁用点击 %1' : 'Disable touch %1',
+	args0: [
+		{
+			type: 'field_variable',
+			name: 'NODE',
+			variable: 'touch',
+		},
+	],
+	previousStatement: null,
+	nextStatement: null,
+	style: 'procedure_blocks',
+};
+Blockly.Blocks['disable_touch'] = { init: function() { this.jsonInit(disableTouchBlock); } };
+luaGenerator.forBlock['disable_touch'] = function(block: Blockly.Block) {
+	const node = luaGenerator.getVariableName(block.getFieldValue('NODE'));
+	return `${node}.enabled = false\n`;
+};
+eventCategory.contents.push({
+	kind: 'block',
+	type: 'disable_touch',
 });
 
 const keyNameOptions = zh ? [

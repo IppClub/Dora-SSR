@@ -12,6 +12,9 @@ func httpclient_post_async(url: i64, json: i64, timeout: f32, func0: i32, stack0
 #wa:import dora httpclient_post_with_headers_async
 func httpclient_post_with_headers_async(url: i64, headers: i64, json: i64, timeout: f32, func0: i32, stack0: i64)
 
+#wa:import dora httpclient_post_with_headers_part_async
+func httpclient_post_with_headers_part_async(url: i64, headers: i64, json: i64, timeout: f32, func0: i32, stack0: i64, func1: i32, stack1: i64)
+
 #wa:import dora httpclient_get_async
 func httpclient_get_async(url: i64, timeout: f32, func0: i32, stack0: i64)
 
@@ -45,6 +48,27 @@ func _HttpClient.PostWithHeadersAsync(url: string, headers: *[]string, json: str
 		callback(body)
 	})
 	httpclient_post_with_headers_async(ToDoraString(url), ToDoraStrBuf(headers), ToDoraString(json), timeout, func_id0, *stack0.raw)
+}
+func _HttpClient.PostWithHeadersPartAsync(url: string, headers: *[]string, json: string, timeout: f32, part_callback: func(body: *string), callback: func(body: *string)) {
+	stack0 := NewCallStack()
+	func_id0 := PushFunction(func() {
+		body: *string = nil
+		body_, body_ok := stack0.PopStr()
+		if body_ok {
+			body = &body_
+		}
+		part_callback(body)
+	})
+	stack1 := NewCallStack()
+	func_id1 := PushFunction(func() {
+		body: *string = nil
+		body_, body_ok := stack1.PopStr()
+		if body_ok {
+			body = &body_
+		}
+		callback(body)
+	})
+	httpclient_post_with_headers_part_async(ToDoraString(url), ToDoraStrBuf(headers), ToDoraString(json), timeout, func_id0, *stack0.raw, func_id1, *stack1.raw)
 }
 func _HttpClient.GetAsync(url: string, timeout: f32, callback: func(body: *string)) {
 	stack0 := NewCallStack()

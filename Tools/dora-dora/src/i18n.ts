@@ -69,6 +69,7 @@ i18n
 						tocopy: "Relative path for {{title}}",
 						build: "Built {{title}}",
 						buildDone: "Build done {{title}}",
+						noDeclaration: "Failed to get declaration file for {{title}}",
 					},
 					popup: {
 						goToFile: "Go to File",
@@ -142,6 +143,7 @@ i18n
 						switchTab: "Switch Tab",
 						build: "Build",
 						obfuscate: "Get Obfuscated",
+						declaration: "Get Declaration",
 					},
 					log: {
 						wait: "Wait for logging messages ...",
@@ -273,6 +275,7 @@ i18n
 						tocopy: "{{title}} 的相对路径",
 						build: "生成成功 {{title}}",
 						buildDone: "编译完成 {{title}}",
+						noDeclaration: "无法提取 {{title}} 的声明文件",
 					},
 					popup: {
 						goToFile: "跳转到文件",
@@ -346,6 +349,7 @@ i18n
 						switchTab: "切换标签",
 						build: "编译生成",
 						obfuscate: "下载混淆",
+						declaration: "提取声明",
 					},
 					log: {
 						wait: "接收日志消息中……",

@@ -939,8 +939,21 @@ const BlocklyComponent: React.FC<BlocklyProps> = ({
 						const json = JSON.stringify(jsonObj);
 						Require.clear();
 						const luaCode = luaGenerator.workspaceToCode(workspaceRef.current);
-						const modifiedCode = luaCode.replace(/^function /gm, 'local function ');
-						const code = Require.getCode() + "\n" + modifiedCode;
+
+						// Extract function names
+						const functionMatches = luaCode.match(/^function\s+([a-zA-Z0-9_]+)/gm);
+						const functionNames = functionMatches ?
+							functionMatches.map(match => match.replace(/^function\s+/, '')) : [];
+
+						// Declare all functions at the beginning if any exist
+						const localDeclaration = functionNames.length > 0 ?
+							`local ${functionNames.join(', ')}\n` : '';
+
+						// Replace function declarations
+						const modifiedCode = luaCode.replace(/^function\s+([a-zA-Z0-9_]+)/gm, '$1 = function');
+
+						const requireCode = Require.getCode();
+						const code = `local _ENV = setmetatable({}, {__index = _G})\n` + (requireCode === '' ? '' : requireCode + "\n") + localDeclaration + modifiedCode;
 						onChange(json, code);
 					}
 				});

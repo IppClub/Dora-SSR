@@ -91,6 +91,7 @@ public:
 	void postAsync(String url, String json, float timeout, const ContentHandler& callback);
 	void postAsync(String url, std::span<Slice> headers, String json, float timeout, const ContentHandler& partCallback, const ContentHandler& callback);
 	void postAsync(String url, const std::vector<std::string>& headers, String json, float timeout, const ContentHandler& callback);
+	void postAsync(String url, const std::vector<std::string>& headers, String json, float timeout, const ContentHandler& partCallback, const ContentHandler& callback);
 	void postAsync(String url, Slice headers[], int count, String json, float timeout, const ContentHandler& callback);
 	void postAsync(String url, Slice headers[], int count, String json, float timeout, const ContentHandler& partCallback, const ContentHandler& callback);
 	void getAsync(String url, float timeout, const ContentHandler& callback);

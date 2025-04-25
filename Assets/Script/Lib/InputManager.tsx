@@ -1413,7 +1413,7 @@ class InputManager {
 		})
 	}
 
-	getNode() {
+	getNode(): Node.Type {
 		return this.manager;
 	}
 
