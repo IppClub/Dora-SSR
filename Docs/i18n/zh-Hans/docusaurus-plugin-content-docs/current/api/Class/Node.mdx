@@ -954,7 +954,7 @@ convertToWindowSpace: function(self: Node, nodePoint: Vec2, callback: function(V
 
 **描述：**
 
-&emsp;&emsp;对该节点的每个子节点调用给定的函数。
+&emsp;&emsp;对该节点的每个子节点调用给定的函数。在迭代过程中，子节点不能被添加或删除。
 
 **签名：**
 ```tl
@@ -980,7 +980,7 @@ eachChild: function(self: Node, func: function(Node): boolean): boolean
 **描述：**
 
 &emsp;&emsp;从此节点开始遍历场景树结构，并对每个访问的节点调用给定的函数。
-未开启`TraverseEnabled`标志的节点不会被访问。
+未开启`TraverseEnabled`标志的节点不会被访问。在迭代过程中，子节点不能被添加或删除。
 
 **签名：**
 ```tl
@@ -1006,6 +1006,7 @@ traverse: function(self: Node, func: function(Node): boolean): boolean
 **描述：**
 
 &emsp;&emsp;从此节点开始遍历整个节点层次结构，并对每个访问的节点调用给定的函数。
+未开启`TraverseEnabled`标志的节点也会被访问。在迭代过程中，子节点不能被添加或删除。
 
 **签名：**
 ```tl

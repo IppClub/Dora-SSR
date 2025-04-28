@@ -49,15 +49,12 @@ func _HttpClient.PostWithHeadersAsync(url: string, headers: *[]string, json: str
 	})
 	httpclient_post_with_headers_async(ToDoraString(url), ToDoraStrBuf(headers), ToDoraString(json), timeout, func_id0, *stack0.raw)
 }
-func _HttpClient.PostWithHeadersPartAsync(url: string, headers: *[]string, json: string, timeout: f32, part_callback: func(body: *string), callback: func(body: *string)) {
+func _HttpClient.PostWithHeadersPartAsync(url: string, headers: *[]string, json: string, timeout: f32, part_callback: func(body: string) => bool, callback: func(body: *string)) {
 	stack0 := NewCallStack()
 	func_id0 := PushFunction(func() {
-		body: *string = nil
-		body_, body_ok := stack0.PopStr()
-		if body_ok {
-			body = &body_
-		}
-		part_callback(body)
+		body, _ := stack0.PopStr()
+		result_ := part_callback(body)
+		stack0.Push(result_)
 	})
 	stack1 := NewCallStack()
 	func_id1 := PushFunction(func() {

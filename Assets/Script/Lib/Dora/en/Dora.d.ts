@@ -3701,6 +3701,13 @@ export type SQL = string | [string, DBRow[]];
  */
 interface DB {
 	/**
+	 * Checks whether an attached database exists.
+	 * @param dbName The name of the table to check.
+	 * @returns Whether the attached database exists or not.
+	 */
+	existDB(dbName: string): boolean;
+
+	/**
 	 * Checks whether a table exists in the database.
 	 * @param tableName The name of the table to check.
 	 * @param schema [optional] The name of the schema to check in.
@@ -7201,10 +7208,10 @@ interface HttpClient {
 	 * @param headers The headers to send with the request. Each header should be a string in the format "name: value".
 	 * @param json The JSON data to send in the request body.
 	 * @param timeout [optional] The timeout in seconds for the request. Defaults to 5.
-	 * @param partCallback [optional] A callback function that is called periodically to get part of the response content.
+	 * @param partCallback [optional] A callback function that is called periodically to get part of the response content. Returns `true` to stop the request.
 	 * @returns The response body text, or `null` if the request failed.
 	 */
-	postAsync(url: string, headers: string[], json: string, timeout?: number, partCallback?: (this: void, data: string) => void): string | null;
+	postAsync(url: string, headers: string[], json: string, timeout?: number, partCallback?: (this: void, data: string) => boolean): string | null;
 	/**
 	 * Sends a GET request to the specified URL and returns the response body.
 	 * @param url The URL to send the request to.
@@ -7239,7 +7246,7 @@ interface json {
 	 * @param maxDepth The maximum depth to parse (default is 128).
 	 * @returns The object representing the JSON data, or null with an error message if the JSON text is invalid.
 	 */
-	load(this: void, json: string, maxDepth?: number): LuaMultiReturn<[object, null]> | LuaMultiReturn<[null, string]>;
+	load(this: void, json: string, maxDepth?: number): LuaMultiReturn<[any, null]> | LuaMultiReturn<[null, string]>;
 	/**
 	 * Converts the specified object to JSON text.
 	 * @param obj The object to convert.

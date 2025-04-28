@@ -279,7 +279,6 @@ export default function PersistentDrawerLeft() {
 	const [drawerOpen, setDrawerOpen] = useState(true);
 	const [tabIndex, setTabIndex] = useState<number | null>(null);
 	const [files, setFiles] = useState<EditingFile[]>([]);
-	const [modified, setModified] = useState<Modified | null>(null);
 
 	const [treeData, setTreeData] = useState<TreeDataType[]>([]);
 	const [expandedKeys, setExpandedKeys] = useState<string[]>([]);
@@ -472,22 +471,29 @@ export default function PersistentDrawerLeft() {
 	const writablePath = treeData.at(0)?.key ?? "";
 	const assetPath = treeData.at(0)?.children?.at(0)?.key ?? "";
 
-	if (modified !== null) {
-		setModified(null);
-		files.forEach(file => {
-			if (file.key === modified.key) {
-				if (modified.content !== file.content || file.yarnData || file.codeWireData) {
-					file.contentModified = modified.content;
-					if (modified.blocklyCode !== undefined) {
-						file.blocklyData = modified.blocklyCode;
+	const setModified = useCallback((modified: Modified) => {
+		setFiles(prev => {
+			let changed = false;
+			prev.forEach(file => {
+				if (file.key === modified.key) {
+					if (modified.content !== file.content || file.yarnData || file.codeWireData) {
+						file.contentModified = modified.content;
+						if (modified.blocklyCode !== undefined) {
+							file.blocklyData = modified.blocklyCode;
+						}
+						changed = true;
+					} else if (file.contentModified !== null) {
+						file.contentModified = null;
+						changed = true;
 					}
-				} else {
-					file.contentModified = null;
 				}
+			});
+			if (changed) {
+				return [...prev];
 			}
+			return prev;
 		});
-		setFiles([...files]);
-	}
+	}, []);
 
 	contentModified = files.find(file => file.contentModified !== null) !== undefined;
 
@@ -504,7 +510,6 @@ export default function PersistentDrawerLeft() {
 	}, [assetPath, t]);
 
 	const onModified = useCallback((editingFile: EditingFile, content: string, lastChange?: monaco.editor.IModelContentChange) => {
-		setModified({key: editingFile.key, content});
 		const editor = editingFile.editor;
 		if (editor === undefined) return;
 		const model = editor.getModel();
@@ -515,11 +520,12 @@ export default function PersistentDrawerLeft() {
 				setTimeout(resolve, 500);
 			}).then(() => {
 				if (Date.now() - lastEditorActionTime >= 500) {
+					setModified({key: editingFile.key, content});
 					checkFile(editingFile, content, model, lastChange);
 				}
 			});
 		}
-	}, [checkFileReadonly]);
+	}, [checkFileReadonly, setModified]);
 
 	const handleDrawerOpen = () => {
 		setDrawerOpen(!drawerOpen);

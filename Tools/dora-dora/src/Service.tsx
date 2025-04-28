@@ -23,21 +23,22 @@ function wsUrl() {
 	return url;
 }
 
-const wsOpenEvent = "Open";
-const wsCloseEvent = "Close";
-const logEventName = "Log";
-const profilerEventName = "Profiler";
+const WsOpenEvent = "Open";
+const WsCloseEvent = "Close";
+const LogEventName = "Log";
+const ProfilerEventName = "Profiler";
+const TranspileTSEventName = "TranspileTS";
 
 let logText = "";
 
 export const addLog = (text: string) => {
 	logText += text;
-	eventEmitter.emit(logEventName, text, logText);
+	eventEmitter.emit(LogEventName, text, logText);
 };
 
 export const clearLog = () => {
 	logText = "";
-	eventEmitter.emit(logEventName, "", logText);
+	eventEmitter.emit(LogEventName, "", logText);
 };
 
 export const getLog = () => {
@@ -45,27 +46,27 @@ export const getLog = () => {
 };
 
 export const addLogListener = (listener: (newItem: string, allText: string) => void) => {
-	eventEmitter.on(logEventName, listener);
+	eventEmitter.on(LogEventName, listener);
 };
 
 export const removeLogListener = (listener: (newItem: string, allText: string) => void) => {
-	eventEmitter.removeListener(logEventName, listener);
+	eventEmitter.removeListener(LogEventName, listener);
 };
 
 export const addProfilerListener = (listener: (info: ProfilerInfo) => void) => {
-	eventEmitter.on(profilerEventName, listener);
+	eventEmitter.on(ProfilerEventName, listener);
 };
 
 export const removeProfilerListener = (listener: (info: ProfilerInfo) => void) => {
-	eventEmitter.removeListener(profilerEventName, listener);
+	eventEmitter.removeListener(ProfilerEventName, listener);
 };
 
 export const addWSOpenListener = (listener: () => void) => {
-	eventEmitter.on(wsOpenEvent, listener);
+	eventEmitter.on(WsOpenEvent, listener);
 };
 
 export const addWSCloseListener = (listener: () => void) => {
-	eventEmitter.on(wsCloseEvent, listener);
+	eventEmitter.on(WsCloseEvent, listener);
 };
 
 export function openWebSocket() {
@@ -73,17 +74,32 @@ export function openWebSocket() {
 	const connect = () => {
 		connected = false;
 		webSocket = new WebSocket(wsUrl());
-		webSocket.onmessage = function(evt: MessageEvent<string>) {
+		webSocket.onmessage = async function(evt: MessageEvent<string>) {
 			const result = JSON.parse(evt.data);
 			if (result !== null && result.name !== undefined) {
 				switch (result.name) {
-					case logEventName: {
+					case LogEventName: {
 						logText += result.text as string;
 						eventEmitter.emit(result.name, result.text, logText);
 						break;
 					}
-					case profilerEventName: {
+					case ProfilerEventName: {
 						eventEmitter.emit(result.name, result.info);
+						break;
+					}
+					case TranspileTSEventName: {
+						const {transpileTypescript, getDiagnosticMessage} = await import('./TranspileTS');
+						const {file, content} = result;
+						if (typeof file === 'string' && typeof content === 'string') {
+							const {success, luaCode, diagnostics} = await transpileTypescript(file, content);
+							console.log(success, luaCode, diagnostics);
+							if (success) {
+								webSocket.send(JSON.stringify({name: TranspileTSEventName, success, luaCode, message: ""}));
+							} else {
+								const message = getDiagnosticMessage(file, diagnostics);
+								webSocket.send(JSON.stringify({name: TranspileTSEventName, success, luaCode: "", message}));
+							}
+						}
 						break;
 					}
 					default: {
@@ -95,12 +111,12 @@ export function openWebSocket() {
 		};
 		webSocket.onopen = () => {
 			connected = true;
-			eventEmitter.emit(wsOpenEvent);
+			eventEmitter.emit(WsOpenEvent);
 		};
 		webSocket.onclose = () => {
 			if (connected) {
 				connected = false;
-				eventEmitter.emit(wsCloseEvent);
+				eventEmitter.emit(WsCloseEvent);
 			}
 			setTimeout(connect, 1000);
 		};

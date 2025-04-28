@@ -33,7 +33,7 @@ metamethod __call: function(self: ColorClass): Color
 
 **Signature:**
 ```tl
-metamethod __call: function(self: ColorClass, color: Color3, a: integer): Color
+metamethod __call: function(self: ColorClass, color: Color3, a: number): Color
 ```
 
 **Parameters:**
@@ -41,7 +41,7 @@ metamethod __call: function(self: ColorClass, color: Color3, a: integer): Color
 | Parameter | Type | Description |
 | --- | --- | --- |
 | color | Color3 | The color as a Color3 object. |
-| a | integer | [optional] The alpha value of the color ranging from 0 to 255. |
+| a | number | [optional] The alpha value of the color ranging from 0 to 255. |
 
 **Returns:**
 
@@ -84,17 +84,17 @@ metamethod __call: function(self: ColorClass, argb: integer): Color
 
 **Signature:**
 ```tl
-metamethod __call: function(self: ColorClass, r: integer, g: integer, b: integer, a: integer): Color
+metamethod __call: function(self: ColorClass, r: number, g: number, b: number, a: number): Color
 ```
 
 **Parameters:**
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| r | integer | The red channel value (0-255). |
-| g | integer | The green channel value (0-255). |
-| b | integer | The blue channel value (0-255). |
-| a | integer | The alpha channel value (0-255). |
+| r | number | The red channel value (0-255). |
+| g | number | The green channel value (0-255). |
+| b | number | The blue channel value (0-255). |
+| a | number | The alpha channel value (0-255). |
 
 **Returns:**
 

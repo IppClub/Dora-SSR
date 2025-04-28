@@ -57,9 +57,33 @@ Async* DB::getThread() const noexcept {
 	return _thread;
 }
 
+bool DB::existDB(String name) const {
+	bool existed = false;
+	_thread->pause();
+	if (!name.empty()) {
+		try {
+			SQLite::Statement statement(*_database, fmt::format("SELECT EXISTS(SELECT 1 FROM pragma_database_list WHERE name = ?)", name.toString()));
+			statement.bind(1, name.toString());
+			int result = 0;
+			if (statement.executeStep()) {
+				result = statement.getColumn(0);
+			}
+			existed = result == 0 ? false : true;
+		} catch (std::exception& e) {
+			Warn("failed to execute DB query: {}", e.what());
+		}
+	}
+	_thread->resume();
+	return existed;
+}
+
 bool DB::exist(String tableName, String schema) const {
 	bool existed = false;
 	_thread->pause();
+	if (!schema.empty() && !existDB(schema)) {
+		_thread->resume();
+		return false;
+	}
 	try {
 		SQLite::Statement statement(*_database, schema.empty() ? "SELECT EXISTS(SELECT 1 FROM sqlite_master WHERE type='table' AND name = ?)"s : fmt::format("SELECT EXISTS(SELECT 1 FROM {}.sqlite_master WHERE type='table' AND name = ?)", schema.toString()));
 		statement.bind(1, tableName.toString());

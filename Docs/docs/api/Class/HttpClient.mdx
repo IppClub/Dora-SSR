@@ -14,7 +14,7 @@
 
 **Signature:**
 ```tl
-postAsync: function(self: HttpClient, url: string, json: string, timeout?: number): string | nil
+postAsync: function(self: HttpClient, url: string, json: string, timeout?: number, partCallback?: function(data: string): boolean): string | nil
 ```
 
 **Parameters:**
@@ -24,6 +24,7 @@ postAsync: function(self: HttpClient, url: string, json: string, timeout?: numbe
 | url | string | The URL to make the request to. |
 | json | string | The JSON text to send in the request. |
 | timeout | number | [optional] The request timeout in seconds (default is 5 seconds). |
+| partCallback | function | [optional] A callback function that is called periodically to get part of the response content. Returns `true` to stop the request. |
 
 **Returns:**
 

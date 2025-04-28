@@ -10,7 +10,7 @@ drawStar = function(centerX, centerY, radius)
   local c = 72
   local f = math.sin(math.rad(a)) * math.tan(math.rad(c)) + math.cos(math.rad(a))
   local ro = radius
-  local r = (ro * 1.5) / f
+  local r = (ro * 1.6) / f
   nvg.BeginPath()
   i_inc = 1
   if (10 + 1) > (0) then

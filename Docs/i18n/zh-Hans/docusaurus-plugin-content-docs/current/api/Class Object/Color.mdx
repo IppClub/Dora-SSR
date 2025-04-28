@@ -33,7 +33,7 @@ metamethod __call: function(self: ColorClass): Color
 
 **签名：**
 ```tl
-metamethod __call: function(self: ColorClass, color: Color3, a: integer): Color
+metamethod __call: function(self: ColorClass, color: Color3, a: number): Color
 ```
 
 **参数：**
@@ -41,7 +41,7 @@ metamethod __call: function(self: ColorClass, color: Color3, a: integer): Color
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
 | color | Color3 | `Color3`颜色对象。 |
-| a | integer | [可选] 颜色的透明值，范围从 0 到 255。 |
+| a | number | [可选] 颜色的透明值，范围从 0 到 255。 |
 
 **返回值：**
 
@@ -84,17 +84,17 @@ metamethod __call: function(self: ColorClass, argb: integer): Color
 
 **签名：**
 ```tl
-metamethod __call: function(self: ColorClass, r: integer, g: integer, b: integer, a: integer): Color
+metamethod __call: function(self: ColorClass, r: number, g: number, b: number, a: number): Color
 ```
 
 **参数：**
 
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
-| r | integer | 红色通道值（0-255）。 |
-| g | integer | 绿色通道值（0-255）。 |
-| b | integer | 蓝色通道值（0-255）。 |
-| a | integer | 透明通道值（0-255）。 |
+| r | number | 红色通道值（0-255）。 |
+| g | number | 绿色通道值（0-255）。 |
+| b | number | 蓝色通道值（0-255）。 |
+| a | number | 透明通道值（0-255）。 |
 
 **返回值：**
 

@@ -8,6 +8,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
+int32_t db_exist_db(int64_t db_name) {
+	return SharedDB.existDB(*Str_From(db_name)) ? 1 : 0;
+}
 int32_t db_exist(int64_t table_name) {
 	return SharedDB.exist(*Str_From(table_name)) ? 1 : 0;
 }
@@ -79,6 +82,7 @@ void db_exec_async(int64_t sql, int64_t values, int32_t func0, int64_t stack0) {
 } // extern "C"
 
 static void linkDB(wasm3::module3& mod) {
+	mod.link_optional("*", "db_exist_db", db_exist_db);
 	mod.link_optional("*", "db_exist", db_exist);
 	mod.link_optional("*", "db_exist_schema", db_exist_schema);
 	mod.link_optional("*", "db_exec", db_exec);

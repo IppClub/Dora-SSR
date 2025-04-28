@@ -1,19 +1,46 @@
 // @preview-file on clear
-import { HttpClient, json, thread, Buffer, Vec2, Node as DNode, Log } from 'Dora';
+import { HttpClient, json, thread, Buffer, Vec2, Node as DNode, Log, DB, Path, Content, Director } from 'Dora';
 import * as ImGui from "ImGui";
 import { InputTextFlag, SetCond } from "ImGui";
-import { Node, Flow } from 'flow';
+import { Node, Flow } from 'Agent/flow';
+import * as Config from 'Config';
+
+interface LLM {
+	url: string;
+	model: string;
+	apiKey: string;
+}
+
+if (!DB.existDB('llm')) {
+	const dbPath = Path(Content.writablePath, "llm.db");
+	DB.exec(`ATTACH DATABASE '${dbPath}' AS llm`);
+	Director.entry.slot("Cleanup", () => DB.exec("DETACH DATABASE llm"));
+}
+
+const config = Config<LLM>('llm', 'url', 'model', 'apiKey', 'output');
+config.load();
+
+const url = Buffer(512);
+if (typeof config.url === "string") {
+	url.text = config.url;
+} else {
+	url.text = config.url = "https://api.deepseek.com/chat/completions";
+}
+const apiKey = Buffer(256);
+if (typeof config.apiKey === "string") {
+	apiKey.text = config.apiKey;
+}
+const model = Buffer(128);
+if (typeof config.model === "string") {
+	model.text = config.model;
+} else {
+	model.text = config.model = "deepseek-chat";
+}
 
 interface Message {
 	role: string;
 	content: string;
 }
-
-const url = Buffer(512);
-url.text = "https://api.deepseek.com/chat/completions";
-const apiKey = Buffer(256);
-const model = Buffer(128);
-model.text = "deepseek-chat";
 
 const callLLM = (messages: Message[], url: string, apiKey: string, model: string, receiver: (this: void, data: string) => void) => {
 	const data = {
@@ -121,12 +148,19 @@ const ChatButton = () => {
 	}
 };
 
+const inputFlags = [InputTextFlag.Password];
 root.loop(() => {
 	ImGui.SetNextWindowSize(Vec2(400, 300), SetCond.FirstUseEver);
 	ImGui.Begin("LLM Chat", () => {
-		ImGui.InputText("URL", url);
-		ImGui.InputText("API Key", apiKey);
-		ImGui.InputText("Model", model);
+		if (ImGui.InputText("URL", url)) {
+			config.url = url.text;
+		}
+		if (ImGui.InputText("API Key", apiKey, inputFlags)) {
+			config.apiKey = apiKey.text;
+		}
+		if (ImGui.InputText("Model", model)) {
+			config.model = model.text;
+		}
 		ImGui.Separator();
 		ImGui.BeginChild("LogArea", Vec2(0, -40), () => {
 			for (const log of logs) {

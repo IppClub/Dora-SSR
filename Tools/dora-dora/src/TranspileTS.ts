@@ -307,15 +307,20 @@ export function setModelMarkers(model: monaco.editor.ITextModel, diagnostics: re
 	monaco.editor.setModelMarkers(model, 'tstl', markers);
 }
 
-export function addDiagnosticToLog(fileName: string, diagnostics: readonly ts.Diagnostic[]) {
-	if (diagnostics.length === 0) return;
-	const message = `Compiling error: ${fileName}\n` +
+export function getDiagnosticMessage(fileName: string, diagnostics: readonly ts.Diagnostic[]) {
+	if (diagnostics.length === 0) return "";
+	return `Compiling error: ${fileName}\n` +
 		ts.formatDiagnostics(diagnostics, {
 			getCanonicalFileName: fileName => Info.path.normalize(fileName),
 			getCurrentDirectory: () => Info.path.dirname(fileName),
 			getNewLine: () => "\n"
 		});
-	Service.command({code: `Log "Error", [===========[${message}]===========]`, log: false});
+}
+
+export function addDiagnosticToLog(fileName: string, diagnostics: readonly ts.Diagnostic[]) {
+	if (diagnostics.length === 0) return;
+	const message = getDiagnosticMessage(fileName, diagnostics);
+	Service.command({code: `Log "Error", "${message.replace('"', '\\"')}"`, log: false});
 }
 
 const options: ts.CompilerOptions = {

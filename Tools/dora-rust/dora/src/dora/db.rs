@@ -7,6 +7,7 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 extern "C" {
+	fn db_exist_db(db_name: i64) -> i32;
 	fn db_exist(table_name: i64) -> i32;
 	fn db_exist_schema(table_name: i64, schema: i64) -> i32;
 	fn db_exec(sql: i64) -> i32;
@@ -24,6 +25,18 @@ use crate::dora::IObject;
 /// A struct that represents a database.
 pub struct DB { }
 impl DB {
+	/// Checks whether a database exists.
+	///
+	/// # Arguments
+	///
+	/// * `db_name` - The name of the database to check.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `true` if the database exists, `false` otherwise.
+	pub fn exist_db(db_name: &str) -> bool {
+		unsafe { return db_exist_db(crate::dora::from_string(db_name)) != 0; }
+	}
 	/// Checks whether a table exists in the database.
 	///
 	/// # Arguments
