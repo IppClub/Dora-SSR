@@ -566,7 +566,7 @@ static std::optional<std::pair<std::string, std::string>> getURLParts(String url
 	}
 }
 
-void HttpClient::postAsync(String url, std::span<Slice> headers, String json, float timeout, const ContentHandler& partCallback, const ContentHandler& callback) {
+void HttpClient::postAsync(String url, std::span<Slice> headers, String json, float timeout, const ContentPartHandler& partCallback, const ContentHandler& callback) {
 	if (_stopped) {
 		callback(std::nullopt);
 		return;
@@ -591,7 +591,7 @@ void HttpClient::postAsync(String url, std::span<Slice> headers, String json, fl
 		}
 	}
 	auto callbackFunc = std::make_shared<ContentHandler>(callback);
-	auto partCallbackFunc = std::make_shared<ContentHandler>(partCallback);
+	auto partCallbackFunc = std::make_shared<ContentPartHandler>(partCallback);
 	_requestThread->run([schemeHostPort, json = json.toString(), timeout, urlStr = url.toString(), partCallbackFunc, callbackFunc, pathToGet, headers = std::move(postHeaders)]() {
 		try {
 			httplib::Client client(schemeHostPort);
@@ -607,10 +607,15 @@ void HttpClient::postAsync(String url, std::span<Slice> headers, String json, fl
 				req.start_time_ = std::chrono::steady_clock::now();
 			}
 			if (*partCallbackFunc) {
-				req.content_receiver = [partCallbackFunc](const char* data, size_t data_length, uint64_t offset, uint64_t total_length) -> bool {
-					SharedApplication.invokeInLogic([partCallbackFunc, part = std::string(data, data_length)]() {
-						(*partCallbackFunc)(part);
+				req.content_receiver = [partCallbackFunc, stopped = std::make_shared<std::atomic<bool>>(false)](const char* data, size_t data_length, uint64_t offset, uint64_t total_length) -> bool {
+					SharedApplication.invokeInLogic([partCallbackFunc, part = std::string(data, data_length), stopped]() {
+						if (!*stopped) {
+							*stopped = (*partCallbackFunc)(part);
+						}
 					});
+					if (*stopped) {
+						return false;
+					}
 					return true;
 				};
 			}
@@ -642,7 +647,7 @@ void HttpClient::postAsync(String url, const std::vector<std::string>& headers, 
 	postAsync(url, headers, json, timeout, nullptr, callback);
 }
 
-void HttpClient::postAsync(String url, const std::vector<std::string>& headers, String json, float timeout, const ContentHandler& partCallback, const ContentHandler& callback) {
+void HttpClient::postAsync(String url, const std::vector<std::string>& headers, String json, float timeout, const ContentPartHandler& partCallback, const ContentHandler& callback) {
 	std::vector<Slice> headerArray(headers.size());
 	for (size_t i = 0; i < headers.size(); i++) {
 		headerArray[i] = headers[i];
@@ -662,7 +667,7 @@ void HttpClient::postAsync(String url, String json, float timeout, const Content
 	postAsync(url, nullptr, 0, json, timeout, callback);
 }
 
-void HttpClient::postAsync(String url, Slice headers[], int count, String json, float timeout, const ContentHandler& partCallback, const ContentHandler& callback) {
+void HttpClient::postAsync(String url, Slice headers[], int count, String json, float timeout, const ContentPartHandler& partCallback, const ContentHandler& callback) {
 	std::vector<Slice> headerArray(count);
 	for (int i = 0; i < count; i++) {
 		headerArray[i] = headers[i];

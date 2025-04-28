@@ -3700,6 +3700,13 @@ export type SQL = string | [string, DBRow[]];
  */
 interface DB {
 	/**
+	 * 检查是否存在特定名称的附加数据库。
+	 * @param dbName 要检查的附加数据库的名称。
+	 * @returns 附加数据库是否存在。
+	 */
+	existDB(dbName: string): boolean;
+
+	/**
 	 * 检查数据库中是否存在表。
 	 * @param tableName 要检查的表的名称。
 	 * @param schema [可选] 要检查的模式的名称。
@@ -7202,10 +7209,10 @@ interface HttpClient {
 	 * @param headers 要发送的请求头。每个头部应该以 "name: value" 的格式。
 	 * @param json 要发送的JSON文本。
 	 * @param timeout [可选] 请求的超时时间（以秒为单位）。默认为5。
-	 * @param partCallback [可选] 一个定期报告部分接收到的响应内容的回调函数。
+	 * @param partCallback [可选] 一个定期报告部分接收到的响应内容的回调函数。返回 `true` 以停止请求。
 	 * @returns 响应文本，如果请求失败则返回 `null`。
 	 */
-	postAsync(url: string, headers: string[], json: string, timeout?: number, partCallback?: (this: void,data: string) => void): string | null;
+	postAsync(url: string, headers: string[], json: string, timeout?: number, partCallback?: (this: void, data: string) => boolean): string | null;
 	/**
 	 * 向指定的URL异步发送GET请求，并返回响应文本。
 	 * @param url 要发送请求的URL。
@@ -7238,7 +7245,7 @@ interface json {
 	 * @param maxDepth 解析的最大深度（默认是 128）。
 	 * @returns 表示 JSON 数据的对象，如果文本不是有效的 JSON，则返回 null 和错误消息。
 	 */
-	load(this: void, json: string, maxDepth?: number): LuaMultiReturn<[object, null]> | LuaMultiReturn<[null, string]>;
+	load(this: void, json: string, maxDepth?: number): LuaMultiReturn<[any, null]> | LuaMultiReturn<[null, string]>;
 	/**
 	 * 将指定的对象转换为 JSON 文本。
 	 * @param obj 要转换的对象。

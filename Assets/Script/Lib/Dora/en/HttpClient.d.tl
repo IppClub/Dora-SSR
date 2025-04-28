@@ -5,9 +5,9 @@ local record HttpClient
 	-- @param url (string) The URL to make the request to.
 	-- @param json (string) The JSON text to send in the request.
 	-- @param timeout (number) [optional] The request timeout in seconds (default is 5 seconds).
-	-- @param partCallback (function) [optional] A callback function that is called periodically to get part of the response content.
+	-- @param partCallback (function) [optional] A callback function that is called periodically to get part of the response content. Returns `true` to stop the request.
 	-- @return (string) The response in text，or nil if the request fails.
-	postAsync: function(self: HttpClient, url: string, json: string, timeout?: number, partCallback?: function(data: string)): string | nil
+	postAsync: function(self: HttpClient, url: string, json: string, timeout?: number, partCallback?: function(data: string): boolean): string | nil
 
 	-- Makes a POST request to the specified URL with the specified headers and JSON text, and returns the response in text.
 	-- @param url (string) The URL to make the request to.

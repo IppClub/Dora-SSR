@@ -13,9 +13,14 @@ local record DB
 	-- 可以是SQL字符串或是SQL字符串加上参数列表。
 	type SQL = string | {string, {Row}}
 
+	-- 检查是否存在特定名称的附加数据库。
+	-- @param dbName (string) 要检查的数据库名。
+	-- @return (boolean) 数据库是否存在。
+	existDB: function(self: DB, dbName: string): boolean
+
 	-- 检查数据库中是否存在特定名称的数据表。
 	-- @param tableName (string) 要检查的表名。
-	-- @param schema (string) [可选] 数据库的视图名称。
+	-- @param schema (string) [可选] 数据库的名称。
 	-- @return (boolean) 数据表是否存在。
 	exist: function(self: DB, tableName: string, schema?: string): boolean
 

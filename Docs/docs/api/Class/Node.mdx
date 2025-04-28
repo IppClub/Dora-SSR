@@ -954,7 +954,7 @@ convertToWindowSpace: function(self: Node, nodePoint: Vec2, callback: function(V
 
 **Description:**
 
-&emsp;&emsp;Calls the given function for each child node of this node.
+&emsp;&emsp;Calls the given function for each child node of this node. The child nodes can not be added or removed during the iteration.
 
 **Signature:**
 ```tl
@@ -979,7 +979,7 @@ eachChild: function(self: Node, func: function(Node): boolean): boolean
 
 **Description:**
 
-&emsp;&emsp;Traverses the node hierarchy starting from this node and calls the given function for each visited node. The nodes without `TraverseEnabled` flag are not visited.
+&emsp;&emsp;Traverses the node hierarchy starting from this node and calls the given function for each visited node. The nodes without `TraverseEnabled` flag are not visited. The nodes can not be added or removed during the iteration.
 
 **Signature:**
 ```tl
@@ -1004,7 +1004,7 @@ traverse: function(self: Node, func: function(Node): boolean): boolean
 
 **Description:**
 
-&emsp;&emsp;Traverses the entire node hierarchy starting from this node and calls the given function for each visited node.
+&emsp;&emsp;Traverses the entire node hierarchy starting from this node and calls the given function for each visited node. The nodes without `TraverseEnabled` flag are also visited. The nodes can not be added or removed during the iteration.
 
 **Signature:**
 ```tl

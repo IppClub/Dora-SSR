@@ -45,6 +45,31 @@ type Row = {Column}
 type SQL = string | {string, {Row}}
 ```
 
+## existDB
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;检查是否存在特定名称的附加数据库。
+
+**签名：**
+```tl
+existDB: function(self: DB, dbName: string): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| dbName | string | 要检查的数据库名。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 数据库是否存在。 |
+
 ## exist
 
 **类型：** 函数。
@@ -63,7 +88,7 @@ exist: function(self: DB, tableName: string, schema?: string): boolean
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
 | tableName | string | 要检查的表名。 |
-| schema | string | [可选] 数据库的视图名称。 |
+| schema | string | [可选] 数据库的名称。 |
 
 **返回值：**
 

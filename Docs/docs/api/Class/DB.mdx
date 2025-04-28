@@ -45,6 +45,31 @@ Can be SQL string or a pair of SQL string and an array of parameters.
 type SQL = string | {string, {Row}}
 ```
 
+## existDB
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Checks whether an attached database exists.
+
+**Signature:**
+```tl
+existDB: function(self: DB, dbName: string): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| dbName | string | The name of the attached database to check. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | Whether the attached database exists or not. |
+
 ## exist
 
 **Type:** Function.
@@ -63,7 +88,7 @@ exist: function(self: DB, tableName: string, schema?: string): boolean
 | Parameter | Type | Description |
 | --- | --- | --- |
 | tableName | string | The name of the table to check. |
-| schema | string | [optional] The name of the schema to check in. |
+| schema | string | [optional] The name of the database to check in. |
 
 **Returns:**
 

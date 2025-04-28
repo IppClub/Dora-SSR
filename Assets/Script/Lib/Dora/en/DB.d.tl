@@ -13,9 +13,14 @@ local record DB
 	-- Can be SQL string or a pair of SQL string and an array of parameters.
 	type SQL = string | {string, {Row}}
 
+	-- Checks whether an attached database exists.
+	-- @param dbName (string) The name of the attached database to check.
+	-- @return (boolean) Whether the attached database exists or not.
+	existDB: function(self: DB, dbName: string): boolean
+
 	-- Checks whether a table exists in the database.
 	-- @param tableName (string) The name of the table to check.
-	-- @param schema (string) [optional] The name of the schema to check in.
+	-- @param schema (string) [optional] The name of the database to check in.
 	-- @return (boolean) Whether the table exists or not.
 	exist: function(self: DB, tableName: string, schema?: string): boolean
 

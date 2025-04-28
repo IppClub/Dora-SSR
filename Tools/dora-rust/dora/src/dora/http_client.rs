@@ -57,13 +57,14 @@ impl HttpClient {
 	/// * `headers` - A vector of headers to include in the request. Each header should be in the format `key: value`.
 	/// * `json` - The JSON data to send in the request body.
 	/// * `timeout` - The timeout in seconds for the request.
-	/// * `part_callback` - A callback function that is called periodically to get part of the response content.
+	/// * `part_callback` - A callback function that is called periodically to get part of the response content. Returns `true` to stop the request.
 	/// * `callback` - A callback function that is called when the request is complete. The function receives the response body as a parameter.
-	pub fn post_with_headers_part_async(url: &str, headers: &Vec<&str>, json: &str, timeout: f32, mut part_callback: Box<dyn FnMut(Option<String>)>, mut callback: Box<dyn FnMut(Option<String>)>) {
+	pub fn post_with_headers_part_async(url: &str, headers: &Vec<&str>, json: &str, timeout: f32, mut part_callback: Box<dyn FnMut(&str) -> bool>, mut callback: Box<dyn FnMut(Option<String>)>) {
 		let mut stack0 = crate::dora::CallStack::new();
 		let stack_raw0 = stack0.raw();
 		let func_id0 = crate::dora::push_function(Box::new(move || {
-			part_callback(stack0.pop_str())
+			let result = part_callback(stack0.pop_str().unwrap().as_str());
+			stack0.push_bool(result);
 		}));
 		let mut stack1 = crate::dora::CallStack::new();
 		let stack_raw1 = stack1.raw();

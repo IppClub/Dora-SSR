@@ -12,7 +12,7 @@ class IdFactory {
 type InputMap	= Record<string, Blk>;
 type FieldMap	= Record<string, any>;
 
-class Blk {
+export class Blk {
 	readonly id: string;
 	readonly type: string;
 	readonly fields?: FieldMap;
@@ -104,8 +104,8 @@ export const Declare = (name: string, value: Blk) =>
 		inputs:{ VALUE: value },
 	});
 
-export const If = (cond: Blk, body: Blk) => ({ condition: cond, body });
-export const Else = (body: Blk) => body;
+export const If = (cond: Blk, body: Blk) => ({ condition: cond, elseBranch: false, body });
+export const Else = (body: Blk) => ({ elseBranch: true, body });
 
 const _ifElseCore = (
 	main: ReturnType<typeof If>,
@@ -129,10 +129,9 @@ const _ifElseCore = (
 
 export const IfElse = (...ifBranchesOrElse: (ReturnType<typeof If> | ReturnType<typeof Else>)[]) => {
 	const last = ifBranchesOrElse[ifBranchesOrElse.length-1];
-	const hasElse	= last instanceof Blk;
 	const main = ifBranchesOrElse[0] as ReturnType<typeof If>;
-	const elseIfs	= (hasElse ? ifBranchesOrElse.slice(1, -1) : ifBranchesOrElse.slice(1)) as ReturnType<typeof If>[];
-	const elseBody = hasElse ? (last as Blk) : undefined;
+	const elseIfs	= (last.elseBranch ? ifBranchesOrElse.slice(1, -1) : ifBranchesOrElse.slice(1)) as ReturnType<typeof If>[];
+	const elseBody = last.elseBranch ? last.body : undefined;
 	return _ifElseCore(main, elseIfs, elseBody);
 };
 
@@ -545,7 +544,7 @@ const listSplit = (
 	});
 
 export const ListSplit = (inputText: Blk, delimText: Blk) => listSplit(inputText, delimText, "SPLIT");
-export const ListJoin = (list: Blk, delimText: Blk) => listSplit(list, delimText, "JOIN");
+export const ListStringConcat = (list: Blk, delimText: Blk) => listSplit(list, delimText, "JOIN");
 
 const listSort = (
 	listExpr: Blk,
@@ -602,6 +601,9 @@ export const VarAdd = (name: string, deltaNum: Blk) =>
 		fields: { VAR: varAccess(name) },
 		inputs: { DELTA: deltaNum },
 	});
+
+export const ProcReturn = (value?: Blk) =>
+	new Blk("return_block", { inputs: value ? { VALUE: value } : {} });
 
 export const ProcIfReturn = (
 	cond: Blk,
@@ -1026,7 +1028,7 @@ const touchVec2Attr = (touchId: string, attr: TouchVec2Attr) =>
 export const TouchGetLocation = (touchVar: string) => touchVec2Attr(touchVar, "location");
 export const TouchGetWorldLocation = (touchVar: string) => touchVec2Attr(touchVar, "worldLocation");
 
-export const toBlocklyJSON = (root: Blk, procs?: Blk[]): any => {
+export const toBlocklyJSON = (root: Blk, procs?: Blk[]): string => {
 	let vars = Array.from(collectVariables(root)).map(n => ({ name: n, id: n }));
 	for (let [_, v] of varMap.entries()) {
 		vars.push(v);
@@ -1054,15 +1056,17 @@ export const toBlocklyJSON = (root: Blk, procs?: Blk[]): any => {
 		j.x = (i + 1) * 500;
 		return j;
 	}) ?? [];
-	return {
+	const [res] = json.dump({
 		blocks: {
 			languageVersion: 0,
 			blocks: [root.toJSON(), ...procBlocks],
 		},
 		variables: vars,
-	};
+	});
+	return res ?? "{}";
 };
 
+/* Usages:
 const root = Block(
 	IfElse(
 		If(Bool(false), Print(Text())),
@@ -1147,7 +1151,7 @@ const root = Block(
 		ListRemoveGet(VarGet("temp"), Num(1)),
 		SubList(VarGet("temp"), Num(1), Num(4)),
 		ListSplit(Text("a,b,c,d"), Text(",")),
-		ListJoin(List(Text("a"), Text("b"), Text("c")), Text(",")),
+		ListStringConcat(List(Text("a"), Text("b"), Text("c")), Text(",")),
 		ListSort(VarGet("temp")),
 		ListSort(VarGet("temp"), true),
 		ListReverse(VarGet("temp")),
@@ -1235,7 +1239,6 @@ const root = Block(
 		)
 	))
 );
-
 const funcs = [
 	DefProc("func1", ["x"], Block(
 		ProcIfReturn(Lte(VarGet("x"), Num(0))),
@@ -1246,9 +1249,9 @@ const funcs = [
 		Sub(VarGet("x"), VarGet("y"))
 	)
 ];
-
-const [res] = json.dump(toBlocklyJSON(root, funcs));
-print(res);
+const jsonCode = toBlocklyJSON(root, funcs);
+print(jsonCode);
+*/
 
 } // namespace Gen
 

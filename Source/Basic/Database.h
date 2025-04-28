@@ -25,6 +25,7 @@ public:
 	typedef std::deque<std::vector<Col>> Rows;
 	PROPERTY_READONLY(Async*, Thread);
 	virtual ~DB();
+	bool existDB(String name) const;
 	bool exist(String tableName, String schema = Slice::Empty) const;
 	int exec(String sql);
 	int exec(String sql, const std::vector<Own<Value>>& args);

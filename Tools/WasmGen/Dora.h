@@ -3805,6 +3805,16 @@ value struct DBQuery
 /// A struct that represents a database.
 singleton class DB
 {
+	/// Checks whether a database exists.
+	///
+	/// # Arguments
+	///
+	/// * `db_name` - The name of the database to check.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `true` if the database exists, `false` otherwise.
+	bool existDB @ exist_db(string dbName);
 	/// Checks whether a table exists in the database.
 	///
 	/// # Arguments
@@ -4040,9 +4050,9 @@ singleton class HttpClient
 	/// * `headers` - A vector of headers to include in the request. Each header should be in the format `key: value`.
 	/// * `json` - The JSON data to send in the request body.
 	/// * `timeout` - The timeout in seconds for the request.
-	/// * `part_callback` - A callback function that is called periodically to get part of the response content.
+	/// * `part_callback` - A callback function that is called periodically to get part of the response content. Returns `true` to stop the request.
 	/// * `callback` - A callback function that is called when the request is complete. The function receives the response body as a parameter.
-	void postAsync @ postWithHeadersPartAsync(string url, VecStr headers, string json, float timeout, function<void(OptString body)> partCallback, function<void(OptString body)> callback);
+	void postAsync @ postWithHeadersPartAsync(string url, VecStr headers, string json, float timeout, function<def_false bool(string body)> partCallback, function<void(OptString body)> callback);
 	/// Sends a GET request to the specified URL and returns the response body.
 	///
 	/// # Arguments

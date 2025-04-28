@@ -39,10 +39,11 @@ void httpclient_post_with_headers_part_async(int64_t url, int64_t headers, int64
 		SharedWasmRuntime.deref(func1);
 	});
 	auto args1 = r_cast<CallStack*>(stack1);
-	SharedHttpClient.postAsync(*Str_From(url), Vec_FromStr(headers), *Str_From(json), timeout, [func0, args0, deref0](OptString body) {
+	SharedHttpClient.postAsync(*Str_From(url), Vec_FromStr(headers), *Str_From(json), timeout, [func0, args0, deref0](String body) {
 		args0->clear();
 		args0->push(body);
 		SharedWasmRuntime.invoke(func0);
+		return args0->pop_bool_or(false);
 	}, [func1, args1, deref1](OptString body) {
 		args1->clear();
 		args1->push(body);
