@@ -20,6 +20,7 @@ local DB = ____Dora.DB -- 2
 local Path = ____Dora.Path -- 2
 local Content = ____Dora.Content -- 2
 local Director = ____Dora.Director -- 2
+local App = ____Dora.App -- 2
 local ImGui = require("ImGui") -- 3
 local ____flow = require("Agent.flow") -- 5
 local Node = ____flow.Node -- 5
@@ -84,174 +85,205 @@ local function callLLM(messages, url, apiKey, model, receiver) -- 45
 		end -- 51
 	) -- 51
 end -- 45
-local root = DNode() -- 68
-local llmWorking = false -- 74
-local ChatNode = __TS__Class() -- 76
-ChatNode.name = "ChatNode" -- 76
-__TS__ClassExtends(ChatNode, Node) -- 76
-function ChatNode.prototype.prep(self, shared) -- 77
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 77
-		return ____awaiter_resolve( -- 77
-			nil, -- 77
-			__TS__New( -- 78
-				__TS__Promise, -- 78
-				function(____, resolve) -- 78
-					root:slot( -- 79
-						"Input", -- 79
-						function(message) -- 79
-							local ____shared_messages_0 = shared.messages -- 79
-							____shared_messages_0[#____shared_messages_0 + 1] = {role = "user", content = message} -- 80
-							resolve( -- 81
-								nil, -- 81
-								__TS__ArraySlice(shared.messages, -10) -- 81
-							) -- 81
-						end -- 79
-					) -- 79
-				end -- 78
-			) -- 78
-		) -- 78
-	end) -- 78
-end -- 77
-function ChatNode.prototype.exec(self, messages) -- 85
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 85
-		return ____awaiter_resolve( -- 85
-			nil, -- 85
-			__TS__New( -- 86
-				__TS__Promise, -- 86
-				function(____, resolve, reject) -- 86
-					return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 86
-						local str = "" -- 87
-						root:emit("Output", "LLM: ") -- 88
-						llmWorking = true -- 89
-						local ____try = __TS__AsyncAwaiter(function() -- 89
-							__TS__Await(callLLM( -- 91
-								messages, -- 91
-								url.text, -- 91
-								apiKey.text, -- 91
-								model.text, -- 91
-								function(data) -- 91
-									local done = string.match(data, "data:%s*(%b[])") -- 92
-									if done == "[DONE]" then -- 92
-										resolve(nil, str) -- 94
-										return -- 95
-									end -- 95
-									for item in string.gmatch(data, "data:%s*(%b{})") do -- 97
-										local res = json.load(item) -- 98
-										if res then -- 98
-											str = str .. res.choices[1].delta.content -- 100
-										end -- 100
-									end -- 100
-									root:emit("Update", "LLM: " .. str) -- 103
-								end -- 91
-							)) -- 91
-							llmWorking = false -- 105
-						end) -- 105
-						__TS__Await(____try.catch( -- 90
-							____try, -- 90
-							function(____, e) -- 90
-								llmWorking = false -- 107
-								reject(nil, e) -- 108
-							end -- 108
-						)) -- 108
-					end) -- 108
-				end -- 86
-			) -- 86
-		) -- 86
-	end) -- 86
-end -- 85
-function ChatNode.prototype.post(self, shared, _prepRes, execRes) -- 112
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 112
-		if execRes ~= "" then -- 112
-			local ____shared_messages_1 = shared.messages -- 112
-			____shared_messages_1[#____shared_messages_1 + 1] = {role = "system", content = execRes} -- 114
-		end -- 114
-		return ____awaiter_resolve(nil, nil) -- 114
-	end) -- 114
-end -- 112
-local chatNode = __TS__New(ChatNode, 2, 1) -- 120
-chatNode:next(chatNode) -- 121
-local flow = __TS__New(Flow, chatNode) -- 123
-local runFlow -- 124
-runFlow = function() -- 124
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 124
-		local chatInfo = {messages = {}} -- 125
-		local ____try = __TS__AsyncAwaiter(function() -- 125
-			__TS__Await(flow:run(chatInfo)) -- 129
-		end) -- 129
-		__TS__Await(____try.catch( -- 128
-			____try, -- 128
-			function(____, err) -- 128
-				Log("Error", err) -- 131
-				runFlow() -- 132
-			end -- 132
-		)) -- 132
-	end) -- 132
-end -- 124
-runFlow() -- 135
-local logs = {} -- 137
-local inputBuffer = Buffer(500) -- 138
-local function ChatButton() -- 140
-	if ImGui.InputText("Chat", inputBuffer, {"EnterReturnsTrue"}) then -- 140
-		local command = inputBuffer.text -- 142
-		if command ~= "" then -- 142
-			logs[#logs + 1] = "User: " .. command -- 144
-			root:emit("Input", command) -- 145
-		end -- 145
-		inputBuffer.text = "" -- 147
-	end -- 147
-end -- 140
-local inputFlags = {"Password"} -- 151
-root:loop(function() -- 152
-	ImGui.SetNextWindowSize( -- 153
-		Vec2(400, 300), -- 153
-		"FirstUseEver" -- 153
-	) -- 153
-	ImGui.Begin( -- 154
-		"LLM Chat", -- 154
-		function() -- 154
-			if ImGui.InputText("URL", url) then -- 154
-				config.url = url.text -- 156
-			end -- 156
-			if ImGui.InputText("API Key", apiKey, inputFlags) then -- 156
-				config.apiKey = apiKey.text -- 159
-			end -- 159
-			if ImGui.InputText("Model", model) then -- 159
-				config.model = model.text -- 162
-			end -- 162
-			ImGui.Separator() -- 164
-			ImGui.BeginChild( -- 165
-				"LogArea", -- 165
-				Vec2(0, -40), -- 165
-				function() -- 165
-					for ____, log in ipairs(logs) do -- 166
-						ImGui.TextWrapped(log) -- 167
-					end -- 167
-					if ImGui.GetScrollY() >= ImGui.GetScrollMaxY() then -- 167
-						ImGui.SetScrollHereY(1) -- 170
-					end -- 170
-				end -- 165
-			) -- 165
-			if llmWorking then -- 165
-				ImGui.BeginDisabled(function() -- 174
-					ChatButton() -- 175
-				end) -- 174
-			else -- 174
-				ChatButton() -- 178
-			end -- 178
-		end -- 154
-	) -- 154
-	return false -- 181
-end) -- 152
-root:slot( -- 184
-	"Output", -- 184
-	function(message) -- 184
-		logs[#logs + 1] = message -- 185
-	end -- 184
-) -- 184
-root:slot( -- 188
-	"Update", -- 188
-	function(message) -- 188
-		logs[#logs] = message -- 189
-	end -- 188
-) -- 188
-return ____exports -- 188
+local endPost = false -- 68
+local root = DNode() -- 70
+root:onCleanup(function() -- 71
+	endPost = true -- 72
+end) -- 71
+local llmWorking = false -- 79
+local ChatNode = __TS__Class() -- 81
+ChatNode.name = "ChatNode" -- 81
+__TS__ClassExtends(ChatNode, Node) -- 81
+function ChatNode.prototype.prep(self, shared) -- 82
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 82
+		return ____awaiter_resolve( -- 82
+			nil, -- 82
+			__TS__New( -- 83
+				__TS__Promise, -- 83
+				function(____, resolve) -- 83
+					root:slot( -- 84
+						"Input", -- 84
+						function(message) -- 84
+							local ____shared_messages_0 = shared.messages -- 84
+							____shared_messages_0[#____shared_messages_0 + 1] = {role = "user", content = message} -- 85
+							resolve( -- 86
+								nil, -- 86
+								__TS__ArraySlice(shared.messages, -10) -- 86
+							) -- 86
+						end -- 84
+					) -- 84
+				end -- 83
+			) -- 83
+		) -- 83
+	end) -- 83
+end -- 82
+function ChatNode.prototype.exec(self, messages) -- 90
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 90
+		return ____awaiter_resolve( -- 90
+			nil, -- 90
+			__TS__New( -- 91
+				__TS__Promise, -- 91
+				function(____, resolve, reject) -- 91
+					return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 91
+						local str = "" -- 92
+						root:emit("Output", "LLM: ") -- 93
+						llmWorking = true -- 94
+						local ____try = __TS__AsyncAwaiter(function() -- 94
+							__TS__Await(callLLM( -- 96
+								messages, -- 96
+								url.text, -- 96
+								apiKey.text, -- 96
+								model.text, -- 96
+								function(data) -- 96
+									if endPost then -- 96
+										return true -- 98
+									end -- 98
+									local done = string.match(data, "data:%s*(%b[])") -- 100
+									if done == "[DONE]" then -- 100
+										resolve(nil, str) -- 102
+										return false -- 103
+									end -- 103
+									for item in string.gmatch(data, "data:%s*(%b{})") do -- 105
+										local res = json.load(item) -- 106
+										if res then -- 106
+											str = str .. res.choices[1].delta.content -- 108
+										end -- 108
+									end -- 108
+									root:emit("Update", "LLM: " .. str) -- 111
+									return false -- 112
+								end -- 96
+							)) -- 96
+							llmWorking = false -- 114
+						end) -- 114
+						__TS__Await(____try.catch( -- 95
+							____try, -- 95
+							function(____, e) -- 95
+								llmWorking = false -- 116
+								reject(nil, e) -- 117
+							end -- 117
+						)) -- 117
+					end) -- 117
+				end -- 91
+			) -- 91
+		) -- 91
+	end) -- 91
+end -- 90
+function ChatNode.prototype.post(self, shared, _prepRes, execRes) -- 121
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 121
+		if execRes ~= "" then -- 121
+			local ____shared_messages_1 = shared.messages -- 121
+			____shared_messages_1[#____shared_messages_1 + 1] = {role = "system", content = execRes} -- 123
+		end -- 123
+		return ____awaiter_resolve(nil, nil) -- 123
+	end) -- 123
+end -- 121
+local chatNode = __TS__New(ChatNode, 2, 1) -- 129
+chatNode:next(chatNode) -- 130
+local flow = __TS__New(Flow, chatNode) -- 132
+local runFlow -- 133
+runFlow = function() -- 133
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 133
+		local chatInfo = {messages = {}} -- 134
+		local ____try = __TS__AsyncAwaiter(function() -- 134
+			__TS__Await(flow:run(chatInfo)) -- 138
+		end) -- 138
+		__TS__Await(____try.catch( -- 137
+			____try, -- 137
+			function(____, err) -- 137
+				Log("Error", err) -- 140
+				runFlow() -- 141
+			end -- 141
+		)) -- 141
+	end) -- 141
+end -- 133
+runFlow() -- 144
+local logs = {} -- 146
+local inputBuffer = Buffer(500) -- 147
+local function ChatButton() -- 149
+	ImGui.PushItemWidth( -- 150
+		-50, -- 150
+		function() -- 150
+			if ImGui.InputText("Chat", inputBuffer, {"EnterReturnsTrue"}) then -- 150
+				local command = inputBuffer.text -- 152
+				if command ~= "" then -- 152
+					logs[#logs + 1] = "User: " .. command -- 154
+					root:emit("Input", command) -- 155
+				end -- 155
+				inputBuffer.text = "" -- 157
+			end -- 157
+		end -- 150
+	) -- 150
+end -- 149
+local inputFlags = {"Password"} -- 162
+local windowsFlags = { -- 163
+	"NoMove", -- 164
+	"NoCollapse", -- 165
+	"NoResize", -- 166
+	"NoDecoration", -- 167
+	"NoNav" -- 168
+} -- 168
+root:loop(function() -- 170
+	local ____App_visualSize_2 = App.visualSize -- 171
+	local width = ____App_visualSize_2.width -- 171
+	local height = ____App_visualSize_2.height -- 171
+	ImGui.SetNextWindowPos(Vec2.zero, "Always", Vec2.zero) -- 172
+	ImGui.SetNextWindowSize( -- 173
+		Vec2(width, height), -- 173
+		"Always" -- 173
+	) -- 173
+	ImGui.Begin( -- 174
+		"LLM Chat", -- 174
+		windowsFlags, -- 174
+		function() -- 174
+			ImGui.Text("ChatBot") -- 175
+			ImGui.SameLine() -- 176
+			ImGui.Dummy(Vec2(width - 200, 0)) -- 177
+			ImGui.SameLine() -- 178
+			if ImGui.CollapsingHeader("Config") then -- 178
+				if ImGui.InputText("URL", url) then -- 178
+					config.url = url.text -- 181
+				end -- 181
+				if ImGui.InputText("API Key", apiKey, inputFlags) then -- 181
+					config.apiKey = apiKey.text -- 184
+				end -- 184
+				if ImGui.InputText("Model", model) then -- 184
+					config.model = model.text -- 187
+				end -- 187
+			end -- 187
+			ImGui.Separator() -- 190
+			ImGui.BeginChild( -- 191
+				"LogArea", -- 191
+				Vec2(0, -40), -- 191
+				function() -- 191
+					for ____, log in ipairs(logs) do -- 192
+						ImGui.TextWrapped(log) -- 193
+					end -- 193
+					if ImGui.GetScrollY() >= ImGui.GetScrollMaxY() then -- 193
+						ImGui.SetScrollHereY(1) -- 196
+					end -- 196
+				end -- 191
+			) -- 191
+			if llmWorking then -- 191
+				ImGui.BeginDisabled(function() -- 200
+					ChatButton() -- 201
+				end) -- 200
+			else -- 200
+				ChatButton() -- 204
+			end -- 204
+		end -- 174
+	) -- 174
+	return false -- 207
+end) -- 170
+root:slot( -- 210
+	"Output", -- 210
+	function(message) -- 210
+		logs[#logs + 1] = message -- 211
+	end -- 210
+) -- 210
+root:slot( -- 214
+	"Update", -- 214
+	function(message) -- 214
+		logs[#logs] = message -- 215
+	end -- 214
+) -- 214
+return ____exports -- 214

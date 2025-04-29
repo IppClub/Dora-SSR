@@ -1,9 +1,15 @@
 // @preview-file on clear
-import { HttpClient, json, thread, Buffer, Vec2, Node as DNode, Log, DB, Path, Content, Director, emit, GSlot, Node as DoraNode } from 'Dora';
+import { HttpClient, json, thread, Buffer, Vec2, Node as DNode, Log, DB, Path, Content, Director, emit, GSlot, Node as DoraNode, App } from 'Dora';
 import * as ImGui from "ImGui";
-import { InputTextFlag, SetCond } from "ImGui";
+import { InputTextFlag, SetCond, WindowFlag } from "ImGui";
 import { Node, Flow } from 'Agent/flow';
 import * as Config from 'Config';
+
+let zh = false;
+{
+	const [res] = string.match(App.locale, "^zh");
+	zh = res !== null && ImGui.IsFontLoaded();
+}
 
 interface LLM {
 	url: string;
@@ -17,7 +23,7 @@ let running = true;
 if (!DB.existDB('llm')) {
 	const dbPath = Path(Content.writablePath, "llm.db");
 	DB.exec(`ATTACH DATABASE '${dbPath}' AS llm`);
-	Director.entry.slot("Cleanup", () => {
+	Director.entry.onCleanup(() => {
 		DB.exec("DETACH DATABASE llm");
 		running = false;
 	});
@@ -108,6 +114,7 @@ ${Content.load(Path(Content.assetPath, 'Script', 'Lib', 'Agent', 'BlocklyGen.d.t
 - 对变量名对大小写不敏感，勿用大小写区分变量
 - 导入 DSL 模块请使用代码 \`import Gen from 'Agent/BlocklyGen';\`
 - 确保最后给我的回答只包含纯粹的 TypeScript 代码，不要包含任何非代码的说明
+- 坐标计算均使用左手系坐标，包括所有绘图 API 中的坐标
 - 程序块请放在\`const root\`变量中，函数定义放在\`const funcs\`变量中
 - 最后输出的 jsonCode 变量请原样补充如下的处理代码：
 import * as Dora from 'Dora';
@@ -139,11 +146,6 @@ ${message}
 				resolve(undefined);
 			});
 		});
-	}
-	async exec() {
-	}
-	async post(_shared: ChatInfo, _prepRes: unknown, _execRes: unknown) {
-		return undefined;
 	}
 }
 
@@ -275,9 +277,6 @@ ${codeAndError}
 	async exec() {
 		logs.push("开始修复代码！");
 	}
-	async post(_shared: ChatInfo, _prepRes: unknown, _execRes: unknown) {
-		return undefined;
-	}
 }
 
 class SaveNode extends Node {
@@ -309,9 +308,6 @@ class SaveNode extends Node {
 				Log("Error", tostring(e));
 			}
 		}
-	}
-	async post(_shared: ChatInfo, _prepRes: unknown, _execRes: unknown) {
-		return undefined;
 	}
 }
 
@@ -345,32 +341,59 @@ let logs: string[] = [];
 const inputBuffer = Buffer(5000);
 
 const ChatButton = () => {
-	if (ImGui.InputText("Desc", inputBuffer, [InputTextFlag.EnterReturnsTrue])) {
-		const command = inputBuffer.text;
-		if (command !== '') {
-			logs = [];
-			logs.push(`User: ${command}`);
-			root.emit('Input', command);
+	ImGui.PushItemWidth(-80, () => {
+		if (ImGui.InputText(zh ? "描述需求" : "Desc", inputBuffer, [InputTextFlag.EnterReturnsTrue])) {
+			const command = inputBuffer.text;
+			if (command !== '') {
+				logs = [];
+				logs.push(`User: ${command}`);
+				root.emit('Input', command);
+			}
+			inputBuffer.text = "";
 		}
-		inputBuffer.text = "";
-	}
+	});
 };
 
 const inputFlags = [InputTextFlag.Password];
+const windowsFlags = [
+	WindowFlag.NoMove,
+	WindowFlag.NoCollapse,
+	WindowFlag.NoResize,
+	WindowFlag.NoDecoration,
+	WindowFlag.NoNav
+];
 root.loop(() => {
-	ImGui.SetNextWindowSize(Vec2(400, 300), SetCond.FirstUseEver);
-	ImGui.Begin("Blockly Coder", () => {
-		if (ImGui.InputText("URL", url)) {
-			config.url = url.text;
+	const {width, height} = App.visualSize;
+	ImGui.SetNextWindowPos(Vec2.zero, SetCond.Always, Vec2.zero);
+	ImGui.SetNextWindowSize(Vec2(width, height), SetCond.Always);
+	ImGui.Begin("Blockly Coder", windowsFlags, () => {
+		ImGui.Text(zh ? "Blockly 编程家" : "Blockly Coder");
+		ImGui.SameLine();
+		ImGui.TextDisabled("(?)");
+		if (ImGui.IsItemHovered()) {
+			ImGui.BeginTooltip(() => {
+				ImGui.PushTextWrapPos(400, () => {
+					ImGui.Text(zh ? "请先配置大模型 API 密钥，然后输入自然语言需求，Agent 将自动生成 TypeScript 积木代码，编译成 Blockly 积木并翻译为 Lua 脚本运行。遇到编译失败会自动修正，无需手动干预。" : "First, configure the API key for the large language model. Then, input your natural language requirements. The Agent will automatically generate TypeScript building block code, compile it into Blockly blocks, and translate it into Lua scripts for execution. If any compilation errors occur, they will be automatically corrected without requiring manual intervention.");
+				});
+			});
 		}
-		if (ImGui.InputText("API Key", apiKey, inputFlags)) {
-			config.apiKey = apiKey.text;
-		}
-		if (ImGui.InputText("Model", model)) {
-			config.model = model.text;
-		}
-		if (ImGui.InputText("Output File", outputFile)) {
-			config.output = outputFile.text;
+		
+		ImGui.SameLine();
+		ImGui.Dummy(Vec2(width - 290, 0));
+		ImGui.SameLine();
+		if (ImGui.CollapsingHeader(zh ? "配置" : "Config")) {
+			if (ImGui.InputText(zh ? "API 地址" : "API URL", url)) {
+				config.url = url.text;
+			}
+			if (ImGui.InputText(zh ? "API 密钥" : "API Key", apiKey, inputFlags)) {
+				config.apiKey = apiKey.text;
+			}
+			if (ImGui.InputText(zh ? "模型" : "Model", model)) {
+				config.model = model.text;
+			}
+			if (ImGui.InputText(zh ? "输出文件" : "Output File", outputFile)) {
+				config.output = outputFile.text;
+			}
 		}
 		ImGui.Separator();
 		ImGui.BeginChild("LogArea", Vec2(0, -40), () => {
@@ -381,7 +404,7 @@ root.loop(() => {
 				ImGui.SetScrollHereY(1.0);
 			}
 		});
-		if (llmWorking) {
+		if (llmWorking || config.output === '') {
 			ImGui.BeginDisabled(() => {
 				ChatButton();
 			});
