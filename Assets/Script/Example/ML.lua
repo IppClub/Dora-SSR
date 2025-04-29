@@ -10,11 +10,12 @@ local SetNextWindowPos = _module_0.SetNextWindowPos -- 1
 local Vec2 = Dora.Vec2 -- 1
 local SetNextWindowSize = _module_0.SetNextWindowSize -- 1
 local Begin = _module_0.Begin -- 1
+local Text = _module_0.Text -- 1
+local Separator = _module_0.Separator -- 1
 local TextWrapped = _module_0.TextWrapped -- 1
 local tostring = _G.tostring -- 1
 local Button = _module_0.Button -- 1
 local SameLine = _module_0.SameLine -- 1
-local Separator = _module_0.Separator -- 1
 local Checkbox = _module_0.Checkbox -- 1
 local thread = Dora.thread -- 1
 local string = _G.string -- 1
@@ -758,265 +759,273 @@ local records = { -- 243
 local decisionStr = nil -- 246
 local windowFlags = { -- 248
 	"NoResize", -- 248
+	"NoSavedSettings", -- 248
+	"NoMove", -- 248
+	"NoCollapse", -- 248
+	"NoDecoration", -- 248
+	"NoNav", -- 248
+	"AlwaysVerticalScrollbar", -- 248
 	"NoSavedSettings" -- 248
 } -- 248
-local _anon_func_0 = function(tostring, training) -- 257
-	local _accum_0 = { } -- 257
-	local _len_0 = 1 -- 257
-	local _list_0 = training.result -- 257
-	for _index_0 = 1, #_list_0 do -- 257
-		local item = _list_0[_index_0] -- 257
-		_accum_0[_len_0] = tostring(item[1]) .. ":" .. tostring(item[2]) -- 257
-		_len_0 = _len_0 + 1 -- 257
-	end -- 257
-	return _accum_0 -- 257
-end -- 257
-local _anon_func_1 = function(result, tostring) -- 293
-	local _accum_0 = { } -- 293
-	local _len_0 = 1 -- 293
-	for _index_0 = 1, #result do -- 293
-		local _des_0 = result[_index_0] -- 293
-		local k, v = _des_0[1], _des_0[2] -- 293
-		_accum_0[_len_0] = tostring(k) .. ":" .. tostring(v) -- 293
-		_len_0 = _len_0 + 1 -- 293
-	end -- 293
-	return _accum_0 -- 293
-end -- 293
-local _anon_func_2 = function(effectFlags, effectNames) -- 299
-	local _accum_0 = { } -- 299
-	local _len_0 = 1 -- 299
-	for i = 1, #effectFlags do -- 299
-		if effectFlags[i] then -- 299
-			_accum_0[_len_0] = effectNames[i] -- 299
-			_len_0 = _len_0 + 1 -- 299
-		end -- 299
-	end -- 299
-	return _accum_0 -- 299
-end -- 299
-local _anon_func_3 = function(records, table) -- 351
-	local _accum_0 = { } -- 351
-	local _len_0 = 1 -- 351
-	for _index_0 = 1, #records do -- 351
-		local r = records[_index_0] -- 351
-		_accum_0[_len_0] = table.concat(r, ",") -- 351
-		_len_0 = _len_0 + 1 -- 351
-	end -- 351
-	return _accum_0 -- 351
-end -- 351
-local _anon_func_4 = function(name, op, tostring, value) -- 355
-	if name ~= "" then -- 355
-		return "if " .. tostring(name) .. " " .. tostring(op) .. " " .. tostring(op == '==' and "\"" .. tostring(value) .. "\"" or value) -- 356
-	else -- 358
-		return tostring(op) .. " \"" .. tostring(value) .. "\"" -- 358
-	end -- 355
-end -- 355
-return threadLoop(function() -- 249
-	local width, height -- 250
-	do -- 250
-		local _obj_0 = App.visualSize -- 250
-		width, height = _obj_0.width, _obj_0.height -- 250
-	end -- 250
-	SetNextWindowPos(Vec2(width / 2 - 300, height / 2 - 300), "FirstUseEver") -- 251
-	SetNextWindowSize(Vec2(600, 600), "FirstUseEver") -- 252
-	return Begin("Fairy", windowFlags, function() -- 253
-		if training then -- 254
-			TextWrapped("生物: " .. tostring(training.name)) -- 255
-			TextWrapped("执行动作: " .. tostring(actions[training.action])) -- 256
-			TextWrapped("取得效果: " .. tostring(table.concat(_anon_func_0(tostring, training), ", "))) -- 257
-			TextWrapped("手工训练记录数: " .. tostring(manualOp)) -- 258
-			if training.rand then -- 259
-				TextWrapped("[执行了随机动作]") -- 260
-			else -- 262
-				TextWrapped("[执行了已习得动作]") -- 262
-			end -- 259
-			if Button("表扬") then -- 263
-				manualOp = manualOp + 1 -- 264
-				ql:update(training.state, training.action, 1) -- 265
-				training = newRoundTraining() -- 266
-				records[#records + 1] = training.record -- 267
-			end -- 263
-			SameLine() -- 268
-			if Button("批评") then -- 269
-				manualOp = manualOp + 1 -- 270
-				ql:update(training.state, training.action, -1) -- 271
-				training = newRoundTraining() -- 272
-			end -- 269
-			SameLine() -- 273
-			if Button("跳过") then -- 274
-				training = newRoundTraining() -- 275
-			end -- 274
-		else -- 277
-			if Button("开始人工训练") then -- 277
-				training = newRoundTraining() -- 278
-			end -- 277
-		end -- 254
-		Separator() -- 279
-		if Button("对付100个随机生物") then -- 280
-			local result = { } -- 281
-			local validAction = 0 -- 282
-			for i = 1, 100 do -- 283
-				local res = newRoundTraining() -- 284
-				if not res.rand then -- 285
-					validAction = validAction + 1 -- 285
-				end -- 285
-				local _list_0 = res.result -- 286
-				for _index_0 = 1, #_list_0 do -- 286
-					local item = _list_0[_index_0] -- 286
-					if result[item[1]] then -- 287
-						local _update_0 = item[1] -- 288
-						result[_update_0] = result[_update_0] + item[2] -- 288
-					else -- 290
-						result[item[1]] = item[2] -- 290
-					end -- 287
-				end -- 290
-			end -- 290
-			do -- 291
-				local _accum_0 = { } -- 291
-				local _len_0 = 1 -- 291
-				for k, v in pairs(result) do -- 291
-					_accum_0[_len_0] = { -- 291
-						k, -- 291
-						v -- 291
-					} -- 291
-					_len_0 = _len_0 + 1 -- 291
-				end -- 291
-				result = _accum_0 -- 291
-			end -- 291
-			table.sort(result, function(a, b) -- 292
-				return b[2] < a[2] -- 292
-			end) -- 292
-			laborResult = table.concat(_anon_func_1(result, tostring), ", ") -- 293
-			laborResult = laborResult .. "\n习得动作生效次数: " .. tostring(validAction) .. "/100" -- 294
-		end -- 280
-		if laborResult then -- 295
-			TextWrapped(laborResult) -- 295
-		end -- 295
-		Separator() -- 296
-		local doSelfTraining = false -- 297
-		if selfTrained then -- 298
-			local target = table.concat(_anon_func_2(effectFlags, effectNames), ", ") -- 299
-			TextWrapped("已完成自我训练, 目标: " .. tostring(target)) -- 300
-			if Button("遗忘") then -- 301
-				selfTrained = false -- 302
-				ql = ML.QLearner() -- 303
-			end -- 301
-		else -- 305
-			TextWrapped("选择训练目标") -- 305
-			for i = 1, #effectFlags do -- 306
-				local _ -- 307
-				_, effectFlags[i] = Checkbox(effectNames[i], effectFlags[i]) -- 307
-			end -- 307
-			doSelfTraining = Button("进行自我训练") -- 308
-		end -- 298
-		if doSelfTraining then -- 309
-			selfTrained = true -- 310
-			ql = ML.QLearner() -- 311
-			local targetEffects -- 312
-			do -- 312
-				local _tbl_0 = { } -- 312
-				for i = 1, #effectFlags do -- 312
-					if effectFlags[i] then -- 312
-						_tbl_0[effectNames[i]] = true -- 312
-					end -- 312
-				end -- 312
-				targetEffects = _tbl_0 -- 312
-			end -- 312
-			local hints = { -- 314
-				#relationTags, -- 314
-				#bodyTypes + 1, -- 315
-				#skills + 1 -- 316
-			} -- 313
-			for i = 1, #unitTags do -- 318
-				hints[#hints + 1] = 2 -- 319
+local _anon_func_0 = function(tostring, training) -- 264
+	local _accum_0 = { } -- 264
+	local _len_0 = 1 -- 264
+	local _list_0 = training.result -- 264
+	for _index_0 = 1, #_list_0 do -- 264
+		local item = _list_0[_index_0] -- 264
+		_accum_0[_len_0] = tostring(item[1]) .. ":" .. tostring(item[2]) -- 264
+		_len_0 = _len_0 + 1 -- 264
+	end -- 264
+	return _accum_0 -- 264
+end -- 264
+local _anon_func_1 = function(result, tostring) -- 300
+	local _accum_0 = { } -- 300
+	local _len_0 = 1 -- 300
+	for _index_0 = 1, #result do -- 300
+		local _des_0 = result[_index_0] -- 300
+		local k, v = _des_0[1], _des_0[2] -- 300
+		_accum_0[_len_0] = tostring(k) .. ":" .. tostring(v) -- 300
+		_len_0 = _len_0 + 1 -- 300
+	end -- 300
+	return _accum_0 -- 300
+end -- 300
+local _anon_func_2 = function(effectFlags, effectNames) -- 306
+	local _accum_0 = { } -- 306
+	local _len_0 = 1 -- 306
+	for i = 1, #effectFlags do -- 306
+		if effectFlags[i] then -- 306
+			_accum_0[_len_0] = effectNames[i] -- 306
+			_len_0 = _len_0 + 1 -- 306
+		end -- 306
+	end -- 306
+	return _accum_0 -- 306
+end -- 306
+local _anon_func_3 = function(records, table) -- 358
+	local _accum_0 = { } -- 358
+	local _len_0 = 1 -- 358
+	for _index_0 = 1, #records do -- 358
+		local r = records[_index_0] -- 358
+		_accum_0[_len_0] = table.concat(r, ",") -- 358
+		_len_0 = _len_0 + 1 -- 358
+	end -- 358
+	return _accum_0 -- 358
+end -- 358
+local _anon_func_4 = function(name, op, tostring, value) -- 362
+	if name ~= "" then -- 362
+		return "if " .. tostring(name) .. " " .. tostring(op) .. " " .. tostring(op == '==' and "\"" .. tostring(value) .. "\"" or value) -- 363
+	else -- 365
+		return tostring(op) .. " \"" .. tostring(value) .. "\"" -- 365
+	end -- 362
+end -- 362
+return threadLoop(function() -- 254
+	local width, height -- 255
+	do -- 255
+		local _obj_0 = App.visualSize -- 255
+		width, height = _obj_0.width, _obj_0.height -- 255
+	end -- 255
+	SetNextWindowPos(Vec2.zero, "Always", Vec2.zero) -- 256
+	SetNextWindowSize(Vec2(width, height), "Always") -- 257
+	return Begin("Fairy", windowFlags, function() -- 258
+		Text("AI Fairy") -- 259
+		Separator() -- 260
+		if training then -- 261
+			TextWrapped("生物: " .. tostring(training.name)) -- 262
+			TextWrapped("执行动作: " .. tostring(actions[training.action])) -- 263
+			TextWrapped("取得效果: " .. tostring(table.concat(_anon_func_0(tostring, training), ", "))) -- 264
+			TextWrapped("手工训练记录数: " .. tostring(manualOp)) -- 265
+			if training.rand then -- 266
+				TextWrapped("[执行了随机动作]") -- 267
+			else -- 269
+				TextWrapped("[执行了已习得动作]") -- 269
+			end -- 266
+			if Button("表扬") then -- 270
+				manualOp = manualOp + 1 -- 271
+				ql:update(training.state, training.action, 1) -- 272
+				training = newRoundTraining() -- 273
+				records[#records + 1] = training.record -- 274
+			end -- 270
+			SameLine() -- 275
+			if Button("批评") then -- 276
+				manualOp = manualOp + 1 -- 277
+				ql:update(training.state, training.action, -1) -- 278
+				training = newRoundTraining() -- 279
+			end -- 276
+			SameLine() -- 280
+			if Button("跳过") then -- 281
+				training = newRoundTraining() -- 282
+			end -- 281
+		else -- 284
+			if Button("开始人工训练") then -- 284
+				training = newRoundTraining() -- 285
+			end -- 284
+		end -- 261
+		Separator() -- 286
+		if Button("对付100个随机生物") then -- 287
+			local result = { } -- 288
+			local validAction = 0 -- 289
+			for i = 1, 100 do -- 290
+				local res = newRoundTraining() -- 291
+				if not res.rand then -- 292
+					validAction = validAction + 1 -- 292
+				end -- 292
+				local _list_0 = res.result -- 293
+				for _index_0 = 1, #_list_0 do -- 293
+					local item = _list_0[_index_0] -- 293
+					if result[item[1]] then -- 294
+						local _update_0 = item[1] -- 295
+						result[_update_0] = result[_update_0] + item[2] -- 295
+					else -- 297
+						result[item[1]] = item[2] -- 297
+					end -- 294
+				end -- 297
+			end -- 297
+			do -- 298
+				local _accum_0 = { } -- 298
+				local _len_0 = 1 -- 298
+				for k, v in pairs(result) do -- 298
+					_accum_0[_len_0] = { -- 298
+						k, -- 298
+						v -- 298
+					} -- 298
+					_len_0 = _len_0 + 1 -- 298
+				end -- 298
+				result = _accum_0 -- 298
+			end -- 298
+			table.sort(result, function(a, b) -- 299
+				return b[2] < a[2] -- 299
+			end) -- 299
+			laborResult = table.concat(_anon_func_1(result, tostring), ", ") -- 300
+			laborResult = laborResult .. "\n习得动作生效次数: " .. tostring(validAction) .. "/100" -- 301
+		end -- 287
+		if laborResult then -- 302
+			TextWrapped(laborResult) -- 302
+		end -- 302
+		Separator() -- 303
+		local doSelfTraining = false -- 304
+		if selfTrained then -- 305
+			local target = table.concat(_anon_func_2(effectFlags, effectNames), ", ") -- 306
+			TextWrapped("已完成自我训练, 目标: " .. tostring(target)) -- 307
+			if Button("遗忘") then -- 308
+				selfTrained = false -- 309
+				ql = ML.QLearner() -- 310
+			end -- 308
+		else -- 312
+			TextWrapped("选择训练目标") -- 312
+			for i = 1, #effectFlags do -- 313
+				local _ -- 314
+				_, effectFlags[i] = Checkbox(effectNames[i], effectFlags[i]) -- 314
+			end -- 314
+			doSelfTraining = Button("进行自我训练") -- 315
+		end -- 305
+		if doSelfTraining then -- 316
+			selfTrained = true -- 317
+			ql = ML.QLearner() -- 318
+			local targetEffects -- 319
+			do -- 319
+				local _tbl_0 = { } -- 319
+				for i = 1, #effectFlags do -- 319
+					if effectFlags[i] then -- 319
+						_tbl_0[effectNames[i]] = true -- 319
+					end -- 319
+				end -- 319
+				targetEffects = _tbl_0 -- 319
 			end -- 319
-			local l1 = #relationTags - 1 -- 320
-			local l2 = #bodyTypes -- 321
-			local l3 = #skills -- 322
-			for i1 = 0, l1 do -- 323
-				for i2 = 0, l2 do -- 323
-					for i3 = 0, l3 do -- 323
-						for i4 = 0, 1 do -- 324
-							for i5 = 0, 1 do -- 324
-								for i6 = 0, 1 do -- 324
-									for i7 = 0, 1 do -- 325
-										for i8 = 0, 1 do -- 325
-											for i9 = 0, 1 do -- 325
-												local tags = { } -- 326
-												tags[#tags + 1] = relationTags[i1 + 1] -- 327
-												local bodyTypeIndex = i2 -- 328
-												if bodyTypeIndex ~= 0 then -- 329
-													tags[#tags + 1] = bodyTypes[bodyTypeIndex] -- 330
-												end -- 329
-												local skillIndex = i3 -- 331
-												if skillIndex ~= 0 then -- 332
-													tags[#tags + 1] = skills[skillIndex] -- 333
-												end -- 332
-												if i4 ~= 0 then -- 334
-													tags[#tags + 1] = unitTags[1] -- 334
-												end -- 334
-												if i5 ~= 0 then -- 335
-													tags[#tags + 1] = unitTags[2] -- 335
-												end -- 335
-												if i6 ~= 0 then -- 336
-													tags[#tags + 1] = unitTags[3] -- 336
+			local hints = { -- 321
+				#relationTags, -- 321
+				#bodyTypes + 1, -- 322
+				#skills + 1 -- 323
+			} -- 320
+			for i = 1, #unitTags do -- 325
+				hints[#hints + 1] = 2 -- 326
+			end -- 326
+			local l1 = #relationTags - 1 -- 327
+			local l2 = #bodyTypes -- 328
+			local l3 = #skills -- 329
+			for i1 = 0, l1 do -- 330
+				for i2 = 0, l2 do -- 330
+					for i3 = 0, l3 do -- 330
+						for i4 = 0, 1 do -- 331
+							for i5 = 0, 1 do -- 331
+								for i6 = 0, 1 do -- 331
+									for i7 = 0, 1 do -- 332
+										for i8 = 0, 1 do -- 332
+											for i9 = 0, 1 do -- 332
+												local tags = { } -- 333
+												tags[#tags + 1] = relationTags[i1 + 1] -- 334
+												local bodyTypeIndex = i2 -- 335
+												if bodyTypeIndex ~= 0 then -- 336
+													tags[#tags + 1] = bodyTypes[bodyTypeIndex] -- 337
 												end -- 336
-												if i7 ~= 0 then -- 337
-													tags[#tags + 1] = unitTags[4] -- 337
-												end -- 337
-												if i8 ~= 0 then -- 338
-													tags[#tags + 1] = unitTags[5] -- 338
-												end -- 338
-												if i9 ~= 0 then -- 339
-													tags[#tags + 1] = unitTags[6] -- 339
+												local skillIndex = i3 -- 338
+												if skillIndex ~= 0 then -- 339
+													tags[#tags + 1] = skills[skillIndex] -- 340
 												end -- 339
-												local state = ML.QLearner:pack(hints, { -- 340
-													i1, -- 340
-													i2, -- 340
-													i3, -- 340
-													i4, -- 340
-													i5, -- 340
-													i6, -- 340
-													i7, -- 340
-													i8, -- 340
-													i9 -- 340
-												}) -- 340
-												for action = 1, #actions do -- 341
-													local result = getEffect(tags, action) -- 342
-													local r = 0 -- 343
-													for _index_0 = 1, #result do -- 344
-														local _des_0 = result[_index_0] -- 344
-														local k, v = _des_0[1], _des_0[2] -- 344
-														if targetEffects[k] then -- 345
-															r = r + v -- 346
-														end -- 345
-													end -- 346
-													ql:update(state, action, r == 0 and -1 or r) -- 347
-												end -- 347
-											end -- 347
-										end -- 347
-									end -- 347
-								end -- 347
-							end -- 347
-						end -- 347
-					end -- 347
-				end -- 347
-			end -- 347
-		end -- 309
-		Separator() -- 348
-		TextWrapped("总结人工训练思维逻辑") -- 349
-		if Button("开始总结") and #records > 2 then -- 350
-			local dataStr = table.concat(_anon_func_3(records, table), "\n") -- 351
-			thread(function() -- 352
-				local lines = { } -- 353
-				ML.BuildDecisionTreeAsync(dataStr, 0, function(depth, name, op, value) -- 354
-					local line = string.rep("\t", depth) .. _anon_func_4(name, op, tostring, value) -- 355
-					lines[#lines + 1] = line -- 359
-				end) -- 354
-				decisionStr = table.concat(lines, "\n") -- 360
-			end) -- 352
-		end -- 350
-		if decisionStr then -- 361
-			return TextWrapped(decisionStr) -- 361
-		end -- 361
-	end) -- 361
-end) -- 361
+												if i4 ~= 0 then -- 341
+													tags[#tags + 1] = unitTags[1] -- 341
+												end -- 341
+												if i5 ~= 0 then -- 342
+													tags[#tags + 1] = unitTags[2] -- 342
+												end -- 342
+												if i6 ~= 0 then -- 343
+													tags[#tags + 1] = unitTags[3] -- 343
+												end -- 343
+												if i7 ~= 0 then -- 344
+													tags[#tags + 1] = unitTags[4] -- 344
+												end -- 344
+												if i8 ~= 0 then -- 345
+													tags[#tags + 1] = unitTags[5] -- 345
+												end -- 345
+												if i9 ~= 0 then -- 346
+													tags[#tags + 1] = unitTags[6] -- 346
+												end -- 346
+												local state = ML.QLearner:pack(hints, { -- 347
+													i1, -- 347
+													i2, -- 347
+													i3, -- 347
+													i4, -- 347
+													i5, -- 347
+													i6, -- 347
+													i7, -- 347
+													i8, -- 347
+													i9 -- 347
+												}) -- 347
+												for action = 1, #actions do -- 348
+													local result = getEffect(tags, action) -- 349
+													local r = 0 -- 350
+													for _index_0 = 1, #result do -- 351
+														local _des_0 = result[_index_0] -- 351
+														local k, v = _des_0[1], _des_0[2] -- 351
+														if targetEffects[k] then -- 352
+															r = r + v -- 353
+														end -- 352
+													end -- 353
+													ql:update(state, action, r == 0 and -1 or r) -- 354
+												end -- 354
+											end -- 354
+										end -- 354
+									end -- 354
+								end -- 354
+							end -- 354
+						end -- 354
+					end -- 354
+				end -- 354
+			end -- 354
+		end -- 316
+		Separator() -- 355
+		TextWrapped("总结人工训练思维逻辑") -- 356
+		if Button("开始总结") and #records > 2 then -- 357
+			local dataStr = table.concat(_anon_func_3(records, table), "\n") -- 358
+			thread(function() -- 359
+				local lines = { } -- 360
+				ML.BuildDecisionTreeAsync(dataStr, 0, function(depth, name, op, value) -- 361
+					local line = string.rep("\t", depth) .. _anon_func_4(name, op, tostring, value) -- 362
+					lines[#lines + 1] = line -- 366
+				end) -- 361
+				decisionStr = table.concat(lines, "\n") -- 367
+			end) -- 359
+		end -- 357
+		if decisionStr then -- 368
+			return TextWrapped(decisionStr) -- 368
+		end -- 368
+	end) -- 368
+end) -- 368

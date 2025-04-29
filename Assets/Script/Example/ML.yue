@@ -245,12 +245,19 @@ records = [
 ]
 decisionStr = nil
 import "ImGuiEnum" as :$WindowFlag
-windowFlags = $WindowFlag NoResize, NoSavedSettings
+windowFlags = $WindowFlag(
+	NoResize, NoSavedSettings, NoMove
+	NoCollapse, NoDecoration, NoNav
+	AlwaysVerticalScrollbar
+	NoSavedSettings
+)
 threadLoop ->
-	:width,:height = App.visualSize
-	SetNextWindowPos Vec2(width / 2 - 300, height / 2 - 300), "FirstUseEver"
-	SetNextWindowSize Vec2(600,600), "FirstUseEver"
+	:width, :height = App.visualSize
+	SetNextWindowPos Vec2.zero, "Always", Vec2.zero
+	SetNextWindowSize Vec2(width, height), "Always"
 	Begin "Fairy", windowFlags, ->
+		Text "AI Fairy"
+		Separator!
 		if training
 			TextWrapped "生物: #{training.name}"
 			TextWrapped "执行动作: #{actions[training.action]}"
