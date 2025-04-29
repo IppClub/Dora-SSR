@@ -1,7 +1,7 @@
 // @preview-file on clear
-import { HttpClient, json, thread, Buffer, Vec2, Node as DNode, Log, DB, Path, Content, Director } from 'Dora';
+import { HttpClient, json, thread, Buffer, Vec2, Node as DNode, Log, DB, Path, Content, Director, App } from 'Dora';
 import * as ImGui from "ImGui";
-import { InputTextFlag, SetCond } from "ImGui";
+import { InputTextFlag, SetCond, WindowFlag } from "ImGui";
 import { Node, Flow } from 'Agent/flow';
 import * as Config from 'Config';
 
@@ -42,7 +42,7 @@ interface Message {
 	content: string;
 }
 
-const callLLM = (messages: Message[], url: string, apiKey: string, model: string, receiver: (this: void, data: string) => void) => {
+const callLLM = (messages: Message[], url: string, apiKey: string, model: string, receiver: (this: void, data: string) => boolean) => {
 	const data = {
 		model,
 		messages,
@@ -65,7 +65,12 @@ const callLLM = (messages: Message[], url: string, apiKey: string, model: string
 	});
 };
 
+let endPost = false;
+
 const root = DNode();
+root.onCleanup(() => {
+	endPost = true;
+});
 
 interface ChatInfo {
 	messages: Message[];
@@ -89,10 +94,13 @@ class ChatNode extends Node {
 			llmWorking = true;
 			try {
 				await callLLM(messages, url.text, apiKey.text, model.text, (data) => {
+					if (endPost) {
+						return true;
+					}
 					const [done] = string.match(data, 'data:%s*(%b[])');
 					if (done === '[DONE]') {
 						resolve(str);
-						return;
+						return false;
 					}
 					for (let [item] of string.gmatch(data, 'data:%s*(%b{})')) {
 						const [res] = json.load(item);
@@ -101,6 +109,7 @@ class ChatNode extends Node {
 						}
 					}
 					root.emit('Update', `LLM: ${str}`);
+					return false;
 				});
 				llmWorking = false;
 			} catch (e) {
@@ -138,28 +147,45 @@ const logs: string[] = [];
 const inputBuffer = Buffer(500);
 
 const ChatButton = () => {
-	if (ImGui.InputText("Chat", inputBuffer, [InputTextFlag.EnterReturnsTrue])) {
-		const command = inputBuffer.text;
-		if (command !== '') {
-			logs.push(`User: ${command}`);
-			root.emit('Input', command);
+	ImGui.PushItemWidth(-50, () => {
+		if (ImGui.InputText("Chat", inputBuffer, [InputTextFlag.EnterReturnsTrue])) {
+			const command = inputBuffer.text;
+			if (command !== '') {
+				logs.push(`User: ${command}`);
+				root.emit('Input', command);
+			}
+			inputBuffer.text = "";
 		}
-		inputBuffer.text = "";
-	}
+	});
 };
 
 const inputFlags = [InputTextFlag.Password];
+const windowsFlags = [
+	WindowFlag.NoMove,
+	WindowFlag.NoCollapse,
+	WindowFlag.NoResize,
+	WindowFlag.NoDecoration,
+	WindowFlag.NoNav
+];
 root.loop(() => {
-	ImGui.SetNextWindowSize(Vec2(400, 300), SetCond.FirstUseEver);
-	ImGui.Begin("LLM Chat", () => {
-		if (ImGui.InputText("URL", url)) {
-			config.url = url.text;
-		}
-		if (ImGui.InputText("API Key", apiKey, inputFlags)) {
-			config.apiKey = apiKey.text;
-		}
-		if (ImGui.InputText("Model", model)) {
-			config.model = model.text;
+	const {width, height} = App.visualSize;
+	ImGui.SetNextWindowPos(Vec2.zero, SetCond.Always, Vec2.zero);
+	ImGui.SetNextWindowSize(Vec2(width, height), SetCond.Always);
+	ImGui.Begin("LLM Chat", windowsFlags, () => {
+		ImGui.Text("ChatBot");
+		ImGui.SameLine();
+		ImGui.Dummy(Vec2(width - 200, 0));
+		ImGui.SameLine();
+		if (ImGui.CollapsingHeader("Config")) {
+			if (ImGui.InputText("URL", url)) {
+				config.url = url.text;
+			}
+			if (ImGui.InputText("API Key", apiKey, inputFlags)) {
+				config.apiKey = apiKey.text;
+			}
+			if (ImGui.InputText("Model", model)) {
+				config.model = model.text;
+			}
 		}
 		ImGui.Separator();
 		ImGui.BeginChild("LogArea", Vec2(0, -40), () => {
