@@ -15,40 +15,82 @@ import TabItem from '@theme/TabItem';
 
 ### 2.1 定义设计尺寸
 
-&emsp;&emsp;首先，定义游戏的**设计尺寸**。这是您在设计和开发过程中所基于的参考尺寸。
+&emsp;&emsp;定义游戏的**设计尺寸**，是进行游戏场景和界面设计的重要基准参考。
+
+&emsp;&emsp;下面的示例代码定义了场景设计的高度和宽度：
 
 <Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
 
 ```lua
-local DesignSceneHeight <const> = 1024
+local DesignSceneHeight <const> = 1080
+local DesignSceneWidth <const> = 1920
 ```
 
 </TabItem>
 <TabItem value="tl" label="Teal">
 
 ```tl
-local DesignSceneHeight <const> = 1024
+local DesignSceneHeight <const> = 1080
+local DesignSceneWidth <const> = 1920
 ```
 
 </TabItem>
 <TabItem value="ts" label="TypeScript">
 
 ```ts
-const DesignSceneHeight = 1024;
+const DesignSceneHeight = 1080;
+const DesignSceneWidth = 1920;
 ```
 
 </TabItem>
 <TabItem value="yue" label="YueScript">
 
 ```yue
-const DesignSceneHeight = 1024
+const DesignSceneHeight = 1080
+const DesignSceneWidth = 1920
 ```
 
 </TabItem>
 </Tabs>
 
-&emsp;&emsp;在这里，我们将设计高度设为 `1024`。这意味着我们以高度为 `1024` 的尺寸进行场景设计。并希望游戏在做自适应时，会确保纵向的场景区域得到完整展示，横向超出屏幕区域的场景会被裁减，或是因为小于屏幕区域而被居中展示。
+&emsp;&emsp;这里我们设置了设计高度为`1080`，设计宽度为`1920`，共同构成了一个典型的 `1920x1080` 的参考分辨率（16:9 宽高比）。这个尺寸可以用于统一场景布局、UI 设计以及视觉元素的大小和位置。
+
+#### 场景尺寸适配方法
+
+&emsp;&emsp;当游戏运行在不同设备屏幕尺寸时，有三种常见的尺寸适配策略：
+
+1. **基于设计高度适配**
+
+	根据屏幕实际高度缩放场景尺寸：
+
+	```lua
+	View.size.height / DesignSceneHeight
+	```
+
+	使用这种方法可以确保纵向内容完全展示。但在屏幕较窄时，可能导致横向内容被裁剪或超出屏幕范围。
+
+2. **基于设计宽度适配**
+
+	根据屏幕实际宽度缩放场景尺寸：
+
+	```lua
+	View.size.width / DesignSceneWidth
+	```
+
+	使用这种方式可以确保横向内容完全展示，但屏幕较短时，纵向内容可能被裁剪或超出屏幕范围。
+
+3. **同时适配设计宽度和高度**
+
+	使用宽高缩放系数中的最小值进行适配：
+
+	```lua
+	math.min(View.size.width / DesignSceneWidth, View.size.height / DesignSceneHeight)
+	```
+
+	这种方法确保所有场景内容完全可见且不会被裁剪，但在屏幕宽高比与设计尺寸不同时，会在边缘产生空白区域，呈现类似信箱效果（Letterboxing）。
+
+&emsp;&emsp;以上适配方式各有特点，具体选择取决于你的游戏类型与设计需求。例如，对于大多数游戏而言，基于高度的适配更为常见，因为它能保证顶部和底部的重要游戏元素始终可见，横向区域则允许适当裁剪或自由地延伸和扩展。
 
 ### 2.2 调整摄像机缩放
 
@@ -62,7 +104,7 @@ local Director <const> = require("Director")
 local View <const> = require("View")
 
 local function updateViewSize()
-	Director.currentCamera.zoom = View.size.height / DesignSceneHeight
+	Director.currentCamera.zoom = View.size.height / DesignSceneHeight -- 基于设计高度适配
 end
 ```
 
@@ -76,7 +118,7 @@ local View <const> = require("View")
 
 local function updateViewSize()
 	local camera = Director.currentCamera as Camera2D.Type
-	camera.zoom = View.size.height / DesignSceneHeight
+	camera.zoom = View.size.height / DesignSceneHeight -- 基于设计高度适配
 end
 ```
 
@@ -89,7 +131,7 @@ import { Director, View, TypeName, tolua } from 'Dora';
 const updateViewSize = () => {
 	const camera = tolua.cast(Director.currentCamera, TypeName.Camera2D);
 	if (camera) {
-		camera.zoom = View.size.height / DesignSceneHeight;
+		camera.zoom = View.size.height / DesignSceneHeight; // 基于设计高度适配
 	}
 };
 ```
@@ -101,7 +143,7 @@ const updateViewSize = () => {
 _ENV = Dora
 
 updateViewSize = ->
-	Director.currentCamera.zoom = View.size.height / DesignSceneHeight
+	Director.currentCamera.zoom = View.size.height / DesignSceneHeight -- 基于设计高度适配
 ```
 
 </TabItem>
@@ -192,7 +234,7 @@ local View <const> = require("View")
 local Vec2 <const> = require("Vec2")
 
 -- 定义设计尺寸
-local DesignSceneHeight <const> = 1024
+local DesignSceneHeight <const> = 1080
 
 -- 创建场景
 local node = DrawNode()
@@ -201,8 +243,10 @@ node:addTo(Director.entry)
 
 -- 处理窗口尺寸变化
 local function updateViewSize()
-	Director.currentCamera.zoom = View.size.height / DesignSceneHeight
+	Director.currentCamera.zoom = View.size.height / DesignSceneHeight -- 基于设计高度适配
 end
+
+-- 初始化时调用一次
 updateViewSize()
 
 -- 注册窗口尺寸变化的事件回调
@@ -227,7 +271,7 @@ local Vec2 <const> = require("Vec2")
 local type Camera2D = require("Camera2D")
 
 -- 定义设计尺寸
-local DesignSceneHeight <const> = 1024
+local DesignSceneHeight <const> = 1080
 
 -- 创建场景
 local node = DrawNode()
@@ -237,9 +281,10 @@ node:addTo(Director.entry)
 -- 处理窗口尺寸变化
 local function updateViewSize()
 	local camera = Director.currentCamera as Camera2D.Type
-	camera.zoom = View.size.height / DesignSceneHeight
+	camera.zoom = View.size.height / DesignSceneHeight -- 基于设计高度适配
 end
 
+-- 初始化时调用一次
 updateViewSize()
 
 -- 注册窗口尺寸变化的事件回调
@@ -260,7 +305,7 @@ end)
 import { DrawNode, Director, View, Vec2, TypeName } from 'Dora';
 
 // 定义设计尺寸
-const DesignSceneHeight = 1024;
+const DesignSceneHeight = 1080;
 
 // 创建场景
 const node = DrawNode();
@@ -271,10 +316,11 @@ node.addTo(Director.entry);
 const updateViewSize = () => {
 	const camera = tolua.cast(Director.currentCamera, TypeName.Camera2D);
 	if (camera) {
-		camera.zoom = View.size.height / DesignSceneHeight;
+		camera.zoom = View.size.height / DesignSceneHeight; // 基于设计高度适配
 	}
 };
 
+// 初始化时调用一次
 updateViewSize();
 
 // 注册窗口尺寸变化的事件回调
@@ -295,7 +341,7 @@ Director.entry.onAppChange(settingName => {
 _ENV = Dora
 
 -- 定义设计尺寸
-const DesignSceneHeight = 1024
+const DesignSceneHeight = 1080
 
 -- 创建场景
 const node = DrawNode!
@@ -303,7 +349,11 @@ node.drawDot Vec2.zero, DesignSceneHeight / 2
 node.addTo Director.entry
 
 -- 处理窗口尺寸变化
-updateViewSize! -- 初始化时调用一次
+updateViewSize = ->
+	Director.currentCamera.zoom = View.size.height / DesignSceneHeight -- 基于设计高度适配
+
+-- 初始化时调用一次
+updateViewSize!
 
 Director.entry\onAppChange (settingName) ->
 	if settingName == "Size"

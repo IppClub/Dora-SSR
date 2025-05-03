@@ -15,40 +15,82 @@ Screen adaptation for game scenes primarily involves adjusting the camera's view
 
 ### 2.1 Define Design Dimensions
 
-First, define the **design dimensions** for the game. This is the reference size on which you base your design and development.
+Define the game's **design dimensions** as an important reference for game scene and interface design.
+
+The example code below defines the height and width for scene design:
 
 <Tabs groupId="language-select">
 <TabItem value="lua" label="Lua">
 
 ```lua
-local DesignSceneHeight <const> = 1024
+local DesignSceneHeight <const> = 1080
+local DesignSceneWidth <const> = 1920
 ```
 
 </TabItem>
 <TabItem value="tl" label="Teal">
 
 ```tl
-local DesignSceneHeight <const> = 1024
+local DesignSceneHeight <const> = 1080
+local DesignSceneWidth <const> = 1920
 ```
 
 </TabItem>
 <TabItem value="ts" label="TypeScript">
 
 ```ts
-const DesignSceneHeight = 1024;
+const DesignSceneHeight = 1080;
+const DesignSceneWidth = 1920;
 ```
 
 </TabItem>
 <TabItem value="yue" label="YueScript">
 
 ```yue
-const DesignSceneHeight = 1024
+const DesignSceneHeight = 1080
+const DesignSceneWidth = 1920
 ```
 
 </TabItem>
 </Tabs>
 
-Here, we set the design height to `1024`. This means we design the scene with a height of `1024`. When adapting, we aim to ensure the vertical scene area is fully displayed, and any horizontal areas exceeding the screen will be cropped or centered if smaller than the screen area.
+Here we've set the design height to `1080` and the design width to `1920`, together forming a typical `1920x1080` reference resolution (16:9 aspect ratio). This dimension can be used to standardize scene layout, UI design, and the size and position of visual elements.
+
+#### Scene Size Adaptation Methods
+
+When a game runs on devices with different screen sizes, there are three common adaptation strategies:
+
+1. **Height-Based Adaptation**
+
+	Scale the scene size based on the actual screen height:
+
+	```lua
+	View.size.height / DesignSceneHeight
+	```
+
+	This method ensures that vertical content is fully displayed. However, on narrower screens, horizontal content may be cropped or extend beyond the screen boundaries.
+
+2. **Width-Based Adaptation**
+
+	Scale the scene size based on the actual screen width:
+
+	```lua
+	View.size.width / DesignSceneWidth
+	```
+
+	This approach ensures that horizontal content is fully displayed, but on shorter screens, vertical content may be cropped or extend beyond the screen boundaries.
+
+3. **Adapting to Both Width and Height**
+
+	Use the minimum value of width and height scaling factors:
+
+	```lua
+	math.min(View.size.width / DesignSceneWidth, View.size.height / DesignSceneHeight)
+	```
+
+	This method ensures all scene content is fully visible and not cropped, but when the screen aspect ratio differs from the design dimensions, it creates empty areas at the edges, resulting in a letterboxing effect.
+
+Each adaptation method has its own characteristics, and the specific choice depends on your game type and design requirements. For most games, height-based adaptation is more common because it ensures that important game elements at the top and bottom remain visible, while horizontal areas can be appropriately cropped or freely extended.
 
 ### 2.2 Adjust Camera Zoom
 
@@ -62,7 +104,7 @@ local Director <const> = require("Director")
 local View <const> = require("View")
 
 local function updateViewSize()
-	Director.currentCamera.zoom = View.size.height / DesignSceneHeight
+	Director.currentCamera.zoom = View.size.height / DesignSceneHeight -- Height-Based Adaptation
 end
 ```
 
@@ -76,7 +118,7 @@ local View <const> = require("View")
 
 local function updateViewSize()
 	local camera = Director.currentCamera as Camera2D.Type
-	camera.zoom = View.size.height / DesignSceneHeight
+	camera.zoom = View.size.height / DesignSceneHeight -- Height-Based Adaptation
 end
 ```
 
@@ -89,7 +131,7 @@ import { Director, View, TypeName, tolua } from 'Dora';
 const updateViewSize = () => {
 	const camera = tolua.cast(Director.currentCamera, TypeName.Camera2D);
 	if (camera) {
-		camera.zoom = View.size.height / DesignSceneHeight;
+		camera.zoom = View.size.height / DesignSceneHeight; // Height-Based Adaptation
 	}
 };
 ```
@@ -101,7 +143,7 @@ const updateViewSize = () => {
 _ENV = Dora
 
 updateViewSize = ->
-	Director.currentCamera.zoom = View.size.height / DesignSceneHeight
+	Director.currentCamera.zoom = View.size.height / DesignSceneHeight -- Height-Based Adaptation
 ```
 
 </TabItem>
@@ -192,7 +234,7 @@ local View <const> = require("View")
 local Vec2 <const> = require("Vec2")
 
 -- Define design dimensions
-local DesignSceneHeight <const> = 1024
+local DesignSceneHeight <const> = 1080
 
 -- Create the scene
 local node = DrawNode()
@@ -201,8 +243,10 @@ node:addTo(Director.entry)
 
 -- Handle window size changes
 local function updateViewSize()
-	Director.currentCamera.zoom = View.size.height / DesignSceneHeight
+	Director.currentCamera.zoom = View.size.height / DesignSceneHeight -- Height-Based Adaptation
 end
+
+-- Call once during initialization
 updateViewSize()
 
 -- Register event callback for window size changes
@@ -227,7 +271,7 @@ local Vec2 <const> = require("Vec2")
 local type Camera2D = require("Camera2D")
 
 -- Define design dimensions
-local DesignSceneHeight <const> = 1024
+local DesignSceneHeight <const> = 1080
 
 -- Create the scene
 local node = DrawNode()
@@ -237,9 +281,10 @@ node:addTo(Director.entry)
 -- Handle window size changes
 local function updateViewSize()
 	local camera = Director.currentCamera as Camera2D.Type
-	camera.zoom = View.size.height / DesignSceneHeight
+	camera.zoom = View.size.height / DesignSceneHeight -- Height-Based Adaptation
 end
 
+-- Call once during initialization
 updateViewSize()
 
 -- Register event callback for window size changes
@@ -260,7 +305,7 @@ end)
 import { DrawNode, Director, View, Vec2, TypeName } from 'Dora';
 
 // Define design dimensions
-const DesignSceneHeight = 1024;
+const DesignSceneHeight = 1080;
 
 // Create the scene
 const node = DrawNode();
@@ -271,10 +316,11 @@ node.addTo(Director.entry);
 const updateViewSize = () => {
 	const camera = tolua.cast(Director.currentCamera, TypeName.Camera2D);
 	if (camera) {
-		camera.zoom = View.size.height / DesignSceneHeight;
+		camera.zoom = View.size.height / DesignSceneHeight; // Height-Based Adaptation
 	}
 };
 
+// Call once during initialization
 updateViewSize();
 
 // Register event callback for window size changes
@@ -295,7 +341,7 @@ Director.entry.onAppChange(settingName => {
 _ENV = Dora
 
 -- Define design dimensions
-const DesignSceneHeight = 1024
+const DesignSceneHeight = 1080
 
 -- Create the scene
 const node = DrawNode!
@@ -303,7 +349,11 @@ node.drawDot Vec2.zero, DesignSceneHeight / 2
 node.addTo Director.entry
 
 -- Handle window size changes
-updateViewSize! -- Call once during initialization
+updateViewSize = ->
+	Director.currentCamera.zoom = View.size.height / DesignSceneHeight
+
+-- Call once during initialization
+updateViewSize!
 
 Director.entry\onAppChange (settingName) ->
 	if settingName == "Size"
