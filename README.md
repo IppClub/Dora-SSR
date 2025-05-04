@@ -35,7 +35,7 @@ Dora SSR is a game engine for rapid development of games on various devices. It 
 |TSX|Supports [TSX](https://dora-ssr.net/docs/tutorial/Language%20Tutorial/using-tsx), allows embedding XML/HTML-like text within scripts, used with TypeScript.|
 |Wa|Supports the [Wa](https://wa-lang.org) language, a simple, reliable, and statically typed language running on the built-in WASM runtime with [Wa bindings](https://github.com/IppClub/Dora-SSR/tree/main/Tools/dora-wa).|
 |Rust|Supports the [Rust](https://www.rust-lang.org) language, running on the built-in WASM runtime with [Rust bindings](https://lib.rs/crates/dora-ssr).|
-|Visual Language|You can code with a Scratch-like visual language, ideal for beginners to learn how to code.<br><br><div align='center'><img src='https://dora-ssr.net/assets/images/3-1603fcfe5317a389453642c43047242c.jpg' alt='LSD' width='300px'/></div>
+|Blockly|Supports a Scratch-like visual language, ideal for beginners to learn how to code.<br><br><div align='center'><img src='Docs/static/img/showcase/blockly.jpg' alt='Blockly' width='500px'/></div>|
 |2D Animation|2D skeletal animations support with [Spine2D](https://github.com/EsotericSoftware/spine-runtimes), [DragonBones](https://github.com/DragonBones/DragonBonesCPP) and a builtin system.|
 |2D Physics|2D physics engine support with [PlayRho](https://github.com/louis-langholtz/PlayRho).|
 |Web IDE|Built-in out-of-the-box Web IDE, providing file management, code inspection, completion, highlighting and definition jump. <br><br><div align='center'><img src='Docs/static/img/article/dora-on-android.jpg' alt='dora on android' width='500px'/></div>|
