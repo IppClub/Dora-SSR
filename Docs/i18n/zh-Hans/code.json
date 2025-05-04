@@ -358,12 +358,12 @@
     "description": "The engine feature description Intuitive Yarn Spinner Script Editor"
   },
   "engine_feature_title_visual_script_editor": {
-    "message": "易于上手的可视化脚本编辑器",
-    "description": "The engine feature title Visual Script Editor for Beginners in front page"
+    "message": "可视化脚本编辑器",
+    "description": "The engine feature title Visual Script Editor in front page"
   },
   "engine_feature_description_visual_script_editor": {
-    "message": "适合编程初学者的 Visual Script 编辑器，通过图形化编程方式降低编程门槛，培养逻辑思维和问题解决能力。",
-    "description": "The engine feature description Visual Script Editor for Beginners in front page"
+    "message": "提供简单易上手的可视化脚本编辑器，通过图形化编程方式降低编程门槛，帮助培养逻辑思维和问题解决能力。",
+    "description": "The engine feature description Visual Script Editor in front page"
   },
   "engine_feature_title_skeletal_animation": {
     "message": "对骨骼动画的支持",
@@ -502,11 +502,11 @@
     "description": "The text for authors with 0 blog post"
   },
   "engine_feature_wa_scripting_support": {
-    "message": "Wa 脚本支持",
+    "message": "凹语言脚本支持",
     "description": "The engine feature title Wa Scripting Support in front page"
   },
   "engine_feature_description_wa_scripting_support": {
-    "message": "Dora SSR 支持 Wa 语言，一门简单、可靠且静态类型的语言，运行在内置的 WASM 绑定和 VM 上。适合作为便捷易上手的高性能 WASM 语言开发游戏。",
+    "message": "Dora SSR 支持凹语言，一门简单、可靠且静态类型的语言，运行在内置的 WASM 绑定和 VM 上。适合作为便捷易上手的高性能 WASM 语言开发游戏。",
     "description": "The engine feature description Wa Scripting Support in front page"
   },
   "hero_title": {
@@ -516,5 +516,13 @@
   "hero_subtitle": {
     "message": "游戏引擎",
     "description": "The subtitle in front page"
+  },
+  "engine_feature_title_blockly": {
+    "message": "积木脚本系统",
+    "description": "The engine feature title Blockly Scripting in front page"
+  },
+  "engine_feature_description_blockly": {
+    "message": "积木脚本系统通过可视化、拼图式的代码块，让用户可以轻松创建复杂的游戏行为，无需通过文本输入编写代码。",
+    "description": "The engine feature description Blockly Scripting for Beginners in front page"
   }
 }

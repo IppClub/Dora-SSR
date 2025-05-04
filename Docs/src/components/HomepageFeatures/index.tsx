@@ -176,16 +176,33 @@ const EngineFeatureList: FeatureItem[] = [
 		title: (
 			<Translate
 				id='engine_feature_title_visual_script_editor'
-				description='The engine feature title Visual Script Editor for Beginners in front page'>
-				Visual Script Editor for Beginners
+				description='The engine feature title Visual Script Editor in front page'>
+				Visual Script Editor
 			</Translate>
 		),
-		image: <LazyImage src={require('@site/static/img/showcase/3.jpg').default} alt='Visual Script Editor for Beginners' className={styles.featureImgFixed}/>,
+		image: <LazyImage src={require('@site/static/img/showcase/3.jpg').default} alt='Visual Script Editor' className={styles.featureImgFixed}/>,
 		description: (
 			<Translate
 				id='engine_feature_description_visual_script_editor'
-				description='The engine feature description Visual Script Editor for Beginners in front page'>
-				The Visual Script editor, designed for beginners, lowers the programming barrier with graphical programming methods, fostering logical thinking and problem-solving skills.
+				description='The engine feature description Visual Script Editor in front page'>
+				The built-in Visual Script editor, designed for lowering the programming barrier with graphical programming methods, fostering logical thinking and problem-solving skills.
+			</Translate>
+		),
+	},
+	{
+		title: (
+			<Translate
+				id='engine_feature_title_blockly'
+				description='The engine feature title Blockly Scripting in front page'>
+				Blockly Scripting
+			</Translate>
+		),
+		image: <LazyImage src={require('@site/static/img/showcase/blockly.jpg').default} alt='Blockly Scripting for Beginners' className={styles.featureImgFixed}/>,
+		description: (
+			<Translate
+				id='engine_feature_description_blockly'
+				description='The engine feature description Blockly Scripting for Beginners in front page'>
+				The built-in Blockly scripting system transforms game development with visual, puzzle-like code blocks that snap together logically. This intuitive approach allows beginners to create complex game behaviors without typing code.
 			</Translate>
 		),
 	},
@@ -219,7 +236,7 @@ const EngineFeatureList: FeatureItem[] = [
 			<Translate
 				id='engine_feature_description_profiling_and_debugging_tools'
 				description='The engine feature description Profiling and Debugging Tools in front page'>
-				The Dora SSR offers performance analysis and debugging tools, allowing developers to monitor CPU and GPU usage in real-time, analyze memory consumption, and meticulously track script execution times, aiding in game performance optimization.
+				Dora SSR offers performance analysis and debugging tools, allowing developers to monitor CPU and GPU usage in real-time, analyze memory consumption, and meticulously track script execution times, aiding in game performance optimization.
 			</Translate>
 		),
 	},
