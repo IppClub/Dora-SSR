@@ -78,7 +78,7 @@ static std::unordered_set<std::string> Metamethods = {
 	"close"s // Lua 5.4
 };
 
-const std::string_view version = "0.27.5"sv;
+const std::string_view version = "0.27.6"sv;
 const std::string_view extension = "yue"sv;
 
 class CompileError : public std::logic_error {
@@ -2807,8 +2807,26 @@ private:
 						defVal = nd->defVal.get();
 					}
 					++index;
-					if (!varDefOnly && !isAssignable(static_cast<Exp_t*>(pair))) {
+					bool assignable = false;
+					try {
+						assignable = isAssignable(static_cast<Exp_t*>(pair));
+					} catch (const CompileError& e) {
+						if (!varDefOnly) throw e;
+					}
+					if (!assignable && !varDefOnly) {
+						if (optional) break;
 						throw CompileError("can't destructure value"sv, pair);
+					}
+					if (optional && varDefOnly && !assignable) {
+						if (defVal) {
+							throw CompileError("default value is not supported here"sv, defVal);
+						}
+						auto exp = static_cast<Exp_t*>(pair);
+						auto chain = exp->new_ptr<ChainValue_t>();
+						auto indexItem = toAst<Exp_t>(std::to_string(index), exp);
+						chain->items.push_back(indexItem);
+						pairs.push_back({exp, Empty, chain, nullptr});
+						break;
 					}
 					auto value = singleValueFrom(pair);
 					auto item = value->item.get();
@@ -2889,7 +2907,25 @@ private:
 						}
 					}
 					if (auto exp = np->value.as<Exp_t>()) {
-						if (!varDefOnly && !isAssignable(exp)) throw CompileError("can't do destructure value"sv, exp);
+						bool assignable = false;
+						try {
+							assignable = isAssignable(exp);
+						} catch (const CompileError& e) {
+							if (!varDefOnly) throw e;
+						}
+						if (!assignable && !varDefOnly) {
+							if (optional) break;
+							throw CompileError("can't destructure value"sv, pair);
+						}
+						if (optional && varDefOnly && !assignable) {
+							if (defVal) {
+								throw CompileError("default value is not supported here"sv, defVal);
+							}
+							auto chain = exp->new_ptr<ChainValue_t>();
+							if (keyIndex) chain->items.push_back(keyIndex);
+							pairs.push_back({exp, Empty, chain, nullptr});
+							break;
+						}
 						auto item = singleValueFrom(exp)->item.get();
 						ast_node* subExp = ast_cast<SimpleTable_t>(item);
 						if (subExp || (subExp = item->get_by_path<TableLit_t>()) || (subExp = item->get_by_path<Comprehension_t>())) {
@@ -3111,7 +3147,11 @@ private:
 						break;
 					default: YUEE("AST node mismatch", destructNode); break;
 				}
-				if (dlist->empty()) throw CompileError("expect items to be destructured"sv, destructNode);
+				if (dlist->empty()) {
+					if (!optional) {
+						throw CompileError("expect items to be destructured"sv, destructNode);
+					}
+				}
 				for (auto item : *dlist) {
 					switch (item->get_id()) {
 						case id<MetaVariablePairDef_t>(): {
@@ -3247,7 +3287,9 @@ private:
 						simpleValue->value.set(tab);
 						auto pairs = destructFromExp(newExp(simpleValue, expr), varDefOnly, optional);
 						if (pairs.empty()) {
-							throw CompileError("expect items to be destructured"sv, tab);
+							if (!optional) {
+								throw CompileError("expect items to be destructured"sv, tab);
+							}
 						}
 						destruct.items = std::move(pairs);
 						if (!varDefOnly) {
@@ -3286,7 +3328,7 @@ private:
 								destruct.valueVar.clear();
 							}
 						}
-						destructs.push_back(destruct);
+						destructs.push_back(std::move(destruct));
 					}
 				}
 			} else {
@@ -10597,8 +10639,9 @@ private:
 				}
 				temp.back().append(indent() + "if "s + tabCheckVar + " then"s + nll(branch));
 				pushScope();
-				auto assignment = assignmentFrom(static_cast<Exp_t*>(valueList->exprs.front()), toAst<Exp_t>(objVar, branch), branch);
-				auto info = extractDestructureInfo(assignment, true, false);
+				auto chainValue = toAst<ChainValue_t>(objVar, branch);
+				auto assignment = assignmentFrom(static_cast<Exp_t*>(valueList->exprs.front()), newExp(chainValue, branch), branch);
+				auto info = extractDestructureInfo(assignment, true, true);
 				transformAssignment(assignment, temp, true);
 				str_list conds;
 				for (const auto& des : info.destructures) {
@@ -10608,8 +10651,31 @@ private:
 					const auto& destruct = std::get<Destructure>(des);
 					for (const auto& item : destruct.items) {
 						if (!item.defVal) {
-							transformExp(item.target, conds, ExpUsage::Closure);
-							conds.back().append(" ~= nil"s);
+							if (!isAssignable(item.target)) {
+								auto callable = chainValue->items.front();
+								auto chain = callable->new_ptr<ChainValue_t>();
+								chain->items.push_back(callable);
+								chain->items.dup(item.structure->items);
+								if (specialChainValue(chain) == ChainType::Common) {
+									transformChainValue(chain, conds, ExpUsage::Closure);
+									auto vStr = conds.back();
+									conds.pop_back();
+									transformExp(item.target, conds, ExpUsage::Closure);
+									conds.back().append(" == "s);
+									conds.back().append(vStr);
+								} else {
+									auto varName = getUnusedName("_val_"sv);
+									auto vExp = toAst<Exp_t>(varName, chain);
+									auto asmt = assignmentFrom(vExp, newExp(chain, chain), chain);
+									transformAssignment(asmt, temp);
+									transformExp(item.target, conds, ExpUsage::Closure);
+									conds.back().append(" == "s);
+									conds.back().append(varName);
+								}
+							} else {
+								transformExp(item.target, conds, ExpUsage::Closure);
+								conds.back().append(" ~= nil"s);
+							}
 						}
 					}
 				}
