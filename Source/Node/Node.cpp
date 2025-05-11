@@ -580,6 +580,7 @@ void Node::cleanup() {
 		unscheduleUpdate();
 		stopActionInList(_action);
 		if (_updateItem) {
+			_updateItem->renderFuncs = nullptr;
 			_updateItem->scheduledMainFunc = nullptr;
 			_updateItem->scheduledThreadFuncs.clear();
 		}
