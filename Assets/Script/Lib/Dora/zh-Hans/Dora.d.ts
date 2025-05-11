@@ -3193,6 +3193,12 @@ class Node extends Object {
 	onUpdate(job: Job): void;
 
 	/**
+	 * 注册一个回调函数，当节点进入渲染阶段时触发。该回调在每一帧都会被调用，并且能确保它的调用顺序与场景树的渲染顺序一致，如使子节点在父节点之后渲染。推荐用于调用矢量绘图的接口。
+	 * @param func 要注册的渲染回调函数，返回true以停止。
+	 */
+	onRender(func: (this: void, deltaTime: number) => boolean): void;
+
+	/**
 	 * 注册一个回调函数，当动作结束时触发。
 	 * @param callback 要注册的回调函数。
 	 */

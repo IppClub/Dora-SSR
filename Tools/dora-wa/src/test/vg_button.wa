@@ -16,7 +16,7 @@ func TestVgButton() {
 	dark := dora.Nvg.LinearGradient(0.0, 60.0, 0.0, 0.0, dora.NewColor(0xffffffff), dora.NewColor(0xfffbc400))
 
 	paint := light
-	node.Schedule(func(_: f64) => bool {
+	node.OnRender(func(_: f64) => bool {
 		dora.Nvg.ApplyTransform(node)
 		dora.Nvg.BeginPath()
 		dora.Nvg.RoundedRect(0.0, 0.0, 100.0, 100.0, 10.0)

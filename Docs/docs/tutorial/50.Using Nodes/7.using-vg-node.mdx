@@ -334,7 +334,7 @@ local Scale <const> = require("Scale")
 
 local node = Node()
 node.size = Size(200, 150)
-node:schedule(function()
+node:onRender(function()
 	nvg.ApplyTransform(node)
 	nvg.BeginPath()
 	nvg.Rect(0, 0, 200, 150)
@@ -360,7 +360,7 @@ local Scale <const> = require("Scale")
 
 local node = Node()
 node.size = Size(200, 150)
-node:schedule(function(): boolean
+node:onRender(function(): boolean
 	nvg.ApplyTransform(node)
 	nvg.BeginPath()
 	nvg.Rect(0, 0, 200, 150)
@@ -384,7 +384,7 @@ import * as nvg from "nvg";
 
 const node = Node();
 node.size = Size(200, 150);
-node.schedule(() => {
+node.onRender(() => {
 	nvg.ApplyTransform(node);
 	nvg.BeginPath();
 	nvg.Rect(0, 0, 200, 150);
@@ -407,7 +407,7 @@ _ENV = Dora
 
 with Node!
 	.size = Size 200, 150
-	\schedule ->
+	\onRender ->
 		nvg.ApplyTransform node
 		nvg.BeginPath! -- Start a new path
 		nvg.Rect 0, 0, 200, 150
@@ -426,7 +426,7 @@ with Node!
 The above code creates a node and draws a red rectangle onto it. Then, by setting the position and rotation of the node, the display effect of the rectangle is controlled, and the scaling of the rectangle is controlled through performing scaling actions on the node.
 
 :::tip Tip
-After using the `nvg.ApplyTransform(node)` function, the coordinate system's origin for the vector graphics will change to the bottom left corner of the scene node, with the x-axis extending right and the y-axis extending up. The node's scaling, rotation, and position transformations will be applied to the drawing of the vector graphics.
+After using the `nvg.ApplyTransform(node)` function, the coordinate system's origin for the vector graphics will change to the bottom left corner of the scene node, with the x-axis extending right and the y-axis extending up. The node's scaling, rotation, and position transformations will be applied to the drawing of the vector graphics. It is recommended to use the `onRender` method of the node to draw vector graphics, as the `onRender` method is called every frame and ensures that its call order is consistent with the rendering order of the scene tree, such as ensuring that the child node is rendered after the parent node.
 :::
 
 ## 4. Using Colors and Brushes
@@ -723,7 +723,7 @@ local nvg <const> = require("nvg")
 local svg = SVG("Image/Dora.svg")
 
 local node = Node()
-node:schedule(function()
+node:onRender(function()
 	nvg.ApplyTransform(node)
 	nvg.Scale(0.2, -0.2)
 	nvg.Translate(-566.5, -566.5)
@@ -744,7 +744,7 @@ local nvg <const> = require("nvg")
 local svg = SVG("Image/Dora.svg")
 
 local node = Node()
-node:schedule(function(): boolean
+node:onRender(function(): boolean
 	nvg.ApplyTransform(node)
 	nvg.Scale(0.2, -0.2)
 	nvg.Translate(-566.5, -566.5)
@@ -765,7 +765,7 @@ import * as nvg from "nvg";
 const svg = SVG("Image/Dora.svg");
 
 const node = Node();
-node.schedule(() => {
+node.onRender(() => {
 	nvg.ApplyTransform(node);
 	nvg.Scale(0.2, -0.2);
 	nvg.Translate(-566.5, -566.5);
@@ -785,7 +785,7 @@ _ENV = Dora
 svg = SVG "Image/Dora.svg"
 
 with Node!
-	\schedule ->
+	\onRender ->
 		nvg.ApplyTransform node
 		nvg.Scale 0.2, -0.2
 		nvg.Translate -566.5, -566.5

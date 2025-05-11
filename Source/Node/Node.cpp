@@ -714,7 +714,7 @@ FixedScheduledItem* Node::getFixedScheduledItem() {
 
 void Node::schedule(const std::function<bool(double)>& func) {
 	auto updateItem = getUpdateItem();
-	updateItem->scheduledMainFunc = func;
+	updateItem->scheduledMainFunc = New<std::function<bool(double)>>(func);
 	if (_flags.isOff(Node::Running)) return;
 	if (!updateItem->scheduled()) {
 		_scheduler->schedule(updateItem->scheduledItem.get());
@@ -738,6 +738,14 @@ void Node::onUpdate(const std::function<bool(double)>& func) {
 	if (!updateItem->scheduled()) {
 		_scheduler->schedule(updateItem->scheduledItem.get());
 	}
+}
+
+void Node::onRender(const std::function<bool(double)>& func) {
+	auto updateItem = getUpdateItem();
+	if (!updateItem->renderFuncs) {
+		updateItem->renderFuncs = New<std::list<std::function<bool(double)>>>();
+	}
+	updateItem->renderFuncs->push_back(func);
 }
 
 bool Node::isUpdating() const noexcept {
@@ -794,7 +802,7 @@ bool Node::update(double deltaTime) {
 	bool result = true;
 	if (isScheduled()) {
 		if (_updateItem->scheduledMainFunc != nullptr) {
-			if (_updateItem->scheduledMainFunc(deltaTime)) {
+			if ((*_updateItem->scheduledMainFunc)(deltaTime)) {
 				_updateItem->scheduledMainFunc = nullptr;
 			} else {
 				result = false;
@@ -802,20 +810,17 @@ bool Node::update(double deltaTime) {
 		}
 		if (!_updateItem->scheduledThreadFuncs.empty()) {
 			auto funcs = std::move(_updateItem->scheduledThreadFuncs);
-			std::list<std::function<bool(double)>> temp;
-			do {
-				auto& func = funcs.front();
-				bool res = func(deltaTime);
-				if (!res) {
-					result = false;
-					temp.push_back(std::move(func));
+			for (auto it = funcs.begin(); it != funcs.end(); ) {
+				if ((*it)(deltaTime)) {
+					it = funcs.erase(it);
+				} else {
+					it++;
 				}
-				funcs.pop_front();
-			} while (!funcs.empty());
-			for (auto& f : _updateItem->scheduledThreadFuncs) {
-				temp.push_back(std::move(f));
 			}
-			_updateItem->scheduledThreadFuncs = std::move(temp);
+			for (auto& f : _updateItem->scheduledThreadFuncs) {
+				funcs.emplace_back(std::move(f));
+			}
+			_updateItem->scheduledThreadFuncs = std::move(funcs);
 		}
 		if (result) unschedule();
 	}
@@ -882,6 +887,23 @@ void Node::visit() {
 }
 
 void Node::render() {
+	if (_updateItem && _updateItem->renderFuncs) {
+		if (!_updateItem->renderFuncs->empty()) {
+			double deltaTime = _scheduler->getDeltaTime() * _scheduler->getTimeScale();
+			auto funcs = std::move(*_updateItem->renderFuncs);
+			for (auto it = funcs.begin(); it != funcs.end(); ) {
+				if ((*it)(deltaTime)) {
+					it = funcs.erase(it);
+				} else {
+					it++;
+				}
+			}
+			for (auto& f : *_updateItem->renderFuncs) {
+				funcs.emplace_back(std::move(f));
+			}
+			*_updateItem->renderFuncs = std::move(funcs);
+		}
+	}
 	if (isShowDebug()) {
 		Matrix transform;
 		Matrix::mulMtx(transform, SharedDirector.getViewProjection(), _world);

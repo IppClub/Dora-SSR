@@ -72,7 +72,7 @@ luaGenerator.forBlock['nvg_begin_painting'] = function(block: Blockly.Block) {
 	const node = luaGenerator.getVariableName(block.getFieldValue('NODE'));
 	const paint = luaGenerator.statementToCode(block, 'PAINT');
 	Require.add('nvg');
-	return `${node}:onUpdate(function()\n  nvg.ApplyTransform(${node})\n${paint}end)\n`;
+	return `${node}:onRender(function()\n  nvg.ApplyTransform(${node})\n${paint}end)\n`;
 };
 canvasCategory.contents.push({
 	kind: 'block',

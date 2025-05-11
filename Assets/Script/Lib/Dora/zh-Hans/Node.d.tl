@@ -477,6 +477,12 @@ local record Node
 	-- @param job (Routine.Job) 要在每一帧运行的协程。
 	onUpdate: function(self: Node, job: Routine.Job)
 
+	-- 注册节点进入渲染阶段时触发的回调函数。该回调在每一帧都会被调用，并且能确保它的调用顺序与场景树的渲染顺序一致，如使子节点在父节点之后渲染。推荐用于调用矢量绘图的接口。
+	-- @param func (function) 渲染时的回调函数。
+	-- 	@parem deltaTime (number) 从上一帧到当前帧的时间间隔。
+	-- 	@return (boolean) 如果返回true，则停止触发该渲染回调。
+	onRender: function(self: Node, func: function(number): boolean)
+
 	-- 注册节点执行完一个动作时触发的回调函数。
 	-- @param callback (function) 动作执行完时的回调函数。
 	-- 	@param action (Action) 执行完的动作对象。

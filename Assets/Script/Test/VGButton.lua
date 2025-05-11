@@ -30,7 +30,7 @@ local function Button(props) -- 12
 	local function onCreate() -- 17
 		local node = Node() -- 18
 		node.size = Size(100, 100) -- 19
-		node:schedule(function() -- 20
+		node:onRender(function() -- 20
 			nvg.ApplyTransform(node) -- 21
 			nvg.BeginPath() -- 22
 			nvg.RoundedRect( -- 23
