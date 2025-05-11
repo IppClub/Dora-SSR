@@ -1589,6 +1589,25 @@ onUpdate: function(self: Node, job: Routine.Job)
 | --- | --- | --- |
 | job | Routine.Job | 要在每一帧运行的协程。 |
 
+## onRender
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;注册节点进入渲染阶段时触发的回调函数。该回调在每一帧都会被调用，并且能确保它的调用顺序与场景树的渲染顺序一致，如使子节点在父节点之后渲染。推荐用于调用矢量绘图的接口。
+
+**签名：**
+```tl
+onRender: function(self: Node, func: function(number): boolean)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| func | function | 渲染时的回调函数。 |
+
 ## onActionEnd
 
 **类型：** 函数。

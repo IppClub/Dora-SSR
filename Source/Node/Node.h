@@ -112,6 +112,7 @@ public:
 	void unschedule();
 
 	void onUpdate(const std::function<bool(double)>& func);
+	void onRender(const std::function<bool(double)>& func);
 
 	Vec2 convertToNodeSpace(const Vec2& worldPoint);
 	Vec2 convertToWorldSpace(const Vec2& nodePoint);
@@ -327,7 +328,8 @@ protected:
 	std::string _tag;
 	std::shared_ptr<NodeTouchHandler> _touchHandler;
 	struct UpdateItem {
-		std::function<bool(double)> scheduledMainFunc;
+		Own<std::list<std::function<bool(double)>>> renderFuncs;
+		Own<std::function<bool(double)>> scheduledMainFunc;
 		std::list<std::function<bool(double)>> scheduledThreadFuncs;
 		Own<ScheduledItem> scheduledItem;
 		Own<FixedScheduledItem> fixedScheduledItem;

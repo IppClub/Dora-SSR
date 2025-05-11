@@ -39,7 +39,7 @@ end
 
 -- @preview-project on nolog clear
 local star = Node()
-star:onUpdate(function()
+star:onRender(function()
   nvg.ApplyTransform(star)
   drawStar(0, 0, 100)
 end)

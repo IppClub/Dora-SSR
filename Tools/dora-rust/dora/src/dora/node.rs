@@ -124,6 +124,7 @@ extern "C" {
 	fn node_gslot(slf: i64, event_name: i64, func0: i32, stack0: i64);
 	fn node_emit(slf: i64, name: i64, stack: i64);
 	fn node_on_update(slf: i64, func0: i32, stack0: i64);
+	fn node_on_render(slf: i64, func0: i32, stack0: i64);
 	fn node_new() -> i64;
 }
 use crate::dora::IObject;
@@ -893,6 +894,24 @@ pub trait INode: IObject {
 			stack0.push_bool(result);
 		}));
 		unsafe { node_on_update(self.raw(), func_id0, stack_raw0); }
+	}
+	/// Registers a callback for event triggered when the node is entering the rendering phase. The callback is called every frame, and ensures that its call order is consistent with the rendering order of the scene tree, such as rendering child nodes after their parent nodes. Recommended for calling vector drawing functions.
+	///
+	/// # Arguments
+	///
+	/// * `func` - The function to call when the node is entering the rendering phase, returns true to stop.
+	///
+	/// # Returns
+	///
+	/// * `void` - True to stop the function from running.
+	fn on_render(&mut self, mut render_func: Box<dyn FnMut(f64) -> bool>) {
+		let mut stack0 = crate::dora::CallStack::new();
+		let stack_raw0 = stack0.raw();
+		let func_id0 = crate::dora::push_function(Box::new(move || {
+			let result = render_func(stack0.pop_f64().unwrap());
+			stack0.push_bool(result);
+		}));
+		unsafe { node_on_render(self.raw(), func_id0, stack_raw0); }
 	}
 }
 impl Node {

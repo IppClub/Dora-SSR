@@ -25,7 +25,7 @@ pub fn test() {
 	let paint = Rc::new(RefCell::new(light.clone()));
 	let node_clone = node.clone();
 	let paint_clone = paint.clone();
-	node.schedule(Box::new(move |_| {
+	node.on_render(Box::new(move |_| {
 		Nvg::apply_transform(&node_clone);
 		Nvg::begin_path();
 		Nvg::rounded_rect(0.0, 0.0, 100.0, 100.0, 10.0);

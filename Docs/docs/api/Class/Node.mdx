@@ -1587,6 +1587,25 @@ onUpdate: function(self: Node, job: Routine.Job)
 | --- | --- | --- |
 | job | Routine.Job | The coroutine to run every frame. |
 
+## onRender
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Registers a callback for event triggered when the node is entering the rendering phase. The callback is called every frame, and ensures that its call order is consistent with the rendering order of the scene tree, such as rendering child nodes after their parent nodes. Recommended for calling vector drawing functions.
+
+**Signature:**
+```tl
+onRender: function(self: Node, func: function(number): boolean)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| func | function | The function to call when the node is entering the rendering phase, returns true to stop. |
+
 ## onActionEnd
 
 **Type:** Function.

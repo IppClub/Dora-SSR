@@ -3194,6 +3194,12 @@ class Node extends Object {
 	onUpdate(job: Job): void;
 
 	/**
+	 * Registers a callback for event triggered when the node is entering the rendering phase. The callback is called every frame, and ensures that its call order is consistent with the rendering order of the scene tree, such as rendering child nodes after their parent nodes. Recommended for calling vector drawing functions.
+	 * @param func The function to call when the node is entering the rendering phase, returns true to stop.
+	 */
+	onRender(func: (this: void, deltaTime: number) => boolean): void;
+
+	/**
 	 * Registers a callback for the event triggered when an action is finished.
 	 * @param callback The callback function to register.
 	 */

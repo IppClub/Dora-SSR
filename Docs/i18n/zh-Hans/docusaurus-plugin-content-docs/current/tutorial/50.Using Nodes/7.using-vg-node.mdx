@@ -335,7 +335,7 @@ local Scale <const> = require("Scale")
 
 local node = Node()
 node.size = Size(200, 150)
-node:schedule(function()
+node:onRender(function()
 	nvg.ApplyTransform(node)
 	nvg.BeginPath()
 	nvg.Rect(0, 0, 200, 150)
@@ -361,7 +361,7 @@ local Scale <const> = require("Scale")
 
 local node = Node()
 node.size = Size(200, 150)
-node:schedule(function(): boolean
+node:onRender(function(): boolean
 	nvg.ApplyTransform(node)
 	nvg.BeginPath()
 	nvg.Rect(0, 0, 200, 150)
@@ -385,7 +385,7 @@ import * as nvg from "nvg";
 
 const node = Node();
 node.size = Size(200, 150);
-node.schedule(() => {
+node.onRender(() => {
 	nvg.ApplyTransform(node);
 	nvg.BeginPath();
 	nvg.Rect(0, 0, 200, 150);
@@ -408,7 +408,7 @@ _ENV = Dora
 
 with Node!
 	.size = Size 200, 150
-	\schedule ->
+	\onRender ->
 		nvg.ApplyTransform node
 		nvg.BeginPath! -- 开始新路径
 		nvg.Rect 0, 0, 200, 150
@@ -427,7 +427,7 @@ with Node!
 &emsp;&emsp;上述代码创建了一个节点，将一个红色矩形绘制到节点上。然后，通过设置节点的位置、旋转控制矩形的显示效果，并通过在节点上播放缩放动作来控制矩形的缩放。
 
 :::tip 提示
-&emsp;&emsp;使用 `nvg.ApplyTransform(node)` 函数后，矢量图形的坐标系原点会改变为场景节点的左下角，并且 x 轴向右，y 轴变为向上。节点的缩放、旋转和位置变换会应用到矢量图形的绘制上。
+&emsp;&emsp;使用 `nvg.ApplyTransform(node)` 函数后，矢量图形的坐标系原点会改变为场景节点的左下角，并且 x 轴向右，y 轴变为向上。节点的缩放、旋转和位置变换会应用到矢量图形的绘制上。建议使用节点的 `onRender` 方法来绘制矢量图形，因为 `onRender` 方法在每一帧都会被调用，并且能确保它的调用顺序与场景树的渲染顺序一致，如使子节点在父节点之后渲染。
 :::
 
 ## 4. 使用颜色和画笔
@@ -722,7 +722,7 @@ local nvg <const> = require("nvg")
 local svg = SVG("Image/Dora.svg")
 
 local node = Node()
-node:schedule(function()
+node:onRender(function()
 	nvg.ApplyTransform(node)
 	nvg.Scale(0.2, -0.2)
 	nvg.Translate(-566.5, -566.5)
@@ -743,7 +743,7 @@ local nvg <const> = require("nvg")
 local svg = SVG("Image/Dora.svg")
 
 local node = Node()
-node:schedule(function(): boolean
+node:onRender(function(): boolean
 	nvg.ApplyTransform(node)
 	nvg.Scale(0.2, -0.2)
 	nvg.Translate(-566.5, -566.5)
@@ -764,7 +764,7 @@ import * as nvg from "nvg";
 const svg = SVG("Image/Dora.svg");
 
 const node = Node();
-node.schedule(() => {
+node.onRender(() => {
 	nvg.ApplyTransform(node);
 	nvg.Scale(0.2, -0.2);
 	nvg.Translate(-566.5, -566.5);
@@ -784,7 +784,7 @@ _ENV = Dora
 svg = SVG "Image/Dora.svg"
 
 with Node!
-	\schedule ->
+	\onRender ->
 		nvg.ApplyTransform node
 		nvg.Scale 0.2, -0.2
 		nvg.Translate -566.5, -566.5

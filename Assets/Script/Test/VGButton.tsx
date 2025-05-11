@@ -17,7 +17,7 @@ const Button = (props: ButtonProps) => {
 	const onCreate = () => {
 		const node = Node();
 		node.size = Size(100, 100);
-		node.schedule(() => {
+		node.onRender(() => {
 			nvg.ApplyTransform(node);
 			nvg.BeginPath();
 			nvg.RoundedRect(0, 0, 100, 100, 10);
