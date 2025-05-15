@@ -567,11 +567,11 @@
 		3CBC785024CE7528003C9E83 /* Spine in Resources */ = {isa = PBXBuildFile; fileRef = 3CBC784824CE7527003C9E83 /* Spine */; };
 		3CBC785124CE7528003C9E83 /* Model in Resources */ = {isa = PBXBuildFile; fileRef = 3CBC784924CE7527003C9E83 /* Model */; };
 		3CBC785224CE7528003C9E83 /* Font in Resources */ = {isa = PBXBuildFile; fileRef = 3CBC784A24CE7527003C9E83 /* Font */; };
+		3CBED0992DD5C0A100E6F2FC /* dora-wa in Resources */ = {isa = PBXBuildFile; fileRef = 3CBED0982DD5C08B00E6F2FC /* dora-wa */; };
 		3CC81FF61D966770008C8B77 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3CC81FF51D966770008C8B77 /* Assets.xcassets */; };
 		3CD029141E07DD5F0016E1EC /* libbgfx.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CD029131E07DD5F0016E1EC /* libbgfx.a */; };
 		3CD029161E07DD720016E1EC /* libSDL2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CD029151E07DD720016E1EC /* libSDL2.a */; };
 		3CD470AD2D3A4C91000E59A7 /* nfd_cocoa.m in Sources */ = {isa = PBXBuildFile; fileRef = 3CD470A42D3A4C91000E59A7 /* nfd_cocoa.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		3CD470AE2D3A4C91000E59A7 /* LICENSE in Resources */ = {isa = PBXBuildFile; fileRef = 3CD470A12D3A4C91000E59A7 /* LICENSE */; };
 		3CE331411D96CFF700F9C3F6 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE331401D96CFF700F9C3F6 /* Cocoa.framework */; };
 		3CE331431D96D00000F9C3F6 /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE331421D96D00000F9C3F6 /* CoreVideo.framework */; };
 		3CE331451D96D01200F9C3F6 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE331441D96D01200F9C3F6 /* CoreAudio.framework */; };
@@ -583,6 +583,7 @@
 		3CE331531D96D12200F9C3F6 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE331521D96D12200F9C3F6 /* Carbon.framework */; };
 		3CE331571D96D30100F9C3F6 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE331561D96D30100F9C3F6 /* Metal.framework */; };
 		3CE331651D96D56C00F9C3F6 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE331641D96D56C00F9C3F6 /* QuartzCore.framework */; };
+		3CE471C52DD2E85A0036716C /* libwa.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE471C42DD2E85A0036716C /* libwa.a */; };
 		3CE7D3751EADF594008EADB3 /* libbimg_decode.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE7D3731EADF594008EADB3 /* libbimg_decode.a */; };
 		3CE7D3761EADF594008EADB3 /* libbimg.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE7D3741EADF594008EADB3 /* libbimg.a */; };
 		3CE994642AFA43680073A973 /* gamecontrollerdb.txt in Resources */ = {isa = PBXBuildFile; fileRef = 3CE994632AFA43680073A973 /* gamecontrollerdb.txt */; };
@@ -1945,6 +1946,7 @@
 		3CBC784824CE7527003C9E83 /* Spine */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Spine; sourceTree = "<group>"; };
 		3CBC784924CE7527003C9E83 /* Model */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Model; sourceTree = "<group>"; };
 		3CBC784A24CE7527003C9E83 /* Font */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Font; sourceTree = "<group>"; };
+		3CBED0982DD5C08B00E6F2FC /* dora-wa */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "dora-wa"; sourceTree = "<group>"; };
 		3CC81FE61D966770008C8B77 /* Dora.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Dora.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3CC81FF51D966770008C8B77 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Assets.xcassets; path = Dora/Assets.xcassets; sourceTree = "<group>"; };
 		3CC81FFA1D966770008C8B77 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Info.plist; path = Dora/Info.plist; sourceTree = "<group>"; };
@@ -1965,6 +1967,8 @@
 		3CE331521D96D12200F9C3F6 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = System/Library/Frameworks/Carbon.framework; sourceTree = SDKROOT; };
 		3CE331561D96D30100F9C3F6 /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = System/Library/Frameworks/Metal.framework; sourceTree = SDKROOT; };
 		3CE331641D96D56C00F9C3F6 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
+		3CE471C22DD2D8650036716C /* wa.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = wa.a; path = ../../Source/3rdParty/wa/Lib/macOS/wa.a; sourceTree = "<group>"; };
+		3CE471C42DD2E85A0036716C /* libwa.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libwa.a; path = ../../Source/3rdParty/wa/Lib/macOS/libwa.a; sourceTree = "<group>"; };
 		3CE606872D1108F50073BB73 /* sdf_gen2d.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sdf_gen2d.h; sourceTree = "<group>"; };
 		3CE7D3731EADF594008EADB3 /* libbimg_decode.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbimg_decode.a; path = ../../Source/3rdParty/BGFX/Lib/macOS/libbimg_decode.a; sourceTree = "<group>"; };
 		3CE7D3741EADF594008EADB3 /* libbimg.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbimg.a; path = ../../Source/3rdParty/BGFX/Lib/macOS/libbimg.a; sourceTree = "<group>"; };
@@ -1977,6 +1981,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3CE471C52DD2E85A0036716C /* libwa.a in Frameworks */,
 				3C76449F2CFD93D100DEDC0B /* libdora_runtime.a in Frameworks */,
 				3C7FA36F2B689F7D005A8441 /* libssl.a in Frameworks */,
 				3C7FA3702B689F7D005A8441 /* libcrypto.a in Frameworks */,
@@ -2029,6 +2034,7 @@
 		3C030CD824CAD9670074786E /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				3CBED0982DD5C08B00E6F2FC /* dora-wa */,
 				3CE994632AFA43680073A973 /* gamecontrollerdb.txt */,
 				3CA780A02AEB82B100B7BADA /* LICENSES */,
 				3C361E1B2C1A94A50079B68B /* TMX */,
@@ -2258,6 +2264,8 @@
 		3C17D58D1D9C401F008758E8 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				3CE471C42DD2E85A0036716C /* libwa.a */,
+				3CE471C22DD2D8650036716C /* wa.a */,
 				3C76449E2CFD93D100DEDC0B /* libdora_runtime.a */,
 				3C7FA36E2B689F7D005A8441 /* libcrypto.a */,
 				3C7FA36D2B689F7D005A8441 /* libssl.a */,
@@ -4379,18 +4387,18 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3CA780A12AEB82B100B7BADA /* LICENSES in Resources */,
+				3CE994642AFA43680073A973 /* gamecontrollerdb.txt in Resources */,
+				3CC81FF61D966770008C8B77 /* Assets.xcassets in Resources */,
+				3CBED0992DD5C0A100E6F2FC /* dora-wa in Resources */,
 				3CA8DF0D2A0CE6FD0022CC90 /* www in Resources */,
 				3CBC784F24CE7528003C9E83 /* Particle in Resources */,
 				3C0C774B27573F350030BDCD /* Data in Resources */,
 				3C361E1C2C1A94A50079B68B /* TMX in Resources */,
-				3CA780A12AEB82B100B7BADA /* LICENSES in Resources */,
 				3CBC784C24CE7528003C9E83 /* Audio in Resources */,
 				3CFEBDAB268EFC62006D9974 /* DragonBones in Resources */,
-				3CE994642AFA43680073A973 /* gamecontrollerdb.txt in Resources */,
 				3CBC784B24CE7528003C9E83 /* Image in Resources */,
 				3CBC785224CE7528003C9E83 /* Font in Resources */,
-				3CD470AE2D3A4C91000E59A7 /* LICENSE in Resources */,
-				3CC81FF61D966770008C8B77 /* Assets.xcassets in Resources */,
 				3CBC784D24CE7528003C9E83 /* Script in Resources */,
 				3C60DE132A2069CE007D7865 /* Doc in Resources */,
 				3CBC785124CE7528003C9E83 /* Model in Resources */,
@@ -5124,6 +5132,7 @@
 					"$(SRCROOT)/../../Source/3rdParty/SDL2/Lib/macOS",
 					"$(SRCROOT)/../../Source/3rdParty/bgfx/Lib/macOS",
 					"$(SRCROOT)/../../Source/3rdParty/OpenSSL/Lib/macOS",
+					"$(SRCROOT)/../../Source/3rdParty/Wa/Lib/macOS",
 					"$(SRCROOT)/../../Source/Rust/Lib/macOS",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 11.3;
@@ -5200,6 +5209,7 @@
 					"$(SRCROOT)/../../Source/3rdParty/SDL2/Lib/macOS",
 					"$(SRCROOT)/../../Source/3rdParty/bgfx/Lib/macOS",
 					"$(SRCROOT)/../../Source/3rdParty/OpenSSL/Lib/macOS",
+					"$(SRCROOT)/../../Source/3rdParty/Wa/Lib/macOS",
 					"$(SRCROOT)/../../Source/Rust/Lib/macOS",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 11.3;

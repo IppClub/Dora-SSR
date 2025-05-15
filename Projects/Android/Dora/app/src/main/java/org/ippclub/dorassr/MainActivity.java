@@ -12,11 +12,14 @@ import androidx.core.content.FileProvider;
 
 import java.io.File;
 
+import wa.Wa;
+
 public class MainActivity extends SDLActivity {
 	private static native void nativeSetPath(String path);
 	private static native void nativeSetScreenDensity(float density);
 	private static native String nativeGetInstallFile();
-
+	public static String waBuild(String path) { return Wa.waBuild(path); }
+	public static String waFormat(String path) { return Wa.waFormat(path); }
 	@Override
 	protected void onCreate(final Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);

@@ -513,3 +513,49 @@ export type CheckYarnResponse = {
 export const checkYarn = (req: CheckYarnRequest) => {
 	return post<CheckYarnResponse>("/checkYarn", req);
 };
+
+// buildWa
+
+export interface BuildWaRequest {
+	path: string;
+}
+export type BuildWaResponse = {
+	success: true;
+} | {
+	success: false;
+	message: string;
+};
+export const buildWa = (req: BuildWaRequest) => {
+	return post<BuildWaResponse>("/buildWa", req);
+};
+
+// formatWa
+
+export interface FormatWaRequest {
+	file: string;
+}
+export type FormatWaResponse = {
+	success: true;
+	code: string;
+} | {
+	success: false;
+};
+export const formatWa = (req: FormatWaRequest) => {
+	return post<FormatWaResponse>("/formatWa", req);
+};
+
+
+// createWa
+
+export interface CreateWaRequest {
+	path: string;
+}
+export type CreateWaResponse = {
+	success: true;
+} | {
+	success: false;
+	message: string;
+};
+export const createWa = (req: CreateWaRequest) => {
+	return post<CreateWaResponse>("/createWa", req);
+};

@@ -29,8 +29,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <ctime>
 #include <thread>
 
-#define DORA_VERSION "1.6.8"_slice
-#define DORA_REVISION "5"_slice
+#define DORA_VERSION "1.6.9"_slice
+#define DORA_REVISION "1"_slice
 
 #if BX_PLATFORM_ANDROID
 #include <jni.h>
@@ -58,6 +58,7 @@ JNIEXPORT jstring JNICALL Java_org_ippclub_dorassr_MainActivity_nativeGetInstall
 }
 extern "C" ANativeWindow* Android_JNI_GetNativeWindow();
 extern "C" int Android_JNI_SendMessage(int command, int param);
+extern "C" JNIEnv* Android_JNI_GetEnv();
 #endif // BX_PLATFORM_ANDROID
 
 #if BX_PLATFORM_WINDOWS
@@ -849,7 +850,7 @@ NS_DORA_BEGIN
 
 class Console : public NonCopyable {
 public:
-	~Console() {
+	virtual ~Console() {
 		system("pause");
 		FreeConsole();
 	}

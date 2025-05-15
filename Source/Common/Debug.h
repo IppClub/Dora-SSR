@@ -69,7 +69,7 @@ bool IsInLuaOrWasm();
 	do { \
 		if (cond) { \
 			auto msg = fmt::format("[runtime error]\n{}:{}: [{}] {}", \
-				getShortFilename(__FILE__), __LINE__, __FUNCTION__, \
+				Dora::getShortFilename(__FILE__), __LINE__, __FUNCTION__, \
 				fmt::format(__VA_ARGS__)); \
 			if (Dora::IsInLuaOrWasm()) { \
 				throw std::runtime_error(msg); \
@@ -83,7 +83,7 @@ bool IsInLuaOrWasm();
 	do { \
 		if (!(cond)) { \
 			auto msg = fmt::format("[runtime error]\n{}:{}: [{}] {}", \
-				getShortFilename(__FILE__), __LINE__, __FUNCTION__, \
+				Dora::getShortFilename(__FILE__), __LINE__, __FUNCTION__, \
 				fmt::format(__VA_ARGS__)); \
 			if (Dora::IsInLuaOrWasm()) { \
 				throw std::runtime_error(msg); \
@@ -96,7 +96,7 @@ bool IsInLuaOrWasm();
 #define Issue(...) \
 	do { \
 		auto msg = fmt::format("[runtime error]\n{}:{}: [{}] {}", \
-			getShortFilename(__FILE__), __LINE__, __FUNCTION__, \
+			Dora::getShortFilename(__FILE__), __LINE__, __FUNCTION__, \
 			fmt::format(__VA_ARGS__)); \
 		if (Dora::IsInLuaOrWasm()) { \
 			throw std::runtime_error(msg); \

@@ -7,6 +7,7 @@ x86_64:
 	$(MAKE) -R -C bgfx/.build/projects/gmake-linux-gcc config=release64
 	[ -d libs ] || mkdir libs
 	cp -r bgfx/.build/linux64_gcc/bin/* libs
+	cp ../../../Source/3rdParty/Wa/Lib/Linux/amd64/libwa.a libs
 
 arm:
 	[ -d bgfx ] || git clone --depth=1 --branch dora https://github.com/pigpigyyy/bgfx.git
@@ -17,3 +18,4 @@ arm:
 	$(MAKE) -R -C bgfx/.build/projects/gmake-linux-arm-gcc/ config=release
 	[ -d libs ] || mkdir libs
 	cp -r bgfx/.build/linux32_arm_gcc/bin/* libs
+	cp ../../../Source/3rdParty/Wa/Lib/Linux/aarch64/libwa.a libs

@@ -182,7 +182,18 @@ static int dora_load_file(lua_State* L, String filename, String moduleName = nul
 			break;
 		}
 		case "wasm"_hash: {
-			codes = "Dora.Wasm:executeMainFile(\""s + targetFile + "\")"s;
+			auto escapeLuaString = [](const std::string& str) -> std::string {
+				std::string out;
+				for (char c : str) {
+					switch (c) {
+						case '\\': out += "\\\\"; break;
+						case '\"': out += "\\\""; break;
+						default: out += c; break;
+					}
+				}
+				return out;
+			};
+			codes = "Dora.Wasm:executeMainFile(\""s + escapeLuaString(targetFile) + "\")"s;
 			codeBuffer = codes.c_str();
 			codeBufferSize = codes.size();
 			break;

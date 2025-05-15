@@ -15,6 +15,89 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Other/xlsxtext.hpp"
 
+extern "C" {
+#if BX_PLATFORM_WINDOWS
+extern __declspec(dllexport) char* WaBuild(char* input);
+extern __declspec(dllexport) char* WaFormat(char* input);
+extern __declspec(dllexport) void WaFreeCString(char* str);
+#elif BX_PLATFORM_ANDROID
+#include <jni.h>
+extern "C" JNIEnv* Android_JNI_GetEnv();
+static JavaVM* g_VM = NULL;
+static void CacheJavaVM() {
+	if (!g_VM) {
+		JNIEnv* env = Android_JNI_GetEnv();
+		if (!env || env->GetJavaVM(&g_VM) != 0) {
+			Issue("Failed to get JavaVM");
+		}
+	}
+}
+JNIEnv* GetEnv() {
+	CacheJavaVM();
+	JNIEnv* env = NULL;
+	if (g_VM->GetEnv((void**)&env, JNI_VERSION_1_6) != JNI_OK) {
+		// 当前线程未附加，尝试 attach
+		if (g_VM->AttachCurrentThread(&env, NULL) != 0) {
+            Issue("Failed to attach current thread to JVM");
+			return NULL;
+		}
+	}
+	return env;
+}
+static const char* WaBuild(char* input) {
+	auto env = GetEnv();
+	jclass cls = env->FindClass("org/ippclub/dorassr/MainActivity");
+	if (!cls) return {};
+
+	jmethodID mid = env->GetStaticMethodID(cls, "waBuild", "(Ljava/lang/String;)Ljava/lang/String;");
+	if (!mid) return {};
+
+	jstring jpath = env->NewStringUTF(input);
+	jstring jresult = (jstring)env->CallStaticObjectMethod(cls, mid, jpath);
+
+	const char* str = env->GetStringUTFChars(jresult, nullptr);
+	char* result = new char[strlen(str) + 1];
+	strcpy(result, str);
+	env->ReleaseStringUTFChars(jresult, str);
+
+	env->DeleteLocalRef(jpath);
+	env->DeleteLocalRef(jresult);
+	env->DeleteLocalRef(cls);
+
+	return result;
+}
+static const char* WaFormat(char* input) {
+	auto env = GetEnv();
+	jclass cls = env->FindClass("org/ippclub/dorassr/MainActivity");
+	if (!cls) return {};
+
+	jmethodID mid = env->GetStaticMethodID(cls, "waFormat", "(Ljava/lang/String;)Ljava/lang/String;");
+	if (!mid) return {};
+
+	jstring jpath = env->NewStringUTF(input);
+	jstring jresult = (jstring)env->CallStaticObjectMethod(cls, mid, jpath);
+
+	const char* str = env->GetStringUTFChars(jresult, nullptr);
+	char* result = new char[strlen(str) + 1];
+	strcpy(result, str);
+	env->ReleaseStringUTFChars(jresult, str);
+
+	env->DeleteLocalRef(jpath);
+	env->DeleteLocalRef(jresult);
+	env->DeleteLocalRef(cls);
+
+	return result;
+}
+void WaFreeCString(const char* str) {
+	delete[] str;
+}
+#else
+extern char* WaBuild(char* input);
+extern char* WaFormat(char* input);
+extern void WaFreeCString(char* str);
+#endif
+}
+
 NS_DORA_BEGIN
 
 #define DoraVersion(major, minor, patch) ((major) << 16 | (minor) << 8 | (patch))
@@ -2049,6 +2132,58 @@ bool WasmRuntime::isInWasm() {
 
 uint8_t* WasmRuntime::getMemoryAddress(int32_t wasmAddr) {
 	return _runtime->get_address(wasmAddr);
+}
+
+void WasmRuntime::buildWaAsync(String fullPath, const std::function<void(String)>& callback) {
+#if BX_PLATFORM_ANDROID
+	SharedApplication.invokeInRender([fullPath = fullPath.toString(), callback]() {
+		auto result = WaBuild(c_cast<char*>(fullPath.c_str()));
+		SharedApplication.invokeInLogic([str = std::string(result), callback]() {
+			callback(str);
+		});
+		WaFreeCString(result);
+	});
+#else
+	if (!_thread) {
+		_thread = SharedAsyncThread.newThread();
+	}
+	_thread->run([fullPath = fullPath.toString()]() {
+		auto result = WaBuild(c_cast<char*>(fullPath.c_str()));
+		std::string data(result);
+		WaFreeCString(result);
+		return Values::alloc(std::move(data));
+	}, [callback](Own<Values> values) {
+		std::string data;
+		values->get(data);
+		callback(data);
+	});
+#endif
+}
+
+void WasmRuntime::formatWaAsync(String fullPath, const std::function<void(String)>& callback) {
+#if BX_PLATFORM_ANDROID
+	SharedApplication.invokeInRender([fullPath = fullPath.toString(), callback]() {
+		auto result = WaFormat(c_cast<char*>(fullPath.c_str()));
+		SharedApplication.invokeInLogic([str = std::string(result), callback]() {
+			callback(str);
+		});
+		WaFreeCString(result);
+	});
+#else
+	if (!_thread) {
+		_thread = SharedAsyncThread.newThread();
+	}
+	_thread->run([fullPath = fullPath.toString()]() {
+		auto result = WaFormat(c_cast<char*>(fullPath.c_str()));
+		std::string data(result);
+		WaFreeCString(result);
+		return Values::alloc(std::move(data));
+	}, [callback](Own<Values> values) {
+		std::string data;
+		values->get(data);
+		callback(data);
+	});
+#endif
 }
 
 NS_DORA_END
