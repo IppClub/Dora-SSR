@@ -1,3 +1,3 @@
 name = "init"
-pkgpath = "dora_test"
+pkgpath = "dora_wa"
 target = "wasi"

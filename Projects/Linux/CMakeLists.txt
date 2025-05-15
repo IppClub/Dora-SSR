@@ -55,6 +55,12 @@ set_target_properties(
 	${CMAKE_SOURCE_DIR}/3rdParty/libs/libbimg_decodeRelease.a
 )
 
+add_library(WA-lib STATIC IMPORTED)
+set_target_properties(
+	WA-lib PROPERTIES IMPORTED_LOCATION
+	${CMAKE_SOURCE_DIR}/3rdParty/libs/libwa.a
+)
+
 add_library(DORA-lib STATIC IMPORTED)
 set_target_properties(
 	DORA-lib PROPERTIES IMPORTED_LOCATION
@@ -610,5 +616,5 @@ add_executable(dora-ssr
 	../../Source/3rdParty/nfd/nfd_portal.cpp
 )
 
-target_link_libraries(dora-ssr z dl pthread rt ${SDL2_LIBRARIES} BGFX-lib BIMGDE-lib BIMG-lib BX-lib GL X11 OpenSSL::SSL OpenSSL::Crypto ${DBUS_LINK_LIBRARIES} DORA-lib)
+target_link_libraries(dora-ssr z dl pthread rt ${SDL2_LIBRARIES} BGFX-lib BIMGDE-lib BIMG-lib BX-lib GL X11 OpenSSL::SSL OpenSSL::Crypto ${DBUS_LINK_LIBRARIES} DORA-lib WA-lib)
 

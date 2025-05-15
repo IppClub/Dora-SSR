@@ -7195,7 +7195,7 @@ private:
 				try {
 					unsigned long long value = std::stoull(binaryPart, nullptr, 2);
 					numStr = std::to_string(value);
-				} catch (const std::exception& e) {
+				} catch (const std::exception&) {
 					throw CompileError("invalid binary literal"sv, num);
 				}
 			} else if (getLuaTarget(num) < 502) {

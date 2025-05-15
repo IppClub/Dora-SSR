@@ -12,6 +12,7 @@ import * as teal from './languages/teal';
 import * as lua from './languages/lua';
 import * as Service from './Service';
 import Info from './Info';
+import * as wa from './languages/wa';
 
 const options = monaco.languages.typescript.typescriptDefaults.getCompilerOptions();
 options.noLib = true;
@@ -285,7 +286,7 @@ const completionItemProvider = (triggerCharacters: string[], lang: CompleteLang)
 								kind,
 								insertText: desc,
 								insertTextRules:
-				monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+								monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
 								range: range,
 							};
 						}
@@ -582,3 +583,9 @@ monaco.editor.onDidCreateEditor(newEditor => {
 		});
 	});
 });
+
+monaco.languages.register({ id: 'wa' });
+monaco.languages.setLanguageConfiguration('wa', wa.langConfig);
+monaco.languages.setMonarchTokensProvider('wa', wa.language);
+
+export const EditorTheme = 'dora-dark';

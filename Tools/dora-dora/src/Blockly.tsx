@@ -34,6 +34,7 @@ import AudioCategory from './Blocks/Audio';
 import DictCategory from './Blocks/Dict';
 import PhysicsCategory from './Blocks/Physics';
 import MiscCategory from './Blocks/Misc';
+import { EditorTheme } from './Editor';
 
 const editorBackground = <div style={{width: '100%', height: '100%', backgroundColor:'#1a1a1a'}}/>;
 
@@ -998,7 +999,7 @@ const BlocklyComponent: React.FC<BlocklyProps> = ({
 					width={width * 0.4}
 					height={height}
 					language='lua'
-					theme="dora-dark"
+					theme={EditorTheme}
 					keepCurrentModel
 					loading={editorBackground}
 					path={monaco.Uri.file(path.join(path.dirname(file), path.basename(file, path.extname(file)) + '.lua')).toString()}

@@ -18,6 +18,7 @@ import tealLogo from './teal.png';
 import blocklyLogo from './blockly.png';
 import typescriptLogo from './typescript.png';
 import yarnLogo from './yarn.png';
+import waLogo from './wa.svg';
 import { AiFillFolderAdd } from 'react-icons/ai';
 import { SiNodered } from 'react-icons/si';
 import { DiCode } from 'react-icons/di';
@@ -26,7 +27,7 @@ import { useTranslation } from 'react-i18next';
 import { DialogActions } from '@mui/material';
 import Grid from '@mui/material/Grid';
 
-export type DoraFileType = "Lua" | "YueScript" | "Teal" | "TypeScript" | "Dora XML" | "Markdown" | "Yarn" | "Visual Script" | "Blockly" | "Folder"
+export type DoraFileType = "Lua" | "YueScript" | "Teal" | "TypeScript" | "Dora XML" | "Markdown" | "Yarn" | "Visual Script" | "Blockly" | "Folder" | "Wa"
 
 interface FileType {
 	icon: React.ReactNode;
@@ -91,6 +92,12 @@ const fileTypes: FileType[] = [
 		padding: '22px'
 	},
 	{
+		icon: <img src={waLogo} alt="Wa" width="40px" height="40px" style={{marginLeft: '4px'}}/>,
+		name: "Wa",
+		desc: "file.wa",
+		padding: '22px'
+	},
+	{
 		icon: <AiFillFolderAdd size={50} style={{marginLeft: '0px'}}/>,
 		name: "Folder",
 		desc: "file.folder",
@@ -123,13 +130,13 @@ function NewFileDialog(props: NewFileDialogProps) {
 
 	return (
 		<Dialog
-			maxWidth="sm"
+			maxWidth="md"
 			onClose={handleClose}
 			open={open}
 			transitionDuration={0}
-			TransitionProps={transitionProps}>
+			slotProps={{transition: transitionProps}}>
 			<DialogTitle>{t("file.new")}</DialogTitle>
-			<Grid container columns={2}>
+			<Grid container columns={{ sm: 2, md: 3 }}>
 			{
 				fileTypes.map((fileType) => (
 					<Grid key={fileType.name} size={1}>

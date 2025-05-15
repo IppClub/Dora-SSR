@@ -21,7 +21,9 @@ import {
 	AiOutlineDelete,
 	AiOutlineEdit,
 	AiOutlineDownload,
+	AiOutlineSetting,
 	AiFillFileZip,
+	AiOutlineUpload,
 } from 'react-icons/ai';
 import { RiListIndefinite } from "react-icons/ri";
 import { RxClipboardCopy } from "react-icons/rx";
@@ -39,6 +41,7 @@ import tealLogo from './teal.png';
 import typescriptLogo from './typescript.png';
 import blocklyLogo from './blockly.png';
 import spineLogo from './spine.png';
+import waLogo from './wa.svg';
 import { DiCode } from 'react-icons/di';
 import { TbMoodConfuzed, TbSql } from 'react-icons/tb';
 import { SiNodered } from 'react-icons/si';
@@ -119,6 +122,10 @@ const fileIcon = (props: TreeNodeProps) => {
 					return <SiNodered size={12}/>;
 				case ".zip":
 					return <AiFillFileZip color='fac03d'/>;
+				case ".wa":
+					return <img src={waLogo} alt="wa" width="12px" height="12px"/>;
+				case ".mod":
+					return <AiOutlineSetting size={14}/>;
 			}
 		}
 	}
@@ -145,7 +152,7 @@ const motion = {
 	onLeaveActive: () => ({ height: 0 }),
 };
 
-export type TreeMenuEvent = "New" | "Rename" | "Delete" | "Download" | "Cancel" | "Unzip" | "View Compiled" | "Copy Path" | "Build" | "Obfuscate" | "Declaration";
+export type TreeMenuEvent = "New" | "Rename" | "Delete" | "Upload" | "Download" | "Cancel" | "Unzip" | "View Compiled" | "Copy Path" | "Build" | "Obfuscate" | "Declaration";
 
 export interface FileTreeProps {
 	selectedKeys: string[];
@@ -199,6 +206,7 @@ export default memo(function FileTree(props: FileTreeProps) {
 	const enableNew = (isRoot || !isBuiltin) || Info.engineDev;
 	const enableDelete = (!isRoot && !isBuiltin) || Info.engineDev;
 	const enableRename = (!isRoot && !isBuiltin) || Info.engineDev;
+	const enableUpload = isRoot || !isBuiltin;
 	const enableDownload = isRoot || !isBuiltin;
 	const enableCopyPath = (!isRoot || isBuiltin) || Info.engineDev;
 	const enableUnzip = !isRoot && !isBuiltin;
@@ -225,8 +233,10 @@ export default memo(function FileTree(props: FileTreeProps) {
 				autoFocus={false}
 				open={menuOpen}
 				onClose={() => handleClose("Cancel", anchorItem?.data)}
-				TransitionProps={{
-					onExited: () => setAnchorItem(null),
+				slotProps={{
+					transition: {
+						onExited: () => setAnchorItem(null),
+					},
 				}}
 			>
 				{enableNew ?
@@ -253,6 +263,14 @@ export default memo(function FileTree(props: FileTreeProps) {
 							<AiOutlineEdit/>
 						</ListItemIcon>
 						<ListItemText primary={ t("menu.rename") }/>
+					</StyledMenuItem> : null
+				}
+				{enableUpload ?
+					<StyledMenuItem onClick={() => handleClose("Upload", anchorItem?.data)}>
+						<ListItemIcon>
+							<AiOutlineUpload/>
+						</ListItemIcon>
+						<ListItemText primary={ t("menu.upload") }/>
 					</StyledMenuItem> : null
 				}
 				{enableDownload ?
@@ -288,7 +306,9 @@ export default memo(function FileTree(props: FileTreeProps) {
 						ext === ".tl" ||
 						ext === ".ts" ||
 						ext === ".tsx" ||
-						ext === ".xml"
+						ext === ".xml" ||
+						ext === ".wa" ||
+						ext === ".mod"
 					)) || anchorItem.data.dir) ?
 					<StyledMenuItem onClick={() => handleClose("Build", anchorItem?.data)}>
 						<ListItemIcon>

@@ -1188,6 +1188,8 @@ struct WasmRuntime @ Wasm
 {
 	static tolua_outside bool SharedWasmRuntime.executeMainFile @ executeMainFile(String filename);
 	static tolua_outside void SharedWasmRuntime.executeMainFileAsync @ executeMainFileAsync(String filename, tolua_function_void handler);
+	static tolua_outside void SharedWasmRuntime.buildWaAsync @ buildWaAsync(String fullPath, tolua_function_void callback);
+	static tolua_outside void SharedWasmRuntime.formatWaAsync @ formatWaAsync(String fullPath, tolua_function_void callback);
 	static tolua_outside void WasmRuntime_clear @ clear();
 };
 

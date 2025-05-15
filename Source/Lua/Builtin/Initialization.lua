@@ -529,6 +529,38 @@ do
 		return result
 	end
 
+	local Wasm_buildWaAsync = Wasm.buildWaAsync
+	Wasm.buildWaAsync = function(self, filename)
+		local _, mainThread = coroutine.running()
+		assert(not mainThread, "Wasm.buildWaAsync should be run in a thread")
+		local result
+		local done = false
+		Wasm_buildWaAsync(self, filename, function(res)
+			result = res
+			done = true
+		end)
+		wait(function()
+			return done
+		end)
+		return result
+	end
+
+	local Wasm_formatWaAsync = Wasm.formatWaAsync
+	Wasm.formatWaAsync = function(self, filename)
+		local _, mainThread = coroutine.running()
+		assert(not mainThread, "Wasm.formatWaAsync should be run in a thread")
+		local result
+		local done = false
+		Wasm_formatWaAsync(self, filename, function(res)
+			result = res
+			done = true
+		end)
+		wait(function()
+			return done
+		end)
+		return result
+	end
+
 	local HttpServer = Dora.HttpServer
 	local HttpServer_postSchedule = HttpServer.postSchedule
 	HttpServer.postSchedule = function(self, pattern, scheduleFunc)

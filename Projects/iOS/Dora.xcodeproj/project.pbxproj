@@ -1117,6 +1117,8 @@
 		3CBE0F762608983E003F4F45 /* CoreHaptics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CBE0F5026088B89003F4F45 /* CoreHaptics.framework */; };
 		3CBE6FFF2CFA183F00A1C497 /* libdora_runtime.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CBE6FFE2CFA183F00A1C497 /* libdora_runtime.a */; };
 		3CBE70012CFA185400A1C497 /* libdora_runtime.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CBE70002CFA185300A1C497 /* libdora_runtime.a */; };
+		3CBED1E62DD5C17A00E6F2FC /* dora-wa in Resources */ = {isa = PBXBuildFile; fileRef = 3CBED1E52DD5C17400E6F2FC /* dora-wa */; };
+		3CBED1E72DD5C18F00E6F2FC /* dora-wa in Resources */ = {isa = PBXBuildFile; fileRef = 3CBED1E52DD5C17400E6F2FC /* dora-wa */; };
 		3CBFB70A264376D4006348C8 /* implot_demo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CBFB704264376D4006348C8 /* implot_demo.cpp */; };
 		3CBFB70B264376D4006348C8 /* implot.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CBFB706264376D4006348C8 /* implot.cpp */; };
 		3CBFB70C264376D4006348C8 /* implot_items.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CBFB707264376D4006348C8 /* implot_items.cpp */; };
@@ -1161,6 +1163,8 @@
 		3CE331781D96D97700F9C3F6 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE331771D96D97700F9C3F6 /* UIKit.framework */; };
 		3CE3317A1D96D98700F9C3F6 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE331791D96D98700F9C3F6 /* Foundation.framework */; };
 		3CE3317C1D96D98D00F9C3F6 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE3317B1D96D98D00F9C3F6 /* CoreAudio.framework */; };
+		3CE471C72DD2EF8A0036716C /* libwa.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE471C62DD2EF8A0036716C /* libwa.a */; };
+		3CE471CA2DD2EFDE0036716C /* libwa.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE471C82DD2EF9B0036716C /* libwa.a */; };
 		3CE9946A2AFB26820073A973 /* gamecontrollerdb.txt in Resources */ = {isa = PBXBuildFile; fileRef = 3CE994692AFB26820073A973 /* gamecontrollerdb.txt */; };
 		3CE9946B2AFB26820073A973 /* gamecontrollerdb.txt in Resources */ = {isa = PBXBuildFile; fileRef = 3CE994692AFB26820073A973 /* gamecontrollerdb.txt */; };
 		3CFEBE4326930B91006D9974 /* DragonBones in Resources */ = {isa = PBXBuildFile; fileRef = 3CFEBE4226930B91006D9974 /* DragonBones */; };
@@ -2508,6 +2512,7 @@
 		3CBE0F5026088B89003F4F45 /* CoreHaptics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreHaptics.framework; path = System/Library/Frameworks/CoreHaptics.framework; sourceTree = SDKROOT; };
 		3CBE6FFE2CFA183F00A1C497 /* libdora_runtime.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libdora_runtime.a; path = ../../Source/Rust/lib/iOS/libdora_runtime.a; sourceTree = "<group>"; };
 		3CBE70002CFA185300A1C497 /* libdora_runtime.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libdora_runtime.a; path = "../../Source/Rust/lib/iOS-Simulator/libdora_runtime.a"; sourceTree = "<group>"; };
+		3CBED1E52DD5C17400E6F2FC /* dora-wa */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "dora-wa"; sourceTree = "<group>"; };
 		3CBFB704264376D4006348C8 /* implot_demo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = implot_demo.cpp; sourceTree = "<group>"; };
 		3CBFB705264376D4006348C8 /* implot_internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = implot_internal.h; sourceTree = "<group>"; };
 		3CBFB706264376D4006348C8 /* implot.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = implot.cpp; sourceTree = "<group>"; };
@@ -2550,6 +2555,8 @@
 		3CE331791D96D98700F9C3F6 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		3CE3317B1D96D98D00F9C3F6 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
 		3CE331831D96E19100F9C3F6 /* OpenGLES.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGLES.framework; path = System/Library/Frameworks/OpenGLES.framework; sourceTree = SDKROOT; };
+		3CE471C62DD2EF8A0036716C /* libwa.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libwa.a; path = "../../Source/3rdParty/Wa/Lib/iOS-Simulator/libwa.a"; sourceTree = "<group>"; };
+		3CE471C82DD2EF9B0036716C /* libwa.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libwa.a; path = ../../Source/3rdParty/Wa/Lib/iOS/libwa.a; sourceTree = "<group>"; };
 		3CE606882D1109EC0073BB73 /* sdf_gen2d.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sdf_gen2d.h; sourceTree = "<group>"; };
 		3CE994692AFB26820073A973 /* gamecontrollerdb.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = gamecontrollerdb.txt; sourceTree = "<group>"; };
 		3CFEBE4226930B91006D9974 /* DragonBones */ = {isa = PBXFileReference; lastKnownFileType = folder; path = DragonBones; sourceTree = "<group>"; };
@@ -2560,6 +2567,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3CE471C72DD2EF8A0036716C /* libwa.a in Frameworks */,
 				3CBE70012CFA185400A1C497 /* libdora_runtime.a in Frameworks */,
 				3C7FA3772B68A1F0005A8441 /* libssl.a in Frameworks */,
 				3C7FA3782B68A1F0005A8441 /* libcrypto.a in Frameworks */,
@@ -2587,6 +2595,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3CE471CA2DD2EFDE0036716C /* libwa.a in Frameworks */,
 				3CBE6FFF2CFA183F00A1C497 /* libdora_runtime.a in Frameworks */,
 				3C7FA3732B68A1DE005A8441 /* libcrypto.a in Frameworks */,
 				3C7FA3742B68A1DE005A8441 /* libssl.a in Frameworks */,
@@ -3183,6 +3192,7 @@
 			children = (
 				3CE994692AFB26820073A973 /* gamecontrollerdb.txt */,
 				3CA780A22AEB88B600B7BADA /* LICENSES */,
+				3CBED1E52DD5C17400E6F2FC /* dora-wa */,
 				3C361E722C1B47F50079B68B /* TMX */,
 				3C60DE142A2069FE007D7865 /* Doc */,
 				3CA8DF0E2A0CE83D0022CC90 /* www */,
@@ -4444,6 +4454,8 @@
 		3C98626E1D9CA4500056A045 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				3CE471C62DD2EF8A0036716C /* libwa.a */,
+				3CE471C82DD2EF9B0036716C /* libwa.a */,
 				3CBE6FFE2CFA183F00A1C497 /* libdora_runtime.a */,
 				3CBE70002CFA185300A1C497 /* libdora_runtime.a */,
 				3C7FA3712B68A1DD005A8441 /* libcrypto.a */,
@@ -5010,13 +5022,15 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3CA780A42AEB88B600B7BADA /* LICENSES in Resources */,
+				3CE9946B2AFB26820073A973 /* gamecontrollerdb.txt in Resources */,
 				3C59DA7E2703037C0096813A /* Launch Screen.storyboard in Resources */,
 				3C59DA7F2703037C0096813A /* Main.storyboard in Resources */,
-				3C0C775D275744690030BDCD /* Data in Resources */,
 				3C59DA802703037C0096813A /* Assets.xcassets in Resources */,
+				3CBED1E72DD5C18F00E6F2FC /* dora-wa in Resources */,
+				3C0C775D275744690030BDCD /* Data in Resources */,
 				3CBE0F0326087F7B003F4F45 /* Model in Resources */,
 				3C60DE162A2069FE007D7865 /* Doc in Resources */,
-				3CE9946B2AFB26820073A973 /* gamecontrollerdb.txt in Resources */,
 				3CBE0F0526087F7B003F4F45 /* Spine in Resources */,
 				3CBE0F0626087F7B003F4F45 /* Image in Resources */,
 				3CFEBE4426930B91006D9974 /* DragonBones in Resources */,
@@ -5025,7 +5039,6 @@
 				3C361E742C1B47F50079B68B /* TMX in Resources */,
 				3CBE0F0926087F7B003F4F45 /* Script in Resources */,
 				3CBE0F0B26087F7B003F4F45 /* Particle in Resources */,
-				3CA780A42AEB88B600B7BADA /* LICENSES in Resources */,
 				3CBE0F0E26087F7B003F4F45 /* Audio in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -5034,13 +5047,15 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3CA780A32AEB88B600B7BADA /* LICENSES in Resources */,
+				3CE9946A2AFB26820073A973 /* gamecontrollerdb.txt in Resources */,
 				3C59DA7B270303750096813A /* Launch Screen.storyboard in Resources */,
 				3C59DA7C270303750096813A /* Main.storyboard in Resources */,
-				3C0C775C275744690030BDCD /* Data in Resources */,
 				3C59DA7D270303750096813A /* Assets.xcassets in Resources */,
+				3CBED1E62DD5C17A00E6F2FC /* dora-wa in Resources */,
+				3C0C775C275744690030BDCD /* Data in Resources */,
 				3C030CF724CAE6580074786E /* Model in Resources */,
 				3C60DE152A2069FE007D7865 /* Doc in Resources */,
-				3CE9946A2AFB26820073A973 /* gamecontrollerdb.txt in Resources */,
 				3C030CF524CAE6580074786E /* Spine in Resources */,
 				3C030CFA24CAE6580074786E /* Image in Resources */,
 				3CFEBE4326930B91006D9974 /* DragonBones in Resources */,
@@ -5049,7 +5064,6 @@
 				3C361E732C1B47F50079B68B /* TMX in Resources */,
 				3C030CF824CAE6580074786E /* Script in Resources */,
 				3C030CFC24CAE6580074786E /* Particle in Resources */,
-				3CA780A32AEB88B600B7BADA /* LICENSES in Resources */,
 				3C030CF924CAE6580074786E /* Audio in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -6251,6 +6265,7 @@
 					"../../Source/3rdParty/SDL2/Lib/iOS-Simulator",
 					"../../Source/3rdParty/bgfx/Lib/iOS-Simulator",
 					"../../Source/3rdParty/OpenSSL/Lib/iOS-Simulator",
+					"../../Source/3rdParty/Wa/Lib/iOS-Simulator",
 					"../../Source/Rust/lib/iOS-Simulator",
 				);
 				OTHER_CFLAGS = (
@@ -6326,6 +6341,7 @@
 					"../../Source/3rdParty/SDL2/Lib/iOS-Simulator",
 					"../../Source/3rdParty/bgfx/Lib/iOS-Simulator",
 					"../../Source/3rdParty/OpenSSL/Lib/iOS-Simulator",
+					"../../Source/3rdParty/Wa/Lib/iOS-Simulator",
 					"../../Source/Rust/lib/iOS-Simulator",
 				);
 				OTHER_CFLAGS = (
@@ -6547,6 +6563,7 @@
 					../../Source/3rdParty/SDL2/Lib/iOS,
 					../../Source/3rdParty/bgfx/Lib/iOS,
 					../../Source/3rdParty/OpenSSL/Lib/iOS,
+					../../Source/3rdParty/Wa/Lib/iOS,
 					../../Source/Rust/lib/iOS,
 				);
 				OTHER_CFLAGS = (
@@ -6621,6 +6638,7 @@
 					../../Source/3rdParty/SDL2/Lib/iOS,
 					../../Source/3rdParty/bgfx/Lib/iOS,
 					../../Source/3rdParty/OpenSSL/Lib/iOS,
+					../../Source/3rdParty/Wa/Lib/iOS,
 					../../Source/Rust/lib/iOS,
 				);
 				OTHER_CFLAGS = (
