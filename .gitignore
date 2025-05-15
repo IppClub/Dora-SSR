@@ -70,6 +70,7 @@ imgui.ini
 
 # Ignore dev files
 Assets/www/
+Assets/dora-wa/
 
 # Ignore Linux lib files
 Projects/Linux/3rdParty/

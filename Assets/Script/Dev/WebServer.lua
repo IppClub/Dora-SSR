@@ -21,6 +21,7 @@ local print = _G.print -- 1
 local sleep = Dora.sleep -- 1
 local json = Dora.json -- 1
 local emit = Dora.emit -- 1
+local Wasm = Dora.Wasm -- 1
 local _module_0 = nil -- 1
 HttpServer:stop() -- 11
 HttpServer.wwwPath = Path(Content.appPath, ".www") -- 13
@@ -2341,7 +2342,9 @@ HttpServer:postSchedule("/zip", function(req) -- 927
 						"tsx", -- 947
 						"vs", -- 947
 						"bl", -- 947
-						"xml" -- 947
+						"xml", -- 947
+						"wa", -- 947
+						"mod" -- 947
 					}, true) -- 947
 					for _index_0 = 1, #scriptFiles do -- 948
 						local file = scriptFiles[_index_0] -- 948
@@ -2543,35 +2546,208 @@ HttpServer:post("/checkYarn", function(req) -- 999
 		success = false -- 999
 	} -- 1008
 end) -- 999
-local status = { } -- 1010
-_module_0 = status -- 1011
-thread(function() -- 1013
-	local doraWeb = Path(Content.assetPath, "www", "index.html") -- 1014
-	local doraReady = Path(Content.appPath, ".www", "dora-ready") -- 1015
-	if Content:exist(doraWeb) then -- 1016
-		local needReload -- 1017
-		if Content:exist(doraReady) then -- 1017
-			needReload = App.version ~= Content:load(doraReady) -- 1018
-		else -- 1019
-			needReload = true -- 1019
-		end -- 1017
-		if needReload then -- 1020
-			Content:remove(Path(Content.appPath, ".www")) -- 1021
-			Content:copyAsync(Path(Content.assetPath, "www"), Path(Content.appPath, ".www")) -- 1022
-			Content:save(doraReady, App.version) -- 1026
-			print("Dora Dora is ready!") -- 1027
-		end -- 1020
+local getWaProjectDirFromFile -- 1010
+getWaProjectDirFromFile = function(file) -- 1010
+	local writablePath = Content.writablePath -- 1011
+	local parent, current -- 1012
+	if (".." ~= Path:getRelative(file, writablePath):sub(1, 2)) and writablePath == file:sub(1, #writablePath) then -- 1012
+		parent, current = writablePath, Path:getRelative(file, writablePath) -- 1013
+	else -- 1015
+		parent, current = nil, nil -- 1015
+	end -- 1012
+	if not current then -- 1016
+		return nil -- 1016
 	end -- 1016
-	if HttpServer:start(8866) then -- 1028
-		local localIP = HttpServer.localIP -- 1029
-		if localIP == "" then -- 1030
-			localIP = "localhost" -- 1030
-		end -- 1030
-		status.url = "http://" .. tostring(localIP) .. ":8866" -- 1031
-		return HttpServer:startWS(8868) -- 1032
-	else -- 1034
-		status.url = nil -- 1034
-		return print("8866 Port not available!") -- 1035
-	end -- 1028
-end) -- 1013
-return _module_0 -- 1035
+	repeat -- 1017
+		current = Path:getPath(current) -- 1018
+		if current == "" then -- 1019
+			break -- 1019
+		end -- 1019
+		local _list_0 = Content:getFiles(Path(parent, current)) -- 1020
+		for _index_0 = 1, #_list_0 do -- 1020
+			local f = _list_0[_index_0] -- 1020
+			if Path:getFilename(f):lower() == "wa.mod" then -- 1021
+				return Path(parent, current, Path:getPath(f)) -- 1022
+			end -- 1021
+		end -- 1022
+	until false -- 1023
+	return nil -- 1024
+end -- 1010
+HttpServer:postSchedule("/buildWa", function(req) -- 1026
+	do -- 1027
+		local _type_0 = type(req) -- 1027
+		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 1027
+		if _tab_0 then -- 1027
+			local path -- 1027
+			do -- 1027
+				local _obj_0 = req.body -- 1027
+				local _type_1 = type(_obj_0) -- 1027
+				if "table" == _type_1 or "userdata" == _type_1 then -- 1027
+					path = _obj_0.path -- 1027
+				end -- 1035
+			end -- 1035
+			if path ~= nil then -- 1027
+				local projDir = getWaProjectDirFromFile(path) -- 1028
+				if projDir then -- 1028
+					local message = Wasm:buildWaAsync(projDir) -- 1029
+					if message == "" then -- 1030
+						return { -- 1031
+							success = true -- 1031
+						} -- 1031
+					else -- 1033
+						return { -- 1033
+							success = false, -- 1033
+							message = message -- 1033
+						} -- 1033
+					end -- 1030
+				else -- 1035
+					return { -- 1035
+						success = false, -- 1035
+						message = 'Wa file needs a project' -- 1035
+					} -- 1035
+				end -- 1028
+			end -- 1027
+		end -- 1035
+	end -- 1035
+	return { -- 1036
+		success = false, -- 1036
+		message = 'failed to build' -- 1036
+	} -- 1036
+end) -- 1026
+HttpServer:postSchedule("/formatWa", function(req) -- 1038
+	do -- 1039
+		local _type_0 = type(req) -- 1039
+		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 1039
+		if _tab_0 then -- 1039
+			local file -- 1039
+			do -- 1039
+				local _obj_0 = req.body -- 1039
+				local _type_1 = type(_obj_0) -- 1039
+				if "table" == _type_1 or "userdata" == _type_1 then -- 1039
+					file = _obj_0.file -- 1039
+				end -- 1044
+			end -- 1044
+			if file ~= nil then -- 1039
+				local code = Wasm:formatWaAsync(file) -- 1040
+				if code == "" then -- 1041
+					return { -- 1042
+						success = false -- 1042
+					} -- 1042
+				else -- 1044
+					return { -- 1044
+						success = true, -- 1044
+						code = code -- 1044
+					} -- 1044
+				end -- 1041
+			end -- 1039
+		end -- 1044
+	end -- 1044
+	return { -- 1045
+		success = false -- 1045
+	} -- 1045
+end) -- 1038
+HttpServer:postSchedule("/createWa", function(req) -- 1047
+	do -- 1048
+		local _type_0 = type(req) -- 1048
+		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 1048
+		if _tab_0 then -- 1048
+			local path -- 1048
+			do -- 1048
+				local _obj_0 = req.body -- 1048
+				local _type_1 = type(_obj_0) -- 1048
+				if "table" == _type_1 or "userdata" == _type_1 then -- 1048
+					path = _obj_0.path -- 1048
+				end -- 1071
+			end -- 1071
+			if path ~= nil then -- 1048
+				if not Content:exist(Path:getPath(path)) then -- 1049
+					return { -- 1050
+						success = false, -- 1050
+						message = "target path not existed" -- 1050
+					} -- 1050
+				end -- 1049
+				if Content:exist(path) then -- 1051
+					return { -- 1052
+						success = false, -- 1052
+						message = "target project folder existed" -- 1052
+					} -- 1052
+				end -- 1051
+				local srcPath = Path(Content.assetPath, "dora-wa", "src") -- 1053
+				local vendorPath = Path(Content.assetPath, "dora-wa", "vendor") -- 1054
+				local modPath = Path(Content.assetPath, "dora-wa", "wa.mod") -- 1055
+				if not Content:exist(srcPath) or not Content:exist(vendorPath) or not Content:exist(modPath) then -- 1056
+					return { -- 1059
+						success = false, -- 1059
+						message = "missing template project" -- 1059
+					} -- 1059
+				end -- 1056
+				if not Content:mkdir(path) then -- 1060
+					return { -- 1061
+						success = false, -- 1061
+						message = "failed to create project folder" -- 1061
+					} -- 1061
+				end -- 1060
+				if not Content:copyAsync(srcPath, Path(path, "src")) then -- 1062
+					Content:remove(path) -- 1063
+					return { -- 1064
+						success = false, -- 1064
+						message = "failed to copy template" -- 1064
+					} -- 1064
+				end -- 1062
+				if not Content:copyAsync(vendorPath, Path(path, "vendor")) then -- 1065
+					Content:remove(path) -- 1066
+					return { -- 1067
+						success = false, -- 1067
+						message = "failed to copy template" -- 1067
+					} -- 1067
+				end -- 1065
+				if not Content:copyAsync(modPath, Path(path, "wa.mod")) then -- 1068
+					Content:remove(path) -- 1069
+					return { -- 1070
+						success = false, -- 1070
+						message = "failed to copy template" -- 1070
+					} -- 1070
+				end -- 1068
+				return { -- 1071
+					success = true -- 1071
+				} -- 1071
+			end -- 1048
+		end -- 1071
+	end -- 1071
+	return { -- 1047
+		success = false, -- 1047
+		message = "invalid call" -- 1047
+	} -- 1071
+end) -- 1047
+local status = { } -- 1073
+_module_0 = status -- 1074
+thread(function() -- 1076
+	local doraWeb = Path(Content.assetPath, "www", "index.html") -- 1077
+	local doraReady = Path(Content.appPath, ".www", "dora-ready") -- 1078
+	if Content:exist(doraWeb) then -- 1079
+		local needReload -- 1080
+		if Content:exist(doraReady) then -- 1080
+			needReload = App.version ~= Content:load(doraReady) -- 1081
+		else -- 1082
+			needReload = true -- 1082
+		end -- 1080
+		if needReload then -- 1083
+			Content:remove(Path(Content.appPath, ".www")) -- 1084
+			Content:copyAsync(Path(Content.assetPath, "www"), Path(Content.appPath, ".www")) -- 1085
+			Content:save(doraReady, App.version) -- 1089
+			print("Dora Dora is ready!") -- 1090
+		end -- 1083
+	end -- 1079
+	if HttpServer:start(8866) then -- 1091
+		local localIP = HttpServer.localIP -- 1092
+		if localIP == "" then -- 1093
+			localIP = "localhost" -- 1093
+		end -- 1093
+		status.url = "http://" .. tostring(localIP) .. ":8866" -- 1094
+		return HttpServer:startWS(8868) -- 1095
+	else -- 1097
+		status.url = nil -- 1097
+		return print("8866 Port not available!") -- 1098
+	end -- 1091
+end) -- 1076
+return _module_0 -- 1098

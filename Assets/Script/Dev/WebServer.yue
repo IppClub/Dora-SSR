@@ -944,7 +944,7 @@ HttpServer\postSchedule "/zip", (req): success: false ->
 			goto failed unless Content\copyAsync path, tempPath
 			import "Script.Dev.Entry"
 			luaFiles = minifyAsync tempPath, obfuscatedPath
-			scriptFiles = Entry.getAllFiles tempPath, ["tl", "yue", "lua", "ts", "tsx", "vs", "bl", "xml"], true
+			scriptFiles = Entry.getAllFiles tempPath, ["tl", "yue", "lua", "ts", "tsx", "vs", "bl", "xml", "wa", "mod"], true
 			for file in *scriptFiles
 				Content\remove Path tempPath, file
 			for file in *luaFiles
@@ -1006,6 +1006,69 @@ HttpServer\post "/checkYarn", (req): success: false ->
 				unless luaCode, err := yarncompile body
 					errors[] = title .. ":" .. err
 			return success: true, syntaxError: table.concat errors, "\n\n"
+
+getWaProjectDirFromFile = (file) ->
+	:writablePath = Content
+	parent, current = if (".." ~= Path\getRelative(file, writablePath)\sub 1, 2) and writablePath == file\sub 1, #writablePath
+		writablePath, Path\getRelative file, writablePath
+	else
+		nil, nil
+	return nil unless current
+	repeat
+		current = Path\getPath current
+		break if current == ""
+		for f in *Content\getFiles Path parent, current
+			if Path\getFilename(f)\lower! == "wa.mod"
+				return Path parent, current, Path\getPath f
+	until false
+	nil
+
+HttpServer\postSchedule "/buildWa", (req) ->
+	switch req when {body: {:path}}
+		if projDir := getWaProjectDirFromFile path
+			message = Wasm\buildWaAsync projDir
+			return if message == ""
+				success: true
+			else 
+				success: false, :message
+		else
+			return success: false, message: 'Wa file needs a project'
+	success: false, message: 'failed to build'
+
+HttpServer\postSchedule "/formatWa", (req) ->
+	switch req when {body: {:file}}
+		code = Wasm\formatWaAsync file
+		return if code == ""
+			success: false
+		else 
+			success: true, :code
+	success: false
+
+HttpServer\postSchedule "/createWa", (req): {success: false, message: "invalid call"} ->
+	switch req when {body: {:path}}
+		unless Content\exist Path\getPath path
+			return success: false, message: "target path not existed"
+		if Content\exist path
+			return success: false, message: "target project folder existed"
+		srcPath = Path Content.assetPath, "dora-wa", "src"
+		vendorPath = Path Content.assetPath, "dora-wa", "vendor"
+		modPath = Path Content.assetPath, "dora-wa", "wa.mod"
+		if not Content\exist(srcPath) or
+			not Content\exist(vendorPath) or
+			not Content\exist modPath
+			return success: false, message: "missing template project"
+		unless Content\mkdir path
+			return success: false, message: "failed to create project folder"
+		unless Content\copyAsync srcPath, Path path, "src"
+			Content\remove path
+			return success: false, message: "failed to copy template"
+		unless Content\copyAsync vendorPath, Path path, "vendor"
+			Content\remove path
+			return success: false, message: "failed to copy template"
+		unless Content\copyAsync modPath, Path path, "wa.mod"
+			Content\remove path
+			return success: false, message: "failed to copy template"
+		return success: true
 
 status = {}
 export default status

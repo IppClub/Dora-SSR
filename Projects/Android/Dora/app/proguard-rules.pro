@@ -18,3 +18,7 @@
 
 -dontwarn org.libsdl.app.*
 -keep class org.libsdl.app.*{*;}
+-keep class org.ippclub.dorassr.MainActivity {
+    public static java.lang.String waBuild(java.lang.String);
+    public static java.lang.String waFormat(java.lang.String);
+}

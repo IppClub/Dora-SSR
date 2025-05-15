@@ -508,7 +508,7 @@ const LogView = memo((props: LogViewProps) => {
 			aria-labelledby="logview-dialog-title"
 			aria-describedby="logview-dialog-description"
 			transitionDuration={0}
-			TransitionProps={transitionProps}
+			slotProps={{transition: transitionProps}}
 		>
 			<DialogContent style={{overflow: "hidden", margin: 0, padding: 0}}>
 				<div hidden={!toggleProfiler}>

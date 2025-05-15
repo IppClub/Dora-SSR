@@ -39,6 +39,9 @@ jobs:
           cd Tools/dora-dora/3rdParty/YarnEditor && yarn && yarn build-linux && rm -rf ../../public/yarn-editor && mv dist ../../public/yarn-editor && cd ../../../..
           cd Tools/dora-dora && yarn && yarn build && cd ../.. && rm -rf Assets/www && mv Tools/dora-dora/build Assets/www
           echo "${{ secrets.KEYSTORE_B64 }}" | base64 -d > $GITHUB_WORKSPACE/signing-key.jks
+          cp Tools/dora-wa/wa.mod Assets/dora-wa
+          cp -r Tools/dora-wa/src Assets/dora-wa
+          cp -r Tools/dora-wa/vendor Assets/dora-wa
           cd Projects/Android/Dora
           ./gradlew assembleRelease -Pandroid.injected.signing.store.file=$GITHUB_WORKSPACE/signing-key.jks -Pandroid.injected.signing.store.password=${{ secrets.KEYSTORE_PASSWORD }} -Pandroid.injected.signing.key.alias=${{ secrets.KEY_ALIAS }} -Pandroid.injected.signing.key.password=${{ secrets.KEY_PASSWORD }}
           cd app/build/outputs/apk/release
