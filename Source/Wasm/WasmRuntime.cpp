@@ -27,8 +27,8 @@ static JavaVM* g_VM = NULL;
 static void CacheJavaVM() {
 	if (!g_VM) {
 		JNIEnv* env = Android_JNI_GetEnv();
-		if (env->GetJavaVM(&g_VM) != 0) {
-			Error("Failed to get JavaVM");
+		if (!env || env->GetJavaVM(&g_VM) != 0) {
+			Issue("Failed to get JavaVM");
 		}
 	}
 }
@@ -38,7 +38,7 @@ JNIEnv* GetEnv() {
 	if (g_VM->GetEnv((void**)&env, JNI_VERSION_1_6) != JNI_OK) {
 		// 当前线程未附加，尝试 attach
 		if (g_VM->AttachCurrentThread(&env, NULL) != 0) {
-			Error("Failed to attach current thread to JVM");
+            Issue("Failed to attach current thread to JVM");
 			return NULL;
 		}
 	}
