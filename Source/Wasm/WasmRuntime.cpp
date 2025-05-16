@@ -23,8 +23,29 @@ extern __declspec(dllexport) void WaFreeCString(char* str);
 #elif BX_PLATFORM_ANDROID
 #include <jni.h>
 extern "C" JNIEnv* Android_JNI_GetEnv();
-const char* WaBuild(char* input) {
-	auto env = Android_JNI_GetEnv();
+static JavaVM* g_VM = NULL;
+static void CacheJavaVM() {
+	if (!g_VM) {
+		JNIEnv* env = Android_JNI_GetEnv();
+		if (env->GetJavaVM(&g_VM) != 0) {
+			Error("Failed to get JavaVM");
+		}
+	}
+}
+JNIEnv* GetEnv() {
+	CacheJavaVM();
+	JNIEnv* env = NULL;
+	if (g_VM->GetEnv((void**)&env, JNI_VERSION_1_6) != JNI_OK) {
+		// 当前线程未附加，尝试 attach
+		if (g_VM->AttachCurrentThread(&env, NULL) != 0) {
+			Error("Failed to attach current thread to JVM");
+			return NULL;
+		}
+	}
+	return env;
+}
+static const char* WaBuild(char* input) {
+	auto env = GetEnv();
 	jclass cls = env->FindClass("org/ippclub/dorassr/MainActivity");
 	if (!cls) return {};
 
@@ -45,8 +66,8 @@ const char* WaBuild(char* input) {
 
 	return result;
 }
-const char* WaFormat(char* input) {
-	auto env = Android_JNI_GetEnv();
+static const char* WaFormat(char* input) {
+	auto env = GetEnv();
 	jclass cls = env->FindClass("org/ippclub/dorassr/MainActivity");
 	if (!cls) return {};
 
