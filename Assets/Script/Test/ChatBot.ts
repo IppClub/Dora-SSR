@@ -170,7 +170,7 @@ const windowsFlags = [
 root.loop(() => {
 	const {width, height} = App.visualSize;
 	ImGui.SetNextWindowPos(Vec2.zero, SetCond.Always, Vec2.zero);
-	ImGui.SetNextWindowSize(Vec2(width, height), SetCond.Always);
+	ImGui.SetNextWindowSize(Vec2(width, height - 40), SetCond.Always);
 	ImGui.Begin("LLM Chat", windowsFlags, () => {
 		ImGui.Text("ChatBot");
 		ImGui.SameLine();
