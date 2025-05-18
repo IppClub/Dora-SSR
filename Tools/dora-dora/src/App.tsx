@@ -1049,17 +1049,12 @@ export default function PersistentDrawerLeft() {
 	}, [files, tabIndex, t, selectedNode, isEditorActioning]);
 
 	const saveFileInTab = useCallback((file: EditingFile, preview: boolean) => {
-		if (isSaving) {
-			return Promise.resolve([]);
-		}
-		isSaving = true;
 		return new Promise<EditingFile[]>((resolve, reject) => {
 			const saveFile = (extraFile?: EditingFile) => {
 				if (file.contentModified !== null) {
 					const readOnly = checkFileReadonly(file.key, true);
 					if (readOnly) {
 						addAlert(t("alert.builtin"), "warning");
-						isSaving = false;
 						resolve([file]);
 						return;
 					}
@@ -1096,14 +1091,11 @@ export default function PersistentDrawerLeft() {
 										addAlert(res.message, "error", true);
 										Service.command({code: `Log "Error", "${res.message.replace(/[\\"]/g, "\\$&")}"`, log: false});
 									}
-									isSaving = false;
 									resolve(filesToSave);
 								}).catch(() => {
-									isSaving = false;
 									resolve(filesToSave);
 								});
 							} else {
-								isSaving = false;
 								resolve(filesToSave);
 							}
 							switch (ext) {
@@ -1140,12 +1132,10 @@ export default function PersistentDrawerLeft() {
 							}
 						} else {
 							addAlert(t("alert.saveCurrent"), "error");
-							isSaving = false;
 							reject("failed to save file");
 						}
 					}).catch(() => {
 						addAlert(t("alert.saveCurrent"), "error");
-						isSaving = false;
 						reject("failed to save file");
 					});
 				}
@@ -1157,7 +1147,6 @@ export default function PersistentDrawerLeft() {
 					saveFile();
 				}).catch(() => {
 					addAlert(t("alert.saveCurrent"), "error");
-					isSaving = false;
 					reject("failed to save file");
 				})
 			} else if (file.codeWireData !== undefined) {
@@ -1180,7 +1169,6 @@ export default function PersistentDrawerLeft() {
 					Service.write({path: tlFile, content: tealCode}).then((res) => {
 						if (!res.success) {
 							addAlert(t("alert.saveCurrent"), "error");
-							isSaving = false;
 							reject("failed to save file");
 						}
 					}).then(() => {
@@ -1207,7 +1195,6 @@ export default function PersistentDrawerLeft() {
 						});
 					}).catch(() => {
 						addAlert(t("alert.saveCurrent"), "error");
-						isSaving = false;
 						reject("failed to save file");
 					});
 				}
@@ -1263,7 +1250,6 @@ export default function PersistentDrawerLeft() {
 										saveFile(fileInTab);
 									} else {
 										addAlert(t("alert.saveCurrent"), "error");
-										isSaving = false;
 										reject("failed to save file");
 									}
 								});
@@ -1277,15 +1263,16 @@ export default function PersistentDrawerLeft() {
 		});
 	},[t, onPlayControlRun, checkFileReadonly, files]);
 
-	const saveAllTabs = useCallback((): Promise<boolean> => {
+	const saveAllTabs = useCallback(async () => {
 		if (isSaving) {
-			return Promise.resolve(true);
+			return false;
 		}
 		isSaving = true;
 		const filesToSave = files.filter(file => file.contentModified !== null);
-		return Promise.all(filesToSave.map(file => {
-			return saveFileInTab(file, false);
-		})).then((filesChanged) => {
+		try {
+			const filesChanged = await Promise.all(filesToSave.map(file => {
+				return saveFileInTab(file, false);
+			}));
 			const flatFilesChanged = filesChanged.flat();
 			setFiles(prev => prev.map(file => {
 				const changed = flatFilesChanged.find(f => f.key === file.key);
@@ -1293,11 +1280,11 @@ export default function PersistentDrawerLeft() {
 			}));
 			isSaving = false;
 			return true;
-		}).catch((reason) => {
+		} catch (reason) {
 			console.error(reason);
 			isSaving = false;
 			return false;
-		});
+		}
 	}, [saveFileInTab, files]);
 
 	const closeCurrentTab = useCallback(() => {
@@ -2439,12 +2426,22 @@ export default function PersistentDrawerLeft() {
 			setWaitForSave(true);
 			return;
 		}
+		if (isSaving) {
+			return;
+		}
+		isSaving = true;
 		const file = files[tabIndex];
-		const filesChanged = await saveFileInTab(file, true);
-		setFiles(prev => prev.map(f => {
-			const changed = filesChanged.find(c => c.key === f.key);
-			return changed !== undefined ? changed : f;
-		}));
+		try {
+			const filesChanged = await saveFileInTab(file, true);
+			setFiles(prev => prev.map(f => {
+				const changed = filesChanged.find(c => c.key === f.key);
+				return changed !== undefined ? changed : f;
+			}));
+		} catch (reason) {
+			console.error(`failed to save current tab, due to: ${reason}`);
+		} finally {
+			isSaving = false;
+		}
 	}, [saveFileInTab, isEditorActioning, tabIndex, files]);
 
 	useEffect(() => {
