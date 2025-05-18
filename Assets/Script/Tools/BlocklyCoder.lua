@@ -407,7 +407,7 @@ root:loop(function() -- 376
 	local height = ____App_visualSize_4.height -- 377
 	ImGui.SetNextWindowPos(Vec2.zero, "Always", Vec2.zero) -- 378
 	ImGui.SetNextWindowSize( -- 379
-		Vec2(width, height), -- 379
+		Vec2(width, height - 40), -- 379
 		"Always" -- 379
 	) -- 379
 	ImGui.Begin( -- 380
