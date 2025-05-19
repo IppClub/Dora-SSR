@@ -100,10 +100,12 @@ import TabItem from '@theme/TabItem';
 
 	- 在浏览器中，鼠标右键点击 Dora Dora 编辑器左侧资源树的“工作空间”菜单。
 	- 点击菜单项 `新建`，选择新建文件夹，命名为 `Hello`。
+	- 或者您也可以跳过文件夹的创建，直接创建一个新的凹语言游戏项目，通过在新建文件对话框中选择 `Wa` 语言，然后再勾选 “创建为 Wa 项目” 选项来新建为凹语言工程目录。
 
 2. 第二步：编写游戏代码
 
 	- 在项目文件夹下新建游戏入口代码文件，选择 Lua 语言（或 Teal、TypeScript、YueScript）命名为 `init`。
+	- 如果您创建的是凹语言工程，可以直接复用 `main.wa` 文件作为游戏入口代码文件。
 	- 编写代码：
 
 <Tabs groupId="language-select">
@@ -262,6 +264,35 @@ with Node!
 			touch.location -- 结束位置
 			Ease.OutBack -- 缓动函数
 		)
+```
+
+</TabItem>
+<TabItem value="wa" label="Wa">
+
+```go title="Hello/main.wa"
+// 导入功能模块
+import "dora"
+
+func init {
+	// 创建图片精灵
+	sprite := dora.NewSpriteWithFile("Image/logo.png")
+
+	// 创建游戏场景树根节点
+	root := dora.NewNode()
+
+	// 挂载图片精灵到游戏场景树根节点
+	root.AddChild(sprite.Node)
+
+	// 接收并处理点击事件移动图片精灵
+	root.OnTapBegan(func(touch: dora.Touch) {
+		sprite.PerformDef(dora.ActionDefMoveTo(
+			1.0,                  // 持续时间，单位为秒
+			sprite.GetPosition(), // 开始位置
+			touch.GetLocation(),  // 结束位置
+			dora.EaseOutBack,     // 缓动函数
+		), false)
+	})
+}
 ```
 
 </TabItem>

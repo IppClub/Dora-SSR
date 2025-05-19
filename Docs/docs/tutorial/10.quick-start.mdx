@@ -100,8 +100,10 @@ Dora SSR is a game engine for rapid development of games on various devices. It 
 1. Step One: Create a new project
 	- In the browser, right click on the menu "Workspace" of the resource tree on the left side of the Dora Dora editor.
 	- Click the `New` menu item, select "New Folder", and name it `Hello`.
+	- Or you can skip the step of creating the project folder and create a new game project in Wa language named `Hello`, by selecting the `Wa` language in the new file dialog and then checking the "create as Wa project" option.
 2. Step Two: Write the game code
 	- Create a new game entry code file in the project folder, select the Lua language (or Teal, TypeScript, YueScript), and name it `init`.
+	- If you are using the Wa language project, you can just reuse the `main.wa` file as the game entry code file.
 	- Write the code:
 
 <Tabs groupId="language-select">
@@ -237,29 +239,32 @@ toNode(
 ```
 
 </TabItem>
-<TabItem value="yue" label="YueScript">
+<TabItem value="wa" label="Wa">
 
-```yue title="Hello/init.yue"
--- import modules
-_ENV = Dora
+```go title="Hello/main.wa"
+// import module
+import "dora"
 
--- create a sprite
-sprite = Sprite "Image/logo.png"
+func init {
+	// create a sprite
+	sprite := dora.NewSpriteWithFile("Image/logo.png")
 
--- create the root node of the game scene tree
-with Node!
+	// create the root node of the game scene tree
+	root := dora.NewNode()
 
-	-- mount the sprite to the root node
-	\addChild sprite
+	// mount the sprite to the root node
+	root.AddChild(sprite.Node)
 
-	-- register for click events to move the sprite
-	\onTapBegan (touch) ->
-		sprite\perform Move(
-			1 -- duration in seconds
-			sprite.position -- start position
-			touch.location -- end position
-			Ease.OutBack -- easing function
-		)
+	// receive and process click events to move the sprite
+	root.OnTapBegan(func(touch: dora.Touch) {
+		sprite.PerformDef(dora.ActionDefMoveTo(
+			1.0,                  // Duration, in seconds
+			sprite.GetPosition(), // Start position
+			touch.GetLocation(),  // End position
+			dora.EaseOutBack,     // Easing function
+		), false)
+	})
+}
 ```
 
 </TabItem>
