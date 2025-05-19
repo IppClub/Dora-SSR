@@ -247,6 +247,36 @@ toNode(
 )?.slot("Count", (_, param) => print(param));
 ```
 
+- **Wa**
+
+&emsp;&emsp;你可以使用 Wa 作为一门脚本语言，运行在 Dora SSR 内置的 WASM 运行时上，并获得热重载的开发体验。
+
+```go
+import "dora"
+
+func init {
+  sprite := dora.NewSpriteWithFile("Image/logo.png")
+  sprite.RunActionDef(
+    dora.ActionDefSequence(&[]dora.ActionDef{
+      dora.ActionDefEvent("Count", "3"),
+      dora.ActionDefDelay(1),
+      dora.ActionDefEvent("Count", "2"),
+      dora.ActionDefDelay(1),
+      dora.ActionDefEvent("Count", "1"),
+      dora.ActionDefDelay(1),
+      dora.ActionDefScale(0.1, 1, 0.5, dora.EaseLinear),
+      dora.ActionDefScale(0.5, 0.5, 1, dora.EaseOutBack),
+    }),
+    false,
+  )
+  sprite.Slot("Count", func(stack: dora.CallStack) {
+    stack.Pop()
+    param, _ := stack.PopStr()
+    dora.Println(param)
+  })
+}
+```
+
 - **Rust**
 
 &emsp;&emsp;Dora SSR 也支持使用 Rust 语言来编写游戏代码，编译为 WASM 文件，命名为 `init.wasm` 再上传到引擎中加载运行。详情见[这里](https://dora-ssr.net/zh-Hans/blog/2024/4/15/rusty-game-dev)。
