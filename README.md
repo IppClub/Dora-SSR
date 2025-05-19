@@ -247,6 +247,36 @@ toNode(
 )?.slot("Count", (_, param) => print(param));
 ```
 
+- **Wa**
+
+	You can use Wa as a scripting language that runs on the built-in WASM runtime with hot reloading dev experience.
+
+```go
+import "dora"
+
+func init {
+  sprite := dora.NewSpriteWithFile("Image/logo.png")
+  sprite.RunActionDef(
+    dora.ActionDefSequence(&[]dora.ActionDef{
+      dora.ActionDefEvent("Count", "3"),
+      dora.ActionDefDelay(1),
+      dora.ActionDefEvent("Count", "2"),
+      dora.ActionDefDelay(1),
+      dora.ActionDefEvent("Count", "1"),
+      dora.ActionDefDelay(1),
+      dora.ActionDefScale(0.1, 1, 0.5, dora.EaseLinear),
+      dora.ActionDefScale(0.5, 0.5, 1, dora.EaseOutBack),
+    }),
+    false,
+  )
+  sprite.Slot("Count", func(stack: dora.CallStack) {
+    stack.Pop()
+    param, _ := stack.PopStr()
+    dora.Println(param)
+  })
+}
+```
+
 - **Rust**
 
 	You can write code in Rust, build it into WASM file named `init.wasm`, upload it to engine to run. View details [here](https://dora-ssr.net/blog/2024/4/15/rusty-game-dev).
