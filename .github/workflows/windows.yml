@@ -54,6 +54,7 @@ jobs:
           (cd Assets && 7z a -tzip ..\dora-ssr-windows-x86.zip Spine && cd ..)
           (cd Assets && 7z a -tzip ..\dora-ssr-windows-x86.zip TMX && cd ..)
           (cd Projects\Windows\build\Release && 7z a -tzip ..\..\..\..\dora-ssr-windows-x86.zip Dora.exe && cd ..\..\..\..)
+          (cd Projects\Windows\build\Release && 7z a -tzip ..\..\..\..\dora-ssr-windows-x86.zip wa.dll && cd ..\..\..\..)
           ren dora-ssr-windows-x86.zip dora-ssr-${{ github.ref_name }}-windows-x86.zip
       - name: Release
         uses: softprops/action-gh-release@v1
