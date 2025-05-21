@@ -78,7 +78,7 @@ static std::unordered_set<std::string> Metamethods = {
 	"close"s // Lua 5.4
 };
 
-const std::string_view version = "0.28.0"sv;
+const std::string_view version = "0.28.1"sv;
 const std::string_view extension = "yue"sv;
 
 class CompileError : public std::logic_error {
@@ -9569,12 +9569,13 @@ private:
 						markVarGlobalConst(name);
 					}
 				} else {
-					if (global->constAttrib) {
-						throw CompileError("missing initial value for global const", global->constAttrib);
-					}
 					for (auto name : values->nameList->names.objects()) {
 						auto var = static_cast<Variable_t*>(name);
-						addGlobalVar(variableToString(var), var);
+						auto varName = variableToString(var);
+						addGlobalVar(varName, var);
+						if (global->constAttrib) {
+							markVarGlobalConst(varName);
+						}
 					}
 				}
 				break;
