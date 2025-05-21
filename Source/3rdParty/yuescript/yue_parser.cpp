@@ -350,7 +350,9 @@ YueParser::YueParser() {
 
 	ShortTabAppending = "[]" >> space >> Assign;
 
-	BreakLoop = (expr("break") | "continue") >> not_alpha_num;
+	Break = key("break");
+	Continue = key("continue");
+	BreakLoop = (Break >> -(space >> Exp) | Continue) >> not_alpha_num;
 
 	Return = key("return") >> -(space >> (TableBlock | ExpListLow));
 
@@ -759,7 +761,7 @@ YueParser::YueParser() {
 
 	GlobalValues = NameList >> -(space >> '=' >> space >> (TableBlock | ExpListLow));
 	GlobalOp = expr('*') | '^';
-	Global = key("global") >> space >> (ClassDecl | GlobalOp | GlobalValues);
+	Global = key("global") >> space >> (-(ConstAttrib >> space) >> ClassDecl | GlobalOp | -(ConstAttrib >> space) >> GlobalValues);
 
 	ExportDefault = key("default");
 
