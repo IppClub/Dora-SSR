@@ -427,6 +427,8 @@ private:
 	AST_RULE(ExpListAssign);
 	AST_RULE(IfLine);
 	AST_RULE(WhileLine);
+	AST_RULE(Break);
+	AST_RULE(Continue);
 	AST_RULE(BreakLoop);
 	AST_RULE(StatementAppendix);
 	AST_RULE(Statement);

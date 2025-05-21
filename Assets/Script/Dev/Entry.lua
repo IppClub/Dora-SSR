@@ -380,7 +380,7 @@ getAllFiles = function(path, exts, recursive) -- 233
 			goto _continue_0 -- 240
 		end -- 240
 		_accum_0[_len_0] = file -- 241
-		_len_0 = _len_0 + 1 -- 241
+		_len_0 = _len_0 + 1 -- 240
 		::_continue_0:: -- 240
 	end -- 241
 	return _accum_0 -- 241
@@ -862,11 +862,11 @@ doCompile = function(minify) -- 350
 		end -- 473
 		local errorMessage = table.concat(errors, "\n") -- 497
 		if errorMessage ~= "" then -- 498
-			print("\n" .. errorMessage) -- 498
+			print(errorMessage) -- 498
 		end -- 498
 		local builtFiles = totalFiles + (minify and #luaFiles or 0) - #errors -- 499
-		print("\n" .. tostring(builtFiles) .. " " .. tostring(builtFiles == 1 and 'file' or 'files') .. " built! Cost " .. tostring(string.format('%.2f', App.runningTime - startTime)) .. "s") -- 500
-		print(tostring(#errors) .. " " .. tostring(#errors == 1 and 'file fails' or 'files fail') .. " to build.") -- 501
+		print(tostring(builtFiles) .. " " .. tostring(builtFiles == 1 and 'file' or 'files') .. " built! Cost " .. tostring(string.format('%.2f', App.runningTime - startTime)) .. "s") -- 500
+		print(tostring(#errors) .. " " .. tostring(#errors == 1 and 'file failed' or 'files failed') .. " to build.") -- 501
 		Content:clearPathCache() -- 502
 		teal.clear() -- 503
 		yue.clear() -- 504

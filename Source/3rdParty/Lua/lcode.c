@@ -40,7 +40,10 @@ static int codesJ (FuncState *fs, OpCode o, int sj, int k);
 
 
 /* semantic error */
-l_noret luaK_semerror (LexState *ls, const char *msg) {
+l_noret luaK_semerror (LexState *ls, const char *fmt, ...) {
+  const char *msg;
+  va_list argp;
+  pushvfstring(ls->L, argp, fmt, msg);
   ls->t.token = 0;  /* remove "near <token>" from final message */
   luaX_syntaxerror(ls, msg);
 }
@@ -750,10 +753,11 @@ void luaK_setreturns (FuncState *fs, expdesc *e, int nresults) {
 /*
 ** Convert a VKSTR to a VK
 */
-static void str2K (FuncState *fs, expdesc *e) {
+static int str2K (FuncState *fs, expdesc *e) {
   lua_assert(e->k == VKSTR);
   e->u.info = stringK(fs, e->u.strval);
   e->k = VK;
+  return e->u.info;
 }
 
 
@@ -1304,35 +1308,38 @@ void luaK_self (FuncState *fs, expdesc *e, expdesc *key) {
 ** values in registers.
 */
 void luaK_indexed (FuncState *fs, expdesc *t, expdesc *k) {
+  int keystr = -1;
   if (k->k == VKSTR)
-    str2K(fs, k);
+    keystr = str2K(fs, k);
   lua_assert(!hasjumps(t) &&
              (t->k == VLOCAL || t->k == VNONRELOC || t->k == VUPVAL));
   if (t->k == VUPVAL && !isKstr(fs, k))  /* upvalue indexed by non 'Kstr'? */
     luaK_exp2anyreg(fs, t);  /* put it in a register */
   if (t->k == VUPVAL) {
     lu_byte temp = cast_byte(t->u.info);  /* upvalue index */
-    lua_assert(isKstr(fs, k));
     t->u.ind.t = temp;  /* (can't do a direct assignment; values overlap) */
-    t->u.ind.idx = cast(short, k->u.info);  /* literal short string */
+    lua_assert(isKstr(fs, k));
+    t->u.ind.idx = cast_short(k->u.info);  /* literal short string */
     t->k = VINDEXUP;
   }
   else {
     /* register index of the table */
     t->u.ind.t = cast_byte((t->k == VLOCAL) ? t->u.var.ridx: t->u.info);
     if (isKstr(fs, k)) {
-      t->u.ind.idx = cast(short, k->u.info);  /* literal short string */
+      t->u.ind.idx = cast_short(k->u.info);  /* literal short string */
       t->k = VINDEXSTR;
     }
     else if (isCint(k)) {  /* int. constant in proper range? */
-      t->u.ind.idx = cast(short, k->u.ival);
+      t->u.ind.idx = cast_short(k->u.ival);
       t->k = VINDEXI;
     }
     else {
-      t->u.ind.idx = cast(short, luaK_exp2anyreg(fs, k));  /* register */
+      t->u.ind.idx = cast_short(luaK_exp2anyreg(fs, k));  /* register */
       t->k = VINDEXED;
     }
   }
+  t->u.ind.keystr = keystr;  /* string index in 'k' */
+  t->u.ind.ro = 0;  /* by default, not read-only */
 }
 
 

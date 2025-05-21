@@ -170,9 +170,8 @@ std::string TableAppendingOp_t::to_string(void*) const {
 std::string PlainItem_t::to_string(void *) const {
 	return {};
 }
-std::string GlobalOp_t::to_string(void* ud) const {
-	auto info = reinterpret_cast<YueFormat*>(ud);
-	return info->convert(this);
+std::string GlobalOp_t::to_string(void*) const {
+	return "*"s;
 }
 std::string ExportDefault_t::to_string(void*) const {
 	return "default"s;
@@ -188,9 +187,17 @@ std::string ConstValue_t::to_string(void* ud) const {
 std::string NotIn_t::to_string(void*) const {
 	return {};
 }
+std::string Break_t::to_string(void*) const {
+	return "break"s;
+}
+std::string Continue_t::to_string(void*) const {
+	return "continue"s;
+}
 std::string BreakLoop_t::to_string(void* ud) const {
-	auto info = reinterpret_cast<YueFormat*>(ud);
-	return info->convert(this);
+	if (value) {
+		return type->to_string(ud) + ' ' + value->to_string(ud);
+	}
+	return type->to_string(ud);
 }
 std::string YueLineComment_t::to_string(void* ud) const {
 	auto info = reinterpret_cast<YueFormat*>(ud);
@@ -1125,7 +1132,7 @@ std::string ClassDecl_t::to_string(void* ud) const {
 	return line;
 }
 std::string GlobalValues_t::to_string(void* ud) const {
-	auto line = nameList->to_string(ud);
+	std::string line = nameList->to_string(ud);
 	if (valueList) {
 		if (valueList.is<TableBlock_t>()) {
 			line += " =\n"s + valueList->to_string(ud);
@@ -1136,7 +1143,7 @@ std::string GlobalValues_t::to_string(void* ud) const {
 	return line;
 }
 std::string Global_t::to_string(void* ud) const {
-	return "global "s + item->to_string(ud);
+	return "global "s + (constAttrib ? "const "s : ""s) + item->to_string(ud);
 }
 std::string Export_t::to_string(void* ud) const {
 	auto line = "export"s;
