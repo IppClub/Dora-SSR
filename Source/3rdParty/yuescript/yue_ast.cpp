@@ -331,6 +331,12 @@ std::string Backcall_t::to_string(void* ud) const {
 	temp.emplace_back(value->to_string(ud));
 	return join(temp, " "sv);
 }
+std::string SubBackcall_t::to_string(void* ud) const {
+	str_list temp;
+	temp.emplace_back(arrow->to_string(ud));
+	temp.emplace_back(value->to_string(ud));
+	return join(temp, " "sv);
+}
 std::string PipeBody_t::to_string(void* ud) const {
 	auto info = reinterpret_cast<YueFormat*>(ud);
 	str_list temp;

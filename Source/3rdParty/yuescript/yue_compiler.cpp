@@ -78,7 +78,7 @@ static std::unordered_set<std::string> Metamethods = {
 	"close"s // Lua 5.4
 };
 
-const std::string_view version = "0.28.1"sv;
+const std::string_view version = "0.28.2"sv;
 const std::string_view extension = "yue"sv;
 
 class CompileError : public std::logic_error {
@@ -2064,6 +2064,9 @@ private:
 	}
 
 	bool transformAssignment(ExpListAssign_t* assignment, str_list& out, bool optionalDestruct = false) {
+		if (assignment->action.is<SubBackcall_t>()) {
+			YUEE("AST node mismatch", assignment->action);
+		}
 		checkAssignable(assignment->expList);
 		BLOCK_START
 		auto assign = ast_cast<Assign_t>(assignment->action);
@@ -4876,6 +4879,38 @@ private:
 					newBlock->statements.push_back(toAst<Statement_t>(stmt, x));
 				}
 				newBlock->statements.push_back(toAst<Statement_t>("if "s + okVar + " then return ... else error ..."s, x));
+				transformBlock(newBlock, out, usage, assignList, isRoot);
+				return;
+			} else if (auto expListAssign = stmt->content.as<ExpListAssign_t>();
+				expListAssign && expListAssign->action && expListAssign->action.is<SubBackcall_t>()) {
+				auto x = *nodes.begin();
+				auto newBlock = x->new_ptr<Block_t>();
+				if (it != nodes.begin()) {
+					for (auto i = nodes.begin(); i != it; ++i) {
+						newBlock->statements.push_back(*i);
+					}
+				}
+				auto doBackcall = static_cast<SubBackcall_t*>(expListAssign->action.get());
+				auto backcall = expListAssign->new_ptr<Backcall_t>();
+				auto argsDef = backcall->new_ptr<FnArgsDef_t>();
+				try {
+					auto defList = toAst<FnArgDefList_t>(YueFormat{}.toString(expListAssign->expList), expListAssign->expList);
+					argsDef->defList.set(defList);
+				} catch (const std::exception&) {
+					throw CompileError("backcall syntax error", backcall);
+				}
+				backcall->argsDef.set(argsDef);
+				backcall->arrow.set(doBackcall->arrow);
+				backcall->value.set(doBackcall->value);
+				auto newStmt = backcall->new_ptr<Statement_t>();
+				newStmt->content.set(backcall);
+				newStmt->comments.dup(stmt->comments);
+				newStmt->appendix.set(stmt->appendix);
+				newBlock->statements.push_back(newStmt);
+				auto ait = it;
+				for (auto i = ++ait; i != nodes.end(); ++i) {
+					newBlock->statements.push_back(*i);
+				}
 				transformBlock(newBlock, out, usage, assignList, isRoot);
 				return;
 			}
