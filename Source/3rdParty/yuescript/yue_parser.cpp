@@ -889,6 +889,7 @@ YueParser::YueParser() {
 
 	FnArrowBack = '<' >> set("-=");
 	Backcall = -(FnArgsDef >> space) >> FnArrowBack >> space >> ChainValue;
+	SubBackcall = FnArrowBack >> space >> ChainValue;
 
 	PipeBody = Seperator >>
 		pipe_operator >> space >> UnaryExp >>
@@ -946,7 +947,7 @@ YueParser::YueParser() {
 		UnaryValue | TblComprehension | Comprehension |
 		FunLit | Num | VarArg;
 
-	ExpListAssign = ExpList >> -(space >> (Update | Assign)) >> not_(space >> '=');
+	ExpListAssign = ExpList >> -(space >> (Update | Assign | SubBackcall)) >> not_(space >> '=');
 
 	IfLine = IfType >> space >> IfCond;
 	WhileLine = WhileType >> space >> Exp;

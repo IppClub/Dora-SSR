@@ -321,6 +321,7 @@ private:
 	AST_RULE(ShortTabAppending);
 	AST_RULE(FnArrowBack);
 	AST_RULE(Backcall);
+	AST_RULE(SubBackcall);
 	AST_RULE(PipeBody);
 	AST_RULE(ExpListLow);
 	AST_RULE(ExpList);

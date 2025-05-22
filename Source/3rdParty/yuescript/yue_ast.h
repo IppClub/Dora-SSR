@@ -841,9 +841,15 @@ AST_NODE(UnaryExp)
 	AST_MEMBER(UnaryExp, &ops, &expos, &inExp)
 AST_END(UnaryExp)
 
+AST_NODE(SubBackcall)
+	ast_ptr<true, FnArrowBack_t> arrow;
+	ast_ptr<true, ChainValue_t> value;
+	AST_MEMBER(SubBackcall, &arrow, &value)
+AST_END(SubBackcall)
+
 AST_NODE(ExpListAssign)
 	ast_ptr<true, ExpList_t> expList;
-	ast_sel<false, Update_t, Assign_t> action;
+	ast_sel<false, Update_t, Assign_t, SubBackcall_t> action;
 	AST_MEMBER(ExpListAssign, &expList, &action)
 AST_END(ExpListAssign)
 
