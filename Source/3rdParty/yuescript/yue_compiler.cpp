@@ -78,7 +78,7 @@ static std::unordered_set<std::string> Metamethods = {
 	"close"s // Lua 5.4
 };
 
-const std::string_view version = "0.28.2"sv;
+const std::string_view version = "0.28.3"sv;
 const std::string_view extension = "yue"sv;
 
 class CompileError : public std::logic_error {
@@ -8198,18 +8198,18 @@ private:
 		transformForHead(forNode->varName, forNode->startValue, forNode->stopValue, forNode->stepValue, out);
 	}
 
-	void transform_plain_body(ast_node* body, str_list& out, ExpUsage usage, ExpList_t* assignList = nullptr) {
-		switch (body->get_id()) {
+	void transform_plain_body(ast_node* bodyOrStmt, str_list& out, ExpUsage usage, ExpList_t* assignList = nullptr) {
+		switch (bodyOrStmt->get_id()) {
 			case id<Block_t>():
-				transformBlock(static_cast<Block_t*>(body), out, usage, assignList);
+				transformBlock(static_cast<Block_t*>(bodyOrStmt), out, usage, assignList);
 				break;
 			case id<Statement_t>(): {
-				auto newBlock = body->new_ptr<Block_t>();
-				newBlock->statements.push_back(body);
+				auto newBlock = bodyOrStmt->new_ptr<Block_t>();
+				newBlock->statements.push_back(bodyOrStmt);
 				transformBlock(newBlock, out, usage, assignList);
 				break;
 			}
-			default: YUEE("AST node mismatch", body); break;
+			default: YUEE("AST node mismatch", bodyOrStmt); break;
 		}
 	}
 
@@ -8480,12 +8480,17 @@ private:
 		_buf << indent() << "local "sv << len << " = 1"sv << nll(forNode);
 		auto& lenAssign = out.emplace_back(clearBuf());
 		transformForHead(forNode, out);
-		auto expList = toAst<ExpList_t>(accum + '[' + len + ']', x);
-		auto followStmt = toAst<Statement_t>(len + "+=1"s, forNode->body);
-		expList->followStmt = followStmt.get();
-		transformLoopBody(forNode->body, out, breakLoopType, ExpUsage::Assignment, expList);
-		if (!expList->followStmtProcessed) {
+		if (hasBreakWithValue(breakLoopType)) {
 			lenAssign.clear();
+			transformLoopBody(forNode->body, out, breakLoopType, ExpUsage::Common);
+		} else {
+			auto expList = toAst<ExpList_t>(accum + '[' + len + ']', x);
+			auto followStmt = toAst<Statement_t>(len + "+=1"s, forNode->body);
+			expList->followStmt = followStmt.get();
+			transformLoopBody(forNode->body, out, breakLoopType, ExpUsage::Assignment, expList);
+			if (!expList->followStmtProcessed) {
+				lenAssign.clear();
+			}
 		}
 		popScope();
 		out.push_back(indent() + "end"s + nlr(forNode));
@@ -8587,12 +8592,17 @@ private:
 		_buf << indent() << "local "sv << len << " = 1"sv << nll(forEach);
 		auto& lenAssign = out.emplace_back(clearBuf());
 		transformForEachHead(forEach->nameList, forEach->loopValue, out, true);
-		auto expList = toAst<ExpList_t>(accum + '[' + len + ']', x);
-		auto followStmt = toAst<Statement_t>(len + "+=1"s, forEach->body);
-		expList->followStmt = followStmt.get();
-		transformLoopBody(forEach->body, out, breakLoopType, ExpUsage::Assignment, expList);
-		if (!expList->followStmtProcessed) {
+		if (hasBreakWithValue(breakLoopType)) {
 			lenAssign.clear();
+			transformLoopBody(forEach->body, out, breakLoopType, ExpUsage::Common);
+		} else {
+			auto expList = toAst<ExpList_t>(accum + '[' + len + ']', x);
+			auto followStmt = toAst<Statement_t>(len + "+=1"s, forEach->body);
+			expList->followStmt = followStmt.get();
+			transformLoopBody(forEach->body, out, breakLoopType, ExpUsage::Assignment, expList);
+			if (!expList->followStmtProcessed) {
+				lenAssign.clear();
+			}
 		}
 		popScope();
 		out.push_back(indent() + "end"s + nlr(forEach));
@@ -9479,15 +9489,66 @@ private:
 			}
 		}
 		_withVars.push(withVar);
+		std::string breakWithVar;
+		if (assignList || returnValue) {
+			auto breakLoopType = getBreakLoopType(with->body, withVar);
+			if (hasBreakWithValue(breakLoopType)) {
+				breakWithVar = withVar;
+			}
+		}
 		if (with->eop) {
 			auto ifNode = x->new_ptr<If_t>();
 			ifNode->type.set(toAst<IfType_t>("if"sv, x));
 			ifNode->nodes.push_back(toAst<IfCond_t>(withVar + "~=nil"s, x));
 			ifNode->nodes.push_back(with->body);
-			transformIf(ifNode, temp, ExpUsage::Common);
+			if (breakWithVar.empty()) {
+				transformIf(ifNode, temp, ExpUsage::Common);
+			} else {
+				auto simpleValue = x->new_ptr<SimpleValue_t>();
+				simpleValue->value.set(ifNode);
+				auto exp = newExp(simpleValue, x);
+				auto expList = x->new_ptr<ExpList_t>();
+				expList->exprs.push_back(exp);
+				auto expListAssign = x->new_ptr<ExpListAssign_t>();
+				expListAssign->expList.set(expList);
+				auto stmt = x->new_ptr<Statement_t>();
+				stmt->content.set(expListAssign);
+				auto whileNode = toAst<While_t>("while true do break"s, x);
+				auto block = x->new_ptr<Block_t>();
+				block->statements.push_back(stmt);
+				block->statements.push_back(whileNode->body);
+				auto body = x->new_ptr<Body_t>();
+				body->content.set(block);
+				whileNode->body.set(block);
+				auto sVal = x->new_ptr<SimpleValue_t>();
+				sVal->value.set(whileNode);
+				auto asmt = assignmentFrom(toAst<Exp_t>(breakWithVar, x), newExp(sVal, x), x);
+				transformAssignment(asmt, temp);
+			}
 		} else {
 			bool transformed = false;
-			if (!extraScope && assignList) {
+			if (!breakWithVar.empty()) {
+				auto whileNode = toAst<While_t>("while true do break"s, x);
+				auto block = x->new_ptr<Block_t>();
+				if (auto blk = with->body.as<Block_t>()) {
+					block->statements.dup(blk->statements);
+				} else {
+					auto stmt = with->body.to<Statement_t>();
+					block->statements.push_back(stmt);
+				}
+				auto breakLoop = whileNode->body.to<Statement_t>()->content.as<BreakLoop_t>();
+				if (!(breakLoop && breakLoop->type.is<Break_t>())) {
+					block->statements.push_back(whileNode->body);
+				}
+				auto body = x->new_ptr<Body_t>();
+				body->content.set(block);
+				whileNode->body.set(block);
+				auto sVal = x->new_ptr<SimpleValue_t>();
+				sVal->value.set(whileNode);
+				auto asmt = assignmentFrom(toAst<Exp_t>(breakWithVar, x), newExp(sVal, x), x);
+				transformAssignment(asmt, temp);
+				transformed = true;
+			} else if (!extraScope && assignList) {
 				if (auto block = with->body.as<Block_t>()) {
 					if (!block->statements.empty()) {
 						Statement_t* stmt = static_cast<Statement_t*>(block->statements.back());
@@ -10546,12 +10607,17 @@ private:
 		auto condStr = transformCondExp(whileNode->condition, isUntil);
 		temp.push_back(indent() + "while "s + condStr + " do"s + nll(whileNode));
 		pushScope();
-		auto assignLeft = toAst<ExpList_t>(accumVar + '[' + lenVar + ']', x);
-		auto followStmt = toAst<Statement_t>(lenVar + "+=1"s, whileNode);
-		assignLeft->followStmt = followStmt.get();
-		transformLoopBody(whileNode->body, temp, breakLoopType, ExpUsage::Assignment, assignLeft);
-		if (!assignLeft->followStmtProcessed) {
+		if (hasBreakWithValue(breakLoopType)) {
 			lenAssign.clear();
+			transformLoopBody(whileNode->body, temp, breakLoopType, ExpUsage::Common);
+		} else {
+			auto assignLeft = toAst<ExpList_t>(accumVar + '[' + lenVar + ']', x);
+			auto followStmt = toAst<Statement_t>(lenVar + "+=1"s, whileNode);
+			assignLeft->followStmt = followStmt.get();
+			transformLoopBody(whileNode->body, temp, breakLoopType, ExpUsage::Assignment, assignLeft);
+			if (!assignLeft->followStmtProcessed) {
+				lenAssign.clear();
+			}
 		}
 		popScope();
 		temp.push_back(indent() + "end"s + nlr(whileNode));
@@ -10596,12 +10662,17 @@ private:
 		auto condStr = transformCondExp(whileNode->condition, isUntil);
 		temp.push_back(indent() + "while "s + condStr + " do"s + nll(whileNode));
 		pushScope();
-		auto assignLeft = toAst<ExpList_t>(accumVar + '[' + lenVar + ']', x);
-		auto followStmt = toAst<Statement_t>(lenVar + "+=1"s, whileNode);
-		assignLeft->followStmt = followStmt.get();
-		transformLoopBody(whileNode->body, temp, breakLoopType, ExpUsage::Assignment, assignLeft);
-		if (!assignLeft->followStmtProcessed) {
+		if (hasBreakWithValue(breakLoopType)) {
 			lenAssign.clear();
+			transformLoopBody(whileNode->body, temp, breakLoopType, ExpUsage::Common);
+		} else {
+			auto assignLeft = toAst<ExpList_t>(accumVar + '[' + lenVar + ']', x);
+			auto followStmt = toAst<Statement_t>(lenVar + "+=1"s, whileNode);
+			assignLeft->followStmt = followStmt.get();
+			transformLoopBody(whileNode->body, temp, breakLoopType, ExpUsage::Assignment, assignLeft);
+			if (!assignLeft->followStmtProcessed) {
+				lenAssign.clear();
+			}
 		}
 		popScope();
 		temp.push_back(indent() + "end"s + nlr(whileNode));
