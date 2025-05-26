@@ -90,13 +90,13 @@ Director.ui\addChild with AlignNode true
 		\addChild with AlignNode!
 			\css "height: 25; margin-right: 45"
 			\addChild ui
-	\addChild with center = AlignNode!
+	\addChild with center := AlignNode!
 		.order = 2
 		\css "height: 40%"
 		\addChild with Node!
 			.touchEnabled = true
 			.swallowTouches = true
-			\addChild with banner = Sprite "Model/duality.clip|dismantlism"
+			\addChild with banner := Sprite "Model/duality.clip|dismantlism"
 				center\slot "AlignLayout", (w, h) ->
 					.position = Vec2 w / 2, h / 2
 					.scaleX = .scaleY = 0.9 * math.min w / banner.width, h / banner.height

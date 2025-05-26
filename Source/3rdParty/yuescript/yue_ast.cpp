@@ -372,8 +372,8 @@ std::string With_t::to_string(void* ud) const {
 	str_list temp{
 		eop ? "with?"s : "with"s,
 		valueList->to_string(ud)};
-	if (assigns) {
-		temp.push_back(assigns->to_string(ud));
+	if (assign) {
+		temp.push_back(':' + assign->to_string(ud));
 	}
 	if (body.is<Statement_t>()) {
 		return join(temp, " "sv) + " do "s + body->to_string(ud);
@@ -419,6 +419,9 @@ std::string SwitchCase_t::to_string(void* ud) const {
 std::string Switch_t::to_string(void* ud) const {
 	auto info = reinterpret_cast<YueFormat*>(ud);
 	str_list temp{"switch "s + target->to_string(ud)};
+	if (assignment) {
+		temp.back().append(assignment->to_string(ud));
+	}
 	info->pushScope();
 	for (auto branch : branches.objects()) {
 		temp.emplace_back(info->ind() + branch->to_string(ud));

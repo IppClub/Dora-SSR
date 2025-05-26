@@ -9,7 +9,7 @@ width, height = viewWidth - 200, viewHeight - 20
 
 fontSize = math.floor 20 * App.devicePixelRatio
 
-with root = AlignNode!
+with root := AlignNode!
 	:width, :height = View.size
 	\css "width: #{width}; height: #{height}"
 	\gslot "AppChange", (settingName) -> if settingName == "Size"

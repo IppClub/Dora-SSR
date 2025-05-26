@@ -18,7 +18,7 @@ node = with Node!
 renderTarget = with RenderTarget 300, 400
 	\renderWithClear Color 0xff8a8a8a
 
-with surface = Sprite renderTarget.texture
+with surface := Sprite renderTarget.texture
 	.order = 1
 	.z = 300
 	.angleY = 25

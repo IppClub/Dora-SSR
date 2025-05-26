@@ -287,9 +287,9 @@ AST_END(Return)
 AST_NODE(With)
 	ast_ptr<false, ExistentialOp_t> eop;
 	ast_ptr<true, ExpList_t> valueList;
-	ast_ptr<false, Assign_t> assigns;
+	ast_ptr<false, Assign_t> assign;
 	ast_sel<true, Block_t, Statement_t> body;
-	AST_MEMBER(With, &eop, &valueList, &assigns, &body)
+	AST_MEMBER(With, &eop, &valueList, &assign, &body)
 AST_END(With)
 
 AST_NODE(SwitchList)
@@ -304,19 +304,20 @@ AST_NODE(SwitchCase)
 	AST_MEMBER(SwitchCase, &condition, &body)
 AST_END(SwitchCase)
 
-AST_NODE(Switch)
-	ast_ptr<true, Exp_t> target;
-	ast_ptr<true, Seperator_t> sep;
-	ast_list<true, SwitchCase_t> branches;
-	ast_sel<false, Block_t, Statement_t> lastBranch;
-	AST_MEMBER(Switch, &target, &sep, &branches, &lastBranch)
-AST_END(Switch)
-
 AST_NODE(Assignment)
 	ast_ptr<false, ExpList_t> expList;
 	ast_ptr<true, Assign_t> assign;
 	AST_MEMBER(Assignment, &expList, &assign)
 AST_END(Assignment)
+
+AST_NODE(Switch)
+	ast_ptr<true, Exp_t> target;
+	ast_ptr<false, Assignment_t> assignment;
+	ast_ptr<true, Seperator_t> sep;
+	ast_list<true, SwitchCase_t> branches;
+	ast_sel<false, Block_t, Statement_t> lastBranch;
+	AST_MEMBER(Switch, &target, &assignment, &sep, &branches, &lastBranch)
+AST_END(Switch)
 
 AST_NODE(IfCond)
 	ast_ptr<true, Exp_t> condition;

@@ -27,7 +27,7 @@ diskDef = with BodyDef!
 	.linearAcceleration = gravity
 	\attachDisk 60, 1, 0.4, 0.4
 
-with world = PhysicsWorld!
+with world := PhysicsWorld!
 	.y = -200
 	.showDebug = true
 
