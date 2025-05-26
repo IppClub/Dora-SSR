@@ -118,8 +118,8 @@ YueParser::YueParser() {
 		return false;
 	});
 
-	if_assignment_syntax_error = pl::user(true_(), [](const item_t& item) {
-		throw ParserError("use := for if-assignment expression"sv, item.begin);
+	assignment_expression_syntax_error = pl::user(true_(), [](const item_t& item) {
+		throw ParserError("use := for assignment expression"sv, item.begin);
 		return false;
 	});
 
@@ -356,7 +356,7 @@ YueParser::YueParser() {
 
 	Return = key("return") >> -(space >> (TableBlock | ExpListLow));
 
-	with_exp = ExpList >> -(space >> Assign);
+	with_exp = ExpList >> -(space >> (':' >> Assign | and_('=') >> assignment_expression_syntax_error));
 
 	With = key("with") >> -ExistentialOp >> space >> disable_do_chain_arg_table_block_rule(with_exp) >> space >> body_with("do");
 	SwitchCase = key("when") >> space >> disable_chain_rule(disable_arg_table_block_rule(SwitchList)) >> space >> body_with("then");
@@ -372,7 +372,8 @@ YueParser::YueParser() {
 		and_(SimpleTable | TableLit) >> Exp |
 		exp_not_tab >> *(space >> ',' >> space >> exp_not_tab)
 	);
-	Switch = key("switch") >> space >> Exp >>
+	Switch = key("switch") >> space >>
+		Exp >> -(space >> Assignment) >>
 		space >> Seperator >> (
 			SwitchCase >> space >> (
 				switch_block |
@@ -381,7 +382,7 @@ YueParser::YueParser() {
 			+space_break >> advance_match >> space >> SwitchCase >> switch_block >> pop_indent
 		);
 
-	Assignment = -(',' >> space >> ExpList >> space) >> (':' >> Assign | and_('=') >> if_assignment_syntax_error);
+	Assignment = -(',' >> space >> ExpList >> space) >> (':' >> Assign | and_('=') >> assignment_expression_syntax_error);
 	IfCond = disable_chain_rule(disable_arg_table_block_rule(Exp >> -(space >> Assignment)));
 	if_else_if = -(line_break >> *space_break >> check_indent_match) >> space >> key("elseif") >> space >> IfCond >> space >> body_with("then");
 	if_else = -(line_break >> *space_break >> check_indent_match) >> space >> key("else") >> space >> body;

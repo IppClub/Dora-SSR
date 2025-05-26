@@ -57,7 +57,7 @@ updatePlayerControl = (key, flag) ->
 showStartPanel = ->
 	Director.ui\addChild with AlignNode true
 		\css 'align-items: center; justify-content: center'
-		\addChild with align = AlignNode!
+		\addChild with align := AlignNode!
 			\css 'width: 80%; height: 80%'
 			\addChild with StartPanel!
 				align\slot "AlignLayout", (w, h) ->
@@ -81,7 +81,7 @@ inputNode = with inputManager\getNode!
 	else
 		inputManager\popContext!
 
-with root = AlignNode true
+with root := AlignNode true
 	\css 'flex-direction: column; justify-content: space-between'
 	\addChild with AlignNode!
 		\css 'width: 10; height: 10; margin-top: 50; margin-left: 60'

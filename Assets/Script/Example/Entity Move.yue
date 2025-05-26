@@ -12,7 +12,7 @@ with Observer "Add", ["scene",]
 
 with Observer "Add", ["image",]
 	\watch (image): false => sceneGroup\each (e) ->
-		with @sprite = Sprite image
+		with @sprite := Sprite image
 			\addTo e.scene
 			\runAction Scale 0.5, 0, 0.5, Ease.OutBack
 		true

@@ -15,11 +15,11 @@ texts = []
 
 local root, label, scroll, control, menu
 
-with root = AlignNode true
+with root := AlignNode true
 	const {width: viewWidth, height: viewHeight} = View.size
 	\css "flex-direction: column-reverse"
 	const width, height = viewWidth - 100, viewHeight - 10
-	\addChild with scroll = ScrollArea {
+	\addChild with scroll := ScrollArea {
 			:width
 			:height
 			paddingX: 0
@@ -36,12 +36,12 @@ with root = AlignNode true
 			.area\getChildByTag("border")?\removeFromParent!
 			border = LineRect x: 1, y: 1, width: w - 2, height: h - 2, color: 0xffffffff
 			.area\addChild border, 0, "border"
-		.view\addChild with label = Label "sarasa-mono-sc-regular", fontSize
+		.view\addChild with label := Label "sarasa-mono-sc-regular", fontSize
 			.scaleX = .scaleY = 1 / fontScale
 			.alignment = "Left"
 			.textWidth = (width - fontSize) * fontScale
 			.text = ""
-	\addChild with control = AlignNode!
+	\addChild with control := AlignNode!
 		\css "height: 140; margin-bottom: 40"
 		menu = Menu!
 		\addChild menu

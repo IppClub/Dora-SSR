@@ -78,7 +78,7 @@ static std::unordered_set<std::string> Metamethods = {
 	"close"s // Lua 5.4
 };
 
-const std::string_view version = "0.28.3"sv;
+const std::string_view version = "0.28.4"sv;
 const std::string_view extension = "yue"sv;
 
 class CompileError : public std::logic_error {
@@ -9370,11 +9370,11 @@ private:
 		std::string withVar;
 		bool needScope = !currentScope().lastStatement && !returnValue;
 		bool extraScope = false;
-		if (with->assigns) {
+		if (with->assign) {
 			auto vars = getAssignVars(with);
 			if (vars.front().empty() || isDeclaredAsGlobal(vars.front())) {
-				if (with->assigns->values.objects().size() == 1) {
-					auto var = singleVariableFrom(with->assigns->values.objects().front(), AccessType::Read);
+				if (with->assign->values.objects().size() == 1) {
+					auto var = singleVariableFrom(with->assign->values.objects().front(), AccessType::Read);
 					if (!var.empty() && isLocal(var)) {
 						withVar = var;
 					}
@@ -9384,7 +9384,7 @@ private:
 					auto assignment = x->new_ptr<ExpListAssign_t>();
 					assignment->expList.set(toAst<ExpList_t>(withVar, x));
 					auto assign = x->new_ptr<Assign_t>();
-					assign->values.push_back(with->assigns->values.objects().front());
+					assign->values.push_back(with->assign->values.objects().front());
 					assignment->action.set(assign);
 					if (needScope) {
 						extraScope = true;
@@ -9398,7 +9398,7 @@ private:
 				auto assign = x->new_ptr<Assign_t>();
 				assign->values.push_back(toAst<Exp_t>(withVar, x));
 				bool skipFirst = true;
-				for (auto value : with->assigns->values.objects()) {
+				for (auto value : with->assign->values.objects()) {
 					if (skipFirst) {
 						skipFirst = false;
 						continue;
@@ -9411,7 +9411,7 @@ private:
 				withVar = vars.front();
 				auto assignment = x->new_ptr<ExpListAssign_t>();
 				assignment->expList.set(with->valueList);
-				assignment->action.set(with->assigns);
+				assignment->action.set(with->assign);
 				if (needScope) {
 					extraScope = true;
 					temp.push_back(indent() + "do"s + nll(with));
@@ -10760,10 +10760,26 @@ private:
 			pushScope();
 		}
 		bool extraScope = false;
+		if (switchNode->assignment) {
+			if (needScope) {
+				extraScope = true;
+				temp.push_back(indent() + "do"s + nll(x));
+				pushScope();
+			}
+			auto asmt = x->new_ptr<ExpListAssign_t>();
+			auto expList = x->new_ptr<ExpList_t>();
+			expList->exprs.push_back(switchNode->target);
+			if (switchNode->assignment->expList) {
+				expList->exprs.dup(switchNode->assignment->expList->exprs);
+			}
+			asmt->expList.set(expList);
+			asmt->action.set(switchNode->assignment->assign);
+			transformAssignment(asmt, temp);
+		}
 		auto objVar = singleVariableFrom(switchNode->target, AccessType::Read);
 		if (objVar.empty() || !isLocal(objVar)) {
 			if (usage == ExpUsage::Common || usage == ExpUsage::Assignment) {
-				if (needScope) {
+				if (needScope && !extraScope) {
 					extraScope = true;
 					temp.push_back(indent() + "do"s + nll(x));
 					pushScope();
