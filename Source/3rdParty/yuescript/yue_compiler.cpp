@@ -78,7 +78,7 @@ static std::unordered_set<std::string> Metamethods = {
 	"close"s // Lua 5.4
 };
 
-const std::string_view version = "0.28.4"sv;
+const std::string_view version = "0.28.5"sv;
 const std::string_view extension = "yue"sv;
 
 class CompileError : public std::logic_error {
@@ -1846,6 +1846,7 @@ private:
 								case id<ForEach_t>(): transformForEach(static_cast<ForEach_t*>(value), out); break;
 								case id<For_t>(): transformFor(static_cast<For_t*>(value), out); break;
 								case id<While_t>(): transformWhile(static_cast<While_t*>(value), out); break;
+								case id<Repeat_t>(): transformRepeat(static_cast<Repeat_t*>(value), out); break;
 								case id<Do_t>(): transformDo(static_cast<Do_t*>(value), out, ExpUsage::Common); break;
 								case id<Try_t>(): transformTry(static_cast<Try_t*>(value), out, ExpUsage::Common); break;
 								case id<Comprehension_t>(): {
@@ -2397,6 +2398,13 @@ private:
 				auto expList = assignment->expList.get();
 				std::string preDefine = getPreDefineLine(assignment);
 				transformWhileInPlace(static_cast<While_t*>(value), out, expList);
+				out.back().insert(0, preDefine);
+				return false;
+			}
+			case id<Repeat_t>(): {
+				auto expList = assignment->expList.get();
+				std::string preDefine = getPreDefineLine(assignment);
+				transformRepeatInPlace(static_cast<Repeat_t*>(value), out, expList);
 				out.back().insert(0, preDefine);
 				return false;
 			}
@@ -4471,6 +4479,7 @@ private:
 			case id<ForEach_t>(): transformForEachClosure(static_cast<ForEach_t*>(value), out); break;
 			case id<For_t>(): transformForClosure(static_cast<For_t*>(value), out); break;
 			case id<While_t>(): transformWhileClosure(static_cast<While_t*>(value), out); break;
+			case id<Repeat_t>(): transformRepeatClosure(static_cast<Repeat_t*>(value), out); break;
 			case id<Do_t>(): transformDo(static_cast<Do_t*>(value), out, ExpUsage::Closure); break;
 			case id<Try_t>(): transformTry(static_cast<Try_t*>(value), out, ExpUsage::Closure); break;
 			case id<UnaryValue_t>(): transformUnaryValue(static_cast<UnaryValue_t*>(value), out); break;
@@ -5444,6 +5453,9 @@ private:
 							return;
 						case id<While_t>():
 							transformWhileInPlace(static_cast<While_t*>(value), out);
+							return;
+						case id<Repeat_t>():
+							transformRepeatInPlace(static_cast<Repeat_t*>(value), out);
 							return;
 						case id<For_t>():
 							transformForInPlace(static_cast<For_t*>(value), out);
@@ -8386,7 +8398,7 @@ private:
 	std::string transformRepeatBody(Repeat_t* repeatNode, str_list& out) {
 		str_list temp;
 		bool extraDo = false;
-		auto body = repeatNode->body->content.get();
+		auto body = repeatNode->body.get();
 		auto breakLoopType = getBreakLoopType(body, Empty);
 		bool withContinue = hasContinue(breakLoopType);
 		std::string conditionVar;
@@ -9513,22 +9525,19 @@ private:
 				expListAssign->expList.set(expList);
 				auto stmt = x->new_ptr<Statement_t>();
 				stmt->content.set(expListAssign);
-				auto whileNode = toAst<While_t>("while true do break"s, x);
+				auto repeatNode = toAst<Repeat_t>("repeat\n\t--\nuntil true"s, x);
 				auto block = x->new_ptr<Block_t>();
 				block->statements.push_back(stmt);
-				block->statements.push_back(whileNode->body);
-				auto body = x->new_ptr<Body_t>();
-				body->content.set(block);
-				whileNode->body.set(block);
+				repeatNode->body.set(block);
 				auto sVal = x->new_ptr<SimpleValue_t>();
-				sVal->value.set(whileNode);
+				sVal->value.set(repeatNode);
 				auto asmt = assignmentFrom(toAst<Exp_t>(breakWithVar, x), newExp(sVal, x), x);
 				transformAssignment(asmt, temp);
 			}
 		} else {
 			bool transformed = false;
 			if (!breakWithVar.empty()) {
-				auto whileNode = toAst<While_t>("while true do break"s, x);
+				auto repeatNode = toAst<Repeat_t>("repeat\n\t--\nuntil true"s, x);
 				auto block = x->new_ptr<Block_t>();
 				if (auto blk = with->body.as<Block_t>()) {
 					block->statements.dup(blk->statements);
@@ -9536,15 +9545,9 @@ private:
 					auto stmt = with->body.to<Statement_t>();
 					block->statements.push_back(stmt);
 				}
-				auto breakLoop = whileNode->body.to<Statement_t>()->content.as<BreakLoop_t>();
-				if (!(breakLoop && breakLoop->type.is<Break_t>())) {
-					block->statements.push_back(whileNode->body);
-				}
-				auto body = x->new_ptr<Body_t>();
-				body->content.set(block);
-				whileNode->body.set(block);
+				repeatNode->body.set(block);
 				auto sVal = x->new_ptr<SimpleValue_t>();
-				sVal->value.set(whileNode);
+				sVal->value.set(repeatNode);
 				auto asmt = assignmentFrom(toAst<Exp_t>(breakWithVar, x), newExp(sVal, x), x);
 				transformAssignment(asmt, temp);
 				transformed = true;
@@ -10708,9 +10711,7 @@ private:
 			expListAssign->expList.set(expList);
 			auto stmt = x->new_ptr<Statement_t>();
 			stmt->content.set(expListAssign);
-			auto body = x->new_ptr<Body_t>();
-			body->content.set(stmt);
-			repeat->body.set(body);
+			repeat->body.set(stmt);
 			transformRepeat(repeat, out);
 			return;
 		}
@@ -10725,6 +10726,106 @@ private:
 		_buf << temp.back();
 		_buf << indent() << "end"sv << nlr(whileNode);
 		out.push_back(clearBuf());
+	}
+
+	void transformRepeatInPlace(Repeat_t* repeatNode, str_list& out, ExpList_t* expList = nullptr) {
+		auto x = repeatNode;
+		str_list temp;
+		bool extraScope = false;
+		if (expList) {
+			if (!currentScope().lastStatement) {
+				extraScope = true;
+				temp.push_back(indent() + "do"s + nll(repeatNode));
+				pushScope();
+			}
+		}
+		auto accumVar = getUnusedName("_accum_"sv);
+		addToScope(accumVar);
+		auto lenVar = getUnusedName("_len_"sv);
+		addToScope(lenVar);
+		auto breakLoopType = getBreakLoopType(repeatNode->body, accumVar);
+		_buf << indent() << "local "sv << accumVar << (hasBreakWithValue(breakLoopType) ? ""sv : " = { }"sv) << nll(repeatNode);
+		temp.emplace_back(clearBuf());
+		_buf << indent() << "local "s << lenVar << " = 1"s << nll(repeatNode);
+		auto& lenAssign = temp.emplace_back(clearBuf());
+		auto condStr = transformCondExp(repeatNode->condition, false);
+		temp.push_back(indent() + "repeat"s + nll(repeatNode));
+		pushScope();
+		if (hasBreakWithValue(breakLoopType)) {
+			lenAssign.clear();
+			transformLoopBody(repeatNode->body, temp, breakLoopType, ExpUsage::Common);
+		} else {
+			auto assignLeft = toAst<ExpList_t>(accumVar + '[' + lenVar + ']', x);
+			auto followStmt = toAst<Statement_t>(lenVar + "+=1"s, repeatNode);
+			assignLeft->followStmt = followStmt.get();
+			transformLoopBody(repeatNode->body, temp, breakLoopType, ExpUsage::Assignment, assignLeft);
+			if (!assignLeft->followStmtProcessed) {
+				lenAssign.clear();
+			}
+		}
+		popScope();
+		temp.push_back(indent() + "until "s + condStr + nlr(repeatNode));
+		if (expList) {
+			auto assign = x->new_ptr<Assign_t>();
+			assign->values.push_back(toAst<Exp_t>(accumVar, x));
+			auto assignment = x->new_ptr<ExpListAssign_t>();
+			assignment->expList.set(expList);
+			assignment->action.set(assign);
+			transformAssignment(assignment, temp);
+			if (extraScope) popScope();
+		} else {
+			temp.push_back(indent() + "return "s + accumVar + nlr(repeatNode));
+		}
+		if (expList && extraScope) {
+			temp.push_back(indent() + "end"s + nlr(repeatNode));
+		}
+		out.push_back(join(temp));
+	}
+
+	void transformRepeatClosure(Repeat_t* repeatNode, str_list& out) {
+		auto x = repeatNode;
+		auto simpleValue = x->new_ptr<SimpleValue_t>();
+		simpleValue->value.set(repeatNode);
+		if (transformAsUpValueFunc(newExp(simpleValue, x), out)) {
+			return;
+		}
+		str_list temp;
+		pushAnonFunctionScope();
+		pushAnonVarArg();
+		std::string& funcStart = temp.emplace_back();
+		pushScope();
+		auto accumVar = getUnusedName("_accum_"sv);
+		addToScope(accumVar);
+		auto lenVar = getUnusedName("_len_"sv);
+		addToScope(lenVar);
+		auto breakLoopType = getBreakLoopType(repeatNode->body, accumVar);
+		_buf << indent() << "local "sv << accumVar << (hasBreakWithValue(breakLoopType) ? ""sv : " = { }"sv) << nll(repeatNode);
+		temp.emplace_back(clearBuf());
+		auto& lenAssign = temp.emplace_back(indent() + "local "s + lenVar + " = 1"s + nll(repeatNode));
+		auto condStr = transformCondExp(repeatNode->condition, false);
+		temp.push_back(indent() + "repeat"s + nll(repeatNode));
+		pushScope();
+		if (hasBreakWithValue(breakLoopType)) {
+			lenAssign.clear();
+			transformLoopBody(repeatNode->body, temp, breakLoopType, ExpUsage::Common);
+		} else {
+			auto assignLeft = toAst<ExpList_t>(accumVar + '[' + lenVar + ']', x);
+			auto followStmt = toAst<Statement_t>(lenVar + "+=1"s, repeatNode);
+			assignLeft->followStmt = followStmt.get();
+			transformLoopBody(repeatNode->body, temp, breakLoopType, ExpUsage::Assignment, assignLeft);
+			if (!assignLeft->followStmtProcessed) {
+				lenAssign.clear();
+			}
+		}
+		popScope();
+		temp.push_back(indent() + "until "s + condStr + nlr(repeatNode));
+		temp.push_back(indent() + "return "s + accumVar + nlr(repeatNode));
+		popScope();
+		funcStart = anonFuncStart() + nll(repeatNode);
+		temp.push_back(indent() + anonFuncEnd());
+		popAnonVarArg();
+		popFunctionScope();
+		out.push_back(join(temp));
 	}
 
 	void transformRepeat(Repeat_t* repeat, str_list& out) {
