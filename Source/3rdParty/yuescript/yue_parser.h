@@ -119,10 +119,11 @@ protected:
 		size_t stringOpen = 0;
 		std::string buffer;
 		std::stack<int> indents;
-		std::stack<bool> noDoStack;
-		std::stack<bool> noChainBlockStack;
-		std::stack<bool> noTableBlockStack;
-		std::stack<bool> noForStack;
+		std::vector<bool> noDoStack;
+		std::vector<bool> noChainBlockStack;
+		std::vector<bool> noTableBlockStack;
+		std::vector<bool> noForStack;
+		std::vector<bool> noUntilStack;
 		std::unordered_set<std::string> usedNames;
 	};
 
@@ -217,6 +218,8 @@ private:
 	NONE_AST_RULE(enable_for);
 	NONE_AST_RULE(enable_fun_lit);
 	NONE_AST_RULE(disable_fun_lit);
+	NONE_AST_RULE(disable_until);
+	NONE_AST_RULE(enable_until);
 	NONE_AST_RULE(switch_else);
 	NONE_AST_RULE(switch_block);
 	NONE_AST_RULE(if_else_if);

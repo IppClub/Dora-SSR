@@ -527,10 +527,10 @@ std::string While_t::to_string(void* ud) const {
 }
 std::string Repeat_t::to_string(void* ud) const {
 	auto info = reinterpret_cast<YueFormat*>(ud);
-	str_list temp;
-	if (body->content.is<Statement_t>()) {
-		temp.emplace_back("repeat "s + body->to_string(ud));
+	if (body.is<Statement_t>()) {
+		return "repeat "s + body->to_string(ud) + " until "s + condition->to_string(ud);
 	} else {
+		str_list temp;
 		temp.emplace_back("repeat"s);
 		info->pushScope();
 		temp.emplace_back(body->to_string(ud));
@@ -538,9 +538,9 @@ std::string Repeat_t::to_string(void* ud) const {
 			temp.back() = info->ind() + "--"s;
 		}
 		info->popScope();
+		temp.emplace_back(info->ind() + "until "s + condition->to_string(ud));
+		return join(temp, "\n"sv);
 	}
-	temp.emplace_back(info->ind() + "until "s + condition->to_string(ud));
-	return join(temp, "\n"sv);
 }
 std::string ForStepValue_t::to_string(void* ud) const {
 	return value->to_string(ud);

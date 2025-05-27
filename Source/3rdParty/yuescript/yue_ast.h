@@ -346,7 +346,7 @@ AST_NODE(While)
 AST_END(While)
 
 AST_NODE(Repeat)
-	ast_ptr<true, Body_t> body;
+	ast_sel<true, Block_t, Statement_t> body;
 	ast_ptr<true, Exp_t> condition;
 	AST_MEMBER(Repeat, &body, &condition)
 AST_END(Repeat)
@@ -550,8 +550,8 @@ AST_NODE(SimpleValue)
 	ast_sel<true,
 		TableLit_t, ConstValue_t,
 		If_t, Switch_t, With_t, ClassDecl_t,
-		ForEach_t, For_t, While_t, Do_t, Try_t,
-		UnaryValue_t,
+		ForEach_t, For_t, While_t, Repeat_t,
+		Do_t, Try_t, UnaryValue_t,
 		TblComprehension_t, Comprehension_t,
 		FunLit_t, Num_t, VarArg_t> value;
 	AST_MEMBER(SimpleValue, &value)
