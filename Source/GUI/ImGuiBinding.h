@@ -645,7 +645,9 @@ bool ColorEdit4(
 	CallStack* stack, // color4
 	uint32_t colorEditFlags = 0); //
 
-void Image(
+void Image(String clipStr, const Vec2& size);
+
+void ImageWithBg(
 	String clipStr,
 	const Vec2& size,
 	Color tint_col = Color(0xffffffff),

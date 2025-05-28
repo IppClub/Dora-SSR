@@ -185,7 +185,7 @@ export macro InputTextFlag = $Enum(
 export macro TreeNodeFlag = $Enum(
 	"Selected"
 	"Framed"
-	"AllowItemOverlap"
+	"AllowOverlap"
 	"NoTreePushOnOpen"
 	"NoAutoOpenOnLog"
 	"DefaultOpen"
@@ -199,7 +199,7 @@ export macro TreeNodeFlag = $Enum(
 	"SpanLabelWidth"
 	"SpanAllColumns"
 	"LabelSpanAllColumns"
-	"NavLeftJumpsBackHere"
+	"NavLeftJumpsToParent"
 	"CollapsingHeader"
 )
 export macro SelectableFlag = $Enum(

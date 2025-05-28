@@ -213,7 +213,7 @@ export const enum TreeNodeFlag {
 	None = "",
 	Selected = "Selected",
 	Framed = "Framed",
-	AllowItemOverlap = "AllowItemOverlap",
+	AllowOverlap = "AllowOverlap",
 	NoTreePushOnOpen = "NoTreePushOnOpen",
 	NoAutoOpenOnLog = "NoAutoOpenOnLog",
 	DefaultOpen = "DefaultOpen",
@@ -227,7 +227,7 @@ export const enum TreeNodeFlag {
 	SpanLabelWidth = "SpanLabelWidth",
 	SpanAllColumns = "SpanAllColumns",
 	LabelSpanAllColumns = "LabelSpanAllColumns",
-	NavLeftJumpsBackHere = "NavLeftJumpsBackHere",
+	NavLeftJumpsToParent = "NavLeftJumpsToParent",
 	CollapsingHeader = "CollapsingHeader"
 }
 

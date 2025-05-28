@@ -111,9 +111,9 @@ local disabledCheckForLua = { -- 47
 	"to%-be%-closed" -- 67
 } -- 46
 local yueCheck -- 69
-yueCheck = function(file, content) -- 69
+yueCheck = function(file, content, lax) -- 69
 	local searchPath = getSearchPath(file) -- 70
-	local checkResult, luaCodes = yue.checkAsync(content, searchPath) -- 71
+	local checkResult, luaCodes = yue.checkAsync(content, searchPath, lax) -- 71
 	local info = { } -- 72
 	local globals = { } -- 73
 	for _index_0 = 1, #checkResult do -- 74
@@ -205,7 +205,7 @@ luaCheck = function(file, content) -- 89
 					end -- 107
 				end -- 107
 				_accum_0[_len_0] = item -- 108
-				_len_0 = _len_0 + 1 -- 108
+				_len_0 = _len_0 + 1 -- 97
 				::_continue_0:: -- 97
 			end -- 108
 			info = _accum_0 -- 96
@@ -248,8 +248,8 @@ luaCheckWithLineInfo = function(file, luaCodes) -- 114
 	return true, info -- 132
 end -- 114
 local getCompiledYueLine -- 134
-getCompiledYueLine = function(content, line, row, file) -- 134
-	local luaCodes, _info = yueCheck(file, content) -- 135
+getCompiledYueLine = function(content, line, row, file, lax) -- 134
+	local luaCodes, _info = yueCheck(file, content, lax) -- 135
 	if not luaCodes then -- 136
 		return nil -- 136
 	end -- 136
@@ -264,7 +264,7 @@ getCompiledYueLine = function(content, line, row, file) -- 134
 			lastLine = tonumber(num) -- 144
 		end -- 144
 		lineMap[current] = lastLine -- 145
-		if row == lastLine and not targetLine then -- 146
+		if row <= lastLine and not targetLine then -- 146
 			targetRow = current -- 147
 			targetLine = line:gsub("::", "\\"):gsub(":", "="):gsub("\\", ":"):match("[%w_%.:]+$") -- 148
 			if targetLine then -- 149
@@ -312,7 +312,7 @@ HttpServer:postSchedule("/check", function(req) -- 156
 				elseif "lua" == ext then -- 163
 					return luaCheck(file, content) -- 164
 				elseif "yue" == ext then -- 165
-					local luaCodes, info = yueCheck(file, content) -- 166
+					local luaCodes, info = yueCheck(file, content, false) -- 166
 					local success = false -- 167
 					if luaCodes then -- 168
 						local luaSuccess, luaInfo = luaCheckWithLineInfo(file, luaCodes) -- 169
@@ -482,7 +482,7 @@ HttpServer:postSchedule("/infer", function(req) -- 209
 						} -- 216
 					end -- 214
 				elseif "yue" == lang then -- 217
-					local luaCodes, targetLine, targetRow, lineMap = getCompiledYueLine(content, line, row, file) -- 218
+					local luaCodes, targetLine, targetRow, lineMap = getCompiledYueLine(content, line, row, file, false) -- 218
 					if not luaCodes then -- 219
 						return { -- 219
 							success = false -- 219
@@ -675,7 +675,7 @@ HttpServer:postSchedule("/signature", function(req) -- 287
 						end -- 292
 					end -- 291
 				elseif "yue" == lang then -- 294
-					local luaCodes, targetLine, targetRow, _lineMap = getCompiledYueLine(content, line, row, file) -- 295
+					local luaCodes, targetLine, targetRow, _lineMap = getCompiledYueLine(content, line, row, file, false) -- 295
 					if not luaCodes then -- 296
 						return { -- 296
 							success = false -- 296
@@ -685,7 +685,9 @@ HttpServer:postSchedule("/signature", function(req) -- 287
 						local chainOp, chainCall = line:match("[^%w_]([%.\\])([^%.\\]+)$") -- 297
 						if chainOp then -- 297
 							local withVar = luaCodes:match("([%w_]+)%.___DUMMY_CALL___%(%)") -- 298
-							targetLine = withVar .. (chainOp == '\\' and ':' or '.') .. chainCall -- 299
+							if withVar then -- 298
+								targetLine = withVar .. (chainOp == '\\' and ':' or '.') .. chainCall -- 299
+							end -- 298
 						end -- 297
 					end -- 297
 					local signatures = teal.getSignatureAsync(luaCodes, targetLine, targetRow, searchPath) -- 300
@@ -1077,7 +1079,7 @@ HttpServer:postSchedule("/complete", function(req) -- 386
 					local suggestions = { } -- 464
 					local gotGlobals = false -- 465
 					do -- 466
-						local luaCodes, targetLine, targetRow = getCompiledYueLine(content, line, row, file) -- 466
+						local luaCodes, targetLine, targetRow = getCompiledYueLine(content, line, row, file, true) -- 466
 						if luaCodes then -- 466
 							gotGlobals = true -- 467
 							do -- 468

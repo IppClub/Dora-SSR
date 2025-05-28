@@ -62,7 +62,7 @@ const getTableColumns = (t: (key: string) => string): TableColumnsType<LoaderDat
 			dataIndex: 'depth',
 			sorter: (a, b) => a.depth - b.depth,
 			sortDirections: ['ascend', 'descend'],
-			render: (_, { depth }) => <>{Array.from({length: depth + 1}, () => <>&emsp;</>)}{depth}</>,
+			render: (_, { depth }) => <>{Array.from({length: depth}, (_, index) => <p style={{display: 'inline-block', padding: 0, margin: 0}} key={index}>&emsp;</p>)}{depth + 1}</>,
 		},
 		{
 			title: t('pro.module'),

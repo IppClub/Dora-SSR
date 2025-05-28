@@ -74,16 +74,16 @@ extern std::unordered_set<std::string> Keywords;
 class YueParser {
 public:
 	template <class AST>
-	ParseInfo parse(std::string_view codes) {
-		return parse(codes, getRule<AST>());
+	ParseInfo parse(std::string_view codes, bool lax) {
+		return parse(codes, getRule<AST>(), lax);
 	}
 
-	ParseInfo parse(std::string_view astName, std::string_view codes);
+	ParseInfo parse(std::string_view astName, std::string_view codes, bool lax);
 
 	template <class AST>
 	bool match(std::string_view codes) {
 		auto rEnd = rule(getRule<AST>() >> eof());
-		return parse(codes, rEnd).node;
+		return parse(codes, rEnd, false).node;
 	}
 
 	bool match(std::string_view astName, std::string_view codes);
@@ -102,13 +102,14 @@ public:
 
 protected:
 	YueParser();
-	ParseInfo parse(std::string_view codes, rule& r);
+	ParseInfo parse(std::string_view codes, rule& r, bool lax);
 	bool startWith(std::string_view codes, rule& r);
 
 	struct State {
 		State() {
 			indents.push(0);
 		}
+		bool lax = false;
 		bool exportDefault = false;
 		bool exportMacro = false;
 		bool exportMetatable = false;
@@ -287,6 +288,7 @@ private:
 	NONE_AST_RULE(yue_line_comment);
 	NONE_AST_RULE(line);
 	NONE_AST_RULE(shebang);
+	NONE_AST_RULE(lax_line);
 
 	AST_RULE(Num);
 	AST_RULE(Name);

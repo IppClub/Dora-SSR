@@ -70,8 +70,8 @@ local record yue
 		options: Options
 	end
 
-	-- 月之脚本的编译函数。它将 Yuescript 代码编译为 Lua 代码。
-	-- @param code (string) Yuescript 代码。
+	-- 月之脚本的编译函数。它将 YueScript 代码编译为 Lua 代码。
+	-- @param code (string) YueScript 代码。
 	-- @param config (Config) [可选] 编译器选项。
 	-- @return (string | nil) 编译后的 Lua 代码，如果编译失败则为 nil。
 	-- @return (string | nil) 错误消息，如果编译成功则为 nil。
@@ -91,17 +91,17 @@ local record yue
 	-- @return (string) 文件内容。
 	read_file: function(filename: string): string
 
-	-- 将 Yuescript 加载器插入到 Lua 包加载器（搜索器）中。
+	-- 将 YueScript 加载器插入到 Lua 包加载器（搜索器）中。
 	-- @param pos (integer) [可选] 要插入加载器的位置。默认为 3。
 	-- @return (boolean) 是否成功插入加载器。如果加载器已经插入，则返回失败。
 	insert_loader: function(pos?: integer): boolean
 
-	-- 从 Lua 包加载器（搜索器）中移除 Yuescript 加载器。
+	-- 从 Lua 包加载器（搜索器）中移除 YueScript 加载器。
 	-- @return (boolean) 是否成功移除加载器。如果加载器未插入，则返回失败。
 	remove_loader: function(): boolean
 
-	-- 将 Yuescript 代码字符串加载为一个函数。
-	-- @param input (string) Yuescript 代码。
+	-- 将 YueScript 代码字符串加载为一个函数。
+	-- @param input (string) YueScript 代码。
 	-- @param chunkname (string) 代码块的名称。
 	-- @param env (table) 环境表。
 	-- @param config (Config) [可选] 编译器选项。
@@ -111,8 +111,8 @@ local record yue
 		--[[loaded function]] nil | function(...: any): (any...),
 		--[[error]] string | nil
 
-	-- 将 Yuescript 代码字符串加载为一个函数。
-	-- @param input (string) Yuescript 代码。
+	-- 将 YueScript 代码字符串加载为一个函数。
+	-- @param input (string) YueScript 代码。
 	-- @param chunkname (string) 代码块的名称。
 	-- @param config (Config) [可选] 编译器选项。
 	-- @return (function | nil) 加载的函数，如果加载失败则为 nil。
@@ -121,8 +121,8 @@ local record yue
 		--[[loaded function]] nil | function(...: any): (any...),
 		--[[error]] string | nil
 
-	-- 将 Yuescript 代码字符串加载为一个函数。
-	-- @param input (string) Yuescript 代码。
+	-- 将 YueScript 代码字符串加载为一个函数。
+	-- @param input (string) YueScript 代码。
 	-- @param config (Config) [可选] 编译器选项。
 	-- @return (function | nil) 加载的函数，如果加载失败则为 nil。
 	-- @return (string | nil) 错误消息，如果加载成功则为 nil。
@@ -130,7 +130,7 @@ local record yue
 		--[[loaded function]] nil | function(...: any): (any...),
 		--[[error]] string | nil
 
-	-- 将 Yuescript 代码文件加载为一个函数。
+	-- 将 YueScript 代码文件加载为一个函数。
 	-- @param filename (string) 文件名。
 	-- @param env (table) 环境表。
 	-- @param config (Config) [可选] 编译器选项。
@@ -140,7 +140,7 @@ local record yue
 		nil | function(...: any): (any...),
 		string | nil
 
-	-- 将 Yuescript 代码文件加载为一个函数。
+	-- 将 YueScript 代码文件加载为一个函数。
 	-- @param filename (string) 文件名。
 	-- @param config (Config) [可选] 编译器选项。
 	-- @return (function | nil) 加载的函数，如果加载失败则为 nil。
@@ -149,34 +149,34 @@ local record yue
 		nil | function(...: any): (any...),
 		string | nil
 
-	-- 将 Yuescript 代码文件加载为一个函数并执行。
+	-- 将 YueScript 代码文件加载为一个函数并执行。
 	-- @param filename (string) 文件名。
 	-- @param env (table) 环境表。
 	-- @param config (Config) [可选] 编译器选项。
 	-- @return (any...) 加载的函数执行后的返回值。
 	dofile: function(filename: string, env: table, config?: Config): any...
 
-	-- 将 Yuescript 代码文件加载为一个函数并执行。
+	-- 将 YueScript 代码文件加载为一个函数并执行。
 	-- @param filename (string) 文件名。
 	-- @param config (Config) [可选] 编译器选项。
 	-- @return (any...) 加载的函数执行后的返回值。
 	dofile: function(filename: string, config?: Config): any...
 
-	-- 将 Yuescript 模块名解析为文件路径。
+	-- 将 YueScript 模块名解析为文件路径。
 	-- @param name (string) 模块名。
 	-- @return (string) 文件路径。
 	find_modulepath: function(name: string): string
 
 	-- 在保护模式下调用一个函数。
 	-- 会捕获任何错误，执行成功则返回成功状态和结果，否则为失败状态和错误信息。
-	-- 当发生错误时，将错误信息中的代码行号重写为 Yuescript 代码中的原始行号。
+	-- 当发生错误时，将错误信息中的代码行号重写为 YueScript 代码中的原始行号。
 	-- @param f (function) 要调用的函数。
 	-- @param ... (any) 要传递给函数的参数。
 	-- @return (boolean, ...) 状态码和函数结果或错误信息。
 	pcall: function(f: function, ...: any): boolean, any...
 
-	-- 加载给定的模块。可以是 Lua 模块或 Yuescript 模块。
-	-- 如果模块是 Yuescript 模块且加载失败，则将错误信息中的代码行号重写为 Yuescript 代码中的原始行号。
+	-- 加载给定的模块。可以是 Lua 模块或 YueScript 模块。
+	-- 如果模块是 YueScript 模块且加载失败，则将错误信息中的代码行号重写为 YueScript 代码中的原始行号。
 	-- @param modname (string) 要加载的模块名。
 	-- @return (any) 如果模块已经加载，则返回 package.loaded[modname] 中存储的值。
 	-- 否则，尝试查找加载器并返回 package.loaded[modname] 的最终值和加载器数据作为第二个结果。
@@ -189,7 +189,7 @@ local record yue
 	-- 当前编译器选项。
 	options: Config.Options
 
-	-- 重写堆栈跟踪中的行号为 Yuescript 代码中的原始行号的 traceback 函数。
+	-- 重写堆栈跟踪中的行号为 YueScript 代码中的原始行号的 traceback 函数。
 	-- @param message (string) 堆栈跟踪消息。
 	-- @return (string) 重写后的堆栈跟踪消息。
 	traceback: function(message: string): string
@@ -200,7 +200,7 @@ local record yue
 		globals: {{string, integer, integer}}
 	): string | nil
 
-	-- 在线程中异步将 Yuescript 代码编译为 Lua 代码。
+	-- 在线程中异步将 YueScript 代码编译为 Lua 代码。
 	-- @param sourceFile (string) 源文件名。
 	-- @param targetFile (string) 目标文件名。
 	-- @param searchPath (string) 额外模块搜索路径。
@@ -230,13 +230,14 @@ local record yue
 		--[[AST]] AST | nil,
 		--[[error]] nil | string
 
-	-- 在线程中异步检查 Yuescript 代码中的问题。
+	-- 在异步线程中检查 YueScript 代码中的问题。
 	-- 只能在协程线程中调用。
-	-- @param yueCodes (string) Yuescript 代码。
+	-- @param yueCodes (string) YueScript 代码。
 	-- @param searchPath (string) 额外模块搜索路径。
+	-- @param lax (boolean) 是否以宽松模式进行。
 	-- @return ({info}) 包含类型、消息、行和列的问题信息数组。
 	-- @return (string | nil) 当未发现问题时获得编译后的 Lua 代码，如果检查失败则为 nil。
-	checkAsync: function(yueCodes: string, searchPath: string):
+	checkAsync: function(yueCodes: string, searchPath: string, lax: boolean):
 		--[[info]] {{
 			--[[type]] string,
 			--[[msg]] string,
@@ -248,8 +249,8 @@ local record yue
 	-- 清除缓存中的编译后的宏函数。
 	clear: function()
 
-	-- 导入 Yuescript 模块。
-	-- 如果发生加载失败，则将错误信息中的代码行号重写为 Yuescript 代码中的原始行号。
+	-- 导入 YueScript 模块。
+	-- 如果发生加载失败，则将错误信息中的代码行号重写为 YueScript 代码中的原始行号。
 	-- @param module (string) 模块名。
 	-- @return (any) 模块值。
 	metamethod __call: function(self: yue, module: string): any...

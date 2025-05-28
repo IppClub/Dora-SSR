@@ -5154,7 +5154,9 @@ static void Binding::BulletText @ bulletText(string text);
 static bool Binding::TreeNode @ _treeNode(string str_id, string text);
 static void Binding::SetTooltip @ setTooltip(string text);
 
-static void Binding::Image @ imageOpts(
+static void Binding::Image @ image(string clipStr, Vec2 size);
+
+static void Binding::ImageWithBg @ imageWithBg(
 	string clipStr,
 	Vec2 size,
 	Color tint_col,

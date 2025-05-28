@@ -123,8 +123,11 @@ func imgui__tree_node(str_id: i64, text: i64) => i32
 #wa:import dora imgui_set_tooltip
 func imgui_set_tooltip(text: i64)
 
-#wa:import dora imgui_image_opts
-func imgui_image_opts(clip_str: i64, size: i64, tint_col: i32, border_col: i32)
+#wa:import dora imgui_image
+func imgui_image(clip_str: i64, size: i64)
+
+#wa:import dora imgui_image_with_bg
+func imgui_image_with_bg(clip_str: i64, size: i64, tint_col: i32, border_col: i32)
 
 #wa:import dora imgui_image_button_opts
 func imgui_image_button_opts(str_id: i64, clip_str: i64, size: i64, bg_col: i32, tint_col: i32) => i32
@@ -750,8 +753,11 @@ func _ImGui._TreeNode(str_id: string, text: string) => bool {
 func _ImGui.SetTooltip(text: string) {
 	imgui_set_tooltip(ToDoraString(text))
 }
-func _ImGui.ImageOpts(clip_str: string, size: Vec2, tint_col: Color, border_col: Color) {
-	imgui_image_opts(ToDoraString(clip_str), size.ToValue(), tint_col.ToARGB(), border_col.ToARGB())
+func _ImGui.Image(clip_str: string, size: Vec2) {
+	imgui_image(ToDoraString(clip_str), size.ToValue())
+}
+func _ImGui.ImageWithBg(clip_str: string, size: Vec2, tint_col: Color, border_col: Color) {
+	imgui_image_with_bg(ToDoraString(clip_str), size.ToValue(), tint_col.ToARGB(), border_col.ToARGB())
 }
 func _ImGui.ImageButtonOpts(str_id: string, clip_str: string, size: Vec2, bg_col: Color, tint_col: Color) => bool {
 	return imgui_image_button_opts(ToDoraString(str_id), ToDoraString(clip_str), size.ToValue(), bg_col.ToARGB(), tint_col.ToARGB()) != 0

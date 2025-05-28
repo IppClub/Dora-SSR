@@ -31,6 +31,7 @@ struct YueConfig {
 	bool reserveLineNumber = true;
 	bool useSpaceOverTab = false;
 	bool reserveComment = false;
+	bool lax = false;
 	// internal options
 	bool exporting = false;
 	bool profiling = false;

@@ -1,7 +1,7 @@
--- The Yuescript language library.
+-- The YueScript language library.
 local record yue
 
-	-- The Yuescript version.
+	-- The YueScript version.
 	version: string
 
 	-- The file separator for the current platform.
@@ -70,8 +70,8 @@ local record yue
 		options: Options
 	end
 
-	-- The Yuescript compiling function. It compiles the Yuescript code to Lua code.
-	-- @param code (string) The Yuescript code.
+	-- The YueScript compiling function. It compiles the YueScript code to Lua code.
+	-- @param code (string) The YueScript code.
 	-- @param config (Config) [Optional] The compiler options.
 	-- @return (string | nil) The compiled Lua code, or nil if the compilation failed.
 	-- @return (string | nil) The error message, or nil if the compilation succeeded.
@@ -91,17 +91,17 @@ local record yue
 	-- @return (string) The file content.
 	read_file: function(filename: string): string
 
-	-- Insert the Yuescript loader to the package loaders (searchers).
+	-- Insert the YueScript loader to the package loaders (searchers).
 	-- @param pos (integer) [Optional] The position to insert the loader. Default is 3.
 	-- @return (boolean) Whether the loader is inserted successfully. It will fail if the loader is already inserted.
 	insert_loader: function(pos?: integer): boolean
 
-	-- Remove the Yuescript loader from the package loaders (searchers).
+	-- Remove the YueScript loader from the package loaders (searchers).
 	-- @return (boolean) Whether the loader is removed successfully. It will fail if the loader is not inserted.
 	remove_loader: function(): boolean
 
-	-- Loads Yuescript code from a string into a function.
-	-- @param input (string) The Yuescript code.
+	-- Loads YueScript code from a string into a function.
+	-- @param input (string) The YueScript code.
 	-- @param chunkname (string) The name of the code chunk.
 	-- @param env (table) The environment table.
 	-- @param config (Config) [Optional] The compiler options.
@@ -111,8 +111,8 @@ local record yue
 		--[[loaded function]] nil | function(...: any): (any...),
 		--[[error]] string | nil
 
-	-- Loads Yuescript code from a string into a function.
-	-- @param input (string) The Yuescript code.
+	-- Loads YueScript code from a string into a function.
+	-- @param input (string) The YueScript code.
 	-- @param chunkname (string) The name of the code chunk.
 	-- @param config (Config) [Optional] The compiler options.
 	-- @return (function | nil) The loaded function, or nil if the loading failed.
@@ -121,8 +121,8 @@ local record yue
 		--[[loaded function]] nil | function(...: any): (any...),
 		--[[error]] string | nil
 
-	-- Loads Yuescript code from a string into a function.
-	-- @param input (string) The Yuescript code.
+	-- Loads YueScript code from a string into a function.
+	-- @param input (string) The YueScript code.
 	-- @param config (Config) [Optional] The compiler options.
 	-- @return (function | nil) The loaded function, or nil if the loading failed.
 	-- @return (string | nil) The error message, or nil if the loading succeeded.
@@ -130,7 +130,7 @@ local record yue
 		--[[loaded function]] nil | function(...: any): (any...),
 		--[[error]] string | nil
 
-	-- Loads Yuescript code from a file into a function.
+	-- Loads YueScript code from a file into a function.
 	-- @param filename (string) The file name.
 	-- @param env (table) The environment table.
 	-- @param config (Config) [Optional] The compiler options.
@@ -140,7 +140,7 @@ local record yue
 		nil | function(...: any): (any...),
 		string | nil
 
-	-- Loads Yuescript code from a file into a function.
+	-- Loads YueScript code from a file into a function.
 	-- @param filename (string) The file name.
 	-- @param config (Config) [Optional] The compiler options.
 	-- @return (function | nil) The loaded function, or nil if the loading failed.
@@ -149,34 +149,34 @@ local record yue
 		nil | function(...: any): (any...),
 		string | nil
 
-	-- Loads Yuescript code from a file into a function and executes it.
+	-- Loads YueScript code from a file into a function and executes it.
 	-- @param filename (string) The file name.
 	-- @param env (table) The environment table.
 	-- @param config (Config) [Optional] The compiler options.
 	-- @return (any...) The return values of the loaded function.
 	dofile: function(filename: string, env: table, config?: Config): any...
 
-	-- Loads Yuescript code from a file into a function and executes it.
+	-- Loads YueScript code from a file into a function and executes it.
 	-- @param filename (string) The file name.
 	-- @param config (Config) [Optional] The compiler options.
 	-- @return (any...) The return values of the loaded function.
 	dofile: function(filename: string, config?: Config): any...
 
-	-- Resolves the Yuescript module name to the file path.
+	-- Resolves the YueScript module name to the file path.
 	-- @param name (string) The module name.
 	-- @return (string) The file path.
 	find_modulepath: function(name: string): string
 
 	-- Calls a function in protected mode.
 	-- Catches any errors and returns a status code and results or error object.
-	-- Rewrites the error line number to the original line number in the Yuescript code when errors occur.
+	-- Rewrites the error line number to the original line number in the YueScript code when errors occur.
 	-- @param f (function) The function to call.
 	-- @param ... (any) Arguments to pass to the function.
 	-- @return (boolean, ...) Status code and function results or error object.
 	pcall: function(f: function, ...: any): boolean, any...
 
-	-- Loads a given module. Can be either a Lua module or a Yuescript module.
-	-- Rewrites the error line number to the original line number in the Yuescript code if the module is a Yuescript module and loading fails.
+	-- Loads a given module. Can be either a Lua module or a YueScript module.
+	-- Rewrites the error line number to the original line number in the YueScript code if the module is a YueScript module and loading fails.
 	-- @param modname (string) The name of the module to load.
 	-- @return (any) The value stored at package.loaded[modname] if the module is already loaded.
 	-- Otherwise, tries to find a loader and returns the final value of package.loaded[modname] and a loader data as a second result.
@@ -189,7 +189,7 @@ local record yue
 	-- The current compiler options.
 	options: Config.Options
 
-	-- The traceback function that rewrites the stack trace line numbers to the original line numbers in the Yuescript code.
+	-- The traceback function that rewrites the stack trace line numbers to the original line numbers in the YueScript code.
 	-- @param message (string) The traceback message.
 	-- @return (string) The rewritten traceback message.
 	traceback: function(message: string): string
@@ -200,7 +200,7 @@ local record yue
 		globals: {{string, integer, integer}}
 	): string | nil
 
-	-- Compiles the Yuescript code to Lua code in a thread.
+	-- Compiles the YueScript code to Lua code in a thread.
 	-- @param sourceFile (string) The source file name.
 	-- @param targetFile (string) The target file name.
 	-- @param searchPath (string) The extra module search path.
@@ -233,13 +233,14 @@ local record yue
 		--[[AST]] AST | nil,
 		--[[error]] nil | string
 
-	-- Checks for the problems in the Yuescript code asynchronously.
+	-- Checks for the problems in the YueScript code asynchronously.
 	-- Should be called in a coroutine thread.
-	-- @param yueCodes (string) The Yuescript code.
+	-- @param yueCodes (string) The YueScript code.
 	-- @param searchPath (string) The extra module search path.
+	-- @param lax (boolean) Using lax mode.
 	-- @return ({info}) The problem information with type, message, line and column as an array.
 	-- @return (string | nil) The Lua codes when no problem found, or nil if the checking failed.
-	checkAsync: function(yueCodes: string, searchPath: string):
+	checkAsync: function(yueCodes: string, searchPath: string, lax: boolean):
 		--[[info]] {{
 			--[[type]] string,
 			--[[msg]] string,
@@ -251,8 +252,8 @@ local record yue
 	-- Clears the compiled macro functions in cache.
 	clear: function()
 
-	-- Requires the Yuescript module.
-	-- Rewrites the error line number to the original line number in the Yuescript code when loading fails.
+	-- Requires the YueScript module.
+	-- Rewrites the error line number to the original line number in the YueScript code when loading fails.
 	-- @param module (string) The module name.
 	-- @return (any) The module value.
 	metamethod __call: function(self: yue, module: string): any...

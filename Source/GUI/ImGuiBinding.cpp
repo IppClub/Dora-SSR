@@ -220,7 +220,7 @@ static ImGuiTreeNodeFlags_ getTreeNodeFlag(String flag) {
 		case "SpanLabelWidth"_hash: return ImGuiTreeNodeFlags_SpanLabelWidth;
 		case "SpanAllColumns"_hash: return ImGuiTreeNodeFlags_SpanAllColumns;
 		case "LabelSpanAllColumns"_hash: return ImGuiTreeNodeFlags_LabelSpanAllColumns;
-		case "NavLeftJumpsBackHere"_hash: return ImGuiTreeNodeFlags_NavLeftJumpsBackHere;
+		case "NavLeftJumpsToParent"_hash: return ImGuiTreeNodeFlags_NavLeftJumpsToParent;
 		case "CollapsingHeader"_hash: return ImGuiTreeNodeFlags_CollapsingHeader;
 		case ""_hash: return ImGuiTreeNodeFlags_(0);
 		default:
@@ -848,7 +848,7 @@ bool ColorEdit4(const char* label, Color* color, Slice* colorEditFlags, int colo
 	return changed;
 }
 
-void Image(String clipStr, const Vec2& size, Color tint_col, Color border_col) {
+void Image(String clipStr, const Vec2& size) {
 	Texture2D* tex = nullptr;
 	Rect rect;
 	std::tie(tex, rect) = SharedClipCache.loadTexture(clipStr);
@@ -863,7 +863,25 @@ void Image(String clipStr, const Vec2& size, Color tint_col, Color border_col) {
 	Vec2 texSize{s_cast<float>(tex->getWidth()), s_cast<float>(tex->getHeight())};
 	Vec2 uv0 = rect.origin / texSize;
 	Vec2 uv1 = (rect.origin + Vec2{1, 1} * rect.size) / texSize;
-	ImGui::Image(texture.ptr, size, uv0, uv1, tint_col.toVec4(), border_col.toVec4());
+	ImGui::Image(texture.ptr, size, uv0, uv1);
+}
+
+void ImageWithBg(String clipStr, const Vec2& size, Color tint_col, Color border_col) {
+	Texture2D* tex = nullptr;
+	Rect rect;
+	std::tie(tex, rect) = SharedClipCache.loadTexture(clipStr);
+	AssertUnless(tex, "failed to get resource for ImGui.Image");
+	union {
+		ImTextureID ptr;
+		struct {
+			bgfx::TextureHandle handle;
+		} s;
+	} texture;
+	texture.s.handle = tex->getHandle();
+	Vec2 texSize{s_cast<float>(tex->getWidth()), s_cast<float>(tex->getHeight())};
+	Vec2 uv0 = rect.origin / texSize;
+	Vec2 uv1 = (rect.origin + Vec2{1, 1} * rect.size) / texSize;
+	ImGui::ImageWithBg(texture.ptr, size, uv0, uv1, tint_col.toVec4(), border_col.toVec4());
 }
 
 bool ImageButton(const char* str_id, String clipStr, const Vec2& size, Color bg_col, Color tint_col) {

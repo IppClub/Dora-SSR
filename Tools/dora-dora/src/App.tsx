@@ -1051,11 +1051,12 @@ export default function PersistentDrawerLeft() {
 	const saveFileInTab = useCallback((file: EditingFile, preview: boolean) => {
 		return new Promise<EditingFile[]>((resolve, reject) => {
 			const saveFile = (extraFile?: EditingFile) => {
+				const filesToSave = extraFile !== undefined ? [file, extraFile] : [file];
 				if (file.contentModified !== null) {
 					const readOnly = checkFileReadonly(file.key, true);
 					if (readOnly) {
 						addAlert(t("alert.builtin"), "warning");
-						resolve([file]);
+						resolve(filesToSave);
 						return;
 					}
 					const {contentModified} = file;
@@ -1064,7 +1065,6 @@ export default function PersistentDrawerLeft() {
 							file.content = contentModified;
 							file.contentModified = null;
 							const ext = path.extname(file.key).toLowerCase();
-							const filesToSave = extraFile !== undefined ? [file, extraFile] : [file];
 							if (ext === '.yue' || ext === '.tl' || ext === '.xml') {
 								const {key} = file;
 								const extname = path.extname(key);
@@ -1083,7 +1083,7 @@ export default function PersistentDrawerLeft() {
 									}, 10);
 									resolve([file, fileInTab]);
 								} else {
-									resolve(extraFile !== undefined ? [file, extraFile] : [file]);
+									resolve(filesToSave);
 								}
 							} else if (ext === '.wa') {
 								Service.buildWa({path: file.key}).then((res) => {
@@ -1130,6 +1130,7 @@ export default function PersistentDrawerLeft() {
 									break;
 								}
 							}
+							resolve(filesToSave);
 						} else {
 							addAlert(t("alert.saveCurrent"), "error");
 							reject("failed to save file");
@@ -1138,6 +1139,8 @@ export default function PersistentDrawerLeft() {
 						addAlert(t("alert.saveCurrent"), "error");
 						reject("failed to save file");
 					});
+				} else {
+					resolve(filesToSave);
 				}
 			};
 			if (file.yarnData !== undefined) {

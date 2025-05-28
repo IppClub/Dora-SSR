@@ -66,9 +66,9 @@ disabledCheckForLua =
 	* "not a function"
 	* "to%-be%-closed"
 
-yueCheck = (file, content) ->
+yueCheck = (file, content, lax) ->
 	searchPath = getSearchPath file
-	checkResult, luaCodes = yue.checkAsync content, searchPath
+	checkResult, luaCodes = yue.checkAsync content, searchPath, lax
 	info = []
 	globals = []
 	for [t, msg, line, col] in *checkResult
@@ -131,8 +131,8 @@ luaCheckWithLineInfo = (file, luaCodes) ->
 		return false, info
 	return true, info
 
-getCompiledYueLine = (content, line, row, file) ->
-	luaCodes, _info = yueCheck file, content
+getCompiledYueLine = (content, line, row, file, lax) ->
+	luaCodes, _info = yueCheck file, content, lax
 	return nil unless luaCodes
 	current = 1
 	lastLine = 1
@@ -143,7 +143,7 @@ getCompiledYueLine = (content, line, row, file) ->
 		num = lineCode\match "--%s*(%d+)%s*$"
 		lastLine = tonumber num if num
 		lineMap[current] = lastLine
-		if row == lastLine and not targetLine
+		if row <= lastLine and not targetLine
 			targetRow = current
 			targetLine = line\gsub("::", "\\")\gsub(":", "=")\gsub("\\", ":")\match "[%w_%.:]+$"
 			break if targetLine
@@ -163,7 +163,7 @@ HttpServer\postSchedule "/check", (req): success: true ->
 		when "lua"
 			return luaCheck file, content
 		when "yue"
-			luaCodes, info = yueCheck file, content
+			luaCodes, info = yueCheck file, content, false
 			success = false
 			if luaCodes
 				luaSuccess, luaInfo = luaCheckWithLineInfo file, luaCodes
@@ -215,7 +215,7 @@ HttpServer\postSchedule "/infer", (req): success: false ->
 				updateInferedDesc infered
 				return success: true, :infered
 		when "yue"
-			luaCodes, targetLine, targetRow, lineMap = getCompiledYueLine content, line, row, file
+			luaCodes, targetLine, targetRow, lineMap = getCompiledYueLine content, line, row, file, false
 			return success: false unless luaCodes
 			infered = teal.inferAsync luaCodes, targetLine, targetRow, searchPath
 			if infered?
@@ -292,11 +292,11 @@ HttpServer\postSchedule "/signature", (req): success: false ->
 				if signatures := getParamDocs signatures
 					return success: true, :signatures
 		when "yue"
-			luaCodes, targetLine, targetRow, _lineMap = getCompiledYueLine content, line, row, file
+			luaCodes, targetLine, targetRow, _lineMap = getCompiledYueLine content, line, row, file, false
 			return success: false unless luaCodes
 			if chainOp, chainCall := line\match "[^%w_]([%.\\])([^%.\\]+)$"
-				withVar = luaCodes\match "([%w_]+)%.___DUMMY_CALL___%(%)"
-				targetLine = withVar .. (chainOp == '\\' and ':' or '.') .. chainCall
+				if withVar := luaCodes\match "([%w_]+)%.___DUMMY_CALL___%(%)"
+					targetLine = withVar .. (chainOp == '\\' and ':' or '.') .. chainCall
 			if signatures := teal.getSignatureAsync luaCodes, targetLine, targetRow, searchPath
 				if signatures := getParamDocs signatures
 					return success: true, :signatures
@@ -463,7 +463,7 @@ HttpServer\postSchedule "/complete", (req): success: false ->
 		when "yue"
 			suggestions = []
 			gotGlobals = false
-			if luaCodes, targetLine, targetRow := getCompiledYueLine content, line, row, file
+			if luaCodes, targetLine, targetRow := getCompiledYueLine content, line, row, file, true
 				gotGlobals = true
 				if chainOp := line\match "[^%w_]([%.\\])$"
 					withVar = luaCodes\match "([%w_]+)%.___DUMMY_CALL___%(%)"
