@@ -430,7 +430,7 @@ func imgui_bullet_item()
 func imgui_text_link(label: i64) => i32
 
 #wa:import dora imgui_text_link_open_url
-func imgui_text_link_open_url(label: i64, url: i64)
+func imgui_text_link_open_url(label: i64, url: i64) => i32
 
 #wa:import dora imgui_set_window_focus
 func imgui_set_window_focus(name: i64)
@@ -1059,8 +1059,8 @@ func _ImGui.BulletItem() {
 func _ImGui.TextLink(label: string) => bool {
 	return imgui_text_link(ToDoraString(label)) != 0
 }
-func _ImGui.TextLinkOpenUrl(label: string, url: string) {
-	imgui_text_link_open_url(ToDoraString(label), ToDoraString(url))
+func _ImGui.TextLinkOpenUrl(label: string, url: string) => bool {
+	return imgui_text_link_open_url(ToDoraString(label), ToDoraString(url)) != 0
 }
 func _ImGui.SetWindowFocus(name: string) {
 	imgui_set_window_focus(ToDoraString(name))

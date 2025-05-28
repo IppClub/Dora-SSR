@@ -347,6 +347,7 @@ private:
 	AST_RULE(ForEach);
 	AST_RULE(Do);
 	AST_RULE(CatchBlock);
+	AST_RULE(Omit);
 	AST_RULE(Try);
 	AST_RULE(Comprehension);
 	AST_RULE(CompValue);

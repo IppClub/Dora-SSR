@@ -766,6 +766,6 @@ inline void OpenPopup(String str_id) { ImGui::OpenPopup(str_id.c_str()); }
 inline bool BeginPopup(String str_id) { return ImGui::BeginPopup(str_id.c_str()); }
 
 inline bool TextLink(String label) { return ImGui::TextLink(label.c_str()); }
-inline void TextLinkOpenURL(String label, String url) { ImGui::TextLinkOpenURL(label.c_str(), url.c_str()); }
+inline bool TextLinkOpenURL(String label, String url) { return ImGui::TextLinkOpenURL(label.c_str(), url.c_str()); }
 
 NS_END(ImGui::Binding)

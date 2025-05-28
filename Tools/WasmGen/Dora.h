@@ -5430,7 +5430,7 @@ static void TableSetupScrollFreeze(int cols, int rows);
 static void TableHeadersRow();
 static void Bullet @ bulletItem();
 static bool Binding::TextLink @ TextLink(string label);
-static void Binding::TextLinkOpenURL @ TextLinkOpen_url(string label, string url);
+static bool Binding::TextLinkOpenURL @ TextLinkOpen_url(string label, string url);
 
 static void Binding::SetWindowFocus @ SetWindowFocus(string name);
 static void Binding::SeparatorText @ SeparatorText(string text);
