@@ -2641,7 +2641,7 @@ global ImGuiTreeNodeSpanFullWidth = _ImGuiTreeNodeFlag{value: 1 << 12}
 global ImGuiTreeNodeSpanLabelWidth = _ImGuiTreeNodeFlag{value: 1 << 13}
 global ImGuiTreeNodeSpanAllColumns = _ImGuiTreeNodeFlag{value: 1 << 14}
 global ImGuiTreeNodeLabelSpanAllColumns = _ImGuiTreeNodeFlag{value: 1 << 15}
-global ImGuiTreeNodeNavLeftJumpsBackHere = _ImGuiTreeNodeFlag{value: 1 << 17}
+global ImGuiTreeNodeNavLeftJumpsToParent = _ImGuiTreeNodeFlag{value: 1 << 17}
 global ImGuiTreeNodeCollapsingHeader = _ImGuiTreeNodeFlag{value: ImGuiTreeNodeFramed.value | ImGuiTreeNodeNoTreePushOnOpen.value | ImGuiTreeNodeNoAutoOpenOnLog.value}
 
 type _ImGuiTreeNodeFlags :struct {

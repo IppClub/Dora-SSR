@@ -651,16 +651,20 @@ static int dora_yue_check_async(lua_State* L) {
 	Slice codes{str, len};
 	str = luaL_checklstring(L, 2, &len);
 	Slice searchPath{str, len};
+	bool lax = false;
+	luaL_checktype(L, 3, LUA_TBOOLEAN);
+	lax = lua_toboolean(L, 3) != 0;
 	tolua_Error err;
-	if (!tolua_isfunction(L, 3, &err)) {
+	if (!tolua_isfunction(L, 4, &err)) {
 		tolua_error(L, "#ferror in function 'yue.checkAsync'.", &err);
 	}
-	Ref<LuaHandler> handler(LuaHandler::create(tolua_ref_function(L, 3)));
-	SharedAsyncThread.run([codes = codes.toString(), searchPath = searchPath.toString()]() {
+	Ref<LuaHandler> handler(LuaHandler::create(tolua_ref_function(L, 4)));
+	SharedAsyncThread.run([codes = codes.toString(), searchPath = searchPath.toString(), lax]() {
 		yue::YueConfig config;
 		config.implicitReturnRoot = true;
 		config.reserveLineNumber = true;
 		config.lintGlobalVariable = true;
+		config.lax = lax;
 		if (!searchPath.empty()) {
 			config.options["path"s] = searchPath;
 		}

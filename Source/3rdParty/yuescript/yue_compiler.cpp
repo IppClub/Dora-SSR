@@ -165,12 +165,12 @@ public:
 		double compileTime = 0.0;
 		if (config.profiling) {
 			auto start = std::chrono::high_resolution_clock::now();
-			_info = _parser.parse<File_t>(codes);
+			_info = _parser.parse<File_t>(codes, config.lax);
 			auto stop = std::chrono::high_resolution_clock::now();
 			std::chrono::duration<double> diff = stop - start;
 			parseTime = diff.count();
 		} else {
-			_info = _parser.parse<File_t>(codes);
+			_info = _parser.parse<File_t>(codes, config.lax);
 		}
 		std::unique_ptr<GlobalVars> globals;
 		std::unique_ptr<Options> options;
@@ -1258,7 +1258,7 @@ private:
 
 	template <class T>
 	ast_ptr<false, T> toAst(std::string_view codes, ast_node* parent) {
-		auto res = _parser.parse<T>(std::string(codes));
+		auto res = _parser.parse<T>(std::string(codes), false);
 		if (res.error) {
 			throw CompileError(res.error.value().msg, parent);
 		}
@@ -5093,36 +5093,45 @@ private:
 		if (!nodes.empty()) {
 			str_list temp;
 			for (auto node : nodes) {
-				currentScope().lastStatement = (node == nodes.back()) && currentScope().mode == GlobalMode::None;
-				transformStatement(static_cast<Statement_t*>(node), temp);
-				if (isRoot && !_rootDefs.empty()) {
-					auto last = std::move(temp.back());
-					temp.pop_back();
-					temp.insert(temp.end(), _rootDefs.begin(), _rootDefs.end());
-					_rootDefs.clear();
-					temp.push_back(std::move(last));
-				}
-				if (!temp.empty() && _parser.startWith<StatementSep_t>(temp.back())) {
-					auto rit = ++temp.rbegin();
-					if (rit != temp.rend() && !rit->empty()) {
-						auto index = std::string::npos;
-						if (_config.reserveLineNumber) {
-							index = rit->rfind(" -- "sv);
-						} else {
-							index = rit->find_last_not_of('\n');
-							if (index != std::string::npos) index++;
-						}
-						if (index != std::string::npos) {
-							auto ending = rit->substr(0, index);
-							auto ind = ending.find_last_of(" \t\n"sv);
-							if (ind != std::string::npos) {
-								ending = ending.substr(ind + 1);
+				auto transformNode = [&]() {
+					currentScope().lastStatement = (node == nodes.back()) && currentScope().mode == GlobalMode::None;
+					transformStatement(static_cast<Statement_t*>(node), temp);
+					if (isRoot && !_rootDefs.empty()) {
+						auto last = std::move(temp.back());
+						temp.pop_back();
+						temp.insert(temp.end(), _rootDefs.begin(), _rootDefs.end());
+						_rootDefs.clear();
+						temp.push_back(std::move(last));
+					}
+					if (!temp.empty() && _parser.startWith<StatementSep_t>(temp.back())) {
+						auto rit = ++temp.rbegin();
+						if (rit != temp.rend() && !rit->empty()) {
+							auto index = std::string::npos;
+							if (_config.reserveLineNumber) {
+								index = rit->rfind(" -- "sv);
+							} else {
+								index = rit->find_last_not_of('\n');
+								if (index != std::string::npos) index++;
 							}
-							if (LuaKeywords.find(ending) == LuaKeywords.end()) {
-								rit->insert(index, ";"sv);
+							if (index != std::string::npos) {
+								auto ending = rit->substr(0, index);
+								auto ind = ending.find_last_of(" \t\n"sv);
+								if (ind != std::string::npos) {
+									ending = ending.substr(ind + 1);
+								}
+								if (LuaKeywords.find(ending) == LuaKeywords.end()) {
+									rit->insert(index, ";"sv);
+								}
 							}
 						}
 					}
+				};
+				if (_config.lax) {
+					try {
+						transformNode();
+					} catch (const CompileError&) { }
+				} else {
+					transformNode();
 				}
 			}
 			out.push_back(join(temp));
@@ -6193,7 +6202,7 @@ private:
 			case id<ColonChainItem_t>():
 			case id<Exp_t>():
 				if (_withVars.empty()) {
-					throw CompileError("short dot/colon and indexing syntax must be called within a with block"sv, x);
+					throw CompileError("short dot/colon/indexing syntax must be called within a with block"sv, x);
 				} else {
 					temp.push_back(_withVars.top());
 				}
@@ -6714,14 +6723,14 @@ private:
 		} else {
 			if (!codes.empty()) {
 				if (isBlock) {
-					info = _parser.parse<BlockEnd_t>(codes);
+					info = _parser.parse<BlockEnd_t>(codes, false);
 					if (info.error) {
 						throw CompileError("failed to expand macro as block: "s + info.error.value().msg, x);
 					}
 				} else {
-					info = _parser.parse<Exp_t>(codes);
+					info = _parser.parse<Exp_t>(codes, false);
 					if (!info.node && allowBlockMacroReturn) {
-						info = _parser.parse<BlockEnd_t>(codes);
+						info = _parser.parse<BlockEnd_t>(codes, false);
 						if (info.error) {
 							throw CompileError("failed to expand macro as expr or block: "s + info.error.value().msg, x);
 						}

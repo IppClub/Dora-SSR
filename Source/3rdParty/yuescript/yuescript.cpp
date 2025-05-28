@@ -93,6 +93,12 @@ static void get_config(lua_State* L, yue::YueConfig& config) {
 		config.useSpaceOverTab = lua_toboolean(L, -1) != 0;
 	}
 	lua_pop(L, 1);
+	lua_pushliteral(L, "lax");
+	lua_gettable(L, -2);
+	if (lua_isboolean(L, -1) != 0) {
+		config.lax = lua_toboolean(L, -1) != 0;
+	}
+	lua_pop(L, 1);
 	lua_pushliteral(L, "options");
 	lua_gettable(L, -2);
 	if (lua_istable(L, -1) != 0) {
@@ -180,7 +186,7 @@ static int yueformat(lua_State* L) {
 		tabSize = static_cast<int>(luaL_checkinteger(L, 2));
 	}
 	std::string_view codes(input, len);
-	auto info = yue::YueParser::shared().parse<yue::File_t>(codes);
+	auto info = yue::YueParser::shared().parse<yue::File_t>(codes, false);
 	if (info.error) {
 		const auto& error = info.error.value();
 		if (!info.codes) {
@@ -282,8 +288,13 @@ static int yuetoast(lua_State* L) {
 			ruleName = {name, nameSize};
 		}
 	}
+	bool lax = false;
+	if (!lua_isnoneornil(L, 4)) {
+		luaL_checktype(L, 4, LUA_TBOOLEAN);
+		lax = lua_toboolean(L, 4) != 0;
+	}
 	auto& yueParser = yue::YueParser::shared();
-	auto info = ruleName.empty() ? yueParser.parse<yue::File_t>({input, size}) : yueParser.parse(ruleName, {input, size});
+	auto info = ruleName.empty() ? yueParser.parse<yue::File_t>({input, size}, lax) : yueParser.parse(ruleName, {input, size}, lax);
 	if (!info.error) {
 		lua_createtable(L, 0, 0);
 		int tableIndex = lua_gettop(L);

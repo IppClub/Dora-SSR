@@ -4059,7 +4059,7 @@ pub enum ImGuiTreeNodeFlag {
 	SpanLabelWidth = 1 << 13,
 	SpanAllColumns = 1 << 14,
 	LabelSpanAllColumns = 1 << 15,
-	NavLeftJumpsBackHere = 1 << 17,
+	NavLeftJumpsToParent = 1 << 17,
 }
 
 impl ImGuiTreeNodeFlag {
@@ -5494,9 +5494,6 @@ impl ImGui {
 			result = stack.pop_f32().unwrap();
 		});
 		(changed, result)
-	}
-	pub fn image(clip_str: &str, size: &crate::dora::Vec2) {
-		ImGui::image_opts(clip_str, size, &Color::WHITE, &Color::TRANSPARENT);
 	}
 	pub fn image_button(str_id: &str, clip_str: &str, size: &crate::dora::Vec2) -> bool {
 		ImGui::image_button_opts(str_id, clip_str, size, &Color::TRANSPARENT, &Color::WHITE)

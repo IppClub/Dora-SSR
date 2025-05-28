@@ -332,7 +332,7 @@ YueParser::YueParser() {
 		Exp;
 	import_tab_list = import_tab_item >> *(space >> ',' >> space >> import_tab_item);
 	import_tab_line = (
-		push_indent_match >> (space >> import_tab_list >> pop_indent | pop_indent)
+		push_indent_match >> ensure(space >> import_tab_list, pop_indent)
 	) | space;
 	import_tab_lines = space_break >> import_tab_line >> *(-(space >> ',') >> space_break >> import_tab_line) >> -(space >> ',');
 	import_tab_key_value = key_value | ':' >> MacroName | MacroNamePair | ImportAllMacro;
@@ -667,7 +667,7 @@ YueParser::YueParser() {
 	fn_args_value_list = Exp >> *(space >> ',' >> space >> Exp);
 
 	fn_args_lit_line = (
-		push_indent_match >> (space >> fn_args_value_list >> pop_indent | pop_indent)
+		push_indent_match >> ensure(space >> fn_args_value_list, pop_indent)
 	) | (
 		space
 	);
@@ -875,7 +875,7 @@ YueParser::YueParser() {
 	fn_arg_def_list = FnArgDef >> *(space >> ',' >> space >> FnArgDef);
 
 	fn_arg_def_lit_line = (
-		push_indent_match >> (space >> fn_arg_def_list >> pop_indent | pop_indent)
+		push_indent_match >> ensure(space >> fn_arg_def_list, pop_indent)
 	) | (
 		space
 	);
@@ -1030,11 +1030,16 @@ YueParser::YueParser() {
 		empty_line_break |
 		advance_match >> ensure(space >> (indentation_error | Statement), pop_indent)
 	);
-	Block = Seperator >> line >> *(+line_break >> line);
+	Block = Seperator >> (pl::user(true_(), [](const item_t& item) {
+		State* st = reinterpret_cast<State*>(item.user_data);
+		return st->lax;
+	}) >> lax_line >> *(+line_break >> lax_line) | line >> *(+line_break >> line));
 
 	shebang = "#!" >> *(not_(stop) >> any_char);
 	BlockEnd = Block >> white >> stop;
 	File = -shebang >> -Block >> white >> stop;
+
+	lax_line = advance_match >> ensure(*(not_(stop) >> any()), pop_indent) | line >> and_(stop) | check_indent_match >> *(not_(stop) >> any());
 }
 // clang-format on
 
@@ -1064,7 +1069,7 @@ bool YueParser::startWith(std::string_view codes, rule& r) {
 	return true;
 }
 
-ParseInfo YueParser::parse(std::string_view codes, rule& r) {
+ParseInfo YueParser::parse(std::string_view codes, rule& r, bool lax) {
 	ParseInfo res;
 	if (codes.substr(0, 3) == "\xEF\xBB\xBF"sv) {
 		codes = codes.substr(3);
@@ -1082,6 +1087,7 @@ ParseInfo YueParser::parse(std::string_view codes, rule& r) {
 	error_list errors;
 	try {
 		State state;
+		state.lax = lax;
 		res.node.set(::yue::parse(*(res.codes), r, errors, &state));
 		if (state.exportCount > 0) {
 			int index = 0;
@@ -1119,10 +1125,10 @@ ParseInfo YueParser::parse(std::string_view codes, rule& r) {
 	return res;
 }
 
-ParseInfo YueParser::parse(std::string_view astName, std::string_view codes) {
+ParseInfo YueParser::parse(std::string_view astName, std::string_view codes, bool lax) {
 	auto it = _rules.find(astName);
 	if (it != _rules.end()) {
-		return parse(codes, *it->second);
+		return parse(codes, *it->second, lax);
 	}
 	return {};
 }
@@ -1131,7 +1137,7 @@ bool YueParser::match(std::string_view astName, std::string_view codes) {
 	auto it = _rules.find(astName);
 	if (it != _rules.end()) {
 		auto rEnd = rule(*it->second >> eof());
-		return parse(codes, rEnd).node;
+		return parse(codes, rEnd, false).node;
 	}
 	return false;
 }

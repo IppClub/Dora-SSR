@@ -193,7 +193,7 @@ local record ImGui
 		""
 		"Selected"
 		"Framed"
-		"AllowItemOverlap"
+		"AllowOverlap"
 		"NoTreePushOnOpen"
 		"NoAutoOpenOnLog"
 		"DefaultOpen"
@@ -207,7 +207,7 @@ local record ImGui
 		"SpanLabelWidth"
 		"SpanAllColumns"
 		"LabelSpanAllColumns"
-		"NavLeftJumpsBackHere"
+		"NavLeftJumpsToParent"
 		"CollapsingHeader"
 	end
 	enum SelectableFlag
@@ -216,7 +216,7 @@ local record ImGui
 		"SpanAllColumns"
 		"AllowDoubleClick"
 		"Disabled"
-		"AllowItemOverlap"
+		"AllowOverlap"
 	end
 	enum TableFlag
 		""
