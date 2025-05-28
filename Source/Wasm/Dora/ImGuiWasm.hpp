@@ -439,8 +439,8 @@ void imgui_bullet_item() {
 int32_t imgui_text_link(int64_t label) {
 	return ImGui::Binding::TextLink(*Str_From(label)) ? 1 : 0;
 }
-void imgui_text_link_open_url(int64_t label, int64_t url) {
-	ImGui::Binding::TextLinkOpenURL(*Str_From(label), *Str_From(url));
+int32_t imgui_text_link_open_url(int64_t label, int64_t url) {
+	return ImGui::Binding::TextLinkOpenURL(*Str_From(label), *Str_From(url)) ? 1 : 0;
 }
 void imgui_set_window_focus(int64_t name) {
 	ImGui::Binding::SetWindowFocus(*Str_From(name));

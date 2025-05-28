@@ -213,7 +213,7 @@ namespace ImGui
 
 	void Bullet @ BulletItem();
 	bool TextLink(CString label);
-	void TextLinkOpenURL(CString label, CString url = nullptr);
+	bool TextLinkOpenURL(CString label, CString url = nullptr);
 	bool Button(CString label, Vec2 size = Vec2::zero);
 	bool SmallButton(CString label);
 	bool InvisibleButton(CString str_id, Vec2 size);

@@ -553,7 +553,7 @@ export function GetID(this: void, str_id: string): number;
 
 export function BulletItem(this: void): void;
 export function TextLink(label: string): boolean;
-export function TextLinkOpenURL(label: string, url?: string): void;
+export function TextLinkOpenURL(label: string, url?: string): boolean;
 export function Button(this: void, label: string, size?: Vec2): boolean;
 export function SmallButton(this: void, label: string): boolean;
 export function InvisibleButton(this: void, str_id: string, size: Vec2): boolean;

@@ -609,13 +609,19 @@ std::string CatchBlock_t::to_string(void* ud) const {
 	info->popScope();
 	return line + '\n' + blockStr;
 }
+std::string Omit_t::to_string(void*) const {
+	return "!"s;
+}
 std::string Try_t::to_string(void* ud) const {
 	auto info = reinterpret_cast<YueFormat*>(ud);
 	str_list temp;
+	temp.emplace_back("try"s);
+	if (omit) {
+		temp.back() += '!';
+	}
 	if (func.is<Exp_t>()) {
-		temp.emplace_back("try "s + func->to_string(ud));
+		temp.back() += (" "s + func->to_string(ud));
 	} else {
-		temp.emplace_back("try"s);
 		info->pushScope();
 		temp.emplace_back(func->to_string(ud));
 		if (temp.back().empty()) {
