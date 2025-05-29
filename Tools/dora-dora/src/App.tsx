@@ -278,6 +278,7 @@ export default function PersistentDrawerLeft() {
 		type: AlertColor,
 		openLog?: boolean,
 	}[]>([]);
+	const [isWaSaving, setIsWaSaving] = useState(false);
 	const [drawerOpen, setDrawerOpen] = useState(true);
 	const [tabIndex, setTabIndex] = useState<number | null>(null);
 	const [files, setFiles] = useState<EditingFile[]>([]);
@@ -1086,13 +1087,16 @@ export default function PersistentDrawerLeft() {
 									resolve(filesToSave);
 								}
 							} else if (ext === '.wa') {
+								setIsWaSaving(true);
 								Service.buildWa({path: file.key}).then((res) => {
 									if (!res.success) {
 										addAlert(res.message, "error", true);
 										Service.command({code: `Log "Error", "${res.message.replace(/[\\"]/g, "\\$&")}"`, log: false});
 									}
+									setIsWaSaving(false);
 									resolve(filesToSave);
 								}).catch(() => {
+									setIsWaSaving(false);
 									resolve(filesToSave);
 								});
 							} else {
@@ -1130,7 +1134,6 @@ export default function PersistentDrawerLeft() {
 									break;
 								}
 							}
-							resolve(filesToSave);
 						} else {
 							addAlert(t("alert.saveCurrent"), "error");
 							reject("failed to save file");
@@ -3191,6 +3194,29 @@ export default function PersistentDrawerLeft() {
 						</Typography>
 					</Box>
 				</Modal>
+			</Box>
+			<Box
+				sx={{
+					position: 'fixed',
+					left: (drawerOpen ? drawerWidth : 0) + 20,
+					bottom: 20,
+					zIndex: 1200,
+					opacity: isWaSaving ? 1 : 0,
+					transition: 'opacity 0.5s ease-in-out 0.5s',
+					backgroundColor: 'rgba(15, 15, 15, 0.7)',
+					padding: '8px 16px',
+					borderRadius: '4px',
+					animation: isWaSaving ? 'blink 1.5s infinite' : 'none',
+					'@keyframes blink': {
+						'0%': { opacity: 0.7 },
+						'50%': { opacity: 1 },
+						'100%': { opacity: 0.7 }
+					}
+				}}
+			>
+				<Typography sx={{ color: 'white' }}>
+					{t("alert.saving")}
+				</Typography>
 			</Box>
 		</Entry>
 	);
