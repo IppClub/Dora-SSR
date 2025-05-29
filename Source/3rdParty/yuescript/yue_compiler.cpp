@@ -78,7 +78,7 @@ static std::unordered_set<std::string> Metamethods = {
 	"close"s // Lua 5.4
 };
 
-const std::string_view version = "0.28.6"sv;
+const std::string_view version = "0.28.7"sv;
 const std::string_view extension = "yue"sv;
 
 class CompileError : public std::logic_error {
@@ -2332,7 +2332,7 @@ private:
 			}
 			case id<Try_t>(): {
 				auto tryNode = static_cast<Try_t*>(value);
-				if (tryNode->omit) {
+				if (tryNode->eop) {
 					auto assignList = assignment->expList.get();
 					std::string preDefine = getPreDefineLine(assignment);
 					transformTry(tryNode, out, ExpUsage::Assignment, assignList);
@@ -10055,7 +10055,7 @@ private:
 
 	void transformTry(Try_t* tryNode, str_list& out, ExpUsage usage, ExpList_t* assignList = nullptr) {
 		auto x = tryNode;
-		if (tryNode->omit && usage == ExpUsage::Assignment) {
+		if (tryNode->eop && usage == ExpUsage::Assignment) {
 			str_list rets;
 			pushScope();
 			auto okVar = getUnusedName("_ok_"sv);
@@ -10080,7 +10080,7 @@ private:
 			transformAssignment(assignment, out);
 			return;
 		}
-		if (tryNode->omit && usage != ExpUsage::Common) {
+		if (tryNode->eop && usage != ExpUsage::Common) {
 			auto okVar = getUnusedName("_ok_"sv);
 			auto code = "do\n\t"s + okVar + ", ... = try nil\n\t... if "s + okVar;
 			auto doNode = toAst<Do_t>(code, x);
