@@ -383,14 +383,11 @@ AST_NODE(CatchBlock)
 	AST_MEMBER(CatchBlock, &err, &block)
 AST_END(CatchBlock)
 
-AST_LEAF(Omit)
-AST_END(Omit)
-
 AST_NODE(Try)
-	ast_ptr<false, Omit_t> omit;
+	ast_ptr<false, ExistentialOp_t> eop;
 	ast_sel<true, Block_t, Exp_t> func;
 	ast_ptr<false, CatchBlock_t> catchBlock;
-	AST_MEMBER(Try, &omit, &func, &catchBlock)
+	AST_MEMBER(Try, &eop, &func, &catchBlock)
 AST_END(Try)
 
 AST_NODE(Comprehension)

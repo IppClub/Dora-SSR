@@ -501,9 +501,8 @@ YueParser::YueParser() {
 		return true;
 	});
 
-	Omit = expr('!');
 	CatchBlock = line_break >> *space_break >> check_indent_match >> space >> key("catch") >> space >> Variable >> space >> in_block;
-	Try = key("try") >> -Omit >> space >> (in_block | Exp) >> -CatchBlock;
+	Try = key("try") >> -ExistentialOp >> space >> (in_block | Exp) >> -CatchBlock;
 
 	list_value =
 		and_(
