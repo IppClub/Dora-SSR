@@ -3670,10 +3670,6 @@ func _ImGui.SliderAngleRet(label: string, v: f32, v_degrees_min: f32, v_degrees_
 	return changed, res_v
 }
 
-func _ImGui.Image(clip_str: string, size: Vec2) {
-	this.ImageOpts(clip_str, size, ColorWhite, ColorTransparent)
-}
-
 func _ImGui.ImageButton(str_id: string, clip_str: string, size: Vec2) => bool {
 	return this.ImageButtonOpts(str_id, clip_str, size, ColorTransparent, ColorWhite)
 }
