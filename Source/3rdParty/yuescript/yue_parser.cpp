@@ -1130,7 +1130,7 @@ ParseInfo YueParser::parse(std::string_view astName, std::string_view codes, boo
 	if (it != _rules.end()) {
 		return parse(codes, *it->second, lax);
 	}
-	return {};
+	return {.error = ParseInfo::Error{"invalid rule: "s + std::string{astName}, 1, 1}};
 }
 
 bool YueParser::match(std::string_view astName, std::string_view codes) {
