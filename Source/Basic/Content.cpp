@@ -763,12 +763,12 @@ void Content::clearPathCache() {
 static std::string toMBString(const std::string& utf8Str) {
 	// Step 1: Convert UTF-8 to UTF-16 (wide string)
 	int wideLen = MultiByteToWideChar(CP_UTF8, 0, utf8Str.c_str(), -1, nullptr, 0);
-	AssertIf(wideLen == 0, "wide char conversion failed");
+	if (wideLen == 0) return {};
 	std::wstring wideStr(wideLen, L'\0');
 	MultiByteToWideChar(CP_UTF8, 0, utf8Str.c_str(), -1, &wideStr[0], wideLen);
 	// Step 2: Convert UTF-16 to current code page (multibyte)
 	int mbLen = WideCharToMultiByte(CP_ACP, 0, wideStr.c_str(), -1, nullptr, 0, nullptr, nullptr);
-	AssertIf(mbLen == 0, "multibyte conversion failed");
+	if (mbLen == 0) return {};
 	std::string mbStr(mbLen, '\0');
 	WideCharToMultiByte(CP_ACP, 0, wideStr.c_str(), -1, &mbStr[0], mbLen, nullptr, nullptr);
 	// Remove the null terminator appended by WideCharToMultiByte
@@ -780,11 +780,11 @@ static std::string toMBString(const std::string& utf8Str) {
 
 static std::string toUTF8String(const std::string& str) {
 	int wsize = MultiByteToWideChar(CP_ACP, 0, str.data(), s_cast<int>(str.length()), nullptr, 0);
-	AssertIf(wsize == 0, "wide char conversion failed");
+	if (wsize == 0) return {};
 	std::wstring wstr(wsize, 0);
 	MultiByteToWideChar(CP_ACP, 0, str.data(), s_cast<int>(str.length()), &wstr[0], wsize);
 	int u8size = WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), s_cast<int>(wstr.length()), nullptr, 0, nullptr, nullptr);
-	AssertIf(u8size == 0, "utf8 conversion failed");
+	if (u8size == 0) return {};
 	std::string u8str(u8size, '\0');
 	WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), s_cast<int>(wstr.length()), &u8str[0], u8size, nullptr, nullptr);
 	return u8str;
