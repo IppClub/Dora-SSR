@@ -754,12 +754,53 @@ void Content::clearPathCache() {
 	_fullPathCache.clear();
 }
 
+#if BX_PLATFORM_WINDOWS
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif // WIN32_LEAN_AND_MEAN
+#include <windows.h>
+
+static std::string toMBString(const std::string& utf8Str) {
+	// Step 1: Convert UTF-8 to UTF-16 (wide string)
+	int wideLen = MultiByteToWideChar(CP_UTF8, 0, utf8Str.c_str(), -1, nullptr, 0);
+	AssertIf(wideLen == 0, "wide char conversion failed");
+	std::wstring wideStr(wideLen, L'\0');
+	MultiByteToWideChar(CP_UTF8, 0, utf8Str.c_str(), -1, &wideStr[0], wideLen);
+	// Step 2: Convert UTF-16 to current code page (multibyte)
+	int mbLen = WideCharToMultiByte(CP_ACP, 0, wideStr.c_str(), -1, nullptr, 0, nullptr, nullptr);
+	AssertIf(mbLen == 0, "multibyte conversion failed");
+	std::string mbStr(mbLen, '\0');
+	WideCharToMultiByte(CP_ACP, 0, wideStr.c_str(), -1, &mbStr[0], mbLen, nullptr, nullptr);
+	// Remove the null terminator appended by WideCharToMultiByte
+	if (!mbStr.empty() && mbStr.back() == '\0') {
+		mbStr.pop_back();
+	}
+	return mbStr;
+}
+
+static std::string toUTF8String(const std::string& str) {
+	int wsize = MultiByteToWideChar(CP_ACP, 0, str.data(), s_cast<int>(str.length()), nullptr, 0);
+	AssertIf(wsize == 0, "wide char conversion failed");
+	std::wstring wstr(wsize, 0);
+	MultiByteToWideChar(CP_ACP, 0, str.data(), s_cast<int>(str.length()), &wstr[0], wsize);
+	int u8size = WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), s_cast<int>(wstr.length()), nullptr, 0, nullptr, nullptr);
+	AssertIf(u8size == 0, "utf8 conversion failed");
+	std::string u8str(u8size, '\0');
+	WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), s_cast<int>(wstr.length()), &u8str[0], u8size, nullptr, nullptr);
+	return u8str;
+}
+#endif // BX_PLATFORM_WINDOWS
+
 static std::string getPrefPath() {
 	char* prefPath = SDL_GetPrefPath(DORA_DEFAULT_ORG_NAME, DORA_DEFAULT_APP_NAME);
 	std::string appPath = prefPath;
 	trimTrailingSlashes(appPath);
 	SDL_free(prefPath);
+#if BX_PLATFORM_WINDOWS
+	return toMBString(appPath);
+#else
 	return appPath;
+#endif
 }
 
 #if BX_PLATFORM_ANDROID
@@ -929,23 +970,6 @@ Content::Content()
 #endif // BX_PLATFORM_OSX || BX_PLATFORM_IOS
 
 #if BX_PLATFORM_WINDOWS || BX_PLATFORM_OSX || BX_PLATFORM_IOS || BX_PLATFORM_LINUX
-
-#if BX_PLATFORM_WINDOWS
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif // WIN32_LEAN_AND_MEAN
-#include <windows.h>
-static std::string toUTF8String(const std::string& str) {
-	int wsize = MultiByteToWideChar(CP_ACP, 0, str.data(), str.length(), nullptr, 0);
-	std::wstring wstr(wsize, 0);
-	MultiByteToWideChar(CP_ACP, 0, str.data(), str.length(), &wstr[0], wsize);
-	int u8size = WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), wstr.length(), nullptr, 0, nullptr, nullptr);
-	std::string u8str(u8size, '\0');
-	WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), wstr.length(), &u8str[0], u8size, nullptr, nullptr);
-	return u8str;
-}
-#endif // BX_PLATFORM_WINDOWS
-
 uint8_t* Content::loadUnsafe(String filename, int64_t& size) {
 	if (filename.empty()) return nullptr;
 	auto fullPathAndPackage = Content::getFullPathAndPackage(filename);
