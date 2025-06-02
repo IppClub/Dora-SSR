@@ -494,7 +494,7 @@ LintYueGlobals = function(luaCodes, globals, globalInLocal) -- 302
 				importItem, -- 312
 				item -- 312
 			} -- 312
-			_len_0 = _len_0 + 1 -- 312
+			_len_0 = _len_0 + 1 -- 309
 			::_continue_0:: -- 309
 		end -- 312
 		importItems = _accum_0 -- 308

@@ -22,7 +22,7 @@ StarVertices = function(radius, line) -- 11
 		local angle = i * a -- 18
 		local cr = i % 2 == 1 and r or R -- 19
 		_accum_0[_len_0] = Vec2(cr * math.sin(angle), cr * math.cos(angle)) -- 20
-		_len_0 = _len_0 + 1 -- 20
+		_len_0 = _len_0 + 1 -- 18
 	end -- 20
 	return _accum_0 -- 20
 end -- 11

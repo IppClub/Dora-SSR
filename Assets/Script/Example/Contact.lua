@@ -36,7 +36,7 @@ do -- 12
 		for i = 1, count + 1 do -- 15
 			local angle = 2 * math.pi * i / count -- 16
 			_accum_0[_len_0] = Vec2(radius * math.cos(angle), radius * math.sin(angle)) -- 17
-			_len_0 = _len_0 + 1 -- 17
+			_len_0 = _len_0 + 1 -- 16
 		end -- 17
 		vertices = _accum_0 -- 15
 	end -- 17
