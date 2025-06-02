@@ -703,8 +703,8 @@ local _anon_func_1 = function(entity, itemSettings, items, pairs, tostring) -- 5
 		if skill then -- 552
 			entity[tostring(skill) .. "Skill"] = true -- 553
 			_accum_0[_len_0] = skill -- 554
+			_len_0 = _len_0 + 1 -- 552
 		end -- 552
-		_len_0 = _len_0 + 1 -- 554
 	end -- 554
 	return _accum_0 -- 554
 end -- 551

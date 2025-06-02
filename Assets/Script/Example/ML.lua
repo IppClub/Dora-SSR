@@ -677,10 +677,10 @@ getEffect = function(tags, action) -- 190
 				k, -- 210
 				v[2] -- 210
 			} -- 210
+			_len_0 = _len_0 + 1 -- 208
 		else -- 211
 			goto _continue_1 -- 211
 		end -- 209
-		_len_0 = _len_0 + 1 -- 211
 		::_continue_1:: -- 208
 	end -- 211
 	return _accum_0 -- 211

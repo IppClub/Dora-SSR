@@ -774,19 +774,21 @@ export default function PersistentDrawerLeft() {
 				debounceDuration: 2000,
 				sourceCache: {
 					isFileAvailable: async (uri: string) => {
-						const lib = monaco.languages.typescript.typescriptDefaults.getExtraLibs()[uri];
+						const file = uri.startsWith("file:") ? monaco.Uri.parse(uri).fsPath : uri;
+						const lib = monaco.languages.typescript.typescriptDefaults.getExtraLibs()[file];
 						if (lib !== undefined) return true;
-						const model = monaco.editor.getModel(monaco.Uri.parse(uri));
+						const model = monaco.editor.getModel(monaco.Uri.file(file));
 						if (model !== null) return true;
-						const res = await Service.exist({file: uri.startsWith("file:") ? monaco.Uri.parse(uri).fsPath : uri, projFile});
+						const res = await Service.exist({file, projFile});
 						return res.success;
 					},
 					getFile: async (uri: string) => {
-						const lib = monaco.languages.typescript.typescriptDefaults.getExtraLibs()[uri];
+						const file = uri.startsWith("file:") ? monaco.Uri.parse(uri).fsPath : uri;
+						const lib = monaco.languages.typescript.typescriptDefaults.getExtraLibs()[file];
 						if (lib !== undefined) return lib.content;
-						const model = monaco.editor.getModel(monaco.Uri.parse(uri));
+						const model = monaco.editor.getModel(monaco.Uri.file(file));
 						if (model !== null) return model.getValue();
-						const res = await Service.read({path: uri.startsWith("file:") ? monaco.Uri.parse(uri).fsPath : uri, projFile});
+						const res = await Service.read({path: file, projFile});
 						if (res.success) {
 							return res.content;
 						}
@@ -1077,7 +1079,7 @@ export default function PersistentDrawerLeft() {
 									const resultCodes = res.resultCodes === undefined ? "" : res.resultCodes;
 									fileInTab.content = resultCodes;
 									setTimeout(() => {
-										const model = monaco.editor.getModel(monaco.Uri.parse(luaFile));
+										const model = monaco.editor.getModel(monaco.Uri.file(luaFile));
 										if (model) {
 											model.setValue(resultCodes);
 										}
@@ -1167,7 +1169,7 @@ export default function PersistentDrawerLeft() {
 					const fileInTab = files.find(f => path.relative(f.key, tlFile) === "");
 					if (fileInTab !== undefined) {
 						fileInTab.content = tealCode;
-						const model = monaco.editor.getModel(monaco.Uri.parse(tlFile));
+						const model = monaco.editor.getModel(monaco.Uri.file(tlFile));
 						if (model) {
 							model.setValue(tealCode);
 						}
@@ -1212,7 +1214,7 @@ export default function PersistentDrawerLeft() {
 				const fileInTab = files.find(f => path.relative(f.key, luaFile) === "");
 				if (fileInTab !== undefined) {
 					fileInTab.content = blocklyData;
-					const model = monaco.editor.getModel(monaco.Uri.parse(luaFile));
+					const model = monaco.editor.getModel(monaco.Uri.file(luaFile));
 					if (model) {
 						model.setValue(blocklyData);
 					}
@@ -1246,7 +1248,7 @@ export default function PersistentDrawerLeft() {
 								const fileInTab = files.find(f => path.relative(f.key, luaFile) === "");
 								if (fileInTab !== undefined) {
 									fileInTab.content = luaCode;
-									const model = monaco.editor.getModel(monaco.Uri.parse(luaFile));
+									const model = monaco.editor.getModel(monaco.Uri.file(luaFile));
 									if (model) {
 										model.setValue(luaCode);
 									}
@@ -1382,7 +1384,7 @@ export default function PersistentDrawerLeft() {
 			confirmed: () => {
 				Service.deleteFile({path: data.key}).then((res) => {
 					if (!res.success) return;
-					const uri = monaco.Uri.parse(data.key);
+					const uri = monaco.Uri.file(data.key);
 					const model = monaco.editor.getModel(uri);
 					if (model !== null) {
 						model.dispose();
@@ -1568,7 +1570,7 @@ export default function PersistentDrawerLeft() {
 						import('./TranspileTS').then(({getDeclarationFile}) => {
 							const declaration = getDeclarationFile(key, res.content);
 							if (declaration !== null) {
-								const uri = monaco.Uri.parse(declaration.fileName);
+								const uri = monaco.Uri.file(declaration.fileName);
 								const model = monaco.editor.getModel(uri);
 								if (model !== null) {
 									model.setValue(declaration.content);
@@ -1718,7 +1720,7 @@ export default function PersistentDrawerLeft() {
 								if (luaCode !== undefined) {
 									if (fileInTab !== undefined) {
 										fileInTab.content = luaCode;
-										const model = monaco.editor.getModel(monaco.Uri.parse(luaFile));
+										const model = monaco.editor.getModel(monaco.Uri.file(luaFile));
 										if (model) {
 											model.setValue(luaCode);
 										}
@@ -1752,7 +1754,7 @@ export default function PersistentDrawerLeft() {
 									const resultCodes = res.resultCodes === undefined ? "" : res.resultCodes;
 									fileInTab.content = resultCodes;
 									setTimeout(() => {
-										const model = monaco.editor.getModel(monaco.Uri.parse(luaFile));
+										const model = monaco.editor.getModel(monaco.Uri.file(luaFile));
 										if (model) {
 											model.setValue(resultCodes);
 										}
@@ -1889,7 +1891,7 @@ export default function PersistentDrawerLeft() {
 							addAlert(t("alert.renameFailed"), "error");
 							return;
 						}
-						const uri = monaco.Uri.parse(oldFile);
+						const uri = monaco.Uri.file(oldFile);
 						const model = monaco.editor.getModel(uri);
 						if (model !== null) {
 							model.dispose();
@@ -3044,11 +3046,11 @@ export default function PersistentDrawerLeft() {
 										const extname = path.extname(file.key);
 										const name = path.basename(file.key, extname);
 										const luaFile = path.join(path.dirname(file.key), name + ".lua");
-										const model = monaco.editor.getModel(monaco.Uri.parse(luaFile));
+										const model = monaco.editor.getModel(monaco.Uri.file(luaFile));
 										if (model) {
 											model.setValue(blocklyCode);
 										} else {
-											monaco.editor.createModel(blocklyCode, "lua", monaco.Uri.parse(luaFile));
+											monaco.editor.createModel(blocklyCode, "lua", monaco.Uri.file(luaFile));
 										}
 									}}
 								/> : null

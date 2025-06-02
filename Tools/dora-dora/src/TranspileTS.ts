@@ -60,7 +60,7 @@ function createCompilerHost(rootFileName: string, content: string): [ts.Compiler
 					const dirName = Info.path.dirname(relativePath);
 					const path = Info.path.join(dirName, targetFile);
 					for (const ext of [".d.ts", ".ts", ".tsx"]) {
-						const uri = monaco.Uri.parse(path + ext);
+						const uri = monaco.Uri.file(path + ext);
 						const model = monaco.editor.getModel(uri);
 						if (model !== null) {
 							pathMap.set(fileName, uri);
@@ -69,7 +69,7 @@ function createCompilerHost(rootFileName: string, content: string): [ts.Compiler
 					}
 					const res = Service.readSync({path, exts: [".d.ts", ".ts", ".tsx"], projFile: rootFileName});
 					if (res?.success) {
-						const uri = monaco.Uri.parse(res.fullPath);
+						const uri = monaco.Uri.file(res.fullPath);
 						if (monaco.editor.getModel(uri) === null) {
 							monaco.editor.createModel(res.content, 'typescript', uri);
 						}
@@ -82,7 +82,7 @@ function createCompilerHost(rootFileName: string, content: string): [ts.Compiler
 			let currentBaseName = Info.path.basename(fileName, currentExt);
 			currentBaseName = Info.path.extname(currentBaseName) === ".d" ? Info.path.basename(currentBaseName, ".d") : currentBaseName;
 			for (const ext of [".d.ts", ".ts", ".tsx"]) {
-				const uri = monaco.Uri.parse(Info.path.join(Info.path.dirname(fileName), currentBaseName + ext));
+				const uri = monaco.Uri.file(Info.path.join(Info.path.dirname(fileName), currentBaseName + ext));
 				const model = monaco.editor.getModel(uri);
 				if (model !== null) {
 					pathMap.set(fileName, uri);
@@ -92,7 +92,7 @@ function createCompilerHost(rootFileName: string, content: string): [ts.Compiler
 			const searchFile = Info.path.join(Info.path.dirname(fileName), currentBaseName);
 			const res = Service.readSync({path: searchFile, exts: [".d.ts", ".ts", ".tsx"], projFile: rootFileName});
 			if (res?.success) {
-				const uri = monaco.Uri.parse(res.fullPath);
+				const uri = monaco.Uri.file(res.fullPath);
 				if (monaco.editor.getModel(uri) === null) {
 					monaco.editor.createModel(res.content, 'typescript', uri);
 				}
@@ -106,7 +106,7 @@ function createCompilerHost(rootFileName: string, content: string): [ts.Compiler
 				baseName = Info.path.extname(baseName) === ".d" ? Info.path.basename(baseName, ".d") : baseName;
 				const dirName = Info.path.dirname(relativeFile);
 				const targetFile = Info.path.join(dirName, baseName) + ".d.ts";
-				const uri = monaco.Uri.parse(targetFile);
+				const uri = monaco.Uri.file(targetFile);
 				const model = monaco.editor.getModel(uri);
 				if (model !== null) {
 					pathMap.set(fileName, uri);
@@ -114,7 +114,7 @@ function createCompilerHost(rootFileName: string, content: string): [ts.Compiler
 				}
 				const res = Service.readSync({path: targetFile, projFile: rootFileName});
 				if (res?.success) {
-					const uri = monaco.Uri.parse(targetFile);
+					const uri = monaco.Uri.file(targetFile);
 					if (monaco.editor.getModel(uri) === null) {
 						monaco.editor.createModel(res.content, 'typescript', uri);
 					}
@@ -129,7 +129,7 @@ function createCompilerHost(rootFileName: string, content: string): [ts.Compiler
 		getDefaultLibFileName: () => "lib.Dora.d.ts",
 		readFile: fileName => {
 			fileName = Info.path.normalize(fileName);
-			const uri = monaco.Uri.parse(fileName);
+			const uri = monaco.Uri.file(fileName);
 			const model = monaco.editor.getModel(uri);
 			if (model !== null) {
 				return model.getValue();
@@ -154,7 +154,7 @@ function createCompilerHost(rootFileName: string, content: string): [ts.Compiler
 				return ts.createSourceFile("dummy.d.ts", "", scriptTarget, false);
 			}
 			if (baseName === 'jsx.d.ts' || baseName === 'DoraX.d.ts') {
-				const uri = monaco.Uri.parse(baseName);
+				const uri = monaco.Uri.file(baseName);
 				const model = monaco.editor.getModel(uri);
 				if (model !== null) {
 					return ts.createSourceFile(baseName, model.getValue(), scriptTarget, false);
@@ -167,7 +167,7 @@ function createCompilerHost(rootFileName: string, content: string): [ts.Compiler
 				}
 			}
 			if (baseName === 'lib.Dora.d.ts') {
-				const uri = monaco.Uri.parse("Dora.d.ts");
+				const uri = monaco.Uri.file("Dora.d.ts");
 				const model = monaco.editor.getModel(uri);
 				if (model !== null) {
 					return ts.createSourceFile("Dora.d.ts", model.getValue(), scriptTarget, false);
@@ -230,7 +230,13 @@ export async function transpileTypescript(
 	});
 	diagnostics = [...diagnostics, ...res.diagnostics].filter(d => d.code !== 2497 && d.code !== 2666);
 
-	const otherFileDiagnostics = diagnostics.filter(d => Info.path.relative(monaco.Uri.parse(d.file?.fileName ?? "").fsPath, fileName) !== "");
+	const otherFileDiagnostics = diagnostics.filter(d => {
+		try {
+			return Info.path.relative(d.file?.fileName ?? "", fileName) !== "";
+		} catch {
+			return true;
+		}
+	});
 	addDiagnosticToLog(fileName, otherFileDiagnostics);
 
 	const success = diagnostics.length === 0;
@@ -291,7 +297,7 @@ export async function revalidateModel(model: monaco.editor.ITextModel) {
 }
 
 export function setModelMarkers(model: monaco.editor.ITextModel, diagnostics: readonly ts.Diagnostic[]) {
-	const markers = diagnostics.filter(d => Info.path.relative(monaco.Uri.parse(d.file?.fileName ?? "").fsPath, model.uri.fsPath) === "" && d.source === 'typescript-to-lua').map(d => {
+	const markers = diagnostics.filter(d => Info.path.relative(d.file?.fileName ?? "", model.uri.fsPath) === "" && d.source === 'typescript-to-lua').map(d => {
 		let {start = 0, length = 0} = d;
 		const startPos = model.getPositionAt(start);
 		const endPos = model.getPositionAt(start + length);

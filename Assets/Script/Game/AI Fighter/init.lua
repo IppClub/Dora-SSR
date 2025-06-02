@@ -419,12 +419,12 @@ do -- 280
 							end -- 286
 						end -- 285
 						_accum_1[_len_1] = tostring(val) -- 287
-						_len_1 = _len_1 + 1 -- 287
+						_len_1 = _len_1 + 1 -- 284
 					end -- 287
 					rd = _accum_1 -- 283
 				end -- 287
 				_accum_0[_len_0] = table.concat(rd, ",") -- 288
-				_len_0 = _len_0 + 1 -- 288
+				_len_0 = _len_0 + 1 -- 283
 			end -- 288
 			csvData = _accum_0 -- 282
 		end -- 288
