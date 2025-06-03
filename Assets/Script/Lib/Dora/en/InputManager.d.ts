@@ -1,3 +1,5 @@
+declare module 'InputManager' {
+
 import { React } from 'DoraX';
 import { AxisName, ButtonName, KeyName, Node } from 'Dora';
 
@@ -423,3 +425,5 @@ export function GamePad(props: GamePadProps): React.Element;
  * @returns The gamepad node.
  */
 export function CreateGamePad(this: void, props: GamePadProps): Node.Type;
+
+} // module "InputManager"
