@@ -3095,14 +3095,6 @@ private:
 						throw CompileError("duplicated spread expression"sv, pair);
 					}
 					hasSpread = true;
-					Exp_t* exp = nullptr;
-					if (auto se = ast_cast<SpreadExp_t>(pair)) {
-						exp = se->exp.get();
-					} else {
-						exp = ast_to<SpreadListExp_t>(pair)->exp.get();
-					}
-					auto varName = singleVariableFrom(exp, AccessType::None);
-					if (varName == "_"sv) break;
 					for (auto item : *tableItems) {
 						if (ast_is<
 								SpreadListExp_t, SpreadExp_t,
@@ -3111,6 +3103,14 @@ private:
 							count++;
 						}
 					}
+					Exp_t* exp = nullptr;
+					if (auto se = ast_cast<SpreadExp_t>(pair)) {
+						exp = se->exp.get();
+					} else {
+						exp = ast_to<SpreadListExp_t>(pair)->exp.get();
+					}
+					auto varName = singleVariableFrom(exp, AccessType::None);
+					if (varName == "_"sv) break;
 					int start = index;
 					int stop = index - count - 1;
 					auto chain = exp->new_ptr<ChainValue_t>();
@@ -8286,14 +8286,14 @@ private:
 					}
 					maxVar = getUnusedName("_max_"sv);
 					varBefore.push_back(maxVar);
-					_buf << prefix << indent() << "local "sv << maxVar << " = "sv << stopValue << " + 1"sv << nll(nameList);
+					_buf << prefix << indent() << "local "sv << maxVar << " = "sv << stopValue << nll(nameList);
 				}
 				_buf << indent() << "for "sv << indexVar << " = "sv;
 				_buf << startValue << ", "sv;
 				if (stopValue.empty()) {
 					_buf << "#"sv << listVar;
 				} else {
-					_buf << maxVar << " < 0 and #"sv << listVar << " + "sv << maxVar << " or "sv << maxVar;
+					_buf << maxVar << " < 0 and #"sv << listVar << " + "sv << maxVar << " + 1 or "sv << maxVar;
 				}
 				if (!stepValue.empty()) {
 					_buf << ", "sv << stepValue;
