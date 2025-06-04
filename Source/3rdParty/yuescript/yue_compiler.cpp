@@ -8180,6 +8180,11 @@ private:
 	}
 
 	bool transformForEachHead(AssignableNameList_t* nameList, ast_node* loopTarget, str_list& out, bool inClosure) {
+		enum class NumState {
+			Unknown,
+			Positive,
+			Negtive
+		};
 		auto x = nameList;
 		str_list temp;
 		str_list vars;
@@ -8246,15 +8251,35 @@ private:
 				for (auto item : chainList) {
 					chain->items.push_back(item);
 				}
-				std::string startValue("1"sv);
+				std::string startValue;
+				NumState startStatus = NumState::Unknown;
 				if (auto exp = slice->startValue.as<Exp_t>()) {
 					transformExp(exp, temp, ExpUsage::Closure);
+					if (temp.back().at(0) == '-') {
+						if (_parser.match<Num_t>(temp.back().substr(1))) {
+							startStatus = NumState::Negtive;
+						}
+					} else {
+						if (_parser.match<Num_t>(temp.back())) {
+							startStatus = NumState::Positive;
+						}
+					}
 					startValue = std::move(temp.back());
 					temp.pop_back();
 				}
 				std::string stopValue;
+				NumState stopStatus = NumState::Unknown;
 				if (auto exp = slice->stopValue.as<Exp_t>()) {
 					transformExp(exp, temp, ExpUsage::Closure);
+					if (temp.back().at(0) == '-') {
+						if (_parser.match<Num_t>(temp.back().substr(1))) {
+							stopStatus = NumState::Negtive;
+						}
+					} else {
+						if (_parser.match<Num_t>(temp.back())) {
+							stopStatus = NumState::Positive;
+						}
+					}
 					stopValue = std::move(temp.back());
 					temp.pop_back();
 				}
@@ -8276,8 +8301,33 @@ private:
 					transformChainValue(chain, temp, ExpUsage::Closure);
 					_buf << prefix << indent() << "local "sv << listVar << " = "sv << temp.back() << nll(nameList);
 				}
+				if (startValue.empty()) {
+					startValue = "1"s;
+					startStatus = NumState::Positive;
+				}
+				std::string minVar;
+				if (startStatus != NumState::Positive) {
+					std::string prefix;
+					if (!extraScope && !inClosure && needScope) {
+						extraScope = true;
+						prefix = indent() + "do"s + nll(x);
+						pushScope();
+					}
+					minVar = getUnusedName("_min_"sv);
+					varBefore.push_back(minVar);
+					if (startStatus == NumState::Negtive) {
+						_buf << prefix << indent() << "local "sv << minVar << " = "sv << "#"sv << listVar << " + "sv << startValue << " + 1"sv << nll(nameList);
+					} else {
+						_buf << prefix << indent() << "local "sv << minVar << " = "sv << startValue << nll(nameList);
+					}
+				}
+				bool defaultStop = false;
+				if (stopValue.empty()) {
+					stopValue = "#"s + listVar;
+					defaultStop = true;
+				}
 				std::string maxVar;
-				if (!stopValue.empty()) {
+				if (stopStatus != NumState::Positive) {
 					std::string prefix;
 					if (!extraScope && !inClosure && needScope) {
 						extraScope = true;
@@ -8286,14 +8336,45 @@ private:
 					}
 					maxVar = getUnusedName("_max_"sv);
 					varBefore.push_back(maxVar);
-					_buf << prefix << indent() << "local "sv << maxVar << " = "sv << stopValue << nll(nameList);
+					if (stopStatus == NumState::Negtive) {
+						_buf << indent() << "local "sv << maxVar << " = "sv << "#"sv << listVar << " + "sv << stopValue << " + 1"sv << nll(nameList);
+					} else {
+						_buf << prefix << indent() << "local "sv << maxVar << " = "sv << stopValue << nll(nameList);
+					}
+				}
+				if (startStatus == NumState::Unknown) {
+					_buf << indent() << minVar << " = "sv << minVar << " < 0 and #"sv << listVar << " + "sv << minVar << " + 1 or "sv << minVar << nll(nameList);
+				}
+				if (!defaultStop && stopStatus == NumState::Unknown) {
+					_buf << indent() << maxVar << " = "sv << maxVar << " < 0 and #"sv << listVar << " + "sv << maxVar << " + 1 or "sv << maxVar << nll(nameList);
 				}
 				_buf << indent() << "for "sv << indexVar << " = "sv;
-				_buf << startValue << ", "sv;
+				if (startValue.empty()) {
+					_buf << "1"sv;
+				} else {
+					switch (startStatus) {
+						case NumState::Unknown:
+						case NumState::Negtive:
+							_buf << minVar;
+							break;
+						case NumState::Positive:
+							_buf << startValue;
+							break;
+					}
+				}
+				_buf << ", "sv;
 				if (stopValue.empty()) {
 					_buf << "#"sv << listVar;
 				} else {
-					_buf << maxVar << " < 0 and #"sv << listVar << " + "sv << maxVar << " + 1 or "sv << maxVar;
+					switch (stopStatus) {
+						case NumState::Unknown:
+						case NumState::Negtive:
+							_buf << maxVar;
+							break;
+						case NumState::Positive:
+							_buf << stopValue;
+							break;
+					}
 				}
 				if (!stepValue.empty()) {
 					_buf << ", "sv << stepValue;
