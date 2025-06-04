@@ -7058,9 +7058,6 @@ private:
 #endif // YUE_NO_MACRO
 		}
 		const auto& chainList = chainValue->items.objects();
-		if (transformChainEndWithSlice(chainList, out, usage, assignList)) {
-			return;
-		}
 		if (transformChainEndWithEOP(chainList, out, usage, assignList)) {
 			return;
 		}
@@ -7071,6 +7068,9 @@ private:
 			return;
 		}
 		if (transformChainEndWithColonItem(chainList, out, usage, assignList)) {
+			return;
+		}
+		if (transformChainEndWithSlice(chainList, out, usage, assignList)) {
 			return;
 		}
 		transformChainList(chainList, out, usage, assignList);
