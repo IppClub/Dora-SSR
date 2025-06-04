@@ -78,7 +78,7 @@ static std::unordered_set<std::string> Metamethods = {
 	"close"s // Lua 5.4
 };
 
-const std::string_view version = "0.28.7"sv;
+const std::string_view version = "0.29.0"sv;
 const std::string_view extension = "yue"sv;
 
 class CompileError : public std::logic_error {
@@ -1281,6 +1281,8 @@ private:
 		Common,
 		EndWithColon,
 		EndWithEOP,
+		EndWithSlice,
+		HasRIndex,
 		HasEOP,
 		HasKeyword,
 		HasUnicode,
@@ -1298,6 +1300,9 @@ private:
 		}
 		if (ast_is<ExistentialOp_t>(chainValue->items.back())) {
 			return ChainType::EndWithEOP;
+		}
+		if (ast_is<Slice_t>(chainValue->items.back())) {
+			return ChainType::EndWithSlice;
 		}
 		if (auto dot = ast_cast<DotChainItem_t>(chainValue->items.back())) {
 			if (dot->name.is<Metatable_t>()) {
@@ -1324,6 +1329,8 @@ private:
 				}
 			} else if (ast_is<ExistentialOp_t>(item)) {
 				return ChainType::HasEOP;
+			} else if (ast_is<ReversedIndex_t>(item)) {
+				return ChainType::HasRIndex;
 			}
 		}
 		return type;
@@ -2471,12 +2478,14 @@ private:
 			switch (type) {
 				case ChainType::HasEOP:
 				case ChainType::EndWithColon:
+				case ChainType::EndWithSlice:
 				case ChainType::MetaFieldInvocation: {
 					std::string preDefine = getPreDefineLine(assignment);
 					transformChainValue(chainValue, out, ExpUsage::Assignment, expList, false, optionalDestruct);
 					out.back().insert(0, preDefine);
 					return false;
 				}
+				case ChainType::HasRIndex:
 				case ChainType::HasKeyword:
 				case ChainType::HasUnicode:
 				case ChainType::Macro:
@@ -2832,17 +2841,19 @@ private:
 		if (!tableItems) throw CompileError("invalid destructure value"sv, node);
 		std::list<DestructItem> pairs;
 		int index = 0;
+		int count = 0;
+		bool hasSpread = false;
 		auto subMetaDestruct = node->new_ptr<TableLit_t>();
 		for (auto pair : *tableItems) {
 			switch (pair->get_id()) {
 				case id<Exp_t>():
 				case id<NormalDef_t>(): {
+					++index;
 					Exp_t* defVal = nullptr;
 					if (auto nd = ast_cast<NormalDef_t>(pair)) {
 						pair = nd->item.get();
 						defVal = nd->defVal.get();
 					}
-					++index;
 					bool assignable = false;
 					try {
 						assignable = isAssignable(static_cast<Exp_t*>(pair));
@@ -2853,13 +2864,19 @@ private:
 						if (optional) break;
 						throw CompileError("can't destructure value"sv, pair);
 					}
+					ast_ptr<true, ast_node> indexItem;
+					if (hasSpread) {
+						int rIndex = count - index;
+						indexItem.set(toAst<ReversedIndex_t>('#' + (rIndex == 0 ? Empty : "-"s + std::to_string(rIndex)), pair));
+					} else {
+						indexItem.set(toAst<Exp_t>(std::to_string(index), pair));
+					}
 					if (optional && varDefOnly && !assignable) {
 						if (defVal) {
 							throw CompileError("default value is not supported here"sv, defVal);
 						}
 						auto exp = static_cast<Exp_t*>(pair);
 						auto chain = exp->new_ptr<ChainValue_t>();
-						auto indexItem = toAst<Exp_t>(std::to_string(index), exp);
 						chain->items.push_back(indexItem);
 						pairs.push_back({exp, Empty, chain, nullptr});
 						break;
@@ -2874,7 +2891,6 @@ private:
 								throw CompileError("default value is not supported here"sv, defVal);
 							}
 						}
-						auto indexItem = toAst<Exp_t>(std::to_string(index), value);
 						for (auto& p : subPairs) {
 							if (sep) p.structure->items.push_front(sep);
 							p.structure->items.push_front(indexItem);
@@ -2885,7 +2901,6 @@ private:
 						auto varName = singleVariableFrom(exp, AccessType::None);
 						if (varName == "_"sv) break;
 						auto chain = exp->new_ptr<ChainValue_t>();
-						auto indexItem = toAst<Exp_t>(std::to_string(index), exp);
 						chain->items.push_back(indexItem);
 						pairs.push_back({exp,
 							varName,
@@ -3010,7 +3025,13 @@ private:
 					auto tb = static_cast<TableBlockIndent_t*>(pair);
 					++index;
 					auto subPairs = destructFromExp(tb, varDefOnly, optional);
-					auto indexItem = toAst<Exp_t>(std::to_string(index), tb);
+					ast_ptr<true, ast_node> indexItem;
+					if (hasSpread) {
+						int rIndex = count - index;
+						indexItem.set(toAst<ReversedIndex_t>('#' + (rIndex == 0 ? Empty : "-"s + std::to_string(rIndex)), tb));
+					} else {
+						indexItem.set(toAst<Exp_t>(std::to_string(index), tb));
+					}
 					for (auto& p : subPairs) {
 						if (sep) p.structure->items.push_front(sep);
 						p.structure->items.push_front(indexItem);
@@ -3065,6 +3086,42 @@ private:
 					newPairDef->pair.set(newPair);
 					newPairDef->defVal.set(defVal);
 					subMetaDestruct->values.push_back(newPairDef);
+					break;
+				}
+				case id<SpreadListExp_t>():
+				case id<SpreadExp_t>(): {
+					++index;
+					if (hasSpread) {
+						throw CompileError("duplicated spread expression"sv, pair);
+					}
+					hasSpread = true;
+					Exp_t* exp = nullptr;
+					if (auto se = ast_cast<SpreadExp_t>(pair)) {
+						exp = se->exp.get();
+					} else {
+						exp = ast_to<SpreadListExp_t>(pair)->exp.get();
+					}
+					auto varName = singleVariableFrom(exp, AccessType::None);
+					if (varName == "_"sv) break;
+					for (auto item : *tableItems) {
+						if (ast_is<
+								SpreadListExp_t, SpreadExp_t,
+								TableBlockIndent_t,
+								Exp_t, NormalDef_t>(item)) {
+							count++;
+						}
+					}
+					int start = index;
+					int stop = index - count - 1;
+					auto chain = exp->new_ptr<ChainValue_t>();
+					auto slice = toAst<Slice_t>(
+						'[' + (start == 1 ? Empty : std::to_string(start)) + ',' + (stop == -1 ? Empty : std::to_string(stop)) + ']', exp);
+					chain->items.push_back(slice);
+					auto nil = toAst<Exp_t>("nil"sv, slice);
+					pairs.push_back({exp,
+						varName,
+						chain,
+						nil.get()});
 					break;
 				}
 				default: YUEE("AST node mismatch", pair); break;
@@ -5706,6 +5763,45 @@ private:
 		}
 	}
 
+	bool transformChainEndWithSlice(const node_container& chainList, str_list& out, ExpUsage usage, ExpList_t* assignList) {
+		auto x = chainList.front();
+		if (ast_is<Slice_t>(chainList.back())) {
+			auto comp = x->new_ptr<Comprehension_t>();
+			{
+				auto chainValue = x->new_ptr<ChainValue_t>();
+				for (auto item : chainList) {
+					chainValue->items.push_back(item);
+				}
+				auto itemVar = getUnusedName("_item_"sv);
+				auto expCode = YueFormat{}.toString(chainValue);
+				auto compCode = '[' + itemVar + " for "s + itemVar + " in *"s + expCode + ']';
+				comp.set(toAst<Comprehension_t>(compCode, x));
+			}
+			switch (usage) {
+				case ExpUsage::Assignment: {
+					auto simpleValue = x->new_ptr<SimpleValue_t>();
+					simpleValue->value.set(comp);
+					auto exp = newExp(simpleValue, x);
+					auto assignment = x->new_ptr<ExpListAssign_t>();
+					assignment->expList.set(assignList);
+					auto assign = x->new_ptr<Assign_t>();
+					assign->values.push_back(exp);
+					assignment->action.set(assign);
+					transformAssignment(assignment, out);
+					break;
+				}
+				case ExpUsage::Return:
+					transformComprehension(comp, out, ExpUsage::Return);
+					break;
+				default:
+					transformComprehension(comp, out, ExpUsage::Closure);
+					break;
+			}
+			return true;
+		}
+		return false;
+	}
+
 	bool transformChainEndWithEOP(const node_container& chainList, str_list& out, ExpUsage usage, ExpList_t* assignList) {
 		auto x = chainList.front();
 		if (ast_is<ExistentialOp_t>(chainList.back())) {
@@ -6369,6 +6465,93 @@ private:
 						}
 						return;
 					}
+					break;
+				}
+				case id<ReversedIndex_t>(): {
+					auto rIndex = static_cast<ReversedIndex_t*>(*it);
+					auto current = it;
+					auto prevChain = x->new_ptr<ChainValue_t>();
+					for (auto i = chainList.begin(); i != current; ++i) {
+						prevChain->items.push_back(*i);
+					}
+					auto var = singleVariableFrom(prevChain, AccessType::None);
+					if (!var.empty() && isLocal(var)) {
+						auto indexNode = toAst<Exp_t>('#' + var, rIndex);
+						if (rIndex->modifier) {
+							auto opValue = rIndex->new_ptr<ExpOpValue_t>();
+							opValue->op.set(toAst<BinaryOperator_t>("-"sv, rIndex));
+							opValue->pipeExprs.dup(rIndex->modifier->pipeExprs);
+							indexNode->opValues.push_back(opValue);
+							indexNode->opValues.dup(rIndex->modifier->opValues);
+							indexNode->nilCoalesed.set(rIndex->modifier->nilCoalesed);
+						}
+						prevChain->items.push_back(indexNode);
+						auto next = current;
+						++next;
+						for (auto i = next; i != chainList.end(); ++i) {
+							prevChain->items.push_back(*i);
+						}
+						if (usage == ExpUsage::Assignment) {
+							auto assignment = x->new_ptr<ExpListAssign_t>();
+							assignment->expList.set(assignList);
+							auto assign = x->new_ptr<Assign_t>();
+							assign->values.push_back(newExp(prevChain, x));
+							assignment->action.set(assign);
+							transformAssignment(assignment, out);
+							return;
+						}
+						transformChainValue(prevChain, out, usage, assignList);
+						return;
+					} else {
+						auto itemVar = getUnusedName("_item_"sv);
+						auto asmt = assignmentFrom(toAst<Exp_t>(itemVar, x), newExp(prevChain, x), x);
+						auto stmt1 = x->new_ptr<Statement_t>();
+						stmt1->content.set(asmt);
+						auto newChain = x->new_ptr<ChainValue_t>();
+						newChain->items.push_back(toAst<Callable_t>(itemVar, x));
+						auto indexNode = toAst<Exp_t>('#' + itemVar, rIndex);
+						if (rIndex->modifier) {
+							auto opValue = rIndex->new_ptr<ExpOpValue_t>();
+							opValue->op.set(toAst<BinaryOperator_t>("-"sv, rIndex));
+							opValue->pipeExprs.dup(rIndex->modifier->pipeExprs);
+							indexNode->opValues.push_back(opValue);
+							indexNode->opValues.dup(rIndex->modifier->opValues);
+							indexNode->nilCoalesed.set(rIndex->modifier->nilCoalesed);
+						}
+						newChain->items.push_back(indexNode);
+						auto next = current;
+						++next;
+						for (auto i = next; i != chainList.end(); ++i) {
+							newChain->items.push_back(*i);
+						}
+						auto expList = x->new_ptr<ExpList_t>();
+						expList->exprs.push_back(newExp(newChain, x));
+						auto expListAssign = x->new_ptr<ExpListAssign_t>();
+						expListAssign->expList.set(expList);
+						auto stmt2 = x->new_ptr<Statement_t>();
+						stmt2->content.set(expListAssign);
+						auto block = x->new_ptr<Block_t>();
+						block->statements.push_back(stmt1);
+						block->statements.push_back(stmt2);
+						auto body = x->new_ptr<Body_t>();
+						body->content.set(block);
+						auto doNode = x->new_ptr<Do_t>();
+						doNode->body.set(body);
+						if (usage == ExpUsage::Assignment) {
+							auto assignment = x->new_ptr<ExpListAssign_t>();
+							assignment->expList.set(assignList);
+							auto assign = x->new_ptr<Assign_t>();
+							auto sVal = x->new_ptr<SimpleValue_t>();
+							sVal->value.set(doNode);
+							assign->values.push_back(newExp(sVal, x));
+							assignment->action.set(assign);
+							transformAssignment(assignment, out);
+							return;
+						}
+						transformDo(doNode, out, usage);
+						return;
+					}
+					break;
 				}
 			}
 		}
@@ -6875,6 +7058,9 @@ private:
 #endif // YUE_NO_MACRO
 		}
 		const auto& chainList = chainValue->items.objects();
+		if (transformChainEndWithSlice(chainList, out, usage, assignList)) {
+			return;
+		}
 		if (transformChainEndWithEOP(chainList, out, usage, assignList)) {
 			return;
 		}
@@ -8100,7 +8286,7 @@ private:
 					}
 					maxVar = getUnusedName("_max_"sv);
 					varBefore.push_back(maxVar);
-					_buf << prefix << indent() << "local "sv << maxVar << " = "sv << stopValue << nll(nameList);
+					_buf << prefix << indent() << "local "sv << maxVar << " = "sv << stopValue << " + 1"sv << nll(nameList);
 				}
 				_buf << indent() << "for "sv << indexVar << " = "sv;
 				_buf << startValue << ", "sv;
@@ -10059,24 +10245,24 @@ private:
 			str_list rets;
 			pushScope();
 			auto okVar = getUnusedName("_ok_"sv);
-					for (size_t i = 0; i < assignList->exprs.size(); i++) {
-						auto retVar = getUnusedName("_ret_"sv);
-						rets.emplace_back(retVar);
-						addToScope(retVar);
-					}
-					popScope();
-					auto varList = join(rets, ","sv);
-					auto ifNode = toAst<If_t>("if "s + okVar + ',' + varList + ":=try nil then "s + varList, x);
-					auto exp = ast_to<IfCond_t>(ifNode->nodes.front())->assignment->assign->values.front();
-					auto sVal = simpleSingleValueFrom(exp);
-					auto newTry = sVal->value.to<Try_t>();
-					newTry->func.set(tryNode->func);
-					newTry->catchBlock.set(tryNode->catchBlock);
-					auto assignment = x->new_ptr<ExpListAssign_t>();
-					assignment->expList.set(assignList);
-					auto assign = x->new_ptr<Assign_t>();
-					assign->values.push_back(ifNode);
-					assignment->action.set(assign);
+			for (size_t i = 0; i < assignList->exprs.size(); i++) {
+				auto retVar = getUnusedName("_ret_"sv);
+				rets.emplace_back(retVar);
+				addToScope(retVar);
+			}
+			popScope();
+			auto varList = join(rets, ","sv);
+			auto ifNode = toAst<If_t>("if "s + okVar + ',' + varList + ":=try nil then "s + varList, x);
+			auto exp = ast_to<IfCond_t>(ifNode->nodes.front())->assignment->assign->values.front();
+			auto sVal = simpleSingleValueFrom(exp);
+			auto newTry = sVal->value.to<Try_t>();
+			newTry->func.set(tryNode->func);
+			newTry->catchBlock.set(tryNode->catchBlock);
+			auto assignment = x->new_ptr<ExpListAssign_t>();
+			assignment->expList.set(assignList);
+			auto assign = x->new_ptr<Assign_t>();
+			assign->values.push_back(ifNode);
+			assignment->action.set(assign);
 			transformAssignment(assignment, out);
 			return;
 		}
@@ -10084,12 +10270,12 @@ private:
 			auto okVar = getUnusedName("_ok_"sv);
 			auto code = "do\n\t"s + okVar + ", ... = try nil\n\t... if "s + okVar;
 			auto doNode = toAst<Do_t>(code, x);
-					auto block = doNode->body->content.to<Block_t>();
-					auto asmt = static_cast<Statement_t*>(block->statements.front())->content.to<ExpListAssign_t>();
-					auto assign = asmt->action.to<Assign_t>();
-					auto sVal = simpleSingleValueFrom(assign->values.back());
-					auto newTry = sVal->value.to<Try_t>();
-					newTry->func.set(tryNode->func);
+			auto block = doNode->body->content.to<Block_t>();
+			auto asmt = static_cast<Statement_t*>(block->statements.front())->content.to<ExpListAssign_t>();
+			auto assign = asmt->action.to<Assign_t>();
+			auto sVal = simpleSingleValueFrom(assign->values.back());
+			auto newTry = sVal->value.to<Try_t>();
+			newTry->func.set(tryNode->func);
 			newTry->catchBlock.set(tryNode->catchBlock);
 			transformDo(doNode, out, usage);
 			return;

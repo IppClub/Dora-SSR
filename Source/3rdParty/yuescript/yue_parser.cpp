@@ -709,7 +709,8 @@ YueParser::YueParser() {
 	chain_with_colon = +chain_item >> -colon_chain;
 	chain_items = chain_with_colon | colon_chain;
 
-	index = '[' >> not_('[') >> space >> Exp >> space >> ']';
+	index = '[' >> not_('[') >> space >> (ReversedIndex >> and_(space >> ']') | Exp) >> space >> ']';
+	ReversedIndex = '#' >> space >> -('-' >> space >> Exp);
 	chain_item =
 		Invoke >> -ExistentialOp |
 		DotChainItem >> -ExistentialOp |

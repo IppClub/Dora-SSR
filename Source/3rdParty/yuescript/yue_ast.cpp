@@ -870,6 +870,12 @@ std::string Exp_t::to_string(void* ud) const {
 	}
 	return join(temp, " "sv);
 }
+std::string ReversedIndex_t::to_string(void* ud) const {
+	if (modifier) {
+		return "[# - "s + modifier->to_string(ud) + ']';
+	}
+	return "[#]"s;
+}
 std::string Callable_t::to_string(void* ud) const {
 	return item->to_string(ud);
 }

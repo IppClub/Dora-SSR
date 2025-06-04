@@ -643,9 +643,14 @@ AST_END(TableAppendingOp)
 AST_LEAF(PlainItem)
 AST_END(PlainItem)
 
+AST_NODE(ReversedIndex)
+	ast_ptr<false, Exp_t> modifier;
+	AST_MEMBER(ReversedIndex, &modifier)
+AST_END(ReversedIndex)
+
 AST_NODE(ChainValue)
 	ast_ptr<true, Seperator_t> sep;
-	ast_sel_list<true, Callable_t, Invoke_t, DotChainItem_t, ColonChainItem_t, Slice_t, Exp_t, String_t, InvokeArgs_t, ExistentialOp_t, TableAppendingOp_t,
+	ast_sel_list<true, Callable_t, Invoke_t, DotChainItem_t, ColonChainItem_t, Slice_t, Exp_t, String_t, InvokeArgs_t, ExistentialOp_t, TableAppendingOp_t, ReversedIndex_t,
 		/*non-syntax-rule*/ PlainItem_t> items;
 	AST_MEMBER(ChainValue, &sep, &items)
 AST_END(ChainValue)
