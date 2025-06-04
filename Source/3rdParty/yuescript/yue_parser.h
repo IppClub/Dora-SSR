@@ -365,6 +365,7 @@ private:
 	AST_RULE(ExpOpValue);
 	AST_RULE(Exp);
 	AST_RULE(Callable);
+	AST_RULE(ReversedIndex);
 	AST_RULE(ChainValue);
 	AST_RULE(SimpleTable);
 	AST_RULE(SimpleValue);
