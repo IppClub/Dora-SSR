@@ -43,6 +43,10 @@ namespace wsl = websocketpp::lib;
 
 #include "ghc/fs_fwd.hpp"
 namespace fs = ghc::filesystem;
+#elif BX_PLATFORM_WINDOWS
+#define GHC_WIN_DISABLE_WSTRING_STORAGE_TYPE
+#include "ghc/fs_fwd.hpp"
+namespace fs = ghc::filesystem;
 #else
 #include <filesystem>
 namespace fs = std::filesystem;
@@ -74,7 +78,7 @@ static std::string get_local_ip() {
 	}
 	return localIP;
 }
-
+std::string toMBString(const std::string& utf8Str);
 #else // BX_PLATFORM_WINDOWS
 #include <ifaddrs.h>
 
@@ -426,7 +430,11 @@ bool HttpServer::start(int port) {
 							bx::Semaphore waitForResponse;
 							SharedApplication.invokeInLogic([&]() {
 								if (auto newFile = postFile.acceptHandler(request, file.filename)) {
-									auto& stream = streams.emplace_back(newFile.value(),
+									auto fullPath = newFile.value();
+#if BX_PLATFORM_WINDOWS
+									fullPath = toMBString(fullPath);
+#endif
+									auto& stream = streams.emplace_back(fullPath,
 										std::ios::out | std::ios::trunc | std::ios::binary);
 									if (stream) {
 										accepted = true;
@@ -742,7 +750,11 @@ void HttpClient::downloadAsync(String url, String filePath, float timeout, const
 			client.enable_server_certificate_verification(false);
 			client.set_follow_location(true);
 			client.set_connection_timeout(timeout);
-			std::ofstream out(fileStr, std::ios::out | std::ios::trunc | std::ios::binary);
+			auto fullname = fileStr;
+#if BX_PLATFORM_WINDOWS
+			fullname = toMBString(fullname);
+#endif
+			std::ofstream out(fullname, std::ios::out | std::ios::trunc | std::ios::binary);
 			if (!out) {
 				Error("invalid local file path \"{}\" to download to", fileStr);
 				return nullptr;

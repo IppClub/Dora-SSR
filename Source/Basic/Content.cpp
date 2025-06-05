@@ -26,6 +26,12 @@ using std::ofstream;
 
 #include "ghc/fs_fwd.hpp"
 namespace fs = ghc::filesystem;
+#elif BX_PLATFORM_WINDOWS
+#define GHC_WIN_DISABLE_WSTRING_STORAGE_TYPE
+#include "ghc/fs_impl.hpp"
+
+#include "ghc/fs_fwd.hpp"
+namespace fs = ghc::filesystem;
 #else
 #include <filesystem>
 namespace fs = std::filesystem;
@@ -44,6 +50,30 @@ static void releaseFileData(void* _ptr, void* _userData) {
 		delete[] data;
 	}
 }
+
+#if BX_PLATFORM_WINDOWS
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif // WIN32_LEAN_AND_MEAN
+#include <windows.h>
+std::string toMBString(const std::string& utf8Str) {
+	// Step 1: Convert UTF-8 to UTF-16 (wide string)
+	int wideLen = MultiByteToWideChar(CP_UTF8, 0, utf8Str.c_str(), -1, nullptr, 0);
+	if (wideLen == 0) return {};
+	std::wstring wideStr(wideLen, L'\0');
+	MultiByteToWideChar(CP_UTF8, 0, utf8Str.c_str(), -1, &wideStr[0], wideLen);
+	// Step 2: Convert UTF-16 to current code page (multibyte)
+	int mbLen = WideCharToMultiByte(CP_ACP, 0, wideStr.c_str(), -1, nullptr, 0, nullptr, nullptr);
+	if (mbLen == 0) return {};
+	std::string mbStr(mbLen, '\0');
+	WideCharToMultiByte(CP_ACP, 0, wideStr.c_str(), -1, &mbStr[0], mbLen, nullptr, nullptr);
+	// Remove the null terminator appended by WideCharToMultiByte
+	if (!mbStr.empty() && mbStr.back() == '\0') {
+		mbStr.pop_back();
+	}
+	return mbStr;
+}
+#endif // BX_PLATFORM_WINDOWS
 
 NS_DORA_BEGIN
 
@@ -167,6 +197,9 @@ bool Content::save(String filename, String content) {
 		return false;
 	}
 	auto fullPath = fullPathAndPackage.fullPath.empty() ? filename.toString() : fullPathAndPackage.fullPath;
+#if BX_PLATFORM_WINDOWS
+	fullPath = toMBString(fullPath);
+#endif
 	ofstream stream(fullPath, std::ios::trunc | std::ios::binary);
 	if (!stream) return false;
 	if (stream.write(content.rawData(), content.size())) {
@@ -183,6 +216,9 @@ bool Content::save(String filename, uint8_t* content, int64_t size) {
 		return false;
 	}
 	auto fullPath = fullPathAndPackage.fullPath.empty() ? filename.toString() : fullPathAndPackage.fullPath;
+#if BX_PLATFORM_WINDOWS
+	fullPath = toMBString(fullPath);
+#endif
 	ofstream stream(fullPath, std::ios::trunc | std::ios::binary);
 	if (!stream) return false;
 	if (stream.write(r_cast<char*>(content), s_cast<std::streamsize>(size))) {
@@ -272,7 +308,7 @@ static std::tuple<std::string, std::string> splitDirectoryAndFilename(const std:
 	return std::make_tuple(path, file);
 }
 
-Content::SearchPath Content::getFullPathAndPackage(String filename) {
+Content::SearchedPath Content::getFullPathAndPackage(String filename) {
 	AssertIf(filename.empty(), "invalid filename for full path.");
 
 	Slice targetFile = filename;
@@ -457,7 +493,11 @@ bool Content::copyUnsafe(String src, String dst) {
 		auto files = Content::getDirEntries(src, false);
 		for (const std::string& file : files) {
 			// Info("now copy file {}",file);
-			ofstream stream(fs::path(dstPath) / file, std::ios::out | std::ios::trunc | std::ios::binary);
+			auto fullPath = fs::path(dstPath) / file;
+#if BX_PLATFORM_WINDOWS
+			fullPath = toMBString(fullPath);
+#endif
+			ofstream stream(fullPath, std::ios::out | std::ios::trunc | std::ios::binary);
 			if (!stream) return false;
 			bool result = Content::loadByChunks((fs::path(srcPath) / file).string(), [&](uint8_t* buffer, int size) {
 				if (!stream.write(r_cast<char*>(buffer), size)) {
@@ -471,7 +511,11 @@ bool Content::copyUnsafe(String src, String dst) {
 			}
 		}
 	} else {
-		ofstream stream(dst.toString(), std::ios::out | std::ios::trunc | std::ios::binary);
+		auto fullPath = dst.toString();
+#if BX_PLATFORM_WINDOWS
+		fullPath = toMBString(fullPath);
+#endif
+		ofstream stream(fullPath, std::ios::out | std::ios::trunc | std::ios::binary);
 		if (!stream) {
 			Error("failed to open file: \"{}\"", dst.toString());
 			return false;
@@ -682,6 +726,9 @@ void Content::unzipAsync(String zipFile, String folderPath, const std::function<
 			if (auto parent = Path::getPath(path); !exist(parent)) {
 				createFolder(parent);
 			}
+#if BX_PLATFORM_WINDOWS
+			path = toMBString(path);
+#endif
 			std::ofstream stream(path, std::ios::trunc | std::ios::binary);
 			if (stream) {
 				if (!zip->getFileDataByChunks(file, [&stream](uint8_t* data, size_t size) {
@@ -754,53 +801,12 @@ void Content::clearPathCache() {
 	_fullPathCache.clear();
 }
 
-#if BX_PLATFORM_WINDOWS
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif // WIN32_LEAN_AND_MEAN
-#include <windows.h>
-
-static std::string toMBString(const std::string& utf8Str) {
-	// Step 1: Convert UTF-8 to UTF-16 (wide string)
-	int wideLen = MultiByteToWideChar(CP_UTF8, 0, utf8Str.c_str(), -1, nullptr, 0);
-	if (wideLen == 0) return {};
-	std::wstring wideStr(wideLen, L'\0');
-	MultiByteToWideChar(CP_UTF8, 0, utf8Str.c_str(), -1, &wideStr[0], wideLen);
-	// Step 2: Convert UTF-16 to current code page (multibyte)
-	int mbLen = WideCharToMultiByte(CP_ACP, 0, wideStr.c_str(), -1, nullptr, 0, nullptr, nullptr);
-	if (mbLen == 0) return {};
-	std::string mbStr(mbLen, '\0');
-	WideCharToMultiByte(CP_ACP, 0, wideStr.c_str(), -1, &mbStr[0], mbLen, nullptr, nullptr);
-	// Remove the null terminator appended by WideCharToMultiByte
-	if (!mbStr.empty() && mbStr.back() == '\0') {
-		mbStr.pop_back();
-	}
-	return mbStr;
-}
-
-std::string toUTF8String(const std::string& str) {
-	int wsize = MultiByteToWideChar(CP_ACP, 0, str.data(), s_cast<int>(str.length()), nullptr, 0);
-	if (wsize == 0) return {};
-	std::wstring wstr(wsize, 0);
-	MultiByteToWideChar(CP_ACP, 0, str.data(), s_cast<int>(str.length()), &wstr[0], wsize);
-	int u8size = WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), s_cast<int>(wstr.length()), nullptr, 0, nullptr, nullptr);
-	if (u8size == 0) return {};
-	std::string u8str(u8size, '\0');
-	WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), s_cast<int>(wstr.length()), &u8str[0], u8size, nullptr, nullptr);
-	return u8str;
-}
-#endif // BX_PLATFORM_WINDOWS
-
 static std::string getPrefPath() {
 	char* prefPath = SDL_GetPrefPath(DORA_DEFAULT_ORG_NAME, DORA_DEFAULT_APP_NAME);
 	std::string appPath = prefPath;
 	trimTrailingSlashes(appPath);
 	SDL_free(prefPath);
-#if BX_PLATFORM_WINDOWS
-	return toMBString(appPath);
-#else
 	return appPath;
-#endif
 }
 
 #if BX_PLATFORM_ANDROID
@@ -979,13 +985,7 @@ uint8_t* Content::loadUnsafe(String filename, int64_t& size) {
 		size = s_cast<int64_t>(s);
 		return res;
 	}
-	std::string fullPath =
-#if BX_PLATFORM_WINDOWS
-		toUTF8String(fullPathAndPackage.fullPath);
-#else
-		fullPathAndPackage.fullPath;
-#endif // BX_PLATFORM_WINDOWS
-	SDL_RWops* io = SDL_RWFromFile(fullPath.c_str(), "rb");
+	SDL_RWops* io = SDL_RWFromFile(fullPathAndPackage.fullPath.c_str(), "rb");
 	if (io == nullptr) {
 		size = 0;
 		Error("failed to load file: \"{}\", due to: {}", filename.toString(), SDL_GetError());
@@ -1004,15 +1004,9 @@ bool Content::loadByChunks(String filename, const std::function<bool(uint8_t*, i
 	if (fullPathAndPackage.zipFile) {
 		return fullPathAndPackage.zipFile->getFileDataByChunks(fullPathAndPackage.zipRelativePath, handler);
 	}
-	std::string fullPath =
-#if BX_PLATFORM_WINDOWS
-		toUTF8String(fullPathAndPackage.fullPath);
-#else
-		fullPathAndPackage.fullPath;
-#endif // BX_PLATFORM_WINDOWS
-	SDL_RWops* io = SDL_RWFromFile(fullPath.c_str(), "rb");
+	SDL_RWops* io = SDL_RWFromFile(fullPathAndPackage.fullPath.c_str(), "rb");
 	if (io == nullptr) {
-		Error("failed to load file: \"{}\"", fullPath);
+		Error("failed to load file: \"{}\"", filename.toString());
 		return false;
 	}
 	uint8_t buffer[DORA_COPY_BUFFER_SIZE];

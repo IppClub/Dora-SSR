@@ -17,6 +17,13 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Lua/ToLua/tolua++.h"
 
 #if BX_PLATFORM_LINUX
+#include <limits.h>
+#include <unistd.h>
+
+#include "ghc/fs_fwd.hpp"
+namespace fs = ghc::filesystem;
+#elif BX_PLATFORM_WINDOWS
+#define GHC_WIN_DISABLE_WSTRING_STORAGE_TYPE
 #include "ghc/fs_fwd.hpp"
 namespace fs = ghc::filesystem;
 #else
