@@ -778,7 +778,7 @@ static std::string toMBString(const std::string& utf8Str) {
 	return mbStr;
 }
 
-static std::string toUTF8String(const std::string& str) {
+std::string toUTF8String(const std::string& str) {
 	int wsize = MultiByteToWideChar(CP_ACP, 0, str.data(), s_cast<int>(str.length()), nullptr, 0);
 	if (wsize == 0) return {};
 	std::wstring wstr(wsize, 0);

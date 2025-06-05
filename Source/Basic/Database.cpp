@@ -30,12 +30,19 @@ void assertion_failed(const char* apFile, const int apLine, const char* apFunc, 
 
 NS_DORA_BEGIN
 
+#if BX_PLATFORM_WINDOWS
+std::string toUTF8String(const std::string& str);
+#endif
+
 DB::DB()
 	: _thread(SharedAsyncThread.newThread()) {
 	auto dbFile = Path::concat({SharedContent.getAppPath(), "dora.db"_slice});
+#if BX_PLATFORM_WINDOWS
+	dbFile = toUTF8String(dbFile);
+#endif
 	try {
 		_database = New<SQLite::Database>(dbFile,
-			SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
+			SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE | SQLite::OPEN_NOMUTEX);
 	} catch (std::exception&) {
 		if (SharedContent.exist(dbFile)) {
 			SharedContent.remove(dbFile);
