@@ -28,6 +28,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "spdlog/sinks/ansicolor_sink.h"
 #endif // BX_PLATFORM_ANDROID
 
+#if BX_PLATFORM_WINDOWS
+std::string toMBString(const std::string& utf8Str);
+#endif // BX_PLATFORM_WINDOWS
+
 NS_DORA_BEGIN
 
 Acf::Delegate<void(const std::string&)> LogHandler;
@@ -68,7 +72,13 @@ public:
 				});
 			}
 		});
-		auto fileSink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(getFilename(), getMaxFileSize(), getMaxFiles());
+		auto logFilename =
+#if BX_PLATFORM_WINDOWS
+			toMBString(getFilename());
+#else
+			getFilename();
+#endif
+		auto fileSink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(logFilename, getMaxFileSize(), getMaxFiles());
 		_logger = std::make_shared<spdlog::logger>(std::string(), spdlog::sinks_init_list{consoleSink, doraSink, fileSink});
 	}
 
@@ -105,7 +115,13 @@ public:
 			}
 		}
 		bool result = SharedContent.save(filename, logText);
-		_logger->sinks().push_back(std::make_shared<spdlog::sinks::rotating_file_sink_mt>(getFilename(), getMaxFileSize(), getMaxFiles()));
+		auto logFilename =
+#if BX_PLATFORM_WINDOWS
+			toMBString(getFilename());
+#else
+			getFilename();
+#endif
+		_logger->sinks().push_back(std::make_shared<spdlog::sinks::rotating_file_sink_mt>(logFilename, getMaxFileSize(), getMaxFiles()));
 		return result;
 	}
 

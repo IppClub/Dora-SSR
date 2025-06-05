@@ -67,12 +67,12 @@ protected:
 	bool isFileExist(String filePath);
 	bool isPathFolder(String filePath);
 	std::list<std::string> getDirEntries(String path, bool isFolder);
-	struct SearchPath {
+	struct SearchedPath {
 		std::string fullPath;
 		ZipFile* zipFile;
 		std::string zipRelativePath;
 	};
-	SearchPath getFullPathAndPackage(String filename);
+	SearchedPath getFullPathAndPackage(String filename);
 
 private:
 	const std::string _appPath;
