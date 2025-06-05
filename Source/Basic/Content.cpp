@@ -27,7 +27,6 @@ using std::ofstream;
 #include "ghc/fs_fwd.hpp"
 namespace fs = ghc::filesystem;
 #elif BX_PLATFORM_WINDOWS
-#define GHC_WIN_DISABLE_WSTRING_STORAGE_TYPE
 #include "ghc/fs_impl.hpp"
 
 #include "ghc/fs_fwd.hpp"
@@ -493,7 +492,7 @@ bool Content::copyUnsafe(String src, String dst) {
 		auto files = Content::getDirEntries(src, false);
 		for (const std::string& file : files) {
 			// Info("now copy file {}",file);
-			auto fullPath = fs::path(dstPath) / file;
+			auto fullPath = (fs::path(dstPath) / file).string();
 #if BX_PLATFORM_WINDOWS
 			fullPath = toMBString(fullPath);
 #endif
