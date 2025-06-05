@@ -44,7 +44,6 @@ namespace wsl = websocketpp::lib;
 #include "ghc/fs_fwd.hpp"
 namespace fs = ghc::filesystem;
 #elif BX_PLATFORM_WINDOWS
-#define GHC_WIN_DISABLE_WSTRING_STORAGE_TYPE
 #include "ghc/fs_fwd.hpp"
 namespace fs = ghc::filesystem;
 #else
