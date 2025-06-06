@@ -47,6 +47,9 @@ function createCompilerHost(rootFileName: string, content: string): [ts.Compiler
 			if (baseName.startsWith('Dora.')) {
 				return true;
 			}
+			if (baseName.toLowerCase().startsWith('dora.')) {
+				return false;
+			}
 			if (baseName === 'lib.Dora.d.ts') {
 				return true;
 			}
