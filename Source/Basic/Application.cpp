@@ -773,16 +773,27 @@ void Application::install(String path) {
 		}
 	}
 
-	STARTUPINFO si;
+	STARTUPINFOW si;
 	PROCESS_INFORMATION pi;
 	ZeroMemory(&si, sizeof(si));
 	si.cb = sizeof(si);
 	ZeroMemory(&pi, sizeof(pi));
 
-	std::string command = '"' + Path::concat({assetPath, "Dora.exe"}) + '"';
+	auto getCommand = [&]() -> std::wstring {
+		std::string command = '"' + Path::concat({assetPath, "Dora.exe"}) + '"';
+		if (command.empty()) return {};
+		int len = MultiByteToWideChar(CP_UTF8, 0, command.c_str(), -1, NULL, 0);
+		if (len == 0) return {};
+		std::wstring wideStr(len, L'0');
+		if (MultiByteToWideChar(CP_UTF8, 0, command.c_str(), -1, &wideStr[0], len) == 0) {
+			wideStr.clear();
+			return wideStr;
+		}
+		return wideStr;
+	};
 
-	if (CreateProcess(NULL,
-			const_cast<char*>(command.c_str()),
+	if (CreateProcessW(NULL,
+			getCommand().data(),
 			NULL,
 			NULL,
 			FALSE,
