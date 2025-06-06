@@ -92,7 +92,6 @@ export function openWebSocket() {
 						const {file, content} = result;
 						if (typeof file === 'string' && typeof content === 'string') {
 							const {success, luaCode, diagnostics} = await transpileTypescript(file, content);
-							console.log(success, luaCode, diagnostics);
 							if (success) {
 								webSocket.send(JSON.stringify({name: TranspileTSEventName, success, luaCode, message: ""}));
 							} else {

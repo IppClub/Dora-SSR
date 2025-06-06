@@ -1,0 +1,412 @@
+import (
+	"dora"
+	"math"
+	"strconv"
+)
+
+// 游戏常量
+const GRID_SIZE = 20
+const CELL_SIZE = 20
+const GAME_WIDTH = GRID_SIZE * CELL_SIZE
+const GAME_HEIGHT = GRID_SIZE * CELL_SIZE
+const INITIAL_SPEED = 0.15
+
+// 自适应游戏窗口
+func updateViewSize() {
+	camera := dora.ObjectAsCamera2D(dora.Director.GetCurrentCamera().Object)
+	if camera != nil {
+		camera.SetZoom(dora.View.GetSize().Height / GAME_HEIGHT)
+	}
+}
+
+// 方向枚举
+type Direction :struct {
+	value: string
+}
+
+global DirectionUp = Direction{value: "Up"}
+global DirectionDown = Direction{value: "Down"}
+global DirectionLeft = Direction{value: "Left"}
+global DirectionRight = Direction{value: "Right"}
+
+// 蛇游戏主类
+type SnakeGame :struct {
+	root:             dora.Node
+	snake:            []dora.Vec2
+	food:             *dora.Vec2
+	currentDirection: Direction
+	nextDirection:    Direction
+	score:            i32
+	scoreLabel:       dora.Label
+	gameOverLabel:    dora.Label
+	isGameOver:       bool
+	speed:            f64
+	lastMoveTime:     f64
+}
+
+// 创建新的蛇游戏实例
+func newSnakeGame() => *SnakeGame {
+	game := &SnakeGame{}
+	game.init()
+	return game
+}
+
+// 初始化游戏
+func SnakeGame.init() {
+	updateViewSize()
+	entry := dora.Director.GetEntry()
+	entry.OnAppChange(func(settingName: string) {
+		if settingName == "Size" {
+			updateViewSize()
+		}
+	})
+
+	border := dora.NewLineWithVecColor(&[]dora.Vec2{
+		dora.NewVec2(-GAME_WIDTH/2, -GAME_HEIGHT/2+1),
+		dora.NewVec2(GAME_WIDTH/2, -GAME_HEIGHT/2+1),
+		dora.NewVec2(GAME_WIDTH/2, GAME_HEIGHT/2-1),
+		dora.NewVec2(-GAME_WIDTH/2, GAME_HEIGHT/2-1),
+		dora.NewVec2(-GAME_WIDTH/2, -GAME_HEIGHT/2+1),
+	}, dora.App.GetThemeColor())
+	border.AddTo(entry)
+
+	// 创建游戏根节点
+	this.root = dora.NewNode()
+	this.root.SetSize(dora.NewSize(GAME_WIDTH, GAME_HEIGHT))
+	this.root.AddTo(dora.Director.GetEntry())
+	this.food = nil
+
+	// 创建分数标签
+	this.scoreLabel = *dora.NewLabel("sarasa-mono-sc-regular", 30*2, true)
+	this.scoreLabel.SetOpacity(0.6)
+	this.scoreLabel.SetScaleX(0.5)
+	this.scoreLabel.SetScaleY(0.5)
+	this.scoreLabel.SetText("Score: 0")
+	this.scoreLabel.SetPosition(dora.NewVec2(80, GAME_HEIGHT-30))
+	this.scoreLabel.SetAlignment(dora.TextAlignLeft)
+	this.root.AddChildWithOrder(this.scoreLabel.Node, 1)
+
+	// 创建游戏结束标签
+	this.gameOverLabel = *dora.NewLabel("sarasa-mono-sc-regular", 36*2, true)
+	this.gameOverLabel.SetScaleX(0.5)
+	this.gameOverLabel.SetScaleY(0.5)
+	this.gameOverLabel.SetText("Game Over!\nPress R to restart")
+	this.gameOverLabel.SetPosition(dora.NewVec2(GAME_WIDTH/2, GAME_HEIGHT/2))
+	this.gameOverLabel.SetVisible(false)
+	this.root.AddChildWithOrder(this.gameOverLabel.Node, 1)
+
+	// 初始化游戏
+	this.resetGame()
+
+	// 设置键盘控制
+	this.setupControls()
+
+	// 开始游戏循环
+	this.startGameLoop()
+}
+
+func filterChild(node: dora.Node, filter: func(node: dora.Node) => bool) => []dora.Node {
+	children := []dora.Node{}
+	node.EachChild(func(child: dora.Node) => bool {
+		if filter(child) {
+			children = append(children, child)
+		}
+		return false
+	})
+	return children
+}
+
+// 重置游戏
+func SnakeGame.resetGame() {
+	// 清除现有的蛇身和食物
+	children := filterChild(this.root, func(child: dora.Node) => bool {
+		return child.GetTag() == "snake" || child.GetTag() == "food"
+	})
+
+	for _, child := range children {
+		child.RemoveFromParent(true)
+	}
+
+	// 重置游戏状态
+	this.snake = []dora.Vec2{
+		dora.NewVec2(5, 10),
+		dora.NewVec2(4, 10),
+		dora.NewVec2(3, 10),
+	}
+	this.currentDirection = DirectionRight
+	this.nextDirection = DirectionRight
+	this.score = 0
+	this.speed = INITIAL_SPEED
+	this.isGameOver = false
+	this.lastMoveTime = 0
+	this.scoreLabel.SetText("Score: 0")
+	this.gameOverLabel.SetVisible(false)
+
+	// 绘制初始蛇身
+	this.drawSnake()
+
+	// 生成食物
+	this.spawnFood()
+}
+
+// 绘制蛇身
+func SnakeGame.drawSnake() {
+	// 移除旧的蛇身节点
+	children := filterChild(this.root, func(child: dora.Node) => bool {
+		return child.GetTag() == "snake"
+	})
+
+	for _, child := range children {
+		child.RemoveFromParent(true)
+	}
+
+	// 绘制新的蛇身
+	for _, segment := range this.snake {
+		segmentNode := dora.NewNode()
+		segmentNode.SetTag("snake")
+		segmentNode.SetSize(dora.NewSize(CELL_SIZE, CELL_SIZE))
+		segmentNode.SetPosition(dora.NewVec2(
+			segment.X*CELL_SIZE+CELL_SIZE/2,
+			segment.Y*CELL_SIZE+CELL_SIZE/2,
+		))
+
+		drawNode := dora.NewDrawNode()
+		drawNode.SetPosition(dora.NewVec2(CELL_SIZE/2, CELL_SIZE/2))
+		segmentNode.AddChild(drawNode.Node)
+
+		drawNode.DrawPolygon(
+			&[]dora.Vec2{
+				dora.NewVec2(-CELL_SIZE/2, -CELL_SIZE/2),
+				dora.NewVec2(CELL_SIZE/2, -CELL_SIZE/2),
+				dora.NewVec2(CELL_SIZE/2, CELL_SIZE/2),
+				dora.NewVec2(-CELL_SIZE/2, CELL_SIZE/2),
+			},
+			dora.NewColor(0xFF00B5AB),
+			1,
+			dora.NewColor(0xFF00859B),
+		)
+
+		this.root.AddChild(segmentNode)
+	}
+}
+
+// 生成食物
+func SnakeGame.spawnFood() {
+	// 移除旧的食物
+	children := filterChild(this.root, func(child: dora.Node) => bool {
+		return child.GetTag() == "food"
+	})
+
+	for _, child := range children {
+		child.RemoveFromParent(true)
+	}
+
+	// 生成新的食物位置
+	availableCells := []dora.Vec2{}
+	for x := 0; x < GRID_SIZE; x++ {
+		for y := 0; y < GRID_SIZE; y++ {
+			pos := dora.NewVec2(f32(x), f32(y))
+			isOccupied := false
+			for _, segment := range this.snake {
+				if segment == pos {
+					isOccupied = true
+					break
+				}
+			}
+			if !isOccupied {
+				availableCells = append(availableCells, pos)
+			}
+		}
+	}
+
+	if len(availableCells) == 0 {
+		// 蛇已经填满整个屏幕，游戏胜利
+		this.gameOver(true)
+		return
+	}
+
+	randomIndex := int(dora.Math.Floor(f32(dora.App.GetRand()%100) * f32(len(availableCells)) / 100))
+	this.food = &availableCells[randomIndex]
+
+	// 绘制食物
+	foodNode := dora.NewNode()
+	foodNode.SetTag("food")
+	foodNode.SetSize(dora.NewSize(CELL_SIZE, CELL_SIZE))
+	foodNode.SetPosition(dora.NewVec2(
+		this.food.X*CELL_SIZE+CELL_SIZE/2,
+		this.food.Y*CELL_SIZE+CELL_SIZE/2,
+	))
+
+	drawNode := dora.NewDrawNode()
+	drawNode.SetPosition(dora.NewVec2(CELL_SIZE/2, CELL_SIZE/2))
+	foodNode.AddChild(drawNode.Node)
+
+	drawNode.DrawPolygon(
+		&[]dora.Vec2{
+			dora.NewVec2(-CELL_SIZE/2, -CELL_SIZE/2),
+			dora.NewVec2(CELL_SIZE/2, -CELL_SIZE/2),
+			dora.NewVec2(CELL_SIZE/2, CELL_SIZE/2),
+			dora.NewVec2(-CELL_SIZE/2, CELL_SIZE/2),
+		},
+		dora.NewColor(255, 0, 88, 255),
+		1,
+		dora.NewColor(200, 0, 88, 255),
+	)
+
+	// 添加动画效果
+	foodNode.RunActionDef(dora.ActionDefSequence(&[]dora.ActionDef{
+		dora.ActionDefSpawn(&[]dora.ActionDef{
+			dora.ActionDefScale(0.5, 1.0, 0.8, dora.EaseOutBack),
+			dora.ActionDefScale(0.5, 1.0, 1.2, dora.EaseOutBack),
+		}),
+		dora.ActionDefSpawn(&[]dora.ActionDef{
+			dora.ActionDefScale(0.5, 0.8, 1.0, dora.EaseOutBack),
+			dora.ActionDefScale(0.5, 1.2, 1.0, dora.EaseOutBack),
+		}),
+	}), false)
+
+	this.root.AddChild(foodNode)
+}
+
+// 移动蛇
+func SnakeGame.moveSnake() {
+	if this.isGameOver {
+		return
+	}
+
+	head := this.snake[0]
+	newHead := dora.Vec2Zero
+
+	// 根据当前方向计算新头部位置
+	switch this.currentDirection {
+	case DirectionUp:
+		newHead = dora.NewVec2(head.X, head.Y+1)
+	case DirectionDown:
+		newHead = dora.NewVec2(head.X, head.Y-1)
+	case DirectionLeft:
+		newHead = dora.NewVec2(head.X-1, head.Y)
+	case DirectionRight:
+		newHead = dora.NewVec2(head.X+1, head.Y)
+	}
+
+	// 检查碰撞
+	if newHead.X < 0 || newHead.X >= GRID_SIZE ||
+		newHead.Y < 0 || newHead.Y >= GRID_SIZE {
+		this.gameOver(false)
+		return
+	}
+
+	// 检查是否撞到自己
+	for i := 1; i < len(this.snake); i++ {
+		if this.snake[i] == newHead {
+			this.gameOver(false)
+			return
+		}
+	}
+
+	// 移动蛇
+	this.snake = append([]dora.Vec2{newHead}, this.snake...)
+
+	// 检查是否吃到食物
+	if this.food != nil && newHead == *this.food {
+		this.score++
+		this.scoreLabel.SetText("Score: " + strconv.Itoa(int(this.score)))
+
+		// 每得5分加快速度
+		if this.score%5 == 0 {
+			this.speed = math.Max(0.05, this.speed*0.9)
+		}
+
+		this.spawnFood()
+	} else {
+		// 如果没有吃到食物，移除尾部
+		this.snake = this.snake[:len(this.snake)-1]
+	}
+
+	// 绘制蛇
+	this.drawSnake()
+
+	// 更新方向
+	this.currentDirection = this.nextDirection
+}
+
+// 游戏结束
+func SnakeGame.gameOver(isWin: bool) {
+	this.isGameOver = true
+	if isWin {
+		this.gameOverLabel.SetText("You Win!\nPress R (B)\nto restart")
+	} else {
+		this.gameOverLabel.SetText("Game Over!\nPress R (B)\nto restart")
+	}
+	this.gameOverLabel.SetVisible(true)
+}
+
+func SnakeGame.setupControls() {
+	// 设置手柄控制
+	this.root.OnButtonDown(func(id: i32, key: dora.ButtonName) {
+		switch key {
+		case dora.ButtonDPUp:
+			if this.currentDirection != DirectionDown {
+				this.nextDirection = DirectionUp
+			}
+		case dora.ButtonDPDown:
+			if this.currentDirection != DirectionUp {
+				this.nextDirection = DirectionDown
+			}
+		case dora.ButtonDPLeft:
+			if this.currentDirection != DirectionRight {
+				this.nextDirection = DirectionLeft
+			}
+		case dora.ButtonDPRight:
+			if this.currentDirection != DirectionLeft {
+				this.nextDirection = DirectionRight
+			}
+		case dora.ButtonB:
+			if this.isGameOver {
+				this.resetGame()
+			}
+		}
+	})
+	// 设置键盘控制
+	this.root.OnKeyDown(func(key: dora.KeyName) {
+		switch key {
+		case dora.KeyUp:
+			if this.currentDirection != DirectionDown {
+				this.nextDirection = DirectionUp
+			}
+		case dora.KeyDown:
+			if this.currentDirection != DirectionUp {
+				this.nextDirection = DirectionDown
+			}
+		case dora.KeyLeft:
+			if this.currentDirection != DirectionRight {
+				this.nextDirection = DirectionLeft
+			}
+		case dora.KeyRight:
+			if this.currentDirection != DirectionLeft {
+				this.nextDirection = DirectionRight
+			}
+		case dora.KeyR:
+			if this.isGameOver {
+				this.resetGame()
+			}
+		}
+	})
+}
+
+// 开始游戏循环
+func SnakeGame.startGameLoop() {
+	this.root.Schedule(func(dt: f64) => bool {
+		now := dora.App.GetRunningTime()
+		if now-this.lastMoveTime >= this.speed {
+			this.moveSnake()
+			this.lastMoveTime = now
+		}
+		return false
+	})
+}
+
+// 启动游戏
+func TestSnake() {
+	newSnakeGame()
+}
