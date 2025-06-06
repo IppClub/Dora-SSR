@@ -775,6 +775,15 @@ export default function PersistentDrawerLeft() {
 				sourceCache: {
 					isFileAvailable: async (uri: string) => {
 						const file = uri.startsWith("file:") ? monaco.Uri.parse(uri).fsPath : uri;
+						const baseName = path.basename(file);
+						const baseNameLower = baseName.toLowerCase();
+						if (baseNameLower.startsWith('dora.') && baseName !== 'Dora.d.ts') {
+							return false;
+						} else if (baseNameLower.startsWith('es6-subset.')) {
+							return false;
+						} else if (baseNameLower.startsWith('lua.')) {
+							return false;
+						}
 						const lib = monaco.languages.typescript.typescriptDefaults.getExtraLibs()[file];
 						if (lib !== undefined) return true;
 						const model = monaco.editor.getModel(monaco.Uri.file(file));
@@ -1260,8 +1269,14 @@ export default function PersistentDrawerLeft() {
 										addAlert(t("alert.saveCurrent"), "error");
 										reject("failed to save file");
 									}
+								}).catch(() => {
+									addAlert(t("alert.saveCurrent"), "error");
+									reject("failed to save file");
 								});
 							}
+						}).catch(() => {
+							addAlert(t("alert.saveCurrent"), "error");
+							reject("failed to save file");
 						});
 					});
 				} else {

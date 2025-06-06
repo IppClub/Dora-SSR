@@ -297,7 +297,20 @@ export async function revalidateModel(model: monaco.editor.ITextModel) {
 }
 
 export function setModelMarkers(model: monaco.editor.ITextModel, diagnostics: readonly ts.Diagnostic[]) {
-	const markers = diagnostics.filter(d => Info.path.relative(d.file?.fileName ?? "", model.uri.fsPath) === "" && d.source === 'typescript-to-lua').map(d => {
+	const markers = diagnostics.filter(d => {
+		const fileName = d.file?.fileName ?? "";
+		if (!Info.path.isAbsolute(fileName)) {
+			return false;
+		}
+		if (!Info.path.isAbsolute(model.uri.fsPath)) {
+			return false;
+		}
+		try {
+			return Info.path.relative(fileName, model.uri.fsPath) === "" && d.source === 'typescript-to-lua';
+		} catch {
+			return false;
+		}
+	}).map(d => {
 		let {start = 0, length = 0} = d;
 		const startPos = model.getPositionAt(start);
 		const endPos = model.getPositionAt(start + length);

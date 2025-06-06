@@ -81,6 +81,10 @@ func init {
 					all_clear()
 					test.TestExcelTest()
 				}
+				if dora.ImGui.Button("Snake", button_size) {
+					all_clear()
+					test.TestSnake()
+				}
 			})
 		return false
 	})
