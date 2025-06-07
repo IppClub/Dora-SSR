@@ -1850,11 +1850,11 @@ func Node.OnTextEditing(callback: func(text: string, start_pos: i32)) {
 func Node.OnButtonDown(callback: func(controller_id: i32, button: ButtonName)) {
 	this.SetControllerEnabled(true)
 	this.Slot("ButtonDown", func(stack: CallStack) {
-		button, ok := stack.PopStr()
+		controller_id, ok := stack.PopI32()
 		if !ok {
 			panic("invalid button down event")
 		}
-		controller_id, ok := stack.PopI32()
+		button, ok := stack.PopStr()
 		if !ok {
 			panic("invalid button down event")
 		}
@@ -1865,11 +1865,11 @@ func Node.OnButtonDown(callback: func(controller_id: i32, button: ButtonName)) {
 func Node.OnButtonUp(callback: func(controller_id: i32, button: ButtonName)) {
 	this.SetControllerEnabled(true)
 	this.Slot("ButtonUp", func(stack: CallStack) {
-		button, ok := stack.PopStr()
+		controller_id, ok := stack.PopI32()
 		if !ok {
 			panic("invalid button up event")
 		}
-		controller_id, ok := stack.PopI32()
+		button, ok := stack.PopStr()
 		if !ok {
 			panic("invalid button up event")
 		}
@@ -1880,11 +1880,11 @@ func Node.OnButtonUp(callback: func(controller_id: i32, button: ButtonName)) {
 func Node.OnButtonPressed(callback: func(controller_id: i32, button: ButtonName)) {
 	this.SetControllerEnabled(true)
 	this.Slot("ButtonPressed", func(stack: CallStack) {
-		button, ok := stack.PopStr()
+		controller_id, ok := stack.PopI32()
 		if !ok {
 			panic("invalid button pressed event")
 		}
-		controller_id, ok := stack.PopI32()
+		button, ok := stack.PopStr()
 		if !ok {
 			panic("invalid button pressed event")
 		}
@@ -1895,15 +1895,15 @@ func Node.OnButtonPressed(callback: func(controller_id: i32, button: ButtonName)
 func Node.OnAxis(callback: func(controller_id: i32, axis: AxisName, value: f32)) {
 	this.SetControllerEnabled(true)
 	this.Slot("Axis", func(stack: CallStack) {
+		controller_id, ok := stack.PopI32()
+		if !ok {
+			panic("invalid axis event")
+		}
 		axis, ok := stack.PopStr()
 		if !ok {
 			panic("invalid axis event")
 		}
 		value, ok := stack.PopF32()
-		if !ok {
-			panic("invalid axis event")
-		}
-		controller_id, ok := stack.PopI32()
 		if !ok {
 			panic("invalid axis event")
 		}

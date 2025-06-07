@@ -415,9 +415,9 @@ func TestExcelTest() {
 
 	node := dora.NewNode()
 	node.Schedule(func(delta_time: f64) => bool {
-		update_player_control("keyLeft", dora.Keyboard.IsKeyPressed(dora.KeyA))
-		update_player_control("keyRight", dora.Keyboard.IsKeyPressed(dora.KeyD))
-		update_player_control("keyJump", dora.Keyboard.IsKeyPressed(dora.KeyJ))
+		update_player_control("keyLeft", dora.Keyboard.IsKeyPressed(dora.KeyA) || dora.Controller.IsButtonPressed(0, dora.ButtonDPLeft))
+		update_player_control("keyRight", dora.Keyboard.IsKeyPressed(dora.KeyD) || dora.Controller.IsButtonPressed(0, dora.ButtonDPRight))
+		update_player_control("keyJump", dora.Keyboard.IsKeyPressed(dora.KeyJ) || dora.Controller.IsButtonPressed(0, dora.ButtonB))
 		return false
 	})
 
