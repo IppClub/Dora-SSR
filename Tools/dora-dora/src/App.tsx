@@ -1104,9 +1104,7 @@ export default function PersistentDrawerLeft() {
 										addAlert(res.message, "error", true);
 										Service.command({code: `Log "Error", "${res.message.replace(/[\\"]/g, "\\$&")}"`, log: false});
 									}
-									setIsWaSaving(false);
-									resolve(filesToSave);
-								}).catch(() => {
+								}).finally(() => {
 									setIsWaSaving(false);
 									resolve(filesToSave);
 								});
@@ -1695,29 +1693,44 @@ export default function PersistentDrawerLeft() {
 					try {
 						if (ext === '.wa' && !buildFolder) {
 							built = true;
-							const res = await Service.buildWa({path: key});
-							if (res.success) {
-								addAlert(t("alert.build", {title}), "success");
-							} else {
-								addAlert(res.message, "error", true);
-								await Service.command({code: `Log "Error", "${res.message.replace(/[\\"]/g, "\\$&")}"`, log: false});
+							setIsWaSaving(true);
+							try {
+								const res = await Service.buildWa({path: key});
+								if (res.success) {
+									addAlert(t("alert.build", {title}), "success");
+								} else {
+									addAlert(res.message, "error", true);
+									await Service.command({code: `Log "Error", "${res.message.replace(/[\\"]/g, "\\$&")}"`, log: false});
+								}
+							} finally {
+								setIsWaSaving(false);
 							}
 						} else if (buildFolder && ext === '.mod') {
 							built = true;
-							const res = await Service.buildWa({path: key});
-							if (res.success) {
-								Service.command({code: `Log "Info", "Built ${title.replace(/[\\"]/g, "\\$&")}"`, log: false});
-							} else {
-								await Service.command({code: `Log "Error", "${res.message.replace(/[\\"]/g, "\\$&")}"`, log: false});
+							setIsWaSaving(true);
+							try {
+								const res = await Service.buildWa({path: key});
+								if (res.success) {
+									Service.command({code: `Log "Info", "Built ${title.replace(/[\\"]/g, "\\$&")}"`, log: false});
+								} else {
+									await Service.command({code: `Log "Error", "${res.message.replace(/[\\"]/g, "\\$&")}"`, log: false});
+								}
+							} finally {
+								setIsWaSaving(false);
 							}
 						} else if (!buildFolder && ext === '.mod') {
 							built = true;
-							const res = await Service.buildWa({path: key});
-							if (res.success) {
-								addAlert(t("alert.build", {title}), "success");
-							} else {
-								addAlert(res.message, "error", true);
-								await Service.command({code: `Log "Error", "${res.message.replace(/[\\"]/g, "\\$&")}"`, log: false});
+							setIsWaSaving(true);
+							try {
+								const res = await Service.buildWa({path: key});
+								if (res.success) {
+									addAlert(t("alert.build", {title}), "success");
+								} else {
+									addAlert(res.message, "error", true);
+									await Service.command({code: `Log "Error", "${res.message.replace(/[\\"]/g, "\\$&")}"`, log: false});
+								}
+							} finally {
+								setIsWaSaving(false);
 							}
 						} else if ((ext === '.ts' || ext === '.tsx') && !key.toLocaleLowerCase().endsWith(".d.ts")) {
 							built = true;
@@ -1985,11 +1998,14 @@ export default function PersistentDrawerLeft() {
 							loadAssets().then(() => {
 								const target = path.join(projectPath, "src", "main.wa");
 								openFileInTab(target, "main.wa", false, undefined, false);
+								setIsWaSaving(true);
 								Service.buildWa({path: target}).then((res) => {
 									if (!res.success) {
 										addAlert(res.message, "error", true);
 										Service.command({code: `Log "Error", "${res.message.replace(/[\\"]/g, "\\$&")}"`, log: false});
 									}
+								}).finally(() => {
+									setIsWaSaving(false);
 								});
 							});
 						}
