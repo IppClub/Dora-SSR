@@ -248,14 +248,11 @@ getFileEntries = (path, recursive = true, excludeFiles = nil) ->
 		entryName = Path\getName file
 		if excludes and excludes[entryName]
 			continue
-		entryAdded = false
-		for [ename,] in *entries
-			if entryName == ename
-				entryAdded = true
-				break
-		continue if entryAdded
 		fileName = Path\replaceExt file, ""
 		fileName = Path path, fileName
+		entryAdded = for [ename, efile] in *entries
+			break true if entryName == ename and efile == fileName
+		continue if entryAdded
 		entry = [entryName, fileName]
 		entries[] = entry
 	table.sort entries, (a, b) -> a[1] < b[1]
@@ -270,11 +267,8 @@ getProjectEntries = (path) ->
 				fileName = Path\replaceExt file, ""
 				fileName = Path path, dir, fileName
 				entryName = Path\getName Path\getPath fileName
-				entryAdded = false
-				for [ename,] in *entries
-					if entryName == ename
-						entryAdded = true
-						break
+				entryAdded = for [ename, efile] in *entries
+					break true if entryName == ename and efile == fileName
 				continue if entryAdded
 				examples = []
 				tests = []
@@ -856,7 +850,10 @@ footerWindow = threadLoop ->
 			if ImGui.Button zh and "更新可用" or "Update Available"
 				allClear!
 				config.updateNotification = false
-				enterDemoEntry ["SelfUpdater", Path Content.assetPath, "Script", "Tools", "SelfUpdater"]
+				enterDemoEntry [
+					"SelfUpdater"
+					Path Content.assetPath, "Script", "Tools", "SelfUpdater"
+				]
 		unless isInEntry
 			SameLine!
 			back = Button zh and "主页" or "Home", Vec2 70, 30
@@ -998,13 +995,20 @@ entryWindow = threadLoop ->
 			Image "Image/icon_s.png", Vec2 24, 24
 			SameLine!
 		TextColored themeColor, "DORA SSR #{zh and '开发' or 'DEV'}"
-		if fullWidth >= 320
+		if fullWidth >= 400
 			SameLine!
-			Dummy Vec2 fullWidth - 320, 0
+			Dummy Vec2 fullWidth - 400, 0
 			SameLine!
-			SetNextItemWidth -30
+			SetNextItemWidth zh and -90 or -140
 			if InputText zh and '筛选' or 'Filter', filterBuf, ["AutoSelectAll",]
 				config.filter = filterBuf.text
+			SameLine!
+			if Button zh and '下载' or 'Download'
+				allClear!
+				enterDemoEntry [
+					"ResourceDownloader"
+					Path Content.assetPath, "Script", "Tools", "ResourceDownloader"
+				]
 		Separator!
 		Dummy Vec2 fullWidth - 20, 0
 
