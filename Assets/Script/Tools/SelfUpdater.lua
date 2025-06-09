@@ -20,7 +20,7 @@ end -- 16
 local major, minor, patch, _revision = string.match(App.version, "(%d+)%.(%d+)%.(%d+)%.(%d+)") -- 19
 local currentVersion = (((("v" .. major) .. ".") .. minor) .. ".") .. patch -- 20
 local currentProxy = 1 -- 22
-local proxies = zh and ({"kkgithub.com", "github.com"}) or ({"github.com", "kkgithub.com"}) -- 23
+local proxies = zh and ({"OpenAtom", "github.com"}) or ({"github.com", "OpenAtom"}) -- 23
 local popupMessageTitle = "" -- 35
 local popupMessage = "" -- 36
 local popupShow = false -- 37
@@ -35,244 +35,251 @@ local function getLatestVersion() -- 47
 	checking = true -- 48
 	latestVersion = "" -- 49
 	thread(function() -- 50
-		local proxy = proxies[currentProxy] -- 51
-		local url = ("https://api." .. proxy) .. "/repos/IppClub/Dora-SSR/releases/latest" -- 52
-		local res = HttpClient:getAsync(url) -- 53
-		local success = false -- 54
-		if res then -- 54
-			local info = (json.load(res)) -- 56
-			if info then -- 56
-				latestVersion = info.tag_name -- 58
-				success = true -- 59
-			end -- 59
-		end -- 59
-		if not success then -- 59
-			showPopup(zh and "获取更新失败" or "Failed to check", zh and "无法读取仓库地址，请检查网络情况。" or "Unable to read the repo URL, please check the network status.") -- 63
-		end -- 63
-		checking = false -- 65
+		local url = "https://api.github.com/repos/IppClub/Dora-SSR/releases/latest" -- 51
+		local res = HttpClient:getAsync(url) -- 52
+		local success = false -- 53
+		if res then -- 53
+			local info = (json.load(res)) -- 55
+			if info then -- 55
+				latestVersion = info.tag_name -- 57
+				success = true -- 58
+			end -- 58
+		end -- 58
+		if not success then -- 58
+			showPopup(zh and "获取更新失败" or "Failed to check", zh and "无法读取仓库地址，请检查网络情况。" or "Unable to read the repo URL, please check the network status.") -- 62
+		end -- 62
+		checking = false -- 64
 	end) -- 50
 end -- 47
-local function getDownloadURL() -- 69
-	repeat -- 69
-		local ____switch10 = App.platform -- 69
-		local ____cond10 = ____switch10 == "Android" -- 69
-		if ____cond10 then -- 69
-			do -- 69
-				local filename = ("dora-ssr-" .. latestVersion) .. "-android.zip" -- 72
-				return {(((("https://" .. proxies[currentProxy]) .. "/IppClub/Dora-SSR/releases/download/") .. latestVersion) .. "/") .. filename, filename} -- 73
-			end -- 73
-		end -- 73
-		____cond10 = ____cond10 or ____switch10 == "Windows" -- 73
-		if ____cond10 then -- 73
-			do -- 73
-				local filename = ("dora-ssr-" .. latestVersion) .. "-windows-x86.zip" -- 76
-				return {(((("https://" .. proxies[currentProxy]) .. "/IppClub/Dora-SSR/releases/download/") .. latestVersion) .. "/") .. filename, filename} -- 77
-			end -- 77
-		end -- 77
-		do -- 77
-			do -- 77
-				error("invalid platform") -- 80
-			end -- 80
-		end -- 80
-	until true -- 80
-end -- 69
-local cancelDownload = false -- 85
-local downloadTitle = "" -- 86
-local progress = 0 -- 87
-local downloadTargetFile = "" -- 88
-local targetUnzipPath = "" -- 89
-local unzipDone = false -- 90
-local function download() -- 92
-	thread(function() -- 93
-		progress = 0 -- 94
-		local url, filename = table.unpack(getDownloadURL()) -- 95
-		local targetFile = Path(Content.writablePath, ".download", filename) -- 96
-		downloadTargetFile = targetFile -- 97
-		Content:mkdir(Path(Content.writablePath, ".download")) -- 98
-		downloadTitle = (zh and "正在下载：" or "Downloading: ") .. filename -- 99
-		local success = HttpClient:downloadAsync( -- 100
-			url, -- 101
-			targetFile, -- 102
-			30, -- 103
-			function(current, total) -- 104
-				if cancelDownload then -- 104
-					return true -- 106
-				end -- 106
-				progress = current / total -- 108
-				return false -- 109
-			end -- 104
-		) -- 104
-		if success then -- 104
-			downloadTitle = zh and "解压中：" .. filename or "Unziping: " .. filename -- 113
-			local unzipPath = Path( -- 114
-				Path:getPath(targetFile), -- 114
-				Path:getName(targetFile) -- 114
-			) -- 114
-			Content:remove(unzipPath) -- 115
-			unzipDone = false -- 116
-			targetUnzipPath = unzipPath -- 117
-			if not Content:unzipAsync(targetFile, unzipPath) then -- 117
-				Content:remove(unzipPath) -- 119
-				targetUnzipPath = "" -- 120
-				showPopup(zh and "解压失败" or "Failed to unzip ", zh and "无法解压文件：" .. filename or "Failed to unzip: " .. filename) -- 121
-			else -- 121
-				Content:remove(targetFile) -- 123
-				unzipDone = true -- 124
-				local pathForInstall = App.platform == "Windows" and unzipPath or Path(unzipPath, ("dora-ssr-" .. latestVersion) .. "-android.apk") -- 125
-				App:install(pathForInstall) -- 126
-			end -- 126
-		else -- 126
-			Content:remove(targetFile) -- 129
-			downloadTitle = "" -- 130
-			showPopup(zh and "下载失败" or "Download failed", zh and "无法从该地址下载：" .. url or "Failed to download from: " .. url) -- 131
-		end -- 131
-	end) -- 93
-end -- 92
-local ____App_0 = App -- 136
-local themeColor = ____App_0.themeColor -- 136
-local windowFlags = {"NoDecoration", "NoSavedSettings", "NoNav", "NoMove"} -- 138
-local messagePopupFlags = {"NoSavedSettings", "AlwaysAutoResize", "NoTitleBar"} -- 144
-local inputTextFlags = {"AutoSelectAll"} -- 149
-local proxyBuf = Buffer(100) -- 150
-local function messagePopup() -- 152
-	ImGui.Text(popupMessageTitle) -- 153
-	ImGui.Separator() -- 154
-	ImGui.PushTextWrapPos( -- 155
-		300, -- 155
-		function() -- 155
-			ImGui.TextWrapped(popupMessage) -- 156
-		end -- 155
-	) -- 155
-	if ImGui.Button( -- 155
-		zh and "确认" or "OK", -- 158
-		Vec2(300, 30) -- 158
-	) then -- 158
-		ImGui.CloseCurrentPopup() -- 159
-	end -- 159
-end -- 152
-threadLoop(function() -- 163
-	local ____App_visualSize_1 = App.visualSize -- 164
-	local width = ____App_visualSize_1.width -- 164
-	ImGui.SetNextWindowPos( -- 165
-		Vec2(width - 10, 10), -- 165
-		"Always", -- 165
-		Vec2(1, 0) -- 165
-	) -- 165
-	ImGui.SetNextWindowSize( -- 166
-		Vec2(400, 0), -- 166
-		"Always" -- 166
-	) -- 166
-	ImGui.Begin( -- 167
-		"Dora Updater", -- 167
-		windowFlags, -- 167
-		function() -- 167
-			ImGui.Text(zh and "Dora SSR 自更新工具" or "Dora SSR Self Updater") -- 168
-			ImGui.SameLine() -- 169
-			ImGui.TextDisabled("(?)") -- 170
-			if ImGui.IsItemHovered() then -- 170
-				ImGui.BeginTooltip(function() -- 172
-					ImGui.PushTextWrapPos( -- 173
-						300, -- 173
-						function() -- 173
-							ImGui.Text(zh and "使用该工具来检测和安装 Dora SSR 新版本的软件。" or "Use this tool to detect and install new versions of Dora SSR software.") -- 174
-						end -- 173
-					) -- 173
-				end) -- 172
-			end -- 172
-			ImGui.Separator() -- 178
-			repeat -- 178
-				local ____switch30 = App.platform -- 178
-				local ____cond30 = ____switch30 == "Linux" -- 178
-				if ____cond30 then -- 178
-					ImGui.TextWrapped(zh and "请通过 Dora SSR PPA，使用 apt-get 工具进行更新管理。详见官网的安装教程。" or "Please use apt-get to manage updates via the Dora SSR PPA. See the installation tutorial on the official website for details.") -- 181
-					return false -- 182
-				end -- 182
-				____cond30 = ____cond30 or ____switch30 == "macOS" -- 182
-				if ____cond30 then -- 182
-					ImGui.TextWrapped(zh and "请通过 Homebrew 工具进行更新管理。详见官网的安装教程。" or "Please use the Homebrew tool to manage updates. See the installation tutorial on the official website for details.") -- 184
-					return false -- 185
-				end -- 185
-			until true -- 185
-			local _ = false -- 187
-			_, currentProxy = ImGui.Combo(zh and "选择代理" or "Proxy Site", currentProxy, proxies) -- 188
-			if latestVersion == "" then -- 188
-				ImGui.InputText("##NewProxy", proxyBuf, inputTextFlags) -- 190
-				ImGui.SameLine() -- 191
-				if ImGui.Button(zh and "添加代理" or "Add Proxy") then -- 191
-					local proxyText = proxyBuf.text -- 193
-					if proxyText ~= "" then -- 193
-						proxies[#proxies + 1] = proxyText -- 195
-						proxyBuf.text = "" -- 196
-						currentProxy = #proxies -- 197
-					end -- 197
-				end -- 197
-			end -- 197
-			ImGui.Separator() -- 201
-			ImGui.TextColored(themeColor, zh and "当前版：" or "Current Version:") -- 202
-			ImGui.SameLine() -- 203
-			ImGui.Text(currentVersion) -- 204
-			if latestVersion ~= "" then -- 204
-				ImGui.TextColored(themeColor, zh and "最新版：" or "Latest Version:") -- 206
-				ImGui.SameLine() -- 207
-				ImGui.Text(latestVersion) -- 208
-				if latestVersion ~= currentVersion then -- 208
-					ImGui.TextColored(themeColor, zh and "有可用更新！" or "Update Available!") -- 210
-					if downloadTitle == "" then -- 210
-						if ImGui.Button(zh and "进行更新" or "Update") then -- 210
-							download() -- 213
-						end -- 213
-					end -- 213
-				else -- 213
-					ImGui.TextColored(themeColor, zh and "已是最新版！" or "Already the latest version!") -- 217
+local function getDownloadURL() -- 68
+	repeat -- 68
+		local ____switch10 = App.platform -- 68
+		local ____cond10 = ____switch10 == "Android" -- 68
+		if ____cond10 then -- 68
+			do -- 68
+				local filename = ("dora-ssr-" .. latestVersion) .. "-android.zip" -- 71
+				local proxy = proxies[currentProxy] -- 72
+				if proxy == "OpenAtom" then -- 72
+					return {"http://39.155.148.157:8866/zips/" .. filename, filename} -- 74
+				end -- 74
+				return {(((("https://" .. proxy) .. "/IppClub/Dora-SSR/releases/download/") .. latestVersion) .. "/") .. filename, filename} -- 76
+			end -- 76
+		end -- 76
+		____cond10 = ____cond10 or ____switch10 == "Windows" -- 76
+		if ____cond10 then -- 76
+			do -- 76
+				local filename = ("dora-ssr-" .. latestVersion) .. "-windows-x86.zip" -- 79
+				local proxy = proxies[currentProxy] -- 80
+				if proxy == "OpenAtom" then -- 80
+					return {"http://39.155.148.157:8866/zips/" .. filename, filename} -- 82
+				end -- 82
+				return {(((("https://" .. proxy) .. "/IppClub/Dora-SSR/releases/download/") .. latestVersion) .. "/") .. filename, filename} -- 84
+			end -- 84
+		end -- 84
+		do -- 84
+			do -- 84
+				error("invalid platform") -- 87
+			end -- 87
+		end -- 87
+	until true -- 87
+end -- 68
+local cancelDownload = false -- 92
+local downloadTitle = "" -- 93
+local progress = 0 -- 94
+local downloadTargetFile = "" -- 95
+local targetUnzipPath = "" -- 96
+local unzipDone = false -- 97
+local function download() -- 99
+	thread(function() -- 100
+		progress = 0 -- 101
+		local url, filename = table.unpack(getDownloadURL()) -- 102
+		local targetFile = Path(Content.writablePath, ".download", filename) -- 103
+		downloadTargetFile = targetFile -- 104
+		Content:mkdir(Path(Content.writablePath, ".download")) -- 105
+		downloadTitle = (zh and "正在下载：" or "Downloading: ") .. filename -- 106
+		local success = HttpClient:downloadAsync( -- 107
+			url, -- 108
+			targetFile, -- 109
+			30, -- 110
+			function(current, total) -- 111
+				if cancelDownload then -- 111
+					return true -- 113
+				end -- 113
+				progress = current / total -- 115
+				return false -- 116
+			end -- 111
+		) -- 111
+		if success then -- 111
+			downloadTitle = zh and "解压中：" .. filename or "Unziping: " .. filename -- 120
+			local unzipPath = Path( -- 121
+				Path:getPath(targetFile), -- 121
+				Path:getName(targetFile) -- 121
+			) -- 121
+			Content:remove(unzipPath) -- 122
+			unzipDone = false -- 123
+			targetUnzipPath = unzipPath -- 124
+			if not Content:unzipAsync(targetFile, unzipPath) then -- 124
+				Content:remove(unzipPath) -- 126
+				targetUnzipPath = "" -- 127
+				showPopup(zh and "解压失败" or "Failed to unzip ", zh and "无法解压文件：" .. filename or "Failed to unzip: " .. filename) -- 128
+			else -- 128
+				Content:remove(targetFile) -- 130
+				unzipDone = true -- 131
+				local pathForInstall = App.platform == "Windows" and unzipPath or Path(unzipPath, ("dora-ssr-" .. latestVersion) .. "-android.apk") -- 132
+				App:install(pathForInstall) -- 133
+			end -- 133
+		else -- 133
+			Content:remove(targetFile) -- 136
+			downloadTitle = "" -- 137
+			showPopup(zh and "下载失败" or "Download failed", zh and "无法从该地址下载：" .. url or "Failed to download from: " .. url) -- 138
+		end -- 138
+	end) -- 100
+end -- 99
+local ____App_0 = App -- 143
+local themeColor = ____App_0.themeColor -- 143
+local windowFlags = {"NoDecoration", "NoSavedSettings", "NoNav", "NoMove"} -- 145
+local messagePopupFlags = {"NoSavedSettings", "AlwaysAutoResize", "NoTitleBar"} -- 151
+local inputTextFlags = {"AutoSelectAll"} -- 156
+local proxyBuf = Buffer(100) -- 157
+local function messagePopup() -- 159
+	ImGui.Text(popupMessageTitle) -- 160
+	ImGui.Separator() -- 161
+	ImGui.PushTextWrapPos( -- 162
+		300, -- 162
+		function() -- 162
+			ImGui.TextWrapped(popupMessage) -- 163
+		end -- 162
+	) -- 162
+	if ImGui.Button( -- 162
+		zh and "确认" or "OK", -- 165
+		Vec2(300, 30) -- 165
+	) then -- 165
+		ImGui.CloseCurrentPopup() -- 166
+	end -- 166
+end -- 159
+threadLoop(function() -- 170
+	local ____App_visualSize_1 = App.visualSize -- 171
+	local width = ____App_visualSize_1.width -- 171
+	ImGui.SetNextWindowPos( -- 172
+		Vec2(width - 10, 10), -- 172
+		"Always", -- 172
+		Vec2(1, 0) -- 172
+	) -- 172
+	ImGui.SetNextWindowSize( -- 173
+		Vec2(400, 0), -- 173
+		"Always" -- 173
+	) -- 173
+	ImGui.Begin( -- 174
+		"Dora Updater", -- 174
+		windowFlags, -- 174
+		function() -- 174
+			ImGui.Text(zh and "Dora SSR 自更新工具" or "Dora SSR Self Updater") -- 175
+			ImGui.SameLine() -- 176
+			ImGui.TextDisabled("(?)") -- 177
+			if ImGui.IsItemHovered() then -- 177
+				ImGui.BeginTooltip(function() -- 179
+					ImGui.PushTextWrapPos( -- 180
+						300, -- 180
+						function() -- 180
+							ImGui.Text(zh and "使用该工具来检测和安装 Dora SSR 新版本的软件。" or "Use this tool to detect and install new versions of Dora SSR software.") -- 181
+						end -- 180
+					) -- 180
+				end) -- 179
+			end -- 179
+			ImGui.Separator() -- 185
+			repeat -- 185
+				local ____switch32 = App.platform -- 185
+				local ____cond32 = ____switch32 == "Linux" -- 185
+				if ____cond32 then -- 185
+					ImGui.TextWrapped(zh and "请通过 Dora SSR PPA，使用 apt-get 工具进行更新管理。详见官网的安装教程。" or "Please use apt-get to manage updates via the Dora SSR PPA. See the installation tutorial on the official website for details.") -- 188
+					return false -- 189
+				end -- 189
+				____cond32 = ____cond32 or ____switch32 == "macOS" -- 189
+				if ____cond32 then -- 189
+					ImGui.TextWrapped(zh and "请通过 Homebrew 工具进行更新管理。详见官网的安装教程。" or "Please use the Homebrew tool to manage updates. See the installation tutorial on the official website for details.") -- 191
+					return false -- 192
+				end -- 192
+			until true -- 192
+			local _ = false -- 194
+			_, currentProxy = ImGui.Combo(zh and "选择代理" or "Proxy Site", currentProxy, proxies) -- 195
+			if latestVersion == "" then -- 195
+				ImGui.InputText("##NewProxy", proxyBuf, inputTextFlags) -- 197
+				ImGui.SameLine() -- 198
+				if ImGui.Button(zh and "添加代理" or "Add Proxy") then -- 198
+					local proxyText = proxyBuf.text -- 200
+					if proxyText ~= "" then -- 200
+						proxies[#proxies + 1] = proxyText -- 202
+						proxyBuf.text = "" -- 203
+						currentProxy = #proxies -- 204
+					end -- 204
+				end -- 204
+			end -- 204
+			ImGui.Separator() -- 208
+			ImGui.TextColored(themeColor, zh and "当前版：" or "Current Version:") -- 209
+			ImGui.SameLine() -- 210
+			ImGui.Text(currentVersion) -- 211
+			if latestVersion ~= "" then -- 211
+				ImGui.TextColored(themeColor, zh and "最新版：" or "Latest Version:") -- 213
+				ImGui.SameLine() -- 214
+				ImGui.Text(latestVersion) -- 215
+				if latestVersion ~= currentVersion then -- 215
+					ImGui.TextColored(themeColor, zh and "有可用更新！" or "Update Available!") -- 217
 					if downloadTitle == "" then -- 217
-						if ImGui.Button(zh and "重新安装" or "Reinstall") then -- 217
+						if ImGui.Button(zh and "进行更新" or "Update") then -- 217
 							download() -- 220
 						end -- 220
 					end -- 220
-				end -- 220
-			else -- 220
-				if checking then -- 220
-					ImGui.BeginDisabled(function() -- 226
-						ImGui.Button(zh and "检查更新" or "Check Update") -- 227
-					end) -- 226
-				else -- 226
-					if ImGui.Button(zh and "检查更新" or "Check Update") then -- 226
-						getLatestVersion() -- 231
-					end -- 231
-				end -- 231
-			end -- 231
-			if unzipDone then -- 231
-				if App.platform == "Android" then -- 231
-					if ImGui.Button(zh and "进行安装" or "Install") then -- 231
-						local pathForInstall = Path(targetUnzipPath, ("dora-ssr-" .. latestVersion) .. "-android.apk") -- 238
-						App:install(pathForInstall) -- 239
-					end -- 239
-				end -- 239
-			elseif downloadTitle ~= "" then -- 239
-				ImGui.Separator() -- 243
-				ImGui.Text(downloadTitle) -- 244
-				ImGui.ProgressBar( -- 245
-					progress, -- 245
-					Vec2(-1, 30) -- 245
-				) -- 245
-			end -- 245
-			if popupShow then -- 245
-				popupShow = false -- 248
-				ImGui.OpenPopup("MessagePopup") -- 249
-			end -- 249
-			ImGui.BeginPopupModal("MessagePopup", messagePopupFlags, messagePopup) -- 251
-		end -- 167
-	) -- 167
-	return false -- 253
-end) -- 163
-local node = Node() -- 256
-node:onCleanup(function() -- 257
-	if 0 < progress and progress < 1 and downloadTargetFile ~= "" then -- 257
-		cancelDownload = true -- 259
-		Content:remove(downloadTargetFile) -- 260
-	end -- 260
-	if targetUnzipPath ~= "" then -- 260
-		Content:remove(targetUnzipPath) -- 263
-	end -- 263
-end) -- 257
-return ____exports -- 257
+				else -- 220
+					ImGui.TextColored(themeColor, zh and "已是最新版！" or "Already the latest version!") -- 224
+					if downloadTitle == "" then -- 224
+						if ImGui.Button(zh and "重新安装" or "Reinstall") then -- 224
+							download() -- 227
+						end -- 227
+					end -- 227
+				end -- 227
+			else -- 227
+				if checking then -- 227
+					ImGui.BeginDisabled(function() -- 233
+						ImGui.Button(zh and "检查更新" or "Check Update") -- 234
+					end) -- 233
+				else -- 233
+					if ImGui.Button(zh and "检查更新" or "Check Update") then -- 233
+						getLatestVersion() -- 238
+					end -- 238
+				end -- 238
+			end -- 238
+			if unzipDone then -- 238
+				if App.platform == "Android" then -- 238
+					if ImGui.Button(zh and "进行安装" or "Install") then -- 238
+						local pathForInstall = Path(targetUnzipPath, ("dora-ssr-" .. latestVersion) .. "-android.apk") -- 245
+						App:install(pathForInstall) -- 246
+					end -- 246
+				end -- 246
+			elseif downloadTitle ~= "" then -- 246
+				ImGui.Separator() -- 250
+				ImGui.Text(downloadTitle) -- 251
+				ImGui.ProgressBar( -- 252
+					progress, -- 252
+					Vec2(-1, 30) -- 252
+				) -- 252
+			end -- 252
+			if popupShow then -- 252
+				popupShow = false -- 255
+				ImGui.OpenPopup("MessagePopup") -- 256
+			end -- 256
+			ImGui.BeginPopupModal("MessagePopup", messagePopupFlags, messagePopup) -- 258
+		end -- 174
+	) -- 174
+	return false -- 260
+end) -- 170
+local node = Node() -- 263
+node:onCleanup(function() -- 264
+	if 0 < progress and progress < 1 and downloadTargetFile ~= "" then -- 264
+		cancelDownload = true -- 266
+		Content:remove(downloadTargetFile) -- 267
+	end -- 267
+	if targetUnzipPath ~= "" then -- 267
+		Content:remove(targetUnzipPath) -- 270
+	end -- 270
+end) -- 264
+return ____exports -- 264

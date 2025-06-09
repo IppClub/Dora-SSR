@@ -21,11 +21,11 @@ const currentVersion = `v${major}.${minor}.${patch}`;
 
 let currentProxy = 1;
 const proxies = zh ? [
-	"kkgithub.com",
+	"OpenAtom",
 	"github.com"
 ] : [
 	"github.com",
-	"kkgithub.com",
+	"OpenAtom",
 ];
 
 interface VersionInfo {
@@ -48,8 +48,7 @@ function getLatestVersion() {
 	checking = true;
 	latestVersion = "";
 	thread(() => {
-		const proxy = proxies[currentProxy - 1];
-		let url = `https://api.${proxy}/repos/IppClub/Dora-SSR/releases/latest`;
+		let url = `https://api.github.com/repos/IppClub/Dora-SSR/releases/latest`;
 		const res = HttpClient.getAsync(url);
 		let success = false;
 		if (res) {
@@ -70,11 +69,19 @@ function getDownloadURL() {
 	switch (App.platform) {
 		case PlatformType.Android: {
 			const filename = `dora-ssr-${latestVersion}-android.zip`;
-			return [`https://${proxies[currentProxy - 1]}/IppClub/Dora-SSR/releases/download/${latestVersion}/${filename}`, filename];
+			const proxy = proxies[currentProxy - 1];
+			if (proxy === 'OpenAtom') {
+				return [`http://39.155.148.157:8866/zips/${filename}`, filename]
+			}
+			return [`https://${proxy}/IppClub/Dora-SSR/releases/download/${latestVersion}/${filename}`, filename];
 		}
 		case PlatformType.Windows: {
 			const filename = `dora-ssr-${latestVersion}-windows-x86.zip`;
-			return [`https://${proxies[currentProxy - 1]}/IppClub/Dora-SSR/releases/download/${latestVersion}/${filename}`, filename];
+			const proxy = proxies[currentProxy - 1];
+			if (proxy === 'OpenAtom') {
+				return [`http://39.155.148.157:8866/zips/${filename}`, filename]
+			}
+			return [`https://${proxy}/IppClub/Dora-SSR/releases/download/${latestVersion}/${filename}`, filename];
 		}
 		default: {
 			error("invalid platform");
