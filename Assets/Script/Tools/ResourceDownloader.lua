@@ -5,7 +5,6 @@ local Map = ____lualib.Map -- 1
 local __TS__New = ____lualib.__TS__New -- 1
 local Set = ____lualib.Set -- 1
 local __TS__ArrayFind = ____lualib.__TS__ArrayFind -- 1
-local __TS__StringReplace = ____lualib.__TS__StringReplace -- 1
 local __TS__NumberToFixed = ____lualib.__TS__NumberToFixed -- 1
 local ____exports = {} -- 1
 local ____Dora = require("Dora") -- 2
@@ -339,66 +338,64 @@ function ResourceDownloader.prototype.update(self) -- 251
 						ImGui.TextColored(themeColor, zh and "项目地址：" or "Repo URL:") -- 327
 						ImGui.SameLine() -- 328
 						ImGui.TextLinkOpenURL((zh and "这里" or "here") .. "###" .. pkg.url, pkg.url) -- 329
-						ImGui.TextColored(themeColor, zh and "同步时间：" or "Updated:") -- 331
-						ImGui.SameLine() -- 332
-						local dateStr = __TS__StringReplace( -- 333
-							__TS__StringReplace(pkg.latest.updatedAt, "T", " "), -- 333
-							"Z", -- 333
-							"" -- 333
-						) -- 333
-						ImGui.Text(dateStr) -- 334
-						local progress = self.downloadProgress:get(pkg.name) -- 337
-						if progress ~= nil then -- 337
-							ImGui.ProgressBar( -- 339
-								progress.progress, -- 339
-								Vec2(-1, 30) -- 339
-							) -- 339
-							ImGui.BeginDisabled(function() -- 340
-								ImGui.Button(progress.status) -- 341
-							end) -- 340
-						end -- 340
-						if progress == nil then -- 340
-							local isDownloaded = self:isDownloaded(pkg.name) -- 347
-							local buttonText = isDownloaded and (zh and "重新下载" or "Download Again") or (zh and "下载" or "Download") -- 348
-							if self.isDownloading then -- 348
-								ImGui.BeginDisabled(function() -- 352
-									ImGui.PushID( -- 353
-										pkg.name, -- 353
-										function() -- 353
-											ImGui.Button(buttonText) -- 354
-										end -- 353
-									) -- 353
-								end) -- 352
-							else -- 352
-								ImGui.PushID( -- 358
-									pkg.name, -- 358
-									function() -- 358
-										if ImGui.Button(buttonText) then -- 358
-											self:downloadPackage(pkg) -- 360
-										end -- 360
-									end -- 358
-								) -- 358
-							end -- 358
-						end -- 358
-						ImGui.SameLine() -- 367
-						ImGui.Text(__TS__NumberToFixed(pkg.latest.size / 1024 / 1024, 2) .. " MB") -- 368
-						thinSep() -- 370
-						ImGui.NextColumn() -- 371
-					end -- 371
-					::__continue55:: -- 371
-				end -- 371
-				ImGui.ScrollWhenDraggingOnVoid() -- 374
-				if self.popupShow then -- 374
-					self.popupShow = false -- 377
-					ImGui.OpenPopup("MessagePopup") -- 378
-				end -- 378
-				ImGui.BeginPopupModal( -- 380
-					"MessagePopup", -- 380
-					function() return self:messagePopup() end -- 380
-				) -- 380
+						if type(pkg.latest.updatedAt) == "number" then -- 329
+							ImGui.TextColored(themeColor, zh and "同步时间：" or "Updated:") -- 332
+							ImGui.SameLine() -- 333
+							local dateStr = os.date("%Y-%m-%d %H:%M:%S", pkg.latest.updatedAt) -- 334
+							ImGui.Text(dateStr) -- 335
+						end -- 335
+						local progress = self.downloadProgress:get(pkg.name) -- 339
+						if progress ~= nil then -- 339
+							ImGui.ProgressBar( -- 341
+								progress.progress, -- 341
+								Vec2(-1, 30) -- 341
+							) -- 341
+							ImGui.BeginDisabled(function() -- 342
+								ImGui.Button(progress.status) -- 343
+							end) -- 342
+						end -- 342
+						if progress == nil then -- 342
+							local isDownloaded = self:isDownloaded(pkg.name) -- 349
+							local buttonText = isDownloaded and (zh and "重新下载" or "Download Again") or (zh and "下载" or "Download") -- 350
+							if self.isDownloading then -- 350
+								ImGui.BeginDisabled(function() -- 354
+									ImGui.PushID( -- 355
+										pkg.name, -- 355
+										function() -- 355
+											ImGui.Button(buttonText) -- 356
+										end -- 355
+									) -- 355
+								end) -- 354
+							else -- 354
+								ImGui.PushID( -- 360
+									pkg.name, -- 360
+									function() -- 360
+										if ImGui.Button(buttonText) then -- 360
+											self:downloadPackage(pkg) -- 362
+										end -- 362
+									end -- 360
+								) -- 360
+							end -- 360
+						end -- 360
+						ImGui.SameLine() -- 369
+						ImGui.Text(__TS__NumberToFixed(pkg.latest.size / 1024 / 1024, 2) .. " MB") -- 370
+						thinSep() -- 372
+						ImGui.NextColumn() -- 373
+					end -- 373
+					::__continue55:: -- 373
+				end -- 373
+				ImGui.ScrollWhenDraggingOnVoid() -- 376
+				if self.popupShow then -- 376
+					self.popupShow = false -- 379
+					ImGui.OpenPopup("MessagePopup") -- 380
+				end -- 380
+				ImGui.BeginPopupModal( -- 382
+					"MessagePopup", -- 382
+					function() return self:messagePopup() end -- 382
+				) -- 382
 			end -- 294
 		) end -- 294
 	) -- 294
 end -- 251
-__TS__New(ResourceDownloader) -- 385
-return ____exports -- 385
+__TS__New(ResourceDownloader) -- 387
+return ____exports -- 387
