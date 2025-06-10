@@ -601,6 +601,7 @@ setupEventHandlers = ->
 		\onAppWS (eventType) -> if eventType == "Close"
 			if HttpServer.wsConnectionCount == 0
 				updateEntries!
+		\slot "UpdateEntries", -> updateEntries!
 
 setupEventHandlers!
 clearTempFiles!

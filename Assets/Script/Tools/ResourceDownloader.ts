@@ -1,5 +1,5 @@
 // @preview-file on clear
-import { HttpClient, json, thread, App, Vec2, Path, Content, Node, Texture2D, Job, Cache, Buffer } from 'Dora';
+import { HttpClient, json, thread, App, Vec2, Path, Content, Node, Texture2D, Job, Cache, Buffer, Director } from 'Dora';
 import { SetCond, WindowFlag } from "ImGui";
 import * as ImGui from 'ImGui';
 
@@ -213,6 +213,7 @@ class ResourceDownloader {
 				if (Content.unzipAsync(targetFile, unzipPath)) {
 					Content.remove(targetFile);
 					this.downloadedPackages.add(pkg.name);
+					Director.postNode.emit("UpdateEntries");
 				} else {
 					Content.remove(unzipPath);
 					this.showPopup(
