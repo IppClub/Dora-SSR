@@ -18,7 +18,7 @@ interface PackageInfo {
 		tag: string;
 		commit: string;
 		download: string;
-		updatedAt: string;
+		updatedAt: number;
 	};
 }
 
@@ -328,10 +328,12 @@ class ResourceDownloader {
 				ImGui.SameLine();
 				ImGui.TextLinkOpenURL((zh ? '这里' : 'here') + `###${pkg.url}`, pkg.url);
 
-				ImGui.TextColored(themeColor, zh ? `同步时间：` : `Updated:`);
-				ImGui.SameLine();
-				const dateStr = pkg.latest.updatedAt.replace("T", " ").replace("Z", "");
-				ImGui.Text(dateStr);
+				if ("number" === typeof pkg.latest.updatedAt) {
+					ImGui.TextColored(themeColor, zh ? `同步时间：` : `Updated:`);
+					ImGui.SameLine();
+					const dateStr = os.date("%Y-%m-%d %H:%M:%S", pkg.latest.updatedAt);
+					ImGui.Text(dateStr);
+				}
 
 				// Progress bar
 				const progress = this.downloadProgress.get(pkg.name);
