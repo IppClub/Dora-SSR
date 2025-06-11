@@ -352,7 +352,16 @@ class ResourceDownloader {
 
 				ImGui.TextColored(themeColor, zh ? `项目地址：` : `Repo URL:`);
 				ImGui.SameLine();
-				ImGui.TextLinkOpenURL((zh ? '这里' : 'here') + `###${pkg.url}`, pkg.url);
+				if (ImGui.TextLink((zh ? '这里' : 'here') + `###${pkg.url}`)) {
+					App.openURL(pkg.url);
+				}
+				if (ImGui.IsItemHovered()) {
+					ImGui.BeginTooltip(() => {
+						ImGui.PushTextWrapPos(300, () => {
+							ImGui.Text(pkg.url);
+						});
+					});
+				}
 
 				const currentVersion = pkg.currentVersion ?? 1;
 				const version = pkg.versions[currentVersion - 1];
