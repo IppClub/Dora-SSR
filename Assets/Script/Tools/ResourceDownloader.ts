@@ -9,17 +9,26 @@ let zh = false;
 	zh = res !== null && ImGui.IsFontLoaded();
 }
 
+interface PackageListVersion {
+	version: number;
+	updatedAt: number;
+}
+
+interface PackageVersion {
+	file: string;
+	size: number;
+	tag: string;
+	commit: string;
+	download: string;
+	updatedAt: number;
+}
+
 interface PackageInfo {
 	name: string;
 	url: string;
-	latest: {
-		file: string;
-		size: number;
-		tag: string;
-		commit: string;
-		download: string;
-		updatedAt: number;
-	};
+	versions: PackageVersion[];
+	currentVersion?: number;
+	versionNames?: string[];
 }
 
 interface RepoInfo {
@@ -95,21 +104,40 @@ class ResourceDownloader {
 		this.popupShow = true;
 	}
 
-	private loadData(reload: boolean = false) {
+	private loadData() {
 		if (this.isLoading) return;
 		this.isLoading = true;
-		if (reload) {
-			this.packages = [];
-			this.repos = [];
-			this.previewTextures.clear();
-			this.previewFiles.clear();
-			const cachePath = Path(Content.appPath, ".cache", "preview");
-			Content.remove(cachePath);
-		}
 		thread(() => {
+			let reload = false;
+			const versionResponse = HttpClient.getAsync("http://39.155.148.157:8866/api/v1/package-list-version");
+			const packageListVersionFile = Path(Content.appPath, ".cache", "preview", "package-list-version.json");
+			if (versionResponse) {
+				const [version] = json.load(versionResponse);
+				const packageListVersion = version as PackageListVersion;
+				if (Content.exist(packageListVersionFile)) {
+					const [oldVersion] = json.load(Content.load(packageListVersionFile));
+					const oldPackageListVersion = oldVersion as PackageListVersion;
+					if (packageListVersion.version !== oldPackageListVersion.version) {
+						reload = true;
+					}
+				} else {
+					reload = true;
+				}
+			}
+			if (reload) {
+				this.packages = [];
+				this.repos = [];
+				this.previewTextures.clear();
+				this.previewFiles.clear();
+				const cachePath = Path(Content.appPath, ".cache", "preview");
+				Content.remove(cachePath);
+			}
 			// Load packages data
 			const cachePath = Path(Content.appPath, ".cache", "preview");
 			Content.mkdir(cachePath);
+			if (reload && versionResponse) {
+				Content.save(packageListVersionFile, versionResponse);
+			}
 			const packagesFile = Path(cachePath, "packages.json");
 			if (Content.exist(packagesFile)) {
 				const [packages] = json.load(Content.load(packagesFile));
@@ -122,6 +150,12 @@ class ResourceDownloader {
 					this.packages = packages as PackageInfo[];
 					Content.save(packagesFile, packagesResponse);
 				}
+			}
+			for (const pkg of this.packages) {
+				pkg.currentVersion = 1;
+				pkg.versionNames = pkg.versions.map(v => {
+					return v.tag === "" ? "No Tag" : v.tag;
+				});
 			}
 
 			// Load repos data
@@ -190,10 +224,12 @@ class ResourceDownloader {
 			let downloadStatus = (zh ? "正在下载：" : "Downloading: ") + pkg.name;
 			const downloadPath = Path(Content.writablePath, ".download");
 			Content.mkdir(downloadPath);
-			const targetFile = Path(downloadPath, pkg.latest.file);
+			const currentVersion = pkg.currentVersion ?? 1;
+			const version = pkg.versions[currentVersion - 1];
+			const targetFile = Path(downloadPath, version.file);
 
 			const success = HttpClient.downloadAsync(
-				pkg.latest.download,
+				version.download,
 				targetFile,
 				30,
 				(current, total) => {
@@ -218,14 +254,14 @@ class ResourceDownloader {
 					Content.remove(unzipPath);
 					this.showPopup(
 						zh ? "解压失败" : "Failed to unzip",
-						zh ? `无法解压文件：${pkg.latest.file}` : `Failed to unzip: ${pkg.latest.file}`
+						zh ? `无法解压文件：${version.file}` : `Failed to unzip: ${version.file}`
 					);
 				}
 			} else {
 				Content.remove(targetFile);
 				this.showPopup(
 					zh ? "下载失败" : "Download failed",
-					zh ? `无法从该地址下载：${pkg.latest.download}` : `Failed to download from: ${pkg.latest.download}`
+					zh ? `无法从该地址下载：${version.download}` : `Failed to download from: ${version.download}`
 				);
 			}
 
@@ -263,16 +299,6 @@ class ResourceDownloader {
 						ImGui.Text(zh ? "使用该工具来下载 Dora SSR 的社区资源到 `Download` 目录。" : "Use this tool to download Dora SSR community resources to the `Download` directory.");
 					});
 				});
-			}
-			ImGui.SameLine();
-			if (this.isDownloading || this.isLoading) {
-				ImGui.BeginDisabled(() => {
-					ImGui.Button(zh ? "刷新" : "Refresh");
-				});
-			} else {
-				if (ImGui.Button(zh ? "刷新" : "Refresh")) {
-					this.loadData(true);
-				}
 			}
 			const padding = zh ? 400 : 440;
 			if (width >= padding) {
@@ -328,10 +354,12 @@ class ResourceDownloader {
 				ImGui.SameLine();
 				ImGui.TextLinkOpenURL((zh ? '这里' : 'here') + `###${pkg.url}`, pkg.url);
 
-				if ("number" === typeof pkg.latest.updatedAt) {
+				const currentVersion = pkg.currentVersion ?? 1;
+				const version = pkg.versions[currentVersion - 1];
+				if ("number" === typeof version.updatedAt) {
 					ImGui.TextColored(themeColor, zh ? `同步时间：` : `Updated:`);
 					ImGui.SameLine();
-					const dateStr = os.date("%Y-%m-%d %H:%M:%S", pkg.latest.updatedAt);
+					const dateStr = os.date("%Y-%m-%d %H:%M:%S", version.updatedAt);
 					ImGui.Text(dateStr);
 				}
 
@@ -348,7 +376,7 @@ class ResourceDownloader {
 				if (progress === undefined) {
 					const isDownloaded = this.isDownloaded(pkg.name);
 					const buttonText = isDownloaded ?
-						(zh ? "重新下载" : "Download Again") :
+						(zh ? "重新下载" : "Re-Download") :
 						(zh ? "下载" : "Download");
 					if (this.isDownloading) {
 						ImGui.BeginDisabled(() => {
@@ -367,7 +395,15 @@ class ResourceDownloader {
 
 				// Package info
 				ImGui.SameLine();
-				ImGui.Text(`${(pkg.latest.size / 1024 / 1024).toFixed(2)} MB`);
+				ImGui.Text(`${(version.size / 1024 / 1024).toFixed(2)} MB`);
+				if (!this.isDownloading && pkg.versionNames && pkg.currentVersion) {
+					ImGui.SameLine();
+					ImGui.SetNextItemWidth(-20);
+					const [changed, currentVersion] = ImGui.Combo("###" + pkg.name, pkg.currentVersion, pkg.versionNames);
+					if (changed) {
+						pkg.currentVersion = currentVersion;
+					}
+				}
 
 				thinSep();
 				ImGui.NextColumn();

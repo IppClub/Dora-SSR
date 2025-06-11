@@ -4,6 +4,7 @@ local __TS__Class = ____lualib.__TS__Class -- 1
 local Map = ____lualib.Map -- 1
 local __TS__New = ____lualib.__TS__New -- 1
 local Set = ____lualib.Set -- 1
+local __TS__ArrayMap = ____lualib.__TS__ArrayMap -- 1
 local __TS__ArrayFind = ____lualib.__TS__ArrayFind -- 1
 local __TS__NumberToFixed = ____lualib.__TS__NumberToFixed -- 1
 local ____exports = {} -- 1
@@ -26,376 +27,403 @@ do -- 6
 	local res = string.match(App.locale, "^zh") -- 8
 	zh = res ~= nil and ImGui.IsFontLoaded() -- 9
 end -- 9
-local windowsNoScrollFlags = { -- 38
-	"NoMove", -- 39
-	"NoCollapse", -- 40
-	"NoResize", -- 41
-	"NoDecoration", -- 42
-	"NoNav", -- 43
-	"NoBringToFrontOnFocus" -- 44
-} -- 44
-local windowsFlags = { -- 47
+local windowsNoScrollFlags = { -- 47
 	"NoMove", -- 48
 	"NoCollapse", -- 49
 	"NoResize", -- 50
 	"NoDecoration", -- 51
 	"NoNav", -- 52
-	"AlwaysVerticalScrollbar", -- 53
-	"NoBringToFrontOnFocus" -- 54
-} -- 54
-local themeColor = App.themeColor -- 57
-local function sep() -- 59
-	return ImGui.SeparatorText("") -- 59
-end -- 59
-local function thinSep() -- 60
-	return ImGui.PushStyleVar("SeparatorTextBorderSize", 1, sep) -- 60
-end -- 60
-local ResourceDownloader = __TS__Class() -- 62
-ResourceDownloader.name = "ResourceDownloader" -- 62
-function ResourceDownloader.prototype.____constructor(self) -- 80
-	self.packages = {} -- 63
-	self.repos = {} -- 64
-	self.downloadProgress = __TS__New(Map) -- 65
-	self.downloadTasks = __TS__New(Map) -- 66
-	self.popupMessageTitle = "" -- 67
-	self.popupMessage = "" -- 68
-	self.popupShow = false -- 69
-	self.cancelDownload = false -- 70
-	self.isDownloading = false -- 71
-	self.previewTextures = __TS__New(Map) -- 73
-	self.previewFiles = __TS__New(Map) -- 74
-	self.downloadedPackages = __TS__New(Set) -- 75
-	self.isLoading = false -- 76
-	self.filterBuf = Buffer(20) -- 77
-	self.filterText = "" -- 78
-	self.node = Node() -- 81
-	self.node:schedule(function() -- 82
-		self:update() -- 83
-		return false -- 84
-	end) -- 82
-	self.node:onCleanup(function() -- 86
-		self.cancelDownload = true -- 87
-	end) -- 86
-	self:loadData() -- 89
-end -- 80
-function ResourceDownloader.prototype.showPopup(self, title, msg) -- 92
-	self.popupMessageTitle = title -- 93
-	self.popupMessage = msg -- 94
-	self.popupShow = true -- 95
-end -- 92
-function ResourceDownloader.prototype.loadData(self, reload) -- 98
-	if reload == nil then -- 98
-		reload = false -- 98
-	end -- 98
-	if self.isLoading then -- 98
-		return -- 99
-	end -- 99
-	self.isLoading = true -- 100
-	if reload then -- 100
-		self.packages = {} -- 102
-		self.repos = {} -- 103
-		self.previewTextures:clear() -- 104
-		self.previewFiles:clear() -- 105
-		local cachePath = Path(Content.appPath, ".cache", "preview") -- 106
-		Content:remove(cachePath) -- 107
-	end -- 107
-	thread(function() -- 109
-		local cachePath = Path(Content.appPath, ".cache", "preview") -- 111
-		Content:mkdir(cachePath) -- 112
-		local packagesFile = Path(cachePath, "packages.json") -- 113
-		if Content:exist(packagesFile) then -- 113
-			local packages = json.load(Content:load(packagesFile)) -- 115
-			self.packages = packages -- 116
-		else -- 116
-			local packagesResponse = HttpClient:getAsync("http://39.155.148.157:8866/api/v1/packages") -- 118
-			if packagesResponse then -- 118
-				local packages = json.load(packagesResponse) -- 121
-				self.packages = packages -- 122
-				Content:save(packagesFile, packagesResponse) -- 123
-			end -- 123
-		end -- 123
-		local reposFile = Path(cachePath, "repos.json") -- 128
-		if Content:exist(reposFile) then -- 128
-			local repos = json.load(Content:load(reposFile)) -- 130
-			self.repos = repos -- 131
-		else -- 131
-			local reposResponse = HttpClient:getAsync("http://39.155.148.157:8866/assets/repos.json") -- 133
-			if reposResponse then -- 133
-				local repos = json.load(reposResponse) -- 135
-				self.repos = repos -- 136
-				Content:save(reposFile, reposResponse) -- 137
-			end -- 137
-		end -- 137
-		for ____, pkg in ipairs(self.packages) do -- 142
-			local downloadPath = Path(Content.writablePath, "Download", pkg.name) -- 143
-			if Content:exist(downloadPath) then -- 143
-				self.downloadedPackages:add(pkg.name) -- 145
-			end -- 145
-			self:loadPreviewImage(pkg.name) -- 147
-		end -- 147
-		self.isLoading = false -- 149
-	end) -- 109
-end -- 98
-function ResourceDownloader.prototype.loadPreviewImage(self, name) -- 153
-	local cachePath = Path(Content.appPath, ".cache", "preview") -- 154
-	local cacheFile = Path(cachePath, name .. ".jpg") -- 155
-	if Content:exist(cacheFile) then -- 155
-		Cache:loadAsync(cacheFile) -- 157
-		local texture = Texture2D(cacheFile) -- 158
-		if texture then -- 158
-			self.previewTextures:set(name, texture) -- 160
-			self.previewFiles:set(name, cacheFile) -- 161
-		end -- 161
-		return -- 163
-	end -- 163
-	local imageUrl = ("http://39.155.148.157:8866/assets/" .. name) .. "/banner.jpg" -- 165
-	local response = HttpClient:downloadAsync(imageUrl, cacheFile, 10) -- 166
-	if response then -- 166
-		Cache:loadAsync(cacheFile) -- 168
-		local texture = Texture2D(cacheFile) -- 169
-		if texture then -- 169
-			self.previewTextures:set(name, texture) -- 171
-			self.previewFiles:set(name, cacheFile) -- 172
-		end -- 172
-	else -- 172
-		print("Failed to load preview image for " .. name) -- 175
-	end -- 175
-end -- 153
-function ResourceDownloader.prototype.isDownloaded(self, name) -- 179
-	return self.downloadedPackages:has(name) -- 180
-end -- 179
-function ResourceDownloader.prototype.downloadPackage(self, pkg) -- 183
-	if self.downloadTasks:has(pkg.name) then -- 183
-		return -- 185
-	end -- 185
-	local task = thread(function() -- 188
-		self.isDownloading = true -- 189
-		local downloadStatus = (zh and "正在下载：" or "Downloading: ") .. pkg.name -- 190
-		local downloadPath = Path(Content.writablePath, ".download") -- 191
-		Content:mkdir(downloadPath) -- 192
-		local targetFile = Path(downloadPath, pkg.latest.file) -- 193
-		local success = HttpClient:downloadAsync( -- 195
-			pkg.latest.download, -- 196
-			targetFile, -- 197
-			30, -- 198
-			function(current, total) -- 199
-				if self.cancelDownload then -- 199
-					return true -- 201
-				end -- 201
-				self.downloadProgress:set(pkg.name, {progress = current / total, status = downloadStatus}) -- 203
-				return false -- 204
-			end -- 199
-		) -- 199
-		if success then -- 199
-			downloadStatus = zh and "解压中：" .. pkg.name or "Unziping: " .. pkg.name -- 209
-			self.downloadProgress:set(pkg.name, {progress = 1, status = downloadStatus}) -- 210
-			local unzipPath = Path(Content.writablePath, "Download", pkg.name) -- 211
-			Content:remove(unzipPath) -- 212
-			if Content:unzipAsync(targetFile, unzipPath) then -- 212
-				Content:remove(targetFile) -- 214
-				self.downloadedPackages:add(pkg.name) -- 215
-				Director.postNode:emit("UpdateEntries") -- 216
-			else -- 216
-				Content:remove(unzipPath) -- 218
-				self:showPopup(zh and "解压失败" or "Failed to unzip", zh and "无法解压文件：" .. pkg.latest.file or "Failed to unzip: " .. pkg.latest.file) -- 219
-			end -- 219
-		else -- 219
-			Content:remove(targetFile) -- 225
-			self:showPopup(zh and "下载失败" or "Download failed", zh and "无法从该地址下载：" .. pkg.latest.download or "Failed to download from: " .. pkg.latest.download) -- 226
-		end -- 226
-		self.isDownloading = false -- 232
-		self.downloadProgress:delete(pkg.name) -- 233
-		self.downloadTasks:delete(pkg.name) -- 234
-	end) -- 188
-	self.downloadTasks:set(pkg.name, task) -- 237
-end -- 183
-function ResourceDownloader.prototype.messagePopup(self) -- 240
-	ImGui.Text(self.popupMessageTitle) -- 241
-	ImGui.Separator() -- 242
-	ImGui.PushTextWrapPos( -- 243
-		300, -- 243
-		function() -- 243
-			ImGui.TextWrapped(self.popupMessage) -- 244
-		end -- 243
-	) -- 243
-	if ImGui.Button( -- 243
-		zh and "确认" or "OK", -- 246
-		Vec2(300, 30) -- 246
-	) then -- 246
-		ImGui.CloseCurrentPopup() -- 247
-	end -- 247
-end -- 240
-function ResourceDownloader.prototype.update(self) -- 251
-	local ____App_visualSize_0 = App.visualSize -- 252
-	local width = ____App_visualSize_0.width -- 252
-	local height = ____App_visualSize_0.height -- 252
-	ImGui.SetNextWindowPos(Vec2.zero, "Always", Vec2.zero) -- 253
-	ImGui.SetNextWindowSize( -- 254
-		Vec2(width, 51), -- 254
-		"Always" -- 254
-	) -- 254
-	ImGui.PushStyleVar( -- 255
-		"WindowPadding", -- 255
-		Vec2(10, 0), -- 255
-		function() return ImGui.Begin( -- 255
-			"Dora Community Header", -- 255
-			windowsNoScrollFlags, -- 255
-			function() -- 255
-				ImGui.Dummy(Vec2(0, 0)) -- 256
-				ImGui.TextColored(themeColor, zh and "Dora SSR 社区资源" or "Dora SSR Resources") -- 257
-				ImGui.SameLine() -- 258
-				ImGui.TextDisabled("(?)") -- 259
-				if ImGui.IsItemHovered() then -- 259
-					ImGui.BeginTooltip(function() -- 261
-						ImGui.PushTextWrapPos( -- 262
-							300, -- 262
-							function() -- 262
-								ImGui.Text(zh and "使用该工具来下载 Dora SSR 的社区资源到 `Download` 目录。" or "Use this tool to download Dora SSR community resources to the `Download` directory.") -- 263
-							end -- 262
-						) -- 262
-					end) -- 261
-				end -- 261
-				ImGui.SameLine() -- 267
-				if self.isDownloading or self.isLoading then -- 267
-					ImGui.BeginDisabled(function() -- 269
-						ImGui.Button(zh and "刷新" or "Refresh") -- 270
-					end) -- 269
-				else -- 269
-					if ImGui.Button(zh and "刷新" or "Refresh") then -- 269
-						self:loadData(true) -- 274
-					end -- 274
-				end -- 274
-				local padding = zh and 400 or 440 -- 277
-				if width >= padding then -- 277
-					ImGui.SameLine() -- 279
-					ImGui.Dummy(Vec2(width - padding, 0)) -- 280
-					ImGui.SameLine() -- 281
-					ImGui.SetNextItemWidth(zh and -40 or -55) -- 282
-					if ImGui.InputText(zh and "筛选" or "Filter", self.filterBuf, {"AutoSelectAll"}) then -- 282
-						local res = string.match(self.filterBuf.text, "[^%%%.%[]+") -- 284
-						self.filterText = string.lower(res or "") -- 285
-					end -- 285
-				end -- 285
-				ImGui.Separator() -- 288
+	"NoBringToFrontOnFocus" -- 53
+} -- 53
+local windowsFlags = { -- 56
+	"NoMove", -- 57
+	"NoCollapse", -- 58
+	"NoResize", -- 59
+	"NoDecoration", -- 60
+	"NoNav", -- 61
+	"AlwaysVerticalScrollbar", -- 62
+	"NoBringToFrontOnFocus" -- 63
+} -- 63
+local themeColor = App.themeColor -- 66
+local function sep() -- 68
+	return ImGui.SeparatorText("") -- 68
+end -- 68
+local function thinSep() -- 69
+	return ImGui.PushStyleVar("SeparatorTextBorderSize", 1, sep) -- 69
+end -- 69
+local ResourceDownloader = __TS__Class() -- 71
+ResourceDownloader.name = "ResourceDownloader" -- 71
+function ResourceDownloader.prototype.____constructor(self) -- 89
+	self.packages = {} -- 72
+	self.repos = {} -- 73
+	self.downloadProgress = __TS__New(Map) -- 74
+	self.downloadTasks = __TS__New(Map) -- 75
+	self.popupMessageTitle = "" -- 76
+	self.popupMessage = "" -- 77
+	self.popupShow = false -- 78
+	self.cancelDownload = false -- 79
+	self.isDownloading = false -- 80
+	self.previewTextures = __TS__New(Map) -- 82
+	self.previewFiles = __TS__New(Map) -- 83
+	self.downloadedPackages = __TS__New(Set) -- 84
+	self.isLoading = false -- 85
+	self.filterBuf = Buffer(20) -- 86
+	self.filterText = "" -- 87
+	self.node = Node() -- 90
+	self.node:schedule(function() -- 91
+		self:update() -- 92
+		return false -- 93
+	end) -- 91
+	self.node:onCleanup(function() -- 95
+		self.cancelDownload = true -- 96
+	end) -- 95
+	self:loadData() -- 98
+end -- 89
+function ResourceDownloader.prototype.showPopup(self, title, msg) -- 101
+	self.popupMessageTitle = title -- 102
+	self.popupMessage = msg -- 103
+	self.popupShow = true -- 104
+end -- 101
+function ResourceDownloader.prototype.loadData(self) -- 107
+	if self.isLoading then -- 107
+		return -- 108
+	end -- 108
+	self.isLoading = true -- 109
+	thread(function() -- 110
+		local reload = false -- 111
+		local versionResponse = HttpClient:getAsync("http://39.155.148.157:8866/api/v1/package-list-version") -- 112
+		local packageListVersionFile = Path(Content.appPath, ".cache", "preview", "package-list-version.json") -- 113
+		if versionResponse then -- 113
+			local version = json.load(versionResponse) -- 115
+			local packageListVersion = version -- 116
+			if Content:exist(packageListVersionFile) then -- 116
+				local oldVersion = json.load(Content:load(packageListVersionFile)) -- 118
+				local oldPackageListVersion = oldVersion -- 119
+				if packageListVersion.version ~= oldPackageListVersion.version then -- 119
+					reload = true -- 121
+				end -- 121
+			else -- 121
+				reload = true -- 124
+			end -- 124
+		end -- 124
+		if reload then -- 124
+			self.packages = {} -- 128
+			self.repos = {} -- 129
+			self.previewTextures:clear() -- 130
+			self.previewFiles:clear() -- 131
+			local cachePath = Path(Content.appPath, ".cache", "preview") -- 132
+			Content:remove(cachePath) -- 133
+		end -- 133
+		local cachePath = Path(Content.appPath, ".cache", "preview") -- 136
+		Content:mkdir(cachePath) -- 137
+		if reload and versionResponse then -- 137
+			Content:save(packageListVersionFile, versionResponse) -- 139
+		end -- 139
+		local packagesFile = Path(cachePath, "packages.json") -- 141
+		if Content:exist(packagesFile) then -- 141
+			local packages = json.load(Content:load(packagesFile)) -- 143
+			self.packages = packages -- 144
+		else -- 144
+			local packagesResponse = HttpClient:getAsync("http://39.155.148.157:8866/api/v1/packages") -- 146
+			if packagesResponse then -- 146
+				local packages = json.load(packagesResponse) -- 149
+				self.packages = packages -- 150
+				Content:save(packagesFile, packagesResponse) -- 151
+			end -- 151
+		end -- 151
+		for ____, pkg in ipairs(self.packages) do -- 154
+			pkg.currentVersion = 1 -- 155
+			pkg.versionNames = __TS__ArrayMap( -- 156
+				pkg.versions, -- 156
+				function(____, v) -- 156
+					return v.tag == "" and "No Tag" or v.tag -- 157
+				end -- 156
+			) -- 156
+		end -- 156
+		local reposFile = Path(cachePath, "repos.json") -- 162
+		if Content:exist(reposFile) then -- 162
+			local repos = json.load(Content:load(reposFile)) -- 164
+			self.repos = repos -- 165
+		else -- 165
+			local reposResponse = HttpClient:getAsync("http://39.155.148.157:8866/assets/repos.json") -- 167
+			if reposResponse then -- 167
+				local repos = json.load(reposResponse) -- 169
+				self.repos = repos -- 170
+				Content:save(reposFile, reposResponse) -- 171
+			end -- 171
+		end -- 171
+		for ____, pkg in ipairs(self.packages) do -- 176
+			local downloadPath = Path(Content.writablePath, "Download", pkg.name) -- 177
+			if Content:exist(downloadPath) then -- 177
+				self.downloadedPackages:add(pkg.name) -- 179
+			end -- 179
+			self:loadPreviewImage(pkg.name) -- 181
+		end -- 181
+		self.isLoading = false -- 183
+	end) -- 110
+end -- 107
+function ResourceDownloader.prototype.loadPreviewImage(self, name) -- 187
+	local cachePath = Path(Content.appPath, ".cache", "preview") -- 188
+	local cacheFile = Path(cachePath, name .. ".jpg") -- 189
+	if Content:exist(cacheFile) then -- 189
+		Cache:loadAsync(cacheFile) -- 191
+		local texture = Texture2D(cacheFile) -- 192
+		if texture then -- 192
+			self.previewTextures:set(name, texture) -- 194
+			self.previewFiles:set(name, cacheFile) -- 195
+		end -- 195
+		return -- 197
+	end -- 197
+	local imageUrl = ("http://39.155.148.157:8866/assets/" .. name) .. "/banner.jpg" -- 199
+	local response = HttpClient:downloadAsync(imageUrl, cacheFile, 10) -- 200
+	if response then -- 200
+		Cache:loadAsync(cacheFile) -- 202
+		local texture = Texture2D(cacheFile) -- 203
+		if texture then -- 203
+			self.previewTextures:set(name, texture) -- 205
+			self.previewFiles:set(name, cacheFile) -- 206
+		end -- 206
+	else -- 206
+		print("Failed to load preview image for " .. name) -- 209
+	end -- 209
+end -- 187
+function ResourceDownloader.prototype.isDownloaded(self, name) -- 213
+	return self.downloadedPackages:has(name) -- 214
+end -- 213
+function ResourceDownloader.prototype.downloadPackage(self, pkg) -- 217
+	if self.downloadTasks:has(pkg.name) then -- 217
+		return -- 219
+	end -- 219
+	local task = thread(function() -- 222
+		self.isDownloading = true -- 223
+		local downloadStatus = (zh and "正在下载：" or "Downloading: ") .. pkg.name -- 224
+		local downloadPath = Path(Content.writablePath, ".download") -- 225
+		Content:mkdir(downloadPath) -- 226
+		local currentVersion = pkg.currentVersion or 1 -- 227
+		local version = pkg.versions[currentVersion] -- 228
+		local targetFile = Path(downloadPath, version.file) -- 229
+		local success = HttpClient:downloadAsync( -- 231
+			version.download, -- 232
+			targetFile, -- 233
+			30, -- 234
+			function(current, total) -- 235
+				if self.cancelDownload then -- 235
+					return true -- 237
+				end -- 237
+				self.downloadProgress:set(pkg.name, {progress = current / total, status = downloadStatus}) -- 239
+				return false -- 240
+			end -- 235
+		) -- 235
+		if success then -- 235
+			downloadStatus = zh and "解压中：" .. pkg.name or "Unziping: " .. pkg.name -- 245
+			self.downloadProgress:set(pkg.name, {progress = 1, status = downloadStatus}) -- 246
+			local unzipPath = Path(Content.writablePath, "Download", pkg.name) -- 247
+			Content:remove(unzipPath) -- 248
+			if Content:unzipAsync(targetFile, unzipPath) then -- 248
+				Content:remove(targetFile) -- 250
+				self.downloadedPackages:add(pkg.name) -- 251
+				Director.postNode:emit("UpdateEntries") -- 252
+			else -- 252
+				Content:remove(unzipPath) -- 254
+				self:showPopup(zh and "解压失败" or "Failed to unzip", zh and "无法解压文件：" .. version.file or "Failed to unzip: " .. version.file) -- 255
 			end -- 255
-		) end -- 255
-	) -- 255
-	local maxColumns = math.max( -- 290
-		math.floor(width / 350), -- 290
-		1 -- 290
+		else -- 255
+			Content:remove(targetFile) -- 261
+			self:showPopup(zh and "下载失败" or "Download failed", zh and "无法从该地址下载：" .. version.download or "Failed to download from: " .. version.download) -- 262
+		end -- 262
+		self.isDownloading = false -- 268
+		self.downloadProgress:delete(pkg.name) -- 269
+		self.downloadTasks:delete(pkg.name) -- 270
+	end) -- 222
+	self.downloadTasks:set(pkg.name, task) -- 273
+end -- 217
+function ResourceDownloader.prototype.messagePopup(self) -- 276
+	ImGui.Text(self.popupMessageTitle) -- 277
+	ImGui.Separator() -- 278
+	ImGui.PushTextWrapPos( -- 279
+		300, -- 279
+		function() -- 279
+			ImGui.TextWrapped(self.popupMessage) -- 280
+		end -- 279
+	) -- 279
+	if ImGui.Button( -- 279
+		zh and "确认" or "OK", -- 282
+		Vec2(300, 30) -- 282
+	) then -- 282
+		ImGui.CloseCurrentPopup() -- 283
+	end -- 283
+end -- 276
+function ResourceDownloader.prototype.update(self) -- 287
+	local ____App_visualSize_0 = App.visualSize -- 288
+	local width = ____App_visualSize_0.width -- 288
+	local height = ____App_visualSize_0.height -- 288
+	ImGui.SetNextWindowPos(Vec2.zero, "Always", Vec2.zero) -- 289
+	ImGui.SetNextWindowSize( -- 290
+		Vec2(width, 51), -- 290
+		"Always" -- 290
 	) -- 290
-	local itemWidth = (width - 60) / maxColumns - 10 -- 291
-	ImGui.SetNextWindowPos( -- 292
-		Vec2(0, 51), -- 292
-		"Always", -- 292
-		Vec2.zero -- 292
-	) -- 292
-	ImGui.SetNextWindowSize( -- 293
-		Vec2(width, height - 100), -- 293
-		"Always" -- 293
-	) -- 293
-	ImGui.PushStyleVar( -- 294
-		"WindowPadding", -- 294
-		Vec2(20, 10), -- 294
-		function() return ImGui.Begin( -- 294
-			"Dora Community Resources", -- 294
-			windowsFlags, -- 294
-			function() -- 294
-				ImGui.Columns(maxColumns, false) -- 295
-				for ____, pkg in ipairs(self.packages) do -- 298
-					do -- 298
-						local repo = __TS__ArrayFind( -- 299
-							self.repos, -- 299
-							function(____, r) return r.name == pkg.name end -- 299
-						) -- 299
-						if not repo then -- 299
-							goto __continue55 -- 300
-						end -- 300
-						if self.filterText ~= "" then -- 300
-							local res = string.match( -- 303
-								string.lower(repo.name), -- 303
-								self.filterText -- 303
-							) -- 303
-							if not res then -- 303
-								goto __continue55 -- 304
-							end -- 304
-						end -- 304
-						ImGui.TextColored(themeColor, repo.title[zh and "zh" or "en"]) -- 308
-						local previewTexture = self.previewTextures:get(pkg.name) -- 311
-						if previewTexture then -- 311
-							local width = previewTexture.width -- 311
-							local height = previewTexture.height -- 311
-							local scale = itemWidth / width -- 315
-							local scaledSize = Vec2(width * scale, height * scale) -- 316
-							local previewFile = self.previewFiles:get(pkg.name) -- 317
-							if previewFile then -- 317
-								ImGui.Image(previewFile, scaledSize) -- 319
-							end -- 319
-						else -- 319
-							ImGui.Text(zh and "加载预览图中..." or "Loading preview...") -- 322
-						end -- 322
-						ImGui.TextWrapped(repo.desc[zh and "zh" or "en"]) -- 325
-						ImGui.TextColored(themeColor, zh and "项目地址：" or "Repo URL:") -- 327
-						ImGui.SameLine() -- 328
-						ImGui.TextLinkOpenURL((zh and "这里" or "here") .. "###" .. pkg.url, pkg.url) -- 329
-						if type(pkg.latest.updatedAt) == "number" then -- 329
-							ImGui.TextColored(themeColor, zh and "同步时间：" or "Updated:") -- 332
-							ImGui.SameLine() -- 333
-							local dateStr = os.date("%Y-%m-%d %H:%M:%S", pkg.latest.updatedAt) -- 334
-							ImGui.Text(dateStr) -- 335
-						end -- 335
-						local progress = self.downloadProgress:get(pkg.name) -- 339
-						if progress ~= nil then -- 339
-							ImGui.ProgressBar( -- 341
-								progress.progress, -- 341
-								Vec2(-1, 30) -- 341
-							) -- 341
-							ImGui.BeginDisabled(function() -- 342
-								ImGui.Button(progress.status) -- 343
-							end) -- 342
-						end -- 342
-						if progress == nil then -- 342
-							local isDownloaded = self:isDownloaded(pkg.name) -- 349
-							local buttonText = isDownloaded and (zh and "重新下载" or "Download Again") or (zh and "下载" or "Download") -- 350
-							if self.isDownloading then -- 350
-								ImGui.BeginDisabled(function() -- 354
-									ImGui.PushID( -- 355
-										pkg.name, -- 355
-										function() -- 355
-											ImGui.Button(buttonText) -- 356
-										end -- 355
-									) -- 355
-								end) -- 354
-							else -- 354
-								ImGui.PushID( -- 360
-									pkg.name, -- 360
-									function() -- 360
-										if ImGui.Button(buttonText) then -- 360
-											self:downloadPackage(pkg) -- 362
-										end -- 362
-									end -- 360
-								) -- 360
-							end -- 360
-						end -- 360
-						ImGui.SameLine() -- 369
-						ImGui.Text(__TS__NumberToFixed(pkg.latest.size / 1024 / 1024, 2) .. " MB") -- 370
-						thinSep() -- 372
-						ImGui.NextColumn() -- 373
-					end -- 373
-					::__continue55:: -- 373
-				end -- 373
-				ImGui.ScrollWhenDraggingOnVoid() -- 376
-				if self.popupShow then -- 376
-					self.popupShow = false -- 379
-					ImGui.OpenPopup("MessagePopup") -- 380
-				end -- 380
-				ImGui.BeginPopupModal( -- 382
-					"MessagePopup", -- 382
-					function() return self:messagePopup() end -- 382
-				) -- 382
-			end -- 294
-		) end -- 294
-	) -- 294
-end -- 251
-__TS__New(ResourceDownloader) -- 387
-return ____exports -- 387
+	ImGui.PushStyleVar( -- 291
+		"WindowPadding", -- 291
+		Vec2(10, 0), -- 291
+		function() return ImGui.Begin( -- 291
+			"Dora Community Header", -- 291
+			windowsNoScrollFlags, -- 291
+			function() -- 291
+				ImGui.Dummy(Vec2(0, 0)) -- 292
+				ImGui.TextColored(themeColor, zh and "Dora SSR 社区资源" or "Dora SSR Resources") -- 293
+				ImGui.SameLine() -- 294
+				ImGui.TextDisabled("(?)") -- 295
+				if ImGui.IsItemHovered() then -- 295
+					ImGui.BeginTooltip(function() -- 297
+						ImGui.PushTextWrapPos( -- 298
+							300, -- 298
+							function() -- 298
+								ImGui.Text(zh and "使用该工具来下载 Dora SSR 的社区资源到 `Download` 目录。" or "Use this tool to download Dora SSR community resources to the `Download` directory.") -- 299
+							end -- 298
+						) -- 298
+					end) -- 297
+				end -- 297
+				local padding = zh and 400 or 440 -- 303
+				if width >= padding then -- 303
+					ImGui.SameLine() -- 305
+					ImGui.Dummy(Vec2(width - padding, 0)) -- 306
+					ImGui.SameLine() -- 307
+					ImGui.SetNextItemWidth(zh and -40 or -55) -- 308
+					if ImGui.InputText(zh and "筛选" or "Filter", self.filterBuf, {"AutoSelectAll"}) then -- 308
+						local res = string.match(self.filterBuf.text, "[^%%%.%[]+") -- 310
+						self.filterText = string.lower(res or "") -- 311
+					end -- 311
+				end -- 311
+				ImGui.Separator() -- 314
+			end -- 291
+		) end -- 291
+	) -- 291
+	local maxColumns = math.max( -- 316
+		math.floor(width / 350), -- 316
+		1 -- 316
+	) -- 316
+	local itemWidth = (width - 60) / maxColumns - 10 -- 317
+	ImGui.SetNextWindowPos( -- 318
+		Vec2(0, 51), -- 318
+		"Always", -- 318
+		Vec2.zero -- 318
+	) -- 318
+	ImGui.SetNextWindowSize( -- 319
+		Vec2(width, height - 100), -- 319
+		"Always" -- 319
+	) -- 319
+	ImGui.PushStyleVar( -- 320
+		"WindowPadding", -- 320
+		Vec2(20, 10), -- 320
+		function() return ImGui.Begin( -- 320
+			"Dora Community Resources", -- 320
+			windowsFlags, -- 320
+			function() -- 320
+				ImGui.Columns(maxColumns, false) -- 321
+				for ____, pkg in ipairs(self.packages) do -- 324
+					do -- 324
+						local repo = __TS__ArrayFind( -- 325
+							self.repos, -- 325
+							function(____, r) return r.name == pkg.name end -- 325
+						) -- 325
+						if not repo then -- 325
+							goto __continue59 -- 326
+						end -- 326
+						if self.filterText ~= "" then -- 326
+							local res = string.match( -- 329
+								string.lower(repo.name), -- 329
+								self.filterText -- 329
+							) -- 329
+							if not res then -- 329
+								goto __continue59 -- 330
+							end -- 330
+						end -- 330
+						ImGui.TextColored(themeColor, repo.title[zh and "zh" or "en"]) -- 334
+						local previewTexture = self.previewTextures:get(pkg.name) -- 337
+						if previewTexture then -- 337
+							local width = previewTexture.width -- 337
+							local height = previewTexture.height -- 337
+							local scale = itemWidth / width -- 341
+							local scaledSize = Vec2(width * scale, height * scale) -- 342
+							local previewFile = self.previewFiles:get(pkg.name) -- 343
+							if previewFile then -- 343
+								ImGui.Image(previewFile, scaledSize) -- 345
+							end -- 345
+						else -- 345
+							ImGui.Text(zh and "加载预览图中..." or "Loading preview...") -- 348
+						end -- 348
+						ImGui.TextWrapped(repo.desc[zh and "zh" or "en"]) -- 351
+						ImGui.TextColored(themeColor, zh and "项目地址：" or "Repo URL:") -- 353
+						ImGui.SameLine() -- 354
+						ImGui.TextLinkOpenURL((zh and "这里" or "here") .. "###" .. pkg.url, pkg.url) -- 355
+						local currentVersion = pkg.currentVersion or 1 -- 357
+						local version = pkg.versions[currentVersion] -- 358
+						if type(version.updatedAt) == "number" then -- 358
+							ImGui.TextColored(themeColor, zh and "同步时间：" or "Updated:") -- 360
+							ImGui.SameLine() -- 361
+							local dateStr = os.date("%Y-%m-%d %H:%M:%S", version.updatedAt) -- 362
+							ImGui.Text(dateStr) -- 363
+						end -- 363
+						local progress = self.downloadProgress:get(pkg.name) -- 367
+						if progress ~= nil then -- 367
+							ImGui.ProgressBar( -- 369
+								progress.progress, -- 369
+								Vec2(-1, 30) -- 369
+							) -- 369
+							ImGui.BeginDisabled(function() -- 370
+								ImGui.Button(progress.status) -- 371
+							end) -- 370
+						end -- 370
+						if progress == nil then -- 370
+							local isDownloaded = self:isDownloaded(pkg.name) -- 377
+							local buttonText = isDownloaded and (zh and "重新下载" or "Re-Download") or (zh and "下载" or "Download") -- 378
+							if self.isDownloading then -- 378
+								ImGui.BeginDisabled(function() -- 382
+									ImGui.PushID( -- 383
+										pkg.name, -- 383
+										function() -- 383
+											ImGui.Button(buttonText) -- 384
+										end -- 383
+									) -- 383
+								end) -- 382
+							else -- 382
+								ImGui.PushID( -- 388
+									pkg.name, -- 388
+									function() -- 388
+										if ImGui.Button(buttonText) then -- 388
+											self:downloadPackage(pkg) -- 390
+										end -- 390
+									end -- 388
+								) -- 388
+							end -- 388
+						end -- 388
+						ImGui.SameLine() -- 397
+						ImGui.Text(__TS__NumberToFixed(version.size / 1024 / 1024, 2) .. " MB") -- 398
+						if not self.isDownloading and pkg.versionNames and pkg.currentVersion then -- 398
+							ImGui.SameLine() -- 400
+							ImGui.SetNextItemWidth(-20) -- 401
+							local changed, currentVersion = ImGui.Combo("###" .. pkg.name, pkg.currentVersion, pkg.versionNames) -- 402
+							if changed then -- 402
+								pkg.currentVersion = currentVersion -- 404
+							end -- 404
+						end -- 404
+						thinSep() -- 408
+						ImGui.NextColumn() -- 409
+					end -- 409
+					::__continue59:: -- 409
+				end -- 409
+				ImGui.ScrollWhenDraggingOnVoid() -- 412
+				if self.popupShow then -- 412
+					self.popupShow = false -- 415
+					ImGui.OpenPopup("MessagePopup") -- 416
+				end -- 416
+				ImGui.BeginPopupModal( -- 418
+					"MessagePopup", -- 418
+					function() return self:messagePopup() end -- 418
+				) -- 418
+			end -- 320
+		) end -- 320
+	) -- 320
+end -- 287
+__TS__New(ResourceDownloader) -- 423
+return ____exports -- 423
