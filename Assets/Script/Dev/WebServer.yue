@@ -761,8 +761,9 @@ HttpServer\post "/assets", ->
 		children = nil
 		dirs = Content\getDirs path
 		for dir in *dirs
-			if isWorkspace then switch dir when ".upload", ".download", ".www", ".build", ".git"
-				continue
+			if isWorkspace
+				if dir in [".upload", ".download", ".www", ".build", ".git", ".cache"]
+					continue
 			elseif dir == ".git"
 				continue
 			children = [] unless children
