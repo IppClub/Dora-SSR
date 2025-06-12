@@ -34,12 +34,20 @@ function createCompilerHost(rootFileName: string, content: string): [ts.Compiler
 	const currentDirectory = Info.path.dirname(rootFileName);
 	const writeFiles = new Map<string, string>();
 	const pathMap = new Map<string, monaco.Uri>();
+	const unexistMap = new Set<string>();
 	const compilerHost: ts.CompilerHost = {
 		fileExists: fileName => {
 			if (fileName.search("node_modules") > 0) {
 				return false;
 			}
 			fileName = Info.path.normalize(fileName);
+			const uri = pathMap.get(fileName);
+			if (uri !== undefined) {
+				const model = monaco.editor.getModel(uri);
+				if (model !== null) {
+					return true;
+				}
+			}
 			const baseName = Info.path.basename(fileName);
 			if (baseName.startsWith('Dora.d.')) {
 				return false;
@@ -70,6 +78,9 @@ function createCompilerHost(rootFileName: string, content: string): [ts.Compiler
 							return true;
 						}
 					}
+					if (unexistMap.has(path)) {
+						return false;
+					}
 					const res = Service.readSync({path, exts: [".d.ts", ".ts", ".tsx"], projFile: rootFileName});
 					if (res?.success) {
 						const uri = monaco.Uri.file(res.fullPath);
@@ -78,6 +89,9 @@ function createCompilerHost(rootFileName: string, content: string): [ts.Compiler
 						}
 						pathMap.set(fileName, uri);
 						return true;
+					} else {
+						pathMap.delete(fileName);
+						unexistMap.add(path);
 					}
 				}
 			}
@@ -123,7 +137,7 @@ function createCompilerHost(rootFileName: string, content: string): [ts.Compiler
 			if (baseName.startsWith('Dora.')) {
 				return ts.createSourceFile("dummy.d.ts", "", scriptTarget, false);
 			}
-			if (baseName === 'jsx.d.ts' || baseName === 'DoraX.d.ts') {
+			if (baseName === 'jsx.d.ts') {
 				const uri = monaco.Uri.file(baseName);
 				const model = monaco.editor.getModel(uri);
 				if (model !== null) {
