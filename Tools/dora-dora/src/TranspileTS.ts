@@ -92,39 +92,6 @@ function createCompilerHost(rootFileName: string, content: string): [ts.Compiler
 					return true;
 				}
 			}
-			const searchFile = Info.path.join(Info.path.dirname(fileName), currentBaseName);
-			const res = Service.readSync({path: searchFile, exts: [".d.ts", ".ts", ".tsx"], projFile: rootFileName});
-			if (res?.success) {
-				const uri = monaco.Uri.file(res.fullPath);
-				if (monaco.editor.getModel(uri) === null) {
-					monaco.editor.createModel(res.content, 'typescript', uri);
-				}
-				pathMap.set(fileName, uri);
-				return true;
-			}
-			if (Info.path.isAbsolute(fileName)) {
-				const relativeFile = Info.path.join(".", fileName);
-				const ext = Info.path.extname(relativeFile);
-				let baseName = Info.path.basename(relativeFile, ext);
-				baseName = Info.path.extname(baseName) === ".d" ? Info.path.basename(baseName, ".d") : baseName;
-				const dirName = Info.path.dirname(relativeFile);
-				const targetFile = Info.path.join(dirName, baseName) + ".d.ts";
-				const uri = monaco.Uri.file(targetFile);
-				const model = monaco.editor.getModel(uri);
-				if (model !== null) {
-					pathMap.set(fileName, uri);
-					return true;
-				}
-				const res = Service.readSync({path: targetFile, projFile: rootFileName});
-				if (res?.success) {
-					const uri = monaco.Uri.file(targetFile);
-					if (monaco.editor.getModel(uri) === null) {
-						monaco.editor.createModel(res.content, 'typescript', uri);
-					}
-					pathMap.set(fileName, uri);
-					return true;
-				}
-			}
 			return false;
 		},
 		getCanonicalFileName: fileName => Info.path.normalize(fileName),

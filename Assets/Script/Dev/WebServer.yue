@@ -665,14 +665,16 @@ HttpServer\post "/read-sync", (req): success: false ->
 				if Content\exist targetPath
 					if content := Content\load targetPath
 						return :content, success: true, fullPath: Content\getFullPath targetPath
+		:searchPaths = Content
+		close _ = <close>: -> Content.searchPaths = searchPaths
 		if projFile := req.body.projFile
 			if projDir := getProjectDirFromFile projFile
 				scriptDir = Path projDir, "Script"
-				:searchPaths = Content
 				Content\addSearchPath scriptDir if Content\exist scriptDir
 				Content\addSearchPath projDir if Content\exist projDir
-				close _ = <close>: -> Content.searchPaths = searchPaths
-				return result if result := readFile!
+			else
+				projDir = Path\getPath projFile
+				Content\addSearchPath projDir if Content\exist projDir
 		return result if result := readFile!
 
 compileFileAsync = (inputFile, sourceCodes): nil ->
