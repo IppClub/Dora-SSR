@@ -186,6 +186,7 @@ function createCompilerHost(rootFileName: string, content: string): [ts.Compiler
 
 function createTypescriptProgram(rootFileName: string, content: string): ts.Program {
 	const [compilerHost] = createCompilerHost(rootFileName, content);
+	tstlOptions.baseUrl = Info.path.dirname(rootFileName);
 	return ts.createProgram([rootFileName], tstlOptions, compilerHost);
 }
 
