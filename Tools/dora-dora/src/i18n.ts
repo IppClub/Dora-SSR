@@ -72,6 +72,7 @@ i18n
 						buildDone: "Build done {{title}}",
 						noBuild: "Nothing to build {{title}}",
 						noDeclaration: "Failed to get declaration file for {{title}}",
+						waitForJob: "Please wait for current job completed",
 					},
 					popup: {
 						goToFile: "Go to File",
@@ -284,6 +285,7 @@ i18n
 						buildDone: "编译完成 {{title}}",
 						noBuild: "无可编译文件 {{title}}",
 						noDeclaration: "无法提取 {{title}} 的声明文件",
+						waitForJob: "请等待当前任务完成",
 					},
 					popup: {
 						goToFile: "跳转到文件",

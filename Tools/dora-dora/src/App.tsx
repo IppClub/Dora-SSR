@@ -1456,6 +1456,10 @@ export default function PersistentDrawerLeft() {
 	}, [files, tabIndex, t, treeData, switchTab]);
 
 	const onTreeMenuClick = useCallback((event: TreeMenuEvent, data?: TreeDataType)=> {
+		if (isSaving) {
+			addAlert(t("alert.waitForJob"), "info");
+			return;
+		}
 		if (event === "Cancel") return;
 		if (data === undefined) return;
 		switch (event) {
@@ -1813,6 +1817,11 @@ export default function PersistentDrawerLeft() {
 						stopOnClose: false
 					});
 					const buildAllFiles = async () => {
+						if (isSaving) {
+							addAlert(t("alert.waitForJob"), "info");
+							return;
+						}
+						isSaving = true;
 						const visitData = async (node: TreeDataType) => {
 							if (node.children !== undefined) {
 								for (let i = 0; i < node.children.length; i++) {
@@ -1822,9 +1831,13 @@ export default function PersistentDrawerLeft() {
 							if (node.dir) return;
 							await buildFile(node.key, true);
 						}
-						await visitData(data);
-						await new Promise(resolve => setTimeout(resolve, 100));
-						Service.command({code: `Log "Info", "${t(built ? "alert.buildDone" : "alert.noBuild", {title}).replace(/[\\"]/g, "\\$&")}"`, log: false});
+						try {
+							await visitData(data);
+							await new Promise(resolve => setTimeout(resolve, 100));
+							Service.command({code: `Log "Info", "${t(built ? "alert.buildDone" : "alert.noBuild", {title}).replace(/[\\"]/g, "\\$&")}"`, log: false});
+						} finally {
+							isSaving = false;
+						}
 					};
 					buildAllFiles();
 				} else {
@@ -2430,6 +2443,10 @@ export default function PersistentDrawerLeft() {
 	}, [openLog, t, tabIndex, files]);
 
 	const onPlayControlClick = useCallback((mode: PlayControlMode, noLog?: boolean) => {
+		if (isSaving && mode !== "View Log") {
+			addAlert(t("alert.waitForJob"), "info");
+			return;
+		}
 		if (mode === "Go to File") {
 			setOpenFilter(true);
 			return;
