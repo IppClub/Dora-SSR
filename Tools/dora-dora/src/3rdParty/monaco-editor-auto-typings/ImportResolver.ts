@@ -106,10 +106,10 @@ export class ImportResolver {
 
     if (contents) {
       const { source, at } = contents;
-      this.createModel(
-        source,
-        at.startsWith("file:") ? this.monaco.Uri.parse(at) : this.monaco.Uri.file(at)
-      );
+      const uri = at.startsWith("file:") ? this.monaco.Uri.parse(at) : this.monaco.Uri.file(at);
+      if (!this.monaco.editor.getModel(uri)) {
+        this.createModel(source, uri);
+      }
       await this.resolveImportsInFile(
         source,
         {
