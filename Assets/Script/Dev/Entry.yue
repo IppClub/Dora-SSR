@@ -866,7 +866,7 @@ footerWindow = threadLoop ->
 			showConsole = ShowConsole showConsole
 			config.showConsole = showConsole
 
-const MaxWidth = 800
+const MaxWidth = 960
 
 displayWindowFlags = $WindowFlag(
 	NoDecoration
@@ -996,11 +996,12 @@ entryWindow = threadLoop ->
 		<- PushStyleColor "WindowBg", transparant
 		<- PushStyleVar "WindowPadding", Vec2 paddingX, 10
 		<- Begin "Content", windowFlags
-		const demoViewWith = 400
+		const DemoViewWidth = 320
 		filterText = filterBuf.text\match "[^%%%.%[]+"
 		filterText = filterText\lower! if filterText
 		if #gamesInDev > 0
-			columns = math.max math.floor(width / demoViewWith), 1
+			columns = math.max math.floor(width / DemoViewWidth), 1
+			realViewWidth = (width - 20) / columns
 			Columns columns, false
 			for game in *gamesInDev
 				[gameName, fileName, examples, tests, bannerFile, bannerTex] = game
@@ -1011,7 +1012,7 @@ entryWindow = threadLoop ->
 					if columns > 1
 						if bannerFile
 							width: texWidth, height: texHeight = bannerTex
-							const displayWidth = demoViewWith - 40
+							const displayWidth = realViewWidth - 40
 							texHeight = displayWidth * texHeight / texWidth
 							texWidth = displayWidth
 							<- PushID fileName
