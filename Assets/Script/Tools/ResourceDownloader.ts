@@ -315,7 +315,7 @@ class ResourceDownloader {
 			}
 			ImGui.Separator();
 		}));
-		const maxColumns = math.max(math.floor(width / 350), 1);
+		const maxColumns = math.max(math.floor(width / 320), 1);
 		const itemWidth = (width - 60) / maxColumns - 10;
 		ImGui.SetNextWindowPos(Vec2(0, 51), SetCond.Always, Vec2.zero);
 		ImGui.SetNextWindowSize(Vec2(width, height - 100), SetCond.Always);

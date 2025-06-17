@@ -300,7 +300,7 @@ function ResourceDownloader.prototype.update(self) -- 289
 		) end -- 293
 	) -- 293
 	local maxColumns = math.max( -- 318
-		math.floor(width / 350), -- 318
+		math.floor(width / 320), -- 318
 		1 -- 318
 	) -- 318
 	local itemWidth = (width - 60) / maxColumns - 10 -- 319
