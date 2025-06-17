@@ -57,19 +57,19 @@ Dora SSR is a game engine for rapid development of games on various devices. It 
 
 ## Example Projects
 
-- [Sample Project - Loli War](Assets/Script/Game/Loli%20War)
+- [Sample Project - Loli War](https://github.com/IppClub/Dora-Demo/tree/main/Loli%20War)
 
 <div align='center'><img src='Docs/static/img/showcase/LoliWar.gif' alt='Loli War' width='400px'/></div>
 
 <br>
 
-- [Sample Project - Zombie Escape](Assets/Script/Game/Zombie%20Escape)
+- [Sample Project - Zombie Escape](https://github.com/IppClub/Dora-Demo/tree/main/Zombie%20Escape)
 
 <div align='center'><img src='Docs/static/img/showcase/ZombieEscape.png' alt='Zombie Escape' width='800px'/></div>
 
 <br>
 
-- [Example Project - Dismentalism](Assets/Script/Game/Dismantlism)
+- [Example Project - Dismentalism](https://github.com/IppClub/Dora-Demo/tree/main/Dismantlism)
 
 <div align='center'><img src='Docs/static/img/showcase/Dismentalism.png' alt='Dismentalism' width='800px'/></div>
 

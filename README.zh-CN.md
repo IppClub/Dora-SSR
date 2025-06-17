@@ -57,19 +57,19 @@
 
 ## 示例项目
 
-- [示例项目 - Loli War](Assets/Script/Game/Loli%20War)
+- [示例项目 - Loli War](https://github.com/IppClub/Dora-Demo/tree/main/Loli%20War)
 
 <div align='center'><img src='Docs/static/img/showcase/LoliWar.gif' alt='Loli War' width='400px'/></div>
 
 <br>
 
-- [示例项目 - Zombie Escape](Assets/Script/Game/Zombie%20Escape)
+- [示例项目 - Zombie Escape](https://github.com/IppClub/Dora-Demo/tree/main/Zombie%20Escape)
 
 <div align='center'><img src='Docs/static/img/showcase/ZombieEscape.png' alt='Zombie Escape' width='800px'/></div>
 
 <br>
 
-- [示例项目 - Dismentalism](Assets/Script/Game/Dismantlism)
+- [示例项目 - Dismentalism](https://github.com/IppClub/Dora-Demo/tree/main/Dismantlism)
 
 <div align='center'><img src='Docs/static/img/showcase/Dismentalism.png' alt='Dismentalism' width='800px'/></div>
 
