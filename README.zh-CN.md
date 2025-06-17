@@ -1,4 +1,4 @@
-<div align="center"><img src='Assets/Image/logo.png' alt='Dora SSR' width='200px'/></div>
+<div align="center"><img src='Docs/static/img/site/dora.svg' alt='Dora SSR' width='200px'/></div>
 
 # 多萝珍奇引擎（Dora SSR）
 
