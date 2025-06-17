@@ -6,13 +6,14 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-// @preview-file on
+// @preview-file on clear
 
 import * as CircleButton from "UI/Control/Basic/CircleButton";
 import * as ScrollArea from "UI/Control/Basic/ScrollArea";
 import { AlignMode } from "UI/Control/Basic/ScrollArea";
 import * as LineRect from 'UI/View/Shape/LineRect';
 import * as YarnRunner from "YarnRunner";
+import type {YarnRunner as Yarn} from "YarnRunner";
 import { AlignNode, App, Buffer, Content, Label, Menu, Path, Size, TextAlign, TypeName, Vec2, View, thread, threadLoop } from "Dora";
 import { InputTextFlag, SetCond, WindowFlag } from "ImGui";
 import * as ImGui from 'ImGui';
@@ -23,7 +24,20 @@ let zh = false;
 	zh = res !== null && ImGui.IsFontLoaded();
 }
 
-const testFile = Path(Content.assetPath, "Script", "Test", "tutorial.yarn");
+const testFilePaths: string[] = [];
+const testFileNames: string[] = [];
+for (let file of Content.getAllFiles(Content.writablePath)) {
+	if ("yarn" !== Path.getExt(file)) {
+		continue;
+	}
+	testFilePaths.push(Path(Content.writablePath, file));
+	testFileNames.push(Path.getFilename(file));
+}
+
+let filteredPaths = testFilePaths;
+let filteredNames = testFileNames;
+
+let currentFile = 1;
 
 const fontScale = App.devicePixelRatio;
 const fontSize = math.floor(20 * fontScale);
@@ -86,7 +100,10 @@ const commands = setmetatable({}, {
 	}
 });
 
-let runner = YarnRunner(testFile, "Start", {}, commands, true);
+let runner: Yarn.Type | null = null;
+if (filteredPaths.length > 0) {
+	runner = YarnRunner(filteredPaths[currentFile - 1], "Start", {}, commands, true);
+}
 
 const setButtons = (options?: number) => {
 	menu.removeAllChildren();
@@ -107,6 +124,7 @@ const setButtons = (options?: number) => {
 };
 
 const advance = (option?: number) => {
+	if (!runner) return;
 	const [action, result] = runner.advance(option);
 	if (action === "Text") {
 		let charName = "";
@@ -146,20 +164,6 @@ const advance = (option?: number) => {
 
 advance();
 
-const testFilePaths = [testFile];
-const testFileNames = ["Test/tutorial.yarn"];
-for (let file of Content.getAllFiles(Content.writablePath)) {
-	if ("yarn" !== Path.getExt(file)) {
-		continue;
-	}
-	testFilePaths.push(Path(Content.writablePath, file));
-	testFileNames.push(Path.getFilename(file));
-}
-
-let filteredPaths = testFilePaths;
-let filteredNames = testFileNames;
-
-let currentFile = 1;
 const filterBuf = Buffer(20);
 const windowFlags = [
 	WindowFlag.NoDecoration,
@@ -213,6 +217,9 @@ threadLoop(() => {
 				runFile();
 			}
 		}
+		if (filteredNames.length === 0) {
+			return;
+		}
 		let changed = false;
 		[changed, currentFile] = ImGui.Combo(zh ? "文件" : "File", currentFile, filteredNames);
 		if (changed) {
@@ -221,11 +228,13 @@ threadLoop(() => {
 		if (ImGui.Button(zh ? "重载" : "Reload")) {
 			runFile();
 		}
-		ImGui.SameLine();
-		ImGui.Text(zh ? "变量：" : "Variables:");
-		ImGui.Separator();
-		for (let [k, v] of pairs(runner.state)) {
-			ImGui.Text(`${k}: ${v}`);
+		if (runner) {
+			ImGui.SameLine();
+			ImGui.Text(zh ? "变量：" : "Variables:");
+			ImGui.Separator();
+			for (let [k, v] of pairs(runner.state)) {
+				ImGui.Text(`${k}: ${v}`);
+			}
 		}
 	});
 	return false;
