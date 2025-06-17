@@ -650,8 +650,8 @@ void Image(String clipStr, const Vec2& size);
 void ImageWithBg(
 	String clipStr,
 	const Vec2& size,
-	Color tint_col = Color(0xffffffff),
-	Color border_col = Color(0x0));
+	Color bg_col = Color(0x0),
+	Color tint_col = Color(0xffffffff));
 
 bool ImageButton(
 	const char* str_id,

@@ -995,6 +995,7 @@ entryWindow = threadLoop ->
 	do
 		<- PushStyleColor "WindowBg", transparant
 		<- PushStyleVar "WindowPadding", Vec2 paddingX, 10
+		<- PushStyleVar "Alpha", 1
 		<- Begin "Content", windowFlags
 		const DemoViewWidth = 320
 		filterText = filterBuf.text\match "[^%%%.%[]+"
@@ -1012,16 +1013,12 @@ entryWindow = threadLoop ->
 					if columns > 1
 						if bannerFile
 							width: texWidth, height: texHeight = bannerTex
-							const displayWidth = realViewWidth - 40
+							const displayWidth = realViewWidth - 20
 							texHeight = displayWidth * texHeight / texWidth
 							texWidth = displayWidth
-							<- PushID fileName
-							if ImageButton gameName, bannerFile, Vec2 texWidth + 10, texHeight
-								enterDemoEntry game
-						else
-							<- PushID fileName
-							if Button zh and "开始运行" or "Game Start", Vec2 -1, 40
-								enterDemoEntry game
+							Image bannerFile, Vec2 texWidth + 10, texHeight
+						if Button "#{zh and "开始运行" or "Game Start"}####{fileName}", Vec2 -1, 40
+							enterDemoEntry game
 					else
 						if bannerFile
 							width: texWidth, height: texHeight = bannerTex
@@ -1036,13 +1033,9 @@ entryWindow = threadLoop ->
 							padding = displayWidth * (1 - sizing) / 2 - 10
 							Dummy Vec2 padding, 0
 							SameLine!
-							<- PushID fileName
-							if ImageButton gameName, bannerFile, Vec2 texWidth, texHeight
-								enterDemoEntry game
-						else
-							<- PushID fileName
-							if Button zh and "开始运行" or "Game Start", Vec2 -1, 40
-								enterDemoEntry game
+							Image bannerFile, Vec2 texWidth, texHeight
+						if Button "#{zh and "开始运行" or "Game Start"}####{fileName}", Vec2 -1, 40
+							enterDemoEntry game
 					if #tests == 0 and #examples == 0
 						thinSep!
 					NextColumn!
