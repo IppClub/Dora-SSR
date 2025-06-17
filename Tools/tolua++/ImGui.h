@@ -75,9 +75,7 @@ namespace ImGui
 	bool Binding::ColorEdit4 @ ColorEdit4(CString label, Color* color);
 	bool Binding::ColorEdit4 @ ColorEdit4(CString label, Color* color, String colorEditFlags[tolua_len]);
 
-	void Binding::Image @ Image(String clipStr, Vec2 size);
-	void Binding::ImageWithBg @ ImageWithBg(String clipStr, Vec2 size, Color bg_col, Color tint_col);
-	bool Binding::ImageButton @ ImageButton(const char* str_id, String clipStr, Vec2 size, Color bg_col = Color(0x0), Color tint_col = Color(0xffffffff));
+	void Binding::Image @ Image(String clipStr, Vec2 size, Color bg_col = Color(0x0), Color tint_col = Color(0xffffffff));
 
 	bool Binding::ColorButton @ ColorButton(CString desc_id, Color col);
 	bool Binding::ColorButton @ ColorButton(CString desc_id, Color col, String colorEditFlags[tolua_len], Vec2 size = Vec2::zero);

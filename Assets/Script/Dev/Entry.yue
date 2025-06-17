@@ -1002,8 +1002,8 @@ entryWindow = threadLoop ->
 		filterText = filterText\lower! if filterText
 		if #gamesInDev > 0
 			columns = math.max math.floor(width / DemoViewWidth), 1
-			realViewWidth = (width - 20) / columns
 			Columns columns, false
+			realViewWidth = GetColumnWidth! - 50
 			for game in *gamesInDev
 				[gameName, fileName, examples, tests, bannerFile, bannerTex] = game
 				if match gameName
@@ -1013,9 +1013,11 @@ entryWindow = threadLoop ->
 					if columns > 1
 						if bannerFile
 							width: texWidth, height: texHeight = bannerTex
-							const displayWidth = realViewWidth - 20
+							const displayWidth = realViewWidth
 							texHeight = displayWidth * texHeight / texWidth
 							texWidth = displayWidth
+							Dummy Vec2.zero
+							SameLine!
 							Image bannerFile, Vec2 texWidth + 10, texHeight
 						if Button "#{zh and "开始运行" or "Game Start"}####{fileName}", Vec2 -1, 40
 							enterDemoEntry game

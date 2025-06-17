@@ -136,8 +136,8 @@ void imgui_set_tooltip(int64_t text) {
 void imgui_image(int64_t clip_str, int64_t size) {
 	ImGui::Binding::Image(*Str_From(clip_str), Vec2_From(size));
 }
-void imgui_image_with_bg(int64_t clip_str, int64_t size, int32_t tint_col, int32_t border_col) {
-	ImGui::Binding::ImageWithBg(*Str_From(clip_str), Vec2_From(size), Color(s_cast<uint32_t>(tint_col)), Color(s_cast<uint32_t>(border_col)));
+void imgui_image_with_bg(int64_t clip_str, int64_t size, int32_t bg_col, int32_t tint_col) {
+	ImGui::Binding::Image(*Str_From(clip_str), Vec2_From(size), Color(s_cast<uint32_t>(bg_col)), Color(s_cast<uint32_t>(tint_col)));
 }
 int32_t imgui_image_button_opts(int64_t str_id, int64_t clip_str, int64_t size, int32_t bg_col, int32_t tint_col) {
 	return ImGui::Binding::ImageButton(*Str_From(str_id), *Str_From(clip_str), Vec2_From(size), Color(s_cast<uint32_t>(bg_col)), Color(s_cast<uint32_t>(tint_col))) ? 1 : 0;

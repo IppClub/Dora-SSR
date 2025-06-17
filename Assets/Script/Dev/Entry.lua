@@ -83,6 +83,7 @@ local once = Dora.once -- 1
 local SetNextItemWidth = _module_0.SetNextItemWidth -- 1
 local InputText = _module_0.InputText -- 1
 local Columns = _module_0.Columns -- 1
+local GetColumnWidth = _module_0.GetColumnWidth -- 1
 local NextColumn = _module_0.NextColumn -- 1
 local SetNextItemOpen = _module_0.SetNextItemOpen -- 1
 local PushID = _module_0.PushID -- 1
@@ -1640,8 +1641,8 @@ entryWindow = threadLoop(function() -- 899
 						end -- 1002
 						if #gamesInDev > 0 then -- 1003
 							local columns = math.max(math.floor(width / DemoViewWidth), 1) -- 1004
-							local realViewWidth = (width - 20) / columns -- 1005
-							Columns(columns, false) -- 1006
+							Columns(columns, false) -- 1005
+							local realViewWidth = GetColumnWidth() - 50 -- 1006
 							for _index_0 = 1, #gamesInDev do -- 1007
 								local game = gamesInDev[_index_0] -- 1007
 								local gameName, fileName, examples, tests, bannerFile, bannerTex = game[1], game[2], game[3], game[4], game[5], game[6] -- 1008
@@ -1652,220 +1653,222 @@ entryWindow = threadLoop(function() -- 899
 									if columns > 1 then -- 1013
 										if bannerFile then -- 1014
 											local texWidth, texHeight = bannerTex.width, bannerTex.height -- 1015
-											local displayWidth <const> = realViewWidth - 20 -- 1016
+											local displayWidth <const> = realViewWidth -- 1016
 											texHeight = displayWidth * texHeight / texWidth -- 1017
 											texWidth = displayWidth -- 1018
-											Image(bannerFile, Vec2(texWidth + 10, texHeight)) -- 1019
+											Dummy(Vec2.zero) -- 1019
+											SameLine() -- 1020
+											Image(bannerFile, Vec2(texWidth + 10, texHeight)) -- 1021
 										end -- 1014
-										if Button(tostring(zh and "开始运行" or "Game Start") .. "###" .. tostring(fileName), Vec2(-1, 40)) then -- 1020
-											enterDemoEntry(game) -- 1021
-										end -- 1020
-									else -- 1023
-										if bannerFile then -- 1023
-											local texWidth, texHeight = bannerTex.width, bannerTex.height -- 1024
-											local displayWidth = (fullWidth / 2 - paddingX) * 2 - 35 -- 1025
-											local sizing = 0.8 -- 1026
-											texHeight = displayWidth * sizing * texHeight / texWidth -- 1027
-											texWidth = displayWidth * sizing -- 1028
-											if texWidth > 500 then -- 1029
-												sizing = 0.6 -- 1030
-												texHeight = displayWidth * sizing * texHeight / texWidth -- 1031
-												texWidth = displayWidth * sizing -- 1032
-											end -- 1029
-											local padding = displayWidth * (1 - sizing) / 2 - 10 -- 1033
-											Dummy(Vec2(padding, 0)) -- 1034
-											SameLine() -- 1035
-											Image(bannerFile, Vec2(texWidth, texHeight)) -- 1036
-										end -- 1023
-										if Button(tostring(zh and "开始运行" or "Game Start") .. "###" .. tostring(fileName), Vec2(-1, 40)) then -- 1037
-											enterDemoEntry(game) -- 1038
-										end -- 1037
+										if Button(tostring(zh and "开始运行" or "Game Start") .. "###" .. tostring(fileName), Vec2(-1, 40)) then -- 1022
+											enterDemoEntry(game) -- 1023
+										end -- 1022
+									else -- 1025
+										if bannerFile then -- 1025
+											local texWidth, texHeight = bannerTex.width, bannerTex.height -- 1026
+											local displayWidth = (fullWidth / 2 - paddingX) * 2 - 35 -- 1027
+											local sizing = 0.8 -- 1028
+											texHeight = displayWidth * sizing * texHeight / texWidth -- 1029
+											texWidth = displayWidth * sizing -- 1030
+											if texWidth > 500 then -- 1031
+												sizing = 0.6 -- 1032
+												texHeight = displayWidth * sizing * texHeight / texWidth -- 1033
+												texWidth = displayWidth * sizing -- 1034
+											end -- 1031
+											local padding = displayWidth * (1 - sizing) / 2 - 10 -- 1035
+											Dummy(Vec2(padding, 0)) -- 1036
+											SameLine() -- 1037
+											Image(bannerFile, Vec2(texWidth, texHeight)) -- 1038
+										end -- 1025
+										if Button(tostring(zh and "开始运行" or "Game Start") .. "###" .. tostring(fileName), Vec2(-1, 40)) then -- 1039
+											enterDemoEntry(game) -- 1040
+										end -- 1039
 									end -- 1013
-									if #tests == 0 and #examples == 0 then -- 1039
-										thinSep() -- 1040
-									end -- 1039
-									NextColumn() -- 1041
+									if #tests == 0 and #examples == 0 then -- 1041
+										thinSep() -- 1042
+									end -- 1041
+									NextColumn() -- 1043
 								end -- 1009
-								local showSep = false -- 1042
-								if #examples > 0 then -- 1043
-									local showExample = false -- 1044
-									do -- 1045
-										local _accum_0 -- 1045
-										for _index_1 = 1, #examples do -- 1045
-											local _des_0 = examples[_index_1] -- 1045
-											local name = _des_0[1] -- 1045
-											if match(name) then -- 1046
-												_accum_0 = true -- 1046
-												break -- 1046
-											end -- 1046
-										end -- 1046
-										showExample = _accum_0 -- 1045
-									end -- 1046
-									if showExample then -- 1047
-										showSep = true -- 1048
-										Columns(1, false) -- 1049
-										TextColored(themeColor, zh and "示例：" or "Example:") -- 1050
-										SameLine() -- 1051
-										local opened -- 1052
-										if (filterText ~= nil) then -- 1052
-											opened = showExample -- 1052
-										else -- 1052
-											opened = false -- 1052
-										end -- 1052
-										if game.exampleOpen == nil then -- 1053
-											game.exampleOpen = opened -- 1053
-										end -- 1053
-										SetNextItemOpen(game.exampleOpen) -- 1054
-										TreeNode(tostring(gameName) .. "###example-" .. tostring(fileName), function() -- 1055
-											return PushStyleVar("ItemSpacing", Vec2(20, 10), function() -- 1056
-												Columns(maxColumns, false) -- 1057
-												for _index_1 = 1, #examples do -- 1058
-													local example = examples[_index_1] -- 1058
-													if not match(example[1]) then -- 1059
-														goto _continue_0 -- 1059
-													end -- 1059
-													PushID(tostring(gameName) .. " " .. tostring(example[1]) .. " example", function() -- 1060
-														if Button(example[1], Vec2(-1, 40)) then -- 1061
-															enterDemoEntry(example) -- 1062
-														end -- 1061
-														return NextColumn() -- 1063
-													end) -- 1060
-													opened = true -- 1064
-													::_continue_0:: -- 1059
-												end -- 1064
-											end) -- 1056
-										end) -- 1055
-										game.exampleOpen = opened -- 1065
-									end -- 1047
-								end -- 1043
-								if #tests > 0 then -- 1066
-									local showTest = false -- 1067
-									do -- 1068
-										local _accum_0 -- 1068
-										for _index_1 = 1, #tests do -- 1068
-											local _des_0 = tests[_index_1] -- 1068
-											local name = _des_0[1] -- 1068
-											if match(name) then -- 1069
-												_accum_0 = true -- 1069
-												break -- 1069
-											end -- 1069
-										end -- 1069
-										showTest = _accum_0 -- 1068
-									end -- 1069
-									if showTest then -- 1070
-										showSep = true -- 1071
-										Columns(1, false) -- 1072
-										TextColored(themeColor, zh and "测试：" or "Test:") -- 1073
-										SameLine() -- 1074
-										local opened -- 1075
-										if (filterText ~= nil) then -- 1075
-											opened = showTest -- 1075
-										else -- 1075
-											opened = false -- 1075
-										end -- 1075
-										if game.testOpen == nil then -- 1076
-											game.testOpen = opened -- 1076
-										end -- 1076
-										SetNextItemOpen(game.testOpen) -- 1077
-										TreeNode(tostring(gameName) .. "###test-" .. tostring(fileName), function() -- 1078
-											return PushStyleVar("ItemSpacing", Vec2(20, 10), function() -- 1079
-												Columns(maxColumns, false) -- 1080
-												for _index_1 = 1, #tests do -- 1081
-													local test = tests[_index_1] -- 1081
-													if not match(test[1]) then -- 1082
-														goto _continue_0 -- 1082
-													end -- 1082
-													PushID(tostring(gameName) .. " " .. tostring(test[1]) .. " test", function() -- 1083
-														if Button(test[1], Vec2(-1, 40)) then -- 1084
-															enterDemoEntry(test) -- 1085
-														end -- 1084
-														return NextColumn() -- 1086
-													end) -- 1083
-													opened = true -- 1087
-													::_continue_0:: -- 1082
-												end -- 1087
-											end) -- 1079
-										end) -- 1078
-										game.testOpen = opened -- 1088
-									end -- 1070
-								end -- 1066
-								if showSep then -- 1089
-									Columns(1, false) -- 1090
-									thinSep() -- 1091
-									Columns(columns, false) -- 1092
-								end -- 1089
-							end -- 1092
+								local showSep = false -- 1044
+								if #examples > 0 then -- 1045
+									local showExample = false -- 1046
+									do -- 1047
+										local _accum_0 -- 1047
+										for _index_1 = 1, #examples do -- 1047
+											local _des_0 = examples[_index_1] -- 1047
+											local name = _des_0[1] -- 1047
+											if match(name) then -- 1048
+												_accum_0 = true -- 1048
+												break -- 1048
+											end -- 1048
+										end -- 1048
+										showExample = _accum_0 -- 1047
+									end -- 1048
+									if showExample then -- 1049
+										showSep = true -- 1050
+										Columns(1, false) -- 1051
+										TextColored(themeColor, zh and "示例：" or "Example:") -- 1052
+										SameLine() -- 1053
+										local opened -- 1054
+										if (filterText ~= nil) then -- 1054
+											opened = showExample -- 1054
+										else -- 1054
+											opened = false -- 1054
+										end -- 1054
+										if game.exampleOpen == nil then -- 1055
+											game.exampleOpen = opened -- 1055
+										end -- 1055
+										SetNextItemOpen(game.exampleOpen) -- 1056
+										TreeNode(tostring(gameName) .. "###example-" .. tostring(fileName), function() -- 1057
+											return PushStyleVar("ItemSpacing", Vec2(20, 10), function() -- 1058
+												Columns(maxColumns, false) -- 1059
+												for _index_1 = 1, #examples do -- 1060
+													local example = examples[_index_1] -- 1060
+													if not match(example[1]) then -- 1061
+														goto _continue_0 -- 1061
+													end -- 1061
+													PushID(tostring(gameName) .. " " .. tostring(example[1]) .. " example", function() -- 1062
+														if Button(example[1], Vec2(-1, 40)) then -- 1063
+															enterDemoEntry(example) -- 1064
+														end -- 1063
+														return NextColumn() -- 1065
+													end) -- 1062
+													opened = true -- 1066
+													::_continue_0:: -- 1061
+												end -- 1066
+											end) -- 1058
+										end) -- 1057
+										game.exampleOpen = opened -- 1067
+									end -- 1049
+								end -- 1045
+								if #tests > 0 then -- 1068
+									local showTest = false -- 1069
+									do -- 1070
+										local _accum_0 -- 1070
+										for _index_1 = 1, #tests do -- 1070
+											local _des_0 = tests[_index_1] -- 1070
+											local name = _des_0[1] -- 1070
+											if match(name) then -- 1071
+												_accum_0 = true -- 1071
+												break -- 1071
+											end -- 1071
+										end -- 1071
+										showTest = _accum_0 -- 1070
+									end -- 1071
+									if showTest then -- 1072
+										showSep = true -- 1073
+										Columns(1, false) -- 1074
+										TextColored(themeColor, zh and "测试：" or "Test:") -- 1075
+										SameLine() -- 1076
+										local opened -- 1077
+										if (filterText ~= nil) then -- 1077
+											opened = showTest -- 1077
+										else -- 1077
+											opened = false -- 1077
+										end -- 1077
+										if game.testOpen == nil then -- 1078
+											game.testOpen = opened -- 1078
+										end -- 1078
+										SetNextItemOpen(game.testOpen) -- 1079
+										TreeNode(tostring(gameName) .. "###test-" .. tostring(fileName), function() -- 1080
+											return PushStyleVar("ItemSpacing", Vec2(20, 10), function() -- 1081
+												Columns(maxColumns, false) -- 1082
+												for _index_1 = 1, #tests do -- 1083
+													local test = tests[_index_1] -- 1083
+													if not match(test[1]) then -- 1084
+														goto _continue_0 -- 1084
+													end -- 1084
+													PushID(tostring(gameName) .. " " .. tostring(test[1]) .. " test", function() -- 1085
+														if Button(test[1], Vec2(-1, 40)) then -- 1086
+															enterDemoEntry(test) -- 1087
+														end -- 1086
+														return NextColumn() -- 1088
+													end) -- 1085
+													opened = true -- 1089
+													::_continue_0:: -- 1084
+												end -- 1089
+											end) -- 1081
+										end) -- 1080
+										game.testOpen = opened -- 1090
+									end -- 1072
+								end -- 1068
+								if showSep then -- 1091
+									Columns(1, false) -- 1092
+									thinSep() -- 1093
+									Columns(columns, false) -- 1094
+								end -- 1091
+							end -- 1094
 						end -- 1003
-						if #doraTools > 0 then -- 1093
-							local showTool = false -- 1094
-							do -- 1095
-								local _accum_0 -- 1095
-								for _index_0 = 1, #doraTools do -- 1095
-									local _des_0 = doraTools[_index_0] -- 1095
-									local name = _des_0[1] -- 1095
-									if match(name) then -- 1096
-										_accum_0 = true -- 1096
-										break -- 1096
-									end -- 1096
-								end -- 1096
-								showTool = _accum_0 -- 1095
-							end -- 1096
-							if not showTool then -- 1097
-								goto endEntry -- 1097
-							end -- 1097
-							Columns(1, false) -- 1098
-							TextColored(themeColor, "Dora SSR:") -- 1099
-							SameLine() -- 1100
-							Text(zh and "开发支持" or "Development Support") -- 1101
-							Separator() -- 1102
-							if #doraTools > 0 then -- 1103
-								local opened -- 1104
-								if (filterText ~= nil) then -- 1104
-									opened = showTool -- 1104
-								else -- 1104
-									opened = false -- 1104
-								end -- 1104
-								SetNextItemOpen(toolOpen) -- 1105
-								TreeNode(zh and "引擎工具" or "Engine Tools", function() -- 1106
-									return PushStyleVar("ItemSpacing", Vec2(20, 10), function() -- 1107
-										Columns(maxColumns, false) -- 1108
-										for _index_0 = 1, #doraTools do -- 1109
-											local example = doraTools[_index_0] -- 1109
-											if not match(example[1]) then -- 1110
-												goto _continue_0 -- 1110
-											end -- 1110
-											if Button(example[1], Vec2(-1, 40)) then -- 1111
-												enterDemoEntry(example) -- 1112
-											end -- 1111
-											NextColumn() -- 1113
-											::_continue_0:: -- 1110
-										end -- 1113
-										Columns(1, false) -- 1114
-										opened = true -- 1115
-									end) -- 1107
-								end) -- 1106
-								toolOpen = opened -- 1116
-							end -- 1103
-						end -- 1093
-						::endEntry:: -- 1117
-						if not anyEntryMatched then -- 1118
-							SetNextWindowBgAlpha(0) -- 1119
-							SetNextWindowPos(Vec2(fullWidth / 2, height / 2), "Always", Vec2(0.5, 0.5)) -- 1120
-							Begin("Entries Not Found", displayWindowFlags, function() -- 1121
-								Separator() -- 1122
-								TextColored(themeColor, zh and "多萝：" or "Dora:") -- 1123
-								TextColored(descColor, zh and '别担心，改变一些咒语，我们会找到新的冒险～' or 'Don\'t worry, more magic words and we\'ll find a new adventure!') -- 1124
-								return Separator() -- 1125
-							end) -- 1121
-						end -- 1118
-						Columns(1, false) -- 1126
-						Dummy(Vec2(100, 80)) -- 1127
-						return ScrollWhenDraggingOnVoid() -- 1128
+						if #doraTools > 0 then -- 1095
+							local showTool = false -- 1096
+							do -- 1097
+								local _accum_0 -- 1097
+								for _index_0 = 1, #doraTools do -- 1097
+									local _des_0 = doraTools[_index_0] -- 1097
+									local name = _des_0[1] -- 1097
+									if match(name) then -- 1098
+										_accum_0 = true -- 1098
+										break -- 1098
+									end -- 1098
+								end -- 1098
+								showTool = _accum_0 -- 1097
+							end -- 1098
+							if not showTool then -- 1099
+								goto endEntry -- 1099
+							end -- 1099
+							Columns(1, false) -- 1100
+							TextColored(themeColor, "Dora SSR:") -- 1101
+							SameLine() -- 1102
+							Text(zh and "开发支持" or "Development Support") -- 1103
+							Separator() -- 1104
+							if #doraTools > 0 then -- 1105
+								local opened -- 1106
+								if (filterText ~= nil) then -- 1106
+									opened = showTool -- 1106
+								else -- 1106
+									opened = false -- 1106
+								end -- 1106
+								SetNextItemOpen(toolOpen) -- 1107
+								TreeNode(zh and "引擎工具" or "Engine Tools", function() -- 1108
+									return PushStyleVar("ItemSpacing", Vec2(20, 10), function() -- 1109
+										Columns(maxColumns, false) -- 1110
+										for _index_0 = 1, #doraTools do -- 1111
+											local example = doraTools[_index_0] -- 1111
+											if not match(example[1]) then -- 1112
+												goto _continue_0 -- 1112
+											end -- 1112
+											if Button(example[1], Vec2(-1, 40)) then -- 1113
+												enterDemoEntry(example) -- 1114
+											end -- 1113
+											NextColumn() -- 1115
+											::_continue_0:: -- 1112
+										end -- 1115
+										Columns(1, false) -- 1116
+										opened = true -- 1117
+									end) -- 1109
+								end) -- 1108
+								toolOpen = opened -- 1118
+							end -- 1105
+						end -- 1095
+						::endEntry:: -- 1119
+						if not anyEntryMatched then -- 1120
+							SetNextWindowBgAlpha(0) -- 1121
+							SetNextWindowPos(Vec2(fullWidth / 2, height / 2), "Always", Vec2(0.5, 0.5)) -- 1122
+							Begin("Entries Not Found", displayWindowFlags, function() -- 1123
+								Separator() -- 1124
+								TextColored(themeColor, zh and "多萝：" or "Dora:") -- 1125
+								TextColored(descColor, zh and '别担心，改变一些咒语，我们会找到新的冒险～' or 'Don\'t worry, more magic words and we\'ll find a new adventure!') -- 1126
+								return Separator() -- 1127
+							end) -- 1123
+						end -- 1120
+						Columns(1, false) -- 1128
+						Dummy(Vec2(100, 80)) -- 1129
+						return ScrollWhenDraggingOnVoid() -- 1130
 					end) -- 999
 				end) -- 998
 			end) -- 997
 		end) -- 996
-	end -- 1128
+	end -- 1130
 end) -- 899
-webStatus = require("Script.Dev.WebServer") -- 1130
-return _module_0 -- 1130
+webStatus = require("Script.Dev.WebServer") -- 1132
+return _module_0 -- 1132

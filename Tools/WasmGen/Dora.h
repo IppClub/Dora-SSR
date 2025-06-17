@@ -5156,11 +5156,11 @@ static void Binding::SetTooltip @ setTooltip(string text);
 
 static void Binding::Image @ image(string clipStr, Vec2 size);
 
-static void Binding::ImageWithBg @ imageWithBg(
+static void Binding::Image @ imageWithBg(
 	string clipStr,
 	Vec2 size,
-	Color tint_col,
-	Color border_col);
+	Color bg_col,
+	Color tint_col);
 
 static bool Binding::ImageButton @ imageButtonOpts(
 	string str_id,

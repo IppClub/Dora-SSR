@@ -340,10 +340,12 @@ class ResourceDownloader {
 				if (previewTexture) {
 					const {width, height} = previewTexture;
 					// 保持宽高比，适应宽度
-					const scale = itemWidth / width;
+					const scale = (itemWidth - 30) / width;
 					const scaledSize = Vec2(width * scale, height * scale);
 					const previewFile = this.previewFiles.get(pkg.name);
 					if (previewFile) {
+						ImGui.Dummy(Vec2.zero);
+						ImGui.SameLine();
 						ImGui.Image(previewFile, scaledSize);
 					}
 				} else {
