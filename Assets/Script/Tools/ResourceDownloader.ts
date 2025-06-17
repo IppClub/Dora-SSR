@@ -319,7 +319,7 @@ class ResourceDownloader {
 		const itemWidth = (width - 60) / maxColumns - 10;
 		ImGui.SetNextWindowPos(Vec2(0, 51), SetCond.Always, Vec2.zero);
 		ImGui.SetNextWindowSize(Vec2(width, height - 100), SetCond.Always);
-		ImGui.PushStyleVar(ImGui.StyleVarVec.WindowPadding, Vec2(20, 10), () => ImGui.Begin("Dora Community Resources", windowsFlags, () => {
+		ImGui.PushStyleVar(ImGui.StyleVarNum.Alpha, 1, () => ImGui.PushStyleVar(ImGui.StyleVarVec.WindowPadding, Vec2(20, 10), () => ImGui.Begin("Dora Community Resources", windowsFlags, () => {
 			ImGui.Columns(maxColumns, false);
 
 			// Display resources
@@ -436,7 +436,7 @@ class ResourceDownloader {
 				ImGui.OpenPopup("MessagePopup");
 			}
 			ImGui.BeginPopupModal("MessagePopup", () => this.messagePopup());
-		}));
+		})));
 	}
 }
 

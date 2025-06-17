@@ -408,7 +408,8 @@ export function SetTooltip(this: void, text: string): void;
 export function ColorEdit3(this: void, label: string, color3: Color3, flags?: ColorEditFlag[]): boolean;
 export function ColorEdit4(this: void, label: string, color: Color, flags?: ColorEditFlag[]): boolean;
 
-export function Image(this: void, clipStr: string, size: Vec2, tint_col?: Color, border_col?: Color): void;
+export function Image(this: void, clipStr: string, size: Vec2): void;
+export function ImageWithBg(this: void, clipStr: string, size: Vec2, bg_col: Color, tint_col: Color): void;
 export function ImageButton(this: void, str_id: string, clipStr: string, size: Vec2, frame_padding?: number, bg_col?: Color, tint_col?: Color): boolean;
 
 export function ColorButton(this: void, desc_id: string, col: Color, flags?: ColorEditFlag[], size?: Vec2): boolean;

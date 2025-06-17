@@ -866,7 +866,7 @@ void Image(String clipStr, const Vec2& size) {
 	ImGui::Image(texture.ptr, size, uv0, uv1);
 }
 
-void ImageWithBg(String clipStr, const Vec2& size, Color tint_col, Color border_col) {
+void ImageWithBg(String clipStr, const Vec2& size, Color bg_col, Color tint_col) {
 	Texture2D* tex = nullptr;
 	Rect rect;
 	std::tie(tex, rect) = SharedClipCache.loadTexture(clipStr);
@@ -881,7 +881,7 @@ void ImageWithBg(String clipStr, const Vec2& size, Color tint_col, Color border_
 	Vec2 texSize{s_cast<float>(tex->getWidth()), s_cast<float>(tex->getHeight())};
 	Vec2 uv0 = rect.origin / texSize;
 	Vec2 uv1 = (rect.origin + Vec2{1, 1} * rect.size) / texSize;
-	ImGui::ImageWithBg(texture.ptr, size, uv0, uv1, tint_col.toVec4(), border_col.toVec4());
+	ImGui::ImageWithBg(texture.ptr, size, uv0, uv1, bg_col.toVec4(), tint_col.toVec4());
 }
 
 bool ImageButton(const char* str_id, String clipStr, const Vec2& size, Color bg_col, Color tint_col) {

@@ -533,9 +533,13 @@ local record ImGui
 
 	Image: function(
 		clipStr: string,
+		size: Vec2
+	)
+	ImageWithBg: function(
+		clipStr: string,
 		size: Vec2,
-		tint_col?: Color --[[0xffffffff]],
-		border_col?: Color --[[0x0]]
+		bg_col: Color,
+		tint_col: Color
 	)
 	ImageButton: function(
 		str_id: string,
