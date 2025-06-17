@@ -347,103 +347,105 @@ function ResourceDownloader.prototype.update(self) -- 289
 							if previewTexture then -- 339
 								local width = previewTexture.width -- 339
 								local height = previewTexture.height -- 339
-								local scale = itemWidth / width -- 343
+								local scale = (itemWidth - 30) / width -- 343
 								local scaledSize = Vec2(width * scale, height * scale) -- 344
 								local previewFile = self.previewFiles:get(pkg.name) -- 345
 								if previewFile then -- 345
-									ImGui.Image(previewFile, scaledSize) -- 347
-								end -- 347
-							else -- 347
-								ImGui.Text(zh and "加载预览图中..." or "Loading preview...") -- 350
-							end -- 350
-							ImGui.TextWrapped(repo.desc[zh and "zh" or "en"]) -- 353
-							ImGui.TextColored(themeColor, zh and "项目地址：" or "Repo URL:") -- 355
-							ImGui.SameLine() -- 356
-							if ImGui.TextLink((zh and "这里" or "here") .. "###" .. pkg.url) then -- 356
-								App:openURL(pkg.url) -- 358
-							end -- 358
-							if ImGui.IsItemHovered() then -- 358
-								ImGui.BeginTooltip(function() -- 361
-									ImGui.PushTextWrapPos( -- 362
-										300, -- 362
-										function() -- 362
-											ImGui.Text(pkg.url) -- 363
-										end -- 362
-									) -- 362
-								end) -- 361
-							end -- 361
-							local currentVersion = pkg.currentVersion or 1 -- 368
-							local version = pkg.versions[currentVersion] -- 369
-							if type(version.updatedAt) == "number" then -- 369
-								ImGui.TextColored(themeColor, zh and "同步时间：" or "Updated:") -- 371
-								ImGui.SameLine() -- 372
-								local dateStr = os.date("%Y-%m-%d %H:%M:%S", version.updatedAt) -- 373
-								ImGui.Text(dateStr) -- 374
-							end -- 374
-							local progress = self.downloadProgress:get(pkg.name) -- 378
-							if progress ~= nil then -- 378
-								ImGui.ProgressBar( -- 380
-									progress.progress, -- 380
-									Vec2(-1, 30) -- 380
-								) -- 380
-								ImGui.BeginDisabled(function() -- 381
-									ImGui.Button(progress.status) -- 382
-								end) -- 381
-							end -- 381
-							if progress == nil then -- 381
-								local isDownloaded = self:isDownloaded(pkg.name) -- 388
-								local buttonText = (isDownloaded and (zh and "重新下载" or "Re-Download") or (zh and "下载" or "Download")) .. "###download-" .. pkg.name -- 389
-								local deleteText = (zh and "删除" or "Delete") .. "###delete-" .. pkg.name -- 392
-								if self.isDownloading then -- 392
-									ImGui.BeginDisabled(function() -- 394
-										ImGui.Button(buttonText) -- 395
-										if isDownloaded then -- 395
-											ImGui.SameLine() -- 397
-											ImGui.Button(deleteText) -- 398
-										end -- 398
-									end) -- 394
-								else -- 394
-									if ImGui.Button(buttonText) then -- 394
-										self:downloadPackage(pkg) -- 403
-									end -- 403
-									if isDownloaded then -- 403
-										ImGui.SameLine() -- 406
-										if ImGui.Button(deleteText) then -- 406
-											Content:remove(Path(Content.writablePath, "Download", pkg.name)) -- 408
-											self.downloadedPackages:delete(pkg.name) -- 409
-										end -- 409
-									end -- 409
-								end -- 409
-							end -- 409
-							ImGui.SameLine() -- 416
-							ImGui.Text(__TS__NumberToFixed(version.size / 1024 / 1024, 2) .. " MB") -- 417
-							if not self.isDownloading and pkg.versionNames and pkg.currentVersion then -- 417
-								ImGui.SameLine() -- 419
-								ImGui.SetNextItemWidth(-20) -- 420
-								local changed, currentVersion = ImGui.Combo("###" .. pkg.name, pkg.currentVersion, pkg.versionNames) -- 421
-								if changed then -- 421
-									pkg.currentVersion = currentVersion -- 423
-								end -- 423
-							end -- 423
-							thinSep() -- 427
-							ImGui.NextColumn() -- 428
-						end -- 428
-						::__continue60:: -- 428
-					end -- 428
-					ImGui.Columns(1, false) -- 431
-					ImGui.ScrollWhenDraggingOnVoid() -- 432
-					if self.popupShow then -- 432
-						self.popupShow = false -- 435
-						ImGui.OpenPopup("MessagePopup") -- 436
-					end -- 436
-					ImGui.BeginPopupModal( -- 438
-						"MessagePopup", -- 438
-						function() return self:messagePopup() end -- 438
-					) -- 438
+									ImGui.Dummy(Vec2.zero) -- 347
+									ImGui.SameLine() -- 348
+									ImGui.Image(previewFile, scaledSize) -- 349
+								end -- 349
+							else -- 349
+								ImGui.Text(zh and "加载预览图中..." or "Loading preview...") -- 352
+							end -- 352
+							ImGui.TextWrapped(repo.desc[zh and "zh" or "en"]) -- 355
+							ImGui.TextColored(themeColor, zh and "项目地址：" or "Repo URL:") -- 357
+							ImGui.SameLine() -- 358
+							if ImGui.TextLink((zh and "这里" or "here") .. "###" .. pkg.url) then -- 358
+								App:openURL(pkg.url) -- 360
+							end -- 360
+							if ImGui.IsItemHovered() then -- 360
+								ImGui.BeginTooltip(function() -- 363
+									ImGui.PushTextWrapPos( -- 364
+										300, -- 364
+										function() -- 364
+											ImGui.Text(pkg.url) -- 365
+										end -- 364
+									) -- 364
+								end) -- 363
+							end -- 363
+							local currentVersion = pkg.currentVersion or 1 -- 370
+							local version = pkg.versions[currentVersion] -- 371
+							if type(version.updatedAt) == "number" then -- 371
+								ImGui.TextColored(themeColor, zh and "同步时间：" or "Updated:") -- 373
+								ImGui.SameLine() -- 374
+								local dateStr = os.date("%Y-%m-%d %H:%M:%S", version.updatedAt) -- 375
+								ImGui.Text(dateStr) -- 376
+							end -- 376
+							local progress = self.downloadProgress:get(pkg.name) -- 380
+							if progress ~= nil then -- 380
+								ImGui.ProgressBar( -- 382
+									progress.progress, -- 382
+									Vec2(-1, 30) -- 382
+								) -- 382
+								ImGui.BeginDisabled(function() -- 383
+									ImGui.Button(progress.status) -- 384
+								end) -- 383
+							end -- 383
+							if progress == nil then -- 383
+								local isDownloaded = self:isDownloaded(pkg.name) -- 390
+								local buttonText = (isDownloaded and (zh and "重新下载" or "Re-Download") or (zh and "下载" or "Download")) .. "###download-" .. pkg.name -- 391
+								local deleteText = (zh and "删除" or "Delete") .. "###delete-" .. pkg.name -- 394
+								if self.isDownloading then -- 394
+									ImGui.BeginDisabled(function() -- 396
+										ImGui.Button(buttonText) -- 397
+										if isDownloaded then -- 397
+											ImGui.SameLine() -- 399
+											ImGui.Button(deleteText) -- 400
+										end -- 400
+									end) -- 396
+								else -- 396
+									if ImGui.Button(buttonText) then -- 396
+										self:downloadPackage(pkg) -- 405
+									end -- 405
+									if isDownloaded then -- 405
+										ImGui.SameLine() -- 408
+										if ImGui.Button(deleteText) then -- 408
+											Content:remove(Path(Content.writablePath, "Download", pkg.name)) -- 410
+											self.downloadedPackages:delete(pkg.name) -- 411
+										end -- 411
+									end -- 411
+								end -- 411
+							end -- 411
+							ImGui.SameLine() -- 418
+							ImGui.Text(__TS__NumberToFixed(version.size / 1024 / 1024, 2) .. " MB") -- 419
+							if not self.isDownloading and pkg.versionNames and pkg.currentVersion then -- 419
+								ImGui.SameLine() -- 421
+								ImGui.SetNextItemWidth(-20) -- 422
+								local changed, currentVersion = ImGui.Combo("###" .. pkg.name, pkg.currentVersion, pkg.versionNames) -- 423
+								if changed then -- 423
+									pkg.currentVersion = currentVersion -- 425
+								end -- 425
+							end -- 425
+							thinSep() -- 429
+							ImGui.NextColumn() -- 430
+						end -- 430
+						::__continue60:: -- 430
+					end -- 430
+					ImGui.Columns(1, false) -- 433
+					ImGui.ScrollWhenDraggingOnVoid() -- 434
+					if self.popupShow then -- 434
+						self.popupShow = false -- 437
+						ImGui.OpenPopup("MessagePopup") -- 438
+					end -- 438
+					ImGui.BeginPopupModal( -- 440
+						"MessagePopup", -- 440
+						function() return self:messagePopup() end -- 440
+					) -- 440
 				end -- 322
 			) end -- 322
 		) end -- 322
 	) -- 322
 end -- 289
-__TS__New(ResourceDownloader) -- 443
-return ____exports -- 443
+__TS__New(ResourceDownloader) -- 445
+return ____exports -- 445
