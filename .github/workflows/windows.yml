@@ -40,19 +40,12 @@ jobs:
           xcopy Tools\dora-wa\vendor Assets\dora-wa\vendor /I /E /Y
           xcopy Tools\dora-wa\src Assets\dora-wa\src /I /E /Y
           (cd Assets && 7z a -tzip ..\dora-ssr-windows-x86.zip dora-wa && cd ..)
-          (cd Assets && 7z a -tzip ..\dora-ssr-windows-x86.zip Audio && cd ..)
-          (cd Assets && 7z a -tzip ..\dora-ssr-windows-x86.zip Data && cd ..)
           (cd Assets && 7z a -tzip ..\dora-ssr-windows-x86.zip Doc && cd ..)
-          (cd Assets && 7z a -tzip ..\dora-ssr-windows-x86.zip DragonBones && cd ..)
           (cd Assets && 7z a -tzip ..\dora-ssr-windows-x86.zip Font && cd ..)
           (cd Assets && 7z a -tzip ..\dora-ssr-windows-x86.zip gamecontrollerdb.txt && cd ..)
           (cd Assets && 7z a -tzip ..\dora-ssr-windows-x86.zip Image && cd ..)
           (cd Assets && 7z a -tzip ..\dora-ssr-windows-x86.zip LICENSES && cd ..)
-          (cd Assets && 7z a -tzip ..\dora-ssr-windows-x86.zip Model && cd ..)
-          (cd Assets && 7z a -tzip ..\dora-ssr-windows-x86.zip Particle && cd ..)
           (cd Assets && 7z a -tzip ..\dora-ssr-windows-x86.zip Script && cd ..)
-          (cd Assets && 7z a -tzip ..\dora-ssr-windows-x86.zip Spine && cd ..)
-          (cd Assets && 7z a -tzip ..\dora-ssr-windows-x86.zip TMX && cd ..)
           (cd Projects\Windows\build\Release && 7z a -tzip ..\..\..\..\dora-ssr-windows-x86.zip Dora.exe && cd ..\..\..\..)
           (cd Projects\Windows\build\Release && 7z a -tzip ..\..\..\..\dora-ssr-windows-x86.zip wa.dll && cd ..\..\..\..)
           ren dora-ssr-windows-x86.zip dora-ssr-${{ github.ref_name }}-windows-x86.zip
