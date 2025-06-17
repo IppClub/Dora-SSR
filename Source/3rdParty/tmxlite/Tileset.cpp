@@ -80,7 +80,7 @@ void Tileset::parse(pugi::xml_node node, Map* map)
         //parse TSX doc
         std::string path = node.attribute("source").as_string();
         path = resolveFilePath(path, m_workingDir);
-		m_workingDir = getFilePath(path);
+        m_workingDir = getFilePath(path);
 
         int64_t size = 0;
         auto data = r_cast<char*>(SharedContent.loadUnsafe(path, size));

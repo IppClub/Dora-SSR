@@ -1,2 +1,0 @@
-local v,s,t,f = require("Vec2"),require("Size"),true,false
-return {"Array",{"Phyx.Rect","rect","Static",v(3,157),0,v(0,89),s(500,10),1,0.4,0.4,0,0,f,v(0,-10),f,t,0,{"Array",{"Phyx.SubRect",v(0,-401),0,s(500,10),1,0.4,0.4,t,1},{"Phyx.SubRect",v(245,-156),0,s(10,500),1,0.4,0.4,t,2},{"Phyx.SubRect",v(-245,-156),0,s(10,500),1,0.4,0.4,t,3}},"",v(0,0)}}

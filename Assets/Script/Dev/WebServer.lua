@@ -2041,154 +2041,146 @@ HttpServer:post("/assets", function() -- 755
 							return _with_0 -- 834
 						end)(), -- 834
 						(function() -- 836
-							local _with_0 = visitAssets((Path(Content.assetPath, "Script", "Example")), "Builtin") -- 836
-							_with_0.title = zh and "代码示例" or "Example" -- 837
+							local _with_0 = visitAssets((Path(Content.assetPath, "Font")), "Builtin") -- 836
+							_with_0.title = zh and "字体" or "Font" -- 837
 							return _with_0 -- 836
 						end)(), -- 836
 						(function() -- 838
-							local _with_0 = visitAssets((Path(Content.assetPath, "Script", "Game")), "Builtin") -- 838
-							_with_0.title = zh and "游戏演示" or "Demo Game" -- 839
-							return _with_0 -- 838
-						end)(), -- 838
-						(function() -- 840
-							local _with_0 = visitAssets((Path(Content.assetPath, "Script", "Test")), "Builtin") -- 840
-							_with_0.title = zh and "功能测试" or "Test" -- 841
-							return _with_0 -- 840
-						end)(), -- 840
-						visitAssets((Path(Content.assetPath, "Image")), "Builtin"), -- 842
-						visitAssets((Path(Content.assetPath, "Spine")), "Builtin"), -- 843
-						visitAssets((Path(Content.assetPath, "Font")), "Builtin"), -- 844
-						(function() -- 845
-							local _with_0 = visitAssets((Path(Content.assetPath, "Script", "Lib")), "Builtin") -- 845
-							if engineDev then -- 846
+							local _with_0 = visitAssets((Path(Content.assetPath, "Script", "Lib")), "Builtin") -- 838
+							_with_0.title = zh and "程序库" or "Lib" -- 839
+							if engineDev then -- 840
+								local _list_0 = _with_0.children -- 841
+								for _index_0 = 1, #_list_0 do -- 841
+									local child = _list_0[_index_0] -- 841
+									if not (child.title == "Dora") then -- 842
+										goto _continue_0 -- 842
+									end -- 842
+									local title = zh and "zh-Hans" or "en" -- 843
+									do -- 844
+										local _accum_0 = { } -- 844
+										local _len_0 = 1 -- 844
+										local _list_1 = child.children -- 844
+										for _index_1 = 1, #_list_1 do -- 844
+											local c = _list_1[_index_1] -- 844
+											if c.title ~= title then -- 844
+												_accum_0[_len_0] = c -- 844
+												_len_0 = _len_0 + 1 -- 844
+											end -- 844
+										end -- 844
+										child.children = _accum_0 -- 844
+									end -- 844
+									break -- 845
+									::_continue_0:: -- 842
+								end -- 845
+							else -- 847
+								local _accum_0 = { } -- 847
+								local _len_0 = 1 -- 847
 								local _list_0 = _with_0.children -- 847
 								for _index_0 = 1, #_list_0 do -- 847
 									local child = _list_0[_index_0] -- 847
-									if not (child.title == "Dora") then -- 848
-										goto _continue_0 -- 848
-									end -- 848
-									local title = zh and "zh-Hans" or "en" -- 849
-									do -- 850
-										local _accum_0 = { } -- 850
-										local _len_0 = 1 -- 850
-										local _list_1 = child.children -- 850
-										for _index_1 = 1, #_list_1 do -- 850
-											local c = _list_1[_index_1] -- 850
-											if c.title ~= title then -- 850
-												_accum_0[_len_0] = c -- 850
-												_len_0 = _len_0 + 1 -- 850
-											end -- 850
-										end -- 850
-										child.children = _accum_0 -- 850
-									end -- 850
-									break -- 851
-									::_continue_0:: -- 848
-								end -- 851
-							else -- 853
-								local _accum_0 = { } -- 853
-								local _len_0 = 1 -- 853
-								local _list_0 = _with_0.children -- 853
-								for _index_0 = 1, #_list_0 do -- 853
-									local child = _list_0[_index_0] -- 853
-									if child.title ~= "Dora" then -- 853
-										_accum_0[_len_0] = child -- 853
-										_len_0 = _len_0 + 1 -- 853
-									end -- 853
-								end -- 853
-								_with_0.children = _accum_0 -- 853
-							end -- 846
-							return _with_0 -- 845
-						end)(), -- 845
-						(function() -- 854
-							if engineDev then -- 854
-								local _with_0 = visitAssets((Path(Content.assetPath, "Script", "Dev")), "Builtin") -- 855
-								local _obj_0 = _with_0.children -- 856
-								_obj_0[#_obj_0 + 1] = { -- 857
-									key = Path(Content.assetPath, "Script", "init.yue"), -- 857
-									dir = false, -- 858
-									builtin = true, -- 859
-									title = "init.yue" -- 860
-								} -- 856
-								return _with_0 -- 855
-							end -- 854
-						end)() -- 854
+									if child.title ~= "Dora" then -- 847
+										_accum_0[_len_0] = child -- 847
+										_len_0 = _len_0 + 1 -- 847
+									end -- 847
+								end -- 847
+								_with_0.children = _accum_0 -- 847
+							end -- 840
+							return _with_0 -- 838
+						end)(), -- 838
+						(function() -- 848
+							if engineDev then -- 848
+								local _with_0 = visitAssets((Path(Content.assetPath, "Script", "Dev")), "Builtin") -- 849
+								local _obj_0 = _with_0.children -- 850
+								_obj_0[#_obj_0 + 1] = { -- 851
+									key = Path(Content.assetPath, "Script", "init.yue"), -- 851
+									dir = false, -- 852
+									builtin = true, -- 853
+									title = "init.yue" -- 854
+								} -- 850
+								return _with_0 -- 849
+							end -- 848
+						end)() -- 848
 					} -- 829
 				} -- 824
-			} -- 864
-			local _obj_0 = visitAssets(Content.writablePath, "Workspace") -- 864
-			local _idx_0 = #_tab_0 + 1 -- 864
-			for _index_0 = 1, #_obj_0 do -- 864
-				local _value_0 = _obj_0[_index_0] -- 864
-				_tab_0[_idx_0] = _value_0 -- 864
-				_idx_0 = _idx_0 + 1 -- 864
-			end -- 864
-			return _tab_0 -- 863
+			} -- 858
+			local _obj_0 = visitAssets(Content.writablePath, "Workspace") -- 858
+			local _idx_0 = #_tab_0 + 1 -- 858
+			for _index_0 = 1, #_obj_0 do -- 858
+				local _value_0 = _obj_0[_index_0] -- 858
+				_tab_0[_idx_0] = _value_0 -- 858
+				_idx_0 = _idx_0 + 1 -- 858
+			end -- 858
+			return _tab_0 -- 857
 		end)() -- 823
-	} -- 866
+	} -- 860
 end) -- 755
-HttpServer:postSchedule("/run", function(req) -- 868
-	do -- 869
-		local _type_0 = type(req) -- 869
-		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 869
-		if _tab_0 then -- 869
-			local file -- 869
-			do -- 869
-				local _obj_0 = req.body -- 869
-				local _type_1 = type(_obj_0) -- 869
-				if "table" == _type_1 or "userdata" == _type_1 then -- 869
-					file = _obj_0.file -- 869
+HttpServer:postSchedule("/run", function(req) -- 862
+	do -- 863
+		local _type_0 = type(req) -- 863
+		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 863
+		if _tab_0 then -- 863
+			local file -- 863
+			do -- 863
+				local _obj_0 = req.body -- 863
+				local _type_1 = type(_obj_0) -- 863
+				if "table" == _type_1 or "userdata" == _type_1 then -- 863
+					file = _obj_0.file -- 863
 				end -- 884
 			end -- 884
-			local asProj -- 869
-			do -- 869
-				local _obj_0 = req.body -- 869
-				local _type_1 = type(_obj_0) -- 869
-				if "table" == _type_1 or "userdata" == _type_1 then -- 869
-					asProj = _obj_0.asProj -- 869
+			local asProj -- 863
+			do -- 863
+				local _obj_0 = req.body -- 863
+				local _type_1 = type(_obj_0) -- 863
+				if "table" == _type_1 or "userdata" == _type_1 then -- 863
+					asProj = _obj_0.asProj -- 863
 				end -- 884
 			end -- 884
-			if file ~= nil and asProj ~= nil then -- 869
-				if not Content:isAbsolutePath(file) then -- 870
-					local devFile = Path(Content.writablePath, file) -- 871
-					if Content:exist(devFile) then -- 872
-						file = devFile -- 872
-					end -- 872
-				end -- 870
-				local Entry = require("Script.Dev.Entry") -- 873
-				if asProj then -- 874
-					local proj = getProjectDirFromFile(file) -- 875
-					if proj then -- 875
-						Entry.allClear() -- 876
-						local target = Path(proj, "init") -- 877
-						local success, err = Entry.enterEntryAsync({ -- 878
-							"Project", -- 878
-							target -- 878
-						}) -- 878
-						target = Path:getName(Path:getPath(target)) -- 879
-						return { -- 880
-							success = success, -- 880
-							target = target, -- 880
-							err = err -- 880
-						} -- 880
-					end -- 875
-				end -- 874
-				Entry.allClear() -- 881
-				file = Path:replaceExt(file, "") -- 882
-				local success, err = Entry.enterEntryAsync({ -- 883
-					Path:getName(file), -- 883
-					file -- 883
-				}) -- 883
+			if file ~= nil and asProj ~= nil then -- 863
+				if not Content:isAbsolutePath(file) then -- 864
+					local devFile = Path(Content.writablePath, file) -- 865
+					if Content:exist(devFile) then -- 866
+						file = devFile -- 866
+					end -- 866
+				end -- 864
+				local Entry = require("Script.Dev.Entry") -- 867
+				local workDir -- 868
+				if asProj then -- 869
+					workDir = getProjectDirFromFile(file) -- 870
+					if workDir then -- 870
+						Entry.allClear() -- 871
+						local target = Path(workDir, "init") -- 872
+						local success, err = Entry.enterEntryAsync({ -- 873
+							"Project", -- 873
+							target -- 873
+						}) -- 873
+						target = Path:getName(Path:getPath(target)) -- 874
+						return { -- 875
+							success = success, -- 875
+							target = target, -- 875
+							err = err -- 875
+						} -- 875
+					end -- 870
+				else -- 877
+					workDir = getProjectDirFromFile(file) -- 877
+				end -- 869
+				Entry.allClear() -- 878
+				file = Path:replaceExt(file, "") -- 879
+				local success, err = Entry.enterEntryAsync({ -- 881
+					Path:getName(file), -- 881
+					file, -- 881
+					workDir = workDir -- 882
+				}) -- 880
 				return { -- 884
 					success = success, -- 884
 					err = err -- 884
 				} -- 884
-			end -- 869
+			end -- 863
 		end -- 884
 	end -- 884
-	return { -- 868
-		success = false -- 868
+	return { -- 862
+		success = false -- 862
 	} -- 884
-end) -- 868
+end) -- 862
 HttpServer:postSchedule("/stop", function() -- 886
 	local Entry = require("Script.Dev.Entry") -- 887
 	return { -- 888

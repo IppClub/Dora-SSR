@@ -145,6 +145,10 @@ void Audio::playStream(String filename, bool loop, float crossFadeTime) {
 			return;
 		}
 		_currentStream = SoundStream::create(MakeOwnArray(data), s_cast<size_t>(size));
+		if (!_currentStream) {
+			Error("failed to play audio stream: {}", file);
+			return;
+		}
 		_currentVoice = _soloud->play(*_currentStream->getStream(), 0.0f);
 		_soloud->setLooping(_currentVoice, loop);
 		_soloud->setProtectVoice(_currentVoice, true);

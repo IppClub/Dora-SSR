@@ -275,12 +275,18 @@ getProjectEntries = (path) ->
 				examplePath = Path path, dir, Path\getPath(file), "Example"
 				if Content\exist examplePath
 					for [name, ePath] in *getFileEntries examplePath
-						entry = [name, Path path, dir, Path\getPath(file), ePath]
+						entry = {
+							name, Path path, dir, Path\getPath(file), ePath
+							workDir: Path\getPath fileName
+						}
 						examples[] = entry
 				testPath = Path path, dir, Path\getPath(file), "Test"
 				if Content\exist testPath
 					for [name, tPath] in *getFileEntries testPath
-						entry = [name, Path path, dir, Path\getPath(file), tPath]
+						entry = {
+							name, Path path, dir, Path\getPath(file), tPath
+							workDir: Path\getPath fileName
+						}
 						tests[] = entry
 				entry = [entryName, fileName, examples, tests]
 				bannerFile = Path path, Path\getPath(fileName), "Image", "banner.png"
@@ -297,24 +303,13 @@ getProjectEntries = (path) ->
 	table.sort entries, (a, b) -> a[1] < b[1]
 	entries
 
-local gamesInDev, games
-local doraTools, doraExamples, doraTests
-local cppTests, cppTestSet
+local gamesInDev
+local doraTools
 local allEntries
 
 updateEntries = ->
 	gamesInDev = getProjectEntries Content.writablePath
-	games = getProjectEntries Path Content.assetPath, "Script"
-
 	doraTools = getFileEntries Path(Content.assetPath, "Script", "Tools"), false
-	doraExamples = getFileEntries Path Content.assetPath, "Script", "Example"
-	doraTests = getFileEntries Path(Content.assetPath, "Script", "Test"), true, unless App.debugging then ["ImGui",]
-
-	cppTests = []
-	for name in *App.testNames
-		entry = [name,]
-		cppTests[] = entry
-	cppTestSet = Set cppTests
 
 	allEntries = []
 	for game in *gamesInDev
@@ -324,20 +319,6 @@ updateEntries = ->
 			allEntries[] = example
 		for test in *tests
 			allEntries[] = test
-	for game in *games
-		allEntries[] = game
-		[_, _, examples, tests] = game
-		for example in *examples
-			doraExamples[] = example
-		for test in *tests
-			doraTests[] = test
-	for group in *[
-			doraExamples
-			doraTests
-			cppTests
-		]
-		for entry in *group
-			allEntries[] = entry
 
 updateEntries!
 
@@ -618,17 +599,12 @@ export enterEntryAsync = (entry) ->
 	App.idled = false
 	emit Profiler.EventName, "ClearLoader"
 	currentEntry = entry
-	[name, file] = entry
-	if cppTestSet[entry]
-		if App\runTest name
-			return true
-		else
-			return false, "failed to run cpp test '#{name}'"
+	{_, file, :workDir} = entry
 	sleep!
 	try
-		scriptPath = Path\getPath file
-		Content\insertSearchPath 1, scriptPath
-		scriptPath = Path scriptPath, "Script"
+		workDir ??= Path\getPath file
+		Content\insertSearchPath 1, workDir
+		scriptPath = Path workDir, "Script"
 		if Content\exist scriptPath
 			Content\insertSearchPath 1, scriptPath
 		result = require file
@@ -905,10 +881,7 @@ displayWindowFlags = $WindowFlag(
 
 webStatus = nil
 descColor = Color 0xffa1a1a1
-gameOpen = #gamesInDev == 0
 toolOpen = false
-exampleOpen = false
-testOpen = false
 filterText = nil
 anyEntryMatched = false
 urlClicked = nil
@@ -916,9 +889,12 @@ match = (name) ->
 	res = not filterText or name\lower!\match filterText
 	anyEntryMatched = true if res
 	res
+icon = Path "Script", "Dev", "icon_s.png"
 iconTex = nil
-thread -> if Cache\loadAsync "Image/icon_s.png"
-	iconTex = Texture2D "Image/icon_s.png"
+thread -> iconTex = Texture2D icon if Cache\loadAsync icon
+
+sep = -> SeparatorText ""
+thinSep = -> PushStyleVar "SeparatorTextBorderSize", 1, sep
 
 entryWindow = threadLoop ->
 	if App.fpsLimited ~= config.fpsLimited
@@ -948,7 +924,7 @@ entryWindow = threadLoop ->
 			Separator!
 			TextColored themeColor, "#{zh and '网页 IDE 已连接 ……' or 'Web IDE connected ...'}"
 			if iconTex
-				Image "Image/icon_s.png", Vec2 24, 24
+				Image icon, Vec2 24, 24
 				SameLine!
 			slogon = zh and 'Dora 启动！' or 'Dora Start!'
 			TextColored descColor, slogon
@@ -993,7 +969,7 @@ entryWindow = threadLoop ->
 		<- Begin "Dora Dev", displayWindowFlags
 		Dummy Vec2 fullWidth - 20, 0
 		if iconTex
-			Image "Image/icon_s.png", Vec2 24, 24
+			Image icon, Vec2 24, 24
 			SameLine!
 		TextColored themeColor, "DORA SSR #{zh and '开发' or 'DEV'}"
 		if fullWidth >= 400
@@ -1020,153 +996,117 @@ entryWindow = threadLoop ->
 		<- PushStyleColor "WindowBg", transparant
 		<- PushStyleVar "WindowPadding", Vec2 paddingX, 10
 		<- Begin "Content", windowFlags
+		const demoViewWith = 400
 		filterText = filterBuf.text\match "[^%%%.%[]+"
 		filterText = filterText\lower! if filterText
 		if #gamesInDev > 0
+			columns = math.max math.floor(width / demoViewWith), 1
+			Columns columns, false
 			for game in *gamesInDev
 				[gameName, fileName, examples, tests, bannerFile, bannerTex] = game
-				showSep = false
 				if match gameName
-					Columns 1, false
 					TextColored themeColor, zh and "项目：" or "Project:"
 					SameLine!
-					Text gameName
-					Separator!
-					if bannerFile
-						width: texWidth, height: texHeight = bannerTex
-						displayWidth = (fullWidth / 2 - paddingX) * 2 - 35
-						const sizing = 0.8
-						texHeight = displayWidth * sizing * texHeight / texWidth
-						texWidth = displayWidth * sizing
-						padding = displayWidth * (1 - sizing) / 2 - 10
-						Dummy Vec2 padding, 0
-						SameLine!
-						<- PushID fileName
-						if ImageButton gameName, bannerFile, Vec2 texWidth, texHeight
-							enterDemoEntry game
+					TextWrapped gameName
+					if columns > 1
+						if bannerFile
+							width: texWidth, height: texHeight = bannerTex
+							const displayWidth = demoViewWith - 40
+							texHeight = displayWidth * texHeight / texWidth
+							texWidth = displayWidth
+							<- PushID fileName
+							if ImageButton gameName, bannerFile, Vec2 texWidth + 10, texHeight
+								enterDemoEntry game
+						else
+							<- PushID fileName
+							if Button zh and "开始运行" or "Game Start", Vec2 -1, 40
+								enterDemoEntry game
 					else
-						<- PushID fileName
-						if Button zh and "开始运行" or "Game Start", Vec2 -1, 40
-							enterDemoEntry game
+						if bannerFile
+							width: texWidth, height: texHeight = bannerTex
+							displayWidth = (fullWidth / 2 - paddingX) * 2 - 35
+							sizing = 0.8
+							texHeight = displayWidth * sizing * texHeight / texWidth
+							texWidth = displayWidth * sizing
+							if texWidth > 500
+								sizing = 0.6
+								texHeight = displayWidth * sizing * texHeight / texWidth
+								texWidth = displayWidth * sizing
+							padding = displayWidth * (1 - sizing) / 2 - 10
+							Dummy Vec2 padding, 0
+							SameLine!
+							<- PushID fileName
+							if ImageButton gameName, bannerFile, Vec2 texWidth, texHeight
+								enterDemoEntry game
+						else
+							<- PushID fileName
+							if Button zh and "开始运行" or "Game Start", Vec2 -1, 40
+								enterDemoEntry game
+					if #tests == 0 and #examples == 0
+						thinSep!
 					NextColumn!
-					showSep = true
+				showSep = false
 				if #examples > 0
 					showExample = false
-					for example in *examples
-						if match example[1]
-							showExample = true
-							break
+					showExample = for [name,] in *examples
+						break true if match name
 					if showExample
+						showSep = true
 						Columns 1, false
 						TextColored themeColor, zh and "示例：" or "Example:"
 						SameLine!
-						Text gameName
-						<- PushStyleVar "ItemSpacing", Vec2 20, 10
-						Columns maxColumns, false
-						for example in *examples
-							continue unless match example[1]
-							PushID "#{gameName} #{example[1]} example", ->
-								if Button example[1], Vec2 -1, 40
-									enterDemoEntry example
-								NextColumn!
-							showSep = true
+						opened = if filterText? then showExample else false
+						game.exampleOpen ??= opened
+						SetNextItemOpen game.exampleOpen
+						TreeNode "#{gameName}###example-#{fileName}", ->
+							<- PushStyleVar "ItemSpacing", Vec2 20, 10
+							Columns maxColumns, false
+							for example in *examples
+								continue unless match example[1]
+								PushID "#{gameName} #{example[1]} example", ->
+									if Button example[1], Vec2 -1, 40
+										enterDemoEntry example
+									NextColumn!
+								opened = true
+						game.exampleOpen = opened
 				if #tests > 0
 					showTest = false
-					for test in *tests
-						if match test[1]
-							showTest = true
-							break
+					showTest = for [name,] in *tests
+						break true if match name
 					if showTest
+						showSep = true
 						Columns 1, false
 						TextColored themeColor, zh and "测试：" or "Test:"
 						SameLine!
-						Text gameName
-						<- PushStyleVar "ItemSpacing", Vec2 20, 10
-						Columns maxColumns, false
-						for test in *tests
-							continue unless match test[1]
-							PushID "#{gameName} #{test[1]} test", ->
-								if Button test[1], Vec2 -1, 40
-									enterDemoEntry test
-								NextColumn!
-							showSep = true
+						opened = if filterText? then showTest else false
+						game.testOpen ??= opened
+						SetNextItemOpen game.testOpen
+						TreeNode "#{gameName}###test-#{fileName}", ->
+							<- PushStyleVar "ItemSpacing", Vec2 20, 10
+							Columns maxColumns, false
+							for test in *tests
+								continue unless match test[1]
+								PushID "#{gameName} #{test[1]} test", ->
+									if Button test[1], Vec2 -1, 40
+										enterDemoEntry test
+									NextColumn!
+								opened = true
+						game.testOpen = opened
 				if showSep
 					Columns 1, false
-					Separator!
-		if #games > 0 or #doraExamples > 0 or #doraTests > 0
-			showGame = false
-			for [name,] in *games
-				showGame = true if match name
+					thinSep!
+					Columns columns, false
+		if #doraTools > 0
 			showTool = false
-			for [name,] in *doraTools
-				showTool = true if match name
-			showExample = false
-			for [name,] in *doraExamples
-				showExample = true if match name
-			showTest = false
-			for [name,] in *doraTests
-				showTest = true if match name
-			for [name,] in *cppTests
-				showTest = true if match name
-			goto endEntry unless showGame or showTool or showExample or showTest
+			showTool = for [name,] in *doraTools
+				break true if match name
+			goto endEntry unless showTool
 			Columns 1, false
 			TextColored themeColor, "Dora SSR:"
 			SameLine!
-			Text zh and "开发示例" or "Development Showcase"
+			Text zh and "开发支持" or "Development Support"
 			Separator!
-			const demoViewWith = 400
-			if #games > 0 and showGame
-				opened = if filterText? then showGame else false
-				SetNextItemOpen gameOpen
-				TreeNode zh and "游戏演示" or "Game Demo", ->
-					columns = math.max math.floor(width / demoViewWith), 1
-					Columns columns, false
-					for game in *games
-						continue unless match game[1]
-						[gameName, fileName, _, _, bannerFile, bannerTex] = game
-						if columns > 1
-							if bannerFile
-								width: texWidth, height: texHeight = bannerTex
-								const displayWidth = demoViewWith - 40
-								texHeight = displayWidth * texHeight / texWidth
-								texWidth = displayWidth
-								Text gameName
-								<- PushID fileName
-								if ImageButton gameName, bannerFile, Vec2 texWidth, texHeight
-									enterDemoEntry game
-							else
-								<- PushID fileName
-								if Button gameName, Vec2 -1, 40
-									enterDemoEntry game
-						else
-							if bannerFile
-								width: texWidth, height: texHeight = bannerTex
-								displayWidth = (fullWidth / 2 - paddingX) * 2 - 35
-								sizing = 0.8
-								texHeight = displayWidth * sizing * texHeight / texWidth
-								texWidth = displayWidth * sizing
-								if texWidth > 500
-									sizing = 0.6
-									texHeight = displayWidth * sizing * texHeight / texWidth
-									texWidth = displayWidth * sizing
-								padding = displayWidth * (1 - sizing) / 2 - 10
-								Dummy Vec2 padding, 0
-								SameLine!
-								Text gameName
-								Dummy Vec2 padding, 0
-								SameLine!
-								<- PushID fileName
-								if ImageButton gameName, bannerFile, Vec2 texWidth, texHeight
-									enterDemoEntry game
-							else
-								<- PushID fileName
-								if Button gameName, Vec2 -1, 40
-									enterDemoEntry game
-						NextColumn!
-					Columns 1, false
-					opened = true
-				gameOpen = opened
-			if #doraTools > 0 and showTool
+			if #doraTools > 0
 				opened = if filterText? then showTool else false
 				SetNextItemOpen toolOpen
 				TreeNode zh and "引擎工具" or "Engine Tools", ->
@@ -1180,38 +1120,6 @@ entryWindow = threadLoop ->
 					Columns 1, false
 					opened = true
 				toolOpen = opened
-			if #doraExamples > 0 and showExample
-				opened = if filterText? then showExample else false
-				SetNextItemOpen exampleOpen
-				TreeNode zh and "引擎示例" or "Engine Example", ->
-					<- PushStyleVar "ItemSpacing", Vec2 20, 10
-					Columns maxColumns, false
-					for example in *doraExamples
-						continue unless match example[1]
-						if Button example[1], Vec2 -1, 40
-							enterDemoEntry example
-						NextColumn!
-					Columns 1, false
-					opened = true
-				exampleOpen = opened
-			if (#doraTests > 0 or #cppTests > 0) and showTest
-				opened = if filterText? then showTest else false
-				SetNextItemOpen testOpen
-				TreeNode zh and "引擎测试" or "Engine Test", ->
-					<- PushStyleVar "ItemSpacing", Vec2 20, 10
-					Columns maxColumns, false
-					for test in *doraTests
-						continue unless match test[1]
-						if Button test[1], Vec2 -1, 40
-							enterDemoEntry test
-						NextColumn!
-					for test in *cppTests
-						continue unless match test[1]
-						if Button test[1], Vec2 -1, 40
-							enterDemoEntry test
-						NextColumn!
-					opened = true
-				testOpen = opened
 		::endEntry::
 		unless anyEntryMatched
 			SetNextWindowBgAlpha 0

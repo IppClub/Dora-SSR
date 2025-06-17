@@ -7,19 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		3C030CF524CAE6580074786E /* Spine in Resources */ = {isa = PBXBuildFile; fileRef = 3C030CED24CAE6570074786E /* Spine */; };
-		3C030CF724CAE6580074786E /* Model in Resources */ = {isa = PBXBuildFile; fileRef = 3C030CEF24CAE6570074786E /* Model */; };
 		3C030CF824CAE6580074786E /* Script in Resources */ = {isa = PBXBuildFile; fileRef = 3C030CF024CAE6570074786E /* Script */; };
-		3C030CF924CAE6580074786E /* Audio in Resources */ = {isa = PBXBuildFile; fileRef = 3C030CF124CAE6570074786E /* Audio */; };
-		3C030CFA24CAE6580074786E /* Image in Resources */ = {isa = PBXBuildFile; fileRef = 3C030CF224CAE6570074786E /* Image */; };
 		3C030CFB24CAE6580074786E /* Font in Resources */ = {isa = PBXBuildFile; fileRef = 3C030CF324CAE6570074786E /* Font */; };
-		3C030CFC24CAE6580074786E /* Particle in Resources */ = {isa = PBXBuildFile; fileRef = 3C030CF424CAE6580074786E /* Particle */; };
 		3C0C7751275742990030BDCD /* miniz.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C0C774D275742990030BDCD /* miniz.c */; };
 		3C0C7752275742990030BDCD /* ZipUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0C7750275742990030BDCD /* ZipUtils.cpp */; };
 		3C0C77552757437E0030BDCD /* miniz.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C0C774D275742990030BDCD /* miniz.c */; };
 		3C0C77562757437E0030BDCD /* ZipUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0C7750275742990030BDCD /* ZipUtils.cpp */; };
-		3C0C775C275744690030BDCD /* Data in Resources */ = {isa = PBXBuildFile; fileRef = 3C0C775B275744690030BDCD /* Data */; };
-		3C0C775D275744690030BDCD /* Data in Resources */ = {isa = PBXBuildFile; fileRef = 3C0C775B275744690030BDCD /* Data */; };
 		3C0FB6812BF1970C0098E88D /* ForceFields.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB58C2BF1970C0098E88D /* ForceFields.cpp */; };
 		3C0FB6822BF1970C0098E88D /* ForceFields.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB58C2BF1970C0098E88D /* ForceFields.cpp */; };
 		3C0FB6832BF1970C0098E88D /* Effekseer.EfkEfcFactory.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C0FB5912BF1970C0098E88D /* Effekseer.EfkEfcFactory.cpp */; };
@@ -177,8 +170,6 @@
 		3C1F87C91DF7B4C5005F1B4D /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C1F87C81DF7B4C5005F1B4D /* AVFoundation.framework */; };
 		3C361E532C1AFF400079B68B /* pugixml.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C361E392C1AFF400079B68B /* pugixml.cpp */; };
 		3C361E542C1AFF400079B68B /* pugixml.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C361E392C1AFF400079B68B /* pugixml.cpp */; };
-		3C361E732C1B47F50079B68B /* TMX in Resources */ = {isa = PBXBuildFile; fileRef = 3C361E722C1B47F50079B68B /* TMX */; };
-		3C361E742C1B47F50079B68B /* TMX in Resources */ = {isa = PBXBuildFile; fileRef = 3C361E722C1B47F50079B68B /* TMX */; };
 		3C5399F62998DEF800E9125C /* ljson.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C5399F52998DEF800E9125C /* ljson.c */; };
 		3C5399F72998DEF800E9125C /* ljson.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C5399F52998DEF800E9125C /* ljson.c */; };
 		3C592B1F2CA4F26C00CAF224 /* Map.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592B112CA4F26C00CAF224 /* Map.cpp */; };
@@ -1101,13 +1092,8 @@
 		3CBE0EFF26087F7B003F4F45 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE331711D96D92F00F9C3F6 /* AudioToolbox.framework */; };
 		3CBE0F0026087F7B003F4F45 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C1F87C81DF7B4C5005F1B4D /* AVFoundation.framework */; };
 		3CBE0F0126087F7B003F4F45 /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE3316F1D96D92700F9C3F6 /* CoreMotion.framework */; };
-		3CBE0F0326087F7B003F4F45 /* Model in Resources */ = {isa = PBXBuildFile; fileRef = 3C030CEF24CAE6570074786E /* Model */; };
-		3CBE0F0526087F7B003F4F45 /* Spine in Resources */ = {isa = PBXBuildFile; fileRef = 3C030CED24CAE6570074786E /* Spine */; };
-		3CBE0F0626087F7B003F4F45 /* Image in Resources */ = {isa = PBXBuildFile; fileRef = 3C030CF224CAE6570074786E /* Image */; };
 		3CBE0F0826087F7B003F4F45 /* Font in Resources */ = {isa = PBXBuildFile; fileRef = 3C030CF324CAE6570074786E /* Font */; };
 		3CBE0F0926087F7B003F4F45 /* Script in Resources */ = {isa = PBXBuildFile; fileRef = 3C030CF024CAE6570074786E /* Script */; };
-		3CBE0F0B26087F7B003F4F45 /* Particle in Resources */ = {isa = PBXBuildFile; fileRef = 3C030CF424CAE6580074786E /* Particle */; };
-		3CBE0F0E26087F7B003F4F45 /* Audio in Resources */ = {isa = PBXBuildFile; fileRef = 3C030CF124CAE6570074786E /* Audio */; };
 		3CBE0F1E26087FB3003F4F45 /* libbimg.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CBE0F1A26087FB3003F4F45 /* libbimg.a */; };
 		3CBE0F1F26087FB3003F4F45 /* libbx.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CBE0F1B26087FB3003F4F45 /* libbx.a */; };
 		3CBE0F2026087FB3003F4F45 /* libbimg_decode.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CBE0F1C26087FB3003F4F45 /* libbimg_decode.a */; };
@@ -1167,23 +1153,15 @@
 		3CE471CA2DD2EFDE0036716C /* libwa.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE471C82DD2EF9B0036716C /* libwa.a */; };
 		3CE9946A2AFB26820073A973 /* gamecontrollerdb.txt in Resources */ = {isa = PBXBuildFile; fileRef = 3CE994692AFB26820073A973 /* gamecontrollerdb.txt */; };
 		3CE9946B2AFB26820073A973 /* gamecontrollerdb.txt in Resources */ = {isa = PBXBuildFile; fileRef = 3CE994692AFB26820073A973 /* gamecontrollerdb.txt */; };
-		3CFEBE4326930B91006D9974 /* DragonBones in Resources */ = {isa = PBXBuildFile; fileRef = 3CFEBE4226930B91006D9974 /* DragonBones */; };
-		3CFEBE4426930B91006D9974 /* DragonBones in Resources */ = {isa = PBXBuildFile; fileRef = 3CFEBE4226930B91006D9974 /* DragonBones */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		3C030CED24CAE6570074786E /* Spine */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Spine; sourceTree = "<group>"; };
-		3C030CEF24CAE6570074786E /* Model */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Model; sourceTree = "<group>"; };
 		3C030CF024CAE6570074786E /* Script */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Script; sourceTree = "<group>"; };
-		3C030CF124CAE6570074786E /* Audio */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Audio; sourceTree = "<group>"; };
-		3C030CF224CAE6570074786E /* Image */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Image; sourceTree = "<group>"; };
 		3C030CF324CAE6570074786E /* Font */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Font; sourceTree = "<group>"; };
-		3C030CF424CAE6580074786E /* Particle */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Particle; sourceTree = "<group>"; };
 		3C0C774D275742990030BDCD /* miniz.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = miniz.c; sourceTree = "<group>"; };
 		3C0C774E275742990030BDCD /* ZipUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ZipUtils.h; sourceTree = "<group>"; };
 		3C0C774F275742990030BDCD /* miniz.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = miniz.h; sourceTree = "<group>"; };
 		3C0C7750275742990030BDCD /* ZipUtils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ZipUtils.cpp; sourceTree = "<group>"; };
-		3C0C775B275744690030BDCD /* Data */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Data; sourceTree = "<group>"; };
 		3C0FB5872BF1970C0098E88D /* stb_image_effekseer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stb_image_effekseer.h; sourceTree = "<group>"; };
 		3C0FB58A2BF1970C0098E88D /* GraphicsDevice.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GraphicsDevice.h; sourceTree = "<group>"; };
 		3C0FB58C2BF1970C0098E88D /* ForceFields.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ForceFields.cpp; sourceTree = "<group>"; };
@@ -1419,7 +1397,6 @@
 		3C361E382C1AFF400079B68B /* pugiconfig.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = pugiconfig.hpp; sourceTree = "<group>"; };
 		3C361E392C1AFF400079B68B /* pugixml.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pugixml.cpp; sourceTree = "<group>"; };
 		3C361E3A2C1AFF400079B68B /* pugixml.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = pugixml.hpp; sourceTree = "<group>"; };
-		3C361E722C1B47F50079B68B /* TMX */ = {isa = PBXFileReference; lastKnownFileType = folder; path = TMX; sourceTree = "<group>"; };
 		3C5323252D0606A300CCDAB7 /* BoxSizing.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BoxSizing.h; sourceTree = "<group>"; };
 		3C5323262D0606AF00CCDAB7 /* LayoutableChildren.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LayoutableChildren.h; sourceTree = "<group>"; };
 		3C5323272D0606BA00CCDAB7 /* StyleSizeLength.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StyleSizeLength.h; sourceTree = "<group>"; };
@@ -2559,7 +2536,6 @@
 		3CE471C82DD2EF9B0036716C /* libwa.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libwa.a; path = ../../Source/3rdParty/Wa/Lib/iOS/libwa.a; sourceTree = "<group>"; };
 		3CE606882D1109EC0073BB73 /* sdf_gen2d.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sdf_gen2d.h; sourceTree = "<group>"; };
 		3CE994692AFB26820073A973 /* gamecontrollerdb.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = gamecontrollerdb.txt; sourceTree = "<group>"; };
-		3CFEBE4226930B91006D9974 /* DragonBones */ = {isa = PBXFileReference; lastKnownFileType = folder; path = DragonBones; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -3193,18 +3169,10 @@
 				3CE994692AFB26820073A973 /* gamecontrollerdb.txt */,
 				3CA780A22AEB88B600B7BADA /* LICENSES */,
 				3CBED1E52DD5C17400E6F2FC /* dora-wa */,
-				3C361E722C1B47F50079B68B /* TMX */,
 				3C60DE142A2069FE007D7865 /* Doc */,
 				3CA8DF0E2A0CE83D0022CC90 /* www */,
-				3C0C775B275744690030BDCD /* Data */,
-				3C030CF124CAE6570074786E /* Audio */,
-				3CFEBE4226930B91006D9974 /* DragonBones */,
 				3C030CF324CAE6570074786E /* Font */,
-				3C030CF224CAE6570074786E /* Image */,
-				3C030CEF24CAE6570074786E /* Model */,
-				3C030CF424CAE6580074786E /* Particle */,
 				3C030CF024CAE6570074786E /* Script */,
-				3C030CED24CAE6570074786E /* Spine */,
 			);
 			name = Resources;
 			path = ../../Assets;
@@ -5028,18 +4996,10 @@
 				3C59DA7F2703037C0096813A /* Main.storyboard in Resources */,
 				3C59DA802703037C0096813A /* Assets.xcassets in Resources */,
 				3CBED1E72DD5C18F00E6F2FC /* dora-wa in Resources */,
-				3C0C775D275744690030BDCD /* Data in Resources */,
-				3CBE0F0326087F7B003F4F45 /* Model in Resources */,
 				3C60DE162A2069FE007D7865 /* Doc in Resources */,
-				3CBE0F0526087F7B003F4F45 /* Spine in Resources */,
-				3CBE0F0626087F7B003F4F45 /* Image in Resources */,
-				3CFEBE4426930B91006D9974 /* DragonBones in Resources */,
 				3CA8DF102A0CE83D0022CC90 /* www in Resources */,
 				3CBE0F0826087F7B003F4F45 /* Font in Resources */,
-				3C361E742C1B47F50079B68B /* TMX in Resources */,
 				3CBE0F0926087F7B003F4F45 /* Script in Resources */,
-				3CBE0F0B26087F7B003F4F45 /* Particle in Resources */,
-				3CBE0F0E26087F7B003F4F45 /* Audio in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -5053,18 +5013,10 @@
 				3C59DA7C270303750096813A /* Main.storyboard in Resources */,
 				3C59DA7D270303750096813A /* Assets.xcassets in Resources */,
 				3CBED1E62DD5C17A00E6F2FC /* dora-wa in Resources */,
-				3C0C775C275744690030BDCD /* Data in Resources */,
-				3C030CF724CAE6580074786E /* Model in Resources */,
 				3C60DE152A2069FE007D7865 /* Doc in Resources */,
-				3C030CF524CAE6580074786E /* Spine in Resources */,
-				3C030CFA24CAE6580074786E /* Image in Resources */,
-				3CFEBE4326930B91006D9974 /* DragonBones in Resources */,
 				3CA8DF0F2A0CE83D0022CC90 /* www in Resources */,
 				3C030CFB24CAE6580074786E /* Font in Resources */,
-				3C361E732C1B47F50079B68B /* TMX in Resources */,
 				3C030CF824CAE6580074786E /* Script in Resources */,
-				3C030CFC24CAE6580074786E /* Particle in Resources */,
-				3C030CF924CAE6580074786E /* Audio in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

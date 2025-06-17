@@ -833,16 +833,10 @@ HttpServer\post "/assets", ->
 						.title = zh and "接口文档" or "API Doc"
 					with visitAssets (Path Content.assetPath, "Script", "Tools"), $Tag Builtin
 						.title = zh and "开发工具" or "Tools"
-					with visitAssets (Path Content.assetPath, "Script", "Example"), $Tag Builtin
-						.title = zh and "代码示例" or "Example"
-					with visitAssets (Path Content.assetPath, "Script", "Game"), $Tag Builtin
-						.title = zh and "游戏演示" or "Demo Game"
-					with visitAssets (Path Content.assetPath, "Script", "Test"), $Tag Builtin
-						.title = zh and "功能测试" or "Test"
-					visitAssets (Path Content.assetPath, "Image"), $Tag Builtin
-					visitAssets (Path Content.assetPath, "Spine"), $Tag Builtin
-					visitAssets (Path Content.assetPath, "Font"), $Tag Builtin
+					with visitAssets (Path Content.assetPath, "Font"), $Tag Builtin
+						.title = zh and "字体" or "Font"
 					with visitAssets (Path Content.assetPath, "Script", "Lib"), $Tag Builtin
+						.title = zh and "程序库" or "Lib"
 						if engineDev
 							for child in *.children
 								continue unless child.title == "Dora"
@@ -871,16 +865,22 @@ HttpServer\postSchedule "/run", (req): success: false ->
 			devFile = Path Content.writablePath, file
 			file = devFile if Content\exist devFile
 		import "Script.Dev.Entry"
+		local workDir
 		if asProj
-			if proj := getProjectDirFromFile file
+			if workDir := getProjectDirFromFile file
 				Entry.allClear!
-				target = Path proj, "init"
+				target = Path workDir, "init"
 				success, err = Entry.enterEntryAsync ["Project", target]
 				target = target |> Path\getPath |> Path\getName
 				return :success, :target, :err
+		else
+			workDir = getProjectDirFromFile file
 		Entry.allClear!
 		file = Path\replaceExt file, ""
-		success, err = Entry.enterEntryAsync [Path\getName(file), file]
+		success, err = Entry.enterEntryAsync {
+			Path\getName(file), file
+			:workDir
+		}
 		return :success, :err
 
 HttpServer\postSchedule "/stop", ->

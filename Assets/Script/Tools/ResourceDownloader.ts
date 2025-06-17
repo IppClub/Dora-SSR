@@ -3,6 +3,8 @@ import { HttpClient, json, thread, App, Vec2, Path, Content, Node, Texture2D, Jo
 import { SetCond, WindowFlag } from "ImGui";
 import * as ImGui from 'ImGui';
 
+const url = "http://39.155.148.157:8866";
+
 let zh = false;
 {
 	const [res] = string.match(App.locale, "^zh");
@@ -109,7 +111,7 @@ class ResourceDownloader {
 		this.isLoading = true;
 		thread(() => {
 			let reload = false;
-			const versionResponse = HttpClient.getAsync("http://39.155.148.157:8866/api/v1/package-list-version");
+			const versionResponse = HttpClient.getAsync(`${url}/api/v1/package-list-version`);
 			const packageListVersionFile = Path(Content.appPath, ".cache", "preview", "package-list-version.json");
 			if (versionResponse) {
 				const [version] = json.load(versionResponse);
@@ -143,7 +145,7 @@ class ResourceDownloader {
 				const [packages] = json.load(Content.load(packagesFile));
 				this.packages = packages as PackageInfo[];
 			} else {
-				const packagesResponse = HttpClient.getAsync("http://39.155.148.157:8866/api/v1/packages");
+				const packagesResponse = HttpClient.getAsync(`${url}/api/v1/packages`);
 				if (packagesResponse) {
 					// Cache packages data
 					const [packages] = json.load(packagesResponse);
@@ -164,7 +166,7 @@ class ResourceDownloader {
 				const [repos] = json.load(Content.load(reposFile));
 				this.repos = repos as RepoInfo[];
 			} else {
-				const reposResponse = HttpClient.getAsync("http://39.155.148.157:8866/assets/repos.json");
+				const reposResponse = HttpClient.getAsync(`${url}/assets/repos.json`);
 				if (reposResponse) {
 					const [repos] = json.load(reposResponse);
 					this.repos = repos as RepoInfo[];
@@ -196,7 +198,7 @@ class ResourceDownloader {
 			}
 			return;
 		}
-		const imageUrl = `http://39.155.148.157:8866/assets/${name}/banner.jpg`;
+		const imageUrl = `${url}/assets/${name}/banner.jpg`;
 		const response = HttpClient.downloadAsync(imageUrl, cacheFile, 10);
 		if (response) {
 			Cache.loadAsync(cacheFile);
@@ -384,21 +386,29 @@ class ResourceDownloader {
 				// Download button
 				if (progress === undefined) {
 					const isDownloaded = this.isDownloaded(pkg.name);
-					const buttonText = isDownloaded ?
+					const buttonText = (isDownloaded ?
 						(zh ? "重新下载" : "Re-Download") :
-						(zh ? "下载" : "Download");
+						(zh ? "下载" : "Download")) + `###download-${pkg.name}`;
+					const deleteText = (zh ? "删除" : "Delete") + `###delete-${pkg.name}`;
 					if (this.isDownloading) {
 						ImGui.BeginDisabled(() => {
-							ImGui.PushID(pkg.name, () => {
-									ImGui.Button(buttonText);
-							});
-						});
-					} else {
-						ImGui.PushID(pkg.name, () => {
-							if (ImGui.Button(buttonText)) {
-								this.downloadPackage(pkg);
+							ImGui.Button(buttonText);
+							if (isDownloaded) {
+								ImGui.SameLine();
+								ImGui.Button(deleteText);
 							}
 						});
+					} else {
+						if (ImGui.Button(buttonText)) {
+							this.downloadPackage(pkg);
+						}
+						if (isDownloaded) {
+							ImGui.SameLine();
+							if (ImGui.Button(deleteText)) {
+								Content.remove(Path(Content.writablePath, "Download", pkg.name));
+								this.downloadedPackages.delete(pkg.name);
+							}
+						}
 					}
 				}
 
@@ -418,6 +428,7 @@ class ResourceDownloader {
 				ImGui.NextColumn();
 			}
 
+			ImGui.Columns(1, false);
 			ImGui.ScrollWhenDraggingOnVoid();
 
 			if (this.popupShow) {

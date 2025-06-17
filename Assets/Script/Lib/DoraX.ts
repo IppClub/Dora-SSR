@@ -63,6 +63,11 @@ export function createElement(
 	props: any,
 	...children: any[]
 ): Element | Element[] {
+	const items: any[] = [];
+	for (let [, v] of pairs(children)) {
+		items.push(v);
+	}
+	children = items;
 	switch (type(typeName)) {
 		case 'function': {
 				props ??= {};

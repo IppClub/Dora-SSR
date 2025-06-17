@@ -1,2 +1,0 @@
-local v,s,f = require("Vec2"),require("Size"),false
-return {"Array",{"Phyx.Rect","rect","Dynamic",v(0,-1),0,v(0,0),s(176,119),1,0.4,0.4,0,0,f,v(0,-10),f,f,0,{"Array",{"Phyx.SubPoly",{"Array",v(-88,60),v(-110,47),v(-119,28),v(-119,-26),v(-110,-46),v(-88,-60)},1,0.4,0.4,f,0},{"Phyx.SubPoly",{"Array",v(88,60),v(109,47),v(118,30),v(119,-25),v(110,-46),v(88,-60)},1,0.4,0.4,f,0}},"Model/duality.clip|credits",v(0,0)}}

@@ -173,12 +173,12 @@ local testFileNames = {"Test/tutorial.yarn"} -- 150
 for ____, file in ipairs(Content:getAllFiles(Content.writablePath)) do -- 151
 	do -- 151
 		if "yarn" ~= Path:getExt(file) then -- 151
-			goto __continue26 -- 153
+			goto __continue28 -- 153
 		end -- 153
 		testFilePaths[#testFilePaths + 1] = Path(Content.writablePath, file) -- 155
 		testFileNames[#testFileNames + 1] = Path:getFilename(file) -- 156
 	end -- 156
-	::__continue26:: -- 156
+	::__continue28:: -- 156
 end -- 156
 local filteredPaths = testFilePaths -- 159
 local filteredNames = testFileNames -- 160

@@ -14,9 +14,9 @@ function visitBTree(treeStack, node) -- 293
 		return false -- 295
 	end -- 295
 	repeat -- 295
-		local ____switch57 = node.name -- 295
-		local ____cond57 = ____switch57 == "BTSelector" -- 295
-		if ____cond57 then -- 295
+		local ____switch60 = node.name -- 295
+		local ____cond60 = ____switch60 == "BTSelector" -- 295
+		if ____cond60 then -- 295
 			do -- 295
 				local props = node.data -- 299
 				local children = props.children -- 300
@@ -38,8 +38,8 @@ function visitBTree(treeStack, node) -- 293
 				break -- 312
 			end -- 312
 		end -- 312
-		____cond57 = ____cond57 or ____switch57 == "BTSequence" -- 312
-		if ____cond57 then -- 312
+		____cond60 = ____cond60 or ____switch60 == "BTSequence" -- 312
+		if ____cond60 then -- 312
 			do -- 312
 				local props = node.data -- 315
 				local children = props.children -- 316
@@ -61,16 +61,16 @@ function visitBTree(treeStack, node) -- 293
 				break -- 328
 			end -- 328
 		end -- 328
-		____cond57 = ____cond57 or ____switch57 == "BTCondition" -- 328
-		if ____cond57 then -- 328
+		____cond60 = ____cond60 or ____switch60 == "BTCondition" -- 328
+		if ____cond60 then -- 328
 			do -- 328
 				local props = node.data -- 331
 				treeStack[#treeStack + 1] = P.Behavior.Con(props.desc, props.onCheck) -- 332
 				break -- 333
 			end -- 333
 		end -- 333
-		____cond57 = ____cond57 or ____switch57 == "BTMatch" -- 333
-		if ____cond57 then -- 333
+		____cond60 = ____cond60 or ____switch60 == "BTMatch" -- 333
+		if ____cond60 then -- 333
 			do -- 333
 				local props = node.data -- 336
 				local children = props.children -- 337
@@ -97,32 +97,32 @@ function visitBTree(treeStack, node) -- 293
 				break -- 355
 			end -- 355
 		end -- 355
-		____cond57 = ____cond57 or ____switch57 == "BTAction" -- 355
-		if ____cond57 then -- 355
+		____cond60 = ____cond60 or ____switch60 == "BTAction" -- 355
+		if ____cond60 then -- 355
 			do -- 355
 				local props = node.data -- 358
 				treeStack[#treeStack + 1] = P.Behavior.Act(props.name) -- 359
 				break -- 360
 			end -- 360
 		end -- 360
-		____cond57 = ____cond57 or ____switch57 == "BTCommand" -- 360
-		if ____cond57 then -- 360
+		____cond60 = ____cond60 or ____switch60 == "BTCommand" -- 360
+		if ____cond60 then -- 360
 			do -- 360
 				local props = node.data -- 363
 				treeStack[#treeStack + 1] = P.Behavior.Command(props.name) -- 364
 				break -- 365
 			end -- 365
 		end -- 365
-		____cond57 = ____cond57 or ____switch57 == "BTWait" -- 365
-		if ____cond57 then -- 365
+		____cond60 = ____cond60 or ____switch60 == "BTWait" -- 365
+		if ____cond60 then -- 365
 			do -- 365
 				local props = node.data -- 368
 				treeStack[#treeStack + 1] = P.Behavior.Wait(props.time) -- 369
 				break -- 370
 			end -- 370
 		end -- 370
-		____cond57 = ____cond57 or ____switch57 == "BTCountdown" -- 370
-		if ____cond57 then -- 370
+		____cond60 = ____cond60 or ____switch60 == "BTCountdown" -- 370
+		if ____cond60 then -- 370
 			do -- 370
 				local props = node.data -- 373
 				local children = props.children -- 374
@@ -139,8 +139,8 @@ function visitBTree(treeStack, node) -- 293
 				break -- 385
 			end -- 385
 		end -- 385
-		____cond57 = ____cond57 or ____switch57 == "BTTimeout" -- 385
-		if ____cond57 then -- 385
+		____cond60 = ____cond60 or ____switch60 == "BTTimeout" -- 385
+		if ____cond60 then -- 385
 			do -- 385
 				local props = node.data -- 388
 				local children = props.children -- 389
@@ -157,8 +157,8 @@ function visitBTree(treeStack, node) -- 293
 				break -- 400
 			end -- 400
 		end -- 400
-		____cond57 = ____cond57 or ____switch57 == "BTRepeat" -- 400
-		if ____cond57 then -- 400
+		____cond60 = ____cond60 or ____switch60 == "BTRepeat" -- 400
+		if ____cond60 then -- 400
 			do -- 400
 				local props = node.data -- 403
 				local children = props.children -- 404
@@ -179,8 +179,8 @@ function visitBTree(treeStack, node) -- 293
 				break -- 419
 			end -- 419
 		end -- 419
-		____cond57 = ____cond57 or ____switch57 == "BTRetry" -- 419
-		if ____cond57 then -- 419
+		____cond60 = ____cond60 or ____switch60 == "BTRetry" -- 419
+		if ____cond60 then -- 419
 			do -- 419
 				local props = node.data -- 422
 				local children = props.children -- 423

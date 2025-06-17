@@ -8,11 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		3C030CA124CABDFE0074786E /* DecisionTree.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C030C9F24CABDFD0074786E /* DecisionTree.cpp */; };
-		3C0C774B27573F350030BDCD /* Data in Resources */ = {isa = PBXBuildFile; fileRef = 3C0C774A27573F350030BDCD /* Data */; };
 		3C0EBE301E2DB3FB0066450A /* libbx.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C0EBE2F1E2DB3FB0066450A /* libbx.a */; };
 		3C1FE9822D6D64CB0017CD23 /* yarn_compiler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C1FE9802D6D64CB0017CD23 /* yarn_compiler.cpp */; };
 		3C2F9C8A1E7B114B00B98D39 /* ModelDef.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C2F9C881E7B114B00B98D39 /* ModelDef.cpp */; };
-		3C361E1C2C1A94A50079B68B /* TMX in Resources */ = {isa = PBXBuildFile; fileRef = 3C361E1B2C1A94A50079B68B /* TMX */; };
 		3C5399EB2998BAF000E9125C /* ljson.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C5399EA2998BAF000E9125C /* ljson.c */; };
 		3C53E9372BE8CF1100039640 /* AbsoluteLayout.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C53E8E62BE8CF1100039640 /* AbsoluteLayout.cpp */; };
 		3C53E9382BE8CF1100039640 /* Baseline.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C53E8E92BE8CF1100039640 /* Baseline.cpp */; };
@@ -560,12 +558,7 @@
 		3CA77F1F2AE665C100B7BADA /* Math.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA77ED02AE665C100B7BADA /* Math.cpp */; };
 		3CA780A12AEB82B100B7BADA /* LICENSES in Resources */ = {isa = PBXBuildFile; fileRef = 3CA780A02AEB82B100B7BADA /* LICENSES */; };
 		3CA8DF0D2A0CE6FD0022CC90 /* www in Resources */ = {isa = PBXBuildFile; fileRef = 3CA8DF0C2A0CE6FD0022CC90 /* www */; };
-		3CBC784B24CE7528003C9E83 /* Image in Resources */ = {isa = PBXBuildFile; fileRef = 3CBC784324CE7527003C9E83 /* Image */; };
-		3CBC784C24CE7528003C9E83 /* Audio in Resources */ = {isa = PBXBuildFile; fileRef = 3CBC784424CE7527003C9E83 /* Audio */; };
 		3CBC784D24CE7528003C9E83 /* Script in Resources */ = {isa = PBXBuildFile; fileRef = 3CBC784524CE7527003C9E83 /* Script */; };
-		3CBC784F24CE7528003C9E83 /* Particle in Resources */ = {isa = PBXBuildFile; fileRef = 3CBC784724CE7527003C9E83 /* Particle */; };
-		3CBC785024CE7528003C9E83 /* Spine in Resources */ = {isa = PBXBuildFile; fileRef = 3CBC784824CE7527003C9E83 /* Spine */; };
-		3CBC785124CE7528003C9E83 /* Model in Resources */ = {isa = PBXBuildFile; fileRef = 3CBC784924CE7527003C9E83 /* Model */; };
 		3CBC785224CE7528003C9E83 /* Font in Resources */ = {isa = PBXBuildFile; fileRef = 3CBC784A24CE7527003C9E83 /* Font */; };
 		3CBED0992DD5C0A100E6F2FC /* dora-wa in Resources */ = {isa = PBXBuildFile; fileRef = 3CBED0982DD5C08B00E6F2FC /* dora-wa */; };
 		3CC81FF61D966770008C8B77 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3CC81FF51D966770008C8B77 /* Assets.xcassets */; };
@@ -587,13 +580,11 @@
 		3CE7D3751EADF594008EADB3 /* libbimg_decode.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE7D3731EADF594008EADB3 /* libbimg_decode.a */; };
 		3CE7D3761EADF594008EADB3 /* libbimg.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CE7D3741EADF594008EADB3 /* libbimg.a */; };
 		3CE994642AFA43680073A973 /* gamecontrollerdb.txt in Resources */ = {isa = PBXBuildFile; fileRef = 3CE994632AFA43680073A973 /* gamecontrollerdb.txt */; };
-		3CFEBDAB268EFC62006D9974 /* DragonBones in Resources */ = {isa = PBXBuildFile; fileRef = 3CFEBDAA268EFC62006D9974 /* DragonBones */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		3C030C9F24CABDFD0074786E /* DecisionTree.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DecisionTree.cpp; sourceTree = "<group>"; };
 		3C030CA024CABDFD0074786E /* DecisionTree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DecisionTree.h; sourceTree = "<group>"; };
-		3C0C774A27573F350030BDCD /* Data */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Data; sourceTree = "<group>"; };
 		3C0EBE2F1E2DB3FB0066450A /* libbx.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbx.a; path = ../../Source/3rdParty/BGFX/Lib/macOS/libbx.a; sourceTree = "<group>"; };
 		3C1D40EE2702FD7C00202534 /* Class.lua */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Class.lua; sourceTree = "<group>"; };
 		3C1D40EF2702FD7C00202534 /* Initialization.lua */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Initialization.lua; sourceTree = "<group>"; };
@@ -602,7 +593,6 @@
 		3C1FE9802D6D64CB0017CD23 /* yarn_compiler.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = yarn_compiler.cpp; sourceTree = "<group>"; };
 		3C2F9C881E7B114B00B98D39 /* ModelDef.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ModelDef.cpp; sourceTree = "<group>"; };
 		3C338EEE2D3BFBC300074E88 /* nfd_sdl2.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = nfd_sdl2.h; sourceTree = "<group>"; };
-		3C361E1B2C1A94A50079B68B /* TMX */ = {isa = PBXFileReference; lastKnownFileType = folder; path = TMX; sourceTree = "<group>"; };
 		3C4B3DDF2C0709E000D778FC /* UnitMagnitudeChecker.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = UnitMagnitudeChecker.hpp; sourceTree = "<group>"; };
 		3C5323222D05E9C700CCDAB7 /* BoxSizing.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BoxSizing.h; sourceTree = "<group>"; };
 		3C5323232D05E9D200CCDAB7 /* LayoutableChildren.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LayoutableChildren.h; sourceTree = "<group>"; };
@@ -1939,12 +1929,7 @@
 		3CA77ED52AE665C100B7BADA /* Positive.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Positive.hpp; sourceTree = "<group>"; };
 		3CA780A02AEB82B100B7BADA /* LICENSES */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSES; sourceTree = "<group>"; };
 		3CA8DF0C2A0CE6FD0022CC90 /* www */ = {isa = PBXFileReference; lastKnownFileType = folder; path = www; sourceTree = "<group>"; };
-		3CBC784324CE7527003C9E83 /* Image */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Image; sourceTree = "<group>"; };
-		3CBC784424CE7527003C9E83 /* Audio */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Audio; sourceTree = "<group>"; };
 		3CBC784524CE7527003C9E83 /* Script */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Script; sourceTree = "<group>"; };
-		3CBC784724CE7527003C9E83 /* Particle */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Particle; sourceTree = "<group>"; };
-		3CBC784824CE7527003C9E83 /* Spine */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Spine; sourceTree = "<group>"; };
-		3CBC784924CE7527003C9E83 /* Model */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Model; sourceTree = "<group>"; };
 		3CBC784A24CE7527003C9E83 /* Font */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Font; sourceTree = "<group>"; };
 		3CBED0982DD5C08B00E6F2FC /* dora-wa */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "dora-wa"; sourceTree = "<group>"; };
 		3CC81FE61D966770008C8B77 /* Dora.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Dora.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -1973,7 +1958,6 @@
 		3CE7D3731EADF594008EADB3 /* libbimg_decode.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbimg_decode.a; path = ../../Source/3rdParty/BGFX/Lib/macOS/libbimg_decode.a; sourceTree = "<group>"; };
 		3CE7D3741EADF594008EADB3 /* libbimg.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbimg.a; path = ../../Source/3rdParty/BGFX/Lib/macOS/libbimg.a; sourceTree = "<group>"; };
 		3CE994632AFA43680073A973 /* gamecontrollerdb.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = gamecontrollerdb.txt; sourceTree = "<group>"; };
-		3CFEBDAA268EFC62006D9974 /* DragonBones */ = {isa = PBXFileReference; lastKnownFileType = folder; path = DragonBones; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -2037,18 +2021,10 @@
 				3CBED0982DD5C08B00E6F2FC /* dora-wa */,
 				3CE994632AFA43680073A973 /* gamecontrollerdb.txt */,
 				3CA780A02AEB82B100B7BADA /* LICENSES */,
-				3C361E1B2C1A94A50079B68B /* TMX */,
 				3C60DE122A2069CE007D7865 /* Doc */,
 				3CA8DF0C2A0CE6FD0022CC90 /* www */,
-				3C0C774A27573F350030BDCD /* Data */,
-				3CBC784424CE7527003C9E83 /* Audio */,
-				3CFEBDAA268EFC62006D9974 /* DragonBones */,
 				3CBC784A24CE7527003C9E83 /* Font */,
-				3CBC784324CE7527003C9E83 /* Image */,
-				3CBC784924CE7527003C9E83 /* Model */,
-				3CBC784724CE7527003C9E83 /* Particle */,
 				3CBC784524CE7527003C9E83 /* Script */,
-				3CBC784824CE7527003C9E83 /* Spine */,
 			);
 			name = Resources;
 			path = ../../Assets;
@@ -4392,17 +4368,9 @@
 				3CC81FF61D966770008C8B77 /* Assets.xcassets in Resources */,
 				3CBED0992DD5C0A100E6F2FC /* dora-wa in Resources */,
 				3CA8DF0D2A0CE6FD0022CC90 /* www in Resources */,
-				3CBC784F24CE7528003C9E83 /* Particle in Resources */,
-				3C0C774B27573F350030BDCD /* Data in Resources */,
-				3C361E1C2C1A94A50079B68B /* TMX in Resources */,
-				3CBC784C24CE7528003C9E83 /* Audio in Resources */,
-				3CFEBDAB268EFC62006D9974 /* DragonBones in Resources */,
-				3CBC784B24CE7528003C9E83 /* Image in Resources */,
 				3CBC785224CE7528003C9E83 /* Font in Resources */,
 				3CBC784D24CE7528003C9E83 /* Script in Resources */,
 				3C60DE132A2069CE007D7865 /* Doc in Resources */,
-				3CBC785124CE7528003C9E83 /* Model in Resources */,
-				3CBC785024CE7528003C9E83 /* Spine in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
