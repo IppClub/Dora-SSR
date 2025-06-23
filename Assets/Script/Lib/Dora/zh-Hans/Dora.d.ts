@@ -2688,6 +2688,7 @@ const enum GlobalEvent {
 	AppEvent = "AppEvent",
 	AppChange = "AppChange",
 	AppWS = "AppWS",
+	WaLang = "WaLang",
 }
 
 export {GlobalEvent as GSlot};
@@ -2705,6 +2706,17 @@ type GlobalEventHandlerMap = {
 
 	/** 当一个客户端和应用建立 Websocket 连接并收发消息时触发。 */
 	AppWS(this: void, eventType: AppWSEventType, msg: string): void;
+
+	/**
+	 * 接收到从 WaLang 模块发送的消息时触发。
+	 * @param event 接收到的消息名称。
+	 * 当 event 为 'Build' 时，message 为构建的错误信息，空字符串表示构建成功。
+	 * 当 event 为 'Format' 时，message 为格式化后的代码，空字符串表示格式化成功。
+	 * 当 event 为 'GitProgress' 时，message 为 Git 操作的进度信息。
+	 * 当 event 为 'GitPullOrClone' 时，message 为 Git 操作的失败信息，空字符串表示操作成功。
+	 * @param message 接收到的消息内容。
+	 */
+	WaLang(this: void, event: 'Build' | 'Format' | 'GitProgress' | 'GitPullOrClone', message: string): void;
 };
 
 /**
@@ -6901,7 +6913,8 @@ class VGNode extends Node {
 	 * 用于渲染矢量图形的函数。
 	 * @param func 用于渲染矢量图形的闭包函数。
 	 * 你可以在这个闭包函数中执行渲染操作。
-	 * @usage
+	 * @example
+	 * ```
 	 * vgNode.render(() => {
 	 * 	nvg.BeginPath();
 	 * 	nvg.Rect(0, 0, 100, 100);
@@ -6909,6 +6922,7 @@ class VGNode extends Node {
 	 * 	nvg.FillColor(Color(255, 0, 0, 255));
 	 * 	nvg.Fill();
 	 * });
+	 * ```
 	 */
 	render(func: (this: void) => void): void;
 }
@@ -7267,10 +7281,98 @@ interface json {
 const jsn: json;
 export {jsn as json};
 
+/**
+ * 异步拉取或克隆一个 Git 仓库到指定路径。
+ * @param url Git 仓库的 URL。
+ * @param fullPath 仓库克隆到的完整路径。
+ * @param depth [可选] 拉取的深度。默认为 0，表示拉取所有提交。
+ */
+export function GitPullOrCloneAsync(this: void, url: string, fullPath: string, depth?: number): void;
+
+/**
+ * 一个提供 WASM 相关功能的接口。
+ */
+interface Wasm {
+	/**
+	 * 加载并执行一个主 WASM 模块文件 (例如 init.wasm)。
+	 * @param filename 主 WASM 模块文件的名称。
+	 */
+	executeMainFile(filename: string): void;
+	/**
+	 * 异步加载并执行一个主 WASM 模块文件 (例如 init.wasm)。
+	 * @param filename 主 WASM 模块文件的名称。
+	 * @returns 是否成功执行主 WASM 模块文件。
+	 */
+	executeMainFileAsync(filename: string): boolean;
+	/**
+	 * 从 Wa-lang 项目异步构建一个 WASM 模块文件 (例如 init.wasm)。
+	 * 构建完成后会触发一个全局的事件 'WaLang'，事件类型为 'Build'。
+	 * @param fullPath Wa-lang 项目的完整路径。
+	 * @returns 是否成功构建 WASM 模块文件。
+	 * @example
+	 * ```
+	 * const node = Node();
+	 * node.gslot("WaLang", function(event, message) {
+	 * 	if (event === "Build") {
+	 * 		if (message === "") {
+	 * 			print("Built")
+	 * 		} else {
+	 * 			print("Build failed due to error: " + message)
+	 * 		}
+	 * 	}
+	 * });
+	 * thread(() => {
+	 * 	const success = Wasm.buildWaAsync("/path/to/wa-lang/project/");
+	 * 	if (success) {
+	 * 		print("Build started")
+	 * 	} else {
+	 * 		print("Build failed to start")
+	 * 	}
+	 * });
+	 * ```
+	 */
+	buildWaAsync(fullPath: string): boolean;
+	/**
+	 * 异步格式化一个 Wa-lang 代码文件。
+	 * 格式化完成后会触发一个全局的事件 'WaLang'，事件类型为 'Format'。
+	 * @param fullPath Wa-lang 代码文件的完整路径。
+	 * @returns 是否成功格式化 Wa-lang 代码文件。
+	 * @example
+	 * ```
+	 * const node = Node();
+	 * node.gslot("WaLang", function(event, message) {
+	 * 	if (event === "Format") {
+	 * 		if (message === "") {
+	 * 			print("Failed to format")
+	 * 		} else {
+	 * 			print("Formatted: " + message)
+	 * 		}
+	 * 	}
+	 * });
+	 * thread(() => {
+	 * 	const success = Wasm.formatWaAsync("/path/to/wa-lang/code/file.wa");
+	 * 	if (success) {
+	 * 		print("Formatting started")
+	 * 	} else {
+	 * 		print("Formatting failed to start")
+	 * 	}
+	 * });
+	 * ```
+	 */
+	formatWaAsync(fullPath: string): boolean;
+	/**
+	 * 清除正在运行的 WASM 模块并停止相关 WASM 运行时。
+	 */
+	clear(): void;
+}
+
+const wasm: Wasm;
+export {wasm as Wasm};
+
 } // module "Dora"
 
 /**
- * 检查并打印输入参数值的内部信息。
+ * 检查并以格式化方式打印输入参数值的内部信息。
  * @param args 要检查的参数。
  */
 declare function p(this: void, ...args: any[]): void;

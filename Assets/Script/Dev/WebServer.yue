@@ -1029,7 +1029,8 @@ getWaProjectDirFromFile = (file) ->
 HttpServer\postSchedule "/buildWa", (req) ->
 	switch req when {body: {:path}}
 		if projDir := getWaProjectDirFromFile path
-			message = Wasm\buildWaAsync projDir
+			import "Script.Dev.Entry"
+			message = Entry.buildWaAsync projDir
 			return if message == ""
 				success: true
 			else 
@@ -1040,7 +1041,8 @@ HttpServer\postSchedule "/buildWa", (req) ->
 
 HttpServer\postSchedule "/formatWa", (req) ->
 	switch req when {body: {:file}}
-		code = Wasm\formatWaAsync file
+		import "Script.Dev.Entry"
+		code = Entry.formatWaAsync file
 		return if code == ""
 			success: false
 		else 

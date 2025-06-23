@@ -627,6 +627,39 @@ func imgui_get_mouse_drag_delta(button: i32, lock_threshold: f32) => i64
 #wa:import dora imgui_reset_mouse_drag_delta
 func imgui_reset_mouse_drag_delta(button: i32)
 
+#wa:import dora imgui__begin_tab_bar
+func imgui__begin_tab_bar(str_id: i64) => i32
+
+#wa:import dora imgui__begin_tab_bar_opts
+func imgui__begin_tab_bar_opts(str_id: i64, flags: i32) => i32
+
+#wa:import dora imgui__end_tab_bar
+func imgui__end_tab_bar()
+
+#wa:import dora imgui__begin_tab_item
+func imgui__begin_tab_item(label: i64) => i32
+
+#wa:import dora imgui__begin_tab_item_opts
+func imgui__begin_tab_item_opts(label: i64, flags: i32) => i32
+
+#wa:import dora imgui__begin_tab_item_ret
+func imgui__begin_tab_item_ret(label: i64, stack: i64) => i32
+
+#wa:import dora imgui__begin_tab_item_ret_opts
+func imgui__begin_tab_item_ret_opts(label: i64, stack: i64, flags: i32) => i32
+
+#wa:import dora imgui__end_tab_item
+func imgui__end_tab_item()
+
+#wa:import dora imgui_tab_item_button
+func imgui_tab_item_button(label: i64) => i32
+
+#wa:import dora imgui__tab_item_button_opts
+func imgui__tab_item_button_opts(label: i64, flags: i32) => i32
+
+#wa:import dora imgui_set_tab_item_closed
+func imgui_set_tab_item_closed(tab_or_docked_window_label: i64)
+
 type _ImGui :struct{}
 
 global ImGui = _ImGui{}
@@ -1256,4 +1289,37 @@ func _ImGui.GetMouseDragDelta(button: i32, lock_threshold: f32) => Vec2 {
 }
 func _ImGui.ResetMouseDragDelta(button: i32) {
 	imgui_reset_mouse_drag_delta(button)
+}
+func _ImGui._BeginTabBar(str_id: string) => bool {
+	return imgui__begin_tab_bar(ToDoraString(str_id)) != 0
+}
+func _ImGui._BeginTabBarOpts(str_id: string, flags: i32) => bool {
+	return imgui__begin_tab_bar_opts(ToDoraString(str_id), flags) != 0
+}
+func _ImGui._EndTabBar() {
+	imgui__end_tab_bar()
+}
+func _ImGui._BeginTabItem(label: string) => bool {
+	return imgui__begin_tab_item(ToDoraString(label)) != 0
+}
+func _ImGui._BeginTabItemOpts(label: string, flags: i32) => bool {
+	return imgui__begin_tab_item_opts(ToDoraString(label), flags) != 0
+}
+func _ImGui._BeginTabItemRet(label: string, stack: CallStack) => bool {
+	return imgui__begin_tab_item_ret(ToDoraString(label), stack.GetRaw()) != 0
+}
+func _ImGui._BeginTabItemRetOpts(label: string, stack: CallStack, flags: i32) => bool {
+	return imgui__begin_tab_item_ret_opts(ToDoraString(label), stack.GetRaw(), flags) != 0
+}
+func _ImGui._EndTabItem() {
+	imgui__end_tab_item()
+}
+func _ImGui.TabItemButton(label: string) => bool {
+	return imgui_tab_item_button(ToDoraString(label)) != 0
+}
+func _ImGui._TabItemButtonOpts(label: string, flags: i32) => bool {
+	return imgui__tab_item_button_opts(ToDoraString(label), flags) != 0
+}
+func _ImGui.SetTabItemClosed(tab_or_docked_window_label: string) {
+	imgui_set_tab_item_closed(ToDoraString(tab_or_docked_window_label))
 }

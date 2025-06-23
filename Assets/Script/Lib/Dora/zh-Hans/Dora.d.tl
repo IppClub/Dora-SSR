@@ -112,6 +112,8 @@ local teal = require("teal")
 local yue = require("yue")
 local json = require("json")
 global p = require("p")
+local Wasm = require("Wasm")
+local GitPullOrCloneAsync = require("GitPullOrCloneAsync")
 local Class: function(...: any): any
 local classmethod: function(...: any): any
 local property: function(...: any): any
@@ -235,4 +237,6 @@ global Dora = {
 	AlignNode = AlignNode,
 	EffekNode = EffekNode,
 	TileNode = TileNode,
+	Wasm = Wasm,
+	GitPullOrCloneAsync = GitPullOrCloneAsync,
 }

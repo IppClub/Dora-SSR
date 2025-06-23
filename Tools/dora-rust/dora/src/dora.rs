@@ -4334,6 +4334,36 @@ pub enum ImGuiTableRowFlag {
 	Headers = 1 << 0,
 }
 
+#[bitflags]
+#[repr(u32)]
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub enum ImGuiTabBarFlag {
+	Reorderable = 1 << 0,
+	AutoSelectNewTabs = 1 << 1,
+	TabListPopupButton = 1 << 2,
+	NoCloseWithMiddleMouseButton = 1 << 3,
+	NoTabListScrollingButtons = 1 << 4,
+	NoTooltip = 1 << 5,
+	DrawSelectedOverline = 1 << 6,
+	FittingPolicyResizeDown = 1 << 7,
+	FittingPolicyScroll = 1 << 8,
+}
+
+#[bitflags]
+#[repr(u32)]
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub enum ImGuiTabItemFlag {
+	UnsavedDocument = 1 << 0,
+	SetSelected = 1 << 1,
+	NoCloseWithMiddleMouseButton = 1 << 2,
+	NoPushId = 1 << 3,
+	NoTooltip = 1 << 4,
+	NoReorder = 1 << 5,
+	Leading = 1 << 6,
+	Trailing = 1 << 7,
+	NoAssumedClosure = 1 << 8,
+}
+
 thread_local! {
 	static IMGUI_STACK: RefCell<CallStack> = RefCell::new(CallStack::new());
 }
@@ -4354,7 +4384,7 @@ impl ImGui {
 		}
 		ImGui::_end();
 	}
-	pub fn begin_ret<C>(name: &str, opened: bool, inside: C) -> (bool, bool)
+	pub fn begin_ret<C>(name: &str, opened: bool, inside: C) -> bool
 	where
 		C: FnOnce(),
 	{
@@ -4365,7 +4395,7 @@ impl ImGui {
 		opened: bool,
 		windows_flags: BitFlags<ImGuiWindowFlag>,
 		inside: C,
-	) -> (bool, bool)
+	) -> bool
 	where
 		C: FnOnce(),
 	{
@@ -4380,7 +4410,7 @@ impl ImGui {
 			inside();
 		}
 		ImGui::_end();
-		(changed, result)
+		changed
 	}
 	pub fn begin_child<C>(str_id: &str, inside: C)
 	where
@@ -5298,14 +5328,25 @@ impl ImGui {
 			ImGui::_end_popup();
 		}
 	}
-	pub fn begin_popup_modal_ret(name: &str, opened: bool) -> (bool, bool) {
-		ImGui::begin_popup_modal_ret_opts(name, opened, BitFlags::default())
+	pub fn begin_popup_modal_ret<C>(
+		name: &str,
+		opened: bool,
+		inside: C,
+	) -> bool
+	where
+		C: FnOnce(),
+	{
+		ImGui::begin_popup_modal_ret_opts(name, opened, BitFlags::default(), inside)
 	}
-	pub fn begin_popup_modal_ret_opts(
+	pub fn begin_popup_modal_ret_opts<C>(
 		name: &str,
 		opened: bool,
 		windows_flags: BitFlags<ImGuiWindowFlag>,
-	) -> (bool, bool) {
+		inside: C,
+	) -> bool
+	where
+		C: FnOnce(),
+	{
 		let mut changed = false;
 		let mut result = false;
 		IMGUI_STACK.with_borrow_mut(|stack| {
@@ -5313,7 +5354,11 @@ impl ImGui {
 			changed = ImGui::_begin_popup_modal_ret_opts(name, stack, windows_flags.bits() as i32);
 			result = stack.pop_bool().unwrap();
 		});
-		(changed, result)
+		if result {
+			inside();
+			ImGui::_end_popup();
+		}
+		changed
 	}
 	pub fn begin_popup_context_item<C>(name: &str, inside: C)
 	where
@@ -5608,6 +5653,90 @@ impl ImGui {
 		ImGui::_push_clip_rect(clip_rect_min, clip_rect_max, intersect_with_current_clip_rect);
 		inside();
 		ImGui::_pop_clip_rect();
+	}
+	pub fn begin_tab_bar<C>(str_id: &str, inside: C)
+	where
+		C: FnOnce(),
+	{
+		if ImGui::_begin_tab_bar(str_id) {
+			inside();
+			ImGui::_end_tab_bar();
+		}
+	}
+	pub fn begin_tab_bar_opts<C>(
+		str_id: &str,
+		flags: BitFlags<ImGuiTabBarFlag>,
+		inside: C,
+	) where
+		C: FnOnce(),
+	{
+		if ImGui::_begin_tab_bar_opts(str_id, flags.bits() as i32) {
+			inside();
+			ImGui::_end_tab_bar();
+		}
+	}
+	pub fn begin_tab_item<C>(label: &str, inside: C)
+	where
+		C: FnOnce(),
+	{
+		if ImGui::_begin_tab_item(label) {
+			inside();
+			ImGui::_end_tab_item();
+		}
+	}
+	pub fn begin_tab_item_opts<C>(
+		label: &str,
+		flags: BitFlags<ImGuiTabItemFlag>,
+		inside: C,
+	) where
+		C: FnOnce(),
+	{
+		if ImGui::_begin_tab_item_opts(label, flags.bits() as i32) {
+			inside();
+			ImGui::_end_tab_item();
+		}
+	}
+	pub fn begin_tab_item_ret<C>(label: &str, opened: bool, inside: C) -> bool
+	where
+		C: FnOnce(),
+	{
+		let mut changed = false;
+		let mut result = false;
+		IMGUI_STACK.with_borrow_mut(|stack| {
+			stack.push_bool(opened);
+			result = ImGui::_begin_tab_item_ret(label, stack);
+			changed = stack.pop_bool().unwrap();
+		});
+		if result {
+			inside();
+			ImGui::_end_tab_item();
+		}
+		changed
+	}
+	pub fn begin_tab_item_ret_opts<C>(
+		label: &str,
+		opened: bool,
+		flags: BitFlags<ImGuiTabItemFlag>,
+		inside: C,
+	) -> bool
+	where
+		C: FnOnce(),
+	{
+		let mut changed = false;
+		let mut result = false;
+		IMGUI_STACK.with_borrow_mut(|stack| {
+			stack.push_bool(opened);
+			result = ImGui::_begin_tab_item_ret_opts(label, stack, flags.bits() as i32);
+			changed = stack.pop_bool().unwrap();
+		});
+		if result {
+			inside();
+			ImGui::_end_tab_item();
+		}
+		changed
+	}
+	pub fn tab_item_button_opts(label: &str, flags: BitFlags<ImGuiTabItemFlag>) -> bool {
+		ImGui::_tab_item_button_opts(label, flags.bits() as i32)
 	}
 }
 

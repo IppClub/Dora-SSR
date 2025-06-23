@@ -2554,11 +2554,11 @@ func _ImGui.BeginOpts(name: string, windows_flags: _ImGuiWindowFlags, inside: fu
 	this._End()
 }
 
-func _ImGui.BeginRet(name: string, opened: bool, inside: func()) => (bool, bool) {
+func _ImGui.BeginRet(name: string, opened: bool, inside: func()) => bool {
 	return this.BeginRetOpts(name, opened, ImGuiWindowDefault, inside)
 }
 
-func _ImGui.BeginRetOpts(name: string, opened: bool, window_flags: _ImGuiWindowFlags, inside: func()) => (bool, bool) {
+func _ImGui.BeginRetOpts(name: string, opened: bool, window_flags: _ImGuiWindowFlags, inside: func()) => bool {
 	imgui_stack.Push(opened)
 	changed := this._BeginRetOpts(name, imgui_stack, window_flags.value)
 	res_opened, ok := imgui_stack.PopBool()
@@ -2569,7 +2569,7 @@ func _ImGui.BeginRetOpts(name: string, opened: bool, window_flags: _ImGuiWindowF
 		inside()
 	}
 	this._End()
-	return changed, res_opened
+	return changed
 }
 
 type _ImGuiChildFlag :struct {
@@ -3322,28 +3322,32 @@ func _ImGui.BeginPopup(str_id: string, inside: func()) {
 }
 
 func _ImGui.BeginPopupModal(name: string, inside: func()) {
-	this.BeginPopupModalOpts(name, inside, ImGuiWindowDefault)
+	this.BeginPopupModalOpts(name, ImGuiWindowDefault, inside)
 }
 
-func _ImGui.BeginPopupModalOpts(name: string, inside: func(), window_flags: _ImGuiWindowFlags) {
+func _ImGui.BeginPopupModalOpts(name: string, window_flags: _ImGuiWindowFlags, inside: func()) {
 	if this._BeginPopupModalOpts(name, window_flags.value) {
 		inside()
 		this._EndPopup()
 	}
 }
 
-func _ImGui.BeginPopupModalRet(name: string, opened: bool) => (bool, bool) {
-	return this.BeginPopupModalRetOpts(name, opened, ImGuiWindowDefault)
+func _ImGui.BeginPopupModalRet(name: string, opened: bool, inside: func()) => bool {
+	return this.BeginPopupModalRetOpts(name, opened, ImGuiWindowDefault, inside)
 }
 
-func _ImGui.BeginPopupModalRetOpts(name: string, opened: bool, window_flags: _ImGuiWindowFlags) => (bool, bool) {
+func _ImGui.BeginPopupModalRetOpts(name: string, opened: bool, window_flags: _ImGuiWindowFlags, inside: func()) => bool {
 	imgui_stack.Push(opened)
 	changed := this._BeginPopupModalRetOpts(name, imgui_stack, window_flags.value)
 	res_opened, ok := imgui_stack.PopBool()
 	if !ok {
 		panic("failed to pop bool")
 	}
-	return changed, res_opened
+	if res_opened {
+		inside()
+		this._EndPopup()
+	}
+	return changed
 }
 
 type _ImGuiMouseButton :struct {
@@ -3802,6 +3806,100 @@ func _ImGui.PushClipRect(clip_rect_min: Vec2, clip_rect_max: Vec2, intersect_wit
 	this._PushClipRect(clip_rect_min, clip_rect_max, intersect_with_current_clip_rect)
 	inside()
 	this._PopClipRect()
+}
+
+type _ImGuiTabBarFlag :struct {
+	value: i32
+}
+
+global ImGuiTabBarFlagReorderable = _ImGuiTabBarFlag{value: 1 << 0}
+global ImGuiTabBarFlagAutoSelectNewTabs = _ImGuiTabBarFlag{value: 1 << 1}
+global ImGuiTabBarFlagTabListPopupButton = _ImGuiTabBarFlag{value: 1 << 2}
+global ImGuiTabBarFlagNoCloseWithMiddleMouseButton = _ImGuiTabBarFlag{value: 1 << 3}
+global ImGuiTabBarFlagNoTabListScrollingButtons = _ImGuiTabBarFlag{value: 1 << 4}
+global ImGuiTabBarFlagNoTooltip = _ImGuiTabBarFlag{value: 1 << 5}
+global ImGuiTabBarFlagDrawSelectedOverline = _ImGuiTabBarFlag{value: 1 << 6}
+global ImGuiTabBarFlagFittingPolicyResizeDown = _ImGuiTabBarFlag{value: 1 << 7}
+global ImGuiTabBarFlagFittingPolicyScroll = _ImGuiTabBarFlag{value: 1 << 8}
+
+type _ImGuiTabBarFlags :struct {
+	value: i32
+}
+
+func ImGuiTabBarFlags(flags: ..._ImGuiTabBarFlag) => _ImGuiTabBarFlags {
+	flags_value: i32 = 0
+	for _, value := range flags {
+		flags_value |= value.value
+	}
+	return _ImGuiTabBarFlags{value: flags_value}
+}
+
+func _ImGui.BeginTabBar(str_id: string, inside: func()) {
+	if this._BeginTabBar(str_id) {
+		inside()
+		this._EndTabBar()
+	}
+}
+
+func _ImGui.BeginTabBarOpts(str_id: string, flags: _ImGuiTabBarFlags, inside: func()) {
+	if this._BeginTabBarOpts(str_id, flags.value) {
+		inside()
+		this._EndTabBar()
+	}
+}
+
+type _ImGuiTabItemFlag :struct {
+	value: i32
+}
+
+global ImGuiTabItemFlagUnsavedDocument = _ImGuiTabItemFlag{value: 1 << 0}
+global ImGuiTabItemFlagSetSelected = _ImGuiTabItemFlag{value: 1 << 1}
+global ImGuiTabItemFlagNoCloseWithMiddleMouseButton = _ImGuiTabItemFlag{value: 1 << 2}
+global ImGuiTabItemFlagNoPushId = _ImGuiTabItemFlag{value: 1 << 3}
+global ImGuiTabItemFlagNoTooltip = _ImGuiTabItemFlag{value: 1 << 4}
+global ImGuiTabItemFlagNoReorder = _ImGuiTabItemFlag{value: 1 << 5}
+global ImGuiTabItemFlagLeading = _ImGuiTabItemFlag{value: 1 << 6}
+global ImGuiTabItemFlagTrailing = _ImGuiTabItemFlag{value: 1 << 7}
+global ImGuiTabItemFlagNoAssumedClosure = _ImGuiTabItemFlag{value: 1 << 8}
+
+type _ImGuiTabItemFlags :struct {
+	value: i32
+}
+
+func ImGuiTabItemFlags(flags: ..._ImGuiTabItemFlag) => _ImGuiTabItemFlags {
+	flags_value: i32 = 0
+	for _, value := range flags {
+		flags_value |= value.value
+	}
+	return _ImGuiTabItemFlags{value: flags_value}
+}
+
+func _ImGui.BeginTabItem(label: string, inside: func()) {
+	if this._BeginTabItem(label) {
+		inside()
+		this._EndTabItem()
+	}
+}
+
+func _ImGui.BeginTabItemOpts(label: string, flags: _ImGuiTabItemFlags, inside: func()) {
+	if this._BeginTabItemOpts(label, flags.value) {
+		inside()
+		this._EndTabItem()
+	}
+}
+
+func _ImGui.BeginTabItemRet(label: string, opened: bool, inside: func()) => bool {
+	imgui_stack.PushBool(opened)
+	changed := this._BeginTabItemRet(label, imgui_stack)
+	res_opened, ok := imgui_stack.PopBool()
+	if !ok {
+		panic("Failed to pop bool from stack")
+	}
+	if res_opened {
+		inside()
+		this._EndTabItem()
+	}
+	return changed
 }
 
 // math

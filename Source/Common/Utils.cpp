@@ -30,6 +30,12 @@ namespace fs = ghc::filesystem;
 namespace fs = std::filesystem;
 #endif // BX_PLATFORM_LINUX
 
+#if BX_PLATFORM_WINDOWS
+extern "C" __declspec(dllimport) char WaPullOrClone(char* url, char* path, int depth);
+#else
+extern "C" char WaPullOrClone(char* url, char* path, int depth);
+#endif
+
 NS_DORA_BEGIN
 
 int doraType = TOLUA_REG_INDEX_TYPE; // UBOX, CALLBACK, LUA_TYPE
@@ -231,6 +237,20 @@ std::string sprintf(const char* fmt, ...) {
 
 		return std::string(buffer.data(), n);
 	}
+}
+
+void GitPullOrCloneAsync(String url, String fullPath, int depth, const std::function<void(bool)>& callback) {
+#if BX_PLATFORM_ANDROID
+	SharedApplication.invokeInRender([url = url.toString(), fullPath = fullPath.toString(), depth, callback]() {
+		auto success = WaPullOrClone(c_cast<char*>(url.c_str()), c_cast<char*>(fullPath.c_str()), depth) != 0;
+		SharedApplication.invokeInLogic([success, callback]() {
+			callback(success);
+		});
+	});
+#else
+	auto success = WaPullOrClone(c_cast<char*>((const char*)url.c_str()), c_cast<char*>((const char*)fullPath.c_str()), depth) != 0;
+	callback(success);
+#endif
 }
 
 NS_DORA_END

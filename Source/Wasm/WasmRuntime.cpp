@@ -17,9 +17,13 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 #if BX_PLATFORM_WINDOWS
-extern __declspec(dllexport) char* WaBuild(char* input);
-extern __declspec(dllexport) char* WaFormat(char* input);
-extern __declspec(dllexport) void WaFreeCString(char* str);
+extern __declspec(dllimport) char WaBuild(char* input);
+extern __declspec(dllimport) char WaFormat(char* input);
+extern __declspec(dllexport) void wa_emit(char* ev, char* msg) {
+	SharedApplication.invokeInLogic([eventName = std::string{ev}, message = std::string{msg}]() {
+		Dora::Event::send("WaLang"sv, eventName, message);
+	});
+}
 #elif BX_PLATFORM_ANDROID
 #include <jni.h>
 extern "C" JNIEnv* Android_JNI_GetEnv();
@@ -38,71 +42,90 @@ JNIEnv* GetEnv() {
 	if (g_VM->GetEnv((void**)&env, JNI_VERSION_1_6) != JNI_OK) {
 		// 当前线程未附加，尝试 attach
 		if (g_VM->AttachCurrentThread(&env, NULL) != 0) {
-            Issue("Failed to attach current thread to JVM");
+			Issue("Failed to attach current thread to JVM");
 			return NULL;
 		}
 	}
 	return env;
 }
-static const char* WaBuild(char* input) {
+JNIEXPORT void JNICALL Java_org_ippclub_dorassr_MainActivity_nativeWaEmit(JNIEnv* env, jclass cls, jstring event, jstring message) {
+	const char* eventString = env->GetStringUTFChars(event, NULL);
+	const char* messageString = env->GetStringUTFChars(message, NULL);
+	SharedApplication.invokeInLogic([eventName = std::string{eventString}, message = std::string{messageString}]() {
+		Dora::Event::send("WaLang"sv, eventName, message);
+	});
+	env->ReleaseStringUTFChars(event, eventString);
+	env->ReleaseStringUTFChars(message, messageString);
+}
+static char WaBuild(char* input) {
 	auto env = GetEnv();
 	jclass cls = env->FindClass("org/ippclub/dorassr/MainActivity");
 	if (!cls) return {};
 
-	jmethodID mid = env->GetStaticMethodID(cls, "waBuild", "(Ljava/lang/String;)Ljava/lang/String;");
+	jmethodID mid = env->GetStaticMethodID(cls, "waBuild", "(Ljava/lang/String;)Z");
 	if (!mid) return {};
 
 	jstring jpath = env->NewStringUTF(input);
-	jstring jresult = (jstring)env->CallStaticObjectMethod(cls, mid, jpath);
-
-	const char* str = env->GetStringUTFChars(jresult, nullptr);
-	char* result = new char[strlen(str) + 1];
-	strcpy(result, str);
-	env->ReleaseStringUTFChars(jresult, str);
+	jboolean jresult = env->CallStaticBooleanMethod(cls, mid, jpath);
 
 	env->DeleteLocalRef(jpath);
-	env->DeleteLocalRef(jresult);
 	env->DeleteLocalRef(cls);
 
-	return result;
+	return jresult == JNI_TRUE ? 1 : 0;
 }
-static const char* WaFormat(char* input) {
+static char WaFormat(char* input) {
 	auto env = GetEnv();
 	jclass cls = env->FindClass("org/ippclub/dorassr/MainActivity");
 	if (!cls) return {};
 
-	jmethodID mid = env->GetStaticMethodID(cls, "waFormat", "(Ljava/lang/String;)Ljava/lang/String;");
+	jmethodID mid = env->GetStaticMethodID(cls, "waFormat", "(Ljava/lang/String;)Z");
 	if (!mid) return {};
 
 	jstring jpath = env->NewStringUTF(input);
-	jstring jresult = (jstring)env->CallStaticObjectMethod(cls, mid, jpath);
-
-	const char* str = env->GetStringUTFChars(jresult, nullptr);
-	char* result = new char[strlen(str) + 1];
-	strcpy(result, str);
-	env->ReleaseStringUTFChars(jresult, str);
+	jboolean jresult = env->CallStaticBooleanMethod(cls, mid, jpath);
 
 	env->DeleteLocalRef(jpath);
-	env->DeleteLocalRef(jresult);
 	env->DeleteLocalRef(cls);
 
-	return result;
+	return jresult == JNI_TRUE ? 1 : 0;
 }
-void WaFreeCString(const char* str) {
-	delete[] str;
+char WaPullOrClone(char* url, char* path, int depth) {
+	auto env = GetEnv();
+	jclass cls = env->FindClass("org/ippclub/dorassr/MainActivity");
+	if (!cls) return {};
+
+	jmethodID mid = env->GetStaticMethodID(cls, "waPullOrClone", "(Ljava/lang/String;Ljava/lang/String;J)Z");
+	if (!mid) return {};
+
+	jstring jurl = env->NewStringUTF(url);
+	jstring jpath = env->NewStringUTF(path);
+	jlong jdepth = depth;
+	jboolean jresult = env->CallStaticBooleanMethod(cls, mid, jurl, jpath, jdepth);
+
+	env->DeleteLocalRef(jurl);
+	env->DeleteLocalRef(jpath);
+	env->DeleteLocalRef(cls);
+
+	return jresult == JNI_TRUE ? 1 : 0;
 }
 #else
-extern char* WaBuild(char* input);
-extern char* WaFormat(char* input);
-extern void WaFreeCString(char* str);
+extern char WaBuild(char* input);
+extern char WaFormat(char* input);
 #endif
+#if !BX_PLATFORM_ANDROID && !BX_PLATFORM_WINDOWS
+void wa_emit(char* ev, char* msg) {
+	SharedApplication.invokeInLogic([eventName = std::string{ev}, message = std::string{msg}]() {
+		Dora::Event::send("WaLang"sv, eventName, message);
+	});
 }
+#endif
+} // extern "C"
 
 NS_DORA_BEGIN
 
 #define DoraVersion(major, minor, patch) ((major) << 16 | (minor) << 8 | (patch))
 
-static const int doraWASMVersion = DoraVersion(0, 4, 25);
+static const int doraWASMVersion = DoraVersion(0, 4, 26);
 
 static std::string VersionToStr(int version) {
 	return std::to_string((version & 0x00ff0000) >> 16) + '.' + std::to_string((version & 0x0000ff00) >> 8) + '.' + std::to_string(version & 0x000000ff);
@@ -2134,55 +2157,31 @@ uint8_t* WasmRuntime::getMemoryAddress(int32_t wasmAddr) {
 	return _runtime->get_address(wasmAddr);
 }
 
-void WasmRuntime::buildWaAsync(String fullPath, const std::function<void(String)>& callback) {
+void WasmRuntime::buildWaAsync(String fullPath, const std::function<void(bool)>& callback) {
 #if BX_PLATFORM_ANDROID
 	SharedApplication.invokeInRender([fullPath = fullPath.toString(), callback]() {
-		auto result = WaBuild(c_cast<char*>(fullPath.c_str()));
-		SharedApplication.invokeInLogic([str = std::string(result), callback]() {
-			callback(str);
+		auto success = WaBuild(c_cast<char*>(fullPath.c_str()));
+		SharedApplication.invokeInLogic([success, callback]() {
+			callback(success);
 		});
-		WaFreeCString(result);
 	});
 #else
-	if (!_thread) {
-		_thread = SharedAsyncThread.newThread();
-	}
-	_thread->run([fullPath = fullPath.toString()]() {
-		auto result = WaBuild(c_cast<char*>(fullPath.c_str()));
-		std::string data(result);
-		WaFreeCString(result);
-		return Values::alloc(std::move(data));
-	}, [callback](Own<Values> values) {
-		std::string data;
-		values->get(data);
-		callback(data);
-	});
+	auto success = WaBuild(c_cast<char*>((const char*)fullPath.c_str())) != 0;
+	callback(success);
 #endif
 }
 
-void WasmRuntime::formatWaAsync(String fullPath, const std::function<void(String)>& callback) {
+void WasmRuntime::formatWaAsync(String fullPath, const std::function<void(bool)>& callback) {
 #if BX_PLATFORM_ANDROID
 	SharedApplication.invokeInRender([fullPath = fullPath.toString(), callback]() {
-		auto result = WaFormat(c_cast<char*>(fullPath.c_str()));
-		SharedApplication.invokeInLogic([str = std::string(result), callback]() {
-			callback(str);
+		auto success = WaFormat(c_cast<char*>(fullPath.c_str()));
+		SharedApplication.invokeInLogic([success, callback]() {
+			callback(success);
 		});
-		WaFreeCString(result);
 	});
 #else
-	if (!_thread) {
-		_thread = SharedAsyncThread.newThread();
-	}
-	_thread->run([fullPath = fullPath.toString()]() {
-		auto result = WaFormat(c_cast<char*>(fullPath.c_str()));
-		std::string data(result);
-		WaFreeCString(result);
-		return Values::alloc(std::move(data));
-	}, [callback](Own<Values> values) {
-		std::string data;
-		values->get(data);
-		callback(data);
-	});
+	auto success = WaFormat(c_cast<char*>((const char*)fullPath.c_str())) != 0;
+	callback(success);
 #endif
 }
 

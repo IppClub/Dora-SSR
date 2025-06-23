@@ -214,6 +214,17 @@ extern "C" {
 	fn imgui_get_mouse_pos_on_opening_current_popup() -> i64;
 	fn imgui_get_mouse_drag_delta(button: i32, lock_threshold: f32) -> i64;
 	fn imgui_reset_mouse_drag_delta(button: i32);
+	fn imgui__begin_tab_bar(str_id: i64) -> i32;
+	fn imgui__begin_tab_bar_opts(str_id: i64, flags: i32) -> i32;
+	fn imgui__end_tab_bar();
+	fn imgui__begin_tab_item(label: i64) -> i32;
+	fn imgui__begin_tab_item_opts(label: i64, flags: i32) -> i32;
+	fn imgui__begin_tab_item_ret(label: i64, stack: i64) -> i32;
+	fn imgui__begin_tab_item_ret_opts(label: i64, stack: i64, flags: i32) -> i32;
+	fn imgui__end_tab_item();
+	fn imgui_tab_item_button(label: i64) -> i32;
+	fn imgui__tab_item_button_opts(label: i64, flags: i32) -> i32;
+	fn imgui_set_tab_item_closed(tab_or_docked_window_label: i64);
 }
 use crate::dora::IObject;
 pub struct ImGui { }
@@ -843,5 +854,38 @@ impl ImGui {
 	}
 	pub fn reset_mouse_drag_delta(button: i32) {
 		unsafe { imgui_reset_mouse_drag_delta(button); }
+	}
+	pub(crate) fn _begin_tab_bar(str_id: &str) -> bool {
+		unsafe { return imgui__begin_tab_bar(crate::dora::from_string(str_id)) != 0; }
+	}
+	pub(crate) fn _begin_tab_bar_opts(str_id: &str, flags: i32) -> bool {
+		unsafe { return imgui__begin_tab_bar_opts(crate::dora::from_string(str_id), flags) != 0; }
+	}
+	pub(crate) fn _end_tab_bar() {
+		unsafe { imgui__end_tab_bar(); }
+	}
+	pub(crate) fn _begin_tab_item(label: &str) -> bool {
+		unsafe { return imgui__begin_tab_item(crate::dora::from_string(label)) != 0; }
+	}
+	pub(crate) fn _begin_tab_item_opts(label: &str, flags: i32) -> bool {
+		unsafe { return imgui__begin_tab_item_opts(crate::dora::from_string(label), flags) != 0; }
+	}
+	pub(crate) fn _begin_tab_item_ret(label: &str, stack: &crate::dora::CallStack) -> bool {
+		unsafe { return imgui__begin_tab_item_ret(crate::dora::from_string(label), stack.raw()) != 0; }
+	}
+	pub(crate) fn _begin_tab_item_ret_opts(label: &str, stack: &crate::dora::CallStack, flags: i32) -> bool {
+		unsafe { return imgui__begin_tab_item_ret_opts(crate::dora::from_string(label), stack.raw(), flags) != 0; }
+	}
+	pub(crate) fn _end_tab_item() {
+		unsafe { imgui__end_tab_item(); }
+	}
+	pub fn tab_item_button(label: &str) -> bool {
+		unsafe { return imgui_tab_item_button(crate::dora::from_string(label)) != 0; }
+	}
+	pub(crate) fn _tab_item_button_opts(label: &str, flags: i32) -> bool {
+		unsafe { return imgui__tab_item_button_opts(crate::dora::from_string(label), flags) != 0; }
+	}
+	pub fn set_tab_item_closed(tab_or_docked_window_label: &str) {
+		unsafe { imgui_set_tab_item_closed(crate::dora::from_string(tab_or_docked_window_label)); }
 	}
 }

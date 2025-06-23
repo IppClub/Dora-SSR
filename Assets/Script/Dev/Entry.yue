@@ -558,6 +558,55 @@ setWorkspace = (path) ->
 		sleep!
 		reloadDevEntry!
 
+waStatus =
+	buildResult: nil
+	building: false
+	formatResult: nil
+	formating: false
+	pullCloneResult: nil
+	pullCloneProgress: ""
+	pullCloning: false
+
+export buildWaAsync = (projDir) ->
+	return "already building Wa project" if waStatus.building
+	waStatus.building = true
+	close _ = <close>: ->
+		waStatus.building = false
+		waStatus.buildResult = nil
+	success = Wasm\buildWaAsync projDir
+	if success
+		wait -> waStatus.buildResult?
+		return waStatus.buildResult
+	else
+		return "failed to build Wa project \"#{projDir}\""
+
+export formatWaAsync = (file) ->
+	return "" if waStatus.formating
+	waStatus.formating = true
+	close _ = <close>: ->
+		waStatus.formating = false
+		waStatus.formatResult = nil
+	success = Wasm\formatWaAsync file
+	if success
+		wait -> waStatus.formatResult?
+		return waStatus.formatResult
+	else
+		return ""
+
+export gitPullOrCloneAsync = (url, file, depth = 0) ->
+	return "already pulling or cloning repo" if waStatus.pullCloning
+	waStatus.pullCloning = true
+	close _ = <close>: ->
+		waStatus.pullCloning = false
+		waStatus.pullCloneResult = nil
+		waStatus.pullCloneProgress = ""
+	success = GitPullOrCloneAsync url, file, depth
+	if success
+		wait -> waStatus.pullCloneResult?
+		return waStatus.pullCloneResult
+	else
+		return "failed to pull or clone repo \"#{url}\""
+
 setupEventHandlers = ->
 	with Director.postNode
 		\onAppEvent (eventType) -> if eventType == "Quit"
@@ -583,6 +632,15 @@ setupEventHandlers = ->
 			if HttpServer.wsConnectionCount == 0
 				updateEntries!
 		\slot "UpdateEntries", -> updateEntries!
+		\gslot "WaLang", (event, result) ->
+			switch event when "Format"
+				waStatus.formatResult = result
+			when "Build"
+				waStatus.buildResult = result
+			when "GitProgress"
+				waStatus.pullCloneProgress ..= result
+			when "GitPullOrClone"
+				waStatus.pullCloneResult = result
 
 setupEventHandlers!
 clearTempFiles!
@@ -719,7 +777,9 @@ extraOperations = ->
 		View.scale = scaleContent and screenScale or 1
 	if changed, engineDev := Checkbox zh and '引擎开发模式' or 'Engine Dev Mode', engineDev
 		config.engineDev = engineDev
-	if Button zh and "开始自动测试" or "Test automatically"
+	if testingThread
+		BeginDisabled -> Button zh and "开始自动测试" or "Test automatically"
+	elseif Button zh and "开始自动测试" or "Test automatically"
 		testingThread = thread ->
 			close _ = <close>: ->
 				allClear!

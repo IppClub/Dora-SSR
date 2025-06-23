@@ -352,6 +352,30 @@ export const enum GlyphRange {
 	Vietnamese = "Vietnamese"
 }
 
+export const enum TabBarFlag {
+	Reorderable = "Reorderable",
+	AutoSelectNewTabs = "AutoSelectNewTabs",
+	TabListPopupButton = "TabListPopupButton",
+	NoCloseWithMiddleMouseButton = "NoCloseWithMiddleMouseButton",
+	NoTabListScrollingButtons = "NoTabListScrollingButtons",
+	NoTooltip = "NoTooltip",
+	DrawSelectedOverline = "DrawSelectedOverline",
+	FittingPolicyResizeDown = "FittingPolicyResizeDown",
+	FittingPolicyScroll = "FittingPolicyScroll",
+}
+
+export const enum TabItemFlag {
+	UnsavedDocument = "UnsavedDocument",
+	SetSelected = "SetSelected",
+	NoCloseWithMiddleMouseButton = "NoCloseWithMiddleMouseButton",
+	NoPushId = "NoPushId",
+	NoTooltip = "NoTooltip",
+	NoReorder = "NoReorder",
+	Leading = "Leading",
+	Trailing = "Trailing",
+	NoAssumedClosure = "NoAssumedClosure",
+}
+
 export function LoadFontTTF(this: void, ttfFontFile: string, fontSize: number, glyphRanges: GlyphRange, callback: (this: void) => void): boolean;
 export function IsFontLoaded(this: void): boolean;
 export function ShowStats(this: void, extra?: (this: void) => void): void;
@@ -415,10 +439,10 @@ export function ColorButton(this: void, desc_id: string, col: Color, flags?: Col
 
 export function Columns(this: void, count?: number, border?: boolean, id?: string): void;
 
-export function BeginTable(this: void, str_id: string, column: number, inside: (this: void) => void): boolean;
-export function BeginTable(this: void, str_id: string, column: number, outer_size: Vec2, inside: (this: void) => void): boolean;
-export function BeginTable(this: void, str_id: string, column: number, outer_size: Vec2, inner_width: number, inside: (this: void) => void): boolean;
-export function BeginTable(this: void, str_id: string, column: number, outer_size: Vec2, inner_width: number, flags: TableFlag[], inside: (this: void) => void): boolean;
+export function BeginTable(this: void, str_id: string, column: number, inside: (this: void) => void);
+export function BeginTable(this: void, str_id: string, column: number, outer_size: Vec2, inside: (this: void) => void);
+export function BeginTable(this: void, str_id: string, column: number, outer_size: Vec2, inner_width: number, inside: (this: void) => void);
+export function BeginTable(this: void, str_id: string, column: number, outer_size: Vec2, inner_width: number, flags: TableFlag[], inside: (this: void) => void);
 export function TableNextRow(this: void, min_row_height?: number, row_flags?: TableRowFlag[]): void;
 export function TableSetupColumn(this: void, label: string, init_width_or_weight?: number, user_id?: number, flags?: TableColumnFlag[]): void;
 
@@ -686,5 +710,17 @@ export function GetMouseDragDelta(
 	): Vec2;
 export function ResetMouseDragDelta(this: void, button?: number): void; // Default: 0
 export function ScrollWhenDraggingOnVoid(this: void): void;
+
+export function BeginTabBar(this: void, str_id: string, inside: (this: void) => void): void;
+export function BeginTabBar(this: void, str_id: string, flags: TabBarFlag[], inside: (this: void) => void): void;
+
+export function BeginTabItem(this: void, label: string, inside: (this: void) => void): void;
+export function BeginTabItem(this: void, label: string, flags: TabItemFlag[], inside: (this: void) => void): void;
+export function BeginTabItem(this: void, label: string, opened: boolean, inside: (this: void) => void): boolean;
+export function BeginTabItem(this: void, label: string, opened: boolean, flags: TabItemFlag[], inside: (this: void) => void): boolean;
+
+export function TabItemButton(this: void, label: string): void;
+export function TabItemButton(this: void, label: string, flags: TabItemFlag[]): void;
+export function SetTabItemClosed(this: void, tab_or_docked_window_label: string): void;
 
 } // module 'ImGui'

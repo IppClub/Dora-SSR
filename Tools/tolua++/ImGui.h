@@ -291,4 +291,16 @@ namespace ImGui
 	Vec2 GetMousePosOnOpeningCurrentPopup();
 	Vec2 GetMouseDragDelta(int button = 0, float lock_threshold = -1.0f);
 	void ResetMouseDragDelta(int button = 0);
+
+	bool Binding::BeginTabBar @ BeginTabBar(CString str_id);
+	bool Binding::BeginTabBar @ BeginTabBar(CString str_id, String flags[tolua_len]);
+	void EndTabBar();
+	bool Binding::BeginTabItem @ BeginTabItem(CString label);
+	bool Binding::BeginTabItem @ BeginTabItem(CString label, String flags[tolua_len]);
+	bool Binding::BeginTabItem @ BeginTabItem(CString label, bool* p_open);
+	bool Binding::BeginTabItem @ BeginTabItem(CString label, bool* p_open, String flags[tolua_len]);
+	void EndTabItem();
+	bool Binding::TabItemButton @ TabItemButton(CString label);
+	bool Binding::TabItemButton @ TabItemButton(CString label, String flags[tolua_len]);
+	void SetTabItemClosed(CString tab_or_docked_window_label);
 };

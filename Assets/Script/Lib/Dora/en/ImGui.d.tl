@@ -324,6 +324,28 @@ local record ImGui
 		"Greek"
 		"Vietnamese"
 	end
+	enum TabBarFlag
+		"Reorderable"
+		"AutoSelectNewTabs"
+		"TabListPopupButton"
+		"NoCloseWithMiddleMouseButton"
+		"NoTabListScrollingButtons"
+		"NoTooltip"
+		"DrawSelectedOverline"
+		"FittingPolicyResizeDown"
+		"FittingPolicyScroll"
+	end
+	enum TabItemFlag
+		"UnsavedDocument"
+		"SetSelected"
+		"NoCloseWithMiddleMouseButton"
+		"NoPushId"
+		"NoTooltip"
+		"NoReorder"
+		"Leading"
+		"Trailing"
+		"NoAssumedClosure"
+	end
 	LoadFontTTF: function(
 		ttfFontFile: string,
 		fontSize: number,
@@ -566,25 +588,25 @@ local record ImGui
 		inner_width?: number --[[0.0]],
 		flags?: {TableFlag} --[[nil]],
 		inside: function()
-	): boolean
+	)
 	BeginTable: function(
 		str_id: string,
 		column: integer,
 		outer_size: Vec2,
 		inner_width: number,
 		inside: function()
-	): boolean
+	)
 	BeginTable: function(
 		str_id: string,
 		column: integer,
 		outer_size: Vec2,
 		inside: function()
-	): boolean
+	)
 	BeginTable: function(
 		str_id: string,
 		column: integer,
 		inside: function()
-	): boolean
+	)
 	TableNextRow: function(
 		min_row_height?: number --[[0.0]],
 		row_flags?: {TableRowFlag} --[[nil]]
@@ -1010,6 +1032,18 @@ local record ImGui
 		button?: integer --[[0]]
 	)
 	ScrollWhenDraggingOnVoid: function()
+
+	BeginTabBar: function(str_id: string, inside: function())
+	BeginTabBar: function(str_id: string, flags: {TabBarFlag}, inside: function())
+
+	BeginTabItem: function(label: string, inside: function())
+	BeginTabItem: function(label: string, flags: {TabItemFlag}, inside: function())
+	BeginTabItem: function(label: string, opened: boolean, inside: function()): boolean
+	BeginTabItem: function(label: string, opened: boolean, flags: {TabItemFlag}, inside: function()): boolean
+
+	TabItemButton: function(label: string)
+	TabItemButton: function(label: string, flags: {TabItemFlag})
+	SetTabItemClosed: function(tab_or_docked_window_label: string)
 end
 local imgui: ImGui
 return imgui

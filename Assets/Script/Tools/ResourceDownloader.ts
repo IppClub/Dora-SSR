@@ -72,7 +72,7 @@ const thinSep = () => ImGui.PushStyleVar(ImGui.StyleVarNum.SeparatorTextBorderSi
 
 class ResourceDownloader {
 	private packages: PackageInfo[] = [];
-	private repos: RepoInfo[] = [];
+	private repos: Map<string, RepoInfo> = new Map();
 	private downloadProgress: Map<string, {progress: number, status: string}> = new Map();
 	private downloadTasks: Map<string, Job> = new Map();
 	private popupMessageTitle = "";
@@ -128,7 +128,7 @@ class ResourceDownloader {
 			}
 			if (reload) {
 				this.packages = [];
-				this.repos = [];
+				this.repos = new Map();
 				this.previewTextures.clear();
 				this.previewFiles.clear();
 				const cachePath = Path(Content.appPath, ".cache", "preview");
@@ -164,12 +164,16 @@ class ResourceDownloader {
 			const reposFile = Path(cachePath, "repos.json");
 			if (Content.exist(reposFile)) {
 				const [repos] = json.load(Content.load(reposFile));
-				this.repos = repos as RepoInfo[];
+				for (let repo of repos as RepoInfo[]) {
+					this.repos.set(repo.name, repo);
+				}
 			} else {
 				const reposResponse = HttpClient.getAsync(`${url}/assets/repos.json`);
 				if (reposResponse) {
 					const [repos] = json.load(reposResponse);
-					this.repos = repos as RepoInfo[];
+					for (let repo of repos as RepoInfo[]) {
+						this.repos.set(repo.name, repo);
+					}
 					Content.save(reposFile, reposResponse);
 				}
 			}
@@ -324,7 +328,7 @@ class ResourceDownloader {
 
 			// Display resources
 			for (const pkg of this.packages) {
-				const repo = this.repos.find(r => r.name === pkg.name);
+				const repo = this.repos.get(pkg.name)
 				if (!repo) continue;
 
 				if (this.filterText !== '') {
@@ -409,6 +413,7 @@ class ResourceDownloader {
 							if (ImGui.Button(deleteText)) {
 								Content.remove(Path(Content.writablePath, "Download", pkg.name));
 								this.downloadedPackages.delete(pkg.name);
+								Director.postNode.emit("UpdateEntries");
 							}
 						}
 					}

@@ -5505,6 +5505,18 @@ static Vec2 GetMousePos();
 static Vec2 GetMousePosOnOpeningCurrentPopup();
 static Vec2 GetMouseDragDelta(int button, float lock_threshold);
 static void ResetMouseDragDelta(int button);
+
+static bool Binding::BeginTabBar @ _beginTabBar(string str_id);
+static bool Binding::BeginTabBar @ _beginTabBarOpts(string str_id, uint32_t flags);
+static void EndTabBar @ _endTabBar();
+static bool Binding::BeginTabItem @ _beginTabItem(string label);
+static bool Binding::BeginTabItem @ _beginTabItemOpts(string label, uint32_t flags);
+static bool Binding::BeginTabItem @ _beginTabItemRet(string label, CallStack* stack);
+static bool Binding::BeginTabItem @ _beginTabItemRetOpts(string label, CallStack* stack, uint32_t flags);
+static void EndTabItem @ _endTabItem();
+static bool Binding::TabItemButton @ TabItemButton(string label);
+static bool Binding::TabItemButton @ _tabItemButtonOpts(string label, uint32_t flags);
+static void Binding::SetTabItemClosed @ SetTabItemClosed(string tab_or_docked_window_label);
 };
 
 value struct NVGpaint @ VGPaint { };

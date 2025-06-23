@@ -534,4 +534,6 @@ void threadLoop(const std::function<Job()>& work);
 
 std::string sprintf(const char* fmt, ...);
 
+void GitPullOrCloneAsync(String url, String fullPath, int depth, const std::function<void(bool)>& callback);
+
 NS_DORA_END

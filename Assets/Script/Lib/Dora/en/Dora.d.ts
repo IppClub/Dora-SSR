@@ -2690,6 +2690,7 @@ const enum GlobalEvent {
 	AppEvent = "AppEvent",
 	AppChange = "AppChange",
 	AppWS = "AppWS",
+	WaLang = "WaLang",
 }
 
 export {GlobalEvent as GSlot};
@@ -2707,6 +2708,17 @@ type GlobalEventHandlerMap = {
 
 	/** Triggers when a websocket connection gets an event. */
 	AppWS(this: void, eventType: AppWSEventType, msg: string): void;
+
+	/**
+	 * Triggered when a message is received from the WaLang module.
+	 * @param event The name of the received message.
+	 * When event is 'Build', message is the error information of the build, an empty string means build success.
+	 * When event is 'Format', message is the formatted code, an empty string means format success.
+	 * When event is 'GitProgress', message is the progress information of the Git operation.
+	 * When event is 'GitPullOrClone', message is the failure information of the Git operation, an empty string means operation success.
+	 * @param message The content of the received message.
+	 */
+	WaLang(this: void, event: 'Build' | 'Format' | 'GitProgress' | 'GitPullOrClone', message: string): void;
 };
 
 /**
@@ -6900,7 +6912,8 @@ class VGNode extends Node {
 	 * The function for rendering vector graphics.
 	 * @param func The closure function for rendering vector graphics.
 	 * You can do the rendering operations inside this closure.
-	 * @usage
+	 * @example
+	 * ```
 	 * vgNode.render(() => {
 	 * 	nvg.BeginPath();
 	 * 	nvg.Rect(0, 0, 100, 100);
@@ -6908,6 +6921,7 @@ class VGNode extends Node {
 	 * 	nvg.FillColor(Color(255, 0, 0, 255));
 	 * 	nvg.Fill();
 	 * });
+	 * ```
 	 */
 	render(func: (this: void) => void): void;
 }
@@ -7268,10 +7282,96 @@ interface json {
 const jsn: json;
 export {jsn as json};
 
+/**
+ * Pull or clone a Git repository to the specified path asynchronously.
+ * @param url The URL of the Git repository to pull or clone.
+ * @param fullPath The full path where the repository should be cloned.
+ * @param depth [optional] The depth of the repository to pull. Defaults to 0 which means all commits.
+ */
+export function GitPullOrCloneAsync(this: void, url: string, fullPath: string, depth?: number): void;
+
+/**
+ * An interface that provides WASM related functions.
+ */
+interface Wasm {
+	/**
+	 * Executes the main WASM file (e.g. init.wasm).
+	 * @param filename The name of the main WASM file.
+	 */
+	executeMainFile(filename: string): void;
+	/**
+	 * Executes the main WASM file (e.g. init.wasm) asynchronously.
+	 * @param filename The name of the main WASM file.
+	 * @returns Whether the main WASM file was executed successfully.
+	 */
+	executeMainFileAsync(filename: string): boolean;
+	/**
+	 * Builds the WASM file (e.g. init.wasm) from a Wa-lang project asynchronously.
+	 * @param fullPath The full path of the Wa-lang project.
+	 * @returns Whether the WASM file was built successfully.
+	 * @example
+	 * ```
+	 * const node = Node();
+	 * node.gslot("WaLang", function(event, message) {
+	 * 	if (event === "Build") {
+	 * 		if (message === "") {
+	 * 			print("Built")
+	 * 		} else {
+	 * 			print("Build failed due to error: " + message)
+	 * 		}
+	 * 	}
+	 * });
+	 * thread(() => {
+	 * 	const success = Wasm.buildWaAsync("/path/to/wa-lang/project/");
+	 * 	if (success) {
+	 * 		print("Build started")
+	 * 	} else {
+	 * 		print("Build failed to start")
+	 * 	}
+	 * });
+	 * ```
+	 */
+	buildWaAsync(fullPath: string): boolean;
+	/**
+	 * Formats a Wa-lang code file asynchronously.
+	 * @param fullPath The full path of the Wa-lang code file.
+	 * @returns Whether the Wa-lang code file was formatted successfully.
+	 * @example
+	 * ```
+	 * const node = Node();
+	 * node.gslot("WaLang", function(event, message) {
+	 * 	if (event === "Format") {
+	 * 		if (message === "") {
+	 * 			print("Failed to format")
+	 * 		} else {
+	 * 			print("Formatted: " + message)
+	 * 		}
+	 * 	}
+	 * });
+	 * thread(() => {
+	 * 	const success = Wasm.formatWaAsync("/path/to/wa-lang/code/file.wa");
+	 * 	if (success) {
+	 * 		print("Formatting started")
+	 * 	} else {
+	 * 		print("Formatting failed to start")
+	 * 	}
+	 * });
+	 * ```
+	 */
+	formatWaAsync(fullPath: string): boolean;
+	/**
+	 * Clears the running WASM module and stops the runtime.
+	 */
+	clear(): void;
+}
+
+const wasm: Wasm;
+export {wasm as Wasm};
+
 } // module "Dora"
 
 /**
- * Inspect and print the internal information of the input parameter value.
+ * Inspect and print the internal information of the input parameter value in a formatted way.
  * @param args The values to inspect.
  */
 declare function p(this: void, ...args: any[]): void;

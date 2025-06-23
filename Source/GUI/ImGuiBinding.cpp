@@ -1550,4 +1550,98 @@ void PushItemFlag(Slice* options, int optionCount, bool enabled) {
 	ImGui::PushItemFlag(s_cast<int>(flags), enabled);
 }
 
+static ImGuiTabBarFlags_ getTabBarFlag(String flag) {
+	switch (Switch::hash(flag)) {
+		case ""_hash: return ImGuiTabBarFlags_None;
+		case "Reorderable"_hash: return ImGuiTabBarFlags_Reorderable;
+		case "AutoSelectNewTabs"_hash: return ImGuiTabBarFlags_AutoSelectNewTabs;
+		case "TabListPopupButton"_hash: return ImGuiTabBarFlags_TabListPopupButton;
+		case "NoCloseWithMiddleMouseButton"_hash: return ImGuiTabBarFlags_NoCloseWithMiddleMouseButton;
+		case "NoTabListScrollingButtons"_hash: return ImGuiTabBarFlags_NoTabListScrollingButtons;
+		case "NoTooltip"_hash: return ImGuiTabBarFlags_NoTooltip;
+		case "DrawSelectedOverline"_hash: return ImGuiTabBarFlags_DrawSelectedOverline;
+		case "FittingPolicyResizeDown"_hash: return ImGuiTabBarFlags_FittingPolicyResizeDown;
+		case "FittingPolicyScroll"_hash: return ImGuiTabBarFlags_FittingPolicyScroll;
+		default:
+			Issue("ImGui tab bar flag named \"{}\" is invalid.", flag.toString());
+			return ImGuiTabBarFlags_None;
+	}
+}
+
+static uint32_t TabBarFlags(Slice* flags, int flagCount) {
+	uint32_t result = 0;
+	for (int i = 0; i < flagCount; i++) {
+		result |= getTabBarFlag(flags[i]);
+	}
+	return result;
+}
+
+static ImGuiTabItemFlags_ getTabItemFlag(String flag) {
+	switch (Switch::hash(flag)) {
+		case ""_hash: return ImGuiTabItemFlags_None;
+		case "UnsavedDocument"_hash: return ImGuiTabItemFlags_UnsavedDocument;
+		case "SetSelected"_hash: return ImGuiTabItemFlags_SetSelected;
+		case "NoCloseWithMiddleMouseButton"_hash: return ImGuiTabItemFlags_NoCloseWithMiddleMouseButton;
+		case "NoPushId"_hash: return ImGuiTabItemFlags_NoPushId;
+		case "NoTooltip"_hash: return ImGuiTabItemFlags_NoTooltip;
+		case "NoReorder"_hash: return ImGuiTabItemFlags_NoReorder;
+		case "Leading"_hash: return ImGuiTabItemFlags_Leading;
+		case "Trailing"_hash: return ImGuiTabItemFlags_Trailing;
+		case "NoAssumedClosure"_hash: return ImGuiTabItemFlags_NoAssumedClosure;
+		default:
+			Issue("ImGui tab item flag named \"{}\" is invalid.", flag.toString());
+			return ImGuiTabItemFlags_None;
+	}
+}
+
+uint32_t TabItemFlags(Slice* flags, int flagCount) {
+	uint32_t result = 0;
+	for (int i = 0; i < flagCount; i++) {
+		result |= getTabItemFlag(flags[i]);
+	}
+	return result;
+}
+
+bool BeginTabBar(const std::string& str_id, uint32_t flags) {
+	return ImGui::BeginTabBar(str_id.c_str(), flags);
+}
+
+bool BeginTabBar(const char* str_id, Slice* flags, int flagCount) {
+	return ImGui::BeginTabBar(str_id, TabBarFlags(flags, flagCount));
+}
+
+bool BeginTabItem(const std::string& label, uint32_t flags) {
+	return ImGui::BeginTabItem(label.c_str(), nullptr, flags);
+}
+
+bool BeginTabItem(const char* label, Slice* flags, int flagCount) {
+	return ImGui::BeginTabItem(label, nullptr, TabItemFlags(flags, flagCount));
+}
+
+bool BeginTabItem(const std::string& label, CallStack* stack, uint32_t flags) {
+	bool p_open = std::get<bool>(stack->pop());
+	bool result = ImGui::BeginTabItem(label.c_str(), &p_open, flags);
+	stack->push(p_open);
+	return result;
+}
+
+bool BeginTabItem(const char* label, bool* p_open, Slice* flags, int flagCount) {
+	return ImGui::BeginTabItem(label, p_open, TabItemFlags(flags, flagCount));
+}
+
+bool BeginTabItem(const char* label, CallStack* stack, Slice* flags, int flagCount) {
+	bool p_open = std::get<bool>(stack->pop());
+	bool result = ImGui::BeginTabItem(label, &p_open, TabItemFlags(flags, flagCount));
+	stack->push(p_open);
+	return result;
+}
+
+bool TabItemButton(const std::string& label, uint32_t flags) {
+	return ImGui::TabItemButton(label.c_str(), flags);
+}
+
+bool TabItemButton(const char* label, Slice* flags, int flagCount) {
+	return ImGui::TabItemButton(label, TabItemFlags(flags, flagCount));
+}
+
 NS_END(ImGui::Binding)

@@ -637,6 +637,39 @@ int64_t imgui_get_mouse_drag_delta(int32_t button, float lock_threshold) {
 void imgui_reset_mouse_drag_delta(int32_t button) {
 	ImGui::ResetMouseDragDelta(s_cast<int>(button));
 }
+int32_t imgui__begin_tab_bar(int64_t str_id) {
+	return ImGui::Binding::BeginTabBar(*Str_From(str_id)) ? 1 : 0;
+}
+int32_t imgui__begin_tab_bar_opts(int64_t str_id, int32_t flags) {
+	return ImGui::Binding::BeginTabBar(*Str_From(str_id), s_cast<uint32_t>(flags)) ? 1 : 0;
+}
+void imgui__end_tab_bar() {
+	ImGui::EndTabBar();
+}
+int32_t imgui__begin_tab_item(int64_t label) {
+	return ImGui::Binding::BeginTabItem(*Str_From(label)) ? 1 : 0;
+}
+int32_t imgui__begin_tab_item_opts(int64_t label, int32_t flags) {
+	return ImGui::Binding::BeginTabItem(*Str_From(label), s_cast<uint32_t>(flags)) ? 1 : 0;
+}
+int32_t imgui__begin_tab_item_ret(int64_t label, int64_t stack) {
+	return ImGui::Binding::BeginTabItem(*Str_From(label), r_cast<CallStack*>(stack)) ? 1 : 0;
+}
+int32_t imgui__begin_tab_item_ret_opts(int64_t label, int64_t stack, int32_t flags) {
+	return ImGui::Binding::BeginTabItem(*Str_From(label), r_cast<CallStack*>(stack), s_cast<uint32_t>(flags)) ? 1 : 0;
+}
+void imgui__end_tab_item() {
+	ImGui::EndTabItem();
+}
+int32_t imgui_tab_item_button(int64_t label) {
+	return ImGui::Binding::TabItemButton(*Str_From(label)) ? 1 : 0;
+}
+int32_t imgui__tab_item_button_opts(int64_t label, int32_t flags) {
+	return ImGui::Binding::TabItemButton(*Str_From(label), s_cast<uint32_t>(flags)) ? 1 : 0;
+}
+void imgui_set_tab_item_closed(int64_t tab_or_docked_window_label) {
+	ImGui::Binding::SetTabItemClosed(*Str_From(tab_or_docked_window_label));
+}
 } // extern "C"
 
 static void linkImGui(wasm3::module3& mod) {
@@ -847,4 +880,15 @@ static void linkImGui(wasm3::module3& mod) {
 	mod.link_optional("*", "imgui_get_mouse_pos_on_opening_current_popup", imgui_get_mouse_pos_on_opening_current_popup);
 	mod.link_optional("*", "imgui_get_mouse_drag_delta", imgui_get_mouse_drag_delta);
 	mod.link_optional("*", "imgui_reset_mouse_drag_delta", imgui_reset_mouse_drag_delta);
+	mod.link_optional("*", "imgui__begin_tab_bar", imgui__begin_tab_bar);
+	mod.link_optional("*", "imgui__begin_tab_bar_opts", imgui__begin_tab_bar_opts);
+	mod.link_optional("*", "imgui__end_tab_bar", imgui__end_tab_bar);
+	mod.link_optional("*", "imgui__begin_tab_item", imgui__begin_tab_item);
+	mod.link_optional("*", "imgui__begin_tab_item_opts", imgui__begin_tab_item_opts);
+	mod.link_optional("*", "imgui__begin_tab_item_ret", imgui__begin_tab_item_ret);
+	mod.link_optional("*", "imgui__begin_tab_item_ret_opts", imgui__begin_tab_item_ret_opts);
+	mod.link_optional("*", "imgui__end_tab_item", imgui__end_tab_item);
+	mod.link_optional("*", "imgui_tab_item_button", imgui_tab_item_button);
+	mod.link_optional("*", "imgui__tab_item_button_opts", imgui__tab_item_button_opts);
+	mod.link_optional("*", "imgui_set_tab_item_closed", imgui_set_tab_item_closed);
 }

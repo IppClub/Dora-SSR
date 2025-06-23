@@ -766,4 +766,16 @@ inline bool BeginPopup(String str_id) { return ImGui::BeginPopup(str_id.c_str())
 inline bool TextLink(String label) { return ImGui::TextLink(label.c_str()); }
 inline bool TextLinkOpenURL(String label, String url) { return ImGui::TextLinkOpenURL(label.c_str(), url.c_str()); }
 
+bool BeginTabBar(const std::string& str_id, uint32_t flags = 0);
+bool BeginTabBar(const char* str_id, Slice* flags = nullptr, int flagCount = 0);
+bool BeginTabItem(const std::string& label, uint32_t flags = 0);
+bool BeginTabItem(const char* label, Slice* flags = nullptr, int flagCount = 0);
+bool BeginTabItem(const std::string& label, CallStack* stack, uint32_t flags = 0);
+bool BeginTabItem(const char* label, bool* p_open, Slice* flags = nullptr, int flagCount = 0);
+bool TabItemButton(const std::string& label, uint32_t flags = 0);
+bool TabItemButton(const char* label, Slice* flags = nullptr, int flagCount = 0);
+inline void SetTabItemClosed(const std::string& tab_or_docked_window_label) {
+	ImGui::SetTabItemClosed(tab_or_docked_window_label.c_str());
+}
+
 NS_END(ImGui::Binding)
