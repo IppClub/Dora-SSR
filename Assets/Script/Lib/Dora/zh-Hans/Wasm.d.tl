@@ -10,7 +10,6 @@ local record Wasm
 	executeMainFileAsync: function(self: Wasm, filename: string): boolean
 
 	-- 从 Wa-lang 项目异步构建一个 WASM 模块文件 (例如 init.wasm)。
-	-- 构建完成后会触发一个全局的事件 'WaLang'，事件类型为 'Build'。
 	-- @param fullPath (string) Wa-lang 项目的完整路径。
 	-- @return (string) 构建 WASM 模块文件的结果。
 	-- @usage
@@ -25,7 +24,6 @@ local record Wasm
 	buildWaAsync: function(self: Wasm, fullPath: string): string
 
 	-- 异步格式化一个 Wa-lang 代码文件。
-	-- 格式化完成后会触发一个全局的事件 'WaLang'，事件类型为 'Format'。
 	-- @param fullPath (string) Wa-lang 代码文件的完整路径。
 	-- @return (string) 格式化 Wa-lang 代码文件的结果。
 	-- @usage

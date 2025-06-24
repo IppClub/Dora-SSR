@@ -10,7 +10,6 @@ local record Wasm
 	executeMainFileAsync: function(self: Wasm, filename: string): boolean
 
 	-- Builds the WASM file (e.g. init.wasm) from a Wa-lang project asynchronously.
-	-- Will trigger a global event 'WaLang' with event type 'Build' when the build is finished.
 	-- @param fullPath (string) The full path of the Wa-lang project.
 	-- @return (string) The WASM file building result.
 	-- @usage
@@ -25,7 +24,6 @@ local record Wasm
 	buildWaAsync: function(self: Wasm, fullPath: string): string
 
 	-- Formats a Wa-lang code file asynchronously.
-	-- Will trigger a global event 'WaLang' with event type 'Format' when the format is finished.
 	-- @param fullPath (string) The full path of the Wa-lang code file.
 	-- @return (string) The Wa-lang code file formatting result.
 	-- @usage
