@@ -169,13 +169,6 @@ local record __GSLOT__
 
 	-- Triggers when a websocket connection gets an event. The event type could be "Open", "Close", "Send", "Receive".
 	["AppWS"]: function(eventType: string, msg: string)
-
-	-- Triggers when a message is received from the WaLang module.
-	-- When event is 'Build', message is the error information of the build, an empty string means build success.
-	-- When event is 'Format', message is the formatted code, an empty string means format success.
-	-- When event is 'GitProgress', message is the progress information of the Git operation.
-	-- When event is 'GitPullOrClone', message is the failure information of the Git operation, an empty string means operation success.
-	["WaLang"]: function(event: string, message: string)
 end
 
 local app: App

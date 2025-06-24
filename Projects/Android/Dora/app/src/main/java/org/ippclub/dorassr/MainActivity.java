@@ -12,54 +12,14 @@ import androidx.core.content.FileProvider;
 
 import java.io.File;
 
-import wa.JavaCallbackInterface;
 import wa.Wa;
+
 public class MainActivity extends SDLActivity {
 	private static native void nativeSetPath(String path);
 	private static native void nativeSetScreenDensity(float density);
 	private static native String nativeGetInstallFile();
-	private static native void nativeWaEmit(String event, String message);
-	public static boolean waBuild(String path) {
-		if (waCallback == null) {
-			waCallback = new WaDone();
-			Wa.setCallback(waCallback);
-		}
-		return Wa.waBuild(path);
-	}
-	public static boolean waFormat(String path) {
-		if (waCallback == null) {
-			waCallback = new WaDone();
-			Wa.setCallback(waCallback);
-		}
-		return Wa.waFormat(path);
-	}
-	public static boolean waPullOrClone(String url, String path, long depth) {
-		if (waCallback == null) {
-			waCallback = new WaDone();
-			Wa.setCallback(waCallback);
-		}
-		return Wa.waPullOrClone(url, path, depth);
-	}
-
-	private static WaDone waCallback;
-
-	public static class WaDone implements JavaCallbackInterface {
-		@Override
-		public void build(String s) {
-			MainActivity.nativeWaEmit("Build", s);
-		}
-		@Override
-		public void format(String s) {
-			MainActivity.nativeWaEmit("Format", s);
-		}
-
-		@Override
-		public void gitProgress(String s) { MainActivity.nativeWaEmit("GitProgress", s); }
-
-		@Override
-		public void gitPullOrClone(String s) { MainActivity.nativeWaEmit("GitPullOrClone", s); }
-	}
-
+	public static String waBuild(String path) { return Wa.waBuild(path); }
+	public static String waFormat(String path) { return Wa.waFormat(path); }
 	@Override
 	protected void onCreate(final Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);

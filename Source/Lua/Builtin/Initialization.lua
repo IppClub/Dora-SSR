@@ -561,22 +561,6 @@ do
 		return result
 	end
 
-	local GitPullOrCloneAsync = Dora.GitPullOrCloneAsync
-	Dora.GitPullOrCloneAsync = function(url, path, depth)
-		local _, mainThread = coroutine.running()
-		assert(not mainThread, "GitPullOrCloneAsync should be run in a thread")
-		local result
-		local done = false
-		GitPullOrCloneAsync(url, path, depth or 0, function(res)
-			result = res
-			done = true
-		end)
-		wait(function()
-			return done
-		end)
-		return result
-	end
-
 	local HttpServer = Dora.HttpServer
 	local HttpServer_postSchedule = HttpServer.postSchedule
 	HttpServer.postSchedule = function(self, pattern, scheduleFunc)

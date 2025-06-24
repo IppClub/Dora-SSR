@@ -1,5 +1,5 @@
 // @preview-file on clear
-import { HttpClient, json, thread, App, Vec2, Path, Content, Node, Texture2D, Job, Cache, Buffer, Director, GitPullOrCloneAsync } from 'Dora';
+import { HttpClient, json, thread, App, Vec2, Path, Content, Node, Texture2D, Job, Cache, Buffer, Director } from 'Dora';
 import { SetCond, WindowFlag, TabBarFlag } from "ImGui";
 import * as ImGui from 'ImGui';
 import * as Config from 'Config';
@@ -87,11 +87,6 @@ const tabBarFlags = [
 	TabBarFlag.TabListPopupButton,
 ];
 
-const syncWindowFlags = [
-	WindowFlag.NoResize,
-	WindowFlag.NoMove
-];
-
 const themeColor = App.themeColor;
 
 const sep = () => ImGui.SeparatorText("");
@@ -116,9 +111,6 @@ class ResourceDownloader {
 	private filterText = "";
 	private categories: string[] = [];
 	private headerHeight = 80;
-	private cloneURL = Buffer(1024);
-	private syncing = false;
-	private gitProgress = "";
 
 	constructor() {
 		this.node = Node();
@@ -380,86 +372,6 @@ class ResourceDownloader {
 					Content.remove(packageListVersionFile);
 					this.loadData();
 				}
-				ImGui.SameLine();
-				if (ImGui.Button(zh ? "同步仓库" : "Sync Repo")) {
-					ImGui.OpenPopup((zh ? "同步仓库" : "Sync Repo") + "###SyncRepo");
-				}
-				const popupWidth = math.min(500, width * 0.8);
-				ImGui.SetNextWindowSize(Vec2(popupWidth, math.min(400, height * 0.8)));
-				ImGui.SetNextWindowPosCenter(ImGui.SetCond.Always, Vec2(0.5, 0.5));
-				ImGui.BeginPopupModal((zh ? "同步仓库" : "Sync Repo") + "###SyncRepo", syncWindowFlags, () => {
-					ImGui.Dummy(Vec2(0, 0));
-					ImGui.InputText(zh ? "仓库地址" : "Repo URL", this.cloneURL);
-					const cloneURL = this.cloneURL.text;
-					const [trailing] = string.match(cloneURL, "[^/]*$");
-					const [name] = string.gsub(trailing, "%..*$", "");
-					const repoPath = Path(Content.writablePath, "Repo", name);
-					if (this.syncing) {
-						ImGui.BeginDisabled(() => ImGui.Button(zh ? "删除本地仓库" : "Delete Local Repo"));
-					} else if (ImGui.Button(zh ? "删除本地仓库" : "Delete Local Repo")) {
-						if (Content.remove(repoPath)) {
-							const sep = this.gitProgress === "" ? "" : "\r";
-							this.gitProgress += sep + (zh ? "删除成功！" : "Deleted!")
-							Director.postNode.emit("UpdateEntries");
-						}
-					}
-					ImGui.SameLine();
-					if (this.syncing) {
-						ImGui.BeginDisabled(() => ImGui.Button(zh ? "开始同步" : "Start Sync"));
-					} else if (ImGui.Button(zh ? "开始同步" : "Start Sync")) {
-						this.syncing = true;
-						this.gitProgress = "";
-						let depth = 0;
-						if (!Content.exist(repoPath)) {
-							depth = 1;
-						}
-						const node = Node();
-						node.gslot("WaLang", (event, message) => {
-							switch (event) {
-								case "GitPullOrClone":
-									this.syncing = false;
-									node.removeFromParent();
-									const sep = this.gitProgress === "" ? "" : "\r";
-									if (message !== "") {
-										this.gitProgress += sep + message;
-									} else {
-										this.gitProgress += sep + (zh ? "同步成功！" : "Sync done!");
-									}
-									Director.postNode.emit("UpdateEntries");
-									break;
-								case "GitProgress":
-									this.gitProgress += message;
-									break;
-							}
-						});
-						thread(() => {
-							const success = GitPullOrCloneAsync(cloneURL, repoPath, depth);
-							if (!success) {
-								const sep = this.gitProgress === "" ? "" : "\r";
-								this.gitProgress += sep + "Failed to synchronize repo.";
-								this.syncing = false;
-							}
-						})
-					}
-					ImGui.Separator();
-					ImGui.BeginChild("LogArea", Vec2(0, -50), () => {
-						for (let part of this.gitProgress.split("\r")) {
-							ImGui.TextWrapped(part);
-						}
-						if (ImGui.GetScrollY() >= ImGui.GetScrollMaxY()) {
-							ImGui.SetScrollHereY(1.0);
-						}
-					});
-					ImGui.Dummy(Vec2(popupWidth - 80, 0));
-					ImGui.SameLine();
-					if (this.syncing) {
-						ImGui.BeginDisabled(() => ImGui.Button(zh ? "关闭" : "Close"));
-					} else {
-						if (ImGui.Button(zh ? "关闭" : "Close")) {
-							ImGui.CloseCurrentPopup();
-						}
-					}
-				});
 				ImGui.Separator();
 			} else {
 				this.headerHeight = 80;

@@ -558,52 +558,6 @@ setWorkspace = (path) ->
 		sleep!
 		reloadDevEntry!
 
-waStatus =
-	buildResult: nil
-	building: false
-	formatResult: nil
-	formating: false
-	pullCloneResult: nil
-	pullCloneProgress: ""
-	pullCloning: false
-
-export buildWaAsync = (projDir) ->
-	return "already building Wa project" if waStatus.building
-	waStatus.building = true
-	close _ = <close>: ->
-		waStatus.building = false
-		waStatus.buildResult = nil
-	if success := Wasm\buildWaAsync projDir
-		wait -> waStatus.buildResult?
-		return waStatus.buildResult
-	else
-		return "failed to build Wa project \"#{projDir}\""
-
-export formatWaAsync = (file) ->
-	return "" if waStatus.formating
-	waStatus.formating = true
-	close _ = <close>: ->
-		waStatus.formating = false
-		waStatus.formatResult = nil
-	if success := Wasm\formatWaAsync file
-		wait -> waStatus.formatResult?
-		return waStatus.formatResult
-	else
-		return ""
-
-export gitPullOrCloneAsync = (url, file, depth = 0) ->
-	return "already pulling or cloning repo" if waStatus.pullCloning
-	waStatus.pullCloning = true
-	close _ = <close>: ->
-		waStatus.pullCloning = false
-		waStatus.pullCloneResult = nil
-		waStatus.pullCloneProgress = ""
-	if success := GitPullOrCloneAsync url, file, depth
-		wait -> waStatus.pullCloneResult?
-		return waStatus.pullCloneResult
-	else
-		return "failed to pull or clone repo \"#{url}\""
-
 setupEventHandlers = ->
 	with Director.postNode
 		\onAppEvent (eventType) -> if eventType == "Quit"
@@ -629,15 +583,6 @@ setupEventHandlers = ->
 			if HttpServer.wsConnectionCount == 0
 				updateEntries!
 		\slot "UpdateEntries", -> updateEntries!
-		\gslot "WaLang", (event, result) ->
-			switch event when "Format"
-				waStatus.formatResult = result
-			when "Build"
-				waStatus.buildResult = result
-			when "GitProgress"
-				waStatus.pullCloneProgress ..= result
-			when "GitPullOrClone"
-				waStatus.pullCloneResult = result
 
 setupEventHandlers!
 clearTempFiles!

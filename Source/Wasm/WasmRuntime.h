@@ -73,8 +73,8 @@ public:
 	uint8_t* getMemoryAddress(int32_t wasmAddr);
 	static bool isInWasm();
 
-	void buildWaAsync(String fullPath, const std::function<void(bool)>& callback);
-	void formatWaAsync(String fullPath, const std::function<void(bool)>& callback);
+	void buildWaAsync(String fullPath, const std::function<void(String)>& callback);
+	void formatWaAsync(String fullPath, const std::function<void(String)>& callback);
 
 protected:
 	WasmRuntime();
@@ -90,6 +90,7 @@ private:
 	Ref<Scheduler> _postScheduler;
 	std::shared_ptr<bool> _scheduling;
 	std::pair<OwnArray<uint8_t>, size_t> _wasm;
+	Async* _thread = nullptr;
 	static int _callFromWasm;
 	SINGLETON_REF(WasmRuntime, LuaEngine);
 };
