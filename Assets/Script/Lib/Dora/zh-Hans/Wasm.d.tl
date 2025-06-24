@@ -12,52 +12,32 @@ local record Wasm
 	-- 从 Wa-lang 项目异步构建一个 WASM 模块文件 (例如 init.wasm)。
 	-- 构建完成后会触发一个全局的事件 'WaLang'，事件类型为 'Build'。
 	-- @param fullPath (string) Wa-lang 项目的完整路径。
-	-- @return (boolean) 是否成功构建 WASM 模块文件。
+	-- @return (string) 构建 WASM 模块文件的结果。
 	-- @usage
-	-- local node = Node()
-	-- node:gslot("WaLang", function(event: string, message: string)
-	-- 	if event == "Build" then
-	-- 		if message == "" then
-	-- 			print("Built")
-	-- 		else
-	-- 			print("Build failed due to error: " .. message)
-	-- 		end
-	-- 	end
-	-- end)
 	-- thread(function()
-	-- 	local success = Wasm:buildWaAsync("/path/to/wa-lang/project/")
-	-- 	if success then
-	-- 		print("Build started")
+	-- 	local result = Wasm:buildWaAsync("/path/to/wa-lang/project/")
+	-- 	if result == "" then
+	-- 		print("Built successfully!")
 	-- 	else
-	-- 		print("Build failed to start")
+	-- 		print("Failed to build, due to " .. result)
 	-- 	end
 	-- end)
-	buildWaAsync: function(self: Wasm, fullPath: string): boolean
+	buildWaAsync: function(self: Wasm, fullPath: string): string
 
 	-- 异步格式化一个 Wa-lang 代码文件。
 	-- 格式化完成后会触发一个全局的事件 'WaLang'，事件类型为 'Format'。
 	-- @param fullPath (string) Wa-lang 代码文件的完整路径。
-	-- @return (boolean) 是否成功格式化 Wa-lang 代码文件。
+	-- @return (string) 格式化 Wa-lang 代码文件的结果。
 	-- @usage
-	-- local node = Node()
-	-- node:gslot("WaLang", function(event: string, message: string)
-	-- 	if event == "Format" then
-	-- 		if message == "" then
-	-- 			print("Failted to format")
-	-- 		else
-	-- 			print("Formatted:" .. message)
-	-- 		end
-	-- 	end
-	-- end)
 	-- thread(function()
-	-- 	local success = Wasm:formatWaAsync("/path/to/wa-lang/code/file.wa")
-	-- 	if success then
-	-- 		print("Formatting started")
+	-- 	local result = Wasm:formatWaAsync("/path/to/wa-lang/code/file.wa")
+	-- 	if success == "" then
+	-- 		print("Failed to format")
 	-- 	else
-	-- 		print("Formatting failed to start")
+	-- 		print("Formated code:" .. result)
 	-- 	end
 	-- end)
-	formatWaAsync: function(self: Wasm, fullPath: string): boolean
+	formatWaAsync: function(self: Wasm, fullPath: string): string
 
 	-- 清除正在运行的 WASM 模块并停止相关 WASM 运行时。
 	clear: function(self: Wasm)

@@ -307,8 +307,6 @@ class View
 
 void Dora_Log @ Log(String level, String msg);
 
-void GitPullOrCloneAsync(String url, String fullPath, int depth, tolua_function_void callback);
-
 class Slot
 {
 	void add(tolua_function_void handler);

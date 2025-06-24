@@ -2706,17 +2706,6 @@ type GlobalEventHandlerMap = {
 
 	/** 当一个客户端和应用建立 Websocket 连接并收发消息时触发。 */
 	AppWS(this: void, eventType: AppWSEventType, msg: string): void;
-
-	/**
-	 * 接收到从 WaLang 模块发送的消息时触发。
-	 * @param event 接收到的消息名称。
-	 * 当 event 为 'Build' 时，message 为构建的错误信息，空字符串表示构建成功。
-	 * 当 event 为 'Format' 时，message 为格式化后的代码，空字符串表示格式化成功。
-	 * 当 event 为 'GitProgress' 时，message 为 Git 操作的进度信息。
-	 * 当 event 为 'GitPullOrClone' 时，message 为 Git 操作的失败信息，空字符串表示操作成功。
-	 * @param message 接收到的消息内容。
-	 */
-	WaLang(this: void, event: 'Build' | 'Format' | 'GitProgress' | 'GitPullOrClone', message: string): void;
 };
 
 /**
@@ -7282,15 +7271,6 @@ const jsn: json;
 export {jsn as json};
 
 /**
- * 异步拉取或克隆一个 Git 仓库到指定路径。
- * @param url Git 仓库的 URL。
- * @param fullPath 仓库克隆到的完整路径。
- * @param depth [可选] 拉取的深度。默认为 0，表示拉取所有提交。
- * @returns 是否成功开始执行。
- */
-export function GitPullOrCloneAsync(this: void, url: string, fullPath: string, depth?: number): boolean;
-
-/**
  * 一个提供 WASM 相关功能的接口。
  */
 interface Wasm {
@@ -7309,25 +7289,15 @@ interface Wasm {
 	 * 从 Wa-lang 项目异步构建一个 WASM 模块文件 (例如 init.wasm)。
 	 * 构建完成后会触发一个全局的事件 'WaLang'，事件类型为 'Build'。
 	 * @param fullPath Wa-lang 项目的完整路径。
-	 * @returns 是否成功构建 WASM 模块文件。
+	 * @returns 构建 WASM 模块文件的结果。
 	 * @example
 	 * ```
-	 * const node = Node();
-	 * node.gslot("WaLang", function(event, message) {
-	 * 	if (event === "Build") {
-	 * 		if (message === "") {
-	 * 			print("Built")
-	 * 		} else {
-	 * 			print("Build failed due to error: " + message)
-	 * 		}
-	 * 	}
-	 * });
 	 * thread(() => {
-	 * 	const success = Wasm.buildWaAsync("/path/to/wa-lang/project/");
-	 * 	if (success) {
-	 * 		print("Build started")
+	 * 	const result = Wasm.buildWaAsync("/path/to/wa-lang/project/");
+	 * 	if (result === "") {
+	 * 		print("Built successfully!")
 	 * 	} else {
-	 * 		print("Build failed to start")
+	 * 		print("Failed to build, due to " + result)
 	 * 	}
 	 * });
 	 * ```
@@ -7337,25 +7307,15 @@ interface Wasm {
 	 * 异步格式化一个 Wa-lang 代码文件。
 	 * 格式化完成后会触发一个全局的事件 'WaLang'，事件类型为 'Format'。
 	 * @param fullPath Wa-lang 代码文件的完整路径。
-	 * @returns 是否成功格式化 Wa-lang 代码文件。
+	 * @returns 格式化 Wa-lang 代码文件的结果。
 	 * @example
 	 * ```
-	 * const node = Node();
-	 * node.gslot("WaLang", function(event, message) {
-	 * 	if (event === "Format") {
-	 * 		if (message === "") {
-	 * 			print("Failed to format")
-	 * 		} else {
-	 * 			print("Formatted: " + message)
-	 * 		}
-	 * 	}
-	 * });
 	 * thread(() => {
-	 * 	const success = Wasm.formatWaAsync("/path/to/wa-lang/code/file.wa");
-	 * 	if (success) {
-	 * 		print("Formatting started")
+	 * 	const result = Wasm.formatWaAsync("/path/to/wa-lang/code/file.wa");
+	 * 	if (result === "") {
+	 * 		print("Failed to format")
 	 * 	} else {
-	 * 		print("Formatting failed to start")
+	 * 		print("Formated code:" + result)
 	 * 	}
 	 * });
 	 * ```

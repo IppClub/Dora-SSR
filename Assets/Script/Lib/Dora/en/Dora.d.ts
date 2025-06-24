@@ -2708,17 +2708,6 @@ type GlobalEventHandlerMap = {
 
 	/** Triggers when a websocket connection gets an event. */
 	AppWS(this: void, eventType: AppWSEventType, msg: string): void;
-
-	/**
-	 * Triggered when a message is received from the WaLang module.
-	 * @param event The name of the received message.
-	 * When event is 'Build', message is the error information of the build, an empty string means build success.
-	 * When event is 'Format', message is the formatted code, an empty string means format success.
-	 * When event is 'GitProgress', message is the progress information of the Git operation.
-	 * When event is 'GitPullOrClone', message is the failure information of the Git operation, an empty string means operation success.
-	 * @param message The content of the received message.
-	 */
-	WaLang(this: void, event: 'Build' | 'Format' | 'GitProgress' | 'GitPullOrClone', message: string): void;
 };
 
 /**
@@ -7283,15 +7272,6 @@ const jsn: json;
 export {jsn as json};
 
 /**
- * Pull or clone a Git repository to the specified path asynchronously.
- * @param url The URL of the Git repository to pull or clone.
- * @param fullPath The full path where the repository should be cloned.
- * @param depth [optional] The depth of the repository to pull. Defaults to 0 which means all commits.
- * @returns Whether the Git operation started successfully.
- */
-export function GitPullOrCloneAsync(this: void, url: string, fullPath: string, depth?: number): boolean;
-
-/**
  * An interface that provides WASM related functions.
  */
 interface Wasm {
@@ -7309,25 +7289,15 @@ interface Wasm {
 	/**
 	 * Builds the WASM file (e.g. init.wasm) from a Wa-lang project asynchronously.
 	 * @param fullPath The full path of the Wa-lang project.
-	 * @returns Whether the WASM file was built successfully.
+	 * @returns The WASM file building result.
 	 * @example
 	 * ```
-	 * const node = Node();
-	 * node.gslot("WaLang", function(event, message) {
-	 * 	if (event === "Build") {
-	 * 		if (message === "") {
-	 * 			print("Built")
-	 * 		} else {
-	 * 			print("Build failed due to error: " + message)
-	 * 		}
-	 * 	}
-	 * });
 	 * thread(() => {
-	 * 	const success = Wasm.buildWaAsync("/path/to/wa-lang/project/");
-	 * 	if (success) {
-	 * 		print("Build started")
+	 * 	const result = Wasm.buildWaAsync("/path/to/wa-lang/project/");
+	 * 	if (result === "") {
+	 * 		print("Built successfully!")
 	 * 	} else {
-	 * 		print("Build failed to start")
+	 * 		print("Failed to build, due to " + result)
 	 * 	}
 	 * });
 	 * ```
@@ -7336,25 +7306,15 @@ interface Wasm {
 	/**
 	 * Formats a Wa-lang code file asynchronously.
 	 * @param fullPath The full path of the Wa-lang code file.
-	 * @returns Whether the Wa-lang code file was formatted successfully.
+	 * @returns The Wa-lang code file formatting result.
 	 * @example
 	 * ```
-	 * const node = Node();
-	 * node.gslot("WaLang", function(event, message) {
-	 * 	if (event === "Format") {
-	 * 		if (message === "") {
-	 * 			print("Failed to format")
-	 * 		} else {
-	 * 			print("Formatted: " + message)
-	 * 		}
-	 * 	}
-	 * });
 	 * thread(() => {
-	 * 	const success = Wasm.formatWaAsync("/path/to/wa-lang/code/file.wa");
-	 * 	if (success) {
-	 * 		print("Formatting started")
+	 * 	const result = Wasm.formatWaAsync("/path/to/wa-lang/code/file.wa");
+	 * 	if (result === "") {
+	 * 		print("Failed to format")
 	 * 	} else {
-	 * 		print("Formatting failed to start")
+	 * 		print("Formated code:" + result)
 	 * 	}
 	 * });
 	 * ```

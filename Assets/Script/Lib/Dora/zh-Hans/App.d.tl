@@ -155,13 +155,6 @@ local record __GSLOT__
 
 	-- 当一个客户端和应用建立 Websocket 连接时并收发到事件时触发。事件类型可以是 "Open"、"Close"、"Send"、"Receive"。
 	["AppWS"]: function(eventType: string, msg: string)
-
-	-- 接收到从 WaLang 模块发送的消息时触发。
-	-- 当 event 为 'Build' 时，message 为构建的错误信息，空字符串表示构建成功。
-	-- 当 event 为 'Format' 时，message 为格式化后的代码，空字符串表示格式化成功。
-	-- 当 event 为 'GitProgress' 时，message 为 Git 操作的进度信息。
-	-- 当 event 为 'GitPullOrClone' 时，message 为 Git 操作的失败信息，空字符串表示操作成功。
-	["WaLang"]: function(event: string, message: string)
 end
 
 local app: App
