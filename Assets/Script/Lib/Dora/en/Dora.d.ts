@@ -2690,7 +2690,6 @@ const enum GlobalEvent {
 	AppEvent = "AppEvent",
 	AppChange = "AppChange",
 	AppWS = "AppWS",
-	WaLang = "WaLang",
 }
 
 export {GlobalEvent as GSlot};
