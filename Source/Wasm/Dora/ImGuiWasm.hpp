@@ -439,9 +439,6 @@ void imgui_bullet_item() {
 int32_t imgui_text_link(int64_t label) {
 	return ImGui::Binding::TextLink(*Str_From(label)) ? 1 : 0;
 }
-int32_t imgui_text_link_open_url(int64_t label, int64_t url) {
-	return ImGui::Binding::TextLinkOpenURL(*Str_From(label), *Str_From(url)) ? 1 : 0;
-}
 void imgui_set_window_focus(int64_t name) {
 	ImGui::Binding::SetWindowFocus(*Str_From(name));
 }
@@ -814,7 +811,6 @@ static void linkImGui(wasm3::module3& mod) {
 	mod.link_optional("*", "imgui_table_headers_row", imgui_table_headers_row);
 	mod.link_optional("*", "imgui_bullet_item", imgui_bullet_item);
 	mod.link_optional("*", "imgui_text_link", imgui_text_link);
-	mod.link_optional("*", "imgui_text_link_open_url", imgui_text_link_open_url);
 	mod.link_optional("*", "imgui_set_window_focus", imgui_set_window_focus);
 	mod.link_optional("*", "imgui_separator_text", imgui_separator_text);
 	mod.link_optional("*", "imgui_table_header", imgui_table_header);

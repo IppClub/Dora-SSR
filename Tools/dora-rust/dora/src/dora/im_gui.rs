@@ -148,7 +148,6 @@ extern "C" {
 	fn imgui_table_headers_row();
 	fn imgui_bullet_item();
 	fn imgui_text_link(label: i64) -> i32;
-	fn imgui_text_link_open_url(label: i64, url: i64) -> i32;
 	fn imgui_set_window_focus(name: i64);
 	fn imgui_separator_text(text: i64);
 	fn imgui_table_header(label: i64);
@@ -656,9 +655,6 @@ impl ImGui {
 	}
 	pub fn text_link(label: &str) -> bool {
 		unsafe { return imgui_text_link(crate::dora::from_string(label)) != 0; }
-	}
-	pub fn text_link_open_url(label: &str, url: &str) -> bool {
-		unsafe { return imgui_text_link_open_url(crate::dora::from_string(label), crate::dora::from_string(url)) != 0; }
 	}
 	pub fn set_window_focus(name: &str) {
 		unsafe { imgui_set_window_focus(crate::dora::from_string(name)); }

@@ -849,7 +849,6 @@ local record ImGui
 
 	BulletItem: function()
 	TextLink: function(label: string): boolean
-	TextLinkOpenURL: function(label: string, url?: string): boolean
 	Button: function(
 		label: string,
 		size?: Vec2 --[[Vec2.zero]]

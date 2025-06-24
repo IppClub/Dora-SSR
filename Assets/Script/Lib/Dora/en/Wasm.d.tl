@@ -2,12 +2,12 @@
 local record Wasm
 	-- Executes the main WASM file (e.g. init.wasm).
 	-- @param filename (string) The name of the main WASM file.
-	executeMainFile: function(filename: string)
+	executeMainFile: function(self: Wasm, filename: string)
 
 	-- Executes the main WASM file (e.g. init.wasm) asynchronously.
 	-- @param filename (string) The name of the main WASM file.
 	-- @return (boolean) Whether the main WASM file was executed successfully.
-	executeMainFileAsync: function(filename: string): boolean
+	executeMainFileAsync: function(self: Wasm, filename: string): boolean
 
 	-- Builds the WASM file (e.g. init.wasm) from a Wa-lang project asynchronously.
 	-- Will trigger a global event 'WaLang' with event type 'Build' when the build is finished.
@@ -32,7 +32,7 @@ local record Wasm
 	-- 		print("Build failed to start")
 	-- 	end
 	-- end)
-	buildWaAsync: function(fullPath: string): boolean
+	buildWaAsync: function(self: Wasm, fullPath: string): boolean
 
 	-- Formats a Wa-lang code file asynchronously.
 	-- Will trigger a global event 'WaLang' with event type 'Format' when the format is finished.
@@ -57,10 +57,10 @@ local record Wasm
 	-- 		print("Formatting failed to start")
 	-- 	end
 	-- end)
-	formatWaAsync: function(fullPath: string): boolean
+	formatWaAsync: function(self: Wasm, fullPath: string): boolean
 
 	-- Clears the running WASM module and stops the runtime.
-	clear: function()
+	clear: function(self: Wasm)
 end
 
 local wasm: Wasm

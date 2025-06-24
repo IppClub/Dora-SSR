@@ -7287,8 +7287,9 @@ export {jsn as json};
  * @param url The URL of the Git repository to pull or clone.
  * @param fullPath The full path where the repository should be cloned.
  * @param depth [optional] The depth of the repository to pull. Defaults to 0 which means all commits.
+ * @returns Whether the Git operation started successfully.
  */
-export function GitPullOrCloneAsync(this: void, url: string, fullPath: string, depth?: number): void;
+export function GitPullOrCloneAsync(this: void, url: string, fullPath: string, depth?: number): boolean;
 
 /**
  * An interface that provides WASM related functions.

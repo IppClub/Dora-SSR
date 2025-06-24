@@ -573,8 +573,7 @@ export buildWaAsync = (projDir) ->
 	close _ = <close>: ->
 		waStatus.building = false
 		waStatus.buildResult = nil
-	success = Wasm\buildWaAsync projDir
-	if success
+	if success := Wasm\buildWaAsync projDir
 		wait -> waStatus.buildResult?
 		return waStatus.buildResult
 	else
@@ -586,8 +585,7 @@ export formatWaAsync = (file) ->
 	close _ = <close>: ->
 		waStatus.formating = false
 		waStatus.formatResult = nil
-	success = Wasm\formatWaAsync file
-	if success
+	if success := Wasm\formatWaAsync file
 		wait -> waStatus.formatResult?
 		return waStatus.formatResult
 	else
@@ -600,8 +598,7 @@ export gitPullOrCloneAsync = (url, file, depth = 0) ->
 		waStatus.pullCloning = false
 		waStatus.pullCloneResult = nil
 		waStatus.pullCloneProgress = ""
-	success = GitPullOrCloneAsync url, file, depth
-	if success
+	if success := GitPullOrCloneAsync url, file, depth
 		wait -> waStatus.pullCloneResult?
 		return waStatus.pullCloneResult
 	else

@@ -22,7 +22,20 @@ return function(schema: string, ...: string): DoraConfig
 		schema == "" and
 		Struct.Config(...) or
 		Struct[schema].Config(...)
-	local tableName = schema == "" and "Config" or schema .. ".Config"
+	local schemaPart, tablePart = string.match(schema, "^(%w*)%.(%w*)$")
+	local tableName: string
+	if schemaPart == nil then
+		tableName = schema == "" and "Config" or schema .. ".Config"
+		schemaPart = ""
+		tablePart = "Config"
+	else
+		if tablePart == "" then tablePart = "Config" end
+		if schemaPart ~= "" then
+			tableName = schemaPart .. '.' .. tablePart
+		else
+			tableName = tablePart
+		end
+	end
 	local conf = Config()
 	local oldValues: {string: any} = {}
 	local insertValues: {string: any} = {}
@@ -96,7 +109,7 @@ return function(schema: string, ...: string): DoraConfig
 	end
 
 	local tableOK = false
-	if DB:exist("Config", schema) then
+	if DB:exist(tablePart, schemaPart) then
 		local ok = DB:query("select name, value_num, value_str, value_bool from " .. tableName .. " limit 0")
 		if ok then
 			tableOK = true

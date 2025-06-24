@@ -1,9 +1,24 @@
 // @preview-file on clear
-import { HttpClient, json, thread, App, Vec2, Path, Content, Node, Texture2D, Job, Cache, Buffer, Director } from 'Dora';
-import { SetCond, WindowFlag } from "ImGui";
+import { HttpClient, json, thread, App, Vec2, Path, Content, Node, Texture2D, Job, Cache, Buffer, Director, GitPullOrCloneAsync } from 'Dora';
+import { SetCond, WindowFlag, TabBarFlag } from "ImGui";
 import * as ImGui from 'ImGui';
+import * as Config from 'Config';
 
-const url = "http://39.155.148.157:8866";
+const DefaultURL = "http://39.155.148.157:8866";
+
+interface ResConfig {
+	url: string;
+}
+
+const url = Buffer(1024);
+const config = Config<ResConfig>(".ResConf", "url");
+config.load();
+
+if (typeof config.url === "string") {
+	url.text = config.url;
+} else {
+	url.text = config.url = DefaultURL;
+}
 
 let zh = false;
 {
@@ -43,8 +58,8 @@ interface RepoInfo {
 		zh: string;
 		en: string;
 	};
+	categories?: string[];
 }
-
 
 const windowsNoScrollFlags = [
 	WindowFlag.NoMove,
@@ -63,6 +78,18 @@ const windowsFlags = [
 	WindowFlag.NoNav,
 	WindowFlag.AlwaysVerticalScrollbar,
 	WindowFlag.NoBringToFrontOnFocus,
+];
+
+const tabBarFlags = [
+	TabBarFlag.FittingPolicyScroll,
+	TabBarFlag.DrawSelectedOverline,
+	TabBarFlag.NoCloseWithMiddleMouseButton,
+	TabBarFlag.TabListPopupButton,
+];
+
+const syncWindowFlags = [
+	WindowFlag.NoResize,
+	WindowFlag.NoMove
 ];
 
 const themeColor = App.themeColor;
@@ -87,6 +114,11 @@ class ResourceDownloader {
 	private isLoading = false;
 	private filterBuf = Buffer(20);
 	private filterText = "";
+	private categories: string[] = [];
+	private headerHeight = 80;
+	private cloneURL = Buffer(1024);
+	private syncing = false;
+	private gitProgress = "";
 
 	constructor() {
 		this.node = Node();
@@ -111,7 +143,7 @@ class ResourceDownloader {
 		this.isLoading = true;
 		thread(() => {
 			let reload = false;
-			const versionResponse = HttpClient.getAsync(`${url}/api/v1/package-list-version`);
+			const versionResponse = HttpClient.getAsync(`${config.url}/api/v1/package-list-version`);
 			const packageListVersionFile = Path(Content.appPath, ".cache", "preview", "package-list-version.json");
 			if (versionResponse) {
 				const [version] = json.load(versionResponse);
@@ -127,6 +159,7 @@ class ResourceDownloader {
 				}
 			}
 			if (reload) {
+				this.categories = [];
 				this.packages = [];
 				this.repos = new Map();
 				this.previewTextures.clear();
@@ -145,7 +178,7 @@ class ResourceDownloader {
 				const [packages] = json.load(Content.load(packagesFile));
 				this.packages = packages as PackageInfo[];
 			} else {
-				const packagesResponse = HttpClient.getAsync(`${url}/api/v1/packages`);
+				const packagesResponse = HttpClient.getAsync(`${config.url}/api/v1/packages`);
 				if (packagesResponse) {
 					// Cache packages data
 					const [packages] = json.load(packagesResponse);
@@ -161,21 +194,31 @@ class ResourceDownloader {
 			}
 
 			// Load repos data
+			const catSet = new Set<string>();
+			const loadRepos = (repos: RepoInfo[]) => {
+				for (let repo of repos) {
+					this.repos.set(repo.name, repo);
+					if (repo.categories) {
+						for (let cat of repo.categories) {
+							catSet.add(cat);
+						}
+					}
+				}
+			};
 			const reposFile = Path(cachePath, "repos.json");
 			if (Content.exist(reposFile)) {
 				const [repos] = json.load(Content.load(reposFile));
-				for (let repo of repos as RepoInfo[]) {
-					this.repos.set(repo.name, repo);
-				}
+				loadRepos(repos as RepoInfo[]);
 			} else {
-				const reposResponse = HttpClient.getAsync(`${url}/assets/repos.json`);
+				const reposResponse = HttpClient.getAsync(`${config.url}/assets/repos.json`);
 				if (reposResponse) {
 					const [repos] = json.load(reposResponse);
-					for (let repo of repos as RepoInfo[]) {
-						this.repos.set(repo.name, repo);
-					}
+					loadRepos(repos as RepoInfo[]);
 					Content.save(reposFile, reposResponse);
 				}
+			}
+			for (let cat of catSet) {
+				this.categories.push(cat);
 			}
 
 			// Load preview images for each package
@@ -202,7 +245,7 @@ class ResourceDownloader {
 			}
 			return;
 		}
-		const imageUrl = `${url}/assets/${name}/banner.jpg`;
+		const imageUrl = `${config.url}/assets/${name}/banner.jpg`;
 		const response = HttpClient.downloadAsync(imageUrl, cacheFile, 10);
 		if (response) {
 			Cache.loadAsync(cacheFile);
@@ -292,8 +335,9 @@ class ResourceDownloader {
 
 	public update() {
 		const {width, height} = App.visualSize;
+		let filterCategory: null | string = null;
 		ImGui.SetNextWindowPos(Vec2.zero, SetCond.Always, Vec2.zero);
-		ImGui.SetNextWindowSize(Vec2(width, 51), SetCond.Always);
+		ImGui.SetNextWindowSize(Vec2(width, this.headerHeight), SetCond.Always);
 		ImGui.PushStyleVar(ImGui.StyleVarVec.WindowPadding, Vec2(10, 0), () => ImGui.Begin("Dora Community Header", windowsNoScrollFlags, () => {
 			ImGui.Dummy(Vec2(0, 0));
 			ImGui.TextColored(themeColor, zh ? "Dora SSR 社区资源" : "Dora SSR Resources");
@@ -311,18 +355,131 @@ class ResourceDownloader {
 				ImGui.SameLine();
 				ImGui.Dummy(Vec2(width - padding, 0));
 				ImGui.SameLine();
-				ImGui.SetNextItemWidth(zh ? -40 : -55);
+				ImGui.SetNextItemWidth((zh ? -40 : -55) - 40);
 				if (ImGui.InputText(zh ? '筛选' : 'Filter', this.filterBuf, [ImGui.InputTextFlag.AutoSelectAll,])) {
 					const [res] = string.match(this.filterBuf.text, "[^%%%.%[]+");
 					this.filterText = (res ?? '').toLowerCase();
 				}
+			} else {
+				ImGui.SameLine();
+				ImGui.Dummy(Vec2(width - (zh ? 250 : 255), 0));
 			}
-			ImGui.Separator();
+			ImGui.SameLine();
+			if (ImGui.CollapsingHeader("###option")) {
+				this.headerHeight = 130;
+				ImGui.SetNextItemWidth(zh ? -200 : -230);
+				if (ImGui.InputText(zh ? "服务器" : "Server", url)) {
+					if (url.text == "") {
+						url.text = DefaultURL;
+					}
+					config.url = url.text;
+				}
+				ImGui.SameLine();
+				if (ImGui.Button(zh ? "刷新" : "Reload")) {
+					const packageListVersionFile = Path(Content.appPath, ".cache", "preview", "package-list-version.json");
+					Content.remove(packageListVersionFile);
+					this.loadData();
+				}
+				ImGui.SameLine();
+				if (ImGui.Button(zh ? "同步仓库" : "Sync Repo")) {
+					ImGui.OpenPopup((zh ? "同步仓库" : "Sync Repo") + "###SyncRepo");
+				}
+				const popupWidth = math.min(500, width * 0.8);
+				ImGui.SetNextWindowSize(Vec2(popupWidth, math.min(400, height * 0.8)));
+				ImGui.SetNextWindowPosCenter(ImGui.SetCond.Always, Vec2(0.5, 0.5));
+				ImGui.BeginPopupModal((zh ? "同步仓库" : "Sync Repo") + "###SyncRepo", syncWindowFlags, () => {
+					ImGui.Dummy(Vec2(0, 0));
+					ImGui.InputText(zh ? "仓库地址" : "Repo URL", this.cloneURL);
+					const cloneURL = this.cloneURL.text;
+					const [trailing] = string.match(cloneURL, "[^/]*$");
+					const [name] = string.gsub(trailing, "%..*$", "");
+					const repoPath = Path(Content.writablePath, "Repo", name);
+					if (this.syncing) {
+						ImGui.BeginDisabled(() => ImGui.Button(zh ? "删除本地仓库" : "Delete Local Repo"));
+					} else if (ImGui.Button(zh ? "删除本地仓库" : "Delete Local Repo")) {
+						if (Content.remove(repoPath)) {
+							const sep = this.gitProgress === "" ? "" : "\r";
+							this.gitProgress += sep + (zh ? "删除成功！" : "Deleted!")
+							Director.postNode.emit("UpdateEntries");
+						}
+					}
+					ImGui.SameLine();
+					if (this.syncing) {
+						ImGui.BeginDisabled(() => ImGui.Button(zh ? "开始同步" : "Start Sync"));
+					} else if (ImGui.Button(zh ? "开始同步" : "Start Sync")) {
+						this.syncing = true;
+						this.gitProgress = "";
+						let depth = 0;
+						if (!Content.exist(repoPath)) {
+							depth = 1;
+						}
+						const node = Node();
+						node.gslot("WaLang", (event, message) => {
+							switch (event) {
+								case "GitPullOrClone":
+									this.syncing = false;
+									node.removeFromParent();
+									const sep = this.gitProgress === "" ? "" : "\r";
+									if (message !== "") {
+										this.gitProgress += sep + message;
+									} else {
+										this.gitProgress += sep + (zh ? "同步成功！" : "Sync done!");
+									}
+									Director.postNode.emit("UpdateEntries");
+									break;
+								case "GitProgress":
+									this.gitProgress += message;
+									break;
+							}
+						});
+						thread(() => {
+							const success = GitPullOrCloneAsync(cloneURL, repoPath, depth);
+							if (!success) {
+								const sep = this.gitProgress === "" ? "" : "\r";
+								this.gitProgress += sep + "Failed to synchronize repo.";
+								this.syncing = false;
+							}
+						})
+					}
+					ImGui.Separator();
+					ImGui.BeginChild("LogArea", Vec2(0, -50), () => {
+						for (let part of this.gitProgress.split("\r")) {
+							ImGui.TextWrapped(part);
+						}
+						if (ImGui.GetScrollY() >= ImGui.GetScrollMaxY()) {
+							ImGui.SetScrollHereY(1.0);
+						}
+					});
+					ImGui.Dummy(Vec2(popupWidth - 80, 0));
+					ImGui.SameLine();
+					if (this.syncing) {
+						ImGui.BeginDisabled(() => ImGui.Button(zh ? "关闭" : "Close"));
+					} else {
+						if (ImGui.Button(zh ? "关闭" : "Close")) {
+							ImGui.CloseCurrentPopup();
+						}
+					}
+				});
+				ImGui.Separator();
+			} else {
+				this.headerHeight = 80;
+			}
+			ImGui.PushStyleVar(ImGui.StyleVarVec.WindowPadding, Vec2(10, 10), () => ImGui.BeginTabBar("categories", tabBarFlags, () => {
+				ImGui.BeginTabItem(zh ? '全部' : 'All', () => {
+					filterCategory = null;
+				});
+				for (let cat of this.categories) {
+					ImGui.BeginTabItem(cat, () => {
+						filterCategory = cat;
+					});
+				}
+			}));
 		}));
+		function matchCat(this: any, cat: string) { return filterCategory === cat; }
 		const maxColumns = math.max(math.floor(width / 320), 1);
 		const itemWidth = (width - 60) / maxColumns - 10;
-		ImGui.SetNextWindowPos(Vec2(0, 51), SetCond.Always, Vec2.zero);
-		ImGui.SetNextWindowSize(Vec2(width, height - 100), SetCond.Always);
+		ImGui.SetNextWindowPos(Vec2(0, this.headerHeight), SetCond.Always, Vec2.zero);
+		ImGui.SetNextWindowSize(Vec2(width, height - this.headerHeight - 50), SetCond.Always);
 		ImGui.PushStyleVar(ImGui.StyleVarNum.Alpha, 1, () => ImGui.PushStyleVar(ImGui.StyleVarVec.WindowPadding, Vec2(20, 10), () => ImGui.Begin("Dora Community Resources", windowsFlags, () => {
 			ImGui.Columns(maxColumns, false);
 
@@ -330,6 +487,12 @@ class ResourceDownloader {
 			for (const pkg of this.packages) {
 				const repo = this.repos.get(pkg.name)
 				if (!repo) continue;
+				if (filterCategory !== null) {
+					if (!repo.categories) continue;
+					if (repo.categories.find(matchCat) === null) {
+						continue;
+					}
+				}
 
 				if (this.filterText !== '') {
 					const [res] = string.match(repo.name.toLowerCase(), this.filterText);

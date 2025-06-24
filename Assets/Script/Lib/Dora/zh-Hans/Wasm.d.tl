@@ -2,12 +2,12 @@
 local record Wasm
 	-- 加载并执行一个主 WASM 模块文件 (例如 init.wasm)。
 	-- @param filename (string) 主 WASM 模块文件的名称。
-	executeMainFile: function(filename: string)
+	executeMainFile: function(self: Wasm, filename: string)
 
 	-- 异步加载并执行一个主 WASM 模块文件 (例如 init.wasm)。
 	-- @param filename (string) 主 WASM 模块文件的名称。
 	-- @return (boolean) 是否成功执行主 WASM 模块文件。
-	executeMainFileAsync: function(filename: string): boolean
+	executeMainFileAsync: function(self: Wasm, filename: string): boolean
 
 	-- 从 Wa-lang 项目异步构建一个 WASM 模块文件 (例如 init.wasm)。
 	-- 构建完成后会触发一个全局的事件 'WaLang'，事件类型为 'Build'。
@@ -32,7 +32,7 @@ local record Wasm
 	-- 		print("Build failed to start")
 	-- 	end
 	-- end)
-	buildWaAsync: function(fullPath: string): boolean
+	buildWaAsync: function(self: Wasm, fullPath: string): boolean
 
 	-- 异步格式化一个 Wa-lang 代码文件。
 	-- 格式化完成后会触发一个全局的事件 'WaLang'，事件类型为 'Format'。
@@ -57,10 +57,10 @@ local record Wasm
 	-- 		print("Formatting failed to start")
 	-- 	end
 	-- end)
-	formatWaAsync: function(fullPath: string): boolean
+	formatWaAsync: function(self: Wasm, fullPath: string): boolean
 
 	-- 清除正在运行的 WASM 模块并停止相关 WASM 运行时。
-	clear: function()
+	clear: function(self: Wasm)
 end
 
 local wasm: Wasm

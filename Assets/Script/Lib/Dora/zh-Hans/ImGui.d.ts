@@ -439,10 +439,10 @@ export function ColorButton(this: void, desc_id: string, col: Color, flags?: Col
 
 export function Columns(this: void, count?: number, border?: boolean, id?: string): void;
 
-export function BeginTable(this: void, str_id: string, column: number, inside: (this: void) => void);
-export function BeginTable(this: void, str_id: string, column: number, outer_size: Vec2, inside: (this: void) => void);
-export function BeginTable(this: void, str_id: string, column: number, outer_size: Vec2, inner_width: number, inside: (this: void) => void);
-export function BeginTable(this: void, str_id: string, column: number, outer_size: Vec2, inner_width: number, flags: TableFlag[], inside: (this: void) => void);
+export function BeginTable(this: void, str_id: string, column: number, inside: (this: void) => void): void;
+export function BeginTable(this: void, str_id: string, column: number, outer_size: Vec2, inside: (this: void) => void): void;
+export function BeginTable(this: void, str_id: string, column: number, outer_size: Vec2, inner_width: number, inside: (this: void) => void): void;
+export function BeginTable(this: void, str_id: string, column: number, outer_size: Vec2, inner_width: number, flags: TableFlag[], inside: (this: void) => void): void;
 export function TableNextRow(this: void, min_row_height?: number, row_flags?: TableRowFlag[]): void;
 export function TableSetupColumn(this: void, label: string, init_width_or_weight?: number, user_id?: number, flags?: TableColumnFlag[]): void;
 
@@ -577,7 +577,6 @@ export function GetID(this: void, str_id: string): number;
 
 export function BulletItem(this: void): void;
 export function TextLink(label: string): boolean;
-export function TextLinkOpenURL(label: string, url?: string): boolean;
 export function Button(this: void, label: string, size?: Vec2): boolean;
 export function SmallButton(this: void, label: string): boolean;
 export function InvisibleButton(this: void, str_id: string, size: Vec2): boolean;

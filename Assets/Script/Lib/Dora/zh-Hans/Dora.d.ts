@@ -7286,8 +7286,9 @@ export {jsn as json};
  * @param url Git 仓库的 URL。
  * @param fullPath 仓库克隆到的完整路径。
  * @param depth [可选] 拉取的深度。默认为 0，表示拉取所有提交。
+ * @returns 是否成功开始执行。
  */
-export function GitPullOrCloneAsync(this: void, url: string, fullPath: string, depth?: number): void;
+export function GitPullOrCloneAsync(this: void, url: string, fullPath: string, depth?: number): boolean;
 
 /**
  * 一个提供 WASM 相关功能的接口。
