@@ -209,7 +209,7 @@ interface CompileResult {
 	result: string
 }
 
-export const compileTS = (file: string, content: string) => {
+const compileTS = (file: string, content: string) => {
 	const data = {name: "TranspileTS", file, content};
 	return new Promise<CompileResult>((resolve) => {
 		const node = DoraNode();

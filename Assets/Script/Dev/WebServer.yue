@@ -965,7 +965,7 @@ HttpServer\postSchedule "/unzip", (req): success: false ->
 		return success: Content\unzipAsync zipFile, path, (file) ->
 			not (file\match('^%.') or file\match("[\\/]%.") or file\match "__MACOSX")
 
-HttpServer\post "/editingInfo", (req) ->
+HttpServer\post "/editing-info", (req) ->
 	import "Script.Dev.Entry"
 	config = Entry.getConfig!
 	switch req when {body: {:editingInfo}}
@@ -990,7 +990,7 @@ HttpServer\post "/command", (req): success: false ->
 		emit "AppCommand", code, log
 		return success: true
 
-HttpServer\post "/saveLog", (): success: false ->
+HttpServer\post "/log/save", (): success: false ->
 	folder = ".download"
 	fullLogFile = "dora_full_logs.txt"
 	fullFolder = Path Content.appPath, folder
@@ -999,7 +999,7 @@ HttpServer\post "/saveLog", (): success: false ->
 	if App\saveLog logPath
 		return success: true, path: Path folder, fullLogFile
 
-HttpServer\post "/checkYarn", (req): success: false ->
+HttpServer\post "/yarn/check", (req): success: false ->
 	import "yarncompile"
 	switch req when {body: {:code}}
 		if jsonObject := json.load code
@@ -1026,7 +1026,7 @@ getWaProjectDirFromFile = (file) ->
 	until false
 	nil
 
-HttpServer\postSchedule "/buildWa", (req) ->
+HttpServer\postSchedule "/wa/build", (req) ->
 	switch req when {body: {:path}}
 		if projDir := getWaProjectDirFromFile path
 			message = Wasm\buildWaAsync projDir
@@ -1038,7 +1038,7 @@ HttpServer\postSchedule "/buildWa", (req) ->
 			return success: false, message: 'Wa file needs a project'
 	success: false, message: 'failed to build'
 
-HttpServer\postSchedule "/formatWa", (req) ->
+HttpServer\postSchedule "/wa/format", (req) ->
 	switch req when {body: {:file}}
 		code = Wasm\formatWaAsync file
 		return if code == ""
@@ -1047,7 +1047,7 @@ HttpServer\postSchedule "/formatWa", (req) ->
 			success: true, :code
 	success: false
 
-HttpServer\postSchedule "/createWa", (req): {success: false, message: "invalid call"} ->
+HttpServer\postSchedule "/wa/create", (req): {success: false, message: "invalid call"} ->
 	switch req when {body: {:path}}
 		unless Content\exist Path\getPath path
 			return success: false, message: "target path not existed"
@@ -1072,6 +1072,39 @@ HttpServer\postSchedule "/createWa", (req): {success: false, message: "invalid c
 			Content\remove path
 			return success: false, message: "failed to copy template"
 		return success: true
+
+HttpServer\postSchedule "/ts/build", (req): success: false ->
+	switch req when {body: {:path}}
+		unless Content\isdir path
+			return {
+				success: false
+				message: "expecting a folder path"
+			}
+		files = Content\getAllFiles path
+		messages = []
+		for f in *files
+			if Path\getExt(f) in ["ts", "tsx"]
+				continue if "d" == Path\getExt Path\getName f
+				file = Path path, f
+				if content := Content\load file
+					done = false
+					with Node!
+						\gslot "AppWS", (eventType, msg) ->
+							if eventType == "Receive"
+								\removeFromParent!
+								if res := json.load msg
+									return if res.success
+										luaFile = Path\replaceExt file, "lua"
+										Content\save luaFile, res.luaCode
+										messages[] = success: true, :file
+									else
+										messages[] = success: false, :file, message: res.message
+								done = true
+					emit "AppWS", "Send", json.dump name: "TranspileTS", :file, :content
+					wait -> done
+				else
+					messages[] = success: false, :file, message: "failed to read file"
+		return success: true, :messages
 
 status = {}
 export default status

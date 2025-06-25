@@ -39,7 +39,6 @@ JNIEnv* GetEnv() {
 		// 当前线程未附加，尝试 attach
 		if (g_VM->AttachCurrentThread(&env, NULL) != 0) {
 			Issue("Failed to attach current thread to JVM");
-			return NULL;
 		}
 	}
 	return env;
@@ -47,10 +46,10 @@ JNIEnv* GetEnv() {
 static const char* WaBuild(char* input) {
 	auto env = GetEnv();
 	jclass cls = env->FindClass("org/ippclub/dorassr/MainActivity");
-	if (!cls) return {};
+	if (!cls) return "failed to build Wa Project due to jni class not found";
 
 	jmethodID mid = env->GetStaticMethodID(cls, "waBuild", "(Ljava/lang/String;)Ljava/lang/String;");
-	if (!mid) return {};
+	if (!mid) return "failed to build Wa Project due to jni method not found";
 
 	jstring jpath = env->NewStringUTF(input);
 	jstring jresult = (jstring)env->CallStaticObjectMethod(cls, mid, jpath);
@@ -69,10 +68,10 @@ static const char* WaBuild(char* input) {
 static const char* WaFormat(char* input) {
 	auto env = GetEnv();
 	jclass cls = env->FindClass("org/ippclub/dorassr/MainActivity");
-	if (!cls) return {};
+	if (!cls) return "";
 
 	jmethodID mid = env->GetStaticMethodID(cls, "waFormat", "(Ljava/lang/String;)Ljava/lang/String;");
-	if (!mid) return {};
+	if (!mid) return "";
 
 	jstring jpath = env->NewStringUTF(input);
 	jstring jresult = (jstring)env->CallStaticObjectMethod(cls, mid, jpath);

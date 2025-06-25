@@ -12,11 +12,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Basic/AutoreleasePool.h"
 #include "Basic/Content.h"
+#include "Basic/Database.h"
 #include "Basic/Director.h"
 #include "Common/Async.h"
 #include "Event/Event.h"
 #include "Input/Controller.h"
-#include "Basic/Database.h"
 
 #include "Other/utf8.h"
 
@@ -198,8 +198,10 @@ bool Application::isFPSLimited() const noexcept {
 }
 
 void Application::setWinSize(Size var) {
-	AssertIf(getPlatform() == "iOS"_slice || getPlatform() == "Android"_slice,
-		"changing window size is not available on {}.", getPlatform().toString());
+	if (getPlatform() == "iOS"_slice || getPlatform() == "Android"_slice) {
+		Error("changing window size is not available on {}.", getPlatform().toString());
+		return;
+	}
 	AssertIf(var.width <= 0 || var.height <= 0,
 		"window size should be larger than zero.");
 	invokeInRender([&, var]() {
@@ -218,8 +220,10 @@ Size Application::getWinSize() const noexcept {
 }
 
 void Application::setWinPosition(const Vec2& var) {
-	AssertIf(getPlatform() == "iOS"_slice || getPlatform() == "Android"_slice,
-		"changing window position is not available on {}.", getPlatform().toString());
+	if (getPlatform() == "iOS"_slice || getPlatform() == "Android"_slice) {
+		Error("changing window position is not available on {}.", getPlatform().toString());
+		return;
+	}
 	if (_winPosition == var) {
 		return;
 	}
@@ -256,8 +260,10 @@ bool Application::isLogicRunning() const noexcept {
 }
 
 void Application::setFullScreen(bool var) {
-	AssertIf(getPlatform() == "iOS"_slice || getPlatform() == "Android"_slice,
-		"changing window full screen mode is not available on {}.", getPlatform().toString());
+	if (getPlatform() == "iOS"_slice || getPlatform() == "Android"_slice) {
+		Error("changing window full screen mode is not available on {}.", getPlatform().toString());
+		return;
+	}
 	if (_fullScreen == var) {
 		return;
 	}
@@ -273,8 +279,10 @@ bool Application::isFullScreen() const noexcept {
 }
 
 void Application::setAlwaysOnTop(bool var) {
-	AssertIf(getPlatform() == "iOS"_slice || getPlatform() == "Android"_slice,
-		"changing window always-on-top mode is not available on {}.", getPlatform().toString());
+	if (getPlatform() == "iOS"_slice || getPlatform() == "Android"_slice) {
+		Error("changing window always-on-top mode is not available on {}.", getPlatform().toString());
+		return;
+	}
 	if (_alwaysOnTop == var) {
 		return;
 	}
@@ -811,7 +819,7 @@ void Application::install(String path) {
 	const int COMMAND_INSTALL = 0x8000;
 	Android_JNI_SendMessage(COMMAND_INSTALL, 0);
 #else
-	Issue("Application.install() is not unsupported on this platform");
+	Error("Application.install() is not unsupported on this platform");
 #endif
 }
 
@@ -830,7 +838,7 @@ void Application::openFileDialog(bool folderOnly, const std::function<void(std::
 		nfdresult_t result = NFD::PickFolder(outPath, nullptr, parentWindow);
 		if (result == NFD_OKAY) {
 			path = outPath.get();
-		} else if (result == NFD_ERROR){
+		} else if (result == NFD_ERROR) {
 			Error("failed to pick a folder due to: {}", NFD::GetError());
 		}
 		invokeInLogic([callback, path]() {
