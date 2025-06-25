@@ -1,6 +1,6 @@
 # Dora SSR TypeScript Development Tool
 
-A Python-based development tool for the Dora SSR game engine that enables TypeScript development with full IntelliSense support and hot-reload capabilities.
+A Python-based development tool for the Dora SSR game engine that enables TypeScript development with full IntelliSense support and hot-reload capabilities in external code editors.
 
 ## Overview
 
