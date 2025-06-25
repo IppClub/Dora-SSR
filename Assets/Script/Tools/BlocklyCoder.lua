@@ -213,7 +213,7 @@ function LLMCode.prototype.post(self, shared, _prepRes, execRes) -- 200
 		return ____awaiter_resolve(nil, nil) -- 202
 	end) -- 202
 end -- 200
-____exports.compileTS = function(file, content) -- 212
+local function compileTS(file, content) -- 212
 	local data = {name = "TranspileTS", file = file, content = content} -- 213
 	return __TS__New( -- 214
 		__TS__Promise, -- 214
@@ -254,7 +254,7 @@ function CompileNode.prototype.exec(self, code) -- 240
 	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 240
 		return ____awaiter_resolve( -- 240
 			nil, -- 240
-			__TS__Await(____exports.compileTS( -- 241
+			__TS__Await(compileTS( -- 241
 				Path( -- 241
 					Content.writablePath, -- 241
 					Path:getPath(outputFile.text), -- 241
@@ -318,7 +318,7 @@ function SaveNode.prototype.exec(self, code) -- 297
 		else -- 301
 			logs[#logs + 1] = "保存代码失败！" .. filename -- 303
 		end -- 303
-		local res = __TS__Await(____exports.compileTS(filename, code)) -- 305
+		local res = __TS__Await(compileTS(filename, code)) -- 305
 		if res.success then -- 305
 			local luaFile = Path:replaceExt(filename, "lua") -- 307
 			if Content:save(luaFile, res.result) then -- 307

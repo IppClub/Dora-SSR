@@ -457,7 +457,7 @@ export interface EditingInfoResponse {
 	editingInfo?: string;
 };
 export const editingInfo = (req?: EditingInfoRequest) => {
-	return post<EditingInfoResponse>("/editingInfo", req ?? {});
+	return post<EditingInfoResponse>("/editing-info", req ?? {});
 };
 
 // Command
@@ -495,7 +495,7 @@ export type SaveLogResponse = {
 	success: false;
 };
 export const saveLog = () => {
-	return post<SaveLogResponse>("/saveLog", {});
+	return post<SaveLogResponse>("/log/save", {});
 };
 
 // checkYarn
@@ -510,7 +510,7 @@ export type CheckYarnResponse = {
 	success: false;
 };
 export const checkYarn = (req: CheckYarnRequest) => {
-	return post<CheckYarnResponse>("/checkYarn", req);
+	return post<CheckYarnResponse>("/yarn/check", req);
 };
 
 // buildWa
@@ -525,7 +525,7 @@ export type BuildWaResponse = {
 	message: string;
 };
 export const buildWa = (req: BuildWaRequest) => {
-	return post<BuildWaResponse>("/buildWa", req);
+	return post<BuildWaResponse>("/wa/build", req);
 };
 
 // formatWa
@@ -540,7 +540,7 @@ export type FormatWaResponse = {
 	success: false;
 };
 export const formatWa = (req: FormatWaRequest) => {
-	return post<FormatWaResponse>("/formatWa", req);
+	return post<FormatWaResponse>("/wa/format", req);
 };
 
 
@@ -556,5 +556,5 @@ export type CreateWaResponse = {
 	message: string;
 };
 export const createWa = (req: CreateWaRequest) => {
-	return post<CreateWaResponse>("/createWa", req);
+	return post<CreateWaResponse>("/wa/create", req);
 };

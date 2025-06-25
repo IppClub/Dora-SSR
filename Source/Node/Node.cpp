@@ -537,7 +537,11 @@ void Node::removeAllChildren(bool cleanup) {
 }
 
 void Node::removeFromParent(bool cleanup) {
-	if (_parent) _parent->removeChild(this, cleanup);
+	if (_parent) {
+		_parent->removeChild(this, cleanup);
+	} else if (cleanup) {
+		this->cleanup();
+	}
 }
 
 void Node::moveToParent(Node* parent) {
@@ -811,7 +815,7 @@ bool Node::update(double deltaTime) {
 		}
 		if (!_updateItem->scheduledThreadFuncs.empty()) {
 			auto funcs = std::move(_updateItem->scheduledThreadFuncs);
-			for (auto it = funcs.begin(); it != funcs.end(); ) {
+			for (auto it = funcs.begin(); it != funcs.end();) {
 				if ((*it)(deltaTime)) {
 					it = funcs.erase(it);
 				} else {
@@ -892,7 +896,7 @@ void Node::render() {
 		if (!_updateItem->renderFuncs->empty()) {
 			double deltaTime = _scheduler->getDeltaTime() * _scheduler->getTimeScale();
 			auto funcs = std::move(*_updateItem->renderFuncs);
-			for (auto it = funcs.begin(); it != funcs.end(); ) {
+			for (auto it = funcs.begin(); it != funcs.end();) {
 				if ((*it)(deltaTime)) {
 					it = funcs.erase(it);
 				} else {
@@ -1458,8 +1462,9 @@ public:
 				winY = winSize.height - winY;
 			}
 			_convertHandler(Vec2{winX, winY});
-		} else
+		} else {
 			_convertHandler(Vec2::zero);
+		}
 		WRef<Node> wref(this);
 		schedule([wref](double deltaTime) {
 			if (wref) wref->removeFromParent();

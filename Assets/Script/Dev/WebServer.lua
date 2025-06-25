@@ -22,6 +22,7 @@ local sleep = Dora.sleep -- 1
 local json = Dora.json -- 1
 local emit = Dora.emit -- 1
 local Wasm = Dora.Wasm -- 1
+local Node = Dora.Node -- 1
 local _module_0 = nil -- 1
 HttpServer:stop() -- 11
 HttpServer.wwwPath = Path(Content.appPath, ".www") -- 13
@@ -2406,7 +2407,7 @@ HttpServer:postSchedule("/unzip", function(req) -- 963
 		success = false -- 963
 	} -- 966
 end) -- 963
-HttpServer:post("/editingInfo", function(req) -- 968
+HttpServer:post("/editing-info", function(req) -- 968
 	local Entry = require("Script.Dev.Entry") -- 969
 	local config = Entry.getConfig() -- 970
 	local _type_0 = type(req) -- 971
@@ -2486,7 +2487,7 @@ HttpServer:post("/command", function(req) -- 988
 		success = false -- 988
 	} -- 991
 end) -- 988
-HttpServer:post("/saveLog", function() -- 993
+HttpServer:post("/log/save", function() -- 993
 	local folder = ".download" -- 994
 	local fullLogFile = "dora_full_logs.txt" -- 995
 	local fullFolder = Path(Content.appPath, folder) -- 996
@@ -2502,7 +2503,7 @@ HttpServer:post("/saveLog", function() -- 993
 		success = false -- 993
 	} -- 1000
 end) -- 993
-HttpServer:post("/checkYarn", function(req) -- 1002
+HttpServer:post("/yarn/check", function(req) -- 1002
 	local yarncompile = require("yarncompile") -- 1003
 	do -- 1004
 		local _type_0 = type(req) -- 1004
@@ -2568,7 +2569,7 @@ getWaProjectDirFromFile = function(file) -- 1013
 	until false -- 1026
 	return nil -- 1027
 end -- 1013
-HttpServer:postSchedule("/buildWa", function(req) -- 1029
+HttpServer:postSchedule("/wa/build", function(req) -- 1029
 	do -- 1030
 		local _type_0 = type(req) -- 1030
 		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 1030
@@ -2609,7 +2610,7 @@ HttpServer:postSchedule("/buildWa", function(req) -- 1029
 		message = 'failed to build' -- 1039
 	} -- 1039
 end) -- 1029
-HttpServer:postSchedule("/formatWa", function(req) -- 1041
+HttpServer:postSchedule("/wa/format", function(req) -- 1041
 	do -- 1042
 		local _type_0 = type(req) -- 1042
 		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 1042
@@ -2641,7 +2642,7 @@ HttpServer:postSchedule("/formatWa", function(req) -- 1041
 		success = false -- 1048
 	} -- 1048
 end) -- 1041
-HttpServer:postSchedule("/createWa", function(req) -- 1050
+HttpServer:postSchedule("/wa/create", function(req) -- 1050
 	do -- 1051
 		local _type_0 = type(req) -- 1051
 		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 1051
@@ -2714,35 +2715,128 @@ HttpServer:postSchedule("/createWa", function(req) -- 1050
 		message = "invalid call" -- 1050
 	} -- 1074
 end) -- 1050
-local status = { } -- 1076
-_module_0 = status -- 1077
-thread(function() -- 1079
-	local doraWeb = Path(Content.assetPath, "www", "index.html") -- 1080
-	local doraReady = Path(Content.appPath, ".www", "dora-ready") -- 1081
-	if Content:exist(doraWeb) then -- 1082
-		local needReload -- 1083
-		if Content:exist(doraReady) then -- 1083
-			needReload = App.version ~= Content:load(doraReady) -- 1084
-		else -- 1085
-			needReload = true -- 1085
-		end -- 1083
-		if needReload then -- 1086
-			Content:remove(Path(Content.appPath, ".www")) -- 1087
-			Content:copyAsync(Path(Content.assetPath, "www"), Path(Content.appPath, ".www")) -- 1088
-			Content:save(doraReady, App.version) -- 1092
-			print("Dora Dora is ready!") -- 1093
-		end -- 1086
-	end -- 1082
-	if HttpServer:start(8866) then -- 1094
-		local localIP = HttpServer.localIP -- 1095
-		if localIP == "" then -- 1096
-			localIP = "localhost" -- 1096
-		end -- 1096
-		status.url = "http://" .. tostring(localIP) .. ":8866" -- 1097
-		return HttpServer:startWS(8868) -- 1098
-	else -- 1100
-		status.url = nil -- 1100
-		return print("8866 Port not available!") -- 1101
-	end -- 1094
-end) -- 1079
-return _module_0 -- 1101
+local _anon_func_3 = function(Path, f) -- 1086
+	local _val_0 = Path:getExt(f) -- 1086
+	return "ts" == _val_0 or "tsx" == _val_0 -- 1086
+end -- 1086
+HttpServer:postSchedule("/ts/build", function(req) -- 1076
+	do -- 1077
+		local _type_0 = type(req) -- 1077
+		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 1077
+		if _tab_0 then -- 1077
+			local path -- 1077
+			do -- 1077
+				local _obj_0 = req.body -- 1077
+				local _type_1 = type(_obj_0) -- 1077
+				if "table" == _type_1 or "userdata" == _type_1 then -- 1077
+					path = _obj_0.path -- 1077
+				end -- 1107
+			end -- 1107
+			if path ~= nil then -- 1077
+				if not Content:isdir(path) then -- 1078
+					return { -- 1080
+						success = false, -- 1080
+						message = "expecting a folder path" -- 1081
+					} -- 1082
+				end -- 1078
+				local files = Content:getAllFiles(path) -- 1083
+				local messages = { } -- 1084
+				for _index_0 = 1, #files do -- 1085
+					local f = files[_index_0] -- 1085
+					if _anon_func_3(Path, f) then -- 1086
+						if "d" == Path:getExt(Path:getName(f)) then -- 1087
+							goto _continue_0 -- 1087
+						end -- 1087
+						local file = Path(path, f) -- 1088
+						local content = Content:load(file) -- 1089
+						if content then -- 1089
+							local done = false -- 1090
+							do -- 1091
+								local _with_0 = Node() -- 1091
+								_with_0:gslot("AppWS", function(eventType, msg) -- 1092
+									if eventType == "Receive" then -- 1093
+										_with_0:removeFromParent() -- 1094
+										do -- 1095
+											local res = json.load(msg) -- 1095
+											if res then -- 1095
+												if res.success then -- 1096
+													local luaFile = Path:replaceExt(file, "lua") -- 1097
+													Content:save(luaFile, res.luaCode) -- 1098
+													messages[#messages + 1] = { -- 1099
+														success = true, -- 1099
+														file = file -- 1099
+													} -- 1099
+												else -- 1101
+													messages[#messages + 1] = { -- 1101
+														success = false, -- 1101
+														file = file, -- 1101
+														message = res.message -- 1101
+													} -- 1101
+												end -- 1096
+											end -- 1095
+										end -- 1095
+										done = true -- 1102
+									end -- 1093
+								end) -- 1092
+							end -- 1091
+							emit("AppWS", "Send", json.dump({ -- 1103
+								name = "TranspileTS", -- 1103
+								file = file, -- 1103
+								content = content -- 1103
+							})) -- 1103
+							wait(function() -- 1104
+								return done -- 1104
+							end) -- 1104
+						else -- 1106
+							messages[#messages + 1] = { -- 1106
+								success = false, -- 1106
+								file = file, -- 1106
+								message = "failed to read file" -- 1106
+							} -- 1106
+						end -- 1089
+					end -- 1086
+					::_continue_0:: -- 1086
+				end -- 1106
+				return { -- 1107
+					success = true, -- 1107
+					messages = messages -- 1107
+				} -- 1107
+			end -- 1077
+		end -- 1107
+	end -- 1107
+	return { -- 1076
+		success = false -- 1076
+	} -- 1107
+end) -- 1076
+local status = { } -- 1109
+_module_0 = status -- 1110
+thread(function() -- 1112
+	local doraWeb = Path(Content.assetPath, "www", "index.html") -- 1113
+	local doraReady = Path(Content.appPath, ".www", "dora-ready") -- 1114
+	if Content:exist(doraWeb) then -- 1115
+		local needReload -- 1116
+		if Content:exist(doraReady) then -- 1116
+			needReload = App.version ~= Content:load(doraReady) -- 1117
+		else -- 1118
+			needReload = true -- 1118
+		end -- 1116
+		if needReload then -- 1119
+			Content:remove(Path(Content.appPath, ".www")) -- 1120
+			Content:copyAsync(Path(Content.assetPath, "www"), Path(Content.appPath, ".www")) -- 1121
+			Content:save(doraReady, App.version) -- 1125
+			print("Dora Dora is ready!") -- 1126
+		end -- 1119
+	end -- 1115
+	if HttpServer:start(8866) then -- 1127
+		local localIP = HttpServer.localIP -- 1128
+		if localIP == "" then -- 1129
+			localIP = "localhost" -- 1129
+		end -- 1129
+		status.url = "http://" .. tostring(localIP) .. ":8866" -- 1130
+		return HttpServer:startWS(8868) -- 1131
+	else -- 1133
+		status.url = nil -- 1133
+		return print("8866 Port not available!") -- 1134
+	end -- 1127
+end) -- 1112
+return _module_0 -- 1134
