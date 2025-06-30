@@ -7028,6 +7028,7 @@ export const enum TypeName {
 	VGNode = "VGNode",
 	AlignNode = "AlignNode",
 	EffekNode = "EffekNode",
+	TileNode = "TileNode",
 }
 
 export interface TypeMap {
@@ -7078,6 +7079,7 @@ export interface TypeMap {
 	[TypeName.VGNode]: VGNode;
 	[TypeName.AlignNode]: AlignNode;
 	[TypeName.EffekNode]: EffekNode;
+	[TypeName.TileNode]: TileNode;
 }
 
 /**
