@@ -533,6 +533,12 @@ void Matrix::toFrustum(Frustum& result, const Matrix& matrix) {
 	}
 }
 
+void Matrix::transpose(Matrix& result, const Matrix& matrix) {
+	ktm::fmat4x4& output = r_cast<ktm::fmat4x4&>(result);
+	auto mat = r_cast<const ktm::fmat4x4&>(matrix);
+	output = ktm::transpose(mat);
+}
+
 bool Frustum::intersect(const AABB& aabb) const {
 	for (const auto& plane : planes) {
 		auto p = aabb.min;

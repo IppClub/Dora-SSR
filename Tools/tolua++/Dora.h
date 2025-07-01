@@ -335,6 +335,7 @@ class Node : public Object
 	tolua_property__common float angleY;
 	tolua_property__common float scaleX;
 	tolua_property__common float scaleY;
+	tolua_property__common float scaleZ;
 	tolua_property__common float x;
 	tolua_property__common float y;
 	tolua_property__common float z;

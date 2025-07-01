@@ -118,9 +118,9 @@ static void MtoM44(const Matrix& m, Effekseer::Matrix44& m44) {
 	}
 }
 
-static void m44to43(const Matrix& m44, Effekseer::Matrix43& m43) {
+static void MtoM43(const Matrix& m, Effekseer::Matrix43& m43) {
 	for (int i = 0; i < 4; ++i) {
-		std::memcpy(m43.Value[i], &m44.m[i * 4], sizeof(m44.m[0]) * 3);
+		std::memcpy(m43.Value[i], &m.m[i * 4], sizeof(m.m[0]) * 3);
 	}
 }
 
@@ -184,7 +184,7 @@ void EffekNode::render() {
 	renderer->SetCameraMatrix(matrix);
 
 	Effekseer::Matrix43 mat43;
-	m44to43(getWorld(), mat43);
+	MtoM43(getWorld(), mat43);
 
 	Effekseer::Manager::DrawParameter drawParameter;
 	drawParameter.ZNear = SharedView.getNearPlaneDistance();

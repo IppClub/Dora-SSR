@@ -42,6 +42,9 @@ local record Node
 	-- 节点的 Y 轴缩放系数。
 	scaleY: number
 
+	-- 节点的 Z 轴缩放系数。
+	scaleZ: number
+
 	-- 节点的 X 轴位置。
 	x: number
 
