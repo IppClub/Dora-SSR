@@ -299,7 +299,7 @@ float Body::getVelocityY() const {
 	return PhysicsWorld::Val(pd::GetVelocity(world, _prBody).linear[1]);
 }
 
-void Body::setPosition(const Vec2& var) {
+void Body::setPosition(Vec2 var) {
 	if (var != Node::getPosition()) {
 		AssertUnless(_pWorld && _pWorld->getPrWorld() && pr::IsValid(_prBody), "got invalid physics state.");
 		Node::setPosition(var);

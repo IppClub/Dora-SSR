@@ -86,7 +86,7 @@ void DrawNode::render() {
 			return a.pos.y < b.pos.y;
 		});
 		AABB aabb;
-		Matrix::mulAABB(aabb, _world, {
+		Matrix::mulAABB(aabb, getWorld(), {
 										  {minX->pos.x, minY->pos.y, 0},
 										  {maxX->pos.x, maxY->pos.y, 0},
 									  });
@@ -112,7 +112,7 @@ void DrawNode::render() {
 	if (_flags.isOn(DrawNode::VertexPosDirty)) {
 		_flags.setOff(DrawNode::VertexPosDirty);
 		Matrix transform;
-		Matrix::mulMtx(transform, SharedDirector.getViewProjection(), _world);
+		Matrix::mulMtx(transform, SharedDirector.getViewProjection(), getWorld());
 		for (size_t i = 0; i < _vertices.size(); i++) {
 			Matrix::mulVec4(&_vertices[i].x, transform, _posColors[i].pos);
 		}
@@ -567,7 +567,7 @@ void Line::render() {
 			return a.pos.y < b.pos.y;
 		});
 		AABB aabb;
-		Matrix::mulAABB(aabb, _world, {
+		Matrix::mulAABB(aabb, getWorld(), {
 										  {minX->pos.x, minY->pos.y, 0},
 										  {maxX->pos.x, maxY->pos.y, 0},
 									  });
@@ -597,7 +597,7 @@ void Line::render() {
 	if (_flags.isOn(Line::VertexPosDirty)) {
 		_flags.setOff(Line::VertexPosDirty);
 		Matrix transform;
-		Matrix::mulMtx(transform, SharedDirector.getViewProjection(), _world);
+		Matrix::mulMtx(transform, SharedDirector.getViewProjection(), getWorld());
 		for (size_t i = 0; i < _vertices.size(); i++) {
 			Matrix::mulVec4(&_vertices[i].x, transform, _posColors[i].pos);
 		}

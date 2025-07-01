@@ -1006,7 +1006,7 @@ void Label::render() {
 			maxY = std::max(maxY, quadPos.rt.y);
 		}
 		AABB aabb;
-		Matrix::mulAABB(aabb, _world, {
+		Matrix::mulAABB(aabb, getWorld(), {
 										  {minX, minY, 0},
 										  {maxX, maxY, 0},
 									  });
@@ -1018,7 +1018,7 @@ void Label::render() {
 	if (_flags.isOn(Label::VertexPosDirty)) {
 		_flags.setOff(Label::VertexPosDirty);
 		Matrix transform;
-		Matrix::mulMtx(transform, SharedDirector.getViewProjection(), _world);
+		Matrix::mulMtx(transform, SharedDirector.getViewProjection(), getWorld());
 		for (size_t i = 0; i < _quadPos.size(); i++) {
 			SpriteQuad& quad = _quads[i];
 			SpriteQuad::Position& quadPos = _quadPos[i];

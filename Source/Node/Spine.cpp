@@ -201,7 +201,7 @@ const std::string& Spine::getLastCompleted() const {
 	return _lastCompletedAnimationName;
 }
 
-Vec2 Spine::getKeyPoint(String name) const {
+Vec2 Spine::getKeyPoint(String name) {
 	auto tokens = name.split("/"_slice);
 	if (tokens.size() == 1) {
 		auto slotName = spine::String{name.begin(), name.size(), false, false};
@@ -340,7 +340,7 @@ bool Spine::update(double deltaTime) {
 
 void Spine::render() {
 	Matrix transform;
-	Matrix::mulMtx(transform, SharedDirector.getViewProjection(), _world);
+	Matrix::mulMtx(transform, SharedDirector.getViewProjection(), getWorld());
 	SharedRendererManager.setCurrent(SharedSpriteRenderer.getTarget());
 
 	if (isShowDebug()) {
@@ -417,7 +417,7 @@ void Spine::render() {
 						std::tie(minY, maxY) = std::minmax({minY, maxY, verts[l + 1]});
 					}
 					AABB aabb;
-					Matrix::mulAABB(aabb, _world, {
+					Matrix::mulAABB(aabb, getWorld(), {
 													  {minX, minY, 0},
 													  {maxX, maxY, 0},
 												  });
@@ -450,7 +450,7 @@ void Spine::render() {
 						return a.y < b.y;
 					});
 					AABB aabb;
-					Matrix::mulAABB(aabb, _world, {
+					Matrix::mulAABB(aabb, getWorld(), {
 													  {minX->x, minY->y, 0},
 													  {maxX->x, maxY->y, 0},
 												  });
@@ -499,7 +499,7 @@ void Spine::render() {
 						std::tie(minY, maxY) = std::minmax({minY, maxY, verts[l + 1]});
 					}
 					AABB aabb;
-					Matrix::mulAABB(aabb, _world, {
+					Matrix::mulAABB(aabb, getWorld(), {
 													  {minX, minY, 0},
 													  {maxX, maxY, 0},
 												  });
@@ -532,7 +532,7 @@ void Spine::render() {
 						return a.y < b.y;
 					});
 					AABB aabb;
-					Matrix::mulAABB(aabb, _world, {
+					Matrix::mulAABB(aabb, getWorld(), {
 													  {minX->x, minY->y, 0},
 													  {maxX->x, maxY->y, 0},
 												  });
