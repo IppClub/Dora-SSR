@@ -416,7 +416,7 @@ const std::string& Model::getLastCompleted() const {
 	return _lastCompletedAnimationName;
 }
 
-Vec2 Model::getKeyPoint(String name) const {
+Vec2 Model::getKeyPoint(String name) {
 	auto& keyPoints = _modelDef->getKeyPoints();
 	auto it = keyPoints.find(name);
 	if (it != keyPoints.end()) {
@@ -424,11 +424,11 @@ Vec2 Model::getKeyPoint(String name) const {
 		if (isFliped()) {
 			keyPoint.x = -keyPoint.x;
 		}
-		return keyPoint * Vec2{_scaleX, _scaleY};
+		return keyPoint * Vec2{getScaleX(), getScaleY()};
 	}
 	if (auto node = getNodeByName(name)) {
 		auto target = node->convertToWorldSpace(Vec2::zero);
-		Vec3 origin = Vec3::from(bx::mul(bx::Vec3{0.0f, 0.0f, 0.0f}, _world.m));
+		Vec3 origin = Vec3::from(bx::mul(bx::Vec3{0.0f, 0.0f, 0.0f}, getWorld().m));
 		return target - origin.toVec2();
 	}
 	return Vec2::zero;

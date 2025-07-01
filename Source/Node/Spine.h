@@ -33,7 +33,7 @@ public:
 	virtual void setLook(String var) override;
 	virtual const std::string& getCurrent() const override;
 	virtual const std::string& getLastCompleted() const override;
-	virtual Vec2 getKeyPoint(String name) const override;
+	virtual Vec2 getKeyPoint(String name) override;
 	virtual float play(String name, bool loop = false) override;
 	virtual void stop() override;
 	virtual void setSlot(String name, Node* item) override;

@@ -30,29 +30,48 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DORA_BEGIN
 
+#define GetTAttr(name) (_transform ? _transform->name : Node::NodeTransform::Default.name)
+#define SetTAttr(name, value) getTransform().name = value
+
+Node::NodeTransform::NodeTransform()
+	: x(0.0f)
+	, y(0.0f)
+	, z(0.0f)
+	, angle(0.0f)
+	, angleX(0.0f)
+	, angleY(0.0f)
+	, scaleX(1.0f)
+	, scaleY(1.0f)
+	, skewX(0.0f)
+	, skewY(0.0f)
+	, anchorX(0.5f)
+	, anchorY(0.5f)
+	, anchorPointX(0.0f)
+	, anchorPointY(0.0f)
+	, width(0.0f)
+	, height(0.0f)
+	, transform(AffineTransform::Indentity) {
+	bx::mtxIdentity(world.m);
+}
+
+Node::NodeTransform& Node::getTransform() {
+	if (!_transform) {
+		_transform = New<NodeTransform>();
+	}
+	return *_transform;
+}
+
+Node::NodeTransform Node::NodeTransform::Default;
+
 Node::Node(bool unManaged)
 	: _flags(
 		  Node::Visible | Node::SelfVisible | Node::ChildrenVisible | Node::PassOpacity | Node::PassColor3 | Node::TraverseEnabled)
 	, _order(0)
 	, _renderOrder(0)
 	, _color()
-	, _angle(0.0f)
-	, _angleX(0.0f)
-	, _angleY(0.0f)
-	, _scaleX(1.0f)
-	, _scaleY(1.0f)
-	, _skewX(0.0f)
-	, _skewY(0.0f)
-	, _positionZ(0.0f)
-	, _position{}
-	, _anchor{0.5f, 0.5f}
-	, _anchorPoint{}
-	, _size{}
-	, _transform(AffineTransform::Indentity)
 	, _scheduler(SharedDirector.getScheduler())
 	, _parent(nullptr)
 	, _touchHandler(nullptr) {
-	bx::mtxIdentity(_world.m);
 	if (unManaged) {
 		_flags.setOn(Node::UnManaged);
 		SharedDirector.addUnManagedNode(this);
@@ -75,100 +94,103 @@ int Node::getOrder() const noexcept {
 }
 
 void Node::setAngle(float var) {
-	_angle = var;
+	SetTAttr(angle, var);
 	markDirty();
 }
 
 float Node::getAngle() const noexcept {
-	return _angle;
+	return GetTAttr(angle);
 }
 
 void Node::setAngleX(float var) {
-	_angleX = var;
+	SetTAttr(angleX, var);
 	markDirty();
 }
 
 float Node::getAngleX() const noexcept {
-	return _angleX;
+	return GetTAttr(angleX);
 }
 
 void Node::setAngleY(float var) {
-	_angleY = var;
+	SetTAttr(angleY, var);
 	markDirty();
 }
 
 float Node::getAngleY() const noexcept {
-	return _angleY;
+	return GetTAttr(angleY);
 }
 
 void Node::setScaleX(float var) {
-	_scaleX = var;
+	SetTAttr(scaleX, var);
 	markDirty();
 }
 
 float Node::getScaleX() const noexcept {
-	return _scaleX;
+	return GetTAttr(scaleX);
 }
 
 void Node::setScaleY(float var) {
-	_scaleY = var;
+	SetTAttr(scaleY, var);
 	markDirty();
 }
 
 float Node::getScaleY() const noexcept {
-	return _scaleY;
+	return GetTAttr(scaleY);
 }
 
 void Node::setX(float var) {
-	setPosition({var, _position.y});
+	setPosition({var, getY()});
 }
 
 float Node::getX() const noexcept {
-	return _position.x;
+	return GetTAttr(x);
 }
 
 void Node::setY(float var) {
-	setPosition({_position.x, var});
+	setPosition({getX(), var});
 }
 
 float Node::getY() const noexcept {
-	return _position.y;
+	return GetTAttr(y);
 }
 
 void Node::setZ(float var) {
-	_positionZ = var;
+	SetTAttr(z, var);
 	markDirty();
 }
 
 float Node::getZ() const noexcept {
-	return _positionZ;
+	return GetTAttr(z);
 }
 
-void Node::setPosition(const Vec2& var) {
-	_position = var;
+void Node::setPosition(Vec2 var) {
+	auto& transform = getTransform();
+	transform.x = var.x;
+	transform.y = var.y;
 	markDirty();
 }
 
-const Vec2& Node::getPosition() const noexcept {
-	return _position;
+Vec2 Node::getPosition() const noexcept {
+	if (_transform) return {_transform->x, _transform->y};
+	return Vec2::zero;
 }
 
 void Node::setSkewX(float var) {
-	_skewX = var;
+	SetTAttr(skewX, var);
 	markDirty();
 }
 
 float Node::getSkewX() const noexcept {
-	return _skewX;
+	return GetTAttr(skewX);
 }
 
 void Node::setSkewY(float var) {
-	_skewY = var;
+	SetTAttr(skewY, var);
 	markDirty();
 }
 
 float Node::getSkewY() const noexcept {
-	return _skewY;
+	return GetTAttr(skewY);
 }
 
 void Node::setVisible(bool var) {
@@ -195,56 +217,68 @@ bool Node::isChildrenVisible() const noexcept {
 	return _flags.isOn(Node::ChildrenVisible);
 }
 
-void Node::setAnchor(const Vec2& var) {
-	_anchor = var;
-	_anchorPoint = _anchor * _size;
+void Node::setAnchor(Vec2 var) {
+	auto& transform = getTransform();
+	transform.anchorX = var.x;
+	transform.anchorY = var.y;
+	transform.anchorPointX = var.x * transform.width;
+	transform.anchorPointY = var.y * transform.height;
 	markDirty();
 }
 
-const Vec2& Node::getAnchor() const noexcept {
-	return _anchor;
+Vec2 Node::getAnchor() const noexcept {
+	if (_transform) return {_transform->anchorX, _transform->anchorY};
+	return {0.5f, 0.5f};
 }
 
-const Vec2& Node::getAnchorPoint() const noexcept {
-	return _anchorPoint;
+Vec2 Node::getAnchorPoint() const noexcept {
+	if (_transform) return {_transform->anchorPointX, _transform->anchorPointY};
+	return Vec2::zero;
 }
 
 void Node::setWidth(float var) {
-	_size.width = var;
-	_anchorPoint.x = _anchor.x * var;
+	auto& transform = getTransform();
+	transform.width = var;
+	transform.anchorPointX = transform.anchorX * var;
 	markDirty();
 }
 
 float Node::getWidth() const noexcept {
-	return _size.width;
+	return GetTAttr(width);
 }
 
 void Node::setHeight(float var) {
-	_size.height = var;
-	_anchorPoint.y = _anchor.y * var;
+	auto& transform = getTransform();
+	transform.height = var;
+	transform.anchorPointY = transform.anchorY * var;
 	markDirty();
 }
 
 float Node::getHeight() const noexcept {
-	return _size.height;
+	return GetTAttr(height);
 }
 
-void Node::setSize(const Size& var) {
-	_size = var;
-	_anchorPoint = _anchor * _size;
+void Node::setSize(Size var) {
+	auto& transform = getTransform();
+	transform.width = var.width;
+	transform.height = var.height;
+	transform.anchorPointX = transform.anchorX * var.width;
+	transform.anchorPointY = transform.anchorY * var.height;
 	markDirty();
 }
 
-const Size& Node::getSize() const noexcept {
-	return _size;
+Size Node::getSize() const noexcept {
+	return _transform ? Size{_transform->width, _transform->height} : Size::zero;
 }
 
 void Node::setTag(String tag) {
-	_tag = tag.toString();
+	if (!tag.empty()) {
+		_tag = tag.toString();
+	}
 }
 
 const std::string& Node::getTag() const noexcept {
-	return _tag;
+	return _tag ? _tag.value() : Slice::Empty;
 }
 
 void Node::setOpacity(float var) {
@@ -302,12 +336,12 @@ bool Node::isPassColor3() const noexcept {
 }
 
 void Node::setTransformTarget(Node* var) {
-	_transformTarget = var;
+	SetTAttr(transformTarget, var);
 	_flags.setOn(Node::WorldDirty);
 }
 
 Node* Node::getTransformTarget() const noexcept {
-	return _transformTarget;
+	return GetTAttr(transformTarget);
 }
 
 void Node::setScheduler(Scheduler* var) {
@@ -346,7 +380,10 @@ Node* Node::getParent() const noexcept {
 }
 
 Node* Node::getTargetParent() const noexcept {
-	return _transformTarget ? _transformTarget : _parent;
+	if (_transform && _transform->transformTarget) {
+		return _transform->transformTarget;
+	}
+	return _parent;
 }
 
 void Node::setRenderOrder(int var) {
@@ -911,19 +948,21 @@ void Node::render() {
 	}
 	if (isShowDebug()) {
 		Matrix transform;
-		Matrix::mulMtx(transform, SharedDirector.getViewProjection(), _world);
+		Matrix::mulMtx(transform, SharedDirector.getViewProjection(), getWorld());
 		float w = getWidth();
 		float h = getHeight();
 		const float anchorSize = 20.0f;
+		float anchorPointX = GetTAttr(anchorPointX);
+		float anchorPointY = GetTAttr(anchorPointY);
 		Vec4 positions[] = {
 			{0, h, 0, 1.0f},
 			{w, h, 0, 1.0f},
 			{w, 0, 0, 1.0f},
 			{0, 0, 0, 1.0f},
-			{_anchorPoint.x - anchorSize, _anchorPoint.y, 0, 1.0f},
-			{_anchorPoint.x + anchorSize, _anchorPoint.y, 0, 1.0f},
-			{_anchorPoint.x, _anchorPoint.y - anchorSize, 0, 1.0f},
-			{_anchorPoint.x, _anchorPoint.y + anchorSize, 0, 1.0f}};
+			{anchorPointX - anchorSize, anchorPointY, 0, 1.0f},
+			{anchorPointX + anchorSize, anchorPointY, 0, 1.0f},
+			{anchorPointX, anchorPointY - anchorSize, 0, 1.0f},
+			{anchorPointX, anchorPointY + anchorSize, 0, 1.0f}};
 		auto color = getColor().toABGR();
 		auto themeColor = SharedApplication.getThemeColor();
 		themeColor.setOpacity(getRealOpacity());
@@ -950,73 +989,80 @@ void Node::render() {
 }
 
 const AffineTransform& Node::getLocalTransform() {
+	if (!_transform) return AffineTransform::Indentity;
+	auto& t = *_transform;
 	if (_flags.isOn(Node::TransformDirty)) {
 		/* cos(rotateZ), sin(rotateZ) */
 		float c = 1, s = 0;
-		if (_angle) {
-			float radians = -bx::toRad(_angle);
+		if (t.angle) {
+			float radians = -bx::toRad(t.angle);
 			c = bx::cos(radians);
 			s = bx::sin(radians);
 		}
 
-		if (_skewX || _skewY) {
+		if (t.skewX || t.skewY) {
 			/* skewXY */
-			_transform = {
-				1.0f, bx::tan(bx::toRad(_skewY)),
-				bx::tan(bx::toRad(_skewX)), 1.0f,
+			t.transform = {
+				1.0f, bx::tan(bx::toRad(t.skewY)),
+				bx::tan(bx::toRad(t.skewX)), 1.0f,
 				0.0f, 0.0f};
 
 			/* scaleXY, rotateZ, translateXY */
-			_transform.concat({c * _scaleX, s * _scaleX, -s * _scaleY, c * _scaleY, _position.x, _position.y});
+			t.transform.concat({c * t.scaleX, s * t.scaleX, -s * t.scaleY, c * t.scaleY, t.x, t.y});
 		} else {
 			/* scaleXY, rotateZ, translateXY */
-			_transform = {c * _scaleX, s * _scaleX, -s * _scaleY, c * _scaleY, _position.x, _position.y};
+			t.transform = {c * t.scaleX, s * t.scaleX, -s * t.scaleY, c * t.scaleY, t.x, t.y};
 		}
 
 		/* translateAnchorXY */
-		if (_anchorPoint != Vec2::zero) {
-			_transform.translate(-_anchorPoint.x, -_anchorPoint.y);
+		if (t.anchorPointX != 0.0f || t.anchorPointY != 0.0f) {
+			t.transform.translate(-t.anchorPointX, -t.anchorPointY);
 		}
 
 		_flags.setOff(Node::TransformDirty);
 	}
-	return _transform;
+	return t.transform;
 }
 
 void Node::getLocalWorld(Matrix& localWorld) {
-	if (_angleX || _angleY) {
+	if (!_transform) {
+		localWorld = Matrix::Indentity;
+		return;
+	}
+	auto& t = *_transform;
+	if (t.angleX || t.angleY) {
 		/* translateXY, scaleXY, rotateZ, translateAnchorXY */
-		if (_anchorPoint != Vec2::zero) {
-			AffineTransform transform = getLocalTransform();
+		if (t.anchorPointX != 0.0f || t.anchorPointY != 0.0f) {
 			Matrix mtxRoted;
 			{
 				/* -translateAnchorXY */
 				Matrix mtxBase;
-				transform.translate(_anchorPoint.x, _anchorPoint.y).toMatrix(mtxBase);
+				AffineTransform localTransform = getLocalTransform();
+				localTransform.translate(t.anchorPointX, t.anchorPointY).toMatrix(mtxBase);
 
 				/* translateZ */
-				mtxBase.m[14] = _positionZ;
+				mtxBase.m[14] = t.z;
 
 				/* rotateXY */
 				Matrix mtxRot;
-				bx::mtxRotateXY(mtxRot.m, -bx::toRad(_angleX), -bx::toRad(_angleY));
+				bx::mtxRotateXY(mtxRot.m, -bx::toRad(t.angleX), -bx::toRad(t.angleY));
 				Matrix::mulMtx(mtxRoted, mtxBase, mtxRot);
 			}
 
 			/* translateAnchorXY */
 			Matrix mtxAnchor;
-			bx::mtxTranslate(mtxAnchor.m, -_anchorPoint.x, -_anchorPoint.y, 0.0f);
+			bx::mtxTranslate(mtxAnchor.m, -t.anchorPointX, -t.anchorPointY, 0.0f);
 			Matrix::mulMtx(localWorld, mtxRoted, mtxAnchor);
 		} else {
 			Matrix mtxBase;
 			getLocalTransform().toMatrix(mtxBase);
 
 			/* translateZ */
-			mtxBase.m[14] = _positionZ;
+			mtxBase.m[14] = t.z;
 
 			/* rotateXY */
 			Matrix mtxRot;
-			bx::mtxRotateXY(mtxRot.m, -bx::toRad(_angleX), -bx::toRad(_angleY));
+			bx::mtxRotateXY(mtxRot.m, -bx::toRad(t.angleX), -bx::toRad(t.angleY));
 			Matrix::mulMtx(localWorld, mtxBase, mtxRot);
 		}
 	} else {
@@ -1024,33 +1070,46 @@ void Node::getLocalWorld(Matrix& localWorld) {
 		getLocalTransform().toMatrix(localWorld);
 
 		/* translateZ */
-		localWorld.m[14] = _positionZ;
+		localWorld.m[14] = t.z;
 	}
 }
 
 const Matrix& Node::getWorld() {
+	Node* parent = getTargetParent();
+	if (!_transform) {
+		if (_flags.isOn(Node::WorldDirty)) {
+			_flags.setOff(Node::WorldDirty);
+			ARRAY_START(Node, child, _children) {
+				child->_flags.setOn(Node::WorldDirty);
+			}
+			ARRAY_END
+		}
+		return parent ? parent->getWorld() : Matrix::Indentity;
+	}
+	auto& t = getTransform();
 	if (_flags.isOn(Node::WorldDirty)) {
 		_flags.setOff(WorldDirty);
 		const Matrix* parentWorld = &Matrix::Indentity;
-		if (_transformTarget) {
-			parentWorld = &_transformTarget->getWorld();
+		Node* transformTarget = t.transformTarget;
+		if (transformTarget) {
+			parentWorld = &transformTarget->getWorld();
 			_flags.setOn(Node::WorldDirty);
 		} else if (_parent) {
 			parentWorld = &_parent->getWorld();
 		}
 		if (_flags.isOn(Node::IgnoreLocalTransform)) {
-			_world = *parentWorld;
+			t.world = *parentWorld;
 		} else {
 			Matrix localWorld;
 			getLocalWorld(localWorld);
-			Matrix::mulMtx(_world, *parentWorld, localWorld);
+			Matrix::mulMtx(t.world, *parentWorld, localWorld);
 		}
 		ARRAY_START(Node, child, _children) {
 			child->_flags.setOn(Node::WorldDirty);
 		}
 		ARRAY_END
 	}
-	return _world;
+	return t.world;
 }
 
 void Node::emit(Event* event) {
@@ -1656,9 +1715,11 @@ void Node::Grabber::cleanup() {
 }
 
 Node::Grabber* Node::grab(bool enabled) {
-	AssertIf(_size.width <= 0.0f || _size.height <= 0.0f, "can not grab a invalid sized node.");
+	float width = GetTAttr(width);
+	float height = GetTAttr(height);
+	AssertIf(width <= 0.0f || height <= 0.0f, "can not grab a invalid sized node.");
 	if (enabled) {
-		if (!_grabber) _grabber = Grabber::create(_size, 1, 1);
+		if (!_grabber) _grabber = Grabber::create(Size{width, height}, 1, 1);
 		return _grabber;
 	}
 	if (_grabber) {
@@ -1669,12 +1730,14 @@ Node::Grabber* Node::grab(bool enabled) {
 }
 
 Node::Grabber* Node::grab(uint32_t gridX, uint32_t gridY) {
-	AssertIf(_size.width <= 0.0f || _size.height <= 0.0f, "can not grab a invalid sized node.");
+	float width = GetTAttr(width);
+	float height = GetTAttr(height);
+	AssertIf(width <= 0.0f || height <= 0.0f, "can not grab a invalid sized node.");
 	if (!_grabber) {
-		_grabber = Grabber::create(_size, gridX, gridY);
+		_grabber = Grabber::create(Size{width, height}, gridX, gridY);
 	} else if (_grabber->getGridX() != gridX || _grabber->getGridY() != gridY) {
 		_grabber->cleanup();
-		_grabber = Grabber::create(_size, gridX, gridY);
+		_grabber = Grabber::create(Size{width, height}, gridX, gridY);
 	}
 	return _grabber;
 }

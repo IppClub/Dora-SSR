@@ -218,7 +218,7 @@ void Grid::render() {
 			return a.position.y < b.position.y;
 		});
 		AABB aabb;
-		Matrix::mulAABB(aabb, _world, {
+		Matrix::mulAABB(aabb, getWorld(), {
 										  {minX->position.x, minY->position.y, 0},
 										  {maxX->position.x, maxY->position.y, 0},
 									  });
@@ -244,7 +244,7 @@ void Grid::render() {
 	if (_flags.isOn(Grid::VertexPosDirty)) {
 		_flags.setOff(Grid::VertexPosDirty);
 		Matrix transform;
-		Matrix::mulMtx(transform, SharedDirector.getViewProjection(), _world);
+		Matrix::mulMtx(transform, SharedDirector.getViewProjection(), getWorld());
 		for (size_t i = 0; i < _points.size(); i++) {
 			Matrix::mulVec4(&_vertices[i].x, transform, _points[i].position);
 		}

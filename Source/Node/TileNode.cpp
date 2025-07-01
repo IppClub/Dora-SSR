@@ -391,7 +391,7 @@ void TileNode::render() {
 				maxY = std::max(maxY, quadPos.rt.y);
 			}
 			AABB aabb;
-			Matrix::mulAABB(aabb, _world, {
+			Matrix::mulAABB(aabb, getWorld(), {
 											  {minX, minY, 0},
 											  {maxX, maxY, 0},
 										  });
@@ -417,7 +417,7 @@ void TileNode::render() {
 			tileQuad->vertexPosDirty = false;
 			if (!transformInit) {
 				transformInit = true;
-				Matrix::mulMtx(transform, SharedDirector.getViewProjection(), _world);
+				Matrix::mulMtx(transform, SharedDirector.getViewProjection(), getWorld());
 			}
 			for (auto i = 0u; i < tileQuad->quads.size(); ++i) {
 				auto& quad = tileQuad->quads[i];

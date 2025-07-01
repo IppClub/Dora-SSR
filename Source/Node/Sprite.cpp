@@ -217,8 +217,8 @@ void Sprite::updateVertTexCoord() {
 }
 
 void Sprite::updateVertPosition() {
-	float width = _size.width;
-	float height = _size.height;
+	float width = getWidth();
+	float height = getHeight();
 	if (_quadPos.rb.x != width || _quadPos.lt.y != height) {
 		float left = 0, right = width, top = height, bottom = 0;
 		_quadPos.rb.x = right;
@@ -264,7 +264,7 @@ void Sprite::render() {
 		return;
 	}
 
-	if (_size == Size::zero) {
+	if (getSize() == Size::zero) {
 		return;
 	} else {
 		updateVertPosition();
@@ -272,7 +272,7 @@ void Sprite::render() {
 
 	if (SharedDirector.isFrustumCulling()) {
 		AABB aabb;
-		Matrix::mulAABB(aabb, _world, _size.width, _size.height);
+		Matrix::mulAABB(aabb, getWorld(), getWidth(), getHeight());
 		if (!SharedDirector.isInFrustum(aabb)) {
 			return;
 		}
@@ -286,7 +286,7 @@ void Sprite::render() {
 	if (_flags.isOn(Sprite::VertexPosDirty)) {
 		_flags.setOff(Sprite::VertexPosDirty);
 		Matrix transform;
-		Matrix::mulMtx(transform, SharedDirector.getViewProjection(), _world);
+		Matrix::mulMtx(transform, SharedDirector.getViewProjection(), getWorld());
 		Matrix::mulVec4(&_quad.rb.x, transform, _quadPos.rb);
 		Matrix::mulVec4(&_quad.lb.x, transform, _quadPos.lb);
 		Matrix::mulVec4(&_quad.lt.x, transform, _quadPos.lt);

@@ -514,7 +514,7 @@ const std::string& DragonBone::getLastCompleted() const {
 	return _lastCompletedAnimationName;
 }
 
-Vec2 DragonBone::getKeyPoint(String name) const {
+Vec2 DragonBone::getKeyPoint(String name) {
 	for (db::Slot* slot : _armatureProxy->getArmature()->getSlots()) {
 		if (slot->getName() == name) {
 			return s_cast<DBSlot*>(slot)->getNode()->getDBTransform().applyPoint(Vec2::zero);
