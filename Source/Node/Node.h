@@ -42,6 +42,7 @@ public:
 	PROPERTY(float, AngleY);
 	PROPERTY(float, ScaleX);
 	PROPERTY(float, ScaleY);
+	PROPERTY(float, ScaleZ);
 	PROPERTY(float, X);
 	PROPERTY(float, Y);
 	PROPERTY(float, Z);
@@ -312,6 +313,7 @@ protected:
 		float angleY;
 		float scaleX;
 		float scaleY;
+		float scaleZ;
 		float skewX;
 		float skewY;
 		float anchorX;

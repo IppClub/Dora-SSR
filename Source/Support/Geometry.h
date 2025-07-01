@@ -172,6 +172,7 @@ struct alignas(32) Matrix {
 	static void mulAABB(AABB& result, const Matrix& matrix, const AABB& right);
 	static void mulAABB(AABB& result, const Matrix& matrix, float spriteWidth, float spriteHeight);
 	static void toFrustum(Frustum& result, const Matrix& matrix);
+	static void transpose(Matrix& result, const Matrix& matrix);
 	static const Matrix Indentity;
 };
 

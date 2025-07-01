@@ -27,6 +27,9 @@ class Node {
 	/** 节点的Y轴缩放因子。 */
 	scaleY?: number;
 
+	/** 节点的Z轴缩放因子。 */
+	scaleZ?: number;
+
 	/** 节点的X轴位置。 */
 	x?: number;
 

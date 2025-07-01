@@ -42,6 +42,7 @@ Node::NodeTransform::NodeTransform()
 	, angleY(0.0f)
 	, scaleX(1.0f)
 	, scaleY(1.0f)
+	, scaleZ(1.0f)
 	, skewX(0.0f)
 	, skewY(0.0f)
 	, anchorX(0.5f)
@@ -136,6 +137,15 @@ void Node::setScaleY(float var) {
 
 float Node::getScaleY() const noexcept {
 	return GetTAttr(scaleY);
+}
+
+void Node::setScaleZ(float var) {
+	SetTAttr(scaleZ, var);
+	markDirty();
+}
+
+float Node::getScaleZ() const noexcept {
+	return GetTAttr(scaleZ);
 }
 
 void Node::setX(float var) {
@@ -1030,47 +1040,34 @@ void Node::getLocalWorld(Matrix& localWorld) {
 		return;
 	}
 	auto& t = *_transform;
-	if (t.angleX || t.angleY) {
-		/* translateXY, scaleXY, rotateZ, translateAnchorXY */
-		if (t.anchorPointX != 0.0f || t.anchorPointY != 0.0f) {
-			Matrix mtxRoted;
+	if (t.z || t.angleX || t.angleY || t.scaleZ != 1.0f) {
+		/* translateXY, scaleXY, rotateZ */
+		Matrix mtxBase;
+		bx::mtxSRT(mtxBase.m, t.scaleX, t.scaleY, t.scaleZ, -bx::toRad(t.angleX), -bx::toRad(t.angleY), -bx::toRad(t.angle), t.x, t.y, t.z);
+		if (t.skewX || t.skewY) {
+			Matrix mtxTemp;
 			{
-				/* -translateAnchorXY */
-				Matrix mtxBase;
-				AffineTransform localTransform = getLocalTransform();
-				localTransform.translate(t.anchorPointX, t.anchorPointY).toMatrix(mtxBase);
-
-				/* translateZ */
-				mtxBase.m[14] = t.z;
-
-				/* rotateXY */
-				Matrix mtxRot;
-				bx::mtxRotateXY(mtxRot.m, -bx::toRad(t.angleX), -bx::toRad(t.angleY));
-				Matrix::mulMtx(mtxRoted, mtxBase, mtxRot);
+				Matrix mtxSkew;
+				/* skewXY */
+				AffineTransform{
+					1.0f, bx::tan(bx::toRad(t.skewY)),
+					bx::tan(bx::toRad(t.skewX)), 1.0f,
+					0.0f, 0.0f}.toMatrix(mtxSkew);
+				Matrix::mulMtx(mtxTemp, mtxBase, mtxSkew);
 			}
-
 			/* translateAnchorXY */
 			Matrix mtxAnchor;
 			bx::mtxTranslate(mtxAnchor.m, -t.anchorPointX, -t.anchorPointY, 0.0f);
-			Matrix::mulMtx(localWorld, mtxRoted, mtxAnchor);
+			Matrix::mulMtx(localWorld, mtxTemp, mtxAnchor);
 		} else {
-			Matrix mtxBase;
-			getLocalTransform().toMatrix(mtxBase);
-
-			/* translateZ */
-			mtxBase.m[14] = t.z;
-
-			/* rotateXY */
-			Matrix mtxRot;
-			bx::mtxRotateXY(mtxRot.m, -bx::toRad(t.angleX), -bx::toRad(t.angleY));
-			Matrix::mulMtx(localWorld, mtxBase, mtxRot);
+			/* translateAnchorXY */
+			Matrix mtxAnchor;
+			bx::mtxTranslate(mtxAnchor.m, -t.anchorPointX, -t.anchorPointY, 0.0f);
+			Matrix::mulMtx(localWorld, mtxBase, mtxAnchor);
 		}
 	} else {
 		/* translateXY, scaleXY, rotateZ, translateAnchorXY */
 		getLocalTransform().toMatrix(localWorld);
-
-		/* translateZ */
-		localWorld.m[14] = t.z;
 	}
 }
 

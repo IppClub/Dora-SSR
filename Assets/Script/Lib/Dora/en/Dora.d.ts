@@ -2733,6 +2733,9 @@ class Node extends Object {
 	/** The Y-axis scale factor of the node. */
 	scaleY: number;
 
+	/** The Z-axis scale factor of the node. */
+	scaleZ: number;
+
 	/** The X-axis position of the node. */
 	x: number;
 
