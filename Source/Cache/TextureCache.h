@@ -35,8 +35,8 @@ public:
 	PROPERTY_READONLY(TextureWrap, UWrap);
 	PROPERTY_READONLY(TextureWrap, VWrap);
 	PROPERTY_READONLY(uint64_t, Flags);
-	PROPERTY_READONLY_CLASS(uint32_t, StorageSize);
-	PROPERTY_READONLY_CLASS(uint32_t, Count);
+	PROPERTY_READONLY_CLASS(uint64_t, StorageSize);
+	PROPERTY_READONLY_CLASS(uint64_t, Count);
 	virtual ~Texture2D();
 	CREATE_FUNC_NOT_NULL(Texture2D);
 
@@ -47,8 +47,8 @@ protected:
 private:
 	uint64_t _flags;
 	bgfx::TextureInfo _info;
-	static uint32_t _storageSize;
-	static uint32_t _count;
+	static uint64_t _storageSize;
+	static uint64_t _count;
 	DORA_TYPE_OVERRIDE(Texture2D);
 };
 

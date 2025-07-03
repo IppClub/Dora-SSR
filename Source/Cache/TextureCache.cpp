@@ -17,8 +17,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DORA_BEGIN
 
-uint32_t Texture2D::_storageSize = 0;
-uint32_t Texture2D::_count = 0;
+uint64_t Texture2D::_storageSize = 0;
+uint64_t Texture2D::_count = 0;
 
 Texture2D::Texture2D(bgfx::TextureHandle handle, const bgfx::TextureInfo& info, uint64_t flags)
 	: _handle(handle)
@@ -37,11 +37,11 @@ Texture2D::~Texture2D() {
 	}
 }
 
-uint32_t Texture2D::getCount() {
+uint64_t Texture2D::getCount() {
 	return _count;
 }
 
-uint32_t Texture2D::getStorageSize() {
+uint64_t Texture2D::getStorageSize() {
 	return _storageSize;
 }
 

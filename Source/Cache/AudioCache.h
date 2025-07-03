@@ -12,29 +12,29 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DORA_BEGIN
 
-class SoundFile;
+class AudioFile;
 
-class SoundCache : public NonCopyable {
+class AudioCache : public NonCopyable {
 public:
-	SoundFile* update(String name, SoundFile* soundFile);
-	SoundFile* get(String filename);
+	AudioFile* update(String name, AudioFile* audioFile);
+	AudioFile* get(String filename);
 	/** @brief support format .wav .ogg */
-	SoundFile* load(String filename);
-	void loadAsync(String filename, const std::function<void(SoundFile*)>& handler);
-	bool unload(SoundFile* soundFile);
+	AudioFile* load(String filename);
+	void loadAsync(String filename, const std::function<void(AudioFile*)>& handler);
+	bool unload(AudioFile* audioFile);
 	bool unload(String filename);
 	bool unload();
 	void removeUnused();
 
 protected:
-	SoundCache() { }
+	AudioCache() { }
 
 private:
-	StringMap<Ref<SoundFile>> _soundFiles;
-	SINGLETON_REF(SoundCache, Audio);
+	StringMap<Ref<AudioFile>> _audioFiles;
+	SINGLETON_REF(AudioCache, Audio);
 };
 
-#define SharedSoundCache \
-	Dora::Singleton<Dora::SoundCache>::shared()
+#define SharedAudioCache \
+	Dora::Singleton<Dora::AudioCache>::shared()
 
 NS_DORA_END

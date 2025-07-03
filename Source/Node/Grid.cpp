@@ -219,9 +219,9 @@ void Grid::render() {
 		});
 		AABB aabb;
 		Matrix::mulAABB(aabb, getWorld(), {
-										  {minX->position.x, minY->position.y, 0},
-										  {maxX->position.x, maxY->position.y, 0},
-									  });
+											  {minX->position.x, minY->position.y, 0},
+											  {maxX->position.x, maxY->position.y, 0},
+										  });
 		if (!SharedDirector.isInFrustum(aabb)) {
 			return;
 		}

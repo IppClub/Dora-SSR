@@ -507,12 +507,6 @@
     <ClCompile Include="..\..\..\Source\Cache\ParticleCache.cpp">
       <Filter>Cache</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\Audio\Sound.cpp">
-      <Filter>Audio</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\Cache\SoundCache.cpp">
-      <Filter>Cache</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\Source\Node\Model.cpp">
       <Filter>Node</Filter>
     </ClCompile>
@@ -1950,6 +1944,15 @@
     <ClCompile Include="..\..\..\Source\3rdParty\yarnflow\yarn_compiler.cpp">
       <Filter>3rdParty\yarnflow</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\Source\Cache\AudioCache.cpp">
+      <Filter>Cache</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Audio\Audio.cpp">
+      <Filter>Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Node\AudioSource.cpp">
+      <Filter>Node</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\Source\3rdParty\silly\Slice.h">
@@ -2133,12 +2136,6 @@
       <Filter>Support</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Cache\ParticleCache.h">
-      <Filter>Cache</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\Audio\Sound.h">
-      <Filter>Audio</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\Cache\SoundCache.h">
       <Filter>Cache</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Node\Model.h">
@@ -4328,6 +4325,15 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\yarnflow\yarn_compiler.h">
       <Filter>3rdParty\yarnflow</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Cache\AudioCache.h">
+      <Filter>Cache</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Audio\Audio.h">
+      <Filter>Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Node\AudioSource.h">
+      <Filter>Node</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

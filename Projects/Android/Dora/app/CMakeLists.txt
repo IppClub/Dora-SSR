@@ -94,7 +94,7 @@ add_library(main SHARED
 	src/main/cpp/Cache/SkeletonCache.cpp
 	src/main/cpp/Cache/ModelCache.cpp
 	src/main/cpp/Cache/DragonBoneCache.cpp
-	src/main/cpp/Cache/SoundCache.cpp
+	src/main/cpp/Cache/AudioCache.cpp
 	src/main/cpp/Cache/FrameCache.cpp
 	src/main/cpp/Cache/SVGCache.cpp
 	src/main/cpp/Cache/TMXCache.cpp
@@ -129,7 +129,7 @@ add_library(main SHARED
 	src/main/cpp/Common/Async.cpp
 	src/main/cpp/Common/Debug.cpp
 	src/main/cpp/Common/MemoryPool.cpp
-	src/main/cpp/Audio/Sound.cpp
+	src/main/cpp/Audio/Audio.cpp
 	src/main/cpp/Support/Common.cpp
 	src/main/cpp/Support/Geometry.cpp
 	src/main/cpp/Support/Array.cpp
@@ -167,6 +167,7 @@ add_library(main SHARED
 	src/main/cpp/Node/AlignNode.cpp
 	src/main/cpp/Node/EffekNode.cpp
 	src/main/cpp/Node/TileNode.cpp
+	src/main/cpp/Node/AudioSource.cpp
 	src/main/cpp/Event/EventType.cpp
 	src/main/cpp/Event/EventQueue.cpp
 	src/main/cpp/Event/Listener.cpp

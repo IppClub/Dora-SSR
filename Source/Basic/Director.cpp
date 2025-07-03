@@ -10,7 +10,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Basic/Director.h"
 
-#include "Audio/Sound.h"
+#include "Audio/Audio.h"
 #include "Basic/Application.h"
 #include "Basic/Content.h"
 #include "Basic/Scheduler.h"

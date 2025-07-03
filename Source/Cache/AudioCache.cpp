@@ -8,53 +8,79 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Const/Header.h"
 
-#include "Cache/SoundCache.h"
+#include "Cache/AudioCache.h"
 
-#include "Audio/Sound.h"
+#include "Audio/Audio.h"
 #include "Basic/Content.h"
 
 NS_DORA_BEGIN
 
-SoundFile* SoundCache::update(String name, SoundFile* soundFile) {
+AudioFile* AudioCache::update(String name, AudioFile* audioFile) {
 	std::string fullPath = SharedContent.getFullPath(name);
-	_soundFiles[fullPath] = soundFile;
-	return soundFile;
+	_audioFiles[fullPath] = audioFile;
+	return audioFile;
 }
 
-SoundFile* SoundCache::get(String filename) {
+AudioFile* AudioCache::get(String filename) {
 	std::string fullPath = SharedContent.getFullPath(filename);
-	auto it = _soundFiles.find(fullPath);
-	if (it != _soundFiles.end()) {
+	auto it = _audioFiles.find(fullPath);
+	if (it != _audioFiles.end()) {
 		return it->second;
 	}
 	return nullptr;
 }
 
-SoundFile* SoundCache::load(String filename) {
+static bool shouldStream(String filename, size_t size) {
+	if (Path::getExt(filename) == "wav"sv) {
+		if (size >= DORA_STREAMING_AUDIO_FILE_SIZE) {
+			return true;
+		}
+	} else {
+		return true;
+	}
+	return false;
+}
+
+AudioFile* AudioCache::load(String filename) {
 	std::string fullPath = SharedContent.getFullPath(filename);
-	auto it = _soundFiles.find(fullPath);
-	if (it != _soundFiles.end()) {
+	auto it = _audioFiles.find(fullPath);
+	if (it != _audioFiles.end()) {
 		return it->second;
 	}
 	auto data = SharedContent.load(fullPath);
-	SoundFile* soundFile = SoundFile::create(std::move(data.first), data.second);
-	if (soundFile) {
-		_soundFiles[fullPath] = soundFile;
-		return soundFile;
-	} else {
+	if (!data.first) {
 		Error("failed to load sound file \"{}\".", filename.toString());
+		return nullptr;
+	}
+	AudioFile* audioFile = nullptr;
+	if (shouldStream(filename, data.second)) {
+		audioFile = WavStream::create(std::move(data.first), data.second);
+	} else {
+		audioFile = WavFile::create(std::move(data.first), data.second);
+	}
+	if (audioFile) {
+		_audioFiles[fullPath] = audioFile;
+		return audioFile;
+	} else {
+		Error("failed to load audio file \"{}\".", filename.toString());
 		return nullptr;
 	}
 }
 
-void SoundCache::loadAsync(String filename, const std::function<void(SoundFile*)>& handler) {
+void AudioCache::loadAsync(String filename, const std::function<void(AudioFile*)>& handler) {
 	std::string fullPath = SharedContent.getFullPath(filename);
 	std::string file(filename.toString());
 	SharedContent.loadAsyncUnsafe(fullPath, [this, file, fullPath, handler](uint8_t* data, int64_t size) {
-		SoundFile* soundFile = SoundFile::create(MakeOwnArray(data), s_cast<size_t>(size));
-		if (soundFile) {
-			_soundFiles[fullPath] = soundFile;
-			handler(soundFile);
+		auto fileSize = s_cast<size_t>(size);
+		AudioFile* audioFile = nullptr;
+		if (shouldStream(fullPath, fileSize)) {
+			audioFile = WavStream::create(MakeOwnArray(data), fileSize);
+		} else {
+			audioFile = WavFile::create(MakeOwnArray(data), fileSize);
+		}
+		if (audioFile) {
+			_audioFiles[fullPath] = audioFile;
+			handler(audioFile);
 		} else {
 			Error("failed to load sound file \"{}\".", file);
 			handler(nullptr);
@@ -62,43 +88,43 @@ void SoundCache::loadAsync(String filename, const std::function<void(SoundFile*)
 	});
 }
 
-bool SoundCache::unload(SoundFile* soundFile) {
-	for (const auto& it : _soundFiles) {
-		if (it.second == soundFile) {
-			_soundFiles.erase(_soundFiles.find(it.first));
+bool AudioCache::unload(AudioFile* audioFile) {
+	for (const auto& it : _audioFiles) {
+		if (it.second == audioFile) {
+			_audioFiles.erase(_audioFiles.find(it.first));
 			return true;
 		}
 	}
 	return false;
 }
 
-bool SoundCache::unload(String filename) {
+bool AudioCache::unload(String filename) {
 	std::string fullPath = SharedContent.getFullPath(filename);
-	auto it = _soundFiles.find(fullPath);
-	if (it != _soundFiles.end()) {
-		_soundFiles.erase(it);
+	auto it = _audioFiles.find(fullPath);
+	if (it != _audioFiles.end()) {
+		_audioFiles.erase(it);
 		return true;
 	}
 	return false;
 }
 
-bool SoundCache::unload() {
-	if (_soundFiles.empty()) {
+bool AudioCache::unload() {
+	if (_audioFiles.empty()) {
 		return false;
 	}
-	_soundFiles.clear();
+	_audioFiles.clear();
 	return true;
 }
 
-void SoundCache::removeUnused() {
-	std::vector<StringMap<Ref<SoundFile>>::iterator> targets;
-	for (auto it = _soundFiles.begin(); it != _soundFiles.end(); ++it) {
+void AudioCache::removeUnused() {
+	std::vector<StringMap<Ref<AudioFile>>::iterator> targets;
+	for (auto it = _audioFiles.begin(); it != _audioFiles.end(); ++it) {
 		if (it->second->isSingleReferenced()) {
 			targets.push_back(it);
 		}
 	}
 	for (const auto& it : targets) {
-		_soundFiles.erase(it);
+		_audioFiles.erase(it);
 	}
 }
 

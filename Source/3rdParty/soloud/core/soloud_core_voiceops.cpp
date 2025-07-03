@@ -24,6 +24,8 @@ freely, subject to the following restrictions:
 
 #include "soloud.h"
 
+extern void soloud_stop_voice(uint32_t handle);
+
 // Direct voice operations (no mutexes - called from other functions)
 
 namespace SoLoud
@@ -120,6 +122,8 @@ namespace SoLoud
 		mActiveVoiceDirty = true;
 		if (mVoice[aVoice])
 		{
+			handle h = getHandleFromVoice_internal(aVoice);
+
 			// Delete via temporary variable to avoid recursion
 			AudioSourceInstance * v = mVoice[aVoice];
 			mVoice[aVoice] = 0;
@@ -134,6 +138,8 @@ namespace SoLoud
 			}
 
 			delete v;
+
+			soloud_stop_voice(h);
 		}
 	}
 

@@ -1095,11 +1095,54 @@ struct Cache
 
 class Audio
 {
+	tolua_property__common float soundSpeed;
+	tolua_property__common float globalVolume;
+	tolua_property__common Node* listener;
 	uint32_t play(String filename, bool loop = false);
 	void stop(uint32_t handle);
 	void playStream(String filename, bool loop = false, float crossFadeTime = 0.0f);
 	void stopStream(float fadeTime = 0.0f);
+	void setPauseAllCurrent(bool aPause);
+	void setListenerAt(float aAtX, float aAtY, float aAtZ);
+	void setListenerUp(float aUpX, float aUpY, float aUpZ);
+	void setListenerVelocity(float aVelocityX, float aVelocityY, float aVelocityZ);
 	static tolua_outside Audio* Audio_shared @ create();
+};
+
+class AudioBus : public Object
+{
+	tolua_property__common float volume;
+	tolua_property__common float pan;
+	tolua_property__common float playSpeed;
+	void fadeVolume(double time, float toVolume);
+	void fadePan(double time, float toPan);
+	void fadePlaySpeed(double time, float toPlaySpeed);
+	void setFilter(uint32_t index, String name);
+	void setFilterParameter(uint32_t index, uint32_t attrId, float value);
+	float getFilterParameter(uint32_t index, uint32_t attrId);
+	void fadeFilterParameter(uint32_t index, uint32_t attrId, float to, double time);
+	static AudioBus* create();
+};
+
+class AudioSource : public Node
+{
+	tolua_property__common float volume;
+	tolua_property__common float pan;
+	tolua_property__bool bool loop;
+	tolua_readonly tolua_property__bool bool playing;
+	void seek(double startTime);
+	void scheduleStop(double timeToStop);
+	void stop(double fadeTime = 0.0);
+	bool play(double delayTime = 0.0);
+	bool playBackground();
+	bool play3D(double delayTime = 0.0);
+	void setProtected(bool var);
+	void setLoopPoint(double loopStartTime);
+	void setVelocity(float vx, float vy, float vz);
+	void setMinMaxDistance(float min, float max);
+	void setAttenuation(String model, float factor);
+	void setDopplerFactor(float factor);
+	static AudioSource* create(String filename, bool autoRemove = true, AudioBus* bus = nullptr);
 };
 
 class Menu : public Node

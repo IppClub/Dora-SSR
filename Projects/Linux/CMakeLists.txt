@@ -95,7 +95,7 @@ add_executable(dora-ssr
 	../../Source/Cache/SkeletonCache.cpp
 	../../Source/Cache/ModelCache.cpp
 	../../Source/Cache/DragonBoneCache.cpp
-	../../Source/Cache/SoundCache.cpp
+	../../Source/Cache/AudioCache.cpp
 	../../Source/Cache/FrameCache.cpp
 	../../Source/Cache/SVGCache.cpp
 	../../Source/Cache/TMXCache.cpp
@@ -130,7 +130,7 @@ add_executable(dora-ssr
 	../../Source/Common/Async.cpp
 	../../Source/Common/Debug.cpp
 	../../Source/Common/MemoryPool.cpp
-	../../Source/Audio/Sound.cpp
+	../../Source/Audio/Audio.cpp
 	../../Source/Support/Common.cpp
 	../../Source/Support/Geometry.cpp
 	../../Source/Support/Array.cpp
@@ -168,6 +168,7 @@ add_executable(dora-ssr
 	../../Source/Node/AlignNode.cpp
 	../../Source/Node/EffekNode.cpp
 	../../Source/Node/TileNode.cpp
+	../../Source/Node/AudioSource.cpp
 	../../Source/Event/EventType.cpp
 	../../Source/Event/EventQueue.cpp
 	../../Source/Event/Listener.cpp
