@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		3C030CA124CABDFE0074786E /* DecisionTree.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C030C9F24CABDFD0074786E /* DecisionTree.cpp */; };
+		3C078D7D2E14CD2D00C05BA4 /* AudioSource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C078D7C2E14CD2D00C05BA4 /* AudioSource.cpp */; };
 		3C0EBE301E2DB3FB0066450A /* libbx.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C0EBE2F1E2DB3FB0066450A /* libbx.a */; };
 		3C1FE9822D6D64CB0017CD23 /* yarn_compiler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C1FE9802D6D64CB0017CD23 /* yarn_compiler.cpp */; };
 		3C2F9C8A1E7B114B00B98D39 /* ModelDef.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C2F9C881E7B114B00B98D39 /* ModelDef.cpp */; };
@@ -40,13 +41,13 @@
 		3C5929E52CA4ED1900CAF224 /* Cache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5929C92CA4ED1900CAF224 /* Cache.cpp */; };
 		3C5929E62CA4ED1900CAF224 /* AtlasCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5929C72CA4ED1900CAF224 /* AtlasCache.cpp */; };
 		3C5929E72CA4ED1900CAF224 /* ModelCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5929D12CA4ED1900CAF224 /* ModelCache.cpp */; };
-		3C5929E82CA4ED1900CAF224 /* SoundCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5929D92CA4ED1900CAF224 /* SoundCache.cpp */; };
+		3C5929E82CA4ED1900CAF224 /* AudioCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5929D92CA4ED1900CAF224 /* AudioCache.cpp */; };
 		3C5929E92CA4ED1900CAF224 /* FrameCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5929CF2CA4ED1900CAF224 /* FrameCache.cpp */; };
 		3C5929EA2CA4ED1900CAF224 /* ShaderCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5929D52CA4ED1900CAF224 /* ShaderCache.cpp */; };
 		3C5929EB2CA4ED1900CAF224 /* TextureCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5929DD2CA4ED1900CAF224 /* TextureCache.cpp */; };
 		3C5929EC2CA4ED1900CAF224 /* ParticleCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5929D32CA4ED1900CAF224 /* ParticleCache.cpp */; };
 		3C5929ED2CA4ED1900CAF224 /* SkeletonCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5929D72CA4ED1900CAF224 /* SkeletonCache.cpp */; };
-		3C5929F02CA4ED4D00CAF224 /* Sound.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5929EF2CA4ED4D00CAF224 /* Sound.cpp */; };
+		3C5929F02CA4ED4D00CAF224 /* Audio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5929EF2CA4ED4D00CAF224 /* Audio.cpp */; };
 		3C592A012CA4ED5F00CAF224 /* Database.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5929FA2CA4ED5F00CAF224 /* Database.cpp */; };
 		3C592A022CA4ED5F00CAF224 /* Application.mm in Sources */ = {isa = PBXBuildFile; fileRef = 3C5929F32CA4ED5F00CAF224 /* Application.mm */; };
 		3C592A032CA4ED5F00CAF224 /* Object.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5929FE2CA4ED5F00CAF224 /* Object.cpp */; };
@@ -585,6 +586,8 @@
 /* Begin PBXFileReference section */
 		3C030C9F24CABDFD0074786E /* DecisionTree.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DecisionTree.cpp; sourceTree = "<group>"; };
 		3C030CA024CABDFD0074786E /* DecisionTree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DecisionTree.h; sourceTree = "<group>"; };
+		3C078D7B2E14CD2D00C05BA4 /* AudioSource.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AudioSource.h; sourceTree = "<group>"; };
+		3C078D7C2E14CD2D00C05BA4 /* AudioSource.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = AudioSource.cpp; sourceTree = "<group>"; };
 		3C0EBE2F1E2DB3FB0066450A /* libbx.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbx.a; path = ../../Source/3rdParty/BGFX/Lib/macOS/libbx.a; sourceTree = "<group>"; };
 		3C1D40EE2702FD7C00202534 /* Class.lua */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Class.lua; sourceTree = "<group>"; };
 		3C1D40EF2702FD7C00202534 /* Initialization.lua */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Initialization.lua; sourceTree = "<group>"; };
@@ -693,8 +696,8 @@
 		3C5929D52CA4ED1900CAF224 /* ShaderCache.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ShaderCache.cpp; sourceTree = "<group>"; };
 		3C5929D62CA4ED1900CAF224 /* SkeletonCache.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SkeletonCache.h; sourceTree = "<group>"; };
 		3C5929D72CA4ED1900CAF224 /* SkeletonCache.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SkeletonCache.cpp; sourceTree = "<group>"; };
-		3C5929D82CA4ED1900CAF224 /* SoundCache.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SoundCache.h; sourceTree = "<group>"; };
-		3C5929D92CA4ED1900CAF224 /* SoundCache.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SoundCache.cpp; sourceTree = "<group>"; };
+		3C5929D82CA4ED1900CAF224 /* AudioCache.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AudioCache.h; sourceTree = "<group>"; };
+		3C5929D92CA4ED1900CAF224 /* AudioCache.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = AudioCache.cpp; sourceTree = "<group>"; };
 		3C5929DA2CA4ED1900CAF224 /* SVGCache.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SVGCache.h; sourceTree = "<group>"; };
 		3C5929DB2CA4ED1900CAF224 /* SVGCache.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SVGCache.cpp; sourceTree = "<group>"; };
 		3C5929DC2CA4ED1900CAF224 /* TextureCache.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TextureCache.h; sourceTree = "<group>"; };
@@ -702,8 +705,8 @@
 		3C5929DE2CA4ED1900CAF224 /* TMXCache.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TMXCache.h; sourceTree = "<group>"; };
 		3C5929DF2CA4ED1900CAF224 /* TMXCache.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = TMXCache.cpp; sourceTree = "<group>"; };
 		3C5929E02CA4ED1900CAF224 /* XmlItemCache.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = XmlItemCache.h; sourceTree = "<group>"; };
-		3C5929EE2CA4ED4D00CAF224 /* Sound.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Sound.h; sourceTree = "<group>"; };
-		3C5929EF2CA4ED4D00CAF224 /* Sound.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Sound.cpp; sourceTree = "<group>"; };
+		3C5929EE2CA4ED4D00CAF224 /* Audio.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Audio.h; sourceTree = "<group>"; };
+		3C5929EF2CA4ED4D00CAF224 /* Audio.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Audio.cpp; sourceTree = "<group>"; };
 		3C5929F12CA4ED5F00CAF224 /* Application.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Application.h; sourceTree = "<group>"; };
 		3C5929F22CA4ED5F00CAF224 /* Application.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Application.cpp; sourceTree = "<group>"; };
 		3C5929F32CA4ED5F00CAF224 /* Application.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = Application.mm; sourceTree = "<group>"; };
@@ -2398,8 +2401,8 @@
 		3C2DFE151E95C5770077B67D /* Audio */ = {
 			isa = PBXGroup;
 			children = (
-				3C5929EE2CA4ED4D00CAF224 /* Sound.h */,
-				3C5929EF2CA4ED4D00CAF224 /* Sound.cpp */,
+				3C5929EE2CA4ED4D00CAF224 /* Audio.h */,
+				3C5929EF2CA4ED4D00CAF224 /* Audio.cpp */,
 			);
 			path = Audio;
 			sourceTree = "<group>";
@@ -3854,8 +3857,8 @@
 				3C5929D52CA4ED1900CAF224 /* ShaderCache.cpp */,
 				3C5929D62CA4ED1900CAF224 /* SkeletonCache.h */,
 				3C5929D72CA4ED1900CAF224 /* SkeletonCache.cpp */,
-				3C5929D82CA4ED1900CAF224 /* SoundCache.h */,
-				3C5929D92CA4ED1900CAF224 /* SoundCache.cpp */,
+				3C5929D82CA4ED1900CAF224 /* AudioCache.h */,
+				3C5929D92CA4ED1900CAF224 /* AudioCache.cpp */,
 				3C5929DA2CA4ED1900CAF224 /* SVGCache.h */,
 				3C5929DB2CA4ED1900CAF224 /* SVGCache.cpp */,
 				3C5929DC2CA4ED1900CAF224 /* TextureCache.h */,
@@ -4013,6 +4016,8 @@
 		3CCBBA381E14B50B00C0416B /* Node */ = {
 			isa = PBXGroup;
 			children = (
+				3C078D7B2E14CD2D00C05BA4 /* AudioSource.h */,
+				3C078D7C2E14CD2D00C05BA4 /* AudioSource.cpp */,
 				3C592A792CA4EFBC00CAF224 /* AlignNode.h */,
 				3C592A7A2CA4EFBC00CAF224 /* AlignNode.cpp */,
 				3C592A7B2CA4EFBC00CAF224 /* ClipNode.h */,
@@ -4616,6 +4621,7 @@
 				3C592A9B2CA4EFBC00CAF224 /* Sprite.cpp in Sources */,
 				3C592A9C2CA4EFBC00CAF224 /* EffekNode.cpp in Sources */,
 				3C592A9D2CA4EFBC00CAF224 /* Node.cpp in Sources */,
+				3C078D7D2E14CD2D00C05BA4 /* AudioSource.cpp in Sources */,
 				3C592A9E2CA4EFBC00CAF224 /* Grid.cpp in Sources */,
 				3C592A9F2CA4EFBC00CAF224 /* Menu.cpp in Sources */,
 				3C592AA02CA4EFBC00CAF224 /* Playable.cpp in Sources */,
@@ -4633,7 +4639,7 @@
 				3C592A372CA4EE3600CAF224 /* ImGuiBinding.cpp in Sources */,
 				3C592A382CA4EE3600CAF224 /* ImGuiDora.cpp in Sources */,
 				3C53E93C2BE8CF1100039640 /* PixelGrid.cpp in Sources */,
-				3C5929F02CA4ED4D00CAF224 /* Sound.cpp in Sources */,
+				3C5929F02CA4ED4D00CAF224 /* Audio.cpp in Sources */,
 				3C53E93F2BE8CF1100039640 /* Log.cpp in Sources */,
 				3C5933A12CA4F8C700CAF224 /* Rotation.cpp in Sources */,
 				3C5933A22CA4F8C700CAF224 /* Effekseer.EffectNodeTrack.cpp in Sources */,
@@ -4853,7 +4859,7 @@
 				3C5929E62CA4ED1900CAF224 /* AtlasCache.cpp in Sources */,
 				3C592A3B2CA4EE4500CAF224 /* HttpServer.cpp in Sources */,
 				3C5929E72CA4ED1900CAF224 /* ModelCache.cpp in Sources */,
-				3C5929E82CA4ED1900CAF224 /* SoundCache.cpp in Sources */,
+				3C5929E82CA4ED1900CAF224 /* AudioCache.cpp in Sources */,
 				3C5929E92CA4ED1900CAF224 /* FrameCache.cpp in Sources */,
 				3C592A442CA4EE5D00CAF224 /* Keyboard.cpp in Sources */,
 				3C592A452CA4EE5D00CAF224 /* TouchDispather.cpp in Sources */,

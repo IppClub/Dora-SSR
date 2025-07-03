@@ -10,7 +10,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Animation/Action.h"
 
-#include "Audio/Sound.h"
+#include "Audio/Audio.h"
 #include "Cache/ClipCache.h"
 #include "Cache/FrameCache.h"
 #include "Node/Node.h"

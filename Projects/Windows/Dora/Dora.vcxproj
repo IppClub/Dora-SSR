@@ -1724,7 +1724,7 @@
     <ClCompile Include="..\..\..\Source\Animation\Action.cpp" />
     <ClCompile Include="..\..\..\Source\Animation\Animation.cpp" />
     <ClCompile Include="..\..\..\Source\Animation\ModelDef.cpp" />
-    <ClCompile Include="..\..\..\Source\Audio\Sound.cpp" />
+    <ClCompile Include="..\..\..\Source\Audio\Audio.cpp" />
     <ClCompile Include="..\..\..\Source\Basic\Application.cpp" />
     <ClCompile Include="..\..\..\Source\Basic\AutoreleasePool.cpp" />
     <ClCompile Include="..\..\..\Source\Basic\Content.cpp" />
@@ -1733,6 +1733,7 @@
     <ClCompile Include="..\..\..\Source\Basic\Object.cpp" />
     <ClCompile Include="..\..\..\Source\Basic\Scheduler.cpp" />
     <ClCompile Include="..\..\..\Source\Cache\AtlasCache.cpp" />
+    <ClCompile Include="..\..\..\Source\Cache\AudioCache.cpp" />
     <ClCompile Include="..\..\..\Source\Cache\Cache.cpp" />
     <ClCompile Include="..\..\..\Source\Cache\ClipCache.cpp" />
     <ClCompile Include="..\..\..\Source\Cache\DragonBoneCache.cpp" />
@@ -1741,7 +1742,6 @@
     <ClCompile Include="..\..\..\Source\Cache\ParticleCache.cpp" />
     <ClCompile Include="..\..\..\Source\Cache\ShaderCache.cpp" />
     <ClCompile Include="..\..\..\Source\Cache\SkeletonCache.cpp" />
-    <ClCompile Include="..\..\..\Source\Cache\SoundCache.cpp" />
     <ClCompile Include="..\..\..\Source\Cache\SVGCache.cpp" />
     <ClCompile Include="..\..\..\Source\Cache\TextureCache.cpp" />
     <ClCompile Include="..\..\..\Source\Cache\TMXCache.cpp" />
@@ -1782,6 +1782,7 @@
     <ClCompile Include="..\..\..\Source\Lua\Xml\XmlResolver.cpp" />
     <ClCompile Include="..\..\..\Source\ML\ML.cpp" />
     <ClCompile Include="..\..\..\Source\Node\AlignNode.cpp" />
+    <ClCompile Include="..\..\..\Source\Node\AudioSource.cpp" />
     <ClCompile Include="..\..\..\Source\Node\ClipNode.cpp" />
     <ClCompile Include="..\..\..\Source\Node\DragonBone.cpp" />
     <ClCompile Include="..\..\..\Source\Node\DrawNode.cpp" />
@@ -2530,7 +2531,7 @@
     <ClInclude Include="..\..\..\Source\Animation\Action.h" />
     <ClInclude Include="..\..\..\Source\Animation\Animation.h" />
     <ClInclude Include="..\..\..\Source\Animation\ModelDef.h" />
-    <ClInclude Include="..\..\..\Source\Audio\Sound.h" />
+    <ClInclude Include="..\..\..\Source\Audio\Audio.h" />
     <ClInclude Include="..\..\..\Source\Basic\Application.h" />
     <ClInclude Include="..\..\..\Source\Basic\AutoreleasePool.h" />
     <ClInclude Include="..\..\..\Source\Basic\Content.h" />
@@ -2539,6 +2540,7 @@
     <ClInclude Include="..\..\..\Source\Basic\Object.h" />
     <ClInclude Include="..\..\..\Source\Basic\Scheduler.h" />
     <ClInclude Include="..\..\..\Source\Cache\AtlasCache.h" />
+    <ClInclude Include="..\..\..\Source\Cache\AudioCache.h" />
     <ClInclude Include="..\..\..\Source\Cache\Cache.h" />
     <ClInclude Include="..\..\..\Source\Cache\ClipCache.h" />
     <ClInclude Include="..\..\..\Source\Cache\DragonBoneCache.h" />
@@ -2547,7 +2549,6 @@
     <ClInclude Include="..\..\..\Source\Cache\ParticleCache.h" />
     <ClInclude Include="..\..\..\Source\Cache\ShaderCache.h" />
     <ClInclude Include="..\..\..\Source\Cache\SkeletonCache.h" />
-    <ClInclude Include="..\..\..\Source\Cache\SoundCache.h" />
     <ClInclude Include="..\..\..\Source\Cache\SVGCache.h" />
     <ClInclude Include="..\..\..\Source\Cache\TextureCache.h" />
     <ClInclude Include="..\..\..\Source\Cache\TMXCache.h" />
@@ -2587,6 +2588,7 @@
     <ClInclude Include="..\..\..\Source\Lua\Xml\XmlResolver.h" />
     <ClInclude Include="..\..\..\Source\ML\ML.h" />
     <ClInclude Include="..\..\..\Source\Node\AlignNode.h" />
+    <ClInclude Include="..\..\..\Source\Node\AudioSource.h" />
     <ClInclude Include="..\..\..\Source\Node\ClipNode.h" />
     <ClInclude Include="..\..\..\Source\Node\DragonBone.h" />
     <ClInclude Include="..\..\..\Source\Node\DrawNode.h" />

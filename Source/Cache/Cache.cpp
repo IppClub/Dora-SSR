@@ -20,7 +20,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Cache/SVGCache.h"
 #include "Cache/ShaderCache.h"
 #include "Cache/SkeletonCache.h"
-#include "Cache/SoundCache.h"
+#include "Cache/AudioCache.h"
 #include "Cache/TMXCache.h"
 #include "Cache/TextureCache.h"
 #include "Node/Label.h"
@@ -71,7 +71,7 @@ bool Cache::load(String filename) {
 			case "ogg"_hash:
 			case "mp3"_hash:
 			case "flac"_hash:
-				return SharedSoundCache.load(filename) != nullptr;
+				return SharedAudioCache.load(filename) != nullptr;
 			case "tmx"_hash:
 				return SharedTMXCache.load(filename) != nullptr;
 			default: {
@@ -161,7 +161,7 @@ void Cache::loadAsync(String filename, const std::function<void(bool)>& callback
 			case "ogg"_hash:
 			case "mp3"_hash:
 			case "flac"_hash:
-				SharedSoundCache.loadAsync(filename, [callback](SoundFile* res) {
+				SharedAudioCache.loadAsync(filename, [callback](AudioFile* res) {
 					callback(res != nullptr);
 				});
 				break;
@@ -243,7 +243,7 @@ bool Cache::unload(String name) {
 			case "ogg"_hash:
 			case "mp3"_hash:
 			case "flac"_hash:
-				return SharedSoundCache.unload(name);
+				return SharedAudioCache.unload(name);
 			case "tmx"_hash:
 				return SharedTMXCache.unload(name);
 			default:
@@ -269,7 +269,7 @@ bool Cache::unload(String name) {
 			case "Font"_hash:
 				return SharedFontCache.unload();
 			case "Sound"_hash:
-				return SharedSoundCache.unload();
+				return SharedAudioCache.unload();
 			case "Spine"_hash:
 				return SharedAtlasCache.unload() && SharedSkeletonCache.unload();
 			case "TMX"_hash:
@@ -292,7 +292,7 @@ void Cache::unload() {
 	SharedTextureCache.unload();
 	SharedSVGCache.unload();
 	SharedFontCache.unload();
-	SharedSoundCache.unload();
+	SharedAudioCache.unload();
 	SharedSkeletonCache.unload();
 	SharedAtlasCache.unload();
 	SharedDragonBoneCache.removeUnused();
@@ -311,7 +311,7 @@ void Cache::removeUnused() {
 	SharedTextureCache.removeUnused();
 	SharedSVGCache.removeUnused();
 	SharedFontCache.removeUnused();
-	SharedSoundCache.removeUnused();
+	SharedAudioCache.removeUnused();
 	SharedTMXCache.removeUnused();
 }
 
@@ -349,7 +349,7 @@ void Cache::removeUnused(String name) {
 			SharedFontCache.removeUnused();
 			break;
 		case "Sound"_hash:
-			SharedSoundCache.removeUnused();
+			SharedAudioCache.removeUnused();
 			break;
 		case "TMX"_hash:
 			SharedTMXCache.removeUnused();

@@ -707,7 +707,6 @@
 		3C59315B2CA4F67300CAF224 /* Listener.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592FF42CA4F67300CAF224 /* Listener.cpp */; };
 		3C59315C2CA4F67300CAF224 /* Camera.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5930782CA4F67300CAF224 /* Camera.cpp */; };
 		3C59315D2CA4F67300CAF224 /* Model.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C59303F2CA4F67300CAF224 /* Model.cpp */; };
-		3C59315E2CA4F67300CAF224 /* SoundCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592FCB2CA4F67300CAF224 /* SoundCache.cpp */; };
 		3C59315F2CA4F67300CAF224 /* Value.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5930E72CA4F67300CAF224 /* Value.cpp */; };
 		3C5931602CA4F67300CAF224 /* Scheduler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592FB62CA4F67300CAF224 /* Scheduler.cpp */; };
 		3C5931612CA4F67300CAF224 /* TealCompiler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5930292CA4F67300CAF224 /* TealCompiler.cpp */; };
@@ -775,7 +774,6 @@
 		3C5931A02CA4F67300CAF224 /* AutoreleasePool.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592FAB2CA4F67300CAF224 /* AutoreleasePool.cpp */; };
 		3C5931A12CA4F67300CAF224 /* Playable.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5930452CA4F67300CAF224 /* Playable.cpp */; };
 		3C5931A22CA4F67300CAF224 /* VGNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C59304D2CA4F67300CAF224 /* VGNode.cpp */; };
-		3C5931A32CA4F67300CAF224 /* Sound.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592FA52CA4F67300CAF224 /* Sound.cpp */; };
 		3C5931A42CA4F67300CAF224 /* tolua_map.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5930102CA4F67300CAF224 /* tolua_map.cpp */; };
 		3C5931A52CA4F67300CAF224 /* Content.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592FAD2CA4F67300CAF224 /* Content.cpp */; };
 		3C5931A62CA4F67300CAF224 /* Content.mm in Sources */ = {isa = PBXBuildFile; fileRef = 3C592FAE2CA4F67300CAF224 /* Content.mm */; };
@@ -817,7 +815,6 @@
 		3C5932382CA4F67300CAF224 /* Listener.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592FF42CA4F67300CAF224 /* Listener.cpp */; };
 		3C5932392CA4F67300CAF224 /* Camera.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5930782CA4F67300CAF224 /* Camera.cpp */; };
 		3C59323A2CA4F67300CAF224 /* Model.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C59303F2CA4F67300CAF224 /* Model.cpp */; };
-		3C59323B2CA4F67300CAF224 /* SoundCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592FCB2CA4F67300CAF224 /* SoundCache.cpp */; };
 		3C59323C2CA4F67300CAF224 /* Value.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5930E72CA4F67300CAF224 /* Value.cpp */; };
 		3C59323D2CA4F67300CAF224 /* Scheduler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592FB62CA4F67300CAF224 /* Scheduler.cpp */; };
 		3C59323E2CA4F67300CAF224 /* TealCompiler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5930292CA4F67300CAF224 /* TealCompiler.cpp */; };
@@ -885,7 +882,6 @@
 		3C59327D2CA4F67300CAF224 /* AutoreleasePool.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592FAB2CA4F67300CAF224 /* AutoreleasePool.cpp */; };
 		3C59327E2CA4F67300CAF224 /* Playable.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5930452CA4F67300CAF224 /* Playable.cpp */; };
 		3C59327F2CA4F67300CAF224 /* VGNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C59304D2CA4F67300CAF224 /* VGNode.cpp */; };
-		3C5932802CA4F67300CAF224 /* Sound.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592FA52CA4F67300CAF224 /* Sound.cpp */; };
 		3C5932812CA4F67300CAF224 /* tolua_map.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C5930102CA4F67300CAF224 /* tolua_map.cpp */; };
 		3C5932822CA4F67300CAF224 /* Content.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C592FAD2CA4F67300CAF224 /* Content.cpp */; };
 		3C5932832CA4F67300CAF224 /* Content.mm in Sources */ = {isa = PBXBuildFile; fileRef = 3C592FAE2CA4F67300CAF224 /* Content.mm */; };
@@ -930,6 +926,12 @@
 		3C7FA3742B68A1DE005A8441 /* libssl.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C7FA3722B68A1DD005A8441 /* libssl.a */; };
 		3C7FA3772B68A1F0005A8441 /* libssl.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C7FA3752B68A1F0005A8441 /* libssl.a */; };
 		3C7FA3782B68A1F0005A8441 /* libcrypto.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C7FA3762B68A1F0005A8441 /* libcrypto.a */; };
+		3C948C462E1690DA00E6B280 /* AudioSource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C948C452E1690DA00E6B280 /* AudioSource.cpp */; };
+		3C948C472E1690DA00E6B280 /* AudioSource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C948C452E1690DA00E6B280 /* AudioSource.cpp */; };
+		3C948C4A2E1690F800E6B280 /* Audio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C948C492E1690F800E6B280 /* Audio.cpp */; };
+		3C948C4B2E1690F800E6B280 /* Audio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C948C492E1690F800E6B280 /* Audio.cpp */; };
+		3C948C4E2E16910600E6B280 /* AudioCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C948C4D2E16910600E6B280 /* AudioCache.cpp */; };
+		3C948C4F2E16910600E6B280 /* AudioCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C948C4D2E16910600E6B280 /* AudioCache.cpp */; };
 		3CA780042AE66FB000B7BADA /* RayCastOutput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA77F242AE66FAD00B7BADA /* RayCastOutput.cpp */; };
 		3CA780052AE66FB000B7BADA /* RayCastOutput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA77F242AE66FAD00B7BADA /* RayCastOutput.cpp */; };
 		3CA780062AE66FB000B7BADA /* EdgeShapeConf.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CA77F292AE66FAD00B7BADA /* EdgeShapeConf.cpp */; };
@@ -2012,8 +2014,6 @@
 		3C592FA02CA4F67300CAF224 /* Animation.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Animation.cpp; sourceTree = "<group>"; };
 		3C592FA12CA4F67300CAF224 /* ModelDef.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ModelDef.h; sourceTree = "<group>"; };
 		3C592FA22CA4F67300CAF224 /* ModelDef.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ModelDef.cpp; sourceTree = "<group>"; };
-		3C592FA42CA4F67300CAF224 /* Sound.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Sound.h; sourceTree = "<group>"; };
-		3C592FA52CA4F67300CAF224 /* Sound.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Sound.cpp; sourceTree = "<group>"; };
 		3C592FA72CA4F67300CAF224 /* Application.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Application.h; sourceTree = "<group>"; };
 		3C592FA82CA4F67300CAF224 /* Application.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Application.cpp; sourceTree = "<group>"; };
 		3C592FA92CA4F67300CAF224 /* Application.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = Application.mm; sourceTree = "<group>"; };
@@ -2048,8 +2048,6 @@
 		3C592FC72CA4F67300CAF224 /* ShaderCache.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ShaderCache.cpp; sourceTree = "<group>"; };
 		3C592FC82CA4F67300CAF224 /* SkeletonCache.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SkeletonCache.h; sourceTree = "<group>"; };
 		3C592FC92CA4F67300CAF224 /* SkeletonCache.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SkeletonCache.cpp; sourceTree = "<group>"; };
-		3C592FCA2CA4F67300CAF224 /* SoundCache.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SoundCache.h; sourceTree = "<group>"; };
-		3C592FCB2CA4F67300CAF224 /* SoundCache.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SoundCache.cpp; sourceTree = "<group>"; };
 		3C592FCC2CA4F67300CAF224 /* SVGCache.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SVGCache.h; sourceTree = "<group>"; };
 		3C592FCD2CA4F67300CAF224 /* SVGCache.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SVGCache.cpp; sourceTree = "<group>"; };
 		3C592FCE2CA4F67300CAF224 /* TextureCache.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TextureCache.h; sourceTree = "<group>"; };
@@ -2253,6 +2251,12 @@
 		3C87086A2B5E1880002E9658 /* OutOfRange.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = OutOfRange.hpp; sourceTree = "<group>"; };
 		3C87086B2B5E1880002E9658 /* BodyShapeFunction.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = BodyShapeFunction.hpp; sourceTree = "<group>"; };
 		3C87086C2B5E1880002E9658 /* ContactFunction.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = ContactFunction.hpp; sourceTree = "<group>"; };
+		3C948C442E1690DA00E6B280 /* AudioSource.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AudioSource.h; sourceTree = "<group>"; };
+		3C948C452E1690DA00E6B280 /* AudioSource.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = AudioSource.cpp; sourceTree = "<group>"; };
+		3C948C482E1690F800E6B280 /* Audio.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Audio.h; sourceTree = "<group>"; };
+		3C948C492E1690F800E6B280 /* Audio.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Audio.cpp; sourceTree = "<group>"; };
+		3C948C4C2E16910600E6B280 /* AudioCache.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AudioCache.h; sourceTree = "<group>"; };
+		3C948C4D2E16910600E6B280 /* AudioCache.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = AudioCache.cpp; sourceTree = "<group>"; };
 		3CA77F212AE66FAD00B7BADA /* RayCastInput.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = RayCastInput.hpp; sourceTree = "<group>"; };
 		3CA77F222AE66FAD00B7BADA /* RevoluteJointConf.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = RevoluteJointConf.hpp; sourceTree = "<group>"; };
 		3CA77F232AE66FAD00B7BADA /* WorldMisc.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = WorldMisc.hpp; sourceTree = "<group>"; };
@@ -3945,8 +3949,8 @@
 		3C592FA62CA4F67300CAF224 /* Audio */ = {
 			isa = PBXGroup;
 			children = (
-				3C592FA42CA4F67300CAF224 /* Sound.h */,
-				3C592FA52CA4F67300CAF224 /* Sound.cpp */,
+				3C948C482E1690F800E6B280 /* Audio.h */,
+				3C948C492E1690F800E6B280 /* Audio.cpp */,
 			);
 			path = Audio;
 			sourceTree = "<group>";
@@ -3977,6 +3981,8 @@
 		3C592FD32CA4F67300CAF224 /* Cache */ = {
 			isa = PBXGroup;
 			children = (
+				3C948C4C2E16910600E6B280 /* AudioCache.h */,
+				3C948C4D2E16910600E6B280 /* AudioCache.cpp */,
 				3C592FB82CA4F67300CAF224 /* AtlasCache.h */,
 				3C592FB92CA4F67300CAF224 /* AtlasCache.cpp */,
 				3C592FBA2CA4F67300CAF224 /* Cache.h */,
@@ -3995,8 +4001,6 @@
 				3C592FC72CA4F67300CAF224 /* ShaderCache.cpp */,
 				3C592FC82CA4F67300CAF224 /* SkeletonCache.h */,
 				3C592FC92CA4F67300CAF224 /* SkeletonCache.cpp */,
-				3C592FCA2CA4F67300CAF224 /* SoundCache.h */,
-				3C592FCB2CA4F67300CAF224 /* SoundCache.cpp */,
 				3C592FCC2CA4F67300CAF224 /* SVGCache.h */,
 				3C592FCD2CA4F67300CAF224 /* SVGCache.cpp */,
 				3C592FCE2CA4F67300CAF224 /* TextureCache.h */,
@@ -4178,6 +4182,8 @@
 		3C59304E2CA4F67300CAF224 /* Node */ = {
 			isa = PBXGroup;
 			children = (
+				3C948C442E1690DA00E6B280 /* AudioSource.h */,
+				3C948C452E1690DA00E6B280 /* AudioSource.cpp */,
 				3C59302E2CA4F67300CAF224 /* AlignNode.h */,
 				3C59302F2CA4F67300CAF224 /* AlignNode.cpp */,
 				3C5930302CA4F67300CAF224 /* ClipNode.h */,
@@ -5082,6 +5088,7 @@
 				3CA7808D2AE66FB000B7BADA /* LimitState.cpp in Sources */,
 				3C0FB6CE2BF1970C0098E88D /* Effekseer.EffectNodeRoot.cpp in Sources */,
 				3CA7806D2AE66FB000B7BADA /* ShapeSeparation.cpp in Sources */,
+				3C948C472E1690DA00E6B280 /* AudioSource.cpp in Sources */,
 				3C0FB69E2BF1970C0098E88D /* Effekseer.Session.cpp in Sources */,
 				3C0FB6BC2BF1970C0098E88D /* Effekseer.Color.cpp in Sources */,
 				3CA7801D2AE66FB000B7BADA /* Sweep.cpp in Sources */,
@@ -5256,6 +5263,7 @@
 				3C592BF62CA4F32F00CAF224 /* Constraint.cpp in Sources */,
 				3C592BF72CA4F32F00CAF224 /* SkinData.cpp in Sources */,
 				3C592BF82CA4F32F00CAF224 /* TextureAtlasData.cpp in Sources */,
+				3C948C4F2E16910600E6B280 /* AudioCache.cpp in Sources */,
 				3C592BF92CA4F32F00CAF224 /* TransformObject.cpp in Sources */,
 				3C592BFA2CA4F32F00CAF224 /* BinaryDataParser.cpp in Sources */,
 				3C592BFB2CA4F32F00CAF224 /* AnimationState.cpp in Sources */,
@@ -5377,7 +5385,6 @@
 				3C5932382CA4F67300CAF224 /* Listener.cpp in Sources */,
 				3C5932392CA4F67300CAF224 /* Camera.cpp in Sources */,
 				3C59323A2CA4F67300CAF224 /* Model.cpp in Sources */,
-				3C59323B2CA4F67300CAF224 /* SoundCache.cpp in Sources */,
 				3C59323C2CA4F67300CAF224 /* Value.cpp in Sources */,
 				3C59323D2CA4F67300CAF224 /* Scheduler.cpp in Sources */,
 				3C59323E2CA4F67300CAF224 /* TealCompiler.cpp in Sources */,
@@ -5445,7 +5452,6 @@
 				3C59327D2CA4F67300CAF224 /* AutoreleasePool.cpp in Sources */,
 				3C59327E2CA4F67300CAF224 /* Playable.cpp in Sources */,
 				3C59327F2CA4F67300CAF224 /* VGNode.cpp in Sources */,
-				3C5932802CA4F67300CAF224 /* Sound.cpp in Sources */,
 				3C12442E2D6D9A3800FD1346 /* yarn_compiler.cpp in Sources */,
 				3C5932812CA4F67300CAF224 /* tolua_map.cpp in Sources */,
 				3C5932822CA4F67300CAF224 /* Content.cpp in Sources */,
@@ -5581,6 +5587,7 @@
 				3C592F612CA4F61700CAF224 /* lopcodes.c in Sources */,
 				3C592F622CA4F61700CAF224 /* lcode.c in Sources */,
 				3C592F632CA4F61700CAF224 /* linit.c in Sources */,
+				3C948C4B2E1690F800E6B280 /* Audio.cpp in Sources */,
 				3C592F642CA4F61700CAF224 /* lobject.c in Sources */,
 				3C592F652CA4F61700CAF224 /* lparser.c in Sources */,
 				3C592F662CA4F61700CAF224 /* lmem.c in Sources */,
@@ -5631,6 +5638,7 @@
 				3CA7806C2AE66FB000B7BADA /* ShapeSeparation.cpp in Sources */,
 				3C0FB69D2BF1970C0098E88D /* Effekseer.Session.cpp in Sources */,
 				3C0FB6BB2BF1970C0098E88D /* Effekseer.Color.cpp in Sources */,
+				3C948C462E1690DA00E6B280 /* AudioSource.cpp in Sources */,
 				3C592EC82CA4F5E700CAF224 /* yuescript.cpp in Sources */,
 				3C592EC92CA4F5E700CAF224 /* yue_parser.cpp in Sources */,
 				3C592ECA2CA4F5E700CAF224 /* parser.cpp in Sources */,
@@ -5805,6 +5813,7 @@
 				3C592C152CA4F32F00CAF224 /* Constraint.cpp in Sources */,
 				3C592C162CA4F32F00CAF224 /* SkinData.cpp in Sources */,
 				3C592C172CA4F32F00CAF224 /* TextureAtlasData.cpp in Sources */,
+				3C948C4E2E16910600E6B280 /* AudioCache.cpp in Sources */,
 				3C592C182CA4F32F00CAF224 /* TransformObject.cpp in Sources */,
 				3C592C192CA4F32F00CAF224 /* BinaryDataParser.cpp in Sources */,
 				3C592C1A2CA4F32F00CAF224 /* AnimationState.cpp in Sources */,
@@ -5926,7 +5935,6 @@
 				3C59315B2CA4F67300CAF224 /* Listener.cpp in Sources */,
 				3C59315C2CA4F67300CAF224 /* Camera.cpp in Sources */,
 				3C59315D2CA4F67300CAF224 /* Model.cpp in Sources */,
-				3C59315E2CA4F67300CAF224 /* SoundCache.cpp in Sources */,
 				3C59315F2CA4F67300CAF224 /* Value.cpp in Sources */,
 				3C5931602CA4F67300CAF224 /* Scheduler.cpp in Sources */,
 				3C5931612CA4F67300CAF224 /* TealCompiler.cpp in Sources */,
@@ -5994,7 +6002,6 @@
 				3C5931A02CA4F67300CAF224 /* AutoreleasePool.cpp in Sources */,
 				3C5931A12CA4F67300CAF224 /* Playable.cpp in Sources */,
 				3C5931A22CA4F67300CAF224 /* VGNode.cpp in Sources */,
-				3C5931A32CA4F67300CAF224 /* Sound.cpp in Sources */,
 				3C12442F2D6D9A3800FD1346 /* yarn_compiler.cpp in Sources */,
 				3C5931A42CA4F67300CAF224 /* tolua_map.cpp in Sources */,
 				3C5931A52CA4F67300CAF224 /* Content.cpp in Sources */,
@@ -6130,6 +6137,7 @@
 				3C592F812CA4F61700CAF224 /* lopcodes.c in Sources */,
 				3C592F822CA4F61700CAF224 /* lcode.c in Sources */,
 				3C592F832CA4F61700CAF224 /* linit.c in Sources */,
+				3C948C4A2E1690F800E6B280 /* Audio.cpp in Sources */,
 				3C592F842CA4F61700CAF224 /* lobject.c in Sources */,
 				3C592F852CA4F61700CAF224 /* lparser.c in Sources */,
 				3C592F862CA4F61700CAF224 /* lmem.c in Sources */,
