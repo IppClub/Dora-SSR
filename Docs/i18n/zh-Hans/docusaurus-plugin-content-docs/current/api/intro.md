@@ -20,6 +20,8 @@ sidebar_position: 0
 &emsp;&emsp;这个类别提供了管理和播放游戏音乐和声效的功能。
 
 * [Audio](/docs/api/Class/Audio)
+* [AudioBus](/docs/api/Class/AudioBus)
+* [AudioSource](/docs/api/Class/AudioSource)
 
 ### 资产管理
 

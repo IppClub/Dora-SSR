@@ -4,99 +4,15 @@
 
 &emsp;&emsp;音频播放管理单例类。
 
-## play
+## soundSpeed
 
-**类型：** 函数。
-
-**描述：**
-
-&emsp;&emsp;播放音效并返回音频句柄。
-
-**签名：**
-```tl
-play: function(
-		self: Audio,
-		filename: string,
-		loop?: boolean --[[false]]
-	): integer
-```
-
-**参数：**
-
-| 参数名 | 类型 | 描述 |
-| --- | --- | --- |
-| filename | string | 音效文件的路径（必须为 WAV 文件）。 |
-| loop | boolean | [可选] 是否循环播放音效（默认为 false）。 |
-
-**返回值：**
-
-| 返回类型 | 描述 |
-| --- | --- |
-| integer | 音频句柄，可用于停止音效。 |
-
-## stop
-
-**类型：** 函数。
+**类型：** 成员变量。
 
 **描述：**
 
-&emsp;&emsp;停止当前正在播放的音效。
+&emsp;&emsp;声音速度。
 
 **签名：**
 ```tl
-stop: function(self: Audio, handler: integer)
+soundSpeed: number
 ```
-
-**参数：**
-
-| 参数名 | 类型 | 描述 |
-| --- | --- | --- |
-| handler | integer | `Audio:play()` 函数返回的音频句柄。 |
-
-## playStream
-
-**类型：** 函数。
-
-**描述：**
-
-&emsp;&emsp;以流媒体方式播放音频文件。
-
-**签名：**
-```tl
-playStream: function(
-		self: Audio,
-		filename: string,
-		loop?: boolean --[[false]],
-		crossFadeTime?: number --[[0.0]]
-	)
-```
-
-**参数：**
-
-| 参数名 | 类型 | 描述 |
-| --- | --- | --- |
-| filename | string | 流媒体音频文件的路径（可以是 OGG、WAV、MP3 或 FLAC格式）。 |
-| loop | boolean | [可选] 是否循环播放流媒体音频（默认为 false）。 |
-| crossFadeTime | number | [可选] 在上一个流媒体音频和新的流媒体音频之间交叉淡入淡出的时间（默认为 0.0）。 |
-
-## stopStream
-
-**类型：** 函数。
-
-**描述：**
-
-&emsp;&emsp;停止当前正在播放的流媒体音频文件。
-
-**签名：**
-```tl
-stopStream: function(
-		self: Audio,
-		fadeTime?: number --[[0.0]]
-	)
-```
-
-**参数：**
-
-| 参数名 | 类型 | 描述 |
-| --- | --- | --- |
-| fadeTime | number | [可选] 淡出流媒体音频的时间（默认为 0.0）。 |

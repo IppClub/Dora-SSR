@@ -1,0 +1,284 @@
+# AudioBus
+
+**Description:**
+
+&emsp;&emsp;A record that represents an audio bus.
+
+**Class Object:** [AudioBus Class](/docs/api/Class%20Object/AudioBus).
+
+**Inherits from:** [Object](/docs/api/Class/Object).
+
+## AudioBus.Filter
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;The type of the filter that can be applied to the audio bus.
+
+**Signature:**
+```tl
+enum Filter
+
+	-- No filter.
+	""
+
+	-- The bass boost filter.
+	-- param0: WET, float, min: 0, max: 1
+	-- param1: BOOST, float, min: 0, max: 10
+	"BassBoost"
+
+	-- The biquad resonant filter.
+	-- param0: WET, float, min: 0, max: 1
+	-- param1: TYPE, int, values: 0 - LOWPASS, 1 - HIGHPASS, 2 - BANDPASS
+	-- param2: FREQUENCY, float, min: 10, max: 8000
+	-- param3: RESONANCE, float, min: 0.1, max: 20
+	"BiquadResonant"
+
+	-- The DC removal filter.
+	-- param0: WET, float, min: 0, max: 1
+	"DCRemoval"
+
+	-- The echo filter.
+	-- param0: WET, float, min: 0, max: 1
+	-- param1: DELAY, float, min: 0, max: 1
+	-- param2: DECAY, float, min: 0, max: 1
+	-- param3: FILTER, float, min: 0, max: 1
+	"Echo"
+
+	-- The equalizer filter.
+	-- param0: WET, float, min: 0, max: 1
+	-- param1: BAND0, float, min: 0, max: 4
+	-- param2: BAND1, float, min: 0, max: 4
+	-- param3: BAND2, float, min: 0, max: 4
+	-- param4: BAND3, float, min: 0, max: 4
+	-- param5: BAND4, float, min: 0, max: 4
+	-- param6: BAND5, float, min: 0, max: 4
+	-- param7: BAND6, float, min: 0, max: 4
+	-- param8: BAND7, float, min: 0, max: 4
+	"Eq"
+
+	-- The FFT filter.
+	-- param0: WET, float, min: 0, max: 1
+	"FFT"
+
+	-- The flanger filter.
+	-- param0: WET, float, min: 0, max: 1
+	-- param1: DELAY, float, min: 0.001, max: 0.1
+	-- param2: FREQ, float, min: 0.001, max: 100
+	"Flanger"
+
+	-- The freeverb filter.
+	-- param0: WET, float, min: 0, max: 1
+	-- param1: FREEZE, float, min: 0, max: 1
+	-- param2: ROOMSIZE, float, min: 0, max: 1
+	-- param3: DAMP, float, min: 0, max: 1
+	-- param4: WIDTH, float, min: 0, max: 1
+	"FreeVerb"
+
+	-- The lofi filter.
+	-- param0: WET, float, min: 0, max: 1
+	-- param1: SAMPLE_RATE, float, min: 100, max: 22000
+	-- param2: BITDEPTH, float, min: 0.5, max: 16
+	"Lofi"
+
+	-- The robotize filter.
+	-- param0: WET, float, min: 0, max: 1
+	-- param1: FREQ, float, min: 0.1, max: 100
+	-- param2: WAVE, float, min: 0, max: 6
+	"Robotize"
+
+	-- The wave shaper filter.
+	-- param0: WET, float, min: 0, max: 1
+	-- param1: AMOUNT, float, min: -1, max: 1
+	"WaveShaper"
+end
+```
+
+## volume
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The volume of the audio bus. The value is between 0.0 and 1.0.
+
+**Signature:**
+```tl
+volume: number
+```
+
+## pan
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The pan of the audio bus. The value is between -1.0 and 1.0.
+
+**Signature:**
+```tl
+pan: number
+```
+
+## playSpeed
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The play speed of the audio bus. The value 1.0 is the normal speed. 0.5 is half speed. 2.0 is double speed.
+
+**Signature:**
+```tl
+playSpeed: number
+```
+
+## fadeVolume
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Fades the volume of the audio bus to the specified value over the specified time.
+
+**Signature:**
+```tl
+fadeVolume: function(self: AudioBus, time: number, toVolume: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| time | number | The time in seconds to fade the volume. |
+| toVolume | number | The volume to fade to. |
+
+## fadePan
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Fades the pan of the audio bus to the specified value over the specified time.
+
+**Signature:**
+```tl
+fadePan: function(self: AudioBus, time: number, toPan: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| time | number | The time in seconds to fade the pan. |
+| toPan | number | The pan to fade to. |
+
+## fadePlaySpeed
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Fades the play speed of the audio bus to the specified value over the specified time.
+
+**Signature:**
+```tl
+fadePlaySpeed: function(self: AudioBus, time: number, toPlaySpeed: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| time | number | The time in seconds to fade the play speed. |
+| toPlaySpeed | number | The play speed to fade to. |
+
+## setFilter
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the filter of the audio bus.
+
+**Signature:**
+```tl
+setFilter: function(self: AudioBus, index: integer, name: Filter)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| index | integer | The index of the filter. |
+| name | Filter | The type of the filter. |
+
+## setFilterParameter
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the parameter of the filter of the audio bus.
+
+**Signature:**
+```tl
+setFilterParameter: function(self: AudioBus, index: integer, attrId: integer, value: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| index | integer | The index of the filter. |
+| attrId | integer | The attribute ID of the filter. |
+| value | number | The value of the parameter. |
+
+## getFilterParameter
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Gets the parameter of the filter of the audio bus.
+
+**Signature:**
+```tl
+getFilterParameter: function(self: AudioBus, index: integer, attrId: integer): number
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| index | integer | The index of the filter. |
+| attrId | integer | The attribute ID of the filter. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| number | The value of the parameter. |
+
+## fadeFilterParameter
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Fades the parameter of the filter of the audio bus to the specified value over the specified time.
+
+**Signature:**
+```tl
+fadeFilterParameter: function(self: AudioBus, index: integer, attrId: integer, to: number, time: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| index | integer | The index of the filter. |
+| attrId | integer | The attribute ID of the filter. |
+| to | number | The value to fade to. |
+| time | number | The time in seconds to fade the parameter. |

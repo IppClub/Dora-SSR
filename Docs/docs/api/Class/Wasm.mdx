@@ -1,0 +1,117 @@
+# Wasm
+
+**Description:**
+
+&emsp;&emsp;A record that provides WASM related functions.
+
+## executeMainFileAsync
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Executes the main WASM file (e.g. init.wasm) asynchronously.
+
+**Signature:**
+```tl
+executeMainFileAsync: function(self: Wasm, filename: string): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| filename | string | The name of the main WASM file. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | Whether the main WASM file was executed successfully. |
+
+## buildWaAsync
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Builds the WASM file (e.g. init.wasm) from a Wa-lang project asynchronously.
+
+**Signature:**
+```tl
+buildWaAsync: function(self: Wasm, fullPath: string): string
+```
+
+**Usage:**
+```tl
+thread(function()
+	local result = Wasm:buildWaAsync("/path/to/wa-lang/project/")
+	if result == "" then
+		print("Built successfully!")
+	else
+		print("Failed to build, due to " .. result)
+	end
+end)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| fullPath | string | The full path of the Wa-lang project. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | The WASM file building result. |
+
+## formatWaAsync
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Formats a Wa-lang code file asynchronously.
+
+**Signature:**
+```tl
+formatWaAsync: function(self: Wasm, fullPath: string): string
+```
+
+**Usage:**
+```tl
+thread(function()
+	local result = Wasm:formatWaAsync("/path/to/wa-lang/code/file.wa")
+	if success == "" then
+		print("Failed to format")
+	else
+		print("Formated code:" .. result)
+	end
+end)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| fullPath | string | The full path of the Wa-lang code file. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| string | The Wa-lang code file formatting result. |
+
+## clear
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Clears the running WASM module and stops the runtime.
+
+**Signature:**
+```tl
+clear: function(self: Wasm)
+```

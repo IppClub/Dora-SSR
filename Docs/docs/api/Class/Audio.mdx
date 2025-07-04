@@ -4,99 +4,15 @@
 
 &emsp;&emsp;A record of an audio player singleton object.
 
-## play
+## soundSpeed
 
-**Type:** Function.
-
-**Description:**
-
-&emsp;&emsp;Plays a sound effect and returns a handler for the audio.
-
-**Signature:**
-```tl
-play: function(
-		self: Audio,
-		filename: string,
-		loop?: boolean --[[false]]
-	): integer
-```
-
-**Parameters:**
-
-| Parameter | Type | Description |
-| --- | --- | --- |
-| filename | string | The path to the sound effect file (must be a WAV file). |
-| loop | boolean | [optional] Whether to loop the sound effect (default is false). |
-
-**Returns:**
-
-| Return Type | Description |
-| --- | --- |
-| integer | A handler for the audio that can be used to stop the sound effect. |
-
-## stop
-
-**Type:** Function.
+**Type:** Field.
 
 **Description:**
 
-&emsp;&emsp;Stops a sound effect that is currently playing.
+&emsp;&emsp;The speed of the sound.
 
 **Signature:**
 ```tl
-stop: function(self: Audio, handler: integer)
+soundSpeed: number
 ```
-
-**Parameters:**
-
-| Parameter | Type | Description |
-| --- | --- | --- |
-| handler | integer | The handler for the audio that is returned by the `play` function. |
-
-## playStream
-
-**Type:** Function.
-
-**Description:**
-
-&emsp;&emsp;Plays a streaming audio file.
-
-**Signature:**
-```tl
-playStream: function(
-		self: Audio,
-		filename: string,
-		loop?: boolean --[[false]],
-		crossFadeTime?: number --[[0.0]]
-	)
-```
-
-**Parameters:**
-
-| Parameter | Type | Description |
-| --- | --- | --- |
-| filename | string | The path to the streaming audio file (can be OGG, WAV, MP3, or FLAC). |
-| loop | boolean | [optional] Whether to loop the streaming audio (default is false). |
-| crossFadeTime | number | [optional] The time (in seconds) to crossfade between the previous and new streaming audio (default is 0.0). |
-
-## stopStream
-
-**Type:** Function.
-
-**Description:**
-
-&emsp;&emsp;Stops a streaming audio file that is currently playing.
-
-**Signature:**
-```tl
-stopStream: function(
-		self: Audio,
-		fadeTime?: number --[[0.0]]
-	)
-```
-
-**Parameters:**
-
-| Parameter | Type | Description |
-| --- | --- | --- |
-| fadeTime | number | [optional] The time (in seconds) to fade out the streaming audio (default is 0.0). |

@@ -1,0 +1,323 @@
+# AudioSource
+
+**Description:**
+
+&emsp;&emsp;A record that represents an audio source.
+
+**Class Object:** [AudioSource Class](/docs/api/Class%20Object/AudioSource).
+
+**Inherits from:** [Node](/docs/api/Class/Node).
+
+## AudioSource.AttenuationModel
+
+**Type:** Enumeration.
+
+**Description:**
+
+&emsp;&emsp;The model of the attenuation.
+
+**Signature:**
+```tl
+enum AttenuationModel
+	"NoAttenuation"
+	"InverseDistance"
+	"LinearDistance"
+	"ExponentialDistance"
+end
+```
+
+## volume
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The volume of the audio source. The value is between 0.0 and 1.0.
+
+**Signature:**
+```tl
+volume: number
+```
+
+## pan
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;The pan of the audio source. The value is between -1.0 and 1.0.
+
+**Signature:**
+```tl
+pan: number
+```
+
+## looping
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Whether the audio source is looped.
+
+**Signature:**
+```tl
+looping: boolean
+```
+
+## playing
+
+**Type:** Field.
+
+**Description:**
+
+&emsp;&emsp;Whether the audio source is playing.
+
+**Signature:**
+```tl
+playing: boolean
+```
+
+## seek
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Seeks to the specified time in the audio source.
+
+**Signature:**
+```tl
+seek: function(self: AudioSource, startTime: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| startTime | number | The time to seek to. |
+
+## scheduleStop
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Schedules the stop of the audio source.
+
+**Signature:**
+```tl
+scheduleStop: function(self: AudioSource, timeToStop: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| timeToStop | number | The time to stop the audio source. |
+
+## stop
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Stops the audio source.
+
+**Signature:**
+```tl
+stop: function(self: AudioSource, fadeTime: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| fadeTime | number | The time to fade the audio source. |
+
+## play
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Plays the audio source.
+
+**Signature:**
+```tl
+play: function(self: AudioSource, delayTime: number): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| delayTime | number | The time to delay before playing the audio source. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | Whether the audio source was played successfully. |
+
+## playBackground
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Plays the audio source as a background audio.
+
+**Signature:**
+```tl
+playBackground: function(self: AudioSource): boolean
+```
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | Whether the audio source was played successfully. |
+
+## play3D
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Plays the audio source as a 3D audio.
+
+**Signature:**
+```tl
+play3D: function(self: AudioSource, delayTime: number): boolean
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| delayTime | number | The time to delay before playing the audio source. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| boolean | Whether the audio source was played successfully. |
+
+## setProtected
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the protected state of the audio source. If the audio source is protected, it won't get stopped if we run out of voices.
+
+**Signature:**
+```tl
+setProtected: function(self: AudioSource, var: boolean)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| var | boolean | The protected state to set. |
+
+## setLoopPoint
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the loop point of the audio source. The audio source will loop from the specified time to the end of the audio.
+
+**Signature:**
+```tl
+setLoopPoint: function(self: AudioSource, loopStartTime: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| loopStartTime | number | The time to loop the audio source. |
+
+## setVelocity
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the velocity of the 3D audio source.
+
+**Signature:**
+```tl
+setVelocity: function(self: AudioSource, vx: number, vy: number, vz: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| vx | number | The x-axis velocity. |
+| vy | number | The y-axis velocity. |
+| vz | number | The z-axis velocity. |
+
+## setMinMaxDistance
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the minimum and maximum distance of the 3D audio source.
+
+**Signature:**
+```tl
+setMinMaxDistance: function(self: AudioSource, min: number, max: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| min | number | The minimum distance. |
+| max | number | The maximum distance. |
+
+## setAttenuation
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the attenuation model of the 3D audio source.
+
+**Signature:**
+```tl
+setAttenuation: function(self: AudioSource, model: AttenuationModel, factor: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| model | AttenuationModel | The model of the attenuation. |
+| factor | number | The factor of the attenuation. |
+
+## setDopplerFactor
+
+**Type:** Function.
+
+**Description:**
+
+&emsp;&emsp;Sets the Doppler factor of the 3D audio source.
+
+**Signature:**
+```tl
+setDopplerFactor: function(self: AudioSource, factor: number)
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| factor | number | The factor of the Doppler effect. |

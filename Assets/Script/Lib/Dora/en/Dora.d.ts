@@ -7385,6 +7385,8 @@ export const enum TypeName {
 	AlignNode = "AlignNode",
 	EffekNode = "EffekNode",
 	TileNode = "TileNode",
+	AudioBus = "AudioBus",
+	AudioSource = "AudioSource",
 }
 
 export interface TypeMap {
@@ -7436,6 +7438,8 @@ export interface TypeMap {
 	[TypeName.AlignNode]: AlignNode;
 	[TypeName.EffekNode]: EffekNode;
 	[TypeName.TileNode]: TileNode;
+	[TypeName.AudioBus]: AudioBus;
+	[TypeName.AudioSource]: AudioSource;
 }
 
 /**
