@@ -154,33 +154,6 @@
     <Filter Include="3rdParty\soloud\filter">
       <UniqueIdentifier>{da4f2b1c-b868-41aa-8335-f31182b5be8a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="3rdParty\soloud\audiosource\ay">
-      <UniqueIdentifier>{49baa19a-74d4-43a4-b369-f2bcbeb0403a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="3rdParty\soloud\audiosource\monotone">
-      <UniqueIdentifier>{82138d64-c7e3-456e-a10e-4aa4a1b5f9fe}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="3rdParty\soloud\audiosource\noise">
-      <UniqueIdentifier>{b8ae18ea-7564-4e3e-b0a8-f8c3b54a2b30}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="3rdParty\soloud\audiosource\openmpt">
-      <UniqueIdentifier>{85e9d029-2684-42f7-ac24-abb3db5e1c8c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="3rdParty\soloud\audiosource\sfxr">
-      <UniqueIdentifier>{7eb243ce-a261-4356-a62a-35789f1c592e}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="3rdParty\soloud\audiosource\speech">
-      <UniqueIdentifier>{fcc00b82-95e6-4685-94c6-94a2536316e7}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="3rdParty\soloud\audiosource\tedsid">
-      <UniqueIdentifier>{e59e9003-6813-45a8-9855-80092c93c188}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="3rdParty\soloud\audiosource\vic">
-      <UniqueIdentifier>{f9333332-f28f-4a61-ac4b-ddd1e0a49bf4}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="3rdParty\soloud\audiosource\vizsn">
-      <UniqueIdentifier>{01165967-1e63-4937-9efa-e95ffe5b2beb}</UniqueIdentifier>
-    </Filter>
     <Filter Include="3rdParty\soloud\audiosource\wav">
       <UniqueIdentifier>{a1cc48e2-5ad5-458d-912e-ad3baa191c4d}</UniqueIdentifier>
     </Filter>
@@ -876,24 +849,6 @@
     <ClCompile Include="..\..\..\Source\3rdParty\soloud\core\soloud_thread.cpp">
       <Filter>3rdParty\soloud\core</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\ay\chipplayer.cpp">
-      <Filter>3rdParty\soloud\audiosource\ay</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\ay\sndbuffer.cpp">
-      <Filter>3rdParty\soloud\audiosource\ay</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\ay\sndchip.cpp">
-      <Filter>3rdParty\soloud\audiosource\ay</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\ay\sndrender.cpp">
-      <Filter>3rdParty\soloud\audiosource\ay</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\ay\soloud_ay.cpp">
-      <Filter>3rdParty\soloud\audiosource\ay</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\monotone\soloud_monotone.cpp">
-      <Filter>3rdParty\soloud\audiosource\monotone</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\wav\dr_impl.cpp">
       <Filter>3rdParty\soloud\audiosource\wav</Filter>
     </ClCompile>
@@ -905,48 +860,6 @@
     </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\wav\stb_vorbis.c">
       <Filter>3rdParty\soloud\audiosource\wav</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\vizsn\soloud_vizsn.cpp">
-      <Filter>3rdParty\soloud\audiosource\vizsn</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\vic\soloud_vic.cpp">
-      <Filter>3rdParty\soloud\audiosource\vic</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\tedsid\sid.cpp">
-      <Filter>3rdParty\soloud\audiosource\tedsid</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\tedsid\soloud_tedsid.cpp">
-      <Filter>3rdParty\soloud\audiosource\tedsid</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\tedsid\ted.cpp">
-      <Filter>3rdParty\soloud\audiosource\tedsid</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\speech\darray.cpp">
-      <Filter>3rdParty\soloud\audiosource\speech</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\speech\klatt.cpp">
-      <Filter>3rdParty\soloud\audiosource\speech</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\speech\resonator.cpp">
-      <Filter>3rdParty\soloud\audiosource\speech</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\speech\soloud_speech.cpp">
-      <Filter>3rdParty\soloud\audiosource\speech</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\speech\tts.cpp">
-      <Filter>3rdParty\soloud\audiosource\speech</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\sfxr\soloud_sfxr.cpp">
-      <Filter>3rdParty\soloud\audiosource\sfxr</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\noise\soloud_noise.cpp">
-      <Filter>3rdParty\soloud\audiosource\noise</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\openmpt\soloud_openmpt.cpp">
-      <Filter>3rdParty\soloud\audiosource\openmpt</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\openmpt\soloud_openmpt_dll.c">
-      <Filter>3rdParty\soloud\audiosource\openmpt</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\Lua\lapi.c">
       <Filter>3rdParty\Lua</Filter>
@@ -1115,9 +1028,6 @@
     </ClCompile>
     <ClCompile Include="..\..\..\Source\GUI\ImGuiBinding.cpp">
       <Filter>GUI</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\soloud\filter\soloud_duckfilter.cpp">
-      <Filter>3rdParty\soloud\filter</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\colib\ljson.c">
       <Filter>3rdParty\colib</Filter>
@@ -2498,9 +2408,6 @@
     <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_audiosource.h">
       <Filter>3rdParty\soloud</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_ay.h">
-      <Filter>3rdParty\soloud</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_bassboostfilter.h">
       <Filter>3rdParty\soloud</Filter>
     </ClInclude>
@@ -2561,37 +2468,13 @@
     <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_misc.h">
       <Filter>3rdParty\soloud</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_monotone.h">
-      <Filter>3rdParty\soloud</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_noise.h">
-      <Filter>3rdParty\soloud</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_openmpt.h">
-      <Filter>3rdParty\soloud</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_queue.h">
       <Filter>3rdParty\soloud</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_robotizefilter.h">
       <Filter>3rdParty\soloud</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_sfxr.h">
-      <Filter>3rdParty\soloud</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_speech.h">
-      <Filter>3rdParty\soloud</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_tedsid.h">
-      <Filter>3rdParty\soloud</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_thread.h">
-      <Filter>3rdParty\soloud</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_vic.h">
-      <Filter>3rdParty\soloud</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_vizsn.h">
       <Filter>3rdParty\soloud</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_wav.h">
@@ -2606,18 +2489,6 @@
     <ClInclude Include="..\..\..\Source\3rdParty\soloud\zx7decompress.h">
       <Filter>3rdParty\soloud</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\soloud\audiosource\ay\chipplayer.h">
-      <Filter>3rdParty\soloud\audiosource\ay</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\soloud\audiosource\ay\sndbuffer.h">
-      <Filter>3rdParty\soloud\audiosource\ay</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\soloud\audiosource\ay\sndchip.h">
-      <Filter>3rdParty\soloud\audiosource\ay</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\soloud\audiosource\ay\sndrender.h">
-      <Filter>3rdParty\soloud\audiosource\ay</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\soloud\audiosource\wav\dr_flac.h">
       <Filter>3rdParty\soloud\audiosource\wav</Filter>
     </ClInclude>
@@ -2629,24 +2500,6 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\soloud\audiosource\wav\stb_vorbis.h">
       <Filter>3rdParty\soloud\audiosource\wav</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\soloud\audiosource\tedsid\sid.h">
-      <Filter>3rdParty\soloud\audiosource\tedsid</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\soloud\audiosource\tedsid\ted.h">
-      <Filter>3rdParty\soloud\audiosource\tedsid</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\soloud\audiosource\speech\darray.h">
-      <Filter>3rdParty\soloud\audiosource\speech</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\soloud\audiosource\speech\klatt.h">
-      <Filter>3rdParty\soloud\audiosource\speech</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\soloud\audiosource\speech\resonator.h">
-      <Filter>3rdParty\soloud\audiosource\speech</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\soloud\audiosource\speech\tts.h">
-      <Filter>3rdParty\soloud\audiosource\speech</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\Source\3rdParty\Lua\lapi.h">
       <Filter>3rdParty\Lua</Filter>
@@ -2812,9 +2665,6 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\GUI\ImGuiBinding.h">
       <Filter>GUI</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_duckfilter.h">
-      <Filter>3rdParty\soloud</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Http\HttpServer.h">
       <Filter>Http</Filter>
