@@ -917,86 +917,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\ay\chipplayer.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\ay\sndbuffer.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\ay\sndchip.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\ay\sndrender.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\ay\soloud_ay.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\monotone\soloud_monotone.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\noise\soloud_noise.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\openmpt\soloud_openmpt.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\openmpt\soloud_openmpt_dll.c">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\sfxr\soloud_sfxr.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\speech\darray.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\speech\klatt.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\speech\resonator.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\speech\soloud_speech.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\speech\tts.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\tedsid\sid.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\tedsid\soloud_tedsid.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\tedsid\ted.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\vic\soloud_vic.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\vizsn\soloud_vizsn.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\wav\dr_impl.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
@@ -1835,10 +1755,6 @@
     <ClCompile Include="..\..\..\Source\Test\Test.cpp" />
     <ClCompile Include="..\..\..\Source\Wasm\WasmRuntime.cpp" />
     <ClCompile Include="..\..\..\Source\GUI\ImGuiBinding.cpp" />
-    <ClCompile Include="..\..\..\Source\3rdParty\soloud\filter\soloud_duckfilter.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
     <ClCompile Include="..\..\..\Source\3rdParty\colib\ljson.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
@@ -2254,23 +2170,12 @@
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\WrongState.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\playrho\ZeroToUnderOne.hpp" />
     <ClInclude Include="..\..\..\Source\3rdParty\silly\Slice.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\soloud\audiosource\ay\chipplayer.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\soloud\audiosource\ay\sndbuffer.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\soloud\audiosource\ay\sndchip.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\soloud\audiosource\ay\sndrender.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\soloud\audiosource\speech\darray.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\soloud\audiosource\speech\klatt.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\soloud\audiosource\speech\resonator.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\soloud\audiosource\speech\tts.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\soloud\audiosource\tedsid\sid.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\soloud\audiosource\tedsid\ted.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\soloud\audiosource\wav\dr_flac.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\soloud\audiosource\wav\dr_mp3.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\soloud\audiosource\wav\dr_wav.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\soloud\audiosource\wav\stb_vorbis.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_audiosource.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_ay.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_bassboostfilter.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_biquadresonantfilter.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_bus.h" />
@@ -2291,17 +2196,9 @@
     <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_internal.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_lofifilter.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_misc.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_monotone.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_noise.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_openmpt.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_queue.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_robotizefilter.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_sfxr.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_speech.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_tedsid.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_thread.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_vic.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_vizsn.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_wav.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_waveshaperfilter.h" />
     <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_wavstream.h" />
@@ -2638,7 +2535,6 @@
     <ClInclude Include="..\..\..\Source\Wasm\WasmRuntime.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="..\..\..\Source\GUI\ImGuiBinding.h" />
-    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_duckfilter.h" />
     <ClInclude Include="..\..\..\Source\Http\HttpServer.h" />
   </ItemGroup>
   <ItemGroup>
