@@ -50,14 +50,14 @@ float AudioSource::getPlaySpeed() const noexcept {
 	return _playSpeed;
 }
 
-void AudioSource::setLoop(bool var) {
+void AudioSource::setLooping(bool var) {
 	_loop = var;
 	if (_handle != 0) {
 		SharedAudio.getSoLoud()->setLooping(_handle, var);
 	}
 }
 
-bool AudioSource::isLoop() const noexcept {
+bool AudioSource::isLooping() const noexcept {
 	return _loop;
 }
 

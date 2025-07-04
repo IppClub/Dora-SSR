@@ -20,7 +20,7 @@ public:
 	PROPERTY(float, Volume);
 	PROPERTY(float, Pan);
 	PROPERTY(float, PlaySpeed);
-	PROPERTY_BOOL(Loop);
+	PROPERTY_BOOL(Looping);
 	PROPERTY_READONLY_BOOL(Playing);
 
 	virtual void visit() override;
@@ -39,10 +39,10 @@ public:
 	void setVelocity(float vx, float vy, float vz);
 	void setMinMaxDistance(float min, float max);
 	enum class AttenuationModel {
-		NoAttenuation,
-		InverseDistance,
-		LinearDistance,
-		ExponentialDistance
+		NoAttenuation = 0,
+		InverseDistance = 1,
+		LinearDistance = 2,
+		ExponentialDistance = 3
 	};
 	void setAttenuation(AttenuationModel model, float factor);
 	void setAttenuation(String model, float factor);

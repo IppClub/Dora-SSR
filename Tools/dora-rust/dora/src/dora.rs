@@ -113,6 +113,10 @@ mod cache;
 pub use cache::Cache;
 mod audio;
 pub use audio::Audio;
+mod audio_bus;
+pub use audio_bus::AudioBus;
+mod audio_source;
+pub use audio_source::AudioSource;
 mod keyboard;
 pub use keyboard::Keyboard;
 mod mouse;
@@ -200,6 +204,8 @@ thread_local! {
 			MotorJoint::type_info(),
 			MoveJoint::type_info(),
 			SVG::type_info(),
+			AudioBus::type_info(),
+			AudioSource::type_info(),
 			ml::QLearner::type_info(),
 			platformer::ActionUpdate::type_info(),
 			platformer::Face::type_info(),
@@ -3882,6 +3888,17 @@ impl Controller {
 	pub fn get_axis(controller_id: i32, axis: AxisName) -> f32 {
 		Controller::_get_axis(controller_id, axis.as_ref())
 	}
+}
+
+// Audio
+
+#[repr(i32)]
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub enum AttenuationModel {
+	NoAttenuation = 0,
+	InverseDistance = 1,
+	LinearDistance = 2,
+	ExponentialDistance = 3,
 }
 
 // platformer::ActionUpdate

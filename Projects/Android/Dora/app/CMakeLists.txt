@@ -385,7 +385,6 @@ add_library(main SHARED
 	src/main/cpp/3rdParty/soloud/core/soloud_core_getters.cpp
 	src/main/cpp/3rdParty/soloud/core/soloud_core_3d.cpp
 	src/main/cpp/3rdParty/soloud/core/soloud_misc.cpp
-	src/main/cpp/3rdParty/soloud/filter/soloud_duckfilter.cpp
 	src/main/cpp/3rdParty/soloud/filter/soloud_eqfilter.cpp
 	src/main/cpp/3rdParty/soloud/filter/soloud_bassboostfilter.cpp
 	src/main/cpp/3rdParty/soloud/filter/soloud_echofilter.cpp
@@ -399,30 +398,10 @@ add_library(main SHARED
 	src/main/cpp/3rdParty/soloud/filter/soloud_waveshaperfilter.cpp
 	src/main/cpp/3rdParty/soloud/backend/sdl/soloud_sdl2.cpp
 	src/main/cpp/3rdParty/soloud/backend/sdl/soloud_sdl2_dll.c
-	src/main/cpp/3rdParty/soloud/audiosource/vic/soloud_vic.cpp
 	src/main/cpp/3rdParty/soloud/audiosource/wav/stb_vorbis.c
 	src/main/cpp/3rdParty/soloud/audiosource/wav/soloud_wavstream.cpp
 	src/main/cpp/3rdParty/soloud/audiosource/wav/dr_impl.cpp
 	src/main/cpp/3rdParty/soloud/audiosource/wav/soloud_wav.cpp
-	src/main/cpp/3rdParty/soloud/audiosource/ay/sndchip.cpp
-	src/main/cpp/3rdParty/soloud/audiosource/ay/chipplayer.cpp
-	src/main/cpp/3rdParty/soloud/audiosource/ay/sndbuffer.cpp
-	src/main/cpp/3rdParty/soloud/audiosource/ay/soloud_ay.cpp
-	src/main/cpp/3rdParty/soloud/audiosource/ay/sndrender.cpp
-	src/main/cpp/3rdParty/soloud/audiosource/sfxr/soloud_sfxr.cpp
-	src/main/cpp/3rdParty/soloud/audiosource/speech/tts.cpp
-	src/main/cpp/3rdParty/soloud/audiosource/speech/resonator.cpp
-	src/main/cpp/3rdParty/soloud/audiosource/speech/klatt.cpp
-	src/main/cpp/3rdParty/soloud/audiosource/speech/darray.cpp
-	src/main/cpp/3rdParty/soloud/audiosource/speech/soloud_speech.cpp
-	src/main/cpp/3rdParty/soloud/audiosource/tedsid/ted.cpp
-	src/main/cpp/3rdParty/soloud/audiosource/tedsid/soloud_tedsid.cpp
-	src/main/cpp/3rdParty/soloud/audiosource/tedsid/sid.cpp
-	src/main/cpp/3rdParty/soloud/audiosource/noise/soloud_noise.cpp
-	src/main/cpp/3rdParty/soloud/audiosource/monotone/soloud_monotone.cpp
-	src/main/cpp/3rdParty/soloud/audiosource/vizsn/soloud_vizsn.cpp
-	src/main/cpp/3rdParty/soloud/audiosource/openmpt/soloud_openmpt_dll.c
-	src/main/cpp/3rdParty/soloud/audiosource/openmpt/soloud_openmpt.cpp
 	src/main/cpp/3rdParty/playrho/StepStats.cpp
 	src/main/cpp/3rdParty/playrho/MovementConf.cpp
 	src/main/cpp/3rdParty/playrho/BlockAllocator.cpp

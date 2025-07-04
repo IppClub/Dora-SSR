@@ -6,6 +6,24 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
+#wa:import dora audio_set_sound_speed
+func audio_set_sound_speed(val: f32)
+
+#wa:import dora audio_get_sound_speed
+func audio_get_sound_speed() => f32
+
+#wa:import dora audio_set_global_volume
+func audio_set_global_volume(val: f32)
+
+#wa:import dora audio_get_global_volume
+func audio_get_global_volume() => f32
+
+#wa:import dora audio_set_listener
+func audio_set_listener(val: i64)
+
+#wa:import dora audio_get_listener
+func audio_get_listener() => i64
+
 #wa:import dora audio_play
 func audio_play(filename: i64, looping: i32) => i32
 
@@ -18,10 +36,56 @@ func audio_play_stream(filename: i64, looping: i32, cross_fade_time: f32)
 #wa:import dora audio_stop_stream
 func audio_stop_stream(fade_time: f32)
 
+#wa:import dora audio_set_pause_all_current
+func audio_set_pause_all_current(pause: i32)
+
+#wa:import dora audio_set_listener_at
+func audio_set_listener_at(at_x: f32, at_y: f32, at_z: f32)
+
+#wa:import dora audio_set_listener_up
+func audio_set_listener_up(up_x: f32, up_y: f32, up_z: f32)
+
+#wa:import dora audio_set_listener_velocity
+func audio_set_listener_velocity(velocity_x: f32, velocity_y: f32, velocity_z: f32)
+
 type _Audio :struct{}
 
 global Audio = _Audio{}
 
+/// Sets The speed of the 3D sound.
+func _Audio.SetSoundSpeed(val: f32) {
+	audio_set_sound_speed(val)
+}
+
+/// Gets The speed of the 3D sound.
+func _Audio.GetSoundSpeed() => f32 {
+	return audio_get_sound_speed()
+}
+
+/// Sets The global volume of the audio. The value is between 0.0 and 1.0.
+func _Audio.SetGlobalVolume(val: f32) {
+	audio_set_global_volume(val)
+}
+
+/// Gets The global volume of the audio. The value is between 0.0 and 1.0.
+func _Audio.GetGlobalVolume() => f32 {
+	return audio_get_global_volume()
+}
+
+/// Sets The 3D listener as a node of the audio.
+func _Audio.SetListener(val: Node) {
+	audio_set_listener(val.GetRaw())
+}
+
+/// Gets The 3D listener as a node of the audio.
+func _Audio.GetListener() => *Node {
+	ptr_ := audio_get_listener()
+	if ptr_ == 0 {
+		return nil
+	}
+	obj_ := *NodeFrom(ptr_)
+	return &obj_
+}
 func _Audio.Play(filename: string, looping: bool) => i32 {
 	return audio_play(ToDoraString(filename), ToDoraBool(looping))
 }
@@ -33,4 +97,16 @@ func _Audio.PlayStream(filename: string, looping: bool, cross_fade_time: f32) {
 }
 func _Audio.StopStream(fade_time: f32) {
 	audio_stop_stream(fade_time)
+}
+func _Audio.SetPauseAllCurrent(pause: bool) {
+	audio_set_pause_all_current(ToDoraBool(pause))
+}
+func _Audio.SetListenerAt(at_x: f32, at_y: f32, at_z: f32) {
+	audio_set_listener_at(at_x, at_y, at_z)
+}
+func _Audio.SetListenerUp(up_x: f32, up_y: f32, up_z: f32) {
+	audio_set_listener_up(up_x, up_y, up_z)
+}
+func _Audio.SetListenerVelocity(velocity_x: f32, velocity_y: f32, velocity_z: f32) {
+	audio_set_listener_velocity(velocity_x, velocity_y, velocity_z)
 }

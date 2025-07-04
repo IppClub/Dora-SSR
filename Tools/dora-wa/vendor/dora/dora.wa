@@ -2235,6 +2235,21 @@ global TextAlignLeft = TextAlign{value: 0}
 global TextAlignCenter = TextAlign{value: 1}
 global TextAlignRight = TextAlign{value: 2}
 
+/* AttenuationModel */
+
+type AttenuationModel :struct {
+	value: i32
+}
+
+func AttenuationModel.ToValue() => i32 {
+	return this.value
+}
+
+global AttenuationModelNoAttenuation = AttenuationModel{value: 0}
+global AttenuationModelInverseDistance = AttenuationModel{value: 1}
+global AttenuationModelLinearDistance = AttenuationModel{value: 2}
+global AttenuationModelExponentialDistance = AttenuationModel{value: 3}
+
 /* PlatformerRelation */
 
 type PlatformerRelation :struct {

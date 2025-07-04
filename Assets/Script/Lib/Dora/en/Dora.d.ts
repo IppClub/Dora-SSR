@@ -1435,6 +1435,15 @@ export {arrayClass as Array};
 class Audio {
 	private constructor();
 
+	/** The speed of the sound. */
+	soundSpeed: number;
+
+	/** The global volume. */
+	globalVolume: number;
+
+	/** The listener node of the 3D sound source. */
+	listener?: Node;
+
 	/**
 	 * Plays a sound effect and returns a handler for the audio.
 	 *
@@ -1466,6 +1475,40 @@ class Audio {
 	 * @param fadeTime The time (in seconds) to fade out the streaming audio. Default is 0.0.
 	 */
 	stopStream(fadeTime?: number): void;
+
+	/**
+	 * Pauses all currently playing audio.
+	 *
+	 * @param pause The pause state.
+	 */
+	setPauseAllCurrent(pause: boolean): void;
+
+	/**
+	 * Sets the position of the listener.
+	 *
+	 * @param atX The x-axis position.
+	 * @param atY The y-axis position.
+	 * @param atZ The z-axis position.
+	 */
+	setListenerAt(atX: number, atY: number, atZ: number): void;
+
+	/**
+	 * Sets the up direction of the listener.
+	 *
+	 * @param upX The x-axis up direction.
+	 * @param upY The y-axis up direction.
+	 * @param upZ The z-axis up direction.
+	 */
+	setListenerUp(upX: number, upY: number, upZ: number): void;
+
+	/**
+	 * Sets the velocity of the listener.
+	 *
+	 * @param velocityX The x-axis velocity.
+	 * @param velocityY The y-axis velocity.
+	 * @param velocityZ The z-axis velocity.
+	 */
+	setListenerVelocity(velocityX: number, velocityY: number, velocityZ: number): void;
 }
 
 const audio: Audio;
@@ -2788,7 +2831,7 @@ class Node extends Object {
 	passColor3: boolean;
 
 	/** The target node acts as a parent node for transforming this node. */
-	transformTarget: Node;
+	transformTarget?: Node;
 
 	/** The scheduler used for scheduling update and action callbacks. */
 	scheduler: Scheduler;
@@ -6981,6 +7024,317 @@ type VGPaintType = BasicType<"VGPaint">;
 export namespace VGPaint {
 	export type Type = VGPaintType;
 }
+
+/**
+ * The filter types that can be applied to the audio bus.
+ */
+export const enum AudioFilter {
+	None = "",
+	/**
+	 * The bass boost filter.
+	 * param0: WET, float, min: 0, max: 1
+	 * param1: BOOST, float, min: 0, max: 10
+	 */
+	BassBoost = "BassBoost",
+	/**
+	 * The biquad resonant filter.
+	 * param0: WET, float, min: 0, max: 1
+	 * param1: TYPE, int, values: 0 - LOWPASS, 1 - HIGHPASS, 2 - BANDPASS
+	 * param2: FREQUENCY, float, min: 10, max: 8000
+	 * param3: RESONANCE, float, min: 0.1, max: 20
+	 */
+	BiquadResonant = "BiquadResonant",
+	/**
+	 * The DC removal filter.
+	 * param0: WET, float, min: 0, max: 1
+	 */
+	DCRemoval = "DCRemoval",
+	/**
+	 * The echo filter.
+	 * param0: WET, float, min: 0, max: 1
+	 * param1: DELAY, float, min: 0, max: 1
+	 * param2: DECAY, float, min: 0, max: 1
+	 * param3: FILTER, float, min: 0, max: 1
+	 */
+	Echo = "Echo",
+	/**
+	 * The equalizer filter.
+	 * param0: WET, float, min: 0, max: 1
+	 * param1: BAND0, float, min: 0, max: 4
+	 * param2: BAND1, float, min: 0, max: 4
+	 * param3: BAND2, float, min: 0, max: 4
+	 * param4: BAND3, float, min: 0, max: 4
+	 * param5: BAND4, float, min: 0, max: 4
+	 * param6: BAND5, float, min: 0, max: 4
+	 * param7: BAND6, float, min: 0, max: 4
+	 * param8: BAND7, float, min: 0, max: 4
+	 */
+	Eq = "Eq",
+	/**
+	 * The FFT filter.
+	 * param0: WET, float, min: 0, max: 1
+	 */
+	FFT = "FFT",
+	/**
+	 * The flanger filter.
+	 * param0: WET, float, min: 0, max: 1
+	 * param1: DELAY, float, min: 0.001, max: 0.1
+	 * param2: FREQ, float, min: 0.001, max: 100
+	 */
+	Flanger = "Flanger",
+	/**
+	 * The freeverb filter.
+	 * param0: WET, float, min: 0, max: 1
+	 * param1: FREEZE, float, min: 0, max: 1
+	 * param2: ROOMSIZE, float, min: 0, max: 1
+	 * param3: DAMP, float, min: 0, max: 1
+	 * param4: WIDTH, float, min: 0, max: 1
+	 */
+	FreeVerb = "FreeVerb",
+	/**
+	 * The lofi filter.
+	 * param0: WET, float, min: 0, max: 1
+	 * param1: SAMPLE_RATE, float, min: 100, max: 22000
+	 * param2: BITDEPTH, float, min: 0.5, max: 16
+	 */
+	Lofi = "Lofi",
+	/**
+	 * The robotize filter.
+	 * param0: WET, float, min: 0, max: 1
+	 * param1: FREQ, float, min: 0.1, max: 100
+	 * param2: WAVE, float, min: 0, max: 6
+	 */
+	Robotize = "Robotize",
+	/**
+	 * The wave shaper filter.
+	 * param0: WET, float, min: 0, max: 1
+	 * param1: AMOUNT, float, min: -1, max: 1
+	 */
+	WaveShaper = "WaveShaper",
+}
+
+/**
+ * A class that represents an audio bus.
+ */
+class AudioBus extends Object {
+
+	private constructor();
+
+	/** The volume of the audio bus. The value is between 0.0 and 1.0. */
+	volume: number;
+
+	/** The pan of the audio bus. The value is between -1.0 and 1.0. */
+	pan: number;
+
+	/** The play speed of the audio bus. The value is 1.0 for normal speed, 0.5 for half speed, and 2.0 for double speed. */
+	playSpeed: number;
+
+	/**
+	 * Fades the volume of the audio bus to the specified value.
+	 * @param time The time to fade the volume (in seconds).
+	 * @param toVolume The value to fade the volume to.
+	 */
+	fadeVolume(time: number, toVolume: number): void;
+
+	/**
+	 * Fades the pan of the audio bus to the specified value.
+	 * @param time The time to fade the pan (in seconds).
+	 * @param toPan The value to fade the pan to.
+	 */
+	fadePan(time: number, toPan: number): void;
+
+	/**
+	 * Fades the play speed of the audio bus to the specified value.
+	 * @param time The time to fade the play speed (in seconds).
+	 * @param toPlaySpeed The value to fade the play speed to.
+	 */
+	fadePlaySpeed(time: number, toPlaySpeed: number): void;
+
+	/**
+	 * Sets the filter of the audio bus.
+	 * @param index The index of the filter.
+	 * @param name The type of the filter.
+	 */
+	setFilter(index: number, name: AudioFilter): void;
+
+	/**
+	 * Sets the filter parameter of the audio bus.
+	 * @param index The index of the filter.
+	 * @param attrId The attribute ID of the filter parameter.
+	 * @param value The value of the filter parameter.
+	 */
+	setFilterParameter(index: number, attrId: number, value: number): void;
+
+	/**
+	 * Gets the filter parameter of the audio bus.
+	 * @param index The index of the filter.
+	 * @param attrId The attribute ID of the filter parameter.
+	 * @returns The value of the filter parameter.
+	 */
+	getFilterParameter(index: number, attrId: number): number;
+
+	/**
+	 * Fades the filter parameter of the audio bus to the specified value.
+	 * @param index The index of the filter.
+	 * @param attrId The attribute ID of the filter parameter.
+	 * @param to The value to fade the filter parameter to.
+	 * @param time The time to fade the filter parameter (in seconds).
+	 */
+	fadeFilterParameter(index: number, attrId: number, to: number, time: number): void;
+}
+
+export namespace AudioBus {
+	export type Type = AudioBus;
+}
+
+/**
+ * A class for creating AudioBus objects.
+ */
+interface AudioBusClass {
+	/**
+	 * Creates a new AudioBus object.
+	 * @returns The created AudioBus object.
+	 */
+	(this: void): AudioBus;
+}
+
+const audioBusClass: AudioBusClass;
+export {audioBusClass as AudioBus};
+
+/**
+ * The attenuation model of the 3D audio source.
+ */
+export const enum AttenuationModel {
+	NoAttenuation = "NoAttenuation",
+	InverseDistance = "InverseDistance",
+	LinearDistance = "LinearDistance",
+	ExponentialDistance = "ExponentialDistance",
+}
+
+/**
+ * A node that represents an audio source.
+ */
+class AudioSource extends Node {
+
+	/**
+	 * The volume of the audio source. The value is between 0.0 and 1.0.
+	 */
+	volume: number;
+
+	/**
+	 * The pan of the audio source. The value is between -1.0 and 1.0.
+	 */
+	pan: number;
+
+	/**
+	 * Whether the audio source is looping.
+	 */
+	looping: boolean;
+
+	/**
+	 * Whether the audio source is playing.
+	 */
+	playing: boolean;
+
+	/**
+	 * Seeks to the specified time of the audio source.
+	 * @param startTime The time to seek to.
+	 */
+	seek(startTime: number): void;
+
+	/**
+	 * Schedules the stop of the audio source.
+	 * @param timeToStop The time to stop.
+	 */
+	scheduleStop(timeToStop: number): void;
+
+	/**
+	 * Stops the audio source.
+	 * @param fadeTime The time to fade out.
+	 */
+	stop(fadeTime: number): void;
+
+	/**
+	 * Plays the audio source.
+	 * @param delayTime The delay time before playing.
+	 * @returns Whether the audio source is playing.
+	 */
+	play(delayTime: number): boolean;
+
+	/**
+	 * Plays the audio source as background audio.
+	 * @returns Whether the audio source is playing.
+	 */
+	playBackground(): boolean;
+
+	/**
+	 * Plays the audio source as 3D audio.
+	 * @param delayTime The delay time before playing.
+	 * @returns Whether the audio source is playing.
+	 */
+	play3D(delayTime: number): boolean;
+
+	/**
+	 * Sets the protected state of the audio source. If the audio source is protected, it will not be stopped when there is not enough voice.
+	 * @param protected The state to set.
+	 */
+	setProtected(protected: boolean): void;
+
+	/**
+	 * Sets the loop point of the audio source. The audio source will loop play from the specified time.
+	 * @param loopStartTime The time to loop play.
+	 */
+	setLoopPoint(loopStartTime: number): void;
+
+	/**
+	 * Sets the speed of the 3D audio source.
+	 * @param vx The x-axis speed.
+	 * @param vy The y-axis speed.
+	 * @param vz The z-axis speed.
+	 */
+	setVelocity(vx: number, vy: number, vz: number): void;
+
+	/**
+	 * Sets the minimum and maximum distance of the 3D audio source.
+	 * @param min The minimum distance.
+	 * @param max The maximum distance.
+	 */
+	setMinMaxDistance(min: number, max: number): void;
+
+	/**
+	 * Sets the attenuation model of the 3D audio source.
+	 * @param model The attenuation model.
+	 * @param factor The attenuation factor.
+	 */
+	setAttenuation(model: AttenuationModel, factor: number): void;
+
+	/**
+	 * Sets the Doppler effect factor of the 3D audio source.
+	 * @param factor The Doppler effect factor.
+	 */
+	setDopplerFactor(factor: number): void;
+}
+
+export namespace AudioSource {
+	export type Type = AudioSource;
+}
+
+/**
+ * A class for creating AudioSource objects.
+ */
+interface AudioSourceClass {
+	/**
+	 * Creates a new AudioSource object.
+	 * @param filename The path to the audio file.
+	 * @param autoRemove [optional] Whether to remove the audio source when it stops. Defaults to `true`.
+	 * @param bus [optional] The bus to play the audio source. Defaults to `nil`.
+	 * @returns 创建的 AudioSource 节点。
+	 */
+	(this: void, filename: string, autoRemove?: boolean, bus?: AudioBus): AudioSource;
+}
+
+const audioSourceClass: AudioSourceClass;
+export {audioSourceClass as AudioSource};
 
 export const enum TypeName {
 	Size = "Size",

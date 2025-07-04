@@ -24,6 +24,8 @@ freely, subject to the following restrictions:
 
 #include "soloud.h"
 
+#include <cstdint>
+
 extern void soloud_stop_voice(uint32_t handle);
 
 // Direct voice operations (no mutexes - called from other functions)

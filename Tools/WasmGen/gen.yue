@@ -902,6 +902,25 @@ basicTypes =
 			creturn: -> error "unsupported"
 			cpass: -> error "unsupported"
 		}
+	"AttenuationModel":
+		* "i32"
+		* (name)-> "s_cast<AudioSource::AttenuationModel>(#{name})"
+		* (name)-> "s_cast<int32_t>(#{name})"
+		* "crate::dora::AttenuationModel"
+		* "crate::dora::AttenuationModel"
+		* (name)-> "#{name} as i32"
+		* (name)-> "core::mem::transmute(#{name})"
+		* -> error "unsupported"
+		* -> error "unsupported"
+		* --[[10: wa type]] {
+			convertFrom: (name)-> "AttenuationModel{value: #{name}}"
+			convertTo: (name)-> "#{name}.ToValue()"
+			argType: "AttenuationModel"
+			returnType: "AttenuationModel"
+			creturn: -> error "unsupported"
+			cpass: -> error "unsupported"
+		}
+
 	void: {}
 
 
@@ -909,9 +928,10 @@ toSnakeCase = (name)-> table.concat [sub\lower! for sub in (name\sub(1, 1)\lower
 
 snakeToPascal = (snakeStr)->
 	prefix = if "_" == snakeStr\sub 1,1 then "_" else ""
-	prefix .. snakeStr
-		\gsub "_(%a)", (letter) -> letter\upper!
+	pascalName = prefix .. snakeStr
+		\gsub "_([%a%d])", (letter) -> letter\upper!
 		\gsub "^%l", (first) -> first\upper!
+	pascalName\gsub("3d", "3D")\gsub "Ui", "UI"
 
 const WaTypeIndex = 10
 getWaType = (dataType, waName): t ->

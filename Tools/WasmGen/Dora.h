@@ -3626,6 +3626,12 @@ singleton struct Cache
 /// A interface of an audio player.
 singleton class Audio
 {
+	/// The speed of the 3D sound.
+	common float soundSpeed;
+	/// The global volume of the audio. The value is between 0.0 and 1.0.
+	common float globalVolume;
+	/// The 3D listener as a node of the audio.
+	optional common Node* listener;
 	/// Plays a sound effect and returns a handler for the audio.
 	///
 	/// # Arguments
@@ -3657,6 +3663,301 @@ singleton class Audio
 	///
 	/// * `fade_time` - The time (in seconds) to fade out the streaming audio.
 	void stopStream(float fadeTime);
+	/// Pauses all the current audio.
+	///
+	/// # Arguments
+	///
+	/// * `pause` - Whether to pause the audio.
+	void setPauseAllCurrent(bool pause);
+	/// Sets the position of the 3D listener.
+	///
+	/// # Arguments
+	///
+	/// * `atX` - The X coordinate of the listener position.
+	/// * `atY` - The Y coordinate of the listener position.
+	/// * `atZ` - The Z coordinate of the listener position.
+	void setListenerAt(float atX, float atY, float atZ);
+	/// Sets the up vector of the 3D listener.
+	///
+	/// # Arguments
+	///
+	/// * `upX` - The X coordinate of the listener up vector.
+	/// * `upY` - The Y coordinate of the listener up vector.
+	/// * `upZ` - The Z coordinate of the listener up vector.
+	void setListenerUp(float upX, float upY, float upZ);
+	/// Sets the velocity of the 3D listener.
+	///
+	/// # Arguments
+	///
+	/// * `velocityX` - The X coordinate of the listener velocity.
+	/// * `velocityY` - The Y coordinate of the listener velocity.
+	/// * `velocityZ` - The Z coordinate of the listener velocity.
+	void setListenerVelocity(float velocityX, float velocityY, float velocityZ);
+};
+
+/// A class that represents an audio bus.
+object class AudioBus
+{
+	/// The volume of the audio bus. The value is between 0.0 and 1.0.
+	common float volume;
+	/// The pan of the audio bus. The value is between -1.0 and 1.0.
+	common float pan;
+	/// The play speed of the audio bus. The value 1.0 is the normal speed. 0.5 is half speed. 2.0 is double speed.
+	common float playSpeed;
+	/// Fades the volume of the audio bus to the given value over the given time.
+	///
+	/// # Arguments
+	///
+	/// * `time` - The time to fade the volume.
+	/// * `toVolume` - The target volume.
+	void fadeVolume(double time, float toVolume);
+	/// Fades the pan of the audio bus to the given value over the given time.
+	///
+	/// # Arguments
+	///
+	/// * `time` - The time to fade the pan.
+	/// * `toPan` - The target pan. The value is between -1.0 and 1.0.
+	void fadePan(double time, float toPan);
+	/// Fades the play speed of the audio bus to the given value over the given time.
+	///
+	/// # Arguments
+	///
+	/// * `time` - The time to fade the play speed.
+	/// * `toPlaySpeed` - The target play speed.
+	void fadePlaySpeed(double time, float toPlaySpeed);
+	/// Sets the filter of the audio bus.
+	///
+	/// # Arguments
+	///
+	/// * `index` - The index of the filter.
+	/// * `name` - The name of the filter.
+	/// 	- "": No filter.
+	/// 	- "BassBoost": The bass boost filter.
+	/// 	- "BiquadResonant": The biquad resonant filter.
+	/// 	- "DCRemoval": The DC removal filter.
+	/// 	- "Echo": The echo filter.
+	/// 	- "Eq": The equalizer filter.
+	/// 	- "FFT": The FFT filter.
+	/// 	- "Flanger": The flanger filter.
+	/// 	- "FreeVerb": The freeverb filter.
+	/// 	- "Lofi": The lofi filter.
+	/// 	- "Robotize": The robotize filter.
+	/// 	- "WaveShaper": The wave shaper filter.
+	void setFilter(uint32_t index, string name);
+	/// Sets the filter parameter of the audio bus.
+	///
+	/// # Arguments
+	///
+	/// * `index` - The index of the filter.
+	/// * `attrId` - The attribute ID of the filter.
+	/// * `value` - The value of the filter parameter.
+	/// 	- "BassBoost": The bass boost filter.
+	/// 		- param0: WET, float, min: 0, max: 1
+	/// 		- param1: BOOST, float, min: 0, max: 10
+	/// 	- "BiquadResonant": The biquad resonant filter.
+	/// 		- param0: WET, float, min: 0, max: 1
+	/// 		- param1: TYPE, int, values: 0 - LOWPASS, 1 - HIGHPASS, 2 - BANDPASS
+	/// 		- param2: FREQUENCY, float, min: 10, max: 8000
+	/// 		- param3: RESONANCE, float, min: 0.1, max: 20
+	/// 	- "DCRemoval": The DC removal filter.
+	/// 		- param0: WET, float, min: 0, max: 1
+	/// 	- "Echo": The echo filter.
+	/// 		- param0: WET, float, min: 0, max: 1
+	/// 		- param1: DELAY, float, min: 0, max: 1
+	/// 		- param2: DECAY, float, min: 0, max: 1
+	/// 		- param3: FILTER, float, min: 0, max: 1
+	/// 	- "Eq": The equalizer filter.
+	/// 		- param0: WET, float, min: 0, max: 1
+	/// 		- param1: BAND0, float, min: 0, max: 4
+	/// 		- param2: BAND1, float, min: 0, max: 4
+	/// 		- param3: BAND2, float, min: 0, max: 4
+	/// 		- param4: BAND3, float, min: 0, max: 4
+	/// 		- param5: BAND4, float, min: 0, max: 4
+	/// 		- param6: BAND5, float, min: 0, max: 4
+	/// 		- param7: BAND6, float, min: 0, max: 4
+	/// 		- param8: BAND7, float, min: 0, max: 4
+	/// 	- "FFT": The FFT filter.
+	/// 		- param0: WET, float, min: 0, max: 1
+	/// 	- "Flanger": The flanger filter.
+	/// 		- param0: WET, float, min: 0, max: 1
+	/// 		- param1: DELAY, float, min: 0.001, max: 0.1
+	/// 		- param2: FREQ, float, min: 0.001, max: 100
+	/// 	- "FreeVerb": The freeverb filter.
+	/// 		- param0: WET, float, min: 0, max: 1
+	/// 		- param1: FREEZE, float, min: 0, max: 1
+	/// 		- param2: ROOMSIZE, float, min: 0, max: 1
+	/// 		- param3: DAMP, float, min: 0, max: 1
+	/// 		- param4: WIDTH, float, min: 0, max: 1
+	/// 	- "Lofi": The lofi filter.
+	/// 		- param0: WET, float, min: 0, max: 1
+	/// 		- param1: SAMPLE_RATE, float, min: 100, max: 22000
+	/// 		- param2: BITDEPTH, float, min: 0.5, max: 16
+	/// 	- "Robotize": The robotize filter.
+	/// 		- param0: WET, float, min: 0, max: 1
+	/// 		- param1: FREQ, float, min: 0.1, max: 100
+	/// 		- param2: WAVE, float, min: 0, max: 6
+	/// 	- "WaveShaper": The wave shaper filter.
+	/// 		- param0: WET, float, min: 0, max: 1
+	/// 		- param1: AMOUNT, float, min: -1, max: 1
+	void setFilterParameter(uint32_t index, uint32_t attrId, float value);
+	/// Gets the filter parameter of the audio bus.
+	///
+	/// # Arguments
+	///
+	/// * `index` - The index of the filter.
+	/// * `attrId` - The attribute ID of the filter.
+	///
+	/// # Returns
+	///
+	/// * `float` - The value of the filter parameter.
+	float getFilterParameter(uint32_t index, uint32_t attrId);
+	/// Fades the filter parameter of the audio bus to the given value over the given time.
+	///
+	/// # Arguments
+	///
+	/// * `index` - The index of the filter.
+	/// * `attrId` - The attribute ID of the filter.
+	/// * `to` - The target value of the filter parameter.
+	/// * `time` - The time to fade the filter parameter.
+	void fadeFilterParameter(uint32_t index, uint32_t attrId, float to, double time);
+	/// Creates a new audio bus.
+	///
+	/// # Returns
+	///
+	/// * `AudioBus` - The created audio bus.
+	static AudioBus* create();
+};
+
+/// A class that represents an audio source node.
+object class AudioSource : public INode
+{
+	/// The volume of the audio source. The value is between 0.0 and 1.0.
+	common float volume;
+	/// The pan of the audio source. The value is between -1.0 and 1.0.
+	common float pan;
+	/// Whether the audio source is looping.
+	boolean bool looping;
+	/// Whether the audio source is playing.
+	readonly boolean bool playing;
+	/// Seeks the audio source to the given time.
+	///
+	/// # Arguments
+	///
+	/// * `startTime` - The time to seek to.
+	void seek(double startTime);
+	/// Schedules the audio source to stop at the given time.
+	///
+	/// # Arguments
+	///
+	/// * `timeToStop` - The time to wait before stopping the audio source.
+	void scheduleStop(double timeToStop);
+	/// Stops the audio source.
+	///
+	/// # Arguments
+	///
+	/// * `fadeTime` - The time to fade out the audio source.
+	void stop(double fadeTime);
+	/// Plays the audio source.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `true` if the audio source was played successfully, `false` otherwise.
+	bool play();
+	/// Plays the audio source with a delay.
+	///
+	/// # Arguments
+	///
+	/// * `delayTime` - The time to wait before playing the audio source.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `true` if the audio source was played successfully, `false` otherwise.
+	bool play @ playWithDelay(double delayTime);
+	/// Plays the audio source as a background audio.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `true` if the audio source was played successfully, `false` otherwise.
+	bool playBackground();
+	/// Plays the audio source as a 3D audio.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `true` if the audio source was played successfully, `false` otherwise.
+	bool play3D @ play_3d();
+	/// Plays the audio source as a 3D audio with a delay.
+	///
+	/// # Arguments
+	///
+	/// * `delayTime` - The time to wait before playing the audio source.
+	///
+	/// # Returns
+	///
+	/// * `bool` - `true` if the audio source was played successfully, `false` otherwise.
+	bool play3D @ play_3d_with_delay(double delayTime);
+	/// Sets the protected state of the audio source.
+	///
+	/// # Arguments
+	///
+	/// * `value` - The protected state.
+	void setProtected(bool value);
+	/// Sets the loop point of the audio source.
+	///
+	/// # Arguments
+	///
+	/// * `loopStartTime` - The time to start the loop.
+	void setLoopPoint(double loopStartTime);
+	/// Sets the velocity of the audio source.
+	///
+	/// # Arguments
+	///
+	/// * `vx` - The X coordinate of the velocity.
+	/// * `vy` - The Y coordinate of the velocity.
+	/// * `vz` - The Z coordinate of the velocity.
+	void setVelocity(float vx, float vy, float vz);
+	/// Sets the minimum and maximum distance of the audio source.
+	///
+	/// # Arguments
+	///
+	/// * `min` - The minimum distance.
+	/// * `max` - The maximum distance.
+	void setMinMaxDistance(float min, float max);
+	/// Sets the attenuation of the audio source.
+	///
+	/// # Arguments
+	///
+	/// * `model` - The attenuation model.
+	/// * `factor` - The factor of the attenuation.
+	void setAttenuation(AttenuationModel model, float factor);
+	/// Sets the Doppler factor of the audio source.
+	///
+	/// # Arguments
+	///
+	/// * `factor` - The factor of the Doppler effect.
+	void setDopplerFactor(float factor);
+	/// Creates a new audio source.
+	///
+	/// # Arguments
+	///
+	/// * `filename` - The path to the audio file.
+	/// * `autoRemove` - Whether to automatically remove the audio source when it is stopped.
+	///
+	/// # Returns
+	///
+	/// * `AudioSource` - The created audio source node.
+	static optional AudioSource* create(string filename, bool autoRemove);
+	/// Creates a new audio source.
+	///
+	/// # Arguments
+	///
+	/// * `filename` - The path to the audio file.
+	/// * `autoRemove` - Whether to automatically remove the audio source when it is stopped.
+	/// * `bus` - The audio bus to use for the audio source.
+	///
+	/// # Returns
+	///
+	/// * `AudioSource` - The created audio source node.
+	static optional AudioSource* create @ createBus(string filename, bool autoRemove, AudioBus* bus);
 };
 
 /// An interface for handling keyboard inputs.
