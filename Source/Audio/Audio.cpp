@@ -23,7 +23,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "soloud_bassboostfilter.h"
 #include "soloud_biquadresonantfilter.h"
 #include "soloud_dcremovalfilter.h"
-#include "soloud_duckfilter.h"
 #include "soloud_echofilter.h"
 #include "soloud_eqfilter.h"
 #include "soloud_fftfilter.h"
@@ -225,14 +224,6 @@ void AudioBus::setFilter(uint32_t index, String name) {
 				delete _filters[index];
 			}
 			_filters[index] = new SoLoud::DCRemovalFilter();
-			_bus->setFilter(index, _filters[index]);
-			break;
-		}
-		case "Duck"_hash: {
-			if (_filters[index]) {
-				delete _filters[index];
-			}
-			_filters[index] = new SoLoud::DuckFilter();
 			_bus->setFilter(index, _filters[index]);
 			break;
 		}

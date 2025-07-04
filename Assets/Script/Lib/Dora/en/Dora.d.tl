@@ -45,6 +45,8 @@ local X = require("X")
 local Z = require("Z")
 local Y = require("Y")
 local Audio = require("Audio")
+local AudioBus = require("AudioBus")
+local AudioSource = require("AudioSource")
 local cycle = require("cycle")
 local App = require("App")
 local Texture2D = require("Texture2D")
@@ -236,5 +238,7 @@ global Dora = {
 	AlignNode = AlignNode,
 	EffekNode = EffekNode,
 	TileNode = TileNode,
+	AudioBus = AudioBus,
+	AudioSource = AudioSource,
 	Wasm = Wasm,
 }

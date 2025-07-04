@@ -1,0 +1,318 @@
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+#wa:import dora audiosource_type
+func audiosource_type() => i32
+
+#wa:import dora audiosource_set_volume
+func audiosource_set_volume(slf: i64, val: f32)
+
+#wa:import dora audiosource_get_volume
+func audiosource_get_volume(slf: i64) => f32
+
+#wa:import dora audiosource_set_pan
+func audiosource_set_pan(slf: i64, val: f32)
+
+#wa:import dora audiosource_get_pan
+func audiosource_get_pan(slf: i64) => f32
+
+#wa:import dora audiosource_set_looping
+func audiosource_set_looping(slf: i64, val: i32)
+
+#wa:import dora audiosource_is_looping
+func audiosource_is_looping(slf: i64) => i32
+
+#wa:import dora audiosource_is_playing
+func audiosource_is_playing(slf: i64) => i32
+
+#wa:import dora audiosource_seek
+func audiosource_seek(slf: i64, start_time: f64)
+
+#wa:import dora audiosource_schedule_stop
+func audiosource_schedule_stop(slf: i64, time_to_stop: f64)
+
+#wa:import dora audiosource_stop
+func audiosource_stop(slf: i64, fade_time: f64)
+
+#wa:import dora audiosource_play
+func audiosource_play(slf: i64) => i32
+
+#wa:import dora audiosource_play_with_delay
+func audiosource_play_with_delay(slf: i64, delay_time: f64) => i32
+
+#wa:import dora audiosource_play_background
+func audiosource_play_background(slf: i64) => i32
+
+#wa:import dora audiosource_play_3d
+func audiosource_play_3d(slf: i64) => i32
+
+#wa:import dora audiosource_play_3d_with_delay
+func audiosource_play_3d_with_delay(slf: i64, delay_time: f64) => i32
+
+#wa:import dora audiosource_set_protected
+func audiosource_set_protected(slf: i64, value: i32)
+
+#wa:import dora audiosource_set_loop_point
+func audiosource_set_loop_point(slf: i64, loop_start_time: f64)
+
+#wa:import dora audiosource_set_velocity
+func audiosource_set_velocity(slf: i64, vx: f32, vy: f32, vz: f32)
+
+#wa:import dora audiosource_set_min_max_distance
+func audiosource_set_min_max_distance(slf: i64, min: f32, max: f32)
+
+#wa:import dora audiosource_set_attenuation
+func audiosource_set_attenuation(slf: i64, model: i32, factor: f32)
+
+#wa:import dora audiosource_set_doppler_factor
+func audiosource_set_doppler_factor(slf: i64, factor: f32)
+
+#wa:import dora audiosource_new
+func audiosource_new(filename: i64, auto_remove: i32) => i64
+
+#wa:import dora audiosource_with_bus
+func audiosource_with_bus(filename: i64, auto_remove: i32, bus: i64) => i64
+
+type AudioSource :struct{ Node }
+
+func AudioSourceFrom(raw: i64) => *AudioSource {
+	if raw == 0 {
+		return nil
+	}
+	object := AudioSource{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	result := &object
+	return result
+}
+func AudioSource.GetTypeId() => i32 {
+	return audiosource_type()
+}
+func ObjectAsAudioSource(object: Object) => *AudioSource {
+	if object.GetTypeId() == audiosource_type() {
+		ObjectRetain(object.GetRaw())
+		return AudioSourceFrom(object.GetRaw())
+	}
+	return nil
+}
+
+/// Sets The volume of the audio source. The value is between 0.0 and 1.0.
+func AudioSource.SetVolume(val: f32) {
+	audiosource_set_volume(*this.raw, val)
+}
+
+/// Gets The volume of the audio source. The value is between 0.0 and 1.0.
+func AudioSource.GetVolume() => f32 {
+	return audiosource_get_volume(*this.raw)
+}
+
+/// Sets The pan of the audio source. The value is between -1.0 and 1.0.
+func AudioSource.SetPan(val: f32) {
+	audiosource_set_pan(*this.raw, val)
+}
+
+/// Gets The pan of the audio source. The value is between -1.0 and 1.0.
+func AudioSource.GetPan() => f32 {
+	return audiosource_get_pan(*this.raw)
+}
+
+/// Sets Whether the audio source is looping.
+func AudioSource.SetLooping(val: bool) {
+	audiosource_set_looping(*this.raw, ToDoraBool(val))
+}
+
+/// Gets Whether the audio source is looping.
+func AudioSource.IsLooping() => bool {
+	return audiosource_is_looping(*this.raw) != 0
+}
+
+/// Gets Whether the audio source is playing.
+func AudioSource.IsPlaying() => bool {
+	return audiosource_is_playing(*this.raw) != 0
+}
+
+/// Seeks the audio source to the given time.
+///
+/// # Arguments
+///
+/// * `startTime` - The time to seek to.
+func AudioSource.Seek(start_time: f64) {
+	audiosource_seek(*this.raw, start_time)
+}
+
+/// Schedules the audio source to stop at the given time.
+///
+/// # Arguments
+///
+/// * `timeToStop` - The time to wait before stopping the audio source.
+func AudioSource.ScheduleStop(time_to_stop: f64) {
+	audiosource_schedule_stop(*this.raw, time_to_stop)
+}
+
+/// Stops the audio source.
+///
+/// # Arguments
+///
+/// * `fadeTime` - The time to fade out the audio source.
+func AudioSource.Stop(fade_time: f64) {
+	audiosource_stop(*this.raw, fade_time)
+}
+
+/// Plays the audio source.
+///
+/// # Returns
+///
+/// * `bool` - `true` if the audio source was played successfully, `false` otherwise.
+func AudioSource.Play() => bool {
+	return audiosource_play(*this.raw) != 0
+}
+
+/// Plays the audio source with a delay.
+///
+/// # Arguments
+///
+/// * `delayTime` - The time to wait before playing the audio source.
+///
+/// # Returns
+///
+/// * `bool` - `true` if the audio source was played successfully, `false` otherwise.
+func AudioSource.PlayWithDelay(delay_time: f64) => bool {
+	return audiosource_play_with_delay(*this.raw, delay_time) != 0
+}
+
+/// Plays the audio source as a background audio.
+///
+/// # Returns
+///
+/// * `bool` - `true` if the audio source was played successfully, `false` otherwise.
+func AudioSource.PlayBackground() => bool {
+	return audiosource_play_background(*this.raw) != 0
+}
+
+/// Plays the audio source as a 3D audio.
+///
+/// # Returns
+///
+/// * `bool` - `true` if the audio source was played successfully, `false` otherwise.
+func AudioSource.Play3D() => bool {
+	return audiosource_play_3d(*this.raw) != 0
+}
+
+/// Plays the audio source as a 3D audio with a delay.
+///
+/// # Arguments
+///
+/// * `delayTime` - The time to wait before playing the audio source.
+///
+/// # Returns
+///
+/// * `bool` - `true` if the audio source was played successfully, `false` otherwise.
+func AudioSource.Play3DWithDelay(delay_time: f64) => bool {
+	return audiosource_play_3d_with_delay(*this.raw, delay_time) != 0
+}
+
+/// Sets the protected state of the audio source.
+///
+/// # Arguments
+///
+/// * `value` - The protected state.
+func AudioSource.SetProtected(value: bool) {
+	audiosource_set_protected(*this.raw, ToDoraBool(value))
+}
+
+/// Sets the loop point of the audio source.
+///
+/// # Arguments
+///
+/// * `loopStartTime` - The time to start the loop.
+func AudioSource.SetLoopPoint(loop_start_time: f64) {
+	audiosource_set_loop_point(*this.raw, loop_start_time)
+}
+
+/// Sets the velocity of the audio source.
+///
+/// # Arguments
+///
+/// * `vx` - The X coordinate of the velocity.
+/// * `vy` - The Y coordinate of the velocity.
+/// * `vz` - The Z coordinate of the velocity.
+func AudioSource.SetVelocity(vx: f32, vy: f32, vz: f32) {
+	audiosource_set_velocity(*this.raw, vx, vy, vz)
+}
+
+/// Sets the minimum and maximum distance of the audio source.
+///
+/// # Arguments
+///
+/// * `min` - The minimum distance.
+/// * `max` - The maximum distance.
+func AudioSource.SetMinMaxDistance(min: f32, max: f32) {
+	audiosource_set_min_max_distance(*this.raw, min, max)
+}
+
+/// Sets the attenuation of the audio source.
+///
+/// # Arguments
+///
+/// * `model` - The attenuation model.
+/// * `factor` - The factor of the attenuation.
+func AudioSource.SetAttenuation(model: AttenuationModel, factor: f32) {
+	audiosource_set_attenuation(*this.raw, model.ToValue(), factor)
+}
+
+/// Sets the Doppler factor of the audio source.
+///
+/// # Arguments
+///
+/// * `factor` - The factor of the Doppler effect.
+func AudioSource.SetDopplerFactor(factor: f32) {
+	audiosource_set_doppler_factor(*this.raw, factor)
+}
+
+/// Creates a new audio source.
+///
+/// # Arguments
+///
+/// * `filename` - The path to the audio file.
+/// * `autoRemove` - Whether to automatically remove the audio source when it is stopped.
+///
+/// # Returns
+///
+/// * `AudioSource` - The created audio source node.
+func NewAudioSource(filename: string, auto_remove: bool) => *AudioSource {
+	raw := audiosource_new(ToDoraString(filename), ToDoraBool(auto_remove))
+	if raw == 0 {
+		return nil
+	}
+	object := AudioSource{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return &object
+}
+
+/// Creates a new audio source.
+///
+/// # Arguments
+///
+/// * `filename` - The path to the audio file.
+/// * `autoRemove` - Whether to automatically remove the audio source when it is stopped.
+/// * `bus` - The audio bus to use for the audio source.
+///
+/// # Returns
+///
+/// * `AudioSource` - The created audio source node.
+func NewAudioSourceWithBus(filename: string, auto_remove: bool, bus: AudioBus) => *AudioSource {
+	raw := audiosource_with_bus(ToDoraString(filename), ToDoraBool(auto_remove), bus.GetRaw())
+	if raw == 0 {
+		return nil
+	}
+	object := AudioSource{}
+	object.raw = &raw
+	setFinalizer(object.raw, ObjectFinalizer)
+	return &object
+}

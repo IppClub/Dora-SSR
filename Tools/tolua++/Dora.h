@@ -1128,7 +1128,7 @@ class AudioSource : public Node
 {
 	tolua_property__common float volume;
 	tolua_property__common float pan;
-	tolua_property__bool bool loop;
+	tolua_property__bool bool looping;
 	tolua_readonly tolua_property__bool bool playing;
 	void seek(double startTime);
 	void scheduleStop(double timeToStop);

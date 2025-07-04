@@ -1439,6 +1439,15 @@ export {arrayClass as Array};
 class Audio {
 	private constructor();
 
+	/** 声音速度。 */
+	soundSpeed: number;
+
+	/** 全局音量。 */
+	globalVolume: number;
+
+	/** 3D 声源的聆听者节点。 */
+	listener?: Node;
+
 	/**
 	 * 播放音效并返回音频的处理器。
 	 *
@@ -1470,6 +1479,40 @@ class Audio {
 	 * @param fadeTime 淡出流式音频的时间（以秒为单位）。默认为0.0。
 	 */
 	stopStream(fadeTime?: number): void;
+
+	/**
+	 * 暂停所有当前正在播放的音频。
+	 *
+	 * @param pause 暂停状态。
+	 */
+	setPauseAllCurrent(pause: boolean): void;
+
+	/**
+	 * 设置聆听者的位置。
+	 *
+	 * @param atX x 轴位置。
+	 * @param atY y 轴位置。
+	 * @param atZ z 轴位置。
+	 */
+	setListenerAt(atX: number, atY: number, atZ: number): void;
+
+	/**
+	 * 设置聆听者的上方向。
+	 *
+	 * @param upX x 轴上方向。
+	 * @param upY y 轴上方向。
+	 * @param upZ z 轴上方向。
+	 */
+	setListenerUp(upX: number, upY: number, upZ: number): void;
+
+	/**
+	 * 设置聆听者的速度。
+	 *
+	 * @param velocityX x 轴速度。
+	 * @param velocityY y 轴速度。
+	 * @param velocityZ z 轴速度。
+	 */
+	setListenerVelocity(velocityX: number, velocityY: number, velocityZ: number): void;
 }
 
 const audio: Audio;
@@ -2786,7 +2829,7 @@ class Node extends Object {
 	passColor3: boolean;
 
 	/** 用于继承矩阵变换的目标节点。 */
-	transformTarget: Node;
+	transformTarget?: Node;
 
 	/** 用于调度更新和动作回调的调度器。 */
 	scheduler: Scheduler;
@@ -6982,6 +7025,317 @@ type VGPaintType = BasicType<"VGPaint">;
 export namespace VGPaint {
 	export type Type = VGPaintType;
 }
+
+/**
+ * 音频总线可以应用的滤波器类型。
+ */
+export const enum AudioFilter {
+	None = "",
+	/**
+	 * 低音增强滤波器。
+	 * param0: WET, float, min: 0, max: 1
+	 * param1: BOOST, float, min: 0, max: 10
+	 */
+	BassBoost = "BassBoost",
+	/**
+	 * 二阶谐振滤波器。
+	 * param0: WET, float, min: 0, max: 1
+	 * param1: TYPE, int, values: 0 - LOWPASS, 1 - HIGHPASS, 2 - BANDPASS
+	 * param2: FREQUENCY, float, min: 10, max: 8000
+	 * param3: RESONANCE, float, min: 0.1, max: 20
+	 */
+	BiquadResonant = "BiquadResonant",
+	/**
+	 * 直流去除滤波器。
+	 * param0: WET, float, min: 0, max: 1
+	 */
+	DCRemoval = "DCRemoval",
+	/**
+	 * 回声滤波器。
+	 * param0: WET, float, min: 0, max: 1
+	 * param1: DELAY, float, min: 0, max: 1
+	 * param2: DECAY, float, min: 0, max: 1
+	 * param3: FILTER, float, min: 0, max: 1
+	 */
+	Echo = "Echo",
+	/**
+	 * 均衡器滤波器。
+	 * param0: WET, float, min: 0, max: 1
+	 * param1: BAND0, float, min: 0, max: 4
+	 * param2: BAND1, float, min: 0, max: 4
+	 * param3: BAND2, float, min: 0, max: 4
+	 * param4: BAND3, float, min: 0, max: 4
+	 * param5: BAND4, float, min: 0, max: 4
+	 * param6: BAND5, float, min: 0, max: 4
+	 * param7: BAND6, float, min: 0, max: 4
+	 * param8: BAND7, float, min: 0, max: 4
+	 */
+	Eq = "Eq",
+	/**
+	 * FFT 滤波器。
+	 * param0: WET, float, min: 0, max: 1
+	 */
+	FFT = "FFT",
+	/**
+	 * 颤音滤波器。
+	 * param0: WET, float, min: 0, max: 1
+	 * param1: DELAY, float, min: 0.001, max: 0.1
+	 * param2: FREQ, float, min: 0.001, max: 100
+	 */
+	Flanger = "Flanger",
+	/**
+	 * 混响滤波器。
+	 * param0: WET, float, min: 0, max: 1
+	 * param1: FREEZE, float, min: 0, max: 1
+	 * param2: ROOMSIZE, float, min: 0, max: 1
+	 * param3: DAMP, float, min: 0, max: 1
+	 * param4: WIDTH, float, min: 0, max: 1
+	 */
+	FreeVerb = "FreeVerb",
+	/**
+	 * 低音质滤波器。
+	 * param0: WET, float, min: 0, max: 1
+	 * param1: SAMPLE_RATE, float, min: 100, max: 22000
+	 * param2: BITDEPTH, float, min: 0.5, max: 16
+	 */
+	Lofi = "Lofi",
+	/**
+	 * 机器人化滤波器。
+	 * param0: WET, float, min: 0, max: 1
+	 * param1: FREQ, float, min: 0.1, max: 100
+	 * param2: WAVE, float, min: 0, max: 6
+	 */
+	Robotize = "Robotize",
+	/**
+	 * 波形整形滤波器。
+	 * param0: WET, float, min: 0, max: 1
+	 * param1: AMOUNT, float, min: -1, max: 1
+	 */
+	WaveShaper = "WaveShaper",
+}
+
+/**
+ * 音频总线。
+ */
+class AudioBus extends Object {
+
+	private constructor();
+
+	/** 音频总线的音量。值在 0.0 和 1.0 之间。 */
+	volume: number;
+
+	/** 音频总线的声道。值在 -1.0 和 1.0 之间。 */
+	pan: number;
+
+	/** 音频总线的播放速度。值为 1.0 时为正常速度，0.5 为一半速度，2.0 为两倍速度。 */
+	playSpeed: number;
+
+	/**
+	 * 淡入音频总线的音量到指定的值。
+	 * @param time 淡入时间（以秒为单位）。
+	 * @param toVolume 淡入到的音量值。
+	 */
+	fadeVolume(time: number, toVolume: number): void;
+
+	/**
+	 * 淡入音频总线的声道到指定的值。
+	 * @param time 淡入时间（以秒为单位）。
+	 * @param toPan 淡入到的声道值。
+	 */
+	fadePan(time: number, toPan: number): void;
+
+	/**
+	 * 淡入音频总线的播放速度到指定的值。
+	 * @param time 淡入时间（以秒为单位）。
+	 * @param toPlaySpeed 淡入到的播放速度值。
+	 */
+	fadePlaySpeed(time: number, toPlaySpeed: number): void;
+
+	/**
+	 * 设置音频总线的滤波器。
+	 * @param index 滤波器的索引。
+	 * @param name 滤波器的类型。
+	 */
+	setFilter(index: number, name: AudioFilter): void;
+
+	/**
+	 * 设置音频总线的滤波器参数。
+	 * @param index 滤波器的索引。
+	 * @param attrId 滤波器参数的属性ID。
+	 * @param value 滤波器参数的值。
+	 */
+	setFilterParameter(index: number, attrId: number, value: number): void;
+
+	/**
+	 * 获取音频总线的滤波器参数。
+	 * @param index 滤波器的索引。
+	 * @param attrId 滤波器参数的属性ID。
+	 * @returns 滤波器参数的值。
+	 */
+	getFilterParameter(index: number, attrId: number): number;
+
+	/**
+	 * 淡入音频总线的滤波器参数到指定的值。
+	 * @param index 滤波器的索引。
+	 * @param attrId 滤波器参数的属性ID。
+	 * @param to 淡入到的值。
+	 * @param time 淡入时间（以秒为单位）。
+	 */
+	fadeFilterParameter(index: number, attrId: number, to: number, time: number): void;
+}
+
+export namespace AudioBus {
+	export type Type = AudioBus;
+}
+
+/**
+ * 用于创建 AudioBus 对象的类。
+ */
+interface AudioBusClass {
+	/**
+	 * 创建一个新的 AudioBus 对象。
+	 * @returns 创建的 AudioBus 对象。
+	 */
+	(this: void): AudioBus;
+}
+
+const audioBusClass: AudioBusClass;
+export {audioBusClass as AudioBus};
+
+/**
+ * 音频源的衰减模型。
+ */
+export const enum AttenuationModel {
+	NoAttenuation = "NoAttenuation",
+	InverseDistance = "InverseDistance",
+	LinearDistance = "LinearDistance",
+	ExponentialDistance = "ExponentialDistance",
+}
+
+/**
+ * 音频源节点。
+ */
+class AudioSource extends Node {
+
+	/**
+	 * 音频源的音量。值在 0.0 和 1.0 之间。
+	 */
+	volume: number;
+
+	/**
+	 * 音频源的声道。值在 -1.0 和 1.0 之间。
+	 */
+	pan: number;
+
+	/**
+	 * 是否循环播放音频源。
+	 */
+	looping: boolean;
+
+	/**
+	 * 是否正在播放音频源。
+	 */
+	playing: boolean;
+
+	/**
+	 * 跳转到音频源的指定时间。
+	 * @param startTime 跳转到的时间。
+	 */
+	seek(startTime: number): void;
+
+	/**
+	 * 调度音频源的停止。
+	 * @param timeToStop 停止的时间。
+	 */
+	scheduleStop(timeToStop: number): void;
+
+	/**
+	 * 停止音频源。
+	 * @param fadeTime 淡出时间。
+	 */
+	stop(fadeTime: number): void;
+
+	/**
+	 * 播放音频源。
+	 * @param delayTime 播放前的延迟时间。
+	 * @returns 是否成功播放音频源。
+	 */
+	play(delayTime: number): boolean;
+
+	/**
+	 * 播放音频源作为背景音频。
+	 * @returns 是否成功播放音频源。
+	 */
+	playBackground(): boolean;
+
+	/**
+	 * 播放音频源作为 3D 音频。
+	 * @param delayTime 播放前的延迟时间。
+	 * @returns 是否成功播放音频源。
+	 */
+	play3D(delayTime: number): boolean;
+
+	/**
+	 * 设置音频源的保护状态。如果音频源被保护，当没有足够的语音时，它不会被停止。
+	 * @param protected 要设置的保护状态。
+	 */
+	setProtected(protected: boolean): void;
+
+	/**
+	 * 设置音频源的循环点。音频源将从指定的时间开始循环播放。
+	 * @param loopStartTime 循环播放的时间。
+	 */
+	setLoopPoint(loopStartTime: number): void;
+
+	/**
+	 * 设置 3D 音频源的速度。
+	 * @param vx x 轴速度。
+	 * @param vy y 轴速度。
+	 * @param vz z 轴速度。
+	 */
+	setVelocity(vx: number, vy: number, vz: number): void;
+
+	/**
+	 * 设置 3D 音频源的最小和最大距离。
+	 * @param min 最小距离。
+	 * @param max 最大距离。
+	 */
+	setMinMaxDistance(min: number, max: number): void;
+
+	/**
+	 * 设置 3D 音频源的衰减模型。
+	 * @param model 衰减模型。
+	 * @param factor 衰减因子。
+	 */
+	setAttenuation(model: AttenuationModel, factor: number): void;
+
+	/**
+	 * 设置 3D 音频源的多普勒效应因子。
+	 * @param factor 多普勒效应因子。
+	 */
+	setDopplerFactor(factor: number): void;
+}
+
+export namespace AudioSource {
+	export type Type = AudioSource;
+}
+
+/**
+ * 用于创建 AudioSource 节点的类。
+ */
+interface AudioSourceClass {
+	/**
+	 * 创建一个新的 AudioSource 节点。
+	 * @param filename 音频文件的路径。
+	 * @param autoRemove [可选] 是否在停止时删除音频源。默认为 `true`。
+	 * @param bus [可选] 播放音频源的总线。默认为 `nil`。
+	 * @returns 创建的 AudioSource 节点。
+	 */
+	(this: void, filename: string, autoRemove?: boolean, bus?: AudioBus): AudioSource;
+}
+
+const audioSourceClass: AudioSourceClass;
+export {audioSourceClass as AudioSource};
 
 export const enum TypeName {
 	Size = "Size",

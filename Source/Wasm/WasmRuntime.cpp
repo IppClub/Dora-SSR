@@ -101,7 +101,7 @@ NS_DORA_BEGIN
 
 #define DoraVersion(major, minor, patch) ((major) << 16 | (minor) << 8 | (patch))
 
-static const int doraWASMVersion = DoraVersion(0, 4, 26);
+static const int doraWASMVersion = DoraVersion(0, 5, 0);
 
 static std::string VersionToStr(int version) {
 	return std::to_string((version & 0x00ff0000) >> 16) + '.' + std::to_string((version & 0x0000ff00) >> 8) + '.' + std::to_string(version & 0x000000ff);
@@ -1583,6 +1583,8 @@ float math_tan(float v) { return std::tan(v); }
 #include "Dora/ApplicationWasm.hpp"
 #include "Dora/ArrayWasm.hpp"
 #include "Dora/AudioWasm.hpp"
+#include "Dora/AudioBusWasm.hpp"
+#include "Dora/AudioSourceWasm.hpp"
 #include "Dora/BodyDefWasm.hpp"
 #include "Dora/BodyWasm.hpp"
 #include "Dora/BufferWasm.hpp"
@@ -1720,6 +1722,8 @@ static void linkAutoModule(wasm3::module3& mod) {
 	linkMotorJoint(mod);
 	linkCache(mod);
 	linkAudio(mod);
+	linkAudioBus(mod);
+	linkAudioSource(mod);
 	linkKeyboard(mod);
 	linkController(mod);
 	linkMouse(mod);

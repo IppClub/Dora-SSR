@@ -69,12 +69,12 @@ func _Director.GetClearColor() => Color {
 }
 
 /// Gets the root node for 2D user interface elements like buttons and labels.
-func _Director.GetUi() => Node {
+func _Director.GetUI() => Node {
 	return *NodeFrom(director_get_ui())
 }
 
 /// Gets the root node for 3D user interface elements with 3D projection effect.
-func _Director.GetUi_3d() => Node {
+func _Director.GetUI3D() => Node {
 	return *NodeFrom(director_get_ui_3d())
 }
 
