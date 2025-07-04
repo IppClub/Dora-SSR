@@ -19,8 +19,7 @@ NS_DORA_BEGIN
 // Async
 
 Async::Async()
-	: _scheduled(false)
-	, _paused(false) { }
+	: _scheduled(false) { }
 
 Async::~Async() {
 	if (_thread.isRunning()) {
@@ -97,10 +96,6 @@ int Async::work(bx::Thread* thread, void* userData) {
 				}
 			}
 		}
-		if (worker->_paused) {
-			worker->_paused = false;
-			worker->_pauseSemaphore.post();
-		}
 		worker->_workerSemaphore.wait();
 	}
 	return 0;
@@ -115,33 +110,42 @@ void Async::pause() {
 				case "Work"_hash: {
 					Own<std::function<void()>> worker;
 					event->get(worker);
-					_workers.push_back(std::move(worker));
+					(*worker)();
 					break;
 				}
 				case "WorkDone"_hash: {
 					std::unique_ptr<Package> package;
 					event->get(package);
-					_packages.push_back(std::move(package));
+					Own<Values> result = package->first();
+					_finisherEvent.post(Slice::Empty, std::move(package), std::move(result));
 					break;
 				}
 			}
 		}
-		_paused = true;
-		_workerSemaphore.post();
-		_pauseSemaphore.wait(); // wait for worker to stop
 	}
 }
 
 void Async::resume() {
-	if (_thread.isRunning() && !_packages.empty()) {
-		for (auto& package : _packages) {
-			_workerEvent.post("WorkDone"_slice, std::move(package));
+	if (_thread.isRunning()) {
+		for (auto event = _workerEvent.poll();
+			event != nullptr;
+			event = _workerEvent.poll()) {
+			switch (Switch::hash(event->getName())) {
+				case "Work"_hash: {
+					Own<std::function<void()>> worker;
+					event->get(worker);
+					(*worker)();
+					break;
+				}
+				case "WorkDone"_hash: {
+					std::unique_ptr<Package> package;
+					event->get(package);
+					Own<Values> result = package->first();
+					_finisherEvent.post(Slice::Empty, std::move(package), std::move(result));
+					break;
+				}
+			}
 		}
-		for (auto& worker : _workers) {
-			_workerEvent.post("Work"_slice, std::move(worker));
-		}
-		_packages.clear();
-		_workers.clear();
 		_workerSemaphore.post(); // make worker work again
 	}
 }
@@ -163,7 +167,6 @@ void Async::cancel() {
 			}
 		}
 	}
-	_packages.clear();
 	_workers.clear();
 }
 

@@ -394,8 +394,11 @@ std::list<std::string> Content::getFullPathsToTry(String filename) {
 	std::list<std::string> paths;
 	std::string path, file, fullPath;
 	auto fname = fs::path(targetFile.begin(), targetFile.end()).lexically_normal();
-	for (const auto& searchPath : _searchPaths) {
-		paths.push_back((fs::path(searchPath) / fname).string());
+	{
+		std::scoped_lock<std::mutex> lock(pathCacheMutex);
+		for (const auto& searchPath : _searchPaths) {
+			paths.push_back((fs::path(searchPath) / fname).string());
+		}
 	}
 	return paths;
 }
@@ -403,38 +406,51 @@ std::list<std::string> Content::getFullPathsToTry(String filename) {
 void Content::insertSearchPath(int index, String path) {
 	_thread->pause();
 	std::string searchPath = Content::getFullPath(path);
+	insertSearchPath(index, searchPath, true);
+	_thread->resume();
+}
+
+void Content::insertSearchPath(int index, String path, bool withLock) {
+	auto searchPath = path.toString();
 	if (Content::isFileExist(searchPath)) {
-		if (Content::isPathFolder(searchPath)) {
-			if (index >= s_cast<int>(_searchPaths.size())) {
-				_searchPaths.push_back(searchPath);
-			} else {
-				_searchPaths.insert(_searchPaths.begin() + index, searchPath);
-				clearPathCache();
-			}
-		} else {
-			auto relativePath = fs::path(searchPath).lexically_relative(fs::path(Content::getAssetPath())).string();
-			auto relSlice = Slice(relativePath);
-			if (!relativePath.empty() && relSlice.left(3) != "..\\"_slice && relSlice.left(3) != "../"_slice) {
-				Error("can not set file \"{}\" under asset path as search package", path.toString());
-			} else {
-				auto zipFile = New<ZipFile>(searchPath);
-				if (zipFile->isOK()) {
-					if (index >= s_cast<int>(_searchPaths.size())) {
-						_searchPaths.push_back(searchPath);
-					} else {
-						_searchPaths.insert(_searchPaths.begin() + index, searchPath);
-						clearPathCache();
-					}
-					_searchZipPaths[searchPath] = std::move(zipFile);
+		auto insertion = [&]() {
+			if (Content::isPathFolder(searchPath)) {
+				if (index >= s_cast<int>(_searchPaths.size())) {
+					_searchPaths.push_back(searchPath);
 				} else {
-					Error("search path \"{}\" is neither a folder nor a zip file", path.toString());
+					_searchPaths.insert(_searchPaths.begin() + index, searchPath);
+					_fullPathCache.clear();
+				}
+			} else {
+				auto relativePath = fs::path(searchPath).lexically_relative(fs::path(Content::getAssetPath())).string();
+				auto relSlice = Slice(relativePath);
+				if (!relativePath.empty() && relSlice.left(3) != "..\\"_slice && relSlice.left(3) != "../"_slice) {
+					Error("can not set file \"{}\" under asset path as search package", path.toString());
+				} else {
+					auto zipFile = New<ZipFile>(searchPath);
+					if (zipFile->isOK()) {
+						if (index >= s_cast<int>(_searchPaths.size())) {
+							_searchPaths.push_back(searchPath);
+						} else {
+							_searchPaths.insert(_searchPaths.begin() + index, searchPath);
+							_fullPathCache.clear();
+						}
+						_searchZipPaths[searchPath] = std::move(zipFile);
+					} else {
+						Error("search path \"{}\" is neither a folder nor a zip file", path.toString());
+					}
 				}
 			}
+		};
+		if (withLock) {
+			std::scoped_lock<std::mutex> lock(pathCacheMutex);
+			insertion();
+		} else {
+			insertion();
 		}
 	} else {
 		Warn("search path \"{}\" is not existed", path.toString());
 	}
-	_thread->resume();
 }
 
 void Content::addSearchPath(String path) {
@@ -444,12 +460,15 @@ void Content::addSearchPath(String path) {
 void Content::removeSearchPath(String path) {
 	_thread->pause();
 	std::string realPath = Content::getFullPath(path);
-	for (auto it = _searchPaths.begin(); it != _searchPaths.end(); ++it) {
-		if (*it == realPath) {
-			_searchPaths.erase(it);
-			_searchZipPaths.erase(*it);
-			clearPathCache();
-			break;
+	{
+		std::scoped_lock<std::mutex> lock(pathCacheMutex);
+		for (auto it = _searchPaths.begin(); it != _searchPaths.end(); ++it) {
+			if (*it == realPath) {
+				_searchPaths.erase(it);
+				_searchZipPaths.erase(*it);
+				_fullPathCache.clear();
+				break;
+			}
 		}
 	}
 	_thread->resume();
@@ -457,12 +476,15 @@ void Content::removeSearchPath(String path) {
 
 void Content::setSearchPaths(const std::vector<std::string>& searchPaths) {
 	_thread->pause();
-	_searchPaths.clear();
-	clearPathCache();
-	_thread->resume();
-	for (const std::string& searchPath : searchPaths) {
-		Content::addSearchPath(searchPath);
+	{
+		std::scoped_lock<std::mutex> lock(pathCacheMutex);
+		_searchPaths.clear();
+		_fullPathCache.clear();
+		for (const std::string& searchPath : searchPaths) {
+			Content::insertSearchPath(_searchPaths.size(), searchPath, false);
+		}
 	}
+	_thread->resume();
 }
 
 const std::vector<std::string>& Content::getSearchPaths() const noexcept {
@@ -983,6 +1005,11 @@ uint8_t* Content::loadUnsafe(String filename, int64_t& size) {
 		auto res = fullPathAndPackage.zipFile->getFileDataUnsafe(fullPathAndPackage.zipRelativePath, &s);
 		size = s_cast<int64_t>(s);
 		return res;
+	}
+	if (fullPathAndPackage.fullPath.empty()) {
+		size = 0;
+		Error("failed to load file: \"{}\", due to: can not locate full path", filename.toString());
+		return nullptr;
 	}
 	SDL_RWops* io = SDL_RWFromFile(fullPathAndPackage.fullPath.c_str(), "rb");
 	if (io == nullptr) {

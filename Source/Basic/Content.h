@@ -59,6 +59,7 @@ public:
 
 protected:
 	Content();
+	void insertSearchPath(int index, String path, bool withLock);
 	std::string getFullPathForDirectoryAndFilename(String directory, String filename);
 	bool copyUnsafe(String srcFile, String dstFile);
 	bool loadByChunks(String filename, const std::function<bool(uint8_t*, int)>& handler);

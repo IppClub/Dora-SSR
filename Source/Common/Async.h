@@ -33,12 +33,9 @@ public:
 
 private:
 	bool _scheduled;
-	std::atomic_bool _paused;
 	bx::Thread _thread;
 	bx::Semaphore _workerSemaphore;
-	bx::Semaphore _pauseSemaphore;
 	std::vector<std::unique_ptr<std::function<void()>>> _workers;
-	std::vector<std::unique_ptr<Package>> _packages;
 	EventQueue _workerEvent;
 	EventQueue _finisherEvent;
 };
