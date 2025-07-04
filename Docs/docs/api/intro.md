@@ -20,6 +20,8 @@ This category provides general functions and services of the engine.
 This category provides features for managing and playing game music and sound effects.
 
 * [Audio](/docs/api/Class/Audio)
+* [AudioBus](/docs/api/Class/AudioBus)
+* [AudioSource](/docs/api/Class/AudioSource)
 
 ### Assets Management
 

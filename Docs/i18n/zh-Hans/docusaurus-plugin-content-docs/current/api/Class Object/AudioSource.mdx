@@ -1,0 +1,32 @@
+# AudioSource的类对象
+
+**描述：**
+
+&emsp;&emsp;用于创建 `AudioSource` 节点的记录。
+
+## __call
+
+**类型：** 元方法。
+
+**描述：**
+
+&emsp;&emsp;创建一个新的 `AudioSource` 节点。
+
+**签名：**
+```tl
+metamethod __call: function(self: AudioSourceClass, filename: string, autoRemove?: boolean, bus?: AudioBus): AudioSource
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| filename | string | 音频文件路径。 |
+| autoRemove | boolean | [可选] 是否在停止时自动删除音频源。默认为 `true`。 |
+| bus | AudioBus | [可选] 播放音频源的音频总线。默认为 `nil`。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| AudioSource | 创建的 `AudioSource` 节点。 |

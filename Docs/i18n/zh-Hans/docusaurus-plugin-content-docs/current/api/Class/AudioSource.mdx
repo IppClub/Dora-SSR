@@ -1,0 +1,323 @@
+# AudioSource
+
+**描述：**
+
+&emsp;&emsp;用于表示音频源节点的记录。
+
+**类对象：**[AudioSource Class](/docs/api/Class%20Object/AudioSource)。
+
+**继承自：**[Node](/docs/api/Class/Node)。
+
+## AudioSource.AttenuationModel
+
+**类型：** 枚举。
+
+**描述：**
+
+&emsp;&emsp;3D 音频源的衰减模型。
+
+**签名：**
+```tl
+enum AttenuationModel
+	"NoAttenuation"
+	"InverseDistance"
+	"LinearDistance"
+	"ExponentialDistance"
+end
+```
+
+## volume
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;音频源的音量。取值范围为 0.0 到 1.0。
+
+**签名：**
+```tl
+volume: number
+```
+
+## pan
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;音频源的声相。取值范围为 -1.0 到 1.0。
+
+**签名：**
+```tl
+pan: number
+```
+
+## looping
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;音频源是否循环播放。
+
+**签名：**
+```tl
+looping: boolean
+```
+
+## playing
+
+**类型：** 成员变量。
+
+**描述：**
+
+&emsp;&emsp;音频源是否正在播放。
+
+**签名：**
+```tl
+playing: boolean
+```
+
+## seek
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;跳转到音频源的指定时间。
+
+**签名：**
+```tl
+seek: function(self: AudioSource, startTime: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| startTime | number | 跳转时间。 |
+
+## scheduleStop
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;调度音频源在指定时间停止。
+
+**签名：**
+```tl
+scheduleStop: function(self: AudioSource, timeToStop: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| timeToStop | number | 停止时间。 |
+
+## stop
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;停止音频源。
+
+**签名：**
+```tl
+stop: function(self: AudioSource, fadeTime: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| fadeTime | number | 淡出时间。 |
+
+## play
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;播放音频源。
+
+**签名：**
+```tl
+play: function(self: AudioSource, delayTime: number): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| delayTime | number | 延迟时间。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 是否播放成功。 |
+
+## playBackground
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;播放音频源作为背景音频。
+
+**签名：**
+```tl
+playBackground: function(self: AudioSource): boolean
+```
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 是否播放成功。 |
+
+## play3D
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;播放音频源作为 3D 音频。
+
+**签名：**
+```tl
+play3D: function(self: AudioSource, delayTime: number): boolean
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| delayTime | number | 延迟时间。 |
+
+**返回值：**
+
+| 返回类型 | 描述 |
+| --- | --- |
+| boolean | 是否播放成功。 |
+
+## setProtected
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置音频源的保护状态。如果音频源被保护，当没有可用声音时，它不会被停止。
+
+**签名：**
+```tl
+setProtected: function(self: AudioSource, var: boolean)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| var | boolean | 保护状态。 |
+
+## setLoopPoint
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置音频源的循环点。音频源将从指定时间开始循环播放到音频结束。
+
+**签名：**
+```tl
+setLoopPoint: function(self: AudioSource, loopStartTime: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| loopStartTime | number | 循环开始时间。 |
+
+## setVelocity
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置 3D 音频源的速度。
+
+**签名：**
+```tl
+setVelocity: function(self: AudioSource, vx: number, vy: number, vz: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| vx | number | x 轴速度。 |
+| vy | number | y 轴速度。 |
+| vz | number | z 轴速度。 |
+
+## setMinMaxDistance
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置 3D 音频源的最小和最大距离。
+
+**签名：**
+```tl
+setMinMaxDistance: function(self: AudioSource, min: number, max: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| min | number | 最小距离。 |
+| max | number | 最大距离。 |
+
+## setAttenuation
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置 3D 音频源的衰减模型。
+
+**签名：**
+```tl
+setAttenuation: function(self: AudioSource, model: AttenuationModel, factor: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| model | AttenuationModel | 衰减模型。 |
+| factor | number | 衰减因子。 |
+
+## setDopplerFactor
+
+**类型：** 函数。
+
+**描述：**
+
+&emsp;&emsp;设置 3D 音频源的多普勒因子。
+
+**签名：**
+```tl
+setDopplerFactor: function(self: AudioSource, factor: number)
+```
+
+**参数：**
+
+| 参数名 | 类型 | 描述 |
+| --- | --- | --- |
+| factor | number | 多普勒因子。 |

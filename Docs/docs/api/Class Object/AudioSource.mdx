@@ -1,0 +1,32 @@
+# AudioSource Class
+
+**Description:**
+
+&emsp;&emsp;A record for creating `AudioSource` nodes.
+
+## __call
+
+**Type:** Metamethod.
+
+**Description:**
+
+&emsp;&emsp;Creates a new `AudioSource` node.
+
+**Signature:**
+```tl
+metamethod __call: function(self: AudioSourceClass, filename: string, autoRemove?: boolean, bus?: AudioBus): AudioSource
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| filename | string | The path to the audio file. |
+| autoRemove | boolean | [optional] Whether the audio source should be removed when it's stopped. Default is `true`. |
+| bus | AudioBus | [optional] The bus to play the audio source on. Default is `nil`. |
+
+**Returns:**
+
+| Return Type | Description |
+| --- | --- |
+| AudioSource | The created `AudioSource` node. |

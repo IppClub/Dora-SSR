@@ -46,6 +46,11 @@ const sidebars = {
 					id: 'api/Class/Object',
 				},
 				{
+					type: 'doc',
+					label: 'Object Class',
+					id: 'api/Class Object/Object',
+				},
+				{
 					type: 'category',
 					label: 'Audio Menagement',
 					items: [
@@ -53,6 +58,26 @@ const sidebars = {
 							type: 'doc',
 							label: 'Audio',
 							id: 'api/Class/Audio',
+						},
+						{
+							type: 'doc',
+							label: 'AudioBus',
+							id: 'api/Class/AudioBus',
+						},
+						{
+							type: 'doc',
+							label: 'AudioBus Class',
+							id: 'api/Class Object/AudioBus',
+						},
+						{
+							type: 'doc',
+							label: 'AudioSource',
+							id: 'api/Class/AudioSource',
+						},
+						{
+							type: 'doc',
+							label: 'AudioSource Class',
+							id: 'api/Class Object/AudioSource',
 						},
 					]
 				},
@@ -98,6 +123,23 @@ const sidebars = {
 						},
 						{
 							type: 'doc',
+							label: 'InputManager Class',
+							id: 'api/Class Object/InputManager',
+						},
+						{
+							type: 'category',
+							label: 'GamePad Props',
+							items: [
+								"api/Class/InputManager/TriggerPadProps",
+								"api/Class/InputManager/ControlPadProps",
+								"api/Class/InputManager/DPadProps",
+								"api/Class/InputManager/ButtonPadProps",
+								"api/Class/InputManager/JoyStickProps",
+								"api/Class/InputManager/GamePadProps",
+							]
+						},
+						{
+							type: 'doc',
 							label: 'Keyboard',
 							id: 'api/Class/Keyboard',
 						},
@@ -124,8 +166,28 @@ const sidebars = {
 						},
 						{
 							type: 'doc',
+							label: 'Array Class',
+							id: 'api/Class Object/Array',
+						},
+						{
+							type: 'doc',
+							label: 'Array Item',
+							id: "api/Module/Array",
+						},
+						{
+							type: 'doc',
 							label: 'Dictionary',
 							id: 'api/Class/Dictionary',
+						},
+						{
+							type: 'doc',
+							label: 'Dictionary Class',
+							id: 'api/Class Object/Dictionary',
+						},
+						{
+							type: 'doc',
+							label: 'ContainerItem',
+							id: "api/Class/ContainerItem",
 						},
 						{
 							type: 'doc',
@@ -134,8 +196,18 @@ const sidebars = {
 						},
 						{
 							type: 'doc',
+							label: 'Vec2 Class',
+							id: 'api/Class Object/Vec2',
+						},
+						{
+							type: 'doc',
 							label: 'Size',
 							id: 'api/Class/Size',
+						},
+						{
+							type: 'doc',
+							label: 'Size Class',
+							id: 'api/Class Object/Size',
 						},
 						{
 							type: 'doc',
@@ -144,13 +216,28 @@ const sidebars = {
 						},
 						{
 							type: 'doc',
+							label: 'Rect Class',
+							id: 'api/Class Object/Rect',
+						},
+						{
+							type: 'doc',
 							label: 'Color',
 							id: 'api/Class/Color',
 						},
 						{
 							type: 'doc',
+							label: 'Color Class',
+							id: 'api/Class Object/Color',
+						},
+						{
+							type: 'doc',
 							label: 'Color3',
 							id: 'api/Class/Color3',
+						},
+						{
+							type: 'doc',
+							label: 'Color3 Class',
+							id: 'api/Class Object/Color3',
 						},
 					]
 				},
@@ -176,6 +263,11 @@ const sidebars = {
 						},
 						{
 							type: 'doc',
+							label: 'Scheduler Class',
+							id: 'api/Class Object/Scheduler',
+						},
+						{
+							type: 'doc',
 							label: 'Camera',
 							id: 'api/Class/Camera',
 						},
@@ -186,8 +278,18 @@ const sidebars = {
 						},
 						{
 							type: 'doc',
+							label: 'Camera2D Class',
+							id: 'api/Class Object/Camera2D',
+						},
+						{
+							type: 'doc',
 							label: 'CameraOtho',
 							id: 'api/Class/CameraOtho',
+						},
+						{
+							type: 'doc',
+							label: 'CameraOtho Class',
+							id: 'api/Class Object/CameraOtho',
 						},
 					]
 				},
@@ -202,8 +304,18 @@ const sidebars = {
 						},
 						{
 							type: 'doc',
+							label: 'Node Class',
+							id: 'api/Class Object/Node',
+						},
+						{
+							type: 'doc',
 							label: 'AlignNode',
 							id: 'api/Class/AlignNode',
+						},
+						{
+							type: 'doc',
+							label: 'AlignNode Class',
+							id: 'api/Class Object/AlignNode',
 						},
 						{
 							type: 'doc',
@@ -212,8 +324,18 @@ const sidebars = {
 						},
 						{
 							type: 'doc',
+							label: 'Menu Class',
+							id: 'api/Class Object/Menu',
+						},
+						{
+							type: 'doc',
 							label: 'Touch',
 							id: 'api/Class/Touch',
+						},
+						{
+							type: 'doc',
+							label: 'Touch Class',
+							id: 'api/Class Object/Touch',
 						},
 						{
 							type: 'doc',
@@ -302,8 +424,18 @@ const sidebars = {
 						},
 						{
 							type: 'doc',
+							label: 'Sprite Class',
+							id: 'api/Class Object/Sprite',
+						},
+						{
+							type: 'doc',
 							label: 'Grid',
 							id: "api/Class/Grid",
+						},
+						{
+							type: 'doc',
+							label: 'Grid Class',
+							id: "api/Class Object/Grid",
 						},
 						{
 							type: 'doc',
@@ -312,8 +444,18 @@ const sidebars = {
 						},
 						{
 							type: 'doc',
+							label: 'Line Class',
+							id: 'api/Class Object/Line',
+						},
+						{
+							type: 'doc',
 							label: 'DrawNode',
 							id: 'api/Class/DrawNode',
+						},
+						{
+							type: 'doc',
+							label: 'DrawNode Class',
+							id: 'api/Class Object/DrawNode',
 						},
 						{
 							type: 'doc',
@@ -322,8 +464,18 @@ const sidebars = {
 						},
 						{
 							type: 'doc',
+							label: 'ClipNode Class',
+							id: 'api/Class Object/ClipNode',
+						},
+						{
+							type: 'doc',
 							label: 'Label',
 							id: 'api/Class/Label',
+						},
+						{
+							type: 'doc',
+							label: 'Label Class',
+							id: 'api/Class Object/Label',
 						},
 						{
 							type: 'doc',
@@ -332,8 +484,18 @@ const sidebars = {
 						},
 						{
 							type: 'doc',
+							label: 'EffekNode Class',
+							id: 'api/Class Object/EffekNode',
+						},
+						{
+							type: 'doc',
 							label: 'TileNode',
 							id: 'api/Class/TileNode',
+						},
+						{
+							type: 'doc',
+							label: 'TileNode Class',
+							id: 'api/Class Object/TileNode',
 						},
 						{
 							type: 'doc',
@@ -342,13 +504,28 @@ const sidebars = {
 						},
 						{
 							type: 'doc',
+							label: 'VGNode Class',
+							id: 'api/Class Object/VGNode',
+						},
+						{
+							type: 'doc',
 							label: 'SVG',
 							id: 'api/Class/SVG',
 						},
 						{
 							type: 'doc',
+							label: 'SVG Class',
+							id: 'api/Class Object/SVG',
+						},
+						{
+							type: 'doc',
 							label: 'Particle',
 							id: 'api/Class/Particle',
+						},
+						{
+							type: 'doc',
+							label: 'Particle Class',
+							id: 'api/Class Object/Particle',
 						},
 					]
 				},
@@ -363,8 +540,18 @@ const sidebars = {
 						},
 						{
 							type: 'doc',
+							label: 'Texture2D Class',
+							id: 'api/Class Object/Texture2D',
+						},
+						{
+							type: 'doc',
 							label: 'BlendFunc',
 							id: 'api/Class/BlendFunc',
+						},
+						{
+							type: 'doc',
+							label: 'BlendFunc Class',
+							id: 'api/Class Object/BlendFunc',
 						},
 						{
 							type: 'doc',
@@ -373,8 +560,18 @@ const sidebars = {
 						},
 						{
 							type: 'doc',
+							label: 'Effect Class',
+							id: 'api/Class Object/Effect',
+						},
+						{
+							type: 'doc',
 							label: 'SpriteEffect',
 							id: 'api/Class/SpriteEffect',
+						},
+						{
+							type: 'doc',
+							label: 'SpriteEffect Class',
+							id: 'api/Class Object/SpriteEffect',
 						},
 						{
 							type: 'doc',
@@ -383,8 +580,18 @@ const sidebars = {
 						},
 						{
 							type: 'doc',
+							label: 'Pass Class',
+							id: 'api/Class Object/Pass',
+						},
+						{
+							type: 'doc',
 							label: 'RenderTarget',
 							id: 'api/Class/RenderTarget',
+						},
+						{
+							type: 'doc',
+							label: 'RenderTarget Class',
+							id: 'api/Class Object/RenderTarget',
 						},
 						{
 							type: 'doc',
@@ -404,8 +611,18 @@ const sidebars = {
 						},
 						{
 							type: 'doc',
+							label: 'Playable Class',
+							id: 'api/Class Object/Playable',
+						},
+						{
+							type: 'doc',
 							label: 'Model',
 							id: 'api/Class/Model',
+						},
+						{
+							type: 'doc',
+							label: 'Model Class',
+							id: 'api/Class Object/Model',
 						},
 						{
 							type: 'doc',
@@ -414,8 +631,18 @@ const sidebars = {
 						},
 						{
 							type: 'doc',
+							label: 'DragonBone Class',
+							id: 'api/Class Object/DragonBone',
+						},
+						{
+							type: 'doc',
 							label: 'Spine',
 							id: 'api/Class/Spine',
+						},
+						{
+							type: 'doc',
+							label: 'Spine Class',
+							id: 'api/Class Object/Spine',
 						},
 					]
 				}
@@ -432,8 +659,18 @@ const sidebars = {
 				},
 				{
 					type: 'doc',
+					label: 'Action Class',
+					id: 'api/Class Object/Action',
+				},
+				{
+					type: 'doc',
 					label: 'Ease',
 					id: 'api/Class/Ease',
+				},
+				{
+					type: 'doc',
+					label: 'EaseFunc',
+					id: "api/Class/Ease/EaseFunc",
 				},
 				{
 					type: 'doc',
@@ -573,8 +810,18 @@ const sidebars = {
 				},
 				{
 					type: 'doc',
+					label: 'PhysicsWorld Class',
+					id: 'api/Class Object/PhysicsWorld',
+				},
+				{
+					type: 'doc',
 					label: 'BodyDef',
 					id: 'api/Class/BodyDef',
+				},
+				{
+					type: 'doc',
+					label: 'BodyDef Class',
+					id: 'api/Class Object/BodyDef',
 				},
 				{
 					type: 'doc',
@@ -583,8 +830,18 @@ const sidebars = {
 				},
 				{
 					type: 'doc',
+					label: 'Body Class',
+					id: 'api/Class Object/Body',
+				},
+				{
+					type: 'doc',
 					label: 'Sensor',
 					id: 'api/Class/Sensor',
+				},
+				{
+					type: 'doc',
+					label: 'Sensor Class',
+					id: 'api/Class Object/Sensor',
 				},
 				{
 					type: 'doc',
@@ -593,13 +850,28 @@ const sidebars = {
 				},
 				{
 					type: 'doc',
+					label: 'FixtureDef Class',
+					id: 'api/Class Object/FixtureDef',
+				},
+				{
+					type: 'doc',
 					label: 'JointDef',
 					id: 'api/Class/JointDef',
 				},
 				{
 					type: 'doc',
+					label: 'JointDef Class',
+					id: 'api/Class Object/JointDef',
+				},
+				{
+					type: 'doc',
 					label: 'Joint',
 					id: 'api/Class/Joint',
+				},
+				{
+					type: 'doc',
+					label: 'Joint Class',
+					id: 'api/Class Object/Joint',
 				},
 				{
 					type: 'doc',
@@ -624,13 +896,28 @@ const sidebars = {
 				},
 				{
 					type: 'doc',
+					label: 'Entity Class',
+					id: 'api/Class Object/Entity',
+				},
+				{
+					type: 'doc',
 					label: 'Group',
 					id: 'api/Class/Group',
 				},
 				{
 					type: 'doc',
+					label: 'Group Class',
+					id: 'api/Class Object/Group',
+				},
+				{
+					type: 'doc',
 					label: 'Observer',
 					id: 'api/Class/Observer',
+				},
+				{
+					type: 'doc',
+					label: 'Observer Class',
+					id: 'api/Class Object/Observer',
 				},
 			]
 		},
@@ -640,8 +927,18 @@ const sidebars = {
 			items: [
 				{
 					type: 'doc',
+					label: 'Platformer Module',
+					id: "api/Module/Platformer",
+				},
+				{
+					type: 'doc',
 					label: 'Behavior',
 					id: 'api/Class/Platformer/Behavior',
+				},
+				{
+					type: 'doc',
+					label: 'Behavior Leaf',
+					id: 'api/Class/Platformer/Behavior/Leaf',
 				},
 				{
 					type: 'doc',
@@ -652,6 +949,11 @@ const sidebars = {
 					type: 'doc',
 					label: 'Decision',
 					id: 'api/Class/Platformer/Decision',
+				},
+				{
+					type: 'doc',
+					label: 'Decision Leaf',
+					id: 'api/Class/Platformer/Decision/Leaf',
 				},
 				{
 					type: 'doc',
@@ -670,8 +972,18 @@ const sidebars = {
 				},
 				{
 					type: 'doc',
+					label: 'PlatformCamera Class',
+					id: 'api/Class Object/Platformer/PlatformCamera',
+				},
+				{
+					type: 'doc',
 					label: 'PlatformWorld',
 					id: 'api/Class/Platformer/PlatformWorld',
+				},
+				{
+					type: 'doc',
+					label: 'PlatformCamera Class',
+					id: 'api/Class Object/Platformer/PlatformCamera',
 				},
 				{
 					type: 'doc',
@@ -680,8 +992,18 @@ const sidebars = {
 				},
 				{
 					type: 'doc',
+					label: 'TargetAllow Class',
+					id: 'api/Class Object/Platformer/TargetAllow',
+				},
+				{
+					type: 'doc',
 					label: 'UnitAction',
 					id: 'api/Class/Platformer/UnitAction',
+				},
+				{
+					type: 'doc',
+					label: 'UnitAction Class',
+					id: 'api/Class Object/Platformer/UnitAction',
 				},
 				{
 					type: 'doc',
@@ -695,8 +1017,18 @@ const sidebars = {
 				},
 				{
 					type: 'doc',
+					label: 'Unit Class',
+					id: 'api/Class Object/Platformer/Unit',
+				},
+				{
+					type: 'doc',
 					label: 'BulletDef',
 					id: 'api/Class/Platformer/BulletDef',
+				},
+				{
+					type: 'doc',
+					label: 'BulletDef Class',
+					id: 'api/Class Object/Platformer/BulletDef',
 				},
 				{
 					type: 'doc',
@@ -705,13 +1037,28 @@ const sidebars = {
 				},
 				{
 					type: 'doc',
+					label: 'Bullet Class',
+					id: 'api/Class Object/Platformer/Bullet',
+				},
+				{
+					type: 'doc',
 					label: 'Face',
 					id: 'api/Class/Platformer/Face',
 				},
 				{
 					type: 'doc',
+					label: 'Face Class',
+					id: 'api/Class Object/Platformer/Face',
+				},
+				{
+					type: 'doc',
 					label: 'Visual',
 					id: 'api/Class/Platformer/Visual',
+				},
+				{
+					type: 'doc',
+					label: 'Visual Class',
+					id: 'api/Class Object/Platformer/Visual',
 				},
 			]
 		},
@@ -766,6 +1113,11 @@ const sidebars = {
 			label: 'Machine Learning Algorithms',
 			items: [
 				{
+					type: 'doc',
+					label: 'ML',
+					id: 'api/Class/ML',
+				},
+				{
 					type: 'link',
 					label: 'C4.5',
 					href: '/docs/api/Class/ML#builddecisiontreeasync',
@@ -774,6 +1126,11 @@ const sidebars = {
 					type: 'doc',
 					label: 'Q-learning',
 					id: 'api/Class/QLearner',
+				},
+				{
+					type: 'doc',
+					label: 'Q-learning Class',
+					id: 'api/Class Object/QLearner',
 				},
 			]
 		},
@@ -828,9 +1185,14 @@ const sidebars = {
 			type: 'category',
 			label: 'Misc Functions',
 			items: [
+				"api/Module/Dora",
+				"api/Module/p",
 				"api/Class/Buffer",
+				"api/Class Object/Buffer",
 				"api/Class/tolua",
 				"api/Class/json",
+				"api/Class/Wasm",
+				"api/Module/Log",
 				{
 					type: 'category',
 					label: 'YueScript',
@@ -851,111 +1213,6 @@ const sidebars = {
 							id: 'api/Class/yue/Config/Options',
 						},
 					],
-				},
-			]
-		},
-		{
-			type: 'category',
-			label: 'Uncategorized API',
-			items: [
-				{
-					type: 'category',
-					label: 'Class',
-					items: [
-						"api/Class/Platformer/Decision/Leaf",
-						"api/Class/Platformer/Behavior/Leaf",
-						"api/Class/ML",
-						"api/Class/Ease/EaseFunc",
-						"api/Class/ContainerItem",
-						"api/Class/json/JsonNull",
-					]
-				},
-				{
-					type: 'category',
-					label: 'Class Object',
-					items: [
-						"api/Class Object/Vec2",
-						"api/Class Object/Touch",
-						"api/Class Object/Texture2D",
-						"api/Class Object/VGNode",
-						"api/Class Object/SVG",
-						"api/Class Object/SpriteEffect",
-						"api/Class Object/Sprite",
-						"api/Class Object/Spine",
-						"api/Class Object/Size",
-						"api/Class Object/Sensor",
-						"api/Class Object/Scheduler",
-						"api/Class Object/RenderTarget",
-						"api/Class Object/Rect",
-						"api/Class Object/QLearner",
-						"api/Class Object/Playable",
-						"api/Class Object/Platformer/Visual",
-						"api/Class Object/Platformer/UnitAction",
-						"api/Class Object/Platformer/Unit",
-						"api/Class Object/Platformer/TargetAllow",
-						"api/Class Object/Platformer/PlatformWorld",
-						"api/Class Object/Platformer/PlatformCamera",
-						"api/Class Object/Platformer/Face",
-						"api/Class Object/Platformer/BulletDef",
-						"api/Class Object/Platformer/Bullet",
-						"api/Class Object/PhysicsWorld",
-						"api/Class Object/Pass",
-						"api/Class Object/Particle",
-						"api/Class Object/Observer",
-						"api/Class Object/Object",
-						"api/Class Object/Node",
-						"api/Class Object/AlignNode",
-						"api/Class Object/EffekNode",
-						"api/Class Object/TileNode",
-						"api/Class Object/Model",
-						"api/Class Object/Menu",
-						"api/Class Object/Line",
-						"api/Class Object/Label",
-						"api/Class Object/JointDef",
-						"api/Class Object/Joint",
-						"api/Class Object/Group",
-						"api/Class Object/Grid",
-						"api/Class Object/FixtureDef",
-						"api/Class Object/Entity",
-						"api/Class Object/Effect",
-						"api/Class Object/DrawNode",
-						"api/Class Object/DragonBone",
-						"api/Class Object/Dictionary",
-						"api/Class Object/Color3",
-						"api/Class Object/Color",
-						"api/Class Object/ClipNode",
-						"api/Class Object/CameraOtho",
-						"api/Class Object/Camera2D",
-						"api/Class Object/Buffer",
-						"api/Class Object/BodyDef",
-						"api/Class Object/Body",
-						"api/Class Object/BlendFunc",
-						"api/Class Object/Array",
-						"api/Class Object/Action",
-						"api/Class Object/InputManager",
-					]
-				},
-				{
-					type: 'category',
-					label: 'Module',
-					items: [
-						"api/Module/Platformer",
-						"api/Module/Log",
-						"api/Module/Dora",
-						"api/Module/Array",
-						{
-							type: 'category',
-							label: 'GamePad',
-							items: [
-								"api/Class/InputManager/TriggerPadProps",
-								"api/Class/InputManager/ControlPadProps",
-								"api/Class/InputManager/DPadProps",
-								"api/Class/InputManager/ButtonPadProps",
-								"api/Class/InputManager/JoyStickProps",
-								"api/Class/InputManager/GamePadProps",
-							]
-						},
-					]
 				},
 			]
 		},
