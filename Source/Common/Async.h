@@ -18,7 +18,10 @@ NS_DORA_BEGIN
 /** @brief get a worker runs in another thread and returns a result,
  get a finisher receives the result and runs in main thread. */
 class Async : public NonCopyable {
-	typedef std::pair<std::function<Own<Values>()>, std::function<void(Own<Values>)>> Package;
+	using WorkDone = std::pair<std::function<Own<Values>()>, std::function<void(Own<Values>)>>;
+	using Work = std::function<void()>;
+	using WorkPtr = Own<Work>;
+	using WorkDonePtr = Own<WorkDone>;
 
 public:
 	Async();
@@ -31,11 +34,12 @@ public:
 	static int work(bx::Thread* thread, void* userData);
 
 private:
+	void initThreadOnce();
 	bool _scheduled;
 	bx::Thread _thread;
 	bx::Semaphore _workerSemaphore;
 	bx::Semaphore _mainThreadSemaphore;
-	std::vector<std::unique_ptr<std::function<void()>>> _workers;
+	std::once_flag _initThreadFlag;
 	EventQueue _workerEvent;
 	EventQueue _finisherEvent;
 };
@@ -57,7 +61,7 @@ public:
 	}
 #endif // BX_PLATFORM_WINDOWS
 private:
-	int _nextProcess;
+	std::atomic<size_t> _nextProcess;
 	OwnVector<Async> _process;
 	OwnVector<Async> _userThreads;
 	SINGLETON_REF(AsyncThread, ObjectBase, Logger);

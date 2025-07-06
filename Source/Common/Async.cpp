@@ -28,6 +28,14 @@ Async::~Async() {
 	}
 }
 
+void Async::initThreadOnce() {
+	std::call_once(_initThreadFlag, [this]() {
+		if (!_thread.isRunning()) {
+			_thread.init(Async::work, this);
+		}
+	});
+}
+
 void Async::stop() {
 	if (_thread.isRunning()) {
 		_workerEvent.post("Stop"_slice);
@@ -38,9 +46,7 @@ void Async::stop() {
 
 void Async::run(const std::function<Own<Values>()>& worker, const std::function<void(Own<Values>)>& finisher) {
 	AssertUnless(SharedApplication.getLogicThread() == std::this_thread::get_id(), "Async runner with finisher should be invoked from logic thread");
-	if (!_thread.isRunning()) {
-		_thread.init(Async::work, this);
-	}
+	initThreadOnce();
 	if (!_scheduled) {
 		_scheduled = true;
 		SharedDirector.getSystemScheduler()->schedule([this](double deltaTime) {
@@ -48,23 +54,21 @@ void Async::run(const std::function<Own<Values>()>& worker, const std::function<
 			for (Own<QEvent> event = _finisherEvent.poll();
 				event != nullptr;
 				event = _finisherEvent.poll()) {
-				Own<Package> package;
+				Own<WorkDone> workDone;
 				Own<Values> result;
-				event->get(package, result);
-				package->second(std::move(result));
+				event->get(workDone, result);
+				workDone->second(std::move(result));
 			}
 			return false;
 		});
 	}
-	auto package = New<Package>(worker, finisher);
-	_workerEvent.post("WorkDone"_slice, std::move(package));
+	auto workDone = New<WorkDone>(worker, finisher);
+	_workerEvent.post("WorkDone"_slice, std::move(workDone));
 	_workerSemaphore.post();
 }
 
 void Async::run(const std::function<void()>& worker) {
-	if (!_thread.isRunning()) {
-		_thread.init(Async::work, this);
-	}
+	initThreadOnce();
 	auto work = New<std::function<void()>>(worker);
 	_workerEvent.post("Work"_slice, std::move(work));
 	_workerSemaphore.post();
@@ -72,11 +76,38 @@ void Async::run(const std::function<void()>& worker) {
 
 void Async::runInMainSync(const std::function<void()>& worker) {
 	AssertUnless(SharedApplication.getLogicThread() == std::this_thread::get_id(), "Async runner should be invoked from logic thread");
+	std::list<std::variant<WorkPtr, WorkDonePtr>> jobs;
+	for (auto event = _workerEvent.poll();
+		event != nullptr;
+		event = _workerEvent.poll()) {
+		switch (Switch::hash(event->getName())) {
+			case "Work"_hash: {
+				Own<std::function<void()>> worker;
+				event->get(worker);
+				jobs.push_back(std::move(worker));
+				break;
+			}
+			case "WorkDone"_hash: {
+				Own<WorkDone> workDone;
+				event->get(workDone);
+				jobs.push_back(std::move(workDone));
+				break;
+			}
+		}
+	}
 	run([&]() {
 		worker();
 		_mainThreadSemaphore.post();
 	});
 	_mainThreadSemaphore.wait();
+	for (auto& job : jobs) {
+		if (std::holds_alternative<WorkPtr>(job)) {
+			_workerEvent.post("Work"_slice, std::move(std::get<WorkPtr>(job)));
+		} else {
+			_workerEvent.post("WorkDone"_slice, std::move(std::get<WorkDonePtr>(job)));
+		}
+	}
+	_workerSemaphore.post();
 }
 
 int Async::work(bx::Thread* thread, void* userData) {
@@ -88,16 +119,16 @@ int Async::work(bx::Thread* thread, void* userData) {
 			event = worker->_workerEvent.poll()) {
 			switch (Switch::hash(event->getName())) {
 				case "Work"_hash: {
-					std::unique_ptr<std::function<void()>> worker;
+					Own<std::function<void()>> worker;
 					event->get(worker);
 					(*worker)();
 					break;
 				}
 				case "WorkDone"_hash: {
-					Own<Package> package;
-					event->get(package);
-					Own<Values> result = package->first();
-					worker->_finisherEvent.post(Slice::Empty, std::move(package), std::move(result));
+					Own<WorkDone> workDone;
+					event->get(workDone);
+					Own<Values> result = workDone->first();
+					worker->_finisherEvent.post(Slice::Empty, std::move(workDone), std::move(result));
 					break;
 				}
 				case "Stop"_hash: {
@@ -121,13 +152,12 @@ void Async::cancel() {
 				break;
 			}
 			case "WorkDone"_hash: {
-				Own<Package> package;
-				event->get(package);
+				Own<WorkDone> workDone;
+				event->get(workDone);
 				break;
 			}
 		}
 	}
-	_workers.clear();
 }
 
 // AsyncThread
@@ -145,15 +175,15 @@ Async& AsyncThread::getProcess(int index) {
 }
 
 void AsyncThread::run(const std::function<Own<Values>()>& worker, const std::function<void(Own<Values>)>& finisher) {
-	Async* async = _process[_nextProcess].get();
+	size_t idx = _nextProcess.fetch_add(1, std::memory_order_relaxed) % _process.size();
+	Async* async = _process[idx].get();
 	async->run(worker, finisher);
-	_nextProcess = (_nextProcess + 1) % _process.size();
 }
 
 void AsyncThread::run(const std::function<void()>& worker) {
-	Async* async = _process[_nextProcess].get();
+	size_t idx = _nextProcess.fetch_add(1, std::memory_order_relaxed) % _process.size();
+	Async* async = _process[idx].get();
 	async->run(worker);
-	_nextProcess = (_nextProcess + 1) % _process.size();
 }
 
 Async* AsyncThread::newThread() {
