@@ -28,10 +28,12 @@ bool Controller::initInRender() {
 	SDL_SetHint(SDL_HINT_ACCELEROMETER_AS_JOYSTICK, "0");
 	auto time = SharedApplication.getCurrentTime();
 	if (SharedContent.exist("gamecontrollerdb.txt"_slice)) {
-		auto data = SharedContent.load("gamecontrollerdb.txt"_slice);
-		if (data.second > 0) {
+		int64_t size = 0;
+		uint8_t* buffer = SharedContent.loadUnsafe("gamecontrollerdb.txt"_slice, size);
+		OwnArray<uint8_t> data(buffer);
+		if (size > 0) {
 			const char* platform = SDL_GetPlatform();
-			auto str = std::string{r_cast<const char*>(data.first.get()), data.second};
+			auto str = std::string{r_cast<const char*>(data.get()), s_cast<size_t>(size)};
 			char *line, *line_end, *tmp, *comma, line_platform[64];
 			size_t db_size = str.size(), platform_len;
 			char* buf = &str[0];

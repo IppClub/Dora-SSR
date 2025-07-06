@@ -1251,8 +1251,7 @@ std::string LuaEngine::getTealVersion() {
 	auto tl = tlState->L;
 	auto thread = tlState->thread;
 	std::string version;
-	thread->pause();
-	{
+	thread->runInMainSync([&]() {
 		initTealState(true);
 		int top = lua_gettop(tl);
 		DEFER(lua_settop(tl, top));
@@ -1262,8 +1261,7 @@ std::string LuaEngine::getTealVersion() {
 		lua_getfield(tl, -1, "version"); // package loaded tl version
 		LuaEngine::call(tl, 0, 1); // version(), package loaded tl res err
 		version = tolua_toslice(tl, -1, nullptr).toString();
-	}
-	thread->resume();
+	});
 	return version;
 }
 
@@ -1296,10 +1294,11 @@ std::pair<std::string, std::string> LuaEngine::compileTealToLua(String tlCodes, 
 	auto tlState = loadTealState();
 	auto tl = tlState->L;
 	auto thread = tlState->thread;
-	thread->pause();
-	initTealState(true);
-	auto res = compile_teal(tl, tlCodes, filename, searchPath, true);
-	thread->resume();
+	std::pair<std::string, std::string> res;
+	thread->runInMainSync([&]() {
+		initTealState(true);
+		res = compile_teal(tl, tlCodes, filename, searchPath, true);
+	});
 	return res;
 }
 
@@ -1543,8 +1542,7 @@ void LuaEngine::clearTealCompiler(bool reset) {
 	if (!_tlState) return;
 	auto tl = _tlState->L;
 	auto thread = _tlState->thread;
-	thread->pause();
-	{
+	thread->runInMainSync([&]() {
 		int top = lua_gettop(tl);
 		DEFER(lua_settop(tl, top));
 		lua_getglobal(tl, "package"); // package
@@ -1553,8 +1551,7 @@ void LuaEngine::clearTealCompiler(bool reset) {
 		lua_getfield(tl, -1, "dora_clear");
 		lua_pushboolean(tl, reset ? 1 : 0);
 		LuaEngine::call(tl, 1, 0); // clear(reset), package loaded tl
-	}
-	thread->resume();
+	});
 }
 
 std::list<LuaEngine::XmlToken> LuaEngine::completeXml(String xmlCodes) {

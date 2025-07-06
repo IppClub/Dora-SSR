@@ -61,10 +61,11 @@ Map::Map()
 //public
 bool Map::load(const std::string& path)
 {
-    SharedContent.getThread()->pause();
-    auto result = loadUnsafe(path);
-    SharedContent.getThread()->resume();
-    return result;
+    bool success = false;
+    SharedContent.getThread()->runInMainSync([&]() {
+        success = loadUnsafe(path);
+    });
+    return success;
 }
 
 bool Map::loadUnsafe(const std::string& path)
@@ -103,10 +104,11 @@ bool Map::loadUnsafe(const std::string& path)
 
 bool Map::loadFromString(const std::string& data, const std::string& workingDir)
 {
-    SharedContent.getThread()->pause();
-    auto result = loadFromStringUnsafe(data, workingDir);
-    SharedContent.getThread()->resume();
-    return result;
+    bool success = false;
+    SharedContent.getThread()->runInMainSync([&]() {
+        success = loadFromStringUnsafe(data, workingDir);
+    });
+    return success;
 }
 
 bool Map::loadFromStringUnsafe(const std::string& data, const std::string& workingDir)

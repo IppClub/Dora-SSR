@@ -84,13 +84,11 @@ public:
 	virtual Effekseer::FileReaderRef OpenRead(const char16_t* path) override {
 		char path8[MAX_PATH];
 		Effekseer::ConvertUtf16ToUtf8(path8, MAX_PATH, path);
-		int64_t size = 0;
-		auto buffer = SharedContent.loadUnsafe(path8, size);
-		if (buffer) {
+		auto buffer = SharedContent.load(path8);
+		if (buffer.second > 0) {
 			auto file = Effekseer::MakeRefPtr<DoraFileReader>();
-			file->stream << std::string_view{r_cast<char*>(buffer), s_cast<size_t>(size)};
-			file->length = size;
-			delete buffer;
+			file->stream << std::string_view{r_cast<char*>(buffer.first.get()), s_cast<size_t>(buffer.second)};
+			file->length = s_cast<size_t>(buffer.second);
 			return file;
 		}
 		return nullptr;
@@ -333,7 +331,7 @@ static bgfx_texture_handle_t textureGet(int texture_type, void* parm, void* ud) 
 
 static int textureLoad(const char* name, int srgb, void* ud) {
 	DORA_UNUSED_PARAM(srgb);
-	auto texture = SharedTextureCache.load(name);
+	Texture2D* texture = SharedTextureCache.load(name);
 	if (texture) {
 		bgfx::setName(texture->getHandle(), name);
 		int texId = s_cast<int>(texture->getHandle().idx);
@@ -418,9 +416,7 @@ EffekEff* EffekManager::load(String filename) {
 	}
 	char16_t path16[MAX_PATH];
 	Effekseer::ConvertUtf8ToUtf16(path16, MAX_PATH, filenameStr.c_str());
-	SharedContent.getThread()->pause();
 	auto eff = Effekseer::Effect::Create(instance->efkManager, path16);
-	SharedContent.getThread()->resume();
 	auto effekEff = EffekEff::create();
 	effekEff->effect = eff;
 	_effects[filenameStr] = effekEff;

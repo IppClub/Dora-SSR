@@ -24,6 +24,7 @@ public:
 	typedef std::variant<int64_t, double, std::string, bool> Col;
 	typedef std::deque<std::vector<Col>> Rows;
 	PROPERTY_READONLY(Async*, Thread);
+	PROPERTY_READONLY(SQLite::Database*, Database);
 	virtual ~DB();
 	bool existDB(String name) const;
 	bool exist(String tableName, String schema = Slice::Empty) const;
@@ -41,13 +42,14 @@ public:
 
 public:
 	bool transaction(const std::function<void(SQLite::Database*)>& func);
-	bool transactionUnsafe(const std::function<void(SQLite::Database*)>& func);
 	void transactionAsync(const std::function<void(SQLite::Database*)>& func, const std::function<void(bool)>& callback);
-	Rows queryUnsafe(String sql, const std::vector<Own<Value>>& args, bool withColumns = false);
+	static Rows queryUnsafe(SQLite::Database* db, String sql, const std::vector<Own<Value>>& args, bool withColumns = false);
+	static bool transactionUnsafe(SQLite::Database* db, const std::function<void(SQLite::Database*)>& func);
 	static void insertUnsafe(SQLite::Database* db, String tableName, const std::deque<std::vector<Own<Value>>>& values);
 	static int execUnsafe(SQLite::Database* db, String sql);
 	static int execUnsafe(SQLite::Database* db, String sql, const std::vector<Own<Value>>& args);
 	static int execUnsafe(SQLite::Database* db, String sql, const std::deque<std::vector<Own<Value>>>& rows);
+	static bool existDBUnsafe(SQLite::Database* db, String name);
 	void stop();
 
 protected:

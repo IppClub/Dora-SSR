@@ -157,27 +157,24 @@ Async* Content::getThread() const noexcept {
 
 std::pair<OwnArray<uint8_t>, size_t> Content::load(String filename) {
 	PROFILE("FileIO"_slice);
-	_thread->pause();
 	int64_t size = 0;
-	uint8_t* data = Content::loadUnsafe(filename, size);
-	_thread->resume();
+	uint8_t* data = loadInMainUnsafe(filename, size);
 	return {OwnArray<uint8_t>(data), s_cast<size_t>(size)};
 }
 
 const bgfx::Memory* Content::loadBX(String filename) {
 	PROFILE("FileIO"_slice);
-	_thread->pause();
 	int64_t size = 0;
-	uint8_t* data = Content::loadUnsafe(filename, size);
-	_thread->resume();
+	uint8_t* data = loadInMainUnsafe(filename, size);
 	return bgfx::makeRef(data, (uint32_t)size, releaseFileData);
 }
 
 bool Content::copy(String src, String dst) {
 	PROFILE("FileIO"_slice);
-	_thread->pause();
-	bool result = Content::copyUnsafe(src, dst);
-	_thread->resume();
+	bool result = false;
+	_thread->runInMainSync([&]() {
+		result = Content::copyUnsafe(src, dst);
+	});
 	return result;
 }
 
@@ -404,10 +401,8 @@ std::list<std::string> Content::getFullPathsToTry(String filename) {
 }
 
 void Content::insertSearchPath(int index, String path) {
-	_thread->pause();
 	std::string searchPath = Content::getFullPath(path);
 	insertSearchPath(index, searchPath, true);
-	_thread->resume();
 }
 
 void Content::insertSearchPath(int index, String path, bool withLock) {
@@ -417,26 +412,26 @@ void Content::insertSearchPath(int index, String path, bool withLock) {
 			if (Content::isPathFolder(searchPath)) {
 				if (index >= s_cast<int>(_searchPaths.size())) {
 					_searchPaths.push_back(searchPath);
-				} else {
-					_searchPaths.insert(_searchPaths.begin() + index, searchPath);
-					_fullPathCache.clear();
-				}
 			} else {
-				auto relativePath = fs::path(searchPath).lexically_relative(fs::path(Content::getAssetPath())).string();
-				auto relSlice = Slice(relativePath);
-				if (!relativePath.empty() && relSlice.left(3) != "..\\"_slice && relSlice.left(3) != "../"_slice) {
-					Error("can not set file \"{}\" under asset path as search package", path.toString());
-				} else {
-					auto zipFile = New<ZipFile>(searchPath);
-					if (zipFile->isOK()) {
-						if (index >= s_cast<int>(_searchPaths.size())) {
-							_searchPaths.push_back(searchPath);
-						} else {
-							_searchPaths.insert(_searchPaths.begin() + index, searchPath);
-							_fullPathCache.clear();
-						}
-						_searchZipPaths[searchPath] = std::move(zipFile);
+				_searchPaths.insert(_searchPaths.begin() + index, searchPath);
+				_fullPathCache.clear();
+			}
+		} else {
+			auto relativePath = fs::path(searchPath).lexically_relative(fs::path(Content::getAssetPath())).string();
+			auto relSlice = Slice(relativePath);
+			if (!relativePath.empty() && relSlice.left(3) != "..\\"_slice && relSlice.left(3) != "../"_slice) {
+				Error("can not set file \"{}\" under asset path as search package", path.toString());
+			} else {
+				auto zipFile = New<ZipFile>(searchPath);
+				if (zipFile->isOK()) {
+					if (index >= s_cast<int>(_searchPaths.size())) {
+						_searchPaths.push_back(searchPath);
 					} else {
+						_searchPaths.insert(_searchPaths.begin() + index, searchPath);
+						_fullPathCache.clear();
+					}
+					_searchZipPaths[searchPath] = std::move(zipFile);
+				} else {
 						Error("search path \"{}\" is neither a folder nor a zip file", path.toString());
 					}
 				}
@@ -458,7 +453,6 @@ void Content::addSearchPath(String path) {
 }
 
 void Content::removeSearchPath(String path) {
-	_thread->pause();
 	std::string realPath = Content::getFullPath(path);
 	{
 		std::scoped_lock<std::mutex> lock(pathCacheMutex);
@@ -471,20 +465,15 @@ void Content::removeSearchPath(String path) {
 			}
 		}
 	}
-	_thread->resume();
 }
 
 void Content::setSearchPaths(const std::vector<std::string>& searchPaths) {
-	_thread->pause();
-	{
-		std::scoped_lock<std::mutex> lock(pathCacheMutex);
-		_searchPaths.clear();
-		_fullPathCache.clear();
-		for (const std::string& searchPath : searchPaths) {
-			Content::insertSearchPath(_searchPaths.size(), searchPath, false);
-		}
+	std::scoped_lock<std::mutex> lock(pathCacheMutex);
+	_searchPaths.clear();
+	_fullPathCache.clear();
+	for (const std::string& searchPath : searchPaths) {
+		Content::insertSearchPath(_searchPaths.size(), searchPath, false);
 	}
-	_thread->resume();
 }
 
 const std::vector<std::string>& Content::getSearchPaths() const noexcept {
@@ -811,9 +800,10 @@ std::list<std::string> Content::getDirEntries(String path, bool isFolder) {
 
 uint8_t* Content::loadInMainUnsafe(String filename, int64_t& size) {
 	PROFILE("FileIO"_slice);
-	_thread->pause();
-	uint8_t* data = Content::loadUnsafe(filename, size);
-	_thread->resume();
+	uint8_t* data = nullptr;
+	_thread->runInMainSync([&]() {
+		data = Content::loadUnsafe(filename, size);
+	});
 	return data;
 }
 

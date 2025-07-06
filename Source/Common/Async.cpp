@@ -37,7 +37,7 @@ void Async::stop() {
 }
 
 void Async::run(const std::function<Own<Values>()>& worker, const std::function<void(Own<Values>)>& finisher) {
-	AssertUnless(SharedApplication.getLogicThread() == std::this_thread::get_id(), "Async runner with finisher should be invoke from logic thread");
+	AssertUnless(SharedApplication.getLogicThread() == std::this_thread::get_id(), "Async runner with finisher should be invoked from logic thread");
 	if (!_thread.isRunning()) {
 		_thread.init(Async::work, this);
 	}
@@ -70,6 +70,15 @@ void Async::run(const std::function<void()>& worker) {
 	_workerSemaphore.post();
 }
 
+void Async::runInMainSync(const std::function<void()>& worker) {
+	AssertUnless(SharedApplication.getLogicThread() == std::this_thread::get_id(), "Async runner should be invoked from logic thread");
+	run([&]() {
+		worker();
+		_mainThreadSemaphore.post();
+	});
+	_mainThreadSemaphore.wait();
+}
+
 int Async::work(bx::Thread* thread, void* userData) {
 	DORA_UNUSED_PARAM(thread);
 	Async* worker = r_cast<Async*>(userData);
@@ -99,55 +108,6 @@ int Async::work(bx::Thread* thread, void* userData) {
 		worker->_workerSemaphore.wait();
 	}
 	return 0;
-}
-
-void Async::pause() {
-	if (_thread.isRunning()) {
-		for (auto event = _workerEvent.poll();
-			event != nullptr;
-			event = _workerEvent.poll()) {
-			switch (Switch::hash(event->getName())) {
-				case "Work"_hash: {
-					Own<std::function<void()>> worker;
-					event->get(worker);
-					(*worker)();
-					break;
-				}
-				case "WorkDone"_hash: {
-					std::unique_ptr<Package> package;
-					event->get(package);
-					Own<Values> result = package->first();
-					_finisherEvent.post(Slice::Empty, std::move(package), std::move(result));
-					break;
-				}
-			}
-		}
-	}
-}
-
-void Async::resume() {
-	if (_thread.isRunning()) {
-		for (auto event = _workerEvent.poll();
-			event != nullptr;
-			event = _workerEvent.poll()) {
-			switch (Switch::hash(event->getName())) {
-				case "Work"_hash: {
-					Own<std::function<void()>> worker;
-					event->get(worker);
-					(*worker)();
-					break;
-				}
-				case "WorkDone"_hash: {
-					std::unique_ptr<Package> package;
-					event->get(package);
-					Own<Values> result = package->first();
-					_finisherEvent.post(Slice::Empty, std::move(package), std::move(result));
-					break;
-				}
-			}
-		}
-		_workerSemaphore.post(); // make worker work again
-	}
 }
 
 void Async::cancel() {
@@ -201,10 +161,9 @@ Async* AsyncThread::newThread() {
 	return _userThreads.back().get();
 }
 
-void AsyncThread::cancelAndPause() {
+void AsyncThread::cancel() {
 	for (const auto& thread : _process) {
 		thread->cancel();
-		thread->pause();
 	}
 }
 

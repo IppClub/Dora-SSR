@@ -2668,10 +2668,10 @@ int DB_insertAsync01(lua_State* L) {
 		SharedContent.loadAsyncData(excelFile, [excelFile, names, startRow, handler](OwnArray<uint8_t>&& data, size_t size) {
 			auto excelData = std::make_shared<OwnArray<uint8_t>>(std::move(data));
 			SharedDB.getThread()->run(
-				[excelFile, names, startRow, excelData = std::move(excelData), size]() {
+				[excelFile, names, startRow, excelData = std::move(excelData), size, database = SharedDB.getDatabase()]() {
 					auto workbook = New<xlsxtext::workbook>(std::make_pair(std::move(*excelData), size));
 					if (workbook->read()) {
-						bool result = SharedDB.transactionUnsafe([&](SQLite::Database* db) {
+						bool result = DB::transactionUnsafe(database, [&](SQLite::Database* db) {
 							const auto& strs = workbook->shared_strings();
 							for (auto& worksheet : *workbook) {
 								if (auto it = std::find_if(names->begin(), names->end(),

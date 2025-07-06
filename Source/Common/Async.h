@@ -25,8 +25,7 @@ public:
 	virtual ~Async();
 	void run(const std::function<Own<Values>()>& worker, const std::function<void(Own<Values>)>& finisher);
 	void run(const std::function<void()>& worker);
-	void pause();
-	void resume();
+	void runInMainSync(const std::function<void()>& worker);
 	void cancel();
 	void stop();
 	static int work(bx::Thread* thread, void* userData);
@@ -35,6 +34,7 @@ private:
 	bool _scheduled;
 	bx::Thread _thread;
 	bx::Semaphore _workerSemaphore;
+	bx::Semaphore _mainThreadSemaphore;
 	std::vector<std::unique_ptr<std::function<void()>>> _workers;
 	EventQueue _workerEvent;
 	EventQueue _finisherEvent;
@@ -47,7 +47,7 @@ public:
 	Async* newThread();
 	void run(const std::function<Own<Values>()>& worker, const std::function<void(Own<Values>)>& finisher);
 	void run(const std::function<void()>& worker);
-	void cancelAndPause();
+	void cancel();
 #if BX_PLATFORM_WINDOWS
 	inline void* operator new(size_t i) {
 		return _mm_malloc(i, 16);

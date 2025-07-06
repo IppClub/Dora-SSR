@@ -113,11 +113,6 @@ if App.platform in ["Linux", "Windows", "macOS"]
 		size = Size config.winWidth, config.winHeight
 		if App.winSize ~= size
 			App.winSize = size
-			showEntry = false
-			thread ->
-				sleep!
-				sleep!
-				showEntry = true
 		x: winX, y: winY = App.winPosition
 		if config.winX?
 			winX = config.winX
