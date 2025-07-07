@@ -7250,16 +7250,16 @@ class AudioSource extends Node {
 
 	/**
 	 * Stops the audio source.
-	 * @param fadeTime The time to fade out.
+	 * @param fadeTime The time to fade out. Default is 0 seconds.
 	 */
-	stop(fadeTime: number): void;
+	stop(fadeTime?: number): void;
 
 	/**
 	 * Plays the audio source.
-	 * @param delayTime The delay time before playing.
+	 * @param delayTime The delay time before playing. Default is 0 seconds.
 	 * @returns Whether the audio source is playing.
 	 */
-	play(delayTime: number): boolean;
+	play(delayTime?: number): boolean;
 
 	/**
 	 * Plays the audio source as background audio.
@@ -7269,10 +7269,10 @@ class AudioSource extends Node {
 
 	/**
 	 * Plays the audio source as 3D audio.
-	 * @param delayTime The delay time before playing.
+	 * @param delayTime The delay time before playing. Default is 0 seconds.
 	 * @returns Whether the audio source is playing.
 	 */
-	play3D(delayTime: number): boolean;
+	play3D(delayTime?: number): boolean;
 
 	/**
 	 * Sets the protected state of the audio source. If the audio source is protected, it will not be stopped when there is not enough voice.

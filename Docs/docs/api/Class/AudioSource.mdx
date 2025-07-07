@@ -126,14 +126,14 @@ scheduleStop: function(self: AudioSource, timeToStop: number)
 
 **Signature:**
 ```tl
-stop: function(self: AudioSource, fadeTime: number)
+stop: function(self: AudioSource, fadeTime?: number)
 ```
 
 **Parameters:**
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| fadeTime | number | The time to fade the audio source. |
+| fadeTime | number | The time to fade the audio source. Default is 0 seconds. |
 
 ## play
 
@@ -145,14 +145,14 @@ stop: function(self: AudioSource, fadeTime: number)
 
 **Signature:**
 ```tl
-play: function(self: AudioSource, delayTime: number): boolean
+play: function(self: AudioSource, delayTime?: number): boolean
 ```
 
 **Parameters:**
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| delayTime | number | The time to delay before playing the audio source. |
+| delayTime | number | [optional] The time to delay before playing the audio source. Default is 0 seconds. |
 
 **Returns:**
 
@@ -189,14 +189,14 @@ playBackground: function(self: AudioSource): boolean
 
 **Signature:**
 ```tl
-play3D: function(self: AudioSource, delayTime: number): boolean
+play3D: function(self: AudioSource, delayTime?: number): boolean
 ```
 
 **Parameters:**
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| delayTime | number | The time to delay before playing the audio source. |
+| delayTime | number | [optional] The time to delay before playing the audio source. Default is 0 seconds. |
 
 **Returns:**
 

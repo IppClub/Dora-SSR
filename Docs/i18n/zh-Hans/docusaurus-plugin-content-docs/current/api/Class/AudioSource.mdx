@@ -126,14 +126,14 @@ scheduleStop: function(self: AudioSource, timeToStop: number)
 
 **签名：**
 ```tl
-stop: function(self: AudioSource, fadeTime: number)
+stop: function(self: AudioSource, fadeTime?: number)
 ```
 
 **参数：**
 
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
-| fadeTime | number | 淡出时间。 |
+| fadeTime | number | [可选] 淡出时间，默认为 0 秒。 |
 
 ## play
 
@@ -145,14 +145,14 @@ stop: function(self: AudioSource, fadeTime: number)
 
 **签名：**
 ```tl
-play: function(self: AudioSource, delayTime: number): boolean
+play: function(self: AudioSource, delayTime?: number): boolean
 ```
 
 **参数：**
 
 | 参数名 | 类型 | 描述 |
 | --- | --- | --- |
-| delayTime | number | 延迟时间。 |
+| delayTime | number | [可选] 延迟时间，默认为 0 秒。 |
 
 **返回值：**
 
@@ -189,7 +189,7 @@ playBackground: function(self: AudioSource): boolean
 
 **签名：**
 ```tl
-play3D: function(self: AudioSource, delayTime: number): boolean
+play3D: function(self: AudioSource, delayTime?: number): boolean
 ```
 
 **参数：**

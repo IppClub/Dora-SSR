@@ -7251,16 +7251,16 @@ class AudioSource extends Node {
 
 	/**
 	 * 停止音频源。
-	 * @param fadeTime 淡出时间。
+	 * @param fadeTime 淡出时间，默认为 0 秒。
 	 */
-	stop(fadeTime: number): void;
+	stop(fadeTime?: number): void;
 
 	/**
 	 * 播放音频源。
-	 * @param delayTime 播放前的延迟时间。
+	 * @param delayTime 播放前的延迟时间，默认为 0 秒。
 	 * @returns 是否成功播放音频源。
 	 */
-	play(delayTime: number): boolean;
+	play(delayTime?: number): boolean;
 
 	/**
 	 * 播放音频源作为背景音频。
@@ -7270,10 +7270,10 @@ class AudioSource extends Node {
 
 	/**
 	 * 播放音频源作为 3D 音频。
-	 * @param delayTime 播放前的延迟时间。
+	 * @param delayTime 播放前的延迟时间，默认为 0 秒。
 	 * @returns 是否成功播放音频源。
 	 */
-	play3D(delayTime: number): boolean;
+	play3D(delayTime?: number): boolean;
 
 	/**
 	 * 设置音频源的保护状态。如果音频源被保护，当没有足够的语音时，它不会被停止。

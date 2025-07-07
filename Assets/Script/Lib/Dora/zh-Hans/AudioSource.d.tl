@@ -36,13 +36,13 @@ local record AudioSource
 	scheduleStop: function(self: AudioSource, timeToStop: number)
 
 	-- 停止音频源。
-	-- @param fadeTime (number) 淡出时间。
-	stop: function(self: AudioSource, fadeTime: number)
+	-- @param fadeTime (number) [可选] 淡出时间，默认为 0 秒。
+	stop: function(self: AudioSource, fadeTime?: number)
 
 	-- 播放音频源。
-	-- @param delayTime (number) 延迟时间。
+	-- @param delayTime (number) [可选] 延迟时间，默认为 0 秒。
 	-- @return (boolean) 是否播放成功。
-	play: function(self: AudioSource, delayTime: number): boolean
+	play: function(self: AudioSource, delayTime?: number): boolean
 
 	-- 播放音频源作为背景音频。
 	-- @return (boolean) 是否播放成功。
@@ -51,7 +51,7 @@ local record AudioSource
 	-- 播放音频源作为 3D 音频。
 	-- @param delayTime (number) 延迟时间。
 	-- @return (boolean) 是否播放成功。
-	play3D: function(self: AudioSource, delayTime: number): boolean
+	play3D: function(self: AudioSource, delayTime?: number): boolean
 
 	-- 设置音频源的保护状态。如果音频源被保护，当没有可用声音时，它不会被停止。
 	-- @param var (boolean) 保护状态。

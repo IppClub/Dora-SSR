@@ -36,22 +36,22 @@ local record AudioSource
 	scheduleStop: function(self: AudioSource, timeToStop: number)
 
 	-- Stops the audio source.
-	-- @param fadeTime (number) The time to fade the audio source.
-	stop: function(self: AudioSource, fadeTime: number)
+	-- @param fadeTime (number) The time to fade the audio source. Default is 0 seconds.
+	stop: function(self: AudioSource, fadeTime?: number)
 
 	-- Plays the audio source.
-	-- @param delayTime (number) The time to delay before playing the audio source.
+	-- @param delayTime (number) [optional] The time to delay before playing the audio source. Default is 0 seconds.
 	-- @return (boolean) Whether the audio source was played successfully.
-	play: function(self: AudioSource, delayTime: number): boolean
+	play: function(self: AudioSource, delayTime?: number): boolean
 
 	-- Plays the audio source as a background audio.
 	-- @return (boolean) Whether the audio source was played successfully.
 	playBackground: function(self: AudioSource): boolean
 
 	-- Plays the audio source as a 3D audio.
-	-- @param delayTime (number) The time to delay before playing the audio source.
+	-- @param delayTime (number) [optional] The time to delay before playing the audio source. Default is 0 seconds.
 	-- @return (boolean) Whether the audio source was played successfully.
-	play3D: function(self: AudioSource, delayTime: number): boolean
+	play3D: function(self: AudioSource, delayTime?: number): boolean
 
 	-- Sets the protected state of the audio source. If the audio source is protected, it won't get stopped if we run out of voices.
 	-- @param var (boolean) The protected state to set.
