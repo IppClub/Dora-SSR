@@ -345,6 +345,8 @@ bool Audio::init() {
 		_soloud->update3dAudio();
 		return false;
 	});
+	_soloud->set3dListenerUp(0, 1.0f, 0);
+	_soloud->set3dListenerAt(0, 0, 1.0f);
 	return true;
 }
 

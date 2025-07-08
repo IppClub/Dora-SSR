@@ -90,8 +90,8 @@ local record AudioSourceClass
 	-- @param filename (string) The path to the audio file.
 	-- @param autoRemove (boolean) [optional] Whether the audio source should be removed when it's stopped. Default is `true`.
 	-- @param bus (AudioBus) [optional] The bus to play the audio source on. Default is `nil`.
-	-- @return (AudioSource) The created `AudioSource` node.
-	metamethod __call: function(self: AudioSourceClass, filename: string, autoRemove?: boolean, bus?: AudioBus): AudioSource
+	-- @return (AudioSource | nil) The created `AudioSource` node. If the audio file is not loaded, it will return nil.
+	metamethod __call: function(self: AudioSourceClass, filename: string, autoRemove?: boolean, bus?: AudioBus): AudioSource | nil
 end
 
 return AudioSourceClass

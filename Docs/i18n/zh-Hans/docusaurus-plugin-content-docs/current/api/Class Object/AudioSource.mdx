@@ -14,7 +14,7 @@
 
 **签名：**
 ```tl
-metamethod __call: function(self: AudioSourceClass, filename: string, autoRemove?: boolean, bus?: AudioBus): AudioSource
+metamethod __call: function(self: AudioSourceClass, filename: string, autoRemove?: boolean, bus?: AudioBus): AudioSource | nil
 ```
 
 **参数：**
@@ -29,4 +29,4 @@ metamethod __call: function(self: AudioSourceClass, filename: string, autoRemove
 
 | 返回类型 | 描述 |
 | --- | --- |
-| AudioSource | 创建的 `AudioSource` 节点。 |
+| AudioSource \| nil | 创建的 `AudioSource` 节点。如果文件加载失败则返回nil。 |

@@ -14,7 +14,7 @@
 
 **Signature:**
 ```tl
-metamethod __call: function(self: AudioSourceClass, filename: string, autoRemove?: boolean, bus?: AudioBus): AudioSource
+metamethod __call: function(self: AudioSourceClass, filename: string, autoRemove?: boolean, bus?: AudioBus): AudioSource | nil
 ```
 
 **Parameters:**
@@ -29,4 +29,4 @@ metamethod __call: function(self: AudioSourceClass, filename: string, autoRemove
 
 | Return Type | Description |
 | --- | --- |
-| AudioSource | The created `AudioSource` node. |
+| AudioSource \| nil | The created `AudioSource` node. If the audio file is not loaded, it will return nil. |

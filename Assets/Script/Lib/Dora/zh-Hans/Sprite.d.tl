@@ -70,7 +70,7 @@ local record SpriteClass
 	-- 用于创建新的图元对象的元方法。
 	-- @param clipStr (string) 包含要加载的纹理文件名的字符串。
 	-- 可以是"Image/file.png"或"Image/items.clip|itemA"。支持的图片文件格式包括：jpg，png，dds，pvr，ktx。
-	-- @return (Sprite | nil) 新的图元对象。如果加载失败则返回nil。
+	-- @return (Sprite | nil) 新的图元对象。如果文件加载失败则返回nil。
 	metamethod __call: function(self: SpriteClass, clipStr: string): Sprite | nil
 
 	-- 用于创建新的图元对象的元方法。

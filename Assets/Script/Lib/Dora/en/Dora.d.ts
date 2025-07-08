@@ -7328,9 +7328,9 @@ interface AudioSourceClass {
 	 * @param filename The path to the audio file.
 	 * @param autoRemove [optional] Whether to remove the audio source when it stops. Defaults to `true`.
 	 * @param bus [optional] The bus to play the audio source. Defaults to `nil`.
-	 * @returns 创建的 AudioSource 节点。
+	 * @returns Created AudioSource node. If the audio file is not loaded, it will return null.
 	 */
-	(this: void, filename: string, autoRemove?: boolean, bus?: AudioBus): AudioSource;
+	(this: void, filename: string, autoRemove?: boolean, bus?: AudioBus): AudioSource | null;
 }
 
 const audioSourceClass: AudioSourceClass;

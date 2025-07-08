@@ -7328,10 +7328,10 @@ interface AudioSourceClass {
 	 * 创建一个新的 AudioSource 节点。
 	 * @param filename 音频文件的路径。
 	 * @param autoRemove [可选] 是否在停止时删除音频源。默认为 `true`。
-	 * @param bus [可选] 播放音频源的总线。默认为 `nil`。
-	 * @returns 创建的 AudioSource 节点。
+	 * @param bus [可选] 播放音频源的总线。默认为 `undefined`。
+	 * @returns 创建的 AudioSource 节点。如果文件加载失败则返回 null。
 	 */
-	(this: void, filename: string, autoRemove?: boolean, bus?: AudioBus): AudioSource;
+	(this: void, filename: string, autoRemove?: boolean, bus?: AudioBus): AudioSource | null;
 }
 
 const audioSourceClass: AudioSourceClass;

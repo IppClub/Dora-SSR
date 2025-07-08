@@ -90,8 +90,8 @@ local record AudioSourceClass
 	-- @param filename (string) 音频文件路径。
 	-- @param autoRemove (boolean) [可选] 是否在停止时自动删除音频源。默认为 `true`。
 	-- @param bus (AudioBus) [可选] 播放音频源的音频总线。默认为 `nil`。
-	-- @return (AudioSource) 创建的 `AudioSource` 节点。
-	metamethod __call: function(self: AudioSourceClass, filename: string, autoRemove?: boolean, bus?: AudioBus): AudioSource
+	-- @return (AudioSource | nil) 创建的 `AudioSource` 节点。如果文件加载失败则返回nil。
+	metamethod __call: function(self: AudioSourceClass, filename: string, autoRemove?: boolean, bus?: AudioBus): AudioSource | nil
 end
 
 return AudioSourceClass
