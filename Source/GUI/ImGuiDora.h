@@ -24,17 +24,15 @@ class ConsolePanel;
 
 class ImGuiDora : public NonCopyable {
 public:
-	PROPERTY_BOOL(FontLoaded);
 	virtual ~ImGuiDora();
 	bool init();
 	void begin();
 	void end();
 	void render();
-	void loadFontTTFAsync(String ttfFontFile, float fontSize, String glyphRanges, const std::function<void(bool)>& handler);
+	void setDefaultFont(String ttfFontFile, float fontSize);
 	void showStats(bool* pOpen, const std::function<void()>& extra = nullptr);
 	void showConsole(bool* pOpen, bool initOnly = false);
 	void handleEvent(const SDL_Event& event);
-	void updateTexture(uint8_t* data, int width, int height);
 
 	class ImGuiTouchHandler : public TouchHandler {
 	public:
@@ -54,27 +52,24 @@ public:
 protected:
 	ImGuiDora();
 	void sendKey(int key, int count);
+	Texture2D* createTexture(uint8_t* data, int width, int height, bgfx::TextureFormat::Enum format, uint32_t pixelSize);
 	static const char* getClipboardText(ImGuiContext*);
 	static void setClipboardText(ImGuiContext*, const char* text);
 	static int _lastIMEPosX, _lastIMEPosY;
 
 private:
-	bool _fontLoaded;
 	bool _showPlot;
 
 private:
-	bool _isChineseSupported;
 	bool _useChinese;
-	bool _isLoadingFont;
 	bool _textInputing;
 	bool _backSpaceIgnore;
 	bool _mouseVisible;
 	bool _mousePressed[3];
 	Vec2 _mouseWheel;
 	int _lastCursor;
-	Ref<Texture2D> _fontTexture;
+	std::list<Ref<Texture2D>> _textures;
 	bgfx::UniformHandle _sampler;
-	Ref<Pass> _defaultPass;
 	Ref<Pass> _imagePass;
 	Ref<Listener> _appChangeListener;
 	bgfx::VertexLayout _vertexLayout;
@@ -82,8 +77,6 @@ private:
 	std::vector<uint32_t> _textEditing;
 	std::string _iniFilePath;
 	Own<ConsolePanel> _console;
-	Own<ImFontAtlas> _defaultFonts;
-	Own<ImFontAtlas> _fonts;
 	std::shared_ptr<ImGuiTouchHandler> _touchHandler;
 	std::unordered_map<int, int> _keymap;
 	SINGLETON_REF(ImGuiDora, BGFXDora);

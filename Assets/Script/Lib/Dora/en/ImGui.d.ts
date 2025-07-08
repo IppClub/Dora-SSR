@@ -341,17 +341,6 @@ export const enum ItemFlags {
 	AllowDuplicateId = "AllowDuplicateId",
 }
 
-export const enum GlyphRange {
-	Default = "Default",
-	Chinese = "Chinese",
-	Korean = "Korean",
-	Japanese = "Japanese",
-	Cyrillic = "Cyrillic",
-	Thai = "Thai",
-	Greek = "Greek",
-	Vietnamese = "Vietnamese"
-}
-
 export const enum TabBarFlag {
 	Reorderable = "Reorderable",
 	AutoSelectNewTabs = "AutoSelectNewTabs",
@@ -376,8 +365,7 @@ export const enum TabItemFlag {
 	NoAssumedClosure = "NoAssumedClosure",
 }
 
-export function LoadFontTTF(this: void, ttfFontFile: string, fontSize: number, glyphRanges: GlyphRange, callback: (this: void) => void): boolean;
-export function IsFontLoaded(this: void): boolean;
+export function SetDefaultFont(this: void, ttfFontFile: string, fontSize: number): void;
 export function ShowStats(this: void, extra?: (this: void) => void): void;
 export function ShowStats(this: void, open: boolean, extra?: (this: void) => void): boolean;
 export function ShowConsole(this: void): void;
@@ -521,7 +509,6 @@ export function GetWindowSize(this: void): Vec2;
 export function GetWindowWidth(this: void): number;
 export function GetWindowHeight(this: void): number;
 export function IsWindowCollapsed(this: void): boolean;
-export function SetWindowFontScale(this: void, scale: number): void;
 export function SetNextWindowSizeConstraints(this: void, size_min: Vec2, size_max: Vec2): void;
 export function SetNextWindowContentSize(this: void, size: Vec2): void;
 export function SetNextWindowFocus(this: void): void;

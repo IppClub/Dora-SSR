@@ -31,7 +31,7 @@ local Config = require("Config") -- 6
 local zh = false -- 8
 do -- 8
 	local res = string.match(App.locale, "^zh") -- 10
-	zh = res ~= nil and ImGui.IsFontLoaded() -- 11
+	zh = res ~= nil -- 11
 end -- 11
 local running = true -- 21
 if not DB:existDB("llm") then -- 21

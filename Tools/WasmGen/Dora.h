@@ -5330,13 +5330,7 @@ object class Buffer {
 
 singleton struct ImGui {
 
-static void Binding::LoadFontTTFAsync @ load_font_ttf_async(
-	string ttfFontFile,
-	float fontSize,
-	string glyphRanges,
-	function<void(bool success)> handler);
-
-static bool Binding::IsFontLoaded @ is_font_loaded();
+static void Binding::SetDefaultFont @ SetDefaultFont(string ttfFontFile, float fontSize);
 
 static void Binding::ShowStats @ showStats();
 static void Binding::ShowConsole @ showConsole();
@@ -5674,7 +5668,6 @@ static Vec2 GetWindowSize();
 static float GetWindowWidth();
 static float GetWindowHeight();
 static bool IsWindowCollapsed();
-static void SetWindowFontScale(float scale);
 static void SetNextWindowSizeConstraints(Vec2 size_min, Vec2 size_max);
 static void SetNextWindowContentSize(Vec2 size);
 static void SetNextWindowFocus();

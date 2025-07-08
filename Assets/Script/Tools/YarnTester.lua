@@ -25,7 +25,7 @@ local ImGui = require("ImGui") -- 19
 local zh = false -- 21
 do -- 21
 	local res = string.match(App.locale, "^zh") -- 23
-	zh = res ~= nil and ImGui.IsFontLoaded() -- 24
+	zh = res ~= nil -- 24
 end -- 24
 local testFilePaths = {} -- 27
 local testFileNames = {} -- 28

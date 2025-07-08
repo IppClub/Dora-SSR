@@ -148,7 +148,6 @@ void Async::cancel() {
 		switch (Switch::hash(event->getName())) {
 			case "Work"_hash: {
 				Own<std::function<void()>> worker;
-				event->get(worker);
 				break;
 			}
 			case "WorkDone"_hash: {
@@ -194,6 +193,7 @@ Async* AsyncThread::newThread() {
 void AsyncThread::cancel() {
 	for (const auto& thread : _process) {
 		thread->cancel();
+		thread->stop();
 	}
 }
 

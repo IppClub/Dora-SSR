@@ -117,7 +117,7 @@ end -- 126
 zh = false -- 18
 do -- 18
 	local res = string.match(App.locale, "^zh") -- 20
-	zh = res ~= nil and ImGui.IsFontLoaded() -- 21
+	zh = res ~= nil -- 21
 end -- 21
 local function getAllClipFolders() -- 24
 	local folders = {} -- 25

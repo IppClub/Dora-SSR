@@ -6,11 +6,8 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-#wa:import dora imgui_load_font_ttf_async
-func imgui_load_font_ttf_async(ttf_font_file: i64, font_size: f32, glyph_ranges: i64, func0: i32, stack0: i64)
-
-#wa:import dora imgui_is_font_loaded
-func imgui_is_font_loaded() => i32
+#wa:import dora imgui_set_default_font
+func imgui_set_default_font(ttf_font_file: i64, font_size: f32)
 
 #wa:import dora imgui_show_stats
 func imgui_show_stats()
@@ -257,9 +254,6 @@ func imgui_get_window_height() => f32
 
 #wa:import dora imgui_is_window_collapsed
 func imgui_is_window_collapsed() => i32
-
-#wa:import dora imgui_set_window_font_scale
-func imgui_set_window_font_scale(scale: f32)
 
 #wa:import dora imgui_set_next_window_size_constraints
 func imgui_set_next_window_size_constraints(size_min: i64, size_max: i64)
@@ -661,16 +655,8 @@ type _ImGui :struct{}
 
 global ImGui = _ImGui{}
 
-func _ImGui.LoadFontTtfAsync(ttf_font_file: string, font_size: f32, glyph_ranges: string, handler: func(success: bool)) {
-	stack0 := NewCallStack()
-	func_id0 := PushFunction(func() {
-		success, _ := stack0.PopBool()
-		handler(success)
-	})
-	imgui_load_font_ttf_async(ToDoraString(ttf_font_file), font_size, ToDoraString(glyph_ranges), func_id0, *stack0.raw)
-}
-func _ImGui.IsFontLoaded() => bool {
-	return imgui_is_font_loaded() != 0
+func _ImGui.SetDefaultFont(ttf_font_file: string, font_size: f32) {
+	imgui_set_default_font(ToDoraString(ttf_font_file), font_size)
 }
 func _ImGui.ShowStats() {
 	imgui_show_stats()
@@ -917,9 +903,6 @@ func _ImGui.GetWindowHeight() => f32 {
 }
 func _ImGui.IsWindowCollapsed() => bool {
 	return imgui_is_window_collapsed() != 0
-}
-func _ImGui.SetWindowFontScale(scale: f32) {
-	imgui_set_window_font_scale(scale)
 }
 func _ImGui.SetNextWindowSizeConstraints(size_min: Vec2, size_max: Vec2) {
 	imgui_set_next_window_size_constraints(size_min.ToValue(), size_max.ToValue())

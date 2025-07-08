@@ -314,16 +314,6 @@ local record ImGui
 		"AutoClosePopups"
 		"AllowDuplicateId"
 	end
-	enum GlyphRange
-		"Default"
-		"Chinese"
-		"Korean"
-		"Japanese"
-		"Cyrillic"
-		"Thai"
-		"Greek"
-		"Vietnamese"
-	end
 	enum TabBarFlag
 		"Reorderable"
 		"AutoSelectNewTabs"
@@ -346,13 +336,7 @@ local record ImGui
 		"Trailing"
 		"NoAssumedClosure"
 	end
-	LoadFontTTF: function(
-		ttfFontFile: string,
-		fontSize: number,
-		glyphRanges: GlyphRange,
-		callback: function()
-	): boolean
-	IsFontLoaded: function(): boolean
+	SetDefaultFont: function(ttfFontFile: string, fontSize: number)
 	ShowStats: function(extra?: function())
 	ShowStats: function(open: boolean, extra?: function()): boolean
 	ShowConsole: function()
@@ -779,7 +763,6 @@ local record ImGui
 	GetWindowWidth: function(): number
 	GetWindowHeight: function(): number
 	IsWindowCollapsed: function(): boolean
-	SetWindowFontScale: function(scale: number)
 	SetNextWindowSizeConstraints: function(size_min: Vec2, size_max: Vec2)
 	SetNextWindowContentSize: function(size: Vec2)
 	SetNextWindowFocus: function()

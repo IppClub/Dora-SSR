@@ -21,7 +21,7 @@ import * as ImGui from 'ImGui';
 let zh = false;
 {
 	const [res] = string.match(App.locale, "^zh");
-	zh = res !== null && ImGui.IsFontLoaded();
+	zh = res !== null;
 }
 
 const testFilePaths: string[] = [];

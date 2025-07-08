@@ -15,7 +15,7 @@ local ImGui = require("ImGui") -- 11
 local zh = false -- 13
 do -- 13
 	local res = string.match(App.locale, "^zh") -- 15
-	zh = res ~= nil and ImGui.IsFontLoaded() -- 16
+	zh = res ~= nil -- 16
 end -- 16
 local major, minor, patch, _revision = string.match(App.version, "(%d+)%.(%d+)%.(%d+)%.(%d+)") -- 19
 local currentVersion = (((("v" .. major) .. ".") .. minor) .. ".") .. patch -- 20

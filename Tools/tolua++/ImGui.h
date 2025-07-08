@@ -12,8 +12,7 @@ class Buffer : public Object
 
 namespace ImGui
 {
-	void Binding::LoadFontTTFAsync @ LoadFontTTF(String ttfFontFile, float fontSize, String glyphRanges, tolua_function_void handler);
-	bool Binding::IsFontLoaded @ IsFontLoaded();
+	void Binding::SetDefaultFont @ SetDefaultFont(String ttfFontFile, float fontSize);
 	void Binding::ShowStats @ ShowStats(bool* pOpen, tolua_function_void handler = nullptr);
 	void Binding::ShowStats @ ShowStats(tolua_function_void handler = nullptr);
 	void Binding::ShowConsole @ ShowConsole(bool* pOpen, bool initOnly = false);
@@ -141,7 +140,6 @@ namespace ImGui
 	float GetWindowWidth();
 	float GetWindowHeight();
 	bool IsWindowCollapsed();
-	void SetWindowFontScale(float scale);
 	void SetNextWindowSizeConstraints(Vec2 size_min, Vec2 size_max);
 	void SetNextWindowContentSize(Vec2 size);
 	void SetNextWindowFocus();

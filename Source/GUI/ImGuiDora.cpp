@@ -33,6 +33,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 NS_DORA_BEGIN
 
+static_assert(sizeof(ImTextureID) >= sizeof(Texture2D*), "ImTextureID size should be greater equal to size of Texture2D*");
+
 class ConsolePanel {
 public:
 	ConsolePanel()
@@ -129,7 +131,6 @@ public:
 					if (match_len > 0) {
 						data->DeleteChars((int)(word_start - data->Buf), (int)(word_end - word_start));
 						data->InsertChars(data->CursorPos, candidates[0].begin(), candidates[0].begin() + match_len);
-
 					}
 				}
 				break;
@@ -362,10 +363,7 @@ int ImGuiDora::_lastIMEPosX;
 int ImGuiDora::_lastIMEPosY;
 
 ImGuiDora::ImGuiDora()
-	: _isChineseSupported(false)
-	, _useChinese(false)
-	, _isLoadingFont(false)
-	, _fontLoaded(false)
+	: _useChinese(false)
 	, _textInputing(false)
 	, _mouseVisible(true)
 	, _lastCursor(0)
@@ -373,8 +371,6 @@ ImGuiDora::ImGuiDora()
 	, _mousePressed{false, false, false}
 	, _mouseWheel{0.0f, 0.0f}
 	, _console(nullptr)
-	, _defaultFonts(New<ImFontAtlas>())
-	, _fonts(New<ImFontAtlas>())
 	, _showPlot(false)
 	, _sampler(BGFX_INVALID_HANDLE) {
 	_touchHandler = std::make_shared<ImGuiTouchHandler>(this);
@@ -435,104 +431,28 @@ void ImGuiDora::setImePositionHint(int x, int y) {
 	SharedKeyboard.updateIMEPosHint({s_cast<float>(x) * scale, s_cast<float>(y) * scale});
 }
 
-void ImGuiDora::loadFontTTFAsync(String ttfFontFile, float fontSize, String glyphRanges, const std::function<void(bool)>& handler) {
-	AssertIf(_isLoadingFont, "font is loading.");
+void ImGuiDora::setDefaultFont(String ttfFontFile, float fontSize) {
 	AssertIf(ImGui::GetIO().Fonts->Locked, "font is locked, can only load font in system scheduler.");
 
 	ImGuiIO& io = ImGui::GetIO();
 
-	const ImWchar* targetGlyphRanges = nullptr;
-	switch (Switch::hash(glyphRanges)) {
-		case "Default"_hash:
-			targetGlyphRanges = io.Fonts->GetGlyphRangesDefault();
-			break;
-		case "Chinese"_hash:
-			targetGlyphRanges = io.Fonts->GetGlyphRangesChineseFull();
-			break;
-		case "Korean"_hash:
-			targetGlyphRanges = io.Fonts->GetGlyphRangesKorean();
-			break;
-		case "Japanese"_hash:
-			targetGlyphRanges = io.Fonts->GetGlyphRangesJapanese();
-			break;
-		case "Cyrillic"_hash:
-			targetGlyphRanges = io.Fonts->GetGlyphRangesCyrillic();
-			break;
-		case "Thai"_hash:
-			targetGlyphRanges = io.Fonts->GetGlyphRangesThai();
-			break;
-		case "Greek"_hash:
-			targetGlyphRanges = io.Fonts->GetGlyphRangesGreek();
-			break;
-		case "Vietnamese"_hash:
-			targetGlyphRanges = io.Fonts->GetGlyphRangesVietnamese();
-			break;
-		default:
-			break;
-	}
+	auto fileData = SharedContent.load(ttfFontFile);
 
-	if (!targetGlyphRanges) {
-		Warn("unsupported glyph ranges: \"{}\".", glyphRanges.toString());
-		handler(false);
-		return;
-	}
-
-	_isLoadingFont = true;
-	_isChineseSupported = false;
-
-	float scale =
-#if BX_PLATFORM_LINUX // || BX_PLATFORM_ANDROID || BX_PLATFORM_IOS
-		1.0f;
-#else
-		SharedApplication.getDevicePixelRatio();
-	fontSize *= scale;
-#endif
-
-	int64_t size = 0;
-	uint8_t* fileData = SharedContent.loadInMainUnsafe(ttfFontFile, size);
-
-	if (!fileData) {
+	if (fileData.second == 0) {
 		Warn("failed to load ttf file for ImGui!");
-		handler(false);
 		return;
 	}
 
-	io.FontGlobalScale = 1.0f / scale;
-	io.Fonts = _defaultFonts.get();
 	io.Fonts->Clear();
+
 	ImFontConfig fontConfig;
-	fontConfig.FontDataOwnedByAtlas = false;
 	fontConfig.PixelSnapH = true;
 	fontConfig.OversampleH = 1;
 	fontConfig.OversampleV = 1;
-	io.Fonts->AddFontFromMemoryTTF(fileData, s_cast<int>(size), fontSize, &fontConfig, io.Fonts->GetGlyphRangesDefault());
-	uint8_t* texData;
-	int width;
-	int height;
-	io.Fonts->GetTexDataAsAlpha8(&texData, &width, &height);
-	updateTexture(texData, width, height);
-	io.Fonts->ClearTexData();
-
-	_fonts->Clear();
-	_fonts->AddFontFromMemoryTTF(fileData, s_cast<int>(size), s_cast<float>(fontSize), &fontConfig, targetGlyphRanges);
-	SharedAsyncThread.run(
-		[this]() {
-			_fonts->Flags |= ImFontAtlasFlags_NoPowerOfTwoHeight;
-			_fonts->TexDesiredWidth = bgfx::getCaps()->limits.maxTextureSize;
-			_fonts->Build();
-			return nullptr;
-		},
-		[this, fileData, size, glyphRanges = glyphRanges.toString(), handler](Own<Values> result) {
-			ImGuiIO& io = ImGui::GetIO();
-			io.Fonts->Clear();
-			io.Fonts = _fonts.get();
-			updateTexture(_fonts->TexPixelsAlpha8, _fonts->TexWidth, _fonts->TexHeight);
-			MakeOwnArray(fileData);
-			_isChineseSupported = glyphRanges == "Chinese"_slice;
-			_isLoadingFont = false;
-			_fontLoaded = true;
-			handler(true);
-		});
+	auto imgui_data = IM_ALLOC(s_cast<int>(fileData.second));
+	std::memcpy(imgui_data, fileData.first.get(), fileData.second);
+	auto font = io.Fonts->AddFontFromMemoryTTF(imgui_data, s_cast<int>(fileData.second), fontSize, &fontConfig);
+	io.FontDefault = font;
 }
 
 static void HelpMarker(Slice desc) {
@@ -546,11 +466,11 @@ static void HelpMarker(Slice desc) {
 
 void ImGuiDora::showStats(bool* pOpen, const std::function<void()>& extra) {
 	/* print debug text */
-	bool useChinese = _useChinese && _isChineseSupported;
+	bool useChinese = _useChinese;
 	auto themeColor = SharedApplication.getThemeColor().toVec4();
 	bool itemHovered = false;
 	auto info = SharedDirector.getProfilerInfo();
-	if (ImGui::Begin(useChinese ? r_cast<const char*>(u8"Dora 状态###DoraStats") : "Dora Stats###DoraStats", pOpen,
+	if (ImGui::Begin(useChinese ? r_cast<const char*>(u8"Dora 状态##DoraStats") : "Dora Stats##DoraStats", pOpen,
 			ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize)) {
 		if (ImGui::CollapsingHeader(useChinese ? r_cast<const char*>(u8"基础") : "Basic")) {
 			ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"渲染器：") : "Renderer:");
@@ -864,7 +784,7 @@ void ImGuiDora::showStats(bool* pOpen, const std::function<void()>& extra) {
 				"English",
 				r_cast<const char*>(u8"简体中文")};
 			int index = useChinese ? 1 : 0;
-			if (ImGui::Combo(useChinese ? r_cast<const char*>(u8"语言") : "Language", &index, languages, _isChineseSupported ? 2 : 1)) {
+			if (ImGui::Combo(useChinese ? r_cast<const char*>(u8"语言") : "Language", &index, languages, 2)) {
 				SharedApplication.setLocale(index == 0 ? "en"_slice : "zh-Hans"_slice);
 			}
 			if (extra) extra();
@@ -936,20 +856,16 @@ void ImGuiDora::showConsole(bool* pOpen, bool initOnly) {
 		_console = New<ConsolePanel>();
 	}
 	if (initOnly) return;
-	bool useChinese = _useChinese && _isChineseSupported;
-	_console->Draw(useChinese ? r_cast<const char*>(u8"Dora 控制台###DoraConsole") : "Dora Console###DoraConsole", useChinese, pOpen);
+	bool useChinese = _useChinese;
+	_console->Draw(useChinese ? r_cast<const char*>(u8"Dora 控制台##DoraConsole") : "Dora Console##DoraConsole", useChinese, pOpen);
 }
 
 static void PlatformSetImeDataFn(ImGuiContext*, ImGuiViewport*, ImGuiPlatformImeData* data) {
 	ImGuiDora::setImePositionHint(s_cast<int>(data->InputPos.x), s_cast<int>(data->InputPos.y + data->InputLineHeight));
 }
 
-bool ImGuiDora::isFontLoaded() const noexcept {
-	return _fontLoaded;
-}
-
 bool ImGuiDora::init() {
-	ImGui::CreateContext(_defaultFonts.get());
+	ImGui::CreateContext();
 	ImPlot::CreateContext();
 	ImGuiStyle& style = ImGui::GetStyle();
 	float rounding = 6.0f;
@@ -1019,21 +935,17 @@ bool ImGuiDora::init() {
 	io.ConfigErrorRecoveryEnableAssert = false;
 	io.ConfigErrorRecoveryEnableTooltip = true;
 
-	_sampler = bgfx::createUniform("s_texColor", bgfx::UniformType::Sampler);
+	io.BackendFlags |= ImGuiBackendFlags_RendererHasTextures;
+	float scale = SharedApplication.getDevicePixelRatio();
+	io.DisplayFramebufferScale = {scale, scale};
 
-	_defaultPass = Pass::create(
-		"builtin:vs_ocornut_imgui"_slice,
-		"builtin:fs_ocornut_imgui"_slice);
+	_sampler = bgfx::createUniform("s_texColor", bgfx::UniformType::Sampler);
 
 	_imagePass = Pass::create(
 		"builtin:vs_ocornut_imgui"_slice,
 		"builtin:fs_ocornut_imgui_image"_slice);
+	_imagePass->set("u_scale"_slice, scale);
 
-	uint8_t* texData = nullptr;
-	int width;
-	int height;
-	io.Fonts->GetTexDataAsAlpha8(&texData, &width, &height);
-	updateTexture(texData, width, height);
 	io.Fonts->ClearTexData();
 
 	SharedDirector.getSystemScheduler()->schedule([this](double deltaTime) {
@@ -1091,6 +1003,8 @@ void ImGuiDora::begin() {
 	Size visualSize = SharedApplication.getVisualSize();
 	io.DisplaySize.x = visualSize.width;
 	io.DisplaySize.y = visualSize.height;
+	float scale = SharedApplication.getDevicePixelRatio();
+	io.DisplayFramebufferScale = {scale, scale};
 	io.DeltaTime = s_cast<float>(SharedApplication.getDeltaTime());
 
 	if (_textInputing != io.WantTextInput) {
@@ -1149,8 +1063,56 @@ void ImGuiDora::render() {
 		bgfx::ViewId viewId = SharedView.getId();
 
 		float scale = SharedApplication.getDevicePixelRatio();
-		_defaultPass->set("u_scale"_slice, scale);
 		_imagePass->set("u_scale"_slice, scale);
+
+		if (drawData->Textures != nullptr) {
+			for (ImTextureData* tex : *drawData->Textures) {
+				switch (tex->Status) {
+					case ImTextureStatus_WantCreate: {
+						IM_ASSERT(tex->TexID == 0 && tex->BackendUserData == nullptr);
+						auto format = bgfx::TextureFormat::Unknown;
+						switch (tex->Format) {
+							case ImTextureFormat_Alpha8:
+								format = bgfx::TextureFormat::A8;
+								break;
+							case ImTextureFormat_RGBA32:
+								format = bgfx::TextureFormat::RGBA8;
+								break;
+						}
+						auto texture = createTexture(s_cast<uint8_t*>(tex->GetPixels()), tex->Width, tex->Height, format, tex->BytesPerPixel);
+						tex->SetTexID(r_cast<ImTextureID>(texture));
+						tex->SetStatus(ImTextureStatus_OK);
+						break;
+					}
+					case ImTextureStatus_WantUpdates: {
+						auto texture = r_cast<Texture2D*>(tex->GetTexID());
+						for (ImTextureRect& r : tex->Updates) {
+							auto memory = bgfx::alloc(r.w * r.h * tex->BytesPerPixel);
+							const int src_pitch = r.w * tex->BytesPerPixel;
+							uint8_t* out_p = c_cast<uint8_t*>(memory->data);
+							for (int y = 0; y < r.h; y++, out_p += src_pitch) {
+								bx::memCopy(out_p, tex->GetPixelsAt(r.x, r.y + y), src_pitch);
+							}
+							bgfx::updateTexture2D(texture->getHandle(), 0, 0, r.x, r.y, r.w, r.h, memory);
+						}
+						tex->SetStatus(ImTextureStatus_OK);
+						break;
+					}
+					case ImTextureStatus_WantDestroy: {
+						if (tex->UnusedFrames > 0) {
+							auto texture = r_cast<Texture2D*>(tex->GetTexID());
+							_textures.remove(MakeRef(texture));
+							tex->SetTexID(ImTextureID_Invalid);
+							tex->SetStatus(ImTextureStatus_Destroyed);
+						}
+						break;
+					}
+					case ImTextureStatus_Destroyed:
+					case ImTextureStatus_OK:
+						break;
+				}
+			}
+		}
 
 		// Render command lists
 		for (int32_t ii = 0, num = drawData->CmdListsCount; ii < num; ++ii) {
@@ -1179,20 +1141,11 @@ void ImGuiDora::render() {
 				if (cmd->UserCallback) {
 					cmd->UserCallback(drawList, cmd);
 				} else if (0 != cmd->ElemCount) {
-					bgfx::TextureHandle textureHandle;
+					bgfx::TextureHandle textureHandle = BGFX_INVALID_HANDLE;
 					bgfx::ProgramHandle program;
-					if (0 != cmd->TextureId) {
-						union {
-							ImTextureID ptr;
-							struct {
-								bgfx::TextureHandle handle;
-							} s;
-						} texture = {cmd->TextureId};
-						textureHandle = texture.s.handle;
+					if (ImTextureID_Invalid != cmd->GetTexID()) {
+						textureHandle = r_cast<Texture2D*>(cmd->GetTexID())->getHandle();
 						program = _imagePass->apply();
-					} else {
-						textureHandle = _fontTexture->getHandle();
-						program = _defaultPass->apply();
 					}
 
 					uint64_t state = 0
@@ -1207,7 +1160,9 @@ void ImGuiDora::render() {
 						uint16_t(bx::min(cmd->ClipRect.z * scale, 65535.0f) - xx),
 						uint16_t(bx::min(cmd->ClipRect.w * scale, 65535.0f) - yy));
 					bgfx::setState(state);
-					bgfx::setTexture(0, _sampler, textureHandle);
+					if (bgfx::isValid(textureHandle)) {
+						bgfx::setTexture(0, _sampler, textureHandle);
+					}
 					bgfx::setVertexBuffer(0, &tvb, 0, numVertices);
 					bgfx::setIndexBuffer(&tib, cmd->IdxOffset, cmd->ElemCount);
 					bgfx::submit(viewId, program);
@@ -1228,20 +1183,24 @@ void ImGuiDora::sendKey(int key, int count) {
 	}
 }
 
-void ImGuiDora::updateTexture(uint8_t* data, int width, int height) {
+Texture2D* ImGuiDora::createTexture(uint8_t* data, int width, int height, bgfx::TextureFormat::Enum format, uint32_t pixelSize) {
 	const uint64_t textureFlags = BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT;
 
 	bgfx::TextureHandle textureHandle = bgfx::createTexture2D(
 		s_cast<uint16_t>(width), s_cast<uint16_t>(height),
-		false, 1, bgfx::TextureFormat::A8, textureFlags,
-		bgfx::copy(data, width * height * 1));
+		false, 1, format, textureFlags);
 
 	bgfx::TextureInfo info;
 	bgfx::calcTextureSize(info,
 		s_cast<uint16_t>(width), s_cast<uint16_t>(height),
-		0, false, false, 1, bgfx::TextureFormat::A8);
+		0, false, false, 1, format);
 
-	_fontTexture = Texture2D::create(textureHandle, info, textureFlags);
+	bgfx::updateTexture2D(textureHandle, 0, 0, 0, 0,
+		s_cast<uint16_t>(width), s_cast<uint16_t>(height),
+		bgfx::copy(data, width * height * pixelSize));
+
+	auto& tex = _textures.emplace_back(Texture2D::create(textureHandle, info, textureFlags));
+	return tex.get();
 }
 
 void ImGuiDora::handleEvent(const SDL_Event& event) {

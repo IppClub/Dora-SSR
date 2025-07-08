@@ -37,7 +37,7 @@ end -- 20
 local zh = false -- 23
 do -- 23
 	local res = string.match(App.locale, "^zh") -- 25
-	zh = res ~= nil and ImGui.IsFontLoaded() -- 26
+	zh = res ~= nil -- 26
 end -- 26
 local windowsNoScrollFlags = { -- 64
 	"NoMove", -- 65
@@ -330,7 +330,7 @@ function ResourceDownloader.prototype.update(self) -- 328
 					ImGui.Dummy(Vec2(width - (zh and 250 or 255), 0)) -- 357
 				end -- 357
 				ImGui.SameLine() -- 359
-				if ImGui.CollapsingHeader("###option") then -- 359
+				if ImGui.CollapsingHeader("##option") then -- 359
 					self.headerHeight = 130 -- 361
 					ImGui.SetNextItemWidth(zh and -200 or -230) -- 362
 					if ImGui.InputText(zh and "服务器" or "Server", url) then -- 362
@@ -446,7 +446,7 @@ function ResourceDownloader.prototype.update(self) -- 328
 							ImGui.TextWrapped(repo.desc[zh and "zh" or "en"]) -- 434
 							ImGui.TextColored(themeColor, zh and "项目地址：" or "Repo URL:") -- 436
 							ImGui.SameLine() -- 437
-							if ImGui.TextLink((zh and "这里" or "here") .. "###" .. pkg.url) then -- 437
+							if ImGui.TextLink((zh and "这里" or "here") .. "##" .. pkg.url) then -- 437
 								App:openURL(pkg.url) -- 439
 							end -- 439
 							if ImGui.IsItemHovered() then -- 439
@@ -479,8 +479,8 @@ function ResourceDownloader.prototype.update(self) -- 328
 							end -- 462
 							if progress == nil then -- 462
 								local isDownloaded = self:isDownloaded(pkg.name) -- 469
-								local buttonText = (isDownloaded and (zh and "重新下载" or "Re-Download") or (zh and "下载" or "Download")) .. "###download-" .. pkg.name -- 470
-								local deleteText = (zh and "删除" or "Delete") .. "###delete-" .. pkg.name -- 473
+								local buttonText = (isDownloaded and (zh and "重新下载" or "Re-Download") or (zh and "下载" or "Download")) .. "##download-" .. pkg.name -- 470
+								local deleteText = (zh and "删除" or "Delete") .. "##delete-" .. pkg.name -- 473
 								if self.isDownloading then -- 473
 									ImGui.BeginDisabled(function() -- 475
 										ImGui.Button(buttonText) -- 476
@@ -508,7 +508,7 @@ function ResourceDownloader.prototype.update(self) -- 328
 							if not self.isDownloading and pkg.versionNames and pkg.currentVersion then -- 499
 								ImGui.SameLine() -- 501
 								ImGui.SetNextItemWidth(-20) -- 502
-								local changed, currentVersion = ImGui.Combo("###" .. pkg.name, pkg.currentVersion, pkg.versionNames) -- 503
+								local changed, currentVersion = ImGui.Combo("##" .. pkg.name, pkg.currentVersion, pkg.versionNames) -- 503
 								if changed then -- 503
 									pkg.currentVersion = currentVersion -- 505
 								end -- 505

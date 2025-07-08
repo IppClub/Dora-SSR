@@ -41,14 +41,7 @@ NS_BEGIN(ImGui::Binding)
 
 using namespace Dora;
 
-void LoadFontTTFAsync(
-	String ttfFontFile,
-	float fontSize,
-	String glyphRanges,
-	const std::function<void(bool)>& handler);
-
-bool IsFontLoaded();
-
+void SetDefaultFont(String ttfFontFile, float fontSize);
 void ShowStats(bool* pOpen, const std::function<void()>& extra = nullptr);
 void ShowStats(const std::function<void()>& extra = nullptr);
 void ShowConsole(bool* pOpen, bool initOnly = false);

@@ -23,7 +23,7 @@ if (typeof config.url === "string") {
 let zh = false;
 {
 	const [res] = string.match(App.locale, "^zh");
-	zh = res !== null && ImGui.IsFontLoaded();
+	zh = res !== null;
 }
 
 interface PackageListVersion {
@@ -357,7 +357,7 @@ class ResourceDownloader {
 				ImGui.Dummy(Vec2(width - (zh ? 250 : 255), 0));
 			}
 			ImGui.SameLine();
-			if (ImGui.CollapsingHeader("###option")) {
+			if (ImGui.CollapsingHeader("##option")) {
 				this.headerHeight = 130;
 				ImGui.SetNextItemWidth(zh ? -200 : -230);
 				if (ImGui.InputText(zh ? "服务器" : "Server", url)) {
@@ -435,7 +435,7 @@ class ResourceDownloader {
 
 				ImGui.TextColored(themeColor, zh ? `项目地址：` : `Repo URL:`);
 				ImGui.SameLine();
-				if (ImGui.TextLink((zh ? '这里' : 'here') + `###${pkg.url}`)) {
+				if (ImGui.TextLink((zh ? '这里' : 'here') + `##${pkg.url}`)) {
 					App.openURL(pkg.url);
 				}
 				if (ImGui.IsItemHovered()) {
@@ -469,8 +469,8 @@ class ResourceDownloader {
 					const isDownloaded = this.isDownloaded(pkg.name);
 					const buttonText = (isDownloaded ?
 						(zh ? "重新下载" : "Re-Download") :
-						(zh ? "下载" : "Download")) + `###download-${pkg.name}`;
-					const deleteText = (zh ? "删除" : "Delete") + `###delete-${pkg.name}`;
+						(zh ? "下载" : "Download")) + `##download-${pkg.name}`;
+					const deleteText = (zh ? "删除" : "Delete") + `##delete-${pkg.name}`;
 					if (this.isDownloading) {
 						ImGui.BeginDisabled(() => {
 							ImGui.Button(buttonText);
@@ -500,7 +500,7 @@ class ResourceDownloader {
 				if (!this.isDownloading && pkg.versionNames && pkg.currentVersion) {
 					ImGui.SameLine();
 					ImGui.SetNextItemWidth(-20);
-					const [changed, currentVersion] = ImGui.Combo("###" + pkg.name, pkg.currentVersion, pkg.versionNames);
+					const [changed, currentVersion] = ImGui.Combo("##" + pkg.name, pkg.currentVersion, pkg.versionNames);
 					if (changed) {
 						pkg.currentVersion = currentVersion;
 					}

@@ -102,7 +102,10 @@ if config.fixedFPS?
 else
 	config.fixedFPS = Director.scheduler.fixedFPS
 
-showEntry = true
+showEntry = false
+thread ->
+	sleep!
+	showEntry = true
 
 isDesktop = false
 if App.platform in ["Linux", "Windows", "macOS"]
@@ -218,10 +221,7 @@ else
 from "Utils" import Set, Struct, LintYueGlobals, GSplit
 options: {extension: yueext} = yue
 
-isChineseSupported = IsFontLoaded!
-unless isChineseSupported
-	<- LoadFontTTF "Font/sarasa-mono-sc-regular.ttf", 20, "Chinese"
-	isChineseSupported = true
+SetDefaultFont "Font/sarasa-mono-sc-regular.ttf", 20
 
 building = false
 
@@ -504,7 +504,6 @@ export allClear = ->
 		package.loaded[module] = nil
 	moduleCache = []
 	Director\cleanup!
-	Cache\unload!
 	Entity\clear!
 	Platformer.Data\clear!
 	Platformer.UnitAction\clear!
@@ -519,6 +518,9 @@ export allClear = ->
 		node\cleanup! if node := tolua.cast item, "Node"
 	collectgarbage!
 	collectgarbage!
+	thread ->
+		sleep!
+		Cache\removeUnused!
 	setupEventHandlers!
 	Content.searchPaths = searchPaths
 	App.idled = true
@@ -653,7 +655,7 @@ ossLicenses = nil
 ossLicenseOpen = false
 
 extraOperations = ->
-	zh = useChinese and isChineseSupported
+	zh = useChinese
 	if isDesktop
 		:themeColor = App
 		:alwaysOnTop, :writablePath = config
@@ -694,7 +696,7 @@ extraOperations = ->
 					name, license = firstLine\match "(.+): (.+)"
 					TextColored themeColor, name
 					SameLine!
-					TreeNode "#{license}####{name}", -> TextWrapped text
+					TreeNode "#{license}###{name}", -> TextWrapped text
 			)
 	return unless App.debugging
 	<- TreeNode zh and "开发操作" or "Development"
@@ -742,7 +744,7 @@ windowFlags = $WindowFlag(
 )
 initFooter = true
 footerWindow = threadLoop ->
-	zh = useChinese and isChineseSupported
+	zh = useChinese
 	if HttpServer.wsConnectionCount > 0
 		return
 	if Keyboard\isKeyDown "Escape"
@@ -911,7 +913,7 @@ entryWindow = threadLoop ->
 			urlClicked = nil
 	return unless showEntry
 	return unless isInEntry
-	zh = useChinese and isChineseSupported
+	zh = useChinese
 	if HttpServer.wsConnectionCount > 0
 		:themeColor = App
 		:width, :height = App.visualSize
@@ -1016,7 +1018,7 @@ entryWindow = threadLoop ->
 							Dummy Vec2.zero
 							SameLine!
 							Image bannerFile, Vec2 texWidth + 10, texHeight
-						if Button "#{zh and "开始运行" or "Game Start"}####{fileName}", Vec2 -1, 40
+						if Button "#{zh and "开始运行" or "Game Start"}###{fileName}", Vec2 -1, 40
 							enterDemoEntry game
 					else
 						if bannerFile
@@ -1033,7 +1035,7 @@ entryWindow = threadLoop ->
 							Dummy Vec2 padding, 0
 							SameLine!
 							Image bannerFile, Vec2 texWidth, texHeight
-						if Button "#{zh and "开始运行" or "Game Start"}####{fileName}", Vec2 -1, 40
+						if Button "#{zh and "开始运行" or "Game Start"}###{fileName}", Vec2 -1, 40
 							enterDemoEntry game
 					if #tests == 0 and #examples == 0
 						thinSep!
@@ -1051,7 +1053,7 @@ entryWindow = threadLoop ->
 						opened = if filterText? then showExample else false
 						game.exampleOpen ??= opened
 						SetNextItemOpen game.exampleOpen
-						TreeNode "#{gameName}###example-#{fileName}", ->
+						TreeNode "#{gameName}##example-#{fileName}", ->
 							<- PushStyleVar "ItemSpacing", Vec2 20, 10
 							Columns maxColumns, false
 							for example in *examples
@@ -1074,7 +1076,7 @@ entryWindow = threadLoop ->
 						opened = if filterText? then showTest else false
 						game.testOpen ??= opened
 						SetNextItemOpen game.testOpen
-						TreeNode "#{gameName}###test-#{fileName}", ->
+						TreeNode "#{gameName}##test-#{fileName}", ->
 							<- PushStyleVar "ItemSpacing", Vec2 20, 10
 							Columns maxColumns, false
 							for test in *tests

@@ -8,19 +8,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-void imgui_load_font_ttf_async(int64_t ttf_font_file, float font_size, int64_t glyph_ranges, int32_t func0, int64_t stack0) {
-	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
-		SharedWasmRuntime.deref(func0);
-	});
-	auto args0 = r_cast<CallStack*>(stack0);
-	ImGui::Binding::LoadFontTTFAsync(*Str_From(ttf_font_file), font_size, *Str_From(glyph_ranges), [func0, args0, deref0](bool success) {
-		args0->clear();
-		args0->push(success);
-		SharedWasmRuntime.invoke(func0);
-	});
-}
-int32_t imgui_is_font_loaded() {
-	return ImGui::Binding::IsFontLoaded() ? 1 : 0;
+void imgui_set_default_font(int64_t ttf_font_file, float font_size) {
+	ImGui::Binding::SetDefaultFont(*Str_From(ttf_font_file), font_size);
 }
 void imgui_show_stats() {
 	ImGui::Binding::ShowStats();
@@ -267,9 +256,6 @@ float imgui_get_window_height() {
 }
 int32_t imgui_is_window_collapsed() {
 	return ImGui::IsWindowCollapsed() ? 1 : 0;
-}
-void imgui_set_window_font_scale(float scale) {
-	ImGui::SetWindowFontScale(scale);
 }
 void imgui_set_next_window_size_constraints(int64_t size_min, int64_t size_max) {
 	ImGui::SetNextWindowSizeConstraints(Vec2_From(size_min), Vec2_From(size_max));
@@ -670,8 +656,7 @@ void imgui_set_tab_item_closed(int64_t tab_or_docked_window_label) {
 } // extern "C"
 
 static void linkImGui(wasm3::module3& mod) {
-	mod.link_optional("*", "imgui_load_font_ttf_async", imgui_load_font_ttf_async);
-	mod.link_optional("*", "imgui_is_font_loaded", imgui_is_font_loaded);
+	mod.link_optional("*", "imgui_set_default_font", imgui_set_default_font);
 	mod.link_optional("*", "imgui_show_stats", imgui_show_stats);
 	mod.link_optional("*", "imgui_show_console", imgui_show_console);
 	mod.link_optional("*", "imgui__begin_opts", imgui__begin_opts);
@@ -754,7 +739,6 @@ static void linkImGui(wasm3::module3& mod) {
 	mod.link_optional("*", "imgui_get_window_width", imgui_get_window_width);
 	mod.link_optional("*", "imgui_get_window_height", imgui_get_window_height);
 	mod.link_optional("*", "imgui_is_window_collapsed", imgui_is_window_collapsed);
-	mod.link_optional("*", "imgui_set_window_font_scale", imgui_set_window_font_scale);
 	mod.link_optional("*", "imgui_set_next_window_size_constraints", imgui_set_next_window_size_constraints);
 	mod.link_optional("*", "imgui_set_next_window_content_size", imgui_set_next_window_content_size);
 	mod.link_optional("*", "imgui_set_next_window_focus", imgui_set_next_window_focus);

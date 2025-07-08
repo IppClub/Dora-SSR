@@ -18,7 +18,7 @@ import * as Ruler from 'UI/Control/Basic/Ruler';
 let zh = false;
 {
 	const [res] = string.match(App.locale, "^zh");
-	zh = res !== null && ImGui.IsFontLoaded();
+	zh = res !== null;
 }
 
 function getAllClipFolders() {

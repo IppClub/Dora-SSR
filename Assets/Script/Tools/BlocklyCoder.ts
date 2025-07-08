@@ -8,7 +8,7 @@ import * as Config from 'Config';
 let zh = false;
 {
 	const [res] = string.match(App.locale, "^zh");
-	zh = res !== null && ImGui.IsFontLoaded();
+	zh = res !== null;
 }
 
 interface LLM {

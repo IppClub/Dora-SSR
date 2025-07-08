@@ -7,8 +7,7 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 extern "C" {
-	fn imgui_load_font_ttf_async(ttf_font_file: i64, font_size: f32, glyph_ranges: i64, func0: i32, stack0: i64);
-	fn imgui_is_font_loaded() -> i32;
+	fn imgui_set_default_font(ttf_font_file: i64, font_size: f32);
 	fn imgui_show_stats();
 	fn imgui_show_console();
 	fn imgui__begin_opts(name: i64, windows_flags: i32) -> i32;
@@ -91,7 +90,6 @@ extern "C" {
 	fn imgui_get_window_width() -> f32;
 	fn imgui_get_window_height() -> f32;
 	fn imgui_is_window_collapsed() -> i32;
-	fn imgui_set_window_font_scale(scale: f32);
 	fn imgui_set_next_window_size_constraints(size_min: i64, size_max: i64);
 	fn imgui_set_next_window_content_size(size: i64);
 	fn imgui_set_next_window_focus();
@@ -228,16 +226,8 @@ extern "C" {
 use crate::dora::IObject;
 pub struct ImGui { }
 impl ImGui {
-	pub fn load_font_ttf_async(ttf_font_file: &str, font_size: f32, glyph_ranges: &str, mut handler: Box<dyn FnMut(bool)>) {
-		let mut stack0 = crate::dora::CallStack::new();
-		let stack_raw0 = stack0.raw();
-		let func_id0 = crate::dora::push_function(Box::new(move || {
-			handler(stack0.pop_bool().unwrap())
-		}));
-		unsafe { imgui_load_font_ttf_async(crate::dora::from_string(ttf_font_file), font_size, crate::dora::from_string(glyph_ranges), func_id0, stack_raw0); }
-	}
-	pub fn is_font_loaded() -> bool {
-		unsafe { return imgui_is_font_loaded() != 0; }
+	pub fn set_default_font(ttf_font_file: &str, font_size: f32) {
+		unsafe { imgui_set_default_font(crate::dora::from_string(ttf_font_file), font_size); }
 	}
 	pub fn show_stats() {
 		unsafe { imgui_show_stats(); }
@@ -484,9 +474,6 @@ impl ImGui {
 	}
 	pub fn is_window_collapsed() -> bool {
 		unsafe { return imgui_is_window_collapsed() != 0; }
-	}
-	pub fn set_window_font_scale(scale: f32) {
-		unsafe { imgui_set_window_font_scale(scale); }
 	}
 	pub fn set_next_window_size_constraints(size_min: &crate::dora::Vec2, size_max: &crate::dora::Vec2) {
 		unsafe { imgui_set_next_window_size_constraints(size_min.into_i64(), size_max.into_i64()); }

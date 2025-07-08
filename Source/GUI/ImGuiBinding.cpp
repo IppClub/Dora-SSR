@@ -502,12 +502,8 @@ static uint32_t TableColumnFlags(Slice* flags, int count) {
 	return result;
 }
 
-void LoadFontTTFAsync(String ttfFontFile, float fontSize, String glyphRanges, const std::function<void(bool)>& handler) {
-	SharedImGui.loadFontTTFAsync(ttfFontFile, fontSize, glyphRanges, handler);
-}
-
-bool IsFontLoaded() {
-	return SharedImGui.isFontLoaded();
+void SetDefaultFont(String ttfFontFile, float fontSize) {
+	SharedImGui.setDefaultFont(ttfFontFile, fontSize);
 }
 
 void ShowStats(bool* pOpen, const std::function<void()>& extra) {
@@ -853,17 +849,10 @@ void Image(String clipStr, const Vec2& size, Color bg_col, Color tint_col) {
 	Rect rect;
 	std::tie(tex, rect) = SharedClipCache.loadTexture(clipStr);
 	AssertUnless(tex, "failed to get resource for ImGui.Image");
-	union {
-		ImTextureID ptr;
-		struct {
-			bgfx::TextureHandle handle;
-		} s;
-	} texture;
-	texture.s.handle = tex->getHandle();
 	Vec2 texSize{s_cast<float>(tex->getWidth()), s_cast<float>(tex->getHeight())};
 	Vec2 uv0 = rect.origin / texSize;
 	Vec2 uv1 = (rect.origin + Vec2{1, 1} * rect.size) / texSize;
-	ImGui::ImageWithBg(texture.ptr, size, uv0, uv1, bg_col.toVec4(), tint_col.toVec4());
+	ImGui::ImageWithBg(r_cast<ImTextureID>(tex), size, uv0, uv1, bg_col.toVec4(), tint_col.toVec4());
 }
 
 bool ImageButton(const char* str_id, String clipStr, const Vec2& size, Color bg_col, Color tint_col) {
@@ -871,17 +860,10 @@ bool ImageButton(const char* str_id, String clipStr, const Vec2& size, Color bg_
 	Rect rect;
 	std::tie(tex, rect) = SharedClipCache.loadTexture(clipStr);
 	AssertUnless(tex, "failed to get resource for ImGui.ImageButton");
-	union {
-		ImTextureID ptr;
-		struct {
-			bgfx::TextureHandle handle;
-		} s;
-	} texture;
-	texture.s.handle = tex->getHandle();
 	Vec2 texSize{s_cast<float>(tex->getWidth()), s_cast<float>(tex->getHeight())};
 	Vec2 uv0 = rect.origin / texSize;
 	Vec2 uv1 = (rect.origin + Vec2{1, 1} * rect.size) / texSize;
-	return ImGui::ImageButton(str_id, texture.ptr, size, uv0, uv1, bg_col.toVec4(), tint_col.toVec4());
+	return ImGui::ImageButton(str_id, r_cast<ImTextureID>(tex), size, uv0, uv1, bg_col.toVec4(), tint_col.toVec4());
 }
 
 bool ColorButton(const char* desc_id, Color col, Slice* flags, int flagCount, const Vec2& size) {
