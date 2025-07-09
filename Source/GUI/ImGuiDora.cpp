@@ -443,15 +443,16 @@ void ImGuiDora::setDefaultFont(String ttfFontFile, float fontSize) {
 		return;
 	}
 
+	_fontData = std::move(fileData.first);
+
 	io.Fonts->Clear();
 
 	ImFontConfig fontConfig;
+	fontConfig.FontDataOwnedByAtlas = false;
 	fontConfig.PixelSnapH = true;
 	fontConfig.OversampleH = 1;
 	fontConfig.OversampleV = 1;
-	auto imgui_data = IM_ALLOC(s_cast<int>(fileData.second));
-	std::memcpy(imgui_data, fileData.first.get(), fileData.second);
-	auto font = io.Fonts->AddFontFromMemoryTTF(imgui_data, s_cast<int>(fileData.second), fontSize, &fontConfig);
+	auto font = io.Fonts->AddFontFromMemoryTTF(_fontData.get(), s_cast<int>(fileData.second), fontSize, &fontConfig);
 	io.FontDefault = font;
 }
 
