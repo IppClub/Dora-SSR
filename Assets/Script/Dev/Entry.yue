@@ -105,6 +105,7 @@ else
 showEntry = false
 thread ->
 	sleep!
+	sleep!
 	showEntry = true
 
 isDesktop = false

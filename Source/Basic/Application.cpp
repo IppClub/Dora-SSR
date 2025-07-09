@@ -664,6 +664,9 @@ int Application::mainLogic(bx::Thread* thread, void* userData) {
 		return mainLogic(app);
 	} catch (const std::exception& e) {
 		LogError(e.what());
+		if (Singleton<DB>::isInitialized()) {
+			SharedDB.stop();
+		}
 		std::abort();
 	}
 }
