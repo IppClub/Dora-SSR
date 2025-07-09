@@ -69,6 +69,7 @@ private:
 	Vec2 _mouseWheel;
 	int _lastCursor;
 	std::list<Ref<Texture2D>> _textures;
+	OwnArray<uint8_t> _fontData;
 	bgfx::UniformHandle _sampler;
 	Ref<Pass> _imagePass;
 	Ref<Pass> _defaultPass;
