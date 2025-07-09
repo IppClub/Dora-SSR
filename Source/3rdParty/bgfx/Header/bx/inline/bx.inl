@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2024 Branimir Karadzic. All rights reserved.
+ * Copyright 2010-2025 Branimir Karadzic. All rights reserved.
  * License: https://github.com/bkaradzic/bx/blob/master/LICENSE
  */
 
@@ -96,13 +96,13 @@ namespace bx
 	template<typename Ty>
 	inline constexpr Ty max()
 	{
-		return bx::LimitsT<Ty>::max;
+		return LimitsT<Ty>::max;
 	}
 
 	template<typename Ty>
 	inline constexpr Ty min()
 	{
-		return bx::LimitsT<Ty>::min;
+		return LimitsT<Ty>::min;
 	}
 
 	template<typename Ty>
@@ -145,6 +145,11 @@ namespace bx
 	inline constexpr bool isPowerOf2(Ty _a)
 	{
 		return _a && !(_a & (_a - 1) );
+	}
+
+	constexpr bool isConstantEvaluated()
+	{
+		return __builtin_is_constant_evaluated();
 	}
 
 	template <typename Ty, typename FromT>

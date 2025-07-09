@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2024 Branimir Karadzic. All rights reserved.
+ * Copyright 2010-2025 Branimir Karadzic. All rights reserved.
  * License: https://github.com/bkaradzic/bx/blob/master/LICENSE
  */
 
@@ -21,8 +21,8 @@
 	BX_ERROR_USE_TEMP_WHEN_NULL(_ptr);                             \
 	bx::ErrorScope bxErrorScope(const_cast<bx::Error*>(&tmpError), "" __VA_ARGS__)
 
-#define BX_ERROR_RESULT(_err, _code)                          \
-	BX_STATIC_ASSERT(_code != 0, "ErrorCode 0 is reserved!"); \
+#define BX_ERROR_RESULT(_err, _code)                       \
+	static_assert(_code != 0, "ErrorCode 0 is reserved!"); \
 	static constexpr bx::ErrorResult _err = { _code }
 
 namespace bx

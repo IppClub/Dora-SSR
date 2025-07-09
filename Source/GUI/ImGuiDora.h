@@ -71,6 +71,7 @@ private:
 	std::list<Ref<Texture2D>> _textures;
 	bgfx::UniformHandle _sampler;
 	Ref<Pass> _imagePass;
+	Ref<Pass> _defaultPass;
 	Ref<Listener> _appChangeListener;
 	bgfx::VertexLayout _vertexLayout;
 	std::list<std::any> _inputs;

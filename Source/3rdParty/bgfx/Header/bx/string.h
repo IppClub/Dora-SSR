@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2024 Branimir Karadzic. All rights reserved.
+ * Copyright 2010-2025 Branimir Karadzic. All rights reserved.
  * License: https://github.com/bkaradzic/bx/blob/master/LICENSE
  */
 
@@ -138,7 +138,7 @@ namespace bx
 	};
 
 	/// ASCII string
-	template<bx::AllocatorI** AllocatorT>
+	template<AllocatorI** AllocatorT>
 	class StringT : public StringView
 	{
 	public:

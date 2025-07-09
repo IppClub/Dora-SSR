@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2024 Branimir Karadzic. All rights reserved.
+ * Copyright 2010-2025 Branimir Karadzic. All rights reserved.
  * License: https://github.com/bkaradzic/bx/blob/master/LICENSE
  */
 
@@ -458,15 +458,21 @@ static_assert(!BX_COMPILER_CLANG || BX_COMPILER_CLANG >= 110000, "\n\n"
 	"\t\n");
 
 // https://gcc.gnu.org/releases.html
-static_assert(!BX_COMPILER_GCC || BX_COMPILER_GCC >= 80400, "\n\n"
+static_assert(!BX_COMPILER_GCC || BX_COMPILER_GCC >= 110000, "\n\n"
 	"\t** IMPORTANT! **\n\n"
-	"\tMinimum supported GCC version is 8.4 (March 4, 2020).\n"
+	"\tMinimum supported GCC version is 11.0 (April 27, 2021).\n"
 	"\t\n");
 
-// https://learn.microsoft.com/en-us/visualstudio/releases/2019/history
-static_assert(!BX_COMPILER_MSVC || BX_COMPILER_MSVC >= 1927, "\n\n"
+// https://www.sourceware.org/glibc/wiki/Glibc%20Timeline
+static_assert(!BX_CRT_GLIBC || BX_CRT_GLIBC >= 23100, "\n\n"
 	"\t** IMPORTANT! **\n\n"
-	"\tMinimum supported MSVC 19.27 / Visual Studio 2019 version 16.7 (August 5, 2020).\n"
+	"\tMinimum supported GLIBC version is 2.31.0 (February 1, 2020).\n"
+	"\t\n");
+
+// https://learn.microsoft.com/en-us/cpp/overview/compiler-versions
+static_assert(!BX_COMPILER_MSVC || BX_COMPILER_MSVC >= 1935, "\n\n"
+	"\t** IMPORTANT! **\n\n"
+	"\tMinimum supported MSVC 19.35 / Visual Studio 2022 version 17.5 (February 21, 2023).\n"
 	"\t\n");
 
 static_assert(!BX_CPU_ENDIAN_BIG, "\n\n"

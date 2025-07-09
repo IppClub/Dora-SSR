@@ -1251,8 +1251,8 @@ std::string LuaEngine::getTealVersion() {
 	auto tl = tlState->L;
 	auto thread = tlState->thread;
 	std::string version;
+	initTealState(true);
 	thread->runInMainSync([&]() {
-		initTealState(true);
 		int top = lua_gettop(tl);
 		DEFER(lua_settop(tl, top));
 		lua_getglobal(tl, "package"); // package
@@ -1295,8 +1295,8 @@ std::pair<std::string, std::string> LuaEngine::compileTealToLua(String tlCodes, 
 	auto tl = tlState->L;
 	auto thread = tlState->thread;
 	std::pair<std::string, std::string> res;
+	initTealState(true);
 	thread->runInMainSync([&]() {
-		initTealState(true);
 		res = compile_teal(tl, tlCodes, filename, searchPath, true);
 	});
 	return res;

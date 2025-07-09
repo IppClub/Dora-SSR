@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2024 Branimir Karadzic. All rights reserved.
+ * Copyright 2010-2025 Branimir Karadzic. All rights reserved.
  * License: https://github.com/bkaradzic/bx/blob/master/LICENSE
  */
 
@@ -577,21 +577,21 @@ namespace bx
 
 	//---
 	template<typename Ty>
-	inline constexpr RemoveReferenceType<Ty>&& move(Ty&& _a)
+	[[nodiscard]] BX_ATTRIBUTE_INTRINSIC constexpr RemoveReferenceType<Ty>&& move(Ty&& _a)
 	{
 		return static_cast<RemoveReferenceType<Ty>&&>(_a);
 	}
 
 	template<typename Ty>
-	inline constexpr Ty&& forward(RemoveReferenceType<Ty>& _a)
+	[[nodiscard]] BX_ATTRIBUTE_INTRINSIC constexpr Ty&& forward(RemoveReferenceType<Ty>& _a)
 	{
 		return static_cast<Ty&&>(_a);
 	}
 
 	template<typename Ty>
-	inline constexpr Ty&& forward(RemoveReferenceType<Ty>&& _a)
+	[[nodiscard]] BX_ATTRIBUTE_INTRINSIC constexpr Ty&& forward(RemoveReferenceType<Ty>&& _a)
 	{
-		BX_STATIC_ASSERT(!isLvalueReference<Ty>(), "Can not forward an Rvalue as an Lvalue.");
+		static_assert(!isLvalueReference<Ty>(), "Can not forward an Rvalue as an Lvalue.");
 		return static_cast<Ty&&>(_a);
 	}
 

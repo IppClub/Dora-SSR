@@ -1,12 +1,11 @@
 /*
- * Copyright 2010-2024 Branimir Karadzic. All rights reserved.
+ * Copyright 2010-2025 Branimir Karadzic. All rights reserved.
  * License: https://github.com/bkaradzic/bx/blob/master/LICENSE
  */
 
 #ifndef BX_H_HEADER_GUARD
 #define BX_H_HEADER_GUARD
 
-#include <alloca.h> // alloca
 #include <stdarg.h> // va_list
 #include <stddef.h> // ptrdiff_t
 #include <stdint.h> // uint32_t
@@ -215,6 +214,9 @@ namespace bx
 	/// Returns true if value `_a` is power of 2.
 	template<typename Ty>
 	constexpr bool isPowerOf2(Ty _a);
+
+	/// Returns true if it's evaluated as constexpr.
+	constexpr bool isConstantEvaluated();
 
 	/// Returns a value of type `Ty` by reinterpreting the object representation of `FromT`.
 	template <typename Ty, typename FromT>

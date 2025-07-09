@@ -946,7 +946,12 @@ bool ImGuiDora::init() {
 		"builtin:fs_ocornut_imgui_image"_slice);
 	_imagePass->set("u_scale"_slice, scale);
 
-	io.Fonts->ClearTexData();
+	_defaultPass = Pass::create(
+		"builtin:vs_ocornut_imgui"_slice,
+		"builtin:fs_ocornut_imgui"_slice);
+	_defaultPass->set("u_scale"_slice, scale);
+
+	io.Fonts->TexDesiredFormat = ImTextureFormat_Alpha8;
 
 	SharedDirector.getSystemScheduler()->schedule([this](double deltaTime) {
 		if (_backSpaceIgnore) _backSpaceIgnore = false;
@@ -1064,6 +1069,7 @@ void ImGuiDora::render() {
 
 		float scale = SharedApplication.getDevicePixelRatio();
 		_imagePass->set("u_scale"_slice, scale);
+		_defaultPass->set("u_scale"_slice, scale);
 
 		if (drawData->Textures != nullptr) {
 			for (ImTextureData* tex : *drawData->Textures) {
@@ -1099,7 +1105,7 @@ void ImGuiDora::render() {
 						break;
 					}
 					case ImTextureStatus_WantDestroy: {
-						if (tex->UnusedFrames > 0) {
+						if (tex->UnusedFrames > 1) {
 							auto texture = r_cast<Texture2D*>(tex->GetTexID());
 							_textures.remove(MakeRef(texture));
 							tex->SetTexID(ImTextureID_Invalid);
@@ -1142,10 +1148,18 @@ void ImGuiDora::render() {
 					cmd->UserCallback(drawList, cmd);
 				} else if (0 != cmd->ElemCount) {
 					bgfx::TextureHandle textureHandle = BGFX_INVALID_HANDLE;
-					bgfx::ProgramHandle program;
-					if (ImTextureID_Invalid != cmd->GetTexID()) {
-						textureHandle = r_cast<Texture2D*>(cmd->GetTexID())->getHandle();
-						program = _imagePass->apply();
+					bgfx::ProgramHandle program = BGFX_INVALID_HANDLE;
+					auto texID = cmd->GetTexID();
+					if (ImTextureID_Invalid != texID) {
+						auto texture = r_cast<Texture2D*>(texID);
+						textureHandle = r_cast<Texture2D*>(texID)->getHandle();
+						if (texture->getInfo().format == bgfx::TextureFormat::A8) {
+							program = _defaultPass->apply();
+						} else {
+							program = _imagePass->apply();
+						}
+					} else {
+						continue;
 					}
 
 					uint64_t state = 0
