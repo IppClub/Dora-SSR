@@ -146,7 +146,7 @@ public:
 		wsl::lock_guard<wsl::mutex> guard(_connectionLock);
 		wsl::error_code ec;
 		for (const auto& hdl : _connections) {
-			_server.send(hdl, msg, ws::frame::opcode::TEXT, ec);
+			_server.send(hdl, msg, ws::frame::opcode::BINARY, ec);
 			if (ec) {
 				Error("failed to send message to websocket connection! {}", ec.message());
 			}
@@ -168,7 +168,7 @@ public:
 	bool start(int port) {
 		try {
 			_server.set_message_handler([this](ws::connection_hdl hdl, Server::message_ptr msg) {
-				if (ws::frame::opcode::TEXT == msg->get_opcode()) {
+				if (ws::frame::opcode::BINARY == msg->get_opcode()) {
 					auto message = std::make_shared<std::string>(msg->get_payload());
 					SharedApplication.invokeInLogic([message = std::move(message)]() {
 						Event::send("AppWS"sv, "Receive"s, std::move(*message));
