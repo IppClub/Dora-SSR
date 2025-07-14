@@ -60,6 +60,9 @@ Compiles the TypeScript project and reports compilation status.
 ./dora.py
 ```
 
+**Options:**
+- `-f, --file`: File or directory to build (optional, default: current directory)
+
 #### Run Project (`run`)
 Starts the project in the Dora SSR engine.
 

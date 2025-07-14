@@ -14,6 +14,15 @@ import * as Service from './Service';
 import Info from './Info';
 import * as wa from './languages/wa';
 
+Service.addUpdateTSCodeListener((file, code) => {
+	const model = monaco.editor.getModel(monaco.Uri.file(file));
+	if (model) {
+		model.setValue(code);
+	} else {
+		monaco.editor.createModel(code, "typescript", monaco.Uri.file(file));
+	}
+});
+
 const options = monaco.languages.typescript.typescriptDefaults.getCompilerOptions();
 options.noLib = true;
 options.strict = true;

@@ -28,6 +28,7 @@ const WsCloseEvent = "Close";
 const LogEventName = "Log";
 const ProfilerEventName = "Profiler";
 const TranspileTSEventName = "TranspileTS";
+const UpdateTSCodeEventName = "UpdateTSCode";
 
 let logText = "";
 
@@ -61,6 +62,10 @@ export const removeProfilerListener = (listener: (info: ProfilerInfo) => void) =
 	eventEmitter.removeListener(ProfilerEventName, listener);
 };
 
+export const addUpdateTSCodeListener = (listener: (file: string, code: string) => void) => {
+	eventEmitter.on(UpdateTSCodeEventName, listener);
+};
+
 export const addWSOpenListener = (listener: () => void) => {
 	eventEmitter.on(WsOpenEvent, listener);
 };
@@ -85,6 +90,10 @@ export function openWebSocket() {
 					}
 					case ProfilerEventName: {
 						eventEmitter.emit(result.name, result.info);
+						break;
+					}
+					case UpdateTSCodeEventName: {
+						eventEmitter.emit(result.name, result.file, result.content);
 						break;
 					}
 					case TranspileTSEventName: {

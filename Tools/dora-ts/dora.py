@@ -22,6 +22,7 @@ try:
 	# Add command line arguments
 	parser.add_argument('action', type=str, nargs='?', default='build', help='init|build|run|stop')
 	parser.add_argument('-l', '--language', nargs='?', type=str, default='zh-Hans', help='API language for initializing project, should be one of zh-Hans, en, default is zh-Hans')
+	parser.add_argument('-f', '--file', nargs='?', type=str, help='File to build')
 
 	# Parse command line arguments
 	args = parser.parse_args()
@@ -132,11 +133,13 @@ try:
 		print("API files set up.")
 	elif args.action == 'build':
 		# Compile the TypeScript project
-		print("Compiling Dora SSR TypeScript project...")
+		if not args.file:
+			print("Compiling Dora SSR TypeScript project...")
+		target = args.file or path
 		try:
 			response = requests.post(
 				f"http://localhost:8866/ts/build",
-				json={'path': path}
+				json={'path': target}
 			)
 			response.raise_for_status()
 			json_response = response.json()
@@ -152,10 +155,11 @@ try:
 				else:
 					print("No files built.")
 			else:
-				print("Compilation failed.")
+				message = json_response.get("message")
+				print(f"Compilation failed. {message}")
 				sys.exit(1)
 		except requests.RequestException as e:
-			print(f"Error during run request.")
+			print(f"Error during run request. {e}")
 			sys.exit(1)
 		except ValueError as e:
 			print(f"Invalid response format.")
@@ -190,4 +194,3 @@ try:
 except Exception as e:
 	print(f"An unexpected error occurred: {e}")
 	sys.exit(1)
-

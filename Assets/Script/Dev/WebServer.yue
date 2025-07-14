@@ -1075,36 +1075,67 @@ HttpServer\postSchedule "/wa/create", (req): {success: false, message: "invalid 
 
 HttpServer\postSchedule "/ts/build", (req): success: false ->
 	switch req when {body: {:path}}
-		unless Content\isdir path
-			return {
-				success: false
-				message: "expecting a folder path"
-			}
-		files = Content\getAllFiles path
-		messages = []
-		for f in *files
-			if Path\getExt(f) in ["ts", "tsx"]
-				continue if "d" == Path\getExt Path\getName f
+		if HttpServer.wsConnectionCount == 0
+			return success: false, message: "Web IDE not connected"
+		unless Content\exist path
+			return success: false, message: "path not existed"
+		if not Content\isdir path
+			unless Path\getExt(path) in ["ts", "tsx"]
+				return success: false, message: "expecting a TypeScript file"
+			messages = []
+			content = Content\load path
+			unless content
+				return success: false, message: "failed to read file"
+			emit "AppWS", "Send", json.dump name: "UpdateTSCode", file: path, :content
+			if "d" ~= Path\getExt Path\getName path
+				done = false
+				with Node!
+					\gslot "AppWS", (eventType, msg) ->
+						if eventType == "Receive"
+							\removeFromParent!
+							if res := json.load msg
+								if res.name == "TranspileTS"
+									if res.success
+										luaFile = Path\replaceExt path, "lua"
+										Content\save luaFile, res.luaCode
+										messages[] = success: true, file: path
+									else
+										messages[] = success: false, file: path, message: res.message
+									done = true
+				emit "AppWS", "Send", json.dump name: "TranspileTS", file: path, :content
+				wait -> done
+			return success: true, :messages
+		else
+			files = Content\getAllFiles path
+			fileData = {}
+			messages = []
+			for f in *files
+				continue unless Path\getExt(f) in ["ts", "tsx"]
 				file = Path path, f
 				if content := Content\load file
-					done = false
-					with Node!
-						\gslot "AppWS", (eventType, msg) ->
-							if eventType == "Receive"
-								\removeFromParent!
-								if res := json.load msg
-									return if res.success
+					fileData[file] = content
+					emit "AppWS", "Send", json.dump name: "UpdateTSCode", :file, :content
+				else
+					messages[] = success: false, :file, message: "failed to read file"
+			for file, content in pairs fileData
+				continue if "d" == Path\getExt Path\getName file
+				done = false
+				with Node!
+					\gslot "AppWS", (eventType, msg) ->
+						if eventType == "Receive"
+							\removeFromParent!
+							if res := json.load msg
+								if res.name == "TranspileTS"
+									if res.success
 										luaFile = Path\replaceExt file, "lua"
 										Content\save luaFile, res.luaCode
 										messages[] = success: true, :file
 									else
 										messages[] = success: false, :file, message: res.message
-								done = true
-					emit "AppWS", "Send", json.dump name: "TranspileTS", :file, :content
-					wait -> done
-				else
-					messages[] = success: false, :file, message: "failed to read file"
-		return success: true, :messages
+									done = true
+				emit "AppWS", "Send", json.dump name: "TranspileTS", :file, :content
+				wait -> done
+			return success: true, :messages
 
 status = {}
 export default status
