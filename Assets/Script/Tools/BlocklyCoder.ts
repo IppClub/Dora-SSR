@@ -1,5 +1,5 @@
 // @preview-file on clear
-import { HttpClient, json, thread, Buffer, Vec2, Node as DNode, Log, DB, Path, Content, Director, emit, GSlot, Node as DoraNode, App } from 'Dora';
+import { HttpClient, json, thread, Buffer, Vec2, Node as DNode, Log, DB, Path, Content, Director, emit, GSlot, Node as DoraNode, App, HttpServer } from 'Dora';
 import * as ImGui from "ImGui";
 import { InputTextFlag, SetCond, WindowFlag } from "ImGui";
 import { Node, Flow } from 'Agent/flow';
@@ -212,12 +212,16 @@ interface CompileResult {
 const compileTS = (file: string, content: string) => {
 	const data = {name: "TranspileTS", file, content};
 	return new Promise<CompileResult>((resolve) => {
+		if (HttpServer.wsConnectionCount == 0) {
+			resolve({success: false, result: "Web IDE not connected"});
+			return;
+		}
 		const node = DoraNode();
 		node.gslot(GSlot.AppWS, (eventType, msg) => {
 			if (eventType === "Receive") {
 				node.removeFromParent();
 				const [res] = json.load(msg);
-				if (res) {
+				if (res && res.name == "TranspileTS") {
 					if (res.success) {
 						resolve({success: true, result: res.luaCode});
 					} else {

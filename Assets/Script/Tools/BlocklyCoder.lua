@@ -23,6 +23,7 @@ local Director = ____Dora.Director -- 2
 local emit = ____Dora.emit -- 2
 local DoraNode = ____Dora.Node -- 2
 local App = ____Dora.App -- 2
+local HttpServer = ____Dora.HttpServer -- 2
 local ImGui = require("ImGui") -- 3
 local ____flow = require("Agent.flow") -- 5
 local Node = ____flow.Node -- 5
@@ -218,266 +219,270 @@ local function compileTS(file, content) -- 212
 	return __TS__New( -- 214
 		__TS__Promise, -- 214
 		function(____, resolve) -- 214
-			local node = DoraNode() -- 215
-			node:gslot( -- 216
-				"AppWS", -- 216
-				function(eventType, msg) -- 216
-					if eventType == "Receive" then -- 216
-						node:removeFromParent() -- 218
-						local res = json.load(msg) -- 219
-						if res then -- 219
-							if res.success then -- 219
-								resolve(nil, {success = true, result = res.luaCode}) -- 222
-							else -- 222
-								resolve(nil, {success = false, result = res.message}) -- 224
-							end -- 224
-						end -- 224
-					end -- 224
-				end -- 216
-			) -- 216
-			local str = json.dump(data) -- 229
-			if str then -- 229
-				emit("AppWS", "Send", str) -- 231
-			end -- 231
+			if HttpServer.wsConnectionCount == 0 then -- 214
+				resolve(nil, {success = false, result = "Web IDE not connected"}) -- 216
+				return -- 217
+			end -- 217
+			local node = DoraNode() -- 219
+			node:gslot( -- 220
+				"AppWS", -- 220
+				function(eventType, msg) -- 220
+					if eventType == "Receive" then -- 220
+						node:removeFromParent() -- 222
+						local res = json.load(msg) -- 223
+						if res and res.name == "TranspileTS" then -- 223
+							if res.success then -- 223
+								resolve(nil, {success = true, result = res.luaCode}) -- 226
+							else -- 226
+								resolve(nil, {success = false, result = res.message}) -- 228
+							end -- 228
+						end -- 228
+					end -- 228
+				end -- 220
+			) -- 220
+			local str = json.dump(data) -- 233
+			if str then -- 233
+				emit("AppWS", "Send", str) -- 235
+			end -- 235
 		end -- 214
 	) -- 214
 end -- 212
-local CompileNode = __TS__Class() -- 236
-CompileNode.name = "CompileNode" -- 236
-__TS__ClassExtends(CompileNode, Node) -- 236
-function CompileNode.prototype.prep(self, shared) -- 237
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 237
-		return ____awaiter_resolve(nil, shared.messages[#shared.messages].content) -- 237
-	end) -- 237
-end -- 237
-function CompileNode.prototype.exec(self, code) -- 240
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 240
-		return ____awaiter_resolve( -- 240
-			nil, -- 240
-			__TS__Await(compileTS( -- 241
-				Path( -- 241
-					Content.writablePath, -- 241
-					Path:getPath(outputFile.text), -- 241
-					"__code__.ts" -- 241
-				), -- 241
-				code -- 241
-			)) -- 241
-		) -- 241
+local CompileNode = __TS__Class() -- 240
+CompileNode.name = "CompileNode" -- 240
+__TS__ClassExtends(CompileNode, Node) -- 240
+function CompileNode.prototype.prep(self, shared) -- 241
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 241
+		return ____awaiter_resolve(nil, shared.messages[#shared.messages].content) -- 241
 	end) -- 241
-end -- 240
-function CompileNode.prototype.post(self, shared, prepRes, execRes) -- 243
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 243
-		if execRes.success then -- 243
-			local ____shared_messages_2 = shared.messages -- 243
-			____shared_messages_2[#____shared_messages_2 + 1] = {role = "user", content = prepRes} -- 245
-			logs[#logs + 1] = "代码编译成功！" -- 246
-			return ____awaiter_resolve(nil, "Success") -- 246
-		else -- 246
-			local ____shared_messages_3 = shared.messages -- 246
-			____shared_messages_3[#____shared_messages_3 + 1] = {role = "user", content = (prepRes .. "\n\n编译错误信息如下：\n") .. execRes.result} -- 249
-			logs[#logs + 1] = "代码编译失败！" -- 250
-			logs[#logs + 1] = execRes.result -- 251
-			return ____awaiter_resolve(nil, "Failed") -- 251
-		end -- 251
-	end) -- 251
-end -- 243
-local FixNode = __TS__Class() -- 257
-FixNode.name = "FixNode" -- 257
-__TS__ClassExtends(FixNode, Node) -- 257
-function FixNode.prototype.prep(self, shared) -- 258
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 258
-		local codeAndError = shared.messages[#shared.messages].content -- 259
-		local systemContent = getSystemPrompt() -- 260
-		local userContent = ("\n你是一名经验丰富的 TypeScript 代码专家。\n\n任务目标：\n1. 阅读「相关代码模块信息」、原始代码片段，以及随后的编译错误信息。\n2. 找出导致编译失败的根本原因，并给出修正后的完整代码。\n3. 展示修正后代码运行的正确输出结果或关键行为。\n\n回答格式必须分两部分：\n1. 思考过程\n逐步阐述你的推理：先定位错误 → 分析原因 → 制定修复策略 → 说明为何这样修改。\n用条目或小节清晰列出，不要省略中间推理步骤。\n\n2. 最终答案\n修正后的完整代码（用 ```typescript``` 代码块包裹）。\n期望输出或结果说明，用简要文字或示例输出展示。\n注意：先完整写出思考过程，再给出最终答案；不要在思考过程中提前透露最终代码或结果。\n\n原始代码及编译错误信息：\n\n" .. codeAndError) .. "\n" -- 261
-		shared.messages = {{role = "system", content = systemContent}, {role = "user", content = userContent}} -- 283
-	end) -- 283
-end -- 258
-function FixNode.prototype.exec(self) -- 288
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 288
-		logs[#logs + 1] = "开始修复代码！" -- 289
-	end) -- 289
-end -- 288
-local SaveNode = __TS__Class() -- 293
-SaveNode.name = "SaveNode" -- 293
-__TS__ClassExtends(SaveNode, Node) -- 293
-function SaveNode.prototype.prep(self, shared) -- 294
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 294
-		return ____awaiter_resolve(nil, shared.messages[#shared.messages].content) -- 294
-	end) -- 294
-end -- 294
-function SaveNode.prototype.exec(self, code) -- 297
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 297
-		llmWorking = false -- 298
-		local filename = Path( -- 299
-			Content.writablePath, -- 299
-			Path:getPath(outputFile.text), -- 299
-			Path:getFilename(Path:replaceExt(outputFile.text, "")) .. "Gen.ts" -- 299
-		) -- 299
-		if Content:save(filename, code) then -- 299
-			logs[#logs + 1] = "保存代码成功！" .. filename -- 301
-		else -- 301
-			logs[#logs + 1] = "保存代码失败！" .. filename -- 303
-		end -- 303
-		local res = __TS__Await(compileTS(filename, code)) -- 305
-		if res.success then -- 305
-			local luaFile = Path:replaceExt(filename, "lua") -- 307
-			if Content:save(luaFile, res.result) then -- 307
-				logs[#logs + 1] = "保存代码成功！" .. luaFile -- 309
-			else -- 309
-				logs[#logs + 1] = "保存代码失败！" .. luaFile -- 311
-			end -- 311
-			local ____try = __TS__AsyncAwaiter(function() -- 311
-				local func = load(res.result, luaFile) -- 314
-				if func then -- 314
-					func() -- 315
-				end -- 315
-				logs[#logs + 1] = "生成代码成功！" -- 316
-			end) -- 316
-			__TS__Await(____try.catch( -- 313
-				____try, -- 313
-				function(____, e) -- 313
-					logs[#logs + 1] = "生成代码失败！" -- 318
-					Log( -- 319
-						"Error", -- 319
-						tostring(e) -- 319
-					) -- 319
+end -- 241
+function CompileNode.prototype.exec(self, code) -- 244
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 244
+		return ____awaiter_resolve( -- 244
+			nil, -- 244
+			__TS__Await(compileTS( -- 245
+				Path( -- 245
+					Content.writablePath, -- 245
+					Path:getPath(outputFile.text), -- 245
+					"__code__.ts" -- 245
+				), -- 245
+				code -- 245
+			)) -- 245
+		) -- 245
+	end) -- 245
+end -- 244
+function CompileNode.prototype.post(self, shared, prepRes, execRes) -- 247
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 247
+		if execRes.success then -- 247
+			local ____shared_messages_2 = shared.messages -- 247
+			____shared_messages_2[#____shared_messages_2 + 1] = {role = "user", content = prepRes} -- 249
+			logs[#logs + 1] = "代码编译成功！" -- 250
+			return ____awaiter_resolve(nil, "Success") -- 250
+		else -- 250
+			local ____shared_messages_3 = shared.messages -- 250
+			____shared_messages_3[#____shared_messages_3 + 1] = {role = "user", content = (prepRes .. "\n\n编译错误信息如下：\n") .. execRes.result} -- 253
+			logs[#logs + 1] = "代码编译失败！" -- 254
+			logs[#logs + 1] = execRes.result -- 255
+			return ____awaiter_resolve(nil, "Failed") -- 255
+		end -- 255
+	end) -- 255
+end -- 247
+local FixNode = __TS__Class() -- 261
+FixNode.name = "FixNode" -- 261
+__TS__ClassExtends(FixNode, Node) -- 261
+function FixNode.prototype.prep(self, shared) -- 262
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 262
+		local codeAndError = shared.messages[#shared.messages].content -- 263
+		local systemContent = getSystemPrompt() -- 264
+		local userContent = ("\n你是一名经验丰富的 TypeScript 代码专家。\n\n任务目标：\n1. 阅读「相关代码模块信息」、原始代码片段，以及随后的编译错误信息。\n2. 找出导致编译失败的根本原因，并给出修正后的完整代码。\n3. 展示修正后代码运行的正确输出结果或关键行为。\n\n回答格式必须分两部分：\n1. 思考过程\n逐步阐述你的推理：先定位错误 → 分析原因 → 制定修复策略 → 说明为何这样修改。\n用条目或小节清晰列出，不要省略中间推理步骤。\n\n2. 最终答案\n修正后的完整代码（用 ```typescript``` 代码块包裹）。\n期望输出或结果说明，用简要文字或示例输出展示。\n注意：先完整写出思考过程，再给出最终答案；不要在思考过程中提前透露最终代码或结果。\n\n原始代码及编译错误信息：\n\n" .. codeAndError) .. "\n" -- 265
+		shared.messages = {{role = "system", content = systemContent}, {role = "user", content = userContent}} -- 287
+	end) -- 287
+end -- 262
+function FixNode.prototype.exec(self) -- 292
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 292
+		logs[#logs + 1] = "开始修复代码！" -- 293
+	end) -- 293
+end -- 292
+local SaveNode = __TS__Class() -- 297
+SaveNode.name = "SaveNode" -- 297
+__TS__ClassExtends(SaveNode, Node) -- 297
+function SaveNode.prototype.prep(self, shared) -- 298
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 298
+		return ____awaiter_resolve(nil, shared.messages[#shared.messages].content) -- 298
+	end) -- 298
+end -- 298
+function SaveNode.prototype.exec(self, code) -- 301
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 301
+		llmWorking = false -- 302
+		local filename = Path( -- 303
+			Content.writablePath, -- 303
+			Path:getPath(outputFile.text), -- 303
+			Path:getFilename(Path:replaceExt(outputFile.text, "")) .. "Gen.ts" -- 303
+		) -- 303
+		if Content:save(filename, code) then -- 303
+			logs[#logs + 1] = "保存代码成功！" .. filename -- 305
+		else -- 305
+			logs[#logs + 1] = "保存代码失败！" .. filename -- 307
+		end -- 307
+		local res = __TS__Await(compileTS(filename, code)) -- 309
+		if res.success then -- 309
+			local luaFile = Path:replaceExt(filename, "lua") -- 311
+			if Content:save(luaFile, res.result) then -- 311
+				logs[#logs + 1] = "保存代码成功！" .. luaFile -- 313
+			else -- 313
+				logs[#logs + 1] = "保存代码失败！" .. luaFile -- 315
+			end -- 315
+			local ____try = __TS__AsyncAwaiter(function() -- 315
+				local func = load(res.result, luaFile) -- 318
+				if func then -- 318
+					func() -- 319
 				end -- 319
-			)) -- 319
-		end -- 319
-	end) -- 319
-end -- 297
-local chatNode = __TS__New(ChatNode) -- 325
-local llmCode = __TS__New(LLMCode, 2, 1) -- 326
-local compileNode = __TS__New(CompileNode) -- 327
-local saveNode = __TS__New(SaveNode) -- 328
-local fixNode = __TS__New(FixNode) -- 329
-chatNode:next(llmCode) -- 330
-llmCode:next(compileNode) -- 331
-compileNode:on("Success", saveNode) -- 332
-compileNode:on("Failed", fixNode) -- 333
-fixNode:next(llmCode) -- 334
-saveNode:next(chatNode) -- 335
-local flow = __TS__New(Flow, chatNode) -- 337
-local runFlow -- 338
-runFlow = function() -- 338
-	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 338
-		local chatInfo = {messages = {}} -- 339
-		local ____try = __TS__AsyncAwaiter(function() -- 339
-			__TS__Await(flow:run(chatInfo)) -- 343
-		end) -- 343
-		__TS__Await(____try.catch( -- 342
-			____try, -- 342
-			function(____, err) -- 342
-				Log("Error", err) -- 345
-				runFlow() -- 346
-			end -- 346
-		)) -- 346
-	end) -- 346
-end -- 338
-runFlow() -- 349
-logs = {} -- 351
-local inputBuffer = Buffer(5000) -- 352
-local function ChatButton() -- 354
-	ImGui.PushItemWidth( -- 355
-		-80, -- 355
-		function() -- 355
-			if ImGui.InputText(zh and "描述需求" or "Desc", inputBuffer, {"EnterReturnsTrue"}) then -- 355
-				local command = inputBuffer.text -- 357
-				if command ~= "" then -- 357
-					logs = {} -- 359
-					logs[#logs + 1] = "User: " .. command -- 360
-					root:emit("Input", command) -- 361
-				end -- 361
-				inputBuffer.text = "" -- 363
-			end -- 363
-		end -- 355
-	) -- 355
-end -- 354
-local inputFlags = {"Password"} -- 368
-local windowsFlags = { -- 369
-	"NoMove", -- 370
-	"NoCollapse", -- 371
-	"NoResize", -- 372
-	"NoDecoration", -- 373
-	"NoNav" -- 374
-} -- 374
-root:loop(function() -- 376
-	local ____App_visualSize_4 = App.visualSize -- 377
-	local width = ____App_visualSize_4.width -- 377
-	local height = ____App_visualSize_4.height -- 377
-	ImGui.SetNextWindowPos(Vec2.zero, "Always", Vec2.zero) -- 378
-	ImGui.SetNextWindowSize( -- 379
-		Vec2(width, height - 40), -- 379
-		"Always" -- 379
-	) -- 379
-	ImGui.Begin( -- 380
-		"Blockly Coder", -- 380
-		windowsFlags, -- 380
-		function() -- 380
-			ImGui.Text(zh and "Blockly 编程家" or "Blockly Coder") -- 381
-			ImGui.SameLine() -- 382
-			ImGui.TextDisabled("(?)") -- 383
-			if ImGui.IsItemHovered() then -- 383
-				ImGui.BeginTooltip(function() -- 385
-					ImGui.PushTextWrapPos( -- 386
-						400, -- 386
-						function() -- 386
-							ImGui.Text(zh and "请先配置大模型 API 密钥，然后输入自然语言需求，Agent 将自动生成 TypeScript 积木代码，编译成 Blockly 积木并翻译为 Lua 脚本运行。遇到编译失败会自动修正，无需手动干预。" or "First, configure the API key for the large language model. Then, input your natural language requirements. The Agent will automatically generate TypeScript building block code, compile it into Blockly blocks, and translate it into Lua scripts for execution. If any compilation errors occur, they will be automatically corrected without requiring manual intervention.") -- 387
-						end -- 386
-					) -- 386
-				end) -- 385
-			end -- 385
-			ImGui.SameLine() -- 392
-			ImGui.Dummy(Vec2(width - 290, 0)) -- 393
-			ImGui.SameLine() -- 394
-			if ImGui.CollapsingHeader(zh and "配置" or "Config") then -- 394
-				if ImGui.InputText(zh and "API 地址" or "API URL", url) then -- 394
-					config.url = url.text -- 397
-				end -- 397
-				if ImGui.InputText(zh and "API 密钥" or "API Key", apiKey, inputFlags) then -- 397
-					config.apiKey = apiKey.text -- 400
-				end -- 400
-				if ImGui.InputText(zh and "模型" or "Model", model) then -- 400
-					config.model = model.text -- 403
-				end -- 403
-				if ImGui.InputText(zh and "输出文件" or "Output File", outputFile) then -- 403
-					config.output = outputFile.text -- 406
-				end -- 406
-			end -- 406
-			ImGui.Separator() -- 409
-			ImGui.BeginChild( -- 410
-				"LogArea", -- 410
-				Vec2(0, -40), -- 410
-				function() -- 410
-					for ____, log in ipairs(logs) do -- 411
-						ImGui.TextWrapped(log) -- 412
-					end -- 412
-					if ImGui.GetScrollY() >= ImGui.GetScrollMaxY() then -- 412
-						ImGui.SetScrollHereY(1) -- 415
-					end -- 415
+				logs[#logs + 1] = "生成代码成功！" -- 320
+			end) -- 320
+			__TS__Await(____try.catch( -- 317
+				____try, -- 317
+				function(____, e) -- 317
+					logs[#logs + 1] = "生成代码失败！" -- 322
+					Log( -- 323
+						"Error", -- 323
+						tostring(e) -- 323
+					) -- 323
+				end -- 323
+			)) -- 323
+		end -- 323
+	end) -- 323
+end -- 301
+local chatNode = __TS__New(ChatNode) -- 329
+local llmCode = __TS__New(LLMCode, 2, 1) -- 330
+local compileNode = __TS__New(CompileNode) -- 331
+local saveNode = __TS__New(SaveNode) -- 332
+local fixNode = __TS__New(FixNode) -- 333
+chatNode:next(llmCode) -- 334
+llmCode:next(compileNode) -- 335
+compileNode:on("Success", saveNode) -- 336
+compileNode:on("Failed", fixNode) -- 337
+fixNode:next(llmCode) -- 338
+saveNode:next(chatNode) -- 339
+local flow = __TS__New(Flow, chatNode) -- 341
+local runFlow -- 342
+runFlow = function() -- 342
+	return __TS__AsyncAwaiter(function(____awaiter_resolve) -- 342
+		local chatInfo = {messages = {}} -- 343
+		local ____try = __TS__AsyncAwaiter(function() -- 343
+			__TS__Await(flow:run(chatInfo)) -- 347
+		end) -- 347
+		__TS__Await(____try.catch( -- 346
+			____try, -- 346
+			function(____, err) -- 346
+				Log("Error", err) -- 349
+				runFlow() -- 350
+			end -- 350
+		)) -- 350
+	end) -- 350
+end -- 342
+runFlow() -- 353
+logs = {} -- 355
+local inputBuffer = Buffer(5000) -- 356
+local function ChatButton() -- 358
+	ImGui.PushItemWidth( -- 359
+		-80, -- 359
+		function() -- 359
+			if ImGui.InputText(zh and "描述需求" or "Desc", inputBuffer, {"EnterReturnsTrue"}) then -- 359
+				local command = inputBuffer.text -- 361
+				if command ~= "" then -- 361
+					logs = {} -- 363
+					logs[#logs + 1] = "User: " .. command -- 364
+					root:emit("Input", command) -- 365
+				end -- 365
+				inputBuffer.text = "" -- 367
+			end -- 367
+		end -- 359
+	) -- 359
+end -- 358
+local inputFlags = {"Password"} -- 372
+local windowsFlags = { -- 373
+	"NoMove", -- 374
+	"NoCollapse", -- 375
+	"NoResize", -- 376
+	"NoDecoration", -- 377
+	"NoNav" -- 378
+} -- 378
+root:loop(function() -- 380
+	local ____App_visualSize_4 = App.visualSize -- 381
+	local width = ____App_visualSize_4.width -- 381
+	local height = ____App_visualSize_4.height -- 381
+	ImGui.SetNextWindowPos(Vec2.zero, "Always", Vec2.zero) -- 382
+	ImGui.SetNextWindowSize( -- 383
+		Vec2(width, height - 40), -- 383
+		"Always" -- 383
+	) -- 383
+	ImGui.Begin( -- 384
+		"Blockly Coder", -- 384
+		windowsFlags, -- 384
+		function() -- 384
+			ImGui.Text(zh and "Blockly 编程家" or "Blockly Coder") -- 385
+			ImGui.SameLine() -- 386
+			ImGui.TextDisabled("(?)") -- 387
+			if ImGui.IsItemHovered() then -- 387
+				ImGui.BeginTooltip(function() -- 389
+					ImGui.PushTextWrapPos( -- 390
+						400, -- 390
+						function() -- 390
+							ImGui.Text(zh and "请先配置大模型 API 密钥，然后输入自然语言需求，Agent 将自动生成 TypeScript 积木代码，编译成 Blockly 积木并翻译为 Lua 脚本运行。遇到编译失败会自动修正，无需手动干预。" or "First, configure the API key for the large language model. Then, input your natural language requirements. The Agent will automatically generate TypeScript building block code, compile it into Blockly blocks, and translate it into Lua scripts for execution. If any compilation errors occur, they will be automatically corrected without requiring manual intervention.") -- 391
+						end -- 390
+					) -- 390
+				end) -- 389
+			end -- 389
+			ImGui.SameLine() -- 396
+			ImGui.Dummy(Vec2(width - 290, 0)) -- 397
+			ImGui.SameLine() -- 398
+			if ImGui.CollapsingHeader(zh and "配置" or "Config") then -- 398
+				if ImGui.InputText(zh and "API 地址" or "API URL", url) then -- 398
+					config.url = url.text -- 401
+				end -- 401
+				if ImGui.InputText(zh and "API 密钥" or "API Key", apiKey, inputFlags) then -- 401
+					config.apiKey = apiKey.text -- 404
+				end -- 404
+				if ImGui.InputText(zh and "模型" or "Model", model) then -- 404
+					config.model = model.text -- 407
+				end -- 407
+				if ImGui.InputText(zh and "输出文件" or "Output File", outputFile) then -- 407
+					config.output = outputFile.text -- 410
 				end -- 410
-			) -- 410
-			if llmWorking or config.output == "" then -- 410
-				ImGui.BeginDisabled(function() -- 419
-					ChatButton() -- 420
-				end) -- 419
-			else -- 419
-				ChatButton() -- 423
-			end -- 423
-		end -- 380
-	) -- 380
-	return false -- 426
-end) -- 376
-root:slot( -- 429
-	"Output", -- 429
-	function(message) -- 429
-		logs[#logs + 1] = message -- 430
-	end -- 429
-) -- 429
+			end -- 410
+			ImGui.Separator() -- 413
+			ImGui.BeginChild( -- 414
+				"LogArea", -- 414
+				Vec2(0, -40), -- 414
+				function() -- 414
+					for ____, log in ipairs(logs) do -- 415
+						ImGui.TextWrapped(log) -- 416
+					end -- 416
+					if ImGui.GetScrollY() >= ImGui.GetScrollMaxY() then -- 416
+						ImGui.SetScrollHereY(1) -- 419
+					end -- 419
+				end -- 414
+			) -- 414
+			if llmWorking or config.output == "" then -- 414
+				ImGui.BeginDisabled(function() -- 423
+					ChatButton() -- 424
+				end) -- 423
+			else -- 423
+				ChatButton() -- 427
+			end -- 427
+		end -- 384
+	) -- 384
+	return false -- 430
+end) -- 380
 root:slot( -- 433
-	"Update", -- 433
+	"Output", -- 433
 	function(message) -- 433
-		logs[#logs] = message -- 434
+		logs[#logs + 1] = message -- 434
 	end -- 433
 ) -- 433
-return ____exports -- 433
+root:slot( -- 437
+	"Update", -- 437
+	function(message) -- 437
+		logs[#logs] = message -- 438
+	end -- 437
+) -- 437
+return ____exports -- 437
