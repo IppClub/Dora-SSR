@@ -59,7 +59,7 @@
 
 - [Dora引擎 功能示例](https://github.com/ippclub/Dora-Example)
 
-## 示例项目
+## [示例项目](https://github.com/ippclub/Dora-Example)
 
 - [示例项目 - Loli War](https://github.com/IppClub/Dora-Demo/tree/main/Loli%20War)
 
