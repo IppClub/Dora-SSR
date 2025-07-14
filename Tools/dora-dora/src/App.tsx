@@ -442,17 +442,22 @@ export default function PersistentDrawerLeft() {
 			Service.editingInfo().then(res => {
 				if (res.success && res.editingInfo) {
 					const editingInfo: Service.EditingInfo = JSON.parse(res.editingInfo);
-					const targetIndex = editingInfo.index;
-					Promise.all(editingInfo.files.map((file, i) => {
-						return openFile(file.key, file.title, file.folder).then((newFile) => {
+					let targetIndex = editingInfo.index;
+					Promise.all(editingInfo.files.map(async (file, i) => {
+						try {
+							const newFile = await openFile(file.key, file.title, file.folder);
 							newFile.position = file.position;
 							newFile.mdEditing = file.mdEditing;
 							newFile.readOnly = file.readOnly;
 							newFile.sortIndex = i;
 							return newFile;
-						});
+						} catch {
+							addAlert(t("alert.read", {title: file.title}), "error");
+							return null;
+						}
 					})).then((files) => {
-						const result = files.sort((a, b) => {
+						const filteredFiles = files.filter(file => file !== null);
+						const result = filteredFiles.sort((a, b) => {
 							const indexA = a.sortIndex ?? 0;
 							const indexB = b.sortIndex ?? 0;
 							if (indexA < indexB) {
@@ -464,6 +469,12 @@ export default function PersistentDrawerLeft() {
 							}
 						});
 						setFiles(result);
+						if (targetIndex >= result.length) {
+							targetIndex = result.length - 1;
+						}
+						if (targetIndex < 0) {
+							targetIndex = 0;
+						}
 						switchTab(targetIndex, result[targetIndex]);
 					}).catch(() => {
 						addAlert(t("alert.open"), "error");
