@@ -79,9 +79,26 @@ export function openWebSocket() {
 	const connect = () => {
 		connected = false;
 		webSocket = new WebSocket(wsUrl());
-		webSocket.onmessage = async function(evt: MessageEvent<string>) {
-			const result = JSON.parse(evt.data);
-			if (result !== null && result.name !== undefined) {
+		webSocket.onmessage = async function(evt: MessageEvent) {
+			let dataStr: string;
+			if (evt.data instanceof ArrayBuffer) {
+				const decoder = new TextDecoder("utf-8");
+				dataStr = decoder.decode(evt.data);
+			} else if (typeof evt.data === "string") {
+				dataStr = evt.data;
+			} else if (evt.data instanceof Blob) {
+				dataStr = await evt.data.text();
+			} else {
+				return;
+			}
+			let result: any;
+			try {
+				result = JSON.parse(dataStr);
+			} catch (e) {
+				console.error("Failed to parse WebSocket message:", e, dataStr);
+				return;
+			}
+			if (result && typeof result === "object" && "name" in result) {
 				switch (result.name) {
 					case LogEventName: {
 						logText += result.text as string;
@@ -101,12 +118,14 @@ export function openWebSocket() {
 						const {file, content} = result;
 						if (typeof file === 'string' && typeof content === 'string') {
 							const {success, luaCode, diagnostics} = await transpileTypescript(file, content);
+							let data = "";
 							if (success) {
-								webSocket.send(JSON.stringify({name: TranspileTSEventName, success, luaCode, message: ""}));
+								data = JSON.stringify({name: TranspileTSEventName, success, luaCode, message: ""});
 							} else {
 								const message = getDiagnosticMessage(file, diagnostics);
-								webSocket.send(JSON.stringify({name: TranspileTSEventName, success, luaCode: "", message}));
+								data = JSON.stringify({name: TranspileTSEventName, success, luaCode: "", message});
 							}
+							webSocket.send(new Blob([data]));
 						}
 						break;
 					}
