@@ -30,8 +30,8 @@ public:
 	void end();
 	void render();
 	void setDefaultFont(String ttfFontFile, float fontSize);
-	void showStats(bool* pOpen, const std::function<void()>& extra = nullptr);
-	void showConsole(bool* pOpen, bool initOnly = false);
+	void showStats(bool* pOpen, uint32_t windowFlags, const std::function<void()>& extra = nullptr);
+	void showConsole(bool initOnly = false);
 	void handleEvent(const SDL_Event& event);
 
 	class ImGuiTouchHandler : public TouchHandler {

@@ -13,9 +13,9 @@ class Buffer : public Object
 namespace ImGui
 {
 	void Binding::SetDefaultFont @ SetDefaultFont(String ttfFontFile, float fontSize);
-	void Binding::ShowStats @ ShowStats(bool* pOpen, tolua_function_void handler = nullptr);
+	void Binding::ShowStats @ ShowStats(bool* pOpen, String windowFlags[tolua_len], tolua_function_void handler = nullptr);
 	void Binding::ShowStats @ ShowStats(tolua_function_void handler = nullptr);
-	void Binding::ShowConsole @ ShowConsole(bool* pOpen, bool initOnly = false);
+	void Binding::ShowConsole @ ShowConsole(bool initOnly);
 	void Binding::ShowConsole @ ShowConsole();
 	bool Binding::Begin @ Begin(CString name);
 	bool Binding::Begin @ Begin(CString name, String windowsFlags[tolua_len]);

@@ -159,14 +159,14 @@ public:
 		return 0;
 	}
 
-	void Draw(const char* title, bool useChinese, bool* pOpen) {
+	void Draw(const char* title, bool useChinese) {
 		if (_fullScreen) {
 			ImGui::SetNextWindowPos(Vec2::zero);
 			ImGui::SetNextWindowSize(Vec2{1, 1} * SharedApplication.getVisualSize(), ImGuiCond_Always);
 			ImGui::Begin("DoraConsole_full", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings);
 		} else {
 			ImGui::SetNextWindowSize(ImVec2(400, 300), ImGuiCond_FirstUseEver);
-			ImGui::Begin(title, pOpen);
+			ImGui::Begin(title, nullptr, ImGuiWindowFlags_NoTitleBar);
 		}
 		if (ImGui::Button(useChinese ? r_cast<const char*>(u8"清空") : "Clear")) clear();
 		ImGui::SameLine();
@@ -465,14 +465,13 @@ static void HelpMarker(Slice desc) {
 	}
 }
 
-void ImGuiDora::showStats(bool* pOpen, const std::function<void()>& extra) {
+void ImGuiDora::showStats(bool* pOpen, uint32_t windowFlags, const std::function<void()>& extra) {
 	/* print debug text */
 	bool useChinese = _useChinese;
 	auto themeColor = SharedApplication.getThemeColor().toVec4();
 	bool itemHovered = false;
 	auto info = SharedDirector.getProfilerInfo();
-	if (ImGui::Begin(useChinese ? r_cast<const char*>(u8"Dora 状态##DoraStats") : "Dora Stats##DoraStats", pOpen,
-			ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize)) {
+	if (ImGui::Begin(useChinese ? r_cast<const char*>(u8"Dora 状态##DoraStats") : "Dora Stats##DoraStats", pOpen, windowFlags)) {
 		if (ImGui::CollapsingHeader(useChinese ? r_cast<const char*>(u8"基础") : "Basic")) {
 			ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"渲染器：") : "Renderer:");
 			itemHovered |= ImGui::IsItemHovered();
@@ -852,13 +851,13 @@ void ImGuiDora::showStats(bool* pOpen, const std::function<void()>& extra) {
 	}
 }
 
-void ImGuiDora::showConsole(bool* pOpen, bool initOnly) {
+void ImGuiDora::showConsole(bool initOnly) {
 	if (!_console) {
 		_console = New<ConsolePanel>();
 	}
 	if (initOnly) return;
 	bool useChinese = _useChinese;
-	_console->Draw(useChinese ? r_cast<const char*>(u8"Dora 控制台##DoraConsole") : "Dora Console##DoraConsole", useChinese, pOpen);
+	_console->Draw(useChinese ? r_cast<const char*>(u8"Dora 控制台##DoraConsole") : "Dora Console##DoraConsole", useChinese);
 }
 
 static void PlatformSetImeDataFn(ImGuiContext*, ImGuiViewport*, ImGuiPlatformImeData* data) {
