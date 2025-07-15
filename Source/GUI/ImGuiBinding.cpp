@@ -506,20 +506,20 @@ void SetDefaultFont(String ttfFontFile, float fontSize) {
 	SharedImGui.setDefaultFont(ttfFontFile, fontSize);
 }
 
-void ShowStats(bool* pOpen, const std::function<void()>& extra) {
-	SharedImGui.showStats(pOpen, extra);
+void ShowStats(bool* pOpen, Slice* flags, int count, const std::function<void()>& extra) {
+	SharedImGui.showStats(pOpen, WindowFlags(flags, count), extra);
 }
 
 void ShowStats(const std::function<void()>& extra) {
-	SharedImGui.showStats(nullptr, extra);
+	SharedImGui.showStats(nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize, extra);
 }
 
-void ShowConsole(bool* pOpen, bool initOnly) {
-	SharedImGui.showConsole(pOpen, initOnly);
+void ShowConsole(bool initOnly) {
+	SharedImGui.showConsole(initOnly);
 }
 
 void ShowConsole() {
-	SharedImGui.showConsole(nullptr);
+	SharedImGui.showConsole();
 }
 
 bool Begin(const char* name, Slice* windowFlags, int flagCount) {

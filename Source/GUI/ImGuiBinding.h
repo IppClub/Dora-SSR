@@ -42,9 +42,9 @@ NS_BEGIN(ImGui::Binding)
 using namespace Dora;
 
 void SetDefaultFont(String ttfFontFile, float fontSize);
-void ShowStats(bool* pOpen, const std::function<void()>& extra = nullptr);
+void ShowStats(bool* pOpen, Slice* flags, int count, const std::function<void()>& extra = nullptr);
 void ShowStats(const std::function<void()>& extra = nullptr);
-void ShowConsole(bool* pOpen, bool initOnly = false);
+void ShowConsole(bool initOnly);
 void ShowConsole();
 
 bool Begin(

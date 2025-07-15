@@ -338,9 +338,8 @@ local record ImGui
 	end
 	SetDefaultFont: function(ttfFontFile: string, fontSize: number)
 	ShowStats: function(extra?: function())
-	ShowStats: function(open: boolean, extra?: function()): boolean
-	ShowConsole: function()
-	ShowConsole: function(open: boolean, initOnly?: boolean): boolean
+	ShowStats: function(open: boolean, windowsFlags: {WindowFlag}, extra?: function()): boolean
+	ShowConsole: function(initOnly?: boolean)
 	Begin: function(
 		name: string,
 		windowsFlags: {WindowFlag},

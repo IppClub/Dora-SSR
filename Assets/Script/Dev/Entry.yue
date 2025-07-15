@@ -12,7 +12,7 @@ const :Content, :Path = Dora
 const type = type
 
 App.idled = true
-ShowConsole false, true
+ShowConsole true
 
 moduleCache = []
 oldRequire = _G.require
@@ -734,6 +734,14 @@ extraOperations = ->
 				sleep 2
 				print "Stop #{entry[1]}"
 
+icon = Path "Script", "Dev", "icon_s.png"
+iconTex = nil
+thread -> iconTex = Texture2D icon if Cache\loadAsync icon
+
+webStatus = nil
+urlClicked = nil
+descColor = Color 0xffa1a1a1
+
 transparant = Color 0x0
 windowFlags = $WindowFlag(
 	NoTitleBar
@@ -741,7 +749,25 @@ windowFlags = $WindowFlag(
 	NoMove
 	NoCollapse
 	NoSavedSettings
+	NoFocusOnAppearing
 	NoBringToFrontOnFocus
+)
+statusFlags = $WindowFlag(
+	NoTitleBar
+	NoResize
+	NoMove
+	NoCollapse
+	AlwaysAutoResize
+	NoSavedSettings
+)
+displayWindowFlags = $WindowFlag(
+	NoDecoration
+	NoSavedSettings
+	NoFocusOnAppearing
+	NoNav
+	NoMove
+	NoScrollWithMouse
+	AlwaysAutoResize
 )
 initFooter = true
 footerWindow = threadLoop ->
@@ -792,14 +818,6 @@ footerWindow = threadLoop ->
 				allEntries[1]
 	return unless showEntry
 
-	:width, :height = App.visualSize
-	SetNextWindowSize Vec2 50, 50
-	SetNextWindowPos Vec2 width - 50, height - 50
-	PushStyleColor "WindowBg", transparant, -> Begin "Show", windowFlags, ->
-		if isInEntry or width >= 540
-			if changed, showFooter := Checkbox "##dev", showFooter
-				config.showFooter = showFooter
-
 	if isInEntry and
 		not waitForWebStart and
 		Keyboard\isKeyPressed("LCtrl") and
@@ -807,24 +825,26 @@ footerWindow = threadLoop ->
 		reloadDevEntry!
 	if initFooter
 		initFooter = false
-	else
-		return unless showFooter
-
-	SetNextWindowSize Vec2 width, 50
-	SetNextWindowPos Vec2 0, height - 50
-	SetNextWindowBgAlpha 0.35
-	do
+	
+	:width, :height = App.visualSize
+	if isInEntry or showFooter
+		SetNextWindowSize Vec2 width, 50
+		SetNextWindowPos Vec2 0, height - 50
 		<- PushStyleVar "WindowPadding", Vec2 10, 0
+		<- PushStyleVar "WindowRounding", 0
 		<- Begin "Footer", windowFlags
 		Dummy Vec2 width - 20, 0
-		if changed, showStats := Checkbox zh and "状态" or "Stats", showStats
-			config.showStats = showStats
-		SameLine!
-		if changed, showConsole := Checkbox zh and "控制台" or "Log", showConsole
-			config.showConsole = showConsole
+		if iconTex
+			if ImageButton "sideBtn", icon, Vec2 20, 20
+				showStats = not showStats
+				config.showStats = showStats
+			SameLine!
+			if Button ">_", Vec2 30, 30
+				showConsole = not showConsole
+				config.showConsole = showConsole
 		if config.updateNotification
 			SameLine!
-			if ImGui.Button zh and "更新可用" or "Update Available"
+			if ImGui.Button zh and "更新可用" or "Update"
 				allClear!
 				config.updateNotification = false
 				enterDemoEntry [
@@ -833,7 +853,7 @@ footerWindow = threadLoop ->
 				]
 		unless isInEntry
 			SameLine!
-			back = Button zh and "主页" or "Home", Vec2 70, 30
+			back = Button zh and "退出" or "Quit", Vec2 70, 30
 			currentIndex = nil
 			for i, entry in ipairs allEntries
 				if currentEntry == entry
@@ -841,12 +861,12 @@ footerWindow = threadLoop ->
 			if currentIndex
 				if currentIndex > 1
 					SameLine!
-					if Button zh and "前一个" or "Prev", Vec2 70, 30
+					if Button "<<", Vec2 30, 30
 						allClear!
 						enterDemoEntry allEntries[currentIndex - 1]
 				if currentIndex < #allEntries
 					SameLine!
-					if Button zh and "后一个" or "Next", Vec2 70, 30
+					if Button ">>", Vec2 30, 30
 						allClear!
 						enterDemoEntry allEntries[currentIndex + 1]
 			SameLine!
@@ -856,42 +876,64 @@ footerWindow = threadLoop ->
 				allClear!
 				isInEntry = true
 				currentEntry = nil
-		<- PushStyleVar "WindowPadding", Vec2 10, 10
-		if showStats
-			SetNextWindowPos Vec2(10, 50), $SetCond FirstUseEver
-			showStats = ShowStats showStats, extraOperations
-			config.showStats = showStats
-		if showConsole
-			SetNextWindowPos Vec2(width - 425, height - 375), $SetCond FirstUseEver
-			showConsole = ShowConsole showConsole
-			config.showConsole = showConsole
+
+	showWebIDE = isInEntry
+	if config.updateNotification
+		if width < 460
+			showWebIDE = false
+	else
+		if width < 360
+			showWebIDE = false
+	if showWebIDE
+		SetNextWindowBgAlpha 0.0
+		SetNextWindowPos Vec2(width, height - 50), $SetCond(Always), Vec2 1, 0
+		Begin "Web IDE", displayWindowFlags, ->
+			if url := webStatus?.url
+				if isDesktop and not config.fullScreen
+					if urlClicked
+						BeginDisabled -> Button url
+					elseif Button url
+						urlClicked = once -> sleep 5
+						App\openURL "http://localhost:8866"
+				else
+					TextColored descColor, url
+			else
+				TextColored descColor, zh and '不可用' or 'not available'
+			SameLine!
+			TextDisabled '(?)'
+			if IsItemHovered!
+				BeginTooltip ->
+					PushTextWrapPos 280, ->
+						Text zh and '在本机或是本地局域网连接的其他设备上，使用浏览器访问这个地址来使用 Web IDE' or 'You can use the Web IDE by accessing this address in a browser on this machine or other devices connected to the local network'
+
+	unless isInEntry
+		SetNextWindowSize Vec2 50, 50
+		SetNextWindowPos Vec2 width - 50, height - 50
+		PushStyleColor "WindowBg", transparant, -> Begin "Show", displayWindowFlags, ->
+			if width >= 370
+				if changed, showFooter := Checkbox "##dev", showFooter
+					config.showFooter = showFooter
+
+	if showStats
+		<- PushStyleVar "WindowRounding", 0
+		SetNextWindowPos Vec2(0, 0), $SetCond Always
+		SetNextWindowSize Vec2 0, height - 50
+		showStats = ShowStats showStats, statusFlags, extraOperations
+		config.showStats = showStats
+	if showConsole
+		SetNextWindowPos Vec2(width - 425, height - 375), $SetCond FirstUseEver
+		<- PushStyleVar "WindowRounding", 6
+		ShowConsole!
 
 const MaxWidth = 960
 
-displayWindowFlags = $WindowFlag(
-	NoDecoration
-	NoSavedSettings
-	NoFocusOnAppearing
-	NoNav
-	NoMove
-	NoScrollWithMouse
-	AlwaysAutoResize
-	NoBringToFrontOnFocus
-)
-
-webStatus = nil
-descColor = Color 0xffa1a1a1
 toolOpen = false
 filterText = nil
 anyEntryMatched = false
-urlClicked = nil
 match = (name) ->
 	res = not filterText or name\lower!\match filterText
 	anyEntryMatched = true if res
 	res
-icon = Path "Script", "Dev", "icon_s.png"
-iconTex = nil
-thread -> iconTex = Texture2D icon if Cache\loadAsync icon
 
 sep = -> SeparatorText ""
 thinSep = -> PushStyleVar "SeparatorTextBorderSize", 1, sep
@@ -922,7 +964,7 @@ entryWindow = threadLoop ->
 		SetNextWindowPos Vec2(width / 2, height / 2), $SetCond(Always), Vec2 0.5, 0.5
 		Begin "Web IDE Connected", displayWindowFlags, ->
 			Separator!
-			TextColored themeColor, "#{zh and '网页 IDE 已连接 ……' or 'Web IDE connected ...'}"
+			TextColored themeColor, "#{zh and 'Web IDE 已连接 ……' or 'Web IDE connected ...'}"
 			if iconTex
 				Image icon, Vec2 24, 24
 				SameLine!
@@ -933,32 +975,6 @@ entryWindow = threadLoop ->
 
 	:themeColor = App
 	width: fullWidth, :height = App.visualSize
-
-	SetNextWindowBgAlpha 0.85
-	SetNextWindowPos Vec2(fullWidth - 30, height - 130), $SetCond(Always), Vec2 1, 0
-	PushStyleVar "WindowPadding", Vec2(10, 5), ->
-		Begin "Web IDE", displayWindowFlags, ->
-			Separator!
-			TextColored themeColor, "#{zh and '网页' or 'Web'} IDE"
-			SameLine!
-			TextDisabled '(?)'
-			if IsItemHovered!
-				BeginTooltip ->
-					PushTextWrapPos 280, ->
-						Text zh and '在本机或是本地局域网连接的其他设备上，使用浏览器访问下面这个地址来使用网页 IDE' or 'You can use the Web IDE by accessing the following address in a browser on this machine or other devices connected to the local network'
-			if url := webStatus?.url
-				if isDesktop and not config.fullScreen
-					if urlClicked
-						BeginDisabled -> Button url
-					elseif Button url
-						urlClicked = once -> sleep 5
-						App\openURL "http://localhost:8866"
-				else
-					TextColored descColor, url
-			else
-				TextColored descColor, zh and '不可用' or 'not available'
-			Separator!
-
 	width = math.min MaxWidth, fullWidth
 	paddingX = math.max 10, fullWidth / 2 - width / 2 - 10
 	maxColumns = math.max math.floor(width / 200), 1
@@ -968,9 +984,6 @@ entryWindow = threadLoop ->
 		<- PushStyleVar "WindowPadding", Vec2 10, 0
 		<- Begin "Dora Dev", displayWindowFlags
 		Dummy Vec2 fullWidth - 20, 0
-		if iconTex
-			Image icon, Vec2 24, 24
-			SameLine!
 		TextColored themeColor, "DORA SSR #{zh and '开发' or 'DEV'}"
 		if fullWidth >= 400
 			SameLine!
