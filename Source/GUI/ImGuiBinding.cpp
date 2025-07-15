@@ -518,10 +518,6 @@ void ShowConsole(bool initOnly) {
 	SharedImGui.showConsole(initOnly);
 }
 
-void ShowConsole() {
-	SharedImGui.showConsole();
-}
-
 bool Begin(const char* name, Slice* windowFlags, int flagCount) {
 	return ImGui::Begin(name, nullptr, WindowFlags(windowFlags, flagCount));
 }

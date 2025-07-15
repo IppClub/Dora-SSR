@@ -15,8 +15,7 @@ namespace ImGui
 	void Binding::SetDefaultFont @ SetDefaultFont(String ttfFontFile, float fontSize);
 	void Binding::ShowStats @ ShowStats(bool* pOpen, String windowFlags[tolua_len], tolua_function_void handler = nullptr);
 	void Binding::ShowStats @ ShowStats(tolua_function_void handler = nullptr);
-	void Binding::ShowConsole @ ShowConsole(bool initOnly);
-	void Binding::ShowConsole @ ShowConsole();
+	void Binding::ShowConsole @ ShowConsole(bool initOnly = false);
 	bool Binding::Begin @ Begin(CString name);
 	bool Binding::Begin @ Begin(CString name, String windowsFlags[tolua_len]);
 	bool Binding::Begin @ Begin(CString name, bool* p_open);
