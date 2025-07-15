@@ -44,8 +44,7 @@ using namespace Dora;
 void SetDefaultFont(String ttfFontFile, float fontSize);
 void ShowStats(bool* pOpen, Slice* flags, int count, const std::function<void()>& extra = nullptr);
 void ShowStats(const std::function<void()>& extra = nullptr);
-void ShowConsole(bool initOnly);
-void ShowConsole();
+void ShowConsole(bool initOnly = false);
 
 bool Begin(
 	const char* name,

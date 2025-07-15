@@ -31,7 +31,7 @@ public:
 	void render();
 	void setDefaultFont(String ttfFontFile, float fontSize);
 	void showStats(bool* pOpen, uint32_t windowFlags, const std::function<void()>& extra = nullptr);
-	void showConsole(bool initOnly = false);
+	void showConsole(bool initOnly);
 	void handleEvent(const SDL_Event& event);
 
 	class ImGuiTouchHandler : public TouchHandler {
