@@ -763,7 +763,6 @@ statusFlags = $WindowFlag(
 displayWindowFlags = $WindowFlag(
 	NoDecoration
 	NoSavedSettings
-	NoFocusOnAppearing
 	NoNav
 	NoMove
 	NoScrollWithMouse
@@ -914,16 +913,17 @@ footerWindow = threadLoop ->
 				if changed, showFooter := Checkbox "##dev", showFooter
 					config.showFooter = showFooter
 
-	if (isInEntry or showFooter) and showStats
-		<- PushStyleVar "WindowRounding", 0
-		SetNextWindowPos Vec2(0, 0), $SetCond Always
-		SetNextWindowSize Vec2 0, height - 50
-		showStats = ShowStats showStats, statusFlags, extraOperations
-		config.showStats = showStats
-	if showConsole
-		SetNextWindowPos Vec2(width - 425, height - 375), $SetCond FirstUseEver
-		<- PushStyleVar "WindowRounding", 6
-		ShowConsole!
+	if isInEntry or showFooter
+		if showStats
+			<- PushStyleVar "WindowRounding", 0
+			SetNextWindowPos Vec2(0, 0), $SetCond Always
+			SetNextWindowSize Vec2 0, height - 50
+			showStats = ShowStats showStats, statusFlags, extraOperations
+			config.showStats = showStats
+		if showConsole
+			SetNextWindowPos Vec2(width - 425, height - 375), $SetCond FirstUseEver
+			<- PushStyleVar "WindowRounding", 6
+			ShowConsole!
 
 const MaxWidth = 960
 
@@ -980,9 +980,10 @@ entryWindow = threadLoop ->
 	maxColumns = math.max math.floor(width / 200), 1
 	SetNextWindowPos Vec2.zero
 	SetNextWindowBgAlpha 0
+	SetNextWindowSize Vec2 fullWidth, 60
 	do
 		<- PushStyleVar "WindowPadding", Vec2 10, 0
-		<- Begin "Dora Dev", displayWindowFlags
+		<- Begin "Dora Dev", windowFlags
 		Dummy Vec2 fullWidth - 20, 0
 		TextColored themeColor, "Dora SSR #{zh and '开发' or 'Dev'}"
 		if fullWidth >= 400
