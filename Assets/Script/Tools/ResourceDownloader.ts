@@ -67,6 +67,8 @@ const windowsNoScrollFlags = [
 	WindowFlag.NoResize,
 	WindowFlag.NoDecoration,
 	WindowFlag.NoNav,
+	WindowFlag.NoSavedSettings,
+	WindowFlag.NoFocusOnAppearing,
 	WindowFlag.NoBringToFrontOnFocus,
 ];
 
@@ -76,7 +78,9 @@ const windowsFlags = [
 	WindowFlag.NoResize,
 	WindowFlag.NoDecoration,
 	WindowFlag.NoNav,
+	WindowFlag.NoSavedSettings,
 	WindowFlag.AlwaysVerticalScrollbar,
+	WindowFlag.NoFocusOnAppearing,
 	WindowFlag.NoBringToFrontOnFocus,
 ];
 

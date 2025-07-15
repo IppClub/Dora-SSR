@@ -795,6 +795,7 @@ void ImGuiDora::showStats(bool* pOpen, uint32_t windowFlags, const std::function
 	ImGui::End();
 
 	if (_showPlot) {
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 6.0f);
 		Size size = SharedApplication.getVisualSize();
 		ImGui::SetNextWindowPos(Vec2{size.width / 2 - 160.0f, 10.0f}, ImGuiCond_FirstUseEver);
 		if (ImGui::Begin(useChinese ? r_cast<const char*>(u8"每秒内帧耗时峰值(ms)") : "Frame Time Peaks(ms/s)", nullptr, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize)) {
@@ -848,6 +849,7 @@ void ImGuiDora::showStats(bool* pOpen, uint32_t windowFlags, const std::function
 			}
 			ImGui::End();
 		}
+		ImGui::PopStyleVar();
 	}
 }
 

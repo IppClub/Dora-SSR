@@ -833,7 +833,7 @@ footerWindow = threadLoop ->
 		<- PushStyleVar "WindowPadding", Vec2 10, 0
 		<- PushStyleVar "WindowRounding", 0
 		<- Begin "Footer", windowFlags
-		Dummy Vec2 width - 20, 0
+		Separator!
 		if iconTex
 			if ImageButton "sideBtn", icon, Vec2 20, 20
 				showStats = not showStats
@@ -914,7 +914,7 @@ footerWindow = threadLoop ->
 				if changed, showFooter := Checkbox "##dev", showFooter
 					config.showFooter = showFooter
 
-	if showStats
+	if (isInEntry or showFooter) and showStats
 		<- PushStyleVar "WindowRounding", 0
 		SetNextWindowPos Vec2(0, 0), $SetCond Always
 		SetNextWindowSize Vec2 0, height - 50
@@ -984,7 +984,7 @@ entryWindow = threadLoop ->
 		<- PushStyleVar "WindowPadding", Vec2 10, 0
 		<- Begin "Dora Dev", displayWindowFlags
 		Dummy Vec2 fullWidth - 20, 0
-		TextColored themeColor, "DORA SSR #{zh and '开发' or 'DEV'}"
+		TextColored themeColor, "Dora SSR #{zh and '开发' or 'Dev'}"
 		if fullWidth >= 400
 			SameLine!
 			Dummy Vec2 fullWidth - 400, 0

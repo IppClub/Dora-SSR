@@ -67,7 +67,6 @@ local ipairs = _G.ipairs -- 1
 local threadLoop = Dora.threadLoop -- 1
 local Keyboard = Dora.Keyboard -- 1
 local SetNextWindowPos = _module_0.SetNextWindowPos -- 1
-local Dummy = _module_0.Dummy -- 1
 local ImageButton = _module_0.ImageButton -- 1
 local ImGui = Dora.ImGui -- 1
 local SetNextWindowBgAlpha = _module_0.SetNextWindowBgAlpha -- 1
@@ -80,6 +79,7 @@ local PushStyleColor = _module_0.PushStyleColor -- 1
 local ShowStats = _module_0.ShowStats -- 1
 local coroutine = _G.coroutine -- 1
 local Image = _module_0.Image -- 1
+local Dummy = _module_0.Dummy -- 1
 local SetNextItemWidth = _module_0.SetNextItemWidth -- 1
 local InputText = _module_0.InputText -- 1
 local Columns = _module_0.Columns -- 1
@@ -1382,7 +1382,7 @@ footerWindow = threadLoop(function() -- 773
 		PushStyleVar("WindowPadding", Vec2(10, 0), function() -- 833
 			return PushStyleVar("WindowRounding", 0, function() -- 834
 				return Begin("Footer", windowFlags, function() -- 835
-					Dummy(Vec2(width - 20, 0)) -- 836
+					Separator() -- 836
 					if iconTex then -- 837
 						if ImageButton("sideBtn", icon, Vec2(20, 20)) then -- 838
 							showStats = not showStats -- 839
@@ -1508,7 +1508,7 @@ footerWindow = threadLoop(function() -- 773
 			end) -- 915
 		end) -- 912
 	end -- 909
-	if showStats then -- 917
+	if (isInEntry or showFooter) and showStats then -- 917
 		PushStyleVar("WindowRounding", 0, function() -- 918
 			SetNextWindowPos(Vec2(0, 0), "Always") -- 919
 			SetNextWindowSize(Vec2(0, height - 50)) -- 920
@@ -1610,7 +1610,7 @@ entryWindow = threadLoop(function() -- 941
 		PushStyleVar("WindowPadding", Vec2(10, 0), function() -- 984
 			return Begin("Dora Dev", displayWindowFlags, function() -- 985
 				Dummy(Vec2(fullWidth - 20, 0)) -- 986
-				TextColored(themeColor, "DORA SSR " .. tostring(zh and '开发' or 'DEV')) -- 987
+				TextColored(themeColor, "Dora SSR " .. tostring(zh and '开发' or 'Dev')) -- 987
 				if fullWidth >= 400 then -- 988
 					SameLine() -- 989
 					Dummy(Vec2(fullWidth - 400, 0)) -- 990
