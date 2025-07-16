@@ -11,6 +11,7 @@
 		3C078D7D2E14CD2D00C05BA4 /* AudioSource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C078D7C2E14CD2D00C05BA4 /* AudioSource.cpp */; };
 		3C0EBE301E2DB3FB0066450A /* libbx.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C0EBE2F1E2DB3FB0066450A /* libbx.a */; };
 		3C1FE9822D6D64CB0017CD23 /* yarn_compiler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C1FE9802D6D64CB0017CD23 /* yarn_compiler.cpp */; };
+		3C2496AA2E277F290089D513 /* FontCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C2496A92E277F290089D513 /* FontCache.cpp */; };
 		3C2F9C8A1E7B114B00B98D39 /* ModelDef.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C2F9C881E7B114B00B98D39 /* ModelDef.cpp */; };
 		3C5399EB2998BAF000E9125C /* ljson.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C5399EA2998BAF000E9125C /* ljson.c */; };
 		3C53E9372BE8CF1100039640 /* AbsoluteLayout.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C53E8E62BE8CF1100039640 /* AbsoluteLayout.cpp */; };
@@ -573,6 +574,8 @@
 		3C1D40F02702FD7C00202534 /* tl.lua */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = tl.lua; sourceTree = "<group>"; };
 		3C1FE97F2D6D64CB0017CD23 /* yarn_compiler.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = yarn_compiler.h; sourceTree = "<group>"; };
 		3C1FE9802D6D64CB0017CD23 /* yarn_compiler.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = yarn_compiler.cpp; sourceTree = "<group>"; };
+		3C2496A82E277F290089D513 /* FontCache.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FontCache.h; sourceTree = "<group>"; };
+		3C2496A92E277F290089D513 /* FontCache.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = FontCache.cpp; sourceTree = "<group>"; };
 		3C2F9C881E7B114B00B98D39 /* ModelDef.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ModelDef.cpp; sourceTree = "<group>"; };
 		3C338EEE2D3BFBC300074E88 /* nfd_sdl2.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = nfd_sdl2.h; sourceTree = "<group>"; };
 		3C4B3DDF2C0709E000D778FC /* UnitMagnitudeChecker.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = UnitMagnitudeChecker.hpp; sourceTree = "<group>"; };
@@ -3672,6 +3675,8 @@
 				3C5929CB2CA4ED1900CAF224 /* ClipCache.cpp */,
 				3C5929CC2CA4ED1900CAF224 /* DragonBoneCache.h */,
 				3C5929CD2CA4ED1900CAF224 /* DragonBoneCache.cpp */,
+				3C2496A82E277F290089D513 /* FontCache.h */,
+				3C2496A92E277F290089D513 /* FontCache.cpp */,
 				3C5929CE2CA4ED1900CAF224 /* FrameCache.h */,
 				3C5929CF2CA4ED1900CAF224 /* FrameCache.cpp */,
 				3C5929D02CA4ED1900CAF224 /* ModelCache.h */,
@@ -4261,6 +4266,7 @@
 				3C5934692CA4F92600CAF224 /* DeformVertices.cpp in Sources */,
 				3C5936252CA4F9EF00CAF224 /* tinyxml2.cpp in Sources */,
 				3C5936262CA4F9EF00CAF224 /* SAXParser.cpp in Sources */,
+				3C2496AA2E277F290089D513 /* FontCache.cpp in Sources */,
 				3C59346A2CA4F92600CAF224 /* AnimationConfig.cpp in Sources */,
 				3C59346B2CA4F92600CAF224 /* UserData.cpp in Sources */,
 				3C59346C2CA4F92600CAF224 /* TextureAtlasData.cpp in Sources */,

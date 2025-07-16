@@ -1863,6 +1863,9 @@
     <ClCompile Include="..\..\..\Source\Node\AudioSource.cpp">
       <Filter>Node</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\Source\Cache\FontCache.cpp">
+      <Filter>Cache</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\Source\3rdParty\silly\Slice.h">
@@ -4184,6 +4187,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\Source\Node\AudioSource.h">
       <Filter>Node</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Cache\FontCache.h">
+      <Filter>Cache</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

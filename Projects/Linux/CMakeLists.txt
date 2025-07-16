@@ -96,6 +96,7 @@ add_executable(dora-ssr
 	../../Source/Cache/ModelCache.cpp
 	../../Source/Cache/DragonBoneCache.cpp
 	../../Source/Cache/AudioCache.cpp
+	../../Source/Cache/FontCache.cpp
 	../../Source/Cache/FrameCache.cpp
 	../../Source/Cache/SVGCache.cpp
 	../../Source/Cache/TMXCache.cpp

@@ -95,6 +95,7 @@ add_library(main SHARED
 	src/main/cpp/Cache/ModelCache.cpp
 	src/main/cpp/Cache/DragonBoneCache.cpp
 	src/main/cpp/Cache/AudioCache.cpp
+	src/main/cpp/Cache/FontCache.cpp
 	src/main/cpp/Cache/FrameCache.cpp
 	src/main/cpp/Cache/SVGCache.cpp
 	src/main/cpp/Cache/TMXCache.cpp

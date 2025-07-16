@@ -21,6 +21,7 @@ class Listener;
 class Texture2D;
 class Pass;
 class ConsolePanel;
+class TrueTypeFile;
 
 class ImGuiDora : public NonCopyable {
 public:
@@ -69,7 +70,7 @@ private:
 	Vec2 _mouseWheel;
 	int _lastCursor;
 	std::list<Ref<Texture2D>> _textures;
-	OwnArray<uint8_t> _fontData;
+	Ref<TrueTypeFile> _fontFile;
 	bgfx::UniformHandle _sampler;
 	Ref<Pass> _imagePass;
 	Ref<Pass> _defaultPass;
@@ -81,9 +82,7 @@ private:
 	Own<ConsolePanel> _console;
 	std::shared_ptr<ImGuiTouchHandler> _touchHandler;
 	std::unordered_map<int, int> _keymap;
-	SINGLETON_REF(ImGuiDora, BGFXDora);
-	// font building is calling in thread, so make thread depend on ImGui
-	SINGLETON_REF(AsyncThread, ImGuiDora);
+	SINGLETON_REF(ImGuiDora, FontManager, BGFXDora);
 };
 
 #define SharedImGui \

@@ -11,84 +11,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Node/Node.h"
 #include "Node/Sprite.h"
 #include "Support/Geometry.h"
-#include "font/font_manager.h"
 
 NS_DORA_BEGIN
 
-class TrueTypeFile : public Object {
-public:
-	PROPERTY_READONLY(bgfx::TrueTypeHandle, Handle);
-	CREATE_FUNC_NOT_NULL(TrueTypeFile);
-	virtual ~TrueTypeFile();
-
-protected:
-	TrueTypeFile(bgfx::TrueTypeHandle handle);
-
-private:
-	bgfx::TrueTypeHandle _handle;
-};
-
-class Font : public Object {
-public:
-	PROPERTY_READONLY(bgfx::FontHandle, Handle);
-	PROPERTY_READONLY_CREF_EXCEPT(bgfx::FontInfo, Info);
-	PROPERTY_READONLY(TrueTypeFile*, File);
-	CREATE_FUNC_NOT_NULL(Font);
-	virtual ~Font();
-
-protected:
-	Font(NotNull<TrueTypeFile, 1> file, bgfx::FontHandle handle);
-
-private:
-	bgfx::FontHandle _handle;
-	Ref<TrueTypeFile> _file;
-};
-
-class FontManager : public bgfx::FontManager {
-protected:
-	FontManager()
-		: bgfx::FontManager(DORA_FONT_TEXTURE_SIZE) { }
-	SINGLETON_REF(FontManager, BGFXDora);
-};
-
-#define SharedFontManager \
-	Dora::Singleton<Dora::FontManager>::shared()
-
-class FontCache {
-public:
-	PROPERTY_READONLY(SpriteEffect*, DefaultEffect);
-	PROPERTY_READONLY(SpriteEffect*, SDFEffect);
-	PROPERTY_READONLY(bgfx::FontManager*, Manager);
-	virtual ~FontCache();
-	void loadAync(String fontStr,
-		const std::function<void(Font* font)>& callback);
-	void loadAync(String fontName, uint32_t fontSize, bool sdf,
-		const std::function<void(Font* font)>& callback);
-	Font* load(String fontStr);
-	Font* load(String fontName, uint32_t fontSize, bool sdf);
-	bool unload();
-	bool unload(String fontStr);
-	bool unload(String fontName, uint32_t fontSize);
-	void removeUnused();
-	Sprite* createCharacter(Font* font, bgfx::CodePoint character);
-	std::tuple<Texture2D*, Rect> getCharacterInfo(Font* font, bgfx::CodePoint character);
-	const bgfx::GlyphInfo* getGlyphInfo(Font* font, bgfx::CodePoint character);
-	const bgfx::GlyphInfo* updateCharacter(Sprite* sp, Font* font, bgfx::CodePoint character);
-
-protected:
-	FontCache();
-
-private:
-	std::tuple<std::string, int, bool> getArgsFromStr(String fontStr);
-	Ref<SpriteEffect> _defaultEffect;
-	Ref<SpriteEffect> _sdfEffect;
-	StringMap<Ref<TrueTypeFile>> _fontFiles;
-	StringMap<Ref<Font>> _fonts;
-	SINGLETON_REF(FontCache, FontManager, BGFXDora);
-};
-
-#define SharedFontCache \
-	Dora::Singleton<Dora::FontCache>::shared()
+class SpriteEffect;
+class Font;
 
 enum struct TextAlign {
 	Left = 0,

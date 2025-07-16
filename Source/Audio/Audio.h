@@ -24,12 +24,12 @@ NS_DORA_BEGIN
 class AudioFile : public Object {
 public:
 	PROPERTY_READONLY_CLASS(uint64_t, StorageSize);
-	PROPERTY_READONLY_CLASS(uint64_t, Count);
+	PROPERTY_READONLY_CLASS(uint32_t, Count);
 	virtual SoLoud::AudioSource* getSource() const = 0;
 
 protected:
 	static uint64_t _storageSize;
-	static uint64_t _count;
+	static uint32_t _count;
 };
 
 class WavFile : public AudioFile {

@@ -107,6 +107,12 @@ BGFX_HANDLE(FontHandle);
 
 class FontManager {
 public:
+	struct CachedFont;
+	struct CachedFile {
+		Dora::OwnArray<uint8_t> buffer;
+		uint32_t bufferSize;
+	};
+
 	/// Create the font manager and create the texture cube as BGRA8 with
 	/// linear filtering.
 	FontManager(uint16_t _textureSideWidth);
@@ -116,10 +122,12 @@ public:
 	/// thus can be freed or reused after this call.
 	///
 	/// @return invalid handle if the loading fail
-	TrueTypeHandle createTtf(const uint8_t* _buffer, uint32_t _size);
+	TrueTypeHandle createTtf(Dora::OwnArray<uint8_t>&& _buffer, uint32_t _size);
 
 	/// Unload a TrueType font (free font memory) but keep loaded glyphs.
 	void destroyTtf(TrueTypeHandle _handle);
+
+	CachedFile* getCachedFile(TrueTypeHandle _handle) const;
 
 	/// Return a font whose height is a fixed pixel size.
 	FontHandle createFontByPixelSize(TrueTypeHandle _handle, uint32_t _pixelSize, bool _sdf);
@@ -147,11 +155,6 @@ protected:
 	void operator=(const FontManager&) = delete;
 
 private:
-	struct CachedFont;
-	struct CachedFile {
-		Dora::OwnArray<uint8_t> buffer;
-		uint32_t bufferSize;
-	};
 
 	void init();
 	bool addBitmap(GlyphInfo& _glyphInfo, const uint8_t* _data);

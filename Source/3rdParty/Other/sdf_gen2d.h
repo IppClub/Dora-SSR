@@ -18,7 +18,7 @@ namespace sdf {
 
 class sdf_fgen2d {
 public:
-	static constexpr float suggested_edge_x = 0.735f;
+	static constexpr float suggested_edge_x = 0.720f;
 	static constexpr float suggested_edge_y = 0.735f;
 
 	using sdf_point2d = ktm::svec2;
@@ -177,8 +177,8 @@ private:
 
 class sdf_igen2d {
 public:
-	static constexpr float suggested_edge_x = 0.702f;
-	static constexpr float suggested_edge_y = 0.702f;
+	static constexpr float suggested_edge_x = 0.690f;
+	static constexpr float suggested_edge_y = 0.705f;
 
 	struct sdf_point2d {
 		int dx, dy;

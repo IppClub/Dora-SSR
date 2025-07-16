@@ -173,12 +173,11 @@ FontManager::~FontManager() {
 	assert(m_filesHandles.getNumHandles() == 0); // All the font files must be destroyed before destroying the manager
 }
 
-TrueTypeHandle FontManager::createTtf(const uint8_t* _buffer, uint32_t _size) {
+TrueTypeHandle FontManager::createTtf(Dora::OwnArray<uint8_t>&& _buffer, uint32_t _size) {
 	uint16_t id = m_filesHandles.alloc();
 	AssertUnless(id != bx::kInvalidHandle, "Invalid handle used");
-	m_cachedFiles.get()[id].buffer = NewArray<uint8_t>(_size);
+	m_cachedFiles.get()[id].buffer = std::move(_buffer);
 	m_cachedFiles.get()[id].bufferSize = _size;
-	memcpy(m_cachedFiles.get()[id].buffer.get(), _buffer, _size);
 
 	TrueTypeHandle ret = {id};
 	return ret;
@@ -190,6 +189,11 @@ void FontManager::destroyTtf(TrueTypeHandle _handle) {
 	m_cachedFiles.get()[_handle.idx].bufferSize = 0;
 	m_cachedFiles.get()[_handle.idx].buffer = nullptr;
 	m_filesHandles.free(_handle.idx);
+}
+
+FontManager::CachedFile* FontManager::getCachedFile(TrueTypeHandle _handle) const {
+	AssertUnless(bgfx::isValid(_handle), "Invalid handle used");
+	return &m_cachedFiles.get()[_handle.idx];
 }
 
 FontHandle FontManager::createFontByPixelSize(TrueTypeHandle _ttfHandle, uint32_t _pixelSize, bool _sdf) {
