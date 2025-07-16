@@ -168,6 +168,8 @@
 		3C12442E2D6D9A3800FD1346 /* yarn_compiler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C12442C2D6D9A3800FD1346 /* yarn_compiler.cpp */; };
 		3C12442F2D6D9A3800FD1346 /* yarn_compiler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C12442C2D6D9A3800FD1346 /* yarn_compiler.cpp */; };
 		3C1F87C91DF7B4C5005F1B4D /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C1F87C81DF7B4C5005F1B4D /* AVFoundation.framework */; };
+		3C2496AE2E2795850089D513 /* FontCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C2496AD2E2795850089D513 /* FontCache.cpp */; };
+		3C2496AF2E2795850089D513 /* FontCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C2496AD2E2795850089D513 /* FontCache.cpp */; };
 		3C361E532C1AFF400079B68B /* pugixml.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C361E392C1AFF400079B68B /* pugixml.cpp */; };
 		3C361E542C1AFF400079B68B /* pugixml.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3C361E392C1AFF400079B68B /* pugixml.cpp */; };
 		3C5399F62998DEF800E9125C /* ljson.c in Sources */ = {isa = PBXBuildFile; fileRef = 3C5399F52998DEF800E9125C /* ljson.c */; };
@@ -1351,6 +1353,8 @@
 		3C12442C2D6D9A3800FD1346 /* yarn_compiler.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = yarn_compiler.cpp; sourceTree = "<group>"; };
 		3C1D41002703019800202534 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Assets.xcassets; path = Dora/Assets.xcassets; sourceTree = "<group>"; };
 		3C1F87C81DF7B4C5005F1B4D /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
+		3C2496AC2E2795850089D513 /* FontCache.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FontCache.h; sourceTree = "<group>"; };
+		3C2496AD2E2795850089D513 /* FontCache.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = FontCache.cpp; sourceTree = "<group>"; };
 		3C329DDD2B39D8AC002BC023 /* Dora.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Dora.h; sourceTree = "<group>"; };
 		3C361E362C1AFF400079B68B /* Android.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Android.hpp; sourceTree = "<group>"; };
 		3C361E372C1AFF400079B68B /* Log.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Log.hpp; sourceTree = "<group>"; };
@@ -3805,6 +3809,8 @@
 				3C592FBD2CA4F67300CAF224 /* ClipCache.cpp */,
 				3C592FBE2CA4F67300CAF224 /* DragonBoneCache.h */,
 				3C592FBF2CA4F67300CAF224 /* DragonBoneCache.cpp */,
+				3C2496AC2E2795850089D513 /* FontCache.h */,
+				3C2496AD2E2795850089D513 /* FontCache.cpp */,
 				3C592FC02CA4F67300CAF224 /* FrameCache.h */,
 				3C592FC12CA4F67300CAF224 /* FrameCache.cpp */,
 				3C592FC22CA4F67300CAF224 /* ModelCache.h */,
@@ -5165,6 +5171,7 @@
 				3C5932352CA4F67300CAF224 /* Singleton.cpp in Sources */,
 				3C5932362CA4F67300CAF224 /* BodyDef.cpp in Sources */,
 				3C5932372CA4F67300CAF224 /* Node.cpp in Sources */,
+				3C2496AF2E2795850089D513 /* FontCache.cpp in Sources */,
 				3C5932382CA4F67300CAF224 /* Listener.cpp in Sources */,
 				3C5932392CA4F67300CAF224 /* Camera.cpp in Sources */,
 				3C59323A2CA4F67300CAF224 /* Model.cpp in Sources */,
@@ -5694,6 +5701,7 @@
 				3C5931582CA4F67300CAF224 /* Singleton.cpp in Sources */,
 				3C5931592CA4F67300CAF224 /* BodyDef.cpp in Sources */,
 				3C59315A2CA4F67300CAF224 /* Node.cpp in Sources */,
+				3C2496AE2E2795850089D513 /* FontCache.cpp in Sources */,
 				3C59315B2CA4F67300CAF224 /* Listener.cpp in Sources */,
 				3C59315C2CA4F67300CAF224 /* Camera.cpp in Sources */,
 				3C59315D2CA4F67300CAF224 /* Model.cpp in Sources */,

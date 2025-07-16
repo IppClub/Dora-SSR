@@ -855,13 +855,18 @@ lua_State* LuaEngine::getState() const noexcept {
 	return L;
 }
 
-int LuaEngine::getMemoryCount() const noexcept {
+int LuaEngine::getRuntimeMemory() const noexcept {
 	int k = lua_gc(L, LUA_GCCOUNT);
 	int b = lua_gc(L, LUA_GCCOUNTB);
 	int memLua = (k * 1024 + b);
+	return memLua;
+}
+
+int LuaEngine::getTealMemory() const noexcept {
+	int memLua = 0;
 	if (_tlState) {
-		k = lua_gc(_tlState->L, LUA_GCCOUNT);
-		b = lua_gc(_tlState->L, LUA_GCCOUNTB);
+		int k = lua_gc(_tlState->L, LUA_GCCOUNT);
+		int b = lua_gc(_tlState->L, LUA_GCCOUNTB);
 		memLua += (k * 1024 + b);
 	}
 	return memLua;

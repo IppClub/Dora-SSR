@@ -24,6 +24,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Cache/Cache.h"
 #include "Cache/ClipCache.h"
 #include "Cache/DragonBoneCache.h"
+#include "Cache/FontCache.h"
 #include "Cache/FrameCache.h"
 #include "Cache/ModelCache.h"
 #include "Cache/ParticleCache.h"

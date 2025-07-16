@@ -10,10 +10,12 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "GUI/ImGuiDora.h"
 
+#include "Audio/Audio.h"
 #include "Basic/Application.h"
 #include "Basic/Content.h"
 #include "Basic/Director.h"
 #include "Basic/Scheduler.h"
+#include "Cache/FontCache.h"
 #include "Cache/ShaderCache.h"
 #include "Cache/TextureCache.h"
 #include "Effect/Effect.h"
@@ -434,17 +436,14 @@ void ImGuiDora::setImePositionHint(int x, int y) {
 void ImGuiDora::setDefaultFont(String ttfFontFile, float fontSize) {
 	AssertIf(ImGui::GetIO().Fonts->Locked, "font is locked, can only load font in system scheduler.");
 
-	ImGuiIO& io = ImGui::GetIO();
-
-	auto fileData = SharedContent.load(ttfFontFile);
-
-	if (fileData.second == 0) {
+	auto fontFile = SharedFontCache.loadFontFile(ttfFontFile);
+	if (fontFile == nullptr) {
 		Warn("failed to load ttf file for ImGui!");
 		return;
 	}
+	_fontFile = fontFile;
 
-	_fontData = std::move(fileData.first);
-
+	ImGuiIO& io = ImGui::GetIO();
 	io.Fonts->Clear();
 
 	ImFontConfig fontConfig;
@@ -452,7 +451,7 @@ void ImGuiDora::setDefaultFont(String ttfFontFile, float fontSize) {
 	fontConfig.PixelSnapH = true;
 	fontConfig.OversampleH = 1;
 	fontConfig.OversampleV = 1;
-	auto font = io.Fonts->AddFontFromMemoryTTF(_fontData.get(), s_cast<int>(fileData.second), fontSize, &fontConfig);
+	auto font = io.Fonts->AddFontFromMemoryTTF(fontFile->getBuffer(), s_cast<int>(fontFile->getSize()), fontSize, &fontConfig);
 	io.FontDefault = font;
 }
 
@@ -478,7 +477,7 @@ void ImGuiDora::showStats(bool* pOpen, uint32_t windowFlags, const std::function
 			ImGui::SameLine();
 			ImGui::TextUnformatted(info->renderer);
 			itemHovered |= ImGui::IsItemHovered();
-			if (itemHovered) HelpMarker(useChinese ? u8"当前使用的渲染底层的图形接口，可能是OpenGL、OpenGLES、DirectX11、Metal和Vulkan之一"sv : "the current rendering graphics interface which can be OpenGL, OpenGLES, DirectX11, Metal or Vulkan"_slice);
+			if (itemHovered) HelpMarker(useChinese ? u8"当前使用的渲染底层的图形接口，可能是 OpenGL、OpenGLES、DirectX11、Metal 和 Vulkan 之一"sv : "the current rendering graphics interface which can be OpenGL, OpenGLES, DirectX11, Metal or Vulkan"_slice);
 			ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"多线程渲染：") : "Multi Threaded:");
 			itemHovered = ImGui::IsItemHovered();
 			ImGui::SameLine();
@@ -491,7 +490,7 @@ void ImGuiDora::showStats(bool* pOpen, uint32_t windowFlags, const std::function
 			Size size = SharedView.getSize();
 			ImGui::Text("%d x %d", s_cast<int>(size.width), s_cast<int>(size.height));
 			itemHovered |= ImGui::IsItemHovered();
-			if (itemHovered) HelpMarker(useChinese ? u8"主渲染缓冲区的大小，渲染缓冲区越大会越发明显的增加GPU渲染的开销"sv : "the size of the main rendering buffer, larger rendering buffer will increase GPU rendering overhead"_slice);
+			if (itemHovered) HelpMarker(useChinese ? u8"主渲染缓冲区的大小，渲染缓冲区越大会越发明显的增加 GPU 渲染的开销"sv : "the size of the main rendering buffer, larger rendering buffer will increase GPU rendering overhead"_slice);
 			ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"渲染调用：") : "Draw Call:");
 			itemHovered = ImGui::IsItemHovered();
 			ImGui::SameLine();
@@ -503,14 +502,14 @@ void ImGuiDora::showStats(bool* pOpen, uint32_t windowFlags, const std::function
 			ImGui::SameLine();
 			ImGui::Text("%d", bgfx::getStats()->numPrims[bgfx::Topology::TriStrip] + bgfx::getStats()->numPrims[bgfx::Topology::TriList]);
 			itemHovered |= ImGui::IsItemHovered();
-			if (itemHovered) HelpMarker(useChinese ? u8"当前提交到GPU进行渲染的三角形的数量"sv : "the number of triangles submitted to the GPU for rendering"_slice);
+			if (itemHovered) HelpMarker(useChinese ? u8"当前提交到 GPU 进行渲染的三角形的数量"sv : "the number of triangles submitted to the GPU for rendering"_slice);
 			ImGui::SameLine();
 			ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"线段：") : "Line:");
 			itemHovered = ImGui::IsItemHovered();
 			ImGui::SameLine();
 			ImGui::Text("%d", bgfx::getStats()->numPrims[bgfx::Topology::LineStrip] + bgfx::getStats()->numPrims[bgfx::Topology::LineList]);
 			itemHovered |= ImGui::IsItemHovered();
-			if (itemHovered) HelpMarker(useChinese ? u8"当前提交到GPU进行渲染的线段的数量"sv : "the number of line segments submitted to the GPU for rendering"_slice);
+			if (itemHovered) HelpMarker(useChinese ? u8"当前提交到 GPU 进行渲染的线段的数量"sv : "the number of line segments submitted to the GPU for rendering"_slice);
 			ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"可视区尺寸：") : "Visual Size:");
 			itemHovered = ImGui::IsItemHovered();
 			ImGui::SameLine();
@@ -549,13 +548,13 @@ void ImGuiDora::showStats(bool* pOpen, uint32_t windowFlags, const std::function
 			if (ImGui::Checkbox(useChinese ? r_cast<const char*>(u8"垂直同步") : "VSync", &vsync)) {
 				SharedView.setVSync(vsync);
 			}
-			if (ImGui::IsItemHovered()) HelpMarker(useChinese ? u8"垂直同步用于使GPU将在显示屏每次刷新之前进行等待，防止图形渲染过快导致的画面撕裂的现象"sv : "vertical synchronization is used to make the GPU wait before each refresh of the display to prevent screen tearing caused by too fast graphics rendering"_slice);
+			if (ImGui::IsItemHovered()) HelpMarker(useChinese ? u8"垂直同步用于使 GPU 将在显示屏每次刷新之前进行等待，防止图形渲染过快导致的画面撕裂的现象"sv : "vertical synchronization is used to make the GPU wait before each refresh of the display to prevent screen tearing caused by too fast graphics rendering"_slice);
 			ImGui::SameLine();
 			bool fpsLimited = SharedApplication.isFPSLimited();
 			if (ImGui::Checkbox(useChinese ? r_cast<const char*>(u8"限制帧数") : "FPS Limited", &fpsLimited)) {
 				SharedApplication.setFPSLimited(fpsLimited);
 			}
-			if (ImGui::IsItemHovered()) HelpMarker(useChinese ? u8"帧数限制会使引擎通过执行一个忙等待的死循环以获取更加精准的机器时间，并计算切换到下一帧的时间点。这是在PC机Windows系统上的通常做法，以提升CPU占用率来提升游戏的性能。但这也会导致额外的芯片热量产生和电力消耗"sv : "FPS limiting will make engine run in a busy loop to track the  precise frame time to switch to the next frame. And this behavior can lead to 100% CPU usage. This is usually common practice on Windows PCs for better CPU usage occupation. But it also results in extra heat and power consumption"_slice);
+			if (ImGui::IsItemHovered()) HelpMarker(useChinese ? u8"帧数限制会使引擎通过执行一个忙等待的死循环以获取更加精准的机器时间，并计算切换到下一帧的时间点。这是在 PC 机 Windows 系统上的通常做法，以提升 CPU 占用率来提升游戏的性能。但这也会导致额外的芯片热量产生和电力消耗"sv : "FPS limiting will make engine run in a busy loop to track the  precise frame time to switch to the next frame. And this behavior can lead to 100% CPU usage. This is usually common practice on Windows PCs for better CPU usage occupation. But it also results in extra heat and power consumption"_slice);
 			ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"帧数：") : "FPS:");
 			itemHovered = ImGui::IsItemHovered();
 			ImGui::SameLine();
@@ -589,7 +588,7 @@ void ImGuiDora::showStats(bool* pOpen, uint32_t windowFlags, const std::function
 		}
 		if (ImGui::CollapsingHeader(useChinese ? r_cast<const char*>(u8"时间") : "Time")) {
 			ImGui::Checkbox(useChinese ? r_cast<const char*>(u8"显示图表") : "Show Plot", &_showPlot);
-			if (ImGui::IsItemHovered()) HelpMarker(useChinese ? u8"显示每秒内的帧耗时峰值和CPU时间的占比的图表"sv : "display the graphs showing the peak frame time spent per second and the percentage of CPU time"_slice);
+			if (ImGui::IsItemHovered()) HelpMarker(useChinese ? u8"显示每秒内的帧耗时峰值和 CPU 时间的占比的图表"sv : "display the graphs showing the peak frame time spent per second and the percentage of CPU time"_slice);
 			ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"当前帧数：") : "Current FPS:");
 			itemHovered = ImGui::IsItemHovered();
 			ImGui::SameLine();
@@ -600,7 +599,7 @@ void ImGuiDora::showStats(bool* pOpen, uint32_t windowFlags, const std::function
 			}
 			itemHovered |= ImGui::IsItemHovered();
 			if (itemHovered) HelpMarker(useChinese ? u8"最近一秒内过去的游戏帧数"sv : "the passd frames in the last second"_slice);
-			ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"平均CPU耗时：") : "AVG CPU:");
+			ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"平均 CPU 耗时：") : "AVG CPU:");
 			itemHovered = ImGui::IsItemHovered();
 			ImGui::SameLine();
 			if (info->lastAvgCPUTime == 0)
@@ -608,8 +607,8 @@ void ImGuiDora::showStats(bool* pOpen, uint32_t windowFlags, const std::function
 			else
 				ImGui::Text("%.1f ms", info->lastAvgCPUTime);
 			itemHovered |= ImGui::IsItemHovered();
-			if (itemHovered) HelpMarker(useChinese ? u8"最近一秒内每帧平均CPU耗时"sv : "average CPU time per frame in the last second"_slice);
-			ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"平均GPU耗时：") : "AVG GPU:");
+			if (itemHovered) HelpMarker(useChinese ? u8"最近一秒内每帧平均 CPU 耗时"sv : "average CPU time per frame in the last second"_slice);
+			ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"平均 GPU 耗时：") : "AVG GPU:");
 			itemHovered = ImGui::IsItemHovered();
 			ImGui::SameLine();
 			if (info->lastAvgGPUTime == 0)
@@ -617,27 +616,47 @@ void ImGuiDora::showStats(bool* pOpen, uint32_t windowFlags, const std::function
 			else
 				ImGui::Text("%.1f ms", info->lastAvgGPUTime);
 			itemHovered |= ImGui::IsItemHovered();
-			if (itemHovered) HelpMarker(useChinese ? u8"最近一秒内每帧平均GPU耗时"sv : "average GPU time per frame in the last second"_slice);
+			if (itemHovered) HelpMarker(useChinese ? u8"最近一秒内每帧平均 GPU 耗时"sv : "average GPU time per frame in the last second"_slice);
 		}
 		if (ImGui::CollapsingHeader(useChinese ? r_cast<const char*>(u8"对象") : "Object")) {
-			ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"C++对象：") : "C++ Object:");
+			ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"C++ 对象：") : "C++ Object:");
 			itemHovered = ImGui::IsItemHovered();
 			ImGui::SameLine();
 			ImGui::Text("%d", info->lastMaxCppObjects);
 			itemHovered |= ImGui::IsItemHovered();
-			if (itemHovered) HelpMarker(useChinese ? u8"所有现存的C++对象的数量"sv : "the number of total existing C++ objects"_slice);
-			ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"Lua对象") : "Lua Object:");
+			if (itemHovered) HelpMarker(useChinese ? u8"所有现存的 C++ 对象的数量"sv : "the number of total existing C++ objects"_slice);
+			ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"Lua 对象") : "Lua Object:");
 			itemHovered = ImGui::IsItemHovered();
 			ImGui::SameLine();
 			ImGui::Text("%d", info->lastMaxLuaObjects);
 			itemHovered |= ImGui::IsItemHovered();
-			if (itemHovered) HelpMarker(useChinese ? u8"所有现存的Lua引用的C++对象的计数"sv : "the number of total existing Lua references to C++ objects"_slice);
-			ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"Lua回调：") : "Lua Callback:");
+			if (itemHovered) HelpMarker(useChinese ? u8"所有现存的 Lua 引用的 C++ 对象的计数"sv : "the number of total existing Lua references to C++ objects"_slice);
+			ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"Lua 回调：") : "Lua Callback:");
 			itemHovered = ImGui::IsItemHovered();
 			ImGui::SameLine();
 			ImGui::Text("%d", info->lastMaxCallbacks);
 			itemHovered |= ImGui::IsItemHovered();
-			if (itemHovered) HelpMarker(useChinese ? u8"Lua引用的C++函数对象的数量"sv : "the number of C++ function call objects referenced by Lua"_slice);
+			if (itemHovered) HelpMarker(useChinese ? u8"Lua 引用的 C++ 函数对象的数量"sv : "the number of C++ function call objects referenced by Lua"_slice);
+			ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"纹理数量：") : "Texture:");
+			itemHovered = ImGui::IsItemHovered();
+			ImGui::SameLine();
+			ImGui::Text("%d", Texture2D::getCount());
+			itemHovered |= ImGui::IsItemHovered();
+			if (itemHovered) HelpMarker(useChinese ? u8"创建的纹理对象的数量"sv : "the number of texture objects"_slice);
+			ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"字体数量：") : "Font:");
+			itemHovered = ImGui::IsItemHovered();
+			ImGui::SameLine();
+			ImGui::Text("%d", TrueTypeFile::getCount());
+			itemHovered |= ImGui::IsItemHovered();
+			if (itemHovered) HelpMarker(useChinese ? u8"加载的字体文件的数量"sv : "the number of loaded font file"_slice);
+			if (AudioFile::getCount() > 0) {
+				ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"音频数量：") : "Audio:");
+				itemHovered = ImGui::IsItemHovered();
+				ImGui::SameLine();
+				ImGui::Text("%d", AudioFile::getCount());
+				itemHovered |= ImGui::IsItemHovered();
+				if (itemHovered) HelpMarker(useChinese ? u8"加载的音频文件的数量"sv : "the number of loaded audio file"_slice);
+			}
 		}
 		if (ImGui::CollapsingHeader(useChinese ? r_cast<const char*>(u8"内存") : "Memory")) {
 			ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"内存池：") : "Memory Pool:");
@@ -646,19 +665,27 @@ void ImGuiDora::showStats(bool* pOpen, uint32_t windowFlags, const std::function
 			ImGui::Text("%d kb", info->lastMemPoolSize / 1024);
 			itemHovered |= ImGui::IsItemHovered();
 			if (itemHovered) HelpMarker(useChinese ? u8"引擎用于频繁分配小数据对象的内存池大小"sv : "the size of the memory pool used by the engine to frequently allocate small data objects"_slice);
-			ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"Lua内存：") : "Lua Memory:");
+			ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"Lua 内存：") : "Lua Memory:");
 			itemHovered = ImGui::IsItemHovered();
 			ImGui::SameLine();
 			ImGui::Text("%.2f mb", info->lastMemLua / 1024.0f / 1024.0f);
 			itemHovered |= ImGui::IsItemHovered();
-			if (itemHovered) HelpMarker(useChinese ? u8"正在运行Lua虚拟机所分配的内存大小"sv : "the size of memory allocated by the running Lua virtual machine"_slice);
+			if (itemHovered) HelpMarker(useChinese ? u8"正在运行 Lua 虚拟机所分配的内存大小"sv : "the size of memory allocated by the running Lua virtual machine"_slice);
+			if (info->lastMemTeal > 0) {
+				ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"Teal 内存：") : "Teal Memory:");
+				itemHovered = ImGui::IsItemHovered();
+				ImGui::SameLine();
+				ImGui::Text("%.2f mb", info->lastMemTeal / 1024.0f / 1024.0f);
+				itemHovered |= ImGui::IsItemHovered();
+				if (itemHovered) HelpMarker(useChinese ? u8"正在运行 Teal 编译器所分配的内存大小"sv : "the size of memory allocated by the running Teal compiler"_slice);
+			}
 			if (info->lastMemWASM > 0) {
-				ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"WASM内存：") : "WASM Memory:");
+				ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"WASM 内存：") : "WASM Memory:");
 				itemHovered = ImGui::IsItemHovered();
 				ImGui::SameLine();
 				ImGui::Text("%.2f mb", info->lastMemWASM / 1024.0f / 1024.0f);
 				itemHovered |= ImGui::IsItemHovered();
-				if (itemHovered) HelpMarker(useChinese ? u8"正在运行WASM虚拟机所分配的内存大小"sv : "the size of memory allocated by the running WASM virtual machine"_slice);
+				if (itemHovered) HelpMarker(useChinese ? u8"正在运行 WASM 虚拟机所分配的内存大小"sv : "the size of memory allocated by the running WASM virtual machine"_slice);
 			}
 			ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"纹理内存：") : "Texture Size:");
 			itemHovered = ImGui::IsItemHovered();
@@ -666,13 +693,54 @@ void ImGuiDora::showStats(bool* pOpen, uint32_t windowFlags, const std::function
 			ImGui::Text("%.2f mb", Texture2D::getStorageSize() / 1024.0f / 1024.0f);
 			itemHovered |= ImGui::IsItemHovered();
 			if (itemHovered) HelpMarker(useChinese ? u8"引擎已创建或加载的纹理占用的内存大小"sv : "the memory footprint used by created or loaded textures"_slice);
+			ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"字体内存：") : "Font Size:");
+			itemHovered = ImGui::IsItemHovered();
+			ImGui::SameLine();
+			ImGui::Text("%.2f mb", TrueTypeFile::getStorageSize() / 1024.0f / 1024.0f);
+			itemHovered |= ImGui::IsItemHovered();
+			if (itemHovered) HelpMarker(useChinese ? u8"引擎已加载的字体占用的内存大小"sv : "the memory footprint used by loaded fonts"_slice);
+			if (AudioFile::getStorageSize() > 0) {
+				ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"音频内存：") : "Audio Size:");
+				itemHovered = ImGui::IsItemHovered();
+				ImGui::SameLine();
+				ImGui::Text("%.2f mb", AudioFile::getStorageSize() / 1024.0f / 1024.0f);
+				itemHovered |= ImGui::IsItemHovered();
+				if (itemHovered) HelpMarker(useChinese ? u8"引擎已加载的音频占用的内存大小"sv : "the memory footprint used by loaded audios"_slice);
+			}
 		}
-		if (ImGui::CollapsingHeader(useChinese ? r_cast<const char*>(u8"加载脚本") : "Loader")) {
+		if (ImGui::CollapsingHeader(useChinese ? r_cast<const char*>(u8"杂项") : "Misc")) {
+			ImGui::PushItemWidth(150);
+			ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"版本号：") : "Version:");
+			ImGui::SameLine();
+			auto version = SharedApplication.getVersion();
+			ImGui::TextUnformatted(&version.front(), &version.back() + 1);
+			ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"调试版本：") : "Debug Build:");
+			ImGui::SameLine();
+			auto isDebugging = SharedApplication.isDebugging();
+			if (useChinese) {
+				ImGui::TextUnformatted(r_cast<const char*>(isDebugging ? u8"是" : u8"否"));
+			} else {
+				ImGui::TextUnformatted(isDebugging ? "true" : "false");
+			}
+			if (ImGui::ColorEdit3(useChinese ? r_cast<const char*>(u8"主题色") : "Theme Color", &themeColor.x, ImGuiColorEditFlags_DisplayHex)) {
+				SharedApplication.setThemeColor(Color(themeColor));
+			}
+			static const char* languages[] = {
+				"English",
+				r_cast<const char*>(u8"简体中文")};
+			int index = useChinese ? 1 : 0;
+			if (ImGui::Combo(useChinese ? r_cast<const char*>(u8"语言") : "Language", &index, languages, 2)) {
+				SharedApplication.setLocale(index == 0 ? "en"_slice : "zh-Hans"_slice);
+			}
+			if (extra) extra();
+			ImGui::PopItemWidth();
+		}
+		if (ImGui::CollapsingHeader(useChinese ? r_cast<const char*>(u8"脚本加载") : "Loader")) {
 			if (ImGui::Button(useChinese ? r_cast<const char*>(u8"清除") : "Clear")) {
 				info->clearLoaderInfo();
 			}
 			ImGui::SameLine();
-			ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"耗时：") : "Time Cost:");
+			ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"总耗时：") : "Total Cost:");
 			ImGui::SameLine();
 			ImGui::Text("%.4f s", info->loaderTotalTime);
 			const ImGuiTableFlags flags = ImGuiTableFlags_Resizable
@@ -689,7 +757,7 @@ void ImGuiDora::showStats(bool* pOpen, uint32_t windowFlags, const std::function
 					ImGuiTableColumnFlags_DefaultSort
 						| ImGuiTableColumnFlags_PreferSortDescending
 						| ImGuiTableColumnFlags_WidthFixed);
-				ImGui::TableSetupColumn(useChinese ? r_cast<const char*>(u8"时间") : "Time",
+				ImGui::TableSetupColumn(useChinese ? r_cast<const char*>(u8"耗时") : "Time",
 					ImGuiTableColumnFlags_PreferSortDescending
 						| ImGuiTableColumnFlags_WidthFixed);
 				ImGui::TableSetupColumn(useChinese ? r_cast<const char*>(u8"层级") : "Depth",
@@ -762,33 +830,6 @@ void ImGuiDora::showStats(bool* pOpen, uint32_t windowFlags, const std::function
 					}
 				ImGui::EndTable();
 			}
-		}
-		if (ImGui::CollapsingHeader(useChinese ? r_cast<const char*>(u8"杂项") : "Misc")) {
-			ImGui::PushItemWidth(150);
-			ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"版本号：") : "Version:");
-			ImGui::SameLine();
-			auto version = SharedApplication.getVersion();
-			ImGui::TextUnformatted(&version.front(), &version.back() + 1);
-			ImGui::TextColored(themeColor, useChinese ? r_cast<const char*>(u8"调试版本：") : "Debug Build:");
-			ImGui::SameLine();
-			auto isDebugging = SharedApplication.isDebugging();
-			if (useChinese) {
-				ImGui::TextUnformatted(r_cast<const char*>(isDebugging ? u8"是" : u8"否"));
-			} else {
-				ImGui::TextUnformatted(isDebugging ? "true" : "false");
-			}
-			if (ImGui::ColorEdit3(useChinese ? r_cast<const char*>(u8"主题色") : "Theme Color", &themeColor.x, ImGuiColorEditFlags_DisplayHex)) {
-				SharedApplication.setThemeColor(Color(themeColor));
-			}
-			static const char* languages[] = {
-				"English",
-				r_cast<const char*>(u8"简体中文")};
-			int index = useChinese ? 1 : 0;
-			if (ImGui::Combo(useChinese ? r_cast<const char*>(u8"语言") : "Language", &index, languages, 2)) {
-				SharedApplication.setLocale(index == 0 ? "en"_slice : "zh-Hans"_slice);
-			}
-			if (extra) extra();
-			ImGui::PopItemWidth();
 		}
 		ImGui::Dummy(Vec2{200.0f, 0.0f});
 	}

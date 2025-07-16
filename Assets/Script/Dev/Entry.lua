@@ -352,7 +352,7 @@ do -- 222
 	Set, Struct, LintYueGlobals, GSplit = _obj_0.Set, _obj_0.Struct, _obj_0.LintYueGlobals, _obj_0.GSplit -- 222
 end -- 222
 local yueext = yue.options.extension -- 223
-SetDefaultFont("Font/sarasa-mono-sc-regular.ttf", 20) -- 225
+SetDefaultFont("sarasa-mono-sc-regular", 20) -- 225
 local building = false -- 227
 local getAllFiles -- 229
 getAllFiles = function(path, exts, recursive) -- 229
@@ -887,14 +887,14 @@ allClear = function() -- 497
 	end -- 519
 	collectgarbage() -- 520
 	collectgarbage() -- 521
-	thread(function() -- 522
-		sleep() -- 523
-		return Cache:removeUnused() -- 524
-	end) -- 522
-	setupEventHandlers() -- 525
-	Content.searchPaths = searchPaths -- 526
-	App.idled = true -- 527
-	return Wasm:clear() -- 528
+	Wasm:clear() -- 522
+	thread(function() -- 523
+		sleep() -- 524
+		return Cache:removeUnused() -- 525
+	end) -- 523
+	setupEventHandlers() -- 526
+	Content.searchPaths = searchPaths -- 527
+	App.idled = true -- 528
 end -- 497
 _module_0["allClear"] = allClear -- 528
 local clearTempFiles -- 530

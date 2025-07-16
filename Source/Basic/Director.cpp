@@ -14,6 +14,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "Basic/Application.h"
 #include "Basic/Content.h"
 #include "Basic/Scheduler.h"
+#include "Cache/FontCache.h"
 #include "Effect/Effect.h"
 #include "Entity/Entity.h"
 #include "Event/Listener.h"
@@ -730,7 +731,8 @@ void Director::ProfilerInfo::update(double deltaTime) {
 	maxCallbacks = std::max(maxCallbacks, Object::getLuaCallbackCount());
 
 	memPoolSize = std::max(MemoryPool::getTotalCapacity(), memPoolSize);
-	memLua = std::max(SharedLuaEngine.getMemoryCount(), memLua);
+	memLua = std::max(SharedLuaEngine.getRuntimeMemory(), memLua);
+	memTeal = std::max(SharedLuaEngine.getTealMemory(), memTeal);
 	if (Singleton<WasmRuntime>::isInitialized()) {
 		memWASM = std::max(s_cast<int>(SharedWasmRuntime.getMemorySize()), memWASM);
 	}
@@ -755,8 +757,9 @@ void Director::ProfilerInfo::update(double deltaTime) {
 
 		lastMemPoolSize = memPoolSize;
 		lastMemLua = memLua;
+		lastMemTeal = memTeal;
 		lastMemWASM = memWASM;
-		memPoolSize = memLua = memWASM = 0;
+		memPoolSize = memLua = memTeal = memWASM = 0;
 
 		cpuValues.push_back(maxCPU * 1000.0);
 		gpuValues.push_back(maxGPU * 1000.0);
@@ -765,17 +768,21 @@ void Director::ProfilerInfo::update(double deltaTime) {
 
 		if (cpuValues.size() > PlotCount + 1) cpuValues.erase(cpuValues.begin());
 		if (gpuValues.size() > PlotCount + 1) gpuValues.erase(gpuValues.begin());
-		if (dtValues.size() > PlotCount + 1)
+		if (dtValues.size() > PlotCount + 1) {
 			dtValues.erase(dtValues.begin());
-		else
+		} else {
 			seconds.push_back(dtValues.size() - 1);
+		}
 		yLimit = 0;
-		for (auto v : cpuValues)
+		for (auto v : cpuValues) {
 			if (v > yLimit) yLimit = v;
-		for (auto v : gpuValues)
+		}
+		for (auto v : gpuValues) {
 			if (v > yLimit) yLimit = v;
-		for (auto v : dtValues)
+		}
+		for (auto v : dtValues) {
 			if (v > yLimit) yLimit = v;
+		}
 		updateCosts.clear();
 
 		double time = 0;
@@ -880,14 +887,28 @@ void Director::ProfilerInfo::update(double deltaTime) {
 			writer.Int(lastMaxLuaObjects);
 			writer.Key("luaCallback");
 			writer.Int(lastMaxCallbacks);
+			writer.Key("textures");
+			writer.Int(Texture2D::getCount());
+			writer.Key("fonts");
+			writer.Int(TrueTypeFile::getCount());
+			writer.Key("audios");
+			writer.Int(AudioFile::getCount());
+
 			writer.Key("memoryPool");
 			writer.Int(lastMemPoolSize);
 			writer.Key("luaMemory");
 			writer.Int(lastMemLua);
+			writer.Key("tealMemory");
+			writer.Int(lastMemTeal);
 			writer.Key("wasmMemory");
 			writer.Int(lastMemWASM);
 			writer.Key("textureMemory");
 			writer.Int(Texture2D::getStorageSize());
+			writer.Key("fontMemory");
+			writer.Int(TrueTypeFile::getStorageSize());
+			writer.Key("audioMemory");
+			writer.Int(AudioFile::getStorageSize());
+
 			if (loaderCostDirty) {
 				loaderCostDirty = false;
 				writer.Key("loaderCosts");

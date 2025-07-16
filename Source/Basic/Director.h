@@ -100,9 +100,11 @@ public:
 		double renderTime = 0;
 		int memPoolSize = 0;
 		int memLua = 0;
+		int memTeal = 0;
 		int memWASM = 0;
 		int lastMemPoolSize = 0;
 		int lastMemLua = 0;
+		int lastMemTeal = 0;
 		int lastMemWASM = 0;
 
 		const unsigned PlotCount = 30;

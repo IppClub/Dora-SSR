@@ -30,7 +30,8 @@ class LuaEngine : public NonCopyable {
 public:
 	virtual ~LuaEngine();
 	PROPERTY_READONLY(lua_State*, State);
-	PROPERTY_READONLY(int, MemoryCount);
+	PROPERTY_READONLY(int, RuntimeMemory);
+	PROPERTY_READONLY(int, TealMemory);
 
 	std::pair<std::string, std::string> compileTealToLua(String tlCodes, String filename, String searchPath);
 	void compileTealToLuaAsync(String tlCodes, String filename, String searchPath, const std::function<void(std::pair<std::string, std::string>)>& callback);

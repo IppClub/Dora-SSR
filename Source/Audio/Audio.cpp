@@ -40,10 +40,10 @@ void soloud_stop_voice(uint32_t handle) {
 
 NS_DORA_BEGIN
 
-uint64_t AudioFile::_count = 0;
+uint32_t AudioFile::_count = 0;
 uint64_t AudioFile::_storageSize = 0;
 
-uint64_t AudioFile::getCount() {
+uint32_t AudioFile::getCount() {
 	return _count;
 }
 
@@ -60,7 +60,10 @@ SoLoud::AudioSource* WavFile::getSource() const {
 WavFile::WavFile(OwnArray<uint8_t>&& data, size_t size)
 	: _wav(nullptr)
 	, _data(std::move(data))
-	, _size(size) { }
+	, _size(size) {
+	_count++;
+	_storageSize += _size;
+}
 
 WavFile::~WavFile() {
 	_count--;
@@ -81,8 +84,6 @@ bool WavFile::init() {
 		Error("failed to load sound file due to reason: {}.", SharedAudio.getSoLoud() ? SharedAudio.getSoLoud()->getErrorString(result) : "soloud is not initialized");
 		return false;
 	}
-	_count++;
-	_storageSize += _size;
 	return true;
 }
 
@@ -101,15 +102,16 @@ bool WavStream::init() {
 		Error("failed to load sound file due to reason: {}.", SharedAudio.getSoLoud() ? SharedAudio.getSoLoud()->getErrorString(result) : "soloud is not initialized");
 		return false;
 	}
-	_count++;
-	_storageSize += _size;
 	return true;
 }
 
 WavStream::WavStream(OwnArray<uint8_t>&& data, size_t size)
 	: _stream(nullptr)
 	, _data(std::move(data))
-	, _size(size) { }
+	, _size(size) {
+	_count++;
+	_storageSize += _size;
+}
 
 WavStream::~WavStream() {
 	_count--;

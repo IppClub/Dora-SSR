@@ -222,7 +222,7 @@ else
 from "Utils" import Set, Struct, LintYueGlobals, GSplit
 options: {extension: yueext} = yue
 
-SetDefaultFont "Font/sarasa-mono-sc-regular.ttf", 20
+SetDefaultFont "sarasa-mono-sc-regular", 20
 
 building = false
 
@@ -519,13 +519,13 @@ export allClear = ->
 		node\cleanup! if node := tolua.cast item, "Node"
 	collectgarbage!
 	collectgarbage!
+	Wasm\clear!
 	thread ->
 		sleep!
 		Cache\removeUnused!
 	setupEventHandlers!
 	Content.searchPaths = searchPaths
 	App.idled = true
-	Wasm\clear!
 
 clearTempFiles = ->
 	:writablePath = Content

@@ -1657,6 +1657,7 @@
     <ClCompile Include="..\..\..\Source\Cache\Cache.cpp" />
     <ClCompile Include="..\..\..\Source\Cache\ClipCache.cpp" />
     <ClCompile Include="..\..\..\Source\Cache\DragonBoneCache.cpp" />
+    <ClCompile Include="..\..\..\Source\Cache\FontCache.cpp" />
     <ClCompile Include="..\..\..\Source\Cache\FrameCache.cpp" />
     <ClCompile Include="..\..\..\Source\Cache\ModelCache.cpp" />
     <ClCompile Include="..\..\..\Source\Cache\ParticleCache.cpp" />
@@ -2441,6 +2442,7 @@
     <ClInclude Include="..\..\..\Source\Cache\Cache.h" />
     <ClInclude Include="..\..\..\Source\Cache\ClipCache.h" />
     <ClInclude Include="..\..\..\Source\Cache\DragonBoneCache.h" />
+    <ClInclude Include="..\..\..\Source\Cache\FontCache.h" />
     <ClInclude Include="..\..\..\Source\Cache\FrameCache.h" />
     <ClInclude Include="..\..\..\Source\Cache\ModelCache.h" />
     <ClInclude Include="..\..\..\Source\Cache\ParticleCache.h" />

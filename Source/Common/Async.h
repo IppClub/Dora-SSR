@@ -64,7 +64,7 @@ private:
 	std::atomic<size_t> _nextProcess;
 	OwnVector<Async> _process;
 	OwnVector<Async> _userThreads;
-	SINGLETON_REF(AsyncThread, ObjectBase, Logger);
+	SINGLETON_REF(AsyncThread, Director);
 };
 
 #define SharedAsyncThread \
