@@ -32,10 +32,16 @@ export interface ProfilerInfo {
 	cppObject: number;
 	luaObject: number;
 	luaCallback: number;
+	textures: number;
+	fonts: number;
+	audios: number;
 	memoryPool: number;
 	luaMemory: number;
+	tealMemory: number;
 	wasmMemory: number;
 	textureMemory: number;
+	fontMemory: number;
+	audioMemory: number;
 	loaderCosts?: LoaderCost[];
 }
 
