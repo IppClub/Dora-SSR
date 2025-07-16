@@ -841,7 +841,7 @@ footerWindow = threadLoop ->
 			if Button ">_", Vec2 30, 30
 				showConsole = not showConsole
 				config.showConsole = showConsole
-		if config.updateNotification
+		if isInEntry and config.updateNotification
 			SameLine!
 			if ImGui.Button zh and "更新可用" or "Update"
 				allClear!
@@ -990,7 +990,7 @@ entryWindow = threadLoop ->
 			SameLine!
 			Dummy Vec2 fullWidth - 400, 0
 			SameLine!
-			SetNextItemWidth zh and -90 or -140
+			SetNextItemWidth zh and -95 or -140
 			if InputText zh and '筛选' or 'Filter', filterBuf, ["AutoSelectAll",]
 				config.filter = filterBuf.text
 			SameLine!
