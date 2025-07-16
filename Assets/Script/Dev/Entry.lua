@@ -1393,7 +1393,7 @@ footerWindow = threadLoop(function() -- 772
 							config.showConsole = showConsole -- 843
 						end -- 841
 					end -- 836
-					if config.updateNotification then -- 844
+					if isInEntry and config.updateNotification then -- 844
 						SameLine() -- 845
 						if ImGui.Button(zh and "更新可用" or "Update") then -- 846
 							allClear() -- 847
@@ -1617,7 +1617,7 @@ entryWindow = threadLoop(function() -- 941
 					SameLine() -- 990
 					Dummy(Vec2(fullWidth - 400, 0)) -- 991
 					SameLine() -- 992
-					SetNextItemWidth(zh and -90 or -140) -- 993
+					SetNextItemWidth(zh and -95 or -140) -- 993
 					if InputText(zh and '筛选' or 'Filter', filterBuf, { -- 994
 						"AutoSelectAll" -- 994
 					}) then -- 994
