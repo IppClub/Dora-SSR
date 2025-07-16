@@ -392,6 +392,27 @@ const LogView = memo((props: LogViewProps) => {
 				</Tooltip>,
 				children: profilerInfo.luaCallback,
 			},
+			{
+				key: '4',
+				label: <Tooltip title={t('pro.texturesTip')}>
+					<div>{t("pro.textures")}</div>
+				</Tooltip>,
+				children: profilerInfo.textures,
+			},
+			{
+				key: '5',
+				label: <Tooltip title={t('pro.fontsTip')}>
+					<div>{t("pro.fonts")}</div>
+				</Tooltip>,
+				children: profilerInfo.fonts,
+			},
+			{
+				key: '6',
+				label: <Tooltip title={t('pro.audiosTip')}>
+					<div>{t("pro.audios")}</div>
+				</Tooltip>,
+				children: profilerInfo.audios,
+			},
 		];
 		memoryItems = [
 			{
@@ -410,17 +431,38 @@ const LogView = memo((props: LogViewProps) => {
 			},
 			{
 				key: '3',
+				label: <Tooltip title={t('pro.tealMemoryTip')}>
+					<div>{t("pro.tealMemory")}</div>
+				</Tooltip>,
+				children: (profilerInfo.tealMemory / 1024 / 1024).toFixed(2) + ' MB',
+			},
+			{
+				key: '4',
 				label: <Tooltip title={t('pro.wasmMemoryTip')}>
 					<div>{t("pro.wasmMemory")}</div>
 				</Tooltip>,
 				children: (profilerInfo.wasmMemory / 1024 / 1024).toFixed(2) + ' MB',
 			},
 			{
-				key: '4',
+				key: '5',
 				label: <Tooltip title={t('pro.textureMemoryTip')}>
 					<div>{t("pro.textureMemory")}</div>
 				</Tooltip>,
 				children: (profilerInfo.textureMemory / 1024 / 1024).toFixed(2) + ' MB',
+			},
+			{
+				key: '6',
+				label: <Tooltip title={t('pro.fontMemoryTip')}>
+					<div>{t("pro.fontMemory")}</div>
+				</Tooltip>,
+				children: (profilerInfo.fontMemory / 1024 / 1024).toFixed(2) + ' MB',
+			},
+			{
+				key: '7',
+				label: <Tooltip title={t('pro.audioMemoryTip')}>
+					<div>{t("pro.audioMemory")}</div>
+				</Tooltip>,
+				children: (profilerInfo.audioMemory / 1024 / 1024).toFixed(2) + ' MB',
 			},
 		];
 		lineConfig = {
