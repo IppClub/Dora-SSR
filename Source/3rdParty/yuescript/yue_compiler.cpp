@@ -9179,7 +9179,7 @@ private:
 	}
 
 	void transformYAMLMultiline(YAMLMultiline_t* multiline, str_list& out) {
-		std::optional<std::string_view> indent;
+		std::optional<std::string> indent;
 		str_list temp;
 		for (auto line_ : multiline->lines.objects()) {
 			auto line = static_cast<YAMLLine_t*>(line_);
@@ -9210,7 +9210,7 @@ private:
 					if (pos == std::string::npos) {
 						throw CompileError("expecting first line indent"sv, line);
 					}
-					indent = std::string_view{lineStr.c_str(), pos};
+					indent = std::string{lineStr.c_str(), pos};
 				} else {
 					if (std::string_view{lineStr}.substr(0, indent.value().size()) != indent.value()) {
 						throw CompileError("inconsistent indent"sv, line);
