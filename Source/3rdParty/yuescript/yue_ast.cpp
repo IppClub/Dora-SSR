@@ -962,6 +962,30 @@ std::string DoubleString_t::to_string(void* ud) const {
 	}
 	return '"' + join(temp) + '"';
 }
+std::string YAMLLineInner_t::to_string(void* ud) const {
+	auto info = reinterpret_cast<YueFormat*>(ud);
+	return info->convert(this);
+}
+std::string YAMLLineContent_t::to_string(void* ud) const {
+	if (content.is<Exp_t>()) {
+		return "#{"s + content->to_string(ud) + '}';
+	}
+	return content->to_string(ud);
+}
+std::string YAMLLine_t::to_string(void* ud) const {
+	str_list temp;
+	for (auto seg : segments.objects()) {
+		temp.emplace_back(seg->to_string(ud));
+	}
+	return join(temp);
+}
+std::string YAMLMultiline_t::to_string(void* ud) const {
+	str_list temp;
+	for (auto seg : lines.objects()) {
+		temp.emplace_back(seg->to_string(ud));
+	}
+	return "|\n" + join(temp, "\n"sv);
+}
 std::string String_t::to_string(void* ud) const {
 	return str->to_string(ud);
 }

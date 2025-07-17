@@ -639,7 +639,15 @@ YueParser::YueParser() {
 	DoubleStringInner = +(not_("#{") >> double_string_plain);
 	DoubleStringContent = DoubleStringInner | interp;
 	DoubleString = '"' >> Seperator >> *DoubleStringContent >> '"';
-	String = DoubleString | SingleString | LuaString;
+
+	YAMLLineInner = +('\\' >> set("\"\\#") | not_("#{" | stop) >> any_char);
+	YAMLLineContent = YAMLLineInner | interp;
+	YAMLLine = check_indent_match >> Seperator >> +YAMLLineContent |
+		advance_match >> Seperator >> ensure(+YAMLLineContent, pop_indent) |
+		Seperator >> *set(" \t") >> and_(line_break);
+	YAMLMultiline = '|' >> Seperator >> +space_break >> advance_match >> ensure(YAMLLine >> *(*set(" \t") >> line_break >> YAMLLine), pop_indent);
+
+	String = DoubleString | SingleString | LuaString | YAMLMultiline;
 
 	lua_string_open = '[' >> *expr('=') >> '[';
 	lua_string_close = ']' >> *expr('=') >> ']';
@@ -883,11 +891,11 @@ YueParser::YueParser() {
 
 	fn_arg_def_lit_lines = fn_arg_def_lit_line >> *(-(space >> ',') >> space_break >> fn_arg_def_lit_line);
 
-	FnArgDef = (Variable | SelfItem >> -ExistentialOp) >> -(space >> '=' >> space >> Exp);
+	FnArgDef = (Variable | SelfItem >> -ExistentialOp) >> -(space >> '`' >> space >> Name) >> -(space >> '=' >> space >> Exp);
 
 	FnArgDefList = Seperator >> (
-		fn_arg_def_lit_lines >> -(-(space >> ',') >> white >> VarArg) |
-		white >> VarArg
+		fn_arg_def_lit_lines >> -(-(space >> ',') >> white >> VarArg >> -(space >> '`' >> space >> Name)) |
+		white >> VarArg >> -(space >> '`' >> space >> Name)
 	);
 
 	OuterVarShadow = key("using") >> space >> (NameList | key("nil"));
@@ -1175,6 +1183,24 @@ void trim(std::string& str) {
 	if (str.empty()) return;
 	str.erase(0, str.find_first_not_of(" \t\r\n"));
 	str.erase(str.find_last_not_of(" \t\r\n") + 1);
+}
+
+std::string toLuaString(const std::string& input) {
+	std::string luaStr = "\"";
+	for (char c : input) {
+		switch (c) {
+			case '\"': luaStr += "\\\""; break;
+			case '\\': luaStr += "\\\\"; break;
+			case '\n': luaStr += "\\n"; break;
+			case '\r': luaStr += "\\r"; break;
+			case '\t': luaStr += "\\t"; break;
+			default:
+				luaStr += c;
+				break;
+		}
+	}
+	luaStr += "\"";
+	return luaStr;
 }
 } // namespace Utils
 

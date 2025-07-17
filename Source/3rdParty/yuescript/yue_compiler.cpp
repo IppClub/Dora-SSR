@@ -78,7 +78,7 @@ static std::unordered_set<std::string> Metamethods = {
 	"close"s // Lua 5.4
 };
 
-const std::string_view version = "0.29.0"sv;
+const std::string_view version = "0.29.1"sv;
 const std::string_view extension = "yue"sv;
 
 class CompileError : public std::logic_error {
@@ -5418,18 +5418,29 @@ private:
 		auto macroLit = macro->decl.to<MacroLit_t>();
 		auto argsDef = macroLit->argsDef.get();
 		str_list newArgs;
+		str_list argChecks;
+		bool hasCheck = false;
 		if (argsDef) {
 			for (auto def_ : argsDef->definitions.objects()) {
 				auto def = static_cast<FnArgDef_t*>(def_);
 				if (def->name.is<SelfItem_t>()) {
 					throw CompileError("self name is not supported for macro function argument"sv, def->name);
 				} else {
+					if (def->op) throw CompileError("invalid existence checking"sv, def->op);
+					if (def->label) {
+						hasCheck = true;
+						const auto& astName = argChecks.emplace_back(_parser.toString(def->label));
+						if (!_parser.hasAST(astName)) {
+							throw CompileError("invalid AST name"sv, def->label);
+						}
+					} else {
+						argChecks.emplace_back();
+					}
 					std::string defVal;
 					if (def->defaultValue) {
 						defVal = _parser.toString(def->defaultValue);
 						Utils::trim(defVal);
-						defVal.insert(0, "=[==========["sv);
-						defVal.append("]==========]"sv);
+						defVal = '=' + Utils::toLuaString(defVal);
 					}
 					newArgs.emplace_back(_parser.toString(def->name) + defVal);
 				}
@@ -5437,6 +5448,14 @@ private:
 			if (argsDef->varArg) {
 				newArgs.emplace_back(_parser.toString(argsDef->varArg));
 			}
+		}
+		if (argsDef->label) {
+			hasCheck = true;
+			const auto& astName = _parser.toString(argsDef->label);
+			if (!_parser.hasAST(astName)) {
+				throw CompileError("invalid AST name"sv, argsDef->label);
+			}
+			argChecks.emplace_back("..."s + astName);
 		}
 		std::string macroCodes = "_ENV=require('yue').macro_env\n("s + join(newArgs, ","sv) + ")->"s + _parser.toString(macroLit->body);
 		auto chunkName = "=(macro "s + macroName + ')';
@@ -5467,6 +5486,24 @@ private:
 			throw CompileError("failed to generate macro function\n"s + err, macroLit);
 		} // cur true macro
 		lua_remove(L, -2); // cur macro
+		if (hasCheck) {
+			lua_createtable(L, 0, 0); // cur macro checks
+			int i = 1;
+			for (const auto& check : argChecks) {
+				if (check.empty()) {
+					lua_pushboolean(L, 0);
+					lua_rawseti(L, -2, i);
+				} else {
+					lua_pushlstring(L, check.c_str(), check.size());
+					lua_rawseti(L, -2, i);
+				}
+				i++;
+			}
+			lua_createtable(L, 2, 0); // cur macro checks macrotab
+			lua_insert(L, -3); // cur macrotab macro checks
+			lua_rawseti(L, -3, 1); // macrotab[1] = checks, cur macrotab macro
+			lua_rawseti(L, -2, 2); // macrotab[2] = macro, cur macrotab
+		} // cur macro
 		if (exporting && _config.exporting && !_config.module.empty()) {
 			pushModuleTable(_config.module); // cur macro module
 			lua_pushlstring(L, macroName.c_str(), macroName.size()); // cur macro module name
@@ -5624,7 +5661,11 @@ private:
 			auto def = static_cast<FnArgDef_t*>(_def);
 			auto& arg = argItems.emplace_back();
 			switch (def->name->get_id()) {
-				case id<Variable_t>(): arg.name = variableToString(static_cast<Variable_t*>(def->name.get())); break;
+				case id<Variable_t>(): {
+					if (def->op) throw CompileError("invalid existence checking"sv, def->op);
+					arg.name = variableToString(static_cast<Variable_t*>(def->name.get()));
+					break;
+				}
 				case id<SelfItem_t>(): {
 					assignSelf = true;
 					if (def->op) {
@@ -6748,7 +6789,25 @@ private:
 				break;
 			}
 		}
-		if (!lua_isfunction(L, -1)) {
+		str_list checks;
+		if (lua_istable(L, -1)) {
+			lua_rawgeti(L, -1, 1); // cur macrotab checks
+			int len = lua_objlen(L, -1);
+			for (int i = 1; i <= len; i++) {
+				lua_rawgeti(L, -1, i);
+				if (lua_toboolean(L, -1) == 0) {
+					checks.emplace_back();
+				} else {
+					size_t str_len = 0;
+					auto str = lua_tolstring(L, -1, &str_len);
+					checks.emplace_back(std::string{str, str_len});
+				}
+				lua_pop(L, 1);
+			}
+			lua_pop(L, 1);
+			lua_rawgeti(L, -1, 2); // cur macrotab macroFunc
+			lua_remove(L, -2); // cur macroFunc
+		} else if (!lua_isfunction(L, -1)) {
 			auto code = expandBuiltinMacro(macroName, x);
 			if (!code.empty()) return code;
 			if (macroName == "is_ast"sv) {
@@ -6796,8 +6855,31 @@ private:
 		if (!lua_checkstack(L, argStrs.size())) {
 			throw CompileError("too much macro params"s, x);
 		}
+		auto checkIt = checks.begin();
+		node_container::const_iterator argIt;
+		if (args) {
+			argIt = args->begin();
+		}
 		for (const auto& arg : argStrs) {
+			if (checkIt != checks.end()) {
+				if (checkIt->empty()) {
+					++checkIt;
+				} else {
+					if ((*checkIt)[0] == '.') {
+						auto astName = checkIt->substr(3);
+						if (!_parser.match(astName, arg)) {
+							throw CompileError("expecting \""s + astName + "\", AST mismatch"s, *argIt);
+						}
+					} else {
+						if (!_parser.match(*checkIt, arg)) {
+							throw CompileError("expecting \""s + *checkIt + "\", AST mismatch"s, *argIt);
+						}
+						++checkIt;
+					}
+				}
+			}
 			lua_pushlstring(L, arg.c_str(), arg.size());
+			++argIt;
 		} // cur pcall macroFunc args...
 		bool success = lua_pcall(L, static_cast<int>(argStrs.size()), 1, 0) == 0;
 		if (!success) { // cur err
@@ -9096,12 +9178,62 @@ private:
 		out.push_back(temp.empty() ? "\"\""s : join(temp, " .. "sv));
 	}
 
+	void transformYAMLMultiline(YAMLMultiline_t* multiline, str_list& out) {
+		std::optional<std::string_view> indent;
+		str_list temp;
+		for (auto line_ : multiline->lines.objects()) {
+			auto line = static_cast<YAMLLine_t*>(line_);
+			if (!line->segments.empty()) {
+				str_list segs;
+				for (auto seg_ : line->segments.objects()) {
+					auto content = static_cast<YAMLLineContent_t*>(seg_)->content.get();
+					switch (content->get_id()) {
+						case id<YAMLLineInner_t>(): {
+							auto str = _parser.toString(content);
+							Utils::replace(str, "\r\n"sv, "\n"sv);
+							Utils::replace(str, "\n"sv, "\\n"sv);
+							Utils::replace(str, "\\#"sv, "#"sv);
+							segs.push_back('\"' + str + '\"');
+							break;
+						}
+						case id<Exp_t>(): {
+							transformExp(static_cast<Exp_t*>(content), segs, ExpUsage::Closure);
+							segs.back() = globalVar("tostring"sv, content, AccessType::Read) + '(' + segs.back() + ')';
+							break;
+						}
+						default: YUEE("AST node mismatch", content); break;
+					}
+				}
+				auto lineStr = join(segs, " .. "sv);
+				if (!indent) {
+					auto pos = lineStr.find_first_not_of("\t "sv, 1);
+					if (pos == std::string::npos) {
+						throw CompileError("expecting first line indent"sv, line);
+					}
+					indent = std::string_view{lineStr.c_str(), pos};
+				} else {
+					if (std::string_view{lineStr}.substr(0, indent.value().size()) != indent.value()) {
+						throw CompileError("inconsistent indent"sv, line);
+					}
+				}
+				lineStr = '"' + lineStr.substr(indent.value().size());
+				temp.push_back(lineStr);
+			}
+		}
+		auto str = join(temp, " .. '\\n' .. "sv);
+		Utils::replace(str, "\" .. '\\n' .. \""sv, "\\n"sv);
+		Utils::replace(str, "\" .. '\\n'"sv, "\\n\""sv);
+		Utils::replace(str, "'\\n' .. \""sv, "\"\\n"sv);
+		out.push_back(str);
+	}
+
 	void transformString(String_t* string, str_list& out) {
 		auto str = string->str.get();
 		switch (str->get_id()) {
 			case id<SingleString_t>(): transformSingleString(static_cast<SingleString_t*>(str), out); break;
 			case id<DoubleString_t>(): transformDoubleString(static_cast<DoubleString_t*>(str), out); break;
 			case id<LuaString_t>(): transformLuaString(static_cast<LuaString_t*>(str), out); break;
+			case id<YAMLMultiline_t>(): transformYAMLMultiline(static_cast<YAMLMultiline_t*>(str), out); break;
 			default: YUEE("AST node mismatch", str); break;
 		}
 	}
