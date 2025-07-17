@@ -378,6 +378,10 @@ private:
 	AST_RULE(DoubleStringInner);
 	AST_RULE(DoubleStringContent);
 	AST_RULE(DoubleString);
+	AST_RULE(YAMLLineInner);
+	AST_RULE(YAMLLineContent);
+	AST_RULE(YAMLLine);
+	AST_RULE(YAMLMultiline);
 	AST_RULE(String);
 	AST_RULE(Parens);
 	AST_RULE(DotChainItem);
@@ -453,6 +457,7 @@ private:
 namespace Utils {
 void replace(std::string& str, std::string_view from, std::string_view to);
 void trim(std::string& str);
+std::string toLuaString(const std::string& input);
 } // namespace Utils
 
 } // namespace yue

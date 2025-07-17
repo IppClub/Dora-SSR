@@ -591,8 +591,28 @@ AST_NODE(DoubleString)
 	AST_MEMBER(DoubleString, &sep, &segments)
 AST_END(DoubleString)
 
+AST_LEAF(YAMLLineInner)
+AST_END(YAMLLineInner)
+
+AST_NODE(YAMLLineContent)
+	ast_sel<true, YAMLLineInner_t, Exp_t> content;
+	AST_MEMBER(YAMLLineContent, &content)
+AST_END(YAMLLineContent)
+
+AST_NODE(YAMLLine)
+	ast_ptr<true, Seperator_t> sep;
+	ast_list<false, YAMLLineContent_t> segments;
+	AST_MEMBER(YAMLLine, &sep, &segments)
+AST_END(YAMLLine)
+
+AST_NODE(YAMLMultiline)
+	ast_ptr<true, Seperator_t> sep;
+	ast_list<true, YAMLLine_t> lines;
+	AST_MEMBER(YAMLMultiline, &sep, &lines)
+AST_END(YAMLMultiline)
+
 AST_NODE(String)
-	ast_sel<true, DoubleString_t, SingleString_t, LuaString_t> str;
+	ast_sel<true, DoubleString_t, SingleString_t, LuaString_t, YAMLMultiline_t> str;
 	AST_MEMBER(String, &str)
 AST_END(String)
 
@@ -752,15 +772,17 @@ AST_END(Export)
 AST_NODE(FnArgDef)
 	ast_sel<true, Variable_t, SelfItem_t> name;
 	ast_ptr<false, ExistentialOp_t> op;
+	ast_ptr<false, Name_t> label;
 	ast_ptr<false, Exp_t> defaultValue;
-	AST_MEMBER(FnArgDef, &name, &op, &defaultValue)
+	AST_MEMBER(FnArgDef, &name, &op, &label, &defaultValue)
 AST_END(FnArgDef)
 
 AST_NODE(FnArgDefList)
 	ast_ptr<true, Seperator_t> sep;
 	ast_list<false, FnArgDef_t> definitions;
 	ast_ptr<false, VarArg_t> varArg;
-	AST_MEMBER(FnArgDefList, &sep, &definitions, &varArg)
+	ast_ptr<false, Name_t> label;
+	AST_MEMBER(FnArgDefList, &sep, &definitions, &varArg, &label)
 AST_END(FnArgDefList)
 
 AST_NODE(OuterVarShadow)
