@@ -5448,14 +5448,14 @@ private:
 			if (argsDef->varArg) {
 				newArgs.emplace_back(_parser.toString(argsDef->varArg));
 			}
-		}
-		if (argsDef->label) {
-			hasCheck = true;
-			const auto& astName = _parser.toString(argsDef->label);
-			if (!_parser.hasAST(astName)) {
-				throw CompileError("invalid AST name"sv, argsDef->label);
+			if (argsDef->label) {
+				hasCheck = true;
+				const auto& astName = _parser.toString(argsDef->label);
+				if (!_parser.hasAST(astName)) {
+					throw CompileError("invalid AST name"sv, argsDef->label);
+				}
+				argChecks.emplace_back("..."s + astName);
 			}
-			argChecks.emplace_back("..."s + astName);
 		}
 		std::string macroCodes = "_ENV=require('yue').macro_env\n("s + join(newArgs, ","sv) + ")->"s + _parser.toString(macroLit->body);
 		auto chunkName = "=(macro "s + macroName + ')';
