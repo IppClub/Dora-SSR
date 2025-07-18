@@ -167,7 +167,7 @@ std::string ExistentialOp_t::to_string(void*) const {
 std::string TableAppendingOp_t::to_string(void*) const {
 	return "[]"s;
 }
-std::string PlainItem_t::to_string(void *) const {
+std::string PlainItem_t::to_string(void*) const {
 	return {};
 }
 std::string GlobalOp_t::to_string(void*) const {
@@ -465,41 +465,75 @@ std::string If_t::to_string(void* ud) const {
 		temp.back() += " then"s;
 	}
 	++it;
-	bool condition = true;
+	enum class NType {
+		Cond,
+		Stat,
+		Block
+	};
+	NType lastType = NType::Cond;
 	for (; it != nodes.objects().end(); ++it) {
 		auto node = *it;
 		switch (node->get_id()) {
 			case id<IfCond_t>():
 				temp.emplace_back(info->ind() + "elseif "s + node->to_string(ud));
-				condition = true;
+				lastType = NType::Cond;
 				break;
 			case id<Statement_t>(): {
-				if (condition) {
-					temp.back() += " then "s + node->to_string(ud);
-				} else {
-					temp.emplace_back(info->ind() + "else "s + node->to_string(ud));
+				switch (lastType) {
+					case NType::Cond:
+						temp.back() += " then "s + node->to_string(ud);
+						break;
+					case NType::Stat:
+						if (temp.back().back() == '\n') {
+							temp.emplace_back(info->ind() + "else "s + node->to_string(ud));
+						} else {
+							temp.back() += " else "s + node->to_string(ud);
+						}
+						break;
+					case NType::Block:
+						temp.emplace_back(info->ind() + "else "s + node->to_string(ud));
+						break;
 				}
-				condition = false;
+				lastType = NType::Stat;
 				break;
 			}
 			case id<Block_t>(): {
-				if (condition) {
-					info->pushScope();
-					temp.emplace_back(node->to_string(ud));
-					if (temp.back().empty()) {
-						temp.back() = info->ind() + "--"s;
+				switch (lastType) {
+					case NType::Cond: {
+						info->pushScope();
+						temp.emplace_back(node->to_string(ud));
+						if (temp.back().empty()) {
+							temp.back() = info->ind() + "--"s;
+						}
+						info->popScope();
+						break;
 					}
-					info->popScope();
-				} else {
-					temp.emplace_back(info->ind() + "else"s);
-					info->pushScope();
-					temp.emplace_back(node->to_string(ud));
-					if (temp.back().empty()) {
-						temp.back() = info->ind() + "--"s;
+					case NType::Stat: {
+						if (temp.back().back() == '\n') {
+							temp.emplace_back(info->ind() + "else"s);
+						} else {
+							temp.back() += " else"s;
+						}
+						info->pushScope();
+						temp.emplace_back(node->to_string(ud));
+						if (temp.back().empty()) {
+							temp.back() = info->ind() + "--"s;
+						}
+						info->popScope();
+						break;
 					}
-					info->popScope();
+					case NType::Block: {
+						temp.emplace_back(info->ind() + "else"s);
+						info->pushScope();
+						temp.emplace_back(node->to_string(ud));
+						if (temp.back().empty()) {
+							temp.back() = info->ind() + "--"s;
+						}
+						info->popScope();
+						break;
+					}
 				}
-				condition = false;
+				lastType = NType::Block;
 				break;
 			}
 		}
@@ -962,6 +996,10 @@ std::string DoubleString_t::to_string(void* ud) const {
 	}
 	return '"' + join(temp) + '"';
 }
+std::string YAMLIndent_t::to_string(void* ud) const {
+	auto info = reinterpret_cast<YueFormat*>(ud);
+	return info->convert(this);
+}
 std::string YAMLLineInner_t::to_string(void* ud) const {
 	auto info = reinterpret_cast<YueFormat*>(ud);
 	return info->convert(this);
@@ -980,11 +1018,28 @@ std::string YAMLLine_t::to_string(void* ud) const {
 	return join(temp);
 }
 std::string YAMLMultiline_t::to_string(void* ud) const {
+	auto info = reinterpret_cast<YueFormat*>(ud);
+	int currentIndent = info->indent;
 	str_list temp;
-	for (auto seg : lines.objects()) {
-		temp.emplace_back(seg->to_string(ud));
+	int lastIndent = -1;
+	for (auto line_ : lines.objects()) {
+		auto line = static_cast<YAMLLine_t*>(line_);
+		auto indent = line->indent->to_string(ud);
+		int ind = 0;
+		for (auto c : indent) {
+			if (c == ' ') ind++;
+			if (c == '\t') ind += 4;
+		}
+		if (lastIndent < ind) {
+			info->pushScope();
+		} else if (lastIndent > ind) {
+			info->popScope();
+		}
+		lastIndent = ind;
+		temp.emplace_back(indent + line->to_string(ud));
 	}
-	return "|\n" + join(temp, "\n"sv);
+	info->indent = currentIndent;
+	return "|\n" + join(temp, "\n"sv) + '\n';
 }
 std::string String_t::to_string(void* ud) const {
 	return str->to_string(ud);
@@ -1284,6 +1339,9 @@ std::string FnArgDef_t::to_string(void* ud) const {
 	if (op) {
 		line += op->to_string(ud);
 	}
+	if (label) {
+		line += '`' + label->to_string(ud);
+	}
 	if (defaultValue) {
 		line += " = "s + defaultValue->to_string(ud);
 	}
@@ -1306,6 +1364,9 @@ std::string FnArgDefList_t::to_string(void* ud) const {
 		}
 		if (varArg) {
 			temp.emplace_back(info->ind() + varArg->to_string(ud));
+			if (label) {
+				temp.back().append('`' + label->to_string(ud));
+			}
 		}
 		return join(temp, "\n"sv);
 	} else {
@@ -1314,6 +1375,9 @@ std::string FnArgDefList_t::to_string(void* ud) const {
 		}
 		if (varArg) {
 			temp.emplace_back(varArg->to_string(ud));
+			if (label) {
+				temp.back().append('`' + label->to_string(ud));
+			}
 		}
 		return join(temp, ", "sv);
 	}
@@ -1595,3 +1659,4 @@ std::string File_t::to_string(void* ud) const {
 } // namespace yue
 
 } // namespace parserlib
+

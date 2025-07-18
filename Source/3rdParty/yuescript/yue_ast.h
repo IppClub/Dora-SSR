@@ -591,6 +591,9 @@ AST_NODE(DoubleString)
 	AST_MEMBER(DoubleString, &sep, &segments)
 AST_END(DoubleString)
 
+AST_LEAF(YAMLIndent)
+AST_END(YAMLIndent)
+
 AST_LEAF(YAMLLineInner)
 AST_END(YAMLLineInner)
 
@@ -600,9 +603,9 @@ AST_NODE(YAMLLineContent)
 AST_END(YAMLLineContent)
 
 AST_NODE(YAMLLine)
-	ast_ptr<true, Seperator_t> sep;
-	ast_list<false, YAMLLineContent_t> segments;
-	AST_MEMBER(YAMLLine, &sep, &segments)
+	ast_ptr<true, YAMLIndent_t> indent;
+	ast_list<true, YAMLLineContent_t> segments;
+	AST_MEMBER(YAMLLine, &indent, &segments)
 AST_END(YAMLLine)
 
 AST_NODE(YAMLMultiline)

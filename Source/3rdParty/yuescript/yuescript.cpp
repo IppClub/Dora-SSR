@@ -207,6 +207,7 @@ static int yueformat(lua_State* L) {
 		formatter.spaceOverTab = false;
 	}
 	auto result = formatter.toString(info.node.get());
+	yue::Utils::replace(result, "\n\n", "\n");
 	lua_pushlstring(L, result.c_str(), result.size());
 	return 1;
 }

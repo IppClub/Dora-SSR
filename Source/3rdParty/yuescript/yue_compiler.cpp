@@ -78,7 +78,7 @@ static std::unordered_set<std::string> Metamethods = {
 	"close"s // Lua 5.4
 };
 
-const std::string_view version = "0.29.1"sv;
+const std::string_view version = "0.29.2"sv;
 const std::string_view extension = "yue"sv;
 
 class CompileError : public std::logic_error {
@@ -5440,7 +5440,7 @@ private:
 					if (def->defaultValue) {
 						defVal = _parser.toString(def->defaultValue);
 						Utils::trim(defVal);
-						defVal = '=' + Utils::toLuaString(defVal);
+						defVal = '=' + Utils::toLuaDoubleString(defVal);
 					}
 					newArgs.emplace_back(_parser.toString(def->name) + defVal);
 				}
@@ -6777,7 +6777,7 @@ private:
 				}
 			}
 		}
-		int len = lua_objlen(L, -1);
+		int len = static_cast<int>(lua_objlen(L, -1));
 		lua_pushnil(L); // cur nil
 		for (int i = len; i >= 1; i--) {
 			lua_pop(L, 1); // cur
@@ -6792,7 +6792,7 @@ private:
 		str_list checks;
 		if (lua_istable(L, -1)) {
 			lua_rawgeti(L, -1, 1); // cur macrotab checks
-			int len = lua_objlen(L, -1);
+			int len = static_cast<int>(lua_objlen(L, -1));
 			for (int i = 1; i <= len; i++) {
 				lua_rawgeti(L, -1, i);
 				if (lua_toboolean(L, -1) == 0) {
@@ -6852,7 +6852,7 @@ private:
 		} // cur macroFunc
 		pushYue("pcall"sv); // cur macroFunc pcall
 		lua_insert(L, -2); // cur pcall macroFunc
-		if (!lua_checkstack(L, argStrs.size())) {
+		if (!lua_checkstack(L, static_cast<int>(argStrs.size()))) {
 			throw CompileError("too much macro params"s, x);
 		}
 		auto checkIt = checks.begin();
@@ -9183,42 +9183,44 @@ private:
 		str_list temp;
 		for (auto line_ : multiline->lines.objects()) {
 			auto line = static_cast<YAMLLine_t*>(line_);
-			if (!line->segments.empty()) {
-				str_list segs;
-				for (auto seg_ : line->segments.objects()) {
-					auto content = static_cast<YAMLLineContent_t*>(seg_)->content.get();
-					switch (content->get_id()) {
-						case id<YAMLLineInner_t>(): {
-							auto str = _parser.toString(content);
-							Utils::replace(str, "\r\n"sv, "\n"sv);
-							Utils::replace(str, "\n"sv, "\\n"sv);
-							Utils::replace(str, "\\#"sv, "#"sv);
-							segs.push_back('\"' + str + '\"');
-							break;
-						}
-						case id<Exp_t>(): {
-							transformExp(static_cast<Exp_t*>(content), segs, ExpUsage::Closure);
-							segs.back() = globalVar("tostring"sv, content, AccessType::Read) + '(' + segs.back() + ')';
-							break;
-						}
-						default: YUEE("AST node mismatch", content); break;
-					}
-				}
-				auto lineStr = join(segs, " .. "sv);
-				if (!indent) {
-					auto pos = lineStr.find_first_not_of("\t "sv, 1);
-					if (pos == std::string::npos) {
-						throw CompileError("expecting first line indent"sv, line);
-					}
-					indent = std::string{lineStr.c_str(), pos};
-				} else {
-					if (std::string_view{lineStr}.substr(0, indent.value().size()) != indent.value()) {
-						throw CompileError("inconsistent indent"sv, line);
-					}
-				}
-				lineStr = '"' + lineStr.substr(indent.value().size());
-				temp.push_back(lineStr);
+			auto indentStr = _parser.toString(line->indent);
+			if (!indent) {
+				indent = indentStr;
 			}
+			if (std::string_view{indentStr.c_str(), indent.value().size()} != indent.value()) {
+				throw CompileError("inconsistent indent"sv, line);
+			}
+			indentStr = indentStr.substr(indent.value().size());
+			str_list segs;
+			bool firstSeg = true;
+			for (auto seg_ : line->segments.objects()) {
+				auto content = static_cast<YAMLLineContent_t*>(seg_)->content.get();
+				switch (content->get_id()) {
+					case id<YAMLLineInner_t>(): {
+						auto seqStr = _parser.toString(content);
+						Utils::replace(seqStr, "\\#"sv, "#"sv);
+						if (firstSeg) {
+							firstSeg = false;
+							seqStr.insert(0, indentStr);
+						}
+						segs.push_back(Utils::toLuaDoubleString(seqStr));
+						break;
+					}
+					case id<Exp_t>(): {
+						if (firstSeg) {
+							firstSeg = false;
+							if (!indentStr.empty()) {
+								segs.push_back(Utils::toLuaDoubleString(indentStr));
+							}
+						}
+						transformExp(static_cast<Exp_t*>(content), segs, ExpUsage::Closure);
+						segs.back() = globalVar("tostring"sv, content, AccessType::Read) + '(' + segs.back() + ')';
+						break;
+					}
+					default: YUEE("AST node mismatch", content); break;
+				}
+			}
+			temp.push_back(join(segs, " .. "sv));
 		}
 		auto str = join(temp, " .. '\\n' .. "sv);
 		Utils::replace(str, "\" .. '\\n' .. \""sv, "\\n"sv);
