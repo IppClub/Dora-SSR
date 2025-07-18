@@ -640,12 +640,12 @@ YueParser::YueParser() {
 	DoubleStringContent = DoubleStringInner | interp;
 	DoubleString = '"' >> Seperator >> *DoubleStringContent >> '"';
 
+	YAMLIndent = +set(" \t");
 	YAMLLineInner = +('\\' >> set("\"\\#") | not_("#{" | stop) >> any_char);
 	YAMLLineContent = YAMLLineInner | interp;
-	YAMLLine = check_indent_match >> Seperator >> +YAMLLineContent |
-		advance_match >> Seperator >> ensure(+YAMLLineContent, pop_indent) |
-		Seperator >> *set(" \t") >> and_(line_break);
-	YAMLMultiline = '|' >> Seperator >> +space_break >> advance_match >> ensure(YAMLLine >> *(*set(" \t") >> line_break >> YAMLLine), pop_indent);
+	YAMLLine = check_indent_match >> YAMLIndent >> +(YAMLLineContent) |
+		advance_match >> YAMLIndent >> ensure(+YAMLLineContent, pop_indent);
+	YAMLMultiline = '|' >> space >> Seperator >> +(*set(" \t") >> line_break) >> advance_match >> ensure(YAMLLine >> *(+(*set(" \t") >> line_break) >> YAMLLine), pop_indent);
 
 	String = DoubleString | SingleString | LuaString | YAMLMultiline;
 
@@ -1185,7 +1185,7 @@ void trim(std::string& str) {
 	str.erase(str.find_last_not_of(" \t\r\n") + 1);
 }
 
-std::string toLuaString(const std::string& input) {
+std::string toLuaDoubleString(const std::string& input) {
 	std::string luaStr = "\"";
 	for (char c : input) {
 		switch (c) {
