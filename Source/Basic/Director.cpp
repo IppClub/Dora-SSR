@@ -720,6 +720,11 @@ void Director::ProfilerInfo::init() {
 }
 
 void Director::ProfilerInfo::update(double deltaTime) {
+	if (skipOneFrame) {
+		skipOneFrame = false;
+		return;
+	}
+
 	frames++;
 	elapsedTime += deltaTime;
 

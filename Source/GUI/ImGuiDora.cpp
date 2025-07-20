@@ -840,7 +840,7 @@ void ImGuiDora::showStats(bool* pOpen, uint32_t windowFlags, const std::function
 		Size size = SharedApplication.getVisualSize();
 		ImGui::SetNextWindowPos(Vec2{size.width / 2 - 160.0f, 10.0f}, ImGuiCond_FirstUseEver);
 		if (ImGui::Begin(useChinese ? r_cast<const char*>(u8"每秒内帧耗时峰值(ms)") : "Frame Time Peaks(ms/s)", nullptr, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize)) {
-			ImPlot::SetNextAxesLimits(0, info->PlotCount, 0, std::max(info->yLimit, info->targetTime) + 1.0, ImGuiCond_Always);
+			ImPlot::SetNextAxesLimits(0, std::min(s_cast<double>(info->PlotCount), s_cast<double>(info->cpuValues.size())), 0, std::max(info->yLimit, info->targetTime) + 1.0, ImGuiCond_Always);
 			ImPlot::PushStyleColor(ImPlotCol_FrameBg, ImVec4(0, 0, 0, 0));
 			ImPlot::PushStyleColor(ImPlotCol_PlotBg, ImVec4(0, 0, 0, 0));
 			if (ImPlot::BeginPlot("Time Profiler", Vec2{300.0f, 130.0f},

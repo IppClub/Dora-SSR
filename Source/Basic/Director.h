@@ -141,6 +141,7 @@ public:
 		Ref<Listener> loaderCostListener;
 		bool loaderCostDirty = false;
 		bool profilerSending = false;
+		bool skipOneFrame = true;
 
 		void init();
 		void update(double deltaTime);
