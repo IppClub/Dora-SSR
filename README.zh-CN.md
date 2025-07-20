@@ -57,9 +57,13 @@
 
 ## 功能示例
 
-- [Dora引擎 功能示例](https://github.com/ippclub/Dora-Example)
+&emsp;&emsp;可以参考 [这里](https://github.com/IppClub/Dora-Example/tree/master/Example) 的示例代码，了解如何使用 Dora 引擎提供的各项功能。
 
-## [示例项目](https://github.com/ippclub/Dora-Example)
+<br>
+
+## 示例项目
+
+&emsp;&emsp;可以参考 [这个仓库](https://github.com/IppClub/Dora-Demo) 提供的游戏演示，了解如何使用 Dora 引擎来开发游戏。
 
 - [示例项目 - Loli War](https://github.com/IppClub/Dora-Demo/tree/main/Loli%20War)
 
