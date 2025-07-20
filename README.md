@@ -55,7 +55,15 @@ Dora SSR is a game engine for rapid development of games on various devices. It 
 
 <br>
 
+## Usages
+
+You can refer to the example code [here](https://github.com/IppClub/Dora-Example/tree/master/Example) to learn how to use the various features provided by Dora SSR.
+
+<br>
+
 ## Example Projects
+
+You can refer to the [Dora-Demo](https://github.com/IppClub/Dora-Demo) repository for game demos, and learn how to use Dora SSR to develop games.
 
 - [Sample Project - Loli War](https://github.com/IppClub/Dora-Demo/tree/main/Loli%20War)
 
