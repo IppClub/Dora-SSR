@@ -69,22 +69,7 @@ int nvg::CreateImage(int w, int h, String filename, int imageFlags) {
 }
 
 int nvg::CreateFont(String name) {
-	std::string fontFile;
-	BLOCK_START {
-		fontFile = "Font/" + name.toString() + ".ttf";
-		BREAK_IF(SharedContent.exist(fontFile));
-		fontFile = "Font/" + name.toString() + ".otf";
-		BREAK_IF(SharedContent.exist(fontFile));
-		fontFile = name.toString();
-		BREAK_IF(SharedContent.exist(fontFile));
-		fontFile.clear();
-	}
-	BLOCK_END
-	if (fontFile.empty()) return -1;
-	auto data = SharedContent.load(fontFile);
-	uint8_t* fontData = r_cast<uint8_t*>(malloc(data.second));
-	bx::memCopy(fontData, data.first.get(), data.second);
-	return nvgCreateFontMem(Context(), name.c_str(), fontData, s_cast<int>(data.second), 1);
+	return nvgCreateFont(Context(), name.c_str(), name.c_str());
 }
 
 float nvg::TextBounds(float x, float y, String text, Dora::Rect& bounds) {
