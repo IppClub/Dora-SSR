@@ -19,6 +19,10 @@
 #ifndef FONS_H
 #define FONS_H
 
+#include "Const/Header.h"
+
+#include "Cache/FontCache.h"
+
 #define FONS_INVALID -1
 
 enum FONSflags {
@@ -103,7 +107,7 @@ int fonsResetAtlas(FONScontext* stash, int width, int height);
 
 // Add fonts
 int fonsAddFont(FONScontext* s, const char* name, const char* path, int fontIndex);
-int fonsAddFontMem(FONScontext* s, const char* name, unsigned char* data, int ndata, int freeData, int fontIndex);
+int fonsAddFontMem(FONScontext* s, const char* name, Dora::TrueTypeFile* file, int fontIndex);
 int fonsGetFontByName(FONScontext* s, const char* name);
 
 // State handling
@@ -237,9 +241,8 @@ struct FONSfont
 {
 	FONSttFontImpl font;
 	char name[64];
-	unsigned char* data;
-	int dataSize;
-	unsigned char freeData;
+
+	Dora::Ref<Dora::TrueTypeFile> file;
 	float ascender;
 	float descender;
 	float lineh;
@@ -884,7 +887,7 @@ static void fons__freeFont(FONSfont* font)
 {
 	if (font == NULL) return;
 	if (font->glyphs) free(font->glyphs);
-	if (font->freeData && font->data) free(font->data);
+	font->file = nullptr;
 	free(font);
 }
 
@@ -917,33 +920,13 @@ error:
 
 int fonsAddFont(FONScontext* stash, const char* name, const char* path, int fontIndex)
 {
-	FILE* fp = 0;
-	int dataSize = 0;
-	size_t readed;
-	unsigned char* data = NULL;
-
-	// Read in the font data.
-	fp = fopen(path, "rb");
-	if (fp == NULL) goto error;
-	fseek(fp,0,SEEK_END);
-	dataSize = (int)ftell(fp);
-	fseek(fp,0,SEEK_SET);
-	data = (unsigned char*)malloc(dataSize);
-	if (data == NULL) goto error;
-	readed = fread(data, 1, dataSize, fp);
-	fclose(fp);
-	fp = 0;
-	if (readed != (size_t)dataSize) goto error;
-
-	return fonsAddFontMem(stash, name, data, dataSize, 1, fontIndex);
-
-error:
-	if (data) free(data);
-	if (fp) fclose(fp);
+	if (auto file = SharedFontCache.loadFontFile(path)) {
+		return fonsAddFontMem(stash, name, file, fontIndex);
+	}
 	return FONS_INVALID;
 }
 
-int fonsAddFontMem(FONScontext* stash, const char* name, unsigned char* data, int dataSize, int freeData, int fontIndex)
+int fonsAddFontMem(FONScontext* stash, const char* name, Dora::TrueTypeFile* file, int fontIndex)
 {
 	int i, ascent, descent, fh, lineGap;
 	FONSfont* font;
@@ -962,9 +945,10 @@ int fonsAddFontMem(FONScontext* stash, const char* name, unsigned char* data, in
 		font->lut[i] = -1;
 
 	// Read in the font data.
-	font->dataSize = dataSize;
-	font->data = data;
-	font->freeData = (unsigned char)freeData;
+	font->file = file;
+
+	auto data = file->getBuffer();
+	int dataSize = s_cast<int>(file->getSize());
 
 	// Init font
 	stash->nscratch = 0;
@@ -1340,7 +1324,7 @@ float fonsDrawText(FONScontext* stash,
 	if (stash == NULL) return x;
 	if (state->font < 0 || state->font >= stash->nfonts) return x;
 	font = stash->fonts[state->font];
-	if (font->data == NULL) return x;
+	if (font->file == nullptr) return x;
 
 	scale = fons__tt_getPixelHeightScale(&font->font, (float)isize/10.0f);
 
@@ -1396,7 +1380,7 @@ int fonsTextIterInit(FONScontext* stash, FONStextIter* iter,
 	if (stash == NULL) return 0;
 	if (state->font < 0 || state->font >= stash->nfonts) return 0;
 	iter->font = stash->fonts[state->font];
-	if (iter->font->data == NULL) return 0;
+	if (iter->font->file == nullptr) return 0;
 
 	iter->isize = (short)(state->size*10.0f);
 	iter->iblur = (short)state->blur;
@@ -1528,7 +1512,7 @@ float fonsTextBounds(FONScontext* stash,
 	if (stash == NULL) return 0;
 	if (state->font < 0 || state->font >= stash->nfonts) return 0;
 	font = stash->fonts[state->font];
-	if (font->data == NULL) return 0;
+	if (font->file == nullptr) return 0;
 
 	scale = fons__tt_getPixelHeightScale(&font->font, (float)isize/10.0f);
 
@@ -1595,7 +1579,7 @@ void fonsVertMetrics(FONScontext* stash,
 	if (state->font < 0 || state->font >= stash->nfonts) return;
 	font = stash->fonts[state->font];
 	isize = (short)(state->size*10.0f);
-	if (font->data == NULL) return;
+	if (font->file == nullptr) return;
 
 	if (ascender)
 		*ascender = font->ascender*isize/10.0f;
@@ -1615,7 +1599,7 @@ void fonsLineBounds(FONScontext* stash, float y, float* miny, float* maxy)
 	if (state->font < 0 || state->font >= stash->nfonts) return;
 	font = stash->fonts[state->font];
 	isize = (short)(state->size*10.0f);
-	if (font->data == NULL) return;
+	if (font->file == nullptr) return;
 
 	y += fons__getVertAlign(stash, font, state->align, isize);
 
