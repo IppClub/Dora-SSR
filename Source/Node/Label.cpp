@@ -233,7 +233,7 @@ int Label::getCharacterCount() const {
 }
 
 float Label::getLetterPosXLeft(CharItem* item) {
-	return item->pos.x - item->rect.getWidth() * 0.5f;
+	return item->startX;
 }
 
 float Label::getLetterPosXRight(CharItem* item) {
@@ -335,6 +335,7 @@ void Label::updateCharacters(const std::vector<uint32_t>& chars) {
 			nextFontPositionX + fontDef->offset_x + fontDef->width * 0.5f + kerningAmount - padding,
 			nextFontPositionY + yOffset - fontDef->height * 0.5f - fontInfo.descender + padding};
 		fontChar->pos = fontPos;
+		fontChar->startX = nextFontPositionX;
 		if (fontChar->sprite) {
 			fontChar->sprite->setPosition(fontPos);
 		}

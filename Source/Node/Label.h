@@ -60,11 +60,13 @@ protected:
 			, texture(nullptr)
 			, rect{}
 			, pos{}
+			, startX(0)
 			, sprite(nullptr) { }
 		uint32_t code;
 		Texture2D* texture;
 		Rect rect;
 		Vec2 pos;
+		float startX;
 		Sprite* sprite;
 	};
 	float getLetterPosXLeft(CharItem* item);
