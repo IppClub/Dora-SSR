@@ -233,8 +233,15 @@ AST_NODE(ImportAs)
 	AST_MEMBER(ImportAs, &literal, &target)
 AST_END(ImportAs)
 
+AST_NODE(ImportGlobal)
+	ast_ptr<true, Seperator_t> sep;
+	ast_list<true, UnicodeName_t> segs;
+	ast_ptr<false, Variable_t> target;
+	AST_MEMBER(ImportGlobal, &sep, &segs, &target)
+AST_END(ImportGlobal)
+
 AST_NODE(Import)
-	ast_sel<true, ImportAs_t, ImportFrom_t, FromImport_t> content;
+	ast_sel<true, ImportAs_t, ImportFrom_t, FromImport_t, ImportGlobal_t> content;
 	AST_MEMBER(Import, &content)
 AST_END(Import)
 

@@ -10,7 +10,9 @@ import "dora"
 
 func TestQuickStart() {
 	// 创建图片精灵
-	sprite := dora.NewSpriteWithFile("Image/logo.png")
+	sprite := dora.NewSpriteWithTexture(dora.Nvg.GetDoraSsr(1.0))
+	sprite.SetWidth(400)
+	sprite.SetHeight(400)
 	// 创建游戏场景树根节点
 	root := dora.NewNode()
 	// 挂载图片精灵到游戏场景树根节点

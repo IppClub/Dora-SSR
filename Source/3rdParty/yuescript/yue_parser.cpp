@@ -349,7 +349,9 @@ YueParser::YueParser() {
 
 	ImportAs = ImportLiteral >> -(space >> key("as") >> space >> (ImportTabLit | Variable | ImportAllMacro));
 
-	Import = key("import") >> space >> (ImportAs | ImportFrom) | FromImport;
+	ImportGlobal = Seperator >> UnicodeName >> *('.' >> UnicodeName) >> -(space >> key("as") >> space >> Variable);
+
+	Import = key("import") >> space >> (ImportAs | ImportFrom | ImportGlobal) | FromImport;
 
 	Label = "::" >> LabelName >> "::";
 
