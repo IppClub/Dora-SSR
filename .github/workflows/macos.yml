@@ -33,7 +33,6 @@ jobs:
           cd Assets/www && zip -vr ../../web-ide-files.zip . && cd ../..
           cd $GITHUB_WORKSPACE
           cp Tools/dora-wa/wa.mod Assets/dora-wa
-          cp -r Tools/dora-wa/src Assets/dora-wa
           cp -r Tools/dora-wa/vendor Assets/dora-wa
           Tools/tolua++/build.sh
           Tools/build-scripts/build_macos.sh
