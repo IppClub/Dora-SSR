@@ -485,6 +485,12 @@ bool Content::copyUnsafe(String src, String dst) {
 	// Info("copy file from {}", srcPath);
 	// Info("copy file to {}", dst);
 	if (Content::isPathFolder(srcPath)) {
+		if (!Content::isFileExist(dst)) {
+			if (!Content::createFolder(dst)) {
+				Error("failed to create folder \"{}\"", dst.toString());
+				return false;
+			}
+		}
 		std::string dstPath = dst.toString();
 		auto folders = Content::getDirEntries(src, true);
 		for (const std::string& folder : folders) {
