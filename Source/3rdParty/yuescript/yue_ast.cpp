@@ -304,6 +304,17 @@ std::string ImportAs_t::to_string(void* ud) const {
 	}
 	return join(temp, " "s);
 }
+std::string ImportGlobal_t::to_string(void* ud) const {
+	str_list temp;
+	for (auto seg : segs.objects()) {
+		temp.emplace_back(seg->to_string(ud));
+	}
+	auto item = join(temp, "."s);
+	if (target) {
+		return item + " as "s + target->to_string(ud);
+	}
+	return item;
+}
 std::string Import_t::to_string(void* ud) const {
 	if (ast_is<FromImport_t>(content)) {
 		return content->to_string(ud);

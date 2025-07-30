@@ -62,6 +62,8 @@
 #  define close _close
 #endif
 
+extern void dora_write_stdout(char* buf, size_t len);
+
 static m3_wasi_context_t* wasi_context;
 
 typedef struct wasi_iovec_t
@@ -619,6 +621,20 @@ m3ApiRawFunction(m3_wasi_generic_fd_write)
 
     m3ApiCheckMem(wasi_iovs,    iovs_len * sizeof(wasi_iovec_t));
     m3ApiCheckMem(nwritten,     sizeof(__wasi_size_t));
+
+    if (fd == 1) {
+        ssize_t res = 0;
+        for (__wasi_size_t i = 0; i < iovs_len; i++) {
+           void* addr = m3ApiOffsetToPtr(m3ApiReadMem32(&wasi_iovs[i].buf));
+           size_t len = m3ApiReadMem32(&wasi_iovs[i].buf_len);
+           if (len == 0) continue;
+           m3ApiCheckMem(addr,     len);
+           dora_write_stdout((char*)addr, len);
+           res += len;
+        }
+        m3ApiWriteMem32(nwritten, res);
+        m3ApiReturn(__WASI_ERRNO_SUCCESS);
+    }
 
 #if defined(HAS_IOVEC)
     struct iovec iovs[iovs_len];

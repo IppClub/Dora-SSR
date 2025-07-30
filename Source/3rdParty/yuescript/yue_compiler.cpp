@@ -78,7 +78,7 @@ static std::unordered_set<std::string> Metamethods = {
 	"close"s // Lua 5.4
 };
 
-const std::string_view version = "0.29.2"sv;
+const std::string_view version = "0.29.3"sv;
 const std::string_view extension = "yue"sv;
 
 class CompileError : public std::logic_error {
@@ -11040,6 +11040,30 @@ private:
 		}
 	}
 
+	void transformImportGlobal(ImportGlobal_t* importNode, str_list& out) {
+		auto uname = static_cast<UnicodeName_t*>(importNode->segs.front());
+		auto var = _parser.toString(uname);
+		auto isNormal = _parser.match<Name_t>(var) && _parser.match<Variable_t>(var);
+		auto varName = unicodeVariableFrom(uname);
+		str_list temp;
+		auto it = ++importNode->segs.objects().begin();
+		for (; it != importNode->segs.objects().end(); ++it) {
+			temp.emplace_back(_parser.toString(*it));
+		}
+		temp.emplace_front(var);
+		if (isLocal(varName) || !isNormal) {
+			temp.emplace_front("_G"s);
+		}
+		std::string stmt;
+		if (importNode->target) {
+			stmt = "const "s + _parser.toString(importNode->target) + '=' + join(temp, "."sv);
+		} else {
+			stmt = "const "s + temp.back() + '=' + join(temp, "."sv);
+		}
+		auto localAttrib = toAst<LocalAttrib_t>(stmt, importNode);
+		transformLocalAttrib(localAttrib, out);
+	}
+
 	void transformImport(Import_t* import, str_list& out) {
 		auto content = import->content.get();
 		switch (content->get_id()) {
@@ -11051,6 +11075,9 @@ private:
 				break;
 			case id<FromImport_t>():
 				transformFromImport(static_cast<FromImport_t*>(content), out);
+				break;
+			case id<ImportGlobal_t>():
+				transformImportGlobal(static_cast<ImportGlobal_t*>(content), out);
 				break;
 			default: YUEE("AST node mismatch", content); break;
 		}

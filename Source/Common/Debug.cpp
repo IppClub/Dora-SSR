@@ -209,3 +209,17 @@ bool IsInLuaOrWasm() {
 }
 
 NS_DORA_END
+
+static std::string std_buf;
+extern "C" {
+	void dora_write_stdout(char* buf, size_t len) {
+		for (size_t i = 0; i < len; ++i) {
+			if (buf[i] == '\n') {
+				Dora::LogInfoThreaded(std_buf);
+				std_buf.clear();
+			} else {
+				std_buf += buf[i];
+			}
+		}
+	}
+}
