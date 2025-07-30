@@ -38,7 +38,6 @@ jobs:
           cd ..\..\..\..
           xcopy Tools\dora-wa\wa.mod Assets\dora-wa\ /I /Y
           xcopy Tools\dora-wa\vendor Assets\dora-wa\vendor /I /E /Y
-          xcopy Tools\dora-wa\src Assets\dora-wa\src /I /E /Y
           (cd Assets && 7z a -tzip ..\dora-ssr-windows-x86.zip dora-wa && cd ..)
           (cd Assets && 7z a -tzip ..\dora-ssr-windows-x86.zip Doc && cd ..)
           (cd Assets && 7z a -tzip ..\dora-ssr-windows-x86.zip Font && cd ..)
