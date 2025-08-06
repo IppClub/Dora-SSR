@@ -3,18 +3,6 @@
     "message": "版本 1.7.0",
     "description": "The label for version current"
   },
-  "sidebar.apiSidebar.category.Class": {
-    "message": "功能类",
-    "description": "The label for category Class in sidebar apiSidebar"
-  },
-  "sidebar.apiSidebar.category.Class Object": {
-    "message": "类对象",
-    "description": "The label for category Class Object in sidebar apiSidebar"
-  },
-  "sidebar.apiSidebar.category.Module": {
-    "message": "其它模块",
-    "description": "The label for category Module in sidebar apiSidebar"
-  },
   "sidebar.tutorialSidebar.category.Using Dora Xml": {
     "message": "如何使用 Dora Xml",
     "description": "The label for category Using Dora Xml in sidebar tutorialSidebar"
@@ -106,10 +94,6 @@
   "sidebar.apiSidebar.category.Networking Service": {
     "message": "网络服务",
     "description": "The label for category Networking Service in sidebar apiSidebar"
-  },
-  "sidebar.apiSidebar.category.Uncategorized API": {
-    "message": "未分类 API",
-    "description": "The label for category Uncategorized API in sidebar apiSidebar"
   },
   "sidebar.apiSidebar.link.C4.5": {
     "message": "C4.5",
@@ -599,10 +583,6 @@
     "message": "TileNode",
     "description": "The label for the doc item TileNode in sidebar apiSidebar, linking to the doc api/Class/TileNode"
   },
-  "sidebar.apiSidebar.category.GamePad": {
-    "message": "GamePad",
-    "description": "The label for category GamePad in sidebar apiSidebar"
-  },
   "sidebar.apiSidebar.doc.Trigger": {
     "message": "Trigger",
     "description": "The label for the doc item Trigger in sidebar apiSidebar, linking to the doc api/Class/InputManager/Trigger"
@@ -710,5 +690,281 @@
   "sidebar.exampleSidebar.category.First Game Tutorial": {
     "message": "你的第一个 Dora 游戏",
     "description": "The label for category First Game Tutorial in sidebar exampleSidebar"
+  },
+  "sidebar.apiSidebar.category.GamePad Props": {
+    "message": "GamePad Props",
+    "description": "The label for category GamePad Props in sidebar apiSidebar"
+  },
+  "sidebar.apiSidebar.doc.Object Class": {
+    "message": "Object Class",
+    "description": "The label for the doc item Object Class in sidebar apiSidebar, linking to the doc api/Class Object/Object"
+  },
+  "sidebar.apiSidebar.doc.AudioBus": {
+    "message": "AudioBus",
+    "description": "The label for the doc item AudioBus in sidebar apiSidebar, linking to the doc api/Class/AudioBus"
+  },
+  "sidebar.apiSidebar.doc.AudioBus Class": {
+    "message": "AudioBus Class",
+    "description": "The label for the doc item AudioBus Class in sidebar apiSidebar, linking to the doc api/Class Object/AudioBus"
+  },
+  "sidebar.apiSidebar.doc.AudioSource": {
+    "message": "AudioSource",
+    "description": "The label for the doc item AudioSource in sidebar apiSidebar, linking to the doc api/Class/AudioSource"
+  },
+  "sidebar.apiSidebar.doc.AudioSource Class": {
+    "message": "AudioSource Class",
+    "description": "The label for the doc item AudioSource Class in sidebar apiSidebar, linking to the doc api/Class Object/AudioSource"
+  },
+  "sidebar.apiSidebar.doc.InputManager Class": {
+    "message": "InputManager Class",
+    "description": "The label for the doc item InputManager Class in sidebar apiSidebar, linking to the doc api/Class Object/InputManager"
+  },
+  "sidebar.apiSidebar.doc.Array Class": {
+    "message": "Array Class",
+    "description": "The label for the doc item Array Class in sidebar apiSidebar, linking to the doc api/Class Object/Array"
+  },
+  "sidebar.apiSidebar.doc.Array Item": {
+    "message": "Array Item",
+    "description": "The label for the doc item Array Item in sidebar apiSidebar, linking to the doc api/Module/Array"
+  },
+  "sidebar.apiSidebar.doc.Dictionary Class": {
+    "message": "Dictionary Class",
+    "description": "The label for the doc item Dictionary Class in sidebar apiSidebar, linking to the doc api/Class Object/Dictionary"
+  },
+  "sidebar.apiSidebar.doc.ContainerItem": {
+    "message": "ContainerItem",
+    "description": "The label for the doc item ContainerItem in sidebar apiSidebar, linking to the doc api/Class/ContainerItem"
+  },
+  "sidebar.apiSidebar.doc.Vec2 Class": {
+    "message": "Vec2 Class",
+    "description": "The label for the doc item Vec2 Class in sidebar apiSidebar, linking to the doc api/Class Object/Vec2"
+  },
+  "sidebar.apiSidebar.doc.Size Class": {
+    "message": "Size Class",
+    "description": "The label for the doc item Size Class in sidebar apiSidebar, linking to the doc api/Class Object/Size"
+  },
+  "sidebar.apiSidebar.doc.Rect Class": {
+    "message": "Rect Class",
+    "description": "The label for the doc item Rect Class in sidebar apiSidebar, linking to the doc api/Class Object/Rect"
+  },
+  "sidebar.apiSidebar.doc.Color Class": {
+    "message": "Color Class",
+    "description": "The label for the doc item Color Class in sidebar apiSidebar, linking to the doc api/Class Object/Color"
+  },
+  "sidebar.apiSidebar.doc.Color3 Class": {
+    "message": "Color3 Class",
+    "description": "The label for the doc item Color3 Class in sidebar apiSidebar, linking to the doc api/Class Object/Color3"
+  },
+  "sidebar.apiSidebar.doc.Scheduler Class": {
+    "message": "Scheduler Class",
+    "description": "The label for the doc item Scheduler Class in sidebar apiSidebar, linking to the doc api/Class Object/Scheduler"
+  },
+  "sidebar.apiSidebar.doc.Camera2D Class": {
+    "message": "Camera2D Class",
+    "description": "The label for the doc item Camera2D Class in sidebar apiSidebar, linking to the doc api/Class Object/Camera2D"
+  },
+  "sidebar.apiSidebar.doc.CameraOtho Class": {
+    "message": "CameraOtho Class",
+    "description": "The label for the doc item CameraOtho Class in sidebar apiSidebar, linking to the doc api/Class Object/CameraOtho"
+  },
+  "sidebar.apiSidebar.doc.Node Class": {
+    "message": "Node Class",
+    "description": "The label for the doc item Node Class in sidebar apiSidebar, linking to the doc api/Class Object/Node"
+  },
+  "sidebar.apiSidebar.doc.AlignNode Class": {
+    "message": "AlignNode Class",
+    "description": "The label for the doc item AlignNode Class in sidebar apiSidebar, linking to the doc api/Class Object/AlignNode"
+  },
+  "sidebar.apiSidebar.doc.Menu Class": {
+    "message": "Menu Class",
+    "description": "The label for the doc item Menu Class in sidebar apiSidebar, linking to the doc api/Class Object/Menu"
+  },
+  "sidebar.apiSidebar.doc.Touch Class": {
+    "message": "Touch Class",
+    "description": "The label for the doc item Touch Class in sidebar apiSidebar, linking to the doc api/Class Object/Touch"
+  },
+  "sidebar.apiSidebar.doc.Sprite Class": {
+    "message": "Sprite Class",
+    "description": "The label for the doc item Sprite Class in sidebar apiSidebar, linking to the doc api/Class Object/Sprite"
+  },
+  "sidebar.apiSidebar.doc.Grid Class": {
+    "message": "Grid Class",
+    "description": "The label for the doc item Grid Class in sidebar apiSidebar, linking to the doc api/Class Object/Grid"
+  },
+  "sidebar.apiSidebar.doc.Line Class": {
+    "message": "Line Class",
+    "description": "The label for the doc item Line Class in sidebar apiSidebar, linking to the doc api/Class Object/Line"
+  },
+  "sidebar.apiSidebar.doc.DrawNode Class": {
+    "message": "DrawNode Class",
+    "description": "The label for the doc item DrawNode Class in sidebar apiSidebar, linking to the doc api/Class Object/DrawNode"
+  },
+  "sidebar.apiSidebar.doc.ClipNode Class": {
+    "message": "ClipNode Class",
+    "description": "The label for the doc item ClipNode Class in sidebar apiSidebar, linking to the doc api/Class Object/ClipNode"
+  },
+  "sidebar.apiSidebar.doc.Label Class": {
+    "message": "Label Class",
+    "description": "The label for the doc item Label Class in sidebar apiSidebar, linking to the doc api/Class Object/Label"
+  },
+  "sidebar.apiSidebar.doc.EffekNode Class": {
+    "message": "EffekNode Class",
+    "description": "The label for the doc item EffekNode Class in sidebar apiSidebar, linking to the doc api/Class Object/EffekNode"
+  },
+  "sidebar.apiSidebar.doc.TileNode Class": {
+    "message": "TileNode Class",
+    "description": "The label for the doc item TileNode Class in sidebar apiSidebar, linking to the doc api/Class Object/TileNode"
+  },
+  "sidebar.apiSidebar.doc.VGNode Class": {
+    "message": "VGNode Class",
+    "description": "The label for the doc item VGNode Class in sidebar apiSidebar, linking to the doc api/Class Object/VGNode"
+  },
+  "sidebar.apiSidebar.doc.SVG Class": {
+    "message": "SVG Class",
+    "description": "The label for the doc item SVG Class in sidebar apiSidebar, linking to the doc api/Class Object/SVG"
+  },
+  "sidebar.apiSidebar.doc.Particle Class": {
+    "message": "Particle Class",
+    "description": "The label for the doc item Particle Class in sidebar apiSidebar, linking to the doc api/Class Object/Particle"
+  },
+  "sidebar.apiSidebar.doc.Texture2D Class": {
+    "message": "Texture2D Class",
+    "description": "The label for the doc item Texture2D Class in sidebar apiSidebar, linking to the doc api/Class Object/Texture2D"
+  },
+  "sidebar.apiSidebar.doc.BlendFunc Class": {
+    "message": "BlendFunc Class",
+    "description": "The label for the doc item BlendFunc Class in sidebar apiSidebar, linking to the doc api/Class Object/BlendFunc"
+  },
+  "sidebar.apiSidebar.doc.Effect Class": {
+    "message": "Effect Class",
+    "description": "The label for the doc item Effect Class in sidebar apiSidebar, linking to the doc api/Class Object/Effect"
+  },
+  "sidebar.apiSidebar.doc.SpriteEffect Class": {
+    "message": "SpriteEffect Class",
+    "description": "The label for the doc item SpriteEffect Class in sidebar apiSidebar, linking to the doc api/Class Object/SpriteEffect"
+  },
+  "sidebar.apiSidebar.doc.Pass Class": {
+    "message": "Pass Class",
+    "description": "The label for the doc item Pass Class in sidebar apiSidebar, linking to the doc api/Class Object/Pass"
+  },
+  "sidebar.apiSidebar.doc.RenderTarget Class": {
+    "message": "RenderTarget Class",
+    "description": "The label for the doc item RenderTarget Class in sidebar apiSidebar, linking to the doc api/Class Object/RenderTarget"
+  },
+  "sidebar.apiSidebar.doc.Playable Class": {
+    "message": "Playable Class",
+    "description": "The label for the doc item Playable Class in sidebar apiSidebar, linking to the doc api/Class Object/Playable"
+  },
+  "sidebar.apiSidebar.doc.Model Class": {
+    "message": "Model Class",
+    "description": "The label for the doc item Model Class in sidebar apiSidebar, linking to the doc api/Class Object/Model"
+  },
+  "sidebar.apiSidebar.doc.DragonBone Class": {
+    "message": "DragonBone Class",
+    "description": "The label for the doc item DragonBone Class in sidebar apiSidebar, linking to the doc api/Class Object/DragonBone"
+  },
+  "sidebar.apiSidebar.doc.Spine Class": {
+    "message": "Spine Class",
+    "description": "The label for the doc item Spine Class in sidebar apiSidebar, linking to the doc api/Class Object/Spine"
+  },
+  "sidebar.apiSidebar.doc.Action Class": {
+    "message": "Action Class",
+    "description": "The label for the doc item Action Class in sidebar apiSidebar, linking to the doc api/Class Object/Action"
+  },
+  "sidebar.apiSidebar.doc.EaseFunc": {
+    "message": "EaseFunc",
+    "description": "The label for the doc item EaseFunc in sidebar apiSidebar, linking to the doc api/Class/Ease/EaseFunc"
+  },
+  "sidebar.apiSidebar.doc.PhysicsWorld Class": {
+    "message": "PhysicsWorld Class",
+    "description": "The label for the doc item PhysicsWorld Class in sidebar apiSidebar, linking to the doc api/Class Object/PhysicsWorld"
+  },
+  "sidebar.apiSidebar.doc.BodyDef Class": {
+    "message": "BodyDef Class",
+    "description": "The label for the doc item BodyDef Class in sidebar apiSidebar, linking to the doc api/Class Object/BodyDef"
+  },
+  "sidebar.apiSidebar.doc.Body Class": {
+    "message": "Body Class",
+    "description": "The label for the doc item Body Class in sidebar apiSidebar, linking to the doc api/Class Object/Body"
+  },
+  "sidebar.apiSidebar.doc.Sensor Class": {
+    "message": "Sensor Class",
+    "description": "The label for the doc item Sensor Class in sidebar apiSidebar, linking to the doc api/Class Object/Sensor"
+  },
+  "sidebar.apiSidebar.doc.FixtureDef Class": {
+    "message": "FixtureDef Class",
+    "description": "The label for the doc item FixtureDef Class in sidebar apiSidebar, linking to the doc api/Class Object/FixtureDef"
+  },
+  "sidebar.apiSidebar.doc.JointDef Class": {
+    "message": "JointDef Class",
+    "description": "The label for the doc item JointDef Class in sidebar apiSidebar, linking to the doc api/Class Object/JointDef"
+  },
+  "sidebar.apiSidebar.doc.Joint Class": {
+    "message": "Joint Class",
+    "description": "The label for the doc item Joint Class in sidebar apiSidebar, linking to the doc api/Class Object/Joint"
+  },
+  "sidebar.apiSidebar.doc.Entity Class": {
+    "message": "Entity Class",
+    "description": "The label for the doc item Entity Class in sidebar apiSidebar, linking to the doc api/Class Object/Entity"
+  },
+  "sidebar.apiSidebar.doc.Group Class": {
+    "message": "Group Class",
+    "description": "The label for the doc item Group Class in sidebar apiSidebar, linking to the doc api/Class Object/Group"
+  },
+  "sidebar.apiSidebar.doc.Observer Class": {
+    "message": "Observer Class",
+    "description": "The label for the doc item Observer Class in sidebar apiSidebar, linking to the doc api/Class Object/Observer"
+  },
+  "sidebar.apiSidebar.doc.Platformer Module": {
+    "message": "Platformer Module",
+    "description": "The label for the doc item Platformer Module in sidebar apiSidebar, linking to the doc api/Module/Platformer"
+  },
+  "sidebar.apiSidebar.doc.Behavior Leaf": {
+    "message": "Behavior Leaf",
+    "description": "The label for the doc item Behavior Leaf in sidebar apiSidebar, linking to the doc api/Class/Platformer/Behavior/Leaf"
+  },
+  "sidebar.apiSidebar.doc.Decision Leaf": {
+    "message": "Decision Leaf",
+    "description": "The label for the doc item Decision Leaf in sidebar apiSidebar, linking to the doc api/Class/Platformer/Decision/Leaf"
+  },
+  "sidebar.apiSidebar.doc.PlatformCamera Class": {
+    "message": "PlatformCamera Class",
+    "description": "The label for the doc item PlatformCamera Class in sidebar apiSidebar, linking to the doc api/Class Object/Platformer/PlatformCamera"
+  },
+  "sidebar.apiSidebar.doc.TargetAllow Class": {
+    "message": "TargetAllow Class",
+    "description": "The label for the doc item TargetAllow Class in sidebar apiSidebar, linking to the doc api/Class Object/Platformer/TargetAllow"
+  },
+  "sidebar.apiSidebar.doc.UnitAction Class": {
+    "message": "UnitAction Class",
+    "description": "The label for the doc item UnitAction Class in sidebar apiSidebar, linking to the doc api/Class Object/Platformer/UnitAction"
+  },
+  "sidebar.apiSidebar.doc.Unit Class": {
+    "message": "Unit Class",
+    "description": "The label for the doc item Unit Class in sidebar apiSidebar, linking to the doc api/Class Object/Platformer/Unit"
+  },
+  "sidebar.apiSidebar.doc.BulletDef Class": {
+    "message": "BulletDef Class",
+    "description": "The label for the doc item BulletDef Class in sidebar apiSidebar, linking to the doc api/Class Object/Platformer/BulletDef"
+  },
+  "sidebar.apiSidebar.doc.Bullet Class": {
+    "message": "Bullet Class",
+    "description": "The label for the doc item Bullet Class in sidebar apiSidebar, linking to the doc api/Class Object/Platformer/Bullet"
+  },
+  "sidebar.apiSidebar.doc.Face Class": {
+    "message": "Face Class",
+    "description": "The label for the doc item Face Class in sidebar apiSidebar, linking to the doc api/Class Object/Platformer/Face"
+  },
+  "sidebar.apiSidebar.doc.Visual Class": {
+    "message": "Visual Class",
+    "description": "The label for the doc item Visual Class in sidebar apiSidebar, linking to the doc api/Class Object/Platformer/Visual"
+  },
+  "sidebar.apiSidebar.doc.ML": {
+    "message": "ML",
+    "description": "The label for the doc item ML in sidebar apiSidebar, linking to the doc api/Class/ML"
+  },
+  "sidebar.apiSidebar.doc.Q-learning Class": {
+    "message": "Q-learning Class",
+    "description": "The label for the doc item Q-learning Class in sidebar apiSidebar, linking to the doc api/Class Object/QLearner"
   }
 }

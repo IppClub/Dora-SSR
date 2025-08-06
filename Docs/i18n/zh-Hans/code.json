@@ -109,7 +109,7 @@
   },
   "theme.colorToggle.ariaLabel": {
     "message": "切换浅色/暗黑模式（当前为{mode}）",
-    "description": "The ARIA label for the navbar color mode toggle"
+    "description": "The ARIA label for the color mode toggle"
   },
   "theme.colorToggle.ariaLabel.mode.dark": {
     "message": "暗黑模式",
@@ -524,5 +524,17 @@
   "engine_feature_description_blockly": {
     "message": "积木脚本系统通过可视化、拼图式的代码块，让用户可以轻松创建复杂的游戏行为，无需通过文本输入编写代码。",
     "description": "The engine feature description Blockly Scripting for Beginners in front page"
+  },
+  "theme.colorToggle.ariaLabel.mode.system": {
+    "message": "系统模式",
+    "description": "The name for the system color mode"
+  },
+  "theme.navbar.mobileDropdown.collapseButton.expandAriaLabel": {
+    "message": "展开下拉菜单",
+    "description": "The ARIA label of the button to expand the mobile dropdown navbar item"
+  },
+  "theme.navbar.mobileDropdown.collapseButton.collapseAriaLabel": {
+    "message": "折叠下拉菜单",
+    "description": "The ARIA label of the button to collapse the mobile dropdown navbar item"
   }
 }
