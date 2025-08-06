@@ -298,6 +298,14 @@ const config = {
 			style: 'dark',
 			links: [
 				{
+					title: 'Incubating by',
+					items: [
+						{
+							html: '<a href="https://openatom.org/" class="footer-openatom" target="_blank"/>',
+						},
+					]
+				},
+				{
 					title: 'Docs',
 					items: [
 						{
