@@ -301,8 +301,12 @@ const config = {
 					title: 'Incubating by',
 					items: [
 						{
-							html: '<a href="https://openatom.org/" class="footer-openatom" target="_blank"></a>',
+							html: '<div><a href="https://openatom.org/" class="footer-openatom" target="_blank"></a></div>',
 						},
+						{
+							label: '  ',
+							to: 'javascript:void(0)',
+						}
 					]
 				},
 				{
