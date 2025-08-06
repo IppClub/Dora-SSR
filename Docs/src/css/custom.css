@@ -159,3 +159,10 @@
 .footer-logo {
 	margin-top: 0em;
 }
+
+.footer-openatom {
+	background: url('/static/img/site/openatom.svg') no-repeat;
+	content: "";
+	display: flex;
+	height: 42px;
+}
