@@ -301,7 +301,7 @@ const config = {
 					title: 'Incubating by',
 					items: [
 						{
-							html: '<a href="https://openatom.org/" class="footer-openatom" target="_blank"/>',
+							html: '<a href="https://openatom.org/" class="footer-openatom" target="_blank"></a>',
 						},
 					]
 				},
