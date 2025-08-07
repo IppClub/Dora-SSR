@@ -41,6 +41,47 @@
 	--ifm-toc-border-color: rgba(0, 0, 0, 0);
 }
 
+/* 侧边栏菜单项链接 */
+.theme-doc-sidebar-item-link {
+	display: flex;
+	align-items: center;
+	margin: 0 1rem 0 0;
+	padding-left: 0.5rem;
+	padding-right: 1rem;
+	border-radius: 8px;
+	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+	text-decoration: none;
+	color: var(--ifm-color-emphasis-700);
+	font-size: 15px;
+	position: relative;
+	overflow: visible;
+}
+
+.theme-doc-sidebar-item-link:hover {
+	color: var(--ifm-color-primary);
+	transform: translateX(4px);
+}
+
+.menu__link--sublist {
+	margin-left: 0.5rem;
+	margin-right: 1rem;
+	font-size: 15px;
+}
+
+.menu__link--sublist::before {
+	content: "-";
+	position: absolute;
+	left: 10px;
+	top: 50%;
+	transform: translateY(-50%);
+	font-size: 15px;
+	color: var(--ifm-color-primary);
+}
+
+[data-theme='dark'] .menu__link--sublist::before {
+	opacity: 0.7;
+}
+
 .theme-code-block {
 	border: 0.5px solid var(--ifm-color-primary-darkest);
 }
