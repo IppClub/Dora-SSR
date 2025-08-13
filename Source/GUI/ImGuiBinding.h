@@ -559,7 +559,7 @@ bool DragFloatRange2(
 	float v_min,
 	float v_max,
 	const std::string& format = "%.2f"s,
-	const std::string& format_max = nullptr,
+	const std::string& format_max = Slice::Empty,
 	uint32_t sliderFlags = 0); //
 
 bool DragIntRange2(
@@ -581,7 +581,7 @@ bool DragIntRange2(
 	int v_min,
 	int v_max,
 	const std::string& format = "%d"s,
-	const std::string& format_max = nullptr,
+	const std::string& format_max = Slice::Empty,
 	uint32_t sliderFlags = 0); //
 
 bool VSliderFloat(
