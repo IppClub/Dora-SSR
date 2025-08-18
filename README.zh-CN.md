@@ -24,7 +24,7 @@
 
 |功能|描述|
 |-|-|
-|跨平台支持|支持原生运行的架构：<br>**Android** (x86_64, armv7, arm64)<br>**Windows** (x86)<br>**Linux** (x86_64, arm64)<br>**iOS** (arm64)<br>**macOS** (x86_64, arm64)<br>[**HarmonyOS**](https://github.com/IppClub/ohos_dora_ssr/blob/main/README.zh-CN.md) (x86_64, arm64)|
+|跨平台支持|支持原生运行的系统和架构：<br>**Android** (x86_64, armv7, arm64)<br>**Windows** (x86)<br>**Linux** (x86_64, arm64)<br>**iOS** (arm64)<br>**macOS** (x86_64, arm64)<br>[**鸿蒙**](https://github.com/IppClub/ohos_dora_ssr/blob/main/README.zh-CN.md) (x86_64, arm64)|
 |树形节点|基于树形节点结构管理游戏场景。|
 |ECS|易用的 [ECS](https://dora-ssr.net/zh-Hans/docs/tutorial/using-ecs) 模块，便于游戏实体管理。|
 |异步处理|异步处理的文件读写、资源加载等操作。|
