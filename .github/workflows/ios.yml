@@ -21,4 +21,4 @@ jobs:
           rustup target add aarch64-apple-ios-sim
           cargo build --target aarch64-apple-ios-sim
           cp target/aarch64-apple-ios-sim/debug/libdora_runtime.a lib/iOS-Simulator/libdora_runtime.a
-          xcodebuild ARCHS=arm64 ONLY_ACTIVE_ARCH=NO -project ../../Projects/iOS/Dora.xcodeproj -configuration Debug -target Simulator -sdk iphonesimulator
+          xcodebuild ARCHS=arm64 ONLY_ACTIVE_ARCH=NO -downloadPlatform iOS -project ../../Projects/iOS/Dora.xcodeproj -configuration Debug -target Simulator -sdk iphonesimulator
