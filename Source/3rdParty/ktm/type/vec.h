@@ -13,6 +13,7 @@
 #include "../interface/shared/iarray_util.h"
 #include "../interface/shared/iarray_calc.h"
 #include "../interface/shared/iarray_io.h"
+#include "../interface/shared/iarray_tostring.h"
 #include "../interface/vector/ivec_data.h"
 #include "../interface/vector/ivec_array.h"
 #include "../interface/vector/ivec_calc.h"
@@ -21,12 +22,13 @@ namespace ktm
 {
 
 template <class Child>
-using vec_fater_type = single_extends_t<Child, ivec_data, ivec_array, ivec_calc, iarray_io, iarray_calc, iarray_util>;
+using vec_components =
+    single_extends_t<Child, ivec_data, ivec_array, ivec_calc, iarray_tostring, iarray_io, iarray_calc, iarray_util>;
 
 template <size_t N, typename T>
-struct vec<N, T> : vec_fater_type<vec<N, T>>
+struct vec<N, T> : vec_components<vec<N, T>>
 {
-    using fater_type = vec_fater_type<vec<N, T>>;
+    using fater_type = vec_components<vec<N, T>>;
     using fater_type::fater_type;
 };
 

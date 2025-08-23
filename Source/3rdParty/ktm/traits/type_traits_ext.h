@@ -126,6 +126,11 @@ inline constexpr bool is_template_exist_same_vs<Tp> = false;
 template <>
 inline constexpr bool is_template_exist_same_vs<> = false;
 
+// comparing type, if character type, is true, otherwise, is false
+template <typename T>
+inline constexpr bool is_character_v =
+    is_exist_same_vs<std::remove_cv_t<T>, char, unsigned char, signed char, wchar_t, char16_t, char32_t>;
+
 } // namespace std
 
 #endif
