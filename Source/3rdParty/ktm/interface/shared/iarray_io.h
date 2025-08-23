@@ -85,18 +85,30 @@ private:
     template <typename T>
     KTM_FUNC std::basic_ostream<T>& stream_out_default(std::basic_ostream<T>& o) const noexcept
     {
+        using VT = typename std::decay_t<decltype(child_ptr()->to_array())>::value_type;
+        using ST = std::select_if_t<std::is_character_v<VT>, int, VT>;
         auto it = child_ptr()->begin();
         for (; it != child_ptr()->end() - 1; ++it)
-            o << *it << " ";
-        o << *it;
+            o << static_cast<ST>(*it) << " ";
+        o << static_cast<ST>(*it);
         return o;
     }
 
     template <typename T>
     KTM_FUNC std::basic_istream<T>& stream_in_default(std::basic_istream<T>& i) noexcept
     {
+        using VT = typename std::decay_t<decltype(child_ptr()->to_array())>::value_type;
         for (auto it = child_ptr()->begin(); it != child_ptr()->end(); ++it)
-            i >> *it;
+        {
+            if constexpr (std::is_character_v<VT>)
+            {
+                int value;
+                i >> value;
+                *it = static_cast<VT>(value);
+            }
+            else
+                i >> *it;
+        }
         return i;
     }
 };
