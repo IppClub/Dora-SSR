@@ -348,7 +348,7 @@ const config = {
 						},
 						{
 							label: 'Creative',
-							to: '/docs/creative/art',
+							to: '/docs/creative/art-i',
 						},
 					],
 				},
