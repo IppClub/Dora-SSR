@@ -335,7 +335,7 @@ const config = {
 						},
 						{
 							label: 'QQ Group: 512620381',
-							href: 'https://qm.qq.com/cgi-bin/qm/qr?k=7siAhjlLaSMGLHIbNctO-9AJQ0bn0G7i&jump_from=webapi&authKey=Kb6tXlvcJ2LgyTzHQzKwkMxdsQ7sjERXMJ3g10t6b+716pdKClnXqC9bAfrFUEWa',
+							href: 'https://qm.qq.com/q/VnzYhvCDgy',
 						},
 					],
 				},
