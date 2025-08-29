@@ -893,7 +893,7 @@ YueParser::YueParser() {
 
 	fn_arg_def_lit_lines = fn_arg_def_lit_line >> *(-(space >> ',') >> space_break >> fn_arg_def_lit_line);
 
-	FnArgDef = (Variable | SelfItem >> -ExistentialOp) >> -(space >> '`' >> space >> Name) >> -(space >> '=' >> space >> Exp);
+	FnArgDef = (Variable | SelfItem >> -ExistentialOp) >> -(space >> '`' >> space >> Name) >> -(space >> '=' >> space >> Exp) | TableLit | SimpleTable;
 
 	FnArgDefList = Seperator >> (
 		fn_arg_def_lit_lines >> -(-(space >> ',') >> white >> VarArg >> -(space >> '`' >> space >> Name)) |

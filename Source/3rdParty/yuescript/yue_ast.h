@@ -780,7 +780,7 @@ AST_NODE(Export)
 AST_END(Export)
 
 AST_NODE(FnArgDef)
-	ast_sel<true, Variable_t, SelfItem_t> name;
+	ast_sel<true, Variable_t, SelfItem_t, SimpleTable_t, TableLit_t> name;
 	ast_ptr<false, ExistentialOp_t> op;
 	ast_ptr<false, Name_t> label;
 	ast_ptr<false, Exp_t> defaultValue;
