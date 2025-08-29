@@ -78,7 +78,7 @@ static std::unordered_set<std::string> Metamethods = {
 	"close"s // Lua 5.4
 };
 
-const std::string_view version = "0.29.3"sv;
+const std::string_view version = "0.29.4"sv;
 const std::string_view extension = "yue"sv;
 
 class CompileError : public std::logic_error {
@@ -1982,7 +1982,7 @@ private:
 		return indent() + "local "s + join(defs, ", "sv);
 	}
 
-	std::string getDestrucureDefine(ExpListAssign_t* assignment) {
+	std::string getDestructureDefine(ExpListAssign_t* assignment) {
 		auto info = extractDestructureInfo(assignment, true, false);
 		if (!info.destructures.empty()) {
 			str_list defs;
@@ -2013,8 +2013,31 @@ private:
 		return clearBuf();
 	}
 
+	str_list getArgDestructureList(ExpListAssign_t* assignment) {
+		str_list defs;
+		auto info = extractDestructureInfo(assignment, true, false);
+		if (!info.destructures.empty()) {
+			for (const auto& des : info.destructures) {
+				if (std::holds_alternative<Destructure>(des)) {
+					const auto& destruct = std::get<Destructure>(des);
+					for (const auto& item : destruct.items) {
+						if (item.targetVar.empty()) {
+							throw CompileError("can only destruct argument to variable"sv, item.target);
+						} else {
+							defs.push_back(item.targetVar);
+						}
+					}
+				} else {
+					const auto& assignment = std::get<AssignmentPtr>(des);
+					YUEE("AST node mismatch", assignment.ptr);
+				}
+			}
+		}
+		return defs;
+	}
+
 	std::string getPreDefine(ExpListAssign_t* assignment) {
-		auto preDefine = getDestrucureDefine(assignment);
+		auto preDefine = getDestructureDefine(assignment);
 		if (preDefine.empty()) {
 			preDefine = toLocalDecl(transformAssignDefs(assignment->expList, DefOp::Mark));
 		}
@@ -5652,6 +5675,7 @@ private:
 			bool checkExistence = false;
 			std::string name;
 			std::string assignSelf;
+			ast_ptr<false, ExpListAssign_t> assignment;
 		};
 		std::list<ArgItem> argItems;
 		str_list temp;
@@ -5706,6 +5730,22 @@ private:
 					}
 					break;
 				}
+				case id<TableLit_t>(): {
+					arg.name = getUnusedName("_arg_"sv);
+					auto simpleValue = def->new_ptr<SimpleValue_t>();
+					simpleValue->value.set(def->name);
+					auto asmt = assignmentFrom(newExp(simpleValue, def), toAst<Exp_t>(arg.name, def), def);
+					arg.assignment = asmt;
+					break;
+				}
+				case id<SimpleTable_t>(): {
+					arg.name = getUnusedName("_arg_"sv);
+					auto value = def->new_ptr<Value_t>();
+					value->item.set(def->name);
+					auto asmt = assignmentFrom(newExp(value, def), toAst<Exp_t>(arg.name, def), def);
+					arg.assignment = asmt;
+					break;
+				}
 				default: YUEE("AST node mismatch", def->name.get()); break;
 			}
 			forceAddToScope(arg.name);
@@ -5723,6 +5763,14 @@ private:
 				_buf << temp.back();
 				_buf << indent() << "end"sv << nll(def);
 				temp.back() = clearBuf();
+			}
+			if (arg.assignment) {
+				auto names = getArgDestructureList(arg.assignment);
+				for (const auto& name : names) {
+					forceAddToScope(name);
+				}
+				temp.emplace_back(indent() + "local "s + join(names, ", "sv) + nll(def));
+				transformAssignment(arg.assignment, temp);
 			}
 			if (varNames.empty())
 				varNames = arg.name;
