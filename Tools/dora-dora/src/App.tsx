@@ -270,6 +270,9 @@ const transitionProps = {
 	exit: false
 };
 
+let writablePath = "";
+let assetPath = "";
+
 export default function PersistentDrawerLeft() {
 	const {t} = useTranslation();
 	const [alerts, setAlerts] = useState<{
@@ -485,8 +488,8 @@ export default function PersistentDrawerLeft() {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
-	const writablePath = treeData.at(0)?.key ?? "";
-	const assetPath = treeData.at(0)?.children?.at(0)?.key ?? "";
+	writablePath = treeData.at(0)?.key ?? "";
+	assetPath = treeData.at(0)?.children?.at(0)?.key ?? "";
 
 	const setModified = useCallback((modified: Modified) => {
 		setFiles(prev => {
