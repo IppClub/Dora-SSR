@@ -104,6 +104,11 @@
     resize-observer-polyfill "^1.5.1"
     throttle-debounce "^5.0.0"
 
+"@ant-design/v5-patch-for-react-19@^1.0.3":
+  version "1.0.3"
+  resolved "https://registry.npmmirror.com/@ant-design/v5-patch-for-react-19/-/v5-patch-for-react-19-1.0.3.tgz#6f522be2dd3440952617590bde5a1237a848a416"
+  integrity sha512-iWfZuSUl5kuhqLUw7jJXUQFMMkM7XpW7apmKzQBQHU0cpifYW4A79xIBt9YVO5IBajKpPG5UKP87Ft7Yrw1p/w==
+
 "@antv/component@^2.1.2":
   version "2.1.2"
   resolved "https://registry.npmmirror.com/@antv/component/-/component-2.1.2.tgz#578a08abc1e70755dd2a2bad85ad7015dcfecf84"
