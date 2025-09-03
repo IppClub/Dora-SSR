@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@ant-design/plots": "^2.3.3",
+    "@ant-design/v5-patch-for-react-19": "^1.0.3",
     "@blockly/field-colour-hsv-sliders": "^5.0.12",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
