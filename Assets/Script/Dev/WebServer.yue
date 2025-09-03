@@ -1137,6 +1137,12 @@ HttpServer\postSchedule "/ts/build", (req): success: false ->
 				wait -> done
 			return success: true, :messages
 
+HttpServer\post "/download", (req): success: false ->
+	switch req when body: {:url, :target}
+		import "Script.Dev.Entry"
+		Entry.downloadFile url, target
+		return success: true
+
 status = {}
 export default status
 

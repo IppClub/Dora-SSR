@@ -25,21 +25,25 @@ function wsUrl() {
 
 const WsOpenEvent = "Open";
 const WsCloseEvent = "Close";
-const LogEventName = "Log";
-const ProfilerEventName = "Profiler";
-const TranspileTSEventName = "TranspileTS";
-const UpdateTSCodeEventName = "UpdateTSCode";
+
+const enum WsEvent {
+	Log = "Log",
+	Profiler = "Profiler",
+	TranspileTS = "TranspileTS",
+	UpdateTSCode = "UpdateTSCode",
+	Download = "Download",
+}
 
 let logText = "";
 
 export const addLog = (text: string) => {
 	logText += text;
-	eventEmitter.emit(LogEventName, text, logText);
+	eventEmitter.emit(WsEvent.Log, text, logText);
 };
 
 export const clearLog = () => {
 	logText = "";
-	eventEmitter.emit(LogEventName, "", logText);
+	eventEmitter.emit(WsEvent.Log, "", logText);
 };
 
 export const getLog = () => {
@@ -47,23 +51,33 @@ export const getLog = () => {
 };
 
 export const addLogListener = (listener: (newItem: string, allText: string) => void) => {
-	eventEmitter.on(LogEventName, listener);
+	eventEmitter.on(WsEvent.Log, listener);
 };
 
 export const removeLogListener = (listener: (newItem: string, allText: string) => void) => {
-	eventEmitter.removeListener(LogEventName, listener);
+	eventEmitter.removeListener(WsEvent.Log, listener);
 };
 
 export const addProfilerListener = (listener: (info: ProfilerInfo) => void) => {
-	eventEmitter.on(ProfilerEventName, listener);
+	eventEmitter.on(WsEvent.Profiler, listener);
 };
 
 export const removeProfilerListener = (listener: (info: ProfilerInfo) => void) => {
-	eventEmitter.removeListener(ProfilerEventName, listener);
+	eventEmitter.removeListener(WsEvent.Profiler, listener);
 };
 
 export const addUpdateTSCodeListener = (listener: (file: string, code: string) => void) => {
-	eventEmitter.on(UpdateTSCodeEventName, listener);
+	eventEmitter.on(WsEvent.UpdateTSCode, listener);
+};
+
+type WsDownloadStatus = "downloading" | "completed" | "failed";
+
+export const addDownloadListener = (listener: (url: string, status: WsDownloadStatus, progress: number) => void) => {
+	eventEmitter.on(WsEvent.Download, listener);
+};
+
+export const removeDownloadListener = (listener: (url: string, status: WsDownloadStatus, progress: number) => void) => {
+	eventEmitter.removeListener(WsEvent.Download, listener);
 };
 
 export const addWSOpenListener = (listener: () => void) => {
@@ -100,30 +114,34 @@ export function openWebSocket() {
 			}
 			if (result && typeof result === "object" && "name" in result) {
 				switch (result.name) {
-					case LogEventName: {
+					case WsEvent.Log: {
 						logText += result.text as string;
 						eventEmitter.emit(result.name, result.text, logText);
 						break;
 					}
-					case ProfilerEventName: {
+					case WsEvent.Profiler: {
 						eventEmitter.emit(result.name, result.info);
 						break;
 					}
-					case UpdateTSCodeEventName: {
+					case WsEvent.UpdateTSCode: {
 						eventEmitter.emit(result.name, result.file, result.content);
 						break;
 					}
-					case TranspileTSEventName: {
+					case WsEvent.Download: {
+						eventEmitter.emit(result.name, result.url, result.status, result.progress);
+						break;
+					}
+					case WsEvent.TranspileTS: {
 						const {transpileTypescript, getDiagnosticMessage} = await import('./TranspileTS');
 						const {file, content} = result;
 						if (typeof file === 'string' && typeof content === 'string') {
 							const {success, luaCode, diagnostics} = await transpileTypescript(file, content);
 							let data = "";
 							if (success) {
-								data = JSON.stringify({name: TranspileTSEventName, success, luaCode, message: ""});
+								data = JSON.stringify({name: WsEvent.TranspileTS, success, luaCode, message: ""});
 							} else {
 								const message = getDiagnosticMessage(file, diagnostics);
-								data = JSON.stringify({name: TranspileTSEventName, success, luaCode: "", message});
+								data = JSON.stringify({name: WsEvent.TranspileTS, success, luaCode: "", message});
 							}
 							webSocket.send(new Blob([data]));
 						}
@@ -585,4 +603,17 @@ export type CreateWaResponse = {
 };
 export const createWa = (req: CreateWaRequest) => {
 	return post<CreateWaResponse>("/wa/create", req);
+};
+
+// download
+
+export interface DownloadRequest {
+	url: string;
+	target: string;
+}
+export type DownloadResponse = {
+	success: boolean;
+};
+export const download = (req: DownloadRequest) => {
+	return post<DownloadResponse>("/download", req);
 };

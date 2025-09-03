@@ -556,9 +556,12 @@ setWorkspace = (path) ->
 		sleep!
 		reloadDevEntry!
 
+quit = false
+
 setupEventHandlers = ->
 	with Director.postNode
 		\onAppEvent (eventType) -> if eventType == "Quit"
+			quit = true
 			allClear!
 			clearTempFiles!
 		\onAppChange (settingName) -> switch settingName
@@ -584,6 +587,21 @@ setupEventHandlers = ->
 
 setupEventHandlers!
 clearTempFiles!
+
+export downloadFile = (url, target) -> thread ->
+	success = HttpClient\downloadAsync url, target, 30, (current, total): false ->
+		return true if quit
+		emit "AppWS", "Send", json.dump {
+			name: "Download", :url, status: "downloading"
+			progress: current / total
+		}
+	emit "AppWS", "Send", json.dump success and {
+		name: "Download", :url, status: "completed"
+		progress: 1.0
+	} or {
+		name: "Download", :url, status: "failed"
+		progress: 0.0
+	}
 
 export stop = ->
 	return false if isInEntry
