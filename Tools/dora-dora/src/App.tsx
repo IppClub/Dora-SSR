@@ -527,7 +527,7 @@ export default function PersistentDrawerLeft() {
 			return true;
 		}
 		return false;
-	}, [assetPath, t]);
+	}, [t]);
 
 	const onModified = useCallback((editingFile: EditingFile, content: string, lastChange?: monaco.editor.IModelContentChange) => {
 		const editor = editingFile.editor;
@@ -1901,7 +1901,7 @@ export default function PersistentDrawerLeft() {
 				break;
 			}
 		}
-	}, [checkFileReadonly, loadAssets, t, files, deleteFile, treeData, openFileInTab, assetPath, expandedKeys, onEditorDidMount, switchTab]);
+	}, [checkFileReadonly, loadAssets, t, files, deleteFile, treeData, openFileInTab, expandedKeys, onEditorDidMount, switchTab]);
 
 	const onNewFileClose = (item?: DoraFileType) => {
 		let ext: string | null = null;
