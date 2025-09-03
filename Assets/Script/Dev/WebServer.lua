@@ -2894,35 +2894,69 @@ HttpServer:postSchedule("/ts/build", function(req) -- 1076
 		success = false -- 1076
 	} -- 1138
 end) -- 1076
-local status = { } -- 1140
-_module_0 = status -- 1141
-thread(function() -- 1143
-	local doraWeb = Path(Content.assetPath, "www", "index.html") -- 1144
-	local doraReady = Path(Content.appPath, ".www", "dora-ready") -- 1145
-	if Content:exist(doraWeb) then -- 1146
-		local needReload -- 1147
-		if Content:exist(doraReady) then -- 1147
-			needReload = App.version ~= Content:load(doraReady) -- 1148
-		else -- 1149
-			needReload = true -- 1149
-		end -- 1147
-		if needReload then -- 1150
-			Content:remove(Path(Content.appPath, ".www")) -- 1151
-			Content:copyAsync(Path(Content.assetPath, "www"), Path(Content.appPath, ".www")) -- 1152
-			Content:save(doraReady, App.version) -- 1156
-			print("Dora Dora is ready!") -- 1157
-		end -- 1150
-	end -- 1146
-	if HttpServer:start(8866) then -- 1158
-		local localIP = HttpServer.localIP -- 1159
-		if localIP == "" then -- 1160
-			localIP = "localhost" -- 1160
-		end -- 1160
-		status.url = "http://" .. tostring(localIP) .. ":8866" -- 1161
-		return HttpServer:startWS(8868) -- 1162
-	else -- 1164
-		status.url = nil -- 1164
-		return print("8866 Port not available!") -- 1165
-	end -- 1158
-end) -- 1143
-return _module_0 -- 1165
+HttpServer:post("/download", function(req) -- 1140
+	do -- 1141
+		local _type_0 = type(req) -- 1141
+		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 1141
+		if _tab_0 then -- 1141
+			local url -- 1141
+			do -- 1141
+				local _obj_0 = req.body -- 1141
+				local _type_1 = type(_obj_0) -- 1141
+				if "table" == _type_1 or "userdata" == _type_1 then -- 1141
+					url = _obj_0.url -- 1141
+				end -- 1144
+			end -- 1144
+			local target -- 1141
+			do -- 1141
+				local _obj_0 = req.body -- 1141
+				local _type_1 = type(_obj_0) -- 1141
+				if "table" == _type_1 or "userdata" == _type_1 then -- 1141
+					target = _obj_0.target -- 1141
+				end -- 1144
+			end -- 1144
+			if url ~= nil and target ~= nil then -- 1141
+				local Entry = require("Script.Dev.Entry") -- 1142
+				Entry.downloadFile(url, target) -- 1143
+				return { -- 1144
+					success = true -- 1144
+				} -- 1144
+			end -- 1141
+		end -- 1144
+	end -- 1144
+	return { -- 1140
+		success = false -- 1140
+	} -- 1144
+end) -- 1140
+local status = { } -- 1146
+_module_0 = status -- 1147
+thread(function() -- 1149
+	local doraWeb = Path(Content.assetPath, "www", "index.html") -- 1150
+	local doraReady = Path(Content.appPath, ".www", "dora-ready") -- 1151
+	if Content:exist(doraWeb) then -- 1152
+		local needReload -- 1153
+		if Content:exist(doraReady) then -- 1153
+			needReload = App.version ~= Content:load(doraReady) -- 1154
+		else -- 1155
+			needReload = true -- 1155
+		end -- 1153
+		if needReload then -- 1156
+			Content:remove(Path(Content.appPath, ".www")) -- 1157
+			Content:copyAsync(Path(Content.assetPath, "www"), Path(Content.appPath, ".www")) -- 1158
+			Content:save(doraReady, App.version) -- 1162
+			print("Dora Dora is ready!") -- 1163
+		end -- 1156
+	end -- 1152
+	if HttpServer:start(8866) then -- 1164
+		local localIP = HttpServer.localIP -- 1165
+		if localIP == "" then -- 1166
+			localIP = "localhost" -- 1166
+		end -- 1166
+		status.url = "http://" .. tostring(localIP) .. ":8866" -- 1167
+		return HttpServer:startWS(8868) -- 1168
+	else -- 1170
+		status.url = nil -- 1170
+		return print("8866 Port not available!") -- 1171
+	end -- 1164
+end) -- 1149
+return _module_0 -- 1171
