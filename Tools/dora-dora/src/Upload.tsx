@@ -25,7 +25,7 @@ const { Text } = Typography;
 export interface DoraUploadProp {
 	title: string;
 	path: string;
-	onUploaded: (path: string, file: string) => void;
+	onUploaded: (path: string, file: string, open: boolean) => void;
 };
 
 const DoraUploadInner = (prop: DoraUploadProp) => {
@@ -48,7 +48,7 @@ const DoraUploadInner = (prop: DoraUploadProp) => {
 				if (status === 'completed') {
 					message.success(t('download.completed'));
 					// 下载完成后刷新文件列表
-					prop.onUploaded(prop.path, downloadFileName);
+					prop.onUploaded(prop.path, downloadFileName, true);
 				} else if (status === 'failed') {
 					setDownloadError(t('download.failed'));
 					message.error(t('download.failed'));
@@ -148,7 +148,7 @@ const DoraUploadInner = (prop: DoraUploadProp) => {
 		onChange(info) {
 			const { status } = info.file;
 			if (status === 'done') {
-				prop.onUploaded(prop.path, info.file.name);
+				prop.onUploaded(prop.path, info.file.name, false);
 			}
 		},
 	};
@@ -173,7 +173,7 @@ const DoraUploadInner = (prop: DoraUploadProp) => {
 		.then(() => {
 			fileList.forEach(file => {
 				const f = file as RcFile;
-				prop.onUploaded(prop.path, f.name);
+				prop.onUploaded(prop.path, f.name, false);
 			});
 			setFileList([]);
 			message.success(t('upload.success'));
@@ -220,7 +220,7 @@ const DoraUploadInner = (prop: DoraUploadProp) => {
 			});
 
 			if (result.success) {
-				prop.onUploaded(prop.path, textFileName);
+				prop.onUploaded(prop.path, textFileName, true);
 				message.success(t('upload.textFileCreated'));
 				// 清空输入
 				setTextContent('');

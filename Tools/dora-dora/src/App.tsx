@@ -2282,7 +2282,7 @@ export default function PersistentDrawerLeft() {
 		});
 	}, [checkFileReadonly, expandedKeys, files, updateDir, loadAssets, t, treeData, switchTab, tabIndex]);
 
-	const onUploaded = useCallback((dir: string, file: string) => {
+	const onUploaded = useCallback((dir: string, file: string, open: boolean) => {
 		const key = path.join(dir, file);
 		const newFiles = files.filter(f => path.relative(f.key, key) !== "");
 		if (file.length !== newFiles.length) {
@@ -2296,13 +2296,21 @@ export default function PersistentDrawerLeft() {
 				}
 			}
 		}
-		lastUploadedTime = Date.now();
-		setTimeout(() => {
-			if (Date.now() - lastUploadedTime >= 2000) {
-				loadAssets();
-			}
-		}, 2000);
-	}, [tabIndex, loadAssets, switchTab, files]);
+		if (open) {
+			loadAssets().then(() => {
+				if (open) {
+					openFileInTab(key, file, false);
+				}
+			});
+		} else {
+			lastUploadedTime = Date.now();
+			setTimeout(() => {
+				if (Date.now() - lastUploadedTime >= 2000) {
+					loadAssets();
+				}
+			}, 2000);
+		}
+	}, [tabIndex, loadAssets, switchTab, files, openFileInTab]);
 
 	const checkFile = (file: EditingFile, content: string, model: monaco.editor.ITextModel, lastChange?: monaco.editor.IModelContentChange) => {
 		switch (path.extname(file.key).toLowerCase()) {
