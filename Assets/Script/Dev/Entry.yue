@@ -588,7 +588,7 @@ setupEventHandlers = ->
 setupEventHandlers!
 clearTempFiles!
 
-export downloadFile = (url, target) -> thread ->
+export downloadFile = (url, target) -> Director.systemScheduler\schedule once ->
 	success = HttpClient\downloadAsync url, target, 30, (current, total): false ->
 		return true if quit
 		emit "AppWS", "Send", json.dump {
