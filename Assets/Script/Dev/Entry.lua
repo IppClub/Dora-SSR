@@ -37,6 +37,7 @@ local tolua = Dora.tolua -- 1
 local collectgarbage = _G.collectgarbage -- 1
 local Wasm = Dora.Wasm -- 1
 local HttpServer = Dora.HttpServer -- 1
+local once = Dora.once -- 1
 local emit = Dora.emit -- 1
 local Profiler = Dora.Profiler -- 1
 local xpcall = _G.xpcall -- 1
@@ -70,7 +71,6 @@ local SetNextWindowPos = _module_0.SetNextWindowPos -- 1
 local ImageButton = _module_0.ImageButton -- 1
 local ImGui = Dora.ImGui -- 1
 local SetNextWindowBgAlpha = _module_0.SetNextWindowBgAlpha -- 1
-local once = Dora.once -- 1
 local TextDisabled = _module_0.TextDisabled -- 1
 local IsItemHovered = _module_0.IsItemHovered -- 1
 local BeginTooltip = _module_0.BeginTooltip -- 1
@@ -989,7 +989,7 @@ setupEventHandlers() -- 588
 clearTempFiles() -- 589
 local downloadFile -- 591
 downloadFile = function(url, target) -- 591
-	return thread(function() -- 591
+	return Director.systemScheduler:schedule(once(function() -- 591
 		local success = HttpClient:downloadAsync(url, target, 30, function(current, total) -- 592
 			if quit then -- 593
 				return true -- 593
@@ -1013,7 +1013,7 @@ downloadFile = function(url, target) -- 591
 			status = "failed", -- 602
 			progress = 0.0 -- 603
 		})) -- 604
-	end) -- 604
+	end)) -- 604
 end -- 591
 _module_0["downloadFile"] = downloadFile -- 604
 local stop -- 606
