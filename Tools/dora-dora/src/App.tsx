@@ -3269,6 +3269,7 @@ export default function PersistentDrawerLeft() {
 			</Box>
 			<Box
 				sx={{
+					pointerEvents: 'none',
 					position: 'fixed',
 					left: (drawerOpen ? drawerWidth : 0) + 20,
 					bottom: 20,

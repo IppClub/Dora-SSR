@@ -21,7 +21,8 @@ public:
 	PROPERTY_READONLY(std::string, LocalIP);
 	PROPERTY_READONLY(int, WSConnectionCount);
 	struct Request {
-		std::list<Slice> params;
+		std::vector<Slice> headers;
+		std::vector<Slice> params;
 		Slice contentType;
 		Slice body;
 	};
