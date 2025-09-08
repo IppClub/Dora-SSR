@@ -354,6 +354,12 @@ bool HttpServer::start(int port) {
 		for (const auto& post : _posts) {
 			server.Post(post.pattern, [this, &post](const httplib::Request& req, httplib::Response& res) {
 				HttpServer::Request request;
+				request.headers.reserve(req.headers.size() * 2);
+				for (const auto& header : req.headers) {
+					request.headers.emplace_back(header.first);
+					request.headers.emplace_back(header.second);
+				}
+				request.params.reserve(req.params.size() * 2);
 				for (const auto& param : req.params) {
 					request.params.emplace_back(param.first);
 					request.params.emplace_back(param.second);
@@ -377,6 +383,12 @@ bool HttpServer::start(int port) {
 		for (const auto& post : _postScheduled) {
 			server.Post(post.pattern, [this, &post](const httplib::Request& req, httplib::Response& res) {
 				HttpServer::Request request;
+				request.headers.reserve(req.headers.size() * 2);
+				for (const auto& header : req.headers) {
+					request.headers.emplace_back(header.first);
+					request.headers.emplace_back(header.second);
+				}
+				request.params.reserve(req.params.size() * 2);
 				for (const auto& param : req.params) {
 					request.params.emplace_back(param.first);
 					request.params.emplace_back(param.second);
@@ -413,6 +425,12 @@ bool HttpServer::start(int port) {
 						return;
 					}
 					HttpServer::Request request;
+					request.headers.reserve(req.headers.size() * 2);
+					for (const auto& header : req.headers) {
+						request.headers.emplace_back(header.first);
+						request.headers.emplace_back(header.second);
+					}
+					request.params.reserve(req.params.size() * 2);
 					for (const auto& param : req.params) {
 						request.params.emplace_back(param.first);
 						request.params.emplace_back(param.second);

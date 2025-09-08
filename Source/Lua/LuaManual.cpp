@@ -2831,10 +2831,26 @@ int HttpServer_post(lua_State* L) {
 			int top = lua_gettop(L);
 			DEFER(lua_settop(L, top));
 			lua_createtable(L, 0, 0);
-			lua_pushliteral(L, "params");
+			lua_pushliteral(L, "headers");
 			lua_createtable(L, 0, 0);
 			std::string key;
 			bool startPair = true;
+			for (const auto& v : req.headers) {
+				if (startPair) {
+					startPair = false;
+					key = v.toString();
+				} else {
+					startPair = true;
+					tolua_pushslice(L, key);
+					tolua_pushslice(L, v);
+					lua_rawset(L, -3);
+				}
+			}
+			lua_rawset(L, -3);
+			lua_pushliteral(L, "params");
+			lua_createtable(L, 0, 0);
+			key.clear();
+			startPair = true;
 			for (const auto& v : req.params) {
 				if (startPair) {
 					startPair = false;
@@ -2910,10 +2926,26 @@ int HttpServer_postSchedule(lua_State* L) {
 			int top = lua_gettop(L);
 			DEFER(lua_settop(L, top));
 			lua_createtable(L, 0, 0);
-			lua_pushliteral(L, "params");
+			lua_pushliteral(L, "headers");
 			lua_createtable(L, 0, 0);
 			std::string key;
 			bool startPair = true;
+			for (const auto& v : req.headers) {
+				if (startPair) {
+					startPair = false;
+					key = v.toString();
+				} else {
+					startPair = true;
+					tolua_pushslice(L, key);
+					tolua_pushslice(L, v);
+					lua_rawset(L, -3);
+				}
+			}
+			lua_rawset(L, -3);
+			lua_pushliteral(L, "params");
+			lua_createtable(L, 0, 0);
+			key.clear();
+			startPair = true;
 			for (const auto& v : req.params) {
 				if (startPair) {
 					startPair = false;
