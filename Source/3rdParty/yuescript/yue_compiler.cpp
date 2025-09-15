@@ -78,7 +78,7 @@ static std::unordered_set<std::string> Metamethods = {
 	"close"s // Lua 5.4
 };
 
-const std::string_view version = "0.29.4"sv;
+const std::string_view version = "0.29.5"sv;
 const std::string_view extension = "yue"sv;
 
 class CompileError : public std::logic_error {
@@ -1445,6 +1445,7 @@ private:
 				case id<DotChainItem_t>():
 				case id<Exp_t>():
 				case id<TableAppendingOp_t>():
+				case id<ReversedIndex_t>():
 					return true;
 			}
 		}
@@ -2254,7 +2255,8 @@ private:
 				BREAK_IF(!value);
 				auto chainValue = value->item.as<ChainValue_t>();
 				BREAK_IF(!chainValue);
-				if (auto dot = ast_cast<DotChainItem_t>(chainValue->items.back())) {
+				auto last = chainValue->items.back();
+				if (auto dot = ast_cast<DotChainItem_t>(last)) {
 					BREAK_IF(!dot->name.is<Metatable_t>());
 					str_list temp;
 					auto [beforeAssignment, afterAssignment] = splitAssignment();
@@ -2285,7 +2287,7 @@ private:
 					}
 					out.push_back(join(temp));
 					return false;
-				} else if (ast_is<TableAppendingOp_t>(chainValue->items.back())) {
+				} else if (ast_is<TableAppendingOp_t>(last)) {
 					str_list temp;
 					auto [beforeAssignment, afterAssignment] = splitAssignment();
 					if (!beforeAssignment->expList->exprs.empty()) {
@@ -2332,6 +2334,44 @@ private:
 						popScope();
 						temp.push_back(indent() + "end"s + nlr(x));
 					}
+					if (!afterAssignment->expList->exprs.empty()) {
+						transformAssignment(afterAssignment, temp);
+					}
+					out.push_back(join(temp));
+					return false;
+				} else if (ast_is<ReversedIndex_t>(last)) {
+					if (chainValue->items.size() == 1) {
+						if (_withVars.empty()) {
+							throw CompileError("short dot/colon syntax must be called within a with block"sv, x);
+						} else {
+							break;
+						}
+					}
+					auto tmpChain = chainValue->new_ptr<ChainValue_t>();
+					tmpChain->items.dup(chainValue->items);
+					tmpChain->items.pop_back();
+					auto tmpLeft = newExp(tmpChain, tmpChain);
+					auto leftVar = singleVariableFrom(tmpLeft, AccessType::Read);
+					if (!leftVar.empty() && isLocal(leftVar)) {
+						break;
+					}
+					leftVar = getUnusedName("_obj_"sv);
+					auto tmpAsmt = assignmentFrom(toAst<Exp_t>(leftVar, tmpLeft), tmpLeft, tmpLeft);
+					str_list temp;
+					transformAssignment(tmpAsmt, temp);
+					auto [beforeAssignment, afterAssignment] = splitAssignment();
+					if (!beforeAssignment->expList->exprs.empty()) {
+						transformAssignment(beforeAssignment, temp);
+					}
+					if (vit == values.end()) {
+						throw CompileError("right value missing"sv, values.front());
+					}
+					auto newChain = chainValue->new_ptr<ChainValue_t>();
+					newChain->items.push_back(toAst<Callable_t>(leftVar, newChain));
+					newChain->items.push_back(chainValue->items.back());
+					auto newLeft = newExp(newChain, newChain);
+					auto newAsmt = assignmentFrom(newLeft, *vit, newLeft);
+					transformAssignment(newAsmt, temp);
 					if (!afterAssignment->expList->exprs.empty()) {
 						transformAssignment(afterAssignment, temp);
 					}
@@ -6608,11 +6648,6 @@ private:
 							indexNode->nilCoalesed.set(rIndex->modifier->nilCoalesed);
 						}
 						newChain->items.push_back(indexNode);
-						auto next = current;
-						++next;
-						for (auto i = next; i != chainList.end(); ++i) {
-							newChain->items.push_back(*i);
-						}
 						auto expList = x->new_ptr<ExpList_t>();
 						expList->exprs.push_back(newExp(newChain, x));
 						auto expListAssign = x->new_ptr<ExpListAssign_t>();
@@ -6627,6 +6662,11 @@ private:
 						auto doNode = x->new_ptr<Do_t>();
 						doNode->body.set(body);
 						if (usage == ExpUsage::Assignment) {
+							auto next = current;
+							++next;
+							for (auto i = next; i != chainList.end(); ++i) {
+								newChain->items.push_back(*i);
+							}
 							auto assignment = x->new_ptr<ExpListAssign_t>();
 							assignment->expList.set(assignList);
 							auto assign = x->new_ptr<Assign_t>();
@@ -6636,6 +6676,30 @@ private:
 							assignment->action.set(assign);
 							transformAssignment(assignment, out);
 							return;
+						}
+						if (usage == ExpUsage::Closure) {
+							doNode->new_ptr<ChainValue_t>();
+							auto dVal = doNode->new_ptr<SimpleValue_t>();
+							dVal->value.set(doNode);
+							auto dExp = newExp(dVal, dVal);
+							auto dParen = dExp->new_ptr<Parens_t>();
+							dParen->expr.set(dExp);
+							auto dCallable = dExp->new_ptr<Callable_t>();
+							dCallable->item.set(dParen);
+							auto dChain = doNode->new_ptr<ChainValue_t>();
+							dChain->items.push_back(dCallable);
+							auto next = current;
+							++next;
+							for (auto i = next; i != chainList.end(); ++i) {
+								dChain->items.push_back(*i);
+							}
+							transformExp(newExp(dChain, dExp), out, usage);
+							return;
+						}
+						auto next = current;
+						++next;
+						for (auto i = next; i != chainList.end(); ++i) {
+							newChain->items.push_back(*i);
 						}
 						transformDo(doNode, out, usage);
 						return;
