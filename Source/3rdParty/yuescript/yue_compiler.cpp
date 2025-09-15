@@ -6678,23 +6678,26 @@ private:
 							return;
 						}
 						if (usage == ExpUsage::Closure) {
-							doNode->new_ptr<ChainValue_t>();
-							auto dVal = doNode->new_ptr<SimpleValue_t>();
-							dVal->value.set(doNode);
-							auto dExp = newExp(dVal, dVal);
-							auto dParen = dExp->new_ptr<Parens_t>();
-							dParen->expr.set(dExp);
-							auto dCallable = dExp->new_ptr<Callable_t>();
-							dCallable->item.set(dParen);
-							auto dChain = doNode->new_ptr<ChainValue_t>();
-							dChain->items.push_back(dCallable);
 							auto next = current;
 							++next;
-							for (auto i = next; i != chainList.end(); ++i) {
-								dChain->items.push_back(*i);
+							if (next != chainList.end()) {
+								doNode->new_ptr<ChainValue_t>();
+								auto dVal = doNode->new_ptr<SimpleValue_t>();
+								dVal->value.set(doNode);
+								auto dExp = newExp(dVal, dVal);
+								auto dParen = dExp->new_ptr<Parens_t>();
+								dParen->extra = true;
+								dParen->expr.set(dExp);
+								auto dCallable = dExp->new_ptr<Callable_t>();
+								dCallable->item.set(dParen);
+								auto dChain = doNode->new_ptr<ChainValue_t>();
+								dChain->items.push_back(dCallable);
+								for (auto i = next; i != chainList.end(); ++i) {
+									dChain->items.push_back(*i);
+								}
+								transformExp(newExp(dChain, dExp), out, usage);
+								return;
 							}
-							transformExp(newExp(dChain, dExp), out, usage);
-							return;
 						}
 						auto next = current;
 						++next;
