@@ -8,19 +8,19 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-int32_t dictionary_type() {
+DORA_EXPORT int32_t dictionary_type() {
 	return DoraType<Dictionary>();
 }
-int32_t dictionary_get_count(int64_t self) {
+DORA_EXPORT int32_t dictionary_get_count(int64_t self) {
 	return s_cast<int32_t>(r_cast<Dictionary*>(self)->getCount());
 }
-int64_t dictionary_get_keys(int64_t self) {
+DORA_EXPORT int64_t dictionary_get_keys(int64_t self) {
 	return Vec_To(r_cast<Dictionary*>(self)->getKeys());
 }
-void dictionary_clear(int64_t self) {
+DORA_EXPORT void dictionary_clear(int64_t self) {
 	r_cast<Dictionary*>(self)->clear();
 }
-int64_t dictionary_new() {
+DORA_EXPORT int64_t dictionary_new() {
 	return Object_From(Dictionary::create());
 }
 } // extern "C"

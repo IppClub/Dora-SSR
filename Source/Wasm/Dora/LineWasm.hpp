@@ -8,34 +8,34 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-int32_t line_type() {
+DORA_EXPORT int32_t line_type() {
 	return DoraType<Line>();
 }
-void line_set_depth_write(int64_t self, int32_t val) {
+DORA_EXPORT void line_set_depth_write(int64_t self, int32_t val) {
 	r_cast<Line*>(self)->setDepthWrite(val != 0);
 }
-int32_t line_is_depth_write(int64_t self) {
+DORA_EXPORT int32_t line_is_depth_write(int64_t self) {
 	return r_cast<Line*>(self)->isDepthWrite() ? 1 : 0;
 }
-void line_set_blend_func(int64_t self, int64_t val) {
+DORA_EXPORT void line_set_blend_func(int64_t self, int64_t val) {
 	r_cast<Line*>(self)->setBlendFunc(BlendFunc(s_cast<uint64_t>(val)));
 }
-int64_t line_get_blend_func(int64_t self) {
+DORA_EXPORT int64_t line_get_blend_func(int64_t self) {
 	return s_cast<int64_t>(r_cast<Line*>(self)->getBlendFunc().toValue());
 }
-void line_add(int64_t self, int64_t verts, int32_t color) {
+DORA_EXPORT void line_add(int64_t self, int64_t verts, int32_t color) {
 	r_cast<Line*>(self)->add(Vec_FromVec2(verts), Color(s_cast<uint32_t>(color)));
 }
-void line_set(int64_t self, int64_t verts, int32_t color) {
+DORA_EXPORT void line_set(int64_t self, int64_t verts, int32_t color) {
 	r_cast<Line*>(self)->set(Vec_FromVec2(verts), Color(s_cast<uint32_t>(color)));
 }
-void line_clear(int64_t self) {
+DORA_EXPORT void line_clear(int64_t self) {
 	r_cast<Line*>(self)->clear();
 }
-int64_t line_new() {
+DORA_EXPORT int64_t line_new() {
 	return Object_From(Line::create());
 }
-int64_t line_with_vec_color(int64_t verts, int32_t color) {
+DORA_EXPORT int64_t line_with_vec_color(int64_t verts, int32_t color) {
 	return Object_From(Line::create(Vec_FromVec2(verts), Color(s_cast<uint32_t>(color))));
 }
 } // extern "C"

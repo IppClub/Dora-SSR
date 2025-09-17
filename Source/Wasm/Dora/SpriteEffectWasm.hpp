@@ -8,10 +8,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-int32_t spriteeffect_type() {
+DORA_EXPORT int32_t spriteeffect_type() {
 	return DoraType<SpriteEffect>();
 }
-int64_t spriteeffect_new(int64_t vert_shader, int64_t frag_shader) {
+DORA_EXPORT int64_t spriteeffect_new(int64_t vert_shader, int64_t frag_shader) {
 	return Object_From(SpriteEffect::create(*Str_From(vert_shader), *Str_From(frag_shader)));
 }
 } // extern "C"

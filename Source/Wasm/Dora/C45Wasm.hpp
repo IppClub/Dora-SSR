@@ -8,7 +8,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-void c45_build_decision_tree_async(int64_t data, int32_t max_depth, int32_t func0, int64_t stack0) {
+DORA_EXPORT void c45_build_decision_tree_async(int64_t data, int32_t max_depth, int32_t func0, int64_t stack0) {
 	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
 		SharedWasmRuntime.deref(func0);
 	});

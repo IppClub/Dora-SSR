@@ -8,16 +8,16 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-int32_t platformer_decision_tree_type() {
+DORA_EXPORT int32_t platformer_decision_tree_type() {
 	return DoraType<Platformer::Decision::Leaf>();
 }
-int64_t platformer_decision_leaf_sel(int64_t nodes) {
+DORA_EXPORT int64_t platformer_decision_leaf_sel(int64_t nodes) {
 	return Object_From(DSel(Vec_FromDtree(nodes)));
 }
-int64_t platformer_decision_leaf_seq(int64_t nodes) {
+DORA_EXPORT int64_t platformer_decision_leaf_seq(int64_t nodes) {
 	return Object_From(DSeq(Vec_FromDtree(nodes)));
 }
-int64_t platformer_decision_leaf_con(int64_t name, int32_t func0, int64_t stack0) {
+DORA_EXPORT int64_t platformer_decision_leaf_con(int64_t name, int32_t func0, int64_t stack0) {
 	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
 		SharedWasmRuntime.deref(func0);
 	});
@@ -29,10 +29,10 @@ int64_t platformer_decision_leaf_con(int64_t name, int32_t func0, int64_t stack0
 		return args0->pop_bool_or(false);
 	}));
 }
-int64_t platformer_decision_leaf_act(int64_t action_name) {
+DORA_EXPORT int64_t platformer_decision_leaf_act(int64_t action_name) {
 	return Object_From(DAct(*Str_From(action_name)));
 }
-int64_t platformer_decision_leaf_act_dynamic(int32_t func0, int64_t stack0) {
+DORA_EXPORT int64_t platformer_decision_leaf_act_dynamic(int32_t func0, int64_t stack0) {
 	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
 		SharedWasmRuntime.deref(func0);
 	});
@@ -44,13 +44,13 @@ int64_t platformer_decision_leaf_act_dynamic(int32_t func0, int64_t stack0) {
 		return args0->empty() ? ""s : std::get<std::string>(args0->pop());
 	}));
 }
-int64_t platformer_decision_leaf_accept() {
+DORA_EXPORT int64_t platformer_decision_leaf_accept() {
 	return Object_From(DAccept());
 }
-int64_t platformer_decision_leaf_reject() {
+DORA_EXPORT int64_t platformer_decision_leaf_reject() {
 	return Object_From(DReject());
 }
-int64_t platformer_decision_leaf_behave(int64_t name, int64_t root) {
+DORA_EXPORT int64_t platformer_decision_leaf_behave(int64_t name, int64_t root) {
 	return Object_From(DBehave(*Str_From(name), r_cast<Platformer::Behavior::Leaf*>(root)));
 }
 } // extern "C"

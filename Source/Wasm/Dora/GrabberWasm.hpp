@@ -8,46 +8,46 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-int32_t grabber_type() {
+DORA_EXPORT int32_t grabber_type() {
 	return DoraType<Grabber>();
 }
-void grabber_set_camera(int64_t self, int64_t val) {
+DORA_EXPORT void grabber_set_camera(int64_t self, int64_t val) {
 	r_cast<Grabber*>(self)->setCamera(r_cast<Camera*>(val));
 }
-int64_t grabber_get_camera(int64_t self) {
+DORA_EXPORT int64_t grabber_get_camera(int64_t self) {
 	return Object_From(r_cast<Grabber*>(self)->getCamera());
 }
-void grabber_set_effect(int64_t self, int64_t val) {
+DORA_EXPORT void grabber_set_effect(int64_t self, int64_t val) {
 	r_cast<Grabber*>(self)->setEffect(r_cast<SpriteEffect*>(val));
 }
-int64_t grabber_get_effect(int64_t self) {
+DORA_EXPORT int64_t grabber_get_effect(int64_t self) {
 	return Object_From(r_cast<Grabber*>(self)->getEffect());
 }
-void grabber_set_blend_func(int64_t self, int64_t val) {
+DORA_EXPORT void grabber_set_blend_func(int64_t self, int64_t val) {
 	r_cast<Grabber*>(self)->setBlendFunc(BlendFunc(s_cast<uint64_t>(val)));
 }
-int64_t grabber_get_blend_func(int64_t self) {
+DORA_EXPORT int64_t grabber_get_blend_func(int64_t self) {
 	return s_cast<int64_t>(r_cast<Grabber*>(self)->getBlendFunc().toValue());
 }
-void grabber_set_clear_color(int64_t self, int32_t val) {
+DORA_EXPORT void grabber_set_clear_color(int64_t self, int32_t val) {
 	r_cast<Grabber*>(self)->setClearColor(Color(s_cast<uint32_t>(val)));
 }
-int32_t grabber_get_clear_color(int64_t self) {
+DORA_EXPORT int32_t grabber_get_clear_color(int64_t self) {
 	return r_cast<Grabber*>(self)->getClearColor().toARGB();
 }
-void grabber_set_pos(int64_t self, int32_t x, int32_t y, int64_t pos, float z) {
+DORA_EXPORT void grabber_set_pos(int64_t self, int32_t x, int32_t y, int64_t pos, float z) {
 	r_cast<Grabber*>(self)->setPos(s_cast<int>(x), s_cast<int>(y), Vec2_From(pos), z);
 }
-int64_t grabber_get_pos(int64_t self, int32_t x, int32_t y) {
+DORA_EXPORT int64_t grabber_get_pos(int64_t self, int32_t x, int32_t y) {
 	return Vec2_Retain(r_cast<Grabber*>(self)->getPos(s_cast<int>(x), s_cast<int>(y)));
 }
-void grabber_set_color(int64_t self, int32_t x, int32_t y, int32_t color) {
+DORA_EXPORT void grabber_set_color(int64_t self, int32_t x, int32_t y, int32_t color) {
 	r_cast<Grabber*>(self)->setColor(s_cast<int>(x), s_cast<int>(y), Color(s_cast<uint32_t>(color)));
 }
-int32_t grabber_get_color(int64_t self, int32_t x, int32_t y) {
+DORA_EXPORT int32_t grabber_get_color(int64_t self, int32_t x, int32_t y) {
 	return r_cast<Grabber*>(self)->getColor(s_cast<int>(x), s_cast<int>(y)).toARGB();
 }
-void grabber_move_uv(int64_t self, int32_t x, int32_t y, int64_t offset) {
+DORA_EXPORT void grabber_move_uv(int64_t self, int32_t x, int32_t y, int64_t offset) {
 	r_cast<Grabber*>(self)->moveUV(s_cast<int>(x), s_cast<int>(y), Vec2_From(offset));
 }
 } // extern "C"

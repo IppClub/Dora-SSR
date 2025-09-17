@@ -8,10 +8,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-int32_t physicsworld_type() {
+DORA_EXPORT int32_t physicsworld_type() {
 	return DoraType<PhysicsWorld>();
 }
-int32_t physicsworld_query(int64_t self, int64_t rect, int32_t func0, int64_t stack0) {
+DORA_EXPORT int32_t physicsworld_query(int64_t self, int64_t rect, int32_t func0, int64_t stack0) {
 	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
 		SharedWasmRuntime.deref(func0);
 	});
@@ -23,7 +23,7 @@ int32_t physicsworld_query(int64_t self, int64_t rect, int32_t func0, int64_t st
 		return args0->pop_bool_or(false);
 	}) ? 1 : 0;
 }
-int32_t physicsworld_raycast(int64_t self, int64_t start, int64_t stop, int32_t closest, int32_t func0, int64_t stack0) {
+DORA_EXPORT int32_t physicsworld_raycast(int64_t self, int64_t start, int64_t stop, int32_t closest, int32_t func0, int64_t stack0) {
 	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
 		SharedWasmRuntime.deref(func0);
 	});
@@ -37,22 +37,22 @@ int32_t physicsworld_raycast(int64_t self, int64_t start, int64_t stop, int32_t 
 		return args0->pop_bool_or(false);
 	}) ? 1 : 0;
 }
-void physicsworld_set_iterations(int64_t self, int32_t velocity_iter, int32_t position_iter) {
+DORA_EXPORT void physicsworld_set_iterations(int64_t self, int32_t velocity_iter, int32_t position_iter) {
 	r_cast<PhysicsWorld*>(self)->setIterations(s_cast<int>(velocity_iter), s_cast<int>(position_iter));
 }
-void physicsworld_set_should_contact(int64_t self, int32_t group_a, int32_t group_b, int32_t contact) {
+DORA_EXPORT void physicsworld_set_should_contact(int64_t self, int32_t group_a, int32_t group_b, int32_t contact) {
 	r_cast<PhysicsWorld*>(self)->setShouldContact(s_cast<uint8_t>(group_a), s_cast<uint8_t>(group_b), contact != 0);
 }
-int32_t physicsworld_get_should_contact(int64_t self, int32_t group_a, int32_t group_b) {
+DORA_EXPORT int32_t physicsworld_get_should_contact(int64_t self, int32_t group_a, int32_t group_b) {
 	return r_cast<PhysicsWorld*>(self)->getShouldContact(s_cast<uint8_t>(group_a), s_cast<uint8_t>(group_b)) ? 1 : 0;
 }
-void physicsworld_set_scale_factor(float val) {
+DORA_EXPORT void physicsworld_set_scale_factor(float val) {
 	PhysicsWorld::scaleFactor = s_cast<float>(val);
 }
-float physicsworld_get_scale_factor() {
+DORA_EXPORT float physicsworld_get_scale_factor() {
 	return PhysicsWorld::scaleFactor;
 }
-int64_t physicsworld_new() {
+DORA_EXPORT int64_t physicsworld_new() {
 	return Object_From(PhysicsWorld::create());
 }
 } // extern "C"

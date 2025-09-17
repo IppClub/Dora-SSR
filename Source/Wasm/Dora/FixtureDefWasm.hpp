@@ -8,7 +8,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-int32_t fixturedef_type() {
+DORA_EXPORT int32_t fixturedef_type() {
 	return DoraType<FixtureDef>();
 }
 } // extern "C"

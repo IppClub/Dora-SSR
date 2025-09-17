@@ -8,10 +8,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-void worksheet_release(int64_t raw) {
+DORA_EXPORT void worksheet_release(int64_t raw) {
 	delete r_cast<WorkSheet*>(raw);
 }
-int32_t worksheet_read(int64_t self, int64_t row) {
+DORA_EXPORT int32_t worksheet_read(int64_t self, int64_t row) {
 	return r_cast<WorkSheet*>(self)->read(r_cast<Array*>(row)) ? 1 : 0;
 }
 } // extern "C"

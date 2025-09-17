@@ -8,28 +8,28 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-int64_t path_get_ext(int64_t path) {
+DORA_EXPORT int64_t path_get_ext(int64_t path) {
 	return Str_Retain(Path::getExt(*Str_From(path)));
 }
-int64_t path_get_path(int64_t path) {
+DORA_EXPORT int64_t path_get_path(int64_t path) {
 	return Str_Retain(Path::getPath(*Str_From(path)));
 }
-int64_t path_get_name(int64_t path) {
+DORA_EXPORT int64_t path_get_name(int64_t path) {
 	return Str_Retain(Path::getName(*Str_From(path)));
 }
-int64_t path_get_filename(int64_t path) {
+DORA_EXPORT int64_t path_get_filename(int64_t path) {
 	return Str_Retain(Path::getFilename(*Str_From(path)));
 }
-int64_t path_get_relative(int64_t path, int64_t target) {
+DORA_EXPORT int64_t path_get_relative(int64_t path, int64_t target) {
 	return Str_Retain(Path::getRelative(*Str_From(path), *Str_From(target)));
 }
-int64_t path_replace_ext(int64_t path, int64_t new_ext) {
+DORA_EXPORT int64_t path_replace_ext(int64_t path, int64_t new_ext) {
 	return Str_Retain(Path::replaceExt(*Str_From(path), *Str_From(new_ext)));
 }
-int64_t path_replace_filename(int64_t path, int64_t new_file) {
+DORA_EXPORT int64_t path_replace_filename(int64_t path, int64_t new_file) {
 	return Str_Retain(Path::replaceFilename(*Str_From(path), *Str_From(new_file)));
 }
-int64_t path_concat(int64_t paths) {
+DORA_EXPORT int64_t path_concat(int64_t paths) {
 	return Str_Retain(Path::concatVector(Vec_FromStr(paths)));
 }
 } // extern "C"

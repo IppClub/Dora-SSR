@@ -8,10 +8,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-int32_t observer_type() {
+DORA_EXPORT int32_t observer_type() {
 	return DoraType<EntityObserver>();
 }
-int64_t entityobserver_new(int32_t event, int64_t components) {
+DORA_EXPORT int64_t entityobserver_new(int32_t event, int64_t components) {
 	return Object_From(EntityObserver::create(s_cast<int>(event), Vec_FromStr(components)));
 }
 } // extern "C"

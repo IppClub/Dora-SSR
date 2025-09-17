@@ -8,7 +8,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-void httpclient_post_async(int64_t url, int64_t json, float timeout, int32_t func0, int64_t stack0) {
+DORA_EXPORT void httpclient_post_async(int64_t url, int64_t json, float timeout, int32_t func0, int64_t stack0) {
 	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
 		SharedWasmRuntime.deref(func0);
 	});
@@ -19,7 +19,7 @@ void httpclient_post_async(int64_t url, int64_t json, float timeout, int32_t fun
 		SharedWasmRuntime.invoke(func0);
 	});
 }
-void httpclient_post_with_headers_async(int64_t url, int64_t headers, int64_t json, float timeout, int32_t func0, int64_t stack0) {
+DORA_EXPORT void httpclient_post_with_headers_async(int64_t url, int64_t headers, int64_t json, float timeout, int32_t func0, int64_t stack0) {
 	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
 		SharedWasmRuntime.deref(func0);
 	});
@@ -30,7 +30,7 @@ void httpclient_post_with_headers_async(int64_t url, int64_t headers, int64_t js
 		SharedWasmRuntime.invoke(func0);
 	});
 }
-void httpclient_post_with_headers_part_async(int64_t url, int64_t headers, int64_t json, float timeout, int32_t func0, int64_t stack0, int32_t func1, int64_t stack1) {
+DORA_EXPORT void httpclient_post_with_headers_part_async(int64_t url, int64_t headers, int64_t json, float timeout, int32_t func0, int64_t stack0, int32_t func1, int64_t stack1) {
 	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
 		SharedWasmRuntime.deref(func0);
 	});
@@ -50,7 +50,7 @@ void httpclient_post_with_headers_part_async(int64_t url, int64_t headers, int64
 		SharedWasmRuntime.invoke(func1);
 	});
 }
-void httpclient_get_async(int64_t url, float timeout, int32_t func0, int64_t stack0) {
+DORA_EXPORT void httpclient_get_async(int64_t url, float timeout, int32_t func0, int64_t stack0) {
 	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
 		SharedWasmRuntime.deref(func0);
 	});
@@ -61,7 +61,7 @@ void httpclient_get_async(int64_t url, float timeout, int32_t func0, int64_t sta
 		SharedWasmRuntime.invoke(func0);
 	});
 }
-void httpclient_download_async(int64_t url, int64_t full_path, float timeout, int32_t func0, int64_t stack0) {
+DORA_EXPORT void httpclient_download_async(int64_t url, int64_t full_path, float timeout, int32_t func0, int64_t stack0) {
 	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
 		SharedWasmRuntime.deref(func0);
 	});

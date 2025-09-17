@@ -8,19 +8,19 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-int64_t mouse_get_position() {
+DORA_EXPORT int64_t mouse_get_position() {
 	return Vec2_Retain(Mouse::getPosition());
 }
-int32_t mouse_is_left_button_pressed() {
+DORA_EXPORT int32_t mouse_is_left_button_pressed() {
 	return Mouse::isLeftButtonPressed() ? 1 : 0;
 }
-int32_t mouse_is_right_button_pressed() {
+DORA_EXPORT int32_t mouse_is_right_button_pressed() {
 	return Mouse::isRightButtonPressed() ? 1 : 0;
 }
-int32_t mouse_is_middle_button_pressed() {
+DORA_EXPORT int32_t mouse_is_middle_button_pressed() {
 	return Mouse::isMiddleButtonPressed() ? 1 : 0;
 }
-int64_t mouse_get_wheel() {
+DORA_EXPORT int64_t mouse_get_wheel() {
 	return Vec2_Retain(Mouse::getWheel());
 }
 } // extern "C"

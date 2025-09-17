@@ -1,0 +1,4204 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Basic">
+      <UniqueIdentifier>{7e412dfc-d970-4102-8df1-ea9c1fcc4564}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Common">
+      <UniqueIdentifier>{a66627dd-27c0-4d88-9074-aa9314579f62}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Const">
+      <UniqueIdentifier>{bf255db1-a6de-41a1-9658-306936ac8c55}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Lua">
+      <UniqueIdentifier>{5ea049b6-5bb0-4a28-a7e1-bcc3705b7ad0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty">
+      <UniqueIdentifier>{164271c1-5a03-4f56-ab29-4b899af981af}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\silly">
+      <UniqueIdentifier>{d3d5ca95-9734-4684-8f81-8cd17fbdb6dd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\Zip">
+      <UniqueIdentifier>{c5c729d4-c12c-4299-bc2f-ad1309722d81}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\Lua">
+      <UniqueIdentifier>{b778508f-d7cd-45bd-9891-0fe5c526fa3a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Event">
+      <UniqueIdentifier>{7f70ed61-7367-4bcf-9c84-fe0283bce4be}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Lua\ToLua">
+      <UniqueIdentifier>{ec6d2c9a-2629-49b5-ab13-61aeebe8eaa5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Node">
+      <UniqueIdentifier>{1c47b2cc-37f8-4db4-9351-ffef75ba037a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Support">
+      <UniqueIdentifier>{da89bd03-e4d8-4c9e-aa63-f0e5e41cb1f7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Cache">
+      <UniqueIdentifier>{e0778c45-31d9-491a-8d4c-1be11101a327}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\lodepng">
+      <UniqueIdentifier>{e02d705b-c0ec-468c-bae9-b4f62a446794}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Effect">
+      <UniqueIdentifier>{d10b80ca-8eae-4068-8d2a-14ee1d2dbbd9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Input">
+      <UniqueIdentifier>{0d438360-861d-4264-b4b1-0f9051f65f34}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\imgui">
+      <UniqueIdentifier>{1bb3a45b-b849-4232-bf4f-37cbdcd84363}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GUI">
+      <UniqueIdentifier>{daee0542-3318-43b6-97cf-7e4ec67f625e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\Other">
+      <UniqueIdentifier>{35572a68-51e5-44af-bd7d-cf56c3a5c2cf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\font">
+      <UniqueIdentifier>{ec689630-09a4-4fac-9508-7a5f2c8b6772}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\fmt">
+      <UniqueIdentifier>{f188fd82-326e-413e-9cd2-2efc7d44bd9e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Animation">
+      <UniqueIdentifier>{1dba13c2-e330-4933-a1af-6aebd198edda}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Physics">
+      <UniqueIdentifier>{a5a17125-74ff-474d-8c30-58f487461740}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Audio">
+      <UniqueIdentifier>{770ca085-abd0-4bd9-82c8-9b9d24a2a975}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\tinyxml2">
+      <UniqueIdentifier>{ef6899f5-5974-4507-a964-d9b6857bd509}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Entity">
+      <UniqueIdentifier>{3339519c-7d32-4a52-a6be-f331261d6beb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\stb">
+      <UniqueIdentifier>{3df686e8-d734-4651-bf64-d476c784c6b4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shader">
+      <UniqueIdentifier>{f8799809-de75-4622-bdcb-2387ebc5ee83}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Platformer">
+      <UniqueIdentifier>{45f95e66-5643-4ac5-92c1-8660357c90ff}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\nanovg">
+      <UniqueIdentifier>{38bba46f-dca1-4617-920b-0cda88bafb73}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\spine">
+      <UniqueIdentifier>{499dcf6f-2ff9-468a-81c8-897f74e1ec78}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\ml">
+      <UniqueIdentifier>{0d933f0e-76aa-4a7d-9567-7e856f14f5b4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ML">
+      <UniqueIdentifier>{e7b04149-98f2-4dec-9c5c-df5a94913f23}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\yuescript">
+      <UniqueIdentifier>{e891c088-58db-4a80-9bf4-cc982aca15a1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\sqlite">
+      <UniqueIdentifier>{2f1a6233-e93e-41f8-84a4-3e9542183c01}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\implot">
+      <UniqueIdentifier>{53b9d27c-9d44-43a2-bc6c-3e696df8b5b9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\dragonBones">
+      <UniqueIdentifier>{e7a4500a-2ef4-4f7f-bd23-bac1c4560d52}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\dragonBones\animation">
+      <UniqueIdentifier>{fee03052-1eef-40fe-bea1-c13fba98fc48}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\dragonBones\armature">
+      <UniqueIdentifier>{3a5969ca-3fc6-4f04-ab30-050c34c29180}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\dragonBones\core">
+      <UniqueIdentifier>{3ba3943d-c1c7-48c9-b47e-10b4dc9fa5d3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\dragonBones\event">
+      <UniqueIdentifier>{8a0b8f67-1d34-4dbf-8924-6385f29b4523}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\dragonBones\factory">
+      <UniqueIdentifier>{47a7eb13-c04d-4c44-a7f6-70487b6149b6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\dragonBones\geom">
+      <UniqueIdentifier>{dc50049b-126e-4dbe-bbd5-d2aebe6396fc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\dragonBones\model">
+      <UniqueIdentifier>{f2e6fb09-fc74-475f-b979-9810e14c4080}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\dragonBones\parser">
+      <UniqueIdentifier>{029a64c8-23b0-44ea-9db8-e1eac2233cb2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\soloud">
+      <UniqueIdentifier>{507c4c51-40c8-4622-a7f3-e6e48583e881}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\soloud\audiosource">
+      <UniqueIdentifier>{4418763c-bdc7-42f7-b524-40420b06dbac}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\soloud\backend">
+      <UniqueIdentifier>{040d94e7-033a-41a0-976c-cec9598bc099}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\soloud\core">
+      <UniqueIdentifier>{0183c6e0-7f79-4311-b9c6-2ead1d1e092a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\soloud\filter">
+      <UniqueIdentifier>{da4f2b1c-b868-41aa-8335-f31182b5be8a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\soloud\audiosource\wav">
+      <UniqueIdentifier>{a1cc48e2-5ad5-458d-912e-ad3baa191c4d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\wasm3">
+      <UniqueIdentifier>{8a43bcf5-c303-4afc-a150-41d9663e69f7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\wasm3\extra">
+      <UniqueIdentifier>{b5891070-2b94-4dd6-addb-b511f322338e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Wasm">
+      <UniqueIdentifier>{4bf58821-88b6-45c6-8ccd-f032ecc82259}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Test">
+      <UniqueIdentifier>{d37fc4ac-819c-47a6-a063-cafb8e00f8e6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\soloud\backend\sdl2_static">
+      <UniqueIdentifier>{606816b5-3b1e-49ec-96d2-040ba1a57aa1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\colib">
+      <UniqueIdentifier>{73663200-4de5-41ca-9e49-58903b87f819}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Http">
+      <UniqueIdentifier>{410b8208-0230-4981-9971-2b6eff86da7e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Lua\Xml">
+      <UniqueIdentifier>{0103014a-643f-4f1c-83c2-7f0593043ea4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\playrho">
+      <UniqueIdentifier>{56b26ce6-81c4-418e-bcad-05697cd94a25}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\playrho\d2">
+      <UniqueIdentifier>{d6fa43b0-c601-487f-a130-bb1441d1b000}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\playrho\d2\part">
+      <UniqueIdentifier>{36a2f56c-aee3-42ee-88bd-4f76ae079abd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\playrho\pmr">
+      <UniqueIdentifier>{358933b8-dc37-4fb5-a31e-6cdb67bf6fe0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\playrho\detail">
+      <UniqueIdentifier>{e7437292-101d-41c1-bbef-7c426fbc0365}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\yoga">
+      <UniqueIdentifier>{584d53c5-9bd1-41e1-bfd7-4a4500917b9d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\yoga\algorithm">
+      <UniqueIdentifier>{58858286-84a8-4f3f-b4a4-3a4528465c10}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\yoga\config">
+      <UniqueIdentifier>{96d52929-491b-4b5c-af25-c8f8203cd792}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\yoga\debug">
+      <UniqueIdentifier>{59c9ebe4-f60d-4057-b39f-6d80fc18ecc5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\yoga\enums">
+      <UniqueIdentifier>{040c966d-05ee-4582-ab4f-32cf6cca2a8f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\yoga\event">
+      <UniqueIdentifier>{cf6fb3a3-57a6-4bbb-8f80-764efdc708ad}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\yoga\node">
+      <UniqueIdentifier>{ef2fd136-2ce9-40df-90c0-e9c7079ce4d5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\yoga\numeric">
+      <UniqueIdentifier>{20d9c919-41c9-40a7-88b1-cbfc2f263609}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\yoga\style">
+      <UniqueIdentifier>{f935156f-441f-4947-917c-11a198f6d7be}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\Effekseer">
+      <UniqueIdentifier>{307f5df6-4b72-46a8-b6fc-94caecfa577e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\Effekseer\Effekseer">
+      <UniqueIdentifier>{1e783910-3d63-448a-9526-6e14736f200d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\Effekseer\Effekseer\Backend">
+      <UniqueIdentifier>{b042433f-9fce-40d0-822e-1c4e256226aa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\Effekseer\Effekseer\ForceField">
+      <UniqueIdentifier>{99696fc0-8d41-4922-a18a-dd174925bb77}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\Effekseer\Effekseer\Geometry">
+      <UniqueIdentifier>{8179e880-be4c-405e-926f-52678a384e5b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\Effekseer\Effekseer\IO">
+      <UniqueIdentifier>{7a3d0423-d956-4f2e-9397-672c25649815}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\Effekseer\Effekseer\Material">
+      <UniqueIdentifier>{e574b3e4-7ac0-4d4d-b0a3-30da40eb80e0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\Effekseer\Effekseer\Model">
+      <UniqueIdentifier>{94d93a9e-3bb9-4368-8f2c-871bcb097c0b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\Effekseer\Effekseer\Network">
+      <UniqueIdentifier>{c6eb7ccc-a506-40dc-9662-17e352f0a985}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\Effekseer\Effekseer\Network\data">
+      <UniqueIdentifier>{04132ab2-1a69-4180-8c6c-de313ae81e40}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\Effekseer\Effekseer\Noise">
+      <UniqueIdentifier>{dda45781-ee5e-4e66-b876-e41322e7cdac}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\Effekseer\Effekseer\Renderer">
+      <UniqueIdentifier>{36ffc69d-eeac-4099-b830-af66f061aa8a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\Effekseer\Effekseer\Parameter">
+      <UniqueIdentifier>{dac3a377-cc92-4acf-b20e-cdf9cba55150}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\Effekseer\Effekseer\SIMD">
+      <UniqueIdentifier>{de4a14f5-eace-4bcd-91d5-525e1d349f8e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\Effekseer\Effekseer\Sound">
+      <UniqueIdentifier>{c743ec71-5c61-4a25-bd92-740792fc7758}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\Effekseer\Effekseer\Utils">
+      <UniqueIdentifier>{e39da83b-0061-4231-bf0a-2785c3e6dfde}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\Effekseer\Effekseer\VectorField">
+      <UniqueIdentifier>{fb0b1a4b-8e32-4389-b169-35db074ef66a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\Effekseer\EffekseerRendererCommon">
+      <UniqueIdentifier>{b308aad7-2a1d-4df1-80e6-e42bc0217ab4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\Effekseer\EffekseerRendererCommon\Shader">
+      <UniqueIdentifier>{2c2fd612-22c5-46c1-9bce-cc043aa0edd1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\Effekseer\3rdParty">
+      <UniqueIdentifier>{8f16a512-1057-49e9-bdce-7c12ad71c2e0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\Effekseer\3rdParty\stb_effekseer">
+      <UniqueIdentifier>{65f9d15f-a845-4914-a3d9-a67e55466575}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\Zip\zlib">
+      <UniqueIdentifier>{df4b410f-b909-4d7a-b7b8-7f7d2643ca81}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\tmxlite">
+      <UniqueIdentifier>{a571dc06-baac-443b-b542-5da34cc42b42}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\tmxlite\detail">
+      <UniqueIdentifier>{32935fa4-7213-48cb-a5ad-e6502fa83992}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Render">
+      <UniqueIdentifier>{ce2b8137-61bd-4efb-8cf9-01a03ac12dec}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\nfd">
+      <UniqueIdentifier>{eed2b039-f653-4258-8fe3-ab9a8c84399d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rdParty\yarnflow">
+      <UniqueIdentifier>{793abd5f-da71-4806-aa5e-b27b9e514e5b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resources">
+      <UniqueIdentifier>{3bd2de22-4a18-437b-9104-a49161d9c077}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\Source\3rdParty\silly\Slice.cpp">
+      <Filter>3rdParty\silly</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Basic\Application.cpp">
+      <Filter>Basic</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Basic\AutoreleasePool.cpp">
+      <Filter>Basic</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Basic\Content.cpp">
+      <Filter>Basic</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Basic\Director.cpp">
+      <Filter>Basic</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Basic\Object.cpp">
+      <Filter>Basic</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Event\Event.cpp">
+      <Filter>Event</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Event\EventQueue.cpp">
+      <Filter>Event</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Event\EventType.cpp">
+      <Filter>Event</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Event\Listener.cpp">
+      <Filter>Event</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Lua\LuaBinding.cpp">
+      <Filter>Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Lua\LuaCode.cpp">
+      <Filter>Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Lua\LuaEngine.cpp">
+      <Filter>Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Lua\LuaManual.cpp">
+      <Filter>Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Basic\Scheduler.cpp">
+      <Filter>Basic</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Common\Async.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Lua\ToLua\tolua_event.cpp">
+      <Filter>Lua\ToLua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Lua\ToLua\tolua_fix.cpp">
+      <Filter>Lua\ToLua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Lua\ToLua\tolua_is.cpp">
+      <Filter>Lua\ToLua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Lua\ToLua\tolua_map.cpp">
+      <Filter>Lua\ToLua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Lua\ToLua\tolua_push.cpp">
+      <Filter>Lua\ToLua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Lua\ToLua\tolua_to.cpp">
+      <Filter>Lua\ToLua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Node\Node.cpp">
+      <Filter>Node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Lua\LuaHandler.cpp">
+      <Filter>Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Support\Array.cpp">
+      <Filter>Support</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Support\Geometry.cpp">
+      <Filter>Support</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Common\Utils.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Node\Sprite.cpp">
+      <Filter>Node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Cache\TextureCache.cpp">
+      <Filter>Cache</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\lodepng\lodepng.cpp">
+      <Filter>3rdParty\lodepng</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Cache\ShaderCache.cpp">
+      <Filter>Cache</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Support\Common.cpp">
+      <Filter>Support</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Effect\Effect.cpp">
+      <Filter>Effect</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Input\TouchDispather.cpp">
+      <Filter>Input</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Other\utf8.cpp">
+      <Filter>3rdParty\Other</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\font\font_manager.cpp">
+      <Filter>3rdParty\font</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Other\atlas.cpp">
+      <Filter>3rdParty\Other</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Node\Label.cpp">
+      <Filter>Node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Common\Singleton.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Common\Debug.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Const\Header.cpp">
+      <Filter>Const</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Node\Particle.cpp">
+      <Filter>Node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Node\ClipNode.cpp">
+      <Filter>Node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Node\DrawNode.cpp">
+      <Filter>Node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Animation\Action.cpp">
+      <Filter>Animation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Animation\Animation.cpp">
+      <Filter>Animation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Animation\ModelDef.cpp">
+      <Filter>Animation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Cache\ClipCache.cpp">
+      <Filter>Cache</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Cache\FrameCache.cpp">
+      <Filter>Cache</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Cache\ModelCache.cpp">
+      <Filter>Cache</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Physics\Body.cpp">
+      <Filter>Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Physics\BodyDef.cpp">
+      <Filter>Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Physics\DebugDraw.cpp">
+      <Filter>Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Physics\Joint.cpp">
+      <Filter>Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Physics\JointDef.cpp">
+      <Filter>Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Physics\Sensor.cpp">
+      <Filter>Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Support\Dictionary.cpp">
+      <Filter>Support</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Cache\ParticleCache.cpp">
+      <Filter>Cache</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Node\Model.cpp">
+      <Filter>Node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Lua\LuaFromXml.cpp">
+      <Filter>Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tinyxml2\SAXParser.cpp">
+      <Filter>3rdParty\tinyxml2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tinyxml2\tinyxml2.cpp">
+      <Filter>3rdParty\tinyxml2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Node\Menu.cpp">
+      <Filter>Node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Input\Keyboard.cpp">
+      <Filter>Input</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\GUI\ImGuiDora.cpp">
+      <Filter>GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Entity\Entity.cpp">
+      <Filter>Entity</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\stb\stb.cpp">
+      <Filter>3rdParty\stb</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Shader\Builtin.cpp">
+      <Filter>Shader</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Common\MemoryPool.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Platformer\AI.cpp">
+      <Filter>Platformer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Platformer\AINode.cpp">
+      <Filter>Platformer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Platformer\Bullet.cpp">
+      <Filter>Platformer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Platformer\BulletDef.cpp">
+      <Filter>Platformer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Platformer\Data.cpp">
+      <Filter>Platformer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Platformer\Define.cpp">
+      <Filter>Platformer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Platformer\Face.cpp">
+      <Filter>Platformer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Platformer\PlatformCamera.cpp">
+      <Filter>Platformer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Platformer\PlatformWorld.cpp">
+      <Filter>Platformer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Platformer\Unit.cpp">
+      <Filter>Platformer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Platformer\UnitAction.cpp">
+      <Filter>Platformer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Platformer\VisualCache.cpp">
+      <Filter>Platformer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Physics\PhysicsWorld.cpp">
+      <Filter>Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\nanovg\nanovg.cpp">
+      <Filter>3rdParty\nanovg</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\nanovg\nanovg_bgfx.cpp">
+      <Filter>3rdParty\nanovg</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\imgui\imgui.cpp">
+      <Filter>3rdParty\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\imgui\imgui_demo.cpp">
+      <Filter>3rdParty\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\imgui\imgui_draw.cpp">
+      <Filter>3rdParty\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\imgui\imgui_widgets.cpp">
+      <Filter>3rdParty\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Node\VGNode.cpp">
+      <Filter>Node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\fmt\format.cpp">
+      <Filter>3rdParty\fmt</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\fmt\os.cpp">
+      <Filter>3rdParty\fmt</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Cache\AtlasCache.cpp">
+      <Filter>Cache</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Cache\SkeletonCache.cpp">
+      <Filter>Cache</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Node\Spine.cpp">
+      <Filter>Node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\ml\DecisionTree.cpp">
+      <Filter>3rdParty\ml</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Node\Playable.cpp">
+      <Filter>Node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\ML\ML.cpp">
+      <Filter>ML</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yuescript\ast.cpp">
+      <Filter>3rdParty\yuescript</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yuescript\parser.cpp">
+      <Filter>3rdParty\yuescript</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yuescript\yue_compiler.cpp">
+      <Filter>3rdParty\yuescript</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yuescript\yue_parser.cpp">
+      <Filter>3rdParty\yuescript</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yuescript\yuescript.cpp">
+      <Filter>3rdParty\yuescript</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Cache\SVGCache.cpp">
+      <Filter>Cache</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Support\Value.cpp">
+      <Filter>Support</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\imgui\imgui_tables.cpp">
+      <Filter>3rdParty\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\sqlite\SQLiteCpp\Backup.cpp">
+      <Filter>3rdParty\sqlite</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\sqlite\SQLiteCpp\Column.cpp">
+      <Filter>3rdParty\sqlite</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\sqlite\SQLiteCpp\Database.cpp">
+      <Filter>3rdParty\sqlite</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\sqlite\SQLiteCpp\Exception.cpp">
+      <Filter>3rdParty\sqlite</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\sqlite\SQLiteCpp\Savepoint.cpp">
+      <Filter>3rdParty\sqlite</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\sqlite\SQLiteCpp\Statement.cpp">
+      <Filter>3rdParty\sqlite</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\sqlite\SQLiteCpp\Transaction.cpp">
+      <Filter>3rdParty\sqlite</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Basic\Database.cpp">
+      <Filter>Basic</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\implot\implot.cpp">
+      <Filter>3rdParty\implot</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\implot\implot_demo.cpp">
+      <Filter>3rdParty\implot</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\implot\implot_items.cpp">
+      <Filter>3rdParty\implot</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\dragonBones\animation\Animation.cpp">
+      <Filter>3rdParty\dragonBones\animation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\dragonBones\animation\AnimationState.cpp">
+      <Filter>3rdParty\dragonBones\animation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\dragonBones\animation\BaseTimelineState.cpp">
+      <Filter>3rdParty\dragonBones\animation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\dragonBones\animation\TimelineState.cpp">
+      <Filter>3rdParty\dragonBones\animation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\dragonBones\animation\WorldClock.cpp">
+      <Filter>3rdParty\dragonBones\animation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\dragonBones\armature\Armature.cpp">
+      <Filter>3rdParty\dragonBones\armature</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\dragonBones\armature\Bone.cpp">
+      <Filter>3rdParty\dragonBones\armature</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\dragonBones\armature\Constraint.cpp">
+      <Filter>3rdParty\dragonBones\armature</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\dragonBones\armature\DeformVertices.cpp">
+      <Filter>3rdParty\dragonBones\armature</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\dragonBones\armature\Slot.cpp">
+      <Filter>3rdParty\dragonBones\armature</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\dragonBones\armature\TransformObject.cpp">
+      <Filter>3rdParty\dragonBones\armature</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\dragonBones\core\BaseObject.cpp">
+      <Filter>3rdParty\dragonBones\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\dragonBones\core\DragonBones.cpp">
+      <Filter>3rdParty\dragonBones\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\dragonBones\event\EventObject.cpp">
+      <Filter>3rdParty\dragonBones\event</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\dragonBones\factory\BaseFactory.cpp">
+      <Filter>3rdParty\dragonBones\factory</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\dragonBones\geom\Point.cpp">
+      <Filter>3rdParty\dragonBones\geom</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\dragonBones\geom\Transform.cpp">
+      <Filter>3rdParty\dragonBones\geom</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\dragonBones\model\AnimationConfig.cpp">
+      <Filter>3rdParty\dragonBones\model</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\dragonBones\model\AnimationData.cpp">
+      <Filter>3rdParty\dragonBones\model</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\dragonBones\model\ArmatureData.cpp">
+      <Filter>3rdParty\dragonBones\model</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\dragonBones\model\BoundingBoxData.cpp">
+      <Filter>3rdParty\dragonBones\model</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\dragonBones\model\CanvasData.cpp">
+      <Filter>3rdParty\dragonBones\model</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\dragonBones\model\ConstraintData.cpp">
+      <Filter>3rdParty\dragonBones\model</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\dragonBones\model\DisplayData.cpp">
+      <Filter>3rdParty\dragonBones\model</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\dragonBones\model\DragonBonesData.cpp">
+      <Filter>3rdParty\dragonBones\model</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\dragonBones\model\SkinData.cpp">
+      <Filter>3rdParty\dragonBones\model</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\dragonBones\model\TextureAtlasData.cpp">
+      <Filter>3rdParty\dragonBones\model</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\dragonBones\model\UserData.cpp">
+      <Filter>3rdParty\dragonBones\model</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\dragonBones\parser\BinaryDataParser.cpp">
+      <Filter>3rdParty\dragonBones\parser</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\dragonBones\parser\DataParser.cpp">
+      <Filter>3rdParty\dragonBones\parser</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\dragonBones\parser\JSONDataParser.cpp">
+      <Filter>3rdParty\dragonBones\parser</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Cache\DragonBoneCache.cpp">
+      <Filter>Cache</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Node\DragonBone.cpp">
+      <Filter>Node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Lua\TealCompiler.cpp">
+      <Filter>Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\sqlite\sqlite3.c">
+      <Filter>3rdParty\sqlite</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\filter\soloud_bassboostfilter.cpp">
+      <Filter>3rdParty\soloud\filter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\filter\soloud_biquadresonantfilter.cpp">
+      <Filter>3rdParty\soloud\filter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\filter\soloud_dcremovalfilter.cpp">
+      <Filter>3rdParty\soloud\filter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\filter\soloud_echofilter.cpp">
+      <Filter>3rdParty\soloud\filter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\filter\soloud_eqfilter.cpp">
+      <Filter>3rdParty\soloud\filter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\filter\soloud_fftfilter.cpp">
+      <Filter>3rdParty\soloud\filter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\filter\soloud_flangerfilter.cpp">
+      <Filter>3rdParty\soloud\filter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\filter\soloud_freeverbfilter.cpp">
+      <Filter>3rdParty\soloud\filter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\filter\soloud_lofifilter.cpp">
+      <Filter>3rdParty\soloud\filter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\filter\soloud_robotizefilter.cpp">
+      <Filter>3rdParty\soloud\filter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\filter\soloud_waveshaperfilter.cpp">
+      <Filter>3rdParty\soloud\filter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\core\soloud.cpp">
+      <Filter>3rdParty\soloud\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\core\soloud_audiosource.cpp">
+      <Filter>3rdParty\soloud\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\core\soloud_bus.cpp">
+      <Filter>3rdParty\soloud\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\core\soloud_core_3d.cpp">
+      <Filter>3rdParty\soloud\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\core\soloud_core_basicops.cpp">
+      <Filter>3rdParty\soloud\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\core\soloud_core_faderops.cpp">
+      <Filter>3rdParty\soloud\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\core\soloud_core_filterops.cpp">
+      <Filter>3rdParty\soloud\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\core\soloud_core_getters.cpp">
+      <Filter>3rdParty\soloud\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\core\soloud_core_setters.cpp">
+      <Filter>3rdParty\soloud\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\core\soloud_core_voicegroup.cpp">
+      <Filter>3rdParty\soloud\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\core\soloud_core_voiceops.cpp">
+      <Filter>3rdParty\soloud\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\core\soloud_fader.cpp">
+      <Filter>3rdParty\soloud\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\core\soloud_fft.cpp">
+      <Filter>3rdParty\soloud\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\core\soloud_fft_lut.cpp">
+      <Filter>3rdParty\soloud\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\core\soloud_file.cpp">
+      <Filter>3rdParty\soloud\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\core\soloud_filter.cpp">
+      <Filter>3rdParty\soloud\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\core\soloud_misc.cpp">
+      <Filter>3rdParty\soloud\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\core\soloud_queue.cpp">
+      <Filter>3rdParty\soloud\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\core\soloud_thread.cpp">
+      <Filter>3rdParty\soloud\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\wav\dr_impl.cpp">
+      <Filter>3rdParty\soloud\audiosource\wav</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\wav\soloud_wav.cpp">
+      <Filter>3rdParty\soloud\audiosource\wav</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\wav\soloud_wavstream.cpp">
+      <Filter>3rdParty\soloud\audiosource\wav</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\audiosource\wav\stb_vorbis.c">
+      <Filter>3rdParty\soloud\audiosource\wav</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Lua\lapi.c">
+      <Filter>3rdParty\Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Lua\lauxlib.c">
+      <Filter>3rdParty\Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Lua\lbaselib.c">
+      <Filter>3rdParty\Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Lua\lcode.c">
+      <Filter>3rdParty\Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Lua\lcorolib.c">
+      <Filter>3rdParty\Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Lua\lctype.c">
+      <Filter>3rdParty\Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Lua\ldblib.c">
+      <Filter>3rdParty\Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Lua\ldebug.c">
+      <Filter>3rdParty\Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Lua\ldo.c">
+      <Filter>3rdParty\Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Lua\ldump.c">
+      <Filter>3rdParty\Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Lua\lfunc.c">
+      <Filter>3rdParty\Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Lua\lgc.c">
+      <Filter>3rdParty\Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Lua\linit.c">
+      <Filter>3rdParty\Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Lua\liolib.c">
+      <Filter>3rdParty\Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Lua\llex.c">
+      <Filter>3rdParty\Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Lua\lmathlib.c">
+      <Filter>3rdParty\Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Lua\lmem.c">
+      <Filter>3rdParty\Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Lua\loadlib.c">
+      <Filter>3rdParty\Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Lua\lobject.c">
+      <Filter>3rdParty\Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Lua\lopcodes.c">
+      <Filter>3rdParty\Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Lua\loslib.c">
+      <Filter>3rdParty\Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Lua\lparser.c">
+      <Filter>3rdParty\Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Lua\lstate.c">
+      <Filter>3rdParty\Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Lua\lstring.c">
+      <Filter>3rdParty\Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Lua\lstrlib.c">
+      <Filter>3rdParty\Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Lua\ltable.c">
+      <Filter>3rdParty\Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Lua\ltablib.c">
+      <Filter>3rdParty\Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Lua\ltm.c">
+      <Filter>3rdParty\Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Lua\lundump.c">
+      <Filter>3rdParty\Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Lua\lutf8lib.c">
+      <Filter>3rdParty\Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Lua\lvm.c">
+      <Filter>3rdParty\Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Lua\lzio.c">
+      <Filter>3rdParty\Lua</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Zip\miniz.c">
+      <Filter>3rdParty\Zip</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Zip\ZipUtils.cpp">
+      <Filter>3rdParty\Zip</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Node\Grid.cpp">
+      <Filter>Node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\wasm3\m3_api_libc.c">
+      <Filter>3rdParty\wasm3</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\wasm3\m3_api_meta_wasi.c">
+      <Filter>3rdParty\wasm3</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\wasm3\m3_api_tracer.c">
+      <Filter>3rdParty\wasm3</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\wasm3\m3_api_uvwasi.c">
+      <Filter>3rdParty\wasm3</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\wasm3\m3_api_wasi.c">
+      <Filter>3rdParty\wasm3</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\wasm3\m3_bind.c">
+      <Filter>3rdParty\wasm3</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\wasm3\m3_code.c">
+      <Filter>3rdParty\wasm3</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\wasm3\m3_compile.c">
+      <Filter>3rdParty\wasm3</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\wasm3\m3_core.c">
+      <Filter>3rdParty\wasm3</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\wasm3\m3_env.c">
+      <Filter>3rdParty\wasm3</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\wasm3\m3_exec.c">
+      <Filter>3rdParty\wasm3</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\wasm3\m3_function.c">
+      <Filter>3rdParty\wasm3</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\wasm3\m3_info.c">
+      <Filter>3rdParty\wasm3</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\wasm3\m3_module.c">
+      <Filter>3rdParty\wasm3</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\wasm3\m3_parse.c">
+      <Filter>3rdParty\wasm3</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Wasm\WasmRuntime.cpp">
+      <Filter>Wasm</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Cache\Cache.cpp">
+      <Filter>Cache</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Test\HelloWorldCpp.cpp">
+      <Filter>Test</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Test\Test.cpp">
+      <Filter>Test</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\soloud\backend\sdl2_static\soloud_sdl2_static.cpp">
+      <Filter>3rdParty\soloud\backend\sdl2_static</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\GUI\ImGuiBinding.cpp">
+      <Filter>GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\colib\ljson.c">
+      <Filter>3rdParty\colib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Http\HttpServer.cpp">
+      <Filter>Http</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Lua\Xml\XmlResolver.cpp">
+      <Filter>Lua\Xml</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yuescript\yue_ast.cpp">
+      <Filter>3rdParty\yuescript</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\part\Compositor.cpp">
+      <Filter>3rdParty\playrho\d2\part</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\BlockAllocator.cpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\ConstraintSolverConf.cpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\Contact.cpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\DynamicMemory.cpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\Island.cpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\LimitState.cpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\Math.cpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\MovementConf.cpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\StackAllocator.cpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\StepConf.cpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\StepStats.cpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\ToiConf.cpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\ToiOutput.cpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\Version.cpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\AABB.cpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\AabbTreeWorld.cpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\Body.cpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\BodyConf.cpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\ChainShapeConf.cpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\CodeDumper.cpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\ContactImpulsesList.cpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\ContactSolver.cpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\ConvexHull.cpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\DiskShapeConf.cpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\Distance.cpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\DistanceConf.cpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\DistanceJointConf.cpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\DistanceProxy.cpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\DynamicTree.cpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\EdgeShapeConf.cpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\FrictionJointConf.cpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\GearJointConf.cpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\Joint.cpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\JointConf.cpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\Manifold.cpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\MassData.cpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\Math.cpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\MotorJointConf.cpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\MultiShapeConf.cpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\PointStates.cpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\PolygonShapeConf.cpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\PositionSolverManifold.cpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\PrismaticJointConf.cpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\PulleyJointConf.cpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\RayCastOutput.cpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\RevoluteJointConf.cpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\RopeJointConf.cpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\SeparationScenario.cpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\Shape.cpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\ShapeSeparation.cpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\Simplex.cpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\Sweep.cpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\TargetJointConf.cpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\TimeOfImpact.cpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\UnitVec.cpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\Velocity.cpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\VelocityConstraint.cpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\WeldJointConf.cpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\WheelJointConf.cpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\World.cpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\WorldBody.cpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\WorldContact.cpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\WorldJoint.cpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\WorldManifold.cpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\WorldMisc.cpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\d2\WorldShape.cpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\pmr\MemoryResource.cpp">
+      <Filter>3rdParty\playrho\pmr</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\pmr\PoolMemoryResource.cpp">
+      <Filter>3rdParty\playrho\pmr</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\playrho\pmr\StatsResource.cpp">
+      <Filter>3rdParty\playrho\pmr</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Input\Controller.cpp">
+      <Filter>Input</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Lua\Xml\DoraTag.cpp">
+      <Filter>Lua\Xml</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yoga\YGConfig.cpp">
+      <Filter>3rdParty\yoga</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yoga\YGEnums.cpp">
+      <Filter>3rdParty\yoga</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yoga\YGNode.cpp">
+      <Filter>3rdParty\yoga</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yoga\YGNodeLayout.cpp">
+      <Filter>3rdParty\yoga</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yoga\YGNodeStyle.cpp">
+      <Filter>3rdParty\yoga</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yoga\YGPixelGrid.cpp">
+      <Filter>3rdParty\yoga</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yoga\YGValue.cpp">
+      <Filter>3rdParty\yoga</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yoga\algorithm\AbsoluteLayout.cpp">
+      <Filter>3rdParty\yoga\algorithm</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yoga\algorithm\Baseline.cpp">
+      <Filter>3rdParty\yoga\algorithm</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yoga\algorithm\Cache.cpp">
+      <Filter>3rdParty\yoga\algorithm</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yoga\algorithm\CalculateLayout.cpp">
+      <Filter>3rdParty\yoga\algorithm</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yoga\algorithm\FlexLine.cpp">
+      <Filter>3rdParty\yoga\algorithm</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yoga\algorithm\PixelGrid.cpp">
+      <Filter>3rdParty\yoga\algorithm</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yoga\config\Config.cpp">
+      <Filter>3rdParty\yoga\config</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yoga\debug\AssertFatal.cpp">
+      <Filter>3rdParty\yoga\debug</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yoga\debug\Log.cpp">
+      <Filter>3rdParty\yoga\debug</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yoga\event\event.cpp">
+      <Filter>3rdParty\yoga\event</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yoga\node\LayoutResults.cpp">
+      <Filter>3rdParty\yoga\node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yoga\node\Node.cpp">
+      <Filter>3rdParty\yoga\node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Node\AlignNode.cpp">
+      <Filter>Node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\bgfxrenderer.cpp">
+      <Filter>3rdParty\Effekseer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Color.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.CurveLoader.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.DefaultEffectLoader.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.DefaultFile.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Effect.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.EffectNode.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.EffectNodeModel.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.EffectNodeRibbon.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.EffectNodeRing.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.EffectNodeRoot.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.EffectNodeSprite.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.EffectNodeTrack.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.FCurves.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Instance.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.InstanceChunk.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.InstanceContainer.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.InstanceGlobal.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.InstanceGroup.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.InternalScript.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.IntrusiveList.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Manager.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Matrix43.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Matrix44.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Random.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.RectF.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Resource.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.ResourceManager.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Setting.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Vector2D.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Vector3D.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.WorkerThread.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\ForceField\ForceFields.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer\ForceField</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\IO\Effekseer.EfkEfcFactory.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer\IO</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Material\Effekseer.CompiledMaterial.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer\Material</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Material\Effekseer.MaterialCompiler.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer\Material</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Material\Effekseer.MaterialFile.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer\Material</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Model\Model.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Model\ModelLoader.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Model\PointCacheGenerator.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Model\ProceduralModelGenerator.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Model\SplineGenerator.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Network\Effekseer.Client.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer\Network</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Network\Effekseer.Server.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer\Network</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Network\Effekseer.Session.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer\Network</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Network\Effekseer.Socket.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer\Network</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Noise\CurlNoise.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer\Noise</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\Collisions.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer\Parameter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\Easing.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer\Parameter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\Effekseer.Parameters.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer\Parameter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\GpuParticlesParameter.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer\Parameter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\KillRules.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer\Parameter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\Rotation.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer\Parameter</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Mat43f.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer\SIMD</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Mat44f.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer\SIMD</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Utils.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer\SIMD</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Utils\Effekseer.CustomAllocator.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\VectorField\VectorField.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer\VectorField</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\VectorField\VectorFieldLoader.cpp">
+      <Filter>3rdParty\Effekseer\Effekseer\VectorField</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.CommonUtils.cpp">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.DDSTextureLoader.cpp">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.GpuParticles.cpp">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.ModelRendererBase.cpp">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.PngTextureLoader.cpp">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.Renderer.cpp">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.Renderer_Impl.cpp">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.RenderStateBase.cpp">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.RibbonRendererBase.cpp">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.RingRendererBase.cpp">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.SpriteRendererBase.cpp">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.TGATextureLoader.cpp">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.TrackRendererBase.cpp">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\GraphicsDeviceCPU.cpp">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\ModelLoader.cpp">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\TextureLoader.cpp">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\VertexBuffer.cpp">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Node\EffekNode.cpp">
+      <Filter>Node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\Animation.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\AnimationState.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\AnimationStateData.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\Atlas.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\AtlasAttachmentLoader.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\Attachment.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\AttachmentLoader.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\AttachmentTimeline.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\Bone.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\BoneData.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\BoundingBoxAttachment.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\ClippingAttachment.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\ColorTimeline.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\ConstraintData.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\CurveTimeline.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\DeformTimeline.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\DrawOrderTimeline.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\Event.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\EventData.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\EventTimeline.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\Extension.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\IkConstraint.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\IkConstraintData.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\IkConstraintTimeline.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\InheritTimeline.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\Json.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\LinkedMesh.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\Log.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\MathUtil.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\MeshAttachment.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\PathAttachment.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\PathConstraint.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\PathConstraintData.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\PathConstraintMixTimeline.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\PathConstraintPositionTimeline.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\PathConstraintSpacingTimeline.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\PhysicsConstraint.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\PhysicsConstraintData.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\PhysicsConstraintTimeline.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\PointAttachment.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\RegionAttachment.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\RotateTimeline.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\RTTI.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\ScaleTimeline.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\Sequence.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\SequenceTimeline.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\ShearTimeline.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\Skeleton.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\SkeletonBinary.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\SkeletonBounds.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\SkeletonClipping.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\SkeletonData.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\SkeletonJson.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\Skin.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\Slot.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\SlotData.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\SpineObject.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\TextureLoader.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\Timeline.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\TransformConstraint.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\TransformConstraintData.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\TransformConstraintTimeline.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\TranslateTimeline.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\Triangulator.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\Updatable.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\VertexAttachment.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Zip\zlib\adler32.c">
+      <Filter>3rdParty\Zip\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Zip\zlib\compress.c">
+      <Filter>3rdParty\Zip\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Zip\zlib\crc32.c">
+      <Filter>3rdParty\Zip\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Zip\zlib\deflate.c">
+      <Filter>3rdParty\Zip\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Zip\zlib\gzclose.c">
+      <Filter>3rdParty\Zip\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Zip\zlib\gzlib.c">
+      <Filter>3rdParty\Zip\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Zip\zlib\gzread.c">
+      <Filter>3rdParty\Zip\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Zip\zlib\gzwrite.c">
+      <Filter>3rdParty\Zip\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Zip\zlib\inffast.c">
+      <Filter>3rdParty\Zip\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Zip\zlib\inflate.c">
+      <Filter>3rdParty\Zip\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Zip\zlib\inftrees.c">
+      <Filter>3rdParty\Zip\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Zip\zlib\trees.c">
+      <Filter>3rdParty\Zip\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Zip\zlib\uncompr.c">
+      <Filter>3rdParty\Zip\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\Zip\zlib\zutil.c">
+      <Filter>3rdParty\Zip\zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tmxlite\FreeFuncs.cpp">
+      <Filter>3rdParty\tmxlite</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tmxlite\ImageLayer.cpp">
+      <Filter>3rdParty\tmxlite</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tmxlite\LayerGroup.cpp">
+      <Filter>3rdParty\tmxlite</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tmxlite\Map.cpp">
+      <Filter>3rdParty\tmxlite</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tmxlite\Object.cpp">
+      <Filter>3rdParty\tmxlite</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tmxlite\ObjectGroup.cpp">
+      <Filter>3rdParty\tmxlite</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tmxlite\ObjectTypes.cpp">
+      <Filter>3rdParty\tmxlite</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tmxlite\Property.cpp">
+      <Filter>3rdParty\tmxlite</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tmxlite\TileLayer.cpp">
+      <Filter>3rdParty\tmxlite</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tmxlite\Tileset.cpp">
+      <Filter>3rdParty\tmxlite</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\tmxlite\detail\pugixml.cpp">
+      <Filter>3rdParty\tmxlite\detail</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Cache\TMXCache.cpp">
+      <Filter>Cache</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Node\TileNode.cpp">
+      <Filter>Node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Render\Camera.cpp">
+      <Filter>Render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Render\Renderer.cpp">
+      <Filter>Render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Render\RenderTarget.cpp">
+      <Filter>Render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Render\VGRender.cpp">
+      <Filter>Render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Render\View.cpp">
+      <Filter>Render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\spine\SkeletonRenderer.cpp">
+      <Filter>3rdParty\spine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Input\Mouse.cpp">
+      <Filter>Input</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\nfd\nfd_win.cpp">
+      <Filter>3rdParty\nfd</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\3rdParty\yarnflow\yarn_compiler.cpp">
+      <Filter>3rdParty\yarnflow</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Cache\AudioCache.cpp">
+      <Filter>Cache</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Audio\Audio.cpp">
+      <Filter>Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Node\AudioSource.cpp">
+      <Filter>Node</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Cache\FontCache.cpp">
+      <Filter>Cache</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\Source\3rdParty\silly\Slice.h">
+      <Filter>3rdParty\silly</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Basic\Application.h">
+      <Filter>Basic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Basic\AutoreleasePool.h">
+      <Filter>Basic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Basic\Content.h">
+      <Filter>Basic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Basic\Director.h">
+      <Filter>Basic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Basic\Object.h">
+      <Filter>Basic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Common\Debug.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Common\MemoryPool.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Common\Own.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Common\Ref.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Common\WRef.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Const\Header.h">
+      <Filter>Const</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Event\Event.h">
+      <Filter>Event</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Event\EventQueue.h">
+      <Filter>Event</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Event\EventType.h">
+      <Filter>Event</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Event\Listener.h">
+      <Filter>Event</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Lua\LuaBinding.h">
+      <Filter>Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Lua\LuaEngine.h">
+      <Filter>Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Lua\LuaManual.h">
+      <Filter>Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Basic\Scheduler.h">
+      <Filter>Basic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Common\Async.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Common\Utils.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Lua\ToLua\tolua_event.h">
+      <Filter>Lua\ToLua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Lua\ToLua\tolua++.h">
+      <Filter>Lua\ToLua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Node\Node.h">
+      <Filter>Node</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Lua\LuaHandler.h">
+      <Filter>Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Support\Array.h">
+      <Filter>Support</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Support\Geometry.h">
+      <Filter>Support</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Node\Sprite.h">
+      <Filter>Node</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Cache\TextureCache.h">
+      <Filter>Cache</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\lodepng\lodepng.h">
+      <Filter>3rdParty\lodepng</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Cache\ShaderCache.h">
+      <Filter>Cache</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Support\Common.h">
+      <Filter>Support</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Effect\Effect.h">
+      <Filter>Effect</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Input\TouchDispather.h">
+      <Filter>Input</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Other\AcfDelegate.h">
+      <Filter>3rdParty\Other</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Other\utf8.h">
+      <Filter>3rdParty\Other</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\font\font_manager.h">
+      <Filter>3rdParty\font</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Other\atlas.h">
+      <Filter>3rdParty\Other</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Node\Label.h">
+      <Filter>Node</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Common\Singleton.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Node\Particle.h">
+      <Filter>Node</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Node\ClipNode.h">
+      <Filter>Node</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Node\DrawNode.h">
+      <Filter>Node</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Support\Value.h">
+      <Filter>Support</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Animation\Action.h">
+      <Filter>Animation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Animation\Animation.h">
+      <Filter>Animation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Animation\ModelDef.h">
+      <Filter>Animation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Cache\ClipCache.h">
+      <Filter>Cache</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Cache\FrameCache.h">
+      <Filter>Cache</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Cache\ModelCache.h">
+      <Filter>Cache</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Cache\XmlItemCache.h">
+      <Filter>Cache</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Other\rapidxml_sax3.hpp">
+      <Filter>3rdParty\Other</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Physics\Body.h">
+      <Filter>Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Physics\BodyDef.h">
+      <Filter>Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Physics\DebugDraw.h">
+      <Filter>Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Physics\Joint.h">
+      <Filter>Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Physics\JointDef.h">
+      <Filter>Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Physics\Sensor.h">
+      <Filter>Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Support\Dictionary.h">
+      <Filter>Support</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Cache\ParticleCache.h">
+      <Filter>Cache</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Node\Model.h">
+      <Filter>Node</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Lua\LuaFromXml.h">
+      <Filter>Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\tinyxml2\SAXParser.h">
+      <Filter>3rdParty\tinyxml2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\tinyxml2\tinyxml2.h">
+      <Filter>3rdParty\tinyxml2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Node\Menu.h">
+      <Filter>Node</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Input\Keyboard.h">
+      <Filter>Input</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Const\Config.h">
+      <Filter>Const</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Const\XmlTag.h">
+      <Filter>Const</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\GUI\ImGuiDora.h">
+      <Filter>GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Entity\Entity.h">
+      <Filter>Entity</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\stb\stb_rect_pack.h">
+      <Filter>3rdParty\stb</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\stb\stb_truetype.h">
+      <Filter>3rdParty\stb</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Shader\Builtin.h">
+      <Filter>Shader</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Platformer\AI.h">
+      <Filter>Platformer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Platformer\AINode.h">
+      <Filter>Platformer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Platformer\Bullet.h">
+      <Filter>Platformer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Platformer\BulletDef.h">
+      <Filter>Platformer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Platformer\Data.h">
+      <Filter>Platformer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Platformer\Define.h">
+      <Filter>Platformer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Platformer\Face.h">
+      <Filter>Platformer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Platformer\PlatformCamera.h">
+      <Filter>Platformer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Platformer\PlatformWorld.h">
+      <Filter>Platformer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Platformer\Unit.h">
+      <Filter>Platformer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Platformer\UnitAction.h">
+      <Filter>Platformer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Platformer\VisualCache.h">
+      <Filter>Platformer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Physics\PhysicsWorld.h">
+      <Filter>Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\nanovg\fontstash.h">
+      <Filter>3rdParty\nanovg</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\nanovg\fs_nanovg_fill.bin.h">
+      <Filter>3rdParty\nanovg</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\nanovg\nanovg.h">
+      <Filter>3rdParty\nanovg</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\nanovg\nanovg_bgfx.h">
+      <Filter>3rdParty\nanovg</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\nanovg\vs_nanovg_fill.bin.h">
+      <Filter>3rdParty\nanovg</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\imgui\imconfig.h">
+      <Filter>3rdParty\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\imgui\imgui.h">
+      <Filter>3rdParty\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\imgui\imgui_internal.h">
+      <Filter>3rdParty\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\imgui\imstb_textedit.h">
+      <Filter>3rdParty\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Node\VGNode.h">
+      <Filter>Node</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\fmt\chrono.h">
+      <Filter>3rdParty\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\fmt\color.h">
+      <Filter>3rdParty\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\fmt\compile.h">
+      <Filter>3rdParty\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\fmt\core.h">
+      <Filter>3rdParty\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\fmt\format.h">
+      <Filter>3rdParty\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\fmt\format-inl.h">
+      <Filter>3rdParty\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\fmt\locale.h">
+      <Filter>3rdParty\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\fmt\ostream.h">
+      <Filter>3rdParty\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\fmt\printf.h">
+      <Filter>3rdParty\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\fmt\ranges.h">
+      <Filter>3rdParty\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\fmt\os.h">
+      <Filter>3rdParty\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Cache\AtlasCache.h">
+      <Filter>Cache</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Cache\SkeletonCache.h">
+      <Filter>Cache</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Node\Spine.h">
+      <Filter>Node</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\ml\DecisionTree.h">
+      <Filter>3rdParty\ml</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Node\Playable.h">
+      <Filter>Node</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\ML\ML.h">
+      <Filter>ML</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yuescript\ast.hpp">
+      <Filter>3rdParty\yuescript</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yuescript\parser.hpp">
+      <Filter>3rdParty\yuescript</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yuescript\stacktraceplus.h">
+      <Filter>3rdParty\yuescript</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yuescript\yue_ast.h">
+      <Filter>3rdParty\yuescript</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yuescript\yue_compiler.h">
+      <Filter>3rdParty\yuescript</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yuescript\yue_parser.h">
+      <Filter>3rdParty\yuescript</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yuescript\yuescript.h">
+      <Filter>3rdParty\yuescript</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Cache\SVGCache.h">
+      <Filter>Cache</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\sqlite\SQLiteCpp\Assertion.h">
+      <Filter>3rdParty\sqlite</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\sqlite\SQLiteCpp\Backup.h">
+      <Filter>3rdParty\sqlite</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\sqlite\SQLiteCpp\Column.h">
+      <Filter>3rdParty\sqlite</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\sqlite\SQLiteCpp\Database.h">
+      <Filter>3rdParty\sqlite</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\sqlite\SQLiteCpp\Exception.h">
+      <Filter>3rdParty\sqlite</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\sqlite\SQLiteCpp\ExecuteMany.h">
+      <Filter>3rdParty\sqlite</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\sqlite\SQLiteCpp\Savepoint.h">
+      <Filter>3rdParty\sqlite</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\sqlite\SQLiteCpp\SQLiteCpp.h">
+      <Filter>3rdParty\sqlite</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\sqlite\SQLiteCpp\Statement.h">
+      <Filter>3rdParty\sqlite</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\sqlite\SQLiteCpp\Transaction.h">
+      <Filter>3rdParty\sqlite</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\sqlite\SQLiteCpp\Utils.h">
+      <Filter>3rdParty\sqlite</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\sqlite\SQLiteCpp\VariadicBind.h">
+      <Filter>3rdParty\sqlite</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Basic\Database.h">
+      <Filter>Basic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\implot\implot.h">
+      <Filter>3rdParty\implot</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\implot\implot_internal.h">
+      <Filter>3rdParty\implot</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\DragonBonesHeaders.h">
+      <Filter>3rdParty\dragonBones</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\animation\Animation.h">
+      <Filter>3rdParty\dragonBones\animation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\animation\AnimationState.h">
+      <Filter>3rdParty\dragonBones\animation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\animation\BaseTimelineState.h">
+      <Filter>3rdParty\dragonBones\animation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\animation\IAnimatable.h">
+      <Filter>3rdParty\dragonBones\animation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\animation\TimelineState.h">
+      <Filter>3rdParty\dragonBones\animation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\animation\WorldClock.h">
+      <Filter>3rdParty\dragonBones\animation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\armature\Armature.h">
+      <Filter>3rdParty\dragonBones\armature</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\armature\Bone.h">
+      <Filter>3rdParty\dragonBones\armature</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\armature\Constraint.h">
+      <Filter>3rdParty\dragonBones\armature</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\armature\DeformVertices.h">
+      <Filter>3rdParty\dragonBones\armature</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\armature\IArmatureProxy.h">
+      <Filter>3rdParty\dragonBones\armature</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\armature\Slot.h">
+      <Filter>3rdParty\dragonBones\armature</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\armature\TransformObject.h">
+      <Filter>3rdParty\dragonBones\armature</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\core\BaseObject.h">
+      <Filter>3rdParty\dragonBones\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\core\DragonBones.h">
+      <Filter>3rdParty\dragonBones\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\event\EventObject.h">
+      <Filter>3rdParty\dragonBones\event</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\event\IEventDispatcher.h">
+      <Filter>3rdParty\dragonBones\event</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\factory\BaseFactory.h">
+      <Filter>3rdParty\dragonBones\factory</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\geom\ColorTransform.h">
+      <Filter>3rdParty\dragonBones\geom</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\geom\Matrix.h">
+      <Filter>3rdParty\dragonBones\geom</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\geom\Point.h">
+      <Filter>3rdParty\dragonBones\geom</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\geom\Rectangle.h">
+      <Filter>3rdParty\dragonBones\geom</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\geom\Transform.h">
+      <Filter>3rdParty\dragonBones\geom</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\model\AnimationConfig.h">
+      <Filter>3rdParty\dragonBones\model</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\model\AnimationData.h">
+      <Filter>3rdParty\dragonBones\model</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\model\ArmatureData.h">
+      <Filter>3rdParty\dragonBones\model</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\model\BoundingBoxData.h">
+      <Filter>3rdParty\dragonBones\model</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\model\CanvasData.h">
+      <Filter>3rdParty\dragonBones\model</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\model\ConstraintData.h">
+      <Filter>3rdParty\dragonBones\model</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\model\DisplayData.h">
+      <Filter>3rdParty\dragonBones\model</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\model\DragonBonesData.h">
+      <Filter>3rdParty\dragonBones\model</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\model\SkinData.h">
+      <Filter>3rdParty\dragonBones\model</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\model\TextureAtlasData.h">
+      <Filter>3rdParty\dragonBones\model</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\model\UserData.h">
+      <Filter>3rdParty\dragonBones\model</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\parser\BinaryDataParser.h">
+      <Filter>3rdParty\dragonBones\parser</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\parser\DataParser.h">
+      <Filter>3rdParty\dragonBones\parser</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\dragonBones\parser\JSONDataParser.h">
+      <Filter>3rdParty\dragonBones\parser</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Cache\DragonBoneCache.h">
+      <Filter>Cache</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Node\DragonBone.h">
+      <Filter>Node</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\sqlite\sqlite3.h">
+      <Filter>3rdParty\sqlite</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud.h">
+      <Filter>3rdParty\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_audiosource.h">
+      <Filter>3rdParty\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_bassboostfilter.h">
+      <Filter>3rdParty\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_biquadresonantfilter.h">
+      <Filter>3rdParty\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_bus.h">
+      <Filter>3rdParty\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_c.h">
+      <Filter>3rdParty\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_dcremovalfilter.h">
+      <Filter>3rdParty\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_echofilter.h">
+      <Filter>3rdParty\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_eqfilter.h">
+      <Filter>3rdParty\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_error.h">
+      <Filter>3rdParty\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_fader.h">
+      <Filter>3rdParty\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_fft.h">
+      <Filter>3rdParty\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_fftfilter.h">
+      <Filter>3rdParty\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_file.h">
+      <Filter>3rdParty\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_file_hack_off.h">
+      <Filter>3rdParty\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_file_hack_on.h">
+      <Filter>3rdParty\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_filter.h">
+      <Filter>3rdParty\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_flangerfilter.h">
+      <Filter>3rdParty\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_freeverbfilter.h">
+      <Filter>3rdParty\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_internal.h">
+      <Filter>3rdParty\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_lofifilter.h">
+      <Filter>3rdParty\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_misc.h">
+      <Filter>3rdParty\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_queue.h">
+      <Filter>3rdParty\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_robotizefilter.h">
+      <Filter>3rdParty\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_thread.h">
+      <Filter>3rdParty\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_wav.h">
+      <Filter>3rdParty\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_waveshaperfilter.h">
+      <Filter>3rdParty\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\soloud_wavstream.h">
+      <Filter>3rdParty\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\zx7decompress.h">
+      <Filter>3rdParty\soloud</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\audiosource\wav\dr_flac.h">
+      <Filter>3rdParty\soloud\audiosource\wav</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\audiosource\wav\dr_mp3.h">
+      <Filter>3rdParty\soloud\audiosource\wav</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\audiosource\wav\dr_wav.h">
+      <Filter>3rdParty\soloud\audiosource\wav</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\soloud\audiosource\wav\stb_vorbis.h">
+      <Filter>3rdParty\soloud\audiosource\wav</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Lua\lapi.h">
+      <Filter>3rdParty\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Lua\lauxlib.h">
+      <Filter>3rdParty\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Lua\lcode.h">
+      <Filter>3rdParty\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Lua\lctype.h">
+      <Filter>3rdParty\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Lua\ldebug.h">
+      <Filter>3rdParty\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Lua\ldo.h">
+      <Filter>3rdParty\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Lua\lfunc.h">
+      <Filter>3rdParty\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Lua\lgc.h">
+      <Filter>3rdParty\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Lua\ljumptab.h">
+      <Filter>3rdParty\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Lua\llex.h">
+      <Filter>3rdParty\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Lua\llimits.h">
+      <Filter>3rdParty\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Lua\lmem.h">
+      <Filter>3rdParty\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Lua\lobject.h">
+      <Filter>3rdParty\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Lua\lopcodes.h">
+      <Filter>3rdParty\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Lua\lopnames.h">
+      <Filter>3rdParty\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Lua\lparser.h">
+      <Filter>3rdParty\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Lua\lprefix.h">
+      <Filter>3rdParty\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Lua\lstate.h">
+      <Filter>3rdParty\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Lua\lstring.h">
+      <Filter>3rdParty\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Lua\ltable.h">
+      <Filter>3rdParty\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Lua\ltm.h">
+      <Filter>3rdParty\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Lua\lua.h">
+      <Filter>3rdParty\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Lua\lua.hpp">
+      <Filter>3rdParty\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Lua\luaconf.h">
+      <Filter>3rdParty\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Lua\lualib.h">
+      <Filter>3rdParty\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Lua\lundump.h">
+      <Filter>3rdParty\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Lua\lvm.h">
+      <Filter>3rdParty\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Lua\lzio.h">
+      <Filter>3rdParty\Lua</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Zip\miniz.h">
+      <Filter>3rdParty\Zip</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Zip\ZipUtils.h">
+      <Filter>3rdParty\Zip</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Node\Grid.h">
+      <Filter>Node</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\wasm3\m3_api_libc.h">
+      <Filter>3rdParty\wasm3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\wasm3\m3_api_tracer.h">
+      <Filter>3rdParty\wasm3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\wasm3\m3_api_wasi.h">
+      <Filter>3rdParty\wasm3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\wasm3\m3_bind.h">
+      <Filter>3rdParty\wasm3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\wasm3\m3_code.h">
+      <Filter>3rdParty\wasm3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\wasm3\m3_compile.h">
+      <Filter>3rdParty\wasm3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\wasm3\m3_config.h">
+      <Filter>3rdParty\wasm3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\wasm3\m3_config_platforms.h">
+      <Filter>3rdParty\wasm3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\wasm3\m3_core.h">
+      <Filter>3rdParty\wasm3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\wasm3\m3_env.h">
+      <Filter>3rdParty\wasm3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\wasm3\m3_exception.h">
+      <Filter>3rdParty\wasm3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\wasm3\m3_exec.h">
+      <Filter>3rdParty\wasm3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\wasm3\m3_exec_defs.h">
+      <Filter>3rdParty\wasm3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\wasm3\m3_function.h">
+      <Filter>3rdParty\wasm3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\wasm3\m3_info.h">
+      <Filter>3rdParty\wasm3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\wasm3\m3_math_utils.h">
+      <Filter>3rdParty\wasm3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\wasm3\wasm3.h">
+      <Filter>3rdParty\wasm3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\wasm3\wasm3_cpp.h">
+      <Filter>3rdParty\wasm3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\wasm3\wasm3_defs.h">
+      <Filter>3rdParty\wasm3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\wasm3\extra\wasi_core.h">
+      <Filter>3rdParty\wasm3\extra</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Wasm\WasmRuntime.h">
+      <Filter>Wasm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Cache\Cache.h">
+      <Filter>Cache</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Test\Test.h">
+      <Filter>Test</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\GUI\ImGuiBinding.h">
+      <Filter>GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Http\HttpServer.h">
+      <Filter>Http</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Lua\Xml\XmlResolver.h">
+      <Filter>Lua\Xml</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\part\Compositor.hpp">
+      <Filter>3rdParty\playrho\d2\part</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\ArrayList.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\BlockAllocator.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\BodyID.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\BodyType.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\ConstraintSolverConf.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\Contact.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\Contactable.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\ContactFeature.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\ContactID.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\ContactKey.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\Defines.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\Doxygen.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\DynamicMemory.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\Filter.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\Finite.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\FlagGuard.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\GrowableStack.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\Interval.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\Intervals.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\InvalidArgument.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\Island.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\IslandStats.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\JointID.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\KeyedContactID.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\LengthError.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\LimitState.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\Math.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\Matrix.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\MovementConf.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\Negative.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\NonNegative.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\NonPositive.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\NonZero.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\ObjectPool.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\PointState.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\Positive.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\propagate_const.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\RayCastOpcode.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\Real.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\RealConstants.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\Settings.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\ShapeID.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\Span.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\StackAllocator.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\StepConf.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\StepStats.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\Templates.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\to_underlying.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\ToiConf.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\ToiOutput.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\TypeInfo.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\UnitInterval.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\Units.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\Vector.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\Vector2.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\Vector3.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\Version.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\WiderType.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\WrongState.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\ZeroToUnderOne.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\AABB.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\AabbTreeWorld.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\Acceleration.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\BasicAPI.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\Body.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\BodyConf.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\BodyConstraint.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\ChainShapeConf.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\CodeDumper.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\ContactImpulsesList.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\ContactSolver.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\ConvexHull.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\DiskShapeConf.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\Distance.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\DistanceConf.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\DistanceJointConf.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\DistanceProxy.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\DynamicTree.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\DynamicTreeData.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\EdgeShapeConf.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\FrictionJointConf.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\GearJointConf.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\IndexPair.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\Joint.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\JointConf.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\Manifold.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\MassData.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\Math.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\MotorJointConf.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\MultiShapeConf.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\NgonWithFwdNormals.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\PointStates.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\PolygonShapeConf.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\Position.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\PositionConstraint.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\PositionSolution.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\PositionSolverManifold.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\PrismaticJointConf.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\PulleyJointConf.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\RayCastInput.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\RayCastOutput.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\RevoluteJointConf.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\RopeJointConf.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\SeparationScenario.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\Shape.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\ShapeConf.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\ShapeSeparation.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\Simplex.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\SimplexEdge.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\Sweep.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\TargetJointConf.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\TimeOfImpact.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\Transformation.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\UnitVec.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\Velocity.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\VelocityConstraint.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\VertexSet.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\WeldJointConf.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\WheelJointConf.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\World.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\WorldBody.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\WorldConf.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\WorldContact.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\WorldJoint.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\WorldManifold.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\WorldMisc.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\WorldShape.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\detail\AABB.hpp">
+      <Filter>3rdParty\playrho\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\detail\Checked.hpp">
+      <Filter>3rdParty\playrho\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\detail\CheckedMath.hpp">
+      <Filter>3rdParty\playrho\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\detail\FiniteChecker.hpp">
+      <Filter>3rdParty\playrho\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\detail\IndexingNamedType.hpp">
+      <Filter>3rdParty\playrho\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\detail\NegativeChecker.hpp">
+      <Filter>3rdParty\playrho\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\detail\NonNegativeChecker.hpp">
+      <Filter>3rdParty\playrho\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\detail\NonPositiveChecker.hpp">
+      <Filter>3rdParty\playrho\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\detail\NonZeroChecker.hpp">
+      <Filter>3rdParty\playrho\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\detail\PositiveChecker.hpp">
+      <Filter>3rdParty\playrho\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\detail\RayCastInput.hpp">
+      <Filter>3rdParty\playrho\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\detail\Templates.hpp">
+      <Filter>3rdParty\playrho\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\detail\TypeInfo.hpp">
+      <Filter>3rdParty\playrho\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\detail\underlying_type.hpp">
+      <Filter>3rdParty\playrho\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\detail\UnitIntervalChecker.hpp">
+      <Filter>3rdParty\playrho\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\detail\Wider.hpp">
+      <Filter>3rdParty\playrho\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\detail\ZeroToUnderOneChecker.hpp">
+      <Filter>3rdParty\playrho\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\pmr\MemoryResource.hpp">
+      <Filter>3rdParty\playrho\pmr</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\pmr\PoolMemoryResource.hpp">
+      <Filter>3rdParty\playrho\pmr</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\pmr\StatsResource.hpp">
+      <Filter>3rdParty\playrho\pmr</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\pmr\ThreadLocalAllocator.hpp">
+      <Filter>3rdParty\playrho\pmr</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Input\Controller.h">
+      <Filter>Input</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Lua\Xml\DoraTag.h">
+      <Filter>Lua\Xml</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Lua\Xml\DoraTagText.hpp">
+      <Filter>Lua\Xml</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\ContactImpulsesFunction.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\d2\ContactManifoldFunction.hpp">
+      <Filter>3rdParty\playrho\d2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\BodyShapeFunction.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\ContactFunction.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\JointFunction.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\OutOfRange.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\playrho\ShapeFunction.hpp">
+      <Filter>3rdParty\playrho</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\YGConfig.h">
+      <Filter>3rdParty\yoga</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\YGEnums.h">
+      <Filter>3rdParty\yoga</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\YGMacros.h">
+      <Filter>3rdParty\yoga</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\YGNode.h">
+      <Filter>3rdParty\yoga</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\YGNodeLayout.h">
+      <Filter>3rdParty\yoga</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\YGNodeStyle.h">
+      <Filter>3rdParty\yoga</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\YGPixelGrid.h">
+      <Filter>3rdParty\yoga</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\YGValue.h">
+      <Filter>3rdParty\yoga</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\Yoga.h">
+      <Filter>3rdParty\yoga</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\algorithm\AbsoluteLayout.h">
+      <Filter>3rdParty\yoga\algorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\algorithm\Align.h">
+      <Filter>3rdParty\yoga\algorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\algorithm\Baseline.h">
+      <Filter>3rdParty\yoga\algorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\algorithm\BoundAxis.h">
+      <Filter>3rdParty\yoga\algorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\algorithm\Cache.h">
+      <Filter>3rdParty\yoga\algorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\algorithm\CalculateLayout.h">
+      <Filter>3rdParty\yoga\algorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\algorithm\FlexDirection.h">
+      <Filter>3rdParty\yoga\algorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\algorithm\FlexLine.h">
+      <Filter>3rdParty\yoga\algorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\algorithm\PixelGrid.h">
+      <Filter>3rdParty\yoga\algorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\algorithm\SizingMode.h">
+      <Filter>3rdParty\yoga\algorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\algorithm\TrailingPosition.h">
+      <Filter>3rdParty\yoga\algorithm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\config\Config.h">
+      <Filter>3rdParty\yoga\config</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\debug\AssertFatal.h">
+      <Filter>3rdParty\yoga\debug</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\debug\Log.h">
+      <Filter>3rdParty\yoga\debug</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\enums\Align.h">
+      <Filter>3rdParty\yoga\enums</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\enums\Dimension.h">
+      <Filter>3rdParty\yoga\enums</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\enums\Direction.h">
+      <Filter>3rdParty\yoga\enums</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\enums\Display.h">
+      <Filter>3rdParty\yoga\enums</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\enums\Edge.h">
+      <Filter>3rdParty\yoga\enums</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\enums\Errata.h">
+      <Filter>3rdParty\yoga\enums</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\enums\ExperimentalFeature.h">
+      <Filter>3rdParty\yoga\enums</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\enums\FlexDirection.h">
+      <Filter>3rdParty\yoga\enums</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\enums\Gutter.h">
+      <Filter>3rdParty\yoga\enums</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\enums\Justify.h">
+      <Filter>3rdParty\yoga\enums</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\enums\LogLevel.h">
+      <Filter>3rdParty\yoga\enums</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\enums\MeasureMode.h">
+      <Filter>3rdParty\yoga\enums</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\enums\NodeType.h">
+      <Filter>3rdParty\yoga\enums</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\enums\Overflow.h">
+      <Filter>3rdParty\yoga\enums</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\enums\PhysicalEdge.h">
+      <Filter>3rdParty\yoga\enums</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\enums\PositionType.h">
+      <Filter>3rdParty\yoga\enums</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\enums\Unit.h">
+      <Filter>3rdParty\yoga\enums</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\enums\Wrap.h">
+      <Filter>3rdParty\yoga\enums</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\enums\YogaEnums.h">
+      <Filter>3rdParty\yoga\enums</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\event\event.h">
+      <Filter>3rdParty\yoga\event</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\style\SmallValueBuffer.h">
+      <Filter>3rdParty\yoga\style</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\style\Style.h">
+      <Filter>3rdParty\yoga\style</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\style\StyleLength.h">
+      <Filter>3rdParty\yoga\style</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\style\StyleValueHandle.h">
+      <Filter>3rdParty\yoga\style</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\style\StyleValuePool.h">
+      <Filter>3rdParty\yoga\style</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\numeric\Comparison.h">
+      <Filter>3rdParty\yoga\numeric</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\numeric\FloatOptional.h">
+      <Filter>3rdParty\yoga\numeric</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\node\CachedMeasurement.h">
+      <Filter>3rdParty\yoga\node</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\node\LayoutResults.h">
+      <Filter>3rdParty\yoga\node</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\node\Node.h">
+      <Filter>3rdParty\yoga\node</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Node\AlignNode.h">
+      <Filter>Node</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\bgfxrenderer.h">
+      <Filter>3rdParty\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer.h">
+      <Filter>3rdParty\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer.Modules.h">
+      <Filter>3rdParty\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer.SIMD.h">
+      <Filter>3rdParty\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Base.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Base.Pre.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Color.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Curve.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.CurveLoader.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.DefaultEffectLoader.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.DefaultFile.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Effect.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.EffectImplemented.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.EffectLoader.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.EffectNode.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.EffectNodeModel.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.EffectNodeRibbon.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.EffectNodeRing.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.EffectNodeRoot.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.EffectNodeSprite.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.EffectNodeTrack.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.FCurves.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.File.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Instance.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.InstanceChunk.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.InstanceContainer.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.InstanceGlobal.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.InstanceGroup.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.InternalScript.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.InternalStruct.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.IntrusiveList.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Manager.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.ManagerImplemented.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.MaterialLoader.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Math.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Matrix43.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Matrix44.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Random.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.RectF.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Resource.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.ResourceManager.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Setting.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.SoundLoader.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.TextureLoader.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Vector2D.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.Vector3D.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Effekseer.WorkerThread.h">
+      <Filter>3rdParty\Effekseer\Effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Backend\GraphicsDevice.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Backend</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\ForceField\ForceFields.h">
+      <Filter>3rdParty\Effekseer\Effekseer\ForceField</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Geometry\GeometryUtility.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\IO\Effekseer.EfkEfcFactory.h">
+      <Filter>3rdParty\Effekseer\Effekseer\IO</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Material\Effekseer.CompiledMaterial.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Material</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Material\Effekseer.MaterialCompiler.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Material</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Material\Effekseer.MaterialFile.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Material</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Model\Model.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Model\ModelLoader.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Model\PointCacheGenerator.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Model\ProceduralModelGenerator.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Model\ProceduralModelParameter.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Model\SplineGenerator.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Network\Effekseer.Client.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Network\Effekseer.ClientImplemented.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Network\Effekseer.Server.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Network\Effekseer.ServerImplemented.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Network\Effekseer.Session.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Network\Effekseer.Socket.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Network\data\profiler_generated.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Network\data</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Network\data\reload_generated.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Network\data</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Noise\CurlNoise.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Noise</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Noise\PerlinNoise.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Noise</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\AllTypeColor.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Parameter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\AlphaCutoff.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Parameter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\BasicSettings.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Parameter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\Collisions.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Parameter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\CustomData.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Parameter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\DepthParameter.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Parameter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\DynamicParameter.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Parameter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\Easing.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Parameter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\Effekseer.Parameters.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Parameter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\GpuParticlesParameter.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Parameter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\KillRules.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Parameter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\LOD.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Parameter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\Rotation.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Parameter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\Scaling.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Parameter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\Sound.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Parameter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\SpawnMethod.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Parameter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\Translation.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Parameter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Parameter\UV.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Parameter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Renderer\Effekseer.GpuParticles.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Renderer\Effekseer.GpuTimer.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Renderer\Effekseer.ModelRenderer.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Renderer\Effekseer.ParticleRenderer.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Renderer\Effekseer.RibbonRenderer.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Renderer\Effekseer.RingRenderer.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Renderer\Effekseer.SpriteRenderer.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Renderer\Effekseer.TrackRenderer.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Base.h">
+      <Filter>3rdParty\Effekseer\Effekseer\SIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Bridge.h">
+      <Filter>3rdParty\Effekseer\Effekseer\SIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Bridge_Gen.h">
+      <Filter>3rdParty\Effekseer\Effekseer\SIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Bridge_NEON.h">
+      <Filter>3rdParty\Effekseer\Effekseer\SIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Bridge_SSE.h">
+      <Filter>3rdParty\Effekseer\Effekseer\SIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Float4.h">
+      <Filter>3rdParty\Effekseer\Effekseer\SIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Float4_Gen.h">
+      <Filter>3rdParty\Effekseer\Effekseer\SIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Float4_NEON.h">
+      <Filter>3rdParty\Effekseer\Effekseer\SIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Float4_SSE.h">
+      <Filter>3rdParty\Effekseer\Effekseer\SIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Int4.h">
+      <Filter>3rdParty\Effekseer\Effekseer\SIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Int4_Gen.h">
+      <Filter>3rdParty\Effekseer\Effekseer\SIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Int4_NEON.h">
+      <Filter>3rdParty\Effekseer\Effekseer\SIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Int4_SSE.h">
+      <Filter>3rdParty\Effekseer\Effekseer\SIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Mat43f.h">
+      <Filter>3rdParty\Effekseer\Effekseer\SIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Mat44f.h">
+      <Filter>3rdParty\Effekseer\Effekseer\SIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Quaternionf.h">
+      <Filter>3rdParty\Effekseer\Effekseer\SIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Utils.h">
+      <Filter>3rdParty\Effekseer\Effekseer\SIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Vec2f.h">
+      <Filter>3rdParty\Effekseer\Effekseer\SIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Vec3f.h">
+      <Filter>3rdParty\Effekseer\Effekseer\SIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\SIMD\Vec4f.h">
+      <Filter>3rdParty\Effekseer\Effekseer\SIMD</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Sound\Effekseer.SoundPlayer.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Sound</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Utils\BinaryVersion.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Utils\Compatiblity.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Utils\Effekseer.BinaryReader.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Utils\Effekseer.CustomAllocator.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Utils\InstancePool.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Utils\Profiler.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\Utils\String.h">
+      <Filter>3rdParty\Effekseer\Effekseer\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\VectorField\VectorField.h">
+      <Filter>3rdParty\Effekseer\Effekseer\VectorField</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\Effekseer\VectorField\VectorFieldLoader.h">
+      <Filter>3rdParty\Effekseer\Effekseer\VectorField</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.CommonUtils.h">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.DDSTextureLoader.h">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.GpuParticles.h">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.ModelRendererBase.h">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.PngTextureLoader.h">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.Renderer.h">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.Renderer_Impl.h">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.RenderStateBase.h">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.RibbonRendererBase.h">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.RingRendererBase.h">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.ShaderBase.h">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.SpriteRendererBase.h">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.StandardRenderer.h">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.TGATextureLoader.h">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRenderer.TrackRendererBase.h">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\EffekseerRendererFlags.h">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\GraphicsDeviceCPU.h">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\ModelLoader.h">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\TextureLoader.h">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\TrailRenderer.h">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\VertexBuffer.h">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\EffekseerRendererCommon\Shader\gpu_particles_data.h">
+      <Filter>3rdParty\Effekseer\EffekseerRendererCommon\Shader</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Effekseer\3rdParty\stb_effekseer\stb_image_effekseer.h">
+      <Filter>3rdParty\Effekseer\3rdParty\stb_effekseer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Node\EffekNode.h">
+      <Filter>Node</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\Animation.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\AnimationState.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\AnimationStateData.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\Atlas.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\AtlasAttachmentLoader.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\Attachment.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\AttachmentLoader.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\AttachmentTimeline.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\AttachmentType.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\BlendMode.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\Bone.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\BoneData.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\BoundingBoxAttachment.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\ClippingAttachment.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\Color.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\ColorTimeline.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\ConstraintData.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\ContainerUtil.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\CurveTimeline.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\Debug.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\DeformTimeline.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\dll.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\DrawOrderTimeline.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\Event.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\EventData.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\EventTimeline.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\Extension.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\HashMap.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\HasRendererObject.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\IkConstraint.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\IkConstraintData.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\IkConstraintTimeline.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\Inherit.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\InheritTimeline.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\Json.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\LinkedMesh.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\Log.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\MathUtil.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\MeshAttachment.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\MixBlend.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\MixDirection.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\PathAttachment.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\PathConstraint.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\PathConstraintData.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\PathConstraintMixTimeline.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\PathConstraintPositionTimeline.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\PathConstraintSpacingTimeline.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\Physics.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\PhysicsConstraint.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\PhysicsConstraintData.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\PhysicsConstraintTimeline.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\PointAttachment.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\Pool.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\PositionMode.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\Property.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\RegionAttachment.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\RotateMode.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\RotateTimeline.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\RTTI.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\ScaleTimeline.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\Sequence.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\SequenceTimeline.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\ShearTimeline.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\Skeleton.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\SkeletonBinary.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\SkeletonBounds.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\SkeletonClipping.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\SkeletonData.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\SkeletonJson.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\Skin.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\Slot.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\SlotData.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\SpacingMode.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\spine.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\SpineObject.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\SpineString.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\TextureLoader.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\TextureRegion.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\Timeline.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\TransformConstraint.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\TransformConstraintData.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\TransformConstraintTimeline.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\TranslateTimeline.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\Triangulator.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\Updatable.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\Vector.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\Version.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\VertexAttachment.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\Vertices.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\fmt\args.h">
+      <Filter>3rdParty\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\fmt\base.h">
+      <Filter>3rdParty\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\fmt\std.h">
+      <Filter>3rdParty\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\fmt\xchar.h">
+      <Filter>3rdParty\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Zip\zlib\crc32.h">
+      <Filter>3rdParty\Zip\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Zip\zlib\deflate.h">
+      <Filter>3rdParty\Zip\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Zip\zlib\gzguts.h">
+      <Filter>3rdParty\Zip\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Zip\zlib\inffast.h">
+      <Filter>3rdParty\Zip\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Zip\zlib\inffixed.h">
+      <Filter>3rdParty\Zip\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Zip\zlib\inflate.h">
+      <Filter>3rdParty\Zip\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Zip\zlib\inftrees.h">
+      <Filter>3rdParty\Zip\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Zip\zlib\trees.h">
+      <Filter>3rdParty\Zip\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Zip\zlib\zconf.h">
+      <Filter>3rdParty\Zip\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Zip\zlib\zlib.h">
+      <Filter>3rdParty\Zip\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Zip\zlib\zutil.h">
+      <Filter>3rdParty\Zip\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\tmxlite\Config.hpp">
+      <Filter>3rdParty\tmxlite</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\tmxlite\FreeFuncs.hpp">
+      <Filter>3rdParty\tmxlite</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\tmxlite\ImageLayer.hpp">
+      <Filter>3rdParty\tmxlite</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\tmxlite\Layer.hpp">
+      <Filter>3rdParty\tmxlite</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\tmxlite\LayerGroup.hpp">
+      <Filter>3rdParty\tmxlite</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\tmxlite\Map.hpp">
+      <Filter>3rdParty\tmxlite</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\tmxlite\Object.hpp">
+      <Filter>3rdParty\tmxlite</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\tmxlite\ObjectGroup.hpp">
+      <Filter>3rdParty\tmxlite</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\tmxlite\ObjectTypes.hpp">
+      <Filter>3rdParty\tmxlite</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\tmxlite\Property.hpp">
+      <Filter>3rdParty\tmxlite</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\tmxlite\TileLayer.hpp">
+      <Filter>3rdParty\tmxlite</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\tmxlite\Tileset.hpp">
+      <Filter>3rdParty\tmxlite</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\tmxlite\Types.hpp">
+      <Filter>3rdParty\tmxlite</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\tmxlite\detail\Android.hpp">
+      <Filter>3rdParty\tmxlite\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\tmxlite\detail\Log.hpp">
+      <Filter>3rdParty\tmxlite\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\tmxlite\detail\pugiconfig.hpp">
+      <Filter>3rdParty\tmxlite\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\tmxlite\detail\pugixml.hpp">
+      <Filter>3rdParty\tmxlite\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Cache\TMXCache.h">
+      <Filter>Cache</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Node\TileNode.h">
+      <Filter>Node</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Render\Camera.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Render\Renderer.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Render\RenderTarget.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Render\VGRender.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Render\View.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\BlockAllocator.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\spine\SkeletonRenderer.h">
+      <Filter>3rdParty\spine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Input\Mouse.h">
+      <Filter>Input</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\enums\BoxSizing.h">
+      <Filter>3rdParty\yoga\enums</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\node\LayoutableChildren.h">
+      <Filter>3rdParty\yoga\node</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yoga\style\StyleSizeLength.h">
+      <Filter>3rdParty\yoga\style</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\Other\sdf_gen2d.h">
+      <Filter>3rdParty\Other</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\nfd\nfd.h">
+      <Filter>3rdParty\nfd</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\nfd\nfd.hpp">
+      <Filter>3rdParty\nfd</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\3rdParty\yarnflow\yarn_compiler.h">
+      <Filter>3rdParty\yarnflow</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Cache\AudioCache.h">
+      <Filter>Cache</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Audio\Audio.h">
+      <Filter>Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Node\AudioSource.h">
+      <Filter>Node</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Cache\FontCache.h">
+      <Filter>Cache</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Resources</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\..\..\Source\3rdParty\playrho\LICENSE.txt">
+      <Filter>3rdParty\playrho</Filter>
+    </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Resource.rc">
+      <Filter>Resources</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>

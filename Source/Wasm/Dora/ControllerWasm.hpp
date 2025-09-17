@@ -8,16 +8,16 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-int32_t controller__is_button_down(int32_t controller_id, int64_t name) {
+DORA_EXPORT int32_t controller__is_button_down(int32_t controller_id, int64_t name) {
 	return SharedController.isButtonDown(s_cast<int>(controller_id), *Str_From(name)) ? 1 : 0;
 }
-int32_t controller__is_button_up(int32_t controller_id, int64_t name) {
+DORA_EXPORT int32_t controller__is_button_up(int32_t controller_id, int64_t name) {
 	return SharedController.isButtonUp(s_cast<int>(controller_id), *Str_From(name)) ? 1 : 0;
 }
-int32_t controller__is_button_pressed(int32_t controller_id, int64_t name) {
+DORA_EXPORT int32_t controller__is_button_pressed(int32_t controller_id, int64_t name) {
 	return SharedController.isButtonPressed(s_cast<int>(controller_id), *Str_From(name)) ? 1 : 0;
 }
-float controller__get_axis(int32_t controller_id, int64_t name) {
+DORA_EXPORT float controller__get_axis(int32_t controller_id, int64_t name) {
 	return SharedController.getAxis(s_cast<int>(controller_id), *Str_From(name));
 }
 } // extern "C"

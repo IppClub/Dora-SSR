@@ -8,22 +8,22 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-int32_t platformer_visual_type() {
+DORA_EXPORT int32_t platformer_visual_type() {
 	return DoraType<Platformer::Visual>();
 }
-int32_t platformer_visual_is_playing(int64_t self) {
+DORA_EXPORT int32_t platformer_visual_is_playing(int64_t self) {
 	return r_cast<Platformer::Visual*>(self)->isPlaying() ? 1 : 0;
 }
-void platformer_visual_start(int64_t self) {
+DORA_EXPORT void platformer_visual_start(int64_t self) {
 	r_cast<Platformer::Visual*>(self)->start();
 }
-void platformer_visual_stop(int64_t self) {
+DORA_EXPORT void platformer_visual_stop(int64_t self) {
 	r_cast<Platformer::Visual*>(self)->stop();
 }
-int64_t platformer_visual_auto_remove(int64_t self) {
+DORA_EXPORT int64_t platformer_visual_auto_remove(int64_t self) {
 	return Object_From(r_cast<Platformer::Visual*>(self)->autoRemove());
 }
-int64_t platformer_visual_new(int64_t name) {
+DORA_EXPORT int64_t platformer_visual_new(int64_t name) {
 	return Object_From(Platformer::Visual::create(*Str_From(name)));
 }
 } // extern "C"

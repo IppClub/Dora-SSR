@@ -8,649 +8,649 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-void imgui_set_default_font(int64_t ttf_font_file, float font_size) {
+DORA_EXPORT void imgui_set_default_font(int64_t ttf_font_file, float font_size) {
 	ImGui::Binding::SetDefaultFont(*Str_From(ttf_font_file), font_size);
 }
-void imgui_show_stats() {
+DORA_EXPORT void imgui_show_stats() {
 	ImGui::Binding::ShowStats();
 }
-void imgui_show_console() {
+DORA_EXPORT void imgui_show_console() {
 	ImGui::Binding::ShowConsole();
 }
-int32_t imgui__begin_opts(int64_t name, int32_t windows_flags) {
+DORA_EXPORT int32_t imgui__begin_opts(int64_t name, int32_t windows_flags) {
 	return ImGui::Binding::Begin(*Str_From(name), s_cast<uint32_t>(windows_flags)) ? 1 : 0;
 }
-void imgui__end() {
+DORA_EXPORT void imgui__end() {
 	ImGui::End();
 }
-int32_t imgui__begin_child_opts(int64_t str_id, int64_t size, int32_t child_flags, int32_t window_flags) {
+DORA_EXPORT int32_t imgui__begin_child_opts(int64_t str_id, int64_t size, int32_t child_flags, int32_t window_flags) {
 	return ImGui::Binding::BeginChild(*Str_From(str_id), Vec2_From(size), s_cast<uint32_t>(child_flags), s_cast<uint32_t>(window_flags)) ? 1 : 0;
 }
-int32_t imgui__begin_child_with_id_opts(int32_t id, int64_t size, int32_t child_flags, int32_t window_flags) {
+DORA_EXPORT int32_t imgui__begin_child_with_id_opts(int32_t id, int64_t size, int32_t child_flags, int32_t window_flags) {
 	return ImGui::Binding::BeginChild(s_cast<uint32_t>(id), Vec2_From(size), s_cast<uint32_t>(child_flags), s_cast<uint32_t>(window_flags)) ? 1 : 0;
 }
-void imgui__end_child() {
+DORA_EXPORT void imgui__end_child() {
 	ImGui::EndChild();
 }
-void imgui__set_next_window_pos_center_opts(int32_t set_cond) {
+DORA_EXPORT void imgui__set_next_window_pos_center_opts(int32_t set_cond) {
 	ImGui::Binding::SetNextWindowPosCenter(s_cast<uint32_t>(set_cond));
 }
-void imgui__set_next_window_size_opts(int64_t size, int32_t set_cond) {
+DORA_EXPORT void imgui__set_next_window_size_opts(int64_t size, int32_t set_cond) {
 	ImGui::SetNextWindowSize(Vec2_From(size), s_cast<uint32_t>(set_cond));
 }
-void imgui__set_next_window_collapsed_opts(int32_t collapsed, int32_t set_cond) {
+DORA_EXPORT void imgui__set_next_window_collapsed_opts(int32_t collapsed, int32_t set_cond) {
 	ImGui::SetNextWindowCollapsed(collapsed != 0, s_cast<uint32_t>(set_cond));
 }
-void imgui__set_window_pos_opts(int64_t name, int64_t pos, int32_t set_cond) {
+DORA_EXPORT void imgui__set_window_pos_opts(int64_t name, int64_t pos, int32_t set_cond) {
 	ImGui::Binding::SetWindowPos(*Str_From(name), Vec2_From(pos), s_cast<uint32_t>(set_cond));
 }
-void imgui__set_window_size_opts(int64_t name, int64_t size, int32_t set_cond) {
+DORA_EXPORT void imgui__set_window_size_opts(int64_t name, int64_t size, int32_t set_cond) {
 	ImGui::Binding::SetWindowSize(*Str_From(name), Vec2_From(size), s_cast<uint32_t>(set_cond));
 }
-void imgui__set_window_collapsed_opts(int64_t name, int32_t collapsed, int32_t set_cond) {
+DORA_EXPORT void imgui__set_window_collapsed_opts(int64_t name, int32_t collapsed, int32_t set_cond) {
 	ImGui::Binding::SetWindowCollapsed(*Str_From(name), collapsed != 0, s_cast<uint32_t>(set_cond));
 }
-void imgui__set_color_edit_options(int32_t color_edit_flags) {
+DORA_EXPORT void imgui__set_color_edit_options(int32_t color_edit_flags) {
 	ImGui::SetColorEditOptions(s_cast<uint32_t>(color_edit_flags));
 }
-int32_t imgui__input_text_opts(int64_t label, int64_t buffer, int32_t input_text_flags) {
+DORA_EXPORT int32_t imgui__input_text_opts(int64_t label, int64_t buffer, int32_t input_text_flags) {
 	return ImGui::Binding::InputText(*Str_From(label), r_cast<Buffer*>(buffer), s_cast<uint32_t>(input_text_flags)) ? 1 : 0;
 }
-int32_t imgui__input_text_multiline_opts(int64_t label, int64_t buffer, int64_t size, int32_t input_text_flags) {
+DORA_EXPORT int32_t imgui__input_text_multiline_opts(int64_t label, int64_t buffer, int64_t size, int32_t input_text_flags) {
 	return ImGui::Binding::InputTextMultiline(*Str_From(label), r_cast<Buffer*>(buffer), Vec2_From(size), s_cast<uint32_t>(input_text_flags)) ? 1 : 0;
 }
-int32_t imgui__tree_node_ex_opts(int64_t label, int32_t tree_node_flags) {
+DORA_EXPORT int32_t imgui__tree_node_ex_opts(int64_t label, int32_t tree_node_flags) {
 	return ImGui::Binding::TreeNodeEx(*Str_From(label), s_cast<uint32_t>(tree_node_flags)) ? 1 : 0;
 }
-int32_t imgui__tree_node_ex_with_id_opts(int64_t str_id, int64_t text, int32_t tree_node_flags) {
+DORA_EXPORT int32_t imgui__tree_node_ex_with_id_opts(int64_t str_id, int64_t text, int32_t tree_node_flags) {
 	return ImGui::Binding::TreeNodeEx(*Str_From(str_id), *Str_From(text), s_cast<uint32_t>(tree_node_flags)) ? 1 : 0;
 }
-void imgui__set_next_item_open_opts(int32_t is_open, int32_t set_cond) {
+DORA_EXPORT void imgui__set_next_item_open_opts(int32_t is_open, int32_t set_cond) {
 	ImGui::SetNextItemOpen(is_open != 0, s_cast<uint32_t>(set_cond));
 }
-int32_t imgui__collapsing_header_opts(int64_t label, int32_t tree_node_flags) {
+DORA_EXPORT int32_t imgui__collapsing_header_opts(int64_t label, int32_t tree_node_flags) {
 	return ImGui::Binding::CollapsingHeader(*Str_From(label), s_cast<uint32_t>(tree_node_flags)) ? 1 : 0;
 }
-int32_t imgui__selectable_opts(int64_t label, int32_t selectable_flags) {
+DORA_EXPORT int32_t imgui__selectable_opts(int64_t label, int32_t selectable_flags) {
 	return ImGui::Binding::Selectable(*Str_From(label), s_cast<uint32_t>(selectable_flags)) ? 1 : 0;
 }
-int32_t imgui__begin_popup_modal_opts(int64_t name, int32_t windows_flags) {
+DORA_EXPORT int32_t imgui__begin_popup_modal_opts(int64_t name, int32_t windows_flags) {
 	return ImGui::Binding::BeginPopupModal(*Str_From(name), s_cast<uint32_t>(windows_flags)) ? 1 : 0;
 }
-int32_t imgui__begin_popup_modal_ret_opts(int64_t name, int64_t stack, int32_t windows_flags) {
+DORA_EXPORT int32_t imgui__begin_popup_modal_ret_opts(int64_t name, int64_t stack, int32_t windows_flags) {
 	return ImGui::Binding::BeginPopupModal(*Str_From(name), r_cast<CallStack*>(stack), s_cast<uint32_t>(windows_flags)) ? 1 : 0;
 }
-int32_t imgui__begin_popup_context_item_opts(int64_t name, int32_t popup_flags) {
+DORA_EXPORT int32_t imgui__begin_popup_context_item_opts(int64_t name, int32_t popup_flags) {
 	return ImGui::Binding::BeginPopupContextItem(*Str_From(name), s_cast<uint32_t>(popup_flags)) ? 1 : 0;
 }
-int32_t imgui__begin_popup_context_window_opts(int64_t name, int32_t popup_flags) {
+DORA_EXPORT int32_t imgui__begin_popup_context_window_opts(int64_t name, int32_t popup_flags) {
 	return ImGui::Binding::BeginPopupContextWindow(*Str_From(name), s_cast<uint32_t>(popup_flags)) ? 1 : 0;
 }
-int32_t imgui__begin_popup_context_void_opts(int64_t name, int32_t popup_flags) {
+DORA_EXPORT int32_t imgui__begin_popup_context_void_opts(int64_t name, int32_t popup_flags) {
 	return ImGui::Binding::BeginPopupContextVoid(*Str_From(name), s_cast<uint32_t>(popup_flags)) ? 1 : 0;
 }
-void imgui__push_style_color(int32_t name, int32_t color) {
+DORA_EXPORT void imgui__push_style_color(int32_t name, int32_t color) {
 	ImGui::Binding::PushStyleColor(s_cast<uint32_t>(name), Color(s_cast<uint32_t>(color)));
 }
-void imgui__push_style_float(int32_t name, float val) {
+DORA_EXPORT void imgui__push_style_float(int32_t name, float val) {
 	ImGui::PushStyleVar(s_cast<uint32_t>(name), val);
 }
-void imgui__push_style_vec2(int32_t name, int64_t val) {
+DORA_EXPORT void imgui__push_style_vec2(int32_t name, int64_t val) {
 	ImGui::PushStyleVar(s_cast<uint32_t>(name), Vec2_From(val));
 }
-void imgui_text(int64_t text) {
+DORA_EXPORT void imgui_text(int64_t text) {
 	ImGui::Binding::Text(*Str_From(text));
 }
-void imgui_text_colored(int32_t color, int64_t text) {
+DORA_EXPORT void imgui_text_colored(int32_t color, int64_t text) {
 	ImGui::Binding::TextColored(Color(s_cast<uint32_t>(color)), *Str_From(text));
 }
-void imgui_text_disabled(int64_t text) {
+DORA_EXPORT void imgui_text_disabled(int64_t text) {
 	ImGui::Binding::TextDisabled(*Str_From(text));
 }
-void imgui_text_wrapped(int64_t text) {
+DORA_EXPORT void imgui_text_wrapped(int64_t text) {
 	ImGui::Binding::TextWrapped(*Str_From(text));
 }
-void imgui_label_text(int64_t label, int64_t text) {
+DORA_EXPORT void imgui_label_text(int64_t label, int64_t text) {
 	ImGui::Binding::LabelText(*Str_From(label), *Str_From(text));
 }
-void imgui_bullet_text(int64_t text) {
+DORA_EXPORT void imgui_bullet_text(int64_t text) {
 	ImGui::Binding::BulletText(*Str_From(text));
 }
-int32_t imgui__tree_node(int64_t str_id, int64_t text) {
+DORA_EXPORT int32_t imgui__tree_node(int64_t str_id, int64_t text) {
 	return ImGui::Binding::TreeNode(*Str_From(str_id), *Str_From(text)) ? 1 : 0;
 }
-void imgui_set_tooltip(int64_t text) {
+DORA_EXPORT void imgui_set_tooltip(int64_t text) {
 	ImGui::Binding::SetTooltip(*Str_From(text));
 }
-void imgui_image(int64_t clip_str, int64_t size) {
+DORA_EXPORT void imgui_image(int64_t clip_str, int64_t size) {
 	ImGui::Binding::Image(*Str_From(clip_str), Vec2_From(size));
 }
-void imgui_image_with_bg(int64_t clip_str, int64_t size, int32_t bg_col, int32_t tint_col) {
+DORA_EXPORT void imgui_image_with_bg(int64_t clip_str, int64_t size, int32_t bg_col, int32_t tint_col) {
 	ImGui::Binding::Image(*Str_From(clip_str), Vec2_From(size), Color(s_cast<uint32_t>(bg_col)), Color(s_cast<uint32_t>(tint_col)));
 }
-int32_t imgui_image_button_opts(int64_t str_id, int64_t clip_str, int64_t size, int32_t bg_col, int32_t tint_col) {
+DORA_EXPORT int32_t imgui_image_button_opts(int64_t str_id, int64_t clip_str, int64_t size, int32_t bg_col, int32_t tint_col) {
 	return ImGui::Binding::ImageButton(*Str_From(str_id), *Str_From(clip_str), Vec2_From(size), Color(s_cast<uint32_t>(bg_col)), Color(s_cast<uint32_t>(tint_col))) ? 1 : 0;
 }
-int32_t imgui__color_button_opts(int64_t desc_id, int32_t col, int32_t color_edit_flags, int64_t size) {
+DORA_EXPORT int32_t imgui__color_button_opts(int64_t desc_id, int32_t col, int32_t color_edit_flags, int64_t size) {
 	return ImGui::Binding::ColorButton(*Str_From(desc_id), Color(s_cast<uint32_t>(col)), s_cast<uint32_t>(color_edit_flags), Vec2_From(size)) ? 1 : 0;
 }
-void imgui_columns(int32_t count) {
+DORA_EXPORT void imgui_columns(int32_t count) {
 	ImGui::Binding::Columns(s_cast<int>(count));
 }
-void imgui_columns_opts(int32_t count, int32_t border, int64_t str_id) {
+DORA_EXPORT void imgui_columns_opts(int32_t count, int32_t border, int64_t str_id) {
 	ImGui::Binding::Columns(s_cast<int>(count), border != 0, *Str_From(str_id));
 }
-int32_t imgui__begin_table_opts(int64_t str_id, int32_t column, int64_t outer_size, float inner_width, int32_t table_flags) {
+DORA_EXPORT int32_t imgui__begin_table_opts(int64_t str_id, int32_t column, int64_t outer_size, float inner_width, int32_t table_flags) {
 	return ImGui::Binding::BeginTable(*Str_From(str_id), s_cast<int>(column), Vec2_From(outer_size), inner_width, s_cast<uint32_t>(table_flags)) ? 1 : 0;
 }
-void imgui__table_next_row_opts(float min_row_height, int32_t table_row_flag) {
+DORA_EXPORT void imgui__table_next_row_opts(float min_row_height, int32_t table_row_flag) {
 	ImGui::TableNextRow(min_row_height, s_cast<uint32_t>(table_row_flag));
 }
-void imgui__table_setup_column_opts(int64_t label, float init_width_or_weight, int32_t user_id, int32_t table_column_flags) {
+DORA_EXPORT void imgui__table_setup_column_opts(int64_t label, float init_width_or_weight, int32_t user_id, int32_t table_column_flags) {
 	ImGui::Binding::TableSetupColumn(*Str_From(label), init_width_or_weight, s_cast<uint32_t>(user_id), s_cast<uint32_t>(table_column_flags));
 }
-void imgui_set_style_bool(int64_t name, int32_t val) {
+DORA_EXPORT void imgui_set_style_bool(int64_t name, int32_t val) {
 	ImGui::Binding::SetStyleVar(*Str_From(name), val != 0);
 }
-void imgui_set_style_float(int64_t name, float val) {
+DORA_EXPORT void imgui_set_style_float(int64_t name, float val) {
 	ImGui::Binding::SetStyleVar(*Str_From(name), val);
 }
-void imgui_set_style_vec2(int64_t name, int64_t val) {
+DORA_EXPORT void imgui_set_style_vec2(int64_t name, int64_t val) {
 	ImGui::Binding::SetStyleVar(*Str_From(name), Vec2_From(val));
 }
-void imgui_set_style_color(int64_t name, int32_t color) {
+DORA_EXPORT void imgui_set_style_color(int64_t name, int32_t color) {
 	ImGui::Binding::SetStyleColor(*Str_From(name), Color(s_cast<uint32_t>(color)));
 }
-int32_t imgui__begin_ret_opts(int64_t name, int64_t stack, int32_t windows_flags) {
+DORA_EXPORT int32_t imgui__begin_ret_opts(int64_t name, int64_t stack, int32_t windows_flags) {
 	return ImGui::Binding::Begin(*Str_From(name), r_cast<CallStack*>(stack), s_cast<uint32_t>(windows_flags)) ? 1 : 0;
 }
-int32_t imgui__collapsing_header_ret_opts(int64_t label, int64_t stack, int32_t tree_node_flags) {
+DORA_EXPORT int32_t imgui__collapsing_header_ret_opts(int64_t label, int64_t stack, int32_t tree_node_flags) {
 	return ImGui::Binding::CollapsingHeader(*Str_From(label), r_cast<CallStack*>(stack), s_cast<uint32_t>(tree_node_flags)) ? 1 : 0;
 }
-int32_t imgui__selectable_ret_opts(int64_t label, int64_t stack, int64_t size, int32_t selectable_flags) {
+DORA_EXPORT int32_t imgui__selectable_ret_opts(int64_t label, int64_t stack, int64_t size, int32_t selectable_flags) {
 	return ImGui::Binding::Selectable(*Str_From(label), r_cast<CallStack*>(stack), Vec2_From(size), s_cast<uint32_t>(selectable_flags)) ? 1 : 0;
 }
-int32_t imgui__combo_ret_opts(int64_t label, int64_t stack, int64_t items, int32_t height_in_items) {
+DORA_EXPORT int32_t imgui__combo_ret_opts(int64_t label, int64_t stack, int64_t items, int32_t height_in_items) {
 	return ImGui::Binding::Combo(*Str_From(label), r_cast<CallStack*>(stack), Vec_FromStr(items), s_cast<int>(height_in_items)) ? 1 : 0;
 }
-int32_t imgui__drag_float_ret_opts(int64_t label, int64_t stack, float v_speed, float v_min, float v_max, int64_t display_format, int32_t slider_flags) {
+DORA_EXPORT int32_t imgui__drag_float_ret_opts(int64_t label, int64_t stack, float v_speed, float v_min, float v_max, int64_t display_format, int32_t slider_flags) {
 	return ImGui::Binding::DragFloat(*Str_From(label), r_cast<CallStack*>(stack), v_speed, v_min, v_max, *Str_From(display_format), s_cast<uint32_t>(slider_flags)) ? 1 : 0;
 }
-int32_t imgui__drag_float2_ret_opts(int64_t label, int64_t stack, float v_speed, float v_min, float v_max, int64_t display_format, int32_t slider_flags) {
+DORA_EXPORT int32_t imgui__drag_float2_ret_opts(int64_t label, int64_t stack, float v_speed, float v_min, float v_max, int64_t display_format, int32_t slider_flags) {
 	return ImGui::Binding::DragFloat2(*Str_From(label), r_cast<CallStack*>(stack), v_speed, v_min, v_max, *Str_From(display_format), s_cast<uint32_t>(slider_flags)) ? 1 : 0;
 }
-int32_t imgui__drag_int_ret_opts(int64_t label, int64_t stack, float v_speed, int32_t v_min, int32_t v_max, int64_t display_format, int32_t slider_flags) {
+DORA_EXPORT int32_t imgui__drag_int_ret_opts(int64_t label, int64_t stack, float v_speed, int32_t v_min, int32_t v_max, int64_t display_format, int32_t slider_flags) {
 	return ImGui::Binding::DragInt(*Str_From(label), r_cast<CallStack*>(stack), v_speed, s_cast<int>(v_min), s_cast<int>(v_max), *Str_From(display_format), s_cast<uint32_t>(slider_flags)) ? 1 : 0;
 }
-int32_t imgui__drag_int2_ret_opts(int64_t label, int64_t stack, float v_speed, int32_t v_min, int32_t v_max, int64_t display_format, int32_t slider_flags) {
+DORA_EXPORT int32_t imgui__drag_int2_ret_opts(int64_t label, int64_t stack, float v_speed, int32_t v_min, int32_t v_max, int64_t display_format, int32_t slider_flags) {
 	return ImGui::Binding::DragInt2(*Str_From(label), r_cast<CallStack*>(stack), v_speed, s_cast<int>(v_min), s_cast<int>(v_max), *Str_From(display_format), s_cast<uint32_t>(slider_flags)) ? 1 : 0;
 }
-int32_t imgui__input_float_ret_opts(int64_t label, int64_t stack, float step, float step_fast, int64_t display_format, int32_t input_text_flags) {
+DORA_EXPORT int32_t imgui__input_float_ret_opts(int64_t label, int64_t stack, float step, float step_fast, int64_t display_format, int32_t input_text_flags) {
 	return ImGui::Binding::InputFloat(*Str_From(label), r_cast<CallStack*>(stack), step, step_fast, *Str_From(display_format), s_cast<uint32_t>(input_text_flags)) ? 1 : 0;
 }
-int32_t imgui__input_float2_ret_opts(int64_t label, int64_t stack, int64_t display_format, int32_t input_text_flags) {
+DORA_EXPORT int32_t imgui__input_float2_ret_opts(int64_t label, int64_t stack, int64_t display_format, int32_t input_text_flags) {
 	return ImGui::Binding::InputFloat2(*Str_From(label), r_cast<CallStack*>(stack), *Str_From(display_format), s_cast<uint32_t>(input_text_flags)) ? 1 : 0;
 }
-int32_t imgui__input_int_ret_opts(int64_t label, int64_t stack, int32_t step, int32_t step_fast, int32_t input_text_flags) {
+DORA_EXPORT int32_t imgui__input_int_ret_opts(int64_t label, int64_t stack, int32_t step, int32_t step_fast, int32_t input_text_flags) {
 	return ImGui::Binding::InputInt(*Str_From(label), r_cast<CallStack*>(stack), s_cast<int>(step), s_cast<int>(step_fast), s_cast<uint32_t>(input_text_flags)) ? 1 : 0;
 }
-int32_t imgui__input_int2_ret_opts(int64_t label, int64_t stack, int32_t input_text_flags) {
+DORA_EXPORT int32_t imgui__input_int2_ret_opts(int64_t label, int64_t stack, int32_t input_text_flags) {
 	return ImGui::Binding::InputInt2(*Str_From(label), r_cast<CallStack*>(stack), s_cast<uint32_t>(input_text_flags)) ? 1 : 0;
 }
-int32_t imgui__slider_float_ret_opts(int64_t label, int64_t stack, float v_min, float v_max, int64_t display_format, int32_t slider_flags) {
+DORA_EXPORT int32_t imgui__slider_float_ret_opts(int64_t label, int64_t stack, float v_min, float v_max, int64_t display_format, int32_t slider_flags) {
 	return ImGui::Binding::SliderFloat(*Str_From(label), r_cast<CallStack*>(stack), v_min, v_max, *Str_From(display_format), s_cast<uint32_t>(slider_flags)) ? 1 : 0;
 }
-int32_t imgui__slider_float2_ret_opts(int64_t label, int64_t stack, float v_min, float v_max, int64_t display_format, int32_t slider_flags) {
+DORA_EXPORT int32_t imgui__slider_float2_ret_opts(int64_t label, int64_t stack, float v_min, float v_max, int64_t display_format, int32_t slider_flags) {
 	return ImGui::Binding::SliderFloat2(*Str_From(label), r_cast<CallStack*>(stack), v_min, v_max, *Str_From(display_format), s_cast<uint32_t>(slider_flags)) ? 1 : 0;
 }
-int32_t imgui__slider_int_ret_opts(int64_t label, int64_t stack, int32_t v_min, int32_t v_max, int64_t format, int32_t slider_flags) {
+DORA_EXPORT int32_t imgui__slider_int_ret_opts(int64_t label, int64_t stack, int32_t v_min, int32_t v_max, int64_t format, int32_t slider_flags) {
 	return ImGui::Binding::SliderInt(*Str_From(label), r_cast<CallStack*>(stack), s_cast<int>(v_min), s_cast<int>(v_max), *Str_From(format), s_cast<uint32_t>(slider_flags)) ? 1 : 0;
 }
-int32_t imgui__slider_int2_ret_opts(int64_t label, int64_t stack, int32_t v_min, int32_t v_max, int64_t display_format, int32_t slider_flags) {
+DORA_EXPORT int32_t imgui__slider_int2_ret_opts(int64_t label, int64_t stack, int32_t v_min, int32_t v_max, int64_t display_format, int32_t slider_flags) {
 	return ImGui::Binding::SliderInt2(*Str_From(label), r_cast<CallStack*>(stack), s_cast<int>(v_min), s_cast<int>(v_max), *Str_From(display_format), s_cast<uint32_t>(slider_flags)) ? 1 : 0;
 }
-int32_t imgui__drag_float_range2_ret_opts(int64_t label, int64_t stack, float v_speed, float v_min, float v_max, int64_t format, int64_t format_max, int32_t slider_flags) {
+DORA_EXPORT int32_t imgui__drag_float_range2_ret_opts(int64_t label, int64_t stack, float v_speed, float v_min, float v_max, int64_t format, int64_t format_max, int32_t slider_flags) {
 	return ImGui::Binding::DragFloatRange2(*Str_From(label), r_cast<CallStack*>(stack), v_speed, v_min, v_max, *Str_From(format), *Str_From(format_max), s_cast<uint32_t>(slider_flags)) ? 1 : 0;
 }
-int32_t imgui__drag_int_range2_ret_opts(int64_t label, int64_t stack, float v_speed, int32_t v_min, int32_t v_max, int64_t format, int64_t format_max, int32_t slider_flags) {
+DORA_EXPORT int32_t imgui__drag_int_range2_ret_opts(int64_t label, int64_t stack, float v_speed, int32_t v_min, int32_t v_max, int64_t format, int64_t format_max, int32_t slider_flags) {
 	return ImGui::Binding::DragIntRange2(*Str_From(label), r_cast<CallStack*>(stack), v_speed, s_cast<int>(v_min), s_cast<int>(v_max), *Str_From(format), *Str_From(format_max), s_cast<uint32_t>(slider_flags)) ? 1 : 0;
 }
-int32_t imgui__v_slider_float_ret_opts(int64_t label, int64_t size, int64_t stack, float v_min, float v_max, int64_t format, int32_t slider_flags) {
+DORA_EXPORT int32_t imgui__v_slider_float_ret_opts(int64_t label, int64_t size, int64_t stack, float v_min, float v_max, int64_t format, int32_t slider_flags) {
 	return ImGui::Binding::VSliderFloat(*Str_From(label), Vec2_From(size), r_cast<CallStack*>(stack), v_min, v_max, *Str_From(format), s_cast<uint32_t>(slider_flags)) ? 1 : 0;
 }
-int32_t imgui__v_slider_int_ret_opts(int64_t label, int64_t size, int64_t stack, int32_t v_min, int32_t v_max, int64_t format, int32_t slider_flags) {
+DORA_EXPORT int32_t imgui__v_slider_int_ret_opts(int64_t label, int64_t size, int64_t stack, int32_t v_min, int32_t v_max, int64_t format, int32_t slider_flags) {
 	return ImGui::Binding::VSliderInt(*Str_From(label), Vec2_From(size), r_cast<CallStack*>(stack), s_cast<int>(v_min), s_cast<int>(v_max), *Str_From(format), s_cast<uint32_t>(slider_flags)) ? 1 : 0;
 }
-int32_t imgui__color_edit3_ret_opts(int64_t label, int64_t stack, int32_t color_edit_flags) {
+DORA_EXPORT int32_t imgui__color_edit3_ret_opts(int64_t label, int64_t stack, int32_t color_edit_flags) {
 	return ImGui::Binding::ColorEdit3(*Str_From(label), r_cast<CallStack*>(stack), s_cast<uint32_t>(color_edit_flags)) ? 1 : 0;
 }
-int32_t imgui__color_edit4_ret_opts(int64_t label, int64_t stack, int32_t color_edit_flags) {
+DORA_EXPORT int32_t imgui__color_edit4_ret_opts(int64_t label, int64_t stack, int32_t color_edit_flags) {
 	return ImGui::Binding::ColorEdit4(*Str_From(label), r_cast<CallStack*>(stack), s_cast<uint32_t>(color_edit_flags)) ? 1 : 0;
 }
-void imgui_scroll_when_dragging_on_void() {
+DORA_EXPORT void imgui_scroll_when_dragging_on_void() {
 	ImGui::Binding::ScrollWhenDraggingOnVoid();
 }
-void imgui__set_next_window_pos_opts(int64_t pos, int32_t set_cond, int64_t pivot) {
+DORA_EXPORT void imgui__set_next_window_pos_opts(int64_t pos, int32_t set_cond, int64_t pivot) {
 	ImGui::SetNextWindowPos(Vec2_From(pos), s_cast<uint32_t>(set_cond), Vec2_From(pivot));
 }
-void imgui_set_next_window_bg_alpha(float alpha) {
+DORA_EXPORT void imgui_set_next_window_bg_alpha(float alpha) {
 	ImGui::SetNextWindowBgAlpha(alpha);
 }
-void imgui_show_demo_window() {
+DORA_EXPORT void imgui_show_demo_window() {
 	ImGui::ShowDemoWindow();
 }
-int64_t imgui_get_content_region_avail() {
+DORA_EXPORT int64_t imgui_get_content_region_avail() {
 	return Vec2_Retain(ImGui::GetContentRegionAvail());
 }
-int64_t imgui_get_window_pos() {
+DORA_EXPORT int64_t imgui_get_window_pos() {
 	return Vec2_Retain(ImGui::GetWindowPos());
 }
-int64_t imgui_get_window_size() {
+DORA_EXPORT int64_t imgui_get_window_size() {
 	return Vec2_Retain(ImGui::GetWindowSize());
 }
-float imgui_get_window_width() {
+DORA_EXPORT float imgui_get_window_width() {
 	return ImGui::GetWindowWidth();
 }
-float imgui_get_window_height() {
+DORA_EXPORT float imgui_get_window_height() {
 	return ImGui::GetWindowHeight();
 }
-int32_t imgui_is_window_collapsed() {
+DORA_EXPORT int32_t imgui_is_window_collapsed() {
 	return ImGui::IsWindowCollapsed() ? 1 : 0;
 }
-void imgui_set_next_window_size_constraints(int64_t size_min, int64_t size_max) {
+DORA_EXPORT void imgui_set_next_window_size_constraints(int64_t size_min, int64_t size_max) {
 	ImGui::SetNextWindowSizeConstraints(Vec2_From(size_min), Vec2_From(size_max));
 }
-void imgui_set_next_window_content_size(int64_t size) {
+DORA_EXPORT void imgui_set_next_window_content_size(int64_t size) {
 	ImGui::SetNextWindowContentSize(Vec2_From(size));
 }
-void imgui_set_next_window_focus() {
+DORA_EXPORT void imgui_set_next_window_focus() {
 	ImGui::SetNextWindowFocus();
 }
-float imgui_get_scroll_x() {
+DORA_EXPORT float imgui_get_scroll_x() {
 	return ImGui::GetScrollX();
 }
-float imgui_get_scroll_y() {
+DORA_EXPORT float imgui_get_scroll_y() {
 	return ImGui::GetScrollY();
 }
-float imgui_get_scroll_max_x() {
+DORA_EXPORT float imgui_get_scroll_max_x() {
 	return ImGui::GetScrollMaxX();
 }
-float imgui_get_scroll_max_y() {
+DORA_EXPORT float imgui_get_scroll_max_y() {
 	return ImGui::GetScrollMaxY();
 }
-void imgui_set_scroll_x(float scroll_x) {
+DORA_EXPORT void imgui_set_scroll_x(float scroll_x) {
 	ImGui::SetScrollX(scroll_x);
 }
-void imgui_set_scroll_y(float scroll_y) {
+DORA_EXPORT void imgui_set_scroll_y(float scroll_y) {
 	ImGui::SetScrollY(scroll_y);
 }
-void imgui_set_scroll_here_y(float center_y_ratio) {
+DORA_EXPORT void imgui_set_scroll_here_y(float center_y_ratio) {
 	ImGui::SetScrollHereY(center_y_ratio);
 }
-void imgui_set_scroll_from_pos_y(float pos_y, float center_y_ratio) {
+DORA_EXPORT void imgui_set_scroll_from_pos_y(float pos_y, float center_y_ratio) {
 	ImGui::SetScrollFromPosY(pos_y, center_y_ratio);
 }
-void imgui_set_keyboard_focus_here(int32_t offset) {
+DORA_EXPORT void imgui_set_keyboard_focus_here(int32_t offset) {
 	ImGui::SetKeyboardFocusHere(s_cast<int>(offset));
 }
-void imgui__pop_style_color(int32_t count) {
+DORA_EXPORT void imgui__pop_style_color(int32_t count) {
 	ImGui::PopStyleColor(s_cast<int>(count));
 }
-void imgui__pop_style_var(int32_t count) {
+DORA_EXPORT void imgui__pop_style_var(int32_t count) {
 	ImGui::PopStyleVar(s_cast<int>(count));
 }
-void imgui_set_next_item_width(float item_width) {
+DORA_EXPORT void imgui_set_next_item_width(float item_width) {
 	ImGui::SetNextItemWidth(item_width);
 }
-void imgui__push_item_width(float item_width) {
+DORA_EXPORT void imgui__push_item_width(float item_width) {
 	ImGui::PushItemWidth(item_width);
 }
-void imgui__pop_item_width() {
+DORA_EXPORT void imgui__pop_item_width() {
 	ImGui::PopItemWidth();
 }
-float imgui_calc_item_width() {
+DORA_EXPORT float imgui_calc_item_width() {
 	return ImGui::CalcItemWidth();
 }
-void imgui__push_text_wrap_pos(float wrap_pos_x) {
+DORA_EXPORT void imgui__push_text_wrap_pos(float wrap_pos_x) {
 	ImGui::PushTextWrapPos(wrap_pos_x);
 }
-void imgui__pop_text_wrap_pos() {
+DORA_EXPORT void imgui__pop_text_wrap_pos() {
 	ImGui::PopTextWrapPos();
 }
-void imgui__push_item_flag(int32_t flag, int32_t enabled) {
+DORA_EXPORT void imgui__push_item_flag(int32_t flag, int32_t enabled) {
 	ImGui::PushItemFlag(s_cast<uint32_t>(flag), enabled != 0);
 }
-void imgui__pop_item_flag() {
+DORA_EXPORT void imgui__pop_item_flag() {
 	ImGui::PopItemFlag();
 }
-void imgui_separator() {
+DORA_EXPORT void imgui_separator() {
 	ImGui::Separator();
 }
-void imgui_same_line(float pos_x, float spacing_w) {
+DORA_EXPORT void imgui_same_line(float pos_x, float spacing_w) {
 	ImGui::SameLine(pos_x, spacing_w);
 }
-void imgui_new_line() {
+DORA_EXPORT void imgui_new_line() {
 	ImGui::NewLine();
 }
-void imgui_spacing() {
+DORA_EXPORT void imgui_spacing() {
 	ImGui::Spacing();
 }
-void imgui_dummy(int64_t size) {
+DORA_EXPORT void imgui_dummy(int64_t size) {
 	ImGui::Dummy(Vec2_From(size));
 }
-void imgui_indent(float indent_w) {
+DORA_EXPORT void imgui_indent(float indent_w) {
 	ImGui::Indent(indent_w);
 }
-void imgui_unindent(float indent_w) {
+DORA_EXPORT void imgui_unindent(float indent_w) {
 	ImGui::Unindent(indent_w);
 }
-void imgui__begin_group() {
+DORA_EXPORT void imgui__begin_group() {
 	ImGui::BeginGroup();
 }
-void imgui__end_group() {
+DORA_EXPORT void imgui__end_group() {
 	ImGui::EndGroup();
 }
-int64_t imgui_get_cursor_pos() {
+DORA_EXPORT int64_t imgui_get_cursor_pos() {
 	return Vec2_Retain(ImGui::GetCursorPos());
 }
-float imgui_get_cursor_pos_x() {
+DORA_EXPORT float imgui_get_cursor_pos_x() {
 	return ImGui::GetCursorPosX();
 }
-float imgui_get_cursor_pos_y() {
+DORA_EXPORT float imgui_get_cursor_pos_y() {
 	return ImGui::GetCursorPosY();
 }
-void imgui_set_cursor_pos(int64_t local_pos) {
+DORA_EXPORT void imgui_set_cursor_pos(int64_t local_pos) {
 	ImGui::SetCursorPos(Vec2_From(local_pos));
 }
-void imgui_set_cursor_pos_x(float x) {
+DORA_EXPORT void imgui_set_cursor_pos_x(float x) {
 	ImGui::SetCursorPosX(x);
 }
-void imgui_set_cursor_pos_y(float y) {
+DORA_EXPORT void imgui_set_cursor_pos_y(float y) {
 	ImGui::SetCursorPosY(y);
 }
-int64_t imgui_get_cursor_start_pos() {
+DORA_EXPORT int64_t imgui_get_cursor_start_pos() {
 	return Vec2_Retain(ImGui::GetCursorStartPos());
 }
-int64_t imgui_get_cursor_screen_pos() {
+DORA_EXPORT int64_t imgui_get_cursor_screen_pos() {
 	return Vec2_Retain(ImGui::GetCursorScreenPos());
 }
-void imgui_set_cursor_screen_pos(int64_t pos) {
+DORA_EXPORT void imgui_set_cursor_screen_pos(int64_t pos) {
 	ImGui::SetCursorScreenPos(Vec2_From(pos));
 }
-void imgui_align_text_to_frame_padding() {
+DORA_EXPORT void imgui_align_text_to_frame_padding() {
 	ImGui::AlignTextToFramePadding();
 }
-float imgui_get_text_line_height() {
+DORA_EXPORT float imgui_get_text_line_height() {
 	return ImGui::GetTextLineHeight();
 }
-float imgui_get_text_line_height_with_spacing() {
+DORA_EXPORT float imgui_get_text_line_height_with_spacing() {
 	return ImGui::GetTextLineHeightWithSpacing();
 }
-void imgui_next_column() {
+DORA_EXPORT void imgui_next_column() {
 	ImGui::NextColumn();
 }
-int32_t imgui_get_column_index() {
+DORA_EXPORT int32_t imgui_get_column_index() {
 	return s_cast<int32_t>(ImGui::GetColumnIndex());
 }
-float imgui_get_column_offset(int32_t column_index) {
+DORA_EXPORT float imgui_get_column_offset(int32_t column_index) {
 	return ImGui::GetColumnOffset(s_cast<int>(column_index));
 }
-void imgui_set_column_offset(int32_t column_index, float offset_x) {
+DORA_EXPORT void imgui_set_column_offset(int32_t column_index, float offset_x) {
 	ImGui::SetColumnOffset(s_cast<int>(column_index), offset_x);
 }
-float imgui_get_column_width(int32_t column_index) {
+DORA_EXPORT float imgui_get_column_width(int32_t column_index) {
 	return ImGui::GetColumnWidth(s_cast<int>(column_index));
 }
-int32_t imgui_get_columns_count() {
+DORA_EXPORT int32_t imgui_get_columns_count() {
 	return s_cast<int32_t>(ImGui::GetColumnsCount());
 }
-void imgui__end_table() {
+DORA_EXPORT void imgui__end_table() {
 	ImGui::EndTable();
 }
-int32_t imgui_table_next_column() {
+DORA_EXPORT int32_t imgui_table_next_column() {
 	return ImGui::TableNextColumn() ? 1 : 0;
 }
-int32_t imgui_table_set_column_index(int32_t column_n) {
+DORA_EXPORT int32_t imgui_table_set_column_index(int32_t column_n) {
 	return ImGui::TableSetColumnIndex(s_cast<int>(column_n)) ? 1 : 0;
 }
-void imgui_table_setup_scroll_freeze(int32_t cols, int32_t rows) {
+DORA_EXPORT void imgui_table_setup_scroll_freeze(int32_t cols, int32_t rows) {
 	ImGui::TableSetupScrollFreeze(s_cast<int>(cols), s_cast<int>(rows));
 }
-void imgui_table_headers_row() {
+DORA_EXPORT void imgui_table_headers_row() {
 	ImGui::TableHeadersRow();
 }
-void imgui_bullet_item() {
+DORA_EXPORT void imgui_bullet_item() {
 	ImGui::Bullet();
 }
-int32_t imgui_text_link(int64_t label) {
+DORA_EXPORT int32_t imgui_text_link(int64_t label) {
 	return ImGui::Binding::TextLink(*Str_From(label)) ? 1 : 0;
 }
-void imgui_set_window_focus(int64_t name) {
+DORA_EXPORT void imgui_set_window_focus(int64_t name) {
 	ImGui::Binding::SetWindowFocus(*Str_From(name));
 }
-void imgui_separator_text(int64_t text) {
+DORA_EXPORT void imgui_separator_text(int64_t text) {
 	ImGui::Binding::SeparatorText(*Str_From(text));
 }
-void imgui_table_header(int64_t label) {
+DORA_EXPORT void imgui_table_header(int64_t label) {
 	ImGui::Binding::TableHeader(*Str_From(label));
 }
-void imgui__push_id(int64_t str_id) {
+DORA_EXPORT void imgui__push_id(int64_t str_id) {
 	ImGui::Binding::PushID(*Str_From(str_id));
 }
-void imgui__pop_id() {
+DORA_EXPORT void imgui__pop_id() {
 	ImGui::PopID();
 }
-int32_t imgui_get_id(int64_t str_id) {
+DORA_EXPORT int32_t imgui_get_id(int64_t str_id) {
 	return s_cast<int32_t>(ImGui::Binding::GetID(*Str_From(str_id)));
 }
-int32_t imgui_button(int64_t label, int64_t size) {
+DORA_EXPORT int32_t imgui_button(int64_t label, int64_t size) {
 	return ImGui::Binding::Button(*Str_From(label), Vec2_From(size)) ? 1 : 0;
 }
-int32_t imgui_small_button(int64_t label) {
+DORA_EXPORT int32_t imgui_small_button(int64_t label) {
 	return ImGui::Binding::SmallButton(*Str_From(label)) ? 1 : 0;
 }
-int32_t imgui_invisible_button(int64_t str_id, int64_t size) {
+DORA_EXPORT int32_t imgui_invisible_button(int64_t str_id, int64_t size) {
 	return ImGui::Binding::InvisibleButton(*Str_From(str_id), Vec2_From(size)) ? 1 : 0;
 }
-int32_t imgui__checkbox_ret(int64_t label, int64_t stack) {
+DORA_EXPORT int32_t imgui__checkbox_ret(int64_t label, int64_t stack) {
 	return ImGui::Binding::Checkbox(*Str_From(label), r_cast<CallStack*>(stack)) ? 1 : 0;
 }
-int32_t imgui__radio_button_ret(int64_t label, int64_t stack, int32_t v_button) {
+DORA_EXPORT int32_t imgui__radio_button_ret(int64_t label, int64_t stack, int32_t v_button) {
 	return ImGui::Binding::RadioButton(*Str_From(label), r_cast<CallStack*>(stack), s_cast<int>(v_button)) ? 1 : 0;
 }
-void imgui_plot_lines(int64_t label, int64_t values) {
+DORA_EXPORT void imgui_plot_lines(int64_t label, int64_t values) {
 	ImGui::Binding::PlotLines(*Str_From(label), Vec_FromFloat(values));
 }
-void imgui_plot_lines_opts(int64_t label, int64_t values, int32_t values_offset, int64_t overlay_text, float scale_min, float scale_max, int64_t graph_size) {
+DORA_EXPORT void imgui_plot_lines_opts(int64_t label, int64_t values, int32_t values_offset, int64_t overlay_text, float scale_min, float scale_max, int64_t graph_size) {
 	ImGui::Binding::PlotLines(*Str_From(label), Vec_FromFloat(values), s_cast<int>(values_offset), *Str_From(overlay_text), scale_min, scale_max, Vec2_From(graph_size));
 }
-void imgui_plot_histogram(int64_t label, int64_t values) {
+DORA_EXPORT void imgui_plot_histogram(int64_t label, int64_t values) {
 	ImGui::Binding::PlotHistogram(*Str_From(label), Vec_FromFloat(values));
 }
-void imgui_plot_histogram_opts(int64_t label, int64_t values, int32_t values_offset, int64_t overlay_text, float scale_min, float scale_max, int64_t graph_size) {
+DORA_EXPORT void imgui_plot_histogram_opts(int64_t label, int64_t values, int32_t values_offset, int64_t overlay_text, float scale_min, float scale_max, int64_t graph_size) {
 	ImGui::Binding::PlotHistogram(*Str_From(label), Vec_FromFloat(values), s_cast<int>(values_offset), *Str_From(overlay_text), scale_min, scale_max, Vec2_From(graph_size));
 }
-void imgui_progress_bar(float fraction) {
+DORA_EXPORT void imgui_progress_bar(float fraction) {
 	ImGui::Binding::ProgressBar(fraction);
 }
-void imgui_progress_bar_opts(float fraction, int64_t size_arg, int64_t overlay) {
+DORA_EXPORT void imgui_progress_bar_opts(float fraction, int64_t size_arg, int64_t overlay) {
 	ImGui::Binding::ProgressBar(fraction, Vec2_From(size_arg), *Str_From(overlay));
 }
-int32_t imgui__list_box_ret_opts(int64_t label, int64_t stack, int64_t items, int32_t height_in_items) {
+DORA_EXPORT int32_t imgui__list_box_ret_opts(int64_t label, int64_t stack, int64_t items, int32_t height_in_items) {
 	return ImGui::Binding::ListBox(*Str_From(label), r_cast<CallStack*>(stack), Vec_FromStr(items), s_cast<int>(height_in_items)) ? 1 : 0;
 }
-int32_t imgui__slider_angle_ret(int64_t label, int64_t stack, float v_degrees_min, float v_degrees_max) {
+DORA_EXPORT int32_t imgui__slider_angle_ret(int64_t label, int64_t stack, float v_degrees_min, float v_degrees_max) {
 	return ImGui::Binding::SliderAngle(*Str_From(label), r_cast<CallStack*>(stack), v_degrees_min, v_degrees_max) ? 1 : 0;
 }
-void imgui__tree_push(int64_t str_id) {
+DORA_EXPORT void imgui__tree_push(int64_t str_id) {
 	ImGui::Binding::TreePush(*Str_From(str_id));
 }
-void imgui__tree_pop() {
+DORA_EXPORT void imgui__tree_pop() {
 	ImGui::TreePop();
 }
-void imgui_value(int64_t prefix, int32_t b) {
+DORA_EXPORT void imgui_value(int64_t prefix, int32_t b) {
 	ImGui::Binding::Value(*Str_From(prefix), b != 0);
 }
-int32_t imgui_menu_item(int64_t label, int64_t shortcut, int32_t selected, int32_t enabled) {
+DORA_EXPORT int32_t imgui_menu_item(int64_t label, int64_t shortcut, int32_t selected, int32_t enabled) {
 	return ImGui::Binding::MenuItem(*Str_From(label), *Str_From(shortcut), selected != 0, enabled != 0) ? 1 : 0;
 }
-void imgui_open_popup(int64_t str_id) {
+DORA_EXPORT void imgui_open_popup(int64_t str_id) {
 	ImGui::Binding::OpenPopup(*Str_From(str_id));
 }
-int32_t imgui__begin_popup(int64_t str_id) {
+DORA_EXPORT int32_t imgui__begin_popup(int64_t str_id) {
 	return ImGui::Binding::BeginPopup(*Str_From(str_id)) ? 1 : 0;
 }
-void imgui__end_popup() {
+DORA_EXPORT void imgui__end_popup() {
 	ImGui::EndPopup();
 }
-float imgui_get_tree_node_to_label_spacing() {
+DORA_EXPORT float imgui_get_tree_node_to_label_spacing() {
 	return ImGui::GetTreeNodeToLabelSpacing();
 }
-int32_t imgui__begin_list_box(int64_t label, int64_t size) {
+DORA_EXPORT int32_t imgui__begin_list_box(int64_t label, int64_t size) {
 	return ImGui::Binding::BeginListBox(*Str_From(label), Vec2_From(size)) ? 1 : 0;
 }
-void imgui__end_list_box() {
+DORA_EXPORT void imgui__end_list_box() {
 	ImGui::EndListBox();
 }
-void imgui__begin_disabled() {
+DORA_EXPORT void imgui__begin_disabled() {
 	ImGui::BeginDisabled();
 }
-void imgui__end_disabled() {
+DORA_EXPORT void imgui__end_disabled() {
 	ImGui::EndDisabled();
 }
-int32_t imgui__begin_tooltip() {
+DORA_EXPORT int32_t imgui__begin_tooltip() {
 	return ImGui::BeginTooltip() ? 1 : 0;
 }
-void imgui__end_tooltip() {
+DORA_EXPORT void imgui__end_tooltip() {
 	ImGui::EndTooltip();
 }
-int32_t imgui__begin_main_menu_bar() {
+DORA_EXPORT int32_t imgui__begin_main_menu_bar() {
 	return ImGui::BeginMainMenuBar() ? 1 : 0;
 }
-void imgui__end_main_menu_bar() {
+DORA_EXPORT void imgui__end_main_menu_bar() {
 	ImGui::EndMainMenuBar();
 }
-int32_t imgui__begin_menu_bar() {
+DORA_EXPORT int32_t imgui__begin_menu_bar() {
 	return ImGui::BeginMenuBar() ? 1 : 0;
 }
-void imgui__end_menu_bar() {
+DORA_EXPORT void imgui__end_menu_bar() {
 	ImGui::EndMenuBar();
 }
-int32_t imgui__begin_menu(int64_t label, int32_t enabled) {
+DORA_EXPORT int32_t imgui__begin_menu(int64_t label, int32_t enabled) {
 	return ImGui::Binding::BeginMenu(*Str_From(label), enabled != 0) ? 1 : 0;
 }
-void imgui__end_menu() {
+DORA_EXPORT void imgui__end_menu() {
 	ImGui::EndMenu();
 }
-void imgui_close_current_popup() {
+DORA_EXPORT void imgui_close_current_popup() {
 	ImGui::CloseCurrentPopup();
 }
-void imgui__push_clip_rect(int64_t clip_rect_min, int64_t clip_rect_max, int32_t intersect_with_current_clip_rect) {
+DORA_EXPORT void imgui__push_clip_rect(int64_t clip_rect_min, int64_t clip_rect_max, int32_t intersect_with_current_clip_rect) {
 	ImGui::PushClipRect(Vec2_From(clip_rect_min), Vec2_From(clip_rect_max), intersect_with_current_clip_rect != 0);
 }
-void imgui__pop_clip_rect() {
+DORA_EXPORT void imgui__pop_clip_rect() {
 	ImGui::PopClipRect();
 }
-int32_t imgui_is_item_hovered() {
+DORA_EXPORT int32_t imgui_is_item_hovered() {
 	return ImGui::IsItemHovered() ? 1 : 0;
 }
-int32_t imgui_is_item_active() {
+DORA_EXPORT int32_t imgui_is_item_active() {
 	return ImGui::IsItemActive() ? 1 : 0;
 }
-int32_t imgui_is_item_clicked(int32_t mouse_button) {
+DORA_EXPORT int32_t imgui_is_item_clicked(int32_t mouse_button) {
 	return ImGui::IsItemClicked(s_cast<int>(mouse_button)) ? 1 : 0;
 }
-int32_t imgui_is_item_visible() {
+DORA_EXPORT int32_t imgui_is_item_visible() {
 	return ImGui::IsItemVisible() ? 1 : 0;
 }
-int32_t imgui_is_any_item_hovered() {
+DORA_EXPORT int32_t imgui_is_any_item_hovered() {
 	return ImGui::IsAnyItemHovered() ? 1 : 0;
 }
-int32_t imgui_is_any_item_active() {
+DORA_EXPORT int32_t imgui_is_any_item_active() {
 	return ImGui::IsAnyItemActive() ? 1 : 0;
 }
-int64_t imgui_get_item_rect_min() {
+DORA_EXPORT int64_t imgui_get_item_rect_min() {
 	return Vec2_Retain(ImGui::GetItemRectMin());
 }
-int64_t imgui_get_item_rect_max() {
+DORA_EXPORT int64_t imgui_get_item_rect_max() {
 	return Vec2_Retain(ImGui::GetItemRectMax());
 }
-int64_t imgui_get_item_rect_size() {
+DORA_EXPORT int64_t imgui_get_item_rect_size() {
 	return Vec2_Retain(ImGui::GetItemRectSize());
 }
-void imgui_set_next_item_allow_overlap() {
+DORA_EXPORT void imgui_set_next_item_allow_overlap() {
 	ImGui::SetNextItemAllowOverlap();
 }
-int32_t imgui_is_window_hovered() {
+DORA_EXPORT int32_t imgui_is_window_hovered() {
 	return ImGui::IsWindowHovered() ? 1 : 0;
 }
-int32_t imgui_is_window_focused() {
+DORA_EXPORT int32_t imgui_is_window_focused() {
 	return ImGui::IsWindowFocused() ? 1 : 0;
 }
-int32_t imgui_is_rect_visible(int64_t size) {
+DORA_EXPORT int32_t imgui_is_rect_visible(int64_t size) {
 	return ImGui::IsRectVisible(Vec2_From(size)) ? 1 : 0;
 }
-int32_t imgui_is_mouse_down(int32_t button) {
+DORA_EXPORT int32_t imgui_is_mouse_down(int32_t button) {
 	return ImGui::IsMouseDown(s_cast<int>(button)) ? 1 : 0;
 }
-int32_t imgui_is_mouse_clicked(int32_t button, int32_t repeat) {
+DORA_EXPORT int32_t imgui_is_mouse_clicked(int32_t button, int32_t repeat) {
 	return ImGui::IsMouseClicked(s_cast<int>(button), repeat != 0) ? 1 : 0;
 }
-int32_t imgui_is_mouse_double_clicked(int32_t button) {
+DORA_EXPORT int32_t imgui_is_mouse_double_clicked(int32_t button) {
 	return ImGui::IsMouseDoubleClicked(s_cast<int>(button)) ? 1 : 0;
 }
-int32_t imgui_is_mouse_released(int32_t button) {
+DORA_EXPORT int32_t imgui_is_mouse_released(int32_t button) {
 	return ImGui::IsMouseReleased(s_cast<int>(button)) ? 1 : 0;
 }
-int32_t imgui_is_mouse_hovering_rect(int64_t r_min, int64_t r_max, int32_t clip) {
+DORA_EXPORT int32_t imgui_is_mouse_hovering_rect(int64_t r_min, int64_t r_max, int32_t clip) {
 	return ImGui::IsMouseHoveringRect(Vec2_From(r_min), Vec2_From(r_max), clip != 0) ? 1 : 0;
 }
-int32_t imgui_is_mouse_dragging(int32_t button, float lock_threshold) {
+DORA_EXPORT int32_t imgui_is_mouse_dragging(int32_t button, float lock_threshold) {
 	return ImGui::IsMouseDragging(s_cast<int>(button), lock_threshold) ? 1 : 0;
 }
-int64_t imgui_get_mouse_pos() {
+DORA_EXPORT int64_t imgui_get_mouse_pos() {
 	return Vec2_Retain(ImGui::GetMousePos());
 }
-int64_t imgui_get_mouse_pos_on_opening_current_popup() {
+DORA_EXPORT int64_t imgui_get_mouse_pos_on_opening_current_popup() {
 	return Vec2_Retain(ImGui::GetMousePosOnOpeningCurrentPopup());
 }
-int64_t imgui_get_mouse_drag_delta(int32_t button, float lock_threshold) {
+DORA_EXPORT int64_t imgui_get_mouse_drag_delta(int32_t button, float lock_threshold) {
 	return Vec2_Retain(ImGui::GetMouseDragDelta(s_cast<int>(button), lock_threshold));
 }
-void imgui_reset_mouse_drag_delta(int32_t button) {
+DORA_EXPORT void imgui_reset_mouse_drag_delta(int32_t button) {
 	ImGui::ResetMouseDragDelta(s_cast<int>(button));
 }
-int32_t imgui__begin_tab_bar(int64_t str_id) {
+DORA_EXPORT int32_t imgui__begin_tab_bar(int64_t str_id) {
 	return ImGui::Binding::BeginTabBar(*Str_From(str_id)) ? 1 : 0;
 }
-int32_t imgui__begin_tab_bar_opts(int64_t str_id, int32_t flags) {
+DORA_EXPORT int32_t imgui__begin_tab_bar_opts(int64_t str_id, int32_t flags) {
 	return ImGui::Binding::BeginTabBar(*Str_From(str_id), s_cast<uint32_t>(flags)) ? 1 : 0;
 }
-void imgui__end_tab_bar() {
+DORA_EXPORT void imgui__end_tab_bar() {
 	ImGui::EndTabBar();
 }
-int32_t imgui__begin_tab_item(int64_t label) {
+DORA_EXPORT int32_t imgui__begin_tab_item(int64_t label) {
 	return ImGui::Binding::BeginTabItem(*Str_From(label)) ? 1 : 0;
 }
-int32_t imgui__begin_tab_item_opts(int64_t label, int32_t flags) {
+DORA_EXPORT int32_t imgui__begin_tab_item_opts(int64_t label, int32_t flags) {
 	return ImGui::Binding::BeginTabItem(*Str_From(label), s_cast<uint32_t>(flags)) ? 1 : 0;
 }
-int32_t imgui__begin_tab_item_ret(int64_t label, int64_t stack) {
+DORA_EXPORT int32_t imgui__begin_tab_item_ret(int64_t label, int64_t stack) {
 	return ImGui::Binding::BeginTabItem(*Str_From(label), r_cast<CallStack*>(stack)) ? 1 : 0;
 }
-int32_t imgui__begin_tab_item_ret_opts(int64_t label, int64_t stack, int32_t flags) {
+DORA_EXPORT int32_t imgui__begin_tab_item_ret_opts(int64_t label, int64_t stack, int32_t flags) {
 	return ImGui::Binding::BeginTabItem(*Str_From(label), r_cast<CallStack*>(stack), s_cast<uint32_t>(flags)) ? 1 : 0;
 }
-void imgui__end_tab_item() {
+DORA_EXPORT void imgui__end_tab_item() {
 	ImGui::EndTabItem();
 }
-int32_t imgui_tab_item_button(int64_t label) {
+DORA_EXPORT int32_t imgui_tab_item_button(int64_t label) {
 	return ImGui::Binding::TabItemButton(*Str_From(label)) ? 1 : 0;
 }
-int32_t imgui__tab_item_button_opts(int64_t label, int32_t flags) {
+DORA_EXPORT int32_t imgui__tab_item_button_opts(int64_t label, int32_t flags) {
 	return ImGui::Binding::TabItemButton(*Str_From(label), s_cast<uint32_t>(flags)) ? 1 : 0;
 }
-void imgui_set_tab_item_closed(int64_t tab_or_docked_window_label) {
+DORA_EXPORT void imgui_set_tab_item_closed(int64_t tab_or_docked_window_label) {
 	ImGui::Binding::SetTabItemClosed(*Str_From(tab_or_docked_window_label));
 }
 } // extern "C"

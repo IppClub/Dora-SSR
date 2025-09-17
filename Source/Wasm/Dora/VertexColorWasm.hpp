@@ -8,22 +8,22 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-void vertexcolor_release(int64_t raw) {
+DORA_EXPORT void vertexcolor_release(int64_t raw) {
 	delete r_cast<VertexColor*>(raw);
 }
-void vertexcolor_set_vertex(int64_t self, int64_t val) {
+DORA_EXPORT void vertexcolor_set_vertex(int64_t self, int64_t val) {
 	r_cast<VertexColor*>(self)->vertex = Vec2_From(val);
 }
-int64_t vertexcolor_get_vertex(int64_t self) {
+DORA_EXPORT int64_t vertexcolor_get_vertex(int64_t self) {
 	return Vec2_Retain(r_cast<VertexColor*>(self)->vertex);
 }
-void vertexcolor_set_color(int64_t self, int32_t val) {
+DORA_EXPORT void vertexcolor_set_color(int64_t self, int32_t val) {
 	r_cast<VertexColor*>(self)->color = Color(s_cast<uint32_t>(val));
 }
-int32_t vertexcolor_get_color(int64_t self) {
+DORA_EXPORT int32_t vertexcolor_get_color(int64_t self) {
 	return r_cast<VertexColor*>(self)->color.toARGB();
 }
-int64_t vertexcolor_new(int64_t vec, int32_t color) {
+DORA_EXPORT int64_t vertexcolor_new(int64_t vec, int32_t color) {
 	return r_cast<int64_t>(new VertexColor{Vec2_From(vec), Color(s_cast<uint32_t>(color))});
 }
 } // extern "C"

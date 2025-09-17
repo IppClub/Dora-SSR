@@ -8,22 +8,22 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-int32_t db_exist_db(int64_t db_name) {
+DORA_EXPORT int32_t db_exist_db(int64_t db_name) {
 	return SharedDB.existDB(*Str_From(db_name)) ? 1 : 0;
 }
-int32_t db_exist(int64_t table_name) {
+DORA_EXPORT int32_t db_exist(int64_t table_name) {
 	return SharedDB.exist(*Str_From(table_name)) ? 1 : 0;
 }
-int32_t db_exist_schema(int64_t table_name, int64_t schema) {
+DORA_EXPORT int32_t db_exist_schema(int64_t table_name, int64_t schema) {
 	return SharedDB.exist(*Str_From(table_name), *Str_From(schema)) ? 1 : 0;
 }
-int32_t db_exec(int64_t sql) {
+DORA_EXPORT int32_t db_exec(int64_t sql) {
 	return s_cast<int32_t>(SharedDB.exec(*Str_From(sql)));
 }
-int32_t db_transaction(int64_t query) {
+DORA_EXPORT int32_t db_transaction(int64_t query) {
 	return DB_Transaction(*r_cast<DBQuery*>(query)) ? 1 : 0;
 }
-void db_transaction_async(int64_t query, int32_t func0, int64_t stack0) {
+DORA_EXPORT void db_transaction_async(int64_t query, int32_t func0, int64_t stack0) {
 	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
 		SharedWasmRuntime.deref(func0);
 	});
@@ -34,19 +34,19 @@ void db_transaction_async(int64_t query, int32_t func0, int64_t stack0) {
 		SharedWasmRuntime.invoke(func0);
 	});
 }
-int64_t db_query(int64_t sql, int32_t with_columns) {
+DORA_EXPORT int64_t db_query(int64_t sql, int32_t with_columns) {
 	return r_cast<int64_t>(new DBRecord{DB_Query(*Str_From(sql), with_columns != 0)});
 }
-int64_t db_query_with_params(int64_t sql, int64_t params, int32_t with_columns) {
+DORA_EXPORT int64_t db_query_with_params(int64_t sql, int64_t params, int32_t with_columns) {
 	return r_cast<int64_t>(new DBRecord{DB_QueryWithParams(*Str_From(sql), r_cast<Array*>(params), with_columns != 0)});
 }
-void db_insert(int64_t table_name, int64_t values) {
+DORA_EXPORT void db_insert(int64_t table_name, int64_t values) {
 	DB_Insert(*Str_From(table_name), *r_cast<DBParams*>(values));
 }
-int32_t db_exec_with_records(int64_t sql, int64_t values) {
+DORA_EXPORT int32_t db_exec_with_records(int64_t sql, int64_t values) {
 	return DB_ExecWithRecords(*Str_From(sql), *r_cast<DBParams*>(values));
 }
-void db_query_with_params_async(int64_t sql, int64_t params, int32_t with_columns, int32_t func0, int64_t stack0) {
+DORA_EXPORT void db_query_with_params_async(int64_t sql, int64_t params, int32_t with_columns, int32_t func0, int64_t stack0) {
 	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
 		SharedWasmRuntime.deref(func0);
 	});
@@ -57,7 +57,7 @@ void db_query_with_params_async(int64_t sql, int64_t params, int32_t with_column
 		SharedWasmRuntime.invoke(func0);
 	});
 }
-void db_insert_async(int64_t table_name, int64_t values, int32_t func0, int64_t stack0) {
+DORA_EXPORT void db_insert_async(int64_t table_name, int64_t values, int32_t func0, int64_t stack0) {
 	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
 		SharedWasmRuntime.deref(func0);
 	});
@@ -68,7 +68,7 @@ void db_insert_async(int64_t table_name, int64_t values, int32_t func0, int64_t 
 		SharedWasmRuntime.invoke(func0);
 	});
 }
-void db_exec_async(int64_t sql, int64_t values, int32_t func0, int64_t stack0) {
+DORA_EXPORT void db_exec_async(int64_t sql, int64_t values, int32_t func0, int64_t stack0) {
 	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
 		SharedWasmRuntime.deref(func0);
 	});

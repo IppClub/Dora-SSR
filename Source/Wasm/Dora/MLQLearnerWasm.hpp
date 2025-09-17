@@ -8,16 +8,16 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-int32_t qlearner_type() {
+DORA_EXPORT int32_t qlearner_type() {
 	return DoraType<MLQLearner>();
 }
-void mlqlearner_update(int64_t self, int64_t state, int32_t action, double reward) {
+DORA_EXPORT void mlqlearner_update(int64_t self, int64_t state, int32_t action, double reward) {
 	r_cast<MLQLearner*>(self)->update(s_cast<MLQState>(state), s_cast<MLQAction>(action), reward);
 }
-int32_t mlqlearner_get_best_action(int64_t self, int64_t state) {
+DORA_EXPORT int32_t mlqlearner_get_best_action(int64_t self, int64_t state) {
 	return s_cast<int32_t>(r_cast<MLQLearner*>(self)->getBestAction(s_cast<MLQState>(state)));
 }
-void mlqlearner_visit_matrix(int64_t self, int32_t func0, int64_t stack0) {
+DORA_EXPORT void mlqlearner_visit_matrix(int64_t self, int32_t func0, int64_t stack0) {
 	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
 		SharedWasmRuntime.deref(func0);
 	});
@@ -30,13 +30,13 @@ void mlqlearner_visit_matrix(int64_t self, int32_t func0, int64_t stack0) {
 		SharedWasmRuntime.invoke(func0);
 	});
 }
-int64_t mlqlearner_pack(int64_t hints, int64_t values) {
+DORA_EXPORT int64_t mlqlearner_pack(int64_t hints, int64_t values) {
 	return s_cast<int64_t>(MLQLearner::pack(Vec_FromUint32(hints), Vec_FromUint32(values)));
 }
-int64_t mlqlearner_unpack(int64_t hints, int64_t state) {
+DORA_EXPORT int64_t mlqlearner_unpack(int64_t hints, int64_t state) {
 	return Vec_To(MLQLearner::unpack(Vec_FromUint32(hints), s_cast<MLQState>(state)));
 }
-int64_t mlqlearner_new(double gamma, double alpha, double max_q) {
+DORA_EXPORT int64_t mlqlearner_new(double gamma, double alpha, double max_q) {
 	return Object_From(MLQLearner::create(gamma, alpha, max_q));
 }
 } // extern "C"

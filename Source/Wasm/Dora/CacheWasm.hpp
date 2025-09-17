@@ -8,10 +8,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-int32_t cache_load(int64_t filename) {
+DORA_EXPORT int32_t cache_load(int64_t filename) {
 	return Cache::load(*Str_From(filename)) ? 1 : 0;
 }
-void cache_load_async(int64_t filename, int32_t func0, int64_t stack0) {
+DORA_EXPORT void cache_load_async(int64_t filename, int32_t func0, int64_t stack0) {
 	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
 		SharedWasmRuntime.deref(func0);
 	});
@@ -22,22 +22,22 @@ void cache_load_async(int64_t filename, int32_t func0, int64_t stack0) {
 		SharedWasmRuntime.invoke(func0);
 	});
 }
-void cache_update_item(int64_t filename, int64_t content) {
+DORA_EXPORT void cache_update_item(int64_t filename, int64_t content) {
 	Cache::update(*Str_From(filename), *Str_From(content));
 }
-void cache_update_texture(int64_t filename, int64_t texture) {
+DORA_EXPORT void cache_update_texture(int64_t filename, int64_t texture) {
 	Cache::update(*Str_From(filename), r_cast<Texture2D*>(texture));
 }
-int32_t cache_unload_item_or_type(int64_t name) {
+DORA_EXPORT int32_t cache_unload_item_or_type(int64_t name) {
 	return Cache::unload(*Str_From(name)) ? 1 : 0;
 }
-void cache_unload() {
+DORA_EXPORT void cache_unload() {
 	Cache::unload();
 }
-void cache_remove_unused() {
+DORA_EXPORT void cache_remove_unused() {
 	Cache::removeUnused();
 }
-void cache_remove_unused_by_type(int64_t type_name) {
+DORA_EXPORT void cache_remove_unused_by_type(int64_t type_name) {
 	Cache::removeUnused(*Str_From(type_name));
 }
 } // extern "C"

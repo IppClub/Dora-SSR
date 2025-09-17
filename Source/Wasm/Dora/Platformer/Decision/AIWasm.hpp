@@ -8,25 +8,25 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-int64_t platformer_decision_ai_get_units_by_relation(int32_t relation) {
+DORA_EXPORT int64_t platformer_decision_ai_get_units_by_relation(int32_t relation) {
 	return Object_From(SharedAI.getUnitsByRelation(s_cast<Platformer::Relation>(relation)));
 }
-int64_t platformer_decision_ai_get_detected_units() {
+DORA_EXPORT int64_t platformer_decision_ai_get_detected_units() {
 	return Object_From(SharedAI.getDetectedUnits());
 }
-int64_t platformer_decision_ai_get_detected_bodies() {
+DORA_EXPORT int64_t platformer_decision_ai_get_detected_bodies() {
 	return Object_From(SharedAI.getDetectedBodies());
 }
-int64_t platformer_decision_ai_get_nearest_unit(int32_t relation) {
+DORA_EXPORT int64_t platformer_decision_ai_get_nearest_unit(int32_t relation) {
 	return Object_From(SharedAI.getNearestUnit(s_cast<Platformer::Relation>(relation)));
 }
-float platformer_decision_ai_get_nearest_unit_distance(int32_t relation) {
+DORA_EXPORT float platformer_decision_ai_get_nearest_unit_distance(int32_t relation) {
 	return SharedAI.getNearestUnitDistance(s_cast<Platformer::Relation>(relation));
 }
-int64_t platformer_decision_ai_get_units_in_attack_range() {
+DORA_EXPORT int64_t platformer_decision_ai_get_units_in_attack_range() {
 	return Object_From(SharedAI.getUnitsInAttackRange());
 }
-int64_t platformer_decision_ai_get_bodies_in_attack_range() {
+DORA_EXPORT int64_t platformer_decision_ai_get_bodies_in_attack_range() {
 	return Object_From(SharedAI.getBodiesInAttackRange());
 }
 } // extern "C"

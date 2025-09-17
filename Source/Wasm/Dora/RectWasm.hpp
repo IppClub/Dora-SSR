@@ -8,109 +8,109 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-void rect_release(int64_t raw) {
+DORA_EXPORT void rect_release(int64_t raw) {
 	delete r_cast<Rect*>(raw);
 }
-void rect_set_origin(int64_t self, int64_t val) {
+DORA_EXPORT void rect_set_origin(int64_t self, int64_t val) {
 	r_cast<Rect*>(self)->origin = Vec2_From(val);
 }
-int64_t rect_get_origin(int64_t self) {
+DORA_EXPORT int64_t rect_get_origin(int64_t self) {
 	return Vec2_Retain(r_cast<Rect*>(self)->origin);
 }
-void rect_set_size(int64_t self, int64_t val) {
+DORA_EXPORT void rect_set_size(int64_t self, int64_t val) {
 	r_cast<Rect*>(self)->size = Size_From(val);
 }
-int64_t rect_get_size(int64_t self) {
+DORA_EXPORT int64_t rect_get_size(int64_t self) {
 	return Size_Retain(r_cast<Rect*>(self)->size);
 }
-void rect_set_x(int64_t self, float val) {
+DORA_EXPORT void rect_set_x(int64_t self, float val) {
 	r_cast<Rect*>(self)->setX(val);
 }
-float rect_get_x(int64_t self) {
+DORA_EXPORT float rect_get_x(int64_t self) {
 	return r_cast<Rect*>(self)->getX();
 }
-void rect_set_y(int64_t self, float val) {
+DORA_EXPORT void rect_set_y(int64_t self, float val) {
 	r_cast<Rect*>(self)->setY(val);
 }
-float rect_get_y(int64_t self) {
+DORA_EXPORT float rect_get_y(int64_t self) {
 	return r_cast<Rect*>(self)->getY();
 }
-void rect_set_width(int64_t self, float val) {
+DORA_EXPORT void rect_set_width(int64_t self, float val) {
 	r_cast<Rect*>(self)->setWidth(val);
 }
-float rect_get_width(int64_t self) {
+DORA_EXPORT float rect_get_width(int64_t self) {
 	return r_cast<Rect*>(self)->getWidth();
 }
-void rect_set_height(int64_t self, float val) {
+DORA_EXPORT void rect_set_height(int64_t self, float val) {
 	r_cast<Rect*>(self)->setHeight(val);
 }
-float rect_get_height(int64_t self) {
+DORA_EXPORT float rect_get_height(int64_t self) {
 	return r_cast<Rect*>(self)->getHeight();
 }
-void rect_set_left(int64_t self, float val) {
+DORA_EXPORT void rect_set_left(int64_t self, float val) {
 	r_cast<Rect*>(self)->setLeft(val);
 }
-float rect_get_left(int64_t self) {
+DORA_EXPORT float rect_get_left(int64_t self) {
 	return r_cast<Rect*>(self)->getLeft();
 }
-void rect_set_right(int64_t self, float val) {
+DORA_EXPORT void rect_set_right(int64_t self, float val) {
 	r_cast<Rect*>(self)->setRight(val);
 }
-float rect_get_right(int64_t self) {
+DORA_EXPORT float rect_get_right(int64_t self) {
 	return r_cast<Rect*>(self)->getRight();
 }
-void rect_set_center_x(int64_t self, float val) {
+DORA_EXPORT void rect_set_center_x(int64_t self, float val) {
 	r_cast<Rect*>(self)->setCenterX(val);
 }
-float rect_get_center_x(int64_t self) {
+DORA_EXPORT float rect_get_center_x(int64_t self) {
 	return r_cast<Rect*>(self)->getCenterX();
 }
-void rect_set_center_y(int64_t self, float val) {
+DORA_EXPORT void rect_set_center_y(int64_t self, float val) {
 	r_cast<Rect*>(self)->setCenterY(val);
 }
-float rect_get_center_y(int64_t self) {
+DORA_EXPORT float rect_get_center_y(int64_t self) {
 	return r_cast<Rect*>(self)->getCenterY();
 }
-void rect_set_bottom(int64_t self, float val) {
+DORA_EXPORT void rect_set_bottom(int64_t self, float val) {
 	r_cast<Rect*>(self)->setBottom(val);
 }
-float rect_get_bottom(int64_t self) {
+DORA_EXPORT float rect_get_bottom(int64_t self) {
 	return r_cast<Rect*>(self)->getBottom();
 }
-void rect_set_top(int64_t self, float val) {
+DORA_EXPORT void rect_set_top(int64_t self, float val) {
 	r_cast<Rect*>(self)->setTop(val);
 }
-float rect_get_top(int64_t self) {
+DORA_EXPORT float rect_get_top(int64_t self) {
 	return r_cast<Rect*>(self)->getTop();
 }
-void rect_set_lower_bound(int64_t self, int64_t val) {
+DORA_EXPORT void rect_set_lower_bound(int64_t self, int64_t val) {
 	r_cast<Rect*>(self)->setLowerBound(Vec2_From(val));
 }
-int64_t rect_get_lower_bound(int64_t self) {
+DORA_EXPORT int64_t rect_get_lower_bound(int64_t self) {
 	return Vec2_Retain(r_cast<Rect*>(self)->getLowerBound());
 }
-void rect_set_upper_bound(int64_t self, int64_t val) {
+DORA_EXPORT void rect_set_upper_bound(int64_t self, int64_t val) {
 	r_cast<Rect*>(self)->setUpperBound(Vec2_From(val));
 }
-int64_t rect_get_upper_bound(int64_t self) {
+DORA_EXPORT int64_t rect_get_upper_bound(int64_t self) {
 	return Vec2_Retain(r_cast<Rect*>(self)->getUpperBound());
 }
-void rect_set(int64_t self, float x, float y, float width, float height) {
+DORA_EXPORT void rect_set(int64_t self, float x, float y, float width, float height) {
 	r_cast<Rect*>(self)->set(x, y, width, height);
 }
-int32_t rect_contains_point(int64_t self, int64_t point) {
+DORA_EXPORT int32_t rect_contains_point(int64_t self, int64_t point) {
 	return r_cast<Rect*>(self)->containsPoint(Vec2_From(point)) ? 1 : 0;
 }
-int32_t rect_intersects_rect(int64_t self, int64_t rect) {
+DORA_EXPORT int32_t rect_intersects_rect(int64_t self, int64_t rect) {
 	return r_cast<Rect*>(self)->intersectsRect(*r_cast<Rect*>(rect)) ? 1 : 0;
 }
-int32_t rect_equals(int64_t self, int64_t other) {
+DORA_EXPORT int32_t rect_equals(int64_t self, int64_t other) {
 	return r_cast<Rect*>(self)->operator==(*r_cast<Rect*>(other)) ? 1 : 0;
 }
-int64_t rect_new(int64_t origin, int64_t size) {
+DORA_EXPORT int64_t rect_new(int64_t origin, int64_t size) {
 	return r_cast<int64_t>(new Rect{Vec2_From(origin), Size_From(size)});
 }
-int64_t rect_zero() {
+DORA_EXPORT int64_t rect_zero() {
 	return r_cast<int64_t>(new Rect{Rect_GetZero()});
 }
 } // extern "C"

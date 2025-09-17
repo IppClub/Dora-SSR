@@ -8,10 +8,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-double platformer_behavior_blackboard_get_delta_time(int64_t self) {
+DORA_EXPORT double platformer_behavior_blackboard_get_delta_time(int64_t self) {
 	return r_cast<Platformer::Behavior::Blackboard*>(self)->getDeltaTime();
 }
-int64_t platformer_behavior_blackboard_get_owner(int64_t self) {
+DORA_EXPORT int64_t platformer_behavior_blackboard_get_owner(int64_t self) {
 	return Object_From(r_cast<Platformer::Behavior::Blackboard*>(self)->getOwner());
 }
 } // extern "C"

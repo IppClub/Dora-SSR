@@ -8,19 +8,19 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-int32_t effect_type() {
+DORA_EXPORT int32_t effect_type() {
 	return DoraType<Effect>();
 }
-void effect_add(int64_t self, int64_t pass) {
+DORA_EXPORT void effect_add(int64_t self, int64_t pass) {
 	r_cast<Effect*>(self)->add(r_cast<Pass*>(pass));
 }
-int64_t effect_get(int64_t self, int64_t index) {
+DORA_EXPORT int64_t effect_get(int64_t self, int64_t index) {
 	return Object_From(Effect_GetPass(r_cast<Effect*>(self), s_cast<int64_t>(index)));
 }
-void effect_clear(int64_t self) {
+DORA_EXPORT void effect_clear(int64_t self) {
 	r_cast<Effect*>(self)->clear();
 }
-int64_t effect_new(int64_t vert_shader, int64_t frag_shader) {
+DORA_EXPORT int64_t effect_new(int64_t vert_shader, int64_t frag_shader) {
 	return Object_From(Effect::create(*Str_From(vert_shader), *Str_From(frag_shader)));
 }
 } // extern "C"

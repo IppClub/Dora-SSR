@@ -8,55 +8,55 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-int32_t jointdef_type() {
+DORA_EXPORT int32_t jointdef_type() {
 	return DoraType<JointDef>();
 }
-void jointdef_set_center(int64_t self, int64_t val) {
+DORA_EXPORT void jointdef_set_center(int64_t self, int64_t val) {
 	r_cast<JointDef*>(self)->center = Vec2_From(val);
 }
-int64_t jointdef_get_center(int64_t self) {
+DORA_EXPORT int64_t jointdef_get_center(int64_t self) {
 	return Vec2_Retain(r_cast<JointDef*>(self)->center);
 }
-void jointdef_set_position(int64_t self, int64_t val) {
+DORA_EXPORT void jointdef_set_position(int64_t self, int64_t val) {
 	r_cast<JointDef*>(self)->position = Vec2_From(val);
 }
-int64_t jointdef_get_position(int64_t self) {
+DORA_EXPORT int64_t jointdef_get_position(int64_t self) {
 	return Vec2_Retain(r_cast<JointDef*>(self)->position);
 }
-void jointdef_set_angle(int64_t self, float val) {
+DORA_EXPORT void jointdef_set_angle(int64_t self, float val) {
 	r_cast<JointDef*>(self)->angle = s_cast<float>(val);
 }
-float jointdef_get_angle(int64_t self) {
+DORA_EXPORT float jointdef_get_angle(int64_t self) {
 	return r_cast<JointDef*>(self)->angle;
 }
-int64_t jointdef_distance(int32_t collision, int64_t body_a, int64_t body_b, int64_t anchor_a, int64_t anchor_b, float frequency, float damping) {
+DORA_EXPORT int64_t jointdef_distance(int32_t collision, int64_t body_a, int64_t body_b, int64_t anchor_a, int64_t anchor_b, float frequency, float damping) {
 	return Object_From(JointDef::distance(collision != 0, *Str_From(body_a), *Str_From(body_b), Vec2_From(anchor_a), Vec2_From(anchor_b), frequency, damping));
 }
-int64_t jointdef_friction(int32_t collision, int64_t body_a, int64_t body_b, int64_t world_pos, float max_force, float max_torque) {
+DORA_EXPORT int64_t jointdef_friction(int32_t collision, int64_t body_a, int64_t body_b, int64_t world_pos, float max_force, float max_torque) {
 	return Object_From(JointDef::friction(collision != 0, *Str_From(body_a), *Str_From(body_b), Vec2_From(world_pos), max_force, max_torque));
 }
-int64_t jointdef_gear(int32_t collision, int64_t joint_a, int64_t joint_b, float ratio) {
+DORA_EXPORT int64_t jointdef_gear(int32_t collision, int64_t joint_a, int64_t joint_b, float ratio) {
 	return Object_From(JointDef::gear(collision != 0, *Str_From(joint_a), *Str_From(joint_b), ratio));
 }
-int64_t jointdef_spring(int32_t collision, int64_t body_a, int64_t body_b, int64_t linear_offset, float angular_offset, float max_force, float max_torque, float correction_factor) {
+DORA_EXPORT int64_t jointdef_spring(int32_t collision, int64_t body_a, int64_t body_b, int64_t linear_offset, float angular_offset, float max_force, float max_torque, float correction_factor) {
 	return Object_From(JointDef::spring(collision != 0, *Str_From(body_a), *Str_From(body_b), Vec2_From(linear_offset), angular_offset, max_force, max_torque, correction_factor));
 }
-int64_t jointdef_prismatic(int32_t collision, int64_t body_a, int64_t body_b, int64_t world_pos, float axis_angle, float lower_translation, float upper_translation, float max_motor_force, float motor_speed) {
+DORA_EXPORT int64_t jointdef_prismatic(int32_t collision, int64_t body_a, int64_t body_b, int64_t world_pos, float axis_angle, float lower_translation, float upper_translation, float max_motor_force, float motor_speed) {
 	return Object_From(JointDef::prismatic(collision != 0, *Str_From(body_a), *Str_From(body_b), Vec2_From(world_pos), axis_angle, lower_translation, upper_translation, max_motor_force, motor_speed));
 }
-int64_t jointdef_pulley(int32_t collision, int64_t body_a, int64_t body_b, int64_t anchor_a, int64_t anchor_b, int64_t ground_anchor_a, int64_t ground_anchor_b, float ratio) {
+DORA_EXPORT int64_t jointdef_pulley(int32_t collision, int64_t body_a, int64_t body_b, int64_t anchor_a, int64_t anchor_b, int64_t ground_anchor_a, int64_t ground_anchor_b, float ratio) {
 	return Object_From(JointDef::pulley(collision != 0, *Str_From(body_a), *Str_From(body_b), Vec2_From(anchor_a), Vec2_From(anchor_b), Vec2_From(ground_anchor_a), Vec2_From(ground_anchor_b), ratio));
 }
-int64_t jointdef_revolute(int32_t collision, int64_t body_a, int64_t body_b, int64_t world_pos, float lower_angle, float upper_angle, float max_motor_torque, float motor_speed) {
+DORA_EXPORT int64_t jointdef_revolute(int32_t collision, int64_t body_a, int64_t body_b, int64_t world_pos, float lower_angle, float upper_angle, float max_motor_torque, float motor_speed) {
 	return Object_From(JointDef::revolute(collision != 0, *Str_From(body_a), *Str_From(body_b), Vec2_From(world_pos), lower_angle, upper_angle, max_motor_torque, motor_speed));
 }
-int64_t jointdef_rope(int32_t collision, int64_t body_a, int64_t body_b, int64_t anchor_a, int64_t anchor_b, float max_length) {
+DORA_EXPORT int64_t jointdef_rope(int32_t collision, int64_t body_a, int64_t body_b, int64_t anchor_a, int64_t anchor_b, float max_length) {
 	return Object_From(JointDef::rope(collision != 0, *Str_From(body_a), *Str_From(body_b), Vec2_From(anchor_a), Vec2_From(anchor_b), max_length));
 }
-int64_t jointdef_weld(int32_t collision, int64_t body_a, int64_t body_b, int64_t world_pos, float frequency, float damping) {
+DORA_EXPORT int64_t jointdef_weld(int32_t collision, int64_t body_a, int64_t body_b, int64_t world_pos, float frequency, float damping) {
 	return Object_From(JointDef::weld(collision != 0, *Str_From(body_a), *Str_From(body_b), Vec2_From(world_pos), frequency, damping));
 }
-int64_t jointdef_wheel(int32_t collision, int64_t body_a, int64_t body_b, int64_t world_pos, float axis_angle, float max_motor_torque, float motor_speed, float frequency, float damping) {
+DORA_EXPORT int64_t jointdef_wheel(int32_t collision, int64_t body_a, int64_t body_b, int64_t world_pos, float axis_angle, float max_motor_torque, float motor_speed, float frequency, float damping) {
 	return Object_From(JointDef::wheel(collision != 0, *Str_From(body_a), *Str_From(body_b), Vec2_From(world_pos), axis_angle, max_motor_torque, motor_speed, frequency, damping));
 }
 } // extern "C"

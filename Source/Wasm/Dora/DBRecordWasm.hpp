@@ -8,13 +8,13 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-void dbrecord_release(int64_t raw) {
+DORA_EXPORT void dbrecord_release(int64_t raw) {
 	delete r_cast<DBRecord*>(raw);
 }
-int32_t dbrecord_is_valid(int64_t self) {
+DORA_EXPORT int32_t dbrecord_is_valid(int64_t self) {
 	return r_cast<DBRecord*>(self)->isValid() ? 1 : 0;
 }
-int32_t dbrecord_read(int64_t self, int64_t record) {
+DORA_EXPORT int32_t dbrecord_read(int64_t self, int64_t record) {
 	return r_cast<DBRecord*>(self)->read(r_cast<Array*>(record)) ? 1 : 0;
 }
 } // extern "C"

@@ -8,76 +8,76 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-void content_set_search_paths(int64_t val) {
+DORA_EXPORT void content_set_search_paths(int64_t val) {
 	SharedContent.setSearchPaths(Vec_FromStr(val));
 }
-int64_t content_get_search_paths() {
+DORA_EXPORT int64_t content_get_search_paths() {
 	return Vec_To(SharedContent.getSearchPaths());
 }
-void content_set_asset_path(int64_t val) {
+DORA_EXPORT void content_set_asset_path(int64_t val) {
 	SharedContent.setAssetPath(*Str_From(val));
 }
-int64_t content_get_asset_path() {
+DORA_EXPORT int64_t content_get_asset_path() {
 	return Str_Retain(SharedContent.getAssetPath());
 }
-void content_set_writable_path(int64_t val) {
+DORA_EXPORT void content_set_writable_path(int64_t val) {
 	SharedContent.setWritablePath(*Str_From(val));
 }
-int64_t content_get_writable_path() {
+DORA_EXPORT int64_t content_get_writable_path() {
 	return Str_Retain(SharedContent.getWritablePath());
 }
-int64_t content_get_app_path() {
+DORA_EXPORT int64_t content_get_app_path() {
 	return Str_Retain(SharedContent.getAppPath());
 }
-int32_t content_save(int64_t filename, int64_t content) {
+DORA_EXPORT int32_t content_save(int64_t filename, int64_t content) {
 	return SharedContent.save(*Str_From(filename), *Str_From(content)) ? 1 : 0;
 }
-int32_t content_exist(int64_t filename) {
+DORA_EXPORT int32_t content_exist(int64_t filename) {
 	return SharedContent.exist(*Str_From(filename)) ? 1 : 0;
 }
-int32_t content_mkdir(int64_t path) {
+DORA_EXPORT int32_t content_mkdir(int64_t path) {
 	return SharedContent.createFolder(*Str_From(path)) ? 1 : 0;
 }
-int32_t content_isdir(int64_t path) {
+DORA_EXPORT int32_t content_isdir(int64_t path) {
 	return SharedContent.isFolder(*Str_From(path)) ? 1 : 0;
 }
-int32_t content_is_absolute_path(int64_t path) {
+DORA_EXPORT int32_t content_is_absolute_path(int64_t path) {
 	return SharedContent.isAbsolutePath(*Str_From(path)) ? 1 : 0;
 }
-int32_t content_copy(int64_t src, int64_t dst) {
+DORA_EXPORT int32_t content_copy(int64_t src, int64_t dst) {
 	return SharedContent.copy(*Str_From(src), *Str_From(dst)) ? 1 : 0;
 }
-int32_t content_move_to(int64_t src, int64_t dst) {
+DORA_EXPORT int32_t content_move_to(int64_t src, int64_t dst) {
 	return SharedContent.move(*Str_From(src), *Str_From(dst)) ? 1 : 0;
 }
-int32_t content_remove(int64_t path) {
+DORA_EXPORT int32_t content_remove(int64_t path) {
 	return SharedContent.remove(*Str_From(path)) ? 1 : 0;
 }
-int64_t content_get_full_path(int64_t filename) {
+DORA_EXPORT int64_t content_get_full_path(int64_t filename) {
 	return Str_Retain(SharedContent.getFullPath(*Str_From(filename)));
 }
-void content_add_search_path(int64_t path) {
+DORA_EXPORT void content_add_search_path(int64_t path) {
 	SharedContent.addSearchPath(*Str_From(path));
 }
-void content_insert_search_path(int32_t index, int64_t path) {
+DORA_EXPORT void content_insert_search_path(int32_t index, int64_t path) {
 	SharedContent.insertSearchPath(s_cast<int>(index), *Str_From(path));
 }
-void content_remove_search_path(int64_t path) {
+DORA_EXPORT void content_remove_search_path(int64_t path) {
 	SharedContent.removeSearchPath(*Str_From(path));
 }
-void content_clear_path_cache() {
+DORA_EXPORT void content_clear_path_cache() {
 	SharedContent.clearPathCache();
 }
-int64_t content_get_dirs(int64_t path) {
+DORA_EXPORT int64_t content_get_dirs(int64_t path) {
 	return Vec_To(SharedContent.getDirs(*Str_From(path)));
 }
-int64_t content_get_files(int64_t path) {
+DORA_EXPORT int64_t content_get_files(int64_t path) {
 	return Vec_To(SharedContent.getFiles(*Str_From(path)));
 }
-int64_t content_get_all_files(int64_t path) {
+DORA_EXPORT int64_t content_get_all_files(int64_t path) {
 	return Vec_To(SharedContent.getAllFiles(*Str_From(path)));
 }
-void content_load_async(int64_t filename, int32_t func0, int64_t stack0) {
+DORA_EXPORT void content_load_async(int64_t filename, int32_t func0, int64_t stack0) {
 	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
 		SharedWasmRuntime.deref(func0);
 	});
@@ -88,7 +88,7 @@ void content_load_async(int64_t filename, int32_t func0, int64_t stack0) {
 		SharedWasmRuntime.invoke(func0);
 	});
 }
-void content_copy_async(int64_t src_file, int64_t target_file, int32_t func0, int64_t stack0) {
+DORA_EXPORT void content_copy_async(int64_t src_file, int64_t target_file, int32_t func0, int64_t stack0) {
 	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
 		SharedWasmRuntime.deref(func0);
 	});
@@ -99,7 +99,7 @@ void content_copy_async(int64_t src_file, int64_t target_file, int32_t func0, in
 		SharedWasmRuntime.invoke(func0);
 	});
 }
-void content_save_async(int64_t filename, int64_t content, int32_t func0, int64_t stack0) {
+DORA_EXPORT void content_save_async(int64_t filename, int64_t content, int32_t func0, int64_t stack0) {
 	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
 		SharedWasmRuntime.deref(func0);
 	});
@@ -110,7 +110,7 @@ void content_save_async(int64_t filename, int64_t content, int32_t func0, int64_
 		SharedWasmRuntime.invoke(func0);
 	});
 }
-void content_zip_async(int64_t folder_path, int64_t zip_file, int32_t func0, int64_t stack0, int32_t func1, int64_t stack1) {
+DORA_EXPORT void content_zip_async(int64_t folder_path, int64_t zip_file, int32_t func0, int64_t stack0, int32_t func1, int64_t stack1) {
 	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
 		SharedWasmRuntime.deref(func0);
 	});
@@ -130,7 +130,7 @@ void content_zip_async(int64_t folder_path, int64_t zip_file, int32_t func0, int
 		SharedWasmRuntime.invoke(func1);
 	});
 }
-void content_unzip_async(int64_t zip_file, int64_t folder_path, int32_t func0, int64_t stack0, int32_t func1, int64_t stack1) {
+DORA_EXPORT void content_unzip_async(int64_t zip_file, int64_t folder_path, int32_t func0, int64_t stack0, int32_t func1, int64_t stack1) {
 	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
 		SharedWasmRuntime.deref(func0);
 	});
@@ -150,7 +150,7 @@ void content_unzip_async(int64_t zip_file, int64_t folder_path, int32_t func0, i
 		SharedWasmRuntime.invoke(func1);
 	});
 }
-int64_t content_load_excel(int64_t filename) {
+DORA_EXPORT int64_t content_load_excel(int64_t filename) {
 	return r_cast<int64_t>(new WorkBook{content_wasm_load_excel(*Str_From(filename))});
 }
 } // extern "C"

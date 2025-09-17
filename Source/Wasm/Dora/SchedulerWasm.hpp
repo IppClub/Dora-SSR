@@ -8,25 +8,25 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-int32_t scheduler_type() {
+DORA_EXPORT int32_t scheduler_type() {
 	return DoraType<Scheduler>();
 }
-void scheduler_set_time_scale(int64_t self, float val) {
+DORA_EXPORT void scheduler_set_time_scale(int64_t self, float val) {
 	r_cast<Scheduler*>(self)->setTimeScale(val);
 }
-float scheduler_get_time_scale(int64_t self) {
+DORA_EXPORT float scheduler_get_time_scale(int64_t self) {
 	return r_cast<Scheduler*>(self)->getTimeScale();
 }
-void scheduler_set_fixed_fps(int64_t self, int32_t val) {
+DORA_EXPORT void scheduler_set_fixed_fps(int64_t self, int32_t val) {
 	r_cast<Scheduler*>(self)->setFixedFPS(s_cast<int>(val));
 }
-int32_t scheduler_get_fixed_fps(int64_t self) {
+DORA_EXPORT int32_t scheduler_get_fixed_fps(int64_t self) {
 	return s_cast<int32_t>(r_cast<Scheduler*>(self)->getFixedFPS());
 }
-int32_t scheduler_update(int64_t self, double delta_time) {
+DORA_EXPORT int32_t scheduler_update(int64_t self, double delta_time) {
 	return r_cast<Scheduler*>(self)->update(delta_time) ? 1 : 0;
 }
-int64_t scheduler_new() {
+DORA_EXPORT int64_t scheduler_new() {
 	return Object_From(Scheduler::create());
 }
 } // extern "C"

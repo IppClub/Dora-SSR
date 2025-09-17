@@ -8,16 +8,16 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-int32_t group_type() {
+DORA_EXPORT int32_t group_type() {
 	return DoraType<EntityGroup>();
 }
-int32_t entitygroup_get_count(int64_t self) {
+DORA_EXPORT int32_t entitygroup_get_count(int64_t self) {
 	return s_cast<int32_t>(r_cast<EntityGroup*>(self)->getCount());
 }
-int64_t entitygroup_get_first(int64_t self) {
+DORA_EXPORT int64_t entitygroup_get_first(int64_t self) {
 	return Object_From(r_cast<EntityGroup*>(self)->getFirst());
 }
-int64_t entitygroup_find(int64_t self, int32_t func0, int64_t stack0) {
+DORA_EXPORT int64_t entitygroup_find(int64_t self, int32_t func0, int64_t stack0) {
 	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
 		SharedWasmRuntime.deref(func0);
 	});
@@ -29,7 +29,7 @@ int64_t entitygroup_find(int64_t self, int32_t func0, int64_t stack0) {
 		return args0->pop_bool_or(false);
 	}));
 }
-int64_t entitygroup_new(int64_t components) {
+DORA_EXPORT int64_t entitygroup_new(int64_t components) {
 	return Object_From(EntityGroup::create(Vec_FromStr(components)));
 }
 } // extern "C"

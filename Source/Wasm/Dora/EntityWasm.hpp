@@ -8,25 +8,25 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-int32_t entity_type() {
+DORA_EXPORT int32_t entity_type() {
 	return DoraType<Entity>();
 }
-int32_t entity_get_count() {
+DORA_EXPORT int32_t entity_get_count() {
 	return s_cast<int32_t>(Entity::getCount());
 }
-int32_t entity_get_index(int64_t self) {
+DORA_EXPORT int32_t entity_get_index(int64_t self) {
 	return s_cast<int32_t>(r_cast<Entity*>(self)->getIndex());
 }
-void entity_clear() {
+DORA_EXPORT void entity_clear() {
 	Entity::clear();
 }
-void entity_remove(int64_t self, int64_t key) {
+DORA_EXPORT void entity_remove(int64_t self, int64_t key) {
 	r_cast<Entity*>(self)->remove(*Str_From(key));
 }
-void entity_destroy(int64_t self) {
+DORA_EXPORT void entity_destroy(int64_t self) {
 	r_cast<Entity*>(self)->destroy();
 }
-int64_t entity_new() {
+DORA_EXPORT int64_t entity_new() {
 	return Object_From(Entity::create());
 }
 } // extern "C"

@@ -8,10 +8,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-int32_t camera_type() {
+DORA_EXPORT int32_t camera_type() {
 	return DoraType<Camera>();
 }
-int64_t camera_get_name(int64_t self) {
+DORA_EXPORT int64_t camera_get_name(int64_t self) {
 	return Str_Retain(r_cast<Camera*>(self)->getName());
 }
 } // extern "C"

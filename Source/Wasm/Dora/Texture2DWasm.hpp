@@ -8,16 +8,16 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-int32_t texture2d_type() {
+DORA_EXPORT int32_t texture2d_type() {
 	return DoraType<Texture2D>();
 }
-int32_t texture2d_get_width(int64_t self) {
+DORA_EXPORT int32_t texture2d_get_width(int64_t self) {
 	return s_cast<int32_t>(r_cast<Texture2D*>(self)->getWidth());
 }
-int32_t texture2d_get_height(int64_t self) {
+DORA_EXPORT int32_t texture2d_get_height(int64_t self) {
 	return s_cast<int32_t>(r_cast<Texture2D*>(self)->getHeight());
 }
-int64_t texture2d_with_file(int64_t filename) {
+DORA_EXPORT int64_t texture2d_with_file(int64_t filename) {
 	return Object_From(Texture2D_Create(*Str_From(filename)));
 }
 } // extern "C"

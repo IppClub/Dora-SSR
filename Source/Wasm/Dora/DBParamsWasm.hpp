@@ -8,13 +8,13 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-void dbparams_release(int64_t raw) {
+DORA_EXPORT void dbparams_release(int64_t raw) {
 	delete r_cast<DBParams*>(raw);
 }
-void dbparams_add(int64_t self, int64_t params) {
+DORA_EXPORT void dbparams_add(int64_t self, int64_t params) {
 	r_cast<DBParams*>(self)->add(r_cast<Array*>(params));
 }
-int64_t dbparams_new() {
+DORA_EXPORT int64_t dbparams_new() {
 	return r_cast<int64_t>(new DBParams{});
 }
 } // extern "C"
