@@ -357,7 +357,7 @@ int Application::run(MainFunc mainFunc) {
 		while (SDL_PollEvent(&event)) {
 			switch (event.type) {
 				case SDL_QUIT:
-#ifdef NDEBUG
+#if defined(NDEBUG) || defined(DORA_AS_LIB)
 					if (Singleton<DB>::isInitialized()) {
 						SharedDB.stop();
 					}
@@ -765,7 +765,7 @@ void Application::openURL(String url) {
 }
 
 void Application::install(String path) {
-#if BX_PLATFORM_WINDOWS
+#if BX_PLATFORM_WINDOWS && !defined(DORA_AS_LIB)
 	AssertUnless(SharedContent.isAbsolutePath(path), "expecting an absolute path");
 	auto assetPath = SharedContent.getAssetPath();
 	auto appPath = path.toString();
