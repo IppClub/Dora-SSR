@@ -8,190 +8,190 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-void nvg_save() {
+DORA_EXPORT void nvg_save() {
 	nvg::Save();
 }
-void nvg_restore() {
+DORA_EXPORT void nvg_restore() {
 	nvg::Restore();
 }
-void nvg_reset() {
+DORA_EXPORT void nvg_reset() {
 	nvg::Reset();
 }
-int32_t nvg__create_image(int32_t w, int32_t h, int64_t filename, int32_t image_flags) {
+DORA_EXPORT int32_t nvg__create_image(int32_t w, int32_t h, int64_t filename, int32_t image_flags) {
 	return s_cast<int32_t>(nvg::CreateImage(s_cast<int>(w), s_cast<int>(h), *Str_From(filename), s_cast<int>(image_flags)));
 }
-int32_t nvg_create_font(int64_t name) {
+DORA_EXPORT int32_t nvg_create_font(int64_t name) {
 	return s_cast<int32_t>(nvg::CreateFont(*Str_From(name)));
 }
-float nvg_text_bounds(float x, float y, int64_t text, int64_t bounds) {
+DORA_EXPORT float nvg_text_bounds(float x, float y, int64_t text, int64_t bounds) {
 	return nvg::TextBounds(x, y, *Str_From(text), *r_cast<Rect*>(bounds));
 }
-int64_t nvg_text_box_bounds(float x, float y, float break_row_width, int64_t text) {
+DORA_EXPORT int64_t nvg_text_box_bounds(float x, float y, float break_row_width, int64_t text) {
 	return r_cast<int64_t>(new Rect{nvg::TextBoxBounds(x, y, break_row_width, *Str_From(text))});
 }
-float nvg_text(float x, float y, int64_t text) {
+DORA_EXPORT float nvg_text(float x, float y, int64_t text) {
 	return nvg::Text(x, y, *Str_From(text));
 }
-void nvg_text_box(float x, float y, float break_row_width, int64_t text) {
+DORA_EXPORT void nvg_text_box(float x, float y, float break_row_width, int64_t text) {
 	nvg::TextBox(x, y, break_row_width, *Str_From(text));
 }
-void nvg_stroke_color(int32_t color) {
+DORA_EXPORT void nvg_stroke_color(int32_t color) {
 	nvg::StrokeColor(Color(s_cast<uint32_t>(color)));
 }
-void nvg_stroke_paint(int64_t paint) {
+DORA_EXPORT void nvg_stroke_paint(int64_t paint) {
 	nvg::StrokePaint(*r_cast<NVGpaint*>(paint));
 }
-void nvg_fill_color(int32_t color) {
+DORA_EXPORT void nvg_fill_color(int32_t color) {
 	nvg::FillColor(Color(s_cast<uint32_t>(color)));
 }
-void nvg_fill_paint(int64_t paint) {
+DORA_EXPORT void nvg_fill_paint(int64_t paint) {
 	nvg::FillPaint(*r_cast<NVGpaint*>(paint));
 }
-void nvg_miter_limit(float limit) {
+DORA_EXPORT void nvg_miter_limit(float limit) {
 	nvg::MiterLimit(limit);
 }
-void nvg_stroke_width(float size) {
+DORA_EXPORT void nvg_stroke_width(float size) {
 	nvg::StrokeWidth(size);
 }
-void nvg__line_cap(int32_t cap) {
+DORA_EXPORT void nvg__line_cap(int32_t cap) {
 	nvg::LineCap(s_cast<int>(cap));
 }
-void nvg__line_join(int32_t join) {
+DORA_EXPORT void nvg__line_join(int32_t join) {
 	nvg::LineJoin(s_cast<int>(join));
 }
-void nvg_global_alpha(float alpha) {
+DORA_EXPORT void nvg_global_alpha(float alpha) {
 	nvg::GlobalAlpha(alpha);
 }
-void nvg_reset_transform() {
+DORA_EXPORT void nvg_reset_transform() {
 	nvg::ResetTransform();
 }
-void nvg_apply_transform(int64_t node) {
+DORA_EXPORT void nvg_apply_transform(int64_t node) {
 	nvg::ApplyTransform(r_cast<Node*>(node));
 }
-void nvg_translate(float x, float y) {
+DORA_EXPORT void nvg_translate(float x, float y) {
 	nvg::Translate(x, y);
 }
-void nvg_rotate(float angle) {
+DORA_EXPORT void nvg_rotate(float angle) {
 	nvg::Rotate(angle);
 }
-void nvg_skew_x(float angle) {
+DORA_EXPORT void nvg_skew_x(float angle) {
 	nvg::SkewX(angle);
 }
-void nvg_skew_y(float angle) {
+DORA_EXPORT void nvg_skew_y(float angle) {
 	nvg::SkewY(angle);
 }
-void nvg_scale(float x, float y) {
+DORA_EXPORT void nvg_scale(float x, float y) {
 	nvg::Scale(x, y);
 }
-int64_t nvg_image_size(int32_t image) {
+DORA_EXPORT int64_t nvg_image_size(int32_t image) {
 	return Size_Retain(nvg::ImageSize(s_cast<int>(image)));
 }
-void nvg_delete_image(int32_t image) {
+DORA_EXPORT void nvg_delete_image(int32_t image) {
 	nvg::DeleteImage(s_cast<int>(image));
 }
-int64_t nvg_linear_gradient(float sx, float sy, float ex, float ey, int32_t icol, int32_t ocol) {
+DORA_EXPORT int64_t nvg_linear_gradient(float sx, float sy, float ex, float ey, int32_t icol, int32_t ocol) {
 	return r_cast<int64_t>(new NVGpaint{nvg::LinearGradient(sx, sy, ex, ey, Color(s_cast<uint32_t>(icol)), Color(s_cast<uint32_t>(ocol)))});
 }
-int64_t nvg_box_gradient(float x, float y, float w, float h, float r, float f, int32_t icol, int32_t ocol) {
+DORA_EXPORT int64_t nvg_box_gradient(float x, float y, float w, float h, float r, float f, int32_t icol, int32_t ocol) {
 	return r_cast<int64_t>(new NVGpaint{nvg::BoxGradient(x, y, w, h, r, f, Color(s_cast<uint32_t>(icol)), Color(s_cast<uint32_t>(ocol)))});
 }
-int64_t nvg_radial_gradient(float cx, float cy, float inr, float outr, int32_t icol, int32_t ocol) {
+DORA_EXPORT int64_t nvg_radial_gradient(float cx, float cy, float inr, float outr, int32_t icol, int32_t ocol) {
 	return r_cast<int64_t>(new NVGpaint{nvg::RadialGradient(cx, cy, inr, outr, Color(s_cast<uint32_t>(icol)), Color(s_cast<uint32_t>(ocol)))});
 }
-int64_t nvg_image_pattern(float ox, float oy, float ex, float ey, float angle, int32_t image, float alpha) {
+DORA_EXPORT int64_t nvg_image_pattern(float ox, float oy, float ex, float ey, float angle, int32_t image, float alpha) {
 	return r_cast<int64_t>(new NVGpaint{nvg::ImagePattern(ox, oy, ex, ey, angle, s_cast<int>(image), alpha)});
 }
-void nvg_scissor(float x, float y, float w, float h) {
+DORA_EXPORT void nvg_scissor(float x, float y, float w, float h) {
 	nvg::Scissor(x, y, w, h);
 }
-void nvg_intersect_scissor(float x, float y, float w, float h) {
+DORA_EXPORT void nvg_intersect_scissor(float x, float y, float w, float h) {
 	nvg::IntersectScissor(x, y, w, h);
 }
-void nvg_reset_scissor() {
+DORA_EXPORT void nvg_reset_scissor() {
 	nvg::ResetScissor();
 }
-void nvg_begin_path() {
+DORA_EXPORT void nvg_begin_path() {
 	nvg::BeginPath();
 }
-void nvg_move_to(float x, float y) {
+DORA_EXPORT void nvg_move_to(float x, float y) {
 	nvg::MoveTo(x, y);
 }
-void nvg_line_to(float x, float y) {
+DORA_EXPORT void nvg_line_to(float x, float y) {
 	nvg::LineTo(x, y);
 }
-void nvg_bezier_to(float c_1x, float c_1y, float c_2x, float c_2y, float x, float y) {
+DORA_EXPORT void nvg_bezier_to(float c_1x, float c_1y, float c_2x, float c_2y, float x, float y) {
 	nvg::BezierTo(c_1x, c_1y, c_2x, c_2y, x, y);
 }
-void nvg_quad_to(float cx, float cy, float x, float y) {
+DORA_EXPORT void nvg_quad_to(float cx, float cy, float x, float y) {
 	nvg::QuadTo(cx, cy, x, y);
 }
-void nvg_arc_to(float x_1, float y_1, float x_2, float y_2, float radius) {
+DORA_EXPORT void nvg_arc_to(float x_1, float y_1, float x_2, float y_2, float radius) {
 	nvg::ArcTo(x_1, y_1, x_2, y_2, radius);
 }
-void nvg_close_path() {
+DORA_EXPORT void nvg_close_path() {
 	nvg::ClosePath();
 }
-void nvg__path_winding(int32_t dir) {
+DORA_EXPORT void nvg__path_winding(int32_t dir) {
 	nvg::PathWinding(s_cast<int>(dir));
 }
-void nvg__arc(float cx, float cy, float r, float a_0, float a_1, int32_t dir) {
+DORA_EXPORT void nvg__arc(float cx, float cy, float r, float a_0, float a_1, int32_t dir) {
 	nvg::Arc(cx, cy, r, a_0, a_1, s_cast<int>(dir));
 }
-void nvg_rect(float x, float y, float w, float h) {
+DORA_EXPORT void nvg_rect(float x, float y, float w, float h) {
 	nvg::Rectangle(x, y, w, h);
 }
-void nvg_rounded_rect(float x, float y, float w, float h, float r) {
+DORA_EXPORT void nvg_rounded_rect(float x, float y, float w, float h, float r) {
 	nvg::RoundedRect(x, y, w, h, r);
 }
-void nvg_rounded_rect_varying(float x, float y, float w, float h, float rad_top_left, float rad_top_right, float rad_bottom_right, float rad_bottom_left) {
+DORA_EXPORT void nvg_rounded_rect_varying(float x, float y, float w, float h, float rad_top_left, float rad_top_right, float rad_bottom_right, float rad_bottom_left) {
 	nvg::RoundedRectVarying(x, y, w, h, rad_top_left, rad_top_right, rad_bottom_right, rad_bottom_left);
 }
-void nvg_ellipse(float cx, float cy, float rx, float ry) {
+DORA_EXPORT void nvg_ellipse(float cx, float cy, float rx, float ry) {
 	nvg::Ellipse(cx, cy, rx, ry);
 }
-void nvg_circle(float cx, float cy, float r) {
+DORA_EXPORT void nvg_circle(float cx, float cy, float r) {
 	nvg::Circle(cx, cy, r);
 }
-void nvg_fill() {
+DORA_EXPORT void nvg_fill() {
 	nvg::Fill();
 }
-void nvg_stroke() {
+DORA_EXPORT void nvg_stroke() {
 	nvg::Stroke();
 }
-int32_t nvg_find_font(int64_t name) {
+DORA_EXPORT int32_t nvg_find_font(int64_t name) {
 	return s_cast<int32_t>(nvg::FindFont(*Str_From(name)));
 }
-int32_t nvg_add_fallback_font_id(int32_t base_font, int32_t fallback_font) {
+DORA_EXPORT int32_t nvg_add_fallback_font_id(int32_t base_font, int32_t fallback_font) {
 	return s_cast<int32_t>(nvg::AddFallbackFontId(s_cast<int>(base_font), s_cast<int>(fallback_font)));
 }
-int32_t nvg_add_fallback_font(int64_t base_font, int64_t fallback_font) {
+DORA_EXPORT int32_t nvg_add_fallback_font(int64_t base_font, int64_t fallback_font) {
 	return s_cast<int32_t>(nvg::AddFallbackFont(*Str_From(base_font), *Str_From(fallback_font)));
 }
-void nvg_font_size(float size) {
+DORA_EXPORT void nvg_font_size(float size) {
 	nvg::FontSize(size);
 }
-void nvg_font_blur(float blur) {
+DORA_EXPORT void nvg_font_blur(float blur) {
 	nvg::FontBlur(blur);
 }
-void nvg_text_letter_spacing(float spacing) {
+DORA_EXPORT void nvg_text_letter_spacing(float spacing) {
 	nvg::TextLetterSpacing(spacing);
 }
-void nvg_text_line_height(float line_height) {
+DORA_EXPORT void nvg_text_line_height(float line_height) {
 	nvg::TextLineHeight(line_height);
 }
-void nvg__text_align(int32_t h_align, int32_t v_align) {
+DORA_EXPORT void nvg__text_align(int32_t h_align, int32_t v_align) {
 	nvg::TextAlign(s_cast<int>(h_align), s_cast<int>(v_align));
 }
-void nvg_font_face_id(int32_t font) {
+DORA_EXPORT void nvg_font_face_id(int32_t font) {
 	nvg::FontFaceId(s_cast<int>(font));
 }
-void nvg_font_face(int64_t font) {
+DORA_EXPORT void nvg_font_face(int64_t font) {
 	nvg::FontFace(*Str_From(font));
 }
-void nvg_dora_ssr() {
+DORA_EXPORT void nvg_dora_ssr() {
 	nvg::DoraSSR();
 }
-int64_t nvg_get_dora_ssr(float scale) {
+DORA_EXPORT int64_t nvg_get_dora_ssr(float scale) {
 	return Object_From(nvg::GetDoraSSR(scale));
 }
 } // extern "C"

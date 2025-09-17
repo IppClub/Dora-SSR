@@ -8,40 +8,40 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-int32_t platformer_bullet_type() {
+DORA_EXPORT int32_t platformer_bullet_type() {
 	return DoraType<Platformer::Bullet>();
 }
-void platformer_bullet_set_target_allow(int64_t self, int32_t val) {
+DORA_EXPORT void platformer_bullet_set_target_allow(int64_t self, int32_t val) {
 	r_cast<Platformer::Bullet*>(self)->setTargetAllow(s_cast<uint32_t>(val));
 }
-int32_t platformer_bullet_get_target_allow(int64_t self) {
+DORA_EXPORT int32_t platformer_bullet_get_target_allow(int64_t self) {
 	return s_cast<int32_t>(r_cast<Platformer::Bullet*>(self)->getTargetAllow());
 }
-int32_t platformer_bullet_is_face_right(int64_t self) {
+DORA_EXPORT int32_t platformer_bullet_is_face_right(int64_t self) {
 	return r_cast<Platformer::Bullet*>(self)->isFaceRight() ? 1 : 0;
 }
-void platformer_bullet_set_hit_stop(int64_t self, int32_t val) {
+DORA_EXPORT void platformer_bullet_set_hit_stop(int64_t self, int32_t val) {
 	r_cast<Platformer::Bullet*>(self)->setHitStop(val != 0);
 }
-int32_t platformer_bullet_is_hit_stop(int64_t self) {
+DORA_EXPORT int32_t platformer_bullet_is_hit_stop(int64_t self) {
 	return r_cast<Platformer::Bullet*>(self)->isHitStop() ? 1 : 0;
 }
-int64_t platformer_bullet_get_emitter(int64_t self) {
+DORA_EXPORT int64_t platformer_bullet_get_emitter(int64_t self) {
 	return Object_From(r_cast<Platformer::Bullet*>(self)->getEmitter());
 }
-int64_t platformer_bullet_get_bullet_def(int64_t self) {
+DORA_EXPORT int64_t platformer_bullet_get_bullet_def(int64_t self) {
 	return Object_From(r_cast<Platformer::Bullet*>(self)->getBulletDef());
 }
-void platformer_bullet_set_face(int64_t self, int64_t val) {
+DORA_EXPORT void platformer_bullet_set_face(int64_t self, int64_t val) {
 	r_cast<Platformer::Bullet*>(self)->setFace(r_cast<Node*>(val));
 }
-int64_t platformer_bullet_get_face(int64_t self) {
+DORA_EXPORT int64_t platformer_bullet_get_face(int64_t self) {
 	return Object_From(r_cast<Platformer::Bullet*>(self)->getFace());
 }
-void platformer_bullet_destroy(int64_t self) {
+DORA_EXPORT void platformer_bullet_destroy(int64_t self) {
 	r_cast<Platformer::Bullet*>(self)->destroy();
 }
-int64_t platformer_bullet_new(int64_t def, int64_t owner) {
+DORA_EXPORT int64_t platformer_bullet_new(int64_t def, int64_t owner) {
 	return Object_From(Platformer::Bullet::create(r_cast<Platformer::BulletDef*>(def), r_cast<Platformer::Unit*>(owner)));
 }
 } // extern "C"

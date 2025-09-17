@@ -8,265 +8,265 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-int32_t node_type() {
+DORA_EXPORT int32_t node_type() {
 	return DoraType<Node>();
 }
-void node_set_order(int64_t self, int32_t val) {
+DORA_EXPORT void node_set_order(int64_t self, int32_t val) {
 	r_cast<Node*>(self)->setOrder(s_cast<int>(val));
 }
-int32_t node_get_order(int64_t self) {
+DORA_EXPORT int32_t node_get_order(int64_t self) {
 	return s_cast<int32_t>(r_cast<Node*>(self)->getOrder());
 }
-void node_set_angle(int64_t self, float val) {
+DORA_EXPORT void node_set_angle(int64_t self, float val) {
 	r_cast<Node*>(self)->setAngle(val);
 }
-float node_get_angle(int64_t self) {
+DORA_EXPORT float node_get_angle(int64_t self) {
 	return r_cast<Node*>(self)->getAngle();
 }
-void node_set_angle_x(int64_t self, float val) {
+DORA_EXPORT void node_set_angle_x(int64_t self, float val) {
 	r_cast<Node*>(self)->setAngleX(val);
 }
-float node_get_angle_x(int64_t self) {
+DORA_EXPORT float node_get_angle_x(int64_t self) {
 	return r_cast<Node*>(self)->getAngleX();
 }
-void node_set_angle_y(int64_t self, float val) {
+DORA_EXPORT void node_set_angle_y(int64_t self, float val) {
 	r_cast<Node*>(self)->setAngleY(val);
 }
-float node_get_angle_y(int64_t self) {
+DORA_EXPORT float node_get_angle_y(int64_t self) {
 	return r_cast<Node*>(self)->getAngleY();
 }
-void node_set_scale_x(int64_t self, float val) {
+DORA_EXPORT void node_set_scale_x(int64_t self, float val) {
 	r_cast<Node*>(self)->setScaleX(val);
 }
-float node_get_scale_x(int64_t self) {
+DORA_EXPORT float node_get_scale_x(int64_t self) {
 	return r_cast<Node*>(self)->getScaleX();
 }
-void node_set_scale_y(int64_t self, float val) {
+DORA_EXPORT void node_set_scale_y(int64_t self, float val) {
 	r_cast<Node*>(self)->setScaleY(val);
 }
-float node_get_scale_y(int64_t self) {
+DORA_EXPORT float node_get_scale_y(int64_t self) {
 	return r_cast<Node*>(self)->getScaleY();
 }
-void node_set_x(int64_t self, float val) {
+DORA_EXPORT void node_set_x(int64_t self, float val) {
 	r_cast<Node*>(self)->setX(val);
 }
-float node_get_x(int64_t self) {
+DORA_EXPORT float node_get_x(int64_t self) {
 	return r_cast<Node*>(self)->getX();
 }
-void node_set_y(int64_t self, float val) {
+DORA_EXPORT void node_set_y(int64_t self, float val) {
 	r_cast<Node*>(self)->setY(val);
 }
-float node_get_y(int64_t self) {
+DORA_EXPORT float node_get_y(int64_t self) {
 	return r_cast<Node*>(self)->getY();
 }
-void node_set_z(int64_t self, float val) {
+DORA_EXPORT void node_set_z(int64_t self, float val) {
 	r_cast<Node*>(self)->setZ(val);
 }
-float node_get_z(int64_t self) {
+DORA_EXPORT float node_get_z(int64_t self) {
 	return r_cast<Node*>(self)->getZ();
 }
-void node_set_position(int64_t self, int64_t val) {
+DORA_EXPORT void node_set_position(int64_t self, int64_t val) {
 	r_cast<Node*>(self)->setPosition(Vec2_From(val));
 }
-int64_t node_get_position(int64_t self) {
+DORA_EXPORT int64_t node_get_position(int64_t self) {
 	return Vec2_Retain(r_cast<Node*>(self)->getPosition());
 }
-void node_set_skew_x(int64_t self, float val) {
+DORA_EXPORT void node_set_skew_x(int64_t self, float val) {
 	r_cast<Node*>(self)->setSkewX(val);
 }
-float node_get_skew_x(int64_t self) {
+DORA_EXPORT float node_get_skew_x(int64_t self) {
 	return r_cast<Node*>(self)->getSkewX();
 }
-void node_set_skew_y(int64_t self, float val) {
+DORA_EXPORT void node_set_skew_y(int64_t self, float val) {
 	r_cast<Node*>(self)->setSkewY(val);
 }
-float node_get_skew_y(int64_t self) {
+DORA_EXPORT float node_get_skew_y(int64_t self) {
 	return r_cast<Node*>(self)->getSkewY();
 }
-void node_set_visible(int64_t self, int32_t val) {
+DORA_EXPORT void node_set_visible(int64_t self, int32_t val) {
 	r_cast<Node*>(self)->setVisible(val != 0);
 }
-int32_t node_is_visible(int64_t self) {
+DORA_EXPORT int32_t node_is_visible(int64_t self) {
 	return r_cast<Node*>(self)->isVisible() ? 1 : 0;
 }
-void node_set_anchor(int64_t self, int64_t val) {
+DORA_EXPORT void node_set_anchor(int64_t self, int64_t val) {
 	r_cast<Node*>(self)->setAnchor(Vec2_From(val));
 }
-int64_t node_get_anchor(int64_t self) {
+DORA_EXPORT int64_t node_get_anchor(int64_t self) {
 	return Vec2_Retain(r_cast<Node*>(self)->getAnchor());
 }
-void node_set_width(int64_t self, float val) {
+DORA_EXPORT void node_set_width(int64_t self, float val) {
 	r_cast<Node*>(self)->setWidth(val);
 }
-float node_get_width(int64_t self) {
+DORA_EXPORT float node_get_width(int64_t self) {
 	return r_cast<Node*>(self)->getWidth();
 }
-void node_set_height(int64_t self, float val) {
+DORA_EXPORT void node_set_height(int64_t self, float val) {
 	r_cast<Node*>(self)->setHeight(val);
 }
-float node_get_height(int64_t self) {
+DORA_EXPORT float node_get_height(int64_t self) {
 	return r_cast<Node*>(self)->getHeight();
 }
-void node_set_size(int64_t self, int64_t val) {
+DORA_EXPORT void node_set_size(int64_t self, int64_t val) {
 	r_cast<Node*>(self)->setSize(Size_From(val));
 }
-int64_t node_get_size(int64_t self) {
+DORA_EXPORT int64_t node_get_size(int64_t self) {
 	return Size_Retain(r_cast<Node*>(self)->getSize());
 }
-void node_set_tag(int64_t self, int64_t val) {
+DORA_EXPORT void node_set_tag(int64_t self, int64_t val) {
 	r_cast<Node*>(self)->setTag(*Str_From(val));
 }
-int64_t node_get_tag(int64_t self) {
+DORA_EXPORT int64_t node_get_tag(int64_t self) {
 	return Str_Retain(r_cast<Node*>(self)->getTag());
 }
-void node_set_opacity(int64_t self, float val) {
+DORA_EXPORT void node_set_opacity(int64_t self, float val) {
 	r_cast<Node*>(self)->setOpacity(val);
 }
-float node_get_opacity(int64_t self) {
+DORA_EXPORT float node_get_opacity(int64_t self) {
 	return r_cast<Node*>(self)->getOpacity();
 }
-void node_set_color(int64_t self, int32_t val) {
+DORA_EXPORT void node_set_color(int64_t self, int32_t val) {
 	r_cast<Node*>(self)->setColor(Color(s_cast<uint32_t>(val)));
 }
-int32_t node_get_color(int64_t self) {
+DORA_EXPORT int32_t node_get_color(int64_t self) {
 	return r_cast<Node*>(self)->getColor().toARGB();
 }
-void node_set_color3(int64_t self, int32_t val) {
+DORA_EXPORT void node_set_color3(int64_t self, int32_t val) {
 	r_cast<Node*>(self)->setColor3(Color3(s_cast<uint32_t>(val)));
 }
-int32_t node_get_color3(int64_t self) {
+DORA_EXPORT int32_t node_get_color3(int64_t self) {
 	return r_cast<Node*>(self)->getColor3().toRGB();
 }
-void node_set_pass_opacity(int64_t self, int32_t val) {
+DORA_EXPORT void node_set_pass_opacity(int64_t self, int32_t val) {
 	r_cast<Node*>(self)->setPassOpacity(val != 0);
 }
-int32_t node_is_pass_opacity(int64_t self) {
+DORA_EXPORT int32_t node_is_pass_opacity(int64_t self) {
 	return r_cast<Node*>(self)->isPassOpacity() ? 1 : 0;
 }
-void node_set_pass_color3(int64_t self, int32_t val) {
+DORA_EXPORT void node_set_pass_color3(int64_t self, int32_t val) {
 	r_cast<Node*>(self)->setPassColor3(val != 0);
 }
-int32_t node_is_pass_color3(int64_t self) {
+DORA_EXPORT int32_t node_is_pass_color3(int64_t self) {
 	return r_cast<Node*>(self)->isPassColor3() ? 1 : 0;
 }
-void node_set_transform_target(int64_t self, int64_t val) {
+DORA_EXPORT void node_set_transform_target(int64_t self, int64_t val) {
 	r_cast<Node*>(self)->setTransformTarget(r_cast<Node*>(val));
 }
-int64_t node_get_transform_target(int64_t self) {
+DORA_EXPORT int64_t node_get_transform_target(int64_t self) {
 	return Object_From(r_cast<Node*>(self)->getTransformTarget());
 }
-void node_set_scheduler(int64_t self, int64_t val) {
+DORA_EXPORT void node_set_scheduler(int64_t self, int64_t val) {
 	r_cast<Node*>(self)->setScheduler(r_cast<Scheduler*>(val));
 }
-int64_t node_get_scheduler(int64_t self) {
+DORA_EXPORT int64_t node_get_scheduler(int64_t self) {
 	return Object_From(r_cast<Node*>(self)->getScheduler());
 }
-int64_t node_get_children(int64_t self) {
+DORA_EXPORT int64_t node_get_children(int64_t self) {
 	return Object_From(r_cast<Node*>(self)->getChildren());
 }
-int64_t node_get_parent(int64_t self) {
+DORA_EXPORT int64_t node_get_parent(int64_t self) {
 	return Object_From(r_cast<Node*>(self)->getParent());
 }
-int32_t node_is_running(int64_t self) {
+DORA_EXPORT int32_t node_is_running(int64_t self) {
 	return r_cast<Node*>(self)->isRunning() ? 1 : 0;
 }
-int32_t node_is_scheduled(int64_t self) {
+DORA_EXPORT int32_t node_is_scheduled(int64_t self) {
 	return r_cast<Node*>(self)->isScheduled() ? 1 : 0;
 }
-int32_t node_get_action_count(int64_t self) {
+DORA_EXPORT int32_t node_get_action_count(int64_t self) {
 	return s_cast<int32_t>(r_cast<Node*>(self)->getActionCount());
 }
-int64_t node_get_data(int64_t self) {
+DORA_EXPORT int64_t node_get_data(int64_t self) {
 	return Object_From(r_cast<Node*>(self)->getUserData());
 }
-void node_set_touch_enabled(int64_t self, int32_t val) {
+DORA_EXPORT void node_set_touch_enabled(int64_t self, int32_t val) {
 	r_cast<Node*>(self)->setTouchEnabled(val != 0);
 }
-int32_t node_is_touch_enabled(int64_t self) {
+DORA_EXPORT int32_t node_is_touch_enabled(int64_t self) {
 	return r_cast<Node*>(self)->isTouchEnabled() ? 1 : 0;
 }
-void node_set_swallow_touches(int64_t self, int32_t val) {
+DORA_EXPORT void node_set_swallow_touches(int64_t self, int32_t val) {
 	r_cast<Node*>(self)->setSwallowTouches(val != 0);
 }
-int32_t node_is_swallow_touches(int64_t self) {
+DORA_EXPORT int32_t node_is_swallow_touches(int64_t self) {
 	return r_cast<Node*>(self)->isSwallowTouches() ? 1 : 0;
 }
-void node_set_swallow_mouse_wheel(int64_t self, int32_t val) {
+DORA_EXPORT void node_set_swallow_mouse_wheel(int64_t self, int32_t val) {
 	r_cast<Node*>(self)->setSwallowMouseWheel(val != 0);
 }
-int32_t node_is_swallow_mouse_wheel(int64_t self) {
+DORA_EXPORT int32_t node_is_swallow_mouse_wheel(int64_t self) {
 	return r_cast<Node*>(self)->isSwallowMouseWheel() ? 1 : 0;
 }
-void node_set_keyboard_enabled(int64_t self, int32_t val) {
+DORA_EXPORT void node_set_keyboard_enabled(int64_t self, int32_t val) {
 	r_cast<Node*>(self)->setKeyboardEnabled(val != 0);
 }
-int32_t node_is_keyboard_enabled(int64_t self) {
+DORA_EXPORT int32_t node_is_keyboard_enabled(int64_t self) {
 	return r_cast<Node*>(self)->isKeyboardEnabled() ? 1 : 0;
 }
-void node_set_controller_enabled(int64_t self, int32_t val) {
+DORA_EXPORT void node_set_controller_enabled(int64_t self, int32_t val) {
 	r_cast<Node*>(self)->setControllerEnabled(val != 0);
 }
-int32_t node_is_controller_enabled(int64_t self) {
+DORA_EXPORT int32_t node_is_controller_enabled(int64_t self) {
 	return r_cast<Node*>(self)->isControllerEnabled() ? 1 : 0;
 }
-void node_set_render_group(int64_t self, int32_t val) {
+DORA_EXPORT void node_set_render_group(int64_t self, int32_t val) {
 	r_cast<Node*>(self)->setRenderGroup(val != 0);
 }
-int32_t node_is_render_group(int64_t self) {
+DORA_EXPORT int32_t node_is_render_group(int64_t self) {
 	return r_cast<Node*>(self)->isRenderGroup() ? 1 : 0;
 }
-void node_set_show_debug(int64_t self, int32_t val) {
+DORA_EXPORT void node_set_show_debug(int64_t self, int32_t val) {
 	r_cast<Node*>(self)->setShowDebug(val != 0);
 }
-int32_t node_is_show_debug(int64_t self) {
+DORA_EXPORT int32_t node_is_show_debug(int64_t self) {
 	return r_cast<Node*>(self)->isShowDebug() ? 1 : 0;
 }
-void node_set_render_order(int64_t self, int32_t val) {
+DORA_EXPORT void node_set_render_order(int64_t self, int32_t val) {
 	r_cast<Node*>(self)->setRenderOrder(s_cast<int>(val));
 }
-int32_t node_get_render_order(int64_t self) {
+DORA_EXPORT int32_t node_get_render_order(int64_t self) {
 	return s_cast<int32_t>(r_cast<Node*>(self)->getRenderOrder());
 }
-void node_add_child_with_order_tag(int64_t self, int64_t child, int32_t order, int64_t tag) {
+DORA_EXPORT void node_add_child_with_order_tag(int64_t self, int64_t child, int32_t order, int64_t tag) {
 	r_cast<Node*>(self)->addChild(r_cast<Node*>(child), s_cast<int>(order), *Str_From(tag));
 }
-void node_add_child_with_order(int64_t self, int64_t child, int32_t order) {
+DORA_EXPORT void node_add_child_with_order(int64_t self, int64_t child, int32_t order) {
 	r_cast<Node*>(self)->addChild(r_cast<Node*>(child), s_cast<int>(order));
 }
-void node_add_child(int64_t self, int64_t child) {
+DORA_EXPORT void node_add_child(int64_t self, int64_t child) {
 	r_cast<Node*>(self)->addChild(r_cast<Node*>(child));
 }
-int64_t node_add_to_with_order_tag(int64_t self, int64_t parent, int32_t order, int64_t tag) {
+DORA_EXPORT int64_t node_add_to_with_order_tag(int64_t self, int64_t parent, int32_t order, int64_t tag) {
 	return Object_From(r_cast<Node*>(self)->addTo(r_cast<Node*>(parent), s_cast<int>(order), *Str_From(tag)));
 }
-int64_t node_add_to_with_order(int64_t self, int64_t parent, int32_t order) {
+DORA_EXPORT int64_t node_add_to_with_order(int64_t self, int64_t parent, int32_t order) {
 	return Object_From(r_cast<Node*>(self)->addTo(r_cast<Node*>(parent), s_cast<int>(order)));
 }
-int64_t node_add_to(int64_t self, int64_t parent) {
+DORA_EXPORT int64_t node_add_to(int64_t self, int64_t parent) {
 	return Object_From(r_cast<Node*>(self)->addTo(r_cast<Node*>(parent)));
 }
-void node_remove_child(int64_t self, int64_t child, int32_t cleanup) {
+DORA_EXPORT void node_remove_child(int64_t self, int64_t child, int32_t cleanup) {
 	r_cast<Node*>(self)->removeChild(r_cast<Node*>(child), cleanup != 0);
 }
-void node_remove_child_by_tag(int64_t self, int64_t tag, int32_t cleanup) {
+DORA_EXPORT void node_remove_child_by_tag(int64_t self, int64_t tag, int32_t cleanup) {
 	r_cast<Node*>(self)->removeChildByTag(*Str_From(tag), cleanup != 0);
 }
-void node_remove_all_children(int64_t self, int32_t cleanup) {
+DORA_EXPORT void node_remove_all_children(int64_t self, int32_t cleanup) {
 	r_cast<Node*>(self)->removeAllChildren(cleanup != 0);
 }
-void node_remove_from_parent(int64_t self, int32_t cleanup) {
+DORA_EXPORT void node_remove_from_parent(int64_t self, int32_t cleanup) {
 	r_cast<Node*>(self)->removeFromParent(cleanup != 0);
 }
-void node_move_to_parent(int64_t self, int64_t parent) {
+DORA_EXPORT void node_move_to_parent(int64_t self, int64_t parent) {
 	r_cast<Node*>(self)->moveToParent(r_cast<Node*>(parent));
 }
-void node_cleanup(int64_t self) {
+DORA_EXPORT void node_cleanup(int64_t self) {
 	r_cast<Node*>(self)->cleanup();
 }
-int64_t node_get_child_by_tag(int64_t self, int64_t tag) {
+DORA_EXPORT int64_t node_get_child_by_tag(int64_t self, int64_t tag) {
 	return Object_From(r_cast<Node*>(self)->getChildByTag(*Str_From(tag)));
 }
-void node_schedule(int64_t self, int32_t func0, int64_t stack0) {
+DORA_EXPORT void node_schedule(int64_t self, int32_t func0, int64_t stack0) {
 	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
 		SharedWasmRuntime.deref(func0);
 	});
@@ -278,16 +278,16 @@ void node_schedule(int64_t self, int32_t func0, int64_t stack0) {
 		return args0->pop_bool_or(true);
 	});
 }
-void node_unschedule(int64_t self) {
+DORA_EXPORT void node_unschedule(int64_t self) {
 	r_cast<Node*>(self)->unschedule();
 }
-int64_t node_convert_to_node_space(int64_t self, int64_t world_point) {
+DORA_EXPORT int64_t node_convert_to_node_space(int64_t self, int64_t world_point) {
 	return Vec2_Retain(r_cast<Node*>(self)->convertToNodeSpace(Vec2_From(world_point)));
 }
-int64_t node_convert_to_world_space(int64_t self, int64_t node_point) {
+DORA_EXPORT int64_t node_convert_to_world_space(int64_t self, int64_t node_point) {
 	return Vec2_Retain(r_cast<Node*>(self)->convertToWorldSpace(Vec2_From(node_point)));
 }
-void node_convert_to_window_space(int64_t self, int64_t node_point, int32_t func0, int64_t stack0) {
+DORA_EXPORT void node_convert_to_window_space(int64_t self, int64_t node_point, int32_t func0, int64_t stack0) {
 	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
 		SharedWasmRuntime.deref(func0);
 	});
@@ -298,7 +298,7 @@ void node_convert_to_window_space(int64_t self, int64_t node_point, int32_t func
 		SharedWasmRuntime.invoke(func0);
 	});
 }
-int32_t node_each_child(int64_t self, int32_t func0, int64_t stack0) {
+DORA_EXPORT int32_t node_each_child(int64_t self, int32_t func0, int64_t stack0) {
 	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
 		SharedWasmRuntime.deref(func0);
 	});
@@ -310,7 +310,7 @@ int32_t node_each_child(int64_t self, int32_t func0, int64_t stack0) {
 		return args0->pop_bool_or(true);
 	}) ? 1 : 0;
 }
-int32_t node_traverse(int64_t self, int32_t func0, int64_t stack0) {
+DORA_EXPORT int32_t node_traverse(int64_t self, int32_t func0, int64_t stack0) {
 	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
 		SharedWasmRuntime.deref(func0);
 	});
@@ -322,7 +322,7 @@ int32_t node_traverse(int64_t self, int32_t func0, int64_t stack0) {
 		return args0->pop_bool_or(true);
 	}) ? 1 : 0;
 }
-int32_t node_traverse_all(int64_t self, int32_t func0, int64_t stack0) {
+DORA_EXPORT int32_t node_traverse_all(int64_t self, int32_t func0, int64_t stack0) {
 	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
 		SharedWasmRuntime.deref(func0);
 	});
@@ -334,64 +334,64 @@ int32_t node_traverse_all(int64_t self, int32_t func0, int64_t stack0) {
 		return args0->pop_bool_or(true);
 	}) ? 1 : 0;
 }
-float node_run_action_def(int64_t self, int64_t def, int32_t looped) {
+DORA_EXPORT float node_run_action_def(int64_t self, int64_t def, int32_t looped) {
 	return Node_RunActionDefDuration(r_cast<Node*>(self), std::move(*r_cast<ActionDef*>(def)), looped != 0);
 }
-float node_run_action(int64_t self, int64_t action, int32_t looped) {
+DORA_EXPORT float node_run_action(int64_t self, int64_t action, int32_t looped) {
 	return r_cast<Node*>(self)->runAction(r_cast<Action*>(action), looped != 0);
 }
-void node_stop_all_actions(int64_t self) {
+DORA_EXPORT void node_stop_all_actions(int64_t self) {
 	r_cast<Node*>(self)->stopAllActions();
 }
-float node_perform_def(int64_t self, int64_t action_def, int32_t looped) {
+DORA_EXPORT float node_perform_def(int64_t self, int64_t action_def, int32_t looped) {
 	return Node_PerformDefDuration(r_cast<Node*>(self), std::move(*r_cast<ActionDef*>(action_def)), looped != 0);
 }
-float node_perform(int64_t self, int64_t action, int32_t looped) {
+DORA_EXPORT float node_perform(int64_t self, int64_t action, int32_t looped) {
 	return r_cast<Node*>(self)->perform(r_cast<Action*>(action), looped != 0);
 }
-void node_stop_action(int64_t self, int64_t action) {
+DORA_EXPORT void node_stop_action(int64_t self, int64_t action) {
 	r_cast<Node*>(self)->stopAction(r_cast<Action*>(action));
 }
-int64_t node_align_items_vertically(int64_t self, float padding) {
+DORA_EXPORT int64_t node_align_items_vertically(int64_t self, float padding) {
 	return Size_Retain(r_cast<Node*>(self)->alignItemsVertically(padding));
 }
-int64_t node_align_items_vertically_with_size(int64_t self, int64_t size, float padding) {
+DORA_EXPORT int64_t node_align_items_vertically_with_size(int64_t self, int64_t size, float padding) {
 	return Size_Retain(r_cast<Node*>(self)->alignItemsVertically(Size_From(size), padding));
 }
-int64_t node_align_items_horizontally(int64_t self, float padding) {
+DORA_EXPORT int64_t node_align_items_horizontally(int64_t self, float padding) {
 	return Size_Retain(r_cast<Node*>(self)->alignItemsHorizontally(padding));
 }
-int64_t node_align_items_horizontally_with_size(int64_t self, int64_t size, float padding) {
+DORA_EXPORT int64_t node_align_items_horizontally_with_size(int64_t self, int64_t size, float padding) {
 	return Size_Retain(r_cast<Node*>(self)->alignItemsHorizontally(Size_From(size), padding));
 }
-int64_t node_align_items(int64_t self, float padding) {
+DORA_EXPORT int64_t node_align_items(int64_t self, float padding) {
 	return Size_Retain(r_cast<Node*>(self)->alignItems(padding));
 }
-int64_t node_align_items_with_size(int64_t self, int64_t size, float padding) {
+DORA_EXPORT int64_t node_align_items_with_size(int64_t self, int64_t size, float padding) {
 	return Size_Retain(r_cast<Node*>(self)->alignItems(Size_From(size), padding));
 }
-void node_move_and_cull_items(int64_t self, int64_t delta) {
+DORA_EXPORT void node_move_and_cull_items(int64_t self, int64_t delta) {
 	r_cast<Node*>(self)->moveAndCullItems(Vec2_From(delta));
 }
-void node_attach_ime(int64_t self) {
+DORA_EXPORT void node_attach_ime(int64_t self) {
 	r_cast<Node*>(self)->attachIME();
 }
-void node_detach_ime(int64_t self) {
+DORA_EXPORT void node_detach_ime(int64_t self) {
 	r_cast<Node*>(self)->detachIME();
 }
-int64_t node_grab(int64_t self) {
+DORA_EXPORT int64_t node_grab(int64_t self) {
 	return Object_From(Node_StartGrabbing(r_cast<Node*>(self)));
 }
-int64_t node_grab_with_size(int64_t self, int32_t grid_x, int32_t grid_y) {
+DORA_EXPORT int64_t node_grab_with_size(int64_t self, int32_t grid_x, int32_t grid_y) {
 	return Object_From(r_cast<Node*>(self)->grab(s_cast<uint32_t>(grid_x), s_cast<uint32_t>(grid_y)));
 }
-void node_stop_grab(int64_t self) {
+DORA_EXPORT void node_stop_grab(int64_t self) {
 	Node_StopGrabbing(r_cast<Node*>(self));
 }
-void node_set_transform_target_null(int64_t self) {
+DORA_EXPORT void node_set_transform_target_null(int64_t self) {
 	Node_SetTransformTargetNullptr(r_cast<Node*>(self));
 }
-void node_slot(int64_t self, int64_t event_name, int32_t func0, int64_t stack0) {
+DORA_EXPORT void node_slot(int64_t self, int64_t event_name, int32_t func0, int64_t stack0) {
 	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
 		SharedWasmRuntime.deref(func0);
 	});
@@ -402,7 +402,7 @@ void node_slot(int64_t self, int64_t event_name, int32_t func0, int64_t stack0) 
 		SharedWasmRuntime.invoke(func0);
 	});
 }
-void node_gslot(int64_t self, int64_t event_name, int32_t func0, int64_t stack0) {
+DORA_EXPORT void node_gslot(int64_t self, int64_t event_name, int32_t func0, int64_t stack0) {
 	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
 		SharedWasmRuntime.deref(func0);
 	});
@@ -413,10 +413,10 @@ void node_gslot(int64_t self, int64_t event_name, int32_t func0, int64_t stack0)
 		SharedWasmRuntime.invoke(func0);
 	});
 }
-void node_emit(int64_t self, int64_t name, int64_t stack) {
+DORA_EXPORT void node_emit(int64_t self, int64_t name, int64_t stack) {
 	Node_Emit(r_cast<Node*>(self), *Str_From(name), r_cast<CallStack*>(stack));
 }
-void node_on_update(int64_t self, int32_t func0, int64_t stack0) {
+DORA_EXPORT void node_on_update(int64_t self, int32_t func0, int64_t stack0) {
 	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
 		SharedWasmRuntime.deref(func0);
 	});
@@ -428,7 +428,7 @@ void node_on_update(int64_t self, int32_t func0, int64_t stack0) {
 		return args0->pop_bool_or(true);
 	});
 }
-void node_on_render(int64_t self, int32_t func0, int64_t stack0) {
+DORA_EXPORT void node_on_render(int64_t self, int32_t func0, int64_t stack0) {
 	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
 		SharedWasmRuntime.deref(func0);
 	});
@@ -440,7 +440,7 @@ void node_on_render(int64_t self, int32_t func0, int64_t stack0) {
 		return args0->pop_bool_or(true);
 	});
 }
-int64_t node_new() {
+DORA_EXPORT int64_t node_new() {
 	return Object_From(Node::create());
 }
 } // extern "C"

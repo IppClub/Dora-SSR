@@ -8,16 +8,16 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-int32_t platformer_behavior_tree_type() {
+DORA_EXPORT int32_t platformer_behavior_tree_type() {
 	return DoraType<Platformer::Behavior::Leaf>();
 }
-int64_t platformer_behavior_leaf_seq(int64_t nodes) {
+DORA_EXPORT int64_t platformer_behavior_leaf_seq(int64_t nodes) {
 	return Object_From(BSeq(Vec_FromBtree(nodes)));
 }
-int64_t platformer_behavior_leaf_sel(int64_t nodes) {
+DORA_EXPORT int64_t platformer_behavior_leaf_sel(int64_t nodes) {
 	return Object_From(BSel(Vec_FromBtree(nodes)));
 }
-int64_t platformer_behavior_leaf_con(int64_t name, int32_t func0, int64_t stack0) {
+DORA_EXPORT int64_t platformer_behavior_leaf_con(int64_t name, int32_t func0, int64_t stack0) {
 	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
 		SharedWasmRuntime.deref(func0);
 	});
@@ -29,31 +29,31 @@ int64_t platformer_behavior_leaf_con(int64_t name, int32_t func0, int64_t stack0
 		return args0->pop_bool_or(false);
 	}));
 }
-int64_t platformer_behavior_leaf_act(int64_t action_name) {
+DORA_EXPORT int64_t platformer_behavior_leaf_act(int64_t action_name) {
 	return Object_From(BAct(*Str_From(action_name)));
 }
-int64_t platformer_behavior_leaf_command(int64_t action_name) {
+DORA_EXPORT int64_t platformer_behavior_leaf_command(int64_t action_name) {
 	return Object_From(BCommand(*Str_From(action_name)));
 }
-int64_t platformer_behavior_leaf_wait(double duration) {
+DORA_EXPORT int64_t platformer_behavior_leaf_wait(double duration) {
 	return Object_From(BWait(duration));
 }
-int64_t platformer_behavior_leaf_countdown(double time, int64_t node) {
+DORA_EXPORT int64_t platformer_behavior_leaf_countdown(double time, int64_t node) {
 	return Object_From(BCountdown(time, r_cast<Platformer::Behavior::Leaf*>(node)));
 }
-int64_t platformer_behavior_leaf_timeout(double time, int64_t node) {
+DORA_EXPORT int64_t platformer_behavior_leaf_timeout(double time, int64_t node) {
 	return Object_From(BTimeout(time, r_cast<Platformer::Behavior::Leaf*>(node)));
 }
-int64_t platformer_behavior_leaf_repeat(int32_t times, int64_t node) {
+DORA_EXPORT int64_t platformer_behavior_leaf_repeat(int32_t times, int64_t node) {
 	return Object_From(BRepeat(s_cast<int>(times), r_cast<Platformer::Behavior::Leaf*>(node)));
 }
-int64_t platformer_behavior_leaf_repeat_forever(int64_t node) {
+DORA_EXPORT int64_t platformer_behavior_leaf_repeat_forever(int64_t node) {
 	return Object_From(BRepeat(r_cast<Platformer::Behavior::Leaf*>(node)));
 }
-int64_t platformer_behavior_leaf_retry(int32_t times, int64_t node) {
+DORA_EXPORT int64_t platformer_behavior_leaf_retry(int32_t times, int64_t node) {
 	return Object_From(BRetry(s_cast<int>(times), r_cast<Platformer::Behavior::Leaf*>(node)));
 }
-int64_t platformer_behavior_leaf_retry_until_pass(int64_t node) {
+DORA_EXPORT int64_t platformer_behavior_leaf_retry_until_pass(int64_t node) {
 	return Object_From(BRetry(r_cast<Platformer::Behavior::Leaf*>(node)));
 }
 } // extern "C"

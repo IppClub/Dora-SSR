@@ -8,55 +8,55 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-int32_t platformer_platformcamera_type() {
+DORA_EXPORT int32_t platformer_platformcamera_type() {
 	return DoraType<Platformer::PlatformCamera>();
 }
-void platformer_platformcamera_set_position(int64_t self, int64_t val) {
+DORA_EXPORT void platformer_platformcamera_set_position(int64_t self, int64_t val) {
 	r_cast<Platformer::PlatformCamera*>(self)->setPosition(Vec2_From(val));
 }
-int64_t platformer_platformcamera_get_position(int64_t self) {
+DORA_EXPORT int64_t platformer_platformcamera_get_position(int64_t self) {
 	return Vec2_Retain(r_cast<Platformer::PlatformCamera*>(self)->getPosition());
 }
-void platformer_platformcamera_set_rotation(int64_t self, float val) {
+DORA_EXPORT void platformer_platformcamera_set_rotation(int64_t self, float val) {
 	r_cast<Platformer::PlatformCamera*>(self)->setRotation(val);
 }
-float platformer_platformcamera_get_rotation(int64_t self) {
+DORA_EXPORT float platformer_platformcamera_get_rotation(int64_t self) {
 	return r_cast<Platformer::PlatformCamera*>(self)->getRotation();
 }
-void platformer_platformcamera_set_zoom(int64_t self, float val) {
+DORA_EXPORT void platformer_platformcamera_set_zoom(int64_t self, float val) {
 	r_cast<Platformer::PlatformCamera*>(self)->setZoom(val);
 }
-float platformer_platformcamera_get_zoom(int64_t self) {
+DORA_EXPORT float platformer_platformcamera_get_zoom(int64_t self) {
 	return r_cast<Platformer::PlatformCamera*>(self)->getZoom();
 }
-void platformer_platformcamera_set_boundary(int64_t self, int64_t val) {
+DORA_EXPORT void platformer_platformcamera_set_boundary(int64_t self, int64_t val) {
 	r_cast<Platformer::PlatformCamera*>(self)->setBoundary(*r_cast<Rect*>(val));
 }
-int64_t platformer_platformcamera_get_boundary(int64_t self) {
+DORA_EXPORT int64_t platformer_platformcamera_get_boundary(int64_t self) {
 	return r_cast<int64_t>(new Rect{r_cast<Platformer::PlatformCamera*>(self)->getBoundary()});
 }
-void platformer_platformcamera_set_follow_ratio(int64_t self, int64_t val) {
+DORA_EXPORT void platformer_platformcamera_set_follow_ratio(int64_t self, int64_t val) {
 	r_cast<Platformer::PlatformCamera*>(self)->setFollowRatio(Vec2_From(val));
 }
-int64_t platformer_platformcamera_get_follow_ratio(int64_t self) {
+DORA_EXPORT int64_t platformer_platformcamera_get_follow_ratio(int64_t self) {
 	return Vec2_Retain(r_cast<Platformer::PlatformCamera*>(self)->getFollowRatio());
 }
-void platformer_platformcamera_set_follow_offset(int64_t self, int64_t val) {
+DORA_EXPORT void platformer_platformcamera_set_follow_offset(int64_t self, int64_t val) {
 	r_cast<Platformer::PlatformCamera*>(self)->setFollowOffset(Vec2_From(val));
 }
-int64_t platformer_platformcamera_get_follow_offset(int64_t self) {
+DORA_EXPORT int64_t platformer_platformcamera_get_follow_offset(int64_t self) {
 	return Vec2_Retain(r_cast<Platformer::PlatformCamera*>(self)->getFollowOffset());
 }
-void platformer_platformcamera_set_follow_target(int64_t self, int64_t val) {
+DORA_EXPORT void platformer_platformcamera_set_follow_target(int64_t self, int64_t val) {
 	r_cast<Platformer::PlatformCamera*>(self)->setFollowTarget(r_cast<Node*>(val));
 }
-int64_t platformer_platformcamera_get_follow_target(int64_t self) {
+DORA_EXPORT int64_t platformer_platformcamera_get_follow_target(int64_t self) {
 	return Object_From(r_cast<Platformer::PlatformCamera*>(self)->getFollowTarget());
 }
-void platformer_platformcamera_set_follow_target_null(int64_t self) {
+DORA_EXPORT void platformer_platformcamera_set_follow_target_null(int64_t self) {
 	PlatformCamera_SetFollowTargetNullptr(r_cast<Platformer::PlatformCamera*>(self));
 }
-int64_t platformer_platformcamera_new(int64_t name) {
+DORA_EXPORT int64_t platformer_platformcamera_new(int64_t name) {
 	return Object_From(Platformer::PlatformCamera::create(*Str_From(name)));
 }
 } // extern "C"

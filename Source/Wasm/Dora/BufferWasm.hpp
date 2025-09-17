@@ -8,22 +8,22 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-int32_t buffer_type() {
+DORA_EXPORT int32_t buffer_type() {
 	return DoraType<Buffer>();
 }
-void buffer_set_text(int64_t self, int64_t val) {
+DORA_EXPORT void buffer_set_text(int64_t self, int64_t val) {
 	r_cast<Buffer*>(self)->setText(*Str_From(val));
 }
-int64_t buffer_get_text(int64_t self) {
+DORA_EXPORT int64_t buffer_get_text(int64_t self) {
 	return Str_Retain(r_cast<Buffer*>(self)->getText());
 }
-void buffer_resize(int64_t self, int32_t size) {
+DORA_EXPORT void buffer_resize(int64_t self, int32_t size) {
 	r_cast<Buffer*>(self)->resize(s_cast<uint32_t>(size));
 }
-void buffer_zero_memory(int64_t self) {
+DORA_EXPORT void buffer_zero_memory(int64_t self) {
 	r_cast<Buffer*>(self)->zeroMemory();
 }
-int32_t buffer_get_size(int64_t self) {
+DORA_EXPORT int32_t buffer_get_size(int64_t self) {
 	return s_cast<int32_t>(r_cast<Buffer*>(self)->size());
 }
 } // extern "C"

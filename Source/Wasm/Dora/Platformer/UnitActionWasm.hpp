@@ -8,34 +8,34 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-void platformer_unitaction_set_reaction(int64_t self, float val) {
+DORA_EXPORT void platformer_unitaction_set_reaction(int64_t self, float val) {
 	r_cast<Platformer::UnitAction*>(self)->reaction = s_cast<float>(val);
 }
-float platformer_unitaction_get_reaction(int64_t self) {
+DORA_EXPORT float platformer_unitaction_get_reaction(int64_t self) {
 	return r_cast<Platformer::UnitAction*>(self)->reaction;
 }
-void platformer_unitaction_set_recovery(int64_t self, float val) {
+DORA_EXPORT void platformer_unitaction_set_recovery(int64_t self, float val) {
 	r_cast<Platformer::UnitAction*>(self)->recovery = s_cast<float>(val);
 }
-float platformer_unitaction_get_recovery(int64_t self) {
+DORA_EXPORT float platformer_unitaction_get_recovery(int64_t self) {
 	return r_cast<Platformer::UnitAction*>(self)->recovery;
 }
-int64_t platformer_unitaction_get_name(int64_t self) {
+DORA_EXPORT int64_t platformer_unitaction_get_name(int64_t self) {
 	return Str_Retain(r_cast<Platformer::UnitAction*>(self)->getName());
 }
-int32_t platformer_unitaction_is_doing(int64_t self) {
+DORA_EXPORT int32_t platformer_unitaction_is_doing(int64_t self) {
 	return r_cast<Platformer::UnitAction*>(self)->isDoing() ? 1 : 0;
 }
-int64_t platformer_unitaction_get_owner(int64_t self) {
+DORA_EXPORT int64_t platformer_unitaction_get_owner(int64_t self) {
 	return Object_From(r_cast<Platformer::UnitAction*>(self)->getOwner());
 }
-float platformer_unitaction_get_elapsed_time(int64_t self) {
+DORA_EXPORT float platformer_unitaction_get_elapsed_time(int64_t self) {
 	return r_cast<Platformer::UnitAction*>(self)->getElapsedTime();
 }
-void platformer_unitaction_clear() {
+DORA_EXPORT void platformer_unitaction_clear() {
 	Platformer::UnitAction::clear();
 }
-void platformer_unitaction_add(int64_t name, int32_t priority, float reaction, float recovery, int32_t queued, int32_t func0, int64_t stack0, int32_t func1, int64_t stack1, int32_t func2, int64_t stack2) {
+DORA_EXPORT void platformer_unitaction_add(int64_t name, int32_t priority, float reaction, float recovery, int32_t queued, int32_t func0, int64_t stack0, int32_t func1, int64_t stack1, int32_t func2, int64_t stack2) {
 	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
 		SharedWasmRuntime.deref(func0);
 	});

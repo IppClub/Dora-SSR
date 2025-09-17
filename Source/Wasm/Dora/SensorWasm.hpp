@@ -8,28 +8,28 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-int32_t sensor_type() {
+DORA_EXPORT int32_t sensor_type() {
 	return DoraType<Sensor>();
 }
-void sensor_set_enabled(int64_t self, int32_t val) {
+DORA_EXPORT void sensor_set_enabled(int64_t self, int32_t val) {
 	r_cast<Sensor*>(self)->setEnabled(val != 0);
 }
-int32_t sensor_is_enabled(int64_t self) {
+DORA_EXPORT int32_t sensor_is_enabled(int64_t self) {
 	return r_cast<Sensor*>(self)->isEnabled() ? 1 : 0;
 }
-int32_t sensor_get_tag(int64_t self) {
+DORA_EXPORT int32_t sensor_get_tag(int64_t self) {
 	return s_cast<int32_t>(r_cast<Sensor*>(self)->getTag());
 }
-int64_t sensor_get_owner(int64_t self) {
+DORA_EXPORT int64_t sensor_get_owner(int64_t self) {
 	return Object_From(r_cast<Sensor*>(self)->getOwner());
 }
-int32_t sensor_is_sensed(int64_t self) {
+DORA_EXPORT int32_t sensor_is_sensed(int64_t self) {
 	return r_cast<Sensor*>(self)->isSensed() ? 1 : 0;
 }
-int64_t sensor_get_sensed_bodies(int64_t self) {
+DORA_EXPORT int64_t sensor_get_sensed_bodies(int64_t self) {
 	return Object_From(r_cast<Sensor*>(self)->getSensedBodies());
 }
-int32_t sensor_contains(int64_t self, int64_t body) {
+DORA_EXPORT int32_t sensor_contains(int64_t self, int64_t body) {
 	return r_cast<Sensor*>(self)->contains(r_cast<Body*>(body)) ? 1 : 0;
 }
 } // extern "C"

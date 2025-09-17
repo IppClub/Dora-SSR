@@ -8,16 +8,16 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-int32_t cameraotho_type() {
+DORA_EXPORT int32_t cameraotho_type() {
 	return DoraType<CameraOtho>();
 }
-void cameraotho_set_position(int64_t self, int64_t val) {
+DORA_EXPORT void cameraotho_set_position(int64_t self, int64_t val) {
 	r_cast<CameraOtho*>(self)->setPosition(Vec2_From(val));
 }
-int64_t cameraotho_get_position(int64_t self) {
+DORA_EXPORT int64_t cameraotho_get_position(int64_t self) {
 	return Vec2_Retain(r_cast<CameraOtho*>(self)->getPosition());
 }
-int64_t cameraotho_new(int64_t name) {
+DORA_EXPORT int64_t cameraotho_new(int64_t name) {
 	return Object_From(CameraOtho::create(*Str_From(name)));
 }
 } // extern "C"

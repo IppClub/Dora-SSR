@@ -8,16 +8,16 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-int32_t effeknode_type() {
+DORA_EXPORT int32_t effeknode_type() {
 	return DoraType<EffekNode>();
 }
-int32_t effeknode_play(int64_t self, int64_t filename, int64_t pos, float z) {
+DORA_EXPORT int32_t effeknode_play(int64_t self, int64_t filename, int64_t pos, float z) {
 	return s_cast<int32_t>(r_cast<EffekNode*>(self)->play(*Str_From(filename), Vec2_From(pos), z));
 }
-void effeknode_stop(int64_t self, int32_t handle) {
+DORA_EXPORT void effeknode_stop(int64_t self, int32_t handle) {
 	r_cast<EffekNode*>(self)->stop(s_cast<int>(handle));
 }
-int64_t effeknode_new() {
+DORA_EXPORT int64_t effeknode_new() {
 	return Object_From(EffekNode::create());
 }
 } // extern "C"

@@ -8,46 +8,46 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-void audio_set_sound_speed(float val) {
+DORA_EXPORT void audio_set_sound_speed(float val) {
 	SharedAudio.setSoundSpeed(val);
 }
-float audio_get_sound_speed() {
+DORA_EXPORT float audio_get_sound_speed() {
 	return SharedAudio.getSoundSpeed();
 }
-void audio_set_global_volume(float val) {
+DORA_EXPORT void audio_set_global_volume(float val) {
 	SharedAudio.setGlobalVolume(val);
 }
-float audio_get_global_volume() {
+DORA_EXPORT float audio_get_global_volume() {
 	return SharedAudio.getGlobalVolume();
 }
-void audio_set_listener(int64_t val) {
+DORA_EXPORT void audio_set_listener(int64_t val) {
 	SharedAudio.setListener(r_cast<Node*>(val));
 }
-int64_t audio_get_listener() {
+DORA_EXPORT int64_t audio_get_listener() {
 	return Object_From(SharedAudio.getListener());
 }
-int32_t audio_play(int64_t filename, int32_t looping) {
+DORA_EXPORT int32_t audio_play(int64_t filename, int32_t looping) {
 	return s_cast<int32_t>(SharedAudio.play(*Str_From(filename), looping != 0));
 }
-void audio_stop(int32_t handle) {
+DORA_EXPORT void audio_stop(int32_t handle) {
 	SharedAudio.stop(s_cast<uint32_t>(handle));
 }
-void audio_play_stream(int64_t filename, int32_t looping, float cross_fade_time) {
+DORA_EXPORT void audio_play_stream(int64_t filename, int32_t looping, float cross_fade_time) {
 	SharedAudio.playStream(*Str_From(filename), looping != 0, cross_fade_time);
 }
-void audio_stop_stream(float fade_time) {
+DORA_EXPORT void audio_stop_stream(float fade_time) {
 	SharedAudio.stopStream(fade_time);
 }
-void audio_set_pause_all_current(int32_t pause) {
+DORA_EXPORT void audio_set_pause_all_current(int32_t pause) {
 	SharedAudio.setPauseAllCurrent(pause != 0);
 }
-void audio_set_listener_at(float at_x, float at_y, float at_z) {
+DORA_EXPORT void audio_set_listener_at(float at_x, float at_y, float at_z) {
 	SharedAudio.setListenerAt(at_x, at_y, at_z);
 }
-void audio_set_listener_up(float up_x, float up_y, float up_z) {
+DORA_EXPORT void audio_set_listener_up(float up_x, float up_y, float up_z) {
 	SharedAudio.setListenerUp(up_x, up_y, up_z);
 }
-void audio_set_listener_velocity(float velocity_x, float velocity_y, float velocity_z) {
+DORA_EXPORT void audio_set_listener_velocity(float velocity_x, float velocity_y, float velocity_z) {
 	SharedAudio.setListenerVelocity(velocity_x, velocity_y, velocity_z);
 }
 } // extern "C"

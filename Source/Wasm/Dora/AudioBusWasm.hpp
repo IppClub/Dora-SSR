@@ -8,49 +8,49 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-int32_t audiobus_type() {
+DORA_EXPORT int32_t audiobus_type() {
 	return DoraType<AudioBus>();
 }
-void audiobus_set_volume(int64_t self, float val) {
+DORA_EXPORT void audiobus_set_volume(int64_t self, float val) {
 	r_cast<AudioBus*>(self)->setVolume(val);
 }
-float audiobus_get_volume(int64_t self) {
+DORA_EXPORT float audiobus_get_volume(int64_t self) {
 	return r_cast<AudioBus*>(self)->getVolume();
 }
-void audiobus_set_pan(int64_t self, float val) {
+DORA_EXPORT void audiobus_set_pan(int64_t self, float val) {
 	r_cast<AudioBus*>(self)->setPan(val);
 }
-float audiobus_get_pan(int64_t self) {
+DORA_EXPORT float audiobus_get_pan(int64_t self) {
 	return r_cast<AudioBus*>(self)->getPan();
 }
-void audiobus_set_play_speed(int64_t self, float val) {
+DORA_EXPORT void audiobus_set_play_speed(int64_t self, float val) {
 	r_cast<AudioBus*>(self)->setPlaySpeed(val);
 }
-float audiobus_get_play_speed(int64_t self) {
+DORA_EXPORT float audiobus_get_play_speed(int64_t self) {
 	return r_cast<AudioBus*>(self)->getPlaySpeed();
 }
-void audiobus_fade_volume(int64_t self, double time, float to_volume) {
+DORA_EXPORT void audiobus_fade_volume(int64_t self, double time, float to_volume) {
 	r_cast<AudioBus*>(self)->fadeVolume(time, to_volume);
 }
-void audiobus_fade_pan(int64_t self, double time, float to_pan) {
+DORA_EXPORT void audiobus_fade_pan(int64_t self, double time, float to_pan) {
 	r_cast<AudioBus*>(self)->fadePan(time, to_pan);
 }
-void audiobus_fade_play_speed(int64_t self, double time, float to_play_speed) {
+DORA_EXPORT void audiobus_fade_play_speed(int64_t self, double time, float to_play_speed) {
 	r_cast<AudioBus*>(self)->fadePlaySpeed(time, to_play_speed);
 }
-void audiobus_set_filter(int64_t self, int32_t index, int64_t name) {
+DORA_EXPORT void audiobus_set_filter(int64_t self, int32_t index, int64_t name) {
 	r_cast<AudioBus*>(self)->setFilter(s_cast<uint32_t>(index), *Str_From(name));
 }
-void audiobus_set_filter_parameter(int64_t self, int32_t index, int32_t attr_id, float value) {
+DORA_EXPORT void audiobus_set_filter_parameter(int64_t self, int32_t index, int32_t attr_id, float value) {
 	r_cast<AudioBus*>(self)->setFilterParameter(s_cast<uint32_t>(index), s_cast<uint32_t>(attr_id), value);
 }
-float audiobus_get_filter_parameter(int64_t self, int32_t index, int32_t attr_id) {
+DORA_EXPORT float audiobus_get_filter_parameter(int64_t self, int32_t index, int32_t attr_id) {
 	return r_cast<AudioBus*>(self)->getFilterParameter(s_cast<uint32_t>(index), s_cast<uint32_t>(attr_id));
 }
-void audiobus_fade_filter_parameter(int64_t self, int32_t index, int32_t attr_id, float to, double time) {
+DORA_EXPORT void audiobus_fade_filter_parameter(int64_t self, int32_t index, int32_t attr_id, float to, double time) {
 	r_cast<AudioBus*>(self)->fadeFilterParameter(s_cast<uint32_t>(index), s_cast<uint32_t>(attr_id), to, time);
 }
-int64_t audiobus_new() {
+DORA_EXPORT int64_t audiobus_new() {
 	return Object_From(AudioBus::create());
 }
 } // extern "C"

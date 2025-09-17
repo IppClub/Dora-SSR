@@ -8,16 +8,16 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-void dbquery_release(int64_t raw) {
+DORA_EXPORT void dbquery_release(int64_t raw) {
 	delete r_cast<DBQuery*>(raw);
 }
-void dbquery_add_with_params(int64_t self, int64_t sql, int64_t params) {
+DORA_EXPORT void dbquery_add_with_params(int64_t self, int64_t sql, int64_t params) {
 	r_cast<DBQuery*>(self)->addWithParams(*Str_From(sql), *r_cast<DBParams*>(params));
 }
-void dbquery_add(int64_t self, int64_t sql) {
+DORA_EXPORT void dbquery_add(int64_t self, int64_t sql) {
 	r_cast<DBQuery*>(self)->add(*Str_From(sql));
 }
-int64_t dbquery_new() {
+DORA_EXPORT int64_t dbquery_new() {
 	return r_cast<int64_t>(new DBQuery{});
 }
 } // extern "C"

@@ -8,7 +8,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-float ease_func(int32_t easing, float time) {
+DORA_EXPORT float ease_func(int32_t easing, float time) {
 	return Ease::func(s_cast<Ease::Enum>(easing), time);
 }
 } // extern "C"

@@ -8,52 +8,52 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-int64_t view_get_size() {
+DORA_EXPORT int64_t view_get_size() {
 	return Size_Retain(SharedView.getSize());
 }
-float view_get_standard_distance() {
+DORA_EXPORT float view_get_standard_distance() {
 	return SharedView.getStandardDistance();
 }
-float view_get_aspect_ratio() {
+DORA_EXPORT float view_get_aspect_ratio() {
 	return SharedView.getAspectRatio();
 }
-void view_set_near_plane_distance(float val) {
+DORA_EXPORT void view_set_near_plane_distance(float val) {
 	SharedView.setNearPlaneDistance(val);
 }
-float view_get_near_plane_distance() {
+DORA_EXPORT float view_get_near_plane_distance() {
 	return SharedView.getNearPlaneDistance();
 }
-void view_set_far_plane_distance(float val) {
+DORA_EXPORT void view_set_far_plane_distance(float val) {
 	SharedView.setFarPlaneDistance(val);
 }
-float view_get_far_plane_distance() {
+DORA_EXPORT float view_get_far_plane_distance() {
 	return SharedView.getFarPlaneDistance();
 }
-void view_set_field_of_view(float val) {
+DORA_EXPORT void view_set_field_of_view(float val) {
 	SharedView.setFieldOfView(val);
 }
-float view_get_field_of_view() {
+DORA_EXPORT float view_get_field_of_view() {
 	return SharedView.getFieldOfView();
 }
-void view_set_scale(float val) {
+DORA_EXPORT void view_set_scale(float val) {
 	SharedView.setScale(val);
 }
-float view_get_scale() {
+DORA_EXPORT float view_get_scale() {
 	return SharedView.getScale();
 }
-void view_set_post_effect(int64_t val) {
+DORA_EXPORT void view_set_post_effect(int64_t val) {
 	SharedView.setPostEffect(r_cast<SpriteEffect*>(val));
 }
-int64_t view_get_post_effect() {
+DORA_EXPORT int64_t view_get_post_effect() {
 	return Object_From(SharedView.getPostEffect());
 }
-void view_set_post_effect_null() {
+DORA_EXPORT void view_set_post_effect_null() {
 	View_SetPostEffectNullptr();
 }
-void view_set_vsync(int32_t val) {
+DORA_EXPORT void view_set_vsync(int32_t val) {
 	SharedView.setVSync(val != 0);
 }
-int32_t view_is_vsync() {
+DORA_EXPORT int32_t view_is_vsync() {
 	return SharedView.isVSync() ? 1 : 0;
 }
 } // extern "C"

@@ -8,25 +8,25 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-int32_t motorjoint_type() {
+DORA_EXPORT int32_t motorjoint_type() {
 	return DoraType<MotorJoint>();
 }
-void motorjoint_set_enabled(int64_t self, int32_t val) {
+DORA_EXPORT void motorjoint_set_enabled(int64_t self, int32_t val) {
 	r_cast<MotorJoint*>(self)->setEnabled(val != 0);
 }
-int32_t motorjoint_is_enabled(int64_t self) {
+DORA_EXPORT int32_t motorjoint_is_enabled(int64_t self) {
 	return r_cast<MotorJoint*>(self)->isEnabled() ? 1 : 0;
 }
-void motorjoint_set_force(int64_t self, float val) {
+DORA_EXPORT void motorjoint_set_force(int64_t self, float val) {
 	r_cast<MotorJoint*>(self)->setForce(val);
 }
-float motorjoint_get_force(int64_t self) {
+DORA_EXPORT float motorjoint_get_force(int64_t self) {
 	return r_cast<MotorJoint*>(self)->getForce();
 }
-void motorjoint_set_speed(int64_t self, float val) {
+DORA_EXPORT void motorjoint_set_speed(int64_t self, float val) {
 	r_cast<MotorJoint*>(self)->setSpeed(val);
 }
-float motorjoint_get_speed(int64_t self) {
+DORA_EXPORT float motorjoint_get_speed(int64_t self) {
 	return r_cast<MotorJoint*>(self)->getSpeed();
 }
 } // extern "C"

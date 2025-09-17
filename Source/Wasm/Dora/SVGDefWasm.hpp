@@ -8,19 +8,19 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-int32_t svg_type() {
+DORA_EXPORT int32_t svg_type() {
 	return DoraType<SVGDef>();
 }
-float svgdef_get_width(int64_t self) {
+DORA_EXPORT float svgdef_get_width(int64_t self) {
 	return r_cast<SVGDef*>(self)->getWidth();
 }
-float svgdef_get_height(int64_t self) {
+DORA_EXPORT float svgdef_get_height(int64_t self) {
 	return r_cast<SVGDef*>(self)->getHeight();
 }
-void svgdef_render(int64_t self) {
+DORA_EXPORT void svgdef_render(int64_t self) {
 	r_cast<SVGDef*>(self)->render();
 }
-int64_t svgdef_new(int64_t filename) {
+DORA_EXPORT int64_t svgdef_new(int64_t filename) {
 	return Object_From(SVGDef::from(*Str_From(filename)));
 }
 } // extern "C"

@@ -8,55 +8,55 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-int32_t playable_type() {
+DORA_EXPORT int32_t playable_type() {
 	return DoraType<Playable>();
 }
-void playable_set_look(int64_t self, int64_t val) {
+DORA_EXPORT void playable_set_look(int64_t self, int64_t val) {
 	r_cast<Playable*>(self)->setLook(*Str_From(val));
 }
-int64_t playable_get_look(int64_t self) {
+DORA_EXPORT int64_t playable_get_look(int64_t self) {
 	return Str_Retain(r_cast<Playable*>(self)->getLook());
 }
-void playable_set_speed(int64_t self, float val) {
+DORA_EXPORT void playable_set_speed(int64_t self, float val) {
 	r_cast<Playable*>(self)->setSpeed(val);
 }
-float playable_get_speed(int64_t self) {
+DORA_EXPORT float playable_get_speed(int64_t self) {
 	return r_cast<Playable*>(self)->getSpeed();
 }
-void playable_set_recovery(int64_t self, float val) {
+DORA_EXPORT void playable_set_recovery(int64_t self, float val) {
 	r_cast<Playable*>(self)->setRecovery(val);
 }
-float playable_get_recovery(int64_t self) {
+DORA_EXPORT float playable_get_recovery(int64_t self) {
 	return r_cast<Playable*>(self)->getRecovery();
 }
-void playable_set_fliped(int64_t self, int32_t val) {
+DORA_EXPORT void playable_set_fliped(int64_t self, int32_t val) {
 	r_cast<Playable*>(self)->setFliped(val != 0);
 }
-int32_t playable_is_fliped(int64_t self) {
+DORA_EXPORT int32_t playable_is_fliped(int64_t self) {
 	return r_cast<Playable*>(self)->isFliped() ? 1 : 0;
 }
-int64_t playable_get_current(int64_t self) {
+DORA_EXPORT int64_t playable_get_current(int64_t self) {
 	return Str_Retain(r_cast<Playable*>(self)->getCurrent());
 }
-int64_t playable_get_last_completed(int64_t self) {
+DORA_EXPORT int64_t playable_get_last_completed(int64_t self) {
 	return Str_Retain(r_cast<Playable*>(self)->getLastCompleted());
 }
-int64_t playable_get_key(int64_t self, int64_t name) {
+DORA_EXPORT int64_t playable_get_key(int64_t self, int64_t name) {
 	return Vec2_Retain(r_cast<Playable*>(self)->getKeyPoint(*Str_From(name)));
 }
-float playable_play(int64_t self, int64_t name, int32_t looping) {
+DORA_EXPORT float playable_play(int64_t self, int64_t name, int32_t looping) {
 	return r_cast<Playable*>(self)->play(*Str_From(name), looping != 0);
 }
-void playable_stop(int64_t self) {
+DORA_EXPORT void playable_stop(int64_t self) {
 	r_cast<Playable*>(self)->stop();
 }
-void playable_set_slot(int64_t self, int64_t name, int64_t item) {
+DORA_EXPORT void playable_set_slot(int64_t self, int64_t name, int64_t item) {
 	r_cast<Playable*>(self)->setSlot(*Str_From(name), r_cast<Node*>(item));
 }
-int64_t playable_get_slot(int64_t self, int64_t name) {
+DORA_EXPORT int64_t playable_get_slot(int64_t self, int64_t name) {
 	return Object_From(r_cast<Playable*>(self)->getSlot(*Str_From(name)));
 }
-int64_t playable_new(int64_t filename) {
+DORA_EXPORT int64_t playable_new(int64_t filename) {
 	return Object_From(Playable::create(*Str_From(filename)));
 }
 } // extern "C"

@@ -8,10 +8,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-int32_t platformer_actionupdate_type() {
+DORA_EXPORT int32_t platformer_actionupdate_type() {
 	return DoraType<Platformer::WasmActionUpdate>();
 }
-int64_t platformer_wasmactionupdate_new(int32_t func0, int64_t stack0) {
+DORA_EXPORT int64_t platformer_wasmactionupdate_new(int32_t func0, int64_t stack0) {
 	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
 		SharedWasmRuntime.deref(func0);
 	});

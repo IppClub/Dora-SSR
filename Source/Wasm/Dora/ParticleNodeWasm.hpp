@@ -8,19 +8,19 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-int32_t particle_type() {
+DORA_EXPORT int32_t particle_type() {
 	return DoraType<ParticleNode>();
 }
-int32_t particlenode_is_active(int64_t self) {
+DORA_EXPORT int32_t particlenode_is_active(int64_t self) {
 	return r_cast<ParticleNode*>(self)->isActive() ? 1 : 0;
 }
-void particlenode_start(int64_t self) {
+DORA_EXPORT void particlenode_start(int64_t self) {
 	r_cast<ParticleNode*>(self)->start();
 }
-void particlenode_stop(int64_t self) {
+DORA_EXPORT void particlenode_stop(int64_t self) {
 	r_cast<ParticleNode*>(self)->stop();
 }
-int64_t particlenode_new(int64_t filename) {
+DORA_EXPORT int64_t particlenode_new(int64_t filename) {
 	return Object_From(ParticleNode::create(*Str_From(filename)));
 }
 } // extern "C"

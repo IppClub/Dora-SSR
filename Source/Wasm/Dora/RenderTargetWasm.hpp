@@ -8,34 +8,34 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-int32_t rendertarget_type() {
+DORA_EXPORT int32_t rendertarget_type() {
 	return DoraType<RenderTarget>();
 }
-int32_t rendertarget_get_width(int64_t self) {
+DORA_EXPORT int32_t rendertarget_get_width(int64_t self) {
 	return s_cast<int32_t>(r_cast<RenderTarget*>(self)->getWidth());
 }
-int32_t rendertarget_get_height(int64_t self) {
+DORA_EXPORT int32_t rendertarget_get_height(int64_t self) {
 	return s_cast<int32_t>(r_cast<RenderTarget*>(self)->getHeight());
 }
-void rendertarget_set_camera(int64_t self, int64_t val) {
+DORA_EXPORT void rendertarget_set_camera(int64_t self, int64_t val) {
 	r_cast<RenderTarget*>(self)->setCamera(r_cast<Camera*>(val));
 }
-int64_t rendertarget_get_camera(int64_t self) {
+DORA_EXPORT int64_t rendertarget_get_camera(int64_t self) {
 	return Object_From(r_cast<RenderTarget*>(self)->getCamera());
 }
-int64_t rendertarget_get_texture(int64_t self) {
+DORA_EXPORT int64_t rendertarget_get_texture(int64_t self) {
 	return Object_From(r_cast<RenderTarget*>(self)->getTexture());
 }
-void rendertarget_render(int64_t self, int64_t target) {
+DORA_EXPORT void rendertarget_render(int64_t self, int64_t target) {
 	r_cast<RenderTarget*>(self)->render(r_cast<Node*>(target));
 }
-void rendertarget_render_clear(int64_t self, int32_t color, float depth, int32_t stencil) {
+DORA_EXPORT void rendertarget_render_clear(int64_t self, int32_t color, float depth, int32_t stencil) {
 	r_cast<RenderTarget*>(self)->renderWithClear(Color(s_cast<uint32_t>(color)), depth, s_cast<uint8_t>(stencil));
 }
-void rendertarget_render_clear_with_target(int64_t self, int64_t target, int32_t color, float depth, int32_t stencil) {
+DORA_EXPORT void rendertarget_render_clear_with_target(int64_t self, int64_t target, int32_t color, float depth, int32_t stencil) {
 	r_cast<RenderTarget*>(self)->renderWithClear(r_cast<Node*>(target), Color(s_cast<uint32_t>(color)), depth, s_cast<uint8_t>(stencil));
 }
-void rendertarget_save_async(int64_t self, int64_t filename, int32_t func0, int64_t stack0) {
+DORA_EXPORT void rendertarget_save_async(int64_t self, int64_t filename, int32_t func0, int64_t stack0) {
 	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
 		SharedWasmRuntime.deref(func0);
 	});
@@ -46,7 +46,7 @@ void rendertarget_save_async(int64_t self, int64_t filename, int32_t func0, int6
 		SharedWasmRuntime.invoke(func0);
 	});
 }
-int64_t rendertarget_new(int32_t width, int32_t height) {
+DORA_EXPORT int64_t rendertarget_new(int32_t width, int32_t height) {
 	return Object_From(RenderTarget::create(s_cast<uint16_t>(width), s_cast<uint16_t>(height)));
 }
 } // extern "C"

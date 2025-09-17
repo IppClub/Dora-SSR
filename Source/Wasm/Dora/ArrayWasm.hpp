@@ -8,40 +8,40 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-int32_t array_type() {
+DORA_EXPORT int32_t array_type() {
 	return DoraType<Array>();
 }
-int64_t array_get_count(int64_t self) {
+DORA_EXPORT int64_t array_get_count(int64_t self) {
 	return s_cast<int64_t>(r_cast<Array*>(self)->getCount());
 }
-int32_t array_is_empty(int64_t self) {
+DORA_EXPORT int32_t array_is_empty(int64_t self) {
 	return r_cast<Array*>(self)->isEmpty() ? 1 : 0;
 }
-void array_add_range(int64_t self, int64_t other) {
+DORA_EXPORT void array_add_range(int64_t self, int64_t other) {
 	r_cast<Array*>(self)->addRange(r_cast<Array*>(other));
 }
-void array_remove_from(int64_t self, int64_t other) {
+DORA_EXPORT void array_remove_from(int64_t self, int64_t other) {
 	r_cast<Array*>(self)->removeFrom(r_cast<Array*>(other));
 }
-void array_clear(int64_t self) {
+DORA_EXPORT void array_clear(int64_t self) {
 	r_cast<Array*>(self)->clear();
 }
-void array_reverse(int64_t self) {
+DORA_EXPORT void array_reverse(int64_t self) {
 	r_cast<Array*>(self)->reverse();
 }
-void array_shrink(int64_t self) {
+DORA_EXPORT void array_shrink(int64_t self) {
 	r_cast<Array*>(self)->shrink();
 }
-void array_swap(int64_t self, int32_t index_a, int32_t index_b) {
+DORA_EXPORT void array_swap(int64_t self, int32_t index_a, int32_t index_b) {
 	r_cast<Array*>(self)->swap(s_cast<int>(index_a), s_cast<int>(index_b));
 }
-int32_t array_remove_at(int64_t self, int32_t index) {
+DORA_EXPORT int32_t array_remove_at(int64_t self, int32_t index) {
 	return r_cast<Array*>(self)->removeAt(s_cast<int>(index)) ? 1 : 0;
 }
-int32_t array_fast_remove_at(int64_t self, int32_t index) {
+DORA_EXPORT int32_t array_fast_remove_at(int64_t self, int32_t index) {
 	return r_cast<Array*>(self)->fastRemoveAt(s_cast<int>(index)) ? 1 : 0;
 }
-int64_t array_new() {
+DORA_EXPORT int64_t array_new() {
 	return Object_From(Array::create());
 }
 } // extern "C"

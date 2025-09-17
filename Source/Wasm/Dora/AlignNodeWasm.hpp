@@ -8,13 +8,13 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-int32_t alignnode_type() {
+DORA_EXPORT int32_t alignnode_type() {
 	return DoraType<AlignNode>();
 }
-void alignnode_css(int64_t self, int64_t style) {
+DORA_EXPORT void alignnode_css(int64_t self, int64_t style) {
 	r_cast<AlignNode*>(self)->css(*Str_From(style));
 }
-int64_t alignnode_new(int32_t is_window_root) {
+DORA_EXPORT int64_t alignnode_new(int32_t is_window_root) {
 	return Object_From(AlignNode::create(is_window_root != 0));
 }
 } // extern "C"

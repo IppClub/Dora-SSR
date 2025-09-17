@@ -19,6 +19,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 struct SDL_Window;
 union SDL_Event;
 
+extern "C" typedef int (*MainFunc)();
+
 NS_DORA_BEGIN
 
 typedef Acf::Delegate<void(const SDL_Event&)> SDLEventHandler;
@@ -65,7 +67,7 @@ public:
 	PROPERTY_BOOL(AlwaysOnTop);
 	SDLEventHandler eventHandler;
 	QuitHandler quitHandler;
-	int run();
+	int run(MainFunc mainFunc = nullptr);
 	void shutdown();
 	void invokeInRender(const std::function<void()>& func);
 	void invokeInLogic(const std::function<void()>& func);
@@ -128,6 +130,7 @@ private:
 	SDL_Window* _sdlWindow;
 	std::mt19937 _randomEngine;
 	bgfx::PlatformData _platformData;
+	MainFunc _mainFunc;
 	SINGLETON_REF(Application, Logger, AsyncLogThread);
 };
 

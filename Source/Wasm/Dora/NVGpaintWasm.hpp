@@ -8,7 +8,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-void vgpaint_release(int64_t raw) {
+DORA_EXPORT void vgpaint_release(int64_t raw) {
 	delete r_cast<NVGpaint*>(raw);
 }
 } // extern "C"

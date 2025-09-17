@@ -8,37 +8,37 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-int32_t drawnode_type() {
+DORA_EXPORT int32_t drawnode_type() {
 	return DoraType<DrawNode>();
 }
-void drawnode_set_depth_write(int64_t self, int32_t val) {
+DORA_EXPORT void drawnode_set_depth_write(int64_t self, int32_t val) {
 	r_cast<DrawNode*>(self)->setDepthWrite(val != 0);
 }
-int32_t drawnode_is_depth_write(int64_t self) {
+DORA_EXPORT int32_t drawnode_is_depth_write(int64_t self) {
 	return r_cast<DrawNode*>(self)->isDepthWrite() ? 1 : 0;
 }
-void drawnode_set_blend_func(int64_t self, int64_t val) {
+DORA_EXPORT void drawnode_set_blend_func(int64_t self, int64_t val) {
 	r_cast<DrawNode*>(self)->setBlendFunc(BlendFunc(s_cast<uint64_t>(val)));
 }
-int64_t drawnode_get_blend_func(int64_t self) {
+DORA_EXPORT int64_t drawnode_get_blend_func(int64_t self) {
 	return s_cast<int64_t>(r_cast<DrawNode*>(self)->getBlendFunc().toValue());
 }
-void drawnode_draw_dot(int64_t self, int64_t pos, float radius, int32_t color) {
+DORA_EXPORT void drawnode_draw_dot(int64_t self, int64_t pos, float radius, int32_t color) {
 	r_cast<DrawNode*>(self)->drawDot(Vec2_From(pos), radius, Color(s_cast<uint32_t>(color)));
 }
-void drawnode_draw_segment(int64_t self, int64_t from, int64_t to, float radius, int32_t color) {
+DORA_EXPORT void drawnode_draw_segment(int64_t self, int64_t from, int64_t to, float radius, int32_t color) {
 	r_cast<DrawNode*>(self)->drawSegment(Vec2_From(from), Vec2_From(to), radius, Color(s_cast<uint32_t>(color)));
 }
-void drawnode_draw_polygon(int64_t self, int64_t verts, int32_t fill_color, float border_width, int32_t border_color) {
+DORA_EXPORT void drawnode_draw_polygon(int64_t self, int64_t verts, int32_t fill_color, float border_width, int32_t border_color) {
 	r_cast<DrawNode*>(self)->drawPolygon(Vec_FromVec2(verts), Color(s_cast<uint32_t>(fill_color)), border_width, Color(s_cast<uint32_t>(border_color)));
 }
-void drawnode_draw_vertices(int64_t self, int64_t verts) {
+DORA_EXPORT void drawnode_draw_vertices(int64_t self, int64_t verts) {
 	r_cast<DrawNode*>(self)->drawVertices(Vec_FromVertexColor(verts));
 }
-void drawnode_clear(int64_t self) {
+DORA_EXPORT void drawnode_clear(int64_t self) {
 	r_cast<DrawNode*>(self)->clear();
 }
-int64_t drawnode_new() {
+DORA_EXPORT int64_t drawnode_new() {
 	return Object_From(DrawNode::create());
 }
 } // extern "C"

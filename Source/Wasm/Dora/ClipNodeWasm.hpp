@@ -8,28 +8,28 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-int32_t clipnode_type() {
+DORA_EXPORT int32_t clipnode_type() {
 	return DoraType<ClipNode>();
 }
-void clipnode_set_stencil(int64_t self, int64_t val) {
+DORA_EXPORT void clipnode_set_stencil(int64_t self, int64_t val) {
 	r_cast<ClipNode*>(self)->setStencil(r_cast<Node*>(val));
 }
-int64_t clipnode_get_stencil(int64_t self) {
+DORA_EXPORT int64_t clipnode_get_stencil(int64_t self) {
 	return Object_From(r_cast<ClipNode*>(self)->getStencil());
 }
-void clipnode_set_alpha_threshold(int64_t self, float val) {
+DORA_EXPORT void clipnode_set_alpha_threshold(int64_t self, float val) {
 	r_cast<ClipNode*>(self)->setAlphaThreshold(val);
 }
-float clipnode_get_alpha_threshold(int64_t self) {
+DORA_EXPORT float clipnode_get_alpha_threshold(int64_t self) {
 	return r_cast<ClipNode*>(self)->getAlphaThreshold();
 }
-void clipnode_set_inverted(int64_t self, int32_t val) {
+DORA_EXPORT void clipnode_set_inverted(int64_t self, int32_t val) {
 	r_cast<ClipNode*>(self)->setInverted(val != 0);
 }
-int32_t clipnode_is_inverted(int64_t self) {
+DORA_EXPORT int32_t clipnode_is_inverted(int64_t self) {
 	return r_cast<ClipNode*>(self)->isInverted() ? 1 : 0;
 }
-int64_t clipnode_new(int64_t stencil) {
+DORA_EXPORT int64_t clipnode_new(int64_t stencil) {
 	return Object_From(ClipNode::create(r_cast<Node*>(stencil)));
 }
 } // extern "C"

@@ -8,28 +8,28 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-int32_t touch_type() {
+DORA_EXPORT int32_t touch_type() {
 	return DoraType<Touch>();
 }
-void touch_set_enabled(int64_t self, int32_t val) {
+DORA_EXPORT void touch_set_enabled(int64_t self, int32_t val) {
 	r_cast<Touch*>(self)->setEnabled(val != 0);
 }
-int32_t touch_is_enabled(int64_t self) {
+DORA_EXPORT int32_t touch_is_enabled(int64_t self) {
 	return r_cast<Touch*>(self)->isEnabled() ? 1 : 0;
 }
-int32_t touch_is_first(int64_t self) {
+DORA_EXPORT int32_t touch_is_first(int64_t self) {
 	return r_cast<Touch*>(self)->isFirst() ? 1 : 0;
 }
-int32_t touch_get_id(int64_t self) {
+DORA_EXPORT int32_t touch_get_id(int64_t self) {
 	return s_cast<int32_t>(r_cast<Touch*>(self)->getId());
 }
-int64_t touch_get_delta(int64_t self) {
+DORA_EXPORT int64_t touch_get_delta(int64_t self) {
 	return Vec2_Retain(r_cast<Touch*>(self)->getDelta());
 }
-int64_t touch_get_location(int64_t self) {
+DORA_EXPORT int64_t touch_get_location(int64_t self) {
 	return Vec2_Retain(r_cast<Touch*>(self)->getLocation());
 }
-int64_t touch_get_world_location(int64_t self) {
+DORA_EXPORT int64_t touch_get_world_location(int64_t self) {
 	return Vec2_Retain(r_cast<Touch*>(self)->getWorldLocation());
 }
 } // extern "C"

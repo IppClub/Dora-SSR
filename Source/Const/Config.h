@@ -87,3 +87,16 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #ifndef DORA_STREAMING_AUDIO_FILE_SIZE
 #define DORA_STREAMING_AUDIO_FILE_SIZE (2 * 1024 * 1024) // 2 MB file size
 #endif
+
+#ifdef DORA_AS_LIB
+	#if BX_PLATFORM_WINDOWS
+		#define DORA_EXPORT __declspec(dllexport)
+	#else
+		#define DORA_EXPORT
+	#endif
+#else
+	#define DORA_EXPORT
+#endif
+
+// #define DORA_NO_WA
+// #define DORA_NO_RUST

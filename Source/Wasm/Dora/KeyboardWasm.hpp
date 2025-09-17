@@ -8,16 +8,16 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-int32_t keyboard__is_key_down(int64_t name) {
+DORA_EXPORT int32_t keyboard__is_key_down(int64_t name) {
 	return SharedKeyboard.isKeyDown(*Str_From(name)) ? 1 : 0;
 }
-int32_t keyboard__is_key_up(int64_t name) {
+DORA_EXPORT int32_t keyboard__is_key_up(int64_t name) {
 	return SharedKeyboard.isKeyUp(*Str_From(name)) ? 1 : 0;
 }
-int32_t keyboard__is_key_pressed(int64_t name) {
+DORA_EXPORT int32_t keyboard__is_key_pressed(int64_t name) {
 	return SharedKeyboard.isKeyPressed(*Str_From(name)) ? 1 : 0;
 }
-void keyboard_update_ime_pos_hint(int64_t win_pos) {
+DORA_EXPORT void keyboard_update_ime_pos_hint(int64_t win_pos) {
 	SharedKeyboard.updateIMEPosHint(Vec2_From(win_pos));
 }
 } // extern "C"

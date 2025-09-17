@@ -8,73 +8,73 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-int32_t sprite_type() {
+DORA_EXPORT int32_t sprite_type() {
 	return DoraType<Sprite>();
 }
-void sprite_set_depth_write(int64_t self, int32_t val) {
+DORA_EXPORT void sprite_set_depth_write(int64_t self, int32_t val) {
 	r_cast<Sprite*>(self)->setDepthWrite(val != 0);
 }
-int32_t sprite_is_depth_write(int64_t self) {
+DORA_EXPORT int32_t sprite_is_depth_write(int64_t self) {
 	return r_cast<Sprite*>(self)->isDepthWrite() ? 1 : 0;
 }
-void sprite_set_alpha_ref(int64_t self, float val) {
+DORA_EXPORT void sprite_set_alpha_ref(int64_t self, float val) {
 	r_cast<Sprite*>(self)->setAlphaRef(val);
 }
-float sprite_get_alpha_ref(int64_t self) {
+DORA_EXPORT float sprite_get_alpha_ref(int64_t self) {
 	return r_cast<Sprite*>(self)->getAlphaRef();
 }
-void sprite_set_texture_rect(int64_t self, int64_t val) {
+DORA_EXPORT void sprite_set_texture_rect(int64_t self, int64_t val) {
 	r_cast<Sprite*>(self)->setTextureRect(*r_cast<Rect*>(val));
 }
-int64_t sprite_get_texture_rect(int64_t self) {
+DORA_EXPORT int64_t sprite_get_texture_rect(int64_t self) {
 	return r_cast<int64_t>(new Rect{r_cast<Sprite*>(self)->getTextureRect()});
 }
-int64_t sprite_get_texture(int64_t self) {
+DORA_EXPORT int64_t sprite_get_texture(int64_t self) {
 	return Object_From(r_cast<Sprite*>(self)->getTexture());
 }
-void sprite_set_blend_func(int64_t self, int64_t val) {
+DORA_EXPORT void sprite_set_blend_func(int64_t self, int64_t val) {
 	r_cast<Sprite*>(self)->setBlendFunc(BlendFunc(s_cast<uint64_t>(val)));
 }
-int64_t sprite_get_blend_func(int64_t self) {
+DORA_EXPORT int64_t sprite_get_blend_func(int64_t self) {
 	return s_cast<int64_t>(r_cast<Sprite*>(self)->getBlendFunc().toValue());
 }
-void sprite_set_effect(int64_t self, int64_t val) {
+DORA_EXPORT void sprite_set_effect(int64_t self, int64_t val) {
 	r_cast<Sprite*>(self)->setEffect(r_cast<SpriteEffect*>(val));
 }
-int64_t sprite_get_effect(int64_t self) {
+DORA_EXPORT int64_t sprite_get_effect(int64_t self) {
 	return Object_From(r_cast<Sprite*>(self)->getEffect());
 }
-void sprite_set_uwrap(int64_t self, int32_t val) {
+DORA_EXPORT void sprite_set_uwrap(int64_t self, int32_t val) {
 	r_cast<Sprite*>(self)->setUWrap(s_cast<TextureWrap>(val));
 }
-int32_t sprite_get_uwrap(int64_t self) {
+DORA_EXPORT int32_t sprite_get_uwrap(int64_t self) {
 	return s_cast<int32_t>(r_cast<Sprite*>(self)->getUWrap());
 }
-void sprite_set_vwrap(int64_t self, int32_t val) {
+DORA_EXPORT void sprite_set_vwrap(int64_t self, int32_t val) {
 	r_cast<Sprite*>(self)->setVWrap(s_cast<TextureWrap>(val));
 }
-int32_t sprite_get_vwrap(int64_t self) {
+DORA_EXPORT int32_t sprite_get_vwrap(int64_t self) {
 	return s_cast<int32_t>(r_cast<Sprite*>(self)->getVWrap());
 }
-void sprite_set_filter(int64_t self, int32_t val) {
+DORA_EXPORT void sprite_set_filter(int64_t self, int32_t val) {
 	r_cast<Sprite*>(self)->setFilter(s_cast<TextureFilter>(val));
 }
-int32_t sprite_get_filter(int64_t self) {
+DORA_EXPORT int32_t sprite_get_filter(int64_t self) {
 	return s_cast<int32_t>(r_cast<Sprite*>(self)->getFilter());
 }
-void sprite_set_effect_as_default(int64_t self) {
+DORA_EXPORT void sprite_set_effect_as_default(int64_t self) {
 	Sprite_SetEffectNullptr(r_cast<Sprite*>(self));
 }
-int64_t sprite_new() {
+DORA_EXPORT int64_t sprite_new() {
 	return Object_From(Sprite::create());
 }
-int64_t sprite_with_texture_rect(int64_t texture, int64_t texture_rect) {
+DORA_EXPORT int64_t sprite_with_texture_rect(int64_t texture, int64_t texture_rect) {
 	return Object_From(Sprite::create(r_cast<Texture2D*>(texture), *r_cast<Rect*>(texture_rect)));
 }
-int64_t sprite_with_texture(int64_t texture) {
+DORA_EXPORT int64_t sprite_with_texture(int64_t texture) {
 	return Object_From(Sprite::create(r_cast<Texture2D*>(texture)));
 }
-int64_t sprite_with_file(int64_t clip_str) {
+DORA_EXPORT int64_t sprite_with_file(int64_t clip_str) {
 	return Object_From(Sprite::from(*Str_From(clip_str)));
 }
 } // extern "C"

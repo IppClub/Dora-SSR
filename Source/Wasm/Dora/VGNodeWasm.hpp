@@ -8,13 +8,13 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-int32_t vgnode_type() {
+DORA_EXPORT int32_t vgnode_type() {
 	return DoraType<VGNode>();
 }
-int64_t vgnode_get_surface(int64_t self) {
+DORA_EXPORT int64_t vgnode_get_surface(int64_t self) {
 	return Object_From(r_cast<VGNode*>(self)->getSurface());
 }
-void vgnode_render(int64_t self, int32_t func0) {
+DORA_EXPORT void vgnode_render(int64_t self, int32_t func0) {
 	std::shared_ptr<void> deref0(nullptr, [func0](auto) {
 		SharedWasmRuntime.deref(func0);
 	});
@@ -22,7 +22,7 @@ void vgnode_render(int64_t self, int32_t func0) {
 		SharedWasmRuntime.invoke(func0);
 	});
 }
-int64_t vgnode_new(float width, float height, float scale, int32_t edge_aa) {
+DORA_EXPORT int64_t vgnode_new(float width, float height, float scale, int32_t edge_aa) {
 	return Object_From(VGNode::create(width, height, scale, s_cast<int>(edge_aa)));
 }
 } // extern "C"

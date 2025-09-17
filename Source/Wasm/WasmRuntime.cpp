@@ -15,6 +15,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "Other/xlsxtext.hpp"
 
+#ifndef DORA_NO_WA
 extern "C" {
 #if BX_PLATFORM_WINDOWS
 extern __declspec(dllexport) char* WaBuild(char* input);
@@ -96,6 +97,7 @@ extern char* WaFormat(char* input);
 extern void WaFreeCString(char* str);
 #endif
 }
+#endif // DORA_NO_WA
 
 NS_DORA_BEGIN
 
@@ -122,10 +124,21 @@ union LightWasmValue {
 static_assert(sizeof(LightWasmValue) == sizeof(int64_t), "encode item with greater size than int64_t for wasm.");
 
 extern "C" {
-
-void call_function(int32_t func_id);
-void deref_function(int32_t func_id);
-
+#ifdef DORA_NO_RUST
+	void call_function(int32_t func_id) {
+		DORA_UNUSED_PARAM(func_id);
+		Error("unexpected invoked call_function()");
+		std::abort();
+	}
+	void deref_function(int32_t func_id) {
+		DORA_UNUSED_PARAM(func_id);
+		Error("unexpected invoked deref_function()");
+		std::abort();
+	}
+#else // !DORA_NO_RUST
+	void call_function(int32_t func_id);
+	void deref_function(int32_t func_id);
+#endif // !DORA_NO_RUST
 } // extern "C"
 
 /* Vec2 */
@@ -999,61 +1012,61 @@ using namespace Dora;
 
 /* String */
 
-int64_t str_new(int32_t len) {
+DORA_EXPORT int64_t str_new(int32_t len) {
 	return r_cast<int64_t>(new std::string(len, 0));
 }
-int32_t str_len(int64_t str) {
+DORA_EXPORT int32_t str_len(int64_t str) {
 	return s_cast<int32_t>(r_cast<std::string*>(str)->length());
 }
-void str_read(void* dest, int64_t src) {
+DORA_EXPORT void str_read(void* dest, int64_t src) {
 	auto str = r_cast<std::string*>(src);
 	if (str->length() > 0) {
 		std::memcpy(dest, str->c_str(), str->length());
 	}
 }
-void str_read_ptr(int32_t dest, int64_t src) {
+DORA_EXPORT void str_read_ptr(int32_t dest, int64_t src) {
 	auto destPtr = SharedWasmRuntime.getMemoryAddress(dest);
 	auto str = r_cast<std::string*>(src);
 	if (str->length() > 0) {
 		std::memcpy(destPtr, str->c_str(), str->length());
 	}
 }
-void str_write(int64_t dest, const void* src) {
+DORA_EXPORT void str_write(int64_t dest, const void* src) {
 	auto str = r_cast<std::string*>(dest);
 	if (str->length() > 0) {
 		std::memcpy(&str->front(), src, str->length());
 	}
 }
-void str_write_ptr(int64_t dest, int32_t src) {
+DORA_EXPORT void str_write_ptr(int64_t dest, int32_t src) {
 	auto srcPtr = SharedWasmRuntime.getMemoryAddress(src);
 	auto str = r_cast<std::string*>(dest);
 	if (str->length() > 0) {
 		std::memcpy(&str->front(), srcPtr, str->length());
 	}
 }
-void str_release(int64_t str) {
+DORA_EXPORT void str_release(int64_t str) {
 	delete r_cast<std::string*>(str);
 }
 
 /* Buf */
 
-int64_t buf_new_i32(int32_t len) {
+DORA_EXPORT int64_t buf_new_i32(int32_t len) {
 	auto new_vec = new dora_vec_t(std::vector<int32_t>(len));
 	return r_cast<int64_t>(new_vec);
 }
-int64_t buf_new_i64(int32_t len) {
+DORA_EXPORT int64_t buf_new_i64(int32_t len) {
 	auto new_vec = new dora_vec_t(std::vector<int64_t>(len));
 	return r_cast<int64_t>(new_vec);
 }
-int64_t buf_new_f32(int32_t len) {
+DORA_EXPORT int64_t buf_new_f32(int32_t len) {
 	auto new_vec = new dora_vec_t(std::vector<float>(len));
 	return r_cast<int64_t>(new_vec);
 }
-int64_t buf_new_f64(int32_t len) {
+DORA_EXPORT int64_t buf_new_f64(int32_t len) {
 	auto new_vec = new dora_vec_t(std::vector<double>(len));
 	return r_cast<int64_t>(new_vec);
 }
-int32_t buf_len(int64_t v) {
+DORA_EXPORT int32_t buf_len(int64_t v) {
 	auto vec = r_cast<dora_vec_t*>(v);
 	int32_t size = 0;
 	std::visit([&](const auto& arg) {
@@ -1062,7 +1075,7 @@ int32_t buf_len(int64_t v) {
 		*vec);
 	return size;
 }
-void buf_read(void* dest, int64_t src) {
+DORA_EXPORT void buf_read(void* dest, int64_t src) {
 	auto vec = r_cast<dora_vec_t*>(src);
 	std::visit([&](const auto& arg) {
 		if (arg.size() > 0) {
@@ -1071,7 +1084,7 @@ void buf_read(void* dest, int64_t src) {
 	},
 		*vec);
 }
-void buf_read_ptr(int32_t dest, int64_t src) {
+DORA_EXPORT void buf_read_ptr(int32_t dest, int64_t src) {
 	auto destPtr = SharedWasmRuntime.getMemoryAddress(dest);
 	auto vec = r_cast<dora_vec_t*>(src);
 	std::visit([&](const auto& arg) {
@@ -1081,7 +1094,7 @@ void buf_read_ptr(int32_t dest, int64_t src) {
 	},
 		*vec);
 }
-void buf_write(int64_t dest, const void* src) {
+DORA_EXPORT void buf_write(int64_t dest, const void* src) {
 	auto vec = r_cast<dora_vec_t*>(dest);
 	std::visit([&](auto& arg) {
 		if (arg.size() > 0) {
@@ -1090,7 +1103,7 @@ void buf_write(int64_t dest, const void* src) {
 	},
 		*vec);
 }
-void buf_write_ptr(int64_t dest, int32_t src) {
+DORA_EXPORT void buf_write_ptr(int64_t dest, int32_t src) {
 	auto srcPtr = SharedWasmRuntime.getMemoryAddress(src);
 	auto vec = r_cast<dora_vec_t*>(dest);
 	std::visit([&](auto& arg) {
@@ -1100,56 +1113,56 @@ void buf_write_ptr(int64_t dest, int32_t src) {
 	},
 		*vec);
 }
-void buf_release(int64_t v) {
+DORA_EXPORT void buf_release(int64_t v) {
 	delete r_cast<dora_vec_t*>(v);
 }
 
 /* Object */
 
-int32_t object_get_id(int64_t obj) {
+DORA_EXPORT int32_t object_get_id(int64_t obj) {
 	return s_cast<int32_t>(r_cast<Object*>(obj)->getId());
 }
-int32_t object_get_type(int64_t obj) {
+DORA_EXPORT int32_t object_get_type(int64_t obj) {
 	if (obj) return r_cast<Object*>(obj)->getDoraType();
 	return 0;
 }
-void object_retain(int64_t obj) {
+DORA_EXPORT void object_retain(int64_t obj) {
 	r_cast<Object*>(obj)->retain();
 }
-void object_release(int64_t obj) {
+DORA_EXPORT void object_release(int64_t obj) {
 	r_cast<Object*>(obj)->release();
 }
-int64_t object_to_node(int64_t obj) {
+DORA_EXPORT int64_t object_to_node(int64_t obj) {
 	if (auto target = d_cast<Node*>(r_cast<Object*>(obj))) {
 		return r_cast<int64_t>(target);
 	}
 	return 0;
 }
-int64_t object_to_camera(int64_t obj) {
+DORA_EXPORT int64_t object_to_camera(int64_t obj) {
 	if (auto target = d_cast<Camera*>(r_cast<Object*>(obj))) {
 		return r_cast<int64_t>(target);
 	}
 	return 0;
 }
-int64_t object_to_playable(int64_t obj) {
+DORA_EXPORT int64_t object_to_playable(int64_t obj) {
 	if (auto target = d_cast<Playable*>(r_cast<Object*>(obj))) {
 		return r_cast<int64_t>(target);
 	}
 	return 0;
 }
-int64_t object_to_physics_world(int64_t obj) {
+DORA_EXPORT int64_t object_to_physics_world(int64_t obj) {
 	if (auto target = d_cast<PhysicsWorld*>(r_cast<Object*>(obj))) {
 		return r_cast<int64_t>(target);
 	}
 	return 0;
 }
-int64_t object_to_body(int64_t obj) {
+DORA_EXPORT int64_t object_to_body(int64_t obj) {
 	if (auto target = d_cast<Body*>(r_cast<Object*>(obj))) {
 		return r_cast<int64_t>(target);
 	}
 	return 0;
 }
-int64_t object_to_joint(int64_t obj) {
+DORA_EXPORT int64_t object_to_joint(int64_t obj) {
 	if (auto target = d_cast<Joint*>(r_cast<Object*>(obj))) {
 		return r_cast<int64_t>(target);
 	}
@@ -1158,222 +1171,222 @@ int64_t object_to_joint(int64_t obj) {
 
 /* Value */
 
-int64_t value_create_i64(int64_t value) {
+DORA_EXPORT int64_t value_create_i64(int64_t value) {
 	return r_cast<int64_t>(new dora_val_t(value));
 }
-int64_t value_create_f64(double value) {
+DORA_EXPORT int64_t value_create_f64(double value) {
 	return r_cast<int64_t>(new dora_val_t(value));
 }
-int64_t value_create_str(int64_t value) {
+DORA_EXPORT int64_t value_create_str(int64_t value) {
 	auto str = r_cast<std::string*>(value);
 	return r_cast<int64_t>(new dora_val_t(*str));
 }
-int64_t value_create_bool(int32_t value) {
+DORA_EXPORT int64_t value_create_bool(int32_t value) {
 	return r_cast<int64_t>(new dora_val_t(value != 0));
 }
-int64_t value_create_object(int64_t value) {
+DORA_EXPORT int64_t value_create_object(int64_t value) {
 	auto obj = r_cast<Object*>(value);
 	obj->retain();
 	return r_cast<int64_t>(new dora_val_t(obj));
 }
-int64_t value_create_vec2(int64_t value) {
+DORA_EXPORT int64_t value_create_vec2(int64_t value) {
 	return r_cast<int64_t>(new dora_val_t(Vec2_From(value)));
 }
-int64_t value_create_size(int64_t value) {
+DORA_EXPORT int64_t value_create_size(int64_t value) {
 	return r_cast<int64_t>(new dora_val_t(Size_From(value)));
 }
-void value_release(int64_t value) {
+DORA_EXPORT void value_release(int64_t value) {
 	auto v = r_cast<dora_val_t*>(value);
 	if (std::holds_alternative<Object*>(*v)) {
 		std::get<Object*>(*v)->release();
 	}
 	delete v;
 }
-int64_t value_into_i64(int64_t value) {
+DORA_EXPORT int64_t value_into_i64(int64_t value) {
 	return std::get<int64_t>(*r_cast<dora_val_t*>(value));
 }
-double value_into_f64(int64_t value) {
+DORA_EXPORT double value_into_f64(int64_t value) {
 	const auto& v = *r_cast<dora_val_t*>(value);
 	if (std::holds_alternative<int64_t>(v)) {
 		return s_cast<double>(std::get<int64_t>(v));
 	}
 	return std::get<double>(v);
 }
-int64_t value_into_str(int64_t value) {
+DORA_EXPORT int64_t value_into_str(int64_t value) {
 	auto str = std::get<std::string>(*r_cast<dora_val_t*>(value));
 	return r_cast<int64_t>(new std::string(str));
 }
-int32_t value_into_bool(int64_t value) {
+DORA_EXPORT int32_t value_into_bool(int64_t value) {
 	return std::get<bool>(*r_cast<dora_val_t*>(value)) ? 1 : 0;
 }
-int64_t value_into_object(int64_t value) {
+DORA_EXPORT int64_t value_into_object(int64_t value) {
 	return Object_From(std::get<Object*>(*r_cast<dora_val_t*>(value)));
 }
-int64_t value_into_vec2(int64_t value) {
+DORA_EXPORT int64_t value_into_vec2(int64_t value) {
 	return Vec2_Retain(std::get<Vec2>(*r_cast<dora_val_t*>(value)));
 }
-int64_t value_into_size(int64_t value) {
+DORA_EXPORT int64_t value_into_size(int64_t value) {
 	return Size_Retain(std::get<Size>(*r_cast<dora_val_t*>(value)));
 }
-int32_t value_is_i64(int64_t value) {
+DORA_EXPORT int32_t value_is_i64(int64_t value) {
 	return std::holds_alternative<int64_t>(*r_cast<dora_val_t*>(value)) ? 1 : 0;
 }
-int32_t value_is_f64(int64_t value) {
+DORA_EXPORT int32_t value_is_f64(int64_t value) {
 	const auto& v = *r_cast<dora_val_t*>(value);
 	return std::holds_alternative<double>(v) || std::holds_alternative<int64_t>(v) ? 1 : 0;
 }
-int32_t value_is_str(int64_t value) {
+DORA_EXPORT int32_t value_is_str(int64_t value) {
 	return std::holds_alternative<std::string>(*r_cast<dora_val_t*>(value)) ? 1 : 0;
 }
-int32_t value_is_bool(int64_t value) {
+DORA_EXPORT int32_t value_is_bool(int64_t value) {
 	return std::holds_alternative<bool>(*r_cast<dora_val_t*>(value)) ? 1 : 0;
 }
-int32_t value_is_object(int64_t value) {
+DORA_EXPORT int32_t value_is_object(int64_t value) {
 	return std::holds_alternative<Object*>(*r_cast<dora_val_t*>(value)) ? 1 : 0;
 }
-int32_t value_is_vec2(int64_t value) {
+DORA_EXPORT int32_t value_is_vec2(int64_t value) {
 	return std::holds_alternative<Vec2>(*r_cast<dora_val_t*>(value)) ? 1 : 0;
 }
-int32_t value_is_size(int64_t value) {
+DORA_EXPORT int32_t value_is_size(int64_t value) {
 	return std::holds_alternative<Size>(*r_cast<dora_val_t*>(value)) ? 1 : 0;
 }
 
 /* CallStack */
 
-int64_t call_stack_create() {
+DORA_EXPORT int64_t call_stack_create() {
 	return r_cast<int64_t>(new CallStack());
 }
-void call_stack_release(int64_t stack) {
+DORA_EXPORT void call_stack_release(int64_t stack) {
 	delete r_cast<CallStack*>(stack);
 }
-void call_stack_push_i64(int64_t stack, int64_t value) {
+DORA_EXPORT void call_stack_push_i64(int64_t stack, int64_t value) {
 	r_cast<CallStack*>(stack)->push(value);
 }
-void call_stack_push_f64(int64_t stack, double value) {
+DORA_EXPORT void call_stack_push_f64(int64_t stack, double value) {
 	r_cast<CallStack*>(stack)->push(value);
 }
-void call_stack_push_str(int64_t stack, int64_t value) {
+DORA_EXPORT void call_stack_push_str(int64_t stack, int64_t value) {
 	r_cast<CallStack*>(stack)->push(*Str_From(value));
 }
-void call_stack_push_bool(int64_t stack, int32_t value) {
+DORA_EXPORT void call_stack_push_bool(int64_t stack, int32_t value) {
 	r_cast<CallStack*>(stack)->push(value != 0);
 }
-void call_stack_push_object(int64_t stack, int64_t value) {
+DORA_EXPORT void call_stack_push_object(int64_t stack, int64_t value) {
 	r_cast<CallStack*>(stack)->push(r_cast<Object*>(value));
 }
-void call_stack_push_vec2(int64_t stack, int64_t value) {
+DORA_EXPORT void call_stack_push_vec2(int64_t stack, int64_t value) {
 	r_cast<CallStack*>(stack)->push(Vec2_From(value));
 }
-void call_stack_push_size(int64_t stack, int64_t value) {
+DORA_EXPORT void call_stack_push_size(int64_t stack, int64_t value) {
 	r_cast<CallStack*>(stack)->push(Size_From(value));
 }
-int64_t call_stack_pop_i64(int64_t stack) {
+DORA_EXPORT int64_t call_stack_pop_i64(int64_t stack) {
 	return std::get<int64_t>(r_cast<CallStack*>(stack)->pop());
 }
-double call_stack_pop_f64(int64_t stack) {
+DORA_EXPORT double call_stack_pop_f64(int64_t stack) {
 	auto v = r_cast<CallStack*>(stack)->pop();
 	if (std::holds_alternative<int64_t>(v)) {
 		return s_cast<double>(std::get<int64_t>(v));
 	}
 	return std::get<double>(v);
 }
-int64_t call_stack_pop_str(int64_t stack) {
+DORA_EXPORT int64_t call_stack_pop_str(int64_t stack) {
 	return Str_Retain(std::get<std::string>(r_cast<CallStack*>(stack)->pop()));
 }
-int32_t call_stack_pop_bool(int64_t stack) {
+DORA_EXPORT int32_t call_stack_pop_bool(int64_t stack) {
 	return std::get<bool>(r_cast<CallStack*>(stack)->pop()) ? 1 : 0;
 }
-int64_t call_stack_pop_object(int64_t stack) {
+DORA_EXPORT int64_t call_stack_pop_object(int64_t stack) {
 	return Object_From(std::get<Object*>(r_cast<CallStack*>(stack)->pop()));
 }
-int64_t call_stack_pop_vec2(int64_t stack) {
+DORA_EXPORT int64_t call_stack_pop_vec2(int64_t stack) {
 	return Vec2_Retain(std::get<Vec2>(r_cast<CallStack*>(stack)->pop()));
 }
-int64_t call_stack_pop_size(int64_t stack) {
+DORA_EXPORT int64_t call_stack_pop_size(int64_t stack) {
 	return Size_Retain(std::get<Size>(r_cast<CallStack*>(stack)->pop()));
 }
-int32_t call_stack_pop(int64_t stack) {
+DORA_EXPORT int32_t call_stack_pop(int64_t stack) {
 	auto cs = r_cast<CallStack*>(stack);
 	if (cs->empty()) return 0;
 	cs->pop();
 	return 1;
 }
-int32_t call_stack_front_i64(int64_t stack) {
+DORA_EXPORT int32_t call_stack_front_i64(int64_t stack) {
 	return std::holds_alternative<int64_t>(r_cast<CallStack*>(stack)->front()) ? 1 : 0;
 }
-int32_t call_stack_front_f64(int64_t stack) {
+DORA_EXPORT int32_t call_stack_front_f64(int64_t stack) {
 	const auto& v = r_cast<CallStack*>(stack)->front();
 	return std::holds_alternative<int64_t>(v) || std::holds_alternative<double>(v) ? 1 : 0;
 }
-int32_t call_stack_front_bool(int64_t stack) {
+DORA_EXPORT int32_t call_stack_front_bool(int64_t stack) {
 	return std::holds_alternative<bool>(r_cast<CallStack*>(stack)->front()) ? 1 : 0;
 }
-int32_t call_stack_front_str(int64_t stack) {
+DORA_EXPORT int32_t call_stack_front_str(int64_t stack) {
 	return std::holds_alternative<std::string>(r_cast<CallStack*>(stack)->front()) ? 1 : 0;
 }
-int32_t call_stack_front_object(int64_t stack) {
+DORA_EXPORT int32_t call_stack_front_object(int64_t stack) {
 	return std::holds_alternative<Object*>(r_cast<CallStack*>(stack)->front()) ? 1 : 0;
 }
-int32_t call_stack_front_vec2(int64_t stack) {
+DORA_EXPORT int32_t call_stack_front_vec2(int64_t stack) {
 	return std::holds_alternative<Vec2>(r_cast<CallStack*>(stack)->front()) ? 1 : 0;
 }
-int32_t call_stack_front_size(int64_t stack) {
+DORA_EXPORT int32_t call_stack_front_size(int64_t stack) {
 	return std::holds_alternative<Size>(r_cast<CallStack*>(stack)->front()) ? 1 : 0;
 }
 
 /* print */
 
-void dora_print(int64_t var) {
+DORA_EXPORT void dora_print(int64_t var) {
 	LogInfoThreaded(*Str_From(var));
 }
 
-void dora_print_warning(int64_t var) {
+DORA_EXPORT void dora_print_warning(int64_t var) {
 	LogWarnThreaded(*Str_From(var));
 }
 
-void dora_print_error(int64_t var) {
+DORA_EXPORT void dora_print_error(int64_t var) {
 	LogErrorThreaded(*Str_From(var));
 }
 
 /* Vec2 */
 
-int64_t vec2_add(int64_t a, int64_t b) {
+DORA_EXPORT int64_t vec2_add(int64_t a, int64_t b) {
 	return Vec2_Retain(Vec2_From(a) + Vec2_From(b));
 }
-int64_t vec2_sub(int64_t a, int64_t b) {
+DORA_EXPORT int64_t vec2_sub(int64_t a, int64_t b) {
 	return Vec2_Retain(Vec2_From(a) - Vec2_From(b));
 }
-int64_t vec2_mul(int64_t a, int64_t b) {
+DORA_EXPORT int64_t vec2_mul(int64_t a, int64_t b) {
 	return Vec2_Retain(Vec2_From(a) * Vec2_From(b));
 }
-int64_t vec2_mul_float(int64_t a, float b) {
+DORA_EXPORT int64_t vec2_mul_float(int64_t a, float b) {
 	return Vec2_Retain(Vec2_From(a) * b);
 }
-int64_t vec2_div(int64_t a, float b) {
+DORA_EXPORT int64_t vec2_div(int64_t a, float b) {
 	return Vec2_Retain(Vec2_From(a) / b);
 }
-float vec2_distance(int64_t a, int64_t b) {
+DORA_EXPORT float vec2_distance(int64_t a, int64_t b) {
 	return Vec2_From(a).distance(Vec2_From(b));
 }
-float vec2_distance_squared(int64_t a, int64_t b) {
+DORA_EXPORT float vec2_distance_squared(int64_t a, int64_t b) {
 	return Vec2_From(a).distanceSquared(Vec2_From(b));
 }
-float vec2_length(int64_t a) {
+DORA_EXPORT float vec2_length(int64_t a) {
 	return Vec2_From(a).length();
 }
-float vec2_angle(int64_t a) {
+DORA_EXPORT float vec2_angle(int64_t a) {
 	return Vec2_From(a).angle();
 }
-int64_t vec2_normalize(int64_t a) {
+DORA_EXPORT int64_t vec2_normalize(int64_t a) {
 	return Vec2_Retain(Vec2::normalize(Vec2_From(a)));
 }
-int64_t vec2_perp(int64_t a) {
+DORA_EXPORT int64_t vec2_perp(int64_t a) {
 	return Vec2_Retain(Vec2::perp(Vec2_From(a)));
 }
-float vec2_dot(int64_t a, int64_t b) {
+DORA_EXPORT float vec2_dot(int64_t a, int64_t b) {
 	return Vec2_From(a).dot(Vec2_From(b));
 }
-int64_t vec2_clamp(int64_t a, int64_t from, int64_t to) {
+DORA_EXPORT int64_t vec2_clamp(int64_t a, int64_t from, int64_t to) {
 	auto b = Vec2_From(a);
 	b.clamp(Vec2_From(from), Vec2_From(to));
 	return Vec2_Retain(b);
@@ -1381,7 +1394,7 @@ int64_t vec2_clamp(int64_t a, int64_t from, int64_t to) {
 
 /* emit */
 
-void dora_emit(int64_t name, int64_t stack) {
+DORA_EXPORT void dora_emit(int64_t name, int64_t stack) {
 	auto args = r_cast<CallStack*>(stack);
 	auto eventName = Str_From(name);
 	WasmEventArgs::send(*eventName, args);
@@ -1389,7 +1402,7 @@ void dora_emit(int64_t name, int64_t stack) {
 
 /* Array */
 
-int32_t array_set(int64_t array, int32_t index, int64_t v) {
+DORA_EXPORT int32_t array_set(int64_t array, int32_t index, int64_t v) {
 	auto arr = r_cast<Array*>(array);
 	if (0 <= index && index < s_cast<int32_t>(arr->getCount())) {
 		arr->set(index, Value_To(*r_cast<dora_val_t*>(v)));
@@ -1397,67 +1410,67 @@ int32_t array_set(int64_t array, int32_t index, int64_t v) {
 	}
 	return 0;
 }
-int64_t array_get(int64_t array, int32_t index) {
+DORA_EXPORT int64_t array_get(int64_t array, int32_t index) {
 	auto arr = r_cast<Array*>(array);
 	if (0 <= index && index < s_cast<int32_t>(arr->getCount())) {
 		return Value_From(arr->get(index).get());
 	}
 	return 0;
 }
-int64_t array_first(int64_t array) {
+DORA_EXPORT int64_t array_first(int64_t array) {
 	auto arr = r_cast<Array*>(array);
 	if (!arr->isEmpty()) {
 		return Value_From(arr->getFirst().get());
 	}
 	return 0;
 }
-int64_t array_last(int64_t array) {
+DORA_EXPORT int64_t array_last(int64_t array) {
 	auto arr = r_cast<Array*>(array);
 	if (!arr->isEmpty()) {
 		return Value_From(arr->getLast().get());
 	}
 	return 0;
 }
-int64_t array_random_object(int64_t array) {
+DORA_EXPORT int64_t array_random_object(int64_t array) {
 	auto arr = r_cast<Array*>(array);
 	if (!arr->isEmpty()) {
 		return Value_From(arr->getRandomObject().get());
 	}
 	return 0;
 }
-void array_add(int64_t array, int64_t item) {
+DORA_EXPORT void array_add(int64_t array, int64_t item) {
 	r_cast<Array*>(array)->add(Value_To(*r_cast<dora_val_t*>(item)));
 }
-void array_insert(int64_t array, int32_t index, int64_t item) {
+DORA_EXPORT void array_insert(int64_t array, int32_t index, int64_t item) {
 	r_cast<Array*>(array)->insert(index, Value_To(*r_cast<dora_val_t*>(item)));
 }
-int32_t array_contains(int64_t array, int64_t item) {
+DORA_EXPORT int32_t array_contains(int64_t array, int64_t item) {
 	return r_cast<Array*>(array)->contains(Value_To(*r_cast<dora_val_t*>(item)).get()) ? 1 : 0;
 }
-int32_t array_index(int64_t array, int64_t item) {
+DORA_EXPORT int32_t array_index(int64_t array, int64_t item) {
 	return r_cast<Array*>(array)->index(Value_To(*r_cast<dora_val_t*>(item)).get());
 }
-int64_t array_remove_last(int64_t array) {
+DORA_EXPORT int64_t array_remove_last(int64_t array) {
 	auto arr = r_cast<Array*>(array);
 	if (arr->isEmpty()) return 0;
 	return Value_From(r_cast<Array*>(array)->removeLast().get());
 }
-int32_t array_fast_remove(int64_t array, int64_t item) {
+DORA_EXPORT int32_t array_fast_remove(int64_t array, int64_t item) {
 	return r_cast<Array*>(array)->fastRemove(Value_To(*r_cast<dora_val_t*>(item)).get()) ? 1 : 0;
 }
 
 /* Dictionary */
 
-void dictionary_set(int64_t dict, int64_t key, int64_t value) {
+DORA_EXPORT void dictionary_set(int64_t dict, int64_t key, int64_t value) {
 	r_cast<Dictionary*>(dict)->set(*Str_From(key), Value_To(*r_cast<dora_val_t*>(value)));
 }
-int64_t dictionary_get(int64_t dict, int64_t key) {
+DORA_EXPORT int64_t dictionary_get(int64_t dict, int64_t key) {
 	return Value_From(r_cast<Dictionary*>(dict)->get(*Str_From(key)).get());
 }
 
 /* Content */
 
-int64_t content_load(int64_t filename) {
+DORA_EXPORT int64_t content_load(int64_t filename) {
 	auto result = SharedContent.load(*Str_From(filename));
 	if (result.second > 0) {
 		return Str_Retain({r_cast<char*>(result.first.get()), result.second});
@@ -1467,17 +1480,17 @@ int64_t content_load(int64_t filename) {
 
 /* Entity */
 
-void entity_set(int64_t e, int64_t k, int64_t v) {
+DORA_EXPORT void entity_set(int64_t e, int64_t k, int64_t v) {
 	r_cast<Entity*>(e)->set(*Str_From(k), Value_To(*r_cast<dora_val_t*>(v)));
 }
-int64_t entity_get(int64_t e, int64_t k) {
+DORA_EXPORT int64_t entity_get(int64_t e, int64_t k) {
 	if (auto com = r_cast<Entity*>(e)->getComponent(*Str_From(k))) {
 		return Value_From(com);
 	} else {
 		return 0;
 	}
 }
-int64_t entity_get_old(int64_t e, int64_t k) {
+DORA_EXPORT int64_t entity_get_old(int64_t e, int64_t k) {
 	if (auto com = r_cast<Entity*>(e)->getOldCom(*Str_From(k))) {
 		return Value_From(com);
 	} else {
@@ -1487,7 +1500,7 @@ int64_t entity_get_old(int64_t e, int64_t k) {
 
 // EntityGroup
 
-void group_watch(int64_t group, int32_t func, int64_t stack) {
+DORA_EXPORT void group_watch(int64_t group, int32_t func, int64_t stack) {
 	std::shared_ptr<void> deref(nullptr, [func](auto) {
 		SharedWasmRuntime.deref(func);
 	});
@@ -1506,7 +1519,7 @@ void group_watch(int64_t group, int32_t func, int64_t stack) {
 
 // EntityObserver
 
-void observer_watch(int64_t observer, int32_t func, int64_t stack) {
+DORA_EXPORT void observer_watch(int64_t observer, int32_t func, int64_t stack) {
 	std::shared_ptr<void> deref(nullptr, [func](auto) {
 		SharedWasmRuntime.deref(func);
 	});
@@ -1527,10 +1540,10 @@ void observer_watch(int64_t observer, int32_t func, int64_t stack) {
 
 // Blackboard
 
-void blackboard_set(int64_t b, int64_t k, int64_t v) {
+DORA_EXPORT void blackboard_set(int64_t b, int64_t k, int64_t v) {
 	r_cast<Platformer::Behavior::Blackboard*>(b)->set(*Str_From(k), Value_To(*r_cast<dora_val_t*>(v)));
 }
-int64_t blackboard_get(int64_t b, int64_t k) {
+DORA_EXPORT int64_t blackboard_get(int64_t b, int64_t k) {
 	if (auto value = r_cast<Platformer::Behavior::Blackboard*>(b)->get(*Str_From(k))) {
 		return Value_From(value);
 	} else {
@@ -1540,40 +1553,40 @@ int64_t blackboard_get(int64_t b, int64_t k) {
 
 // Director
 
-int64_t director_get_scheduler() {
+DORA_EXPORT int64_t director_get_scheduler() {
 	return Object_From(SharedDirector.getScheduler());
 }
 
-int64_t director_get_wasm_scheduler() {
+DORA_EXPORT int64_t director_get_wasm_scheduler() {
 	return Object_From(SharedWasmRuntime.getScheduler());
 }
 
-int64_t director_get_post_scheduler() {
+DORA_EXPORT int64_t director_get_post_scheduler() {
 	return Object_From(SharedDirector.getScheduler());
 }
 
-int64_t director_get_post_wasm_scheduler() {
+DORA_EXPORT int64_t director_get_post_wasm_scheduler() {
 	return Object_From(SharedWasmRuntime.getPostScheduler());
 }
 
 // math
 
-double math_abs(double v) { return std::abs(v); }
-float math_acos(float v) { return std::acos(v); }
-float math_asin(float v) { return std::asin(v); }
-float math_atan(float v) { return std::atan(v); }
-float math_atan2(float y, float x) { return std::atan2(y, x); }
-float math_ceil(float v) { return std::ceil(v); }
-float math_cos(float v) { return std::cos(v); }
-float math_deg(float v) { return bx::toDeg(v); }
-float math_exp(float v) { return std::exp(v); }
-float math_floor(float v) { return std::floor(v); }
-float math_fmod(float x, float y) { return std::fmod(x, y); }
-float math_log(float v) { return std::log(v); }
-float math_rad(float v) { return bx::toRad(v); }
-float math_sin(float v) { return std::sin(v); }
-float math_sqrt(float v) { return std::sqrt(v); }
-float math_tan(float v) { return std::tan(v); }
+DORA_EXPORT double math_abs(double v) { return std::abs(v); }
+DORA_EXPORT float math_acos(float v) { return std::acos(v); }
+DORA_EXPORT float math_asin(float v) { return std::asin(v); }
+DORA_EXPORT float math_atan(float v) { return std::atan(v); }
+DORA_EXPORT float math_atan2(float y, float x) { return std::atan2(y, x); }
+DORA_EXPORT float math_ceil(float v) { return std::ceil(v); }
+DORA_EXPORT float math_cos(float v) { return std::cos(v); }
+DORA_EXPORT float math_deg(float v) { return bx::toDeg(v); }
+DORA_EXPORT float math_exp(float v) { return std::exp(v); }
+DORA_EXPORT float math_floor(float v) { return std::floor(v); }
+DORA_EXPORT float math_fmod(float x, float y) { return std::fmod(x, y); }
+DORA_EXPORT float math_log(float v) { return std::log(v); }
+DORA_EXPORT float math_rad(float v) { return bx::toRad(v); }
+DORA_EXPORT float math_sin(float v) { return std::sin(v); }
+DORA_EXPORT float math_sqrt(float v) { return std::sqrt(v); }
+DORA_EXPORT float math_tan(float v) { return std::tan(v); }
 
 } // extern "C"
 
@@ -2138,6 +2151,11 @@ uint8_t* WasmRuntime::getMemoryAddress(int32_t wasmAddr) {
 }
 
 void WasmRuntime::buildWaAsync(String fullPath, const std::function<void(String)>& callback) {
+#ifdef DORA_NO_WA
+	DORA_UNUSED_PARAM(fullPath);
+	Error("Wa build not supported");
+	callback("Wa build not supported"s);
+#else // !DORA_NO_WA
 #if BX_PLATFORM_ANDROID
 	SharedApplication.invokeInRender([fullPath = fullPath.toString(), callback]() {
 		auto result = WaBuild(c_cast<char*>(fullPath.c_str()));
@@ -2146,7 +2164,7 @@ void WasmRuntime::buildWaAsync(String fullPath, const std::function<void(String)
 		});
 		WaFreeCString(result);
 	});
-#else
+#else // BX_PLATFORM_ANDROID
 	if (!_thread) {
 		_thread = SharedAsyncThread.newThread();
 	}
@@ -2160,10 +2178,16 @@ void WasmRuntime::buildWaAsync(String fullPath, const std::function<void(String)
 		values->get(data);
 		callback(data);
 	});
-#endif
+#endif // BX_PLATFORM_ANDROID
+#endif // !DORA_NO_WA
 }
 
 void WasmRuntime::formatWaAsync(String fullPath, const std::function<void(String)>& callback) {
+#ifdef DORA_NO_WA
+	DORA_UNUSED_PARAM(fullPath);
+	Error("Wa format not supported");
+	callback(Slice::Empty);
+#else // !DORA_NO_WA
 #if BX_PLATFORM_ANDROID
 	SharedApplication.invokeInRender([fullPath = fullPath.toString(), callback]() {
 		auto result = WaFormat(c_cast<char*>(fullPath.c_str()));
@@ -2172,7 +2196,7 @@ void WasmRuntime::formatWaAsync(String fullPath, const std::function<void(String
 		});
 		WaFreeCString(result);
 	});
-#else
+#else // BX_PLATFORM_ANDROID
 	if (!_thread) {
 		_thread = SharedAsyncThread.newThread();
 	}
@@ -2186,7 +2210,8 @@ void WasmRuntime::formatWaAsync(String fullPath, const std::function<void(String
 		values->get(data);
 		callback(data);
 	});
-#endif
+#endif // BX_PLATFORM_ANDROID
+#endif // !DORA_NO_WA
 }
 
 NS_DORA_END

@@ -298,7 +298,8 @@ bool Application::isAlwaysOnTop() const noexcept {
 }
 
 // This function runs in main (render) thread, and do render work
-int Application::run() {
+int Application::run(MainFunc mainFunc) {
+	_mainFunc = mainFunc;
 	Application::setSeed(s_cast<uint32_t>(std::time(nullptr)));
 
 	if (SDL_Init(SDL_INIT_GAMECONTROLLER) != 0) {
@@ -571,6 +572,14 @@ int Application::mainLogic(Application* app) {
 		Error("Director failed to initialize!");
 		return 1;
 	}
+
+	if (app->_mainFunc) {
+		if (!app->_mainFunc()) {
+			Error("Failed to start main!");
+			return 1;
+		}
+	}
+
 	app->_frame = bgfx::frame();
 
 	app->makeTimeNow();
@@ -857,15 +866,16 @@ NS_DORA_END
 
 // Entry functions needed by SDL2
 #if BX_PLATFORM_OSX || BX_PLATFORM_ANDROID || BX_PLATFORM_IOS || BX_PLATFORM_LINUX
+#ifndef DORA_AS_LIB
 extern "C" int main(int argc, char* argv[]) {
 	return SharedApplication.run();
 }
+#endif // !DORA_AS_LIB
 #endif // BX_PLATFORM_OSX || BX_PLATFORM_ANDROID || BX_PLATFORM_IOS || BX_PLATFORM_LINUX
 
 #if BX_PLATFORM_WINDOWS
 
 #if DORA_WIN_CONSOLE
-
 #include "Common/Async.h"
 
 NS_DORA_BEGIN
@@ -891,6 +901,7 @@ public:
 NS_DORA_END
 #endif // DORA_WIN_CONSOLE
 
+#ifndef DORA_AS_LIB
 int CALLBACK WinMain(
 	_In_ HINSTANCE hInstance,
 	_In_ HINSTANCE hPrevInstance,
@@ -901,7 +912,15 @@ int CALLBACK WinMain(
 #endif
 	return SharedApplication.run();
 }
+#endif // !DORA_AS_LIB
+
 #endif // BX_PLATFORM_WINDOWS
+
+#ifdef DORA_AS_LIB
+extern "C" DORA_EXPORT int dora_run(MainFunc mainFunc) {
+	return SharedApplication.run(mainFunc);
+}
+#endif // DORA_AS_LIB
 
 #include "Http/HttpServer.h"
 #include "Lua/LuaEngine.h"

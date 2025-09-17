@@ -8,28 +8,28 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-void platformer_targetallow_release(int64_t raw) {
+DORA_EXPORT void platformer_targetallow_release(int64_t raw) {
 	delete r_cast<Platformer::TargetAllow*>(raw);
 }
-void platformer_targetallow_set_terrain_allowed(int64_t self, int32_t val) {
+DORA_EXPORT void platformer_targetallow_set_terrain_allowed(int64_t self, int32_t val) {
 	r_cast<Platformer::TargetAllow*>(self)->setTerrainAllowed(val != 0);
 }
-int32_t platformer_targetallow_is_terrain_allowed(int64_t self) {
+DORA_EXPORT int32_t platformer_targetallow_is_terrain_allowed(int64_t self) {
 	return r_cast<Platformer::TargetAllow*>(self)->isTerrainAllowed() ? 1 : 0;
 }
-void platformer_targetallow_allow(int64_t self, int32_t relation, int32_t allow) {
+DORA_EXPORT void platformer_targetallow_allow(int64_t self, int32_t relation, int32_t allow) {
 	r_cast<Platformer::TargetAllow*>(self)->allow(s_cast<Platformer::Relation>(relation), allow != 0);
 }
-int32_t platformer_targetallow_is_allow(int64_t self, int32_t relation) {
+DORA_EXPORT int32_t platformer_targetallow_is_allow(int64_t self, int32_t relation) {
 	return r_cast<Platformer::TargetAllow*>(self)->isAllow(s_cast<Platformer::Relation>(relation)) ? 1 : 0;
 }
-int32_t platformer_targetallow_to_value(int64_t self) {
+DORA_EXPORT int32_t platformer_targetallow_to_value(int64_t self) {
 	return s_cast<int32_t>(r_cast<Platformer::TargetAllow*>(self)->toValue());
 }
-int64_t platformer_targetallow_new() {
+DORA_EXPORT int64_t platformer_targetallow_new() {
 	return r_cast<int64_t>(new Platformer::TargetAllow{});
 }
-int64_t platformer_targetallow_with_value(int32_t value) {
+DORA_EXPORT int64_t platformer_targetallow_with_value(int32_t value) {
 	return r_cast<int64_t>(new Platformer::TargetAllow{s_cast<uint32_t>(value)});
 }
 } // extern "C"

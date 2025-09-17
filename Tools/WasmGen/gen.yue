@@ -1140,7 +1140,7 @@ else
 		objectUsed = #rustBinding
 		if isObject
 			objectUsed = nil
-			cppBinding[] = "int32_t #{namespace}#{clsNewNameL}_type() {
+			cppBinding[] = "DORA_EXPORT int32_t #{namespace}#{clsNewNameL}_type() {
 	return DoraType<#{clsName}>();
 }"
 		if clsParent
@@ -1235,7 +1235,7 @@ func #{waNewName}.GetRaw() => i64 {
 		})
 	}"
 		if isValue
-			cppBinding[] = "void #{namespace}#{clsNewNameL}_release(int64_t raw) {
+			cppBinding[] = "DORA_EXPORT void #{namespace}#{clsNewNameL}_release(int64_t raw) {
 	delete r_cast<#{clsName}*>(raw);
 }"
 			rustExtern[] = "\tfn #{namespace}#{clsNewNameL}_release(raw: i64);"
@@ -1325,11 +1325,11 @@ func #{waNewName}.GetRaw() => i64 {
 							cppLink[] = "\tmod.link_optional(\"*\", \"#{cppSetterName}\", #{cppSetterName});"
 							cppBinding[] = if isSingleton
 								callFunc = isStatic and "#{clsName}::#{setFunc};" or "#{singletonName}.#{setFunc};"
-								"void #{cppSetterName}(#{cppType} val) {\n\t#{callFunc}\n}"
+								"DORA_EXPORT void #{cppSetterName}(#{cppType} val) {\n\t#{callFunc}\n}"
 							else
 								callFunc = isStatic and "#{clsName}::#{setFunc}" or "r_cast<#{clsName}*>(self)->#{setFunc}"
 								slf = isStatic and "" or "int64_t self, "
-								"void #{cppSetterName}(#{slf}#{cppType} val) {\n\t#{callFunc};\n}"
+								"DORA_EXPORT void #{cppSetterName}(#{slf}#{cppType} val) {\n\t#{callFunc};\n}"
 							rustExtern[] = if isSingleton
 								"\tfn #{cppSetterName}(val: #{rt});"
 							else
@@ -1379,12 +1379,12 @@ func #{waNewName}.GetRaw() => i64 {
 						cppBinding[] = if isSingleton
 							callFunc = isStatic and "#{clsName}::#{getFunc}" or "#{singletonName}.#{getFunc}"
 							item = castFrom "#{callFunc}"
-							"#{cppType} #{cppGetterName}() {\n\treturn #{item};\n}"
+							"DORA_EXPORT #{cppType} #{cppGetterName}() {\n\treturn #{item};\n}"
 						else
 							callFunc = isStatic and "#{clsName}::#{getFunc}" or "r_cast<#{clsName}*>(self)->#{getFunc}"
 							item = castFrom callFunc
 							slf = isStatic and "" or "int64_t self"
-							"#{cppType} #{cppGetterName}(#{slf}) {\n\treturn #{item};\n}"
+							"DORA_EXPORT #{cppType} #{cppGetterName}(#{slf}) {\n\treturn #{item};\n}"
 						rustExtern[] = if isSingleton
 							"\tfn #{cppGetterName}() -> #{rt};"
 						else
@@ -1641,7 +1641,7 @@ func #{waNewName}.GetRaw() => i64 {
 							callFunc = isStatic and "#{clsName}::#{name}(#{argPass})" or "#{singletonName}.#{name}(#{argPass})"
 							callFunc = isOutside and "#{name}(#{argPass})" or callFunc
 							item = castFrom callFunc
-							"#{cppType} #{cppFuncName}(#{argDefs}) {#{argPrepare}\n\t#{prefix}#{item};\n}"
+							"DORA_EXPORT #{cppType} #{cppFuncName}(#{argDefs}) {#{argPrepare}\n\t#{prefix}#{item};\n}"
 						else
 							slf = isStatic and "" or "int64_t self"
 							if slf ~= "" then argDefs = slf .. (argDefs ~= "" and ", " or "") .. argDefs
@@ -1657,7 +1657,7 @@ func #{waNewName}.GetRaw() => i64 {
 									"r_cast<#{clsName}*>(self)->#{name}(#{argPass})"
 							callFunc = isValue and argPass or callFunc if isCreate
 							item = castFrom callFunc
-							"#{cppType} #{cppFuncName}(#{argDefs}) {#{argPrepare}\n\t#{prefix}#{item};\n}"
+							"DORA_EXPORT #{cppType} #{cppFuncName}(#{argDefs}) {#{argPrepare}\n\t#{prefix}#{item};\n}"
 						rustExtern[] = if isSingleton
 							"\tfn #{cppFuncName}(#{argRtDefs})#{rt and ' -> ' .. rt or ''};"
 						else

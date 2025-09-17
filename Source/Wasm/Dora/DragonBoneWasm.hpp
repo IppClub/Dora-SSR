@@ -8,31 +8,31 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 extern "C" {
 using namespace Dora;
-int32_t dragonbone_type() {
+DORA_EXPORT int32_t dragonbone_type() {
 	return DoraType<DragonBone>();
 }
-void dragonbone_set_hit_test_enabled(int64_t self, int32_t val) {
+DORA_EXPORT void dragonbone_set_hit_test_enabled(int64_t self, int32_t val) {
 	r_cast<DragonBone*>(self)->setHitTestEnabled(val != 0);
 }
-int32_t dragonbone_is_hit_test_enabled(int64_t self) {
+DORA_EXPORT int32_t dragonbone_is_hit_test_enabled(int64_t self) {
 	return r_cast<DragonBone*>(self)->isHitTestEnabled() ? 1 : 0;
 }
-int64_t dragonbone_contains_point(int64_t self, float x, float y) {
+DORA_EXPORT int64_t dragonbone_contains_point(int64_t self, float x, float y) {
 	return Str_Retain(r_cast<DragonBone*>(self)->containsPoint(x, y));
 }
-int64_t dragonbone_intersects_segment(int64_t self, float x_1, float y_1, float x_2, float y_2) {
+DORA_EXPORT int64_t dragonbone_intersects_segment(int64_t self, float x_1, float y_1, float x_2, float y_2) {
 	return Str_Retain(r_cast<DragonBone*>(self)->intersectsSegment(x_1, y_1, x_2, y_2));
 }
-int64_t dragonbone_with_files(int64_t bone_file, int64_t atlas_file) {
+DORA_EXPORT int64_t dragonbone_with_files(int64_t bone_file, int64_t atlas_file) {
 	return Object_From(DragonBone::create(*Str_From(bone_file), *Str_From(atlas_file)));
 }
-int64_t dragonbone_new(int64_t bone_str) {
+DORA_EXPORT int64_t dragonbone_new(int64_t bone_str) {
 	return Object_From(DragonBone::create(*Str_From(bone_str)));
 }
-int64_t dragonbone_get_looks(int64_t bone_str) {
+DORA_EXPORT int64_t dragonbone_get_looks(int64_t bone_str) {
 	return Vec_To(DragonBone_GetLookNames(*Str_From(bone_str)));
 }
-int64_t dragonbone_get_animations(int64_t bone_str) {
+DORA_EXPORT int64_t dragonbone_get_animations(int64_t bone_str) {
 	return Vec_To(DragonBone_GetAnimationNames(*Str_From(bone_str)));
 }
 } // extern "C"

@@ -38,9 +38,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
 
-extern "C" {
-int32_t dora_rust_init();
-} // extern "C"
+#ifndef DORA_NO_RUST
+extern "C" int32_t dora_rust_init();
+#endif // DORA_NO_RUST
 
 NS_DORA_BEGIN
 
@@ -219,10 +219,12 @@ bool Director::init() {
 	if (!SharedAudio.init()) {
 		Warn("audio function is not available.");
 	}
+#ifndef DORA_NO_RUST
 	if (!dora_rust_init()) {
 		Error("failed to initialize Rust runtime.");
 		return false;
 	}
+#endif // DORA_NO_RUST
 	if (!SharedContent.visitDir(SharedContent.getAssetPath(), [](String file, String path) {
 			switch (Switch::hash(file.toLower())) {
 				case "init.yue"_hash:
