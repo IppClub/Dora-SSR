@@ -28,8 +28,10 @@ const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin'
 const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin');
 const MonacoLocalesPlugin = require('./monaco-editor-locales-plugin');
 const FilterWarningsPlugin = require('webpack-filter-warnings-plugin');
+const { codeInspectorPlugin } = require('code-inspector-plugin');
 
 const createEnvironmentHash = require('./webpack/persistentCache/createEnvironmentHash');
+
 
 // Source maps are resource heavy and can cause out of memory issue for large source files.
 const shouldUseSourceMap = process.env.GENERATE_SOURCEMAP !== 'false';
@@ -572,6 +574,10 @@ module.exports = function (webpackEnv) {
         defaultLanguage: "window.getLanguageSetting()",
         logUnmatched: false,
         mapLanguages: {},
+      }),
+      new codeInspectorPlugin({
+        bundler: 'webpack',
+        editor: 'code',
       }),
       new MonacoWebpackPlugin({
         languages: ['xml', 'markdown', 'ini', 'typescript']
