@@ -2,7 +2,8 @@
   "profiles": {
     "DoraCS": {
       "commandName": "Project",
-      "workingDirectory": "Y:\\Workspace\\Dora-SSR\\Tools\\dora-cs\\build\\Debug"
+      "workingDirectory": "..\\build\\$(Configuration)",
+      "nativeDebugging": true
     }
   }
 }

@@ -124,7 +124,7 @@ union LightWasmValue {
 static_assert(sizeof(LightWasmValue) == sizeof(int64_t), "encode item with greater size than int64_t for wasm.");
 
 extern "C" {
-#ifdef DORA_NO_RUST
+#ifdef DORA_NO_STATIC_CALL_BACK
 	void call_function(int32_t func_id) {
 		DORA_UNUSED_PARAM(func_id);
 		Error("unexpected invoked call_function()");
@@ -135,10 +135,20 @@ extern "C" {
 		Error("unexpected invoked deref_function()");
 		std::abort();
 	}
-#else // !DORA_NO_RUST
+#else // !DORA_NO_STATIC_CALL_BACK
 	void call_function(int32_t func_id);
 	void deref_function(int32_t func_id);
-#endif // !DORA_NO_RUST
+#endif // !DORA_NO_STATIC_CALL_BACK
+	typedef void (*DoraCallFunction)(int32_t func_id);
+	static DoraCallFunction doraCallFunction = nullptr;
+	void dora_register_call_function(DoraCallFunction callFunc) {
+		doraCallFunction = callFunc;
+	}
+	typedef void (*DoraDerefFunction)(int32_t func_id);
+	static DoraDerefFunction doraDerefFunction = nullptr;
+	void dora_register_deref_function(DoraDerefFunction derefFunc) {
+		doraDerefFunction = derefFunc;
+	}
 } // extern "C"
 
 /* Vec2 */
@@ -2045,32 +2055,67 @@ void WasmRuntime::executeMainFileAsync(String filename, const std::function<void
 	});
 }
 
-inline bool isStaticFunc(int32_t funcId) {
-	return funcId >> 24 == 0;
-}
+enum class FuncType {
+	StaticLinked = 0,
+	WasmProvided = 1,
+	CFuncPointer = 2,
+	Unknown
+};
 
 void WasmRuntime::invoke(int32_t funcId) {
-	if (isStaticFunc(funcId)) {
-		call_function(funcId);
-		return;
-	}
-	AssertUnless(_callFunc, "wasm module is not ready");
-	try {
-		_callFromWasm++;
-		DEFER(_callFromWasm--);
-		_callFunc->call(funcId);
-	} catch (std::runtime_error& e) {
-		Error("failed to execute wasm callback due to: {}{}", e.what(), _runtime->get_error_message() == Slice::Empty ? Slice::Empty : ": "s + _runtime->get_error_message());
+	auto funcType = s_cast<FuncType>(funcId >> 24);
+	switch (funcType) {
+		case FuncType::StaticLinked: {
+			call_function(funcId);
+			return;
+		}
+		case FuncType::WasmProvided: {
+			AssertUnless(_callFunc, "wasm module is not ready");
+			try {
+				_callFromWasm++;
+				DEFER(_callFromWasm--);
+				_callFunc->call(funcId);
+			} catch (std::runtime_error& e) {
+				Error("failed to execute wasm callback due to: {}{}", e.what(), _runtime->get_error_message() == Slice::Empty ? Slice::Empty : ": "s + _runtime->get_error_message());
+			}
+			return;
+		}
+		case FuncType::CFuncPointer: {
+			if (doraCallFunction) {
+				doraCallFunction(funcId);
+			}
+			return;
+		}
+		default: {
+			Issue("got unexpected func type {}", s_cast<int>(funcType));
+			return;
+		}
 	}
 }
 
 void WasmRuntime::deref(int32_t funcId) {
-	if (isStaticFunc(funcId)) {
-		deref_function(funcId);
-		return;
-	}
-	if (_derefFunc) {
-		_derefFunc->call(funcId);
+	auto funcType = s_cast<FuncType>(funcId >> 24);
+	switch (funcType) {
+		case FuncType::StaticLinked: {
+			deref_function(funcId);
+			return;
+		}
+		case FuncType::WasmProvided: {
+			if (_derefFunc) {
+				_derefFunc->call(funcId);
+			}
+			return;
+		}
+		case FuncType::CFuncPointer: {
+			if (doraDerefFunction) {
+				doraDerefFunction(funcId);
+			}
+			return;
+		}
+		default: {
+			Issue("got unexpected func type {}", s_cast<int>(funcType));
+			return;
+		}
 	}
 }
 
