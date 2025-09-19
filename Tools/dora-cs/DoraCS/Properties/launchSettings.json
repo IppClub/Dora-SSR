@@ -2,8 +2,8 @@
   "profiles": {
     "DoraCS": {
       "commandName": "Project",
-      "workingDirectory": "..\\build\\$(Configuration)",
-      "nativeDebugging": true
+      "workingDirectory": "$(SolutionDir)\\build\\$(Configuration)\\",
+      "nativeDebugging": false
     }
   }
 }

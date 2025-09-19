@@ -357,10 +357,10 @@ int Application::run(MainFunc mainFunc) {
 		while (SDL_PollEvent(&event)) {
 			switch (event.type) {
 				case SDL_QUIT:
-#if defined(NDEBUG) || defined(DORA_AS_LIB)
 					if (Singleton<DB>::isInitialized()) {
 						SharedDB.stop();
 					}
+#if defined(NDEBUG) && !defined(DORA_AS_LIB)
 					std::_Exit(EXIT_SUCCESS);
 #else
 					_renderRunning = false;
@@ -662,7 +662,11 @@ int Application::mainLogic(Application* app) {
 		app->makeTimeNow();
 	}
 
+#ifdef DORA_AS_LIB
+	bgfx::shutdown();
+#else // DORA_AS_LIB
 	Life::destroy("BGFXDora"_slice);
+#endif // DORA_AS_LIB
 	return 0;
 }
 
