@@ -1538,7 +1538,7 @@ static ImGuiTabBarFlags_ getTabBarFlag(String flag) {
 		case "NoTabListScrollingButtons"_hash: return ImGuiTabBarFlags_NoTabListScrollingButtons;
 		case "NoTooltip"_hash: return ImGuiTabBarFlags_NoTooltip;
 		case "DrawSelectedOverline"_hash: return ImGuiTabBarFlags_DrawSelectedOverline;
-		case "FittingPolicyResizeDown"_hash: return ImGuiTabBarFlags_FittingPolicyResizeDown;
+		case "FittingPolicyShrink"_hash: return ImGuiTabBarFlags_FittingPolicyShrink;
 		case "FittingPolicyScroll"_hash: return ImGuiTabBarFlags_FittingPolicyScroll;
 		default:
 			Issue("ImGui tab bar flag named \"{}\" is invalid.", flag.toString());

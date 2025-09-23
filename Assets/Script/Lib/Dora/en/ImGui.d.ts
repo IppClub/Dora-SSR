@@ -349,7 +349,7 @@ export const enum TabBarFlag {
 	NoTabListScrollingButtons = "NoTabListScrollingButtons",
 	NoTooltip = "NoTooltip",
 	DrawSelectedOverline = "DrawSelectedOverline",
-	FittingPolicyResizeDown = "FittingPolicyResizeDown",
+	FittingPolicyShrink = "FittingPolicyShrink",
 	FittingPolicyScroll = "FittingPolicyScroll",
 }
 

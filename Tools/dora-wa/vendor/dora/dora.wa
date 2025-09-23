@@ -3834,7 +3834,7 @@ global ImGuiTabBarFlagNoCloseWithMiddleMouseButton = _ImGuiTabBarFlag{value: 1 <
 global ImGuiTabBarFlagNoTabListScrollingButtons = _ImGuiTabBarFlag{value: 1 << 4}
 global ImGuiTabBarFlagNoTooltip = _ImGuiTabBarFlag{value: 1 << 5}
 global ImGuiTabBarFlagDrawSelectedOverline = _ImGuiTabBarFlag{value: 1 << 6}
-global ImGuiTabBarFlagFittingPolicyResizeDown = _ImGuiTabBarFlag{value: 1 << 7}
+global ImGuiTabBarFlagFittingPolicyShrink = _ImGuiTabBarFlag{value: 1 << 7}
 global ImGuiTabBarFlagFittingPolicyScroll = _ImGuiTabBarFlag{value: 1 << 8}
 
 type _ImGuiTabBarFlags :struct {

@@ -1904,7 +1904,7 @@ func #{waNewName}.GetRaw() => i64 {
 		waBinding = []
 		cppBinding = []
 		cppLink = []
-	close _f1 = with io.open "../dora-cs/DoraCS/Dora/Native.cs", "w"
+	close _f1 = with io.open "../DoraCS/Dora/Native.cs", "w"
 		\write licenseText
 		\write "\n\n"
 		\write "using System.Runtime.InteropServices;\n"

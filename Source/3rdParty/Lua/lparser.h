@@ -105,6 +105,9 @@ typedef struct expdesc {
 /* variables that live in registers */
 #define varinreg(v)	((v)->vd.kind <= RDKTOCLOSE)
 
+/* test for global variables */
+#define varglobal(v)	((v)->vd.kind >= GDKREG)
+
 
 /* description of an active variable */
 typedef union Vardesc {
@@ -125,7 +128,7 @@ typedef struct Labeldesc {
   TString *name;  /* label identifier */
   int pc;  /* position in code */
   int line;  /* line where it appeared */
-  lu_byte nactvar;  /* number of active variables in that position */
+  short nactvar;  /* number of active variables in that position */
   lu_byte close;  /* true for goto that escapes upvalues */
 } Labeldesc;
 
@@ -170,7 +173,7 @@ typedef struct FuncState {
   int firstlocal;  /* index of first local var (in Dyndata array) */
   int firstlabel;  /* index of first label (in 'dyd->label->arr') */
   short ndebugvars;  /* number of elements in 'f->locvars' */
-  lu_byte nactvar;  /* number of active local variables */
+  short nactvar;  /* number of active variable declarations */
   lu_byte nups;  /* number of upvalues */
   lu_byte freereg;  /* first free register */
   lu_byte iwthabs;  /* instructions issued since last absolute line info */

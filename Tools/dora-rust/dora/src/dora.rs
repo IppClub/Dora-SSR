@@ -4362,7 +4362,7 @@ pub enum ImGuiTabBarFlag {
 	NoTabListScrollingButtons = 1 << 4,
 	NoTooltip = 1 << 5,
 	DrawSelectedOverline = 1 << 6,
-	FittingPolicyResizeDown = 1 << 7,
+	FittingPolicyShrink = 1 << 7,
 	FittingPolicyScroll = 1 << 8,
 }
 

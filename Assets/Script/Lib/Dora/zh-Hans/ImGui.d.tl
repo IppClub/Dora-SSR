@@ -322,7 +322,7 @@ local record ImGui
 		"NoTabListScrollingButtons"
 		"NoTooltip"
 		"DrawSelectedOverline"
-		"FittingPolicyResizeDown"
+		"FittingPolicyShrink"
 		"FittingPolicyScroll"
 	end
 	enum TabItemFlag

@@ -771,6 +771,9 @@ void Content::unzipAsync(String zipFile, String folderPath, const std::function<
 }
 
 bool Content::exist(String filename) {
+	if (filename.trimSpace().empty()) {
+		return true;
+	}
 	return Content::isFileExist(Content::getFullPath(filename));
 }
 

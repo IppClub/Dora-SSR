@@ -239,6 +239,32 @@ toNode(
 ```
 
 </TabItem>
+<TabItem value="yue" label="YueScript">
+
+```yue title="Hello/init.yue"
+-- import modules
+_ENV = Dora
+
+-- create a sprite
+sprite = Sprite "Image/logo.png"
+
+-- create the root node of the game scene tree
+with Node!
+
+	-- mount the sprite to the root node
+	\addChild sprite
+
+	-- receive and process click events to move the sprite
+	\onTapBegan (touch) ->
+		sprite\perform Move(
+			1 -- duration in seconds
+			sprite.position -- start position
+			touch.location -- end position
+			Ease.OutBack -- easing function
+		)
+```
+
+</TabItem>
 <TabItem value="wa" label="Wa">
 
 ```go title="Hello/main.wa"

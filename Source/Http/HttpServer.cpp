@@ -52,6 +52,7 @@ namespace fs = std::filesystem;
 #endif // BX_PLATFORM_LINUX
 
 #include <atomic>
+#include <fstream>
 
 #if BX_PLATFORM_WINDOWS
 static std::string get_local_ip() {
@@ -442,7 +443,7 @@ bool HttpServer::start(int port) {
 					std::list<std::string> acceptedFiles;
 					std::list<std::ofstream> streams;
 					content_reader(
-						[&](const httplib::MultipartFormData& file) {
+						[&](const httplib::FormData& file) {
 							bool accepted = false;
 							bx::Semaphore waitForResponse;
 							SharedApplication.invokeInLogic([&]() {
