@@ -670,14 +670,14 @@ object class Scheduler
 };
 
 /// A struct for Camera object in the game engine.
-interface object class Camera
+object class Camera
 {
 	/// the name of the Camera.
 	readonly common string name;
 };
 
 /// A struct for 2D camera object in the game engine.
-object class Camera2D : public ICamera
+object class Camera2D : public Camera
 {
 	/// the rotation angle of the camera in degrees.
 	common float rotation;
@@ -698,7 +698,7 @@ object class Camera2D : public ICamera
 };
 
 /// A struct for an orthographic camera object in the game engine.
-object class CameraOtho : public ICamera
+object class CameraOtho : public Camera
 {
 	/// the position of the camera in the game world.
 	common Vec2 position;
@@ -765,7 +765,7 @@ object class Pass
 
 /// A struct for managing multiple render pass objects.
 /// Effect objects allow you to combine multiple passes to create more complex shader effects.
-interface object class Effect
+object class Effect
 {
 	/// Adds a Pass object to this Effect.
 	///
@@ -801,7 +801,7 @@ interface object class Effect
 };
 
 /// A struct that is a specialization of Effect for rendering 2D sprites.
-object class SpriteEffect : public IEffect
+object class SpriteEffect : public Effect
 {
 	/// A method that allows you to create a new SpriteEffect object.
 	///
@@ -890,8 +890,6 @@ singleton class View
 	common float scale;
 	/// the post effect applied to the view.
 	optional common SpriteEffect* postEffect;
-	/// Removes the post effect applied to the view.
-	outside void View_SetPostEffectNullptr @ set_post_effect_null();
 	/// whether or not vertical sync is enabled.
 	boolean bool vSync @ vsync;
 };
@@ -1034,7 +1032,7 @@ value class ActionDef {
 };
 
 /// Represents an action that can be run on a node.
-object class Action
+object class Action @ NodeAction
 {
 	/// the duration of the action.
 	readonly common float duration;
@@ -1132,7 +1130,7 @@ object class Grabber
 };
 
 /// Struct used for building a hierarchical tree structure of game objects.
-interface object class Node
+object class Node
 {
 	/// the order of the node in the parent's children array.
 	common int order;
@@ -1524,8 +1522,6 @@ interface object class Node
 	Grabber* grab @ grabWithSize(uint32_t gridX, uint32_t gridY);
 	/// Removes the texture grabber for the specified node.
 	outside void Node_StopGrabbing @ stop_grab();
-	/// Removes the transform target for the specified node.
-	outside void Node_SetTransformTargetNullptr @ set_transform_target_null();
 	/// Associates the given handler function with the node event.
 	///
 	/// # Arguments
@@ -1587,7 +1583,7 @@ object class Texture2D
 };
 
 /// A struct to render texture in game scene tree hierarchy.
-object class Sprite : public INode
+object class Sprite : public Node
 {
 	/// whether the depth buffer should be written to when rendering the sprite.
 	boolean bool depthWrite;
@@ -1650,7 +1646,7 @@ object class Sprite : public INode
 };
 
 /// A struct used to render a texture as a grid of sprites, where each sprite can be positioned, colored, and have its UV coordinates manipulated.
-object class Grid : public INode
+object class Grid : public Node
 {
 	/// the number of columns in the grid. And there are `gridX + 1` vertices horizontally for rendering.
 	readonly common uint32_t gridX;
@@ -1800,7 +1796,7 @@ singleton struct Ease
 };
 
 /// A node for rendering text using a TrueType font.
-object class Label : public INode
+object class Label : public Node
 {
 	/// the text alignment setting.
 	common TextAlign alignment;
@@ -1915,7 +1911,7 @@ object class RenderTarget
 };
 
 /// A Node that can clip its children based on the alpha values of its stencil.
-object class ClipNode : public INode
+object class ClipNode : public Node
 {
 	/// the stencil Node that defines the clipping shape.
 	common Node* stencil;
@@ -1943,7 +1939,7 @@ value struct VertexColor
 };
 
 /// A scene node that draws simple shapes such as dots, lines, and polygons.
-object class DrawNode : public INode
+object class DrawNode : public Node
 {
 	/// whether to write to the depth buffer when drawing (default is false).
 	boolean bool depthWrite;
@@ -1992,7 +1988,7 @@ object class DrawNode : public INode
 };
 
 /// A struct provides functionality for drawing lines using vertices.
-object class Line : public INode
+object class Line : public Node
 {
 	/// whether the depth should be written. (Default is false)
 	boolean bool depthWrite;
@@ -2034,7 +2030,7 @@ object class Line : public INode
 };
 
 /// Represents a particle system node that emits and animates particles.
-object class ParticleNode @ Particle : public INode
+object class ParticleNode @ Particle : public Node
 {
 	/// whether the particle system is active.
 	readonly boolean bool active;
@@ -2055,7 +2051,7 @@ object class ParticleNode @ Particle : public INode
 };
 
 /// An interface for an animation model system.
-interface object class Playable : public INode
+object class Playable : public Node
 {
 	/// the look of the animation.
 	common string look;
@@ -2127,7 +2123,7 @@ interface object class Playable : public INode
 };
 
 /// Another implementation of the 'Playable' animation interface.
-object class Model : public IPlayable
+object class Model : public Playable
 {
 	/// the duration of the current animation.
 	readonly common float duration;
@@ -2196,7 +2192,7 @@ object class Model : public IPlayable
 	/// # Returns
 	///
 	/// * A new instance of 'Model'.
-	static optional Model* create(string filename);
+	static optional hide Model* create(string filename);
 	/// Returns a new dummy instance of 'Model' that can do nothing.
 	///
 	/// # Returns
@@ -2236,7 +2232,7 @@ object class Model : public IPlayable
 };
 
 /// An implementation of an animation system using the Spine engine.
-object class Spine : public IPlayable
+object class Spine : public Playable
 {
 	/// whether hit testing is enabled.
 	boolean bool hitTestEnabled;
@@ -2295,7 +2291,7 @@ object class Spine : public IPlayable
 	/// # Returns
 	///
 	/// * A new instance of 'Spine'. Returns `None` if the Spine file could not be loaded.
-	static optional Spine* create(string spineStr);
+	static optional hide Spine* create(string spineStr);
 	/// Returns a list of available looks for the specified Spine2D file string.
 	///
 	/// # Arguments
@@ -2319,7 +2315,7 @@ object class Spine : public IPlayable
 };
 
 /// An implementation of the 'Playable' record using the DragonBones animation system.
-object class DragonBone : public IPlayable
+object class DragonBone : public Playable
 {
 	/// whether hit testing is enabled.
 	boolean bool hitTestEnabled;
@@ -2367,7 +2363,7 @@ object class DragonBone : public IPlayable
 	/// # Returns
 	///
 	/// * A new instance of 'DragonBone'. Returns `None` if the bone file or atlas file is not found.
-	static optional DragonBone* create(string boneStr);
+	static optional hide DragonBone* create(string boneStr);
 	/// Returns a list of available looks for the specified DragonBone file string.
 	///
 	/// # Arguments
@@ -2391,7 +2387,7 @@ object class DragonBone : public IPlayable
 };
 
 /// A node used for aligning layout elements.
-object class AlignNode : public INode
+object class AlignNode : public Node
 {
 	/// Sets the layout style of the node.
 	///
@@ -2433,7 +2429,7 @@ object class AlignNode : public INode
 };
 
 /// A struct for playing Effekseer effects.
-object class EffekNode : public INode
+object class EffekNode : public Node
 {
 	/// Plays an effect at the specified position.
 	///
@@ -2462,7 +2458,7 @@ object class EffekNode : public INode
 };
 
 /// The TileNode class to render Tilemaps from TMX file in game scene tree hierarchy.
-object class TileNode : public INode
+object class TileNode : public Node
 {
 	/// whether the depth buffer should be written to when rendering the tilemap.
 	boolean bool depthWrite;
@@ -2517,7 +2513,7 @@ object class TileNode : public INode
 };
 
 /// A struct that represents a physics world in the game.
-interface object class PhysicsWorld : public INode
+object class PhysicsWorld : public Node
 {
 	/// Queries the physics world for all bodies that intersect with the specified rectangle.
 	///
@@ -2588,18 +2584,8 @@ object class FixtureDef { };
 /// A struct to describe the properties of a physics body.
 object class BodyDef
 {
-	/// Sets the define for the type of the body.
-	///
-	/// # Arguments
-	///
-	/// * `body_type` - The type of the body.
-	outside void BodyDef_SetTypeEnum @ set_type(BodyType body_type);
-	/// Gets the define for the type of the body.
-	///
-	/// # Returns
-	///
-	/// * `BodyType` - The type of the body.
-	outside BodyType BodyDef_GetTypeEnum @ get_type() const;
+	/// the define for the type of the body.
+	BodyType type;
 	/// define for the position of the body.
 	Vec2 offset @ position;
 	/// define for the angle of the body.
@@ -2922,7 +2908,7 @@ object class Sensor
 };
 
 /// A struct represents a physics body in the world.
-interface object class Body : public INode
+object class Body : public Node
 {
 	/// the physics world that the body belongs to.
 	readonly common PhysicsWorld* physicsWorld @ world;
@@ -3275,7 +3261,7 @@ object class JointDef
 };
 
 /// A struct that can be used to connect physics bodies together.
-interface object class Joint
+object class Joint
 {
 	/// Creates a distance joint between two physics bodies.
 	///
@@ -3548,14 +3534,14 @@ interface object class Joint
 };
 
 /// A type of joint that allows a physics body to move to a specific position.
-object class MoveJoint : public IJoint
+object class MoveJoint : public Joint
 {
 	/// the current position of the move joint in the game world.
 	common Vec2 position;
 };
 
 /// A joint that applies a rotational or linear force to a physics body.
-object class MotorJoint : public IJoint
+object class MotorJoint : public Joint
 {
 	/// whether or not the motor joint is enabled.
 	boolean bool enabled;
@@ -3829,7 +3815,7 @@ object class AudioBus
 };
 
 /// A class that represents an audio source node.
-object class AudioSource : public INode
+object class AudioSource : public Node
 {
 	/// The volume of the audio source. The value is between 0.0 and 1.0.
 	common float volume;
@@ -4510,7 +4496,7 @@ object class BulletDef
 };
 
 /// A struct that defines the properties and behavior of a bullet object instance in the game.
-object class Bullet : public IBody
+object class Bullet : public Body
 {
 	/// the value from a `Platformer.TargetAllow` object for the bullet object.
 	common uint32_t targetAllow;
@@ -4540,7 +4526,7 @@ object class Bullet : public IBody
 };
 
 /// A struct represents a visual effect object like Particle, Frame Animation or just a Sprite.
-object class Visual : public INode
+object class Visual : public Node
 {
 	/// whether the visual effect is currently playing or not.
 	readonly boolean bool playing;
@@ -4907,7 +4893,7 @@ class UnitAction
 };
 
 /// A struct represents a character or other interactive item in a game scene.
-object class Unit : public IBody
+object class Unit : public Body
 {
 	/// the property that references a "Playable" object for managing the animation state and playback of the "Unit".
 	common Playable* playable;
@@ -4935,9 +4921,9 @@ object class Unit : public IBody
 	/// the property that specifies the current action being performed by the "Unit".
 	readonly common Platformer::UnitAction currentAction;
 	/// the width of the "Unit".
-	readonly common float width;
+	readonly common hide float width;
 	/// the height of the "Unit".
-	readonly common float height;
+	readonly common hide float height;
 	/// the "Entity" object for representing the "Unit" in the ECS system.
 	readonly common Entity* entity;
 	/// Adds a new `UnitAction` to the `Unit` with the specified name, and returns the new `UnitAction`.
@@ -5027,7 +5013,7 @@ object class Unit : public IBody
 };
 
 /// A platform camera for 2D platformer games that can track a game unit's movement and keep it within the camera's view.
-object class PlatformCamera : public ICamera
+object class PlatformCamera : public Camera
 {
 	/// The camera's position.
 	common Vec2 position;
@@ -5045,8 +5031,6 @@ object class PlatformCamera : public ICamera
 	common Vec2 followOffset;
 	/// the game unit that the camera should track.
 	optional common Node* followTarget;
-	/// Removes the target that the camera is following.
-	outside void PlatformCamera_SetFollowTargetNullptr @ set_follow_target_null();
 	/// Creates a new instance of `PlatformCamera`.
 	///
 	/// # Arguments
@@ -5060,7 +5044,7 @@ object class PlatformCamera : public ICamera
 };
 
 /// A struct representing a 2D platformer game world with physics simulations.
-object class PlatformWorld : public IPhysicsWorld
+object class PlatformWorld : public PhysicsWorld
 {
 	/// the camera used to control the view of the game world.
 	readonly common Platformer::PlatformCamera* camera;
@@ -5881,7 +5865,7 @@ singleton struct nvg @ Nvg
 };
 
 /// A node for rendering vector graphics.
-object class VGNode : public INode {
+object class VGNode : public Node {
 	/// The surface of the node for displaying frame buffer texture that contains vector graphics.
 	/// You can get the texture of the surface by calling `vgNode.get_surface().get_texture()`.
 	readonly common Sprite* surface;

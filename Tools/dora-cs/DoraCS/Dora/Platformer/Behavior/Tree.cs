@@ -1,0 +1,236 @@
+/* Copyright (c) 2016-2025 Li Jin <dragon-fly@qq.com>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+
+using System.Runtime.InteropServices;
+using int64_t = long;
+using int32_t = int;
+
+namespace Dora
+{
+	internal static partial class Native
+	{
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int32_t platformer_behavior_tree_type();
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int64_t platformer_behavior_leaf_seq(int64_t nodes);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int64_t platformer_behavior_leaf_sel(int64_t nodes);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int64_t platformer_behavior_leaf_con(int64_t name, int32_t func0, int64_t stack0);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int64_t platformer_behavior_leaf_act(int64_t action_name);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int64_t platformer_behavior_leaf_command(int64_t action_name);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int64_t platformer_behavior_leaf_wait(double duration);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int64_t platformer_behavior_leaf_countdown(double time, int64_t node);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int64_t platformer_behavior_leaf_timeout(double time, int64_t node);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int64_t platformer_behavior_leaf_repeat(int32_t times, int64_t node);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int64_t platformer_behavior_leaf_repeat_forever(int64_t node);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int64_t platformer_behavior_leaf_retry(int32_t times, int64_t node);
+		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int64_t platformer_behavior_leaf_retry_until_pass(int64_t node);
+	}
+} // namespace Dora
+
+namespace Dora.Platformer.Behavior
+{
+	/// A behavior tree framework for creating game AI structures.
+	public partial class Tree : Object
+	{
+		public static new (int typeId, CreateFunc func) GetTypeInfo()
+		{
+			return (Native.node_type(), From);
+		}
+		protected Tree(long raw) : base(raw) { }
+		internal static new Tree From(long raw)
+		{
+			return new Tree(raw);
+		}
+		internal static new Tree? FromOpt(long raw)
+		{
+			return raw == 0 ? null : new Tree(raw);
+		}
+		/// Creates a new sequence node that executes an array of child nodes in order.
+		///
+		/// # Arguments
+		///
+		/// * `nodes` - A vector of child nodes.
+		///
+		/// # Returns
+		///
+		/// * `Leaf` - A new sequence node.
+		public static Platformer.Behavior.Tree Seq(IEnumerable<Platformer.Behavior.Tree> nodes)
+		{
+			return Platformer.Behavior.Tree.From(Native.platformer_behavior_leaf_seq(Bridge.FromArray(nodes)));
+		}
+		/// Creates a new selector node that selects and executes one of its child nodes that will succeed.
+		///
+		/// # Arguments
+		///
+		/// * `nodes` - A vector of child nodes.
+		///
+		/// # Returns
+		///
+		/// * `Leaf` - A new selector node.
+		public static Platformer.Behavior.Tree Sel(IEnumerable<Platformer.Behavior.Tree> nodes)
+		{
+			return Platformer.Behavior.Tree.From(Native.platformer_behavior_leaf_sel(Bridge.FromArray(nodes)));
+		}
+		/// Creates a new condition node that executes a check handler function when executed.
+		///
+		/// # Arguments
+		///
+		/// * `name` - The name of the condition.
+		/// * `check` - A function that takes a blackboard object and returns a boolean value.
+		///
+		/// # Returns
+		///
+		/// * `Leaf` - A new condition node.
+		public static Platformer.Behavior.Tree Con(string name, Func<Platformer.Behavior.Blackboard, bool> handler)
+		{
+			var stack0 = new CallStack();
+			var stack_raw0 = stack0.Raw;
+			var func_id0 = Bridge.PushFunction(() =>
+			{
+				var result = handler(Platformer.Behavior.Blackboard.From(stack0.PopI64()));
+				stack0.Push(result);;
+			});
+			return Platformer.Behavior.Tree.From(Native.platformer_behavior_leaf_con(Bridge.FromString(name), func_id0, stack_raw0));
+		}
+		/// Creates a new action node that executes an action when executed.
+		/// This node will block the execution until the action finishes.
+		///
+		/// # Arguments
+		///
+		/// * `action_name` - The name of the action to execute.
+		///
+		/// # Returns
+		///
+		/// * `Leaf` - A new action node.
+		public static Platformer.Behavior.Tree Act(string action_name)
+		{
+			return Platformer.Behavior.Tree.From(Native.platformer_behavior_leaf_act(Bridge.FromString(action_name)));
+		}
+		/// Creates a new command node that executes a command when executed.
+		/// This node will return right after the action starts.
+		///
+		/// # Arguments
+		///
+		/// * `action_name` - The name of the command to execute.
+		///
+		/// # Returns
+		///
+		/// * `Leaf` - A new command node.
+		public static Platformer.Behavior.Tree Command(string action_name)
+		{
+			return Platformer.Behavior.Tree.From(Native.platformer_behavior_leaf_command(Bridge.FromString(action_name)));
+		}
+		/// Creates a new wait node that waits for a specified duration when executed.
+		///
+		/// # Arguments
+		///
+		/// * `duration` - The duration to wait in seconds.
+		///
+		/// # Returns
+		///
+		/// * A new wait node of type `Leaf`.
+		public static Platformer.Behavior.Tree Wait(double duration)
+		{
+			return Platformer.Behavior.Tree.From(Native.platformer_behavior_leaf_wait(duration));
+		}
+		/// Creates a new countdown node that executes a child node continuously until a timer runs out.
+		///
+		/// # Arguments
+		///
+		/// * `time` - The time limit in seconds.
+		/// * `node` - The child node to execute.
+		///
+		/// # Returns
+		///
+		/// * A new countdown node of type `Leaf`.
+		public static Platformer.Behavior.Tree Countdown(double time, Platformer.Behavior.Tree node)
+		{
+			return Platformer.Behavior.Tree.From(Native.platformer_behavior_leaf_countdown(time, node.Raw));
+		}
+		/// Creates a new timeout node that executes a child node until a timer runs out.
+		///
+		/// # Arguments
+		///
+		/// * `time` - The time limit in seconds.
+		/// * `node` - The child node to execute.
+		///
+		/// # Returns
+		///
+		/// * A new timeout node of type `Leaf`.
+		public static Platformer.Behavior.Tree Timeout(double time, Platformer.Behavior.Tree node)
+		{
+			return Platformer.Behavior.Tree.From(Native.platformer_behavior_leaf_timeout(time, node.Raw));
+		}
+		/// Creates a new repeat node that executes a child node a specified number of times.
+		///
+		/// # Arguments
+		///
+		/// * `times` - The number of times to execute the child node.
+		/// * `node` - The child node to execute.
+		///
+		/// # Returns
+		///
+		/// * A new repeat node of type `Leaf`.
+		public static Platformer.Behavior.Tree Repeat(int times, Platformer.Behavior.Tree node)
+		{
+			return Platformer.Behavior.Tree.From(Native.platformer_behavior_leaf_repeat(times, node.Raw));
+		}
+		/// Creates a new repeat node that executes a child node repeatedly.
+		///
+		/// # Arguments
+		///
+		/// * `node` - The child node to execute.
+		///
+		/// # Returns
+		///
+		/// * A new repeat node of type `Leaf`.
+		public static Platformer.Behavior.Tree RepeatForever(Platformer.Behavior.Tree node)
+		{
+			return Platformer.Behavior.Tree.From(Native.platformer_behavior_leaf_repeat_forever(node.Raw));
+		}
+		/// Creates a new retry node that executes a child node repeatedly until it succeeds or a maximum number of retries is reached.
+		///
+		/// # Arguments
+		///
+		/// * `times` - The maximum number of retries.
+		/// * `node` - The child node to execute.
+		///
+		/// # Returns
+		///
+		/// * A new retry node of type `Leaf`.
+		public static Platformer.Behavior.Tree Retry(int times, Platformer.Behavior.Tree node)
+		{
+			return Platformer.Behavior.Tree.From(Native.platformer_behavior_leaf_retry(times, node.Raw));
+		}
+		/// Creates a new retry node that executes a child node repeatedly until it succeeds.
+		///
+		/// # Arguments
+		///
+		/// * `node` - The child node to execute.
+		///
+		/// # Returns
+		///
+		/// * A new retry node of type `Leaf`.
+		public static Platformer.Behavior.Tree RetryUntilPass(Platformer.Behavior.Tree node)
+		{
+			return Platformer.Behavior.Tree.From(Native.platformer_behavior_leaf_retry_until_pass(node.Raw));
+		}
+	}
+} // namespace Dora.Platformer.Behavior
