@@ -35,7 +35,7 @@ namespace Dora
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
 		{
-			return (Native.node_type(), From);
+			return (Native.group_type(), From);
 		}
 		protected Group(long raw) : base(raw) { }
 		internal static new Group From(long raw)

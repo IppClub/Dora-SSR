@@ -33,7 +33,7 @@ namespace Dora
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
 		{
-			return (Native.node_type(), From);
+			return (Native.vgnode_type(), From);
 		}
 		protected VGNode(long raw) : base(raw) { }
 		internal static new VGNode From(long raw)
@@ -67,7 +67,7 @@ namespace Dora
 		/// 	Nvg::stroke();
 		/// });
 		/// ```
-		public void Render(Action render_func)
+		public void Render(System.Action render_func)
 		{
 			var func_id0 = Bridge.PushFunction(() =>
 			{

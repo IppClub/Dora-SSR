@@ -28,7 +28,7 @@ namespace Dora.Platformer
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
 		{
-			return (Native.node_type(), From);
+			return (Native.platformer_actionupdate_type(), From);
 		}
 		protected ActionUpdate(long raw) : base(raw) { }
 		internal static new ActionUpdate From(long raw)

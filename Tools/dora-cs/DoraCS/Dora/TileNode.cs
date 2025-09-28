@@ -51,7 +51,7 @@ namespace Dora
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
 		{
-			return (Native.node_type(), From);
+			return (Native.tilenode_type(), From);
 		}
 		protected TileNode(long raw) : base(raw) { }
 		internal static new TileNode From(long raw)

@@ -36,7 +36,7 @@ namespace Dora
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
 		{
-			return (Native.node_type(), From);
+			return (Native.buffer_type(), From);
 		}
 		protected Buffer(long raw) : base(raw) { }
 		internal static new Buffer From(long raw)

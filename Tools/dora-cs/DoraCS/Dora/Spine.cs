@@ -45,7 +45,7 @@ namespace Dora
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
 		{
-			return (Native.node_type(), From);
+			return (Native.spine_type(), From);
 		}
 		protected Spine(long raw) : base(raw) { }
 		internal static new Spine From(long raw)

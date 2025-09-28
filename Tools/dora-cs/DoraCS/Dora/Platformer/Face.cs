@@ -35,7 +35,7 @@ namespace Dora.Platformer
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
 		{
-			return (Native.node_type(), From);
+			return (Native.platformer_face_type(), From);
 		}
 		protected Face(long raw) : base(raw) { }
 		internal static new Face From(long raw)

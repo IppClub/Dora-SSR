@@ -31,7 +31,7 @@ namespace Dora
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
 		{
-			return (Native.node_type(), From);
+			return (Native.alignnode_type(), From);
 		}
 		protected AlignNode(long raw) : base(raw) { }
 		internal static new AlignNode From(long raw)

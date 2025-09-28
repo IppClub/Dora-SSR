@@ -33,7 +33,7 @@ namespace Dora
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
 		{
-			return (Native.node_type(), From);
+			return (Native.effeknode_type(), From);
 		}
 		protected EffekNode(long raw) : base(raw) { }
 		internal static new EffekNode From(long raw)

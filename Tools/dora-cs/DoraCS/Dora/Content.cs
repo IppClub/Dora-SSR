@@ -307,7 +307,7 @@ namespace Dora
 		/// # Returns
 		///
 		/// * `String` - The content of the loaded file.
-		public static void LoadAsync(string filename, Action<string> callback)
+		public static void LoadAsync(string filename, System.Action<string> callback)
 		{
 			var stack0 = new CallStack();
 			var stack_raw0 = stack0.Raw;
@@ -328,7 +328,7 @@ namespace Dora
 		/// # Returns
 		///
 		/// * `bool` - `true` if the file or folder was copied successfully, `false` otherwise.
-		public static void CopyAsync(string src_file, string target_file, Action<bool> callback)
+		public static void CopyAsync(string src_file, string target_file, System.Action<bool> callback)
 		{
 			var stack0 = new CallStack();
 			var stack_raw0 = stack0.Raw;
@@ -349,7 +349,7 @@ namespace Dora
 		/// # Returns
 		///
 		/// * `bool` - `true` if the content was saved successfully, `false` otherwise.
-		public static void SaveAsync(string filename, string content, Action<bool> callback)
+		public static void SaveAsync(string filename, string content, System.Action<bool> callback)
 		{
 			var stack0 = new CallStack();
 			var stack_raw0 = stack0.Raw;
@@ -371,7 +371,7 @@ namespace Dora
 		/// # Returns
 		///
 		/// * `bool` - `true` if the folder was compressed successfully, `false` otherwise.
-		public static void ZipAsync(string folder_path, string zip_file, Func<string, bool> filter, Action<bool> callback)
+		public static void ZipAsync(string folder_path, string zip_file, Func<string, bool> filter, System.Action<bool> callback)
 		{
 			var stack0 = new CallStack();
 			var stack_raw0 = stack0.Raw;
@@ -400,7 +400,7 @@ namespace Dora
 		/// # Returns
 		///
 		/// * `bool` - `true` if the folder was decompressed successfully, `false` otherwise.
-		public static void UnzipAsync(string zip_file, string folder_path, Func<string, bool> filter, Action<bool> callback)
+		public static void UnzipAsync(string zip_file, string folder_path, Func<string, bool> filter, System.Action<bool> callback)
 		{
 			var stack0 = new CallStack();
 			var stack_raw0 = stack0.Raw;

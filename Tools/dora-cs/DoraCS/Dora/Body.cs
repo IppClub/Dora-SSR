@@ -89,7 +89,7 @@ namespace Dora
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
 		{
-			return (Native.node_type(), From);
+			return (Native.body_type(), From);
 		}
 		protected Body(long raw) : base(raw) { }
 		internal static new Body From(long raw)

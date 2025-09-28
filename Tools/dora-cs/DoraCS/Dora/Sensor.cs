@@ -41,7 +41,7 @@ namespace Dora
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
 		{
-			return (Native.node_type(), From);
+			return (Native.sensor_type(), From);
 		}
 		protected Sensor(long raw) : base(raw) { }
 		internal static new Sensor From(long raw)

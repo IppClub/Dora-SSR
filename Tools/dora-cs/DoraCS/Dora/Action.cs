@@ -16,7 +16,7 @@ namespace Dora
 	internal static partial class Native
 	{
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int32_t nodeaction_type();
+		public static extern int32_t action_type();
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern float action_get_duration(int64_t self);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
@@ -45,20 +45,20 @@ namespace Dora
 namespace Dora
 {
 	/// Represents an action that can be run on a node.
-	public partial class NodeAction : Object
+	public partial class Action : Object
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
 		{
-			return (Native.node_type(), From);
+			return (Native.action_type(), From);
 		}
-		protected NodeAction(long raw) : base(raw) { }
-		internal static new NodeAction From(long raw)
+		protected Action(long raw) : base(raw) { }
+		internal static new Action From(long raw)
 		{
-			return new NodeAction(raw);
+			return new Action(raw);
 		}
-		internal static new NodeAction? FromOpt(long raw)
+		internal static new Action? FromOpt(long raw)
 		{
-			return raw == 0 ? null : new NodeAction(raw);
+			return raw == 0 ? null : new Action(raw);
 		}
 		/// the duration of the action.
 		public float Duration
@@ -117,6 +117,6 @@ namespace Dora
 		/// # Returns
 		///
 		/// * `Action` - A new Action object.
-		public NodeAction(ActionDef def) : this(Native.action_new(def.Raw)) { }
+		public Action(ActionDef def) : this(Native.action_new(def.Raw)) { }
 	}
 } // namespace Dora

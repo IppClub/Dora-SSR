@@ -29,7 +29,7 @@ namespace Dora
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
 		{
-			return (Native.node_type(), From);
+			return (Native.spriteeffect_type(), From);
 		}
 		protected SpriteEffect(long raw) : base(raw) { }
 		internal static new SpriteEffect From(long raw)

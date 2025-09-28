@@ -47,7 +47,7 @@ namespace Dora
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
 		{
-			return (Native.node_type(), From);
+			return (Native.drawnode_type(), From);
 		}
 		protected DrawNode(long raw) : base(raw) { }
 		internal static new DrawNode From(long raw)

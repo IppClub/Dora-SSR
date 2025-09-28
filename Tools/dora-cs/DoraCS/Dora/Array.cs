@@ -49,7 +49,7 @@ namespace Dora
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
 		{
-			return (Native.node_type(), From);
+			return (Native.array_type(), From);
 		}
 		protected Array(long raw) : base(raw) { }
 		internal static new Array From(long raw)

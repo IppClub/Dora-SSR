@@ -49,7 +49,7 @@ namespace Dora.Platformer
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
 		{
-			return (Native.node_type(), From);
+			return (Native.platformer_platformworld_type(), From);
 		}
 		protected PlatformWorld(long raw) : base(raw) { }
 		internal static new PlatformWorld From(long raw)

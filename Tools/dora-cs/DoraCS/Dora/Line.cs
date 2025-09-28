@@ -45,7 +45,7 @@ namespace Dora
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
 		{
-			return (Native.node_type(), From);
+			return (Native.line_type(), From);
 		}
 		protected Line(long raw) : base(raw) { }
 		internal static new Line From(long raw)

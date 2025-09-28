@@ -125,7 +125,7 @@ namespace Dora
 		/// # Returns
 		///
 		/// * `bool` - `true` if the transaction was successful, `false` otherwise.
-		public static void TransactionAsync(DBQuery query, Action<bool> callback)
+		public static void TransactionAsync(DBQuery query, System.Action<bool> callback)
 		{
 			var stack0 = new CallStack();
 			var stack_raw0 = stack0.Raw;
@@ -200,7 +200,7 @@ namespace Dora
 		/// * `params_` - Optional. A list of values to substitute into the SQL statement.
 		/// * `with_column` - Optional. Whether to include column names in the result. Default is `false`.
 		/// * `callback` - A callback function that is invoked when the query is executed, receiving the results as a list of rows.
-		public static void QueryWithParamsAsync(string sql, Array params_, bool with_columns, Action<DBRecord> callback)
+		public static void QueryWithParamsAsync(string sql, Array params_, bool with_columns, System.Action<DBRecord> callback)
 		{
 			var stack0 = new CallStack();
 			var stack_raw0 = stack0.Raw;
@@ -217,7 +217,7 @@ namespace Dora
 		/// * `table_name` - The name of the table to insert into.
 		/// * `values` - The values to insert into the table.
 		/// * `callback` - A callback function that is invoked when the insertion is executed, receiving the result of the insertion.
-		public static void InsertAsync(string table_name, DBParams values, Action<bool> callback)
+		public static void InsertAsync(string table_name, DBParams values, System.Action<bool> callback)
 		{
 			var stack0 = new CallStack();
 			var stack_raw0 = stack0.Raw;
@@ -234,7 +234,7 @@ namespace Dora
 		/// * `sql` - The SQL statement to execute.
 		/// * `values` - A list of values to substitute into the SQL statement.
 		/// * `callback` - A callback function that is invoked when the statement is executed, recieving the number of rows affected.
-		public static void ExecAsync(string sql, DBParams values, Action<long> callback)
+		public static void ExecAsync(string sql, DBParams values, System.Action<long> callback)
 		{
 			var stack0 = new CallStack();
 			var stack_raw0 = stack0.Raw;

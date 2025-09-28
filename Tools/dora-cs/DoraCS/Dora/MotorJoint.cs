@@ -39,7 +39,7 @@ namespace Dora
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
 		{
-			return (Native.node_type(), From);
+			return (Native.motorjoint_type(), From);
 		}
 		protected MotorJoint(long raw) : base(raw) { }
 		internal static new MotorJoint From(long raw)

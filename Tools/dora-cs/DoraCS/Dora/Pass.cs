@@ -39,7 +39,7 @@ namespace Dora
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
 		{
-			return (Native.node_type(), From);
+			return (Native.pass_type(), From);
 		}
 		protected Pass(long raw) : base(raw) { }
 		internal static new Pass From(long raw)

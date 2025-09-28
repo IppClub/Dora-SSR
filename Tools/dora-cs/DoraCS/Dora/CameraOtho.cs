@@ -33,7 +33,7 @@ namespace Dora
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
 		{
-			return (Native.node_type(), From);
+			return (Native.cameraotho_type(), From);
 		}
 		protected CameraOtho(long raw) : base(raw) { }
 		internal static new CameraOtho From(long raw)

@@ -43,7 +43,7 @@ namespace Dora
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
 		{
-			return (Native.node_type(), From);
+			return (Native.physicsworld_type(), From);
 		}
 		protected PhysicsWorld(long raw) : base(raw) { }
 		internal static new PhysicsWorld From(long raw)

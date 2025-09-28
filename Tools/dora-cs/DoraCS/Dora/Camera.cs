@@ -29,7 +29,7 @@ namespace Dora
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
 		{
-			return (Native.node_type(), From);
+			return (Native.camera_type(), From);
 		}
 		protected Camera(long raw) : base(raw) { }
 		internal static new Camera From(long raw)

@@ -23,15 +23,6 @@ cppTypes =
 callbackDefs =
 	string: "String"
 
-interfaces =
-	Object: true
-	Node: true
-	Joint: true
-	Camera: true
-	Playable: true
-	PhysicsWorld: true
-	Body: true
-
 basicTypes =
 	bool: -- passingType, convertFrom, convertTo, argType, returnType, fromRust, toRust, cReturn, cPass
 		* --[[1: passing type]] "int"
@@ -1142,7 +1133,7 @@ else
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
 		{
-			return (Native.node_type(), From);
+			return (Native.#{namespace}#{clsNewNameL}_type(), From);
 		}
 		protected #{clsNewName}(long raw) : base(raw) { }
 		internal static new #{clsNewName} From(long raw)
@@ -1227,8 +1218,6 @@ else
 						rustName = nameMap[dataTypeName] or dataTypeName
 						waName = rustName
 						rustType = getObjectType dataTypeName, rustName, false, isOptional
-						if not isReadonly and not interfaces[rustName]
-							objectUsed = nil
 					if rustType
 						[rt, cast, castFrom, rtTypeIn, rtTypeOut, rtCast, rtCastFrom] = rustType
 						cppType = cppTypes[rt]
@@ -1352,7 +1341,6 @@ else
 										argTypeName = argType\match "[^ \t*]+"
 										rustArgName = nameMap[argTypeName] or argTypeName
 										rustTypeA = getObjectType argTypeName, rustArgName
-										objectUsed = nil unless interfaces[rustArgName]
 									if rustTypeA
 										[rtA, castA, _, rtTypeInA, _, rtCastA] = rustTypeA
 										cppTypeA = cppTypes[rtA]
@@ -1442,7 +1430,7 @@ else
 										callbackType = if frtTypeOut
 											"Func#{callbackType == '<' and '<' or callbackType .. ', '}#{frtTypeOut}>"
 										else
-											"Action#{callbackType == '<' and '' or callbackType .. '>'}"
+											"System.Action#{callbackType == '<' and '' or callbackType .. '>'}"
 										if frCppType := cppTypes[frt]
 											callbackReturn = switch freturnType
 												when "Node"

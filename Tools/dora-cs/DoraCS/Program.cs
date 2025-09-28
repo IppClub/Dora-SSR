@@ -2,7 +2,6 @@
 
 App.Run(() =>
 {
-    App.Locale = "en";
     App.WinSize = new Size(640 * App.DevicePixelRatio, 480 * App.DevicePixelRatio);
     var node = new Sprite(Nvg.GetDoraSSR(1.0f));
     node.Tag = "Dora Node";
@@ -15,8 +14,12 @@ App.Run(() =>
     {
         node.X += 1;
         ImGui.ShowConsole();
-        Log.Print($"{dt}");
+        //Log.Print($"{dt}");
         return false;
+    });
+    node.OnTapped((touch) =>
+    {
+        Log.Print($"{touch.Location.X} x {touch.Location.Y}");
     });
     Log.Print($"Hello from C#! {node.Tag} {node.Color.G}");
 });

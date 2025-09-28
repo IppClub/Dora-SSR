@@ -104,7 +104,7 @@ namespace Dora.Platformer
 		/// * `available` - A function that takes a `Unit` object and a `UnitAction` object and returns a boolean value indicating whether the "UnitAction" is available to be performed.
 		/// * `create` - A function that takes a `Unit` object and a `UnitAction` object and returns a `WasmActionUpdate` object that contains the update function for the "UnitAction".
 		/// * `stop` - A function that takes a `Unit` object and a `UnitAction` object and stops the "UnitAction".
-		public static void Add(string name, int priority, float reaction, float recovery, bool queued, Func<Platformer.Unit, Platformer.UnitAction, bool> available, Func<Platformer.Unit, Platformer.UnitAction, Platformer.ActionUpdate> create, Action<Platformer.Unit, Platformer.UnitAction> stop)
+		public static void Add(string name, int priority, float reaction, float recovery, bool queued, Func<Platformer.Unit, Platformer.UnitAction, bool> available, Func<Platformer.Unit, Platformer.UnitAction, Platformer.ActionUpdate> create, System.Action<Platformer.Unit, Platformer.UnitAction> stop)
 		{
 			var stack0 = new CallStack();
 			var stack_raw0 = stack0.Raw;

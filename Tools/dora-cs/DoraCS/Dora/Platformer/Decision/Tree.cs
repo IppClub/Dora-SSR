@@ -43,7 +43,7 @@ namespace Dora.Platformer.Decision
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
 		{
-			return (Native.node_type(), From);
+			return (Native.platformer_decision_tree_type(), From);
 		}
 		protected Tree(long raw) : base(raw) { }
 		internal static new Tree From(long raw)
