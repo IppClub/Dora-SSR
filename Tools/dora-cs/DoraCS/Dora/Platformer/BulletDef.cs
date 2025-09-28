@@ -65,7 +65,7 @@ namespace Dora.Platformer
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
 		{
-			return (Native.node_type(), From);
+			return (Native.platformer_bulletdef_type(), From);
 		}
 		protected BulletDef(long raw) : base(raw) { }
 		internal static new BulletDef From(long raw)

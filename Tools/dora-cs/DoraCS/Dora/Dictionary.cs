@@ -35,7 +35,7 @@ namespace Dora
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
 		{
-			return (Native.node_type(), From);
+			return (Native.dictionary_type(), From);
 		}
 		protected Dictionary(long raw) : base(raw) { }
 		internal static new Dictionary From(long raw)

@@ -2,10 +2,14 @@
 using Microsoft.Win32.SafeHandles;
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
+using System.Xml.Linq;
+using static System.Collections.Specialized.BitVector32;
 
 namespace Dora
 {
@@ -575,10 +579,10 @@ namespace Dora
         private const int FUNC_FLAG = 0x02000000;
         private const int FUNC_MAX_INDEX = 0xFFFFFF;
 
-        private static readonly List<Action?> _map = new List<Action?>();
+        private static readonly List<System.Action?> _map = new List<System.Action?>();
         private static readonly Stack<int> _available = new Stack<int>();
 
-        public static int PushFunction(Action func)
+        public static int PushFunction(System.Action func)
         {
             if (func == null) throw new ArgumentNullException(nameof(func));
             if (_map.Count >= FUNC_MAX_INDEX && _available.Count == 0)
@@ -614,7 +618,7 @@ namespace Dora
             fn?.Invoke();
         };
 
-        private static readonly Action Dummy = () =>
+        private static readonly System.Action Dummy = () =>
         {
             throw new InvalidOperationException("the dummy function should not be called.");
         };
@@ -793,7 +797,63 @@ namespace Dora
         {
             var typeFuncs = new (int typeId, CreateFunc func)[]
             {
-                Node.GetTypeInfo()
+                Array.GetTypeInfo(),
+                Dictionary.GetTypeInfo(),
+                Entity.GetTypeInfo(),
+                Group.GetTypeInfo(),
+                Observer.GetTypeInfo(),
+                Scheduler.GetTypeInfo(),
+                Camera.GetTypeInfo(),
+                Camera2D.GetTypeInfo(),
+                CameraOtho.GetTypeInfo(),
+                Pass.GetTypeInfo(),
+                Effect.GetTypeInfo(),
+                SpriteEffect.GetTypeInfo(),
+                Grabber.GetTypeInfo(),
+                Action.GetTypeInfo(),
+                Node.GetTypeInfo(),
+                Texture2D.GetTypeInfo(),
+                Sprite.GetTypeInfo(),
+                Grid.GetTypeInfo(),
+                Touch.GetTypeInfo(),
+                Label.GetTypeInfo(),
+                RenderTarget.GetTypeInfo(),
+                ClipNode.GetTypeInfo(),
+                DrawNode.GetTypeInfo(),
+                Line.GetTypeInfo(),
+                Particle.GetTypeInfo(),
+                Playable.GetTypeInfo(),
+                Model.GetTypeInfo(),
+                Spine.GetTypeInfo(),
+                DragonBone.GetTypeInfo(),
+                AlignNode.GetTypeInfo(),
+                EffekNode.GetTypeInfo(),
+                TileNode.GetTypeInfo(),
+                PhysicsWorld.GetTypeInfo(),
+                FixtureDef.GetTypeInfo(),
+                BodyDef.GetTypeInfo(),
+                Sensor.GetTypeInfo(),
+                Body.GetTypeInfo(),
+                JointDef.GetTypeInfo(),
+                Joint.GetTypeInfo(),
+                MotorJoint.GetTypeInfo(),
+                MoveJoint.GetTypeInfo(),
+                SVG.GetTypeInfo(),
+                AudioBus.GetTypeInfo(),
+                AudioSource.GetTypeInfo(),
+                QLearner.GetTypeInfo(),
+                Platformer.ActionUpdate.GetTypeInfo(),
+                Platformer.Face.GetTypeInfo(),
+                Platformer.BulletDef.GetTypeInfo(),
+                Platformer.Bullet.GetTypeInfo(),
+                Platformer.Visual.GetTypeInfo(),
+                Platformer.Behavior.Tree.GetTypeInfo(),
+                Platformer.Decision.Tree.GetTypeInfo(),
+                Platformer.Unit.GetTypeInfo(),
+                Platformer.PlatformCamera.GetTypeInfo(),
+                Platformer.PlatformWorld.GetTypeInfo(),
+                Buffer.GetTypeInfo(),
+                VGNode.GetTypeInfo(),
             };
 
             var map = new List<CreateFunc?>();
@@ -892,7 +952,7 @@ namespace Dora
         public CallStack() : base(ownsHandle: true)
         {
             long raw = Native.call_stack_create();
-            if (raw == 0) throw new InvalidOperationException("call_stack_create failed");
+            if (raw == 0) throw new InvalidOperationException("failed to create CallStack");
             SetHandle((IntPtr)raw);
         }
 
@@ -1238,12 +1298,846 @@ namespace Dora
         }
     }
 
+    public enum KeyName
+    {
+        Return,
+        Escape,
+        BackSpace,
+        Tab,
+        Space,
+        Exclamation,
+        DoubleQuote,
+        Hash,
+        Percent,
+        Dollar,
+        Ampersand,
+        SingleQuote,
+        LeftParen,
+        RightParen,
+        Asterisk,
+        Plus,
+        Comma,
+        Minus,
+        Dot,
+        Slash,
+        Num1,
+        Num2,
+        Num3,
+        Num4,
+        Num5,
+        Num6,
+        Num7,
+        Num8,
+        Num9,
+        Num0,
+        Colon,
+        Semicolon,
+        LessThan,
+        Equal,
+        GreaterThan,
+        Question,
+        At,
+        LeftBracket,
+        Backslash,
+        RightBracket,
+        Caret,
+        Underscore,
+        Backtick,
+        A,
+        B,
+        C,
+        D,
+        E,
+        F,
+        G,
+        H,
+        I,
+        J,
+        K,
+        L,
+        M,
+        N,
+        O,
+        P,
+        Q,
+        R,
+        S,
+        T,
+        U,
+        V,
+        W,
+        X,
+        Y,
+        Z,
+        Delete,
+        CapsLock,
+        F1,
+        F2,
+        F3,
+        F4,
+        F5,
+        F6,
+        F7,
+        F8,
+        F9,
+        F10,
+        F11,
+        F12,
+        PrintScreen,
+        ScrollLock,
+        Pause,
+        Insert,
+        Home,
+        PageUp,
+        End,
+        PageDown,
+        Right,
+        Left,
+        Down,
+        Up,
+        Application,
+        LCtrl,
+        LShift,
+        LAlt,
+        LGui,
+        RCtrl,
+        RShift,
+        RAlt,
+        RGui,
+    }
+
+    public static class KeyNameExtension
+    {
+        public static string ToValue(this KeyName keyName) => keyName switch
+        {
+            KeyName.Return => "Return",
+            KeyName.Escape => "Escape",
+            KeyName.BackSpace => "BackSpace",
+            KeyName.Tab => "Tab",
+            KeyName.Space => "Space",
+            KeyName.Exclamation => "!",
+            KeyName.DoubleQuote => "\"",
+            KeyName.Hash => "#",
+            KeyName.Percent => "%",
+            KeyName.Dollar => "$",
+            KeyName.Ampersand => "&",
+            KeyName.SingleQuote => "'",
+            KeyName.LeftParen => "(",
+            KeyName.RightParen => ")",
+            KeyName.Asterisk => "*",
+            KeyName.Plus => "+",
+            KeyName.Comma => ",",
+            KeyName.Minus => "-",
+            KeyName.Dot => ".",
+            KeyName.Slash => "/",
+            KeyName.Num1 => "1",
+            KeyName.Num2 => "2",
+            KeyName.Num3 => "3",
+            KeyName.Num4 => "4",
+            KeyName.Num5 => "5",
+            KeyName.Num6 => "6",
+            KeyName.Num7 => "7",
+            KeyName.Num8 => "8",
+            KeyName.Num9 => "9",
+            KeyName.Num0 => "0",
+            KeyName.Colon => ":",
+            KeyName.Semicolon => ";",
+            KeyName.LessThan => "<",
+            KeyName.Equal => "=",
+            KeyName.GreaterThan => ">",
+            KeyName.Question => "?",
+            KeyName.At => "@",
+            KeyName.LeftBracket => "[",
+            KeyName.Backslash => "\\",
+            KeyName.RightBracket => "]",
+            KeyName.Caret => "^",
+            KeyName.Underscore => "_",
+            KeyName.Backtick => "`",
+            KeyName.A => "A",
+            KeyName.B => "B",
+            KeyName.C => "C",
+            KeyName.D => "D",
+            KeyName.E => "E",
+            KeyName.F => "F",
+            KeyName.G => "G",
+            KeyName.H => "H",
+            KeyName.I => "I",
+            KeyName.J => "J",
+            KeyName.K => "K",
+            KeyName.L => "L",
+            KeyName.M => "M",
+            KeyName.N => "N",
+            KeyName.O => "O",
+            KeyName.P => "P",
+            KeyName.Q => "Q",
+            KeyName.R => "R",
+            KeyName.S => "S",
+            KeyName.T => "T",
+            KeyName.U => "U",
+            KeyName.V => "V",
+            KeyName.W => "W",
+            KeyName.X => "X",
+            KeyName.Y => "Y",
+            KeyName.Z => "Z",
+            KeyName.Delete => "Delete",
+            KeyName.CapsLock => "CapsLock",
+            KeyName.F1 => "F1",
+            KeyName.F2 => "F2",
+            KeyName.F3 => "F3",
+            KeyName.F4 => "F4",
+            KeyName.F5 => "F5",
+            KeyName.F6 => "F6",
+            KeyName.F7 => "F7",
+            KeyName.F8 => "F8",
+            KeyName.F9 => "F9",
+            KeyName.F10 => "F10",
+            KeyName.F11 => "F11",
+            KeyName.F12 => "F12",
+            KeyName.PrintScreen => "PrintScreen",
+            KeyName.ScrollLock => "ScrollLock",
+            KeyName.Pause => "Pause",
+            KeyName.Insert => "Insert",
+            KeyName.Home => "Home",
+            KeyName.PageUp => "PageUp",
+            KeyName.End => "End",
+            KeyName.PageDown => "PageDown",
+            KeyName.Right => "Right",
+            KeyName.Left => "Left",
+            KeyName.Down => "Down",
+            KeyName.Up => "Up",
+            KeyName.Application => "Application",
+            KeyName.LCtrl => "LCtrl",
+            KeyName.LShift => "LShift",
+            KeyName.LAlt => "LAlt",
+            KeyName.LGui => "LGui",
+            KeyName.RCtrl => "RCtrl",
+            KeyName.RShift => "RShift",
+            KeyName.RAlt => "RAlt",
+            KeyName.RGui => "RGui",
+            _ => throw new ArgumentOutOfRangeException(nameof(keyName))
+        };
+        public static KeyName FromValue(this string keyName) => keyName switch
+        {
+            "Return" => KeyName.Return,
+            "Escape" => KeyName.Escape,
+            "BackSpace" => KeyName.BackSpace,
+            "Tab" => KeyName.Tab,
+            "Space" => KeyName.Space,
+            "!" => KeyName.Exclamation,
+            "\"" => KeyName.DoubleQuote,
+            "#" => KeyName.Hash,
+            "%" => KeyName.Percent,
+            "$" => KeyName.Dollar,
+            "&" => KeyName.Ampersand,
+            "'" => KeyName.SingleQuote,
+            "(" => KeyName.LeftParen,
+            ")" => KeyName.RightParen,
+            "*" => KeyName.Asterisk,
+            "+" => KeyName.Plus,
+            "," => KeyName.Comma,
+            "-" => KeyName.Minus,
+            "." => KeyName.Dot,
+            "/" => KeyName.Slash,
+            "1" => KeyName.Num1,
+            "2" => KeyName.Num2,
+            "3" => KeyName.Num3,
+            "4" => KeyName.Num4,
+            "5" => KeyName.Num5,
+            "6" => KeyName.Num6,
+            "7" => KeyName.Num7,
+            "8" => KeyName.Num8,
+            "9" => KeyName.Num9,
+            "0" => KeyName.Num0,
+            ":" => KeyName.Colon,
+            ";" => KeyName.Semicolon,
+            "<" => KeyName.LessThan,
+            "=" => KeyName.Equal,
+            ">" => KeyName.GreaterThan,
+            "?" => KeyName.Question,
+            "@" => KeyName.At,
+            "[" => KeyName.LeftBracket,
+            "\\" => KeyName.Backslash,
+            "]" => KeyName.RightBracket,
+            "^" => KeyName.Caret,
+            "_" => KeyName.Underscore,
+            "`" => KeyName.Backtick,
+            "A" => KeyName.A,
+            "B" => KeyName.B,
+            "C" => KeyName.C,
+            "D" => KeyName.D,
+            "E" => KeyName.E,
+            "F" => KeyName.F,
+            "G" => KeyName.G,
+            "H" => KeyName.H,
+            "I" => KeyName.I,
+            "J" => KeyName.J,
+            "K" => KeyName.K,
+            "L" => KeyName.L,
+            "M" => KeyName.M,
+            "N" => KeyName.N,
+            "O" => KeyName.O,
+            "P" => KeyName.P,
+            "Q" => KeyName.Q,
+            "R" => KeyName.R,
+            "S" => KeyName.S,
+            "T" => KeyName.T,
+            "U" => KeyName.U,
+            "V" => KeyName.V,
+            "W" => KeyName.W,
+            "X" => KeyName.X,
+            "Y" => KeyName.Y,
+            "Z" => KeyName.Z,
+            "Delete" => KeyName.Delete,
+            "CapsLock" => KeyName.CapsLock,
+            "F1" => KeyName.F1,
+            "F2" => KeyName.F2,
+            "F3" => KeyName.F3,
+            "F4" => KeyName.F4,
+            "F5" => KeyName.F5,
+            "F6" => KeyName.F6,
+            "F7" => KeyName.F7,
+            "F8" => KeyName.F8,
+            "F9" => KeyName.F9,
+            "F10" => KeyName.F10,
+            "F11" => KeyName.F11,
+            "F12" => KeyName.F12,
+            "PrintScreen" => KeyName.PrintScreen,
+            "ScrollLock" => KeyName.ScrollLock,
+            "Pause" => KeyName.Pause,
+            "Insert" => KeyName.Insert,
+            "Home" => KeyName.Home,
+            "PageUp" => KeyName.PageUp,
+            "End" => KeyName.End,
+            "PageDown" => KeyName.PageDown,
+            "Right" => KeyName.Right,
+            "Left" => KeyName.Left,
+            "Down" => KeyName.Down,
+            "Up" => KeyName.Up,
+            "Application" => KeyName.Application,
+            "LCtrl" => KeyName.LCtrl,
+            "LShift" => KeyName.LShift,
+            "LAlt" => KeyName.LAlt,
+            "LGui" => KeyName.LGui,
+            "RCtrl" => KeyName.RCtrl,
+            "RShift" => KeyName.RShift,
+            "RAlt" => KeyName.RAlt,
+            "RGui" => KeyName.RGui,
+            _ => throw new ArgumentOutOfRangeException(nameof(keyName))
+        };
+    }
+
+    public static partial class Keyboard
+    {
+        public static bool IsKeyDown(KeyName keyName)
+        {
+            return _IsKeyDown(KeyNameExtension.ToValue(keyName));
+        }
+        public static bool IsKeyUp(KeyName keyName)
+        {
+            return _IsKeyUp(KeyNameExtension.ToValue(keyName));
+        }
+        public static bool IsKeyPressed(KeyName keyName)
+        {
+            return _IsKeyPressed(KeyNameExtension.ToValue(keyName));
+        }
+    }
+
+    public enum AxisName
+    {
+        LeftX,
+        LeftY,
+        RightX,
+        RightY,
+        LeftTrigger,
+        RightTrigger,
+    }
+
+    public static class AxisNameExtension
+    {
+        public static string ToValue(this AxisName axisName) => axisName switch
+        {
+            AxisName.LeftX => "leftx",
+            AxisName.LeftY => "lefty",
+            AxisName.RightX => "rightx",
+            AxisName.RightY => "righty",
+            AxisName.LeftTrigger => "lefttrigger",
+            AxisName.RightTrigger => "righttrigger",
+            _ => throw new ArgumentOutOfRangeException(nameof(axisName))
+        };
+        public static AxisName FromValue(this string value) => value switch
+        {
+            "leftx" => AxisName.LeftX,
+            "lefty" => AxisName.LeftY,
+            "rightx" => AxisName.RightX,
+            "righty" => AxisName.RightY,
+            "lefttrigger" => AxisName.LeftTrigger,
+            "righttrigger" => AxisName.RightTrigger,
+            _ => throw new ArgumentOutOfRangeException(nameof(value))
+        };
+    }
+
+    public enum ButtonName
+    {
+        A,
+        B,
+        Back,
+        DPDown,
+        DPLeft,
+        DPRight,
+        DPUp,
+        LeftShoulder,
+        LeftStick,
+        RightShoulder,
+        RightStick,
+        Start,
+        X,
+        Y,
+    }
+
+    public static class ButtonNameExtension
+    {
+        public static string ToValue(this ButtonName buttonName) => buttonName switch
+        {
+            ButtonName.A => "a",
+            ButtonName.B => "b",
+            ButtonName.Back => "back",
+            ButtonName.DPDown => "dpdown",
+            ButtonName.DPLeft => "dpleft",
+            ButtonName.DPRight => "dpright",
+            ButtonName.DPUp => "dpup",
+            ButtonName.LeftShoulder => "leftshoulder",
+            ButtonName.LeftStick => "leftstick",
+            ButtonName.RightShoulder => "rightshoulder",
+            ButtonName.RightStick => "rightstick",
+            ButtonName.Start => "start",
+            ButtonName.X => "x",
+            ButtonName.Y => "y",
+            _ => throw new ArgumentOutOfRangeException(nameof(buttonName))
+        };
+        public static ButtonName FromValue(this string value) => value switch
+        {
+            "a" => ButtonName.A,
+            "b" => ButtonName.B,
+            "back" => ButtonName.Back,
+            "dpdown" => ButtonName.DPDown,
+            "dpleft" => ButtonName.DPLeft,
+            "dpright" => ButtonName.DPRight,
+            "dpup" => ButtonName.DPUp,
+            "leftshoulder" => ButtonName.LeftShoulder,
+            "leftstick" => ButtonName.LeftStick,
+            "rightshoulder" => ButtonName.RightShoulder,
+            "rightstick" => ButtonName.RightStick,
+            "start" => ButtonName.Start,
+            "x" => ButtonName.X,
+            "y" => ButtonName.Y,
+            _ => throw new ArgumentOutOfRangeException(nameof(value))
+        };
+    }
+
+    public static partial class Controller
+    {
+        public static bool IsButtonDown(int controllerId, ButtonName button)
+        {
+            return _IsButtonDown(controllerId, ButtonNameExtension.ToValue(button));
+        }
+        public static bool IsButtonUp(int controllerId, ButtonName button)
+        {
+            return _IsButtonUp(controllerId, ButtonNameExtension.ToValue(button));
+        }
+        public static bool IsButtonPressed(int controllerId, ButtonName button)
+        {
+            return _IsButtonPressed(controllerId, ButtonNameExtension.ToValue(button));
+        }
+        public static float GetAxis(int controllerId, AxisName axisName)
+        {
+            return _GetAxis(controllerId, AxisNameExtension.ToValue(axisName));
+        }
+    }
+
+    public partial class Node
+    {
+
+        public delegate void ActionEndHandler(Action action, Node node);
+        public void OnActionEnd(ActionEndHandler func)
+        {
+            this.Slot("ActionEnd", (stack) =>
+            {
+                var action = (Action)stack.PopObject();
+                var node = (Node)stack.PopObject();
+                func(action, node);
+            });
+        }
+
+        public delegate void TapFilterHandler(Touch touch);
+        public void OnTapFilter(TapFilterHandler func)
+        {
+            this.IsTouchEnabled = true;
+            this.Slot("TapFilter", (stack) =>
+            {
+                var touch = (Touch)stack.PopObject();
+                func(touch);
+            });
+        }
+
+        public delegate void TapBeganHandler(Touch touch);
+        public void OnTapBegan(TapBeganHandler func)
+        {
+            this.IsTouchEnabled = true;
+            this.Slot("TapBegan", (stack) =>
+            {
+                var touch = (Touch)stack.PopObject();
+                func(touch);
+            });
+        }
+
+        public delegate void TapEndedHandler(Touch touch);
+        public void OnTapEnded(TapEndedHandler func)
+        {
+            this.IsTouchEnabled = true;
+            this.Slot("TapEnded", (stack) =>
+            {
+                var touch = (Touch)stack.PopObject();
+                func(touch);
+            });
+        }
+
+        public delegate void TappedHandler(Touch touch);
+        public void OnTapped(TappedHandler func)
+        {
+            this.IsTouchEnabled = true;
+            this.Slot("Tapped", (stack) =>
+            {
+                var touch = (Touch)stack.PopObject();
+                func(touch);
+            });
+        }
+
+        public delegate void TapMovedHandler(Touch touch);
+        public void OnTapMoved(TapMovedHandler func)
+        {
+            this.IsTouchEnabled = true;
+            this.Slot("TapMoved", (stack) =>
+            {
+                var touch = (Touch)stack.PopObject();
+                func(touch);
+            });
+        }
+
+        public delegate void MouseWheelHandler(Vec2 delta);
+        public void OnMouseWheel(MouseWheelHandler func)
+        {
+            this.IsTouchEnabled = true;
+            this.Slot("MouseWheel", (stack) =>
+            {
+                var delta = stack.PopVec2();
+                func(delta);
+            });
+        }
+
+        public delegate void GestureHandler(Vec2 center, int numFingers, float deltaDist, float deltaAngle);
+        public void OnGesture(GestureHandler func)
+        {
+            this.IsTouchEnabled = true;
+            this.Slot("Gesture", (stack) =>
+            {
+                var center = stack.PopVec2();
+                var numFingers = stack.PopI32();
+                var deltaDist = stack.PopF32();
+                var deltaAngle = stack.PopF32();
+                func(center, numFingers, deltaDist, deltaAngle);
+            });
+        }
+
+        public delegate void EnterHandler();
+        public void OnEnter(EnterHandler func)
+        {
+            this.Slot("Enter", (stack) =>
+            {
+                func();
+            });
+        }
+
+        public delegate void ExitHandler();
+        public void OnExit(ExitHandler func)
+        {
+            this.Slot("Exit", (stack) =>
+            {
+                func();
+            });
+        }
+
+        public delegate void CleanupHandler();
+        public void OnCleanup(CleanupHandler func)
+        {
+            this.Slot("Cleanup", (stack) =>
+            {
+                func();
+            });
+        }
+
+        public delegate void KeyDownHandler(KeyName key);
+        public void OnKeyDown(KeyDownHandler func)
+        {
+            this.IsKeyboardEnabled = true;
+            this.Slot("KeyDown", (stack) =>
+            {
+                var key = KeyNameExtension.FromValue(stack.PopString());
+                func(key);
+            });
+        }
+
+        public delegate void KeyUpHandler(KeyName key);
+        public void OnKeyUp(KeyUpHandler func)
+        {
+            this.IsKeyboardEnabled = true;
+            this.Slot("KeyUp", (stack) =>
+            {
+                var key = KeyNameExtension.FromValue(stack.PopString());
+                func(key);
+            });
+        }
+
+        public delegate void KeyPressedHandler(KeyName key);
+        public void OnKeyPressed(KeyPressedHandler func)
+        {
+            this.IsKeyboardEnabled = true;
+            this.Slot("KeyPressed", (stack) =>
+            {
+                var key = KeyNameExtension.FromValue(stack.PopString());
+                func(key);
+            });
+        }
+
+        public delegate void AttachIMEHandler();
+        public void OnAttachIME(AttachIMEHandler func)
+        {
+            this.Slot("AttachIME", (stack) =>
+            {
+                func();
+            });
+        }
+
+        public delegate void DetachIMEHandler();
+        public void OnDetachIME(DetachIMEHandler func)
+        {
+            this.Slot("DetachIME", (stack) =>
+            {
+                func();
+            });
+        }
+
+        public delegate void TextInputHandler(string text);
+        public void OnTextInput(TextInputHandler func)
+        {
+            this.Slot("TextInput", (stack) =>
+            {
+                var text = stack.PopString();
+                func(text);
+            });
+        }
+
+        public delegate void TextEditingHandler(string text, int startPos);
+        public void OnTextEditing(TextEditingHandler func)
+        {
+            this.Slot("TextEditing", (stack) =>
+            {
+                var text = stack.PopString();
+                var startPos = stack.PopI32();
+                func(text, startPos);
+            });
+        }
+
+        public delegate void ButtonDownHandler(int controllerId, ButtonName button);
+        public void OnButtonDown(ButtonDownHandler func)
+        {
+            this.IsControllerEnabled = true;
+            this.Slot("ButtonDown", (stack) =>
+            {
+                var controllerId = stack.PopI32();
+                var button = ButtonNameExtension.FromValue(stack.PopString());
+                func(controllerId, button);
+            });
+        }
+
+        public delegate void ButtonUpHandler(int controllerId, ButtonName button);
+        public void OnButtonUp(ButtonUpHandler func)
+        {
+            this.IsControllerEnabled = true;
+            this.Slot("ButtonUp", (stack) =>
+            {
+                var controllerId = stack.PopI32();
+                var button = ButtonNameExtension.FromValue(stack.PopString());
+                func(controllerId, button);
+            });
+        }
+
+        public delegate void ButtonPressedHandler(int controllerId, ButtonName button);
+        public void OnButtonPressed(ButtonPressedHandler func)
+        {
+            this.IsControllerEnabled = true;
+            this.Slot("ButtonPressed", (stack) =>
+            {
+                var controllerId = stack.PopI32();
+                var button = ButtonNameExtension.FromValue(stack.PopString());
+                func(controllerId, button);
+            });
+        }
+
+        public delegate void AxisHandler(int controllerId, AxisName axis, float value);
+        public void OnAxis(AxisHandler func)
+        {
+            this.IsControllerEnabled = true;
+            this.Slot("Axis", (stack) =>
+            {
+                var controllerId = stack.PopI32();
+                var axis = AxisNameExtension.FromValue(stack.PopString());
+                var value = stack.PopF32();
+                func(controllerId, axis, value);
+            });
+        }
+
+        public delegate void AppEventHandler(string eventType);
+        public void OnAppEvent(AppEventHandler func)
+        {
+            this.Slot("AppEvent", (stack) =>
+            {
+                var eventType = stack.PopString();
+                func(eventType);
+            });
+        }
+
+        public delegate void AppChangeHandler(string settingName);
+        public void OnAppChange(AppChangeHandler func)
+        {
+            this.Slot("AppChange", (stack) =>
+            {
+                var settingName = stack.PopString();
+                func(settingName);
+            });
+        }
+
+        public delegate void AppWsHandler(string eventType, string msg);
+        public void OnAppWs(AppWsHandler func)
+        {
+            this.Slot("AppWs", (stack) =>
+            {
+                var eventType = stack.PopString();
+                var msg = stack.PopString();
+                func(eventType, msg);
+            });
+        }
+    }
+    public partial class Playable
+    {
+        public delegate void AnimationEndHandler(string animationName, Playable target);
+        public void OnAnimationEnd(AnimationEndHandler func)
+        {
+            this.Slot("AnimationEnd", (stack) =>
+            {
+                var animationName = stack.PopString();
+                var target = (Playable)stack.PopObject();
+                func(animationName, target);
+            });
+        }
+    }
+
+    public partial class Body
+    {
+        public delegate void BodyEnterHandler(Body other, int sensorTag);
+        public void OnBodyEnter(BodyEnterHandler func)
+        {
+            this.Slot("BodyEnter", (stack) =>
+            {
+                var other = (Body)stack.PopObject();
+                var sensorTag = stack.PopI32();
+                func(other, sensorTag);
+            });
+        }
+
+        public delegate void BodyLeaveHandler(Body other, int sensorTag);
+        public void OnBodyLeave(BodyLeaveHandler func)
+        {
+            this.Slot("BodyLeave", (stack) =>
+            {
+                var other = (Body)stack.PopObject();
+                var sensorTag = stack.PopI32();
+                func(other, sensorTag);
+            });
+        }
+
+        public delegate void ContactStartHandler(Body other, Vec2 point, Vec2 normal, bool enabled);
+        public void OnContactStart(ContactStartHandler func)
+        {
+            this.IsReceivingContact = true;
+            this.Slot("ContactStart", (stack) =>
+            {
+                var other = (Body)stack.PopObject();
+                var point = stack.PopVec2();
+                var normal = stack.PopVec2();
+                var enabled = stack.PopBool();
+                func(other, point, normal, enabled);
+            });
+        }
+
+        public delegate void ContactEndHandler(Body other, Vec2 point, Vec2 normal);
+        public void OnContactEnd(ContactEndHandler func)
+        {
+            this.IsReceivingContact = true;
+            this.Slot("ContactEnd", (stack) =>
+            {
+                var other = (Body)stack.PopObject();
+                var point = stack.PopVec2();
+                var normal = stack.PopVec2();
+                func(other, point, normal);
+            });
+        }
+    }
+
+    public partial class Particle
+    {
+        public delegate void FinishedHandler();
+        public void OnFinished(FinishedHandler func)
+        {
+            this.Slot("Finished", (stack) =>
+            {
+                func();
+            });
+        }
+    }
+
+    public partial class AlignNode
+    {
+        public delegate void AlignLayoutHandler(float width, float height);
+        public void OnAlignLayout(AlignLayoutHandler func)
+        {
+            this.Slot("AlignLayout", (stack) =>
+            {
+                var width = stack.PopF32();
+                var height = stack.PopF32();
+                func(width, height);
+            });
+        }
+    }
+
+    public partial class EffekNode
+    {
+        public delegate void EffekEndHandler(int handle);
+        public void OnEffekEnd(EffekEndHandler func)
+        {
+            this.Slot("EffekEnd", (stack) =>
+            {
+                var handle = stack.PopI32();
+                func(handle);
+            });
+        }
+    }
+
     public static partial class App
     {
         [DllImport("kernel32.dll", SetLastError = false)]
         static extern bool TerminateProcess(IntPtr hProcess, uint uExitCode);
 
-        public static void Run(Action main)
+        public static void Run(System.Action main)
         {
             GC.KeepAlive(Bridge.CallFunction);
             GC.KeepAlive(Bridge.DerefFuncion);

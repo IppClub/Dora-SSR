@@ -37,7 +37,7 @@ namespace Dora
 		///     * `name` - The name of the attribute used for splitting the data at the current node.
 		///     * `op` - The comparison operator used for splitting the data at the current node.
 		///     * `value` - The value used for splitting the data at the current node.
-		public static void BuildDecisionTreeAsync(string data, int max_depth, Action<double, string, string, string> tree_visitor)
+		public static void BuildDecisionTreeAsync(string data, int max_depth, System.Action<double, string, string, string> tree_visitor)
 		{
 			var stack0 = new CallStack();
 			var stack_raw0 = stack0.Raw;

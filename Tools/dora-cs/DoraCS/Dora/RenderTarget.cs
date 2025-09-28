@@ -49,7 +49,7 @@ namespace Dora
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
 		{
-			return (Native.node_type(), From);
+			return (Native.rendertarget_type(), From);
 		}
 		protected RenderTarget(long raw) : base(raw) { }
 		internal static new RenderTarget From(long raw)
@@ -123,7 +123,7 @@ namespace Dora
 		///
 		/// * `filename` - The name of the file to save the contents to.
 		/// * `handler` - The function to call when the save operation is complete. The function will be passed a boolean value indicating whether the save operation was successful.
-		public void SaveAsync(string filename, Action<bool> handler)
+		public void SaveAsync(string filename, System.Action<bool> handler)
 		{
 			var stack0 = new CallStack();
 			var stack_raw0 = stack0.Raw;

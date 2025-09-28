@@ -59,7 +59,7 @@ namespace Dora.Platformer
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
 		{
-			return (Native.node_type(), From);
+			return (Native.platformer_platformcamera_type(), From);
 		}
 		protected PlatformCamera(long raw) : base(raw) { }
 		internal static new PlatformCamera From(long raw)

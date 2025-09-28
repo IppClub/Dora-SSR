@@ -1032,7 +1032,7 @@ value class ActionDef {
 };
 
 /// Represents an action that can be run on a node.
-object class Action @ NodeAction
+object class Action
 {
 	/// the duration of the action.
 	readonly common float duration;

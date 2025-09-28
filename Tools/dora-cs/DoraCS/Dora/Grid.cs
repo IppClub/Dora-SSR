@@ -71,7 +71,7 @@ namespace Dora
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
 		{
-			return (Native.node_type(), From);
+			return (Native.grid_type(), From);
 		}
 		protected Grid(long raw) : base(raw) { }
 		internal static new Grid From(long raw)

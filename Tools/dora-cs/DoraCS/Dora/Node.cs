@@ -700,7 +700,7 @@ namespace Dora
 		/// # Returns
 		///
 		/// * `Vec2` - The converted point in world space.
-		public void ConvertToWindowSpace(Vec2 node_point, Action<Vec2> callback)
+		public void ConvertToWindowSpace(Vec2 node_point, System.Action<Vec2> callback)
 		{
 			var stack0 = new CallStack();
 			var stack_raw0 = stack0.Raw;
@@ -794,7 +794,7 @@ namespace Dora
 		/// # Returns
 		///
 		/// * `f32` - The duration of the newly running action in seconds.
-		public float RunAction(NodeAction action, bool looped)
+		public float RunAction(Action action, bool looped)
 		{
 			return Native.node_run_action(Raw, action.Raw, looped ? 1 : 0);
 		}
@@ -827,7 +827,7 @@ namespace Dora
 		/// # Returns
 		///
 		/// * `f32` - The duration of the newly running action in seconds.
-		public float Perform(NodeAction action, bool looped)
+		public float Perform(Action action, bool looped)
 		{
 			return Native.node_perform(Raw, action.Raw, looped ? 1 : 0);
 		}
@@ -836,7 +836,7 @@ namespace Dora
 		/// # Arguments
 		///
 		/// * `action` - The action to stop.
-		public void StopAction(NodeAction action)
+		public void StopAction(Action action)
 		{
 			Native.node_stop_action(Raw, action.Raw);
 		}
@@ -975,7 +975,7 @@ namespace Dora
 		///
 		/// * `event_name` - The name of the node event.
 		/// * `handler` - The handler function to associate with the node event.
-		public void Slot(string event_name, Action<CallStack> handler)
+		public void Slot(string event_name, System.Action<CallStack> handler)
 		{
 			var stack0 = new CallStack();
 			var stack_raw0 = stack0.Raw;
@@ -991,7 +991,7 @@ namespace Dora
 		///
 		/// * `event_name` - The name of the global event.
 		/// * `handler` - The handler function to associate with the event.
-		public void Gslot(string event_name, Action<CallStack> handler)
+		public void Gslot(string event_name, System.Action<CallStack> handler)
 		{
 			var stack0 = new CallStack();
 			var stack_raw0 = stack0.Raw;

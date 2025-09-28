@@ -58,7 +58,7 @@ namespace Dora
 		///
 		/// * `filenames` - The name of the file(s) to load. This can be a single string or a vector of strings.
 		/// * `handler` - A callback function that is invoked when the file is loaded.
-		public static void LoadAsync(string filename, Action<bool> handler)
+		public static void LoadAsync(string filename, System.Action<bool> handler)
 		{
 			var stack0 = new CallStack();
 			var stack_raw0 = stack0.Raw;

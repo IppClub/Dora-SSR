@@ -59,7 +59,7 @@ namespace Dora
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
 		{
-			return (Native.node_type(), From);
+			return (Native.jointdef_type(), From);
 		}
 		protected JointDef(long raw) : base(raw) { }
 		internal static new JointDef From(long raw)

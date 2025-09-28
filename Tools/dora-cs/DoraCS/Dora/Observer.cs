@@ -29,7 +29,7 @@ namespace Dora
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
 		{
-			return (Native.node_type(), From);
+			return (Native.observer_type(), From);
 		}
 		protected Observer(long raw) : base(raw) { }
 		internal static new Observer From(long raw)

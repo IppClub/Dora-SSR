@@ -63,7 +63,7 @@ namespace Dora
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
 		{
-			return (Native.node_type(), From);
+			return (Native.model_type(), From);
 		}
 		protected Model(long raw) : base(raw) { }
 		internal static new Model From(long raw)

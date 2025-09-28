@@ -107,7 +107,7 @@ namespace Dora
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
 		{
-			return (Native.node_type(), From);
+			return (Native.bodydef_type(), From);
 		}
 		protected BodyDef(long raw) : base(raw) { }
 		internal static new BodyDef From(long raw)

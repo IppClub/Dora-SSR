@@ -39,7 +39,7 @@ namespace Dora
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
 		{
-			return (Native.node_type(), From);
+			return (Native.qlearner_type(), From);
 		}
 		protected QLearner(long raw) : base(raw) { }
 		internal static new QLearner From(long raw)
@@ -79,7 +79,7 @@ namespace Dora
 		/// # Arguments
 		///
 		/// * `handler` - A function that is called for each state-action pair.
-		public void VisitMatrix(Action<long, int, double> handler)
+		public void VisitMatrix(System.Action<long, int, double> handler)
 		{
 			var stack0 = new CallStack();
 			var stack_raw0 = stack0.Raw;

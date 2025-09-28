@@ -33,7 +33,7 @@ namespace Dora
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
 		{
-			return (Native.node_type(), From);
+			return (Native.texture2d_type(), From);
 		}
 		protected Texture2D(long raw) : base(raw) { }
 		internal static new Texture2D From(long raw)

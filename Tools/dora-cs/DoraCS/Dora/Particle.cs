@@ -35,7 +35,7 @@ namespace Dora
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
 		{
-			return (Native.node_type(), From);
+			return (Native.particle_type(), From);
 		}
 		protected Particle(long raw) : base(raw) { }
 		internal static new Particle From(long raw)

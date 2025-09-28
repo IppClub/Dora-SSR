@@ -55,7 +55,7 @@ namespace Dora
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
 		{
-			return (Native.node_type(), From);
+			return (Native.audiobus_type(), From);
 		}
 		protected AudioBus(long raw) : base(raw) { }
 		internal static new AudioBus From(long raw)

@@ -35,7 +35,7 @@ namespace Dora
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
 		{
-			return (Native.node_type(), From);
+			return (Native.svg_type(), From);
 		}
 		protected SVG(long raw) : base(raw) { }
 		internal static new SVG From(long raw)

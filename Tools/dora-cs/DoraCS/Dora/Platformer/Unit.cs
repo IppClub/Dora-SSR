@@ -89,7 +89,7 @@ namespace Dora.Platformer
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
 		{
-			return (Native.node_type(), From);
+			return (Native.platformer_unit_type(), From);
 		}
 		protected Unit(long raw) : base(raw) { }
 		internal static new Unit From(long raw)
@@ -227,7 +227,7 @@ namespace Dora.Platformer
 		/// # Arguments
 		///
 		/// * `visitorFunc` - A function to call for each `UnitAction`.
-		public void EachAction(Action<Platformer.UnitAction> visitor_func)
+		public void EachAction(System.Action<Platformer.UnitAction> visitor_func)
 		{
 			var stack0 = new CallStack();
 			var stack_raw0 = stack0.Raw;

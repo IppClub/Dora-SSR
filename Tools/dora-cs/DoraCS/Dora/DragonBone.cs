@@ -43,7 +43,7 @@ namespace Dora
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
 		{
-			return (Native.node_type(), From);
+			return (Native.dragonbone_type(), From);
 		}
 		protected DragonBone(long raw) : base(raw) { }
 		internal static new DragonBone From(long raw)

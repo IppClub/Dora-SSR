@@ -58,7 +58,7 @@ namespace Dora
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
 		{
-			return (Native.node_type(), From);
+			return (Native.grabber_type(), From);
 		}
 		protected Grabber(long raw) : base(raw) { }
 		internal static new Grabber From(long raw)
