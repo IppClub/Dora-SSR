@@ -141,12 +141,12 @@ extern "C" {
 #endif // !DORA_NO_STATIC_CALL_BACK
 	typedef void (*DoraCallFunction)(int32_t func_id);
 	static DoraCallFunction doraCallFunction = nullptr;
-	void dora_register_call_function(DoraCallFunction callFunc) {
+	DORA_EXPORT void dora_register_call_function(DoraCallFunction callFunc) {
 		doraCallFunction = callFunc;
 	}
 	typedef void (*DoraDerefFunction)(int32_t func_id);
 	static DoraDerefFunction doraDerefFunction = nullptr;
-	void dora_register_deref_function(DoraDerefFunction derefFunc) {
+	DORA_EXPORT void dora_register_deref_function(DoraDerefFunction derefFunc) {
 		doraDerefFunction = derefFunc;
 	}
 } // extern "C"

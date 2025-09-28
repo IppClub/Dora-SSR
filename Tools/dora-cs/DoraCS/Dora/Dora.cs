@@ -1,6 +1,10 @@
-﻿using Microsoft.Win32.SafeHandles;
+﻿using Dora;
+using Microsoft.Win32.SafeHandles;
+using System;
 using System.Diagnostics;
+using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace Dora
@@ -11,9 +15,19 @@ namespace Dora
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate int MainFunc();
-
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
         public static extern int dora_run(MainFunc mainFunc);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate void CallFunctionPointer(int funcId);
+        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+        public static extern int dora_register_call_function(CallFunctionPointer mainFunc);
+
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        public delegate void DerefFuncionPointer(int funcId);
+        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+        public static extern int dora_register_deref_function(DerefFuncionPointer mainFunc);
 
         // ---------- String ----------
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
@@ -286,62 +300,46 @@ namespace Dora
             }
             return h;
         }
-        public static long FromArray(int[] arr)
+        public static long FromArray(IEnumerable<int> arr)
         {
-            int n = arr.Length;
-            long h = Native.buf_new_i32(n);
-            if (n > 0)
+            if (arr is ICollection<int> coll)
             {
-                unsafe { fixed (int* p = arr) Native.buf_write(h, (IntPtr)p); }
+                int len = coll.Count;
+                if (len == 0) return Native.buf_new_i32(0);
+
+                var handles = new int[len];
+                int i = 0;
+                foreach (var v in arr) handles[i++] = v;
+
+                long buf = Native.buf_new_i32(len);
+                unsafe { fixed (int* p = handles) Native.buf_write(buf, (IntPtr)p); }
+                return buf;
             }
-            return h;
+            else
+            {
+                var tmp = new List<int>();
+                foreach (var v in arr) tmp.Add(v);
+
+                int len = tmp.Count;
+                long h = Native.buf_new_i32(len);
+                if (len == 0) return h;
+
+                var handles = tmp.ToArray();
+                unsafe { fixed (int* p = handles) Native.buf_write(h, (IntPtr)p); }
+                return h;
+            }
         }
 
-        public static long FromArray(long[] arr)
+        public static long FromArray(IEnumerable<long> arr)
         {
-            int n = arr.Length;
-            long h = Native.buf_new_i64(n);
-            if (n > 0)
-            {
-                unsafe { fixed (long* p = arr) Native.buf_write(h, (IntPtr)p); }
-            }
-            return h;
-        }
-
-        public static long FromArray(float[] arr)
-        {
-            int n = arr.Length;
-            long h = Native.buf_new_f32(n);
-            if (n > 0)
-            {
-                unsafe { fixed (float* p = arr) Native.buf_write(h, (IntPtr)p); }
-            }
-            return h;
-        }
-
-        public static long FromArray(double[] arr)
-        {
-            int n = arr.Length;
-            long h = Native.buf_new_f64(n);
-            if (n > 0)
-            {
-                unsafe { fixed (double* p = arr) Native.buf_write(h, (IntPtr)p); }
-            }
-            return h;
-        }
-
-        public static long FromArray(IEnumerable<Vec2> s)
-        {
-            if (s == null) return Native.buf_new_i64(0);
-
-            if (s is ICollection<Vec2> coll)
+            if (arr is ICollection<long> coll)
             {
                 int len = coll.Count;
                 if (len == 0) return Native.buf_new_i64(0);
 
                 var handles = new long[len];
                 int i = 0;
-                foreach (var v in s) handles[i++] = v.IntoHandle();
+                foreach (var v in arr) handles[i++] = v;
 
                 long buf = Native.buf_new_i64(len);
                 unsafe { fixed (long* p = handles) Native.buf_write(buf, (IntPtr)p); }
@@ -350,7 +348,99 @@ namespace Dora
             else
             {
                 var tmp = new List<long>();
-                foreach (var v in s) tmp.Add(v.IntoHandle());
+                foreach (var v in arr) tmp.Add(v);
+
+                int len = tmp.Count;
+                long h = Native.buf_new_i64(len);
+                if (len == 0) return h;
+
+                var handles = tmp.ToArray();
+                unsafe { fixed (long* p = handles) Native.buf_write(h, (IntPtr)p); }
+                return h;
+            }
+        }
+
+        public static long FromArray(IEnumerable<float> arr)
+        {
+            if (arr is ICollection<float> coll)
+            {
+                int len = coll.Count;
+                if (len == 0) return Native.buf_new_f32(0);
+
+                var handles = new float[len];
+                int i = 0;
+                foreach (var v in arr) handles[i++] = v;
+
+                long buf = Native.buf_new_f32(len);
+                unsafe { fixed (float* p = handles) Native.buf_write(buf, (IntPtr)p); }
+                return buf;
+            }
+            else
+            {
+                var tmp = new List<float>();
+                foreach (var v in arr) tmp.Add(v);
+
+                int len = tmp.Count;
+                long h = Native.buf_new_f32(len);
+                if (len == 0) return h;
+
+                var handles = tmp.ToArray();
+                unsafe { fixed (float* p = handles) Native.buf_write(h, (IntPtr)p); }
+                return h;
+            }
+        }
+
+        public static long FromArray(IEnumerable<double> arr)
+        {
+            if (arr is ICollection<double> coll)
+            {
+                int len = coll.Count;
+                if (len == 0) return Native.buf_new_f64(0);
+
+                var handles = new double[len];
+                int i = 0;
+                foreach (var v in arr) handles[i++] = v;
+
+                long buf = Native.buf_new_f64(len);
+                unsafe { fixed (double* p = handles) Native.buf_write(buf, (IntPtr)p); }
+                return buf;
+            }
+            else
+            {
+                var tmp = new List<double>();
+                foreach (var v in arr) tmp.Add(v);
+
+                int len = tmp.Count;
+                long h = Native.buf_new_f64(len);
+                if (len == 0) return h;
+
+                var handles = tmp.ToArray();
+                unsafe { fixed (double* p = handles) Native.buf_write(h, (IntPtr)p); }
+                return h;
+            }
+        }
+
+        public static long FromArray(IEnumerable<Vec2> arr)
+        {
+            if (arr == null) throw new ArgumentNullException("arr");
+
+            if (arr is ICollection<Vec2> coll)
+            {
+                int len = coll.Count;
+                if (len == 0) return Native.buf_new_i64(0);
+
+                var handles = new long[len];
+                int i = 0;
+                foreach (var v in arr) handles[i++] = v.Raw;
+
+                long buf = Native.buf_new_i64(len);
+                unsafe { fixed (long* p = handles) Native.buf_write(buf, (IntPtr)p); }
+                return buf;
+            }
+            else
+            {
+                var tmp = new List<long>();
+                foreach (var v in arr) tmp.Add(v.Raw);
 
                 int len = tmp.Count;
                 long h = Native.buf_new_i64(len);
@@ -398,9 +488,9 @@ namespace Dora
             return arr;
         }
 
-        public static long FromStrings(IEnumerable<string> items)
+        public static long FromArray(IEnumerable<string> items)
         {
-            if (items == null) return Native.buf_new_i64(0);
+            if (items == null) throw new ArgumentNullException("s");
 
             var handles = new List<long>();
             foreach (var s in items) handles.Add(FromString(s));
@@ -410,12 +500,76 @@ namespace Dora
             return buf;
         }
 
-        public static List<string> ToStrings(long buf)
+        public static string[] ToStringArray(long buf)
         {
             long[] handles = ToI64Array(buf);
-            var list = new List<string>(handles.Length);
-            foreach (var h in handles) list.Add(ToString(h));
+            var list = new string[handles.Length];
+            for (int i = 0; i < handles.Length; i++) list[i] = ToString(handles[i]);
             return list;
+        }
+
+        public static Vec2[] ToVec2Array(long buf)
+        {
+            long[] handles = ToI64Array(buf);
+            var list = new Vec2[handles.Length];
+            for (int i = 0; i < handles.Length; i++) list[i] = Vec2.From(handles[i]);
+            return list;
+        }
+
+        public static VertexColor[] ToVertexColorArray(long buf)
+        {
+            long[] handles = ToI64Array(buf);
+            var list = new VertexColor[handles.Length];
+            for (int i = 0; i < handles.Length; i++) list[i] = VertexColor.From(handles[i]);
+            return list;
+        }
+
+        public static long FromArray(IEnumerable<VertexColor> items)
+        {
+            if (items == null) throw new ArgumentNullException("s");
+
+            var handles = new List<long>();
+            foreach (var s in items) handles.Add(s.Raw);
+            long[] raw = handles.ToArray();
+
+            long buf = FromArray(raw);
+            return buf;
+        }
+
+        public static long FromArray(IEnumerable<ActionDef> items)
+        {
+            if (items == null) throw new ArgumentNullException("s");
+
+            var handles = new List<long>();
+            foreach (var s in items) handles.Add(s.Raw);
+            long[] raw = handles.ToArray();
+
+            long buf = FromArray(raw);
+            return buf;
+        }
+
+        public static long FromArray(IEnumerable<Platformer.Behavior.Tree> items)
+        {
+            if (items == null) throw new ArgumentNullException("s");
+
+            var handles = new List<long>();
+            foreach (var s in items) handles.Add(s.Raw);
+            long[] raw = handles.ToArray();
+
+            long buf = FromArray(raw);
+            return buf;
+        }
+
+        public static long FromArray(IEnumerable<Platformer.Decision.Tree> items)
+        {
+            if (items == null) throw new ArgumentNullException("s");
+
+            var handles = new List<long>();
+            foreach (var s in items) handles.Add(s.Raw);
+            long[] raw = handles.ToArray();
+
+            long buf = FromArray(raw);
+            return buf;
         }
 
         private const int FUNC_FLAG = 0x02000000;
@@ -445,10 +599,7 @@ namespace Dora
             return index | FUNC_FLAG;
         }
 
-        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        public delegate void CallFunctionPointer(int funcId);
-
-        private static readonly CallFunctionPointer CallFunction = (int funcId) =>
+        internal static readonly Native.CallFunctionPointer CallFunction = (int funcId) =>
         {
             int index = funcId & 0x00FFFFFF;
             if (index < 0 || index >= _map.Count)
@@ -463,15 +614,12 @@ namespace Dora
             fn?.Invoke();
         };
 
-        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        public delegate void DerefFuncionPointer(int funcId);
-
         private static readonly Action Dummy = () =>
         {
             throw new InvalidOperationException("the dummy function should not be called.");
         };
 
-        private static readonly DerefFuncionPointer DerefFuncion = (int funcId) =>
+        internal static readonly Native.DerefFuncionPointer DerefFuncion = (int funcId) =>
         {
             int index = funcId & 0x00FFFFFF;
             if (index < 0 || index >= _map.Count)
@@ -502,32 +650,35 @@ namespace Dora
         public static Vec2 Zero => new Vec2(0f, 0f);
         public bool IsZero => X == 0f && Y == 0f;
 
-        internal static Vec2 FromHandle(long value)
+        public static Vec2 From(long value)
         {
             var lv = new Bridge.LightValue { value = value };
             return lv.vec2;
         }
-        internal long IntoHandle()
+        public long Raw
         {
-            var lv = new Bridge.LightValue { vec2 = this };
-            return lv.value;
+            get
+            {
+                var lv = new Bridge.LightValue { vec2 = this };
+                return lv.value;
+            }
         }
 
-        public float Distance(in Vec2 other) => Native.vec2_distance(IntoHandle(), other.IntoHandle());
-        public float DistanceSquared(in Vec2 other) => Native.vec2_distance_squared(IntoHandle(), other.IntoHandle());
-        public float Length() => Native.vec2_length(IntoHandle());
-        public float Angle() => Native.vec2_angle(IntoHandle());
-        public Vec2 Normalize() => FromHandle(Native.vec2_normalize(IntoHandle()));
-        public Vec2 Perp() => FromHandle(Native.vec2_perp(IntoHandle()));
-        public float Dot(in Vec2 other) => Native.vec2_dot(IntoHandle(), other.IntoHandle());
-        public Vec2 Clamp(in Vec2 from, in Vec2 to) => FromHandle(Native.vec2_clamp(IntoHandle(), from.IntoHandle(), to.IntoHandle()));
+        public float Distance(in Vec2 other) => Native.vec2_distance(Raw, other.Raw);
+        public float DistanceSquared(in Vec2 other) => Native.vec2_distance_squared(Raw, other.Raw);
+        public float Length() => Native.vec2_length(Raw);
+        public float Angle() => Native.vec2_angle(Raw);
+        public Vec2 Normalize() => From(Native.vec2_normalize(Raw));
+        public Vec2 Perp() => From(Native.vec2_perp(Raw));
+        public float Dot(in Vec2 other) => Native.vec2_dot(Raw, other.Raw);
+        public Vec2 Clamp(in Vec2 from, in Vec2 to) => From(Native.vec2_clamp(Raw, from.Raw, to.Raw));
 
-        public static Vec2 operator +(Vec2 a, Vec2 b) => FromHandle(Native.vec2_add(a.IntoHandle(), b.IntoHandle()));
-        public static Vec2 operator -(Vec2 a, Vec2 b) => FromHandle(Native.vec2_sub(a.IntoHandle(), b.IntoHandle()));
-        public static Vec2 operator *(Vec2 a, Vec2 b) => FromHandle(Native.vec2_mul(a.IntoHandle(), b.IntoHandle()));
-        public static Vec2 operator *(Vec2 a, float s) => FromHandle(Native.vec2_mul_float(a.IntoHandle(), s));
-        public static Vec2 operator *(float s, Vec2 a) => FromHandle(Native.vec2_mul_float(a.IntoHandle(), s));
-        public static Vec2 operator /(Vec2 a, float s) => FromHandle(Native.vec2_div(a.IntoHandle(), s));
+        public static Vec2 operator +(Vec2 a, Vec2 b) => From(Native.vec2_add(a.Raw, b.Raw));
+        public static Vec2 operator -(Vec2 a, Vec2 b) => From(Native.vec2_sub(a.Raw, b.Raw));
+        public static Vec2 operator *(Vec2 a, Vec2 b) => From(Native.vec2_mul(a.Raw, b.Raw));
+        public static Vec2 operator *(Vec2 a, float s) => From(Native.vec2_mul_float(a.Raw, s));
+        public static Vec2 operator *(float s, Vec2 a) => From(Native.vec2_mul_float(a.Raw, s));
+        public static Vec2 operator /(Vec2 a, float s) => From(Native.vec2_div(a.Raw, s));
 
         public bool Equals(Vec2 other) => X == other.X && Y == other.Y;
         public override bool Equals(object? obj) => obj is Vec2 v && Equals(v);
@@ -546,15 +697,18 @@ namespace Dora
         public static Size Zero => new Size(0f, 0f);
         public bool IsZero => Width == 0f && Height == 0f;
 
-        internal static Size FromHandle(long value)
+        internal static Size From(long value)
         {
             var lv = new Bridge.LightValue { value = value };
             return lv.size;
         }
-        internal long IntoHandle()
+        internal long Raw
         {
-            var lv = new Bridge.LightValue { size = this };
-            return lv.value;
+            get
+            {
+                var lv = new Bridge.LightValue { size = this };
+                return lv.value;
+            }
         }
 
         public bool Equals(Size other) => Width == other.Width && Height == other.Height;
@@ -608,25 +762,32 @@ namespace Dora
         public uint ToRgb() => ((uint)R << 16) | ((uint)G << 8) | B;
     }
 
-    public abstract class Object : SafeHandleZeroOrMinusOneIsInvalid
+    public delegate Object CreateFunc(long raw);
+
+    public abstract class Object
     {
-        protected Object(long raw) : base(ownsHandle: true)
+        public static (int typeId, CreateFunc func) GetTypeInfo()
+        {
+            throw new NotImplementedException();
+        }
+        protected Object(long raw)
         {
             if (raw == 0) throw new ArgumentNullException(nameof(raw));
-            SetHandle((nint)raw);
+            Raw = raw;
         }
 
-        protected override bool ReleaseHandle()
+        ~Object() {
+            Native.object_release(Raw);
+        }
+
+        public long Raw
         {
-            Native.object_release(handle.ToInt64());
-            return true;
+            get;
+            private set;
         }
 
-        public long Raw => handle.ToInt64();
-        public int Type => Native.object_get_type(handle.ToInt64());
-        public int Id => Native.object_get_id(handle.ToInt64());
-
-        public delegate Object CreateFunc(long raw);
+        public int TypeId => Native.object_get_type(Raw);
+        public int Idx => Native.object_get_id(Raw);
 
         private static readonly Lazy<List<CreateFunc?>> _objectMap = new Lazy<List<CreateFunc?>>(() =>
         {
@@ -652,7 +813,7 @@ namespace Dora
             return map;
         });
 
-        public static Object FromHandle(long raw)
+        internal static Object From(long raw)
         {
             int typeId = Native.object_get_type(raw);
             var map = _objectMap.Value;
@@ -667,6 +828,11 @@ namespace Dora
             }
             throw new InvalidOperationException($"failed to create cpp object from {raw}!");
         }
+
+        internal static Object? FromOpt(long raw)
+        {
+            return raw == 0 ? null : From(raw);
+        }
     }
 
     public sealed class Value : SafeHandleZeroOrMinusOneIsInvalid
@@ -680,10 +846,17 @@ namespace Dora
         protected override bool ReleaseHandle()
         {
             Native.value_release(handle.ToInt64());
+            SetHandleAsInvalid();
             return true;
         }
 
-        public long Raw => handle.ToInt64();
+        public long Raw
+        {
+            get {
+                if (IsInvalid) throw new InvalidOperationException();
+                return handle.ToInt64();
+            }
+        }
 
         public Value(long v): this((IntPtr)Native.value_create_i64(v)) { }
         public Value(int v): this((IntPtr)Native.value_create_i64(v)) { }
@@ -692,8 +865,8 @@ namespace Dora
         public Value(bool v): this((IntPtr)Native.value_create_bool(v ? 1 : 0)) { }
         public Value(string s): this((IntPtr)Native.value_create_str(Bridge.FromString(s))) { }
         public Value(Object o): this((IntPtr)Native.value_create_object(o.Raw)) { }
-        public Value(in Vec2 v): this(Native.value_create_vec2(v.IntoHandle())) { }
-        public Value(in Size s): this(Native.value_create_size(s.IntoHandle())) { }
+        public Value(in Vec2 v): this(Native.value_create_vec2(v.Raw)) { }
+        public Value(in Size s): this(Native.value_create_size(s.Raw)) { }
 
         public bool IsI64 => Native.value_is_i64(Raw) != 0;
         public bool IsF64 => Native.value_is_f64(Raw) != 0;
@@ -709,9 +882,9 @@ namespace Dora
         public double F64 => Native.value_into_f64(Raw);
         public bool Bool => Native.value_into_bool(Raw) != 0;
         public string String => Bridge.ToString(Native.value_into_str(Raw));
-        public Object Object => Object.FromHandle(Native.value_into_object(Raw));
-        public Vec2 Vec2 => Vec2.FromHandle(Native.value_into_vec2(Raw));
-        public Size Size => Size.FromHandle(Native.value_into_size(Raw));
+        public Object Object => Object.From(Native.value_into_object(Raw));
+        public Vec2 Vec2 => Vec2.From(Native.value_into_vec2(Raw));
+        public Size Size => Size.From(Native.value_into_size(Raw));
     }
 
     public sealed class CallStack : SafeHandleZeroOrMinusOneIsInvalid
@@ -720,16 +893,24 @@ namespace Dora
         {
             long raw = Native.call_stack_create();
             if (raw == 0) throw new InvalidOperationException("call_stack_create failed");
-            SetHandle((nint)raw);
+            SetHandle((IntPtr)raw);
         }
 
         protected override bool ReleaseHandle()
         {
             Native.call_stack_release(handle.ToInt64());
+            SetHandleAsInvalid();
             return true;
         }
 
-        public long Raw => handle.ToInt64();
+        public long Raw
+        {
+            get
+            {
+                if (IsInvalid) throw new InvalidOperationException();
+                return handle.ToInt64();
+            }
+        }
 
         public void Push(int v) => Native.call_stack_push_i64(Raw, v);
         public void Push(long v) => Native.call_stack_push_i64(Raw, v);
@@ -738,37 +919,114 @@ namespace Dora
         public void Push(bool v) => Native.call_stack_push_bool(Raw, v ? 1 : 0);
         public void Push(string s) => Native.call_stack_push_str(Raw, Bridge.FromString(s));
         public void Push(Object o) => Native.call_stack_push_object(Raw, o.Raw);
-        public void Push(in Vec2 v) => Native.call_stack_push_vec2(Raw, v.IntoHandle());
-        public void Push(in Size s) => Native.call_stack_push_size(Raw, s.IntoHandle());
+        public void Push(in Vec2 v) => Native.call_stack_push_vec2(Raw, v.Raw);
+        public void Push(in Size s) => Native.call_stack_push_size(Raw, s.Raw);
 
-        public int? PopI32() => Native.call_stack_front_i64(Raw) != 0 ? (int?)Native.call_stack_pop_i64(Raw) : null;
-        public long? PopI64() => Native.call_stack_front_i64(Raw) != 0 ? (long?)Native.call_stack_pop_i64(Raw) : null;
-        public float? PopF32() => Native.call_stack_front_f64(Raw) != 0 ? (float?)Native.call_stack_pop_f64(Raw) : null;
-        public double? PopF64() => Native.call_stack_front_f64(Raw) != 0 ? (double?)Native.call_stack_pop_f64(Raw) : null;
-        public bool? PopBool() => Native.call_stack_front_bool(Raw) != 0 ? (Native.call_stack_pop_bool(Raw) != 0) : null;
-        public string? PopString()
+        public int? PopOptI32() => Native.call_stack_front_i64(Raw) != 0 ? (int?)Native.call_stack_pop_i64(Raw) : null;
+        public long? PopOptI64() => Native.call_stack_front_i64(Raw) != 0 ? (long?)Native.call_stack_pop_i64(Raw) : null;
+        public float? PopOptF32() => Native.call_stack_front_f64(Raw) != 0 ? (float?)Native.call_stack_pop_f64(Raw) : null;
+        public double? PopOptF64() => Native.call_stack_front_f64(Raw) != 0 ? (double?)Native.call_stack_pop_f64(Raw) : null;
+        public bool? PopOptBool() => Native.call_stack_front_bool(Raw) != 0 ? (Native.call_stack_pop_bool(Raw) != 0) : null;
+        public string? PopOptString()
         {
             if (Native.call_stack_front_str(Raw) == 0) return null;
             long sh = Native.call_stack_pop_str(Raw);
             return Bridge.ToString(sh);
         }
-        public Vec2? PopVec2()
+        public Vec2? PopOptVec2()
         {
             if (Native.call_stack_front_vec2(Raw) == 0) return null;
             long bits = Native.call_stack_pop_vec2(Raw);
-            return Vec2.FromHandle(bits);
+            return Vec2.From(bits);
         }
-        public Size? PopSize()
+        public Size? PopOptSize()
         {
             if (Native.call_stack_front_size(Raw) == 0) return null;
             long bits = Native.call_stack_pop_size(Raw);
-            return Size.FromHandle(bits);
+            return Size.From(bits);
         }
-        public Object? PopObject()
+        public Object? PopOptObject()
         {
             if (Native.call_stack_front_object(Raw) == 0) return null;
             long oh = Native.call_stack_pop_object(Raw);
-            return Object.FromHandle(oh);
+            return Object.From(oh);
+        }
+
+        public int PopI32()
+        {
+            if (Native.call_stack_front_i64(Raw) == 0)
+            {
+                throw new ArithmeticException("failed to pop i32 from stack");
+            }
+            return (int)Native.call_stack_pop_i64(Raw);
+        }
+        public long PopI64()
+        {
+            if (Native.call_stack_front_i64(Raw) == 0)
+            {
+                throw new ArithmeticException("failed to pop i64 from stack");
+            }
+            return Native.call_stack_pop_i64(Raw);
+        }
+        public float PopF32()
+        {
+            if (Native.call_stack_front_f64(Raw) == 0)
+            {
+                throw new ArithmeticException("failed to pop f32 from stack");
+            }
+            return (float)Native.call_stack_pop_f64(Raw);
+        }
+        public double PopF64()
+        {
+            if (Native.call_stack_front_f64(Raw) == 0)
+            {
+                throw new ArithmeticException("failed to pop f64 from stack");
+            }
+            return Native.call_stack_pop_f64(Raw);
+        }
+        public bool PopBool()
+        {
+            if (Native.call_stack_front_bool(Raw) == 0)
+            {
+                throw new ArithmeticException("failed to pop f64 from stack");
+            }
+            return Native.call_stack_pop_bool(Raw) != 0;
+        }
+        public string PopString()
+        {
+            if (Native.call_stack_front_str(Raw) == 0)
+            {
+                throw new ArithmeticException("failed to pop string from stack");
+            }
+            long sh = Native.call_stack_pop_str(Raw);
+            return Bridge.ToString(sh);
+        }
+        public Vec2 PopVec2()
+        {
+            if (Native.call_stack_front_vec2(Raw) == 0)
+            {
+                throw new ArithmeticException("failed to pop Vec2 from stack");
+            }
+            long bits = Native.call_stack_pop_vec2(Raw);
+            return Vec2.From(bits);
+        }
+        public Size PopSize()
+        {
+            if (Native.call_stack_front_size(Raw) == 0)
+            {
+                throw new ArithmeticException("failed to pop Size from stack");
+            }
+            long bits = Native.call_stack_pop_size(Raw);
+            return Size.From(bits);
+        }
+        public Object PopObject()
+        {
+            if (Native.call_stack_front_object(Raw) == 0)
+            {
+                throw new ArithmeticException("failed to pop Object from stack");
+            }
+            long oh = Native.call_stack_pop_object(Raw);
+            return Object.From(oh);
         }
         public bool Pop() => Native.call_stack_pop(Raw) != 0;
 
@@ -822,6 +1080,164 @@ namespace Dora
         }
     }
 
+    /* BlendFunc */
+
+    public enum BFunc
+    {
+        Zero = 0x0000000000001000,
+        One = 0x0000000000002000,
+        SrcColor = 0x0000000000003000,
+        InvSrcColor = 0x0000000000004000,
+        SrcAlpha = 0x0000000000005000,
+        InvSrcAlpha = 0x0000000000006000,
+        DstAlpha = 0x0000000000007000,
+        InvDstAlpha = 0x0000000000008000,
+        DstColor = 0x0000000000009000,
+        InvDstColor = 0x000000000000a000
+    }
+
+    public class BlendFunc
+    {
+        private long value = 0;
+        internal long Raw => value;
+        internal BlendFunc From(long value)
+        {
+            return new BlendFunc(value);
+        }
+        private BlendFunc(long raw)
+        {
+            value = raw;
+        }
+        public BlendFunc(BFunc src, BFunc dst)
+        {
+            value = (long)src << 8 | (long)dst << 4;
+        }
+        public BlendFunc(BFunc src_rgb, BFunc dst_rgb, BFunc src_alpha, BFunc dst_alpha)
+        {
+            value = ((long)src_rgb << 8 | (long)dst_rgb << 4 | (long)src_alpha << 4 | (long)dst_alpha << 4) << 8;
+        }
+    }
+
+    public enum BodyType
+    {
+        Dynamic = 0,
+        Static = 1,
+        Kinematic = 2,
+    }
+
+    public enum EaseType
+    {
+        Linear = 0,
+        InQuad = 1,
+        OutQuad = 2,
+        InOutQuad = 3,
+        InCubic = 4,
+        OutCubic = 5,
+        InOutCubic = 6,
+        InQuart = 7,
+        OutQuart = 8,
+        InOutQuart = 9,
+        InQuint = 10,
+        OutQuint = 11,
+        InOutQuint = 12,
+        InSine = 13,
+        OutSine = 14,
+        InOutSine = 15,
+        InExpo = 16,
+        OutExpo = 17,
+        InOutExpo = 18,
+        InCirc = 19,
+        OutCirc = 20,
+        InOutCirc = 21,
+        InElastic = 22,
+        OutElastic = 23,
+        InOutElastic = 24,
+        InBack = 25,
+        OutBack = 26,
+        InOutBack = 27,
+        InBounce = 28,
+        OutBounce = 29,
+        InOutBounce = 30,
+        OutInQuad = 31,
+        OutInCubic = 32,
+        OutInQuart = 33,
+        OutInQuint = 34,
+        OutInSine = 35,
+        OutInExpo = 36,
+        OutInCirc = 37,
+        OutInElastic = 38,
+        OutInBack = 39,
+        OutInBounce = 40,
+    }
+
+    public enum Property
+    {
+        X = 0,
+        Y = 1,
+        Z = 2,
+        Angle = 3,
+        AngleX = 4,
+        AngleY = 5,
+        ScaleX = 6,
+        ScaleY = 7,
+        SkewX = 8,
+        SkewY = 9,
+        Width = 10,
+        Height = 11,
+        AnchorX = 12,
+        AnchorY = 13,
+        Opacity = 14,
+    }
+
+    public enum TextureWrap
+    {
+        None = 0,
+        Mirror = 1,
+        Clamp = 2,
+        Border = 3,
+    }
+    public enum TextureFilter
+    {
+        None = 0,
+        Point = 1,
+        Anisotropic = 2,
+    }
+
+    public enum TextAlign
+    {
+        Left = 0,
+        Center = 1,
+        Right = 2,
+    }
+
+    public enum AttenuationModel
+    {
+        NoAttenuation = 0,
+        InverseDistance = 1,
+        LinearDistance = 2,
+        ExponentialDistance = 3,
+    }
+
+    public enum EntityEvent
+    {
+        Add = 1,
+        Change = 2,
+        AddOrChange = 3,
+        Remove = 4,
+    }
+
+    namespace Platformer
+    {
+        public enum Relation
+        {
+            Unknown = 0,
+            Friend = 1 << 0,
+            Neutral = 1 << 1,
+            Enemy = 1 << 2,
+            Any = (Friend | Neutral | Enemy),
+        }
+    }
+
     public static partial class App
     {
         [DllImport("kernel32.dll", SetLastError = false)]
@@ -829,6 +1245,10 @@ namespace Dora
 
         public static void Run(Action main)
         {
+            GC.KeepAlive(Bridge.CallFunction);
+            GC.KeepAlive(Bridge.DerefFuncion);
+            Native.dora_register_call_function(Bridge.CallFunction);
+            Native.dora_register_deref_function(Bridge.DerefFuncion);
             Native.MainFunc mainFunc = () =>
             {
                 main();
