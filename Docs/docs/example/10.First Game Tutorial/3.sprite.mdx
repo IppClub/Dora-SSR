@@ -94,7 +94,7 @@ Here, we create `playerAnimNode` and add it to `playerNode`. Then, we call `play
 You can use the same `playAnimation` function to add different animations to enemies. For example, if enemies have three types: flying, walking, and swimming, you can randomly select an animation type:
 
 ```ts title="Example Code"
-const enemyNode = Node().addTo(Director.currentScene);
+const enemyNode = Node().addTo(Director.entry);
 const enemyAnimNode = Sprite().addTo(enemyNode);
 const animations = ['enemyFlyingAlt_', 'enemyWalking_', 'enemySwimming_'];
 playAnimation(enemyAnimNode, animations[math.random(0, animations.length - 1)]);

@@ -1,15 +1,8 @@
-﻿using Dora;
-using Microsoft.Win32.SafeHandles;
-using System;
+﻿using Microsoft.Win32.SafeHandles;
 using System.Diagnostics;
-using System.IO;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
-using System.Security.Cryptography;
 using System.Text;
-using System.Text.RegularExpressions;
-using System.Xml.Linq;
-using static System.Collections.Specialized.BitVector32;
 
 namespace Dora
 {
@@ -269,11 +262,7 @@ namespace Dora
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
         internal static extern long director_get_scheduler();
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-        internal static extern long director_get_wasm_scheduler();
-        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
         internal static extern long director_get_post_scheduler();
-        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-        internal static extern long director_get_post_wasm_scheduler();
     }
 
     public static class Bridge
@@ -895,28 +884,25 @@ namespace Dora
         }
     }
 
-    public sealed class Value : SafeHandleZeroOrMinusOneIsInvalid
+    public sealed class Value
     {
-        private Value(IntPtr raw) : base(ownsHandle: true)
+        private Value(IntPtr raw)
         {
             if (raw == 0) throw new ArgumentNullException(nameof(raw));
-            SetHandle(raw);
+            Raw = raw;
         }
 
-        protected override bool ReleaseHandle()
+        ~Value()
         {
-            Native.value_release(handle.ToInt64());
-            SetHandleAsInvalid();
-            return true;
+            Native.value_release(Raw);
         }
 
-        public long Raw
+        public static Value From(long raw)
         {
-            get {
-                if (IsInvalid) throw new InvalidOperationException();
-                return handle.ToInt64();
-            }
+            return new Value(raw);
         }
+
+        public long Raw { get; private set; }
 
         public Value(long v): this((IntPtr)Native.value_create_i64(v)) { }
         public Value(int v): this((IntPtr)Native.value_create_i64(v)) { }
@@ -2129,6 +2115,341 @@ namespace Dora
                 var handle = stack.PopI32();
                 func(handle);
             });
+        }
+    }
+
+    public static partial class Content
+    {
+        public static string? Load(string filename)
+        {
+            var result = Native.content_load(Bridge.FromString(filename));
+            return result == 0 ? null : Bridge.ToString(result);
+        }
+    }
+
+    public partial class Array
+    {
+        /// Sets the item at the given index.
+        ///
+        /// # Arguments
+        ///
+        /// * `index` - The index to set, should be 0 based.
+        /// * `item` - The new item value.
+        public void Set(int index, Value value)
+        {
+            if (index < 0 || index >= Count)
+            {
+                throw new IndexOutOfRangeException($"Index out of range: {index}");
+            }
+            Native.array_set(Raw, index, value.Raw);
+        }
+        /// Gets the item at the given index.
+        ///
+        /// # Arguments
+        ///
+        /// * `index` - The index to get, should be 0 based.
+        ///
+        /// # Returns
+        ///
+        /// * `Option<Value>` - The item value.
+        public Value? Get(int index)
+        {
+            var raw = Native.array_get(Raw, index);
+            return raw == 0 ? null : Value.From(raw);
+        }
+        /// The first item in the array.
+        public Value? First()
+        {
+            var raw = Native.array_first(Raw);
+            return raw == 0 ? null : Value.From(raw);
+        }
+        /// The last item in the array.
+        public Value? Last()
+        {
+            var raw = Native.array_last(Raw);
+            return raw == 0 ? null : Value.From(raw);
+        }
+        /// A random item from the array.
+        public Value? RandomObject()
+        {
+            var raw = Native.array_random_object(Raw);
+            return raw == 0 ? null : Value.From(raw);
+        }
+        /// Adds an item to the end of the array.
+        ///
+        /// # Arguments
+        ///
+        /// * `item` - The item to add.
+        public void Add(Value value)
+        {
+            Native.array_add(Raw, value.Raw);
+        }
+        /// Inserts an item at the given index, shifting other items to the right.
+        ///
+        /// # Arguments
+        ///
+        /// * `index` - The index to insert at.
+        /// * `item` - The item to insert.
+        public void Insert(int index, Value value)
+        {
+            if (index < 0 || index >= Count)
+            {
+                throw new IndexOutOfRangeException($"Index out of range: {index}");
+            }
+            Native.array_insert(Raw, index, value.Raw);
+        }
+        /// Checks whether the array contains a given item.
+        ///
+        /// # Arguments
+        ///
+        /// * `item` - The item to check.
+        ///
+        /// # Returns
+        ///
+        /// * `bool` - True if the item is found, false otherwise.
+        public bool Contains(Value value)
+        {
+            return Native.array_contains(Raw, value.Raw) != 0;
+        }
+        /// Gets the index of a given item.
+        ///
+        /// # Arguments
+        ///
+        /// * `item` - The item to search for.
+        ///
+        /// # Returns
+        ///
+        /// * `i32` - The index of the item, or -1 if it is not found.
+        public int Index(Value value)
+        {
+            return Native.array_index(Raw, value.Raw);
+        }
+        /// Removes and returns the last item in the array.
+        ///
+        /// # Returns
+        ///
+        /// * `Option<Value>` - The last item removed from the array.
+        public Value? RemoveLast()
+        {
+            var raw = Native.array_remove_last(Raw);
+            return raw == 0 ? null : Value.From(raw);
+        }
+        /// Removes the first occurrence of a given item from the array without preserving order.
+        ///
+        /// # Arguments
+        ///
+        /// * `item` - The item to remove.
+        ///
+        /// # Returns
+        ///
+        /// * `bool` - True if the item was found and removed, false otherwise.
+        public bool FastRemove(Value value)
+        {
+            return Native.array_fast_remove(Raw, value.Raw) != 0;
+        }
+    }
+
+    public partial class Dictionary
+    {
+        /// A method for setting items in the dictionary.
+        ///
+        /// # Arguments
+        ///
+        /// * `key` - The key of the item to set.
+        /// * `item` - The Item to set for the given key, set to None to delete this key-value pair.
+        public void Set(string key, Value value)
+        {
+            Native.dictionary_set(Raw, Bridge.FromString(key), value.Raw);
+        }
+        /// A method for accessing items in the dictionary.
+        ///
+        /// # Arguments
+        ///
+        /// * `key` - The key of the item to retrieve.
+        ///
+        /// # Returns
+        ///
+        /// * `Option<Item>` - The Item with the given key, or None if it does not exist.
+        public Value? Get(string key)
+        {
+            var raw = Native.dictionary_get(Raw, Bridge.FromString(key));
+            return raw == 0 ? null : Value.From(raw);
+        }
+    }
+
+    public partial class Entity
+    {
+        /// Sets a property of the entity to a given value.
+        /// This function will trigger events for Observer objects.
+        ///
+        /// # Arguments
+        ///
+        /// * `key` - The name of the property to set.
+        /// * `item` - The value to set the property to.
+        public void Set(string key, Value value)
+        {
+            Native.entity_set(Raw, Bridge.FromString(key), value.Raw);
+        }
+        /// Retrieves the value of a property of the entity.
+        ///
+        /// # Arguments
+        ///
+        /// * `key` - The name of the property to retrieve the value of.
+        ///
+        /// # Returns
+        ///
+        /// * `Option<Value>` - The value of the specified property.
+        public Value? Get(string key)
+        {
+            var raw = Native.entity_get(Raw, Bridge.FromString(key));
+            return raw == 0 ? null : Value.From(raw);
+        }
+        /// Retrieves the previous value of a property of the entity.
+        /// The old values are values before the last change of the component values of the Entity.
+        ///
+        /// # Arguments
+        ///
+        /// * `key` - The name of the property to retrieve the previous value of.
+        ///
+        /// # Returns
+        ///
+        /// * `Option<Value>` - The previous value of the specified property.
+        public Value? GetOld(string key)
+        {
+            var raw = Native.entity_get_old(Raw, Bridge.FromString(key));
+            return raw == 0 ? null : Value.From(raw);
+        }
+    }
+
+    public partial class Group
+    {
+        /// Watches the group for changes to its entities, calling a function whenever an entity is added or changed.
+        ///
+        /// # Arguments
+        ///
+        /// * `callback` - The function to call when an entity is added or changed. Returns true to stop watching.
+        ///
+        /// # Returns
+        ///
+        /// * `Group` - The same group, for method chaining.
+        public void Watch(Func<CallStack, bool> callback)
+        {
+            var stack = new CallStack();
+            var stack_raw = stack.Raw;
+            var func_id = Bridge.PushFunction(() =>
+            {
+                var result = callback(stack);
+                stack.Push(result);
+            });
+            Native.group_watch(Raw, func_id, stack_raw);
+        }
+        /// Calls a function for each entity in the group.
+        ///
+        /// # Arguments
+        ///
+        /// * `visitor` - The function to call for each entity. Returning true inside the function will stop iteration.
+        ///
+        /// # Returns
+        ///
+        /// * `bool` - Returns false if all entities were processed, true if the iteration was interrupted.
+        public bool Each(Func<Entity, bool> callback)
+        {
+            var entity = this.Find(callback);
+            return entity != null;
+        }
+    }
+
+    public partial class Observer
+    {
+	    /// Watches the components changes to entities that match the observer's component filter.
+	    ///
+	    /// # Arguments
+	    ///
+	    /// * `callback` - The function to call when a change occurs. Returns true to stop watching.
+	    ///
+	    /// # Returns
+	    ///
+	    /// * `Observer` - The same observer, for method chaining.
+        public void Watch(Func<CallStack, bool> callback)
+        {
+            var stack = new CallStack();
+            var stack_raw = stack.Raw;
+            var func_id = Bridge.PushFunction(() =>
+            {
+                var result = callback(stack);
+                stack.Push(result);
+            });
+            Native.observer_watch(Raw, func_id, stack_raw);
+        }
+    }
+
+    public static partial class Director
+    {
+        /// Gets the scheduler for the director.
+        /// The scheduler is used for scheduling tasks to run for the main game logic.
+        ///
+        /// # Returns
+        ///
+        /// * `Scheduler` - The scheduler for the director.
+        public static Scheduler GetScheduler()
+        {
+            return Scheduler.From(Native.director_get_scheduler());
+        }
+        /// Gets the post scheduler for the director.
+        /// The post scheduler is used for scheduling tasks that should run after the main scheduler has finished.
+        ///
+        /// # Returns
+        ///
+        /// * `Scheduler` - The post scheduler for the director.
+        public static Scheduler GetPostScheduler()
+        {
+            return Scheduler.From(Native.director_get_post_scheduler());
+        }
+    }
+
+    namespace Platformer.Behavior
+    {
+        public partial class Blackboard
+        {
+            /// Sets a value in the blackboard.
+            ///
+            /// # Arguments
+            /// * `key` - The key associated with the value.
+            /// * `value` - The value to be set.
+            ///
+            /// # Example
+            ///
+            /// ```
+            /// blackboard.set("score", 100);
+            /// ```
+            public void Set(string key, Value value)
+            {
+                Native.blackboard_set(Raw, Bridge.FromString(key), value.Raw);
+            }
+            /// Retrieves a value from the blackboard.
+            ///
+            /// # Arguments
+            ///
+            /// * `key` - The key associated with the value.
+            ///
+            /// # Returns
+            ///
+            /// An `Option` containing the value associated with the key, or `None` if the key does not exist.
+            ///
+            /// # Example
+            ///
+            /// ```
+            /// if let Some(score) = blackboard.get("score") {
+            ///     println!("Score: {}", score.into_i32().unwrap());
+            /// } else {
+            ///     println!("Score not found.");
+            /// }
+            /// ```
+            public Value? Get(string key)
+            {
+                var raw = Native.blackboard_get(Raw, Bridge.FromString(key));
+                return raw == 0 ? null : Value.From(raw);
+            }
         }
     }
 

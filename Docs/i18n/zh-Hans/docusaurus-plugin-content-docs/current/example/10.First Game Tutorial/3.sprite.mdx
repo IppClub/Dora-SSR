@@ -94,7 +94,7 @@ playAnimation(playerAnimNode, 'playerGrey_walk'); // 播放动画
 &emsp;&emsp;我们可以通过相同的 `playAnimation` 函数为敌人添加不同的动画。假设敌人类型有三种：飞行、行走、游泳。我们可以随机为敌人选择一个动画类型：
 
 ```ts title="示例代码"
-const enemyNode = Node().addTo(Director.currentScene);
+const enemyNode = Node().addTo(Director.entry);
 const enemyAnimNode = Sprite().addTo(enemyNode);
 const animations = ['enemyFlyingAlt_', 'enemyWalking_', 'enemySwimming_'];
 playAnimation(enemyAnimNode, animations[math.random(0, animations.length - 1)]);
