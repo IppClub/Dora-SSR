@@ -190,7 +190,7 @@ namespace Dora
 		/// * `density` - The density of the polygon.
 		/// * `friction` - The friction of the polygon. Should be between 0 and 1.0.
 		/// * `restitution` - The restitution of the polygon. Should be between 0 and 1.
-		public static FixtureDef PolygonWithCenter(Vec2 center, float width, float height, float angle, float density, float friction, float restitution)
+		public static FixtureDef Polygon(Vec2 center, float width, float height, float angle, float density, float friction, float restitution)
 		{
 			return FixtureDef.From(Native.bodydef_polygon_with_center(center.Raw, width, height, angle, density, friction, restitution));
 		}
@@ -215,7 +215,7 @@ namespace Dora
 		/// * `density` - The density of the polygon.
 		/// * `friction` - The friction of the polygon. Should be between 0 and 1.0.
 		/// * `restitution` - The restitution of the polygon. Should be between 0 and 1.0.
-		public static FixtureDef PolygonWithVertices(IEnumerable<Vec2> vertices, float density, float friction, float restitution)
+		public static FixtureDef Polygon(IEnumerable<Vec2> vertices, float density, float friction, float restitution)
 		{
 			return FixtureDef.From(Native.bodydef_polygon_with_vertices(Bridge.FromArray(vertices), density, friction, restitution));
 		}
@@ -230,7 +230,7 @@ namespace Dora
 		/// * `density` - The density of the polygon.
 		/// * `friction` - The friction of the polygon. Should be between 0 and 1.0.
 		/// * `restitution` - The restitution of the polygon. Should be between 0 and 1.0.
-		public void AttachPolygonWithCenter(Vec2 center, float width, float height, float angle, float density, float friction, float restitution)
+		public void AttachPolygon(Vec2 center, float width, float height, float angle, float density, float friction, float restitution)
 		{
 			Native.bodydef_attach_polygon_with_center(Raw, center.Raw, width, height, angle, density, friction, restitution);
 		}
@@ -255,7 +255,7 @@ namespace Dora
 		/// * `density` - The density of the polygon.
 		/// * `friction` - The friction of the polygon. Should be between 0 and 1.0.
 		/// * `restitution` - The restitution of the polygon. Should be between 0 and 1.0.
-		public void AttachPolygonWithVertices(IEnumerable<Vec2> vertices, float density, float friction, float restitution)
+		public void AttachPolygon(IEnumerable<Vec2> vertices, float density, float friction, float restitution)
 		{
 			Native.bodydef_attach_polygon_with_vertices(Raw, Bridge.FromArray(vertices), density, friction, restitution);
 		}
@@ -300,7 +300,7 @@ namespace Dora
 		/// # Returns
 		///
 		/// * `FixtureDef` - The resulting fixture definition.
-		public static FixtureDef DiskWithCenter(Vec2 center, float radius, float density, float friction, float restitution)
+		public static FixtureDef Disk(Vec2 center, float radius, float density, float friction, float restitution)
 		{
 			return FixtureDef.From(Native.bodydef_disk_with_center(center.Raw, radius, density, friction, restitution));
 		}
@@ -329,7 +329,7 @@ namespace Dora
 		/// * `density` - The density of the disk.
 		/// * `friction` - The friction of the disk. Should be between 0.0 and 1.0.
 		/// * `restitution` - The restitution of the disk. Should be between 0.0 and 1.0.
-		public void AttachDiskWithCenter(Vec2 center, float radius, float density, float friction, float restitution)
+		public void AttachDisk(Vec2 center, float radius, float density, float friction, float restitution)
 		{
 			Native.bodydef_attach_disk_with_center(Raw, center.Raw, radius, density, friction, restitution);
 		}
@@ -391,7 +391,7 @@ namespace Dora
 		/// * `width` - The width of the polygon.
 		/// * `height` - The height of the polygon.
 		/// * `angle` - Optional. The angle of the polygon.
-		public void AttachPolygonSensorWithCenter(int tag, Vec2 center, float width, float height, float angle)
+		public void AttachPolygonSensor(int tag, Vec2 center, float width, float height, float angle)
 		{
 			Native.bodydef_attach_polygon_sensor_with_center(Raw, tag, center.Raw, width, height, angle);
 		}
@@ -401,7 +401,7 @@ namespace Dora
 		///
 		/// * `tag` - An integer tag for the sensor.
 		/// * `vertices` - A vector containing the vertices of the polygon.
-		public void AttachPolygonSensorWithVertices(int tag, IEnumerable<Vec2> vertices)
+		public void AttachPolygonSensor(int tag, IEnumerable<Vec2> vertices)
 		{
 			Native.bodydef_attach_polygon_sensor_with_vertices(Raw, tag, Bridge.FromArray(vertices));
 		}
@@ -412,7 +412,7 @@ namespace Dora
 		/// * `tag` - An integer tag for the sensor.
 		/// * `center` - The center of the disk.
 		/// * `radius` - The radius of the disk.
-		public void AttachDiskSensorWithCenter(int tag, Vec2 center, float radius)
+		public void AttachDiskSensor(int tag, Vec2 center, float radius)
 		{
 			Native.bodydef_attach_disk_sensor_with_center(Raw, tag, center.Raw, radius);
 		}

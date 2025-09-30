@@ -110,7 +110,7 @@ func LabelFrom(raw: i64) => *Label {
 	}
 	object := Label{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	result := &object
 	return result
 }
@@ -309,7 +309,7 @@ func NewLabel(font_name: string, font_size: i32, sdf: bool) => *Label {
 	}
 	object := Label{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	return &object
 }
 

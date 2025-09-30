@@ -71,7 +71,7 @@ func ModelFrom(raw: i64) => *Model {
 	}
 	object := Model{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	result := &object
 	return result
 }
@@ -209,7 +209,7 @@ func NewModel(filename: string) => *Model {
 	}
 	object := Model{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	return &object
 }
 

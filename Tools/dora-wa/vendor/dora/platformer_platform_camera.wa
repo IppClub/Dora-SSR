@@ -65,7 +65,7 @@ func PlatformerPlatformCameraFrom(raw: i64) => *PlatformerPlatformCamera {
 	}
 	object := PlatformerPlatformCamera{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	result := &object
 	return result
 }
@@ -177,6 +177,6 @@ func NewPlatformerPlatformCamera(name: string) => PlatformerPlatformCamera {
 	raw := platformer_platformcamera_new(ToDoraString(name))
 	object := PlatformerPlatformCamera{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	return object
 }

@@ -50,7 +50,7 @@ func PlatformerPlatformWorldFrom(raw: i64) => *PlatformerPlatformWorld {
 	}
 	object := PlatformerPlatformWorld{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	result := &object
 	return result
 }
@@ -172,6 +172,6 @@ func NewPlatformerPlatformWorld() => PlatformerPlatformWorld {
 	raw := platformer_platformworld_new()
 	object := PlatformerPlatformWorld{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	return object
 }

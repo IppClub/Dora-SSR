@@ -180,7 +180,7 @@ namespace Dora
 		/// the theme color for Dora SSR.
 		public static Color ThemeColor
 		{
-			set => Native.application_set_theme_color((int)value.ToArgb());
+			set => Native.application_set_theme_color((int)value.ToARGB());
 			get => new Color((uint)Native.application_get_theme_color());
 		}
 		/// the random number seed.

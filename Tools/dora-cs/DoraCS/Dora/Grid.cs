@@ -162,7 +162,7 @@ namespace Dora
 		/// * `color` - The new color of the vertex, represented by a Color object.
 		public void SetColor(int x, int y, Color color)
 		{
-			Native.grid_set_color(Raw, x, y, (int)color.ToArgb());
+			Native.grid_set_color(Raw, x, y, (int)color.ToARGB());
 		}
 		/// Gets the color of a vertex in the grid.
 		///

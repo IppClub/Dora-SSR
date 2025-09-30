@@ -65,7 +65,7 @@ func PlayableFrom(raw: i64) => *Playable {
 	}
 	object := Playable{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	result := &object
 	return result
 }
@@ -212,6 +212,6 @@ func NewPlayable(filename: string) => *Playable {
 	}
 	object := Playable{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	return &object
 }

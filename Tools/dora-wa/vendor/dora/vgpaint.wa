@@ -23,7 +23,7 @@ func VGPaintFrom(raw: i64) => *VGPaint {
 	}
 	item := VGPaint{}
 	item.raw = &raw
-	setFinalizer(item.raw, v_g_paint_finalizer)
+	SetFinalizer(item.raw, v_g_paint_finalizer)
 	result := &item
 	return result
 }

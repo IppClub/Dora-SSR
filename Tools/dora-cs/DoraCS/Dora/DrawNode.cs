@@ -79,7 +79,7 @@ namespace Dora
 		/// * `color` - The color of the dot.
 		public void DrawDot(Vec2 pos, float radius, Color color)
 		{
-			Native.drawnode_draw_dot(Raw, pos.Raw, radius, (int)color.ToArgb());
+			Native.drawnode_draw_dot(Raw, pos.Raw, radius, (int)color.ToARGB());
 		}
 		/// Draws a line segment between two points with a specified radius and color.
 		///
@@ -91,7 +91,7 @@ namespace Dora
 		/// * `color` - The color of the line.
 		public void DrawSegment(Vec2 from, Vec2 to, float radius, Color color)
 		{
-			Native.drawnode_draw_segment(Raw, from.Raw, to.Raw, radius, (int)color.ToArgb());
+			Native.drawnode_draw_segment(Raw, from.Raw, to.Raw, radius, (int)color.ToARGB());
 		}
 		/// Draws a polygon defined by a list of vertices with a specified fill color and border.
 		///
@@ -103,7 +103,7 @@ namespace Dora
 		/// * `border_color` - The color of the border.
 		public void DrawPolygon(IEnumerable<Vec2> verts, Color fill_color, float border_width, Color border_color)
 		{
-			Native.drawnode_draw_polygon(Raw, Bridge.FromArray(verts), (int)fill_color.ToArgb(), border_width, (int)border_color.ToArgb());
+			Native.drawnode_draw_polygon(Raw, Bridge.FromArray(verts), (int)fill_color.ToARGB(), border_width, (int)border_color.ToARGB());
 		}
 		/// Draws a set of vertices as triangles, each vertex with its own color.
 		///

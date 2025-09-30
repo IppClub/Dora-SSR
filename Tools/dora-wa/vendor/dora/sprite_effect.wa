@@ -20,7 +20,7 @@ func SpriteEffectFrom(raw: i64) => *SpriteEffect {
 	}
 	object := SpriteEffect{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	result := &object
 	return result
 }
@@ -51,6 +51,6 @@ func NewSpriteEffect(vert_shader: string, frag_shader: string) => SpriteEffect {
 	raw := spriteeffect_new(ToDoraString(vert_shader), ToDoraString(frag_shader))
 	object := SpriteEffect{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	return object
 }

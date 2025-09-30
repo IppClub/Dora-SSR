@@ -44,7 +44,7 @@ namespace Dora
 		{
 			return new DBQuery(raw);
 		}
-		public void AddWithParams(string sql, DBParams params_)
+		public void Add(string sql, DBParams params_)
 		{
 			Native.dbquery_add_with_params(Raw, Bridge.FromString(sql), params_.Raw);
 		}

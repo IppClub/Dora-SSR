@@ -29,7 +29,7 @@ func DictionaryFrom(raw: i64) => *Dictionary {
 	}
 	object := Dictionary{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	result := &object
 	return result
 }
@@ -64,6 +64,6 @@ func NewDictionary() => Dictionary {
 	raw := dictionary_new()
 	object := Dictionary{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	return object
 }

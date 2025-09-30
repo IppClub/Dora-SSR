@@ -20,7 +20,7 @@ func PlatformerActionUpdateFrom(raw: i64) => *PlatformerActionUpdate {
 	}
 	object := PlatformerActionUpdate{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	result := &object
 	return result
 }
@@ -49,6 +49,6 @@ func NewPlatformerActionUpdate(update: func(owner: PlatformerUnit, action: Platf
 	raw := platformer_wasmactionupdate_new(func_id0, *stack0.raw)
 	object := PlatformerActionUpdate{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	return object
 }

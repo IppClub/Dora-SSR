@@ -86,7 +86,7 @@ func AudioSourceFrom(raw: i64) => *AudioSource {
 	}
 	object := AudioSource{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	result := &object
 	return result
 }
@@ -291,7 +291,7 @@ func NewAudioSource(filename: string, auto_remove: bool) => *AudioSource {
 	}
 	object := AudioSource{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	return &object
 }
 
@@ -313,6 +313,6 @@ func NewAudioSourceWithBus(filename: string, auto_remove: bool, bus: AudioBus) =
 	}
 	object := AudioSource{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	return &object
 }

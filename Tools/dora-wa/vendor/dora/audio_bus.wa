@@ -59,7 +59,7 @@ func AudioBusFrom(raw: i64) => *AudioBus {
 	}
 	object := AudioBus{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	result := &object
 	return result
 }
@@ -250,6 +250,6 @@ func NewAudioBus() => AudioBus {
 	raw := audiobus_new()
 	object := AudioBus{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	return object
 }

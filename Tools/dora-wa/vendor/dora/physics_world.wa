@@ -41,7 +41,7 @@ func PhysicsWorldFrom(raw: i64) => *PhysicsWorld {
 	}
 	object := PhysicsWorld{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	result := &object
 	return result
 }
@@ -166,6 +166,6 @@ func NewPhysicsWorld() => PhysicsWorld {
 	raw := physicsworld_new()
 	object := PhysicsWorld{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	return object
 }

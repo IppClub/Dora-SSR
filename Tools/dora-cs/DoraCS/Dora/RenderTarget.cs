@@ -103,7 +103,7 @@ namespace Dora
 		/// * `stencil` - Optional. The value used to clear the stencil buffer of the render target. Default is 0.
 		public void RenderClear(Color color, float depth, int stencil)
 		{
-			Native.rendertarget_render_clear(Raw, (int)color.ToArgb(), depth, stencil);
+			Native.rendertarget_render_clear(Raw, (int)color.ToARGB(), depth, stencil);
 		}
 		/// Renders a node to the target after clearing the previous color, depth and stencil values on it.
 		///
@@ -113,9 +113,9 @@ namespace Dora
 		/// * `color` - The clear color used to clear the render target.
 		/// * `depth` - The value used to clear the depth buffer of the render target. Default can be 1.
 		/// * `stencil` - The value used to clear the stencil buffer of the render target. Default can be 0.
-		public void RenderClearWithTarget(Node target, Color color, float depth, int stencil)
+		public void RenderClear(Node target, Color color, float depth, int stencil)
 		{
-			Native.rendertarget_render_clear_with_target(Raw, target.Raw, (int)color.ToArgb(), depth, stencil);
+			Native.rendertarget_render_clear_with_target(Raw, target.Raw, (int)color.ToARGB(), depth, stencil);
 		}
 		/// Saves the contents of the render target to a PNG file asynchronously.
 		///

@@ -83,7 +83,7 @@ func SpriteFrom(raw: i64) => *Sprite {
 	}
 	object := Sprite{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	result := &object
 	return result
 }
@@ -204,7 +204,7 @@ func NewSprite() => Sprite {
 	raw := sprite_new()
 	object := Sprite{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	return object
 }
 
@@ -222,7 +222,7 @@ func NewSpriteWithTextureRect(texture: Texture2D, texture_rect: Rect) => Sprite 
 	raw := sprite_with_texture_rect(texture.GetRaw(), texture_rect.GetRaw())
 	object := Sprite{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	return object
 }
 
@@ -239,7 +239,7 @@ func NewSpriteWithTexture(texture: Texture2D) => Sprite {
 	raw := sprite_with_texture(texture.GetRaw())
 	object := Sprite{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	return object
 }
 
@@ -259,6 +259,6 @@ func NewSpriteWithFile(clip_str: string) => *Sprite {
 	}
 	object := Sprite{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	return &object
 }

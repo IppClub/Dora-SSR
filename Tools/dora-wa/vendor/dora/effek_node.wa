@@ -26,7 +26,7 @@ func EffekNodeFrom(raw: i64) => *EffekNode {
 	}
 	object := EffekNode{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	result := &object
 	return result
 }
@@ -74,6 +74,6 @@ func NewEffekNode() => EffekNode {
 	raw := effeknode_new()
 	object := EffekNode{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	return object
 }

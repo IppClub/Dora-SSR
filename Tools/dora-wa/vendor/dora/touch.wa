@@ -38,7 +38,7 @@ func TouchFrom(raw: i64) => *Touch {
 	}
 	object := Touch{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	result := &object
 	return result
 }

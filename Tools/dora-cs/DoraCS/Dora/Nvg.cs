@@ -184,7 +184,7 @@ namespace Dora
 		}
 		public static void StrokeColor(Color color)
 		{
-			Native.nvg_stroke_color((int)color.ToArgb());
+			Native.nvg_stroke_color((int)color.ToARGB());
 		}
 		public static void StrokePaint(VGPaint paint)
 		{
@@ -192,7 +192,7 @@ namespace Dora
 		}
 		public static void FillColor(Color color)
 		{
-			Native.nvg_fill_color((int)color.ToArgb());
+			Native.nvg_fill_color((int)color.ToARGB());
 		}
 		public static void FillPaint(VGPaint paint)
 		{
@@ -256,15 +256,15 @@ namespace Dora
 		}
 		public static VGPaint LinearGradient(float sx, float sy, float ex, float ey, Color icol, Color ocol)
 		{
-			return VGPaint.From(Native.nvg_linear_gradient(sx, sy, ex, ey, (int)icol.ToArgb(), (int)ocol.ToArgb()));
+			return VGPaint.From(Native.nvg_linear_gradient(sx, sy, ex, ey, (int)icol.ToARGB(), (int)ocol.ToARGB()));
 		}
 		public static VGPaint BoxGradient(float x, float y, float w, float h, float r, float f, Color icol, Color ocol)
 		{
-			return VGPaint.From(Native.nvg_box_gradient(x, y, w, h, r, f, (int)icol.ToArgb(), (int)ocol.ToArgb()));
+			return VGPaint.From(Native.nvg_box_gradient(x, y, w, h, r, f, (int)icol.ToARGB(), (int)ocol.ToARGB()));
 		}
 		public static VGPaint RadialGradient(float cx, float cy, float inr, float outr, Color icol, Color ocol)
 		{
-			return VGPaint.From(Native.nvg_radial_gradient(cx, cy, inr, outr, (int)icol.ToArgb(), (int)ocol.ToArgb()));
+			return VGPaint.From(Native.nvg_radial_gradient(cx, cy, inr, outr, (int)icol.ToARGB(), (int)ocol.ToARGB()));
 		}
 		public static VGPaint ImagePattern(float ox, float oy, float ex, float ey, float angle, int image, float alpha)
 		{

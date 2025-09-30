@@ -50,7 +50,7 @@ func PlatformerBulletFrom(raw: i64) => *PlatformerBullet {
 	}
 	object := PlatformerBullet{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	result := &object
 	return result
 }
@@ -129,6 +129,6 @@ func NewPlatformerBullet(def: PlatformerBulletDef, owner: PlatformerUnit) => Pla
 	raw := platformer_bullet_new(def.GetRaw(), owner.GetRaw())
 	object := PlatformerBullet{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	return object
 }

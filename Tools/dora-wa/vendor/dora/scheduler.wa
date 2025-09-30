@@ -35,7 +35,7 @@ func SchedulerFrom(raw: i64) => *Scheduler {
 	}
 	object := Scheduler{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	result := &object
 	return result
 }
@@ -94,6 +94,6 @@ func NewScheduler() => Scheduler {
 	raw := scheduler_new()
 	object := Scheduler{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	return object
 }

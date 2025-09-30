@@ -10,14 +10,15 @@ App.Run(() =>
         ActionDef.Scale(1.0f, 0.3f, 0.5f, EaseType.OutBack),
         ActionDef.Scale(1.0f, 0.5f, 0.3f, EaseType.InBack),
     ]), true);
-    node.Schedule((dt) =>
+    node.Schedule(Co.Once(MyCoroutine));
+    System.Collections.IEnumerator MyCoroutine()
     {
-        node.X += 1;
-        ImGui.ShowConsole();
-        //Log.Print($"{dt}");
-        return false;
-    });
-    node.OnTapped((touch) =>
+        Log.Print("start");
+        yield return new WaitForSeconds(5.0);
+        Log.Print("after 5s");
+        node.RemoveFromParent(true);
+    }
+node.OnTapped((touch) =>
     {
         Log.Print($"{touch.Location.X} x {touch.Location.Y}");
     });

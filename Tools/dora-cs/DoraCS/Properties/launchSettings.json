@@ -3,7 +3,9 @@
     "DoraCS": {
       "commandName": "Project",
       "workingDirectory": "$(SolutionDir)\\build\\$(Configuration)\\",
-      "nativeDebugging": false
+      "nativeDebugging": false,
+      "remoteDebugEnabled": false,
+      "hotReloadEnabled": true
     }
   }
 }

@@ -110,7 +110,7 @@ func BodyFrom(raw: i64) => *Body {
 	}
 	object := Body{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	result := &object
 	return result
 }
@@ -349,6 +349,6 @@ func NewBody(def: BodyDef, world: PhysicsWorld, pos: Vec2, rot: f32) => Body {
 	raw := body_new(def.GetRaw(), world.GetRaw(), pos.ToValue(), rot)
 	object := Body{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	return object
 }

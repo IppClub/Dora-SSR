@@ -35,7 +35,7 @@ func QLearnerFrom(raw: i64) => *QLearner {
 	}
 	object := QLearner{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	result := &object
 	return result
 }
@@ -133,6 +133,6 @@ func NewQLearner(gamma: f64, alpha: f64, max_q: f64) => QLearner {
 	raw := mlqlearner_new(gamma, alpha, max_q)
 	object := QLearner{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	return object
 }

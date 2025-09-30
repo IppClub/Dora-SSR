@@ -1,4 +1,5 @@
 ﻿using Microsoft.Win32.SafeHandles;
+using System.Collections;
 using System.Diagnostics;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
@@ -718,9 +719,9 @@ namespace Dora
         public byte R;
         public byte A;
 
-        public static readonly Color WHITE = new Color { R = 255, G = 255, B = 255, A = 255 };
-        public static readonly Color BLACK = new Color { R = 0, G = 0, B = 0, A = 255 };
-        public static readonly Color TRANSPARENT = new Color { R = 0, G = 0, B = 0, A = 0 };
+        public static readonly Color White = new Color { R = 255, G = 255, B = 255, A = 255 };
+        public static readonly Color Black = new Color { R = 0, G = 0, B = 0, A = 255 };
+        public static readonly Color Transparent = new Color { R = 0, G = 0, B = 0, A = 0 };
 
         public Color(uint argb)
         {
@@ -730,7 +731,7 @@ namespace Dora
             B = (byte)(argb & 0x000000ff);
         }
 
-        public uint ToArgb() => ((uint)A << 24) | ((uint)R << 16) | ((uint)G << 8) | B;
+        public uint ToARGB() => ((uint)A << 24) | ((uint)R << 16) | ((uint)G << 8) | B;
 
         public Color3 ToColor3() => new Color3 { R = R, G = G, B = B };
     }
@@ -752,7 +753,7 @@ namespace Dora
             B = (byte)(rgb & 0x000000ff);
         }
 
-        public uint ToRgb() => ((uint)R << 16) | ((uint)G << 8) | B;
+        public uint ToRGB() => ((uint)R << 16) | ((uint)G << 8) | B;
     }
 
     public delegate Object CreateFunc(long raw);
@@ -769,7 +770,8 @@ namespace Dora
             Raw = raw;
         }
 
-        ~Object() {
+        ~Object()
+        {
             Native.object_release(Raw);
         }
 
@@ -2391,20 +2393,14 @@ namespace Dora
         /// # Returns
         ///
         /// * `Scheduler` - The scheduler for the director.
-        public static Scheduler GetScheduler()
-        {
-            return Scheduler.From(Native.director_get_scheduler());
-        }
+        public static Scheduler Scheduler => Scheduler.From(Native.director_get_scheduler());
         /// Gets the post scheduler for the director.
         /// The post scheduler is used for scheduling tasks that should run after the main scheduler has finished.
         ///
         /// # Returns
         ///
         /// * `Scheduler` - The post scheduler for the director.
-        public static Scheduler GetPostScheduler()
-        {
-            return Scheduler.From(Native.director_get_post_scheduler());
-        }
+        public static Scheduler PostScheduler => Scheduler.From(Native.director_get_post_scheduler());
     }
 
     namespace Platformer.Behavior
@@ -2450,6 +2446,1198 @@ namespace Dora
                 var raw = Native.blackboard_get(Raw, Bridge.FromString(key));
                 return raw == 0 ? null : Value.From(raw);
             }
+        }
+    }
+
+    [Flags]
+    public enum ImGuiSliderFlag
+    {
+        Logarithmic = 1 << 5,
+        NoRoundToFormat = 1 << 6,
+        NoInput = 1 << 7,
+        WrapAround = 1 << 8,
+        ClampOnInput = 1 << 9,
+        ClampZeroRange = 1 << 10,
+        AlwaysClamp = ClampOnInput | ClampZeroRange,
+    }
+
+    [Flags]
+    public enum ImGuiWindowFlag
+    {
+        NoTitleBar = 1 << 0,
+        NoResize = 1 << 1,
+        NoMove = 1 << 2,
+        NoScrollbar = 1 << 3,
+        NoScrollWithMouse = 1 << 4,
+        NoCollapse = 1 << 5,
+        AlwaysAutoResize = 1 << 6,
+        NoBackground = 1 << 7,
+        NoSavedSettings = 1 << 8,
+        NoMouseInputs = 1 << 9,
+        MenuBar = 1 << 10,
+        HorizontalScrollbar = 1 << 11,
+        NoFocusOnAppearing = 1 << 12,
+        NoBringToFrontOnFocus = 1 << 13,
+        AlwaysVerticalScrollbar = 1 << 14,
+        AlwaysHorizontalScrollbar = 1 << 15,
+        NoNavInputs = 1 << 16,
+        NoNavFocus = 1 << 17,
+        UnsavedDocument = 1 << 18,
+        NoNav = NoNavInputs | NoNavFocus,
+        NoDecoration = NoTitleBar | NoResize | NoScrollbar | NoCollapse,
+        NoInputs = NoMouseInputs | NoNavInputs | NoNavFocus,
+    }
+
+    [Flags]
+    public enum ImGuiChildFlag
+    {
+        Borders = 1 << 0,
+        AlwaysUseWindowPadding = 1 << 1,
+        ResizeX = 1 << 2,
+        ResizeY = 1 << 3,
+        AutoResizeX = 1 << 4,
+        AutoResizeY = 1 << 5,
+        AlwaysAutoResize = 1 << 6,
+        FrameStyle = 1 << 7,
+    }
+
+    [Flags]
+    public enum ImGuiInputTextFlag
+    {
+        CharsDecimal = 1 << 0,
+        CharsHexadecimal = 1 << 1,
+        CharsScientific = 1 << 2,
+        CharsUppercase = 1 << 3,
+        CharsNoBlank = 1 << 4,
+        AllowTabInput = 1 << 5,
+        EnterReturnsTrue = 1 << 6,
+        EscapeClearsAll = 1 << 7,
+        CtrlEnterForNewLine = 1 << 8,
+        ReadOnly = 1 << 9,
+        Password = 1 << 10,
+        AlwaysOverwrite = 1 << 11,
+        AutoSelectAll = 1 << 12,
+        ParseEmptyRefVal = 1 << 13,
+        DisplayEmptyRefVal = 1 << 14,
+        NoHorizontalScroll = 1 << 15,
+        NoUndoRedo = 1 << 16,
+        ElideLeft = 1 << 17,
+        CallbackCompletion = 1 << 18,
+        CallbackHistory = 1 << 19,
+        CallbackAlways = 1 << 20,
+        CallbackCharFilter = 1 << 21,
+        CallbackResize = 1 << 22,
+        CallbackEdit = 1 << 23,
+    }
+
+    [Flags]
+    public enum ImGuiTreeNodeFlag
+    {
+        Selected = 1 << 0,
+        Framed = 1 << 1,
+        AllowOverlap = 1 << 2,
+        NoTreePushOnOpen = 1 << 3,
+        NoAutoOpenOnLog = 1 << 4,
+        DefaultOpen = 1 << 5,
+        OpenOnDoubleClick = 1 << 6,
+        OpenOnArrow = 1 << 7,
+        Leaf = 1 << 8,
+        Bullet = 1 << 9,
+        FramePadding = 1 << 10,
+        SpanAvailWidth = 1 << 11,
+        SpanFullWidth = 1 << 12,
+        SpanLabelWidth = 1 << 13,
+        SpanAllColumns = 1 << 14,
+        LabelSpanAllColumns = 1 << 15,
+        NavLeftJumpsToParent = 1 << 17,
+        CollapsingHeader = Framed | NoTreePushOnOpen | NoAutoOpenOnLog,
+    }
+
+    [Flags]
+    public enum ImGuiSelectableFlag
+    {
+        DontClosePopups = 1 << 0,
+        SpanAllColumns = 1 << 1,
+        AllowDoubleClick = 1 << 2,
+        Disabled = 1 << 3,
+        AllowOverlap = 1 << 4,
+    }
+
+    public enum ImGuiCol
+    {
+        Text,
+        TextDisabled,
+        WindowBg,
+        ChildBg,
+        PopupBg,
+        Border,
+        BorderShadow,
+        FrameBg,
+        FrameBgHovered,
+        FrameBgActive,
+        TitleBg,
+        TitleBgActive,
+        TitleBgCollapsed,
+        MenuBarBg,
+        ScrollbarBg,
+        ScrollbarGrab,
+        ScrollbarGrabHovered,
+        ScrollbarGrabActive,
+        CheckMark,
+        SliderGrab,
+        SliderGrabActive,
+        Button,
+        ButtonHovered,
+        ButtonActive,
+        Header,
+        HeaderHovered,
+        HeaderActive,
+        Separator,
+        SeparatorHovered,
+        SeparatorActive,
+        ResizeGrip,
+        ResizeGripHovered,
+        ResizeGripActive,
+        TabHovered,
+        Tab,
+        TabSelected,
+        TabSelectedOverline,
+        TabDimmed,
+        TabDimmedSelected,
+        TabDimmedSelectedOverline,
+        PlotLines,
+        PlotLinesHovered,
+        PlotHistogram,
+        PlotHistogramHovered,
+        TableHeaderBg,
+        TableBorderStrong,
+        TableBorderLight,
+        TableRowBg,
+        TableRowBgAlt,
+        TextLink,
+        TextSelectedBg,
+        DragDropTarget,
+        NavCursor,
+        NavWindowingHighlight,
+        NavWindowingDimBg,
+        ModalWindowDimBg,
+    }
+
+    [Flags]
+    public enum ImGuiColorEditFlag
+    {
+        NoAlpha = 1 << 1,
+        NoPicker = 1 << 2,
+        NoOptions = 1 << 3,
+        NoSmallPreview = 1 << 4,
+        NoInputs = 1 << 5,
+        NoTooltip = 1 << 6,
+        NoLabel = 1 << 7,
+        NoSidePreview = 1 << 8,
+        NoDragDrop = 1 << 9,
+        NoBorder = 1 << 10,
+        AlphaOpaque = 1 << 11,
+        AlphaNoBg = 1 << 12,
+        AlphaPreviewHalf = 1 << 13,
+        AlphaBar = 1 << 16,
+        HDR = 1 << 19,
+        DisplayRGB = 1 << 20,
+        DisplayHSV = 1 << 21,
+        DisplayHex = 1 << 22,
+        Uint8 = 1 << 23,
+        Float = 1 << 24,
+        PickerHueBar = 1 << 25,
+        PickerHueWheel = 1 << 26,
+        InputRGB = 1 << 27,
+        InputHSV = 1 << 28,
+        DefaultOptions = Uint8 | DisplayRGB | InputRGB | PickerHueBar,
+    }
+
+    [Flags]
+    public enum ImGuiCond
+    {
+        Always = 1 << 0,
+        Once = 1 << 1,
+        FirstUseEver = 1 << 2,
+        Appearing = 1 << 3,
+    }
+
+    [Flags]
+    public enum ImGuiTableFlag
+    {
+        Resizable = 1 << 0,
+        Reorderable = 1 << 1,
+        Hideable = 1 << 2,
+        Sortable = 1 << 3,
+        NoSavedSettings = 1 << 4,
+        ContextMenuInBody = 1 << 5,
+        RowBg = 1 << 6,
+        BordersInnerH = 1 << 7,
+        BordersOuterH = 1 << 8,
+        BordersInnerV = 1 << 9,
+        BordersOuterV = 1 << 10,
+        NoBordersInBody = 1 << 11,
+        NoBordersInBodyUntilResize = 1 << 12,
+        SizingFixedFit = 1 << 13,
+        SizingFixedSame = 1 << 14,
+        SizingStretchSame = 1 << 15,
+        NoHostExtendX = 1 << 16,
+        NoHostExtendY = 1 << 17,
+        NoKeepColumnsVisible = 1 << 18,
+        PreciseWidths = 1 << 19,
+        NoClip = 1 << 20,
+        PadOuterX = 1 << 21,
+        NoPadOuterX = 1 << 22,
+        NoPadInnerX = 1 << 23,
+        ScrollX = 1 << 24,
+        ScrollY = 1 << 25,
+        SortMulti = 1 << 26,
+        SortTristate = 1 << 27,
+        HighlightHoveredColumn = 1 << 28,
+        BordersH = BordersInnerH | BordersOuterH,
+        BordersV = BordersInnerV | BordersOuterV,
+        BordersInner = BordersInnerV | BordersInnerH,
+        BordersOuter = BordersOuterV | BordersOuterH,
+        Borders = BordersInnerV | BordersInnerH | BordersOuterV | BordersOuterH,
+        SizingStretchProp = SizingFixedFit | SizingFixedSame,
+    }
+
+    [Flags]
+    public enum ImGuiTableColumnFlag
+    {
+        Disabled = 1 << 0,
+        DefaultHide = 1 << 1,
+        DefaultSort = 1 << 2,
+        WidthStretch = 1 << 3,
+        WidthFixed = 1 << 4,
+        NoResize = 1 << 5,
+        NoReorder = 1 << 6,
+        NoHide = 1 << 7,
+        NoClip = 1 << 8,
+        NoSort = 1 << 9,
+        NoSortAscending = 1 << 10,
+        NoSortDescending = 1 << 11,
+        NoHeaderLabel = 1 << 12,
+        NoHeaderWidth = 1 << 13,
+        PreferSortAscending = 1 << 14,
+        PreferSortDescending = 1 << 15,
+        IndentEnable = 1 << 16,
+        IndentDisable = 1 << 17,
+        AngledHeader = 1 << 18,
+        IsEnabled = 1 << 24,
+        IsVisible = 1 << 25,
+        IsSorted = 1 << 26,
+        IsHovered = 1 << 27,
+    }
+
+    public enum ImGuiPopupButton
+    {
+        MouseButtonLeft = 0,
+        MouseButtonRight = 1,
+        MouseButtonMiddle = 2,
+    }
+
+    [Flags]
+    public enum ImGuiPopupFlag
+    {
+        NoReopen = 1 << 5,
+        NoOpenOverExistingPopup = 1 << 7,
+        NoOpenOverItems = 1 << 8,
+        AnyPopupId = 1 << 10,
+        AnyPopupLevel = 1 << 11,
+        AnyPopup = AnyPopupId | AnyPopupLevel,
+    }
+
+    public enum ImGuiStyleVar
+    {
+        Alpha = 0,
+        DisabledAlpha = 1,
+        WindowRounding = 3,
+        WindowBorderSize = 4,
+        ChildRounding = 7,
+        ChildBorderSize = 8,
+        PopupRounding = 9,
+        PopupBorderSize = 10,
+        FrameRounding = 12,
+        FrameBorderSize = 13,
+        IndentSpacing = 16,
+        ScrollbarSize = 18,
+        ScrollbarRounding = 19,
+        GrabMinSize = 20,
+        GrabRounding = 21,
+        TabRounding = 22,
+        TabBarBorderSize = 23,
+        SeparatorTextBorderSize = 26,
+    }
+
+    public enum ImGuiStyleVec2
+    {
+        WindowPadding = 2,
+        WindowMinSize = 5,
+        WindowTitleAlign = 6,
+        FramePadding = 11,
+        ItemSpacing = 14,
+        ItemInnerSpacing = 15,
+        CellPadding = 17,
+        ButtonTextAlign = 24,
+        SelectableTextAlign = 25,
+        SeparatorTextAlign = 27,
+        SeparatorTextPadding = 28,
+    }
+
+    [Flags]
+    public enum ImGuiItemFlag
+    {
+        NoTabStop = 1 << 0,
+        NoNav = 1 << 1,
+        NoNavDefaultFocus = 1 << 2,
+        ButtonRepeat = 1 << 3,
+        AutoClosePopups = 1 << 4,
+        AllowDuplicateId = 1 << 5,
+    }
+
+    public enum ImGuiTableRowFlag
+    {
+        Headers = 1 << 0,
+    }
+
+    [Flags]
+    public enum ImGuiTabBarFlag
+    {
+        Reorderable = 1 << 0,
+        AutoSelectNewTabs = 1 << 1,
+        TabListPopupButton = 1 << 2,
+        NoCloseWithMiddleMouseButton = 1 << 3,
+        NoTabListScrollingButtons = 1 << 4,
+        NoTooltip = 1 << 5,
+        DrawSelectedOverline = 1 << 6,
+        FittingPolicyShrink = 1 << 7,
+        FittingPolicyScroll = 1 << 8,
+    }
+
+    [Flags]
+    public enum ImGuiTabItemFlag
+    {
+        UnsavedDocument = 1 << 0,
+        SetSelected = 1 << 1,
+        NoCloseWithMiddleMouseButton = 1 << 2,
+        NoPushId = 1 << 3,
+        NoTooltip = 1 << 4,
+        NoReorder = 1 << 5,
+        Leading = 1 << 6,
+        Trailing = 1 << 7,
+        NoAssumedClosure = 1 << 8,
+    }
+
+    public static partial class ImGui
+    {
+        private static CallStack imguiStack = new CallStack();
+
+        public static void Begin(string name, System.Action inside)
+        {
+            Begin(name, 0, inside);
+        }
+        public static void Begin(string name, ImGuiWindowFlag windowsFlags, System.Action inside)
+        {
+            if (_BeginOpts(name, (int)windowsFlags))
+            {
+                inside();
+            }
+            _End();
+        }
+        public static bool Begin(string name, ref bool opened, System.Action inside)
+        {
+            return Begin(name, ref opened, 0, inside);
+        }
+        public static bool Begin(string name, ref bool opened, ImGuiWindowFlag windowsFlags, System.Action inside)
+        {
+            imguiStack.Push(opened);
+            var changed = _BeginRetOpts(name, imguiStack, (int)windowsFlags);
+            opened = imguiStack.PopBool();
+            if (changed)
+            {
+                inside();
+            }
+            _End();
+            return changed;
+        }
+        public static void BeginChild(string str_id, System.Action inside)
+        {
+            BeginChild(str_id, 0, 0, inside);
+        }
+        public static void BeginChild(string str_id, ImGuiChildFlag childFlags, ImGuiWindowFlag windowFlags, System.Action inside)
+        {
+            BeginChild(str_id, Vec2.Zero, childFlags, windowFlags, inside);
+        }
+        public static void BeginChild(string str_id, Vec2 size, ImGuiChildFlag childFlags, ImGuiWindowFlag windowFlags, System.Action inside)
+        {
+            if (_BeginChildOpts(str_id, size, (int)childFlags, (int)windowFlags))
+            {
+                inside();
+            }
+            _EndChild();
+        }
+        public static void BeginChild(int id, System.Action inside)
+        {
+            BeginChild(id, Vec2.Zero, 0, 0, inside);
+        }
+        public static void BeginChild(int id, Vec2 size, ImGuiChildFlag childFlags, ImGuiWindowFlag windowFlags, System.Action inside)
+        {
+            if (_BeginChildWithIdOpts(id, size, (int)childFlags, (int)windowFlags))
+            {
+                inside();
+            }
+            _EndChild();
+        }
+        public static bool CollapsingHeader(string label, ref bool opened, System.Action inside)
+        {
+            return CollapsingHeader(label, ref opened, 0, inside);
+        }
+        public static bool CollapsingHeader(string label, ref bool opened, ImGuiTreeNodeFlag treeNodeFlags, System.Action inside)
+        {
+            imguiStack.Push(opened);
+            var changed = _CollapsingHeaderRetOpts(label, imguiStack, (int)treeNodeFlags);
+            opened = imguiStack.PopBool();
+            if (changed)
+            {
+                inside();
+            }
+            _End();
+            return changed;
+        }
+        public static bool Selectable(string label, ImGuiSelectableFlag selectableFlags = 0)
+        {
+            return _SelectableOpts(label, (int)selectableFlags);
+        }
+        public static bool Selectable(string label, ref bool selected, Vec2 size, ImGuiSelectableFlag selectableFlags, System.Action inside)
+        {
+            imguiStack.Push(selected);
+            bool changed = _SelectableRetOpts(label, imguiStack, size, (int)selectableFlags);
+            selected = imguiStack.PopBool();
+            return changed;
+        }
+        public static bool Combo(string label, ref int currentItem, IEnumerable<string> items, int heightInItems = -1)
+        {
+            imguiStack.Push(currentItem);
+            bool changed = _ComboRetOpts(label, imguiStack, items, heightInItems);
+            currentItem = imguiStack.PopI32();
+            return changed;
+        }
+        public static bool DragFloat(string label, ref float v, float vSpeed, float vMin, float vMax, string displayFormat = "%.2f", ImGuiSliderFlag sliderFlags = 0)
+        {
+            imguiStack.Push(v);
+            bool changed = _DragFloatRetOpts(label, imguiStack, vSpeed, vMin, vMax, displayFormat, (int)sliderFlags);
+            v = imguiStack.PopF32();
+            return changed;
+        }
+        public static bool DragFloat2(string label, ref float v1, ref float v2, float vSpeed, float vMin, float vMax, string displayFormat = "%.2f", ImGuiSliderFlag sliderFlags = 0)
+        {
+            imguiStack.Push(v1);
+            imguiStack.Push(v2);
+            bool changed = _DragFloat2RetOpts(label, imguiStack, vSpeed, vMin, vMax, displayFormat, (int)sliderFlags);
+            v1 = imguiStack.PopF32();
+            v2 = imguiStack.PopF32();
+            return changed;
+        }
+        public static bool DragInt(string label, ref int v, float vSpeed, int vMin, int vMax, string displayFormat = "%d", ImGuiSliderFlag sliderFlags = 0)
+        {
+            imguiStack.Push(v);
+            bool changed = _DragIntRetOpts(label, imguiStack, vSpeed, vMin, vMax, displayFormat, (int)sliderFlags);
+            v = imguiStack.PopI32();
+            return changed;
+        }
+        public static bool DragInt2(string label, ref int v1, ref int v2, float vSpeed, int vMin, int vMax, string displayFormat = "%d", ImGuiSliderFlag sliderFlags = 0)
+        {
+            imguiStack.Push(v1);
+            imguiStack.Push(v2);
+            bool changed = _DragInt2RetOpts(label, imguiStack, vSpeed, vMin, vMax, displayFormat, (int)sliderFlags);
+            v1 = imguiStack.PopI32();
+            v2 = imguiStack.PopI32();
+            return changed;
+        }
+        public static bool InputFloat(string label, ref float v, float step = 0.0f, float stepFast = 0.0f, string displayFormat = "%.2f", ImGuiInputTextFlag inputTextFlags = 0)
+        {
+            imguiStack.Push(v);
+            bool changed = _InputFloatRetOpts(label, imguiStack, step, stepFast, displayFormat, (int)inputTextFlags);
+            v = imguiStack.PopF32();
+            return changed;
+        }
+        public static bool InputFloat2(string label, ref float v1, ref float v2, string displayFormat = "%.2f", ImGuiInputTextFlag inputTextFlags = 0)
+        {
+            imguiStack.Push(v1);
+            imguiStack.Push(v2);
+            bool changed = _InputFloat2RetOpts(label, imguiStack, displayFormat, (int)inputTextFlags);
+            v1 = imguiStack.PopF32();
+            v2 = imguiStack.PopF32();
+            return changed;
+        }
+        public static bool InputInt(string label, ref int v, int step = 1, int stepFast = 100, ImGuiInputTextFlag inputTextFlags = 0)
+        {
+            imguiStack.Push(v);
+            bool changed = _InputIntRetOpts(label, imguiStack, step, stepFast, (int)inputTextFlags);
+            v = imguiStack.PopI32();
+            return changed;
+        }
+        public static bool InputInt2(string label, ref int v1, ref int v2, ImGuiInputTextFlag inputTextFlags = 0)
+        {
+            imguiStack.Push(v1);
+            imguiStack.Push(v2);
+            bool changed = _InputInt2RetOpts(label, imguiStack, (int)inputTextFlags);
+            v1 = imguiStack.PopI32();
+            v2 = imguiStack.PopI32();
+            return changed;
+        }
+        public static bool SliderFloat(string label, ref float v, float vMin, float vMax, string displayFormat = "%.2f", ImGuiSliderFlag sliderFlags = 0)
+        {
+            imguiStack.Push(v);
+            bool changed = _SliderFloatRetOpts(label, imguiStack, vMin, vMax, displayFormat, (int)sliderFlags);
+            v = imguiStack.PopF32();
+            return changed;
+        }
+        public static bool SliderFloat2(string label, ref float v1, ref float v2, float vMin, float vMax, string displayFormat = "%.2f", ImGuiSliderFlag sliderFlags = 0)
+        {
+            imguiStack.Push(v1);
+            imguiStack.Push(v2);
+            bool changed = _SliderFloat2RetOpts(label, imguiStack, vMin, vMax, displayFormat, (int)sliderFlags);
+            v1 = imguiStack.PopF32();
+            v2 = imguiStack.PopF32();
+            return changed;
+        }
+        public static bool DragFloatRange2(string label, ref float vCurrentMin, ref float vCurrentMax, float vSpeed, float vMin, float vMax, string displayFormat = "%.2f", string displayFormatMax = "%.2f", ImGuiSliderFlag sliderFlags = 0)
+        {
+            imguiStack.Push(vCurrentMin);
+            imguiStack.Push(vCurrentMax);
+            bool changed = _DragFloatRange2RetOpts(label, imguiStack, vSpeed, vMin, vMax, displayFormat, displayFormatMax, (int)sliderFlags);
+            vCurrentMin = imguiStack.PopF32();
+            vCurrentMax = imguiStack.PopF32();
+            return changed;
+        }
+        public static bool DragIntRange2(string label, ref int vCurrentMin, ref int vCurrentMax, float vSpeed, int vMin, int vMax, string displayFormat = "%d", string displayFormatMax = "%d", ImGuiSliderFlag sliderFlags = 0)
+        {
+            imguiStack.Push(vCurrentMin);
+            imguiStack.Push(vCurrentMax);
+            bool changed = _DragIntRange2RetOpts(label, imguiStack, vSpeed, vMin, vMax, displayFormat, displayFormatMax, (int)sliderFlags);
+            vCurrentMin = imguiStack.PopI32();
+            vCurrentMax = imguiStack.PopI32();
+            return changed;
+        }
+        public static bool SliderInt(string label, ref int v, int vMin, int vMax, string displayFormat = "%d", ImGuiSliderFlag sliderFlags = 0)
+        {
+            imguiStack.Push(v);
+            bool changed = _SliderIntRetOpts(label, imguiStack, vMin, vMax, displayFormat, (int)sliderFlags);
+            v = imguiStack.PopI32();
+            return changed;
+        }
+        public static bool SliderInt2(string label, ref int v1, ref int v2, int vMin, int vMax, string displayFormat = "%d", ImGuiSliderFlag sliderFlags = 0)
+        {
+            imguiStack.Push(v1);
+            imguiStack.Push(v2);
+            bool changed = _SliderInt2RetOpts(label, imguiStack, vMin, vMax, displayFormat, (int)sliderFlags);
+            v1 = imguiStack.PopI32();
+            v2 = imguiStack.PopI32();
+            return changed;
+        }
+        public static bool VSliderFloat(string label, Vec2 size, ref float v, float vMin, float vMax, string displayFormat = "%.2f", ImGuiSliderFlag sliderFlags = 0)
+        {
+            imguiStack.Push(v);
+            bool changed = _VSliderFloatRetOpts(label, size, imguiStack, vMin, vMax, displayFormat, (int)sliderFlags);
+            v = imguiStack.PopF32();
+            return changed;
+        }
+        public static bool VSliderInt(string label, Vec2 size, ref int v, int vMin, int vMax, string displayFormat = "%d", ImGuiSliderFlag sliderFlags = 0)
+        {
+            imguiStack.Push(v);
+            bool changed = _VSliderIntRetOpts(label, size, imguiStack, vMin, vMax, displayFormat, (int)sliderFlags);
+            v = imguiStack.PopI32();
+            return changed;
+        }
+        public static bool ColorEdit3(string label, ref Color3 color3, ImGuiColorEditFlag colorEditFlags = 0)
+        {
+            imguiStack.Push(color3.ToRGB());
+            bool changed = _ColorEdit3RetOpts(label, imguiStack, (int)colorEditFlags);
+            color3 = new Color3((uint)imguiStack.PopI32());
+            return changed;
+        }
+        public static bool ColorEdit4(string label, ref Color color, ImGuiColorEditFlag colorEditFlags = 0)
+        {
+            imguiStack.Push(color.ToARGB());
+            bool changed = _ColorEdit4RetOpts(label, imguiStack, (int)colorEditFlags);
+            color = new Color((uint)imguiStack.PopI32());
+            return changed;
+        }
+        public static bool Checkbox(string label, ref bool check)
+        {
+            imguiStack.Push(check);
+            bool changed = _CheckboxRet(label, imguiStack);
+            check = imguiStack.PopBool();
+            return changed;
+        }
+        public static bool RadioButton(string label, ref int value, int vButton)
+        {
+            imguiStack.Push(value);
+            bool changed = _RadioButtonRet(label, imguiStack, vButton);
+            value = imguiStack.PopI32();
+            return changed;
+        }
+        public static bool ListBox(string label, ref int currentItem, IEnumerable<string> items, int heightInItems = -1)
+        {
+            imguiStack.Push(currentItem);
+            bool changed = _ListBoxRetOpts(label, imguiStack, items, heightInItems);
+            currentItem = imguiStack.PopI32();
+            return changed;
+        }
+        public static void SetNextWindowPosCenter(ImGuiCond setCond = ImGuiCond.Always)
+        {
+            _SetNextWindowPosCenterOpts((int)setCond);
+        }
+        public static void SetNextWindowSize(Vec2 size, ImGuiCond setCond = ImGuiCond.Always)
+        {
+            _SetNextWindowSizeOpts(size, (int)setCond);
+        }
+        public static void SetNextWindowCollapsed(bool collapsed, ImGuiCond setCond = ImGuiCond.Always)
+        {
+            _SetNextWindowCollapsedOpts(collapsed, (int)setCond);
+        }
+        public static void SetNextItemOpen(bool isOpen, ImGuiCond setCond = ImGuiCond.Always)
+        {
+            _SetNextItemOpenOpts(isOpen, (int)setCond);
+        }
+        public static void SetWindowPos(string name, Vec2 pos, ImGuiCond setCond = ImGuiCond.Always)
+        {
+            _SetWindowPosOpts(name, pos, (int)setCond);
+        }
+        public static void SetWindowSize(string name, Vec2 size, ImGuiCond setCond = ImGuiCond.Always)
+        {
+            _SetWindowSizeOpts(name, size, (int)setCond);
+        }
+        public static void SetWindowCollapsed(string name, bool collapsed, ImGuiCond setCond = ImGuiCond.Always)
+        {
+            _SetWindowCollapsedOpts(name, collapsed, (int)setCond);
+        }
+        public static void SetColorEditOptions(ImGuiColorEditFlag colorEditFlags)
+        {
+            _SetColorEditOptions((int)colorEditFlags);
+        }
+        public static bool InputText(string label, Buffer buffer, ImGuiInputTextFlag inputTextFlags = 0)
+        {
+            bool changed = _InputTextOpts(label, buffer, (int)inputTextFlags);
+            return changed;
+        }
+        public static bool InputTextMultiline(string label, ref Buffer buffer, Vec2 size, ImGuiInputTextFlag inputTextFlags = 0)
+        {
+            bool changed = _InputTextMultilineOpts(label, buffer, size, (int)inputTextFlags);
+            return changed;
+        }
+        public static void TreePush(string strId, System.Action inside)
+        {
+            _TreePush(strId);
+            inside();
+            _TreePop();
+        }
+        public static void TreeNode(string strId, string text, System.Action inside)
+        {
+            _TreeNodeExWithIdOpts(strId, text, 0);
+            inside();
+            _TreePop();
+        }
+        public static void TreeNodeEx(string label, System.Action inside)
+        {
+            _TreeNodeExOpts(label, 0);
+            inside();
+            _TreePop();
+        }
+        public static void TreeNodeEx(string label, ImGuiTreeNodeFlag treeNodeFlags, System.Action inside)
+        {
+            _TreeNodeExOpts(label, (int)treeNodeFlags);
+            inside();
+            _TreePop();
+        }
+        public static void TreeNodeEx(string strId, string text, System.Action inside)
+        {
+            _TreeNodeExWithIdOpts(strId, text, 0);
+            inside();
+            _TreePop();
+        }
+        public static void TreeNodeEx(string strId, string text, ImGuiTreeNodeFlag treeNodeFlags, System.Action inside)
+        {
+            _TreeNodeExWithIdOpts(strId, text, (int)treeNodeFlags);
+            inside();
+            _TreePop();
+        }
+        public static bool CollapsingHeader(string label, ImGuiTreeNodeFlag treeNodeFlags = 0)
+        {
+            return _CollapsingHeaderOpts(label, (int)treeNodeFlags);
+        }
+        public static void BeginPopup(string strId, System.Action inside)
+        {
+            if (_BeginPopup(strId))
+            {
+                inside();
+                _EndPopup();
+            }
+        }
+        public static void BeginPopupModal(string name, System.Action inside)
+        {
+            if (_BeginPopupModalOpts(name, 0))
+            {
+                inside();
+                _EndPopup();
+            }
+        }
+        public static void BeginPopupModal(string name, ImGuiWindowFlag windowsFlags, System.Action inside)
+        {
+            if (_BeginPopupModalOpts(name, (int)windowsFlags))
+            {
+                inside();
+                _EndPopup();
+            }
+        }
+        public static bool BeginPopupModal(string name, ref bool opened, System.Action inside)
+        {
+            return BeginPopupModal(name, ref opened, 0, inside);
+        }
+        public static bool BeginPopupModal(string name, ref bool opened, ImGuiWindowFlag windowsFlags, System.Action inside)
+        {
+            imguiStack.Push(opened);
+            bool changed = _BeginPopupModalRetOpts(name, imguiStack, (int)windowsFlags);
+            opened = imguiStack.PopBool();
+            if (changed)
+            {
+                inside();
+                _EndPopup();
+            }
+            return changed;
+        }
+        public static void BeginPopupContextItem(string name, System.Action inside)
+        {
+            if (_BeginPopupContextItemOpts(name, (int)ImGuiPopupButton.MouseButtonRight))
+            {
+                inside();
+                _EndPopup();
+            }
+        }
+        public static void BeginPopupContextItem(string name, ImGuiPopupButton button, System.Action inside)
+        {
+            if (_BeginPopupContextItemOpts(name, (int)button))
+            {
+                inside();
+                _EndPopup();
+            }
+        }
+        public static void BeginPopupContextWindow(string name, System.Action inside)
+        {
+            if (_BeginPopupContextWindowOpts(name, (int)ImGuiPopupButton.MouseButtonRight))
+            {
+                inside();
+                _EndPopup();
+            }
+        }
+        public static void BeginPopupContextWindow(string name, ImGuiPopupButton button, System.Action inside)
+        {
+            if (_BeginPopupContextWindowOpts(name, (int)button))
+            {
+                inside();
+                _EndPopup();
+            }
+        }
+        public static void BeginPopupContextVoid(string name, System.Action inside)
+        {
+            if (_BeginPopupContextVoidOpts(name, (int)ImGuiPopupButton.MouseButtonRight))
+            {
+                inside();
+                _EndPopup();
+            }
+        }
+        public static void BeginPopupContextVoid(string name, ImGuiPopupButton button, System.Action inside)
+        {
+            if (_BeginPopupContextVoidOpts(name, (int)button))
+            {
+                inside();
+                _EndPopup();
+            }
+        }
+        public static void BeginTable(string strId, int column, System.Action inside)
+        {
+            if (_BeginTableOpts(strId, column, Vec2.Zero, -1.0f, 0))
+            {
+                inside();
+                _EndTable();
+            }
+        }
+        public static void BeginTable(string strId, int column, Vec2 outer_size, int inner_width, ImGuiTableFlag tableFlags, System.Action inside)
+        {
+            if (_BeginTableOpts(strId, column, outer_size, inner_width, (int)tableFlags))
+            {
+                inside();
+                _EndTable();
+            }
+        }
+        public static void TableSetupColumn(string label, int init_width_or_weight, ImGuiTableColumnFlag tableColumnFlags)
+        {
+            _TableSetupColumnOpts(label, init_width_or_weight, 0, (int)tableColumnFlags);
+        }
+        public static void TableSetupColumn(string label, int init_width_or_weight, int user_id, ImGuiTableColumnFlag tableColumnFlags)
+        {
+            _TableSetupColumnOpts(label, init_width_or_weight, user_id, (int)tableColumnFlags);
+        }
+        public static void SetNextWindowPos(Vec2 pos)
+        {
+            _SetNextWindowPosOpts(pos, (int)ImGuiCond.Always, Vec2.Zero);
+        }
+        public static void SetNextWindowPos(Vec2 pos, ImGuiCond setCond, Vec2 pivot)
+        {
+            _SetNextWindowPosOpts(pos, (int)setCond, pivot);
+        }
+        public static void PushStyleColor(ImGuiCol col, Color color)
+        {
+            _PushStyleColor((int)col, color);
+        }
+        public static void PushStyleFloat(ImGuiStyleVar style, float val)
+        {
+            _PushStyleFloat((int)style, val);
+        }
+        public static void PushStyleVec2(ImGuiStyleVec2 style, Vec2 val)
+        {
+            _PushStyleVec2((int)style, val);
+        }
+        public static bool ColorButton(string desc_id, Color col)
+        {
+            return _ColorButtonOpts(desc_id, col, 0, Vec2.Zero);
+        }
+        public static bool ColorButton(string desc_id, Color col, ImGuiColorEditFlag colorEditFlags, Vec2 size)
+        {
+            return _ColorButtonOpts(desc_id, col, (int)colorEditFlags, size);
+        }
+        public static bool SliderAngleRet(string label, ref float v, float vDegreesMin, float vDegreesMax)
+        {
+            imguiStack.Push(v);
+            bool changed = _SliderAngleRet(label, imguiStack, vDegreesMin, vDegreesMax);
+            v = imguiStack.PopF32();
+            return changed;
+        }
+        public static bool ImageButton(string str_id, string clip_str, Vec2 size)
+        {
+            return ImageButtonOpts(str_id, clip_str, size, Color.Transparent, Color.White);
+        }
+        public static void TableNextRow(float minRowHeight = 0.0f, ImGuiTableRowFlag tableRowFlag = 0)
+        {
+            _TableNextRowOpts(minRowHeight, (int)tableRowFlag);
+        }
+        public static void BeginListBox(string label, Vec2 size, System.Action inside)
+        {
+            if (_BeginListBox(label, size))
+            {
+                inside();
+                _EndListBox();
+            }
+        }
+        public static void BeginGroup(System.Action inside)
+        {
+            _BeginGroup();
+            inside();
+            _EndGroup();
+        }
+        public static void BeginDisabled(System.Action inside)
+        {
+            _BeginDisabled();
+            inside();
+            _EndDisabled();
+        }
+        public static void BeginTooltip(System.Action inside)
+        {
+            if (_BeginTooltip())
+            {
+                inside();
+                _EndTooltip();
+            }
+        }
+        public static void BeginMainMenuBar(System.Action inside)
+        {
+            if (_BeginMainMenuBar())
+            {
+                inside();
+                _EndMainMenuBar();
+            }
+        }
+        public static void BeginMenuBar(System.Action inside)
+        {
+            if (_BeginMenuBar())
+            {
+                inside();
+                _EndMenuBar();
+            }
+        }
+        public static void BeginMenu(string label, bool enabled, System.Action inside)
+        {
+            if (_BeginMenu(label, enabled))
+            {
+                inside();
+                _EndMenu();
+            }
+        }
+        public static void PushItemWidth(float width, System.Action inside)
+        {
+            _PushItemWidth(width);
+            inside();
+            _PopItemWidth();
+        }
+        public static void PushTextWrapPos(float wrapPosX, System.Action inside)
+        {
+            _PushTextWrapPos(wrapPosX);
+            inside();
+            _PopTextWrapPos();
+        }
+        public static void PushItemFlag(ImGuiItemFlag flags, bool v, System.Action inside)
+        {
+            _PushItemFlag((int)flags, v);
+            inside();
+            _PopItemFlag();
+        }
+        public static void PushId(string strId, System.Action inside)
+        {
+            _PushId(strId);
+            inside();
+            _PopId();
+        }
+        public static void PushClipRect(Vec2 clipRectMin, Vec2 clipRectMax, bool intersectWithCurrentClipRect, System.Action inside)
+        {
+            _PushClipRect(clipRectMin, clipRectMax, intersectWithCurrentClipRect);
+            inside();
+            _PopClipRect();
+        }
+        public static void BeginTabBar(string strId, System.Action inside)
+        {
+            if (_BeginTabBar(strId))
+            {
+                inside();
+                _EndTabBar();
+            }
+        }
+        public static void BeginTabBar(string strId, ImGuiTabBarFlag flags, System.Action inside)
+        {
+            if (_BeginTabBarOpts(strId, (int)flags))
+            {
+                inside();
+                _EndTabBar();
+            }
+        }
+        public static void BeginTabItem(string label, System.Action inside)
+        {
+            if (_BeginTabItem(label))
+            {
+                inside();
+                _EndTabItem();
+            }
+        }
+        public static void BeginTabItem(string label, ImGuiTabItemFlag flags, System.Action inside)
+        {
+            if (_BeginTabItemOpts(label, (int)flags))
+            {
+                inside();
+                _EndTabItem();
+            }
+        }
+        public static bool BeginTabItem(string label, ref bool opened, System.Action inside)
+        {
+            return BeginTabItem(label, ref opened, 0, inside);
+        }
+        public static bool BeginTabItem(string label, ref bool opened, ImGuiTabItemFlag flags, System.Action inside)
+        {
+            imguiStack.Push(opened);
+            bool changed = _BeginTabItemRetOpts(label, imguiStack, (int)flags);
+            opened = imguiStack.PopBool();
+            if (changed)
+            {
+                inside();
+                _EndTabItem();
+            }
+            return changed;
+        }
+        public static bool TabItemButton(string label, ImGuiTabItemFlag flags)
+        {
+            return _TabItemButtonOpts(label, (int)flags);
+        }
+    }
+
+    public enum NvgImageFlag
+    {
+        /// Generate mipmaps during creation of the image.
+        GenerateMipmaps = 1 << 0,
+        /// Repeat image in X direction.
+        RepeatX = 1 << 1,
+        /// Repeat image in Y direction.
+        RepeatY = 1 << 2,
+        /// Flips (inverses) image in Y direction when rendered.
+        FlipY = 1 << 3,
+        /// Image data has premultiplied alpha.
+        Premultiplied = 1 << 4,
+        /// Image interpolation is Nearest instead Linear
+        Nearest = 1 << 5,
+    }
+
+    public enum NvgLineCap
+    {
+        Butt = 0,
+        Round = 1,
+        Square = 2,
+    }
+
+    public enum NvgLineJoin
+    {
+        Round = 1,
+        Bevel = 3,
+        Miter = 4,
+    }
+
+    public enum NvgWinding
+    {
+        /// Winding for solid shapes
+        CCW = 1,
+        /// Winding for holes
+        CW = 2,
+        Solid = CCW,
+        Hole = CW,
+    }
+
+    public enum NvgArcDir
+    {
+        CCW = 1,
+        CW = 2,
+    }
+
+    public enum NvgHAlign
+    {
+        /// Default, align text horizontally to left.
+        Left = 1 << 0,
+        /// Align text horizontally to center.
+        Center = 1 << 1,
+        /// Align text horizontally to right.
+        Right = 1 << 2,
+    }
+
+    public enum NvgVAlign
+    {
+        /// Align text vertically to top.
+        Top = 1 << 3,
+        /// Align text vertically to middle.
+        Middle = 1 << 4,
+        /// Align text vertically to bottom.
+        Bottom = 1 << 5,
+        /// Default, align text vertically to baseline.
+        BaseLine = 1 << 6,
+    }
+
+    public static partial class Nvg
+    {
+        public static int CreateImage(int w, int h, string filename, NvgImageFlag imageFlags)
+        {
+            return Native.nvg__create_image(w, h, Bridge.FromString(filename), (int)imageFlags);
+        }
+        public static void LineCap(NvgLineCap cap)
+        {
+            Native.nvg__line_cap((int)cap);
+        }
+        public static void LineJoin(NvgLineJoin join)
+        {
+            Native.nvg__line_join((int)join);
+        }
+        public static void PathWinding(NvgWinding winding)
+        {
+            Native.nvg__path_winding((int)winding);
+        }
+        public static void Arc(float x, float y, float r, float a0, float a1, NvgArcDir dir)
+        {
+            Native.nvg__arc(x, y, r, a0, a1, (int)dir);
+        }
+        public static void TextAlign(NvgHAlign hAlign, NvgVAlign vAlign)
+        {
+            Native.nvg__text_align((int)hAlign, (int)vAlign);
+        }
+    }
+
+    public sealed class WaitForSeconds
+    {
+        public double Remaining;
+        public WaitForSeconds(double seconds) => Remaining = seconds;
+    }
+    public sealed class WaitUntil
+    {
+        public Func<bool> Predicate;
+        public WaitUntil(Func<bool> predicate) => Predicate = predicate;
+    }
+    public sealed class WaitWhile
+    {
+        public Func<bool> Predicate;
+        public WaitWhile(Func<bool> predicate) => Predicate = predicate;
+    }
+
+    public static class Co
+    {
+        public static Func<double, bool> Once(Func<IEnumerator> routineFactory)
+        {
+            IEnumerator? root = null;
+            var stack = new Stack<IEnumerator>();
+            object? wait = null;
+            bool done = false;
+
+            return (double dt) =>
+            {
+                if (done) return true;
+
+                if (root == null)
+                {
+                    root = routineFactory();
+                    stack.Push(root);
+                }
+
+                if (wait is WaitForSeconds wfs)
+                {
+                    wfs.Remaining -= dt;
+                    if (wfs.Remaining > 0.0) return false;
+                    wait = null;
+                }
+                else if (wait is WaitUntil wu)
+                {
+                    if (!wu.Predicate()) return false;
+                    wait = null;
+                }
+                else if (wait is WaitWhile ww)
+                {
+                    if (ww.Predicate()) return false;
+                    wait = null;
+                }
+
+                while (!done && wait == null && stack.Count > 0)
+                {
+                    var top = stack.Peek();
+                    if (!top.MoveNext())
+                    {
+                        stack.Pop();
+                        if (stack.Count == 0) { done = true; return true; }
+                        continue;
+                    }
+
+                    var yielded = top.Current;
+                    if (yielded == null)
+                    {
+                        wait = new WaitForSeconds(0.0);
+                    }
+                    else if (yielded is WaitForSeconds or WaitUntil or WaitWhile)
+                    {
+                        wait = yielded;
+                    }
+                    else if (yielded is IEnumerator nested)
+                    {
+                        stack.Push(nested);
+                    }
+                    else
+                    {
+                        wait = new WaitForSeconds(0.0);
+                    }
+                }
+
+                return done;
+            };
         }
     }
 

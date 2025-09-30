@@ -4335,7 +4335,7 @@ pub enum ImGuiStyleVec2 {
 #[bitflags]
 #[repr(u32)]
 #[derive(Copy, Clone, Debug, PartialEq)]
-pub enum ImGuiItemFlags {
+pub enum ImGuiItemFlag {
 	NoTabStop = 1 << 0,
 	NoNav = 1 << 1,
 	NoNavDefaultFocus = 1 << 2,
@@ -5360,7 +5360,7 @@ impl ImGui {
 		opened: bool,
 		windows_flags: BitFlags<ImGuiWindowFlag>,
 		inside: C,
-	) -> bool
+	) -> (bool, bool)
 	where
 		C: FnOnce(),
 	{
@@ -5371,11 +5371,11 @@ impl ImGui {
 			changed = ImGui::_begin_popup_modal_ret_opts(name, stack, windows_flags.bits() as i32);
 			result = stack.pop_bool().unwrap();
 		});
-		if result {
+		if changed {
 			inside();
 			ImGui::_end_popup();
 		}
-		changed
+		(changed, result)
 	}
 	pub fn begin_popup_context_item<C>(name: &str, inside: C)
 	where
@@ -5643,7 +5643,7 @@ impl ImGui {
 		inside();
 		ImGui::_pop_text_wrap_pos();
 	}
-	pub fn push_item_flag<C>(flags: BitFlags<ImGuiItemFlags>, v: bool, inside: C)
+	pub fn push_item_flag<C>(flags: BitFlags<ImGuiItemFlag>, v: bool, inside: C)
 	where
 		C: FnOnce(),
 	{

@@ -35,7 +35,7 @@ func EntityFrom(raw: i64) => *Entity {
 	}
 	object := Entity{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	result := &object
 	return result
 }
@@ -86,6 +86,6 @@ func NewEntity() => Entity {
 	raw := entity_new()
 	object := Entity{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	return object
 }

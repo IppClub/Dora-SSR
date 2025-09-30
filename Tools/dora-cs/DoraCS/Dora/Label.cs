@@ -136,7 +136,7 @@ namespace Dora
 		/// the color of the outline, only works with SDF label.
 		public Color OutlineColor
 		{
-			set => Native.label_set_outline_color(Raw, (int)value.ToArgb());
+			set => Native.label_set_outline_color(Raw, (int)value.ToARGB());
 			get => new Color((uint)Native.label_get_outline_color(Raw));
 		}
 		/// the width of the outline, only works with SDF label.

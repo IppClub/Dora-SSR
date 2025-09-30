@@ -20,7 +20,7 @@ func ObserverFrom(raw: i64) => *Observer {
 	}
 	object := Observer{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	result := &object
 	return result
 }
@@ -49,6 +49,6 @@ func NewObserver(event: EntityEvent, components: *[]string) => Observer {
 	raw := entityobserver_new(event.ToValue(), ToDoraStrBuf(components))
 	object := Observer{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	return object
 }

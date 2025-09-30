@@ -160,7 +160,7 @@ namespace Dora
 		/// # Returns
 		///
 		/// * `DBRecord` - A list of rows returned by the query.
-		public static DBRecord QueryWithParams(string sql, Array params_, bool with_columns)
+		public static DBRecord Query(string sql, Array params_, bool with_columns)
 		{
 			return DBRecord.From(Native.db_query_with_params(Bridge.FromString(sql), params_.Raw, with_columns ? 1 : 0));
 		}
@@ -188,7 +188,7 @@ namespace Dora
 		/// # Returns
 		///
 		/// * `i32` - The number of rows affected by the statement.
-		public static int ExecWithRecords(string sql, DBParams values)
+		public static int Exec(string sql, DBParams values)
 		{
 			return Native.db_exec_with_records(Bridge.FromString(sql), values.Raw);
 		}
@@ -200,7 +200,7 @@ namespace Dora
 		/// * `params_` - Optional. A list of values to substitute into the SQL statement.
 		/// * `with_column` - Optional. Whether to include column names in the result. Default is `false`.
 		/// * `callback` - A callback function that is invoked when the query is executed, receiving the results as a list of rows.
-		public static void QueryWithParamsAsync(string sql, Array params_, bool with_columns, System.Action<DBRecord> callback)
+		public static void QueryAsync(string sql, Array params_, bool with_columns, System.Action<DBRecord> callback)
 		{
 			var stack0 = new CallStack();
 			var stack_raw0 = stack0.Raw;

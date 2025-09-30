@@ -35,7 +35,7 @@ func MotorJointFrom(raw: i64) => *MotorJoint {
 	}
 	object := MotorJoint{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	result := &object
 	return result
 }

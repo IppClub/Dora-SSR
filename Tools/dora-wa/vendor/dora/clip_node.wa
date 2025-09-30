@@ -38,7 +38,7 @@ func ClipNodeFrom(raw: i64) => *ClipNode {
 	}
 	object := ClipNode{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	result := &object
 	return result
 }
@@ -96,6 +96,6 @@ func NewClipNode(stencil: Node) => ClipNode {
 	raw := clipnode_new(stencil.GetRaw())
 	object := ClipNode{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	return object
 }

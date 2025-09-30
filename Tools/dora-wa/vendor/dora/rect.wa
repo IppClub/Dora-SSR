@@ -125,7 +125,7 @@ func RectFrom(raw: i64) => *Rect {
 	}
 	item := Rect{}
 	item.raw = &raw
-	setFinalizer(item.raw, rect_finalizer)
+	SetFinalizer(item.raw, rect_finalizer)
 	result := &item
 	return result
 }
@@ -335,7 +335,7 @@ func NewRect(origin: Vec2, size: Size) => Rect {
 	raw := rect_new(origin.ToValue(), size.ToValue())
 	object := Rect{}
 	object.raw = &raw
-	setFinalizer(object.raw, rect_finalizer)
+	SetFinalizer(object.raw, rect_finalizer)
 	return object
 }
 

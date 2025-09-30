@@ -92,7 +92,7 @@ namespace Dora
 		/// * `val` - The Color object to set.
 		public void SetColor(string name, Color val)
 		{
-			Native.pass_set_color(Raw, Bridge.FromString(name), (int)val.ToArgb());
+			Native.pass_set_color(Raw, Bridge.FromString(name), (int)val.ToARGB());
 		}
 		/// Creates a new Pass object.
 		///
