@@ -30,7 +30,7 @@ namespace Dora
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void drawnode_draw_segment(int64_t self, int64_t from, int64_t to, float radius, int32_t color);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern void drawnode_draw_polygon(int64_t self, int64_t verts, int32_t fill_color, float border_width, int32_t border_color);
+		public static extern void drawnode_draw_polygon(int64_t self, int64_t verts, int32_t fillColor, float borderWidth, int32_t borderColor);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void drawnode_draw_vertices(int64_t self, int64_t verts);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
@@ -42,7 +42,9 @@ namespace Dora
 
 namespace Dora
 {
+	/// <summary>
 	/// A scene node that draws simple shapes such as dots, lines, and polygons.
+	/// </summary>
 	public partial class DrawNode : Node
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
@@ -58,72 +60,72 @@ namespace Dora
 		{
 			return raw == 0 ? null : new DrawNode(raw);
 		}
-		/// whether to write to the depth buffer when drawing (default is false).
+		/// <summary>
+		/// Whether to write to the depth buffer when drawing (default is false).
+		/// </summary>
 		public bool IsDepthWrite
 		{
 			set => Native.drawnode_set_depth_write(Raw, value ? 1 : 0);
 			get => Native.drawnode_is_depth_write(Raw) != 0;
 		}
-		/// the blend function for the draw node.
+		/// <summary>
+		/// The blend function for the draw node.
+		/// </summary>
 		public BlendFunc BlendFunc
 		{
 			set => Native.drawnode_set_blend_func(Raw, value.Raw);
 			get => BlendFunc.From(Native.drawnode_get_blend_func(Raw));
 		}
+		/// <summary>
 		/// Draws a dot at a specified position with a specified radius and color.
-		///
-		/// # Arguments
-		///
-		/// * `pos` - The position of the dot.
-		/// * `radius` - The radius of the dot.
-		/// * `color` - The color of the dot.
+		/// </summary>
+		/// <param name="pos">The position of the dot.</param>
+		/// <param name="radius">The radius of the dot.</param>
+		/// <param name="color">The color of the dot.</param>
 		public void DrawDot(Vec2 pos, float radius, Color color)
 		{
 			Native.drawnode_draw_dot(Raw, pos.Raw, radius, (int)color.ToARGB());
 		}
+		/// <summary>
 		/// Draws a line segment between two points with a specified radius and color.
-		///
-		/// # Arguments
-		///
-		/// * `from` - The starting point of the line.
-		/// * `to` - The ending point of the line.
-		/// * `radius` - The radius of the line.
-		/// * `color` - The color of the line.
+		/// </summary>
+		/// <param name="from">The starting point of the line.</param>
+		/// <param name="to">The ending point of the line.</param>
+		/// <param name="radius">The radius of the line.</param>
+		/// <param name="color">The color of the line.</param>
 		public void DrawSegment(Vec2 from, Vec2 to, float radius, Color color)
 		{
 			Native.drawnode_draw_segment(Raw, from.Raw, to.Raw, radius, (int)color.ToARGB());
 		}
+		/// <summary>
 		/// Draws a polygon defined by a list of vertices with a specified fill color and border.
-		///
-		/// # Arguments
-		///
-		/// * `verts` - The vertices of the polygon.
-		/// * `fill_color` - The fill color of the polygon.
-		/// * `border_width` - The width of the border.
-		/// * `border_color` - The color of the border.
-		public void DrawPolygon(IEnumerable<Vec2> verts, Color fill_color, float border_width, Color border_color)
+		/// </summary>
+		/// <param name="verts">The vertices of the polygon.</param>
+		/// <param name="fillColor">The fill color of the polygon.</param>
+		/// <param name="borderWidth">The width of the border.</param>
+		/// <param name="borderColor">The color of the border.</param>
+		public void DrawPolygon(IEnumerable<Vec2> verts, Color fillColor, float borderWidth, Color borderColor)
 		{
-			Native.drawnode_draw_polygon(Raw, Bridge.FromArray(verts), (int)fill_color.ToARGB(), border_width, (int)border_color.ToARGB());
+			Native.drawnode_draw_polygon(Raw, Bridge.FromArray(verts), (int)fillColor.ToARGB(), borderWidth, (int)borderColor.ToARGB());
 		}
+		/// <summary>
 		/// Draws a set of vertices as triangles, each vertex with its own color.
-		///
-		/// # Arguments
-		///
-		/// * `verts` - The list of vertices and their colors. Each element is a tuple where the first element is a `Vec2` and the second element is a `Color`.
+		/// </summary>
+		/// <param name="verts">The list of vertices and their colors. Each element is a tuple where the first element is a `Vec2` and the second element is a `Color`.</param>
 		public void DrawVertices(IEnumerable<VertexColor> verts)
 		{
 			Native.drawnode_draw_vertices(Raw, Bridge.FromArray(verts));
 		}
+		/// <summary>
 		/// Clears all previously drawn shapes from the node.
+		/// </summary>
 		public void Clear()
 		{
 			Native.drawnode_clear(Raw);
 		}
+		/// <summary>
 		/// Creates a new DrawNode object.
-		///
-		/// # Returns
-		///
-		/// * A new `DrawNode` object.
+		/// </summary>
 		public DrawNode() : this(Native.drawnode_new()) { }
 	}
 } // namespace Dora

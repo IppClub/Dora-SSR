@@ -58,7 +58,9 @@ namespace Dora
 
 namespace Dora
 {
+	/// <summary>
 	/// Another implementation of the 'Playable' animation interface.
+	/// </summary>
 	public partial class Model : Playable
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
@@ -74,167 +76,144 @@ namespace Dora
 		{
 			return raw == 0 ? null : new Model(raw);
 		}
-		/// the duration of the current animation.
+		/// <summary>
+		/// The duration of the current animation.
+		/// </summary>
 		public float Duration
 		{
 			get => Native.model_get_duration(Raw);
 		}
-		/// whether the animation model will be played in reverse.
+		/// <summary>
+		/// Whether the animation model will be played in reverse.
+		/// </summary>
 		public bool IsReversed
 		{
 			set => Native.model_set_reversed(Raw, value ? 1 : 0);
 			get => Native.model_is_reversed(Raw) != 0;
 		}
-		/// whether the animation model is currently playing.
+		/// <summary>
+		/// Whether the animation model is currently playing.
+		/// </summary>
 		public bool IsPlaying
 		{
 			get => Native.model_is_playing(Raw) != 0;
 		}
-		/// whether the animation model is currently paused.
+		/// <summary>
+		/// Whether the animation model is currently paused.
+		/// </summary>
 		public bool IsPaused
 		{
 			get => Native.model_is_paused(Raw) != 0;
 		}
+		/// <summary>
 		/// Checks if an animation exists in the model.
-		///
-		/// # Arguments
-		///
-		/// * `name` - The name of the animation to check.
-		///
-		/// # Returns
-		///
-		/// * `bool` - Whether the animation exists in the model or not.
+		/// </summary>
+		/// <param name="name">The name of the animation to check.</param>
+		/// <returns>Whether the animation exists in the model or not.</returns>
 		public bool HasAnimation(string name)
 		{
 			return Native.model_has_animation(Raw, Bridge.FromString(name)) != 0;
 		}
+		/// <summary>
 		/// Pauses the currently playing animation.
+		/// </summary>
 		public void Pause()
 		{
 			Native.model_pause(Raw);
 		}
+		/// <summary>
 		/// Resumes the currently paused animation,
+		/// </summary>
 		public void Resume()
 		{
 			Native.model_resume(Raw);
 		}
+		/// <summary>
 		/// Resumes the currently paused animation, or plays a new animation if specified.
-		///
-		/// # Arguments
-		///
-		/// * `name` - The name of the animation to play.
-		/// * `loop` - Whether to loop the animation or not.
+		/// </summary>
+		/// <param name="name">The name of the animation to play.</param>
+		/// <param name="looping">Whether to loop the animation or not.</param>
 		public void ResumeAnimation(string name, bool looping)
 		{
 			Native.model_resume_animation(Raw, Bridge.FromString(name), looping ? 1 : 0);
 		}
+		/// <summary>
 		/// Resets the current animation to its initial state.
+		/// </summary>
 		public void Reset()
 		{
 			Native.model_reset(Raw);
 		}
+		/// <summary>
 		/// Updates the animation to the specified time, and optionally in reverse.
-		///
-		/// # Arguments
-		///
-		/// * `elapsed` - The time to update to.
-		/// * `reversed` - Whether to play the animation in reverse.
+		/// </summary>
+		/// <param name="elapsed">The time to update to.</param>
+		/// <param name="reversed">Whether to play the animation in reverse.</param>
 		public void UpdateTo(float elapsed, bool reversed)
 		{
 			Native.model_update_to(Raw, elapsed, reversed ? 1 : 0);
 		}
+		/// <summary>
 		/// Gets the node with the specified name.
-		///
-		/// # Arguments
-		///
-		/// * `name` - The name of the node to get.
-		///
-		/// # Returns
-		///
-		/// * The node with the specified name.
+		/// </summary>
+		/// <param name="name">The name of the node to get.</param>
 		public Node GetNodeByName(string name)
 		{
 			return Node.From(Native.model_get_node_by_name(Raw, Bridge.FromString(name)));
 		}
+		/// <summary>
 		/// Calls the specified function for each node in the model, and stops if the function returns `false`.
-		///
-		/// # Arguments
-		///
-		/// * `visitorFunc` - The function to call for each node.
-		///
-		/// # Returns
-		///
-		/// * `bool` - Whether the function was called for all nodes or not.
-		public bool EachNode(Func<Node, bool> visitor_func)
+		/// </summary>
+		/// <param name="visitorFunc">The function to call for each node.</param>
+		/// <returns>Whether the function was called for all nodes or not.</returns>
+		public bool EachNode(Func<Node, bool> visitorFunc)
 		{
 			var stack0 = new CallStack();
 			var stack_raw0 = stack0.Raw;
 			var func_id0 = Bridge.PushFunction(() =>
 			{
-				var result = visitor_func((Node)stack0.PopObject());
+				var result = visitorFunc((Node)stack0.PopObject());
 				stack0.Push(result);
 			});
 			return Native.model_each_node(Raw, func_id0, stack_raw0) != 0;
 		}
+		/// <summary>
 		/// Creates a new instance of 'Model' from the specified model file.
-		///
-		/// # Arguments
-		///
-		/// * `filename` - The filename of the model file to load. Can be filename with or without extension like: "Model/item" or "Model/item.model".
-		///
-		/// # Returns
-		///
-		/// * A new instance of 'Model'.
+		/// </summary>
+		/// <param name="filename">The filename of the model file to load. Can be filename with or without extension like: "Model/item" or "Model/item.model".</param>
 		public Model(string filename) : this(Native.model_new(Bridge.FromString(filename))) { }
 		public static new Model? TryCreate(string filename)
 		{
 			var raw = Native.model_new(Bridge.FromString(filename));
 			return raw == 0 ? null : new Model(raw);
 		}
+		/// <summary>
 		/// Returns a new dummy instance of 'Model' that can do nothing.
-		///
-		/// # Returns
-		///
-		/// * A new dummy instance of 'Model'.
+		/// </summary>
 		public static Model Dummy()
 		{
 			return Model.From(Native.model_dummy());
 		}
+		/// <summary>
 		/// Gets the clip file from the specified model file.
-		///
-		/// # Arguments
-		///
-		/// * `filename` - The filename of the model file to search.
-		///
-		/// # Returns
-		///
-		/// * A `String` representing the name of the clip file.
+		/// </summary>
+		/// <param name="filename">The filename of the model file to search.</param>
 		public static string GetClipFile(string filename)
 		{
 			return Bridge.ToString(Native.model_get_clip_file(Bridge.FromString(filename)));
 		}
+		/// <summary>
 		/// Gets an array of look names from the specified model file.
-		///
-		/// # Arguments
-		///
-		/// * `filename` - The filename of the model file to search.
-		///
-		/// # Returns
-		///
-		/// * A `Vec<String>` representing an array of look names found in the model file.
+		/// </summary>
+		/// <param name="filename">The filename of the model file to search.</param>
 		public static string[] GetLooks(string filename)
 		{
 			return Bridge.ToStringArray(Native.model_get_looks(Bridge.FromString(filename)));
 		}
+		/// <summary>
 		/// Gets an array of animation names from the specified model file.
-		///
-		/// # Arguments
-		///
-		/// * `filename` - The filename of the model file to search.
-		///
-		/// # Returns
-		///
-		/// * A `Vec<String>` representing an array of animation names found in the model file.
+		/// </summary>
+		/// <param name="filename">The filename of the model file to search.</param>
 		public static string[] GetAnimations(string filename)
 		{
 			return Bridge.ToStringArray(Native.model_get_animations(Bridge.FromString(filename)));

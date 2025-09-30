@@ -18,6 +18,7 @@ App.Run(() =>
         yield return new WaitForSeconds(3.0);
         Log.Print("after 3s");
         node.RemoveFromParent(true);
+        Log.Print("destroyed sprite");
     }
     node.OnTapped((touch) =>
     {

@@ -44,7 +44,9 @@ namespace Dora
 
 namespace Dora
 {
+	/// <summary>
 	/// Represents an action that can be run on a node.
+	/// </summary>
 	public partial class Action : Object
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
@@ -60,63 +62,72 @@ namespace Dora
 		{
 			return raw == 0 ? null : new Action(raw);
 		}
-		/// the duration of the action.
+		/// <summary>
+		/// The duration of the action.
+		/// </summary>
 		public float Duration
 		{
 			get => Native.action_get_duration(Raw);
 		}
-		/// whether the action is currently running.
+		/// <summary>
+		/// Whether the action is currently running.
+		/// </summary>
 		public bool IsRunning
 		{
 			get => Native.action_is_running(Raw) != 0;
 		}
-		/// whether the action is currently paused.
+		/// <summary>
+		/// Whether the action is currently paused.
+		/// </summary>
 		public bool IsPaused
 		{
 			get => Native.action_is_paused(Raw) != 0;
 		}
-		/// whether the action should be run in reverse.
+		/// <summary>
+		/// Whether the action should be run in reverse.
+		/// </summary>
 		public bool IsReversed
 		{
 			set => Native.action_set_reversed(Raw, value ? 1 : 0);
 			get => Native.action_is_reversed(Raw) != 0;
 		}
-		/// the speed at which the action should be run.
+		/// <summary>
+		/// The speed at which the action should be run.
 		/// Set to 1.0 to get normal speed, Set to 2.0 to get two times faster.
+		/// </summary>
 		public float Speed
 		{
 			set => Native.action_set_speed(Raw, value);
 			get => Native.action_get_speed(Raw);
 		}
+		/// <summary>
 		/// Pauses the action.
+		/// </summary>
 		public void Pause()
 		{
 			Native.action_pause(Raw);
 		}
+		/// <summary>
 		/// Resumes the action.
+		/// </summary>
 		public void Resume()
 		{
 			Native.action_resume(Raw);
 		}
+		/// <summary>
 		/// Updates the state of the Action.
-		///
-		/// # Arguments
-		///
-		/// * `elapsed` - The amount of time in seconds that has elapsed to update action to.
-		/// * `reversed` - Whether or not to update the Action in reverse.
+		/// </summary>
+		/// <param name="elapsed">The amount of time in seconds that has elapsed to update action to.</param>
+		/// <param name="reversed">Whether or not to update the Action in reverse.</param>
 		public void UpdateTo(float elapsed, bool reversed)
 		{
 			Native.action_update_to(Raw, elapsed, reversed ? 1 : 0);
 		}
+		/// <summary>
 		/// Creates a new Action object.
-		///
-		/// # Arguments
-		///
-		/// * `def` - The definition of the action.
-		///
-		/// # Returns
-		///
-		/// * `Action` - A new Action object.
+		/// </summary>
+		/// <param name="def">The definition of the action.</param>
+		/// <returns>A new Action object.</returns>
 		public Action(ActionDef def) : this(Native.action_new(def.Raw)) { }
 	}
 } // namespace Dora

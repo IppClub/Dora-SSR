@@ -24,7 +24,9 @@ namespace Dora
 
 namespace Dora.Platformer.Behavior
 {
+	/// <summary>
 	/// A blackboard object that can be used to store data for behavior tree nodes.
+	/// </summary>
 	public partial class Blackboard
 	{
 		private Blackboard(long raw)
@@ -37,12 +39,16 @@ namespace Dora.Platformer.Behavior
 		{
 			return new Blackboard(raw);
 		}
-		/// the time since the last frame update in seconds.
+		/// <summary>
+		/// The time since the last frame update in seconds.
+		/// </summary>
 		public double DeltaTime
 		{
 			get => Native.platformer_behavior_blackboard_get_delta_time(Raw);
 		}
-		/// the unit that the AI agent belongs to.
+		/// <summary>
+		/// The unit that the AI agent belongs to.
+		/// </summary>
 		public Platformer.Unit Owner
 		{
 			get => Platformer.Unit.From(Native.platformer_behavior_blackboard_get_owner(Raw));

@@ -34,15 +34,15 @@ namespace Dora
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int64_t actiondef_hide();
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int64_t actiondef_event(int64_t event_name, int64_t msg);
+		public static extern int64_t actiondef_event(int64_t eventName, int64_t msg);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int64_t actiondef_move_to(float duration, int64_t start, int64_t stop, int32_t easing);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int64_t actiondef_scale(float duration, float start, float stop, int32_t easing);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int64_t actiondef_frame(int64_t clip_str, float duration);
+		public static extern int64_t actiondef_frame(int64_t clipStr, float duration);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int64_t actiondef_frame_with_frames(int64_t clip_str, float duration, int64_t frames);
+		public static extern int64_t actiondef_frame_with_frames(int64_t clipStr, float duration, int64_t frames);
 	}
 } // namespace Dora
 
@@ -64,178 +64,138 @@ namespace Dora
 		{
 			return new ActionDef(raw);
 		}
+		/// <summary>
 		/// Creates a new action definition object to change a property of a node.
-		///
-		/// # Arguments
-		///
-		/// * `duration` - The duration of the action.
-		/// * `start` - The starting value of the property.
-		/// * `stop` - The ending value of the property.
-		/// * `prop` - The property to change.
-		/// * `easing` - The easing function to use.
-		///
-		/// # Returns
-		///
-		/// * `ActionDef` - A new ActionDef object.
+		/// </summary>
+		/// <param name="duration">The duration of the action.</param>
+		/// <param name="start">The starting value of the property.</param>
+		/// <param name="stop">The ending value of the property.</param>
+		/// <param name="prop">The property to change.</param>
+		/// <param name="easing">The easing function to use.</param>
+		/// <returns>A new ActionDef object.</returns>
 		public static ActionDef Prop(float duration, float start, float stop, Property prop, EaseType easing)
 		{
 			return ActionDef.From(Native.actiondef_prop(duration, start, stop, (int)prop, (int)easing));
 		}
+		/// <summary>
 		/// Creates a new action definition object to change the color of a node.
-		///
-		/// # Arguments
-		///
-		/// * `duration` - The duration of the action.
-		/// * `start` - The starting color.
-		/// * `stop` - The ending color.
-		/// * `easing` - The easing function to use.
-		///
-		/// # Returns
-		///
-		/// * `ActionDef` - A new ActionDef object.
+		/// </summary>
+		/// <param name="duration">The duration of the action.</param>
+		/// <param name="start">The starting color.</param>
+		/// <param name="stop">The ending color.</param>
+		/// <param name="easing">The easing function to use.</param>
+		/// <returns>A new ActionDef object.</returns>
 		public static ActionDef Tint(float duration, Color3 start, Color3 stop, EaseType easing)
 		{
 			return ActionDef.From(Native.actiondef_tint(duration, (int)start.ToRGB(), (int)stop.ToRGB(), (int)easing));
 		}
+		/// <summary>
 		/// Creates a new action definition object to rotate a node by smallest angle.
-		///
-		/// # Arguments
-		///
-		/// * `duration` - The duration of the action.
-		/// * `start` - The starting angle.
-		/// * `stop` - The ending angle.
-		/// * `easing` - The easing function to use.
-		///
-		/// # Returns
-		///
-		/// * `ActionDef` - A new ActionDef object.
+		/// </summary>
+		/// <param name="duration">The duration of the action.</param>
+		/// <param name="start">The starting angle.</param>
+		/// <param name="stop">The ending angle.</param>
+		/// <param name="easing">The easing function to use.</param>
+		/// <returns>A new ActionDef object.</returns>
 		public static ActionDef Roll(float duration, float start, float stop, EaseType easing)
 		{
 			return ActionDef.From(Native.actiondef_roll(duration, start, stop, (int)easing));
 		}
+		/// <summary>
 		/// Creates a new action definition object to run a group of actions in parallel.
-		///
-		/// # Arguments
-		///
-		/// * `defs` - The actions to run in parallel.
-		///
-		/// # Returns
-		///
-		/// * `ActionDef` - A new ActionDef object.
+		/// </summary>
+		/// <param name="defs">The actions to run in parallel.</param>
+		/// <returns>A new ActionDef object.</returns>
 		public static ActionDef Spawn(IEnumerable<ActionDef> defs)
 		{
 			return ActionDef.From(Native.actiondef_spawn(Bridge.FromArray(defs)));
 		}
+		/// <summary>
 		/// Creates a new action definition object to run a group of actions in sequence.
-		///
-		/// # Arguments
-		///
-		/// * `defs` - The actions to run in sequence.
-		///
-		/// # Returns
-		///
-		/// * `ActionDef` - A new ActionDef object.
+		/// </summary>
+		/// <param name="defs">The actions to run in sequence.</param>
+		/// <returns>A new ActionDef object.</returns>
 		public static ActionDef Sequence(IEnumerable<ActionDef> defs)
 		{
 			return ActionDef.From(Native.actiondef_sequence(Bridge.FromArray(defs)));
 		}
+		/// <summary>
 		/// Creates a new action definition object to delay the execution of following action.
-		///
-		/// # Arguments
-		///
-		/// * `duration` - The duration of the delay.
-		///
-		/// # Returns
-		///
-		/// * `ActionDef` - A new ActionDef object.
+		/// </summary>
+		/// <param name="duration">The duration of the delay.</param>
+		/// <returns>A new ActionDef object.</returns>
 		public static ActionDef Delay(float duration)
 		{
 			return ActionDef.From(Native.actiondef_delay(duration));
 		}
+		/// <summary>
 		/// Creates a new action definition object to show a node.
+		/// </summary>
 		public static ActionDef Show()
 		{
 			return ActionDef.From(Native.actiondef_show());
 		}
+		/// <summary>
 		/// Creates a new action definition object to hide a node.
+		/// </summary>
 		public static ActionDef Hide()
 		{
 			return ActionDef.From(Native.actiondef_hide());
 		}
+		/// <summary>
 		/// Creates a new action definition object to emit an event.
-		///
-		/// # Arguments
-		///
-		/// * `eventName` - The name of the event to emit.
-		/// * `msg` - The message to send with the event.
-		///
-		/// # Returns
-		///
-		/// * `ActionDef` - A new ActionDef object.
-		public static ActionDef Event(string event_name, string msg)
+		/// </summary>
+		/// <param name="eventName">The name of the event to emit.</param>
+		/// <param name="msg">The message to send with the event.</param>
+		/// <returns>A new ActionDef object.</returns>
+		public static ActionDef Event(string eventName, string msg)
 		{
-			return ActionDef.From(Native.actiondef_event(Bridge.FromString(event_name), Bridge.FromString(msg)));
+			return ActionDef.From(Native.actiondef_event(Bridge.FromString(eventName), Bridge.FromString(msg)));
 		}
+		/// <summary>
 		/// Creates a new action definition object to move a node.
-		///
-		/// # Arguments
-		///
-		/// * `duration` - The duration of the action.
-		/// * `start` - The starting position.
-		/// * `stop` - The ending position.
-		/// * `easing` - The easing function to use.
-		///
-		/// # Returns
-		///
-		/// * `ActionDef` - A new ActionDef object.
+		/// </summary>
+		/// <param name="duration">The duration of the action.</param>
+		/// <param name="start">The starting position.</param>
+		/// <param name="stop">The ending position.</param>
+		/// <param name="easing">The easing function to use.</param>
+		/// <returns>A new ActionDef object.</returns>
 		public static ActionDef MoveTo(float duration, Vec2 start, Vec2 stop, EaseType easing)
 		{
 			return ActionDef.From(Native.actiondef_move_to(duration, start.Raw, stop.Raw, (int)easing));
 		}
+		/// <summary>
 		/// Creates a new action definition object to scale a node.
-		///
-		/// # Arguments
-		///
-		/// * `duration` - The duration of the action.
-		/// * `start` - The starting scale.
-		/// * `stop` - The ending scale.
-		/// * `easing` - The easing function to use.
-		///
-		/// # Returns
-		///
-		/// * `ActionDef` - A new ActionDef object.
+		/// </summary>
+		/// <param name="duration">The duration of the action.</param>
+		/// <param name="start">The starting scale.</param>
+		/// <param name="stop">The ending scale.</param>
+		/// <param name="easing">The easing function to use.</param>
+		/// <returns>A new ActionDef object.</returns>
 		public static ActionDef Scale(float duration, float start, float stop, EaseType easing)
 		{
 			return ActionDef.From(Native.actiondef_scale(duration, start, stop, (int)easing));
 		}
+		/// <summary>
 		/// Creates a new action definition object to do a frame animation. Can only be performed on a Sprite node.
-		///
-		/// # Arguments
-		///
-		/// * `clipStr` - The name of the image clip, which is a sprite sheet. Can be "Image/file.png" and "Image/items.clip|itemA". Supports image file format: jpg, png, dds, pvr, ktx.
-		/// * `duration` - The duration of the action.
-		///
-		/// # Returns
-		///
-		/// * `ActionDef` - A new ActionDef object.
-		public static ActionDef Frame(string clip_str, float duration)
+		/// </summary>
+		/// <param name="clipStr">The name of the image clip, which is a sprite sheet. Can be "Image/file.png" and "Image/items.clip|itemA". Supports image file format: jpg, png, dds, pvr, ktx.</param>
+		/// <param name="duration">The duration of the action.</param>
+		/// <returns>A new ActionDef object.</returns>
+		public static ActionDef Frame(string clipStr, float duration)
 		{
-			return ActionDef.From(Native.actiondef_frame(Bridge.FromString(clip_str), duration));
+			return ActionDef.From(Native.actiondef_frame(Bridge.FromString(clipStr), duration));
 		}
+		/// <summary>
 		/// Creates a new action definition object to do a frame animation with frames count for each frame. Can only be performed on a Sprite node.
-		///
-		/// # Arguments
-		///
-		/// * `clipStr` - The name of the image clip, which is a sprite sheet. Can be "Image/file.png" and "Image/items.clip|itemA". Supports image file format: jpg, png, dds, pvr, ktx.
-		/// * `duration` - The duration of the action.
-		/// * `frames` - The number of frames for each frame.
-		///
-		/// # Returns
-		///
-		/// * `Action` - A new Action object.
-		public static ActionDef Frame(string clip_str, float duration, IEnumerable<int> frames)
+		/// </summary>
+		/// <param name="clipStr">The name of the image clip, which is a sprite sheet. Can be "Image/file.png" and "Image/items.clip|itemA". Supports image file format: jpg, png, dds, pvr, ktx.</param>
+		/// <param name="duration">The duration of the action.</param>
+		/// <param name="frames">The number of frames for each frame.</param>
+		/// <returns>A new Action object.</returns>
+		public static ActionDef Frame(string clipStr, float duration, IEnumerable<int> frames)
 		{
-			return ActionDef.From(Native.actiondef_frame_with_frames(Bridge.FromString(clip_str), duration, Bridge.FromArray(frames)));
+			return ActionDef.From(Native.actiondef_frame_with_frames(Bridge.FromString(clipStr), duration, Bridge.FromArray(frames)));
 		}
 	}
 } // namespace Dora

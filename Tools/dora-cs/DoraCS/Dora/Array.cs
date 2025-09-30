@@ -32,7 +32,7 @@ namespace Dora
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void array_shrink(int64_t self);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern void array_swap(int64_t self, int32_t index_a, int32_t index_b);
+		public static extern void array_swap(int64_t self, int32_t indexA, int32_t indexB);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int32_t array_remove_at(int64_t self, int32_t index);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
@@ -44,7 +44,9 @@ namespace Dora
 
 namespace Dora
 {
+	/// <summary>
 	/// An array data structure that supports various operations.
+	/// </summary>
 	public partial class Array : Object
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
@@ -60,87 +62,88 @@ namespace Dora
 		{
 			return raw == 0 ? null : new Array(raw);
 		}
-		/// the number of items in the array.
+		/// <summary>
+		/// The number of items in the array.
+		/// </summary>
 		public long Count
 		{
 			get => Native.array_get_count(Raw);
 		}
-		/// whether the array is empty or not.
+		/// <summary>
+		/// Whether the array is empty or not.
+		/// </summary>
 		public bool IsEmpty
 		{
 			get => Native.array_is_empty(Raw) != 0;
 		}
+		/// <summary>
 		/// Adds all items from another array to the end of this array.
-		///
-		/// # Arguments
-		///
-		/// * `other` - Another array object.
+		/// </summary>
+		/// <param name="other">Another array object.</param>
 		public void AddRange(Array other)
 		{
 			Native.array_add_range(Raw, other.Raw);
 		}
+		/// <summary>
 		/// Removes all items from this array that are also in another array.
-		///
-		/// # Arguments
-		///
-		/// * `other` - Another array object.
+		/// </summary>
+		/// <param name="other">Another array object.</param>
 		public void RemoveFrom(Array other)
 		{
 			Native.array_remove_from(Raw, other.Raw);
 		}
+		/// <summary>
 		/// Removes all items from the array.
+		/// </summary>
 		public void Clear()
 		{
 			Native.array_clear(Raw);
 		}
+		/// <summary>
 		/// Reverses the order of the items in the array.
+		/// </summary>
 		public void Reverse()
 		{
 			Native.array_reverse(Raw);
 		}
+		/// <summary>
 		/// Removes any empty slots from the end of the array.
 		/// This method is used to release the unused memory this array holds.
+		/// </summary>
 		public void Shrink()
 		{
 			Native.array_shrink(Raw);
 		}
+		/// <summary>
 		/// Swaps the items at two given indices.
-		///
-		/// # Arguments
-		///
-		/// * `index_a` - The first index.
-		/// * `index_b` - The second index.
-		public void Swap(int index_a, int index_b)
+		/// </summary>
+		/// <param name="indexA">The first index.</param>
+		/// <param name="indexB">The second index.</param>
+		public void Swap(int indexA, int indexB)
 		{
-			Native.array_swap(Raw, index_a, index_b);
+			Native.array_swap(Raw, indexA, indexB);
 		}
+		/// <summary>
 		/// Removes the item at the given index.
-		///
-		/// # Arguments
-		///
-		/// * `index` - The index to remove.
-		///
-		/// # Returns
-		///
-		/// * `bool` - `true` if an item was removed, `false` otherwise.
+		/// </summary>
+		/// <param name="index">The index to remove.</param>
+		/// <returns>`true` if an item was removed, `false` otherwise.</returns>
 		public bool RemoveAt(int index)
 		{
 			return Native.array_remove_at(Raw, index) != 0;
 		}
+		/// <summary>
 		/// Removes the item at the given index without preserving the order of the array.
-		///
-		/// # Arguments
-		///
-		/// * `index` - The index to remove.
-		///
-		/// # Returns
-		///
-		/// * `bool` - `true` if an item was removed, `false` otherwise.
+		/// </summary>
+		/// <param name="index">The index to remove.</param>
+		/// <returns>`true` if an item was removed, `false` otherwise.</returns>
 		public bool FastRemoveAt(int index)
 		{
 			return Native.array_fast_remove_at(Raw, index) != 0;
 		}
+		/// <summary>
 		/// Creates a new array object
+		/// </summary>
 		public Array() : this(Native.array_new()) { }
 	}
 } // namespace Dora

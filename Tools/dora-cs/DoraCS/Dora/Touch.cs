@@ -36,7 +36,9 @@ namespace Dora
 
 namespace Dora
 {
+	/// <summary>
 	/// Represents a touch input or mouse click event.
+	/// </summary>
 	public partial class Touch : Object
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
@@ -52,33 +54,45 @@ namespace Dora
 		{
 			return raw == 0 ? null : new Touch(raw);
 		}
-		/// whether touch input is enabled or not.
+		/// <summary>
+		/// Whether touch input is enabled or not.
+		/// </summary>
 		public bool IsEnabled
 		{
 			set => Native.touch_set_enabled(Raw, value ? 1 : 0);
 			get => Native.touch_is_enabled(Raw) != 0;
 		}
-		/// whether this is the first touch event when multi-touches exist.
+		/// <summary>
+		/// Whether this is the first touch event when multi-touches exist.
+		/// </summary>
 		public bool IsFirst
 		{
 			get => Native.touch_is_first(Raw) != 0;
 		}
-		/// the unique identifier assigned to this touch event.
+		/// <summary>
+		/// The unique identifier assigned to this touch event.
+		/// </summary>
 		public int Id
 		{
 			get => Native.touch_get_id(Raw);
 		}
-		/// the amount and direction of movement since the last touch event.
+		/// <summary>
+		/// The amount and direction of movement since the last touch event.
+		/// </summary>
 		public Vec2 Delta
 		{
 			get => Vec2.From(Native.touch_get_delta(Raw));
 		}
-		/// the location of the touch event in the node's local coordinate system.
+		/// <summary>
+		/// The location of the touch event in the node's local coordinate system.
+		/// </summary>
 		public Vec2 Location
 		{
 			get => Vec2.From(Native.touch_get_location(Raw));
 		}
-		/// the location of the touch event in the world coordinate system.
+		/// <summary>
+		/// The location of the touch event in the world coordinate system.
+		/// </summary>
 		public Vec2 WorldLocation
 		{
 			get => Vec2.From(Native.touch_get_world_location(Raw));

@@ -22,13 +22,15 @@ namespace Dora
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void vgnode_render(int64_t self, int32_t func0);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int64_t vgnode_new(float width, float height, float scale, int32_t edge_aa);
+		public static extern int64_t vgnode_new(float width, float height, float scale, int32_t edgeAA);
 	}
 } // namespace Dora
 
 namespace Dora
 {
+	/// <summary>
 	/// A node for rendering vector graphics.
+	/// </summary>
 	public partial class VGNode : Node
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
@@ -44,49 +46,33 @@ namespace Dora
 		{
 			return raw == 0 ? null : new VGNode(raw);
 		}
+		/// <summary>
 		/// The surface of the node for displaying frame buffer texture that contains vector graphics.
-		/// You can get the texture of the surface by calling `vgNode.get_surface().get_texture()`.
+		/// You can get the texture of the surface by calling `vgNode.Surface.Texture`.
+		/// </summary>
 		public Sprite Surface
 		{
 			get => Sprite.From(Native.vgnode_get_surface(Raw));
 		}
+		/// <summary>
 		/// The function for rendering vector graphics.
-		///
-		/// # Arguments
-		///
-		/// * `renderFunc` - The closure function for rendering vector graphics. You can do the rendering operations inside this closure.
-		///
-		/// # Example
-		///
-		/// ```
-		/// vgNode.render(|| {
-		/// 	Nvg::begin_path();
-		/// 	Nvg::move_to(100.0, 100.0);
-		/// 	Nvg::line_to(200.0, 200.0);
-		/// 	Nvg::close_path();
-		/// 	Nvg::stroke();
-		/// });
-		/// ```
-		public void Render(System.Action render_func)
+		/// </summary>
+		/// <param name="renderFunc">The closure function for rendering vector graphics. You can do the rendering operations inside this closure.</param>
+		public void Render(System.Action renderFunc)
 		{
 			var func_id0 = Bridge.PushFunction(() =>
 			{
-				render_func();
+				renderFunc();
 			});
 			Native.vgnode_render(Raw, func_id0);
 		}
+		/// <summary>
 		/// Creates a new VGNode object with the specified width and height.
-		///
-		/// # Arguments
-		///
-		/// * `width` - The width of the node's frame buffer texture.
-		/// * `height` - The height of the node's frame buffer texture.
-		/// * `scale` - The scale factor of the VGNode.
-		/// * `edge_aa` - The edge anti-aliasing factor of the VGNode.
-		///
-		/// # Returns
-		///
-		/// * The newly created VGNode object.
-		public VGNode(float width, float height, float scale, int edge_aa) : this(Native.vgnode_new(width, height, scale, edge_aa)) { }
+		/// </summary>
+		/// <param name="width">The width of the node's frame buffer texture.</param>
+		/// <param name="height">The height of the node's frame buffer texture.</param>
+		/// <param name="scale">The scale factor of the VGNode.</param>
+		/// <param name="edgeAA">The edge anti-aliasing factor of the VGNode.</param>
+		public VGNode(float width, float height, float scale, int edgeAA) : this(Native.vgnode_new(width, height, scale, edgeAA)) { }
 	}
 } // namespace Dora

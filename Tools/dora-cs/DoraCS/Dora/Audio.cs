@@ -34,38 +34,46 @@ namespace Dora
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void audio_stop(int32_t handle);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern void audio_play_stream(int64_t filename, int32_t looping, float cross_fade_time);
+		public static extern void audio_play_stream(int64_t filename, int32_t looping, float crossFadeTime);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern void audio_stop_stream(float fade_time);
+		public static extern void audio_stop_stream(float fadeTime);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void audio_set_pause_all_current(int32_t pause);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern void audio_set_listener_at(float at_x, float at_y, float at_z);
+		public static extern void audio_set_listener_at(float atX, float atY, float atZ);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern void audio_set_listener_up(float up_x, float up_y, float up_z);
+		public static extern void audio_set_listener_up(float upX, float upY, float upZ);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern void audio_set_listener_velocity(float velocity_x, float velocity_y, float velocity_z);
+		public static extern void audio_set_listener_velocity(float velocityX, float velocityY, float velocityZ);
 	}
 } // namespace Dora
 
 namespace Dora
 {
+	/// <summary>
 	/// A interface of an audio player.
+	/// </summary>
 	public static partial class Audio
 	{
+		/// <summary>
 		/// The speed of the 3D sound.
+		/// </summary>
 		public static float SoundSpeed
 		{
 			set => Native.audio_set_sound_speed(value);
 			get => Native.audio_get_sound_speed();
 		}
+		/// <summary>
 		/// The global volume of the audio. The value is between 0.0 and 1.0.
+		/// </summary>
 		public static float GlobalVolume
 		{
 			set => Native.audio_set_global_volume(value);
 			get => Native.audio_get_global_volume();
 		}
+		/// <summary>
 		/// The 3D listener as a node of the audio.
+		/// </summary>
 		public static Node? Listener
 		{
 			set
@@ -75,90 +83,79 @@ namespace Dora
 			}
 			get => Node.FromOpt(Native.audio_get_listener());
 		}
+		/// <summary>
 		/// Plays a sound effect and returns a handler for the audio.
-		///
-		/// # Arguments
-		///
-		/// * `filename` - The path to the sound effect file (must be a WAV file).
-		/// * `loop` - Optional. Whether to loop the sound effect. Default is `false`.
-		///
-		/// # Returns
-		///
-		/// * `i32` - A handler for the audio that can be used to stop the sound effect.
+		/// </summary>
+		/// <param name="filename">The path to the sound effect file (must be a WAV file).</param>
+		/// <param name="looping">Optional. Whether to loop the sound effect. Default is `false`.</param>
+		/// <returns>A handler for the audio that can be used to stop the sound effect.</returns>
 		public static int Play(string filename, bool looping)
 		{
 			return Native.audio_play(Bridge.FromString(filename), looping ? 1 : 0);
 		}
+		/// <summary>
 		/// Stops a sound effect that is currently playing.
-		///
-		/// # Arguments
-		///
-		/// * `handler` - The handler for the audio that is returned by the `play` function.
+		/// </summary>
+		/// <param name="handle">The handler for the audio that is returned by the `play` function.</param>
 		public static void Stop(int handle)
 		{
 			Native.audio_stop(handle);
 		}
+		/// <summary>
 		/// Plays a streaming audio file.
-		///
-		/// # Arguments
-		///
-		/// * `filename` - The path to the streaming audio file (can be OGG, WAV, MP3, or FLAC).
-		/// * `loop` - Whether to loop the streaming audio.
-		/// * `crossFadeTime` - The time (in seconds) to crossfade between the previous and new streaming audio.
-		public static void PlayStream(string filename, bool looping, float cross_fade_time)
+		/// </summary>
+		/// <param name="filename">The path to the streaming audio file (can be OGG, WAV, MP3, or FLAC).</param>
+		/// <param name="looping">Whether to loop the streaming audio.</param>
+		/// <param name="crossFadeTime">The time (in seconds) to crossfade between the previous and new streaming audio.</param>
+		public static void PlayStream(string filename, bool looping, float crossFadeTime)
 		{
-			Native.audio_play_stream(Bridge.FromString(filename), looping ? 1 : 0, cross_fade_time);
+			Native.audio_play_stream(Bridge.FromString(filename), looping ? 1 : 0, crossFadeTime);
 		}
+		/// <summary>
 		/// Stops a streaming audio file that is currently playing.
-		///
-		/// # Arguments
-		///
-		/// * `fade_time` - The time (in seconds) to fade out the streaming audio.
-		public static void StopStream(float fade_time)
+		/// </summary>
+		/// <param name="fadeTime">The time (in seconds) to fade out the streaming audio.</param>
+		public static void StopStream(float fadeTime)
 		{
-			Native.audio_stop_stream(fade_time);
+			Native.audio_stop_stream(fadeTime);
 		}
+		/// <summary>
 		/// Pauses all the current audio.
-		///
-		/// # Arguments
-		///
-		/// * `pause` - Whether to pause the audio.
+		/// </summary>
+		/// <param name="pause">Whether to pause the audio.</param>
 		public static void SetPauseAllCurrent(bool pause)
 		{
 			Native.audio_set_pause_all_current(pause ? 1 : 0);
 		}
+		/// <summary>
 		/// Sets the position of the 3D listener.
-		///
-		/// # Arguments
-		///
-		/// * `atX` - The X coordinate of the listener position.
-		/// * `atY` - The Y coordinate of the listener position.
-		/// * `atZ` - The Z coordinate of the listener position.
-		public static void SetListenerAt(float at_x, float at_y, float at_z)
+		/// </summary>
+		/// <param name="atX">The X coordinate of the listener position.</param>
+		/// <param name="atY">The Y coordinate of the listener position.</param>
+		/// <param name="atZ">The Z coordinate of the listener position.</param>
+		public static void SetListenerAt(float atX, float atY, float atZ)
 		{
-			Native.audio_set_listener_at(at_x, at_y, at_z);
+			Native.audio_set_listener_at(atX, atY, atZ);
 		}
+		/// <summary>
 		/// Sets the up vector of the 3D listener.
-		///
-		/// # Arguments
-		///
-		/// * `upX` - The X coordinate of the listener up vector.
-		/// * `upY` - The Y coordinate of the listener up vector.
-		/// * `upZ` - The Z coordinate of the listener up vector.
-		public static void SetListenerUp(float up_x, float up_y, float up_z)
+		/// </summary>
+		/// <param name="upX">The X coordinate of the listener up vector.</param>
+		/// <param name="upY">The Y coordinate of the listener up vector.</param>
+		/// <param name="upZ">The Z coordinate of the listener up vector.</param>
+		public static void SetListenerUp(float upX, float upY, float upZ)
 		{
-			Native.audio_set_listener_up(up_x, up_y, up_z);
+			Native.audio_set_listener_up(upX, upY, upZ);
 		}
+		/// <summary>
 		/// Sets the velocity of the 3D listener.
-		///
-		/// # Arguments
-		///
-		/// * `velocityX` - The X coordinate of the listener velocity.
-		/// * `velocityY` - The Y coordinate of the listener velocity.
-		/// * `velocityZ` - The Z coordinate of the listener velocity.
-		public static void SetListenerVelocity(float velocity_x, float velocity_y, float velocity_z)
+		/// </summary>
+		/// <param name="velocityX">The X coordinate of the listener velocity.</param>
+		/// <param name="velocityY">The Y coordinate of the listener velocity.</param>
+		/// <param name="velocityZ">The Z coordinate of the listener velocity.</param>
+		public static void SetListenerVelocity(float velocityX, float velocityY, float velocityZ)
 		{
-			Native.audio_set_listener_velocity(velocity_x, velocity_y, velocity_z);
+			Native.audio_set_listener_velocity(velocityX, velocityY, velocityZ);
 		}
 	}
 } // namespace Dora

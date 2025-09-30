@@ -30,7 +30,9 @@ namespace Dora
 
 namespace Dora
 {
+	/// <summary>
 	/// A struct representing a group of entities in the ECS game systems.
+	/// </summary>
 	public partial class Group : Object
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
@@ -46,25 +48,25 @@ namespace Dora
 		{
 			return raw == 0 ? null : new Group(raw);
 		}
-		/// the number of entities in the group.
+		/// <summary>
+		/// The number of entities in the group.
+		/// </summary>
 		public int Count
 		{
 			get => Native.entitygroup_get_count(Raw);
 		}
-		/// the first entity in the group.
+		/// <summary>
+		/// The first entity in the group.
+		/// </summary>
 		public Entity? First
 		{
 			get => Entity.FromOpt(Native.entitygroup_get_first(Raw));
 		}
+		/// <summary>
 		/// Finds the first entity in the group that satisfies a predicate function.
-		///
-		/// # Arguments
-		///
-		/// * `predicate` - The predicate function to test each entity with.
-		///
-		/// # Returns
-		///
-		/// * `Option<Entity>` - The first entity that satisfies the predicate, or None if no entity does.
+		/// </summary>
+		/// <param name="predicate">The predicate function to test each entity with.</param>
+		/// <returns>The first entity that satisfies the predicate, or None if no entity does.</returns>
 		public Entity? Find(Func<Entity, bool> predicate)
 		{
 			var stack0 = new CallStack();
@@ -76,15 +78,11 @@ namespace Dora
 			});
 			return Entity.FromOpt(Native.entitygroup_find(Raw, func_id0, stack_raw0));
 		}
+		/// <summary>
 		/// A method that creates a new group with the specified component names.
-		///
-		/// # Arguments
-		///
-		/// * `components` - A vector listing the names of the components to include in the group.
-		///
-		/// # Returns
-		///
-		/// * `Group` - The new group.
+		/// </summary>
+		/// <param name="components">A vector listing the names of the components to include in the group.</param>
+		/// <returns>The new group.</returns>
 		public Group(IEnumerable<string> components) : this(Native.entitygroup_new(Bridge.FromArray(components))) { }
 	}
 } // namespace Dora

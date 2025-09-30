@@ -28,7 +28,9 @@ namespace Dora
 
 namespace Dora
 {
+	/// <summary>
 	/// A struct represents a 2D texture.
+	/// </summary>
 	public partial class Texture2D : Object
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
@@ -44,25 +46,25 @@ namespace Dora
 		{
 			return raw == 0 ? null : new Texture2D(raw);
 		}
-		/// the width of the texture, in pixels.
+		/// <summary>
+		/// The width of the texture, in pixels.
+		/// </summary>
 		public int Width
 		{
 			get => Native.texture2d_get_width(Raw);
 		}
-		/// the height of the texture, in pixels.
+		/// <summary>
+		/// The height of the texture, in pixels.
+		/// </summary>
 		public int Height
 		{
 			get => Native.texture2d_get_height(Raw);
 		}
+		/// <summary>
 		/// Creates a texture object from the given file.
-		///
-		/// # Arguments
-		///
-		/// * `filename` - The file name of the texture.
-		///
-		/// # Returns
-		///
-		/// * `Texture2D` - The texture object.
+		/// </summary>
+		/// <param name="filename">The file name of the texture.</param>
+		/// <returns>The texture object.</returns>
 		public Texture2D(string filename) : this(Native.texture2d_with_file(Bridge.FromString(filename))) { }
 		public static Texture2D? TryCreate(string filename)
 		{

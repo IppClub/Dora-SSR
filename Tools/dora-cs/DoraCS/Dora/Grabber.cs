@@ -52,8 +52,12 @@ namespace Dora
 
 namespace Dora
 {
+	/// <summary>
 	/// A grabber which is used to render a part of the scene to a texture
+	/// </summary>
+	/// <summary>
 	/// by a grid of vertices.
+	/// </summary>
 	public partial class Grabber : Object
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
@@ -69,7 +73,9 @@ namespace Dora
 		{
 			return raw == 0 ? null : new Grabber(raw);
 		}
-		/// the camera used to render the texture.
+		/// <summary>
+		/// The camera used to render the texture.
+		/// </summary>
 		public Camera? Camera
 		{
 			set
@@ -79,7 +85,9 @@ namespace Dora
 			}
 			get => Camera.FromOpt(Native.grabber_get_camera(Raw));
 		}
-		/// the sprite effect applied to the texture.
+		/// <summary>
+		/// The sprite effect applied to the texture.
+		/// </summary>
 		public SpriteEffect? Effect
 		{
 			set
@@ -89,76 +97,69 @@ namespace Dora
 			}
 			get => SpriteEffect.FromOpt(Native.grabber_get_effect(Raw));
 		}
-		/// the blend function for the grabber.
+		/// <summary>
+		/// The blend function for the grabber.
+		/// </summary>
 		public BlendFunc BlendFunc
 		{
 			set => Native.grabber_set_blend_func(Raw, value.Raw);
 			get => BlendFunc.From(Native.grabber_get_blend_func(Raw));
 		}
-		/// the clear color used to clear the texture.
+		/// <summary>
+		/// The clear color used to clear the texture.
+		/// </summary>
 		public Color ClearColor
 		{
 			set => Native.grabber_set_clear_color(Raw, (int)value.ToARGB());
 			get => new Color((uint)Native.grabber_get_clear_color(Raw));
 		}
+		/// <summary>
 		/// Sets the position of a vertex in the grabber grid.
-		///
-		/// # Arguments
-		///
-		/// * `x` - The x-index of the vertex in the grabber grid.
-		/// * `y` - The y-index of the vertex in the grabber grid.
-		/// * `pos` - The new position of the vertex, represented by a Vec2 object.
-		/// * `z` - An optional argument representing the new z-coordinate of the vertex.
+		/// </summary>
+		/// <param name="x">The x-index of the vertex in the grabber grid.</param>
+		/// <param name="y">The y-index of the vertex in the grabber grid.</param>
+		/// <param name="pos">The new position of the vertex, represented by a Vec2 object.</param>
+		/// <param name="z">An optional argument representing the new z-coordinate of the vertex.</param>
 		public void SetPos(int x, int y, Vec2 pos, float z)
 		{
 			Native.grabber_set_pos(Raw, x, y, pos.Raw, z);
 		}
+		/// <summary>
 		/// Gets the position of a vertex in the grabber grid.
-		///
-		/// # Arguments
-		///
-		/// * `x` - The x-index of the vertex in the grabber grid.
-		/// * `y` - The y-index of the vertex in the grabber grid.
-		///
-		/// # Returns
-		///
-		/// * `Vec2` - The position of the vertex.
+		/// </summary>
+		/// <param name="x">The x-index of the vertex in the grabber grid.</param>
+		/// <param name="y">The y-index of the vertex in the grabber grid.</param>
+		/// <returns>The position of the vertex.</returns>
 		public Vec2 GetPos(int x, int y)
 		{
 			return Vec2.From(Native.grabber_get_pos(Raw, x, y));
 		}
+		/// <summary>
 		/// Sets the color of a vertex in the grabber grid.
-		///
-		/// # Arguments
-		///
-		/// * `x` - The x-index of the vertex in the grabber grid.
-		/// * `y` - The y-index of the vertex in the grabber grid.
-		/// * `color` - The new color of the vertex, represented by a Color object.
+		/// </summary>
+		/// <param name="x">The x-index of the vertex in the grabber grid.</param>
+		/// <param name="y">The y-index of the vertex in the grabber grid.</param>
+		/// <param name="color">The new color of the vertex, represented by a Color object.</param>
 		public void SetColor(int x, int y, Color color)
 		{
 			Native.grabber_set_color(Raw, x, y, (int)color.ToARGB());
 		}
+		/// <summary>
 		/// Gets the color of a vertex in the grabber grid.
-		///
-		/// # Arguments
-		///
-		/// * `x` - The x-index of the vertex in the grabber grid.
-		/// * `y` - The y-index of the vertex in the grabber grid.
-		///
-		/// # Returns
-		///
-		/// * `Color` - The color of the vertex.
+		/// </summary>
+		/// <param name="x">The x-index of the vertex in the grabber grid.</param>
+		/// <param name="y">The y-index of the vertex in the grabber grid.</param>
+		/// <returns>The color of the vertex.</returns>
 		public Color GetColor(int x, int y)
 		{
 			return new Color((uint)Native.grabber_get_color(Raw, x, y));
 		}
+		/// <summary>
 		/// Sets the UV coordinates of a vertex in the grabber grid.
-		///
-		/// # Arguments
-		///
-		/// * `x` - The x-index of the vertex in the grabber grid.
-		/// * `y` - The y-index of the vertex in the grabber grid.
-		/// * `offset` - The new UV coordinates of the vertex, represented by a Vec2 object.
+		/// </summary>
+		/// <param name="x">The x-index of the vertex in the grabber grid.</param>
+		/// <param name="y">The y-index of the vertex in the grabber grid.</param>
+		/// <param name="offset">The new UV coordinates of the vertex, represented by a Vec2 object.</param>
 		public void MoveUv(int x, int y, Vec2 offset)
 		{
 			Native.grabber_move_uv(Raw, x, y, offset.Raw);

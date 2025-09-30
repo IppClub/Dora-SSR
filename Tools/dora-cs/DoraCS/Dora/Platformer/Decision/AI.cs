@@ -34,80 +34,59 @@ namespace Dora
 
 namespace Dora.Platformer.Decision
 {
+	/// <summary>
 	/// The interface to retrieve information while executing the decision tree.
+	/// </summary>
 	public static partial class AI
 	{
+		/// <summary>
 		/// Gets an array of units in detection range that have the specified relation to current AI agent.
-		///
-		/// # Arguments
-		///
-		/// * `relation` - The relation to filter the units by.
-		///
-		/// # Returns
-		///
-		/// * An array of units with the specified relation.
+		/// </summary>
+		/// <param name="relation">The relation to filter the units by.</param>
 		public static Array GetUnitsByRelation(Platformer.Relation relation)
 		{
 			return Array.From(Native.platformer_decision_ai_get_units_by_relation((int)relation));
 		}
+		/// <summary>
 		/// Gets an array of units that the AI has detected.
-		///
-		/// # Returns
-		///
-		/// * An array of detected units.
+		/// </summary>
 		public static Array GetDetectedUnits()
 		{
 			return Array.From(Native.platformer_decision_ai_get_detected_units());
 		}
+		/// <summary>
 		/// Gets an array of bodies that the AI has detected.
-		///
-		/// # Returns
-		///
-		/// * An array of detected bodies.
+		/// </summary>
 		public static Array GetDetectedBodies()
 		{
 			return Array.From(Native.platformer_decision_ai_get_detected_bodies());
 		}
+		/// <summary>
 		/// Gets the nearest unit that has the specified relation to the AI.
-		///
-		/// # Arguments
-		///
-		/// * `relation` - The relation to filter the units by.
-		///
-		/// # Returns
-		///
-		/// * The nearest unit with the specified relation.
+		/// </summary>
+		/// <param name="relation">The relation to filter the units by.</param>
 		public static Platformer.Unit GetNearestUnit(Platformer.Relation relation)
 		{
 			return Platformer.Unit.From(Native.platformer_decision_ai_get_nearest_unit((int)relation));
 		}
+		/// <summary>
 		/// Gets the distance to the nearest unit that has the specified relation to the AI agent.
-		///
-		/// # Arguments
-		///
-		/// * `relation` - The relation to filter the units by.
-		///
-		/// # Returns
-		///
-		/// * The distance to the nearest unit with the specified relation.
+		/// </summary>
+		/// <param name="relation">The relation to filter the units by.</param>
 		public static float GetNearestUnitDistance(Platformer.Relation relation)
 		{
 			return Native.platformer_decision_ai_get_nearest_unit_distance((int)relation);
 		}
+		/// <summary>
 		/// Gets an array of units that are within attack range.
-		///
-		/// # Returns
-		///
-		/// * An array of units in attack range.
+		/// </summary>
 		public static Array GetUnitsInAttackRange()
 		{
 			return Array.From(Native.platformer_decision_ai_get_units_in_attack_range());
 		}
+		/// <summary>
 		/// Gets an array of bodies that are within attack range.
-		///
-		/// # Returns
-		///
-		/// * An array of bodies in attack range.
+		/// </summary>
 		public static Array GetBodiesInAttackRange()
 		{
 			return Array.From(Native.platformer_decision_ai_get_bodies_in_attack_range());

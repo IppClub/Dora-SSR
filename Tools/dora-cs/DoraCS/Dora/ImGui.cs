@@ -16,59 +16,59 @@ namespace Dora
 	internal static partial class Native
 	{
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern void imgui_set_default_font(int64_t ttf_font_file, float font_size);
+		public static extern void imgui_set_default_font(int64_t ttfFontFile, float fontSize);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void imgui_show_stats();
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void imgui_show_console();
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int32_t imgui__begin_opts(int64_t name, int32_t windows_flags);
+		public static extern int32_t imgui__begin_opts(int64_t name, int32_t windowsFlags);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void imgui__end();
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int32_t imgui__begin_child_opts(int64_t str_id, int64_t size, int32_t child_flags, int32_t window_flags);
+		public static extern int32_t imgui__begin_child_opts(int64_t str_id, int64_t size, int32_t childFlags, int32_t windowFlags);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int32_t imgui__begin_child_with_id_opts(int32_t id, int64_t size, int32_t child_flags, int32_t window_flags);
+		public static extern int32_t imgui__begin_child_with_id_opts(int32_t id, int64_t size, int32_t childFlags, int32_t windowFlags);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void imgui__end_child();
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern void imgui__set_next_window_pos_center_opts(int32_t set_cond);
+		public static extern void imgui__set_next_window_pos_center_opts(int32_t setCond);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern void imgui__set_next_window_size_opts(int64_t size, int32_t set_cond);
+		public static extern void imgui__set_next_window_size_opts(int64_t size, int32_t setCond);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern void imgui__set_next_window_collapsed_opts(int32_t collapsed, int32_t set_cond);
+		public static extern void imgui__set_next_window_collapsed_opts(int32_t collapsed, int32_t setCond);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern void imgui__set_window_pos_opts(int64_t name, int64_t pos, int32_t set_cond);
+		public static extern void imgui__set_window_pos_opts(int64_t name, int64_t pos, int32_t setCond);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern void imgui__set_window_size_opts(int64_t name, int64_t size, int32_t set_cond);
+		public static extern void imgui__set_window_size_opts(int64_t name, int64_t size, int32_t setCond);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern void imgui__set_window_collapsed_opts(int64_t name, int32_t collapsed, int32_t set_cond);
+		public static extern void imgui__set_window_collapsed_opts(int64_t name, int32_t collapsed, int32_t setCond);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern void imgui__set_color_edit_options(int32_t color_edit_flags);
+		public static extern void imgui__set_color_edit_options(int32_t colorEditFlags);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int32_t imgui__input_text_opts(int64_t label, int64_t buffer, int32_t input_text_flags);
+		public static extern int32_t imgui__input_text_opts(int64_t label, int64_t buffer, int32_t inputTextFlags);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int32_t imgui__input_text_multiline_opts(int64_t label, int64_t buffer, int64_t size, int32_t input_text_flags);
+		public static extern int32_t imgui__input_text_multiline_opts(int64_t label, int64_t buffer, int64_t size, int32_t inputTextFlags);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int32_t imgui__tree_node_ex_opts(int64_t label, int32_t tree_node_flags);
+		public static extern int32_t imgui__tree_node_ex_opts(int64_t label, int32_t treeNodeFlags);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int32_t imgui__tree_node_ex_with_id_opts(int64_t str_id, int64_t text, int32_t tree_node_flags);
+		public static extern int32_t imgui__tree_node_ex_with_id_opts(int64_t str_id, int64_t text, int32_t treeNodeFlags);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern void imgui__set_next_item_open_opts(int32_t is_open, int32_t set_cond);
+		public static extern void imgui__set_next_item_open_opts(int32_t is_open, int32_t setCond);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int32_t imgui__collapsing_header_opts(int64_t label, int32_t tree_node_flags);
+		public static extern int32_t imgui__collapsing_header_opts(int64_t label, int32_t treeNodeFlags);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int32_t imgui__selectable_opts(int64_t label, int32_t selectable_flags);
+		public static extern int32_t imgui__selectable_opts(int64_t label, int32_t selectableFlags);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int32_t imgui__begin_popup_modal_opts(int64_t name, int32_t windows_flags);
+		public static extern int32_t imgui__begin_popup_modal_opts(int64_t name, int32_t windowsFlags);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int32_t imgui__begin_popup_modal_ret_opts(int64_t name, int64_t stack, int32_t windows_flags);
+		public static extern int32_t imgui__begin_popup_modal_ret_opts(int64_t name, int64_t stack, int32_t windowsFlags);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int32_t imgui__begin_popup_context_item_opts(int64_t name, int32_t popup_flags);
+		public static extern int32_t imgui__begin_popup_context_item_opts(int64_t name, int32_t popupFlags);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int32_t imgui__begin_popup_context_window_opts(int64_t name, int32_t popup_flags);
+		public static extern int32_t imgui__begin_popup_context_window_opts(int64_t name, int32_t popupFlags);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int32_t imgui__begin_popup_context_void_opts(int64_t name, int32_t popup_flags);
+		public static extern int32_t imgui__begin_popup_context_void_opts(int64_t name, int32_t popupFlags);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void imgui__push_style_color(int32_t name, int32_t color);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
@@ -92,23 +92,23 @@ namespace Dora
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void imgui_set_tooltip(int64_t text);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern void imgui_image(int64_t clip_str, int64_t size);
+		public static extern void imgui_image(int64_t clipStr, int64_t size);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern void imgui_image_with_bg(int64_t clip_str, int64_t size, int32_t bg_col, int32_t tint_col);
+		public static extern void imgui_image_with_bg(int64_t clipStr, int64_t size, int32_t bg_col, int32_t tint_col);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int32_t imgui_image_button_opts(int64_t str_id, int64_t clip_str, int64_t size, int32_t bg_col, int32_t tint_col);
+		public static extern int32_t imgui_image_button_opts(int64_t str_id, int64_t clipStr, int64_t size, int32_t bg_col, int32_t tint_col);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int32_t imgui__color_button_opts(int64_t desc_id, int32_t col, int32_t color_edit_flags, int64_t size);
+		public static extern int32_t imgui__color_button_opts(int64_t desc_id, int32_t col, int32_t colorEditFlags, int64_t size);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void imgui_columns(int32_t count);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void imgui_columns_opts(int32_t count, int32_t border, int64_t str_id);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int32_t imgui__begin_table_opts(int64_t str_id, int32_t column, int64_t outer_size, float inner_width, int32_t table_flags);
+		public static extern int32_t imgui__begin_table_opts(int64_t str_id, int32_t column, int64_t outer_size, float inner_width, int32_t tableFlags);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern void imgui__table_next_row_opts(float min_row_height, int32_t table_row_flag);
+		public static extern void imgui__table_next_row_opts(float min_row_height, int32_t tableRowFlag);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern void imgui__table_setup_column_opts(int64_t label, float init_width_or_weight, int32_t user_id, int32_t table_column_flags);
+		public static extern void imgui__table_setup_column_opts(int64_t label, float init_width_or_weight, int32_t user_id, int32_t tableColumnFlags);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void imgui_set_style_bool(int64_t name, int32_t val);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
@@ -118,53 +118,53 @@ namespace Dora
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void imgui_set_style_color(int64_t name, int32_t color);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int32_t imgui__begin_ret_opts(int64_t name, int64_t stack, int32_t windows_flags);
+		public static extern int32_t imgui__begin_ret_opts(int64_t name, int64_t stack, int32_t windowsFlags);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int32_t imgui__collapsing_header_ret_opts(int64_t label, int64_t stack, int32_t tree_node_flags);
+		public static extern int32_t imgui__collapsing_header_ret_opts(int64_t label, int64_t stack, int32_t treeNodeFlags);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int32_t imgui__selectable_ret_opts(int64_t label, int64_t stack, int64_t size, int32_t selectable_flags);
+		public static extern int32_t imgui__selectable_ret_opts(int64_t label, int64_t stack, int64_t size, int32_t selectableFlags);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int32_t imgui__combo_ret_opts(int64_t label, int64_t stack, int64_t items, int32_t height_in_items);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int32_t imgui__drag_float_ret_opts(int64_t label, int64_t stack, float v_speed, float v_min, float v_max, int64_t display_format, int32_t slider_flags);
+		public static extern int32_t imgui__drag_float_ret_opts(int64_t label, int64_t stack, float v_speed, float v_min, float v_max, int64_t display_format, int32_t sliderFlags);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int32_t imgui__drag_float2_ret_opts(int64_t label, int64_t stack, float v_speed, float v_min, float v_max, int64_t display_format, int32_t slider_flags);
+		public static extern int32_t imgui__drag_float2_ret_opts(int64_t label, int64_t stack, float v_speed, float v_min, float v_max, int64_t display_format, int32_t sliderFlags);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int32_t imgui__drag_int_ret_opts(int64_t label, int64_t stack, float v_speed, int32_t v_min, int32_t v_max, int64_t display_format, int32_t slider_flags);
+		public static extern int32_t imgui__drag_int_ret_opts(int64_t label, int64_t stack, float v_speed, int32_t v_min, int32_t v_max, int64_t display_format, int32_t sliderFlags);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int32_t imgui__drag_int2_ret_opts(int64_t label, int64_t stack, float v_speed, int32_t v_min, int32_t v_max, int64_t display_format, int32_t slider_flags);
+		public static extern int32_t imgui__drag_int2_ret_opts(int64_t label, int64_t stack, float v_speed, int32_t v_min, int32_t v_max, int64_t display_format, int32_t sliderFlags);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int32_t imgui__input_float_ret_opts(int64_t label, int64_t stack, float step, float step_fast, int64_t display_format, int32_t input_text_flags);
+		public static extern int32_t imgui__input_float_ret_opts(int64_t label, int64_t stack, float step, float step_fast, int64_t display_format, int32_t inputTextFlags);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int32_t imgui__input_float2_ret_opts(int64_t label, int64_t stack, int64_t display_format, int32_t input_text_flags);
+		public static extern int32_t imgui__input_float2_ret_opts(int64_t label, int64_t stack, int64_t display_format, int32_t inputTextFlags);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int32_t imgui__input_int_ret_opts(int64_t label, int64_t stack, int32_t step, int32_t step_fast, int32_t input_text_flags);
+		public static extern int32_t imgui__input_int_ret_opts(int64_t label, int64_t stack, int32_t step, int32_t step_fast, int32_t inputTextFlags);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int32_t imgui__input_int2_ret_opts(int64_t label, int64_t stack, int32_t input_text_flags);
+		public static extern int32_t imgui__input_int2_ret_opts(int64_t label, int64_t stack, int32_t inputTextFlags);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int32_t imgui__slider_float_ret_opts(int64_t label, int64_t stack, float v_min, float v_max, int64_t display_format, int32_t slider_flags);
+		public static extern int32_t imgui__slider_float_ret_opts(int64_t label, int64_t stack, float v_min, float v_max, int64_t display_format, int32_t sliderFlags);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int32_t imgui__slider_float2_ret_opts(int64_t label, int64_t stack, float v_min, float v_max, int64_t display_format, int32_t slider_flags);
+		public static extern int32_t imgui__slider_float2_ret_opts(int64_t label, int64_t stack, float v_min, float v_max, int64_t display_format, int32_t sliderFlags);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int32_t imgui__slider_int_ret_opts(int64_t label, int64_t stack, int32_t v_min, int32_t v_max, int64_t format, int32_t slider_flags);
+		public static extern int32_t imgui__slider_int_ret_opts(int64_t label, int64_t stack, int32_t v_min, int32_t v_max, int64_t format, int32_t sliderFlags);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int32_t imgui__slider_int2_ret_opts(int64_t label, int64_t stack, int32_t v_min, int32_t v_max, int64_t display_format, int32_t slider_flags);
+		public static extern int32_t imgui__slider_int2_ret_opts(int64_t label, int64_t stack, int32_t v_min, int32_t v_max, int64_t display_format, int32_t sliderFlags);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int32_t imgui__drag_float_range2_ret_opts(int64_t label, int64_t stack, float v_speed, float v_min, float v_max, int64_t format, int64_t format_max, int32_t slider_flags);
+		public static extern int32_t imgui__drag_float_range2_ret_opts(int64_t label, int64_t stack, float v_speed, float v_min, float v_max, int64_t format, int64_t format_max, int32_t sliderFlags);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int32_t imgui__drag_int_range2_ret_opts(int64_t label, int64_t stack, float v_speed, int32_t v_min, int32_t v_max, int64_t format, int64_t format_max, int32_t slider_flags);
+		public static extern int32_t imgui__drag_int_range2_ret_opts(int64_t label, int64_t stack, float v_speed, int32_t v_min, int32_t v_max, int64_t format, int64_t format_max, int32_t sliderFlags);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int32_t imgui__v_slider_float_ret_opts(int64_t label, int64_t size, int64_t stack, float v_min, float v_max, int64_t format, int32_t slider_flags);
+		public static extern int32_t imgui__v_slider_float_ret_opts(int64_t label, int64_t size, int64_t stack, float v_min, float v_max, int64_t format, int32_t sliderFlags);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int32_t imgui__v_slider_int_ret_opts(int64_t label, int64_t size, int64_t stack, int32_t v_min, int32_t v_max, int64_t format, int32_t slider_flags);
+		public static extern int32_t imgui__v_slider_int_ret_opts(int64_t label, int64_t size, int64_t stack, int32_t v_min, int32_t v_max, int64_t format, int32_t sliderFlags);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int32_t imgui__color_edit3_ret_opts(int64_t label, int64_t stack, int32_t color_edit_flags);
+		public static extern int32_t imgui__color_edit3_ret_opts(int64_t label, int64_t stack, int32_t colorEditFlags);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int32_t imgui__color_edit4_ret_opts(int64_t label, int64_t stack, int32_t color_edit_flags);
+		public static extern int32_t imgui__color_edit4_ret_opts(int64_t label, int64_t stack, int32_t colorEditFlags);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void imgui_scroll_when_dragging_on_void();
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern void imgui__set_next_window_pos_opts(int64_t pos, int32_t set_cond, int64_t pivot);
+		public static extern void imgui__set_next_window_pos_opts(int64_t pos, int32_t setCond, int64_t pivot);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void imgui_set_next_window_bg_alpha(float alpha);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
@@ -452,9 +452,9 @@ namespace Dora
 {
 	public static partial class ImGui
 	{
-		public static void SetDefaultFont(string ttf_font_file, float font_size)
+		public static void SetDefaultFont(string ttfFontFile, float fontSize)
 		{
-			Native.imgui_set_default_font(Bridge.FromString(ttf_font_file), font_size);
+			Native.imgui_set_default_font(Bridge.FromString(ttfFontFile), fontSize);
 		}
 		public static void ShowStats()
 		{
@@ -464,101 +464,101 @@ namespace Dora
 		{
 			Native.imgui_show_console();
 		}
-		public static bool _BeginOpts(string name, int windows_flags)
+		public static bool _BeginOpts(string name, int windowsFlags)
 		{
-			return Native.imgui__begin_opts(Bridge.FromString(name), windows_flags) != 0;
+			return Native.imgui__begin_opts(Bridge.FromString(name), windowsFlags) != 0;
 		}
 		public static void _End()
 		{
 			Native.imgui__end();
 		}
-		public static bool _BeginChildOpts(string str_id, Vec2 size, int child_flags, int window_flags)
+		public static bool _BeginChildOpts(string str_id, Vec2 size, int childFlags, int windowFlags)
 		{
-			return Native.imgui__begin_child_opts(Bridge.FromString(str_id), size.Raw, child_flags, window_flags) != 0;
+			return Native.imgui__begin_child_opts(Bridge.FromString(str_id), size.Raw, childFlags, windowFlags) != 0;
 		}
-		public static bool _BeginChildWithIdOpts(int id, Vec2 size, int child_flags, int window_flags)
+		public static bool _BeginChildWithIdOpts(int id, Vec2 size, int childFlags, int windowFlags)
 		{
-			return Native.imgui__begin_child_with_id_opts(id, size.Raw, child_flags, window_flags) != 0;
+			return Native.imgui__begin_child_with_id_opts(id, size.Raw, childFlags, windowFlags) != 0;
 		}
 		public static void _EndChild()
 		{
 			Native.imgui__end_child();
 		}
-		public static void _SetNextWindowPosCenterOpts(int set_cond)
+		public static void _SetNextWindowPosCenterOpts(int setCond)
 		{
-			Native.imgui__set_next_window_pos_center_opts(set_cond);
+			Native.imgui__set_next_window_pos_center_opts(setCond);
 		}
-		public static void _SetNextWindowSizeOpts(Vec2 size, int set_cond)
+		public static void _SetNextWindowSizeOpts(Vec2 size, int setCond)
 		{
-			Native.imgui__set_next_window_size_opts(size.Raw, set_cond);
+			Native.imgui__set_next_window_size_opts(size.Raw, setCond);
 		}
-		public static void _SetNextWindowCollapsedOpts(bool collapsed, int set_cond)
+		public static void _SetNextWindowCollapsedOpts(bool collapsed, int setCond)
 		{
-			Native.imgui__set_next_window_collapsed_opts(collapsed ? 1 : 0, set_cond);
+			Native.imgui__set_next_window_collapsed_opts(collapsed ? 1 : 0, setCond);
 		}
-		public static void _SetWindowPosOpts(string name, Vec2 pos, int set_cond)
+		public static void _SetWindowPosOpts(string name, Vec2 pos, int setCond)
 		{
-			Native.imgui__set_window_pos_opts(Bridge.FromString(name), pos.Raw, set_cond);
+			Native.imgui__set_window_pos_opts(Bridge.FromString(name), pos.Raw, setCond);
 		}
-		public static void _SetWindowSizeOpts(string name, Vec2 size, int set_cond)
+		public static void _SetWindowSizeOpts(string name, Vec2 size, int setCond)
 		{
-			Native.imgui__set_window_size_opts(Bridge.FromString(name), size.Raw, set_cond);
+			Native.imgui__set_window_size_opts(Bridge.FromString(name), size.Raw, setCond);
 		}
-		public static void _SetWindowCollapsedOpts(string name, bool collapsed, int set_cond)
+		public static void _SetWindowCollapsedOpts(string name, bool collapsed, int setCond)
 		{
-			Native.imgui__set_window_collapsed_opts(Bridge.FromString(name), collapsed ? 1 : 0, set_cond);
+			Native.imgui__set_window_collapsed_opts(Bridge.FromString(name), collapsed ? 1 : 0, setCond);
 		}
-		public static void _SetColorEditOptions(int color_edit_flags)
+		public static void _SetColorEditOptions(int colorEditFlags)
 		{
-			Native.imgui__set_color_edit_options(color_edit_flags);
+			Native.imgui__set_color_edit_options(colorEditFlags);
 		}
-		public static bool _InputTextOpts(string label, Buffer buffer, int input_text_flags)
+		public static bool _InputTextOpts(string label, Buffer buffer, int inputTextFlags)
 		{
-			return Native.imgui__input_text_opts(Bridge.FromString(label), buffer.Raw, input_text_flags) != 0;
+			return Native.imgui__input_text_opts(Bridge.FromString(label), buffer.Raw, inputTextFlags) != 0;
 		}
-		public static bool _InputTextMultilineOpts(string label, Buffer buffer, Vec2 size, int input_text_flags)
+		public static bool _InputTextMultilineOpts(string label, Buffer buffer, Vec2 size, int inputTextFlags)
 		{
-			return Native.imgui__input_text_multiline_opts(Bridge.FromString(label), buffer.Raw, size.Raw, input_text_flags) != 0;
+			return Native.imgui__input_text_multiline_opts(Bridge.FromString(label), buffer.Raw, size.Raw, inputTextFlags) != 0;
 		}
-		public static bool _TreeNodeExOpts(string label, int tree_node_flags)
+		public static bool _TreeNodeExOpts(string label, int treeNodeFlags)
 		{
-			return Native.imgui__tree_node_ex_opts(Bridge.FromString(label), tree_node_flags) != 0;
+			return Native.imgui__tree_node_ex_opts(Bridge.FromString(label), treeNodeFlags) != 0;
 		}
-		public static bool _TreeNodeExWithIdOpts(string str_id, string text, int tree_node_flags)
+		public static bool _TreeNodeExWithIdOpts(string str_id, string text, int treeNodeFlags)
 		{
-			return Native.imgui__tree_node_ex_with_id_opts(Bridge.FromString(str_id), Bridge.FromString(text), tree_node_flags) != 0;
+			return Native.imgui__tree_node_ex_with_id_opts(Bridge.FromString(str_id), Bridge.FromString(text), treeNodeFlags) != 0;
 		}
-		public static void _SetNextItemOpenOpts(bool is_open, int set_cond)
+		public static void _SetNextItemOpenOpts(bool is_open, int setCond)
 		{
-			Native.imgui__set_next_item_open_opts(is_open ? 1 : 0, set_cond);
+			Native.imgui__set_next_item_open_opts(is_open ? 1 : 0, setCond);
 		}
-		public static bool _CollapsingHeaderOpts(string label, int tree_node_flags)
+		public static bool _CollapsingHeaderOpts(string label, int treeNodeFlags)
 		{
-			return Native.imgui__collapsing_header_opts(Bridge.FromString(label), tree_node_flags) != 0;
+			return Native.imgui__collapsing_header_opts(Bridge.FromString(label), treeNodeFlags) != 0;
 		}
-		public static bool _SelectableOpts(string label, int selectable_flags)
+		public static bool _SelectableOpts(string label, int selectableFlags)
 		{
-			return Native.imgui__selectable_opts(Bridge.FromString(label), selectable_flags) != 0;
+			return Native.imgui__selectable_opts(Bridge.FromString(label), selectableFlags) != 0;
 		}
-		public static bool _BeginPopupModalOpts(string name, int windows_flags)
+		public static bool _BeginPopupModalOpts(string name, int windowsFlags)
 		{
-			return Native.imgui__begin_popup_modal_opts(Bridge.FromString(name), windows_flags) != 0;
+			return Native.imgui__begin_popup_modal_opts(Bridge.FromString(name), windowsFlags) != 0;
 		}
-		public static bool _BeginPopupModalRetOpts(string name, CallStack stack, int windows_flags)
+		public static bool _BeginPopupModalRetOpts(string name, CallStack stack, int windowsFlags)
 		{
-			return Native.imgui__begin_popup_modal_ret_opts(Bridge.FromString(name), stack.Raw, windows_flags) != 0;
+			return Native.imgui__begin_popup_modal_ret_opts(Bridge.FromString(name), stack.Raw, windowsFlags) != 0;
 		}
-		public static bool _BeginPopupContextItemOpts(string name, int popup_flags)
+		public static bool _BeginPopupContextItemOpts(string name, int popupFlags)
 		{
-			return Native.imgui__begin_popup_context_item_opts(Bridge.FromString(name), popup_flags) != 0;
+			return Native.imgui__begin_popup_context_item_opts(Bridge.FromString(name), popupFlags) != 0;
 		}
-		public static bool _BeginPopupContextWindowOpts(string name, int popup_flags)
+		public static bool _BeginPopupContextWindowOpts(string name, int popupFlags)
 		{
-			return Native.imgui__begin_popup_context_window_opts(Bridge.FromString(name), popup_flags) != 0;
+			return Native.imgui__begin_popup_context_window_opts(Bridge.FromString(name), popupFlags) != 0;
 		}
-		public static bool _BeginPopupContextVoidOpts(string name, int popup_flags)
+		public static bool _BeginPopupContextVoidOpts(string name, int popupFlags)
 		{
-			return Native.imgui__begin_popup_context_void_opts(Bridge.FromString(name), popup_flags) != 0;
+			return Native.imgui__begin_popup_context_void_opts(Bridge.FromString(name), popupFlags) != 0;
 		}
 		public static void _PushStyleColor(int name, Color color)
 		{
@@ -604,21 +604,21 @@ namespace Dora
 		{
 			Native.imgui_set_tooltip(Bridge.FromString(text));
 		}
-		public static void Image(string clip_str, Vec2 size)
+		public static void Image(string clipStr, Vec2 size)
 		{
-			Native.imgui_image(Bridge.FromString(clip_str), size.Raw);
+			Native.imgui_image(Bridge.FromString(clipStr), size.Raw);
 		}
-		public static void ImageWithBg(string clip_str, Vec2 size, Color bg_col, Color tint_col)
+		public static void ImageWithBg(string clipStr, Vec2 size, Color bg_col, Color tint_col)
 		{
-			Native.imgui_image_with_bg(Bridge.FromString(clip_str), size.Raw, (int)bg_col.ToARGB(), (int)tint_col.ToARGB());
+			Native.imgui_image_with_bg(Bridge.FromString(clipStr), size.Raw, (int)bg_col.ToARGB(), (int)tint_col.ToARGB());
 		}
-		public static bool ImageButtonOpts(string str_id, string clip_str, Vec2 size, Color bg_col, Color tint_col)
+		public static bool ImageButtonOpts(string str_id, string clipStr, Vec2 size, Color bg_col, Color tint_col)
 		{
-			return Native.imgui_image_button_opts(Bridge.FromString(str_id), Bridge.FromString(clip_str), size.Raw, (int)bg_col.ToARGB(), (int)tint_col.ToARGB()) != 0;
+			return Native.imgui_image_button_opts(Bridge.FromString(str_id), Bridge.FromString(clipStr), size.Raw, (int)bg_col.ToARGB(), (int)tint_col.ToARGB()) != 0;
 		}
-		public static bool _ColorButtonOpts(string desc_id, Color col, int color_edit_flags, Vec2 size)
+		public static bool _ColorButtonOpts(string desc_id, Color col, int colorEditFlags, Vec2 size)
 		{
-			return Native.imgui__color_button_opts(Bridge.FromString(desc_id), (int)col.ToARGB(), color_edit_flags, size.Raw) != 0;
+			return Native.imgui__color_button_opts(Bridge.FromString(desc_id), (int)col.ToARGB(), colorEditFlags, size.Raw) != 0;
 		}
 		public static void Columns(int count)
 		{
@@ -628,17 +628,17 @@ namespace Dora
 		{
 			Native.imgui_columns_opts(count, border ? 1 : 0, Bridge.FromString(str_id));
 		}
-		public static bool _BeginTableOpts(string str_id, int column, Vec2 outer_size, float inner_width, int table_flags)
+		public static bool _BeginTableOpts(string str_id, int column, Vec2 outer_size, float inner_width, int tableFlags)
 		{
-			return Native.imgui__begin_table_opts(Bridge.FromString(str_id), column, outer_size.Raw, inner_width, table_flags) != 0;
+			return Native.imgui__begin_table_opts(Bridge.FromString(str_id), column, outer_size.Raw, inner_width, tableFlags) != 0;
 		}
-		public static void _TableNextRowOpts(float min_row_height, int table_row_flag)
+		public static void _TableNextRowOpts(float min_row_height, int tableRowFlag)
 		{
-			Native.imgui__table_next_row_opts(min_row_height, table_row_flag);
+			Native.imgui__table_next_row_opts(min_row_height, tableRowFlag);
 		}
-		public static void _TableSetupColumnOpts(string label, float init_width_or_weight, int user_id, int table_column_flags)
+		public static void _TableSetupColumnOpts(string label, float init_width_or_weight, int user_id, int tableColumnFlags)
 		{
-			Native.imgui__table_setup_column_opts(Bridge.FromString(label), init_width_or_weight, user_id, table_column_flags);
+			Native.imgui__table_setup_column_opts(Bridge.FromString(label), init_width_or_weight, user_id, tableColumnFlags);
 		}
 		public static void SetStyleBool(string name, bool val)
 		{
@@ -656,101 +656,101 @@ namespace Dora
 		{
 			Native.imgui_set_style_color(Bridge.FromString(name), (int)color.ToARGB());
 		}
-		public static bool _BeginRetOpts(string name, CallStack stack, int windows_flags)
+		public static bool _BeginRetOpts(string name, CallStack stack, int windowsFlags)
 		{
-			return Native.imgui__begin_ret_opts(Bridge.FromString(name), stack.Raw, windows_flags) != 0;
+			return Native.imgui__begin_ret_opts(Bridge.FromString(name), stack.Raw, windowsFlags) != 0;
 		}
-		public static bool _CollapsingHeaderRetOpts(string label, CallStack stack, int tree_node_flags)
+		public static bool _CollapsingHeaderRetOpts(string label, CallStack stack, int treeNodeFlags)
 		{
-			return Native.imgui__collapsing_header_ret_opts(Bridge.FromString(label), stack.Raw, tree_node_flags) != 0;
+			return Native.imgui__collapsing_header_ret_opts(Bridge.FromString(label), stack.Raw, treeNodeFlags) != 0;
 		}
-		public static bool _SelectableRetOpts(string label, CallStack stack, Vec2 size, int selectable_flags)
+		public static bool _SelectableRetOpts(string label, CallStack stack, Vec2 size, int selectableFlags)
 		{
-			return Native.imgui__selectable_ret_opts(Bridge.FromString(label), stack.Raw, size.Raw, selectable_flags) != 0;
+			return Native.imgui__selectable_ret_opts(Bridge.FromString(label), stack.Raw, size.Raw, selectableFlags) != 0;
 		}
 		public static bool _ComboRetOpts(string label, CallStack stack, IEnumerable<string> items, int height_in_items)
 		{
 			return Native.imgui__combo_ret_opts(Bridge.FromString(label), stack.Raw, Bridge.FromArray(items), height_in_items) != 0;
 		}
-		public static bool _DragFloatRetOpts(string label, CallStack stack, float v_speed, float v_min, float v_max, string display_format, int slider_flags)
+		public static bool _DragFloatRetOpts(string label, CallStack stack, float v_speed, float v_min, float v_max, string display_format, int sliderFlags)
 		{
-			return Native.imgui__drag_float_ret_opts(Bridge.FromString(label), stack.Raw, v_speed, v_min, v_max, Bridge.FromString(display_format), slider_flags) != 0;
+			return Native.imgui__drag_float_ret_opts(Bridge.FromString(label), stack.Raw, v_speed, v_min, v_max, Bridge.FromString(display_format), sliderFlags) != 0;
 		}
-		public static bool _DragFloat2RetOpts(string label, CallStack stack, float v_speed, float v_min, float v_max, string display_format, int slider_flags)
+		public static bool _DragFloat2RetOpts(string label, CallStack stack, float v_speed, float v_min, float v_max, string display_format, int sliderFlags)
 		{
-			return Native.imgui__drag_float2_ret_opts(Bridge.FromString(label), stack.Raw, v_speed, v_min, v_max, Bridge.FromString(display_format), slider_flags) != 0;
+			return Native.imgui__drag_float2_ret_opts(Bridge.FromString(label), stack.Raw, v_speed, v_min, v_max, Bridge.FromString(display_format), sliderFlags) != 0;
 		}
-		public static bool _DragIntRetOpts(string label, CallStack stack, float v_speed, int v_min, int v_max, string display_format, int slider_flags)
+		public static bool _DragIntRetOpts(string label, CallStack stack, float v_speed, int v_min, int v_max, string display_format, int sliderFlags)
 		{
-			return Native.imgui__drag_int_ret_opts(Bridge.FromString(label), stack.Raw, v_speed, v_min, v_max, Bridge.FromString(display_format), slider_flags) != 0;
+			return Native.imgui__drag_int_ret_opts(Bridge.FromString(label), stack.Raw, v_speed, v_min, v_max, Bridge.FromString(display_format), sliderFlags) != 0;
 		}
-		public static bool _DragInt2RetOpts(string label, CallStack stack, float v_speed, int v_min, int v_max, string display_format, int slider_flags)
+		public static bool _DragInt2RetOpts(string label, CallStack stack, float v_speed, int v_min, int v_max, string display_format, int sliderFlags)
 		{
-			return Native.imgui__drag_int2_ret_opts(Bridge.FromString(label), stack.Raw, v_speed, v_min, v_max, Bridge.FromString(display_format), slider_flags) != 0;
+			return Native.imgui__drag_int2_ret_opts(Bridge.FromString(label), stack.Raw, v_speed, v_min, v_max, Bridge.FromString(display_format), sliderFlags) != 0;
 		}
-		public static bool _InputFloatRetOpts(string label, CallStack stack, float step, float step_fast, string display_format, int input_text_flags)
+		public static bool _InputFloatRetOpts(string label, CallStack stack, float step, float step_fast, string display_format, int inputTextFlags)
 		{
-			return Native.imgui__input_float_ret_opts(Bridge.FromString(label), stack.Raw, step, step_fast, Bridge.FromString(display_format), input_text_flags) != 0;
+			return Native.imgui__input_float_ret_opts(Bridge.FromString(label), stack.Raw, step, step_fast, Bridge.FromString(display_format), inputTextFlags) != 0;
 		}
-		public static bool _InputFloat2RetOpts(string label, CallStack stack, string display_format, int input_text_flags)
+		public static bool _InputFloat2RetOpts(string label, CallStack stack, string display_format, int inputTextFlags)
 		{
-			return Native.imgui__input_float2_ret_opts(Bridge.FromString(label), stack.Raw, Bridge.FromString(display_format), input_text_flags) != 0;
+			return Native.imgui__input_float2_ret_opts(Bridge.FromString(label), stack.Raw, Bridge.FromString(display_format), inputTextFlags) != 0;
 		}
-		public static bool _InputIntRetOpts(string label, CallStack stack, int step, int step_fast, int input_text_flags)
+		public static bool _InputIntRetOpts(string label, CallStack stack, int step, int step_fast, int inputTextFlags)
 		{
-			return Native.imgui__input_int_ret_opts(Bridge.FromString(label), stack.Raw, step, step_fast, input_text_flags) != 0;
+			return Native.imgui__input_int_ret_opts(Bridge.FromString(label), stack.Raw, step, step_fast, inputTextFlags) != 0;
 		}
-		public static bool _InputInt2RetOpts(string label, CallStack stack, int input_text_flags)
+		public static bool _InputInt2RetOpts(string label, CallStack stack, int inputTextFlags)
 		{
-			return Native.imgui__input_int2_ret_opts(Bridge.FromString(label), stack.Raw, input_text_flags) != 0;
+			return Native.imgui__input_int2_ret_opts(Bridge.FromString(label), stack.Raw, inputTextFlags) != 0;
 		}
-		public static bool _SliderFloatRetOpts(string label, CallStack stack, float v_min, float v_max, string display_format, int slider_flags)
+		public static bool _SliderFloatRetOpts(string label, CallStack stack, float v_min, float v_max, string display_format, int sliderFlags)
 		{
-			return Native.imgui__slider_float_ret_opts(Bridge.FromString(label), stack.Raw, v_min, v_max, Bridge.FromString(display_format), slider_flags) != 0;
+			return Native.imgui__slider_float_ret_opts(Bridge.FromString(label), stack.Raw, v_min, v_max, Bridge.FromString(display_format), sliderFlags) != 0;
 		}
-		public static bool _SliderFloat2RetOpts(string label, CallStack stack, float v_min, float v_max, string display_format, int slider_flags)
+		public static bool _SliderFloat2RetOpts(string label, CallStack stack, float v_min, float v_max, string display_format, int sliderFlags)
 		{
-			return Native.imgui__slider_float2_ret_opts(Bridge.FromString(label), stack.Raw, v_min, v_max, Bridge.FromString(display_format), slider_flags) != 0;
+			return Native.imgui__slider_float2_ret_opts(Bridge.FromString(label), stack.Raw, v_min, v_max, Bridge.FromString(display_format), sliderFlags) != 0;
 		}
-		public static bool _SliderIntRetOpts(string label, CallStack stack, int v_min, int v_max, string format, int slider_flags)
+		public static bool _SliderIntRetOpts(string label, CallStack stack, int v_min, int v_max, string format, int sliderFlags)
 		{
-			return Native.imgui__slider_int_ret_opts(Bridge.FromString(label), stack.Raw, v_min, v_max, Bridge.FromString(format), slider_flags) != 0;
+			return Native.imgui__slider_int_ret_opts(Bridge.FromString(label), stack.Raw, v_min, v_max, Bridge.FromString(format), sliderFlags) != 0;
 		}
-		public static bool _SliderInt2RetOpts(string label, CallStack stack, int v_min, int v_max, string display_format, int slider_flags)
+		public static bool _SliderInt2RetOpts(string label, CallStack stack, int v_min, int v_max, string display_format, int sliderFlags)
 		{
-			return Native.imgui__slider_int2_ret_opts(Bridge.FromString(label), stack.Raw, v_min, v_max, Bridge.FromString(display_format), slider_flags) != 0;
+			return Native.imgui__slider_int2_ret_opts(Bridge.FromString(label), stack.Raw, v_min, v_max, Bridge.FromString(display_format), sliderFlags) != 0;
 		}
-		public static bool _DragFloatRange2RetOpts(string label, CallStack stack, float v_speed, float v_min, float v_max, string format, string format_max, int slider_flags)
+		public static bool _DragFloatRange2RetOpts(string label, CallStack stack, float v_speed, float v_min, float v_max, string format, string format_max, int sliderFlags)
 		{
-			return Native.imgui__drag_float_range2_ret_opts(Bridge.FromString(label), stack.Raw, v_speed, v_min, v_max, Bridge.FromString(format), Bridge.FromString(format_max), slider_flags) != 0;
+			return Native.imgui__drag_float_range2_ret_opts(Bridge.FromString(label), stack.Raw, v_speed, v_min, v_max, Bridge.FromString(format), Bridge.FromString(format_max), sliderFlags) != 0;
 		}
-		public static bool _DragIntRange2RetOpts(string label, CallStack stack, float v_speed, int v_min, int v_max, string format, string format_max, int slider_flags)
+		public static bool _DragIntRange2RetOpts(string label, CallStack stack, float v_speed, int v_min, int v_max, string format, string format_max, int sliderFlags)
 		{
-			return Native.imgui__drag_int_range2_ret_opts(Bridge.FromString(label), stack.Raw, v_speed, v_min, v_max, Bridge.FromString(format), Bridge.FromString(format_max), slider_flags) != 0;
+			return Native.imgui__drag_int_range2_ret_opts(Bridge.FromString(label), stack.Raw, v_speed, v_min, v_max, Bridge.FromString(format), Bridge.FromString(format_max), sliderFlags) != 0;
 		}
-		public static bool _VSliderFloatRetOpts(string label, Vec2 size, CallStack stack, float v_min, float v_max, string format, int slider_flags)
+		public static bool _VSliderFloatRetOpts(string label, Vec2 size, CallStack stack, float v_min, float v_max, string format, int sliderFlags)
 		{
-			return Native.imgui__v_slider_float_ret_opts(Bridge.FromString(label), size.Raw, stack.Raw, v_min, v_max, Bridge.FromString(format), slider_flags) != 0;
+			return Native.imgui__v_slider_float_ret_opts(Bridge.FromString(label), size.Raw, stack.Raw, v_min, v_max, Bridge.FromString(format), sliderFlags) != 0;
 		}
-		public static bool _VSliderIntRetOpts(string label, Vec2 size, CallStack stack, int v_min, int v_max, string format, int slider_flags)
+		public static bool _VSliderIntRetOpts(string label, Vec2 size, CallStack stack, int v_min, int v_max, string format, int sliderFlags)
 		{
-			return Native.imgui__v_slider_int_ret_opts(Bridge.FromString(label), size.Raw, stack.Raw, v_min, v_max, Bridge.FromString(format), slider_flags) != 0;
+			return Native.imgui__v_slider_int_ret_opts(Bridge.FromString(label), size.Raw, stack.Raw, v_min, v_max, Bridge.FromString(format), sliderFlags) != 0;
 		}
-		public static bool _ColorEdit3RetOpts(string label, CallStack stack, int color_edit_flags)
+		public static bool _ColorEdit3RetOpts(string label, CallStack stack, int colorEditFlags)
 		{
-			return Native.imgui__color_edit3_ret_opts(Bridge.FromString(label), stack.Raw, color_edit_flags) != 0;
+			return Native.imgui__color_edit3_ret_opts(Bridge.FromString(label), stack.Raw, colorEditFlags) != 0;
 		}
-		public static bool _ColorEdit4RetOpts(string label, CallStack stack, int color_edit_flags)
+		public static bool _ColorEdit4RetOpts(string label, CallStack stack, int colorEditFlags)
 		{
-			return Native.imgui__color_edit4_ret_opts(Bridge.FromString(label), stack.Raw, color_edit_flags) != 0;
+			return Native.imgui__color_edit4_ret_opts(Bridge.FromString(label), stack.Raw, colorEditFlags) != 0;
 		}
 		public static void ScrollWhenDraggingOnVoid()
 		{
 			Native.imgui_scroll_when_dragging_on_void();
 		}
-		public static void _SetNextWindowPosOpts(Vec2 pos, int set_cond, Vec2 pivot)
+		public static void _SetNextWindowPosOpts(Vec2 pos, int setCond, Vec2 pivot)
 		{
-			Native.imgui__set_next_window_pos_opts(pos.Raw, set_cond, pivot.Raw);
+			Native.imgui__set_next_window_pos_opts(pos.Raw, setCond, pivot.Raw);
 		}
 		public static void SetNextWindowBgAlpha(float alpha)
 		{

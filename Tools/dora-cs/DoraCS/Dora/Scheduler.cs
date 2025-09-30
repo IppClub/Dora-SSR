@@ -26,7 +26,7 @@ namespace Dora
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int32_t scheduler_get_fixed_fps(int64_t self);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int32_t scheduler_update(int64_t self, double delta_time);
+		public static extern int32_t scheduler_update(int64_t self, double deltaTime);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int64_t scheduler_new();
 	}
@@ -34,7 +34,9 @@ namespace Dora
 
 namespace Dora
 {
+	/// <summary>
 	/// A scheduler that manages the execution of scheduled tasks.
+	/// </summary>
 	public partial class Scheduler : Object
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
@@ -50,35 +52,37 @@ namespace Dora
 		{
 			return raw == 0 ? null : new Scheduler(raw);
 		}
-		/// the time scale factor for the scheduler.
+		/// <summary>
+		/// The time scale factor for the scheduler.
 		/// This factor is applied to deltaTime that the scheduled functions will receive.
+		/// </summary>
 		public float TimeScale
 		{
 			set => Native.scheduler_set_time_scale(Raw, value);
 			get => Native.scheduler_get_time_scale(Raw);
 		}
-		/// the target frame rate (in frames per second) for a fixed update mode.
+		/// <summary>
+		/// The target frame rate (in frames per second) for a fixed update mode.
 		/// The fixed update will ensure a constant frame rate, and the operation handled in a fixed update can use a constant delta time value.
 		/// It is used for preventing weird behavior of a physics engine or synchronizing some states via network communications.
+		/// </summary>
 		public int FixedFps
 		{
 			set => Native.scheduler_set_fixed_fps(Raw, value);
 			get => Native.scheduler_get_fixed_fps(Raw);
 		}
+		/// <summary>
 		/// Used for manually updating the scheduler if it is created by the user.
-		///
-		/// # Arguments
-		///
-		/// * `deltaTime` - The time in seconds since the last frame update.
-		///
-		/// # Returns
-		///
-		/// * `bool` - `true` if the scheduler was stoped, `false` otherwise.
-		public bool Update(double delta_time)
+		/// </summary>
+		/// <param name="deltaTime">The time in seconds since the last frame update.</param>
+		/// <returns>`true` if the scheduler was stoped, `false` otherwise.</returns>
+		public bool Update(double deltaTime)
 		{
-			return Native.scheduler_update(Raw, delta_time) != 0;
+			return Native.scheduler_update(Raw, deltaTime) != 0;
 		}
+		/// <summary>
 		/// Creates a new Scheduler object.
+		/// </summary>
 		public Scheduler() : this(Native.scheduler_new()) { }
 	}
 } // namespace Dora

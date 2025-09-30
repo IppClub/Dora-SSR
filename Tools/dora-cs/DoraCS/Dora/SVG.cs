@@ -30,7 +30,9 @@ namespace Dora
 
 namespace Dora
 {
+	/// <summary>
 	/// A struct used for Scalable Vector Graphics rendering.
+	/// </summary>
 	public partial class SVG : Object
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
@@ -46,30 +48,32 @@ namespace Dora
 		{
 			return raw == 0 ? null : new SVG(raw);
 		}
-		/// the width of the SVG object.
+		/// <summary>
+		/// The width of the SVG object.
+		/// </summary>
 		public float Width
 		{
 			get => Native.svgdef_get_width(Raw);
 		}
-		/// the height of the SVG object.
+		/// <summary>
+		/// The height of the SVG object.
+		/// </summary>
 		public float Height
 		{
 			get => Native.svgdef_get_height(Raw);
 		}
+		/// <summary>
 		/// Renders the SVG object, should be called every frame for the render result to appear.
+		/// </summary>
 		public void Render()
 		{
 			Native.svgdef_render(Raw);
 		}
+		/// <summary>
 		/// Creates a new SVG object from the specified SVG file.
-		///
-		/// # Arguments
-		///
-		/// * `filename` - The path to the SVG format file.
-		///
-		/// # Returns
-		///
-		/// * `Svg` - The created SVG object.
+		/// </summary>
+		/// <param name="filename">The path to the SVG format file.</param>
+		/// <returns>The created SVG object.</returns>
 		public SVG(string filename) : this(Native.svgdef_new(Bridge.FromString(filename))) { }
 		public static SVG? TryCreate(string filename)
 		{

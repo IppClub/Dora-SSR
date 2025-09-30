@@ -34,7 +34,9 @@ namespace Dora
 
 namespace Dora
 {
+	/// <summary>
 	/// A struct representing an entity for an ECS game system.
+	/// </summary>
 	public partial class Entity : Object
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
@@ -50,38 +52,46 @@ namespace Dora
 		{
 			return raw == 0 ? null : new Entity(raw);
 		}
-		/// the number of all running entities.
+		/// <summary>
+		/// The number of all running entities.
+		/// </summary>
 		public int Count
 		{
 			get => Native.entity_get_count();
 		}
-		/// the index of the entity.
+		/// <summary>
+		/// The index of the entity.
+		/// </summary>
 		public int Index
 		{
 			get => Native.entity_get_index(Raw);
 		}
+		/// <summary>
 		/// Clears all entities.
+		/// </summary>
 		public static void Clear()
 		{
 			Native.entity_clear();
 		}
+		/// <summary>
 		/// Removes a property of the entity.
-		///
 		/// This function will trigger events for Observer objects.
-		///
-		/// # Arguments
-		///
-		/// * `key` - The name of the property to remove.
+		/// </summary>
+		/// <param name="key">The name of the property to remove.</param>
 		public void Remove(string key)
 		{
 			Native.entity_remove(Raw, Bridge.FromString(key));
 		}
+		/// <summary>
 		/// Destroys the entity.
+		/// </summary>
 		public void Destroy()
 		{
 			Native.entity_destroy(Raw);
 		}
+		/// <summary>
 		/// Creates a new entity.
+		/// </summary>
 		public Entity() : this(Native.entity_new()) { }
 	}
 } // namespace Dora

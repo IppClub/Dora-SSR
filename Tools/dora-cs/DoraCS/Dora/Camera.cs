@@ -24,7 +24,9 @@ namespace Dora
 
 namespace Dora
 {
+	/// <summary>
 	/// A struct for Camera object in the game engine.
+	/// </summary>
 	public partial class Camera : Object
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
@@ -40,7 +42,9 @@ namespace Dora
 		{
 			return raw == 0 ? null : new Camera(raw);
 		}
-		/// the name of the Camera.
+		/// <summary>
+		/// The name of the Camera.
+		/// </summary>
 		public string Name
 		{
 			get => Bridge.ToString(Native.camera_get_name(Raw));

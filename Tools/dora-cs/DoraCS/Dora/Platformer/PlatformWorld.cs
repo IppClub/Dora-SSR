@@ -20,7 +20,7 @@ namespace Dora
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int64_t platformer_platformworld_get_camera(int64_t self);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern void platformer_platformworld_move_child(int64_t self, int64_t child, int32_t new_order);
+		public static extern void platformer_platformworld_move_child(int64_t self, int64_t child, int32_t newOrder);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int64_t platformer_platformworld_get_layer(int64_t self, int32_t order);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
@@ -32,7 +32,7 @@ namespace Dora
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int64_t platformer_platformworld_get_layer_offset(int64_t self, int32_t order);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern void platformer_platformworld_swap_layer(int64_t self, int32_t order_a, int32_t order_b);
+		public static extern void platformer_platformworld_swap_layer(int64_t self, int32_t orderA, int32_t orderB);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void platformer_platformworld_remove_layer(int64_t self, int32_t order);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
@@ -44,7 +44,9 @@ namespace Dora
 
 namespace Dora.Platformer
 {
+	/// <summary>
 	/// A struct representing a 2D platformer game world with physics simulations.
+	/// </summary>
 	public partial class PlatformWorld : PhysicsWorld
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
@@ -60,109 +62,91 @@ namespace Dora.Platformer
 		{
 			return raw == 0 ? null : new PlatformWorld(raw);
 		}
-		/// the camera used to control the view of the game world.
+		/// <summary>
+		/// The camera used to control the view of the game world.
+		/// </summary>
 		public Platformer.PlatformCamera Camera
 		{
 			get => Platformer.PlatformCamera.From(Native.platformer_platformworld_get_camera(Raw));
 		}
+		/// <summary>
 		/// Moves a child node to a new order for a different layer.
-		///
-		/// # Arguments
-		///
-		/// * `child` - The child node to be moved.
-		/// * `new_order` - The new order of the child node.
-		public void MoveChild(Node child, int new_order)
+		/// </summary>
+		/// <param name="child">The child node to be moved.</param>
+		/// <param name="new_order">The new order of the child node.</param>
+		public void MoveChild(Node child, int newOrder)
 		{
-			Native.platformer_platformworld_move_child(Raw, child.Raw, new_order);
+			Native.platformer_platformworld_move_child(Raw, child.Raw, newOrder);
 		}
+		/// <summary>
 		/// Gets the layer node at a given order.
-		///
-		/// # Arguments
-		///
-		/// * `order` - The order of the layer node to get.
-		///
-		/// # Returns
-		///
-		/// * The layer node at the given order.
+		/// </summary>
+		/// <param name="order">The order of the layer node to get.</param>
 		public Node GetLayer(int order)
 		{
 			return Node.From(Native.platformer_platformworld_get_layer(Raw, order));
 		}
+		/// <summary>
 		/// Sets the parallax moving ratio for a given layer to simulate 3D projection effect.
-		///
-		/// # Arguments
-		///
-		/// * `order` - The order of the layer to set the ratio for.
-		/// * `ratio` - The new parallax ratio for the layer.
+		/// </summary>
+		/// <param name="order">The order of the layer to set the ratio for.</param>
+		/// <param name="ratio">The new parallax ratio for the layer.</param>
 		public void SetLayerRatio(int order, Vec2 ratio)
 		{
 			Native.platformer_platformworld_set_layer_ratio(Raw, order, ratio.Raw);
 		}
+		/// <summary>
 		/// Gets the parallax moving ratio for a given layer.
-		///
-		/// # Arguments
-		///
-		/// * `order` - The order of the layer to get the ratio for.
-		///
-		/// # Returns
-		///
-		/// * A `Vec2` representing the parallax ratio for the layer.
+		/// </summary>
+		/// <param name="order">The order of the layer to get the ratio for.</param>
 		public Vec2 GetLayerRatio(int order)
 		{
 			return Vec2.From(Native.platformer_platformworld_get_layer_ratio(Raw, order));
 		}
+		/// <summary>
 		/// Sets the position offset for a given layer.
-		///
-		/// # Arguments
-		///
-		/// * `order` - The order of the layer to set the offset for.
-		/// * `offset` - A `Vec2` representing the new position offset for the layer.
+		/// </summary>
+		/// <param name="order">The order of the layer to set the offset for.</param>
+		/// <param name="offset">A `Vec2` representing the new position offset for the layer.</param>
 		public void SetLayerOffset(int order, Vec2 offset)
 		{
 			Native.platformer_platformworld_set_layer_offset(Raw, order, offset.Raw);
 		}
+		/// <summary>
 		/// Gets the position offset for a given layer.
-		///
-		/// # Arguments
-		///
-		/// * `order` - The order of the layer to get the offset for.
-		///
-		/// # Returns
-		///
-		/// * A `Vec2` representing the position offset for the layer.
+		/// </summary>
+		/// <param name="order">The order of the layer to get the offset for.</param>
 		public Vec2 GetLayerOffset(int order)
 		{
 			return Vec2.From(Native.platformer_platformworld_get_layer_offset(Raw, order));
 		}
+		/// <summary>
 		/// Swaps the positions of two layers.
-		///
-		/// # Arguments
-		///
-		/// * `order_a` - The order of the first layer to swap.
-		/// * `order_b` - The order of the second layer to swap.
-		public void SwapLayer(int order_a, int order_b)
+		/// </summary>
+		/// <param name="orderA">The order of the first layer to swap.</param>
+		/// <param name="orderB">The order of the second layer to swap.</param>
+		public void SwapLayer(int orderA, int orderB)
 		{
-			Native.platformer_platformworld_swap_layer(Raw, order_a, order_b);
+			Native.platformer_platformworld_swap_layer(Raw, orderA, orderB);
 		}
+		/// <summary>
 		/// Removes a layer from the game world.
-		///
-		/// # Arguments
-		///
-		/// * `order` - The order of the layer to remove.
+		/// </summary>
+		/// <param name="order">The order of the layer to remove.</param>
 		public void RemoveLayer(int order)
 		{
 			Native.platformer_platformworld_remove_layer(Raw, order);
 		}
+		/// <summary>
 		/// Removes all layers from the game world.
+		/// </summary>
 		public void RemoveAllLayers()
 		{
 			Native.platformer_platformworld_remove_all_layers(Raw);
 		}
+		/// <summary>
 		/// The method to create a new instance of `PlatformWorld`.
-		///
-		/// # Returns
-		///
-		/// * A new instance of `PlatformWorld`.
+		/// </summary>
 		public PlatformWorld() : this(Native.platformer_platformworld_new()) { }
 	}
 } // namespace Dora.Platformer

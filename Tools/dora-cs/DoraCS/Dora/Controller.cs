@@ -16,76 +16,62 @@ namespace Dora
 	internal static partial class Native
 	{
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int32_t controller__is_button_down(int32_t controller_id, int64_t name);
+		public static extern int32_t controller__is_button_down(int32_t controllerId, int64_t name);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int32_t controller__is_button_up(int32_t controller_id, int64_t name);
+		public static extern int32_t controller__is_button_up(int32_t controllerId, int64_t name);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int32_t controller__is_button_pressed(int32_t controller_id, int64_t name);
+		public static extern int32_t controller__is_button_pressed(int32_t controllerId, int64_t name);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern float controller__get_axis(int32_t controller_id, int64_t name);
+		public static extern float controller__get_axis(int32_t controllerId, int64_t name);
 	}
 } // namespace Dora
 
 namespace Dora
 {
+	/// <summary>
 	/// An interface for handling game controller inputs.
+	/// </summary>
 	public static partial class Controller
 	{
+		/// <summary>
 		/// Checks whether a button on the controller is currently pressed.
-		///
-		/// # Arguments
-		///
-		/// * `controller_id` - The ID of the controller to check. Starts from 0.
-		/// * `name` - The name of the button to check.
-		///
-		/// # Returns
-		///
-		/// * `bool` - `true` if the button is pressed, `false` otherwise.
-		public static bool _IsButtonDown(int controller_id, string name)
+		/// </summary>
+		/// <param name="controllerId">The ID of the controller to check. Starts from 0.</param>
+		/// <param name="name">The name of the button to check.</param>
+		/// <returns>`true` if the button is pressed, `false` otherwise.</returns>
+		public static bool _IsButtonDown(int controllerId, string name)
 		{
-			return Native.controller__is_button_down(controller_id, Bridge.FromString(name)) != 0;
+			return Native.controller__is_button_down(controllerId, Bridge.FromString(name)) != 0;
 		}
+		/// <summary>
 		/// Checks whether a button on the controller is currently released.
-		///
-		/// # Arguments
-		///
-		/// * `controller_id` - The ID of the controller to check. Starts from 0.
-		/// * `name` - The name of the button to check.
-		///
-		/// # Returns
-		///
-		/// * `bool` - `true` if the button is released, `false` otherwise.
-		public static bool _IsButtonUp(int controller_id, string name)
+		/// </summary>
+		/// <param name="controllerId">The ID of the controller to check. Starts from 0.</param>
+		/// <param name="name">The name of the button to check.</param>
+		/// <returns>`true` if the button is released, `false` otherwise.</returns>
+		public static bool _IsButtonUp(int controllerId, string name)
 		{
-			return Native.controller__is_button_up(controller_id, Bridge.FromString(name)) != 0;
+			return Native.controller__is_button_up(controllerId, Bridge.FromString(name)) != 0;
 		}
+		/// <summary>
 		/// Checks whether a button on the controller is currently being pressed.
-		///
-		/// # Arguments
-		///
-		/// * `controller_id` - The ID of the controller to check. Starts from 0.
-		/// * `name` - The name of the button to check.
-		///
-		/// # Returns
-		///
-		/// * `bool` - `true` if the button is being pressed, `false` otherwise.
-		public static bool _IsButtonPressed(int controller_id, string name)
+		/// </summary>
+		/// <param name="controllerId">The ID of the controller to check. Starts from 0.</param>
+		/// <param name="name">The name of the button to check.</param>
+		/// <returns>`true` if the button is being pressed, `false` otherwise.</returns>
+		public static bool _IsButtonPressed(int controllerId, string name)
 		{
-			return Native.controller__is_button_pressed(controller_id, Bridge.FromString(name)) != 0;
+			return Native.controller__is_button_pressed(controllerId, Bridge.FromString(name)) != 0;
 		}
+		/// <summary>
 		/// Gets the value of an axis on the controller.
-		///
-		/// # Arguments
-		///
-		/// * `controller_id` - The ID of the controller to check. Starts from 0.
-		/// * `name` - The name of the axis to check.
-		///
-		/// # Returns
-		///
-		/// * `f32` - The value of the axis. The value is between -1.0 and 1.0.
-		public static float _GetAxis(int controller_id, string name)
+		/// </summary>
+		/// <param name="controllerId">The ID of the controller to check. Starts from 0.</param>
+		/// <param name="name">The name of the axis to check.</param>
+		/// <returns>The value of the axis. The value is between -1.0 and 1.0.</returns>
+		public static float _GetAxis(int controllerId, string name)
 		{
-			return Native.controller__get_axis(controller_id, Bridge.FromString(name));
+			return Native.controller__get_axis(controllerId, Bridge.FromString(name));
 		}
 	}
 } // namespace Dora

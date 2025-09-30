@@ -76,15 +76,17 @@ namespace Dora
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern float label_get_automatic_width();
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int64_t label_new(int64_t font_name, int32_t font_size, int32_t sdf);
+		public static extern int64_t label_new(int64_t fontName, int32_t fontSize, int32_t sdf);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int64_t label_with_str(int64_t font_str);
+		public static extern int64_t label_with_str(int64_t fontStr);
 	}
 } // namespace Dora
 
 namespace Dora
 {
+	/// <summary>
 	/// A node for rendering text using a TrueType font.
+	/// </summary>
 	public partial class Label : Node
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
@@ -100,140 +102,158 @@ namespace Dora
 		{
 			return raw == 0 ? null : new Label(raw);
 		}
-		/// the text alignment setting.
+		/// <summary>
+		/// The text alignment setting.
+		/// </summary>
 		public TextAlign Alignment
 		{
 			set => Native.label_set_alignment(Raw, (int)value);
 			get => (TextAlign)Native.label_get_alignment(Raw);
 		}
-		/// the alpha threshold value. Pixels with alpha values below this value will not be drawn.
+		/// <summary>
+		/// The alpha threshold value. Pixels with alpha values below this value will not be drawn.
 		/// Only works with `label.effect = SpriteEffect::new("builtin:vs_sprite", "builtin:fs_spritealphatest")`.
+		/// </summary>
 		public float AlphaRef
 		{
 			set => Native.label_set_alpha_ref(Raw, value);
 			get => Native.label_get_alpha_ref(Raw);
 		}
-		/// the width of the text used for text wrapping.
+		/// <summary>
+		/// The width of the text used for text wrapping.
 		/// Set to `Label::AutomaticWidth` to disable wrapping.
 		/// Default is `Label::AutomaticWidth`.
+		/// </summary>
 		public float TextWidth
 		{
 			set => Native.label_set_text_width(Raw, value);
 			get => Native.label_get_text_width(Raw);
 		}
-		/// the gap in pixels between characters.
+		/// <summary>
+		/// The gap in pixels between characters.
+		/// </summary>
 		public float Spacing
 		{
 			set => Native.label_set_spacing(Raw, value);
 			get => Native.label_get_spacing(Raw);
 		}
-		/// the gap in pixels between lines of text.
+		/// <summary>
+		/// The gap in pixels between lines of text.
+		/// </summary>
 		public float LineGap
 		{
 			set => Native.label_set_line_gap(Raw, value);
 			get => Native.label_get_line_gap(Raw);
 		}
-		/// the color of the outline, only works with SDF label.
+		/// <summary>
+		/// The color of the outline, only works with SDF label.
+		/// </summary>
 		public Color OutlineColor
 		{
 			set => Native.label_set_outline_color(Raw, (int)value.ToARGB());
 			get => new Color((uint)Native.label_get_outline_color(Raw));
 		}
-		/// the width of the outline, only works with SDF label.
+		/// <summary>
+		/// The width of the outline, only works with SDF label.
+		/// </summary>
 		public float OutlineWidth
 		{
 			set => Native.label_set_outline_width(Raw, value);
 			get => Native.label_get_outline_width(Raw);
 		}
-		/// the smooth value of the text, only works with SDF label, default is (0.7, 0.7).
+		/// <summary>
+		/// The smooth value of the text, only works with SDF label, default is (0.7, 0.7).
+		/// </summary>
 		public Vec2 Smooth
 		{
 			set => Native.label_set_smooth(Raw, value.Raw);
 			get => Vec2.From(Native.label_get_smooth(Raw));
 		}
-		/// the text to be rendered.
+		/// <summary>
+		/// The text to be rendered.
+		/// </summary>
 		public string Text
 		{
 			set => Native.label_set_text(Raw, Bridge.FromString(value));
 			get => Bridge.ToString(Native.label_get_text(Raw));
 		}
-		/// the blend function for the label.
+		/// <summary>
+		/// The blend function for the label.
+		/// </summary>
 		public BlendFunc BlendFunc
 		{
 			set => Native.label_set_blend_func(Raw, value.Raw);
 			get => BlendFunc.From(Native.label_get_blend_func(Raw));
 		}
-		/// whether depth writing is enabled. (Default is false)
+		/// <summary>
+		/// Whether depth writing is enabled. (Default is false)
+		/// </summary>
 		public bool IsDepthWrite
 		{
 			set => Native.label_set_depth_write(Raw, value ? 1 : 0);
 			get => Native.label_is_depth_write(Raw) != 0;
 		}
-		/// whether the label is using batched rendering.
+		/// <summary>
+		/// Whether the label is using batched rendering.
 		/// When using batched rendering the `label.get_character()` function will no longer work, but it provides better rendering performance. Default is true.
+		/// </summary>
 		public bool IsBatched
 		{
 			set => Native.label_set_batched(Raw, value ? 1 : 0);
 			get => Native.label_is_batched(Raw) != 0;
 		}
-		/// the sprite effect used to render the text.
+		/// <summary>
+		/// The sprite effect used to render the text.
+		/// </summary>
 		public SpriteEffect Effect
 		{
 			set => Native.label_set_effect(Raw, value.Raw);
 			get => SpriteEffect.From(Native.label_get_effect(Raw));
 		}
-		/// the number of characters in the label.
+		/// <summary>
+		/// The number of characters in the label.
+		/// </summary>
 		public int CharacterCount
 		{
 			get => Native.label_get_character_count(Raw);
 		}
+		/// <summary>
 		/// Returns the sprite for the character at the specified index.
-		///
-		/// # Arguments
-		///
-		/// * `index` - The index of the character sprite to retrieve.
-		///
-		/// # Returns
-		///
-		/// * `Option<Sprite>` - The sprite for the character, or `None` if the index is out of range.
+		/// </summary>
+		/// <param name="index">The index of the character sprite to retrieve.</param>
+		/// <returns>The sprite for the character, or `None` if the index is out of range.</returns>
 		public Sprite? GetCharacter(int index)
 		{
 			return Sprite.FromOpt(Native.label_get_character(Raw, index));
 		}
-		/// the value to use for automatic width calculation
+		/// <summary>
+		/// The value to use for automatic width calculation
+		/// </summary>
 		public float AutomaticWidth
 		{
 			get => Native.label_get_automatic_width();
 		}
+		/// <summary>
 		/// Creates a new Label object with the specified font name and font size.
-		///
-		/// # Arguments
-		///
-		/// * `font_name` - The name of the font to use for the label. Can be font file path with or without file extension.
-		/// * `font_size` - The size of the font to use for the label.
-		/// * `sdf` - Whether to use SDF rendering or not. With SDF rendering, the outline feature will be enabled.
-		///
-		/// # Returns
-		///
-		/// * `Label` - The new Label object.
-		public Label(string font_name, int font_size, bool sdf) : this(Native.label_new(Bridge.FromString(font_name), font_size, sdf ? 1 : 0)) { }
-		public static Label? TryCreate(string font_name, int font_size, bool sdf)
+		/// </summary>
+		/// <param name="fontName">The name of the font to use for the label. Can be font file path with or without file extension.</param>
+		/// <param name="fontSize">The size of the font to use for the label.</param>
+		/// <param name="sdf">Whether to use SDF rendering or not. With SDF rendering, the outline feature will be enabled.</param>
+		/// <returns>The new Label object.</returns>
+		public Label(string fontName, int fontSize, bool sdf) : this(Native.label_new(Bridge.FromString(fontName), fontSize, sdf ? 1 : 0)) { }
+		public static Label? TryCreate(string fontName, int fontSize, bool sdf)
 		{
-			var raw = Native.label_new(Bridge.FromString(font_name), font_size, sdf ? 1 : 0);
+			var raw = Native.label_new(Bridge.FromString(fontName), fontSize, sdf ? 1 : 0);
 			return raw == 0 ? null : new Label(raw);
 		}
+		/// <summary>
 		/// Creates a new Label object with the specified font string.
-		///
-		/// # Arguments
-		///
-		/// * `font_str` - The font string to use for the label. Should be in the format "fontName;fontSize;sdf", where `sdf` should be "true" or "false".
-		///
-		/// # Returns
-		///
-		/// * `Label` - The new Label object.
-		public static Label? WithStr(string font_str)
+		/// </summary>
+		/// <param name="fontStr">The font string to use for the label. Should be in the format "fontName;fontSize;sdf", where `sdf` should be "true" or "false".</param>
+		/// <returns>The new Label object.</returns>
+		public static Label? WithStr(string fontStr)
 		{
-			return Label.FromOpt(Native.label_with_str(Bridge.FromString(font_str)));
+			return Label.FromOpt(Native.label_with_str(Bridge.FromString(fontStr)));
 		}
 	}
 } // namespace Dora

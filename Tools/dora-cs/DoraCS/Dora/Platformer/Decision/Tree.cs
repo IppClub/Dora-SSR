@@ -24,7 +24,7 @@ namespace Dora
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int64_t platformer_decision_leaf_con(int64_t name, int32_t func0, int64_t stack0);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int64_t platformer_decision_leaf_act(int64_t action_name);
+		public static extern int64_t platformer_decision_leaf_act(int64_t actionName);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int64_t platformer_decision_leaf_act_dynamic(int32_t func0, int64_t stack0);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
@@ -38,7 +38,9 @@ namespace Dora
 
 namespace Dora.Platformer.Decision
 {
+	/// <summary>
 	/// A decision tree framework for creating game AI structures.
+	/// </summary>
 	public partial class Tree : Object
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
@@ -54,79 +56,52 @@ namespace Dora.Platformer.Decision
 		{
 			return raw == 0 ? null : new Tree(raw);
 		}
+		/// <summary>
 		/// Creates a selector node with the specified child nodes.
-		///
 		/// A selector node will go through the child nodes until one succeeds.
-		///
-		/// # Arguments
-		///
-		/// * `nodes` - An array of `Leaf` nodes.
-		///
-		/// # Returns
-		///
-		/// * A `Leaf` node that represents a selector.
+		/// </summary>
+		/// <param name="nodes">An array of `Leaf` nodes.</param>
 		public static Platformer.Decision.Tree Sel(IEnumerable<Platformer.Decision.Tree> nodes)
 		{
 			return Platformer.Decision.Tree.From(Native.platformer_decision_leaf_sel(Bridge.FromArray(nodes)));
 		}
+		/// <summary>
 		/// Creates a sequence node with the specified child nodes.
-		///
 		/// A sequence node will go through the child nodes until all nodes succeed.
-		///
-		/// # Arguments
-		///
-		/// * `nodes` - An array of `Leaf` nodes.
-		///
-		/// # Returns
-		///
-		/// * A `Leaf` node that represents a sequence.
+		/// </summary>
+		/// <param name="nodes">An array of `Leaf` nodes.</param>
 		public static Platformer.Decision.Tree Seq(IEnumerable<Platformer.Decision.Tree> nodes)
 		{
 			return Platformer.Decision.Tree.From(Native.platformer_decision_leaf_seq(Bridge.FromArray(nodes)));
 		}
+		/// <summary>
 		/// Creates a condition node with the specified name and handler function.
-		///
-		/// # Arguments
-		///
-		/// * `name` - The name of the condition.
-		/// * `check` - The check function that takes a `Unit` parameter and returns a boolean result.
-		///
-		/// # Returns
-		///
-		/// * A `Leaf` node that represents a condition check.
-		public static Platformer.Decision.Tree Con(string name, Func<Platformer.Unit, bool> handler)
+		/// </summary>
+		/// <param name="name">The name of the condition.</param>
+		/// <param name="check">The check function that takes a `Unit` parameter and returns a boolean result.</param>
+		public static Platformer.Decision.Tree Con(string name, Func<Platformer.Unit, bool> check)
 		{
 			var stack0 = new CallStack();
 			var stack_raw0 = stack0.Raw;
 			var func_id0 = Bridge.PushFunction(() =>
 			{
-				var result = handler((Platformer.Unit)stack0.PopObject());
+				var result = check((Platformer.Unit)stack0.PopObject());
 				stack0.Push(result);
 			});
 			return Platformer.Decision.Tree.From(Native.platformer_decision_leaf_con(Bridge.FromString(name), func_id0, stack_raw0));
 		}
+		/// <summary>
 		/// Creates an action node with the specified action name.
-		///
-		/// # Arguments
-		///
-		/// * `action_name` - The name of the action to perform.
-		///
-		/// # Returns
-		///
-		/// * A `Leaf` node that represents an action.
-		public static Platformer.Decision.Tree Act(string action_name)
+		/// </summary>
+		/// <param name="actionName">The name of the action to perform.</param>
+		public static Platformer.Decision.Tree Act(string actionName)
 		{
-			return Platformer.Decision.Tree.From(Native.platformer_decision_leaf_act(Bridge.FromString(action_name)));
+			return Platformer.Decision.Tree.From(Native.platformer_decision_leaf_act(Bridge.FromString(actionName)));
 		}
+		/// <summary>
 		/// Creates an action node with the specified handler function.
-		///
-		/// # Arguments
-		///
-		/// * `handler` - The handler function that takes a `Unit` parameter which is the running AI agent and returns an action.
-		///
-		/// # Returns
-		///
-		/// * A `Leaf` node that represents an action.
+		/// </summary>
+		/// <param name="handler">The handler function that takes a `Unit` parameter which is the running AI agent and returns an action.</param>
 		public static Platformer.Decision.Tree ActDynamic(Func<Platformer.Unit, string> handler)
 		{
 			var stack0 = new CallStack();
@@ -138,40 +113,28 @@ namespace Dora.Platformer.Decision
 			});
 			return Platformer.Decision.Tree.From(Native.platformer_decision_leaf_act_dynamic(func_id0, stack_raw0));
 		}
+		/// <summary>
 		/// Creates a leaf node that represents accepting the current behavior tree.
-		///
 		/// Always get success result from this node.
-		///
-		/// # Returns
-		///
-		/// * A `Leaf` node.
+		/// </summary>
 		public static Platformer.Decision.Tree Accept()
 		{
 			return Platformer.Decision.Tree.From(Native.platformer_decision_leaf_accept());
 		}
+		/// <summary>
 		/// Creates a leaf node that represents rejecting the current behavior tree.
-		///
 		/// Always get failure result from this node.
-		///
-		/// # Returns
-		///
-		/// * A `Leaf` node.
+		/// </summary>
 		public static Platformer.Decision.Tree Reject()
 		{
 			return Platformer.Decision.Tree.From(Native.platformer_decision_leaf_reject());
 		}
+		/// <summary>
 		/// Creates a leaf node with the specified behavior tree as its root.
-		///
 		/// It is possible to include a Behavior Tree as a node in a Decision Tree by using the Behave() function. This allows the AI to use a combination of decision-making and behavior execution to achieve its goals.
-		///
-		/// # Arguments
-		///
-		/// * `name` - The name of the behavior tree.
-		/// * `root` - The root node of the behavior tree.
-		///
-		/// # Returns
-		///
-		/// * A `Leaf` node.
+		/// </summary>
+		/// <param name="name">The name of the behavior tree.</param>
+		/// <param name="root">The root node of the behavior tree.</param>
 		public static Platformer.Decision.Tree Behave(string name, Platformer.Behavior.Tree root)
 		{
 			return Platformer.Decision.Tree.From(Native.platformer_decision_leaf_behave(Bridge.FromString(name), root.Raw));

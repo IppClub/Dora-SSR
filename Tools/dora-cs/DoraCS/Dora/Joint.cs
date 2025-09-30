@@ -18,39 +18,41 @@ namespace Dora
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int32_t joint_type();
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int64_t joint_distance(int32_t collision, int64_t body_a, int64_t body_b, int64_t anchor_a, int64_t anchor_b, float frequency, float damping);
+		public static extern int64_t joint_distance(int32_t collision, int64_t bodyA, int64_t bodyB, int64_t anchorA, int64_t anchorB, float frequency, float damping);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int64_t joint_friction(int32_t collision, int64_t body_a, int64_t body_b, int64_t world_pos, float max_force, float max_torque);
+		public static extern int64_t joint_friction(int32_t collision, int64_t bodyA, int64_t bodyB, int64_t worldPos, float maxForce, float maxTorque);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int64_t joint_gear(int32_t collision, int64_t joint_a, int64_t joint_b, float ratio);
+		public static extern int64_t joint_gear(int32_t collision, int64_t jointA, int64_t jointB, float ratio);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int64_t joint_spring(int32_t collision, int64_t body_a, int64_t body_b, int64_t linear_offset, float angular_offset, float max_force, float max_torque, float correction_factor);
+		public static extern int64_t joint_spring(int32_t collision, int64_t bodyA, int64_t bodyB, int64_t linearOffset, float angularOffset, float maxForce, float maxTorque, float correctionFactor);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int64_t joint_move_target(int32_t collision, int64_t body, int64_t target_pos, float max_force, float frequency, float damping);
+		public static extern int64_t joint_move_target(int32_t collision, int64_t body, int64_t targetPos, float maxForce, float frequency, float damping);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int64_t joint_prismatic(int32_t collision, int64_t body_a, int64_t body_b, int64_t world_pos, float axis_angle, float lower_translation, float upper_translation, float max_motor_force, float motor_speed);
+		public static extern int64_t joint_prismatic(int32_t collision, int64_t bodyA, int64_t bodyB, int64_t worldPos, float axisAngle, float lowerTranslation, float upperTranslation, float maxMotorForce, float motorSpeed);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int64_t joint_pulley(int32_t collision, int64_t body_a, int64_t body_b, int64_t anchor_a, int64_t anchor_b, int64_t ground_anchor_a, int64_t ground_anchor_b, float ratio);
+		public static extern int64_t joint_pulley(int32_t collision, int64_t bodyA, int64_t bodyB, int64_t anchorA, int64_t anchorB, int64_t groundAnchorA, int64_t groundAnchorB, float ratio);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int64_t joint_revolute(int32_t collision, int64_t body_a, int64_t body_b, int64_t world_pos, float lower_angle, float upper_angle, float max_motor_torque, float motor_speed);
+		public static extern int64_t joint_revolute(int32_t collision, int64_t bodyA, int64_t bodyB, int64_t worldPos, float lowerAngle, float upperAngle, float maxMotorTorque, float motorSpeed);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int64_t joint_rope(int32_t collision, int64_t body_a, int64_t body_b, int64_t anchor_a, int64_t anchor_b, float max_length);
+		public static extern int64_t joint_rope(int32_t collision, int64_t bodyA, int64_t bodyB, int64_t anchorA, int64_t anchorB, float maxLength);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int64_t joint_weld(int32_t collision, int64_t body_a, int64_t body_b, int64_t world_pos, float frequency, float damping);
+		public static extern int64_t joint_weld(int32_t collision, int64_t bodyA, int64_t bodyB, int64_t worldPos, float frequency, float damping);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int64_t joint_wheel(int32_t collision, int64_t body_a, int64_t body_b, int64_t world_pos, float axis_angle, float max_motor_torque, float motor_speed, float frequency, float damping);
+		public static extern int64_t joint_wheel(int32_t collision, int64_t bodyA, int64_t bodyB, int64_t worldPos, float axisAngle, float maxMotorTorque, float motorSpeed, float frequency, float damping);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int64_t joint_get_world(int64_t self);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void joint_destroy(int64_t self);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int64_t joint_new(int64_t def, int64_t item_dict);
+		public static extern int64_t joint_new(int64_t def, int64_t itemDict);
 	}
 } // namespace Dora
 
 namespace Dora
 {
+	/// <summary>
 	/// A struct that can be used to connect physics bodies together.
+	/// </summary>
 	public partial class Joint : Object
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
@@ -66,235 +68,191 @@ namespace Dora
 		{
 			return raw == 0 ? null : new Joint(raw);
 		}
+		/// <summary>
 		/// Creates a distance joint between two physics bodies.
-		///
-		/// # Arguments
-		///
-		/// * `can_collide` - Whether or not the physics body connected to joint will collide with each other.
-		/// * `body_a` - The first physics body to connect with the joint.
-		/// * `body_b` - The second physics body to connect with the joint.
-		/// * `anchor_a` - The position of the joint on the first physics body.
-		/// * `anchor_b` - The position of the joint on the second physics body.
-		/// * `frequency` - The frequency of the joint, in Hertz.
-		/// * `damping` - The damping ratio of the joint.
-		///
-		/// # Returns
-		///
-		/// * `Joint` - The new distance joint.
-		public static Joint Distance(bool collision, Body body_a, Body body_b, Vec2 anchor_a, Vec2 anchor_b, float frequency, float damping)
+		/// </summary>
+		/// <param name="can_collide">Whether or not the physics body connected to joint will collide with each other.</param>
+		/// <param name="body_a">The first physics body to connect with the joint.</param>
+		/// <param name="body_b">The second physics body to connect with the joint.</param>
+		/// <param name="anchor_a">The position of the joint on the first physics body.</param>
+		/// <param name="anchor_b">The position of the joint on the second physics body.</param>
+		/// <param name="frequency">The frequency of the joint, in Hertz.</param>
+		/// <param name="damping">The damping ratio of the joint.</param>
+		/// <returns>The new distance joint.</returns>
+		public static Joint Distance(bool collision, Body bodyA, Body bodyB, Vec2 anchorA, Vec2 anchorB, float frequency, float damping)
 		{
-			return Joint.From(Native.joint_distance(collision ? 1 : 0, body_a.Raw, body_b.Raw, anchor_a.Raw, anchor_b.Raw, frequency, damping));
+			return Joint.From(Native.joint_distance(collision ? 1 : 0, bodyA.Raw, bodyB.Raw, anchorA.Raw, anchorB.Raw, frequency, damping));
 		}
+		/// <summary>
 		/// Creates a friction joint between two physics bodies.
-		///
-		/// # Arguments
-		///
-		/// * `can_collide` - Whether or not the physics body connected to joint will collide with each other.
-		/// * `body_a` - The first physics body to connect with the joint.
-		/// * `body_b` - The second physics body to connect with the joint.
-		/// * `world_pos` - The position of the joint in the game world.
-		/// * `max_force` - The maximum force that can be applied to the joint.
-		/// * `max_torque` - The maximum torque that can be applied to the joint.
-		///
-		/// # Returns
-		///
-		/// * `Joint` - The new friction joint.
-		public static Joint Friction(bool collision, Body body_a, Body body_b, Vec2 world_pos, float max_force, float max_torque)
+		/// </summary>
+		/// <param name="can_collide">Whether or not the physics body connected to joint will collide with each other.</param>
+		/// <param name="body_a">The first physics body to connect with the joint.</param>
+		/// <param name="body_b">The second physics body to connect with the joint.</param>
+		/// <param name="world_pos">The position of the joint in the game world.</param>
+		/// <param name="max_force">The maximum force that can be applied to the joint.</param>
+		/// <param name="max_torque">The maximum torque that can be applied to the joint.</param>
+		/// <returns>The new friction joint.</returns>
+		public static Joint Friction(bool collision, Body bodyA, Body bodyB, Vec2 worldPos, float maxForce, float maxTorque)
 		{
-			return Joint.From(Native.joint_friction(collision ? 1 : 0, body_a.Raw, body_b.Raw, world_pos.Raw, max_force, max_torque));
+			return Joint.From(Native.joint_friction(collision ? 1 : 0, bodyA.Raw, bodyB.Raw, worldPos.Raw, maxForce, maxTorque));
 		}
+		/// <summary>
 		/// Creates a gear joint between two other joints.
-		///
-		/// # Arguments
-		///
-		/// * `can_collide` - Whether or not the physics bodies connected to the joint can collide with each other.
-		/// * `joint_a` - The first joint to connect with the gear joint.
-		/// * `joint_b` - The second joint to connect with the gear joint.
-		/// * `ratio` - The gear ratio.
-		///
-		/// # Returns
-		///
-		/// * `Joint` - The new gear joint.
-		public static Joint Gear(bool collision, Joint joint_a, Joint joint_b, float ratio)
+		/// </summary>
+		/// <param name="can_collide">Whether or not the physics bodies connected to the joint can collide with each other.</param>
+		/// <param name="joint_a">The first joint to connect with the gear joint.</param>
+		/// <param name="joint_b">The second joint to connect with the gear joint.</param>
+		/// <param name="ratio">The gear ratio.</param>
+		/// <returns>The new gear joint.</returns>
+		public static Joint Gear(bool collision, Joint jointA, Joint jointB, float ratio)
 		{
-			return Joint.From(Native.joint_gear(collision ? 1 : 0, joint_a.Raw, joint_b.Raw, ratio));
+			return Joint.From(Native.joint_gear(collision ? 1 : 0, jointA.Raw, jointB.Raw, ratio));
 		}
+		/// <summary>
 		/// Creates a new spring joint between the two specified bodies.
-		///
-		/// # Arguments
-		///
-		/// * `can_collide` - Whether the connected bodies should collide with each other.
-		/// * `body_a` - The first body connected to the joint.
-		/// * `body_b` - The second body connected to the joint.
-		/// * `linear_offset` - Position of body-B minus the position of body-A, in body-A's frame.
-		/// * `angular_offset` - Angle of body-B minus angle of body-A.
-		/// * `max_force` - The maximum force the joint can exert.
-		/// * `max_torque` - The maximum torque the joint can exert.
-		/// * `correction_factor` - Correction factor. 0.0 = no correction, 1.0 = full correction.
-		///
-		/// # Returns
-		///
-		/// * `Joint` - The created joint.
-		public static Joint Spring(bool collision, Body body_a, Body body_b, Vec2 linear_offset, float angular_offset, float max_force, float max_torque, float correction_factor)
+		/// </summary>
+		/// <param name="collision">Whether the connected bodies should collide with each other.</param>
+		/// <param name="bodyA">The first body connected to the joint.</param>
+		/// <param name="bodyB">The second body connected to the joint.</param>
+		/// <param name="linearOffset">Position of body-B minus the position of body-A, in body-A's frame.</param>
+		/// <param name="angularOffset">Angle of body-B minus angle of body-A.</param>
+		/// <param name="maxForce">The maximum force the joint can exert.</param>
+		/// <param name="maxTorque">The maximum torque the joint can exert.</param>
+		/// <param name="correctionFactor">Correction factor. 0.0 = no correction, 1.0 = full correction.</param>
+		/// <returns>The created joint.</returns>
+		public static Joint Spring(bool collision, Body bodyA, Body bodyB, Vec2 linearOffset, float angularOffset, float maxForce, float maxTorque, float correctionFactor)
 		{
-			return Joint.From(Native.joint_spring(collision ? 1 : 0, body_a.Raw, body_b.Raw, linear_offset.Raw, angular_offset, max_force, max_torque, correction_factor));
+			return Joint.From(Native.joint_spring(collision ? 1 : 0, bodyA.Raw, bodyB.Raw, linearOffset.Raw, angularOffset, maxForce, maxTorque, correctionFactor));
 		}
+		/// <summary>
 		/// Creates a new move joint for the specified body.
-		///
-		/// # Arguments
-		///
-		/// * `can_collide` - Whether the body can collide with other bodies.
-		/// * `body` - The body that the joint is attached to.
-		/// * `target_pos` - The target position that the body should move towards.
-		/// * `max_force` - The maximum force the joint can exert.
-		/// * `frequency` - Frequency ratio.
-		/// * `damping` - Damping ratio.
-		///
-		/// # Returns
-		///
-		/// * `MoveJoint` - The created move joint.
-		public static MoveJoint MoveTarget(bool collision, Body body, Vec2 target_pos, float max_force, float frequency, float damping)
+		/// </summary>
+		/// <param name="collision">Whether the body can collide with other bodies.</param>
+		/// <param name="body">The body that the joint is attached to.</param>
+		/// <param name="targetPos">The target position that the body should move towards.</param>
+		/// <param name="maxForce">The maximum force the joint can exert.</param>
+		/// <param name="frequency">Frequency ratio.</param>
+		/// <param name="damping">Damping ratio.</param>
+		/// <returns>The created move joint.</returns>
+		public static MoveJoint MoveTarget(bool collision, Body body, Vec2 targetPos, float maxForce, float frequency, float damping)
 		{
-			return MoveJoint.From(Native.joint_move_target(collision ? 1 : 0, body.Raw, target_pos.Raw, max_force, frequency, damping));
+			return MoveJoint.From(Native.joint_move_target(collision ? 1 : 0, body.Raw, targetPos.Raw, maxForce, frequency, damping));
 		}
+		/// <summary>
 		/// Creates a new prismatic joint between the two specified bodies.
-		///
-		/// # Arguments
-		///
-		/// * `can_collide` - Whether the connected bodies should collide with each other.
-		/// * `body_a` - The first body connected to the joint.
-		/// * `body_b` - The second body connected to the joint.
-		/// * `world_pos` - The world position of the joint.
-		/// * `axis_angle` - The axis angle of the joint.
-		/// * `lower_translation` - Lower translation limit.
-		/// * `upper_translation` - Upper translation limit.
-		/// * `max_motor_force` - Maximum motor force.
-		/// * `motor_speed` - Motor speed.
-		///
-		/// # Returns
-		///
-		/// * `MotorJoint` - The created prismatic joint.
-		public static MotorJoint Prismatic(bool collision, Body body_a, Body body_b, Vec2 world_pos, float axis_angle, float lower_translation, float upper_translation, float max_motor_force, float motor_speed)
+		/// </summary>
+		/// <param name="collision">Whether the connected bodies should collide with each other.</param>
+		/// <param name="bodyA">The first body connected to the joint.</param>
+		/// <param name="bodyB">The second body connected to the joint.</param>
+		/// <param name="worldPos">The world position of the joint.</param>
+		/// <param name="axisAngle">The axis angle of the joint.</param>
+		/// <param name="lowerTranslation">Lower translation limit.</param>
+		/// <param name="upperTranslation">Upper translation limit.</param>
+		/// <param name="maxMotorForce">Maximum motor force.</param>
+		/// <param name="motorSpeed">Motor speed.</param>
+		/// <returns>The created prismatic joint.</returns>
+		public static MotorJoint Prismatic(bool collision, Body bodyA, Body bodyB, Vec2 worldPos, float axisAngle, float lowerTranslation, float upperTranslation, float maxMotorForce, float motorSpeed)
 		{
-			return MotorJoint.From(Native.joint_prismatic(collision ? 1 : 0, body_a.Raw, body_b.Raw, world_pos.Raw, axis_angle, lower_translation, upper_translation, max_motor_force, motor_speed));
+			return MotorJoint.From(Native.joint_prismatic(collision ? 1 : 0, bodyA.Raw, bodyB.Raw, worldPos.Raw, axisAngle, lowerTranslation, upperTranslation, maxMotorForce, motorSpeed));
 		}
+		/// <summary>
 		/// Creates a pulley joint between two physics bodies.
-		///
-		/// # Arguments
-		///
-		/// * `can_collide` - Whether or not the connected bodies will collide with each other.
-		/// * `body_a` - The first physics body to connect.
-		/// * `body_b` - The second physics body to connect.
-		/// * `anchor_a` - The position of the anchor point on the first body.
-		/// * `anchor_b` - The position of the anchor point on the second body.
-		/// * `ground_anchor_a` - The position of the ground anchor point on the first body in world coordinates.
-		/// * `ground_anchor_b` - The position of the ground anchor point on the second body in world coordinates.
-		/// * `ratio` - The pulley ratio.
-		///
-		/// # Returns
-		///
-		/// * `Joint` - The pulley joint.
-		public static Joint Pulley(bool collision, Body body_a, Body body_b, Vec2 anchor_a, Vec2 anchor_b, Vec2 ground_anchor_a, Vec2 ground_anchor_b, float ratio)
+		/// </summary>
+		/// <param name="collision">Whether or not the connected bodies will collide with each other.</param>
+		/// <param name="bodyA">The first physics body to connect.</param>
+		/// <param name="bodyB">The second physics body to connect.</param>
+		/// <param name="anchorA">The position of the anchor point on the first body.</param>
+		/// <param name="anchorB">The position of the anchor point on the second body.</param>
+		/// <param name="groundAnchorA">The position of the ground anchor point on the first body in world coordinates.</param>
+		/// <param name="groundAnchorB">The position of the ground anchor point on the second body in world coordinates.</param>
+		/// <param name="ratio">The pulley ratio.</param>
+		/// <returns>The pulley joint.</returns>
+		public static Joint Pulley(bool collision, Body bodyA, Body bodyB, Vec2 anchorA, Vec2 anchorB, Vec2 groundAnchorA, Vec2 groundAnchorB, float ratio)
 		{
-			return Joint.From(Native.joint_pulley(collision ? 1 : 0, body_a.Raw, body_b.Raw, anchor_a.Raw, anchor_b.Raw, ground_anchor_a.Raw, ground_anchor_b.Raw, ratio));
+			return Joint.From(Native.joint_pulley(collision ? 1 : 0, bodyA.Raw, bodyB.Raw, anchorA.Raw, anchorB.Raw, groundAnchorA.Raw, groundAnchorB.Raw, ratio));
 		}
+		/// <summary>
 		/// Creates a revolute joint between two physics bodies.
-		///
-		/// # Arguments
-		///
-		/// * `can_collide` - Whether or not the connected bodies will collide with each other.
-		/// * `body_a` - The first physics body to connect.
-		/// * `body_b` - The second physics body to connect.
-		/// * `world_pos` - The position in world coordinates where the joint will be created.
-		/// * `lower_angle` - The lower angle limit in radians.
-		/// * `upper_angle` - The upper angle limit in radians.
-		/// * `max_motor_torque` - The maximum torque that can be applied to the joint to achieve the target speed.
-		/// * `motor_speed` - The desired speed of the joint.
-		///
-		/// # Returns
-		///
-		/// * `MotorJoint` - The revolute joint.
-		public static MotorJoint Revolute(bool collision, Body body_a, Body body_b, Vec2 world_pos, float lower_angle, float upper_angle, float max_motor_torque, float motor_speed)
+		/// </summary>
+		/// <param name="collision">Whether or not the connected bodies will collide with each other.</param>
+		/// <param name="bodyA">The first physics body to connect.</param>
+		/// <param name="bodyB">The second physics body to connect.</param>
+		/// <param name="worldPos">The position in world coordinates where the joint will be created.</param>
+		/// <param name="lowerAngle">The lower angle limit in radians.</param>
+		/// <param name="upperAngle">The upper angle limit in radians.</param>
+		/// <param name="maxMotorTorque">The maximum torque that can be applied to the joint to achieve the target speed.</param>
+		/// <param name="motorSpeed">The desired speed of the joint.</param>
+		/// <returns>The revolute joint.</returns>
+		public static MotorJoint Revolute(bool collision, Body bodyA, Body bodyB, Vec2 worldPos, float lowerAngle, float upperAngle, float maxMotorTorque, float motorSpeed)
 		{
-			return MotorJoint.From(Native.joint_revolute(collision ? 1 : 0, body_a.Raw, body_b.Raw, world_pos.Raw, lower_angle, upper_angle, max_motor_torque, motor_speed));
+			return MotorJoint.From(Native.joint_revolute(collision ? 1 : 0, bodyA.Raw, bodyB.Raw, worldPos.Raw, lowerAngle, upperAngle, maxMotorTorque, motorSpeed));
 		}
+		/// <summary>
 		/// Creates a rope joint between two physics bodies.
-		///
-		/// # Arguments
-		///
-		/// * `can_collide` - Whether or not the connected bodies will collide with each other.
-		/// * `body_a` - The first physics body to connect.
-		/// * `body_b` - The second physics body to connect.
-		/// * `anchor_a` - The position of the anchor point on the first body.
-		/// * `anchor_b` - The position of the anchor point on the second body.
-		/// * `max_length` - The maximum distance between the anchor points.
-		///
-		/// # Returns
-		///
-		/// * `Joint` - The rope joint.
-		public static Joint Rope(bool collision, Body body_a, Body body_b, Vec2 anchor_a, Vec2 anchor_b, float max_length)
+		/// </summary>
+		/// <param name="collision">Whether or not the connected bodies will collide with each other.</param>
+		/// <param name="bodyA">The first physics body to connect.</param>
+		/// <param name="bodyB">The second physics body to connect.</param>
+		/// <param name="anchorA">The position of the anchor point on the first body.</param>
+		/// <param name="anchorB">The position of the anchor point on the second body.</param>
+		/// <param name="maxLength">The maximum distance between the anchor points.</param>
+		/// <returns>The rope joint.</returns>
+		public static Joint Rope(bool collision, Body bodyA, Body bodyB, Vec2 anchorA, Vec2 anchorB, float maxLength)
 		{
-			return Joint.From(Native.joint_rope(collision ? 1 : 0, body_a.Raw, body_b.Raw, anchor_a.Raw, anchor_b.Raw, max_length));
+			return Joint.From(Native.joint_rope(collision ? 1 : 0, bodyA.Raw, bodyB.Raw, anchorA.Raw, anchorB.Raw, maxLength));
 		}
+		/// <summary>
 		/// Creates a weld joint between two bodies.
-		///
-		/// # Arguments
-		///
-		/// * `can_collide` - Whether or not the bodies connected to the joint can collide with each other.
-		/// * `body_a` - The first body to be connected by the joint.
-		/// * `body_b` - The second body to be connected by the joint.
-		/// * `world_pos` - The position in the world to connect the bodies together.
-		/// * `frequency` - The frequency at which the joint should be stiff.
-		/// * `damping` - The damping rate of the joint.
-		///
-		/// # Returns
-		///
-		/// * `Joint` - The newly created weld joint.
-		public static Joint Weld(bool collision, Body body_a, Body body_b, Vec2 world_pos, float frequency, float damping)
+		/// </summary>
+		/// <param name="collision">Whether or not the bodies connected to the joint can collide with each other.</param>
+		/// <param name="bodyA">The first body to be connected by the joint.</param>
+		/// <param name="bodyB">The second body to be connected by the joint.</param>
+		/// <param name="worldPos">The position in the world to connect the bodies together.</param>
+		/// <param name="frequency">The frequency at which the joint should be stiff.</param>
+		/// <param name="damping">The damping rate of the joint.</param>
+		/// <returns>The newly created weld joint.</returns>
+		public static Joint Weld(bool collision, Body bodyA, Body bodyB, Vec2 worldPos, float frequency, float damping)
 		{
-			return Joint.From(Native.joint_weld(collision ? 1 : 0, body_a.Raw, body_b.Raw, world_pos.Raw, frequency, damping));
+			return Joint.From(Native.joint_weld(collision ? 1 : 0, bodyA.Raw, bodyB.Raw, worldPos.Raw, frequency, damping));
 		}
+		/// <summary>
 		/// Creates a wheel joint between two bodies.
-		///
-		/// # Arguments
-		///
-		/// * `can_collide` - Whether or not the bodies connected to the joint can collide with each other.
-		/// * `body_a` - The first body to be connected by the joint.
-		/// * `body_b` - The second body to be connected by the joint.
-		/// * `world_pos` - The position in the world to connect the bodies together.
-		/// * `axis_angle` - The angle of the joint axis in radians.
-		/// * `max_motor_torque` - The maximum torque the joint motor can exert.
-		/// * `motor_speed` - The target speed of the joint motor.
-		/// * `frequency` - The frequency at which the joint should be stiff.
-		/// * `damping` - The damping rate of the joint.
-		///
-		/// # Returns
-		///
-		/// * `MotorJoint` - The newly created wheel joint.
-		public static MotorJoint Wheel(bool collision, Body body_a, Body body_b, Vec2 world_pos, float axis_angle, float max_motor_torque, float motor_speed, float frequency, float damping)
+		/// </summary>
+		/// <param name="collision">Whether or not the bodies connected to the joint can collide with each other.</param>
+		/// <param name="bodyA">The first body to be connected by the joint.</param>
+		/// <param name="bodyB">The second body to be connected by the joint.</param>
+		/// <param name="worldPos">The position in the world to connect the bodies together.</param>
+		/// <param name="axisAngle">The angle of the joint axis in radians.</param>
+		/// <param name="maxMotorTorque">The maximum torque the joint motor can exert.</param>
+		/// <param name="motorSpeed">The target speed of the joint motor.</param>
+		/// <param name="frequency">The frequency at which the joint should be stiff.</param>
+		/// <param name="damping">The damping rate of the joint.</param>
+		/// <returns>The newly created wheel joint.</returns>
+		public static MotorJoint Wheel(bool collision, Body bodyA, Body bodyB, Vec2 worldPos, float axisAngle, float maxMotorTorque, float motorSpeed, float frequency, float damping)
 		{
-			return MotorJoint.From(Native.joint_wheel(collision ? 1 : 0, body_a.Raw, body_b.Raw, world_pos.Raw, axis_angle, max_motor_torque, motor_speed, frequency, damping));
+			return MotorJoint.From(Native.joint_wheel(collision ? 1 : 0, bodyA.Raw, bodyB.Raw, worldPos.Raw, axisAngle, maxMotorTorque, motorSpeed, frequency, damping));
 		}
+		/// <summary>
 		/// the physics world that the joint belongs to.
+		/// </summary>
 		public PhysicsWorld World
 		{
 			get => PhysicsWorld.From(Native.joint_get_world(Raw));
 		}
+		/// <summary>
 		/// Destroys the joint and removes it from the physics simulation.
+		/// </summary>
 		public void Destroy()
 		{
 			Native.joint_destroy(Raw);
 		}
+		/// <summary>
 		/// Creates a joint instance based on the given joint definition and item dictionary containing physics bodies to be connected by joint.
-		///
-		/// # Arguments
-		///
-		/// * `def` - The joint definition.
-		/// * `item_dict` - The dictionary containing all the bodies and other required items.
-		///
-		/// # Returns
-		///
-		/// * `Joint` - The newly created joint.
-		public Joint(JointDef def, Dictionary item_dict) : this(Native.joint_new(def.Raw, item_dict.Raw)) { }
+		/// </summary>
+		/// <param name="def">The joint definition.</param>
+		/// <param name="itemDict">The dictionary containing all the bodies and other required items.</param>
+		/// <returns>The newly created joint.</returns>
+		public Joint(JointDef def, Dictionary itemDict) : this(Native.joint_new(def.Raw, itemDict.Raw)) { }
 	}
 } // namespace Dora

@@ -24,17 +24,19 @@ namespace Dora
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void pass_set(int64_t self, int64_t name, float val);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern void pass_set_vec4(int64_t self, int64_t name, float val_1, float val_2, float val_3, float val_4);
+		public static extern void pass_set_vec4(int64_t self, int64_t name, float val1, float val2, float val3, float val4);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void pass_set_color(int64_t self, int64_t name, int32_t val);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int64_t pass_new(int64_t vert_shader, int64_t frag_shader);
+		public static extern int64_t pass_new(int64_t vertShader, int64_t fragShader);
 	}
 } // namespace Dora
 
 namespace Dora
 {
+	/// <summary>
 	/// A struct representing a shader pass.
+	/// </summary>
 	public partial class Pass : Object
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
@@ -50,62 +52,54 @@ namespace Dora
 		{
 			return raw == 0 ? null : new Pass(raw);
 		}
-		/// whether this Pass should be a grab pass.
+		/// <summary>
+		/// Whether this Pass should be a grab pass.
 		/// A grab pass will render a portion of game scene into a texture frame buffer.
 		/// Then use this texture frame buffer as an input for next render pass.
+		/// </summary>
 		public bool IsGrabPass
 		{
 			set => Native.pass_set_grab_pass(Raw, value ? 1 : 0);
 			get => Native.pass_is_grab_pass(Raw) != 0;
 		}
+		/// <summary>
 		/// Sets the value of shader parameters.
-		///
-		/// # Arguments
-		///
-		/// * `name` - The name of the parameter to set.
-		/// * `val` - The numeric value to set.
+		/// </summary>
+		/// <param name="name">The name of the parameter to set.</param>
+		/// <param name="val">The numeric value to set.</param>
 		public void Set(string name, float val)
 		{
 			Native.pass_set(Raw, Bridge.FromString(name), val);
 		}
+		/// <summary>
 		/// Sets the values of shader parameters.
-		///
-		/// # Arguments
-		///
-		/// * `name` - The name of the parameter to set.
-		/// * `val1` - The first numeric value to set.
-		/// * `val2` - An optional second numeric value to set.
-		/// * `val3` - An optional third numeric value to set.
-		/// * `val4` - An optional fourth numeric value to set.
-		public void SetVec4(string name, float val_1, float val_2, float val_3, float val_4)
+		/// </summary>
+		/// <param name="name">The name of the parameter to set.</param>
+		/// <param name="val1">The first numeric value to set.</param>
+		/// <param name="val2">An optional second numeric value to set.</param>
+		/// <param name="val3">An optional third numeric value to set.</param>
+		/// <param name="val4">An optional fourth numeric value to set.</param>
+		public void SetVec4(string name, float val1, float val2, float val3, float val4)
 		{
-			Native.pass_set_vec4(Raw, Bridge.FromString(name), val_1, val_2, val_3, val_4);
+			Native.pass_set_vec4(Raw, Bridge.FromString(name), val1, val2, val3, val4);
 		}
+		/// <summary>
 		/// Another function that sets the values of shader parameters.
-		///
 		/// Works the same as:
 		/// pass.set("varName", color.r / 255.0, color.g / 255.0, color.b / 255.0, color.opacity);
-		///
-		/// # Arguments
-		///
-		/// * `name` - The name of the parameter to set.
-		/// * `val` - The Color object to set.
+		/// </summary>
+		/// <param name="name">The name of the parameter to set.</param>
+		/// <param name="val">The Color object to set.</param>
 		public void SetColor(string name, Color val)
 		{
 			Native.pass_set_color(Raw, Bridge.FromString(name), (int)val.ToARGB());
 		}
+		/// <summary>
 		/// Creates a new Pass object.
-		///
-		/// # Arguments
-		///
-		/// * `vert_shader` - The vertex shader in binary form file string.
-		/// * `frag_shader` - The fragment shader file string. A shader file string must be one of the formats:
-		///     * "builtin:" + theBuiltinShaderName
-		///     * "Shader/compiled_shader_file.bin"
-		///
-		/// # Returns
-		///
-		/// * `Pass` - A new Pass object.
-		public Pass(string vert_shader, string frag_shader) : this(Native.pass_new(Bridge.FromString(vert_shader), Bridge.FromString(frag_shader))) { }
+		/// </summary>
+		/// <param name="vertShader">The vertex shader in binary form file string.</param>
+		/// <param name="fragShader">The fragment shader file string. A shader file string must be one of the formats:</param>
+		/// <returns>A new Pass object.</returns>
+		public Pass(string vertShader, string fragShader) : this(Native.pass_new(Bridge.FromString(vertShader), Bridge.FromString(fragShader))) { }
 	}
 } // namespace Dora

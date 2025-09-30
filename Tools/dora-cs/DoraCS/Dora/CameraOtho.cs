@@ -28,7 +28,9 @@ namespace Dora
 
 namespace Dora
 {
+	/// <summary>
 	/// A struct for an orthographic camera object in the game engine.
+	/// </summary>
 	public partial class CameraOtho : Camera
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
@@ -44,21 +46,19 @@ namespace Dora
 		{
 			return raw == 0 ? null : new CameraOtho(raw);
 		}
-		/// the position of the camera in the game world.
+		/// <summary>
+		/// The position of the camera in the game world.
+		/// </summary>
 		public Vec2 Position
 		{
 			set => Native.cameraotho_set_position(Raw, value.Raw);
 			get => Vec2.From(Native.cameraotho_get_position(Raw));
 		}
+		/// <summary>
 		/// Creates a new CameraOtho object with the given name.
-		///
-		/// # Arguments
-		///
-		/// * `name` - The name of the CameraOtho object.
-		///
-		/// # Returns
-		///
-		/// * `CameraOtho` - A new instance of the CameraOtho object.
+		/// </summary>
+		/// <param name="name">The name of the CameraOtho object.</param>
+		/// <returns>A new instance of the CameraOtho object.</returns>
 		public CameraOtho(string name) : this(Native.cameraotho_new(Bridge.FromString(name))) { }
 	}
 } // namespace Dora

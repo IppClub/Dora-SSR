@@ -36,7 +36,9 @@ namespace Dora
 
 namespace Dora
 {
+	/// <summary>
 	/// A struct for 2D camera object in the game engine.
+	/// </summary>
 	public partial class Camera2D : Camera
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
@@ -52,33 +54,35 @@ namespace Dora
 		{
 			return raw == 0 ? null : new Camera2D(raw);
 		}
-		/// the rotation angle of the camera in degrees.
+		/// <summary>
+		/// The rotation angle of the camera in degrees.
+		/// </summary>
 		public float Rotation
 		{
 			set => Native.camera2d_set_rotation(Raw, value);
 			get => Native.camera2d_get_rotation(Raw);
 		}
-		/// the factor by which to zoom the camera. If set to 1.0, the view is normal sized. If set to 2.0, items will appear double in size.
+		/// <summary>
+		/// The factor by which to zoom the camera. If set to 1.0, the view is normal sized. If set to 2.0, items will appear double in size.
+		/// </summary>
 		public float Zoom
 		{
 			set => Native.camera2d_set_zoom(Raw, value);
 			get => Native.camera2d_get_zoom(Raw);
 		}
-		/// the position of the camera in the game world.
+		/// <summary>
+		/// The position of the camera in the game world.
+		/// </summary>
 		public Vec2 Position
 		{
 			set => Native.camera2d_set_position(Raw, value.Raw);
 			get => Vec2.From(Native.camera2d_get_position(Raw));
 		}
+		/// <summary>
 		/// Creates a new Camera2D object with the given name.
-		///
-		/// # Arguments
-		///
-		/// * `name` - The name of the Camera2D object.
-		///
-		/// # Returns
-		///
-		/// * `Camera2D` - A new instance of the Camera2D object.
+		/// </summary>
+		/// <param name="name">The name of the Camera2D object.</param>
+		/// <returns>A new instance of the Camera2D object.</returns>
 		public Camera2D(string name) : this(Native.camera2d_new(Bridge.FromString(name))) { }
 	}
 } // namespace Dora

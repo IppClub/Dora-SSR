@@ -44,7 +44,9 @@ namespace Dora
 
 namespace Dora.Platformer
 {
+	/// <summary>
 	/// A struct that defines the properties and behavior of a bullet object instance in the game.
+	/// </summary>
 	public partial class Bullet : Body
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
@@ -60,54 +62,64 @@ namespace Dora.Platformer
 		{
 			return raw == 0 ? null : new Bullet(raw);
 		}
-		/// the value from a `Platformer.TargetAllow` object for the bullet object.
+		/// <summary>
+		/// The value from a `Platformer.TargetAllow` object for the bullet object.
+		/// </summary>
 		public int TargetAllow
 		{
 			set => Native.platformer_bullet_set_target_allow(Raw, value);
 			get => Native.platformer_bullet_get_target_allow(Raw);
 		}
-		/// whether the bullet object is facing right.
+		/// <summary>
+		/// Whether the bullet object is facing right.
+		/// </summary>
 		public bool IsFaceRight
 		{
 			get => Native.platformer_bullet_is_face_right(Raw) != 0;
 		}
-		/// whether the bullet object should stop on impact.
+		/// <summary>
+		/// Whether the bullet object should stop on impact.
+		/// </summary>
 		public bool IsHitStop
 		{
 			set => Native.platformer_bullet_set_hit_stop(Raw, value ? 1 : 0);
 			get => Native.platformer_bullet_is_hit_stop(Raw) != 0;
 		}
-		/// the `Unit` object that fired the bullet.
+		/// <summary>
+		/// The `Unit` object that fired the bullet.
+		/// </summary>
 		public Platformer.Unit Emitter
 		{
 			get => Platformer.Unit.From(Native.platformer_bullet_get_emitter(Raw));
 		}
-		/// the `BulletDef` object that defines the bullet's properties and behavior.
+		/// <summary>
+		/// The `BulletDef` object that defines the bullet's properties and behavior.
+		/// </summary>
 		public Platformer.BulletDef BulletDef
 		{
 			get => Platformer.BulletDef.From(Native.platformer_bullet_get_bullet_def(Raw));
 		}
-		/// the `Node` object that appears as the bullet's visual item.
+		/// <summary>
+		/// The `Node` object that appears as the bullet's visual item.
+		/// </summary>
 		public Node Face
 		{
 			set => Native.platformer_bullet_set_face(Raw, value.Raw);
 			get => Node.From(Native.platformer_bullet_get_face(Raw));
 		}
+		/// <summary>
 		/// Destroys the bullet object instance.
+		/// </summary>
 		public void Destroy()
 		{
 			Native.platformer_bullet_destroy(Raw);
 		}
+		/// <summary>
 		/// A method that creates a new `Bullet` object instance with the specified `BulletDef` and `Unit` objects.
-		///
-		/// # Arguments
-		///
-		/// * `def` - The `BulletDef` object that defines the bullet's properties and behavior.
-		/// * `owner` - The `Unit` object that fired the bullet.
-		///
-		/// # Returns
-		///
-		/// * `Bullet` - The new `Bullet` object instance.
+		/// </summary>
+		/// <param name="def">The `BulletDef` object that defines the bullet's properties and behavior.</param>
+		/// <param name="owner">The `Unit` object that fired the bullet.</param>
+		/// <returns>The new `Bullet` object instance.</returns>
 		public Bullet(Platformer.BulletDef def, Platformer.Unit owner) : this(Native.platformer_bullet_new(def.Raw, owner.Raw)) { }
 	}
 } // namespace Dora.Platformer

@@ -22,17 +22,17 @@ namespace Dora
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void nvg_reset();
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int32_t nvg__create_image(int32_t w, int32_t h, int64_t filename, int32_t image_flags);
+		public static extern int32_t nvg__create_image(int32_t w, int32_t h, int64_t filename, int32_t imageFlags);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int32_t nvg_create_font(int64_t name);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern float nvg_text_bounds(float x, float y, int64_t text, int64_t bounds);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int64_t nvg_text_box_bounds(float x, float y, float break_row_width, int64_t text);
+		public static extern int64_t nvg_text_box_bounds(float x, float y, float breakRowWidth, int64_t text);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern float nvg_text(float x, float y, int64_t text);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern void nvg_text_box(float x, float y, float break_row_width, int64_t text);
+		public static extern void nvg_text_box(float x, float y, float breakRowWidth, int64_t text);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void nvg_stroke_color(int32_t color);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
@@ -90,23 +90,23 @@ namespace Dora
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void nvg_line_to(float x, float y);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern void nvg_bezier_to(float c_1x, float c_1y, float c_2x, float c_2y, float x, float y);
+		public static extern void nvg_bezier_to(float c1x, float c1y, float c2x, float c2y, float x, float y);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void nvg_quad_to(float cx, float cy, float x, float y);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern void nvg_arc_to(float x_1, float y_1, float x_2, float y_2, float radius);
+		public static extern void nvg_arc_to(float x1, float y1, float x2, float y2, float radius);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void nvg_close_path();
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void nvg__path_winding(int32_t dir);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern void nvg__arc(float cx, float cy, float r, float a_0, float a_1, int32_t dir);
+		public static extern void nvg__arc(float cx, float cy, float r, float a0, float a1, int32_t dir);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void nvg_rect(float x, float y, float w, float h);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void nvg_rounded_rect(float x, float y, float w, float h, float r);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern void nvg_rounded_rect_varying(float x, float y, float w, float h, float rad_top_left, float rad_top_right, float rad_bottom_right, float rad_bottom_left);
+		public static extern void nvg_rounded_rect_varying(float x, float y, float w, float h, float radTopLeft, float radTopRight, float radBottomRight, float radBottomLeft);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void nvg_ellipse(float cx, float cy, float rx, float ry);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
@@ -118,9 +118,9 @@ namespace Dora
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int32_t nvg_find_font(int64_t name);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int32_t nvg_add_fallback_font_id(int32_t base_font, int32_t fallback_font);
+		public static extern int32_t nvg_add_fallback_font_id(int32_t baseFont, int32_t fallbackFont);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int32_t nvg_add_fallback_font(int64_t base_font, int64_t fallback_font);
+		public static extern int32_t nvg_add_fallback_font(int64_t baseFont, int64_t fallbackFont);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void nvg_font_size(float size);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
@@ -128,9 +128,9 @@ namespace Dora
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void nvg_text_letter_spacing(float spacing);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern void nvg_text_line_height(float line_height);
+		public static extern void nvg_text_line_height(float lineHeight);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern void nvg__text_align(int32_t h_align, int32_t v_align);
+		public static extern void nvg__text_align(int32_t hAlign, int32_t vAlign);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void nvg_font_face_id(int32_t font);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
@@ -158,9 +158,9 @@ namespace Dora
 		{
 			Native.nvg_reset();
 		}
-		public static int _CreateImage(int w, int h, string filename, int image_flags)
+		public static int _CreateImage(int w, int h, string filename, int imageFlags)
 		{
-			return Native.nvg__create_image(w, h, Bridge.FromString(filename), image_flags);
+			return Native.nvg__create_image(w, h, Bridge.FromString(filename), imageFlags);
 		}
 		public static int CreateFont(string name)
 		{
@@ -170,17 +170,17 @@ namespace Dora
 		{
 			return Native.nvg_text_bounds(x, y, Bridge.FromString(text), bounds.Raw);
 		}
-		public static Rect TextBoxBounds(float x, float y, float break_row_width, string text)
+		public static Rect TextBoxBounds(float x, float y, float breakRowWidth, string text)
 		{
-			return Dora.Rect.From(Native.nvg_text_box_bounds(x, y, break_row_width, Bridge.FromString(text)));
+			return Dora.Rect.From(Native.nvg_text_box_bounds(x, y, breakRowWidth, Bridge.FromString(text)));
 		}
 		public static float Text(float x, float y, string text)
 		{
 			return Native.nvg_text(x, y, Bridge.FromString(text));
 		}
-		public static void TextBox(float x, float y, float break_row_width, string text)
+		public static void TextBox(float x, float y, float breakRowWidth, string text)
 		{
-			Native.nvg_text_box(x, y, break_row_width, Bridge.FromString(text));
+			Native.nvg_text_box(x, y, breakRowWidth, Bridge.FromString(text));
 		}
 		public static void StrokeColor(Color color)
 		{
@@ -294,17 +294,17 @@ namespace Dora
 		{
 			Native.nvg_line_to(x, y);
 		}
-		public static void BezierTo(float c_1x, float c_1y, float c_2x, float c_2y, float x, float y)
+		public static void BezierTo(float c1x, float c1y, float c2x, float c2y, float x, float y)
 		{
-			Native.nvg_bezier_to(c_1x, c_1y, c_2x, c_2y, x, y);
+			Native.nvg_bezier_to(c1x, c1y, c2x, c2y, x, y);
 		}
 		public static void QuadTo(float cx, float cy, float x, float y)
 		{
 			Native.nvg_quad_to(cx, cy, x, y);
 		}
-		public static void ArcTo(float x_1, float y_1, float x_2, float y_2, float radius)
+		public static void ArcTo(float x1, float y1, float x2, float y2, float radius)
 		{
-			Native.nvg_arc_to(x_1, y_1, x_2, y_2, radius);
+			Native.nvg_arc_to(x1, y1, x2, y2, radius);
 		}
 		public static void ClosePath()
 		{
@@ -314,9 +314,9 @@ namespace Dora
 		{
 			Native.nvg__path_winding(dir);
 		}
-		public static void _Arc(float cx, float cy, float r, float a_0, float a_1, int dir)
+		public static void _Arc(float cx, float cy, float r, float a0, float a1, int dir)
 		{
-			Native.nvg__arc(cx, cy, r, a_0, a_1, dir);
+			Native.nvg__arc(cx, cy, r, a0, a1, dir);
 		}
 		public static void Rect(float x, float y, float w, float h)
 		{
@@ -326,9 +326,9 @@ namespace Dora
 		{
 			Native.nvg_rounded_rect(x, y, w, h, r);
 		}
-		public static void RoundedRectVarying(float x, float y, float w, float h, float rad_top_left, float rad_top_right, float rad_bottom_right, float rad_bottom_left)
+		public static void RoundedRectVarying(float x, float y, float w, float h, float radTopLeft, float radTopRight, float radBottomRight, float radBottomLeft)
 		{
-			Native.nvg_rounded_rect_varying(x, y, w, h, rad_top_left, rad_top_right, rad_bottom_right, rad_bottom_left);
+			Native.nvg_rounded_rect_varying(x, y, w, h, radTopLeft, radTopRight, radBottomRight, radBottomLeft);
 		}
 		public static void Ellipse(float cx, float cy, float rx, float ry)
 		{
@@ -350,13 +350,13 @@ namespace Dora
 		{
 			return Native.nvg_find_font(Bridge.FromString(name));
 		}
-		public static int AddFallbackFontId(int base_font, int fallback_font)
+		public static int AddFallbackFontId(int baseFont, int fallbackFont)
 		{
-			return Native.nvg_add_fallback_font_id(base_font, fallback_font);
+			return Native.nvg_add_fallback_font_id(baseFont, fallbackFont);
 		}
-		public static int AddFallbackFont(string base_font, string fallback_font)
+		public static int AddFallbackFont(string baseFont, string fallbackFont)
 		{
-			return Native.nvg_add_fallback_font(Bridge.FromString(base_font), Bridge.FromString(fallback_font));
+			return Native.nvg_add_fallback_font(Bridge.FromString(baseFont), Bridge.FromString(fallbackFont));
 		}
 		public static void FontSize(float size)
 		{
@@ -370,13 +370,13 @@ namespace Dora
 		{
 			Native.nvg_text_letter_spacing(spacing);
 		}
-		public static void TextLineHeight(float line_height)
+		public static void TextLineHeight(float lineHeight)
 		{
-			Native.nvg_text_line_height(line_height);
+			Native.nvg_text_line_height(lineHeight);
 		}
-		public static void _TextAlign(int h_align, int v_align)
+		public static void _TextAlign(int hAlign, int vAlign)
 		{
-			Native.nvg__text_align(h_align, v_align);
+			Native.nvg__text_align(hAlign, vAlign);
 		}
 		public static void FontFaceId(int font)
 		{

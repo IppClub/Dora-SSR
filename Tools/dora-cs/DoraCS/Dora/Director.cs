@@ -52,111 +52,126 @@ namespace Dora
 
 namespace Dora
 {
+	/// <summary>
 	/// A struct manages the game scene trees and provides access to root scene nodes for different game uses.
+	/// </summary>
 	public static partial class Director
 	{
-		/// the background color for the game world.
+		/// <summary>
+		/// The background color for the game world.
+		/// </summary>
 		public static Color ClearColor
 		{
 			set => Native.director_set_clear_color((int)value.ToARGB());
 			get => new Color((uint)Native.director_get_clear_color());
 		}
-		/// the root node for 2D user interface elements like buttons and labels.
+		/// <summary>
+		/// The root node for 2D user interface elements like buttons and labels.
+		/// </summary>
 		public static Node UI
 		{
 			get => Node.From(Native.director_get_ui());
 		}
-		/// the root node for 3D user interface elements with 3D projection effect.
+		/// <summary>
+		/// The root node for 3D user interface elements with 3D projection effect.
+		/// </summary>
 		public static Node UI3D
 		{
 			get => Node.From(Native.director_get_ui_3d());
 		}
-		/// the root node for the starting point of a game.
+		/// <summary>
+		/// The root node for the starting point of a game.
+		/// </summary>
 		public static Node Entry
 		{
 			get => Node.From(Native.director_get_entry());
 		}
-		/// the root node for post-rendering scene tree.
+		/// <summary>
+		/// The root node for post-rendering scene tree.
+		/// </summary>
 		public static Node PostNode
 		{
 			get => Node.From(Native.director_get_post_node());
 		}
-		/// the current active camera in Director's camera stack.
+		/// <summary>
+		/// The current active camera in Director's camera stack.
+		/// </summary>
 		public static Camera CurrentCamera
 		{
 			get => Camera.From(Native.director_get_current_camera());
 		}
-		/// whether or not to enable frustum culling.
+		/// <summary>
+		/// Whether or not to enable frustum culling.
+		/// </summary>
 		public static bool IsFrustumCulling
 		{
 			set => Native.director_set_frustum_culling(value ? 1 : 0);
 			get => Native.director_is_frustum_culling() != 0;
 		}
+		/// <summary>
 		/// Schedule a function to be called every frame.
-		///
-		/// # Arguments
-		///
-		/// * `updateFunc` - The function to call every frame.
-		public static void Schedule(Func<double, bool> update_func)
+		/// </summary>
+		/// <param name="updateFunc">The function to call every frame.</param>
+		public static void Schedule(Func<double, bool> updateFunc)
 		{
 			var stack0 = new CallStack();
 			var stack_raw0 = stack0.Raw;
 			var func_id0 = Bridge.PushFunction(() =>
 			{
-				var result = update_func(stack0.PopF64());
+				var result = updateFunc(stack0.PopF64());
 				stack0.Push(result);
 			});
 			Native.director_schedule(func_id0, stack_raw0);
 		}
+		/// <summary>
 		/// Schedule a function to be called every frame for processing post game logic.
-		///
-		/// # Arguments
-		///
-		/// * `func` - The function to call every frame.
-		public static void SchedulePosted(Func<double, bool> update_func)
+		/// </summary>
+		/// <param name="updateFunc">The function to call every frame.</param>
+		public static void SchedulePosted(Func<double, bool> updateFunc)
 		{
 			var stack0 = new CallStack();
 			var stack_raw0 = stack0.Raw;
 			var func_id0 = Bridge.PushFunction(() =>
 			{
-				var result = update_func(stack0.PopF64());
+				var result = updateFunc(stack0.PopF64());
 				stack0.Push(result);
 			});
 			Native.director_schedule_posted(func_id0, stack_raw0);
 		}
+		/// <summary>
 		/// Adds a new camera to Director's camera stack and sets it to the current camera.
-		///
-		/// # Arguments
-		///
-		/// * `camera` - The camera to add.
+		/// </summary>
+		/// <param name="camera">The camera to add.</param>
 		public static void PushCamera(Camera camera)
 		{
 			Native.director_push_camera(camera.Raw);
 		}
+		/// <summary>
 		/// Removes the current camera from Director's camera stack.
+		/// </summary>
 		public static void PopCamera()
 		{
 			Native.director_pop_camera();
 		}
+		/// <summary>
 		/// Removes a specified camera from Director's camera stack.
-		///
-		/// # Arguments
-		///
-		/// * `camera` - The camera to remove.
-		///
-		/// # Returns
-		///
-		/// * `bool` - `true` if the camera was removed, `false` otherwise.
+		/// </summary>
+		/// <param name="camera">The camera to remove.</param>
+		/// <returns>`true` if the camera was removed, `false` otherwise.</returns>
 		public static bool RemoveCamera(Camera camera)
 		{
 			return Native.director_remove_camera(camera.Raw) != 0;
 		}
+		/// <summary>
 		/// Removes all cameras from Director's camera stack.
+		/// </summary>
 		public static void ClearCamera()
 		{
 			Native.director_clear_camera();
 		}
+		/// <summary>
 		/// Cleans up all resources managed by the Director, including scene trees and cameras.
+		/// </summary>
 		public static void Cleanup()
 		{
 			Native.director_cleanup();

@@ -24,7 +24,9 @@ namespace Dora
 
 namespace Dora
 {
+	/// <summary>
 	/// A struct representing an observer of entity changes in the game systems.
+	/// </summary>
 	public partial class Observer : Object
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
@@ -40,16 +42,12 @@ namespace Dora
 		{
 			return raw == 0 ? null : new Observer(raw);
 		}
+		/// <summary>
 		/// A method that creates a new observer with the specified component filter and action to watch for.
-		///
-		/// # Arguments
-		///
-		/// * `event_` - The type of event to watch for.
-		/// * `components` - A vector listing the names of the components to filter entities by.
-		///
-		/// # Returns
-		///
-		/// * `Observer` - The new observer.
+		/// </summary>
+		/// <param name="event_">The type of event to watch for.</param>
+		/// <param name="components">A vector listing the names of the components to filter entities by.</param>
+		/// <returns>The new observer.</returns>
 		public Observer(EntityEvent event_, IEnumerable<string> components) : this(Native.entityobserver_new((int)event_, Bridge.FromArray(components))) { }
 	}
 } // namespace Dora

@@ -30,34 +30,31 @@ namespace Dora
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void cache_remove_unused();
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern void cache_remove_unused_by_type(int64_t type_name);
+		public static extern void cache_remove_unused_by_type(int64_t typeName);
 	}
 } // namespace Dora
 
 namespace Dora
 {
+	/// <summary>
 	/// A interface for managing various game resources.
+	/// </summary>
 	public static partial class Cache
 	{
+		/// <summary>
 		/// Loads a file into the cache with a blocking operation.
-		///
-		/// # Arguments
-		///
-		/// * `filename` - The name of the file to load.
-		///
-		/// # Returns
-		///
-		/// * `bool` - `true` if the file was loaded successfully, `false` otherwise.
+		/// </summary>
+		/// <param name="filename">The name of the file to load.</param>
+		/// <returns>`true` if the file was loaded successfully, `false` otherwise.</returns>
 		public static bool Load(string filename)
 		{
 			return Native.cache_load(Bridge.FromString(filename)) != 0;
 		}
+		/// <summary>
 		/// Loads a file into the cache asynchronously.
-		///
-		/// # Arguments
-		///
-		/// * `filenames` - The name of the file(s) to load. This can be a single string or a vector of strings.
-		/// * `handler` - A callback function that is invoked when the file is loaded.
+		/// </summary>
+		/// <param name="filename">The name of the file to load.</param>
+		/// <param name="handler">A callback function that is invoked when the file is loaded.</param>
 		public static void LoadAsync(string filename, System.Action<bool> handler)
 		{
 			var stack0 = new CallStack();
@@ -68,59 +65,56 @@ namespace Dora
 			});
 			Native.cache_load_async(Bridge.FromString(filename), func_id0, stack_raw0);
 		}
+		/// <summary>
 		/// Updates the content of a file loaded in the cache.
 		/// If the item of filename does not exist in the cache, a new file content will be added into the cache.
-		///
-		/// # Arguments
-		///
-		/// * `filename` - The name of the file to update.
-		/// * `content` - The new content for the file.
+		/// </summary>
+		/// <param name="filename">The name of the file to update.</param>
+		/// <param name="content">The new content for the file.</param>
 		public static void UpdateItem(string filename, string content)
 		{
 			Native.cache_update_item(Bridge.FromString(filename), Bridge.FromString(content));
 		}
+		/// <summary>
 		/// Updates the texture object of the specific filename loaded in the cache.
 		/// If the texture object of filename does not exist in the cache, it will be added into the cache.
-		///
-		/// # Arguments
-		///
-		/// * `filename` - The name of the texture to update.
-		/// * `texture` - The new texture object for the file.
+		/// </summary>
+		/// <param name="filename">The name of the texture to update.</param>
+		/// <param name="texture">The new texture object for the file.</param>
 		public static void UpdateTexture(string filename, Texture2D texture)
 		{
 			Native.cache_update_texture(Bridge.FromString(filename), texture.Raw);
 		}
+		/// <summary>
 		/// Unloads a resource from the cache.
-		///
-		/// # Arguments
-		///
-		/// * `name` - The type name of resource to unload, could be one of "Texture", "SVG", "Clip", "Frame", "Model", "Particle", "Shader", "Font", "Sound", "Spine". Or the name of the resource file to unload.
-		///
-		/// # Returns
-		///
-		/// * `bool` - `true` if the resource was unloaded successfully, `false` otherwise.
+		/// </summary>
+		/// <param name="name">The type name of resource to unload, could be one of "Texture", "SVG", "Clip", "Frame", "Model", "Particle", "Shader", "Font", "Sound", "Spine". Or the name of the resource file to unload.</param>
+		/// <returns>`true` if the resource was unloaded successfully, `false` otherwise.</returns>
 		public static bool UnloadItemOrType(string name)
 		{
 			return Native.cache_unload_item_or_type(Bridge.FromString(name)) != 0;
 		}
+		/// <summary>
 		/// Unloads all resources from the cache.
+		/// </summary>
 		public static void Unload()
 		{
 			Native.cache_unload();
 		}
+		/// <summary>
 		/// Removes all unused resources (not being referenced) from the cache.
+		/// </summary>
 		public static void RemoveUnused()
 		{
 			Native.cache_remove_unused();
 		}
+		/// <summary>
 		/// Removes all unused resources of the given type from the cache.
-		///
-		/// # Arguments
-		///
-		/// * `resource_type` - The type of resource to remove. This could be one of "Texture", "SVG", "Clip", "Frame", "Model", "Particle", "Shader", "Font", "Sound", "Spine".
-		public static void RemoveUnusedByType(string type_name)
+		/// </summary>
+		/// <param name="typeName">The type of resource to remove. This could be one of "Texture", "SVG", "Clip", "Frame", "Model", "Particle", "Shader", "Font", "Sound", "Spine".</param>
+		public static void RemoveUnusedByType(string typeName)
 		{
-			Native.cache_remove_unused_by_type(Bridge.FromString(type_name));
+			Native.cache_remove_unused_by_type(Bridge.FromString(typeName));
 		}
 	}
 } // namespace Dora

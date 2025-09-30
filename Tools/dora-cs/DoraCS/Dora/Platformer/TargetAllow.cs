@@ -36,7 +36,9 @@ namespace Dora
 
 namespace Dora.Platformer
 {
+	/// <summary>
 	/// A struct to specifies how a bullet object should interact with other game objects or units based on their relationship.
+	/// </summary>
 	public partial class TargetAllow
 	{
 		private TargetAllow(long raw)
@@ -53,51 +55,48 @@ namespace Dora.Platformer
 		{
 			return new TargetAllow(raw);
 		}
-		/// whether the bullet object can collide with terrain.
+		/// <summary>
+		/// Whether the bullet object can collide with terrain.
+		/// </summary>
 		public bool IsTerrainAllowed
 		{
 			set => Native.platformer_targetallow_set_terrain_allowed(Raw, value ? 1 : 0);
 			get => Native.platformer_targetallow_is_terrain_allowed(Raw) != 0;
 		}
+		/// <summary>
 		/// Allows or disallows the bullet object to interact with a game object or unit, based on their relationship.
-		///
-		/// # Arguments
-		///
-		/// * `relation` - The relationship between the bullet object and the other game object or unit.
-		/// * `allow` - Whether the bullet object should be allowed to interact.
+		/// </summary>
+		/// <param name="relation">The relationship between the bullet object and the other game object or unit.</param>
+		/// <param name="allow">Whether the bullet object should be allowed to interact.</param>
 		public void Allow(Platformer.Relation relation, bool allow)
 		{
 			Native.platformer_targetallow_allow(Raw, (int)relation, allow ? 1 : 0);
 		}
+		/// <summary>
 		/// Determines whether the bullet object is allowed to interact with a game object or unit, based on their relationship.
-		///
-		/// # Arguments
-		///
-		/// * `relation` - The relationship between the bullet object and the other game object or unit.
-		///
-		/// # Returns
-		///
-		/// * `bool` - Whether the bullet object is allowed to interact.
+		/// </summary>
+		/// <param name="relation">The relationship between the bullet object and the other game object or unit.</param>
+		/// <returns>Whether the bullet object is allowed to interact.</returns>
 		public bool IsAllow(Platformer.Relation relation)
 		{
 			return Native.platformer_targetallow_is_allow(Raw, (int)relation) != 0;
 		}
+		/// <summary>
 		/// Converts the object to a value that can be used for interaction settings.
-		///
-		/// # Returns
-		///
-		/// * `usize` - The value that can be used for interaction settings.
+		/// </summary>
+		/// <returns>The value that can be used for interaction settings.</returns>
 		public int ToValue()
 		{
 			return Native.platformer_targetallow_to_value(Raw);
 		}
+		/// <summary>
 		/// Creates a new TargetAllow object with default settings.
+		/// </summary>
 		public TargetAllow() : this(Native.platformer_targetallow_new()) { }
+		/// <summary>
 		/// Creates a new TargetAllow object with the specified value.
-		///
-		/// # Arguments
-		///
-		/// * `value` - The value to use for the new TargetAllow object.
+		/// </summary>
+		/// <param name="value">The value to use for the new TargetAllow object.</param>
 		public TargetAllow(int value) : this(Native.platformer_targetallow_with_value(value)) { }
 	}
 } // namespace Dora.Platformer

@@ -60,7 +60,9 @@ namespace Dora
 
 namespace Dora.Platformer
 {
+	/// <summary>
 	/// A struct type that specifies the properties and behaviors of a bullet object in the game.
+	/// </summary>
 	public partial class BulletDef : Object
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
@@ -76,82 +78,97 @@ namespace Dora.Platformer
 		{
 			return raw == 0 ? null : new BulletDef(raw);
 		}
-		/// the tag for the bullet object.
+		/// <summary>
+		/// The tag for the bullet object.
+		/// </summary>
 		public string Tag
 		{
 			set => Native.platformer_bulletdef_set_tag(Raw, Bridge.FromString(value));
 			get => Bridge.ToString(Native.platformer_bulletdef_get_tag(Raw));
 		}
-		/// the effect that occurs when the bullet object ends its life.
+		/// <summary>
+		/// The effect that occurs when the bullet object ends its life.
+		/// </summary>
 		public string EndEffect
 		{
 			set => Native.platformer_bulletdef_set_end_effect(Raw, Bridge.FromString(value));
 			get => Bridge.ToString(Native.platformer_bulletdef_get_end_effect(Raw));
 		}
-		/// the amount of time in seconds that the bullet object remains active.
+		/// <summary>
+		/// The amount of time in seconds that the bullet object remains active.
+		/// </summary>
 		public float LifeTime
 		{
 			set => Native.platformer_bulletdef_set_life_time(Raw, value);
 			get => Native.platformer_bulletdef_get_life_time(Raw);
 		}
-		/// the radius of the bullet object's damage area.
+		/// <summary>
+		/// The radius of the bullet object's damage area.
+		/// </summary>
 		public float DamageRadius
 		{
 			set => Native.platformer_bulletdef_set_damage_radius(Raw, value);
 			get => Native.platformer_bulletdef_get_damage_radius(Raw);
 		}
-		/// whether the bullet object should be fixed for high speeds.
+		/// <summary>
+		/// Whether the bullet object should be fixed for high speeds.
+		/// </summary>
 		public bool IsHighSpeedFix
 		{
 			set => Native.platformer_bulletdef_set_high_speed_fix(Raw, value ? 1 : 0);
 			get => Native.platformer_bulletdef_is_high_speed_fix(Raw) != 0;
 		}
-		/// the gravity vector that applies to the bullet object.
+		/// <summary>
+		/// The gravity vector that applies to the bullet object.
+		/// </summary>
 		public Vec2 Gravity
 		{
 			set => Native.platformer_bulletdef_set_gravity(Raw, value.Raw);
 			get => Vec2.From(Native.platformer_bulletdef_get_gravity(Raw));
 		}
-		/// the visual item of the bullet object.
+		/// <summary>
+		/// The visual item of the bullet object.
+		/// </summary>
 		public Platformer.Face Face
 		{
 			set => Native.platformer_bulletdef_set_face(Raw, value.Raw);
 			get => Platformer.Face.From(Native.platformer_bulletdef_get_face(Raw));
 		}
-		/// the physics body definition for the bullet object.
+		/// <summary>
+		/// The physics body definition for the bullet object.
+		/// </summary>
 		public BodyDef BodyDef
 		{
 			get => BodyDef.From(Native.platformer_bulletdef_get_body_def(Raw));
 		}
-		/// the velocity vector of the bullet object.
+		/// <summary>
+		/// The velocity vector of the bullet object.
+		/// </summary>
 		public Vec2 Velocity
 		{
 			get => Vec2.From(Native.platformer_bulletdef_get_velocity(Raw));
 		}
+		/// <summary>
 		/// Sets the bullet object's physics body as a circle.
-		///
-		/// # Arguments
-		///
-		/// * `radius` - The radius of the circle.
+		/// </summary>
+		/// <param name="radius">The radius of the circle.</param>
 		public void SetAsCircle(float radius)
 		{
 			Native.platformer_bulletdef_set_as_circle(Raw, radius);
 		}
+		/// <summary>
 		/// Sets the velocity of the bullet object.
-		///
-		/// # Arguments
-		///
-		/// * `angle` - The angle of the velocity in degrees.
-		/// * `speed` - The speed of the velocity.
+		/// </summary>
+		/// <param name="angle">The angle of the velocity in degrees.</param>
+		/// <param name="speed">The speed of the velocity.</param>
 		public void SetVelocity(float angle, float speed)
 		{
 			Native.platformer_bulletdef_set_velocity(Raw, angle, speed);
 		}
+		/// <summary>
 		/// Creates a new bullet object definition with default settings.
-		///
-		/// # Returns
-		///
-		/// * `BulletDef` - The new bullet object definition.
+		/// </summary>
+		/// <returns>The new bullet object definition.</returns>
 		public BulletDef() : this(Native.platformer_bulletdef_new()) { }
 	}
 } // namespace Dora.Platformer

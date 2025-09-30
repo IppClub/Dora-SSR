@@ -40,7 +40,9 @@ namespace Dora
 
 namespace Dora
 {
+	/// <summary>
 	/// A struct provides functionality for drawing lines using vertices.
+	/// </summary>
 	public partial class Line : Node
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
@@ -56,59 +58,56 @@ namespace Dora
 		{
 			return raw == 0 ? null : new Line(raw);
 		}
-		/// whether the depth should be written. (Default is false)
+		/// <summary>
+		/// Whether the depth should be written. (Default is false)
+		/// </summary>
 		public bool IsDepthWrite
 		{
 			set => Native.line_set_depth_write(Raw, value ? 1 : 0);
 			get => Native.line_is_depth_write(Raw) != 0;
 		}
-		/// the blend function for the line node.
+		/// <summary>
+		/// The blend function for the line node.
+		/// </summary>
 		public BlendFunc BlendFunc
 		{
 			set => Native.line_set_blend_func(Raw, value.Raw);
 			get => BlendFunc.From(Native.line_get_blend_func(Raw));
 		}
+		/// <summary>
 		/// Adds vertices to the line.
-		///
-		/// # Arguments
-		///
-		/// * `verts` - A vector of vertices to add to the line.
-		/// * `color` - Optional. The color of the line.
+		/// </summary>
+		/// <param name="verts">A vector of vertices to add to the line.</param>
+		/// <param name="color">Optional. The color of the line.</param>
 		public void Add(IEnumerable<Vec2> verts, Color color)
 		{
 			Native.line_add(Raw, Bridge.FromArray(verts), (int)color.ToARGB());
 		}
+		/// <summary>
 		/// Sets vertices of the line.
-		///
-		/// # Arguments
-		///
-		/// * `verts` - A vector of vertices to set.
-		/// * `color` - Optional. The color of the line.
+		/// </summary>
+		/// <param name="verts">A vector of vertices to set.</param>
+		/// <param name="color">Optional. The color of the line.</param>
 		public void Set(IEnumerable<Vec2> verts, Color color)
 		{
 			Native.line_set(Raw, Bridge.FromArray(verts), (int)color.ToARGB());
 		}
+		/// <summary>
 		/// Clears all the vertices of line.
+		/// </summary>
 		public void Clear()
 		{
 			Native.line_clear(Raw);
 		}
+		/// <summary>
 		/// Creates and returns a new empty Line object.
-		///
-		/// # Returns
-		///
-		/// * A new `Line` object.
+		/// </summary>
 		public Line() : this(Native.line_new()) { }
+		/// <summary>
 		/// Creates and returns a new Line object.
-		///
-		/// # Arguments
-		///
-		/// * `verts` - A vector of vertices to add to the line.
-		/// * `color` - The color of the line.
-		///
-		/// # Returns
-		///
-		/// * A new `Line` object.
+		/// </summary>
+		/// <param name="verts">A vector of vertices to add to the line.</param>
+		/// <param name="color">The color of the line.</param>
 		public Line(IEnumerable<Vec2> verts, Color color) : this(Native.line_with_vec_color(Bridge.FromArray(verts), (int)color.ToARGB())) { }
 	}
 } // namespace Dora

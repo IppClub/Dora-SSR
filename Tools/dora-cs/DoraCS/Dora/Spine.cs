@@ -26,21 +26,23 @@ namespace Dora
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int64_t spine_contains_point(int64_t self, float x, float y);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int64_t spine_intersects_segment(int64_t self, float x_1, float y_1, float x_2, float y_2);
+		public static extern int64_t spine_intersects_segment(int64_t self, float x1, float y1, float x2, float y2);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int64_t spine_with_files(int64_t skel_file, int64_t atlas_file);
+		public static extern int64_t spine_with_files(int64_t skelFile, int64_t atlasFile);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int64_t spine_new(int64_t spine_str);
+		public static extern int64_t spine_new(int64_t spineStr);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int64_t spine_get_looks(int64_t spine_str);
+		public static extern int64_t spine_get_looks(int64_t spineStr);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int64_t spine_get_animations(int64_t spine_str);
+		public static extern int64_t spine_get_animations(int64_t spineStr);
 	}
 } // namespace Dora
 
 namespace Dora
 {
+	/// <summary>
 	/// An implementation of an animation system using the Spine engine.
+	/// </summary>
 	public partial class Spine : Playable
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
@@ -56,112 +58,82 @@ namespace Dora
 		{
 			return raw == 0 ? null : new Spine(raw);
 		}
-		/// whether hit testing is enabled.
+		/// <summary>
+		/// Whether hit testing is enabled.
+		/// </summary>
 		public bool IsHitTestEnabled
 		{
 			set => Native.spine_set_hit_test_enabled(Raw, value ? 1 : 0);
 			get => Native.spine_is_hit_test_enabled(Raw) != 0;
 		}
+		/// <summary>
 		/// Sets the rotation of a bone in the Spine skeleton.
-		///
-		/// # Arguments
-		///
-		/// * `name` - The name of the bone to rotate.
-		/// * `rotation` - The amount to rotate the bone, in degrees.
-		///
-		/// # Returns
-		///
-		/// * `bool` - Whether the rotation was successfully set or not.
+		/// </summary>
+		/// <param name="name">The name of the bone to rotate.</param>
+		/// <param name="rotation">The amount to rotate the bone, in degrees.</param>
+		/// <returns>Whether the rotation was successfully set or not.</returns>
 		public bool SetBoneRotation(string name, float rotation)
 		{
 			return Native.spine_set_bone_rotation(Raw, Bridge.FromString(name), rotation) != 0;
 		}
+		/// <summary>
 		/// Checks if a point in space is inside the boundaries of the Spine skeleton.
-		///
-		/// # Arguments
-		///
-		/// * `x` - The x-coordinate of the point to check.
-		/// * `y` - The y-coordinate of the point to check.
-		///
-		/// # Returns
-		///
-		/// * `Option<String>` - The name of the bone at the point, or `None` if there is no bone at the point.
+		/// </summary>
+		/// <param name="x">The x-coordinate of the point to check.</param>
+		/// <param name="y">The y-coordinate of the point to check.</param>
+		/// <returns>The name of the bone at the point, or `None` if there is no bone at the point.</returns>
 		public string ContainsPoint(float x, float y)
 		{
 			return Bridge.ToString(Native.spine_contains_point(Raw, x, y));
 		}
+		/// <summary>
 		/// Checks if a line segment intersects the boundaries of the instance and returns the name of the bone or slot at the intersection point, or `None` if no bone or slot is found.
-		///
-		/// # Arguments
-		///
-		/// * `x1` - The x-coordinate of the start point of the line segment.
-		/// * `y1` - The y-coordinate of the start point of the line segment.
-		/// * `x2` - The x-coordinate of the end point of the line segment.
-		/// * `y2` - The y-coordinate of the end point of the line segment.
-		///
-		/// # Returns
-		///
-		/// * `Option<String>` - The name of the bone or slot at the intersection point, or `None` if no bone or slot is found.
-		public string IntersectsSegment(float x_1, float y_1, float x_2, float y_2)
+		/// </summary>
+		/// <param name="x1">The x-coordinate of the start point of the line segment.</param>
+		/// <param name="y1">The y-coordinate of the start point of the line segment.</param>
+		/// <param name="x2">The x-coordinate of the end point of the line segment.</param>
+		/// <param name="y2">The y-coordinate of the end point of the line segment.</param>
+		/// <returns>The name of the bone or slot at the intersection point, or `None` if no bone or slot is found.</returns>
+		public string IntersectsSegment(float x1, float y1, float x2, float y2)
 		{
-			return Bridge.ToString(Native.spine_intersects_segment(Raw, x_1, y_1, x_2, y_2));
+			return Bridge.ToString(Native.spine_intersects_segment(Raw, x1, y1, x2, y2));
 		}
+		/// <summary>
 		/// Creates a new instance of 'Spine' using the specified skeleton file and atlas file.
-		///
-		/// # Arguments
-		///
-		/// * `skel_file` - The filename of the skeleton file to load.
-		/// * `atlas_file` - The filename of the atlas file to load.
-		///
-		/// # Returns
-		///
-		/// * A new instance of 'Spine' with the specified skeleton file and atlas file. Returns `None` if the skeleton file or atlas file could not be loaded.
-		public Spine(string skel_file, string atlas_file) : this(Native.spine_with_files(Bridge.FromString(skel_file), Bridge.FromString(atlas_file))) { }
-		public static Spine? TryCreate(string skel_file, string atlas_file)
+		/// </summary>
+		/// <param name="skelFile">The filename of the skeleton file to load.</param>
+		/// <param name="atlasFile">The filename of the atlas file to load.</param>
+		public Spine(string skelFile, string atlasFile) : this(Native.spine_with_files(Bridge.FromString(skelFile), Bridge.FromString(atlasFile))) { }
+		public static Spine? TryCreate(string skelFile, string atlasFile)
 		{
-			var raw = Native.spine_with_files(Bridge.FromString(skel_file), Bridge.FromString(atlas_file));
+			var raw = Native.spine_with_files(Bridge.FromString(skelFile), Bridge.FromString(atlasFile));
 			return raw == 0 ? null : new Spine(raw);
 		}
+		/// <summary>
 		/// Creates a new instance of 'Spine' using the specified Spine string.
-		///
-		/// # Arguments
-		///
-		/// * `spine_str` - The Spine file string for the new instance. A Spine file string can be a file path with the target file extension like "Spine/item" or file paths with all the related files like "Spine/item.skel|Spine/item.atlas" or "Spine/item.json|Spine/item.atlas".
-		///
-		/// # Returns
-		///
-		/// * A new instance of 'Spine'. Returns `None` if the Spine file could not be loaded.
-		public Spine(string spine_str) : this(Native.spine_new(Bridge.FromString(spine_str))) { }
-		public static new Spine? TryCreate(string spine_str)
+		/// </summary>
+		/// <param name="spineStr">The Spine file string for the new instance. A Spine file string can be a file path with the target file extension like "Spine/item" or file paths with all the related files like "Spine/item.skel|Spine/item.atlas" or "Spine/item.json|Spine/item.atlas".</param>
+		public Spine(string spineStr) : this(Native.spine_new(Bridge.FromString(spineStr))) { }
+		public static new Spine? TryCreate(string spineStr)
 		{
-			var raw = Native.spine_new(Bridge.FromString(spine_str));
+			var raw = Native.spine_new(Bridge.FromString(spineStr));
 			return raw == 0 ? null : new Spine(raw);
 		}
+		/// <summary>
 		/// Returns a list of available looks for the specified Spine2D file string.
-		///
-		/// # Arguments
-		///
-		/// * `spine_str` - The Spine2D file string to get the looks for.
-		///
-		/// # Returns
-		///
-		/// * A `Vec<String>` representing the available looks.
-		public static string[] GetLooks(string spine_str)
+		/// </summary>
+		/// <param name="spineStr">The Spine2D file string to get the looks for.</param>
+		public static string[] GetLooks(string spineStr)
 		{
-			return Bridge.ToStringArray(Native.spine_get_looks(Bridge.FromString(spine_str)));
+			return Bridge.ToStringArray(Native.spine_get_looks(Bridge.FromString(spineStr)));
 		}
+		/// <summary>
 		/// Returns a list of available animations for the specified Spine2D file string.
-		///
-		/// # Arguments
-		///
-		/// * `spine_str` - The Spine2D file string to get the animations for.
-		///
-		/// # Returns
-		///
-		/// * A `Vec<String>` representing the available animations.
-		public static string[] GetAnimations(string spine_str)
+		/// </summary>
+		/// <param name="spineStr">The Spine2D file string to get the animations for.</param>
+		public static string[] GetAnimations(string spineStr)
 		{
-			return Bridge.ToStringArray(Native.spine_get_animations(Bridge.FromString(spine_str)));
+			return Bridge.ToStringArray(Native.spine_get_animations(Bridge.FromString(spineStr)));
 		}
 	}
 } // namespace Dora

@@ -54,7 +54,9 @@ namespace Dora
 
 namespace Dora.Platformer
 {
+	/// <summary>
 	/// A platform camera for 2D platformer games that can track a game unit's movement and keep it within the camera's view.
+	/// </summary>
 	public partial class PlatformCamera : Camera
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
@@ -70,45 +72,59 @@ namespace Dora.Platformer
 		{
 			return raw == 0 ? null : new PlatformCamera(raw);
 		}
+		/// <summary>
 		/// The camera's position.
+		/// </summary>
 		public Vec2 Position
 		{
 			set => Native.platformer_platformcamera_set_position(Raw, value.Raw);
 			get => Vec2.From(Native.platformer_platformcamera_get_position(Raw));
 		}
+		/// <summary>
 		/// The camera's rotation in degrees.
+		/// </summary>
 		public float Rotation
 		{
 			set => Native.platformer_platformcamera_set_rotation(Raw, value);
 			get => Native.platformer_platformcamera_get_rotation(Raw);
 		}
+		/// <summary>
 		/// The camera's zoom factor, 1.0 means the normal size, 2.0 mean zoom to doubled size.
+		/// </summary>
 		public float Zoom
 		{
 			set => Native.platformer_platformcamera_set_zoom(Raw, value);
 			get => Native.platformer_platformcamera_get_zoom(Raw);
 		}
+		/// <summary>
 		/// The rectangular area within which the camera is allowed to view.
+		/// </summary>
 		public Rect Boundary
 		{
 			set => Native.platformer_platformcamera_set_boundary(Raw, value.Raw);
 			get => Dora.Rect.From(Native.platformer_platformcamera_get_boundary(Raw));
 		}
-		/// the ratio at which the camera should move to keep up with the target's position.
+		/// <summary>
+		/// The ratio at which the camera should move to keep up with the target's position.
 		/// For example, set to `Vec2(1.0, 1.0)`, then the camera will keep up to the target's position right away.
 		/// Set to Vec2(0.5, 0.5) or smaller value, then the camera will move halfway to the target's position each frame, resulting in a smooth and gradual movement.
+		/// </summary>
 		public Vec2 FollowRatio
 		{
 			set => Native.platformer_platformcamera_set_follow_ratio(Raw, value.Raw);
 			get => Vec2.From(Native.platformer_platformcamera_get_follow_ratio(Raw));
 		}
-		/// the offset at which the camera should follow the target.
+		/// <summary>
+		/// The offset at which the camera should follow the target.
+		/// </summary>
 		public Vec2 FollowOffset
 		{
 			set => Native.platformer_platformcamera_set_follow_offset(Raw, value.Raw);
 			get => Vec2.From(Native.platformer_platformcamera_get_follow_offset(Raw));
 		}
-		/// the game unit that the camera should track.
+		/// <summary>
+		/// The game unit that the camera should track.
+		/// </summary>
 		public Node? FollowTarget
 		{
 			set
@@ -118,15 +134,10 @@ namespace Dora.Platformer
 			}
 			get => Node.FromOpt(Native.platformer_platformcamera_get_follow_target(Raw));
 		}
+		/// <summary>
 		/// Creates a new instance of `PlatformCamera`.
-		///
-		/// # Arguments
-		///
-		/// * `name` - An optional string that specifies the name of the new instance. Default is an empty string.
-		///
-		/// # Returns
-		///
-		/// * A new `PlatformCamera` instance.
+		/// </summary>
+		/// <param name="name">An optional string that specifies the name of the new instance. Default is an empty string.</param>
 		public PlatformCamera(string name) : this(Native.platformer_platformcamera_new(Bridge.FromString(name))) { }
 	}
 } // namespace Dora.Platformer

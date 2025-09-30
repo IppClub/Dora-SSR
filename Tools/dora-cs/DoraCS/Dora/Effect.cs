@@ -24,14 +24,18 @@ namespace Dora
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void effect_clear(int64_t self);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int64_t effect_new(int64_t vert_shader, int64_t frag_shader);
+		public static extern int64_t effect_new(int64_t vertShader, int64_t fragShader);
 	}
 } // namespace Dora
 
 namespace Dora
 {
+	/// <summary>
 	/// A struct for managing multiple render pass objects.
+	/// </summary>
+	/// <summary>
 	/// Effect objects allow you to combine multiple passes to create more complex shader effects.
+	/// </summary>
 	public partial class Effect : Object
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
@@ -47,45 +51,36 @@ namespace Dora
 		{
 			return raw == 0 ? null : new Effect(raw);
 		}
+		/// <summary>
 		/// Adds a Pass object to this Effect.
-		///
-		/// # Arguments
-		///
-		/// * `pass` - The Pass object to add.
+		/// </summary>
+		/// <param name="pass">The Pass object to add.</param>
 		public void Add(Pass pass)
 		{
 			Native.effect_add(Raw, pass.Raw);
 		}
+		/// <summary>
 		/// Retrieves a Pass object from this Effect by index.
-		///
-		/// # Arguments
-		///
-		/// * `index` - The index of the Pass object to retrieve.
-		///
-		/// # Returns
-		///
-		/// * `Pass` - The Pass object at the given index.
+		/// </summary>
+		/// <param name="index">The index of the Pass object to retrieve.</param>
+		/// <returns>The Pass object at the given index.</returns>
 		public Pass? Get(long index)
 		{
 			return Pass.FromOpt(Native.effect_get(Raw, index));
 		}
+		/// <summary>
 		/// Removes all Pass objects from this Effect.
+		/// </summary>
 		public void Clear()
 		{
 			Native.effect_clear(Raw);
 		}
+		/// <summary>
 		/// A method that allows you to create a new Effect object.
-		///
-		/// # Arguments
-		///
-		/// * `vert_shader` - The vertex shader file string.
-		/// * `frag_shader` - The fragment shader file string. A shader file string must be one of the formats:
-		///     * "builtin:" + theBuiltinShaderName
-		///     * "Shader/compiled_shader_file.bin"
-		///
-		/// # Returns
-		///
-		/// * `Effect` - A new Effect object.
-		public Effect(string vert_shader, string frag_shader) : this(Native.effect_new(Bridge.FromString(vert_shader), Bridge.FromString(frag_shader))) { }
+		/// </summary>
+		/// <param name="vertShader">The vertex shader file string.</param>
+		/// <param name="fragShader">The fragment shader file string. A shader file string must be one of the formats:</param>
+		/// <returns>A new Effect object.</returns>
+		public Effect(string vertShader, string fragShader) : this(Native.effect_new(Bridge.FromString(vertShader), Bridge.FromString(fragShader))) { }
 	}
 } // namespace Dora
