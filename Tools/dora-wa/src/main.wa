@@ -11,10 +11,10 @@ import "dora_wa/test"
 
 func all_clear() {
 	dora.Director.Cleanup()
-	dora.Cache.Unload()
 	dora.EntityClear()
 	dora.PlatformerData.Clear()
 	dora.PlatformerUnitActionClear()
+	dora.Cache.RemoveUnused()
 }
 
 func init {

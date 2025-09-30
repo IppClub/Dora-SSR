@@ -12,10 +12,10 @@ mod tests;
 
 fn all_clear() {
 	Director::cleanup();
-	Cache::unload();
 	Entity::clear();
 	platformer::Data::clear();
 	platformer::UnitAction::clear();
+	Cache::remove_unused();
 }
 
 fn main() {

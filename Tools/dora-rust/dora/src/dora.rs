@@ -5349,7 +5349,7 @@ impl ImGui {
 		name: &str,
 		opened: bool,
 		inside: C,
-	) -> bool
+	) -> (bool, bool)
 	where
 		C: FnOnce(),
 	{
