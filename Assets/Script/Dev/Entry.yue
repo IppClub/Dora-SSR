@@ -291,8 +291,7 @@ getProjectEntries = (path) ->
 					bannerFile = nil unless Content\exist bannerFile
 				if bannerFile then thread ->
 					if Cache\loadAsync bannerFile
-						bannerTex = Texture2D bannerFile
-						if bannerTex
+						if bannerTex := Texture2D bannerFile
 							entry[] = bannerFile
 							entry[] = bannerTex
 				entries[] = entry
