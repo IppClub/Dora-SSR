@@ -172,7 +172,7 @@ namespace Dora
 			var func_id0 = Bridge.PushFunction(() =>
 			{
 				var result = visitor_func((Node)stack0.PopObject());
-				stack0.Push(result);;
+				stack0.Push(result);
 			});
 			return Native.model_each_node(Raw, func_id0, stack_raw0) != 0;
 		}

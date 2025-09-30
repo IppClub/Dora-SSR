@@ -72,7 +72,7 @@ namespace Dora
 			var func_id0 = Bridge.PushFunction(() =>
 			{
 				var result = predicate((Entity)stack0.PopObject());
-				stack0.Push(result);;
+				stack0.Push(result);
 			});
 			return Entity.FromOpt(Native.entitygroup_find(Raw, func_id0, stack_raw0));
 		}

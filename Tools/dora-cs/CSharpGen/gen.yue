@@ -1476,7 +1476,7 @@ else
 										(argPassed and "\t\t\tvar stack#{fnArgId} = new CallStack();
 			var stack_raw#{fnArgId} = stack#{fnArgId}.Raw;\n" or '') .. "\t\t\tvar func_id#{fnArgId} = Bridge.PushFunction(() =>
 			{
-				#{callback};
+				#{callback}#{callback\sub(-1, -1) == ';' and '' or ';'}
 			});
 "
 										"#{fname}"

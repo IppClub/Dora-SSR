@@ -1,4 +1,5 @@
 ﻿using Dora;
+using System.Collections;
 
 App.Run(() =>
 {
@@ -11,14 +12,14 @@ App.Run(() =>
         ActionDef.Scale(1.0f, 0.5f, 0.3f, EaseType.InBack),
     ]), true);
     node.Schedule(Co.Once(MyCoroutine));
-    System.Collections.IEnumerator MyCoroutine()
+    IEnumerator MyCoroutine()
     {
         Log.Print("start");
-        yield return new WaitForSeconds(5.0);
-        Log.Print("after 5s");
+        yield return new WaitForSeconds(3.0);
+        Log.Print("after 3s");
         node.RemoveFromParent(true);
     }
-node.OnTapped((touch) =>
+    node.OnTapped((touch) =>
     {
         Log.Print($"{touch.Location.X} x {touch.Location.Y}");
     });

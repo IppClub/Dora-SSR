@@ -101,7 +101,7 @@ namespace Dora.Platformer.Decision
 			var func_id0 = Bridge.PushFunction(() =>
 			{
 				var result = handler((Platformer.Unit)stack0.PopObject());
-				stack0.Push(result);;
+				stack0.Push(result);
 			});
 			return Platformer.Decision.Tree.From(Native.platformer_decision_leaf_con(Bridge.FromString(name), func_id0, stack_raw0));
 		}
@@ -134,7 +134,7 @@ namespace Dora.Platformer.Decision
 			var func_id0 = Bridge.PushFunction(() =>
 			{
 				var result = handler((Platformer.Unit)stack0.PopObject());
-				stack0.Push(result);;
+				stack0.Push(result);
 			});
 			return Platformer.Decision.Tree.From(Native.platformer_decision_leaf_act_dynamic(func_id0, stack_raw0));
 		}

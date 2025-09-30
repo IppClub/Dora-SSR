@@ -71,7 +71,7 @@ namespace Dora
 			var func_id0 = Bridge.PushFunction(() =>
 			{
 				var result = handler((Body)stack0.PopObject());
-				stack0.Push(result);;
+				stack0.Push(result);
 			});
 			return Native.physicsworld_query(Raw, rect.Raw, func_id0, stack_raw0) != 0;
 		}
@@ -94,7 +94,7 @@ namespace Dora
 			var func_id0 = Bridge.PushFunction(() =>
 			{
 				var result = handler((Body)stack0.PopObject(), stack0.PopVec2(), stack0.PopVec2());
-				stack0.Push(result);;
+				stack0.Push(result);
 			});
 			return Native.physicsworld_raycast(Raw, start.Raw, stop.Raw, closest ? 1 : 0, func_id0, stack_raw0) != 0;
 		}

@@ -766,7 +766,11 @@ FixedScheduledItem* Node::getFixedScheduledItem() {
 
 void Node::schedule(const std::function<bool(double)>& func) {
 	auto updateItem = getUpdateItem();
-	updateItem->scheduledMainFunc = New<std::function<bool(double)>>(func);
+	auto funcRef = std::make_shared<std::function<bool(double)>>();
+	*funcRef = [func, funcRef](double deltaTime) {
+		return func(deltaTime);
+	};
+	updateItem->scheduledMainFunc = funcRef;
 	if (_flags.isOff(Node::Running)) return;
 	if (!updateItem->scheduled()) {
 		_scheduler->schedule(updateItem->scheduledItem.get());
@@ -785,7 +789,11 @@ void Node::unschedule() {
 
 void Node::onUpdate(const std::function<bool(double)>& func) {
 	auto updateItem = getUpdateItem();
-	updateItem->scheduledThreadFuncs.push_back(func);
+	auto funcRef = std::make_shared<std::function<bool(double)>>();
+	*funcRef = [func, funcRef](double deltaTime) {
+		return func(deltaTime);
+	};
+	updateItem->scheduledThreadFuncs.push_back(funcRef);
 	if (_flags.isOff(Node::Running)) return;
 	if (!updateItem->scheduled()) {
 		_scheduler->schedule(updateItem->scheduledItem.get());
@@ -863,7 +871,7 @@ bool Node::update(double deltaTime) {
 		if (!_updateItem->scheduledThreadFuncs.empty()) {
 			auto funcs = std::move(_updateItem->scheduledThreadFuncs);
 			for (auto it = funcs.begin(); it != funcs.end();) {
-				if ((*it)(deltaTime)) {
+				if ((**it)(deltaTime)) {
 					it = funcs.erase(it);
 				} else {
 					it++;
@@ -873,6 +881,9 @@ bool Node::update(double deltaTime) {
 				funcs.emplace_back(std::move(f));
 			}
 			_updateItem->scheduledThreadFuncs = std::move(funcs);
+			if (result && !_updateItem->scheduledThreadFuncs.empty()) {
+				result = false;
+			}
 		}
 		if (result) unschedule();
 	}

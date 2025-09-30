@@ -341,8 +341,8 @@ protected:
 	std::shared_ptr<NodeTouchHandler> _touchHandler;
 	struct UpdateItem {
 		Own<std::list<std::function<bool(double)>>> renderFuncs;
-		Own<std::function<bool(double)>> scheduledMainFunc;
-		std::list<std::function<bool(double)>> scheduledThreadFuncs;
+		std::shared_ptr<std::function<bool(double)>> scheduledMainFunc;
+		std::list<std::shared_ptr<std::function<bool(double)>>> scheduledThreadFuncs;
 		Own<ScheduledItem> scheduledItem;
 		Own<FixedScheduledItem> fixedScheduledItem;
 		bool hasFunc() const;
