@@ -38,7 +38,7 @@ func VertexColorFrom(raw: i64) => *VertexColor {
 	}
 	item := VertexColor{}
 	item.raw = &raw
-	setFinalizer(item.raw, vertex_color_finalizer)
+	SetFinalizer(item.raw, vertex_color_finalizer)
 	result := &item
 	return result
 }
@@ -58,6 +58,6 @@ func NewVertexColor(vec: Vec2, color: Color) => VertexColor {
 	raw := vertexcolor_new(vec.ToValue(), color.ToARGB())
 	object := VertexColor{}
 	object.raw = &raw
-	setFinalizer(object.raw, vertex_color_finalizer)
+	SetFinalizer(object.raw, vertex_color_finalizer)
 	return object
 }

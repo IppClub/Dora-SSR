@@ -20,7 +20,7 @@ func CameraFrom(raw: i64) => *Camera {
 	}
 	object := Camera{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	result := &object
 	return result
 }

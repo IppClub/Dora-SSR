@@ -44,7 +44,7 @@ func LineFrom(raw: i64) => *Line {
 	}
 	object := Line{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	result := &object
 	return result
 }
@@ -113,7 +113,7 @@ func NewLine() => Line {
 	raw := line_new()
 	object := Line{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	return object
 }
 
@@ -131,6 +131,6 @@ func NewLineWithVecColor(verts: *[]Vec2, color: Color) => Line {
 	raw := line_with_vec_color(ToDoraVec2Buf(verts), color.ToARGB())
 	object := Line{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	return object
 }

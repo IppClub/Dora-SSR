@@ -32,7 +32,7 @@ func DBQueryFrom(raw: i64) => *DBQuery {
 	}
 	item := DBQuery{}
 	item.raw = &raw
-	setFinalizer(item.raw, d_b_query_finalizer)
+	SetFinalizer(item.raw, d_b_query_finalizer)
 	result := &item
 	return result
 }
@@ -46,6 +46,6 @@ func NewDBQuery() => DBQuery {
 	raw := dbquery_new()
 	object := DBQuery{}
 	object.raw = &raw
-	setFinalizer(object.raw, d_b_query_finalizer)
+	SetFinalizer(object.raw, d_b_query_finalizer)
 	return object
 }

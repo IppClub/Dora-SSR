@@ -32,7 +32,7 @@ func PlatformerVisualFrom(raw: i64) => *PlatformerVisual {
 	}
 	object := PlatformerVisual{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	result := &object
 	return result
 }
@@ -84,6 +84,6 @@ func NewPlatformerVisual(name: string) => PlatformerVisual {
 	raw := platformer_visual_new(ToDoraString(name))
 	object := PlatformerVisual{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	return object
 }

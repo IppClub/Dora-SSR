@@ -110,7 +110,7 @@ func PlatformerUnitFrom(raw: i64) => *PlatformerUnit {
 	}
 	object := PlatformerUnit{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	result := &object
 	return result
 }
@@ -340,7 +340,7 @@ func NewPlatformerUnit(unit_def: Dictionary, physics_world: PhysicsWorld, entity
 	raw := platformer_unit_new(unit_def.GetRaw(), physics_world.GetRaw(), entity.GetRaw(), pos.ToValue(), rot)
 	object := PlatformerUnit{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	return object
 }
 
@@ -361,6 +361,6 @@ func NewPlatformerUnitWithStore(unit_def_name: string, physics_world_name: strin
 	raw := platformer_unit_with_store(ToDoraString(unit_def_name), ToDoraString(physics_world_name), entity.GetRaw(), pos.ToValue(), rot)
 	object := PlatformerUnit{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	return object
 }

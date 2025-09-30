@@ -59,7 +59,7 @@ func JointFrom(raw: i64) => *Joint {
 	}
 	object := Joint{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	result := &object
 	return result
 }
@@ -307,6 +307,6 @@ func NewJoint(def: JointDef, item_dict: Dictionary) => Joint {
 	raw := joint_new(def.GetRaw(), item_dict.GetRaw())
 	object := Joint{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	return object
 }

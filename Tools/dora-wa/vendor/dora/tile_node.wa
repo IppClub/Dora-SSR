@@ -53,7 +53,7 @@ func TileNodeFrom(raw: i64) => *TileNode {
 	}
 	object := TileNode{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	result := &object
 	return result
 }
@@ -142,7 +142,7 @@ func NewTileNode(tmx_file: string) => *TileNode {
 	}
 	object := TileNode{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	return &object
 }
 
@@ -163,7 +163,7 @@ func NewTileNodeWithWithLayer(tmx_file: string, layer_name: string) => *TileNode
 	}
 	object := TileNode{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	return &object
 }
 
@@ -184,6 +184,6 @@ func NewTileNodeWithWithLayers(tmx_file: string, layer_names: *[]string) => *Til
 	}
 	object := TileNode{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	return &object
 }

@@ -38,7 +38,7 @@ func SensorFrom(raw: i64) => *Sensor {
 	}
 	object := Sensor{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	result := &object
 	return result
 }

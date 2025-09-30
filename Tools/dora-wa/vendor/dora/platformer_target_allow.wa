@@ -44,7 +44,7 @@ func PlatformerTargetAllowFrom(raw: i64) => *PlatformerTargetAllow {
 	}
 	item := PlatformerTargetAllow{}
 	item.raw = &raw
-	setFinalizer(item.raw, platformer_target_allow_finalizer)
+	SetFinalizer(item.raw, platformer_target_allow_finalizer)
 	result := &item
 	return result
 }
@@ -96,7 +96,7 @@ func NewPlatformerTargetAllow() => PlatformerTargetAllow {
 	raw := platformer_targetallow_new()
 	object := PlatformerTargetAllow{}
 	object.raw = &raw
-	setFinalizer(object.raw, platformer_target_allow_finalizer)
+	SetFinalizer(object.raw, platformer_target_allow_finalizer)
 	return object
 }
 
@@ -109,6 +109,6 @@ func NewPlatformerTargetAllowWithValue(value: i32) => PlatformerTargetAllow {
 	raw := platformer_targetallow_with_value(value)
 	object := PlatformerTargetAllow{}
 	object.raw = &raw
-	setFinalizer(object.raw, platformer_target_allow_finalizer)
+	SetFinalizer(object.raw, platformer_target_allow_finalizer)
 	return object
 }

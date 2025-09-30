@@ -137,7 +137,7 @@ func BodyDefFrom(raw: i64) => *BodyDef {
 	}
 	object := BodyDef{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	result := &object
 	return result
 }
@@ -518,6 +518,6 @@ func NewBodyDef() => BodyDef {
 	raw := bodydef_new()
 	object := BodyDef{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	return object
 }

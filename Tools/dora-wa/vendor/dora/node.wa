@@ -371,7 +371,7 @@ func NodeFrom(raw: i64) => *Node {
 	}
 	object := Node{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	result := &object
 	return result
 }
@@ -1314,6 +1314,6 @@ func NewNode() => Node {
 	raw := node_new()
 	object := Node{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	return object
 }

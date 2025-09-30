@@ -29,7 +29,7 @@ func GroupFrom(raw: i64) => *Group {
 	}
 	object := Group{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	result := &object
 	return result
 }
@@ -98,6 +98,6 @@ func NewGroup(components: *[]string) => Group {
 	raw := entitygroup_new(ToDoraStrBuf(components))
 	object := Group{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	return object
 }

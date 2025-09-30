@@ -57,9 +57,9 @@ namespace Dora
 		
 		public Color Color
 		{
-			set => Native.vertexcolor_set_color(Raw, (int)value.ToArgb());
+			set => Native.vertexcolor_set_color(Raw, (int)value.ToARGB());
 			get => new Color((uint)Native.vertexcolor_get_color(Raw));
 		}
-		public VertexColor(Vec2 vec, Color color) : this(Native.vertexcolor_new(vec.Raw, (int)color.ToArgb())) { }
+		public VertexColor(Vec2 vec, Color color) : this(Native.vertexcolor_new(vec.Raw, (int)color.ToARGB())) { }
 	}
 } // namespace Dora

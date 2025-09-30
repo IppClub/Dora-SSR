@@ -95,7 +95,7 @@ namespace Dora
 		/// * `ActionDef` - A new ActionDef object.
 		public static ActionDef Tint(float duration, Color3 start, Color3 stop, EaseType easing)
 		{
-			return ActionDef.From(Native.actiondef_tint(duration, (int)start.ToRgb(), (int)stop.ToRgb(), (int)easing));
+			return ActionDef.From(Native.actiondef_tint(duration, (int)start.ToRGB(), (int)stop.ToRGB(), (int)easing));
 		}
 		/// Creates a new action definition object to rotate a node by smallest angle.
 		///
@@ -233,7 +233,7 @@ namespace Dora
 		/// # Returns
 		///
 		/// * `Action` - A new Action object.
-		public static ActionDef FrameWithFrames(string clip_str, float duration, IEnumerable<int> frames)
+		public static ActionDef Frame(string clip_str, float duration, IEnumerable<int> frames)
 		{
 			return ActionDef.From(Native.actiondef_frame_with_frames(Bridge.FromString(clip_str), duration, Bridge.FromArray(frames)));
 		}

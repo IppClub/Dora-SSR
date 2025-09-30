@@ -1182,7 +1182,7 @@ func #{waNewName}From(raw: i64) => *#{waNewName} {
 	}
 	object := #{waNewName}{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	result := &object
 	return result
 }
@@ -1207,7 +1207,7 @@ func ObjectAs#{waNewName}(object: Object) => *#{waNewName} {
 }
 "
 				else ""
-				finalizerCall = if isValue then "	setFinalizer(item.raw, #{finalizer})\n" else ""
+				finalizerCall = if isValue then "	SetFinalizer(item.raw, #{finalizer})\n" else ""
 				"type #{waNewName} :struct { raw: *i64 }
 func #{waNewName}.GetRaw() => i64 {
 	return *this.raw
@@ -1814,7 +1814,7 @@ func #{waNewName}.GetRaw() => i64 {
 #{prepareStr}	raw := #{cppFuncName}(#{argsConverted})
 	#{dealOptional}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	return #{isOptional and '&object' or 'object'}
 }"
 							elseif isValue
@@ -1823,7 +1823,7 @@ func #{waNewName}.GetRaw() => i64 {
 #{prepareStr}	raw := #{cppFuncName}(#{argsConverted})
 	#{dealOptional}
 	object.raw = &raw
-	setFinalizer(object.raw, #{finalizer})
+	SetFinalizer(object.raw, #{finalizer})
 	return #{isOptional and '&object' or 'object'}
 }"
 						elseif isStatic

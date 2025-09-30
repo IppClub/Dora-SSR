@@ -38,7 +38,7 @@ func Camera2DFrom(raw: i64) => *Camera2D {
 	}
 	object := Camera2D{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	result := &object
 	return result
 }
@@ -96,6 +96,6 @@ func NewCamera2D(name: string) => Camera2D {
 	raw := camera2d_new(ToDoraString(name))
 	object := Camera2D{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	return object
 }

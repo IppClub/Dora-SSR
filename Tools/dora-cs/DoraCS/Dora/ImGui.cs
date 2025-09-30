@@ -562,7 +562,7 @@ namespace Dora
 		}
 		public static void _PushStyleColor(int name, Color color)
 		{
-			Native.imgui__push_style_color(name, (int)color.ToArgb());
+			Native.imgui__push_style_color(name, (int)color.ToARGB());
 		}
 		public static void _PushStyleFloat(int name, float val)
 		{
@@ -578,7 +578,7 @@ namespace Dora
 		}
 		public static void TextColored(Color color, string text)
 		{
-			Native.imgui_text_colored((int)color.ToArgb(), Bridge.FromString(text));
+			Native.imgui_text_colored((int)color.ToARGB(), Bridge.FromString(text));
 		}
 		public static void TextDisabled(string text)
 		{
@@ -610,15 +610,15 @@ namespace Dora
 		}
 		public static void ImageWithBg(string clip_str, Vec2 size, Color bg_col, Color tint_col)
 		{
-			Native.imgui_image_with_bg(Bridge.FromString(clip_str), size.Raw, (int)bg_col.ToArgb(), (int)tint_col.ToArgb());
+			Native.imgui_image_with_bg(Bridge.FromString(clip_str), size.Raw, (int)bg_col.ToARGB(), (int)tint_col.ToARGB());
 		}
 		public static bool ImageButtonOpts(string str_id, string clip_str, Vec2 size, Color bg_col, Color tint_col)
 		{
-			return Native.imgui_image_button_opts(Bridge.FromString(str_id), Bridge.FromString(clip_str), size.Raw, (int)bg_col.ToArgb(), (int)tint_col.ToArgb()) != 0;
+			return Native.imgui_image_button_opts(Bridge.FromString(str_id), Bridge.FromString(clip_str), size.Raw, (int)bg_col.ToARGB(), (int)tint_col.ToARGB()) != 0;
 		}
 		public static bool _ColorButtonOpts(string desc_id, Color col, int color_edit_flags, Vec2 size)
 		{
-			return Native.imgui__color_button_opts(Bridge.FromString(desc_id), (int)col.ToArgb(), color_edit_flags, size.Raw) != 0;
+			return Native.imgui__color_button_opts(Bridge.FromString(desc_id), (int)col.ToARGB(), color_edit_flags, size.Raw) != 0;
 		}
 		public static void Columns(int count)
 		{
@@ -654,7 +654,7 @@ namespace Dora
 		}
 		public static void SetStyleColor(string name, Color color)
 		{
-			Native.imgui_set_style_color(Bridge.FromString(name), (int)color.ToArgb());
+			Native.imgui_set_style_color(Bridge.FromString(name), (int)color.ToARGB());
 		}
 		public static bool _BeginRetOpts(string name, CallStack stack, int windows_flags)
 		{

@@ -391,13 +391,13 @@ namespace Dora
 		/// the color of the node as a Color object.
 		public Color Color
 		{
-			set => Native.node_set_color(Raw, (int)value.ToArgb());
+			set => Native.node_set_color(Raw, (int)value.ToARGB());
 			get => new Color((uint)Native.node_get_color(Raw));
 		}
 		/// the color of the node as a Color3 object.
 		public Color3 Color3
 		{
-			set => Native.node_set_color3(Raw, (int)value.ToRgb());
+			set => Native.node_set_color3(Raw, (int)value.ToRGB());
 			get => new Color3((uint)Native.node_get_color3(Raw));
 		}
 		/// whether to pass the opacity value to child nodes.
@@ -513,7 +513,7 @@ namespace Dora
 		/// * `child` - The child node to add.
 		/// * `order` - The drawing order of the child node.
 		/// * `tag` - The tag of the child node.
-		public void AddChildWithOrderTag(Node child, int order, string tag)
+		public void AddChild(Node child, int order, string tag)
 		{
 			Native.node_add_child_with_order_tag(Raw, child.Raw, order, Bridge.FromString(tag));
 		}
@@ -523,7 +523,7 @@ namespace Dora
 		///
 		/// * `child` - The child node to add.
 		/// * `order` - The drawing order of the child node.
-		public void AddChildWithOrder(Node child, int order)
+		public void AddChild(Node child, int order)
 		{
 			Native.node_add_child_with_order(Raw, child.Raw, order);
 		}
@@ -547,7 +547,7 @@ namespace Dora
 		/// # Returns
 		///
 		/// * `Node` - The current node.
-		public Node AddToWithOrderTag(Node parent, int order, string tag)
+		public Node AddTo(Node parent, int order, string tag)
 		{
 			return Node.From(Native.node_add_to_with_order_tag(Raw, parent.Raw, order, Bridge.FromString(tag)));
 		}
@@ -561,7 +561,7 @@ namespace Dora
 		/// # Returns
 		///
 		/// * `Node` - The current node.
-		public Node AddToWithOrder(Node parent, int order)
+		public Node AddTo(Node parent, int order)
 		{
 			return Node.From(Native.node_add_to_with_order(Raw, parent.Raw, order));
 		}
@@ -655,7 +655,7 @@ namespace Dora
 			var func_id0 = Bridge.PushFunction(() =>
 			{
 				var result = update_func(stack0.PopF64());
-				stack0.Push(result);;
+				stack0.Push(result);
 			});
 			Native.node_schedule(Raw, func_id0, stack_raw0);
 		}
@@ -863,7 +863,7 @@ namespace Dora
 		/// # Returns
 		///
 		/// * `Size` - The size of the node after alignment.
-		public Size AlignItemsVerticallyWithSize(Size size, float padding)
+		public Size AlignItemsVertically(Size size, float padding)
 		{
 			return Size.From(Native.node_align_items_vertically_with_size(Raw, size.Raw, padding));
 		}
@@ -890,7 +890,7 @@ namespace Dora
 		/// # Returns
 		///
 		/// * `Size` - The size of the node after alignment.
-		public Size AlignItemsHorizontallyWithSize(Size size, float padding)
+		public Size AlignItemsHorizontally(Size size, float padding)
 		{
 			return Size.From(Native.node_align_items_horizontally_with_size(Raw, size.Raw, padding));
 		}
@@ -917,7 +917,7 @@ namespace Dora
 		/// # Returns
 		///
 		/// * `Size` - The size of the node after alignment.
-		public Size AlignItemsWithSize(Size size, float padding)
+		public Size AlignItems(Size size, float padding)
 		{
 			return Size.From(Native.node_align_items_with_size(Raw, size.Raw, padding));
 		}
@@ -960,7 +960,7 @@ namespace Dora
 		/// # Returns
 		///
 		/// * `Grabber` - A Grabber object.
-		public Grabber GrabWithSize(int grid_x, int grid_y)
+		public Grabber Grab(int grid_x, int grid_y)
 		{
 			return Grabber.From(Native.node_grab_with_size(Raw, grid_x, grid_y));
 		}

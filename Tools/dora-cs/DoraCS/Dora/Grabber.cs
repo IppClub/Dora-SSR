@@ -98,7 +98,7 @@ namespace Dora
 		/// the clear color used to clear the texture.
 		public Color ClearColor
 		{
-			set => Native.grabber_set_clear_color(Raw, (int)value.ToArgb());
+			set => Native.grabber_set_clear_color(Raw, (int)value.ToARGB());
 			get => new Color((uint)Native.grabber_get_clear_color(Raw));
 		}
 		/// Sets the position of a vertex in the grabber grid.
@@ -136,7 +136,7 @@ namespace Dora
 		/// * `color` - The new color of the vertex, represented by a Color object.
 		public void SetColor(int x, int y, Color color)
 		{
-			Native.grabber_set_color(Raw, x, y, (int)color.ToArgb());
+			Native.grabber_set_color(Raw, x, y, (int)color.ToARGB());
 		}
 		/// Gets the color of a vertex in the grabber grid.
 		///

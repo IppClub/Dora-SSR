@@ -282,7 +282,7 @@ basicTypes =
 		* (name)-> "#{name}.toARGB()"
 		* "Color"
 		* "Color"
-		* (name)-> "(int)#{name}.ToArgb()"
+		* (name)-> "(int)#{name}.ToARGB()"
 		* (name)-> "new Color((uint)#{name})"
 		* -> error "unsupported"
 		* -> error "unsupported"
@@ -300,7 +300,7 @@ basicTypes =
 		* (name)-> "#{name}.toRGB()"
 		* "Color3"
 		* "Color3"
-		* (name)-> "(int)#{name}.ToRgb()"
+		* (name)-> "(int)#{name}.ToRGB()"
 		* (name)-> "new Color3((uint)#{name})"
 		* -> error "unsupported"
 		* -> error "unsupported"
@@ -917,6 +917,13 @@ snakeToPascal = (snakeStr)->
 	pascalName = prefix .. snakeStr
 		\gsub "_([%a%d])", (letter) -> letter\upper!
 		\gsub "^%l", (first) -> first\upper!
+	if pascalName\match "^(.+)With[%w_]*$"
+		if pascalName\sub(1, 1) != '_'
+			noPostfix = pascalName\gsub "^(.+)With[%w_]*$", "%1"
+			if pascalName\sub(-5, -1) == 'Async'
+				pascalName = noPostfix .. 'Async'
+			elseif pascalName not in ['GetTextLineHeightWithSpacing', 'ImageWithBg']
+				pascalName = noPostfix
 	pascalName\gsub("3d", "3D")\gsub("Ui", "UI")\gsub("Ssr", "SSR")
 
 const WaTypeIndex = 10

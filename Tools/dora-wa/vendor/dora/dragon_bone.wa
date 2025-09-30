@@ -41,7 +41,7 @@ func DragonBoneFrom(raw: i64) => *DragonBone {
 	}
 	object := DragonBone{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	result := &object
 	return result
 }
@@ -113,7 +113,7 @@ func NewDragonBoneWithFiles(bone_file: string, atlas_file: string) => *DragonBon
 	}
 	object := DragonBone{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	return &object
 }
 
@@ -133,7 +133,7 @@ func NewDragonBone(bone_str: string) => *DragonBone {
 	}
 	object := DragonBone{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	return &object
 }
 

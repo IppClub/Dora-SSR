@@ -62,7 +62,7 @@ func ActionDefFrom(raw: i64) => *ActionDef {
 	}
 	item := ActionDef{}
 	item.raw = &raw
-	setFinalizer(item.raw, action_def_finalizer)
+	SetFinalizer(item.raw, action_def_finalizer)
 	result := &item
 	return result
 }

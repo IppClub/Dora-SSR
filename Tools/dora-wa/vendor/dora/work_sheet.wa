@@ -26,7 +26,7 @@ func WorkSheetFrom(raw: i64) => *WorkSheet {
 	}
 	item := WorkSheet{}
 	item.raw = &raw
-	setFinalizer(item.raw, work_sheet_finalizer)
+	SetFinalizer(item.raw, work_sheet_finalizer)
 	result := &item
 	return result
 }

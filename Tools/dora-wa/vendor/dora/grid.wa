@@ -80,7 +80,7 @@ func GridFrom(raw: i64) => *Grid {
 	}
 	object := Grid{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	result := &object
 	return result
 }
@@ -240,7 +240,7 @@ func NewGrid(width: f32, height: f32, grid_x: i32, grid_y: i32) => Grid {
 	raw := grid_new(width, height, grid_x, grid_y)
 	object := Grid{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	return object
 }
 
@@ -260,7 +260,7 @@ func NewGridWithTextureRect(texture: Texture2D, texture_rect: Rect, grid_x: i32,
 	raw := grid_with_texture_rect(texture.GetRaw(), texture_rect.GetRaw(), grid_x, grid_y)
 	object := Grid{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	return object
 }
 
@@ -279,7 +279,7 @@ func NewGridWithTexture(texture: Texture2D, grid_x: i32, grid_y: i32) => Grid {
 	raw := grid_with_texture(texture.GetRaw(), grid_x, grid_y)
 	object := Grid{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	return object
 }
 
@@ -301,6 +301,6 @@ func NewGridWithFile(clip_str: string, grid_x: i32, grid_y: i32) => *Grid {
 	}
 	object := Grid{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	return &object
 }

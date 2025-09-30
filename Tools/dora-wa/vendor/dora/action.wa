@@ -50,7 +50,7 @@ func ActionFrom(raw: i64) => *Action {
 	}
 	object := Action{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	result := &object
 	return result
 }
@@ -135,6 +135,6 @@ func NewAction(def: ActionDef) => Action {
 	raw := action_new(def.GetRaw())
 	object := Action{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	return object
 }

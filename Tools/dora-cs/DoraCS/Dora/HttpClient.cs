@@ -60,7 +60,7 @@ namespace Dora
 		/// * `json` - The JSON data to send in the request body.
 		/// * `timeout` - The timeout in seconds for the request.
 		/// * `callback` - A callback function that is called when the request is complete. The function receives the response body as a parameter.
-		public static void PostWithHeadersAsync(string url, IEnumerable<string> headers, string json, float timeout, System.Action<string?> callback)
+		public static void PostAsync(string url, IEnumerable<string> headers, string json, float timeout, System.Action<string?> callback)
 		{
 			var stack0 = new CallStack();
 			var stack_raw0 = stack0.Raw;
@@ -80,7 +80,7 @@ namespace Dora
 		/// * `timeout` - The timeout in seconds for the request.
 		/// * `part_callback` - A callback function that is called periodically to get part of the response content. Returns `true` to stop the request.
 		/// * `callback` - A callback function that is called when the request is complete. The function receives the response body as a parameter.
-		public static void PostWithHeadersPartAsync(string url, IEnumerable<string> headers, string json, float timeout, Func<string, bool> part_callback, System.Action<string?> callback)
+		public static void PostAsync(string url, IEnumerable<string> headers, string json, float timeout, Func<string, bool> part_callback, System.Action<string?> callback)
 		{
 			var stack0 = new CallStack();
 			var stack_raw0 = stack0.Raw;

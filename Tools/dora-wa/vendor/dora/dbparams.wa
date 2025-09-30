@@ -29,7 +29,7 @@ func DBParamsFrom(raw: i64) => *DBParams {
 	}
 	item := DBParams{}
 	item.raw = &raw
-	setFinalizer(item.raw, d_b_params_finalizer)
+	SetFinalizer(item.raw, d_b_params_finalizer)
 	result := &item
 	return result
 }
@@ -40,6 +40,6 @@ func NewDBParams() => DBParams {
 	raw := dbparams_new()
 	object := DBParams{}
 	object.raw = &raw
-	setFinalizer(object.raw, d_b_params_finalizer)
+	SetFinalizer(object.raw, d_b_params_finalizer)
 	return object
 }

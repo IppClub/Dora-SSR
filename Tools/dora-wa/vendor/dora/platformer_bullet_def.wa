@@ -74,7 +74,7 @@ func PlatformerBulletDefFrom(raw: i64) => *PlatformerBulletDef {
 	}
 	object := PlatformerBulletDef{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	result := &object
 	return result
 }
@@ -197,6 +197,6 @@ func NewPlatformerBulletDef() => PlatformerBulletDef {
 	raw := platformer_bulletdef_new()
 	object := PlatformerBulletDef{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	return object
 }

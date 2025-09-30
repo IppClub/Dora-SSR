@@ -23,7 +23,7 @@ func AlignNodeFrom(raw: i64) => *AlignNode {
 	}
 	object := AlignNode{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	result := &object
 	return result
 }
@@ -81,6 +81,6 @@ func NewAlignNode(is_window_root: bool) => AlignNode {
 	raw := alignnode_new(ToDoraBool(is_window_root))
 	object := AlignNode{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	return object
 }

@@ -152,7 +152,7 @@ namespace Dora
 		/// # Returns
 		///
 		/// * `bool` - `true` if the audio source was played successfully, `false` otherwise.
-		public bool PlayWithDelay(double delay_time)
+		public bool Play(double delay_time)
 		{
 			return Native.audiosource_play_with_delay(Raw, delay_time) != 0;
 		}
@@ -183,7 +183,7 @@ namespace Dora
 		/// # Returns
 		///
 		/// * `bool` - `true` if the audio source was played successfully, `false` otherwise.
-		public bool Play3DWithDelay(double delay_time)
+		public bool Play3D(double delay_time)
 		{
 			return Native.audiosource_play_3d_with_delay(Raw, delay_time) != 0;
 		}

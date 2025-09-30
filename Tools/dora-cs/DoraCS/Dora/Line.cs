@@ -76,7 +76,7 @@ namespace Dora
 		/// * `color` - Optional. The color of the line.
 		public void Add(IEnumerable<Vec2> verts, Color color)
 		{
-			Native.line_add(Raw, Bridge.FromArray(verts), (int)color.ToArgb());
+			Native.line_add(Raw, Bridge.FromArray(verts), (int)color.ToARGB());
 		}
 		/// Sets vertices of the line.
 		///
@@ -86,7 +86,7 @@ namespace Dora
 		/// * `color` - Optional. The color of the line.
 		public void Set(IEnumerable<Vec2> verts, Color color)
 		{
-			Native.line_set(Raw, Bridge.FromArray(verts), (int)color.ToArgb());
+			Native.line_set(Raw, Bridge.FromArray(verts), (int)color.ToARGB());
 		}
 		/// Clears all the vertices of line.
 		public void Clear()
@@ -109,6 +109,6 @@ namespace Dora
 		/// # Returns
 		///
 		/// * A new `Line` object.
-		public Line(IEnumerable<Vec2> verts, Color color) : this(Native.line_with_vec_color(Bridge.FromArray(verts), (int)color.ToArgb())) { }
+		public Line(IEnumerable<Vec2> verts, Color color) : this(Native.line_with_vec_color(Bridge.FromArray(verts), (int)color.ToARGB())) { }
 	}
 } // namespace Dora

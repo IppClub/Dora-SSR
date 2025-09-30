@@ -58,7 +58,7 @@ namespace Dora
 		/// the background color for the game world.
 		public static Color ClearColor
 		{
-			set => Native.director_set_clear_color((int)value.ToArgb());
+			set => Native.director_set_clear_color((int)value.ToARGB());
 			get => new Color((uint)Native.director_get_clear_color());
 		}
 		/// the root node for 2D user interface elements like buttons and labels.

@@ -26,7 +26,7 @@ func WorkBookFrom(raw: i64) => *WorkBook {
 	}
 	item := WorkBook{}
 	item.raw = &raw
-	setFinalizer(item.raw, work_book_finalizer)
+	SetFinalizer(item.raw, work_book_finalizer)
 	result := &item
 	return result
 }

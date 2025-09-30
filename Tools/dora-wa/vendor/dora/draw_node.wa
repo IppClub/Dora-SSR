@@ -47,7 +47,7 @@ func DrawNodeFrom(raw: i64) => *DrawNode {
 	}
 	object := DrawNode{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	result := &object
 	return result
 }
@@ -140,6 +140,6 @@ func NewDrawNode() => DrawNode {
 	raw := drawnode_new()
 	object := DrawNode{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	return object
 }

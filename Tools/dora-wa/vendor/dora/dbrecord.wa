@@ -29,7 +29,7 @@ func DBRecordFrom(raw: i64) => *DBRecord {
 	}
 	item := DBRecord{}
 	item.raw = &raw
-	setFinalizer(item.raw, d_b_record_finalizer)
+	SetFinalizer(item.raw, d_b_record_finalizer)
 	result := &item
 	return result
 }

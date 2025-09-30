@@ -29,7 +29,7 @@ func SVGFrom(raw: i64) => *SVG {
 	}
 	object := SVG{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	result := &object
 	return result
 }
@@ -75,6 +75,6 @@ func NewSVG(filename: string) => *SVG {
 	}
 	object := SVG{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	return &object
 }

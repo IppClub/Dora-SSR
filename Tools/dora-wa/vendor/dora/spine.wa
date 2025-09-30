@@ -44,7 +44,7 @@ func SpineFrom(raw: i64) => *Spine {
 	}
 	object := Spine{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	result := &object
 	return result
 }
@@ -130,7 +130,7 @@ func NewSpineWithFiles(skel_file: string, atlas_file: string) => *Spine {
 	}
 	object := Spine{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	return &object
 }
 
@@ -150,7 +150,7 @@ func NewSpine(spine_str: string) => *Spine {
 	}
 	object := Spine{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	return &object
 }
 

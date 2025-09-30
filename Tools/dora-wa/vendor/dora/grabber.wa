@@ -56,7 +56,7 @@ func GrabberFrom(raw: i64) => *Grabber {
 	}
 	object := Grabber{}
 	object.raw = &raw
-	setFinalizer(object.raw, ObjectFinalizer)
+	SetFinalizer(object.raw, ObjectFinalizer)
 	result := &object
 	return result
 }
