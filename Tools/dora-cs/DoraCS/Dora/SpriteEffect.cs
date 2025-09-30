@@ -18,13 +18,15 @@ namespace Dora
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int32_t spriteeffect_type();
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int64_t spriteeffect_new(int64_t vert_shader, int64_t frag_shader);
+		public static extern int64_t spriteeffect_new(int64_t vertShader, int64_t fragShader);
 	}
 } // namespace Dora
 
 namespace Dora
 {
+	/// <summary>
 	/// A struct that is a specialization of Effect for rendering 2D sprites.
+	/// </summary>
 	public partial class SpriteEffect : Effect
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
@@ -40,18 +42,12 @@ namespace Dora
 		{
 			return raw == 0 ? null : new SpriteEffect(raw);
 		}
+		/// <summary>
 		/// A method that allows you to create a new SpriteEffect object.
-		///
-		/// # Arguments
-		///
-		/// * `vert_shader` - The vertex shader file string.
-		/// * `frag_shader` - The fragment shader file string. A shader file string must be one of the formats:
-		///     * "builtin:" + theBuiltinShaderName
-		///     * "Shader/compiled_shader_file.bin"
-		///
-		/// # Returns
-		///
-		/// * `SpriteEffect` - A new SpriteEffect object.
-		public SpriteEffect(string vert_shader, string frag_shader) : this(Native.spriteeffect_new(Bridge.FromString(vert_shader), Bridge.FromString(frag_shader))) { }
+		/// </summary>
+		/// <param name="vertShader">The vertex shader file string.</param>
+		/// <param name="fragShader">The fragment shader file string. A shader file string must be one of the formats:</param>
+		/// <returns>A new SpriteEffect object.</returns>
+		public SpriteEffect(string vertShader, string fragShader) : this(Native.spriteeffect_new(Bridge.FromString(vertShader), Bridge.FromString(fragShader))) { }
 	}
 } // namespace Dora

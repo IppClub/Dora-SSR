@@ -30,39 +30,49 @@ namespace Dora
 
 namespace Dora
 {
+	/// <summary>
 	/// An interface for handling mouse inputs.
+	/// </summary>
 	public static partial class Mouse
 	{
+		/// <summary>
 		/// The position of the mouse in the visible window.
 		/// You can use `Mouse::get_position() * App::get_device_pixel_ratio()` to get the coordinate in the game world.
 		/// Then use `node.convertToNodeSpace()` to convert the world coordinate to the local coordinate of the node.
-		///
 		/// # Example
-		///
 		/// ```
-		/// let worldPos = Mouse::get_position() * App::get_device_pixel_ratio();
-		/// let nodePos = node.convert_to_node_space(&worldPos);
+		/// var worldPos = Mouse.Position.mul(App.DevicePixelRatio);
+		/// var nodePos = node.ConvertToNodeSpace(worldPos);
 		/// ```
+		/// </summary>
 		public static Vec2 GetPosition()
 		{
 			return Vec2.From(Native.mouse_get_position());
 		}
+		/// <summary>
 		/// Whether the left mouse button is currently being pressed.
+		/// </summary>
 		public static bool IsLeftButtonPressed()
 		{
 			return Native.mouse_is_left_button_pressed() != 0;
 		}
+		/// <summary>
 		/// Whether the right mouse button is currently being pressed.
+		/// </summary>
 		public static bool IsRightButtonPressed()
 		{
 			return Native.mouse_is_right_button_pressed() != 0;
 		}
+		/// <summary>
 		/// Whether the middle mouse button is currently being pressed.
+		/// </summary>
 		public static bool IsMiddleButtonPressed()
 		{
 			return Native.mouse_is_middle_button_pressed() != 0;
 		}
+		/// <summary>
 		/// Gets the mouse wheel value.
+		/// </summary>
 		public static Vec2 GetWheel()
 		{
 			return Vec2.From(Native.mouse_get_wheel());

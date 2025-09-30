@@ -1340,7 +1340,6 @@ else
 						funcArgCount = -1
 						argItems = for arg in *args
 							[argKind, argType, argName] = arg
-							argName = toSnakeCase argName
 							switch argKind
 								when "variable"
 									rustTypeA = basicTypes[argType]
@@ -1367,7 +1366,6 @@ else
 									funcArgCount += 1
 									fnArgId = tostring funcArgCount
 									[_, func, fname] = arg
-									fname = toSnakeCase fname
 									[flabel, freturnType, fargs] = func
 									items = for farg in *fargs
 										[fargKind, fargType, fargName] = farg
@@ -1536,7 +1534,6 @@ else
 						funcArgCount = -1
 						argItems = for arg in *args
 							[argKind, argType, argName] = arg
-							argName = toSnakeCase argName
 							switch argKind when "variable"
 								fargTypeName = argType\match "[^ \t*]+"
 								fargTypeName = nameMap[fargTypeName] or fargTypeName
@@ -1553,7 +1550,6 @@ else
 								funcArgCount += 1
 								fnArgId = tostring funcArgCount
 								[_, func, fname] = arg
-								fname = toSnakeCase fname
 								[flabel, freturnType, fargs] = func
 								freturnTypeName = freturnType\match "[^ \t*]+"
 								freturnName = nameMap[freturnTypeName] or freturnTypeName

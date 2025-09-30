@@ -22,7 +22,7 @@ namespace Dora
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int64_t platformer_face_to_node(int64_t self);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int64_t platformer_face_new(int64_t face_str, int64_t point, float scale, float angle);
+		public static extern int64_t platformer_face_new(int64_t faceStr, int64_t point, float scale, float angle);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int64_t platformer_face_with_func(int32_t func0, int64_t stack0, int64_t point, float scale, float angle);
 	}
@@ -30,7 +30,9 @@ namespace Dora
 
 namespace Dora.Platformer
 {
+	/// <summary>
 	/// Represents a definition for a visual component of a game bullet or other visual item.
+	/// </summary>
 	public partial class Face : Object
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
@@ -46,60 +48,50 @@ namespace Dora.Platformer
 		{
 			return raw == 0 ? null : new Face(raw);
 		}
+		/// <summary>
 		/// Adds a child `Face` definition to it.
-		///
-		/// # Arguments
-		///
-		/// * `face` - The child `Face` to add.
+		/// </summary>
+		/// <param name="face">The child `Face` to add.</param>
 		public void AddChild(Platformer.Face face)
 		{
 			Native.platformer_face_add_child(Raw, face.Raw);
 		}
+		/// <summary>
 		/// Returns a node that can be added to a scene tree for rendering.
-		///
-		/// # Returns
-		///
-		/// * `Node` - The `Node` representing this `Face`.
+		/// </summary>
+		/// <returns>The `Node` representing this `Face`.</returns>
 		public Node ToNode()
 		{
 			return Node.From(Native.platformer_face_to_node(Raw));
 		}
+		/// <summary>
 		/// Creates a new `Face` definition using the specified attributes.
-		///
-		/// # Arguments
-		///
-		/// * `face_str` - A string for creating the `Face` component. Could be 'Image/file.png' and 'Image/items.clip|itemA'.
-		/// * `point` - The position of the `Face` component.
-		/// * `scale` - The scale of the `Face` component.
-		/// * `angle` - The angle of the `Face` component.
-		///
-		/// # Returns
-		///
-		/// * `Face` - The new `Face` component.
-		public Face(string face_str, Vec2 point, float scale, float angle) : this(Native.platformer_face_new(Bridge.FromString(face_str), point.Raw, scale, angle)) { }
-		private static long NewFace(Func<Node> create_func, Vec2 point, float scale, float angle)
+		/// </summary>
+		/// <param name="faceStr">A string for creating the `Face` component. Could be 'Image/file.png' and 'Image/items.clip|itemA'.</param>
+		/// <param name="point">The position of the `Face` component.</param>
+		/// <param name="scale">The scale of the `Face` component.</param>
+		/// <param name="angle">The angle of the `Face` component.</param>
+		/// <returns>The new `Face` component.</returns>
+		public Face(string faceStr, Vec2 point, float scale, float angle) : this(Native.platformer_face_new(Bridge.FromString(faceStr), point.Raw, scale, angle)) { }
+		private static long NewFace(Func<Node> createFunc, Vec2 point, float scale, float angle)
 		{
 			var stack0 = new CallStack();
 			var stack_raw0 = stack0.Raw;
 			var func_id0 = Bridge.PushFunction(() =>
 			{
-				var result = create_func();
+				var result = createFunc();
 				stack0.Push(result);
 			});
 			return Native.platformer_face_with_func(func_id0, stack_raw0, point.Raw, scale, angle);
 		}
+		/// <summary>
 		/// Creates a new `Face` definition using the specified attributes.
-		///
-		/// # Arguments
-		///
-		/// * `create_func` - A function that returns a `Node` representing the `Face` component.
-		/// * `point` - The position of the `Face` component.
-		/// * `scale` - The scale of the `Face` component.
-		/// * `angle` - The angle of the `Face` component.
-		///
-		/// # Returns
-		///
-		/// * `Face` - The new `Face` component.
-		public Face(Func<Node> create_func, Vec2 point, float scale, float angle) : this(NewFace(create_func, point, scale, angle)) { }
+		/// </summary>
+		/// <param name="createFunc">A function that returns a `Node` representing the `Face` component.</param>
+		/// <param name="point">The position of the `Face` component.</param>
+		/// <param name="scale">The scale of the `Face` component.</param>
+		/// <param name="angle">The angle of the `Face` component.</param>
+		/// <returns>The new `Face` component.</returns>
+		public Face(Func<Node> createFunc, Vec2 point, float scale, float angle) : this(NewFace(createFunc, point, scale, angle)) { }
 	}
 } // namespace Dora.Platformer

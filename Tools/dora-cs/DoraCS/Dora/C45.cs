@@ -16,36 +16,33 @@ namespace Dora
 	internal static partial class Native
 	{
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern void c45_build_decision_tree_async(int64_t data, int32_t max_depth, int32_t func0, int64_t stack0);
+		public static extern void c45_build_decision_tree_async(int64_t csvData, int32_t maxDepth, int32_t func0, int64_t stack0);
 	}
 } // namespace Dora
 
 namespace Dora
 {
+	/// <summary>
 	/// An interface for machine learning algorithms.
+	/// </summary>
 	public static partial class C45
 	{
+		/// <summary>
 		/// A function that takes CSV data as input and applies the C4.5 machine learning algorithm to build a decision tree model asynchronously.
 		/// C4.5 is a decision tree algorithm that uses information gain to select the best attribute to split the data at each node of the tree. The resulting decision tree can be used to make predictions on new data.
-		///
-		/// # Arguments
-		///
-		/// * `csv_data` - The CSV training data for building the decision tree using delimiter `,`.
-		/// * `max_depth` - The maximum depth of the generated decision tree. Set to 0 to prevent limiting the generated tree depth.
-		/// * `handler` - The callback function to be called for each node of the generated decision tree.
-		///     * `depth` - The learning accuracy value or the depth of the current node in the decision tree.
-		///     * `name` - The name of the attribute used for splitting the data at the current node.
-		///     * `op` - The comparison operator used for splitting the data at the current node.
-		///     * `value` - The value used for splitting the data at the current node.
-		public static void BuildDecisionTreeAsync(string data, int max_depth, System.Action<double, string, string, string> tree_visitor)
+		/// </summary>
+		/// <param name="csvData">The CSV training data for building the decision tree using delimiter `,`.</param>
+		/// <param name="maxDepth">The maximum depth of the generated decision tree. Set to 0 to prevent limiting the generated tree depth.</param>
+		/// <param name="treeVisitor">The callback function to be called for each node of the generated decision tree.</param>
+		public static void BuildDecisionTreeAsync(string csvData, int maxDepth, System.Action<double, string, string, string> treeVisitor)
 		{
 			var stack0 = new CallStack();
 			var stack_raw0 = stack0.Raw;
 			var func_id0 = Bridge.PushFunction(() =>
 			{
-				tree_visitor(stack0.PopF64(), stack0.PopString(), stack0.PopString(), stack0.PopString());
+				treeVisitor(stack0.PopF64(), stack0.PopString(), stack0.PopString(), stack0.PopString());
 			});
-			Native.c45_build_decision_tree_async(Bridge.FromString(data), max_depth, func_id0, stack_raw0);
+			Native.c45_build_decision_tree_async(Bridge.FromString(csvData), maxDepth, func_id0, stack_raw0);
 		}
 	}
 } // namespace Dora

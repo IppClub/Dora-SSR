@@ -56,17 +56,19 @@ namespace Dora
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int64_t sprite_new();
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int64_t sprite_with_texture_rect(int64_t texture, int64_t texture_rect);
+		public static extern int64_t sprite_with_texture_rect(int64_t texture, int64_t textureRect);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int64_t sprite_with_texture(int64_t texture);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern int64_t sprite_with_file(int64_t clip_str);
+		public static extern int64_t sprite_with_file(int64_t clipStr);
 	}
 } // namespace Dora
 
 namespace Dora
 {
+	/// <summary>
 	/// A struct to render texture in game scene tree hierarchy.
+	/// </summary>
 	public partial class Sprite : Node
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
@@ -82,105 +84,112 @@ namespace Dora
 		{
 			return raw == 0 ? null : new Sprite(raw);
 		}
-		/// whether the depth buffer should be written to when rendering the sprite.
+		/// <summary>
+		/// Whether the depth buffer should be written to when rendering the sprite.
+		/// </summary>
 		public bool IsDepthWrite
 		{
 			set => Native.sprite_set_depth_write(Raw, value ? 1 : 0);
 			get => Native.sprite_is_depth_write(Raw) != 0;
 		}
-		/// the alpha reference value for alpha testing. Pixels with alpha values less than or equal to this value will be discarded.
+		/// <summary>
+		/// The alpha reference value for alpha testing. Pixels with alpha values less than or equal to this value will be discarded.
 		/// Only works with `sprite.effect = SpriteEffect::new("builtin:vs_sprite", "builtin:fs_spritealphatest");`.
+		/// </summary>
 		public float AlphaRef
 		{
 			set => Native.sprite_set_alpha_ref(Raw, value);
 			get => Native.sprite_get_alpha_ref(Raw);
 		}
-		/// the texture rectangle for the sprite.
+		/// <summary>
+		/// The texture rectangle for the sprite.
+		/// </summary>
 		public Rect TextureRect
 		{
 			set => Native.sprite_set_texture_rect(Raw, value.Raw);
 			get => Dora.Rect.From(Native.sprite_get_texture_rect(Raw));
 		}
-		/// the texture for the sprite.
+		/// <summary>
+		/// The texture for the sprite.
+		/// </summary>
 		public Texture2D? Texture
 		{
 			get => Texture2D.FromOpt(Native.sprite_get_texture(Raw));
 		}
-		/// the blend function for the sprite.
+		/// <summary>
+		/// The blend function for the sprite.
+		/// </summary>
 		public BlendFunc BlendFunc
 		{
 			set => Native.sprite_set_blend_func(Raw, value.Raw);
 			get => BlendFunc.From(Native.sprite_get_blend_func(Raw));
 		}
-		/// the sprite shader effect.
+		/// <summary>
+		/// The sprite shader effect.
+		/// </summary>
 		public SpriteEffect Effect
 		{
 			set => Native.sprite_set_effect(Raw, value.Raw);
 			get => SpriteEffect.From(Native.sprite_get_effect(Raw));
 		}
-		/// the texture wrapping mode for the U (horizontal) axis.
+		/// <summary>
+		/// The texture wrapping mode for the U (horizontal) axis.
+		/// </summary>
 		public TextureWrap Uwrap
 		{
 			set => Native.sprite_set_uwrap(Raw, (int)value);
 			get => (TextureWrap)Native.sprite_get_uwrap(Raw);
 		}
-		/// the texture wrapping mode for the V (vertical) axis.
+		/// <summary>
+		/// The texture wrapping mode for the V (vertical) axis.
+		/// </summary>
 		public TextureWrap Vwrap
 		{
 			set => Native.sprite_set_vwrap(Raw, (int)value);
 			get => (TextureWrap)Native.sprite_get_vwrap(Raw);
 		}
-		/// the texture filtering mode for the sprite.
+		/// <summary>
+		/// The texture filtering mode for the sprite.
+		/// </summary>
 		public TextureFilter Filter
 		{
 			set => Native.sprite_set_filter(Raw, (int)value);
 			get => (TextureFilter)Native.sprite_get_filter(Raw);
 		}
+		/// <summary>
 		/// Removes the sprite effect and sets the default effect.
+		/// </summary>
 		public void SetEffectAsDefault()
 		{
 			Native.sprite_set_effect_as_default(Raw);
 		}
+		/// <summary>
 		/// A method for creating a Sprite object.
-		///
-		/// # Returns
-		///
-		/// * `Sprite` - A new instance of the Sprite class.
+		/// </summary>
+		/// <returns>A new instance of the Sprite class.</returns>
 		public Sprite() : this(Native.sprite_new()) { }
+		/// <summary>
 		/// A method for creating a Sprite object.
-		///
-		/// # Arguments
-		///
-		/// * `texture` - The texture to be used for the sprite.
-		/// * `texture_rect` - An optional rectangle defining the portion of the texture to use for the sprite. If not provided, the whole texture will be used for rendering.
-		///
-		/// # Returns
-		///
-		/// * `Sprite` - A new instance of the Sprite class.
-		public Sprite(Texture2D texture, Rect texture_rect) : this(Native.sprite_with_texture_rect(texture.Raw, texture_rect.Raw)) { }
+		/// </summary>
+		/// <param name="texture">The texture to be used for the sprite.</param>
+		/// <param name="textureRect">An optional rectangle defining the portion of the texture to use for the sprite. If not provided, the whole texture will be used for rendering.</param>
+		/// <returns>A new instance of the Sprite class.</returns>
+		public Sprite(Texture2D texture, Rect textureRect) : this(Native.sprite_with_texture_rect(texture.Raw, textureRect.Raw)) { }
+		/// <summary>
 		/// A method for creating a Sprite object.
-		///
-		/// # Arguments
-		///
-		/// * `texture` - The texture to be used for the sprite.
-		///
-		/// # Returns
-		///
-		/// * `Sprite` - A new instance of the Sprite class.
+		/// </summary>
+		/// <param name="texture">The texture to be used for the sprite.</param>
+		/// <returns>A new instance of the Sprite class.</returns>
 		public Sprite(Texture2D texture) : this(Native.sprite_with_texture(texture.Raw)) { }
+		/// <summary>
 		/// A method for creating a Sprite object.
-		///
-		/// # Arguments
-		///
-		/// * `clip_str` - The string containing format for loading a texture file. Can be "Image/file.png" and "Image/items.clip|itemA". Supports image file format: jpg, png, dds, pvr, ktx.
-		///
-		/// # Returns
-		///
-		/// * `Option<Sprite>` - A new instance of the Sprite class. If the texture file is not found, it will return `None`.
-		public Sprite(string clip_str) : this(Native.sprite_with_file(Bridge.FromString(clip_str))) { }
-		public static Sprite? TryCreate(string clip_str)
+		/// </summary>
+		/// <param name="clipStr">The string containing format for loading a texture file. Can be "Image/file.png" and "Image/items.clip|itemA". Supports image file format: jpg, png, dds, pvr, ktx.</param>
+		/// <returns>A new instance of the Sprite class. If the texture file is not found, it will return `None`.</returns>
+		public Sprite(string clipStr) : this(Native.sprite_with_file(Bridge.FromString(clipStr))) { }
+		public static Sprite? TryCreate(string clipStr)
 		{
-			var raw = Native.sprite_with_file(Bridge.FromString(clip_str));
+			var raw = Native.sprite_with_file(Bridge.FromString(clipStr));
 			return raw == 0 ? null : new Sprite(raw);
 		}
 	}

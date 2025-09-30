@@ -30,7 +30,9 @@ namespace Dora
 
 namespace Dora
 {
+	/// <summary>
 	/// Represents a particle system node that emits and animates particles.
+	/// </summary>
 	public partial class Particle : Node
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
@@ -46,30 +48,31 @@ namespace Dora
 		{
 			return raw == 0 ? null : new Particle(raw);
 		}
-		/// whether the particle system is active.
+		/// <summary>
+		/// Whether the particle system is active.
+		/// </summary>
 		public bool IsActive
 		{
 			get => Native.particlenode_is_active(Raw) != 0;
 		}
+		/// <summary>
 		/// Starts emitting particles.
+		/// </summary>
 		public void Start()
 		{
 			Native.particlenode_start(Raw);
 		}
+		/// <summary>
 		/// Stops emitting particles and wait for all active particles to end their lives.
+		/// </summary>
 		public void Stop()
 		{
 			Native.particlenode_stop(Raw);
 		}
+		/// <summary>
 		/// Creates a new Particle object from a particle system file.
-		///
-		/// # Arguments
-		///
-		/// * `filename` - The file path of the particle system file.
-		///
-		/// # Returns
-		///
-		/// * A new `Particle` object.
+		/// </summary>
+		/// <param name="filename">The file path of the particle system file.</param>
 		public Particle(string filename) : this(Native.particlenode_new(Bridge.FromString(filename))) { }
 		public static Particle? TryCreate(string filename)
 		{

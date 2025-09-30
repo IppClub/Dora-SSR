@@ -1,416 +1,456 @@
+/// <summary>
 /// An array data structure that supports various operations.
+/// </summary>
 object class Array
 {
-	/// the number of items in the array.
+	/// <summary>
+	/// The number of items in the array.
+	/// </summary>
 	readonly common size_t count;
-	/// whether the array is empty or not.
+	/// <summary>
+	/// Whether the array is empty or not.
+	/// </summary>
 	readonly boolean bool empty;
+	/// <summary>
 	/// Adds all items from another array to the end of this array.
-	///
-	/// # Arguments
-	///
-	/// * `other` - Another array object.
+	/// </summary>
+	/// <param name="other">Another array object.</param>
 	void addRange(Array* other);
+	/// <summary>
 	/// Removes all items from this array that are also in another array.
-	///
-	/// # Arguments
-	///
-	/// * `other` - Another array object.
+	/// </summary>
+	/// <param name="other">Another array object.</param>
 	void removeFrom(Array* other);
+	/// <summary>
 	/// Removes all items from the array.
+	/// </summary>
 	void clear();
+	/// <summary>
 	/// Reverses the order of the items in the array.
+	/// </summary>
 	void reverse();
+	/// <summary>
 	/// Removes any empty slots from the end of the array.
 	/// This method is used to release the unused memory this array holds.
+	/// </summary>
 	void shrink();
+	/// <summary>
 	/// Swaps the items at two given indices.
-	///
-	/// # Arguments
-	///
-	/// * `index_a` - The first index.
-	/// * `index_b` - The second index.
+	/// </summary>
+	/// <param name="indexA">The first index.</param>
+	/// <param name="indexB">The second index.</param>
 	void swap(int indexA, int indexB);
+	/// <summary>
 	/// Removes the item at the given index.
-	///
-	/// # Arguments
-	///
-	/// * `index` - The index to remove.
-	///
-	/// # Returns
-	///
-	/// * `bool` - `true` if an item was removed, `false` otherwise.
+	/// </summary>
+	/// <param name="index">The index to remove.</param>
+	/// <returns>`true` if an item was removed, `false` otherwise.</returns>
 	bool removeAt(int index);
+	/// <summary>
 	/// Removes the item at the given index without preserving the order of the array.
-	///
-	/// # Arguments
-	///
-	/// * `index` - The index to remove.
-	///
-	/// # Returns
-	///
-	/// * `bool` - `true` if an item was removed, `false` otherwise.
+	/// </summary>
+	/// <param name="index">The index to remove.</param>
+	/// <returns>`true` if an item was removed, `false` otherwise.</returns>
 	bool fastRemoveAt(int index);
+	/// <summary>
 	/// Creates a new array object
+	/// </summary>
 	static Array* create();
 };
 
+/// <summary>
 /// A struct for storing pairs of string keys and various values.
+/// </summary>
 object class Dictionary
 {
-	/// the number of items in the dictionary.
+	/// <summary>
+	/// The number of items in the dictionary.
+	/// </summary>
 	readonly common int count;
-	/// the keys of the items in the dictionary.
+	/// <summary>
+	/// The keys of the items in the dictionary.
+	/// </summary>
 	readonly common VecStr keys;
+	/// <summary>
 	/// Removes all the items from the dictionary.
+	/// </summary>
 	void clear();
+	/// <summary>
 	/// Creates instance of the "Dictionary".
+	/// </summary>
 	static Dictionary* create();
 };
 
+/// <summary>
 /// A rectangle object with a left-bottom origin position and a size.
+/// </summary>
 value struct Rect
 {
-	/// the position of the origin of the rectangle.
+	/// <summary>
+	/// The position of the origin of the rectangle.
+	/// </summary>
 	Vec2 origin;
-	/// the dimensions of the rectangle.
+	/// <summary>
+	/// The dimensions of the rectangle.
+	/// </summary>
 	Size size;
-	/// the x-coordinate of the origin of the rectangle.
+	/// <summary>
+	/// The x-coordinate of the origin of the rectangle.
+	/// </summary>
 	common float x;
-	/// the y-coordinate of the origin of the rectangle.
+	/// <summary>
+	/// The y-coordinate of the origin of the rectangle.
+	/// </summary>
 	common float y;
-	/// the width of the rectangle.
+	/// <summary>
+	/// The width of the rectangle.
+	/// </summary>
 	common float width;
-	/// the height of the rectangle.
+	/// <summary>
+	/// The height of the rectangle.
+	/// </summary>
 	common float height;
-	/// the left edge in x-axis of the rectangle.
+	/// <summary>
+	/// The left edge in x-axis of the rectangle.
+	/// </summary>
 	common float left;
-	/// the right edge in x-axis of the rectangle.
+	/// <summary>
+	/// The right edge in x-axis of the rectangle.
+	/// </summary>
 	common float right;
-	/// the x-coordinate of the center of the rectangle.
+	/// <summary>
+	/// The x-coordinate of the center of the rectangle.
+	/// </summary>
 	common float centerX;
-	/// the y-coordinate of the center of the rectangle.
+	/// <summary>
+	/// The y-coordinate of the center of the rectangle.
+	/// </summary>
 	common float centerY;
-	/// the bottom edge in y-axis of the rectangle.
+	/// <summary>
+	/// The bottom edge in y-axis of the rectangle.
+	/// </summary>
 	common float bottom;
-	/// the top edge in y-axis of the rectangle.
+	/// <summary>
+	/// The top edge in y-axis of the rectangle.
+	/// </summary>
 	common float top;
-	/// the lower bound (left-bottom) of the rectangle.
+	/// <summary>
+	/// The lower bound (left-bottom) of the rectangle.
+	/// </summary>
 	common Vec2 lowerBound;
-	/// the upper bound (right-top) of the rectangle.
+	/// <summary>
+	/// The upper bound (right-top) of the rectangle.
+	/// </summary>
 	common Vec2 upperBound;
+	/// <summary>
 	/// Sets the properties of the rectangle.
-	///
-	/// # Arguments
-	///
-	/// * `x` - The x-coordinate of the origin of the rectangle.
-	/// * `y` - The y-coordinate of the origin of the rectangle.
-	/// * `width` - The width of the rectangle.
-	/// * `height` - The height of the rectangle.
+	/// </summary>
+	/// <param name="x">The x-coordinate of the origin of the rectangle.</param>
+	/// <param name="y">The y-coordinate of the origin of the rectangle.</param>
+	/// <param name="width">The width of the rectangle.</param>
+	/// <param name="height">The height of the rectangle.</param>
 	void set(float x, float y, float width, float height);
+	/// <summary>
 	/// Checks if a point is inside the rectangle.
-	///
-	/// # Arguments
-	///
-	/// * `point` - The point to check, represented by a Vec2 object.
-	///
-	/// # Returns
-	///
-	/// * `bool` - Whether or not the point is inside the rectangle.
+	/// </summary>
+	/// <param name="point">The point to check, represented by a Vec2 object.</param>
+	/// <returns>Whether or not the point is inside the rectangle.</returns>
 	bool containsPoint(Vec2 point) const;
+	/// <summary>
 	/// Checks if the rectangle intersects with another rectangle.
-	///
-	/// # Arguments
-	///
-	/// * `rect` - The other rectangle to check for intersection with, represented by a Rect object.
-	///
-	/// # Returns
-	///
-	/// * `bool` - Whether or not the rectangles intersect.
+	/// </summary>
+	/// <param name="rect">The other rectangle to check for intersection with, represented by a Rect object.</param>
+	/// <returns>Whether or not the rectangles intersect.</returns>
 	bool intersectsRect(Rect rect) const;
+	/// <summary>
 	/// Checks if two rectangles are equal.
-	///
-	/// # Arguments
-	///
-	/// * `other` - The other rectangle to compare to, represented by a Rect object.
-	///
-	/// # Returns
-	///
-	/// * `bool` - Whether or not the two rectangles are equal.
+	/// </summary>
+	/// <param name="other">The other rectangle to compare to, represented by a Rect object.</param>
+	/// <returns>Whether or not the two rectangles are equal.</returns>
 	bool operator== @ equals(Rect other) const;
+	/// <summary>
 	/// Creates a new rectangle object using a Vec2 object for the origin and a Size object for the size.
-	///
-	/// # Arguments
-	///
-	/// * `origin` - The origin of the rectangle, represented by a Vec2 object.
-	/// * `size` - The size of the rectangle, represented by a Size object.
-	///
-	/// # Returns
-	///
-	/// * `Rect` - A new rectangle object.
+	/// </summary>
+	/// <param name="origin">The origin of the rectangle, represented by a Vec2 object.</param>
+	/// <param name="size">The size of the rectangle, represented by a Size object.</param>
+	/// <returns>A new rectangle object.</returns>
 	static Rect create(Vec2 origin, Size size);
+	/// <summary>
 	/// Gets a rectangle object with all properties set to 0.
+	/// </summary>
 	static outside Rect Rect_GetZero @ zero();
 };
 
+/// <summary>
 /// A struct representing an application.
+/// </summary>
 singleton class Application @ App
 {
-	/// the current passed frame number.
+	/// <summary>
+	/// The current passed frame number.
+	/// </summary>
 	readonly common uint32_t frame;
-	/// the size of the main frame buffer texture used for rendering.
+	/// <summary>
+	/// The size of the main frame buffer texture used for rendering.
+	/// </summary>
 	readonly common Size bufferSize;
-	/// the logic visual size of the screen.
+	/// <summary>
+	/// The logic visual size of the screen.
 	/// The visual size only changes when application window size changes.
 	/// And it won't be affacted by the view buffer scaling factor.
+	/// </summary>
 	readonly common Size visualSize;
-	/// the ratio of the pixel density displayed by the device
+	/// <summary>
+	/// The ratio of the pixel density displayed by the device
 	/// Can be calculated as the size of the rendering buffer divided by the size of the application window.
+	/// </summary>
 	readonly common float devicePixelRatio;
-	/// the platform the game engine is running on.
+	/// <summary>
+	/// The platform the game engine is running on.
+	/// </summary>
 	readonly common string platform;
-	/// the version string of the game engine.
+	/// <summary>
+	/// The version string of the game engine.
 	/// Should be in format of "v0.0.0".
+	/// </summary>
 	readonly common string version;
-	/// the dependencies of the game engine.
+	/// <summary>
+	/// The dependencies of the game engine.
+	/// </summary>
 	readonly common string deps;
-	/// the time in seconds since the last frame update.
+	/// <summary>
+	/// The time in seconds since the last frame update.
+	/// </summary>
 	readonly common double deltaTime;
-	/// the elapsed time since current frame was started, in seconds.
+	/// <summary>
+	/// The elapsed time since current frame was started, in seconds.
+	/// </summary>
 	readonly common double elapsedTime;
-	/// the total time the game engine has been running until last frame ended, in seconds.
+	/// <summary>
+	/// The total time the game engine has been running until last frame ended, in seconds.
 	/// Should be a contant number when invoked in a same frame for multiple times.
+	/// </summary>
 	readonly common double totalTime;
-	/// the total time the game engine has been running until this field being accessed, in seconds.
+	/// <summary>
+	/// The total time the game engine has been running until this field being accessed, in seconds.
 	/// Should be a increasing number when invoked in a same frame for multiple times.
+	/// </summary>
 	readonly common double runningTime;
-	/// a random number generated by a random number engine based on Mersenne Twister algorithm.
+	/// <summary>
+	/// A random number generated by a random number engine based on Mersenne Twister algorithm.
 	/// So that the random number generated by a same seed should be consistent on every platform.
+	/// </summary>
 	readonly common uint64_t rand;
-	/// the maximum valid frames per second the game engine is allowed to run at.
+	/// <summary>
+	/// The maximum valid frames per second the game engine is allowed to run at.
 	/// The max FPS is being inferred by the device screen max refresh rate.
+	/// </summary>
 	readonly common uint32_t maxFPS @ max_fps;
-	/// whether the game engine is running in debug mode.
+	/// <summary>
+	/// Whether the game engine is running in debug mode.
+	/// </summary>
 	readonly boolean bool debugging;
-	/// the system locale string, in format like: `zh-Hans`, `en`.
+	/// <summary>
+	/// The system locale string, in format like: `zh-Hans`, `en`.
+	/// </summary>
 	common string locale;
-	/// the theme color for Dora SSR.
+	/// <summary>
+	/// The theme color for Dora SSR.
+	/// </summary>
 	common Color themeColor;
-	/// the random number seed.
+	/// <summary>
+	/// The random number seed.
+	/// </summary>
 	common uint32_t seed;
-	/// the target frames per second the game engine is supposed to run at.
+	/// <summary>
+	/// The target frames per second the game engine is supposed to run at.
 	/// Only works when `fpsLimited` is set to true.
+	/// </summary>
 	common uint32_t targetFPS @ target_fps;
-	/// the application window size.
+	/// <summary>
+	/// The application window size.
 	/// May differ from visual size due to the different DPIs of display devices.
 	/// It is not available to set this property on platform Android and iOS.
+	/// </summary>
 	common Size winSize;
-	/// the application window position.
+	/// <summary>
+	/// The application window position.
 	/// It is not available to set this property on platform Android and iOS.
+	/// </summary>
 	common Vec2 winPosition;
-	/// whether the game engine is limiting the frames per second.
+	/// <summary>
+	/// Whether the game engine is limiting the frames per second.
 	/// Set `fpsLimited` to true, will make engine run in a busy loop to track the  precise frame time to switch to the next frame. And this behavior can lead to 100% CPU usage. This is usually common practice on Windows PCs for better CPU usage occupation. But it also results in extra heat and power consumption.
+	/// </summary>
 	boolean bool fPSLimited @ fpsLimited;
-	/// whether the game engine is currently idled.
+	/// <summary>
+	/// Whether the game engine is currently idled.
 	/// Set `idled` to true, will make game logic thread use a sleep time and going idled for next frame to come. Due to the imprecision in sleep time. This idled state may cause game engine over slept for a few frames to lost.
 	/// `idled` state can reduce some CPU usage.
+	/// </summary>
 	boolean bool idled;
-	/// whether the game engine is running in full screen mode.
+	/// <summary>
+	/// Whether the game engine is running in full screen mode.
 	/// It is not available to set this property on platform Android and iOS.
+	/// </summary>
 	boolean bool fullScreen;
-	/// whether the game engine window is always on top. Default is true.
+	/// <summary>
+	/// Whether the game engine window is always on top. Default is true.
 	/// It is not available to set this property on platform Android and iOS.
+	/// </summary>
 	boolean bool alwaysOnTop;
+	/// <summary>
 	/// Shuts down the game engine.
 	/// It is not working and acts as a dummy function for platform Android and iOS to follow the specification of how mobile platform applications should operate.
+	/// </summary>
 	void shutdown();
 };
 
+/// <summary>
 /// A struct representing an entity for an ECS game system.
+/// </summary>
 object class Entity
 {
-	/// the number of all running entities.
+	/// <summary>
+	/// The number of all running entities.
+	/// </summary>
 	static readonly common uint32_t count;
-	/// the index of the entity.
+	/// <summary>
+	/// The index of the entity.
+	/// </summary>
 	readonly common int index;
+	/// <summary>
 	/// Clears all entities.
+	/// </summary>
 	static void clear();
+	/// <summary>
 	/// Removes a property of the entity.
-	///
 	/// This function will trigger events for Observer objects.
-	///
-	/// # Arguments
-	///
-	/// * `key` - The name of the property to remove.
+	/// </summary>
+	/// <param name="key">The name of the property to remove.</param>
 	void remove(string key);
+	/// <summary>
 	/// Destroys the entity.
+	/// </summary>
 	void destroy();
+	/// <summary>
 	/// Creates a new entity.
+	/// </summary>
 	static Entity* create();
 };
 
+/// <summary>
 /// A struct representing a group of entities in the ECS game systems.
+/// </summary>
 object class EntityGroup @ Group
 {
-	/// the number of entities in the group.
+	/// <summary>
+	/// The number of entities in the group.
+	/// </summary>
 	readonly common int count;
-	/// the first entity in the group.
+	/// <summary>
+	/// The first entity in the group.
+	/// </summary>
 	optional readonly common Entity* first;
+	/// <summary>
 	/// Finds the first entity in the group that satisfies a predicate function.
-	///
-	/// # Arguments
-	///
-	/// * `predicate` - The predicate function to test each entity with.
-	///
-	/// # Returns
-	///
-	/// * `Option<Entity>` - The first entity that satisfies the predicate, or None if no entity does.
+	/// </summary>
+	/// <param name="predicate">The predicate function to test each entity with.</param>
+	/// <returns>The first entity that satisfies the predicate, or None if no entity does.</returns>
 	optional Entity* find(function<def_false bool(Entity* e)> predicate) const;
+	/// <summary>
 	/// A method that creates a new group with the specified component names.
-	///
-	/// # Arguments
-	///
-	/// * `components` - A vector listing the names of the components to include in the group.
-	///
-	/// # Returns
-	///
-	/// * `Group` - The new group.
+	/// </summary>
+	/// <param name="components">A vector listing the names of the components to include in the group.</param>
+	/// <returns>The new group.</returns>
 	static EntityGroup* create(VecStr components);
 };
 
+/// <summary>
 /// A struct representing an observer of entity changes in the game systems.
+/// </summary>
 object class EntityObserver @ Observer
 {
+	/// <summary>
 	/// A method that creates a new observer with the specified component filter and action to watch for.
-	///
-	/// # Arguments
-	///
-	/// * `event_` - The type of event to watch for.
-	/// * `components` - A vector listing the names of the components to filter entities by.
-	///
-	/// # Returns
-	///
-	/// * `Observer` - The new observer.
+	/// </summary>
+	/// <param name="event_">The type of event to watch for.</param>
+	/// <param name="components">A vector listing the names of the components to filter entities by.</param>
+	/// <returns>The new observer.</returns>
 	static EntityObserver* create(EntityEvent event_, VecStr components);
 };
 
+/// <summary>
 /// Helper struct for file path operations.
+/// </summary>
 singleton struct Path
 {
+	/// <summary>
 	/// Extracts the file extension from a given file path.
-	///
 	/// # Example
-	///
 	/// Input: "/a/b/c.TXT" Output: "txt"
-	///
-	/// # Arguments
-	///
-	/// * `path` - The input file path.
-	///
-	/// # Returns
-	///
-	/// * `String` - The extension of the input file.
+	/// </summary>
+	/// <param name="path">The input file path.</param>
+	/// <returns>The extension of the input file.</returns>
 	static string getExt(string path);
+	/// <summary>
 	/// Extracts the parent path from a given file path.
-	///
 	/// # Example
-	///
 	/// Input: "/a/b/c.TXT" Output: "/a/b"
-	///
-	/// # Arguments
-	///
-	/// * `path` - The input file path.
-	///
-	/// # Returns
-	///
-	/// * `String` - The parent path of the input file.
+	/// </summary>
+	/// <param name="path">The input file path.</param>
+	/// <returns>The parent path of the input file.</returns>
 	static string getPath(string path);
+	/// <summary>
 	/// Extracts the file name without extension from a given file path.
-	///
 	/// # Example
-	///
 	/// Input: "/a/b/c.TXT" Output: "c"
-	///
-	/// # Arguments
-	///
-	/// * `path` - The input file path.
-	///
-	/// # Returns
-	///
-	/// * `String` - The name of the input file without extension.
+	/// </summary>
+	/// <param name="path">The input file path.</param>
+	/// <returns>The name of the input file without extension.</returns>
 	static string getName(string path);
+	/// <summary>
 	/// Extracts the file name from a given file path.
-	///
 	/// # Example
-	///
 	/// Input: "/a/b/c.TXT" Output: "c.TXT"
-	///
-	/// # Arguments
-	///
-	/// * `path` - The input file path.
-	///
-	/// # Returns
-	///
-	/// * `String` - The name of the input file.
+	/// </summary>
+	/// <param name="path">The input file path.</param>
+	/// <returns>The name of the input file.</returns>
 	static string getFilename(string path);
+	/// <summary>
 	/// Computes the relative path from the target file to the input file.
-	///
 	/// # Example
-	///
-	/// Input: "/a/b/c.TXT", base: "/a" Output: "b/c.TXT"
-	///
-	/// # Arguments
-	///
-	/// * `path` - The input file path.
-	/// * `base` - The target file path.
-	///
-	/// # Returns
-	///
-	/// * `String` - The relative path from the input file to the target file.
+	/// Input: "/a/b/c.TXT", target: "/a" Output: "b/c.TXT"
+	/// </summary>
+	/// <param name="path">The input file path.</param>
+	/// <param name="target">The target file path.</param>
+	/// <returns>The relative path from the input file to the target file.</returns>
 	static string getRelative(string path, string target);
+	/// <summary>
 	/// Changes the file extension in a given file path.
-	///
 	/// # Example
-	///
 	/// Input: "/a/b/c.TXT", "lua" Output: "/a/b/c.lua"
-	///
-	/// # Arguments
-	///
-	/// * `path` - The input file path.
-	/// * `new_ext` - The new file extension to replace the old one.
-	///
-	/// # Returns
-	///
-	/// * `String` - The new file path.
+	/// </summary>
+	/// <param name="path">The input file path.</param>
+	/// <param name="newExt">The new file extension to replace the old one.</param>
+	/// <returns>The new file path.</returns>
 	static string replaceExt(string path, string newExt);
+	/// <summary>
 	/// Changes the filename in a given file path.
-	///
 	/// # Example
-	///
 	/// Input: "/a/b/c.TXT", "d" Output: "/a/b/d.TXT"
-	///
-	/// # Arguments
-	///
-	/// * `path` - The input file path.
-	/// * `new_file` - The new filename to replace the old one.
-	///
-	/// # Returns
-	///
-	/// * `String` - The new file path.
+	/// </summary>
+	/// <param name="path">The input file path.</param>
+	/// <param name="newFile">The new filename to replace the old one.</param>
+	/// <returns>The new file path.</returns>
 	static string replaceFilename(string path, string newFile);
+	/// <summary>
 	/// Joins the given segments into a new file path.
-	///
 	/// # Example
-	///
 	/// Input: "a", "b", "c.TXT" Output: "a/b/c.TXT"
-	///
-	/// # Arguments
-	///
-	/// * `segments` - The segments to be joined as a new file path.
-	///
-	/// # Returns
-	///
-	/// * `String` - The new file path.
+	/// </summary>
+	/// <param name="segments">The segments to be joined as a new file path.</param>
+	/// <returns>The new file path.</returns>
 	static string concatVector @ concat(VecStr paths);
 };
 
@@ -424,1510 +464,1488 @@ value struct WorkBook
 	WorkSheet getSheet(string name);
 };
 
+/// <summary>
 /// The `Content` is a static struct that manages file searching,
+/// </summary>
+/// <summary>
 /// loading and other operations related to resources.
+/// </summary>
 singleton class Content
 {
-	/// an array of directories to search for resource files.
+	/// <summary>
+	/// An array of directories to search for resource files.
+	/// </summary>
 	common VecStr searchPaths;
-	/// the path to the directory containing read-only resources. Can only be altered by the user on platform Windows, MacOS and Linux.
+	/// <summary>
+	/// The path to the directory containing read-only resources. Can only be altered by the user on platform Windows, MacOS and Linux.
+	/// </summary>
 	common string assetPath;
-	/// the path to the directory where files can be written. Can only be altered by the user on platform Windows, MacOS and Linux. Default is the same as `appPath`.
+	/// <summary>
+	/// The path to the directory where files can be written. Can only be altered by the user on platform Windows, MacOS and Linux. Default is the same as `appPath`.
+	/// </summary>
 	common string writablePath;
-	/// the path to the directory for the application storage.
+	/// <summary>
+	/// The path to the directory for the application storage.
+	/// </summary>
 	readonly common string appPath;
+	/// <summary>
 	/// Saves the specified content to a file with the specified filename.
-	///
-	/// # Arguments
-	///
-	/// * `filename` - The name of the file to save.
-	/// * `content` - The content to save to the file.
-	///
-	/// # Returns
-	///
-	/// * `bool` - `true` if the content saves to file successfully, `false` otherwise.
+	/// </summary>
+	/// <param name="filename">The name of the file to save.</param>
+	/// <param name="content">The content to save to the file.</param>
+	/// <returns>`true` if the content saves to file successfully, `false` otherwise.</returns>
 	bool save(string filename, string content);
+	/// <summary>
 	/// Checks if a file with the specified filename exists.
-	///
-	/// # Arguments
-	///
-	/// * `filename` - The name of the file to check.
-	///
-	/// # Returns
-	///
-	/// * `bool` - `true` if the file exists, `false` otherwise.
+	/// </summary>
+	/// <param name="filename">The name of the file to check.</param>
+	/// <returns>`true` if the file exists, `false` otherwise.</returns>
 	bool exist(string filename);
+	/// <summary>
 	/// Creates a new directory with the specified path.
-	///
-	/// # Arguments
-	///
-	/// * `path` - The path of the directory to create.
-	///
-	/// # Returns
-	///
-	/// * `bool` - `true` if the directory was created, `false` otherwise.
+	/// </summary>
+	/// <param name="path">The path of the directory to create.</param>
+	/// <returns>`true` if the directory was created, `false` otherwise.</returns>
 	bool createFolder @ mkdir(string path);
+	/// <summary>
 	/// Checks if the specified path is a directory.
-	///
-	/// # Arguments
-	///
-	/// * `path` - The path to check.
-	///
-	/// # Returns
-	///
-	/// * `bool` - `true` if the path is a directory, `false` otherwise.
+	/// </summary>
+	/// <param name="path">The path to check.</param>
+	/// <returns>`true` if the path is a directory, `false` otherwise.</returns>
 	bool isFolder @ isdir(string path);
+	/// <summary>
 	/// Checks if the specified path is an absolute path.
-	///
-	/// # Arguments
-	///
-	/// * `path` - The path to check.
-	///
-	/// # Returns
-	///
-	/// * `bool` - `true` if the path is an absolute path, `false` otherwise.
+	/// </summary>
+	/// <param name="path">The path to check.</param>
+	/// <returns>`true` if the path is an absolute path, `false` otherwise.</returns>
 	bool isAbsolutePath(string path);
+	/// <summary>
 	/// Copies the file or directory at the specified source path to the target path.
-	///
-	/// # Arguments
-	///
-	/// * `src_path` - The path of the file or directory to copy.
-	/// * `dst_path` - The path to copy the file or directory to.
-	///
-	/// # Returns
-	///
-	/// * `bool` - `true` if the file or directory was successfully copied to the target path, `false` otherwise.
+	/// </summary>
+	/// <param name="src">The path of the file or directory to copy.</param>
+	/// <param name="dst">The path to copy the file or directory to.</param>
+	/// <returns>`true` if the file or directory was successfully copied to the target path, `false` otherwise.</returns>
 	bool copy(string src, string dst);
+	/// <summary>
 	/// Moves the file or directory at the specified source path to the target path.
-	///
-	/// # Arguments
-	///
-	/// * `src_path` - The path of the file or directory to move.
-	/// * `dst_path` - The path to move the file or directory to.
-	///
-	/// # Returns
-	///
-	/// * `bool` - `true` if the file or directory was successfully moved to the target path, `false` otherwise.
+	/// </summary>
+	/// <param name="src">The path of the file or directory to move.</param>
+	/// <param name="dst">The path to move the file or directory to.</param>
+	/// <returns>`true` if the file or directory was successfully moved to the target path, `false` otherwise.</returns>
 	bool move @ moveTo(string src, string dst);
+	/// <summary>
 	/// Removes the file or directory at the specified path.
-	///
-	/// # Arguments
-	///
-	/// * `path` - The path of the file or directory to remove.
-	///
-	/// # Returns
-	///
-	/// * `bool` - `true` if the file or directory was successfully removed, `false` otherwise.
+	/// </summary>
+	/// <param name="path">The path of the file or directory to remove.</param>
+	/// <returns>`true` if the file or directory was successfully removed, `false` otherwise.</returns>
 	bool remove(string path);
+	/// <summary>
 	/// Gets the full path of a file with the specified filename.
-	///
-	/// # Arguments
-	///
-	/// * `filename` - The name of the file to get the full path of.
-	///
-	/// # Returns
-	///
-	/// * `String` - The full path of the file.
+	/// </summary>
+	/// <param name="filename">The name of the file to get the full path of.</param>
+	/// <returns>The full path of the file.</returns>
 	string getFullPath(string filename);
+	/// <summary>
 	/// Adds a new search path to the end of the list.
-	///
-	/// # Arguments
-	///
-	/// * `path` - The search path to add.
+	/// </summary>
+	/// <param name="path">The search path to add.</param>
 	void addSearchPath(string path);
+	/// <summary>
 	/// Inserts a search path at the specified index.
-	///
-	/// # Arguments
-	///
-	/// * `index` - The index at which to insert the search path.
-	/// * `path` - The search path to insert.
+	/// </summary>
+	/// <param name="index">The index at which to insert the search path.</param>
+	/// <param name="path">The search path to insert.</param>
 	void insertSearchPath(int index, string path);
+	/// <summary>
 	/// Removes the specified search path from the list.
-	///
-	/// # Arguments
-	///
-	/// * `path` - The search path to remove.
+	/// </summary>
+	/// <param name="path">The search path to remove.</param>
 	void removeSearchPath(string path);
+	/// <summary>
 	/// Clears the search path cache of the map of relative paths to full paths.
+	/// </summary>
 	void clearPathCache();
+	/// <summary>
 	/// Gets the names of all subdirectories in the specified directory.
-	///
-	/// # Arguments
-	///
-	/// * `path` - The path of the directory to search.
-	///
-	/// # Returns
-	///
-	/// * `Vec<String>` - An array of the names of all subdirectories in the specified directory.
+	/// </summary>
+	/// <param name="path">The path of the directory to search.</param>
+	/// <returns>An array of the names of all subdirectories in the specified directory.</returns>
 	VecStr getDirs(string path);
+	/// <summary>
 	/// Gets the names of all files in the specified directory.
-	///
-	/// # Arguments
-	///
-	/// * `path` - The path of the directory to search.
-	///
-	/// # Returns
-	///
-	/// * `Vec<String>` - An array of the names of all files in the specified directory.
+	/// </summary>
+	/// <param name="path">The path of the directory to search.</param>
+	/// <returns>An array of the names of all files in the specified directory.</returns>
 	VecStr getFiles(string path);
+	/// <summary>
 	/// Gets the names of all files in the specified directory and its subdirectories.
-	///
-	/// # Arguments
-	///
-	/// * `path` - The path of the directory to search.
-	///
-	/// # Returns
-	///
-	/// * `Vec<String>` - An array of the names of all files in the specified directory and its subdirectories.
+	/// </summary>
+	/// <param name="path">The path of the directory to search.</param>
+	/// <returns>An array of the names of all files in the specified directory and its subdirectories.</returns>
 	VecStr getAllFiles(string path);
+	/// <summary>
 	/// Asynchronously loads the content of the file with the specified filename.
-	///
-	/// # Arguments
-	///
-	/// * `filename` - The name of the file to load.
-	/// * `callback` - The function to call with the content of the file once it is loaded.
-	///
-	/// # Returns
-	///
-	/// * `String` - The content of the loaded file.
+	/// </summary>
+	/// <param name="filename">The name of the file to load.</param>
+	/// <param name="callback">The function to call with the content of the file once it is loaded.</param>
+	/// <returns>The content of the loaded file.</returns>
 	void loadAsync(string filename, function<void(string content)> callback);
+	/// <summary>
 	/// Asynchronously copies a file or a folder from the source path to the destination path.
-	///
-	/// # Arguments
-	///
-	/// * `srcFile` - The path of the file or folder to copy.
-	/// * `targetFile` - The destination path of the copied files.
-	/// * `callback` - The function to call with a boolean indicating whether the file or folder was copied successfully.
-	///
-	/// # Returns
-	///
-	/// * `bool` - `true` if the file or folder was copied successfully, `false` otherwise.
+	/// </summary>
+	/// <param name="srcFile">The path of the file or folder to copy.</param>
+	/// <param name="targetFile">The destination path of the copied files.</param>
+	/// <param name="callback">The function to call with a boolean indicating whether the file or folder was copied successfully.</param>
+	/// <returns>`true` if the file or folder was copied successfully, `false` otherwise.</returns>
 	void copyAsync(string srcFile, string targetFile, function<void(bool success)> callback);
+	/// <summary>
 	/// Asynchronously saves the specified content to a file with the specified filename.
-	///
-	/// # Arguments
-	///
-	/// * `filename` - The name of the file to save.
-	/// * `content` - The content to save to the file.
-	/// * `callback` - The function to call with a boolean indicating whether the content was saved successfully.
-	///
-	/// # Returns
-	///
-	/// * `bool` - `true` if the content was saved successfully, `false` otherwise.
+	/// </summary>
+	/// <param name="filename">The name of the file to save.</param>
+	/// <param name="content">The content to save to the file.</param>
+	/// <param name="callback">The function to call with a boolean indicating whether the content was saved successfully.</param>
+	/// <returns>`true` if the content was saved successfully, `false` otherwise.</returns>
 	void saveAsync(string filename, string content, function<void(bool success)> callback);
+	/// <summary>
 	/// Asynchronously compresses the specified folder to a ZIP archive with the specified filename.
-	///
-	/// # Arguments
-	///
-	/// * `folder_path` - The path of the folder to compress, should be under the asset writable path.
-	/// * `zip_file` - The name of the ZIP archive to create.
-	/// * `filter` - An optional function to filter the files to include in the archive. The function takes a filename as input and returns a boolean indicating whether to include the file. If not provided, all files will be included.
-	/// * `callback` - The function to call with a boolean indicating whether the folder was compressed successfully.
-	///
-	/// # Returns
-	///
-	/// * `bool` - `true` if the folder was compressed successfully, `false` otherwise.
+	/// </summary>
+	/// <param name="folderPath">The path of the folder to compress, should be under the asset writable path.</param>
+	/// <param name="zipFile">The name of the ZIP archive to create.</param>
+	/// <param name="filter">An optional function to filter the files to include in the archive. The function takes a filename as input and returns a boolean indicating whether to include the file. If not provided, all files will be included.</param>
+	/// <param name="callback">The function to call with a boolean indicating whether the folder was compressed successfully.</param>
+	/// <returns>`true` if the folder was compressed successfully, `false` otherwise.</returns>
 	void zipAsync(string folderPath, string zipFile, function<def_false bool(string file)> filter, function<void(bool success)> callback);
+	/// <summary>
 	/// Asynchronously decompresses a ZIP archive to the specified folder.
-	///
-	/// # Arguments
-	///
-	/// * `zip_file` - The name of the ZIP archive to decompress, should be a file under the asset writable path.
-	/// * `folder_path` - The path of the folder to decompress to, should be under the asset writable path.
-	/// * `filter` - An optional function to filter the files to include in the archive. The function takes a filename as input and returns a boolean indicating whether to include the file. If not provided, all files will be included.
-	/// * `callback` - The function to call with a boolean indicating whether the archive was decompressed successfully.
-	///
-	/// # Returns
-	///
-	/// * `bool` - `true` if the folder was decompressed successfully, `false` otherwise.
+	/// </summary>
+	/// <param name="zipFile">The name of the ZIP archive to decompress, should be a file under the asset writable path.</param>
+	/// <param name="folderPath">The path of the folder to decompress to, should be under the asset writable path.</param>
+	/// <param name="filter">An optional function to filter the files to include in the archive. The function takes a filename as input and returns a boolean indicating whether to include the file. If not provided, all files will be included.</param>
+	/// <param name="callback">The function to call with a boolean indicating whether the archive was decompressed successfully.</param>
+	/// <returns>`true` if the folder was decompressed successfully, `false` otherwise.</returns>
 	void unzipAsync(string zipFile, string folderPath, function<def_false bool(string file)> filter, function<void(bool success)> callback);
 
 	outside WorkBook content_wasm_load_excel @ load_excel(string filename);
 };
 
+/// <summary>
 /// A scheduler that manages the execution of scheduled tasks.
+/// </summary>
 object class Scheduler
 {
-	/// the time scale factor for the scheduler.
+	/// <summary>
+	/// The time scale factor for the scheduler.
 	/// This factor is applied to deltaTime that the scheduled functions will receive.
+	/// </summary>
 	common float timeScale;
-	/// the target frame rate (in frames per second) for a fixed update mode.
+	/// <summary>
+	/// The target frame rate (in frames per second) for a fixed update mode.
 	/// The fixed update will ensure a constant frame rate, and the operation handled in a fixed update can use a constant delta time value.
 	/// It is used for preventing weird behavior of a physics engine or synchronizing some states via network communications.
+	/// </summary>
 	common int fixedFPS @ fixed_fps;
+	/// <summary>
 	/// Used for manually updating the scheduler if it is created by the user.
-	///
-	/// # Arguments
-	///
-	/// * `deltaTime` - The time in seconds since the last frame update.
-	///
-	/// # Returns
-	///
-	/// * `bool` - `true` if the scheduler was stoped, `false` otherwise.
+	/// </summary>
+	/// <param name="deltaTime">The time in seconds since the last frame update.</param>
+	/// <returns>`true` if the scheduler was stoped, `false` otherwise.</returns>
 	bool update(double deltaTime);
+	/// <summary>
 	/// Creates a new Scheduler object.
+	/// </summary>
 	static Scheduler* create();
 };
 
+/// <summary>
 /// A struct for Camera object in the game engine.
+/// </summary>
 object class Camera
 {
-	/// the name of the Camera.
+	/// <summary>
+	/// The name of the Camera.
+	/// </summary>
 	readonly common string name;
 };
 
+/// <summary>
 /// A struct for 2D camera object in the game engine.
+/// </summary>
 object class Camera2D : public Camera
 {
-	/// the rotation angle of the camera in degrees.
+	/// <summary>
+	/// The rotation angle of the camera in degrees.
+	/// </summary>
 	common float rotation;
-	/// the factor by which to zoom the camera. If set to 1.0, the view is normal sized. If set to 2.0, items will appear double in size.
+	/// <summary>
+	/// The factor by which to zoom the camera. If set to 1.0, the view is normal sized. If set to 2.0, items will appear double in size.
+	/// </summary>
 	common float zoom;
-	/// the position of the camera in the game world.
+	/// <summary>
+	/// The position of the camera in the game world.
+	/// </summary>
 	common Vec2 position;
+	/// <summary>
 	/// Creates a new Camera2D object with the given name.
-	///
-	/// # Arguments
-	///
-	/// * `name` - The name of the Camera2D object.
-	///
-	/// # Returns
-	///
-	/// * `Camera2D` - A new instance of the Camera2D object.
+	/// </summary>
+	/// <param name="name">The name of the Camera2D object.</param>
+	/// <returns>A new instance of the Camera2D object.</returns>
 	static Camera2D* create(string name);
 };
 
+/// <summary>
 /// A struct for an orthographic camera object in the game engine.
+/// </summary>
 object class CameraOtho : public Camera
 {
-	/// the position of the camera in the game world.
+	/// <summary>
+	/// The position of the camera in the game world.
+	/// </summary>
 	common Vec2 position;
+	/// <summary>
 	/// Creates a new CameraOtho object with the given name.
-	///
-	/// # Arguments
-	///
-	/// * `name` - The name of the CameraOtho object.
-	///
-	/// # Returns
-	///
-	/// * `CameraOtho` - A new instance of the CameraOtho object.
+	/// </summary>
+	/// <param name="name">The name of the CameraOtho object.</param>
+	/// <returns>A new instance of the CameraOtho object.</returns>
 	static CameraOtho* create(string name);
 };
 
+/// <summary>
 /// A struct representing a shader pass.
+/// </summary>
 object class Pass
 {
-	/// whether this Pass should be a grab pass.
+	/// <summary>
+	/// Whether this Pass should be a grab pass.
 	/// A grab pass will render a portion of game scene into a texture frame buffer.
 	/// Then use this texture frame buffer as an input for next render pass.
+	/// </summary>
 	boolean bool grabPass;
+	/// <summary>
 	/// Sets the value of shader parameters.
-	///
-	/// # Arguments
-	///
-	/// * `name` - The name of the parameter to set.
-	/// * `val` - The numeric value to set.
+	/// </summary>
+	/// <param name="name">The name of the parameter to set.</param>
+	/// <param name="val">The numeric value to set.</param>
 	void set @ set(string name, float val);
+	/// <summary>
 	/// Sets the values of shader parameters.
-	///
-	/// # Arguments
-	///
-	/// * `name` - The name of the parameter to set.
-	/// * `val1` - The first numeric value to set.
-	/// * `val2` - An optional second numeric value to set.
-	/// * `val3` - An optional third numeric value to set.
-	/// * `val4` - An optional fourth numeric value to set.
+	/// </summary>
+	/// <param name="name">The name of the parameter to set.</param>
+	/// <param name="val1">The first numeric value to set.</param>
+	/// <param name="val2">An optional second numeric value to set.</param>
+	/// <param name="val3">An optional third numeric value to set.</param>
+	/// <param name="val4">An optional fourth numeric value to set.</param>
 	void set @ setVec4(string name, float val1, float val2, float val3, float val4);
+	/// <summary>
 	/// Another function that sets the values of shader parameters.
-	///
 	/// Works the same as:
 	/// pass.set("varName", color.r / 255.0, color.g / 255.0, color.b / 255.0, color.opacity);
-	///
-	/// # Arguments
-	///
-	/// * `name` - The name of the parameter to set.
-	/// * `val` - The Color object to set.
+	/// </summary>
+	/// <param name="name">The name of the parameter to set.</param>
+	/// <param name="val">The Color object to set.</param>
 	void set @ setColor(string name, Color val);
+	/// <summary>
 	/// Creates a new Pass object.
-	///
-	/// # Arguments
-	///
-	/// * `vert_shader` - The vertex shader in binary form file string.
-	/// * `frag_shader` - The fragment shader file string. A shader file string must be one of the formats:
-	///     * "builtin:" + theBuiltinShaderName
-	///     * "Shader/compiled_shader_file.bin"
-	///
-	/// # Returns
-	///
-	/// * `Pass` - A new Pass object.
+	/// </summary>
+	/// <param name="vertShader">The vertex shader in binary form file string.</param>
+	/// <param name="fragShader">The fragment shader file string. A shader file string must be one of the formats:</param>
+	/// <returns>A new Pass object.</returns>
 	static Pass* create(string vertShader, string fragShader);
 };
 
+/// <summary>
 /// A struct for managing multiple render pass objects.
+/// </summary>
+/// <summary>
 /// Effect objects allow you to combine multiple passes to create more complex shader effects.
+/// </summary>
 object class Effect
 {
+	/// <summary>
 	/// Adds a Pass object to this Effect.
-	///
-	/// # Arguments
-	///
-	/// * `pass` - The Pass object to add.
+	/// </summary>
+	/// <param name="pass">The Pass object to add.</param>
 	void add(Pass* pass);
+	/// <summary>
 	/// Retrieves a Pass object from this Effect by index.
-	///
-	/// # Arguments
-	///
-	/// * `index` - The index of the Pass object to retrieve.
-	///
-	/// # Returns
-	///
-	/// * `Pass` - The Pass object at the given index.
+	/// </summary>
+	/// <param name="index">The index of the Pass object to retrieve.</param>
+	/// <returns>The Pass object at the given index.</returns>
 	outside optional Pass* Effect_GetPass @ get(size_t index) const;
+	/// <summary>
 	/// Removes all Pass objects from this Effect.
+	/// </summary>
 	void clear();
+	/// <summary>
 	/// A method that allows you to create a new Effect object.
-	///
-	/// # Arguments
-	///
-	/// * `vert_shader` - The vertex shader file string.
-	/// * `frag_shader` - The fragment shader file string. A shader file string must be one of the formats:
-	///     * "builtin:" + theBuiltinShaderName
-	///     * "Shader/compiled_shader_file.bin"
-	///
-	/// # Returns
-	///
-	/// * `Effect` - A new Effect object.
+	/// </summary>
+	/// <param name="vertShader">The vertex shader file string.</param>
+	/// <param name="fragShader">The fragment shader file string. A shader file string must be one of the formats:</param>
+	/// <returns>A new Effect object.</returns>
 	static Effect* create(string vertShader, string fragShader);
 };
 
+/// <summary>
 /// A struct that is a specialization of Effect for rendering 2D sprites.
+/// </summary>
 object class SpriteEffect : public Effect
 {
+	/// <summary>
 	/// A method that allows you to create a new SpriteEffect object.
-	///
-	/// # Arguments
-	///
-	/// * `vert_shader` - The vertex shader file string.
-	/// * `frag_shader` - The fragment shader file string. A shader file string must be one of the formats:
-	///     * "builtin:" + theBuiltinShaderName
-	///     * "Shader/compiled_shader_file.bin"
-	///
-	/// # Returns
-	///
-	/// * `SpriteEffect` - A new SpriteEffect object.
+	/// </summary>
+	/// <param name="vertShader">The vertex shader file string.</param>
+	/// <param name="fragShader">The fragment shader file string. A shader file string must be one of the formats:</param>
+	/// <returns>A new SpriteEffect object.</returns>
 	static SpriteEffect* create(string vertShader, string fragShader);
 };
 
+/// <summary>
 /// A struct manages the game scene trees and provides access to root scene nodes for different game uses.
+/// </summary>
 singleton class Director
 {
-	/// the background color for the game world.
+	/// <summary>
+	/// The background color for the game world.
+	/// </summary>
 	common Color clearColor;
-	/// the root node for 2D user interface elements like buttons and labels.
+	/// <summary>
+	/// The root node for 2D user interface elements like buttons and labels.
+	/// </summary>
 	readonly common Node* uI @ ui;
-	/// the root node for 3D user interface elements with 3D projection effect.
+	/// <summary>
+	/// The root node for 3D user interface elements with 3D projection effect.
+	/// </summary>
 	readonly common Node* uI3D @ ui_3d;
-	/// the root node for the starting point of a game.
+	/// <summary>
+	/// The root node for the starting point of a game.
+	/// </summary>
 	readonly common Node* entry;
-	/// the root node for post-rendering scene tree.
+	/// <summary>
+	/// The root node for post-rendering scene tree.
+	/// </summary>
 	readonly common Node* postNode;
-	/// the current active camera in Director's camera stack.
+	/// <summary>
+	/// The current active camera in Director's camera stack.
+	/// </summary>
 	readonly common Camera* currentCamera;
-	/// whether or not to enable frustum culling.
+	/// <summary>
+	/// Whether or not to enable frustum culling.
+	/// </summary>
 	boolean bool frustumCulling;
+	/// <summary>
 	/// Schedule a function to be called every frame.
-	///
-	/// # Arguments
-	///
-	/// * `updateFunc` - The function to call every frame.
+	/// </summary>
+	/// <param name="updateFunc">The function to call every frame.</param>
 	outside void Director_Schedule @ schedule(function<def_true bool(double deltaTime)> updateFunc);
+	/// <summary>
 	/// Schedule a function to be called every frame for processing post game logic.
-	///
-	/// # Arguments
-	///
-	/// * `func` - The function to call every frame.
+	/// </summary>
+	/// <param name="updateFunc">The function to call every frame.</param>
 	outside void Director_SchedulePosted @ schedulePosted(function<def_true bool(double deltaTime)> updateFunc);
+	/// <summary>
 	/// Adds a new camera to Director's camera stack and sets it to the current camera.
-	///
-	/// # Arguments
-	///
-	/// * `camera` - The camera to add.
+	/// </summary>
+	/// <param name="camera">The camera to add.</param>
 	void pushCamera(Camera* camera);
+	/// <summary>
 	/// Removes the current camera from Director's camera stack.
+	/// </summary>
 	void popCamera();
+	/// <summary>
 	/// Removes a specified camera from Director's camera stack.
-	///
-	/// # Arguments
-	///
-	/// * `camera` - The camera to remove.
-	///
-	/// # Returns
-	///
-	/// * `bool` - `true` if the camera was removed, `false` otherwise.
+	/// </summary>
+	/// <param name="camera">The camera to remove.</param>
+	/// <returns>`true` if the camera was removed, `false` otherwise.</returns>
 	bool removeCamera(Camera* camera);
+	/// <summary>
 	/// Removes all cameras from Director's camera stack.
+	/// </summary>
 	void clearCamera();
+	/// <summary>
 	/// Cleans up all resources managed by the Director, including scene trees and cameras.
+	/// </summary>
 	outside void Director_Cleanup @ cleanup();
 };
 
+/// <summary>
 /// A struct that provides access to the 3D graphic view.
+/// </summary>
 singleton class View
 {
-	/// the size of the view in pixels.
+	/// <summary>
+	/// The size of the view in pixels.
+	/// </summary>
 	readonly common Size size;
-	/// the standard distance of the view from the origin.
+	/// <summary>
+	/// The standard distance of the view from the origin.
+	/// </summary>
 	readonly common float standardDistance;
-	/// the aspect ratio of the view.
+	/// <summary>
+	/// The aspect ratio of the view.
+	/// </summary>
 	readonly common float aspectRatio;
-	/// the distance to the near clipping plane.
+	/// <summary>
+	/// The distance to the near clipping plane.
+	/// </summary>
 	common float nearPlaneDistance;
-	/// the distance to the far clipping plane.
+	/// <summary>
+	/// The distance to the far clipping plane.
+	/// </summary>
 	common float farPlaneDistance;
-	/// the field of view of the view in degrees.
+	/// <summary>
+	/// The field of view of the view in degrees.
+	/// </summary>
 	common float fieldOfView;
-	/// the scale factor of the view.
+	/// <summary>
+	/// The scale factor of the view.
+	/// </summary>
 	common float scale;
-	/// the post effect applied to the view.
+	/// <summary>
+	/// The post effect applied to the view.
+	/// </summary>
 	optional common SpriteEffect* postEffect;
-	/// whether or not vertical sync is enabled.
+	/// <summary>
+	/// Whether or not vertical sync is enabled.
+	/// </summary>
 	boolean bool vSync @ vsync;
 };
 
 value class ActionDef {
+	/// <summary>
 	/// Creates a new action definition object to change a property of a node.
-	///
-	/// # Arguments
-	///
-	/// * `duration` - The duration of the action.
-	/// * `start` - The starting value of the property.
-	/// * `stop` - The ending value of the property.
-	/// * `prop` - The property to change.
-	/// * `easing` - The easing function to use.
-	///
-	/// # Returns
-	///
-	/// * `ActionDef` - A new ActionDef object.
+	/// </summary>
+	/// <param name="duration">The duration of the action.</param>
+	/// <param name="start">The starting value of the property.</param>
+	/// <param name="stop">The ending value of the property.</param>
+	/// <param name="prop">The property to change.</param>
+	/// <param name="easing">The easing function to use.</param>
+	/// <returns>A new ActionDef object.</returns>
 	static outside ActionDef ActionDef_Prop @ prop(float duration, float start, float stop, Property prop, EaseType easing);
+	/// <summary>
 	/// Creates a new action definition object to change the color of a node.
-	///
-	/// # Arguments
-	///
-	/// * `duration` - The duration of the action.
-	/// * `start` - The starting color.
-	/// * `stop` - The ending color.
-	/// * `easing` - The easing function to use.
-	///
-	/// # Returns
-	///
-	/// * `ActionDef` - A new ActionDef object.
+	/// </summary>
+	/// <param name="duration">The duration of the action.</param>
+	/// <param name="start">The starting color.</param>
+	/// <param name="stop">The ending color.</param>
+	/// <param name="easing">The easing function to use.</param>
+	/// <returns>A new ActionDef object.</returns>
 	static outside ActionDef ActionDef_Tint @ tint(float duration, Color3 start, Color3 stop, EaseType easing);
+	/// <summary>
 	/// Creates a new action definition object to rotate a node by smallest angle.
-	///
-	/// # Arguments
-	///
-	/// * `duration` - The duration of the action.
-	/// * `start` - The starting angle.
-	/// * `stop` - The ending angle.
-	/// * `easing` - The easing function to use.
-	///
-	/// # Returns
-	///
-	/// * `ActionDef` - A new ActionDef object.
+	/// </summary>
+	/// <param name="duration">The duration of the action.</param>
+	/// <param name="start">The starting angle.</param>
+	/// <param name="stop">The ending angle.</param>
+	/// <param name="easing">The easing function to use.</param>
+	/// <returns>A new ActionDef object.</returns>
 	static outside ActionDef ActionDef_Roll @ roll(float duration, float start, float stop, EaseType easing);
+	/// <summary>
 	/// Creates a new action definition object to run a group of actions in parallel.
-	///
-	/// # Arguments
-	///
-	/// * `defs` - The actions to run in parallel.
-	///
-	/// # Returns
-	///
-	/// * `ActionDef` - A new ActionDef object.
+	/// </summary>
+	/// <param name="defs">The actions to run in parallel.</param>
+	/// <returns>A new ActionDef object.</returns>
 	static outside ActionDef ActionDef_Spawn @ spawn(VecActionDef defs);
+	/// <summary>
 	/// Creates a new action definition object to run a group of actions in sequence.
-	///
-	/// # Arguments
-	///
-	/// * `defs` - The actions to run in sequence.
-	///
-	/// # Returns
-	///
-	/// * `ActionDef` - A new ActionDef object.
+	/// </summary>
+	/// <param name="defs">The actions to run in sequence.</param>
+	/// <returns>A new ActionDef object.</returns>
 	static outside ActionDef ActionDef_Sequence @ sequence(VecActionDef defs);
+	/// <summary>
 	/// Creates a new action definition object to delay the execution of following action.
-	///
-	/// # Arguments
-	///
-	/// * `duration` - The duration of the delay.
-	///
-	/// # Returns
-	///
-	/// * `ActionDef` - A new ActionDef object.
+	/// </summary>
+	/// <param name="duration">The duration of the delay.</param>
+	/// <returns>A new ActionDef object.</returns>
 	static outside ActionDef ActionDef_Delay @ delay(float duration);
+	/// <summary>
 	/// Creates a new action definition object to show a node.
+	/// </summary>
 	static outside ActionDef ActionDef_Show @ show();
+	/// <summary>
 	/// Creates a new action definition object to hide a node.
+	/// </summary>
 	static outside ActionDef ActionDef_Hide @ hide();
+	/// <summary>
 	/// Creates a new action definition object to emit an event.
-	///
-	/// # Arguments
-	///
-	/// * `eventName` - The name of the event to emit.
-	/// * `msg` - The message to send with the event.
-	///
-	/// # Returns
-	///
-	/// * `ActionDef` - A new ActionDef object.
+	/// </summary>
+	/// <param name="eventName">The name of the event to emit.</param>
+	/// <param name="msg">The message to send with the event.</param>
+	/// <returns>A new ActionDef object.</returns>
 	static outside ActionDef ActionDef_Emit @ event(string eventName, string msg);
+	/// <summary>
 	/// Creates a new action definition object to move a node.
-	///
-	/// # Arguments
-	///
-	/// * `duration` - The duration of the action.
-	/// * `start` - The starting position.
-	/// * `stop` - The ending position.
-	/// * `easing` - The easing function to use.
-	///
-	/// # Returns
-	///
-	/// * `ActionDef` - A new ActionDef object.
+	/// </summary>
+	/// <param name="duration">The duration of the action.</param>
+	/// <param name="start">The starting position.</param>
+	/// <param name="stop">The ending position.</param>
+	/// <param name="easing">The easing function to use.</param>
+	/// <returns>A new ActionDef object.</returns>
 	static outside ActionDef ActionDef_Move @ move_to(float duration, Vec2 start, Vec2 stop, EaseType easing);
+	/// <summary>
 	/// Creates a new action definition object to scale a node.
-	///
-	/// # Arguments
-	///
-	/// * `duration` - The duration of the action.
-	/// * `start` - The starting scale.
-	/// * `stop` - The ending scale.
-	/// * `easing` - The easing function to use.
-	///
-	/// # Returns
-	///
-	/// * `ActionDef` - A new ActionDef object.
+	/// </summary>
+	/// <param name="duration">The duration of the action.</param>
+	/// <param name="start">The starting scale.</param>
+	/// <param name="stop">The ending scale.</param>
+	/// <param name="easing">The easing function to use.</param>
+	/// <returns>A new ActionDef object.</returns>
 	static outside ActionDef ActionDef_Scale @ scale(float duration, float start, float stop, EaseType easing);
+	/// <summary>
 	/// Creates a new action definition object to do a frame animation. Can only be performed on a Sprite node.
-	///
-	/// # Arguments
-	///
-	/// * `clipStr` - The name of the image clip, which is a sprite sheet. Can be "Image/file.png" and "Image/items.clip|itemA". Supports image file format: jpg, png, dds, pvr, ktx.
-	/// * `duration` - The duration of the action.
-	///
-	/// # Returns
-	///
-	/// * `ActionDef` - A new ActionDef object.
+	/// </summary>
+	/// <param name="clipStr">The name of the image clip, which is a sprite sheet. Can be "Image/file.png" and "Image/items.clip|itemA". Supports image file format: jpg, png, dds, pvr, ktx.</param>
+	/// <param name="duration">The duration of the action.</param>
+	/// <returns>A new ActionDef object.</returns>
 	static outside ActionDef ActionDef_Frame @ frame(string clipStr, float duration);
+	/// <summary>
 	/// Creates a new action definition object to do a frame animation with frames count for each frame. Can only be performed on a Sprite node.
-	///
-	/// # Arguments
-	///
-	/// * `clipStr` - The name of the image clip, which is a sprite sheet. Can be "Image/file.png" and "Image/items.clip|itemA". Supports image file format: jpg, png, dds, pvr, ktx.
-	/// * `duration` - The duration of the action.
-	/// * `frames` - The number of frames for each frame.
-	///
-	/// # Returns
-	///
-	/// * `Action` - A new Action object.
+	/// </summary>
+	/// <param name="clipStr">The name of the image clip, which is a sprite sheet. Can be "Image/file.png" and "Image/items.clip|itemA". Supports image file format: jpg, png, dds, pvr, ktx.</param>
+	/// <param name="duration">The duration of the action.</param>
+	/// <param name="frames">The number of frames for each frame.</param>
+	/// <returns>A new Action object.</returns>
 	static outside ActionDef ActionDef_Frame @ frame_with_frames(string clipStr, float duration, VecUint32 frames);
 };
 
+/// <summary>
 /// Represents an action that can be run on a node.
+/// </summary>
 object class Action
 {
-	/// the duration of the action.
+	/// <summary>
+	/// The duration of the action.
+	/// </summary>
 	readonly common float duration;
-	/// whether the action is currently running.
+	/// <summary>
+	/// Whether the action is currently running.
+	/// </summary>
 	readonly boolean bool running;
-	/// whether the action is currently paused.
+	/// <summary>
+	/// Whether the action is currently paused.
+	/// </summary>
 	readonly boolean bool paused;
-	/// whether the action should be run in reverse.
+	/// <summary>
+	/// Whether the action should be run in reverse.
+	/// </summary>
 	boolean bool reversed;
-	/// the speed at which the action should be run.
+	/// <summary>
+	/// The speed at which the action should be run.
 	/// Set to 1.0 to get normal speed, Set to 2.0 to get two times faster.
+	/// </summary>
 	common float speed;
+	/// <summary>
 	/// Pauses the action.
+	/// </summary>
 	void pause();
+	/// <summary>
 	/// Resumes the action.
+	/// </summary>
 	void resume();
+	/// <summary>
 	/// Updates the state of the Action.
-	///
-	/// # Arguments
-	///
-	/// * `elapsed` - The amount of time in seconds that has elapsed to update action to.
-	/// * `reversed` - Whether or not to update the Action in reverse.
+	/// </summary>
+	/// <param name="elapsed">The amount of time in seconds that has elapsed to update action to.</param>
+	/// <param name="reversed">Whether or not to update the Action in reverse.</param>
 	void updateTo(float elapsed, bool reversed);
+	/// <summary>
 	/// Creates a new Action object.
-	///
-	/// # Arguments
-	///
-	/// * `def` - The definition of the action.
-	///
-	/// # Returns
-	///
-	/// * `Action` - A new Action object.
+	/// </summary>
+	/// <param name="def">The definition of the action.</param>
+	/// <returns>A new Action object.</returns>
 	static Action* create(ActionDef def);
 };
 
+/// <summary>
 /// A grabber which is used to render a part of the scene to a texture
+/// </summary>
+/// <summary>
 /// by a grid of vertices.
+/// </summary>
 object class Grabber
 {
-	/// the camera used to render the texture.
+	/// <summary>
+	/// The camera used to render the texture.
+	/// </summary>
 	optional common Camera* camera;
-	/// the sprite effect applied to the texture.
+	/// <summary>
+	/// The sprite effect applied to the texture.
+	/// </summary>
 	optional common SpriteEffect* effect;
-	/// the blend function for the grabber.
+	/// <summary>
+	/// The blend function for the grabber.
+	/// </summary>
 	common BlendFunc blendFunc;
-	/// the clear color used to clear the texture.
+	/// <summary>
+	/// The clear color used to clear the texture.
+	/// </summary>
 	common Color clearColor;
+	/// <summary>
 	/// Sets the position of a vertex in the grabber grid.
-	///
-	/// # Arguments
-	///
-	/// * `x` - The x-index of the vertex in the grabber grid.
-	/// * `y` - The y-index of the vertex in the grabber grid.
-	/// * `pos` - The new position of the vertex, represented by a Vec2 object.
-	/// * `z` - An optional argument representing the new z-coordinate of the vertex.
+	/// </summary>
+	/// <param name="x">The x-index of the vertex in the grabber grid.</param>
+	/// <param name="y">The y-index of the vertex in the grabber grid.</param>
+	/// <param name="pos">The new position of the vertex, represented by a Vec2 object.</param>
+	/// <param name="z">An optional argument representing the new z-coordinate of the vertex.</param>
 	void setPos(int x, int y, Vec2 pos, float z);
+	/// <summary>
 	/// Gets the position of a vertex in the grabber grid.
-	///
-	/// # Arguments
-	///
-	/// * `x` - The x-index of the vertex in the grabber grid.
-	/// * `y` - The y-index of the vertex in the grabber grid.
-	///
-	/// # Returns
-	///
-	/// * `Vec2` - The position of the vertex.
+	/// </summary>
+	/// <param name="x">The x-index of the vertex in the grabber grid.</param>
+	/// <param name="y">The y-index of the vertex in the grabber grid.</param>
+	/// <returns>The position of the vertex.</returns>
 	Vec2 getPos(int x, int y) const;
+	/// <summary>
 	/// Sets the color of a vertex in the grabber grid.
-	///
-	/// # Arguments
-	///
-	/// * `x` - The x-index of the vertex in the grabber grid.
-	/// * `y` - The y-index of the vertex in the grabber grid.
-	/// * `color` - The new color of the vertex, represented by a Color object.
+	/// </summary>
+	/// <param name="x">The x-index of the vertex in the grabber grid.</param>
+	/// <param name="y">The y-index of the vertex in the grabber grid.</param>
+	/// <param name="color">The new color of the vertex, represented by a Color object.</param>
 	void setColor(int x, int y, Color color);
+	/// <summary>
 	/// Gets the color of a vertex in the grabber grid.
-	///
-	/// # Arguments
-	///
-	/// * `x` - The x-index of the vertex in the grabber grid.
-	/// * `y` - The y-index of the vertex in the grabber grid.
-	///
-	/// # Returns
-	///
-	/// * `Color` - The color of the vertex.
+	/// </summary>
+	/// <param name="x">The x-index of the vertex in the grabber grid.</param>
+	/// <param name="y">The y-index of the vertex in the grabber grid.</param>
+	/// <returns>The color of the vertex.</returns>
 	Color getColor(int x, int y) const;
+	/// <summary>
 	/// Sets the UV coordinates of a vertex in the grabber grid.
-	///
-	/// # Arguments
-	///
-	/// * `x` - The x-index of the vertex in the grabber grid.
-	/// * `y` - The y-index of the vertex in the grabber grid.
-	/// * `offset` - The new UV coordinates of the vertex, represented by a Vec2 object.
+	/// </summary>
+	/// <param name="x">The x-index of the vertex in the grabber grid.</param>
+	/// <param name="y">The y-index of the vertex in the grabber grid.</param>
+	/// <param name="offset">The new UV coordinates of the vertex, represented by a Vec2 object.</param>
 	void moveUV @ move_uv(int x, int y, Vec2 offset);
 };
 
+/// <summary>
 /// Struct used for building a hierarchical tree structure of game objects.
+/// </summary>
 object class Node
 {
-	/// the order of the node in the parent's children array.
+	/// <summary>
+	/// The order of the node in the parent's children array.
+	/// </summary>
 	common int order;
-	/// the rotation angle of the node in degrees.
+	/// <summary>
+	/// The rotation angle of the node in degrees.
+	/// </summary>
 	common float angle;
-	/// the X-axis rotation angle of the node in degrees.
+	/// <summary>
+	/// The X-axis rotation angle of the node in degrees.
+	/// </summary>
 	common float angleX;
-	/// the Y-axis rotation angle of the node in degrees.
+	/// <summary>
+	/// The Y-axis rotation angle of the node in degrees.
+	/// </summary>
 	common float angleY;
-	/// the X-axis scale factor of the node.
+	/// <summary>
+	/// The X-axis scale factor of the node.
+	/// </summary>
 	common float scaleX;
-	/// the Y-axis scale factor of the node.
+	/// <summary>
+	/// The Y-axis scale factor of the node.
+	/// </summary>
 	common float scaleY;
-	/// the X-axis position of the node.
+	/// <summary>
+	/// The X-axis position of the node.
+	/// </summary>
 	common float x;
-	/// the Y-axis position of the node.
+	/// <summary>
+	/// The Y-axis position of the node.
+	/// </summary>
 	common float y;
-	/// the Z-axis position of the node.
+	/// <summary>
+	/// The Z-axis position of the node.
+	/// </summary>
 	common float z;
-	/// the position of the node as a Vec2 object.
+	/// <summary>
+	/// The position of the node as a Vec2 object.
+	/// </summary>
 	common Vec2 position;
-	/// the X-axis skew angle of the node in degrees.
+	/// <summary>
+	/// The X-axis skew angle of the node in degrees.
+	/// </summary>
 	common float skewX;
-	/// the Y-axis skew angle of the node in degrees.
+	/// <summary>
+	/// The Y-axis skew angle of the node in degrees.
+	/// </summary>
 	common float skewY;
-	/// whether the node is visible.
+	/// <summary>
+	/// Whether the node is visible.
+	/// </summary>
 	boolean bool visible;
-	/// the anchor point of the node as a Vec2 object.
+	/// <summary>
+	/// The anchor point of the node as a Vec2 object.
+	/// </summary>
 	common Vec2 anchor;
-	/// the width of the node.
+	/// <summary>
+	/// The width of the node.
+	/// </summary>
 	common float width;
-	/// the height of the node.
+	/// <summary>
+	/// The height of the node.
+	/// </summary>
 	common float height;
-	/// the size of the node as a Size object.
+	/// <summary>
+	/// The size of the node as a Size object.
+	/// </summary>
 	common Size size;
-	/// the tag of the node as a string.
+	/// <summary>
+	/// The tag of the node as a string.
+	/// </summary>
 	common string tag;
-	/// the opacity of the node, should be 0 to 1.0.
+	/// <summary>
+	/// The opacity of the node, should be 0 to 1.0.
+	/// </summary>
 	common float opacity;
-	/// the color of the node as a Color object.
+	/// <summary>
+	/// The color of the node as a Color object.
+	/// </summary>
 	common Color color;
-	/// the color of the node as a Color3 object.
+	/// <summary>
+	/// The color of the node as a Color3 object.
+	/// </summary>
 	common Color3 color3;
-	/// whether to pass the opacity value to child nodes.
+	/// <summary>
+	/// Whether to pass the opacity value to child nodes.
+	/// </summary>
 	boolean bool passOpacity;
-	/// whether to pass the color value to child nodes.
+	/// <summary>
+	/// Whether to pass the color value to child nodes.
+	/// </summary>
 	boolean bool passColor3;
-	/// the target node acts as a parent node for transforming this node.
+	/// <summary>
+	/// The target node acts as a parent node for transforming this node.
+	/// </summary>
 	optional common Node* transformTarget;
-	/// the scheduler used for scheduling update and action callbacks.
+	/// <summary>
+	/// The scheduler used for scheduling update and action callbacks.
+	/// </summary>
 	common Scheduler* scheduler;
-	/// the children of the node as an Array object, could be None.
+	/// <summary>
+	/// The children of the node as an Array object, could be None.
+	/// </summary>
 	optional readonly common Array* children;
-	/// the parent of the node, could be None.
+	/// <summary>
+	/// The parent of the node, could be None.
+	/// </summary>
 	optional readonly common Node* parent;
-	/// whether the node is currently running in a scene tree.
+	/// <summary>
+	/// Whether the node is currently running in a scene tree.
+	/// </summary>
 	readonly boolean bool running;
-	/// whether the node is currently scheduling a function for updates.
+	/// <summary>
+	/// Whether the node is currently scheduling a function for updates.
+	/// </summary>
 	readonly boolean bool scheduled;
-	/// the number of actions currently running on the node.
+	/// <summary>
+	/// The number of actions currently running on the node.
+	/// </summary>
 	readonly common int actionCount;
-	/// additional data stored on the node as a Dictionary object.
+	/// <summary>
+	/// Additional data stored on the node as a Dictionary object.
+	/// </summary>
 	readonly common Dictionary* userData @ data;
-	/// whether touch events are enabled on the node.
+	/// <summary>
+	/// Whether touch events are enabled on the node.
+	/// </summary>
 	boolean bool touchEnabled;
-	/// whether the node should swallow touch events.
+	/// <summary>
+	/// Whether the node should swallow touch events.
+	/// </summary>
 	boolean bool swallowTouches;
-	/// whether the node should swallow mouse wheel events.
+	/// <summary>
+	/// Whether the node should swallow mouse wheel events.
+	/// </summary>
 	boolean bool swallowMouseWheel;
-	/// whether keyboard events are enabled on the node.
+	/// <summary>
+	/// Whether keyboard events are enabled on the node.
+	/// </summary>
 	boolean bool keyboardEnabled;
-	/// whether controller events are enabled on the node.
+	/// <summary>
+	/// Whether controller events are enabled on the node.
+	/// </summary>
 	boolean bool controllerEnabled;
-	/// whether to group the node's rendering with all its recursive children.
+	/// <summary>
+	/// Whether to group the node's rendering with all its recursive children.
+	/// </summary>
 	boolean bool renderGroup;
-	/// whether debug graphic should be displayed for the node.
+	/// <summary>
+	/// Whether debug graphic should be displayed for the node.
+	/// </summary>
 	boolean bool showDebug;
-	/// the rendering order number for group rendering. Nodes with lower rendering orders are rendered earlier.
+	/// <summary>
+	/// The rendering order number for group rendering. Nodes with lower rendering orders are rendered earlier.
+	/// </summary>
 	common int renderOrder;
+	/// <summary>
 	/// Adds a child node to the current node.
-	///
-	/// # Arguments
-	///
-	/// * `child` - The child node to add.
-	/// * `order` - The drawing order of the child node.
-	/// * `tag` - The tag of the child node.
+	/// </summary>
+	/// <param name="child">The child node to add.</param>
+	/// <param name="order">The drawing order of the child node.</param>
+	/// <param name="tag">The tag of the child node.</param>
 	void addChild @ addChildWithOrderTag(Node* child, int order, string tag);
+	/// <summary>
 	/// Adds a child node to the current node.
-	///
-	/// # Arguments
-	///
-	/// * `child` - The child node to add.
-	/// * `order` - The drawing order of the child node.
+	/// </summary>
+	/// <param name="child">The child node to add.</param>
+	/// <param name="order">The drawing order of the child node.</param>
 	void addChild @ addChildWithOrder(Node* child, int order);
+	/// <summary>
 	/// Adds a child node to the current node.
-	///
-	/// # Arguments
-	///
-	/// * `child` - The child node to add.
+	/// </summary>
+	/// <param name="child">The child node to add.</param>
 	void addChild(Node* child);
+	/// <summary>
 	/// Adds the current node to a parent node.
-	///
-	/// # Arguments
-	///
-	/// * `parent` - The parent node to add the current node to.
-	/// * `order` - The drawing order of the current node.
-	/// * `tag` - The tag of the current node.
-	///
-	/// # Returns
-	///
-	/// * `Node` - The current node.
+	/// </summary>
+	/// <param name="parent">The parent node to add the current node to.</param>
+	/// <param name="order">The drawing order of the current node.</param>
+	/// <param name="tag">The tag of the current node.</param>
+	/// <returns>The current node.</returns>
 	Node* addTo @ addToWithOrderTag(Node* parent, int order, string tag);
+	/// <summary>
 	/// Adds the current node to a parent node.
-	///
-	/// # Arguments
-	///
-	/// * `parent` - The parent node to add the current node to.
-	/// * `order` - The drawing order of the current node.
-	///
-	/// # Returns
-	///
-	/// * `Node` - The current node.
+	/// </summary>
+	/// <param name="parent">The parent node to add the current node to.</param>
+	/// <param name="order">The drawing order of the current node.</param>
+	/// <returns>The current node.</returns>
 	Node* addTo @ addToWithOrder(Node* parent, int order);
+	/// <summary>
 	/// Adds the current node to a parent node.
-	///
-	/// # Arguments
-	///
-	/// * `parent` - The parent node to add the current node to.
-	///
-	/// # Returns
-	///
-	/// * `Node` - The current node.
+	/// </summary>
+	/// <param name="parent">The parent node to add the current node to.</param>
+	/// <returns>The current node.</returns>
 	Node* addTo(Node* parent);
+	/// <summary>
 	/// Removes a child node from the current node.
-	///
-	/// # Arguments
-	///
-	/// * `child` - The child node to remove.
-	/// * `cleanup` - Whether to cleanup the child node.
+	/// </summary>
+	/// <param name="child">The child node to remove.</param>
+	/// <param name="cleanup">Whether to cleanup the child node.</param>
 	void removeChild(Node* child, bool cleanup);
+	/// <summary>
 	/// Removes a child node from the current node by tag.
-	///
-	/// # Arguments
-	///
-	/// * `tag` - The tag of the child node to remove.
-	/// * `cleanup` - Whether to cleanup the child node.
+	/// </summary>
+	/// <param name="tag">The tag of the child node to remove.</param>
+	/// <param name="cleanup">Whether to cleanup the child node.</param>
 	void removeChildByTag(string tag, bool cleanup);
+	/// <summary>
 	/// Removes all child nodes from the current node.
-	///
-	/// # Arguments
-	///
-	/// * `cleanup` - Whether to cleanup the child nodes.
+	/// </summary>
+	/// <param name="cleanup">Whether to cleanup the child nodes.</param>
 	void removeAllChildren(bool cleanup);
+	/// <summary>
 	/// Removes the current node from its parent node.
-	///
-	/// # Arguments
-	///
-	/// * `cleanup` - Whether to cleanup the current node.
+	/// </summary>
+	/// <param name="cleanup">Whether to cleanup the current node.</param>
 	void removeFromParent(bool cleanup);
+	/// <summary>
 	/// Moves the current node to a new parent node without triggering node events.
-	///
-	/// # Arguments
-	///
-	/// * `parent` - The new parent node to move the current node to.
+	/// </summary>
+	/// <param name="parent">The new parent node to move the current node to.</param>
 	void moveToParent(Node* parent);
+	/// <summary>
 	/// Cleans up the current node.
+	/// </summary>
 	void cleanup();
+	/// <summary>
 	/// Gets a child node by tag.
-	///
-	/// # Arguments
-	///
-	/// * `tag` - The tag of the child node to get.
-	///
-	/// # Returns
-	///
-	/// * `Option<Node>` - The child node, or `None` if not found.
+	/// </summary>
+	/// <param name="tag">The tag of the child node to get.</param>
+	/// <returns>The child node, or `None` if not found.</returns>
 	optional Node* getChildByTag(string tag);
+	/// <summary>
 	/// Schedules a main function to run every frame. Call this function again to replace the previous scheduled main function or coroutine.
-	///
-	/// # Arguments
-	///
-	/// * `updateFunc` - The function to be called. If the function returns `true`, it will not be called again.
+	/// </summary>
+	/// <param name="updateFunc">The function to be called. If the function returns `true`, it will not be called again.</param>
 	void schedule(function<def_true bool(double deltaTime)> updateFunc);
+	/// <summary>
 	/// Unschedules the current node's scheduled main function.
+	/// </summary>
 	void unschedule();
+	/// <summary>
 	/// Converts a point from world space to node space.
-	///
-	/// # Arguments
-	///
-	/// * `world_point` - The point in world space, represented by a Vec2 object.
-	///
-	/// # Returns
-	///
-	/// * `Vec2` - The converted point in world space.
+	/// </summary>
+	/// <param name="worldPoint">The point in world space, represented by a Vec2 object.</param>
+	/// <returns>The converted point in world space.</returns>
 	Vec2 convertToNodeSpace(Vec2 worldPoint);
+	/// <summary>
 	/// Converts a point from node space to world space.
-	///
-	/// # Arguments
-	///
-	/// * `node_point` - The point in node space, represented by a Vec2 object.
-	///
-	/// # Returns
-	///
-	/// * `Vec2` - The converted point in world space.
+	/// </summary>
+	/// <param name="nodePoint">The point in node space, represented by a Vec2 object.</param>
+	/// <returns>The converted point in world space.</returns>
 	Vec2 convertToWorldSpace(Vec2 nodePoint);
+	/// <summary>
 	/// Converts a point from node space to world space.
-	///
-	/// # Arguments
-	///
-	/// * `node_point` - The point in node space, represented by a Vec2 object.
-	/// * `callback` - The function to call with the converted point in world space.
-	///
-	/// # Returns
-	///
-	/// * `Vec2` - The converted point in world space.
+	/// </summary>
+	/// <param name="nodePoint">The point in node space, represented by a Vec2 object.</param>
+	/// <param name="callback">The function to call with the converted point in world space.</param>
+	/// <returns>The converted point in world space.</returns>
 	void convertToWindowSpace(Vec2 nodePoint, function<void(Vec2 result)> callback);
+	/// <summary>
 	/// Calls the given function for each child node of this node.
-	///
-	/// # Arguments
-	///
-	/// * `visitorFunc` - The function to call for each child node. The function should return a boolean value indicating whether to continue the iteration. Return true to stop iteration.
-	///
-	/// # Returns
-	///
-	/// * `bool` - `false` if all children have been visited, `true` if the iteration was interrupted by the function.
+	/// </summary>
+	/// <param name="visitorFunc">The function to call for each child node. The function should return a boolean value indicating whether to continue the iteration. Return true to stop iteration.</param>
+	/// <returns>`false` if all children have been visited, `true` if the iteration was interrupted by the function.</returns>
 	bool eachChild(function<def_true bool(Node* child)> visitorFunc);
+	/// <summary>
 	/// Traverses the node hierarchy starting from this node and calls the given function for each visited node. The nodes without `TraverseEnabled` flag are not visited.
-	///
-	/// # Arguments
-	///
-	/// * `visitorFunc` - The function to call for each visited node. The function should return a boolean value indicating whether to continue the traversal. Return true to stop iteration.
-	///
-	/// # Returns
-	///
-	/// * `bool` - `false` if all nodes have been visited, `true` if the traversal was interrupted by the function.
+	/// </summary>
+	/// <param name="visitorFunc">The function to call for each visited node. The function should return a boolean value indicating whether to continue the traversal. Return true to stop iteration.</param>
+	/// <returns>`false` if all nodes have been visited, `true` if the traversal was interrupted by the function.</returns>
 	bool traverse(function<def_true bool(Node* child)> visitorFunc);
+	/// <summary>
 	/// Traverses the entire node hierarchy starting from this node and calls the given function for each visited node.
-	///
-	/// # Arguments
-	///
-	/// * `visitorFunc` - The function to call for each visited node. The function should return a boolean value indicating whether to continue the traversal.
-	///
-	/// # Returns
-	///
-	/// * `bool` - `false` if all nodes have been visited, `true` if the traversal was interrupted by the function.
+	/// </summary>
+	/// <param name="visitorFunc">The function to call for each visited node. The function should return a boolean value indicating whether to continue the traversal.</param>
+	/// <returns>`false` if all nodes have been visited, `true` if the traversal was interrupted by the function.</returns>
 	bool traverseAll(function<def_true bool(Node* child)> visitorFunc);
+	/// <summary>
 	/// Runs an action defined by the given action definition on this node.
-	///
-	/// # Arguments
-	///
-	/// * `action_def` - The action definition to run.
-	/// * `looped` - Whether to loop the action.
-	///
-	/// # Returns
-	///
-	/// * `f32` - The duration of the newly running action in seconds.
-	outside float Node_RunActionDefDuration @ run_action_def(ActionDef def, bool looped);
+	/// </summary>
+	/// <param name="actionDef">The action definition to run.</param>
+	/// <param name="looped">Whether to loop the action.</param>
+	/// <returns>The duration of the newly running action in seconds.</returns>
+	outside float Node_RunActionDefDuration @ run_action_def(ActionDef actionDef, bool looped);
+	/// <summary>
 	/// Runs an action on this node.
-	///
-	/// # Arguments
-	///
-	/// * `action` - The action to run.
-	/// * `looped` - Whether to loop the action.
-	///
-	/// # Returns
-	///
-	/// * `f32` - The duration of the newly running action in seconds.
+	/// </summary>
+	/// <param name="action">The action to run.</param>
+	/// <param name="looped">Whether to loop the action.</param>
+	/// <returns>The duration of the newly running action in seconds.</returns>
 	float runAction @ runAction(Action* action, bool looped);
+	/// <summary>
 	/// Stops all actions running on this node.
+	/// </summary>
 	void stopAllActions();
+	/// <summary>
 	/// Runs an action defined by the given action definition right after clearing all the previous running actions.
-	///
-	/// # Arguments
-	///
-	/// * `action_def` - The action definition to run.
-	/// * `looped` - Whether to loop the action.
-	///
-	/// # Returns
-	///
-	/// * `f32` - The duration of the newly running action in seconds.
+	/// </summary>
+	/// <param name="actionDef">The action definition to run.</param>
+	/// <param name="looped">Whether to loop the action.</param>
+	/// <returns>The duration of the newly running action in seconds.</returns>
 	outside float Node_PerformDefDuration @ perform_def(ActionDef actionDef, bool looped);
+	/// <summary>
 	/// Runs an action on this node right after clearing all the previous running actions.
-	///
-	/// # Arguments
-	///
-	/// * `action` - The action to run.
-	/// * `looped` - Whether to loop the action.
-	///
-	/// # Returns
-	///
-	/// * `f32` - The duration of the newly running action in seconds.
+	/// </summary>
+	/// <param name="action">The action to run.</param>
+	/// <param name="looped">Whether to loop the action.</param>
+	/// <returns>The duration of the newly running action in seconds.</returns>
 	float perform(Action* action, bool looped);
+	/// <summary>
 	/// Stops the given action running on this node.
-	///
-	/// # Arguments
-	///
-	/// * `action` - The action to stop.
+	/// </summary>
+	/// <param name="action">The action to stop.</param>
 	void stopAction(Action* action);
+	/// <summary>
 	/// Vertically aligns all child nodes within the node using the given size and padding.
-	///
-	/// # Arguments
-	///
-	/// * `padding` - The amount of padding to use between each child node.
-	///
-	/// # Returns
-	///
-	/// * `Size` - The size of the node after alignment.
+	/// </summary>
+	/// <param name="padding">The amount of padding to use between each child node.</param>
+	/// <returns>The size of the node after alignment.</returns>
 	Size alignItemsVertically(float padding);
+	/// <summary>
 	/// Vertically aligns all child nodes within the node using the given size and padding.
-	///
-	/// # Arguments
-	///
-	/// * `size` - The size to use for alignment.
-	/// * `padding` - The amount of padding to use between each child node.
-	///
-	/// # Returns
-	///
-	/// * `Size` - The size of the node after alignment.
+	/// </summary>
+	/// <param name="size">The size to use for alignment.</param>
+	/// <param name="padding">The amount of padding to use between each child node.</param>
+	/// <returns>The size of the node after alignment.</returns>
 	Size alignItemsVertically @ alignItemsVerticallyWithSize(Size size, float padding);
+	/// <summary>
 	/// Horizontally aligns all child nodes within the node using the given size and padding.
-	///
-	/// # Arguments
-	///
-	/// * `padding` - The amount of padding to use between each child node.
-	///
-	/// # Returns
-	///
-	/// * `Size` - The size of the node after alignment.
+	/// </summary>
+	/// <param name="padding">The amount of padding to use between each child node.</param>
+	/// <returns>The size of the node after alignment.</returns>
 	Size alignItemsHorizontally(float padding);
+	/// <summary>
 	/// Horizontally aligns all child nodes within the node using the given size and padding.
-	///
-	/// # Arguments
-	///
-	/// * `size` - The size to hint for alignment.
-	/// * `padding` - The amount of padding to use between each child node.
-	///
-	/// # Returns
-	///
-	/// * `Size` - The size of the node after alignment.
+	/// </summary>
+	/// <param name="size">The size to hint for alignment.</param>
+	/// <param name="padding">The amount of padding to use between each child node.</param>
+	/// <returns>The size of the node after alignment.</returns>
 	Size alignItemsHorizontally @ alignItemsHorizontallyWithSize(Size size, float padding);
+	/// <summary>
 	/// Aligns all child nodes within the node using the given size and padding.
-	///
-	/// # Arguments
-	///
-	/// * `padding` - The amount of padding to use between each child node.
-	///
-	/// # Returns
-	///
-	/// * `Size` - The size of the node after alignment.
+	/// </summary>
+	/// <param name="padding">The amount of padding to use between each child node.</param>
+	/// <returns>The size of the node after alignment.</returns>
 	Size alignItems(float padding);
+	/// <summary>
 	/// Aligns all child nodes within the node using the given size and padding.
-	///
-	/// # Arguments
-	///
-	/// * `size` - The size to use for alignment.
-	/// * `padding` - The amount of padding to use between each child node.
-	///
-	/// # Returns
-	///
-	/// * `Size` - The size of the node after alignment.
+	/// </summary>
+	/// <param name="size">The size to use for alignment.</param>
+	/// <param name="padding">The amount of padding to use between each child node.</param>
+	/// <returns>The size of the node after alignment.</returns>
 	Size alignItems @ alignItemsWithSize(Size size, float padding);
+	/// <summary>
 	/// Moves and changes child nodes' visibility based on their position in parent's area.
-	///
-	/// # Arguments
-	///
-	/// * `delta` - The distance to move its children, represented by a Vec2 object.
+	/// </summary>
+	/// <param name="delta">The distance to move its children, represented by a Vec2 object.</param>
 	void moveAndCullItems(Vec2 delta);
+	/// <summary>
 	/// Attaches the input method editor (IME) to the node.
 	/// Makes node recieving "AttachIME", "DetachIME", "TextInput", "TextEditing" events.
+	/// </summary>
 	void attachIME @ attach_ime();
+	/// <summary>
 	/// Detaches the input method editor (IME) from the node.
+	/// </summary>
 	void detachIME @ detach_ime();
+	/// <summary>
 	/// Creates a texture grabber for the specified node.
-	///
-	/// # Returns
-	///
-	/// * `Grabber` - A Grabber object with gridX == 1 and gridY == 1.
+	/// </summary>
+	/// <returns>A Grabber object with gridX == 1 and gridY == 1.</returns>
 	outside Grabber* Node_StartGrabbing @ grab();
+	/// <summary>
 	/// Creates a texture grabber for the specified node with a specified grid size.
-	///
-	/// # Arguments
-	///
-	/// * `grid_x` - The number of horizontal grid cells to divide the grabber into.
-	/// * `grid_y` - The number of vertical grid cells to divide the grabber into.
-	///
-	/// # Returns
-	///
-	/// * `Grabber` - A Grabber object.
+	/// </summary>
+	/// <param name="gridX">The number of horizontal grid cells to divide the grabber into.</param>
+	/// <param name="gridY">The number of vertical grid cells to divide the grabber into.</param>
+	/// <returns>A Grabber object.</returns>
 	Grabber* grab @ grabWithSize(uint32_t gridX, uint32_t gridY);
+	/// <summary>
 	/// Removes the texture grabber for the specified node.
+	/// </summary>
 	outside void Node_StopGrabbing @ stop_grab();
+	/// <summary>
 	/// Associates the given handler function with the node event.
-	///
-	/// # Arguments
-	///
-	/// * `event_name` - The name of the node event.
-	/// * `handler` - The handler function to associate with the node event.
+	/// </summary>
+	/// <param name="eventName">The name of the node event.</param>
+	/// <param name="handler">The handler function to associate with the node event.</param>
 	void slot(string eventName, function<void(Event* e)> handler);
+	/// <summary>
 	/// Associates the given handler function with a global event.
-	///
-	/// # Arguments
-	///
-	/// * `event_name` - The name of the global event.
-	/// * `handler` - The handler function to associate with the event.
+	/// </summary>
+	/// <param name="eventName">The name of the global event.</param>
+	/// <param name="handler">The handler function to associate with the event.</param>
 	void gslot(string eventName, function<void(Event* e)> handler);
+	/// <summary>
 	/// Emits an event to a node, triggering the event handler associated with the event name.
-	///
-	/// # Arguments
-	///
-	/// * `name` - The name of the event.
-	/// * `stack` - The argument stack to be passed to the event handler.
+	/// </summary>
+	/// <param name="name">The name of the event.</param>
+	/// <param name="stack">The argument stack to be passed to the event handler.</param>
 	outside void Node_Emit @ emit(string name, CallStack* stack);
+	/// <summary>
 	/// Schedules a function to run every frame. Call this function again to schedule multiple functions.
-	///
-	/// # Arguments
-	///
-	/// * `updateFunc` - The function to run every frame. If the function returns `true`, it will not be called again.
+	/// </summary>
+	/// <param name="updateFunc">The function to run every frame. If the function returns `true`, it will not be called again.</param>
 	void onUpdate(function<def_true bool(double deltaTime)> updateFunc);
+	/// <summary>
 	/// Registers a callback for event triggered when the node is entering the rendering phase. The callback is called every frame, and ensures that its call order is consistent with the rendering order of the scene tree, such as rendering child nodes after their parent nodes. Recommended for calling vector drawing functions.
-	///
-	/// # Arguments
-	///
-	/// * `func` - The function to call when the node is entering the rendering phase, returns true to stop.
-	///
-	/// # Returns
-	///
-	/// * `void` - True to stop the function from running.
+	/// </summary>
+	/// <param name="renderFunc">The function to call when the node is entering the rendering phase, returns true to stop.</param>
+	/// <returns>True to stop the function from running.</returns>
 	void onRender(function<def_true bool(double deltaTime)> renderFunc);
+	/// <summary>
 	/// Creates a new instance of the `Node` struct.
+	/// </summary>
 	static Node* create();
 };
 
+/// <summary>
 /// A struct represents a 2D texture.
+/// </summary>
 object class Texture2D
 {
-	/// the width of the texture, in pixels.
+	/// <summary>
+	/// The width of the texture, in pixels.
+	/// </summary>
 	readonly common int width;
-	/// the height of the texture, in pixels.
+	/// <summary>
+	/// The height of the texture, in pixels.
+	/// </summary>
 	readonly common int height;
+	/// <summary>
 	/// Creates a texture object from the given file.
-	///
-	/// # Arguments
-	///
-	/// * `filename` - The file name of the texture.
-	///
-	/// # Returns
-	///
-	/// * `Texture2D` - The texture object.
+	/// </summary>
+	/// <param name="filename">The file name of the texture.</param>
+	/// <returns>The texture object.</returns>
 	static outside optional Texture2D* Texture2D_Create @ createFile(string filename);
 };
 
+/// <summary>
 /// A struct to render texture in game scene tree hierarchy.
+/// </summary>
 object class Sprite : public Node
 {
-	/// whether the depth buffer should be written to when rendering the sprite.
+	/// <summary>
+	/// Whether the depth buffer should be written to when rendering the sprite.
+	/// </summary>
 	boolean bool depthWrite;
-	/// the alpha reference value for alpha testing. Pixels with alpha values less than or equal to this value will be discarded.
+	/// <summary>
+	/// The alpha reference value for alpha testing. Pixels with alpha values less than or equal to this value will be discarded.
 	/// Only works with `sprite.effect = SpriteEffect::new("builtin:vs_sprite", "builtin:fs_spritealphatest");`.
+	/// </summary>
 	common float alphaRef;
-	/// the texture rectangle for the sprite.
+	/// <summary>
+	/// The texture rectangle for the sprite.
+	/// </summary>
 	common Rect textureRect;
-	/// the texture for the sprite.
+	/// <summary>
+	/// The texture for the sprite.
+	/// </summary>
 	optional readonly common Texture2D* texture;
-	/// the blend function for the sprite.
+	/// <summary>
+	/// The blend function for the sprite.
+	/// </summary>
 	common BlendFunc blendFunc;
-	/// the sprite shader effect.
+	/// <summary>
+	/// The sprite shader effect.
+	/// </summary>
 	common SpriteEffect* effect;
-	/// the texture wrapping mode for the U (horizontal) axis.
+	/// <summary>
+	/// The texture wrapping mode for the U (horizontal) axis.
+	/// </summary>
 	common TextureWrap uWrap @ uwrap;
-	/// the texture wrapping mode for the V (vertical) axis.
+	/// <summary>
+	/// The texture wrapping mode for the V (vertical) axis.
+	/// </summary>
 	common TextureWrap vWrap @ vwrap;
-	/// the texture filtering mode for the sprite.
+	/// <summary>
+	/// The texture filtering mode for the sprite.
+	/// </summary>
 	common TextureFilter filter;
+	/// <summary>
 	/// Removes the sprite effect and sets the default effect.
+	/// </summary>
 	outside void Sprite_SetEffectNullptr @ set_effect_as_default();
+	/// <summary>
 	/// A method for creating a Sprite object.
-	///
-	/// # Returns
-	///
-	/// * `Sprite` - A new instance of the Sprite class.
+	/// </summary>
+	/// <returns>A new instance of the Sprite class.</returns>
 	static Sprite* create();
+	/// <summary>
 	/// A method for creating a Sprite object.
-	///
-	/// # Arguments
-	///
-	/// * `texture` - The texture to be used for the sprite.
-	/// * `texture_rect` - An optional rectangle defining the portion of the texture to use for the sprite. If not provided, the whole texture will be used for rendering.
-	///
-	/// # Returns
-	///
-	/// * `Sprite` - A new instance of the Sprite class.
+	/// </summary>
+	/// <param name="texture">The texture to be used for the sprite.</param>
+	/// <param name="textureRect">An optional rectangle defining the portion of the texture to use for the sprite. If not provided, the whole texture will be used for rendering.</param>
+	/// <returns>A new instance of the Sprite class.</returns>
 	static Sprite* create @ createTextureRect(Texture2D* texture, Rect textureRect);
+	/// <summary>
 	/// A method for creating a Sprite object.
-	///
-	/// # Arguments
-	///
-	/// * `texture` - The texture to be used for the sprite.
-	///
-	/// # Returns
-	///
-	/// * `Sprite` - A new instance of the Sprite class.
+	/// </summary>
+	/// <param name="texture">The texture to be used for the sprite.</param>
+	/// <returns>A new instance of the Sprite class.</returns>
 	static Sprite* create @ createTexture(Texture2D* texture);
+	/// <summary>
 	/// A method for creating a Sprite object.
-	///
-	/// # Arguments
-	///
-	/// * `clip_str` - The string containing format for loading a texture file. Can be "Image/file.png" and "Image/items.clip|itemA". Supports image file format: jpg, png, dds, pvr, ktx.
-	///
-	/// # Returns
-	///
-	/// * `Option<Sprite>` - A new instance of the Sprite class. If the texture file is not found, it will return `None`.
+	/// </summary>
+	/// <param name="clipStr">The string containing format for loading a texture file. Can be "Image/file.png" and "Image/items.clip|itemA". Supports image file format: jpg, png, dds, pvr, ktx.</param>
+	/// <returns>A new instance of the Sprite class. If the texture file is not found, it will return `None`.</returns>
 	static optional Sprite* from @ createFile(string clipStr);
 };
 
+/// <summary>
 /// A struct used to render a texture as a grid of sprites, where each sprite can be positioned, colored, and have its UV coordinates manipulated.
+/// </summary>
 object class Grid : public Node
 {
-	/// the number of columns in the grid. And there are `gridX + 1` vertices horizontally for rendering.
+	/// <summary>
+	/// The number of columns in the grid. And there are `gridX + 1` vertices horizontally for rendering.
+	/// </summary>
 	readonly common uint32_t gridX;
-	/// the number of rows in the grid. And there are `gridY + 1` vertices vertically for rendering.
+	/// <summary>
+	/// The number of rows in the grid. And there are `gridY + 1` vertices vertically for rendering.
+	/// </summary>
 	readonly common uint32_t gridY;
-	/// whether depth writes are enabled.
+	/// <summary>
+	/// Whether depth writes are enabled.
+	/// </summary>
 	boolean bool depthWrite;
-	/// the blend function for the grid.
+	/// <summary>
+	/// The blend function for the grid.
+	/// </summary>
 	common BlendFunc blendFunc;
-	/// the sprite effect applied to the grid.
+	/// <summary>
+	/// The sprite effect applied to the grid.
 	/// Default is `SpriteEffect::new("builtin:vs_sprite", "builtin:fs_sprite")`.
+	/// </summary>
 	common SpriteEffect* effect;
-	/// the rectangle within the texture that is used for the grid.
+	/// <summary>
+	/// The rectangle within the texture that is used for the grid.
+	/// </summary>
 	common Rect textureRect;
-	/// the texture used for the grid.
+	/// <summary>
+	/// The texture used for the grid.
+	/// </summary>
 	optional common Texture2D* texture;
+	/// <summary>
 	/// Sets the position of a vertex in the grid.
-	///
-	/// # Arguments
-	///
-	/// * `x` - The x-coordinate of the vertex in the grid.
-	/// * `y` - The y-coordinate of the vertex in the grid.
-	/// * `pos` - The new position of the vertex, represented by a Vec2 object.
-	/// * `z` - The new z-coordinate of the vertex.
+	/// </summary>
+	/// <param name="x">The x-coordinate of the vertex in the grid.</param>
+	/// <param name="y">The y-coordinate of the vertex in the grid.</param>
+	/// <param name="pos">The new position of the vertex, represented by a Vec2 object.</param>
+	/// <param name="z">The new z-coordinate of the vertex.</param>
 	void setPos(int x, int y, Vec2 pos, float z);
+	/// <summary>
 	/// Gets the position of a vertex in the grid.
-	///
-	/// # Arguments
-	///
-	/// * `x` - The x-coordinate of the vertex in the grid.
-	/// * `y` - The y-coordinate of the vertex in the grid.
-	///
-	/// # Returns
-	///
-	/// * `Vec2` - The current position of the vertex.
+	/// </summary>
+	/// <param name="x">The x-coordinate of the vertex in the grid.</param>
+	/// <param name="y">The y-coordinate of the vertex in the grid.</param>
+	/// <returns>The current position of the vertex.</returns>
 	Vec2 getPos(int x, int y) const;
+	/// <summary>
 	/// Sets the color of a vertex in the grid.
-	///
-	/// # Arguments
-	///
-	/// * `x` - The x-coordinate of the vertex in the grid.
-	/// * `y` - The y-coordinate of the vertex in the grid.
-	/// * `color` - The new color of the vertex, represented by a Color object.
+	/// </summary>
+	/// <param name="x">The x-coordinate of the vertex in the grid.</param>
+	/// <param name="y">The y-coordinate of the vertex in the grid.</param>
+	/// <param name="color">The new color of the vertex, represented by a Color object.</param>
 	void setColor(int x, int y, Color color);
+	/// <summary>
 	/// Gets the color of a vertex in the grid.
-	///
-	/// # Arguments
-	///
-	/// * `x` - The x-coordinate of the vertex in the grid.
-	/// * `y` - The y-coordinate of the vertex in the grid.
-	///
-	/// # Returns
-	///
-	/// * `Color` - The current color of the vertex.
+	/// </summary>
+	/// <param name="x">The x-coordinate of the vertex in the grid.</param>
+	/// <param name="y">The y-coordinate of the vertex in the grid.</param>
+	/// <returns>The current color of the vertex.</returns>
 	Color getColor(int x, int y) const;
+	/// <summary>
 	/// Moves the UV coordinates of a vertex in the grid.
-	///
-	/// # Arguments
-	///
-	/// * `x` - The x-coordinate of the vertex in the grid.
-	/// * `y` - The y-coordinate of the vertex in the grid.
-	/// * `offset` - The offset by which to move the UV coordinates, represented by a Vec2 object.
+	/// </summary>
+	/// <param name="x">The x-coordinate of the vertex in the grid.</param>
+	/// <param name="y">The y-coordinate of the vertex in the grid.</param>
+	/// <param name="offset">The offset by which to move the UV coordinates, represented by a Vec2 object.</param>
 	void moveUV @ move_uv(int x, int y, Vec2 offset);
+	/// <summary>
 	/// Creates a new Grid with the specified dimensions and grid size.
-	///
-	/// # Arguments
-	///
-	/// * `width` - The width of the grid.
-	/// * `height` - The height of the grid.
-	/// * `grid_x` - The number of columns in the grid.
-	/// * `grid_y` - The number of rows in the grid.
-	///
-	/// # Returns
-	///
-	/// * `Grid` - The new Grid instance.
+	/// </summary>
+	/// <param name="width">The width of the grid.</param>
+	/// <param name="height">The height of the grid.</param>
+	/// <param name="gridX">The number of columns in the grid.</param>
+	/// <param name="gridY">The number of rows in the grid.</param>
+	/// <returns>The new Grid instance.</returns>
 	static Grid* create(float width, float height, uint32_t gridX, uint32_t gridY);
+	/// <summary>
 	/// Creates a new Grid with the specified texture, texture rectangle, and grid size.
-	///
-	/// # Arguments
-	///
-	/// * `texture` - The texture to use for the grid.
-	/// * `texture_rect` - The rectangle within the texture to use for the grid.
-	/// * `grid_x` - The number of columns in the grid.
-	/// * `grid_y` - The number of rows in the grid.
-	///
-	/// # Returns
-	///
-	/// * `Grid` - The new Grid instance.
+	/// </summary>
+	/// <param name="texture">The texture to use for the grid.</param>
+	/// <param name="textureRect">The rectangle within the texture to use for the grid.</param>
+	/// <param name="gridX">The number of columns in the grid.</param>
+	/// <param name="gridY">The number of rows in the grid.</param>
+	/// <returns>The new Grid instance.</returns>
 	static Grid* create @ createTextureRect(Texture2D* texture, Rect textureRect, uint32_t gridX, uint32_t gridY);
+	/// <summary>
 	/// Creates a new Grid with the specified texture, texture rectangle, and grid size.
-	///
-	/// # Arguments
-	///
-	/// * `texture` - The texture to use for the grid.
-	/// * `grid_x` - The number of columns in the grid.
-	/// * `grid_y` - The number of rows in the grid.
-	///
-	/// # Returns
-	///
-	/// * `Grid` - The new Grid instance.
+	/// </summary>
+	/// <param name="texture">The texture to use for the grid.</param>
+	/// <param name="gridX">The number of columns in the grid.</param>
+	/// <param name="gridY">The number of rows in the grid.</param>
+	/// <returns>The new Grid instance.</returns>
 	static Grid* create @ createTexture(Texture2D* texture, uint32_t gridX, uint32_t gridY);
+	/// <summary>
 	/// Creates a new Grid with the specified clip string and grid size.
-	///
-	/// # Arguments
-	///
-	/// * `clip_str` - The clip string to use for the grid. Can be "Image/file.png" and "Image/items.clip|itemA".
-	/// * `grid_x` - The number of columns in the grid.
-	/// * `grid_y` - The number of rows in the grid.
-	///
-	/// # Returns
-	///
-	/// * `Grid` - The new Grid instance.
+	/// </summary>
+	/// <param name="clipStr">The clip string to use for the grid. Can be "Image/file.png" and "Image/items.clip|itemA".</param>
+	/// <param name="gridX">The number of columns in the grid.</param>
+	/// <param name="gridY">The number of rows in the grid.</param>
+	/// <returns>The new Grid instance.</returns>
 	static optional Grid* from @ createFile(string clipStr, uint32_t gridX, uint32_t gridY);
 };
 
+/// <summary>
 /// Represents a touch input or mouse click event.
+/// </summary>
 object class Touch
 {
-	/// whether touch input is enabled or not.
+	/// <summary>
+	/// Whether touch input is enabled or not.
+	/// </summary>
 	boolean bool enabled;
-	/// whether this is the first touch event when multi-touches exist.
+	/// <summary>
+	/// Whether this is the first touch event when multi-touches exist.
+	/// </summary>
 	readonly boolean bool first;
-	/// the unique identifier assigned to this touch event.
+	/// <summary>
+	/// The unique identifier assigned to this touch event.
+	/// </summary>
 	readonly common int id;
-	/// the amount and direction of movement since the last touch event.
+	/// <summary>
+	/// The amount and direction of movement since the last touch event.
+	/// </summary>
 	readonly common Vec2 delta;
-	/// the location of the touch event in the node's local coordinate system.
+	/// <summary>
+	/// The location of the touch event in the node's local coordinate system.
+	/// </summary>
 	readonly common Vec2 location;
-	/// the location of the touch event in the world coordinate system.
+	/// <summary>
+	/// The location of the touch event in the world coordinate system.
+	/// </summary>
 	readonly common Vec2 worldLocation;
 };
 
+/// <summary>
 /// A struct that defines a set of easing functions for use in animations.
+/// </summary>
 singleton struct Ease
 {
+	/// <summary>
 	/// Applies an easing function to a given value over a given amount of time.
-	///
-	/// # Arguments
-	///
-	/// * `easing` - The easing function to apply.
-	/// * `time` - The amount of time to apply the easing function over, should be between 0 and 1.
-	///
-	/// # Returns
-	///
-	/// * `f32` - The result of applying the easing function to the value.
+	/// </summary>
+	/// <param name="easing">The easing function to apply.</param>
+	/// <param name="time">The amount of time to apply the easing function over, should be between 0 and 1.</param>
+	/// <returns>The result of applying the easing function to the value.</returns>
 	static float func(EaseType easing, float time);
 };
 
+/// <summary>
 /// A node for rendering text using a TrueType font.
+/// </summary>
 object class Label : public Node
 {
-	/// the text alignment setting.
+	/// <summary>
+	/// The text alignment setting.
+	/// </summary>
 	common TextAlign alignment;
-	/// the alpha threshold value. Pixels with alpha values below this value will not be drawn.
+	/// <summary>
+	/// The alpha threshold value. Pixels with alpha values below this value will not be drawn.
 	/// Only works with `label.effect = SpriteEffect::new("builtin:vs_sprite", "builtin:fs_spritealphatest")`.
+	/// </summary>
 	common float alphaRef;
-	/// the width of the text used for text wrapping.
+	/// <summary>
+	/// The width of the text used for text wrapping.
 	/// Set to `Label::AutomaticWidth` to disable wrapping.
 	/// Default is `Label::AutomaticWidth`.
+	/// </summary>
 	common float textWidth;
-	/// the gap in pixels between characters.
+	/// <summary>
+	/// The gap in pixels between characters.
+	/// </summary>
 	common float spacing;
-	/// the gap in pixels between lines of text.
+	/// <summary>
+	/// The gap in pixels between lines of text.
+	/// </summary>
 	common float lineGap;
-	/// the color of the outline, only works with SDF label.
+	/// <summary>
+	/// The color of the outline, only works with SDF label.
+	/// </summary>
 	common Color outlineColor;
-	/// the width of the outline, only works with SDF label.
+	/// <summary>
+	/// The width of the outline, only works with SDF label.
+	/// </summary>
 	common float outlineWidth;
-	/// the smooth value of the text, only works with SDF label, default is (0.7, 0.7).
+	/// <summary>
+	/// The smooth value of the text, only works with SDF label, default is (0.7, 0.7).
+	/// </summary>
 	common Vec2 smooth;
-	/// the text to be rendered.
+	/// <summary>
+	/// The text to be rendered.
+	/// </summary>
 	common string text;
-	/// the blend function for the label.
+	/// <summary>
+	/// The blend function for the label.
+	/// </summary>
 	common BlendFunc blendFunc;
-	/// whether depth writing is enabled. (Default is false)
+	/// <summary>
+	/// Whether depth writing is enabled. (Default is false)
+	/// </summary>
 	boolean bool depthWrite;
-	/// whether the label is using batched rendering.
+	/// <summary>
+	/// Whether the label is using batched rendering.
 	/// When using batched rendering the `label.get_character()` function will no longer work, but it provides better rendering performance. Default is true.
+	/// </summary>
 	boolean bool batched;
-	/// the sprite effect used to render the text.
+	/// <summary>
+	/// The sprite effect used to render the text.
+	/// </summary>
 	common SpriteEffect* effect;
-	/// the number of characters in the label.
+	/// <summary>
+	/// The number of characters in the label.
+	/// </summary>
 	readonly common int characterCount;
+	/// <summary>
 	/// Returns the sprite for the character at the specified index.
-	///
-	/// # Arguments
-	///
-	/// * `index` - The index of the character sprite to retrieve.
-	///
-	/// # Returns
-	///
-	/// * `Option<Sprite>` - The sprite for the character, or `None` if the index is out of range.
+	/// </summary>
+	/// <param name="index">The index of the character sprite to retrieve.</param>
+	/// <returns>The sprite for the character, or `None` if the index is out of range.</returns>
 	optional Sprite* getCharacter(int index);
-	/// the value to use for automatic width calculation
+	/// <summary>
+	/// The value to use for automatic width calculation
+	/// </summary>
 	static readonly float AutomaticWidth @ automaticWidth;
+	/// <summary>
 	/// Creates a new Label object with the specified font name and font size.
-	///
-	/// # Arguments
-	///
-	/// * `font_name` - The name of the font to use for the label. Can be font file path with or without file extension.
-	/// * `font_size` - The size of the font to use for the label.
-	/// * `sdf` - Whether to use SDF rendering or not. With SDF rendering, the outline feature will be enabled.
-	///
-	/// # Returns
-	///
-	/// * `Label` - The new Label object.
+	/// </summary>
+	/// <param name="fontName">The name of the font to use for the label. Can be font file path with or without file extension.</param>
+	/// <param name="fontSize">The size of the font to use for the label.</param>
+	/// <param name="sdf">Whether to use SDF rendering or not. With SDF rendering, the outline feature will be enabled.</param>
+	/// <returns>The new Label object.</returns>
 	static optional Label* create(string fontName, uint32_t fontSize, bool sdf);
+	/// <summary>
 	/// Creates a new Label object with the specified font string.
-	///
-	/// # Arguments
-	///
-	/// * `font_str` - The font string to use for the label. Should be in the format "fontName;fontSize;sdf", where `sdf` should be "true" or "false".
-	///
-	/// # Returns
-	///
-	/// * `Label` - The new Label object.
+	/// </summary>
+	/// <param name="fontStr">The font string to use for the label. Should be in the format "fontName;fontSize;sdf", where `sdf` should be "true" or "false".</param>
+	/// <returns>The new Label object.</returns>
 	static optional Label* create @ with_str(string fontStr);
 };
 
+/// <summary>
 /// A RenderTarget is a buffer that allows you to render a Node into a texture.
+/// </summary>
 object class RenderTarget
 {
-	/// the width of the rendering target.
+	/// <summary>
+	/// The width of the rendering target.
+	/// </summary>
 	readonly common uint16_t width;
-	/// the height of the rendering target.
+	/// <summary>
+	/// The height of the rendering target.
+	/// </summary>
 	readonly common uint16_t height;
-	/// the camera used for rendering the scene.
+	/// <summary>
+	/// The camera used for rendering the scene.
+	/// </summary>
 	optional common Camera* camera;
-	/// the texture generated by the rendering target.
+	/// <summary>
+	/// The texture generated by the rendering target.
+	/// </summary>
 	readonly common Texture2D* texture;
+	/// <summary>
 	/// Renders a node to the target without replacing its previous contents.
-	///
-	/// # Arguments
-	///
-	/// * `target` - The node to be rendered onto the render target.
+	/// </summary>
+	/// <param name="target">The node to be rendered onto the render target.</param>
 	void render(Node* target);
+	/// <summary>
 	/// Clears the previous color, depth and stencil values on the render target.
-	///
-	/// # Arguments
-	///
-	/// * `color` - The clear color used to clear the render target.
-	/// * `depth` - Optional. The value used to clear the depth buffer of the render target. Default is 1.
-	/// * `stencil` - Optional. The value used to clear the stencil buffer of the render target. Default is 0.
+	/// </summary>
+	/// <param name="color">The clear color used to clear the render target.</param>
+	/// <param name="depth">Optional. The value used to clear the depth buffer of the render target. Default is 1.</param>
+	/// <param name="stencil">Optional. The value used to clear the stencil buffer of the render target. Default is 0.</param>
 	void renderWithClear @ renderClear(Color color, float depth, uint8_t stencil);
+	/// <summary>
 	/// Renders a node to the target after clearing the previous color, depth and stencil values on it.
-	///
-	/// # Arguments
-	///
-	/// * `target` - The node to be rendered onto the render target.
-	/// * `color` - The clear color used to clear the render target.
-	/// * `depth` - The value used to clear the depth buffer of the render target. Default can be 1.
-	/// * `stencil` - The value used to clear the stencil buffer of the render target. Default can be 0.
+	/// </summary>
+	/// <param name="target">The node to be rendered onto the render target.</param>
+	/// <param name="color">The clear color used to clear the render target.</param>
+	/// <param name="depth">The value used to clear the depth buffer of the render target. Default can be 1.</param>
+	/// <param name="stencil">The value used to clear the stencil buffer of the render target. Default can be 0.</param>
 	void renderWithClear @ renderClearWithTarget(Node* target, Color color, float depth, uint8_t stencil);
+	/// <summary>
 	/// Saves the contents of the render target to a PNG file asynchronously.
-	///
-	/// # Arguments
-	///
-	/// * `filename` - The name of the file to save the contents to.
-	/// * `handler` - The function to call when the save operation is complete. The function will be passed a boolean value indicating whether the save operation was successful.
+	/// </summary>
+	/// <param name="filename">The name of the file to save the contents to.</param>
+	/// <param name="handler">The function to call when the save operation is complete. The function will be passed a boolean value indicating whether the save operation was successful.</param>
 	void saveAsync(string filename, function<void(bool success)> handler);
 	static RenderTarget* create(uint16_t width, uint16_t height);
 };
 
+/// <summary>
 /// A Node that can clip its children based on the alpha values of its stencil.
+/// </summary>
 object class ClipNode : public Node
 {
-	/// the stencil Node that defines the clipping shape.
+	/// <summary>
+	/// The stencil Node that defines the clipping shape.
+	/// </summary>
 	common Node* stencil;
-	/// the minimum alpha threshold for a pixel to be visible. Value ranges from 0 to 1.
+	/// <summary>
+	/// The minimum alpha threshold for a pixel to be visible. Value ranges from 0 to 1.
+	/// </summary>
 	common float alphaThreshold;
-	/// whether to invert the clipping area.
+	/// <summary>
+	/// Whether to invert the clipping area.
+	/// </summary>
 	boolean bool inverted;
+	/// <summary>
 	/// Creates a new ClipNode object.
-	///
-	/// # Arguments
-	///
-	/// * `stencil` - The stencil Node that defines the clipping shape. Defaults to `None`.
-	///
-	/// # Returns
-	///
-	/// * A new `ClipNode` object.
+	/// </summary>
+	/// <param name="stencil">The stencil Node that defines the clipping shape. Defaults to `None`.</param>
 	static ClipNode* create(Node* stencil);
 };
 
@@ -1938,684 +1956,577 @@ value struct VertexColor
 	static VertexColor create(Vec2 vec, Color color);
 };
 
+/// <summary>
 /// A scene node that draws simple shapes such as dots, lines, and polygons.
+/// </summary>
 object class DrawNode : public Node
 {
-	/// whether to write to the depth buffer when drawing (default is false).
+	/// <summary>
+	/// Whether to write to the depth buffer when drawing (default is false).
+	/// </summary>
 	boolean bool depthWrite;
-	/// the blend function for the draw node.
+	/// <summary>
+	/// The blend function for the draw node.
+	/// </summary>
 	common BlendFunc blendFunc;
+	/// <summary>
 	/// Draws a dot at a specified position with a specified radius and color.
-	///
-	/// # Arguments
-	///
-	/// * `pos` - The position of the dot.
-	/// * `radius` - The radius of the dot.
-	/// * `color` - The color of the dot.
+	/// </summary>
+	/// <param name="pos">The position of the dot.</param>
+	/// <param name="radius">The radius of the dot.</param>
+	/// <param name="color">The color of the dot.</param>
 	void drawDot(Vec2 pos, float radius, Color color);
+	/// <summary>
 	/// Draws a line segment between two points with a specified radius and color.
-	///
-	/// # Arguments
-	///
-	/// * `from` - The starting point of the line.
-	/// * `to` - The ending point of the line.
-	/// * `radius` - The radius of the line.
-	/// * `color` - The color of the line.
+	/// </summary>
+	/// <param name="from">The starting point of the line.</param>
+	/// <param name="to">The ending point of the line.</param>
+	/// <param name="radius">The radius of the line.</param>
+	/// <param name="color">The color of the line.</param>
 	void drawSegment(Vec2 from, Vec2 to, float radius, Color color);
+	/// <summary>
 	/// Draws a polygon defined by a list of vertices with a specified fill color and border.
-	///
-	/// # Arguments
-	///
-	/// * `verts` - The vertices of the polygon.
-	/// * `fill_color` - The fill color of the polygon.
-	/// * `border_width` - The width of the border.
-	/// * `border_color` - The color of the border.
+	/// </summary>
+	/// <param name="verts">The vertices of the polygon.</param>
+	/// <param name="fillColor">The fill color of the polygon.</param>
+	/// <param name="borderWidth">The width of the border.</param>
+	/// <param name="borderColor">The color of the border.</param>
 	void drawPolygon(VecVec2 verts, Color fillColor, float borderWidth, Color borderColor);
+	/// <summary>
 	/// Draws a set of vertices as triangles, each vertex with its own color.
-	///
-	/// # Arguments
-	///
-	/// * `verts` - The list of vertices and their colors. Each element is a tuple where the first element is a `Vec2` and the second element is a `Color`.
+	/// </summary>
+	/// <param name="verts">The list of vertices and their colors. Each element is a tuple where the first element is a `Vec2` and the second element is a `Color`.</param>
 	void drawVertices(VecVertexColor verts);
+	/// <summary>
 	/// Clears all previously drawn shapes from the node.
+	/// </summary>
 	void clear();
+	/// <summary>
 	/// Creates a new DrawNode object.
-	///
-	/// # Returns
-	///
-	/// * A new `DrawNode` object.
+	/// </summary>
 	static DrawNode* create();
 };
 
+/// <summary>
 /// A struct provides functionality for drawing lines using vertices.
+/// </summary>
 object class Line : public Node
 {
-	/// whether the depth should be written. (Default is false)
+	/// <summary>
+	/// Whether the depth should be written. (Default is false)
+	/// </summary>
 	boolean bool depthWrite;
-	/// the blend function for the line node.
+	/// <summary>
+	/// The blend function for the line node.
+	/// </summary>
 	common BlendFunc blendFunc;
+	/// <summary>
 	/// Adds vertices to the line.
-	///
-	/// # Arguments
-	///
-	/// * `verts` - A vector of vertices to add to the line.
-	/// * `color` - Optional. The color of the line.
+	/// </summary>
+	/// <param name="verts">A vector of vertices to add to the line.</param>
+	/// <param name="color">Optional. The color of the line.</param>
 	void add(VecVec2 verts, Color color);
+	/// <summary>
 	/// Sets vertices of the line.
-	///
-	/// # Arguments
-	///
-	/// * `verts` - A vector of vertices to set.
-	/// * `color` - Optional. The color of the line.
+	/// </summary>
+	/// <param name="verts">A vector of vertices to set.</param>
+	/// <param name="color">Optional. The color of the line.</param>
 	void set(VecVec2 verts, Color color);
+	/// <summary>
 	/// Clears all the vertices of line.
+	/// </summary>
 	void clear();
+	/// <summary>
 	/// Creates and returns a new empty Line object.
-	///
-	/// # Returns
-	///
-	/// * A new `Line` object.
+	/// </summary>
 	static Line* create();
+	/// <summary>
 	/// Creates and returns a new Line object.
-	///
-	/// # Arguments
-	///
-	/// * `verts` - A vector of vertices to add to the line.
-	/// * `color` - The color of the line.
-	///
-	/// # Returns
-	///
-	/// * A new `Line` object.
+	/// </summary>
+	/// <param name="verts">A vector of vertices to add to the line.</param>
+	/// <param name="color">The color of the line.</param>
 	static Line* create @ createVecColor(VecVec2 verts, Color color);
 };
 
+/// <summary>
 /// Represents a particle system node that emits and animates particles.
+/// </summary>
 object class ParticleNode @ Particle : public Node
 {
-	/// whether the particle system is active.
+	/// <summary>
+	/// Whether the particle system is active.
+	/// </summary>
 	readonly boolean bool active;
+	/// <summary>
 	/// Starts emitting particles.
+	/// </summary>
 	void start();
+	/// <summary>
 	/// Stops emitting particles and wait for all active particles to end their lives.
+	/// </summary>
 	void stop();
+	/// <summary>
 	/// Creates a new Particle object from a particle system file.
-	///
-	/// # Arguments
-	///
-	/// * `filename` - The file path of the particle system file.
-	///
-	/// # Returns
-	///
-	/// * A new `Particle` object.
+	/// </summary>
+	/// <param name="filename">The file path of the particle system file.</param>
 	static optional ParticleNode* create(string filename);
 };
 
+/// <summary>
 /// An interface for an animation model system.
+/// </summary>
 object class Playable : public Node
 {
-	/// the look of the animation.
+	/// <summary>
+	/// The look of the animation.
+	/// </summary>
 	common string look;
-	/// the play speed of the animation.
+	/// <summary>
+	/// The play speed of the animation.
+	/// </summary>
 	common float speed;
-	/// the recovery time of the animation, in seconds.
+	/// <summary>
+	/// The recovery time of the animation, in seconds.
 	/// Used for doing transitions from one animation to another animation.
+	/// </summary>
 	common float recovery;
-	/// whether the animation is flipped horizontally.
+	/// <summary>
+	/// Whether the animation is flipped horizontally.
+	/// </summary>
 	boolean bool fliped;
-	/// the current playing animation name.
+	/// <summary>
+	/// The current playing animation name.
+	/// </summary>
 	readonly common string current;
-	/// the last completed animation name.
+	/// <summary>
+	/// The last completed animation name.
+	/// </summary>
 	readonly common string lastCompleted;
+	/// <summary>
 	/// Gets a key point on the animation model by its name.
-	///
-	/// # Arguments
-	///
-	/// * `name` - The name of the key point to get.
-	///
-	/// # Returns
-	///
-	/// * A `Vec2` representing the key point value.
+	/// </summary>
+	/// <param name="name">The name of the key point to get.</param>
 	Vec2 getKeyPoint @ getKey(string name);
+	/// <summary>
 	/// Plays an animation from the model.
-	///
-	/// # Arguments
-	///
-	/// * `name` - The name of the animation to play.
-	/// * `loop` - Whether to loop the animation or not.
-	///
-	/// # Returns
-	///
-	/// * The duration of the animation in seconds.
+	/// </summary>
+	/// <param name="name">The name of the animation to play.</param>
+	/// <param name="looping">Whether to loop the animation or not.</param>
 	float play(string name, bool looping);
+	/// <summary>
 	/// Stops the currently playing animation.
+	/// </summary>
 	void stop();
+	/// <summary>
 	/// Attaches a child node to a slot on the animation model.
-	///
-	/// # Arguments
-	///
-	/// * `name` - The name of the slot to set.
-	/// * `item` - The node to set the slot to.
+	/// </summary>
+	/// <param name="name">The name of the slot to set.</param>
+	/// <param name="item">The node to set the slot to.</param>
 	void setSlot(string name, Node* item);
+	/// <summary>
 	/// Gets the child node attached to the animation model.
-	///
-	/// # Arguments
-	///
-	/// * `name` - The name of the slot to get.
-	///
-	/// # Returns
-	///
-	/// * The node in the slot, or `None` if there is no node in the slot.
+	/// </summary>
+	/// <param name="name">The name of the slot to get.</param>
 	optional Node* getSlot(string name);
+	/// <summary>
 	/// Creates a new instance of 'Playable' from the specified animation file.
-	///
-	/// # Arguments
-	///
-	/// * `filename` - The filename of the animation file to load. Supports DragonBone, Spine2D and Dora Model files.
-	/// Should be one of the formats below:
-	///     * "model:" + modelFile
-	///     * "spine:" + spineStr
-	///     * "bone:" + dragonBoneStr
-	///
-	/// # Returns
-	///
-	/// * A new instance of 'Playable'. If the file could not be loaded, then `None` is returned.
+	/// </summary>
+	/// <param name="filename">The filename of the animation file to load. Supports DragonBone, Spine2D and Dora Model files.</param>
 	static optional Playable* create(string filename);
 };
 
+/// <summary>
 /// Another implementation of the 'Playable' animation interface.
+/// </summary>
 object class Model : public Playable
 {
-	/// the duration of the current animation.
+	/// <summary>
+	/// The duration of the current animation.
+	/// </summary>
 	readonly common float duration;
-	/// whether the animation model will be played in reverse.
+	/// <summary>
+	/// Whether the animation model will be played in reverse.
+	/// </summary>
 	boolean bool reversed;
-	/// whether the animation model is currently playing.
+	/// <summary>
+	/// Whether the animation model is currently playing.
+	/// </summary>
 	readonly boolean bool playing;
-	/// whether the animation model is currently paused.
+	/// <summary>
+	/// Whether the animation model is currently paused.
+	/// </summary>
 	readonly boolean bool paused;
+	/// <summary>
 	/// Checks if an animation exists in the model.
-	///
-	/// # Arguments
-	///
-	/// * `name` - The name of the animation to check.
-	///
-	/// # Returns
-	///
-	/// * `bool` - Whether the animation exists in the model or not.
+	/// </summary>
+	/// <param name="name">The name of the animation to check.</param>
+	/// <returns>Whether the animation exists in the model or not.</returns>
 	bool hasAnimation(string name);
+	/// <summary>
 	/// Pauses the currently playing animation.
+	/// </summary>
 	void pause();
+	/// <summary>
 	/// Resumes the currently paused animation,
+	/// </summary>
 	void resume();
+	/// <summary>
 	/// Resumes the currently paused animation, or plays a new animation if specified.
-	///
-	/// # Arguments
-	///
-	/// * `name` - The name of the animation to play.
-	/// * `loop` - Whether to loop the animation or not.
+	/// </summary>
+	/// <param name="name">The name of the animation to play.</param>
+	/// <param name="looping">Whether to loop the animation or not.</param>
 	void resume @ resumeAnimation(string name, bool looping);
+	/// <summary>
 	/// Resets the current animation to its initial state.
+	/// </summary>
 	void reset();
+	/// <summary>
 	/// Updates the animation to the specified time, and optionally in reverse.
-	///
-	/// # Arguments
-	///
-	/// * `elapsed` - The time to update to.
-	/// * `reversed` - Whether to play the animation in reverse.
+	/// </summary>
+	/// <param name="elapsed">The time to update to.</param>
+	/// <param name="reversed">Whether to play the animation in reverse.</param>
 	void updateTo(float elapsed, bool reversed);
+	/// <summary>
 	/// Gets the node with the specified name.
-	///
-	/// # Arguments
-	///
-	/// * `name` - The name of the node to get.
-	///
-	/// # Returns
-	///
-	/// * The node with the specified name.
+	/// </summary>
+	/// <param name="name">The name of the node to get.</param>
 	Node* getNodeByName(string name);
+	/// <summary>
 	/// Calls the specified function for each node in the model, and stops if the function returns `false`.
-	///
-	/// # Arguments
-	///
-	/// * `visitorFunc` - The function to call for each node.
-	///
-	/// # Returns
-	///
-	/// * `bool` - Whether the function was called for all nodes or not.
+	/// </summary>
+	/// <param name="visitorFunc">The function to call for each node.</param>
+	/// <returns>Whether the function was called for all nodes or not.</returns>
 	bool eachNode(function<def_false bool(Node* node)> visitorFunc);
+	/// <summary>
 	/// Creates a new instance of 'Model' from the specified model file.
-	///
-	/// # Arguments
-	///
-	/// * `filename` - The filename of the model file to load. Can be filename with or without extension like: "Model/item" or "Model/item.model".
-	///
-	/// # Returns
-	///
-	/// * A new instance of 'Model'.
+	/// </summary>
+	/// <param name="filename">The filename of the model file to load. Can be filename with or without extension like: "Model/item" or "Model/item.model".</param>
 	static optional hide Model* create(string filename);
+	/// <summary>
 	/// Returns a new dummy instance of 'Model' that can do nothing.
-	///
-	/// # Returns
-	///
-	/// * A new dummy instance of 'Model'.
+	/// </summary>
 	static Model* dummy();
+	/// <summary>
 	/// Gets the clip file from the specified model file.
-	///
-	/// # Arguments
-	///
-	/// * `filename` - The filename of the model file to search.
-	///
-	/// # Returns
-	///
-	/// * A `String` representing the name of the clip file.
+	/// </summary>
+	/// <param name="filename">The filename of the model file to search.</param>
 	static outside string Model_GetClipFilename @ getClipFile(string filename);
+	/// <summary>
 	/// Gets an array of look names from the specified model file.
-	///
-	/// # Arguments
-	///
-	/// * `filename` - The filename of the model file to search.
-	///
-	/// # Returns
-	///
-	/// * A `Vec<String>` representing an array of look names found in the model file.
+	/// </summary>
+	/// <param name="filename">The filename of the model file to search.</param>
 	static outside VecStr Model_GetLookNames @ getLooks(string filename);
+	/// <summary>
 	/// Gets an array of animation names from the specified model file.
-	///
-	/// # Arguments
-	///
-	/// * `filename` - The filename of the model file to search.
-	///
-	/// # Returns
-	///
-	/// * A `Vec<String>` representing an array of animation names found in the model file.
+	/// </summary>
+	/// <param name="filename">The filename of the model file to search.</param>
 	static outside VecStr Model_GetAnimationNames @ getAnimations(string filename);
 };
 
+/// <summary>
 /// An implementation of an animation system using the Spine engine.
+/// </summary>
 object class Spine : public Playable
 {
-	/// whether hit testing is enabled.
+	/// <summary>
+	/// Whether hit testing is enabled.
+	/// </summary>
 	boolean bool hitTestEnabled;
+	/// <summary>
 	/// Sets the rotation of a bone in the Spine skeleton.
-	///
-	/// # Arguments
-	///
-	/// * `name` - The name of the bone to rotate.
-	/// * `rotation` - The amount to rotate the bone, in degrees.
-	///
-	/// # Returns
-	///
-	/// * `bool` - Whether the rotation was successfully set or not.
+	/// </summary>
+	/// <param name="name">The name of the bone to rotate.</param>
+	/// <param name="rotation">The amount to rotate the bone, in degrees.</param>
+	/// <returns>Whether the rotation was successfully set or not.</returns>
 	bool setBoneRotation(string name, float rotation);
+	/// <summary>
 	/// Checks if a point in space is inside the boundaries of the Spine skeleton.
-	///
-	/// # Arguments
-	///
-	/// * `x` - The x-coordinate of the point to check.
-	/// * `y` - The y-coordinate of the point to check.
-	///
-	/// # Returns
-	///
-	/// * `Option<String>` - The name of the bone at the point, or `None` if there is no bone at the point.
+	/// </summary>
+	/// <param name="x">The x-coordinate of the point to check.</param>
+	/// <param name="y">The y-coordinate of the point to check.</param>
+	/// <returns>The name of the bone at the point, or `None` if there is no bone at the point.</returns>
 	string containsPoint(float x, float y);
+	/// <summary>
 	/// Checks if a line segment intersects the boundaries of the instance and returns the name of the bone or slot at the intersection point, or `None` if no bone or slot is found.
-	///
-	/// # Arguments
-	///
-	/// * `x1` - The x-coordinate of the start point of the line segment.
-	/// * `y1` - The y-coordinate of the start point of the line segment.
-	/// * `x2` - The x-coordinate of the end point of the line segment.
-	/// * `y2` - The y-coordinate of the end point of the line segment.
-	///
-	/// # Returns
-	///
-	/// * `Option<String>` - The name of the bone or slot at the intersection point, or `None` if no bone or slot is found.
+	/// </summary>
+	/// <param name="x1">The x-coordinate of the start point of the line segment.</param>
+	/// <param name="y1">The y-coordinate of the start point of the line segment.</param>
+	/// <param name="x2">The x-coordinate of the end point of the line segment.</param>
+	/// <param name="y2">The y-coordinate of the end point of the line segment.</param>
+	/// <returns>The name of the bone or slot at the intersection point, or `None` if no bone or slot is found.</returns>
 	string intersectsSegment(float x1, float y1, float x2, float y2);
+	/// <summary>
 	/// Creates a new instance of 'Spine' using the specified skeleton file and atlas file.
-	///
-	/// # Arguments
-	///
-	/// * `skel_file` - The filename of the skeleton file to load.
-	/// * `atlas_file` - The filename of the atlas file to load.
-	///
-	/// # Returns
-	///
-	/// * A new instance of 'Spine' with the specified skeleton file and atlas file. Returns `None` if the skeleton file or atlas file could not be loaded.
+	/// </summary>
+	/// <param name="skelFile">The filename of the skeleton file to load.</param>
+	/// <param name="atlasFile">The filename of the atlas file to load.</param>
 	static optional Spine* create @ createFiles(string skelFile, string atlasFile);
+	/// <summary>
 	/// Creates a new instance of 'Spine' using the specified Spine string.
-	///
-	/// # Arguments
-	///
-	/// * `spine_str` - The Spine file string for the new instance. A Spine file string can be a file path with the target file extension like "Spine/item" or file paths with all the related files like "Spine/item.skel|Spine/item.atlas" or "Spine/item.json|Spine/item.atlas".
-	///
-	/// # Returns
-	///
-	/// * A new instance of 'Spine'. Returns `None` if the Spine file could not be loaded.
+	/// </summary>
+	/// <param name="spineStr">The Spine file string for the new instance. A Spine file string can be a file path with the target file extension like "Spine/item" or file paths with all the related files like "Spine/item.skel|Spine/item.atlas" or "Spine/item.json|Spine/item.atlas".</param>
 	static optional hide Spine* create(string spineStr);
+	/// <summary>
 	/// Returns a list of available looks for the specified Spine2D file string.
-	///
-	/// # Arguments
-	///
-	/// * `spine_str` - The Spine2D file string to get the looks for.
-	///
-	/// # Returns
-	///
-	/// * A `Vec<String>` representing the available looks.
+	/// </summary>
+	/// <param name="spineStr">The Spine2D file string to get the looks for.</param>
 	static outside VecStr Spine_GetLookNames @ getLooks(string spineStr);
+	/// <summary>
 	/// Returns a list of available animations for the specified Spine2D file string.
-	///
-	/// # Arguments
-	///
-	/// * `spine_str` - The Spine2D file string to get the animations for.
-	///
-	/// # Returns
-	///
-	/// * A `Vec<String>` representing the available animations.
+	/// </summary>
+	/// <param name="spineStr">The Spine2D file string to get the animations for.</param>
 	static outside VecStr Spine_GetAnimationNames @ getAnimations(string spineStr);
 };
 
+/// <summary>
 /// An implementation of the 'Playable' record using the DragonBones animation system.
+/// </summary>
 object class DragonBone : public Playable
 {
-	/// whether hit testing is enabled.
+	/// <summary>
+	/// Whether hit testing is enabled.
+	/// </summary>
 	boolean bool hitTestEnabled;
+	/// <summary>
 	/// Checks if a point is inside the boundaries of the instance and returns the name of the bone or slot at that point, or `None` if no bone or slot is found.
-	///
-	/// # Arguments
-	///
-	/// * `x` - The x-coordinate of the point to check.
-	/// * `y` - The y-coordinate of the point to check.
-	///
-	/// # Returns
-	///
-	/// * `String` - The name of the bone or slot at the point.
+	/// </summary>
+	/// <param name="x">The x-coordinate of the point to check.</param>
+	/// <param name="y">The y-coordinate of the point to check.</param>
+	/// <returns>The name of the bone or slot at the point.</returns>
 	string containsPoint(float x, float y);
+	/// <summary>
 	/// Checks if a line segment intersects the boundaries of the instance and returns the name of the bone or slot at the intersection point, or `None` if no bone or slot is found.
-	///
-	/// # Arguments
-	///
-	/// * `x1` - The x-coordinate of the start point of the line segment.
-	/// * `y1` - The y-coordinate of the start point of the line segment.
-	/// * `x2` - The x-coordinate of the end point of the line segment.
-	/// * `y2` - The y-coordinate of the end point of the line segment.
-	///
-	/// # Returns
-	///
-	/// * `String` - The name of the bone or slot at the intersection point.
+	/// </summary>
+	/// <param name="x1">The x-coordinate of the start point of the line segment.</param>
+	/// <param name="y1">The y-coordinate of the start point of the line segment.</param>
+	/// <param name="x2">The x-coordinate of the end point of the line segment.</param>
+	/// <param name="y2">The y-coordinate of the end point of the line segment.</param>
+	/// <returns>The name of the bone or slot at the intersection point.</returns>
 	string intersectsSegment(float x1, float y1, float x2, float y2);
+	/// <summary>
 	/// Creates a new instance of 'DragonBone' using the specified bone file and atlas file. This function only loads the first armature.
-	///
-	/// # Arguments
-	///
-	/// * `bone_file` - The filename of the bone file to load.
-	/// * `atlas_file` - The filename of the atlas file to load.
-	///
-	/// # Returns
-	///
-	/// * A new instance of 'DragonBone' with the specified bone file and atlas file. Returns `None` if the bone file or atlas file is not found.
+	/// </summary>
+	/// <param name="boneFile">The filename of the bone file to load.</param>
+	/// <param name="atlasFile">The filename of the atlas file to load.</param>
 	static optional DragonBone* create @ createFiles(string boneFile, string atlasFile);
+	/// <summary>
 	/// Creates a new instance of 'DragonBone' using the specified bone string.
-	///
-	/// # Arguments
-	///
-	/// * `bone_str` - The DragonBone file string for the new instance. A DragonBone file string can be a file path with the target file extension like "DragonBone/item" or file paths with all the related files like "DragonBone/item_ske.json|DragonBone/item_tex.json". An armature name can be added following a separator of ';'. like "DragonBone/item;mainArmature" or "DragonBone/item_ske.json|DragonBone/item_tex.json;mainArmature".
-	///
-	/// # Returns
-	///
-	/// * A new instance of 'DragonBone'. Returns `None` if the bone file or atlas file is not found.
+	/// </summary>
+	/// <param name="boneStr">The DragonBone file string for the new instance. A DragonBone file string can be a file path with the target file extension like "DragonBone/item" or file paths with all the related files like "DragonBone/item_ske.json|DragonBone/item_tex.json". An armature name can be added following a separator of ';'. like "DragonBone/item;mainArmature" or "DragonBone/item_ske.json|DragonBone/item_tex.json;mainArmature".</param>
 	static optional hide DragonBone* create(string boneStr);
+	/// <summary>
 	/// Returns a list of available looks for the specified DragonBone file string.
-	///
-	/// # Arguments
-	///
-	/// * `bone_str` - The DragonBone file string to get the looks for.
-	///
-	/// # Returns
-	///
-	/// * A `Vec<String>` representing the available looks.
+	/// </summary>
+	/// <param name="boneStr">The DragonBone file string to get the looks for.</param>
 	static outside VecStr DragonBone_GetLookNames @ getLooks(string boneStr);
+	/// <summary>
 	/// Returns a list of available animations for the specified DragonBone file string.
-	///
-	/// # Arguments
-	///
-	/// * `bone_str` - The DragonBone file string to get the animations for.
-	///
-	/// # Returns
-	///
-	/// * A `Vec<String>` representing the available animations.
+	/// </summary>
+	/// <param name="boneStr">The DragonBone file string to get the animations for.</param>
 	static outside VecStr DragonBone_GetAnimationNames @ getAnimations(string boneStr);
 };
 
+/// <summary>
 /// A node used for aligning layout elements.
+/// </summary>
 object class AlignNode : public Node
 {
+	/// <summary>
 	/// Sets the layout style of the node.
-	///
-	/// # Arguments
-	///
-	/// * `style` - The layout style to set.
-	/// The following properties can be set through a CSS style string:
-	/// ## Layout direction and alignment
-	/// * direction: Sets the direction (ltr, rtl, inherit).
-	/// * align-items, align-self, align-content: Sets the alignment of different items (flex-start, center, stretch, flex-end, auto).
-	/// * flex-direction: Sets the layout direction (column, row, column-reverse, row-reverse).
-	/// * justify-content: Sets the arrangement of child items (flex-start, center, flex-end, space-between, space-around, space-evenly).
-	/// ## Flex properties
-	/// * flex: Sets the overall size of the flex container.
-	/// * flex-grow: Sets the flex growth value.
-	/// * flex-shrink: Sets the flex shrink value.
-	/// * flex-wrap: Sets whether to wrap (nowrap, wrap, wrap-reverse).
-	/// * flex-basis: Sets the flex basis value or percentage.
-	/// ## Margins and dimensions
-	/// * margin: Can be set by a single value or multiple values separated by commas, percentages or auto for each side.
-	/// * margin-top, margin-right, margin-bottom, margin-left, margin-start, margin-end: Sets the margin values, percentages or auto.
-	/// * padding: Can be set by a single value or multiple values separated by commas or percentages for each side.
-	/// * padding-top, padding-right, padding-bottom, padding-left: Sets the padding values or percentages.
-	/// * border: Can be set by a single value or multiple values separated by commas for each side.
-	/// * width, height, min-width, min-height, max-width, max-height: Sets the dimension values or percentage properties.
-	/// ## Positioning
-	/// * top, right, bottom, left, start, end, horizontal, vertical: Sets the positioning property values or percentages.
-	/// ## Other properties
-	/// * position: Sets the positioning type (absolute, relative, static).
-	/// * overflow: Sets the overflow property (visible, hidden, scroll).
-	/// * display: Controls whether to display (flex, none).
+	/// </summary>
+	/// <param name="style">The layout style to set.</param>
 	void css(string style);
+	/// <summary>
 	/// Creates a new AlignNode object.
-	///
-	/// # Arguments
-	///
-	/// * `isWindowRoot` - Whether the node is a window root node. A window root node will automatically listen for window size change events and update the layout accordingly.
+	/// </summary>
+	/// <param name="isWindowRoot">Whether the node is a window root node. A window root node will automatically listen for window size change events and update the layout accordingly.</param>
 	static AlignNode* create(bool isWindowRoot);
 };
 
+/// <summary>
 /// A struct for playing Effekseer effects.
+/// </summary>
 object class EffekNode : public Node
 {
+	/// <summary>
 	/// Plays an effect at the specified position.
-	///
-	/// # Arguments
-	///
-	/// * `filename` - The filename of the effect to play.
-	/// * `pos` - The xy-position to play the effect at.
-	/// * `z` - The z-position of the effect.
-	///
-	/// # Returns
-	///
-	/// * `int` - The handle of the effect.
+	/// </summary>
+	/// <param name="filename">The filename of the effect to play.</param>
+	/// <param name="pos">The xy-position to play the effect at.</param>
+	/// <param name="z">The z-position of the effect.</param>
+	/// <returns>The handle of the effect.</returns>
 	int play(string filename, Vec2 pos, float z);
+	/// <summary>
 	/// Stops an effect with the specified handle.
-	///
-	/// # Arguments
-	///
-	/// * `handle` - The handle of the effect to stop.
+	/// </summary>
+	/// <param name="handle">The handle of the effect to stop.</param>
 	void stop(int handle);
+	/// <summary>
 	/// Creates a new EffekNode object.
-	///
-	/// # Returns
-	///
-	/// * `EffekNode` - A new EffekNode object.
+	/// </summary>
+	/// <returns>A new EffekNode object.</returns>
 	static EffekNode* create();
 };
 
+/// <summary>
 /// The TileNode class to render Tilemaps from TMX file in game scene tree hierarchy.
+/// </summary>
 object class TileNode : public Node
 {
-	/// whether the depth buffer should be written to when rendering the tilemap.
+	/// <summary>
+	/// Whether the depth buffer should be written to when rendering the tilemap.
+	/// </summary>
 	boolean bool depthWrite;
-	/// the blend function for the tilemap.
+	/// <summary>
+	/// The blend function for the tilemap.
+	/// </summary>
 	common BlendFunc blendFunc;
-	/// the tilemap shader effect.
+	/// <summary>
+	/// The tilemap shader effect.
+	/// </summary>
 	common SpriteEffect* effect;
-	/// the texture filtering mode for the tilemap.
+	/// <summary>
+	/// The texture filtering mode for the tilemap.
+	/// </summary>
 	common TextureFilter filter;
+	/// <summary>
 	/// Get the layer data by name from the tilemap.
-	///
-	/// # Arguments
-	///
-	/// * `layerName` - The name of the layer in the TMX file.
-	///
-	/// # Returns
-	///
-	/// * `Dictionary` - The layer data as a dictionary object.
+	/// </summary>
+	/// <param name="layerName">The name of the layer in the TMX file.</param>
+	/// <returns>The layer data as a dictionary object.</returns>
 	optional Dictionary* getLayer(string layerName) const;
+	/// <summary>
 	/// Creates a `TileNode` object that will render the tile layers from a TMX file.
-	///
-	/// # Arguments
-	///
-	/// * `tmxFile` - The TMX file for the tilemap. This should be a file created with the Tiled Map Editor (http://www.mapeditor.org) and must be in XML format.
-	///
-	/// # Returns
-	///
-	/// Returns a new instance of the `TileNode` class. If the tilemap file is not found, it will return `None`.
+	/// </summary>
+	/// <param name="tmxFile">The TMX file for the tilemap. This should be a file created with the Tiled Map Editor (http://www.mapeditor.org) and must be in XML format.</param>
 	static optional TileNode* create(string tmxFile);
+	/// <summary>
 	/// Creates a `TileNode` object that will render the specified tile layer from a TMX file.
-	///
-	/// # Arguments
-	///
-	/// * `tmxFile` - The TMX file for the tilemap. This should be a file created with the Tiled Map Editor (http://www.mapeditor.org) and must be in XML format.
-	/// * `layerName` - The name of the layer in the TMX file.
-	///
-	/// # Returns
-	///
-	/// Returns a new instance of the `TileNode` class. If the tilemap file is not found, it will return `None`.
+	/// </summary>
+	/// <param name="tmxFile">The TMX file for the tilemap. This should be a file created with the Tiled Map Editor (http://www.mapeditor.org) and must be in XML format.</param>
+	/// <param name="layerName">The name of the layer in the TMX file.</param>
 	static optional TileNode* create @ createWithLayer(string tmxFile, string layerName);
+	/// <summary>
 	/// Creates a `TileNode` object that will render the specified tile layers from a TMX file.
-	///
-	/// # Arguments
-	///
-	/// * `tmxFile` - The TMX file for the tilemap. This should be a file created with the Tiled Map Editor (http://www.mapeditor.org) and must be in XML format.
-	/// * `layerNames` - A vector of names of the layers in the TMX file.
-	///
-	/// # Returns
-	///
-	/// Returns a new instance of the `TileNode` class. If the tilemap file is not found, it will return `None`.
+	/// </summary>
+	/// <param name="tmxFile">The TMX file for the tilemap. This should be a file created with the Tiled Map Editor (http://www.mapeditor.org) and must be in XML format.</param>
+	/// <param name="layerNames">A vector of names of the layers in the TMX file.</param>
 	static optional TileNode* create @ createWithLayers(string tmxFile, VecStr layerNames);
 };
 
+/// <summary>
 /// A struct that represents a physics world in the game.
+/// </summary>
 object class PhysicsWorld : public Node
 {
+	/// <summary>
 	/// Queries the physics world for all bodies that intersect with the specified rectangle.
-	///
-	/// # Arguments
-	///
-	/// * `rect` - The rectangle to query for bodies.
-	/// * `handler` - A function that is called for each body found in the query. The function takes a `Body` as an argument and returns a `bool` indicating whether to continue querying for more bodies. Return `false` to continue, `true` to stop.
-	///
-	/// # Returns
-	///
-	/// * `bool` - Whether the query was interrupted. `true` means interrupted, `false` otherwise.
+	/// </summary>
+	/// <param name="rect">The rectangle to query for bodies.</param>
+	/// <param name="handler">A function that is called for each body found in the query. The function takes a `Body` as an argument and returns a `bool` indicating whether to continue querying for more bodies. Return `false` to continue, `true` to stop.</param>
+	/// <returns>Whether the query was interrupted. `true` means interrupted, `false` otherwise.</returns>
 	bool query(Rect rect, function<def_false bool(Body* body)> handler);
+	/// <summary>
 	/// Casts a ray through the physics world and finds the first body that intersects with the ray.
-	///
-	/// # Arguments
-	///
-	/// * `start` - The starting point of the ray.
-	/// * `stop` - The ending point of the ray.
-	/// * `closest` - Whether to stop ray casting upon the closest body that intersects with the ray. Set `closest` to `true` to get a faster ray casting search.
-	/// * `handler` - A function that is called for each body found in the raycast. The function takes a `Body`, a `Vec2` representing the point where the ray intersects with the body, and a `Vec2` representing the normal vector at the point of intersection as arguments, and returns a `bool` indicating whether to continue casting the ray for more bodies. Return `false` to continue, `true` to stop.
-	///
-	/// # Returns
-	///
-	/// * `bool` - Whether the raycast was interrupted. `true` means interrupted, `false` otherwise.
+	/// </summary>
+	/// <param name="start">The starting point of the ray.</param>
+	/// <param name="stop">The ending point of the ray.</param>
+	/// <param name="closest">Whether to stop ray casting upon the closest body that intersects with the ray. Set `closest` to `true` to get a faster ray casting search.</param>
+	/// <param name="handler">A function that is called for each body found in the raycast. The function takes a `Body`, a `Vec2` representing the point where the ray intersects with the body, and a `Vec2` representing the normal vector at the point of intersection as arguments, and returns a `bool` indicating whether to continue casting the ray for more bodies. Return `false` to continue, `true` to stop.</param>
+	/// <returns>Whether the raycast was interrupted. `true` means interrupted, `false` otherwise.</returns>
 	bool raycast(Vec2 start, Vec2 stop, bool closest, function<def_false bool(Body* body, Vec2 point, Vec2 normal)> handler);
+	/// <summary>
 	/// Sets the number of velocity and position iterations to perform in the physics world.
-	///
-	/// # Arguments
-	///
-	/// * `velocity_iter` - The number of velocity iterations to perform.
-	/// * `position_iter` - The number of position iterations to perform.
+	/// </summary>
+	/// <param name="velocityIter">The number of velocity iterations to perform.</param>
+	/// <param name="positionIter">The number of position iterations to perform.</param>
 	void setIterations(int velocityIter, int positionIter);
+	/// <summary>
 	/// Sets whether two physics groups should make contact with each other or not.
-	///
-	/// # Arguments
-	///
-	/// * `groupA` - The first physics group.
-	/// * `groupB` - The second physics group.
-	/// * `contact` - Whether the two groups should make contact with each other.
+	/// </summary>
+	/// <param name="groupA">The first physics group.</param>
+	/// <param name="groupB">The second physics group.</param>
+	/// <param name="contact">Whether the two groups should make contact with each other.</param>
 	void setShouldContact(uint8_t groupA, uint8_t groupB, bool contact);
+	/// <summary>
 	/// Gets whether two physics groups should make contact with each other or not.
-	///
-	/// # Arguments
-	///
-	/// * `groupA` - The first physics group.
-	/// * `groupB` - The second physics group.
-	///
-	/// # Returns
-	///
-	/// * `bool` - Whether the two groups should make contact with each other.
+	/// </summary>
+	/// <param name="groupA">The first physics group.</param>
+	/// <param name="groupB">The second physics group.</param>
+	/// <returns>Whether the two groups should make contact with each other.</returns>
 	bool getShouldContact(uint8_t groupA, uint8_t groupB);
-	/// the factor used for converting physics engine meters value to pixel value.
+	/// <summary>
+	/// The factor used for converting physics engine meters value to pixel value.
 	/// Default 100.0 is a good value since the physics engine can well simulate real life objects
 	/// between 0.1 to 10 meters. Use value 100.0 we can simulate game objects
 	/// between 10 to 1000 pixels that suite most games.
 	/// You can change this value before any physics body creation.
+	/// </summary>
 	static float scaleFactor;
+	/// <summary>
 	/// Creates a new `PhysicsWorld` object.
-	///
-	/// # Returns
-	///
-	/// * A new `PhysicsWorld` object.
+	/// </summary>
 	static PhysicsWorld* create();
 };
 
 object class FixtureDef { };
 
+/// <summary>
 /// A struct to describe the properties of a physics body.
+/// </summary>
 object class BodyDef
 {
-	/// the define for the type of the body.
+	/// <summary>
+	/// The define for the type of the body.
+	/// </summary>
 	BodyType type;
-	/// define for the position of the body.
+	/// <summary>
+	/// Define for the position of the body.
+	/// </summary>
 	Vec2 offset @ position;
-	/// define for the angle of the body.
+	/// <summary>
+	/// Define for the angle of the body.
+	/// </summary>
 	float angleOffset @ angle;
-	/// define for the face image or other items accepted by creating `Face` for the body.
+	/// <summary>
+	/// Define for the face image or other items accepted by creating `Face` for the body.
+	/// </summary>
 	string face;
-	/// define for the face position of the body.
+	/// <summary>
+	/// Define for the face position of the body.
+	/// </summary>
 	Vec2 facePos;
-	/// define for linear damping of the body.
+	/// <summary>
+	/// Define for linear damping of the body.
+	/// </summary>
 	common float linearDamping;
-	/// define for angular damping of the body.
+	/// <summary>
+	/// Define for angular damping of the body.
+	/// </summary>
 	common float angularDamping;
-	/// define for initial linear acceleration of the body.
+	/// <summary>
+	/// Define for initial linear acceleration of the body.
+	/// </summary>
 	common Vec2 linearAcceleration;
-	/// whether the body's rotation is fixed or not.
+	/// <summary>
+	/// Whether the body's rotation is fixed or not.
+	/// </summary>
 	boolean bool fixedRotation;
-	/// whether the body is a bullet or not.
+	/// <summary>
+	/// Whether the body is a bullet or not.
 	/// Set to true to add extra bullet movement check for the body.
+	/// </summary>
 	boolean bool bullet;
+	/// <summary>
 	/// Creates a polygon fixture definition with the specified dimensions and center position.
-	///
-	/// # Arguments
-	///
-	/// * `center` - The center point of the polygon.
-	/// * `width` - The width of the polygon.
-	/// * `height` - The height of the polygon.
-	/// * `angle` - The angle of the polygon.
-	/// * `density` - The density of the polygon.
-	/// * `friction` - The friction of the polygon. Should be between 0 and 1.0.
-	/// * `restitution` - The restitution of the polygon. Should be between 0 and 1.
+	/// </summary>
+	/// <param name="center">The center point of the polygon.</param>
+	/// <param name="width">The width of the polygon.</param>
+	/// <param name="height">The height of the polygon.</param>
+	/// <param name="angle">The angle of the polygon.</param>
+	/// <param name="density">The density of the polygon.</param>
+	/// <param name="friction">The friction of the polygon. Should be between 0 and 1.0.</param>
+	/// <param name="restitution">The restitution of the polygon. Should be between 0 and 1.</param>
 	static FixtureDef* polygon @ polygonWithCenter(
 		Vec2 center,
 		float width,
@@ -2624,45 +2535,42 @@ object class BodyDef
 		float density,
 		float friction,
 		float restitution);
+	/// <summary>
 	/// Creates a polygon fixture definition with the specified dimensions.
-	///
-	/// # Arguments
-	///
-	/// * `width` - The width of the polygon.
-	/// * `height` - The height of the polygon.
-	/// * `density` - The density of the polygon.
-	/// * `friction` - The friction of the polygon. Should be between 0 and 1.0.
-	/// * `restitution` - The restitution of the polygon. Should be between 0 and 1.
+	/// </summary>
+	/// <param name="width">The width of the polygon.</param>
+	/// <param name="height">The height of the polygon.</param>
+	/// <param name="density">The density of the polygon.</param>
+	/// <param name="friction">The friction of the polygon. Should be between 0 and 1.0.</param>
+	/// <param name="restitution">The restitution of the polygon. Should be between 0 and 1.</param>
 	static FixtureDef* polygon(
 		float width,
 		float height,
 		float density,
 		float friction,
 		float restitution);
+	/// <summary>
 	/// Creates a polygon fixture definition with the specified vertices.
-	///
-	/// # Arguments
-	///
-	/// * `vertices` - The vertices of the polygon.
-	/// * `density` - The density of the polygon.
-	/// * `friction` - The friction of the polygon. Should be between 0 and 1.0.
-	/// * `restitution` - The restitution of the polygon. Should be between 0 and 1.0.
+	/// </summary>
+	/// <param name="vertices">The vertices of the polygon.</param>
+	/// <param name="density">The density of the polygon.</param>
+	/// <param name="friction">The friction of the polygon. Should be between 0 and 1.0.</param>
+	/// <param name="restitution">The restitution of the polygon. Should be between 0 and 1.0.</param>
 	static FixtureDef* polygon @ polygonWithVertices(
 		VecVec2 vertices,
 		float density,
 		float friction,
 		float restitution);
+	/// <summary>
 	/// Attaches a polygon fixture definition to the body.
-	///
-	/// # Arguments
-	///
-	/// * `center` - The center point of the polygon.
-	/// * `width` - The width of the polygon.
-	/// * `height` - The height of the polygon.
-	/// * `angle` - The angle of the polygon.
-	/// * `density` - The density of the polygon.
-	/// * `friction` - The friction of the polygon. Should be between 0 and 1.0.
-	/// * `restitution` - The restitution of the polygon. Should be between 0 and 1.0.
+	/// </summary>
+	/// <param name="center">The center point of the polygon.</param>
+	/// <param name="width">The width of the polygon.</param>
+	/// <param name="height">The height of the polygon.</param>
+	/// <param name="angle">The angle of the polygon.</param>
+	/// <param name="density">The density of the polygon.</param>
+	/// <param name="friction">The friction of the polygon. Should be between 0 and 1.0.</param>
+	/// <param name="restitution">The restitution of the polygon. Should be between 0 and 1.0.</param>
 	void attachPolygon @ attachPolygonWithCenter(
 		Vec2 center,
 		float width,
@@ -2671,376 +2579,362 @@ object class BodyDef
 		float density,
 		float friction,
 		float restitution);
+	/// <summary>
 	/// Attaches a polygon fixture definition to the body.
-	///
-	/// # Arguments
-	///
-	/// * `width` - The width of the polygon.
-	/// * `height` - The height of the polygon.
-	/// * `density` - The density of the polygon.
-	/// * `friction` - The friction of the polygon. Should be between 0 and 1.0.
-	/// * `restitution` - The restitution of the polygon. Should be between 0 and 1.0.
+	/// </summary>
+	/// <param name="width">The width of the polygon.</param>
+	/// <param name="height">The height of the polygon.</param>
+	/// <param name="density">The density of the polygon.</param>
+	/// <param name="friction">The friction of the polygon. Should be between 0 and 1.0.</param>
+	/// <param name="restitution">The restitution of the polygon. Should be between 0 and 1.0.</param>
 	void attachPolygon(
 		float width,
 		float height,
 		float density,
 		float friction,
 		float restitution);
+	/// <summary>
 	/// Attaches a polygon fixture definition to the body.
-	///
-	/// # Arguments
-	///
-	/// * `vertices` - The vertices of the polygon.
-	/// * `density` - The density of the polygon.
-	/// * `friction` - The friction of the polygon. Should be between 0 and 1.0.
-	/// * `restitution` - The restitution of the polygon. Should be between 0 and 1.0.
+	/// </summary>
+	/// <param name="vertices">The vertices of the polygon.</param>
+	/// <param name="density">The density of the polygon.</param>
+	/// <param name="friction">The friction of the polygon. Should be between 0 and 1.0.</param>
+	/// <param name="restitution">The restitution of the polygon. Should be between 0 and 1.0.</param>
 	void attachPolygon @ attachPolygonWithVertices(
 		VecVec2 vertices,
 		float density,
 		float friction,
 		float restitution);
+	/// <summary>
 	/// Creates a concave shape definition made of multiple convex shapes.
-	///
-	/// # Arguments
-	///
-	/// * `vertices` - A vector containing the vertices of each convex shape that makes up the concave shape. Each convex shape in the vertices vector should end with a `Vec2(0.0, 0.0)` as separator.
-	/// * `density` - The density of the shape.
-	/// * `friction` - The friction coefficient of the shape. Should be between 0.0 and 1.0.
-	/// * `restitution` - The restitution (elasticity) of the shape. Should be between 0.0 and 1.0.
-	///
-	/// # Returns
-	///
-	/// * `FixtureDef` - The resulting fixture definition.
+	/// </summary>
+	/// <param name="vertices">A vector containing the vertices of each convex shape that makes up the concave shape. Each convex shape in the vertices vector should end with a `Vec2(0.0, 0.0)` as separator.</param>
+	/// <param name="density">The density of the shape.</param>
+	/// <param name="friction">The friction coefficient of the shape. Should be between 0.0 and 1.0.</param>
+	/// <param name="restitution">The restitution (elasticity) of the shape. Should be between 0.0 and 1.0.</param>
+	/// <returns>The resulting fixture definition.</returns>
 	static FixtureDef* multi(
 		VecVec2 vertices,
 		float density,
 		float friction,
 		float restitution);
+	/// <summary>
 	/// Attaches a concave shape definition made of multiple convex shapes to the body.
-	///
-	/// # Arguments
-	///
-	/// * `vertices` - A vector containing the vertices of each convex shape that makes up the concave shape. Each convex shape in the vertices vector should end with a `Vec2(0.0, 0.0)` as separator.
-	/// * `density` - The density of the concave shape.
-	/// * `friction` - The friction of the concave shape. Should be between 0.0 and 1.0.
-	/// * `restitution` - The restitution of the concave shape. Should be between 0.0 and 1.0.
+	/// </summary>
+	/// <param name="vertices">A vector containing the vertices of each convex shape that makes up the concave shape. Each convex shape in the vertices vector should end with a `Vec2(0.0, 0.0)` as separator.</param>
+	/// <param name="density">The density of the concave shape.</param>
+	/// <param name="friction">The friction of the concave shape. Should be between 0.0 and 1.0.</param>
+	/// <param name="restitution">The restitution of the concave shape. Should be between 0.0 and 1.0.</param>
 	void attachMulti(
 		VecVec2 vertices,
 		float density,
 		float friction,
 		float restitution);
+	/// <summary>
 	/// Creates a Disk-shape fixture definition.
-	///
-	/// # Arguments
-	///
-	/// * `center` - The center of the circle.
-	/// * `radius` - The radius of the circle.
-	/// * `density` - The density of the circle.
-	/// * `friction` - The friction coefficient of the circle. Should be between 0.0 and 1.0.
-	/// * `restitution` - The restitution (elasticity) of the circle. Should be between 0.0 and 1.0.
-	///
-	/// # Returns
-	///
-	/// * `FixtureDef` - The resulting fixture definition.
+	/// </summary>
+	/// <param name="center">The center of the circle.</param>
+	/// <param name="radius">The radius of the circle.</param>
+	/// <param name="density">The density of the circle.</param>
+	/// <param name="friction">The friction coefficient of the circle. Should be between 0.0 and 1.0.</param>
+	/// <param name="restitution">The restitution (elasticity) of the circle. Should be between 0.0 and 1.0.</param>
+	/// <returns>The resulting fixture definition.</returns>
 	static FixtureDef* disk @ diskWithCenter(
 		Vec2 center,
 		float radius,
 		float density,
 		float friction,
 		float restitution);
+	/// <summary>
 	/// Creates a Disk-shape fixture definition.
-	///
-	/// # Arguments
-	///
-	/// * `radius` - The radius of the circle.
-	/// * `density` - The density of the circle.
-	/// * `friction` - The friction coefficient of the circle. Should be between 0.0 and 1.0.
-	/// * `restitution` - The restitution (elasticity) of the circle. Should be between 0.0 and 1.0.
-	///
-	/// # Returns
-	///
-	/// * `FixtureDef` - The resulting fixture definition.
+	/// </summary>
+	/// <param name="radius">The radius of the circle.</param>
+	/// <param name="density">The density of the circle.</param>
+	/// <param name="friction">The friction coefficient of the circle. Should be between 0.0 and 1.0.</param>
+	/// <param name="restitution">The restitution (elasticity) of the circle. Should be between 0.0 and 1.0.</param>
+	/// <returns>The resulting fixture definition.</returns>
 	static FixtureDef* disk(
 		float radius,
 		float density,
 		float friction,
 		float restitution);
+	/// <summary>
 	/// Attaches a disk fixture definition to the body.
-	///
-	/// # Arguments
-	///
-	/// * `center` - The center point of the disk.
-	/// * `radius` - The radius of the disk.
-	/// * `density` - The density of the disk.
-	/// * `friction` - The friction of the disk. Should be between 0.0 and 1.0.
-	/// * `restitution` - The restitution of the disk. Should be between 0.0 and 1.0.
+	/// </summary>
+	/// <param name="center">The center point of the disk.</param>
+	/// <param name="radius">The radius of the disk.</param>
+	/// <param name="density">The density of the disk.</param>
+	/// <param name="friction">The friction of the disk. Should be between 0.0 and 1.0.</param>
+	/// <param name="restitution">The restitution of the disk. Should be between 0.0 and 1.0.</param>
 	void attachDisk @ attachDiskWithCenter(
 		Vec2 center,
 		float radius,
 		float density,
 		float friction,
 		float restitution);
+	/// <summary>
 	/// Attaches a disk fixture definition to the body.
-	///
-	/// # Arguments
-	///
-	/// * `radius` - The radius of the disk.
-	/// * `density` - The density of the disk.
-	/// * `friction` - The friction of the disk. Should be between 0.0 and 1.0.
-	/// * `restitution` - The restitution of the disk. Should be between 0.0 and 1.0.
+	/// </summary>
+	/// <param name="radius">The radius of the disk.</param>
+	/// <param name="density">The density of the disk.</param>
+	/// <param name="friction">The friction of the disk. Should be between 0.0 and 1.0.</param>
+	/// <param name="restitution">The restitution of the disk. Should be between 0.0 and 1.0.</param>
 	void attachDisk(
 		float radius,
 		float density,
 		float friction,
 		float restitution);
+	/// <summary>
 	/// Creates a Chain-shape fixture definition. This fixture is a free form sequence of line segments that has two-sided collision.
-	///
-	/// # Arguments
-	///
-	/// * `vertices` - The vertices of the chain.
-	/// * `friction` - The friction coefficient of the chain. Should be between 0.0 and 1.0.
-	/// * `restitution` - The restitution (elasticity) of the chain. Should be between 0.0 and 1.0.
-	///
-	/// # Returns
-	///
-	/// * `FixtureDef` - The resulting fixture definition.
+	/// </summary>
+	/// <param name="vertices">The vertices of the chain.</param>
+	/// <param name="friction">The friction coefficient of the chain. Should be between 0.0 and 1.0.</param>
+	/// <param name="restitution">The restitution (elasticity) of the chain. Should be between 0.0 and 1.0.</param>
+	/// <returns>The resulting fixture definition.</returns>
 	static FixtureDef* chain(
 		VecVec2 vertices,
 		float friction,
 		float restitution);
+	/// <summary>
 	/// Attaches a chain fixture definition to the body. The Chain fixture is a free form sequence of line segments that has two-sided collision.
-	///
-	/// # Arguments
-	///
-	/// * `vertices` - The vertices of the chain.
-	/// * `friction` - The friction of the chain. Should be between 0.0 and 1.0.
-	/// * `restitution` - The restitution of the chain. Should be between 0.0 and 1.0.
+	/// </summary>
+	/// <param name="vertices">The vertices of the chain.</param>
+	/// <param name="friction">The friction of the chain. Should be between 0.0 and 1.0.</param>
+	/// <param name="restitution">The restitution of the chain. Should be between 0.0 and 1.0.</param>
 	void attachChain(
 		VecVec2 vertices,
 		float friction,
 		float restitution);
+	/// <summary>
 	/// Attaches a polygon sensor fixture definition to the body.
-	///
-	/// # Arguments
-	///
-	/// * `tag` - An integer tag for the sensor.
-	/// * `width` - The width of the polygon.
-	/// * `height` - The height of the polygon.
+	/// </summary>
+	/// <param name="tag">An integer tag for the sensor.</param>
+	/// <param name="width">The width of the polygon.</param>
+	/// <param name="height">The height of the polygon.</param>
 	void attachPolygonSensor(
 		int tag,
 		float width,
 		float height);
+	/// <summary>
 	/// Attaches a polygon sensor fixture definition to the body.
-	///
-	/// # Arguments
-	///
-	/// * `tag` - An integer tag for the sensor.
-	/// * `center` - The center point of the polygon.
-	/// * `width` - The width of the polygon.
-	/// * `height` - The height of the polygon.
-	/// * `angle` - Optional. The angle of the polygon.
+	/// </summary>
+	/// <param name="tag">An integer tag for the sensor.</param>
+	/// <param name="center">The center point of the polygon.</param>
+	/// <param name="width">The width of the polygon.</param>
+	/// <param name="height">The height of the polygon.</param>
+	/// <param name="angle">Optional. The angle of the polygon.</param>
 	void attachPolygonSensor @ attachPolygonSensorWithCenter(
 		int tag,
 		Vec2 center,
 		float width,
 		float height,
 		float angle);
+	/// <summary>
 	/// Attaches a polygon sensor fixture definition to the body.
-	///
-	/// # Arguments
-	///
-	/// * `tag` - An integer tag for the sensor.
-	/// * `vertices` - A vector containing the vertices of the polygon.
+	/// </summary>
+	/// <param name="tag">An integer tag for the sensor.</param>
+	/// <param name="vertices">A vector containing the vertices of the polygon.</param>
 	void attachPolygonSensor @ attachPolygonSensorWithVertices(
 		int tag,
 		VecVec2 vertices);
+	/// <summary>
 	/// Attaches a disk sensor fixture definition to the body.
-	///
-	/// # Arguments
-	///
-	/// * `tag` - An integer tag for the sensor.
-	/// * `center` - The center of the disk.
-	/// * `radius` - The radius of the disk.
+	/// </summary>
+	/// <param name="tag">An integer tag for the sensor.</param>
+	/// <param name="center">The center of the disk.</param>
+	/// <param name="radius">The radius of the disk.</param>
 	void attachDiskSensor @ attachDiskSensorWithCenter(
 		int tag,
 		Vec2 center,
 		float radius);
+	/// <summary>
 	/// Attaches a disk sensor fixture definition to the body.
-	///
-	/// # Arguments
-	///
-	/// * `tag` - An integer tag for the sensor.
-	/// * `radius` - The radius of the disk.
+	/// </summary>
+	/// <param name="tag">An integer tag for the sensor.</param>
+	/// <param name="radius">The radius of the disk.</param>
 	void attachDiskSensor(
 		int tag,
 		float radius);
+	/// <summary>
 	/// Creates a new instance of `BodyDef` class.
-	///
-	/// # Returns
-	///
-	/// * A new `BodyDef` object.
+	/// </summary>
 	static BodyDef* create();
 };
 
+/// <summary>
 /// A struct to represent a physics sensor object in the game world.
+/// </summary>
 object class Sensor
 {
-	/// whether the sensor is currently enabled or not.
+	/// <summary>
+	/// Whether the sensor is currently enabled or not.
+	/// </summary>
 	boolean bool enabled;
-	/// the tag for the sensor.
+	/// <summary>
+	/// The tag for the sensor.
+	/// </summary>
 	readonly common int tag;
-	/// the "Body" object that owns the sensor.
+	/// <summary>
+	/// The "Body" object that owns the sensor.
+	/// </summary>
 	readonly common Body* owner;
-	/// whether the sensor is currently sensing any other "Body" objects in the game world.
+	/// <summary>
+	/// Whether the sensor is currently sensing any other "Body" objects in the game world.
+	/// </summary>
 	readonly boolean bool sensed;
-	/// the array of "Body" objects that are currently being sensed by the sensor.
+	/// <summary>
+	/// The array of "Body" objects that are currently being sensed by the sensor.
+	/// </summary>
 	readonly common Array* sensedBodies;
+	/// <summary>
 	/// Determines whether the specified `Body` object is currently being sensed by the sensor.
-	///
-	/// # Arguments
-	///
-	/// * `body` - The `Body` object to check if it is being sensed.
-	///
-	/// # Returns
-	///
-	/// * `bool` - `true` if the `Body` object is being sensed by the sensor, `false` otherwise.
+	/// </summary>
+	/// <param name="body">The `Body` object to check if it is being sensed.</param>
+	/// <returns>`true` if the `Body` object is being sensed by the sensor, `false` otherwise.</returns>
 	bool contains(Body* body);
 };
 
+/// <summary>
 /// A struct represents a physics body in the world.
+/// </summary>
 object class Body : public Node
 {
-	/// the physics world that the body belongs to.
+	/// <summary>
+	/// The physics world that the body belongs to.
+	/// </summary>
 	readonly common PhysicsWorld* physicsWorld @ world;
-	/// the definition of the body.
+	/// <summary>
+	/// The definition of the body.
+	/// </summary>
 	readonly common BodyDef* bodyDef;
-	/// the mass of the body.
+	/// <summary>
+	/// The mass of the body.
+	/// </summary>
 	readonly common float mass;
-	/// whether the body is used as a sensor or not.
+	/// <summary>
+	/// Whether the body is used as a sensor or not.
+	/// </summary>
 	readonly boolean bool sensor;
-	/// the x-axis velocity of the body.
+	/// <summary>
+	/// The x-axis velocity of the body.
+	/// </summary>
 	common float velocityX;
-	/// the y-axis velocity of the body.
+	/// <summary>
+	/// The y-axis velocity of the body.
+	/// </summary>
 	common float velocityY;
-	/// the velocity of the body as a `Vec2`.
+	/// <summary>
+	/// The velocity of the body as a `Vec2`.
+	/// </summary>
 	common Vec2 velocity;
-	/// the angular rate of the body.
+	/// <summary>
+	/// The angular rate of the body.
+	/// </summary>
 	common float angularRate;
-	/// the collision group that the body belongs to.
+	/// <summary>
+	/// The collision group that the body belongs to.
+	/// </summary>
 	common uint8_t group;
-	/// the linear damping of the body.
+	/// <summary>
+	/// The linear damping of the body.
+	/// </summary>
 	common float linearDamping;
-	/// the angular damping of the body.
+	/// <summary>
+	/// The angular damping of the body.
+	/// </summary>
 	common float angularDamping;
-	/// the reference for an owner of the body.
+	/// <summary>
+	/// The reference for an owner of the body.
+	/// </summary>
 	common Object* owner;
-	/// whether the body is currently receiving contact events or not.
+	/// <summary>
+	/// Whether the body is currently receiving contact events or not.
+	/// </summary>
 	boolean bool receivingContact;
+	/// <summary>
 	/// Applies a linear impulse to the body at a specified position.
-	///
-	/// # Arguments
-	///
-	/// * `impulse` - The linear impulse to apply.
-	/// * `pos` - The position at which to apply the impulse.
+	/// </summary>
+	/// <param name="impulse">The linear impulse to apply.</param>
+	/// <param name="pos">The position at which to apply the impulse.</param>
 	void applyLinearImpulse(Vec2 impulse, Vec2 pos);
+	/// <summary>
 	/// Applies an angular impulse to the body.
-	///
-	/// # Arguments
-	///
-	/// * `impulse` - The angular impulse to apply.
+	/// </summary>
+	/// <param name="impulse">The angular impulse to apply.</param>
 	void applyAngularImpulse(float impulse);
+	/// <summary>
 	/// Returns the sensor with the given tag.
-	///
-	/// # Arguments
-	///
-	/// * `tag` - The tag of the sensor to get.
-	///
-	/// # Returns
-	///
-	/// * `Sensor` - The sensor with the given tag.
+	/// </summary>
+	/// <param name="tag">The tag of the sensor to get.</param>
+	/// <returns>The sensor with the given tag.</returns>
 	Sensor* getSensorByTag(int tag);
+	/// <summary>
 	/// Removes the sensor with the specified tag from the body.
-	///
-	/// # Arguments
-	///
-	/// * `tag` - The tag of the sensor to remove.
-	///
-	/// # Returns
-	///
-	/// * `bool` - Whether a sensor with the specified tag was found and removed.
+	/// </summary>
+	/// <param name="tag">The tag of the sensor to remove.</param>
+	/// <returns>Whether a sensor with the specified tag was found and removed.</returns>
 	bool removeSensorByTag(int tag);
+	/// <summary>
 	/// Removes the given sensor from the body's sensor list.
-	///
-	/// # Arguments
-	///
-	/// * `sensor` - The sensor to remove.
-	///
-	/// # Returns
-	///
-	/// * `bool` - `true` if the sensor was successfully removed, `false` otherwise.
+	/// </summary>
+	/// <param name="sensor">The sensor to remove.</param>
+	/// <returns>`true` if the sensor was successfully removed, `false` otherwise.</returns>
 	bool removeSensor(Sensor* sensor);
+	/// <summary>
 	/// Attaches a fixture to the body.
-	///
-	/// # Arguments
-	///
-	/// * `fixture_def` - The fixture definition for the fixture to attach.
+	/// </summary>
+	/// <param name="fixtureDef">The fixture definition for the fixture to attach.</param>
 	void attach(FixtureDef* fixtureDef);
+	/// <summary>
 	/// Attaches a new sensor with the given tag and fixture definition to the body.
-	///
-	/// # Arguments
-	///
-	/// * `tag` - The tag of the sensor to attach.
-	/// * `fixture_def` - The fixture definition of the sensor.
-	///
-	/// # Returns
-	///
-	/// * `Sensor` - The newly attached sensor.
+	/// </summary>
+	/// <param name="tag">The tag of the sensor to attach.</param>
+	/// <param name="fixtureDef">The fixture definition of the sensor.</param>
+	/// <returns>The newly attached sensor.</returns>
 	Sensor* attachSensor(int tag, FixtureDef* fixtureDef);
+	/// <summary>
 	/// Registers a function to be called when the body begins to receive contact events. Return `false` from this function to prevent colliding.
-	///
-	/// # Arguments
-	///
-	/// * `filter` - The filter function to set.
+	/// </summary>
+	/// <param name="filter">The filter function to set.</param>
 	void onContactFilter(function<def_false bool(Body* body)> filter);
+	/// <summary>
 	/// Creates a new instance of `Body`.
-	///
-	/// # Arguments
-	///
-	/// * `def` - The definition for the body to be created.
-	/// * `world` - The physics world where the body belongs.
-	/// * `pos` - The initial position of the body.
-	/// * `rot` - The initial rotation angle of the body in degrees.
-	///
-	/// # Returns
-	///
-	/// * A new `Body` instance.
+	/// </summary>
+	/// <param name="def">The definition for the body to be created.</param>
+	/// <param name="world">The physics world where the body belongs.</param>
+	/// <param name="pos">The initial position of the body.</param>
+	/// <param name="rot">The initial rotation angle of the body in degrees.</param>
 	static Body* create(BodyDef* def, PhysicsWorld* world, Vec2 pos, float rot);
 };
 
+/// <summary>
 /// A struct that defines the properties of a joint to be created.
+/// </summary>
 object class JointDef
 {
-	/// the center point of the joint, in local coordinates.
+	/// <summary>
+	/// The center point of the joint, in local coordinates.
+	/// </summary>
 	Vec2 center;
-	/// the position of the joint, in world coordinates.
+	/// <summary>
+	/// The position of the joint, in world coordinates.
+	/// </summary>
 	Vec2 position;
-	/// the angle of the joint, in degrees.
+	/// <summary>
+	/// The angle of the joint, in degrees.
+	/// </summary>
 	float angle;
+	/// <summary>
 	/// Creates a distance joint definition.
-	///
-	/// # Arguments
-	///
-	/// * `can_collide` - Whether or not the physics body connected to joint will collide with each other.
-	/// * `body_a` - The name of first physics body to connect with the joint.
-	/// * `body_b` - The name of second physics body to connect with the joint.
-	/// * `anchor_a` - The position of the joint on the first physics body.
-	/// * `anchor_b` - The position of the joint on the second physics body.
-	/// * `frequency` - The frequency of the joint, in Hertz.
-	/// * `damping` - The damping ratio of the joint.
-	///
-	/// # Returns
-	///
-	/// * `JointDef` - The new joint definition.
+	/// </summary>
+	/// <param name="collision">Whether or not the physics body connected to joint will collide with each other.</param>
+	/// <param name="bodyA">The name of first physics body to connect with the joint.</param>
+	/// <param name="bodyB">The name of second physics body to connect with the joint.</param>
+	/// <param name="anchorA">The position of the joint on the first physics body.</param>
+	/// <param name="anchorB">The position of the joint on the second physics body.</param>
+	/// <param name="frequency">The frequency of the joint, in Hertz.</param>
+	/// <param name="damping">The damping ratio of the joint.</param>
+	/// <returns>The new joint definition.</returns>
 	static JointDef* distance(
 		bool collision,
 		string bodyA,
@@ -3049,20 +2943,16 @@ object class JointDef
 		Vec2 anchorB,
 		float frequency,
 		float damping);
+	/// <summary>
 	/// Creates a friction joint definition.
-	///
-	/// # Arguments
-	///
-	/// * `can_collide` - Whether or not the physics body connected to joint will collide with each other.
-	/// * `body_a` - The first physics body to connect with the joint.
-	/// * `body_b` - The second physics body to connect with the joint.
-	/// * `world_pos` - The position of the joint in the game world.
-	/// * `max_force` - The maximum force that can be applied to the joint.
-	/// * `max_torque` - The maximum torque that can be applied to the joint.
-	///
-	/// # Returns
-	///
-	/// * `Joint` - The new friction joint definition.
+	/// </summary>
+	/// <param name="collision">Whether or not the physics body connected to joint will collide with each other.</param>
+	/// <param name="bodyA">The first physics body to connect with the joint.</param>
+	/// <param name="bodyB">The second physics body to connect with the joint.</param>
+	/// <param name="worldPos">The position of the joint in the game world.</param>
+	/// <param name="maxForce">The maximum force that can be applied to the joint.</param>
+	/// <param name="maxTorque">The maximum torque that can be applied to the joint.</param>
+	/// <returns>The new friction joint definition.</returns>
 	static JointDef* friction(
 		bool collision,
 		string bodyA,
@@ -3070,39 +2960,31 @@ object class JointDef
 		Vec2 worldPos,
 		float maxForce,
 		float maxTorque);
+	/// <summary>
 	/// Creates a gear joint definition.
-	///
-	/// # Arguments
-	///
-	/// * `can_collide` - Whether or not the physics bodies connected to the joint can collide with each other.
-	/// * `joint_a` - The first joint to connect with the gear joint.
-	/// * `joint_b` - The second joint to connect with the gear joint.
-	/// * `ratio` - The gear ratio.
-	///
-	/// # Returns
-	///
-	/// * `Joint` - The new gear joint definition.
+	/// </summary>
+	/// <param name="collision">Whether or not the physics bodies connected to the joint can collide with each other.</param>
+	/// <param name="jointA">The first joint to connect with the gear joint.</param>
+	/// <param name="jointB">The second joint to connect with the gear joint.</param>
+	/// <param name="ratio">The gear ratio.</param>
+	/// <returns>The new gear joint definition.</returns>
 	static JointDef* gear(
 		bool collision,
 		string jointA,
 		string jointB,
 		float ratio);
+	/// <summary>
 	/// Creates a new spring joint definition.
-	///
-	/// # Arguments
-	///
-	/// * `can_collide` - Whether the connected bodies should collide with each other.
-	/// * `body_a` - The first body connected to the joint.
-	/// * `body_b` - The second body connected to the joint.
-	/// * `linear_offset` - Position of body-B minus the position of body-A, in body-A's frame.
-	/// * `angular_offset` - Angle of body-B minus angle of body-A.
-	/// * `max_force` - The maximum force the joint can exert.
-	/// * `max_torque` - The maximum torque the joint can exert.
-	/// * `correction_factor` - Correction factor. 0.0 = no correction, 1.0 = full correction.
-	///
-	/// # Returns
-	///
-	/// * `Joint` - The created joint definition.
+	/// </summary>
+	/// <param name="collision">Whether the connected bodies should collide with each other.</param>
+	/// <param name="bodyA">The first body connected to the joint.</param>
+	/// <param name="bodyB">The second body connected to the joint.</param>
+	/// <param name="linearOffset">Position of body-B minus the position of body-A, in body-A's frame.</param>
+	/// <param name="angularOffset">Angle of body-B minus angle of body-A.</param>
+	/// <param name="maxForce">The maximum force the joint can exert.</param>
+	/// <param name="maxTorque">The maximum torque the joint can exert.</param>
+	/// <param name="correctionFactor">Correction factor. 0.0 = no correction, 1.0 = full correction.</param>
+	/// <returns>The created joint definition.</returns>
 	static JointDef* spring(
 		bool collision,
 		string bodyA,
@@ -3112,23 +2994,19 @@ object class JointDef
 		float maxForce,
 		float maxTorque,
 		float correctionFactor);
+	/// <summary>
 	/// Creates a new prismatic joint definition.
-	///
-	/// # Arguments
-	///
-	/// * `can_collide` - Whether the connected bodies should collide with each other.
-	/// * `body_a` - The first body connected to the joint.
-	/// * `body_b` - The second body connected to the joint.
-	/// * `world_pos` - The world position of the joint.
-	/// * `axis_angle` - The axis angle of the joint.
-	/// * `lower_translation` - Lower translation limit.
-	/// * `upper_translation` - Upper translation limit.
-	/// * `max_motor_force` - Maximum motor force.
-	/// * `motor_speed` - Motor speed.
-	///
-	/// # Returns
-	///
-	/// * `MotorJoint` - The created prismatic joint definition.
+	/// </summary>
+	/// <param name="collision">Whether the connected bodies should collide with each other.</param>
+	/// <param name="bodyA">The first body connected to the joint.</param>
+	/// <param name="bodyB">The second body connected to the joint.</param>
+	/// <param name="worldPos">The world position of the joint.</param>
+	/// <param name="axisAngle">The axis angle of the joint.</param>
+	/// <param name="lowerTranslation">Lower translation limit.</param>
+	/// <param name="upperTranslation">Upper translation limit.</param>
+	/// <param name="maxMotorForce">Maximum motor force.</param>
+	/// <param name="motorSpeed">Motor speed.</param>
+	/// <returns>The created prismatic joint definition.</returns>
 	static JointDef* prismatic(
 		bool collision,
 		string bodyA,
@@ -3139,22 +3017,18 @@ object class JointDef
 		float upperTranslation,
 		float maxMotorForce,
 		float motorSpeed);
+	/// <summary>
 	/// Creates a pulley joint definition.
-	///
-	/// # Arguments
-	///
-	/// * `can_collide` - Whether or not the connected bodies will collide with each other.
-	/// * `body_a` - The first physics body to connect.
-	/// * `body_b` - The second physics body to connect.
-	/// * `anchor_a` - The position of the anchor point on the first body.
-	/// * `anchor_b` - The position of the anchor point on the second body.
-	/// * `ground_anchor_a` - The position of the ground anchor point on the first body in world coordinates.
-	/// * `ground_anchor_b` - The position of the ground anchor point on the second body in world coordinates.
-	/// * `ratio` - The pulley ratio.
-	///
-	/// # Returns
-	///
-	/// * `Joint` - The pulley joint definition.
+	/// </summary>
+	/// <param name="collision">Whether or not the connected bodies will collide with each other.</param>
+	/// <param name="bodyA">The first physics body to connect.</param>
+	/// <param name="bodyB">The second physics body to connect.</param>
+	/// <param name="anchorA">The position of the anchor point on the first body.</param>
+	/// <param name="anchorB">The position of the anchor point on the second body.</param>
+	/// <param name="groundAnchorA">The position of the ground anchor point on the first body in world coordinates.</param>
+	/// <param name="groundAnchorB">The position of the ground anchor point on the second body in world coordinates.</param>
+	/// <param name="ratio">The pulley ratio.</param>
+	/// <returns>The pulley joint definition.</returns>
 	static JointDef* pulley(
 		bool collision,
 		string bodyA,
@@ -3164,22 +3038,18 @@ object class JointDef
 		Vec2 groundAnchorA,
 		Vec2 groundAnchorB,
 		float ratio);
+	/// <summary>
 	/// Creates a revolute joint definition.
-	///
-	/// # Arguments
-	///
-	/// * `can_collide` - Whether or not the connected bodies will collide with each other.
-	/// * `body_a` - The first physics body to connect.
-	/// * `body_b` - The second physics body to connect.
-	/// * `world_pos` - The position in world coordinates where the joint will be created.
-	/// * `lower_angle` - The lower angle limit in radians.
-	/// * `upper_angle` - The upper angle limit in radians.
-	/// * `max_motor_torque` - The maximum torque that can be applied to the joint to achieve the target speed.
-	/// * `motor_speed` - The desired speed of the joint.
-	///
-	/// # Returns
-	///
-	/// * `MotorJoint` - The revolute joint definition.
+	/// </summary>
+	/// <param name="collision">Whether or not the connected bodies will collide with each other.</param>
+	/// <param name="bodyA">The first physics body to connect.</param>
+	/// <param name="bodyB">The second physics body to connect.</param>
+	/// <param name="worldPos">The position in world coordinates where the joint will be created.</param>
+	/// <param name="lowerAngle">The lower angle limit in radians.</param>
+	/// <param name="upperAngle">The upper angle limit in radians.</param>
+	/// <param name="maxMotorTorque">The maximum torque that can be applied to the joint to achieve the target speed.</param>
+	/// <param name="motorSpeed">The desired speed of the joint.</param>
+	/// <returns>The revolute joint definition.</returns>
 	static JointDef* revolute(
 		bool collision,
 		string bodyA,
@@ -3189,20 +3059,16 @@ object class JointDef
 		float upperAngle,
 		float maxMotorTorque,
 		float motorSpeed);
+	/// <summary>
 	/// Creates a rope joint definition.
-	///
-	/// # Arguments
-	///
-	/// * `can_collide` - Whether or not the connected bodies will collide with each other.
-	/// * `body_a` - The first physics body to connect.
-	/// * `body_b` - The second physics body to connect.
-	/// * `anchor_a` - The position of the anchor point on the first body.
-	/// * `anchor_b` - The position of the anchor point on the second body.
-	/// * `max_length` - The maximum distance between the anchor points.
-	///
-	/// # Returns
-	///
-	/// * `Joint` - The rope joint definition.
+	/// </summary>
+	/// <param name="collision">Whether or not the connected bodies will collide with each other.</param>
+	/// <param name="bodyA">The first physics body to connect.</param>
+	/// <param name="bodyB">The second physics body to connect.</param>
+	/// <param name="anchorA">The position of the anchor point on the first body.</param>
+	/// <param name="anchorB">The position of the anchor point on the second body.</param>
+	/// <param name="maxLength">The maximum distance between the anchor points.</param>
+	/// <returns>The rope joint definition.</returns>
 	static JointDef* rope(
 		bool collision,
 		string bodyA,
@@ -3210,20 +3076,16 @@ object class JointDef
 		Vec2 anchorA,
 		Vec2 anchorB,
 		float maxLength);
+	/// <summary>
 	/// Creates a weld joint definition.
-	///
-	/// # Arguments
-	///
-	/// * `can_collide` - Whether or not the bodies connected to the joint can collide with each other.
-	/// * `body_a` - The first body to be connected by the joint.
-	/// * `body_b` - The second body to be connected by the joint.
-	/// * `world_pos` - The position in the world to connect the bodies together.
-	/// * `frequency` - The frequency at which the joint should be stiff.
-	/// * `damping` - The damping rate of the joint.
-	///
-	/// # Returns
-	///
-	/// * `Joint` - The newly created weld joint definition.
+	/// </summary>
+	/// <param name="collision">Whether or not the bodies connected to the joint can collide with each other.</param>
+	/// <param name="bodyA">The first body to be connected by the joint.</param>
+	/// <param name="bodyB">The second body to be connected by the joint.</param>
+	/// <param name="worldPos">The position in the world to connect the bodies together.</param>
+	/// <param name="frequency">The frequency at which the joint should be stiff.</param>
+	/// <param name="damping">The damping rate of the joint.</param>
+	/// <returns>The newly created weld joint definition.</returns>
 	static JointDef* weld(
 		bool collision,
 		string bodyA,
@@ -3231,23 +3093,19 @@ object class JointDef
 		Vec2 worldPos,
 		float frequency,
 		float damping);
+	/// <summary>
 	/// Creates a wheel joint definition.
-	///
-	/// # Arguments
-	///
-	/// * `can_collide` - Whether or not the bodies connected to the joint can collide with each other.
-	/// * `body_a` - The first body to be connected by the joint.
-	/// * `body_b` - The second body to be connected by the joint.
-	/// * `world_pos` - The position in the world to connect the bodies together.
-	/// * `axis_angle` - The angle of the joint axis in radians.
-	/// * `max_motor_torque` - The maximum torque the joint motor can exert.
-	/// * `motor_speed` - The target speed of the joint motor.
-	/// * `frequency` - The frequency at which the joint should be stiff.
-	/// * `damping` - The damping rate of the joint.
-	///
-	/// # Returns
-	///
-	/// * `MotorJoint` - The newly created wheel joint definition.
+	/// </summary>
+	/// <param name="collision">Whether or not the bodies connected to the joint can collide with each other.</param>
+	/// <param name="bodyA">The first body to be connected by the joint.</param>
+	/// <param name="bodyB">The second body to be connected by the joint.</param>
+	/// <param name="worldPos">The position in the world to connect the bodies together.</param>
+	/// <param name="axisAngle">The angle of the joint axis in radians.</param>
+	/// <param name="maxMotorTorque">The maximum torque the joint motor can exert.</param>
+	/// <param name="motorSpeed">The target speed of the joint motor.</param>
+	/// <param name="frequency">The frequency at which the joint should be stiff.</param>
+	/// <param name="damping">The damping rate of the joint.</param>
+	/// <returns>The newly created wheel joint definition.</returns>
 	static JointDef* wheel(
 		bool collision,
 		string bodyA,
@@ -3260,24 +3118,22 @@ object class JointDef
 		float damping);
 };
 
+/// <summary>
 /// A struct that can be used to connect physics bodies together.
+/// </summary>
 object class Joint
 {
+	/// <summary>
 	/// Creates a distance joint between two physics bodies.
-	///
-	/// # Arguments
-	///
-	/// * `can_collide` - Whether or not the physics body connected to joint will collide with each other.
-	/// * `body_a` - The first physics body to connect with the joint.
-	/// * `body_b` - The second physics body to connect with the joint.
-	/// * `anchor_a` - The position of the joint on the first physics body.
-	/// * `anchor_b` - The position of the joint on the second physics body.
-	/// * `frequency` - The frequency of the joint, in Hertz.
-	/// * `damping` - The damping ratio of the joint.
-	///
-	/// # Returns
-	///
-	/// * `Joint` - The new distance joint.
+	/// </summary>
+	/// <param name="can_collide">Whether or not the physics body connected to joint will collide with each other.</param>
+	/// <param name="body_a">The first physics body to connect with the joint.</param>
+	/// <param name="body_b">The second physics body to connect with the joint.</param>
+	/// <param name="anchor_a">The position of the joint on the first physics body.</param>
+	/// <param name="anchor_b">The position of the joint on the second physics body.</param>
+	/// <param name="frequency">The frequency of the joint, in Hertz.</param>
+	/// <param name="damping">The damping ratio of the joint.</param>
+	/// <returns>The new distance joint.</returns>
 	static Joint* distance(
 		bool collision,
 		Body* bodyA,
@@ -3286,20 +3142,16 @@ object class Joint
 		Vec2 anchorB,
 		float frequency,
 		float damping);
+	/// <summary>
 	/// Creates a friction joint between two physics bodies.
-	///
-	/// # Arguments
-	///
-	/// * `can_collide` - Whether or not the physics body connected to joint will collide with each other.
-	/// * `body_a` - The first physics body to connect with the joint.
-	/// * `body_b` - The second physics body to connect with the joint.
-	/// * `world_pos` - The position of the joint in the game world.
-	/// * `max_force` - The maximum force that can be applied to the joint.
-	/// * `max_torque` - The maximum torque that can be applied to the joint.
-	///
-	/// # Returns
-	///
-	/// * `Joint` - The new friction joint.
+	/// </summary>
+	/// <param name="can_collide">Whether or not the physics body connected to joint will collide with each other.</param>
+	/// <param name="body_a">The first physics body to connect with the joint.</param>
+	/// <param name="body_b">The second physics body to connect with the joint.</param>
+	/// <param name="world_pos">The position of the joint in the game world.</param>
+	/// <param name="max_force">The maximum force that can be applied to the joint.</param>
+	/// <param name="max_torque">The maximum torque that can be applied to the joint.</param>
+	/// <returns>The new friction joint.</returns>
 	static Joint* friction(
 		bool collision,
 		Body* bodyA,
@@ -3307,39 +3159,31 @@ object class Joint
 		Vec2 worldPos,
 		float maxForce,
 		float maxTorque);
+	/// <summary>
 	/// Creates a gear joint between two other joints.
-	///
-	/// # Arguments
-	///
-	/// * `can_collide` - Whether or not the physics bodies connected to the joint can collide with each other.
-	/// * `joint_a` - The first joint to connect with the gear joint.
-	/// * `joint_b` - The second joint to connect with the gear joint.
-	/// * `ratio` - The gear ratio.
-	///
-	/// # Returns
-	///
-	/// * `Joint` - The new gear joint.
+	/// </summary>
+	/// <param name="can_collide">Whether or not the physics bodies connected to the joint can collide with each other.</param>
+	/// <param name="joint_a">The first joint to connect with the gear joint.</param>
+	/// <param name="joint_b">The second joint to connect with the gear joint.</param>
+	/// <param name="ratio">The gear ratio.</param>
+	/// <returns>The new gear joint.</returns>
 	static Joint* gear(
 		bool collision,
 		Joint* jointA,
 		Joint* jointB,
 		float ratio);
+	/// <summary>
 	/// Creates a new spring joint between the two specified bodies.
-	///
-	/// # Arguments
-	///
-	/// * `can_collide` - Whether the connected bodies should collide with each other.
-	/// * `body_a` - The first body connected to the joint.
-	/// * `body_b` - The second body connected to the joint.
-	/// * `linear_offset` - Position of body-B minus the position of body-A, in body-A's frame.
-	/// * `angular_offset` - Angle of body-B minus angle of body-A.
-	/// * `max_force` - The maximum force the joint can exert.
-	/// * `max_torque` - The maximum torque the joint can exert.
-	/// * `correction_factor` - Correction factor. 0.0 = no correction, 1.0 = full correction.
-	///
-	/// # Returns
-	///
-	/// * `Joint` - The created joint.
+	/// </summary>
+	/// <param name="collision">Whether the connected bodies should collide with each other.</param>
+	/// <param name="bodyA">The first body connected to the joint.</param>
+	/// <param name="bodyB">The second body connected to the joint.</param>
+	/// <param name="linearOffset">Position of body-B minus the position of body-A, in body-A's frame.</param>
+	/// <param name="angularOffset">Angle of body-B minus angle of body-A.</param>
+	/// <param name="maxForce">The maximum force the joint can exert.</param>
+	/// <param name="maxTorque">The maximum torque the joint can exert.</param>
+	/// <param name="correctionFactor">Correction factor. 0.0 = no correction, 1.0 = full correction.</param>
+	/// <returns>The created joint.</returns>
 	static Joint* spring(
 		bool collision,
 		Body* bodyA,
@@ -3349,20 +3193,16 @@ object class Joint
 		float maxForce,
 		float maxTorque,
 		float correctionFactor);
+	/// <summary>
 	/// Creates a new move joint for the specified body.
-	///
-	/// # Arguments
-	///
-	/// * `can_collide` - Whether the body can collide with other bodies.
-	/// * `body` - The body that the joint is attached to.
-	/// * `target_pos` - The target position that the body should move towards.
-	/// * `max_force` - The maximum force the joint can exert.
-	/// * `frequency` - Frequency ratio.
-	/// * `damping` - Damping ratio.
-	///
-	/// # Returns
-	///
-	/// * `MoveJoint` - The created move joint.
+	/// </summary>
+	/// <param name="collision">Whether the body can collide with other bodies.</param>
+	/// <param name="body">The body that the joint is attached to.</param>
+	/// <param name="targetPos">The target position that the body should move towards.</param>
+	/// <param name="maxForce">The maximum force the joint can exert.</param>
+	/// <param name="frequency">Frequency ratio.</param>
+	/// <param name="damping">Damping ratio.</param>
+	/// <returns>The created move joint.</returns>
 	static MoveJoint* move @ moveTarget(
 		bool collision,
 		Body* body,
@@ -3370,23 +3210,19 @@ object class Joint
 		float maxForce,
 		float frequency,
 		float damping);
+	/// <summary>
 	/// Creates a new prismatic joint between the two specified bodies.
-	///
-	/// # Arguments
-	///
-	/// * `can_collide` - Whether the connected bodies should collide with each other.
-	/// * `body_a` - The first body connected to the joint.
-	/// * `body_b` - The second body connected to the joint.
-	/// * `world_pos` - The world position of the joint.
-	/// * `axis_angle` - The axis angle of the joint.
-	/// * `lower_translation` - Lower translation limit.
-	/// * `upper_translation` - Upper translation limit.
-	/// * `max_motor_force` - Maximum motor force.
-	/// * `motor_speed` - Motor speed.
-	///
-	/// # Returns
-	///
-	/// * `MotorJoint` - The created prismatic joint.
+	/// </summary>
+	/// <param name="collision">Whether the connected bodies should collide with each other.</param>
+	/// <param name="bodyA">The first body connected to the joint.</param>
+	/// <param name="bodyB">The second body connected to the joint.</param>
+	/// <param name="worldPos">The world position of the joint.</param>
+	/// <param name="axisAngle">The axis angle of the joint.</param>
+	/// <param name="lowerTranslation">Lower translation limit.</param>
+	/// <param name="upperTranslation">Upper translation limit.</param>
+	/// <param name="maxMotorForce">Maximum motor force.</param>
+	/// <param name="motorSpeed">Motor speed.</param>
+	/// <returns>The created prismatic joint.</returns>
 	static MotorJoint* prismatic(
 		bool collision,
 		Body* bodyA,
@@ -3397,22 +3233,18 @@ object class Joint
 		float upperTranslation,
 		float maxMotorForce,
 		float motorSpeed);
+	/// <summary>
 	/// Creates a pulley joint between two physics bodies.
-	///
-	/// # Arguments
-	///
-	/// * `can_collide` - Whether or not the connected bodies will collide with each other.
-	/// * `body_a` - The first physics body to connect.
-	/// * `body_b` - The second physics body to connect.
-	/// * `anchor_a` - The position of the anchor point on the first body.
-	/// * `anchor_b` - The position of the anchor point on the second body.
-	/// * `ground_anchor_a` - The position of the ground anchor point on the first body in world coordinates.
-	/// * `ground_anchor_b` - The position of the ground anchor point on the second body in world coordinates.
-	/// * `ratio` - The pulley ratio.
-	///
-	/// # Returns
-	///
-	/// * `Joint` - The pulley joint.
+	/// </summary>
+	/// <param name="collision">Whether or not the connected bodies will collide with each other.</param>
+	/// <param name="bodyA">The first physics body to connect.</param>
+	/// <param name="bodyB">The second physics body to connect.</param>
+	/// <param name="anchorA">The position of the anchor point on the first body.</param>
+	/// <param name="anchorB">The position of the anchor point on the second body.</param>
+	/// <param name="groundAnchorA">The position of the ground anchor point on the first body in world coordinates.</param>
+	/// <param name="groundAnchorB">The position of the ground anchor point on the second body in world coordinates.</param>
+	/// <param name="ratio">The pulley ratio.</param>
+	/// <returns>The pulley joint.</returns>
 	static Joint* pulley(
 		bool collision,
 		Body* bodyA,
@@ -3422,22 +3254,18 @@ object class Joint
 		Vec2 groundAnchorA,
 		Vec2 groundAnchorB,
 		float ratio);
+	/// <summary>
 	/// Creates a revolute joint between two physics bodies.
-	///
-	/// # Arguments
-	///
-	/// * `can_collide` - Whether or not the connected bodies will collide with each other.
-	/// * `body_a` - The first physics body to connect.
-	/// * `body_b` - The second physics body to connect.
-	/// * `world_pos` - The position in world coordinates where the joint will be created.
-	/// * `lower_angle` - The lower angle limit in radians.
-	/// * `upper_angle` - The upper angle limit in radians.
-	/// * `max_motor_torque` - The maximum torque that can be applied to the joint to achieve the target speed.
-	/// * `motor_speed` - The desired speed of the joint.
-	///
-	/// # Returns
-	///
-	/// * `MotorJoint` - The revolute joint.
+	/// </summary>
+	/// <param name="collision">Whether or not the connected bodies will collide with each other.</param>
+	/// <param name="bodyA">The first physics body to connect.</param>
+	/// <param name="bodyB">The second physics body to connect.</param>
+	/// <param name="worldPos">The position in world coordinates where the joint will be created.</param>
+	/// <param name="lowerAngle">The lower angle limit in radians.</param>
+	/// <param name="upperAngle">The upper angle limit in radians.</param>
+	/// <param name="maxMotorTorque">The maximum torque that can be applied to the joint to achieve the target speed.</param>
+	/// <param name="motorSpeed">The desired speed of the joint.</param>
+	/// <returns>The revolute joint.</returns>
 	static MotorJoint* revolute(
 		bool collision,
 		Body* bodyA,
@@ -3447,20 +3275,16 @@ object class Joint
 		float upperAngle,
 		float maxMotorTorque,
 		float motorSpeed);
+	/// <summary>
 	/// Creates a rope joint between two physics bodies.
-	///
-	/// # Arguments
-	///
-	/// * `can_collide` - Whether or not the connected bodies will collide with each other.
-	/// * `body_a` - The first physics body to connect.
-	/// * `body_b` - The second physics body to connect.
-	/// * `anchor_a` - The position of the anchor point on the first body.
-	/// * `anchor_b` - The position of the anchor point on the second body.
-	/// * `max_length` - The maximum distance between the anchor points.
-	///
-	/// # Returns
-	///
-	/// * `Joint` - The rope joint.
+	/// </summary>
+	/// <param name="collision">Whether or not the connected bodies will collide with each other.</param>
+	/// <param name="bodyA">The first physics body to connect.</param>
+	/// <param name="bodyB">The second physics body to connect.</param>
+	/// <param name="anchorA">The position of the anchor point on the first body.</param>
+	/// <param name="anchorB">The position of the anchor point on the second body.</param>
+	/// <param name="maxLength">The maximum distance between the anchor points.</param>
+	/// <returns>The rope joint.</returns>
 	static Joint* rope(
 		bool collision,
 		Body* bodyA,
@@ -3468,20 +3292,16 @@ object class Joint
 		Vec2 anchorA,
 		Vec2 anchorB,
 		float maxLength);
+	/// <summary>
 	/// Creates a weld joint between two bodies.
-	///
-	/// # Arguments
-	///
-	/// * `can_collide` - Whether or not the bodies connected to the joint can collide with each other.
-	/// * `body_a` - The first body to be connected by the joint.
-	/// * `body_b` - The second body to be connected by the joint.
-	/// * `world_pos` - The position in the world to connect the bodies together.
-	/// * `frequency` - The frequency at which the joint should be stiff.
-	/// * `damping` - The damping rate of the joint.
-	///
-	/// # Returns
-	///
-	/// * `Joint` - The newly created weld joint.
+	/// </summary>
+	/// <param name="collision">Whether or not the bodies connected to the joint can collide with each other.</param>
+	/// <param name="bodyA">The first body to be connected by the joint.</param>
+	/// <param name="bodyB">The second body to be connected by the joint.</param>
+	/// <param name="worldPos">The position in the world to connect the bodies together.</param>
+	/// <param name="frequency">The frequency at which the joint should be stiff.</param>
+	/// <param name="damping">The damping rate of the joint.</param>
+	/// <returns>The newly created weld joint.</returns>
 	static Joint* weld(
 		bool collision,
 		Body* bodyA,
@@ -3489,23 +3309,19 @@ object class Joint
 		Vec2 worldPos,
 		float frequency,
 		float damping);
+	/// <summary>
 	/// Creates a wheel joint between two bodies.
-	///
-	/// # Arguments
-	///
-	/// * `can_collide` - Whether or not the bodies connected to the joint can collide with each other.
-	/// * `body_a` - The first body to be connected by the joint.
-	/// * `body_b` - The second body to be connected by the joint.
-	/// * `world_pos` - The position in the world to connect the bodies together.
-	/// * `axis_angle` - The angle of the joint axis in radians.
-	/// * `max_motor_torque` - The maximum torque the joint motor can exert.
-	/// * `motor_speed` - The target speed of the joint motor.
-	/// * `frequency` - The frequency at which the joint should be stiff.
-	/// * `damping` - The damping rate of the joint.
-	///
-	/// # Returns
-	///
-	/// * `MotorJoint` - The newly created wheel joint.
+	/// </summary>
+	/// <param name="collision">Whether or not the bodies connected to the joint can collide with each other.</param>
+	/// <param name="bodyA">The first body to be connected by the joint.</param>
+	/// <param name="bodyB">The second body to be connected by the joint.</param>
+	/// <param name="worldPos">The position in the world to connect the bodies together.</param>
+	/// <param name="axisAngle">The angle of the joint axis in radians.</param>
+	/// <param name="maxMotorTorque">The maximum torque the joint motor can exert.</param>
+	/// <param name="motorSpeed">The target speed of the joint motor.</param>
+	/// <param name="frequency">The frequency at which the joint should be stiff.</param>
+	/// <param name="damping">The damping rate of the joint.</param>
+	/// <returns>The newly created wheel joint.</returns>
 	static MotorJoint* wheel(
 		bool collision,
 		Body* bodyA,
@@ -3516,567 +3332,478 @@ object class Joint
 		float motorSpeed,
 		float frequency,
 		float damping);
+	/// <summary>
 	/// the physics world that the joint belongs to.
+	/// </summary>
 	readonly common PhysicsWorld* physicsWorld @ world;
+	/// <summary>
 	/// Destroys the joint and removes it from the physics simulation.
+	/// </summary>
 	void destroy();
+	/// <summary>
 	/// Creates a joint instance based on the given joint definition and item dictionary containing physics bodies to be connected by joint.
-	///
-	/// # Arguments
-	///
-	/// * `def` - The joint definition.
-	/// * `item_dict` - The dictionary containing all the bodies and other required items.
-	///
-	/// # Returns
-	///
-	/// * `Joint` - The newly created joint.
+	/// </summary>
+	/// <param name="def">The joint definition.</param>
+	/// <param name="itemDict">The dictionary containing all the bodies and other required items.</param>
+	/// <returns>The newly created joint.</returns>
 	static Joint* create(JointDef* def, Dictionary* itemDict);
 };
 
+/// <summary>
 /// A type of joint that allows a physics body to move to a specific position.
+/// </summary>
 object class MoveJoint : public Joint
 {
-	/// the current position of the move joint in the game world.
+	/// <summary>
+	/// The current position of the move joint in the game world.
+	/// </summary>
 	common Vec2 position;
 };
 
+/// <summary>
 /// A joint that applies a rotational or linear force to a physics body.
+/// </summary>
 object class MotorJoint : public Joint
 {
-	/// whether or not the motor joint is enabled.
+	/// <summary>
+	/// Whether or not the motor joint is enabled.
+	/// </summary>
 	boolean bool enabled;
-	/// the force applied to the motor joint.
+	/// <summary>
+	/// The force applied to the motor joint.
+	/// </summary>
 	common float force;
-	/// the speed of the motor joint.
+	/// <summary>
+	/// The speed of the motor joint.
+	/// </summary>
 	common float speed;
 };
 
+/// <summary>
 /// A interface for managing various game resources.
+/// </summary>
 singleton struct Cache
 {
+	/// <summary>
 	/// Loads a file into the cache with a blocking operation.
-	///
-	/// # Arguments
-	///
-	/// * `filename` - The name of the file to load.
-	///
-	/// # Returns
-	///
-	/// * `bool` - `true` if the file was loaded successfully, `false` otherwise.
+	/// </summary>
+	/// <param name="filename">The name of the file to load.</param>
+	/// <returns>`true` if the file was loaded successfully, `false` otherwise.</returns>
 	static bool load(string filename);
+	/// <summary>
 	/// Loads a file into the cache asynchronously.
-	///
-	/// # Arguments
-	///
-	/// * `filenames` - The name of the file(s) to load. This can be a single string or a vector of strings.
-	/// * `handler` - A callback function that is invoked when the file is loaded.
+	/// </summary>
+	/// <param name="filename">The name of the file to load.</param>
+	/// <param name="handler">A callback function that is invoked when the file is loaded.</param>
 	static void loadAsync(string filename, function<void(bool success)> handler);
+	/// <summary>
 	/// Updates the content of a file loaded in the cache.
 	/// If the item of filename does not exist in the cache, a new file content will be added into the cache.
-	///
-	/// # Arguments
-	///
-	/// * `filename` - The name of the file to update.
-	/// * `content` - The new content for the file.
+	/// </summary>
+	/// <param name="filename">The name of the file to update.</param>
+	/// <param name="content">The new content for the file.</param>
 	static void update @ updateItem(string filename, string content);
+	/// <summary>
 	/// Updates the texture object of the specific filename loaded in the cache.
 	/// If the texture object of filename does not exist in the cache, it will be added into the cache.
-	///
-	/// # Arguments
-	///
-	/// * `filename` - The name of the texture to update.
-	/// * `texture` - The new texture object for the file.
+	/// </summary>
+	/// <param name="filename">The name of the texture to update.</param>
+	/// <param name="texture">The new texture object for the file.</param>
 	static void update @ updateTexture(string filename, Texture2D* texture);
+	/// <summary>
 	/// Unloads a resource from the cache.
-	///
-	/// # Arguments
-	///
-	/// * `name` - The type name of resource to unload, could be one of "Texture", "SVG", "Clip", "Frame", "Model", "Particle", "Shader", "Font", "Sound", "Spine". Or the name of the resource file to unload.
-	///
-	/// # Returns
-	///
-	/// * `bool` - `true` if the resource was unloaded successfully, `false` otherwise.
+	/// </summary>
+	/// <param name="name">The type name of resource to unload, could be one of "Texture", "SVG", "Clip", "Frame", "Model", "Particle", "Shader", "Font", "Sound", "Spine". Or the name of the resource file to unload.</param>
+	/// <returns>`true` if the resource was unloaded successfully, `false` otherwise.</returns>
 	static bool unload @ unloadItemOrType(string name);
+	/// <summary>
 	/// Unloads all resources from the cache.
+	/// </summary>
 	static void unload();
+	/// <summary>
 	/// Removes all unused resources (not being referenced) from the cache.
+	/// </summary>
 	static void removeUnused();
+	/// <summary>
 	/// Removes all unused resources of the given type from the cache.
-	///
-	/// # Arguments
-	///
-	/// * `resource_type` - The type of resource to remove. This could be one of "Texture", "SVG", "Clip", "Frame", "Model", "Particle", "Shader", "Font", "Sound", "Spine".
+	/// </summary>
+	/// <param name="typeName">The type of resource to remove. This could be one of "Texture", "SVG", "Clip", "Frame", "Model", "Particle", "Shader", "Font", "Sound", "Spine".</param>
 	static void removeUnused @ removeUnusedByType(string typeName);
 };
 
+/// <summary>
 /// A interface of an audio player.
+/// </summary>
 singleton class Audio
 {
+	/// <summary>
 	/// The speed of the 3D sound.
+	/// </summary>
 	common float soundSpeed;
+	/// <summary>
 	/// The global volume of the audio. The value is between 0.0 and 1.0.
+	/// </summary>
 	common float globalVolume;
+	/// <summary>
 	/// The 3D listener as a node of the audio.
+	/// </summary>
 	optional common Node* listener;
+	/// <summary>
 	/// Plays a sound effect and returns a handler for the audio.
-	///
-	/// # Arguments
-	///
-	/// * `filename` - The path to the sound effect file (must be a WAV file).
-	/// * `loop` - Optional. Whether to loop the sound effect. Default is `false`.
-	///
-	/// # Returns
-	///
-	/// * `i32` - A handler for the audio that can be used to stop the sound effect.
+	/// </summary>
+	/// <param name="filename">The path to the sound effect file (must be a WAV file).</param>
+	/// <param name="looping">Optional. Whether to loop the sound effect. Default is `false`.</param>
+	/// <returns>A handler for the audio that can be used to stop the sound effect.</returns>
 	uint32_t play(string filename, bool looping);
+	/// <summary>
 	/// Stops a sound effect that is currently playing.
-	///
-	/// # Arguments
-	///
-	/// * `handler` - The handler for the audio that is returned by the `play` function.
+	/// </summary>
+	/// <param name="handle">The handler for the audio that is returned by the `play` function.</param>
 	void stop(uint32_t handle);
+	/// <summary>
 	/// Plays a streaming audio file.
-	///
-	/// # Arguments
-	///
-	/// * `filename` - The path to the streaming audio file (can be OGG, WAV, MP3, or FLAC).
-	/// * `loop` - Whether to loop the streaming audio.
-	/// * `crossFadeTime` - The time (in seconds) to crossfade between the previous and new streaming audio.
+	/// </summary>
+	/// <param name="filename">The path to the streaming audio file (can be OGG, WAV, MP3, or FLAC).</param>
+	/// <param name="looping">Whether to loop the streaming audio.</param>
+	/// <param name="crossFadeTime">The time (in seconds) to crossfade between the previous and new streaming audio.</param>
 	void playStream(string filename, bool looping, float crossFadeTime);
+	/// <summary>
 	/// Stops a streaming audio file that is currently playing.
-	///
-	/// # Arguments
-	///
-	/// * `fade_time` - The time (in seconds) to fade out the streaming audio.
+	/// </summary>
+	/// <param name="fadeTime">The time (in seconds) to fade out the streaming audio.</param>
 	void stopStream(float fadeTime);
+	/// <summary>
 	/// Pauses all the current audio.
-	///
-	/// # Arguments
-	///
-	/// * `pause` - Whether to pause the audio.
+	/// </summary>
+	/// <param name="pause">Whether to pause the audio.</param>
 	void setPauseAllCurrent(bool pause);
+	/// <summary>
 	/// Sets the position of the 3D listener.
-	///
-	/// # Arguments
-	///
-	/// * `atX` - The X coordinate of the listener position.
-	/// * `atY` - The Y coordinate of the listener position.
-	/// * `atZ` - The Z coordinate of the listener position.
+	/// </summary>
+	/// <param name="atX">The X coordinate of the listener position.</param>
+	/// <param name="atY">The Y coordinate of the listener position.</param>
+	/// <param name="atZ">The Z coordinate of the listener position.</param>
 	void setListenerAt(float atX, float atY, float atZ);
+	/// <summary>
 	/// Sets the up vector of the 3D listener.
-	///
-	/// # Arguments
-	///
-	/// * `upX` - The X coordinate of the listener up vector.
-	/// * `upY` - The Y coordinate of the listener up vector.
-	/// * `upZ` - The Z coordinate of the listener up vector.
+	/// </summary>
+	/// <param name="upX">The X coordinate of the listener up vector.</param>
+	/// <param name="upY">The Y coordinate of the listener up vector.</param>
+	/// <param name="upZ">The Z coordinate of the listener up vector.</param>
 	void setListenerUp(float upX, float upY, float upZ);
+	/// <summary>
 	/// Sets the velocity of the 3D listener.
-	///
-	/// # Arguments
-	///
-	/// * `velocityX` - The X coordinate of the listener velocity.
-	/// * `velocityY` - The Y coordinate of the listener velocity.
-	/// * `velocityZ` - The Z coordinate of the listener velocity.
+	/// </summary>
+	/// <param name="velocityX">The X coordinate of the listener velocity.</param>
+	/// <param name="velocityY">The Y coordinate of the listener velocity.</param>
+	/// <param name="velocityZ">The Z coordinate of the listener velocity.</param>
 	void setListenerVelocity(float velocityX, float velocityY, float velocityZ);
 };
 
+/// <summary>
 /// A class that represents an audio bus.
+/// </summary>
 object class AudioBus
 {
+	/// <summary>
 	/// The volume of the audio bus. The value is between 0.0 and 1.0.
+	/// </summary>
 	common float volume;
+	/// <summary>
 	/// The pan of the audio bus. The value is between -1.0 and 1.0.
+	/// </summary>
 	common float pan;
+	/// <summary>
 	/// The play speed of the audio bus. The value 1.0 is the normal speed. 0.5 is half speed. 2.0 is double speed.
+	/// </summary>
 	common float playSpeed;
+	/// <summary>
 	/// Fades the volume of the audio bus to the given value over the given time.
-	///
-	/// # Arguments
-	///
-	/// * `time` - The time to fade the volume.
-	/// * `toVolume` - The target volume.
+	/// </summary>
+	/// <param name="time">The time to fade the volume.</param>
+	/// <param name="toVolume">The target volume.</param>
 	void fadeVolume(double time, float toVolume);
+	/// <summary>
 	/// Fades the pan of the audio bus to the given value over the given time.
-	///
-	/// # Arguments
-	///
-	/// * `time` - The time to fade the pan.
-	/// * `toPan` - The target pan. The value is between -1.0 and 1.0.
+	/// </summary>
+	/// <param name="time">The time to fade the pan.</param>
+	/// <param name="toPan">The target pan. The value is between -1.0 and 1.0.</param>
 	void fadePan(double time, float toPan);
+	/// <summary>
 	/// Fades the play speed of the audio bus to the given value over the given time.
-	///
-	/// # Arguments
-	///
-	/// * `time` - The time to fade the play speed.
-	/// * `toPlaySpeed` - The target play speed.
+	/// </summary>
+	/// <param name="time">The time to fade the play speed.</param>
+	/// <param name="toPlaySpeed">The target play speed.</param>
 	void fadePlaySpeed(double time, float toPlaySpeed);
+	/// <summary>
 	/// Sets the filter of the audio bus.
-	///
-	/// # Arguments
-	///
-	/// * `index` - The index of the filter.
-	/// * `name` - The name of the filter.
-	/// 	- "": No filter.
-	/// 	- "BassBoost": The bass boost filter.
-	/// 	- "BiquadResonant": The biquad resonant filter.
-	/// 	- "DCRemoval": The DC removal filter.
-	/// 	- "Echo": The echo filter.
-	/// 	- "Eq": The equalizer filter.
-	/// 	- "FFT": The FFT filter.
-	/// 	- "Flanger": The flanger filter.
-	/// 	- "FreeVerb": The freeverb filter.
-	/// 	- "Lofi": The lofi filter.
-	/// 	- "Robotize": The robotize filter.
-	/// 	- "WaveShaper": The wave shaper filter.
+	/// </summary>
+	/// <param name="index">The index of the filter.</param>
+	/// <param name="name">The name of the filter.</param>
 	void setFilter(uint32_t index, string name);
+	/// <summary>
 	/// Sets the filter parameter of the audio bus.
-	///
-	/// # Arguments
-	///
-	/// * `index` - The index of the filter.
-	/// * `attrId` - The attribute ID of the filter.
-	/// * `value` - The value of the filter parameter.
-	/// 	- "BassBoost": The bass boost filter.
-	/// 		- param0: WET, float, min: 0, max: 1
-	/// 		- param1: BOOST, float, min: 0, max: 10
-	/// 	- "BiquadResonant": The biquad resonant filter.
-	/// 		- param0: WET, float, min: 0, max: 1
-	/// 		- param1: TYPE, int, values: 0 - LOWPASS, 1 - HIGHPASS, 2 - BANDPASS
-	/// 		- param2: FREQUENCY, float, min: 10, max: 8000
-	/// 		- param3: RESONANCE, float, min: 0.1, max: 20
-	/// 	- "DCRemoval": The DC removal filter.
-	/// 		- param0: WET, float, min: 0, max: 1
-	/// 	- "Echo": The echo filter.
-	/// 		- param0: WET, float, min: 0, max: 1
-	/// 		- param1: DELAY, float, min: 0, max: 1
-	/// 		- param2: DECAY, float, min: 0, max: 1
-	/// 		- param3: FILTER, float, min: 0, max: 1
-	/// 	- "Eq": The equalizer filter.
-	/// 		- param0: WET, float, min: 0, max: 1
-	/// 		- param1: BAND0, float, min: 0, max: 4
-	/// 		- param2: BAND1, float, min: 0, max: 4
-	/// 		- param3: BAND2, float, min: 0, max: 4
-	/// 		- param4: BAND3, float, min: 0, max: 4
-	/// 		- param5: BAND4, float, min: 0, max: 4
-	/// 		- param6: BAND5, float, min: 0, max: 4
-	/// 		- param7: BAND6, float, min: 0, max: 4
-	/// 		- param8: BAND7, float, min: 0, max: 4
-	/// 	- "FFT": The FFT filter.
-	/// 		- param0: WET, float, min: 0, max: 1
-	/// 	- "Flanger": The flanger filter.
-	/// 		- param0: WET, float, min: 0, max: 1
-	/// 		- param1: DELAY, float, min: 0.001, max: 0.1
-	/// 		- param2: FREQ, float, min: 0.001, max: 100
-	/// 	- "FreeVerb": The freeverb filter.
-	/// 		- param0: WET, float, min: 0, max: 1
-	/// 		- param1: FREEZE, float, min: 0, max: 1
-	/// 		- param2: ROOMSIZE, float, min: 0, max: 1
-	/// 		- param3: DAMP, float, min: 0, max: 1
-	/// 		- param4: WIDTH, float, min: 0, max: 1
-	/// 	- "Lofi": The lofi filter.
-	/// 		- param0: WET, float, min: 0, max: 1
-	/// 		- param1: SAMPLE_RATE, float, min: 100, max: 22000
-	/// 		- param2: BITDEPTH, float, min: 0.5, max: 16
-	/// 	- "Robotize": The robotize filter.
-	/// 		- param0: WET, float, min: 0, max: 1
-	/// 		- param1: FREQ, float, min: 0.1, max: 100
-	/// 		- param2: WAVE, float, min: 0, max: 6
-	/// 	- "WaveShaper": The wave shaper filter.
-	/// 		- param0: WET, float, min: 0, max: 1
-	/// 		- param1: AMOUNT, float, min: -1, max: 1
+	/// </summary>
+	/// <param name="index">The index of the filter.</param>
+	/// <param name="attrId">The attribute ID of the filter.</param>
+	/// <param name="value">The value of the filter parameter.</param>
 	void setFilterParameter(uint32_t index, uint32_t attrId, float value);
+	/// <summary>
 	/// Gets the filter parameter of the audio bus.
-	///
-	/// # Arguments
-	///
-	/// * `index` - The index of the filter.
-	/// * `attrId` - The attribute ID of the filter.
-	///
-	/// # Returns
-	///
-	/// * `float` - The value of the filter parameter.
+	/// </summary>
+	/// <param name="index">The index of the filter.</param>
+	/// <param name="attrId">The attribute ID of the filter.</param>
+	/// <returns>The value of the filter parameter.</returns>
 	float getFilterParameter(uint32_t index, uint32_t attrId);
+	/// <summary>
 	/// Fades the filter parameter of the audio bus to the given value over the given time.
-	///
-	/// # Arguments
-	///
-	/// * `index` - The index of the filter.
-	/// * `attrId` - The attribute ID of the filter.
-	/// * `to` - The target value of the filter parameter.
-	/// * `time` - The time to fade the filter parameter.
+	/// </summary>
+	/// <param name="index">The index of the filter.</param>
+	/// <param name="attrId">The attribute ID of the filter.</param>
+	/// <param name="to">The target value of the filter parameter.</param>
+	/// <param name="time">The time to fade the filter parameter.</param>
 	void fadeFilterParameter(uint32_t index, uint32_t attrId, float to, double time);
+	/// <summary>
 	/// Creates a new audio bus.
-	///
-	/// # Returns
-	///
-	/// * `AudioBus` - The created audio bus.
+	/// </summary>
+	/// <returns>The created audio bus.</returns>
 	static AudioBus* create();
 };
 
+/// <summary>
 /// A class that represents an audio source node.
+/// </summary>
 object class AudioSource : public Node
 {
+	/// <summary>
 	/// The volume of the audio source. The value is between 0.0 and 1.0.
+	/// </summary>
 	common float volume;
+	/// <summary>
 	/// The pan of the audio source. The value is between -1.0 and 1.0.
+	/// </summary>
 	common float pan;
+	/// <summary>
 	/// Whether the audio source is looping.
+	/// </summary>
 	boolean bool looping;
+	/// <summary>
 	/// Whether the audio source is playing.
+	/// </summary>
 	readonly boolean bool playing;
+	/// <summary>
 	/// Seeks the audio source to the given time.
-	///
-	/// # Arguments
-	///
-	/// * `startTime` - The time to seek to.
+	/// </summary>
+	/// <param name="startTime">The time to seek to.</param>
 	void seek(double startTime);
+	/// <summary>
 	/// Schedules the audio source to stop at the given time.
-	///
-	/// # Arguments
-	///
-	/// * `timeToStop` - The time to wait before stopping the audio source.
+	/// </summary>
+	/// <param name="timeToStop">The time to wait before stopping the audio source.</param>
 	void scheduleStop(double timeToStop);
+	/// <summary>
 	/// Stops the audio source.
-	///
-	/// # Arguments
-	///
-	/// * `fadeTime` - The time to fade out the audio source.
+	/// </summary>
+	/// <param name="fadeTime">The time to fade out the audio source.</param>
 	void stop(double fadeTime);
+	/// <summary>
 	/// Plays the audio source.
-	///
-	/// # Returns
-	///
-	/// * `bool` - `true` if the audio source was played successfully, `false` otherwise.
+	/// </summary>
+	/// <returns>`true` if the audio source was played successfully, `false` otherwise.</returns>
 	bool play();
+	/// <summary>
 	/// Plays the audio source with a delay.
-	///
-	/// # Arguments
-	///
-	/// * `delayTime` - The time to wait before playing the audio source.
-	///
-	/// # Returns
-	///
-	/// * `bool` - `true` if the audio source was played successfully, `false` otherwise.
+	/// </summary>
+	/// <param name="delayTime">The time to wait before playing the audio source.</param>
+	/// <returns>`true` if the audio source was played successfully, `false` otherwise.</returns>
 	bool play @ playWithDelay(double delayTime);
+	/// <summary>
 	/// Plays the audio source as a background audio.
-	///
-	/// # Returns
-	///
-	/// * `bool` - `true` if the audio source was played successfully, `false` otherwise.
+	/// </summary>
+	/// <returns>`true` if the audio source was played successfully, `false` otherwise.</returns>
 	bool playBackground();
+	/// <summary>
 	/// Plays the audio source as a 3D audio.
-	///
-	/// # Returns
-	///
-	/// * `bool` - `true` if the audio source was played successfully, `false` otherwise.
+	/// </summary>
+	/// <returns>`true` if the audio source was played successfully, `false` otherwise.</returns>
 	bool play3D @ play_3d();
+	/// <summary>
 	/// Plays the audio source as a 3D audio with a delay.
-	///
-	/// # Arguments
-	///
-	/// * `delayTime` - The time to wait before playing the audio source.
-	///
-	/// # Returns
-	///
-	/// * `bool` - `true` if the audio source was played successfully, `false` otherwise.
+	/// </summary>
+	/// <param name="delayTime">The time to wait before playing the audio source.</param>
+	/// <returns>`true` if the audio source was played successfully, `false` otherwise.</returns>
 	bool play3D @ play_3d_with_delay(double delayTime);
+	/// <summary>
 	/// Sets the protected state of the audio source.
-	///
-	/// # Arguments
-	///
-	/// * `value` - The protected state.
+	/// </summary>
+	/// <param name="value">The protected state.</param>
 	void setProtected(bool value);
+	/// <summary>
 	/// Sets the loop point of the audio source.
-	///
-	/// # Arguments
-	///
-	/// * `loopStartTime` - The time to start the loop.
+	/// </summary>
+	/// <param name="loopStartTime">The time to start the loop.</param>
 	void setLoopPoint(double loopStartTime);
+	/// <summary>
 	/// Sets the velocity of the audio source.
-	///
-	/// # Arguments
-	///
-	/// * `vx` - The X coordinate of the velocity.
-	/// * `vy` - The Y coordinate of the velocity.
-	/// * `vz` - The Z coordinate of the velocity.
+	/// </summary>
+	/// <param name="vx">The X coordinate of the velocity.</param>
+	/// <param name="vy">The Y coordinate of the velocity.</param>
+	/// <param name="vz">The Z coordinate of the velocity.</param>
 	void setVelocity(float vx, float vy, float vz);
+	/// <summary>
 	/// Sets the minimum and maximum distance of the audio source.
-	///
-	/// # Arguments
-	///
-	/// * `min` - The minimum distance.
-	/// * `max` - The maximum distance.
+	/// </summary>
+	/// <param name="min">The minimum distance.</param>
+	/// <param name="max">The maximum distance.</param>
 	void setMinMaxDistance(float min, float max);
+	/// <summary>
 	/// Sets the attenuation of the audio source.
-	///
-	/// # Arguments
-	///
-	/// * `model` - The attenuation model.
-	/// * `factor` - The factor of the attenuation.
+	/// </summary>
+	/// <param name="model">The attenuation model.</param>
+	/// <param name="factor">The factor of the attenuation.</param>
 	void setAttenuation(AttenuationModel model, float factor);
+	/// <summary>
 	/// Sets the Doppler factor of the audio source.
-	///
-	/// # Arguments
-	///
-	/// * `factor` - The factor of the Doppler effect.
+	/// </summary>
+	/// <param name="factor">The factor of the Doppler effect.</param>
 	void setDopplerFactor(float factor);
+	/// <summary>
 	/// Creates a new audio source.
-	///
-	/// # Arguments
-	///
-	/// * `filename` - The path to the audio file.
-	/// * `autoRemove` - Whether to automatically remove the audio source when it is stopped.
-	///
-	/// # Returns
-	///
-	/// * `AudioSource` - The created audio source node.
+	/// </summary>
+	/// <param name="filename">The path to the audio file.</param>
+	/// <param name="autoRemove">Whether to automatically remove the audio source when it is stopped.</param>
+	/// <returns>The created audio source node.</returns>
 	static optional AudioSource* create(string filename, bool autoRemove);
+	/// <summary>
 	/// Creates a new audio source.
-	///
-	/// # Arguments
-	///
-	/// * `filename` - The path to the audio file.
-	/// * `autoRemove` - Whether to automatically remove the audio source when it is stopped.
-	/// * `bus` - The audio bus to use for the audio source.
-	///
-	/// # Returns
-	///
-	/// * `AudioSource` - The created audio source node.
+	/// </summary>
+	/// <param name="filename">The path to the audio file.</param>
+	/// <param name="autoRemove">Whether to automatically remove the audio source when it is stopped.</param>
+	/// <param name="bus">The audio bus to use for the audio source.</param>
+	/// <returns>The created audio source node.</returns>
 	static optional AudioSource* create @ createBus(string filename, bool autoRemove, AudioBus* bus);
 };
 
+/// <summary>
 /// An interface for handling keyboard inputs.
+/// </summary>
 singleton class Keyboard
 {
+	/// <summary>
 	/// Checks whether a key is currently pressed.
-	///
-	/// # Arguments
-	///
-	/// * `name` - The name of the key to check.
-	///
-	/// # Returns
-	///
-	/// * `bool` - `true` if the key is pressed, `false` otherwise.
+	/// </summary>
+	/// <param name="name">The name of the key to check.</param>
+	/// <returns>`true` if the key is pressed, `false` otherwise.</returns>
 	bool isKeyDown @ _is_key_down(string name);
+	/// <summary>
 	/// Checks whether a key is currently released.
-	///
-	/// # Arguments
-	///
-	/// * `name` - The name of the key to check.
-	///
-	/// # Returns
-	///
-	/// * `bool` - `true` if the key is released, `false` otherwise.
+	/// </summary>
+	/// <param name="name">The name of the key to check.</param>
+	/// <returns>`true` if the key is released, `false` otherwise.</returns>
 	bool isKeyUp @ _is_key_up(string name);
+	/// <summary>
 	/// Checks whether a key is currently being pressed.
-	///
-	/// # Arguments
-	///
-	/// * `name` - The name of the key to check.
-	///
-	/// # Returns
-	///
-	/// * `bool` - `true` if the key is being pressed, `false` otherwise.
+	/// </summary>
+	/// <param name="name">The name of the key to check.</param>
+	/// <returns>`true` if the key is being pressed, `false` otherwise.</returns>
 	bool isKeyPressed @ _is_key_pressed(string name);
+	/// <summary>
 	/// Updates the input method editor (IME) position hint.
-	///
-	/// # Arguments
-	///
-	/// * `win_pos` - The position of the keyboard window.
+	/// </summary>
+	/// <param name="winPos">The position of the keyboard window.</param>
 	void updateIMEPosHint @ update_ime_pos_hint(Vec2 winPos);
 };
 
+/// <summary>
 /// An interface for handling mouse inputs.
+/// </summary>
 singleton class Mouse {
+	/// <summary>
 	/// The position of the mouse in the visible window.
 	/// You can use `Mouse::get_position() * App::get_device_pixel_ratio()` to get the coordinate in the game world.
 	/// Then use `node.convertToNodeSpace()` to convert the world coordinate to the local coordinate of the node.
-	///
 	/// # Example
-	///
 	/// ```
-	/// let worldPos = Mouse::get_position() * App::get_device_pixel_ratio();
-	/// let nodePos = node.convert_to_node_space(&worldPos);
+	/// var worldPos = Mouse.Position.mul(App.DevicePixelRatio);
+	/// var nodePos = node.ConvertToNodeSpace(worldPos);
 	/// ```
+	/// </summary>
 	static Vec2 getPosition();
+	/// <summary>
 	/// Whether the left mouse button is currently being pressed.
+	/// </summary>
 	static bool isLeftButtonPressed();
+	/// <summary>
 	/// Whether the right mouse button is currently being pressed.
+	/// </summary>
 	static bool isRightButtonPressed();
+	/// <summary>
 	/// Whether the middle mouse button is currently being pressed.
+	/// </summary>
 	static bool isMiddleButtonPressed();
+	/// <summary>
 	/// Gets the mouse wheel value.
+	/// </summary>
 	static Vec2 getWheel();
 };
 
+/// <summary>
 /// An interface for handling game controller inputs.
+/// </summary>
 singleton class Controller
 {
+	/// <summary>
 	/// Checks whether a button on the controller is currently pressed.
-	///
-	/// # Arguments
-	///
-	/// * `controller_id` - The ID of the controller to check. Starts from 0.
-	/// * `name` - The name of the button to check.
-	///
-	/// # Returns
-	///
-	/// * `bool` - `true` if the button is pressed, `false` otherwise.
+	/// </summary>
+	/// <param name="controllerId">The ID of the controller to check. Starts from 0.</param>
+	/// <param name="name">The name of the button to check.</param>
+	/// <returns>`true` if the button is pressed, `false` otherwise.</returns>
 	bool isButtonDown @ _is_button_down(int controllerId, string name);
+	/// <summary>
 	/// Checks whether a button on the controller is currently released.
-	///
-	/// # Arguments
-	///
-	/// * `controller_id` - The ID of the controller to check. Starts from 0.
-	/// * `name` - The name of the button to check.
-	///
-	/// # Returns
-	///
-	/// * `bool` - `true` if the button is released, `false` otherwise.
+	/// </summary>
+	/// <param name="controllerId">The ID of the controller to check. Starts from 0.</param>
+	/// <param name="name">The name of the button to check.</param>
+	/// <returns>`true` if the button is released, `false` otherwise.</returns>
 	bool isButtonUp @ _is_button_up(int controllerId, string name);
+	/// <summary>
 	/// Checks whether a button on the controller is currently being pressed.
-	///
-	/// # Arguments
-	///
-	/// * `controller_id` - The ID of the controller to check. Starts from 0.
-	/// * `name` - The name of the button to check.
-	///
-	/// # Returns
-	///
-	/// * `bool` - `true` if the button is being pressed, `false` otherwise.
+	/// </summary>
+	/// <param name="controllerId">The ID of the controller to check. Starts from 0.</param>
+	/// <param name="name">The name of the button to check.</param>
+	/// <returns>`true` if the button is being pressed, `false` otherwise.</returns>
 	bool isButtonPressed @ _is_button_pressed(int controllerId, string name);
+	/// <summary>
 	/// Gets the value of an axis on the controller.
-	///
-	/// # Arguments
-	///
-	/// * `controller_id` - The ID of the controller to check. Starts from 0.
-	/// * `name` - The name of the axis to check.
-	///
-	/// # Returns
-	///
-	/// * `f32` - The value of the axis. The value is between -1.0 and 1.0.
+	/// </summary>
+	/// <param name="controllerId">The ID of the controller to check. Starts from 0.</param>
+	/// <param name="name">The name of the axis to check.</param>
+	/// <returns>The value of the axis. The value is between -1.0 and 1.0.</returns>
 	float getAxis @ _get_axis(int controllerId, string name);
 };
 
+/// <summary>
 /// A struct used for Scalable Vector Graphics rendering.
+/// </summary>
 object class SVGDef @ SVG
 {
-	/// the width of the SVG object.
+	/// <summary>
+	/// The width of the SVG object.
+	/// </summary>
 	readonly common float width;
-	/// the height of the SVG object.
+	/// <summary>
+	/// The height of the SVG object.
+	/// </summary>
 	readonly common float height;
+	/// <summary>
 	/// Renders the SVG object, should be called every frame for the render result to appear.
+	/// </summary>
 	void render();
+	/// <summary>
 	/// Creates a new SVG object from the specified SVG file.
-	///
-	/// # Arguments
-	///
-	/// * `filename` - The path to the SVG format file.
-	///
-	/// # Returns
-	///
-	/// * `Svg` - The created SVG object.
+	/// </summary>
+	/// <param name="filename">The path to the SVG format file.</param>
+	/// <returns>The created SVG object.</returns>
 	static optional SVGDef* from @ create(string filename);
 };
 
@@ -4099,599 +3826,511 @@ value struct DBQuery
 	static DBQuery create();
 };
 
+/// <summary>
 /// A struct that represents a database.
+/// </summary>
 singleton class DB
 {
+	/// <summary>
 	/// Checks whether a database exists.
-	///
-	/// # Arguments
-	///
-	/// * `db_name` - The name of the database to check.
-	///
-	/// # Returns
-	///
-	/// * `bool` - `true` if the database exists, `false` otherwise.
+	/// </summary>
+	/// <param name="dbName">The name of the database to check.</param>
+	/// <returns>`true` if the database exists, `false` otherwise.</returns>
 	bool existDB @ exist_db(string dbName);
+	/// <summary>
 	/// Checks whether a table exists in the database.
-	///
-	/// # Arguments
-	///
-	/// * `table_name` - The name of the table to check.
-	///
-	/// # Returns
-	///
-	/// * `bool` - `true` if the table exists, `false` otherwise.
+	/// </summary>
+	/// <param name="tableName">The name of the table to check.</param>
+	/// <returns>`true` if the table exists, `false` otherwise.</returns>
 	bool exist(string tableName);
+	/// <summary>
 	/// Checks whether a table exists in the database.
-	///
-	/// # Arguments
-	///
-	/// * `table_name` - The name of the table to check.
-	/// * `schema` - Optional. The name of the schema to check in.
-	///
-	/// # Returns
-	///
-	/// * `bool` - `true` if the table exists, `false` otherwise.
+	/// </summary>
+	/// <param name="tableName">The name of the table to check.</param>
+	/// <param name="schema">Optional. The name of the schema to check in.</param>
+	/// <returns>`true` if the table exists, `false` otherwise.</returns>
 	bool exist @ existSchema(string tableName, string schema);
+	/// <summary>
 	/// Executes an SQL statement and returns the number of rows affected.
-	///
-	/// # Arguments
-	///
-	/// * `sql` - The SQL statement to execute.
-	///
-	/// # Returns
-	///
-	/// * `i32` - The number of rows affected by the statement.
+	/// </summary>
+	/// <param name="sql">The SQL statement to execute.</param>
+	/// <returns>The number of rows affected by the statement.</returns>
 	int exec(string sql);
+	/// <summary>
 	/// Executes a list of SQL statements as a single transaction.
-	///
-	/// # Arguments
-	///
-	/// * `query` - A list of SQL statements to execute.
-	///
-	/// # Returns
-	///
-	/// * `bool` - `true` if the transaction was successful, `false` otherwise.
+	/// </summary>
+	/// <param name="query">A list of SQL statements to execute.</param>
+	/// <returns>`true` if the transaction was successful, `false` otherwise.</returns>
 	outside bool DB_Transaction @ transaction(DBQuery query);
+	/// <summary>
 	/// Executes a list of SQL statements as a single transaction asynchronously.
-	///
-	/// # Arguments
-	///
-	/// * `sqls` - A list of SQL statements to execute.
-	/// * `callback` - A callback function that is invoked when the transaction is executed, receiving the result of the transaction.
-	///
-	/// # Returns
-	///
-	/// * `bool` - `true` if the transaction was successful, `false` otherwise.
+	/// </summary>
+	/// <param name="query">A list of SQL statements to execute.</param>
+	/// <param name="callback">A callback function that is invoked when the transaction is executed, receiving the result of the transaction.</param>
+	/// <returns>`true` if the transaction was successful, `false` otherwise.</returns>
 	outside void DB_TransactionAsync @ transactionAsync(DBQuery query, function<void(bool result)> callback);
+	/// <summary>
 	/// Executes an SQL query and returns the results as a list of rows.
-	///
-	/// # Arguments
-	///
-	/// * `sql` - The SQL statement to execute.
-	/// * `with_column` - Whether to include column names in the result.
-	///
-	/// # Returns
-	///
-	/// * `DBRecord` - A list of rows returned by the query.
+	/// </summary>
+	/// <param name="sql">The SQL statement to execute.</param>
+	/// <param name="withColumns">Whether to include column names in the result.</param>
+	/// <returns>A list of rows returned by the query.</returns>
 	outside DBRecord DB_Query @ query(string sql, bool withColumns);
+	/// <summary>
 	/// Executes an SQL query and returns the results as a list of rows.
-	///
-	/// # Arguments
-	///
-	/// * `sql` - The SQL statement to execute.
-	/// * `params_` - A list of values to substitute into the SQL statement.
-	/// * `with_column` - Whether to include column names in the result.
-	///
-	/// # Returns
-	///
-	/// * `DBRecord` - A list of rows returned by the query.
+	/// </summary>
+	/// <param name="sql">The SQL statement to execute.</param>
+	/// <param name="params_">A list of values to substitute into the SQL statement.</param>
+	/// <param name="withColumns">Whether to include column names in the result.</param>
+	/// <returns>A list of rows returned by the query.</returns>
 	outside DBRecord DB_QueryWithParams @ queryWithParams(string sql, Array* params_, bool withColumns);
+	/// <summary>
 	/// Inserts a row of data into a table within a transaction.
-	///
-	/// # Arguments
-	///
-	/// * `table_name` - The name of the table to insert into.
-	/// * `values` - The values to insert into the table.
-	///
-	/// # Returns
-	///
-	/// * `bool` - `true` if the insertion was successful, `false` otherwise.
+	/// </summary>
+	/// <param name="tableName">The name of the table to insert into.</param>
+	/// <param name="values">The values to insert into the table.</param>
+	/// <returns>`true` if the insertion was successful, `false` otherwise.</returns>
 	outside void DB_Insert @ insert(string tableName, DBParams values);
+	/// <summary>
 	/// Executes an SQL statement and returns the number of rows affected.
-	///
-	/// # Arguments
-	///
-	/// * `sql` - The SQL statement to execute.
-	/// * `values` - Lists of values to substitute into the SQL statement.
-	///
-	/// # Returns
-	///
-	/// * `i32` - The number of rows affected by the statement.
+	/// </summary>
+	/// <param name="sql">The SQL statement to execute.</param>
+	/// <param name="values">Lists of values to substitute into the SQL statement.</param>
+	/// <returns>The number of rows affected by the statement.</returns>
 	outside int32_t DB_ExecWithRecords @ execWithRecords(string sql, DBParams values);
+	/// <summary>
 	/// Executes an SQL query asynchronously and returns the results as a list of rows.
-	///
-	/// # Arguments
-	///
-	/// * `sql` - The SQL statement to execute.
-	/// * `params_` - Optional. A list of values to substitute into the SQL statement.
-	/// * `with_column` - Optional. Whether to include column names in the result. Default is `false`.
-	/// * `callback` - A callback function that is invoked when the query is executed, receiving the results as a list of rows.
+	/// </summary>
+	/// <param name="sql">The SQL statement to execute.</param>
+	/// <param name="params_">Optional. A list of values to substitute into the SQL statement.</param>
+	/// <param name="withColumns">Optional. Whether to include column names in the result. Default is `false`.</param>
+	/// <param name="callback">A callback function that is invoked when the query is executed, receiving the results as a list of rows.</param>
 	outside void DB_QueryWithParamsAsync @ queryWithParamsAsync(string sql, Array* params_, bool withColumns, function<void(DBRecord result)> callback);
+	/// <summary>
 	/// Inserts a row of data into a table within a transaction asynchronously.
-	///
-	/// # Arguments
-	///
-	/// * `table_name` - The name of the table to insert into.
-	/// * `values` - The values to insert into the table.
-	/// * `callback` - A callback function that is invoked when the insertion is executed, receiving the result of the insertion.
+	/// </summary>
+	/// <param name="tableName">The name of the table to insert into.</param>
+	/// <param name="values">The values to insert into the table.</param>
+	/// <param name="callback">A callback function that is invoked when the insertion is executed, receiving the result of the insertion.</param>
 	outside void DB_InsertAsync @ insertAsync(string tableName, DBParams values, function<void(bool result)> callback);
+	/// <summary>
 	/// Executes an SQL statement with a list of values within a transaction asynchronously and returns the number of rows affected.
-	///
-	/// # Arguments
-	///
-	/// * `sql` - The SQL statement to execute.
-	/// * `values` - A list of values to substitute into the SQL statement.
-	/// * `callback` - A callback function that is invoked when the statement is executed, recieving the number of rows affected.
+	/// </summary>
+	/// <param name="sql">The SQL statement to execute.</param>
+	/// <param name="values">A list of values to substitute into the SQL statement.</param>
+	/// <param name="callback">A callback function that is invoked when the statement is executed, recieving the number of rows affected.</param>
 	outside void DB_ExecAsync @ execAsync(string sql, DBParams values, function<void(int64_t rowChanges)> callback);
 };
 
+/// <summary>
 /// A simple reinforcement learning framework that can be used to learn optimal policies for Markov decision processes using Q-learning. Q-learning is a model-free reinforcement learning algorithm that learns an optimal action-value function from experience by repeatedly updating estimates of the Q-value of state-action pairs.
+/// </summary>
 object class MLQLearner @ QLearner
 {
+	/// <summary>
 	/// Updates Q-value for a state-action pair based on received reward.
-	///
-	/// # Arguments
-	///
-	/// * `state` - An integer representing the state.
-	/// * `action` - An integer representing the action.
-	/// * `reward` - A number representing the reward received for the action in the state.
+	/// </summary>
+	/// <param name="state">An integer representing the state.</param>
+	/// <param name="action">An integer representing the action.</param>
+	/// <param name="reward">A number representing the reward received for the action in the state.</param>
 	void update(MLQState state, MLQAction action, double reward);
+	/// <summary>
 	/// Returns the best action for a given state based on the current Q-values.
-	///
-	/// # Arguments
-	///
-	/// * `state` - The current state.
-	///
-	/// # Returns
-	///
-	/// * `i32` - The action with the highest Q-value for the given state.
+	/// </summary>
+	/// <param name="state">The current state.</param>
+	/// <returns>The action with the highest Q-value for the given state.</returns>
 	uint32_t getBestAction(MLQState state);
+	/// <summary>
 	/// Visits all state-action pairs and calls the provided handler function for each pair.
-	///
-	/// # Arguments
-	///
-	/// * `handler` - A function that is called for each state-action pair.
+	/// </summary>
+	/// <param name="handler">A function that is called for each state-action pair.</param>
 	outside void ML_QLearnerVisitStateActionQ @ visitMatrix(function<void(MLQState state, MLQAction action, double q)> handler);
+	/// <summary>
 	/// Constructs a state from given hints and condition values.
-	///
-	/// # Arguments
-	///
-	/// * `hints` - A vector of integers representing the byte length of provided values.
-	/// * `values` - The condition values as discrete values.
-	///
-	/// # Returns
-	///
-	/// * `i64` - The packed state value.
+	/// </summary>
+	/// <param name="hints">A vector of integers representing the byte length of provided values.</param>
+	/// <param name="values">The condition values as discrete values.</param>
+	/// <returns>The packed state value.</returns>
 	static MLQState pack(VecUint32 hints, VecUint32 values);
+	/// <summary>
 	/// Deconstructs a state from given hints to get condition values.
-	///
-	/// # Arguments
-	///
-	/// * `hints` - A vector of integers representing the byte length of provided values.
-	/// * `state` - The state integer to unpack.
-	///
-	/// # Returns
-	///
-	/// * `Vec<i32>` - The condition values as discrete values.
+	/// </summary>
+	/// <param name="hints">A vector of integers representing the byte length of provided values.</param>
+	/// <param name="state">The state integer to unpack.</param>
+	/// <returns>The condition values as discrete values.</returns>
 	static VecUint32 unpack(VecUint32 hints, MLQState state);
+	/// <summary>
 	/// Creates a new QLearner object with optional parameters for gamma, alpha, and maxQ.
-	///
-	/// # Arguments
-	///
-	/// * `gamma` - The discount factor for future rewards.
-	/// * `alpha` - The learning rate for updating Q-values.
-	/// * `maxQ` - The maximum Q-value. Defaults to 100.0.
-	///
-	/// # Returns
-	///
-	/// * `QLearner` - The newly created QLearner object.
+	/// </summary>
+	/// <param name="gamma">The discount factor for future rewards.</param>
+	/// <param name="alpha">The learning rate for updating Q-values.</param>
+	/// <param name="maxQ">The maximum Q-value. Defaults to 100.0.</param>
+	/// <returns>The newly created QLearner object.</returns>
 	static QLearner* create(double gamma, double alpha, double maxQ);
 };
 
+/// <summary>
 /// An interface for machine learning algorithms.
+/// </summary>
 singleton class C45
 {
+	/// <summary>
 	/// A function that takes CSV data as input and applies the C4.5 machine learning algorithm to build a decision tree model asynchronously.
 	/// C4.5 is a decision tree algorithm that uses information gain to select the best attribute to split the data at each node of the tree. The resulting decision tree can be used to make predictions on new data.
-	///
-	/// # Arguments
-	///
-	/// * `csv_data` - The CSV training data for building the decision tree using delimiter `,`.
-	/// * `max_depth` - The maximum depth of the generated decision tree. Set to 0 to prevent limiting the generated tree depth.
-	/// * `handler` - The callback function to be called for each node of the generated decision tree.
-	///     * `depth` - The learning accuracy value or the depth of the current node in the decision tree.
-	///     * `name` - The name of the attribute used for splitting the data at the current node.
-	///     * `op` - The comparison operator used for splitting the data at the current node.
-	///     * `value` - The value used for splitting the data at the current node.
-	static outside void MLBuildDecisionTreeAsync @ buildDecisionTreeAsync(string data, int maxDepth, function<void(double depth, string name, string op, string value)> treeVisitor);
+	/// </summary>
+	/// <param name="csvData">The CSV training data for building the decision tree using delimiter `,`.</param>
+	/// <param name="maxDepth">The maximum depth of the generated decision tree. Set to 0 to prevent limiting the generated tree depth.</param>
+	/// <param name="treeVisitor">The callback function to be called for each node of the generated decision tree.</param>
+	static outside void MLBuildDecisionTreeAsync @ buildDecisionTreeAsync(string csvData, int maxDepth, function<void(double depth, string name, string op, string value)> treeVisitor);
 };
 
+/// <summary>
 /// An HTTP client interface.
+/// </summary>
 singleton class HttpClient
 {
+	/// <summary>
 	/// Sends a POST request to the specified URL and returns the response body.
-	///
-	/// # Arguments
-	///
-	/// * `url` - The URL to send the request to.
-	/// * `json` - The JSON data to send in the request body.
-	/// * `timeout` - The timeout in seconds for the request.
-	/// * `callback` - A callback function that is called when the request is complete. The function receives the response body as a parameter.
+	/// </summary>
+	/// <param name="url">The URL to send the request to.</param>
+	/// <param name="json">The JSON data to send in the request body.</param>
+	/// <param name="timeout">The timeout in seconds for the request.</param>
+	/// <param name="callback">A callback function that is called when the request is complete. The function receives the response body as a parameter.</param>
 	void postAsync(string url, string json, float timeout, function<void(OptString body)> callback);
+	/// <summary>
 	/// Sends a POST request to the specified URL with custom headers and returns the response body.
-	///
-	/// # Arguments
-	///
-	/// * `url` - The URL to send the request to.
-	/// * `headers` - A vector of headers to include in the request. Each header should be in the format `key: value`.
-	/// * `json` - The JSON data to send in the request body.
-	/// * `timeout` - The timeout in seconds for the request.
-	/// * `callback` - A callback function that is called when the request is complete. The function receives the response body as a parameter.
+	/// </summary>
+	/// <param name="url">The URL to send the request to.</param>
+	/// <param name="headers">A vector of headers to include in the request. Each header should be in the format `key: value`.</param>
+	/// <param name="json">The JSON data to send in the request body.</param>
+	/// <param name="timeout">The timeout in seconds for the request.</param>
+	/// <param name="callback">A callback function that is called when the request is complete. The function receives the response body as a parameter.</param>
 	void postAsync @ postWithHeadersAsync(string url, VecStr headers, string json, float timeout, function<void(OptString body)> callback);
+	/// <summary>
 	/// Sends a POST request to the specified URL with custom headers and returns the response body.
-	///
-	/// # Arguments
-	///
-	/// * `url` - The URL to send the request to.
-	/// * `headers` - A vector of headers to include in the request. Each header should be in the format `key: value`.
-	/// * `json` - The JSON data to send in the request body.
-	/// * `timeout` - The timeout in seconds for the request.
-	/// * `part_callback` - A callback function that is called periodically to get part of the response content. Returns `true` to stop the request.
-	/// * `callback` - A callback function that is called when the request is complete. The function receives the response body as a parameter.
+	/// </summary>
+	/// <param name="url">The URL to send the request to.</param>
+	/// <param name="headers">A vector of headers to include in the request. Each header should be in the format `key: value`.</param>
+	/// <param name="json">The JSON data to send in the request body.</param>
+	/// <param name="timeout">The timeout in seconds for the request.</param>
+	/// <param name="partCallback">A callback function that is called periodically to get part of the response content. Returns `true` to stop the request.</param>
+	/// <param name="callback">A callback function that is called when the request is complete. The function receives the response body as a parameter.</param>
 	void postAsync @ postWithHeadersPartAsync(string url, VecStr headers, string json, float timeout, function<def_false bool(string body)> partCallback, function<void(OptString body)> callback);
+	/// <summary>
 	/// Sends a GET request to the specified URL and returns the response body.
-	///
-	/// # Arguments
-	///
-	/// * `url` - The URL to send the request to.
-	/// * `timeout` - The timeout in seconds for the request.
-	/// * `callback` - A callback function that is called when the request is complete. The function receives the response body as a parameter.
+	/// </summary>
+	/// <param name="url">The URL to send the request to.</param>
+	/// <param name="timeout">The timeout in seconds for the request.</param>
+	/// <param name="callback">A callback function that is called when the request is complete. The function receives the response body as a parameter.</param>
 	void getAsync(string url, float timeout, function<void(OptString body)> callback);
+	/// <summary>
 	/// Downloads a file asynchronously from the specified URL and saves it to the specified path.
-	///
-	/// # Arguments
-	///
-	/// * `url` - The URL of the file to download.
-	/// * `full_path` - The full path where the downloaded file should be saved.
-	/// * `timeout` - The timeout in seconds for the request.
-	/// * `progress` - A callback function that is called periodically to report the download progress.
-	///   The function receives three parameters: `interrupted` (a boolean value indicating whether the download was interrupted), `current` (the number of bytes downloaded so far) and `total` (the total number of bytes to be downloaded).
+	/// </summary>
+	/// <param name="url">The URL of the file to download.</param>
+	/// <param name="fullPath">The full path where the downloaded file should be saved.</param>
+	/// <param name="timeout">The timeout in seconds for the request.</param>
+	/// <param name="progress">A callback function that is called periodically to report the download progress.</param>
 	void downloadAsync(string url, string fullPath, float timeout, function<def_true bool(bool interrupted, uint64_t current, uint64_t total)> progress);
 };
 
 namespace Platformer {
 
+/// <summary>
 /// A struct to specifies how a bullet object should interact with other game objects or units based on their relationship.
+/// </summary>
 value class TargetAllow
 {
-	/// whether the bullet object can collide with terrain.
+	/// <summary>
+	/// Whether the bullet object can collide with terrain.
+	/// </summary>
 	boolean bool terrainAllowed;
+	/// <summary>
 	/// Allows or disallows the bullet object to interact with a game object or unit, based on their relationship.
-	///
-	/// # Arguments
-	///
-	/// * `relation` - The relationship between the bullet object and the other game object or unit.
-	/// * `allow` - Whether the bullet object should be allowed to interact.
+	/// </summary>
+	/// <param name="relation">The relationship between the bullet object and the other game object or unit.</param>
+	/// <param name="allow">Whether the bullet object should be allowed to interact.</param>
 	void allow(Platformer::Relation relation, bool allow);
+	/// <summary>
 	/// Determines whether the bullet object is allowed to interact with a game object or unit, based on their relationship.
-	///
-	/// # Arguments
-	///
-	/// * `relation` - The relationship between the bullet object and the other game object or unit.
-	///
-	/// # Returns
-	///
-	/// * `bool` - Whether the bullet object is allowed to interact.
+	/// </summary>
+	/// <param name="relation">The relationship between the bullet object and the other game object or unit.</param>
+	/// <returns>Whether the bullet object is allowed to interact.</returns>
 	bool isAllow(Platformer::Relation relation);
+	/// <summary>
 	/// Converts the object to a value that can be used for interaction settings.
-	///
-	/// # Returns
-	///
-	/// * `usize` - The value that can be used for interaction settings.
+	/// </summary>
+	/// <returns>The value that can be used for interaction settings.</returns>
 	uint32_t toValue();
+	/// <summary>
 	/// Creates a new TargetAllow object with default settings.
+	/// </summary>
 	static Platformer::TargetAllow create();
+	/// <summary>
 	/// Creates a new TargetAllow object with the specified value.
-	///
-	/// # Arguments
-	///
-	/// * `value` - The value to use for the new TargetAllow object.
+	/// </summary>
+	/// <param name="value">The value to use for the new TargetAllow object.</param>
 	static Platformer::TargetAllow create @ createValue(uint32_t value);
 };
 
+/// <summary>
 /// Represents a definition for a visual component of a game bullet or other visual item.
+/// </summary>
 object class Face
 {
+	/// <summary>
 	/// Adds a child `Face` definition to it.
-	///
-	/// # Arguments
-	///
-	/// * `face` - The child `Face` to add.
+	/// </summary>
+	/// <param name="face">The child `Face` to add.</param>
 	void addChild(Platformer::Face* face);
+	/// <summary>
 	/// Returns a node that can be added to a scene tree for rendering.
-	///
-	/// # Returns
-	///
-	/// * `Node` - The `Node` representing this `Face`.
+	/// </summary>
+	/// <returns>The `Node` representing this `Face`.</returns>
 	Node* toNode();
+	/// <summary>
 	/// Creates a new `Face` definition using the specified attributes.
-	///
-	/// # Arguments
-	///
-	/// * `face_str` - A string for creating the `Face` component. Could be 'Image/file.png' and 'Image/items.clip|itemA'.
-	/// * `point` - The position of the `Face` component.
-	/// * `scale` - The scale of the `Face` component.
-	/// * `angle` - The angle of the `Face` component.
-	///
-	/// # Returns
-	///
-	/// * `Face` - The new `Face` component.
+	/// </summary>
+	/// <param name="faceStr">A string for creating the `Face` component. Could be 'Image/file.png' and 'Image/items.clip|itemA'.</param>
+	/// <param name="point">The position of the `Face` component.</param>
+	/// <param name="scale">The scale of the `Face` component.</param>
+	/// <param name="angle">The angle of the `Face` component.</param>
+	/// <returns>The new `Face` component.</returns>
 	static Face* create(string faceStr, Vec2 point, float scale, float angle);
+	/// <summary>
 	/// Creates a new `Face` definition using the specified attributes.
-	///
-	/// # Arguments
-	///
-	/// * `create_func` - A function that returns a `Node` representing the `Face` component.
-	/// * `point` - The position of the `Face` component.
-	/// * `scale` - The scale of the `Face` component.
-	/// * `angle` - The angle of the `Face` component.
-	///
-	/// # Returns
-	///
-	/// * `Face` - The new `Face` component.
+	/// </summary>
+	/// <param name="createFunc">A function that returns a `Node` representing the `Face` component.</param>
+	/// <param name="point">The position of the `Face` component.</param>
+	/// <param name="scale">The scale of the `Face` component.</param>
+	/// <param name="angle">The angle of the `Face` component.</param>
+	/// <returns>The new `Face` component.</returns>
 	static Face* create @ createFunc(function<Node*()> createFunc, Vec2 point, float scale, float angle);
 };
 
+/// <summary>
 /// A struct type that specifies the properties and behaviors of a bullet object in the game.
+/// </summary>
 object class BulletDef
 {
-	/// the tag for the bullet object.
+	/// <summary>
+	/// The tag for the bullet object.
+	/// </summary>
 	string tag;
-	/// the effect that occurs when the bullet object ends its life.
+	/// <summary>
+	/// The effect that occurs when the bullet object ends its life.
+	/// </summary>
 	string endEffect;
-	/// the amount of time in seconds that the bullet object remains active.
+	/// <summary>
+	/// The amount of time in seconds that the bullet object remains active.
+	/// </summary>
 	float lifeTime;
-	/// the radius of the bullet object's damage area.
+	/// <summary>
+	/// The radius of the bullet object's damage area.
+	/// </summary>
 	float damageRadius;
-	/// whether the bullet object should be fixed for high speeds.
+	/// <summary>
+	/// Whether the bullet object should be fixed for high speeds.
+	/// </summary>
 	boolean bool highSpeedFix;
-	/// the gravity vector that applies to the bullet object.
+	/// <summary>
+	/// The gravity vector that applies to the bullet object.
+	/// </summary>
 	common Vec2 gravity;
-	/// the visual item of the bullet object.
+	/// <summary>
+	/// The visual item of the bullet object.
+	/// </summary>
 	common Platformer::Face* face;
-	/// the physics body definition for the bullet object.
+	/// <summary>
+	/// The physics body definition for the bullet object.
+	/// </summary>
 	readonly common BodyDef* bodyDef;
-	/// the velocity vector of the bullet object.
+	/// <summary>
+	/// The velocity vector of the bullet object.
+	/// </summary>
 	readonly common Vec2 velocity;
+	/// <summary>
 	/// Sets the bullet object's physics body as a circle.
-	///
-	/// # Arguments
-	///
-	/// * `radius` - The radius of the circle.
+	/// </summary>
+	/// <param name="radius">The radius of the circle.</param>
 	void setAsCircle(float radius);
+	/// <summary>
 	/// Sets the velocity of the bullet object.
-	///
-	/// # Arguments
-	///
-	/// * `angle` - The angle of the velocity in degrees.
-	/// * `speed` - The speed of the velocity.
+	/// </summary>
+	/// <param name="angle">The angle of the velocity in degrees.</param>
+	/// <param name="speed">The speed of the velocity.</param>
 	void setVelocity(float angle, float speed);
+	/// <summary>
 	/// Creates a new bullet object definition with default settings.
-	///
-	/// # Returns
-	///
-	/// * `BulletDef` - The new bullet object definition.
+	/// </summary>
+	/// <returns>The new bullet object definition.</returns>
 	static BulletDef* create();
 };
 
+/// <summary>
 /// A struct that defines the properties and behavior of a bullet object instance in the game.
+/// </summary>
 object class Bullet : public Body
 {
-	/// the value from a `Platformer.TargetAllow` object for the bullet object.
+	/// <summary>
+	/// The value from a `Platformer.TargetAllow` object for the bullet object.
+	/// </summary>
 	common uint32_t targetAllow;
-	/// whether the bullet object is facing right.
+	/// <summary>
+	/// Whether the bullet object is facing right.
+	/// </summary>
 	readonly boolean bool faceRight;
-	/// whether the bullet object should stop on impact.
+	/// <summary>
+	/// Whether the bullet object should stop on impact.
+	/// </summary>
 	boolean bool hitStop;
-	/// the `Unit` object that fired the bullet.
+	/// <summary>
+	/// The `Unit` object that fired the bullet.
+	/// </summary>
 	readonly common Platformer::Unit* emitter;
-	/// the `BulletDef` object that defines the bullet's properties and behavior.
+	/// <summary>
+	/// The `BulletDef` object that defines the bullet's properties and behavior.
+	/// </summary>
 	readonly common Platformer::BulletDef* bulletDef;
-	/// the `Node` object that appears as the bullet's visual item.
+	/// <summary>
+	/// The `Node` object that appears as the bullet's visual item.
+	/// </summary>
 	common Node* face;
+	/// <summary>
 	/// Destroys the bullet object instance.
+	/// </summary>
 	void destroy();
+	/// <summary>
 	/// A method that creates a new `Bullet` object instance with the specified `BulletDef` and `Unit` objects.
-	///
-	/// # Arguments
-	///
-	/// * `def` - The `BulletDef` object that defines the bullet's properties and behavior.
-	/// * `owner` - The `Unit` object that fired the bullet.
-	///
-	/// # Returns
-	///
-	/// * `Bullet` - The new `Bullet` object instance.
+	/// </summary>
+	/// <param name="def">The `BulletDef` object that defines the bullet's properties and behavior.</param>
+	/// <param name="owner">The `Unit` object that fired the bullet.</param>
+	/// <returns>The new `Bullet` object instance.</returns>
 	static Bullet* create(Platformer::BulletDef* def, Platformer::Unit* owner);
 };
 
+/// <summary>
 /// A struct represents a visual effect object like Particle, Frame Animation or just a Sprite.
+/// </summary>
 object class Visual : public Node
 {
-	/// whether the visual effect is currently playing or not.
+	/// <summary>
+	/// Whether the visual effect is currently playing or not.
+	/// </summary>
 	readonly boolean bool playing;
+	/// <summary>
 	/// Starts playing the visual effect.
+	/// </summary>
 	void start();
+	/// <summary>
 	/// Stops playing the visual effect.
+	/// </summary>
 	void stop();
+	/// <summary>
 	/// Automatically removes the visual effect from the game world when it finishes playing.
-	///
-	/// # Returns
-	///
-	/// * `Visual` - The same `Visual` object that was passed in as a parameter.
+	/// </summary>
+	/// <returns>The same `Visual` object that was passed in as a parameter.</returns>
 	Platformer::Visual* autoRemove();
+	/// <summary>
 	/// Creates a new `Visual` object with the specified name.
-	///
-	/// # Arguments
-	///
-	/// * `name` - The name of the new `Visual` object. Could be a particle file, a frame animation file or an image file.
-	///
-	/// # Returns
-	///
-	/// * `Visual` - The new `Visual` object.
+	/// </summary>
+	/// <param name="name">The name of the new `Visual` object. Could be a particle file, a frame animation file or an image file.</param>
+	/// <returns>The new `Visual` object.</returns>
 	static Visual* create(string name);
 };
 
 namespace Behavior {
 
+/// <summary>
 /// A blackboard object that can be used to store data for behavior tree nodes.
+/// </summary>
 class Blackboard
 {
-	/// the time since the last frame update in seconds.
+	/// <summary>
+	/// The time since the last frame update in seconds.
+	/// </summary>
 	readonly common double deltaTime;
-	/// the unit that the AI agent belongs to.
+	/// <summary>
+	/// The unit that the AI agent belongs to.
+	/// </summary>
 	readonly common Platformer::Unit* owner;
 };
 
+/// <summary>
 /// A behavior tree framework for creating game AI structures.
+/// </summary>
 object class Leaf @ Tree
 {
+	/// <summary>
 	/// Creates a new sequence node that executes an array of child nodes in order.
-	///
-	/// # Arguments
-	///
-	/// * `nodes` - A vector of child nodes.
-	///
-	/// # Returns
-	///
-	/// * `Leaf` - A new sequence node.
+	/// </summary>
+	/// <param name="nodes">A vector of child nodes.</param>
+	/// <returns>A new sequence node.</returns>
 	static outside Platformer::Behavior::Leaf* BSeq @ seq(VecBTree nodes);
+	/// <summary>
 	/// Creates a new selector node that selects and executes one of its child nodes that will succeed.
-	///
-	/// # Arguments
-	///
-	/// * `nodes` - A vector of child nodes.
-	///
-	/// # Returns
-	///
-	/// * `Leaf` - A new selector node.
+	/// </summary>
+	/// <param name="nodes">A vector of child nodes.</param>
+	/// <returns>A new selector node.</returns>
 	static outside Platformer::Behavior::Leaf* BSel @ sel(VecBTree nodes);
+	/// <summary>
 	/// Creates a new condition node that executes a check handler function when executed.
-	///
-	/// # Arguments
-	///
-	/// * `name` - The name of the condition.
-	/// * `check` - A function that takes a blackboard object and returns a boolean value.
-	///
-	/// # Returns
-	///
-	/// * `Leaf` - A new condition node.
-	static outside Platformer::Behavior::Leaf* BCon @ con(string name, function<def_false bool(Platformer::Behavior::Blackboard blackboard)> handler);
+	/// </summary>
+	/// <param name="name">The name of the condition.</param>
+	/// <param name="check">A function that takes a blackboard object and returns a boolean value.</param>
+	/// <returns>A new condition node.</returns>
+	static outside Platformer::Behavior::Leaf* BCon @ con(string name, function<def_false bool(Platformer::Behavior::Blackboard blackboard)> check);
+	/// <summary>
 	/// Creates a new action node that executes an action when executed.
 	/// This node will block the execution until the action finishes.
-	///
-	/// # Arguments
-	///
-	/// * `action_name` - The name of the action to execute.
-	///
-	/// # Returns
-	///
-	/// * `Leaf` - A new action node.
-	static outside Platformer::Behavior::Leaf* BAct @ act(string action_name);
+	/// </summary>
+	/// <param name="actionName">The name of the action to execute.</param>
+	/// <returns>A new action node.</returns>
+	static outside Platformer::Behavior::Leaf* BAct @ act(string actionName);
+	/// <summary>
 	/// Creates a new command node that executes a command when executed.
 	/// This node will return right after the action starts.
-	///
-	/// # Arguments
-	///
-	/// * `action_name` - The name of the command to execute.
-	///
-	/// # Returns
-	///
-	/// * `Leaf` - A new command node.
-	static outside Platformer::Behavior::Leaf* BCommand @ command(string action_name);
+	/// </summary>
+	/// <param name="actionName">The name of the command to execute.</param>
+	/// <returns>A new command node.</returns>
+	static outside Platformer::Behavior::Leaf* BCommand @ command(string actionName);
+	/// <summary>
 	/// Creates a new wait node that waits for a specified duration when executed.
-	///
-	/// # Arguments
-	///
-	/// * `duration` - The duration to wait in seconds.
-	///
-	/// # Returns
-	///
-	/// * A new wait node of type `Leaf`.
+	/// </summary>
+	/// <param name="duration">The duration to wait in seconds.</param>
 	static outside Platformer::Behavior::Leaf* BWait @ wait(double duration);
+	/// <summary>
 	/// Creates a new countdown node that executes a child node continuously until a timer runs out.
-	///
-	/// # Arguments
-	///
-	/// * `time` - The time limit in seconds.
-	/// * `node` - The child node to execute.
-	///
-	/// # Returns
-	///
-	/// * A new countdown node of type `Leaf`.
+	/// </summary>
+	/// <param name="time">The time limit in seconds.</param>
+	/// <param name="node">The child node to execute.</param>
 	static outside Platformer::Behavior::Leaf* BCountdown @ countdown(double time, Platformer::Behavior::Leaf* node);
+	/// <summary>
 	/// Creates a new timeout node that executes a child node until a timer runs out.
-	///
-	/// # Arguments
-	///
-	/// * `time` - The time limit in seconds.
-	/// * `node` - The child node to execute.
-	///
-	/// # Returns
-	///
-	/// * A new timeout node of type `Leaf`.
+	/// </summary>
+	/// <param name="time">The time limit in seconds.</param>
+	/// <param name="node">The child node to execute.</param>
 	static outside Platformer::Behavior::Leaf* BTimeout @ timeout(double time, Platformer::Behavior::Leaf* node);
+	/// <summary>
 	/// Creates a new repeat node that executes a child node a specified number of times.
-	///
-	/// # Arguments
-	///
-	/// * `times` - The number of times to execute the child node.
-	/// * `node` - The child node to execute.
-	///
-	/// # Returns
-	///
-	/// * A new repeat node of type `Leaf`.
+	/// </summary>
+	/// <param name="times">The number of times to execute the child node.</param>
+	/// <param name="node">The child node to execute.</param>
 	static outside Platformer::Behavior::Leaf* BRepeat @ repeat(int times, Platformer::Behavior::Leaf* node);
+	/// <summary>
 	/// Creates a new repeat node that executes a child node repeatedly.
-	///
-	/// # Arguments
-	///
-	/// * `node` - The child node to execute.
-	///
-	/// # Returns
-	///
-	/// * A new repeat node of type `Leaf`.
+	/// </summary>
+	/// <param name="node">The child node to execute.</param>
 	static outside Platformer::Behavior::Leaf* BRepeat @ repeatForever(Platformer::Behavior::Leaf* node);
+	/// <summary>
 	/// Creates a new retry node that executes a child node repeatedly until it succeeds or a maximum number of retries is reached.
-	///
-	/// # Arguments
-	///
-	/// * `times` - The maximum number of retries.
-	/// * `node` - The child node to execute.
-	///
-	/// # Returns
-	///
-	/// * A new retry node of type `Leaf`.
+	/// </summary>
+	/// <param name="times">The maximum number of retries.</param>
+	/// <param name="node">The child node to execute.</param>
 	static outside Platformer::Behavior::Leaf* BRetry @ retry(int times, Platformer::Behavior::Leaf* node);
+	/// <summary>
 	/// Creates a new retry node that executes a child node repeatedly until it succeeds.
-	///
-	/// # Arguments
-	///
-	/// * `node` - The child node to execute.
-	///
-	/// # Returns
-	///
-	/// * A new retry node of type `Leaf`.
+	/// </summary>
+	/// <param name="node">The child node to execute.</param>
 	static outside Platformer::Behavior::Leaf* BRetry @ retryUntilPass(Platformer::Behavior::Leaf* node);
 };
 
@@ -4699,151 +4338,93 @@ object class Leaf @ Tree
 
 namespace Decision {
 
+/// <summary>
 /// A decision tree framework for creating game AI structures.
+/// </summary>
 object class Leaf @ Tree
 {
+	/// <summary>
 	/// Creates a selector node with the specified child nodes.
-	///
 	/// A selector node will go through the child nodes until one succeeds.
-	///
-	/// # Arguments
-	///
-	/// * `nodes` - An array of `Leaf` nodes.
-	///
-	/// # Returns
-	///
-	/// * A `Leaf` node that represents a selector.
+	/// </summary>
+	/// <param name="nodes">An array of `Leaf` nodes.</param>
 	static outside Platformer::Decision::Leaf* DSel @ sel(VecDTree nodes);
+	/// <summary>
 	/// Creates a sequence node with the specified child nodes.
-	///
 	/// A sequence node will go through the child nodes until all nodes succeed.
-	///
-	/// # Arguments
-	///
-	/// * `nodes` - An array of `Leaf` nodes.
-	///
-	/// # Returns
-	///
-	/// * A `Leaf` node that represents a sequence.
+	/// </summary>
+	/// <param name="nodes">An array of `Leaf` nodes.</param>
 	static outside Platformer::Decision::Leaf* DSeq @ seq(VecDTree nodes);
+	/// <summary>
 	/// Creates a condition node with the specified name and handler function.
-	///
-	/// # Arguments
-	///
-	/// * `name` - The name of the condition.
-	/// * `check` - The check function that takes a `Unit` parameter and returns a boolean result.
-	///
-	/// # Returns
-	///
-	/// * A `Leaf` node that represents a condition check.
-	static outside Platformer::Decision::Leaf* DCon @ con(string name, function<def_false bool(Platformer::Unit* unit)> handler);
+	/// </summary>
+	/// <param name="name">The name of the condition.</param>
+	/// <param name="check">The check function that takes a `Unit` parameter and returns a boolean result.</param>
+	static outside Platformer::Decision::Leaf* DCon @ con(string name, function<def_false bool(Platformer::Unit* unit)> check);
+	/// <summary>
 	/// Creates an action node with the specified action name.
-	///
-	/// # Arguments
-	///
-	/// * `action_name` - The name of the action to perform.
-	///
-	/// # Returns
-	///
-	/// * A `Leaf` node that represents an action.
-	static outside Platformer::Decision::Leaf* DAct @ act(string action_name);
+	/// </summary>
+	/// <param name="actionName">The name of the action to perform.</param>
+	static outside Platformer::Decision::Leaf* DAct @ act(string actionName);
+	/// <summary>
 	/// Creates an action node with the specified handler function.
-	///
-	/// # Arguments
-	///
-	/// * `handler` - The handler function that takes a `Unit` parameter which is the running AI agent and returns an action.
-	///
-	/// # Returns
-	///
-	/// * A `Leaf` node that represents an action.
+	/// </summary>
+	/// <param name="handler">The handler function that takes a `Unit` parameter which is the running AI agent and returns an action.</param>
 	static outside Platformer::Decision::Leaf* DAct @ actDynamic(function<string(Platformer::Unit* unit)> handler);
+	/// <summary>
 	/// Creates a leaf node that represents accepting the current behavior tree.
-	///
 	/// Always get success result from this node.
-	///
-	/// # Returns
-	///
-	/// * A `Leaf` node.
+	/// </summary>
 	static outside Platformer::Decision::Leaf* DAccept @ accept();
+	/// <summary>
 	/// Creates a leaf node that represents rejecting the current behavior tree.
-	///
 	/// Always get failure result from this node.
-	///
-	/// # Returns
-	///
-	/// * A `Leaf` node.
+	/// </summary>
 	static outside Platformer::Decision::Leaf* DReject @ reject();
+	/// <summary>
 	/// Creates a leaf node with the specified behavior tree as its root.
-	///
 	/// It is possible to include a Behavior Tree as a node in a Decision Tree by using the Behave() function. This allows the AI to use a combination of decision-making and behavior execution to achieve its goals.
-	///
-	/// # Arguments
-	///
-	/// * `name` - The name of the behavior tree.
-	/// * `root` - The root node of the behavior tree.
-	///
-	/// # Returns
-	///
-	/// * A `Leaf` node.
+	/// </summary>
+	/// <param name="name">The name of the behavior tree.</param>
+	/// <param name="root">The root node of the behavior tree.</param>
 	static outside Platformer::Decision::Leaf* DBehave @ behave(string name, Platformer::Behavior::Leaf* root);
 };
 
+/// <summary>
 /// The interface to retrieve information while executing the decision tree.
+/// </summary>
 singleton class AI
 {
+	/// <summary>
 	/// Gets an array of units in detection range that have the specified relation to current AI agent.
-	///
-	/// # Arguments
-	///
-	/// * `relation` - The relation to filter the units by.
-	///
-	/// # Returns
-	///
-	/// * An array of units with the specified relation.
+	/// </summary>
+	/// <param name="relation">The relation to filter the units by.</param>
 	Array* getUnitsByRelation(Platformer::Relation relation);
+	/// <summary>
 	/// Gets an array of units that the AI has detected.
-	///
-	/// # Returns
-	///
-	/// * An array of detected units.
+	/// </summary>
 	Array* getDetectedUnits();
+	/// <summary>
 	/// Gets an array of bodies that the AI has detected.
-	///
-	/// # Returns
-	///
-	/// * An array of detected bodies.
+	/// </summary>
 	Array* getDetectedBodies();
+	/// <summary>
 	/// Gets the nearest unit that has the specified relation to the AI.
-	///
-	/// # Arguments
-	///
-	/// * `relation` - The relation to filter the units by.
-	///
-	/// # Returns
-	///
-	/// * The nearest unit with the specified relation.
+	/// </summary>
+	/// <param name="relation">The relation to filter the units by.</param>
 	Platformer::Unit* getNearestUnit(Platformer::Relation relation);
+	/// <summary>
 	/// Gets the distance to the nearest unit that has the specified relation to the AI agent.
-	///
-	/// # Arguments
-	///
-	/// * `relation` - The relation to filter the units by.
-	///
-	/// # Returns
-	///
-	/// * The distance to the nearest unit with the specified relation.
+	/// </summary>
+	/// <param name="relation">The relation to filter the units by.</param>
 	float getNearestUnitDistance(Platformer::Relation relation);
+	/// <summary>
 	/// Gets an array of units that are within attack range.
-	///
-	/// # Returns
-	///
-	/// * An array of units in attack range.
+	/// </summary>
 	Array* getUnitsInAttackRange();
+	/// <summary>
 	/// Gets an array of bodies that are within attack range.
-	///
-	/// # Returns
-	///
-	/// * An array of bodies in attack range.
+	/// </summary>
 	Array* getBodiesInAttackRange();
 };
 
@@ -4854,37 +4435,52 @@ object class WasmActionUpdate @ ActionUpdate
 	static WasmActionUpdate* create(function<def_true bool(Platformer::Unit* owner, Platformer::UnitAction action, float deltaTime)> update);
 };
 
+/// <summary>
 /// A struct that represents an action that can be performed by a "Unit".
+/// </summary>
 class UnitAction
 {
-	/// the length of the reaction time for the "UnitAction", in seconds.
+	/// <summary>
+	/// The length of the reaction time for the "UnitAction", in seconds.
 	/// The reaction time will affect the AI check cycling time.
+	/// </summary>
 	float reaction;
-	/// the length of the recovery time for the "UnitAction", in seconds.
+	/// <summary>
+	/// The length of the recovery time for the "UnitAction", in seconds.
 	/// The recovery time will mainly affect how long the `Playable` animation model will do transitions between animations played by different actions.
+	/// </summary>
 	float recovery;
-	/// the name of the "UnitAction".
+	/// <summary>
+	/// The name of the "UnitAction".
+	/// </summary>
 	readonly common string name;
-	/// whether the "Unit" is currently performing the "UnitAction" or not.
+	/// <summary>
+	/// Whether the "Unit" is currently performing the "UnitAction" or not.
+	/// </summary>
 	readonly boolean bool doing;
-	/// the "Unit" that owns this "UnitAction".
+	/// <summary>
+	/// The "Unit" that owns this "UnitAction".
+	/// </summary>
 	readonly common Platformer::Unit* owner;
-	/// the elapsed time since the "UnitAction" was started, in seconds.
+	/// <summary>
+	/// The elapsed time since the "UnitAction" was started, in seconds.
+	/// </summary>
 	readonly common float elapsedTime;
+	/// <summary>
 	/// Removes all "UnitAction" objects from the "UnitActionClass".
+	/// </summary>
 	static void clear();
+	/// <summary>
 	/// Adds a new "UnitAction" to the "UnitActionClass" with the specified name and parameters.
-	///
-	/// # Arguments
-	///
-	/// * `name` - The name of the "UnitAction".
-	/// * `priority` - The priority level for the "UnitAction". `UnitAction` with higher priority (larger number) will replace the running lower priority `UnitAction`. If performing `UnitAction` having the same priority with the running `UnitAction` and the `UnitAction` to perform having the param 'queued' to be true, the running `UnitAction` won't be replaced.
-	/// * `reaction` - The length of the reaction time for the "UnitAction", in seconds. The reaction time will affect the AI check cycling time. Set to 0.0 to make AI check run in every update.
-	/// * `recovery` - The length of the recovery time for the "UnitAction", in seconds. The recovery time will mainly affect how long the `Playable` animation model will do transitions between animations played by different actions.
-	/// * `queued` - Whether the "UnitAction" is currently queued or not. The queued "UnitAction" won't replace the running "UnitAction" with a same priority.
-	/// * `available` - A function that takes a `Unit` object and a `UnitAction` object and returns a boolean value indicating whether the "UnitAction" is available to be performed.
-	/// * `create` - A function that takes a `Unit` object and a `UnitAction` object and returns a `WasmActionUpdate` object that contains the update function for the "UnitAction".
-	/// * `stop` - A function that takes a `Unit` object and a `UnitAction` object and stops the "UnitAction".
+	/// </summary>
+	/// <param name="name">The name of the "UnitAction".</param>
+	/// <param name="priority">The priority level for the "UnitAction". `UnitAction` with higher priority (larger number) will replace the running lower priority `UnitAction`. If performing `UnitAction` having the same priority with the running `UnitAction` and the `UnitAction` to perform having the param 'queued' to be true, the running `UnitAction` won't be replaced.</param>
+	/// <param name="reaction">The length of the reaction time for the "UnitAction", in seconds. The reaction time will affect the AI check cycling time. Set to 0.0 to make AI check run in every update.</param>
+	/// <param name="recovery">The length of the recovery time for the "UnitAction", in seconds. The recovery time will mainly affect how long the `Playable` animation model will do transitions between animations played by different actions.</param>
+	/// <param name="queued">Whether the "UnitAction" is currently queued or not. The queued "UnitAction" won't replace the running "UnitAction" with a same priority.</param>
+	/// <param name="available">A function that takes a `Unit` object and a `UnitAction` object and returns a boolean value indicating whether the "UnitAction" is available to be performed.</param>
+	/// <param name="create">A function that takes a `Unit` object and a `UnitAction` object and returns a `WasmActionUpdate` object that contains the update function for the "UnitAction".</param>
+	/// <param name="stop">A function that takes a `Unit` object and a `UnitAction` object and stops the "UnitAction".</param>
 	static outside void Platformer_UnitAction_Add @ add(
 		string name, int priority, float reaction, float recovery, bool queued,
 		function<def_false bool(Platformer::Unit* owner, Platformer::UnitAction action)> available,
@@ -4892,414 +4488,365 @@ class UnitAction
 		function<void(Platformer::Unit* owner, Platformer::UnitAction action)> stop);
 };
 
+/// <summary>
 /// A struct represents a character or other interactive item in a game scene.
+/// </summary>
 object class Unit : public Body
 {
-	/// the property that references a "Playable" object for managing the animation state and playback of the "Unit".
+	/// <summary>
+	/// The property that references a "Playable" object for managing the animation state and playback of the "Unit".
+	/// </summary>
 	common Playable* playable;
-	/// the property that specifies the maximum distance at which the "Unit" can detect other "Unit" or objects.
+	/// <summary>
+	/// The property that specifies the maximum distance at which the "Unit" can detect other "Unit" or objects.
+	/// </summary>
 	common float detectDistance;
-	/// the property that specifies the size of the attack range for the "Unit".
+	/// <summary>
+	/// The property that specifies the size of the attack range for the "Unit".
+	/// </summary>
 	common Size attackRange;
-	/// the boolean property that specifies whether the "Unit" is facing right or not.
+	/// <summary>
+	/// The boolean property that specifies whether the "Unit" is facing right or not.
+	/// </summary>
 	boolean bool faceRight;
-	/// the boolean property that specifies whether the "Unit" is receiving a trace of the decision tree for debugging purposes.
+	/// <summary>
+	/// The boolean property that specifies whether the "Unit" is receiving a trace of the decision tree for debugging purposes.
+	/// </summary>
 	boolean bool receivingDecisionTrace;
-	/// the string property that specifies the decision tree to use for the "Unit's" AI behavior.
+	/// <summary>
+	/// The string property that specifies the decision tree to use for the "Unit's" AI behavior.
 	/// the decision tree object will be searched in The singleton instance Data.store.
+	/// </summary>
 	common string decisionTreeName @ decisionTree;
-	/// whether the "Unit" is currently on a surface or not.
+	/// <summary>
+	/// Whether the "Unit" is currently on a surface or not.
+	/// </summary>
 	readonly boolean bool onSurface;
-	/// the "Sensor" object for detecting ground surfaces.
+	/// <summary>
+	/// The "Sensor" object for detecting ground surfaces.
+	/// </summary>
 	readonly common Sensor* groundSensor;
-	/// the "Sensor" object for detecting other "Unit" objects or physics bodies in the game world.
+	/// <summary>
+	/// The "Sensor" object for detecting other "Unit" objects or physics bodies in the game world.
+	/// </summary>
 	readonly common Sensor* detectSensor;
-	/// the "Sensor" object for detecting other "Unit" objects within the attack senser area.
+	/// <summary>
+	/// The "Sensor" object for detecting other "Unit" objects within the attack senser area.
+	/// </summary>
 	readonly common Sensor* attackSensor;
-	/// the "Dictionary" object for defining the properties and behavior of the "Unit".
+	/// <summary>
+	/// The "Dictionary" object for defining the properties and behavior of the "Unit".
+	/// </summary>
 	readonly common Dictionary* unitDef;
-	/// the property that specifies the current action being performed by the "Unit".
+	/// <summary>
+	/// The property that specifies the current action being performed by the "Unit".
+	/// </summary>
 	readonly common Platformer::UnitAction currentAction;
-	/// the width of the "Unit".
+	/// <summary>
+	/// The width of the "Unit".
+	/// </summary>
 	readonly common hide float width;
-	/// the height of the "Unit".
+	/// <summary>
+	/// The height of the "Unit".
+	/// </summary>
 	readonly common hide float height;
-	/// the "Entity" object for representing the "Unit" in the ECS system.
+	/// <summary>
+	/// The "Entity" object for representing the "Unit" in the ECS system.
+	/// </summary>
 	readonly common Entity* entity;
+	/// <summary>
 	/// Adds a new `UnitAction` to the `Unit` with the specified name, and returns the new `UnitAction`.
-	///
-	/// # Arguments
-	///
-	/// * `name` - The name of the new `UnitAction`.
-	///
-	/// # Returns
-	///
-	/// * The newly created `UnitAction`.
+	/// </summary>
+	/// <param name="name">The name of the new `UnitAction`.</param>
 	Platformer::UnitAction attachAction(string name);
+	/// <summary>
 	/// Removes the `UnitAction` with the specified name from the `Unit`.
-	///
-	/// # Arguments
-	///
-	/// * `name` - The name of the `UnitAction` to remove.
+	/// </summary>
+	/// <param name="name">The name of the `UnitAction` to remove.</param>
 	void removeAction(string name);
+	/// <summary>
 	/// Removes all "UnitAction" objects from the "Unit".
+	/// </summary>
 	void removeAllActions();
+	/// <summary>
 	/// Returns the `UnitAction` with the specified name, or `None` if the `UnitAction` does not exist.
-	///
-	/// # Arguments
-	///
-	/// * `name` - The name of the `UnitAction` to retrieve.
-	///
-	/// # Returns
-	///
-	/// * The `UnitAction` with the specified name, or `None`.
+	/// </summary>
+	/// <param name="name">The name of the `UnitAction` to retrieve.</param>
 	optional Platformer::UnitAction getAction(string name);
+	/// <summary>
 	/// Calls the specified function for each `UnitAction` attached to the `Unit`.
-	///
-	/// # Arguments
-	///
-	/// * `visitorFunc` - A function to call for each `UnitAction`.
+	/// </summary>
+	/// <param name="visitorFunc">A function to call for each `UnitAction`.</param>
 	void eachAction(function<void(Platformer::UnitAction action)> visitorFunc);
+	/// <summary>
 	/// Starts the `UnitAction` with the specified name, and returns true if the `UnitAction` was started successfully.
-	///
-	/// # Arguments
-	///
-	/// * `name` - The name of the `UnitAction` to start.
-	///
-	/// # Returns
-	///
-	/// * `true` if the `UnitAction` was started successfully, `false` otherwise.
+	/// </summary>
+	/// <param name="name">The name of the `UnitAction` to start.</param>
 	bool start(string name);
+	/// <summary>
 	/// Stops the currently running "UnitAction".
+	/// </summary>
 	void stop();
+	/// <summary>
 	/// Returns true if the `Unit` is currently performing the specified `UnitAction`, false otherwise.
-	///
-	/// # Arguments
-	///
-	/// * `name` - The name of the `UnitAction` to check.
-	///
-	/// # Returns
-	///
-	/// * `true` if the `Unit` is currently performing the specified `UnitAction`, `false` otherwise.
+	/// </summary>
+	/// <param name="name">The name of the `UnitAction` to check.</param>
 	bool isDoing(string name);
+	/// <summary>
 	/// A method that creates a new `Unit` object.
-	///
-	/// # Arguments
-	///
-	/// * `unit_def` - A `Dictionary` object that defines the properties and behavior of the `Unit`.
-	/// * `physics_world` - A `PhysicsWorld` object that represents the physics simulation world.
-	/// * `entity` - An `Entity` object that represents the `Unit` in ECS system.
-	/// * `pos` - A `Vec2` object that specifies the initial position of the `Unit`.
-	/// * `rot` - A number that specifies the initial rotation of the `Unit`.
-	///
-	/// # Returns
-	///
-	/// * The newly created `Unit` object.
+	/// </summary>
+	/// <param name="unitDef">A `Dictionary` object that defines the properties and behavior of the `Unit`.</param>
+	/// <param name="physicsWorld">A `PhysicsWorld` object that represents the physics simulation world.</param>
+	/// <param name="entity">An `Entity` object that represents the `Unit` in ECS system.</param>
+	/// <param name="pos">A `Vec2` object that specifies the initial position of the `Unit`.</param>
+	/// <param name="rot">A number that specifies the initial rotation of the `Unit`.</param>
 	static Unit* create(Dictionary* unitDef, PhysicsWorld* physicsWorld, Entity* entity, Vec2 pos, float rot);
+	/// <summary>
 	/// A method that creates a new `Unit` object.
-	///
-	/// # Arguments
-	///
-	/// * `unit_def_name` - A string that specifies the name of the `Unit` definition to retrieve from `Data.store` table.
-	/// * `physics_world_name` - A string that specifies the name of the `PhysicsWorld` object to retrieve from `Data.store` table.
-	/// * `entity` - An `Entity` object that represents the `Unit` in ECS system.
-	/// * `pos` - A `Vec2` object that specifies the initial position of the `Unit`.
-	/// * `rot` - An optional number that specifies the initial rotation of the `Unit` (default is 0.0).
-	///
-	/// # Returns
-	///
-	/// * The newly created `Unit` object.
+	/// </summary>
+	/// <param name="unitDefName">A string that specifies the name of the `Unit` definition to retrieve from `Data.store` table.</param>
+	/// <param name="physicsWorldName">A string that specifies the name of the `PhysicsWorld` object to retrieve from `Data.store` table.</param>
+	/// <param name="entity">An `Entity` object that represents the `Unit` in ECS system.</param>
+	/// <param name="pos">A `Vec2` object that specifies the initial position of the `Unit`.</param>
+	/// <param name="rot">An optional number that specifies the initial rotation of the `Unit` (default is 0.0).</param>
 	static Unit* create @ createStore(string unitDefName, string physicsWorldName, Entity* entity, Vec2 pos, float rot);
 };
 
+/// <summary>
 /// A platform camera for 2D platformer games that can track a game unit's movement and keep it within the camera's view.
+/// </summary>
 object class PlatformCamera : public Camera
 {
+	/// <summary>
 	/// The camera's position.
+	/// </summary>
 	common Vec2 position;
+	/// <summary>
 	/// The camera's rotation in degrees.
+	/// </summary>
 	common float rotation;
+	/// <summary>
 	/// The camera's zoom factor, 1.0 means the normal size, 2.0 mean zoom to doubled size.
+	/// </summary>
 	common float zoom;
+	/// <summary>
 	/// The rectangular area within which the camera is allowed to view.
+	/// </summary>
 	common Rect boundary;
-	/// the ratio at which the camera should move to keep up with the target's position.
+	/// <summary>
+	/// The ratio at which the camera should move to keep up with the target's position.
 	/// For example, set to `Vec2(1.0, 1.0)`, then the camera will keep up to the target's position right away.
 	/// Set to Vec2(0.5, 0.5) or smaller value, then the camera will move halfway to the target's position each frame, resulting in a smooth and gradual movement.
+	/// </summary>
 	common Vec2 followRatio;
-	/// the offset at which the camera should follow the target.
+	/// <summary>
+	/// The offset at which the camera should follow the target.
+	/// </summary>
 	common Vec2 followOffset;
-	/// the game unit that the camera should track.
+	/// <summary>
+	/// The game unit that the camera should track.
+	/// </summary>
 	optional common Node* followTarget;
+	/// <summary>
 	/// Creates a new instance of `PlatformCamera`.
-	///
-	/// # Arguments
-	///
-	/// * `name` - An optional string that specifies the name of the new instance. Default is an empty string.
-	///
-	/// # Returns
-	///
-	/// * A new `PlatformCamera` instance.
+	/// </summary>
+	/// <param name="name">An optional string that specifies the name of the new instance. Default is an empty string.</param>
 	static PlatformCamera* create(string name);
 };
 
+/// <summary>
 /// A struct representing a 2D platformer game world with physics simulations.
+/// </summary>
 object class PlatformWorld : public PhysicsWorld
 {
-	/// the camera used to control the view of the game world.
+	/// <summary>
+	/// The camera used to control the view of the game world.
+	/// </summary>
 	readonly common Platformer::PlatformCamera* camera;
+	/// <summary>
 	/// Moves a child node to a new order for a different layer.
-	///
-	/// # Arguments
-	///
-	/// * `child` - The child node to be moved.
-	/// * `new_order` - The new order of the child node.
+	/// </summary>
+	/// <param name="child">The child node to be moved.</param>
+	/// <param name="new_order">The new order of the child node.</param>
 	void moveChild(Node* child, int newOrder);
+	/// <summary>
 	/// Gets the layer node at a given order.
-	///
-	/// # Arguments
-	///
-	/// * `order` - The order of the layer node to get.
-	///
-	/// # Returns
-	///
-	/// * The layer node at the given order.
+	/// </summary>
+	/// <param name="order">The order of the layer node to get.</param>
 	Node* getLayer(int order);
+	/// <summary>
 	/// Sets the parallax moving ratio for a given layer to simulate 3D projection effect.
-	///
-	/// # Arguments
-	///
-	/// * `order` - The order of the layer to set the ratio for.
-	/// * `ratio` - The new parallax ratio for the layer.
+	/// </summary>
+	/// <param name="order">The order of the layer to set the ratio for.</param>
+	/// <param name="ratio">The new parallax ratio for the layer.</param>
 	void setLayerRatio(int order, Vec2 ratio);
+	/// <summary>
 	/// Gets the parallax moving ratio for a given layer.
-	///
-	/// # Arguments
-	///
-	/// * `order` - The order of the layer to get the ratio for.
-	///
-	/// # Returns
-	///
-	/// * A `Vec2` representing the parallax ratio for the layer.
+	/// </summary>
+	/// <param name="order">The order of the layer to get the ratio for.</param>
 	Vec2 getLayerRatio(int order);
+	/// <summary>
 	/// Sets the position offset for a given layer.
-	///
-	/// # Arguments
-	///
-	/// * `order` - The order of the layer to set the offset for.
-	/// * `offset` - A `Vec2` representing the new position offset for the layer.
+	/// </summary>
+	/// <param name="order">The order of the layer to set the offset for.</param>
+	/// <param name="offset">A `Vec2` representing the new position offset for the layer.</param>
 	void setLayerOffset(int order, Vec2 offset);
+	/// <summary>
 	/// Gets the position offset for a given layer.
-	///
-	/// # Arguments
-	///
-	/// * `order` - The order of the layer to get the offset for.
-	///
-	/// # Returns
-	///
-	/// * A `Vec2` representing the position offset for the layer.
+	/// </summary>
+	/// <param name="order">The order of the layer to get the offset for.</param>
 	Vec2 getLayerOffset(int order);
+	/// <summary>
 	/// Swaps the positions of two layers.
-	///
-	/// # Arguments
-	///
-	/// * `order_a` - The order of the first layer to swap.
-	/// * `order_b` - The order of the second layer to swap.
+	/// </summary>
+	/// <param name="orderA">The order of the first layer to swap.</param>
+	/// <param name="orderB">The order of the second layer to swap.</param>
 	void swapLayer(int orderA, int orderB);
+	/// <summary>
 	/// Removes a layer from the game world.
-	///
-	/// # Arguments
-	///
-	/// * `order` - The order of the layer to remove.
+	/// </summary>
+	/// <param name="order">The order of the layer to remove.</param>
 	void removeLayer(int order);
+	/// <summary>
 	/// Removes all layers from the game world.
+	/// </summary>
 	void removeAllLayers();
+	/// <summary>
 	/// The method to create a new instance of `PlatformWorld`.
-	///
-	/// # Returns
-	///
-	/// * A new instance of `PlatformWorld`.
+	/// </summary>
 	static PlatformWorld* create();
 };
 
+/// <summary>
 /// An interface that provides a centralized location for storing and accessing game-related data.
+/// </summary>
 singleton class Data
 {
-	/// the group key representing the first index for a player group.
+	/// <summary>
+	/// The group key representing the first index for a player group.
+	/// </summary>
 	readonly common uint8_t groupFirstPlayer;
-	/// the group key representing the last index for a player group.
+	/// <summary>
+	/// The group key representing the last index for a player group.
+	/// </summary>
 	readonly common uint8_t groupLastPlayer;
-	/// the group key that won't have any contact with other groups by default.
+	/// <summary>
+	/// The group key that won't have any contact with other groups by default.
+	/// </summary>
 	readonly common uint8_t groupHide;
-	/// the group key that will have contacts with player groups by default.
+	/// <summary>
+	/// The group key that will have contacts with player groups by default.
+	/// </summary>
 	readonly common uint8_t groupDetectPlayer;
-	/// the group key representing terrain that will have contacts with other groups by default.
+	/// <summary>
+	/// The group key representing terrain that will have contacts with other groups by default.
+	/// </summary>
 	readonly common uint8_t groupTerrain;
-	/// the group key that will have contacts with other groups by default.
+	/// <summary>
+	/// The group key that will have contacts with other groups by default.
+	/// </summary>
 	readonly common uint8_t groupDetection;
-	/// the dictionary that can be used to store arbitrary data associated with string keys and various values globally.
+	/// <summary>
+	/// The dictionary that can be used to store arbitrary data associated with string keys and various values globally.
+	/// </summary>
 	readonly common Dictionary* store;
+	/// <summary>
 	/// Sets a boolean value indicating whether two groups should be in contact or not.
-	///
-	/// # Arguments
-	///
-	/// * `group_a` - An integer representing the first group.
-	/// * `group_b` - An integer representing the second group.
-	/// * `contact` - A boolean indicating whether the two groups should be in contact.
+	/// </summary>
+	/// <param name="groupA">An integer representing the first group.</param>
+	/// <param name="groupB">An integer representing the second group.</param>
+	/// <param name="contact">A boolean indicating whether the two groups should be in contact.</param>
 	void setShouldContact(uint8_t groupA, uint8_t groupB, bool contact);
+	/// <summary>
 	/// Gets a boolean value indicating whether two groups should be in contact or not.
-	///
-	/// # Arguments
-	///
-	/// * `group_a` - An integer representing the first group.
-	/// * `group_b` - An integer representing the second group.
-	///
-	/// # Returns
-	///
-	/// * A boolean indicating whether the two groups should be in contact.
+	/// </summary>
+	/// <param name="groupA">An integer representing the first group.</param>
+	/// <param name="groupB">An integer representing the second group.</param>
 	bool getShouldContact(uint8_t groupA, uint8_t groupB);
+	/// <summary>
 	/// Sets the relation between two groups.
-	///
-	/// # Arguments
-	///
-	/// * `group_a` - An integer representing the first group.
-	/// * `group_b` - An integer representing the second group.
-	/// * `relation` - The relation between the two groups.
+	/// </summary>
+	/// <param name="groupA">An integer representing the first group.</param>
+	/// <param name="groupB">An integer representing the second group.</param>
+	/// <param name="relation">The relation between the two groups.</param>
 	void setRelation(uint8_t groupA, uint8_t groupB, Platformer::Relation relation);
+	/// <summary>
 	/// Gets the relation between two groups.
-	///
-	/// # Arguments
-	///
-	/// * `group_a` - An integer representing the first group.
-	/// * `group_b` - An integer representing the second group.
-	///
-	/// # Returns
-	///
-	/// * The relation between the two groups.
+	/// </summary>
+	/// <param name="groupA">An integer representing the first group.</param>
+	/// <param name="groupB">An integer representing the second group.</param>
 	Platformer::Relation getRelation @ getRelationByGroup(uint8_t groupA, uint8_t groupB);
+	/// <summary>
 	/// A function that can be used to get the relation between two bodies.
-	///
-	/// # Arguments
-	///
-	/// * `body_a` - The first body.
-	/// * `body_b` - The second body.
-	///
-	/// # Returns
-	///
-	/// * The relation between the two bodies.
+	/// </summary>
+	/// <param name="bodyA">The first body.</param>
+	/// <param name="bodyB">The second body.</param>
 	Platformer::Relation getRelation(Body* bodyA, Body* bodyB);
+	/// <summary>
 	/// A function that returns whether two groups have an "Enemy" relation.
-	///
-	/// # Arguments
-	///
-	/// * `group_a` - An integer representing the first group.
-	/// * `group_b` - An integer representing the second group.
-	///
-	/// # Returns
-	///
-	/// * A boolean indicating whether the two groups have an "Enemy" relation.
+	/// </summary>
+	/// <param name="groupA">An integer representing the first group.</param>
+	/// <param name="groupB">An integer representing the second group.</param>
 	bool isEnemy @ isEnemyGroup(uint8_t groupA, uint8_t groupB);
+	/// <summary>
 	/// A function that returns whether two bodies have an "Enemy" relation.
-	///
-	/// # Arguments
-	///
-	/// * `body_a` - The first body.
-	/// * `body_b` - The second body.
-	///
-	/// # Returns
-	///
-	/// * A boolean indicating whether the two bodies have an "Enemy" relation.
+	/// </summary>
+	/// <param name="bodyA">The first body.</param>
+	/// <param name="bodyB">The second body.</param>
 	bool isEnemy(Body* bodyA, Body* bodyB);
+	/// <summary>
 	/// A function that returns whether two groups have a "Friend" relation.
-	///
-	/// # Arguments
-	///
-	/// * `group_a` - An integer representing the first group.
-	/// * `group_b` - An integer representing the second group.
-	///
-	/// # Returns
-	///
-	/// * A boolean indicating whether the two groups have a "Friend" relation.
+	/// </summary>
+	/// <param name="groupA">An integer representing the first group.</param>
+	/// <param name="groupB">An integer representing the second group.</param>
 	bool isFriend @ isFriendGroup(uint8_t groupA, uint8_t groupB);
+	/// <summary>
 	/// A function that returns whether two bodies have a "Friend" relation.
-	///
-	/// # Arguments
-	///
-	/// * `body_a` - The first body.
-	/// * `body_b` - The second body.
-	///
-	/// # Returns
-	///
-	/// * A boolean indicating whether the two bodies have a "Friend" relation.
+	/// </summary>
+	/// <param name="bodyA">The first body.</param>
+	/// <param name="bodyB">The second body.</param>
 	bool isFriend(Body* bodyA, Body* bodyB);
+	/// <summary>
 	/// A function that returns whether two groups have a "Neutral" relation.
-	///
-	/// # Arguments
-	///
-	/// * `group_a` - An integer representing the first group.
-	/// * `group_b` - An integer representing the second group.
-	///
-	/// # Returns
-	///
-	/// * A boolean indicating whether the two groups have a "Neutral" relation.
+	/// </summary>
+	/// <param name="groupA">An integer representing the first group.</param>
+	/// <param name="groupB">An integer representing the second group.</param>
 	bool isNeutral @ isNeutralGroup(uint8_t groupA, uint8_t groupB);
+	/// <summary>
 	/// A function that returns whether two bodies have a "Neutral" relation.
-	///
-	/// # Arguments
-	///
-	/// * `body_a` - The first body.
-	/// * `body_b` - The second body.
-	///
-	/// # Returns
-	///
-	/// * A boolean indicating whether the two bodies have a "Neutral" relation.
+	/// </summary>
+	/// <param name="bodyA">The first body.</param>
+	/// <param name="bodyB">The second body.</param>
 	bool isNeutral(Body* bodyA, Body* bodyB);
+	/// <summary>
 	/// Sets the bonus factor for a particular type of damage against a particular type of defence.
-	///
 	/// The builtin "MeleeAttack" and "RangeAttack" actions use a simple formula of `finalDamage = damage * bonus`.
-	///
-	/// # Arguments
-	///
-	/// * `damage_type` - An integer representing the type of damage.
-	/// * `defence_type` - An integer representing the type of defence.
-	/// * `bonus` - A number representing the bonus.
+	/// </summary>
+	/// <param name="damageType">An integer representing the type of damage.</param>
+	/// <param name="defenceType">An integer representing the type of defence.</param>
+	/// <param name="bonus">A number representing the bonus.</param>
 	void setDamageFactor(uint16_t damageType, uint16_t defenceType, float bounus);
+	/// <summary>
 	/// Gets the bonus factor for a particular type of damage against a particular type of defence.
-	///
-	/// # Arguments
-	///
-	/// * `damage_type` - An integer representing the type of damage.
-	/// * `defence_type` - An integer representing the type of defence.
-	///
-	/// # Returns
-	///
-	/// * A number representing the bonus factor.
+	/// </summary>
+	/// <param name="damageType">An integer representing the type of damage.</param>
+	/// <param name="defenceType">An integer representing the type of defence.</param>
 	float getDamageFactor(uint16_t damageType, uint16_t defenceType);
+	/// <summary>
 	/// A function that returns whether a body is a player or not.
-	///
 	/// This works the same as `Data::get_group_first_player() <= body.group and body.group <= Data::get_group_last_player()`.
-	///
-	/// # Arguments
-	///
-	/// * `body` - The body to check.
-	///
-	/// # Returns
-	///
-	/// * A boolean indicating whether the body is a player.
+	/// </summary>
+	/// <param name="body">The body to check.</param>
 	bool isPlayer(Body* body);
+	/// <summary>
 	/// A function that returns whether a body is terrain or not.
-	///
-	/// This works the same as `body.group == Data::get_group_terrain()`.
-	///
-	/// # Arguments
-	///
-	/// * `body` - The body to check.
-	///
-	/// # Returns
-	///
-	/// * A boolean indicating whether the body is terrain.
+	/// This works the same as `body.group == Data.GetGroupTerrain()`.
+	/// </summary>
+	/// <param name="body">The body to check.</param>
 	bool isTerrain(Body* body);
+	/// <summary>
 	/// Clears all data stored in the "Data" object, including user data in Data.store field. And reset some data to default values.
+	/// </summary>
 	void clear();
 };
 
@@ -5864,40 +5411,26 @@ singleton struct nvg @ Nvg
 	static Texture2D* GetDoraSSR @ get_dora_ssr(float scale);
 };
 
+/// <summary>
 /// A node for rendering vector graphics.
+/// </summary>
 object class VGNode : public Node {
+	/// <summary>
 	/// The surface of the node for displaying frame buffer texture that contains vector graphics.
-	/// You can get the texture of the surface by calling `vgNode.get_surface().get_texture()`.
+	/// You can get the texture of the surface by calling `vgNode.Surface.Texture`.
+	/// </summary>
 	readonly common Sprite* surface;
+	/// <summary>
 	/// The function for rendering vector graphics.
-	///
-	/// # Arguments
-	///
-	/// * `renderFunc` - The closure function for rendering vector graphics. You can do the rendering operations inside this closure.
-	///
-	/// # Example
-	///
-	/// ```
-	/// vgNode.render(|| {
-	/// 	Nvg::begin_path();
-	/// 	Nvg::move_to(100.0, 100.0);
-	/// 	Nvg::line_to(200.0, 200.0);
-	/// 	Nvg::close_path();
-	/// 	Nvg::stroke();
-	/// });
-	/// ```
+	/// </summary>
+	/// <param name="renderFunc">The closure function for rendering vector graphics. You can do the rendering operations inside this closure.</param>
 	void render(function<void()> renderFunc);
+	/// <summary>
 	/// Creates a new VGNode object with the specified width and height.
-	///
-	/// # Arguments
-	///
-	/// * `width` - The width of the node's frame buffer texture.
-	/// * `height` - The height of the node's frame buffer texture.
-	/// * `scale` - The scale factor of the VGNode.
-	/// * `edge_aa` - The edge anti-aliasing factor of the VGNode.
-	///
-	/// # Returns
-	///
-	/// * The newly created VGNode object.
-	static VGNode* create(float width, float height, float scale, int edge_aa);
+	/// </summary>
+	/// <param name="width">The width of the node's frame buffer texture.</param>
+	/// <param name="height">The height of the node's frame buffer texture.</param>
+	/// <param name="scale">The scale factor of the VGNode.</param>
+	/// <param name="edgeAA">The edge anti-aliasing factor of the VGNode.</param>
+	static VGNode* create(float width, float height, float scale, int edgeAA);
 };

@@ -36,7 +36,9 @@ namespace Dora
 
 namespace Dora
 {
+	/// <summary>
 	/// A struct to represent a physics sensor object in the game world.
+	/// </summary>
 	public partial class Sensor : Object
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
@@ -52,41 +54,47 @@ namespace Dora
 		{
 			return raw == 0 ? null : new Sensor(raw);
 		}
-		/// whether the sensor is currently enabled or not.
+		/// <summary>
+		/// Whether the sensor is currently enabled or not.
+		/// </summary>
 		public bool IsEnabled
 		{
 			set => Native.sensor_set_enabled(Raw, value ? 1 : 0);
 			get => Native.sensor_is_enabled(Raw) != 0;
 		}
-		/// the tag for the sensor.
+		/// <summary>
+		/// The tag for the sensor.
+		/// </summary>
 		public int Tag
 		{
 			get => Native.sensor_get_tag(Raw);
 		}
-		/// the "Body" object that owns the sensor.
+		/// <summary>
+		/// The "Body" object that owns the sensor.
+		/// </summary>
 		public Body Owner
 		{
 			get => Body.From(Native.sensor_get_owner(Raw));
 		}
-		/// whether the sensor is currently sensing any other "Body" objects in the game world.
+		/// <summary>
+		/// Whether the sensor is currently sensing any other "Body" objects in the game world.
+		/// </summary>
 		public bool IsSensed
 		{
 			get => Native.sensor_is_sensed(Raw) != 0;
 		}
-		/// the array of "Body" objects that are currently being sensed by the sensor.
+		/// <summary>
+		/// The array of "Body" objects that are currently being sensed by the sensor.
+		/// </summary>
 		public Array SensedBodies
 		{
 			get => Array.From(Native.sensor_get_sensed_bodies(Raw));
 		}
+		/// <summary>
 		/// Determines whether the specified `Body` object is currently being sensed by the sensor.
-		///
-		/// # Arguments
-		///
-		/// * `body` - The `Body` object to check if it is being sensed.
-		///
-		/// # Returns
-		///
-		/// * `bool` - `true` if the `Body` object is being sensed by the sensor, `false` otherwise.
+		/// </summary>
+		/// <param name="body">The `Body` object to check if it is being sensed.</param>
+		/// <returns>`true` if the `Body` object is being sensed by the sensor, `false` otherwise.</returns>
 		public bool Contains(Body body)
 		{
 			return Native.sensor_contains(Raw, body.Raw) != 0;

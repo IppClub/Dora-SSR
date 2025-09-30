@@ -32,7 +32,9 @@ namespace Dora
 
 namespace Dora.Platformer
 {
+	/// <summary>
 	/// A struct represents a visual effect object like Particle, Frame Animation or just a Sprite.
+	/// </summary>
 	public partial class Visual : Node
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
@@ -48,39 +50,40 @@ namespace Dora.Platformer
 		{
 			return raw == 0 ? null : new Visual(raw);
 		}
-		/// whether the visual effect is currently playing or not.
+		/// <summary>
+		/// Whether the visual effect is currently playing or not.
+		/// </summary>
 		public bool IsPlaying
 		{
 			get => Native.platformer_visual_is_playing(Raw) != 0;
 		}
+		/// <summary>
 		/// Starts playing the visual effect.
+		/// </summary>
 		public void Start()
 		{
 			Native.platformer_visual_start(Raw);
 		}
+		/// <summary>
 		/// Stops playing the visual effect.
+		/// </summary>
 		public void Stop()
 		{
 			Native.platformer_visual_stop(Raw);
 		}
+		/// <summary>
 		/// Automatically removes the visual effect from the game world when it finishes playing.
-		///
-		/// # Returns
-		///
-		/// * `Visual` - The same `Visual` object that was passed in as a parameter.
+		/// </summary>
+		/// <returns>The same `Visual` object that was passed in as a parameter.</returns>
 		public Platformer.Visual AutoRemove()
 		{
 			return Platformer.Visual.From(Native.platformer_visual_auto_remove(Raw));
 		}
+		/// <summary>
 		/// Creates a new `Visual` object with the specified name.
-		///
-		/// # Arguments
-		///
-		/// * `name` - The name of the new `Visual` object. Could be a particle file, a frame animation file or an image file.
-		///
-		/// # Returns
-		///
-		/// * `Visual` - The new `Visual` object.
+		/// </summary>
+		/// <param name="name">The name of the new `Visual` object. Could be a particle file, a frame animation file or an image file.</param>
+		/// <returns>The new `Visual` object.</returns>
 		public Visual(string name) : this(Native.platformer_visual_new(Bridge.FromString(name))) { }
 	}
 } // namespace Dora.Platformer

@@ -26,7 +26,9 @@ namespace Dora
 
 namespace Dora
 {
+	/// <summary>
 	/// A type of joint that allows a physics body to move to a specific position.
+	/// </summary>
 	public partial class MoveJoint : Joint
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
@@ -42,7 +44,9 @@ namespace Dora
 		{
 			return raw == 0 ? null : new MoveJoint(raw);
 		}
-		/// the current position of the move joint in the game world.
+		/// <summary>
+		/// The current position of the move joint in the game world.
+		/// </summary>
 		public Vec2 Position
 		{
 			set => Native.movejoint_set_position(Raw, value.Raw);

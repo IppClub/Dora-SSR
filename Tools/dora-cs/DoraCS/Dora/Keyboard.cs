@@ -22,62 +22,51 @@ namespace Dora
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int32_t keyboard__is_key_pressed(int64_t name);
 		[DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-		public static extern void keyboard_update_ime_pos_hint(int64_t win_pos);
+		public static extern void keyboard_update_ime_pos_hint(int64_t winPos);
 	}
 } // namespace Dora
 
 namespace Dora
 {
+	/// <summary>
 	/// An interface for handling keyboard inputs.
+	/// </summary>
 	public static partial class Keyboard
 	{
+		/// <summary>
 		/// Checks whether a key is currently pressed.
-		///
-		/// # Arguments
-		///
-		/// * `name` - The name of the key to check.
-		///
-		/// # Returns
-		///
-		/// * `bool` - `true` if the key is pressed, `false` otherwise.
+		/// </summary>
+		/// <param name="name">The name of the key to check.</param>
+		/// <returns>`true` if the key is pressed, `false` otherwise.</returns>
 		public static bool _IsKeyDown(string name)
 		{
 			return Native.keyboard__is_key_down(Bridge.FromString(name)) != 0;
 		}
+		/// <summary>
 		/// Checks whether a key is currently released.
-		///
-		/// # Arguments
-		///
-		/// * `name` - The name of the key to check.
-		///
-		/// # Returns
-		///
-		/// * `bool` - `true` if the key is released, `false` otherwise.
+		/// </summary>
+		/// <param name="name">The name of the key to check.</param>
+		/// <returns>`true` if the key is released, `false` otherwise.</returns>
 		public static bool _IsKeyUp(string name)
 		{
 			return Native.keyboard__is_key_up(Bridge.FromString(name)) != 0;
 		}
+		/// <summary>
 		/// Checks whether a key is currently being pressed.
-		///
-		/// # Arguments
-		///
-		/// * `name` - The name of the key to check.
-		///
-		/// # Returns
-		///
-		/// * `bool` - `true` if the key is being pressed, `false` otherwise.
+		/// </summary>
+		/// <param name="name">The name of the key to check.</param>
+		/// <returns>`true` if the key is being pressed, `false` otherwise.</returns>
 		public static bool _IsKeyPressed(string name)
 		{
 			return Native.keyboard__is_key_pressed(Bridge.FromString(name)) != 0;
 		}
+		/// <summary>
 		/// Updates the input method editor (IME) position hint.
-		///
-		/// # Arguments
-		///
-		/// * `win_pos` - The position of the keyboard window.
-		public static void UpdateImePosHint(Vec2 win_pos)
+		/// </summary>
+		/// <param name="winPos">The position of the keyboard window.</param>
+		public static void UpdateImePosHint(Vec2 winPos)
 		{
-			Native.keyboard_update_ime_pos_hint(win_pos.Raw);
+			Native.keyboard_update_ime_pos_hint(winPos.Raw);
 		}
 	}
 } // namespace Dora

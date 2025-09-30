@@ -22,19 +22,17 @@ namespace Dora
 
 namespace Dora
 {
+	/// <summary>
 	/// A struct that defines a set of easing functions for use in animations.
+	/// </summary>
 	public static partial class Ease
 	{
+		/// <summary>
 		/// Applies an easing function to a given value over a given amount of time.
-		///
-		/// # Arguments
-		///
-		/// * `easing` - The easing function to apply.
-		/// * `time` - The amount of time to apply the easing function over, should be between 0 and 1.
-		///
-		/// # Returns
-		///
-		/// * `f32` - The result of applying the easing function to the value.
+		/// </summary>
+		/// <param name="easing">The easing function to apply.</param>
+		/// <param name="time">The amount of time to apply the easing function over, should be between 0 and 1.</param>
+		/// <returns>The result of applying the easing function to the value.</returns>
 		public static float Func(EaseType easing, float time)
 		{
 			return Native.ease_func((int)easing, time);

@@ -30,7 +30,9 @@ namespace Dora
 
 namespace Dora
 {
+	/// <summary>
 	/// A struct for storing pairs of string keys and various values.
+	/// </summary>
 	public partial class Dictionary : Object
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
@@ -46,22 +48,30 @@ namespace Dora
 		{
 			return raw == 0 ? null : new Dictionary(raw);
 		}
-		/// the number of items in the dictionary.
+		/// <summary>
+		/// The number of items in the dictionary.
+		/// </summary>
 		public int Count
 		{
 			get => Native.dictionary_get_count(Raw);
 		}
-		/// the keys of the items in the dictionary.
+		/// <summary>
+		/// The keys of the items in the dictionary.
+		/// </summary>
 		public string[] Keys
 		{
 			get => Bridge.ToStringArray(Native.dictionary_get_keys(Raw));
 		}
+		/// <summary>
 		/// Removes all the items from the dictionary.
+		/// </summary>
 		public void Clear()
 		{
 			Native.dictionary_clear(Raw);
 		}
+		/// <summary>
 		/// Creates instance of the "Dictionary".
+		/// </summary>
 		public Dictionary() : this(Native.dictionary_new()) { }
 	}
 } // namespace Dora

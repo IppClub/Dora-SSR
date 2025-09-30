@@ -28,7 +28,9 @@ namespace Dora
 
 namespace Dora
 {
+	/// <summary>
 	/// A struct for playing Effekseer effects.
+	/// </summary>
 	public partial class EffekNode : Node
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
@@ -44,35 +46,29 @@ namespace Dora
 		{
 			return raw == 0 ? null : new EffekNode(raw);
 		}
+		/// <summary>
 		/// Plays an effect at the specified position.
-		///
-		/// # Arguments
-		///
-		/// * `filename` - The filename of the effect to play.
-		/// * `pos` - The xy-position to play the effect at.
-		/// * `z` - The z-position of the effect.
-		///
-		/// # Returns
-		///
-		/// * `int` - The handle of the effect.
+		/// </summary>
+		/// <param name="filename">The filename of the effect to play.</param>
+		/// <param name="pos">The xy-position to play the effect at.</param>
+		/// <param name="z">The z-position of the effect.</param>
+		/// <returns>The handle of the effect.</returns>
 		public int Play(string filename, Vec2 pos, float z)
 		{
 			return Native.effeknode_play(Raw, Bridge.FromString(filename), pos.Raw, z);
 		}
+		/// <summary>
 		/// Stops an effect with the specified handle.
-		///
-		/// # Arguments
-		///
-		/// * `handle` - The handle of the effect to stop.
+		/// </summary>
+		/// <param name="handle">The handle of the effect to stop.</param>
 		public void Stop(int handle)
 		{
 			Native.effeknode_stop(Raw, handle);
 		}
+		/// <summary>
 		/// Creates a new EffekNode object.
-		///
-		/// # Returns
-		///
-		/// * `EffekNode` - A new EffekNode object.
+		/// </summary>
+		/// <returns>A new EffekNode object.</returns>
 		public EffekNode() : this(Native.effeknode_new()) { }
 	}
 } // namespace Dora

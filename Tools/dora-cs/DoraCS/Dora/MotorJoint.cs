@@ -34,7 +34,9 @@ namespace Dora
 
 namespace Dora
 {
+	/// <summary>
 	/// A joint that applies a rotational or linear force to a physics body.
+	/// </summary>
 	public partial class MotorJoint : Joint
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
@@ -50,19 +52,25 @@ namespace Dora
 		{
 			return raw == 0 ? null : new MotorJoint(raw);
 		}
-		/// whether or not the motor joint is enabled.
+		/// <summary>
+		/// Whether or not the motor joint is enabled.
+		/// </summary>
 		public bool IsEnabled
 		{
 			set => Native.motorjoint_set_enabled(Raw, value ? 1 : 0);
 			get => Native.motorjoint_is_enabled(Raw) != 0;
 		}
-		/// the force applied to the motor joint.
+		/// <summary>
+		/// The force applied to the motor joint.
+		/// </summary>
 		public float Force
 		{
 			set => Native.motorjoint_set_force(Raw, value);
 			get => Native.motorjoint_get_force(Raw);
 		}
-		/// the speed of the motor joint.
+		/// <summary>
+		/// The speed of the motor joint.
+		/// </summary>
 		public float Speed
 		{
 			set => Native.motorjoint_set_speed(Raw, value);

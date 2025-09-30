@@ -52,49 +52,67 @@ namespace Dora
 
 namespace Dora
 {
+	/// <summary>
 	/// A struct that provides access to the 3D graphic view.
+	/// </summary>
 	public static partial class View
 	{
-		/// the size of the view in pixels.
+		/// <summary>
+		/// The size of the view in pixels.
+		/// </summary>
 		public static Size Size
 		{
 			get => Size.From(Native.view_get_size());
 		}
-		/// the standard distance of the view from the origin.
+		/// <summary>
+		/// The standard distance of the view from the origin.
+		/// </summary>
 		public static float StandardDistance
 		{
 			get => Native.view_get_standard_distance();
 		}
-		/// the aspect ratio of the view.
+		/// <summary>
+		/// The aspect ratio of the view.
+		/// </summary>
 		public static float AspectRatio
 		{
 			get => Native.view_get_aspect_ratio();
 		}
-		/// the distance to the near clipping plane.
+		/// <summary>
+		/// The distance to the near clipping plane.
+		/// </summary>
 		public static float NearPlaneDistance
 		{
 			set => Native.view_set_near_plane_distance(value);
 			get => Native.view_get_near_plane_distance();
 		}
-		/// the distance to the far clipping plane.
+		/// <summary>
+		/// The distance to the far clipping plane.
+		/// </summary>
 		public static float FarPlaneDistance
 		{
 			set => Native.view_set_far_plane_distance(value);
 			get => Native.view_get_far_plane_distance();
 		}
-		/// the field of view of the view in degrees.
+		/// <summary>
+		/// The field of view of the view in degrees.
+		/// </summary>
 		public static float FieldOfView
 		{
 			set => Native.view_set_field_of_view(value);
 			get => Native.view_get_field_of_view();
 		}
-		/// the scale factor of the view.
+		/// <summary>
+		/// The scale factor of the view.
+		/// </summary>
 		public static float Scale
 		{
 			set => Native.view_set_scale(value);
 			get => Native.view_get_scale();
 		}
-		/// the post effect applied to the view.
+		/// <summary>
+		/// The post effect applied to the view.
+		/// </summary>
 		public static SpriteEffect? PostEffect
 		{
 			set
@@ -104,7 +122,9 @@ namespace Dora
 			}
 			get => SpriteEffect.FromOpt(Native.view_get_post_effect());
 		}
-		/// whether or not vertical sync is enabled.
+		/// <summary>
+		/// Whether or not vertical sync is enabled.
+		/// </summary>
 		public static bool IsVsync
 		{
 			set => Native.view_set_vsync(value ? 1 : 0);

@@ -54,7 +54,9 @@ namespace Dora
 
 namespace Dora
 {
+	/// <summary>
 	/// An interface for an animation model system.
+	/// </summary>
 	public partial class Playable : Node
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
@@ -70,109 +72,98 @@ namespace Dora
 		{
 			return raw == 0 ? null : new Playable(raw);
 		}
-		/// the look of the animation.
+		/// <summary>
+		/// The look of the animation.
+		/// </summary>
 		public string Look
 		{
 			set => Native.playable_set_look(Raw, Bridge.FromString(value));
 			get => Bridge.ToString(Native.playable_get_look(Raw));
 		}
-		/// the play speed of the animation.
+		/// <summary>
+		/// The play speed of the animation.
+		/// </summary>
 		public float Speed
 		{
 			set => Native.playable_set_speed(Raw, value);
 			get => Native.playable_get_speed(Raw);
 		}
-		/// the recovery time of the animation, in seconds.
+		/// <summary>
+		/// The recovery time of the animation, in seconds.
 		/// Used for doing transitions from one animation to another animation.
+		/// </summary>
 		public float Recovery
 		{
 			set => Native.playable_set_recovery(Raw, value);
 			get => Native.playable_get_recovery(Raw);
 		}
-		/// whether the animation is flipped horizontally.
+		/// <summary>
+		/// Whether the animation is flipped horizontally.
+		/// </summary>
 		public bool IsFliped
 		{
 			set => Native.playable_set_fliped(Raw, value ? 1 : 0);
 			get => Native.playable_is_fliped(Raw) != 0;
 		}
-		/// the current playing animation name.
+		/// <summary>
+		/// The current playing animation name.
+		/// </summary>
 		public string Current
 		{
 			get => Bridge.ToString(Native.playable_get_current(Raw));
 		}
-		/// the last completed animation name.
+		/// <summary>
+		/// The last completed animation name.
+		/// </summary>
 		public string LastCompleted
 		{
 			get => Bridge.ToString(Native.playable_get_last_completed(Raw));
 		}
+		/// <summary>
 		/// Gets a key point on the animation model by its name.
-		///
-		/// # Arguments
-		///
-		/// * `name` - The name of the key point to get.
-		///
-		/// # Returns
-		///
-		/// * A `Vec2` representing the key point value.
+		/// </summary>
+		/// <param name="name">The name of the key point to get.</param>
 		public Vec2 GetKey(string name)
 		{
 			return Vec2.From(Native.playable_get_key(Raw, Bridge.FromString(name)));
 		}
+		/// <summary>
 		/// Plays an animation from the model.
-		///
-		/// # Arguments
-		///
-		/// * `name` - The name of the animation to play.
-		/// * `loop` - Whether to loop the animation or not.
-		///
-		/// # Returns
-		///
-		/// * The duration of the animation in seconds.
+		/// </summary>
+		/// <param name="name">The name of the animation to play.</param>
+		/// <param name="looping">Whether to loop the animation or not.</param>
 		public float Play(string name, bool looping)
 		{
 			return Native.playable_play(Raw, Bridge.FromString(name), looping ? 1 : 0);
 		}
+		/// <summary>
 		/// Stops the currently playing animation.
+		/// </summary>
 		public void Stop()
 		{
 			Native.playable_stop(Raw);
 		}
+		/// <summary>
 		/// Attaches a child node to a slot on the animation model.
-		///
-		/// # Arguments
-		///
-		/// * `name` - The name of the slot to set.
-		/// * `item` - The node to set the slot to.
+		/// </summary>
+		/// <param name="name">The name of the slot to set.</param>
+		/// <param name="item">The node to set the slot to.</param>
 		public void SetSlot(string name, Node item)
 		{
 			Native.playable_set_slot(Raw, Bridge.FromString(name), item.Raw);
 		}
+		/// <summary>
 		/// Gets the child node attached to the animation model.
-		///
-		/// # Arguments
-		///
-		/// * `name` - The name of the slot to get.
-		///
-		/// # Returns
-		///
-		/// * The node in the slot, or `None` if there is no node in the slot.
+		/// </summary>
+		/// <param name="name">The name of the slot to get.</param>
 		public Node? GetSlot(string name)
 		{
 			return Node.FromOpt(Native.playable_get_slot(Raw, Bridge.FromString(name)));
 		}
+		/// <summary>
 		/// Creates a new instance of 'Playable' from the specified animation file.
-		///
-		/// # Arguments
-		///
-		/// * `filename` - The filename of the animation file to load. Supports DragonBone, Spine2D and Dora Model files.
-		/// Should be one of the formats below:
-		///     * "model:" + modelFile
-		///     * "spine:" + spineStr
-		///     * "bone:" + dragonBoneStr
-		///
-		/// # Returns
-		///
-		/// * A new instance of 'Playable'. If the file could not be loaded, then `None` is returned.
+		/// </summary>
+		/// <param name="filename">The filename of the animation file to load. Supports DragonBone, Spine2D and Dora Model files.</param>
 		public Playable(string filename) : this(Native.playable_new(Bridge.FromString(filename))) { }
 		public static Playable? TryCreate(string filename)
 		{

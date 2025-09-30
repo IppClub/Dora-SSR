@@ -40,7 +40,9 @@ namespace Dora
 
 namespace Dora.Platformer
 {
+	/// <summary>
 	/// A struct that represents an action that can be performed by a "Unit".
+	/// </summary>
 	public partial class UnitAction
 	{
 		private UnitAction(long raw)
@@ -53,57 +55,70 @@ namespace Dora.Platformer
 		{
 			return new UnitAction(raw);
 		}
-		/// the length of the reaction time for the "UnitAction", in seconds.
+		/// <summary>
+		/// The length of the reaction time for the "UnitAction", in seconds.
 		/// The reaction time will affect the AI check cycling time.
+		/// </summary>
 		public float Reaction
 		{
 			set => Native.platformer_unitaction_set_reaction(Raw, value);
 			get => Native.platformer_unitaction_get_reaction(Raw);
 		}
-		/// the length of the recovery time for the "UnitAction", in seconds.
+		/// <summary>
+		/// The length of the recovery time for the "UnitAction", in seconds.
 		/// The recovery time will mainly affect how long the `Playable` animation model will do transitions between animations played by different actions.
+		/// </summary>
 		public float Recovery
 		{
 			set => Native.platformer_unitaction_set_recovery(Raw, value);
 			get => Native.platformer_unitaction_get_recovery(Raw);
 		}
-		/// the name of the "UnitAction".
+		/// <summary>
+		/// The name of the "UnitAction".
+		/// </summary>
 		public string Name
 		{
 			get => Bridge.ToString(Native.platformer_unitaction_get_name(Raw));
 		}
-		/// whether the "Unit" is currently performing the "UnitAction" or not.
+		/// <summary>
+		/// Whether the "Unit" is currently performing the "UnitAction" or not.
+		/// </summary>
 		public bool IsDoing
 		{
 			get => Native.platformer_unitaction_is_doing(Raw) != 0;
 		}
-		/// the "Unit" that owns this "UnitAction".
+		/// <summary>
+		/// The "Unit" that owns this "UnitAction".
+		/// </summary>
 		public Platformer.Unit Owner
 		{
 			get => Platformer.Unit.From(Native.platformer_unitaction_get_owner(Raw));
 		}
-		/// the elapsed time since the "UnitAction" was started, in seconds.
+		/// <summary>
+		/// The elapsed time since the "UnitAction" was started, in seconds.
+		/// </summary>
 		public float ElapsedTime
 		{
 			get => Native.platformer_unitaction_get_elapsed_time(Raw);
 		}
+		/// <summary>
 		/// Removes all "UnitAction" objects from the "UnitActionClass".
+		/// </summary>
 		public static void Clear()
 		{
 			Native.platformer_unitaction_clear();
 		}
+		/// <summary>
 		/// Adds a new "UnitAction" to the "UnitActionClass" with the specified name and parameters.
-		///
-		/// # Arguments
-		///
-		/// * `name` - The name of the "UnitAction".
-		/// * `priority` - The priority level for the "UnitAction". `UnitAction` with higher priority (larger number) will replace the running lower priority `UnitAction`. If performing `UnitAction` having the same priority with the running `UnitAction` and the `UnitAction` to perform having the param 'queued' to be true, the running `UnitAction` won't be replaced.
-		/// * `reaction` - The length of the reaction time for the "UnitAction", in seconds. The reaction time will affect the AI check cycling time. Set to 0.0 to make AI check run in every update.
-		/// * `recovery` - The length of the recovery time for the "UnitAction", in seconds. The recovery time will mainly affect how long the `Playable` animation model will do transitions between animations played by different actions.
-		/// * `queued` - Whether the "UnitAction" is currently queued or not. The queued "UnitAction" won't replace the running "UnitAction" with a same priority.
-		/// * `available` - A function that takes a `Unit` object and a `UnitAction` object and returns a boolean value indicating whether the "UnitAction" is available to be performed.
-		/// * `create` - A function that takes a `Unit` object and a `UnitAction` object and returns a `WasmActionUpdate` object that contains the update function for the "UnitAction".
-		/// * `stop` - A function that takes a `Unit` object and a `UnitAction` object and stops the "UnitAction".
+		/// </summary>
+		/// <param name="name">The name of the "UnitAction".</param>
+		/// <param name="priority">The priority level for the "UnitAction". `UnitAction` with higher priority (larger number) will replace the running lower priority `UnitAction`. If performing `UnitAction` having the same priority with the running `UnitAction` and the `UnitAction` to perform having the param 'queued' to be true, the running `UnitAction` won't be replaced.</param>
+		/// <param name="reaction">The length of the reaction time for the "UnitAction", in seconds. The reaction time will affect the AI check cycling time. Set to 0.0 to make AI check run in every update.</param>
+		/// <param name="recovery">The length of the recovery time for the "UnitAction", in seconds. The recovery time will mainly affect how long the `Playable` animation model will do transitions between animations played by different actions.</param>
+		/// <param name="queued">Whether the "UnitAction" is currently queued or not. The queued "UnitAction" won't replace the running "UnitAction" with a same priority.</param>
+		/// <param name="available">A function that takes a `Unit` object and a `UnitAction` object and returns a boolean value indicating whether the "UnitAction" is available to be performed.</param>
+		/// <param name="create">A function that takes a `Unit` object and a `UnitAction` object and returns a `WasmActionUpdate` object that contains the update function for the "UnitAction".</param>
+		/// <param name="stop">A function that takes a `Unit` object and a `UnitAction` object and stops the "UnitAction".</param>
 		public static void Add(string name, int priority, float reaction, float recovery, bool queued, Func<Platformer.Unit, Platformer.UnitAction, bool> available, Func<Platformer.Unit, Platformer.UnitAction, Platformer.ActionUpdate> create, System.Action<Platformer.Unit, Platformer.UnitAction> stop)
 		{
 			var stack0 = new CallStack();

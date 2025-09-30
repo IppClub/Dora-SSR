@@ -36,7 +36,9 @@ namespace Dora
 
 namespace Dora
 {
+	/// <summary>
 	/// A Node that can clip its children based on the alpha values of its stencil.
+	/// </summary>
 	public partial class ClipNode : Node
 	{
 		public static new (int typeId, CreateFunc func) GetTypeInfo()
@@ -52,33 +54,34 @@ namespace Dora
 		{
 			return raw == 0 ? null : new ClipNode(raw);
 		}
-		/// the stencil Node that defines the clipping shape.
+		/// <summary>
+		/// The stencil Node that defines the clipping shape.
+		/// </summary>
 		public Node Stencil
 		{
 			set => Native.clipnode_set_stencil(Raw, value.Raw);
 			get => Node.From(Native.clipnode_get_stencil(Raw));
 		}
-		/// the minimum alpha threshold for a pixel to be visible. Value ranges from 0 to 1.
+		/// <summary>
+		/// The minimum alpha threshold for a pixel to be visible. Value ranges from 0 to 1.
+		/// </summary>
 		public float AlphaThreshold
 		{
 			set => Native.clipnode_set_alpha_threshold(Raw, value);
 			get => Native.clipnode_get_alpha_threshold(Raw);
 		}
-		/// whether to invert the clipping area.
+		/// <summary>
+		/// Whether to invert the clipping area.
+		/// </summary>
 		public bool IsInverted
 		{
 			set => Native.clipnode_set_inverted(Raw, value ? 1 : 0);
 			get => Native.clipnode_is_inverted(Raw) != 0;
 		}
+		/// <summary>
 		/// Creates a new ClipNode object.
-		///
-		/// # Arguments
-		///
-		/// * `stencil` - The stencil Node that defines the clipping shape. Defaults to `None`.
-		///
-		/// # Returns
-		///
-		/// * A new `ClipNode` object.
+		/// </summary>
+		/// <param name="stencil">The stencil Node that defines the clipping shape. Defaults to `None`.</param>
 		public ClipNode(Node stencil) : this(Native.clipnode_new(stencil.Raw)) { }
 	}
 } // namespace Dora
