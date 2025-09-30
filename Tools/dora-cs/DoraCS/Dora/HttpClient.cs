@@ -87,7 +87,7 @@ namespace Dora
 			var func_id0 = Bridge.PushFunction(() =>
 			{
 				var result = part_callback(stack0.PopString());
-				stack0.Push(result);;
+				stack0.Push(result);
 			});
 			var stack1 = new CallStack();
 			var stack_raw1 = stack1.Raw;
@@ -130,7 +130,7 @@ namespace Dora
 			var func_id0 = Bridge.PushFunction(() =>
 			{
 				var result = progress(stack0.PopBool(), stack0.PopI64(), stack0.PopI64());
-				stack0.Push(result);;
+				stack0.Push(result);
 			});
 			Native.httpclient_download_async(Bridge.FromString(url), Bridge.FromString(full_path), timeout, func_id0, stack_raw0);
 		}

@@ -105,7 +105,7 @@ namespace Dora.Platformer.Behavior
 			var func_id0 = Bridge.PushFunction(() =>
 			{
 				var result = handler(Platformer.Behavior.Blackboard.From(stack0.PopI64()));
-				stack0.Push(result);;
+				stack0.Push(result);
 			});
 			return Platformer.Behavior.Tree.From(Native.platformer_behavior_leaf_con(Bridge.FromString(name), func_id0, stack_raw0));
 		}

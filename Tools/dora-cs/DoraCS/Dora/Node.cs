@@ -726,7 +726,7 @@ namespace Dora
 			var func_id0 = Bridge.PushFunction(() =>
 			{
 				var result = visitor_func((Node)stack0.PopObject());
-				stack0.Push(result);;
+				stack0.Push(result);
 			});
 			return Native.node_each_child(Raw, func_id0, stack_raw0) != 0;
 		}
@@ -746,7 +746,7 @@ namespace Dora
 			var func_id0 = Bridge.PushFunction(() =>
 			{
 				var result = visitor_func((Node)stack0.PopObject());
-				stack0.Push(result);;
+				stack0.Push(result);
 			});
 			return Native.node_traverse(Raw, func_id0, stack_raw0) != 0;
 		}
@@ -766,7 +766,7 @@ namespace Dora
 			var func_id0 = Bridge.PushFunction(() =>
 			{
 				var result = visitor_func((Node)stack0.PopObject());
-				stack0.Push(result);;
+				stack0.Push(result);
 			});
 			return Native.node_traverse_all(Raw, func_id0, stack_raw0) != 0;
 		}
@@ -1023,7 +1023,7 @@ namespace Dora
 			var func_id0 = Bridge.PushFunction(() =>
 			{
 				var result = update_func(stack0.PopF64());
-				stack0.Push(result);;
+				stack0.Push(result);
 			});
 			Native.node_on_update(Raw, func_id0, stack_raw0);
 		}
@@ -1043,7 +1043,7 @@ namespace Dora
 			var func_id0 = Bridge.PushFunction(() =>
 			{
 				var result = render_func(stack0.PopF64());
-				stack0.Push(result);;
+				stack0.Push(result);
 			});
 			Native.node_on_render(Raw, func_id0, stack_raw0);
 		}

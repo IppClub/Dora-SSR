@@ -104,7 +104,7 @@ namespace Dora
 			var func_id0 = Bridge.PushFunction(() =>
 			{
 				var result = update_func(stack0.PopF64());
-				stack0.Push(result);;
+				stack0.Push(result);
 			});
 			Native.director_schedule(func_id0, stack_raw0);
 		}
@@ -120,7 +120,7 @@ namespace Dora
 			var func_id0 = Bridge.PushFunction(() =>
 			{
 				var result = update_func(stack0.PopF64());
-				stack0.Push(result);;
+				stack0.Push(result);
 			});
 			Native.director_schedule_posted(func_id0, stack_raw0);
 		}

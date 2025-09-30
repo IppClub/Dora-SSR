@@ -46,7 +46,7 @@ namespace Dora.Platformer
 			var func_id0 = Bridge.PushFunction(() =>
 			{
 				var result = update((Platformer.Unit)stack0.PopObject(), Platformer.UnitAction.From(stack0.PopI64()), stack0.PopF32());
-				stack0.Push(result);;
+				stack0.Push(result);
 			});
 			return Native.platformer_wasmactionupdate_new(func_id0, stack_raw0);
 		}

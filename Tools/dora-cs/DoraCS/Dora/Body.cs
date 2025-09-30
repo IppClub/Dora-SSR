@@ -267,7 +267,7 @@ namespace Dora
 			var func_id0 = Bridge.PushFunction(() =>
 			{
 				var result = filter((Body)stack0.PopObject());
-				stack0.Push(result);;
+				stack0.Push(result);
 			});
 			Native.body_on_contact_filter(Raw, func_id0, stack_raw0);
 		}

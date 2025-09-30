@@ -378,7 +378,7 @@ namespace Dora
 			var func_id0 = Bridge.PushFunction(() =>
 			{
 				var result = filter(stack0.PopString());
-				stack0.Push(result);;
+				stack0.Push(result);
 			});
 			var stack1 = new CallStack();
 			var stack_raw1 = stack1.Raw;
@@ -407,7 +407,7 @@ namespace Dora
 			var func_id0 = Bridge.PushFunction(() =>
 			{
 				var result = filter(stack0.PopString());
-				stack0.Push(result);;
+				stack0.Push(result);
 			});
 			var stack1 = new CallStack();
 			var stack_raw1 = stack1.Raw;

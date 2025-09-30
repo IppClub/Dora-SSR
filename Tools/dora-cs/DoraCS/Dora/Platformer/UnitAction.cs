@@ -111,7 +111,7 @@ namespace Dora.Platformer
 			var func_id0 = Bridge.PushFunction(() =>
 			{
 				var result = available((Platformer.Unit)stack0.PopObject(), Platformer.UnitAction.From(stack0.PopI64()));
-				stack0.Push(result);;
+				stack0.Push(result);
 			});
 			var stack1 = new CallStack();
 			var stack_raw1 = stack1.Raw;
