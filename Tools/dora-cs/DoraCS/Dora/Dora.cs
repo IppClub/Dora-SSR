@@ -1,7 +1,6 @@
 ﻿using Microsoft.Win32.SafeHandles;
 using System.Collections;
 using System.Diagnostics;
-using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -3555,6 +3554,12 @@ namespace Dora
         }
     }
 
+    public interface IYieldOp
+    {
+        void Tick(double dt);
+        bool IsDone { get; }
+    }
+
     public sealed class WaitForSeconds
     {
         public double Remaining;
@@ -3570,9 +3575,49 @@ namespace Dora
         public Func<bool> Predicate;
         public WaitWhile(Func<bool> predicate) => Predicate = predicate;
     }
+    public sealed class CallbackAwait<T>(Action<Action<T>> _starter) : IYieldOp
+    {
+        private bool _started;
+        public bool IsDone { get; private set; }
+        public T Result { get; private set; } = default!;
+
+        public void Tick(double dt)
+        {
+            if (_started) return;
+            _started = true;
+            _starter(val => { Result = val; IsDone = true; });
+        }
+    }
+    public sealed class CallbackAwaitOptional<T> : IYieldOp
+    {
+        private readonly Action<Action<T?>> _starter;
+        private bool _started;
+        public bool IsDone { get; private set; }
+        public T? Result { get; private set; }
+
+        public CallbackAwaitOptional(Action<Action<T?>> starter) { _starter = starter; }
+
+        public void Tick(double dt)
+        {
+            if (_started) return;
+            _started = true;
+            _starter(val => { Result = val; IsDone = true; });
+        }
+    }
 
     public static class Co
     {
+        public static Func<double, bool> Loop(Func<IEnumerator> routineFactory)
+        {
+            IEnumerator loop()
+            {
+                while (true)
+                {
+                    yield return routineFactory();
+                }
+            }
+            return Once(loop);
+        }
         public static Func<double, bool> Once(Func<IEnumerator> routineFactory)
         {
             IEnumerator? root = null;
@@ -3606,6 +3651,15 @@ namespace Dora
                     if (ww.Predicate()) return false;
                     wait = null;
                 }
+                else if (wait is IYieldOp yo)
+                {
+                    if (!yo.IsDone)
+                    {
+                        yo.Tick(dt);
+                        if (!yo.IsDone) return false;
+                    }
+                    wait = null;
+                }
 
                 while (!done && wait == null && stack.Count > 0)
                 {
@@ -3622,7 +3676,7 @@ namespace Dora
                     {
                         wait = new WaitForSeconds(0.0);
                     }
-                    else if (yielded is WaitForSeconds or WaitUntil or WaitWhile)
+                    else if (yielded is WaitForSeconds or WaitUntil or WaitWhile or IYieldOp)
                     {
                         wait = yielded;
                     }
@@ -3638,6 +3692,158 @@ namespace Dora
 
                 return done;
             };
+        }
+    }
+
+    public static partial class Content
+    {
+        /// <summary>
+        /// Asynchronously loads the content of the file with the specified filename.
+        /// </summary>
+        /// <param name="filename">The name of the file to load.</param>
+        /// <returns>The awaiter object to get content of the loaded file.</returns>
+        public static CallbackAwait<string> LoadAsync(string filename)
+        {
+            return new CallbackAwait<string>(cb => Content.LoadAsync(filename, cb));
+        }
+
+        /// <summary>
+        /// Asynchronously copies a file or a folder from the source path to the destination path.
+        /// </summary>
+        /// <param name="srcFile">The path of the file or folder to copy.</param>
+        /// <param name="targetFile">The destination path of the copied files.</param>
+        /// <returns>The awaiter object to get `true` if the file or folder was copied successfully, `false` otherwise.</returns>
+        public static CallbackAwait<bool> CopyAsync(string srcFile, string targetFile)
+        {
+            return new CallbackAwait<bool>(cb => Content.CopyAsync(srcFile, targetFile, cb));
+        }
+        /// <summary>
+        /// Asynchronously saves the specified content to a file with the specified filename.
+        /// </summary>
+        /// <param name="filename">The name of the file to save.</param>
+        /// <param name="content">The content to save to the file.</param>
+        /// <returns>The awaiter object to get `true` if the content was saved successfully, `false` otherwise.</returns>
+        public static CallbackAwait<bool> SaveAsync(string filename, string content)
+        {
+            return new CallbackAwait<bool>(cb => Content.SaveAsync(filename, content, cb));
+        }
+        /// <summary>
+        /// Asynchronously compresses the specified folder to a ZIP archive with the specified filename.
+        /// </summary>
+        /// <param name="folderPath">The path of the folder to compress, should be under the asset writable path.</param>
+        /// <param name="zipFile">The name of the ZIP archive to create.</param>
+        /// <param name="filter">An optional function to filter the files to include in the archive. The function takes a filename as input and returns a boolean indicating whether to include the file. If not provided, all files will be included.</param>
+        /// <returns>The awaiter object to get `true` if the folder was compressed successfully, `false` otherwise.</returns>
+        public static CallbackAwait<bool> ZipAsync(string folderPath, string zipFile, Func<string, bool> filter)
+        {
+            return new CallbackAwait<bool>(cb => Content.ZipAsync(folderPath, zipFile, filter, cb));
+        }
+        /// <summary>
+        /// Asynchronously decompresses a ZIP archive to the specified folder.
+        /// </summary>
+        /// <param name="zipFile">The name of the ZIP archive to decompress, should be a file under the asset writable path.</param>
+        /// <param name="folderPath">The path of the folder to decompress to, should be under the asset writable path.</param>
+        /// <param name="filter">An optional function to filter the files to include in the archive. The function takes a filename as input and returns a boolean indicating whether to include the file. If not provided, all files will be included.</param>
+        /// <returns>The awaiter object to get `true` if the folder was decompressed successfully, `false` otherwise.</returns>
+        public static CallbackAwait<bool> UnzipAsync(string zipFile, string folderPath, Func<string, bool> filter)
+        {
+            return new CallbackAwait<bool>(cb => Content.UnzipAsync(zipFile, folderPath, filter, cb));
+        }
+    }
+
+    public static partial class Cache
+    {
+        /// <summary>
+        /// Loads a file into the cache asynchronously.
+        /// </summary>
+        /// <param name="filename">The name of the file to load.</param>
+        /// <returns>The awaiter object to get `true` if the asset was loaded successfully, `false` otherwise.</returns>
+        public static CallbackAwait<bool> LoadAsync(string filename)
+        {
+            return new CallbackAwait<bool>(cb => Cache.LoadAsync(filename, cb));
+        }
+    }
+
+    public static partial class DB
+    {
+        /// <summary>
+        /// Executes a list of SQL statements as a single transaction asynchronously.
+        /// </summary>
+        /// <param name="query">A list of SQL statements to execute.</param>
+        /// <returns>The awaiter object to get `true` if the transaction was successful, `false` otherwise.</returns>
+        public static CallbackAwait<bool> TransactionAsync(DBQuery query)
+        {
+            return new CallbackAwait<bool>(cb => DB.TransactionAsync(query, cb));
+        }
+        /// <summary>
+		/// Executes an SQL query asynchronously and returns the results as a list of rows.
+		/// </summary>
+		/// <param name="sql">The SQL statement to execute.</param>
+		/// <param name="params_">Optional. A list of values to substitute into the SQL statement.</param>
+		/// <param name="withColumns">Optional. Whether to include column names in the result. Default is `false`.</param>
+		/// <returns>The awaiter object to get the results as a list of rows.</returns>
+        public static CallbackAwait<DBRecord> QueryAsync(string sql, Array params_, bool withColumns)
+        {
+            return new CallbackAwait<DBRecord>(cb => DB.QueryAsync(sql, params_, withColumns, cb));
+        }
+        /// <summary>
+		/// Inserts a row of data into a table within a transaction asynchronously.
+		/// </summary>
+		/// <param name="tableName">The name of the table to insert into.</param>
+		/// <param name="values">The values to insert into the table.</param>
+        /// <returns>The awaiter object to get the result of the insertion.</returns>
+		public static CallbackAwait<bool> InsertAsync(string tableName, DBParams values)
+        {
+            return new CallbackAwait<bool>(cb => DB.InsertAsync(tableName, values, cb));
+        }
+        /// <summary>
+		/// Executes an SQL statement with a list of values within a transaction asynchronously and returns the number of rows affected.
+		/// </summary>
+		/// <param name="sql">The SQL statement to execute.</param>
+		/// <param name="values">A list of values to substitute into the SQL statement.</param>
+		/// <returns>The awaiter object to get the number of rows affected.</returns>
+		public static CallbackAwait<long> ExecAsync(string sql, DBParams values)
+        {
+            return new CallbackAwait<long>(cb => DB.ExecAsync(sql, values, cb));
+        }
+    }
+
+    public static partial class HttpClient
+    {
+        /// <summary>
+        /// Sends a POST request to the specified URL and returns the response body.
+        /// </summary>
+        /// <param name="url">The URL to send the request to.</param>
+        /// <param name="json">The JSON data to send in the request body.</param>
+        /// <param name="timeout">The timeout in seconds for the request.</param>
+        /// <returns>The awaiter object to get the response body as a parameter.</returns>
+        public static CallbackAwaitOptional<string> PostAsync(string url, string json, float timeout)
+        {
+            return new CallbackAwaitOptional<string>(cb => HttpClient.PostAsync(url, json, timeout, cb));
+        }
+        /// <summary>
+        /// Sends a GET request to the specified URL and returns the response body.
+        /// </summary>
+        /// <param name="url">The URL to send the request to.</param>
+        /// <param name="timeout">The timeout in seconds for the request.</param>
+        /// <returns>The awaiter object to get the response body as a parameter.</returns>
+        public static CallbackAwaitOptional<string> GetAsync(string url, float timeout)
+        {
+            return new CallbackAwaitOptional<string>(cb => HttpClient.GetAsync(url, timeout, cb));
+        }
+    }
+
+    public partial class RenderTarget
+    {
+
+        /// <summary>
+        /// Saves the contents of the render target to a PNG file asynchronously.
+        /// </summary>
+        /// <param name="filename">The name of the file to save the contents to.</param>
+        /// <returns>The awaiter object to get a boolean value indicating whether the save operation was successful.</returns>
+        public CallbackAwait<bool> SaveAsync(string filename)
+        {
+            return new CallbackAwait<bool>(cb => this.SaveAsync(filename, cb));
         }
     }
 
