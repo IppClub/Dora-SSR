@@ -29,6 +29,9 @@ C# 游戏代码
   - `Dora/` - 封装的 C# 接口类
   - `Program.cs` - 示例入口程序
 - **CSharpGen/** - C# 绑定代码生成工具
+  - `Dora.h` - IDL（接口定义语言）文件，用于解析和生成绑定代码
+  - `gen.yue` - 代码生成脚本，自动生成 C# 绑定代码
+  - `lulpeg.lua` - PEG 解析库
 - **build/** - 编译输出目录
   - `Debug/` - Debug 配置的编译产物
   - `Release/` - Release 配置的编译产物
@@ -63,6 +66,16 @@ C# 游戏代码
    设置 `DoraCS` 为启动项目，按 F5 运行。
 
 > **注意**: 必须按照上述顺序先构建 Dora 项目，再构建 DoraCS 项目，因为 DoraCS 依赖于 Dora.dll。
+
+## 代码生成工具
+
+**CSharpGen** 目录包含了用于自动生成 C# 绑定代码的工具：
+
+- **Dora.h** - 这是一个 IDL（接口定义语言）文件，描述了 Dora SSR 引擎的 API 接口定义
+- **gen.yue** - 使用 YueScript 编写的代码生成脚本，用于解析 `Dora.h` 并自动生成 C# 的 P/Invoke 绑定代码
+- **lulpeg.lua** - PEG（Parsing Expression Grammar）解析库，用于解析 IDL 文件
+
+当 Dora SSR 引擎的接口发生变化时，可以使用此工具同步更新 C# 绑定代码，确保 DoraCS 项目与引擎核心保持一致。
 
 ## 快速开始
 
