@@ -29,6 +29,9 @@ C# Game Code
   - `Dora/` - Wrapped C# interface classes
   - `Program.cs` - Example entry point
 - **CSharpGen/** - C# binding code generation tool
+  - `Dora.h` - IDL (Interface Definition Language) file for parsing and generating bindings
+  - `gen.yue` - Code generation script that automatically generates C# binding code
+  - `lulpeg.lua` - PEG parsing library
 - **build/** - Build output directory
   - `Debug/` - Debug configuration build artifacts
   - `Release/` - Release configuration build artifacts
@@ -63,6 +66,16 @@ C# Game Code
    Set `DoraCS` as the startup project and press F5 to run.
 
 > **Note**: You must follow the above order - build the Dora project first, then the DoraCS project, as DoraCS depends on Dora.dll.
+
+## Code Generation Tool
+
+The **CSharpGen** directory contains tools for automatically generating C# binding code:
+
+- **Dora.h** - An IDL (Interface Definition Language) file that describes the API of the Dora SSR engine
+- **gen.yue** - A code generation script written in YueScript that parses `Dora.h` and automatically generates C# P/Invoke binding code
+- **lulpeg.lua** - A PEG (Parsing Expression Grammar) parsing library used to parse the IDL file
+
+When the Dora SSR engine's interfaces change, you can use this tool to synchronize and update the C# binding code, ensuring the DoraCS project stays consistent with the engine core.
 
 ## Quick Start
 
@@ -161,4 +174,4 @@ Issues and Pull Requests are welcome!
 
 ---
 
-**Enjoy game development with C#!** 
+**Enjoy game development with C#!**
