@@ -279,7 +279,9 @@ static void init_var (FuncState *fs, expdesc *e, int vidx) {
 
 
 /*
-** Raises an error if variable described by 'e' is read only
+** Raises an error if variable described by 'e' is read only; moreover,
+** if 'e' is t[exp] where t is the vararg parameter, change it to index
+** a real table. (Virtual vararg tables cannot be changed.)
 */
 static void check_readonly (LexState *ls, expdesc *e) {
   FuncState *fs = ls->fs;
@@ -289,7 +291,7 @@ static void check_readonly (LexState *ls, expdesc *e) {
       varname = ls->dyd->actvar.arr[e->u.info].vd.name;
       break;
     }
-    case VLOCAL: {
+    case VLOCAL: case VVARGVAR: {
       Vardesc *vardesc = getlocalvardesc(fs, e->u.var.vidx);
       if (vardesc->vd.kind != VDKREG)  /* not a regular variable? */
         varname = vardesc->vd.name;
@@ -301,6 +303,10 @@ static void check_readonly (LexState *ls, expdesc *e) {
         varname = up->name;
       break;
     }
+    case VVARGIND: {
+      fs->f->flag |= PF_VATAB;  /* function will need a vararg table */
+      e->k = VINDEXED;
+    }  /* FALLTHROUGH */
     case VINDEXUP: case VINDEXSTR: case VINDEXED: {  /* global variable */
       if (e->u.ind.ro)  /* read-only? */
         varname = tsvalue(&fs->f->k[e->u.ind.keystr]);
@@ -426,8 +432,11 @@ static int searchvar (FuncState *fs, TString *n, expdesc *var) {
     else if (eqstr(n, vd->vd.name)) {  /* found? */
       if (vd->vd.kind == RDKCTC)  /* compile-time constant? */
         init_exp(var, VCONST, fs->firstlocal + i);
-      else  /* local variable */
+      else {  /* local variable */
         init_var(fs, var, i);
+        if (vd->vd.kind == RDKVAVAR)  /* vararg parameter? */
+          var->k = VVARGVAR;
+      }
       return cast_int(var->k);
     }
   }
@@ -467,8 +476,13 @@ static void marktobeclosed (FuncState *fs) {
 static void singlevaraux (FuncState *fs, TString *n, expdesc *var, int base) {
   int v = searchvar(fs, n, var);  /* look up variables at current level */
   if (v >= 0) {  /* found? */
-    if (v == VLOCAL && !base)
-      markupval(fs, var->u.var.vidx);  /* local will be used as an upval */
+    if (!base) {
+      if (var->k == VVARGVAR)  /* vararg parameter? */
+        luaK_vapar2local(fs, var);  /* change it to a regular local */
+      if (var->k == VLOCAL)
+        markupval(fs, var->u.var.vidx);  /* will be used as an upvalue */
+    }
+    /* else nothing else to be done */
   }
   else {  /* not found at current level; try upvalues */
     int idx = searchupvalue(fs, n);  /* try existing upvalues */
@@ -533,6 +547,7 @@ static void singlevar (LexState *ls, expdesc *var) {
 static void adjust_assign (LexState *ls, int nvars, int nexps, expdesc *e) {
   FuncState *fs = ls->fs;
   int needed = nvars - nexps;  /* extra values needed */
+  luaK_checkstack(fs, needed);
   if (hasmultret(e->k)) {  /* last expression has multiple returns? */
     int extra = needed + 1;  /* discount last expression itself */
     if (extra < 0)
@@ -1041,9 +1056,10 @@ static void constructor (LexState *ls, expdesc *t) {
 /* }====================================================================== */
 
 
-static void setvararg (FuncState *fs, int nparams) {
-  fs->f->flag |= PF_ISVARARG;
-  luaK_codeABC(fs, OP_VARARGPREP, nparams, 0, 0);
+static void setvararg (FuncState *fs, int kind) {
+  lua_assert(kind & PF_ISVARARG);
+  fs->f->flag |= cast_byte(kind);
+  luaK_codeABC(fs, OP_VARARGPREP, 0, 0, 0);
 }
 
 
@@ -1052,7 +1068,7 @@ static void parlist (LexState *ls) {
   FuncState *fs = ls->fs;
   Proto *f = fs->f;
   int nparams = 0;
-  int isvararg = 0;
+  int varargk = 0;
   if (ls->t.token != ')') {  /* is 'parlist' not empty? */
     do {
       switch (ls->t.token) {
@@ -1062,19 +1078,27 @@ static void parlist (LexState *ls) {
           break;
         }
         case TK_DOTS: {
+          varargk |= PF_ISVARARG;
           luaX_next(ls);
-          isvararg = 1;
+          if (testnext(ls, '|')) {
+            new_varkind(ls, str_checkname(ls), RDKVAVAR);
+            varargk |= PF_VAVAR;
+          }
           break;
         }
         default: luaX_syntaxerror(ls, "<name> or '...' expected");
       }
-    } while (!isvararg && testnext(ls, ','));
+    } while (!varargk && testnext(ls, ','));
   }
   adjustlocalvars(ls, nparams);
   f->numparams = cast_byte(fs->nactvar);
-  if (isvararg)
-    setvararg(fs, f->numparams);  /* declared vararg */
-  luaK_reserveregs(fs, fs->nactvar);  /* reserve registers for parameters */
+  if (varargk != 0) {
+    setvararg(fs, varargk);  /* declared vararg */
+    if (varargk & PF_VAVAR)
+      adjustlocalvars(ls, 1);  /* vararg parameter */
+  }
+  /* reserve registers for parameters (plus vararg parameter, if present) */
+  luaK_reserveregs(fs, fs->nactvar);
 }
 
 
@@ -2099,7 +2123,7 @@ static void mainfunc (LexState *ls, FuncState *fs) {
   BlockCnt bl;
   Upvaldesc *env;
   open_func(ls, fs, &bl);
-  setvararg(fs, 0);  /* main function is always declared vararg */
+  setvararg(fs, PF_ISVARARG);  /* main function is always vararg */
   env = allocupvalue(fs);  /* ...set environment upvalue */
   env->instack = 1;
   env->idx = 0;

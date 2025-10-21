@@ -785,6 +785,15 @@ void luaK_setoneret (FuncState *fs, expdesc *e) {
   }
 }
 
+/*
+** Change a vararg parameter into a regular local variable
+*/
+void luaK_vapar2local (FuncState *fs, expdesc *var) {
+  fs->f->flag |= PF_VATAB;  /* function will need a vararg table */
+  /* now a vararg parameter is equivalent to a regular local variable */
+  var->k = VLOCAL;
+}
+
 
 /*
 ** Ensure that expression 'e' is not a variable (nor a <const>).
@@ -796,6 +805,9 @@ void luaK_dischargevars (FuncState *fs, expdesc *e) {
       const2exp(const2val(fs, e), e);
       break;
     }
+    case VVARGVAR: {
+      luaK_vapar2local(fs, e);  /* turn it into a local variable */
+    }  /* FALLTHROUGH */
     case VLOCAL: {  /* already in a register */
       int temp = e->u.var.ridx;
       e->u.info = temp;  /* (can't do a direct assignment; values overlap) */
@@ -827,6 +839,12 @@ void luaK_dischargevars (FuncState *fs, expdesc *e) {
     case VINDEXED: {
       freeregs(fs, e->u.ind.t, e->u.ind.idx);
       e->u.info = luaK_codeABC(fs, OP_GETTABLE, 0, e->u.ind.t, e->u.ind.idx);
+      e->k = VRELOC;
+      break;
+    }
+    case VVARGIND: {
+      freeregs(fs, e->u.ind.t, e->u.ind.idx);
+      e->u.info = luaK_codeABC(fs, OP_GETVARG, 0, e->u.ind.t, e->u.ind.idx);
       e->k = VRELOC;
       break;
     }
@@ -992,11 +1010,11 @@ int luaK_exp2anyreg (FuncState *fs, expdesc *e) {
 
 
 /*
-** Ensures final expression result is either in a register
-** or in an upvalue.
+** Ensures final expression result is either in a register,
+** in an upvalue, or it is the vararg parameter.
 */
 void luaK_exp2anyregup (FuncState *fs, expdesc *e) {
-  if (e->k != VUPVAL || hasjumps(e))
+  if ((e->k != VUPVAL && e->k != VVARGVAR) || hasjumps(e))
     luaK_exp2anyreg(fs, e);
 }
 
@@ -1163,7 +1181,7 @@ void luaK_goiftrue (FuncState *fs, expdesc *e) {
 /*
 ** Emit code to go through if 'e' is false, jump otherwise.
 */
-void luaK_goiffalse (FuncState *fs, expdesc *e) {
+static void luaK_goiffalse (FuncState *fs, expdesc *e) {
   int pc;  /* pc of new jump */
   luaK_dischargevars(fs, e);
   switch (e->k) {
@@ -1302,6 +1320,13 @@ void luaK_self (FuncState *fs, expdesc *e, expdesc *key) {
 }
 
 
+/* auxiliary function to define indexing expressions */
+static void fillidxk (expdesc *t, int idx, expkind k) {
+  t->u.ind.idx = cast_byte(idx);
+  t->k = k;
+}
+
+
 /*
 ** Create expression 't[k]'. 't' must have its final result already in a
 ** register or upvalue. Upvalues can only be indexed by literal strings.
@@ -1313,31 +1338,30 @@ void luaK_indexed (FuncState *fs, expdesc *t, expdesc *k) {
   if (k->k == VKSTR)
     keystr = str2K(fs, k);
   lua_assert(!hasjumps(t) &&
-             (t->k == VLOCAL || t->k == VNONRELOC || t->k == VUPVAL));
+             (t->k == VLOCAL || t->k == VVARGVAR ||
+              t->k == VNONRELOC || t->k == VUPVAL));
   if (t->k == VUPVAL && !isKstr(fs, k))  /* upvalue indexed by non 'Kstr'? */
     luaK_exp2anyreg(fs, t);  /* put it in a register */
   if (t->k == VUPVAL) {
     lu_byte temp = cast_byte(t->u.info);  /* upvalue index */
     t->u.ind.t = temp;  /* (can't do a direct assignment; values overlap) */
     lua_assert(isKstr(fs, k));
-    t->u.ind.idx = cast_short(k->u.info);  /* literal short string */
-    t->k = VINDEXUP;
+    fillidxk(t, k->u.info, VINDEXUP);  /* literal short string */
+  }
+  else if (t->k == VVARGVAR) {  /* indexing the vararg parameter? */
+    lua_assert(t->u.ind.t == fs->f->numparams);
+    t->u.ind.t = cast_byte(t->u.var.ridx);
+    fillidxk(t, luaK_exp2anyreg(fs, k), VVARGIND);  /* register */
   }
   else {
     /* register index of the table */
     t->u.ind.t = cast_byte((t->k == VLOCAL) ? t->u.var.ridx: t->u.info);
-    if (isKstr(fs, k)) {
-      t->u.ind.idx = cast_short(k->u.info);  /* literal short string */
-      t->k = VINDEXSTR;
-    }
-    else if (isCint(k)) {  /* int. constant in proper range? */
-      t->u.ind.idx = cast_short(k->u.ival);
-      t->k = VINDEXI;
-    }
-    else {
-      t->u.ind.idx = cast_short(luaK_exp2anyreg(fs, k));  /* register */
-      t->k = VINDEXED;
-    }
+    if (isKstr(fs, k))
+      fillidxk(t, k->u.info, VINDEXSTR);  /* literal short string */
+    else if (isCint(k))  /* int. constant in proper range? */
+      fillidxk(t, cast_int(k->u.ival), VINDEXI);
+    else
+      fillidxk(t, luaK_exp2anyreg(fs, k), VINDEXED);  /* register */
   }
   t->u.ind.keystr = keystr;  /* string index in 'k' */
   t->u.ind.ro = 0;  /* by default, not read-only */
@@ -1901,9 +1925,14 @@ void luaK_finish (FuncState *fs) {
           SETARG_C(*pc, p->numparams + 1);  /* signal that it is vararg */
         break;
       }
-      case OP_JMP: {
+      case OP_GETVARG: {
+        if (p->flag & PF_VATAB)  /* function has a vararg table? */
+          SET_OPCODE(*pc, OP_GETTABLE);  /* must get vararg there */
+        break;
+      }
+      case OP_JMP: {  /* to optimize jumps to jumps */
         int target = finaltarget(p->code, i);
-        fixjump(fs, i, target);
+        fixjump(fs, i, target);  /* jump directly to final target */
         break;
       }
       default: break;
