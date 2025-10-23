@@ -390,7 +390,7 @@ namespace Dora
 		{
 			Native.nvg_dora_ssr();
 		}
-		public static Texture2D GetDoraSSR(float scale)
+		public static Texture2D GetDoraSSR(float scale = 1.0f)
 		{
 			return Texture2D.From(Native.nvg_get_dora_ssr(scale));
 		}

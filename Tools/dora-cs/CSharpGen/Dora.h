@@ -919,7 +919,7 @@ value class ActionDef {
 	/// <param name="prop">The property to change.</param>
 	/// <param name="easing">The easing function to use.</param>
 	/// <returns>A new ActionDef object.</returns>
-	static outside ActionDef ActionDef_Prop @ prop(float duration, float start, float stop, Property prop, EaseType easing);
+	static outside ActionDef ActionDef_Prop @ prop(float duration, float start, float stop, Property prop, EaseType easing = EaseType.Linear);
 	/// <summary>
 	/// Creates a new action definition object to change the color of a node.
 	/// </summary>
@@ -928,7 +928,7 @@ value class ActionDef {
 	/// <param name="stop">The ending color.</param>
 	/// <param name="easing">The easing function to use.</param>
 	/// <returns>A new ActionDef object.</returns>
-	static outside ActionDef ActionDef_Tint @ tint(float duration, Color3 start, Color3 stop, EaseType easing);
+	static outside ActionDef ActionDef_Tint @ tint(float duration, Color3 start, Color3 stop, EaseType easing = EaseType.Linear);
 	/// <summary>
 	/// Creates a new action definition object to rotate a node by smallest angle.
 	/// </summary>
@@ -937,7 +937,7 @@ value class ActionDef {
 	/// <param name="stop">The ending angle.</param>
 	/// <param name="easing">The easing function to use.</param>
 	/// <returns>A new ActionDef object.</returns>
-	static outside ActionDef ActionDef_Roll @ roll(float duration, float start, float stop, EaseType easing);
+	static outside ActionDef ActionDef_Roll @ roll(float duration, float start, float stop, EaseType easing = EaseType.Linear);
 	/// <summary>
 	/// Creates a new action definition object to run a group of actions in parallel.
 	/// </summary>
@@ -979,7 +979,7 @@ value class ActionDef {
 	/// <param name="stop">The ending position.</param>
 	/// <param name="easing">The easing function to use.</param>
 	/// <returns>A new ActionDef object.</returns>
-	static outside ActionDef ActionDef_Move @ move_to(float duration, Vec2 start, Vec2 stop, EaseType easing);
+	static outside ActionDef ActionDef_Move @ move_to(float duration, Vec2 start, Vec2 stop, EaseType easing = EaseType.Linear);
 	/// <summary>
 	/// Creates a new action definition object to scale a node.
 	/// </summary>
@@ -988,7 +988,7 @@ value class ActionDef {
 	/// <param name="stop">The ending scale.</param>
 	/// <param name="easing">The easing function to use.</param>
 	/// <returns>A new ActionDef object.</returns>
-	static outside ActionDef ActionDef_Scale @ scale(float duration, float start, float stop, EaseType easing);
+	static outside ActionDef ActionDef_Scale @ scale(float duration, float start, float stop, EaseType easing = EaseType.Linear);
 	/// <summary>
 	/// Creates a new action definition object to do a frame animation. Can only be performed on a Sprite node.
 	/// </summary>
@@ -1423,7 +1423,7 @@ object class Node
 	/// <param name="actionDef">The action definition to run.</param>
 	/// <param name="looped">Whether to loop the action.</param>
 	/// <returns>The duration of the newly running action in seconds.</returns>
-	outside float Node_PerformDefDuration @ perform_def(ActionDef actionDef, bool looped);
+	outside float Node_PerformDefDuration @ perform_def(ActionDef actionDef, bool looped = false);
 	/// <summary>
 	/// Runs an action on this node right after clearing all the previous running actions.
 	/// </summary>
@@ -5408,7 +5408,7 @@ singleton struct nvg @ Nvg
 	static void FontFaceId(int font);
 	static void FontFace(string font);
 	static void DoraSSR @ dora_ssr();
-	static Texture2D* GetDoraSSR @ get_dora_ssr(float scale);
+	static Texture2D* GetDoraSSR @ get_dora_ssr(float scale = 1.0f);
 };
 
 /// <summary>

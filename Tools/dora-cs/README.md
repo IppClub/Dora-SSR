@@ -87,21 +87,21 @@ using System.Collections;
 
 App.Run(() =>
 {
-    var node = new Sprite(Nvg.GetDoraSSR(1.0f));
+    var node = new Sprite(Nvg.GetDoraSSR());
     node.Schedule(Co.Once(run));
     IEnumerator run()
     {
         for (int i = 3; i >= 1; i--)
         {
-            Log.Print($"{i}");
+            Log.Info($"{i}");
             yield return new WaitForSeconds(1.0);
         }
-        Log.Print("Hello World");
-        node.PerformDef(ActionDef.Sequence(
+        Log.Info("Hello World");
+        node.Perform(ActionDef.Sequence(
         [
-            ActionDef.Scale(0.1f, 1.0f, 0.5f, EaseType.Linear),
+            ActionDef.Scale(0.1f, 1.0f, 0.5f),
             ActionDef.Scale(0.5f, 0.5f, 1.0f, EaseType.OutBack),
-        ]), false);
+        ]));
     }
 });
 ```
