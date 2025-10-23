@@ -18,13 +18,13 @@ namespace Dora
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate void CallFunctionPointer(int funcId);
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int dora_register_call_function(CallFunctionPointer mainFunc);
+        public static extern void dora_register_call_function(CallFunctionPointer mainFunc);
 
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate void DerefFuncionPointer(int funcId);
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int dora_register_deref_function(DerefFuncionPointer mainFunc);
+        public static extern void dora_register_deref_function(DerefFuncionPointer mainFunc);
 
         // ---------- String ----------
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
@@ -1113,7 +1113,7 @@ namespace Dora
 
     public static class Log
     {
-        public static void Print(string message)
+        public static void Info(string message)
         {
             Native.dora_print(Bridge.FromString(message));
         }

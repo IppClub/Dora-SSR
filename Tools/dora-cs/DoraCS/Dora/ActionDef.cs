@@ -73,7 +73,7 @@ namespace Dora
 		/// <param name="prop">The property to change.</param>
 		/// <param name="easing">The easing function to use.</param>
 		/// <returns>A new ActionDef object.</returns>
-		public static ActionDef Prop(float duration, float start, float stop, Property prop, EaseType easing)
+		public static ActionDef Prop(float duration, float start, float stop, Property prop, EaseType easing = EaseType.Linear)
 		{
 			return ActionDef.From(Native.actiondef_prop(duration, start, stop, (int)prop, (int)easing));
 		}
@@ -85,7 +85,7 @@ namespace Dora
 		/// <param name="stop">The ending color.</param>
 		/// <param name="easing">The easing function to use.</param>
 		/// <returns>A new ActionDef object.</returns>
-		public static ActionDef Tint(float duration, Color3 start, Color3 stop, EaseType easing)
+		public static ActionDef Tint(float duration, Color3 start, Color3 stop, EaseType easing = EaseType.Linear)
 		{
 			return ActionDef.From(Native.actiondef_tint(duration, (int)start.ToRGB(), (int)stop.ToRGB(), (int)easing));
 		}
@@ -97,7 +97,7 @@ namespace Dora
 		/// <param name="stop">The ending angle.</param>
 		/// <param name="easing">The easing function to use.</param>
 		/// <returns>A new ActionDef object.</returns>
-		public static ActionDef Roll(float duration, float start, float stop, EaseType easing)
+		public static ActionDef Roll(float duration, float start, float stop, EaseType easing = EaseType.Linear)
 		{
 			return ActionDef.From(Native.actiondef_roll(duration, start, stop, (int)easing));
 		}
@@ -160,7 +160,7 @@ namespace Dora
 		/// <param name="stop">The ending position.</param>
 		/// <param name="easing">The easing function to use.</param>
 		/// <returns>A new ActionDef object.</returns>
-		public static ActionDef MoveTo(float duration, Vec2 start, Vec2 stop, EaseType easing)
+		public static ActionDef MoveTo(float duration, Vec2 start, Vec2 stop, EaseType easing = EaseType.Linear)
 		{
 			return ActionDef.From(Native.actiondef_move_to(duration, start.Raw, stop.Raw, (int)easing));
 		}
@@ -172,7 +172,7 @@ namespace Dora
 		/// <param name="stop">The ending scale.</param>
 		/// <param name="easing">The easing function to use.</param>
 		/// <returns>A new ActionDef object.</returns>
-		public static ActionDef Scale(float duration, float start, float stop, EaseType easing)
+		public static ActionDef Scale(float duration, float start, float stop, EaseType easing = EaseType.Linear)
 		{
 			return ActionDef.From(Native.actiondef_scale(duration, start, stop, (int)easing));
 		}

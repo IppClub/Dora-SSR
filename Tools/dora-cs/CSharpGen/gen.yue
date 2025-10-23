@@ -924,6 +924,8 @@ snakeToPascal = (snakeStr)->
 				pascalName = noPostfix .. 'Async'
 			elseif pascalName not in ['GetTextLineHeightWithSpacing', 'ImageWithBg']
 				pascalName = noPostfix
+	if pascalName == 'PerformDef'
+		pascalName = "Perform"
 	pascalName\gsub("3d", "3D")\gsub("Ui", "UI")\gsub("Ssr", "SSR")
 
 const WaTypeIndex = 10

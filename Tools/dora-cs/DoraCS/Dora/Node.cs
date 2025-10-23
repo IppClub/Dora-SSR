@@ -838,7 +838,7 @@ namespace Dora
 		/// <param name="actionDef">The action definition to run.</param>
 		/// <param name="looped">Whether to loop the action.</param>
 		/// <returns>The duration of the newly running action in seconds.</returns>
-		public float PerformDef(ActionDef actionDef, bool looped)
+		public float Perform(ActionDef actionDef, bool looped = false)
 		{
 			return Native.node_perform_def(Raw, actionDef.Raw, looped ? 1 : 0);
 		}
