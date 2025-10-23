@@ -1907,7 +1907,7 @@ object class RenderTarget
 	/// <param name="color">The clear color used to clear the render target.</param>
 	/// <param name="depth">Optional. The value used to clear the depth buffer of the render target. Default is 1.</param>
 	/// <param name="stencil">Optional. The value used to clear the stencil buffer of the render target. Default is 0.</param>
-	void renderWithClear @ renderClear(Color color, float depth = 1.0f, uint8_t stencil = 0.0f);
+	void renderWithClear @ renderClear(Color color, float depth = 1.0f, uint8_t stencil = 0);
 	/// <summary>
 	/// Renders a node to the target after clearing the previous color, depth and stencil values on it.
 	/// </summary>
@@ -1915,7 +1915,7 @@ object class RenderTarget
 	/// <param name="color">The clear color used to clear the render target.</param>
 	/// <param name="depth">The value used to clear the depth buffer of the render target. Default can be 1.</param>
 	/// <param name="stencil">The value used to clear the stencil buffer of the render target. Default can be 0.</param>
-	void renderWithClear @ renderClearWithTarget(Node* target, Color color, float depth = 1.0f, uint8_t stencil = 0.0f);
+	void renderWithClear @ renderClearWithTarget(Node* target, Color color, float depth = 1.0f, uint8_t stencil = 0);
 	/// <summary>
 	/// Saves the contents of the render target to a PNG file asynchronously.
 	/// </summary>
