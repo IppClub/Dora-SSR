@@ -79,7 +79,7 @@ namespace Dora
 		/// <param name="val2">An optional second numeric value to set.</param>
 		/// <param name="val3">An optional third numeric value to set.</param>
 		/// <param name="val4">An optional fourth numeric value to set.</param>
-		public void SetVec4(string name, float val1, float val2, float val3, float val4)
+		public void SetVec4(string name, float val1, float val2 = 0.0f, float val3 = 0.0f, float val4 = 0.0f)
 		{
 			Native.pass_set_vec4(Raw, Bridge.FromString(name), val1, val2, val3, val4);
 		}

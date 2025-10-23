@@ -72,8 +72,8 @@ namespace Dora.Platformer
 		/// <param name="scale">The scale of the `Face` component.</param>
 		/// <param name="angle">The angle of the `Face` component.</param>
 		/// <returns>The new `Face` component.</returns>
-		public Face(string faceStr, Vec2 point, float scale, float angle) : this(Native.platformer_face_new(Bridge.FromString(faceStr), point.Raw, scale, angle)) { }
-		private static long NewFace(Func<Node> createFunc, Vec2 point, float scale, float angle)
+		public Face(string faceStr, Vec2 point, float scale = 1.0f, float angle = 0.0f) : this(Native.platformer_face_new(Bridge.FromString(faceStr), point.Raw, scale, angle)) { }
+		private static long NewFace(Func<Node> createFunc, Vec2 point = new(), float scale = 1.0f, float angle = 0.0f)
 		{
 			var stack0 = new CallStack();
 			var stack_raw0 = stack0.Raw;
@@ -92,6 +92,6 @@ namespace Dora.Platformer
 		/// <param name="scale">The scale of the `Face` component.</param>
 		/// <param name="angle">The angle of the `Face` component.</param>
 		/// <returns>The new `Face` component.</returns>
-		public Face(Func<Node> createFunc, Vec2 point, float scale, float angle) : this(NewFace(createFunc, point, scale, angle)) { }
+		public Face(Func<Node> createFunc, Vec2 point = new(), float scale = 1.0f, float angle = 0.0f) : this(NewFace(createFunc, point, scale, angle)) { }
 	}
 } // namespace Dora.Platformer

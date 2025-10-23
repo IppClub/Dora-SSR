@@ -286,6 +286,6 @@ namespace Dora
 		/// <param name="world">The physics world where the body belongs.</param>
 		/// <param name="pos">The initial position of the body.</param>
 		/// <param name="rot">The initial rotation angle of the body in degrees.</param>
-		public Body(BodyDef def, PhysicsWorld world, Vec2 pos, float rot) : this(Native.body_new(def.Raw, world.Raw, pos.Raw, rot)) { }
+		public Body(BodyDef def, PhysicsWorld world, Vec2 pos = new(), float rot = 0.0f) : this(Native.body_new(def.Raw, world.Raw, pos.Raw, rot)) { }
 	}
 } // namespace Dora

@@ -107,7 +107,7 @@ namespace Dora
 		/// <param name="frequency">The frequency of the joint, in Hertz.</param>
 		/// <param name="damping">The damping ratio of the joint.</param>
 		/// <returns>The new joint definition.</returns>
-		public static JointDef Distance(bool collision, string bodyA, string bodyB, Vec2 anchorA, Vec2 anchorB, float frequency, float damping)
+		public static JointDef Distance(bool collision, string bodyA, string bodyB, Vec2 anchorA, Vec2 anchorB, float frequency = 0.0f, float damping = 0.0f)
 		{
 			return JointDef.From(Native.jointdef_distance(collision ? 1 : 0, Bridge.FromString(bodyA), Bridge.FromString(bodyB), anchorA.Raw, anchorB.Raw, frequency, damping));
 		}
@@ -133,7 +133,7 @@ namespace Dora
 		/// <param name="jointB">The second joint to connect with the gear joint.</param>
 		/// <param name="ratio">The gear ratio.</param>
 		/// <returns>The new gear joint definition.</returns>
-		public static JointDef Gear(bool collision, string jointA, string jointB, float ratio)
+		public static JointDef Gear(bool collision, string jointA, string jointB, float ratio = 1.0f)
 		{
 			return JointDef.From(Native.jointdef_gear(collision ? 1 : 0, Bridge.FromString(jointA), Bridge.FromString(jointB), ratio));
 		}
@@ -149,7 +149,7 @@ namespace Dora
 		/// <param name="maxTorque">The maximum torque the joint can exert.</param>
 		/// <param name="correctionFactor">Correction factor. 0.0 = no correction, 1.0 = full correction.</param>
 		/// <returns>The created joint definition.</returns>
-		public static JointDef Spring(bool collision, string bodyA, string bodyB, Vec2 linearOffset, float angularOffset, float maxForce, float maxTorque, float correctionFactor)
+		public static JointDef Spring(bool collision, string bodyA, string bodyB, Vec2 linearOffset, float angularOffset, float maxForce, float maxTorque, float correctionFactor = 1.0f)
 		{
 			return JointDef.From(Native.jointdef_spring(collision ? 1 : 0, Bridge.FromString(bodyA), Bridge.FromString(bodyB), linearOffset.Raw, angularOffset, maxForce, maxTorque, correctionFactor));
 		}
@@ -166,7 +166,7 @@ namespace Dora
 		/// <param name="maxMotorForce">Maximum motor force.</param>
 		/// <param name="motorSpeed">Motor speed.</param>
 		/// <returns>The created prismatic joint definition.</returns>
-		public static JointDef Prismatic(bool collision, string bodyA, string bodyB, Vec2 worldPos, float axisAngle, float lowerTranslation, float upperTranslation, float maxMotorForce, float motorSpeed)
+		public static JointDef Prismatic(bool collision, string bodyA, string bodyB, Vec2 worldPos, float axisAngle, float lowerTranslation = 0.0f, float upperTranslation = 0.0f, float maxMotorForce = 0.0f, float motorSpeed = 0.0f)
 		{
 			return JointDef.From(Native.jointdef_prismatic(collision ? 1 : 0, Bridge.FromString(bodyA), Bridge.FromString(bodyB), worldPos.Raw, axisAngle, lowerTranslation, upperTranslation, maxMotorForce, motorSpeed));
 		}
@@ -182,7 +182,7 @@ namespace Dora
 		/// <param name="groundAnchorB">The position of the ground anchor point on the second body in world coordinates.</param>
 		/// <param name="ratio">The pulley ratio.</param>
 		/// <returns>The pulley joint definition.</returns>
-		public static JointDef Pulley(bool collision, string bodyA, string bodyB, Vec2 anchorA, Vec2 anchorB, Vec2 groundAnchorA, Vec2 groundAnchorB, float ratio)
+		public static JointDef Pulley(bool collision, string bodyA, string bodyB, Vec2 anchorA, Vec2 anchorB, Vec2 groundAnchorA, Vec2 groundAnchorB, float ratio = 1.0f)
 		{
 			return JointDef.From(Native.jointdef_pulley(collision ? 1 : 0, Bridge.FromString(bodyA), Bridge.FromString(bodyB), anchorA.Raw, anchorB.Raw, groundAnchorA.Raw, groundAnchorB.Raw, ratio));
 		}
@@ -198,7 +198,7 @@ namespace Dora
 		/// <param name="maxMotorTorque">The maximum torque that can be applied to the joint to achieve the target speed.</param>
 		/// <param name="motorSpeed">The desired speed of the joint.</param>
 		/// <returns>The revolute joint definition.</returns>
-		public static JointDef Revolute(bool collision, string bodyA, string bodyB, Vec2 worldPos, float lowerAngle, float upperAngle, float maxMotorTorque, float motorSpeed)
+		public static JointDef Revolute(bool collision, string bodyA, string bodyB, Vec2 worldPos, float lowerAngle = 0.0f, float upperAngle = 0.0f, float maxMotorTorque = 0.0f, float motorSpeed = 0.0f)
 		{
 			return JointDef.From(Native.jointdef_revolute(collision ? 1 : 0, Bridge.FromString(bodyA), Bridge.FromString(bodyB), worldPos.Raw, lowerAngle, upperAngle, maxMotorTorque, motorSpeed));
 		}
@@ -226,7 +226,7 @@ namespace Dora
 		/// <param name="frequency">The frequency at which the joint should be stiff.</param>
 		/// <param name="damping">The damping rate of the joint.</param>
 		/// <returns>The newly created weld joint definition.</returns>
-		public static JointDef Weld(bool collision, string bodyA, string bodyB, Vec2 worldPos, float frequency, float damping)
+		public static JointDef Weld(bool collision, string bodyA, string bodyB, Vec2 worldPos, float frequency = 0.0f, float damping = 0.0f)
 		{
 			return JointDef.From(Native.jointdef_weld(collision ? 1 : 0, Bridge.FromString(bodyA), Bridge.FromString(bodyB), worldPos.Raw, frequency, damping));
 		}
@@ -243,7 +243,7 @@ namespace Dora
 		/// <param name="frequency">The frequency at which the joint should be stiff.</param>
 		/// <param name="damping">The damping rate of the joint.</param>
 		/// <returns>The newly created wheel joint definition.</returns>
-		public static JointDef Wheel(bool collision, string bodyA, string bodyB, Vec2 worldPos, float axisAngle, float maxMotorTorque, float motorSpeed, float frequency, float damping)
+		public static JointDef Wheel(bool collision, string bodyA, string bodyB, Vec2 worldPos, float axisAngle, float maxMotorTorque = 0.0f, float motorSpeed = 0.0f, float frequency = 2.0f, float damping = 0.7f)
 		{
 			return JointDef.From(Native.jointdef_wheel(collision ? 1 : 0, Bridge.FromString(bodyA), Bridge.FromString(bodyB), worldPos.Raw, axisAngle, maxMotorTorque, motorSpeed, frequency, damping));
 		}

@@ -138,6 +138,6 @@ namespace Dora.Platformer
 		/// Creates a new instance of `PlatformCamera`.
 		/// </summary>
 		/// <param name="name">An optional string that specifies the name of the new instance. Default is an empty string.</param>
-		public PlatformCamera(string name) : this(Native.platformer_platformcamera_new(Bridge.FromString(name))) { }
+		public PlatformCamera(string name = "") : this(Native.platformer_platformcamera_new(Bridge.FromString(name))) { }
 	}
 } // namespace Dora.Platformer

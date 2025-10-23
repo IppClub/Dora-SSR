@@ -290,7 +290,7 @@ namespace Dora.Platformer
 		/// <param name="entity">An `Entity` object that represents the `Unit` in ECS system.</param>
 		/// <param name="pos">A `Vec2` object that specifies the initial position of the `Unit`.</param>
 		/// <param name="rot">A number that specifies the initial rotation of the `Unit`.</param>
-		public Unit(Dictionary unitDef, PhysicsWorld physicsWorld, Entity entity, Vec2 pos, float rot) : this(Native.platformer_unit_new(unitDef.Raw, physicsWorld.Raw, entity.Raw, pos.Raw, rot)) { }
+		public Unit(Dictionary unitDef, PhysicsWorld physicsWorld, Entity entity, Vec2 pos, float rot = 0.0f) : this(Native.platformer_unit_new(unitDef.Raw, physicsWorld.Raw, entity.Raw, pos.Raw, rot)) { }
 		/// <summary>
 		/// A method that creates a new `Unit` object.
 		/// </summary>
@@ -299,6 +299,6 @@ namespace Dora.Platformer
 		/// <param name="entity">An `Entity` object that represents the `Unit` in ECS system.</param>
 		/// <param name="pos">A `Vec2` object that specifies the initial position of the `Unit`.</param>
 		/// <param name="rot">An optional number that specifies the initial rotation of the `Unit` (default is 0.0).</param>
-		public Unit(string unitDefName, string physicsWorldName, Entity entity, Vec2 pos, float rot) : this(Native.platformer_unit_with_store(Bridge.FromString(unitDefName), Bridge.FromString(physicsWorldName), entity.Raw, pos.Raw, rot)) { }
+		public Unit(string unitDefName, string physicsWorldName, Entity entity, Vec2 pos, float rot = 0.0f) : this(Native.platformer_unit_with_store(Bridge.FromString(unitDefName), Bridge.FromString(physicsWorldName), entity.Raw, pos.Raw, rot)) { }
 	}
 } // namespace Dora.Platformer

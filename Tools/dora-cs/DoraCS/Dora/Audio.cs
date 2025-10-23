@@ -89,7 +89,7 @@ namespace Dora
 		/// <param name="filename">The path to the sound effect file (must be a WAV file).</param>
 		/// <param name="looping">Optional. Whether to loop the sound effect. Default is `false`.</param>
 		/// <returns>A handler for the audio that can be used to stop the sound effect.</returns>
-		public static int Play(string filename, bool looping)
+		public static int Play(string filename, bool looping = false)
 		{
 			return Native.audio_play(Bridge.FromString(filename), looping ? 1 : 0);
 		}
@@ -107,7 +107,7 @@ namespace Dora
 		/// <param name="filename">The path to the streaming audio file (can be OGG, WAV, MP3, or FLAC).</param>
 		/// <param name="looping">Whether to loop the streaming audio.</param>
 		/// <param name="crossFadeTime">The time (in seconds) to crossfade between the previous and new streaming audio.</param>
-		public static void PlayStream(string filename, bool looping, float crossFadeTime)
+		public static void PlayStream(string filename, bool looping = false, float crossFadeTime = 0.0f)
 		{
 			Native.audio_play_stream(Bridge.FromString(filename), looping ? 1 : 0, crossFadeTime);
 		}
@@ -115,7 +115,7 @@ namespace Dora
 		/// Stops a streaming audio file that is currently playing.
 		/// </summary>
 		/// <param name="fadeTime">The time (in seconds) to fade out the streaming audio.</param>
-		public static void StopStream(float fadeTime)
+		public static void StopStream(float fadeTime = 0.0f)
 		{
 			Native.audio_stop_stream(fadeTime);
 		}

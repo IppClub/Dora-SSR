@@ -150,7 +150,7 @@ namespace Dora
 		/// <param name="y">The y-coordinate of the vertex in the grid.</param>
 		/// <param name="pos">The new position of the vertex, represented by a Vec2 object.</param>
 		/// <param name="z">The new z-coordinate of the vertex.</param>
-		public void SetPos(int x, int y, Vec2 pos, float z)
+		public void SetPos(int x, int y, Vec2 pos, float z = 0.0f)
 		{
 			Native.grid_set_pos(Raw, x, y, pos.Raw, z);
 		}

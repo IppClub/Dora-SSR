@@ -211,7 +211,7 @@ namespace Dora
 		/// <param name="density">The density of the polygon.</param>
 		/// <param name="friction">The friction of the polygon. Should be between 0 and 1.0.</param>
 		/// <param name="restitution">The restitution of the polygon. Should be between 0 and 1.</param>
-		public static FixtureDef Polygon(Vec2 center, float width, float height, float angle, float density, float friction, float restitution)
+		public static FixtureDef Polygon(Vec2 center, float width, float height, float angle = 0.0f, float density = 0.0f, float friction = 0.4f, float restitution = 0.0f)
 		{
 			return FixtureDef.From(Native.bodydef_polygon_with_center(center.Raw, width, height, angle, density, friction, restitution));
 		}
@@ -223,7 +223,7 @@ namespace Dora
 		/// <param name="density">The density of the polygon.</param>
 		/// <param name="friction">The friction of the polygon. Should be between 0 and 1.0.</param>
 		/// <param name="restitution">The restitution of the polygon. Should be between 0 and 1.</param>
-		public static FixtureDef Polygon(float width, float height, float density, float friction, float restitution)
+		public static FixtureDef Polygon(float width, float height, float density = 0.0f, float friction = 0.4f, float restitution = 0.0f)
 		{
 			return FixtureDef.From(Native.bodydef_polygon(width, height, density, friction, restitution));
 		}
@@ -234,7 +234,7 @@ namespace Dora
 		/// <param name="density">The density of the polygon.</param>
 		/// <param name="friction">The friction of the polygon. Should be between 0 and 1.0.</param>
 		/// <param name="restitution">The restitution of the polygon. Should be between 0 and 1.0.</param>
-		public static FixtureDef Polygon(IEnumerable<Vec2> vertices, float density, float friction, float restitution)
+		public static FixtureDef Polygon(IEnumerable<Vec2> vertices, float density = 0.0f, float friction = 0.4f, float restitution = 0.0f)
 		{
 			return FixtureDef.From(Native.bodydef_polygon_with_vertices(Bridge.FromArray(vertices), density, friction, restitution));
 		}
@@ -248,7 +248,7 @@ namespace Dora
 		/// <param name="density">The density of the polygon.</param>
 		/// <param name="friction">The friction of the polygon. Should be between 0 and 1.0.</param>
 		/// <param name="restitution">The restitution of the polygon. Should be between 0 and 1.0.</param>
-		public void AttachPolygon(Vec2 center, float width, float height, float angle, float density, float friction, float restitution)
+		public void AttachPolygon(Vec2 center, float width, float height, float angle = 0.0f, float density = 0.0f, float friction = 0.4f, float restitution = 0.0f)
 		{
 			Native.bodydef_attach_polygon_with_center(Raw, center.Raw, width, height, angle, density, friction, restitution);
 		}
@@ -260,7 +260,7 @@ namespace Dora
 		/// <param name="density">The density of the polygon.</param>
 		/// <param name="friction">The friction of the polygon. Should be between 0 and 1.0.</param>
 		/// <param name="restitution">The restitution of the polygon. Should be between 0 and 1.0.</param>
-		public void AttachPolygon(float width, float height, float density, float friction, float restitution)
+		public void AttachPolygon(float width, float height, float density = 0.0f, float friction = 0.4f, float restitution = 0.0f)
 		{
 			Native.bodydef_attach_polygon(Raw, width, height, density, friction, restitution);
 		}
@@ -271,7 +271,7 @@ namespace Dora
 		/// <param name="density">The density of the polygon.</param>
 		/// <param name="friction">The friction of the polygon. Should be between 0 and 1.0.</param>
 		/// <param name="restitution">The restitution of the polygon. Should be between 0 and 1.0.</param>
-		public void AttachPolygon(IEnumerable<Vec2> vertices, float density, float friction, float restitution)
+		public void AttachPolygon(IEnumerable<Vec2> vertices, float density = 0.0f, float friction = 0.4f, float restitution = 0.0f)
 		{
 			Native.bodydef_attach_polygon_with_vertices(Raw, Bridge.FromArray(vertices), density, friction, restitution);
 		}
@@ -283,7 +283,7 @@ namespace Dora
 		/// <param name="friction">The friction coefficient of the shape. Should be between 0.0 and 1.0.</param>
 		/// <param name="restitution">The restitution (elasticity) of the shape. Should be between 0.0 and 1.0.</param>
 		/// <returns>The resulting fixture definition.</returns>
-		public static FixtureDef Multi(IEnumerable<Vec2> vertices, float density, float friction, float restitution)
+		public static FixtureDef Multi(IEnumerable<Vec2> vertices, float density = 0.0f, float friction = 0.4f, float restitution = 0.0f)
 		{
 			return FixtureDef.From(Native.bodydef_multi(Bridge.FromArray(vertices), density, friction, restitution));
 		}
@@ -294,7 +294,7 @@ namespace Dora
 		/// <param name="density">The density of the concave shape.</param>
 		/// <param name="friction">The friction of the concave shape. Should be between 0.0 and 1.0.</param>
 		/// <param name="restitution">The restitution of the concave shape. Should be between 0.0 and 1.0.</param>
-		public void AttachMulti(IEnumerable<Vec2> vertices, float density, float friction, float restitution)
+		public void AttachMulti(IEnumerable<Vec2> vertices, float density = 0.0f, float friction = 0.4f, float restitution = 0.0f)
 		{
 			Native.bodydef_attach_multi(Raw, Bridge.FromArray(vertices), density, friction, restitution);
 		}
@@ -307,7 +307,7 @@ namespace Dora
 		/// <param name="friction">The friction coefficient of the circle. Should be between 0.0 and 1.0.</param>
 		/// <param name="restitution">The restitution (elasticity) of the circle. Should be between 0.0 and 1.0.</param>
 		/// <returns>The resulting fixture definition.</returns>
-		public static FixtureDef Disk(Vec2 center, float radius, float density, float friction, float restitution)
+		public static FixtureDef Disk(Vec2 center, float radius, float density = 0.0f, float friction = 0.4f, float restitution = 0.0f)
 		{
 			return FixtureDef.From(Native.bodydef_disk_with_center(center.Raw, radius, density, friction, restitution));
 		}
@@ -319,7 +319,7 @@ namespace Dora
 		/// <param name="friction">The friction coefficient of the circle. Should be between 0.0 and 1.0.</param>
 		/// <param name="restitution">The restitution (elasticity) of the circle. Should be between 0.0 and 1.0.</param>
 		/// <returns>The resulting fixture definition.</returns>
-		public static FixtureDef Disk(float radius, float density, float friction, float restitution)
+		public static FixtureDef Disk(float radius, float density = 0.0f, float friction = 0.4f, float restitution = 0.0f)
 		{
 			return FixtureDef.From(Native.bodydef_disk(radius, density, friction, restitution));
 		}
@@ -331,7 +331,7 @@ namespace Dora
 		/// <param name="density">The density of the disk.</param>
 		/// <param name="friction">The friction of the disk. Should be between 0.0 and 1.0.</param>
 		/// <param name="restitution">The restitution of the disk. Should be between 0.0 and 1.0.</param>
-		public void AttachDisk(Vec2 center, float radius, float density, float friction, float restitution)
+		public void AttachDisk(Vec2 center, float radius, float density = 0.0f, float friction = 0.4f, float restitution = 0.0f)
 		{
 			Native.bodydef_attach_disk_with_center(Raw, center.Raw, radius, density, friction, restitution);
 		}
@@ -342,7 +342,7 @@ namespace Dora
 		/// <param name="density">The density of the disk.</param>
 		/// <param name="friction">The friction of the disk. Should be between 0.0 and 1.0.</param>
 		/// <param name="restitution">The restitution of the disk. Should be between 0.0 and 1.0.</param>
-		public void AttachDisk(float radius, float density, float friction, float restitution)
+		public void AttachDisk(float radius, float density = 0.0f, float friction = 0.4f, float restitution = 0.0f)
 		{
 			Native.bodydef_attach_disk(Raw, radius, density, friction, restitution);
 		}
@@ -353,7 +353,7 @@ namespace Dora
 		/// <param name="friction">The friction coefficient of the chain. Should be between 0.0 and 1.0.</param>
 		/// <param name="restitution">The restitution (elasticity) of the chain. Should be between 0.0 and 1.0.</param>
 		/// <returns>The resulting fixture definition.</returns>
-		public static FixtureDef Chain(IEnumerable<Vec2> vertices, float friction, float restitution)
+		public static FixtureDef Chain(IEnumerable<Vec2> vertices, float friction = 0.4f, float restitution = 0.0f)
 		{
 			return FixtureDef.From(Native.bodydef_chain(Bridge.FromArray(vertices), friction, restitution));
 		}
@@ -363,7 +363,7 @@ namespace Dora
 		/// <param name="vertices">The vertices of the chain.</param>
 		/// <param name="friction">The friction of the chain. Should be between 0.0 and 1.0.</param>
 		/// <param name="restitution">The restitution of the chain. Should be between 0.0 and 1.0.</param>
-		public void AttachChain(IEnumerable<Vec2> vertices, float friction, float restitution)
+		public void AttachChain(IEnumerable<Vec2> vertices, float friction = 0.4f, float restitution = 0.0f)
 		{
 			Native.bodydef_attach_chain(Raw, Bridge.FromArray(vertices), friction, restitution);
 		}
@@ -385,7 +385,7 @@ namespace Dora
 		/// <param name="width">The width of the polygon.</param>
 		/// <param name="height">The height of the polygon.</param>
 		/// <param name="angle">Optional. The angle of the polygon.</param>
-		public void AttachPolygonSensor(int tag, Vec2 center, float width, float height, float angle)
+		public void AttachPolygonSensor(int tag, Vec2 center, float width, float height, float angle = 0.0f)
 		{
 			Native.bodydef_attach_polygon_sensor_with_center(Raw, tag, center.Raw, width, height, angle);
 		}

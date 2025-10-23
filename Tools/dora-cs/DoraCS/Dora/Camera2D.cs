@@ -83,6 +83,6 @@ namespace Dora
 		/// </summary>
 		/// <param name="name">The name of the Camera2D object.</param>
 		/// <returns>A new instance of the Camera2D object.</returns>
-		public Camera2D(string name) : this(Native.camera2d_new(Bridge.FromString(name))) { }
+		public Camera2D(string name = "") : this(Native.camera2d_new(Bridge.FromString(name))) { }
 	}
 } // namespace Dora

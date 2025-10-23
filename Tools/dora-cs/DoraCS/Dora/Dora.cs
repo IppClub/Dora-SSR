@@ -640,7 +640,7 @@ namespace Dora
 
         public Vec2(float x, float y) { this.X = x; this.Y = y; }
 
-        public static Vec2 Zero => new Vec2(0f, 0f);
+        public static readonly Vec2 Zero = new(0f, 0f);
         public bool IsZero => X == 0f && Y == 0f;
 
         public static Vec2 From(long value)
@@ -687,7 +687,7 @@ namespace Dora
 
         public Size(float width, float height) { this.Width = width; this.Height = height; }
 
-        public static Size Zero => new Size(0f, 0f);
+        public static readonly Size Zero = new(0f, 0f);
         public bool IsZero => Width == 0f && Height == 0f;
 
         internal static Size From(long value)

@@ -112,6 +112,6 @@ namespace Dora
 		/// <param name="alpha">The learning rate for updating Q-values.</param>
 		/// <param name="maxQ">The maximum Q-value. Defaults to 100.0.</param>
 		/// <returns>The newly created QLearner object.</returns>
-		public QLearner(double gamma, double alpha, double maxQ) : this(Native.mlqlearner_new(gamma, alpha, maxQ)) { }
+		public QLearner(double gamma = 0.5, double alpha = 0.5, double maxQ = 100.0) : this(Native.mlqlearner_new(gamma, alpha, maxQ)) { }
 	}
 } // namespace Dora

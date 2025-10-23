@@ -81,7 +81,7 @@ namespace Dora
 		/// <summary>
 		/// Creates a new ClipNode object.
 		/// </summary>
-		/// <param name="stencil">The stencil Node that defines the clipping shape. Defaults to `None`.</param>
+		/// <param name="stencil">The stencil Node that defines the clipping shape.</param>
 		public ClipNode(Node stencil) : this(Native.clipnode_new(stencil.Raw)) { }
 	}
 } // namespace Dora
