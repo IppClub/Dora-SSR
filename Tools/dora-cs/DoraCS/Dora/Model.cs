@@ -133,7 +133,7 @@ namespace Dora
 		/// </summary>
 		/// <param name="name">The name of the animation to play.</param>
 		/// <param name="looping">Whether to loop the animation or not.</param>
-		public void ResumeAnimation(string name, bool looping)
+		public void ResumeAnimation(string name, bool looping = false)
 		{
 			Native.model_resume_animation(Raw, Bridge.FromString(name), looping ? 1 : 0);
 		}
@@ -149,7 +149,7 @@ namespace Dora
 		/// </summary>
 		/// <param name="elapsed">The time to update to.</param>
 		/// <param name="reversed">Whether to play the animation in reverse.</param>
-		public void UpdateTo(float elapsed, bool reversed)
+		public void UpdateTo(float elapsed, bool reversed = false)
 		{
 			Native.model_update_to(Raw, elapsed, reversed ? 1 : 0);
 		}

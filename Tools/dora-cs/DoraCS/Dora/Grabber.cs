@@ -120,7 +120,7 @@ namespace Dora
 		/// <param name="y">The y-index of the vertex in the grabber grid.</param>
 		/// <param name="pos">The new position of the vertex, represented by a Vec2 object.</param>
 		/// <param name="z">An optional argument representing the new z-coordinate of the vertex.</param>
-		public void SetPos(int x, int y, Vec2 pos, float z)
+		public void SetPos(int x, int y, Vec2 pos, float z = 0.0f)
 		{
 			Native.grabber_set_pos(Raw, x, y, pos.Raw, z);
 		}

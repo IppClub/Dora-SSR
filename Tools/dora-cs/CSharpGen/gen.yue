@@ -963,6 +963,8 @@ Indent = R("az", "AZ", "__") * AlphaNum^0
 
 Name = C R("az", "AZ", "__") * (AlphaNum + ":")^0
 
+DefValue = C (AlphaNum + '"' + '.')^1 * ("(" * (-P")")^0 * ")")^-1
+
 ClassName = C (Indent * White * P"::" * White)^0 * Indent
 
 ClassLabel = C(P"singleton") + (C(P"interface")^-1 * White * C(P"object")) + C(P"value") + P""
@@ -983,7 +985,7 @@ mark = (name) -> (...) -> {name, ...}
 
 Param = P {
 	"Param"
-	Param: V"Func" * White * Name / mark"callback" + Type * White * Name / mark"variable"
+	Param: V"Func" * White * Name / mark"callback" + Type * White * Name * (White * "=" * White * DefValue)^-1 / mark"variable"
 	Func: Ct P"function<" * White * FuncLabel * White * Type * White * Ct P"(" * White * (V"Param" * (White * P"," * White * V"Param")^0 * White)^-1 * P")" * White * P">"
 }
 
@@ -1339,7 +1341,7 @@ else
 						cppType = cppTypes[rt] ?? "void"
 						funcArgCount = -1
 						argItems = for arg in *args
-							[argKind, argType, argName] = arg
+							[argKind, argType, argName, defValue] = arg
 							switch argKind
 								when "variable"
 									rustTypeA = basicTypes[argType]
@@ -1351,14 +1353,14 @@ else
 										[rtA, castA, _, rtTypeInA, _, rtCastA] = rustTypeA
 										cppTypeA = cppTypes[rtA]
 										[
-											"#{cppTypeA} #{argName}"
-											(argType == cppTypeA and argName or castA argName)
-											"#{rtA} #{argName}"
-											"#{rtTypeInA or rtA} #{argName}"
-											"#{rtCastA and rtCastA(argName) or argName}"
-											false
-											false
-											"#{argName}"
+											--[[1]] "#{cppTypeA} #{argName}"
+											--[[2]] (argType == cppTypeA and argName or castA argName)
+											--[[3]] "#{rtA} #{argName}"
+											--[[4]] "#{rtTypeInA or rtA} #{argName}#{defValue and ' = ' .. defValue or ''}"
+											--[[5]] "#{rtCastA and rtCastA(argName) or argName}"
+											--[[6]] false
+											--[[7]] false
+											--[[8]] "#{argName}"
 										]
 									else
 										error "\"#{argType}\" is not supported."
@@ -1533,7 +1535,7 @@ else
 						prepareArgs = []
 						funcArgCount = -1
 						argItems = for arg in *args
-							[argKind, argType, argName] = arg
+							[argKind, argType, argName, defValue] = arg
 							switch argKind when "variable"
 								fargTypeName = argType\match "[^ \t*]+"
 								fargTypeName = nameMap[fargTypeName] or fargTypeName

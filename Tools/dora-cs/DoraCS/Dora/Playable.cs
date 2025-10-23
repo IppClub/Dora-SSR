@@ -132,7 +132,7 @@ namespace Dora
 		/// </summary>
 		/// <param name="name">The name of the animation to play.</param>
 		/// <param name="looping">Whether to loop the animation or not.</param>
-		public float Play(string name, bool looping)
+		public float Play(string name, bool looping = false)
 		{
 			return Native.playable_play(Raw, Bridge.FromString(name), looping ? 1 : 0);
 		}

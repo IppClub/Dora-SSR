@@ -648,7 +648,7 @@ namespace Dora
 		/// </summary>
 		/// <param name="child">The child node to remove.</param>
 		/// <param name="cleanup">Whether to cleanup the child node.</param>
-		public void RemoveChild(Node child, bool cleanup)
+		public void RemoveChild(Node child, bool cleanup = true)
 		{
 			Native.node_remove_child(Raw, child.Raw, cleanup ? 1 : 0);
 		}
@@ -657,7 +657,7 @@ namespace Dora
 		/// </summary>
 		/// <param name="tag">The tag of the child node to remove.</param>
 		/// <param name="cleanup">Whether to cleanup the child node.</param>
-		public void RemoveChildByTag(string tag, bool cleanup)
+		public void RemoveChildByTag(string tag, bool cleanup = true)
 		{
 			Native.node_remove_child_by_tag(Raw, Bridge.FromString(tag), cleanup ? 1 : 0);
 		}
@@ -665,7 +665,7 @@ namespace Dora
 		/// Removes all child nodes from the current node.
 		/// </summary>
 		/// <param name="cleanup">Whether to cleanup the child nodes.</param>
-		public void RemoveAllChildren(bool cleanup)
+		public void RemoveAllChildren(bool cleanup = true)
 		{
 			Native.node_remove_all_children(Raw, cleanup ? 1 : 0);
 		}
@@ -673,7 +673,7 @@ namespace Dora
 		/// Removes the current node from its parent node.
 		/// </summary>
 		/// <param name="cleanup">Whether to cleanup the current node.</param>
-		public void RemoveFromParent(bool cleanup)
+		public void RemoveFromParent(bool cleanup = true)
 		{
 			Native.node_remove_from_parent(Raw, cleanup ? 1 : 0);
 		}
@@ -821,7 +821,7 @@ namespace Dora
 		/// <param name="action">The action to run.</param>
 		/// <param name="looped">Whether to loop the action.</param>
 		/// <returns>The duration of the newly running action in seconds.</returns>
-		public float RunAction(Action action, bool looped)
+		public float RunAction(Action action, bool looped = false)
 		{
 			return Native.node_run_action(Raw, action.Raw, looped ? 1 : 0);
 		}
@@ -848,7 +848,7 @@ namespace Dora
 		/// <param name="action">The action to run.</param>
 		/// <param name="looped">Whether to loop the action.</param>
 		/// <returns>The duration of the newly running action in seconds.</returns>
-		public float Perform(Action action, bool looped)
+		public float Perform(Action action, bool looped = false)
 		{
 			return Native.node_perform(Raw, action.Raw, looped ? 1 : 0);
 		}
@@ -865,7 +865,7 @@ namespace Dora
 		/// </summary>
 		/// <param name="padding">The amount of padding to use between each child node.</param>
 		/// <returns>The size of the node after alignment.</returns>
-		public Size AlignItemsVertically(float padding)
+		public Size AlignItemsVertically(float padding = 10.0f)
 		{
 			return Size.From(Native.node_align_items_vertically(Raw, padding));
 		}
@@ -875,7 +875,7 @@ namespace Dora
 		/// <param name="size">The size to use for alignment.</param>
 		/// <param name="padding">The amount of padding to use between each child node.</param>
 		/// <returns>The size of the node after alignment.</returns>
-		public Size AlignItemsVertically(Size size, float padding)
+		public Size AlignItemsVertically(Size size, float padding = 10.0f)
 		{
 			return Size.From(Native.node_align_items_vertically_with_size(Raw, size.Raw, padding));
 		}
@@ -884,7 +884,7 @@ namespace Dora
 		/// </summary>
 		/// <param name="padding">The amount of padding to use between each child node.</param>
 		/// <returns>The size of the node after alignment.</returns>
-		public Size AlignItemsHorizontally(float padding)
+		public Size AlignItemsHorizontally(float padding = 10.0f)
 		{
 			return Size.From(Native.node_align_items_horizontally(Raw, padding));
 		}
@@ -894,7 +894,7 @@ namespace Dora
 		/// <param name="size">The size to hint for alignment.</param>
 		/// <param name="padding">The amount of padding to use between each child node.</param>
 		/// <returns>The size of the node after alignment.</returns>
-		public Size AlignItemsHorizontally(Size size, float padding)
+		public Size AlignItemsHorizontally(Size size, float padding = 10.0f)
 		{
 			return Size.From(Native.node_align_items_horizontally_with_size(Raw, size.Raw, padding));
 		}
@@ -903,7 +903,7 @@ namespace Dora
 		/// </summary>
 		/// <param name="padding">The amount of padding to use between each child node.</param>
 		/// <returns>The size of the node after alignment.</returns>
-		public Size AlignItems(float padding)
+		public Size AlignItems(float padding = 10.0f)
 		{
 			return Size.From(Native.node_align_items(Raw, padding));
 		}
@@ -913,7 +913,7 @@ namespace Dora
 		/// <param name="size">The size to use for alignment.</param>
 		/// <param name="padding">The amount of padding to use between each child node.</param>
 		/// <returns>The size of the node after alignment.</returns>
-		public Size AlignItems(Size size, float padding)
+		public Size AlignItems(Size size, float padding = 10.0f)
 		{
 			return Size.From(Native.node_align_items_with_size(Raw, size.Raw, padding));
 		}

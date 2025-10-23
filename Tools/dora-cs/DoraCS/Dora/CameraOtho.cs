@@ -59,6 +59,6 @@ namespace Dora
 		/// </summary>
 		/// <param name="name">The name of the CameraOtho object.</param>
 		/// <returns>A new instance of the CameraOtho object.</returns>
-		public CameraOtho(string name) : this(Native.cameraotho_new(Bridge.FromString(name))) { }
+		public CameraOtho(string name = "") : this(Native.cameraotho_new(Bridge.FromString(name))) { }
 	}
 } // namespace Dora

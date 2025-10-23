@@ -689,7 +689,7 @@ object class Camera2D : public Camera
 	/// </summary>
 	/// <param name="name">The name of the Camera2D object.</param>
 	/// <returns>A new instance of the Camera2D object.</returns>
-	static Camera2D* create(string name);
+	static Camera2D* create(string name = "");
 };
 
 /// <summary>
@@ -706,7 +706,7 @@ object class CameraOtho : public Camera
 	/// </summary>
 	/// <param name="name">The name of the CameraOtho object.</param>
 	/// <returns>A new instance of the CameraOtho object.</returns>
-	static CameraOtho* create(string name);
+	static CameraOtho* create(string name = "");
 };
 
 /// <summary>
@@ -734,7 +734,7 @@ object class Pass
 	/// <param name="val2">An optional second numeric value to set.</param>
 	/// <param name="val3">An optional third numeric value to set.</param>
 	/// <param name="val4">An optional fourth numeric value to set.</param>
-	void set @ setVec4(string name, float val1, float val2, float val3, float val4);
+	void set @ setVec4(string name, float val1, float val2 = 0.0f, float val3 = 0.0f, float val4 = 0.0f);
 	/// <summary>
 	/// Another function that sets the values of shader parameters.
 	/// Works the same as:
@@ -1045,7 +1045,7 @@ object class Action
 	/// </summary>
 	/// <param name="elapsed">The amount of time in seconds that has elapsed to update action to.</param>
 	/// <param name="reversed">Whether or not to update the Action in reverse.</param>
-	void updateTo(float elapsed, bool reversed);
+	void updateTo(float elapsed, bool reversed = false);
 	/// <summary>
 	/// Creates a new Action object.
 	/// </summary>
@@ -1085,7 +1085,7 @@ object class Grabber
 	/// <param name="y">The y-index of the vertex in the grabber grid.</param>
 	/// <param name="pos">The new position of the vertex, represented by a Vec2 object.</param>
 	/// <param name="z">An optional argument representing the new z-coordinate of the vertex.</param>
-	void setPos(int x, int y, Vec2 pos, float z);
+	void setPos(int x, int y, Vec2 pos, float z = 0.0f);
 	/// <summary>
 	/// Gets the position of a vertex in the grabber grid.
 	/// </summary>
@@ -1321,23 +1321,23 @@ object class Node
 	/// </summary>
 	/// <param name="child">The child node to remove.</param>
 	/// <param name="cleanup">Whether to cleanup the child node.</param>
-	void removeChild(Node* child, bool cleanup);
+	void removeChild(Node* child, bool cleanup = true);
 	/// <summary>
 	/// Removes a child node from the current node by tag.
 	/// </summary>
 	/// <param name="tag">The tag of the child node to remove.</param>
 	/// <param name="cleanup">Whether to cleanup the child node.</param>
-	void removeChildByTag(string tag, bool cleanup);
+	void removeChildByTag(string tag, bool cleanup = true);
 	/// <summary>
 	/// Removes all child nodes from the current node.
 	/// </summary>
 	/// <param name="cleanup">Whether to cleanup the child nodes.</param>
-	void removeAllChildren(bool cleanup);
+	void removeAllChildren(bool cleanup = true);
 	/// <summary>
 	/// Removes the current node from its parent node.
 	/// </summary>
 	/// <param name="cleanup">Whether to cleanup the current node.</param>
-	void removeFromParent(bool cleanup);
+	void removeFromParent(bool cleanup = true);
 	/// <summary>
 	/// Moves the current node to a new parent node without triggering node events.
 	/// </summary>
@@ -1412,7 +1412,7 @@ object class Node
 	/// <param name="action">The action to run.</param>
 	/// <param name="looped">Whether to loop the action.</param>
 	/// <returns>The duration of the newly running action in seconds.</returns>
-	float runAction @ runAction(Action* action, bool looped);
+	float runAction @ runAction(Action* action, bool looped = false);
 	/// <summary>
 	/// Stops all actions running on this node.
 	/// </summary>
@@ -1430,7 +1430,7 @@ object class Node
 	/// <param name="action">The action to run.</param>
 	/// <param name="looped">Whether to loop the action.</param>
 	/// <returns>The duration of the newly running action in seconds.</returns>
-	float perform(Action* action, bool looped);
+	float perform(Action* action, bool looped = false);
 	/// <summary>
 	/// Stops the given action running on this node.
 	/// </summary>
@@ -1441,40 +1441,40 @@ object class Node
 	/// </summary>
 	/// <param name="padding">The amount of padding to use between each child node.</param>
 	/// <returns>The size of the node after alignment.</returns>
-	Size alignItemsVertically(float padding);
+	Size alignItemsVertically(float padding = 10.0f);
 	/// <summary>
 	/// Vertically aligns all child nodes within the node using the given size and padding.
 	/// </summary>
 	/// <param name="size">The size to use for alignment.</param>
 	/// <param name="padding">The amount of padding to use between each child node.</param>
 	/// <returns>The size of the node after alignment.</returns>
-	Size alignItemsVertically @ alignItemsVerticallyWithSize(Size size, float padding);
+	Size alignItemsVertically @ alignItemsVerticallyWithSize(Size size, float padding = 10.0f);
 	/// <summary>
 	/// Horizontally aligns all child nodes within the node using the given size and padding.
 	/// </summary>
 	/// <param name="padding">The amount of padding to use between each child node.</param>
 	/// <returns>The size of the node after alignment.</returns>
-	Size alignItemsHorizontally(float padding);
+	Size alignItemsHorizontally(float padding = 10.0f);
 	/// <summary>
 	/// Horizontally aligns all child nodes within the node using the given size and padding.
 	/// </summary>
 	/// <param name="size">The size to hint for alignment.</param>
 	/// <param name="padding">The amount of padding to use between each child node.</param>
 	/// <returns>The size of the node after alignment.</returns>
-	Size alignItemsHorizontally @ alignItemsHorizontallyWithSize(Size size, float padding);
+	Size alignItemsHorizontally @ alignItemsHorizontallyWithSize(Size size, float padding = 10.0f);
 	/// <summary>
 	/// Aligns all child nodes within the node using the given size and padding.
 	/// </summary>
 	/// <param name="padding">The amount of padding to use between each child node.</param>
 	/// <returns>The size of the node after alignment.</returns>
-	Size alignItems(float padding);
+	Size alignItems(float padding = 10.0f);
 	/// <summary>
 	/// Aligns all child nodes within the node using the given size and padding.
 	/// </summary>
 	/// <param name="size">The size to use for alignment.</param>
 	/// <param name="padding">The amount of padding to use between each child node.</param>
 	/// <returns>The size of the node after alignment.</returns>
-	Size alignItems @ alignItemsWithSize(Size size, float padding);
+	Size alignItems @ alignItemsWithSize(Size size, float padding = 10.0f);
 	/// <summary>
 	/// Moves and changes child nodes' visibility based on their position in parent's area.
 	/// </summary>
@@ -1674,7 +1674,7 @@ object class Grid : public Node
 	/// <param name="y">The y-coordinate of the vertex in the grid.</param>
 	/// <param name="pos">The new position of the vertex, represented by a Vec2 object.</param>
 	/// <param name="z">The new z-coordinate of the vertex.</param>
-	void setPos(int x, int y, Vec2 pos, float z);
+	void setPos(int x, int y, Vec2 pos, float z = 0.0f);
 	/// <summary>
 	/// Gets the position of a vertex in the grid.
 	/// </summary>
@@ -1866,7 +1866,7 @@ object class Label : public Node
 	/// <param name="fontSize">The size of the font to use for the label.</param>
 	/// <param name="sdf">Whether to use SDF rendering or not. With SDF rendering, the outline feature will be enabled.</param>
 	/// <returns>The new Label object.</returns>
-	static optional Label* create(string fontName, uint32_t fontSize, bool sdf);
+	static optional Label* create(string fontName, uint32_t fontSize, bool sdf = false);
 	/// <summary>
 	/// Creates a new Label object with the specified font string.
 	/// </summary>
@@ -1907,7 +1907,7 @@ object class RenderTarget
 	/// <param name="color">The clear color used to clear the render target.</param>
 	/// <param name="depth">Optional. The value used to clear the depth buffer of the render target. Default is 1.</param>
 	/// <param name="stencil">Optional. The value used to clear the stencil buffer of the render target. Default is 0.</param>
-	void renderWithClear @ renderClear(Color color, float depth, uint8_t stencil);
+	void renderWithClear @ renderClear(Color color, float depth = 1.0f, uint8_t stencil = 0.0f);
 	/// <summary>
 	/// Renders a node to the target after clearing the previous color, depth and stencil values on it.
 	/// </summary>
@@ -1915,7 +1915,7 @@ object class RenderTarget
 	/// <param name="color">The clear color used to clear the render target.</param>
 	/// <param name="depth">The value used to clear the depth buffer of the render target. Default can be 1.</param>
 	/// <param name="stencil">The value used to clear the stencil buffer of the render target. Default can be 0.</param>
-	void renderWithClear @ renderClearWithTarget(Node* target, Color color, float depth, uint8_t stencil);
+	void renderWithClear @ renderClearWithTarget(Node* target, Color color, float depth = 1.0f, uint8_t stencil = 0.0f);
 	/// <summary>
 	/// Saves the contents of the render target to a PNG file asynchronously.
 	/// </summary>
@@ -1945,7 +1945,7 @@ object class ClipNode : public Node
 	/// <summary>
 	/// Creates a new ClipNode object.
 	/// </summary>
-	/// <param name="stencil">The stencil Node that defines the clipping shape. Defaults to `None`.</param>
+	/// <param name="stencil">The stencil Node that defines the clipping shape.</param>
 	static ClipNode* create(Node* stencil);
 };
 
@@ -2112,7 +2112,7 @@ object class Playable : public Node
 	/// </summary>
 	/// <param name="name">The name of the animation to play.</param>
 	/// <param name="looping">Whether to loop the animation or not.</param>
-	float play(string name, bool looping);
+	float play(string name, bool looping = false);
 	/// <summary>
 	/// Stops the currently playing animation.
 	/// </summary>
@@ -2175,7 +2175,7 @@ object class Model : public Playable
 	/// </summary>
 	/// <param name="name">The name of the animation to play.</param>
 	/// <param name="looping">Whether to loop the animation or not.</param>
-	void resume @ resumeAnimation(string name, bool looping);
+	void resume @ resumeAnimation(string name, bool looping = false);
 	/// <summary>
 	/// Resets the current animation to its initial state.
 	/// </summary>
@@ -2185,7 +2185,7 @@ object class Model : public Playable
 	/// </summary>
 	/// <param name="elapsed">The time to update to.</param>
 	/// <param name="reversed">Whether to play the animation in reverse.</param>
-	void updateTo(float elapsed, bool reversed);
+	void updateTo(float elapsed, bool reversed = false);
 	/// <summary>
 	/// Gets the node with the specified name.
 	/// </summary>
@@ -2340,7 +2340,7 @@ object class AlignNode : public Node
 	/// Creates a new AlignNode object.
 	/// </summary>
 	/// <param name="isWindowRoot">Whether the node is a window root node. A window root node will automatically listen for window size change events and update the layout accordingly.</param>
-	static AlignNode* create(bool isWindowRoot);
+	static AlignNode* create(bool isWindowRoot = false);
 };
 
 /// <summary>
@@ -2355,7 +2355,7 @@ object class EffekNode : public Node
 	/// <param name="pos">The xy-position to play the effect at.</param>
 	/// <param name="z">The z-position of the effect.</param>
 	/// <returns>The handle of the effect.</returns>
-	int play(string filename, Vec2 pos, float z);
+	int play(string filename, Vec2 pos = new(), float z = 0.0f);
 	/// <summary>
 	/// Stops an effect with the specified handle.
 	/// </summary>
@@ -2531,10 +2531,10 @@ object class BodyDef
 		Vec2 center,
 		float width,
 		float height,
-		float angle,
-		float density,
-		float friction,
-		float restitution);
+		float angle = 0.0f,
+		float density = 0.0f,
+		float friction = 0.4f,
+		float restitution = 0.0f);
 	/// <summary>
 	/// Creates a polygon fixture definition with the specified dimensions.
 	/// </summary>
@@ -2546,9 +2546,9 @@ object class BodyDef
 	static FixtureDef* polygon(
 		float width,
 		float height,
-		float density,
-		float friction,
-		float restitution);
+		float density = 0.0f,
+		float friction = 0.4f,
+		float restitution = 0.0f);
 	/// <summary>
 	/// Creates a polygon fixture definition with the specified vertices.
 	/// </summary>
@@ -2558,9 +2558,9 @@ object class BodyDef
 	/// <param name="restitution">The restitution of the polygon. Should be between 0 and 1.0.</param>
 	static FixtureDef* polygon @ polygonWithVertices(
 		VecVec2 vertices,
-		float density,
-		float friction,
-		float restitution);
+		float density = 0.0f,
+		float friction = 0.4f,
+		float restitution = 0.0f);
 	/// <summary>
 	/// Attaches a polygon fixture definition to the body.
 	/// </summary>
@@ -2575,10 +2575,10 @@ object class BodyDef
 		Vec2 center,
 		float width,
 		float height,
-		float angle,
-		float density,
-		float friction,
-		float restitution);
+		float angle = 0.0f,
+		float density = 0.0f,
+		float friction = 0.4f,
+		float restitution = 0.0f);
 	/// <summary>
 	/// Attaches a polygon fixture definition to the body.
 	/// </summary>
@@ -2590,9 +2590,9 @@ object class BodyDef
 	void attachPolygon(
 		float width,
 		float height,
-		float density,
-		float friction,
-		float restitution);
+		float density = 0.0f,
+		float friction = 0.4f,
+		float restitution = 0.0f);
 	/// <summary>
 	/// Attaches a polygon fixture definition to the body.
 	/// </summary>
@@ -2602,9 +2602,9 @@ object class BodyDef
 	/// <param name="restitution">The restitution of the polygon. Should be between 0 and 1.0.</param>
 	void attachPolygon @ attachPolygonWithVertices(
 		VecVec2 vertices,
-		float density,
-		float friction,
-		float restitution);
+		float density = 0.0f,
+		float friction = 0.4f,
+		float restitution = 0.0f);
 	/// <summary>
 	/// Creates a concave shape definition made of multiple convex shapes.
 	/// </summary>
@@ -2615,9 +2615,9 @@ object class BodyDef
 	/// <returns>The resulting fixture definition.</returns>
 	static FixtureDef* multi(
 		VecVec2 vertices,
-		float density,
-		float friction,
-		float restitution);
+		float density = 0.0f,
+		float friction = 0.4f,
+		float restitution = 0.0f);
 	/// <summary>
 	/// Attaches a concave shape definition made of multiple convex shapes to the body.
 	/// </summary>
@@ -2627,9 +2627,9 @@ object class BodyDef
 	/// <param name="restitution">The restitution of the concave shape. Should be between 0.0 and 1.0.</param>
 	void attachMulti(
 		VecVec2 vertices,
-		float density,
-		float friction,
-		float restitution);
+		float density = 0.0f,
+		float friction = 0.4f,
+		float restitution = 0.0f);
 	/// <summary>
 	/// Creates a Disk-shape fixture definition.
 	/// </summary>
@@ -2642,9 +2642,9 @@ object class BodyDef
 	static FixtureDef* disk @ diskWithCenter(
 		Vec2 center,
 		float radius,
-		float density,
-		float friction,
-		float restitution);
+		float density = 0.0f,
+		float friction = 0.4f,
+		float restitution = 0.0f);
 	/// <summary>
 	/// Creates a Disk-shape fixture definition.
 	/// </summary>
@@ -2655,9 +2655,9 @@ object class BodyDef
 	/// <returns>The resulting fixture definition.</returns>
 	static FixtureDef* disk(
 		float radius,
-		float density,
-		float friction,
-		float restitution);
+		float density = 0.0f,
+		float friction = 0.4f,
+		float restitution = 0.0f);
 	/// <summary>
 	/// Attaches a disk fixture definition to the body.
 	/// </summary>
@@ -2669,9 +2669,9 @@ object class BodyDef
 	void attachDisk @ attachDiskWithCenter(
 		Vec2 center,
 		float radius,
-		float density,
-		float friction,
-		float restitution);
+		float density = 0.0f,
+		float friction = 0.4f,
+		float restitution = 0.0f);
 	/// <summary>
 	/// Attaches a disk fixture definition to the body.
 	/// </summary>
@@ -2681,9 +2681,9 @@ object class BodyDef
 	/// <param name="restitution">The restitution of the disk. Should be between 0.0 and 1.0.</param>
 	void attachDisk(
 		float radius,
-		float density,
-		float friction,
-		float restitution);
+		float density = 0.0f,
+		float friction = 0.4f,
+		float restitution = 0.0f);
 	/// <summary>
 	/// Creates a Chain-shape fixture definition. This fixture is a free form sequence of line segments that has two-sided collision.
 	/// </summary>
@@ -2693,8 +2693,8 @@ object class BodyDef
 	/// <returns>The resulting fixture definition.</returns>
 	static FixtureDef* chain(
 		VecVec2 vertices,
-		float friction,
-		float restitution);
+		float friction = 0.4f,
+		float restitution = 0.0f);
 	/// <summary>
 	/// Attaches a chain fixture definition to the body. The Chain fixture is a free form sequence of line segments that has two-sided collision.
 	/// </summary>
@@ -2703,8 +2703,8 @@ object class BodyDef
 	/// <param name="restitution">The restitution of the chain. Should be between 0.0 and 1.0.</param>
 	void attachChain(
 		VecVec2 vertices,
-		float friction,
-		float restitution);
+		float friction = 0.4f,
+		float restitution = 0.0f);
 	/// <summary>
 	/// Attaches a polygon sensor fixture definition to the body.
 	/// </summary>
@@ -2728,7 +2728,7 @@ object class BodyDef
 		Vec2 center,
 		float width,
 		float height,
-		float angle);
+		float angle = 0.0f);
 	/// <summary>
 	/// Attaches a polygon sensor fixture definition to the body.
 	/// </summary>
@@ -2904,7 +2904,7 @@ object class Body : public Node
 	/// <param name="world">The physics world where the body belongs.</param>
 	/// <param name="pos">The initial position of the body.</param>
 	/// <param name="rot">The initial rotation angle of the body in degrees.</param>
-	static Body* create(BodyDef* def, PhysicsWorld* world, Vec2 pos, float rot);
+	static Body* create(BodyDef* def, PhysicsWorld* world, Vec2 pos = new(), float rot = 0.0f);
 };
 
 /// <summary>
@@ -2941,8 +2941,8 @@ object class JointDef
 		string bodyB,
 		Vec2 anchorA,
 		Vec2 anchorB,
-		float frequency,
-		float damping);
+		float frequency = 0.0f,
+		float damping = 0.0f);
 	/// <summary>
 	/// Creates a friction joint definition.
 	/// </summary>
@@ -2972,7 +2972,7 @@ object class JointDef
 		bool collision,
 		string jointA,
 		string jointB,
-		float ratio);
+		float ratio = 1.0f);
 	/// <summary>
 	/// Creates a new spring joint definition.
 	/// </summary>
@@ -2993,7 +2993,7 @@ object class JointDef
 		float angularOffset,
 		float maxForce,
 		float maxTorque,
-		float correctionFactor);
+		float correctionFactor = 1.0f);
 	/// <summary>
 	/// Creates a new prismatic joint definition.
 	/// </summary>
@@ -3013,10 +3013,10 @@ object class JointDef
 		string bodyB,
 		Vec2 worldPos,
 		float axisAngle,
-		float lowerTranslation,
-		float upperTranslation,
-		float maxMotorForce,
-		float motorSpeed);
+		float lowerTranslation = 0.0f,
+		float upperTranslation = 0.0f,
+		float maxMotorForce = 0.0f,
+		float motorSpeed = 0.0f);
 	/// <summary>
 	/// Creates a pulley joint definition.
 	/// </summary>
@@ -3037,7 +3037,7 @@ object class JointDef
 		Vec2 anchorB,
 		Vec2 groundAnchorA,
 		Vec2 groundAnchorB,
-		float ratio);
+		float ratio = 1.0f);
 	/// <summary>
 	/// Creates a revolute joint definition.
 	/// </summary>
@@ -3055,10 +3055,10 @@ object class JointDef
 		string bodyA,
 		string bodyB,
 		Vec2 worldPos,
-		float lowerAngle,
-		float upperAngle,
-		float maxMotorTorque,
-		float motorSpeed);
+		float lowerAngle = 0.0f,
+		float upperAngle = 0.0f,
+		float maxMotorTorque = 0.0f,
+		float motorSpeed = 0.0f);
 	/// <summary>
 	/// Creates a rope joint definition.
 	/// </summary>
@@ -3091,8 +3091,8 @@ object class JointDef
 		string bodyA,
 		string bodyB,
 		Vec2 worldPos,
-		float frequency,
-		float damping);
+		float frequency = 0.0f,
+		float damping = 0.0f);
 	/// <summary>
 	/// Creates a wheel joint definition.
 	/// </summary>
@@ -3112,10 +3112,10 @@ object class JointDef
 		string bodyB,
 		Vec2 worldPos,
 		float axisAngle,
-		float maxMotorTorque,
-		float motorSpeed,
-		float frequency,
-		float damping);
+		float maxMotorTorque = 0.0f,
+		float motorSpeed = 0.0f,
+		float frequency = 2.0f,
+		float damping = 0.7f);
 };
 
 /// <summary>
@@ -3140,8 +3140,8 @@ object class Joint
 		Body* bodyB,
 		Vec2 anchorA,
 		Vec2 anchorB,
-		float frequency,
-		float damping);
+		float frequency = 0.0f,
+		float damping = 0.0f);
 	/// <summary>
 	/// Creates a friction joint between two physics bodies.
 	/// </summary>
@@ -3171,7 +3171,7 @@ object class Joint
 		bool collision,
 		Joint* jointA,
 		Joint* jointB,
-		float ratio);
+		float ratio = 1.0f);
 	/// <summary>
 	/// Creates a new spring joint between the two specified bodies.
 	/// </summary>
@@ -3192,7 +3192,7 @@ object class Joint
 		float angularOffset,
 		float maxForce,
 		float maxTorque,
-		float correctionFactor);
+		float correctionFactor = 1.0f);
 	/// <summary>
 	/// Creates a new move joint for the specified body.
 	/// </summary>
@@ -3208,8 +3208,8 @@ object class Joint
 		Body* body,
 		Vec2 targetPos,
 		float maxForce,
-		float frequency,
-		float damping);
+		float frequency = 5.0f,
+		float damping = 0.7f);
 	/// <summary>
 	/// Creates a new prismatic joint between the two specified bodies.
 	/// </summary>
@@ -3229,10 +3229,10 @@ object class Joint
 		Body* bodyB,
 		Vec2 worldPos,
 		float axisAngle,
-		float lowerTranslation,
-		float upperTranslation,
-		float maxMotorForce,
-		float motorSpeed);
+		float lowerTranslation = 0.0f,
+		float upperTranslation = 0.0f,
+		float maxMotorForce = 0.0f,
+		float motorSpeed = 0.0f);
 	/// <summary>
 	/// Creates a pulley joint between two physics bodies.
 	/// </summary>
@@ -3253,7 +3253,7 @@ object class Joint
 		Vec2 anchorB,
 		Vec2 groundAnchorA,
 		Vec2 groundAnchorB,
-		float ratio);
+		float ratio = 1.0f);
 	/// <summary>
 	/// Creates a revolute joint between two physics bodies.
 	/// </summary>
@@ -3271,10 +3271,10 @@ object class Joint
 		Body* bodyA,
 		Body* bodyB,
 		Vec2 worldPos,
-		float lowerAngle,
-		float upperAngle,
-		float maxMotorTorque,
-		float motorSpeed);
+		float lowerAngle = 0.0f,
+		float upperAngle = 0.0f,
+		float maxMotorTorque = 0.0f,
+		float motorSpeed = 0.0f);
 	/// <summary>
 	/// Creates a rope joint between two physics bodies.
 	/// </summary>
@@ -3307,8 +3307,8 @@ object class Joint
 		Body* bodyA,
 		Body* bodyB,
 		Vec2 worldPos,
-		float frequency,
-		float damping);
+		float frequency = 0.0f,
+		float damping = 0.0f);
 	/// <summary>
 	/// Creates a wheel joint between two bodies.
 	/// </summary>
@@ -3328,10 +3328,10 @@ object class Joint
 		Body* bodyB,
 		Vec2 worldPos,
 		float axisAngle,
-		float maxMotorTorque,
-		float motorSpeed,
-		float frequency,
-		float damping);
+		float maxMotorTorque = 0.0f,
+		float motorSpeed = 0.0f,
+		float frequency = 2.0f,
+		float damping = 0.7f);
 	/// <summary>
 	/// the physics world that the joint belongs to.
 	/// </summary>
@@ -3454,7 +3454,7 @@ singleton class Audio
 	/// <param name="filename">The path to the sound effect file (must be a WAV file).</param>
 	/// <param name="looping">Optional. Whether to loop the sound effect. Default is `false`.</param>
 	/// <returns>A handler for the audio that can be used to stop the sound effect.</returns>
-	uint32_t play(string filename, bool looping);
+	uint32_t play(string filename, bool looping = false);
 	/// <summary>
 	/// Stops a sound effect that is currently playing.
 	/// </summary>
@@ -3466,12 +3466,12 @@ singleton class Audio
 	/// <param name="filename">The path to the streaming audio file (can be OGG, WAV, MP3, or FLAC).</param>
 	/// <param name="looping">Whether to loop the streaming audio.</param>
 	/// <param name="crossFadeTime">The time (in seconds) to crossfade between the previous and new streaming audio.</param>
-	void playStream(string filename, bool looping, float crossFadeTime);
+	void playStream(string filename, bool looping = false, float crossFadeTime = 0.0f);
 	/// <summary>
 	/// Stops a streaming audio file that is currently playing.
 	/// </summary>
 	/// <param name="fadeTime">The time (in seconds) to fade out the streaming audio.</param>
-	void stopStream(float fadeTime);
+	void stopStream(float fadeTime = 0.0f);
 	/// <summary>
 	/// Pauses all the current audio.
 	/// </summary>
@@ -3605,7 +3605,7 @@ object class AudioSource : public Node
 	/// Stops the audio source.
 	/// </summary>
 	/// <param name="fadeTime">The time to fade out the audio source.</param>
-	void stop(double fadeTime);
+	void stop(double fadeTime = 0.0);
 	/// <summary>
 	/// Plays the audio source.
 	/// </summary>
@@ -3616,7 +3616,7 @@ object class AudioSource : public Node
 	/// </summary>
 	/// <param name="delayTime">The time to wait before playing the audio source.</param>
 	/// <returns>`true` if the audio source was played successfully, `false` otherwise.</returns>
-	bool play @ playWithDelay(double delayTime);
+	bool play @ playWithDelay(double delayTime = 0.0);
 	/// <summary>
 	/// Plays the audio source as a background audio.
 	/// </summary>
@@ -3632,7 +3632,7 @@ object class AudioSource : public Node
 	/// </summary>
 	/// <param name="delayTime">The time to wait before playing the audio source.</param>
 	/// <returns>`true` if the audio source was played successfully, `false` otherwise.</returns>
-	bool play3D @ play_3d_with_delay(double delayTime);
+	bool play3D @ play_3d_with_delay(double delayTime = 0.0);
 	/// <summary>
 	/// Sets the protected state of the audio source.
 	/// </summary>
@@ -3673,7 +3673,7 @@ object class AudioSource : public Node
 	/// <param name="filename">The path to the audio file.</param>
 	/// <param name="autoRemove">Whether to automatically remove the audio source when it is stopped.</param>
 	/// <returns>The created audio source node.</returns>
-	static optional AudioSource* create(string filename, bool autoRemove);
+	static optional AudioSource* create(string filename, bool autoRemove = true);
 	/// <summary>
 	/// Creates a new audio source.
 	/// </summary>
@@ -3849,7 +3849,7 @@ singleton class DB
 	/// <param name="tableName">The name of the table to check.</param>
 	/// <param name="schema">Optional. The name of the schema to check in.</param>
 	/// <returns>`true` if the table exists, `false` otherwise.</returns>
-	bool exist @ existSchema(string tableName, string schema);
+	bool exist @ existSchema(string tableName, string schema = "");
 	/// <summary>
 	/// Executes an SQL statement and returns the number of rows affected.
 	/// </summary>
@@ -3966,7 +3966,7 @@ object class MLQLearner @ QLearner
 	/// <param name="alpha">The learning rate for updating Q-values.</param>
 	/// <param name="maxQ">The maximum Q-value. Defaults to 100.0.</param>
 	/// <returns>The newly created QLearner object.</returns>
-	static QLearner* create(double gamma, double alpha, double maxQ);
+	static QLearner* create(double gamma = 0.5, double alpha = 0.5, double maxQ = 100.0);
 };
 
 /// <summary>
@@ -4095,7 +4095,7 @@ object class Face
 	/// <param name="scale">The scale of the `Face` component.</param>
 	/// <param name="angle">The angle of the `Face` component.</param>
 	/// <returns>The new `Face` component.</returns>
-	static Face* create(string faceStr, Vec2 point, float scale, float angle);
+	static Face* create(string faceStr, Vec2 point, float scale = 1.0f, float angle = 0.0f);
 	/// <summary>
 	/// Creates a new `Face` definition using the specified attributes.
 	/// </summary>
@@ -4104,7 +4104,7 @@ object class Face
 	/// <param name="scale">The scale of the `Face` component.</param>
 	/// <param name="angle">The angle of the `Face` component.</param>
 	/// <returns>The new `Face` component.</returns>
-	static Face* create @ createFunc(function<Node*()> createFunc, Vec2 point, float scale, float angle);
+	static Face* create @ createFunc(function<Node*()> createFunc, Vec2 point = new(), float scale = 1.0f, float angle = 0.0f);
 };
 
 /// <summary>
@@ -4600,7 +4600,7 @@ object class Unit : public Body
 	/// <param name="entity">An `Entity` object that represents the `Unit` in ECS system.</param>
 	/// <param name="pos">A `Vec2` object that specifies the initial position of the `Unit`.</param>
 	/// <param name="rot">A number that specifies the initial rotation of the `Unit`.</param>
-	static Unit* create(Dictionary* unitDef, PhysicsWorld* physicsWorld, Entity* entity, Vec2 pos, float rot);
+	static Unit* create(Dictionary* unitDef, PhysicsWorld* physicsWorld, Entity* entity, Vec2 pos, float rot = 0.0f);
 	/// <summary>
 	/// A method that creates a new `Unit` object.
 	/// </summary>
@@ -4609,7 +4609,7 @@ object class Unit : public Body
 	/// <param name="entity">An `Entity` object that represents the `Unit` in ECS system.</param>
 	/// <param name="pos">A `Vec2` object that specifies the initial position of the `Unit`.</param>
 	/// <param name="rot">An optional number that specifies the initial rotation of the `Unit` (default is 0.0).</param>
-	static Unit* create @ createStore(string unitDefName, string physicsWorldName, Entity* entity, Vec2 pos, float rot);
+	static Unit* create @ createStore(string unitDefName, string physicsWorldName, Entity* entity, Vec2 pos, float rot = 0.0f);
 };
 
 /// <summary>
@@ -4651,7 +4651,7 @@ object class PlatformCamera : public Camera
 	/// Creates a new instance of `PlatformCamera`.
 	/// </summary>
 	/// <param name="name">An optional string that specifies the name of the new instance. Default is an empty string.</param>
-	static PlatformCamera* create(string name);
+	static PlatformCamera* create(string name = "");
 };
 
 /// <summary>

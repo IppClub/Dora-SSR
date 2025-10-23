@@ -137,7 +137,7 @@ namespace Dora
 		/// Stops the audio source.
 		/// </summary>
 		/// <param name="fadeTime">The time to fade out the audio source.</param>
-		public void Stop(double fadeTime)
+		public void Stop(double fadeTime = 0.0)
 		{
 			Native.audiosource_stop(Raw, fadeTime);
 		}
@@ -154,7 +154,7 @@ namespace Dora
 		/// </summary>
 		/// <param name="delayTime">The time to wait before playing the audio source.</param>
 		/// <returns>`true` if the audio source was played successfully, `false` otherwise.</returns>
-		public bool Play(double delayTime)
+		public bool Play(double delayTime = 0.0)
 		{
 			return Native.audiosource_play_with_delay(Raw, delayTime) != 0;
 		}
@@ -179,7 +179,7 @@ namespace Dora
 		/// </summary>
 		/// <param name="delayTime">The time to wait before playing the audio source.</param>
 		/// <returns>`true` if the audio source was played successfully, `false` otherwise.</returns>
-		public bool Play3D(double delayTime)
+		public bool Play3D(double delayTime = 0.0)
 		{
 			return Native.audiosource_play_3d_with_delay(Raw, delayTime) != 0;
 		}
@@ -241,8 +241,8 @@ namespace Dora
 		/// <param name="filename">The path to the audio file.</param>
 		/// <param name="autoRemove">Whether to automatically remove the audio source when it is stopped.</param>
 		/// <returns>The created audio source node.</returns>
-		public AudioSource(string filename, bool autoRemove) : this(Native.audiosource_new(Bridge.FromString(filename), autoRemove ? 1 : 0)) { }
-		public static AudioSource? TryCreate(string filename, bool autoRemove)
+		public AudioSource(string filename, bool autoRemove = true) : this(Native.audiosource_new(Bridge.FromString(filename), autoRemove ? 1 : 0)) { }
+		public static AudioSource? TryCreate(string filename, bool autoRemove = true)
 		{
 			var raw = Native.audiosource_new(Bridge.FromString(filename), autoRemove ? 1 : 0);
 			return raw == 0 ? null : new AudioSource(raw);

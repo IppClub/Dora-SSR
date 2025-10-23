@@ -119,7 +119,7 @@ namespace Dora
 		/// </summary>
 		/// <param name="elapsed">The amount of time in seconds that has elapsed to update action to.</param>
 		/// <param name="reversed">Whether or not to update the Action in reverse.</param>
-		public void UpdateTo(float elapsed, bool reversed)
+		public void UpdateTo(float elapsed, bool reversed = false)
 		{
 			Native.action_update_to(Raw, elapsed, reversed ? 1 : 0);
 		}

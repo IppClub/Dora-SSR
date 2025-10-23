@@ -56,6 +56,6 @@ namespace Dora
 		/// Creates a new AlignNode object.
 		/// </summary>
 		/// <param name="isWindowRoot">Whether the node is a window root node. A window root node will automatically listen for window size change events and update the layout accordingly.</param>
-		public AlignNode(bool isWindowRoot) : this(Native.alignnode_new(isWindowRoot ? 1 : 0)) { }
+		public AlignNode(bool isWindowRoot = false) : this(Native.alignnode_new(isWindowRoot ? 1 : 0)) { }
 	}
 } // namespace Dora

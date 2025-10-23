@@ -53,7 +53,7 @@ namespace Dora
 		/// <param name="pos">The xy-position to play the effect at.</param>
 		/// <param name="z">The z-position of the effect.</param>
 		/// <returns>The handle of the effect.</returns>
-		public int Play(string filename, Vec2 pos, float z)
+		public int Play(string filename, Vec2 pos = new(), float z = 0.0f)
 		{
 			return Native.effeknode_play(Raw, Bridge.FromString(filename), pos.Raw, z);
 		}

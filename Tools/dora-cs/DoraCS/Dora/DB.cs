@@ -75,7 +75,7 @@ namespace Dora
 		/// <param name="tableName">The name of the table to check.</param>
 		/// <param name="schema">Optional. The name of the schema to check in.</param>
 		/// <returns>`true` if the table exists, `false` otherwise.</returns>
-		public static bool ExistSchema(string tableName, string schema)
+		public static bool ExistSchema(string tableName, string schema = "")
 		{
 			return Native.db_exist_schema(Bridge.FromString(tableName), Bridge.FromString(schema)) != 0;
 		}
