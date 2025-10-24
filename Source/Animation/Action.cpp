@@ -170,15 +170,22 @@ bool Tint::update(Node* target, float elapsed) {
 
 Own<ActionDuration> Roll::alloc(float duration, float start, float stop, Ease::Enum easing) {
 	Roll* action = new Roll();
-	if (start > 0)
+	if (start > 0) {
 		start = std::fmod(start, 360.0f);
-	else
+	} else {
 		start = std::fmod(start, -360.0f);
+	}
+	if (stop > 0) {
+		stop = std::fmod(stop, 360.0f);
+	} else {
+		stop = std::fmod(stop, -360.0f);
+	}
 	float delta = stop - start;
-	if (delta > 180)
+	if (delta > 180) {
 		delta -= 360;
-	else if (delta < -180)
+	} else if (delta < -180) {
 		delta += 360;
+	}
 	action->_start = start;
 	action->_delta = delta;
 	action->_duration = std::max(FLT_EPSILON, duration);
