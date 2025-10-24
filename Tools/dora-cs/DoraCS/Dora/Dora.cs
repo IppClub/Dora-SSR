@@ -3554,59 +3554,78 @@ namespace Dora
         }
     }
 
-    public interface IYieldOp
-    {
-        void Tick(double dt);
-        bool IsDone { get; }
-    }
-
-    public sealed class WaitForSeconds
-    {
-        public double Remaining;
-        public WaitForSeconds(double seconds) => Remaining = seconds;
-    }
-    public sealed class WaitUntil
-    {
-        public Func<bool> Predicate;
-        public WaitUntil(Func<bool> predicate) => Predicate = predicate;
-    }
-    public sealed class WaitWhile
-    {
-        public Func<bool> Predicate;
-        public WaitWhile(Func<bool> predicate) => Predicate = predicate;
-    }
-    public sealed class CallbackAwait<T>(Action<Action<T>> _starter) : IYieldOp
-    {
-        private bool _started;
-        public bool IsDone { get; private set; }
-        public T Result { get; private set; } = default!;
-
-        public void Tick(double dt)
-        {
-            if (_started) return;
-            _started = true;
-            _starter(val => { Result = val; IsDone = true; });
-        }
-    }
-    public sealed class CallbackAwaitOptional<T> : IYieldOp
-    {
-        private readonly Action<Action<T?>> _starter;
-        private bool _started;
-        public bool IsDone { get; private set; }
-        public T? Result { get; private set; }
-
-        public CallbackAwaitOptional(Action<Action<T?>> starter) { _starter = starter; }
-
-        public void Tick(double dt)
-        {
-            if (_started) return;
-            _started = true;
-            _starter(val => { Result = val; IsDone = true; });
-        }
-    }
-
     public static class Co
     {
+        public static class Op
+        {
+            public interface IYieldOp
+            {
+                void Tick(double dt);
+                bool IsDone { get; }
+            }
+            public sealed class WaitForSeconds
+            {
+                public double Total;
+                public double Remaining;
+                public WaitForSeconds(double seconds) => Total = Remaining = seconds;
+            }
+            public sealed class WaitForFrames
+            {
+                public int Frames;
+                public WaitForFrames(int frames) => Frames = frames;
+            }
+            public sealed class WaitUntil
+            {
+                public Func<bool> Predicate;
+                public WaitUntil(Func<bool> predicate) => Predicate = predicate;
+            }
+            public sealed class WaitWhile
+            {
+                public Func<bool> Predicate;
+                public WaitWhile(Func<bool> predicate) => Predicate = predicate;
+            }
+            public sealed class WaitCycle
+            {
+                public double Total;
+                public double Remaining;
+                public Action<double> Update;
+                public WaitCycle(double seconds, Action<double> update)
+                {
+                    Total = Remaining = seconds;
+                    Update = update;
+                    Update(0.0);
+                }
+            }
+            public sealed class CallbackAwait<T>(Action<Action<T>> _starter) : IYieldOp
+            {
+                private bool _started;
+                public bool IsDone { get; private set; }
+                public T Result { get; private set; } = default!;
+
+                public void Tick(double dt)
+                {
+                    if (_started) return;
+                    _started = true;
+                    _starter(val => { Result = val; IsDone = true; });
+                }
+            }
+            public sealed class CallbackAwaitOptional<T> : IYieldOp
+            {
+                private readonly Action<Action<T?>> _starter;
+                private bool _started;
+                public bool IsDone { get; private set; }
+                public T? Result { get; private set; }
+
+                public CallbackAwaitOptional(Action<Action<T?>> starter) { _starter = starter; }
+
+                public void Tick(double dt)
+                {
+                    if (_started) return;
+                    _started = true;
+                    _starter(val => { Result = val; IsDone = true; });
+                }
+            }
+        }
         public static Func<double, bool> Loop(Func<IEnumerator> routineFactory)
         {
             IEnumerator loop()
@@ -3635,23 +3654,36 @@ namespace Dora
                     stack.Push(root);
                 }
 
-                if (wait is WaitForSeconds wfs)
+                if (wait is Op.WaitForSeconds wfs)
                 {
                     wfs.Remaining -= dt;
                     if (wfs.Remaining > 0.0) return false;
                     wait = null;
                 }
-                else if (wait is WaitUntil wu)
+                else if (wait is Op.WaitForFrames wff)
+                {
+                    wff.Frames--;
+                    if (wff.Frames > 0) return false;
+                    wait = null;
+                }
+                else if (wait is Op.WaitUntil wu)
                 {
                     if (!wu.Predicate()) return false;
                     wait = null;
                 }
-                else if (wait is WaitWhile ww)
+                else if (wait is Op.WaitWhile ww)
                 {
                     if (ww.Predicate()) return false;
                     wait = null;
                 }
-                else if (wait is IYieldOp yo)
+                else if (wait is Op.WaitCycle wc)
+                {
+                    wc.Remaining -= dt;
+                    wc.Update(1.0 - Math.Max(0.0, wc.Remaining) / wc.Total);
+                    if (wc.Remaining > 0.0) return false;
+                    wait = null;
+                }
+                else if (wait is Op.IYieldOp yo)
                 {
                     if (!yo.IsDone)
                     {
@@ -3674,9 +3706,15 @@ namespace Dora
                     var yielded = top.Current;
                     if (yielded == null)
                     {
-                        wait = new WaitForSeconds(0.0);
+                        wait = new Op.WaitForFrames(1);
                     }
-                    else if (yielded is WaitForSeconds or WaitUntil or WaitWhile or IYieldOp)
+                    else if (yielded is
+                        Op.WaitForSeconds or
+                        Op.WaitForFrames or
+                        Op.WaitUntil or
+                        Op.WaitWhile or
+                        Op.WaitCycle or
+                        Op.IYieldOp)
                     {
                         wait = yielded;
                     }
@@ -3686,12 +3724,31 @@ namespace Dora
                     }
                     else
                     {
-                        wait = new WaitForSeconds(0.0);
+                        wait = new Op.WaitForFrames(1);
                     }
                 }
-
                 return done;
             };
+        }
+        public static Op.WaitForSeconds Seconds(double seconds)
+        {
+            return new Op.WaitForSeconds(seconds);
+        }
+        public static Op.WaitForFrames Frames(int frames)
+        {
+            return new Op.WaitForFrames(frames);
+        }
+        public static Op.WaitCycle Cycle(double seconds, Action<double> update)
+        {
+            return new Op.WaitCycle(seconds, update);
+        }
+        public static Op.WaitUntil Until(Func<bool> predicate)
+        {
+            return new Op.WaitUntil(predicate);
+        }
+        public static Op.WaitWhile While(Func<bool> predicate)
+        {
+            return new Op.WaitWhile(predicate);
         }
     }
 
@@ -3702,9 +3759,9 @@ namespace Dora
         /// </summary>
         /// <param name="filename">The name of the file to load.</param>
         /// <returns>The awaiter object to get content of the loaded file.</returns>
-        public static CallbackAwait<string> LoadAsync(string filename)
+        public static Co.Op.CallbackAwait<string> LoadAsync(string filename)
         {
-            return new CallbackAwait<string>(cb => Content.LoadAsync(filename, cb));
+            return new Co.Op.CallbackAwait<string>(cb => Content.LoadAsync(filename, cb));
         }
 
         /// <summary>
@@ -3713,9 +3770,9 @@ namespace Dora
         /// <param name="srcFile">The path of the file or folder to copy.</param>
         /// <param name="targetFile">The destination path of the copied files.</param>
         /// <returns>The awaiter object to get `true` if the file or folder was copied successfully, `false` otherwise.</returns>
-        public static CallbackAwait<bool> CopyAsync(string srcFile, string targetFile)
+        public static Co.Op.CallbackAwait<bool> CopyAsync(string srcFile, string targetFile)
         {
-            return new CallbackAwait<bool>(cb => Content.CopyAsync(srcFile, targetFile, cb));
+            return new Co.Op.CallbackAwait<bool>(cb => Content.CopyAsync(srcFile, targetFile, cb));
         }
         /// <summary>
         /// Asynchronously saves the specified content to a file with the specified filename.
@@ -3723,9 +3780,9 @@ namespace Dora
         /// <param name="filename">The name of the file to save.</param>
         /// <param name="content">The content to save to the file.</param>
         /// <returns>The awaiter object to get `true` if the content was saved successfully, `false` otherwise.</returns>
-        public static CallbackAwait<bool> SaveAsync(string filename, string content)
+        public static Co.Op.CallbackAwait<bool> SaveAsync(string filename, string content)
         {
-            return new CallbackAwait<bool>(cb => Content.SaveAsync(filename, content, cb));
+            return new Co.Op.CallbackAwait<bool>(cb => Content.SaveAsync(filename, content, cb));
         }
         /// <summary>
         /// Asynchronously compresses the specified folder to a ZIP archive with the specified filename.
@@ -3734,9 +3791,9 @@ namespace Dora
         /// <param name="zipFile">The name of the ZIP archive to create.</param>
         /// <param name="filter">An optional function to filter the files to include in the archive. The function takes a filename as input and returns a boolean indicating whether to include the file. If not provided, all files will be included.</param>
         /// <returns>The awaiter object to get `true` if the folder was compressed successfully, `false` otherwise.</returns>
-        public static CallbackAwait<bool> ZipAsync(string folderPath, string zipFile, Func<string, bool> filter)
+        public static Co.Op.CallbackAwait<bool> ZipAsync(string folderPath, string zipFile, Func<string, bool> filter)
         {
-            return new CallbackAwait<bool>(cb => Content.ZipAsync(folderPath, zipFile, filter, cb));
+            return new Co.Op.CallbackAwait<bool>(cb => Content.ZipAsync(folderPath, zipFile, filter, cb));
         }
         /// <summary>
         /// Asynchronously decompresses a ZIP archive to the specified folder.
@@ -3745,9 +3802,9 @@ namespace Dora
         /// <param name="folderPath">The path of the folder to decompress to, should be under the asset writable path.</param>
         /// <param name="filter">An optional function to filter the files to include in the archive. The function takes a filename as input and returns a boolean indicating whether to include the file. If not provided, all files will be included.</param>
         /// <returns>The awaiter object to get `true` if the folder was decompressed successfully, `false` otherwise.</returns>
-        public static CallbackAwait<bool> UnzipAsync(string zipFile, string folderPath, Func<string, bool> filter)
+        public static Co.Op.CallbackAwait<bool> UnzipAsync(string zipFile, string folderPath, Func<string, bool> filter)
         {
-            return new CallbackAwait<bool>(cb => Content.UnzipAsync(zipFile, folderPath, filter, cb));
+            return new Co.Op.CallbackAwait<bool>(cb => Content.UnzipAsync(zipFile, folderPath, filter, cb));
         }
     }
 
@@ -3758,9 +3815,9 @@ namespace Dora
         /// </summary>
         /// <param name="filename">The name of the file to load.</param>
         /// <returns>The awaiter object to get `true` if the asset was loaded successfully, `false` otherwise.</returns>
-        public static CallbackAwait<bool> LoadAsync(string filename)
+        public static Co.Op.CallbackAwait<bool> LoadAsync(string filename)
         {
-            return new CallbackAwait<bool>(cb => Cache.LoadAsync(filename, cb));
+            return new Co.Op.CallbackAwait<bool>(cb => Cache.LoadAsync(filename, cb));
         }
     }
 
@@ -3771,9 +3828,9 @@ namespace Dora
         /// </summary>
         /// <param name="query">A list of SQL statements to execute.</param>
         /// <returns>The awaiter object to get `true` if the transaction was successful, `false` otherwise.</returns>
-        public static CallbackAwait<bool> TransactionAsync(DBQuery query)
+        public static Co.Op.CallbackAwait<bool> TransactionAsync(DBQuery query)
         {
-            return new CallbackAwait<bool>(cb => DB.TransactionAsync(query, cb));
+            return new Co.Op.CallbackAwait<bool>(cb => DB.TransactionAsync(query, cb));
         }
         /// <summary>
 		/// Executes an SQL query asynchronously and returns the results as a list of rows.
@@ -3782,9 +3839,9 @@ namespace Dora
 		/// <param name="params_">Optional. A list of values to substitute into the SQL statement.</param>
 		/// <param name="withColumns">Optional. Whether to include column names in the result. Default is `false`.</param>
 		/// <returns>The awaiter object to get the results as a list of rows.</returns>
-        public static CallbackAwait<DBRecord> QueryAsync(string sql, Array params_, bool withColumns)
+        public static Co.Op.CallbackAwait<DBRecord> QueryAsync(string sql, Array params_, bool withColumns)
         {
-            return new CallbackAwait<DBRecord>(cb => DB.QueryAsync(sql, params_, withColumns, cb));
+            return new Co.Op.CallbackAwait<DBRecord>(cb => DB.QueryAsync(sql, params_, withColumns, cb));
         }
         /// <summary>
 		/// Inserts a row of data into a table within a transaction asynchronously.
@@ -3792,9 +3849,9 @@ namespace Dora
 		/// <param name="tableName">The name of the table to insert into.</param>
 		/// <param name="values">The values to insert into the table.</param>
         /// <returns>The awaiter object to get the result of the insertion.</returns>
-		public static CallbackAwait<bool> InsertAsync(string tableName, DBParams values)
+		public static Co.Op.CallbackAwait<bool> InsertAsync(string tableName, DBParams values)
         {
-            return new CallbackAwait<bool>(cb => DB.InsertAsync(tableName, values, cb));
+            return new Co.Op.CallbackAwait<bool>(cb => DB.InsertAsync(tableName, values, cb));
         }
         /// <summary>
 		/// Executes an SQL statement with a list of values within a transaction asynchronously and returns the number of rows affected.
@@ -3802,9 +3859,9 @@ namespace Dora
 		/// <param name="sql">The SQL statement to execute.</param>
 		/// <param name="values">A list of values to substitute into the SQL statement.</param>
 		/// <returns>The awaiter object to get the number of rows affected.</returns>
-		public static CallbackAwait<long> ExecAsync(string sql, DBParams values)
+		public static Co.Op.CallbackAwait<long> ExecAsync(string sql, DBParams values)
         {
-            return new CallbackAwait<long>(cb => DB.ExecAsync(sql, values, cb));
+            return new Co.Op.CallbackAwait<long>(cb => DB.ExecAsync(sql, values, cb));
         }
     }
 
@@ -3817,9 +3874,9 @@ namespace Dora
         /// <param name="json">The JSON data to send in the request body.</param>
         /// <param name="timeout">The timeout in seconds for the request.</param>
         /// <returns>The awaiter object to get the response body as a parameter.</returns>
-        public static CallbackAwaitOptional<string> PostAsync(string url, string json, float timeout)
+        public static Co.Op.CallbackAwaitOptional<string> PostAsync(string url, string json, float timeout)
         {
-            return new CallbackAwaitOptional<string>(cb => HttpClient.PostAsync(url, json, timeout, cb));
+            return new Co.Op.CallbackAwaitOptional<string>(cb => HttpClient.PostAsync(url, json, timeout, cb));
         }
         /// <summary>
         /// Sends a GET request to the specified URL and returns the response body.
@@ -3827,9 +3884,9 @@ namespace Dora
         /// <param name="url">The URL to send the request to.</param>
         /// <param name="timeout">The timeout in seconds for the request.</param>
         /// <returns>The awaiter object to get the response body as a parameter.</returns>
-        public static CallbackAwaitOptional<string> GetAsync(string url, float timeout)
+        public static Co.Op.CallbackAwaitOptional<string> GetAsync(string url, float timeout)
         {
-            return new CallbackAwaitOptional<string>(cb => HttpClient.GetAsync(url, timeout, cb));
+            return new Co.Op.CallbackAwaitOptional<string>(cb => HttpClient.GetAsync(url, timeout, cb));
         }
     }
 
@@ -3841,9 +3898,9 @@ namespace Dora
         /// </summary>
         /// <param name="filename">The name of the file to save the contents to.</param>
         /// <returns>The awaiter object to get a boolean value indicating whether the save operation was successful.</returns>
-        public CallbackAwait<bool> SaveAsync(string filename)
+        public Co.Op.CallbackAwait<bool> SaveAsync(string filename)
         {
-            return new CallbackAwait<bool>(cb => this.SaveAsync(filename, cb));
+            return new Co.Op.CallbackAwait<bool>(cb => this.SaveAsync(filename, cb));
         }
     }
 
