@@ -106,7 +106,7 @@ Application::Application()
 	, _frequency(double(bx::getHPFrequency()))
 	, _sdlWindow(nullptr)
 	, _themeColor(0xfffac03d)
-	, _winPosition{s_cast<float>(SDL_WINDOWPOS_CENTERED), s_cast<float>(SDL_WINDOWPOS_CENTERED)}
+	, _winPosition{-1.0f, -1.0f}
 	, _platformData{} {
 	_lastTime = bx::getHPCounter() / _frequency;
 #if !BX_PLATFORM_LINUX
@@ -209,9 +209,7 @@ void Application::setWinSize(Size var) {
 		SDL_SetWindowSize(_sdlWindow, s_cast<int>(var.width), s_cast<int>(var.height));
 		SDL_SetWindowPosition(_sdlWindow, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 	});
-	_winPosition = {-1.0f, -1.0f};
 	_fullScreen = false;
-	Event::send("AppChange"_slice, "Position"s);
 	Event::send("AppChange"_slice, "FullScreen"s);
 }
 
@@ -580,16 +578,20 @@ int Application::mainLogic(Application* app) {
 		}
 	}
 
+#if BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS || BX_PLATFORM_LINUX
+	for (int i = 0; i < 3; i++) {
+		app->_frame = bgfx::frame();
+	}
+	app->invokeInRender([app]() {
+		SDL_ShowWindow(app->_sdlWindow);
+	});
+#else
 	app->_frame = bgfx::frame();
+#endif
 
 	app->makeTimeNow();
 	app->_startTime = app->_lastTime;
 
-#if BX_PLATFORM_OSX || BX_PLATFORM_WINDOWS || BX_PLATFORM_LINUX
-	app->invokeInRender([app]() {
-		SDL_ShowWindow(app->_sdlWindow);
-	});
-#endif
 	SharedPoolManager.pop();
 
 	while (app->_logicRunning) {

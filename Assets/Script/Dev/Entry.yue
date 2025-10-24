@@ -102,11 +102,7 @@ if config.fixedFPS?
 else
 	config.fixedFPS = Director.scheduler.fixedFPS
 
-showEntry = false
-thread ->
-	sleep!
-	sleep!
-	showEntry = true
+showEntry = true
 
 isDesktop = false
 if App.platform in ["Linux", "Windows", "macOS"]

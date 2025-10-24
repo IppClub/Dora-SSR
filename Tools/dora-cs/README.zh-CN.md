@@ -94,7 +94,7 @@ App.Run(() =>
         for (int i = 3; i >= 1; i--)
         {
             Log.Info($"{i}");
-            yield return new WaitForSeconds(1.0);
+            yield return Co.Seconds(1.0);
         }
         Log.Info("Hello World");
         node.Perform(ActionDef.Sequence(
