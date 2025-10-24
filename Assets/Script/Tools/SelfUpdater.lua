@@ -92,7 +92,11 @@ local unzipDone = false -- 97
 local function download() -- 99
 	thread(function() -- 100
 		progress = 0 -- 101
-		local url, filename = table.unpack(getDownloadURL()) -- 102
+		local url, filename = table.unpack( -- 102
+			getDownloadURL(), -- 102
+			1, -- 102
+			2 -- 102
+		) -- 102
 		local targetFile = Path(Content.writablePath, ".download", filename) -- 103
 		downloadTargetFile = targetFile -- 104
 		Content:mkdir(Path(Content.writablePath, ".download")) -- 105

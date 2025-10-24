@@ -1092,7 +1092,7 @@ do -- 528
 		local body = Dora.Body(bodyDef, world) -- 660
 		if extraSensors ~= nil then -- 660
 			for i = 1, #extraSensors do -- 660
-				local tag, def = table.unpack(extraSensors[i]) -- 663
+				local tag, def = table.unpack(extraSensors[i], 1, 2) -- 663
 				body:attachSensor(tag, def) -- 664
 			end -- 664
 		end -- 664
