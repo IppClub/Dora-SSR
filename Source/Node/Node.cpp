@@ -764,10 +764,12 @@ FixedScheduledItem* Node::getFixedScheduledItem() {
 	return updateItem->fixedScheduledItem.get();
 }
 
-void Node::schedule(const std::function<bool(double)>& func) {
+void Node::schedule(const Update& func) {
 	auto updateItem = getUpdateItem();
-	auto funcRef = std::make_shared<std::function<bool(double)>>();
-	*funcRef = [func, funcRef](double deltaTime) {
+	auto funcRef = std::make_shared<Update>();
+	std::weak_ptr<Update> weak(funcRef);
+	*funcRef = [func, weak](double deltaTime) {
+		std::shared_ptr<Update> ref(weak);
 		return func(deltaTime);
 	};
 	updateItem->scheduledMainFunc = funcRef;
@@ -787,10 +789,12 @@ void Node::unschedule() {
 	}
 }
 
-void Node::onUpdate(const std::function<bool(double)>& func) {
+void Node::onUpdate(const Update& func) {
 	auto updateItem = getUpdateItem();
-	auto funcRef = std::make_shared<std::function<bool(double)>>();
-	*funcRef = [func, funcRef](double deltaTime) {
+	auto funcRef = std::make_shared<Update>();
+	std::weak_ptr<Update> weak(funcRef);
+	*funcRef = [func, weak](double deltaTime) {
+		std::shared_ptr<Update> ref(weak);
 		return func(deltaTime);
 	};
 	updateItem->scheduledThreadFuncs.push_back(funcRef);
@@ -800,10 +804,10 @@ void Node::onUpdate(const std::function<bool(double)>& func) {
 	}
 }
 
-void Node::onRender(const std::function<bool(double)>& func) {
+void Node::onRender(const Update& func) {
 	auto updateItem = getUpdateItem();
 	if (!updateItem->renderFuncs) {
-		updateItem->renderFuncs = New<std::list<std::function<bool(double)>>>();
+		updateItem->renderFuncs = New<std::list<Update>>();
 	}
 	updateItem->renderFuncs->push_back(func);
 }
