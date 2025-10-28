@@ -64,7 +64,7 @@ set_target_properties(
 add_library(DORA-lib STATIC IMPORTED)
 set_target_properties(
 	DORA-lib PROPERTIES IMPORTED_LOCATION
-	${CMAKE_SOURCE_DIR}/../../Source/Rust/lib/Linux/libdora_runtime.a
+	${CMAKE_SOURCE_DIR}/3rdParty/libs/libdora_runtime.a
 )
 
 add_definitions(-DWITH_SDL2 -DBX_CONFIG_DEBUG=0 -Dd_m3HasWASI -DLUA_USE_LINUX -DSPDLOG_FMT_EXTERNAL)
