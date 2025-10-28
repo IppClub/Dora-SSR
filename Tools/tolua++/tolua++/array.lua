@@ -56,8 +56,8 @@ function classArray:supcode()
 		output("/* get function:", self.name, " */")
 	end
 	self.cgetname = self:cfuncname("tolua_get")
-	output("#ifndef TOLUA_DISABLE_" .. self.cgetname)
-	output("\nstatic int", self.cgetname, "(lua_State* tolua_S)")
+	-- output("#ifndef TOLUA_DISABLE_" .. self.cgetname)
+	output("static int", self.cgetname, "(lua_State* tolua_S)")
 	output("{")
 	output(" int tolua_index;")
 
@@ -79,7 +79,7 @@ function classArray:supcode()
 	output(" {")
 	output("  tolua_Error tolua_err;")
 	output("  if (!tolua_isnumber(tolua_S,2,0,&tolua_err))")
-	output('   tolua_error(tolua_S,"#vinvalid type in array indexing.",&tolua_err);')
+	output('tolua_error(tolua_S,"#vinvalid type in array indexing.",&tolua_err);')
 	output(" }")
 	output("#endif\n")
 	if flags["1"] then -- for compatibility with tolua5 ?
@@ -93,7 +93,7 @@ function classArray:supcode()
 	else
 		output(" if (tolua_index<0)")
 	end
-	output('  tolua_error(tolua_S,"array indexing out of range.",NULL);')
+	output('tolua_error(tolua_S,"array indexing out of range.",NULL);')
 	output("#endif\n")
 
 	-- return value
@@ -121,8 +121,8 @@ function classArray:supcode()
 	end
 	output(" return 1;")
 	output("}")
-	output("#endif //#ifndef TOLUA_DISABLE\n")
-	output("\n")
+	-- output("#endif //#ifndef TOLUA_DISABLE\n")
+	-- output("\n")
 
 	-- set function ------------------------------------------------
 	if not strfind(self.type, "const") then
@@ -132,8 +132,8 @@ function classArray:supcode()
 			output("/* set function:", self.name, " */")
 		end
 		self.csetname = self:cfuncname("tolua_set")
-		output("#ifndef TOLUA_DISABLE_" .. self.csetname)
-		output("\nstatic int", self.csetname, "(lua_State* tolua_S)")
+		-- output("#ifndef TOLUA_DISABLE_" .. self.csetname)
+		output("static int", self.csetname, "(lua_State* tolua_S)")
 		output("{")
 
 		-- declare index
@@ -157,7 +157,7 @@ function classArray:supcode()
 		output(" {")
 		output("  tolua_Error tolua_err;")
 		output("  if (!tolua_isnumber(tolua_S,2,0,&tolua_err))")
-		output('   tolua_error(tolua_S,"#vinvalid type in array indexing.",&tolua_err);')
+		output('tolua_error(tolua_S,"#vinvalid type in array indexing.",&tolua_err);')
 		output(" }")
 		output("#endif\n")
 
@@ -173,7 +173,7 @@ function classArray:supcode()
 		else
 			output(" if (tolua_index<0)")
 		end
-		output('  tolua_error(tolua_S,"array indexing out of range.",NULL);')
+		output('tolua_error(tolua_S,"array indexing out of range.",NULL);')
 		output("#endif\n")
 
 		-- assign value
@@ -211,8 +211,8 @@ function classArray:supcode()
 		end
 		output(" return 0;")
 		output("}")
-		output("#endif //#ifndef TOLUA_DISABLE\n")
-		output("\n")
+		-- output("#endif //#ifndef TOLUA_DISABLE\n")
+		-- output("\n")
 	end
 end
 

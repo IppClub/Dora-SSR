@@ -65,8 +65,6 @@ void tolua_pushobject(lua_State* L, Object* object) {
 		lua_pop(L, 1); // newud
 		lua_rawgeti(L, LUA_REGISTRYINDEX, object->getDoraType()); // newud mt
 		lua_setmetatable(L, -2); // newud<mt>, newud
-		lua_pushvalue(L, TOLUA_NOPEER);
-		lua_setuservalue(L, -2);
 		// register Object GC
 		object->retain();
 		Object::incLuaRefCount();

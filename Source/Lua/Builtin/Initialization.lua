@@ -276,7 +276,7 @@ end
 
 -- async functions
 do
-	local Content = Dora.Content
+	local Content = getmetatable(Dora.Content)
 	local wait = Dora.wait
 	local Content_loadAsync = Content.loadAsync
 	Content.loadAsync = function(self, filename)
@@ -431,7 +431,7 @@ do
 		return saved
 	end
 
-	local DB = Dora.DB
+	local DB = getmetatable(Dora.DB)
 	local DB_queryAsync = DB.queryAsync
 	DB.queryAsync = function(self, ...)
 		local _, mainThread = coroutine.running()
@@ -561,7 +561,7 @@ do
 		return result
 	end
 
-	local HttpServer = Dora.HttpServer
+	local HttpServer = getmetatable(Dora.HttpServer)
 	local HttpServer_postSchedule = HttpServer.postSchedule
 	HttpServer.postSchedule = function(self, pattern, scheduleFunc)
 		HttpServer_postSchedule(self, pattern, function(req)
@@ -571,7 +571,7 @@ do
 		end)
 	end
 
-	local HttpClient = Dora.HttpClient
+	local HttpClient = getmetatable(Dora.HttpClient)
 	local HttpClient_downloadAsync = HttpClient.downloadAsync
 	HttpClient.downloadAsync = function(self, url, filePath, timeout, progress)
 		local _, mainThread = coroutine.running()

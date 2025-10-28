@@ -127,8 +127,8 @@ function classVariable:supcode()
 		output("/* get function:", self.name, " */")
 	end
 	self.cgetname = self:cfuncname("tolua_get")
-	output("#ifndef TOLUA_DISABLE_" .. self.cgetname)
-	output("\nstatic int", self.cgetname, "(lua_State* tolua_S)")
+	-- output("#ifndef TOLUA_DISABLE_" .. self.cgetname)
+	output("static int", self.cgetname, "(lua_State* tolua_S)")
 	output("{")
 
 	-- declare self, if the case
@@ -160,9 +160,7 @@ function classVariable:supcode()
 
 	local except = string.find(self.mod, "tolua_except")
 	if except then
-		output("#ifndef TOLUA_RELEASE\n")
-		output("  try {\n")
-		output("#endif\n")
+		output("  TOLUA_TRY\n")
 	end
 
 	local is_function = self.type:match("^tolua_function.*$") ~= nil or self.type == "tolua_handler"
@@ -192,7 +190,7 @@ function classVariable:supcode()
 				output(" ", push_func, "(tolua_S,tolua_obj);")
 			elseif push_func == "tolua_pushusertype" then
 				output(
-					"	void* tolua_obj = Mtolua_new((",
+					" void* tolua_obj = Mtolua_new((",
 					new_t,
 					")(" .. self:getvalue(class, static, prop_get) .. "));"
 				)
@@ -216,15 +214,13 @@ function classVariable:supcode()
 	end
 
 	if except then
-		output("#ifndef TOLUA_RELEASE\n")
-		output("  } catch (std::runtime_error& e) { luaL_error(tolua_S,e.what()); }\n")
-		output("#endif\n")
+		output("  TOLUA_CATCH\n")
 	end
 
 	output(" return 1;")
 	output("}")
-	output("#endif //#ifndef TOLUA_DISABLE\n")
-	output("\n")
+	-- output("#endif //#ifndef TOLUA_DISABLE\n")
+	-- output("\n")
 
 	-- set function ------------------------------------------------
 	if
@@ -237,8 +233,8 @@ function classVariable:supcode()
 			output("/* set function:", self.name, " */")
 		end
 		self.csetname = self:cfuncname("tolua_set")
-		output("#ifndef TOLUA_DISABLE_" .. self.csetname)
-		output("\nstatic int", self.csetname, "(lua_State* tolua_S)")
+		-- output("#ifndef TOLUA_DISABLE_" .. self.csetname)
+		output("static int", self.csetname, "(lua_State* tolua_S)")
 		output("{")
 
 		-- declare self, if the case
@@ -278,13 +274,11 @@ function classVariable:supcode()
 			output("  if (" .. self:outchecktype(var_index) .. ")")
 		end
 		output(
-			'   tolua_error(tolua_S,"#vinvalid type in variable assignment for \'' ..
+			'tolua_error(tolua_S,"#vinvalid type in variable assignment for \'' ..
 				(class and class .. "." or "") .. self.name .. '\'",&tolua_err);'
 		)
 		output("#endif\n")
-		output("#ifndef TOLUA_RELEASE\n")
-		output("  try {\n")
-		output("#endif\n")
+		output("  TOLUA_TRY\n")
 		-- assign value
 		local def = 0
 		if self.def ~= "" then
@@ -362,13 +356,11 @@ function classVariable:supcode()
 			end
 			output(prop_set and ");" or ";")
 		end
-		output("#ifndef TOLUA_RELEASE\n")
-		output("  } catch (std::runtime_error& e) { luaL_error(tolua_S,e.what()); }\n")
-		output("#endif\n")
+		output("  TOLUA_CATCH\n")
 		output("  return 0;")
 		output("}")
-		output("#endif //#ifndef TOLUA_DISABLE\n")
-		output("\n")
+		-- output("#endif //#ifndef TOLUA_DISABLE\n")
+		-- output("\n")
 	end
 end
 

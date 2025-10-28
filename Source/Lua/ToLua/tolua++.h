@@ -72,8 +72,6 @@ struct tolua_Error {
 };
 typedef struct tolua_Error tolua_Error;
 
-#define TOLUA_NOPEER LUA_REGISTRYINDEX
-
 class Object;
 
 Slice tolua_typename(lua_State* L, int lo);
@@ -214,6 +212,14 @@ Slice tolua_tofieldslice(lua_State* L, int lo, int index, const char* def);
 
 #define TOLUA_API
 #define _cstring const char*
+
+#ifdef TOLUA_RELEASE
+#define TOLUA_TRY
+#define TOLUA_CATCH
+#else
+#define TOLUA_TRY try {
+#define TOLUA_CATCH } catch (std::runtime_error& e) { luaL_error(tolua_S,e.what()); }
+#endif // TOLUA_RELEASE
 
 union LightValue {
 	using ValueType = Vec2;
