@@ -85,11 +85,11 @@ function classFunction:supcode(local_constructor)
 	end
 
 	if local_constructor then
-		output("#ifndef TOLUA_DISABLE_" .. self.cname .. "_local")
-		output("\nstatic int", self.cname .. "_local", "(lua_State* tolua_S)")
+		-- output("#ifndef TOLUA_DISABLE_" .. self.cname .. "_local")
+		output("static int", self.cname .. "_local", "(lua_State* tolua_S)")
 	else
-		output("#ifndef TOLUA_DISABLE_" .. self.cname)
-		output("\nstatic int", self.cname, "(lua_State* tolua_S)")
+		-- output("#ifndef TOLUA_DISABLE_" .. self.cname)
+		output("static int", self.cname, "(lua_State* tolua_S)")
 	end
 	output("{")
 
@@ -114,7 +114,7 @@ function classFunction:supcode(local_constructor)
 			if self.const ~= "" then
 				type = "const " .. type
 			end
-			output("	 !" .. func .. '(tolua_S,1,"' .. _usertype[self.parent.type] .. '"_slice,0,&tolua_err) ||\n')
+			output("  !" .. func .. '(tolua_S,1,"' .. _usertype[self.parent.type] .. '"_slice,0,&tolua_err) ||\n')
 		end
 	elseif skip_self then
 		narg = 2
@@ -128,7 +128,7 @@ function classFunction:supcode(local_constructor)
 		while self.args[i] do
 			local btype = isbasic(self.args[i].type)
 			if btype ~= "value" and btype ~= "state" then
-				output("	 " .. self.args[i]:outchecktype(narg) .. " ||\n")
+				output("  " .. self.args[i]:outchecktype(narg) .. " ||\n")
 			end
 			if btype ~= "state" then
 				narg = narg + 1
@@ -137,8 +137,8 @@ function classFunction:supcode(local_constructor)
 		end
 	end
 	-- check end of list
-	output("	 !tolua_isnoobj(tolua_S," .. narg .. ",&tolua_err)\n )")
-	output("  goto tolua_lerror;")
+	output("  !tolua_isnoobj(tolua_S," .. narg .. ",&tolua_err)\n )")
+	output("goto tolua_lerror;")
 
 	output(" else\n")
 	if overload < 0 then
@@ -204,9 +204,7 @@ function classFunction:supcode(local_constructor)
 
 	pre_call_hook(self)
 
-	output("#ifndef TOLUA_RELEASE\n")
-	output("  try {\n")
-	output("#endif\n")
+	output("  TOLUA_TRY\n")
 
 	-- call function
 	if class and self.name == "delete" then
@@ -312,14 +310,14 @@ function classFunction:supcode(local_constructor)
 				if self.ptr == "" then
 					output("   {")
 					if push_func == _push_object_func_name then
-						output("	", push_func, "(tolua_S,tolua_ret);")
+						output(" ", push_func, "(tolua_S,tolua_ret);")
 					elseif push_func == _push_light_func_name then
-						output("	", push_func, "(tolua_S,tolua_ret);")
+						output(" ", push_func, "(tolua_S,tolua_ret);")
 					elseif push_func == "tolua_pushusertype" then
-						output("	void* tolua_obj = Mtolua_new((", new_t, ")(tolua_ret));")
-						output("	", push_func, "(tolua_S,tolua_obj,LuaType<" .. new_t .. ">());")
+						output(" void* tolua_obj = Mtolua_new((", new_t, ")(tolua_ret));")
+						output(" ", push_func, "(tolua_S,tolua_obj,LuaType<" .. new_t .. ">());")
 					else
-						output("	", push_func, '(tolua_S,tolua_obj,"', new_t, '");')
+						output(" ", push_func, '(tolua_S,tolua_obj,"', new_t, '");')
 					end
 					output("   }")
 				else
@@ -342,9 +340,7 @@ function classFunction:supcode(local_constructor)
 			i = i + 1
 		end
 		output("  }")
-		output("#ifndef TOLUA_RELEASE\n")
-		output("  } catch (std::runtime_error& e) { luaL_error(tolua_S,e.what()); }\n")
-		output("#endif\n")
+		output("  TOLUA_CATCH\n")
 
 		-- set array element values
 		if check_self or skip_self then
@@ -381,12 +377,12 @@ function classFunction:supcode(local_constructor)
 		output("tolua_lerror:\n")
 		if class then
 			output(
-				' tolua_error(tolua_S,"' ..
+				'tolua_error(tolua_S,"' ..
 					output_error_hook("#ferror in function '" .. class .. ".%s'.", self.lname:gsub('%.', '')) .. '",&tolua_err);'
 			)
 		else
 			output(
-				' tolua_error(tolua_S,"' ..
+				'tolua_error(tolua_S,"' ..
 					output_error_hook("#ferror in function '%s'.", self.lname:gsub('%.', '')) .. '",&tolua_err);'
 			)
 		end
@@ -401,8 +397,8 @@ function classFunction:supcode(local_constructor)
 		output(" return " .. strsub(self.cname, 1, -3) .. format("%02d", overload) .. _local .. "(tolua_S);")
 	end
 	output("}")
-	output("#endif //#ifndef TOLUA_DISABLE\n")
-	output("\n")
+	-- output("#endif //#ifndef TOLUA_DISABLE\n")
+	-- output("\n")
 
 	-- recursive call to write local constructor
 	if class and self.name == "new" and not local_constructor then

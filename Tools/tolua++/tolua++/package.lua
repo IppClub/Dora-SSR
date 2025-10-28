@@ -168,7 +168,7 @@ function classPackage:preamble()
 		output("\n")
 		output("/* function to release collected object via destructor */")
 		for i, v in pairs(_collect) do
-			output("\nstatic int " .. v .. " (lua_State* tolua_S)")
+			output("static int " .. v .. " (lua_State* tolua_S)")
 			output("{")
 			output("  " .. i .. "* self = (" .. i .. "*) tolua_tousertype(tolua_S,1,0);")
 			output("  Mtolua_delete(self);")
@@ -210,7 +210,7 @@ end
 function classPackage:register(pre)
 	pre = pre or ""
 	push(self)
-	output(pre .. "/* Open function */")
+	output(pre .. "\n/* Open function */")
 	output(pre .. "TOLUA_API int tolua_" .. self.name .. "_open (lua_State* tolua_S)")
 	output(pre .. "{")
 	output(pre .. " tolua_open(tolua_S);")

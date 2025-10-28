@@ -290,7 +290,7 @@ function output(...)
 		end
 		i = i + 1
 	end
-	if strfind(select(n, ...), "[%/%)%;%{%}]$") then
+	if strfind(select(n, ...), "[%/%;%{%}]$") then
 		_cont = nil
 		write("\n")
 	end

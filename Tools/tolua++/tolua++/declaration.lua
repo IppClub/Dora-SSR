@@ -368,11 +368,11 @@ function classDeclaration:getarray(narg)
 				",&tolua_err))"
 			)
 		end
-		output("	goto tolua_lerror;")
+		output(" goto tolua_lerror;")
 		output("   else\n")
 		output("#endif\n")
 		output("   {")
-		output("	for (int i=0;i<(int)" .. self.dim .. ";i++)")
+		output(" for (int i=0;i<(int)" .. self.dim .. ";i++)")
 		local t = isbasic(type)
 		if _light_object ~= type then
 			local ptr = ""
@@ -419,12 +419,12 @@ function classDeclaration:setarray(narg)
 		output("   for(i=0; i<(int)" .. self.dim .. ";i++)")
 		local t, ct = isbasic(type)
 		if t then
-			output("	tolua_pushfield" .. t .. "(tolua_S,", narg, ",i+1,(", ct, ")", self.name, "[i]);")
+			output(" tolua_pushfield" .. t .. "(tolua_S,", narg, ",i+1,(", ct, ")", self.name, "[i]);")
 		else
 			if self.ptr == "" then
 				output("   {")
-				output("	void* tolua_obj = Mtolua_new((", type, ")(", self.name, "[i]));")
-				output("	tolua_pushfieldusertype_and_takeownership(tolua_S,", narg, ',i+1,tolua_obj,"', type, '");')
+				output(" void* tolua_obj = Mtolua_new((", type, ")(", self.name, "[i]));")
+				output(" tolua_pushfieldusertype_and_takeownership(tolua_S,", narg, ',i+1,tolua_obj,"', type, '");')
 				output("   }")
 			else
 				output("   tolua_pushfieldusertype(tolua_S,", narg, ",i+1,(void*)", self.name, '[i],"', type, '");')
@@ -472,7 +472,7 @@ function classDeclaration:retvalue()
 			if push_func == _push_object_func_name then
 				output(" ", push_func, "(tolua_S," .. self.name .. ");")
 			elseif push_func == "tolua_pushusertype" then
-				output("	void* tolua_obj = Mtolua_new((", t, ")(", self.name, "));")
+				output(" void* tolua_obj = Mtolua_new((", t, ")(", self.name, "));")
 				output(" ", push_func, "(tolua_S,tolua_obj,LuaType<*" .. t .. ">());")
 			else
 				output("   ", push_func, "(tolua_S,(void*)" .. self.name .. ',"', t, '");')

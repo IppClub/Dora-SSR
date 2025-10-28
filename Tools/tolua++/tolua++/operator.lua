@@ -60,8 +60,8 @@ function classOperator:supcode_tmp()
 	-- no overload, no parameters, always inclass
 	output("/* method:", self.name, " of class ", self:inclass(), " */")
 
-	output("#ifndef TOLUA_DISABLE_" .. self.cname)
-	output("\nstatic int", self.cname, "(lua_State* tolua_S)")
+	-- output("#ifndef TOLUA_DISABLE_" .. self.cname)
+	output("static int", self.cname, "(lua_State* tolua_S)")
 
 	if overload < 0 then
 		output("#ifndef TOLUA_RELEASE\n")
@@ -70,9 +70,9 @@ function classOperator:supcode_tmp()
 	output(" if (\n")
 	-- check self
 	local is_func = get_is_function(self.parent.type)
-	output("	 !" .. is_func .. '(tolua_S,1,"' .. _userltype[self.parent.type] .. '",0,&tolua_err) ||\n')
-	output("	 !tolua_isnoobj(tolua_S,2,&tolua_err)\n )")
-	output("  goto tolua_lerror;")
+	output("  !" .. is_func .. '(tolua_S,1,"' .. _userltype[self.parent.type] .. '",0,&tolua_err) ||\n')
+	output("  !tolua_isnoobj(tolua_S,2,&tolua_err)\n )")
+	output("goto tolua_lerror;")
 
 	output(" else\n")
 	output("#endif\n") -- tolua_release
@@ -107,8 +107,8 @@ function classOperator:supcode_tmp()
 		-- t = _userltype[t] -- convert to renamed type
 		if self.ptr == "" then
 			output("   {")
-			output("	void* tolua_obj = Mtolua_new((", new_t, ")(tolua_ret));")
-			output("	", push_func, '(tolua_S,tolua_obj,"', t, '");')
+			output(" void* tolua_obj = Mtolua_new((", new_t, ")(tolua_ret));")
+			output(" ", push_func, '(tolua_S,tolua_obj,"', t, '");')
 			output("   }")
 		else
 			local ref = ""
@@ -135,8 +135,8 @@ function classOperator:supcode_tmp()
 	output("#endif\n")
 
 	output("}")
-	output("#endif //#ifndef TOLUA_DISABLE\n")
-	output("\n")
+	-- output("#endif //#ifndef TOLUA_DISABLE\n")
+	-- output("\n")
 end
 
 -- Internal constructor
