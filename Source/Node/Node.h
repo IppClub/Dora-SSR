@@ -109,11 +109,13 @@ public:
 
 	Node* getChildByTag(String tag);
 
-	void schedule(const std::function<bool(double)>& func);
+	using Update = std::function<bool(double)>;
+
+	void schedule(const Update& func);
 	void unschedule();
 
-	void onUpdate(const std::function<bool(double)>& func);
-	void onRender(const std::function<bool(double)>& func);
+	void onUpdate(const Update& func);
+	void onRender(const Update& func);
 
 	Vec2 convertToNodeSpace(const Vec2& worldPoint);
 	Vec2 convertToWorldSpace(const Vec2& nodePoint);
@@ -340,9 +342,9 @@ protected:
 	std::optional<std::string> _tag;
 	std::shared_ptr<NodeTouchHandler> _touchHandler;
 	struct UpdateItem {
-		Own<std::list<std::function<bool(double)>>> renderFuncs;
-		std::shared_ptr<std::function<bool(double)>> scheduledMainFunc;
-		std::list<std::shared_ptr<std::function<bool(double)>>> scheduledThreadFuncs;
+		Own<std::list<Update>> renderFuncs;
+		std::shared_ptr<Update> scheduledMainFunc;
+		std::list<std::shared_ptr<Update>> scheduledThreadFuncs;
 		Own<ScheduledItem> scheduledItem;
 		Own<FixedScheduledItem> fixedScheduledItem;
 		bool hasFunc() const;
