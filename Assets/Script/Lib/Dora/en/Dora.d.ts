@@ -6262,7 +6262,7 @@ class Sprite extends Node {
 	/**
 	 * The texture for the sprite.
 	 */
-	texture: Texture2D;
+	readonly texture: Texture2D;
 
 	/**
 	 * The texture wrapping mode for the U (horizontal) axis.

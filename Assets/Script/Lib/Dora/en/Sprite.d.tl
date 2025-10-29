@@ -42,7 +42,7 @@ local record Sprite
 	effect: SpriteEffect
 
 	-- The texture for the sprite.
-	texture: Texture2D
+	const texture: Texture2D
 
 	-- The texture wrapping mode for the U (horizontal) axis.
 	uwrap: TextureWrap
