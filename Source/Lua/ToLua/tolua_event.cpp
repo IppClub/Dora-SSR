@@ -190,53 +190,81 @@ static int class_newindex_event(lua_State* L) {
 	const int SetIndex = s_cast<int>(tolua_mt::Set);
 	/* 1 ud, 2 key, 3 value */
 	int t = lua_type(L, 1);
-	if (t == LUA_TUSERDATA || t == LUA_TLIGHTUSERDATA) { // __newindex for ud
-		int loop = 0;
-		lua_getmetatable(L, 1); // ud key value mt
-		lua_pushvalue(L, -1); // ud key value mt mt
-		while (lua_istable(L, -1)) { // mt is table
-			lua_rawgeti(L, -1, SetIndex);
-			if (lua_istable(L, -1)) {
-				lua_pushvalue(L, 2);
-				lua_rawget(L, -2); /* stack: t k v mt tset func */
-				if (lua_isfunction(L, -1)) {
-					if (loop) {
-						lua_rawgeti(L, 4, SetIndex); // cfunc set
-						if (!lua_toboolean(L, -1)) { // not set
-							lua_pop(L, 1); // cfunc
-							lua_newtable(L); // cfunc tb
-							lua_pushvalue(L, -1); // cfunc tb tb
-							lua_rawseti(L, 4, SetIndex); // mt[MT_SET] = tb, cfunc tb
-						}
-						lua_pushvalue(L, 2); // cfunc set key
-						lua_pushvalue(L, -3); // cfunc set key cfunc
-						lua_rawset(L, -3); // set[key] = cfunc, cfunc set
-						lua_pop(L, 1); // cfunc
-					}
-					lua_pushvalue(L, 1); // cfunc ud
-					lua_pushvalue(L, 3); // cfunc ud value
-					lua_call(L, 2, 0);
-					return 0;
+	switch (t) {
+		case LUA_TUSERDATA:
+		case LUA_TLIGHTUSERDATA:
+			break;
+		case LUA_TTABLE: // __newindex for ud`s class
+			return module_newindex_event(L);
+		default:
+			return 0;
+	}
+	lua_getmetatable(L, 1); // ud key value mt
+	lua_rawgeti(L, -1, SetIndex); // ud key value mt tset
+	if (lua_istable(L, -1)) {
+		lua_pushvalue(L, 2); // ud key value mt tset key
+		lua_rawget(L, -2); // tset[key], ud key value mt tset cfunc
+		if (lua_isfunction(L, -1)) { // check cfunc
+			lua_rawgeti(L, 4, SetIndex); // cfunc tset
+			if (!lua_toboolean(L, -1)) { // no tset
+				lua_pop(L, 1); // cfunc
+				lua_newtable(L); // cfunc tset
+				lua_pushvalue(L, -1); // cfunc tset tset
+				lua_rawseti(L, 4, SetIndex); // mt[MT_SET] = tset, cfunc tset
+			}
+			lua_pushvalue(L, 2); // cfunc tset key
+			lua_pushvalue(L, -3); // cfunc tset key cfunc
+			lua_rawset(L, -3); // tset[key] = cfunc, cfunc tset
+			lua_pop(L, 1); // cfunc
+			lua_pushvalue(L, 1); // cfunc ud
+			lua_pushvalue(L, 3); // cfunc ud value
+			lua_call(L, 2, 0);
+			return 0;
+		}
+		lua_pop(L, 1); // ud key value mt tset
+	}
+	lua_pop(L, 1); // ud key value mt
+	if (!lua_getmetatable(L, -1)) { // ud key value mt super
+		lua_pushnil(L);
+	}
+	lua_pushvalue(L, -1); // ud key value mt super
+	while (lua_istable(L, -1)) { // super is table
+		lua_rawgeti(L, -1, SetIndex); // ud key value mt super tset
+		if (lua_istable(L, -1)) {
+			lua_pushvalue(L, 2); // ud key value mt super tset key
+			lua_rawget(L, -2); // ud key value mt super tset cfunc
+			if (lua_isfunction(L, -1)) {
+				lua_rawgeti(L, 4, SetIndex); // cfunc set
+				if (!lua_toboolean(L, -1)) { // no tset
+					lua_pop(L, 1); // cfunc
+					lua_newtable(L); // cfunc tset
+					lua_pushvalue(L, -1); // cfunc tset tset
+					lua_rawseti(L, 4, SetIndex); // mt[MT_SET] = tset, cfunc tset
 				}
-				lua_pop(L, 1); /* stack: t k v mt tset */
+				lua_pushvalue(L, 2); // cfunc tset key
+				lua_pushvalue(L, -3); // cfunc tset key cfunc
+				lua_rawset(L, -3); // tset[key] = cfunc, cfunc tset
+				lua_pop(L, 1); // cfunc
+				lua_pushvalue(L, 1); // cfunc ud
+				lua_pushvalue(L, 3); // cfunc ud value
+				lua_call(L, 2, 0);
+				return 0;
 			}
-			lua_pop(L, 1); /* stack: t k v mt */
-			if (!lua_getmetatable(L, -1)) { /* stack: t k v mt mt */
-				lua_pushnil(L);
-			}
-			lua_remove(L, -2); /* stack: t k v mt */
-			loop++;
+			lua_pop(L, 1); // ud key value mt super tset
 		}
-		lua_settop(L, 3); /* stack: t k v */
+		lua_pop(L, 1); // ud key value mt super
+		if (!lua_getmetatable(L, -1)) { // ud key value mt super new_super
+			lua_pushnil(L);
+		}
+		lua_remove(L, -2); // ud key value mt new_super
+	}
+	lua_settop(L, 3); // ud key value
 
-		/* then, store as a new field */
-		if (t == LUA_TUSERDATA) {
-			storeatubox(L, 1);
-		} else {
-			luaL_error(L, "can not add custom field to a light user data object.");
-		}
-	} else if (t == LUA_TTABLE) { // __newindex for ud`s class
-		module_newindex_event(L);
+	/* then, store as a new field */
+	if (t == LUA_TUSERDATA) {
+		storeatubox(L, 1);
+	} else {
+		luaL_error(L, "can not add custom field to a light user data object.");
 	}
 	return 0;
 }
