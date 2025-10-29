@@ -982,11 +982,6 @@ const sidebars = {
 				},
 				{
 					type: 'doc',
-					label: 'PlatformCamera Class',
-					id: 'api/Class Object/Platformer/PlatformCamera',
-				},
-				{
-					type: 'doc',
 					label: 'TargetAllow',
 					id: 'api/Class/Platformer/TargetAllow',
 				},
