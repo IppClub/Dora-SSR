@@ -42,7 +42,7 @@ local record Sprite
 	effect: SpriteEffect
 
 	-- 要渲染的纹理对象.
-	texture: Texture2D
+	const texture: Texture2D
 
 	-- 渲染使用的 U（水平）轴的纹理环绕模式。
 	uwrap: TextureWrap

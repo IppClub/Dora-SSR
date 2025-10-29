@@ -6265,7 +6265,7 @@ class Sprite extends Node {
 	/**
 	 * 图元的纹理。
 	 */
-	texture: Texture2D;
+	readonly texture: Texture2D;
 
 	/**
 	 * U（水平）轴的纹理包裹模式。
