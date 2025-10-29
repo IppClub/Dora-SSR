@@ -96,7 +96,7 @@ static int module_newindex_event(lua_State* L) {
  */
 static int class_index_event(lua_State* L) {
 	const int GetIndex = s_cast<int>(tolua_mt::Get);
-	/* 1 ud 2 key */
+	// 1 ud 2 key
 	int t = lua_type(L, 1);
 	switch (t) {
 		case LUA_TUSERDATA:
@@ -108,6 +108,7 @@ static int class_index_event(lua_State* L) {
 			lua_pushnil(L);
 			return 1;
 	}
+	// 1. direct access
 	lua_getmetatable(L, 1); // ud key mt
 	lua_rawgeti(L, -1, GetIndex); // ud key mt tget
 	if (lua_istable(L, -1)) {
@@ -126,6 +127,7 @@ static int class_index_event(lua_State* L) {
 	if (!lua_isnil(L, -1)) {
 		return 1;
 	}
+	// 2. search all the super classes
 	lua_settop(L, 3);
 	/* 1 ud, 2 key, 3 mt */
 	lua_pushvalue(L, 3); // ud key mt mt
@@ -166,6 +168,7 @@ static int class_index_event(lua_State* L) {
 			lua_pop(L, 1); // ud key mt super
 		}
 	}
+	// 3. finally, retrieval of the user field
 	if (t == LUA_TUSERDATA) {
 		lua_settop(L, 2); // ud key
 		/* try peer table */
@@ -188,7 +191,7 @@ static int class_index_event(lua_State* L) {
  */
 static int class_newindex_event(lua_State* L) {
 	const int SetIndex = s_cast<int>(tolua_mt::Set);
-	/* 1 ud, 2 key, 3 value */
+	// 1 ud, 2 key, 3 value
 	int t = lua_type(L, 1);
 	switch (t) {
 		case LUA_TUSERDATA:
@@ -199,6 +202,7 @@ static int class_newindex_event(lua_State* L) {
 		default:
 			return 0;
 	}
+	// 1. direct access
 	lua_getmetatable(L, 1); // ud key value mt
 	lua_rawgeti(L, -1, SetIndex); // ud key value mt tset
 	if (lua_istable(L, -1)) {
@@ -223,6 +227,7 @@ static int class_newindex_event(lua_State* L) {
 		}
 		lua_pop(L, 1); // ud key value mt tset
 	}
+	// 2. search all the super classes
 	lua_pop(L, 1); // ud key value mt
 	if (!lua_getmetatable(L, -1)) { // ud key value mt super
 		lua_pushnil(L);
@@ -259,8 +264,7 @@ static int class_newindex_event(lua_State* L) {
 		lua_remove(L, -2); // ud key value mt new_super
 	}
 	lua_settop(L, 3); // ud key value
-
-	/* then, store as a new field */
+	// 3. finally, store as a new user field
 	if (t == LUA_TUSERDATA) {
 		storeatubox(L, 1);
 	} else {
