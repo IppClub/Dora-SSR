@@ -68,15 +68,6 @@ export const Settings = function(app) {
 		.observable('50')
 		.extend({ persist: 'redrawThrottle' });
 
-	// Spellcheck enabled
-	this.spellcheckEnabled = ko
-		.observable(
-			storage.getItem('spellcheckEnabled') !== null
-				? storage.getItem('spellcheckEnabled') === 'true'
-				: false
-		)
-		.extend({ persist: 'spellcheckEnabled' });
-
 	// Auto Close Tags
 	this.autoCloseTags = ko
 		.observable(

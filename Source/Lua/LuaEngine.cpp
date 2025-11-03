@@ -822,7 +822,16 @@ static int dora_yarn_compile(lua_State* L) {
 	size_t len = 0;
 	const char* str = luaL_checklstring(L, 1, &len);
 	Slice codes{str, len};
-	auto res = yarnflow::compile({codes.rawData(), codes.size()});
+	bool file = false;
+	if (lua_gettop(L) >= 2) {
+		file = lua_toboolean(L, 2) != 0;
+	}
+	yarnflow::CompileInfo res;
+	if (file) {
+		res = yarnflow::compileFile({codes.rawData(), codes.size()});
+	} else {
+		res = yarnflow::compileNode({codes.rawData(), codes.size()});
+	}
 	if (res.error) {
 		const auto& error = res.error.value();
 		lua_pushnil(L);
@@ -834,6 +843,8 @@ static int dora_yarn_compile(lua_State* L) {
 		lua_rawseti(L, -2, 2);
 		lua_pushinteger(L, error.col);
 		lua_rawseti(L, -2, 3);
+		tolua_pushslice(L, error.nodeName);
+		lua_rawseti(L, -2, 4);
 		return 3;
 	} else {
 		tolua_pushslice(L, res.codes);

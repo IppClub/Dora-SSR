@@ -20,7 +20,7 @@ import FileTabBar, { TabMenuEvent, TabStatus } from './FileTabBar';
 import Info from './Info';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
-import { Alert, AlertColor, Button, Collapse, DialogActions, DialogContent, DialogContentText, InputAdornment, TextField, Container, Link, Typography, Checkbox, FormControlLabel } from '@mui/material';
+import { Alert, AlertColor, Button, Collapse, DialogActions, DialogContent, DialogContentText, InputAdornment, TextField, Container, Link, Typography, Checkbox, FormControlLabel, Tooltip, Stack } from '@mui/material';
 import NewFileDialog, { DoraFileType } from './NewFileDialog';
 import logo from './logo.svg';
 import DoraUpload from './Upload';
@@ -42,6 +42,9 @@ import KeyboardShortcuts from './KeyboardShortcuts';
 import BottomLog from './BottomLog';
 import Modal from '@mui/material/Modal';
 import { EditorTheme } from './Editor';
+import CodeIcon from '@mui/icons-material/Code';
+import AccountTreeIcon from '@mui/icons-material/AccountTree';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 
 const SpinePlayer = React.lazy(() => import('./SpinePlayer'));
 const Markdown = React.lazy(() => import('./Markdown'));
@@ -68,7 +71,7 @@ let lastSaveEditingInfoTime = Date.now();
 const saveEditingInfoInterval = 10000;
 let lastEditingInfo: Service.EditingInfo | null = null;
 
-const areEditingInfosEqual = (a: Service.EditingInfo | null, b: Service.EditingInfo | null): boolean => {
+	const areEditingInfosEqual = (a: Service.EditingInfo | null, b: Service.EditingInfo | null): boolean => {
 	if (a === null && b === null) return true;
 	if (a === null || b === null) return false;
 
@@ -82,6 +85,7 @@ const areEditingInfosEqual = (a: Service.EditingInfo | null, b: Service.EditingI
 		if (fileA.key !== fileB.key) return false;
 		if (fileA.title !== fileB.title) return false;
 		if (fileA.mdEditing !== fileB.mdEditing) return false;
+		if (fileA.yarnTextEditing !== fileB.yarnTextEditing) return false;
 		if (fileA.readOnly !== fileB.readOnly) return false;
 		if (fileA.folder !== fileB.folder) return false;
 
@@ -131,6 +135,7 @@ interface EditingFile {
 	editor?: monaco.editor.IStandaloneCodeEditor;
 	position?: monaco.IPosition;
 	mdEditing?: boolean;
+	yarnTextEditing?: boolean;
 	yarnData?: Yarn.YarnEditorData;
 	codeWireData?: CodeWireData;
 	blocklyData?: string;
@@ -451,6 +456,7 @@ export default function PersistentDrawerLeft() {
 							const newFile = await openFile(file.key, file.title, file.folder);
 							newFile.position = file.position;
 							newFile.mdEditing = file.mdEditing;
+							newFile.yarnTextEditing = file.yarnTextEditing;
 							newFile.readOnly = file.readOnly;
 							newFile.sortIndex = i;
 							return newFile;
@@ -2316,7 +2322,47 @@ export default function PersistentDrawerLeft() {
 	}, [tabIndex, loadAssets, switchTab, files, openFileInTab]);
 
 	const checkFile = (file: EditingFile, content: string, model: monaco.editor.ITextModel, lastChange?: monaco.editor.IModelContentChange) => {
-		switch (path.extname(file.key).toLowerCase()) {
+		const ext = path.extname(file.key).toLowerCase();
+		if (ext === ".yarn") {
+			// Yarn file validation
+			Service.checkYarnFile({code: content}).then((res) => {
+				let status: TabStatus = "normal";
+				const markers: monaco.editor.IMarkerData[] = [];
+				if (!res.success) {
+					status = "error";
+					let message = res.message;
+					let startLineNumber = res.line;
+					let startColumn = res.column;
+					let endLineNumber = res.line;
+					let endColumn = res.column + 1;
+					if (startLineNumber === 0) {
+						startLineNumber = 1;
+						endLineNumber = 1;
+					}
+					if (startColumn <= 1) {
+						startColumn = model.getLineFirstNonWhitespaceColumn(startLineNumber);
+						endColumn = model.getLineLastNonWhitespaceColumn(startLineNumber);
+					}
+					markers.push({
+						severity: monaco.MarkerSeverity.Error,
+						message: message,
+						startLineNumber,
+						startColumn,
+						endLineNumber,
+						endColumn,
+					});
+				}
+				if (file.status !== status) {
+					file.status = status;
+					setFiles(prev => [...prev]);
+				}
+				monaco.editor.setModelMarkers(model, model.getLanguageId(), markers);
+			}).catch((reason) => {
+				console.error(`failed to check yarn file, due to: ${reason}`);
+			});
+			return;
+		}
+		switch (ext) {
 			case ".lua": case ".tl": case ".yue": case ".xml": break;
 			default: return;
 		}
@@ -2423,8 +2469,10 @@ export default function PersistentDrawerLeft() {
 					}
 				}
 			}
-			file.status = status;
-			setFiles(prev => [...prev]);
+			if (file.status !== status) {
+				file.status = status;
+				setFiles(prev => [...prev]);
+			}
 			monaco.editor.setModelMarkers(model, model.getLanguageId(), markers);
 		}).catch((reason) => {
 			console.error(`failed to check file, due to: ${reason}`);
@@ -2705,12 +2753,12 @@ export default function PersistentDrawerLeft() {
 		const editingInfo: Service.EditingInfo = {
 			index: tabIndex ?? 0,
 			files: files.map(f => {
-				const {key, title, mdEditing, editor, readOnly} = f;
+				const {key, title, mdEditing, yarnTextEditing, editor, readOnly} = f;
 				let {position, folder = false} = f;
 				if (position === undefined && editor !== undefined) {
 					position = editor.getPosition() ?? undefined;
 				}
-				return {key, title, mdEditing, position, readOnly, folder};
+				return {key, title, mdEditing, yarnTextEditing, position, readOnly, folder};
 			})
 		};
 		if (areEditingInfosEqual(editingInfo, lastEditingInfo)) {
@@ -3029,7 +3077,7 @@ export default function PersistentDrawerLeft() {
 				<>{
 					files.map((file, index) => {
 						const ext = file.folder ? "" : path.extname(file.title);
-						let language: "lua" | "tl" | "yue" | "typescript" | "xml" | "markdown" | "wa" | "txt" | null = null;
+						let language: "lua" | "tl" | "yue" | "typescript" | "xml" | "markdown" | "wa" | "yarn" | "txt" | null = null;
 						let image = false;
 						let spine = false;
 						let yarn = false;
@@ -3046,14 +3094,14 @@ export default function PersistentDrawerLeft() {
 							case ".jpg": image = true; break;
 							case ".png": image = true; break;
 							case ".skel": spine = true; break;
-							case ".yarn": yarn = true; break;
+							case ".yarn": yarn = true; language = "yarn"; break;
 							case ".bl": blockly = true; break;
 							case ".vs": visualScript = true; break;
 							case "": language = null; break;
 							default: language = "txt"; break
 						}
 						const markdown = language === "markdown";
-						const hidden = markdown && !file.mdEditing;
+						const hidden = (markdown && !file.mdEditing) || (yarn && !file.yarnTextEditing);
 						const readOnly = file.readOnly || checkFileReadonly(file.key, false);
 						let parentPath;
 						if (isChildFolder(file.key, assetPath)) {
@@ -3068,22 +3116,66 @@ export default function PersistentDrawerLeft() {
 							drawerWidth={drawerWidth}
 						>
 							<DrawerHeader/>
-							{yarn ?
-								<YarnEditor
-									title={file.key}
-									defaultValue={file.content}
-									width={editorWidth}
-									height={editorHeight}
-									onLoad={(data) => {
-										file.yarnData = data;
-									}}
-									onChange={() => {
-										setModified({key: file.key, content: ""});
-									}}
-									onKeydown={(e) => {
-										setKeyEvent(e);
-									}}
-								/> : null
+							{yarn && !file.yarnTextEditing ?
+								<div style={{display: 'flex', position: 'relative'}}>
+									<YarnEditor
+										title={file.key}
+										defaultValue={file.content}
+										width={editorWidth}
+										height={editorHeight}
+										onLoad={(data) => {
+											file.yarnData = data;
+										}}
+										onChange={() => {
+											setModified({key: file.key, content: ""});
+										}}
+										onKeydown={(e) => {
+											setKeyEvent(e);
+										}}
+									/>
+									<div hidden={readOnly} style={{
+										position: 'absolute',
+										left: '20px',
+										bottom: '75px',
+										zIndex: 100
+									}}>
+										<Stack direction="row" spacing={1}>
+											<Tooltip title={t('yarn.editCode')}>
+												<IconButton
+													onClick={() => {
+														if (file.editor) {
+															const model = file.editor.getModel();
+															if (model) {
+																file.yarnData?.getJSONData().then((value) => {
+																	const text = Yarn.convertYarnJsonToText(JSON.parse(value));
+																	setTimeout(() => {
+																		model.pushStackElement();
+																		model.pushEditOperations(null, [{
+																			text,
+																			range: model.getFullModelRange()
+																		}], () => {return null});
+																	}, 500);
+																});
+															}
+														}
+														file.yarnTextEditing = true;
+														file.yarnData = undefined;
+														setFiles([...files]);
+													}}
+													sx={{
+														backgroundColor: 'rgba(50, 50, 50, 0.7)',
+														color: 'rgba(255, 255, 255, 0.4)',
+														'&:hover': {
+															backgroundColor: 'rgba(70, 70, 70, 0.9)',
+														}
+													}}
+												>
+													<CodeIcon />
+												</IconButton>
+											</Tooltip>
+										</Stack>
+									</div>
+								</div> : null
 							}
 							{visualScript ?
 								<CodeWire
@@ -3126,14 +3218,35 @@ export default function PersistentDrawerLeft() {
 								/> : null
 							}
 							{markdown ?
-								<MacScrollbar skin='dark' hidden={file.mdEditing} style={{height: editorHeight}}>
-									<Markdown
-										fileKey={file.key}
-										path={Service.addr("/" + path.relative(parentPath, path.dirname(file.key)).replace("\\", "/"))}
-										content={file.contentModified ?? file.content}
-										onClick={onJumpLink}
-									/>
-								</MacScrollbar> : null
+								<div style={{display: 'flex', position: 'relative'}}>
+									<MacScrollbar skin='dark' hidden={file.mdEditing} style={{height: editorHeight}}>
+										<Markdown
+											fileKey={file.key}
+											path={Service.addr("/" + path.relative(parentPath, path.dirname(file.key)).replace("\\", "/"))}
+											content={file.contentModified ?? file.content}
+											onClick={onJumpLink}
+										/>
+										<Stack direction="row" spacing={1} style={{position: 'absolute', left: '20px', bottom: '20px', zIndex: 100}}>
+											<Tooltip title={t('markdown.editText')}>
+												<IconButton
+													onClick={() => {
+														file.mdEditing = true;
+														setFiles([...files]);
+													}}
+													sx={{
+														backgroundColor: 'rgba(50, 50, 50, 0.7)',
+														color: 'rgba(255, 255, 255, 0.4)',
+														'&:hover': {
+															backgroundColor: 'rgba(70, 70, 70, 0.9)',
+														}
+													}}
+												>
+													<CodeIcon />
+												</IconButton>
+											</Tooltip>
+										</Stack>
+									</MacScrollbar>
+								</div> : null
 							}
 							{image ?
 								<MacScrollbar skin='dark' style={{height: editorHeight}}>
@@ -3171,10 +3284,7 @@ export default function PersistentDrawerLeft() {
 							})()}
 							{(() => {
 								if (language) {
-									if (file.key === undefined) {
-										return null;
-									}
-									return <Editor
+									const editorComponent = <Editor
 										key={file.key}
 										hidden={hidden}
 										editingFile={file}
@@ -3187,6 +3297,84 @@ export default function PersistentDrawerLeft() {
 										onValidate={onValidate}
 										readOnly={readOnly}
 									/>;
+									if (yarn && file.yarnTextEditing) {
+										return (
+											<div style={{display: 'flex', position: 'relative'}}>
+												{editorComponent}
+												<div hidden={readOnly} style={{
+													position: 'absolute',
+													left: '20px',
+													bottom: '75px',
+													zIndex: 100
+												}}>
+													<Stack direction="row" spacing={1}>
+													<Tooltip title={t('yarn.editVisual')}>
+														<IconButton
+															onClick={() => {
+																if (file.editor) {
+																	const model = file.editor.getModel();
+																	if (model) {
+																		const text = model.getValue();
+																		setTimeout(() => {
+																			file.content = text;
+																			file.yarnTextEditing = false;
+																			setFiles([...files]);
+																		}, 200);
+																	}
+																}
+															}}
+															sx={{
+																backgroundColor: 'rgba(50, 50, 50, 0.7)',
+																color: 'rgba(255, 255, 255, 0.4)',
+																'&:hover': {
+																	backgroundColor: 'rgba(70, 70, 70, 0.9)',
+																}
+															}}
+														>
+															<AccountTreeIcon />
+														</IconButton>
+													</Tooltip>
+													</Stack>
+												</div>
+											</div>
+										);
+									}
+									if (markdown && file.mdEditing) {
+										return (
+											<div style={{display: 'flex', position: 'relative'}}>
+												{editorComponent}
+												<div hidden={readOnly} style={{
+													position: 'absolute',
+													left: '20px',
+													bottom: '20px',
+													zIndex: 100
+												}}>
+													<Stack direction="row" spacing={1}>
+													<Tooltip title={t('markdown.view')}>
+														<IconButton
+															onClick={() => {
+																setTimeout(() => {
+																	file.mdEditing = false;
+																	setFiles([...files]);
+																}, 200);
+															}}
+															sx={{
+																backgroundColor: 'rgba(50, 50, 50, 0.7)',
+																color: 'rgba(255, 255, 255, 0.4)',
+																'&:hover': {
+																	backgroundColor: 'rgba(70, 70, 70, 0.9)',
+																}
+															}}
+														>
+															<VisibilityIcon />
+														</IconButton>
+													</Tooltip>
+													</Stack>
+												</div>
+											</div>
+										);
+									}
+									return editorComponent;
 								} else if (file.folder) {
 									const rootNode = treeData.at(0);
 									if (rootNode === undefined) return null;

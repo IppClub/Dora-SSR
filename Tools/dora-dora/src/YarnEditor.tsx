@@ -107,7 +107,11 @@ function generateYamlHeader(header: any): string {
 	const lines: string[] = [];
 	const indent = (level: number) => '  '.repeat(level);
 
-	lines.push(`lastSavedUnix: ${header.lastSavedUnix}`);
+	if (header.comments) {
+		for (const comment of header.comments) {
+			lines.push(comment);
+		}
+	}
 
 	// Plugin storage
 	if (header.pluginStorage?.Runner?.variables) {
@@ -143,7 +147,7 @@ export function convertYarnJsonToText(obj: object): string {
 	const json = obj as YarnSpinnerJSON;
 	const headerComment = generateYamlHeader(json.header);
 	const nodes = json.nodes.map(convertNodeToYarn).join('\n');
-	return `${headerComment}\n\n${nodes}`;
+	return headerComment === "" ? nodes : `${headerComment}\n\n${nodes}`;
 }
 
 type YarnNode = {
@@ -164,9 +168,7 @@ function parseYamlHeader(lines: string[]): any {
 	for (const line of lines) {
 		const raw = line.replace(/^\/\/\s?/, '').trim().replace(/\s+/, ' ');
 
-		if (raw.startsWith('lastSavedUnix:')) {
-			header.lastSavedUnix = raw.slice('lastSavedUnix:'.length).trim();
-		} else if (raw === 'variables:') {
+		if (raw === 'variables:') {
 			inVariables = true;
 		} else if (inVariables && raw.startsWith('- key:')) {
 			if (Object.keys(currentVar).length > 0) {
@@ -177,6 +179,12 @@ function parseYamlHeader(lines: string[]): any {
 		} else if (inVariables && raw.startsWith('value:')) {
 			const valRaw = raw.slice('value:'.length).trim();
 			currentVar.value = valRaw;
+		} else {
+			if (header.comments) {
+				header.comments.push(raw);
+			} else {
+				header.comments = [raw];
+			}
 		}
 	}
 
@@ -214,7 +222,7 @@ function parseYarnNodes(content: string): YarnNode[] {
 			} else if (line.startsWith('tags:')) {
 				tags = line.slice(5).trim();
 			} else if (line.startsWith('position:')) {
-				const [x, y] = line.slice(9).trim().split(',').map(Number);
+				const [x, y] = line.slice(9).trim().split(',').map(s => s.trim()).map(Number);
 				position = { x, y };
 			} else if (line.startsWith('colorID:')) {
 				colorID = parseInt(line.slice(8).trim());
@@ -234,7 +242,7 @@ export function convertYarnTextToJson(yarnText: string): YarnSpinnerJSON {
 		const line = lines[index].trim();
 		if (line.startsWith('//')) {
 			headerLines.push(line);
-		} else {
+		} else if (line !== '') {
 			break;
 		}
 		index++;

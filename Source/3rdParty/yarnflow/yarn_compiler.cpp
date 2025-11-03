@@ -13,6 +13,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <memory>
 #include <sstream>
 #include <stack>
+#include <unordered_set>
 
 using namespace std::string_view_literals;
 
@@ -291,13 +292,15 @@ using namespace parserlib::yarnflow;
 
 class CompileError : public std::logic_error {
 public:
-	explicit CompileError(std::string_view msg, const input_range* range)
+	explicit CompileError(std::string_view msg, const input_range* range, std::string_view nodeName = "")
 		: std::logic_error(std::string(msg))
 		, line(range->m_begin.m_line)
-		, col(range->m_begin.m_col) { }
+		, col(range->m_begin.m_col)
+		, nodeName(nodeName) { }
 
 	int line;
 	int col;
+	std::string nodeName;
 };
 
 #define YUEE(msg, node) throw CompileError( \
@@ -305,7 +308,14 @@ public:
 		+ ",\n[Func] "s + __FUNCTION__ \
 		+ ",\n[Line] "s + std::to_string(__LINE__) \
 		+ ",\n[Error] "s + msg, \
-	node)
+	node, _currentNodeName)
+
+#define YUEE_WITH_NODE(msg, node, nodeName) throw CompileError( \
+	"[File] "s + __FILE__ \
+		+ ",\n[Func] "s + __FUNCTION__ \
+		+ ",\n[Line] "s + std::to_string(__LINE__) \
+		+ ",\n[Error] "s + msg, \
+	node, nodeName)
 
 struct ParseInfo {
 	struct Error {
@@ -449,6 +459,26 @@ public:
 		cut = false_();
 		Seperator = true_();
 
+		missing_endif_tag_error = pl::user(true_(), [](const item_t& item) {
+			throw ParserError("expected a <<endif>> tag with same indents to close the <<if>> command"sv, item.begin);
+			return false;
+		});
+
+		missing_close_command_error = pl::user(true_(), [](const item_t& item) {
+			throw ParserError("expected '>>' to close command"sv, item.begin);
+			return false;
+		});
+
+		missing_close_interp_error = pl::user(true_(), [](const item_t& item) {
+			throw ParserError("expected '}' to close the interpolation"sv, item.begin);
+			return false;
+		});
+
+		expression_error = pl::user(true_(), [](const item_t& item) {
+			throw ParserError("expected a valid expression"sv, item.begin);
+			return false;
+		});
+
 		empty_block_error = pl::user(true_(), [](const item_t& item) {
 			throw ParserError("must be followed by a statement or an indented block"sv, item.begin);
 			return false;
@@ -456,6 +486,16 @@ public:
 
 		indentation_error = pl::user(not_(eof()), [](const item_t& item) {
 			throw ParserError("unexpected indent"sv, item.begin);
+			return false;
+		});
+
+		node_name_error = pl::user(not_(eof()), [](const item_t& item) {
+			throw ParserError("invalid node name: only letters and digits are allowed"sv, item.begin);
+			return false;
+		});
+
+		missing_assign_op_error = pl::user(not_(eof()), [](const item_t& item) {
+			throw ParserError("expected 'to' or '='"sv, item.begin);
 			return false;
 		});
 
@@ -560,13 +600,16 @@ public:
 
 		Markup = '[' >> -('/' >> MarkupClose) >> Name >> -('=' >> (String | AttributeValue)) >> Seperator >> *(space >> Attribute) >> space >> (']' | "/]" >> MarkupClose >> -space_one);
 
-		Text = '\\' >> set("[#{<") | +(not_(line_break | Markup | '#' | "<<" | '{') >> any_char);
+		begin_command = expr("<<");
+		end_command = expr(">>") | missing_close_command_error;
+
+		Text = '\\' >> set("[#{<") | +(not_(line_break | Markup | '#' | begin_command | '{') >> any_char);
 
 		NumHex = +num_char_hex;
 
 		TagLine = "#line:" >> space >> NumHex;
 
-		TagIf = "<<" >> space >> "if" >> not_alpha_num >> space >> Exp >> space >> ">>";
+		TagIf = begin_command >> space >> key("if") >> space >> (Exp | expression_error) >> space >> end_command;
 
 		Tag = '#' >> Name;
 
@@ -574,7 +617,7 @@ public:
 
 		Character = CharName >> ':' >> space_one >> space;
 
-		interp = '{' >> space >> Exp >> space >> '}';
+		interp = '{' >> space >> (Exp | expression_error) >> space >> ('}' | missing_close_interp_error);
 
 		Dialog = -Character >> Seperator >> +(Text | Markup | interp) >> Seperator >> *(space >> (TagIf | TagLine | Tag));
 
@@ -586,19 +629,19 @@ public:
 		UpdateOp = set("+-*/%&|^");
 
 		Assignment =
-			key("set") >> space >> Variable >> space >> (AssignmentOp | UpdateOp >> '=') >> space >> Exp;
+			key("set") >> space >> Variable >> space >> (AssignmentOp | UpdateOp >> '=' | missing_assign_op_error) >> space >> Exp;
 
 		Title = (range('a', 'z') | range('A', 'Z') | '_') >> *alpha_num;
 
-		Goto = key("jump") >> space >> Title;
+		Goto = key("jump") >> space >> (Title | node_name_error);
 
 		Call = not_((expr("endif") | "if" | "else" | "elseif" | "jump" | "set") >> not_alpha_num) >> Name >> space >> Seperator >> -(Exp >> *(space >> ',' >> space >> Exp));
 
-		Command = "<<" >> space >> (
+		Command = begin_command >> space >> (
 			If |
 			Goto |
 			Assignment |
-			Call) >> space >> ">>";
+			Call) >> space >> end_command;
 
 		empty_line_break = (
 			check_indent >> comment |
@@ -606,13 +649,13 @@ public:
 			plain_space
 		) >> and_(line_break);
 
-		if_else_if = line_break >> *(empty_line_break >> line_break) >> check_indent >> "<<" >> space >> key("elseif") >> space >> Exp >> space >> ">>" >> space_break >> *(*set(" \t") >> line_break) >> ensure(and_(push_indent) >> Block, pop_indent);
-		if_else = line_break >> *(empty_line_break >> line_break) >> check_indent >> "<<" >> space >> key("else") >> space >> ">>" >> space_break >> *(*set(" \t") >> line_break) >> ensure(and_(push_indent) >> Block, pop_indent);
-		If = key("if") >> space >> Seperator >> Exp >> space >> ">>" >> space_break >> *(*set(" \t") >> line_break) >> ensure(and_(push_indent) >> Block, pop_indent) >> *if_else_if >> -if_else >> line_break >> *(empty_line_break >> line_break) >> check_indent >> "<<" >> space >> key("endif");
+		if_else_if = line_break >> *(empty_line_break >> line_break) >> check_indent >> begin_command >> space >> key("elseif") >> space >> Exp >> space >> end_command >> space_break >> *(*set(" \t") >> line_break) >> ensure(and_(push_indent) >> Block, pop_indent);
+		if_else = line_break >> *(empty_line_break >> line_break) >> check_indent >> begin_command >> space >> key("else") >> space >> end_command >> space_break >> *(*set(" \t") >> line_break) >> ensure(and_(push_indent) >> Block, pop_indent);
+		If = key("if") >> space >> Seperator >> (Exp | expression_error) >> space >> end_command >> space_break >> *(*set(" \t") >> line_break) >> ensure(and_(push_indent) >> Block, pop_indent) >> *if_else_if >> -if_else >> line_break >> *(empty_line_break >> line_break) >> (check_indent >> begin_command >> space >> key("endif") | space >> missing_endif_tag_error);
 
 		line = (
 			empty_line_break |
-			check_indent >> (Command | OptionGroup | Dialog) |
+			check_indent >> (Command | OptionGroup | Dialog) >> space |
 			advance_match >> ensure(space >> (OptionGroup | indentation_error), pop_indent)
 		);
 
@@ -724,8 +767,17 @@ private:
 	NONE_AST_RULE(num_lit);
 	NONE_AST_RULE(cut);
 
+	NONE_AST_RULE(begin_command);
+	NONE_AST_RULE(end_command);
+
+	NONE_AST_RULE(missing_endif_tag_error);
+	NONE_AST_RULE(missing_close_command_error);
+	NONE_AST_RULE(missing_close_interp_error);
+	NONE_AST_RULE(expression_error);
+	NONE_AST_RULE(node_name_error);
 	NONE_AST_RULE(empty_block_error);
 	NONE_AST_RULE(indentation_error);
+	NONE_AST_RULE(missing_assign_op_error);
 
 	NONE_AST_RULE(check_indent);
 	NONE_AST_RULE(check_indent_match);
@@ -798,6 +850,7 @@ private:
 	std::ostringstream _buf;
 	std::ostringstream _joinBuf;
 	const std::string _newLine = "\n";
+	std::string _currentNodeName;
 
 	struct Scope { };
 	std::list<Scope> _scopes;
@@ -806,7 +859,16 @@ public:
 	YarnCompiler()
 		: _parser() { }
 
-	CompileInfo compile(std::string_view codes) {
+	void setCurrentNodeName(const std::string& nodeName) {
+		_currentNodeName = nodeName;
+	}
+
+	YarnParser& getParser() {
+		return _parser;
+	}
+
+	CompileInfo compileNode(std::string_view codes) {
+		_currentNodeName.clear();
 		auto res = _parser.parse<File_t>(codes);
 		if (!res.error) {
 			pushScope();
@@ -825,7 +887,8 @@ public:
 						err.what(),
 						err.line,
 						err.col,
-						res.errorMessage(err.what(), err.line, err.col)}};
+						res.errorMessage(err.what(), err.line, err.col),
+						err.nodeName}};
 			}
 			temp.push_back(indent() + "return nil"s + nl(res.node));
 			popScope();
@@ -841,7 +904,8 @@ public:
 				err.msg,
 				err.line,
 				err.col,
-				res.errorMessage(err.msg, err.line, err.col)}};
+				res.errorMessage(err.msg, err.line, err.col),
+				_currentNodeName}};
 	}
 
 	void incIndentOffset() {
@@ -1351,8 +1415,245 @@ public:
 	}
 };
 
-CompileInfo compile(std::string_view codes) {
-	return YarnCompiler{}.compile(codes);
+struct NodeInfo {
+	std::string title;
+	std::string content;
+	int startLine;
+	int endLine;
+};
+
+struct FileValidationResult {
+	std::vector<NodeInfo> nodes;
+	struct Error {
+		std::string msg;
+		int line;
+		int col;
+		std::string displayMessage;
+	};
+	std::optional<Error> error;
+};
+
+FileValidationResult validateFileFormat(std::string_view codes) {
+	FileValidationResult result;
+
+	std::string codeStr(codes);
+	std::istringstream stream(codeStr);
+	std::string line;
+	int currentLine = 0;
+	YarnParser parser;
+
+	enum class State {
+		EXPECTING_TITLE,
+		IN_METADATA,
+		EXPECTING_CONTENT_SEPARATOR,
+		IN_CONTENT,
+		EXPECTING_END_SEPARATOR
+	};
+
+	State state = State::EXPECTING_TITLE;
+	NodeInfo currentNode;
+	std::vector<std::string> contentLines;
+	std::unordered_set<std::string> nodeSet;
+	std::list<std::pair<std::string, int>> jumps;
+
+	auto createError = [&](const std::string& msg, int line) -> FileValidationResult {
+		FileValidationResult errorResult;
+		errorResult.error = {msg, line, 1, msg};
+		return errorResult;
+	};
+
+	while (std::getline(stream, line) || !line.empty()) {
+		bool isLastLine = stream.eof() && !line.empty();
+		currentLine++;
+
+		if (state == State::EXPECTING_TITLE) {
+			auto l = line;
+			Utils::trim(l);
+			if (l.empty() || l.starts_with("//"sv)) {
+				continue;
+			}
+
+			if (line.substr(0, 6) == "title:") {
+				std::string title = line.substr(6);
+				Utils::trim(title);
+				if (title.empty()) {
+					return createError("node title cannot be empty", currentLine);
+				}
+				if (!parser.match<Title_t>(title)) {
+					return createError("invalid node title: only letters and digits are allowed", currentLine);
+				}
+				if (nodeSet.contains(title)) {
+					return createError("duplicated node title: '"s + title + "'"s, currentLine);
+				}
+				nodeSet.insert(title);
+				currentNode.title = title;
+				state = State::IN_METADATA;
+			} else {
+				return createError("expected node to start with 'title:' metadata", currentLine);
+			}
+		} else if (state == State::IN_METADATA) {
+			if (line == "---") {
+				currentNode.startLine = currentLine;
+				state = State::EXPECTING_CONTENT_SEPARATOR;
+				contentLines.clear();
+			} else {
+				Utils::trim(line);
+				if (line[0] == '-') {
+					return createError("expected '---' in a single line without whitespaces to start node content", currentLine);
+				}
+			}
+		} else if (state == State::EXPECTING_CONTENT_SEPARATOR) {
+			if (line == "===") {
+				return createError("node content cannot be empty, found '===' immediately after '---'", currentLine);
+			} else {
+				contentLines.push_back(line);
+				Utils::trim(line);
+				if (!line.empty()) {
+					if (line[0] == '=') {
+						return createError("expected '===' in a single line without whitespaces to close node content", currentLine);
+					}
+					state = State::IN_CONTENT;
+				}
+			}
+		} else if (state == State::IN_CONTENT) {
+			if (line == "===") {
+				std::ostringstream contentStream;
+				for (size_t i = 0; i < contentLines.size(); i++) {
+					contentStream << contentLines[i];
+					if (i < contentLines.size() - 1) {
+						contentStream << "\n";
+					}
+				}
+				currentNode.content = contentStream.str();
+				currentNode.endLine = currentLine;
+				result.nodes.push_back(currentNode);
+
+				currentNode = NodeInfo{};
+				state = State::EXPECTING_TITLE;
+				contentLines.clear();
+			} else {
+				contentLines.push_back(line);
+				Utils::trim(line);
+				if (line[0] == '=') {
+					return createError("expected '===' in a single line without whitespaces to close node content", currentLine);
+				} else {
+					std::string_view vl{line};
+					if (vl.substr(0, 6) == "<<jump"sv && vl.substr(vl.length() - 2) == ">>"sv) {
+						std::string name{vl.substr(7, line.length() - 9)};
+						Utils::trim(name);
+						jumps.emplace_back(name, currentLine);
+					}
+				}
+			}
+		}
+		if (isLastLine) {
+			break;
+		}
+	}
+
+	if (state != State::EXPECTING_TITLE) {
+		if (state == State::IN_METADATA) {
+			return createError("expected '---' separator after metadata", currentLine);
+		} else if (state == State::EXPECTING_CONTENT_SEPARATOR || state == State::IN_CONTENT) {
+			return createError("expected '===' to close node", currentLine);
+		}
+	}
+
+	if (result.nodes.empty()) {
+		return createError("no valid nodes found in file", 1);
+	}
+
+	for (const auto& jump : jumps) {
+		if (!nodeSet.contains(jump.first)) {
+			return createError("jump target '" + jump.first + "' not found.", jump.second);
+		}
+	}
+
+	return result;
+}
+
+CompileInfo compileNode(std::string_view codes) {
+	return YarnCompiler{}.compileNode(codes);
+}
+
+CompileInfo compileFile(std::string_view codes) {
+	auto validation = validateFileFormat(codes);
+	if (validation.error) {
+		const auto& err = validation.error.value();
+		return {
+			std::string(),
+			CompileInfo::Error{
+				err.msg,
+				err.line,
+				err.col,
+				err.displayMessage,
+				""}};
+	}
+
+	if (validation.nodes.empty()) {
+		return {
+			std::string(),
+			CompileInfo::Error{
+				"No nodes found in file",
+				1, 1,
+				"No nodes found in file",
+				""}};
+	}
+
+	std::ostringstream allNodesOutput;
+	allNodesOutput << "local nodes = {}\n";
+	bool first = true;
+
+	for (const auto& node : validation.nodes) {
+		YarnCompiler compiler;
+		compiler.setCurrentNodeName(node.title);
+
+		auto res = compiler.getParser().parse<File_t>(node.content);
+		if (!res.error) {
+			compiler.pushScope();
+			str_list temp;
+			temp.push_back(compiler.indent() + "nodes["s + toLuaString(node.title) + "] = function(title, state, command, yarn, gotoStory)"s + compiler.nl(res.node));
+			compiler.pushScope();
+			try {
+				auto file = res.node.to<File_t>();
+				if (file->block) {
+					compiler.transformBlock(file->block, temp);
+				}
+			} catch (const CompileError& err) {
+				return {
+					std::string(),
+					CompileInfo::Error{
+						err.what(),
+						err.line + node.startLine,
+						err.col,
+						res.errorMessage(err.what(), err.line, err.col, node.startLine),
+						node.title}};
+			}
+			temp.push_back(compiler.indent() + "return nil"s + compiler.nl(res.node));
+			compiler.popScope();
+			temp.push_back(compiler.indent() + "end"s + compiler.nl(res.node));
+			compiler.popScope();
+
+			if (!first) {
+				allNodesOutput << "\n\n";
+			}
+			allNodesOutput << "-- Node: " << node.title << "\n";
+			allNodesOutput << compiler.join(temp);
+			first = false;
+		} else {
+			const auto& err = res.error.value();
+			return {
+				std::string(),
+				CompileInfo::Error{
+					err.msg,
+					err.line + node.startLine,
+					err.col,
+					res.errorMessage(err.msg, err.line, err.col, node.startLine),
+					node.title}};
+		}
+	}
+
+	return {allNodesOutput.str()};
 }
 
 } // namespace yarnflow

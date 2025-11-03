@@ -10,6 +10,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include <string>
 #include <optional>
+#include <vector>
 
 namespace yarnflow {
 
@@ -20,10 +21,13 @@ struct CompileInfo {
 		int line;
 		int col;
 		std::string displayMessage;
+		std::string nodeName;
 	};
 	std::optional<Error> error;
 };
 
-CompileInfo compile(std::string_view codes);
+CompileInfo compileNode(std::string_view codes);
+
+CompileInfo compileFile(std::string_view codes);
 
 } // namespace yarnflow

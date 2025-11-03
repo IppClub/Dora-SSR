@@ -1,12 +1,6 @@
 /* eslint-disable jquery/no-hide */
 /* eslint-disable jquery/no-ajax */
 /* eslint-disable jquery/no-show */
-import {
-	enable_spellcheck,
-	disable_spellcheck,
-	suggest_word_for_misspelled,
-	load_dictionary,
-} from '../libs/spellcheck_ace.js';
 
 import { Node } from './node';
 import { Workspace } from './workspace';
@@ -660,6 +654,8 @@ export var App = function(name, version) {
 		self.editor = ace.edit('editor');
 		self.editor.setOptions({
 			scrollPastEnd: 0.5,
+			useSoftTabs: false,
+			tabSize: 2,
 		});
 		self.editor.focus();
 		self.editor.navigateFileEnd();
@@ -751,7 +747,6 @@ export var App = function(name, version) {
 
 		self.toggleInvertColors();
 		self.toggleShowCounter();
-		self.toggleSpellCheck();
 		self.validateTitle(); // warn if title already exists
 		self.updateEditorStats();
 		self.updateEditorOptions();
@@ -797,14 +792,6 @@ export var App = function(name, version) {
 		event.app = app;
 		window.dispatchEvent(event);
 		window.parent.dispatchEvent(event);
-
-		setTimeout(() => {
-			/// init spell check
-			if (self.settings.spellcheckEnabled()) {
-				load_dictionary(self.settings.language().split('-')[0]);
-				enable_spellcheck();
-			}
-		}, 30);
 	};
 
 	this.splitEditor = function() {
@@ -960,27 +947,6 @@ export var App = function(name, version) {
 		}
 	};
 
-	this.getSpellCheckSuggestionItems = function() {
-		var wordSuggestions = suggest_word_for_misspelled(
-			self.editor.getSelectedText()
-		);
-		if (wordSuggestions) {
-			var suggestionObject = {};
-			wordSuggestions.forEach(suggestion => {
-				suggestionObject[suggestion] = {
-					name: suggestion,
-					icon: 'edit',
-					callback: key => {
-						self.insertTextAtCursor(key);
-					},
-				};
-			});
-			return suggestionObject;
-		} else {
-			return false;
-		}
-	};
-
 	this.getThesaurusItems = function() {
 		var synonyms = require('synonyms');
 		var words = synonyms(self.editor.getSelectedText());
@@ -1008,17 +974,6 @@ export var App = function(name, version) {
 		} else {
 			return false;
 		}
-	};
-
-	this.toggleSpellCheck = function() {
-		// Timeout so spellcheck can toggle after the spelling check settings are updated
-		setTimeout(function() {
-			if (self.settings.spellcheckEnabled()) {
-				load_dictionary(self.settings.language().split('-')[0]);
-				enable_spellcheck();
-			}
-			else disable_spellcheck();
-		}, 50);
 	};
 
 	this.toggleInvertColors = function() {

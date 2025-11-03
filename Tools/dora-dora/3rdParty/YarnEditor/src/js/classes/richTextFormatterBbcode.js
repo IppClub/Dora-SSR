@@ -65,7 +65,7 @@ export const BbcodeRichTextFormatter = function(app, addExtraPreviewerEmbeds) {
 			case 'cmd':
 				return '>>';
 			case 'opt':
-				return '<<jump >>';
+				return '';
 			default:
 				return `[/${tag}]`;
 		}
