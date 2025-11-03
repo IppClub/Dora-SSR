@@ -614,11 +614,13 @@ export default function PersistentDrawerLeft() {
 	const currentFile = tabIndex !== null ? files.at(tabIndex) : undefined;
 	useEffect(() => {
 		if (currentFile !== undefined) {
-			const {editor} = currentFile;
-			if (editor === undefined) {
+			const ext = path.extname(currentFile.key).toLowerCase();
+			if (ext === ".yarn" && !currentFile.yarnTextEditing) {
 				currentFile.yarnData?.warpToFocusedNode();
 				return;
 			}
+			const {editor} = currentFile;
+			if (editor === undefined) return;
 			editor.focus();
 			editor.updateOptions({
 				stickyScroll: {
@@ -639,7 +641,6 @@ export default function PersistentDrawerLeft() {
 			if (!checkFileReadonly(currentFile.key, false) && !currentFile.readOnly) {
 				checkFile(currentFile, currentFile.contentModified ?? currentFile.content, model);
 			}
-			const ext = path.extname(currentFile.key).toLowerCase();
 			if (ext === ".ts" || ext === ".tsx") {
 				import('./TranspileTS').then(({revalidateModel}) => {
 					revalidateModel(model);
