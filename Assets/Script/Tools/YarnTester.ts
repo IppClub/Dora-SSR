@@ -13,8 +13,8 @@ import * as ScrollArea from "UI/Control/Basic/ScrollArea";
 import { AlignMode } from "UI/Control/Basic/ScrollArea";
 import * as LineRect from 'UI/View/Shape/LineRect';
 import * as YarnRunner from "YarnRunner";
-import type {YarnRunner as Yarn} from "YarnRunner";
-import { AlignNode, App, Buffer, Content, Label, Menu, Path, Size, TextAlign, TypeName, Vec2, View, thread, threadLoop } from "Dora";
+import type { YarnRunner as Yarn } from "YarnRunner";
+import { AlignNode, App, Buffer, Content, Label, Menu, Path, Size, TextAlign, Vec2, View, thread, threadLoop } from "Dora";
 import { InputTextFlag, SetCond, WindowFlag } from "ImGui";
 import * as ImGui from 'ImGui';
 

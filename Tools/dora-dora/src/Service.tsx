@@ -488,6 +488,7 @@ export interface EditingInfo {
 		title: string,
 		folder: boolean,
 		mdEditing?: boolean,
+		yarnTextEditing?: boolean,
 		position?: {
 			lineNumber: number,
 			column: number
@@ -557,6 +558,25 @@ export type CheckYarnResponse = {
 };
 export const checkYarn = (req: CheckYarnRequest) => {
 	return post<CheckYarnResponse>("/yarn/check", req);
+};
+
+
+// checkYarnFile
+
+export interface CheckYarnFileRequest {
+	code: string;
+}
+export type CheckYarnFileResponse = {
+	success: false;
+	message: string;
+	line: number;
+	column: number;
+	node: string;
+} | {
+	success: true;
+};
+export const checkYarnFile = (req: CheckYarnFileRequest) => {
+	return post<CheckYarnFileResponse>("/yarn/check-file", req);
 };
 
 // buildWa

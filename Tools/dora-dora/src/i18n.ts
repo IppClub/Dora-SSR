@@ -266,6 +266,14 @@ i18n
 						hideCode: "Hide Code",
 						save: "Save",
 					},
+					yarn: {
+						editCode: "Edit Code",
+						editVisual: "Visual Edit",
+					},
+					markdown: {
+						editText: "Edit Text",
+						view: "View",
+					},
 				}
 			},
 			zh: {
@@ -520,6 +528,14 @@ i18n
 						showCode: "显示代码",
 						hideCode: "隐藏代码",
 						save: "保存",
+					},
+					yarn: {
+						editCode: "编辑代码",
+						editVisual: "可视化编辑",
+					},
+					markdown: {
+						editText: "编辑文本",
+						view: "查看",
 					},
 				}
 			},

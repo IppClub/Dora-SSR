@@ -1010,6 +1010,13 @@ HttpServer\post "/yarn/check", (req): success: false ->
 					errors[] = title .. ":" .. err
 			return success: true, syntaxError: table.concat errors, "\n\n"
 
+HttpServer\post "/yarn/check-file", (req): success: true ->
+	import "yarncompile"
+	switch req when {body: {:code}}
+		unless res, _, err := yarncompile code, true
+			[message, line, column, node] = err
+			return success: false, :message, :line, :column, :node
+
 getWaProjectDirFromFile = (file) ->
 	:writablePath = Content
 	parent, current = if (".." ~= Path\getRelative(file, writablePath)\sub 1, 2) and writablePath == file\sub 1, #writablePath

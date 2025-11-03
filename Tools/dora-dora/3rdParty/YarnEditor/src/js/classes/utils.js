@@ -244,16 +244,6 @@ export var Utils = {
 							},
 						};
 					}
-					// suggest word corrections if the selected word is misspelled
-					if (app.settings.spellcheckEnabled()) {
-						var suggestedCorrections = app.getSpellCheckSuggestionItems();
-						if (suggestedCorrections !== false) {
-							options.items.corrections = {
-								name: 'Correct word',
-								items: suggestedCorrections,
-							};
-						}
-					}
 					// suggest similar words - thesaurus.com sysnonyms and anthonyms
 					var suggested = app.getThesaurusItems();
 					if (suggested !== false) {

@@ -13,6 +13,7 @@ import * as lua from './languages/lua';
 import * as Service from './Service';
 import Info from './Info';
 import * as wa from './languages/wa';
+import * as yarn from './languages/yarn';
 
 Service.addUpdateTSCodeListener((file, code) => {
 	const model = monaco.editor.getModel(monaco.Uri.file(file));
@@ -596,5 +597,9 @@ monaco.editor.onDidCreateEditor(newEditor => {
 monaco.languages.register({ id: 'wa' });
 monaco.languages.setLanguageConfiguration('wa', wa.langConfig);
 monaco.languages.setMonarchTokensProvider('wa', wa.language);
+
+monaco.languages.register({ id: 'yarn' });
+monaco.languages.setLanguageConfiguration('yarn', yarn.config);
+monaco.languages.setMonarchTokensProvider('yarn', yarn.language);
 
 export const EditorTheme = 'dora-dark';

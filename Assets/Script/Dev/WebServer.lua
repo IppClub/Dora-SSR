@@ -2542,421 +2542,454 @@ HttpServer:post("/yarn/check", function(req) -- 1002
 		success = false -- 1002
 	} -- 1011
 end) -- 1002
-local getWaProjectDirFromFile -- 1013
-getWaProjectDirFromFile = function(file) -- 1013
-	local writablePath = Content.writablePath -- 1014
-	local parent, current -- 1015
-	if (".." ~= Path:getRelative(file, writablePath):sub(1, 2)) and writablePath == file:sub(1, #writablePath) then -- 1015
-		parent, current = writablePath, Path:getRelative(file, writablePath) -- 1016
-	else -- 1018
-		parent, current = nil, nil -- 1018
-	end -- 1015
-	if not current then -- 1019
-		return nil -- 1019
-	end -- 1019
-	repeat -- 1020
-		current = Path:getPath(current) -- 1021
-		if current == "" then -- 1022
-			break -- 1022
-		end -- 1022
-		local _list_0 = Content:getFiles(Path(parent, current)) -- 1023
-		for _index_0 = 1, #_list_0 do -- 1023
-			local f = _list_0[_index_0] -- 1023
-			if Path:getFilename(f):lower() == "wa.mod" then -- 1024
-				return Path(parent, current, Path:getPath(f)) -- 1025
-			end -- 1024
-		end -- 1025
-	until false -- 1026
-	return nil -- 1027
-end -- 1013
-HttpServer:postSchedule("/wa/build", function(req) -- 1029
-	do -- 1030
-		local _type_0 = type(req) -- 1030
-		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 1030
-		if _tab_0 then -- 1030
-			local path -- 1030
-			do -- 1030
-				local _obj_0 = req.body -- 1030
-				local _type_1 = type(_obj_0) -- 1030
-				if "table" == _type_1 or "userdata" == _type_1 then -- 1030
-					path = _obj_0.path -- 1030
-				end -- 1038
-			end -- 1038
-			if path ~= nil then -- 1030
-				local projDir = getWaProjectDirFromFile(path) -- 1031
-				if projDir then -- 1031
-					local message = Wasm:buildWaAsync(projDir) -- 1032
-					if message == "" then -- 1033
-						return { -- 1034
-							success = true -- 1034
-						} -- 1034
-					else -- 1036
-						return { -- 1036
-							success = false, -- 1036
-							message = message -- 1036
-						} -- 1036
-					end -- 1033
-				else -- 1038
-					return { -- 1038
-						success = false, -- 1038
-						message = 'Wa file needs a project' -- 1038
-					} -- 1038
-				end -- 1031
-			end -- 1030
-		end -- 1038
-	end -- 1038
-	return { -- 1039
-		success = false, -- 1039
-		message = 'failed to build' -- 1039
-	} -- 1039
-end) -- 1029
-HttpServer:postSchedule("/wa/format", function(req) -- 1041
-	do -- 1042
-		local _type_0 = type(req) -- 1042
-		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 1042
-		if _tab_0 then -- 1042
-			local file -- 1042
-			do -- 1042
-				local _obj_0 = req.body -- 1042
-				local _type_1 = type(_obj_0) -- 1042
-				if "table" == _type_1 or "userdata" == _type_1 then -- 1042
-					file = _obj_0.file -- 1042
-				end -- 1047
-			end -- 1047
-			if file ~= nil then -- 1042
-				local code = Wasm:formatWaAsync(file) -- 1043
-				if code == "" then -- 1044
+HttpServer:post("/yarn/check-file", function(req) -- 1013
+	local yarncompile = require("yarncompile") -- 1014
+	do -- 1015
+		local _type_0 = type(req) -- 1015
+		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 1015
+		if _tab_0 then -- 1015
+			local code -- 1015
+			do -- 1015
+				local _obj_0 = req.body -- 1015
+				local _type_1 = type(_obj_0) -- 1015
+				if "table" == _type_1 or "userdata" == _type_1 then -- 1015
+					code = _obj_0.code -- 1015
+				end -- 1018
+			end -- 1018
+			if code ~= nil then -- 1015
+				local res, _, err = yarncompile(code, true) -- 1016
+				if not res then -- 1016
+					local message, line, column, node = err[1], err[2], err[3], err[4] -- 1017
+					return { -- 1018
+						success = false, -- 1018
+						message = message, -- 1018
+						line = line, -- 1018
+						column = column, -- 1018
+						node = node -- 1018
+					} -- 1018
+				end -- 1016
+			end -- 1015
+		end -- 1018
+	end -- 1018
+	return { -- 1013
+		success = true -- 1013
+	} -- 1018
+end) -- 1013
+local getWaProjectDirFromFile -- 1020
+getWaProjectDirFromFile = function(file) -- 1020
+	local writablePath = Content.writablePath -- 1021
+	local parent, current -- 1022
+	if (".." ~= Path:getRelative(file, writablePath):sub(1, 2)) and writablePath == file:sub(1, #writablePath) then -- 1022
+		parent, current = writablePath, Path:getRelative(file, writablePath) -- 1023
+	else -- 1025
+		parent, current = nil, nil -- 1025
+	end -- 1022
+	if not current then -- 1026
+		return nil -- 1026
+	end -- 1026
+	repeat -- 1027
+		current = Path:getPath(current) -- 1028
+		if current == "" then -- 1029
+			break -- 1029
+		end -- 1029
+		local _list_0 = Content:getFiles(Path(parent, current)) -- 1030
+		for _index_0 = 1, #_list_0 do -- 1030
+			local f = _list_0[_index_0] -- 1030
+			if Path:getFilename(f):lower() == "wa.mod" then -- 1031
+				return Path(parent, current, Path:getPath(f)) -- 1032
+			end -- 1031
+		end -- 1032
+	until false -- 1033
+	return nil -- 1034
+end -- 1020
+HttpServer:postSchedule("/wa/build", function(req) -- 1036
+	do -- 1037
+		local _type_0 = type(req) -- 1037
+		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 1037
+		if _tab_0 then -- 1037
+			local path -- 1037
+			do -- 1037
+				local _obj_0 = req.body -- 1037
+				local _type_1 = type(_obj_0) -- 1037
+				if "table" == _type_1 or "userdata" == _type_1 then -- 1037
+					path = _obj_0.path -- 1037
+				end -- 1045
+			end -- 1045
+			if path ~= nil then -- 1037
+				local projDir = getWaProjectDirFromFile(path) -- 1038
+				if projDir then -- 1038
+					local message = Wasm:buildWaAsync(projDir) -- 1039
+					if message == "" then -- 1040
+						return { -- 1041
+							success = true -- 1041
+						} -- 1041
+					else -- 1043
+						return { -- 1043
+							success = false, -- 1043
+							message = message -- 1043
+						} -- 1043
+					end -- 1040
+				else -- 1045
 					return { -- 1045
-						success = false -- 1045
+						success = false, -- 1045
+						message = 'Wa file needs a project' -- 1045
 					} -- 1045
-				else -- 1047
-					return { -- 1047
-						success = true, -- 1047
-						code = code -- 1047
-					} -- 1047
-				end -- 1044
-			end -- 1042
-		end -- 1047
-	end -- 1047
-	return { -- 1048
-		success = false -- 1048
-	} -- 1048
-end) -- 1041
-HttpServer:postSchedule("/wa/create", function(req) -- 1050
-	do -- 1051
-		local _type_0 = type(req) -- 1051
-		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 1051
-		if _tab_0 then -- 1051
-			local path -- 1051
-			do -- 1051
-				local _obj_0 = req.body -- 1051
-				local _type_1 = type(_obj_0) -- 1051
-				if "table" == _type_1 or "userdata" == _type_1 then -- 1051
-					path = _obj_0.path -- 1051
-				end -- 1074
-			end -- 1074
-			if path ~= nil then -- 1051
-				if not Content:exist(Path:getPath(path)) then -- 1052
-					return { -- 1053
-						success = false, -- 1053
-						message = "target path not existed" -- 1053
-					} -- 1053
-				end -- 1052
-				if Content:exist(path) then -- 1054
-					return { -- 1055
-						success = false, -- 1055
-						message = "target project folder existed" -- 1055
-					} -- 1055
+				end -- 1038
+			end -- 1037
+		end -- 1045
+	end -- 1045
+	return { -- 1046
+		success = false, -- 1046
+		message = 'failed to build' -- 1046
+	} -- 1046
+end) -- 1036
+HttpServer:postSchedule("/wa/format", function(req) -- 1048
+	do -- 1049
+		local _type_0 = type(req) -- 1049
+		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 1049
+		if _tab_0 then -- 1049
+			local file -- 1049
+			do -- 1049
+				local _obj_0 = req.body -- 1049
+				local _type_1 = type(_obj_0) -- 1049
+				if "table" == _type_1 or "userdata" == _type_1 then -- 1049
+					file = _obj_0.file -- 1049
 				end -- 1054
-				local srcPath = Path(Content.assetPath, "dora-wa", "src") -- 1056
-				local vendorPath = Path(Content.assetPath, "dora-wa", "vendor") -- 1057
-				local modPath = Path(Content.assetPath, "dora-wa", "wa.mod") -- 1058
-				if not Content:exist(srcPath) or not Content:exist(vendorPath) or not Content:exist(modPath) then -- 1059
+			end -- 1054
+			if file ~= nil then -- 1049
+				local code = Wasm:formatWaAsync(file) -- 1050
+				if code == "" then -- 1051
+					return { -- 1052
+						success = false -- 1052
+					} -- 1052
+				else -- 1054
+					return { -- 1054
+						success = true, -- 1054
+						code = code -- 1054
+					} -- 1054
+				end -- 1051
+			end -- 1049
+		end -- 1054
+	end -- 1054
+	return { -- 1055
+		success = false -- 1055
+	} -- 1055
+end) -- 1048
+HttpServer:postSchedule("/wa/create", function(req) -- 1057
+	do -- 1058
+		local _type_0 = type(req) -- 1058
+		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 1058
+		if _tab_0 then -- 1058
+			local path -- 1058
+			do -- 1058
+				local _obj_0 = req.body -- 1058
+				local _type_1 = type(_obj_0) -- 1058
+				if "table" == _type_1 or "userdata" == _type_1 then -- 1058
+					path = _obj_0.path -- 1058
+				end -- 1081
+			end -- 1081
+			if path ~= nil then -- 1058
+				if not Content:exist(Path:getPath(path)) then -- 1059
+					return { -- 1060
+						success = false, -- 1060
+						message = "target path not existed" -- 1060
+					} -- 1060
+				end -- 1059
+				if Content:exist(path) then -- 1061
 					return { -- 1062
 						success = false, -- 1062
-						message = "missing template project" -- 1062
+						message = "target project folder existed" -- 1062
 					} -- 1062
-				end -- 1059
-				if not Content:mkdir(path) then -- 1063
-					return { -- 1064
-						success = false, -- 1064
-						message = "failed to create project folder" -- 1064
-					} -- 1064
-				end -- 1063
-				if not Content:copyAsync(srcPath, Path(path, "src")) then -- 1065
-					Content:remove(path) -- 1066
-					return { -- 1067
-						success = false, -- 1067
-						message = "failed to copy template" -- 1067
-					} -- 1067
-				end -- 1065
-				if not Content:copyAsync(vendorPath, Path(path, "vendor")) then -- 1068
-					Content:remove(path) -- 1069
-					return { -- 1070
-						success = false, -- 1070
-						message = "failed to copy template" -- 1070
-					} -- 1070
-				end -- 1068
-				if not Content:copyAsync(modPath, Path(path, "wa.mod")) then -- 1071
-					Content:remove(path) -- 1072
-					return { -- 1073
-						success = false, -- 1073
-						message = "failed to copy template" -- 1073
-					} -- 1073
-				end -- 1071
-				return { -- 1074
-					success = true -- 1074
-				} -- 1074
-			end -- 1051
-		end -- 1074
-	end -- 1074
-	return { -- 1050
-		success = false, -- 1050
-		message = "invalid call" -- 1050
-	} -- 1074
-end) -- 1050
-local _anon_func_3 = function(Path, path) -- 1083
-	local _val_0 = Path:getExt(path) -- 1083
-	return "ts" == _val_0 or "tsx" == _val_0 -- 1083
-end -- 1083
-local _anon_func_4 = function(Path, f) -- 1113
-	local _val_0 = Path:getExt(f) -- 1113
-	return "ts" == _val_0 or "tsx" == _val_0 -- 1113
-end -- 1113
-HttpServer:postSchedule("/ts/build", function(req) -- 1076
-	do -- 1077
-		local _type_0 = type(req) -- 1077
-		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 1077
-		if _tab_0 then -- 1077
-			local path -- 1077
-			do -- 1077
-				local _obj_0 = req.body -- 1077
-				local _type_1 = type(_obj_0) -- 1077
-				if "table" == _type_1 or "userdata" == _type_1 then -- 1077
-					path = _obj_0.path -- 1077
-				end -- 1138
-			end -- 1138
-			if path ~= nil then -- 1077
-				if HttpServer.wsConnectionCount == 0 then -- 1078
-					return { -- 1079
-						success = false, -- 1079
-						message = "Web IDE not connected" -- 1079
-					} -- 1079
+				end -- 1061
+				local srcPath = Path(Content.assetPath, "dora-wa", "src") -- 1063
+				local vendorPath = Path(Content.assetPath, "dora-wa", "vendor") -- 1064
+				local modPath = Path(Content.assetPath, "dora-wa", "wa.mod") -- 1065
+				if not Content:exist(srcPath) or not Content:exist(vendorPath) or not Content:exist(modPath) then -- 1066
+					return { -- 1069
+						success = false, -- 1069
+						message = "missing template project" -- 1069
+					} -- 1069
+				end -- 1066
+				if not Content:mkdir(path) then -- 1070
+					return { -- 1071
+						success = false, -- 1071
+						message = "failed to create project folder" -- 1071
+					} -- 1071
+				end -- 1070
+				if not Content:copyAsync(srcPath, Path(path, "src")) then -- 1072
+					Content:remove(path) -- 1073
+					return { -- 1074
+						success = false, -- 1074
+						message = "failed to copy template" -- 1074
+					} -- 1074
+				end -- 1072
+				if not Content:copyAsync(vendorPath, Path(path, "vendor")) then -- 1075
+					Content:remove(path) -- 1076
+					return { -- 1077
+						success = false, -- 1077
+						message = "failed to copy template" -- 1077
+					} -- 1077
+				end -- 1075
+				if not Content:copyAsync(modPath, Path(path, "wa.mod")) then -- 1078
+					Content:remove(path) -- 1079
+					return { -- 1080
+						success = false, -- 1080
+						message = "failed to copy template" -- 1080
+					} -- 1080
 				end -- 1078
-				if not Content:exist(path) then -- 1080
-					return { -- 1081
-						success = false, -- 1081
-						message = "path not existed" -- 1081
-					} -- 1081
-				end -- 1080
-				if not Content:isdir(path) then -- 1082
-					if not (_anon_func_3(Path, path)) then -- 1083
-						return { -- 1084
-							success = false, -- 1084
-							message = "expecting a TypeScript file" -- 1084
-						} -- 1084
-					end -- 1083
-					local messages = { } -- 1085
-					local content = Content:load(path) -- 1086
-					if not content then -- 1087
-						return { -- 1088
-							success = false, -- 1088
-							message = "failed to read file" -- 1088
-						} -- 1088
-					end -- 1087
-					emit("AppWS", "Send", json.dump({ -- 1089
-						name = "UpdateTSCode", -- 1089
-						file = path, -- 1089
-						content = content -- 1089
-					})) -- 1089
-					if "d" ~= Path:getExt(Path:getName(path)) then -- 1090
-						local done = false -- 1091
-						do -- 1092
-							local _with_0 = Node() -- 1092
-							_with_0:gslot("AppWS", function(eventType, msg) -- 1093
-								if eventType == "Receive" then -- 1094
-									_with_0:removeFromParent() -- 1095
-									local res = json.load(msg) -- 1096
-									if res then -- 1096
-										if res.name == "TranspileTS" then -- 1097
-											if res.success then -- 1098
-												local luaFile = Path:replaceExt(path, "lua") -- 1099
-												Content:save(luaFile, res.luaCode) -- 1100
-												messages[#messages + 1] = { -- 1101
-													success = true, -- 1101
-													file = path -- 1101
-												} -- 1101
-											else -- 1103
-												messages[#messages + 1] = { -- 1103
-													success = false, -- 1103
-													file = path, -- 1103
-													message = res.message -- 1103
-												} -- 1103
-											end -- 1098
-											done = true -- 1104
-										end -- 1097
-									end -- 1096
-								end -- 1094
-							end) -- 1093
-						end -- 1092
-						emit("AppWS", "Send", json.dump({ -- 1105
-							name = "TranspileTS", -- 1105
-							file = path, -- 1105
-							content = content -- 1105
-						})) -- 1105
-						wait(function() -- 1106
-							return done -- 1106
-						end) -- 1106
+				return { -- 1081
+					success = true -- 1081
+				} -- 1081
+			end -- 1058
+		end -- 1081
+	end -- 1081
+	return { -- 1057
+		success = false, -- 1057
+		message = "invalid call" -- 1057
+	} -- 1081
+end) -- 1057
+local _anon_func_3 = function(Path, path) -- 1090
+	local _val_0 = Path:getExt(path) -- 1090
+	return "ts" == _val_0 or "tsx" == _val_0 -- 1090
+end -- 1090
+local _anon_func_4 = function(Path, f) -- 1120
+	local _val_0 = Path:getExt(f) -- 1120
+	return "ts" == _val_0 or "tsx" == _val_0 -- 1120
+end -- 1120
+HttpServer:postSchedule("/ts/build", function(req) -- 1083
+	do -- 1084
+		local _type_0 = type(req) -- 1084
+		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 1084
+		if _tab_0 then -- 1084
+			local path -- 1084
+			do -- 1084
+				local _obj_0 = req.body -- 1084
+				local _type_1 = type(_obj_0) -- 1084
+				if "table" == _type_1 or "userdata" == _type_1 then -- 1084
+					path = _obj_0.path -- 1084
+				end -- 1145
+			end -- 1145
+			if path ~= nil then -- 1084
+				if HttpServer.wsConnectionCount == 0 then -- 1085
+					return { -- 1086
+						success = false, -- 1086
+						message = "Web IDE not connected" -- 1086
+					} -- 1086
+				end -- 1085
+				if not Content:exist(path) then -- 1087
+					return { -- 1088
+						success = false, -- 1088
+						message = "path not existed" -- 1088
+					} -- 1088
+				end -- 1087
+				if not Content:isdir(path) then -- 1089
+					if not (_anon_func_3(Path, path)) then -- 1090
+						return { -- 1091
+							success = false, -- 1091
+							message = "expecting a TypeScript file" -- 1091
+						} -- 1091
 					end -- 1090
-					return { -- 1107
-						success = true, -- 1107
-						messages = messages -- 1107
-					} -- 1107
-				else -- 1109
-					local files = Content:getAllFiles(path) -- 1109
-					local fileData = { } -- 1110
-					local messages = { } -- 1111
-					for _index_0 = 1, #files do -- 1112
-						local f = files[_index_0] -- 1112
-						if not (_anon_func_4(Path, f)) then -- 1113
-							goto _continue_0 -- 1113
-						end -- 1113
-						local file = Path(path, f) -- 1114
-						local content = Content:load(file) -- 1115
-						if content then -- 1115
-							fileData[file] = content -- 1116
-							emit("AppWS", "Send", json.dump({ -- 1117
-								name = "UpdateTSCode", -- 1117
-								file = file, -- 1117
-								content = content -- 1117
-							})) -- 1117
-						else -- 1119
-							messages[#messages + 1] = { -- 1119
-								success = false, -- 1119
-								file = file, -- 1119
-								message = "failed to read file" -- 1119
-							} -- 1119
-						end -- 1115
-						::_continue_0:: -- 1113
-					end -- 1119
-					for file, content in pairs(fileData) do -- 1120
-						if "d" == Path:getExt(Path:getName(file)) then -- 1121
-							goto _continue_1 -- 1121
-						end -- 1121
-						local done = false -- 1122
-						do -- 1123
-							local _with_0 = Node() -- 1123
-							_with_0:gslot("AppWS", function(eventType, msg) -- 1124
-								if eventType == "Receive" then -- 1125
-									_with_0:removeFromParent() -- 1126
-									local res = json.load(msg) -- 1127
-									if res then -- 1127
-										if res.name == "TranspileTS" then -- 1128
-											if res.success then -- 1129
-												local luaFile = Path:replaceExt(file, "lua") -- 1130
-												Content:save(luaFile, res.luaCode) -- 1131
-												messages[#messages + 1] = { -- 1132
-													success = true, -- 1132
-													file = file -- 1132
-												} -- 1132
-											else -- 1134
-												messages[#messages + 1] = { -- 1134
-													success = false, -- 1134
-													file = file, -- 1134
-													message = res.message -- 1134
-												} -- 1134
-											end -- 1129
-											done = true -- 1135
-										end -- 1128
-									end -- 1127
-								end -- 1125
-							end) -- 1124
-						end -- 1123
-						emit("AppWS", "Send", json.dump({ -- 1136
-							name = "TranspileTS", -- 1136
-							file = file, -- 1136
-							content = content -- 1136
-						})) -- 1136
-						wait(function() -- 1137
-							return done -- 1137
-						end) -- 1137
-						::_continue_1:: -- 1121
-					end -- 1137
-					return { -- 1138
-						success = true, -- 1138
-						messages = messages -- 1138
-					} -- 1138
-				end -- 1082
-			end -- 1077
-		end -- 1138
-	end -- 1138
-	return { -- 1076
-		success = false -- 1076
-	} -- 1138
-end) -- 1076
-HttpServer:post("/download", function(req) -- 1140
-	do -- 1141
-		local _type_0 = type(req) -- 1141
-		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 1141
-		if _tab_0 then -- 1141
-			local url -- 1141
-			do -- 1141
-				local _obj_0 = req.body -- 1141
-				local _type_1 = type(_obj_0) -- 1141
-				if "table" == _type_1 or "userdata" == _type_1 then -- 1141
-					url = _obj_0.url -- 1141
-				end -- 1144
-			end -- 1144
-			local target -- 1141
-			do -- 1141
-				local _obj_0 = req.body -- 1141
-				local _type_1 = type(_obj_0) -- 1141
-				if "table" == _type_1 or "userdata" == _type_1 then -- 1141
-					target = _obj_0.target -- 1141
-				end -- 1144
-			end -- 1144
-			if url ~= nil and target ~= nil then -- 1141
-				local Entry = require("Script.Dev.Entry") -- 1142
-				Entry.downloadFile(url, target) -- 1143
-				return { -- 1144
-					success = true -- 1144
-				} -- 1144
-			end -- 1141
-		end -- 1144
-	end -- 1144
-	return { -- 1140
-		success = false -- 1140
-	} -- 1144
-end) -- 1140
-local status = { } -- 1146
-_module_0 = status -- 1147
-thread(function() -- 1149
-	local doraWeb = Path(Content.assetPath, "www", "index.html") -- 1150
-	local doraReady = Path(Content.appPath, ".www", "dora-ready") -- 1151
-	if Content:exist(doraWeb) then -- 1152
-		local needReload -- 1153
-		if Content:exist(doraReady) then -- 1153
-			needReload = App.version ~= Content:load(doraReady) -- 1154
-		else -- 1155
-			needReload = true -- 1155
-		end -- 1153
-		if needReload then -- 1156
-			Content:remove(Path(Content.appPath, ".www")) -- 1157
-			Content:copyAsync(Path(Content.assetPath, "www"), Path(Content.appPath, ".www")) -- 1158
-			Content:save(doraReady, App.version) -- 1162
-			print("Dora Dora is ready!") -- 1163
-		end -- 1156
-	end -- 1152
-	if HttpServer:start(8866) then -- 1164
-		local localIP = HttpServer.localIP -- 1165
-		if localIP == "" then -- 1166
-			localIP = "localhost" -- 1166
-		end -- 1166
-		status.url = "http://" .. tostring(localIP) .. ":8866" -- 1167
-		return HttpServer:startWS(8868) -- 1168
-	else -- 1170
-		status.url = nil -- 1170
-		return print("8866 Port not available!") -- 1171
-	end -- 1164
-end) -- 1149
-return _module_0 -- 1171
+					local messages = { } -- 1092
+					local content = Content:load(path) -- 1093
+					if not content then -- 1094
+						return { -- 1095
+							success = false, -- 1095
+							message = "failed to read file" -- 1095
+						} -- 1095
+					end -- 1094
+					emit("AppWS", "Send", json.dump({ -- 1096
+						name = "UpdateTSCode", -- 1096
+						file = path, -- 1096
+						content = content -- 1096
+					})) -- 1096
+					if "d" ~= Path:getExt(Path:getName(path)) then -- 1097
+						local done = false -- 1098
+						do -- 1099
+							local _with_0 = Node() -- 1099
+							_with_0:gslot("AppWS", function(eventType, msg) -- 1100
+								if eventType == "Receive" then -- 1101
+									_with_0:removeFromParent() -- 1102
+									local res = json.load(msg) -- 1103
+									if res then -- 1103
+										if res.name == "TranspileTS" then -- 1104
+											if res.success then -- 1105
+												local luaFile = Path:replaceExt(path, "lua") -- 1106
+												Content:save(luaFile, res.luaCode) -- 1107
+												messages[#messages + 1] = { -- 1108
+													success = true, -- 1108
+													file = path -- 1108
+												} -- 1108
+											else -- 1110
+												messages[#messages + 1] = { -- 1110
+													success = false, -- 1110
+													file = path, -- 1110
+													message = res.message -- 1110
+												} -- 1110
+											end -- 1105
+											done = true -- 1111
+										end -- 1104
+									end -- 1103
+								end -- 1101
+							end) -- 1100
+						end -- 1099
+						emit("AppWS", "Send", json.dump({ -- 1112
+							name = "TranspileTS", -- 1112
+							file = path, -- 1112
+							content = content -- 1112
+						})) -- 1112
+						wait(function() -- 1113
+							return done -- 1113
+						end) -- 1113
+					end -- 1097
+					return { -- 1114
+						success = true, -- 1114
+						messages = messages -- 1114
+					} -- 1114
+				else -- 1116
+					local files = Content:getAllFiles(path) -- 1116
+					local fileData = { } -- 1117
+					local messages = { } -- 1118
+					for _index_0 = 1, #files do -- 1119
+						local f = files[_index_0] -- 1119
+						if not (_anon_func_4(Path, f)) then -- 1120
+							goto _continue_0 -- 1120
+						end -- 1120
+						local file = Path(path, f) -- 1121
+						local content = Content:load(file) -- 1122
+						if content then -- 1122
+							fileData[file] = content -- 1123
+							emit("AppWS", "Send", json.dump({ -- 1124
+								name = "UpdateTSCode", -- 1124
+								file = file, -- 1124
+								content = content -- 1124
+							})) -- 1124
+						else -- 1126
+							messages[#messages + 1] = { -- 1126
+								success = false, -- 1126
+								file = file, -- 1126
+								message = "failed to read file" -- 1126
+							} -- 1126
+						end -- 1122
+						::_continue_0:: -- 1120
+					end -- 1126
+					for file, content in pairs(fileData) do -- 1127
+						if "d" == Path:getExt(Path:getName(file)) then -- 1128
+							goto _continue_1 -- 1128
+						end -- 1128
+						local done = false -- 1129
+						do -- 1130
+							local _with_0 = Node() -- 1130
+							_with_0:gslot("AppWS", function(eventType, msg) -- 1131
+								if eventType == "Receive" then -- 1132
+									_with_0:removeFromParent() -- 1133
+									local res = json.load(msg) -- 1134
+									if res then -- 1134
+										if res.name == "TranspileTS" then -- 1135
+											if res.success then -- 1136
+												local luaFile = Path:replaceExt(file, "lua") -- 1137
+												Content:save(luaFile, res.luaCode) -- 1138
+												messages[#messages + 1] = { -- 1139
+													success = true, -- 1139
+													file = file -- 1139
+												} -- 1139
+											else -- 1141
+												messages[#messages + 1] = { -- 1141
+													success = false, -- 1141
+													file = file, -- 1141
+													message = res.message -- 1141
+												} -- 1141
+											end -- 1136
+											done = true -- 1142
+										end -- 1135
+									end -- 1134
+								end -- 1132
+							end) -- 1131
+						end -- 1130
+						emit("AppWS", "Send", json.dump({ -- 1143
+							name = "TranspileTS", -- 1143
+							file = file, -- 1143
+							content = content -- 1143
+						})) -- 1143
+						wait(function() -- 1144
+							return done -- 1144
+						end) -- 1144
+						::_continue_1:: -- 1128
+					end -- 1144
+					return { -- 1145
+						success = true, -- 1145
+						messages = messages -- 1145
+					} -- 1145
+				end -- 1089
+			end -- 1084
+		end -- 1145
+	end -- 1145
+	return { -- 1083
+		success = false -- 1083
+	} -- 1145
+end) -- 1083
+HttpServer:post("/download", function(req) -- 1147
+	do -- 1148
+		local _type_0 = type(req) -- 1148
+		local _tab_0 = "table" == _type_0 or "userdata" == _type_0 -- 1148
+		if _tab_0 then -- 1148
+			local url -- 1148
+			do -- 1148
+				local _obj_0 = req.body -- 1148
+				local _type_1 = type(_obj_0) -- 1148
+				if "table" == _type_1 or "userdata" == _type_1 then -- 1148
+					url = _obj_0.url -- 1148
+				end -- 1151
+			end -- 1151
+			local target -- 1148
+			do -- 1148
+				local _obj_0 = req.body -- 1148
+				local _type_1 = type(_obj_0) -- 1148
+				if "table" == _type_1 or "userdata" == _type_1 then -- 1148
+					target = _obj_0.target -- 1148
+				end -- 1151
+			end -- 1151
+			if url ~= nil and target ~= nil then -- 1148
+				local Entry = require("Script.Dev.Entry") -- 1149
+				Entry.downloadFile(url, target) -- 1150
+				return { -- 1151
+					success = true -- 1151
+				} -- 1151
+			end -- 1148
+		end -- 1151
+	end -- 1151
+	return { -- 1147
+		success = false -- 1147
+	} -- 1151
+end) -- 1147
+local status = { } -- 1153
+_module_0 = status -- 1154
+thread(function() -- 1156
+	local doraWeb = Path(Content.assetPath, "www", "index.html") -- 1157
+	local doraReady = Path(Content.appPath, ".www", "dora-ready") -- 1158
+	if Content:exist(doraWeb) then -- 1159
+		local needReload -- 1160
+		if Content:exist(doraReady) then -- 1160
+			needReload = App.version ~= Content:load(doraReady) -- 1161
+		else -- 1162
+			needReload = true -- 1162
+		end -- 1160
+		if needReload then -- 1163
+			Content:remove(Path(Content.appPath, ".www")) -- 1164
+			Content:copyAsync(Path(Content.assetPath, "www"), Path(Content.appPath, ".www")) -- 1165
+			Content:save(doraReady, App.version) -- 1169
+			print("Dora Dora is ready!") -- 1170
+		end -- 1163
+	end -- 1159
+	if HttpServer:start(8866) then -- 1171
+		local localIP = HttpServer.localIP -- 1172
+		if localIP == "" then -- 1173
+			localIP = "localhost" -- 1173
+		end -- 1173
+		status.url = "http://" .. tostring(localIP) .. ":8866" -- 1174
+		return HttpServer:startWS(8868) -- 1175
+	else -- 1177
+		status.url = nil -- 1177
+		return print("8866 Port not available!") -- 1178
+	end -- 1171
+end) -- 1156
+return _module_0 -- 1178
