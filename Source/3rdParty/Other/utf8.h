@@ -4,9 +4,10 @@
 #ifndef UTF8_H_HEADER_GUARD
 #define UTF8_H_HEADER_GUARD
 
-#include <stdint.h>
-#include <vector>
 #include <functional>
+#include <stdint.h>
+#include <string>
+#include <vector>
 
 namespace CodeCvt {
 
@@ -19,7 +20,7 @@ int utf8_count_characters(const char* utf8str);
 
 std::vector<uint32_t> utf8_get_characters(const char* utf8str);
 
-void utf8_each_character(const char* utf8str, const std::function<bool(int stop,uint32_t code)>& callback);
+void utf8_each_character(const char* utf8str, const std::function<bool(int stop, uint32_t code)>& callback);
 
 bool utf8_isspace(uint32_t ch);
 
