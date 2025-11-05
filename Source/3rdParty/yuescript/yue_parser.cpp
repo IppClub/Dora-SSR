@@ -1061,7 +1061,7 @@ bool YueParser::startWith(std::string_view codes, rule& r) {
 	}
 	try {
 		if (!codes.empty()) {
-			converted = std::make_unique<input>(_converter.from_bytes(&codes.front(), &codes.back() + 1));
+			converted = std::make_unique<input>(utf8_decode({&codes.front(), &codes.back() + 1}));
 		} else {
 			converted = std::make_unique<input>();
 		}
@@ -1087,11 +1087,11 @@ ParseInfo YueParser::parse(std::string_view codes, rule& r, bool lax) {
 	}
 	try {
 		if (!codes.empty()) {
-			res.codes = std::make_unique<input>(_converter.from_bytes(&codes.front(), &codes.back() + 1));
+			res.codes = std::make_unique<input>(utf8_decode({&codes.front(), &codes.back() + 1}));
 		} else {
 			res.codes = std::make_unique<input>();
 		}
-	} catch (const std::range_error&) {
+	} catch (const std::exception&) {
 		res.error = {"invalid text encoding"s, 1, 1};
 		return res;
 	}
@@ -1156,11 +1156,11 @@ bool YueParser::match(std::string_view astName, std::string_view codes) {
 }
 
 std::string YueParser::toString(ast_node* node) {
-	return _converter.to_bytes(std::wstring(node->m_begin.m_it, node->m_end.m_it));
+	return utf8_encode({node->m_begin.m_it, node->m_end.m_it});
 }
 
 std::string YueParser::toString(input::iterator begin, input::iterator end) {
-	return _converter.to_bytes(std::wstring(begin, end));
+	return utf8_encode({begin, end});
 }
 
 bool YueParser::hasAST(std::string_view name) const {
@@ -1237,7 +1237,7 @@ std::string ParseInfo::errorMessage(std::string_view msg, int errLine, int errCo
 		}
 		++it;
 	}
-	auto line = Converter{}.to_bytes(std::wstring(begin, end));
+	auto line = utf8_encode({begin, end});
 	while (col < static_cast<int>(line.size())
 		   && (line[col] == ' ' || line[col] == '\t')) {
 		col++;

@@ -17,7 +17,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #pragma warning(disable : 4521)
 #endif
 
-#include <codecvt>
 #include <functional>
 #include <list>
 #include <locale>
@@ -27,9 +26,11 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 namespace parserlib {
 
 /// type of the parser's input.
-typedef std::basic_string<wchar_t> input;
+typedef std::basic_string<char32_t> input;
 typedef input::iterator input_it;
-typedef std::wstring_convert<std::codecvt_utf8_utf16<input::value_type>> Converter;
+
+input utf8_decode(const std::string& str);
+std::string utf8_encode(const input& str);
 
 class _private;
 class _expr;

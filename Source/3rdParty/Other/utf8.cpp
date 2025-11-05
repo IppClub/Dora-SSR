@@ -22,6 +22,9 @@
 #include "Other/utf8.h"
 #include <cctype>
 #include <cstring>
+#include "Other/utf8cpp.h"
+
+namespace CodeCvt {
 
 static const uint8_t s_utf8d[364] =
 {
@@ -183,3 +186,21 @@ uint32_t utf8_find_last_not_alnum(const std::vector<uint32_t>& str)
 	}
 	return i;
 }
+
+std::u32string utf8to32(const std::string& str) {
+	return utf8::utf8to32(str);
+}
+
+std::string utf32to8(const std::u32string& str) {
+	return utf8::utf32to8(str);
+}
+
+std::u16string utf8to16(const std::string& str) {
+	return utf8::utf8to16(str);
+}
+
+std::string utf16to8(const std::u16string& str) {
+	return utf8::utf16to8(str);
+}
+
+} // namespace CodeCvt

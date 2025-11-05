@@ -30,7 +30,7 @@ std::string YueFormat::ind() const {
 }
 
 std::string YueFormat::convert(const ast_node* node) {
-	return converter.to_bytes(std::wstring(node->m_begin.m_it, node->m_end.m_it));
+	return utf8_encode({node->m_begin.m_it, node->m_end.m_it});
 }
 
 std::string YueFormat::toString(ast_node* node) {

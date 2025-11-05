@@ -18,7 +18,32 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #include "yuescript/parser.hpp"
 
+#ifndef YUE_UTF8_IMPL
+namespace CodeCvt {
+	std::u32string utf8to32(const std::string& str);
+	std::string utf32to8(const std::u32string& str);
+} // namespace CodeCvt
+#else
+#include "utf8cpp.h"
+namespace CodeCvt {
+	std::u32string utf8to32(const std::string& str) {
+		return utf8::utf8to32(str);
+	}
+	std::string utf32to8(const std::u32string& str) {
+		return utf8::utf32to8(str);
+	}
+} // namespace CodeCvt
+#endif // YUE_UTF8_IMPL
+
 namespace parserlib {
+
+input utf8_decode(const std::string& str) {
+	return CodeCvt::utf8to32(str);
+}
+
+std::string utf8_encode(const input& str) {
+	return CodeCvt::utf32to8(str);
+}
 
 // internal private class that manages access to the public classes' internals.
 class _private {
@@ -241,7 +266,7 @@ class _string : public _expr {
 public:
 	// constructor from ansi string.
 	_string(const char* s)
-		: m_string(Converter{}.from_bytes(s)) {
+		: m_string(utf8_decode(s)) {
 	}
 
 	// parse with whitespace
@@ -279,7 +304,7 @@ class _set : public _expr {
 public:
 	// constructor from ansi string.
 	_set(const char* s) {
-		auto str = Converter{}.from_bytes(s);
+		auto str = utf8_decode(s);
 		for (auto ch : str) {
 			_add(ch);
 		}
