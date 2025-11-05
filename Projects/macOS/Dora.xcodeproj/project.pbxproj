@@ -4167,7 +4167,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 1520;
+				LastUpgradeCheck = 2610;
 				ORGANIZATIONNAME = Dorothy;
 				TargetAttributes = {
 					3CC81FE51D966770008C8B77 = {
@@ -4823,6 +4823,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LDFLAGS = "";
 				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				VALID_ARCHS = "x86_64 arm64";
 			};
 			name = Debug;
@@ -4876,6 +4877,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				OTHER_LDFLAGS = "";
 				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				VALID_ARCHS = "x86_64 arm64";
 			};
 			name = Release;
@@ -4925,10 +4927,7 @@
 					"-Wno-unreachable-code",
 					"-Wno-conditional-uninitialized",
 				);
-				OTHER_CPLUSPLUSFLAGS = (
-					"-Wno-deprecated-declarations",
-					"-Wno-missing-template-arg-list-after-template-kw",
-				);
+				OTHER_CPLUSPLUSFLAGS = "-Wno-missing-template-arg-list-after-template-kw";
 				OTHER_LDFLAGS = "";
 				OTHER_LIBTOOLFLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = IppClub.DoraSSR;
@@ -5002,10 +5001,7 @@
 					"-Wno-unreachable-code",
 					"-Wno-conditional-uninitialized",
 				);
-				OTHER_CPLUSPLUSFLAGS = (
-					"-Wno-deprecated-declarations",
-					"-Wno-missing-template-arg-list-after-template-kw",
-				);
+				OTHER_CPLUSPLUSFLAGS = "-Wno-missing-template-arg-list-after-template-kw";
 				OTHER_LDFLAGS = "";
 				OTHER_LIBTOOLFLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = IppClub.DoraSSR;
