@@ -134,7 +134,6 @@ protected:
 	}
 
 private:
-	Converter _converter;
 	std::unordered_map<std::string_view, rule*> _rules;
 
 	template <class T>

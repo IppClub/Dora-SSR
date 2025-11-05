@@ -1318,7 +1318,7 @@ void ImGuiDora::handleEvent(const SDL_Event& event) {
 				sendKey(SDLK_RIGHT, size - _lastCursor);
 			}
 
-			auto newText = utf8_get_characters(event.text.text);
+			auto newText = CodeCvt::utf8_get_characters(event.text.text);
 			size_t start = _textEditing.size();
 			for (size_t i = 0; i < _textEditing.size(); i++) {
 				if (i >= newText.size() || newText[i] != _textEditing[i]) {
@@ -1333,7 +1333,7 @@ void ImGuiDora::handleEvent(const SDL_Event& event) {
 			start = length;
 			count = 0;
 			int lastPos = -1;
-			utf8_each_character(event.edit.text, [&](int stop, uint32_t code) {
+			CodeCvt::utf8_each_character(event.edit.text, [&](int stop, uint32_t code) {
 				if (count >= s_cast<int>(_textEditing.size()) || _textEditing[count] != code) {
 					start = lastPos + 1;
 					return true;
@@ -1352,7 +1352,7 @@ void ImGuiDora::handleEvent(const SDL_Event& event) {
 			break;
 		}
 		case SDL_TEXTEDITING: {
-			auto newText = utf8_get_characters(event.edit.text);
+			auto newText = CodeCvt::utf8_get_characters(event.edit.text);
 			if (newText.size() == _textEditing.size()) {
 				bool changed = false;
 				for (size_t i = 0; i < newText.size(); i++) {
@@ -1401,7 +1401,7 @@ void ImGuiDora::handleEvent(const SDL_Event& event) {
 			size_t start = length;
 			size_t count = 0;
 			int lastPos = -1;
-			utf8_each_character(event.edit.text, [&](int stop, uint32_t code) {
+			CodeCvt::utf8_each_character(event.edit.text, [&](int stop, uint32_t code) {
 				if (count >= _textEditing.size() || _textEditing[count] != code) {
 					start = lastPos + 1;
 					return true;
@@ -1414,7 +1414,7 @@ void ImGuiDora::handleEvent(const SDL_Event& event) {
 			e.type = SDL_TEXTINPUT;
 			memcpy(e.text.text, event.edit.text + start, length - start + 1);
 			_inputs.push_back(e);
-			int addCount = utf8_count_characters(e.text.text);
+			int addCount = CodeCvt::utf8_count_characters(e.text.text);
 			_lastCursor += addCount;
 			int32_t cursor = event.edit.start;
 			if (cursor > _lastCursor) {

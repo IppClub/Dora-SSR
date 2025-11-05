@@ -368,7 +368,7 @@ void Label::updateCharacters(const std::vector<uint32_t>& chars) {
 
 void Label::updateLabel() {
 	if (!_font) return;
-	_text = utf8_get_characters(_textUTF8.c_str());
+	_text = CodeCvt::utf8_get_characters(_textUTF8.c_str());
 	_text.push_back('\0');
 
 	if (_flags.isOn(Label::TextBatched)) {
@@ -419,7 +419,7 @@ void Label::updateLabel() {
 
 			// Newline.
 			if (character == '\n') {
-				utf8_trim_ws(last_word);
+				CodeCvt::utf8_trim_ws(last_word);
 				for (int n = 0; n < justSkipped; n++) {
 					last_word.push_back('\n');
 				}
@@ -448,7 +448,7 @@ void Label::updateLabel() {
 			}
 
 			// Whitespace.
-			if (utf8_isspace(character)) {
+			if (CodeCvt::utf8_isspace(character)) {
 				last_word.push_back(character);
 				multiline_string.insert(
 					multiline_string.end(),
@@ -465,7 +465,7 @@ void Label::updateLabel() {
 			if (i > 0 && !skiped_one && getLetterPosXRight(characterItem) - startOfLine > _textWidth) {
 				if (character <= 255 && std::isalnum(character)) {
 					last_word.push_back(character);
-					int found = utf8_find_last_not_alnum(last_word);
+					int found = CodeCvt::utf8_find_last_not_alnum(last_word);
 					if (found != -1) {
 						auto begin = last_word.begin();
 						auto end = last_word.begin() + found + 1;
@@ -480,13 +480,13 @@ void Label::updateLabel() {
 					} else {
 						found = -1;
 						for (auto it = multiline_string.rbegin(); it != multiline_string.rend(); ++it) {
-							if (!utf8_isspace(*it)) {
+							if (!CodeCvt::utf8_isspace(*it)) {
 								found = s_cast<int>(std::distance(multiline_string.rend(), it));
 								break;
 							}
 						}
 						if (found != -1) {
-							utf8_trim_ws(multiline_string);
+							CodeCvt::utf8_trim_ws(multiline_string);
 						} else {
 							multiline_string.clear();
 						}
@@ -498,7 +498,7 @@ void Label::updateLabel() {
 						i++;
 					}
 				} else {
-					utf8_trim_ws(last_word);
+					CodeCvt::utf8_trim_ws(last_word);
 
 					last_word.push_back('\n');
 					multiline_string.insert(
