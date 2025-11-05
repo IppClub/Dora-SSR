@@ -396,7 +396,7 @@ int Application::run(MainFunc mainFunc) {
 				}
 #if BX_PLATFORM_ANDROID || BX_PLATFORM_IOS
 				case SDL_TEXTEDITING: {
-					event.edit.start = utf8_count_characters(event.edit.text);
+					event.edit.start = CodeCvt::utf8_count_characters(event.edit.text);
 					break;
 				}
 #endif // BX_PLATFORM_ANDROID || BX_PLATFORM_IOS
