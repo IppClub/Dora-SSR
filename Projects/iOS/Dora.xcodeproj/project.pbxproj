@@ -6003,10 +6003,7 @@
 					"-Wno-unreachable-code",
 					"-Wno-conditional-uninitialized",
 				);
-				OTHER_CPLUSPLUSFLAGS = (
-					"-Wno-deprecated-declarations",
-					"-Wno-missing-template-arg-list-after-template-kw",
-				);
+				OTHER_CPLUSPLUSFLAGS = "-Wno-missing-template-arg-list-after-template-kw";
 				OTHER_LDFLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = IppClub.DoraSSR;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -6079,10 +6076,7 @@
 					"-Wno-unreachable-code",
 					"-Wno-conditional-uninitialized",
 				);
-				OTHER_CPLUSPLUSFLAGS = (
-					"-Wno-deprecated-declarations",
-					"-Wno-missing-template-arg-list-after-template-kw",
-				);
+				OTHER_CPLUSPLUSFLAGS = "-Wno-missing-template-arg-list-after-template-kw";
 				OTHER_LDFLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = IppClub.DoraSSR;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -6301,10 +6295,7 @@
 					"-Wno-unreachable-code",
 					"-Wno-conditional-uninitialized",
 				);
-				OTHER_CPLUSPLUSFLAGS = (
-					"-Wno-deprecated-declarations",
-					"-Wno-missing-template-arg-list-after-template-kw",
-				);
+				OTHER_CPLUSPLUSFLAGS = "-Wno-missing-template-arg-list-after-template-kw";
 				OTHER_LDFLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = IppClub.DoraSSR;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -6376,10 +6367,7 @@
 					"-Wno-unreachable-code",
 					"-Wno-conditional-uninitialized",
 				);
-				OTHER_CPLUSPLUSFLAGS = (
-					"-Wno-deprecated-declarations",
-					"-Wno-missing-template-arg-list-after-template-kw",
-				);
+				OTHER_CPLUSPLUSFLAGS = "-Wno-missing-template-arg-list-after-template-kw";
 				OTHER_LDFLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = IppClub.DoraSSR;
 				PRODUCT_NAME = "$(TARGET_NAME)";

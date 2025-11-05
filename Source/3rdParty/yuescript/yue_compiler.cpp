@@ -1360,10 +1360,10 @@ private:
 		std::ostringstream buf;
 		for (auto it = uname->m_begin.m_it; it != uname->m_end.m_it; ++it) {
 			auto ch = *it;
-			if (ch > 255) {
-				buf << "_u"sv << std::hex << static_cast<int>(ch);
-			} else {
+			if (ch <= 0x7F && ((ch == '_') || ((ch | 0x20) >= 'a' && (ch | 0x20) <= 'z') || (ch >= '0' && ch <= '9'))) {
 				buf << static_cast<char>(ch);
+			} else {
+				buf << "_u"sv << std::hex << static_cast<uint32_t>(ch);
 			}
 		}
 		return buf.str();
