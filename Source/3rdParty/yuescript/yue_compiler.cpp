@@ -78,7 +78,7 @@ static std::unordered_set<std::string> Metamethods = {
 	"close"s // Lua 5.4
 };
 
-const std::string_view version = "0.29.6"sv;
+const std::string_view version = "0.29.7"sv;
 const std::string_view extension = "yue"sv;
 
 class CompileError : public std::logic_error {
@@ -258,8 +258,8 @@ public:
 				if (config.lintGlobalVariable) {
 					globals = std::make_unique<GlobalVars>();
 					for (const auto& var : _globals) {
-						auto [name, line, col, accessType] = var.second;
-						globals->push_back({name, line + _config.lineOffset, col, accessType});
+						auto [name, line, col, accessType, defined] = var.second;
+						globals->push_back({name, line + _config.lineOffset, col, accessType, defined});
 					}
 					std::sort(globals->begin(), globals->end(), [](const GlobalVar& varA, const GlobalVar& varB) {
 						if (varA.line < varB.line) {
@@ -396,7 +396,7 @@ private:
 	};
 	std::stack<ContinueVar> _continueVars;
 	std::list<std::unique_ptr<input>> _codeCache;
-	std::unordered_map<std::string, std::tuple<std::string, int, int, AccessType>> _globals;
+	std::unordered_map<std::string, std::tuple<std::string, int, int, AccessType, bool>> _globals;
 	std::ostringstream _buf;
 	std::ostringstream _joinBuf;
 	const std::string _newLine = "\n";
@@ -1604,7 +1604,7 @@ private:
 					if (accessType == AccessType::Read && _funcLevel > 1) {
 						accessType = AccessType::Capture;
 					}
-					_globals[key] = {str, x->m_begin.m_line, x->m_begin.m_col, accessType};
+					_globals[key] = {str, x->m_begin.m_line, x->m_begin.m_col, accessType, isSolidDefined(str)};
 				}
 			}
 		}
@@ -4588,7 +4588,7 @@ private:
 						if (accessType == AccessType::Read && _funcLevel > 1) {
 							accessType = AccessType::Capture;
 						}
-						_globals[key] = {out.back(), item->m_begin.m_line, item->m_begin.m_col, accessType};
+						_globals[key] = {out.back(), item->m_begin.m_line, item->m_begin.m_col, accessType, isSolidDefined(out.back())};
 					}
 				}
 				break;
@@ -9179,7 +9179,7 @@ private:
 		if (_config.lintGlobalVariable && !isLocal(name)) {
 			auto key = name + ':' + std::to_string(pair->name->m_begin.m_line) + ':' + std::to_string(pair->name->m_begin.m_col);
 			if (_globals.find(key) != _globals.end()) {
-				_globals[key] = {name, pair->name->m_begin.m_line, pair->name->m_begin.m_col, _funcLevel > 1 ? AccessType::Capture : AccessType::Read};
+				_globals[key] = {name, pair->name->m_begin.m_line, pair->name->m_begin.m_col, _funcLevel > 1 ? AccessType::Capture : AccessType::Read, isSolidDefined(name)};
 			}
 		}
 	}
@@ -10829,7 +10829,7 @@ private:
 
 	void transformImportFrom(ImportFrom_t* importNode, str_list& out) {
 		str_list temp;
-		auto x = importNode;
+		auto x = importNode->item.get();
 		auto objVar = singleVariableFrom(importNode->item, AccessType::Read);
 		ast_ptr<false, ExpListAssign_t> objAssign;
 		if (objVar.empty()) {

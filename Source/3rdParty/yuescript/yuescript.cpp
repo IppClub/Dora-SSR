@@ -242,6 +242,7 @@ static int yuecheck(lua_State* L) {
 	}
 	if (result.globals) {
 		for (const auto& global : *result.globals) {
+			if (global.defined) continue;
 			lua_createtable(L, 4, 0);
 			lua_pushliteral(L, "global");
 			lua_rawseti(L, -2, 1);

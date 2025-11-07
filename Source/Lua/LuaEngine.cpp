@@ -694,6 +694,7 @@ static int dora_yue_check_async(lua_State* L) {
 			}
 			if (result.globals) {
 				for (const auto& global : *result.globals) {
+					if (global.defined) continue;
 					lua_createtable(L, 4, 0);
 					tolua_pushslice(L, "global"_slice);
 					lua_rawseti(L, -2, 1);
@@ -781,6 +782,7 @@ static int dora_yue_compile(lua_State* L) {
 								lua_createtable(L, s_cast<int>(result.globals->size()), 0);
 								int i = 1;
 								for (const auto& var : *result.globals) {
+									if (var.defined) continue;
 									lua_createtable(L, 3, 0);
 									lua_pushlstring(L, var.name.c_str(), var.name.size());
 									lua_rawseti(L, -2, 1);

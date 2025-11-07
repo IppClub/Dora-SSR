@@ -52,6 +52,7 @@ struct GlobalVar {
 	int line;
 	int col;
 	AccessType accessType;
+	bool defined;
 };
 
 using GlobalVars = std::vector<GlobalVar>;
