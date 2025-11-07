@@ -4,7 +4,7 @@
 
 &emsp;&emsp;Dora的JSON库。
 
-## load
+## decode
 
 **类型：** 函数。
 
@@ -14,7 +14,7 @@
 
 **签名：**
 ```tl
-load: function(json: string, maxDepth?: integer): table | nil, nil | string
+decode: function(json: string, maxDepth?: integer): table | nil, nil | string
 ```
 
 **参数：**
@@ -30,7 +30,7 @@ load: function(json: string, maxDepth?: integer): table | nil, nil | string
 | --- | --- |
 | table \| nil, nil \| string | 表示JSON数据的表，如果文本不是有效的JSON，则返回nil和错误消息。 |
 
-## dump
+## encode
 
 **类型：** 函数。
 
@@ -40,7 +40,7 @@ load: function(json: string, maxDepth?: integer): table | nil, nil | string
 
 **签名：**
 ```tl
-dump: function(tab: table): string | nil, nil | string
+encode: function(tab: table): string | nil, nil | string
 ```
 
 **参数：**

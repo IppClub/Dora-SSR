@@ -4,7 +4,7 @@
 
 &emsp;&emsp;JSON library for Dora.
 
-## load
+## decode
 
 **Type:** Function.
 
@@ -14,7 +14,7 @@
 
 **Signature:**
 ```tl
-load: function(json: string, maxDepth?: integer): table | nil, nil | string
+decode: function(json: string, maxDepth?: integer): table | nil, nil | string
 ```
 
 **Parameters:**
@@ -30,7 +30,7 @@ load: function(json: string, maxDepth?: integer): table | nil, nil | string
 | --- | --- |
 | table \| nil, nil \| string | The table representing the JSON data, or nil with an error message if the JSON text cannot be parsed. |
 
-## dump
+## encode
 
 **Type:** Function.
 
@@ -40,7 +40,7 @@ load: function(json: string, maxDepth?: integer): table | nil, nil | string
 
 **Signature:**
 ```tl
-dump: function(tab: table): string | nil, nil | string
+encode: function(tab: table): string | nil, nil | string
 ```
 
 **Parameters:**
