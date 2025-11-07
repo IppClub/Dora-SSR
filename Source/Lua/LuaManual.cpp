@@ -18,8 +18,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "SQLiteCpp/SQLiteCpp.h"
 
 extern "C" {
-int colibc_json_load(lua_State* L);
-int colibc_json_dump(lua_State* L);
+int colibc_json_decode(lua_State* L);
+int colibc_json_encode(lua_State* L);
 }
 
 NS_DORA_BEGIN
@@ -2865,7 +2865,7 @@ int HttpServer_post(lua_State* L) {
 			lua_rawset(L, -3);
 			lua_pushliteral(L, "body");
 			if (req.contentType == "application/json"_slice) {
-				lua_pushcfunction(L, colibc_json_load);
+				lua_pushcfunction(L, colibc_json_decode);
 				tolua_pushslice(L, req.body);
 				if (!LuaEngine::call(L, 1, 1)) {
 					lua_pop(L, 1);
@@ -2878,7 +2878,7 @@ int HttpServer_post(lua_State* L) {
 			LuaEngine::invoke(L, handler->get(), 1, 1);
 			HttpServer::Response res;
 			if (lua_istable(L, -1)) {
-				lua_pushcfunction(L, colibc_json_dump);
+				lua_pushcfunction(L, colibc_json_encode);
 				lua_insert(L, -2);
 				if (LuaEngine::call(L, 1, 1)) {
 					res.content = tolua_toslice(L, -1, nullptr).toString();
@@ -2960,7 +2960,7 @@ int HttpServer_postSchedule(lua_State* L) {
 			lua_rawset(L, -3);
 			lua_pushliteral(L, "body");
 			if (req.contentType == "application/json"_slice) {
-				lua_pushcfunction(L, colibc_json_load);
+				lua_pushcfunction(L, colibc_json_decode);
 				tolua_pushslice(L, req.body);
 				if (!LuaEngine::call(L, 1, 1)) {
 					lua_pop(L, 1);
@@ -2988,7 +2988,7 @@ int HttpServer_postSchedule(lua_State* L) {
 				} else {
 					HttpServer::Response res;
 					if (lua_istable(L, -1)) {
-						lua_pushcfunction(L, colibc_json_dump);
+						lua_pushcfunction(L, colibc_json_encode);
 						lua_insert(L, -2);
 						if (LuaEngine::call(L, 1, 1)) {
 							res.content = tolua_toslice(L, -1, nullptr).toString();

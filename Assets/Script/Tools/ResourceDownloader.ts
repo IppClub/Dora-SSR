@@ -142,10 +142,10 @@ class ResourceDownloader {
 			const versionResponse = HttpClient.getAsync(`${config.url}/api/v1/package-list-version`);
 			const packageListVersionFile = Path(Content.appPath, ".cache", "preview", "package-list-version.json");
 			if (versionResponse) {
-				const [version] = json.load(versionResponse);
+				const [version] = json.decode(versionResponse);
 				const packageListVersion = version as PackageListVersion;
 				if (Content.exist(packageListVersionFile)) {
-					const [oldVersion] = json.load(Content.load(packageListVersionFile));
+					const [oldVersion] = json.decode(Content.load(packageListVersionFile));
 					const oldPackageListVersion = oldVersion as PackageListVersion;
 					if (packageListVersion.version !== oldPackageListVersion.version) {
 						reload = true;
@@ -171,13 +171,13 @@ class ResourceDownloader {
 			}
 			const packagesFile = Path(cachePath, "packages.json");
 			if (Content.exist(packagesFile)) {
-				const [packages] = json.load(Content.load(packagesFile));
+				const [packages] = json.decode(Content.load(packagesFile));
 				this.packages = packages as PackageInfo[];
 			} else {
 				const packagesResponse = HttpClient.getAsync(`${config.url}/api/v1/packages`);
 				if (packagesResponse) {
 					// Cache packages data
-					const [packages] = json.load(packagesResponse);
+					const [packages] = json.decode(packagesResponse);
 					this.packages = packages as PackageInfo[];
 					Content.save(packagesFile, packagesResponse);
 				}
@@ -203,12 +203,12 @@ class ResourceDownloader {
 			};
 			const reposFile = Path(cachePath, "repos.json");
 			if (Content.exist(reposFile)) {
-				const [repos] = json.load(Content.load(reposFile));
+				const [repos] = json.decode(Content.load(reposFile));
 				loadRepos(repos as RepoInfo[]);
 			} else {
 				const reposResponse = HttpClient.getAsync(`${config.url}/assets/repos.json`);
 				if (reposResponse) {
-					const [repos] = json.load(reposResponse);
+					const [repos] = json.decode(reposResponse);
 					loadRepos(repos as RepoInfo[]);
 					Content.save(reposFile, reposResponse);
 				}

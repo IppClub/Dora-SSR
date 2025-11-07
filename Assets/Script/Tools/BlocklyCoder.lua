@@ -83,7 +83,7 @@ local function callLLM(messages, url, apiKey, model, receiver) -- 63
 		__TS__Promise, -- 70
 		function(____, resolve, reject) -- 70
 			thread(function() -- 71
-				local jsonStr = json.dump(data) -- 72
+				local jsonStr = json.encode(data) -- 72
 				if jsonStr ~= nil then -- 72
 					local res = HttpClient:postAsync( -- 74
 						url, -- 74
@@ -180,7 +180,7 @@ function LLMCode.prototype.exec(self, messages) -- 167
 										return false -- 180
 									end -- 180
 									for item in string.gmatch(data, "data:%s*(%b{})") do -- 182
-										local res = json.load(item) -- 183
+										local res = json.decode(item) -- 183
 										if res then -- 183
 											local part = res.choices[1].delta.content -- 185
 											if type(part) == "string" then -- 185
@@ -229,7 +229,7 @@ local function compileTS(file, content) -- 212
 				function(eventType, msg) -- 220
 					if eventType == "Receive" then -- 220
 						node:removeFromParent() -- 222
-						local res = json.load(msg) -- 223
+						local res = json.decode(msg) -- 223
 						if res and res.name == "TranspileTS" then -- 223
 							if res.success then -- 223
 								resolve(nil, {success = true, result = res.luaCode}) -- 226
@@ -240,7 +240,7 @@ local function compileTS(file, content) -- 212
 					end -- 228
 				end -- 220
 			) -- 220
-			local str = json.dump(data) -- 233
+			local str = json.encode(data) -- 233
 			if str then -- 233
 				emit("AppWS", "Send", str) -- 235
 			end -- 235

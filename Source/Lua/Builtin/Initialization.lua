@@ -1269,9 +1269,9 @@ end
 -- Dora json wrapper
 do
 	local json = Dora.json
-	local jsonLoad = json.load
-	json.load = function(str, maxdepth)
-		local success, result = pcall(jsonLoad, str, maxdepth)
+	local jsonDecode = json.decode
+	json.decode = function(str, maxdepth)
+		local success, result = pcall(jsonDecode, str, maxdepth)
 		if success then
 			return result
 		else
@@ -1279,9 +1279,9 @@ do
 		end
 	end
 
-	local jsonDump = json.dump
-	json.dump = function(obj)
-		local success, result = pcall(jsonDump, obj)
+	local jsonEncode = json.encode
+	json.encode = function(obj)
+		local success, result = pcall(jsonEncode, obj)
 		if success then
 			return result
 		else

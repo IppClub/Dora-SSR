@@ -52,7 +52,7 @@ function getLatestVersion() {
 		const res = HttpClient.getAsync(url);
 		let success = false;
 		if (res) {
-			const info = json.load(res)[0] as VersionInfo | null;
+			const info = json.decode(res)[0] as VersionInfo | null;
 			if (info) {
 				latestVersion = info.tag_name;
 				success = true;

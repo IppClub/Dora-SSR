@@ -774,7 +774,7 @@ do -- 1
 				return j -- 1057
 			end -- 1054
 		) or ({}) -- 1054
-		local res = json.dump({ -- 1059
+		local res = json.encode({ -- 1059
 			blocks = { -- 1060
 				languageVersion = 0, -- 1061
 				blocks = { -- 1062

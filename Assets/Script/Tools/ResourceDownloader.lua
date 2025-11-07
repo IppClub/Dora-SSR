@@ -113,10 +113,10 @@ function ResourceDownloader.prototype.loadData(self) -- 137
 		local versionResponse = HttpClient:getAsync(config.url .. "/api/v1/package-list-version") -- 142
 		local packageListVersionFile = Path(Content.appPath, ".cache", "preview", "package-list-version.json") -- 143
 		if versionResponse then -- 143
-			local version = json.load(versionResponse) -- 145
+			local version = json.decode(versionResponse) -- 145
 			local packageListVersion = version -- 146
 			if Content:exist(packageListVersionFile) then -- 146
-				local oldVersion = json.load(Content:load(packageListVersionFile)) -- 148
+				local oldVersion = json.decode(Content:load(packageListVersionFile)) -- 148
 				local oldPackageListVersion = oldVersion -- 149
 				if packageListVersion.version ~= oldPackageListVersion.version then -- 149
 					reload = true -- 151
@@ -141,12 +141,12 @@ function ResourceDownloader.prototype.loadData(self) -- 137
 		end -- 170
 		local packagesFile = Path(cachePath, "packages.json") -- 172
 		if Content:exist(packagesFile) then -- 172
-			local packages = json.load(Content:load(packagesFile)) -- 174
+			local packages = json.decode(Content:load(packagesFile)) -- 174
 			self.packages = packages -- 175
 		else -- 175
 			local packagesResponse = HttpClient:getAsync(config.url .. "/api/v1/packages") -- 177
 			if packagesResponse then -- 177
-				local packages = json.load(packagesResponse) -- 180
+				local packages = json.decode(packagesResponse) -- 180
 				self.packages = packages -- 181
 				Content:save(packagesFile, packagesResponse) -- 182
 			end -- 182
@@ -173,12 +173,12 @@ function ResourceDownloader.prototype.loadData(self) -- 137
 		end -- 194
 		local reposFile = Path(cachePath, "repos.json") -- 204
 		if Content:exist(reposFile) then -- 204
-			local repos = json.load(Content:load(reposFile)) -- 206
+			local repos = json.decode(Content:load(reposFile)) -- 206
 			loadRepos(repos) -- 207
 		else -- 207
 			local reposResponse = HttpClient:getAsync(config.url .. "/assets/repos.json") -- 209
 			if reposResponse then -- 209
-				local repos = json.load(reposResponse) -- 211
+				local repos = json.decode(reposResponse) -- 211
 				loadRepos(repos) -- 212
 				Content:save(reposFile, reposResponse) -- 213
 			end -- 213

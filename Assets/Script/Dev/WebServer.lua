@@ -2438,7 +2438,7 @@ HttpServer:post("/editing-info", function(req) -- 968
 			else -- 976
 				folder = 'en' -- 976
 			end -- 976
-			config.editingInfo = json.dump({ -- 978
+			config.editingInfo = json.encode({ -- 978
 				index = 0, -- 978
 				files = { -- 980
 					{ -- 981
@@ -2518,7 +2518,7 @@ HttpServer:post("/yarn/check", function(req) -- 1002
 				end -- 1011
 			end -- 1011
 			if code ~= nil then -- 1004
-				local jsonObject = json.load(code) -- 1005
+				local jsonObject = json.decode(code) -- 1005
 				if jsonObject then -- 1005
 					local errors = { } -- 1006
 					local _list_0 = jsonObject.nodes -- 1007
@@ -2797,7 +2797,7 @@ HttpServer:postSchedule("/ts/build", function(req) -- 1083
 							message = "failed to read file" -- 1095
 						} -- 1095
 					end -- 1094
-					emit("AppWS", "Send", json.dump({ -- 1096
+					emit("AppWS", "Send", json.encode({ -- 1096
 						name = "UpdateTSCode", -- 1096
 						file = path, -- 1096
 						content = content -- 1096
@@ -2809,7 +2809,7 @@ HttpServer:postSchedule("/ts/build", function(req) -- 1083
 							_with_0:gslot("AppWS", function(eventType, msg) -- 1100
 								if eventType == "Receive" then -- 1101
 									_with_0:removeFromParent() -- 1102
-									local res = json.load(msg) -- 1103
+									local res = json.decode(msg) -- 1103
 									if res then -- 1103
 										if res.name == "TranspileTS" then -- 1104
 											if res.success then -- 1105
@@ -2832,7 +2832,7 @@ HttpServer:postSchedule("/ts/build", function(req) -- 1083
 								end -- 1101
 							end) -- 1100
 						end -- 1099
-						emit("AppWS", "Send", json.dump({ -- 1112
+						emit("AppWS", "Send", json.encode({ -- 1112
 							name = "TranspileTS", -- 1112
 							file = path, -- 1112
 							content = content -- 1112
@@ -2858,7 +2858,7 @@ HttpServer:postSchedule("/ts/build", function(req) -- 1083
 						local content = Content:load(file) -- 1122
 						if content then -- 1122
 							fileData[file] = content -- 1123
-							emit("AppWS", "Send", json.dump({ -- 1124
+							emit("AppWS", "Send", json.encode({ -- 1124
 								name = "UpdateTSCode", -- 1124
 								file = file, -- 1124
 								content = content -- 1124
@@ -2882,7 +2882,7 @@ HttpServer:postSchedule("/ts/build", function(req) -- 1083
 							_with_0:gslot("AppWS", function(eventType, msg) -- 1131
 								if eventType == "Receive" then -- 1132
 									_with_0:removeFromParent() -- 1133
-									local res = json.load(msg) -- 1134
+									local res = json.decode(msg) -- 1134
 									if res then -- 1134
 										if res.name == "TranspileTS" then -- 1135
 											if res.success then -- 1136
@@ -2905,7 +2905,7 @@ HttpServer:postSchedule("/ts/build", function(req) -- 1083
 								end -- 1132
 							end) -- 1131
 						end -- 1130
-						emit("AppWS", "Send", json.dump({ -- 1143
+						emit("AppWS", "Send", json.encode({ -- 1143
 							name = "TranspileTS", -- 1143
 							file = file, -- 1143
 							content = content -- 1143

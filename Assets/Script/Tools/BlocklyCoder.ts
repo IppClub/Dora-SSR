@@ -69,7 +69,7 @@ const callLLM = (messages: Message[], url: string, apiKey: string, model: string
 	};
 	return new Promise<string>((resolve, reject) => {
 		thread(() => {
-			const [jsonStr] = json.dump(data);
+			const [jsonStr] = json.encode(data);
 			if (jsonStr !== null) {
 				const res = HttpClient.postAsync(url, [
 					`Authorization: Bearer ${apiKey}`,
@@ -180,7 +180,7 @@ class LLMCode extends Node {
 						return false;
 					}
 					for (let [item] of string.gmatch(data, 'data:%s*(%b{})')) {
-						const [res] = json.load(item);
+						const [res] = json.decode(item);
 						if (res) {
 							const part = (res as any)['choices'][1]['delta']['content'];
 							if (typeof part === 'string') {
@@ -220,7 +220,7 @@ const compileTS = (file: string, content: string) => {
 		node.gslot(GSlot.AppWS, (eventType, msg) => {
 			if (eventType === "Receive") {
 				node.removeFromParent();
-				const [res] = json.load(msg);
+				const [res] = json.decode(msg);
 				if (res && res.name == "TranspileTS") {
 					if (res.success) {
 						resolve({success: true, result: res.luaCode});
@@ -230,7 +230,7 @@ const compileTS = (file: string, content: string) => {
 				}
 			}
 		});
-		const [str] = json.dump(data);
+		const [str] = json.encode(data);
 		if (str) {
 			emit(GSlot.AppWS, "Send", str);
 		}
